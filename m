@@ -1,883 +1,896 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A78C71F9422
-	for <nvdimm@lists.linux.dev>; Tue,  5 Nov 2024 18:39:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730831982; cv=none; b=FyTUhB3zrHI6rbn+Gal7RWzO7dF2vPAR8bUtkD+HCtoT1tdm/liVBQ3BVo4hMxHcKy0nn/U8o3gUTste4gOG9DwjE03ZJyDzPPrJej8NVHb4JF6YZQoM3bCUZD38v7CXDw/cpdwRd3jppul49X1XUaylqzKYAk1UXnNrYJQJ9iU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730831982; c=relaxed/simple;
-	bh=Gl4+oM0oWMTc1Saz64ZHVtwtMIF2STVm2KOIjGxxXcs=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=l2k7vF4LK2ztFY3cMnMN9JL0zHtOkg4arOqIWNrVx5Kkhfv4zumXztrz6ue3Tw3HlEjjz14UPYoNrOE2qGQqnAH8jBlmF55l8LYVsv6MS3dCwcqsFYh0ZtF7IQ/Tc4HSujnBNLxHn1M2XfA/Seo4rxAqVmqSpI2X8tG8qPsGoOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eJzAEldX; arc=none smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA862212F07
+	for <nvdimm@lists.linux.dev>; Tue,  5 Nov 2024 19:53:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.10
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1730836418; cv=fail; b=F1DmHaG32sH2pmTWCo54UgqA/ZeEpdW2xEd1sGtj1KX240AVHWH1MwmMPYE23OVO588Oemd8BsbuW3spV1IolrDPEqAgYsbhFfthpZTJkuDouPSLuMebrMxbg3DvTMHPNcdGp/pK+gW73PK3HFBEtVgvQk/2vZh2IsHWEsGJcG8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1730836418; c=relaxed/simple;
+	bh=b8VVYk5sVOmIoiiENgCUJTcgpRnHnpOcwfMFDUy/EMY=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=blTwokhxs0SwDGHhwPRN5vN2pBKkTOJ0X2uFY+Im+AsC+XJXw2/jVzn2efZSP8aGXVZvJA0eSsRbl4pDrnIQD3durlgfzWB1z+PPy1EEsbE75HTeB37PU2MVHXM9kySCtcsCrI6u4tRrZoCv46waZgbTuGTCHKPnto4fLfpMDOg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SUDzZGvX; arc=fail smtp.client-ip=192.198.163.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eJzAEldX"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SUDzZGvX"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730831980; x=1762367980;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=Gl4+oM0oWMTc1Saz64ZHVtwtMIF2STVm2KOIjGxxXcs=;
-  b=eJzAEldXSDuhYkCG9MYCuAGEPOOVjxGSpazn8FbPegVGyVpQAsqFHmHM
-   o+sFoOA1bYd8jiewzEU/l8maZHDq9SOhUXiyButGw5GvzoOrSNn/Lnq3n
-   r83uCw8W9rrLMbXj8YFwBBbitOz3cbhw3o7cNb3CyFaHjinLycsczT10e
-   5htfhe40WxyUg0AIhL4xLlaKZrpNcqHZ0MzPm4C7mq1PPD9rAXOlnhD3p
-   m8tKH9zVuS9iFfM+H44Rex2APnUvIIFOSZ0uklUWIE9fOBZbpUSVonXAF
-   I2rcuy8UkXFojSU5qpZueSDmx4Sb4fX0uQxM7IOLza1ZIJYCfT1spi0ki
-   g==;
-X-CSE-ConnectionGUID: 0UeYBj21TBKJd+MFZ1EcXg==
-X-CSE-MsgGUID: z54/S7qtTPyjF8B8aSfE2g==
-X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="30771363"
-X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
-   d="scan'208";a="30771363"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 10:39:39 -0800
-X-CSE-ConnectionGUID: 91PYpyzwRImmDUuPtpXjOQ==
-X-CSE-MsgGUID: ocTxKLXORdikXFT5tOH6fA==
+  t=1730836416; x=1762372416;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=b8VVYk5sVOmIoiiENgCUJTcgpRnHnpOcwfMFDUy/EMY=;
+  b=SUDzZGvX4UV6I5yFeQtZS2aP1pfXXu3a9aKSOQYk5ZOJ66GGul0ggV6N
+   tgt2eMmNRcyFpNFDaCj8vKBeOyMYfqTR8a9hBA42LIWRpixpWtKOCVx0A
+   ReFpmmCKNBMWcWQDJhKjfKUUrnwV1Zq2Qw4qQDqduO4yyB+FCiirmMhca
+   zhmEGbWtm54Hpp+AxrPUAsH+juj1t2oC+TFflUkOWh4T5q+x7bwMbjEMg
+   bjiq1EbKiBKeCA1ffMJ6XBjYvcsAauG6boKk+kiyJFnWU+F1H98P+YJ7B
+   /lvopeLJpMklVKM4znAYHuZUPnSf5o/7OQNL/WmGDVBnk9hU/NWxYq8ZH
+   Q==;
+X-CSE-ConnectionGUID: W4fj0fR4SkCvPRc3Iv7XSw==
+X-CSE-MsgGUID: 2YPwVZiHQAm6KMkqelgg2Q==
+X-IronPort-AV: E=McAfee;i="6700,10204,11247"; a="41984356"
+X-IronPort-AV: E=Sophos;i="6.11,261,1725346800"; 
+   d="scan'208";a="41984356"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 11:53:34 -0800
+X-CSE-ConnectionGUID: XblB8QZEQqCZ4cgRVhCv9Q==
+X-CSE-MsgGUID: +cVKfeLzSvaezTIHDfRhWw==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
-   d="scan'208";a="88916739"
-Received: from spandruv-mobl4.amr.corp.intel.com (HELO localhost) ([10.125.109.247])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 10:39:38 -0800
+X-IronPort-AV: E=Sophos;i="6.11,261,1725346800"; 
+   d="scan'208";a="114931993"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by orviesa002.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 05 Nov 2024 11:53:34 -0800
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Tue, 5 Nov 2024 11:53:33 -0800
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39 via Frontend Transport; Tue, 5 Nov 2024 11:53:33 -0800
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.173)
+ by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Tue, 5 Nov 2024 11:53:33 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=hlqxwB6AkDGRCnMtkL0OBB/CXGTFcnjFi1PKkylcnQLjalrSdnHaZpy9GTrKGiD9uB8jx682iH0lHbyESXJop5WgfE+CgkSAzfhuNR5TvVLpp3atBfaZDbdGHi8DozwcWgim5gN3lKqipTXoBW9KGhaVTvl7d3Y+yJLQ0V8JcSl/nmWp9NEIE3/B5pXKEq+7FwJiopjMS3MdytdB16z7M9/unw871dcyVBrVa2ZWHY7GFTlOWQ7lHPHQtPBn23+0XctX748O9tx6H1IUz4O3VYljdEhOjIWxi4Vu0/2LDNTFUs+pcoPq0EsfoKpKDQ/us8yynKo+2dKIz2v2uf3ECA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=AlqIHaGAzv3OQAvVSZUmg8TvN9ECGQpwbH1e2KPtP30=;
+ b=q2P/cI/G5X1iAeRiOtQoMHjw7ioYBRO24JXq8ZxQ94Y2iluM+KkgvyiDQCq56TrZikuf6h1Hk0qX9aWh5ru3m8JYzPjCxMzwdX0+7McIHLpvq+W5ySgBBCt+CR9Vr2iA3Idn8N1XD75UW3Wn/RrfmgmU5/oGl01XMXwDXE4L1Jt/l4aqul28DnJPRWvLOlZ2FYNac60/gjpcHZ4BaVgNV6y0L5SpO6FmkftojQh5Xe2WADHoYJhQ9+9xSkNYJldV2tz/cOEm5qu5pGaMgcMbAmHEUR+EzxB3aQDiWzKOpcXbHJ5jxPjIaOr8cFCtQn6Vl4vtGWQUrzE9zBsOE0NvGQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by DM4PR11MB6191.namprd11.prod.outlook.com (2603:10b6:8:ac::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8114.31; Tue, 5 Nov
+ 2024 19:53:30 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57%3]) with mapi id 15.20.8114.028; Tue, 5 Nov 2024
+ 19:53:30 +0000
+Date: Tue, 5 Nov 2024 13:53:26 -0600
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Tue, 05 Nov 2024 12:38:49 -0600
-Subject: [PATCH v6 27/27] tools/testing/cxl: Add DC Regions to mock mem
- data
+To: Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	"Alison Schofield" <alison.schofield@intel.com>
+CC: Vishal Verma <vishal.l.verma@intel.com>, Jonathan Cameron
+	<jonathan.cameron@huawei.com>, Fan Ni <fan.ni@samsung.com>, Navneet Singh
+	<navneet.singh@intel.com>, Dan Williams <dan.j.williams@intel.com>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [ndctl PATCH v2 6/6] ndctl/cxl/test: Add Dynamic Capacity tests
+Message-ID: <672a77b678c04_166959294b2@iweiny-mobl.notmuch>
+References: <20241104-dcd-region2-v2-0-be057b479eeb@intel.com>
+ <20241104-dcd-region2-v2-6-be057b479eeb@intel.com>
+ <8f7c852a-8ab3-4c7c-862f-215493ae2a87@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <8f7c852a-8ab3-4c7c-862f-215493ae2a87@intel.com>
+X-ClientProxiedBy: MW3PR06CA0014.namprd06.prod.outlook.com
+ (2603:10b6:303:2a::19) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20241105-dcd-type2-upstream-v6-27-85c7fa2140fe@intel.com>
-References: <20241105-dcd-type2-upstream-v6-0-85c7fa2140fe@intel.com>
-In-Reply-To: <20241105-dcd-type2-upstream-v6-0-85c7fa2140fe@intel.com>
-To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
- Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
- Navneet Singh <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, 
- Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, 
- Davidlohr Bueso <dave@stgolabs.net>, 
- Alison Schofield <alison.schofield@intel.com>, 
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
- linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org, 
- nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-X-Mailer: b4 0.15-dev-2a633
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730831904; l=22413;
- i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=Gl4+oM0oWMTc1Saz64ZHVtwtMIF2STVm2KOIjGxxXcs=;
- b=wrcOpAQiSaQ+qqVBOKNbmodUvCZm2gdLt+a3/HNbfEr1LvBjcy2Cwwap+3PmCeNCsPAcF3O32
- bDCoSnxrXngB1VmgmgsCionPa3nlMmE5e88g6mTBq/Vcg/zCEocrku/
-X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
- pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|DM4PR11MB6191:EE_
+X-MS-Office365-Filtering-Correlation-Id: ab6a8862-eb03-4245-da34-08dcfdd3859d
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?eufiIDOtD4KPYUtBoHD9eIt2xaH2lBspf3LTHRnfNTL5sSSW7fmFKL8c5IO8?=
+ =?us-ascii?Q?ksoeVFwZ4ZK++b8qlocF5DJJjyXurrMaX1SaejrqBncEe6lMFDJuu1P3zuCZ?=
+ =?us-ascii?Q?Y16Zxm+z3QNx4iTe2k8r51XqNcT7YGbE9w3sl6FQO1ZaEeqcQewA1i9ETvyk?=
+ =?us-ascii?Q?oSgDK94g/D9Kp594X1ZYNO3g26A6uKlRbniTfL2qKVxnGpA1ljUMPhl76ZPG?=
+ =?us-ascii?Q?AWfwtsXfmfORVXv+JNliLt09lZ0juMYHDNqsh9HHRNkodvhIa1ZVRedmzqmr?=
+ =?us-ascii?Q?8uYMEPjJwiIXxlBMgLUKUqejfHVr5zpUUanXJQTUtg4iU6Gtq316sbd33uy6?=
+ =?us-ascii?Q?R4ls52z3ETQLGlh4f4PN1HsQRaOVPfSKPRCAplLxh9YGo2H5NYs7GjSJ58Lb?=
+ =?us-ascii?Q?U/3hb7srHulJcCcpk9lEGTnw2FViJ60SP2HVH7lftrsQJ00wdGuEqt+OpYIh?=
+ =?us-ascii?Q?Sz0INpcl/RowFCIYep2WcpB+3w+ixM2UOLwp9aoHr03Ki8k2/hxmMqtfqByZ?=
+ =?us-ascii?Q?fISnI83Eq5WXNlegWJTcUDgTxtSvihjg1gORkVvhwpAMwNNtkdfmiPIA1IdA?=
+ =?us-ascii?Q?eFkaCzUfzjH55iLKDeYSQhazArNTdeEkuW1lxAsQVF/1wP4RDDbMoaoQ5QJo?=
+ =?us-ascii?Q?fxNqx2JQXxLkE8rXtfW9rXs4gFoEyk67saR5lK/yhsJmeeYvAUPKTYPYkmgW?=
+ =?us-ascii?Q?/aivQ0EFZJovuRdqlvZLlEiaCo365TBaJh5gTkZbBpj8P+v2HdyPubaFuNe+?=
+ =?us-ascii?Q?GwR39Cy/1Vh1QOOdrAImt8eY++4iG2Bm0wfZe55shcfL5kfLF4iBzVQDyzrn?=
+ =?us-ascii?Q?hJ+6QMJSVjDo8IsMilJ29DNaurcxqmHKrksBeEfnCwVKa1tfb8aveLDT3JNa?=
+ =?us-ascii?Q?Ktvi5yI7VeX0dZ+TxUUhARmg39X7RW3sxb279dFxKmWBJ82HuLJ/yT/WVK2f?=
+ =?us-ascii?Q?5315ftvye7vzQb8Fp+glpEQlA9rbAjrPdf4yAJzazQt0GQ26N617PHTOXSfD?=
+ =?us-ascii?Q?I0PyYDn5W7jRdZWzTOo2KD5tUBdOfDtzTwulGwCIeM4AnmhPOgFFl9dRrgC7?=
+ =?us-ascii?Q?rIjCPt9rUyxBk8SrlCbfEgTydrmsz9hbDlZFTTiASIb/QIed6H7lqQZk5jk+?=
+ =?us-ascii?Q?XyfdXHsuYF8PA8oFa6jhtoalhwIS4R189EvPpiLKX8JxPnveZHpDQbC2TlOD?=
+ =?us-ascii?Q?lVjeqVSkSbrZUHZ4xuKKWo2F6tAFodR1UPAqXLtpjTqyTbqqo06tPq1j2GLb?=
+ =?us-ascii?Q?0g0104vd+jbQRnZBF4wvP8r5pSOyrqcjcDWdYfyZqFRbrME07vRaQO68V8k3?=
+ =?us-ascii?Q?NqYhZjs+ZiiM36sSe/A5qKDL?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?geSgOeAyVV1Ew4QHu8ySAWr31ysgO0xolPnWw5dSlJ5vO0SU4nz48RVgNQEu?=
+ =?us-ascii?Q?Ndj/lRpfmx7xB6MzyWXQ/aeCMWEkTmnJxanZRYubutUL2VS/TYY1aj3wYC5U?=
+ =?us-ascii?Q?mWYafjLU0eVh+LLnuG7cwZ9dlM1INIM8uLgFs7MCGik3O3VRNGh5eZw+vVME?=
+ =?us-ascii?Q?Q8VKBq/psP9/x6Fh5Wb5ic3T+V6mbHC9nPKat0gPAjnCoyjj63dOE7vP1CMg?=
+ =?us-ascii?Q?RxnYn+Y5UWuahoThJ2YfW7dtWDuhi+8PihU1QV6UxdttmfKPN0j4zgCgeN6F?=
+ =?us-ascii?Q?IxS5TlG5oLm8SDQjS8tUB1aaXd0Gk7DPVPaiPov2N+eE6pyB+LtODhwSOiAQ?=
+ =?us-ascii?Q?IiCyMLuh/IYYPsrN22PZ6w5J1ihWQZT5rmvZUpXbP6Hw5e6zseetDhQWvTLi?=
+ =?us-ascii?Q?+ES3DYk+ZMawQUC2hE7ILCKEv9Fo4KYC9CLqnoPJoL21f91353SE6sa7SgNM?=
+ =?us-ascii?Q?WJ79qY369e6hP9bNxIAdLCXlMsGHOgl1/chi9Hw5glQoQxYMvkVvvPgopPFH?=
+ =?us-ascii?Q?YybgRJMXtHG0C0hKr3dujOau7lSbXxTeHUWurRrJt8U6J/a0Hm1issaGCmp9?=
+ =?us-ascii?Q?xuwvPx7bjOAqAgV9Z56p/hPM8SZf2x5x5sXp8hKzgrnzl1poxP8eCXQLGOyo?=
+ =?us-ascii?Q?XWSguduQi2+uGsyZCiDD5LgOasEGIPrJKtkMGAyc65D/Ew01q20SeFaQFzza?=
+ =?us-ascii?Q?nm4ijC3qz7zcMyQSHH/3UwNPzjda9LsO6SKm53D42TKXBMI3Qib7liFatnVr?=
+ =?us-ascii?Q?r0+lMKyVtEp7YumYYyJyyvvndz2RMHvJCxKZJrDjW0wBAMyBNKHaj9bViYP3?=
+ =?us-ascii?Q?/hiJc68deRs0erEVvwsjNjxdI4FpuTz65qlHEhYf7hgxNDubPOZ9FtD0S2Hw?=
+ =?us-ascii?Q?/tuvevw7zdSMTEYSWQBEwTs9VQHIeWynWIwjsWD35sB5l8EFIQ5LxgzhskjM?=
+ =?us-ascii?Q?QuLVO0jafcVJ7cupSssSG2egpeL+gXjs3H6LuH8R+PdtS7UYKLFkKz4CJXqO?=
+ =?us-ascii?Q?pmwntCGvapS4hV7ehVdVUuesicaKntU56FX53g8SatazzBD8H9A029DiWZfl?=
+ =?us-ascii?Q?y0oX9Uo4G6ePWgKs1YJCr+FZCz1HeXq1Aspw0SAmv2WcmoMFHi/SEgCgYMgG?=
+ =?us-ascii?Q?VmfgwugQemPKwvMYYpVpxcYDewwt9ZJs4zhsb1umt8dVryzbceIXID4iu2cU?=
+ =?us-ascii?Q?AiFhVAtSMLGAKQjAvXF6qPEMRrMCjtcYXRCFHyTIO6FyPOqMXtUq8AKT5zln?=
+ =?us-ascii?Q?uL2prZYDSaQoSjkQG8YPVwk7mw0foawBlfwsA/XspuYVxMY7TGUn/eI8yPax?=
+ =?us-ascii?Q?qaT4bajDwqL731RwkI6ZIHd6u/0cROCL4FuVfndeJqIUMFpI37OG6EAGbReG?=
+ =?us-ascii?Q?RzTbOFcLLkDG7XQfnJoc5768wWlH4sT5BERZBB10ha1mn6Q3SSLf0IIBY5cB?=
+ =?us-ascii?Q?0jveSVCg2rsnmrRvK2HKW/xT59DCNpUoFs0bIB1eTLFrssKx6HmVGStTOII2?=
+ =?us-ascii?Q?c/qcoJJYMl/3btHBITkioRN01+qElRgXGNVYlVWW0HsERTJLUTPLzoARqiVD?=
+ =?us-ascii?Q?yAKxahWpDzgyB3G85a59D8TBLZBBNupp+WvKzula?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: ab6a8862-eb03-4245-da34-08dcfdd3859d
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2024 19:53:30.4847
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: hNDoqTj20roLEXnA79YSRYAd6uP0yhUxGE5ddkOIQRejQEfz8DMHCAO8mjtMXdGQFEIZNe2/j18CnPNezYBaxg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR11MB6191
+X-OriginatorOrg: intel.com
 
-cxl_test provides a good way to ensure quick smoke and regression
-testing.  The complexity of Dynamic Capacity (DC) extent processing as
-well as the complexity of the new sparse DAX regions can mostly be
-tested through cxl_test.  This includes management of sparse regions and
-DAX devices on those regions; the management of extent device lifetimes;
-and the processing of DCD events.
+Dave Jiang wrote:
+> 
+> 
+> On 11/4/24 7:10 PM, Ira Weiny wrote:
+> > cxl_test provides a good way to ensure quick smoke and regression
+> > testing.  The complexity of DCD and the new sparse DAX regions required
+> > to use them benefits greatly with a series of smoke tests.
+> > 
+> > The only part of the kernel stack which must be bypassed is the actual
+> > irq of DCD events.  However, the event processing itself can be tested
+> > via cxl_test calling directly the event processing function directly.
+> > 
+> > In this way the rest of the stack; management of sparse regions, the
+> > extent device lifetimes, and the dax device operations can be tested.
+> > 
+> > Add Dynamic Capacity Device tests for kernels which have DCD support in
+> > cxl_test.
+> > 
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+> Would things look cleaner if the multiple test cases are organized into individual bash functions?
 
-The only missing functionality from this test is actual interrupt
-processing.
+Perhaps.  But many of the initial tests borrow state from the previous
+test.  For example the cxl-test pre-existing extents are used to test
+extent removal.  Later on those dependencies lessoned.
 
-Mock memory devices can easily mock DC information and manage fake
-extent data.
+Let me see if I can clean up the testing now that things are settling out.
 
-Define mock_dc_region information within the mock memory data.  Add
-sysfs entries on the mock device to inject and delete extents.
+Ira
 
-The inject format is <start>:<length>:<tag>:<more_flag>
-The delete format is <start>:<length>
+> 
+> > ---
+> >  test/cxl-dcd.sh  | 656 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  test/meson.build |   2 +
+> >  2 files changed, 658 insertions(+)
+> > 
+> > diff --git a/test/cxl-dcd.sh b/test/cxl-dcd.sh
+> > new file mode 100644
+> > index 0000000000000000000000000000000000000000..f5248fce4f3899acdf646ace4f0eb531ea2286d3
+> > --- /dev/null
+> > +++ b/test/cxl-dcd.sh
+> > @@ -0,0 +1,656 @@
+> > +#!/bin/bash
+> > +# SPDX-License-Identifier: GPL-2.0
+> > +# Copyright (C) 2024 Intel Corporation. All rights reserved.
+> > +
+> > +. "$(dirname "$0")/common"
+> > +
+> > +rc=77
+> > +set -ex
+> > +
+> > +trap 'err $LINENO' ERR
+> > +
+> > +check_prereq "jq"
+> > +
+> > +modprobe -r cxl_test
+> > +modprobe cxl_test
+> > +rc=1
+> > +
+> > +dev_path="/sys/bus/platform/devices"
+> > +cxl_path="/sys/bus/cxl/devices"
+> > +
+> > +# a test extent tag
+> > +test_tag=dc-test-tag
+> > +
+> > +#
+> > +# The test devices have 2G of non DC capacity.  A single DC reagion of 1G is
+> > +# added beyond that.
+> > +#
+> > +# The testing centers around 3 extents.  Two are pre-existing on test load
+> > +# called pre-existing.  The other is created within this script alone called
+> > +# base.
+> > +
+> > +#
+> > +# | 2G non- |      DC region (1G)                                   |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |--------|       |----------|      |----------|         |
+> > +# |         | (base) |       | (pre)-   |      | (pre2)-  |         |
+> > +# |         |        |       | existing |      | existing |         |
+> > +
+> > +dcsize=""
+> > +
+> > +base_dpa=0x80000000
+> > +
+> > +# base extent at dpa 2G - 64M long
+> > +base_ext_offset=0x0
+> > +base_ext_dpa=$(($base_dpa + $base_ext_offset))
+> > +base_ext_length=0x4000000
+> > +
+> > +# pre existing extent base + 128M, 64M length
+> > +# 0x00000088000000-0x0000008bffffff
+> > +pre_ext_offset=0x8000000
+> > +pre_ext_dpa=$(($base_dpa + $pre_ext_offset))
+> > +pre_ext_length=0x4000000
+> > +
+> > +# pre2 existing extent base + 256M, 64M length
+> > +# 0x00000090000000-0x00000093ffffff
+> > +pre2_ext_offset=0x10000000
+> > +pre2_ext_dpa=$(($base_dpa + $pre2_ext_offset))
+> > +pre2_ext_length=0x4000000
+> > +
+> > +mem=""
+> > +bus=""
+> > +device=""
+> > +decoder=""
+> > +
+> > +create_dcd_region()
+> > +{
+> > +	mem="$1"
+> > +	decoder="$2"
+> > +	reg_size_string=""
+> > +	if [ "$3" != "" ]; then
+> > +		reg_size_string="-s $3"
+> > +	fi
+> > +	dcd_partition="dc0"
+> > +	if [ "$4" != "" ]; then
+> > +		dcd_partition="$4"
+> > +	fi
+> > +
+> > +	# create region
+> > +	rc=$($CXL create-region -t ${dcd_partition} -d "$decoder" -m "$mem" ${reg_size_string} | jq -r ".region")
+> > +
+> > +	if [[ ! $rc ]]; then
+> > +		echo "create-region failed for $decoder / $mem"
+> > +		err "$LINENO"
+> > +	fi
+> > +
+> > +	echo ${rc}
+> > +}
+> > +
+> > +check_region()
+> > +{
+> > +	search=$1
+> > +	region_size=$2
+> > +
+> > +	result=$($CXL list -r "$search" | jq -r ".[].region")
+> > +	if [ "$result" != "$search" ]; then
+> > +		echo "check region failed to find $search"
+> > +		err "$LINENO"
+> > +	fi
+> > +
+> > +	result=$($CXL list -r "$search" | jq -r ".[].size")
+> > +	if [ "$result" != "$region_size" ]; then
+> > +		echo "check region failed invalid size $result != $region_size"
+> > +		err "$LINENO"
+> > +	fi
+> > +}
+> > +
+> > +check_not_region()
+> > +{
+> > +	search=$1
+> > +
+> > +	result=$($CXL list -r "$search" | jq -r ".[].region")
+> > +	if [ "$result" == "$search" ]; then
+> > +		echo "check not region failed; $search found"
+> > +		err "$LINENO"
+> > +	fi
+> > +}
+> > +
+> > +destroy_region()
+> > +{
+> > +	local region=$1
+> > +	$CXL disable-region $region
+> > +	$CXL destroy-region $region
+> > +}
+> > +
+> > +inject_extent()
+> > +{
+> > +	device="$1"
+> > +	dpa="$2"
+> > +	length="$3"
+> > +	tag="$4"
+> > +
+> > +	more="0"
+> > +	if [ "$5" != "" ]; then
+> > +		more="1"
+> > +	fi
+> > +
+> > +	echo ${dpa}:${length}:${tag}:${more} > "${dev_path}/${device}/dc_inject_extent"
+> > +}
+> > +
+> > +remove_extent()
+> > +{
+> > +	device="$1"
+> > +	dpa="$2"
+> > +	length="$3"
+> > +
+> > +	echo ${dpa}:${length} > "${dev_path}/${device}/dc_del_extent"
+> > +}
+> > +
+> > +create_dax_dev()
+> > +{
+> > +	reg="$1"
+> > +
+> > +	dax_dev=$($DAXCTL create-device -r $reg | jq -er '.[].chardev')
+> > +
+> > +	echo ${dax_dev}
+> > +}
+> > +
+> > +fail_create_dax_dev()
+> > +{
+> > +	reg="$1"
+> > +
+> > +	set +e
+> > +	result=$($DAXCTL create-device -r $reg)
+> > +	set -e
+> > +	if [ "$result" == "0" ]; then
+> > +		echo "FAIL device created"
+> > +		err "$LINENO"
+> > +	fi
+> > +}
+> > +
+> > +shrink_dax_dev()
+> > +{
+> > +	dev="$1"
+> > +	new_size="$2"
+> > +
+> > +	$DAXCTL disable-device $dev
+> > +	$DAXCTL reconfigure-device $dev -s $new_size
+> > +	$DAXCTL enable-device $dev
+> > +}
+> > +
+> > +destroy_dax_dev()
+> > +{
+> > +	dev="$1"
+> > +
+> > +	$DAXCTL disable-device $dev
+> > +	$DAXCTL destroy-device $dev
+> > +}
+> > +
+> > +check_dax_dev()
+> > +{
+> > +	search="$1"
+> > +	size="$2"
+> > +
+> > +	result=$($DAXCTL list -d $search | jq -er '.[].chardev')
+> > +	if [ "$result" != "$search" ]; then
+> > +		echo "check dax device failed to find $search"
+> > +		err "$LINENO"
+> > +	fi
+> > +	result=$($DAXCTL list -d $search | jq -er '.[].size')
+> > +	if [ "$result" -ne "$size" ]; then
+> > +		echo "check dax device failed incorrect size $result; exp $size"
+> > +		err "$LINENO"
+> > +	fi
+> > +}
+> > +
+> > +# check that the dax device is not there.
+> > +check_not_dax_dev()
+> > +{
+> > +	reg="$1"
+> > +	search="$2"
+> > +	result=$($DAXCTL list -r $reg -D | jq -er '.[].chardev')
+> > +	if [ "$result" == "$search" ]; then
+> > +		echo "FAIL found $search"
+> > +		err "$LINENO"
+> > +	fi
+> > +}
+> > +
+> > +check_extent()
+> > +{
+> > +	region=$1
+> > +	offset=$(($2))
+> > +	length=$(($3))
+> > +
+> > +	result=$($CXL list -r "$region" -N | jq -r ".[].extents[] | select(.offset == ${offset}) | .length")
+> > +	if [[ $result != $length ]]; then
+> > +		echo "FAIL region $1 could not find extent @ $offset ($length)"
+> > +		err "$LINENO"
+> > +	fi
+> > +}
+> > +
+> > +check_extent_cnt()
+> > +{
+> > +	region=$1
+> > +	count=$(($2))
+> > +
+> > +	result=$($CXL list -r $region -N | jq -r '.[].extents[].offset' | wc -l)
+> > +	if [[ $result != $count ]]; then
+> > +		echo "FAIL region $1: found wrong number of extents $result; expect $count"
+> > +		err "$LINENO"
+> > +	fi
+> > +}
+> > +
+> > +readarray -t memdevs < <("$CXL" list -b cxl_test -Mi | jq -r '.[].memdev')
+> > +
+> > +for mem in ${memdevs[@]}; do
+> > +	dcsize=$($CXL list -m $mem | jq -r '.[].dc0_size')
+> > +	if [ "$dcsize" == "null" ]; then
+> > +		continue
+> > +	fi
+> > +	decoder=$($CXL list -b cxl_test -D -d root -m "$mem" |
+> > +		  jq -r ".[] |
+> > +		  select(.dc0_capable == true) |
+> > +		  select(.nr_targets == 1) |
+> > +		  select(.max_available_extent >= ${dcsize}) |
+> > +		  .decoder")
+> > +	if [[ $decoder ]]; then
+> > +		bus=`"$CXL" list -b cxl_test -m ${mem} | jq -r '.[].bus'`
+> > +		device=$($CXL list -m $mem | jq -r '.[].host')
+> > +		break
+> > +	fi
+> > +done
+> > +
+> > +echo "TEST: DCD test device bus:${bus} decoder:${decoder} mem:${mem} device:${device} size:${dcsize}"
+> > +
+> > +if [ "$decoder" == "" ] || [ "$device" == "" ] || [ "$dcsize" == "" ]; then
+> > +	echo "No mem device/decoder found with DCD support"
+> > +	exit 77
+> > +fi
+> > +
+> > +echo ""
+> > +echo "Test: pre-existing extent"
+> > +echo ""
+> > +region=$(create_dcd_region ${mem} ${decoder})
+> > +check_region ${region} ${dcsize}
+> > +# should contain pre-created extents
+> > +check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
+> > +check_extent ${region} ${pre2_ext_offset} ${pre2_ext_length}
+> > +
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |                   |----------|         |----------|   |
+> > +# |         |                   | (pre)-   |         | (pre2)-  |   |
+> > +# |         |                   | existing |         | existing |   |
+> > +
+> > +# Remove the pre-created test extent out from under dax device
+> > +# stack should hold ref until dax device deleted
+> > +echo ""
+> > +echo "Test: Remove extent from under DAX dev"
+> > +echo ""
+> > +dax_dev=$(create_dax_dev ${region})
+> > +check_extent_cnt ${region} 2
+> > +remove_extent ${device} $pre_ext_dpa $pre_ext_length
+> > +length="$(($pre_ext_length + $pre2_ext_length))"
+> > +check_dax_dev ${dax_dev} $length
+> > +check_extent_cnt ${region} 2
+> > +destroy_dax_dev ${dax_dev}
+> > +check_not_dax_dev ${region} ${dax_dev}
+> > +
+> > +# In-use extents are not released.  Remove after use.
+> > +check_extent_cnt ${region} 2
+> > +remove_extent ${device} $pre_ext_dpa $pre_ext_length
+> > +remove_extent ${device} $pre2_ext_dpa $pre2_ext_length
+> > +check_extent_cnt ${region} 0
+> > +
+> > +echo ""
+> > +echo "Test: Create dax device spanning 2 extents"
+> > +echo ""
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
+> > +inject_extent ${device} $base_ext_dpa $base_ext_length ""
+> > +check_extent ${region} ${base_ext_offset} ${base_ext_length}
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |--------|          |----------|                        |
+> > +# |         | (base) |          | (pre)-   |                        |
+> > +# |         |        |          | existing |                        |
+> > +
+> > +check_extent_cnt ${region} 2
+> > +dax_dev=$(create_dax_dev ${region})
+> > +
+> > +echo ""
+> > +echo "Test: dev dax is spanning sparse extents"
+> > +echo ""
+> > +ext_sum_length="$(($base_ext_length + $pre_ext_length))"
+> > +check_dax_dev ${dax_dev} $ext_sum_length
+> > +
+> > +
+> > +echo ""
+> > +echo "Test: Remove extents under sparse dax device"
+> > +echo ""
+> > +remove_extent ${device} $base_ext_dpa $base_ext_length
+> > +check_extent_cnt ${region} 2
+> > +remove_extent ${device} $pre_ext_dpa $pre_ext_length
+> > +check_extent_cnt ${region} 2
+> > +destroy_dax_dev ${dax_dev}
+> > +check_not_dax_dev ${region} ${dax_dev}
+> > +
+> > +# In-use extents are not released.  Remove after use.
+> > +check_extent_cnt ${region} 2
+> > +remove_extent ${device} $base_ext_dpa $base_ext_length
+> > +remove_extent ${device} $pre_ext_dpa $pre_ext_length
+> > +check_extent_cnt ${region} 0
+> > +
+> > +echo ""
+> > +echo "Test: inject without/with tag"
+> > +echo ""
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
+> > +inject_extent ${device} $base_ext_dpa $base_ext_length ""
+> > +check_extent ${region} ${base_ext_offset} ${base_ext_length}
+> > +remove_extent ${device} $base_ext_dpa $base_ext_length
+> > +remove_extent ${device} $pre_ext_dpa $pre_ext_length
+> > +check_extent_cnt ${region} 0
+> > +
+> > +
+> > +echo ""
+> > +echo "Test: partial extent remove"
+> > +echo ""
+> > +inject_extent ${device} $base_ext_dpa $base_ext_length ""
+> > +dax_dev=$(create_dax_dev ${region})
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |--------|                                              |
+> > +# |         | (base) |                                              |
+> > +# |         |    |---|                                              |
+> > +#                  Partial
+> > +
+> > +partial_ext_dpa="$(($base_ext_dpa + ($base_ext_length / 2)))"
+> > +partial_ext_length="$(($base_ext_length / 2))"
+> > +echo "Removing Partial : $partial_ext_dpa $partial_ext_length"
+> > +remove_extent ${device} $partial_ext_dpa $partial_ext_length
+> > +check_extent_cnt ${region} 1
+> > +destroy_dax_dev ${dax_dev}
+> > +check_not_dax_dev ${region} ${dax_dev}
+> > +
+> > +# In-use extents are not released.  Remove after use.
+> > +check_extent_cnt ${region} 1
+> > +remove_extent ${device} $partial_ext_dpa $partial_ext_length
+> > +check_extent_cnt ${region} 0
+> > +
+> > +# Test multiple extent remove
+> > +echo ""
+> > +echo "Test: multiple extent remove with single extent remove command"
+> > +echo ""
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +inject_extent ${device} $base_ext_dpa $base_ext_length ""
+> > +check_extent_cnt ${region} 2
+> > +dax_dev=$(create_dax_dev ${region})
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |--------|          |-------------------|               |
+> > +# |         | (base) |          | (pre)-existing    |               |
+> > +#                |------------------|
+> > +#                  Partial
+> > +
+> > +partial_ext_dpa="$(($base_ext_dpa + ($base_ext_length / 2)))"
+> > +partial_ext_length="$(($pre_ext_dpa - $base_ext_dpa))"
+> > +echo "Removing multiple in span : $partial_ext_dpa $partial_ext_length"
+> > +remove_extent ${device} $partial_ext_dpa $partial_ext_length
+> > +check_extent_cnt ${region} 2
+> > +destroy_dax_dev ${dax_dev}
+> > +check_not_dax_dev ${region} ${dax_dev}
+> > +
+> > +
+> > +echo ""
+> > +echo "Test: Destroy region without extent removal"
+> > +echo ""
+> > +
+> > +# In-use extents are not released.
+> > +check_extent_cnt ${region} 2
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +
+> > +echo ""
+> > +echo "Test: Destroy region with extents and dax devices"
+> > +echo ""
+> > +region=$(create_dcd_region ${mem} ${decoder})
+> > +check_region ${region} ${dcsize}
+> > +check_extent_cnt ${region} 0
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |                   |----------|                        |
+> > +# |         |                   | (pre)-   |                        |
+> > +# |         |                   | existing |                        |
+> > +
+> > +check_extent_cnt ${region} 1
+> > +dax_dev=$(create_dax_dev ${region})
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +echo ""
+> > +echo "Test: Fail sparse dax dev creation without space"
+> > +echo ""
+> > +region=$(create_dcd_region ${mem} ${decoder})
+> > +check_region ${region} ${dcsize}
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |                   |-------------------|               |
+> > +# |         |                   | (pre)-existing    |               |
+> > +
+> > +check_extent_cnt ${region} 1
+> > +
+> > +# |         |                   | dax0.1            |               |
+> > +
+> > +dax_dev=$(create_dax_dev ${region})
+> > +check_dax_dev ${dax_dev} $pre_ext_length
+> > +fail_create_dax_dev ${region}
+> > +
+> > +echo ""
+> > +echo "Test: Resize sparse dax device"
+> > +echo ""
+> > +
+> > +# Shrink
+> > +# |         |                   | dax0.1  |                         |
+> > +resize_ext_length=$(($pre_ext_length / 2))
+> > +shrink_dax_dev ${dax_dev} $resize_ext_length
+> > +check_dax_dev ${dax_dev} $resize_ext_length
+> > +
+> > +# Fill
+> > +# |         |                   | dax0.1  | dax0.2  |               |
+> > +dax_dev=$(create_dax_dev ${region})
+> > +check_dax_dev ${dax_dev} $resize_ext_length
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +
+> > +# 2 extent
+> > +# create dax dev
+> > +# resize into 1st extent
+> > +# create dev on rest of 1st and all of second
+> > +# Ensure both devices are correct
+> > +
+> > +echo ""
+> > +echo "Test: Resize sparse dax device across extents"
+> > +echo ""
+> > +region=$(create_dcd_region ${mem} ${decoder})
+> > +check_region ${region} ${dcsize}
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +inject_extent ${device} $base_ext_dpa $base_ext_length ""
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |--------|          |-------------------|               |
+> > +# |         | (base) |          | (pre)-existing    |               |
+> > +
+> > +check_extent_cnt ${region} 2
+> > +dax_dev=$(create_dax_dev ${region})
+> > +ext_sum_length="$(($base_ext_length + $pre_ext_length))"
+> > +
+> > +# |         | dax0.1 |          |  dax0.1           |               |
+> > +
+> > +check_dax_dev ${dax_dev} $ext_sum_length
+> > +resize_ext_length=33554432 # 32MB
+> > +
+> > +# |         | D1 |                                                  |
+> > +
+> > +shrink_dax_dev ${dax_dev} $resize_ext_length
+> > +check_dax_dev ${dax_dev} $resize_ext_length
+> > +
+> > +# |         | D1 | D2|          | dax0.2            |               |
+> > +
+> > +dax_dev=$(create_dax_dev ${region})
+> > +remainder_length=$((ext_sum_length - $resize_ext_length))
+> > +check_dax_dev ${dax_dev} $remainder_length
+> > +
+> > +# |         | D1 | D2|          | dax0.2 |                          |
+> > +
+> > +remainder_length=$((remainder_length / 2))
+> > +shrink_dax_dev ${dax_dev} $remainder_length
+> > +check_dax_dev ${dax_dev} $remainder_length
+> > +
+> > +# |         | D1 | D2|          | dax0.2 |  dax0.3  |               |
+> > +
+> > +dax_dev=$(create_dax_dev ${region})
+> > +check_dax_dev ${dax_dev} $remainder_length
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +
+> > +echo ""
+> > +echo "Test: Rejecting overlapping extents"
+> > +echo ""
+> > +
+> > +region=$(create_dcd_region ${mem} ${decoder})
+> > +check_region ${region} ${dcsize}
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +
+> > +# | 2G non- |      DC region                                        |
+> > +# |  DC cap |                                                       |
+> > +# |  ...    |-------------------------------------------------------|
+> > +# |         |                   |-------------------|               |
+> > +# |         |                   | (pre)-existing    |               |
+> > +
+> > +check_extent_cnt ${region} 1
+> > +
+> > +# Attempt overlapping extent
+> > +#
+> > +# |         |          |-----------------|                          |
+> > +# |         |          | overlapping     |                          |
+> > +
+> > +partial_ext_dpa="$(($base_ext_dpa + ($pre_ext_dpa / 2)))"
+> > +partial_ext_length=$pre_ext_length
+> > +inject_extent ${device} $partial_ext_dpa $partial_ext_length ""
+> > +
+> > +# Should only see the original ext
+> > +check_extent_cnt ${region} 1
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +
+> > +echo ""
+> > +echo "Test: create 2 regions in the same DC partition"
+> > +echo ""
+> > +region_size=$(($dcsize / 2))
+> > +region=$(create_dcd_region ${mem} ${decoder} ${region_size} dc1)
+> > +check_region ${region} ${region_size}
+> > +
+> > +region_two=$(create_dcd_region ${mem} ${decoder} ${region_size} dc1)
+> > +check_region ${region_two} ${region_size}
+> > +
+> > +destroy_region ${region_two}
+> > +check_not_region ${region_two}
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +
+> > +echo ""
+> > +echo "Test: More bit"
+> > +echo ""
+> > +region=$(create_dcd_region ${mem} ${decoder})
+> > +check_region ${region} ${dcsize}
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length "" 1
+> > +# More bit should hold off surfacing extent until the more bit is 0
+> > +check_extent_cnt ${region} 0
+> > +inject_extent ${device} $base_ext_dpa $base_ext_length ""
+> > +check_extent_cnt ${region} 2
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +
+> > +# Create a new region for driver tests
+> > +region=$(create_dcd_region ${mem} ${decoder})
+> > +
+> > +echo ""
+> > +echo "Test: driver remove tear down"
+> > +echo ""
+> > +check_region ${region} ${dcsize}
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
+> > +dax_dev=$(create_dax_dev ${region})
+> > +# remove driver releases extents
+> > +modprobe -r dax_cxl
+> > +check_extent_cnt ${region} 0
+> > +
+> > +# leave region up, driver removed.
+> > +echo ""
+> > +echo "Test: no driver inject ok"
+> > +echo ""
+> > +check_region ${region} ${dcsize}
+> > +inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
+> > +check_extent_cnt ${region} 1
+> > +modprobe dax_cxl
+> > +check_extent_cnt ${region} 1
+> > +
+> > +destroy_region ${region}
+> > +check_not_region ${region}
+> > +
+> > +
+> > +# Test event reporting
+> > +# results expected
+> > +num_dcd_events_expected=2
+> > +
+> > +echo "Test: Prep event trace"
+> > +echo "" > /sys/kernel/tracing/trace
+> > +echo 1 > /sys/kernel/tracing/events/cxl/enable
+> > +echo 1 > /sys/kernel/tracing/tracing_on
+> > +
+> > +inject_extent ${device} $base_ext_dpa $base_ext_length ""
+> > +remove_extent ${device} $base_ext_dpa $base_ext_length
+> > +
+> > +echo 0 > /sys/kernel/tracing/tracing_on
+> > +
+> > +echo "Test: Events seen"
+> > +trace_out=$(cat /sys/kernel/tracing/trace)
+> > +
+> > +# Look for DCD events
+> > +num_dcd_events=$(grep -c "cxl_dynamic_capacity" <<< "${trace_out}")
+> > +echo "     LOG     (Expected) : (Found)"
+> > +echo "     DCD events    ($num_dcd_events_expected) : $num_dcd_events"
+> > +
+> > +if [ "$num_dcd_events" -ne $num_dcd_events_expected ]; then
+> > +	err "$LINENO"
+> > +fi
+> > +
+> > +modprobe -r cxl_test
+> > +
+> > +check_dmesg "$LINENO"
+> > +
+> > +exit 0
+> > diff --git a/test/meson.build b/test/meson.build
+> > index d871e28e17ce512cd1e7b43f3ec081729fe5e03a..1cfcb60d16e05272893ae1c67820aa8614281505 100644
+> > --- a/test/meson.build
+> > +++ b/test/meson.build
+> > @@ -161,6 +161,7 @@ cxl_sanitize = find_program('cxl-sanitize.sh')
+> >  cxl_destroy_region = find_program('cxl-destroy-region.sh')
+> >  cxl_qos_class = find_program('cxl-qos-class.sh')
+> >  cxl_poison = find_program('cxl-poison.sh')
+> > +cxl_dcd = find_program('cxl-dcd.sh')
+> >  
+> >  tests = [
+> >    [ 'libndctl',               libndctl,		  'ndctl' ],
+> > @@ -194,6 +195,7 @@ tests = [
+> >    [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
+> >    [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
+> >    [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
+> > +  [ 'cxl-dcd.sh',             cxl_dcd,            'cxl'   ],
+> >  ]
+> >  
+> >  if get_option('destructive').enabled()
+> > 
+> 
 
-Directly call the event irq callback to simulate irqs to process the
-test extents.
-
-Add DC mailbox commands to the CEL and implement those commands.
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- tools/testing/cxl/test/mem.c | 690 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 690 insertions(+)
-
-diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-index 611cd9677cd0a63214322189efb4ef9fb3a1ceb6..d08e7296a9777fb3357058d50215df98defc030a 100644
---- a/tools/testing/cxl/test/mem.c
-+++ b/tools/testing/cxl/test/mem.c
-@@ -20,6 +20,7 @@
- #define FW_SLOTS 3
- #define DEV_SIZE SZ_2G
- #define EFFECT(x) (1U << x)
-+#define BASE_DYNAMIC_CAP_DPA DEV_SIZE
- 
- #define MOCK_INJECT_DEV_MAX 8
- #define MOCK_INJECT_TEST_MAX 128
-@@ -97,6 +98,22 @@ static struct cxl_cel_entry mock_cel[] = {
- 				      EFFECT(SECURITY_CHANGE_IMMEDIATE) |
- 				      EFFECT(BACKGROUND_OP)),
- 	},
-+	{
-+		.opcode = cpu_to_le16(CXL_MBOX_OP_GET_DC_CONFIG),
-+		.effect = CXL_CMD_EFFECT_NONE,
-+	},
-+	{
-+		.opcode = cpu_to_le16(CXL_MBOX_OP_GET_DC_EXTENT_LIST),
-+		.effect = CXL_CMD_EFFECT_NONE,
-+	},
-+	{
-+		.opcode = cpu_to_le16(CXL_MBOX_OP_ADD_DC_RESPONSE),
-+		.effect = cpu_to_le16(EFFECT(CONF_CHANGE_IMMEDIATE)),
-+	},
-+	{
-+		.opcode = cpu_to_le16(CXL_MBOX_OP_RELEASE_DC),
-+		.effect = cpu_to_le16(EFFECT(CONF_CHANGE_IMMEDIATE)),
-+	},
- };
- 
- /* See CXL 2.0 Table 181 Get Health Info Output Payload */
-@@ -153,6 +170,7 @@ struct mock_event_store {
- 	u32 ev_status;
- };
- 
-+#define NUM_MOCK_DC_REGIONS 2
- struct cxl_mockmem_data {
- 	void *lsa;
- 	void *fw;
-@@ -169,6 +187,11 @@ struct cxl_mockmem_data {
- 	u8 event_buf[SZ_4K];
- 	u64 timestamp;
- 	unsigned long sanitize_timeout;
-+	struct cxl_dc_region_config dc_regions[NUM_MOCK_DC_REGIONS];
-+	u32 dc_ext_generation;
-+	struct mutex ext_lock;
-+	struct xarray dc_extents;
-+	struct xarray dc_accepted_exts;
- };
- 
- static struct mock_event_log *event_find_log(struct device *dev, int log_type)
-@@ -568,6 +591,237 @@ static void cxl_mock_event_trigger(struct device *dev)
- 	cxl_mem_get_event_records(mdata->mds, mes->ev_status);
- }
- 
-+struct cxl_extent_data {
-+	u64 dpa_start;
-+	u64 length;
-+	u8 tag[CXL_EXTENT_TAG_LEN];
-+	bool shared;
-+};
-+
-+static int __devm_add_extent(struct device *dev, struct xarray *array,
-+			     u64 start, u64 length, const char *tag,
-+			     bool shared)
-+{
-+	struct cxl_extent_data *extent;
-+
-+	extent = devm_kzalloc(dev, sizeof(*extent), GFP_KERNEL);
-+	if (!extent)
-+		return -ENOMEM;
-+
-+	extent->dpa_start = start;
-+	extent->length = length;
-+	memcpy(extent->tag, tag, min(sizeof(extent->tag), strlen(tag)));
-+	extent->shared = shared;
-+
-+	if (xa_insert(array, start, extent, GFP_KERNEL)) {
-+		devm_kfree(dev, extent);
-+		dev_err(dev, "Failed xarry insert %#llx\n", start);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int devm_add_extent(struct device *dev, u64 start, u64 length,
-+			   const char *tag, bool shared)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+
-+	guard(mutex)(&mdata->ext_lock);
-+	return __devm_add_extent(dev, &mdata->dc_extents, start, length, tag,
-+				 shared);
-+}
-+
-+/* It is known that ext and the new range are not equal */
-+static struct cxl_extent_data *
-+split_ext(struct device *dev, struct xarray *array,
-+	  struct cxl_extent_data *ext, u64 start, u64 length)
-+{
-+	u64 new_start, new_length;
-+
-+	if (ext->dpa_start == start) {
-+		new_start = start + length;
-+		new_length = (ext->dpa_start + ext->length) - new_start;
-+
-+		if (__devm_add_extent(dev, array, new_start, new_length,
-+				      ext->tag, false))
-+			return NULL;
-+
-+		ext = xa_erase(array, ext->dpa_start);
-+		if (__devm_add_extent(dev, array, start, length, ext->tag,
-+				      false))
-+			return NULL;
-+
-+		return xa_load(array, start);
-+	}
-+
-+	/* ext->dpa_start != start */
-+
-+	if (__devm_add_extent(dev, array, start, length, ext->tag, false))
-+		return NULL;
-+
-+	new_start = ext->dpa_start;
-+	new_length = start - ext->dpa_start;
-+
-+	ext = xa_erase(array, ext->dpa_start);
-+	if (__devm_add_extent(dev, array, new_start, new_length, ext->tag,
-+			      false))
-+		return NULL;
-+
-+	return xa_load(array, start);
-+}
-+
-+/*
-+ * Do not handle extents which are not inside a single extent sent to
-+ * the host.
-+ */
-+static struct cxl_extent_data *
-+find_create_ext(struct device *dev, struct xarray *array, u64 start, u64 length)
-+{
-+	struct cxl_extent_data *ext;
-+	unsigned long index;
-+
-+	xa_for_each(array, index, ext) {
-+		u64 end = start + length;
-+
-+		/* start < [ext) <= start */
-+		if (start < ext->dpa_start ||
-+		    (ext->dpa_start + ext->length) <= start)
-+			continue;
-+
-+		if (end <= ext->dpa_start ||
-+		    (ext->dpa_start + ext->length) < end) {
-+			dev_err(dev, "Invalid range %#llx-%#llx\n", start,
-+				end);
-+			return NULL;
-+		}
-+
-+		break;
-+	}
-+
-+	if (!ext)
-+		return NULL;
-+
-+	if (start == ext->dpa_start && length == ext->length)
-+		return ext;
-+
-+	return split_ext(dev, array, ext, start, length);
-+}
-+
-+static int dc_accept_extent(struct device *dev, u64 start, u64 length)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	struct cxl_extent_data *ext;
-+
-+	dev_dbg(dev, "Host accepting extent %#llx\n", start);
-+	mdata->dc_ext_generation++;
-+
-+	guard(mutex)(&mdata->ext_lock);
-+	ext = find_create_ext(dev, &mdata->dc_extents, start, length);
-+	if (!ext) {
-+		dev_err(dev, "Extent %#llx-%#llx not found\n",
-+			start, start + length);
-+		return -ENOMEM;
-+	}
-+	ext = xa_erase(&mdata->dc_extents, ext->dpa_start);
-+	return xa_insert(&mdata->dc_accepted_exts, start, ext, GFP_KERNEL);
-+}
-+
-+static void release_dc_ext(void *md)
-+{
-+	struct cxl_mockmem_data *mdata = md;
-+
-+	xa_destroy(&mdata->dc_extents);
-+	xa_destroy(&mdata->dc_accepted_exts);
-+}
-+
-+/* Pretend to have some previous accepted extents */
-+struct pre_ext_info {
-+	u64 offset;
-+	u64 length;
-+} pre_ext_info[] = {
-+	{
-+		.offset = SZ_128M,
-+		.length = SZ_64M,
-+	},
-+	{
-+		.offset = SZ_256M,
-+		.length = SZ_64M,
-+	},
-+};
-+
-+static int inject_prev_extents(struct device *dev, u64 base_dpa)
-+{
-+	int rc;
-+
-+	dev_dbg(dev, "Adding %ld pre-extents for testing\n",
-+		ARRAY_SIZE(pre_ext_info));
-+
-+	for (int i = 0; i < ARRAY_SIZE(pre_ext_info); i++) {
-+		u64 ext_dpa = base_dpa + pre_ext_info[i].offset;
-+		u64 ext_len = pre_ext_info[i].length;
-+
-+		dev_dbg(dev, "Adding pre-extent DPA:%#llx LEN:%#llx\n",
-+			ext_dpa, ext_len);
-+
-+		rc = devm_add_extent(dev, ext_dpa, ext_len, "", false);
-+		if (rc) {
-+			dev_err(dev, "Failed to add pre-extent DPA:%#llx LEN:%#llx; %d\n",
-+				ext_dpa, ext_len, rc);
-+			return rc;
-+		}
-+
-+		rc = dc_accept_extent(dev, ext_dpa, ext_len);
-+		if (rc)
-+			return rc;
-+	}
-+	return 0;
-+}
-+
-+static int cxl_mock_dc_region_setup(struct device *dev)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	u64 base_dpa = BASE_DYNAMIC_CAP_DPA;
-+	u32 dsmad_handle = 0xFADE;
-+	u64 decode_length = SZ_512M;
-+	u64 block_size = SZ_512;
-+	u64 length = SZ_512M;
-+	int rc;
-+
-+	mutex_init(&mdata->ext_lock);
-+	xa_init(&mdata->dc_extents);
-+	xa_init(&mdata->dc_accepted_exts);
-+
-+	rc = devm_add_action_or_reset(dev, release_dc_ext, mdata);
-+	if (rc)
-+		return rc;
-+
-+	for (int i = 0; i < NUM_MOCK_DC_REGIONS; i++) {
-+		struct cxl_dc_region_config *conf = &mdata->dc_regions[i];
-+
-+		dev_dbg(dev, "Creating DC region DC%d DPA:%#llx LEN:%#llx\n",
-+			i, base_dpa, length);
-+
-+		conf->region_base = cpu_to_le64(base_dpa);
-+		conf->region_decode_length = cpu_to_le64(decode_length /
-+						CXL_CAPACITY_MULTIPLIER);
-+		conf->region_length = cpu_to_le64(length);
-+		conf->region_block_size = cpu_to_le64(block_size);
-+		conf->region_dsmad_handle = cpu_to_le32(dsmad_handle);
-+		dsmad_handle++;
-+
-+		rc = inject_prev_extents(dev, base_dpa);
-+		if (rc) {
-+			dev_err(dev, "Failed to add pre-extents for DC%d\n", i);
-+			return rc;
-+		}
-+
-+		base_dpa += decode_length;
-+	}
-+
-+	return 0;
-+}
-+
- static int mock_gsl(struct cxl_mbox_cmd *cmd)
- {
- 	if (cmd->size_out < sizeof(mock_gsl_payload))
-@@ -1383,6 +1637,174 @@ static int mock_activate_fw(struct cxl_mockmem_data *mdata,
- 	return -EINVAL;
- }
- 
-+static int mock_get_dc_config(struct device *dev,
-+			      struct cxl_mbox_cmd *cmd)
-+{
-+	struct cxl_mbox_get_dc_config_in *dc_config = cmd->payload_in;
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	u8 region_requested, region_start_idx, region_ret_cnt;
-+	struct cxl_mbox_get_dc_config_out *resp;
-+	int i;
-+
-+	region_requested = min(dc_config->region_count, NUM_MOCK_DC_REGIONS);
-+
-+	if (cmd->size_out < struct_size(resp, region, region_requested))
-+		return -EINVAL;
-+
-+	memset(cmd->payload_out, 0, cmd->size_out);
-+	resp = cmd->payload_out;
-+
-+	region_start_idx = dc_config->start_region_index;
-+	region_ret_cnt = 0;
-+	for (i = 0; i < NUM_MOCK_DC_REGIONS; i++) {
-+		if (i >= region_start_idx) {
-+			memcpy(&resp->region[region_ret_cnt],
-+				&mdata->dc_regions[i],
-+				sizeof(resp->region[region_ret_cnt]));
-+			region_ret_cnt++;
-+		}
-+	}
-+	resp->avail_region_count = NUM_MOCK_DC_REGIONS;
-+	resp->regions_returned = i;
-+
-+	dev_dbg(dev, "Returning %d dc regions\n", region_ret_cnt);
-+	return 0;
-+}
-+
-+static int mock_get_dc_extent_list(struct device *dev,
-+				   struct cxl_mbox_cmd *cmd)
-+{
-+	struct cxl_mbox_get_extent_out *resp = cmd->payload_out;
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	struct cxl_mbox_get_extent_in *get = cmd->payload_in;
-+	u32 total_avail = 0, total_ret = 0;
-+	struct cxl_extent_data *ext;
-+	u32 ext_count, start_idx;
-+	unsigned long i;
-+
-+	ext_count = le32_to_cpu(get->extent_cnt);
-+	start_idx = le32_to_cpu(get->start_extent_index);
-+
-+	memset(resp, 0, sizeof(*resp));
-+
-+	guard(mutex)(&mdata->ext_lock);
-+	/*
-+	 * Total available needs to be calculated and returned regardless of
-+	 * how many can actually be returned.
-+	 */
-+	xa_for_each(&mdata->dc_accepted_exts, i, ext)
-+		total_avail++;
-+
-+	if (start_idx > total_avail)
-+		return -EINVAL;
-+
-+	xa_for_each(&mdata->dc_accepted_exts, i, ext) {
-+		if (total_ret >= ext_count)
-+			break;
-+
-+		if (total_ret >= start_idx) {
-+			resp->extent[total_ret].start_dpa =
-+						cpu_to_le64(ext->dpa_start);
-+			resp->extent[total_ret].length =
-+						cpu_to_le64(ext->length);
-+			memcpy(&resp->extent[total_ret].tag, ext->tag,
-+					sizeof(resp->extent[total_ret]));
-+			total_ret++;
-+		}
-+	}
-+
-+	resp->returned_extent_count = cpu_to_le32(total_ret);
-+	resp->total_extent_count = cpu_to_le32(total_avail);
-+	resp->generation_num = cpu_to_le32(mdata->dc_ext_generation);
-+
-+	dev_dbg(dev, "Returning %d extents of %d total\n",
-+		total_ret, total_avail);
-+
-+	return 0;
-+}
-+
-+static int mock_add_dc_response(struct device *dev,
-+				struct cxl_mbox_cmd *cmd)
-+{
-+	struct cxl_mbox_dc_response *req = cmd->payload_in;
-+	u32 list_size = le32_to_cpu(req->extent_list_size);
-+
-+	for (int i = 0; i < list_size; i++) {
-+		u64 start = le64_to_cpu(req->extent_list[i].dpa_start);
-+		u64 length = le64_to_cpu(req->extent_list[i].length);
-+		int rc;
-+
-+		rc = dc_accept_extent(dev, start, length);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static void dc_delete_extent(struct device *dev, unsigned long long start,
-+			     unsigned long long length)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	unsigned long long end = start + length;
-+	struct cxl_extent_data *ext;
-+	unsigned long index;
-+
-+	dev_dbg(dev, "Deleting extent at %#llx len:%#llx\n", start, length);
-+
-+	guard(mutex)(&mdata->ext_lock);
-+	xa_for_each(&mdata->dc_extents, index, ext) {
-+		u64 extent_end = ext->dpa_start + ext->length;
-+
-+		/*
-+		 * Any extent which 'touches' the released delete range will be
-+		 * removed.
-+		 */
-+		if ((start <= ext->dpa_start && ext->dpa_start < end) ||
-+		    (start <= extent_end && extent_end < end))
-+			xa_erase(&mdata->dc_extents, ext->dpa_start);
-+	}
-+
-+	/*
-+	 * If the extent was accepted let it be for the host to drop
-+	 * later.
-+	 */
-+}
-+
-+static int release_accepted_extent(struct device *dev, u64 start, u64 length)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	struct cxl_extent_data *ext;
-+
-+	guard(mutex)(&mdata->ext_lock);
-+	ext = find_create_ext(dev, &mdata->dc_accepted_exts, start, length);
-+	if (!ext) {
-+		dev_err(dev, "Extent %#llx not in accepted state\n", start);
-+		return -EINVAL;
-+	}
-+	xa_erase(&mdata->dc_accepted_exts, ext->dpa_start);
-+	mdata->dc_ext_generation++;
-+
-+	return 0;
-+}
-+
-+static int mock_dc_release(struct device *dev,
-+			   struct cxl_mbox_cmd *cmd)
-+{
-+	struct cxl_mbox_dc_response *req = cmd->payload_in;
-+	u32 list_size = le32_to_cpu(req->extent_list_size);
-+
-+	for (int i = 0; i < list_size; i++) {
-+		u64 start = le64_to_cpu(req->extent_list[i].dpa_start);
-+		u64 length = le64_to_cpu(req->extent_list[i].length);
-+
-+		dev_dbg(dev, "Extent %#llx released by host\n", start);
-+		release_accepted_extent(dev, start, length);
-+	}
-+
-+	return 0;
-+}
-+
- static int cxl_mock_mbox_send(struct cxl_mailbox *cxl_mbox,
- 			      struct cxl_mbox_cmd *cmd)
- {
-@@ -1468,6 +1890,18 @@ static int cxl_mock_mbox_send(struct cxl_mailbox *cxl_mbox,
- 	case CXL_MBOX_OP_ACTIVATE_FW:
- 		rc = mock_activate_fw(mdata, cmd);
- 		break;
-+	case CXL_MBOX_OP_GET_DC_CONFIG:
-+		rc = mock_get_dc_config(dev, cmd);
-+		break;
-+	case CXL_MBOX_OP_GET_DC_EXTENT_LIST:
-+		rc = mock_get_dc_extent_list(dev, cmd);
-+		break;
-+	case CXL_MBOX_OP_ADD_DC_RESPONSE:
-+		rc = mock_add_dc_response(dev, cmd);
-+		break;
-+	case CXL_MBOX_OP_RELEASE_DC:
-+		rc = mock_dc_release(dev, cmd);
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1538,6 +1972,10 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	dev_set_drvdata(dev, mdata);
- 
-+	rc = cxl_mock_dc_region_setup(dev);
-+	if (rc)
-+		return rc;
-+
- 	mdata->lsa = vmalloc(LSA_SIZE);
- 	if (!mdata->lsa)
- 		return -ENOMEM;
-@@ -1591,6 +2029,10 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
- 	if (rc)
- 		return rc;
- 
-+	rc = cxl_dev_dynamic_capacity_identify(mds);
-+	if (rc)
-+		return rc;
-+
- 	rc = cxl_mem_create_range_info(mds);
- 	if (rc)
- 		return rc;
-@@ -1706,11 +2148,259 @@ static ssize_t sanitize_timeout_store(struct device *dev,
- 
- static DEVICE_ATTR_RW(sanitize_timeout);
- 
-+/* Return if the proposed extent would break the test code */
-+static bool new_extent_valid(struct device *dev, size_t new_start,
-+			     size_t new_len)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	struct cxl_extent_data *extent;
-+	size_t new_end, i;
-+
-+	if (!new_len)
-+		return false;
-+
-+	new_end = new_start + new_len;
-+
-+	dev_dbg(dev, "New extent %zx-%zx\n", new_start, new_end);
-+
-+	guard(mutex)(&mdata->ext_lock);
-+	dev_dbg(dev, "Checking extents starts...\n");
-+	xa_for_each(&mdata->dc_extents, i, extent) {
-+		if (extent->dpa_start == new_start)
-+			return false;
-+	}
-+
-+	dev_dbg(dev, "Checking accepted extents starts...\n");
-+	xa_for_each(&mdata->dc_accepted_exts, i, extent) {
-+		if (extent->dpa_start == new_start)
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
-+struct cxl_test_dcd {
-+	uuid_t id;
-+	struct cxl_event_dcd rec;
-+} __packed;
-+
-+struct cxl_test_dcd dcd_event_rec_template = {
-+	.id = CXL_EVENT_DC_EVENT_UUID,
-+	.rec = {
-+		.hdr = {
-+			.length = sizeof(struct cxl_test_dcd),
-+		},
-+	},
-+};
-+
-+static int log_dc_event(struct cxl_mockmem_data *mdata, enum dc_event type,
-+			u64 start, u64 length, const char *tag_str, bool more)
-+{
-+	struct device *dev = mdata->mds->cxlds.dev;
-+	struct cxl_test_dcd *dcd_event;
-+
-+	dev_dbg(dev, "mock device log event %d\n", type);
-+
-+	dcd_event = devm_kmemdup(dev, &dcd_event_rec_template,
-+				     sizeof(*dcd_event), GFP_KERNEL);
-+	if (!dcd_event)
-+		return -ENOMEM;
-+
-+	dcd_event->rec.flags = 0;
-+	if (more)
-+		dcd_event->rec.flags |= CXL_DCD_EVENT_MORE;
-+	dcd_event->rec.event_type = type;
-+	dcd_event->rec.extent.start_dpa = cpu_to_le64(start);
-+	dcd_event->rec.extent.length = cpu_to_le64(length);
-+	memcpy(dcd_event->rec.extent.tag, tag_str,
-+	       min(sizeof(dcd_event->rec.extent.tag),
-+		   strlen(tag_str)));
-+
-+	mes_add_event(mdata, CXL_EVENT_TYPE_DCD,
-+		      (struct cxl_event_record_raw *)dcd_event);
-+
-+	/* Fake the irq */
-+	cxl_mem_get_event_records(mdata->mds, CXLDEV_EVENT_STATUS_DCD);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Format <start>:<length>:<tag>
-+ *
-+ * start and length must be a multiple of the configured region block size.
-+ * Tag can be any string up to 16 bytes.
-+ *
-+ * Extents must be exclusive of other extents
-+ */
-+static ssize_t __dc_inject_extent_store(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count,
-+					bool shared)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	unsigned long long start, length, more;
-+	char *len_str, *tag_str, *more_str;
-+	size_t buf_len = count;
-+	int rc;
-+
-+	char *start_str __free(kfree) = kstrdup(buf, GFP_KERNEL);
-+	if (!start_str)
-+		return -ENOMEM;
-+
-+	len_str = strnchr(start_str, buf_len, ':');
-+	if (!len_str) {
-+		dev_err(dev, "Extent failed to find len_str: %s\n", start_str);
-+		return -EINVAL;
-+	}
-+
-+	*len_str = '\0';
-+	len_str += 1;
-+	buf_len -= strlen(start_str);
-+
-+	tag_str = strnchr(len_str, buf_len, ':');
-+	if (!tag_str) {
-+		dev_err(dev, "Extent failed to find tag_str: %s\n", len_str);
-+		return -EINVAL;
-+	}
-+	*tag_str = '\0';
-+	tag_str += 1;
-+
-+	more_str = strnchr(tag_str, buf_len, ':');
-+	if (!more_str) {
-+		dev_err(dev, "Extent failed to find more_str: %s\n", tag_str);
-+		return -EINVAL;
-+	}
-+	*more_str = '\0';
-+	more_str += 1;
-+
-+	if (kstrtoull(start_str, 0, &start)) {
-+		dev_err(dev, "Extent failed to parse start: %s\n", start_str);
-+		return -EINVAL;
-+	}
-+
-+	if (kstrtoull(len_str, 0, &length)) {
-+		dev_err(dev, "Extent failed to parse length: %s\n", len_str);
-+		return -EINVAL;
-+	}
-+
-+	if (kstrtoull(more_str, 0, &more)) {
-+		dev_err(dev, "Extent failed to parse more: %s\n", more_str);
-+		return -EINVAL;
-+	}
-+
-+	if (!new_extent_valid(dev, start, length))
-+		return -EINVAL;
-+
-+	rc = devm_add_extent(dev, start, length, tag_str, shared);
-+	if (rc) {
-+		dev_err(dev, "Failed to add extent DPA:%#llx LEN:%#llx; %d\n",
-+			start, length, rc);
-+		return rc;
-+	}
-+
-+	rc = log_dc_event(mdata, DCD_ADD_CAPACITY, start, length, tag_str, more);
-+	if (rc) {
-+		dev_err(dev, "Failed to add event %d\n", rc);
-+		return rc;
-+	}
-+
-+	return count;
-+}
-+
-+static ssize_t dc_inject_extent_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t count)
-+{
-+	return __dc_inject_extent_store(dev, attr, buf, count, false);
-+}
-+static DEVICE_ATTR_WO(dc_inject_extent);
-+
-+static ssize_t dc_inject_shared_extent_store(struct device *dev,
-+					     struct device_attribute *attr,
-+					     const char *buf, size_t count)
-+{
-+	return __dc_inject_extent_store(dev, attr, buf, count, true);
-+}
-+static DEVICE_ATTR_WO(dc_inject_shared_extent);
-+
-+static ssize_t __dc_del_extent_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count,
-+				     enum dc_event type)
-+{
-+	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	unsigned long long start, length;
-+	char *len_str;
-+	int rc;
-+
-+	char *start_str __free(kfree) = kstrdup(buf, GFP_KERNEL);
-+	if (!start_str)
-+		return -ENOMEM;
-+
-+	len_str = strnchr(start_str, count, ':');
-+	if (!len_str) {
-+		dev_err(dev, "Failed to find len_str: %s\n", start_str);
-+		return -EINVAL;
-+	}
-+	*len_str = '\0';
-+	len_str += 1;
-+
-+	if (kstrtoull(start_str, 0, &start)) {
-+		dev_err(dev, "Failed to parse start: %s\n", start_str);
-+		return -EINVAL;
-+	}
-+
-+	if (kstrtoull(len_str, 0, &length)) {
-+		dev_err(dev, "Failed to parse length: %s\n", len_str);
-+		return -EINVAL;
-+	}
-+
-+	dc_delete_extent(dev, start, length);
-+
-+	if (type == DCD_FORCED_CAPACITY_RELEASE)
-+		dev_dbg(dev, "Forcing delete of extent %#llx len:%#llx\n",
-+			start, length);
-+
-+	rc = log_dc_event(mdata, type, start, length, "", false);
-+	if (rc) {
-+		dev_err(dev, "Failed to add event %d\n", rc);
-+		return rc;
-+	}
-+
-+	return count;
-+}
-+
-+/*
-+ * Format <start>:<length>
-+ */
-+static ssize_t dc_del_extent_store(struct device *dev,
-+				   struct device_attribute *attr,
-+				   const char *buf, size_t count)
-+{
-+	return __dc_del_extent_store(dev, attr, buf, count,
-+				     DCD_RELEASE_CAPACITY);
-+}
-+static DEVICE_ATTR_WO(dc_del_extent);
-+
-+static ssize_t dc_force_del_extent_store(struct device *dev,
-+					 struct device_attribute *attr,
-+					 const char *buf, size_t count)
-+{
-+	return __dc_del_extent_store(dev, attr, buf, count,
-+				     DCD_FORCED_CAPACITY_RELEASE);
-+}
-+static DEVICE_ATTR_WO(dc_force_del_extent);
-+
- static struct attribute *cxl_mock_mem_attrs[] = {
- 	&dev_attr_security_lock.attr,
- 	&dev_attr_event_trigger.attr,
- 	&dev_attr_fw_buf_checksum.attr,
- 	&dev_attr_sanitize_timeout.attr,
-+	&dev_attr_dc_inject_extent.attr,
-+	&dev_attr_dc_inject_shared_extent.attr,
-+	&dev_attr_dc_del_extent.attr,
-+	&dev_attr_dc_force_del_extent.attr,
- 	NULL
- };
- ATTRIBUTE_GROUPS(cxl_mock_mem);
-
--- 
-2.47.0
 
