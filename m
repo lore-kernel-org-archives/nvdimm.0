@@ -1,51 +1,52 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56CC71E9063
-	for <nvdimm@lists.linux.dev>; Tue,  5 Nov 2024 18:38:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5550F1EB9E7;
+	Tue,  5 Nov 2024 18:38:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730831913; cv=none; b=QTteZ5QNotXiNtn+EjPrWJwXAfUyPJ1nZuLtUc18mpSTeftt+q2CICUYeapZLJoQlw6m4pXo4jKN5YQuoiFJXOe1yDQf/kx0e58tLETRpoWGaMZA3zYJMLKTwqRBptZlR+QHeKXxjUrQFkZzEX0w2kpRfjLo0TkTy5HorRFtX/k=
+	t=1730831916; cv=none; b=CCm531oWxwvLuCuTpPHJgEwyM2DGXaguYRr60JO5bsXRZxmL/wghLHCwHcr8XusBXz1QA2pfVHLMrjyPisvMsHpFyi6nPaaqnEPGYmI6ROvoy38tfS79z7OKBBIHncOVlmNjO6pJENeGiSMSOWmVX7KyX1iyQCAFhOcxTY+ymJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730831913; c=relaxed/simple;
-	bh=94mNaBSKBGKU/oxXHv0KQQ3HrmkwrIQ1mGVq1crl7PM=;
+	s=arc-20240116; t=1730831916; c=relaxed/simple;
+	bh=zH2SgYF46BdWpTcAmHbhUXYZc6rF70HffsU2wUsj/bc=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=PAGjcMVhZSQcEZPMPdnS29GSKD4uEOmTXtO1xWjBvyNFxQ34X0WYMm5GV81PwOKw7lgIuexio0JPMP2rFOW4wPKMSvCcUHjscformBS5wHu5S0fP83UEDe4IsvZ+UQQ9UNvI/F7v6JxfaTcH0QiM9EZjMQg6g7CxlW7cCHPMXzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ope8d/M+; arc=none smtp.client-ip=192.198.163.15
+	 In-Reply-To:To:Cc; b=lF13LZKe4PqreASJFUhrHP2hO1kFx0KU0ufSpvblDjLd180UpCARVSphCU1pVdWrh+iI2LQZ0oSFBMPgerIgga+j0KjX9JplLXWHLBwqbkL/SQAMciOMcVijLz18qqcRh26FZT41TXgPEWUrGytHio9852Fqs4hpVQrI+rdsCj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=i7BFJoYR; arc=none smtp.client-ip=192.198.163.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ope8d/M+"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="i7BFJoYR"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730831911; x=1762367911;
+  t=1730831914; x=1762367914;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=94mNaBSKBGKU/oxXHv0KQQ3HrmkwrIQ1mGVq1crl7PM=;
-  b=Ope8d/M++BEfrJfB9/b6OY+UyP4VMr7hmsejzQXu/Rs1+ccqEcLmOvmj
-   9/K6tbdIgWW5/xK6Xf+45VBuYiF8faavLy++YID7hWVBiMivxLhdc9LaJ
-   fWXLd9fiqRxF+LQI4W5r9CLKclCjuv5ppgIh9PQv/bJ3VpTpJ5jBV1oPn
-   tfwu2EDCRF6K0Zuqw8+gsBibCB0zsEUJgM0TX046mll1acvrrfKvY63I/
-   sk8mvbyPvvK74LF5gRyEmdcGDsonZn/Ot0k7IfBaXRL23Eli1HRCMn1Ew
-   YuvEnLQUCN6TmhaYKKFnAo3mjjEDL41cWi/XIX0z3QSO2ZrkcBxd4Wa3H
-   w==;
-X-CSE-ConnectionGUID: 3KhgSPgRROa6eNhGD7BkJA==
-X-CSE-MsgGUID: lFd9uyuDSAONRjBBLn/xZQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11247"; a="30708361"
+  bh=zH2SgYF46BdWpTcAmHbhUXYZc6rF70HffsU2wUsj/bc=;
+  b=i7BFJoYRprK7bSBpF2FcRWQhnzENDoWRzldtSYFnKcc7s6tYT2aAk7ao
+   kmAuTJ7rGDxoFd1uhDGgnfqW9BECg0jwv/Ol6GGNHeDb/zGcJIU9ODEX2
+   g2a+W/qs8dFS8kRcp0AEQ+Xx/3h1FkyHb8NFHLah3JMsmWlQGY0PclXDp
+   P2mytQmt+4ZCPpT4qFcP7znQRowiCgmijzcmHOY/ofAq2D51Qjcdlq8fI
+   Zsm3AkQ+Wua6fR3aoari2u/5d67srRsKSNe9HpbZxV8Ysgg8Iqqy2ErMC
+   j4+OlESr4hFASEcOEWw/zgZ5oDdhWLbzbJoTG65orcz0knk8RdWMsmA4N
+   A==;
+X-CSE-ConnectionGUID: 0j05g/TQRQG3LYzg+6Sh9w==
+X-CSE-MsgGUID: Qnfc1XCLSNyhq7KHw2+E7Q==
+X-IronPort-AV: E=McAfee;i="6700,10204,11247"; a="30708382"
 X-IronPort-AV: E=Sophos;i="6.11,260,1725346800"; 
-   d="scan'208";a="30708361"
+   d="scan'208";a="30708382"
 Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 10:38:31 -0800
-X-CSE-ConnectionGUID: 8YNCvpn6RKaWza8E3Gl/Mw==
-X-CSE-MsgGUID: UTC8DIHeSPSGlunJQZ6uZQ==
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 10:38:34 -0800
+X-CSE-ConnectionGUID: zvauHI/8RPu19Qjb5ld8sQ==
+X-CSE-MsgGUID: Rki2SOgDRSa7Gl6DAHTNkw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.11,260,1725346800"; 
-   d="scan'208";a="84948634"
+   d="scan'208";a="84948677"
 Received: from spandruv-mobl4.amr.corp.intel.com (HELO localhost) ([10.125.109.247])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 10:38:30 -0800
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 10:38:32 -0800
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Tue, 05 Nov 2024 12:38:23 -0600
-Subject: [PATCH v6 01/27] range: Add range_overlaps()
+Date: Tue, 05 Nov 2024 12:38:24 -0600
+Subject: [PATCH v6 02/27] ACPI/CDAT: Add CDAT/DSMAS shared and read only
+ flag values
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +55,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241105-dcd-type2-upstream-v6-1-85c7fa2140fe@intel.com>
+Message-Id: <20241105-dcd-type2-upstream-v6-2-85c7fa2140fe@intel.com>
 References: <20241105-dcd-type2-upstream-v6-0-85c7fa2140fe@intel.com>
 In-Reply-To: <20241105-dcd-type2-upstream-v6-0-85c7fa2140fe@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -67,108 +68,50 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
  linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org, 
  nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, 
- Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>, 
- David Sterba <dsterba@suse.com>, linux-btrfs@vger.kernel.org, 
- Johannes Thumshirn <johannes.thumshirn@wdc.com>
+ Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, 
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
 X-Mailer: b4 0.15-dev-2a633
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730831904; l=3560;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1730831904; l=1336;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=94mNaBSKBGKU/oxXHv0KQQ3HrmkwrIQ1mGVq1crl7PM=;
- b=hME8ciUyjqEZnMsxFxb54/oj16NvxM9Il0dsRBM+nb1Jbrl/MJKVrqbmFVPOAZRVNkoL8XKOz
- l8XDqu1poxgBQMFsWS+DxVCby7dxhiR32yLRTMJ2wQcE57ScVYPuUSL
+ bh=zH2SgYF46BdWpTcAmHbhUXYZc6rF70HffsU2wUsj/bc=;
+ b=7OpkxOF7jW+6i1JPYWi6nLVG0/uyzNOY4VG2smei3DZgilsZW+mSP/1Js3GdDyZ59Bj9yyPk/
+ z4l94yGsD9BDa11Gvqx5fugjutE/j8qYTtLANVVpSCAoqSQgHp7XNb8
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-Code to support CXL Dynamic Capacity devices will have extent ranges
-which need to be compared for intersection not a subset as is being
-checked in range_contains().
+The Coherent Device Attribute Table (CDAT) Device Scoped Memory Affinity
+Structure (DSMAS) version 1.04 [1] defines flags to indicate if a DPA range
+is read only and/or shared.
 
-range_overlaps() is defined in btrfs with a different meaning from what
-is required in the standard range code.  Dan Williams pointed this out
-in [1].  Adjust the btrfs call according to his suggestion there.
+Add read only and shareable flag definitions.
 
-Then add a generic range_overlaps().
+This change was merged in ACPI via PR 976.[2]
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: linux-btrfs@vger.kernel.org
-Link: https://lore.kernel.org/all/65949f79ef908_8dc68294f2@dwillia2-xfh.jf.intel.com.notmuch/ [1]
-Acked-by: David Sterba <dsterba@suse.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Reviewed-by: Johannes Thumshirn <johannes.thumshirn@wdc.com>
-Reviewed-by: Fan Ni <fan.ni@samsung.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Link: https://uefi.org/sites/default/files/resources/Coherent%20Device%20Attribute%20Table_1.04%20published_0.pdf [1]
+Link: https://github.com/acpica/acpica/pull/976 [2]
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: acpica-devel@lists.linux.dev
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/btrfs/ordered-data.c | 10 +++++-----
- include/linux/range.h   |  8 ++++++++
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ include/acpi/actbl1.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/fs/btrfs/ordered-data.c b/fs/btrfs/ordered-data.c
-index 2104d60c216166d577ef81750c63167248f33b6a..744c3375ee6a88e0fc01ef7664e923a48cbe6dca 100644
---- a/fs/btrfs/ordered-data.c
-+++ b/fs/btrfs/ordered-data.c
-@@ -111,8 +111,8 @@ static struct rb_node *__tree_search(struct rb_root *root, u64 file_offset,
- 	return NULL;
- }
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 199afc2cd122ca8b383b1c9286f8c8cc33842fae..387fc821703a80b324637743f0d5afe03b8d7943 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -403,6 +403,8 @@ struct acpi_cdat_dsmas {
+ /* Flags for subtable above */
  
--static int range_overlaps(struct btrfs_ordered_extent *entry, u64 file_offset,
--			  u64 len)
-+static int btrfs_range_overlaps(struct btrfs_ordered_extent *entry, u64 file_offset,
-+				u64 len)
- {
- 	if (file_offset + len <= entry->file_offset ||
- 	    entry->file_offset + entry->num_bytes <= file_offset)
-@@ -985,7 +985,7 @@ struct btrfs_ordered_extent *btrfs_lookup_ordered_range(
+ #define ACPI_CDAT_DSMAS_NON_VOLATILE        (1 << 2)
++#define ACPI_CDAT_DSMAS_SHAREABLE           (1 << 3)
++#define ACPI_CDAT_DSMAS_READ_ONLY           (1 << 6)
  
- 	while (1) {
- 		entry = rb_entry(node, struct btrfs_ordered_extent, rb_node);
--		if (range_overlaps(entry, file_offset, len))
-+		if (btrfs_range_overlaps(entry, file_offset, len))
- 			break;
- 
- 		if (entry->file_offset >= file_offset + len) {
-@@ -1114,12 +1114,12 @@ struct btrfs_ordered_extent *btrfs_lookup_first_ordered_range(
- 	}
- 	if (prev) {
- 		entry = rb_entry(prev, struct btrfs_ordered_extent, rb_node);
--		if (range_overlaps(entry, file_offset, len))
-+		if (btrfs_range_overlaps(entry, file_offset, len))
- 			goto out;
- 	}
- 	if (next) {
- 		entry = rb_entry(next, struct btrfs_ordered_extent, rb_node);
--		if (range_overlaps(entry, file_offset, len))
-+		if (btrfs_range_overlaps(entry, file_offset, len))
- 			goto out;
- 	}
- 	/* No ordered extent in the range */
-diff --git a/include/linux/range.h b/include/linux/range.h
-index 6ad0b73cb7adc0ee53451b8fed0a70772adc98fa..876cd5355158eff267a42991ba17fa35a1d31600 100644
---- a/include/linux/range.h
-+++ b/include/linux/range.h
-@@ -13,11 +13,19 @@ static inline u64 range_len(const struct range *range)
- 	return range->end - range->start + 1;
- }
- 
-+/* True if r1 completely contains r2 */
- static inline bool range_contains(struct range *r1, struct range *r2)
- {
- 	return r1->start <= r2->start && r1->end >= r2->end;
- }
- 
-+/* True if any part of r1 overlaps r2 */
-+static inline bool range_overlaps(const struct range *r1,
-+				  const struct range *r2)
-+{
-+	return r1->start <= r2->end && r1->end >= r2->start;
-+}
-+
- int add_range(struct range *range, int az, int nr_range,
- 		u64 start, u64 end);
+ /* Subtable 1: Device scoped Latency and Bandwidth Information Structure (DSLBIS) */
  
 
 -- 
