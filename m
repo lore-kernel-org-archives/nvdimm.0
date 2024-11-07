@@ -1,189 +1,129 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B6211DFE0F;
-	Thu,  7 Nov 2024 10:01:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 190E91EE00C
+	for <nvdimm@lists.linux.dev>; Thu,  7 Nov 2024 11:08:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730973679; cv=none; b=sG4wz07kx/TkKmHEwABL/F/n0NtitGUKvx76yUmeBuYWeiBQrfGeLcpCbOAsJ+A5zPoNFEHPaGmzRetCMedv4W1QxhIxUcvSAujjX64NZtg9jcbRQv9I9t7qXAI2gU5khd6eSHFxjWJ7TrNh9mPMlVLMSbxRc+IniscF80CSfL0=
+	t=1730977712; cv=none; b=m7IGnajMzeB+XSvOkmme2mg8x6tJfbjkksfDz1kd0QGzWC1YhW2PNZvuQa2s1tPIJLay9oGGaVnfvr+4ZsaefqOdpAHD4Tk8eNgnlbZcckCZZfjSt0lBaSsdk3stCrugHfvKnec/rrUQ2ZUWQ5eLnFEWfhDjAV9wjhl6hBp9d7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730973679; c=relaxed/simple;
-	bh=xzy1a+XIjSNMU/9hC5QgXrBmdrtIFDc4aIusSqqZDyk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=afpsO4iCyCaS2PrdEr2RuLJpxqHuttj5LanvScfXQImj5tzLtyqvdMLYzswGWEQNws3qOWEVdKA6ve1oq52dEEFXFhCKTk68WO7goVY1XB75NUo40MMKtamBjxPboltCzeQkvTP82grytIxP6mlapUgpLB5qQJgS73NrFwUgCBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=dEyWEJFP; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=2xj1YwUi; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=dEyWEJFP; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=2xj1YwUi; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="dEyWEJFP";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="2xj1YwUi";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="dEyWEJFP";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="2xj1YwUi"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id A7AB91F8B8;
-	Thu,  7 Nov 2024 10:01:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1730973669; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GaeMriiFanSTTR3LXqn8YDithSvI9c9ELHnMZEcbcV4=;
-	b=dEyWEJFP9+7pFZto0mTwaAdpdbUBoE+E1Jnb17O6Oi86fWbGp9buUsewrMmL7rRrw3moYr
-	7jZVcuruN+WKKEap2Qyzs/K/w4zP/wOhIzGi/Uj7MGsu3rXbc5PvAc3OzqnOlCCWrtEDWa
-	0WJ825xm66rkDiQFnhSLi1ynKIJEEKY=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1730973669;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GaeMriiFanSTTR3LXqn8YDithSvI9c9ELHnMZEcbcV4=;
-	b=2xj1YwUi1NjJGe5xQRuOT/bgQX4rnzwsFc2ixDbkBGV6Ockj2AopBZIxrofb7O4+KoEdm5
-	e2c0LgeZSkEUZIBQ==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=dEyWEJFP;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=2xj1YwUi
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1730973669; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GaeMriiFanSTTR3LXqn8YDithSvI9c9ELHnMZEcbcV4=;
-	b=dEyWEJFP9+7pFZto0mTwaAdpdbUBoE+E1Jnb17O6Oi86fWbGp9buUsewrMmL7rRrw3moYr
-	7jZVcuruN+WKKEap2Qyzs/K/w4zP/wOhIzGi/Uj7MGsu3rXbc5PvAc3OzqnOlCCWrtEDWa
-	0WJ825xm66rkDiQFnhSLi1ynKIJEEKY=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1730973669;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GaeMriiFanSTTR3LXqn8YDithSvI9c9ELHnMZEcbcV4=;
-	b=2xj1YwUi1NjJGe5xQRuOT/bgQX4rnzwsFc2ixDbkBGV6Ockj2AopBZIxrofb7O4+KoEdm5
-	e2c0LgeZSkEUZIBQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 996BF139B3;
-	Thu,  7 Nov 2024 10:01:09 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 2mJtJeWPLGd5fwAAD6G6ig
-	(envelope-from <jack@suse.cz>); Thu, 07 Nov 2024 10:01:09 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id 53202A0AF4; Thu,  7 Nov 2024 11:01:05 +0100 (CET)
-Date: Thu, 7 Nov 2024 11:01:05 +0100
-From: Jan Kara <jack@suse.cz>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Asahi Lina <lina@asahilina.net>,
-	Dave Chinner <david@fromorbit.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Sergio Lopez Pascual <slp@redhat.com>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, asahi@lists.linux.dev
-Subject: Re: [PATCH] dax: Allow block size > PAGE_SIZE
-Message-ID: <20241107100105.tktkxs5qhkjwkckg@quack3>
-References: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
- <20241104105711.mqk4of6frmsllarn@quack3>
- <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
- <ZylHyD7Z+ApaiS5g@dread.disaster.area>
- <21f921b3-6601-4fc4-873f-7ef8358113bb@asahilina.net>
- <20241106121255.yfvlzcomf7yvrvm7@quack3>
- <672bcab0911a2_10bc62943f@dwillia2-xfh.jf.intel.com.notmuch>
+	s=arc-20240116; t=1730977712; c=relaxed/simple;
+	bh=Z7Xqgehlx8wZTxjCgV/aoC/vyS4B8U7q2wXoaRWeyiE=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=APp7qnfugZ/IpWGIPjxWOGHVfw+PVuJFeyVD75AmGvA2OMXn9tEGtU5gGztRckNzpzTHaZpFiBtXgd267zzktw4ebJqEWlS7PHD1vyCrNGXu9mST5bnpHkJLZkoOroJ0t4ZDaV7R7iGLHHyQapquSQ7fUdoixfOSfLZd8uC/g7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XkfST2ntzz6LDGF;
+	Thu,  7 Nov 2024 19:08:09 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id 3660A140CB9;
+	Thu,  7 Nov 2024 19:08:13 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 7 Nov
+ 2024 12:08:12 +0100
+Date: Thu, 7 Nov 2024 11:08:10 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Ira Weiny <ira.weiny@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
+ Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
+ Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
+	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
+	<linux-cxl@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v6 05/27] cxl/hdm: Use guard() in cxl_dpa_set_mode()
+Message-ID: <20241107110810.00000fc1@Huawei.com>
+In-Reply-To: <20241105-dcd-type2-upstream-v6-5-85c7fa2140fe@intel.com>
+References: <20241105-dcd-type2-upstream-v6-0-85c7fa2140fe@intel.com>
+	<20241105-dcd-type2-upstream-v6-5-85c7fa2140fe@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <672bcab0911a2_10bc62943f@dwillia2-xfh.jf.intel.com.notmuch>
-X-Rspamd-Queue-Id: A7AB91F8B8
-X-Spam-Score: -4.01
-X-Rspamd-Action: no action
-X-Spamd-Result: default: False [-4.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[12];
-	MIME_TRACE(0.00)[0:+];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,suse.cz:dkim];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_COUNT_THREE(0.00)[3];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_TLS_LAST(0.00)[];
-	DKIM_TRACE(0.00)[suse.cz:+]
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spam-Flag: NO
-X-Spam-Level: 
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-On Wed 06-11-24 11:59:44, Dan Williams wrote:
-> Jan Kara wrote:
-> [..]
-> > > This WARN still feels like the wrong thing, though. Right now it is the
-> > > only thing in DAX code complaining on a page size/block size mismatch
-> > > (at least for virtiofs). If this is so important, I feel like there
-> > > should be a higher level check elsewhere, like something happening at
-> > > mount time or on file open. It should actually cause the operations to
-> > > fail cleanly.
-> > 
-> > That's a fair point. Currently filesystems supporting DAX check for this in
-> > their mount code because there isn't really a DAX code that would get
-> > called during mount and would have enough information to perform the check.
-> > I'm not sure adding a new call just for this check makes a lot of sense.
-> > But if you have some good place in mind, please tell me.
+On Tue, 05 Nov 2024 12:38:27 -0600
+Ira Weiny <ira.weiny@intel.com> wrote:
+
+> Additional DCD functionality is being added to this call which will be
+> simplified by the use of guard() with the cxl_dpa_rwsem.
 > 
-> Is not the reason that dax_writeback_mapping_range() the only thing
-> checking ->i_blkbits because 'struct writeback_control' does writeback
-> in terms of page-index ranges?
-
-To be fair, I don't remember why we've put the assertion specifically into
-dax_writeback_mapping_range(). But as Dave explained there's much more to
-this blocksize == pagesize limitation in DAX than just doing writeback in
-terms of page-index ranges. The whole DAX entry tracking in xarray would
-have to be modified to properly support other entry sizes than just PTE &
-PMD sizes because otherwise the entry locking just doesn't provide the
-guarantees that are expected from filesystems (e.g. you could have parallel
-modifications happening to a single fs block in pagesize < blocksize case).
-
-> All other dax entry points are filesystem controlled that know the
-> block-to-pfn-to-mapping relationship.
+> Convert the function to use guard() prior to adding DCD functionality.
 > 
-> Recall that dax_writeback_mapping_range() is historically for pmem
-> persistence guarantees to make sure that applications write through CPU
-> cache to media.
+> Suggested-by: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-Correct.
+You missed some RBs from v5 and I don't think this changed.
 
-> Presumably there are no cache coherency concerns with fuse and dax
-> writes from the guest side are not a risk of being stranded in CPU
-> cache. Host side filesystem writeback will take care of them when / if
-> the guest triggers a storage device cache flush, not a guest page cache
-> writeback.
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-I'm not so sure. When you call fsync(2) in the guest on virtiofs file, it
-should provide persistency guarantees on the file contents even in case of
-*host* power failure. So if the guest is directly mapping host's page cache
-pages through virtiofs, filemap_fdatawrite() call in the guest must result
-in fsync(2) on the host to persist those pages. And as far as I vaguely
-remember that happens by KVM catching the arch_wb_cache_pmem() calls and
-issuing fsync(2) on the host. But I could be totally wrong here.
+Davidlohr also gave one.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+> ---
+>  drivers/cxl/core/hdm.c | 21 ++++++---------------
+>  1 file changed, 6 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+> index 3df10517a3278f228c7535fcbdb607d7b75bc879..463ba2669cea55194e2be2c26d02af75dde8d145 100644
+> --- a/drivers/cxl/core/hdm.c
+> +++ b/drivers/cxl/core/hdm.c
+> @@ -424,7 +424,6 @@ int cxl_dpa_set_mode(struct cxl_endpoint_decoder *cxled,
+>  	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+>  	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+>  	struct device *dev = &cxled->cxld.dev;
+> -	int rc;
+>  
+>  	switch (mode) {
+>  	case CXL_DECODER_RAM:
+> @@ -435,11 +434,9 @@ int cxl_dpa_set_mode(struct cxl_endpoint_decoder *cxled,
+>  		return -EINVAL;
+>  	}
+>  
+> -	down_write(&cxl_dpa_rwsem);
+> -	if (cxled->cxld.flags & CXL_DECODER_F_ENABLE) {
+> -		rc = -EBUSY;
+> -		goto out;
+> -	}
+> +	guard(rwsem_write)(&cxl_dpa_rwsem);
+> +	if (cxled->cxld.flags & CXL_DECODER_F_ENABLE)
+> +		return -EBUSY;
+>  
+>  	/*
+>  	 * Only allow modes that are supported by the current partition
+> @@ -447,21 +444,15 @@ int cxl_dpa_set_mode(struct cxl_endpoint_decoder *cxled,
+>  	 */
+>  	if (mode == CXL_DECODER_PMEM && !resource_size(&cxlds->pmem_res)) {
+>  		dev_dbg(dev, "no available pmem capacity\n");
+> -		rc = -ENXIO;
+> -		goto out;
+> +		return -ENXIO;
+>  	}
+>  	if (mode == CXL_DECODER_RAM && !resource_size(&cxlds->ram_res)) {
+>  		dev_dbg(dev, "no available ram capacity\n");
+> -		rc = -ENXIO;
+> -		goto out;
+> +		return -ENXIO;
+>  	}
+>  
+>  	cxled->mode = mode;
+> -	rc = 0;
+> -out:
+> -	up_write(&cxl_dpa_rwsem);
+> -
+> -	return rc;
+> +	return 0;
+>  }
+>  
+>  int cxl_dpa_alloc(struct cxl_endpoint_decoder *cxled, unsigned long long size)
+> 
+
