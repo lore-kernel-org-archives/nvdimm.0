@@ -1,51 +1,51 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A26E0218942
-	for <nvdimm@lists.linux.dev>; Thu,  7 Nov 2024 20:59:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DE1226B82
+	for <nvdimm@lists.linux.dev>; Thu,  7 Nov 2024 20:59:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731013170; cv=none; b=c1uBJgNF5axNrZZV2rP0YcyDOxwRYtwEyuCTA5BRCxvnz9Sl7y5Fu+Kqc4GgalFROOTq9zxwou8DXhvQ6yfhDgGqSqepGoqoM8CcvWEopil8+wnq9m5vRvZsjG7vydips0L6pwDzwnW7LiC81hUn1tO4gaOwJTvy0hzvOEf0sZw=
+	t=1731013172; cv=none; b=US/XVdOFJvlzX7qzVDANpNlppNjv8aoMx0uP2w3ZgbndeMv2P25NWqZJi/3NIBbkIetRjQFW5E9RK7PxE9uV6yUQ9YWWwuGT88UuKUBFjaPAPyZrYM0El7BuKFcWaXCp7EE0ZtxEH0OUbJLSRdW2eu2qyR/1sQ0WLCZxa9sqEWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731013170; c=relaxed/simple;
-	bh=nTzBiYM0ZGEhiXRDqoR0889r/eTviFwdO8Ts8yXZInw=;
+	s=arc-20240116; t=1731013172; c=relaxed/simple;
+	bh=2Vycd2tVNexSZra4jq61u55rDAGYrO2GPqDdjO2Y8Vg=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=XUuZyl5QMGJyQL6DJNGh2hjK2krCv388WGxrt7FxC/ovqQQMyLefCo5S3n3z+oOrNwdLAHONBddPFpGWsgvsx2NxaYNVYiGYgj2/KsZNUYLTuFUgvBEXO7KdjjjLZCpXg7r4Ad1t0Y5S9phqruGWjNrIHF4ekbcU/zCniS9osnA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WxFJ1v5F; arc=none smtp.client-ip=192.198.163.13
+	 In-Reply-To:To:Cc; b=lqS2Ms4kTw9OlASQA5rbO9XaX0DjeeiyIgmJBdrVTrxm2rInIxTaJspvHi/Huzv0VeE4H0/WpYGXa14kT6XN3CMjd7wQwrsiJCwpSMWDTXpbE7SUcLYXJA4nvo034MIuHnZjH7m+2gokZnKQkUQolEpBf+csWNlYTkfIDhuwUXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=f+mtc+pc; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WxFJ1v5F"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="f+mtc+pc"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1731013169; x=1762549169;
+  t=1731013171; x=1762549171;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=nTzBiYM0ZGEhiXRDqoR0889r/eTviFwdO8Ts8yXZInw=;
-  b=WxFJ1v5FXb747dBXt21DVxlWOxQ+aFcYdg8rOZJy1O2a9Pg6Ard2JFlz
-   ITRHwQkG7WwLxUX4oD1e3Z7JLkAVpoku8YKdhADDfE9zFYUsISeLZwmZL
-   5AIJagkpN17reEOCfCSgb5/DuZiPcThQ4lblTlfb2ENe1i3sThhlYjHTF
-   mX5lA9ubnGhKViyA0VyMWRTgAqEHIhzo+NmwWVD91Txc794bqGMrAmOAH
-   RXob1yCGbsdhXHrttgioVXTt9l5+zzHPxOEjwgmLaaI5exeMu9puzkOa0
-   PGnvMr/D0MpiPcWy4nN11TsQM05mPrxAa8cCsjNC4LNKvaxz+/1w2zI6n
-   Q==;
-X-CSE-ConnectionGUID: iAjYpHx2T4qjxgtGbpAWBQ==
-X-CSE-MsgGUID: vPfQ+uhKS2SAxQaVzeD9RQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11249"; a="33727900"
+  bh=2Vycd2tVNexSZra4jq61u55rDAGYrO2GPqDdjO2Y8Vg=;
+  b=f+mtc+pcRrlMFsIZrY3UVTH6ZIt2bAdw/s9Mc3ZBSeDOOI29WFObK9sY
+   69gDNd/P2mf+wwniAlbQU6/mnpSXBAN5S0eqtQM2HKfaDfzWLbi+mKplp
+   xJGiP0mlewlaMJf1VXKP993hPQ8ec0u3DbGeM3/+IKX4D0ZPWPZFVzfuZ
+   XJCuW71J1Y0rSS/OZ3SnQcfVvhn0mrb4lIxwWEA32r8multkjVPL+DdSU
+   /Tp2wckv+6+aCQ5Rv9mm+WRoWXjJMVTqWYvLX/jtD29joV55f4CUQyAt4
+   F7q5nJdp4YV3eqAsC5CiaMTs4hcRlpp22b65FC5M/2tk6wxndO4zLfB3P
+   w==;
+X-CSE-ConnectionGUID: QJNNgqEMTwGFVt+W6TBs4Q==
+X-CSE-MsgGUID: jFS7GP4KRYWB35rLJgT4pw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11249"; a="33727914"
 X-IronPort-AV: E=Sophos;i="6.12,136,1728975600"; 
-   d="scan'208";a="33727900"
+   d="scan'208";a="33727914"
 Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2024 12:59:28 -0800
-X-CSE-ConnectionGUID: yRYjAStDQZKbpdB/esBiCQ==
-X-CSE-MsgGUID: kLHVG+gJRWmfP03JbbHSFg==
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2024 12:59:31 -0800
+X-CSE-ConnectionGUID: o0DSPvzlTWSQ6wzG8YbmVA==
+X-CSE-MsgGUID: 2u7uuGCLT1WD2ST76R5ClQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.12,136,1728975600"; 
-   d="scan'208";a="89876029"
+   d="scan'208";a="89876049"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.110.195])
-  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2024 12:59:26 -0800
-From: ira.weiny@intel.com
-Date: Thu, 07 Nov 2024 14:58:43 -0600
-Subject: [PATCH v7 25/27] cxl/mem: Trace Dynamic capacity Event Record
+  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2024 12:59:29 -0800
+From: Ira Weiny <ira.weiny@intel.com>
+Date: Thu, 07 Nov 2024 14:58:44 -0600
+Subject: [PATCH v7 26/27] tools/testing/cxl: Make event logs dynamic
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +54,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241107-dcd-type2-upstream-v7-25-56a84e66bc36@intel.com>
+Message-Id: <20241107-dcd-type2-upstream-v7-26-56a84e66bc36@intel.com>
 References: <20241107-dcd-type2-upstream-v7-0-56a84e66bc36@intel.com>
 In-Reply-To: <20241107-dcd-type2-upstream-v7-0-56a84e66bc36@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -68,123 +68,446 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org, 
  nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
 X-Mailer: b4 0.15-dev-2a633
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1731013104; l=3591;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1731013104; l=15571;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=vaAw0rjPm835wNAX6U7iwIQUmgsQgCIKUhARp6y953I=;
- b=NROw/mk2M8pm3PbtWDijQxm9w4vsjzu7l1WEsIQdGivOL/prKxB7y3JylDRE9+K3YGw6k5RFQ
- zQmdcQNpfDHB+3LNrEWCZ6zs7xQsBKkUDzj6XSzoUyPwhOMTLEVCDsK
+ bh=2Vycd2tVNexSZra4jq61u55rDAGYrO2GPqDdjO2Y8Vg=;
+ b=iLlW8BmCuZ3QWDRjKAYEeA9X8TeQIHUOoZz4oSlYo5STpMQBkGCkSwx4mSQOQZABHkdI/U6lp
+ 9RmITRe6eOnCJeybgSsEOzmVFVP8+r6X34e+fYBWCAiC92Gt+KIKJbQ
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-From: Navneet Singh <navneet.singh@intel.com>
+The event logs test was created as static arrays as an easy way to mock
+events.  Dynamic Capacity Device (DCD) test support requires events be
+generated dynamically when extents are created or destroyed.
 
-CXL rev 3.1 section 8.2.9.2.1 adds the Dynamic Capacity Event Records.
-User space can use trace events for debugging of DC capacity changes.
+The current event log test has specific checks for the number of events
+seen including log overflow.
 
-Add DC trace points to the trace log.
+Modify mock event logs to be dynamically allocated.  Adjust array size
+and mock event entry data to match the output expected by the existing
+event test.
 
-Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+Use the static event data to create the dynamic events in the new logs
+without inventing complex event injection for the previous tests.
+
+Simplify log processing by using the event log array index as the
+handle.  Add a lock to manage concurrency required when user space is
+allowed to control DCD extents
+
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Fan Ni <fan.ni@samsung.com>
-Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/cxl/core/mbox.c  |  4 +++
- drivers/cxl/core/trace.h | 65 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 69 insertions(+)
+ tools/testing/cxl/test/mem.c | 268 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 162 insertions(+), 106 deletions(-)
 
-diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index e0030166ea185f8ad9194f597906d61497897654..8261ce126a4bd23e5f717a9035f75668753ec276 100644
---- a/drivers/cxl/core/mbox.c
-+++ b/drivers/cxl/core/mbox.c
-@@ -995,6 +995,10 @@ static void __cxl_event_trace_record(const struct cxl_memdev *cxlmd,
- 		ev_type = CXL_CPER_EVENT_DRAM;
- 	else if (uuid_equal(uuid, &CXL_EVENT_MEM_MODULE_UUID))
- 		ev_type = CXL_CPER_EVENT_MEM_MODULE;
-+	else if (uuid_equal(uuid, &CXL_EVENT_DC_EVENT_UUID)) {
-+		trace_cxl_dynamic_capacity(cxlmd, type, &record->event.dcd);
-+		return;
-+	}
+diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+index ad5c4c18c5c643aff7180a686c1990a136069f6d..611cd9677cd0a63214322189efb4ef9fb3a1ceb6 100644
+--- a/tools/testing/cxl/test/mem.c
++++ b/tools/testing/cxl/test/mem.c
+@@ -126,18 +126,26 @@ static struct {
  
- 	cxl_event_trace_record(cxlmd, type, ev_type, uuid, &record->event);
- }
-diff --git a/drivers/cxl/core/trace.h b/drivers/cxl/core/trace.h
-index 8672b42ee4d1b376063b09d29922fcce83a70168..d4526f06cf2a2d0a4b4bc5f9e00238aa43a16e35 100644
---- a/drivers/cxl/core/trace.h
-+++ b/drivers/cxl/core/trace.h
-@@ -731,6 +731,71 @@ TRACE_EVENT(cxl_poison,
- 	)
- );
+ #define PASS_TRY_LIMIT 3
+ 
+-#define CXL_TEST_EVENT_CNT_MAX 15
++#define CXL_TEST_EVENT_CNT_MAX 16
++/* 1 extra slot to accommodate that handles can't be 0 */
++#define CXL_TEST_EVENT_ARRAY_SIZE (CXL_TEST_EVENT_CNT_MAX + 1)
+ 
+ /* Set a number of events to return at a time for simulation.  */
+ #define CXL_TEST_EVENT_RET_MAX 4
  
 +/*
-+ * Dynamic Capacity Event Record - DER
-+ *
-+ * CXL rev 3.1 section 8.2.9.2.1.6 Table 8-50
++ * @last_handle: last handle (index) to have an entry stored
++ * @current_handle: current handle (index) to be returned to the user on get_event
++ * @nr_overflow: number of events added past the log size
++ * @lock: protect these state variables
++ * @events: array of pending events to be returned.
 + */
-+
-+#define CXL_DC_ADD_CAPACITY			0x00
-+#define CXL_DC_REL_CAPACITY			0x01
-+#define CXL_DC_FORCED_REL_CAPACITY		0x02
-+#define CXL_DC_REG_CONF_UPDATED			0x03
-+#define show_dc_evt_type(type)	__print_symbolic(type,		\
-+	{ CXL_DC_ADD_CAPACITY,	"Add capacity"},		\
-+	{ CXL_DC_REL_CAPACITY,	"Release capacity"},		\
-+	{ CXL_DC_FORCED_REL_CAPACITY,	"Forced capacity release"},	\
-+	{ CXL_DC_REG_CONF_UPDATED,	"Region Configuration Updated"	} \
-+)
-+
-+TRACE_EVENT(cxl_dynamic_capacity,
-+
-+	TP_PROTO(const struct cxl_memdev *cxlmd, enum cxl_event_log_type log,
-+		 struct cxl_event_dcd *rec),
-+
-+	TP_ARGS(cxlmd, log, rec),
-+
-+	TP_STRUCT__entry(
-+		CXL_EVT_TP_entry
-+
-+		/* Dynamic capacity Event */
-+		__field(u8, event_type)
-+		__field(u16, hostid)
-+		__field(u8, region_id)
-+		__field(u64, dpa_start)
-+		__field(u64, length)
-+		__array(u8, tag, CXL_EXTENT_TAG_LEN)
-+		__field(u16, sh_extent_seq)
-+	),
-+
-+	TP_fast_assign(
-+		CXL_EVT_TP_fast_assign(cxlmd, log, rec->hdr);
-+
-+		/* Dynamic_capacity Event */
-+		__entry->event_type = rec->event_type;
-+
-+		/* DCD event record data */
-+		__entry->hostid = le16_to_cpu(rec->host_id);
-+		__entry->region_id = rec->region_index;
-+		__entry->dpa_start = le64_to_cpu(rec->extent.start_dpa);
-+		__entry->length = le64_to_cpu(rec->extent.length);
-+		memcpy(__entry->tag, &rec->extent.tag, CXL_EXTENT_TAG_LEN);
-+		__entry->sh_extent_seq = le16_to_cpu(rec->extent.shared_extn_seq);
-+	),
-+
-+	CXL_EVT_TP_printk("event_type='%s' host_id='%d' region_id='%d' " \
-+		"starting_dpa=%llx length=%llx tag=%pU " \
-+		"shared_extent_sequence=%d",
-+		show_dc_evt_type(__entry->event_type),
-+		__entry->hostid,
-+		__entry->region_id,
-+		__entry->dpa_start,
-+		__entry->length,
-+		__entry->tag,
-+		__entry->sh_extent_seq
-+	)
-+);
-+
- #endif /* _CXL_EVENTS_H */
+ struct mock_event_log {
+-	u16 clear_idx;
+-	u16 cur_idx;
+-	u16 nr_events;
++	u16 last_handle;
++	u16 current_handle;
+ 	u16 nr_overflow;
+-	u16 overflow_reset;
+-	struct cxl_event_record_raw *events[CXL_TEST_EVENT_CNT_MAX];
++	rwlock_t lock;
++	struct cxl_event_record_raw *events[CXL_TEST_EVENT_ARRAY_SIZE];
+ };
  
- #define TRACE_INCLUDE_FILE trace
+ struct mock_event_store {
+@@ -172,56 +180,65 @@ static struct mock_event_log *event_find_log(struct device *dev, int log_type)
+ 	return &mdata->mes.mock_logs[log_type];
+ }
+ 
+-static struct cxl_event_record_raw *event_get_current(struct mock_event_log *log)
+-{
+-	return log->events[log->cur_idx];
+-}
+-
+-static void event_reset_log(struct mock_event_log *log)
+-{
+-	log->cur_idx = 0;
+-	log->clear_idx = 0;
+-	log->nr_overflow = log->overflow_reset;
+-}
+-
+ /* Handle can never be 0 use 1 based indexing for handle */
+-static u16 event_get_clear_handle(struct mock_event_log *log)
++static u16 event_inc_handle(u16 handle)
+ {
+-	return log->clear_idx + 1;
++	handle = (handle + 1) % CXL_TEST_EVENT_ARRAY_SIZE;
++	if (handle == 0)
++		handle = 1;
++	return handle;
+ }
+ 
+-/* Handle can never be 0 use 1 based indexing for handle */
+-static __le16 event_get_cur_event_handle(struct mock_event_log *log)
+-{
+-	u16 cur_handle = log->cur_idx + 1;
+-
+-	return cpu_to_le16(cur_handle);
+-}
+-
+-static bool event_log_empty(struct mock_event_log *log)
+-{
+-	return log->cur_idx == log->nr_events;
+-}
+-
+-static void mes_add_event(struct mock_event_store *mes,
++/* Add the event or free it on overflow */
++static void mes_add_event(struct cxl_mockmem_data *mdata,
+ 			  enum cxl_event_log_type log_type,
+ 			  struct cxl_event_record_raw *event)
+ {
++	struct device *dev = mdata->mds->cxlds.dev;
+ 	struct mock_event_log *log;
+ 
+ 	if (WARN_ON(log_type >= CXL_EVENT_TYPE_MAX))
+ 		return;
+ 
+-	log = &mes->mock_logs[log_type];
++	log = &mdata->mes.mock_logs[log_type];
++
++	guard(write_lock)(&log->lock);
+ 
+-	if ((log->nr_events + 1) > CXL_TEST_EVENT_CNT_MAX) {
++	dev_dbg(dev, "Add log %d cur %d last %d\n",
++		log_type, log->current_handle, log->last_handle);
++
++	/* Check next buffer */
++	if (event_inc_handle(log->last_handle) == log->current_handle) {
+ 		log->nr_overflow++;
+-		log->overflow_reset = log->nr_overflow;
++		dev_dbg(dev, "Overflowing log %d nr %d\n",
++			log_type, log->nr_overflow);
++		devm_kfree(dev, event);
+ 		return;
+ 	}
+ 
+-	log->events[log->nr_events] = event;
+-	log->nr_events++;
++	dev_dbg(dev, "Log %d; handle %u\n", log_type, log->last_handle);
++	event->event.generic.hdr.handle = cpu_to_le16(log->last_handle);
++	log->events[log->last_handle] = event;
++	log->last_handle = event_inc_handle(log->last_handle);
++}
++
++static void mes_del_event(struct device *dev,
++			  struct mock_event_log *log,
++			  u16 handle)
++{
++	struct cxl_event_record_raw *record;
++
++	lockdep_assert(lockdep_is_held(&log->lock));
++
++	dev_dbg(dev, "Clearing event %u; record %u\n",
++		handle, log->current_handle);
++	record = log->events[handle];
++	if (!record)
++		dev_err(dev, "Mock event index %u empty?\n", handle);
++
++	log->events[handle] = NULL;
++	log->current_handle = event_inc_handle(log->current_handle);
++	devm_kfree(dev, record);
+ }
+ 
+ /*
+@@ -234,7 +251,7 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+ {
+ 	struct cxl_get_event_payload *pl;
+ 	struct mock_event_log *log;
+-	u16 nr_overflow;
++	u16 handle;
+ 	u8 log_type;
+ 	int i;
+ 
+@@ -255,29 +272,38 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+ 	memset(cmd->payload_out, 0, struct_size(pl, records, 0));
+ 
+ 	log = event_find_log(dev, log_type);
+-	if (!log || event_log_empty(log))
++	if (!log)
+ 		return 0;
+ 
+ 	pl = cmd->payload_out;
+ 
+-	for (i = 0; i < ret_limit && !event_log_empty(log); i++) {
+-		memcpy(&pl->records[i], event_get_current(log),
+-		       sizeof(pl->records[i]));
+-		pl->records[i].event.generic.hdr.handle =
+-				event_get_cur_event_handle(log);
+-		log->cur_idx++;
++	guard(read_lock)(&log->lock);
++
++	handle = log->current_handle;
++	dev_dbg(dev, "Get log %d handle %u last %u\n",
++		log_type, handle, log->last_handle);
++	for (i = 0; i < ret_limit && handle != log->last_handle;
++	     i++, handle = event_inc_handle(handle)) {
++		struct cxl_event_record_raw *cur;
++
++		cur = log->events[handle];
++		dev_dbg(dev, "Sending event log %d handle %d idx %u\n",
++			log_type, le16_to_cpu(cur->event.generic.hdr.handle),
++			handle);
++		memcpy(&pl->records[i], cur, sizeof(pl->records[i]));
++		pl->records[i].event.generic.hdr.handle = cpu_to_le16(handle);
+ 	}
+ 
+ 	cmd->size_out = struct_size(pl, records, i);
+ 	pl->record_count = cpu_to_le16(i);
+-	if (!event_log_empty(log))
++	if (handle != log->last_handle)
+ 		pl->flags |= CXL_GET_EVENT_FLAG_MORE_RECORDS;
+ 
+ 	if (log->nr_overflow) {
+ 		u64 ns;
+ 
+ 		pl->flags |= CXL_GET_EVENT_FLAG_OVERFLOW;
+-		pl->overflow_err_count = cpu_to_le16(nr_overflow);
++		pl->overflow_err_count = cpu_to_le16(log->nr_overflow);
+ 		ns = ktime_get_real_ns();
+ 		ns -= 5000000000; /* 5s ago */
+ 		pl->first_overflow_timestamp = cpu_to_le64(ns);
+@@ -292,8 +318,8 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+ static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+ {
+ 	struct cxl_mbox_clear_event_payload *pl = cmd->payload_in;
+-	struct mock_event_log *log;
+ 	u8 log_type = pl->event_log;
++	struct mock_event_log *log;
+ 	u16 handle;
+ 	int nr;
+ 
+@@ -304,23 +330,20 @@ static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+ 	if (!log)
+ 		return 0; /* No mock data in this log */
+ 
+-	/*
+-	 * This check is technically not invalid per the specification AFAICS.
+-	 * (The host could 'guess' handles and clear them in order).
+-	 * However, this is not good behavior for the host so test it.
+-	 */
+-	if (log->clear_idx + pl->nr_recs > log->cur_idx) {
+-		dev_err(dev,
+-			"Attempting to clear more events than returned!\n");
+-		return -EINVAL;
+-	}
++	guard(write_lock)(&log->lock);
+ 
+ 	/* Check handle order prior to clearing events */
+-	for (nr = 0, handle = event_get_clear_handle(log);
+-	     nr < pl->nr_recs;
+-	     nr++, handle++) {
++	handle = log->current_handle;
++	for (nr = 0; nr < pl->nr_recs && handle != log->last_handle;
++	     nr++, handle = event_inc_handle(handle)) {
++
++		dev_dbg(dev, "Checking clear of %d handle %u plhandle %u\n",
++			log_type, handle,
++			le16_to_cpu(pl->handles[nr]));
++
+ 		if (handle != le16_to_cpu(pl->handles[nr])) {
+-			dev_err(dev, "Clearing events out of order\n");
++			dev_err(dev, "Clearing events out of order %u %u\n",
++				handle, le16_to_cpu(pl->handles[nr]));
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -329,25 +352,12 @@ static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+ 		log->nr_overflow = 0;
+ 
+ 	/* Clear events */
+-	log->clear_idx += pl->nr_recs;
+-	return 0;
+-}
+-
+-static void cxl_mock_event_trigger(struct device *dev)
+-{
+-	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
+-	struct mock_event_store *mes = &mdata->mes;
+-	int i;
++	for (nr = 0; nr < pl->nr_recs; nr++)
++		mes_del_event(dev, log, le16_to_cpu(pl->handles[nr]));
++	dev_dbg(dev, "Delete log %d cur %d last %d\n",
++		log_type, log->current_handle, log->last_handle);
+ 
+-	for (i = CXL_EVENT_TYPE_INFO; i < CXL_EVENT_TYPE_MAX; i++) {
+-		struct mock_event_log *log;
+-
+-		log = event_find_log(dev, i);
+-		if (log)
+-			event_reset_log(log);
+-	}
+-
+-	cxl_mem_get_event_records(mdata->mds, mes->ev_status);
++	return 0;
+ }
+ 
+ struct cxl_event_record_raw maint_needed = {
+@@ -476,8 +486,27 @@ static int mock_set_timestamp(struct cxl_dev_state *cxlds,
+ 	return 0;
+ }
+ 
+-static void cxl_mock_add_event_logs(struct mock_event_store *mes)
++/* Create a dynamically allocated event out of a statically defined event. */
++static void add_event_from_static(struct cxl_mockmem_data *mdata,
++				  enum cxl_event_log_type log_type,
++				  struct cxl_event_record_raw *raw)
++{
++	struct device *dev = mdata->mds->cxlds.dev;
++	struct cxl_event_record_raw *rec;
++
++	rec = devm_kmemdup(dev, raw, sizeof(*rec), GFP_KERNEL);
++	if (!rec) {
++		dev_err(dev, "Failed to alloc event for log\n");
++		return;
++	}
++	mes_add_event(mdata, log_type, rec);
++}
++
++static void cxl_mock_add_event_logs(struct cxl_mockmem_data *mdata)
+ {
++	struct mock_event_store *mes = &mdata->mes;
++	struct device *dev = mdata->mds->cxlds.dev;
++
+ 	put_unaligned_le16(CXL_GMER_VALID_CHANNEL | CXL_GMER_VALID_RANK,
+ 			   &gen_media.rec.media_hdr.validity_flags);
+ 
+@@ -485,43 +514,60 @@ static void cxl_mock_add_event_logs(struct mock_event_store *mes)
+ 			   CXL_DER_VALID_BANK | CXL_DER_VALID_COLUMN,
+ 			   &dram.rec.media_hdr.validity_flags);
+ 
+-	mes_add_event(mes, CXL_EVENT_TYPE_INFO, &maint_needed);
+-	mes_add_event(mes, CXL_EVENT_TYPE_INFO,
++	dev_dbg(dev, "Generating fake event logs %d\n",
++		CXL_EVENT_TYPE_INFO);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO, &maint_needed);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO,
+ 		      (struct cxl_event_record_raw *)&gen_media);
+-	mes_add_event(mes, CXL_EVENT_TYPE_INFO,
++	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO,
+ 		      (struct cxl_event_record_raw *)&mem_module);
+ 	mes->ev_status |= CXLDEV_EVENT_STATUS_INFO;
+ 
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &maint_needed);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
++	dev_dbg(dev, "Generating fake event logs %d\n",
++		CXL_EVENT_TYPE_FAIL);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &maint_needed);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
++		      (struct cxl_event_record_raw *)&mem_module);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+ 		      (struct cxl_event_record_raw *)&dram);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+ 		      (struct cxl_event_record_raw *)&gen_media);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+ 		      (struct cxl_event_record_raw *)&mem_module);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+ 		      (struct cxl_event_record_raw *)&dram);
+ 	/* Overflow this log */
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+ 	mes->ev_status |= CXLDEV_EVENT_STATUS_FAIL;
+ 
+-	mes_add_event(mes, CXL_EVENT_TYPE_FATAL, &hardware_replace);
+-	mes_add_event(mes, CXL_EVENT_TYPE_FATAL,
++	dev_dbg(dev, "Generating fake event logs %d\n",
++		CXL_EVENT_TYPE_FATAL);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FATAL, &hardware_replace);
++	add_event_from_static(mdata, CXL_EVENT_TYPE_FATAL,
+ 		      (struct cxl_event_record_raw *)&dram);
+ 	mes->ev_status |= CXLDEV_EVENT_STATUS_FATAL;
+ }
+ 
++static void cxl_mock_event_trigger(struct device *dev)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct mock_event_store *mes = &mdata->mes;
++
++	cxl_mock_add_event_logs(mdata);
++	cxl_mem_get_event_records(mdata->mds, mes->ev_status);
++}
++
+ static int mock_gsl(struct cxl_mbox_cmd *cmd)
+ {
+ 	if (cmd->size_out < sizeof(mock_gsl_payload))
+@@ -1469,6 +1515,14 @@ static int cxl_mock_mailbox_create(struct cxl_dev_state *cxlds)
+ 	return 0;
+ }
+ 
++static void init_event_log(struct mock_event_log *log)
++{
++	rwlock_init(&log->lock);
++	/* Handle can never be 0 use 1 based indexing for handle */
++	log->current_handle = 1;
++	log->last_handle = 1;
++}
++
+ static int cxl_mock_mem_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1541,7 +1595,9 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+ 	if (rc)
+ 		return rc;
+ 
+-	cxl_mock_add_event_logs(&mdata->mes);
++	for (int i = 0; i < CXL_EVENT_TYPE_MAX; i++)
++		init_event_log(&mdata->mes.mock_logs[i]);
++	cxl_mock_add_event_logs(mdata);
+ 
+ 	cxlmd = devm_cxl_add_memdev(&pdev->dev, cxlds);
+ 	if (IS_ERR(cxlmd))
 
 -- 
 2.47.0
