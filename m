@@ -1,216 +1,368 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDA031E47CC;
-	Fri,  8 Nov 2024 12:16:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D31BD198A17;
+	Fri,  8 Nov 2024 17:27:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731068209; cv=none; b=l6G0xhDIQ2XVnFX7uibTke3oUAGG2uL5le5Ziv2KRyAJkrw1MpIV2bHdLWE+iEosD9oRK18X9dB1NFDZbE0N7Q00b+yjGwAb/YeKHft/coJsxBduq6/Y6P+AtqOzWPQHQfu7ATdEIJRuKnvAACHwM9IEtDkgBU+FPCcViFcHfQI=
+	t=1731086853; cv=none; b=gJrGbjn3KU0pHLgkisjvNdvvMO0iaGeoetg6gVnp9rAsm+YMBOubvgTFsrk1l3Yxeem3PMiyEkD53C96tQQwA4MPct2KIGd8WTZJz0QZPAZVSLd5bVCV690gc6Jh40gMtKEtxUbFw6T7dqXoqUT7VYMK6X65dVCcXF6xCrjQxN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731068209; c=relaxed/simple;
-	bh=gjsTU5zrQ2zDUzbpfpsWBcPtapZeAHmaHA/k5xZZjSU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QGXVZrSAK1ojaA8dM0KKqJnRRPs402rltqHgnKXoObdVoE+4J0gVoMtvF3518KYB0HVJi+od4x/VOletLsdWExpLL6Ecz2aFRz1S4S3JtcqtZacg99fyEXdmHJoep1NqFwBIY5NAfKeMAEMDBvQL4PZNgqFH6BNdHNLPKXDmHB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=S9mL2cEJ; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=wwpsiSV/; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=S9mL2cEJ; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=wwpsiSV/; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	s=arc-20240116; t=1731086853; c=relaxed/simple;
+	bh=f4PJaVljdIJ/oBBjOmHGAG8o+kWjkBTU3psAdpIWRAE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=fqaC2eNh1haFov0TxJsxsNKQ7D0AnZwGJ91j//173g0iBTK1hdS0hIahTY1ZC5sDOS2AmhmBwuIwkJvM8iZ/G+b4gtAV1pIHyXSEQ6T5S3LVePnBFDw2uCbfM64JTEXa9tcV9PmojfezttbOs4NyeyDD8sF5sMkIDp2Ck2KiO+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ZuzrHROO; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="S9mL2cEJ";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="wwpsiSV/";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="S9mL2cEJ";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="wwpsiSV/"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 17D231F785;
-	Fri,  8 Nov 2024 12:16:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1731068206; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=91wz85Kq4u2M5I6//x2vL50txoQXie6q+0zeeFpP5HM=;
-	b=S9mL2cEJkNNnEiEL3O/eZ6Okc6Qel2vQTfa+01vkf4+7o3HV1du/VFgWSRPT0oPGZJbVm5
-	DkPPAw7dLEHflqyYphZWQrzp+K3Cp1JIPqVpEuquamBSZla3dVMvnH7Zkllt1NsAbZ4pUE
-	UPV52CdFzy6LO7NsgUYdlKniZcYg/Z0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1731068206;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=91wz85Kq4u2M5I6//x2vL50txoQXie6q+0zeeFpP5HM=;
-	b=wwpsiSV/GCAAjs5bqw4PVE0jVqEt4SHhQ3b6USWoIo0uUUYYPVXhXItBPSGP4Je9q/Gjcx
-	4rtO1oYqSMga3EDA==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1731068206; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=91wz85Kq4u2M5I6//x2vL50txoQXie6q+0zeeFpP5HM=;
-	b=S9mL2cEJkNNnEiEL3O/eZ6Okc6Qel2vQTfa+01vkf4+7o3HV1du/VFgWSRPT0oPGZJbVm5
-	DkPPAw7dLEHflqyYphZWQrzp+K3Cp1JIPqVpEuquamBSZla3dVMvnH7Zkllt1NsAbZ4pUE
-	UPV52CdFzy6LO7NsgUYdlKniZcYg/Z0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1731068206;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=91wz85Kq4u2M5I6//x2vL50txoQXie6q+0zeeFpP5HM=;
-	b=wwpsiSV/GCAAjs5bqw4PVE0jVqEt4SHhQ3b6USWoIo0uUUYYPVXhXItBPSGP4Je9q/Gjcx
-	4rtO1oYqSMga3EDA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 032E313967;
-	Fri,  8 Nov 2024 12:16:46 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 3MVbAC4BLmdLWQAAD6G6ig
-	(envelope-from <jack@suse.cz>); Fri, 08 Nov 2024 12:16:45 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id B018EA0AF4; Fri,  8 Nov 2024 13:16:41 +0100 (CET)
-Date: Fri, 8 Nov 2024 13:16:41 +0100
-From: Jan Kara <jack@suse.cz>
-To: Asahi Lina <lina@asahilina.net>
-Cc: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>,
-	Dave Chinner <david@fromorbit.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Sergio Lopez Pascual <slp@redhat.com>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, asahi@lists.linux.dev
-Subject: Re: [PATCH] dax: Allow block size > PAGE_SIZE
-Message-ID: <20241108121641.jz3qdk2qez262zw2@quack3>
-References: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
- <20241104105711.mqk4of6frmsllarn@quack3>
- <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
- <ZylHyD7Z+ApaiS5g@dread.disaster.area>
- <21f921b3-6601-4fc4-873f-7ef8358113bb@asahilina.net>
- <20241106121255.yfvlzcomf7yvrvm7@quack3>
- <672bcab0911a2_10bc62943f@dwillia2-xfh.jf.intel.com.notmuch>
- <20241107100105.tktkxs5qhkjwkckg@quack3>
- <28308919-7e47-49e4-a821-bcd32f73eecb@asahilina.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZuzrHROO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1731086851; x=1762622851;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=f4PJaVljdIJ/oBBjOmHGAG8o+kWjkBTU3psAdpIWRAE=;
+  b=ZuzrHROOFQZD3B7PEd6RUYfliiV6xxKQp3eAEzwmA0Dddj49jpuKNzKV
+   ecc6i6UcMOZp2U+3V+vbZdXapMx38lYsU5wGK0BJfULMNiqx3IAr0ZFeB
+   robLVAdrqvzH8aFFqiL75J9AXgBCWVO4+u3NEbaHjTgTbirW2g+iSyzJW
+   DwyM6ovV9Xgh9iZ9KCrxO1yrx/GlthfPGMj2z2j4yYoLnFP0CzRNMd7ko
+   aPyrSWFhiAG5Hg3keFXwlm98lKLuqKbOTAaltmnI3EJ8NBZPi4CgGeIsr
+   S158IDGaotdms+fAreH0HqjQv2W6hMSmNPZS4goWDbdEUqfEhGryy5DCC
+   Q==;
+X-CSE-ConnectionGUID: PXHr/I+YRE6GQ9IMhx1O+w==
+X-CSE-MsgGUID: 7tntHmj5Qemu7sBfFHheOg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="30937566"
+X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
+   d="scan'208";a="30937566"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2024 09:27:30 -0800
+X-CSE-ConnectionGUID: haoDRfOqRGaNcx230Kdacg==
+X-CSE-MsgGUID: 19cBg4iPRZqh0P8i3L1N0g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,138,1728975600"; 
+   d="scan'208";a="123176009"
+Received: from ldmartin-desk2.corp.intel.com (HELO [10.125.110.245]) ([10.125.110.245])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2024 09:27:29 -0800
+Message-ID: <d02f217d-ae4f-476c-a20b-2b449cff73c0@intel.com>
+Date: Fri, 8 Nov 2024 10:27:28 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <28308919-7e47-49e4-a821-bcd32f73eecb@asahilina.net>
-X-Spam-Score: -3.80
-X-Spamd-Result: default: False [-3.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	FROM_HAS_DN(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_COUNT_THREE(0.00)[3];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[12];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_TLS_LAST(0.00)[];
-	TO_DN_SOME(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Level: 
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 00/27] DCD: Add support for Dynamic Capacity Devices
+ (DCD)
+To: Ira Weiny <ira.weiny@intel.com>, Fan Ni <fan.ni@samsung.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Navneet Singh <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+ Davidlohr Bueso <dave@stgolabs.net>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
+ linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, Chris Mason <clm@fb.com>,
+ Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
+ linux-btrfs@vger.kernel.org, Johannes Thumshirn
+ <johannes.thumshirn@wdc.com>, Robert Moore <robert.moore@intel.com>,
+ Len Brown <lenb@kernel.org>, "Rafael J. Wysocki"
+ <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, Li Ming <ming4.li@intel.com>,
+ Kees Cook <kees@kernel.org>, "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+ linux-hardening@vger.kernel.org
+References: <20241107-dcd-type2-upstream-v7-0-56a84e66bc36@intel.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20241107-dcd-type2-upstream-v7-0-56a84e66bc36@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri 08-11-24 01:09:54, Asahi Lina wrote:
-> On 11/7/24 7:01 PM, Jan Kara wrote:
-> > On Wed 06-11-24 11:59:44, Dan Williams wrote:
-> >> Jan Kara wrote:
-> >> [..]
-> >>>> This WARN still feels like the wrong thing, though. Right now it is the
-> >>>> only thing in DAX code complaining on a page size/block size mismatch
-> >>>> (at least for virtiofs). If this is so important, I feel like there
-> >>>> should be a higher level check elsewhere, like something happening at
-> >>>> mount time or on file open. It should actually cause the operations to
-> >>>> fail cleanly.
-> >>>
-> >>> That's a fair point. Currently filesystems supporting DAX check for this in
-> >>> their mount code because there isn't really a DAX code that would get
-> >>> called during mount and would have enough information to perform the check.
-> >>> I'm not sure adding a new call just for this check makes a lot of sense.
-> >>> But if you have some good place in mind, please tell me.
-> >>
-> >> Is not the reason that dax_writeback_mapping_range() the only thing
-> >> checking ->i_blkbits because 'struct writeback_control' does writeback
-> >> in terms of page-index ranges?
-> > 
-> > To be fair, I don't remember why we've put the assertion specifically into
-> > dax_writeback_mapping_range(). But as Dave explained there's much more to
-> > this blocksize == pagesize limitation in DAX than just doing writeback in
-> > terms of page-index ranges. The whole DAX entry tracking in xarray would
-> > have to be modified to properly support other entry sizes than just PTE &
-> > PMD sizes because otherwise the entry locking just doesn't provide the
-> > guarantees that are expected from filesystems (e.g. you could have parallel
-> > modifications happening to a single fs block in pagesize < blocksize case).
-> > 
-> >> All other dax entry points are filesystem controlled that know the
-> >> block-to-pfn-to-mapping relationship.
-> >>
-> >> Recall that dax_writeback_mapping_range() is historically for pmem
-> >> persistence guarantees to make sure that applications write through CPU
-> >> cache to media.
-> > 
-> > Correct.
-> > 
-> >> Presumably there are no cache coherency concerns with fuse and dax
-> >> writes from the guest side are not a risk of being stranded in CPU
-> >> cache. Host side filesystem writeback will take care of them when / if
-> >> the guest triggers a storage device cache flush, not a guest page cache
-> >> writeback.
-> > 
-> > I'm not so sure. When you call fsync(2) in the guest on virtiofs file, it
-> > should provide persistency guarantees on the file contents even in case of
-> > *host* power failure. So if the guest is directly mapping host's page cache
-> > pages through virtiofs, filemap_fdatawrite() call in the guest must result
-> > in fsync(2) on the host to persist those pages. And as far as I vaguely
-> > remember that happens by KVM catching the arch_wb_cache_pmem() calls and
-> > issuing fsync(2) on the host. But I could be totally wrong here.
+
+
+On 11/7/24 1:58 PM, Ira Weiny wrote:
+> A git tree of this series can be found here:
 > 
-> I don't think that's how it actually works, at least on arm64.
-> arch_wb_cache_pmem() calls dcache_clean_pop() which is either dc cvap or
-> dc cvac. Those are trapped by HCR_EL2<TPC>, and that is never set by KVM.
+> 	https://github.com/weiny2/linux-kernel/tree/dcd-v4-2024-11-07
 > 
-> There was some discussion of this here:
-> https://lore.kernel.org/all/20190702055937.3ffpwph7anvohmxu@US-160370MP2.local/
+> This is a quick spin with minor clean ups Dave was going to apply as
+> well as a couple of clean ups I had slated for after V4 landed.
 
-I see. Thanks for correcting me.
+Top 6 patches (for DCD preparation) applied to cxl/next for 6.13 merge window. 
 
-> But I'm not sure that all really made sense then.
 > 
-> msync() and fsync() should already provide persistence. Those end up
-> calling vfs_fsync_range(), which becomes a FUSE fsync(), which fsyncs
-> (or fdatasyncs) the whole file. What I'm not so sure is whether there
-> are any other codepaths that also need to provide those guarantees which
-> *don't* end up calling fsync on the VFS. For example, the manpages kind
-> of imply munmap() syncs, though as far as I can tell that's not actually
-> the case. If there are missing sync paths, then I think those might just
-> be broken right now...
+> Series info
+> ===========
+> 
+> This series has 4 parts:
+> 
+> Patch 1: Add core range_overlaps() function
+> Patch 2-6: CXL clean up/prelim patches
+> Patch 7-25: Core DCD support
+> Patch 26-27: cxl_test support
+> 
+> Patches 1-6 have received a lot of review and can be applied to cxl-next
+> straight away.  While 7-27 may need to wait for Dan review.
+> 
+> Background
+> ==========
+> 
+> A Dynamic Capacity Device (DCD) (CXL 3.1 sec 9.13.3) is a CXL memory
+> device that allows memory capacity within a region to change
+> dynamically without the need for resetting the device, reconfiguring
+> HDM decoders, or reconfiguring software DAX regions.
+> 
+> One of the biggest use cases for Dynamic Capacity is to allow hosts to
+> share memory dynamically within a data center without increasing the
+> per-host attached memory.
+> 
+> The general flow for the addition or removal of memory is to have an
+> orchestrator coordinate the use of the memory.  Generally there are 5
+> actors in such a system, the Orchestrator, Fabric Manager, the Logical
+> device, the Host Kernel, and a Host User.
+> 
+> Typical work flows are shown below.
+> 
+> Orchestrator      FM         Device       Host Kernel    Host User
+> 
+>     |             |           |            |              |
+>     |-------------- Create region ----------------------->|
+>     |             |           |            |              |
+>     |             |           |            |<-- Create ---|
+>     |             |           |            |    Region    |
+>     |<------------- Signal done --------------------------|
+>     |             |           |            |              |
+>     |-- Add ----->|-- Add --->|--- Add --->|              |
+>     |  Capacity   |  Extent   |   Extent   |              |
+>     |             |           |            |              |
+>     |             |<- Accept -|<- Accept  -|              |
+>     |             |   Extent  |   Extent   |              |
+>     |             |           |            |<- Create --->|
+>     |             |           |            |   DAX dev    |-- Use memory
+>     |             |           |            |              |   |
+>     |             |           |            |              |   |
+>     |             |           |            |<- Release ---| <-+
+>     |             |           |            |   DAX dev    |
+>     |             |           |            |              |
+>     |<------------- Signal done --------------------------|
+>     |             |           |            |              |
+>     |-- Remove -->|- Release->|- Release ->|              |
+>     |  Capacity   |  Extent   |   Extent   |              |
+>     |             |           |            |              |
+>     |             |<- Release-|<- Release -|              |
+>     |             |   Extent  |   Extent   |              |
+>     |             |           |            |              |
+>     |-- Add ----->|-- Add --->|--- Add --->|              |
+>     |  Capacity   |  Extent   |   Extent   |              |
+>     |             |           |            |              |
+>     |             |<- Accept -|<- Accept  -|              |
+>     |             |   Extent  |   Extent   |              |
+>     |             |           |            |<- Create ----|
+>     |             |           |            |   DAX dev    |-- Use memory
+>     |             |           |            |              |   |
+>     |             |           |            |<- Release ---| <-+
+>     |             |           |            |   DAX dev    |
+>     |<------------- Signal done --------------------------|
+>     |             |           |            |              |
+>     |-- Remove -->|- Release->|- Release ->|              |
+>     |  Capacity   |  Extent   |   Extent   |              |
+>     |             |           |            |              |
+>     |             |<- Release-|<- Release -|              |
+>     |             |   Extent  |   Extent   |              |
+>     |             |           |            |              |
+>     |-- Add ----->|-- Add --->|--- Add --->|              |
+>     |  Capacity   |  Extent   |   Extent   |              |
+>     |             |           |            |<- Create ----|
+>     |             |           |            |   DAX dev    |-- Use memory
+>     |             |           |            |              |   |
+>     |-- Remove -->|- Release->|- Release ->|              |   |
+>     |  Capacity   |  Extent   |   Extent   |              |   |
+>     |             |           |            |              |   |
+>     |             |           |     (Release Ignored)     |   |
+>     |             |           |            |              |   |
+>     |             |           |            |<- Release ---| <-+
+>     |             |           |            |   DAX dev    |
+>     |<------------- Signal done --------------------------|
+>     |             |           |            |              |
+>     |             |- Release->|- Release ->|              |
+>     |             |  Extent   |   Extent   |              |
+>     |             |           |            |              |
+>     |             |<- Release-|<- Release -|              |
+>     |             |   Extent  |   Extent   |              |
+>     |             |           |            |<- Destroy ---|
+>     |             |           |            |   Region     |
+>     |             |           |            |              |
+> 
+> Implementation
+> ==============
+> 
+> The series still requires the creation of regions and DAX devices to be
+> closely synchronized with the Orchestrator and Fabric Manager.  The host
+> kernel will reject extents if a region is not yet created.  It also
+> ignores extent release if memory is in use (DAX device created).  These
+> synchronizations are not anticipated to be an issue with real
+> applications.
+> 
+> In order to allow for capacity to be added and removed a new concept of
+> a sparse DAX region is introduced.  A sparse DAX region may have 0 or
+> more bytes of available space.  The total space depends on the number
+> and size of the extents which have been added.
+> 
+> Initially it is anticipated that users of the memory will carefully
+> coordinate the surfacing of additional capacity with the creation of DAX
+> devices which use that capacity.  Therefore, the allocation of the
+> memory to DAX devices does not allow for specific associations between
+> DAX device and extent.  This keeps allocations very similar to existing
+> DAX region behavior.
+> 
+> To keep the DAX memory allocation aligned with the existing DAX devices
+> which do not have tags extents are not allowed to have tags.  Future
+> support for tags is planned.
+> 
+> Great care was taken to keep the extent tracking simple.  Some xarray's
+> needed to be added but extra software objects were kept to a minimum.
+> 
+> Region extents continue to be tracked as sub-devices of the DAX region.
+> This ensures that region destruction cleans up all extent allocations
+> properly.
+> 
+> Some review tags were kept if a patch did not change.
+> 
+> The major functionality of this series includes:
+> 
+> - Getting the dynamic capacity (DC) configuration information from cxl
+>   devices
+> 
+> - Configuring the DC partitions reported by hardware
+> 
+> - Enhancing the CXL and DAX regions for dynamic capacity support
+> 	a. Maintain a logical separation between hardware extents and
+> 	   software managed region extents.  This provides an
+> 	   abstraction between the layers and should allow for
+> 	   interleaving in the future
+> 
+> - Get hardware extent lists for endpoint decoders upon
+>   region creation.
+> 
+> - Adjust extent/region memory available on the following events.
+>         a. Add capacity Events
+> 	b. Release capacity events
+> 
+> - Host response for add capacity
+> 	a. do not accept the extent if:
+> 		If the region does not exist
+> 		or an error occurs realizing the extent
+> 	b. If the region does exist
+> 		realize a DAX region extent with 1:1 mapping (no
+> 		interleave yet)
+> 	c. Support the event more bit by processing a list of extents
+> 	   marked with the more bit together before setting up a
+> 	   response.
+> 
+> - Host response for remove capacity
+> 	a. If no DAX device references the extent; release the extent
+> 	b. If a reference does exist, ignore the request.
+> 	   (Require FM to issue release again.)
+> 
+> - Modify DAX device creation/resize to account for extents within a
+>   sparse DAX region
+> 
+> - Trace Dynamic Capacity events for debugging
+> 
+> - Add cxl-test infrastructure to allow for faster unit testing
+>   (See new ndctl branch for cxl-dcd.sh test[1])
+> 
+> - Only support 0 value extent tags
+> 
+> Fan Ni's upstream of Qemu DCD was used for testing.
+> 
+> Remaining work:
+> 
+> 	1) Allow mapping to specific extents (perhaps based on
+> 	   label/tag)
+> 	   1a) devise region size reporting based on tags
+> 	2) Interleave support
+> 
+> Possible additional work depending on requirements:
+> 
+> 	1) Accept a new extent which extends (but overlaps) an existing
+> 	   extent(s)
+> 	2) Release extents when DAX devices are released if a release
+> 	   was previously seen from the device
+> 	3) Rework DAX device interfaces, memfd has been explored a bit
+> 
+> [1] https://github.com/weiny2/ndctl/tree/dcd-region2-2024-10-01
+> 
+> ---
+> Changes in v7:
+> - Pick up review tags
+> - Ming: Fix setting the more flag
+> - Link to v6: https://patch.msgid.link/20241105-dcd-type2-upstream-v6-0-85c7fa2140fe@intel.com
+> 
+> ---
+> Ira Weiny (13):
+>       range: Add range_overlaps()
+>       ACPI/CDAT: Add CDAT/DSMAS shared and read only flag values
+>       dax: Document struct dev_dax_range
+>       cxl/pci: Delay event buffer allocation
+>       cxl/hdm: Use guard() in cxl_dpa_set_mode()
+>       cxl/region: Refactor common create region code
+>       cxl/cdat: Gather DSMAS data for DCD regions
+>       cxl/events: Split event msgnum configuration from irq setup
+>       cxl/pci: Factor out interrupt policy check
+>       cxl/core: Return endpoint decoder information from region search
+>       dax/bus: Factor out dev dax resize logic
+>       tools/testing/cxl: Make event logs dynamic
+>       tools/testing/cxl: Add DC Regions to mock mem data
+> 
+> Navneet Singh (14):
+>       cxl/mbox: Flag support for Dynamic Capacity Devices (DCD)
+>       cxl/mem: Read dynamic capacity configuration from the device
+>       cxl/core: Separate region mode from decoder mode
+>       cxl/region: Add dynamic capacity decoder and region modes
+>       cxl/hdm: Add dynamic capacity size support to endpoint decoders
+>       cxl/mem: Expose DCD partition capabilities in sysfs
+>       cxl/port: Add endpoint decoder DC mode support to sysfs
+>       cxl/region: Add sparse DAX region support
+>       cxl/mem: Configure dynamic capacity interrupts
+>       cxl/extent: Process DCD events and realize region extents
+>       cxl/region/extent: Expose region extent information in sysfs
+>       dax/region: Create resources on sparse DAX regions
+>       cxl/region: Read existing extents on region creation
+>       cxl/mem: Trace Dynamic capacity Event Record
+> 
+>  Documentation/ABI/testing/sysfs-bus-cxl |  125 +++-
+>  drivers/cxl/core/Makefile               |    2 +-
+>  drivers/cxl/core/cdat.c                 |   45 +-
+>  drivers/cxl/core/core.h                 |   34 +-
+>  drivers/cxl/core/extent.c               |  502 +++++++++++++++
+>  drivers/cxl/core/hdm.c                  |  231 ++++++-
+>  drivers/cxl/core/mbox.c                 |  610 +++++++++++++++++-
+>  drivers/cxl/core/memdev.c               |  128 +++-
+>  drivers/cxl/core/port.c                 |   19 +-
+>  drivers/cxl/core/region.c               |  185 ++++--
+>  drivers/cxl/core/trace.h                |   65 ++
+>  drivers/cxl/cxl.h                       |  122 +++-
+>  drivers/cxl/cxlmem.h                    |  132 +++-
+>  drivers/cxl/pci.c                       |  122 +++-
+>  drivers/dax/bus.c                       |  356 +++++++++--
+>  drivers/dax/bus.h                       |    4 +-
+>  drivers/dax/cxl.c                       |   71 ++-
+>  drivers/dax/dax-private.h               |   66 +-
+>  drivers/dax/hmem/hmem.c                 |    2 +-
+>  drivers/dax/pmem.c                      |    2 +-
+>  fs/btrfs/ordered-data.c                 |   10 +-
+>  include/acpi/actbl1.h                   |    2 +
+>  include/cxl/event.h                     |   32 +
+>  include/linux/ioport.h                  |    3 +
+>  include/linux/range.h                   |    8 +
+>  tools/testing/cxl/Kbuild                |    3 +-
+>  tools/testing/cxl/test/mem.c            | 1019 +++++++++++++++++++++++++++----
+>  27 files changed, 3568 insertions(+), 332 deletions(-)
+> ---
+> base-commit: c2ee9f594da826bea183ed14f2cc029c719bf4da
+> change-id: 20230604-dcd-type2-upstream-0cd15f6216fd
+> 
+> Best regards,
 
-munmap(2) is not an issue because that has no persistency guarantees in
-case of power failure attached to it. Thinking about it some more I agree
-that just dropping dax_writeback_mapping_range() from virtiofs should be
-safe. The modifications are going to be persisted by the host eventually
-(so writeback as such isn't needed) and all crash-safe guarantees are
-revolving around calls like fsync(2), sync(2), sync_fs(2) which get passed
-by fuse and hopefully acted upon on the host. I'm quite confident with this
-because even standard filesystems such as ext4 flush disk caches only in
-response to operations like these (plus some in journalling code but that's
-a separate story).
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
