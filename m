@@ -1,53 +1,53 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2347719B3EC;
-	Mon, 11 Nov 2024 12:11:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8911A08C1;
+	Mon, 11 Nov 2024 15:36:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731327086; cv=none; b=H0tmDO0OfuOHGURoyOgNQixu9VLHAF2oTdbf46qR+OZoFa/3N1+UYc8p7cMCghehjmF3RLFItwZwWMFIAXz3pzuREWErVX4O1dKX25p8Djvr3hMcegO/mGJ3L15Xnpei3VJ+dJu3s5Pm6rFSsm4F8WCORdDACVju7Mx7AZaf7oc=
+	t=1731339389; cv=none; b=NmyjX2eVogIIfm5Ei4S653zfkLli8kS++Tm6X/DmMaBRpe+f2hdzNyfDwVjhiDK3HjVk2QsbkfvvlxMU/43M91WQfeqrHw01v3TpnbLAvyn79wyi6pGyZVYMKFQJzZ/efoLTcuizwpw3CnBV0Ug6qAf6HCtFJL8rhLag8YM433E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731327086; c=relaxed/simple;
-	bh=mokoN7i4MtyCTJ1ZSeqy7ot3zOS2I0QWGTKkUaKf2e4=;
+	s=arc-20240116; t=1731339389; c=relaxed/simple;
+	bh=sx+eyrBc3eS6UlFkEPO1oc8m9kptjhUYqwwmElJRDFI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EETsUNE4LFylRlXw74Cktu+pO7LalqxzYVf8lP5eDArZdchx1NzWyQqILYqPC4tsSqShbYjZ/986DdglTdpdTJFGokdRU/7tx8/eWOs3Z4w/SSytosJ9yfZyP2DMfDu65DTiVZteNTLSADQ4Z/85bwCjZCV8dl8LMq3Dy1DCZPw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Kvljj/vJ; arc=none smtp.client-ip=198.175.65.9
+	 Content-Type:Content-Disposition:In-Reply-To; b=mcjPYC4/aaxdQFstLK8JXnPPeuO0R+KFk//7Kn86mfTsg7jaXBP5BsEUH6hSB5VMvTyhEfC7JM384/BA2ycf4M/NE6jouHMTC+4TgfRP2U/p+xQAgwlPSDIWRcm2O61Da0w9o+JwSbj53UNNVSZAL2Onb9FSm4zhjC2GZ7I1gFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=H+vqBX33; arc=none smtp.client-ip=198.175.65.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Kvljj/vJ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="H+vqBX33"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1731327084; x=1762863084;
+  t=1731339384; x=1762875384;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=mokoN7i4MtyCTJ1ZSeqy7ot3zOS2I0QWGTKkUaKf2e4=;
-  b=Kvljj/vJxVgtNBY3EtJZsSY9zLrKxcGvs0aN5wc2IL90wRKjwZeTzIgn
-   WI90hPtvaIdGXMT4uQ1Gy9dYhtIZQOlKGP8m0AynUh/5VfySt1CRonOdg
-   AJSgDiylvZPCrqw8nKcYYMGBEQRRpeJN/5B7x7IXk6GI4mW3M+KlQjqY7
-   3CrSpqxv6BK23tn2mSv0mKZnldy3iNrv3YrCTwDG04LlM8ZNrubLKAF/J
-   XyRaE4S19On3WazXZ1Dn82MqHLobSsJONgK1PPRqClCoE1CbtaGe633zP
-   65KfN3zH7e2Le3QulUuY9MhBB+FMyIeyIQ/zA+zsI1lbfI94fsU7wWUpx
-   g==;
-X-CSE-ConnectionGUID: 9nRFuQbyRbWWRQeSYspwYg==
-X-CSE-MsgGUID: 9sM0yV8LSN6z2R9gmIXrSg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="53691633"
+  bh=sx+eyrBc3eS6UlFkEPO1oc8m9kptjhUYqwwmElJRDFI=;
+  b=H+vqBX33vJqEeDAlF/BJwQuOOd+qtIeGVt5CbADbTq4NIeH+HBFEBScq
+   hNXcaWekU/yhEJVqlYSdRomo+8frJk8upmPKIquPEyEK6MWbcwgHEaJX7
+   m0KydVme8Ev581w+nM7mzgoRKcF7UwmeL+6a5pwZ+yBbSGX+vl1GEHtA7
+   xIR5QNjzvaS4eHJUatRB6hvgx8xLceCpvhd5mfQrzAy/DPoA2LOb2HLpl
+   xNSbqE2oE/dYoO0gOFK2IIPWnNlJWzDo+MiTIltqBHHaIBbJPEbqpjGkj
+   MM+FAwLW3ZI0xcuvMDfuFk/nsVzjKU3z26S15ApwOJalGUBy223inCQYO
+   w==;
+X-CSE-ConnectionGUID: 1qqslRjtQAaIkGfM/K2CQA==
+X-CSE-MsgGUID: WjFARANpQ+WESfM8v5/VMg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="48596869"
 X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
-   d="scan'208";a="53691633"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2024 04:11:23 -0800
-X-CSE-ConnectionGUID: sDMJPiQhTkSZFiSw+QlW8g==
-X-CSE-MsgGUID: NDGM1jyrTfCtQajaaVBARw==
+   d="scan'208";a="48596869"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2024 07:36:24 -0800
+X-CSE-ConnectionGUID: xrO9plPfRky33fbZssgotw==
+X-CSE-MsgGUID: VlkPnsYOQ0iAhekb3hPauA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.12,145,1728975600"; 
-   d="scan'208";a="110166510"
+   d="scan'208";a="87760238"
 Received: from lkp-server01.sh.intel.com (HELO dc8184e5aea1) ([10.239.97.150])
-  by fmviesa002.fm.intel.com with ESMTP; 11 Nov 2024 04:11:19 -0800
+  by orviesa008.jf.intel.com with ESMTP; 11 Nov 2024 07:36:23 -0800
 Received: from kbuild by dc8184e5aea1 with local (Exim 4.96)
 	(envelope-from <lkp@intel.com>)
-	id 1tATGH-0000GP-0A;
-	Mon, 11 Nov 2024 12:11:17 +0000
-Date: Mon, 11 Nov 2024 20:11:16 +0800
+	id 1tAWSi-0000RP-0Y;
+	Mon, 11 Nov 2024 15:36:20 +0000
+Date: Mon, 11 Nov 2024 23:36:15 +0800
 From: kernel test robot <lkp@intel.com>
 To: Suraj Sonawane <surajsonawane0215@gmail.com>, dan.j.williams@intel.com
 Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
@@ -57,7 +57,7 @@ Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
 	Suraj Sonawane <surajsonawane0215@gmail.com>,
 	syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
 Subject: Re: [PATCH] acpi: nfit: vmalloc-out-of-bounds Read in acpi_nfit_ctl
-Message-ID: <202411112001.OeKx45GR-lkp@intel.com>
+Message-ID: <202411112349.khM9ZvDJ-lkp@intel.com>
 References: <20241111080429.9861-1-surajsonawane0215@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -83,18 +83,18 @@ url:    https://github.com/intel-lab-lkp/linux/commits/Suraj-Sonawane/acpi-nfit-
 base:   linus/master
 patch link:    https://lore.kernel.org/r/20241111080429.9861-1-surajsonawane0215%40gmail.com
 patch subject: [PATCH] acpi: nfit: vmalloc-out-of-bounds Read in acpi_nfit_ctl
-config: x86_64-kexec (https://download.01.org/0day-ci/archive/20241111/202411112001.OeKx45GR-lkp@intel.com/config)
+config: x86_64-kexec (https://download.01.org/0day-ci/archive/20241111/202411112349.khM9ZvDJ-lkp@intel.com/config)
 compiler: clang version 19.1.3 (https://github.com/llvm/llvm-project ab51eccf88f5321e7c60591c5546b254b6afab99)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20241111/202411112001.OeKx45GR-lkp@intel.com/reproduce)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20241111/202411112349.khM9ZvDJ-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202411112001.OeKx45GR-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202411112349.khM9ZvDJ-lkp@intel.com/
 
 All warnings (new ones prefixed by >>):
 
-   In file included from drivers/acpi/nfit/core.c:6:
+   In file included from tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:6:
    In file included from include/linux/libnvdimm.h:14:
    In file included from include/linux/bio.h:10:
    In file included from include/linux/blk_types.h:10:
@@ -121,16 +121,16 @@ All warnings (new ones prefixed by >>):
          |                            ~~~~~~~~~~~~~~~~~~~~~ ^
      525 |                            NR_VM_NUMA_EVENT_ITEMS +
          |                            ~~~~~~~~~~~~~~~~~~~~~~
->> drivers/acpi/nfit/core.c:458:7: warning: variable 'out_obj' is used uninitialized whenever 'if' condition is true [-Wsometimes-uninitialized]
+>> tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:458:7: warning: variable 'out_obj' is used uninitialized whenever 'if' condition is true [-Wsometimes-uninitialized]
      458 |                 if (buf == NULL || buf_len < sizeof(struct nd_cmd_pkg)) {
          |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/acpi/nfit/core.c:658:12: note: uninitialized use occurs here
+   tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:658:12: note: uninitialized use occurs here
      658 |         ACPI_FREE(out_obj);
          |                   ^~~~~~~
    include/acpi/actypes.h:350:55: note: expanded from macro 'ACPI_FREE'
      350 | #define ACPI_FREE(a)                    acpi_os_free (a)
          |                                                       ^
-   drivers/acpi/nfit/core.c:458:3: note: remove the 'if' if its condition is always false
+   tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:458:3: note: remove the 'if' if its condition is always false
      458 |                 if (buf == NULL || buf_len < sizeof(struct nd_cmd_pkg)) {
          |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      459 |                         rc = -EINVAL;
@@ -139,26 +139,26 @@ All warnings (new ones prefixed by >>):
          |                         ~~~~~~~~~
      461 |                 }
          |                 ~
->> drivers/acpi/nfit/core.c:458:7: warning: variable 'out_obj' is used uninitialized whenever '||' condition is true [-Wsometimes-uninitialized]
+>> tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:458:7: warning: variable 'out_obj' is used uninitialized whenever '||' condition is true [-Wsometimes-uninitialized]
      458 |                 if (buf == NULL || buf_len < sizeof(struct nd_cmd_pkg)) {
          |                     ^~~~~~~~~~~
-   drivers/acpi/nfit/core.c:658:12: note: uninitialized use occurs here
+   tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:658:12: note: uninitialized use occurs here
      658 |         ACPI_FREE(out_obj);
          |                   ^~~~~~~
    include/acpi/actypes.h:350:55: note: expanded from macro 'ACPI_FREE'
      350 | #define ACPI_FREE(a)                    acpi_os_free (a)
          |                                                       ^
-   drivers/acpi/nfit/core.c:458:7: note: remove the '||' if its condition is always false
+   tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:458:7: note: remove the '||' if its condition is always false
      458 |                 if (buf == NULL || buf_len < sizeof(struct nd_cmd_pkg)) {
          |                     ^~~~~~~~~~~~~~
-   drivers/acpi/nfit/core.c:442:44: note: initialize the variable 'out_obj' to silence this warning
+   tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c:442:44: note: initialize the variable 'out_obj' to silence this warning
      442 |         union acpi_object in_obj, in_buf, *out_obj;
          |                                                   ^
          |                                                    = NULL
    6 warnings generated.
 
 
-vim +458 drivers/acpi/nfit/core.c
+vim +458 tools/testing/nvdimm/../../../drivers/acpi/nfit/core.c
 
    436	
    437	int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
