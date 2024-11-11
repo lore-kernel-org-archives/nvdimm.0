@@ -1,75 +1,129 @@
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74E3D152E0C
-	for <nvdimm@lists.linux.dev>; Sun, 10 Nov 2024 10:55:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5395315532A
+	for <nvdimm@lists.linux.dev>; Mon, 11 Nov 2024 08:04:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731236105; cv=none; b=gQz+V4Psq7ygVnqaiiCDiS1+fHWaGgwQSRMtq19O5LEQfqPF04PiVanalwW2xL7VpZa6S/S0crV78kEjhM/MqDbNAMKCZOeid5h2B5MoNF5vD/GdSHcoiZjQ6Cs6Cnhes0Ffeiy3CcJUJAVOR967q7mW8DPRslGAR+EsPkmasBQ=
+	t=1731312288; cv=none; b=AmBBmEt9og189kBmtbTn4D1wp12fO1rlwJ0U+mcwYcNWlKbxaplCTLI1vEoy8yi6rmNtn2r/ikG/BAglMfsEe+bS6sk+4LmdcEU8p4tUqrcmOfkxmeW/R1LCpvqOK014iw1jJyFjKXuuwCBCpr96R3WrFHwqe9Q3M5pKKd6yBSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731236105; c=relaxed/simple;
-	bh=qp30AENi8dcgpbgR8q8aWwhedRUsRchicjsEyep+G7E=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=MJHDODE7upF/Sp+H+bCd64+znnxhQtSbK10+hr5vDy/TBQRryUx1EjeyqbKrKKMoCF4HBpDgy6x6UspX5xVMG4KIrlcfLy60nqd6gWwRQsjwy6/opet5TBu3q/WqTxqfReHiiKgBCS281JyOc8Ylcyo/CV066krcnsFi3wH4FlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.70
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f70.google.com with SMTP id ca18e2360f4ac-83abf68e7ffso425652939f.1
-        for <nvdimm@lists.linux.dev>; Sun, 10 Nov 2024 02:55:03 -0800 (PST)
+	s=arc-20240116; t=1731312288; c=relaxed/simple;
+	bh=FWuw35zTuOKihJHzlCpRNKQMqJVYA/pDbaVVTKXkXnY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=NuSAPb3cQfpDvVPq7LrkS6xtu+/RhmTNhAQ5cFKJuq/tZ+aUV+AbItXbOYgQzXKp5n/EvS8GpK4imshl7Xl2FIicYY1PU2FmR9QqtZ3KQQ9eV3ka7pI1a+Hz0iX75fgE9yY11LjA4mKJyIZQJy7Jqp/Bat/TChFeln+jjJS5+H8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aqwE7Mtm; arc=none smtp.client-ip=209.85.214.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aqwE7Mtm"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-20c693b68f5so42819565ad.1
+        for <nvdimm@lists.linux.dev>; Mon, 11 Nov 2024 00:04:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1731312286; x=1731917086; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=3UT6ZfI59cRDazAWHMhRwJefY/Lo29/Jrx3Vk/czny0=;
+        b=aqwE7Mtm4ePO0y1/S/3Iipy8cvJPGrwEXLVWgq8iPrSVedwK7iGBm5HHeMuVDWGQPE
+         +z0YQZb66R7bN2goeOVCviRKmrQ428Qg0573QxOO2dZzlxCm504OpJZWpbRUbGXR2gjL
+         Q3r1Y2MKblaURIAiFopoaVMK8sApPln0CscYFBbW30LN8TSjuTxOnPoO6w45ZA9yOgUA
+         LGCbQMKy4t9o5g1cIa0eu8O8BS+EoSWJkqF65mfZugF06bJReP6m/VRYFAsTtVX8ThgJ
+         nI8V1r0QeQPEAOJnpllxz1/rNOIJI3d7CUQGsjuUMuE46QKyvotYXtUgBZtdnxIuyGie
+         4AiA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731236102; x=1731840902;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=wkrHgi6tIDZKDVhNeZ89zrLoylCI9aMkz19AD8osQ10=;
-        b=eMZxfqf9mJKCY4QH26yPMfhfSn0iPLNJKwgs+i6KsKuj1TbJr3wkWY9AQBDX8qgUIv
-         /1n4sb0i5jOZW7m+BMivrGWTaugPBXbxP2BYITSuJ2EqTcTFWrnRoCEihjoSEJlczljZ
-         Kk8Vo4ao0epwjoX5xvjndeBqkiaP3g0zXBVIVptH5wxfTw5h79cMrXe0QABHhFRe08tZ
-         paVn7wY1B1sEKUTHHxBCTxG3Z4DCaEeIZcGCxUjMauQLd5/REv+sSDdk9cEcpYE7U5+d
-         XQ5jfVXjgph0Y6cbT09lggxGmtVFmeGj2/53PUAB/5iAH8WjePfYJeEuMNXXf6qUEevT
-         dXqA==
-X-Forwarded-Encrypted: i=1; AJvYcCW5HaVICfxD95Krt11PSQePhF0H25dMhKKBo1w8nttBTUKUMQoA117bLJu0aO+TDRh5u8zb2jI=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yzp1BCg+0qmccfFMXZOAn4e7LPl7gJ2/J0qYYd15FeeUB2pODZn
-	NRhpJgxDbHnp3wJQ4A7v+sRV7b7cNQZZXPX4LtUUUE9SSAY3KLjld75YbDS4/WriW1D8to5TJAI
-	Qc3An1B6fkXirqEsj3CbvjX9zHlEvWLI2e2iw/Y+lTvBLO0moSt/+4m4=
-X-Google-Smtp-Source: AGHT+IFAs92Gwb0aXQftJab7U5XVyZHIVCEeOqd1umax+/Rh6VlSO2sxjsRp1vnO1AhdxCcikj3wrFudLW+Sqm7j3Nry1ZTmiWeN
+        d=1e100.net; s=20230601; t=1731312286; x=1731917086;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=3UT6ZfI59cRDazAWHMhRwJefY/Lo29/Jrx3Vk/czny0=;
+        b=uI8J7iMMyCNgeV/vNvOgHqi72M6TMCsCSGyWDF6NezI/AFhHhTB5L3n4u5D8hHaWNf
+         Ee6kGqYNMDR4ksG4/4PryGv4ZLOj7pPIpDAdkuYifhaudIyjGKfTgDzlP5Rn4cuZILQV
+         ipoOIv1flpkmfLNeu+DbnBsqVys+6fKIijV7DOGx/X0gRot11AFi05iv1OPKeNoGvQUP
+         WgMXpHKQPClco/AHIYu6gdUAm2WmPcjPtNt8k5ZM4FFMGThqhf4+WgNqEc9vzdtg8HIG
+         56paZMRyOuCN9dzdNQ+A/fzo8dEYsKtLYxdpdWOn1G/3N3vF57gSfkJ9kXXOLq8mp/kB
+         U6jw==
+X-Forwarded-Encrypted: i=1; AJvYcCX8LLeUV5jzDlz7FqR8qruXRb0BPUut2wYOIoSmL+vdWbzlu0ffNb/rH3dgcLkcw1X+VlmJWC4=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yydpo55CIqVF0uS9QE5PHFKRyWscZXflyvJK1bON8NEVesP6brR
+	ffQm+fXSJwMZ7VoOTB6l71T7akViRSRSxn66ovnc1fKw60FG33oV0miBURMGsus=
+X-Google-Smtp-Source: AGHT+IF9aCi7YVWolUezV0kEH14eAYavYX0IFCbOuS9oCD/EYTdHBk6SwYCMWY+FmzpFdW+e2+YBHA==
+X-Received: by 2002:a17:902:c942:b0:211:a6d:85dd with SMTP id d9443c01a7336-211835d9930mr158383425ad.47.1731312286442;
+        Mon, 11 Nov 2024 00:04:46 -0800 (PST)
+Received: from purva-IdeaPad-Gaming-3-15IHU6.. ([14.139.108.62])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21177e6c96fsm71061485ad.255.2024.11.11.00.04.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 Nov 2024 00:04:46 -0800 (PST)
+From: Suraj Sonawane <surajsonawane0215@gmail.com>
+To: dan.j.williams@intel.com
+Cc: vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Suraj Sonawane <surajsonawane0215@gmail.com>,
+	syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
+Subject: [PATCH] acpi: nfit: vmalloc-out-of-bounds Read in acpi_nfit_ctl
+Date: Mon, 11 Nov 2024 13:34:29 +0530
+Message-Id: <20241111080429.9861-1-surajsonawane0215@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1a43:b0:3a6:b258:fcd with SMTP id
- e9e14a558f8ab-3a6f19a01c1mr98799655ab.1.1731236102561; Sun, 10 Nov 2024
- 02:55:02 -0800 (PST)
-Date: Sun, 10 Nov 2024 02:55:02 -0800
-In-Reply-To: <CAHiZj8ieKPXqLKx4oO6Vhb0QPU+8hF9B-gaQ=Xinawrqv86==w@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <67309106.050a0220.320e73.0322.GAE@google.com>
-Subject: Re: [syzbot] [acpi?] [nvdimm?] KASAN: vmalloc-out-of-bounds Read in
- acpi_nfit_ctl (2)
-From: syzbot <syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com>
-To: dan.j.williams@intel.com, dave.jiang@intel.com, ira.weiny@intel.com, 
-	lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, rafael@kernel.org, surajsonawane0215@gmail.com, 
-	syzkaller-bugs@googlegroups.com, vishal.l.verma@intel.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+Fix an issue detected by syzbot with KASAN:
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/
+core.c:416 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0
+drivers/acpi/nfit/core.c:459
+
+The issue occurs in `cmd_to_func` when the `call_pkg->nd_reserved2`
+array is accessed without verifying that `call_pkg` points to a
+buffer that is sized appropriately as a `struct nd_cmd_pkg`. This
+could lead to out-of-bounds access and undefined behavior if the
+buffer does not have sufficient space.
+
+To address this issue, a check was added in `acpi_nfit_ctl()` to
+ensure that `buf` is not `NULL` and `buf_len` is greater than or
+equal to `sizeof(struct nd_cmd_pkg)` before casting `buf` to
+`struct nd_cmd_pkg *`. This ensures safe access to the members of
+`call_pkg`, including the `nd_reserved2` array.
+
+This change preventing out-of-bounds reads.
 
 Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3 
 Tested-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
+Fixes: 906bd684e4b1 ("Merge tag 'spi-fix-v6.12-rc6'")
+Signed-off-by: Suraj Sonawane <surajsonawane0215@gmail.com>
+---
+ drivers/acpi/nfit/core.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-Tested on:
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 5429ec9ef..4a2997b60 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -454,8 +454,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	if (cmd_rc)
+ 		*cmd_rc = -EINVAL;
+ 
+-	if (cmd == ND_CMD_CALL)
+-		call_pkg = buf;
++	if (cmd == ND_CMD_CALL) {
++		if (buf == NULL || buf_len < sizeof(struct nd_cmd_pkg)) {
++			rc = -EINVAL;
++			goto out;
++		}
++		call_pkg = (struct nd_cmd_pkg *)buf;
++	}
+ 	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
+ 	if (func < 0)
+ 		return func;
+-- 
+2.34.1
 
-commit:         de2f378f Merge tag 'nfsd-6.12-4' of git://git.kernel.o..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=102594e8580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=64aa0d9945bd5c1
-dashboard link: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-patch:          https://syzkaller.appspot.com/x/patch.diff?x=11629ea7980000
-
-Note: testing is done by a robot and is best-effort only.
