@@ -1,143 +1,163 @@
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.marcansoft.com (marcansoft.com [212.63.210.85])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 836B161FD7
-	for <nvdimm@lists.linux.dev>; Tue, 12 Nov 2024 05:20:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F16020C01B;
+	Tue, 12 Nov 2024 09:49:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.63.210.85
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731388847; cv=none; b=ucOmh4aoI49VBxXnITCM5zE7H4zqRH9xFmDz5O/sCOtWwFfEiGVPceu0AqcdSkvvBa1VA0jx2N0zB9pz5XbzwWLmsE30zmFapcY/30SHwVj7zCvultkGoun+oRNnByJYeFo4XTP5r2/AYHCResV4yEB2/ip3rROFJB8kF6YENnE=
+	t=1731404991; cv=none; b=oQhVFF8bnHDCI7X0cNbHugbF8SoeHhw5YiW/3KZlGH9uQSLR1gr2uDyDufKBZ07jeK/2z9L8Jq40/da/nEEJuivuQqM9wuepsVZxFCV4ONKR4jgZ2Ql2i4xaDm3v2R8RjC580ktPz7wWqmV5q7iSDY4QD8FpOgJB5a8jonEsRMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731388847; c=relaxed/simple;
-	bh=xYGzH9hAlrxBlbHGfPc0XgIXYM4XAfbRpAuBzkRUnz4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=mx0h9uj6fUkc08rYGkju5+r1cvqn0SpqGfBsZ9aCIkPgNYNqOU/ZYuW/Qi5t3CGVvo08JSSVn0JG6o75xs0tAiGGnwFXzOc8hnDmb8sQgXVPWyjJP/Ef0tITxevpsznTBZucBI6K7O/DkLwym/5mZ0O/OIQLSI/SXs6a5C2r4iU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NBIbWPc9; arc=none smtp.client-ip=209.85.214.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1731404991; c=relaxed/simple;
+	bh=2Xz3/5UBzjG9E2T5qRaLZwW2h3Omo4UO0rF/gdvx0zg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Z9vEoE0C5DyWqbClXwOqkGlJxiWybAhREXaZhI0vIet3uvo808qvQIY0Rb02Mkej/ZlNSPrhLCl6ZI6PoWZj6N5zP5ScjD08pWJ4ZtV0TaVH6s0+Yj6VU3JlOeA+/Qi2u6DwZ/PLwTysgPOBc1rgAWzcf7F8L56iOdRSvq5fi3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net; spf=pass smtp.mailfrom=asahilina.net; dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b=bxE3XTOU; arc=none smtp.client-ip=212.63.210.85
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asahilina.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NBIbWPc9"
-Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-20c767a9c50so50455305ad.1
-        for <nvdimm@lists.linux.dev>; Mon, 11 Nov 2024 21:20:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1731388846; x=1731993646; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Nraq509unMAALzeVagoiRPKJbfQ4zWQzvCgRLQ6O0iE=;
-        b=NBIbWPc9bXCTnfO/LBbSCG2iLE4pdEot/Cg85uF96SbPJ2Q5yyek/RgnwtJaTSFEZE
-         AmjgA/3r9zzlDYMNelHZNnsBoM2DyNf5wy7TaE24xoyE8slBVPCkZnVXON8HbzRnU63w
-         HYgPOE8hPsjJAThaVIBJPJydZY82nDDDfimPxvfc3FSz50rzQIsusZbxpWrwnMWBshLi
-         XNWwJviSXmHtLDv5wjbJDfBTaQTVHx7l4kg82wl4e31tANwmHsMY4xZJGdD9kSkDMyvL
-         YWsrFdE6l3hxVZ1SKn4pX67mySnHtHbC5IZdmvfEToBO3W9ID/hrBVKqmnneGXVzWxR5
-         11jw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731388846; x=1731993646;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Nraq509unMAALzeVagoiRPKJbfQ4zWQzvCgRLQ6O0iE=;
-        b=l0n8vPhmQ+Ayq4cEt1h9r7Dgl8eXw5ESVouWbBWtmOBrc8bINZFErzJmNw1Uf8Q7aG
-         yJ4r8af3BhSGuUA+JbYqvwRLVY1ZgathtBarj8+zTgWn16ugguc6I+10kpfnQ3+hb2+R
-         Bu5sm0C2A+RWKZbZQ60XMppWBZ/cQvT6K4L0l8660FpJv56xdv0kw8W0gWZLMB3hImkX
-         KNH8sMupFsyRe+wDLguRjY0ZA78lcgPcMQ/wIU8TyEC0GrdfIsPqg+S6cGinMjbIhgZr
-         oVKcUW2pMWPL0V89Gout94lpaAmYqbLvHPEg927p8kvAYT0zGp0JEJSjtwpsJxrsCtkC
-         Pa8g==
-X-Forwarded-Encrypted: i=1; AJvYcCXMXn1bzV6AFizu4oVqNbCkZT2cCMwsCoXchMq1f63yBcxiveHo9dE7je0x/l0qwaZpek/+M18=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyX+o69sNWgr3RyJLNNINnsKnAkk0EoJPaxCSys9B5AjpEmP7Lt
-	YKzIdCB2S5E2Odr5MXAgXkAPDWsCZ0IYAzve1F3O7ATsJK7MffoJ
-X-Google-Smtp-Source: AGHT+IEqt1K+FlBqj/5RBYdoY6r0noCkeefboU76QtLTtaAGk+R/+2di6v4C395v6POpzeSOxjuQAQ==
-X-Received: by 2002:a17:902:d4cc:b0:211:898:7cde with SMTP id d9443c01a7336-21183d23fe0mr185099865ad.31.1731388845729;
-        Mon, 11 Nov 2024 21:20:45 -0800 (PST)
-Received: from purva-IdeaPad-Gaming-3-15IHU6.. ([2405:204:20ac:21b:f63:7054:e444:2bb5])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-211af0d6f9csm1173445ad.58.2024.11.11.21.20.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 Nov 2024 21:20:45 -0800 (PST)
-From: Suraj Sonawane <surajsonawane0215@gmail.com>
-To: dan.j.williams@intel.com
-Cc: vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Suraj Sonawane <surajsonawane0215@gmail.com>,
-	syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-Subject: [PATCH v2] acpi: nfit: vmalloc-out-of-bounds Read in acpi_nfit_ctl
-Date: Tue, 12 Nov 2024 10:50:35 +0530
-Message-Id: <20241112052035.14122-1-surajsonawane0215@gmail.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b="bxE3XTOU"
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits))
+	(No client certificate requested)
+	(Authenticated sender: lina@asahilina.net)
+	by mail.marcansoft.com (Postfix) with ESMTPSA id ACB9742118;
+	Tue, 12 Nov 2024 09:49:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=asahilina.net;
+	s=default; t=1731404987;
+	bh=2Xz3/5UBzjG9E2T5qRaLZwW2h3Omo4UO0rF/gdvx0zg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=bxE3XTOUk3F7yeLfYKEs5fE5Iu92erW3q1CzBaUQOJbedmvr5IYKKdU15GsuW+FiT
+	 bwJa7Q2HfKQMosUQvXpAIPkLVGmtR/W5bUDHS09nWDRxlGLVd2gwBxpMjII7t6evWc
+	 4xLhqO0NvumLvy1JSc6xHjDTMlySdckJR9K8lz62u74sE7pRNL8EbDEi+zIdeLX8LJ
+	 FrJxUXiReMrWbLF3VJWe1aLCQhfRvkinkSkZ+7uIGUkW4mkcluI7GAG8u45paGVjTg
+	 zjz4fDpVtq1whMNYu9gE+P4M9mOMnKCP0He1lKPZawi+7jlE/HPRzTZdVjGvTAXIxY
+	 YjFfVt5SlVDEg==
+Message-ID: <a6866a71-dde9-44a2-8b0e-d6d3c4c702f8@asahilina.net>
+Date: Tue, 12 Nov 2024 18:49:46 +0900
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] dax: Allow block size > PAGE_SIZE
+To: Jan Kara <jack@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+ Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Sergio Lopez Pascual
+ <slp@redhat.com>, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, asahi@lists.linux.dev
+References: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
+ <20241104105711.mqk4of6frmsllarn@quack3>
+ <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
+ <ZylHyD7Z+ApaiS5g@dread.disaster.area>
+ <21f921b3-6601-4fc4-873f-7ef8358113bb@asahilina.net>
+ <20241106121255.yfvlzcomf7yvrvm7@quack3>
+ <672bcab0911a2_10bc62943f@dwillia2-xfh.jf.intel.com.notmuch>
+ <20241107100105.tktkxs5qhkjwkckg@quack3>
+ <28308919-7e47-49e4-a821-bcd32f73eecb@asahilina.net>
+ <20241108121641.jz3qdk2qez262zw2@quack3>
+Content-Language: en-US
+From: Asahi Lina <lina@asahilina.net>
+In-Reply-To: <20241108121641.jz3qdk2qez262zw2@quack3>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Fix an issue detected by syzbot with KASAN:
 
-BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/
-core.c:416 [inline]
-BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0
-drivers/acpi/nfit/core.c:459
 
-The issue occurs in `cmd_to_func` when the `call_pkg->nd_reserved2`
-array is accessed without verifying that `call_pkg` points to a
-buffer that is sized appropriately as a `struct nd_cmd_pkg`. This
-could lead to out-of-bounds access and undefined behavior if the
-buffer does not have sufficient space.
+On 11/8/24 9:16 PM, Jan Kara wrote:
+> On Fri 08-11-24 01:09:54, Asahi Lina wrote:
+>> On 11/7/24 7:01 PM, Jan Kara wrote:
+>>> On Wed 06-11-24 11:59:44, Dan Williams wrote:
+>>>> Jan Kara wrote:
+>>>> [..]
+>>>>>> This WARN still feels like the wrong thing, though. Right now it is the
+>>>>>> only thing in DAX code complaining on a page size/block size mismatch
+>>>>>> (at least for virtiofs). If this is so important, I feel like there
+>>>>>> should be a higher level check elsewhere, like something happening at
+>>>>>> mount time or on file open. It should actually cause the operations to
+>>>>>> fail cleanly.
+>>>>>
+>>>>> That's a fair point. Currently filesystems supporting DAX check for this in
+>>>>> their mount code because there isn't really a DAX code that would get
+>>>>> called during mount and would have enough information to perform the check.
+>>>>> I'm not sure adding a new call just for this check makes a lot of sense.
+>>>>> But if you have some good place in mind, please tell me.
+>>>>
+>>>> Is not the reason that dax_writeback_mapping_range() the only thing
+>>>> checking ->i_blkbits because 'struct writeback_control' does writeback
+>>>> in terms of page-index ranges?
+>>>
+>>> To be fair, I don't remember why we've put the assertion specifically into
+>>> dax_writeback_mapping_range(). But as Dave explained there's much more to
+>>> this blocksize == pagesize limitation in DAX than just doing writeback in
+>>> terms of page-index ranges. The whole DAX entry tracking in xarray would
+>>> have to be modified to properly support other entry sizes than just PTE &
+>>> PMD sizes because otherwise the entry locking just doesn't provide the
+>>> guarantees that are expected from filesystems (e.g. you could have parallel
+>>> modifications happening to a single fs block in pagesize < blocksize case).
+>>>
+>>>> All other dax entry points are filesystem controlled that know the
+>>>> block-to-pfn-to-mapping relationship.
+>>>>
+>>>> Recall that dax_writeback_mapping_range() is historically for pmem
+>>>> persistence guarantees to make sure that applications write through CPU
+>>>> cache to media.
+>>>
+>>> Correct.
+>>>
+>>>> Presumably there are no cache coherency concerns with fuse and dax
+>>>> writes from the guest side are not a risk of being stranded in CPU
+>>>> cache. Host side filesystem writeback will take care of them when / if
+>>>> the guest triggers a storage device cache flush, not a guest page cache
+>>>> writeback.
+>>>
+>>> I'm not so sure. When you call fsync(2) in the guest on virtiofs file, it
+>>> should provide persistency guarantees on the file contents even in case of
+>>> *host* power failure. So if the guest is directly mapping host's page cache
+>>> pages through virtiofs, filemap_fdatawrite() call in the guest must result
+>>> in fsync(2) on the host to persist those pages. And as far as I vaguely
+>>> remember that happens by KVM catching the arch_wb_cache_pmem() calls and
+>>> issuing fsync(2) on the host. But I could be totally wrong here.
+>>
+>> I don't think that's how it actually works, at least on arm64.
+>> arch_wb_cache_pmem() calls dcache_clean_pop() which is either dc cvap or
+>> dc cvac. Those are trapped by HCR_EL2<TPC>, and that is never set by KVM.
+>>
+>> There was some discussion of this here:
+>> https://lore.kernel.org/all/20190702055937.3ffpwph7anvohmxu@US-160370MP2.local/
+> 
+> I see. Thanks for correcting me.
+> 
+>> But I'm not sure that all really made sense then.
+>>
+>> msync() and fsync() should already provide persistence. Those end up
+>> calling vfs_fsync_range(), which becomes a FUSE fsync(), which fsyncs
+>> (or fdatasyncs) the whole file. What I'm not so sure is whether there
+>> are any other codepaths that also need to provide those guarantees which
+>> *don't* end up calling fsync on the VFS. For example, the manpages kind
+>> of imply munmap() syncs, though as far as I can tell that's not actually
+>> the case. If there are missing sync paths, then I think those might just
+>> be broken right now...
+> 
+> munmap(2) is not an issue because that has no persistency guarantees in
+> case of power failure attached to it. Thinking about it some more I agree
+> that just dropping dax_writeback_mapping_range() from virtiofs should be
+> safe. The modifications are going to be persisted by the host eventually
+> (so writeback as such isn't needed) and all crash-safe guarantees are
+> revolving around calls like fsync(2), sync(2), sync_fs(2) which get passed
+> by fuse and hopefully acted upon on the host. I'm quite confident with this
+> because even standard filesystems such as ext4 flush disk caches only in
+> response to operations like these (plus some in journalling code but that's
+> a separate story).
+> 
+> 								Honza
 
-To address this issue, a check was added in `acpi_nfit_ctl()` to
-ensure that `buf` is not `NULL` and `buf_len` is greater than or
-equal to `sizeof(struct nd_cmd_pkg)` before casting `buf` to
-`struct nd_cmd_pkg *`. This ensures safe access to the members of
-`call_pkg`, including the `nd_reserved2` array.
+I think we should go with that then. Should I send it as Suggested-by:
+Dan or do you want to send it?
 
-This change preventing out-of-bounds reads.
-
-Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3
-Tested-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-Fixes: 2d5404caa8c7 ("Linux 6.12-rc7")
-Signed-off-by: Suraj Sonawane <surajsonawane0215@gmail.com>
----
-V1: https://lore.kernel.org/lkml/20241111080429.9861-1-surajsonawane0215@gmail.com/ 
-V2: Initialized `out_obj` to `NULL` in `acpi_nfit_ctl()` to prevent
-potential uninitialized variable usage if condition is true.
-
- drivers/acpi/nfit/core.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 5429ec9ef..d0e655a9c 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -439,7 +439,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	union acpi_object in_obj, in_buf, *out_obj;
-+	union acpi_object in_obj, in_buf, *out_obj = NULL;
- 	const struct nd_cmd_desc *desc = NULL;
- 	struct device *dev = acpi_desc->dev;
- 	struct nd_cmd_pkg *call_pkg = NULL;
-@@ -454,8 +454,14 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	if (cmd_rc)
- 		*cmd_rc = -EINVAL;
- 
--	if (cmd == ND_CMD_CALL)
--		call_pkg = buf;
-+	if (cmd == ND_CMD_CALL) {
-+		if (buf == NULL || buf_len < sizeof(struct nd_cmd_pkg)) {
-+			rc = -EINVAL;
-+			goto out;
-+		}
-+		call_pkg = (struct nd_cmd_pkg *)buf;
-+	}
-+
- 	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
- 	if (func < 0)
- 		return func;
--- 
-2.34.1
+~~ Lina
 
