@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EE9C1494DA
-	for <nvdimm@lists.linux.dev>; Wed, 13 Nov 2024 17:02:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED56200123
+	for <nvdimm@lists.linux.dev>; Wed, 13 Nov 2024 17:08:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731517372; cv=none; b=ajAuh0Y0kh8slog4xWx4KiecyBiIdqqVkEc6W2QwID5vLJS88H6jlXfK0g41vf+PcJfFJTPB2oDDwDLrO1hSge1jtoxUyygiFH2i4xhiUqHDVooCEXsj1Ii7JilJGN5up3XMQarndtE+g7ZoClnvMsxLYwP6xpwMQxRUSq2sFok=
+	t=1731517708; cv=none; b=EPvlXrwpmG3t7TLFaxPHLn/dt2svY3PWbzJw7FsmCcTab3QS7OvF3hCS8hC9lntnRTc2EgDRVSF+duDsk+0EzWlLDGRUHrGMdc0UlF4VglpYvzu/n7KIXBufOJ/aeE7S6KPrJLquAJNI0TSe6QK7+MhOuOxdHtj5+N0yG+Vrlc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731517372; c=relaxed/simple;
-	bh=bKvQveUmnw0s3bbjiNCbqGR+1sQAqrRWjJOqqLCKXDM=;
+	s=arc-20240116; t=1731517708; c=relaxed/simple;
+	bh=u2Y4lmxmRD3XKjq1cRSM+Df3A3Arm/B1BpyCuMjDeEg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WMgLIPMaD1ckIW9JcoWL7F2MgG5jcaEqxbHwYIu67k7DFms5q0s93i5aJ0uHjiwzRD4xos2UpYk5WkRVcvD1TLKhpRyHQ1ddxhnJVGCMZhCTnN5sySmyA1vg9nRxlbPsf9t0CEuWA78GVyw2LMpyrlBiZABHKPPz2QKxeX95MbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=khOkovQ/; arc=none smtp.client-ip=192.198.163.7
+	 In-Reply-To:Content-Type; b=m4KpXOpRPmGR9Y0wdiu+M3LGQ2jkDuGfW8bEaKO8A3ofLdijoOxrGwJXfRy4ZYszxaaoIFB+qcjJsEkxUxcomfjPAAwL/bDcX2+sT/7NM0NAVXFSD2EGAUXLzDOYfhNyYAEVdwu2ZUNLrrGEMgnAuum6uY/eLUbpwRqLp1Km7RI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FqJLfZ8x; arc=none smtp.client-ip=198.175.65.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="khOkovQ/"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FqJLfZ8x"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1731517370; x=1763053370;
+  t=1731517707; x=1763053707;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=bKvQveUmnw0s3bbjiNCbqGR+1sQAqrRWjJOqqLCKXDM=;
-  b=khOkovQ/sK/nSlEmLX2q2zVrn3l0z6sWUkqUdcfxSU9dWvXJAyaRWiN1
-   qHm8Y7/paKaLz0VI1o5A5OPD2uPmEayTa/nGcga0EcsXVjW2xEAhZa/0s
-   8wBa85vTAg4JfhEUiDqK8pYGYDlyIWppBAdPm69hzEumyU5c72KU3e64B
-   hbjM6ZYGS6HanYToxTJ5lxaTuSsFAiVc7WRxUxrBakP1k2f6efBgui3iH
-   8XNroeRLwPGWwpj4FzufGdEMCOhNiH9t9MOtoP30L8aCAecva5YzhY0JL
-   OvfC1VH0/VLYvVQ2gy6nq4FwZclonfB1FqFxqp6GwYqXZJnmpADa24Eih
-   A==;
-X-CSE-ConnectionGUID: Pa+sanFaRTy+mc9FpNsGLw==
-X-CSE-MsgGUID: UfQQjvFeTxuZ/AW4Fo6DSw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11254"; a="56812271"
-X-IronPort-AV: E=Sophos;i="6.12,151,1728975600"; 
-   d="scan'208";a="56812271"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2024 09:02:49 -0800
-X-CSE-ConnectionGUID: TmNWX73cRzWpQFfza1GHbA==
-X-CSE-MsgGUID: LqEBD+yFSge8vce6kk0yfA==
+  bh=u2Y4lmxmRD3XKjq1cRSM+Df3A3Arm/B1BpyCuMjDeEg=;
+  b=FqJLfZ8xklLGJHmYRAxj0g54W1adF2gFncdG2kjITOe+PU/db0fSkMsb
+   PWNce/oyDP8ufxyYB0hl69J/GjYGgFu0jg/cu6xMo1LzoOdKNuq+OuULT
+   47MBra7zg7kaS2hTKZ+Tiv26rFgMbcWxE6Uq9+Yb03MKATzvOd0fW5N2P
+   rFJhx8ffwvkjAZ9uyeny+udN6oMwBwLYRDcpedhhL8bg3967rmh4ECKgn
+   9+WBoKSpA4CIGfIBEe26DZEbkVWAHrYPwqnZshZQuAd8MT5DUe0IzInaV
+   hLT24cf8p3TDSm+LBU6t6/n0mfcCJxf9ZjZ0bHZzGHXusFT4KxDDbvyjq
+   g==;
+X-CSE-ConnectionGUID: q2eBuaCdR9+P6KzNUGmXRQ==
+X-CSE-MsgGUID: 5puJqrKxThGYPppFzYmoAw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="31189378"
+X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
+   d="scan'208";a="31189378"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2024 09:08:26 -0800
+X-CSE-ConnectionGUID: m5iBqzG5R9ee3+RheE1+cA==
+X-CSE-MsgGUID: pBXOY0a4QlGiK1g5ChbcPw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.12,151,1728975600"; 
-   d="scan'208";a="92996490"
+   d="scan'208";a="118744977"
 Received: from spandruv-desk1.amr.corp.intel.com (HELO [10.125.111.237]) ([10.125.111.237])
-  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2024 09:02:48 -0800
-Message-ID: <c69d74f7-4484-4fc6-9b95-d2ae86ead794@intel.com>
-Date: Wed, 13 Nov 2024 10:02:47 -0700
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2024 09:08:19 -0800
+Message-ID: <e938bd59-3cb4-46f5-a703-8a1c1d6ed1fe@intel.com>
+Date: Wed, 13 Nov 2024 10:08:09 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,92 +52,75 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] acpi: nfit: vmalloc-out-of-bounds Read in
- acpi_nfit_ctl
-To: Suraj Sonawane <surajsonawane0215@gmail.com>, dan.j.williams@intel.com,
+Subject: Re: [PATCH] nvdimm: rectify the illogical code within nd_dax_probe()
+To: Yi Yang <yiyang13@huawei.com>, dan.j.williams@intel.com,
  vishal.l.verma@intel.com, ira.weiny@intel.com
-Cc: rafael@kernel.org, lenb@kernel.org, nvdimm@lists.linux.dev,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-References: <20241113125157.14390-1-surajsonawane0215@gmail.com>
+Cc: nvdimm@lists.linux.dev
+References: <671fbb33ee9ef_bc69d29447@dwillia2-xfh.jf.intel.com.notmuch>
+ <20241108085526.527957-1-yiyang13@huawei.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20241113125157.14390-1-surajsonawane0215@gmail.com>
+In-Reply-To: <20241108085526.527957-1-yiyang13@huawei.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 11/13/24 5:51 AM, Suraj Sonawane wrote:
-> Fix an issue detected by syzbot with KASAN:
+On 11/8/24 1:55 AM, Yi Yang wrote:
+> When nd_dax is NULL, nd_pfn is consequently NULL as well. Nevertheless,
+> it is inadvisable to perform pointer arithmetic or address-taking on a
+> NULL pointer.
+> Introduce the nd_dax_devinit() function to enhance the code's logic and
+> improve its readability.
 > 
-> BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/
-> core.c:416 [inline]
-> BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0
-> drivers/acpi/nfit/core.c:459
-> 
-> The issue occurs in cmd_to_func when the call_pkg->nd_reserved2
-> array is accessed without verifying that call_pkg points to a buffer
-> that is appropriately sized as a struct nd_cmd_pkg. This can lead
-> to out-of-bounds access and undefined behavior if the buffer does not
-> have sufficient space.
-> 
-> To address this, a check was added in acpi_nfit_ctl() to ensure that
-> buf is not NULL and that buf_len is greater than sizeof(*call_pkg)
-> before casting buf to struct nd_cmd_pkg *. This ensures safe access
-> to the members of call_pkg, including the nd_reserved2 array.
-> 
-> Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3
-> Tested-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Fixes: ebe9f6f19d80 ("acpi/nfit: Fix bus command validation")
-> Signed-off-by: Suraj Sonawane <surajsonawane0215@gmail.com>
+> Signed-off-by: Yi Yang <yiyang13@huawei.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+but a few comments for future patches: 
+
+Is this v2 of the patch? Please label patch subject prefix as so. 
 > ---
-> V1: https://lore.kernel.org/lkml/20241111080429.9861-1-surajsonawane0215@gmail.com/
-> V2: Initialized `out_obj` to `NULL` in `acpi_nfit_ctl()` to prevent
-> potential uninitialized variable usage if condition is true.
-> V3: Changed the condition to if (!buf || buf_len < sizeof(*call_pkg))
-> and updated the Fixes tag to reference the correct commit.
-> 
->  drivers/acpi/nfit/core.c | 12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 5429ec9ef..eb5349606 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -439,7 +439,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
->  {
->  	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
->  	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-> -	union acpi_object in_obj, in_buf, *out_obj;
-> +	union acpi_object in_obj, in_buf, *out_obj = NULL;
 
-Looking at the code later, out_obj is always assigned before access. I'm not seeing a path where out_obj would be accessed unitialized...
+Please include change history here from previous versions. 
 
-https://elixir.bootlin.com/linux/v6.12-rc7/source/drivers/acpi/nfit/core.c#L538
- 
->  	const struct nd_cmd_desc *desc = NULL;
->  	struct device *dev = acpi_desc->dev;
->  	struct nd_cmd_pkg *call_pkg = NULL;
-> @@ -454,8 +454,14 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
->  	if (cmd_rc)
->  		*cmd_rc = -EINVAL;
+>  drivers/nvdimm/dax_devs.c | 4 ++--
+>  drivers/nvdimm/nd.h       | 7 +++++++
+>  2 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
+> index 6b4922de3047..37b743acbb7b 100644
+> --- a/drivers/nvdimm/dax_devs.c
+> +++ b/drivers/nvdimm/dax_devs.c
+> @@ -106,12 +106,12 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
 >  
-> -	if (cmd == ND_CMD_CALL)
-> -		call_pkg = buf;
-> +	if (cmd == ND_CMD_CALL) {
-> +		if (!buf || buf_len < sizeof(*call_pkg)) {
-> +			rc = -EINVAL;
-> +			goto out;
-> +		}
-> +		call_pkg = (struct nd_cmd_pkg *)buf;
-
-Is the casting needed? It wasn't in the old code.
-
-> +	}
-> +
->  	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
->  	if (func < 0)
->  		return func;
+>  	nvdimm_bus_lock(&ndns->dev);
+>  	nd_dax = nd_dax_alloc(nd_region);
+> -	nd_pfn = &nd_dax->nd_pfn;
+> -	dax_dev = nd_pfn_devinit(nd_pfn, ndns);
+> +	dax_dev = nd_dax_devinit(nd_dax, ndns);
+>  	nvdimm_bus_unlock(&ndns->dev);
+>  	if (!dax_dev)
+>  		return -ENOMEM;
+>  	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
+> +	nd_pfn = &nd_dax->nd_pfn;
+>  	nd_pfn->pfn_sb = pfn_sb;
+>  	rc = nd_pfn_validate(nd_pfn, DAX_SIG);
+>  	dev_dbg(dev, "dax: %s\n", rc == 0 ? dev_name(dax_dev) : "<none>");
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index 2dbb1dca17b5..5ca06e9a2d29 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -600,6 +600,13 @@ struct nd_dax *to_nd_dax(struct device *dev);
+>  int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns);
+>  bool is_nd_dax(const struct device *dev);
+>  struct device *nd_dax_create(struct nd_region *nd_region);
+> +static inline struct device *nd_dax_devinit(struct nd_dax *nd_dax,
+> +					    struct nd_namespace_common *ndns)
+> +{
+> +	if (!nd_dax)
+> +		return NULL;
+> +	return nd_pfn_devinit(&nd_dax->nd_pfn, ndns);
+> +}
+>  #else
+>  static inline int nd_dax_probe(struct device *dev,
+>  		struct nd_namespace_common *ndns)
 
