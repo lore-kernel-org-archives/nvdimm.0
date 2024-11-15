@@ -1,51 +1,52 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BA6A126C10
-	for <nvdimm@lists.linux.dev>; Fri, 15 Nov 2024 18:40:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27256185B58
+	for <nvdimm@lists.linux.dev>; Fri, 15 Nov 2024 18:40:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731696047; cv=none; b=J0WgQfMHzNKXfMHQ05b3nCY3KdQwjkbDY0rMxEP23z+OnoSP0V7YEOotK30FS1zdsFLsTRa1VLh4jk+quUXhfLNZjZHwmkmC4i0l4PBW8/rFv4du8VyN9c/CjriIfT4uMhzwET9pM8+QykjRv7820pINFJo/hD8oMHOXN7go8wM=
+	t=1731696049; cv=none; b=IKiIuzLLthxLscoOMTw1Smje15oS6S5LoXH6ut05QIRfzclQ/NPmbVn3yL5LkEHYMHxbOeBRn+ZHnIAs08U2nmyXQnUiQsSCUBJn/m41a/d0o0YgTESpqVv9GA7BKjGN14Wjmwvz1fgyIsCzRsaFgOvpLAQ2rtXfPSoaEJVPfgc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731696047; c=relaxed/simple;
-	bh=KOdBTSSlKJayfoJokrPlQixtP5idfKnFGrRtM87MPqw=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=qiqY19ihzBl9AxIYfXYUtHTEl/cbM/2vUaYwNOuCmbByzWgoQ8W+acSSjHAgzWZsH0IdnB3TQrHWYmPij4QluuELnMUDyUSvugDtrQ7OCKMoCXO5iBH1gQsBx0vfs70c+7NygQxwk9IHWcGSXDtqFHNItann4SKMweKp9Vp63YY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XqZR4oiJ; arc=none smtp.client-ip=192.198.163.19
+	s=arc-20240116; t=1731696049; c=relaxed/simple;
+	bh=wD+XIhKFNUIAbTLMKPo9wsnzKTJTpx4Wre2NG4iL7dw=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=gcUPUnL/uyXj2FURmrLyGFAHCKe3VkCM7CvNzP2ZIbbz3clChf1kKXsyLwUAsPgCk0hO8PCT58syLdNa+h9OrIMmzmhGOxPA+NTfkHfWYrFHHTeKuZVhgva0Kqd8uL02RxoTvkBBsatqUkyt2E9Q0et81BB9t494g3JnqVdI6b4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=as06cAup; arc=none smtp.client-ip=192.198.163.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XqZR4oiJ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="as06cAup"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1731696044; x=1763232044;
-  h=from:subject:date:message-id:mime-version:
-   content-transfer-encoding:to:cc;
-  bh=KOdBTSSlKJayfoJokrPlQixtP5idfKnFGrRtM87MPqw=;
-  b=XqZR4oiJxvvbXbRAFyMWDlJrGvPIR4bhOXncVjyOp6+vEzk4qPrBvlhE
-   k2tHitP5JuOUFN/W0dkYQ08ZrI/FapPR2i5DyUrNZL9D3K+LvmUOza3uy
-   GUnb/5hOjvkqcfO4sEYgo8Y5z7/7d/ISf/n1sGmpihkuTJK9wJIy/QhiA
-   +NuhFohlrhao1/AplicblFC9SvvTlx7BiUhV0UqF8Aw+AyuP2NsTa7N+u
-   6BFvTMSXiEwxcxvfHk1CYzRRNYxM6bvn1uB7qhlOxb8DhHriiDTFipj1L
-   0iAzuWJ0HRnF9QngtsRaSZxcOmIlfMVPYzOYTYWhFxt+PL5eiSSxy1MYf
+  t=1731696048; x=1763232048;
+  h=from:date:subject:mime-version:content-transfer-encoding:
+   message-id:references:in-reply-to:to:cc;
+  bh=wD+XIhKFNUIAbTLMKPo9wsnzKTJTpx4Wre2NG4iL7dw=;
+  b=as06cAupiJhBLSh/eO163zQn9T+i8zp398obTFb4Bai3Jadtv2qMi3sp
+   KW1tj/lTvx6/cVBh5u+7lPMe8G/ei81gIU37Hlx+mpI+gEdzi4HXBXsRW
+   ndoJSvX7jyi4IVXp96gLM4bvjJKL2tsPpM6Due3tmFLYrNShZBPMvomaD
+   mh5EL7VFe19AcGQvMJD4QYnsUm855kgjBlTNinHEXee3ajsjT22p75xzy
+   VO3XhGEx0xBUSSM8OD3KTqty6Cby2yC7ffSrX7YmJCbGHlThm+jzQZHDP
+   6GquSRCdkYhtXfdLW3hTvUHZU8ZcHkCWWeedhflGPW4Mcd2qwr/1L7j0O
    w==;
-X-CSE-ConnectionGUID: AzD583eKQzSm9rGZnsmemw==
-X-CSE-MsgGUID: SzHZ9vFiSDezhLJEqcqZug==
-X-IronPort-AV: E=McAfee;i="6700,10204,11257"; a="31127878"
+X-CSE-ConnectionGUID: Om9DwML5TvaJ5XwV1FPbqQ==
+X-CSE-MsgGUID: 6ianb0tzSVW0bFnyCZtGMQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11257"; a="31127884"
 X-IronPort-AV: E=Sophos;i="6.12,157,1728975600"; 
-   d="scan'208";a="31127878"
+   d="scan'208";a="31127884"
 Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2024 10:40:36 -0800
-X-CSE-ConnectionGUID: uCU5tQJnTWWZKOpkcmdOtA==
-X-CSE-MsgGUID: 3kyO7Io3TGm3etrgc8kQmg==
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2024 10:40:38 -0800
+X-CSE-ConnectionGUID: NGhgHLS8SbeQGBg5NjRW2A==
+X-CSE-MsgGUID: UiAMGmC3ScCQOdmnacoc3Q==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.12,157,1728975600"; 
-   d="scan'208";a="88522602"
+   d="scan'208";a="88522607"
 Received: from ehanks-mobl1.amr.corp.intel.com (HELO localhost) ([10.125.108.112])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2024 10:40:36 -0800
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2024 10:40:38 -0800
 From: Ira Weiny <ira.weiny@intel.com>
-Subject: [ndctl PATCH v3 0/9] ndctl: Dynamic Capacity additions for cxl-cli
-Date: Fri, 15 Nov 2024 12:40:33 -0600
-Message-Id: <20241115-dcd-region2-v3-0-326cd4e34dcd@intel.com>
+Date: Fri, 15 Nov 2024 12:40:34 -0600
+Subject: [ndctl PATCH v3 1/9] ndctl/cxl-events: Don't fail test until event
+ counts are reported
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,101 +55,58 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAKGVN2cC/22MQQ6CMBBFr0Jmbc10qAKuvIdxQekAkyiYljQaw
- t0tbNTE5fv5780Q2AsHOGUzeI4SZBwS5LsMmr4eOlbiEgMhGY05Ktc45blLN1LkUJuKbcmtg2Q
- 8PLfy3GqXa+JewjT61xaPel3/d6JWqNAcEW1N1pR8lmHi274Z77B2In1cjebXpeRaxkNhTVEx2
- 293WZY3cjWiZeIAAAA=
-X-Change-ID: 20241030-dcd-region2-2d0149eb8efd
+Message-Id: <20241115-dcd-region2-v3-1-326cd4e34dcd@intel.com>
+References: <20241115-dcd-region2-v3-0-326cd4e34dcd@intel.com>
+In-Reply-To: <20241115-dcd-region2-v3-0-326cd4e34dcd@intel.com>
 To: Alison Schofield <alison.schofield@intel.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>, 
  Jonathan Cameron <jonathan.cameron@Huawei.com>, Fan Ni <fan.ni@samsung.com>, 
  Navneet Singh <navneet.singh@intel.com>, 
  Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
  linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
- Ira Weiny <ira.weiny@intel.com>, Sushant1 Kumar <sushant1.kumar@intel.com>
+ Ira Weiny <ira.weiny@intel.com>
 X-Mailer: b4 0.15-dev-2a633
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1731696034; l=3238;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1731696034; l=1494;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=KOdBTSSlKJayfoJokrPlQixtP5idfKnFGrRtM87MPqw=;
- b=X3E/L9AZgjJAVoUSGxGg+SPimq14rMVQwVT0RaR7pbNinFOt+x46e/jW/P8xPatufa3rR/pRz
- 6B41ghTU6qOCJ7WdQy4urFa3PD8nVhmEQBMwZbUgk5hXj+B1lufM1z3
+ bh=wD+XIhKFNUIAbTLMKPo9wsnzKTJTpx4Wre2NG4iL7dw=;
+ b=pZbc8695CQScCgXAju+hnBt8dbNXI8x56/nXhIcoXDTbU5r/I6uqlvyHyrLGuul/znuSUh0hM
+ gsgOaam6IJQBCReA/QBioTZ96GR8cfjoHwYz3GQRu3Jgs/IbNLwCqar
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-Feedback from v2 lead to the realization that cxl-cli required changes
-to address the region mode vs decoder mode difference properly.
+In testing DCD event modifications a failed cxl-event test lacked
+details on the event counts.  This was because the greps were failing
+the test rather than the check against the counts.
 
-While v2 separated these modes they were not sufficiently separated in
-the user interface of create-region.  This has been corrected in this
-version.  Specifically a new option has been added to cxl create-region.
-The option requires a decoder mode (DC partition) when the region type
-is 'dc'.  The option is ignored, and can be omitted, for ram and pmem
-regions.
+Suppress the grep failure and rely on event count checks for pass/fail
+of the test.
 
-Other libcxl API changes were made to simplify the interface a bit.
-
-Documentation was added both at the libcxl and cxl-cli levels.
-
-cxl-dcd.sh was cleaned up quite a bit an enhanced.
-
-https://github.com/weiny2/ndctl/tree/dcd-region2-2024-11-15
-
-CXL Dynamic Capacity Device (DCD) support is close to landing in the
-upstream kernel.  cxl-cli requires modifications to interact with those
-devices.  This includes creating and operating on DCD regions.
-cxl-testing allows for quick regression testing as well as helping to
-design the cxl-cli interfaces.
-
-Add preliminary patches with some fixes.  Update libcxl, cxl-cli and
-cxl-test with DCD support.
-
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
-Major changes in v3:
-- [djiang: rework test script for clarity]
-- [Alison: split patches between libcxl changes and cli changes]
-- [Alison: fix lib symbol versioning]
-- [iweiny: clarify region vs decoder mode with API to specify the
-  decoder mode]
-- Link to v2: https://patch.msgid.link/20241104-dcd-region2-v2-0-be057b479eeb@intel.com
+ test/cxl-events.sh | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
----
-Ira Weiny (7):
-      ndctl/cxl-events: Don't fail test until event counts are reported
-      ndctl/cxl/region: Report max size for region creation
-      libcxl: Separate region mode from decoder mode
-      cxl/region: Use new region mode in cxl-cli
-      libcxl: Add extent functionality to DC regions
-      cxl/region: Add extent output to region query
-      cxl/test: Add Dynamic Capacity tests
+diff --git a/test/cxl-events.sh b/test/cxl-events.sh
+index ff4f3fdff1d8f6fd80f093126a27bf14b52d167f..c216d6aa9148c938a649cb22656127b3df440039 100644
+--- a/test/cxl-events.sh
++++ b/test/cxl-events.sh
+@@ -71,10 +71,10 @@ echo 0 > /sys/kernel/tracing/tracing_on
+ echo "TEST: Events seen"
+ trace_out=$(cat /sys/kernel/tracing/trace)
+ 
+-num_overflow=$(grep -c "cxl_overflow" <<< "${trace_out}")
+-num_fatal=$(grep -c "log=Fatal" <<< "${trace_out}")
+-num_failure=$(grep -c "log=Failure" <<< "${trace_out}")
+-num_info=$(grep -c "log=Informational" <<< "${trace_out}")
++num_overflow=$(grep -c "cxl_overflow" <<< "${trace_out}" || true)
++num_fatal=$(grep -c "log=Fatal" <<< "${trace_out}" || true)
++num_failure=$(grep -c "log=Failure" <<< "${trace_out}" || true)
++num_info=$(grep -c "log=Informational" <<< "${trace_out}" || true)
+ echo "     LOG     (Expected) : (Found)"
+ echo "     overflow      ($num_overflow_expected) : $num_overflow"
+ echo "     Fatal         ($num_fatal_expected) : $num_fatal"
 
-Navneet Singh (2):
-      libcxl: Add Dynamic Capacity region support
-      cxl/region: Add cxl-cli support for DCD regions
-
- Documentation/cxl/cxl-create-region.txt |  11 +-
- Documentation/cxl/cxl-list.txt          |  29 ++
- Documentation/cxl/lib/libcxl.txt        |  62 ++-
- cxl/filter.h                            |   3 +
- cxl/json.c                              |  80 ++-
- cxl/json.h                              |   3 +
- cxl/lib/libcxl.c                        | 261 +++++++++-
- cxl/lib/libcxl.sym                      |  13 +
- cxl/lib/private.h                       |  17 +-
- cxl/libcxl.h                            |  96 +++-
- cxl/list.c                              |   3 +
- cxl/memdev.c                            |   4 +-
- cxl/region.c                            |  93 +++-
- test/cxl-dcd.sh                         | 879 ++++++++++++++++++++++++++++++++
- test/cxl-events.sh                      |   8 +-
- test/meson.build                        |   2 +
- util/json.h                             |   1 +
- 17 files changed, 1519 insertions(+), 46 deletions(-)
----
-base-commit: 04815e5f8b87e02a4fb5a61aeebaa5cad25a15c3
-change-id: 20241030-dcd-region2-2d0149eb8efd
-
-Best regards,
 -- 
-Ira Weiny <ira.weiny@intel.com>
+2.47.0
 
