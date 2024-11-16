@@ -1,239 +1,523 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE6CF1D5146
-	for <nvdimm@lists.linux.dev>; Fri, 15 Nov 2024 19:30:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.18
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731699032; cv=fail; b=K5OrBIiwDzNa3ZQXCrLVLRaeQ08jGMe0vlFcWdrUoXPkyw1SX+3iHGE8wcNUOy/8acw/fXM/dug9guw1h0UMZK4rlmzAwVkvfEgfFyzhRVqB0vXaH5t8fZ0+e1XA8DJ9vyHYHbLGxElIBXRXlSX+tDhRlm1lDrfAq1uGT5LL9Oo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731699032; c=relaxed/simple;
-	bh=svRPJGQiE4F9cBpiSXjUib3Of04Ol+n8stUsqkCIHrE=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=Ehtzr5Dhs563zFXDOjhCJ3F92RQPG6NCLmrD3qQPCANqiEe7YzdmVe/v0gvhCz2AzWgpGzIDmI/xyXla5DHuH8SQV8qUKaVIdF2VHSlgb6l7hgwiIdb7HnsrQLh/t51Yg+2Qhk3h6GPrk3uwq5g0GWC+p4JrNKJ+OM0aFsz3Brk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=L6+T2J5F; arc=fail smtp.client-ip=198.175.65.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 902191392
+	for <nvdimm@lists.linux.dev>; Sat, 16 Nov 2024 10:18:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1731752313; cv=none; b=rXnH7RIXPHtxiqD1sjrZb4Q0VZJMvWsiHUCbMXzR6tMLq1b3ciDtvkP2fHiQTMUKppIfO5tJt3S71Yx7vKCpLLaAEVk1nY+tFv3TgOXi8bU4I/MsZk8wgmCjvz2Fms6JElbK/wt8CS5VcMcAZmpbhuBtwzuKwxQFvNeXPQJcFiE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1731752313; c=relaxed/simple;
+	bh=dwfVVwk17x1uAJbWnEiUPGxkVz8JIp2SQSuLqBNj+mo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=uRZLhTq4S5t4VaEUhTQxTL4Bkg5DBL46VgFuO4Enkveqp/ZzJaeK2fh417j0SKZUrK1Q6PqbbTTLbhe3VigHE8n9mNYlbYXyba5hAC+AizLa4wunN9/2lkk4TO0oNCeCLpbwZm9kX6053e2I+GP7OOtwf6Db7zdLVExTWukFDrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gdPidUaN; arc=none smtp.client-ip=209.85.208.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="L6+T2J5F"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1731699031; x=1763235031;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=svRPJGQiE4F9cBpiSXjUib3Of04Ol+n8stUsqkCIHrE=;
-  b=L6+T2J5Fvmhaikq4ghYZJmkTArliiVRLhSJe3qyA86IDCyi0a1ktKMGp
-   yd9HPOcDDqH+/rq8Kk5AoWSTPnto95svRRSOwu7mRV2XbVgQaKktXVTIg
-   rE1d4P+2dE4QdgNRpkeoVAR3f2kke+AKXEPipOl7kra2dc5tG4XBOAzpt
-   3+0ttl5A+OoEH4n4VKl1wQzXGMhIPBe4L7Aw9A+D5PZW6Vc0xuUjCq0NG
-   U4sQPL0/B8JG4pROy6gqu0jVupaqxc6CbqnzCoDK9eJuLL5sv1Y98dE25
-   A6Que6JvCwfWhTeJH1Rn5FKXKhrllx1MgJinNcaifz+3Ban02ojkIELwA
-   Q==;
-X-CSE-ConnectionGUID: aCEkU/+BRBO4vUhzjlAL/Q==
-X-CSE-MsgGUID: t4KU7QOGQIqu8KdYWGPHNg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11257"; a="31874474"
-X-IronPort-AV: E=Sophos;i="6.12,157,1728975600"; 
-   d="scan'208";a="31874474"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2024 11:30:30 -0800
-X-CSE-ConnectionGUID: yACZ8TLQSB+1Cym1r9LvYw==
-X-CSE-MsgGUID: BfwHa3eES1ayt0f/kM/csA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,157,1728975600"; 
-   d="scan'208";a="119490377"
-Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
-  by orviesa002.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 15 Nov 2024 11:30:30 -0800
-Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Fri, 15 Nov 2024 11:30:29 -0800
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Fri, 15 Nov 2024 11:30:29 -0800
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.47) by
- edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Fri, 15 Nov 2024 11:30:29 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=AivUA+yQKuQkSeO0HiypbqmyiBZirtyu5OXzMBvotdWCZIUrZBNcHJG49Toz1+rdUy36GfiAP+FdmpPudNWVrUYDkAOLSyvoxwGSaJTX2IUxuoqOutNbx+s1ENeoMswYkFhJUvOI+YNDo4uAI7t2dNtrY1QIM2ttnMTcfZjTcNEbTWR5+GKz/Axir4zjqirl+JdH9vwV3LCn0L6HQkSlr64I8nJEgrSlwQiCX4sBsRSbzFA1pd7UHsCBZdWWMa3H31GOidJJRrhFqFCIFd3nqCRdBbYxPrqblpjQ5bPT/uDqbM0IFrG6UEGE9YBjiFpaTaQEvq64kpCnFefb/N+ryg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=YgyUXeYP/vAUswEVStWdIRyk55ilu5Jwsv0pVicRZ6k=;
- b=IiKMkDSajmXgTh7nEuAAwm3m/Pb2R10daKMDh5QqFaLJbc19FFw7lUEsGLRQGF+Be85teDWQpma9vIG1v0CXqDHtDp0kh5lFy/5XN0BGlkW4lkKv0xi0SHIwiLz4qdnuWJ9a3dqNeRfL+9yJ5q9751nNQLz12uUMoIY0C5Qe4bRvmjTPWgwaKwLzhPlj0Kb3fEjNP6Yrpi/nGUqdCSN1KjE9aQkQkrR903TFZpZmUBoO33mxcAXOQ5YcsKKdJYh1RBqGhtDhKo/ONrDun4KElLBdC0K3jZyUXLCCJoB1E5cG/8TaVN0VVzswYnMVEW3Y7KkgPLMBJsqT1qhL5LNDaw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by CO1PR11MB5108.namprd11.prod.outlook.com (2603:10b6:303:92::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8137.29; Fri, 15 Nov
- 2024 19:30:25 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%3]) with mapi id 15.20.8158.013; Fri, 15 Nov 2024
- 19:30:25 +0000
-Date: Fri, 15 Nov 2024 13:30:20 -0600
-From: Ira Weiny <ira.weiny@intel.com>
-To: Suraj Sonawane <surajsonawane0215@gmail.com>, <dan.j.williams@intel.com>,
-	<vishal.l.verma@intel.com>
-CC: <dave.jiang@intel.com>, <ira.weiny@intel.com>, <rafael@kernel.org>,
-	<lenb@kernel.org>, <nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Suraj Sonawane <surajsonawane0215@gmail.com>,
-	<syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com>
-Subject: Re: [PATCH v4] acpi: nfit: vmalloc-out-of-bounds Read in
- acpi_nfit_ctl
-Message-ID: <6737a14cdd16b_29946a2944e@iweiny-mobl.notmuch>
-References: <20241115164223.20854-1-surajsonawane0215@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20241115164223.20854-1-surajsonawane0215@gmail.com>
-X-ClientProxiedBy: MW4PR03CA0224.namprd03.prod.outlook.com
- (2603:10b6:303:b9::19) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gdPidUaN"
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-5ced377447bso3609766a12.1
+        for <nvdimm@lists.linux.dev>; Sat, 16 Nov 2024 02:18:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1731752310; x=1732357110; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=zEkEih+nSzBAoiRnyKrbpjbEfYSk7IWodG+8uebKiV0=;
+        b=gdPidUaNoBFOfZbLt1JJKDeumoa6qvQymtZMYHIub3fquBPayKCXZwoIp1bEULFwwV
+         NdFWr0PLu3oaEJ1WWur/wIfTjp72ws8cSzPMA2/KhcvxNt6f9z9ncxdSuEcbdfqVrJNX
+         muo3zdxUom3eaYk+r60M4JCecXFppc7Uy146jOUhXx/iIGYiFMjxOXcllOB5hyaKuEDt
+         nHl6bT071JLyLjvrzEs7Kcf5uyG+/TGbFE05UIM6G79rMXc1FeW/s/IjL99Od1/UZtFG
+         dOKFXdb3N4Dyd1JiSTfRxttZvEH6f8kbuPpth3v32dlp/dgzb+t7FtCpE2rSSMLU7ZFZ
+         23TQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1731752310; x=1732357110;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=zEkEih+nSzBAoiRnyKrbpjbEfYSk7IWodG+8uebKiV0=;
+        b=alXta2b988boMEK0KtRf2jDLL4SbPlE6IWemZ6YExaR91OnM24aN5uQ8st8eDQzPAh
+         aHyC7gSo4OAJ2j+L5K0Q5YZmVBhpfsssXfBq1c8fgL/3DhbVvk/EB1c517ciW7kTie7c
+         bH0zpL5TZdUzIItMJ5Nd1xdbTAbT2Ii0+UhAgIHRFQhdEmijPbPloSy3VQcGglqT1g3L
+         SlOkbXJU6VTQgKAROFb0Zw0l9GsqkuwkjQ3aEAJiRAiXRY2QuIn25TQfv2JA9z5eV3H6
+         lSLdq+eGXCqB4s1aufB4Tw63uqDqkbS061h08brpYwdglJ1IDYvOww14E7oEL3yTluVp
+         25Kw==
+X-Forwarded-Encrypted: i=1; AJvYcCX6Pxa63OWjqFNQsViB1PgNX9Kgmeekmb1Xd6OLz+2rY2g2G0djyTSM/9lCPaQgo6uWt8b/A/g=@lists.linux.dev
+X-Gm-Message-State: AOJu0Ywa0oTmlaZeEM/rIvtVfFfw5EEp5JVcCHeNNi4TQJxlqvMHBZG5
+	Nq/DC+Qj0krvtz+vcTkLy2ZwGzUuEAN3lyhEjYaLxoCOr2ItznFZ5kxIUHffbfnPyVsj7VMGf0P
+	R3hYwa0BFAodsW3Pz6PDA4DvpW6o=
+X-Google-Smtp-Source: AGHT+IFBzMXWr5UkC2Gm4/3P9/ZvA8w36q1HEkCEgsdfCzDr+mxZsaAXGYX6jnsN8fDxJkaQlNM1wFAIT++Tw1norb0=
+X-Received: by 2002:a05:6402:27cc:b0:5cf:4527:4325 with SMTP id
+ 4fb4d7f45d1cf-5cf8fd2fe46mr4581794a12.24.1731752309472; Sat, 16 Nov 2024
+ 02:18:29 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|CO1PR11MB5108:EE_
-X-MS-Office365-Filtering-Correlation-Id: d4cd0a78-31d9-4655-970c-08dd05abf480
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|366016;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?e2z24+BdWBoV7m39Zvyg/PQt7poENrsf7C6qFhVY2xbAmQp1ht2fHamsW/nb?=
- =?us-ascii?Q?GNUE5+zPUre0Vc5L8zJmLgQMH+foBNqgEOS5PGR4DHWgove6j9A96rmPUbpl?=
- =?us-ascii?Q?lBY1c5ddPdAieSFFXj/f24PjotlFg3BhioJQEPW3l1ZPouyfvkgCmljI+LQs?=
- =?us-ascii?Q?Ztl0ml5zMPMlaKuR03FRqFxd93lpeE07xWkHKBecXPhnaWM4L6nCv/lIYIl6?=
- =?us-ascii?Q?U6H/aDdyoOkHaSzPPTAWLubQbW5XVBF7tz1u4/jU4Hj5CPEdbGCu2hztFMxY?=
- =?us-ascii?Q?4gc9Mirk+ntv3jFfV9hwl/4flNhmvzbP++p3823WcNz+B3tJIc+qGDx3WU5S?=
- =?us-ascii?Q?QWXWe5CCMNdN6wAbfUXby1sN/C6GOSX23spkw5owbYTLukC1UqNwCVQxXjPq?=
- =?us-ascii?Q?bxykNFSzItAgf7lMfttTjfryWKA6puqUqhCtkO92FfXuKZLEtj23AK8uZBCo?=
- =?us-ascii?Q?raKTwqkLAZGb8Mau58UyKOFWOJaQYdd88zzZ7JYQs2BZoAM0UdMrlIZG7qC5?=
- =?us-ascii?Q?qCgRFuFD5DK7ZxUJoJ0Mx7QMZiY0mTWPOFT74mKCeSqk6sfxkn4cpntrYePC?=
- =?us-ascii?Q?mrg1TuVHIj9ENgmIvemlmVXRMzYhf8YiLjCtvq55ILLmSNzYjEEPoYzh5SjG?=
- =?us-ascii?Q?N5QcL/MWT/jUpg0as/0/rPDiY3oqkEKtX0chCPudQLm6m+9Cyb13wp/RNhIm?=
- =?us-ascii?Q?dNU0w3BL16QIP4Ndem33hRdJyHlTkS/Pz7C2umjGKLrEvgejNZUjoGOTTeSF?=
- =?us-ascii?Q?1KYvepwAhRTsWvWYdyEcZxk7L85ywLUhcIl1EZCRz7HkwcWa1t/5Pqh1hxzA?=
- =?us-ascii?Q?3x+xkIY+A8PlRP+xAMJOP6vj8eOf5ZQs44v8MYRPhKycqCZPZKdiTrZbYe4b?=
- =?us-ascii?Q?EKy1Dhrc+tuiDJaMcUzxdLnaXKUae2kBSb0OYoMP9OSDV6FP+6BFdRue1rgc?=
- =?us-ascii?Q?mbvPNU9Rbu6BqRghacBO8oFu+rAkJOEEE6jfl0JBKEBkqO8sARBfPOeHtGP9?=
- =?us-ascii?Q?98Y2ME2fVoco1Sx8rcaJEH8dJNA3NBzKI/ICj9Z6jJHSRHHpUKZkF0eNBLmj?=
- =?us-ascii?Q?nznIgArQBAKwayeAITEJkDtcM4GIutYbQQ84PtYISPY1aMZt7ADcrqAT79ho?=
- =?us-ascii?Q?RCcuzmIwpkQPo2B5Mt9cK1au5L28+/r6DZXf6+wvfLr8/OfnnKlrXdW6Oho6?=
- =?us-ascii?Q?TMmBG6K0MbZ57oWUXNUubKuZrA4ffjvNdPpx+lJg/3AxmnFEe+xlCQYDJsPE?=
- =?us-ascii?Q?uN5WCp/8hYzGWP9JlLZDR8c/v/UffRk8lktEAHpMGg=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?p9Y3bSPKBIb7R9OGTxcZ2zrlzfYDKDkPtv6Hj6Gc2OQJQvdbcHIn98sWB4ci?=
- =?us-ascii?Q?UU/SiK14mtwsOwqQuPjYnBaaWxNYE6JxuNdXRwEhXXczhrW6dDqk6qhqpkPd?=
- =?us-ascii?Q?CBxE8xsNQAoUE+Ayb47xH46cDzVexRB1mabPu2T+q4E7c11jHfwAJblPhQa6?=
- =?us-ascii?Q?3/MbDjYoUhi2KhXpwms6Zyr3YYVIx0gNeAu+o/nltR9xlpudolKz+rsKRay7?=
- =?us-ascii?Q?tImOJlIBKKFS6/lvrufi4zj0tynlNBVS4YJVAhe7hiO5Q4cmbtnMj1JsN917?=
- =?us-ascii?Q?hkg79uagFurodH4v+FWLwGH1uA6BBD5P9qzBkrIl2f2kdPVpM3uv4gBXzkqb?=
- =?us-ascii?Q?oTMcgCE/KeKmhVkS+iMpNosD35M3D4WeETWpkrlIuItLP07OrmIB3SNg6fVc?=
- =?us-ascii?Q?dMiU8F/zTM2QGz2LbndU2T46QOLtzVqcbEyo2z55/r/wY3Gpw7mm+12/YiyY?=
- =?us-ascii?Q?7SQKU32OyTyIkTUSjsoGfrsj32JSeB6LfxDn8EYIut7RQ3V4t2PDmmPMqEHK?=
- =?us-ascii?Q?hgv4+X/OOEnigv05Mt1msDy9hyBbTa68k6GLVqppW27mKJGb0HiXhEgt1fdW?=
- =?us-ascii?Q?PVjeHka6l44pl4sa+r0pGEI+/R3qGItNYEbp4PjykcUyXo+n4shSe/UfyZ7a?=
- =?us-ascii?Q?9eLx4TJiOAX8gDk497Fdyg5baWHWCB8F7pnJV57sNT0fbzMVwAZrcySzskEr?=
- =?us-ascii?Q?CgP4HZwRof87u5bkaKIdfLnx341D4dE9jKvAHSMMT67abLQLyTf6PlcHfzhN?=
- =?us-ascii?Q?Ge2fvUdWQv8b9a2pbkN2Wk1qRzrBSkllEi7sANQDIelJezT95axLKO3Xocxf?=
- =?us-ascii?Q?KPKIEpRe5+1Tkkeh+MmY4Atf62l06hUm8CuuC1L9Vy7OX8C7w1bPDVOtZEFH?=
- =?us-ascii?Q?BNgc2w6+1CScmf5mTOHTDa+qszvAwKLLoMIpUmHRvwtWnqVOK2cEBakt+WKy?=
- =?us-ascii?Q?SVdeWPtwsYTR9np0qLa+j7c6Bk8Fp8f8edxMYT0KflGfPiQ/QMEUK5gS3nXu?=
- =?us-ascii?Q?HTHdDKOWRh4SJ3YGfKxu7Q3lAJNRjXNh4Dc6kdTBtHl5aJnnQKtV0cAeQfmz?=
- =?us-ascii?Q?5J1jGM7ZtLpw3CCRKYLuUWYCVAWbcCt4ukZImEfJPwRIYnxR6P0htkWa+ffz?=
- =?us-ascii?Q?M5xehrzwg43XYXT9ZgZ5eWOUIN17kV6BoNK+tdvMkpBp8G4V2/ZH3vfmeLuB?=
- =?us-ascii?Q?H5cMIt3B0aVPLOgf5XIIrsMO6LgdlS/XYpuPmeqvtE+Xpp9kVCK6tXXpLj/L?=
- =?us-ascii?Q?eNWs6Sm8PyiSdGmf9Bty/Ua2Aw8FAS6cYIkN9c9iqp5Q4GUMZeas3Bp+EvLI?=
- =?us-ascii?Q?oxHHMGySd1puyvUw8ENvYCcYLRGPoHKavGxaqb1Q67th68Yce9aYDAw7uNNq?=
- =?us-ascii?Q?ltL+FscTu8WbqyiopbrgjLLRo/+br4Qf+JwR1Ucqh24AniG+Qy6/4UrDm/aG?=
- =?us-ascii?Q?HHt+9Y0ibVyNl/Qit6S2LK9Nmf5xc97borx07/+eYaKbv3FFvwH+FVEVuFpv?=
- =?us-ascii?Q?JMgsJTBrxKSQZZrXCxXVySb1NgaiSn5jatscwGO/SSywWk6KudcTEDzMwASa?=
- =?us-ascii?Q?KqzvnlktDvkUcMPogmaos7FYhyw+pxVN3hNSN/pM?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: d4cd0a78-31d9-4655-970c-08dd05abf480
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Nov 2024 19:30:25.8429
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 2CEhDrD1ACK7yu2FwiNoktyeX2nYqT248Wc4AoX1ENFOB7U8u80y4fpT6UlppFIqmjqUencM8sKBQO+XkbqiLw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO1PR11MB5108
-X-OriginatorOrg: intel.com
+References: <672a3997.050a0220.2a847.11f7.GAE@google.com>
+In-Reply-To: <672a3997.050a0220.2a847.11f7.GAE@google.com>
+From: Suraj Sonawane <surajsonawane0215@gmail.com>
+Date: Sat, 16 Nov 2024 15:47:52 +0530
+Message-ID: <CAHiZj8iv2WBFHDdamhnOg+KTNqWrmNpDxshpEX7h4QdtF0Wb_g@mail.gmail.com>
+Subject: Re: [syzbot] [acpi?] [nvdimm?] KASAN: vmalloc-out-of-bounds Read in
+ acpi_nfit_ctl (2)
+To: syzbot <syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com>
+Cc: dan.j.williams@intel.com, dave.jiang@intel.com, ira.weiny@intel.com, 
+	lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	nvdimm@lists.linux.dev, rafael@kernel.org, syzkaller-bugs@googlegroups.com, 
+	vishal.l.verma@intel.com
+Content-Type: multipart/mixed; boundary="0000000000003edab7062705014a"
 
-Suraj Sonawane wrote:
-> Fix an issue detected by syzbot with KASAN:
-> 
-> BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/
-> core.c:416 [inline]
+--0000000000003edab7062705014a
+Content-Type: multipart/alternative; boundary="0000000000003edab50627050148"
+
+--0000000000003edab50627050148
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+#syz test
+
+On Tue, Nov 5, 2024 at 8:58=E2=80=AFPM syzbot <
+syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com> wrote:
+
+> Hello,
+>
+> syzbot found the following issue on:
+>
+> HEAD commit:    2e1b3cc9d7f7 Merge tag 'arm-fixes-6.12-2' of
+> git://git.ker..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=3D12418e3058000=
+0
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=3D11254d3590b16=
+717
+> dashboard link:
+> https://syzkaller.appspot.com/bug?extid=3D7534f060ebda6b8b51b3
+> compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for
+> Debian) 2.40
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D12170f40580=
+000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D16418e3058000=
+0
+>
+> Downloadable assets:
+> disk image (non-bootable):
+> https://storage.googleapis.com/syzbot-assets/7feb34a89c2a/non_bootable_di=
+sk-2e1b3cc9.raw.xz
+> vmlinux:
+> https://storage.googleapis.com/syzbot-assets/2f2588b04ae9/vmlinux-2e1b3cc=
+9.xz
+> kernel image:
+> https://storage.googleapis.com/syzbot-assets/2c9324cf16df/bzImage-2e1b3cc=
+9.xz
+>
+> IMPORTANT: if you fix the issue, please add the following tag to the
+> commit:
+> Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
+>
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func
+> drivers/acpi/nfit/core.c:416 [inline]
 > BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0
 > drivers/acpi/nfit/core.c:459
-> 
-> The issue occurs in cmd_to_func when the call_pkg->nd_reserved2
-> array is accessed without verifying that call_pkg points to a buffer
-> that is appropriately sized as a struct nd_cmd_pkg. This can lead
-> to out-of-bounds access and undefined behavior if the buffer does not
-> have sufficient space.
-> 
-> To address this, a check was added in acpi_nfit_ctl() to ensure that
-> buf is not NULL and that buf_len is less than sizeof(*call_pkg)
-> before accessing it. This ensures safe access to the members of
-> call_pkg, including the nd_reserved2 array.
-> 
-> Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3
-> Tested-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Fixes: ebe9f6f19d80 ("acpi/nfit: Fix bus command validation")
-> Signed-off-by: Suraj Sonawane <surajsonawane0215@gmail.com>
+> Read of size 4 at addr ffffc90000e0e038 by task syz-executor229/5316
+>
+> CPU: 0 UID: 0 PID: 5316 Comm: syz-executor229 Not tainted
+> 6.12.0-rc6-syzkaller-00077-g2e1b3cc9d7f7 #0
+> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS
+> 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+> Call Trace:
+>  <TASK>
+>  __dump_stack lib/dump_stack.c:94 [inline]
+>  dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
+>  print_address_description mm/kasan/report.c:377 [inline]
+>  print_report+0x169/0x550 mm/kasan/report.c:488
+>  kasan_report+0x143/0x180 mm/kasan/report.c:601
+>  cmd_to_func drivers/acpi/nfit/core.c:416 [inline]
+>  acpi_nfit_ctl+0x20e8/0x24a0 drivers/acpi/nfit/core.c:459
+>  __nd_ioctl drivers/nvdimm/bus.c:1186 [inline]
+>  nd_ioctl+0x1844/0x1fd0 drivers/nvdimm/bus.c:1264
+>  vfs_ioctl fs/ioctl.c:51 [inline]
+>  __do_sys_ioctl fs/ioctl.c:907 [inline]
+>  __se_sys_ioctl+0xf9/0x170 fs/ioctl.c:893
+>  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+>  do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+>  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+> RIP: 0033:0x7fb399ccda79
+> Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 c1 17 00 00 90 48 89 f8 48 89 f=
+7
+> 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff
+> ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+> RSP: 002b:00007ffcf6cb8d88 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+> RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fb399ccda79
+> RDX: 0000000020000180 RSI: 00000000c008640a RDI: 0000000000000003
+> RBP: 00007fb399d405f0 R08: 0000000000000006 R09: 0000000000000006
+> R10: 0000000000000006 R11: 0000000000000246 R12: 0000000000000001
+> R13: 431bde82d7b634db R14: 0000000000000001 R15: 0000000000000001
+>  </TASK>
+>
+> The buggy address belongs to the virtual mapping at
+>  [ffffc90000e0e000, ffffc90000e10000) created by:
+>  __nd_ioctl drivers/nvdimm/bus.c:1169 [inline]
+>  nd_ioctl+0x1594/0x1fd0 drivers/nvdimm/bus.c:1264
+>
+> The buggy address belongs to the physical page:
+> page: refcount:1 mapcount:0 mapping:0000000000000000
+> index:0xffff8880401b9a80 pfn:0x401b9
+> flags: 0x4fff00000000000(node=3D1|zone=3D1|lastcpupid=3D0x7ff)
+> raw: 04fff00000000000 0000000000000000 dead000000000122 0000000000000000
+> raw: ffff8880401b9a80 0000000000000000 00000001ffffffff 0000000000000000
+> page dumped because: kasan: bad access detected
+> page_owner tracks the page as allocated
+> page last allocated via order 0, migratetype Unmovable, gfp_mask
+> 0x2cc2(GFP_KERNEL|__GFP_HIGHMEM|__GFP_NOWARN), pid 5316, tgid 5316
+> (syz-executor229), ts 69039468240, free_ts 68666765389
+>  set_page_owner include/linux/page_owner.h:32 [inline]
+>  post_alloc_hook+0x1f3/0x230 mm/page_alloc.c:1537
+>  prep_new_page mm/page_alloc.c:1545 [inline]
+>  get_page_from_freelist+0x303f/0x3190 mm/page_alloc.c:3457
+>  __alloc_pages_noprof+0x292/0x710 mm/page_alloc.c:4733
+>  alloc_pages_bulk_noprof+0x729/0xd40 mm/page_alloc.c:4681
+>  alloc_pages_bulk_array_mempolicy_noprof+0x8ea/0x1600 mm/mempolicy.c:2556
+>  vm_area_alloc_pages mm/vmalloc.c:3542 [inline]
+>  __vmalloc_area_node mm/vmalloc.c:3646 [inline]
+>  __vmalloc_node_range_noprof+0x752/0x13f0 mm/vmalloc.c:3828
+>  __vmalloc_node_noprof mm/vmalloc.c:3893 [inline]
+>  vmalloc_noprof+0x79/0x90 mm/vmalloc.c:3926
+>  __nd_ioctl drivers/nvdimm/bus.c:1169 [inline]
+>  nd_ioctl+0x1594/0x1fd0 drivers/nvdimm/bus.c:1264
+>  vfs_ioctl fs/ioctl.c:51 [inline]
+>  __do_sys_ioctl fs/ioctl.c:907 [inline]
+>  __se_sys_ioctl+0xf9/0x170 fs/ioctl.c:893
+>  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+>  do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+>  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+> page last free pid 5312 tgid 5312 stack trace:
+>  reset_page_owner include/linux/page_owner.h:25 [inline]
+>  free_pages_prepare mm/page_alloc.c:1108 [inline]
+>  free_unref_page+0xcfb/0xf20 mm/page_alloc.c:2638
+>  __folio_put+0x2c7/0x440 mm/swap.c:126
+>  pipe_buf_release include/linux/pipe_fs_i.h:219 [inline]
+>  pipe_update_tail fs/pipe.c:224 [inline]
+>  pipe_read+0x6ed/0x13e0 fs/pipe.c:344
+>  new_sync_read fs/read_write.c:488 [inline]
+>  vfs_read+0x991/0xb70 fs/read_write.c:569
+>  ksys_read+0x183/0x2b0 fs/read_write.c:712
+>  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+>  do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+>  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+>
+> Memory state around the buggy address:
+>  ffffc90000e0df00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>  ffffc90000e0df80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+> >ffffc90000e0e000: 00 00 00 00 00 00 00 03 f8 f8 f8 f8 f8 f8 f8 f8
+>                                         ^
+>  ffffc90000e0e080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>  ffffc90000e0e100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+>
 > ---
-> V1: https://lore.kernel.org/lkml/20241111080429.9861-1-surajsonawane0215@gmail.com/ 
-> V2: Initialized `out_obj` to `NULL` in `acpi_nfit_ctl()` to prevent
-> potential uninitialized variable usage if condition is true.
-> V3: Changed the condition to if (!buf || buf_len < sizeof(*call_pkg))
-> and updated the Fixes tag to reference the correct commit.
-> V4: Removed the explicit cast to maintain the original code style.
-> 
->  drivers/acpi/nfit/core.c | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 5429ec9ef..84d8eef2a 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -454,8 +454,15 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
->  	if (cmd_rc)
->  		*cmd_rc = -EINVAL;
->  
-> -	if (cmd == ND_CMD_CALL)
-> +	if (cmd == ND_CMD_CALL) {
-> +		if (!buf || buf_len < sizeof(*call_pkg)) {
-> +			rc = -EINVAL;
-> +			goto out;
+> This report is generated by a bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for more information about syzbot.
+> syzbot engineers can be reached at syzkaller@googlegroups.com.
+>
+> syzbot will keep track of this issue. See:
+> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+>
+> If the report is already addressed, let syzbot know by replying with:
+> #syz fix: exact-commit-title
+>
+> If you want syzbot to run the reproducer, reply with:
+> #syz test: git://repo/address.git branch-or-commit-hash
+> If you attach or paste a git patch, syzbot will apply it before testing.
+>
+> If you want to overwrite report's subsystems, reply with:
+> #syz set subsystems: new-subsystem
+> (See the list of subsystem names on the web dashboard)
+>
+> If the report is a duplicate of another one, reply with:
+> #syz dup: exact-subject-of-another-report
+>
+> If you want to undo deduplication, reply with:
+> #syz undup
+>
+> --
+> You received this message because you are subscribed to the Google Groups
+> "syzkaller-bugs" group.
+> To unsubscribe from this group and stop receiving emails from it, send an
+> email to syzkaller-bugs+unsubscribe@googlegroups.com.
+> To view this discussion visit
+> https://groups.google.com/d/msgid/syzkaller-bugs/672a3997.050a0220.2a847.=
+11f7.GAE%40google.com
+> .
+>
 
-This goto is wrong.  This will result in ACPI_FREE() being called on an
-undefined out_obj.
+--0000000000003edab50627050148
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This should be:
-			return -EINVAL;
+<div dir=3D"ltr">#syz test<br></div><br><div class=3D"gmail_quote"><div dir=
+=3D"ltr" class=3D"gmail_attr">On Tue, Nov 5, 2024 at 8:58=E2=80=AFPM syzbot=
+ &lt;<a href=3D"mailto:syzbot%2B7534f060ebda6b8b51b3@syzkaller.appspotmail.=
+com">syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com</a>&gt; wrote:<b=
+r></div><blockquote class=3D"gmail_quote" style=3D"margin:0px 0px 0px 0.8ex=
+;border-left:1px solid rgb(204,204,204);padding-left:1ex">Hello,<br>
+<br>
+syzbot found the following issue on:<br>
+<br>
+HEAD commit:=C2=A0 =C2=A0 2e1b3cc9d7f7 Merge tag &#39;arm-fixes-6.12-2&#39;=
+ of git://git.ker..<br>
+git tree:=C2=A0 =C2=A0 =C2=A0 =C2=A0upstream<br>
+console output: <a href=3D"https://syzkaller.appspot.com/x/log.txt?x=3D1241=
+8e30580000" rel=3D"noreferrer" target=3D"_blank">https://syzkaller.appspot.=
+com/x/log.txt?x=3D12418e30580000</a><br>
+kernel config:=C2=A0 <a href=3D"https://syzkaller.appspot.com/x/.config?x=
+=3D11254d3590b16717" rel=3D"noreferrer" target=3D"_blank">https://syzkaller=
+.appspot.com/x/.config?x=3D11254d3590b16717</a><br>
+dashboard link: <a href=3D"https://syzkaller.appspot.com/bug?extid=3D7534f0=
+60ebda6b8b51b3" rel=3D"noreferrer" target=3D"_blank">https://syzkaller.apps=
+pot.com/bug?extid=3D7534f060ebda6b8b51b3</a><br>
+compiler:=C2=A0 =C2=A0 =C2=A0 =C2=A0Debian clang version 15.0.6, GNU ld (GN=
+U Binutils for Debian) 2.40<br>
+syz repro:=C2=A0 =C2=A0 =C2=A0 <a href=3D"https://syzkaller.appspot.com/x/r=
+epro.syz?x=3D12170f40580000" rel=3D"noreferrer" target=3D"_blank">https://s=
+yzkaller.appspot.com/x/repro.syz?x=3D12170f40580000</a><br>
+C reproducer:=C2=A0 =C2=A0<a href=3D"https://syzkaller.appspot.com/x/repro.=
+c?x=3D16418e30580000" rel=3D"noreferrer" target=3D"_blank">https://syzkalle=
+r.appspot.com/x/repro.c?x=3D16418e30580000</a><br>
+<br>
+Downloadable assets:<br>
+disk image (non-bootable): <a href=3D"https://storage.googleapis.com/syzbot=
+-assets/7feb34a89c2a/non_bootable_disk-2e1b3cc9.raw.xz" rel=3D"noreferrer" =
+target=3D"_blank">https://storage.googleapis.com/syzbot-assets/7feb34a89c2a=
+/non_bootable_disk-2e1b3cc9.raw.xz</a><br>
+vmlinux: <a href=3D"https://storage.googleapis.com/syzbot-assets/2f2588b04a=
+e9/vmlinux-2e1b3cc9.xz" rel=3D"noreferrer" target=3D"_blank">https://storag=
+e.googleapis.com/syzbot-assets/2f2588b04ae9/vmlinux-2e1b3cc9.xz</a><br>
+kernel image: <a href=3D"https://storage.googleapis.com/syzbot-assets/2c932=
+4cf16df/bzImage-2e1b3cc9.xz" rel=3D"noreferrer" target=3D"_blank">https://s=
+torage.googleapis.com/syzbot-assets/2c9324cf16df/bzImage-2e1b3cc9.xz</a><br=
+>
+<br>
+IMPORTANT: if you fix the issue, please add the following tag to the commit=
+:<br>
+Reported-by: <a href=3D"mailto:syzbot%2B7534f060ebda6b8b51b3@syzkaller.apps=
+potmail.com" target=3D"_blank">syzbot+7534f060ebda6b8b51b3@syzkaller.appspo=
+tmail.com</a><br>
+<br>
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D<br>
+BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/core.c:4=
+16 [inline]<br>
+BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0 drivers/ac=
+pi/nfit/core.c:459<br>
+Read of size 4 at addr ffffc90000e0e038 by task syz-executor229/5316<br>
+<br>
+CPU: 0 UID: 0 PID: 5316 Comm: syz-executor229 Not tainted 6.12.0-rc6-syzkal=
+ler-00077-g2e1b3cc9d7f7 #0<br>
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16=
+.3-2~bpo12+1 04/01/2014<br>
+Call Trace:<br>
+=C2=A0&lt;TASK&gt;<br>
+=C2=A0__dump_stack lib/dump_stack.c:94 [inline]<br>
+=C2=A0dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120<br>
+=C2=A0print_address_description mm/kasan/report.c:377 [inline]<br>
+=C2=A0print_report+0x169/0x550 mm/kasan/report.c:488<br>
+=C2=A0kasan_report+0x143/0x180 mm/kasan/report.c:601<br>
+=C2=A0cmd_to_func drivers/acpi/nfit/core.c:416 [inline]<br>
+=C2=A0acpi_nfit_ctl+0x20e8/0x24a0 drivers/acpi/nfit/core.c:459<br>
+=C2=A0__nd_ioctl drivers/nvdimm/bus.c:1186 [inline]<br>
+=C2=A0nd_ioctl+0x1844/0x1fd0 drivers/nvdimm/bus.c:1264<br>
+=C2=A0vfs_ioctl fs/ioctl.c:51 [inline]<br>
+=C2=A0__do_sys_ioctl fs/ioctl.c:907 [inline]<br>
+=C2=A0__se_sys_ioctl+0xf9/0x170 fs/ioctl.c:893<br>
+=C2=A0do_syscall_x64 arch/x86/entry/common.c:52 [inline]<br>
+=C2=A0do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83<br>
+=C2=A0entry_SYSCALL_64_after_hwframe+0x77/0x7f<br>
+RIP: 0033:0x7fb399ccda79<br>
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 c1 17 00 00 90 48 89 f8 48 89 f7 =
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 &lt;48&gt; 3d 01 f=
+0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48<br>
+RSP: 002b:00007ffcf6cb8d88 EFLAGS: 00000246 ORIG_RAX: 0000000000000010<br>
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fb399ccda79<br>
+RDX: 0000000020000180 RSI: 00000000c008640a RDI: 0000000000000003<br>
+RBP: 00007fb399d405f0 R08: 0000000000000006 R09: 0000000000000006<br>
+R10: 0000000000000006 R11: 0000000000000246 R12: 0000000000000001<br>
+R13: 431bde82d7b634db R14: 0000000000000001 R15: 0000000000000001<br>
+=C2=A0&lt;/TASK&gt;<br>
+<br>
+The buggy address belongs to the virtual mapping at<br>
+=C2=A0[ffffc90000e0e000, ffffc90000e10000) created by:<br>
+=C2=A0__nd_ioctl drivers/nvdimm/bus.c:1169 [inline]<br>
+=C2=A0nd_ioctl+0x1594/0x1fd0 drivers/nvdimm/bus.c:1264<br>
+<br>
+The buggy address belongs to the physical page:<br>
+page: refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff8880401b9a=
+80 pfn:0x401b9<br>
+flags: 0x4fff00000000000(node=3D1|zone=3D1|lastcpupid=3D0x7ff)<br>
+raw: 04fff00000000000 0000000000000000 dead000000000122 0000000000000000<br=
+>
+raw: ffff8880401b9a80 0000000000000000 00000001ffffffff 0000000000000000<br=
+>
+page dumped because: kasan: bad access detected<br>
+page_owner tracks the page as allocated<br>
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x2cc2(GFP=
+_KERNEL|__GFP_HIGHMEM|__GFP_NOWARN), pid 5316, tgid 5316 (syz-executor229),=
+ ts 69039468240, free_ts 68666765389<br>
+=C2=A0set_page_owner include/linux/page_owner.h:32 [inline]<br>
+=C2=A0post_alloc_hook+0x1f3/0x230 mm/page_alloc.c:1537<br>
+=C2=A0prep_new_page mm/page_alloc.c:1545 [inline]<br>
+=C2=A0get_page_from_freelist+0x303f/0x3190 mm/page_alloc.c:3457<br>
+=C2=A0__alloc_pages_noprof+0x292/0x710 mm/page_alloc.c:4733<br>
+=C2=A0alloc_pages_bulk_noprof+0x729/0xd40 mm/page_alloc.c:4681<br>
+=C2=A0alloc_pages_bulk_array_mempolicy_noprof+0x8ea/0x1600 mm/mempolicy.c:2=
+556<br>
+=C2=A0vm_area_alloc_pages mm/vmalloc.c:3542 [inline]<br>
+=C2=A0__vmalloc_area_node mm/vmalloc.c:3646 [inline]<br>
+=C2=A0__vmalloc_node_range_noprof+0x752/0x13f0 mm/vmalloc.c:3828<br>
+=C2=A0__vmalloc_node_noprof mm/vmalloc.c:3893 [inline]<br>
+=C2=A0vmalloc_noprof+0x79/0x90 mm/vmalloc.c:3926<br>
+=C2=A0__nd_ioctl drivers/nvdimm/bus.c:1169 [inline]<br>
+=C2=A0nd_ioctl+0x1594/0x1fd0 drivers/nvdimm/bus.c:1264<br>
+=C2=A0vfs_ioctl fs/ioctl.c:51 [inline]<br>
+=C2=A0__do_sys_ioctl fs/ioctl.c:907 [inline]<br>
+=C2=A0__se_sys_ioctl+0xf9/0x170 fs/ioctl.c:893<br>
+=C2=A0do_syscall_x64 arch/x86/entry/common.c:52 [inline]<br>
+=C2=A0do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83<br>
+=C2=A0entry_SYSCALL_64_after_hwframe+0x77/0x7f<br>
+page last free pid 5312 tgid 5312 stack trace:<br>
+=C2=A0reset_page_owner include/linux/page_owner.h:25 [inline]<br>
+=C2=A0free_pages_prepare mm/page_alloc.c:1108 [inline]<br>
+=C2=A0free_unref_page+0xcfb/0xf20 mm/page_alloc.c:2638<br>
+=C2=A0__folio_put+0x2c7/0x440 mm/swap.c:126<br>
+=C2=A0pipe_buf_release include/linux/pipe_fs_i.h:219 [inline]<br>
+=C2=A0pipe_update_tail fs/pipe.c:224 [inline]<br>
+=C2=A0pipe_read+0x6ed/0x13e0 fs/pipe.c:344<br>
+=C2=A0new_sync_read fs/read_write.c:488 [inline]<br>
+=C2=A0vfs_read+0x991/0xb70 fs/read_write.c:569<br>
+=C2=A0ksys_read+0x183/0x2b0 fs/read_write.c:712<br>
+=C2=A0do_syscall_x64 arch/x86/entry/common.c:52 [inline]<br>
+=C2=A0do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83<br>
+=C2=A0entry_SYSCALL_64_after_hwframe+0x77/0x7f<br>
+<br>
+Memory state around the buggy address:<br>
+=C2=A0ffffc90000e0df00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8<br>
+=C2=A0ffffc90000e0df80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8<br>
+&gt;ffffc90000e0e000: 00 00 00 00 00 00 00 03 f8 f8 f8 f8 f8 f8 f8 f8<br>
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ^<br>
+=C2=A0ffffc90000e0e080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8<br>
+=C2=A0ffffc90000e0e100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8<br>
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D<br>
+<br>
+<br>
+---<br>
+This report is generated by a bot. It may contain errors.<br>
+See <a href=3D"https://goo.gl/tpsmEJ" rel=3D"noreferrer" target=3D"_blank">=
+https://goo.gl/tpsmEJ</a> for more information about syzbot.<br>
+syzbot engineers can be reached at <a href=3D"mailto:syzkaller@googlegroups=
+.com" target=3D"_blank">syzkaller@googlegroups.com</a>.<br>
+<br>
+syzbot will keep track of this issue. See:<br>
+<a href=3D"https://goo.gl/tpsmEJ#status" rel=3D"noreferrer" target=3D"_blan=
+k">https://goo.gl/tpsmEJ#status</a> for how to communicate with syzbot.<br>
+<br>
+If the report is already addressed, let syzbot know by replying with:<br>
+#syz fix: exact-commit-title<br>
+<br>
+If you want syzbot to run the reproducer, reply with:<br>
+#syz test: git://repo/address.git branch-or-commit-hash<br>
+If you attach or paste a git patch, syzbot will apply it before testing.<br=
+>
+<br>
+If you want to overwrite report&#39;s subsystems, reply with:<br>
+#syz set subsystems: new-subsystem<br>
+(See the list of subsystem names on the web dashboard)<br>
+<br>
+If the report is a duplicate of another one, reply with:<br>
+#syz dup: exact-subject-of-another-report<br>
+<br>
+If you want to undo deduplication, reply with:<br>
+#syz undup<br>
+<br>
+-- <br>
+You received this message because you are subscribed to the Google Groups &=
+quot;syzkaller-bugs&quot; group.<br>
+To unsubscribe from this group and stop receiving emails from it, send an e=
+mail to <a href=3D"mailto:syzkaller-bugs%2Bunsubscribe@googlegroups.com" ta=
+rget=3D"_blank">syzkaller-bugs+unsubscribe@googlegroups.com</a>.<br>
+To view this discussion visit <a href=3D"https://groups.google.com/d/msgid/=
+syzkaller-bugs/672a3997.050a0220.2a847.11f7.GAE%40google.com" rel=3D"norefe=
+rrer" target=3D"_blank">https://groups.google.com/d/msgid/syzkaller-bugs/67=
+2a3997.050a0220.2a847.11f7.GAE%40google.com</a>.<br>
+</blockquote></div>
 
-Ira
+--0000000000003edab50627050148--
+--0000000000003edab7062705014a
+Content-Type: text/x-patch; charset="US-ASCII"; name="0001-fix-vmalloc.patch"
+Content-Disposition: attachment; filename="0001-fix-vmalloc.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_m3k0l38d0>
+X-Attachment-Id: f_m3k0l38d0
 
-> +		}
-> +
->  		call_pkg = buf;
-> +	}
-> +
->  	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
->  	if (func < 0)
->  		return func;
-> -- 
-> 2.34.1
-> 
+RnJvbSBjZDcwZWFkNTAwYzQ0OTg5MTRhZjU3OGZkNjVmYjQ0Njg1NGNkOWNhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBTdXJhaiBTb25hd2FuZSA8c3VyYWpzb25hd2FuZTAyMTVAZ21h
+aWwuY29tPgpEYXRlOiBTYXQsIDE2IE5vdiAyMDI0IDE1OjQ0OjI4ICswNTMwClN1YmplY3Q6IFtQ
+QVRDSCB2NV0gYWNwaTogbmZpdDogdm1hbGxvYy1vdXQtb2YtYm91bmRzIFJlYWQgaW4gYWNwaV9u
+Zml0X2N0bAoKRml4IGFuIGlzc3VlIGRldGVjdGVkIGJ5IHN5emJvdCB3aXRoIEtBU0FOOgoKQlVH
+OiBLQVNBTjogdm1hbGxvYy1vdXQtb2YtYm91bmRzIGluIGNtZF90b19mdW5jIGRyaXZlcnMvYWNw
+aS9uZml0Lwpjb3JlLmM6NDE2IFtpbmxpbmVdCkJVRzogS0FTQU46IHZtYWxsb2Mtb3V0LW9mLWJv
+dW5kcyBpbiBhY3BpX25maXRfY3RsKzB4MjBlOC8weDI0YTAKZHJpdmVycy9hY3BpL25maXQvY29y
+ZS5jOjQ1OQoKVGhlIGlzc3VlIG9jY3VycyBpbiBjbWRfdG9fZnVuYyB3aGVuIHRoZSBjYWxsX3Br
+Zy0+bmRfcmVzZXJ2ZWQyCmFycmF5IGlzIGFjY2Vzc2VkIHdpdGhvdXQgdmVyaWZ5aW5nIHRoYXQg
+Y2FsbF9wa2cgcG9pbnRzIHRvIGEgYnVmZmVyCnRoYXQgaXMgYXBwcm9wcmlhdGVseSBzaXplZCBh
+cyBhIHN0cnVjdCBuZF9jbWRfcGtnLiBUaGlzIGNhbiBsZWFkCnRvIG91dC1vZi1ib3VuZHMgYWNj
+ZXNzIGFuZCB1bmRlZmluZWQgYmVoYXZpb3IgaWYgdGhlIGJ1ZmZlciBkb2VzIG5vdApoYXZlIHN1
+ZmZpY2llbnQgc3BhY2UuCgpUbyBhZGRyZXNzIHRoaXMsIGEgY2hlY2sgd2FzIGFkZGVkIGluIGFj
+cGlfbmZpdF9jdGwoKSB0byBlbnN1cmUgdGhhdApidWYgaXMgbm90IE5VTEwgYW5kIHRoYXQgYnVm
+X2xlbiBpcyBsZXNzIHRoYW4gc2l6ZW9mKCpjYWxsX3BrZykKYmVmb3JlIGFjY2Vzc2luZyBpdC4g
+VGhpcyBlbnN1cmVzIHNhZmUgYWNjZXNzIHRvIHRoZSBtZW1iZXJzIG9mCmNhbGxfcGtnLCBpbmNs
+dWRpbmcgdGhlIG5kX3Jlc2VydmVkMiBhcnJheS4KClJlcG9ydGVkLWJ5OiBzeXpib3QrNzUzNGYw
+NjBlYmRhNmI4YjUxYjNAc3l6a2FsbGVyLmFwcHNwb3RtYWlsLmNvbQpDbG9zZXM6IGh0dHBzOi8v
+c3l6a2FsbGVyLmFwcHNwb3QuY29tL2J1Zz9leHRpZD03NTM0ZjA2MGViZGE2YjhiNTFiMwpUZXN0
+ZWQtYnk6IHN5emJvdCs3NTM0ZjA2MGViZGE2YjhiNTFiM0BzeXprYWxsZXIuYXBwc3BvdG1haWwu
+Y29tCkZpeGVzOiBlYmU5ZjZmMTlkODAgKCJhY3BpL25maXQ6IEZpeCBidXMgY29tbWFuZCB2YWxp
+ZGF0aW9uIikKU2lnbmVkLW9mZi1ieTogU3VyYWogU29uYXdhbmUgPHN1cmFqc29uYXdhbmUwMjE1
+QGdtYWlsLmNvbT4KLS0tClYxOiBodHRwczovL2xvcmUua2VybmVsLm9yZy9sa21sLzIwMjQxMTEx
+MDgwNDI5Ljk4NjEtMS1zdXJhanNvbmF3YW5lMDIxNUBnbWFpbC5jb20vClYyOiBJbml0aWFsaXpl
+ZCBgb3V0X29iamAgdG8gYE5VTExgIGluIGBhY3BpX25maXRfY3RsKClgIHRvIHByZXZlbnQKcG90
+ZW50aWFsIHVuaW5pdGlhbGl6ZWQgdmFyaWFibGUgdXNhZ2UgaWYgY29uZGl0aW9uIGlzIHRydWUu
+ClYzOiBDaGFuZ2VkIHRoZSBjb25kaXRpb24gdG8gaWYgKCFidWYgfHwgYnVmX2xlbiA8IHNpemVv
+ZigqY2FsbF9wa2cpKQphbmQgdXBkYXRlZCB0aGUgRml4ZXMgdGFnIHRvIHJlZmVyZW5jZSB0aGUg
+Y29ycmVjdCBjb21taXQuClY0OiBSZW1vdmVkIHRoZSBleHBsaWNpdCBjYXN0IHRvIG1haW50YWlu
+IHRoZSBvcmlnaW5hbCBjb2RlIHN0eWxlLgpWNTogUmUtSW5pdGlhbGl6ZWQgYG91dF9vYmpgIHRv
+IE5VTEwuCgogZHJpdmVycy9hY3BpL25maXQvY29yZS5jIHwgMTEgKysrKysrKysrLS0KIDEgZmls
+ZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9hY3BpL25maXQvY29yZS5jIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5jCmluZGV4
+IDU0MjllYzllZi4uNTczZWQyNjRjIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvbmZpdC9jb3Jl
+LmMKKysrIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5jCkBAIC00MzksNyArNDM5LDcgQEAgaW50
+IGFjcGlfbmZpdF9jdGwoc3RydWN0IG52ZGltbV9idXNfZGVzY3JpcHRvciAqbmRfZGVzYywgc3Ry
+dWN0IG52ZGltbSAqbnZkaW1tLAogewogCXN0cnVjdCBhY3BpX25maXRfZGVzYyAqYWNwaV9kZXNj
+ID0gdG9fYWNwaV9kZXNjKG5kX2Rlc2MpOwogCXN0cnVjdCBuZml0X21lbSAqbmZpdF9tZW0gPSBu
+dmRpbW1fcHJvdmlkZXJfZGF0YShudmRpbW0pOwotCXVuaW9uIGFjcGlfb2JqZWN0IGluX29iaiwg
+aW5fYnVmLCAqb3V0X29iajsKKwl1bmlvbiBhY3BpX29iamVjdCBpbl9vYmosIGluX2J1ZiwgKm91
+dF9vYmogPSBOVUxMOwogCWNvbnN0IHN0cnVjdCBuZF9jbWRfZGVzYyAqZGVzYyA9IE5VTEw7CiAJ
+c3RydWN0IGRldmljZSAqZGV2ID0gYWNwaV9kZXNjLT5kZXY7CiAJc3RydWN0IG5kX2NtZF9wa2cg
+KmNhbGxfcGtnID0gTlVMTDsKQEAgLTQ1NCw4ICs0NTQsMTUgQEAgaW50IGFjcGlfbmZpdF9jdGwo
+c3RydWN0IG52ZGltbV9idXNfZGVzY3JpcHRvciAqbmRfZGVzYywgc3RydWN0IG52ZGltbSAqbnZk
+aW1tLAogCWlmIChjbWRfcmMpCiAJCSpjbWRfcmMgPSAtRUlOVkFMOwogCi0JaWYgKGNtZCA9PSBO
+RF9DTURfQ0FMTCkKKwlpZiAoY21kID09IE5EX0NNRF9DQUxMKSB7CisJCWlmICghYnVmIHx8IGJ1
+Zl9sZW4gPCBzaXplb2YoKmNhbGxfcGtnKSkgeworCQkJcmMgPSAtRUlOVkFMOworCQkJZ290byBv
+dXQ7CisJCX0KKwogCQljYWxsX3BrZyA9IGJ1ZjsKKwl9CisKIAlmdW5jID0gY21kX3RvX2Z1bmMo
+bmZpdF9tZW0sIGNtZCwgY2FsbF9wa2csICZmYW1pbHkpOwogCWlmIChmdW5jIDwgMCkKIAkJcmV0
+dXJuIGZ1bmM7Ci0tIAoyLjM0LjEKCg==
+--0000000000003edab7062705014a--
