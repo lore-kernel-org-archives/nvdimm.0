@@ -1,280 +1,420 @@
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2078.outbound.protection.outlook.com [40.107.236.78])
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2089.outbound.protection.outlook.com [40.107.237.89])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22E371DF961
-	for <nvdimm@lists.linux.dev>; Fri, 22 Nov 2024 01:43:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.78
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C9B122087
+	for <nvdimm@lists.linux.dev>; Fri, 22 Nov 2024 02:57:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.89
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732239797; cv=fail; b=HAILdVBWQ9yrHCmFxT8pdeFX+rISLwdSamFane5J/YVq9Peu5vDPxMqllC11f8Bbn/Ow503HzdKeLV0h+loqym611qCxuml3qnqbQsEhALVJOhaRX8hPe2vp7c2tFVBLr7Lx6lU8bSkjA3L8kwXZryIwQOrEEdBixswqyi9lftk=
+	t=1732244259; cv=fail; b=EquwuYWGieGxanO/EnD5FnT2F9Zh7Uhrwbs08Hd9ww3VoXbUlkFA7rCgGS7az9s8PtrIXYCnnqRdMuFUMGu30dtR2Xoik/Hii4EIm/CwLHIBuUmM3foCIVM+myAMVYFvCGxhabCQPHTbEYl+v8wlbLGWageSqHihkvOXxkNYKAY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732239797; c=relaxed/simple;
-	bh=LvWJTKncrqEz9V3CVjZ/oNdrwzKuo3VO7pA+GM2GRKU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=e7cofpnPnxCSEaqz3PyULTVOQEYwQzG+lbY94Aj3HnqQkQN1QMC9BNXusjtK1oGLyit3lfGXCma3XxJe9Jes87nefyLZYPFr4TQYalv0f9qJc74nGcjEQlYr8kQpbqFwKPdL3BTsJPjmxBiWCVyFJS3jPz7b23I168ZDwjBBBEs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=p9HGgjvY; arc=fail smtp.client-ip=40.107.236.78
+	s=arc-20240116; t=1732244259; c=relaxed/simple;
+	bh=q+oeA9+a5rEmoP3J7oNn1zc6pUm6nLo+oOP732lsL8w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=iOQKH++oS6xLY9bim7nO3g+QC+/QoyFVKwYrlfGhFnMGaMs30uywR85L5Ma9ywqH1mnbFZHWlsCkMpSLpfs60HD/2DTbAxxiE3culk1G3ed5zSBTmXrwKOXQdbHt9vVJZYnIEqQCjdDTsGomyiDw9lqXmGyGtkQcQBA3wME+4ZQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=dKQlT9bz; arc=fail smtp.client-ip=40.107.237.89
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="p9HGgjvY"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="dKQlT9bz"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=icbA9pL/B28q+U6ofgArMls7koavVNYDRvwDlzy0eVmsPvx4gFzg1FJYRHS+iNrVEUpyePQkqOhLQ66SYWWONpsPEpcis+ytiBJ6hQPMFVKqZvvtpbheahDgCV5uf8OhGYzCF4SAppoQnuxsnwApmwdQUGMHVWZgxIiYX4NfTZnaS6I5lghbs7a1mRHebEc6LRBHHiPMuVTfI7rB8nx0Vaj1eICs7gbfgJdt4+Bf1l6IWoDE3hLzjph1ascTA7aZLvuuVMfpuU7BoRYMGrbslDYf1uz0P80cHL7mTeQ0zeCzBaddx86OQCFRH03aUqhtQB89/VlFfbfZ+3NE0PLRHw==
+ b=VVrpOTTaVbAVA8bHDjpAmP+jh/45eONOyfNF2nYcLkwGkYScF0yat5ielO96VD/olLqpRXbHUaw2SvyaSjObd0cDXX9FC30DK2x82V9O9Jl1LGLQd82f8r3CkzpFPpMZrAiYaBrXrW17XTdh4exbs+xI4BCMnwltTRiGFdneInXQZ3njTX9NyhzqXMCTMlRLOZIvXhjSHi8d4TPiKejpSy7eemnhNgQ5TdkKx+P6b5oYvKms5Pgas7b1PZhO4j7F+H63LDWYB/HvuVSDmDXdSu+5HOD3XupPy6S3bUs8rABw++3cOCh0TKnQW7+38i+FZeJS+Oo4aOrTQ2IeMqZwcw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=jD/illaP0OIVmmCg6mzj5RVo8vUE1Tl9cr1eNsTS2Pc=;
- b=ltwGYHFXlrTiEtfHTggpR9LGfJ4rK5klgbr8ILi0WfaCY9GYyNkneL9gFju2dVlNOeVU5VV16UWVvXv4ZYLnB8a7bWhJseXyyK8HMYMjaW5OC1swff4Q6ry2sc2HccZMJs4NVzKSmLHg0WobOe1XOu99fm9awBx/vP6AcNF556HoUO1aY/p7DuISqRfEjRn6sL6OUxe0l52xMqd0gR4qx5uppKXho1BUCPI5o2TLniBOKnMhYXVyS4BJjayCoX42IJn21DEawKeNc4kTYdxELOXVzWXHqCrR8fHWPEoRqwKE3W0JzY0cWgt6UbpTI9K0JRF4Wq8vXuu/Q8YiN/Ds9A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
+ bh=30VYJrYa9n9dqrOBYLYdPedn8shgxJ7X+TBgLEuqTXI=;
+ b=vp/IacL3neFs5/vWaJaqCfMhrpz9nJ1iQshH6KLjie5hZCDDkPSoMFQXeo+L8V3GFQg5A5gp/hx7v/ZSQCuP/21QTW5DhjNNO+aaMBSyy+Jjac3YfENpzO5Aj8glJeV7YnmumuU0JgpiOmi9GpC3jeuWbaUGnmgI6JtMSXi9NZvxIDp52p9J2rUDNzkDZS90f0J0PR17+AY15Q+ipzc6iH0ddecRsLb8kaVQghu4W4qbFyxyuFaUCb8s0VCzGEWuTBdkZSDw0L/T0vduPCZb9opfRlQCFv+lPrDZrDgLw18fSt3ulVUV1aTXD0EQG/u0UjyvD2WlW5zzQ+rsvztfdA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=jD/illaP0OIVmmCg6mzj5RVo8vUE1Tl9cr1eNsTS2Pc=;
- b=p9HGgjvY6yo6EwioMWZKxQA/sAfvshQErH4jekym8hymDnDgxrY5AMWB82tDcbUciByFO21jaho/mRllbcZjcclU+dLNpaMnZk1MbCIfiYzsMyD0bvUaata+v258rBMR7Vi5kPQsbwoDapOws/v2/5mYZjNuXTeQHjfryjNITtAhaey7zP8Xu2H9kiMFQD8bpvcbQ3yH1Ueosfts0nqgPy9rkMRkFD5ecppAK/h8eoe8buTK1hiErgdbCPSjnr2Eazm+zIHeAMVBSC7vO4Xp0iIaxcaXqAKLDQ+S+F1/OmcPSdW7vUq1uF9+9x+Y16F/dsBhKMIn77/6PaJqnIgdaw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- BY5PR12MB4131.namprd12.prod.outlook.com (2603:10b6:a03:212::13) with
+ bh=30VYJrYa9n9dqrOBYLYdPedn8shgxJ7X+TBgLEuqTXI=;
+ b=dKQlT9bzGyIsiHC6BHEQLLmcDVO/dMPvupnkYvluw7wr74GAgXafFsRQ9U0uOlNrroiYLrn50ymhRruW7G9updyOYISXr33HItfxitN8pY4ecWiPMJ1MD1/zeZQYF5JOqq+yArKe01UP0Y1Gohxf020nnDRKN+RcmzHK5dLrJ6FP2H7e6eGgvqbjBmDexHBN3Lc76ZT6GTG3GGWuPuf5bAxtI7Cl+49MhTouOawFshQNnRdirkxj8aaal3c1Ta0EyxxFQ/K/WGCrpBgP8PmTLkesx+ox+VztEuXZIPc2tgHkBx/Fvt/lzpN8wb/oi5QDdlQB9CGDSYFlHtsrJYlr/w==
+Received: from CH2PR08CA0021.namprd08.prod.outlook.com (2603:10b6:610:5a::31)
+ by MN0PR12MB6366.namprd12.prod.outlook.com (2603:10b6:208:3c1::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8158.24; Fri, 22 Nov
- 2024 01:43:09 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe%4]) with mapi id 15.20.8182.016; Fri, 22 Nov 2024
- 01:43:09 +0000
-From: Alistair Popple <apopple@nvidia.com>
-To: dan.j.williams@intel.com,
-	linux-mm@kvack.org
-Cc: Alistair Popple <apopple@nvidia.com>,
-	lina@asahilina.net,
-	zhang.lyra@gmail.com,
-	gerald.schaefer@linux.ibm.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	logang@deltatee.com,
-	bhelgaas@google.com,
-	jack@suse.cz,
-	jgg@ziepe.ca,
-	catalin.marinas@arm.com,
-	will@kernel.org,
-	mpe@ellerman.id.au,
-	npiggin@gmail.com,
-	dave.hansen@linux.intel.com,
-	ira.weiny@intel.com,
-	willy@infradead.org,
-	djwong@kernel.org,
-	tytso@mit.edu,
-	linmiaohe@huawei.com,
-	david@redhat.com,
-	peterx@redhat.com,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-xfs@vger.kernel.org,
-	jhubbard@nvidia.com,
-	hch@lst.de,
-	david@fromorbit.com
-Subject: [PATCH v3 25/25] Revert "riscv: mm: Add support for ZONE_DEVICE"
-Date: Fri, 22 Nov 2024 12:40:46 +1100
-Message-ID: <f511de7cb9817e2e2fdd274ee842c228d699abea.1732239628.git-series.apopple@nvidia.com>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <cover.e1ebdd6cab9bde0d232c1810deacf0bae25e6707.1732239628.git-series.apopple@nvidia.com>
-References: <cover.e1ebdd6cab9bde0d232c1810deacf0bae25e6707.1732239628.git-series.apopple@nvidia.com>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SY2PR01CA0038.ausprd01.prod.outlook.com
- (2603:10c6:1:15::26) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8158.23; Fri, 22 Nov
+ 2024 02:57:30 +0000
+Received: from CH2PEPF00000147.namprd02.prod.outlook.com
+ (2603:10b6:610:5a:cafe::9b) by CH2PR08CA0021.outlook.office365.com
+ (2603:10b6:610:5a::31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8182.15 via Frontend
+ Transport; Fri, 22 Nov 2024 02:57:30 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CH2PEPF00000147.mail.protection.outlook.com (10.167.244.104) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.8182.16 via Frontend Transport; Fri, 22 Nov 2024 02:57:30 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Thu, 21 Nov
+ 2024 18:57:18 -0800
+Received: from [10.110.48.28] (10.126.230.35) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Thu, 21 Nov
+ 2024 18:57:17 -0800
+Message-ID: <61ff7fe6-9a79-4dd3-8076-7106fe08be5c@nvidia.com>
+Date: Thu, 21 Nov 2024 18:57:16 -0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 05/25] fs/dax: Create a common implementation to break
+ DAX layouts
+To: Alistair Popple <apopple@nvidia.com>, <dan.j.williams@intel.com>,
+	<linux-mm@kvack.org>
+CC: <lina@asahilina.net>, <zhang.lyra@gmail.com>,
+	<gerald.schaefer@linux.ibm.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>, <logang@deltatee.com>, <bhelgaas@google.com>,
+	<jack@suse.cz>, <jgg@ziepe.ca>, <catalin.marinas@arm.com>, <will@kernel.org>,
+	<mpe@ellerman.id.au>, <npiggin@gmail.com>, <dave.hansen@linux.intel.com>,
+	<ira.weiny@intel.com>, <willy@infradead.org>, <djwong@kernel.org>,
+	<tytso@mit.edu>, <linmiaohe@huawei.com>, <david@redhat.com>,
+	<peterx@redhat.com>, <linux-doc@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linuxppc-dev@lists.ozlabs.org>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+	<linux-ext4@vger.kernel.org>, <linux-xfs@vger.kernel.org>, <hch@lst.de>,
+	<david@fromorbit.com>
+References: <cover.e1ebdd6cab9bde0d232c1810deacf0bae25e6707.1732239628.git-series.apopple@nvidia.com>
+ <31b18e4f813bf9e661d5d98d928c79556c8c2c57.1732239628.git-series.apopple@nvidia.com>
+Content-Language: en-US
+From: John Hubbard <jhubbard@nvidia.com>
+In-Reply-To: <31b18e4f813bf9e661d5d98d928c79556c8c2c57.1732239628.git-series.apopple@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|BY5PR12MB4131:EE_
-X-MS-Office365-Filtering-Correlation-Id: 02028ee6-2fd1-4714-1731-08dd0a97049b
+X-MS-TrafficTypeDiagnostic: CH2PEPF00000147:EE_|MN0PR12MB6366:EE_
+X-MS-Office365-Filtering-Correlation-Id: 516fc921-716c-431f-00ff-08dd0aa167fd
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|7416014|1800799024|366016;
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700013|1800799024|7416014|376014|82310400026;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?35hYQCfm4jU7I4LEDTDao9VtBktIBFxZw2KyX/aAxf+OrS4SQy0QiPR19p2Z?=
- =?us-ascii?Q?WjjpK5nwqKpFAodh/XqGCTTlaFL2EOsENSjthoBninSOeSwiNnHW8J9wO6y+?=
- =?us-ascii?Q?jo8+JZd3+mOSnuy67fpL1nV/W+uIra3avtDZLeqxelT1KsLg67sSEREScPeE?=
- =?us-ascii?Q?8d5E7fwa5JJD4NjqEkjITK162X097aXFqeYpkEYwPpCkMIK4MbE3NiWyha5+?=
- =?us-ascii?Q?NDovbA7Do5gPKFzORrWc0LJ5i67CGBDynMnVKTqwIkHeWv62Wl5K+V+SjqlV?=
- =?us-ascii?Q?p8inT2ygKobhaNLykNkF5YVllZLJlOXVWzrQyTAFZGTdsWXbhI1DZZNuEIPd?=
- =?us-ascii?Q?dBpJBeYp3BUFucL4xXIXEpQBiV0hgObJEWhuM2jm12irm7xSD//Apbq+dTx5?=
- =?us-ascii?Q?VYQ9XZDC9vYVwLhmdAlE89imXO4h0BTEaIBT+KVWpQu2lRS8MxOW/8nL85vR?=
- =?us-ascii?Q?WtRpGk148tW8y99oaJ+2/sE9q2Bjyes8POyHrMFPxD5Yd4xhYxA9/hKmzRMD?=
- =?us-ascii?Q?+wmRWrnpmWTIRrtPnWwkOJNG/55AYOniohnSGOYF7o5JOfZZOz+fOP6ABLTT?=
- =?us-ascii?Q?UHEvDtIbbI2e/NZxbeAmF5uDabiUC8CISFU0LZXHFT1aEyJtMNb9K6jrBsnL?=
- =?us-ascii?Q?QDkWFvHUZdhF8xc90jmhniUXZ1+TjOZrhIL2QnFEZnwPGUOz4q2CzvkmAWwx?=
- =?us-ascii?Q?P6XJkZpW4wjWoe0/5gSk1eYwJ2D9DV3t8w0XUoac1mjt8DNWR9iBFR/fDyuQ?=
- =?us-ascii?Q?7RXyJ5Y2K6BeiaNf9SGkYOFLiNrhWvgAeh8i3TOXTh5RMvROFlKsvbPX4nxm?=
- =?us-ascii?Q?YvZVZezb6oyapiAHXtVErsgyyNnYlohMLNLUanWZXOZu3ycIvkrWceiJNef4?=
- =?us-ascii?Q?mxcohyO4YgLOJ93jfo29y6jCtqJBIcN6P+ZBBYEt0hZvVN2ZtJ2QR+qfH/+r?=
- =?us-ascii?Q?zW5gfNRUkULpAyfdbgBG+gZvwHXmaORoTfkjOl0tDrm1InvbkYi0+Q9zr3q7?=
- =?us-ascii?Q?A2K4yBPEJZJkvMaQxHobKLkPG5veTStjmei41mM7sfgTOy9pQH32alwaMY2H?=
- =?us-ascii?Q?a7DT1sfhatB+jQE5NIHekl4CNIl44ryC6t1hncqI2qpZah9hNiL53V2McXZI?=
- =?us-ascii?Q?HByaUJsVtN2kXm+Dho4dW//9jUmwYr1HyqoEgef6AE729ACiG0IvXYHGgS9e?=
- =?us-ascii?Q?kam0/IgoA/HWLNgxiqXtutoCWaPyKbA7AORvHxzxxKHVtG3o3XbUN783uhol?=
- =?us-ascii?Q?LVWihFXS07Ostt/Lu1easXbj4uXSSy9XjnxqYclqadvQ+IScI/TlP4x7Ek3X?=
- =?us-ascii?Q?F7bV7thW/Ob5xt7QOaUFOANR?=
+	=?utf-8?B?S2xXS1MvSjdEN0E0WWV3ci9JRDVxM2JUMzVQRWhkYmV1MmpYRkNwTDd3bm12?=
+ =?utf-8?B?cFRHWDJLbkVnYUlLYU5LcXZPUk9kTmFGT3lPRE5nSjZINldQTXlWa2FrdG1a?=
+ =?utf-8?B?S1krdVJEaGhZeGlia085clpicURhOW9TYnZNQ1JNclNZbnRuN1dHeElKWGlD?=
+ =?utf-8?B?cWxpbC9wZ1ZKZFFvQ0dhMUorVTl0Mkc2cE5YdHgyUTVRRHNRWDExcWR3Ymtj?=
+ =?utf-8?B?TTFmQzRIV293N3IvZUhZM0RUMWRGOTVWUmhZM3FobDcrLzBxRncvNVRXbytp?=
+ =?utf-8?B?UiswNGQvcGxGNFFwNW1ZdmQ3WFRIazJPbHJQS0NqZmZVUUhOU1FrOU43NU5V?=
+ =?utf-8?B?TWNPM2pRKzRUeHlWTG84cW5yMFo0NmZaU2VzRGI3UTNYOTc3QUg4NmpjU25U?=
+ =?utf-8?B?akdLYXFpNUhYc0UvUURhUE9zcDhhQm1ZNEhMUzBvaWRNdzFMWjVVTlNlQUhm?=
+ =?utf-8?B?OFB1Z3BKRFRPcHFaUVR2WUVSajJibEZsZ3FLNnFaZzhSMmxrZ0pvUC9mTFNw?=
+ =?utf-8?B?RnJyYkpLRTF5Q2d3NU9qQlgzUjRKU2c1Y00yditlR3FCVi90em9pb1R3TitB?=
+ =?utf-8?B?ZWdnNE9kekh0RnBNUHVxYnBEOTlsNUdkUkljZDlnUGY0ODR5WFZ1TDA4bzNv?=
+ =?utf-8?B?cXhmcFdGZ3d4NklhSmRUZlhGQVpWZUNHbTRNVzZjODNjTlRhdkE0SE5sL3Ax?=
+ =?utf-8?B?VVNzWERJVCsvemMyLzdOT0RwWHJYZElGMGVBVHdQSnN6ODFmRG41dnIrVFht?=
+ =?utf-8?B?eGZ5VzYxa3VXL3I5a2RHdWxIZ05Jd25MaVpkb051TG1LYnpJMzE2N0hmeU1R?=
+ =?utf-8?B?WjdtcEdRUmNGbGkvSzRtVlZ5YjNHYWVTb0VuL2M1OXVCcFhJVVgwL1A4dVJ0?=
+ =?utf-8?B?VU9QRDdTMFQxY2YrMm9qRFZ4TEExK1NpaUNCS1lnQ0xLQ1hVeU9MVkV5SENl?=
+ =?utf-8?B?QmdkU09pVmw1SzJnalp3UU41dHVHb0FpVDZvaTFuZUkwYTBPL3I1NXVNbG9k?=
+ =?utf-8?B?TDNmWUlXOEYzcHlMWTl4ckc4bmJRYnNTWW5kYWJPVmtyNUorS1dyai91R1dI?=
+ =?utf-8?B?dDZGdERGNnpsMDNnQ2FaanFnUWpNRHNDY2RpMm9PUE81ZlhoRHNQTkRIK1lI?=
+ =?utf-8?B?d1dTVGZDVTM3Tm9GcU96cmxKeXVveFJEN3E2QTMxZmZOS2QvREZMYjFLN3pk?=
+ =?utf-8?B?ZzhGMzNRYk00b3dHZnVldE1xcUtrZitqL1pZa1F1cDA3a2V2WEphS05kWXBW?=
+ =?utf-8?B?VTV1UXZQUzB3VE83RWdrZUluekJEbEJXWk1VZzZ2R29oc1A1WUREYnVaM1NV?=
+ =?utf-8?B?Y1U1NlQxcUxRbG1XOEpVNUxWMVNZbUpkYVZJZjVqUW96NVo4YnNneDdIRThC?=
+ =?utf-8?B?VVNaeFlrdE9QTG82U00vc04wNG8wSDZIVE83UThJcXhJdCtyQi85bUI5b2ly?=
+ =?utf-8?B?d2doMFJidFJKd1VkQTRCN1d3LzNKcVhoV3FObEtydm1Sa094bkN0UzYvbEpI?=
+ =?utf-8?B?c0tnZXRjYW9KMU5uSzJJckNqODJPU0JvNS9wenZRbkZ5RmRmd1RxVCs1MUVB?=
+ =?utf-8?B?OGo0L01jRTRKOEZ2RHA1MmljekZNdC95UTMyTlRtc1UwcHA4V1ZXYWE4Rjdn?=
+ =?utf-8?B?LzEwcHBNU2VjanpCazRBcnU0bnM1ellNZi9WZC9pQ3JTcDR1dHFGSWNqSkpT?=
+ =?utf-8?B?eDZyZE5iUXdaYUg2RHZxcCs1SEI1aS83VGIxSDdPdnVvTnd2M3U5RjJzVTFt?=
+ =?utf-8?B?THZjUUl3dTJBNk0xS2tvSUJGZllIem1kMDh3ZE9zNGtOZjNjMCtoaU14elJZ?=
+ =?utf-8?B?cS9KRks4TmpuVWpWSGl3VndPeW5iYmF6SndVKzRFNHVkM0pFSDFuWDVVT3VE?=
+ =?utf-8?B?UXhsNm84K1B5YjFlZW5Kb1h4QzNZVklZY0Vpc01OSER4RkE9PQ==?=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?iEYq4pHDworgqm7emTaayj27+d/jtMOZf3cRpeXN3gFIdWBzf8SFdIT82iDD?=
- =?us-ascii?Q?4TKGGSjkbew6gQ/CP2kPVUGc3Cf5TXz30kVclelc5GY4LYLcZjiQHEe15oUA?=
- =?us-ascii?Q?y1tOPUMyKi8Z9OSmXuhEviC2a2xl1+EypMVMQhHA3KTWhSCrLq2otMm5tzh3?=
- =?us-ascii?Q?qDe8Cpspl2NsfBGnG2v+fCA04G+xKDaLOzM5+q0HcwNDBXLg0FheK2xuukFV?=
- =?us-ascii?Q?V9SqgyzQfQra5lCkR2e2nRL9vUU3mhBtU7INYL3lQEgHYzApSRxpOhQ/vvwf?=
- =?us-ascii?Q?AYlc3sHs2IiIZmx4VuWyaDBvlJjn3Emnx+yF+UtIMjdUiWRkRigWwM5jWoM/?=
- =?us-ascii?Q?8LDqzYtM71chFumWNSJNR0sue68XubNnDgMsVqTA/junTVcD5KvJotw6+C0n?=
- =?us-ascii?Q?RT0P7l6nT6dGI8uslFw/SWMp7sVCMC8aZW66rmNlOgJ6TjRJCdgDrLM1Ovwc?=
- =?us-ascii?Q?LNwzqTre+K52P2DKb4pzZxzxGhAdr9sWlqhTZ9qA5GiLLBejuW01+64u+/kK?=
- =?us-ascii?Q?VlaqAEQxdEvCPHPLMGJDRauSIu7DqterGLNAQY9JfrsKFejEVRm2LfSR7UmH?=
- =?us-ascii?Q?hZF0x/R+r2LSRBYiyCq3xtYSTXJ6Y2GPcPFF3gzFR+yq+Ulq1lNd3qW+c4le?=
- =?us-ascii?Q?R8Kfojwu9b62HSWHW1PdPfwbZa2yhqg8XMf7QWctVpNomYWYKakuFrkJlUjD?=
- =?us-ascii?Q?S4MCkKP0gg+XEmhaIMtnNSHYXv+kd+5TgbggCjh71+8EXfeP2eNb7BqAad4K?=
- =?us-ascii?Q?tCscsuPNLLoyHGh6FXECBsQoR+AZOKIV8CJKkhGwqXgt0LpqYURxXAhUcyV+?=
- =?us-ascii?Q?EPlRwI7ZTu7PT4g4d8N1u5LcUFwu7UH0kvDMmaFwZH6NUu2RnVSVjA7c6CYZ?=
- =?us-ascii?Q?aom417sMc95ESsDTl8OHsojC4QM4t7YjCWQnIjg57xvkEi696NTph64RfBMz?=
- =?us-ascii?Q?QGTEgnreNlMqRP+ESgsNjMpGiz1xm1B1JzJx43gJnuAosLxaPbtY4bG/qFjL?=
- =?us-ascii?Q?sdr7/Qy2R4yjAJTezJ5tIVRCCGUb1IHGNpgIaNRuSNv7sJ2XLv9DhT6ZXcLh?=
- =?us-ascii?Q?ExYO5BJHooyrRrbS5jTVuQg/wstOCy8OeYyLMISRMc43AGe1ENrpFOGbS7r4?=
- =?us-ascii?Q?gdE+1zsrkigjpxcJ1DDYmGJt+13t5kfjqfhtXxBmaQEV6Ux6qvZsQMSwHIVe?=
- =?us-ascii?Q?WEVTjH/hFbbyVxouYz5gaG9JDjUuONdbAkZDxxcJaIi3dsB+dUxz6yIALPt7?=
- =?us-ascii?Q?Qtd3CkgbhkPefGrcdSjSj3km9BLzlifIkqerXLdIkFZ5nl0V0jfGeOgwkh20?=
- =?us-ascii?Q?RXiB2ezNUC5eptX612p9o6R1QZ6Gu5cwiwIUYsyLwHdVj8yoUz7fBt+VjUYb?=
- =?us-ascii?Q?Cby+n2pmgchwp2ixpu0KHuw57eT6FC6SV9fruaYUJwJegxp7SIWPJsA6S2Yv?=
- =?us-ascii?Q?IfqN3ZdCgINuGouDX4B+fqS5XMHLZbzVFrEhTwwAMsxo6QK4sU7EJ1DFl63w?=
- =?us-ascii?Q?Aaw+xqttFmViR3AZzdNec1e+xphLcps1AtOieWfxM4JUWI2AWOBlr42QUv0k?=
- =?us-ascii?Q?QCbZXL7UB7EUS5tvhaUW1P25LunlsLhg70+6vZ3M?=
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(7416014)(376014)(82310400026);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 02028ee6-2fd1-4714-1731-08dd0a97049b
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Nov 2024 01:43:09.3279
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Nov 2024 02:57:30.5718
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Network-Message-Id: 516fc921-716c-431f-00ff-08dd0aa167fd
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: cxvc/hMc9bPl7/wdi8drZNOC8ETUpk5vSY2WWBsMN1/h9Wvm9qoQ5B8x23IfX41oVmkX2K8PqyQ8mKzhcNtkeg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR12MB4131
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CH2PEPF00000147.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB6366
 
-DEVMAP PTEs are no longer required to support ZONE_DEVICE so remove
-them.
+On 11/21/24 5:40 PM, Alistair Popple wrote:
+> Prior to freeing a block file systems supporting FS DAX must check
+> that the associated pages are both unmapped from user-space and not
+> undergoing DMA or other access from eg. get_user_pages(). This is
+> achieved by unmapping the file range and scanning the FS DAX
+> page-cache to see if any pages within the mapping have an elevated
+> refcount.
+> 
+> This is done using two functions - dax_layout_busy_page_range() which
+> returns a page to wait for the refcount to become idle on. Rather than
+> open-code this introduce a common implementation to both unmap and
+> wait for the page to become idle.
+> 
+> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> ---
+>   fs/dax.c            | 29 +++++++++++++++++++++++++++++
+>   fs/ext4/inode.c     | 10 +---------
+>   fs/fuse/dax.c       | 29 +++++------------------------
+>   fs/xfs/xfs_inode.c  | 23 +++++------------------
+>   fs/xfs/xfs_inode.h  |  2 +-
+>   include/linux/dax.h |  7 +++++++
+>   6 files changed, 48 insertions(+), 52 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index efc1d56..b1ad813 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -845,6 +845,35 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index)
+>   	return ret;
+>   }
+>   
+> +static int wait_page_idle(struct page *page,
+> +			void (cb)(struct inode *),
+> +			struct inode *inode)
+> +{
+> +	return ___wait_var_event(page, page_ref_count(page) == 1,
+> +				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
+> +}
+> +
+> +/*
+> + * Unmaps the inode and waits for any DMA to complete prior to deleting the
+> + * DAX mapping entries for the range.
+> + */
+> +int dax_break_mapping(struct inode *inode, loff_t start, loff_t end,
+> +		void (cb)(struct inode *))
+> +{
+> +	struct page *page;
+> +	int error;
+> +
+> +	do {
+> +		page = dax_layout_busy_page_range(inode->i_mapping, start, end);
+> +		if (!page)
+> +			break;
+> +
+> +		error = wait_page_idle(page, cb, inode);
+> +	} while (error == 0);
+> +
+> +	return error;
+> +}
 
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Suggested-by: Chunyan Zhang <zhang.lyra@gmail.com>
----
- arch/riscv/Kconfig                    |  1 -
- arch/riscv/include/asm/pgtable-64.h   | 20 --------------------
- arch/riscv/include/asm/pgtable-bits.h |  1 -
- arch/riscv/include/asm/pgtable.h      | 17 -----------------
- 4 files changed, 39 deletions(-)
+Hi Alistair!
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index 6254594..2475c5b 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -40,7 +40,6 @@ config RISCV
- 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
- 	select ARCH_HAS_PMEM_API
- 	select ARCH_HAS_PREPARE_SYNC_CORE_CMD
--	select ARCH_HAS_PTE_DEVMAP if 64BIT && MMU
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_SET_DIRECT_MAP if MMU
- 	select ARCH_HAS_SET_MEMORY if MMU
-diff --git a/arch/riscv/include/asm/pgtable-64.h b/arch/riscv/include/asm/pgtable-64.h
-index 0897dd9..8c36a88 100644
---- a/arch/riscv/include/asm/pgtable-64.h
-+++ b/arch/riscv/include/asm/pgtable-64.h
-@@ -398,24 +398,4 @@ static inline struct page *pgd_page(pgd_t pgd)
- #define p4d_offset p4d_offset
- p4d_t *p4d_offset(pgd_t *pgd, unsigned long address);
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static inline int pte_devmap(pte_t pte);
--static inline pte_t pmd_pte(pmd_t pmd);
--
--static inline int pmd_devmap(pmd_t pmd)
--{
--	return pte_devmap(pmd_pte(pmd));
--}
--
--static inline int pud_devmap(pud_t pud)
--{
--	return 0;
--}
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
--#endif
--
- #endif /* _ASM_RISCV_PGTABLE_64_H */
-diff --git a/arch/riscv/include/asm/pgtable-bits.h b/arch/riscv/include/asm/pgtable-bits.h
-index a8f5205..179bd4a 100644
---- a/arch/riscv/include/asm/pgtable-bits.h
-+++ b/arch/riscv/include/asm/pgtable-bits.h
-@@ -19,7 +19,6 @@
- #define _PAGE_SOFT      (3 << 8)    /* Reserved for software */
- 
- #define _PAGE_SPECIAL   (1 << 8)    /* RSW: 0x1 */
--#define _PAGE_DEVMAP    (1 << 9)    /* RSW, devmap */
- #define _PAGE_TABLE     _PAGE_PRESENT
- 
- /*
-diff --git a/arch/riscv/include/asm/pgtable.h b/arch/riscv/include/asm/pgtable.h
-index e79f152..93b6571 100644
---- a/arch/riscv/include/asm/pgtable.h
-+++ b/arch/riscv/include/asm/pgtable.h
-@@ -399,13 +399,6 @@ static inline int pte_special(pte_t pte)
- 	return pte_val(pte) & _PAGE_SPECIAL;
- }
- 
--#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
--static inline int pte_devmap(pte_t pte)
--{
--	return pte_val(pte) & _PAGE_DEVMAP;
--}
--#endif
--
- /* static inline pte_t pte_rdprotect(pte_t pte) */
- 
- static inline pte_t pte_wrprotect(pte_t pte)
-@@ -447,11 +440,6 @@ static inline pte_t pte_mkspecial(pte_t pte)
- 	return __pte(pte_val(pte) | _PAGE_SPECIAL);
- }
- 
--static inline pte_t pte_mkdevmap(pte_t pte)
--{
--	return __pte(pte_val(pte) | _PAGE_DEVMAP);
--}
--
- static inline pte_t pte_mkhuge(pte_t pte)
- {
- 	return pte;
-@@ -752,11 +740,6 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
- 	return pte_pmd(pte_mkdirty(pmd_pte(pmd)));
- }
- 
--static inline pmd_t pmd_mkdevmap(pmd_t pmd)
--{
--	return pte_pmd(pte_mkdevmap(pmd_pte(pmd)));
--}
--
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 				pmd_t *pmdp, pmd_t pmd)
- {
--- 
-git-series 0.9.1
+This needs to be EXPORT'ed. In fact so do two others, but I thought I'd
+reply at the exact point that the first fix needs to be inserted, which
+is here. And let you sprinkle the remaining two into the right patches.
+
+The overall diff required for me to build the kernel with this series is:
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 0169b356b975..35e3c41eb517 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -921,6 +921,7 @@ void dax_delete_mapping_range(struct address_space *mapping,
+  	}
+  	xas_unlock_irq(&xas);
+  }
++EXPORT_SYMBOL_GPL(dax_delete_mapping_range);
+  
+  static int wait_page_idle(struct page *page,
+  			void (cb)(struct inode *),
+@@ -961,6 +962,7 @@ int dax_break_mapping(struct inode *inode, loff_t start, loff_t end,
+  
+  	return error;
+  }
++EXPORT_SYMBOL_GPL(dax_break_mapping);
+  
+  void dax_break_mapping_uninterruptible(struct inode *inode,
+  				void (cb)(struct inode *))
+@@ -979,6 +981,7 @@ void dax_break_mapping_uninterruptible(struct inode *inode,
+  	if (!page)
+  		dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
+  }
++EXPORT_SYMBOL_GPL(dax_break_mapping_uninterruptible);
+  
+  /*
+   * Invalidate DAX entry if it is clean.
+
+
+thanks,
+John Hubbard
+
+
+> +
+>   /*
+>    * Invalidate DAX entry if it is clean.
+>    */
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index cf87c5b..d42c011 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -3885,15 +3885,7 @@ int ext4_break_layouts(struct inode *inode)
+>   	if (WARN_ON_ONCE(!rwsem_is_locked(&inode->i_mapping->invalidate_lock)))
+>   		return -EINVAL;
+>   
+> -	do {
+> -		page = dax_layout_busy_page(inode->i_mapping);
+> -		if (!page)
+> -			return 0;
+> -
+> -		error = dax_wait_page_idle(page, ext4_wait_dax_page, inode);
+> -	} while (error == 0);
+> -
+> -	return error;
+> +	return dax_break_mapping_inode(inode, ext4_wait_dax_page);
+>   }
+>   
+>   /*
+> diff --git a/fs/fuse/dax.c b/fs/fuse/dax.c
+> index af436b5..2493f9c 100644
+> --- a/fs/fuse/dax.c
+> +++ b/fs/fuse/dax.c
+> @@ -665,38 +665,19 @@ static void fuse_wait_dax_page(struct inode *inode)
+>   	filemap_invalidate_lock(inode->i_mapping);
+>   }
+>   
+> -/* Should be called with mapping->invalidate_lock held exclusively */
+> -static int __fuse_dax_break_layouts(struct inode *inode, bool *retry,
+> -				    loff_t start, loff_t end)
+> -{
+> -	struct page *page;
+> -
+> -	page = dax_layout_busy_page_range(inode->i_mapping, start, end);
+> -	if (!page)
+> -		return 0;
+> -
+> -	*retry = true;
+> -	return dax_wait_page_idle(page, fuse_wait_dax_page, inode);
+> -}
+> -
+> -/* dmap_end == 0 leads to unmapping of whole file */
+> +/* Should be called with mapping->invalidate_lock held exclusively.
+> + * dmap_end == 0 leads to unmapping of whole file.
+> + */
+>   int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
+>   				  u64 dmap_end)
+>   {
+> -	bool	retry;
+> -	int	ret;
+> -
+> -	do {
+> -		retry = false;
+> -		ret = __fuse_dax_break_layouts(inode, &retry, dmap_start,
+> -					       dmap_end);
+> -	} while (ret == 0 && retry);
+>   	if (!dmap_end) {
+>   		dmap_start = 0;
+>   		dmap_end = LLONG_MAX;
+>   	}
+>   
+> -	return ret;
+> +	return dax_break_mapping(inode, dmap_start, dmap_end,
+> +				fuse_wait_dax_page);
+>   }
+>   
+>   ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
+> diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
+> index eb12123..120597a 100644
+> --- a/fs/xfs/xfs_inode.c
+> +++ b/fs/xfs/xfs_inode.c
+> @@ -2704,21 +2704,17 @@ xfs_mmaplock_two_inodes_and_break_dax_layout(
+>   	struct xfs_inode	*ip2)
+>   {
+>   	int			error;
+> -	bool			retry;
+>   	struct page		*page;
+>   
+>   	if (ip1->i_ino > ip2->i_ino)
+>   		swap(ip1, ip2);
+>   
+>   again:
+> -	retry = false;
+>   	/* Lock the first inode */
+>   	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
+> -	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
+> -	if (error || retry) {
+> +	error = xfs_break_dax_layouts(VFS_I(ip1));
+> +	if (error) {
+>   		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
+> -		if (error == 0 && retry)
+> -			goto again;
+>   		return error;
+>   	}
+>   
+> @@ -2977,19 +2973,11 @@ xfs_wait_dax_page(
+>   
+>   int
+>   xfs_break_dax_layouts(
+> -	struct inode		*inode,
+> -	bool			*retry)
+> +	struct inode		*inode)
+>   {
+> -	struct page		*page;
+> -
+>   	xfs_assert_ilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL);
+>   
+> -	page = dax_layout_busy_page(inode->i_mapping);
+> -	if (!page)
+> -		return 0;
+> -
+> -	*retry = true;
+> -	return dax_wait_page_idle(page, xfs_wait_dax_page, inode);
+> +	return dax_break_mapping_inode(inode, xfs_wait_dax_page);
+>   }
+>   
+>   int
+> @@ -3007,8 +2995,7 @@ xfs_break_layouts(
+>   		retry = false;
+>   		switch (reason) {
+>   		case BREAK_UNMAP:
+> -			error = xfs_break_dax_layouts(inode, &retry);
+> -			if (error || retry)
+> +			if (xfs_break_dax_layouts(inode))
+>   				break;
+>   			fallthrough;
+>   		case BREAK_WRITE:
+> diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
+> index 97ed912..0db27ba 100644
+> --- a/fs/xfs/xfs_inode.h
+> +++ b/fs/xfs/xfs_inode.h
+> @@ -564,7 +564,7 @@ xfs_itruncate_extents(
+>   	return xfs_itruncate_extents_flags(tpp, ip, whichfork, new_size, 0);
+>   }
+>   
+> -int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
+> +int	xfs_break_dax_layouts(struct inode *inode);
+>   int	xfs_break_layouts(struct inode *inode, uint *iolock,
+>   		enum layout_break_reason reason);
+>   
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 773dfc4..7419c88 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -257,6 +257,13 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+>   int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+>   int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+>   				      pgoff_t index);
+> +int __must_check dax_break_mapping(struct inode *inode, loff_t start,
+> +				loff_t end, void (cb)(struct inode *));
+> +static inline int __must_check dax_break_mapping_inode(struct inode *inode,
+> +						void (cb)(struct inode *))
+> +{
+> +	return dax_break_mapping(inode, 0, LLONG_MAX, cb);
+> +}
+>   int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>   				  struct inode *dest, loff_t destoff,
+>   				  loff_t len, bool *is_same,
+
+
