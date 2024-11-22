@@ -1,409 +1,193 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2089.outbound.protection.outlook.com [40.107.92.89])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 759B1156665
-	for <nvdimm@lists.linux.dev>; Fri, 22 Nov 2024 03:39:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.89
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732246753; cv=fail; b=l9P8FSF2yDmK986odKGY/17ERvEPArFExEjBRi3tBvyTasnTNmBrH+I5G+SNJW5bfZIMYQcsxkuQmb1NOuEdKr03qamGO2Us4nySl1VsbnTglkasK03gG4VbRIM8/C93P3ocx+mrBe98FfY/DYelQMIlZtVYYeoLq+2s9NJB9lI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732246753; c=relaxed/simple;
-	bh=ygn/fMifzS1cxoGUeUrY7u6W+UC9cj7bh4yGUtwmfWY=;
-	h=References:From:To:Cc:Subject:Date:In-reply-to:Message-ID:
-	 Content-Type:MIME-Version; b=Di/rtOM4x5ssGaFeRYSsj/PCpxcwLXwfHkpUy3h6zY9YSB7SN0FO+7eru5sS0fHmvzchMrUc9MqITH+KGwZWpw846i6iRzjXotsojX/CZ8GO++8pw0T/hXGTj4dqssA24LTBgHGr8XcHDMExaecMlJoFmi4igOcMZE3QLEIzB3g=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=X+7xeZSQ; arc=fail smtp.client-ip=40.107.92.89
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 172FB1DF74F;
+	Fri, 22 Nov 2024 18:20:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1732299615; cv=none; b=dQk/61lRtpZKC0L141k1FOFBxrCplcUJfX17+WA7TG1/ehjbAGbrqY1EwJNlVtbIkMQ8JbqkGuiJTAtAw2aAbtg8QhWykdldH+0DlP5bwak0nMK+EK84hXgZDYPKGdkAKLY8Xe6zMc4O6pjj64nP1Pc17kUV7BY48VIzwWuJkRg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1732299615; c=relaxed/simple;
+	bh=6vSGD8e+Q9TRY4zmcvouTkj38cuQb4dQn7OnYsD0ibA=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=XlVPnT4ABkeQ6+E4kGTjj2ygllU0MmY9Ho/WOk9KYNEkHX0EpAexwDskkgnMkFg1gKWIS7S2aU6bgstFSaVt7Owh8ndNCvRFWFK+j483F2WMGbX8C3KwLmJ0+arKNDLoTX3NWhB8EedBFB0v2CCI/mhvlqQDu2o1wKcRSRw00YA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KuA8KUPZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="X+7xeZSQ"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=PTerYBT0FX2MwyXGFGZP9G6fc2RcADWmYTPx49WxiUzMcW/Ro+JSljte9PwjXHlxCbFz15C2kkDo1eyrcGxJz99kJHywmNQlS2JnLC/Z0W0RiSY1FQWm6sIzSRU4TzEeTovc+Swb6GbNNtX5JqWqd1jtLaF8UNEV5AEmhhPRI/nVw3dqMKOXcViO0b0lz6iFTVbVRUWHZCUxcBNeQJUigNDiHCYmC49A5F4vtCbEX6T5r7ciV5PdKPSk0ApiYdP7PKsRnYYwoqM+djcRti68NDGxDC1i0udchdzVEL9yz6SrnodKQtA6YjKPdpPjbinOJ10tJ9qAg30ohDe6vvC2lw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Dt1cg9OqNCsmKJkrdhWXJZVHDZ7PeN36Gk9BkXNzrro=;
- b=iz6t2Mgcq8AcZXdu9gAW7U8LsX+kMFEdtdNq53OiHXpMBtR6sEjGzSYf8aZuCfWblay+Ns8/e1D8+0TQTgCLiLCdx3EFHOop6LfzWTrsOW4Z2DhDCYpx24LmcrxQMjz+DnfL7hDFHeHrbjppkcqkl1OtvGJORU2H8yfyrVZm89PIeLhMt1fq4b61SFEHJcsQgq12/f9HbKF3IDEw3Vc+fud9PXQ648XYYsxWVADDpYEpwdrtY9e4rggECxDQS4Qjg7Of8K0IOGbTm2RycVygu7+QBFTaQJPfrVAx99satVo5NRLrcPTGQLDBuokYNApRQZ06Ld0G8yCbQDND6K8lrQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Dt1cg9OqNCsmKJkrdhWXJZVHDZ7PeN36Gk9BkXNzrro=;
- b=X+7xeZSQ7zdVMKjJBOJsF82G7HKQFIkBEKhqgKkuhs5WqPlhwU7ntAxhn/STzYnGWRa5u1atw5Raa/03AQqawrc44aNx4lZRMxv+ZAGYt8QculfeQH82ViDENqxfM2T198nT4gtNNEAYIqX0+Q7W2fAUZ0CvjSbHbYGMjnW00tMwtZ0wBmz81A22hrUh9AbZ9s6CLnJH/aGP4u/ioWN8T8RrJxCFuRrTI5q+QzCArmzSUkUD9rlpULqdkMY6VtLIsNqON5oXT+CJIu+rGFLmRWZ33bkB/uDWPJCEmLuBtrjqfLaW0j39aYfQ/xv3AsyQyisyiYbl9exEjaEQE2KcqQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- SN7PR12MB7856.namprd12.prod.outlook.com (2603:10b6:806:340::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8158.27; Fri, 22 Nov
- 2024 03:39:07 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe%4]) with mapi id 15.20.8182.016; Fri, 22 Nov 2024
- 03:39:07 +0000
-References: <cover.e1ebdd6cab9bde0d232c1810deacf0bae25e6707.1732239628.git-series.apopple@nvidia.com>
- <31b18e4f813bf9e661d5d98d928c79556c8c2c57.1732239628.git-series.apopple@nvidia.com>
- <61ff7fe6-9a79-4dd3-8076-7106fe08be5c@nvidia.com>
-User-agent: mu4e 1.10.8; emacs 29.4
-From: Alistair Popple <apopple@nvidia.com>
-To: John Hubbard <jhubbard@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KuA8KUPZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73C30C4CECE;
+	Fri, 22 Nov 2024 18:20:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1732299614;
+	bh=6vSGD8e+Q9TRY4zmcvouTkj38cuQb4dQn7OnYsD0ibA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=KuA8KUPZLoQzRFFXa7LQwUfk9Y596zdnH+rzlqlv+jSr3pgHb8fCWG4T7hE+0eUT5
+	 1O5uB4GKtJX6woemgTFladuO5a6D3vaCSKw8p63j2DW/+N+j/w3OddfrYOsGZkl/Ad
+	 y0x8A9A17LEEasDucAsf3SGTFwAYzW0Y0d8Pv/ak5CuO+WFHk3C2ofpLUPTVN2HfU2
+	 DQkMfgOsuIzz3gES/49+Isprivya5qUI7uPl1qDQBRNL5tT5SO+LknOlUKt6zEp2uq
+	 HRYlKvMXYGt+pB3A9qnjgJUZms0Be5dlqtuq0N8/laoYEIFDcwQThrjcQPk+YuNCjH
+	 mMh7U2yQ0/qXw==
+Date: Fri, 22 Nov 2024 12:20:13 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Alistair Popple <apopple@nvidia.com>
 Cc: dan.j.williams@intel.com, linux-mm@kvack.org, lina@asahilina.net,
- zhang.lyra@gmail.com, gerald.schaefer@linux.ibm.com,
- vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
- bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com,
- will@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
- dave.hansen@linux.intel.com, ira.weiny@intel.com, willy@infradead.org,
- djwong@kernel.org, tytso@mit.edu, linmiaohe@huawei.com, david@redhat.com,
- peterx@redhat.com, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, hch@lst.de,
- david@fromorbit.com
-Subject: Re: [PATCH v3 05/25] fs/dax: Create a common implementation to
- break DAX layouts
-Date: Fri, 22 Nov 2024 14:37:40 +1100
-In-reply-to: <61ff7fe6-9a79-4dd3-8076-7106fe08be5c@nvidia.com>
-Message-ID: <87plmodjjc.fsf@nvdebian.thelocal>
-Content-Type: text/plain
-X-ClientProxiedBy: SY5PR01CA0053.ausprd01.prod.outlook.com
- (2603:10c6:10:1fc::8) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+	zhang.lyra@gmail.com, gerald.schaefer@linux.ibm.com,
+	vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
+	bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca,
+	catalin.marinas@arm.com, will@kernel.org, mpe@ellerman.id.au,
+	npiggin@gmail.com, dave.hansen@linux.intel.com, ira.weiny@intel.com,
+	willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
+	linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
+	linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
+	david@fromorbit.com
+Subject: Re: [PATCH v3 10/25] pci/p2pdma: Don't initialise page refcount to
+ one
+Message-ID: <20241122182013.GA2435164@bhelgaas>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|SN7PR12MB7856:EE_
-X-MS-Office365-Filtering-Correlation-Id: 926c8c02-eae2-4e42-cdce-08dd0aa7382e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|366016|7416014;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?YoC1fQGTOhcQCTvLGUAczmSXiNUO7g928g198n1LfPZv9rMoMP+8SiDwvu/6?=
- =?us-ascii?Q?b6MBcFm8Y1Ru4druTW8Kbbx2zKVQRj/20c/CEgjB080ptu1UcB5Ktz/XG6Uz?=
- =?us-ascii?Q?ovlfPiWJc7ed6vL6YGOdnwCcb4jmVf5CufEf+Fsw1UPzHTsoQSANNVbyGo6n?=
- =?us-ascii?Q?5HceR9ZQdKrbcd3mbMv7JMmqxhxAIBwq1GUOz60CNcmn3t+RqpRi6iYSgMlZ?=
- =?us-ascii?Q?kXW4VQpt9HssPhGxOfLxKvS9EgV7DFqVwd39Uk4aOqvdIt86xGbG+kSKpBh4?=
- =?us-ascii?Q?GoT7xxtLIN3hMi8s6/y9kInU6AnkOUURn2aMrw7RgfDb7q5fThUIKXNdJwYc?=
- =?us-ascii?Q?YtHAUVaDbJOPO67RH0yjvUB74x+ObjpVqLNvOzIBsP3d8L6hwpteksGYIlZJ?=
- =?us-ascii?Q?H8TrmVJn+32HRAaE19cNlotjd/FijZD8XZ7Np1GxAhOvFm0qtMYG41YcpcRI?=
- =?us-ascii?Q?ttvzgjnJGqFQQEASiTxc7gI9bHFCmKHl3z4iyKxECbzRXv7E+yyZxGupCxny?=
- =?us-ascii?Q?gH2dOaRDrjc2LdBgxBw46xXvOOEb/a+n+I09mc/Kw40QJhv8bTeoqEauHfUZ?=
- =?us-ascii?Q?9L5KXaznBv1Ng9JOhMOdv9saOVSJ7n9hmnk3IPh3nb0ORWDIVp1UbxLYq+kO?=
- =?us-ascii?Q?C+rEZojG3zQ/X8xDj87h7pr14aeWnmZnJUiBpcDXQkVsIqD9PbKybqWsJXRT?=
- =?us-ascii?Q?j1ktJ1jjRPiOVLFG4R9HguTbFYgbAaiUPT4kdgpfKvV+eH/M0nXA67GHG64q?=
- =?us-ascii?Q?M+t9rfmG+du5CUgO9ndLCrZXyB7On8j20q2yktf58Cr7Smkj5o9YPhB7rNVl?=
- =?us-ascii?Q?6VWqvTXBz3SMPmiNQk4P2irI8km4NXwxW0xhCShr63nwvxgSCsux8nhNoAQS?=
- =?us-ascii?Q?YIqeARJ3b6l7aIOScPYTtKMXuUCdFP/cHBvYjov1g+9JB14llS6bRAZQBA+D?=
- =?us-ascii?Q?IU3jHaoHf42C/p1tz/tcGo3bllNnjcZcI9fGUqj/V/5aXyL0HEY4/WhOwYTt?=
- =?us-ascii?Q?CfC4HNh1lP+ZlY6gSxSm3S0v8PYIs4ciTkcSnZds4GsZH2CNB9T7dhor2x6U?=
- =?us-ascii?Q?840aXAqToPcW+jsoDcJEW71ebs8qWq/GzFLZPynoCCLs8ijEEQRkbAVKIOas?=
- =?us-ascii?Q?EXBga9rkfi/mQfZerekXl97lTmUSqXl+e146s5QHe+6/ZCnINo6JTbEB1IPX?=
- =?us-ascii?Q?oB+6R+JbmTKGhDQBELf6orLOcX3Xyxc3SizOCBvETEuU8isJhoJPtGOkhJZq?=
- =?us-ascii?Q?YYLaG7VB7y2712OI4lnzwDy3bSMcAogHnpGAEhEh6Mfis0aXWUdzYtbThcsY?=
- =?us-ascii?Q?1GUg8oaEOa2kI/rxuCnufOeB?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(7416014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?52MhAmfLqk+Q/q853yhrABtGh/JmOahuj+7NMG2IIHijzCqZLzGSvsQ90uCE?=
- =?us-ascii?Q?xu71URhDGnlGkQ5rNRWZ9OdeqZVIJc3VvjLH2lK9NsK//3wqZS7G4ndmD7em?=
- =?us-ascii?Q?ueqHsTIH/em+oihYz8JLU5obFdmsLZbi7HPR1tDHFfj3wYBPVhjVxATQLVnB?=
- =?us-ascii?Q?XTlGwm5UmvVh6nlcJfjaOISvEpGLOS6+Tdm40+SumWcXLk7kwQHrYo6hoxTm?=
- =?us-ascii?Q?bqDC7iJWaFRWbsuT4gm7UbdkU3BM7yFIhnRH3NPSENs5XB3YB9tGl9EFFcjC?=
- =?us-ascii?Q?ckFZSlSicdYZjmg996vJ/tXLaQT+2kWGpqP7xMlyJhk/Q/sKE0EzGtyfjg1s?=
- =?us-ascii?Q?QWVLcyQ2l4BAXAVm2zlcOPc8NSa06gRc2dtJiPcVQHGKid4ut0rBLuoBIsfw?=
- =?us-ascii?Q?0tZz2QphKC//F/454GTakd9Lhm3siiQOauvi6MLKji89K+2bBbuaMhOrdhX3?=
- =?us-ascii?Q?uZzNhRU9HA4DEdm8vKKpF/2hhUNw/60p7neu9lwKDyqGDFHCucj+RvYmRfE5?=
- =?us-ascii?Q?kkeZL2rbpwN18pwqoszt/wB6dGgGZRDPlJk2FCkhlrXBriork6vbX34COLct?=
- =?us-ascii?Q?8JDh03zBRC2ZsFIn4N9eFaWjACY5k0QpOSe79N+Dd+3/1H7iwT4avxcP0p3x?=
- =?us-ascii?Q?QHjSFomv/pxeZiVekuNL2wos5De5tTlZnt+tBQvwWZ/UTPw8wyb4q3yIIU5Z?=
- =?us-ascii?Q?xqiIoePSmv771NwwsHJ6KwYmdRDXGZGd6FMEIcxmKA4UwYhbb+7VkDejb9Kf?=
- =?us-ascii?Q?fyGKdJnETGcBfeicIpTgQHBXtzpMtUu/EZ+IXrusIncAqNC2fh2FH3iZKfp1?=
- =?us-ascii?Q?s5E6OhOv19GhuuJ9uIStCkIFhbuKNsTzb9Ugo5fSuRFqndWv22IIefaGI0P/?=
- =?us-ascii?Q?oejt3tfA5uW7OLfDUGKHwyEpYv04qyfM0Fh/Nxh8mOUSQX+x99DulO0pqJhD?=
- =?us-ascii?Q?8Kz+yZ4FwsZWpJpIgBesbT4nMYCa/Aws7iH4G3tMS3EL3vqZZ5tq3W28OpfA?=
- =?us-ascii?Q?XZd6c2WOdjxL+BFsSLbGVpsZPG3cNMSF7EiyXvITIVwpFrYkjplZw5UgbQbE?=
- =?us-ascii?Q?KTKGf1QyxPiaT3FjBdtnh4EzntQOvHYU11HWYErfhu4HK+7bfk72Lcd3lvUj?=
- =?us-ascii?Q?YZZS4QJXKOQtkmt7gtbCPg6Boyu/fRxJdyEE2Uee5CLZ0onJ6GHNrDzifiWW?=
- =?us-ascii?Q?iKBCqQ8BLApXJtzPplUdRqn6UF2c4ifvePSk9LMUBJMIY+p9cu82oJsxiV2s?=
- =?us-ascii?Q?paRQE5pk5RVzJWPPJBElx0ANEhdD28BAM7KfvKpWsWSq6QGXdAg6vetOtuYR?=
- =?us-ascii?Q?ch4YPPUG4/RglgbRwnGmghsYbVCwLZ6loUGQWvYW2ps9QjqbS6HeBHvmhKl7?=
- =?us-ascii?Q?Ec3njeX8Nn50N+s+y8NtYCCC/3mGWwuo2hzza+koq9UCKIP9yGzS5+RLVmki?=
- =?us-ascii?Q?GwcBi5NthB+r9D6TA7i4+fIeqGEAgUnA2OMm9aOcCszEgsJqpw3Ec0D0MQSQ?=
- =?us-ascii?Q?Su1moCPNsjxtynFuE5n9WRmQEgL1BKoUVITxURdcvIjOxPhN/I8alrqnOOz7?=
- =?us-ascii?Q?PFFF32y3RVaorWXcbOmrE+vhOEMyIBueH60E9jm+?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 926c8c02-eae2-4e42-cdce-08dd0aa7382e
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Nov 2024 03:39:07.6267
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: uvF1dFoPv3desQMS9zOZdww2wSerOi9WNl7kp9iYI4HgvPf8gLOh1MFcKVqTtVdNOmuKC+mjMS0R+OCOG59EHg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7856
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <27381b50b65a218da99a2448023b774dd75540df.1732239628.git-series.apopple@nvidia.com>
 
+On Fri, Nov 22, 2024 at 12:40:31PM +1100, Alistair Popple wrote:
+> The reference counts for ZONE_DEVICE private pages should be
+> initialised by the driver when the page is actually allocated by the
+> driver allocator, not when they are first created. This is currently
+> the case for MEMORY_DEVICE_PRIVATE and MEMORY_DEVICE_COHERENT pages
+> but not MEMORY_DEVICE_PCI_P2PDMA pages so fix that up.
+> 
+> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
-John Hubbard <jhubbard@nvidia.com> writes:
+Previously suggested tweaks to subject line prefix and content:
+https://lore.kernel.org/all/20240629212851.GA1484889@bhelgaas/
+https://lore.kernel.org/all/20240910134745.GA577955@bhelgaas/
 
-> On 11/21/24 5:40 PM, Alistair Popple wrote:
->> Prior to freeing a block file systems supporting FS DAX must check
->> that the associated pages are both unmapped from user-space and not
->> undergoing DMA or other access from eg. get_user_pages(). This is
->> achieved by unmapping the file range and scanning the FS DAX
->> page-cache to see if any pages within the mapping have an elevated
->> refcount.
->> This is done using two functions - dax_layout_busy_page_range()
->> which
->> returns a page to wait for the refcount to become idle on. Rather than
->> open-code this introduce a common implementation to both unmap and
->> wait for the page to become idle.
->> Signed-off-by: Alistair Popple <apopple@nvidia.com>
->> ---
->>   fs/dax.c            | 29 +++++++++++++++++++++++++++++
->>   fs/ext4/inode.c     | 10 +---------
->>   fs/fuse/dax.c       | 29 +++++------------------------
->>   fs/xfs/xfs_inode.c  | 23 +++++------------------
->>   fs/xfs/xfs_inode.h  |  2 +-
->>   include/linux/dax.h |  7 +++++++
->>   6 files changed, 48 insertions(+), 52 deletions(-)
->> diff --git a/fs/dax.c b/fs/dax.c
->> index efc1d56..b1ad813 100644
->> --- a/fs/dax.c
->> +++ b/fs/dax.c
->> @@ -845,6 +845,35 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index)
->>   	return ret;
->>   }
->>   +static int wait_page_idle(struct page *page,
->> +			void (cb)(struct inode *),
->> +			struct inode *inode)
->> +{
->> +	return ___wait_var_event(page, page_ref_count(page) == 1,
->> +				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
->> +}
->> +
->> +/*
->> + * Unmaps the inode and waits for any DMA to complete prior to deleting the
->> + * DAX mapping entries for the range.
->> + */
->> +int dax_break_mapping(struct inode *inode, loff_t start, loff_t end,
->> +		void (cb)(struct inode *))
->> +{
->> +	struct page *page;
->> +	int error;
->> +
->> +	do {
->> +		page = dax_layout_busy_page_range(inode->i_mapping, start, end);
->> +		if (!page)
->> +			break;
->> +
->> +		error = wait_page_idle(page, cb, inode);
->> +	} while (error == 0);
->> +
->> +	return error;
->> +}
->
-> Hi Alistair!
->
-> This needs to be EXPORT'ed. In fact so do two others, but I thought I'd
-> reply at the exact point that the first fix needs to be inserted, which
-> is here. And let you sprinkle the remaining two into the right patches.
+I had the impression that you agreed there was the potential for some
+confusion here, but it doesn't look like it was addressed.
 
-Argh, thanks. I guess one of the kernel build bots will yell at me soon
-enough... :-)
+So again, a PCI patch labeled "don't init refcount to one" where the
+content initializes the refcount to one in p2pdma.c is still confusing
+since (IIUC) the subject line refers to the NON-PCI code.
 
- - Alistair
+Maybe some sort of "move refcount init from X to p2pdma" or addition
+of *who* is no longer initializing refcount to one would clear this
+up.
 
-> The overall diff required for me to build the kernel with this series is:
->
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 0169b356b975..35e3c41eb517 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -921,6 +921,7 @@ void dax_delete_mapping_range(struct address_space *mapping,
+> ---
+> 
+> Changes since v2:
+> 
+>  - Initialise the page refcount for all pages covered by the kaddr
+> ---
+>  drivers/pci/p2pdma.c | 13 +++++++++++--
+>  mm/memremap.c        | 17 +++++++++++++----
+>  mm/mm_init.c         | 22 ++++++++++++++++++----
+>  3 files changed, 42 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+> index 4f47a13..2c5ac4a 100644
+> --- a/drivers/pci/p2pdma.c
+> +++ b/drivers/pci/p2pdma.c
+> @@ -140,13 +140,22 @@ static int p2pmem_alloc_mmap(struct file *filp, struct kobject *kobj,
+>  	rcu_read_unlock();
+>  
+>  	for (vaddr = vma->vm_start; vaddr < vma->vm_end; vaddr += PAGE_SIZE) {
+> -		ret = vm_insert_page(vma, vaddr, virt_to_page(kaddr));
+> +		struct page *page = virt_to_page(kaddr);
+> +
+> +		/*
+> +		 * Initialise the refcount for the freshly allocated page. As
+> +		 * we have just allocated the page no one else should be
+> +		 * using it.
+> +		 */
+> +		VM_WARN_ON_ONCE_PAGE(!page_ref_count(page), page);
+> +		set_page_count(page, 1);
+> +		ret = vm_insert_page(vma, vaddr, page);
+>  		if (ret) {
+>  			gen_pool_free(p2pdma->pool, (uintptr_t)kaddr, len);
+>  			return ret;
+>  		}
+>  		percpu_ref_get(ref);
+> -		put_page(virt_to_page(kaddr));
+> +		put_page(page);
+>  		kaddr += PAGE_SIZE;
+>  		len -= PAGE_SIZE;
 >  	}
->  	xas_unlock_irq(&xas);
+> diff --git a/mm/memremap.c b/mm/memremap.c
+> index 40d4547..07bbe0e 100644
+> --- a/mm/memremap.c
+> +++ b/mm/memremap.c
+> @@ -488,15 +488,24 @@ void free_zone_device_folio(struct folio *folio)
+>  	folio->mapping = NULL;
+>  	folio->page.pgmap->ops->page_free(folio_page(folio, 0));
+>  
+> -	if (folio->page.pgmap->type != MEMORY_DEVICE_PRIVATE &&
+> -	    folio->page.pgmap->type != MEMORY_DEVICE_COHERENT)
+> +	switch (folio->page.pgmap->type) {
+> +	case MEMORY_DEVICE_PRIVATE:
+> +	case MEMORY_DEVICE_COHERENT:
+> +		put_dev_pagemap(folio->page.pgmap);
+> +		break;
+> +
+> +	case MEMORY_DEVICE_FS_DAX:
+> +	case MEMORY_DEVICE_GENERIC:
+>  		/*
+>  		 * Reset the refcount to 1 to prepare for handing out the page
+>  		 * again.
+>  		 */
+>  		folio_set_count(folio, 1);
+> -	else
+> -		put_dev_pagemap(folio->page.pgmap);
+> +		break;
+> +
+> +	case MEMORY_DEVICE_PCI_P2PDMA:
+> +		break;
+> +	}
 >  }
-> +EXPORT_SYMBOL_GPL(dax_delete_mapping_range);
->    static int wait_page_idle(struct page *page,
->  			void (cb)(struct inode *),
-> @@ -961,6 +962,7 @@ int dax_break_mapping(struct inode *inode, loff_t start, loff_t end,
->    	return error;
+>  
+>  void zone_device_page_init(struct page *page)
+> diff --git a/mm/mm_init.c b/mm/mm_init.c
+> index 4ba5607..0489820 100644
+> --- a/mm/mm_init.c
+> +++ b/mm/mm_init.c
+> @@ -1015,12 +1015,26 @@ static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
+>  	}
+>  
+>  	/*
+> -	 * ZONE_DEVICE pages are released directly to the driver page allocator
+> -	 * which will set the page count to 1 when allocating the page.
+> +	 * ZONE_DEVICE pages other than MEMORY_TYPE_GENERIC and
+> +	 * MEMORY_TYPE_FS_DAX pages are released directly to the driver page
+> +	 * allocator which will set the page count to 1 when allocating the
+> +	 * page.
+> +	 *
+> +	 * MEMORY_TYPE_GENERIC and MEMORY_TYPE_FS_DAX pages automatically have
+> +	 * their refcount reset to one whenever they are freed (ie. after
+> +	 * their refcount drops to 0).
+>  	 */
+> -	if (pgmap->type == MEMORY_DEVICE_PRIVATE ||
+> -	    pgmap->type == MEMORY_DEVICE_COHERENT)
+> +	switch (pgmap->type) {
+> +	case MEMORY_DEVICE_PRIVATE:
+> +	case MEMORY_DEVICE_COHERENT:
+> +	case MEMORY_DEVICE_PCI_P2PDMA:
+>  		set_page_count(page, 0);
+> +		break;
+> +
+> +	case MEMORY_DEVICE_FS_DAX:
+> +	case MEMORY_DEVICE_GENERIC:
+> +		break;
+> +	}
 >  }
-> +EXPORT_SYMBOL_GPL(dax_break_mapping);
->    void dax_break_mapping_uninterruptible(struct inode *inode,
->  				void (cb)(struct inode *))
-> @@ -979,6 +981,7 @@ void dax_break_mapping_uninterruptible(struct inode *inode,
->  	if (!page)
->  		dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
->  }
-> +EXPORT_SYMBOL_GPL(dax_break_mapping_uninterruptible);
->    /*
->   * Invalidate DAX entry if it is clean.
->
->
-> thanks,
-> John Hubbard
->
->
->> +
->>   /*
->>    * Invalidate DAX entry if it is clean.
->>    */
->> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
->> index cf87c5b..d42c011 100644
->> --- a/fs/ext4/inode.c
->> +++ b/fs/ext4/inode.c
->> @@ -3885,15 +3885,7 @@ int ext4_break_layouts(struct inode *inode)
->>   	if (WARN_ON_ONCE(!rwsem_is_locked(&inode->i_mapping->invalidate_lock)))
->>   		return -EINVAL;
->>   -	do {
->> -		page = dax_layout_busy_page(inode->i_mapping);
->> -		if (!page)
->> -			return 0;
->> -
->> -		error = dax_wait_page_idle(page, ext4_wait_dax_page, inode);
->> -	} while (error == 0);
->> -
->> -	return error;
->> +	return dax_break_mapping_inode(inode, ext4_wait_dax_page);
->>   }
->>     /*
->> diff --git a/fs/fuse/dax.c b/fs/fuse/dax.c
->> index af436b5..2493f9c 100644
->> --- a/fs/fuse/dax.c
->> +++ b/fs/fuse/dax.c
->> @@ -665,38 +665,19 @@ static void fuse_wait_dax_page(struct inode *inode)
->>   	filemap_invalidate_lock(inode->i_mapping);
->>   }
->>   -/* Should be called with mapping->invalidate_lock held
->> exclusively */
->> -static int __fuse_dax_break_layouts(struct inode *inode, bool *retry,
->> -				    loff_t start, loff_t end)
->> -{
->> -	struct page *page;
->> -
->> -	page = dax_layout_busy_page_range(inode->i_mapping, start, end);
->> -	if (!page)
->> -		return 0;
->> -
->> -	*retry = true;
->> -	return dax_wait_page_idle(page, fuse_wait_dax_page, inode);
->> -}
->> -
->> -/* dmap_end == 0 leads to unmapping of whole file */
->> +/* Should be called with mapping->invalidate_lock held exclusively.
->> + * dmap_end == 0 leads to unmapping of whole file.
->> + */
->>   int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
->>   				  u64 dmap_end)
->>   {
->> -	bool	retry;
->> -	int	ret;
->> -
->> -	do {
->> -		retry = false;
->> -		ret = __fuse_dax_break_layouts(inode, &retry, dmap_start,
->> -					       dmap_end);
->> -	} while (ret == 0 && retry);
->>   	if (!dmap_end) {
->>   		dmap_start = 0;
->>   		dmap_end = LLONG_MAX;
->>   	}
->>   -	return ret;
->> +	return dax_break_mapping(inode, dmap_start, dmap_end,
->> +				fuse_wait_dax_page);
->>   }
->>     ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter
->> *to)
->> diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
->> index eb12123..120597a 100644
->> --- a/fs/xfs/xfs_inode.c
->> +++ b/fs/xfs/xfs_inode.c
->> @@ -2704,21 +2704,17 @@ xfs_mmaplock_two_inodes_and_break_dax_layout(
->>   	struct xfs_inode	*ip2)
->>   {
->>   	int			error;
->> -	bool			retry;
->>   	struct page		*page;
->>     	if (ip1->i_ino > ip2->i_ino)
->>   		swap(ip1, ip2);
->>     again:
->> -	retry = false;
->>   	/* Lock the first inode */
->>   	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
->> -	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
->> -	if (error || retry) {
->> +	error = xfs_break_dax_layouts(VFS_I(ip1));
->> +	if (error) {
->>   		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
->> -		if (error == 0 && retry)
->> -			goto again;
->>   		return error;
->>   	}
->>   @@ -2977,19 +2973,11 @@ xfs_wait_dax_page(
->>     int
->>   xfs_break_dax_layouts(
->> -	struct inode		*inode,
->> -	bool			*retry)
->> +	struct inode		*inode)
->>   {
->> -	struct page		*page;
->> -
->>   	xfs_assert_ilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL);
->>   -	page = dax_layout_busy_page(inode->i_mapping);
->> -	if (!page)
->> -		return 0;
->> -
->> -	*retry = true;
->> -	return dax_wait_page_idle(page, xfs_wait_dax_page, inode);
->> +	return dax_break_mapping_inode(inode, xfs_wait_dax_page);
->>   }
->>     int
->> @@ -3007,8 +2995,7 @@ xfs_break_layouts(
->>   		retry = false;
->>   		switch (reason) {
->>   		case BREAK_UNMAP:
->> -			error = xfs_break_dax_layouts(inode, &retry);
->> -			if (error || retry)
->> +			if (xfs_break_dax_layouts(inode))
->>   				break;
->>   			fallthrough;
->>   		case BREAK_WRITE:
->> diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
->> index 97ed912..0db27ba 100644
->> --- a/fs/xfs/xfs_inode.h
->> +++ b/fs/xfs/xfs_inode.h
->> @@ -564,7 +564,7 @@ xfs_itruncate_extents(
->>   	return xfs_itruncate_extents_flags(tpp, ip, whichfork, new_size, 0);
->>   }
->>   -int	xfs_break_dax_layouts(struct inode *inode, bool
->> *retry);
->> +int	xfs_break_dax_layouts(struct inode *inode);
->>   int	xfs_break_layouts(struct inode *inode, uint *iolock,
->>   		enum layout_break_reason reason);
->>   diff --git a/include/linux/dax.h b/include/linux/dax.h
->> index 773dfc4..7419c88 100644
->> --- a/include/linux/dax.h
->> +++ b/include/linux/dax.h
->> @@ -257,6 +257,13 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
->>   int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
->>   int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
->>   				      pgoff_t index);
->> +int __must_check dax_break_mapping(struct inode *inode, loff_t start,
->> +				loff_t end, void (cb)(struct inode *));
->> +static inline int __must_check dax_break_mapping_inode(struct inode *inode,
->> +						void (cb)(struct inode *))
->> +{
->> +	return dax_break_mapping(inode, 0, LLONG_MAX, cb);
->> +}
->>   int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
->>   				  struct inode *dest, loff_t destoff,
->>   				  loff_t len, bool *is_same,
-
+>  
+>  /*
+> -- 
+> git-series 0.9.1
