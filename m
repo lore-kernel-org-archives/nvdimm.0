@@ -1,71 +1,60 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73DC218C345;
-	Mon, 25 Nov 2024 15:52:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A39B1BBBE0
+	for <nvdimm@lists.linux.dev>; Mon, 25 Nov 2024 21:12:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732549951; cv=none; b=JC328Ax/esNOo0r1Wxlb7NS+Im4d6sgSJrVvumJ/EHgItUAEgdG7PO5kSyZV9lp7V0+q1rAY+89Ep9vrR9OF7itoUrOHFdk7pHH49NQNSk4lzmy9/e5oj1y8iXrky1zHGZxWr29ivRF/HxpCieQYqM9Vw+p2YPKZ3ugG2n/WZL8=
+	t=1732569165; cv=none; b=eAIV6N0siezZt6OCjDvmi/klEX2+DSErlpb064LzL8jKjI9BmBxUmfVPbpQ563pkRjrh/WRqpBfw4cHNb4Cgi3qFPrwbXTyMVGR/WX9sFUFgABcdkxP4CcFbfF/S1dG+Y38b5QxZ0uQ0+gq9279fmVxKBrg2sJJe/6MSzMoiPuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732549951; c=relaxed/simple;
-	bh=44XADmBY7482aBrna1Gf1jtuO1UMXA5lIwwU6HOjwtg=;
+	s=arc-20240116; t=1732569165; c=relaxed/simple;
+	bh=WNx2agDQWlLacRGpk2pApXqxX6NLQt32EOVREGQEaTo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ahYIyEHtd1PGCoRlE9dFErEtl4b7DjJgQz6Aj/ixU95DdX3QFJl7PKDvP2qTPivh7a8YwSPwsFxA6fZaSiI+Rom7Gd0yo4HEoAx9M9uTEMcR+atoU1slTUPtR2p+oUbrRUXkgJords01s7Ekvx9MHY/R2GtB7kaxnSI/xXO66uY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=I2d/PjUM; arc=none smtp.client-ip=198.175.65.14
+	 Content-Type:Content-Disposition:In-Reply-To; b=RMUbOu7OzQVWyvxtajM+8aoodAbQoGmCq3pk8YWXVrmU9vmJ2yI7r5OS2xM3PVTfzG3RQ+ByXBZ1dgHngMoPOu6t73ep71reXMgNYaXafPxUxe7Xz94TQXpYzTySkysCacA8B9Lz1O09Da+LprJcdOUFGwGaWSXD29L6Kjwp374=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CICBsAyf; arc=none smtp.client-ip=198.175.65.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="I2d/PjUM"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CICBsAyf"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1732549950; x=1764085950;
+  t=1732569163; x=1764105163;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=44XADmBY7482aBrna1Gf1jtuO1UMXA5lIwwU6HOjwtg=;
-  b=I2d/PjUMica6c6Sfs1vztxpWK9GibK3L4RqGusuQBkeDCrRGtOxt1z3F
-   pNRMJN/AYI/lMVMgCih3GI5tiqkLXP4/8JR07uL00mPScwPm8mcGc6JVY
-   JnaIWMOF7hHyIywagHqNF2DMvuRQp1FPecfUsNncWsOKmHkWhSxynpyc1
-   sBLmTNi+PTs+63BPf39BZZcEjkGgI8mcI9gbwVB4KbmwdjzV8C4dUQUpy
-   NNviqZ4ns3HWHr+Ng7bc4v4SaZpvJfgNIAXOpkNjRypKzjj/6VdqCF1Ru
-   ikxYqQsHJhffWZSjlCoTuY0h+4/rDZHRBwnsQsNwzbpzh5nUFHaLm5An7
-   Q==;
-X-CSE-ConnectionGUID: mnlHPRxdS1uNo3FjktlTrQ==
-X-CSE-MsgGUID: ujDoUJRyTwKFUlHfizybAg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11267"; a="36446801"
+  bh=WNx2agDQWlLacRGpk2pApXqxX6NLQt32EOVREGQEaTo=;
+  b=CICBsAyfjL5IGIEGUMu55KD/ZdB5INAuqlRios1RIKCMIDEoVFcEoyLL
+   cHMwx2t0XUhltkOLZlEbwBQ2gzhLEB3+TttdWqpl0pbJo4zTTBZ8jfU+b
+   H8YZJVu0M+cdF77zMP4LWneA+esHkMIgHanY1yl5T1ZdmpZUye4tMemil
+   Jks1YD1LGmWeHtJfMLfOd17HuhBTc09dcgDjRTKpfxRHv3YPshPFLMv1X
+   mzXS6yyZFd9yanmLwQBCAetH6KptEO26Z71g6ERn5SD0rm29hln63gNiU
+   wf38/Orw5Mutn0hTn2smp5ygxfTgtdd4/hPxv3CWa2tmZMHQ14S1xofex
+   w==;
+X-CSE-ConnectionGUID: GY3DlmmnRvCCLvev7oBU6w==
+X-CSE-MsgGUID: oWZ9f/1HSpeOncPlGO4NVQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11267"; a="32853523"
 X-IronPort-AV: E=Sophos;i="6.12,183,1728975600"; 
-   d="scan'208";a="36446801"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2024 07:52:14 -0800
-X-CSE-ConnectionGUID: 23u/Xv/eTCemOL/ogk5O2w==
-X-CSE-MsgGUID: F2vfipoVSsmBDXbO0I+SIw==
+   d="scan'208";a="32853523"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2024 13:12:43 -0800
+X-CSE-ConnectionGUID: YL7aPKirSTeuo8Gs3wEKow==
+X-CSE-MsgGUID: adKSnD2iRti/kJe3HWMZ8A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.12,183,1728975600"; 
-   d="scan'208";a="128823369"
-Received: from lkp-server01.sh.intel.com (HELO 8122d2fc1967) ([10.239.97.150])
-  by orviesa001.jf.intel.com with ESMTP; 25 Nov 2024 07:52:07 -0800
-Received: from kbuild by 8122d2fc1967 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1tFbNc-0006ZF-1m;
-	Mon, 25 Nov 2024 15:52:04 +0000
-Date: Mon, 25 Nov 2024 23:51:56 +0800
-From: kernel test robot <lkp@intel.com>
-To: Alistair Popple <apopple@nvidia.com>, dan.j.williams@intel.com,
-	linux-mm@kvack.org
-Cc: oe-kbuild-all@lists.linux.dev, Alistair Popple <apopple@nvidia.com>,
-	lina@asahilina.net, zhang.lyra@gmail.com,
-	gerald.schaefer@linux.ibm.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, logang@deltatee.com, bhelgaas@google.com,
-	jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com,
-	will@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
-	dave.hansen@linux.intel.com, ira.weiny@intel.com,
-	willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
-	linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: [PATCH v3 11/25] mm: Allow compound zone device pages
-Message-ID: <202411252342.LUEKRmrY-lkp@intel.com>
-References: <f1a93b8a38e14e2ab279ece310175334e973b970.1732239628.git-series.apopple@nvidia.com>
+   d="scan'208";a="91194398"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.110.188])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2024 13:12:41 -0800
+Date: Mon, 25 Nov 2024 13:12:39 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Suraj Sonawane <surajsonawane0215@gmail.com>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com, ira.weiny@intel.com, rafael@kernel.org,
+	lenb@kernel.org, nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
+Subject: Re: [PATCH v6] acpi: nfit: vmalloc-out-of-bounds Read in
+ acpi_nfit_ctl
+Message-ID: <Z0ToRzLyx5L5xDGu@aschofie-mobl2.lan>
+References: <20241118162609.29063-1-surajsonawane0215@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -74,67 +63,71 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <f1a93b8a38e14e2ab279ece310175334e973b970.1732239628.git-series.apopple@nvidia.com>
+In-Reply-To: <20241118162609.29063-1-surajsonawane0215@gmail.com>
 
-Hi Alistair,
+On Mon, Nov 18, 2024 at 09:56:09PM +0530, Suraj Sonawane wrote:
+> Fix an issue detected by syzbot with KASAN:
+> 
+> BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/
+> core.c:416 [inline]
+> BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0
+> drivers/acpi/nfit/core.c:459
+> 
+> The issue occurs in cmd_to_func when the call_pkg->nd_reserved2
+> array is accessed without verifying that call_pkg points to a buffer
+> that is appropriately sized as a struct nd_cmd_pkg. This can lead
+> to out-of-bounds access and undefined behavior if the buffer does not
+> have sufficient space.
+> 
+> To address this, a check was added in acpi_nfit_ctl() to ensure that
+> buf is not NULL and that buf_len is less than sizeof(*call_pkg)
+> before accessing it. This ensures safe access to the members of
+> call_pkg, including the nd_reserved2 array.
+> 
 
-kernel test robot noticed the following build errors:
-
-[auto build test ERROR on 81983758430957d9a5cb3333fe324fd70cf63e7e]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Alistair-Popple/fuse-Fix-dax-truncate-punch_hole-fault-path/20241125-094004
-base:   81983758430957d9a5cb3333fe324fd70cf63e7e
-patch link:    https://lore.kernel.org/r/f1a93b8a38e14e2ab279ece310175334e973b970.1732239628.git-series.apopple%40nvidia.com
-patch subject: [PATCH v3 11/25] mm: Allow compound zone device pages
-config: sh-allmodconfig (https://download.01.org/0day-ci/archive/20241125/202411252342.LUEKRmrY-lkp@intel.com/config)
-compiler: sh4-linux-gcc (GCC) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20241125/202411252342.LUEKRmrY-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202411252342.LUEKRmrY-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   In file included from include/linux/mm.h:32,
-                    from arch/sh/kernel/asm-offsets.c:14:
-   include/linux/memremap.h: In function 'is_device_private_page':
->> include/linux/memremap.h:164:17: error: implicit declaration of function 'page_pgmap' [-Wimplicit-function-declaration]
-     164 |                 page_pgmap(page)->type == MEMORY_DEVICE_PRIVATE;
-         |                 ^~~~~~~~~~
->> include/linux/memremap.h:164:33: error: invalid type argument of '->' (have 'int')
-     164 |                 page_pgmap(page)->type == MEMORY_DEVICE_PRIVATE;
-         |                                 ^~
-   include/linux/memremap.h: In function 'is_pci_p2pdma_page':
-   include/linux/memremap.h:176:33: error: invalid type argument of '->' (have 'int')
-     176 |                 page_pgmap(page)->type == MEMORY_DEVICE_PCI_P2PDMA;
-         |                                 ^~
-   include/linux/memremap.h: In function 'is_device_coherent_page':
-   include/linux/memremap.h:182:33: error: invalid type argument of '->' (have 'int')
-     182 |                 page_pgmap(page)->type == MEMORY_DEVICE_COHERENT;
-         |                                 ^~
-   make[3]: *** [scripts/Makefile.build:102: arch/sh/kernel/asm-offsets.s] Error 1
-   make[3]: Target 'prepare' not remade because of errors.
-   make[2]: *** [Makefile:1203: prepare0] Error 2
-   make[2]: Target 'prepare' not remade because of errors.
-   make[1]: *** [Makefile:224: __sub-make] Error 2
-   make[1]: Target 'prepare' not remade because of errors.
-   make: *** [Makefile:224: __sub-make] Error 2
-   make: Target 'prepare' not remade because of errors.
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
 
-vim +/page_pgmap +164 include/linux/memremap.h
-
-   159	
-   160	static inline bool is_device_private_page(const struct page *page)
-   161	{
-   162		return IS_ENABLED(CONFIG_DEVICE_PRIVATE) &&
-   163			is_zone_device_page(page) &&
- > 164			page_pgmap(page)->type == MEMORY_DEVICE_PRIVATE;
-   165	}
-   166	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3
+> Tested-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
+> Fixes: ebe9f6f19d80 ("acpi/nfit: Fix bus command validation")
+> Signed-off-by: Suraj Sonawane <surajsonawane0215@gmail.com>
+> ---
+> V1: https://lore.kernel.org/lkml/20241111080429.9861-1-surajsonawane0215@gmail.com/
+> V2: Initialized `out_obj` to `NULL` in `acpi_nfit_ctl()` to prevent
+> potential uninitialized variable usage if condition is true.
+> V3: Changed the condition to if (!buf || buf_len < sizeof(*call_pkg))
+> and updated the Fixes tag to reference the correct commit.
+> V4: Removed the explicit cast to maintain the original code style.
+> V5: Re-Initialized `out_obj` to NULL. To prevent
+> potential uninitialized variable usage if condition is true.
+> V6: Remove the goto out condition from the error handling and directly
+> returned -EINVAL in the check for buf and buf_len
+> 
+>  drivers/acpi/nfit/core.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 5429ec9ef..a5d47819b 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -454,8 +454,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+>  	if (cmd_rc)
+>  		*cmd_rc = -EINVAL;
+>  
+> -	if (cmd == ND_CMD_CALL)
+> +	if (cmd == ND_CMD_CALL) {
+> +		if (!buf || buf_len < sizeof(*call_pkg))
+> +			return -EINVAL;
+> +
+>  		call_pkg = buf;
+> +	}
+> +
+>  	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
+>  	if (func < 0)
+>  		return func;
+> -- 
+> 2.34.1
+> 
+> 
