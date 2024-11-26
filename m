@@ -1,133 +1,63 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A39B1BBBE0
-	for <nvdimm@lists.linux.dev>; Mon, 25 Nov 2024 21:12:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1131C47F53;
+	Tue, 26 Nov 2024 02:59:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732569165; cv=none; b=eAIV6N0siezZt6OCjDvmi/klEX2+DSErlpb064LzL8jKjI9BmBxUmfVPbpQ563pkRjrh/WRqpBfw4cHNb4Cgi3qFPrwbXTyMVGR/WX9sFUFgABcdkxP4CcFbfF/S1dG+Y38b5QxZ0uQ0+gq9279fmVxKBrg2sJJe/6MSzMoiPuo=
+	t=1732589972; cv=none; b=AFkfcNWSyXHp2nTXQWOiE6H+SsYnI/TB4lV33PbbIHjKsiO9YN5GRSJCnv49Y21wUlfh8Enfh80LRPAtBAjYI7p+m8Z5q0LXbDbiArQOhfqqb2TVArvTEpvfINPad+2rTATrTZMdAXJZ75pKcMfy8FIJAgD/zCyC5HUwUmHl8C4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732569165; c=relaxed/simple;
-	bh=WNx2agDQWlLacRGpk2pApXqxX6NLQt32EOVREGQEaTo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RMUbOu7OzQVWyvxtajM+8aoodAbQoGmCq3pk8YWXVrmU9vmJ2yI7r5OS2xM3PVTfzG3RQ+ByXBZ1dgHngMoPOu6t73ep71reXMgNYaXafPxUxe7Xz94TQXpYzTySkysCacA8B9Lz1O09Da+LprJcdOUFGwGaWSXD29L6Kjwp374=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CICBsAyf; arc=none smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1732589972; c=relaxed/simple;
+	bh=Y/llceuyFvWYdu6tV+2xPCVzLsqCdjHOGubb/TAgkp0=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=E2hGSJ79b58/ymA/kcGsTOKcuKXcUf5+NDXLZHZxc0EuhRiXwVGM88Ja72GtsyRUXY+RNMsiOPd7/bUHwnePdGMncQBtw7RMOIsECm7Ba7h8/uzy2dfPBArqZrbIq9kviHLdpTxXtFROlj2XfFGwPIkL7GK8z7LCgNKAtP0xVzQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ot9ymTE9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CICBsAyf"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1732569163; x=1764105163;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=WNx2agDQWlLacRGpk2pApXqxX6NLQt32EOVREGQEaTo=;
-  b=CICBsAyfjL5IGIEGUMu55KD/ZdB5INAuqlRios1RIKCMIDEoVFcEoyLL
-   cHMwx2t0XUhltkOLZlEbwBQ2gzhLEB3+TttdWqpl0pbJo4zTTBZ8jfU+b
-   H8YZJVu0M+cdF77zMP4LWneA+esHkMIgHanY1yl5T1ZdmpZUye4tMemil
-   Jks1YD1LGmWeHtJfMLfOd17HuhBTc09dcgDjRTKpfxRHv3YPshPFLMv1X
-   mzXS6yyZFd9yanmLwQBCAetH6KptEO26Z71g6ERn5SD0rm29hln63gNiU
-   wf38/Orw5Mutn0hTn2smp5ygxfTgtdd4/hPxv3CWa2tmZMHQ14S1xofex
-   w==;
-X-CSE-ConnectionGUID: GY3DlmmnRvCCLvev7oBU6w==
-X-CSE-MsgGUID: oWZ9f/1HSpeOncPlGO4NVQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11267"; a="32853523"
-X-IronPort-AV: E=Sophos;i="6.12,183,1728975600"; 
-   d="scan'208";a="32853523"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2024 13:12:43 -0800
-X-CSE-ConnectionGUID: YL7aPKirSTeuo8Gs3wEKow==
-X-CSE-MsgGUID: adKSnD2iRti/kJe3HWMZ8A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,183,1728975600"; 
-   d="scan'208";a="91194398"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.110.188])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2024 13:12:41 -0800
-Date: Mon, 25 Nov 2024 13:12:39 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Suraj Sonawane <surajsonawane0215@gmail.com>
-Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, ira.weiny@intel.com, rafael@kernel.org,
-	lenb@kernel.org, nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-Subject: Re: [PATCH v6] acpi: nfit: vmalloc-out-of-bounds Read in
- acpi_nfit_ctl
-Message-ID: <Z0ToRzLyx5L5xDGu@aschofie-mobl2.lan>
-References: <20241118162609.29063-1-surajsonawane0215@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ot9ymTE9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7859C4CECE;
+	Tue, 26 Nov 2024 02:59:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1732589971;
+	bh=Y/llceuyFvWYdu6tV+2xPCVzLsqCdjHOGubb/TAgkp0=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=Ot9ymTE9KXMscsSH0PAFqgejogNMO+UB+kYQAzRDGB/nHrIFgvRomEm8SdCRmX7gN
+	 +eR3YBVsrVR3e/1LLr/86Ns+gjsTNxdKrnintrAMVySX2d8HPuwk6AXKIsFZsJ0hON
+	 V2cticdnNeAjJXc5zZBYY5FxnS3BjZ1IVyeEiYdq//P0fRpRZpl8bmayOJjl9StjCY
+	 s/e3QJVXfapfZWhKNuIKgDcRDghojJRErDbV8/XlY7vxxtaRQdrQ455+eMgAmx/Oug
+	 8AUa81bRD/Hxe8StL0DTFhpyJCp0vXb/aSPKh/OkcEcNmJ1AVEnWpfTxexoX2jpPCB
+	 W4rWxkPMue+HA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EB0853809A00;
+	Tue, 26 Nov 2024 02:59:45 +0000 (UTC)
+Subject: Re: [GIT PULL] NVDIMM and DAX for 6.13
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <6740e31574b0e_2de57f294c9@iweiny-mobl.notmuch>
+References: <6740e31574b0e_2de57f294c9@iweiny-mobl.notmuch>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <6740e31574b0e_2de57f294c9@iweiny-mobl.notmuch>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git tags/libnvdimm-for-6.13
+X-PR-Tracked-Commit-Id: f3dd9ae7f03aefa5bb12a4606f3d6cca87863622
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 78a2cbd809ef834b680f2825d3e4c16ec66f8ffa
+Message-Id: <173258998455.4123769.1264709561580076077.pr-tracker-bot@kernel.org>
+Date: Tue, 26 Nov 2024 02:59:44 +0000
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Shen Lichuan <shenlichuan@vivo.com>, Yi Yang <yiyang13@huawei.com>, Vegard Nossum <vegard.nossum@oracle.com>, Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>, Christophe JAILLET <christophe.jaillet@wanadoo.fr>, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241118162609.29063-1-surajsonawane0215@gmail.com>
 
-On Mon, Nov 18, 2024 at 09:56:09PM +0530, Suraj Sonawane wrote:
-> Fix an issue detected by syzbot with KASAN:
-> 
-> BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/
-> core.c:416 [inline]
-> BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0
-> drivers/acpi/nfit/core.c:459
-> 
-> The issue occurs in cmd_to_func when the call_pkg->nd_reserved2
-> array is accessed without verifying that call_pkg points to a buffer
-> that is appropriately sized as a struct nd_cmd_pkg. This can lead
-> to out-of-bounds access and undefined behavior if the buffer does not
-> have sufficient space.
-> 
-> To address this, a check was added in acpi_nfit_ctl() to ensure that
-> buf is not NULL and that buf_len is less than sizeof(*call_pkg)
-> before accessing it. This ensures safe access to the members of
-> call_pkg, including the nd_reserved2 array.
-> 
+The pull request you sent on Fri, 22 Nov 2024 14:01:25 -0600:
 
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git tags/libnvdimm-for-6.13
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/78a2cbd809ef834b680f2825d3e4c16ec66f8ffa
 
-> Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3
-> Tested-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Fixes: ebe9f6f19d80 ("acpi/nfit: Fix bus command validation")
-> Signed-off-by: Suraj Sonawane <surajsonawane0215@gmail.com>
-> ---
-> V1: https://lore.kernel.org/lkml/20241111080429.9861-1-surajsonawane0215@gmail.com/
-> V2: Initialized `out_obj` to `NULL` in `acpi_nfit_ctl()` to prevent
-> potential uninitialized variable usage if condition is true.
-> V3: Changed the condition to if (!buf || buf_len < sizeof(*call_pkg))
-> and updated the Fixes tag to reference the correct commit.
-> V4: Removed the explicit cast to maintain the original code style.
-> V5: Re-Initialized `out_obj` to NULL. To prevent
-> potential uninitialized variable usage if condition is true.
-> V6: Remove the goto out condition from the error handling and directly
-> returned -EINVAL in the check for buf and buf_len
-> 
->  drivers/acpi/nfit/core.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 5429ec9ef..a5d47819b 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -454,8 +454,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
->  	if (cmd_rc)
->  		*cmd_rc = -EINVAL;
->  
-> -	if (cmd == ND_CMD_CALL)
-> +	if (cmd == ND_CMD_CALL) {
-> +		if (!buf || buf_len < sizeof(*call_pkg))
-> +			return -EINVAL;
-> +
->  		call_pkg = buf;
-> +	}
-> +
->  	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
->  	if (func < 0)
->  		return func;
-> -- 
-> 2.34.1
-> 
-> 
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
