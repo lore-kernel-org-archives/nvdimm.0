@@ -1,38 +1,38 @@
 Received: from pv50p00im-zteg10011501.me.com (pv50p00im-zteg10011501.me.com [17.58.6.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003C2AD39
-	for <nvdimm@lists.linux.dev>; Tue,  3 Dec 2024 00:36:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EBB9762EB
+	for <nvdimm@lists.linux.dev>; Tue,  3 Dec 2024 00:37:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=17.58.6.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733186208; cv=none; b=sUo8CtL/QUn/kjmtFPHr24WZZalMJnTXGCReyuLDVBgsLBPSiiqhPszEnwnYoXjG5DFu3khwFjDkay1Fufk5y7RHt0q4GDmn+boABs1vmNXGs7itZA/GTwnm7p8ATcNDjEsJ1FxaR+6JfsK1suhMtLSX6JtSKWQ4sDviYiDIvx0=
+	t=1733186232; cv=none; b=iHHd9pv0MEY5on5moAkG+W6/cFQGuy36K7Xl5x+NEo9kINb2qGTHbZ++2sa/PfomdF0K6mEUxdbW/2sLZ45TaIjzrRSzQOTQDwsvNt7UH82PWjo/RMyFqkclmal/wDmIrLUIfekSpgfBf+JRIlE2ak8GNG3cRRi0g8oBd6/2JNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733186208; c=relaxed/simple;
-	bh=0pmkVmkdexMzVD7CitPN355aISpwyo5n7HnGnW8xvtI=;
+	s=arc-20240116; t=1733186232; c=relaxed/simple;
+	bh=jSVeDV6ZkiM+64+Q5gavtblCa5TWc80K57jDUkyQphQ=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=X/KujAXfW7MfCXgg+tixZieN349wrRQR3XRWIfX2c65CR7G+vxR2HB4ydY9E6dT1bxUCFyuyenPjrEQY51BClhOK14mmxfr0o2AowQ0NZXTInlVNUnMZJBcaS3AssLVROMkizYKF1tn0aUmIlOt8X1hD0FzVvQ2kitbI+YdacIA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=ObmVCSyK; arc=none smtp.client-ip=17.58.6.42
+	 In-Reply-To:To:Cc; b=PmPkllVjkovHOAqdfbnH66Hn7/C6lMpDXiqsmBsNa7cq2S8NT85TOaMX7g/uhpHe0iDs/XZvIvRwhdc7eck/Hg+6mI/7ppAsk7Xfi9WMPKw+4T8sAim4fvvHiQw5aVvfiy/DrDCU2mo1QWQTfnupFOyoM8m4BRErC9D2SBd/Gc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=jXymdwgi; arc=none smtp.client-ip=17.58.6.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="ObmVCSyK"
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="jXymdwgi"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-	s=1a1hai; t=1733186205;
-	bh=SSnfrLpaIqpTBx9QqpuhLFeoWIynMtinyOBbC22fWs0=;
+	s=1a1hai; t=1733186227;
+	bh=TLSTsXB0mczbMt3mGzVPxQ8OhGxgNCZ6TAUMbiwY3B8=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:
 	 x-icloud-hme;
-	b=ObmVCSyKqUug4GAR5yet0Vp5Bq6987z1bM/OQ/bP62dBxm5XJGn3KX3dNawO542Ww
-	 tb5XHH4umbuLfEQOVXx9Txu0UeLNIV22VMn1pe2J8magDSHsF1Ejf5v8XwVSIZu1Yo
-	 BgA4d0yOrZeQp8JQEO++Q+wrZHQfhRTRe/f4piT6itW1DCkH938yBM5laOHKjdHxPL
-	 VnT2Y9SUP5bbBWH5EQal391Kg/YvKlrGNj5ogF2vCLUHQGt1a6iE1dXf4watf+gSOC
-	 Yfd0VnhAlIreTlytB5FCQakfQXZ6TluqubGcqjByuE8XvabG+NiGEAWljIJN8v1UOX
-	 EQKIHiwksD2Pg==
+	b=jXymdwgicR4eK64TnG8UOl/zIlCmDeKxoyug3tscaJQ6VYyjA9iiv14jOaoCtSZyZ
+	 4fG29yUoEJmpPSdPiTAl1/TyLmaHumfqUUknIyeLxZXFixafQ3LkeoxcEf9HL/z74b
+	 IHkvT3/Ae4Q1PGFtdQZdpM+x2Qzb5BpK73NlRAd2rwKGWP75FBWGV7T1YhV1/rcq1M
+	 2RuoLGUjlvsnS44SgzdIfqWT8MBWHPeno3+o8SxAgh6uK7+v3i49Go1zRIub3hS2tl
+	 EthoPgJROAtFCu/JVaNSaGiHCtJy5sTg6M+uel/G6l3zx8QG+mfAlvFbDi1LQRwZdl
+	 IevFqEkUispHA==
 Received: from [192.168.1.26] (pv50p00im-dlb-asmtp-mailmevip.me.com [17.56.9.10])
-	by pv50p00im-zteg10011501.me.com (Postfix) with ESMTPSA id CF7184A0114;
-	Tue,  3 Dec 2024 00:36:24 +0000 (UTC)
+	by pv50p00im-zteg10011501.me.com (Postfix) with ESMTPSA id 5175C4A0429;
+	Tue,  3 Dec 2024 00:36:46 +0000 (UTC)
 From: Zijun Hu <zijun_hu@icloud.com>
-Date: Tue, 03 Dec 2024 08:33:27 +0800
-Subject: [PATCH v2 05/32] media: pci: mgb4: Adapt for constified
+Date: Tue, 03 Dec 2024 08:33:28 +0800
+Subject: [PATCH v2 06/32] thunderbolt: Adapt for constified
  device_find_child()
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -42,7 +42,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241203-const_dfc_done-v2-5-7436a98c497f@quicinc.com>
+Message-Id: <20241203-const_dfc_done-v2-6-7436a98c497f@quicinc.com>
 References: <20241203-const_dfc_done-v2-0-7436a98c497f@quicinc.com>
 In-Reply-To: <20241203-const_dfc_done-v2-0-7436a98c497f@quicinc.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
@@ -99,13 +99,13 @@ Cc: Zijun Hu <zijun_hu@icloud.com>, linux-kernel@vger.kernel.org,
  arm-scmi@vger.kernel.org, linux-efi@vger.kernel.org, 
  linux-remoteproc@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
 X-Mailer: b4 0.14.2
-X-Proofpoint-GUID: W-g9c5jPAdNx4vqI0xaEwGs2JJSxHZXa
-X-Proofpoint-ORIG-GUID: W-g9c5jPAdNx4vqI0xaEwGs2JJSxHZXa
+X-Proofpoint-GUID: TeEtLogdLeVrzNxTk5Sn7v7tNnyO2_Qq
+X-Proofpoint-ORIG-GUID: TeEtLogdLeVrzNxTk5Sn7v7tNnyO2_Qq
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
  definitions=2024-12-02_14,2024-12-02_01,2024-11-22_01
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0
- mlxlogscore=999 mlxscore=0 spamscore=0 suspectscore=0 malwarescore=0
+ mlxlogscore=701 mlxscore=0 spamscore=0 suspectscore=0 malwarescore=0
  clxscore=1015 adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.19.0-2308100000 definitions=main-2412030002
 X-Apple-Remote-Links: v=1;h=KCk=;charset=UTF-8
@@ -119,31 +119,36 @@ Make its match functions take a const pointer to adapt for the new type.
 
 Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
 ---
- drivers/media/pci/mgb4/mgb4_core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/thunderbolt/retimer.c | 2 +-
+ drivers/thunderbolt/xdomain.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/mgb4/mgb4_core.c b/drivers/media/pci/mgb4/mgb4_core.c
-index bc63dc81bcae0d20924174be74b93a2139d5879f..697d50bedfe285d74c702efde61e510df87c1229 100644
---- a/drivers/media/pci/mgb4/mgb4_core.c
-+++ b/drivers/media/pci/mgb4/mgb4_core.c
-@@ -123,7 +123,7 @@ static const struct hwmon_chip_info temp_chip_info = {
+diff --git a/drivers/thunderbolt/retimer.c b/drivers/thunderbolt/retimer.c
+index 89d2919d0193e8f5c68e669d054f3efc7abf78c8..21d2902c6102f0f593fb0c6d645acaff31ebb274 100644
+--- a/drivers/thunderbolt/retimer.c
++++ b/drivers/thunderbolt/retimer.c
+@@ -461,7 +461,7 @@ struct tb_retimer_lookup {
+ 	u8 index;
  };
- #endif
  
--static int match_i2c_adap(struct device *dev, void *data)
-+static int match_i2c_adap(struct device *dev, const void *data)
+-static int retimer_match(struct device *dev, void *data)
++static int retimer_match(struct device *dev, const void *data)
  {
- 	return i2c_verify_adapter(dev) ? 1 : 0;
- }
-@@ -139,7 +139,7 @@ static struct i2c_adapter *get_i2c_adap(struct platform_device *pdev)
- 	return dev ? to_i2c_adapter(dev) : NULL;
+ 	const struct tb_retimer_lookup *lookup = data;
+ 	struct tb_retimer *rt = tb_to_retimer(dev);
+diff --git a/drivers/thunderbolt/xdomain.c b/drivers/thunderbolt/xdomain.c
+index 11a50c86a1e4302968f44dafeab47977bac01dd5..b0630e6d94726f9069c20017876ec7e212071686 100644
+--- a/drivers/thunderbolt/xdomain.c
++++ b/drivers/thunderbolt/xdomain.c
+@@ -1026,7 +1026,7 @@ static int remove_missing_service(struct device *dev, void *data)
+ 	return 0;
  }
  
--static int match_spi_adap(struct device *dev, void *data)
-+static int match_spi_adap(struct device *dev, const void *data)
+-static int find_service(struct device *dev, void *data)
++static int find_service(struct device *dev, const void *data)
  {
- 	return to_spi_device(dev) ? 1 : 0;
- }
+ 	const struct tb_property *p = data;
+ 	struct tb_service *svc;
 
 -- 
 2.34.1
