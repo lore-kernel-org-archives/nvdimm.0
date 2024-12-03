@@ -1,214 +1,223 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from pv50p00im-zteg10011501.me.com (pv50p00im-zteg10011501.me.com [17.58.6.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 716D618B464
-	for <nvdimm@lists.linux.dev>; Mon,  2 Dec 2024 16:26:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733156787; cv=fail; b=tVFutYx9XEnbZAmmoIdDTFdhXi9HGolbxhUOPRfa+wW3maYrCMeuXD7mEzkZlhz6Wt75ethemv3KRQ+FA7GyIP0PKKaxUOxY/CaZ6OPHDnpYCjPuBpPjV3ePxN+U3Rdjz/kgyYHI5ARmgENmWOElwIDiBqXdKWCmo2Kk4ujuNBw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733156787; c=relaxed/simple;
-	bh=gg1Lx/mMMkf9yQQbXK4MLl40VZoHOCYrtDymE0CtRWs=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=LvntzxKrXDxrBGvQE4a+alkFRZbMjwoW98jiciA/gVLjtogM5J+XEO0Fk5Ii0WYvcE6tlfISD7IgY9TR4YOPHeGiJLJduafBNDrp2ZU/OHHLHSn4PDY3Ju6676ilsYVQF0EYn3j/19sqOKX3oEcaSmwwA0scS01809NPo2VKZBI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=U1DNrfWR; arc=fail smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E51471CABA
+	for <nvdimm@lists.linux.dev>; Tue,  3 Dec 2024 00:34:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=17.58.6.42
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733186103; cv=none; b=dzn+We5CRaeCXTFhBYDULVN60V4SNlh/SPYbLc/QFFTKXAresCNhDBjgUqg2ZEYgBk8PEVOAEW7Loux953dN5tmpylfI9Y3YQyKAKz0elXaKX8T8Vyw3CANLqJ+4frNF+F8HgcMffVDK2PZih0WMN3xVm5UJZ+Y1TveDBa54u3g=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733186103; c=relaxed/simple;
+	bh=90Z3uIVjxiaduJ4fj5p/v/pFRaVs8rKzXxaWEN8s1Fs=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=jJLHz+DhdYA44HMsS0SVnwnyf05bn8QaBuf3ot4Jv690B+8otuSqIwIsdzI9jemv6lINn1btfQ7DvhEFbJY03u+wcfSTDOTIkwNelPhxj2yJla+fIJifyiDRITEY0btAHReGgPFbTYLXLcvB8MJ+jq+A08ncfqyFwbJgtm/JyyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=miqyYlVd; arc=none smtp.client-ip=17.58.6.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="U1DNrfWR"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1733156786; x=1764692786;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=gg1Lx/mMMkf9yQQbXK4MLl40VZoHOCYrtDymE0CtRWs=;
-  b=U1DNrfWRyGW7SrqZX0HxiZsHQXxcUhho+vefBGu+jYbmU5g8igXrx91w
-   OoimurcmQBe2LAa6af4Iaz8sFv1lK/Nw/Z+lRboOJ8xGSjVS55QzEFDbq
-   6GIYNbItTR/alAEbH9Iu1I3IQ3np9rxWbUWePVPxITYte+ZiJxIVHRkLn
-   /MfU4AkeTuiq1lBqs1M2f0+oY/Q84L+LbH47CGWmbYS9ND2weZwmMCMl7
-   Syikkw2A6HqXD8ZFqlNP6ufBHwiFalLAnXb56QyVPkdDs+f2GuktFuiyE
-   MFrpxts/Zl4ZNqnFykDXiqnbbu+ynXY+kuX2i1lWl3WVPouPLNpV9bHvt
-   A==;
-X-CSE-ConnectionGUID: ll4fLWPARti/Y9B5q4YI8Q==
-X-CSE-MsgGUID: Z5tPPsZ/Sw+i6TFTSxn4wg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11274"; a="32689618"
-X-IronPort-AV: E=Sophos;i="6.12,202,1728975600"; 
-   d="scan'208";a="32689618"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2024 08:26:25 -0800
-X-CSE-ConnectionGUID: YEL7IH/uRiKpQ0Eb08IeMw==
-X-CSE-MsgGUID: 3V4WMAsHToyNxSElkv+ImQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,202,1728975600"; 
-   d="scan'208";a="93055748"
-Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
-  by orviesa010.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 02 Dec 2024 08:26:24 -0800
-Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Mon, 2 Dec 2024 08:26:23 -0800
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Mon, 2 Dec 2024 08:26:23 -0800
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.168)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Mon, 2 Dec 2024 08:26:23 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=hKp3SA+VgXIhvZoGKD8dQKjowQCR+d44D5E+pmFoq+82FuMFfqXWFuxH6SFTtGQ1jDCjZLj5FG4SCdGnJaAggydmHZ7huHxwMzM8YTesz7+mR8h5yUvliyvWJ889tR0vxjQpgJd/gEUwvdJlsKJGK2+wJ3RYTjOR1vtNp9q5HuNMoV8O1aARqOrjohuRmrNl7RdpqJ7bZYFya3WlKCcHuX+PXjiZTw6FD3X8zBPeupKilyWO88EibWT4mWdL8oCsmTpHvE6ihj6luTZecnAfUiqoDnQ6QahioHzAoYN+e0JyrF2TvkxWvoHeZUfFDjopa3nxTx1HiUkmwNSrSbb23g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aCfqxlO6EG/rcm7WZvmJ/mMw4ZVFlIvwwrk5Wfserjo=;
- b=XxDYw/WYF05ij/KyEI8bYezuuc64Gsj7L7/3+OfYee7qcbgnt5+MbzAfupESK1cF0wOsjyj2KCGmht/2U891uC8+pcn/3MPF7+k9VQHc9LliKswTK2rcH/zkmL0G7zSEs3RZBFIb71mPuZlox3VzT0MgkfCIVBkw9ryzEb0cLuj9ist7iTEZ11iWhr8+JOY4rxwwFd5iyz72hi2YhYc0JNCPYlrjuHYNUtHG3iIspfv/d/2hEf6K2SFwnudl8FTx0TSyZrY6w9hnQGh7E/DT3ZIkkS2Ss87tuzo+MygiXQjd5UieFaPx7K3eOb9KVtixKC65Llj8QmK5ywK1xOLhQQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by CY5PR11MB6318.namprd11.prod.outlook.com (2603:10b6:930:3e::5) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8207.18; Mon, 2 Dec
- 2024 16:26:21 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%6]) with mapi id 15.20.8207.010; Mon, 2 Dec 2024
- 16:26:21 +0000
-Date: Mon, 2 Dec 2024 10:26:14 -0600
-From: Ira Weiny <ira.weiny@intel.com>
-To: Suraj Sonawane <surajsonawane0215@gmail.com>, <dan.j.williams@intel.com>
-CC: <vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <ira.weiny@intel.com>,
-	<rafael@kernel.org>, <lenb@kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com>
-Subject: Re: [PATCH v6] acpi: nfit: vmalloc-out-of-bounds Read in
- acpi_nfit_ctl
-Message-ID: <674ddfa6abc4d_3cb8e0294cf@iweiny-mobl.notmuch>
-References: <20241118162609.29063-1-surajsonawane0215@gmail.com>
- <1813d5d3-6413-4a44-b3dd-a1be4762f839@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1813d5d3-6413-4a44-b3dd-a1be4762f839@gmail.com>
-X-ClientProxiedBy: MW4PR03CA0340.namprd03.prod.outlook.com
- (2603:10b6:303:dc::15) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="miqyYlVd"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
+	s=1a1hai; t=1733186099;
+	bh=oHbx7nufqBC9FciDzS/LGxt7hmN8dQX6iuRN6cbwUA4=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:
+	 x-icloud-hme;
+	b=miqyYlVd243flQ1IvVsliQiE9DHrrSD+z1j3Ao2U3BsVp7icRgsik+yX27rSCj4D+
+	 T5K/safPmJG6H2G4WE9j7bBQvaFexypWm7FZEDou1MHIH9tDRRWMiQ1UPriELs/+hg
+	 sXJNUkBBU1moy8uzw4v/v66n2uZ4nRbGFXnHbTcyy0JERpSfQmvHQ8NAx4kDoEqPtw
+	 K44qvDlYPQIBfuW/hOl+sPtWJcXOrD96VbESU02KGCiiJXJdFSzYBJ54ViTlBPnRB9
+	 QOAY9cdzyUWJL5EMG594jIK63Bf2SXcNzUNd7nw2qi11pPaZME4OnmSK9qWoRG15E/
+	 2icgiJHx3EH4g==
+Received: from [192.168.1.26] (pv50p00im-dlb-asmtp-mailmevip.me.com [17.56.9.10])
+	by pv50p00im-zteg10011501.me.com (Postfix) with ESMTPSA id A517C4A0115;
+	Tue,  3 Dec 2024 00:34:38 +0000 (UTC)
+From: Zijun Hu <zijun_hu@icloud.com>
+Subject: [PATCH v2 00/32] driver core: Constify API device_find_child() and
+ adapt for various existing usages
+Date: Tue, 03 Dec 2024 08:33:22 +0800
+Message-Id: <20241203-const_dfc_done-v2-0-7436a98c497f@quicinc.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|CY5PR11MB6318:EE_
-X-MS-Office365-Filtering-Correlation-Id: 71e9dc63-7bb2-4d9b-c212-08dd12ee0e48
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?CGkvV+RBHhs0FqevhHfQF0q1d7cHQC6eCEuVL8ZjC2OdegdF8AkKka27/jDu?=
- =?us-ascii?Q?CitCCDqLpv/3nsDRuCTlwfhIsL2fK/4O1EJ3WBfQjIRPGRX945ojfsRcenEB?=
- =?us-ascii?Q?rk5fQ82S4Xe2JaPrjxKBvDw1ta3izZd/OkISrg7bUFjfcuE/e0DXeUrIAdGK?=
- =?us-ascii?Q?E2YCX+OVj26lKllHKlOZoWv7E4IvcRVAH66MIpik+E0dcoUXKiOuIhy4Ti/J?=
- =?us-ascii?Q?cZfPu2NAhO0uzfdCALCa8a6XCU7hik2Z5rGZQISQc2uEWfLYx7DoTRzY1Qoy?=
- =?us-ascii?Q?iPPcsVy1YQ9+GrH4zKJD8/XyS3woJdHFPYmAPFLba2Pl0stUBcsi56OBs66V?=
- =?us-ascii?Q?mKQfjaZOCIjS49kXy0UL8LhJIdoAJxHoOpMDiTcTQfaLj4rfKGIoNSAcyUo4?=
- =?us-ascii?Q?PD0ixdC1QbTpmhbLNKfw+9hxRH6NmNlvNroePZcpxnQs8XMy+RltM1DlsF0y?=
- =?us-ascii?Q?Qj2gcNx0IpJ9c6wVUU9crJ6JEkweuHOeZUpnSAWMeygPnl0XOw/SfZnJfvuv?=
- =?us-ascii?Q?MQpx0R4zJxmB2mQrR8+h6ecLcjCMTUsm2Aj0HPV49ERe4niTpOx5oaVwRbLk?=
- =?us-ascii?Q?2xMGflEjESi5PM7+9MKt2HmFdkCRMO0nxYN2rQp/Lykb0hSIvkXrin08APdE?=
- =?us-ascii?Q?v7Ygp1KGmk009nfgQAtH5e9xMCkAbyrITRGZR3iEtRQqAchr8TuLuh7MATfv?=
- =?us-ascii?Q?lNEP8exv9BxWI6nPEm3wevQGoRfnVcIr/irNjXIUuubA2kBIFU0ZH5Izgs6S?=
- =?us-ascii?Q?HUfa+IGTHiHBCq6NQdwg3PlvMIVa5H++yiMwlyuVSV4ZurSge4CT6AShna6X?=
- =?us-ascii?Q?98ABOLzWZ/qR1V7DyxAOWSRtuyM2T86wuNFJyAKjIrnrgniu2MJxGAGBhHru?=
- =?us-ascii?Q?qqrvC2rjMEXkbyI+9iPw39ARGInlq6bxY3sU78ueO/t5WpIdB9/tprZF1P4c?=
- =?us-ascii?Q?ObXbza2MDtgrzt9RnAMgFeQt65EPck3AF3ydsH25B0rbma5zZNxeuxbCOHKW?=
- =?us-ascii?Q?xNj6o9kEF8DN1rqQnYy5bume8f7TT2ta4UHMugxfPC59OdumhjoHFltl3BpD?=
- =?us-ascii?Q?+zefq3XRlrxjUHhTW+yWa7JJMplNAQ6M/rvUd2cEecROh9IpO6zyRC02R3Xg?=
- =?us-ascii?Q?xAq9X+1Q5hPIggO841PblGPBdymBSpdf6vNOUJFuS0I8iPx/X3kJHVNKH9Eo?=
- =?us-ascii?Q?m11UzHCBnkaTjXRHWLV0wmJ1uRSzcQHtaA6OBxQd4P1lnx/LJIYnSB5gs3kT?=
- =?us-ascii?Q?x1sK2sIE4lOZHk8gEtMoKuUCGiMmep6Di0fbbxCmc6pLK9RyhRbcSpPYZvfW?=
- =?us-ascii?Q?uCOwQd7A22z9idDl7xZgPEVS74VOyBDh+faGoiglUPpyYw=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?CRDEiGiMVmNE6Z1tlJENp62CKkTft8CyuBzcddSN0m3PLz/nJVpIt8BhlvwQ?=
- =?us-ascii?Q?xjIyNZAZgi5j1W9wnkldNe4fFo4aSYEwYogU6h5i6jS85eqVYuOeGKM3Zq2F?=
- =?us-ascii?Q?sJ0oigZZGWh/v7qRtVfcf7pYfmQcMX8VLOCLhsH1e6+GxzIpXfsLBmEii6mY?=
- =?us-ascii?Q?24HVvGKHcIBHpyp9lMbRAP1/4ZMJ6c2/cugRYIh8GIKeYzefJ3u5K/lUHDGy?=
- =?us-ascii?Q?tTVOacyMlM4OaGed/ePr6xapVeziTY7jbU7B/EAjasA9Jpka7VaVG5UZ+oLA?=
- =?us-ascii?Q?ye1sPWj7b1I+kH8LpuyVgBCyx8HZ2JcbeLGSkjLxRj4YaHS8fW/cDVN4TRU6?=
- =?us-ascii?Q?lxdp1KKJeA10DY/x0ZDts6vaYUftHWP8kwPyfD1gPpvlH0ji84lC6HFrKwT0?=
- =?us-ascii?Q?8YUhm0FOV3uKoHfJ425ppaMSM0acnpM4KsDqZp06nXQOuvXmtDnKgmrhN+kS?=
- =?us-ascii?Q?+TsF4GVFxfPHIarPLdOPRhwwD1f8JZS3BXD21o8+Li0eRMGjwvmDJHmuOve8?=
- =?us-ascii?Q?YhskPHslQmUleXaZVOz8NtjK21OOhOZYh+8aICUe8snJdSp6o/jf/CRvS1I3?=
- =?us-ascii?Q?cLLnocmh8GFIFYnRkrZ+KaoTWU5zeJAOYSknRArzU4QEH/pBqUtiPVnEUl4a?=
- =?us-ascii?Q?2b4vD73ozL6LNaMRr/CMAkF7OSD6F3yClJjC6i7x4n8cje6x/Ek5rwflNvJ5?=
- =?us-ascii?Q?Ws+OSVZxKK1icobFd/iE480BJVWVD10Yus1E8U9Cj6LBnwT1ErBaLXoKgJi5?=
- =?us-ascii?Q?dyHSY8uiWen1w0QugpC8ykFiYvOrbxFo88YHx5WhzU6DZF9Gt/3DY+s3TB1+?=
- =?us-ascii?Q?1GWlbkon2eKMZM8Kl2UdX3HVZQQIPvd5TOpUFjgjguHk9c0Z7sXVo6ZIXcHV?=
- =?us-ascii?Q?XpzTIrOrV4WwJ5PYScmTa9CNdsX5HDoPWzjqnDUl7cRYTkdYFyv122yf8ady?=
- =?us-ascii?Q?RMqV1ckkckRpjY8BXX1pEesDiO+UVRjh2XdPUTJNLGFfLBoIkeF43GCm4a6a?=
- =?us-ascii?Q?Dlid4HIJQiZA/fLHW50WDHge/9O7mmqftfq18XN/WZ+n8PKglQJjNWWpDzav?=
- =?us-ascii?Q?9soa/3evkgbPAUnYuMJzYdPWLmGop2WgHizXBZAaZH1am65eZW1idCYm5yaW?=
- =?us-ascii?Q?+hkmOa7w0QCI6xR8nhUyJfitX/Yu1FxAJCuULW1aj53zrS3DS4aHNnoq0A+x?=
- =?us-ascii?Q?aPVn6jodPfIgLzy0UgIzf3GYU4WmZ65Y3oVno1hJeQz92dj3yFZdEfHsThUH?=
- =?us-ascii?Q?R+nyuwvAmCoALQHdNL6D2M2aUxBvu1jQ4DViNElNGr/K1hJrwztDmx7scxP1?=
- =?us-ascii?Q?bzXfeXiW0LlHWlmhYJfqSRQDXutg91DFjIq8XgTMo3NqPV7x028c16+cWmo7?=
- =?us-ascii?Q?7bdhXn4+V+7k8wxn3yNPUkYoS3HvsI/1kiI55ZpM5QRfXiwj/H4GxTTOVmpo?=
- =?us-ascii?Q?WTjgyMObEI+7cfBn2vbsfTBLmNpiGN2gu4iQhI9avprbaFPmKM5mEo9XU25h?=
- =?us-ascii?Q?Wl81wllxp4tAKvL6SyHHGJ+4huZBDgFIOjHSFvtQxU9P9DXBdhD54OMKfwbL?=
- =?us-ascii?Q?/S9g1+regadQFBJOpZnffTZW80LmHkCZrje8wO6C?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 71e9dc63-7bb2-4d9b-c212-08dd12ee0e48
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Dec 2024 16:26:21.0452
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rjiN9DOZrubGcv8BFdohE0Q9cDuS2nEPebs7CdXTcGKXjqU1UzgYsbyWPAySVw4wibh7Z2Kd+YlQGYt++9gYjA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR11MB6318
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIANJRTmcC/2XMQQ6CMBCF4auQWVvTFozgynsYQsp0KrOwxRaJh
+ vTuVrYu/5e8b4NEkSnBpdog0sqJgy+hDxXgZPydBNvSoKVulJZKYPBpGazDwQZPwhjCs6J6HMl
+ AOc2RHL938NaXnjgtIX52f1W/dadkq/6oVQkpOtueqHZdU+N4fb4Y2eMRwwP6nPMXYHxV6a4AA
+ AA=
+X-Change-ID: 20241201-const_dfc_done-aaec71e3bbea
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, 
+ Chun-Kuang Hu <chunkuang.hu@kernel.org>, 
+ Philipp Zabel <p.zabel@pengutronix.de>, David Airlie <airlied@gmail.com>, 
+ Simona Vetter <simona@ffwll.ch>, Matthias Brugger <matthias.bgg@gmail.com>, 
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+ Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, 
+ Martin Tuma <martin.tuma@digiteqautomotive.com>, 
+ Mauro Carvalho Chehab <mchehab@kernel.org>, 
+ Andreas Noever <andreas.noever@gmail.com>, 
+ Michael Jamet <michael.jamet@intel.com>, 
+ Mika Westerberg <mika.westerberg@linux.intel.com>, 
+ Yehezkel Bernat <YehezkelShB@gmail.com>, 
+ Linus Walleij <linus.walleij@linaro.org>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, Andrew Lunn <andrew@lunn.ch>, 
+ Vladimir Oltean <olteanv@gmail.com>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, 
+ =?utf-8?q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>, 
+ Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+ Ira Weiny <ira.weiny@intel.com>, Takashi Sakamoto <o-takashi@sakamocchi.jp>, 
+ Jiri Slaby <jirislaby@kernel.org>, 
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+ Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, 
+ Lee Duncan <lduncan@suse.com>, Chris Leech <cleech@redhat.com>, 
+ Mike Christie <michael.christie@oracle.com>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ "Martin K. Petersen" <martin.petersen@oracle.com>, 
+ Nilesh Javali <njavali@marvell.com>, 
+ Manish Rangankar <mrangankar@marvell.com>, 
+ GR-QLogic-Storage-Upstream@marvell.com, Davidlohr Bueso <dave@stgolabs.net>, 
+ Jonathan Cameron <jonathan.cameron@huawei.com>, 
+ Alison Schofield <alison.schofield@intel.com>, 
+ Andreas Larsson <andreas@gaisler.com>, Stuart Yoder <stuyoder@gmail.com>, 
+ Laurentiu Tudor <laurentiu.tudor@nxp.com>, Jens Axboe <axboe@kernel.dk>, 
+ Sudeep Holla <sudeep.holla@arm.com>, 
+ Cristian Marussi <cristian.marussi@arm.com>, 
+ Ard Biesheuvel <ardb@kernel.org>, Bjorn Andersson <andersson@kernel.org>, 
+ Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: Zijun Hu <zijun_hu@icloud.com>, linux-kernel@vger.kernel.org, 
+ dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org, 
+ linux-arm-kernel@lists.infradead.org, linux-hwmon@vger.kernel.org, 
+ linux-media@vger.kernel.org, linux-usb@vger.kernel.org, 
+ linux-gpio@vger.kernel.org, netdev@vger.kernel.org, 
+ linux-pwm@vger.kernel.org, nvdimm@lists.linux.dev, 
+ linux1394-devel@lists.sourceforge.net, linux-serial@vger.kernel.org, 
+ linux-sound@vger.kernel.org, open-iscsi@googlegroups.com, 
+ linux-scsi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+ sparclinux@vger.kernel.org, linux-block@vger.kernel.org, 
+ arm-scmi@vger.kernel.org, linux-efi@vger.kernel.org, 
+ linux-remoteproc@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
+X-Mailer: b4 0.14.2
+X-Proofpoint-GUID: cTyu1VL48UqVhY7zPwUQPPYeAfZYowdo
+X-Proofpoint-ORIG-GUID: cTyu1VL48UqVhY7zPwUQPPYeAfZYowdo
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2024-12-02_14,2024-12-02_01,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0
+ mlxlogscore=999 mlxscore=0 spamscore=0 suspectscore=0 malwarescore=0
+ clxscore=1011 adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2308100000 definitions=main-2412030002
+X-Apple-Remote-Links: v=1;h=KCk=;charset=UTF-8
 
-Suraj Sonawane wrote:
-> On 11/18/24 21:56, Suraj Sonawane wrote:
+This patch series is to constify the following API:
+struct device *device_find_child(struct device *dev, void *data,
+		int (*match)(struct device *dev, void *data));
+To :
+struct device *device_find_child(struct device *dev, const void *data,
+				 device_match_t match);
+typedef int (*device_match_t)(struct device *dev, const void *data);
 
-[snip]
+Why to constify the API?
 
-> > 
-> >   drivers/acpi/nfit/core.c | 7 ++++++-
-> >   1 file changed, 6 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> > index 5429ec9ef..a5d47819b 100644
-> > --- a/drivers/acpi/nfit/core.c
-> > +++ b/drivers/acpi/nfit/core.c
-> > @@ -454,8 +454,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
-> >   	if (cmd_rc)
-> >   		*cmd_rc = -EINVAL;
-> >   
-> > -	if (cmd == ND_CMD_CALL)
-> > +	if (cmd == ND_CMD_CALL) {
-> > +		if (!buf || buf_len < sizeof(*call_pkg))
-> > +			return -EINVAL;
-> > +
-> >   		call_pkg = buf;
-> > +	}
-> > +
-> >   	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
-> >   	if (func < 0)
-> >   		return func;
-> 
-> Hello!
-> 
-> I wanted to follow up on the patch I submitted. I have incorporated all 
-> the suggested changes up to v6. I was wondering if you had a chance to 
-> review it and if there are any comments or feedback.
+- Protect caller's match data @*data which is for comparison and lookup
+  and the API does not actually need to modify @*data.
 
-It just missed the soak period for the merge.  But I'll be looking at it
-for an rc pull request.
+- Make the API's parameters (@match)() and @data have the same type as
+  all of other device finding APIs (bus|class|driver)_find_device().
 
-Thanks for sticking with it,
-Ira
+- All kinds of existing device matching functions can be directly taken
+  as the API's argument, they were exported by driver core.
 
-[snip]
+How to constify the API?
+
+- Now, no (@match)() argument of the API usages is modifying its match
+  data @*data after previous cleanup, so it is easy and safe to make its
+  parameter @data take const void * as type.
+
+- Simplify involved codes further if it is possbile with benefits
+  brought by constifying the API.
+
+Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
+---
+Changes in v2:
+- Series v1 have no code review comments and are posted a long time ago, so may ignore differences.
+- Link to v1: https://lore.kernel.org/r/20240811-const_dfc_done-v1-0-9d85e3f943cb@quicinc.com
+- Motivation link: https://lore.kernel.org/lkml/917359cc-a421-41dd-93f4-d28937fe2325@icloud.com
+
+---
+Zijun Hu (32):
+      driver core: Constify API device_find_child()
+      driver core: Introduce device_match_type() to match device with a device type
+      drm/mediatek: Adapt for constified device_find_child()
+      hwmon: Adapt for constified device_find_child()
+      media: pci: mgb4: Adapt for constified device_find_child()
+      thunderbolt: Adapt for constified device_find_child()
+      gpio: sim: Remove gpio_sim_dev_match_fwnode()
+      net: dsa: Adapt for constified device_find_child()
+      pwm: Adapt for constified device_find_child()
+      nvdimm: Adapt for constified device_find_child()
+      libnvdimm: Simplify nd_namespace_store() implementation
+      firewire: core: Adapt for constified device_find_child()
+      serial: core: Adapt for constified device_find_child()
+      usb: typec: class: Remove both cable_match() and partner_match()
+      usb: typec: class: Adapt for constified device_find_child()
+      slimbus: core: Simplify of_find_slim_device() implementation
+      slimbus: core: Constify slim_eaddr_equal()
+      slimbus: core: Adapt for constified device_find_child()
+      scsi: iscsi: Constify API iscsi_find_flashnode_sess()
+      scsi: qla4xxx: Adapt for constified iscsi_find_flashnode_sess()
+      scsi: iscsi: Adapt for constified device_find_child()
+      cxl/region: Adapt for constified device_find_child()
+      cxl/pmem: Remove match_nvdimm_bridge()
+      cxl/core/pci: Adapt for constified device_find_child()
+      cxl/test: Adapt for constified device_find_child()
+      sparc: vio: Adapt for constified device_find_child()
+      bus: fsl-mc: Adapt for constified device_find_child()
+      block: sunvdc: Adapt for constified device_find_child()
+      firmware: arm_scmi: Adapt for constified device_find_child()
+      efi: dev-path-parser: Adapt for constified device_find_child()
+      rpmsg: core: Adapt for constified device_find_child()
+      driver core: Simplify API device_find_child_by_name() implementation
+
+ arch/sparc/kernel/vio.c                |  6 +++---
+ drivers/base/core.c                    | 30 ++++++++++--------------------
+ drivers/block/sunvdc.c                 |  6 +++---
+ drivers/bus/fsl-mc/dprc-driver.c       |  6 +++---
+ drivers/cxl/core/pci.c                 |  4 ++--
+ drivers/cxl/core/pmem.c                |  9 +++------
+ drivers/cxl/core/region.c              | 21 ++++++++++++---------
+ drivers/firewire/core-device.c         |  4 ++--
+ drivers/firmware/arm_scmi/bus.c        |  4 ++--
+ drivers/firmware/efi/dev-path-parser.c |  4 ++--
+ drivers/gpio/gpio-sim.c                |  7 +------
+ drivers/gpu/drm/mediatek/mtk_drm_drv.c |  2 +-
+ drivers/hwmon/hwmon.c                  |  2 +-
+ drivers/media/pci/mgb4/mgb4_core.c     |  4 ++--
+ drivers/nvdimm/bus.c                   |  2 +-
+ drivers/nvdimm/claim.c                 |  9 +--------
+ drivers/pwm/core.c                     |  2 +-
+ drivers/rpmsg/rpmsg_core.c             |  4 ++--
+ drivers/scsi/qla4xxx/ql4_os.c          |  3 ++-
+ drivers/scsi/scsi_transport_iscsi.c    | 10 +++++-----
+ drivers/slimbus/core.c                 | 17 +++++------------
+ drivers/thunderbolt/retimer.c          |  2 +-
+ drivers/thunderbolt/xdomain.c          |  2 +-
+ drivers/tty/serial/serial_core.c       |  4 ++--
+ drivers/usb/typec/class.c              | 31 ++++++++++++++-----------------
+ include/linux/device.h                 |  4 ++--
+ include/linux/device/bus.h             |  1 +
+ include/scsi/scsi_transport_iscsi.h    |  4 ++--
+ net/dsa/dsa.c                          |  2 +-
+ tools/testing/cxl/test/cxl.c           |  2 +-
+ 30 files changed, 89 insertions(+), 119 deletions(-)
+---
+base-commit: 40384c840ea1944d7c5a392e8975ed088ecf0b37
+change-id: 20241201-const_dfc_done-aaec71e3bbea
+
+Best regards,
+-- 
+Zijun Hu <quic_zijuhu@quicinc.com>
+
