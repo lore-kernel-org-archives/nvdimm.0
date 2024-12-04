@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CA33231CA8;
-	Wed,  4 Dec 2024 16:58:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A17C9212B30;
+	Wed,  4 Dec 2024 17:00:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733331530; cv=none; b=ju7jEl2WG2bauxX4IrNYms6WxSUL9OJOF0f82s/XwebRHe1LGx4aI/wa8QAk1X0u9ik166va7ntC4tjaDSuMD8ISO+n0HML/AxxNY9evuuxyWeq01hw7LjYGytkL4AI3bZA+rMqdKXWyRGm79sO3GG3n8lOjjLquqOJrog7aoqs=
+	t=1733331641; cv=none; b=V1G1fqkFxYWahWB2jGTebDUs8218rn8M1kRuck46oa07BPdWOlFhZwVs7+l3W6nb74AcHF26toaeCYLJs5WWF4eP+iVMrHlxEx7gNvQa4W/c/KnmHm0a2pgRDWVIcb27CsDXMZnpkfUqQXasBwXzg+MyChHkoqEHkRBKYH8nMfg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733331530; c=relaxed/simple;
+	s=arc-20240116; t=1733331641; c=relaxed/simple;
 	bh=Z7dcg172ZmLMndDiaZ86nq9I4fvX84bySeNXPXbXVGI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IouSsMg8At8xt9QXIdA71KDLIKED8e6LT52uSV2P3y+P29FtkAHrQJOEs+x9736RdXulEOesWNpSnzlHhodeWl+ZCaeRpzeZC8Of/EKk7pHTfTumWbFgIpIx8H4+C06m59urVZj6iH2m8O1LEcz5NLeB3LIYlzYWcPh3m961BKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=r6m7CSas; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=JXyNkSfx5ffoTUh5z58QVvrlIiwWt8hE80ExGDaj9XNa9UTQoI8oRXYzIsgwAfaTWCNK8AyvzcECSQWMKGhUGPLdayGONam4od43niur7mmBnoQ486oORVSkrKiE6fjl2stSWCmDSHOikvm9hHQYGtyI/ryni9SUj8JHeGJk9P4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H2kr6AAk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="r6m7CSas"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D97CC4CECD;
-	Wed,  4 Dec 2024 16:58:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H2kr6AAk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28617C4CECD;
+	Wed,  4 Dec 2024 17:00:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733331530;
+	s=k20201202; t=1733331641;
 	bh=Z7dcg172ZmLMndDiaZ86nq9I4fvX84bySeNXPXbXVGI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=r6m7CSasM4Cn09IhpoJB2RGhHS/dk+qpBr+hf78P50jquSOGJW0rrLx9t/0MpLQCI
-	 keXJYSxIZrnOFif4AEuDjg1wN8Al32Jm6jT0QvhIShyQ2gY8e0EFWM2nzsJAo/iZOQ
-	 SnMSFeBBFk/QCfsMcAeE9HtH52Bp+oWu2TBUQN8QH9W9L70ToHENIlpZxHUcgoFcyW
-	 fGgcR3lNBd11rtOYPn4rbd0dzdFow+rQEuXAK4pgaOgx0ZR+NgjgdsZP/VplZbmpwd
-	 hXVOmLqW1jYVNiyQ5xixYrN7HoHcZER9Ws3tFQ3VvQhaX4FT7uV2sPqLUtw81sw+5g
-	 9Rps7Z0AbOUKg==
+	b=H2kr6AAkHge6BVbdXD2xaI6OhANF7Ww4qLp+fiyrAVi+7nXsp6Vn2kiQ/9LvHqCY2
+	 T5QFQl1Xv8BYt08r4evk+KovUdTo39tKdoENNJHuXhrTr2+b2h/V+9iFDq1IXwmuVi
+	 UsvoEJww9z9jSHl/aeOTpdGr2R6/s9AzEYjcDJfvgOmAQToCUoooI+U258R5VX73qT
+	 i8Jd/EvKjYQRGFppQk83DKSNTXFEUxq1gdemiwwMc9F/QGMkPBjxhInH1VM2/IO+z4
+	 UqzDpmSbPurHBeTp6QDRpMdf4XASM20f6YjIpagHTrW2u+xhAAVUb3Bw6KeUbk3V0T
+	 d4neJtLmw9PtA==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -36,12 +36,12 @@ Cc: Yi Yang <yiyang13@huawei.com>,
 	dan.j.williams@intel.com,
 	vishal.l.verma@intel.com,
 	nvdimm@lists.linux.dev
-Subject: [PATCH AUTOSEL 6.12 31/36] nvdimm: rectify the illogical code within nd_dax_probe()
-Date: Wed,  4 Dec 2024 10:45:47 -0500
-Message-ID: <20241204154626.2211476-31-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.11 29/33] nvdimm: rectify the illogical code within nd_dax_probe()
+Date: Wed,  4 Dec 2024 10:47:42 -0500
+Message-ID: <20241204154817.2212455-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241204154626.2211476-1-sashal@kernel.org>
-References: <20241204154626.2211476-1-sashal@kernel.org>
+In-Reply-To: <20241204154817.2212455-1-sashal@kernel.org>
+References: <20241204154817.2212455-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,7 +50,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.12.1
+X-stable-base: Linux 6.11.10
 Content-Transfer-Encoding: 8bit
 
 From: Yi Yang <yiyang13@huawei.com>
