@@ -1,48 +1,111 @@
-Received: from sender4-pp-o94.zoho.com (sender4-pp-o94.zoho.com [136.143.188.94])
+Received: from bedivere.hansenpartnership.com (bedivere.hansenpartnership.com [96.44.175.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EC4B18EA2
-	for <nvdimm@lists.linux.dev>; Wed,  4 Dec 2024 16:15:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.94
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733328926; cv=pass; b=haxw8Pff3mA3ng2xqxQH1EZttLxI56o8/0mf54kPUuV+jsx48zbeexbYqbexbm3nFXc+kmuEYT/Yckk51OUDINdEZu/NZ8BMCP/f6KKqU5PqaW+yCk1FwA/2KeTEXlX8Dm7oAJcxqiEJBo5WKslyl9CBALtL+vY2xyVs7vpJomQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733328926; c=relaxed/simple;
-	bh=OX/V4KlZfSnNLcTlLdUTMS6t1F3r/nPVmwrkxH79iag=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=XOheuJwGJLcQrOYrbVbhyyfl8nuvfOcU/QUeu1nre6q8kobHiBUxM1OM0EBaPBd0y93ZMbuqCFSprPNZ9RYYwg+OZCd71+Kd9IYkVftKyBnIRUagPPW/9fT3/Lpk+gMxAGTDHVyLFbVXyDnToHsx4GZW5dDrs9IfT/sbfyS8LwQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b=ANisJxXu; arc=pass smtp.client-ip=136.143.188.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zohomail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD46B20B80D
+	for <nvdimm@lists.linux.dev>; Wed,  4 Dec 2024 16:42:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=96.44.175.130
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733330565; cv=none; b=q50J10B6pw8TNAES+LzGjnPJR7oagIZVxUcKUABqfsOZZSeRsl8oQSSM16EPRgxrJInEqnbvR0Gj2K09sqiwG1159r3ABesMNez4M/KqL5TrLUoEHNkIZLDTF9WQi1FvF8PHiz9opMgoQdRz3KGKTje/WGowG3ksnl21lTMSbVM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733330565; c=relaxed/simple;
+	bh=/tV2/rqC9g/RzItU4xjpFfq9TJiKncFzSdSN5cVSPCI=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Ps0RVQQ3j3Inz8OjyB3o2K1XtiNAUVpQ9ikYpz41UzOh2qpHidfY2Cic4QUWX68zTvvtirtTrpOYTwEIM36HTXUO8WDbd2UN1BQYI9i6zv5ibS8efdedOdi18jK0DUkbmK6+OtwPajhjcwRX1phFBZ3yTN1d2cUi1I/JaP1bqlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=HansenPartnership.com; spf=pass smtp.mailfrom=HansenPartnership.com; dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b=jwLrm3XJ; dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b=jwLrm3XJ; arc=none smtp.client-ip=96.44.175.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=HansenPartnership.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=HansenPartnership.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b="ANisJxXu"
-ARC-Seal: i=1; a=rsa-sha256; t=1733328922; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=Rxd2l2cXNQsmBr8me1001Bw3VQyQFEqqye9gStGO0s4rIeQHUa2uM/0qg0+e4DmR8ckdFTvtqK25aD0fBcs6/hZub99cim3OX3C7zsvut0t/iq2QUJe4zrJjTLs/1gb+RAhCRKfn0Mg8lUdLcSVN3HigWdtDcQRjese8M1yioq8=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1733328922; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=s962vGgSth/vx7IdJH0sb+PTyuWEB5Gy4WfjWaKSjLw=; 
-	b=m39RSFnUnpNKUOkhu5VXmoALAK4vBD/ZJpA121m5jZ2zU1Q/6rLwrreAeeQkxTo1raz/NTLRWk6PyBl4pme2wyyis/IsxyhFJWkq6DYH/tk/edlH4ZAj1iY5MGCdUCDcyRl7vaUP7t5ctOlAWWcAGignTeU+tnh9Rxh8TBQjH6E=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=zohomail.com;
-	spf=pass  smtp.mailfrom=ming.li@zohomail.com;
-	dmarc=pass header.from=<ming.li@zohomail.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1733328922;
-	s=zm2022; d=zohomail.com; i=ming.li@zohomail.com;
-	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-Id:Message-Id:MIME-Version:Content-Transfer-Encoding:Feedback-ID:Reply-To;
-	bh=s962vGgSth/vx7IdJH0sb+PTyuWEB5Gy4WfjWaKSjLw=;
-	b=ANisJxXugQMvji/EykZGSplHxZBMdCwold8jMHOIMsrdo2Kk7QlSGG5HxClAq/AQ
-	lkMbxzeni7AUAX7AAvatYXrSaEw+ZbGJSnu3e88+LG6Q9wSu2bzU+JS/mdam8eysbq+
-	Hf0TCUnrv/KGzwDElsDFFYSOJMzLxs3qUEz48ig8=
-Received: by mx.zohomail.com with SMTPS id 1733328919184892.0434640061868;
-	Wed, 4 Dec 2024 08:15:19 -0800 (PST)
-From: Li Ming <ming.li@zohomail.com>
-To: nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Cc: Li Ming <ming.li@zohomail.com>
-Subject: [ndctl PATCH 1/1] daxctl: Output more information if memblock is unremovable
-Date: Thu,  5 Dec 2024 00:14:56 +0800
-Message-Id: <20241204161457.1113419-1-ming.li@zohomail.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="jwLrm3XJ";
+	dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="jwLrm3XJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=hansenpartnership.com; s=20151216; t=1733330561;
+	bh=/tV2/rqC9g/RzItU4xjpFfq9TJiKncFzSdSN5cVSPCI=;
+	h=Message-ID:Subject:From:To:Date:In-Reply-To:References:From;
+	b=jwLrm3XJJg0bE+y+jmRYNMFwEElygfQC2HGQiHPd5Xz/u0WtyW7YWY3rX060euBo7
+	 f9S1jUzBwKhA2RFoWPD/ZkuHcVNkBdGsPnMe1XGCn2DaqvTsyQjVXKsqZzFLZSZ0Tt
+	 bvl4/NIRU0Ww5p2EbpvPP+Glg6xJuhny+E4/K7oQ=
+Received: from localhost (localhost [127.0.0.1])
+	by bedivere.hansenpartnership.com (Postfix) with ESMTP id DBE1112816C9;
+	Wed, 04 Dec 2024 11:42:41 -0500 (EST)
+Received: from bedivere.hansenpartnership.com ([127.0.0.1])
+ by localhost (bedivere.hansenpartnership.com [127.0.0.1]) (amavis, port 10024)
+ with ESMTP id H1OGkhq900B6; Wed,  4 Dec 2024 11:42:41 -0500 (EST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=hansenpartnership.com; s=20151216; t=1733330561;
+	bh=/tV2/rqC9g/RzItU4xjpFfq9TJiKncFzSdSN5cVSPCI=;
+	h=Message-ID:Subject:From:To:Date:In-Reply-To:References:From;
+	b=jwLrm3XJJg0bE+y+jmRYNMFwEElygfQC2HGQiHPd5Xz/u0WtyW7YWY3rX060euBo7
+	 f9S1jUzBwKhA2RFoWPD/ZkuHcVNkBdGsPnMe1XGCn2DaqvTsyQjVXKsqZzFLZSZ0Tt
+	 bvl4/NIRU0Ww5p2EbpvPP+Glg6xJuhny+E4/K7oQ=
+Received: from lingrow.int.hansenpartnership.com (unknown [IPv6:2601:5c4:4302:c21::a774])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by bedivere.hansenpartnership.com (Postfix) with ESMTPSA id 13309128116A;
+	Wed, 04 Dec 2024 11:42:36 -0500 (EST)
+Message-ID: <5c905df49a332b1136787a524955b46b6153c012.camel@HansenPartnership.com>
+Subject: Re: [PATCH v2 00/32] driver core: Constify API device_find_child()
+ and adapt for various existing usages
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+To: Zijun Hu <zijun_hu@icloud.com>, Thomas =?ISO-8859-1?Q?Wei=DFschuh?=
+	 <thomas@t-8ch.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Uwe
+ =?ISO-8859-1?Q?Kleine-K=F6nig?= <ukleinek@kernel.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Chun-Kuang Hu <chunkuang.hu@kernel.org>, Philipp Zabel
+ <p.zabel@pengutronix.de>, David Airlie <airlied@gmail.com>, Simona Vetter
+ <simona@ffwll.ch>, Matthias Brugger <matthias.bgg@gmail.com>,
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Jean
+ Delvare <jdelvare@suse.com>,  Guenter Roeck <linux@roeck-us.net>, Martin
+ Tuma <martin.tuma@digiteqautomotive.com>, Mauro Carvalho Chehab
+ <mchehab@kernel.org>, Andreas Noever <andreas.noever@gmail.com>, Michael
+ Jamet <michael.jamet@intel.com>, Mika Westerberg
+ <mika.westerberg@linux.intel.com>,  Yehezkel Bernat
+ <YehezkelShB@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz
+ Golaszewski <brgl@bgdev.pl>, Andrew Lunn <andrew@lunn.ch>, Vladimir Oltean
+ <olteanv@gmail.com>,  "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Dan Williams
+ <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave
+ Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Takashi
+ Sakamoto <o-takashi@sakamocchi.jp>, Jiri Slaby <jirislaby@kernel.org>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, Srinivas Kandagatla
+ <srinivas.kandagatla@linaro.org>, Lee Duncan <lduncan@suse.com>, Chris
+ Leech <cleech@redhat.com>, Mike Christie <michael.christie@oracle.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>, Nilesh Javali
+ <njavali@marvell.com>, Manish Rangankar <mrangankar@marvell.com>,
+ GR-QLogic-Storage-Upstream@marvell.com, Davidlohr Bueso
+ <dave@stgolabs.net>, Jonathan Cameron <jonathan.cameron@huawei.com>, Alison
+ Schofield <alison.schofield@intel.com>, Andreas Larsson
+ <andreas@gaisler.com>, Stuart Yoder <stuyoder@gmail.com>, Laurentiu Tudor
+ <laurentiu.tudor@nxp.com>, Jens Axboe <axboe@kernel.dk>, Sudeep Holla
+ <sudeep.holla@arm.com>, Cristian Marussi <cristian.marussi@arm.com>, Ard
+ Biesheuvel <ardb@kernel.org>, Bjorn Andersson <andersson@kernel.org>,
+ Mathieu Poirier <mathieu.poirier@linaro.org>, 
+ linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+ linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+ linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org, 
+ linux-usb@vger.kernel.org, linux-gpio@vger.kernel.org,
+ netdev@vger.kernel.org,  linux-pwm@vger.kernel.org, nvdimm@lists.linux.dev,
+  linux1394-devel@lists.sourceforge.net, linux-serial@vger.kernel.org, 
+ linux-sound@vger.kernel.org, open-iscsi@googlegroups.com, 
+ linux-scsi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+ sparclinux@vger.kernel.org, linux-block@vger.kernel.org, 
+ arm-scmi@vger.kernel.org, linux-efi@vger.kernel.org, 
+ linux-remoteproc@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
+Date: Wed, 04 Dec 2024 11:42:34 -0500
+In-Reply-To: <235ce0a9-1db1-4558-817b-6f92f22be5ab@icloud.com>
+References: <20241203-const_dfc_done-v2-0-7436a98c497f@quicinc.com>
+	 <g32cigmktmj4egkq2tof27el2yss4liccfxgebkgqvkil32mlb@e3ta4ezv7y4m>
+	 <9d34bd6f-b120-428a-837b-5a5813e14618@icloud.com>
+	 <2024120320-manual-jockey-dfd1@gregkh>
+	 <b9885785-d4d4-4c72-b425-3dc552651d7e@icloud.com>
+	 <8eb7c0c54b280b8eb72f82032ede802c001ab087.camel@HansenPartnership.com>
+	 <8fb887a0-3634-4e07-9f0d-d8d7c72ca802@t-8ch.de>
+	 <f5ea7e17-5550-4658-8f4c-1c51827c7627@icloud.com>
+	 <108c63c753f2f637a72c2e105ac138f80d4b0859.camel@HansenPartnership.com>
+	 <235ce0a9-1db1-4558-817b-6f92f22be5ab@icloud.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.42.4 
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,113 +113,61 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Feedback-ID: rr08011227890bf58059f41c7efb69e6cb0000228972e0e64473f4f5a5039d8f09f8ca762e1bc9bd197f2486:zu08011227538e16bb626ed09b61ed76be00002bb35925f177902e5f8deb78d71ff18188d91c29b8fd6cf97f:rf08011226f6b6b3176d73fa9bc254296600002c9646dd75971544093d59887b1e1d4b2031c3b3a2b8b8df:ZohoMail
-X-ZohoMailClient: External
 
-If CONFIG_MEMORY_HOTREMOVE is disabled by kernel, memblocks will not be
-removed, so 'dax offline-memory all' will output below error logs:
+On Wed, 2024-12-04 at 20:26 +0800, Zijun Hu wrote:
+> On 2024/12/3 23:34, James Bottomley wrote:
+> > > > This also enables an incremental migration.
+> > > change the API prototype from:
+> > > device_find_child(..., void *data_0, int (*match)(struct device
+> > > *dev, void *data));
+> > > 
+> > > to:
+> > > device_find_child(..., const void *data_0, int (*match)(struct
+> > > device *dev, const void *data));
+> > > 
+> > > For @data_0,  void * -> const void * is okay.
+> > > but for @match, the problem is function pointer type
+> > > incompatibility.
+> > > 
+> > > there are two solutions base on discussions.
+> > > 
+> > > 1) squashing likewise Greg mentioned.
+> > >    Do all of the "prep work" first, and then
+> > >    do the const change at the very end, all at once.
+> > > 
+> > > 2)  as changing platform_driver's remove() prototype.
+> > > Commit: e70140ba0d2b ("Get rid of 'remove_new' relic from
+> > > platform driver struct")
+> > > 
+> > >  introduce extra device_find_child_new() which is constified  ->
+> > > use *_new() replace ALL device_find_child() instances one by one
+> > > -> remove device_find_child() -> rename *_new() to
+> > > device_find_child() once.
+> > Why bother with the last step, which churns the entire code base
+> > again?
+> 
+> keep the good API name device_find_child().
 
-  libdaxctl: offline_one_memblock: dax0.0: Failed to offline /sys/devices/system/node/node6/memory371/state: Invalid argument
-  dax0.0: failed to offline memory: Invalid argument
-  error offlining memory: Invalid argument
-  offlined memory for 0 devices
+Well, I think it's a good opportunity to rename the API better, but if
+that's the goal, you can still do it with _Generic() without churning
+the code base a second time.  The example is in
+slab.h:kmem_cache_create
 
-The log does not clearly show why the command failed. So checking if the
-target memblock is removable before offlining it by querying
-'/sys/devices/system/node/nodeX/memoryY/removable', then output specific
-logs if the memblock is unremovable, output will be:
+> > Why not call the new function device_find_child_const() and simply
+> > keep it (it's descriptive of its function).  That way you can have
+> > a patch series without merging and at the end simply remove the old
+> > function.
+> 
+> device_find_child is a good name for the API, 'find' already means
+> const.
 
-  libdaxctl: offline_one_memblock: dax0.0: memory371 is unremovable
-  dax0.0: failed to offline memory: Operation not supported
-  error offlining memory: Operation not supported
-  offlined memory for 0 devices
+Not to me it doesn't, but that's actually not what I think is wrong
+with the API name: it actually only returns the first match, so I'd
+marginally prefer it to be called device_find_first_child() ... not
+enough to churn the code to change it, but since you're doing that
+anyway it might make sense as an update.
 
-Besides, delay to set up string 'path' for offlining memblock operation,
-because string 'path' is stored in 'mem->mem_buf' which is a shared
-buffer, it will be used in memblock_is_removable().
+Regards,
 
-Signed-off-by: Li Ming <ming.li@zohomail.com>
----
- daxctl/lib/libdaxctl.c | 52 ++++++++++++++++++++++++++++++++++++------
- 1 file changed, 45 insertions(+), 7 deletions(-)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 9fbefe2e8329..b7fa0de0b73d 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -1310,6 +1310,37 @@ static int memblock_is_online(struct daxctl_memory *mem, char *memblock)
- 	return 0;
- }
- 
-+static int memblock_is_removable(struct daxctl_memory *mem, char *memblock)
-+{
-+	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int len = mem->buf_len, rc;
-+	char buf[SYSFS_ATTR_SIZE];
-+	char *path = mem->mem_buf;
-+	const char *node_path;
-+
-+	node_path = daxctl_memory_get_node_path(mem);
-+	if (!node_path)
-+		return -ENXIO;
-+
-+	rc = snprintf(path, len, "%s/%s/removable", node_path, memblock);
-+	if (rc < 0)
-+		return -ENOMEM;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	if (strtoul(buf, NULL, 0) == 0)
-+		return -EOPNOTSUPP;
-+
-+	return 0;
-+}
-+
- static int online_one_memblock(struct daxctl_memory *mem, char *memblock,
- 		enum memory_zones zone, int *status)
- {
-@@ -1362,6 +1393,20 @@ static int offline_one_memblock(struct daxctl_memory *mem, char *memblock)
- 	char *path = mem->mem_buf;
- 	const char *node_path;
- 
-+	/* if already offline, there is nothing to do */
-+	rc = memblock_is_online(mem, memblock);
-+	if (rc < 0)
-+		return rc;
-+	if (!rc)
-+		return 1;
-+
-+	rc = memblock_is_removable(mem, memblock);
-+	if (rc) {
-+		if (rc == -EOPNOTSUPP)
-+			err(ctx, "%s: %s is unremovable\n", devname, memblock);
-+		return rc;
-+	}
-+
- 	node_path = daxctl_memory_get_node_path(mem);
- 	if (!node_path)
- 		return -ENXIO;
-@@ -1370,13 +1415,6 @@ static int offline_one_memblock(struct daxctl_memory *mem, char *memblock)
- 	if (rc < 0)
- 		return -ENOMEM;
- 
--	/* if already offline, there is nothing to do */
--	rc = memblock_is_online(mem, memblock);
--	if (rc < 0)
--		return rc;
--	if (!rc)
--		return 1;
--
- 	rc = sysfs_write_attr_quiet(ctx, path, mode);
- 	if (rc) {
- 		/* check if something raced us to offline (unlikely) */
--- 
-2.34.1
+James
 
