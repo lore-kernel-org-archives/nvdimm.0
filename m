@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A17C9212B30;
-	Wed,  4 Dec 2024 17:00:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FC6A22144B;
+	Wed,  4 Dec 2024 17:02:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733331641; cv=none; b=V1G1fqkFxYWahWB2jGTebDUs8218rn8M1kRuck46oa07BPdWOlFhZwVs7+l3W6nb74AcHF26toaeCYLJs5WWF4eP+iVMrHlxEx7gNvQa4W/c/KnmHm0a2pgRDWVIcb27CsDXMZnpkfUqQXasBwXzg+MyChHkoqEHkRBKYH8nMfg=
+	t=1733331728; cv=none; b=If6cHAdCnZ6A7rqcU6TLWI7sg3pZHTq8FpUdU4/h+2ynpPXkVf9MhKthOghRtclHkAxHaXt7i6iaRGgRBGphCHOx6hK/fksBmKhUijrFzdqmpfKDGw0qh78rAwQQZj1HRKKcCbHTl3fl7gX6P4MZKDlVPvJ2gm9YRiNdgl6lRLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733331641; c=relaxed/simple;
-	bh=Z7dcg172ZmLMndDiaZ86nq9I4fvX84bySeNXPXbXVGI=;
+	s=arc-20240116; t=1733331728; c=relaxed/simple;
+	bh=F8g1ZzkAE7Z4xwtf1thmKFemuZCBnownLe2zR6PC4iU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JXyNkSfx5ffoTUh5z58QVvrlIiwWt8hE80ExGDaj9XNa9UTQoI8oRXYzIsgwAfaTWCNK8AyvzcECSQWMKGhUGPLdayGONam4od43niur7mmBnoQ486oORVSkrKiE6fjl2stSWCmDSHOikvm9hHQYGtyI/ryni9SUj8JHeGJk9P4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H2kr6AAk; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=gA+yTUXnjJmxmHVE9IJ6Hk5BSxB4Km18p/byd44n2KbnsME+4ThoJXeGSxp5/9qq4v2RsswthGl79DUIuGXS0vzqQQZNkgj1ZBBCVmA0PuRRQcvdMtLIieqUxgCvb0qP/u2di70rRDeSfXYBF0Pwuy7BdpW9jJfU592Z0urDA+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZX1O2Eib; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H2kr6AAk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28617C4CECD;
-	Wed,  4 Dec 2024 17:00:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZX1O2Eib"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3599AC4CECD;
+	Wed,  4 Dec 2024 17:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733331641;
-	bh=Z7dcg172ZmLMndDiaZ86nq9I4fvX84bySeNXPXbXVGI=;
+	s=k20201202; t=1733331728;
+	bh=F8g1ZzkAE7Z4xwtf1thmKFemuZCBnownLe2zR6PC4iU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=H2kr6AAkHge6BVbdXD2xaI6OhANF7Ww4qLp+fiyrAVi+7nXsp6Vn2kiQ/9LvHqCY2
-	 T5QFQl1Xv8BYt08r4evk+KovUdTo39tKdoENNJHuXhrTr2+b2h/V+9iFDq1IXwmuVi
-	 UsvoEJww9z9jSHl/aeOTpdGr2R6/s9AzEYjcDJfvgOmAQToCUoooI+U258R5VX73qT
-	 i8Jd/EvKjYQRGFppQk83DKSNTXFEUxq1gdemiwwMc9F/QGMkPBjxhInH1VM2/IO+z4
-	 UqzDpmSbPurHBeTp6QDRpMdf4XASM20f6YjIpagHTrW2u+xhAAVUb3Bw6KeUbk3V0T
-	 d4neJtLmw9PtA==
+	b=ZX1O2EibLGjzR4ZL34tEtZcZzaVJxuZ6lGd1GwtQQY23NkByKpYPraD5F3cptqJE5
+	 r7IPbGHS7T/GzGyhcsgtE9/JK3/PjtA+i96ah++i3fk2kCAjJ8qPV8AJ+4pyssyzOE
+	 l5N4MgPCbxm1lsaRMoXZClJfIgHyJ7s5nih4Lpn+aPRgkUzeVBsOVQyMl02jFYN/8Z
+	 RfDKct2Sp45oYWRStkRH/7wckcgvJRivcyFxIrLNZLz8qZw0OSC9dVMW9GxNxhm1C4
+	 YGmgzAN3wBba3FIDJVD7WIzhNaZdkBZv0ruRP0cVz78666M1EzoF1F4TWyznd5yuFy
+	 j7X+4JfORV/8A==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -36,12 +36,12 @@ Cc: Yi Yang <yiyang13@huawei.com>,
 	dan.j.williams@intel.com,
 	vishal.l.verma@intel.com,
 	nvdimm@lists.linux.dev
-Subject: [PATCH AUTOSEL 6.11 29/33] nvdimm: rectify the illogical code within nd_dax_probe()
-Date: Wed,  4 Dec 2024 10:47:42 -0500
-Message-ID: <20241204154817.2212455-29-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.6 22/24] nvdimm: rectify the illogical code within nd_dax_probe()
+Date: Wed,  4 Dec 2024 10:49:42 -0500
+Message-ID: <20241204155003.2213733-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241204154817.2212455-1-sashal@kernel.org>
-References: <20241204154817.2212455-1-sashal@kernel.org>
+In-Reply-To: <20241204155003.2213733-1-sashal@kernel.org>
+References: <20241204155003.2213733-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,7 +50,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.11.10
+X-stable-base: Linux 6.6.63
 Content-Transfer-Encoding: 8bit
 
 From: Yi Yang <yiyang13@huawei.com>
@@ -74,7 +74,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 6b4922de30477..37b743acbb7ba 100644
+index 3bd61f2457885..cfafe1fa77bab 100644
 --- a/drivers/nvdimm/dax_devs.c
 +++ b/drivers/nvdimm/dax_devs.c
 @@ -106,12 +106,12 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
@@ -93,10 +93,10 @@ index 6b4922de30477..37b743acbb7ba 100644
  	rc = nd_pfn_validate(nd_pfn, DAX_SIG);
  	dev_dbg(dev, "dax: %s\n", rc == 0 ? dev_name(dax_dev) : "<none>");
 diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 2dbb1dca17b53..5ca06e9a2d292 100644
+index e8b9d27dbb3c3..12774334273c1 100644
 --- a/drivers/nvdimm/nd.h
 +++ b/drivers/nvdimm/nd.h
-@@ -600,6 +600,13 @@ struct nd_dax *to_nd_dax(struct device *dev);
+@@ -601,6 +601,13 @@ struct nd_dax *to_nd_dax(struct device *dev);
  int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns);
  bool is_nd_dax(const struct device *dev);
  struct device *nd_dax_create(struct nd_region *nd_region);
