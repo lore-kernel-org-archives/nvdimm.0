@@ -1,133 +1,140 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from pv50p00im-zteg10021301.me.com (pv50p00im-zteg10021301.me.com [17.58.6.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C4B8192D69
-	for <nvdimm@lists.linux.dev>; Thu,  5 Dec 2024 23:30:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCC724437A
+	for <nvdimm@lists.linux.dev>; Fri,  6 Dec 2024 00:56:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=17.58.6.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733441436; cv=none; b=MCl15DyEJt6kHgivtGzTEZ15F+6bCJ1jbjDGnTqYPhklw74B7XbtVuJJ1Qbdbg9hntIpY136TlaWV+5tHrhA0v4cbOEC/tic68jcfOIN/QwcxNDjIhLdh7Iq3whMsbOpP+LY0B1mhw9pVeDvdHAudU4QE5V9p4kfVO3xY4ZXWQU=
+	t=1733446601; cv=none; b=j1DBCeYOqB5GBsB9g2Vs6xX5MOyDrDyaDXSxRyfcMc7kLOWjM4bKwcJkqP+lHbVIe7GvXGcwaN1Ao7yFRg66rwGdPoEEC7eyWeLem3xUSI19MVf2rVYB+0gxueMU99wggWGBePntf8z86dzAdusX7tAAg3GxDIIc3n/peNRbD+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733441436; c=relaxed/simple;
-	bh=I/Bbmecpn8RogQU7kB8TZf0KJSzLC1/N7kmtot7TRMo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HB3tA11pz7riu8Tb1uuAQuBp++WkYM9+IglloJ5HZcVYz06JpoRb1tdKkphj2xFIUcGveJ8Nonlem0Ba0PLSyWFC/etGKrRYbI8H/+9DqZS6eTrMQrzGrJhn0Aioex14RlSBJpJGhbAas8B3IiW5vPguqV/pUQBqw7PrMEMj2iM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JE0tvGEW; arc=none smtp.client-ip=198.175.65.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1733446601; c=relaxed/simple;
+	bh=192sas5/3dB52EZjfRuQhdzd9qENarFp7gqCphryGrg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=P6cNCrL00KyENpzyYxzS5vfD1jtUN7mXp9lRkrWBNjN4oNMZ6pmJ/KT7+uk5llm/fhkR01XPDkl9tShcGjnO9YHhfxvCcbZ5DiLtJj5sRoLmJ7GPLSzTpJDuCxF30LRcmKobwvnSMvaqCEqKd70Z4jl7mf0Dol4iYYA3I9F3otY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=kb+PAfJg; arc=none smtp.client-ip=17.58.6.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JE0tvGEW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1733441434; x=1764977434;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=I/Bbmecpn8RogQU7kB8TZf0KJSzLC1/N7kmtot7TRMo=;
-  b=JE0tvGEWNjPJAckGWBnkJ7c+VSFyRVxcSyzR34a+kUsYPxaXxAY3cFiW
-   GIWPe1WmQlkNqzEUY/YAWpTvrVszAYSVUMFtdos2TmpqhATdGj3ePoQYL
-   AZiJ6G9c/fJnyANFabFOGkm5wf+R6skCvG3pT77yBZ88pBzvIrVBjiuYi
-   6kAsKNFTzYxpwwzaFb7GHfyyllHGXzWNot93Zvz+xI+ZzeqJjWwN/f5Sh
-   92wArqHtnDOcQYw7WWTOvG4l4sdvi8K9PC+FGeyqiJt5DUP1XaPXIxWb3
-   80oxed/zdnuBbBz7GbW3/Y9mXUfDzv7De+Aww/QTBMLeNht0otfO/qiLR
-   g==;
-X-CSE-ConnectionGUID: Ew6Qk2zQS7uFk1wHZ2fF0g==
-X-CSE-MsgGUID: OS4iii+qTM22gF/o0LHfPQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11277"; a="37564423"
-X-IronPort-AV: E=Sophos;i="6.12,211,1728975600"; 
-   d="scan'208";a="37564423"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 15:30:34 -0800
-X-CSE-ConnectionGUID: kigTlvqHQOmnUT1IudSx6A==
-X-CSE-MsgGUID: FlGBZXefRl6sPWVdfnP/5w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,211,1728975600"; 
-   d="scan'208";a="98312134"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.108.192])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 15:30:31 -0800
-Date: Thu, 5 Dec 2024 15:30:29 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Zijun Hu <zijun_hu@icloud.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@kernel.org>,
-	James Bottomley <James.Bottomley@hansenpartnership.com>,
-	Thomas =?iso-8859-1?Q?Wei=DFschuh?= <thomas@t-8ch.de>,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-sound@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-block@vger.kernel.org, linux-cxl@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net, arm-scmi@vger.kernel.org,
-	linux-efi@vger.kernel.org, linux-gpio@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org,
-	linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-	linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
-	linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
-	netdev@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
-Subject: Re: [PATCH v3 01/11] libnvdimm: Simplify nd_namespace_store()
- implementation
-Message-ID: <Z1I3lSpcnIIbc7S1@aschofie-mobl2.lan>
-References: <20241205-const_dfc_done-v3-0-1611f1486b5a@quicinc.com>
- <20241205-const_dfc_done-v3-1-1611f1486b5a@quicinc.com>
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="kb+PAfJg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
+	s=1a1hai; t=1733446598;
+	bh=gD/eV8FniOqkvsbchGLbTggCmSZ3+Zy4ZNoHJzav1qY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type:
+	 x-icloud-hme;
+	b=kb+PAfJgaCYIQRvFMLki16gYica5tRz/08+GznpmNX7VeO+OH27EOPjbOCq88Bq5G
+	 C85X8m08IvDSJIBUkQpWDkm/U+UPvjMndrTjwaHPdxebzthJxcCvzNq1UluTMsOJE0
+	 f/0ApVaydU3tkF/jonXQ6he1D/A1oPkgLYw3/ROwGhr2XOvjy8TJ9vq91JoxTwmWUc
+	 ba2JcPh21U8etDOzQaiUpPg1qZtmIP7MChQkfEtsT7WmDEkJB7EJJI67OyQh+q5UI+
+	 YN2aWgZIZGmaIvEcoooWNySYWbIvD/XfFw0E7Ta1fRv2r40AtsA3NMQGWCkVFfGaKX
+	 jqpQZGpB+nUgg==
+Received: from [192.168.1.26] (pv50p00im-dlb-asmtp-mailmevip.me.com [17.56.9.10])
+	by pv50p00im-zteg10021301.me.com (Postfix) with ESMTPSA id 86E9E5001C0;
+	Fri,  6 Dec 2024 00:56:29 +0000 (UTC)
+Message-ID: <288fe563-bd3b-4075-bcf6-5fc4782a6cb9@icloud.com>
+Date: Fri, 6 Dec 2024 08:56:26 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241205-const_dfc_done-v3-1-1611f1486b5a@quicinc.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 01/11] libnvdimm: Simplify nd_namespace_store()
+ implementation
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>,
+ James Bottomley <James.Bottomley@hansenpartnership.com>,
+ =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas@t-8ch.de>,
+ linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-sound@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-block@vger.kernel.org, linux-cxl@vger.kernel.org,
+ linux1394-devel@lists.sourceforge.net, arm-scmi@vger.kernel.org,
+ linux-efi@vger.kernel.org, linux-gpio@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org,
+ linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org,
+ linux-pwm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+ linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+ linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
+ netdev@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
+References: <20241205-const_dfc_done-v3-0-1611f1486b5a@quicinc.com>
+ <20241205-const_dfc_done-v3-1-1611f1486b5a@quicinc.com>
+ <Z1I3lSpcnIIbc7S1@aschofie-mobl2.lan>
+Content-Language: en-US
+From: Zijun Hu <zijun_hu@icloud.com>
+In-Reply-To: <Z1I3lSpcnIIbc7S1@aschofie-mobl2.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-ORIG-GUID: m6MvnGCh7TgcaO5x_qBwHR0pa2QT6zvQ
+X-Proofpoint-GUID: m6MvnGCh7TgcaO5x_qBwHR0pa2QT6zvQ
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2024-12-05_16,2024-12-05_01,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 suspectscore=0
+ clxscore=1015 phishscore=0 bulkscore=0 malwarescore=0 adultscore=0
+ mlxlogscore=999 mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2308100000 definitions=main-2412060007
 
-On Thu, Dec 05, 2024 at 08:10:10AM +0800, Zijun Hu wrote:
-> From: Zijun Hu <quic_zijuhu@quicinc.com>
-
-Hi Zihun,
-
-Similar to my comment on Patch 10/11, this commit msg can be
-explicit:
-
-libnvdimm: Replace namespace_match() w device_find_child_by_name()
-
+On 2024/12/6 07:30, Alison Schofield wrote:
+> On Thu, Dec 05, 2024 at 08:10:10AM +0800, Zijun Hu wrote:
+>> From: Zijun Hu <quic_zijuhu@quicinc.com>
 > 
-> Simplify nd_namespace_store() implementation by  device_find_child_by_name()
-                                                  ^using 
+> Hi Zihun,
+> 
+> Similar to my comment on Patch 10/11, this commit msg can be
+> explicit:
+> 
+> libnvdimm: Replace namespace_match() w device_find_child_by_name()
+> 
+>>
+>> Simplify nd_namespace_store() implementation by  device_find_child_by_name()
+>                                                   ^using 
+> 
 
-Otherwise you can add:
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+thank you Alison for code review.
 
+will send v4 with your suggestions.
+(^^)
+
+> Otherwise you can add:
+> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 > 
-> Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
-> ---
->  drivers/nvdimm/claim.c | 9 +--------
->  1 file changed, 1 insertion(+), 8 deletions(-)
-> 
-> diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-> index 030dbde6b0882050c90fb8db106ec15b1baef7ca..9e84ab411564f9d5e7ceb687c6491562564552e3 100644
-> --- a/drivers/nvdimm/claim.c
-> +++ b/drivers/nvdimm/claim.c
-> @@ -67,13 +67,6 @@ bool nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
->  	return claimed;
->  }
->  
-> -static int namespace_match(struct device *dev, void *data)
-> -{
-> -	char *name = data;
-> -
-> -	return strcmp(name, dev_name(dev)) == 0;
-> -}
-> -
->  static bool is_idle(struct device *dev, struct nd_namespace_common *ndns)
->  {
->  	struct nd_region *nd_region = to_nd_region(dev->parent);
-> @@ -168,7 +161,7 @@ ssize_t nd_namespace_store(struct device *dev,
->  		goto out;
->  	}
->  
-> -	found = device_find_child(dev->parent, name, namespace_match);
-> +	found = device_find_child_by_name(dev->parent, name);
->  	if (!found) {
->  		dev_dbg(dev, "'%s' not found under %s\n", name,
->  				dev_name(dev->parent));
-> 
-> -- 
-> 2.34.1
-> 
-> 
+>>
+>> Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
+>> ---
+>>  drivers/nvdimm/claim.c | 9 +--------
+>>  1 file changed, 1 insertion(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+>> index 030dbde6b0882050c90fb8db106ec15b1baef7ca..9e84ab411564f9d5e7ceb687c6491562564552e3 100644
+>> --- a/drivers/nvdimm/claim.c
+>> +++ b/drivers/nvdimm/claim.c
+>> @@ -67,13 +67,6 @@ bool nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
+>>  	return claimed;
+>>  }
+>>  
+>> -static int namespace_match(struct device *dev, void *data)
+>> -{
+>> -	char *name = data;
+>> -
+>> -	return strcmp(name, dev_name(dev)) == 0;
+>> -}
+>> -
+>>  static bool is_idle(struct device *dev, struct nd_namespace_common *ndns)
+>>  {
+>>  	struct nd_region *nd_region = to_nd_region(dev->parent);
+>> @@ -168,7 +161,7 @@ ssize_t nd_namespace_store(struct device *dev,
+>>  		goto out;
+>>  	}
+>>  
+>> -	found = device_find_child(dev->parent, name, namespace_match);
+>> +	found = device_find_child_by_name(dev->parent, name);
+>>  	if (!found) {
+>>  		dev_dbg(dev, "'%s' not found under %s\n", name,
+>>  				dev_name(dev->parent));
+>>
+>> -- 
+>> 2.34.1
+>>
+>>
+
