@@ -1,147 +1,201 @@
-Received: from pv50p00im-ztdg10012101.me.com (pv50p00im-ztdg10012101.me.com [17.58.6.49])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55AAA13A863
-	for <nvdimm@lists.linux.dev>; Fri,  6 Dec 2024 01:03:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=17.58.6.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D99E1E4AD
+	for <nvdimm@lists.linux.dev>; Fri,  6 Dec 2024 01:10:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733446995; cv=none; b=jWVeTgWxusdOlFVwLh2a8NdW7W35HjiW3tvQXNsPZvxJlGQ/CvFX2Sj9u3OfJk/T9fqqPeV0sVix7SdHzcyj0CCiJKfZav+mDeWv9d9eGL2zMj099XWU0vf9nAcif0ImiYNgT/pH64VwPYvX9uiI6jvZrnEVbVioXFm0Y6uY1zw=
+	t=1733447410; cv=none; b=Mi71AD7HH9OzjoqDdR6vsDY5Keidfel0hwVuHBQqoZyGazkKu6Jb8soLmGNxiDTXUu+o1/z6yXejHNc2BevOIG8zhNHUtykP32Lg8txDPh5bywVCF8u7qxyM//leA4OfuD+QCRbUXmZ+gPDmtqHElPXq/ljjkx43VuVIQCU1CuU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733446995; c=relaxed/simple;
-	bh=mXKzMLG9P0/fFy8yPc/3Wnedq5fjCqRwp/fSEiqY4jg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Yw3wO8dGy0WaT+vIojz+8zZcMTbMbRP5prxb1Q+HsKwGGQdx3t3h4WmKKG/7ZcH8L09foOFmbJodk72JypJYho0AVvvA+/5tgd2QffkYotrpM4MwuHPQ2sSRcYmBxgPgbvpLBurWhf7bsSGEzUeo9KneAe8w+eZOLDTq6q85jK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=O0gm/SRx; arc=none smtp.client-ip=17.58.6.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
+	s=arc-20240116; t=1733447410; c=relaxed/simple;
+	bh=x+0+vxSpvq26U//iLZovhmZYpLZlWGUox0b9H3KLNbU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=R/P7timcel3jV99XfjLI88KDsQyGyFvSU5CkJ14JQXZ4dQOfReBfEjBqSXQZqFSiitRh4/f8GHlt/5UvqkGObUK5o5P25My0fw06bQ752/QceJjeq/mRGWhxfjisBURvJ5aczZFnNBwQpD8ZKhqO66HgOTqrRvvR1c/JpHGMx+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QDbO7yUG; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="O0gm/SRx"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-	s=1a1hai; t=1733446990;
-	bh=MLA/o3eoWdFJOEkeLQDHb3UrBR7EySOllMZRXPDaXaQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type:
-	 x-icloud-hme;
-	b=O0gm/SRxvbNugGvJblrfWTbeL81Zh+NhIgrv+vxCeahtE+oxwN3nZC3HwwKuihfnx
-	 4cXiY5M5FcD5fV/sMsHvjU5WBmCcNVT7ZwGkknlvZVnSXD+x6XGDkkFFIF/04e6gQZ
-	 Zg2fxY0KWh5ofbG3L8rwEFb9qCszciEJ1vWxrZ9PoginG+0DqELBU5tErjcEkVaLcU
-	 oGYsHPfXPbZWAglOVp26uGDUXsLkxY8ORVxthbd4ILpIbk0Z7w+bUHoMKXTrki4Gnv
-	 JzRHbqv5bfO46l/pgkQl/5OuD1YtgQ+8yIZfoBNlV5SY0vot5qXT1Zg0ppVHga6NSk
-	 Y07hiEdKxi0sw==
-Received: from [192.168.1.26] (pv50p00im-dlb-asmtp-mailmevip.me.com [17.56.9.10])
-	by pv50p00im-ztdg10012101.me.com (Postfix) with ESMTPSA id DC943740313;
-	Fri,  6 Dec 2024 01:03:01 +0000 (UTC)
-Message-ID: <9d2de147-8fc6-419f-bf3e-03f6b86cbb44@icloud.com>
-Date: Fri, 6 Dec 2024 09:02:58 +0800
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QDbO7yUG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1733447409; x=1764983409;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=x+0+vxSpvq26U//iLZovhmZYpLZlWGUox0b9H3KLNbU=;
+  b=QDbO7yUGlrerAcGMbj/lE37uPRDaUcZOx/rMXVK7wiCeMmXZsHUs27IQ
+   FYS6Qi5SKVTyvjNlHT7y/egzo45+gfb+nBmnX+QJ53fyU4hD8YPIBFuUY
+   raiD9HEfjGmkqZNvkzQ18BwsMWxpGOkH4QScZLM+YaHVRA9Lq86W2K/2q
+   SkxRUNOo848liFpy1aH20WT8HswzMKDJUfFDhrXLF+yaEs30Fxn6fQVpI
+   0/ivE3F/4cdfCsDkoJ8h7Eiv5Bi36UIJwFqYEFtJMcFlSCnoc9UYyIkO9
+   Jd7m70jRz2Tf6G1t6gixxY/y9fCwHAvhOKB53ETSzplhcKnSNjAyc1az3
+   A==;
+X-CSE-ConnectionGUID: elyUAW2GQG+EnPFgsVGlnw==
+X-CSE-MsgGUID: ekdObx1pTgeCdUWuqDNDAQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11277"; a="33844858"
+X-IronPort-AV: E=Sophos;i="6.12,212,1728975600"; 
+   d="scan'208";a="33844858"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 17:10:08 -0800
+X-CSE-ConnectionGUID: ypLy/z/7T2uMPwDksutmPw==
+X-CSE-MsgGUID: 0U6Gm2P+RrSQgyW5CRM7QA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,212,1728975600"; 
+   d="scan'208";a="94620553"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.108.192])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 17:10:07 -0800
+Date: Thu, 5 Dec 2024 17:10:05 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Li Ming <ming.li@zohomail.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH 1/1] daxctl: Output more information if memblock is
+ unremovable
+Message-ID: <Z1JO7WUKwTcBVIYA@aschofie-mobl2.lan>
+References: <20241204161457.1113419-1-ming.li@zohomail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 10/11] cxl/pmem: Remove match_nvdimm_bridge()
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>,
- James Bottomley <James.Bottomley@hansenpartnership.com>,
- =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas@t-8ch.de>,
- linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-sound@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-block@vger.kernel.org, linux-cxl@vger.kernel.org,
- linux1394-devel@lists.sourceforge.net, arm-scmi@vger.kernel.org,
- linux-efi@vger.kernel.org, linux-gpio@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org,
- linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org,
- linux-pwm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
- linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
- linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
- netdev@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
-References: <20241205-const_dfc_done-v3-0-1611f1486b5a@quicinc.com>
- <20241205-const_dfc_done-v3-10-1611f1486b5a@quicinc.com>
- <Z1It83v8xuNuLrOt@aschofie-mobl2.lan>
-Content-Language: en-US
-From: Zijun Hu <zijun_hu@icloud.com>
-In-Reply-To: <Z1It83v8xuNuLrOt@aschofie-mobl2.lan>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-GUID: Mj6KRfIlz3zE_ytOMK9rghPIY_t2GqYx
-X-Proofpoint-ORIG-GUID: Mj6KRfIlz3zE_ytOMK9rghPIY_t2GqYx
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
- definitions=2024-12-05_16,2024-12-05_01,2024-11-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 suspectscore=0
- malwarescore=0 bulkscore=0 phishscore=0 spamscore=0 adultscore=0
- clxscore=1015 mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2308100000 definitions=main-2412060008
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241204161457.1113419-1-ming.li@zohomail.com>
 
-On 2024/12/6 06:49, Alison Schofield wrote:
-> On Thu, Dec 05, 2024 at 08:10:19AM +0800, Zijun Hu wrote:
->> From: Zijun Hu <quic_zijuhu@quicinc.com>
+On Thu, Dec 05, 2024 at 12:14:56AM +0800, Li Ming wrote:
+> If CONFIG_MEMORY_HOTREMOVE is disabled by kernel, memblocks will not be
+> removed, so 'dax offline-memory all' will output below error logs:
 > 
-> Suggest conveying more detail in the commit msg:
+>   libdaxctl: offline_one_memblock: dax0.0: Failed to offline /sys/devices/system/node/node6/memory371/state: Invalid argument
+>   dax0.0: failed to offline memory: Invalid argument
+>   error offlining memory: Invalid argument
+>   offlined memory for 0 devices
 > 
-> cxl/pmem> Replace match_nvdimm_bridge() w device_match_type()
+> The log does not clearly show why the command failed. So checking if the
+> target memblock is removable before offlining it by querying
+> '/sys/devices/system/node/nodeX/memoryY/removable', then output specific
+> logs if the memblock is unremovable, output will be:
 > 
+>   libdaxctl: offline_one_memblock: dax0.0: memory371 is unremovable
+>   dax0.0: failed to offline memory: Operation not supported
+>   error offlining memory: Operation not supported
+>   offlined memory for 0 devices
+>
 
-good suggestions
-will take it in v4.
+Hi Ming,
 
->>
->> match_nvdimm_bridge(), as matching function of device_find_child(), is to
->> match a device with device type @cxl_nvdimm_bridge_type, and is unnecessary
+This led me to catch up on movable and removable in DAX context.
+Not all 'Movable' DAX memory is 'Removable' right?
+
+Would it be useful to add 'removable' to the daxctl list json:
+
+# daxctl list
+[
+  {
+    "chardev":"dax0.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"system-ram",
+    "online_memblocks":4,
+    "total_memblocks":4,
+    "movable":true
+    "removable":false  <----
+  }
+]
+
+You've already added the helper to discover removable.
+
+Otherwise, LGTM,
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+
+
+> Besides, delay to set up string 'path' for offlining memblock operation,
+> because string 'path' is stored in 'mem->mem_buf' which is a shared
+> buffer, it will be used in memblock_is_removable().
 > 
-> Prefer being clear that this function recently become needless.
-> Something like:
+> Signed-off-by: Li Ming <ming.li@zohomail.com>
+> ---
+>  daxctl/lib/libdaxctl.c | 52 ++++++++++++++++++++++++++++++++++++------
+>  1 file changed, 45 insertions(+), 7 deletions(-)
 > 
-> match_nvdimm_bridge(), as matching function of device_find_child(),
-> matches a device with device type @cxl_nvdimm_bridge_type. The recently
-> added API, device_match_type, simplifies that task.
+> diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+> index 9fbefe2e8329..b7fa0de0b73d 100644
+> --- a/daxctl/lib/libdaxctl.c
+> +++ b/daxctl/lib/libdaxctl.c
+> @@ -1310,6 +1310,37 @@ static int memblock_is_online(struct daxctl_memory *mem, char *memblock)
+>  	return 0;
+>  }
 >  
-> Replace match_nvdimm_bridge() usage with device_match_type().
+> +static int memblock_is_removable(struct daxctl_memory *mem, char *memblock)
+> +{
+> +	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
+> +	const char *devname = daxctl_dev_get_devname(dev);
+> +	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
+> +	int len = mem->buf_len, rc;
+> +	char buf[SYSFS_ATTR_SIZE];
+> +	char *path = mem->mem_buf;
+> +	const char *node_path;
+> +
+> +	node_path = daxctl_memory_get_node_path(mem);
+> +	if (!node_path)
+> +		return -ENXIO;
+> +
+> +	rc = snprintf(path, len, "%s/%s/removable", node_path, memblock);
+> +	if (rc < 0)
+> +		return -ENOMEM;
+> +
+> +	rc = sysfs_read_attr(ctx, path, buf);
+> +	if (rc) {
+> +		err(ctx, "%s: Failed to read %s: %s\n",
+> +			devname, path, strerror(-rc));
+> +		return rc;
+> +	}
+> +
+> +	if (strtoul(buf, NULL, 0) == 0)
+> +		return -EOPNOTSUPP;
+> +
+> +	return 0;
+> +}
+> +
+>  static int online_one_memblock(struct daxctl_memory *mem, char *memblock,
+>  		enum memory_zones zone, int *status)
+>  {
+> @@ -1362,6 +1393,20 @@ static int offline_one_memblock(struct daxctl_memory *mem, char *memblock)
+>  	char *path = mem->mem_buf;
+>  	const char *node_path;
+>  
+> +	/* if already offline, there is nothing to do */
+> +	rc = memblock_is_online(mem, memblock);
+> +	if (rc < 0)
+> +		return rc;
+> +	if (!rc)
+> +		return 1;
+> +
+> +	rc = memblock_is_removable(mem, memblock);
+> +	if (rc) {
+> +		if (rc == -EOPNOTSUPP)
+> +			err(ctx, "%s: %s is unremovable\n", devname, memblock);
+> +		return rc;
+> +	}
+> +
+>  	node_path = daxctl_memory_get_node_path(mem);
+>  	if (!node_path)
+>  		return -ENXIO;
+> @@ -1370,13 +1415,6 @@ static int offline_one_memblock(struct daxctl_memory *mem, char *memblock)
+>  	if (rc < 0)
+>  		return -ENOMEM;
+>  
+> -	/* if already offline, there is nothing to do */
+> -	rc = memblock_is_online(mem, memblock);
+> -	if (rc < 0)
+> -		return rc;
+> -	if (!rc)
+> -		return 1;
+> -
+>  	rc = sysfs_write_attr_quiet(ctx, path, mode);
+>  	if (rc) {
+>  		/* check if something raced us to offline (unlikely) */
+> -- 
+> 2.34.1
 > 
-
-sure. will do it in v4 by following these good comments.
-
-> With that you can add:
 > 
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-> 
->>
->> Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
->> ---
->>  drivers/cxl/core/pmem.c | 9 +++------
->>  1 file changed, 3 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
->> index a8473de24ebfd92f12f47e0556e28b81a29cff7c..0f8166e793e14fc0b1c04ffda79e756a743d9e6b 100644
->> --- a/drivers/cxl/core/pmem.c
->> +++ b/drivers/cxl/core/pmem.c
->> @@ -57,11 +57,6 @@ bool is_cxl_nvdimm_bridge(struct device *dev)
->>  }
->>  EXPORT_SYMBOL_NS_GPL(is_cxl_nvdimm_bridge, "CXL");
->>  
->> -static int match_nvdimm_bridge(struct device *dev, const void *data)
->> -{
->> -	return is_cxl_nvdimm_bridge(dev);
->> -}
->> -
->>  /**
->>   * cxl_find_nvdimm_bridge() - find a bridge device relative to a port
->>   * @port: any descendant port of an nvdimm-bridge associated
->> @@ -75,7 +70,9 @@ struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct cxl_port *port)
->>  	if (!cxl_root)
->>  		return NULL;
->>  
->> -	dev = device_find_child(&cxl_root->port.dev, NULL, match_nvdimm_bridge);
->> +	dev = device_find_child(&cxl_root->port.dev,
->> +				&cxl_nvdimm_bridge_type,
->> +				device_match_type);
->>  
->>  	if (!dev)
->>  		return NULL;
->>
->> -- 
->> 2.34.1
->>
->>
-
