@@ -1,37 +1,43 @@
-Received: from pv50p00im-zteg10021301.me.com (pv50p00im-zteg10021301.me.com [17.58.6.46])
+Received: from sender4-pp-o95.zoho.com (sender4-pp-o95.zoho.com [136.143.188.95])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5331C14AD3A
-	for <nvdimm@lists.linux.dev>; Sun,  8 Dec 2024 13:19:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=17.58.6.46
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733663955; cv=none; b=QKXq4+BGqJSDttMI6gbA1c2xhbvWtNDt3YnmuTXLUg/98CvY1Xso2EzHTKXCfsWvNDlif8ukXgH10Vcg4A7L4YV/hCpgEkk6P0XsUzPIgifDOzIDlBfKDyocgIQWflA6zLcJXopqrHY7FC1Z5duKsNmykJI7bWlT3Vojg3UFR04=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733663955; c=relaxed/simple;
-	bh=v6DuWZtu4YUnrBhocodbi8f07v2ZhN1ZLmNgHMutPlg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=jiZHc8uq6VD9+vdGwWRB8IRuJqz+652H18cZJAjtjcMu0bMfmq27Gm1nUd5DG/47HEhz8UldZ2pGxMjSwHNXJWVU4sZYL/FdHB/5EAUaVb1Vr367/8yX21xXqaV2rshFOgM+weCTOo95defZGor4SX0vYtCw/TA0rWV0K71L5hs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=nsAlKyTz; arc=none smtp.client-ip=17.58.6.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B13320B
+	for <nvdimm@lists.linux.dev>; Mon,  9 Dec 2024 04:02:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.95
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733716938; cv=pass; b=TVEty5gnTlPolkBBaoPPBoLqm0tbQpEkWCP5dUYMMgsUTqE5n9LITcCoYEXXSuNwsRfAGleYWwGrBrY32OfcrWRfoW+CEZK3xmLCm1F1o1mcpvDIigfHtF51GYWGSCvkZf4bfj0qm1o/8CCEj2nXH2QmbfkTdDlkIMmH8hsAWek=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733716938; c=relaxed/simple;
+	bh=i0AVdv2HVY0cBJywfMoIC/bEPBBI4Kc8iWkiyFFwwTM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=qNZAaH+PYw9VPvw91KMi/jbDcjQ1QQ7zo2rBf3dBtL0j9RbimmZ7nQX9olc2td6c9UheGL2tQ+H6oCwloBZiEgDT+tl6F4M/BYU4kRRg1EE5wZqfB6hN4ueCVQbN47LJn3R5ZycJw3lK065ebR6vbyiYf+sD5m38tEwGvM5bX7M=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b=Cyn2rzbu; arc=pass smtp.client-ip=136.143.188.95
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zohomail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="nsAlKyTz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-	s=1a1hai; t=1733663951;
-	bh=B9Z7dZW7Hi3Js1z/RCEjU+3M/IjEGHpjDFHWBOHmqc4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type:
-	 x-icloud-hme;
-	b=nsAlKyTzBjgFKiKK875IKrpeQ6Hv0IpX0ZWERQ6ck5xVT3yTVHF/ma0+sMayke7RA
-	 Mgepn7kdGl4f4KMgfy/ymh+QBWxBeS7/1xqjrAX4SI9iGKKSkpp5xcz5oH/1zd68so
-	 q8B21ej8wfHvQSmqknU2Qp3DQusSq/gzOdhHF5FFhfSN5Qste9Sq1vNahO5iwGakAp
-	 tKQIdEZWB3krUn4WgU7lFUNJY/OoKRT0xs0HLsHhvA1M3HxUyLGgZ/BUmsWP7OKH1i
-	 bCryHNz+PA1BYV/NsVSs5yT/qG6oSWCs9oJcX6JOBLUE0hNVJ8Fz0YBe04unhhDqh2
-	 KUvRd6BwJWVxw==
-Received: from [192.168.1.26] (pv50p00im-dlb-asmtp-mailmevip.me.com [17.56.9.10])
-	by pv50p00im-zteg10021301.me.com (Postfix) with ESMTPSA id B0625500490;
-	Sun,  8 Dec 2024 13:18:59 +0000 (UTC)
-Message-ID: <7780942a-93cd-4508-be97-fc5e5267c389@icloud.com>
-Date: Sun, 8 Dec 2024 21:18:54 +0800
+	dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b="Cyn2rzbu"
+ARC-Seal: i=1; a=rsa-sha256; t=1733716931; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=PCNvWq9nJMWvWfKBDgodZijmo8auebrYnmkZrZye3TzXWm7LvSoUyBefG8y2CnSa6uQA285OMoF1byVNpdYPvhCqW+o+7ZfeaOWrfSaXmwHSwoIooDgbw30+cvUSNnUkVAOSIFTp1FZPGjcz4XUVOLYNV4kIqfKuFqA9qSEMfNU=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1733716931; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=RA9KVV9H/T3fwr9oDUhv9+qG5LPXwAHewKwoee34Wqk=; 
+	b=l9zQo/W2q/K61nVXlOVW2EsAEgQ4ldwiUs4bQe0Cn6CFgfIn0MW86jskZyH2Rq/W3imYGoqufzr12plveX3a5W1ID/pMjtpBGWIp2Q2WwUznat5YLHanGJnueVlmNW2pHfe5X6JjYGofOWcwC3KrnvG/6WX/VYgTlqWk+JkBBjk=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=zohomail.com;
+	spf=pass  smtp.mailfrom=ming.li@zohomail.com;
+	dmarc=pass header.from=<ming.li@zohomail.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1733716931;
+	s=zm2022; d=zohomail.com; i=ming.li@zohomail.com;
+	h=Message-ID:Date:Date:MIME-Version:Subject:Subject:To:To:Cc:Cc:References:From:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:Feedback-ID:Message-Id:Reply-To;
+	bh=RA9KVV9H/T3fwr9oDUhv9+qG5LPXwAHewKwoee34Wqk=;
+	b=Cyn2rzbuLk1QlyZU3A4vXTdLNVJs2sx06FUM+w5C5mdjpNY8b5hGZe5+cIlpoaoW
+	1qK8jKgmc+2jmsl0qYB91VaIF/ry9n8pb10byQE+5JB1blsQBJx1DcW8iJqj3SWNWl1
+	no8IwNwe8+If+GxjxJ61JspiZnnrf6YoLeJPcNRw=
+Received: by mx.zohomail.com with SMTPS id 1733716928915758.8277959061644;
+	Sun, 8 Dec 2024 20:02:08 -0800 (PST)
+Message-ID: <ecccced3-07a1-4b4a-9319-c6d88518e368@zohomail.com>
+Date: Mon, 9 Dec 2024 12:02:06 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,110 +45,69 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 04/11] driver core: Constify API device_find_child()
- then adapt for various usages
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>,
- James Bottomley <James.Bottomley@hansenpartnership.com>,
- =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas@t-8ch.de>,
- linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-sound@vger.kernel.org, sparclinux@vger.kernel.org,
- linux-block@vger.kernel.org, linux-cxl@vger.kernel.org,
- linux1394-devel@lists.sourceforge.net, arm-scmi@vger.kernel.org,
- linux-efi@vger.kernel.org, linux-gpio@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org,
- linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org,
- linux-pwm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
- linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
- linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
- netdev@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>
-References: <20241205-const_dfc_done-v3-0-1611f1486b5a@quicinc.com>
- <20241205-const_dfc_done-v3-4-1611f1486b5a@quicinc.com>
- <20241206135209.GA133715@workstation.local>
-Content-Language: en-US
-From: Zijun Hu <zijun_hu@icloud.com>
-In-Reply-To: <20241206135209.GA133715@workstation.local>
+Subject: Re: Removing a misleading warning message?
+To: Dan Williams <dan.j.williams@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+ Coly Li <colyli@suse.de>
+References: <15237B14-B55B-4737-9A98-D76AEDB4AEAD@suse.de>
+ <ZxElg0RC_S1TY2cd@aschofie-mobl2.lan>
+ <6712b7bf2c1cd_10a03294b3@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+From: Li Ming <ming.li@zohomail.com>
+In-Reply-To: <6712b7bf2c1cd_10a03294b3@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Proofpoint-ORIG-GUID: zq6ALpvY8lzOJgSSQvNtYt-PHDnk_XXq
-X-Proofpoint-GUID: zq6ALpvY8lzOJgSSQvNtYt-PHDnk_XXq
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
- definitions=2024-12-08_04,2024-12-06_01,2024-11-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0 mlxscore=0
- clxscore=1011 adultscore=0 phishscore=0 malwarescore=0 spamscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2308100000 definitions=main-2412080111
+Feedback-ID: rr0801122760383f751de4e337f86a03e80000221daa2c86967e238b2ea4b6139ee1ce48b6857490326dd1a8:zu08011227c9892118f48149ab2326439c0000201441fab27c53b15f071cf642553ad1f953722b26334612a4:rf0801122608557309d5c5baf0c255d2e300008d94b61ab4fb4dfe00e0ce43e692411dcfaee7fa80f0d6b4:ZohoMail
+X-ZohoMailClient: External
 
-On 2024/12/6 21:52, Takashi Sakamoto wrote:
-> Hi,
+
+
+On 10/19/2024 3:32 AM, Dan Williams wrote:
+> Alison Schofield wrote:
+>>
+>> + linux-cxl mailing list
 > 
-> On Thu, Dec 05, 2024 at 08:10:13AM +0800, Zijun Hu wrote:
->> From: Zijun Hu <quic_zijuhu@quicinc.com>
->>
->> Constify the following API:
->> struct device *device_find_child(struct device *dev, void *data,
->> 		int (*match)(struct device *dev, void *data));
->> To :
->> struct device *device_find_child(struct device *dev, const void *data,
->>                                  device_match_t match);
->> typedef int (*device_match_t)(struct device *dev, const void *data);
->> with the following reasons:
->>
->> - Protect caller's match data @*data which is for comparison and lookup
->>   and the API does not actually need to modify @*data.
->>
->> - Make the API's parameters (@match)() and @data have the same type as
->>   all of other device finding APIs (bus|class|driver)_find_device().
->>
->> - All kinds of existing device match functions can be directly taken
->>   as the API's argument, they were exported by driver core.
->>
->> Constify the API and adapt for various existing usages by simply making
->> various match functions take 'const void *' as type of match data @data.
->>
->> Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
->> ---
->>  arch/sparc/kernel/vio.c                |  6 +++---
->>  drivers/base/core.c                    |  6 +++---
->>  drivers/block/sunvdc.c                 |  6 +++---
->>  drivers/bus/fsl-mc/dprc-driver.c       |  4 ++--
->>  drivers/cxl/core/pci.c                 |  4 ++--
->>  drivers/cxl/core/pmem.c                |  2 +-
->>  drivers/cxl/core/region.c              | 21 ++++++++++++---------
->>  drivers/firewire/core-device.c         |  4 ++--
->>  drivers/firmware/arm_scmi/bus.c        |  4 ++--
->>  drivers/firmware/efi/dev-path-parser.c |  4 ++--
->>  drivers/gpio/gpio-sim.c                |  2 +-
->>  drivers/gpu/drm/mediatek/mtk_drm_drv.c |  2 +-
->>  drivers/hwmon/hwmon.c                  |  2 +-
->>  drivers/media/pci/mgb4/mgb4_core.c     |  4 ++--
->>  drivers/nvdimm/bus.c                   |  2 +-
->>  drivers/pwm/core.c                     |  2 +-
->>  drivers/rpmsg/rpmsg_core.c             |  4 ++--
->>  drivers/scsi/qla4xxx/ql4_os.c          |  3 ++-
->>  drivers/scsi/scsi_transport_iscsi.c    | 10 +++++-----
->>  drivers/slimbus/core.c                 |  8 ++++----
->>  drivers/thunderbolt/retimer.c          |  2 +-
->>  drivers/thunderbolt/xdomain.c          |  2 +-
->>  drivers/tty/serial/serial_core.c       |  4 ++--
->>  drivers/usb/typec/class.c              |  8 ++++----
->>  include/linux/device.h                 |  4 ++--
->>  include/scsi/scsi_transport_iscsi.h    |  4 ++--
->>  net/dsa/dsa.c                          |  2 +-
->>  tools/testing/cxl/test/cxl.c           |  2 +-
->>  28 files changed, 66 insertions(+), 62 deletions(-)
+> Thanks for forwarding...
 > 
-> For the changes in FireWire subsystem:
+>> On Fri, Oct 11, 2024 at 05:58:52PM +0800, Coly Li wrote:
+>>> Hi list,
+>>>
+>>> Recently I have a report for a warning message from CXL subsystem,
+>>> [ 48.142342] cxl_port port2: Couldn't locate the CXL.cache and CXL.mem capability array header.
+>>> [ 48.144690] cxl_port port3: Couldn't locate the CXL.cache and CXL.mem capability array header.
+>>> [ 48.144704] cxl_port port3: HDM decoder capability not found
+>>> [ 48.144850] cxl_port port4: Couldn't locate the CXL.cache and CXL.mem capability array header.
+>>> [ 48.144859] cxl_port port4: HDM decoder capability not found
+>>> [ 48.170374] cxl_port port6: Couldn't locate the CXL.cache and CXL.mem capability array header.
+>>> [ 48.172893] cxl_port port7: Couldn't locate the CXL.cache and CXL.mem capability array header.
+>>> [ 48.174689] cxl_port port7: HDM decoder capability not found
+>>> [ 48.175091] cxl_port port8: Couldn't locate the CXL.cache and CXL.mem capability array header.
+>>> [ 48.175105] cxl_port port8: HDM decoder capability not found
+>>>
+>>> After checking the source code I realize this is not a real bug,
+>>> just a warning message that expected device was not detected.  But
+>>> from the above warning information itself, users/customers are
+>>> worried there is something wrong (IMHO indeed not).
+>>>
+>>> Is there any chance that we can improve the code logic that only
+>>> printing out the warning message when it is really a problem to be
+>>> noticed? 
 > 
-> Reviewed-by: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+> There is a short term fix and a long term fix. The short term fix could
+> be to just delete the warning message, or downgrade it to dev_dbg(), for
+> now since it is more often a false positive than not. The long term fix,
+> and the logic needed to resolve false-positive reports, is to flip the
+> capability discovery until *after* it is clear that there is a
+> downstream endpoint capable of CXL.cachemem.
+> 
+> Without an endpoint there is no point in reporting that a potentially
+> CXL capable port is missing cachemem registers.
+> 
+> So, if you want to send a patch changing that warning to dev_dbg() for
+> now I would support that.
 > 
 
-thank you for code review and previous cooperation to achieve
-this goal (^^).
+I noticed the short term solution been merged, may I know if anyone is working on the long term solution? If not, I can work on it.
 
-> 
-> Thanks
-> 
-> Takashi Sakamoto
-
+Thanks
+Ming
