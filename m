@@ -1,115 +1,99 @@
-Received: from sender4-pp-o94.zoho.com (sender4-pp-o94.zoho.com [136.143.188.94])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f179.google.com (mail-lj1-f179.google.com [209.85.208.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 938A61C1F06
-	for <nvdimm@lists.linux.dev>; Wed, 11 Dec 2024 07:30:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.94
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733902259; cv=pass; b=pVgsHLXku75EaSt8WPgKPHW3OO51Hsk3C9GGv80H9joFxQ2QLYKZukNWwLydRj3JUraYLZCiwEnveOGybgWuUYyDAlj1B7xhGP9FPcjnxWoMjXwv7Rk5oo9ZT+yLN087+rAa218gAO4VzplE8SUxR8FQZOFOVa0PUvlXyg5ZWE8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733902259; c=relaxed/simple;
-	bh=GUPMk4lYiduxM+eyHe7NA4yek6I+hbGGl9YKw3YqnhU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GkrBhkb2vOENx/emdMGC64inD/gz08JNQhV/mOsKxp0ZHjzbe7RT+pGrgujGMpfokY4Cb/AeT5mxBvkDcm7S6vaOfD3zGtoK/Wk7szsS2GRTc+KvKP0pEJIEVCRe5Y1dphKlYT5SrKPHdfkiQ6sGvWWXj2P/GZSBayoDdwNG4Gc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b=I0uoGegW; arc=pass smtp.client-ip=136.143.188.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zohomail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D2A1D31B5
+	for <nvdimm@lists.linux.dev>; Wed, 11 Dec 2024 08:18:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.179
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733905113; cv=none; b=qZCm0nIIMdGXMxaoHPpmnlM3biB6rRdD3Z0oz5JMDu2NSa4hRuskmIBd6Cljkbdrx3eIf5bxDEjjfXoHP3AlA+sHHnm9+mszZrl0rGXmMjoWZBgMVn7D7pFMsFKPPC2habpnjy33qx5LDIGpMuw6sW87/eDtMMdZkFgXonBDmAc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733905113; c=relaxed/simple;
+	bh=XskHzUQ0wP3xisQAsDVTIVaMiwmap3TuSXWv2UwOOoE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aOORhf2tnNwyKGp2/E+QLyf14SSlD3xRXavPo/9VKBof+78BgUri07bKi+dkdnGNRjL9t0ck4r4xPX8LYHgtUUolgwIyWvrVvg9qLFx8ERjyjj1/+miqc0N/RQVzgSZwRth15KSbQmwj5zcbD8Ir/1CwUb2e02t8mqYykMDoIcU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=jxqgUTfj; arc=none smtp.client-ip=209.85.208.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b="I0uoGegW"
-ARC-Seal: i=1; a=rsa-sha256; t=1733902255; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=SmNEgatPFrW5Zgmlhjz+TdKKKCWHaatCZlMLzXK02O4Wj6j0lQ66wDtBKwOc143PbmA1/8IDE98f9k/x8PA3Tu6JXYCj9TR9E9qi3hdoDm6S9odXqwmbsowGVlu/KP/+RA2nsE6OmhHzRC53X/poedFzgAjxYWjNZXmAXojvxkQ=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1733902255; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=e3VgLWgHelt0hGZEqrdW8n3JSJczgRnh9f4Z/ppWzb8=; 
-	b=krk4u3Ypka/m/odiOVpbAyXe0mjSNMT6iy41020L9K+ttxu1LE+HUIGxi0KLl9XHZFI8hlUTjkEe1R6pzJgLEDh8H27F35Sa2Wlh6O1kuHOHvtQlgsmToRqzZH0q/WjxvxGC3uF9cGJwfcQSm6GHNZrWoYkxJBpP42oUrhqb1FI=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=zohomail.com;
-	spf=pass  smtp.mailfrom=ming.li@zohomail.com;
-	dmarc=pass header.from=<ming.li@zohomail.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1733902255;
-	s=zm2022; d=zohomail.com; i=ming.li@zohomail.com;
-	h=Message-ID:Date:Date:MIME-Version:Subject:Subject:To:To:Cc:Cc:References:From:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:Feedback-ID:Message-Id:Reply-To;
-	bh=e3VgLWgHelt0hGZEqrdW8n3JSJczgRnh9f4Z/ppWzb8=;
-	b=I0uoGegWOcVTJxmnZ3iDj1t2tI+2j3yo/LfKov8HaiqLI+gtJp5QKqI16GsTrmaX
-	n57QaM77nVXT8uN/jkCqVo99ww9y+SSmRldWOMMDEXgVZwyAOLxLiw8j0EGW15jaQ2V
-	mZ7oHS5Z6QUXIggeB0tWpmlbgXAS+xWd2+qBSerw=
-Received: by mx.zohomail.com with SMTPS id 1733902253083255.86015563984415;
-	Tue, 10 Dec 2024 23:30:53 -0800 (PST)
-Message-ID: <22f74b5c-e781-4f82-8205-c1349095cd3a@zohomail.com>
-Date: Wed, 11 Dec 2024 15:30:50 +0800
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="jxqgUTfj"
+Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-3003d7ca01cso40264441fa.0
+        for <nvdimm@lists.linux.dev>; Wed, 11 Dec 2024 00:18:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1733905108; x=1734509908; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=XskHzUQ0wP3xisQAsDVTIVaMiwmap3TuSXWv2UwOOoE=;
+        b=jxqgUTfj07mXSJmMxMf8zeUEAVr1z6yWih+p2e2bfFpUfMt2W1BDdRMmmB4Yi0Mc+o
+         f05crafDW8zhFRacIe4tbegSAAUjfwoVN5xVw4V65PmecclXWu2foWBIlsVFqt1BoN6Z
+         P4VZNS3RqTqJEaWQmPQ+d+X6CzyIT5eXbYfMrOzPb2gh0RW0Tnb1R39xSuNubYfw3cIJ
+         o/FXVgUYhv8Y6RlGUZgFS9wWz7yHPDCBOJUMDYeOVFKy/klVo0o2qd1AM9BUmmcR6w11
+         i8fHHrV2KUuHQ8E8497ACstp5eHKqv3yBKNG1k4aompeQvLx9TgWJ2OU4Oqy9TZeT8qp
+         y4RA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1733905108; x=1734509908;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=XskHzUQ0wP3xisQAsDVTIVaMiwmap3TuSXWv2UwOOoE=;
+        b=Sr+HqeL310oWd3CceigKZWAMvPANAKAIJaqw1o7ss5ZHp2B5MM2IuT1ndYv5hXdX80
+         F7OBsGW2YJ1vysLT73Nz5jpMkMl0/EtbYRhYDmOQGTVcWTWfW33eOQ5R+McYPwSF6uxK
+         Adejfe8BKK54XsGo6sjxiQqnywYgGuFZBrTlj0sCTxRYSvilXcN7J+eG3OnmmU/ZLW5D
+         0m71Qezo0h8WEZMOyVDHJM4Fv0j9Y86SNrPKiFGqqYd5dY6QcpmaFX3JP5AAC7fguj7S
+         jlopNUFkiWEALJdFPInYX2K7KqidW7/BFe8JmtJS8qvwq1EwPyBOsQpTSj1e+AGqa+Wt
+         rzhw==
+X-Forwarded-Encrypted: i=1; AJvYcCX6nbmoa2G11LrtiGnW1bRkuePmFh3c5DL7GFP3PvYOjVMjYeCLv+EZiW/rsRFsmpjPc51a81w=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxHjApgkwGdVn7GDP9h82qUjgru4vcRABKh2a3O7Yn7eQgLa+8P
+	I8pup0FoiX9d3JFUkmwCglhhvLmJRgHWnviL2KCxI52k1AmJzEaLCDaJBkIm3RQ6qqM78i9xlTK
+	yCJ8pAXDRolC+BbNbEbWb1RF/pv0ZKvtUuExmTQ==
+X-Gm-Gg: ASbGncu7umYw2gmS2g1rMkaUAWV2GZ0JS2QGqXfLicS2xoEzAc5s63/WdZJ8eKJl5bd
+	+qboblrVQGEEDZUxsoohaTN+QUh+9I03wT3+iMz6ktneTRYzdTEiyNNBvN0iHVzSLFV0=
+X-Google-Smtp-Source: AGHT+IEyqSnEBMMtZyEj5jF6bo6/CxMQUAS8l/Vem+Q0Tg0zwJltPimb/BXxYNi4dNa8OIsM4j3xdj7bHzlce3zdJRY=
+X-Received: by 2002:a2e:bcc6:0:b0:2ff:c95a:a067 with SMTP id
+ 38308e7fff4ca-30240d08829mr5734311fa.13.1733905108362; Wed, 11 Dec 2024
+ 00:18:28 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH 1/1] daxctl: Output more information if memblock is
- unremovable
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-References: <20241204161457.1113419-1-ming.li@zohomail.com>
- <Z1JO7WUKwTcBVIYA@aschofie-mobl2.lan>
-From: Li Ming <ming.li@zohomail.com>
-In-Reply-To: <Z1JO7WUKwTcBVIYA@aschofie-mobl2.lan>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Feedback-ID: rr08011227dfbd7ab84a44d01a798b286200000a01be87ebf2a357c2a336777f8948b6d9938c9e9432217eb6:zu08011227ddb9e65d947d78b53e20ad2f0000c3b5e82edfc1f0414f8909ee65b52034b26e54cf55bbdc598b:rf080112260564dec55c858332151065490000242a7a8d1d9d4f5642e0f6b7b9493fc879bb9556c6a6321e:ZohoMail
-X-ZohoMailClient: External
+References: <20241211-const_dfc_done-v4-0-583cc60329df@quicinc.com> <20241211-const_dfc_done-v4-8-583cc60329df@quicinc.com>
+In-Reply-To: <20241211-const_dfc_done-v4-8-583cc60329df@quicinc.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Date: Wed, 11 Dec 2024 09:18:17 +0100
+Message-ID: <CAMRc=MdJuy9ghgLHxbygdHME2EkttZ7zBMJzCis=t94EUMbGiQ@mail.gmail.com>
+Subject: Re: [PATCH v4 08/11] gpio: sim: Remove gpio_sim_dev_match_fwnode()
+To: Zijun Hu <zijun_hu@icloud.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, 
+	=?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <ukleinek@kernel.org>, 
+	James Bottomley <James.Bottomley@hansenpartnership.com>, 
+	=?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas@t-8ch.de>, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-sound@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-block@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	linux1394-devel@lists.sourceforge.net, arm-scmi@vger.kernel.org, 
+	linux-efi@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org, 
+	linux-hwmon@vger.kernel.org, linux-media@vger.kernel.org, 
+	linux-pwm@vger.kernel.org, linux-remoteproc@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-serial@vger.kernel.org, netdev@vger.kernel.org, 
+	Zijun Hu <quic_zijuhu@quicinc.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 12/6/2024 9:10 AM, Alison Schofield wrote:
-> On Thu, Dec 05, 2024 at 12:14:56AM +0800, Li Ming wrote:
->> If CONFIG_MEMORY_HOTREMOVE is disabled by kernel, memblocks will not be
->> removed, so 'dax offline-memory all' will output below error logs:
->>
->>   libdaxctl: offline_one_memblock: dax0.0: Failed to offline /sys/devices/system/node/node6/memory371/state: Invalid argument
->>   dax0.0: failed to offline memory: Invalid argument
->>   error offlining memory: Invalid argument
->>   offlined memory for 0 devices
->>
->> The log does not clearly show why the command failed. So checking if the
->> target memblock is removable before offlining it by querying
->> '/sys/devices/system/node/nodeX/memoryY/removable', then output specific
->> logs if the memblock is unremovable, output will be:
->>
->>   libdaxctl: offline_one_memblock: dax0.0: memory371 is unremovable
->>   dax0.0: failed to offline memory: Operation not supported
->>   error offlining memory: Operation not supported
->>   offlined memory for 0 devices
->>
-> Hi Ming,
+On Wed, Dec 11, 2024 at 1:10=E2=80=AFAM Zijun Hu <zijun_hu@icloud.com> wrot=
+e:
 >
-> This led me to catch up on movable and removable in DAX context.
-> Not all 'Movable' DAX memory is 'Removable' right?
+> From: Zijun Hu <quic_zijuhu@quicinc.com>
 >
-> Would it be useful to add 'removable' to the daxctl list json:
+> gpio_sim_dev_match_fwnode() is a simple wrapper of API
+> device_match_fwnode().
 >
-> # daxctl list
-> [
->   {
->     "chardev":"dax0.0",
->     "size":536870912,
->     "target_node":0,
->     "align":2097152,
->     "mode":"system-ram",
->     "online_memblocks":4,
->     "total_memblocks":4,
->     "movable":true
->     "removable":false  <----
->   }
-> ]
+> Remove the needless wrapper and use the API instead.
+>
+> Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
+> ---
 
-Hi Alison,
-
-After investigation, if there is no "movable" in dax list json, that means the kernel does not support MEMORY_HOTREMOVE.
-
-if there is a "movable" in dax list json, that means the kernel supports MEMORY_HOTREMOVE and the value of "movable" decides if memblocks can be offlined. So user cannot offline the memblocks if "movable" is false and "removable" is true.
-
-Feels like the "removable" field does not make much sense in kernel supporting MEMORY_HOTREMOVE case. user can use "movable" to check if memblocks can be offlined. do you think if it is still worth adding a "removable" in daxctl list json?
-
-
-Thanks
-
-Ming
-
+Acked-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
