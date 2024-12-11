@@ -1,200 +1,176 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from pv50p00im-ztdg10011901.me.com (pv50p00im-ztdg10011901.me.com [17.58.6.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C4EF86323
-	for <nvdimm@lists.linux.dev>; Tue, 10 Dec 2024 20:31:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.17
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733862667; cv=fail; b=dlMK7SNW7//00PWi1J101EUR3QDsVk1KIoqOWmloJWbFl/Z1WogVE8bT3GY+mHYY2cQvi0Tu7PbWWC8QfXVQtVDRb2r36We2J4sBTyLhbnqJ15r0is6wH/pTNnWdIr7BLhLQ3F1zAzElsFLCp5pYTww7U+CVim0WIT4lBdXWsmM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733862667; c=relaxed/simple;
-	bh=qmlqw955LjdIKuMqUtlchcCbTO6Sp5jWpmRTuf8jSWg=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=bLBaxbOTU9ptumZiqP+2i3qfwjm14Y7MIYxedlY0lIlzIrFrEOuGqhAsOJrI9N+Ffama305aIogIh2UiQXqmVkf+gB66mX+yrO8435sJCsvfR8kTqNQW1pdr9j1GKV6pEBoKF3GifunHlIbP1Bk0+2NV9PrsZ9NfhsrpTsBZmLw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=R65AJUXG; arc=fail smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B107346BF
+	for <nvdimm@lists.linux.dev>; Wed, 11 Dec 2024 00:09:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=17.58.6.50
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733875751; cv=none; b=WGj49GTLwTnEe3lL4DB9pZ8Mgt70l/s7yX/S1Jv8iG/xec9nyZMWHNUwZqzt4TnLB9yp4dcVtYLgT99Q9g1pd0J8sloUxgRZfw5SlSouUUI3lk6igSvvug0Quu4Mbhf5EQURY7spc0OFI4cFDU0nkE94OTbIt0T+gjNbiLfJRSc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733875751; c=relaxed/simple;
+	bh=GU+BaWTDisXL7emfzpgBZTRnkPnQzCchAn1nV+GvzDA=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=aBuM/x17+xnC0eQ9dkKMKMUKSBk6fxHDGyAB9vm90CYb/KyhMjeZldhm5tHXjPu1+gu94+pOLtS4PWCO6lFkHPNpnd6WVWVEmuu4PkcghBHJYbvtXxp0UQr3W4moc3oaIWazHZ3sSRjM2+7J1FcN1wy3TMRYCg+aDdKXOuP+7Io=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com; spf=pass smtp.mailfrom=icloud.com; dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b=TRrI9jgP; arc=none smtp.client-ip=17.58.6.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=icloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=icloud.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="R65AJUXG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1733862666; x=1765398666;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=qmlqw955LjdIKuMqUtlchcCbTO6Sp5jWpmRTuf8jSWg=;
-  b=R65AJUXGRDEs0kqKiK2XOphZ3rMxDB7vwin6dDuMvC0QwT1F5AFp+JPY
-   9EDIftqDcvKri907KEIFY/D8/EQ6++2unDsNyV1j/OU1CJi2WvSokZ7Lo
-   uNqF+7K7eCy28s+0gh9k+hc3KiO2H6NU2iXndSJ0V4ufdpLJxSUXJLC0t
-   63dL99r+c3cxPJUoG4nHt3VmEmcBqiecknCCAZxpXrWFhE4k3AIM1TqSQ
-   H7G1pRjVXOcisucnxtf2r+fVfrZ8KBLWkzZMoMZYb+EbSgxvDsl3OhwUG
-   KYmYvWqaUuKnOZdK47WrvJw48TfPKN5EA38YApGp6BAE+CRI119zcpIw3
-   Q==;
-X-CSE-ConnectionGUID: L4fisYe4RnixERwCcv+XsQ==
-X-CSE-MsgGUID: Qb1D1ZDEQmKmT8TuEx2+kQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11282"; a="34277853"
-X-IronPort-AV: E=Sophos;i="6.12,223,1728975600"; 
-   d="scan'208";a="34277853"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2024 12:31:05 -0800
-X-CSE-ConnectionGUID: RTSFnHV+RdGnJtRRrtZ62g==
-X-CSE-MsgGUID: 9qTl4ozCQ0O867I22Qt/uQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,223,1728975600"; 
-   d="scan'208";a="95586835"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orviesa006.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 10 Dec 2024 12:31:06 -0800
-Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Tue, 10 Dec 2024 12:31:05 -0800
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Tue, 10 Dec 2024 12:31:05 -0800
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.48) by
- edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Tue, 10 Dec 2024 12:31:04 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=j1sUdXnI5tO2Gx+euhdT1A7/GCK/ALaAvL6X0Aqpoe+WJNBTi5gRs7dDpR1bn7b7+uD+mEGHSxPmvvA2n9VP2QSUJEs/LwQm8EYiZxjOSDtS8kgRkQ1vFfnLfSwMXnTIV3ZtuO1RnPQe56fzd0YJSN2JicxtEncI0xyxzd5BTS8F0foKfcmd5ZjiOj01eZ3Ed8L4CHuoYi5qtXs9WU7z0/OGLom/CIJ6m0NhL2zEeCZxRj2pcoqgCfyvMUMtToOhnZdL1JwAjHgJhKzE6rJbv5WwlCWvNfvX2jzPcPdAXvydPAwGYnSFfqtF3YP3xwYnkMQ1KI6Vv/oD2F7KX0CQAA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=d/rvES2HflKiGqtpouY51TCBEgprUgEYIU+cl+02GPI=;
- b=qxHRuGgzsxOQ6Q/dOHkwBexKo7fqr6e+IMbwAosGceQzkI/LFMRHT9vk6WGnrR7ACo860UrnAQmZm3weDwb6dD0eMgUcvQVc/TMX9MRB37HNNWanzaJSI6go8pRABSbr9oj0UTIFm0OpesH5wERGYMsao+6Xq6lchLTwQ1TjMd62XXHGxfZGfTkzV590BbFkXr0EzyHoxxfows0IAzHzRYdiXWIzswP6KAhdgH2SQJdcoJSrI91u3rvk5pPQ7R8o+UOrjCDRP7HJ/5hYT71wt6OWewfYn66BOLUbEDwklWmp0JFielc5o9VDP5O0DXov/o6CCCAEGb9mPcnEMEULow==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by MW4PR11MB6885.namprd11.prod.outlook.com (2603:10b6:303:21b::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8230.20; Tue, 10 Dec
- 2024 20:31:02 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%5]) with mapi id 15.20.8230.010; Tue, 10 Dec 2024
- 20:31:02 +0000
-Date: Tue, 10 Dec 2024 12:30:59 -0800
-From: Dan Williams <dan.j.williams@intel.com>
-To: Li Ming <ming.li@zohomail.com>, Dan Williams <dan.j.williams@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>
-CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>, Coly Li
-	<colyli@suse.de>
-Subject: Re: Removing a misleading warning message?
-Message-ID: <6758a50391a54_10a0832944b@dwillia2-xfh.jf.intel.com.notmuch>
-References: <15237B14-B55B-4737-9A98-D76AEDB4AEAD@suse.de>
- <ZxElg0RC_S1TY2cd@aschofie-mobl2.lan>
- <6712b7bf2c1cd_10a03294b3@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <ecccced3-07a1-4b4a-9319-c6d88518e368@zohomail.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <ecccced3-07a1-4b4a-9319-c6d88518e368@zohomail.com>
-X-ClientProxiedBy: MW4PR03CA0032.namprd03.prod.outlook.com
- (2603:10b6:303:8e::7) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	dkim=pass (2048-bit key) header.d=icloud.com header.i=@icloud.com header.b="TRrI9jgP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
+	s=1a1hai; t=1733875747;
+	bh=CjAhm0T8eabtTbWzEl56h8D/MJjBFmQj5LVqz+i6m/0=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:
+	 x-icloud-hme;
+	b=TRrI9jgPRZLkzXZqlbksM2a1UEkJXKYRysRTzr18jNqnNAL5LBmjgtrNTVCiQ7zM5
+	 Mr2u8dkC+/+V17h+FyPa5mlKV7wUr6+36AfbXqarAGf4pzonKnBDcjtswVv4N9TzEu
+	 zj5ECcV9nRkzuNfPL/dDBwg/EWD1j7SiDh8rWulypBf/N3+oAHcNlPloUBghQEHJ29
+	 DJ0mavrO6MBTMeMT18Qgv3sJSrvpQYFGODCOv5BBu9X06thbTc4kvlHYnvp8MXSfy0
+	 urWDJFk+fFZ3dsoxPSKspmSbHgZvo6d4uCMfCJ/6XfToj0I3LqrZahZBK2tmyKTGkV
+	 dkYj7xRMjP9uA==
+Received: from [192.168.1.26] (pv50p00im-dlb-asmtp-mailmevip.me.com [17.56.9.10])
+	by pv50p00im-ztdg10011901.me.com (Postfix) with ESMTPSA id D49D93A03BB;
+	Wed, 11 Dec 2024 00:08:55 +0000 (UTC)
+From: Zijun Hu <zijun_hu@icloud.com>
+Subject: [PATCH v4 00/11] driver core: Constify API device_find_child()
+Date: Wed, 11 Dec 2024 08:08:02 +0800
+Message-Id: <20241211-const_dfc_done-v4-0-583cc60329df@quicinc.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|MW4PR11MB6885:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9de7d64c-d10d-42a3-4adf-08dd19599018
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?O2+dNAVdScZMS5I4SYMtEjGBTVD/JK4PJwjOw7QPhRsGLc4LgpG8xY4IBj1y?=
- =?us-ascii?Q?alfkzwc3hDErnm64phGT4RwRGR6G5iVayGGovPdo01YHWJ4HBWRZ5335JfUl?=
- =?us-ascii?Q?Sr8mdhQIQtlKKmaOW5G+OZqy3eDGf7glHd/QaiyDj0N97CTHot7Caj2vG7Mf?=
- =?us-ascii?Q?ePkSucK4ANpY9fR98ZeEsyEx3UdD+Dr9rMx3fm/OKAhpfBJXQxOevXr3QPdM?=
- =?us-ascii?Q?kmRKJk3RmbXNyP0DNTzlPVjVYDdsUg38d19YLBrwJGTKGuDoCfJC5UCuqf3z?=
- =?us-ascii?Q?vbKsvJoALt2GO0jRgy7e4cZOufNUGvF63A4zTA0SSBOH2aFIWcZmkcREs2PQ?=
- =?us-ascii?Q?I035QXfOV0f+QhWCeYk3xZDOjxrDbaV3N4hdbUAj3LaiMVZzjMgeks+c+Eib?=
- =?us-ascii?Q?W6zXGXekTF+QebTyfhNlNytAnZTm4Y/7OzwiU4xkGpMhmxtaE8LUsJsxenan?=
- =?us-ascii?Q?vQ/XvDFEqHDaX1e+QFTTRgUoT+Ez3w1ulqczP3RVGuqJMjVnG2UtF1Bw4PaE?=
- =?us-ascii?Q?cL0ttwsiDwy/nvbhRdn1JWJPVDmx3HXo4GW8tQDaQbLgywnZGeqEnkgvzWwJ?=
- =?us-ascii?Q?j6myYVCk3y9WgIUgRdeZfalSSr+yXis9GehzseyL3ZF2H9v4jIX/F8eCStdW?=
- =?us-ascii?Q?skQNHy+gjYBEZ/zsMsZ16qg0gosGfm3V4NwtgRo4UwmkTVsDOrDWVTjjDd26?=
- =?us-ascii?Q?YlWm67HiQSxQfzesg5lpmiZnyLUKFKC9pFx/mN+mpPpTkz8C9ULzQKoxaLM7?=
- =?us-ascii?Q?frtVNs2CtZHicXxIdF46xs0IgadXxBsVdZaVK11Bw+IcPedw60gzeaNvSEkL?=
- =?us-ascii?Q?BxCQc7oXTDyf/j0yjGM28gDrHpnXXDjvFBgLrZCzEYuJ/XszWutErl6moqkt?=
- =?us-ascii?Q?GvzfEl4OgwqF0/mZQYguBbBM5QcoE8sFKtfJv5xlQjtxFtlQOlTdfIAMaHbb?=
- =?us-ascii?Q?pDelwwSLONjqy3zJq4e746K+ozsktfn70fhXScD8fK1v1ldFF/+epShg2VZd?=
- =?us-ascii?Q?Yul6SvC1hy7ImZesdoIKLFp1ZE6aX/N97ebJ0AgtOXMCR9mr+NxqqJdyM1sO?=
- =?us-ascii?Q?AERe5d2CB3JKRgkFP/gTx7OqymicLFfac5qjknApQMk0oeTg5H9ZOVtolsxp?=
- =?us-ascii?Q?O52oBchIoKcGOSRHNTqv6e3A0HxW2ZT84/6C5CewPwUkyNHELaGKiS0ZDm6D?=
- =?us-ascii?Q?j8Pl3M8BpOOrW1VjBBmDX2KdPV/KIkwAokPdQLHpdLpjnuhw+28Inc/7GdXW?=
- =?us-ascii?Q?T9AUH/+bbUVof88HckjQuBPkTVCjTUSA+Mo1rCiw9oFVP4Y4PH1QcsUbYv1I?=
- =?us-ascii?Q?YcITxmLSaYz4DFz5Ke4ftSb9njxl3TmpVxObpuL+OeGEGg=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Xx2Qfbc6KDZ7MJo3nRNP5c3TrcjyKjot5K8feRp7bP07KrPRz41XWNmEOFqi?=
- =?us-ascii?Q?LzrXOzvfsMD8JdRQJHoUQAQx4+NSXLXB6jkFPnUGtAccLdjymxk35AgiJEmb?=
- =?us-ascii?Q?hWo14gDhxOkXyaYsWXEL4PRa7U3SbSALztMpbQ7xmqRKxpDgeow2QxiD82yJ?=
- =?us-ascii?Q?+hOXglnTOQMW4c6iwwDbRfpAIdrWmk0D8bDAYbAGCofhh3Qr2d24/uBBMvrO?=
- =?us-ascii?Q?X+mFvCGst5YypJ2i6x/hgU70r/Y5oF429IQOHIGgGY8RJAnzHjT26ch67o/g?=
- =?us-ascii?Q?r0SWIYPJVIaaDrnyS9QhY5dUI6qw8YrGSB+Ii3l40VJxfCZbvxpj+yy2V3sp?=
- =?us-ascii?Q?82UjVZywyjf0tV902Q55N8da6WecFLi+LQEADvh67uQl7ASNMCN5juKdW3Ib?=
- =?us-ascii?Q?xRDBr9n1lzPc0nY7vICDC3CD+we9iW8hjOsEPJZoPc5aZdf/z+rOhrlzlXPQ?=
- =?us-ascii?Q?qzc6DhxyFgoUoIwRzE/rkkL8YYdK3xbwiR3objZ4bbRe/EUbEMQsGt+yRNEW?=
- =?us-ascii?Q?azeONPQWWRLBRJD6APmLblDW7kYo8jZIGqpsukagUWXwuESa6NlYkzngj2Ou?=
- =?us-ascii?Q?3hAxSRIZBXluUJoCYt5CTt3O35WxC+Z0shDNupJbWfPTRBq5VUmZokDoFdpA?=
- =?us-ascii?Q?gozJlSUhXMuRaX2Q/EJb0xM2XE8p+DTfCAUsRLuzT2ckxjJqK2Uin1fvZvRv?=
- =?us-ascii?Q?D5Ap+SuoU983VRdi8Xj9gfyGuSRHxGhRQ2A0ZFvgTQpkNy3grO1lvKdAxSTE?=
- =?us-ascii?Q?PEmvm1rbVvRfFVrwCHzjW8JBBdLBKW4p7Ecm25IxfJnx3sXLPw9jSD98htXY?=
- =?us-ascii?Q?cTJaBxIoWiFzopGeqN2i5252UCRSWar5LdllniOasCq/+ahVrO20uX8ozcdl?=
- =?us-ascii?Q?XNE5QQ2XMal7r5+7C2A6Yep3ptH3KtMtLZJnDLtdV41pNx0FBnn8Lnj6nw2n?=
- =?us-ascii?Q?mxJI/SOgKR+Z6SEnUnLFSvYvFD4cgnGsCUj0N33dWscDBL1LpGx7XGOSkZA5?=
- =?us-ascii?Q?6FFRZ8DfLhgUiicwW5zv0f2nk7s8OG4tyeuSY3xftKJznZFipiJsyLRmNLLI?=
- =?us-ascii?Q?DEsZMPSZpGWvsEbPLGGV3QlNK5r7KNoHE4DzrLRnz2WtmyP0pToZkOCnczZs?=
- =?us-ascii?Q?uCLO+KMkoGXRQrjvtFRiHNRXuKiXucN0uIkxBvZQpExDCEt69GSj1JbS80e3?=
- =?us-ascii?Q?VTa0hwlZY+FXNEbSXFnBM7fVHRY6mI9ZPaKRrJER9MhJ3M14YO94Aey08PDR?=
- =?us-ascii?Q?JYIclb4jIWIwQf2RuChnOe9SErXkdhqY6+5tQqLcObLN6riHIy6Q1SKbAsnr?=
- =?us-ascii?Q?cbpggbIpbvqnc+4iT7sI0H0jfhSCYKIKU2BL7hda3XiG3nx5J0lT66qlwoVd?=
- =?us-ascii?Q?B4E1iw73Ep+HjVMAdJIijRubbdDJS0UK7wUVj505hT10+rLWzfWq9GiIZK8b?=
- =?us-ascii?Q?xHlro+L+1durfBuWpoVe+Sop3N1NwjSJ1G9R9bScqA/6OKm11h/u/OytPQbw?=
- =?us-ascii?Q?Ubn4BIUb7fvJ7RekxZOIjE8SP5wkIJsrVe9U1oyNFeqvPUdhn5hDs0HNxSSB?=
- =?us-ascii?Q?7C4TMn1udfk6wwDCM6MqEGcmVOnFGbO027kLgS74iGSulYdHjjQQXiE8iRrx?=
- =?us-ascii?Q?xQ=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9de7d64c-d10d-42a3-4adf-08dd19599018
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Dec 2024 20:31:02.0746
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8KrrTjep8N/bAfnfpNT2OXWBVGxk6fZDlt9uLm9Ho3S4qkuXDWGy5H0TXIpwsP/rnaJIQIZzMNsW6U+gZ4CKjGAH+/ei2zs6GgPXsdeZaH4=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR11MB6885
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAOLXWGcC/2XOzWoDIRQF4FcZXNfgHR2jWfU9Sgn+XJu7GE10O
+ rSEvHvMBAoly3PgfJwra1gJGzsMV1ZxpUYl96DeBhZOLn8hp9gzG8WoYBTAQ8ltOcYUjrFk5M5
+ h2ANK79GxPjpXTPSzgR+fPZ+oLaX+bv4Kj3ajhIEXagUuuI1mQpmsksG/X74pUA67UGb2wFb5B
+ /Qv0wsgOwAaIIEy2k/uP3B73qvY20bL8yPzrmGH5pmWwxBilAK9B2+T1DDZqHUSxngNDnHUCrW
+ yce86drsD+D+VdzsBAAA=
+X-Change-ID: 20241201-const_dfc_done-aaec71e3bbea
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, 
+ =?utf-8?q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>, 
+ James Bottomley <James.Bottomley@HansenPartnership.com>, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas@t-8ch.de>, 
+ Zijun Hu <zijun_hu@icloud.com>, linux-kernel@vger.kernel.org, 
+ nvdimm@lists.linux.dev, linux-sound@vger.kernel.org, 
+ sparclinux@vger.kernel.org, linux-block@vger.kernel.org, 
+ linux-cxl@vger.kernel.org, linux1394-devel@lists.sourceforge.net, 
+ arm-scmi@vger.kernel.org, linux-efi@vger.kernel.org, 
+ linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+ linux-mediatek@lists.infradead.org, linux-hwmon@vger.kernel.org, 
+ linux-media@vger.kernel.org, linux-pwm@vger.kernel.org, 
+ linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org, 
+ linux-usb@vger.kernel.org, linux-serial@vger.kernel.org, 
+ netdev@vger.kernel.org, Zijun Hu <quic_zijuhu@quicinc.com>, 
+ Alison Schofield <alison.schofield@intel.com>, 
+ Takashi Sakamoto <o-takashi@sakamocchi.jp>
+X-Mailer: b4 0.14.2
+X-Proofpoint-ORIG-GUID: -alI-XRJ5CvcRnQBKSq5z98wt7DybGq1
+X-Proofpoint-GUID: -alI-XRJ5CvcRnQBKSq5z98wt7DybGq1
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2024-12-10_13,2024-12-10_01,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 bulkscore=0 phishscore=0
+ suspectscore=0 mlxscore=0 spamscore=0 mlxlogscore=999 clxscore=1015
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2308100000 definitions=main-2412100174
+X-Apple-Remote-Links: v=1;h=KCk=;charset=UTF-8
 
-Li Ming wrote:
-[..]
-> > There is a short term fix and a long term fix. The short term fix could
-> > be to just delete the warning message, or downgrade it to dev_dbg(), for
-> > now since it is more often a false positive than not. The long term fix,
-> > and the logic needed to resolve false-positive reports, is to flip the
-> > capability discovery until *after* it is clear that there is a
-> > downstream endpoint capable of CXL.cachemem.
-> > 
-> > Without an endpoint there is no point in reporting that a potentially
-> > CXL capable port is missing cachemem registers.
-> > 
-> > So, if you want to send a patch changing that warning to dev_dbg() for
-> > now I would support that.
-> > 
-> 
-> I noticed the short term solution been merged, may I know if anyone is
-> working on the long term solution? If not, I can work on it.
+This patch series is to constify the following API:
+struct device *device_find_child(struct device *dev, void *data,
+		int (*match)(struct device *dev, void *data));
+To :
+struct device *device_find_child(struct device *dev, const void *data,
+				 device_match_t match);
+typedef int (*device_match_t)(struct device *dev, const void *data);
 
-Hi Ming,
+Why to constify the API?
 
-To my knowledge nobody is working on it, so feel free to take a look.
-Just note though that if this gets in someone else's critical path they
-could also produce some patches. I.e. typical Linux kernel task
-wrangling where the first to post a workable solution usually gets to
-drive the discussion.
+- Protect caller's match data @*data which is for comparison and lookup
+  and the API does not actually need to modify @*data.
+
+- Make the API's parameters (@match)() and @data have the same type as
+  all of other device finding APIs (bus|class|driver)_find_device().
+
+- All kinds of existing device matching functions can be directly taken
+  as the API's argument, they were exported by driver core.
+
+What to do?
+
+- Patches [1/11, 3/11] prepare for constifying the API.
+
+- Patch 4/11 constifies the API and adapt for its various subsystem usages.
+
+- Remaining do cleanup for several usages with benefits brought above.
+
+---
+Changes in v4:
+- Correct title and commit messages according to review comments
+- Link to v3: https://lore.kernel.org/r/20241205-const_dfc_done-v3-0-1611f1486b5a@quicinc.com
+
+Changes in v3:
+- Solve build broken issue by squashing changes of various subsystem.
+- Reduce recipients to try to send out full patch serial.
+- Correct tiles and commit messages.
+- Link to v2: https://lore.kernel.org/all/20241203-const_dfc_done-v2-0-7436a98c497f@quicinc.com
+
+Changes in v2:
+- Series v1 have no code review comments and are posted a long time ago, so may ignore differences.
+- Link to v1: https://lore.kernel.org/r/20240811-const_dfc_done-v1-0-9d85e3f943cb@quicinc.com
+- Motivation link: https://lore.kernel.org/lkml/917359cc-a421-41dd-93f4-d28937fe2325@icloud.com
+
+---
+Zijun Hu (11):
+      libnvdimm: Replace namespace_match() with device_find_child_by_name()
+      slimbus: core: Constify slim_eaddr_equal()
+      bus: fsl-mc: Constify fsl_mc_device_match()
+      driver core: Constify API device_find_child() then adapt for various usages
+      driver core: Simplify API device_find_child_by_name() implementation
+      driver core: Remove match_any()
+      slimbus: core: Remove of_slim_match_dev()
+      gpio: sim: Remove gpio_sim_dev_match_fwnode()
+      driver core: Introduce an device matching API device_match_type()
+      cxl/pmem: Replace match_nvdimm_bridge() with API device_match_type()
+      usb: typec: class: Remove both cable_match() and partner_match()
+
+ arch/sparc/kernel/vio.c                |  6 +++---
+ drivers/base/core.c                    | 30 ++++++++++--------------------
+ drivers/block/sunvdc.c                 |  6 +++---
+ drivers/bus/fsl-mc/dprc-driver.c       |  8 ++++----
+ drivers/cxl/core/pci.c                 |  4 ++--
+ drivers/cxl/core/pmem.c                |  9 +++------
+ drivers/cxl/core/region.c              | 21 ++++++++++++---------
+ drivers/firewire/core-device.c         |  4 ++--
+ drivers/firmware/arm_scmi/bus.c        |  4 ++--
+ drivers/firmware/efi/dev-path-parser.c |  4 ++--
+ drivers/gpio/gpio-sim.c                |  7 +------
+ drivers/gpu/drm/mediatek/mtk_drm_drv.c |  2 +-
+ drivers/hwmon/hwmon.c                  |  2 +-
+ drivers/media/pci/mgb4/mgb4_core.c     |  4 ++--
+ drivers/nvdimm/bus.c                   |  2 +-
+ drivers/nvdimm/claim.c                 |  9 +--------
+ drivers/pwm/core.c                     |  2 +-
+ drivers/rpmsg/rpmsg_core.c             |  4 ++--
+ drivers/scsi/qla4xxx/ql4_os.c          |  3 ++-
+ drivers/scsi/scsi_transport_iscsi.c    | 10 +++++-----
+ drivers/slimbus/core.c                 | 17 +++++------------
+ drivers/thunderbolt/retimer.c          |  2 +-
+ drivers/thunderbolt/xdomain.c          |  2 +-
+ drivers/tty/serial/serial_core.c       |  4 ++--
+ drivers/usb/typec/class.c              | 31 ++++++++++++++-----------------
+ include/linux/device.h                 |  4 ++--
+ include/linux/device/bus.h             |  1 +
+ include/scsi/scsi_transport_iscsi.h    |  4 ++--
+ net/dsa/dsa.c                          |  2 +-
+ tools/testing/cxl/test/cxl.c           |  2 +-
+ 30 files changed, 90 insertions(+), 120 deletions(-)
+---
+base-commit: cdd30ebb1b9f36159d66f088b61aee264e649d7a
+change-id: 20241201-const_dfc_done-aaec71e3bbea
+
+Best regards,
+-- 
+Zijun Hu <quic_zijuhu@quicinc.com>
+
