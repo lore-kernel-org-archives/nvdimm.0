@@ -1,43 +1,58 @@
-Received: from sender4-pp-o95.zoho.com (sender4-pp-o95.zoho.com [136.143.188.95])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11AAB139CFF
-	for <nvdimm@lists.linux.dev>; Wed, 11 Dec 2024 14:49:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.95
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733928543; cv=pass; b=RLZiqZN8TRxOcghtFIOZTRp7X45CpEEfjlWupG++H4ZY84pS752cAIs+AShp0Y9i0awkIXny63sObkrR0hyPAAwGg1AF6iNmqZVV/p89svyeVJe8+aC0L8SwEW984nvoaILotUmfPfUQX3u5DTsdj0N42gb6wbq+RVTrNlcs3Qk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733928543; c=relaxed/simple;
-	bh=iDRQelwrIxTeP0VF7qjm+HyC1wL9uVshOINz+FpzdCg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Tj/khdBTErdP6uHMZQu+L/meVwgnJmuumPFiDSr5WPzHireIZJx7MWTLi+KcdoWHCLkDnhixTF6BmGHanOwwOILjoPSiQpXpniltr+1iMS0LtII9BPO61sDiqFlcC5LL7SYQa3v1mUBtvEKDXkhLAQx1aQiKlYUZOv10MUg8n+8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b=Tf5vb6cY; arc=pass smtp.client-ip=136.143.188.95
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zohomail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 682231552FC;
+	Fri, 13 Dec 2024 07:16:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1734074186; cv=none; b=fzXsGutNdxi07LiyC47StKw+qup67IGO/nsvbRJkWvYpSrbJ1+p29jR0hAEEGsKn5/ANodqLKGMBO41pTuWuHFqsTVd6mX89XnL3zo9wVlc36qee5JYXiaSGhKS90OR+fR5COBtnu+Xwh1CoMl0CLIZfs0Ha/ZuAmKf3k0ec2nU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1734074186; c=relaxed/simple;
+	bh=Hr3hwFuzFkYYHl1m8O4baQEsPK0Xs3hONmPqtZrPWYc=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:Content-Type; b=BsRQoMIjzA/YodXluZK/Ym4ryBQaOYbICx1/qIlzk43nc4BcF6G/ZECbQrPDWze/9/uQUA2hh1hElIlrlen1gxgWVUomXQ3PthIFCmWXIfVPEawnyfpm1La2HyI4JqXuXh9SAKMbDsvp8Gcly9ABJXimJVAcAP86vml/3EHdosY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=VNxsQp+m; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zohomail.com header.i=ming.li@zohomail.com header.b="Tf5vb6cY"
-ARC-Seal: i=1; a=rsa-sha256; t=1733928536; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=bBKPYboQqSC/jgFe5aB1i0tV1vfn1rIqVJd4ipaQnojRYmN3/UxiNdgwL3Nfqa9fr1L/RnE1nuJAedmzbubDgiErpFVw0HO6QEI0QDV4BlPIgmUyz5ZefpJDaytVcxO0KH/j3NrEC86Sx/MkQEozyKCN1hB9V9cr+1H4dTvU+pQ=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1733928536; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=iDRQelwrIxTeP0VF7qjm+HyC1wL9uVshOINz+FpzdCg=; 
-	b=mlt/kmQbXwBagd14/gkacRo8+qoNqQ44+Hac+OqRM7/E5sJS2zt8XlAfUSh7CHZh6496od4YimJ/nwY/4mZe6miMHx8jyd9bNQxQmRcND6n21Xv/2PmtO2hPvW4f6gSCxbmnvBCOTssndDQrpPq2SMICOtzVXAthx5QRSthFsNo=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=zohomail.com;
-	spf=pass  smtp.mailfrom=ming.li@zohomail.com;
-	dmarc=pass header.from=<ming.li@zohomail.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1733928536;
-	s=zm2022; d=zohomail.com; i=ming.li@zohomail.com;
-	h=Message-ID:Date:Date:MIME-Version:Subject:Subject:To:To:Cc:Cc:References:From:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:Feedback-ID:Message-Id:Reply-To;
-	bh=iDRQelwrIxTeP0VF7qjm+HyC1wL9uVshOINz+FpzdCg=;
-	b=Tf5vb6cYhdL6p6mEAwY1ndppC0RTFP5G/3tOTTQocJvCKJ3N+s3jzDX2R1Jsh9Ok
-	fnWWW4HQamOq10m1NBOJOUx43ack7l6VRFOnbtpMYYlZSXgLCX/e3gyeHSyq84cX5Fz
-	Zs/xlWVWMYHOdbIecDosWdQFJsauJ78XnC8pylLY=
-Received: by mx.zohomail.com with SMTPS id 1733928533708758.3301442161908;
-	Wed, 11 Dec 2024 06:48:53 -0800 (PST)
-Message-ID: <fd1e87e0-1cce-4589-a684-d5e272650211@zohomail.com>
-Date: Wed, 11 Dec 2024 22:48:51 +0800
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="VNxsQp+m"
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4BD3xiEj029658;
+	Fri, 13 Dec 2024 07:16:23 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=pp1; bh=IgZ7cZ+16ESsDPfDeuwM+zyJIXs1
+	iIg6IinIyl1DzJY=; b=VNxsQp+mfl4yyF6yv0wlkFqu4pQMv8j2C+IyyJ7o4WeS
+	iNdKgImEqbT/dCfeIdQbSsrrdIOz6xTA4j0psqeF0Ft8S89xpNe91aq/CE0dkqlm
+	OBSVL9vM+HHNG5iMBDHH1yK8AYBnHx+H1Kl9/JtkoAn6+PGgBLQqUalDvkfjoG/Q
+	q1Xyx+VU5ZTrOJRg1NPfPl18gUimPD11vu+5qWwRpSrzOlQEJAVgRvMK9YclgZCp
+	XXrek4mIKi4Ux/T/zPg9lpB7Pgz0Y8e2vrvxVsDUY0UYqoPCP/3SwG7v87TV16oG
+	tdmyWzrhYhtwtIytIT8REy0mImLTHL47dW+XJFCiTg==
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 43ccsjyfc9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 13 Dec 2024 07:16:22 +0000 (GMT)
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 4BD34Fih029309;
+	Fri, 13 Dec 2024 07:16:22 GMT
+Received: from smtprelay02.wdc07v.mail.ibm.com ([172.16.1.69])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 43gcprrv2n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 13 Dec 2024 07:16:22 +0000
+Received: from smtpav03.wdc07v.mail.ibm.com (smtpav03.wdc07v.mail.ibm.com [10.39.53.230])
+	by smtprelay02.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 4BD7GKuM25297624
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 13 Dec 2024 07:16:20 GMT
+Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 959E15805F;
+	Fri, 13 Dec 2024 07:16:20 +0000 (GMT)
+Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id AF8B35805D;
+	Fri, 13 Dec 2024 07:16:16 +0000 (GMT)
+Received: from [9.43.77.91] (unknown [9.43.77.91])
+	by smtpav03.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Fri, 13 Dec 2024 07:16:16 +0000 (GMT)
+Message-ID: <f6130475-3ccd-45d2-abde-3ccceada0f0a@linux.ibm.com>
+Date: Fri, 13 Dec 2024 12:46:14 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -45,54 +60,104 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: Removing a misleading warning message?
-To: Dan Williams <dan.j.williams@intel.com>,
- Alison Schofield <alison.schofield@intel.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- Coly Li <colyli@suse.de>
-References: <15237B14-B55B-4737-9A98-D76AEDB4AEAD@suse.de>
- <ZxElg0RC_S1TY2cd@aschofie-mobl2.lan>
- <6712b7bf2c1cd_10a03294b3@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <ecccced3-07a1-4b4a-9319-c6d88518e368@zohomail.com>
- <6758a50391a54_10a0832944b@dwillia2-xfh.jf.intel.com.notmuch>
-From: Li Ming <ming.li@zohomail.com>
-In-Reply-To: <6758a50391a54_10a0832944b@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Feedback-ID: rr08011227252673b73e8be9db69ebb3280000cab68486afe53556ef1d8d323055d8ee55a0b201806f4963a7:zu080112279794973e493be9d31e4bfbfd0000b2c02ed88e7319946bb635fb127d89a1482f74dd6329e8a324:rf08011226e6627a01f59c07fa0db31df5000028aa433a54c773f186523cdde5a46fecd43d619824ced76f:ZohoMail
-X-ZohoMailClient: External
+Content-Language: en-US
+From: M Nikhil <nikh1092@linux.ibm.com>
+Subject: Change in reported values of some block integrity sysfs attributes
+To: linux-block@vger.kernel.org, dm-devel@lists.linux.dev,
+        linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
+        linux-scsi@vger.kernel.org, hare@suse.de, hch@lst.de
+Cc: steffen Maier <maier@linux.ibm.com>,
+        Benjamin Block
+ <bblock@linux.ibm.com>,
+        Nihar Panda <niharp@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: pNrUCGEOCIZLXuwnpAdUiLLv66Vx_bzk
+X-Proofpoint-ORIG-GUID: pNrUCGEOCIZLXuwnpAdUiLLv66Vx_bzk
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
+ definitions=2024-10-15_01,2024-10-11_01,2024-09-30_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 adultscore=0
+ impostorscore=0 spamscore=0 lowpriorityscore=0 bulkscore=0 mlxlogscore=554
+ mlxscore=0 priorityscore=1501 suspectscore=0 malwarescore=0 phishscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.19.0-2411120000
+ definitions=main-2412130049
 
-On 12/11/2024 4:30 AM, Dan Williams wrote:
-> Li Ming wrote:
-> [..]
->>> There is a short term fix and a long term fix. The short term fix could
->>> be to just delete the warning message, or downgrade it to dev_dbg(), for
->>> now since it is more often a false positive than not. The long term fix,
->>> and the logic needed to resolve false-positive reports, is to flip the
->>> capability discovery until *after* it is clear that there is a
->>> downstream endpoint capable of CXL.cachemem.
->>>
->>> Without an endpoint there is no point in reporting that a potentially
->>> CXL capable port is missing cachemem registers.
->>>
->>> So, if you want to send a patch changing that warning to dev_dbg() for
->>> now I would support that.
->>>
->> I noticed the short term solution been merged, may I know if anyone is
->> working on the long term solution? If not, I can work on it.
-> Hi Ming,
->
-> To my knowledge nobody is working on it, so feel free to take a look.
-> Just note though that if this gets in someone else's critical path they
-> could also produce some patches. I.e. typical Linux kernel task
-> wrangling where the first to post a workable solution usually gets to
-> drive the discussion.
->
-Hi Dan,
+Hi Everyone,
+
+  * We have observed change in the values of some of the block integrity
+    sysfs attributes for the block devices on the master branch. The
+    sysfs attributes related to block device integrity , write_generate
+    and read_verify are  enabled for the block device when the parameter
+    device_is_integrity_capable is disabled. This behaviour is seen on
+    the scsi disks irrespective of DIF protection enabled or disabled on
+    the disks.
+
+    *Logs of the block integrity sysfs attributes for one of the block
+    device:*
+
+a3560030:~ # cat /sys/block/sda/integrity/write_generate
+
+1
+
+a3560030:~ # cat /sys/block/sda/integrity/read_verify
+
+1
+
+a3560030:~ # cat /sys/block/sda/integrity/device_is_integrity_capable
+
+0
+
+  * Similarly unexpected values of block integrity sysfs attributes are
+    seen for multipath devices as well. Multipath device reporting value
+    1 for device_is_integrity_capable even though it is based on SCSI
+    disk devices, which all have 0 for device_is_integrity_capable.
+
+a3560030:~ # cat /sys/block/dm-0/integrity/device_is_integrity_capable
+
+1
+
+a3560030:~ # cat /sys/block/dm-0/integrity/read_verify
+
+1
+
+a3560030:~ # cat /sys/block/dm-0/integrity/write_generate
+
+1
+
+  * Earlier the block integrity sysfs parameters "write_generate" and
+    "read_verify" reported value 0 when the sysfs attribute
+    device_is_integrity_capable was not set. But when tested with a
+    recent upstream kernel, there is a change in the block device
+    integrity sysfs attributes.
+  * In the process of finding the kernel changes which might have caused
+    the change in functionality, we have identified the below commit
+    which was leading to the change in the sysfs attributes.
+    9f4aa46f2a74 ("block: invert the BLK_INTEGRITY_{GENERATE,VERIFY} flags")
+  * By reverting the code changes which are part of above commit and
+    when tested the values of attributes read_verify and write_generate
+    were set to 0 which was the older functionality.
+   * From the description in the patch related to above commit, what we
+    understand is that the changes are meant to invert the block
+    integrity flags(READ_VERIFY and WRITE_GENERATE) vs the values in
+    sysfs for making the user values persistent.
+  * We would like to know if the change in the values of sysfs
+    attributes write_generate and read_verify is expected?
+  * And some additional information on in which scenario the attributes
+    will be disabled or set to 0 and the affect of other block integrity
+    attribute device_is_integrity_capable on attributes read_verify and
+    write_generate.
 
 
-Understand, thanks for your information, I am also willing to review those patches if that happens.
+Regards,
 
+*M Nikhil
+*
 
-Ming
+Software Engineer
+
+ISDL, Bangalore, India
+
+Linux on IBM Z and LinuxONE
 
