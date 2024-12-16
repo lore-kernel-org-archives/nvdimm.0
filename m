@@ -1,1008 +1,252 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2076.outbound.protection.outlook.com [40.107.223.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E90FC8CE
-	for <nvdimm@lists.linux.dev>; Sun, 15 Dec 2024 02:58:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734231536; cv=none; b=ks4YvfvZeLIdDfccv1Y2whlon2iRt7q8QaWvMh+6sJQjJyEWAplGaZ5tUGP/bQ9dHchihSl3d5VPaJgTt+Oqy8mDetQhxDa4SqT7LlrRVXL86ImOWOdAVQrmevDADfLrIlb2geisCN31ediP2w4JNNiG9ZmEeTl78P6ye9BYgMU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734231536; c=relaxed/simple;
-	bh=WVidWGTjmWjDdbIW2Fn6txJR6NX0YCqXC+P4lMmVwps=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=DaR2ZFFdIAU4GfZWSoEIDOnOwd4/1qOzR4PDdtq3S21Huwk2Q5KnNZNchh5/xewPdlA21lRm56dXo/ssJnLpp85oVcgIOMuthkhitYqhS2CunIHVimqpNQlPjRbVdq+YtWreaeVWTWKC1akC+0TWg071sAoRah+oZrGeD2CLRNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XaXd8RQs; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C5B4A07
+	for <nvdimm@lists.linux.dev>; Mon, 16 Dec 2024 00:55:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.76
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1734310541; cv=fail; b=VceGWS8z3N794WQGUOw3UGjDWwswoFVbFPN+bFJuJ45N3Sxe4PcINJCQlOq50dEJKIZfvFo9iTFx32wYymm3gIslYCZqqMpVasGNBIu3GZZZVskAB07xR7LHF2OcYTvGPW6FBo5Bd4QpoM58+TXpTwsCySxS/59HApLgeNB4epA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1734310541; c=relaxed/simple;
+	bh=M/jBtdxfJXzcJVGreDmCrDUql4PgaPnPAFUQ/PUWPI0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=pXS4615Rg1sazIsYDvmv68NT0ZMdlJn+dG9dJNPbie8e8y5mOX7FQMgKuKsodv04ydjK+RPrT7ISF4ThjaiWdRlhvZ8nPFz29GQpryCizRVd+6bpbUmxiYz2IUqG/4ULffHhFGzc0LBMRokluY0QKPcCDuIRVwNoml21vl7Qsac=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=qhFZLlx8; arc=fail smtp.client-ip=40.107.223.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XaXd8RQs"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1734231532; x=1765767532;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=WVidWGTjmWjDdbIW2Fn6txJR6NX0YCqXC+P4lMmVwps=;
-  b=XaXd8RQsJV7Hlsf35BTqTExV3fNQGcT+ZZKNAXxp8occHw4knVvYAdYT
-   5i+26KWGF3kXEUPVY8DPzUk97PFVQHwAgXsXB4O56gFC/xkUOMcXck+Z6
-   yHU+1IX5uYgwLBKbXzv2QbWyrxIGHHv43F58aH0UdZsivEC0qCg1Yxs74
-   xRlC3S+iUvdvpvr5DHu997UQWctnLJFjgx/AooZALdBtYIyDkNhaKGYt7
-   DsUFXpWp504YMCERkt2jUb7LjohvdV9BNiO+Fd75NqcIQXD9e0+lE8qEF
-   bIJyMqaU7kzdscYpxYC7E+e/OTcFJV3llG6xO+1PjKjQvTLrr7sLISW+q
-   A==;
-X-CSE-ConnectionGUID: cWslvhkRRqqSKgyMbXIsdw==
-X-CSE-MsgGUID: p+9qIewsQNiOYZzq6La1yQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11278"; a="46039328"
-X-IronPort-AV: E=Sophos;i="6.12,214,1728975600"; 
-   d="scan'208";a="46039328"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2024 18:58:52 -0800
-X-CSE-ConnectionGUID: kRO854DuSVyJu9B6jxdQCw==
-X-CSE-MsgGUID: gc4kb/svRgOBR3YaoFRCGQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,235,1728975600"; 
-   d="scan'208";a="97286790"
-Received: from rchatre-mobl4.amr.corp.intel.com (HELO localhost) ([10.125.111.42])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2024 18:58:51 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Sat, 14 Dec 2024 20:58:36 -0600
-Subject: [ndctl PATCH v4 9/9] cxl/test: Add Dynamic Capacity tests
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="qhFZLlx8"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=hiBhFBGl3VMTFcyaEIiR/Jyr/FJWtLkZsomIJB+l9m//3zbE2whN4+klzRClO8EutNGdQUeDPQ+7cEKJYhNltZCT77birsZ/XD22w2oPEuu8yb6wHoBn7Ff2UjcBczDm0xChN8vBnUrRV6dYtb9V88cpbFoI35fY4YHxoMUXcKqDQM0yXWkdHX/yXUpEmsVG2rBleIChFJ1R0vrYwJ3nMfOKlnNCfNPEXRTB8/6tPCziO3dtyKIPEcPDhY0ZdonNO4gvQGL+9q0phRcdpQ8yzLJcbngNMh0dJGX1OlboED5l/nokMgINFg/iw52krqaSmONCKfFkQOG06v25MQFQYQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=+MN+CJaXtlA1XBsuGyZHtUk3wOTxi33O0M+S8PZbfo8=;
+ b=ypguJhlZ9+43PfvzV6Ic2/CPsOUVAzd0Y1ncFVDcHcRDbXkeXTDVXAK/fWHs72QGH1CmNNG7uSB+KrLsG5/2Ehvp6vQoYWIqu1uPIOgEKsWsJCSVQz7De0Zhm+sGxk+HapLteNCyJVSO0e/Ze1dIknoKj24rQYFU/qUynMV5zRjs8SPkhMNShSqdC4ENl/WVmpPaVNbngyYlsKoADqIILrrKQZXnAfD4S/4KVmIufGDPtSL7NO+WRhYh7ct/owZFWRKSeoPD1HJ9BGG+x55v2STcYi+Rtd5C84r+FLy2UbF3fjiSLqOHGyclzV30+PLUUxPP8oZdUWgR/dJGZ6FRuw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+MN+CJaXtlA1XBsuGyZHtUk3wOTxi33O0M+S8PZbfo8=;
+ b=qhFZLlx82wtcSXDQlMdEgmEGLR9wMBN1cW3+GmBBmBgQe4AaFY1Y3YCxt6cPXwCaVZyqA07TEw06iCSIWtc57L7Vz0TU3m3kdqnMNlwWqkLXq53rKVufDsSBhjNLXVhfSvD9QHfIuV9NPtVu3DI8rqzvVvNDVZ+dtxAvQFqybg5lKQMzHpapjr2Wu862EAnIcpVMfqQrxSpW3gwwzGKJTGD/8MsfXXRz+Vo1Dq8KXsXKG9iOk2frcheCvE6Una6BBgCLBwJ3N79qE0IP8F0C/tvpFgFCUWqe806arjgVA/Ghi4EU9vgYB7l391eYz5aADPoFWiVUlLD/7zYc21jb5A==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
+ SN7PR12MB7786.namprd12.prod.outlook.com (2603:10b6:806:349::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8251.21; Mon, 16 Dec
+ 2024 00:55:35 +0000
+Received: from DS0PR12MB7726.namprd12.prod.outlook.com
+ ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
+ ([fe80::953f:2f80:90c5:67fe%4]) with mapi id 15.20.8251.015; Mon, 16 Dec 2024
+ 00:55:35 +0000
+Date: Mon, 16 Dec 2024 11:55:30 +1100
+From: Alistair Popple <apopple@nvidia.com>
+To: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, 
+	lina@asahilina.net, zhang.lyra@gmail.com, gerald.schaefer@linux.ibm.com, 
+	vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com, bhelgaas@google.com, 
+	jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com, will@kernel.org, 
+	mpe@ellerman.id.au, npiggin@gmail.com, dave.hansen@linux.intel.com, 
+	ira.weiny@intel.com, willy@infradead.org, djwong@kernel.org, tytso@mit.edu, 
+	linmiaohe@huawei.com, peterx@redhat.com, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, 
+	jhubbard@nvidia.com, hch@lst.de, david@fromorbit.com, akpm@linux-foundation.org, 
+	sfr@canb.auug.org.au
+Subject: Re: [PATCH v3 00/25] fs/dax: Fix ZONE_DEVICE page reference counts
+Message-ID: <wysuus23bqmjtwkfu3zutqtmkse3ki3erf45x32yezlrl24qto@xlqt7qducyld>
+References: <cover.e1ebdd6cab9bde0d232c1810deacf0bae25e6707.1732239628.git-series.apopple@nvidia.com>
+ <675ce1e5a3d68_fad0294d0@dwillia2-xfh.jf.intel.com.notmuch>
+ <45555f72-e82a-4196-94af-22d05d6ac947@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <45555f72-e82a-4196-94af-22d05d6ac947@redhat.com>
+X-ClientProxiedBy: SY5P300CA0044.AUSP300.PROD.OUTLOOK.COM
+ (2603:10c6:10:1fd::19) To DS0PR12MB7726.namprd12.prod.outlook.com
+ (2603:10b6:8:130::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20241214-dcd-region2-v4-9-36550a97f8e2@intel.com>
-References: <20241214-dcd-region2-v4-0-36550a97f8e2@intel.com>
-In-Reply-To: <20241214-dcd-region2-v4-0-36550a97f8e2@intel.com>
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, 
- Jonathan Cameron <jonathan.cameron@Huawei.com>, Fan Ni <fan.ni@samsung.com>, 
- Sushant1 Kumar <sushant1.kumar@intel.com>, 
- Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
- Ira Weiny <ira.weiny@intel.com>
-X-Mailer: b4 0.15-dev-2a633
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1734231510; l=29791;
- i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=WVidWGTjmWjDdbIW2Fn6txJR6NX0YCqXC+P4lMmVwps=;
- b=LJMf4bl2CqT0WE9XQfzeSoKH25MA745HKLeQxiN3Og3R/t88ZAMWv1fB4pe0eWR/i4swzj0Al
- whquZI0Wno3B3U6MR1Ld1VB9oWaSZx+gEgc22vMXheHKv9KDy0lDij+
-X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
- pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|SN7PR12MB7786:EE_
+X-MS-Office365-Filtering-Correlation-Id: ba97cd80-05be-4978-b2da-08dd1d6c5933
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|1800799024|366016|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?vxat8zHSeABYBM+0p1vCH/IMsNy8M82YgbFVYayqgOPCAftgC7Ducy6rrNMf?=
+ =?us-ascii?Q?eqdr7agolvu9cZTayaDzY4qBMwe8r7qTT3iDXZ3PLvRs89LiuQFDAogt8737?=
+ =?us-ascii?Q?Z0UCDJkjOf64g2ctwmjt1YjeFJKVztbbyeSanzGecnUyJzGDRuXD++g2hx4r?=
+ =?us-ascii?Q?MOBT6gPjiHexf0Rh8QLOQXcWktttdv+07kYg/WeEDqH92lh4UAMNVaXn+3Eq?=
+ =?us-ascii?Q?jalnkGtCZu5/WdLp0lazGEE0TBco7xAxTU7j8oBi9dAQAvDY1tRCAM1T3JKH?=
+ =?us-ascii?Q?GOvuQRc1aqstBdzf3QMMJq8Lz4NNk6ZXKduXLQ3c/2pFicKzCZHZt+OQpmT+?=
+ =?us-ascii?Q?1Ulza7fM6kaznLGrywj4N4nU21L1lb7XX73n1nITGSPguWlqB1iSiQNIOJXe?=
+ =?us-ascii?Q?mjj0uuUU2Oteg5Rf7F7fNONnTRngqEImplz7YXuDZdnpWYAgCfP4VoKRPIoi?=
+ =?us-ascii?Q?726WxCQikwFa6ZjQ9E3dB0fV02lPratzubI7ApuSrb0NRCA4ocQE3ta/COTz?=
+ =?us-ascii?Q?oPRiFEp8tYRKlDZ6/s5pjpc9ZrT2jzO+OioCBq8TUwyOTMTvH7jcIpDCLI5r?=
+ =?us-ascii?Q?ORPmhfjhlxgJK/lFJJAaVZCrzvZ+8803eJsH/ljRmn33oBHCmkwEY/Gmv00A?=
+ =?us-ascii?Q?STQpENkBKmNKnMlmryfrm65OLpC95BPrPVh3iv7zS8ZjiZzv142kCctcxG94?=
+ =?us-ascii?Q?wexzlzqyhq8MPDjAbgpsDVoN//fgO4iSx+cw9jTnuAFeJZpFMT4sbLHpcOnQ?=
+ =?us-ascii?Q?/Owv3u5ICND0uCtouem1hJ11lQnrKcwqI1QQYyX1k5vmwTKUmGeAlUaBFsBm?=
+ =?us-ascii?Q?fuliT78bYX++jXjwF8gpGSiqhu56MZvM0sQrTHG8mxYZE4+BJDxFEZkbOv7q?=
+ =?us-ascii?Q?zp7W935ZHRXu9jSq97/mF0nUduUEeO3gVFKf6oSb5eSjI2AunG2hgYqki5kh?=
+ =?us-ascii?Q?e+g/lovUCPOs0DQ8t//i9JKhFuHWlgQahDT2RMPHlalg2AozPUr1F8EC5guv?=
+ =?us-ascii?Q?qPHlHxdiOR6HE9bPoikP1/ZeqDmcI5hlZDbLCE+RylnyAhYqpd8E1y404hAx?=
+ =?us-ascii?Q?wrPFbVQwHL4co/DpubXT4dNigRGMUzGXOdaPZn/skmyynMYgfYjQxu/x20h1?=
+ =?us-ascii?Q?y7y/eSslcAsBD0qZ52sa+deYSt57VDQG26yx7uBVfnxQHReNEIcVGf98BnFu?=
+ =?us-ascii?Q?jPIkPMB9tEkRB3qQr4H9t+qLI2HJS3EYvw6KxCuoLJLNf1X+8jCvuPVQMX+d?=
+ =?us-ascii?Q?yMyTeiRLYdBa3L+ucXxe1Ey/oKCyzyJBlpUrQkwpbJPmfwMr8SZjm9WgMUld?=
+ =?us-ascii?Q?g3icLTg5ZDSeoS5/IlMVqy2p+Z5QdXFf7zQXki1MFNZaxKhylES7zm1opF2e?=
+ =?us-ascii?Q?06raDMO+00bDqZHHpzWDHcBTx+Az?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?/BU0vczWUWjGDRE4jaCAEpSsiXrohOih13LEyC8SaajYsykij4HDxgx6zAqK?=
+ =?us-ascii?Q?J6PsAOy75dl3/j+hbiK3SDx39Jre+WqmwI3np1gjYOMZAxPNhw+opbis7RXr?=
+ =?us-ascii?Q?3a5ZfA4dJKJsvY8Lu4ft4DTihEjdDTRrM2n/MX1qTkVKSVbTC54/ZLshWkRc?=
+ =?us-ascii?Q?NiOAEpcIykpPYm0xmxRSbqIiyL540qUyrTl9H1Faxe3AoRO5/2Qmw7oZaAQL?=
+ =?us-ascii?Q?t9wEmznidAbCTlOzh2hTNT0CPUDKrU9zl9FKmaa1bUUqDuWh7ZDH69VmZhA+?=
+ =?us-ascii?Q?nMmn8YptVvGsffKwoWgWhN0LMwCHwjQszQOA6UK1UvOOYybIra+JM+xh5YNs?=
+ =?us-ascii?Q?RtP6iJDe4s3yuijcSed3RoFEgQyw5Mpnv+2GxRFP8XSYB0EL97wDo5HT14wc?=
+ =?us-ascii?Q?uraCkC/4Md+CwZa58UgJPfTR/VYGgYWMsxzrDz/HIfAZ0CQESnumgg4XGDRV?=
+ =?us-ascii?Q?MSgJVh9o6v63wcBAWTjrzVzhTZ2k5t2Tby2Mlr22qO32CeXl78UacL1/wpwB?=
+ =?us-ascii?Q?Th1hVBb5iTeQPUnYu8evTPNF71511qmKLjtR9ATLFHqCF6GckXinDuMx89fw?=
+ =?us-ascii?Q?/pFOAih4s7q6lI0zfo7odGWefI9+LdMwpxLgsCrVE6g8T+pkOGb36hBYyDQc?=
+ =?us-ascii?Q?/6jTkfzwmnSfuW3etD1GAYqcEuDllFXXnA/9g0UDMSuIIerBE9wiGaUuuMqZ?=
+ =?us-ascii?Q?sYBDMKQaTKf8aaOp2ucM8/rHvtry3/kDCwHxt9f44cFVxaSHxtr0odUIA4LZ?=
+ =?us-ascii?Q?PfTWZNkIfO95oEBMm+AOgErwTQTV5pyj3rR+1QxQtgT57GYWFyNaZt27n2lt?=
+ =?us-ascii?Q?EINmclJp5eC/nYclWtGqCN55tnqVH2pXTZxvPWiXKhwezsjCXf/6ra4WhzBB?=
+ =?us-ascii?Q?qZY+vToqFoTgn+8+dycbhZ5boMxXh1rTktTXSt3QcBBodqj3q5+GxMPs7R4J?=
+ =?us-ascii?Q?MHbMvh8ieDBS7p9JI/7ZWsS5r56kQSIDAGhnMLAAMk7kvWHBeerZViSI4wS8?=
+ =?us-ascii?Q?Z1jLw3BvISYEiDWfFbRthDFhQ5QN4ssm1j9hZdSv6LI97NaxkxkI9/h6nGr6?=
+ =?us-ascii?Q?ANXJFJ/HOlviKCiJ7OM9DLfLwStLJiPgZUz9KoYcsatwB/OkFBmCA5ZzmujP?=
+ =?us-ascii?Q?tlgxylZgBEOoxfJgb5urv9fXfU1cT3CcvAv20Q527lQBkyLDOK5VKVrbEp4J?=
+ =?us-ascii?Q?cJCqODgSG7rGUSzRJGSOSqWTN2FChOjeNSlc+P3LmZ9u6yqmV99lMLMbTjoW?=
+ =?us-ascii?Q?60Q3gLi4qSI+QEox9CtvTaJA4MCHvR2AOiuQXFhnk3U+WYfqwK8TuXOb6coR?=
+ =?us-ascii?Q?9qAdeJkyFRGKXne1tIymUnYJ0p/e+T2nC4De9SfMU5OpEGvRRewZV20AJ4QY?=
+ =?us-ascii?Q?0rbsYDuh7Zus8b6/VlU2DnqpRUqeJvnaSb05SqrSnUNr6xyKcz3dskkv35Hz?=
+ =?us-ascii?Q?NgMUuoBVopVCAArJdSEFY5JhHamJJmWaD+qtf0lwRbbp/iwBTI6iuV7iFIXv?=
+ =?us-ascii?Q?9mQ/N/cdSZ/DnIbCfIRPJkkpgxsJ0/b+czuCT1MPyYUEAhDHSB85a3gNSxnk?=
+ =?us-ascii?Q?VYarB+hZpfGGA0gAiKyNKKtaHQVWPjU/PO0/SkQu?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ba97cd80-05be-4978-b2da-08dd1d6c5933
+X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Dec 2024 00:55:35.0736
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: er9plMKG9iEftr4CLVT4FBUcI9i6TH1n/msEMdndTNjEfQxJ80tMAImKDiHGJaG85PeZ46FAcvy+rSUrEMa6Cw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7786
 
-cxl_test provides a good way to ensure quick smoke and regression
-testing.  The complexity of DCD and the new sparse DAX regions required
-to use them benefits greatly with a series of smoke tests.
+On Sat, Dec 14, 2024 at 04:22:58PM +0100, David Hildenbrand wrote:
+> On 14.12.24 02:39, Dan Williams wrote:
+> > [ add akpm and sfr for next steps ]
+> > 
+> > Alistair Popple wrote:
+> > > Main updates since v2:
+> > > 
+> > >   - Rename the DAX specific dax_insert_XXX functions to vmf_insert_XXX
+> > >     and have them pass the vmf struct.
+> > > 
+> > >   - Seperate out the device DAX changes.
+> > > 
+> > >   - Restore the page share mapping counting and associated warnings.
+> > > 
+> > >   - Rework truncate to require file-systems to have previously called
+> > >     dax_break_layout() to remove the address space mapping for a
+> > >     page. This found several bugs which are fixed by the first half of
+> > >     the series. The motivation for this was initially to allow the FS
+> > >     DAX page-cache mappings to hold a reference on the page.
+> > > 
+> > >     However that turned out to be a dead-end (see the comments on patch
+> > >     21), but it found several bugs and I think overall it is an
+> > >     improvement so I have left it here.
+> > > 
+> > > Device and FS DAX pages have always maintained their own page
+> > > reference counts without following the normal rules for page reference
+> > > counting. In particular pages are considered free when the refcount
+> > > hits one rather than zero and refcounts are not added when mapping the
+> > > page.
+> > > 
+> > > Tracking this requires special PTE bits (PTE_DEVMAP) and a secondary
+> > > mechanism for allowing GUP to hold references on the page (see
+> > > get_dev_pagemap). However there doesn't seem to be any reason why FS
+> > > DAX pages need their own reference counting scheme.
+> > > 
+> > > By treating the refcounts on these pages the same way as normal pages
+> > > we can remove a lot of special checks. In particular pXd_trans_huge()
+> > > becomes the same as pXd_leaf(), although I haven't made that change
+> > > here. It also frees up a valuable SW define PTE bit on architectures
+> > > that have devmap PTE bits defined.
+> > > 
+> > > It also almost certainly allows further clean-up of the devmap managed
+> > > functions, but I have left that as a future improvment. It also
+> > > enables support for compound ZONE_DEVICE pages which is one of my
+> > > primary motivators for doing this work.
+> > 
+> > So this is feeling ready for -next exposure, and ideally merged for v6.14. I
+> > see the comments from John and Bjorn and that you were going to respin for
+> > that, but if it's just those details things they can probably be handled
+> > incrementally.
+> > 
+> > Alistair, are you ready for this to hit -next?
 
-The only part of the kernel stack which must be bypassed is the actual
-irq of DCD events.  However, the event processing itself can be tested
-via cxl_test calling directly into the event processing.
+Yeah, I'm pretty happy with the series now. It "feels" right.
 
-In this way the rest of the stack; management of sparse regions, the
-extent device lifetimes, and the dax device operations can be tested.
+There's a couple of dumb build bot errors, so I was going to respin to fix
+those as well. I got caught up with a few other things so was just letting this
+sit awaiting feedback, but I should be able to post a respin early this week.
 
-Add Dynamic Capacity Device tests for kernels which have DCD support.
+> > As for which tree...
+> > 
+> > Andrew, we could take this through -mm, but my first instinct would be to try
+> > to take it through nvdimm.git mainly to offload any conflict wrangling work and
+> > small fixups which are likely to be an ongoing trickle.
+> > 
+> > However, I am not going to put up much of a fight if others prefer this go
+> > through -mm.
+> > 
+> > Thoughts?
+> 
+> I'm in the process of preparing v2 of [1] that will result in conflicts with
+> this series in the rmap code (in particular [PATCH v3 14/25] huge_memory:
+> Allow mappings of PUD sized pages).
+> 
+> I'll be away for 2 weeks over Christmas, but I assume I'll manage to post v2
+> shortly.
+> 
+> Which reminds me that I still have to take a closer look at some things in
+> this series :) Especially also #14 regarding accounting.
+> 
+> I wonder if we could split out the rmap changes in #14, and have that patch
+> simply in two trees? No idea.
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+I could split out the first half (patches 1 - 8) into a series to go via
+nvdimm.git, because they are actually standalone clean ups that I think are
+worthwhile anyway.
 
----
-Changes:
-[iweiny: Fix checks for dax devices]
-[iweiny: Fix documentation on tests]
----
- test/cxl-dcd.sh  | 879 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- test/meson.build |   2 +
- 2 files changed, 881 insertions(+)
+The remainder are more -mm focussed. However they do depend on the fs/dax
+cleanups in the first half so the trick would be making sure Andrew only takes
+them if the nvdimm.git changes have made it into -next. I'm happy with either
+approach, so let me know if I should split the series or not.
 
-diff --git a/test/cxl-dcd.sh b/test/cxl-dcd.sh
-new file mode 100644
-index 0000000000000000000000000000000000000000..193b71923b2f44142ab258e1d74b88361f6b7a5e
---- /dev/null
-+++ b/test/cxl-dcd.sh
-@@ -0,0 +1,879 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2024 Intel Corporation. All rights reserved.
-+
-+. "$(dirname "$0")/common"
-+
-+rc=77
-+set -ex
-+
-+trap 'err $LINENO' ERR
-+
-+check_prereq "jq"
-+
-+rc=1
-+
-+dev_path="/sys/bus/platform/devices"
-+cxl_path="/sys/bus/cxl/devices"
-+
-+# a test extent tag
-+test_tag=dc-test-tag
-+
-+#
-+# The test devices have 2G of non DC capacity.  A single DC reagion of 1G is
-+# added beyond that.
-+#
-+# The testing centers around 3 extents.  Two are "pre-existing" on test load
-+# called pre-ext and pre2-ext.  The other is created within this script alone
-+# called base.
-+
-+#
-+# | 2G non- |      DC region (1G)                                   |
-+# |  DC cap |                                                       |
-+# |  ...    |-------------------------------------------------------|
-+# |         |--------|       |----------|      |----------|         |
-+# |         | (base) |       |(pre-ext) |      |(pre2-ext)|         |
-+
-+dc0_size=""
-+dc1_size=""
-+
-+base_dpa=0x80000000
-+
-+# base extent at dpa 2G - 64M long
-+base_ext_offset=0x0
-+base_ext_dpa=$(($base_dpa + $base_ext_offset))
-+base_ext_length=0x4000000
-+
-+# pre existing extent base + 128M, 64M length
-+# 0x00000088000000-0x0000008bffffff
-+pre_ext_offset=0x8000000
-+pre_ext_dpa=$(($base_dpa + $pre_ext_offset))
-+pre_ext_length=0x4000000
-+
-+# pre2 existing extent base + 256M, 64M length
-+# 0x00000090000000-0x00000093ffffff
-+pre2_ext_offset=0x10000000
-+pre2_ext_dpa=$(($base_dpa + $pre2_ext_offset))
-+pre2_ext_length=0x4000000
-+
-+mem=""
-+bus=""
-+device=""
-+decoder=""
-+
-+# ========================================================================
-+# Support functions
-+# ========================================================================
-+
-+create_dcd_region()
-+{
-+	mem="$1"
-+	decoder="$2"
-+	reg_size_string=""
-+	if [ "$3" != "" ]; then
-+		reg_size_string="-s $3"
-+	fi
-+
-+	dcd_partition="dc0"
-+	if [ "$4" != "" ]; then
-+		dcd_partition="$4"
-+	fi
-+
-+	# create region
-+	rc=$($CXL create-region -t dc -M ${dcd_partition} -d "$decoder" -m "$mem" ${reg_size_string} | jq -r ".region")
-+
-+	if [[ ! $rc ]]; then
-+		echo "create-region failed for $decoder / $mem"
-+		err "$LINENO"
-+	fi
-+
-+	echo ${rc}
-+}
-+
-+check_region()
-+{
-+	search=$1
-+	region_size=$2
-+
-+	result=$($CXL list -r "$search" | jq -r ".[].region")
-+	if [ "$result" != "$search" ]; then
-+		echo "check region failed to find $search"
-+		err "$LINENO"
-+	fi
-+
-+	result=$($CXL list -r "$search" | jq -r ".[].size")
-+	if [ "$result" != "$region_size" ]; then
-+		echo "check region failed invalid size $result != $region_size"
-+		err "$LINENO"
-+	fi
-+}
-+
-+check_not_region()
-+{
-+	search=$1
-+
-+	result=$($CXL list -r "$search" | jq -r ".[].region")
-+	if [ "$result" == "$search" ]; then
-+		echo "check not region failed; $search found"
-+		err "$LINENO"
-+	fi
-+}
-+
-+destroy_region()
-+{
-+	local region=$1
-+	$CXL disable-region $region
-+	$CXL destroy-region $region
-+}
-+
-+inject_extent()
-+{
-+	device="$1"
-+	dpa="$2"
-+	length="$3"
-+	tag="$4"
-+
-+	more="0"
-+	if [ "$5" != "" ]; then
-+		more="1"
-+	fi
-+
-+	echo ${dpa}:${length}:${tag}:${more} > "${dev_path}/${device}/dc_inject_extent"
-+}
-+
-+remove_extent()
-+{
-+	device="$1"
-+	dpa="$2"
-+	length="$3"
-+
-+	echo ${dpa}:${length} > "${dev_path}/${device}/dc_del_extent"
-+}
-+
-+create_dax_dev()
-+{
-+	reg="$1"
-+
-+	dax_dev=$($DAXCTL create-device -r $reg | jq -er '.[].chardev')
-+
-+	echo ${dax_dev}
-+}
-+
-+fail_create_dax_dev()
-+{
-+	reg="$1"
-+
-+	set +e
-+	result=$($DAXCTL create-device -r $reg)
-+	set -e
-+	if [ "$result" == "0" ]; then
-+		echo "FAIL device created"
-+		err "$LINENO"
-+	fi
-+}
-+
-+shrink_dax_dev()
-+{
-+	dev="$1"
-+	new_size="$2"
-+
-+	$DAXCTL disable-device $dev
-+	$DAXCTL reconfigure-device $dev -s $new_size
-+	$DAXCTL enable-device $dev
-+}
-+
-+destroy_dax_dev()
-+{
-+	dev="$1"
-+
-+	$DAXCTL disable-device $dev
-+	$DAXCTL destroy-device $dev
-+}
-+
-+check_dax_dev()
-+{
-+	search="$1"
-+	size=$(($2))
-+
-+	result=$($DAXCTL list -d $search | jq -er '.[].chardev')
-+	if [ "$result" != "$search" ]; then
-+		echo "check dax device failed to find $search"
-+		err "$LINENO"
-+	fi
-+	result=$($DAXCTL list -d $search | jq -er '.[].size')
-+	if [ "$result" -ne "$size" ]; then
-+		echo "check dax device failed incorrect size $result; exp $size"
-+		err "$LINENO"
-+	fi
-+}
-+
-+# check that the dax device is not there.
-+check_not_dax_dev()
-+{
-+	reg="$1"
-+	search="$2"
-+	result=$($DAXCTL list -r $reg -D | jq -r '.[].chardev')
-+	if [ "$result" == "$search" ]; then
-+		echo "FAIL found $search"
-+		err "$LINENO"
-+	fi
-+}
-+
-+check_extent()
-+{
-+	region=$1
-+	offset=$(($2))
-+	length=$(($3))
-+
-+	result=$($CXL list -r "$region" -N | jq -r ".[].extents[] | select(.offset == ${offset}) | .length")
-+	if [[ $result != $length ]]; then
-+		echo "FAIL region $1 could not find extent @ $offset ($length)"
-+		err "$LINENO"
-+	fi
-+}
-+
-+check_extent_cnt()
-+{
-+	region=$1
-+	count=$(($2))
-+
-+	result=$($CXL list -r $region -N | jq -r '.[].extents[].offset' | wc -l)
-+	if [[ $result != $count ]]; then
-+		echo "FAIL region $1: found wrong number of extents $result; expect $count"
-+		err "$LINENO"
-+	fi
-+}
-+
-+
-+# ========================================================================
-+# Tests
-+# ========================================================================
-+
-+# testing pre existing extents must be called first as the extents were created
-+# by cxl-test being loaded
-+test_pre_existing_extents()
-+{
-+	echo ""
-+	echo "Test: pre-existing extent"
-+	echo ""
-+	region=$(create_dcd_region ${mem} ${decoder})
-+
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |                   |----------|         |----------|   |
-+	# |         |                   |(pre-ext) |         |(pre2-ext)|   |
-+	check_region ${region} ${dc0_size}
-+	# should contain pre-created extents
-+	check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
-+	check_extent ${region} ${pre2_ext_offset} ${pre2_ext_length}
-+
-+	remove_extent ${device} $pre_ext_dpa $pre_ext_length
-+	# |         |                                        |----------|   |
-+	# |         |                                        |(pre2-ext)|   |
-+	remove_extent ${device} $pre2_ext_dpa $pre2_ext_length
-+	# |         |                                                       |
-+	# |         |                                                       |
-+	check_extent_cnt ${region} 0
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_remove_extent_under_dax_device()
-+{
-+	# Remove the pre-created test extent out from under dax device
-+	# stack should hold ref until dax device deleted
-+	echo ""
-+	echo "Test: Remove extent from under DAX dev"
-+	echo ""
-+
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |                                                       |
-+	# |         |                                                       |
-+
-+	
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	# |         |                   |----------|                        |
-+	# |         |                   |(pre-ext) |                        |
-+	check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
-+
-+	dax_dev=$(create_dax_dev ${region})
-+	# |         |                   |----------|                        |
-+	# |         |                   |(pre-ext) |                        |
-+	# |         |                   | daxX.1   |                        |
-+	check_extent_cnt ${region} 1
-+	remove_extent ${device} $pre_ext_dpa $pre_ext_length
-+	# In-use extents are not released.
-+	check_dax_dev ${dax_dev} $pre_ext_length
-+
-+	check_extent_cnt ${region} 1
-+	destroy_dax_dev ${dax_dev}
-+	# |         |                   |----------|                        |
-+	# |         |                   |(pre-ext) |                        |
-+	check_not_dax_dev ${region} ${dax_dev}
-+
-+	check_extent_cnt ${region} 1
-+	# Remove after use
-+	remove_extent ${device} $pre_ext_dpa $pre_ext_length
-+	# |         |                                                       |
-+	# |         |                                                       |
-+	check_extent_cnt ${region} 0
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_remove_extents_in_use()
-+{
-+	echo ""
-+	echo "Test: Remove extents under sparse dax device"
-+	echo ""
-+	remove_extent ${device} $base_ext_dpa $base_ext_length
-+	check_extent_cnt ${region} 2
-+	remove_extent ${device} $pre_ext_dpa $pre_ext_length
-+	check_extent_cnt ${region} 2
-+}
-+
-+test_create_dax_dev_spanning_two_extents()
-+{
-+	echo ""
-+	echo "Test: Create dax device spanning 2 extents"
-+	echo ""
-+
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
-+	# |         |                   |----------|                        |
-+	# |         |                   |(pre-ext) |                        |
-+	inject_extent ${device} $base_ext_dpa $base_ext_length ""
-+	check_extent ${region} ${base_ext_offset} ${base_ext_length}
-+	# |         |--------|          |----------|                        |
-+	# |         | (base) |          |(pre-ext) |                        |
-+
-+	check_extent_cnt ${region} 2
-+	dax_dev=$(create_dax_dev ${region})
-+	# |         |--------|          |----------|                        |
-+	# |         | (base) |          |(pre-ext) |                        |
-+	# |         | daxX.1 |          | daxX.1   |                        |
-+
-+	echo "Checking if dev dax is spanning sparse extents"
-+	ext_sum_length="$(($base_ext_length + $pre_ext_length))"
-+	check_dax_dev ${dax_dev} $ext_sum_length
-+
-+	test_remove_extents_in_use
-+
-+	destroy_dax_dev ${dax_dev}
-+	check_not_dax_dev ${region} ${dax_dev}
-+
-+	# In-use extents were not released.  Check they can be removed after the
-+	# dax device is removed.
-+	check_extent_cnt ${region} 2
-+	remove_extent ${device} $base_ext_dpa $base_ext_length
-+	remove_extent ${device} $pre_ext_dpa $pre_ext_length
-+	check_extent_cnt ${region} 0
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_inject_tag_support()
-+{
-+	echo ""
-+	echo "Test: inject without/with tag"
-+	echo ""
-+
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
-+	inject_extent ${device} $base_ext_dpa $base_ext_length "ira"
-+
-+	# extent with tag should be rejected
-+	check_extent_cnt ${region} 1
-+	remove_extent ${device} $pre_ext_dpa $pre_ext_length
-+	check_extent_cnt ${region} 0
-+
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_partial_extent_remove ()
-+{
-+	echo ""
-+	echo "Test: partial extent remove"
-+	echo ""
-+
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+
-+	inject_extent ${device} $base_ext_dpa $base_ext_length ""
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|                                              |
-+	# |         | (base) |                                              |
-+
-+	dax_dev=$(create_dax_dev ${region})
-+
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|                                              |
-+	# |         | (base) |                                              |
-+	# |         | daxX.1 |                                              |
-+
-+	partial_ext_dpa="$(($base_ext_dpa + ($base_ext_length / 2)))"
-+	partial_ext_length="$(($base_ext_length / 2))"
-+	echo "Removing Partial : $partial_ext_dpa $partial_ext_length"
-+
-+	# |         |    |---|                                              |
-+	#                  Partial
-+
-+	remove_extent ${device} $partial_ext_dpa $partial_ext_length
-+	# In-use extents are not released.
-+	check_extent_cnt ${region} 1
-+
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|                                              |
-+	# |         | (base) |                                              |
-+	# |         | daxX.1 |                                              |
-+
-+	destroy_dax_dev ${dax_dev}
-+	check_not_dax_dev ${region} ${dax_dev}
-+
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|                                              |
-+	# |         | (base) |                                              |
-+
-+	# Partial results in whole extent removal
-+	check_extent_cnt ${region} 1
-+	remove_extent ${device} $partial_ext_dpa $partial_ext_length
-+	# |         |    |---|                                              |
-+	#                  Partial
-+	check_extent_cnt ${region} 0
-+
-+	# |  ...    |-------------------------------------------------------|
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_multiple_extent_remove ()
-+{
-+	# Test multiple extent remove
-+	echo ""
-+	echo "Test: multiple extent remove with single extent remove command"
-+	echo ""
-+
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	inject_extent ${device} $base_ext_dpa $base_ext_length ""
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|          |-------------------|               |
-+	# |         | (base) |          | (pre)-existing    |               |
-+
-+	check_extent_cnt ${region} 2
-+	dax_dev=$(create_dax_dev ${region})
-+
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|          |-------------------|               |
-+	# |         | (base) |          | (pre)-existing    |               |
-+	# |         | daxX.1 |          | daxX.1            |               |
-+
-+	partial_ext_dpa="$(($base_ext_dpa + ($base_ext_length / 2)))"
-+	partial_ext_length="$(($pre_ext_dpa - $base_ext_dpa))"
-+	echo "Removing multiple in span : $partial_ext_dpa $partial_ext_length"
-+	#                |------------------|
-+	#                  Partial
-+	remove_extent ${device} $partial_ext_dpa $partial_ext_length
-+
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|          |-------------------|               |
-+	# |         | (base) |          | (pre)-existing    |               |
-+	# |         | daxX.1 |          | daxX.1            |               |
-+
-+	# In-use extents are not released.
-+	check_extent_cnt ${region} 2
-+
-+	destroy_dax_dev ${dax_dev}
-+	check_not_dax_dev ${region} ${dax_dev}
-+
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|          |-------------------|               |
-+	# |         | (base) |          | (pre)-existing    |               |
-+
-+	# Remove both extents
-+	check_extent_cnt ${region} 2
-+	#                |------------------|
-+	#                  Partial
-+	remove_extent ${device} $partial_ext_dpa $partial_ext_length
-+	# |  ...    |-------------------------------------------------------|
-+	check_extent_cnt ${region} 0
-+
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_destroy_region_without_extent_removal ()
-+{
-+	echo ""
-+	echo "Test: Destroy region without extent removal"
-+	echo ""
-+	
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	inject_extent ${device} $base_ext_dpa $base_ext_length ""
-+	check_extent_cnt ${region} 2
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_destroy_with_extent_and_dax ()
-+{
-+	echo ""
-+	echo "Test: Destroy region with extents and dax devices"
-+	echo ""
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	check_extent_cnt ${region} 0
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |                   |----------|                        |
-+	# |         |                   |(pre-ext) |                        |
-+
-+	check_extent_cnt ${region} 1
-+	dax_dev=$(create_dax_dev ${region})
-+	# |         |                   |<dax_dev> |                        |
-+	check_dax_dev ${dax_dev} ${pre_ext_length}
-+	destroy_region ${region}
-+	check_not_region ${region}
-+
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |                                                       |
-+
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	check_extent_cnt ${region} 0
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_dax_device_ops ()
-+{
-+	echo ""
-+	echo "Test: Fail sparse dax dev creation without space"
-+	echo ""
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |                   |-------------------|               |
-+	# |         |                   | (pre)-existing    |               |
-+
-+	check_extent_cnt ${region} 1
-+
-+	# |         |                   | daxX.1            |               |
-+
-+	dax_dev=$(create_dax_dev ${region})
-+	check_dax_dev ${dax_dev} $pre_ext_length
-+	fail_create_dax_dev ${region}
-+
-+	echo ""
-+	echo "Test: Resize sparse dax device"
-+	echo ""
-+
-+	# Shrink
-+	# |         |                   | daxX.1  |                         |
-+	resize_ext_length=$(($pre_ext_length / 2))
-+	shrink_dax_dev ${dax_dev} $resize_ext_length
-+	check_dax_dev ${dax_dev} $resize_ext_length
-+
-+	# Fill
-+	# |         |                   | daxX.1  | daxX.2  |               |
-+	dax_dev=$(create_dax_dev ${region})
-+	check_dax_dev ${dax_dev} $resize_ext_length
-+	destroy_region ${region}
-+	check_not_region ${region}
-+
-+
-+	# 2 extent
-+	# create dax dev
-+	# resize into 1st extent
-+	# create dev on rest of 1st and all of second
-+	# Ensure both devices are correct
-+
-+	echo ""
-+	echo "Test: Resize sparse dax device across extents"
-+	echo ""
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	inject_extent ${device} $base_ext_dpa $base_ext_length ""
-+
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |--------|          |-------------------|               |
-+	# |         | (base) |          | (pre)-existing    |               |
-+
-+	check_extent_cnt ${region} 2
-+	dax_dev=$(create_dax_dev ${region})
-+	ext_sum_length="$(($base_ext_length + $pre_ext_length))"
-+
-+	# |         | daxX.1 |          |  daxX.1           |               |
-+
-+	check_dax_dev ${dax_dev} $ext_sum_length
-+	resize_ext_length=33554432 # 32MB
-+
-+	# |         | D1 |                                                  |
-+
-+	shrink_dax_dev ${dax_dev} $resize_ext_length
-+	check_dax_dev ${dax_dev} $resize_ext_length
-+
-+	# |         | D1 | D2|          | daxX.2            |               |
-+
-+	dax_dev=$(create_dax_dev ${region})
-+	remainder_length=$((ext_sum_length - $resize_ext_length))
-+	check_dax_dev ${dax_dev} $remainder_length
-+
-+	# |         | D1 | D2|          | daxX.2 |                          |
-+
-+	remainder_length=$((remainder_length / 2))
-+	shrink_dax_dev ${dax_dev} $remainder_length
-+	check_dax_dev ${dax_dev} $remainder_length
-+
-+	# |         | D1 | D2|          | daxX.2 |  daxX.3  |               |
-+
-+	dax_dev=$(create_dax_dev ${region})
-+	check_dax_dev ${dax_dev} $remainder_length
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_reject_overlapping ()
-+{
-+	echo ""
-+	echo "Test: Rejecting overlapping extents"
-+	echo ""
-+
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+
-+	# | 2G non- |      DC region                                        |
-+	# |  DC cap |                                                       |
-+	# |  ...    |-------------------------------------------------------|
-+	# |         |                   |-------------------|               |
-+	# |         |                   | (pre)-existing    |               |
-+	
-+	check_extent_cnt ${region} 1
-+
-+	# Attempt overlapping extent
-+	#
-+	# |         |          |-----------------|                          |
-+	# |         |          | overlapping     |                          |
-+
-+	partial_ext_dpa="$(($base_ext_dpa + ($pre_ext_dpa / 2)))"
-+	partial_ext_length=$pre_ext_length
-+	inject_extent ${device} $partial_ext_dpa $partial_ext_length ""
-+
-+	# Should only see the original ext
-+	check_extent_cnt ${region} 1
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_two_regions()
-+{
-+	echo ""
-+	echo "Test: create 2 regions in the same DC partition"
-+	echo ""
-+	region_size=$(($dc1_size / 2))
-+	region=$(create_dcd_region ${mem} ${decoder_dc1} ${region_size} dc1)
-+	check_region ${region} ${region_size}
-+	
-+	region_two=$(create_dcd_region ${mem} ${decoder_dc1} ${region_size} dc1)
-+	check_region ${region_two} ${region_size}
-+	
-+	destroy_region ${region_two}
-+	check_not_region ${region_two}
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_more_bit()
-+{
-+	echo ""
-+	echo "Test: More bit"
-+	echo ""
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length "" 1
-+	# More bit should hold off surfacing extent until the more bit is 0
-+	check_extent_cnt ${region} 0
-+	inject_extent ${device} $base_ext_dpa $base_ext_length ""
-+	check_extent_cnt ${region} 2
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_driver_tear_down()
-+{
-+	echo ""
-+	echo "Test: driver remove tear down"
-+	echo ""
-+	region=$(create_dcd_region ${mem} ${decoder})
-+	check_region ${region} ${dc0_size}
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	check_extent ${region} ${pre_ext_offset} ${pre_ext_length}
-+	dax_dev=$(create_dax_dev ${region})
-+	# remove driver releases extents
-+	modprobe -r dax_cxl
-+	check_extent_cnt ${region} 0
-+}
-+
-+test_driver_bring_up()
-+{
-+	# leave region up, driver removed.
-+	echo ""
-+	echo "Test: no driver inject ok"
-+	echo ""
-+	check_region ${region} ${dc0_size}
-+	inject_extent ${device} $pre_ext_dpa $pre_ext_length ""
-+	check_extent_cnt ${region} 1
-+
-+	modprobe dax_cxl
-+	check_extent_cnt ${region} 1
-+
-+	destroy_region ${region}
-+	check_not_region ${region}
-+}
-+
-+test_driver_reload()
-+{
-+	test_driver_tear_down
-+	test_driver_bring_up
-+}
-+
-+test_event_reporting()
-+{
-+	# Test event reporting
-+	# results expected
-+	num_dcd_events_expected=2
-+
-+	echo "Test: Prep event trace"
-+	echo "" > /sys/kernel/tracing/trace
-+	echo 1 > /sys/kernel/tracing/events/cxl/enable
-+	echo 1 > /sys/kernel/tracing/tracing_on
-+
-+	inject_extent ${device} $base_ext_dpa $base_ext_length ""
-+	remove_extent ${device} $base_ext_dpa $base_ext_length
-+
-+	echo 0 > /sys/kernel/tracing/tracing_on
-+
-+	echo "Test: Events seen"
-+	trace_out=$(cat /sys/kernel/tracing/trace)
-+
-+	# Look for DCD events
-+	num_dcd_events=$(grep -c "cxl_dynamic_capacity" <<< "${trace_out}")
-+	echo "     LOG     (Expected) : (Found)"
-+	echo "     DCD events    ($num_dcd_events_expected) : $num_dcd_events"
-+
-+	if [ "$num_dcd_events" -ne $num_dcd_events_expected ]; then
-+		err "$LINENO"
-+	fi
-+}
-+
-+
-+# ========================================================================
-+# main()
-+# ========================================================================
-+
-+modprobe -r cxl_test
-+modprobe cxl_test
-+
-+readarray -t memdevs < <("$CXL" list -b cxl_test -Mi | jq -r '.[].memdev')
-+
-+for mem in ${memdevs[@]}; do
-+	dc0_size=$($CXL list -m $mem | jq -r '.[].dc0_size')
-+	if [ "$dc0_size" == "null" ]; then
-+		continue
-+	fi
-+	dc1_size=$($CXL list -m $mem | jq -r '.[].dc1_size')
-+	if [ "$dc1_size" == "null" ]; then
-+		continue
-+	fi
-+	decoder=$($CXL list -b cxl_test -D -d root -m "$mem" |
-+		  jq -r ".[] |
-+		  select(.dc0_capable == true) |
-+		  select(.nr_targets == 1) |
-+		  select(.max_available_extent >= ${dc0_size}) |
-+		  .decoder")
-+	decoder_dc1=$($CXL list -b cxl_test -D -d root -m "$mem" |
-+		  jq -r ".[] |
-+		  select(.dc1_capable == true) |
-+		  select(.nr_targets == 1) |
-+		  select(.max_available_extent >= ${dc1_size}) |
-+		  .decoder")
-+	if [[ $decoder ]]; then
-+		bus=`"$CXL" list -b cxl_test -m ${mem} | jq -r '.[].bus'`
-+		device=$($CXL list -m $mem | jq -r '.[].host')
-+		break
-+	fi
-+done
-+
-+echo "TEST: DCD test device bus:${bus} decoder:${decoder} mem:${mem} device:${device} size:${dc0_size}"
-+
-+if [ "$decoder" == "" ] || [ "$device" == "" ] || [ "$dc0_size" == "" ]; then
-+	echo "No mem device/decoder found with DCD support"
-+	exit 77
-+fi
-+
-+if [ "$decoder_dc1" == "" ]; then
-+	echo "insufficient DC capability for ${mem}/${device}"
-+	exit 77
-+fi              
-+
-+# testing pre existing extents must be called first as the extents were created
-+# by cxl-test being loaded
-+test_pre_existing_extents
-+test_remove_extent_under_dax_device
-+test_create_dax_dev_spanning_two_extents
-+test_inject_tag_support
-+test_partial_extent_remove
-+test_multiple_extent_remove
-+test_destroy_region_without_extent_removal
-+test_destroy_with_extent_and_dax
-+test_dax_device_ops
-+test_reject_overlapping
-+test_two_regions
-+test_more_bit
-+test_driver_reload
-+test_event_reporting
-+
-+modprobe -r cxl_test
-+
-+check_dmesg "$LINENO"
-+
-+exit 0
-diff --git a/test/meson.build b/test/meson.build
-index d871e28e17ce512cd1e7b43f3ec081729fe5e03a..1cfcb60d16e05272893ae1c67820aa8614281505 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -161,6 +161,7 @@ cxl_sanitize = find_program('cxl-sanitize.sh')
- cxl_destroy_region = find_program('cxl-destroy-region.sh')
- cxl_qos_class = find_program('cxl-qos-class.sh')
- cxl_poison = find_program('cxl-poison.sh')
-+cxl_dcd = find_program('cxl-dcd.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -194,6 +195,7 @@ tests = [
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-   [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
-   [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
-+  [ 'cxl-dcd.sh',             cxl_dcd,            'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
+ - Alistair
 
--- 
-2.47.1
-
+> [1]
+> https://lore.kernel.org/all/20240829165627.2256514-1-david@redhat.com/T/#u
+> 
+> -- 
+> Cheers,
+> 
+> David / dhildenb
+> 
