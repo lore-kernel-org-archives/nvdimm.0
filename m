@@ -1,44 +1,45 @@
-Received: from forward102b.mail.yandex.net (forward102b.mail.yandex.net [178.154.239.149])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BFDA1B2194
-	for <nvdimm@lists.linux.dev>; Mon, 16 Dec 2024 12:37:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.149
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05A281B4124;
+	Mon, 16 Dec 2024 15:54:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734352647; cv=none; b=cnq5ASfNCN6atEYxXut8GOXDAqBIY7bmapMTHWIQpKIAPLL6/5ei4Lkd15wO+CGXjYd3/MKJxznYqtHrAZVUIDJvav761dzZfahwSnAKfrkCPSXqaaWhYGfTT5vDvg1fZaKtpToPzzU50KoPnyHvxH5HG2KtRO5SLUcFLn2Gxjs=
+	t=1734364454; cv=none; b=TfrN2r+W000G/MN6/ZMJjEYvzW3iveSRctF+xCS/RI46ezg6PwD9vouGdlrqOa5856PjM8KEeneX6YbbiaOK5QVLfD3j5WpMpaLf8MzGeuJZjpM7OwheIS+zshord6ZHDFPAHG7m0qM6mnuC1BE6sbSQEYmZhnkCw2WiTJWHXak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734352647; c=relaxed/simple;
-	bh=2Jvc2ooaXI+L9g+8T5Kx3Exr0MpOlbtxQtFd6k1AXE8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qjRKSGjVQcaDObtp7FwRHLY+6lOoA+shagI88QuHQmBbXhy46a6HRQRhDffzSOV86QlFEkUeT7M9hjKAv6Rkuc07GInFfupY7MZlRqhpFHDJqnrcP0FmVpNKZ2drkXwCOhHT0lEPUn9HLdUul9eEpazxzkM+WvfDNj4nFfGZ1uM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=yandex.ru; spf=pass smtp.mailfrom=yandex.ru; dkim=pass (1024-bit key) header.d=yandex.ru header.i=@yandex.ru header.b=nohrOpoZ; arc=none smtp.client-ip=178.154.239.149
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=yandex.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yandex.ru
+	s=arc-20240116; t=1734364454; c=relaxed/simple;
+	bh=mdpQ1Rr6Q4/C6X6rpYbc+vmlgVo8HaKT44pMGF+PkNY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nZNDn7Z3FsP9GvymE+qVbRyiXlKOGtoGQCQ3/rU4/EjEvswWu40qN31VyHbKWFqhfcTEFt0aThVqS0rGTZfK3FzrF4rSJ90PbNQKUk/iBegG/7gzIfWFPAziL9YErsYiS5oG5TIJ0CYmV8/0VrCzX5mwwehY+2v+m3EmenMGkWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=QRspj2HJ; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=yandex.ru header.i=@yandex.ru header.b="nohrOpoZ"
-Received: from mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net [IPv6:2a02:6b8:c0c:78a6:0:640:2e35:0])
-	by forward102b.mail.yandex.net (Yandex) with ESMTPS id 4B2CA60D32;
-	Mon, 16 Dec 2024 15:37:15 +0300 (MSK)
-Received: by mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net (smtp/Yandex) with ESMTPSA id DbOdoh1OiCg0-WXpELXyJ;
-	Mon, 16 Dec 2024 15:37:14 +0300
-X-Yandex-Fwd: 1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex.ru; s=mail;
-	t=1734352634; bh=CE+8LA/Pi41fWGZYLgoIDsaUdC79MUcJltgEITotazk=;
-	h=Message-ID:Date:Cc:Subject:To:From;
-	b=nohrOpoZIN068pwgwNnzIF7kC+1HWqIukJHTPEblqdQ4GSJHnDuRBD3kOYfh9xIqQ
-	 jvKPR2lOqU/pb0AxU9VnYo2tvlHD7+m7XVavBbVgWw3Vv9vjhZgZ5ONXFxFralovSr
-	 9OLZHKGhBvRsTL56QZ23b7mA5Jwx14ymjCssRIwY=
-Authentication-Results: mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net; dkim=pass header.i=@yandex.ru
-From: Dmitry Antipov <dmantipov@yandex.ru>
-To: Dan Williams <dan.j.williams@intel.com>,
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="QRspj2HJ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=rBBpd22PJzLLmPajy8p7zWHGVvG5LBG4Sj90qfpefx0=; b=QRspj2HJzQ59iy5Ci553SMSMuO
+	OpXDIMj4ZSvlXoCYN03XnzN6ZFvokxsuE07B78w44YAdCG4uoQP7ne4uYQVtvJ6Fp0G+KH/MHLMSO
+	r+WK18nJ4hPxUe34Xd3V0v2r60xi/SVkxxmoUec7Uztzmh2gZYsmXANof2/YTzIJz/kl4ispSox8d
+	UVyk6ltKQrRQXBtak8bbmXoZsR22pyG3z4Nz6zMVkenVyxprmo2LWknrCbK155VRWNMKKDY5Lxtx1
+	Zmxy20RDozu4q2jQnlHlFmK0nu7jdbAndAmNFX1PjXK8nOd87wrH56Z0/hGw1c15b+4RY6yzPV2ye
+	PLjdJjqQ==;
+Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
+	id 1tNDQA-000000002B3-0vvD;
+	Mon, 16 Dec 2024 15:54:10 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-Cc: nvdimm@lists.linux.dev,
-	lvc-project@linuxtesting.org,
-	Dmitry Antipov <dmantipov@yandex.ru>
-Subject: [PATCH] nvdimm: add extra LBA check for map read and write operations
-Date: Mon, 16 Dec 2024 15:37:12 +0300
-Message-ID: <20241216123712.297722-1-dmantipov@yandex.ru>
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-mm@kvack.org
+Subject: [PATCH 1/2] dax: Remove access to page->index
+Date: Mon, 16 Dec 2024 15:53:55 +0000
+Message-ID: <20241216155408.8102-1-willy@infradead.org>
 X-Mailer: git-send-email 2.47.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -48,62 +49,38 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In 'btt_map_read()' and '__btt_map_write()', add an extra check
-whether requested LBA may be represented as valid offset against
-an offset of the map area of the given arena. Compile tested only.
+This looks like a complete mess (why are we setting page->index at page
+fault time?), but I no longer care about DAX, and there's no reason to
+let DAX hold us back from removing page->index.
 
-Found by Linux Verification Center (linuxtesting.org) with SVACE.
-
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
- drivers/nvdimm/btt.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/dax/device.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 423dcd190906..2bd03143c8c3 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -96,12 +96,17 @@ static int btt_info_read(struct arena_info *arena, struct btt_sb *super)
- static int __btt_map_write(struct arena_info *arena, u32 lba, __le32 mapping,
- 		unsigned long flags)
- {
--	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
-+	u32 lba_off;
-+	u64 ns_off;
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 6d74e62bbee0..bc871a34b9cd 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -89,14 +89,13 @@ static void dax_set_mapping(struct vm_fault *vmf, pfn_t pfn,
+ 			ALIGN_DOWN(vmf->address, fault_size));
  
--	if (unlikely(lba >= arena->external_nlba))
-+	if (unlikely(lba >= arena->external_nlba ||
-+		     check_mul_overflow(lba, MAP_ENT_SIZE, &lba_off)))
- 		dev_err_ratelimited(to_dev(arena),
- 			"%s: lba %#x out of range (max: %#x)\n",
- 			__func__, lba, arena->external_nlba);
-+
-+	ns_off = arena->mapoff + lba_off;
-+
- 	return arena_write_bytes(arena, ns_off, &mapping, MAP_ENT_SIZE, flags);
+ 	for (i = 0; i < nr_pages; i++) {
+-		struct page *page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
++		struct folio *folio = pfn_folio(pfn_t_to_pfn(pfn) + i);
+ 
+-		page = compound_head(page);
+-		if (page->mapping)
++		if (folio->mapping)
+ 			continue;
+ 
+-		page->mapping = filp->f_mapping;
+-		page->index = pgoff + i;
++		folio->mapping = filp->f_mapping;
++		folio->index = pgoff + i;
+ 	}
  }
  
-@@ -154,14 +159,17 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- {
- 	int ret;
- 	__le32 in;
--	u32 raw_mapping, postmap, ze, z_flag, e_flag;
--	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
-+	u64 ns_off;
-+	u32 raw_mapping, postmap, ze, z_flag, e_flag, lba_off;
- 
--	if (unlikely(lba >= arena->external_nlba))
-+	if (unlikely(lba >= arena->external_nlba ||
-+		     check_mul_overflow(lba, MAP_ENT_SIZE, &lba_off)))
- 		dev_err_ratelimited(to_dev(arena),
- 			"%s: lba %#x out of range (max: %#x)\n",
- 			__func__, lba, arena->external_nlba);
- 
-+	ns_off = arena->mapoff + lba_off;
-+
- 	ret = arena_read_bytes(arena, ns_off, &in, MAP_ENT_SIZE, rwb_flags);
- 	if (ret)
- 		return ret;
 -- 
-2.47.1
+2.45.2
 
