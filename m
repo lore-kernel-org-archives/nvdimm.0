@@ -1,74 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from forward102b.mail.yandex.net (forward102b.mail.yandex.net [178.154.239.149])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7D551C5480;
-	Mon, 16 Dec 2024 06:26:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BFDA1B2194
+	for <nvdimm@lists.linux.dev>; Mon, 16 Dec 2024 12:37:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.149
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734330418; cv=none; b=kI4X9ibUvdgya9Yup6bgN216Hzlg+ILjBbSqvYl+fncwvdPQXl/Ewl/uRybEPHK1p7Cuk5r278DIfxMZ/vADh2a8wm+PffCMg05SmltJ6emdEDf05LtmBvlyKgRogGugL+drmasWPCSPQxPNTmq8RnB7OenSfQx+TB1f224jgNU=
+	t=1734352647; cv=none; b=cnq5ASfNCN6atEYxXut8GOXDAqBIY7bmapMTHWIQpKIAPLL6/5ei4Lkd15wO+CGXjYd3/MKJxznYqtHrAZVUIDJvav761dzZfahwSnAKfrkCPSXqaaWhYGfTT5vDvg1fZaKtpToPzzU50KoPnyHvxH5HG2KtRO5SLUcFLn2Gxjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734330418; c=relaxed/simple;
-	bh=YTeuGSh1CGSThRU7myc0e4PzU/URwKkheVQYIA9QTkw=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=n++DPFlq8HbvQMS8HNmpdwajmZu3ktJt9NpDNJYulifq2uAtM+UOa1hSimrVGatToQuCxVKOT8+JW5QA+yowIl/wC3vLtue9YWQOy3sNzj5BNN1+oWwa9xRmnh6PtiFD1QcH6W5TzO7SB89uwJ+l8YkV2QpfQAFecXJI2x2LWAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GY0AZMxm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734352647; c=relaxed/simple;
+	bh=2Jvc2ooaXI+L9g+8T5Kx3Exr0MpOlbtxQtFd6k1AXE8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qjRKSGjVQcaDObtp7FwRHLY+6lOoA+shagI88QuHQmBbXhy46a6HRQRhDffzSOV86QlFEkUeT7M9hjKAv6Rkuc07GInFfupY7MZlRqhpFHDJqnrcP0FmVpNKZ2drkXwCOhHT0lEPUn9HLdUul9eEpazxzkM+WvfDNj4nFfGZ1uM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=yandex.ru; spf=pass smtp.mailfrom=yandex.ru; dkim=pass (1024-bit key) header.d=yandex.ru header.i=@yandex.ru header.b=nohrOpoZ; arc=none smtp.client-ip=178.154.239.149
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=yandex.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yandex.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GY0AZMxm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 640B9C4CED0;
-	Mon, 16 Dec 2024 06:26:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734330417;
-	bh=YTeuGSh1CGSThRU7myc0e4PzU/URwKkheVQYIA9QTkw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=GY0AZMxmMTcjeSKYZE7GmeuX3SKjxwb/58gdhtCO5ezpDtS7gHlr8h702y1OHXEf3
-	 vY6Jr3J4GAa6Wcr8zvbFGqgmpilb6SPi4mi0P9Bicw+/iyZasNONa8WkQjjSoDOyRm
-	 3Dc5fonxtLGVn5tPwYlTUYvPZ0flblYJeuQt5VAY=
-Date: Sun, 15 Dec 2024 22:26:55 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>, Dan Williams
- <dan.j.williams@intel.com>, linux-mm@kvack.org, lina@asahilina.net,
- zhang.lyra@gmail.com, gerald.schaefer@linux.ibm.com,
- vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
- bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com,
- will@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
- dave.hansen@linux.intel.com, ira.weiny@intel.com, willy@infradead.org,
- djwong@kernel.org, tytso@mit.edu, linmiaohe@huawei.com, peterx@redhat.com,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
- david@fromorbit.com, sfr@canb.auug.org.au
-Subject: Re: [PATCH v3 00/25] fs/dax: Fix ZONE_DEVICE page reference counts
-Message-Id: <20241215222655.ef0b15148120a2e2b06b2234@linux-foundation.org>
-In-Reply-To: <wysuus23bqmjtwkfu3zutqtmkse3ki3erf45x32yezlrl24qto@xlqt7qducyld>
-References: <cover.e1ebdd6cab9bde0d232c1810deacf0bae25e6707.1732239628.git-series.apopple@nvidia.com>
-	<675ce1e5a3d68_fad0294d0@dwillia2-xfh.jf.intel.com.notmuch>
-	<45555f72-e82a-4196-94af-22d05d6ac947@redhat.com>
-	<wysuus23bqmjtwkfu3zutqtmkse3ki3erf45x32yezlrl24qto@xlqt7qducyld>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=yandex.ru header.i=@yandex.ru header.b="nohrOpoZ"
+Received: from mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net [IPv6:2a02:6b8:c0c:78a6:0:640:2e35:0])
+	by forward102b.mail.yandex.net (Yandex) with ESMTPS id 4B2CA60D32;
+	Mon, 16 Dec 2024 15:37:15 +0300 (MSK)
+Received: by mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net (smtp/Yandex) with ESMTPSA id DbOdoh1OiCg0-WXpELXyJ;
+	Mon, 16 Dec 2024 15:37:14 +0300
+X-Yandex-Fwd: 1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex.ru; s=mail;
+	t=1734352634; bh=CE+8LA/Pi41fWGZYLgoIDsaUdC79MUcJltgEITotazk=;
+	h=Message-ID:Date:Cc:Subject:To:From;
+	b=nohrOpoZIN068pwgwNnzIF7kC+1HWqIukJHTPEblqdQ4GSJHnDuRBD3kOYfh9xIqQ
+	 jvKPR2lOqU/pb0AxU9VnYo2tvlHD7+m7XVavBbVgWw3Vv9vjhZgZ5ONXFxFralovSr
+	 9OLZHKGhBvRsTL56QZ23b7mA5Jwx14ymjCssRIwY=
+Authentication-Results: mail-nwsmtp-smtp-production-main-59.iva.yp-c.yandex.net; dkim=pass header.i=@yandex.ru
+From: Dmitry Antipov <dmantipov@yandex.ru>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>
+Cc: nvdimm@lists.linux.dev,
+	lvc-project@linuxtesting.org,
+	Dmitry Antipov <dmantipov@yandex.ru>
+Subject: [PATCH] nvdimm: add extra LBA check for map read and write operations
+Date: Mon, 16 Dec 2024 15:37:12 +0300
+Message-ID: <20241216123712.297722-1-dmantipov@yandex.ru>
+X-Mailer: git-send-email 2.47.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Mon, 16 Dec 2024 11:55:30 +1100 Alistair Popple <apopple@nvidia.com> wrote:
+In 'btt_map_read()' and '__btt_map_write()', add an extra check
+whether requested LBA may be represented as valid offset against
+an offset of the map area of the given arena. Compile tested only.
 
-> The remainder are more -mm focussed. However they do depend on the fs/dax
-> cleanups in the first half so the trick would be making sure Andrew only takes
-> them if the nvdimm.git changes have made it into -next. I'm happy with either
-> approach, so let me know if I should split the series or not.
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
-My inclination is to put it all into the nvdimm tree, with appropriate
-MM developer acks.
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+---
+ drivers/nvdimm/btt.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-But I'm having difficulty determining how practical that is because the
-v3 series is almost a month old so my test merging was quite ugly.
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 423dcd190906..2bd03143c8c3 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -96,12 +96,17 @@ static int btt_info_read(struct arena_info *arena, struct btt_sb *super)
+ static int __btt_map_write(struct arena_info *arena, u32 lba, __le32 mapping,
+ 		unsigned long flags)
+ {
+-	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
++	u32 lba_off;
++	u64 ns_off;
+ 
+-	if (unlikely(lba >= arena->external_nlba))
++	if (unlikely(lba >= arena->external_nlba ||
++		     check_mul_overflow(lba, MAP_ENT_SIZE, &lba_off)))
+ 		dev_err_ratelimited(to_dev(arena),
+ 			"%s: lba %#x out of range (max: %#x)\n",
+ 			__func__, lba, arena->external_nlba);
++
++	ns_off = arena->mapoff + lba_off;
++
+ 	return arena_write_bytes(arena, ns_off, &mapping, MAP_ENT_SIZE, flags);
+ }
+ 
+@@ -154,14 +159,17 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
+ {
+ 	int ret;
+ 	__le32 in;
+-	u32 raw_mapping, postmap, ze, z_flag, e_flag;
+-	u64 ns_off = arena->mapoff + (lba * MAP_ENT_SIZE);
++	u64 ns_off;
++	u32 raw_mapping, postmap, ze, z_flag, e_flag, lba_off;
+ 
+-	if (unlikely(lba >= arena->external_nlba))
++	if (unlikely(lba >= arena->external_nlba ||
++		     check_mul_overflow(lba, MAP_ENT_SIZE, &lba_off)))
+ 		dev_err_ratelimited(to_dev(arena),
+ 			"%s: lba %#x out of range (max: %#x)\n",
+ 			__func__, lba, arena->external_nlba);
+ 
++	ns_off = arena->mapoff + lba_off;
++
+ 	ret = arena_read_bytes(arena, ns_off, &in, MAP_ENT_SIZE, rwb_flags);
+ 	if (ret)
+ 		return ret;
+-- 
+2.47.1
 
-Perhaps you could prepare a new-doesn't-need-to-be-final version for
-people to look at and to aid with this head-scratching?
