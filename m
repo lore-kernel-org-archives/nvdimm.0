@@ -1,178 +1,131 @@
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (mail-bn8nam04on2059.outbound.protection.outlook.com [40.107.100.59])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F5BB1487FE
-	for <nvdimm@lists.linux.dev>; Tue, 17 Dec 2024 05:20:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.100.59
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734412831; cv=fail; b=Z7O7fmNgGiB96Fu5IuLMONBMkbE0o1nF9ZPW0DnxrC+D9mZ9sYn+IozqoKyClByUVy4JFdCW1pofVvDIY5xMtb/3PdfAUAqEw4XgAJMS8a5Q1Hn+CzuwLmxR+OoFAlqNTJlsYhifw11whuezBVEXspBgH637D+a+9neaGD6vp58=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734412831; c=relaxed/simple;
-	bh=TH0/J7jkDiGdPJ0Ds2v/16UcFlaCz/myujfevBQ+3gI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=LP/a64IRAEsCoVIhtEO/Dmq/ayN26IhkiM8Ncq2rwxypXCla6UZf3nMHolaOqDabP/nNNR+GZg2T/wCd65QBBubWcPmRS3Hc7qIXV7lfC944rghxjSUEpeGT2F8GVe36ZqDef0O4kom+2ubUEE2y7xjPN1zLjJGc6NBrGLPfgtI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=dIaxQ3OS; arc=fail smtp.client-ip=40.107.100.59
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 670841D47D9;
+	Tue, 17 Dec 2024 12:39:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1734439167; cv=none; b=Z422uieJfn/Khuh+EgoP/AvN6FfAwawGNhir55rv9kpZkMkKHZsPWmuNOzZ+sukaDv98N7Cuy88Q51flqm6b1jQ0huqEqDKHFqqxejmb7pjMYq99Tv7o/gfhkjd7VR9uUfe/8paY5lAv917uqigpNVzFWNNnvBoOYQxo8NLeH74=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1734439167; c=relaxed/simple;
+	bh=eTTRXSGbxsxTHL/T+nTZZkKk4QZw6IxtSWXoc6XFwKs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=U/AugBm/wbczlYsE5nFAsfFXlrCSh1OQS7x20Dr80gG9+SJvLfZEZSYxBWzpS7EQFoToeNhrar2QOnMovzGGC9e6T1CmqvYYyrtqgCtC5gtIcVLaLXmIOBifsVz7Ajt091/WY30y3dqCCvuamT6o3vVZ9o8HmlM0+1KEI39o8HA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=AomPShh7; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="dIaxQ3OS"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=BQAj8FuPjY5h2P2mlWhW0mf/ZTrH5SNcr3PoS4wQfgXBvgI/ayVWEmsM9xQHJ1VBn4bmhjwxKZHxkHohubIG2XwshrcnvzB+FyBFanVM7CIBIQzZ6TWpCcb9oVGhIfOTg9lwelQoUlUbdgILrCK1LqH5nbHEWOSM0tWoBdzcmaISmuVNqM/50jwQRjEm4S2U7rJGdXvlglgbRs61bqhoxRB+IW5/oX9AmVlIkJXvfSP6goiyd9NAqaZCZUIdXcBHzNdonEpsV0/4/tz/OwS8CkjPLnA8PBby2mHGtBn/ZN3Wh8+uq+izpKXbfAS7nBDaoroyoJCiI9wiLfEwZ8eANw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=LUM0Rt68ReLzLmETvsu4CJMhlxrGsD+rTS8nWDDVnrM=;
- b=r2y9IA8h5IHW3mOSyWQps0DC2sXjOgzbzEoHk/vzQrJjal0nU8fPNtaKp5BPdEi+ZdBzLWwCS+jWZwzn6enwJEK8n2GA3QNfI4OsYt67fBDl8A0kCF7Fl2+I7m9xprONF7g2Wrg3QuHHI+hS66INGOvmd8Hi6HD8aEIA5FUXvKq4Q3cSqoMPbkIAc3gIZBJ4qNMTxdG1xg2P6VjLXQIRqMhxhm0EYUQC9v5MAOfwqTVzT9xMhlrismqRKswCkeZAZYlxqXMPt6v0S2uXS98M4WmmBJ8dOLSMKlsuS/0bMjUgRwMeXfSHB7LjGSBQDhEy6ER3/0P4FaYeeeRcUqDmwA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=LUM0Rt68ReLzLmETvsu4CJMhlxrGsD+rTS8nWDDVnrM=;
- b=dIaxQ3OS8YFbhw+m+gnK+U64KvUglsJEWa9yLrgC68mYVvzRmQ00hwarLM8zjVdD8TzbN7/NGLAhrrLeVwHC6rM77RrhoXZeHS9JigQx7Ff9gB5Dy1Zk2scmYPv6ErQ2QFCFCIfNPMSa09Z5UdKU4JF5seBpfZnqW8cDteBTRuYd5ijQ/OYqbiKtV7sL+cIOAZ4vsy8kjdE0txLKm2aogzob99hdZYjmUZ14p5rUGqL3y5Pvx0f9OhXysY3B8Z96FFtz16xYMRC8anup7YFaB8BgfS6Jir80eUdnqnlsxmx1VZu7UZl0TRQ654MtWcBvtIJ/qkkDflbVij5MvADzFw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- PH7PR12MB7260.namprd12.prod.outlook.com (2603:10b6:510:208::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8251.19; Tue, 17 Dec
- 2024 05:20:26 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe%4]) with mapi id 15.20.8251.015; Tue, 17 Dec 2024
- 05:20:26 +0000
-Date: Tue, 17 Dec 2024 16:20:21 +1100
-From: Alistair Popple <apopple@nvidia.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>, 
-	Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, lina@asahilina.net, zhang.lyra@gmail.com, 
-	gerald.schaefer@linux.ibm.com, vishal.l.verma@intel.com, dave.jiang@intel.com, 
-	logang@deltatee.com, bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca, 
-	catalin.marinas@arm.com, will@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com, 
-	dave.hansen@linux.intel.com, ira.weiny@intel.com, willy@infradead.org, djwong@kernel.org, 
-	tytso@mit.edu, linmiaohe@huawei.com, peterx@redhat.com, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de, david@fromorbit.com, 
-	sfr@canb.auug.org.au
-Subject: Re: [PATCH v3 00/25] fs/dax: Fix ZONE_DEVICE page reference counts
-Message-ID: <jn3j4pdzfnlai4oqr4g7ldl6cq6awiyugg5gbny3l3g5y67abe@rm6zpap7y2gh>
-References: <cover.e1ebdd6cab9bde0d232c1810deacf0bae25e6707.1732239628.git-series.apopple@nvidia.com>
- <675ce1e5a3d68_fad0294d0@dwillia2-xfh.jf.intel.com.notmuch>
- <45555f72-e82a-4196-94af-22d05d6ac947@redhat.com>
- <wysuus23bqmjtwkfu3zutqtmkse3ki3erf45x32yezlrl24qto@xlqt7qducyld>
- <20241215222655.ef0b15148120a2e2b06b2234@linux-foundation.org>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241215222655.ef0b15148120a2e2b06b2234@linux-foundation.org>
-X-ClientProxiedBy: SY5PR01CA0124.ausprd01.prod.outlook.com
- (2603:10c6:10:246::13) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="AomPShh7"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4BH85g0H032420;
+	Tue, 17 Dec 2024 12:39:24 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=E7n2gj
+	Aj00rD8fcFe/8kFFfWR0pcT0QnWH6RHPNN+lk=; b=AomPShh7RXZQygmTtRzlai
+	br8ZZsvMiUoa4PXTe5PQ1SWaH7kxwNxRTu8/1HhUFb7BDVmrbFBIpVaJk2Y4oT+6
+	kWwtHM4cSJRSqDkgZZjB5YyHqLyu6oorne4ZAED72E5f+JeYxC0GnBZidpsfRlQ9
+	ehPvGeQ1Bogi2aESuIqxGaWPhY+jieTcSCd/z4imEN466xdwb16RHaYMHCRiW34O
+	SnNIsKAoxxccR3RK78hJ0EmuezdoDthsDi1tXJiud0b1T9Lr4xUS/9UKi0fg/dWZ
+	h1qZxl8HemcCoO/drXGR1oo5GkkFABa0X5zpyUDq3luBenhquwTpQweNKfVFRSvA
+	==
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 43k5g2h4x6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 17 Dec 2024 12:39:23 +0000 (GMT)
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 4BH97PPk014412;
+	Tue, 17 Dec 2024 12:39:23 GMT
+Received: from smtprelay03.dal12v.mail.ibm.com ([172.16.1.5])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 43hq21jc3m-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 17 Dec 2024 12:39:23 +0000
+Received: from smtpav06.wdc07v.mail.ibm.com (smtpav06.wdc07v.mail.ibm.com [10.39.53.233])
+	by smtprelay03.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 4BHCdMsN24052252
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 17 Dec 2024 12:39:22 GMT
+Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 28BAA58056;
+	Tue, 17 Dec 2024 12:39:22 +0000 (GMT)
+Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 69B915803F;
+	Tue, 17 Dec 2024 12:39:18 +0000 (GMT)
+Received: from [9.43.38.38] (unknown [9.43.38.38])
+	by smtpav06.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Tue, 17 Dec 2024 12:39:18 +0000 (GMT)
+Message-ID: <a39d25d3-e6ac-4166-a75e-58a258da4101@linux.ibm.com>
+Date: Tue, 17 Dec 2024 18:09:16 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|PH7PR12MB7260:EE_
-X-MS-Office365-Filtering-Correlation-Id: 09fa143f-a910-44de-2d86-08dd1e5a83b7
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|7416014|366016;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?QBdXMM9hvanblBDkFHsB8ujSjjRbgeudu2hTvExnLnMn7WrHn4AIO8oQF781?=
- =?us-ascii?Q?RPOG+7QqfOjwC8C+A6hqXrTubsX3OWhUCqn3OzQU3KMsfT9sBmzMgISqZdsw?=
- =?us-ascii?Q?uVWTYRdFv9CBo1NesnL7w4OiDfaHCcM7wx1Jo5a6KlExbiytVX9Y1YWSbxCX?=
- =?us-ascii?Q?91eJaKVTDKqLs2AW5A+CPBSIX/swPvAw+m2pK4XceEoGJJGatVHXJJWHEhwA?=
- =?us-ascii?Q?dlsz+Q1oo2wR7hc2VD7NPzpQhu/pVgBj9kiFIuapApg3XqagqFwQM4YjrYaU?=
- =?us-ascii?Q?TakNFv27+yodAAOVbbBB+Y2waECYHAqs8nM6qmHbofDULxaAFx48nQLtrVhd?=
- =?us-ascii?Q?55IdfVTWHW3SUhmCE26NgkTYvnWAIhLCpTbC66akrUUhseM8ybswuyZHI145?=
- =?us-ascii?Q?wundWigCsQk+Cz7uGpDdDU+na8eRIi2LUih2B4cTpZikC7jKezRwXR7gjeJu?=
- =?us-ascii?Q?9taaPGqSxtKvbfA0SuqCbep1274qBBR+s74ffpg9whH6op5SyBEEXXMItHpr?=
- =?us-ascii?Q?J/FtVft5PoZRBlDPSOjVRSqsKjRDbL93oYtONCq2h6ZUsdD6q9yw+HjI1wq2?=
- =?us-ascii?Q?jnkcmahjg5sfGtKEoqBH2ddG4YAzyrnHc9hsxQWBO5vLAYrs7jouqjpZWj/P?=
- =?us-ascii?Q?Z1NKBhm89Q2XaSmmpo3jU4nBkWKGZYuyr8JsecDQFqfGrXs2BMiyMaKG56UK?=
- =?us-ascii?Q?2PM8b86YGyqfCSuD+rDHUYxTHRUmcHWypX9yD8Y/x+5jEFy8G14SFejnFBe5?=
- =?us-ascii?Q?VOf1+z90v/6LsF58Bp01pm+Qa5UUKiiKt/+AcH7v9IFwyemHivkP82uDvC1x?=
- =?us-ascii?Q?4ncBq9oMn0ju1NcZhNSgcZNz486vhivhacfKmELebmOczWND65Kotv9uJ6Io?=
- =?us-ascii?Q?haJJ3o+xGvFoA0s2PA0B37Du6g+Fj7QaZMQO/WpznTf9baNghmwCFtIpxMFI?=
- =?us-ascii?Q?3pHXW04yVfp1wVjVL8UXToSj2n7Opo0T4P8EZ3AJmC5grvuYiyy0Pft3WOiD?=
- =?us-ascii?Q?BVEvPMLSmXKTgQpcM/t4JZdEI5zWdQH3XrwZl+pvhbFVfjJT0Z54yjZukH7k?=
- =?us-ascii?Q?TruXCOT/S+gbMaFgWY+RswQKkiSIuPOd4XRNimpOJa8b3z5MI/JJLlPwCDZD?=
- =?us-ascii?Q?2fDP7bsUiCqgf/Kd+pIKWqhWiPNMjlweKSki76hfsApCaxTX2hnaukhdEcES?=
- =?us-ascii?Q?5mF2eKQ+TGcuiphbamAkeMm7QPBQSV7/NR9Ug/bekAD2KyLSBGelnF+sCEK8?=
- =?us-ascii?Q?+zNwxg1i7m8s0NjceOd2OHzqt/n2722PNQIMv1ImsbGDNdCaJDWNT23rMvzM?=
- =?us-ascii?Q?78Uojf5LBYEJ7Y22RMRNTDV83bX1PynXX/O4mRGN035kCApB66UCj9b+luCf?=
- =?us-ascii?Q?BAL114gVgYugwEV9qYa7j9Sr0oMy?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(7416014)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?If3rDZo0rrZtk2bYOSVorabobhcJHrJANKix73jInXYC631Hz1gslodt+1eQ?=
- =?us-ascii?Q?SVjnw8FxlKhoUpEFkubBh7FWgzcJ2QPbzuar+302UzShc/LdZrsvy4MeD4O5?=
- =?us-ascii?Q?luvAjNfne6gCbuuXmRVgfezok987ceNREQ9ApDP2M9CbCm1oQwGzkeKzT9lB?=
- =?us-ascii?Q?73jAPS3cu47c8M4122w/l2Gz10WBnyhjvvnp4YS2F4u25JHIaBqAN+l6ihfw?=
- =?us-ascii?Q?MOIp8WjMNVRe6GBwqfBSOEbpuczSC9DxpA30E3OStrxIgXkbGr0J+Q3C0NZn?=
- =?us-ascii?Q?fDc/FtiGSWge2NxsCbnurhLrLxLD6r1xtr7LE3UTUzMQMTyYsJ1IE+0dsn36?=
- =?us-ascii?Q?vMgn6sJru0mRm9oppmGmqfXkeYSkSzsaxx59VsEjVfDsC4msRqrWPIa/+KvV?=
- =?us-ascii?Q?hf9/RGWiAC1FWdqlClQmuqh2K3RWuQy48JDhU5MHpaFPP+Kq6Bk1VEpahRs9?=
- =?us-ascii?Q?OsSMQaYN6tm3WTiptZGqEhKgRSdaOyYrgo+/+Tgx650TvYD5slt/0tUtdKKT?=
- =?us-ascii?Q?uyqcrE8ozSheJT1UC/dsFfWnC4HCkVLs2Ji2x4KrZSzAYCezjbWzcfEiPzCH?=
- =?us-ascii?Q?KKyXZCDWrBVWWgnIKbiHpohdIWB1j3ijHDf7STq+zZzs8Rd/e2RSp9Yph/RG?=
- =?us-ascii?Q?Ut5iDm4MPH1/rcklUc/SOIJlwbxVq7TFbrtEGyzM8ifoLpM/WEXCiZN4S8q1?=
- =?us-ascii?Q?CTR15UI7dH9GZZkJ70d5Njb1CGW8StWVqblNmEdrH8bvI9ttpD76Kw9oZq4d?=
- =?us-ascii?Q?uoljqVsz3h5MWs4c34Ip6IWFsVFGSiOm3GzETo5UfguSnZdmucm8NNLAGn9q?=
- =?us-ascii?Q?oOTF+UxCfOpUU8jNuOBhWioivK+LkqUuF1TRiub25CCzoHml8dxL3OWd8cLZ?=
- =?us-ascii?Q?IRrpW2DI4EV7FSJdbp/c0G4PN7+aaeXqzOXDBQYDtTjTggYDTvp8ae1ZqdNg?=
- =?us-ascii?Q?4ztyKmBi32FHYNK4ra+Uj6c7i42OsE04CQeVZDIlfIpv90rDegt0mfRKuvl9?=
- =?us-ascii?Q?3P0vHvMimsO+APzDQ64dSEtJ8Tr1ekigM660o8F5fMyRQ9pL8Pgy8zxZiLQn?=
- =?us-ascii?Q?tPtFyom3ZnznSkzkDa2Ul6f5jbMDF0ogbRJx00CUvJWeclVgb8FgktJLMLBN?=
- =?us-ascii?Q?gqQdvOJW2X9/sHhIdXdCa8yhbjIupAO88hWmYvuzgx1HBIdRBIk0AnDRjsqp?=
- =?us-ascii?Q?ndo5jnp3FGnYQdM91TxvSWFIqM5q8OVGUN/l7h0uozK7u83rgrSh6zUDQMkT?=
- =?us-ascii?Q?3GjNuhO6z8SV2B5U+y0Jvq5+zUoQ3DuK2IPih53761J5IrkfPuFn5Ew88/uF?=
- =?us-ascii?Q?JxZlFTJ917Qm8/iwWA1HS0VdOu09crfja7Il8LIEq41L6Nci0fiwG782C9Rr?=
- =?us-ascii?Q?dPmYlRBDkDlLK1NQU2uaHYVtSYCQ8BNm/d4CLvkQXbJTo3ycljAmV/9Y2LzS?=
- =?us-ascii?Q?zAddgPU+gwJykiyZfhTQueeUBUTsPGbdDaQ+uCIG4xpPv9P2xY1/iAqG2zTD?=
- =?us-ascii?Q?ThtzLu0JP1OrDG4ytv5idBAMALtIvlorck3iIBd4Zat48gKLPEI3dYEwWl4/?=
- =?us-ascii?Q?JB3uX3u0U1mvezMFr517YULLQny+zwsvFXTyYHA2?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 09fa143f-a910-44de-2d86-08dd1e5a83b7
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Dec 2024 05:20:26.3398
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: aKTLzMSyKZXfXNqtjImIlrzOrgbEx1lh4Cs/sguu9pMSnEumBaYEnXphL9j7mi7OPU3ShQkHej54X8xNV2Otqg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7260
+User-Agent: Mozilla Thunderbird
+Subject: Re: Change in reported values of some block integrity sysfs
+ attributes
+To: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: linux-block@vger.kernel.org, dm-devel@lists.linux.dev,
+        linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
+        linux-scsi@vger.kernel.org, hare@suse.de, hch@lst.de,
+        steffen Maier <maier@linux.ibm.com>,
+        Benjamin Block <bblock@linux.ibm.com>,
+        Nihar Panda <niharp@linux.ibm.com>
+References: <f6130475-3ccd-45d2-abde-3ccceada0f0a@linux.ibm.com>
+ <yq18qsjdz0r.fsf@ca-mkp.ca.oracle.com>
+Content-Language: en-US
+From: M Nikhil <nikh1092@linux.ibm.com>
+In-Reply-To: <yq18qsjdz0r.fsf@ca-mkp.ca.oracle.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: hv8kafspI2C9X1TdImv_5JrFl2uNAJVP
+X-Proofpoint-GUID: hv8kafspI2C9X1TdImv_5JrFl2uNAJVP
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
+ definitions=2024-10-15_01,2024-10-11_01,2024-09-30_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 bulkscore=0
+ phishscore=0 clxscore=1011 priorityscore=1501 lowpriorityscore=0
+ impostorscore=0 suspectscore=0 spamscore=0 mlxlogscore=956 malwarescore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2411120000 definitions=main-2412170101
 
-On Sun, Dec 15, 2024 at 10:26:55PM -0800, Andrew Morton wrote:
-> On Mon, 16 Dec 2024 11:55:30 +1100 Alistair Popple <apopple@nvidia.com> wrote:
-> 
-> > The remainder are more -mm focussed. However they do depend on the fs/dax
-> > cleanups in the first half so the trick would be making sure Andrew only takes
-> > them if the nvdimm.git changes have made it into -next. I'm happy with either
-> > approach, so let me know if I should split the series or not.
-> 
-> My inclination is to put it all into the nvdimm tree, with appropriate
-> MM developer acks.
-> 
-> But I'm having difficulty determining how practical that is because the
-> v3 series is almost a month old so my test merging was quite ugly.
-> 
-> Perhaps you could prepare a new-doesn't-need-to-be-final version for
-> people to look at and to aid with this head-scratching?
+Thanks for the inputs Martin.
 
-I have just sent a new-maybe-almost-final v4 rebased on top of next-20241216 to
-help with the head-scratching. I haven't yet done extensive build tests or a full
-xfs-test run on it yet because it sounded better to get it out sooner. So no doubt
-the kernel build bot will find some fat finger of mine somewhere :-)
+We have observed that even though the HBA does not support DIX Type, 
+still the integrity attributes 'write_generate' and 'read_verify' are 
+set to 1 for the block devices.
 
-That said the rebase wasn't awful so let me know if it should be rebased on a
-different tree.
 
- - Alistair
+a3560030:~ # cat /sys/class/scsi_host/host0/prot_capabilities
+0
+a3560030:~ # cat /sys/class/scsi_host/host1/prot_capabilities
+0
+
+
+a3560030:~ # cat /sys/block/sdc/integrity/write_generate
+1
+a3560030:~ # cat /sys/block/sdc/integrity/read_verify
+1
+
+
+Thanks and Regards,
+
+Nikhil
+
+On 14/12/24 4:00 am, Martin K. Petersen wrote:
+>> The sysfs attributes related to block device integrity ,
+>> write_generate and read_verify are enabled for the block device when
+>> the parameter device_is_integrity_capable is disabled.
+> 'device_is_integrity_capable' is set if storage device (media) is
+> formatted with PI.
+>
+> That is completely orthogonal to 'write_generate' and 'read_verify'
+> which are enabled if the HBA supports DIX. If the HBA supports DIX Type
+> 0, 'write_generate' and 'read_verify' are enabled even if the attached
+> disk is not formatted with PI.
+>
+> I don't see any change in what's reported with block/for-next in a
+> regular SCSI HBA/disk setup. Will have to look at whether there is a
+> stacking issue wrt. multipathing.
+>
