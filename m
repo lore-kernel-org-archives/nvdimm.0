@@ -1,73 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A202921E0A6
-	for <nvdimm@lists.linux.dev>; Fri, 20 Dec 2024 18:31:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 031D921D5B5
+	for <nvdimm@lists.linux.dev>; Fri, 20 Dec 2024 18:32:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734719473; cv=none; b=A7j9yizlVX/GvonGep0SBcfGhJhRmSTgyM/P7NNxzn0Bh2TihkMsQnavDDDLfTccFCZizSMWppq/E8cCBNLEwfGWqEk/ugH50fY95NbGcmm1ZW1iQ0NhEqQW5EVzjEzrFo4cg8qRTdK4setR2rktAymTHj3p1G5GuD4Bs63BGu0=
+	t=1734719581; cv=none; b=Kh8adL3pXyYXwSKbRHcbANvGNMiT0qkRJH1Ua6qjNWOMk81StAgTZd20neFn5PyYZmFkD0A8pXjpsw9zgIKxxPQu/ozSBtAoWqhpfBaxNJazLZN7jLgvNabHEPVJ6N8TOIjOS5Die6UMcJgonvAogbHknn784QBogfxlzlcwoIQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734719473; c=relaxed/simple;
-	bh=5zqe6KTdOvbJhjCS4/7P40LvEhqzzNyD4usnj91BBp8=;
+	s=arc-20240116; t=1734719581; c=relaxed/simple;
+	bh=JS4X+Mv4yHz0iVkzrn8UK4tDBoOxclJbiHqvISaM2bQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ke4aNWUJ+K8J/UKxykcnCyHV3/2Cairlk0p7Ad41Trtevvg0ZGFqZu5An3DMn33zuj/dQix1Lqbi/HG4mYuJvwHxDVpDDBUtTZVToyWEfGs9LqE8DSuHTisSGXUJkxffch/Qy/lVSeoWn2Ih7VSUo00WsmQawz8cQW7M08TTSkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=G9XfWqV1; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=Ej9P/j9PWmIoiFfMhIO/E6CkU734U2b3PsNkdICjT8cRRJVPfsjFzAE1H6guVooocG3UpYRggTh4Qz6cExz65/XHYqvCEls3ZvqH9iHUtIY4LqgkZVWooV/e1V41x/sxCDTLuJ14Bfwh2GvNDMiKHFH8TqT8EutCj1krCd5crUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ACG3+wPg; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="G9XfWqV1"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ACG3+wPg"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1734719470;
+	s=mimecast20190719; t=1734719579;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=PN5EVM1NmukZNXj0qpicok/RL7e9UE7DI/QNZtLqqyY=;
-	b=G9XfWqV1vKWfWn2FsnDROvwyYNqHWTn/0ZSAGxBMkhrQZC8Gtdfp4sJycozuVve9OWK0A0
-	42eP+T5pPxBfq7lFOxkrudwlShoTF9uRcx+fHE7nFxD+uu7z1XImZduE7220IOproXhZGY
-	W+5XgYCrzHOIAX4pRPSrVZChKG/f328=
+	bh=swU3J22w1qiLCqCLjNaSEiN34P+WDwMezqQF+LZ7YmM=;
+	b=ACG3+wPgK0Hi+/BcpjkUQDZFq2kXzdkYqQb8pVL2kIUug2cMFJr2xQuwlsbp8CncLeHpXW
+	eM3J8sr6PfuGJQ8fbzS4PB7ixaJR5on+GCsnvn0gv9Ybt6rQSESpGwfE2DLP2n34w3/r+v
+	jvHbH/sATHjQV/+7ybOxP93MvCPEal8=
 Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
  [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-94-JbPnjli7N1GoHXhOWGQJnQ-1; Fri, 20 Dec 2024 13:31:07 -0500
-X-MC-Unique: JbPnjli7N1GoHXhOWGQJnQ-1
-X-Mimecast-MFC-AGG-ID: JbPnjli7N1GoHXhOWGQJnQ
-Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-385df115288so1153420f8f.2
-        for <nvdimm@lists.linux.dev>; Fri, 20 Dec 2024 10:31:07 -0800 (PST)
+ us-mta-434-WWDmdy4FPrSZQtrfQrhWNg-1; Fri, 20 Dec 2024 13:32:57 -0500
+X-MC-Unique: WWDmdy4FPrSZQtrfQrhWNg-1
+X-Mimecast-MFC-AGG-ID: WWDmdy4FPrSZQtrfQrhWNg
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-385dcae001fso1083355f8f.1
+        for <nvdimm@lists.linux.dev>; Fri, 20 Dec 2024 10:32:57 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1734719466; x=1735324266;
+        d=1e100.net; s=20230601; t=1734719576; x=1735324376;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=PN5EVM1NmukZNXj0qpicok/RL7e9UE7DI/QNZtLqqyY=;
-        b=mdGuRM+o1S+ZO5UVlr83QGMVg32uCwBMjNanK/UVsXL8OlAoy2g6Tz9zDiwmPYUDC0
-         H6vm+cZFsYGuqHF+G/7erPPjlJ5ETYSIEF7QemSSe90e50qBQc/JL0YM2K4uBHFCOt94
-         3fIL0wX0kW/Q5Uf/6NYdZ6fqc7xxiJ+36PKOra5Bgi8rL9S5jJzGUZB69K/60JHncuqH
-         8P8eD/5Hx83DLTLicd+OstA+FD5ulgdZEX47aTJSGizojwLVXfYRKezdtA3WZXVMZ/b1
-         lvdMFFUXzaqYzWgi5ERCCp1OhNUmNoACWKCMovIIB+QFwLA4T+Jt7P8ZVBuOdfk17bUE
-         ekCg==
-X-Forwarded-Encrypted: i=1; AJvYcCVKLSOr7PZUnRGy2hw2nrpHIoDNoSB78aAzfT+dVRcaTTTyFZWg/KRM3j6RBpFBtN6e4qiyllQ=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yzl9Hcy7YbuvWMcARa36OV18+gsCa/QegSJxRl4CzyY2DPoud7N
-	E6RbdNdg9q7353Cq6E4YNUI/qYk3gDf9IgMFqs3ML4I9+oSQFHUVNuv4X1JQO0utagRnTz3OeJO
-	7lXWTOMNUDZCP9rysWdLWc0fZ4u0utNL+M5rLn7m0HbnfzjiFa+6OqA==
-X-Gm-Gg: ASbGncsqv7+7k74HH7v2HUlTOSw4ZSYmUoK1f8pSjP1+QcDVdNPhJNces1j5uBp59PQ
-	PqPFaNQVbaZ1nlY52MnqmSV8twP0A8Uq1okL9CJRNS2kDTOxWBfQKVj5kquD7G+PfRJYYOpfB1X
-	D6M7PbQRUCI1tqBLnqKi2sWHFTnUU+HfUo4owicZpuNXE6dI6jguwQTYTNL8J3tcbtqo6fu9oWm
-	PmVc3Kqr6N8QVGDfCej0Mi9n9yAcJBgxjLM1ddLYod1u8twLMU+UnuEK0XOfWHD9rwcYmPk58dK
-	nf7D0w3TgFZ4kbyLmexW/I8Zf1+VttpDuolKjxsQa9+2ngD4EpXJFf3sGramtOkaO3Gloh3Z6Tw
-	FZDPIBgj5
-X-Received: by 2002:a5d:64c2:0:b0:386:366d:5d0b with SMTP id ffacd0b85a97d-38a22408e8amr3824135f8f.55.1734719466301;
-        Fri, 20 Dec 2024 10:31:06 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IElxiFyJ9qIUioQdUCoDL6NC0K4joEuaDrLW1M/n6klr2NWFr2HJs9ZJNS8OQoynugK8eIYkQ==
-X-Received: by 2002:a5d:64c2:0:b0:386:366d:5d0b with SMTP id ffacd0b85a97d-38a22408e8amr3824083f8f.55.1734719465905;
-        Fri, 20 Dec 2024 10:31:05 -0800 (PST)
+        bh=swU3J22w1qiLCqCLjNaSEiN34P+WDwMezqQF+LZ7YmM=;
+        b=mx6J/OmwIfHHWV7sdjOs6alP6PvVLZFiOY09aTfB4l69ugannO5XHU8WDc2zhVpcvh
+         /Qyz5yUjSzjHneIgh2t7e52Zhk5dhsFA884l4Hp3FSa79/1e1KYIRGIbpovLysleiMb2
+         pzZxsMsNdi+tTczNFtUGoTCPDgq78iiw3z5ihIT8wpoDVUJ8Mkzf+/K110iW8boDP+dh
+         0T/YavbJuMo6dBXyWRvhdjuM/jk0rYQTxwg54X11y6meMO2vPs8tAX5Dx3hix7tRdSux
+         P1OOYu4gHGxz7KuWfTRr3udg2ERp1gs8o2mGzhxxd3yn6V/j5cCzQmqWbQgI6PsfhCrg
+         tavw==
+X-Forwarded-Encrypted: i=1; AJvYcCV5xyJwOn6ZiGOAXvar5nDdUF0on+D2NnOonfsyTVCPCeu0ZhoGyPR4IXR3CGg/EadqTiWWYtg=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yz5seSx42yzOAy5H2mE9+oxME5IQ4lG/2c9Qw+kQW6f5nQ4EThs
+	m44dgN+QMjCg71mu6Qa9OOcWSvW7JVimbo0KtDh8J0Jp+GCIxSLpz8Y5N3Y22Dcfvdhzg6km8HO
+	jPpayqZakXp/0bgKRbkVh9Q0HnhpFs2GUaHRsBV8r00ZwdFb6rap5Ag==
+X-Gm-Gg: ASbGncsImwsx5vY7W/m5AIEQTXiKsHF2R+imA1hfv3UShnXwwYH5BHmPX/MAo/exzLg
+	knd06u/wUIcirXwcbZwp53gvGyZbkxP7AZp3ukbeW9JaJ4otI/j5a3kYX05Ku8Ldg+VhhS596Dk
+	ueXyeB9bySEUJK6STadu+xsx42kgSAXswKCwt7dBqK8PC3C2rbXZSNVjAX/J0PVz6DimgEbXfiN
+	cjGXh7RE9HixDdr3NBqnAD7P3/BzARirdNCn0w/bWbPMFXg0UqYgsHNuomVP1VCHXLADZyPt7EB
+	Plcms2pSCz1KsPBsirXcMUaAx6fOTIbrFNLqDkG9lo6fJ7MODI4g5G1A8WgzPnLCF5W+2xXw+im
+	o+4Z+soae
+X-Received: by 2002:a05:6000:1fad:b0:385:ec89:2f07 with SMTP id ffacd0b85a97d-38a222001b1mr2999403f8f.32.1734719575886;
+        Fri, 20 Dec 2024 10:32:55 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEk0Gj/f9sMdkNX68mPrqALSYePXcnIEwcuX62px3U4cp9do+t6yyCpZv960vKDvx0DNpRxKg==
+X-Received: by 2002:a05:6000:1fad:b0:385:ec89:2f07 with SMTP id ffacd0b85a97d-38a222001b1mr2999374f8f.32.1734719575483;
+        Fri, 20 Dec 2024 10:32:55 -0800 (PST)
 Received: from ?IPV6:2003:cb:c708:9d00:edd9:835b:4bfb:2ce3? (p200300cbc7089d00edd9835b4bfb2ce3.dip0.t-ipconnect.de. [2003:cb:c708:9d00:edd9:835b:4bfb:2ce3])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38a1c829348sm4641303f8f.22.2024.12.20.10.31.03
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38a1c89e278sm4706351f8f.75.2024.12.20.10.32.53
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 20 Dec 2024 10:31:05 -0800 (PST)
-Message-ID: <107dacce-87dc-457b-a2e1-e5a4699d66af@redhat.com>
-Date: Fri, 20 Dec 2024 19:31:03 +0100
+        Fri, 20 Dec 2024 10:32:54 -0800 (PST)
+Message-ID: <36334f20-2b9e-4529-89c4-120678bc5985@redhat.com>
+Date: Fri, 20 Dec 2024 19:32:52 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,7 +75,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 14/25] rmap: Add support for PUD sized mappings to rmap
+Subject: Re: [PATCH v4 19/25] proc/task_mmu: Ignore ZONE_DEVICE pages
 To: Alistair Popple <apopple@nvidia.com>
 Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, linux-mm@kvack.org,
  lina@asahilina.net, zhang.lyra@gmail.com, gerald.schaefer@linux.ibm.com,
@@ -91,9 +91,9 @@ Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, linux-mm@kvack.org,
  linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
  david@fromorbit.com
 References: <cover.18cbcff3638c6aacc051c44533ebc6c002bf2bd9.1734407924.git-series.apopple@nvidia.com>
- <7f739c9e9f0a25cafb76a482e31e632c8f72102e.1734407924.git-series.apopple@nvidia.com>
- <4b5768b7-96e0-4864-9dbe-88fd1f0e87b8@redhat.com>
- <volhyxjxlbsflldgs36ghzartel2tu625ubz3kfed2gdwrsamt@cpfsfhdpc4rp>
+ <f3ebda542373feb70ed3e5d83b276a2e8347609f.1734407924.git-series.apopple@nvidia.com>
+ <c7bd9b00-6920-4dc0-8e2e-36c16ef7ad5a@redhat.com>
+ <37rxl2bjda3psdknhboexhbg3hahf5ifmublp5fw7ltdoyqllc@udbz76jklmnu>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -140,48 +140,79 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <volhyxjxlbsflldgs36ghzartel2tu625ubz3kfed2gdwrsamt@cpfsfhdpc4rp>
+In-Reply-To: <37rxl2bjda3psdknhboexhbg3hahf5ifmublp5fw7ltdoyqllc@udbz76jklmnu>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: i1VJitUEfCgzijHyFt81WzoUg8P_yMz8j2V72OhUOF8_1734719466
+X-Mimecast-MFC-PROC-ID: qd72YJlQqBkC6JQncoJ2cfrVwkfTSgLcvUlWJL3OTYQ_1734719576
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
->>>    				return -EBUSY;
->>> diff --git a/mm/rmap.c b/mm/rmap.c
->>> index c6c4d4e..39d0439 100644
->>> --- a/mm/rmap.c
->>> +++ b/mm/rmap.c
->>> @@ -1203,6 +1203,11 @@ static __always_inline unsigned int __folio_add_rmap(struct folio *folio,
->>>    		}
->>>    		atomic_inc(&folio->_large_mapcount);
->>>    		break;
->>> +	case RMAP_LEVEL_PUD:
->>> +		/* We only support entire mappings of PUD sized folios in rmap */
->>> +		atomic_inc(&folio->_entire_mapcount);
->>> +		atomic_inc(&folio->_large_mapcount);
->>> +		break;
+On 19.12.24 00:11, Alistair Popple wrote:
+> On Tue, Dec 17, 2024 at 11:31:25PM +0100, David Hildenbrand wrote:
+>> On 17.12.24 06:13, Alistair Popple wrote:
+>>> The procfs mmu files such as smaps currently ignore device dax and fs
+>>> dax pages because these pages are considered special. To maintain
+>>> existing behaviour once these pages are treated as normal pages and
+>>> returned from vm_normal_page() add tests to explicitly skip them.
+>>>
+>>> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+>>> ---
+>>>    fs/proc/task_mmu.c | 18 ++++++++++++++----
+>>>    1 file changed, 14 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+>>> index 38a5a3e..c9b227a 100644
+>>> --- a/fs/proc/task_mmu.c
+>>> +++ b/fs/proc/task_mmu.c
+>>> @@ -801,6 +801,8 @@ static void smaps_pte_entry(pte_t *pte, unsigned long addr,
+>>>    	if (pte_present(ptent)) {
+>>>    		page = vm_normal_page(vma, addr, ptent);
+>>> +		if (page && (is_device_dax_page(page) || is_fsdax_page(page)))
 >>
->>
->> This way you don't account the pages at all as mapped, whereby PTE-mapping it
->> would? And IIRC, these PUD-sized pages can be either mapped using PTEs or
->> using a single PUD.
+>> This "is_device_dax_page(page) || is_fsdax_page(page)" is a common theme
+>> here, likely we should have a special helper?
 > 
-> Oh good point. I was thinking that because we don't account PUD mappings today
-> that it would be fine to ignore them. But of course this series means we start
-> accounting them if mapped with PTEs so agree we should be consistent.
+> Sounds good, will add is_dax_page() if there are enough callers left after any
+> review comments.
+
+:)
+
 >   
->> I suspect what you want is to
+>> But, don't we actually want to include them in the smaps output now? I think
+>> we want.
 > 
-> Yes, I think so. Thanks for the hint. I will be out over the Christmas break but
-> will do a respin to incorporate this before then.
+> I'm not an expert in what callers of vm_normal_page() think of as a "normal"
+> page. 
 
-I'll be on PTO starting ... well now. But I'll try to give the other 
-parts a quick peek if anything urgent jumps at me. (bad habit of reading 
-mails while on PTO ...)
+Yeah, it's tricky. It means "this is abnormal, don't look at the struct 
+page". We're moving away from that, such that these folios/pages will be 
+... mostly normal :)
 
-In any case, happy holidays to you!
+> So my philosphy here was to ensure anything calling vm_normal_page()
+> didn't accidentally start seeing DAX pages, either by checking existing filters
+> (lots of callers already call vma_is_special_huge() or some equivalent) or
+> explicitly filtering them out in the hope someone smarter than me could tell me
+> it was unneccssary.
+> 
+> That stategy seems to have worked, and so I agree we likely do want them in
+> smaps. I just didn't want to silently do it without this kind of discussion
+> first.
+
+Yes, absolutely.
+
+> 
+>> The rmap code will indicate these pages in /proc/meminfo, per-node info, in
+>> the memcg ... as "Mapped:" etc.
+>>
+>> So likely we just want to also indicate them here, or is there any downsides
+>> we know of?
+> 
+> I don't know of any, and I think it makes sense to also indicate them so will
+> drop this check in the respin.
+
+It will be easy to hide them later, at least we talked about it. Thanks 
+for doing all this!
 
 -- 
 Cheers,
