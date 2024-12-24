@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E47091B3926
-	for <nvdimm@lists.linux.dev>; Tue, 24 Dec 2024 16:25:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932E71494A6
+	for <nvdimm@lists.linux.dev>; Tue, 24 Dec 2024 16:25:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735057519; cv=none; b=RTrTiURSm9kmMZcao9UpOMqFPRKOsFgEIXYOi1ilK698Bu1z3UMoTlvaxZI1OFb8WgAxc2JntTs58wv0eeG2ScP14VeNPwBM6nMoyV6f8NIncD1VhrH+zPANKdLg/B05zZY7WE+fqZYORw2IcWm9kKnqdPcT64cWlcQqDB2mgvU=
+	t=1735057540; cv=none; b=BweODugcFkmCUdTIeIGPPkl39Vi/+Z1UQbi2ZZ8Am0bIsB5VOeXa3btGbuVV7TgU3wonU45ymCEOpfzSqNa6s/9didq/OfgYQaIBsvfVQEk7KJyq3FCDSwB+Rlmrkv57OjAMYFErUcwz250llVI2AfYGpM/USpR1bFD7V1G18R8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735057519; c=relaxed/simple;
-	bh=EER92mhgPxeEhMa/wz/BTFFXGboocmFty6bViE++Ir8=;
+	s=arc-20240116; t=1735057540; c=relaxed/simple;
+	bh=m5GRbh5lFzes3khbJ1WlrKqbj8nXi86NW1GKdESWHCY=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IZeJmhJwfB5LQ4YGMdqk4nET2lZl5yEBNKd2mU1y3KJNXjlkSg7eQqb8gER+DTmFPubteV7mHb3PaUefMWEUhEh049fgGhvyNqzfr2JQfVF9WaZfs8CdyCie6vH/TUqb6k3gr9iwq1off8hGeMJscU+0mw8lZxeMsRGkoO5RC6k=
+	 MIME-Version:Content-Type; b=pVoRpv66bsd5CGAFZ1jllF9luVFd7dPIQF+tNkjldvM8U3wftLtjEfR5Az9xT49czs+pN5hIRKrShUQgvtEZ1Y75vuPmfRnVKFF8smgMi1sMwzUY9AWU5k83zb8X3aE1QZV/LcVZKeHatizjYecyaclpOrDO2iV0OvQE/YmOwPs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4YHgB90fXKz6K9KJ;
-	Wed, 25 Dec 2024 00:21:21 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4YHgBb2yNYz6K5rR;
+	Wed, 25 Dec 2024 00:21:43 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 4F5D6140133;
-	Wed, 25 Dec 2024 00:25:14 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id B7502140391;
+	Wed, 25 Dec 2024 00:25:36 +0800 (CST)
 Received: from localhost (10.48.156.150) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Tue, 24 Dec
- 2024 17:25:12 +0100
-Date: Tue, 24 Dec 2024 16:25:10 +0000
+ 2024 17:25:35 +0100
+Date: Tue, 24 Dec 2024 16:25:32 +0000
 From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To: Zijun Hu <zijun_hu@icloud.com>
 CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij
@@ -41,14 +41,12 @@ CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij
 	<linux-media@vger.kernel.org>, <linux-pwm@vger.kernel.org>,
 	<linux-remoteproc@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
 	<linux-usb@vger.kernel.org>, <linux-serial@vger.kernel.org>,
-	<netdev@vger.kernel.org>, Zijun Hu <quic_zijuhu@quicinc.com>, "Alison
- Schofield" <alison.schofield@intel.com>
-Subject: Re: [PATCH v5 10/12] cxl/pmem: Replace match_nvdimm_bridge() with
- API device_match_type()
-Message-ID: <20241224162510.000009b5@huawei.com>
-In-Reply-To: <20241224-const_dfc_done-v5-10-6623037414d4@quicinc.com>
+	<netdev@vger.kernel.org>, Zijun Hu <quic_zijuhu@quicinc.com>
+Subject: Re: [PATCH v5 11/12] cxl/pmem: Remove is_cxl_nvdimm_bridge()
+Message-ID: <20241224162532.0000103f@huawei.com>
+In-Reply-To: <20241224-const_dfc_done-v5-11-6623037414d4@quicinc.com>
 References: <20241224-const_dfc_done-v5-0-6623037414d4@quicinc.com>
-	<20241224-const_dfc_done-v5-10-6623037414d4@quicinc.com>
+	<20241224-const_dfc_done-v5-11-6623037414d4@quicinc.com>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -61,18 +59,12 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml500012.china.huawei.com (7.191.174.4) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Tue, 24 Dec 2024 21:05:09 +0800
+On Tue, 24 Dec 2024 21:05:10 +0800
 Zijun Hu <zijun_hu@icloud.com> wrote:
 
 > From: Zijun Hu <quic_zijuhu@quicinc.com>
 > 
-> Static match_nvdimm_bridge(), as matching function of device_find_child()
-> matches a device with device type @cxl_nvdimm_bridge_type, and its task
-> can be simplified by the recently introduced API device_match_type().
+> Remove is_cxl_nvdimm_bridge() which has no caller now.
 > 
-> Replace match_nvdimm_bridge() usage with device_match_type().
-> 
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 > Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
-With new follow up, I'm fine with this.
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
