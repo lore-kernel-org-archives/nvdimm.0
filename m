@@ -1,300 +1,267 @@
-Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2080.outbound.protection.outlook.com [40.107.95.80])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EFA01F236E
-	for <nvdimm@lists.linux.dev>; Tue,  7 Jan 2025 03:45:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.95.80
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736221505; cv=fail; b=iM/Gme/PaJEySE585+h5V6cpiiAW8GqFFpoQHBqil5Ue7jfGHKr2TqVEpXklMA/944URVs/jJj8sPoEjiKMJLGWtdjqWmp6/7uoU3EChTLC4HvP7t8PQ+EVi0OJpMVAjJMCL5rnO8XNsH05PRclVPUqkM1CmyxpyTjosOdcz5BA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736221505; c=relaxed/simple;
-	bh=/Csrylkm2NidU986QPWqaDZpz+jU+FcWBDetRvEORiA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=DYFlQGj7FLF2tR+7DYMXKMBmJPC5hp6soexKG6WaBPmKPh1PWeD766G6OHlv7Lwym63RyUZoFGEjwcTEVfijP53Vl6uJIlfU8p4p4m3Uxawfg26zaKkELagJzFLuQK4QyyuuxtvSrsB4NzGwONKxeXweVCTtyJ159WyCrv70Dw8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=fail (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=fail (0-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=UhWqHm0w reason="key not found in DNS"; arc=fail smtp.client-ip=40.107.95.80
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 327AE1DFE0F
+	for <nvdimm@lists.linux.dev>; Tue,  7 Jan 2025 11:29:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1736249390; cv=none; b=fVRlWqf6k1A4Hl9cdRfUSe2SwXZBEF6AMgkvP+ulokkvwXqD0LpH84+5mGgS88IWnaykZwfl0Sfq+vkRU43Dbo/Ng1vV/E5b7PEmW496nF0wKOp2D25pEknO7ftkLYekOhU7IsrNWkoqkRbsYRjQCbkXYpWUHL0RZm5ythaxNrE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1736249390; c=relaxed/simple;
+	bh=UUKH+3f7te6b8Lcca0m/RZwQdYdbtuMENEk9IWOoe1Y=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HNYmSX6QTw6VPglwRjtuiDEz1YKW4uRagS2pcbTd/B9ucKZG0UpsbKboSj47dUVpgNU6CNvbZDxgnEvtae8Kax2TPsUSUanw7X/ziNxdRYvRfj9r6JRuqUfkoITW/uX6Vz69MpbVHUZdsWDAglUvjxHSDzLxnswOp0/R9kAeTB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=V+97O02f; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="UhWqHm0w"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=pAwdafQgHrkbs9Ka9ucH12AvxcmFUoNKvqKAPBiBFdF/jvUIzYy/IjT0Ou/j09j0ATKaGCRgZba6GWhFGF1Du5aUH99EoClHOTZ5oERIIwk+GeOCj0OV7TjcjW2iiOEu64LtI+Zir6I3VKDUz1ZOSCHhNRZXH4Vdz6C6bEzP6DiQw8EHq88k51w5qjhricxbEk+v7PpwlDn3LVkC0UJ1vj7FY9QMZZ6hKZkHKgtufr2LHzEfLYbvOLCg2XiyfvKFWL4x0CEEq5bFvDRfi2xXbPLtmcL8vIlHP6x/HPdXmS+ToaWIs6zIZULxWda7+EDG5OdSlAb14X3UBmZ2lovNCA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ANnS9ugPhWXEhOP/c+FzNHxXqu35Gn0O+fqlriZg1uw=;
- b=K0gJyfR60c/VtjEZcFQh4hLUk0rt1WzvK9wm2wXlIqeMfALQXR2pZLYR59ZKBIjGyxbBcBXO6tx1sqxWXguHHCBFqsljzCxx9GXm+A7VVXq6X+XZFzfg/qk6gkFj9d5cFhq39gUq6ou7DjmmGQi6vNEas2DHm389vh3C8/EEeF66oD5EP/i1knLoHrXZR4JCA8wYTifM5YRzfHhEDjx0dGYoZT6HxD2oxbA2/FSQn7/J2CHHQ0cxROUeO1ndIICrWmTLhuzO4aJ77CgEzBgwxCCw2xqv6mF2QTrVfhqRHxifYwTDajhkt1WbTteOT1QI2Zcjv+fVTQTpil8KRklaag==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ANnS9ugPhWXEhOP/c+FzNHxXqu35Gn0O+fqlriZg1uw=;
- b=UhWqHm0wjUU9aCOVk7/E6R+DMTc6E6MCDADiyqSO1ERebhhsO4GyZE95zhc1Yq6t2hwS74YnSstlwWyu3nqbIG4cAg9/1adbcyFWzvrU/gUTjp3qwpsypkSz6nI4LUC9v6kt0mcLWp7AtUUoPezGYaujwP0g8+nKLK7MU5s/iNEJrzEmtN6RIQs8sZGYIYCKqZAEZ+mMCdRPoyb5+naerAkCo+ZI5U2iZfl8nG7CjQ7cCJq8KcLN8DLwq9OgOC/CduiCMHCWyB6b1cooMmudq0T0wqObfHzx54uZrJDoJIUtgdt2kVJWh5wJd+CLM4f0LEKfrmOsDHq6k2/YyrJF4g==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- IA1PR12MB6113.namprd12.prod.outlook.com (2603:10b6:208:3eb::8) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8314.17; Tue, 7 Jan 2025 03:44:51 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe%6]) with mapi id 15.20.8314.015; Tue, 7 Jan 2025
- 03:44:51 +0000
-From: Alistair Popple <apopple@nvidia.com>
-To: akpm@linux-foundation.org,
-	dan.j.williams@intel.com,
-	linux-mm@kvack.org
-Cc: Alistair Popple <apopple@nvidia.com>,
-	lina@asahilina.net,
-	zhang.lyra@gmail.com,
-	gerald.schaefer@linux.ibm.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	logang@deltatee.com,
-	bhelgaas@google.com,
-	jack@suse.cz,
-	jgg@ziepe.ca,
-	catalin.marinas@arm.com,
-	will@kernel.org,
-	mpe@ellerman.id.au,
-	npiggin@gmail.com,
-	dave.hansen@linux.intel.com,
-	ira.weiny@intel.com,
-	willy@infradead.org,
-	djwong@kernel.org,
-	tytso@mit.edu,
-	linmiaohe@huawei.com,
-	david@redhat.com,
-	peterx@redhat.com,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linuxppc-dev@lists.ozlabs.org,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-xfs@vger.kernel.org,
-	jhubbard@nvidia.com,
-	hch@lst.de,
-	david@fromorbit.com,
-	=?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@rivosinc.com>
-Subject: [PATCH v5 25/25] Revert "riscv: mm: Add support for ZONE_DEVICE"
-Date: Tue,  7 Jan 2025 14:42:41 +1100
-Message-ID: <dd557b20d49a08f6172e6cff76753850300fda57.1736221254.git-series.apopple@nvidia.com>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <cover.425da7c4e76c2749d0ad1734f972b06114e02d52.1736221254.git-series.apopple@nvidia.com>
-References: <cover.425da7c4e76c2749d0ad1734f972b06114e02d52.1736221254.git-series.apopple@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SY2PR01CA0019.ausprd01.prod.outlook.com
- (2603:10c6:1:14::31) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="V+97O02f"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1736249387;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=dT6jaGzM8ONtg5YiCq4PRzv+lHLx9HZ9naYINeLLcq4=;
+	b=V+97O02f/ro3VsYbdzexcbfvGLVoLbED2x8729EvBpw88MtR6gQ3MCgY8vCZYsaAeGooYi
+	dGPubdzO3Z0Cm4G/FCdldWFmP29QqnZz2kIh8p5l4YHJDWg/3I6fWqFNQHbXoKW9OF4py3
+	wMfhMkC+UjHb/z9jZQMWOOQIuf2mE7o=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-465-L3X6-4VHOZa3oyzUEWe3_w-1; Tue, 07 Jan 2025 06:29:46 -0500
+X-MC-Unique: L3X6-4VHOZa3oyzUEWe3_w-1
+X-Mimecast-MFC-AGG-ID: L3X6-4VHOZa3oyzUEWe3_w
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-43626224274so46778845e9.0
+        for <nvdimm@lists.linux.dev>; Tue, 07 Jan 2025 03:29:45 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1736249385; x=1736854185;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=dT6jaGzM8ONtg5YiCq4PRzv+lHLx9HZ9naYINeLLcq4=;
+        b=O3WnlIEMVadlVIcWyctuWKeZGi42m+Nkd2WYW97jvk+JwzxctjEjLp4q8BlW8WsT26
+         wh+0Hl8IGYSLfcWJt4R2gXLR/UlufoIpm1+5rlltNvco8C0G6HNxpg9i2quDrRE6Fbgd
+         ryoQcGcf923KXRDqcMeZk7gH7zomqL+USFhrPzBNfomOdMk9gtzQPOawxKhoGfSBgD0c
+         +3SShO3hGuQL1Hd847WLD87H2L93LpCIU1CH4ynK23acZ423PDgfa3uf+o6+wqTjaRPe
+         6FH5TXVAxgD8EzNI0mscbA0z2qLoGGXZQz+p1jDoP/bbAebSOtZd9wDNPdrvHkuIikpC
+         N+pQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXkMhshMxAyZwAdMrKSYBQg8qha3rPfbiqoJFb7juKuBDkg77tWwc04oFuEw+weKg98ZsYaliw=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yykc5kL/nvYCt6GvWtbt2m9BVYgQfS/u1Ehpa04tbHUz/MY3L1P
+	NZPOIhSyU0BhQ2hyni4stXwLO8ONYvnLvSmK3e1Om4ITAgHbztlOMd1bSrSxDLINYvoVTr2Tsyp
+	UZ76q3WukGio7Z7u57IYNQxurMA4KFsF7vho555INk7T4EiV55SFMd2nk9vy0VQ==
+X-Gm-Gg: ASbGnctrT33c/xlkmX3lFmYyumKno24aAuylrNK+lM0lwdqQ5CC8TrPC5DZTF1MoCPm
+	e5/Lr6BVWNG645RlhHM3SOogVdJ2RcADG9dvbupSJsZBitLy3iXyEvNUaGwuv4oTt/RbDv9pNz8
+	skRnnZWO2zORZia5Biurz+hlOqqpZdA5nH+883IZK7jW5JwPKeCHdLGGD0vuyubhGDUh8I5E5TO
+	/ETLF4xs4uFnygt75gTmawWPA+I3M8D0shxhHNbikreVOzLUW0FeBbg9sgOZ+1qrzQxW2cy/2Bs
+	5KIxm8PkLM8sURRJX6043AmsAekvHXRl3ajjO1Aln0w/ZpGSYxdMr2ckQqUFeFZR4Hw4PtAyTz2
+	gJo4HyjGD
+X-Received: by 2002:a05:600c:45d2:b0:434:f7f0:1880 with SMTP id 5b1f17b1804b1-436cf562615mr96542565e9.32.1736249383782;
+        Tue, 07 Jan 2025 03:29:43 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHJ3qnj0FFqFijLuXZ4Dwc22AX0w86kSYGeu3WGMLaEQBJgLzuIVM01ibBPmcl6KS6iZpaLSA==
+X-Received: by 2002:a05:600c:45d2:b0:434:f7f0:1880 with SMTP id 5b1f17b1804b1-436cf562615mr96542315e9.32.1736249383367;
+        Tue, 07 Jan 2025 03:29:43 -0800 (PST)
+Received: from ?IPV6:2003:cb:c719:1700:56dc:6a88:b509:d3f3? (p200300cbc719170056dc6a88b509d3f3.dip0.t-ipconnect.de. [2003:cb:c719:1700:56dc:6a88:b509:d3f3])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43656b3b214sm635741635e9.28.2025.01.07.03.29.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 07 Jan 2025 03:29:42 -0800 (PST)
+Message-ID: <35b64e41-b9b1-4fdb-af4f-1296602592ff@redhat.com>
+Date: Tue, 7 Jan 2025 12:29:40 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|IA1PR12MB6113:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4111b1ca-e898-4028-28bd-08dd2ecda415
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|7416014|376014|1800799024;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?Vm5kZDNSK0c0bmxhbWFsTGl4Nm1GYWdlT0lLMWR3MkxmcVBkZ3ZpOXN6djVh?=
- =?utf-8?B?NEIyb1NicEZvUkhadXNnNnpJaTFYWW84dWkrcjVLanhKbmpQUm9IbE1nSHBz?=
- =?utf-8?B?QnZ2Z1ptVkM2NGRnN0plZmMxcS9GZkRLUVpmZEp3UDJJVXgwb3Q2emxDUC80?=
- =?utf-8?B?WlE5Y0kreFhQSER1T3JWZCtTT2REMVVxdm5EZjFvSjlSMU1waXdtanJxY215?=
- =?utf-8?B?cTdCVUJ6Yk55dXB3NGkwSVQ3OWlrMUJDNmZVZXBDblArbi9FMHBTTEdReEg1?=
- =?utf-8?B?d1lsMFlIeXUyZW1GYTE0b3FWVVM4WG1ySDg3dmN5YXFVc1ZxQzlWRnNqR1JV?=
- =?utf-8?B?VXo2cWkzOE92Ny82WUNjbFI5OGNzcEhUb1hlaldaUm93TFppdHdOMDU0ZWV3?=
- =?utf-8?B?Tm1yN0Mvc3NJeHZOTkdWYWc3Vm9tUkFRemxoTzYwRno4dTZPU0kzMXYzR1g4?=
- =?utf-8?B?Tk83c3Y3cnh1TVlNaERWaUhhV1kyQTExSmp6RWE2UHRHcWF3V3hCZlhVbzl4?=
- =?utf-8?B?NG54UE1vVVVHVHAxdGlvNDY1L3c2UGtvZ2g2T0ZWZmMxTHZMRk1PTlZOTjl6?=
- =?utf-8?B?bEphMjlYMk5kVlNhM2g2a0kzeUxzMEZjR3k4S1FYbzFGR0VjbWl3aFByZVpQ?=
- =?utf-8?B?RFM2VkR0UXp5bEx2Z0dwbEd2dXN1TzFRZmhVdDllRzVuSXQzYzkxMFdEbXN3?=
- =?utf-8?B?Mm9ZYys5STNHOGdpSkcyZzVSOTZTc3RuaUF5TmhvaVhOd0l4WEtScXhIY3NS?=
- =?utf-8?B?NUhOS2htR292UjZXd294OFN1QnBGSHNPVGVhMjMzZUZWTjZRUE1jWFBIUU1v?=
- =?utf-8?B?Q2lYSFBJWVJOakZvWGl3cFNNZzVMTnVVUGxmekxGMWpQU2tsNmtta0VaV1d5?=
- =?utf-8?B?c0ZkRFZmVitXc2drV1lEbVpja3AwdHZaRk1hSUNCdTdBYTNOTnRYbVRXZ0U5?=
- =?utf-8?B?YmN0Vnk3MFUyUk5hTzUrbi9ZU0lwV1F4b1BwcHBDQzJZWHFZSUhDWm5IbFJZ?=
- =?utf-8?B?b0hidlFhbG9CYjk1dy9aSlR0YmRTUitxMnh5dTdKR0w4aGI3K1R6VTlYRjds?=
- =?utf-8?B?R3BlZ3JVSy9XS1AwVjlOakk3emMybXp3a0hVOFJOa0lZR1pKcWlBVkhxS1g0?=
- =?utf-8?B?UVFpNnVMMEtQeG4ya2lLZHo3YlB5dWpYT1FnNzZ5cFN5TXcwS0xhVTNUb1RY?=
- =?utf-8?B?V1U1dVhLM2FOb3ZDY2NmaHcrV0FBR3drTUtyR2dIOVVWNjUvblNQM2czNU4v?=
- =?utf-8?B?cmNJZFZkTUxURTg4VGZJSHYyVFI3Y1hqTStKaUVPSUF4ZjdTTGlocXZ2dTVL?=
- =?utf-8?B?djBBKzl0VXQ4YlJqMlBaM2FOcGUzV0VkZ0diNkhQTkE5MlhSM2J4SDkzd0xh?=
- =?utf-8?B?SExaSDRlQnV4YmRXZlkwM2Q3R0lQTEh3T2FQZU1JYWdhR3FxTktFOGU4U2s2?=
- =?utf-8?B?em9PY0ZZT3FJS3p6Zm1WY3EyUmtjNHBKZVRxeHU2MFVyYlc0cFRkMUFLMHg5?=
- =?utf-8?B?TGxGRHNycWljQXNoYU4xeHhJMUwxK1E5QVlxWmNVRTlZMTFXTXRadFprYXkw?=
- =?utf-8?B?Rm15QjJwakxrWDNObVh2L0VrbmxKWUtMVHRQR3dZdkpuc1hMaTVxdFBzUG5R?=
- =?utf-8?B?Tk9VKzFDRkVMQU5NWUZlNnFMWHBxd3NkWDVKMWpybEpCOU1MTXBSWXc1Njda?=
- =?utf-8?B?TC9yNnpqQlFlL09EdG1BVERVSTd4RzIydkY3RDh1MTBrMGZRaW1SYjhhcE9t?=
- =?utf-8?B?RXpFcUdtMUJtaGYzSG1oOFhMWGo0eG40NjZ0YVBnOEF4V2hMTFhDL1V1RmZ5?=
- =?utf-8?B?akhKYk9XL1loRWZsaDB5M3VldktrWkQ2WVJWRmpMc1pkTEw5cGZUTHNzMllZ?=
- =?utf-8?Q?SOGQWY7SSOv1x?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(376014)(1800799024);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?Mk8reVQ1dlJBSXVQZXdhZEZOWlQ1bkZyNHR0c2pmbmdrc0NmdkVUU3E3YXhF?=
- =?utf-8?B?WEJieEVOWVg4WkpjeHlzemJzN1NYWEhzdFVpQ3FoOUdaamNGK1dXR1V1UUY3?=
- =?utf-8?B?cDZaSHhDQmRrQzE1S0lvOFVoK1JKK0RXZTlLWXRVdlBoUlBCTkhUVEFDdGNw?=
- =?utf-8?B?Yk44WG5TYjZ6bEk0K3hxcGdrMlljdFBnUVo0VDNmT1N3UW5ON1I2UTRyMURI?=
- =?utf-8?B?THE0cFVBd1loOEFlUVZnOUtTRWVUSCtrQVVHdkRWQ2RzOVlaUTd2R3pzV0lv?=
- =?utf-8?B?bmpSOXpoQXlVUFgzVWpzbDRSdVczNWVRNHQxbm43aThpY29uQkxlVnVMejly?=
- =?utf-8?B?TjVSVW1ZMWFybEhrK2VuVjBTaXFQam9WQjk0UVpHZDk4WEpuQ25TZEdEbzRO?=
- =?utf-8?B?azMzNnNScVhqd3ExZ2xvTFJVRmZYQ1VBOHRENy91RDJSUFR2QjhmbS9ocVJ2?=
- =?utf-8?B?ZGlRYkV2MDFxRnNZcy9uNEhPekNnZmpyZGlQNk9BS09GZWNDTEpiT3VoSUt3?=
- =?utf-8?B?RWFmQ29sMWFuaU1GMmEzT21GbjBxQXJTdHk5QzlocXZYZ3RVejY5L05Zditv?=
- =?utf-8?B?ZDdzRVIvUmhmc3RoSkMxZUpEcEVkc1RxUGdQNGpEdjJKYUlnQ2tBK1Jkdlc0?=
- =?utf-8?B?dXM4WjVxVUFHMVF0bW5KRFgzWnV2UFY2UHZUTTEwS2MzUWk2U2pKSEJnWTVM?=
- =?utf-8?B?N1g4Z0h5Z2N1MG80S3IwUjBMZ3RVLzBVMzU2SDRDUG5ncmxPTko2NGdaSWQz?=
- =?utf-8?B?WU5QUlJ0ejVaKzFwaUo0YUMyeXk2aE52Y3ZXRnR2TXdZNTJucnJxRURJSHlr?=
- =?utf-8?B?elEwb2FvR0g0ak0wWnprdFc5TzVDTHYvaVNqbXNsQTJOcXVKSnBnMTNxK0VK?=
- =?utf-8?B?Z2Z3eGczZ1o5bm9JQkJpUGczS0c1ZEg2alRjZnd3UEsrNmE1a2Q0RExmUjRM?=
- =?utf-8?B?YjBnRlNnSmdMNWFVcnlsOThRT3JsOVR2czJlLzRMSXA2WWZ3VUNFVGZNWGZQ?=
- =?utf-8?B?N05RN3BDSXNPV1dQbW82bzdaVFZUN3plSkFsVkZielNtN3o4c1JOM08yYTk2?=
- =?utf-8?B?SmxDQnFhUkY5SUs5MVp2Nys1RjR0eWRxaDRGaitQeCtrOWVNWVFmWnk0Tk01?=
- =?utf-8?B?SEhwWXJMVUt2WFhpMkJXUTR2TVNZMTlkbG5JekJrNFQ4KzdzZ2JvVU14ZlB6?=
- =?utf-8?B?WTdBUUVzamU4NEk1NDE5VUlDWFVMTThhL25xcG0rL2pjK01KVVJadFJqaTNj?=
- =?utf-8?B?M0ZQSXMzRHBiL3ZXLzc0R0FMenhWMDVtUk0vbmVaUXFvN3pvd1hPL2ZsVGR6?=
- =?utf-8?B?UFNGMkloa1JzaitPejVxY0RBb0ZWMnVNUkZxeXpYc3JyK1I0Tld0SnlObFh1?=
- =?utf-8?B?aFBVQk9hLzIzeDBaTW0yYXBPNEs3K3lvblRERnVaZjdJVkwyWldJSGZaL21a?=
- =?utf-8?B?c203VzJ0WGppSzdpWU1VWW1VOEh4TGlFYXdQZ3JVSWNyMW80U1VJdkZkSFRD?=
- =?utf-8?B?Y0pld2RDZlZxNU5ydTJ6dkVaN28vblVBK0VNQ0NHWjVwNXpSRVg4SzlKU3du?=
- =?utf-8?B?TzRGc0VxQzAxUlR0SE9QWU9sS01kVDkwKzNCOVB4cERodld2bVd4cnU4cWlm?=
- =?utf-8?B?d1pVMk5hU3JjcTlsQWdEd0dLcDZFSW04MVJnREthdlR3SWlOMXgvVjJ3Qy9L?=
- =?utf-8?B?Nk8wdTdLeWNlMUFDclJxNnpoWmdJZlp5SFdyU0RIemtmSHBSOFlJVm9taHpT?=
- =?utf-8?B?enFKZU1ROFRXeXJaNVZ3bzJ4Z0I4LzVSNFRHWU4rSXdEOXhXQTRGRTU4c2ZN?=
- =?utf-8?B?T1NnbTY2NUJMZ05RWkRTS0R6VURTTnNYSEJjS3Y2T29ISWpieXRDN2h6NVAx?=
- =?utf-8?B?VytJMUVaZmFiRnFnV2Myb1BGb2gwRkI5VnZIMFpSY3FqUEF2WVBFV0lHRVJJ?=
- =?utf-8?B?bmJ0d2tuZ1NQZEI2TUx3YTIxZTdERWgya294SUVXNUJ2K3lqK2p0LzFYMmlw?=
- =?utf-8?B?SGx1RVU2WUhHa1BTbzQzOFJ3Smt4bzFnU1JyQTcyeFpCM2dqamJiZGJmNHZ6?=
- =?utf-8?B?SFdmMDQvWFp2bGZNbkVuSWd5VHVOS0krMmJvU29PUnpMa2Fuc29uTkJDajZ5?=
- =?utf-8?Q?/C0tb5hzcjLU6lM0UwNhpOeQ0?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4111b1ca-e898-4028-28bd-08dd2ecda415
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Jan 2025 03:44:51.6183
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: CelZs1rLctkjAsUwPwRaEWu35EVMZNXWVsVNEWvpiGkQLMu5aADYigYXbW0uqBYZ67pRIFf82ypOVrIzEVZjOQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6113
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 12/25] mm/memory: Enhance insert_page_into_pte_locked()
+ to create writable mappings
+To: Alistair Popple <apopple@nvidia.com>
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, linux-mm@kvack.org,
+ lina@asahilina.net, zhang.lyra@gmail.com, gerald.schaefer@linux.ibm.com,
+ vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
+ bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com,
+ will@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
+ dave.hansen@linux.intel.com, ira.weiny@intel.com, willy@infradead.org,
+ djwong@kernel.org, tytso@mit.edu, linmiaohe@huawei.com, peterx@redhat.com,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
+ linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
+ david@fromorbit.com
+References: <cover.18cbcff3638c6aacc051c44533ebc6c002bf2bd9.1734407924.git-series.apopple@nvidia.com>
+ <25a23433cb70f0fe6af92042eb71e962fcbf092b.1734407924.git-series.apopple@nvidia.com>
+ <d4d32e17-d8e2-4447-bd33-af41e89a528f@redhat.com>
+ <6254ce2c-4a47-4501-b518-dedaddcbf91a@redhat.com>
+ <gjuqvidcpvzwqrwogeoygwnsbvlpa4fvsvaoq6rlfzcq4wxmh5@tdhz3f2fm4ga>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <gjuqvidcpvzwqrwogeoygwnsbvlpa4fvsvaoq6rlfzcq4wxmh5@tdhz3f2fm4ga>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: 7ZEhSe8Lcy3kMQXHSnWJTnCtm5yGShoHGTv_ZJWTwQk_1736249385
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-DEVMAP PTEs are no longer required to support ZONE_DEVICE so remove
-them.
+On 06.01.25 03:07, Alistair Popple wrote:
+> On Fri, Dec 20, 2024 at 08:06:48PM +0100, David Hildenbrand wrote:
+>> On 20.12.24 20:01, David Hildenbrand wrote:
+>>> On 17.12.24 06:12, Alistair Popple wrote:
+>>>> In preparation for using insert_page() for DAX, enhance
+>>>> insert_page_into_pte_locked() to handle establishing writable
+>>>> mappings.  Recall that DAX returns VM_FAULT_NOPAGE after installing a
+>>>> PTE which bypasses the typical set_pte_range() in finish_fault.
+>>>>
+>>>> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+>>>> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+>>>>
+>>>> ---
+>>>>
+>>>> Changes since v2:
+>>>>
+>>>>     - New patch split out from "mm/memory: Add dax_insert_pfn"
+>>>> ---
+>>>>     mm/memory.c | 45 +++++++++++++++++++++++++++++++++++++--------
+>>>>     1 file changed, 37 insertions(+), 8 deletions(-)
+>>>>
+>>>> diff --git a/mm/memory.c b/mm/memory.c
+>>>> index 06bb29e..cd82952 100644
+>>>> --- a/mm/memory.c
+>>>> +++ b/mm/memory.c
+>>>> @@ -2126,19 +2126,47 @@ static int validate_page_before_insert(struct vm_area_struct *vma,
+>>>>     }
+>>>>     static int insert_page_into_pte_locked(struct vm_area_struct *vma, pte_t *pte,
+>>>> -			unsigned long addr, struct page *page, pgprot_t prot)
+>>>> +				unsigned long addr, struct page *page,
+>>>> +				pgprot_t prot, bool mkwrite)
+>>>>     {
+>>>>     	struct folio *folio = page_folio(page);
+>>>> +	pte_t entry = ptep_get(pte);
+>>>>     	pte_t pteval;
+>>>> -	if (!pte_none(ptep_get(pte)))
+>>>> -		return -EBUSY;
+>>>> +	if (!pte_none(entry)) {
+>>>> +		if (!mkwrite)
+>>>> +			return -EBUSY;
+>>>> +
+>>>> +		/*
+>>>> +		 * For read faults on private mappings the PFN passed in may not
+>>>> +		 * match the PFN we have mapped if the mapped PFN is a writeable
+>>>> +		 * COW page.  In the mkwrite case we are creating a writable PTE
+>>>> +		 * for a shared mapping and we expect the PFNs to match. If they
+>>>> +		 * don't match, we are likely racing with block allocation and
+>>>> +		 * mapping invalidation so just skip the update.
+>>>> +		 */
+>>>
+>>> Would it make sense to instead have here
+>>>
+>>> /* See insert_pfn(). */
+>>>
+>>> But ...
+>>>
+>>>> +		if (pte_pfn(entry) != page_to_pfn(page)) {
+>>>> +			WARN_ON_ONCE(!is_zero_pfn(pte_pfn(entry)));
+>>>> +			return -EFAULT;
+>>>> +		}
+>>>> +		entry = maybe_mkwrite(entry, vma);
+>>>> +		entry = pte_mkyoung(entry);
+>>>> +		if (ptep_set_access_flags(vma, addr, pte, entry, 1))
+>>>> +			update_mmu_cache(vma, addr, pte);
+>>>
+>>> ... I am not sure if we want the above at all. Someone inserted a page,
+>>> which is refcounted + mapcounted already.
+>>>
+>>> Now you ignore that and do like the second insertion "worked" ?
+>>>
+>>> No, that feels wrong, I suspect you will run into refcount+mapcount issues.
+>>>
+>>> If there is already something, inserting must fail IMHO. If you want to
+>>> change something to upgrade write permissions, then a different
+>>> interface should be used.
+>>
+>> Ah, now I realize that the early exit saves you because we won't adjust the
+>> refcount +mapcount.
+> 
+> Right.
+>   
+>> I still wonder if that really belongs in here, I would prefer to not play
+>> such tricks to upgrade write permissions if possible.
+> 
+> As you have pointed out this was all inspired (ie. mostly copied)
+> from the existing insert_pfn() implementation which is used from
+> vmf_insert_mixed{_mkwrite}().
+> 
+> I agree a different interface to upgrade permissions would be nice. However
+> it's tricky because in general callers of these functions (eg. FS DAX) aren't
+> aware if the page is already mapped by a PTE/PMD. They only know a fault has
+> occured and the faulting permissions.
+> 
+> This wouldn't be impossible to fix - the mm does provide vm_ops->page_mkwrite()
+> for permission upgrades. The difficulty is that most filesystems that support
+> FS DAX (ie. ext4, XFS) don't treat a vm_ops->page_mkwrite() call any differently
+> from a vm_ops->fault() call due to write fault. Therefore the FS DAX code is
+> unaware of whether or not this is a permission upgrade or initial writeable
+> mapping of the page in the VMA.
+> 
+> A further issue in there is currently no vm_ops->huge_mkwrite() callback.
+> 
+> Obviously this could all be plumbed through the MM/FS layers, but that would
+> require a separate patch series. Given the current implementation has no issues
+> beyond the cosmetic I'd rather not delay this series any longer, especially as
+> the cosmetic defect is largely pre-existing (vmf_insert_mixed{_mkwrite}() could
+> have equally had a separate upgrade interface).
 
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Suggested-by: Chunyan Zhang <zhang.lyra@gmail.com>
-Reviewed-by: Björn Töpel <bjorn@rivosinc.com>
----
- arch/riscv/Kconfig                    |  1 -
- arch/riscv/include/asm/pgtable-64.h   | 20 --------------------
- arch/riscv/include/asm/pgtable-bits.h |  1 -
- arch/riscv/include/asm/pgtable.h      | 17 -----------------
- 4 files changed, 39 deletions(-)
+Fine with me, just stumbled over it an thought "that looks odd".
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index 7d57186..c285250 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -43,7 +43,6 @@ config RISCV
- 	select ARCH_HAS_PMEM_API
- 	select ARCH_HAS_PREEMPT_LAZY
- 	select ARCH_HAS_PREPARE_SYNC_CORE_CMD
--	select ARCH_HAS_PTE_DEVMAP if 64BIT && MMU
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_SET_DIRECT_MAP if MMU
- 	select ARCH_HAS_SET_MEMORY if MMU
-diff --git a/arch/riscv/include/asm/pgtable-64.h b/arch/riscv/include/asm/pgtable-64.h
-index 0897dd9..8c36a88 100644
---- a/arch/riscv/include/asm/pgtable-64.h
-+++ b/arch/riscv/include/asm/pgtable-64.h
-@@ -398,24 +398,4 @@ static inline struct page *pgd_page(pgd_t pgd)
- #define p4d_offset p4d_offset
- p4d_t *p4d_offset(pgd_t *pgd, unsigned long address);
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static inline int pte_devmap(pte_t pte);
--static inline pte_t pmd_pte(pmd_t pmd);
--
--static inline int pmd_devmap(pmd_t pmd)
--{
--	return pte_devmap(pmd_pte(pmd));
--}
--
--static inline int pud_devmap(pud_t pud)
--{
--	return 0;
--}
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
--#endif
--
- #endif /* _ASM_RISCV_PGTABLE_64_H */
-diff --git a/arch/riscv/include/asm/pgtable-bits.h b/arch/riscv/include/asm/pgtable-bits.h
-index a8f5205..179bd4a 100644
---- a/arch/riscv/include/asm/pgtable-bits.h
-+++ b/arch/riscv/include/asm/pgtable-bits.h
-@@ -19,7 +19,6 @@
- #define _PAGE_SOFT      (3 << 8)    /* Reserved for software */
- 
- #define _PAGE_SPECIAL   (1 << 8)    /* RSW: 0x1 */
--#define _PAGE_DEVMAP    (1 << 9)    /* RSW, devmap */
- #define _PAGE_TABLE     _PAGE_PRESENT
- 
- /*
-diff --git a/arch/riscv/include/asm/pgtable.h b/arch/riscv/include/asm/pgtable.h
-index d4e99ee..9fa9d13 100644
---- a/arch/riscv/include/asm/pgtable.h
-+++ b/arch/riscv/include/asm/pgtable.h
-@@ -399,13 +399,6 @@ static inline int pte_special(pte_t pte)
- 	return pte_val(pte) & _PAGE_SPECIAL;
- }
- 
--#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
--static inline int pte_devmap(pte_t pte)
--{
--	return pte_val(pte) & _PAGE_DEVMAP;
--}
--#endif
--
- /* static inline pte_t pte_rdprotect(pte_t pte) */
- 
- static inline pte_t pte_wrprotect(pte_t pte)
-@@ -447,11 +440,6 @@ static inline pte_t pte_mkspecial(pte_t pte)
- 	return __pte(pte_val(pte) | _PAGE_SPECIAL);
- }
- 
--static inline pte_t pte_mkdevmap(pte_t pte)
--{
--	return __pte(pte_val(pte) | _PAGE_DEVMAP);
--}
--
- static inline pte_t pte_mkhuge(pte_t pte)
- {
- 	return pte;
-@@ -763,11 +751,6 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
- 	return pte_pmd(pte_mkdirty(pmd_pte(pmd)));
- }
- 
--static inline pmd_t pmd_mkdevmap(pmd_t pmd)
--{
--	return pte_pmd(pte_mkdevmap(pmd_pte(pmd)));
--}
--
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 				pmd_t *pmdp, pmd_t pmd)
- {
 -- 
-git-series 0.9.1
+Cheers,
+
+David / dhildenb
+
