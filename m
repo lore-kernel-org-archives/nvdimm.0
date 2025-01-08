@@ -1,495 +1,298 @@
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2085.outbound.protection.outlook.com [40.107.236.85])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59D3118A6A9
-	for <nvdimm@lists.linux.dev>; Wed,  8 Jan 2025 21:58:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.85
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B6919EEBF
+	for <nvdimm@lists.linux.dev>; Wed,  8 Jan 2025 22:30:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736373487; cv=fail; b=Jb0a0lO2FKAHZYM/YAps5LIouaZT1KcHJY3hXSuoRXRjdYaqKlNJfuYTRrLVquux9XQsYyDsLnd6X6ld0g1YdT9mygcS829uf7TTUypDmDWKkfnW2GB+AqxrsvLyUWgQEjjSbf9P5saD2LwCKbe8mPkk4706aYeSutWkpMGLLXM=
+	t=1736375445; cv=fail; b=q2xrhuqkUxZfmwZXFC40pcNoCOoR5ldmXnKMYsa3bZZzs0BydXDSty3XTArL4e9RugH5kYsI0QpiaWxKmNAMh/AdQOQMxNSJ6e4oaYAT1F0A/RBSwlX9yyISEnT/6tsQS2M14LoodvJEfmQ5Shg93dOpMOM+46GoH9aXKmM8h0w=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736373487; c=relaxed/simple;
-	bh=zOYTIe3SV57AGvXSCRX7fAoiElZ6NX0klFm2ZNThQHE=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HrikslWPituCxKVrE0V3ppCBBGnKIwdAer5hESH8PA4Hzy++AO7A/MvY0UAGuudV6kdJOsfQ2cruBdVhgo/A9vGqOvW8elqV1QD5XELtu9NDSoa6KmvwTLjJdAIrbBGnIIxFgJYYO/XOoVrSgc7IikXxiytxxr9AqyqDhH48Rhc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=M3cAnAXI; arc=fail smtp.client-ip=40.107.236.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	s=arc-20240116; t=1736375445; c=relaxed/simple;
+	bh=aHQnTe84JFR6oZp9hU+QpGxeaw/PYiqXZ2FmrWnqA6o=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=cLzioe6fXJgNwDAKoTtYQmHWpbzhe+73UsLMe4lVL/VP75fY8ah/ogLqkseWFNWZuIFv5TuMbnYfDywCir8jYpjkMpka7p2jlrs1cK5lxDLFApoWRFFnTBmOc7hhQLoFcfNX1GlOc9SaLt04sFrRMwYM9qy14gqo6dpax2Vcv7g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iM0zvFX7; arc=fail smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="M3cAnAXI"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iM0zvFX7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1736375444; x=1767911444;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=aHQnTe84JFR6oZp9hU+QpGxeaw/PYiqXZ2FmrWnqA6o=;
+  b=iM0zvFX7dkl3tu9WqwnQOXmaiWN1JuiGKm87Aw+IQjwvY05a0LUKoeoQ
+   TL2O0hWZb+TARzT9R1lmldVDSOyWUdCaKD6AOIfDMBHDBmM3odlQCc/4d
+   4yjFCSrTb587DRStbrcXr4PtlmyZcdPttlEeUdF+LuNEywgnfCcmCkm4l
+   c2pgbSzK1MKCStppLrElUxDvcgnf39ikVFoxOSzNX8MELzcT4kJ/XHQ5/
+   K6EKqOGzQ5SQga0/Z5QKxberMhHv2ud62bbsAjGSpSc8f7vqB6+BOo3tg
+   i2ND4NMRJvoSwICYGMWKdbpV1XpnTXf9XtyZxClgCuqoWqq3Tn63qKUjg
+   w==;
+X-CSE-ConnectionGUID: wl6BM0weQWW8NpIPwjeNIg==
+X-CSE-MsgGUID: WB7gHDN/TPW6GFd7SBiz4g==
+X-IronPort-AV: E=McAfee;i="6700,10204,11309"; a="40300355"
+X-IronPort-AV: E=Sophos;i="6.12,299,1728975600"; 
+   d="scan'208";a="40300355"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jan 2025 14:30:43 -0800
+X-CSE-ConnectionGUID: 5X6oa+mkRIaQmI64WVqIaQ==
+X-CSE-MsgGUID: Uj4C2n0ET6+Mr7aVXAIM9g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
+   d="scan'208";a="107268706"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by fmviesa003.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 08 Jan 2025 14:30:40 -0800
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.44; Wed, 8 Jan 2025 14:30:37 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.44 via Frontend Transport; Wed, 8 Jan 2025 14:30:37 -0800
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.45) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Wed, 8 Jan 2025 14:30:34 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=OPsDaKB3Jw4UPF4H7KdiuVE+eb98Ib6SUcF3LpHHIxKS2gNf/wvow18IQsI0CY+RLKopTRKFQI9Mx/6H+48LGLCfSFYqupJH0BhDJBsw71EjsBX3EGPXxzNyTOofq+7ApQPMTyOhaKuj555tNIt7/pK5yKvqWB5T52XJlWboMtX5jJYKbY4eD1LRHJNVZf5TGiU+XImRwXyOg/ToNTHKPd1OeGm1NPin5g5sXPmlQXrTQxiWXjR1y/W+hFng9boxFSjAiAIJA78nTCTTS4bCtgJIVEjAsudfzjQAijCMuahTlc4squb5wK9EEVZSoVpyno+ANagese/moN+44JjGuw==
+ b=yx7YXyGCcdxcX1cblNhA1RKtw6xJlCvdCpFeqelJ2E8oVIBVEncQXrRet6GNAU4rzOdskSN0D+zn4c9RYIr+z3bXAYaNoSe3nT3HYVwcTjVWjCJaGfUB/Jm5etT7jJ9U22g3P4NIv8Qd1qBq21XK6HSx7rAIiorDKTMcPAHLe/6lGLeo0dWePAB4utN1b47dM0diTs6Oqmu/nvy+jU0X3q2LrnFr8vC87GFQFvCvEo5wS6rwlbxvxIS+xF7GF/u8fEu6dUUh17fWLO6qtpHcQQq0/MCtEsUEJ/KCH3Au3zrR1KOr2f6dEF9h7hq6OoK/THpxFFIRh+ouibqj5EsnmQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Ix9n0FNXnxWEHujGOqPl87shfTCX0+AhrTf/2DU18uM=;
- b=ikmyI3cXKtDbV/VF8/82T0A+kWTUUEXEZ2OKIeCbMU+tv9rqI+cKqGq0sseFkIJ6Lu3ErE7VSi6MG4p+aWyL7WtkKcDrD1ureIfZSc0Gpwdhe5kpVrgVsKz7u+Kfcaflu0dh6FZ6ZxLh9yIqTXVNLR9Z8CpfXZPfN2TZQ+uC8ZkZjquhLMJrc5kMhW9XitxOSGf/4RdkLzNIMi+rsR6Wu0YmWDBjQ3Yo3PcQzMeCPvWiPLVdN0i1G3RLxvxbSgEHAwPQ8yBeyyG/DX6cdZbybZZbCcoFaeKX55c2WcYnj6vjb1yqk8Nrfl4Mg2YP+Jwh7h/gtDnhZGOnmo4vdW2o7Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=lists.linux.dev smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Ix9n0FNXnxWEHujGOqPl87shfTCX0+AhrTf/2DU18uM=;
- b=M3cAnAXIMNKjonKar6rmHjCG/rHqgCTLjp/xYImUK+g79wAkBn4t/vRXkcY7jBNpPeXzFPUlE678fn5X9nXZlOq3zCeFz84E88WOXamS0nWCGjyAPhMeAm8mAHccq0xAHiHgVlDnt6/FiTwPRezStB6NV/fOqR1M4BybU8gEovQ=
-Received: from PH0P220CA0026.NAMP220.PROD.OUTLOOK.COM (2603:10b6:510:d3::7) by
- IA0PR12MB7556.namprd12.prod.outlook.com (2603:10b6:208:43c::12) with
+ bh=ykbBEGif4XNRDhG36JaAk+Vmea7aHk59vZUxCFqzNI4=;
+ b=vPnQHM6YQMC1jmjLoWlo3bsw8prvRawBlQNwiqrjHRacyJUz1Q03MAgk8WO+bQy0oniGXfAHGLMD1m/i/9wAA+ugrI8ZhdhNqLHnvBuMFVZ/8/lCaxcMLC1fHOOHnfvGOUI0F+HFRhOXU03yqH+GZTy3Nr/HPxEFqEydHQrJ86Cmx+tJjeQjDFmPR2JO2lFrAqj7o4/ZFG17VpTj4qRj3ms3tm5uGE8JBTds16jJDyZWpxEjeM6Judr6D9K9b0E2syRFqONjzFGUy3NHDJjxixwQ2T27WCO8zrww2PAmGLsAWAdiCq5BMLUb/UTNSdjuNiLHFk6tKVi/TU9T3HO0Hw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by IA1PR11MB6515.namprd11.prod.outlook.com (2603:10b6:208:3a1::13) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8335.11; Wed, 8 Jan
- 2025 21:57:59 +0000
-Received: from SN1PEPF0002BA52.namprd03.prod.outlook.com
- (2603:10b6:510:d3:cafe::aa) by PH0P220CA0026.outlook.office365.com
- (2603:10b6:510:d3::7) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8335.11 via Frontend Transport; Wed,
- 8 Jan 2025 21:57:59 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- SN1PEPF0002BA52.mail.protection.outlook.com (10.167.242.75) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8335.7 via Frontend Transport; Wed, 8 Jan 2025 21:57:59 +0000
-Received: from bcheatha-HP-EliteBook-845-G8-Notebook-PC.amd.com
- (10.180.168.240) by SATLEXMB04.amd.com (10.181.40.145) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Wed, 8 Jan 2025 15:57:57 -0600
-From: Ben Cheatham <Benjamin.Cheatham@amd.com>
-To: <nvdimm@lists.linux.dev>
-CC: <linux-cxl@vger.kernel.org>, Ben Cheatham <Benjamin.Cheatham@amd.com>
-Subject: [RFC ndctl PATCH] cxl: Add inject-error command
-Date: Wed, 8 Jan 2025 15:57:49 -0600
-Message-ID: <20250108215749.181852-1-Benjamin.Cheatham@amd.com>
-X-Mailer: git-send-email 2.34.1
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8314.18; Wed, 8 Jan
+ 2025 22:30:28 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8%4]) with mapi id 15.20.8314.015; Wed, 8 Jan 2025
+ 22:30:28 +0000
+Date: Wed, 8 Jan 2025 14:30:24 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: Alistair Popple <apopple@nvidia.com>, <akpm@linux-foundation.org>,
+	<dan.j.williams@intel.com>, <linux-mm@kvack.org>
+CC: Alistair Popple <apopple@nvidia.com>, <lina@asahilina.net>,
+	<zhang.lyra@gmail.com>, <gerald.schaefer@linux.ibm.com>,
+	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <logang@deltatee.com>,
+	<bhelgaas@google.com>, <jack@suse.cz>, <jgg@ziepe.ca>,
+	<catalin.marinas@arm.com>, <will@kernel.org>, <mpe@ellerman.id.au>,
+	<npiggin@gmail.com>, <dave.hansen@linux.intel.com>, <ira.weiny@intel.com>,
+	<willy@infradead.org>, <djwong@kernel.org>, <tytso@mit.edu>,
+	<linmiaohe@huawei.com>, <david@redhat.com>, <peterx@redhat.com>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linuxppc-dev@lists.ozlabs.org>,
+	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>, <linux-ext4@vger.kernel.org>,
+	<linux-xfs@vger.kernel.org>, <jhubbard@nvidia.com>, <hch@lst.de>,
+	<david@fromorbit.com>, Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v5 01/25] fuse: Fix dax truncate/punch_hole fault path
+Message-ID: <677efc80b6fcd_f58f2943@dwillia2-xfh.jf.intel.com.notmuch>
+References: <cover.425da7c4e76c2749d0ad1734f972b06114e02d52.1736221254.git-series.apopple@nvidia.com>
+ <f20cc2603bd33ee05ec4bc4cc7327cec61119796.1736221254.git-series.apopple@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <f20cc2603bd33ee05ec4bc4cc7327cec61119796.1736221254.git-series.apopple@nvidia.com>
+X-ClientProxiedBy: MW4PR03CA0332.namprd03.prod.outlook.com
+ (2603:10b6:303:dc::7) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN1PEPF0002BA52:EE_|IA0PR12MB7556:EE_
-X-MS-Office365-Filtering-Correlation-Id: b2a448ce-d0c3-4422-ba8a-08dd302f83fe
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|IA1PR11MB6515:EE_
+X-MS-Office365-Filtering-Correlation-Id: 21ff0cda-5c21-4626-b66d-08dd30340ded
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700013|376014|1800799024;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?gLcsvjGqxBvjlsK5Kd1NX9/bEzFltcMveRuafBAeSWXw6HYruSlZ3ZTZGBIx?=
- =?us-ascii?Q?jT/zRcAcCT3Hg5a5tF+li1/ODR1xm96nKhV8CinbpB5XmPJAPsADIWgKA1Lc?=
- =?us-ascii?Q?NLS0+NRt0E0OSJRzGxJzgi4l5PWoTWFDu6fVziegiCDhZfN90xAlPGaTf5UD?=
- =?us-ascii?Q?9wzRqRsaamWCuvvIIzOE93ZWLvJSsF4Vtz+fbP1BStXSdw120KZ6fT0dCcTG?=
- =?us-ascii?Q?sAMCXjJ8pTQFuBiY+gM6X9Lb3d7m9nkPdDWIjfA9pwXx0AU7wOU4g3Jzwobe?=
- =?us-ascii?Q?6S08rgF7e4ZpzD1kd3qcCL4qdrxwOZgMdMb3950m3Pp0wiioXq0TXed4JMFp?=
- =?us-ascii?Q?3+BVIaF6+jL1fbhBkuguCCwT0Bc8WUx2nWkSjCgG8UIky+F9nMzbDUWvDzcB?=
- =?us-ascii?Q?dJvUiIvZUeg6DkbVRfu/sPPswNaR9fiwxys9/tr6pdDueGJDy9gZqpVvDNoU?=
- =?us-ascii?Q?0tObOwR3/yoCv9RNIko7s/zBBNWa6ugVpqUdXS/fyd3+EsJljL+TpjsdzqTO?=
- =?us-ascii?Q?ryaX692GhpC6eI/GOU/BKaCsimH/B0Gcjft+CQsmAU1X2iD/6w7SB2iL/4+U?=
- =?us-ascii?Q?bCI68D/tCF/SY4hL+g2e+nWmsPtqX/h6kry4Uq5R2TMuPLtzdUGQHgO7+VFO?=
- =?us-ascii?Q?CzVQqIrhY5oX2WVEowuX1F2wkYIx9uKe3Up6aBb/iiJFEziLuT8GOaclTpPd?=
- =?us-ascii?Q?EurnTUhUW8GOOtPwpYX6Q1sfH6DwmP0K4NNjjzPpv9fl6ui5djrKF7Rszebc?=
- =?us-ascii?Q?y0q+uaArDL44yI+BwWeYHB17dnlWH6kI3krOTPOTi+tZ/f6r70arTuTkydXX?=
- =?us-ascii?Q?wQOTpDDGX4jg6nX2jKsbXe3E2jOuq0EMHA5b0/NBAoCSmOpNc/szMDsca27P?=
- =?us-ascii?Q?O2gBGZVGCVseQNVRE0snJ40T0hKuPjxtlI3bo33g5HODiDlB8wIoyOxstmPs?=
- =?us-ascii?Q?V4vv8mwdUJEAIop3jYJuSXbd136J+LNoy5YjGlQmydIssmuPoRcuBxq2nCRd?=
- =?us-ascii?Q?f95w4EgNXXPx6Ja/KnZBBSA05zoZvd8gxuQV5zz1fii7k7JClyONs2fZJdgS?=
- =?us-ascii?Q?DuiWWgm4JlIX8KOjpdVDST7o4Yqwmn4AfTW//29pBohSpZ4ejBMSfFPzerS7?=
- =?us-ascii?Q?6ZQLKvpE9Bwy6VnSwduIkRWwfbkGrenn91hxlxO0sKVCNTXq+Mx/h3W41UTD?=
- =?us-ascii?Q?GFRNtW2WscfUCzzPZaQ/6qWxjjPrmiThT2Bcz0Nr6/lt7OcOvz9Z7sXjyto1?=
- =?us-ascii?Q?EfXVo4RsXKw8URGv0bflfSgfUnKOafT23jbZ/ufpfHkXhIr45P/VMh+Uq457?=
- =?us-ascii?Q?2ye/2ehzRWWnA2wr1StwZO3Byvak0Gzp6+Zh5CDPYuiXuclZSe3unk3QJR4p?=
- =?us-ascii?Q?CK84H3dYKEbxUrmHeg3mhQI8ZzZ5T1WWpeY8LWublHB9/tU7KDWlM5WS0a/1?=
- =?us-ascii?Q?T0Elp6Pda0cGh5a6NvDf8cUhfuFq9m8xnYF+2bmRTumbKB5En4LEPndYYCiU?=
- =?us-ascii?Q?sI8m8Ffup76LI2w=3D?=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700013)(376014)(1800799024);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jan 2025 21:57:59.1639
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|7416014|366016|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?rrljhjsUxLjzj4KWSbEbkQLiccfve+AQymkydoNzBI0QwfqNlkKmNJw2TBO7?=
+ =?us-ascii?Q?YDFBnAQxMVBsyigzG47Q5j5mwjrtt8cXlkBnqM9Eq2qJKGwVF1m1lbtCaga+?=
+ =?us-ascii?Q?dtwxClhRT2xH42VG5BJ0zBCNjM0zyAk+2rxDNi0bEe1SvS0fRW1W3Rl9Rwxg?=
+ =?us-ascii?Q?pDwyfd66gTv5T+bb9nj7QJ9M4ecLAYsf064aMt/MfhrlC5Xn62VQJtgL2FH1?=
+ =?us-ascii?Q?N2YzsBrPH8siikCGa9eCK7D3wcvM9Q08jUsKr00fCwkGfdtPAR1I4+WDtEDt?=
+ =?us-ascii?Q?p+Zd7+WGo90PQ769Z9T6xS4AXZdVnHK37a21hqXxBoXu9HTpa6VT+zt1Q/zG?=
+ =?us-ascii?Q?htTx72Yt172RrMapx335QXSDRmtZ1tVZWmUk95jApBqHzkbbkMK51iczcaIK?=
+ =?us-ascii?Q?hWFQ3Jvdy0vgZtLy/nE0qV3syJv0kIQTCjSwhWSWLDQdlgfGdQxKlCC5jMig?=
+ =?us-ascii?Q?9/PLeizF0scssDywqYoip7WUURZC4ipD3P31/iGZvseXknsT/onKWLsKLuPn?=
+ =?us-ascii?Q?q0G+AqxPiDo5uutCji8xxOuLo6SC5FZi8wi3v6pQ+nJkoZ+Kc/YlIKkx+Zd6?=
+ =?us-ascii?Q?gvX1VthdrFBihE6KNBXlZqi/9dsRCWMEA5BX5Kq24BtILwrhmK6w6MLVIBe7?=
+ =?us-ascii?Q?S0wNQQPwPUhhrakvnaXMPZpg0TGiat8OVbDY78cam+mFa7YTNQwKDmF3/PcE?=
+ =?us-ascii?Q?wekfLc0QpBKqyS3I34ARiHF9ibRvXMc97imLpEydCkAaybHNkN4n2CwD6nL8?=
+ =?us-ascii?Q?B+fqpLiLRhULXgpBooAdS6VvPJymLXwfi1dMJtmrzTbd+ejqKmW8I6fFR1La?=
+ =?us-ascii?Q?OMPkVCGYNH1HuwxGl8SCS0JEZYUa8b2pQHBUhIs8/8z0Zq2pxvPdoc7uBK2k?=
+ =?us-ascii?Q?wlLbwYmxFfsvFmN1cGmLZ2bgA+y+2oS0liJrGCHxvxxvE/7KSbaCs5ueyXqe?=
+ =?us-ascii?Q?nzoHwBwHAMVUKwcB2teVypx9G5GGnTK8MH5qvj7HJmlcwgQ/7L0ob6ckKzw5?=
+ =?us-ascii?Q?Wk+NEIGUR+wRj62XcCJUMxLEk1BxZo9T6uABDZedBMB0PxuKlCCQbNhQS+ec?=
+ =?us-ascii?Q?Vm1LYxkHTUhkIr7VMnlshOgjhpoo39BS2htt0qIDp/7eslTY0ZPWbXKWOaiO?=
+ =?us-ascii?Q?gyfHH4vi3sfOz36B7ko2Uyvm3EMouXEllhQHUw6WHWZ3EJtn6i9h2t37wdes?=
+ =?us-ascii?Q?Yro/hSoQKuPuQa7XDbSjMfPqu+Al2db38SBkF4QHVokgiqepbSssAwM6aCTq?=
+ =?us-ascii?Q?sDU1WdFzDU0j2yNjfnTTusKz/Jjskm3NSdkZRtAia8kMIr9cyqEIRGeoBT3C?=
+ =?us-ascii?Q?eDxKkGlQ8SLSMVhygXXYnRJRSXehc+pW8FNKHufSS3HY3kUE+nuk13pz4WA2?=
+ =?us-ascii?Q?9R69AkPVlbNfvVCj6XRVAC64ZfFT?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(7416014)(366016)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?5tGta5OLXNlbNl50woCwhOcXDX2iNsQkX3YmX9Hm92VPmiZvsYfI5XuKnabg?=
+ =?us-ascii?Q?vYLrs+yRzPNPNBWen7qVv82Leh8rgcT/WFMnLBnh/7lCPjkvig0rnazCuNBS?=
+ =?us-ascii?Q?yZlVbYTM2tqqX05CfVosbtvuibNjXQMui8qek5HwKQVj91D14UVP9AbOakxk?=
+ =?us-ascii?Q?ZAMLjlqXNFXNg4EkLSf256lDDPRRikF4ssFCNS63/m5fgMJy1yPQG7w402l5?=
+ =?us-ascii?Q?5Nu7ABu2T5zclbMgc/zYDK+ixJmWv2pLcxESHcbndJLHHfWK/xiN3gEsfN22?=
+ =?us-ascii?Q?xZ1Bfeby5j3likcqkiUM2pPNDxmdfWK6Dw8tgGZMrIS8/xPYkIrjPkQ9Io0t?=
+ =?us-ascii?Q?AsToB9Z6P+jydyKFs9XmwbraRD1ohNX9YZwkOvb+YSnVwlZSa6m5pZWsQU5y?=
+ =?us-ascii?Q?kqeEPfDHmpaHR96TvyiSXqEtNkilUUQy7Fyl1TFIgIzY9SaN7fCdhoxkjZEF?=
+ =?us-ascii?Q?4TZhUe7xZle8DkfXhVoSLJscWaRmpQHCQ7AyAfxCMytdi4DDPFLuvYckoS7N?=
+ =?us-ascii?Q?3bO5J57Vol7/4blZEMKT40bv1JRzSbE1SRmSjQru8IoihMudmLHc1pnKaXln?=
+ =?us-ascii?Q?kXVv9vkqWahKmg7sM427VkVtIC+CRSc9WmDCWidnUo6uvmPe3Hiwsj6pYyI0?=
+ =?us-ascii?Q?hg54s6fokLRhvFM0NI7QPb7zdl5Wm8YjiXInbEidK7QszmDImCbZBCEXyS6Y?=
+ =?us-ascii?Q?NXnWkEZFh2hwA5AQnogl+WlezYhlCQmrr8yzxgaX9wWm0Gmk1fd108PJXMvq?=
+ =?us-ascii?Q?PUXkLjGUipJzIXj3dQOmDamlwPQq58FKvuxkJWCMOZaQ1Mna1o7ARO+trugs?=
+ =?us-ascii?Q?dDehAfMHMVHJjCVWXqgXjlF6kItfkUvNVDZMSYNZqCMZVd/LTzbIERXqZsgR?=
+ =?us-ascii?Q?Xjl7eJ0Ds5KhQ8IabuqEah6fghYIyAQgc4PjlC0sO02MW07cR1uZtkcCjy6m?=
+ =?us-ascii?Q?JQjHnXLgeJdWsxpj/xwGqqG7HGeCtTydVNXyHyNkkFoDkCTed+FJzffzWt73?=
+ =?us-ascii?Q?HK4FEhAcDMLgR7c3JLciOlUyJdqJJ7NxvHF6PEHFlq+CNd8IW/kXrz09swPn?=
+ =?us-ascii?Q?1gEMbDrBmChpUTnW29mhswa+uY7wmf1x+ycBNNTLt9pc8VyZnqc4QnCCB5tH?=
+ =?us-ascii?Q?/XIatV9hdjUUp+Rhbu/Po68oeDqOxaVc7GaSlzG5QO4IVzWNXXsppp+D1SYo?=
+ =?us-ascii?Q?KmyBKLG+63fKJ5ryw6qYnj5c3DHaZ9te7rzmV9CDky6yyVVMxxKZU9cbx8zE?=
+ =?us-ascii?Q?NvlS/WzaBujQYmisuOvHuzFMqbU30MdYZCfwEUf4vHmyqarV4226zXR9z34V?=
+ =?us-ascii?Q?rLNo97mqRrNq99YgLiQGX6Mnud66tUWEokJfq+rOxux6325Fh/iFPUUmEtJm?=
+ =?us-ascii?Q?g5QofYaA2B69SKfsWzaJkrqpXcQZOMMosaPvxB65MI+TAqwZzzV8dgJ+CfQJ?=
+ =?us-ascii?Q?JNd4yPNpVmcyzq1t3Qf9Ckv6VC0LKEm3f4ayahS6ve6wUU0gFhUcERQZ7XUr?=
+ =?us-ascii?Q?YCghrU3f1y2ObkdOpmGj3h3CeSCW/kOmwqjW7XM72e9hs93ka68Zf+/OtT7I?=
+ =?us-ascii?Q?OGaxK16T1M63xWdaSqx/i59sI7z3bqnG8h0N52zZILO8gfOzHvdo+xSroqvR?=
+ =?us-ascii?Q?gg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 21ff0cda-5c21-4626-b66d-08dd30340ded
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jan 2025 22:30:28.8270
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b2a448ce-d0c3-4422-ba8a-08dd302f83fe
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SN1PEPF0002BA52.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB7556
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: WXBrvEC26o3punw0zuXc9hlZo6someai3quhvrBBab3FtfppVB9ajG6Xp5k89RrIfhrm+p3eAkZOq1Mi5T1U6b3vEWmdBhCXT+PhVLdS5us=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR11MB6515
+X-OriginatorOrg: intel.com
 
-Add inject-error command for injecting CXL errors into CXL devices.
-The command currently only has support for injecting CXL protocol
-errors into CXL downstream ports via EINJ.
+Alistair Popple wrote:
+> FS DAX requires file systems to call into the DAX layout prior to
+> unlinking inodes to ensure there is no ongoing DMA or other remote
+> access to the direct mapped page. The fuse file system implements
+> fuse_dax_break_layouts() to do this which includes a comment
+> indicating that passing dmap_end == 0 leads to unmapping of the whole
+> file.
+> 
+> However this is not true - passing dmap_end == 0 will not unmap
+> anything before dmap_start, and further more
+> dax_layout_busy_page_range() will not scan any of the range to see if
+> there maybe ongoing DMA access to the range.
 
-The command takes an error type and injects an error of that type into the
-specified downstream port. Downstream ports can be specified using the
-port's device name with the -d option. Available error types can be obtained
-by running "cxl inject-error --list-errors".
+It would be useful to clarify that this is bug was found by inspection
+and that there are no known end user reports of trouble but that the
+failure more would look like random fs corruption. The window is hard to
+hit because a block needs to be truncated, reallocated to
+a file, and written to before stale DMA could corrupt it. So that may
+contribute to the fact that fuse-dax users have not reported an issue
+since v5.10.
 
-This command requires the kernel to be built with CONFIG_DEBUGFS and
-CONFIG_ACPI_APEI_EINJ_CXL enabled. It also requires root privileges to
-run due to reading from <debugfs>/cxl/einj_types and writing to
-<debugfs>/cxl/<dport>/einj_inject.
+> Fix this by checking for dmap_end == 0 in fuse_dax_break_layouts() and
+> pass the entire file range to dax_layout_busy_page_range().
 
-Example usage:
-    # cxl inject-error --list-errors
-    cxl.mem_correctable
-    cxl.mem_fatal
-    ...
-    # cxl inject-error -d 0000:00:01.1 cxl.mem_correctable
-    injected cxl.mem_correctable protocol error
+That's not what this patch does, maybe a rebase error that pushed the
+@dmap_end fixup after the call to dax_layout_busy_page_range?
 
-Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
----
- cxl/builtin.h      |   1 +
- cxl/cxl.c          |   1 +
- cxl/inject-error.c | 188 +++++++++++++++++++++++++++++++++++++++++++++
- cxl/lib/libcxl.c   |  53 +++++++++++++
- cxl/lib/libcxl.sym |   2 +
- cxl/libcxl.h       |  13 ++++
- cxl/meson.build    |   1 +
- 7 files changed, 259 insertions(+)
- create mode 100644 cxl/inject-error.c
+However, I don't think this is quite the right fix, more below...
 
-diff --git a/cxl/builtin.h b/cxl/builtin.h
-index c483f30..e82fcb5 100644
---- a/cxl/builtin.h
-+++ b/cxl/builtin.h
-@@ -25,6 +25,7 @@ int cmd_create_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_enable_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_disable_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_destroy_region(int argc, const char **argv, struct cxl_ctx *ctx);
-+int cmd_inject_error(int argc, const char **argv, struct cxl_ctx *ctx);
- #ifdef ENABLE_LIBTRACEFS
- int cmd_monitor(int argc, const char **argv, struct cxl_ctx *ctx);
- #else
-diff --git a/cxl/cxl.c b/cxl/cxl.c
-index 1643667..f808926 100644
---- a/cxl/cxl.c
-+++ b/cxl/cxl.c
-@@ -79,6 +79,7 @@ static struct cmd_struct commands[] = {
- 	{ "enable-region", .c_fn = cmd_enable_region },
- 	{ "disable-region", .c_fn = cmd_disable_region },
- 	{ "destroy-region", .c_fn = cmd_destroy_region },
-+	{ "inject-error", .c_fn = cmd_inject_error },
- 	{ "monitor", .c_fn = cmd_monitor },
- };
- 
-diff --git a/cxl/inject-error.c b/cxl/inject-error.c
-new file mode 100644
-index 0000000..3645934
---- /dev/null
-+++ b/cxl/inject-error.c
-@@ -0,0 +1,188 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright (C) 2025 AMD. All rights reserved. */
-+#include <ccan/array_size/array_size.h>
-+#include <util/parse-options.h>
-+#include <cxl/libcxl.h>
-+#include <util/log.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <stdio.h>
-+#include <errno.h>
-+
-+#define EINJ_TYPES_BUF_SIZE 512
-+
-+static struct inject_params {
-+	const char *type;
-+	const char *devname;
-+	const char *debugfs;
-+	bool debug;
-+	bool list;
-+} param;
-+
-+static struct cxl_proto_error {
-+	enum cxl_proto_error_types err_type;
-+	const char *err_str;
-+} cxl_proto_errors[] = {
-+	{ CXL_CACHE_CORRECTABLE, "cxl_cache_correctable", },
-+	{ CXL_CACHE_UNCORRECTABLE, "cxl_cache_uncorrectable" },
-+	{ CXL_CACHE_FATAL, "cxl_cache_fatal" },
-+	{ CXL_MEM_CORRECTABLE, "cxl_mem_correctable" },
-+	{ CXL_MEM_UNCORRECTABLE, "cxl_mem_uncorrectable" },
-+	{ CXL_MEM_FATAL, "cxl_mem_fatal" }
-+};
-+
-+#define BASE_OPTIONS() \
-+OPT_BOOLEAN(0, "debug", &param.debug, "turn on debug output"), \
-+OPT_BOOLEAN(0, "list-errors", &param.list, "list possible error types"), \
-+OPT_STRING('m', "mount", &param.debugfs, "debugfs mount point", \
-+	   "Mount point for debug file system, defaults to /sys/kernel/debug")
-+
-+#define INJECT_OPTIONS() \
-+OPT_STRING('d', "device", &param.devname, "CXL device name", \
-+	   "Device name of CXL device to inject error into. Protocol errors may only target downstream ports") \
-+
-+static const struct option inject_options[] = {
-+	BASE_OPTIONS(),
-+	INJECT_OPTIONS(),
-+	OPT_END(),
-+};
-+
-+static struct log_ctx iel;
-+
-+static struct cxl_proto_error *find_cxl_proto_err(const char *type)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < ARRAY_SIZE(cxl_proto_errors); i++) {
-+		if (!strcmp(type, cxl_proto_errors[i].err_str)) {
-+			return &cxl_proto_errors[i];
-+		}
-+	}
-+
-+	log_err(&iel, "Invalid CXL protocol error type: %s\n", type);
-+	return NULL;
-+}
-+
-+static int list_cxl_proto_errors(struct cxl_ctx *ctx, const char *debugfs)
-+{
-+	unsigned long i, err_num;
-+	char buf[EINJ_TYPES_BUF_SIZE];
-+	char *line;
-+	int rc;
-+
-+	rc = cxl_get_proto_errors(ctx, buf, debugfs);
-+	if (rc) {
-+		log_err(&iel, "Failed to get CXL protocol errors: %d\n", rc);
-+		return rc;
-+	}
-+
-+	line = strtok(buf, "\n");
-+	while (line) {
-+		err_num = strtoul(line, NULL, 16);
-+		if (err_num < CXL_CACHE_CORRECTABLE || err_num > CXL_MEM_FATAL)
-+			continue;
-+
-+		for (i = 0; i < ARRAY_SIZE(cxl_proto_errors); i++)
-+			if (err_num == cxl_proto_errors[i].err_type)
-+				printf("%s\n", cxl_proto_errors[i].err_str);
-+
-+		line = strtok(NULL, "\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static struct cxl_dport *find_cxl_dport(struct cxl_ctx *ctx, const char *devname)
-+{
-+	struct cxl_port *port, *top;
-+	struct cxl_dport *dport;
-+	struct cxl_bus *bus;
-+
-+	cxl_bus_foreach(ctx, bus) {
-+		top = cxl_bus_get_port(bus);
-+
-+		cxl_port_foreach_all(top, port)
-+			cxl_dport_foreach(port, dport)
-+				if (!strcmp(devname,
-+					    cxl_dport_get_devname(dport)))
-+					return dport;
-+	}
-+
-+	log_err(&iel, "Downstream port \"%s\" not found\n", devname);
-+	return NULL;
-+}
-+
-+static int inject_proto_err(struct cxl_ctx *ctx, const char *devname,
-+			    struct cxl_proto_error *perr, const char *debugfs)
-+{
-+	struct cxl_dport *dport;
-+	int rc;
-+
-+	if (!devname) {
-+		log_err(&iel, "No downstream port specified for injection\n");
-+		return -EINVAL;
-+	}
-+
-+	dport = find_cxl_dport(ctx, devname);
-+	if (!dport)
-+		return -ENODEV;
-+
-+	rc = cxl_dport_inject_proto_err(dport, perr->err_type, debugfs);
-+	if (rc)
-+		return rc;
-+
-+	log_info(&iel, "injected %s protocol error.\n", perr->err_str);
-+	return 0;
-+}
-+
-+static int inject_action(int argc, const char **argv, struct cxl_ctx *ctx,
-+			 const struct option *options, const char *usage)
-+{
-+	struct cxl_proto_error *perr;
-+	const char * const u[] = {
-+		usage,
-+		NULL
-+	};
-+	const char *debugfs;
-+	int rc = -EINVAL;
-+
-+	log_init(&iel, "cxl inject-error", "CXL_INJECT_LOG");
-+	argc = parse_options(argc, argv, options, u, 0);
-+
-+	if (param.debug) {
-+		cxl_set_log_priority(ctx, LOG_DEBUG);
-+		iel.log_priority = LOG_DEBUG;
-+	} else {
-+		iel.log_priority = LOG_INFO;
-+	}
-+
-+	if (param.debugfs)
-+		debugfs = param.debugfs;
-+	else
-+		debugfs = "/sys/kernel/debug";
-+
-+	if (param.list)
-+		return list_cxl_proto_errors(ctx, debugfs);
-+
-+	if (argc != 1) {
-+		usage_with_options(u, options);
-+		return rc;
-+	}
-+
-+	perr = find_cxl_proto_err(argv[0]);
-+	if (perr) {
-+		rc = inject_proto_err(ctx, param.devname, perr, debugfs);
-+		if (rc)
-+			log_err(&iel, "Failed to inject error: %d\n", rc);
-+	}
-+
-+	return rc;
-+}
-+
-+int cmd_inject_error(int argc, const char **argv, struct cxl_ctx *ctx)
-+{
-+	int rc = inject_action(argc, argv, ctx, inject_options,
-+			       "inject-error [<options>] <error-type>");
-+
-+	return rc ? EXIT_FAILURE : EXIT_SUCCESS;
-+}
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 91eedd1..8174c11 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -3179,6 +3179,59 @@ CXL_EXPORT int cxl_dport_get_id(struct cxl_dport *dport)
- 	return dport->id;
+> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> Fixes: 6ae330cad6ef ("virtiofs: serialize truncate/punch_hole and dax fault path")
+> Cc: Vivek Goyal <vgoyal@redhat.com>
+> 
+> ---
+> 
+> I am not at all familiar with the fuse file system driver so I have no
+> idea if the comment is relevant or not and whether the documented
+> behaviour for dmap_end == 0 is ever relied upon. However this seemed
+> like the safest fix unless someone more familiar with fuse can confirm
+> that dmap_end == 0 is never used.
+
+It is used in several places and has been wrong since day one. I believe
+the original commit simply misunderstood that
+dax_layout_busy_page_range() semantics are analogous to
+invalidate_inode_pages2_range() semantics in terms of what @start and
+@end mean.
+
+You can add:
+
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+...if you end up doing a resend, or I will add it on applying to
+nvdimm.git if the rebase does not end up being too prickly.
+
+-- 8< --
+diff --git a/fs/fuse/dax.c b/fs/fuse/dax.c
+index c5d1feaa239c..455c4a16080b 100644
+--- a/fs/fuse/dax.c
++++ b/fs/fuse/dax.c
+@@ -681,7 +681,6 @@ static int __fuse_dax_break_layouts(struct inode *inode, bool *retry,
+ 			0, 0, fuse_wait_dax_page(inode));
  }
  
-+CXL_EXPORT int cxl_dport_inject_proto_err(struct cxl_dport *dport,
-+					  enum cxl_proto_error_types perr,
-+					  const char *debugfs)
-+{
-+	struct cxl_port *port = cxl_dport_get_port(dport);
-+	size_t path_len = strlen(debugfs) + 24;
-+	struct cxl_ctx *ctx = port->ctx;
-+	char buf[32];
-+	char *path;
-+	int rc;
-+
-+	if (!dport->dev_path) {
-+		err(ctx, "no dev_path for dport\n");
-+		return -EINVAL;
-+	}
-+
-+	path_len += strlen(dport->dev_path);
-+	path = calloc(1, path_len);
-+	if (!path)
-+		return -ENOMEM;
-+
-+	snprintf(path, path_len, "%s/cxl/%s/einj_inject", debugfs,
-+		 cxl_dport_get_devname(dport));
-+
-+	snprintf(buf, sizeof(buf), "0x%lx\n", (u64) perr);
-+	rc = sysfs_write_attr(ctx, path, buf);
-+	if (rc)
-+		err(ctx, "could not write to %s: %d\n", path, rc);
-+
-+	free(path);
-+	return rc;
-+}
-+
-+CXL_EXPORT int cxl_get_proto_errors(struct cxl_ctx *ctx, char *buf,
-+				    const char *debugfs)
-+{
-+	size_t path_len = strlen(debugfs) + 16;
-+	char *path;
-+	int rc = 0;
-+
-+	path = calloc(1, path_len);
-+	if (!path)
-+		return -ENOMEM;
-+
-+	snprintf(path, path_len, "%s/cxl/einj_types", debugfs);
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc)
-+		err(ctx, "could not read from %s: %d\n", path, rc);
-+
-+	free(path);
-+	return rc;
-+}
-+
- CXL_EXPORT struct cxl_port *cxl_dport_get_port(struct cxl_dport *dport)
+-/* dmap_end == 0 leads to unmapping of whole file */
+ int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
+ 				  u64 dmap_end)
  {
- 	return dport->port;
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 304d7fa..d39a12d 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -281,4 +281,6 @@ global:
- 	cxl_memdev_get_ram_qos_class;
- 	cxl_region_qos_class_mismatch;
- 	cxl_port_decoders_committed;
-+	cxl_dport_inject_proto_err;
-+	cxl_get_proto_errors;
- } LIBCXL_6;
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index fc6dd00..867daa4 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -160,6 +160,15 @@ struct cxl_port *cxl_port_get_next_all(struct cxl_port *port,
- 	for (port = cxl_port_get_first(top); port != NULL;                     \
- 	     port = cxl_port_get_next_all(port, top))
+@@ -693,10 +692,6 @@ int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
+ 		ret = __fuse_dax_break_layouts(inode, &retry, dmap_start,
+ 					       dmap_end);
+ 	} while (ret == 0 && retry);
+-	if (!dmap_end) {
+-		dmap_start = 0;
+-		dmap_end = LLONG_MAX;
+-	}
  
-+enum cxl_proto_error_types {
-+	CXL_CACHE_CORRECTABLE = 1 << 12,
-+	CXL_CACHE_UNCORRECTABLE = 1 << 13,
-+	CXL_CACHE_FATAL = 1 << 14,
-+	CXL_MEM_CORRECTABLE = 1 << 15,
-+	CXL_MEM_UNCORRECTABLE = 1 << 16,
-+	CXL_MEM_FATAL = 1 << 17,
-+};
-+
- struct cxl_dport;
- struct cxl_dport *cxl_dport_get_first(struct cxl_port *port);
- struct cxl_dport *cxl_dport_get_next(struct cxl_dport *dport);
-@@ -168,6 +177,10 @@ const char *cxl_dport_get_physical_node(struct cxl_dport *dport);
- const char *cxl_dport_get_firmware_node(struct cxl_dport *dport);
- struct cxl_port *cxl_dport_get_port(struct cxl_dport *dport);
- int cxl_dport_get_id(struct cxl_dport *dport);
-+int cxl_dport_inject_proto_err(struct cxl_dport *dport,
-+			       enum cxl_proto_error_types err,
-+			       const char *debugfs);
-+int cxl_get_proto_errors(struct cxl_ctx *ctx, char *buf, const char *debugfs);
- bool cxl_dport_maps_memdev(struct cxl_dport *dport, struct cxl_memdev *memdev);
- struct cxl_dport *cxl_port_get_dport_by_memdev(struct cxl_port *port,
- 					       struct cxl_memdev *memdev);
-diff --git a/cxl/meson.build b/cxl/meson.build
-index 61b4d87..79da4e6 100644
---- a/cxl/meson.build
-+++ b/cxl/meson.build
-@@ -7,6 +7,7 @@ cxl_src = [
-   'memdev.c',
-   'json.c',
-   'filter.c',
-+  'inject-error.c',
-   '../daxctl/json.c',
-   '../daxctl/filter.c',
- ]
--- 
-2.34.1
-
+ 	return ret;
+ }
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index 0b2f8567ca30..bc6c8936c529 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -1936,7 +1936,7 @@ int fuse_do_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 	if (FUSE_IS_DAX(inode) && is_truncate) {
+ 		filemap_invalidate_lock(mapping);
+ 		fault_blocked = true;
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err) {
+ 			filemap_invalidate_unlock(mapping);
+ 			return err;
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 082ee374f694..cef7a8f75821 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -253,7 +253,7 @@ static int fuse_open(struct inode *inode, struct file *file)
+ 
+ 	if (dax_truncate) {
+ 		filemap_invalidate_lock(inode->i_mapping);
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err)
+ 			goto out_inode_unlock;
+ 	}
+@@ -2890,7 +2890,7 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
+ 	inode_lock(inode);
+ 	if (block_faults) {
+ 		filemap_invalidate_lock(inode->i_mapping);
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err)
+ 			goto out;
+ 	}
