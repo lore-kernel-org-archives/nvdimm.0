@@ -1,111 +1,294 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBEBF433B3
-	for <nvdimm@lists.linux.dev>; Fri, 10 Jan 2025 06:37:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736491076; cv=none; b=tZDUXXjEhs/+xuV3tYKp9hUWmiRw3ZWUcFEUgrVT9xubFW/VB2vVbR1t0BJRXkasJfO+46Bh9V7FxlkmrCWIbDWRMDKN4jmdNjJo/ZwBKwfBVE5tbXj6NmftDHLDYO/h1dpGBDlJd4B6g0cZgzl5OYkR1hc7AetyTLJLaztxpjA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736491076; c=relaxed/simple;
-	bh=awsTPmQvBlkJV4QItLFObuZLWLIeKMzAcIxcpxE5PEU=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=DdjoXicmFEBy3uYR+Nu7awGmyAmogcD9oCuKjVVWRwltwAyn5P+ynpikTV2g810X7czRi4lSNXZpQCc81E4/ADx1NNmsYVqena82P9NSA+r8ECBJtr/UsQYrXWqSIJu2MCpLlbiI7hLXssiLR32lKA2vkN5Gk36zH7i4worBHcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=uGom46B0; arc=none smtp.client-ip=209.85.221.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099291E507
+	for <nvdimm@lists.linux.dev>; Fri, 10 Jan 2025 06:56:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.21
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1736492175; cv=fail; b=FKxehnxSYL3jdznV/b6EwjE7AzoWStL9Fnh8jab7QC9A4gyc9t9hbG71yedV5vRqLYMedvat1IOBPo0cw5kPBz3tUQIlgQKSypeALKlUGNfAawJiBsbh/MHuwXPHFNcmx9mF4whZ2GEfw2VHorGy+qBbJn7b9kCPQhYTos3zdjg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1736492175; c=relaxed/simple;
+	bh=hYzoHQfH11woX70qE7wThQVNGHlLkv6wADN03i5SaiE=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=UP+/1T2yT3MH13/5RATKOtn+CCCHopDHi54QVXEwqy3xQyvTntN/rY0bExAMhHF9mowA5FpjATqgbwLNLeMxFZuhCTx3DsXmkWq76FLUecOm/IXwsqQh4s9lBxUpwij++HnAHkbzPA9Vv947alJrchx9gh1VGjq3goU91OrSkUI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QMEiSluq; arc=fail smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="uGom46B0"
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-38a8b17d7a7so897340f8f.2
-        for <nvdimm@lists.linux.dev>; Thu, 09 Jan 2025 22:37:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1736491073; x=1737095873; darn=lists.linux.dev;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=JFYR7aJE4K0RLJJn1Yc12u/2E+HvILbr6XuyBiLmQCs=;
-        b=uGom46B0HEft78f3J6FFgzSi6SE81+1rZ4/ljB/gD4bCe1Zgs066WxNz6KwCexaNDU
-         IKh+8WQSExwqfdpiRNl5juXA8mRzmhKJ7nLcG+fBCgl0cuiJ6Fcg4io4wH5BNGDJ+sr/
-         fWrxSlpqJ2Ms8rjb9khiBswQXLsxV5h4XPj+/60mlKUTq03OnVp7ukHssLk4D8DE56ZN
-         s2ZadJKqww0Q9SqqmkYz5phzT33a0l4tLqCFqyItlaidOFHjGTBEOLSwUnOMrBzaHosb
-         +FWcGnciCuXkE1ltXdcXojByiioq9bjQyPmF1HOH5JHIwy+ek1T7E5GoF3CdTeTFg63d
-         oNHw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736491073; x=1737095873;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=JFYR7aJE4K0RLJJn1Yc12u/2E+HvILbr6XuyBiLmQCs=;
-        b=C5xCEcMPs2H6RGQMzbWHVjkyptbRkKCf64BLIEUihLb4tNDGvnsVvezURjw3HY+8c5
-         5MuMCcR656FYFizzSJKptUWh39+487NDGgL2okOnNTE6WD67cDGBhHLm2TsBmRpY+508
-         /4VCHmx/jfbQr/5JmAxcoYkxOfniJT5Zd5pb3Tppcgpx3eKrl9OSoJ10/npCu5DxE/Jx
-         UT85H+WzG8tT4K9HtCpwJhzrey2musXG8aZeN6YcyLWPwEoX7wINn3MGYjha+vr64jdW
-         RssYvqpl8uf0tIZ5wHZBUunNeKXPdZayEYmkgpUY+lLlkwW4cM0qpwW462FCJNSbFWSd
-         T9Ew==
-X-Gm-Message-State: AOJu0Yzxia00BQMm4gDWw2Jxn86YkU6rYLMEebl9NpP4iDiSVeDRhKh3
-	ONVlByIyvE7jpdZF7g07aNrxmZdbqYOxchMmRE31zEErhZYO2Fyk23+AUU0jWbY=
-X-Gm-Gg: ASbGncvqH5E5mt4s2hp4lvoiewyiict92GG0RF3qR1NNcrxs1ysJZz425ycLxE+fwDu
-	hpoxMrjYluZaAKd2vKzWtU+kIYIp5fUU6yYiumWGuhbtqqOpbTvFulzXnX5K0GBp3SHQeZ468dq
-	rNvwEsaiORTjy62lr3O8FdHwnvl0HL4BKVQbFxg0AbdHS2oFkntxn8x15+JFEML/gKv6iqDs0tO
-	XmKX625KTM/9ET+P5mO6luv6GwhE4OkoBu1V53nXs+7k659Nh3WpB8PsFGWhw==
-X-Google-Smtp-Source: AGHT+IG1Dx6WEsIq4Wrt3DN0FdjnHx5JsV++TFvOm7TiHBJqkEKo9M0c+WCGQf0nzS65xPuKuAYtVA==
-X-Received: by 2002:a5d:5f52:0:b0:38a:8647:3dac with SMTP id ffacd0b85a97d-38a8731fac1mr7651934f8f.34.1736491072662;
-        Thu, 09 Jan 2025 22:37:52 -0800 (PST)
-Received: from localhost ([196.207.164.177])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38a8e383965sm3716240f8f.31.2025.01.09.22.37.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Jan 2025 22:37:52 -0800 (PST)
-Date: Fri, 10 Jan 2025 09:37:48 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: nvdimm@lists.linux.dev
-Subject: [bug report] fs/dax: create a common implementation to break DAX
- layouts
-Message-ID: <92b31d7c-3a51-4cc4-a679-ddf271fa8521@stanley.mountain>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QMEiSluq"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1736492174; x=1768028174;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=hYzoHQfH11woX70qE7wThQVNGHlLkv6wADN03i5SaiE=;
+  b=QMEiSluqtg5wDsj/UK963sOG8rRH7yR6jbLW1FA1HuIaiNSWv2Kd39/a
+   SkVXrBOYIP4arj3/++PkDCLb1Qsven+FwMmU6ChMlA1SBgse7+7jvmF6i
+   zli0dP4Ct9b6BHA9c1TzziFH2eY0FyPbj9JDyZcCWKN7dUp6UrFBzip6u
+   K2RZoKdRHIyRstge/CkQfkepxJU8pgfOpTJxXSIHKCLwWeB+EuQRT0O9K
+   Gps0Xqijcq9qlqLYIDw7czfTT8xngdAIVzVkx4tNHZi6VhrqXhJLneD1I
+   Nm4W+s2Q45foyYijLEFNUaD8Sa/wSb+Sii9M2/jyLZ7wDXoK4pMjcKsLV
+   w==;
+X-CSE-ConnectionGUID: gDEOGDDWSjebknVTUl6G+Q==
+X-CSE-MsgGUID: hrw+t9qkT3G5bh7n0fGJoA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11310"; a="36659545"
+X-IronPort-AV: E=Sophos;i="6.12,303,1728975600"; 
+   d="scan'208";a="36659545"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2025 22:56:13 -0800
+X-CSE-ConnectionGUID: +6j98LJSRiGVtVDLscu7uQ==
+X-CSE-MsgGUID: RDnyRDP7Rx2B8z7FMnPwOA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
+   d="scan'208";a="108756340"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orviesa005.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 09 Jan 2025 22:56:13 -0800
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.44; Thu, 9 Jan 2025 22:56:12 -0800
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.44 via Frontend Transport; Thu, 9 Jan 2025 22:56:12 -0800
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.169)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Thu, 9 Jan 2025 22:56:12 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=D+7rOynMq0PxIXx4xDpvUx9lza7xpuwyFIfBjjq6MVDTVbnWahxcHKVicIbLIKCgSTxW0FKHTCdbO3zzHzcVJj5wTblToIsSDQ+2Dwl3Kqf8LjzwQgIPfcRQ+mN1f3K3Vdv912UZYMxiAVS30LQOFhizwCxL+1hJthg3fX2AXxPhqGADZT7jIgXivOZBO2krLsN3T1J1eVYDsvFTq4v9KOQn7pIwZe1HWgnPcKSYqFqpAUfY59+bbalDbL14tlcXZkj0hkh5oouWByvCQ9RVoFSNjkry1RvyiZoi4WciS3OoyIQenT/UtWTXx36pVybyhgTcN6K5n2tHdxtjqrpaHg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=yswrPAo5cWR9oooR3xaGY7cspe+kv5JCJjLolQAYZ3w=;
+ b=Esef6nMZA/GzVqeII9P+7moIcIxLEWwWCcRiPadEA1rI/JziJx/xo1zSeRVSp1s2ceZtfRICAZAtSHJ9fcWOsMCKVJowLY/Q72hsEy9EMY7/yvf22VhpY/QrFOH6Xq1GW+zMEVAikuXwcLzbd4Yny++m8+gUHQkKDPCZ1ZQWQ3QIfDkWJU6SkJ1cGk0gF/tTSe9hC4Ljlav20m9DBAF/gTh8W16927hasZg+9EB4LuPmjyxyGYz/rVDxFUFNkdV3uwEf3ng4jBJ63JZa/WRMVT94phGdt6FGhxqxoLsSApyWDkxI6SmafYAMS5s0nJLI69SBdIYMY4OkIvwv3WdNeA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by MN2PR11MB4709.namprd11.prod.outlook.com (2603:10b6:208:267::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8335.12; Fri, 10 Jan
+ 2025 06:56:10 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8%4]) with mapi id 15.20.8314.015; Fri, 10 Jan 2025
+ 06:56:10 +0000
+Date: Thu, 9 Jan 2025 22:56:06 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: Alistair Popple <apopple@nvidia.com>, Dan Williams
+	<dan.j.williams@intel.com>
+CC: <akpm@linux-foundation.org>, <linux-mm@kvack.org>, <lina@asahilina.net>,
+	<zhang.lyra@gmail.com>, <gerald.schaefer@linux.ibm.com>,
+	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <logang@deltatee.com>,
+	<bhelgaas@google.com>, <jack@suse.cz>, <jgg@ziepe.ca>,
+	<catalin.marinas@arm.com>, <will@kernel.org>, <mpe@ellerman.id.au>,
+	<npiggin@gmail.com>, <dave.hansen@linux.intel.com>, <ira.weiny@intel.com>,
+	<willy@infradead.org>, <djwong@kernel.org>, <tytso@mit.edu>,
+	<linmiaohe@huawei.com>, <david@redhat.com>, <peterx@redhat.com>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linuxppc-dev@lists.ozlabs.org>,
+	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>, <linux-ext4@vger.kernel.org>,
+	<linux-xfs@vger.kernel.org>, <jhubbard@nvidia.com>, <hch@lst.de>,
+	<david@fromorbit.com>
+Subject: Re: [PATCH v5 05/25] fs/dax: Create a common implementation to break
+ DAX layouts
+Message-ID: <6780c4862b417_2aff42943b@dwillia2-xfh.jf.intel.com.notmuch>
+References: <cover.425da7c4e76c2749d0ad1734f972b06114e02d52.1736221254.git-series.apopple@nvidia.com>
+ <e8f1302aa676169ef5a10e2e06397e78794d5bb4.1736221254.git-series.apopple@nvidia.com>
+ <677f14dc3e96c_f58f294f6@dwillia2-xfh.jf.intel.com.notmuch>
+ <lxz2pq2m4gqlovfwsmunwzfjq3taosedbrkaf63jbrxwwg6dek@7vbwtibeyh4m>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <lxz2pq2m4gqlovfwsmunwzfjq3taosedbrkaf63jbrxwwg6dek@7vbwtibeyh4m>
+X-ClientProxiedBy: MW4PR04CA0144.namprd04.prod.outlook.com
+ (2603:10b6:303:84::29) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|MN2PR11MB4709:EE_
+X-MS-Office365-Filtering-Correlation-Id: fc8edae4-87d9-4f94-b399-08dd3143dd5b
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|7416014|376014|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?rfN8T6LkjC08gBlee1K4V/J/lsWR51BDUJKicTEO25I4Y3ChztjRmMJDT1Qi?=
+ =?us-ascii?Q?WqJtld+R6/yxxtJyLq2FOTFB8HUvKZkpXPJLvNDI9c6jxRcuSa47FX9kj/GQ?=
+ =?us-ascii?Q?GKMQOYKt4wekkXtsbGq7jtn03y7RsCUq4dJCe7L3Aq6S3fWk25csZf+t3k95?=
+ =?us-ascii?Q?Tg5gh6gW4i/pyttQCk5s93PiXspsQKGNcZ+zNVwStExbAAfeeh4v+NxVnXqU?=
+ =?us-ascii?Q?LKTCGsqnZ3Zuk7SV9eBFI/NJrsTukdynFPgS1sJE/02h21V3ASV6DDPtYFO7?=
+ =?us-ascii?Q?UeIF1g7wt0mwKj8+J7Os/Z7PDH8641XX6xWvLIm8n1OYbu6M9xqePcZ1KVI1?=
+ =?us-ascii?Q?Fv1/pmzxNEsfzh/1y01Ji6cbbZE3/IsRIe5SMex98hw8edLIu/J5Dv9Sg4TK?=
+ =?us-ascii?Q?XO4BuRJAfd2xz/K7QFl7nlEgMS4q9/+casXQ8EennICgwfwT68adbG9ivO+F?=
+ =?us-ascii?Q?VITBAkG8MQkJOYgjZvZJRUm/9xr1sHRULVvPUQd4FtJIcvBA4qfHBlhMcrl7?=
+ =?us-ascii?Q?flDIbbeCbVjHeIgmVrkrD7er/nZe1jp1x7yJgga0psmRwRVm4KVdsbtkoBrt?=
+ =?us-ascii?Q?sv82ABfUvt72m9gDwwTc7FubfCXhCYdFhKnhjGnr1aPSd39u37bDEztndSjs?=
+ =?us-ascii?Q?xjUM8BCtD8UGVgApSUhPEd2kfLSVgNrHcWE1qKLNjtgVGCkvKeZXRDxgJqoD?=
+ =?us-ascii?Q?1+bRorML9iHcba/pH950isGDc3PAiOj6pLaklNlwfINVVbpCGUqkwniu08rl?=
+ =?us-ascii?Q?LnEI2YhtqluNetx8Pe4Nj/IWEeymFY8UpIUIeuTMRDj6kGjL+r3p8AXJr/uy?=
+ =?us-ascii?Q?/uuNEd+9KrLmteTyPsyBMUw/ulWXe/PasVKJdDsAt50qg7C3AVWRtapaDPKU?=
+ =?us-ascii?Q?iYA2YI/Ruuu+er2thc0tBwe5GebLf5im0V1YNQs7bksC0aCYOkNmRsk+nm+Y?=
+ =?us-ascii?Q?yX1yP6WIFXNQuzpNtpgxweLTKyavz29y0kItV/ug3MJkBYrIdXYfQ0AOAI8W?=
+ =?us-ascii?Q?PIR7hkwYV6qGMParlX3GID2Ppk5UVc3aTEVJUJYMOhK+kR+nF2aNm2e61ca+?=
+ =?us-ascii?Q?Zv8MDQpY1usl8YlAzgOrQdTZIZ+pKRriCCEpvjPTUFzIOZ0wi+2l0lk2Vv+D?=
+ =?us-ascii?Q?f3GO2MiqcMj3WkyrHxBtV8XDKTGTzLuKMVRhv9StphUNYvwACnrBPtsx2gCz?=
+ =?us-ascii?Q?dWipeW5oaeOlNFZrqTVa2hWMI/KvndU37vJRsUVmh+gkRI2F/3+1LQ0CjJ7u?=
+ =?us-ascii?Q?QMQ4MGgCxfl8GIAnxCUF0kCyAZE1eJZ78bUMZ8m+Tzw0asUyju5eTfYCH4Fx?=
+ =?us-ascii?Q?7ff072zxRghlk0cBmD0TDJihD4cL4lUUNa2pJmL/bCrJtRACvf1AXz57CyLc?=
+ =?us-ascii?Q?ueQ9b77kucUBIgKu1VfUvlZA+Buq?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?LlsgUex9GHM86Wm2QsRS/SzszmpT91mSFqi/IqLJe9x/J5fh+q7KELGu7LwO?=
+ =?us-ascii?Q?CWn6lleAmNbzepBHqMI1m24/FUH+ofBmNf5rGkaneF3ioqDfqx6m+ayQ4ub5?=
+ =?us-ascii?Q?1TFPZG09ixqjqpl5ymp8ScXqCs9rAN/qilSBkAFqL3wUwK8Q77O6UXq2TbpY?=
+ =?us-ascii?Q?DP3VhORJzI66/0yP+0yz5ZuQWwBb7iRKcDs2KRFSTpIMhcnQFZxZmMUYuDAs?=
+ =?us-ascii?Q?c+hBcC9UktObpbiLxbMRyBnbJQQzp7m2qnkoA3mXgivKvK/Fb6GcgmeWazLS?=
+ =?us-ascii?Q?+iDH1H0WZhI/MjP1JWLH7JpPYGcFDBnkTOgC/W8wa+LUKqovIcLon5d5H+cT?=
+ =?us-ascii?Q?AGd3I80mQdaL4Mlprh3HgORiO/CoFOMdxpDbvYs6HCpW6i2QYpuxKmMcTCgJ?=
+ =?us-ascii?Q?8hmY2DJQPWVj71O2jnbY+BGZMelB3x/HlkzejPmvzfiBjPCYCzmX5+E2Mob7?=
+ =?us-ascii?Q?hEOjhZMuvsNgMzi9ebkJ5MjLa0TRDpP9DpliHk4UDWWXi6PRLS/Jk4Bce8yF?=
+ =?us-ascii?Q?onwqlneVel/xOxH47RAb8mfEdBSD+mrIaVVeKZpsM1KIN1ahRZywSBkXBSMQ?=
+ =?us-ascii?Q?u9KqeIVWkAs22YXGZn4Sbtlkx/KYPIdi6FWuU6WM7F6X0Bgyxj71oHP+hQcR?=
+ =?us-ascii?Q?AFZ+ct6XShK3jEU9eSjQi8i3cGIPI7Yyhj60QnQKM2qOtb3GwFr5WCCNuRUf?=
+ =?us-ascii?Q?5nSWRrlzK0+aUZGmac8VpbVP6mPdgRSa78n/sWwRYfVQJVnDK72Yu/cLyD8u?=
+ =?us-ascii?Q?mMafUKX75BmqGukOr8LEdPms6Px0AYba9ARWUSp3om0iz/iArKyU9FNpMTMI?=
+ =?us-ascii?Q?8g0N2tBQaNEJ0/ys/v9BLcYcRPtXDURtGA2x35qBy8ou5uXj+0N/mU1gpgvF?=
+ =?us-ascii?Q?QtUV+et27NYAXhVmY7xEbfEV0p/NW/Uel7GCEvP3HnFUCfaLGAqhDCroOcj3?=
+ =?us-ascii?Q?JU+hgCrjQrE00mXjUajR8SqpHPBERMXRPwUdReYfWSNiYHtfaFLSwwTndtd5?=
+ =?us-ascii?Q?KhS1jQ7BYJtOW5mX2X+wnt2FasTBq2J/73sVKyHYfMpKqvpgQmJ9vqYK18Bo?=
+ =?us-ascii?Q?xMy5sTy7KY4ClsI+N+xhC6fTMctQAz4HSdsiyR+fa7UcP6r5ZsNR6r1YzDyH?=
+ =?us-ascii?Q?yXg7u273BMPWEC/Q2z2E9ya8vE2BehJYbQJPCgFNBfp6JqVYvvRUVU9l+3CD?=
+ =?us-ascii?Q?fGf+J7IzfX1ozYKCIvHNVAW18MyJLW1bga0klYa8j3+9MR+EDZARrMh8NTN7?=
+ =?us-ascii?Q?NT38yfL4MOMf/s9WNe+z9B8HYAIKqacmClYW147VlRYT/oaX2394CCisZPFZ?=
+ =?us-ascii?Q?UQPAoNM55BqdvHtY02FnueFvNpXhPZ61W0aFmw4aYezmfK8iKDjPi2nc37r4?=
+ =?us-ascii?Q?msxz/OCD0ZtwCMJJpC5va7TEFMeFpxNRHkMPxqDGcfaerTH6iIqOTpOE9glE?=
+ =?us-ascii?Q?0nCYDw0eaQ9PptkfJceTwxh0kF4z5Lh/sHdXREAFyPwlBGTTbMt6q6I16f8H?=
+ =?us-ascii?Q?DdByNOtftMvOy3b11WI9ySaTdTkQbgn1dFcgO3219FcuKZGnIG7fTo3dEyn1?=
+ =?us-ascii?Q?VY0V6vjmuwONUP2mjdWY72Q4HcPbo5hHfxcByMAUp/5oySjfpGTuRFytm0m2?=
+ =?us-ascii?Q?Vg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: fc8edae4-87d9-4f94-b399-08dd3143dd5b
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jan 2025 06:56:10.4273
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: BwCO09EmqLcx0mAl/hNfRyWaNawDwuaiIZxy6F6cVqggxzZa5eWtKK4CEacz1ciS4xTV0BON+b3PYFWwpcXVzFEcjqmVaC8KLYU2NVlt6DI=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB4709
+X-OriginatorOrg: intel.com
 
-Hello Alistair Popple,
+Alistair Popple wrote:
+> On Wed, Jan 08, 2025 at 04:14:20PM -0800, Dan Williams wrote:
+> > Alistair Popple wrote:
+> > > Prior to freeing a block file systems supporting FS DAX must check
+> > > that the associated pages are both unmapped from user-space and not
+> > > undergoing DMA or other access from eg. get_user_pages(). This is
+> > > achieved by unmapping the file range and scanning the FS DAX
+> > > page-cache to see if any pages within the mapping have an elevated
+> > > refcount.
+> > > 
+> > > This is done using two functions - dax_layout_busy_page_range() which
+> > > returns a page to wait for the refcount to become idle on. Rather than
+> > > open-code this introduce a common implementation to both unmap and
+> > > wait for the page to become idle.
+> > > 
+> > > Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> > > 
+> > > ---
+> > > 
+> > > Changes for v5:
+> > > 
+> > >  - Don't wait for idle pages on non-DAX mappings
+> > > 
+> > > Changes for v4:
+> > > 
+> > >  - Fixed some build breakage due to missing symbol exports reported by
+> > >    John Hubbard (thanks!).
+> > > ---
+> > >  fs/dax.c            | 33 +++++++++++++++++++++++++++++++++
+> > >  fs/ext4/inode.c     | 10 +---------
+> > >  fs/fuse/dax.c       | 29 +++++------------------------
+> > >  fs/xfs/xfs_inode.c  | 23 +++++------------------
+> > >  fs/xfs/xfs_inode.h  |  2 +-
+> > >  include/linux/dax.h | 21 +++++++++++++++++++++
+> > >  mm/madvise.c        |  8 ++++----
+> > >  7 files changed, 70 insertions(+), 56 deletions(-)
+> > > 
+> > > diff --git a/fs/dax.c b/fs/dax.c
+> > > index d010c10..9c3bd07 100644
+> > > --- a/fs/dax.c
+> > > +++ b/fs/dax.c
+> > > @@ -845,6 +845,39 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index)
+> > >  	return ret;
+> > >  }
+> > >  
+> > > +static int wait_page_idle(struct page *page,
+> > > +			void (cb)(struct inode *),
+> > > +			struct inode *inode)
+> > > +{
+> > > +	return ___wait_var_event(page, page_ref_count(page) == 1,
+> > > +				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
+> > > +}
+> > > +
+> > > +/*
+> > > + * Unmaps the inode and waits for any DMA to complete prior to deleting the
+> > > + * DAX mapping entries for the range.
+> > > + */
+> > > +int dax_break_mapping(struct inode *inode, loff_t start, loff_t end,
+> > > +		void (cb)(struct inode *))
+> > > +{
+> > > +	struct page *page;
+> > > +	int error;
+> > > +
+> > > +	if (!dax_mapping(inode->i_mapping))
+> > > +		return 0;
+> > > +
+> > > +	do {
+> > > +		page = dax_layout_busy_page_range(inode->i_mapping, start, end);
+> > > +		if (!page)
+> > > +			break;
+> > > +
+> > > +		error = wait_page_idle(page, cb, inode);
+> > 
+> > This implementations removes logic around @retry found in the XFS and
+> > FUSE implementations, I think that is a mistake, and EXT4 has
+> > apparently been broken in this regard.
+> 
+> I think both implementations are equivalent though, just that the XFS/FUSE ones are
+> spread across two functions with the retry happening in the outer function
+> whilst the EXT4 implementation is implemented in a single function with a do/
+> while loop.
+> 
+> Both exit early if dax_layout_busy_page() doesn't find a DMA-busy page, and
+> both call dax_layout_busy_page() a second time after waiting on a page to become
+> idle. So I don't think anything is broken here, unless I've missed something.
 
-Commit 738ec092051b ("fs/dax: create a common implementation to break
-DAX layouts") from Jan 7, 2025 (linux-next), leads to the following
-Smatch static checker warning:
+Nope, you're right. I crossed my eyes flipping between FUSE/XFS and EXT4.
 
-	fs/dax.c:966 dax_break_mapping()
-	error: uninitialized symbol 'error'.
+> 
+> > wait_page_idle() returns after @page is idle, but that does not mean
+> > @inode is DMA idle. After one found page from
+> > dax_layout_busy_page_range() is waited upon a new call to
+> > dax_break_mapping() needs to made to check if another DMA started, or if
+> > there were originally more pages active.
+> > 
+> > > +	} while (error == 0);
+> > > +
+> > > +	return error;
+> > 
+> > Surprised that the compiler does not warn about an uninitialized
+> > variable here?
+> 
+> So am I. Turns out this is built with -Wno-maybe-uninitialized and it's not
+> certain error is used uninitialized because we may bail early if this is not a
+> dax_mapping. So it's only maybe used uninitialized which isn't warned about.
 
-fs/dax.c
-   946  int dax_break_mapping(struct inode *inode, loff_t start, loff_t end,
-   947                  void (cb)(struct inode *))
-   948  {
-   949          struct page *page;
-   950          int error;
-   951  
-   952          if (!dax_mapping(inode->i_mapping))
-   953                  return 0;
-   954  
-   955          do {
-   956                  page = dax_layout_busy_page_range(inode->i_mapping, start, end);
-   957                  if (!page)
-
-error is uninitialized if dax_layout_busy_page_range() returns NULL on
-first iteration.
-
-   958                          break;
-   959  
-   960                  error = wait_page_idle(page, cb, inode);
-   961          } while (error == 0);
-   962  
-   963          if (!page)
-   964                  dax_delete_mapping_range(inode->i_mapping, start, end);
-   965  
-   966          return error;
-   967  }
-
-
-regards,
-dan carpenter
+Looks like smatch just caught it.
