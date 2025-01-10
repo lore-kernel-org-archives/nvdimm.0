@@ -1,65 +1,65 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 737171A9B4A
-	for <nvdimm@lists.linux.dev>; Fri, 10 Jan 2025 06:35:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBEBF433B3
+	for <nvdimm@lists.linux.dev>; Fri, 10 Jan 2025 06:37:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736490961; cv=none; b=IZ6OJ8/LVsE91tBEgO71SkmlkHALxyqFxoA16gQiITYX/dotRFVh1QxpDsbbaz7Fj01eMdRS/c9NFGjyBkch5sMPK9fd77CkuMwEtOlglfIT32dVknNjcmLO8XEkpqW6zq2SHeMUC9gGQnQx9gstw4GcapQ4oYrubNaeVfqMLdU=
+	t=1736491076; cv=none; b=tZDUXXjEhs/+xuV3tYKp9hUWmiRw3ZWUcFEUgrVT9xubFW/VB2vVbR1t0BJRXkasJfO+46Bh9V7FxlkmrCWIbDWRMDKN4jmdNjJo/ZwBKwfBVE5tbXj6NmftDHLDYO/h1dpGBDlJd4B6g0cZgzl5OYkR1hc7AetyTLJLaztxpjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736490961; c=relaxed/simple;
-	bh=gNoZjmXMTGaHco+cxD/Jb6GHTsnaytjcf9LRxYDW07s=;
+	s=arc-20240116; t=1736491076; c=relaxed/simple;
+	bh=awsTPmQvBlkJV4QItLFObuZLWLIeKMzAcIxcpxE5PEU=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=YTBzRTHv/GPfpJUp+l469wMwyhllphJrZRfULOVlHCAUrSmxQpxQm7JezghkX3Gw45iVhfpT9Au2ciTxC8QQHQjMH6+CsRj7/l5K7Z6KYCoJKiYA/YDKIDP9E2C1gYl6DJnd0m9dMdjodZUMfi9HKz/ZRUj2qhzf81WAQHk+BbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=pi43INME; arc=none smtp.client-ip=209.85.221.42
+	 Content-Disposition; b=DdjoXicmFEBy3uYR+Nu7awGmyAmogcD9oCuKjVVWRwltwAyn5P+ynpikTV2g810X7czRi4lSNXZpQCc81E4/ADx1NNmsYVqena82P9NSA+r8ECBJtr/UsQYrXWqSIJu2MCpLlbiI7hLXssiLR32lKA2vkN5Gk36zH7i4worBHcg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=uGom46B0; arc=none smtp.client-ip=209.85.221.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="pi43INME"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-38637614567so854726f8f.3
-        for <nvdimm@lists.linux.dev>; Thu, 09 Jan 2025 22:35:59 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="uGom46B0"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-38a8b17d7a7so897340f8f.2
+        for <nvdimm@lists.linux.dev>; Thu, 09 Jan 2025 22:37:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1736490958; x=1737095758; darn=lists.linux.dev;
+        d=linaro.org; s=google; t=1736491073; x=1737095873; darn=lists.linux.dev;
         h=content-disposition:mime-version:message-id:subject:cc:to:from:date
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=Ltp5c9SQJJwLa6Bkc/1r8Fhm7xJG4V3DKZrPfgONzBY=;
-        b=pi43INMEhaQ9kMI6jw3pZOw0TdtPRdhroFRgHDxWkvQ9YQWFbHTbdPRdkCr7Ahk48+
-         N9TSGu/mGiccmgqpBylPD8RI8QQ4A2srFPGLH7hAEEplKKq7cPOLJ56MVGq5GRtLN4ry
-         Wsnek14H16ZOSD4/JeIjo2ceumVOMxH+VGqB61b7ar9bkRWtuA1kHaJqa6ilvScYmwTA
-         dJeAMv1UzxDh7M4K9V37/KLcctdFj/h8ubpXaDfdJ3PNbvm1l0+aTBtSIVb1wuhxUyiF
-         are+K2RqGV8tUiztT87Tvt7Vwsyf8FNILY6YDJCSDvgyoYb2eSM1n7mr2rX7/eI9Lov0
-         2VgA==
+        bh=JFYR7aJE4K0RLJJn1Yc12u/2E+HvILbr6XuyBiLmQCs=;
+        b=uGom46B0HEft78f3J6FFgzSi6SE81+1rZ4/ljB/gD4bCe1Zgs066WxNz6KwCexaNDU
+         IKh+8WQSExwqfdpiRNl5juXA8mRzmhKJ7nLcG+fBCgl0cuiJ6Fcg4io4wH5BNGDJ+sr/
+         fWrxSlpqJ2Ms8rjb9khiBswQXLsxV5h4XPj+/60mlKUTq03OnVp7ukHssLk4D8DE56ZN
+         s2ZadJKqww0Q9SqqmkYz5phzT33a0l4tLqCFqyItlaidOFHjGTBEOLSwUnOMrBzaHosb
+         +FWcGnciCuXkE1ltXdcXojByiioq9bjQyPmF1HOH5JHIwy+ek1T7E5GoF3CdTeTFg63d
+         oNHw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736490958; x=1737095758;
+        d=1e100.net; s=20230601; t=1736491073; x=1737095873;
         h=content-disposition:mime-version:message-id:subject:cc:to:from:date
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Ltp5c9SQJJwLa6Bkc/1r8Fhm7xJG4V3DKZrPfgONzBY=;
-        b=ZIuukSbm4MILXRnjkDV+IFWPhOR0JB1Hx6azaIrvfr2eUo/z2rnF0+68EbDE+8h/hv
-         6DKfgVL9IakL1vE984wy5rInQ7ocANnHAx36nNjeKBdA2SNa+0GyHlHBEpUMFCInbutZ
-         iUvKygn6LkmlBdathcOCEWhx0TVktHInhW7bMftHjfb1db1Z2c6xjqkczuGuNSeufPTX
-         T9xzNU8cj3MXrFT70Rdvdqixflvoz00ootctJ4JnsS6VCvSiVFrhafcIZuvK3iM/rN5p
-         4Non19JCSoQQ7pI5TX0ukvS4fdb8z6CH1Nx1z0LrEThKGJdgjyILbQhTMfsjSq+ox46Y
-         y3PA==
-X-Gm-Message-State: AOJu0YxSRM4PQu7luO/YuAhOXp8Ylf2982C2Z7P+eimFr390ePULW6uP
-	4dmDMronwTd/7zZ6bwE+8wMugwgEeM17j0Ws17X8rZz8QV9voAgU7VprUVEeACKLaxHFNdwguOD
-	W
-X-Gm-Gg: ASbGncvLVGZYtiHSfOWf1eMsxMuBeQYtEMaTnwHLpKOgxLOptHu0SUDEtfoK/wj3MhO
-	T5Zd9isc8b4EplpaAP8Xszw6L0zTyBjZ/7Irs90sRmfuXb93NPaPuDWdeHC0TlvZscXCcENku9Z
-	7eHoNDG1zy8V3kF3GaLg34f6OHyXfS3DVKQwxTWK1BKsaGNa+5nNFTXBb5q9eCU59q/k2b1n1c1
-	0oeIBIlZDYD1FSxC3EgtsnG8SGhusbrjyIJkrwXvOg3xK1CPTSCpK/utM5OlQ==
-X-Google-Smtp-Source: AGHT+IFoCHVs2/tXoGdNPIM9GoyDCEW/KR44zfp4vkpZwOu83VQyNxWQGHSyWlWBTnCSjGdIu0lbNw==
-X-Received: by 2002:a05:6000:154f:b0:386:373f:47c4 with SMTP id ffacd0b85a97d-38a873579b3mr8228780f8f.49.1736490957811;
-        Thu, 09 Jan 2025 22:35:57 -0800 (PST)
+        bh=JFYR7aJE4K0RLJJn1Yc12u/2E+HvILbr6XuyBiLmQCs=;
+        b=C5xCEcMPs2H6RGQMzbWHVjkyptbRkKCf64BLIEUihLb4tNDGvnsVvezURjw3HY+8c5
+         5MuMCcR656FYFizzSJKptUWh39+487NDGgL2okOnNTE6WD67cDGBhHLm2TsBmRpY+508
+         /4VCHmx/jfbQr/5JmAxcoYkxOfniJT5Zd5pb3Tppcgpx3eKrl9OSoJ10/npCu5DxE/Jx
+         UT85H+WzG8tT4K9HtCpwJhzrey2musXG8aZeN6YcyLWPwEoX7wINn3MGYjha+vr64jdW
+         RssYvqpl8uf0tIZ5wHZBUunNeKXPdZayEYmkgpUY+lLlkwW4cM0qpwW462FCJNSbFWSd
+         T9Ew==
+X-Gm-Message-State: AOJu0Yzxia00BQMm4gDWw2Jxn86YkU6rYLMEebl9NpP4iDiSVeDRhKh3
+	ONVlByIyvE7jpdZF7g07aNrxmZdbqYOxchMmRE31zEErhZYO2Fyk23+AUU0jWbY=
+X-Gm-Gg: ASbGncvqH5E5mt4s2hp4lvoiewyiict92GG0RF3qR1NNcrxs1ysJZz425ycLxE+fwDu
+	hpoxMrjYluZaAKd2vKzWtU+kIYIp5fUU6yYiumWGuhbtqqOpbTvFulzXnX5K0GBp3SHQeZ468dq
+	rNvwEsaiORTjy62lr3O8FdHwnvl0HL4BKVQbFxg0AbdHS2oFkntxn8x15+JFEML/gKv6iqDs0tO
+	XmKX625KTM/9ET+P5mO6luv6GwhE4OkoBu1V53nXs+7k659Nh3WpB8PsFGWhw==
+X-Google-Smtp-Source: AGHT+IG1Dx6WEsIq4Wrt3DN0FdjnHx5JsV++TFvOm7TiHBJqkEKo9M0c+WCGQf0nzS65xPuKuAYtVA==
+X-Received: by 2002:a5d:5f52:0:b0:38a:8647:3dac with SMTP id ffacd0b85a97d-38a8731fac1mr7651934f8f.34.1736491072662;
+        Thu, 09 Jan 2025 22:37:52 -0800 (PST)
 Received: from localhost ([196.207.164.177])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38a8e37d0b1sm3679168f8f.12.2025.01.09.22.35.56
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-38a8e383965sm3716240f8f.31.2025.01.09.22.37.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Jan 2025 22:35:57 -0800 (PST)
-Date: Fri, 10 Jan 2025 09:35:54 +0300
+        Thu, 09 Jan 2025 22:37:52 -0800 (PST)
+Date: Fri, 10 Jan 2025 09:37:48 +0300
 From: Dan Carpenter <dan.carpenter@linaro.org>
 To: Alistair Popple <apopple@nvidia.com>
 Cc: nvdimm@lists.linux.dev
-Subject: [bug report] fs/dax: properly refcount fs dax pages
-Message-ID: <1a5de319-a33b-4264-aec0-ffb1283b6ee9@stanley.mountain>
+Subject: [bug report] fs/dax: create a common implementation to break DAX
+ layouts
+Message-ID: <92b31d7c-3a51-4cc4-a679-ddf271fa8521@stanley.mountain>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -71,56 +71,41 @@ Content-Disposition: inline
 
 Hello Alistair Popple,
 
-Commit 9c4409f51aa3 ("fs/dax: properly refcount fs dax pages") from
-Jan 7, 2025 (linux-next), leads to the following Smatch static
-checker warning:
+Commit 738ec092051b ("fs/dax: create a common implementation to break
+DAX layouts") from Jan 7, 2025 (linux-next), leads to the following
+Smatch static checker warning:
 
-	fs/dax.c:379 dax_folio_share_put()
-	warn: unsigned 'ref' is never less than zero.
+	fs/dax.c:966 dax_break_mapping()
+	error: uninitialized symbol 'error'.
 
 fs/dax.c
-    370 static inline unsigned long dax_folio_share_put(struct folio *folio)
-    371 {
-    372         unsigned long ref;
-    373 
-    374         if (!dax_folio_is_shared(folio))
-    375                 ref = 0;
-    376         else
-    377                 ref = --folio->share;
-    378 
---> 379         WARN_ON_ONCE(ref < 0);
-                             ^^^^^^^
-impossible
+   946  int dax_break_mapping(struct inode *inode, loff_t start, loff_t end,
+   947                  void (cb)(struct inode *))
+   948  {
+   949          struct page *page;
+   950          int error;
+   951  
+   952          if (!dax_mapping(inode->i_mapping))
+   953                  return 0;
+   954  
+   955          do {
+   956                  page = dax_layout_busy_page_range(inode->i_mapping, start, end);
+   957                  if (!page)
 
-    380         if (!ref) {
-    381                 folio->mapping = NULL;
-    382                 if (folio_order(folio)) {
-    383                         struct dev_pagemap *pgmap = page_pgmap(&folio->page);
-    384                         unsigned int order = folio_order(folio);
-    385                         unsigned int i;
-    386 
-    387                         for (i = 0; i < (1UL << order); i++) {
-    388                                 struct page *page = folio_page(folio, i);
-    389 
-    390                                 ClearPageHead(page);
-    391                                 clear_compound_head(page);
-    392 
-    393                                 /*
-    394                                  * Reset pgmap which was over-written by
-    395                                  * prep_compound_page().
-    396                                  */
-    397                                 page_folio(page)->pgmap = pgmap;
-    398 
-    399                                 /* Make sure this isn't set to TAIL_MAPPING */
-    400                                 page->mapping = NULL;
-    401                                 page->share = 0;
-    402                                 WARN_ON_ONCE(page_ref_count(page));
-    403                         }
-    404                 }
-    405         }
-    406 
-    407         return ref;
-    408 }
+error is uninitialized if dax_layout_busy_page_range() returns NULL on
+first iteration.
+
+   958                          break;
+   959  
+   960                  error = wait_page_idle(page, cb, inode);
+   961          } while (error == 0);
+   962  
+   963          if (!page)
+   964                  dax_delete_mapping_range(inode->i_mapping, start, end);
+   965  
+   966          return error;
+   967  }
+
 
 regards,
 dan carpenter
