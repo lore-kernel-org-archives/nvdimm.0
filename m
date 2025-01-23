@@ -1,117 +1,115 @@
-Received: from ksmg02.maxima.ru (ksmg02.maxima.ru [81.200.124.39])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D52470817
-	for <nvdimm@lists.linux.dev>; Thu, 23 Jan 2025 16:51:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.200.124.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AD821D54FA
+	for <nvdimm@lists.linux.dev>; Thu, 23 Jan 2025 23:43:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737651087; cv=none; b=S2ktzKhKkpdX9ZIsNKtqG/x2n9D8iPiD82hp9BtYsCIwA+ORYTjiH3KIDiYWLIHQca4FmGw0ZN+Ua4kT4RkDkblhcYURzt50rBkjJRqBsBJOqQ00jgMf+wOf8ltZ7rbBgGWhGwJfsEVQt/Df07a6hbpjz+gOqms9ihdEHJV8TRQ=
+	t=1737675806; cv=none; b=WEWKG3ufpP3SDhJVSYzM/DNGZKb+VAlkMYAD2AeeO/gqC8mTjLvIl11FSaBH8YGtkP/hO/6CsDRk3P2vtCET8naTh86XPifTJFBZfC7RtbokdU9bSS0BJPBStT8RAWh1Fag4d2PF0u1h+LcK+ZUCQSqB3bifZDIdLN9jgcmmYn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737651087; c=relaxed/simple;
-	bh=Z7ty9WVbB0M4TxOo48ZyHFsHyJ48xfUCwM0/dhzUu0Q=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GPpUBodCPal/BHJn/hyT6pO0GrUmne13kTAKsgiY4ImyxEJo4+XYLe9QE2kaBqfw7cZ6yUGBW3b/YFlu1gt32I+fkIlP5H/Sb7Mhq4jVlUD4OfWcYLEPEYPxZgwhidgM3Yv/qsLoG0jwmcIU75gIwX94KcVLIqSkjRAnGp99LwQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mt-integration.ru; spf=pass smtp.mailfrom=mt-integration.ru; dkim=pass (2048-bit key) header.d=mt-integration.ru header.i=@mt-integration.ru header.b=ZbOn/ynG; arc=none smtp.client-ip=81.200.124.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mt-integration.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mt-integration.ru
+	s=arc-20240116; t=1737675806; c=relaxed/simple;
+	bh=pd8v4DJXn+nrkFcg3+sLe00ManGxlnYRoHhRl4IITgs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=gjrdksXMyREvZenCYkH+oiX4xSODIJ+5JXWA5V2jN8kmu7++JFLBtMHazabx/qcIJhw4i0fJk7cwibpX+pNmtA0DqgNYAZKIms67k6ljjEQ5P25BDmVE1aBUkpgRX/ovhfZ9IbJPnIaRbFcoVd6n+zfbyYC5+rtEppG/EEZsZiE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UPKMXy4K; arc=none smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mt-integration.ru header.i=@mt-integration.ru header.b="ZbOn/ynG"
-Received: from ksmg02.maxima.ru (localhost [127.0.0.1])
-	by ksmg02.maxima.ru (Postfix) with ESMTP id A65341E0003;
-	Thu, 23 Jan 2025 19:42:16 +0300 (MSK)
-DKIM-Filter: OpenDKIM Filter v2.11.0 ksmg02.maxima.ru A65341E0003
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mt-integration.ru;
-	s=sl; t=1737650536; bh=YuwjCf1HyLvGPjp3W8Ochs01wpAdi5nVwsFvz0dXPUU=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:From;
-	b=ZbOn/ynGiW3Sl3IeYlDSaUSDbUGhwQR67umH5VqTktwh0zHbw67eAPtJgGjBnyp82
-	 rXSuB2Bd6h7rxYGOghtHfFodPhicirO+Rd65jY729GR7bF9w4D5pjbqiaYXvXFMplq
-	 8iQZ8U7FbSuM4VcwHbYRSqBNzz9E2vJrUzTZ24k8Nw7ttlaRYnj0kGPHv+QqMOVAQ4
-	 hEsrxaKJf0/KqX9WLCKDpiw9pYvlw7Gr/TAo+He3Z70mo/LAL8oCRdY0hr5LuMUby9
-	 TIACU8D9MGenae/F2K9Diw9GTPLWjsYRttNDtaWD81t8q8Qlc/sIL2nRrE/cOt64mC
-	 7smuFj8aVPRkA==
-Received: from ksmg02.maxima.ru (autodiscover.maxima.ru [81.200.124.62])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(Client CN "*.maxima.ru", Issuer "GlobalSign GCC R3 DV TLS CA 2020" (verified OK))
-	by ksmg02.maxima.ru (Postfix) with ESMTPS;
-	Thu, 23 Jan 2025 19:42:09 +0300 (MSK)
-Received: from GS-NOTE-190.mt.ru (10.0.247.8) by mmail-p-exch02.mt.ru
- (81.200.124.62) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.1544.4; Thu, 23 Jan
- 2025 19:42:08 +0300
-From: Murad Masimov <m.masimov@mt-integration.ru>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
-	<dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, "Rafael J. Wysocki"
-	<rafael@kernel.org>, Len Brown <lenb@kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<lvc-project@linuxtesting.org>, Murad Masimov <m.masimov@mt-integration.ru>,
-	<stable@vger.kernel.org>,
-	<syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com>
-Subject: [PATCH] acpi: nfit: fix narrowing conversion in acpi_nfit_ctl
-Date: Thu, 23 Jan 2025 19:39:45 +0300
-Message-ID: <20250123163945.251-1-m.masimov@mt-integration.ru>
-X-Mailer: git-send-email 2.46.0.windows.1
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UPKMXy4K"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1737675804; x=1769211804;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=pd8v4DJXn+nrkFcg3+sLe00ManGxlnYRoHhRl4IITgs=;
+  b=UPKMXy4Kk632SRXwhGJSYEDV9+xmDDNcvazIXjRvraU+xRyClO71wLIe
+   Fi1aqE73GvKgWnhU0CHUlx48DA0EgAdwhXM4BtUaFuz9/DeQmVQopKBZY
+   IYRfxAtkdarxtHeOAJwRw2TDpi5DEUGu9LbZPm9NdltR6F2L3NJTzCQhR
+   fFVJhXS1M8GuxzZu6Cjw9I6zXj6PaiVTJ7TheG3CbOB9kXlsLvzWpTgHB
+   LxjAiN7PAzHS1ZmMNw2fvb/jqZ8tJqTq5xnofi7F720Zc0HZbGSKBjkLF
+   hTw0kqVvatenCbKOU7M31oqHyOITbLAnAOP8QMcia5xDjPDfHhdkjJK0y
+   w==;
+X-CSE-ConnectionGUID: ZnfocR2ETFm1xdIA+EXhcg==
+X-CSE-MsgGUID: 9as6i+CGRnGpoh+RbS0CBA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11324"; a="41869752"
+X-IronPort-AV: E=Sophos;i="6.13,229,1732608000"; 
+   d="scan'208";a="41869752"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2025 15:43:24 -0800
+X-CSE-ConnectionGUID: JJN88XbhS7G6dqcCUx695g==
+X-CSE-MsgGUID: J+j8P9r4TLy8qsDDg4I4zA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.13,229,1732608000"; 
+   d="scan'208";a="107426311"
+Received: from agladkov-desk.ger.corp.intel.com (HELO [10.125.110.229]) ([10.125.110.229])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2025 15:43:23 -0800
+Message-ID: <649ed1bb-0686-42f0-802f-9f1909aeed8c@intel.com>
+Date: Thu, 23 Jan 2025 16:43:21 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: mt-exch-01.mt.ru (91.220.120.210) To mmail-p-exch02.mt.ru
- (81.200.124.62)
-X-KSMG-AntiPhishing: NotDetected, bases: 2025/01/23 15:43:00
-X-KSMG-AntiSpam-Auth: dmarc=none header.from=mt-integration.ru;spf=none smtp.mailfrom=mt-integration.ru;dkim=none
-X-KSMG-AntiSpam-Envelope-From: m.masimov@mt-integration.ru
-X-KSMG-AntiSpam-Info: LuaCore: 50 0.3.50 df4aeb250ed63fd3baa80a493fa6caee5dd9e10f, {rep_avail}, {Tracking_one_url, url3}, {Tracking_uf_ne_domains}, {Tracking_from_domain_doesnt_match_to}, d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;ksmg02.maxima.ru:7.1.1;mt-integration.ru:7.1.1;127.0.0.199:7.1.2;81.200.124.62:7.1.2;syzkaller.appspot.com:5.0.1,7.1.1, FromAlignment: s, ApMailHostAddress: 81.200.124.62
-X-KSMG-AntiSpam-Interceptor-Info: scan successful
-X-KSMG-AntiSpam-Lua-Profiles: 190535 [Jan 23 2025]
-X-KSMG-AntiSpam-Method: none
-X-KSMG-AntiSpam-Rate: 0
-X-KSMG-AntiSpam-Status: not_detected
-X-KSMG-AntiSpam-Version: 6.1.1.7
-X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.1.1.8310, bases: 2025/01/23 13:11:00 #27106774
-X-KSMG-AntiVirus-Status: NotDetected, skipped
-X-KSMG-LinksScanning: NotDetected, bases: 2025/01/23 15:43:00
-X-KSMG-Message-Action: skipped
-X-KSMG-Rule-ID: 7
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] acpi: nfit: fix narrowing conversion in acpi_nfit_ctl
+To: Murad Masimov <m.masimov@mt-integration.ru>,
+ Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, lvc-project@linuxtesting.org,
+ stable@vger.kernel.org, syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com
+References: <20250123163945.251-1-m.masimov@mt-integration.ru>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20250123163945.251-1-m.masimov@mt-integration.ru>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Syzkaller has reported a warning in to_nfit_bus_uuid(): "only secondary
-bus families can be translated". This warning is emited if the argument
-is equal to NVDIMM_BUS_FAMILY_NFIT == 0. Function acpi_nfit_ctl() first
-verifies that a user-provided value call_pkg->nd_family of type u64 is
-not equal to 0. Then the value is converted to int, and only after that
-is compared to NVDIMM_BUS_FAMILY_MAX. This can lead to passing an invalid
-argument to acpi_nfit_ctl(), if call_pkg->nd_family is non-zero, while
-the lower 32 bits are zero.
 
-All checks of the input value should be applied to the original variable
-call_pkg->nd_family.
 
-Found by Linux Verification Center (linuxtesting.org) with Syzkaller.
+On 1/23/25 9:39 AM, Murad Masimov wrote:
+> Syzkaller has reported a warning in to_nfit_bus_uuid(): "only secondary
+> bus families can be translated". This warning is emited if the argument
+> is equal to NVDIMM_BUS_FAMILY_NFIT == 0. Function acpi_nfit_ctl() first
+> verifies that a user-provided value call_pkg->nd_family of type u64 is
+> not equal to 0. Then the value is converted to int, and only after that
+> is compared to NVDIMM_BUS_FAMILY_MAX. This can lead to passing an invalid
+> argument to acpi_nfit_ctl(), if call_pkg->nd_family is non-zero, while
+> the lower 32 bits are zero.
+> 
+> All checks of the input value should be applied to the original variable
+> call_pkg->nd_family.
+> 
+> Found by Linux Verification Center (linuxtesting.org) with Syzkaller.
+> 
+> Fixes: 6450ddbd5d8e ("ACPI: NFIT: Define runtime firmware activation commands")
+> Cc: stable@vger.kernel.org
+> Reported-by: syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=c80d8dc0d9fa81a3cd8c
+> Signed-off-by: Murad Masimov <m.masimov@mt-integration.ru>
 
-Fixes: 6450ddbd5d8e ("ACPI: NFIT: Define runtime firmware activation commands")
-Cc: stable@vger.kernel.org
-Reported-by: syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=c80d8dc0d9fa81a3cd8c
-Signed-off-by: Murad Masimov <m.masimov@mt-integration.ru>
----
- drivers/acpi/nfit/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+While the change logically makes sense, the likelihood of nd_family > int_size is not ever likely. Given that NVDIMM_BUS_FAMILY_MAX is defined as 1, I don't think we care about values greater than that regardless of what is set in the upper 32bit of the u64. I'm leaning towards the fix is unnecessary.   
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a5d47819b3a4..ae035b93da08 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -485,7 +485,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		cmd_mask = nd_desc->cmd_mask;
- 		if (cmd == ND_CMD_CALL && call_pkg->nd_family) {
- 			family = call_pkg->nd_family;
--			if (family > NVDIMM_BUS_FAMILY_MAX ||
-+			if (call_pkg->nd_family > NVDIMM_BUS_FAMILY_MAX ||
- 			    !test_bit(family, &nd_desc->bus_family_mask))
- 				return -EINVAL;
- 			family = array_index_nospec(family,
---
-2.39.2
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index a5d47819b3a4..ae035b93da08 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -485,7 +485,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+>  		cmd_mask = nd_desc->cmd_mask;
+>  		if (cmd == ND_CMD_CALL && call_pkg->nd_family) {
+>  			family = call_pkg->nd_family;
+> -			if (family > NVDIMM_BUS_FAMILY_MAX ||
+> +			if (call_pkg->nd_family > NVDIMM_BUS_FAMILY_MAX ||
+>  			    !test_bit(family, &nd_desc->bus_family_mask))
+>  				return -EINVAL;
+>  			family = array_index_nospec(family,
+> --
+> 2.39.2
+> 
 
