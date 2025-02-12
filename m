@@ -1,69 +1,56 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B273620AF8E
-	for <nvdimm@lists.linux.dev>; Wed, 12 Feb 2025 15:27:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EB4A1EC011
+	for <nvdimm@lists.linux.dev>; Wed, 12 Feb 2025 16:01:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739374073; cv=none; b=K3krxUamwBVe3/VojbFTPkNfIEXhMAT6q+zGajeZvJflFNha32cRhUn330oTUXSwq5QsQa4Yb+UxQ4g5diAxdz0FGU0sI6/UyKsOch4R/VRX3VGgJwH+Yk8G7J+yx1Voh87dl4NyX6sz0+tNLOKzrXW/9fTNDr7K6cBChTbrjCo=
+	t=1739376071; cv=none; b=ngPp+oHAd23seWDEIzghiXDB+EBXw49VV0+mTtbo0NZrFJ0/i508KZtyN6gKSueinFVRL7tf3D6kt261KsLQoBW3tPoROhIJlEJ/EUJyOhaJx9qVt/raG/vsGw6DgdjsAu+mvE9hSlolYE7Y2TgeLtJ+HgmJFcEJRqiWTld8pB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739374073; c=relaxed/simple;
-	bh=nGOHHKMn8GtXJDicwnkL8tmz9VcKp2LxDT7FzaficDQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=nNj8QWKGtySGyQYECvfZ3S+prn4L5Tm+cYOVDpl33KyWZLfS+MAM5uurABg/0aZn8JVSQDrUQsX4hYhq+gk8rFGbwsNmo8//q7YlKDUQmFSwti1exXPGRp6DFw8F+nY6IsXh6Or9AEhBFg88/yEBblRv/oWux4T1Z/tJf4i1KiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=pSFr5FjL; arc=none smtp.client-ip=209.85.218.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1739376071; c=relaxed/simple;
+	bh=4FsYbVqGywo4IcI5Coq7GfRZ5qiRUoK0fdplN7YYbLE=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HO0sA8+hXQyP06PKizj/Wn2lXlWpObtmQccZJYa4S3UZdVVA1Hzad1Z2Yt7W1pUnD+vAAl/xktlCGePJ6CqXkX10TmpMViwxZg6WjfLd4OcYTKSiJWoZGJPw2gno8pUtXo3dYUWTV5n/gD9SvKYrWVFhTTzffgqjA7wGsOzZYzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VFmqYReM; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="pSFr5FjL"
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-ab7c81b8681so520243366b.0
-        for <nvdimm@lists.linux.dev>; Wed, 12 Feb 2025 07:27:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1739374070; x=1739978870; darn=lists.linux.dev;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=gIK/hsLjBmZb4Q7phf+8q1FhCeVWqfbKwX81hLs6leU=;
-        b=pSFr5FjLti38ip07/Ffu2pufTT9sKhX8zGuiFxfoiGdDGkhBsZNAnWTgPGEkMHVOUh
-         XRtFmGXZeIjv7SYtNSCpHH89uv7q/1xPqghr8JWn48fBkNxV7SqfjF203nJjzZNf0cZ4
-         MvYs/V3NFJQEd2xpHH6bTTd5ZJvmi3bRRr65eRiRzM8BnwwI1kiZ6WOPe80FLhjmTQ/B
-         mVPtsIdnoWRMF5SzEdZgZexeg4Kb3DFgCkEfCJTfJgsHSASjaNBF/GlNkyBvTlN3h6z1
-         XuI8gqUzk4cPmyw6FLkbdx3LtGtvjYPBZO59pql8LmWKihuuERzg/Lh6fvO8XBc/mIE9
-         hY3Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1739374070; x=1739978870;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=gIK/hsLjBmZb4Q7phf+8q1FhCeVWqfbKwX81hLs6leU=;
-        b=Q6tbfvDajlUvc9X0Bd0QwHmp4Hfn5EJ6A+bYphOIjJvotN0oDpt3rynf6aiU4SG0LS
-         G+3029CJDdj2vJr5Alf0DqjCNDKxkD01fIhK5a9gdzommg5fZXan+tFVp+9GDFScE/bL
-         Smm4sHU1BfERW10FzrSdCiRNT8zwlEF+IUHp5zpMyys4VB0oyUHrIU0PXgca/kro6TH7
-         YirS73JezxXwvQqFTMyAOT3SFGgakcl396i7PmKkftZvdWODExFbhFh+OEhNq1SpPfvy
-         GxdGI08DB//RCZQqcMGkhKbXbtzvuwpPoLc86GLRyfG2tV55WX6kNGkJq0IuGdkt3qen
-         AtOg==
-X-Forwarded-Encrypted: i=1; AJvYcCVNh1wlQJZayOYPexTPfg1hG9ft/Jl24aBvF+90YIhztubTR6FH9TuGNLH+5XtXeMh+N1Ui5Fo=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzDQQmEd0c3cqIWPTiAVPz0yA5TsOIMmiytMFariIbzRV8eokCZ
-	N/Cpb2kv9kP4T6UTOVVbjezdMoVUxaY2Y55AbPq7SOFgQgKJq3Vy50eFtL8NDrg=
-X-Gm-Gg: ASbGncuyAez8cCVqcoVCNHq1mRmfr9xiYGUcoBOx+Y35W9NeBu/IsEEvw2LA5rg2OVl
-	XvnVY25W+m3lU3H1bDcWY+Eq4rkjBL/MZiDVHT1+uL5YYJOqX59phfWWUjxMWEMtTuZSQoJkTUd
-	cxTrrq9QPmfdZOPiSk981/TV8d+HOzdb2BQdsHemSOb/dry287OQVUUVXoxVt3+turhxDXyF6Tj
-	nychagjHkD6uimSqk0lZ0WLgBznSiYGWIZI8T21Nr5cPkGJqLhtpBEWzqdGbErJQhnCkf0kKpKH
-	VsWt0vqv+VfmxTgtot4L
-X-Google-Smtp-Source: AGHT+IFpL8Nw1g0cPCijD/OhpU2DBTaHM0/BqrJs7pa0K+2D+M9iqhuvdq5hwJqMDWlN3ZppYMHMIA==
-X-Received: by 2002:a17:906:dc91:b0:ab7:eeae:b23b with SMTP id a640c23a62f3a-ab7f354ed67mr381322466b.0.1739374070037;
-        Wed, 12 Feb 2025 07:27:50 -0800 (PST)
-Received: from localhost ([196.207.164.177])
-        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-ab79d9ced43sm967079866b.78.2025.02.12.07.27.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Feb 2025 07:27:49 -0800 (PST)
-Date: Wed, 12 Feb 2025 18:27:46 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	Matthew Wilcox <willy@infradead.org>, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH] fs/dax: Remove unnecessary check in dax_break_layout_final()
-Message-ID: <ddd61469-637c-4a1f-a024-141574fd76a8@stanley.mountain>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VFmqYReM"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1739376069; x=1770912069;
+  h=date:from:to:subject:message-id:references:mime-version:
+   in-reply-to;
+  bh=4FsYbVqGywo4IcI5Coq7GfRZ5qiRUoK0fdplN7YYbLE=;
+  b=VFmqYReMyDT6JRMjkLDRHZDPviAxNDFxTQggtsi0V8aU49z5OZtiXSpi
+   5wNB3aem9Ml296G7Xn+qUB4bZ2dR2uO/+r/XnhcMuH5cFDLxJDpbPPQyY
+   lrOhTr4Ay69hSfprzgceNCSH3jmoYnJZ4SuZoNW7yxzVqRGyKglkog2eg
+   ce02sUd0dXctjl+bKgNNelmJ/mCFNLJJBjHF2EHWhyWNUBQsRYCAjtJif
+   /dE75wMdx5AYNJjUmilI364C4cXywDtZ5YE1WkH+n3WYSqG7B4X6nsOhL
+   o3p42WHVTrn9B/sce33a+inr0CB3mZc7HAUl2eRX6w0YcSgYU4C7WWfv4
+   g==;
+X-CSE-ConnectionGUID: o6RAuY3ESqaffO3DFfoPYQ==
+X-CSE-MsgGUID: BOAi/y9wTICvMUXnWxqGOw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11343"; a="39230189"
+X-IronPort-AV: E=Sophos;i="6.13,280,1732608000"; 
+   d="scan'208";a="39230189"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2025 08:01:09 -0800
+X-CSE-ConnectionGUID: sYFDVehRQxqTIdzaEgkhQA==
+X-CSE-MsgGUID: g9M1uB7yROe0T8EBQ8JDxw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.13,280,1732608000"; 
+   d="scan'208";a="112711469"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.108.123])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2025 08:01:08 -0800
+Date: Wed, 12 Feb 2025 08:01:06 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev, Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] util/strbuf: remove unused cli infrastructure
+ imports
+Message-ID: <Z6zFwkCh7DXNDqUl@aschofie-mobl2.lan>
+References: <20250212034020.1865719-1-alison.schofield@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -72,30 +59,38 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-X-Mailer: git-send-email haha only kidding
+In-Reply-To: <20250212034020.1865719-1-alison.schofield@intel.com>
 
-The "page" pointer is always NULL at this point.  Adding a check is
-a bit confusing.  Delete it.
+On Tue, Feb 11, 2025 at 07:40:18PM -0800, alison.schofield@intel.com wrote:
+> From: Alison Schofield <alison.schofield@intel.com>
+> 
+> The ndctl cli interface is built around an imported perf cli
+> infrastructure which was originally from git. [1]
+> 
+> A recent static analysis scan exposed an integer overflow issue in
+> sysbuf_read() and although that is fixable, the function is not used
+  ^^^
+  strbuf_read()
 
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
----
- fs/dax.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 9e4940a0b286..21a743996f90 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -987,8 +987,7 @@ void dax_break_layout_final(struct inode *inode)
- 		wait_page_idle_uninterruptible(page, inode);
- 	} while (true);
- 
--	if (!page)
--		dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
-+	dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
- }
- EXPORT_SYMBOL_GPL(dax_break_layout_final);
- 
--- 
-2.47.2
+> in ndctl. Further examination revealed additional unused functionality
+> in the string buffer handling import and a subset of that has already
+> been obsoleted from the perf cli.
+> 
+> In the interest of not maintaining unused code, remove the unused code
+> in util/strbuf.h,c. Ndctl, including cxl-cli and daxctl, are mature
+> cli's so it seems ok to let this functionality go after 14 years.
+> 
+> In the interest of not touching what is not causing an issue, the
+> entirety of the original import was not reviewed at this time.
+> 
+> [1] 91677390f9e6 ("ndctl: import cli infrastructure from perf")
+> 
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> ---
+>  util/strbuf.c | 51 ---------------------------------------------------
+>  util/strbuf.h |  7 -------
+>  2 files changed, 58 deletions(-)
+
+snip
 
