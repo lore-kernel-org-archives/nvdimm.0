@@ -1,106 +1,188 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3619C261397
-	for <nvdimm@lists.linux.dev>; Tue, 11 Feb 2025 17:14:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805571DBB38
+	for <nvdimm@lists.linux.dev>; Wed, 12 Feb 2025 03:40:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739294060; cv=none; b=csIwK5CJRfQ1Slu+NlWIhhrOygSA45tvUtsmNxqdRn2/Ru3mtQ6jcKTqkjeWyQEtBnHrggAnORdkub1tjdl1xU0eGmdEt8/xZszbvpLE45FtkZHvAL+6F9AEkwosxgk5+nzu+ezcqVTsUTFl1Q5OPRXUmGPJ3KNVGZgTbHaGKj8=
+	t=1739331634; cv=none; b=rrm/gUUfUJBguvrjmfCUhCclbcvJ48mMDslcwDpfdMmVM1q3LdWoN001cEYsbyagFm1xMxa/qfD/YI/A7y3za3Qe0frDVx4KF0b3/TewqNvTK7hN/wSK/vZDIMtiaprNGTlvm94shHlslZ25YxJDN/CjYHsyUBj2h4bK3dWd0vI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739294060; c=relaxed/simple;
-	bh=3m6+wFerQxYeEoh4DOFNqfvWEkqBGzTgBwK6PS3M6jk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Ke0QW9gb3/jdNSF7UNXzyCMro6oxkZJBCPpkbv0jvxImU5Jpg2pSShZpLvukXDL0cmSeoU3z6e/IkrfuAwvpO/DXqD9RT0UJMACIoOtLxGLEAp83wAunhyKZK/dBZn5kRLvJvFAEehu1smTBTYj6Dxb9v7WpUe3PmOud2sDPuSo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Moxw7j0c; arc=none smtp.client-ip=198.175.65.15
+	s=arc-20240116; t=1739331634; c=relaxed/simple;
+	bh=olWb4Ge3N8pQQvBsFlvwfp1BUggkkgscabm569GwSQ4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Sg6cOoYqTkqYR8ejx/hl4lo5wgeiPfmiji3DZRHePjJ7/OSmMOTQutkcwA7lLqx03VddfGqD8+yTRtIsfq44r3GYWDmpqIfnFz2LORhsko+glWmETZxQrRsOq5EQumrmThHrn4fQu97nOLxPTdwdR7mvk7sta4z7mPgizgSmFmc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ff2faM3V; arc=none smtp.client-ip=198.175.65.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Moxw7j0c"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ff2faM3V"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1739294058; x=1770830058;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=3m6+wFerQxYeEoh4DOFNqfvWEkqBGzTgBwK6PS3M6jk=;
-  b=Moxw7j0cYlafdMstknzSh1q+eLeyODoimxvLsjQ8WJIU9rdPvsDmA8Rw
-   Q7GLyJ4vORG5nxEc9BMVk05PrRQ3G75KYCxROFbgAEqPs4xszVGUO78Yk
-   AmwXYiveevDMPAtXEjlhUi4TMJMsAgDdl9w3xEs0sISD5xfkllrqJrje+
-   1LnanCSg5P2AfrD+wEz79o/WP94vzvxsFHDNfvO04fTJJAnr4XvBBaGXc
-   S9WjP4brlihOg5EWtgc2aLkKBfoZ4qMYbv72B1ugXG6k/OrNH9NjYWaTM
-   hDi9Dv1qjNIXn4fbsBuu/mt9oESaSEFXIf00Qj7VrwszRVua6DcRRW5SL
-   A==;
-X-CSE-ConnectionGUID: BGm90kVpQnirN9GXubq4qQ==
-X-CSE-MsgGUID: SZflpNXaQ1e0k1H/eiqYCg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11342"; a="43581285"
-X-IronPort-AV: E=Sophos;i="6.13,278,1732608000"; 
-   d="scan'208";a="43581285"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2025 09:14:17 -0800
-X-CSE-ConnectionGUID: 0CcGNpErTa+UU2zPPJiB4A==
-X-CSE-MsgGUID: kIKcdoGnQ4Was+6FlfqcBg==
+  t=1739331632; x=1770867632;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=olWb4Ge3N8pQQvBsFlvwfp1BUggkkgscabm569GwSQ4=;
+  b=Ff2faM3VNlvHjw0rJiz5tlZCkTp2m5VFkuruueBNPU1tzeaP9RcrywDc
+   1ytD7pBMUABo5dDL8GeGnpXHeQaCMOt+1QCRhzAIwOw+Hd06HdkZj+JZ+
+   bbpgLzpNuVwt3AcQDAPFwBWzn/k09Md7JG/WiSk9VFPjIn3dMHAixArDD
+   jyNZhX5C0mjw8OPkkitLRLgCLQdAH0E25+xcBJv7rtT872lOKXfMOW4si
+   aBscqFFWgTpD0plpywlR8FRWlVNfIzJ2MhHsFrTkdDLd8hlMUf4o8nNJ0
+   EwL0XGKB+0iBN+GzYS4CebZa0Bzkzvk0p3/22SaWQGcpCnqCQAqtPUWSY
+   w==;
+X-CSE-ConnectionGUID: DTV5EqPaQai/Z96dt0NgtQ==
+X-CSE-MsgGUID: AZVFJ8MNQxOYNAY0SnWUsg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11342"; a="39995045"
+X-IronPort-AV: E=Sophos;i="6.13,279,1732608000"; 
+   d="scan'208";a="39995045"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2025 19:40:31 -0800
+X-CSE-ConnectionGUID: dZAAkGiHR2epNYeJ17q3kw==
+X-CSE-MsgGUID: yrzbCPdPTyyeKGo98FhIfQ==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.13,278,1732608000"; 
-   d="scan'208";a="112785920"
-Received: from unknown (HELO [10.24.8.124]) ([10.24.8.124])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2025 09:14:17 -0800
-Message-ID: <89603666-3c31-4689-b0bc-e558e6aa5b22@intel.com>
-Date: Tue, 11 Feb 2025 09:14:09 -0800
+X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
+   d="scan'208";a="112557115"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.108.39])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2025 19:40:30 -0800
+From: alison.schofield@intel.com
+To: nvdimm@lists.linux.dev,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH] util/strbuf: remove unused cli infrastructure imports
+Date: Tue, 11 Feb 2025 19:40:18 -0800
+Message-ID: <20250212034020.1865719-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH] cxl/json: remove prefix from tracefs.h #include
-To: alison.schofield@intel.com, nvdimm@lists.linux.dev
-Cc: Michal Suchanek <msuchanek@suse.de>
-References: <20250209180348.1773179-1-alison.schofield@intel.com>
-Content-Language: en-US
-From: Marc Herbert <Marc.Herbert@intel.com>
-In-Reply-To: <20250209180348.1773179-1-alison.schofield@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 2025-02-09 10:03, alison.schofield@intel.com wrote:
-> From: Michal Suchanek <msuchanek@suse.de>
-> 
-> Distros vary on whether tracefs.h is placed in {prefix}/libtracefs/
-> or {prefix}/tracefs/. Since the library ships with pkgconfig info
-> to determine the exact include path the #include statement can drop
-> the tracefs/ prefix.
-> 
-> This was previously found and fixed elsewhere:
-> a59866328ec5 ("cxl/monitor: fix include paths for tracefs and traceevent")
-> but was introduced anew with cxl media-error support in ndctl v80.
-> 
-> Reposted here from github pull request:
-> https://github.com/pmem/ndctl/pull/268/
-> 
-> [ alison: commit msg and log edits ]
-> 
-> Fixes: 9873123fce03 ("cxl/list: collect and parse media_error records")
-> Signed-off-by: Michal Suchanek <msuchanek@suse.de>
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> ---
->  cxl/json.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+From: Alison Schofield <alison.schofield@intel.com>
 
-Reviewed-by: Marc Herbert <marc.herbert@intel.com>
+The ndctl cli interface is built around an imported perf cli
+infrastructure which was originally from git. [1]
+
+A recent static analysis scan exposed an integer overflow issue in
+sysbuf_read() and although that is fixable, the function is not used
+in ndctl. Further examination revealed additional unused functionality
+in the string buffer handling import and a subset of that has already
+been obsoleted from the perf cli.
+
+In the interest of not maintaining unused code, remove the unused code
+in util/strbuf.h,c. Ndctl, including cxl-cli and daxctl, are mature
+cli's so it seems ok to let this functionality go after 14 years.
+
+In the interest of not touching what is not causing an issue, the
+entirety of the original import was not reviewed at this time.
+
+[1] 91677390f9e6 ("ndctl: import cli infrastructure from perf")
+
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ util/strbuf.c | 51 ---------------------------------------------------
+ util/strbuf.h |  7 -------
+ 2 files changed, 58 deletions(-)
+
+diff --git a/util/strbuf.c b/util/strbuf.c
+index 6c8752562720..16fc847dd1c7 100644
+--- a/util/strbuf.c
++++ b/util/strbuf.c
+@@ -60,30 +60,6 @@ void strbuf_grow(struct strbuf *sb, size_t extra)
+ 	ALLOC_GROW(sb->buf, sb->len + extra + 1, sb->alloc);
+ }
  
-> diff --git a/cxl/json.c b/cxl/json.c
-> index 5066d3bed13f..e65bd803b706 100644
-> --- a/cxl/json.c
-> +++ b/cxl/json.c
-> @@ -9,7 +9,7 @@
->  #include <json-c/json.h>
->  #include <json-c/printbuf.h>
->  #include <ccan/short_types/short_types.h>
-> -#include <tracefs/tracefs.h>
-> +#include <tracefs.h>
->  
->  #include "filter.h"
->  #include "json.h"
-> 
-> base-commit: 04815e5f8b87e02a4fb5a61aeebaa5cad25a15c3
+-static void strbuf_splice(struct strbuf *sb, size_t pos, size_t len,
+-				   const void *data, size_t dlen)
+-{
+-	if (pos + len < pos)
+-		die("you want to use way too much memory");
+-	if (pos > sb->len)
+-		die("`pos' is too far after the end of the buffer");
+-	if (pos + len > sb->len)
+-		die("`pos + len' is too far after the end of the buffer");
+-
+-	if (dlen >= len)
+-		strbuf_grow(sb, dlen - len);
+-	memmove(sb->buf + pos + dlen,
+-			sb->buf + pos + len,
+-			sb->len - pos - len);
+-	memcpy(sb->buf + pos, data, dlen);
+-	strbuf_setlen(sb, sb->len + dlen - len);
+-}
+-
+-void strbuf_remove(struct strbuf *sb, size_t pos, size_t len)
+-{
+-	strbuf_splice(sb, pos, len, NULL, 0);
+-}
+-
+ void strbuf_add(struct strbuf *sb, const void *data, size_t len)
+ {
+ 	strbuf_grow(sb, len);
+@@ -114,30 +90,3 @@ void strbuf_addf(struct strbuf *sb, const char *fmt, ...)
+ 	}
+ 	strbuf_setlen(sb, sb->len + len);
+ }
+-
+-ssize_t strbuf_read(struct strbuf *sb, int fd, ssize_t hint)
+-{
+-	size_t oldlen = sb->len;
+-	size_t oldalloc = sb->alloc;
+-
+-	strbuf_grow(sb, hint ? hint : 8192);
+-	for (;;) {
+-		ssize_t cnt;
+-
+-		cnt = read(fd, sb->buf + sb->len, sb->alloc - sb->len - 1);
+-		if (cnt < 0) {
+-			if (oldalloc == 0)
+-				strbuf_release(sb);
+-			else
+-				strbuf_setlen(sb, oldlen);
+-			return -1;
+-		}
+-		if (!cnt)
+-			break;
+-		sb->len += cnt;
+-		strbuf_grow(sb, 8192);
+-	}
+-
+-	sb->buf[sb->len] = '\0';
+-	return sb->len - oldlen;
+-}
+diff --git a/util/strbuf.h b/util/strbuf.h
+index c9b7d2ef5cf8..3f810a5de8d7 100644
+--- a/util/strbuf.h
++++ b/util/strbuf.h
+@@ -56,7 +56,6 @@ struct strbuf {
+ #define STRBUF_INIT  { 0, 0, strbuf_slopbuf }
+ 
+ /*----- strbuf life cycle -----*/
+-extern void strbuf_init(struct strbuf *buf, ssize_t hint);
+ extern void strbuf_release(struct strbuf *);
+ extern char *strbuf_detach(struct strbuf *, size_t *);
+ 
+@@ -81,9 +80,6 @@ static inline void strbuf_addch(struct strbuf *sb, int c) {
+ 	sb->buf[sb->len++] = c;
+ 	sb->buf[sb->len] = '\0';
+ }
+-
+-extern void strbuf_remove(struct strbuf *, size_t pos, size_t len);
+-
+ extern void strbuf_add(struct strbuf *, const void *, size_t);
+ static inline void strbuf_addstr(struct strbuf *sb, const char *s) {
+ 	strbuf_add(sb, s, strlen(s));
+@@ -92,7 +88,4 @@ static inline void strbuf_addstr(struct strbuf *sb, const char *s) {
+ __attribute__((format(printf,2,3)))
+ extern void strbuf_addf(struct strbuf *sb, const char *fmt, ...);
+ 
+-/* XXX: if read fails, any partial read is undone */
+-extern ssize_t strbuf_read(struct strbuf *, int fd, ssize_t hint);
+-
+ #endif /* __NDCTL_STRBUF_H */
+
+base-commit: a3d56f0ca5679b7c78090c1a8b0b9f1f9901e5e0
+-- 
+2.37.3
 
