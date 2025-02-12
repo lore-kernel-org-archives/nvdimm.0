@@ -1,188 +1,101 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805571DBB38
-	for <nvdimm@lists.linux.dev>; Wed, 12 Feb 2025 03:40:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B273620AF8E
+	for <nvdimm@lists.linux.dev>; Wed, 12 Feb 2025 15:27:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739331634; cv=none; b=rrm/gUUfUJBguvrjmfCUhCclbcvJ48mMDslcwDpfdMmVM1q3LdWoN001cEYsbyagFm1xMxa/qfD/YI/A7y3za3Qe0frDVx4KF0b3/TewqNvTK7hN/wSK/vZDIMtiaprNGTlvm94shHlslZ25YxJDN/CjYHsyUBj2h4bK3dWd0vI=
+	t=1739374073; cv=none; b=K3krxUamwBVe3/VojbFTPkNfIEXhMAT6q+zGajeZvJflFNha32cRhUn330oTUXSwq5QsQa4Yb+UxQ4g5diAxdz0FGU0sI6/UyKsOch4R/VRX3VGgJwH+Yk8G7J+yx1Voh87dl4NyX6sz0+tNLOKzrXW/9fTNDr7K6cBChTbrjCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739331634; c=relaxed/simple;
-	bh=olWb4Ge3N8pQQvBsFlvwfp1BUggkkgscabm569GwSQ4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Sg6cOoYqTkqYR8ejx/hl4lo5wgeiPfmiji3DZRHePjJ7/OSmMOTQutkcwA7lLqx03VddfGqD8+yTRtIsfq44r3GYWDmpqIfnFz2LORhsko+glWmETZxQrRsOq5EQumrmThHrn4fQu97nOLxPTdwdR7mvk7sta4z7mPgizgSmFmc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ff2faM3V; arc=none smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1739374073; c=relaxed/simple;
+	bh=nGOHHKMn8GtXJDicwnkL8tmz9VcKp2LxDT7FzaficDQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=nNj8QWKGtySGyQYECvfZ3S+prn4L5Tm+cYOVDpl33KyWZLfS+MAM5uurABg/0aZn8JVSQDrUQsX4hYhq+gk8rFGbwsNmo8//q7YlKDUQmFSwti1exXPGRp6DFw8F+nY6IsXh6Or9AEhBFg88/yEBblRv/oWux4T1Z/tJf4i1KiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=pSFr5FjL; arc=none smtp.client-ip=209.85.218.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ff2faM3V"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1739331632; x=1770867632;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=olWb4Ge3N8pQQvBsFlvwfp1BUggkkgscabm569GwSQ4=;
-  b=Ff2faM3VNlvHjw0rJiz5tlZCkTp2m5VFkuruueBNPU1tzeaP9RcrywDc
-   1ytD7pBMUABo5dDL8GeGnpXHeQaCMOt+1QCRhzAIwOw+Hd06HdkZj+JZ+
-   bbpgLzpNuVwt3AcQDAPFwBWzn/k09Md7JG/WiSk9VFPjIn3dMHAixArDD
-   jyNZhX5C0mjw8OPkkitLRLgCLQdAH0E25+xcBJv7rtT872lOKXfMOW4si
-   aBscqFFWgTpD0plpywlR8FRWlVNfIzJ2MhHsFrTkdDLd8hlMUf4o8nNJ0
-   EwL0XGKB+0iBN+GzYS4CebZa0Bzkzvk0p3/22SaWQGcpCnqCQAqtPUWSY
-   w==;
-X-CSE-ConnectionGUID: DTV5EqPaQai/Z96dt0NgtQ==
-X-CSE-MsgGUID: AZVFJ8MNQxOYNAY0SnWUsg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11342"; a="39995045"
-X-IronPort-AV: E=Sophos;i="6.13,279,1732608000"; 
-   d="scan'208";a="39995045"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2025 19:40:31 -0800
-X-CSE-ConnectionGUID: dZAAkGiHR2epNYeJ17q3kw==
-X-CSE-MsgGUID: yrzbCPdPTyyeKGo98FhIfQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="112557115"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.108.39])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2025 19:40:30 -0800
-From: alison.schofield@intel.com
-To: nvdimm@lists.linux.dev,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH] util/strbuf: remove unused cli infrastructure imports
-Date: Tue, 11 Feb 2025 19:40:18 -0800
-Message-ID: <20250212034020.1865719-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="pSFr5FjL"
+Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-ab7c81b8681so520243366b.0
+        for <nvdimm@lists.linux.dev>; Wed, 12 Feb 2025 07:27:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1739374070; x=1739978870; darn=lists.linux.dev;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gIK/hsLjBmZb4Q7phf+8q1FhCeVWqfbKwX81hLs6leU=;
+        b=pSFr5FjLti38ip07/Ffu2pufTT9sKhX8zGuiFxfoiGdDGkhBsZNAnWTgPGEkMHVOUh
+         XRtFmGXZeIjv7SYtNSCpHH89uv7q/1xPqghr8JWn48fBkNxV7SqfjF203nJjzZNf0cZ4
+         MvYs/V3NFJQEd2xpHH6bTTd5ZJvmi3bRRr65eRiRzM8BnwwI1kiZ6WOPe80FLhjmTQ/B
+         mVPtsIdnoWRMF5SzEdZgZexeg4Kb3DFgCkEfCJTfJgsHSASjaNBF/GlNkyBvTlN3h6z1
+         XuI8gqUzk4cPmyw6FLkbdx3LtGtvjYPBZO59pql8LmWKihuuERzg/Lh6fvO8XBc/mIE9
+         hY3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739374070; x=1739978870;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=gIK/hsLjBmZb4Q7phf+8q1FhCeVWqfbKwX81hLs6leU=;
+        b=Q6tbfvDajlUvc9X0Bd0QwHmp4Hfn5EJ6A+bYphOIjJvotN0oDpt3rynf6aiU4SG0LS
+         G+3029CJDdj2vJr5Alf0DqjCNDKxkD01fIhK5a9gdzommg5fZXan+tFVp+9GDFScE/bL
+         Smm4sHU1BfERW10FzrSdCiRNT8zwlEF+IUHp5zpMyys4VB0oyUHrIU0PXgca/kro6TH7
+         YirS73JezxXwvQqFTMyAOT3SFGgakcl396i7PmKkftZvdWODExFbhFh+OEhNq1SpPfvy
+         GxdGI08DB//RCZQqcMGkhKbXbtzvuwpPoLc86GLRyfG2tV55WX6kNGkJq0IuGdkt3qen
+         AtOg==
+X-Forwarded-Encrypted: i=1; AJvYcCVNh1wlQJZayOYPexTPfg1hG9ft/Jl24aBvF+90YIhztubTR6FH9TuGNLH+5XtXeMh+N1Ui5Fo=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzDQQmEd0c3cqIWPTiAVPz0yA5TsOIMmiytMFariIbzRV8eokCZ
+	N/Cpb2kv9kP4T6UTOVVbjezdMoVUxaY2Y55AbPq7SOFgQgKJq3Vy50eFtL8NDrg=
+X-Gm-Gg: ASbGncuyAez8cCVqcoVCNHq1mRmfr9xiYGUcoBOx+Y35W9NeBu/IsEEvw2LA5rg2OVl
+	XvnVY25W+m3lU3H1bDcWY+Eq4rkjBL/MZiDVHT1+uL5YYJOqX59phfWWUjxMWEMtTuZSQoJkTUd
+	cxTrrq9QPmfdZOPiSk981/TV8d+HOzdb2BQdsHemSOb/dry287OQVUUVXoxVt3+turhxDXyF6Tj
+	nychagjHkD6uimSqk0lZ0WLgBznSiYGWIZI8T21Nr5cPkGJqLhtpBEWzqdGbErJQhnCkf0kKpKH
+	VsWt0vqv+VfmxTgtot4L
+X-Google-Smtp-Source: AGHT+IFpL8Nw1g0cPCijD/OhpU2DBTaHM0/BqrJs7pa0K+2D+M9iqhuvdq5hwJqMDWlN3ZppYMHMIA==
+X-Received: by 2002:a17:906:dc91:b0:ab7:eeae:b23b with SMTP id a640c23a62f3a-ab7f354ed67mr381322466b.0.1739374070037;
+        Wed, 12 Feb 2025 07:27:50 -0800 (PST)
+Received: from localhost ([196.207.164.177])
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-ab79d9ced43sm967079866b.78.2025.02.12.07.27.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 12 Feb 2025 07:27:49 -0800 (PST)
+Date: Wed, 12 Feb 2025 18:27:46 +0300
+From: Dan Carpenter <dan.carpenter@linaro.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Matthew Wilcox <willy@infradead.org>, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH] fs/dax: Remove unnecessary check in dax_break_layout_final()
+Message-ID: <ddd61469-637c-4a1f-a024-141574fd76a8@stanley.mountain>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email haha only kidding
 
-From: Alison Schofield <alison.schofield@intel.com>
+The "page" pointer is always NULL at this point.  Adding a check is
+a bit confusing.  Delete it.
 
-The ndctl cli interface is built around an imported perf cli
-infrastructure which was originally from git. [1]
-
-A recent static analysis scan exposed an integer overflow issue in
-sysbuf_read() and although that is fixable, the function is not used
-in ndctl. Further examination revealed additional unused functionality
-in the string buffer handling import and a subset of that has already
-been obsoleted from the perf cli.
-
-In the interest of not maintaining unused code, remove the unused code
-in util/strbuf.h,c. Ndctl, including cxl-cli and daxctl, are mature
-cli's so it seems ok to let this functionality go after 14 years.
-
-In the interest of not touching what is not causing an issue, the
-entirety of the original import was not reviewed at this time.
-
-[1] 91677390f9e6 ("ndctl: import cli infrastructure from perf")
-
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
 ---
- util/strbuf.c | 51 ---------------------------------------------------
- util/strbuf.h |  7 -------
- 2 files changed, 58 deletions(-)
+ fs/dax.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/util/strbuf.c b/util/strbuf.c
-index 6c8752562720..16fc847dd1c7 100644
---- a/util/strbuf.c
-+++ b/util/strbuf.c
-@@ -60,30 +60,6 @@ void strbuf_grow(struct strbuf *sb, size_t extra)
- 	ALLOC_GROW(sb->buf, sb->len + extra + 1, sb->alloc);
+diff --git a/fs/dax.c b/fs/dax.c
+index 9e4940a0b286..21a743996f90 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -987,8 +987,7 @@ void dax_break_layout_final(struct inode *inode)
+ 		wait_page_idle_uninterruptible(page, inode);
+ 	} while (true);
+ 
+-	if (!page)
+-		dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
++	dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
  }
+ EXPORT_SYMBOL_GPL(dax_break_layout_final);
  
--static void strbuf_splice(struct strbuf *sb, size_t pos, size_t len,
--				   const void *data, size_t dlen)
--{
--	if (pos + len < pos)
--		die("you want to use way too much memory");
--	if (pos > sb->len)
--		die("`pos' is too far after the end of the buffer");
--	if (pos + len > sb->len)
--		die("`pos + len' is too far after the end of the buffer");
--
--	if (dlen >= len)
--		strbuf_grow(sb, dlen - len);
--	memmove(sb->buf + pos + dlen,
--			sb->buf + pos + len,
--			sb->len - pos - len);
--	memcpy(sb->buf + pos, data, dlen);
--	strbuf_setlen(sb, sb->len + dlen - len);
--}
--
--void strbuf_remove(struct strbuf *sb, size_t pos, size_t len)
--{
--	strbuf_splice(sb, pos, len, NULL, 0);
--}
--
- void strbuf_add(struct strbuf *sb, const void *data, size_t len)
- {
- 	strbuf_grow(sb, len);
-@@ -114,30 +90,3 @@ void strbuf_addf(struct strbuf *sb, const char *fmt, ...)
- 	}
- 	strbuf_setlen(sb, sb->len + len);
- }
--
--ssize_t strbuf_read(struct strbuf *sb, int fd, ssize_t hint)
--{
--	size_t oldlen = sb->len;
--	size_t oldalloc = sb->alloc;
--
--	strbuf_grow(sb, hint ? hint : 8192);
--	for (;;) {
--		ssize_t cnt;
--
--		cnt = read(fd, sb->buf + sb->len, sb->alloc - sb->len - 1);
--		if (cnt < 0) {
--			if (oldalloc == 0)
--				strbuf_release(sb);
--			else
--				strbuf_setlen(sb, oldlen);
--			return -1;
--		}
--		if (!cnt)
--			break;
--		sb->len += cnt;
--		strbuf_grow(sb, 8192);
--	}
--
--	sb->buf[sb->len] = '\0';
--	return sb->len - oldlen;
--}
-diff --git a/util/strbuf.h b/util/strbuf.h
-index c9b7d2ef5cf8..3f810a5de8d7 100644
---- a/util/strbuf.h
-+++ b/util/strbuf.h
-@@ -56,7 +56,6 @@ struct strbuf {
- #define STRBUF_INIT  { 0, 0, strbuf_slopbuf }
- 
- /*----- strbuf life cycle -----*/
--extern void strbuf_init(struct strbuf *buf, ssize_t hint);
- extern void strbuf_release(struct strbuf *);
- extern char *strbuf_detach(struct strbuf *, size_t *);
- 
-@@ -81,9 +80,6 @@ static inline void strbuf_addch(struct strbuf *sb, int c) {
- 	sb->buf[sb->len++] = c;
- 	sb->buf[sb->len] = '\0';
- }
--
--extern void strbuf_remove(struct strbuf *, size_t pos, size_t len);
--
- extern void strbuf_add(struct strbuf *, const void *, size_t);
- static inline void strbuf_addstr(struct strbuf *sb, const char *s) {
- 	strbuf_add(sb, s, strlen(s));
-@@ -92,7 +88,4 @@ static inline void strbuf_addstr(struct strbuf *sb, const char *s) {
- __attribute__((format(printf,2,3)))
- extern void strbuf_addf(struct strbuf *sb, const char *fmt, ...);
- 
--/* XXX: if read fails, any partial read is undone */
--extern ssize_t strbuf_read(struct strbuf *, int fd, ssize_t hint);
--
- #endif /* __NDCTL_STRBUF_H */
-
-base-commit: a3d56f0ca5679b7c78090c1a8b0b9f1f9901e5e0
 -- 
-2.37.3
+2.47.2
 
