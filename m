@@ -1,55 +1,48 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F95BB644
-	for <nvdimm@lists.linux.dev>; Fri, 14 Feb 2025 00:10:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF0C91FC3;
+	Fri, 14 Feb 2025 00:53:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739491827; cv=none; b=GC3nWzbsVaHt+D50g0OjR49noKX2OXcKE35qdTsAYMzkcUgkEefcHS3tz7O43bZCt060SXMKD1ec9tQSx0ptRBH8Y7THy/Fkl5eSQOeyz7LbEbckN/uqteWnIihowIAhbOA0ZzaSgD5ZM9Y7Hn7FcX+8nOuA4c4k7PeTs0HU4YA=
+	t=1739494395; cv=none; b=HMu7pxka+/YNtfzQo1u2TOLbEpFR4RzrYxk80isS3W8NjeifYE5gNA4j1qmFeByyI1ipQ/2twO6TXwXktk1TgDsDMl9Oe2UFgVGCWAL9smu4W7+xpdQmA5HZ66WgyRcF4N2Uagi1VyTf4+MFehos2uHNwZVyqDZs/VEE45IfJK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739491827; c=relaxed/simple;
-	bh=K5SA8GU6wsqJ9hUJTM31mUXcKajb3uBP7JxgJa8JMpE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GdtVbgdYW8nyKgi+xe6etxjwyLxIK291GIaz8qfpxNctoIG92w5c3u4mPrfHRLPXXt7haGHO3C/My1yPMHx91Xj3P3idgyBDIu9ad6JnI34KV56Iyrh69wfSSSRvlZIGNXABKSksjCOHmX6MXOLMGIFcn95TQaR6nh5ORlmBg0U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EQSIOVj6; arc=none smtp.client-ip=192.198.163.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1739494395; c=relaxed/simple;
+	bh=A+jNzOERGrQ6f2WqwUyiK/qmR/R5OgMuBsE/TU0Reeg=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=W6UTyZKLCdkpmGgtwQPjO5UOvWfNJqYtRXThzUPPnvtH/H4Zxl4HImuwZCtXq51w/M+/v7LWtH351gQUU4Nk7Y6QzLSYQt2A3GjUmG4xZ4nYHN/TMtw3MCildDsve3d5C9mSyvHNoCXKtUEGF4jU+seMirry4dnEsjx1G/NwcTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cg9EFP/s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EQSIOVj6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1739491825; x=1771027825;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=K5SA8GU6wsqJ9hUJTM31mUXcKajb3uBP7JxgJa8JMpE=;
-  b=EQSIOVj6WXB5EbWEtXKD1xNUqB6YCMRNqge65JhuJHNNEQhl7bQrHXEh
-   7EGDQD68E6anan0A4FZuejZXayfTB2k82GgUdH8O7SasGjKOiagIYY5j/
-   5yamMidvCxhhYVrJcomasb4e0VyrWgZTHk9VLQZmpXf9BmQGswF/m5WQA
-   ahCXBadcX754zCHvhAUDn09r/bjsB1efAexKhlbwEdh1P3d5K5YPBlEPq
-   nWvexuaUbSvMwxG8ById9YoqPCxRfehhA+1fT2SDO8fLwEn0Mgo/mm41X
-   eDlQFGL19CfKii84GW6I3zSGt72d00b2XqsiJsyCqNyj54ZTDUlrvVi/V
-   w==;
-X-CSE-ConnectionGUID: e7D2eX21TWmO+YMO8Pu9AA==
-X-CSE-MsgGUID: uQ0zb5RcTtCkdhyewZn9Ow==
-X-IronPort-AV: E=McAfee;i="6700,10204,11344"; a="27824491"
-X-IronPort-AV: E=Sophos;i="6.13,284,1732608000"; 
-   d="scan'208";a="27824491"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Feb 2025 16:10:24 -0800
-X-CSE-ConnectionGUID: ahDRM9+STzG31aYy5j/2LQ==
-X-CSE-MsgGUID: XN/CWaqBR/+ZIjockXrBxw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="114191203"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.108.202])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Feb 2025 16:10:24 -0800
-Date: Thu, 13 Feb 2025 16:10:21 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Ben Cheatham <Benjamin.Cheatham@amd.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: [RFC ndctl PATCH] cxl: Add inject-error command
-Message-ID: <Z66J7fW4SXuqFgN_@aschofie-mobl2.lan>
-References: <20250108215749.181852-1-Benjamin.Cheatham@amd.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cg9EFP/s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C84A5C4CED1;
+	Fri, 14 Feb 2025 00:53:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1739494394;
+	bh=A+jNzOERGrQ6f2WqwUyiK/qmR/R5OgMuBsE/TU0Reeg=;
+	h=Date:From:To:Cc:Subject:From;
+	b=Cg9EFP/sI62BvTrUUOC8gOekavXVfG2/sP8dSYtj4gBaR7GL9mZnH5u8R5kxY80ZL
+	 +vSnvbper5ziJnENsGp22i/CUZmS3a0Sj8Xk83Ov/seuf580/zwkdu5oD4Avzf5n4q
+	 LGi6379gF/9dWxKBeI+4ovV8JkbQuEYG3+KnYRjyEEMgDJj2jYgsF9mxk3G+v9OI0U
+	 ENXZBvQq9K5mTI/Rgc95AsOGuw1rR0hCRLelMK7ybE5RhU9x9WLBgnHnUa+aLf0Nsd
+	 Z2ARR/bjVTdXoblBJUAtfXkLjXfP1v6jjHaJz5x0KIGpp8krsEQECeJ8vdB7c7na+4
+	 UnmUlltArw9gA==
+Date: Fri, 14 Feb 2025 11:23:06 +1030
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To: Alison Schofield <alison.schofield@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, LIBNVDIMM: ;,
+	NON-VOLATILE MEMORY DEVICE SUBSYSTEM status: ;,
+	SupportedACPI status: 
+	"SupportedGustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-hardening@vger.kernel.org;
+Subject: [PATCH v2][next] UAPI: ndctl / acpi: intel: Avoid multiple
+ -Wflex-array-member-not-at-end warnings
+Message-ID: <Z66T8tSKjVutr6of@kspp>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -58,273 +51,214 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250108215749.181852-1-Benjamin.Cheatham@amd.com>
 
-On Wed, Jan 08, 2025 at 03:57:49PM -0600, Ben Cheatham wrote:
-> Add inject-error command for injecting CXL errors into CXL devices.
-> The command currently only has support for injecting CXL protocol
-> errors into CXL downstream ports via EINJ.
+-Wflex-array-member-not-at-end was introduced in GCC-14, and we are
+getting ready to enable it, globally.
 
-Hi Ben,
-I went through enough to give you some feedback for your v1.
-Just ran out of time and didn't want to keep you waiting any longer.
+So, in order to avoid ending up with flexible-array members in the
+middle of other structs, we use the `__struct_group()` helper to
+separate the flexible array from the rest of the members in the
+flexible structure. We then use the newly created tagged `struct
+nd_cmd_pkg_hdr` to replace the type of the objects causing trouble:
+`pkg` in multiple structs.
 
-wrt 'currently only has' - what is the grander scope of this that we
-might see in the future. Will there only every be one system wide
-response to --list-errors or will there be error types per type of
-port.
+Below is the before-and-after changes of the memory layout in `struct
+nd_cmd_pkg`. This to illustrate that the use of `__struct_group()`
+doesn't alter the layout, ensuring that user space remains unaffected.
 
-Spec reference?
+Before changes:
+struct nd_cmd_pkg {
+	__u64                      nd_family;            /*     0     8 */
+	__u64                      nd_command;           /*     8     8 */
+	__u32                      nd_size_in;           /*    16     4 */
+	__u32                      nd_size_out;          /*    20     4 */
+	__u32                      nd_reserved2[9];      /*    24    36 */
+	__u32                      nd_fw_size;           /*    60     4 */
+	/* --- cacheline 1 boundary (64 bytes) --- */
+	unsigned char              nd_payload[];         /*    64     0 */
 
-> 
-> The command takes an error type and injects an error of that type into the
-> specified downstream port. Downstream ports can be specified using the
-> port's device name with the -d option. Available error types can be obtained
-> by running "cxl inject-error --list-errors".
-> 
-> This command requires the kernel to be built with CONFIG_DEBUGFS and
-> CONFIG_ACPI_APEI_EINJ_CXL enabled. It also requires root privileges to
-> run due to reading from <debugfs>/cxl/einj_types and writing to
-> <debugfs>/cxl/<dport>/einj_inject.
-> 
-> Example usage:
->     # cxl inject-error --list-errors
->     cxl.mem_correctable
->     cxl.mem_fatal
->     ...
->     # cxl inject-error -d 0000:00:01.1 cxl.mem_correctable
->     injected cxl.mem_correctable protocol error
->
+	/* size: 64, cachelines: 1, members: 7 */
+};
 
-I'll probably ask this again later on, but how does user see
-list of downstream ports. Does user really think -d dport,
-or do they think -d device-name, or ?
-Man page will help here.
+After changes:
+struct nd_cmd_pkg {
+	union {
+		struct {
+			__u64      nd_family;            /*     0     8 */
+			__u64      nd_command;           /*     8     8 */
+			__u32      nd_size_in;           /*    16     4 */
+			__u32      nd_size_out;          /*    20     4 */
+			__u32      nd_reserved2[9];      /*    24    36 */
+			__u32      nd_fw_size;           /*    60     4 */
+		};                                       /*     0    64 */
+		struct nd_cmd_pkg_hdr __hdr;             /*     0    64 */
+	};                                               /*     0    64 */
+	/* --- cacheline 1 boundary (64 bytes) --- */
+	unsigned char              nd_payload[];         /*    64     0 */
 
-We don't have cxl-cli support for poison inject, but to future
-proof this, let's think about the naming.
+	/* size: 64, cachelines: 1, members: 2 */
+};
 
-Please split the patch up at least into 2 -
-libcxl: Add APIs supporting CXL protocol error injection
-        include updates to Documentation/cxl/lib/libcxl.txt
+It's also worth mentioning that all members of the struct can still be
+accessed directly, for example instance->nd_family, instance->nd_command,
+and so on.
 
-cxl: add {list,inject}-protocol-error' commands
-     include man page updates, additiona
+So, with these changes, fix 12 of the following warnings:
 
-The 'list-errors' is the the system level error support, right?
-Could that fit in the existing 'cxl list' hierachy?
-Would they be a property of the bus?
+drivers/acpi/nfit/intel.c:692:35: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
 
-I don't know that 'protocol' is best name, but seems it needs
-another descriptor.
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+Changes in v2:
+ - Show changes in UAPI first. (Alison)
+ - Update changelog text --add more information about _struct_group()
+   changes. (Alison)
 
+v1:
+ - Link: https://lore.kernel.org/linux-hardening/Z618ILbAR8YAvTkd@kspp/
 
-> Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
-> ---
->  cxl/builtin.h      |   1 +
->  cxl/cxl.c          |   1 +
->  cxl/inject-error.c | 188 +++++++++++++++++++++++++++++++++++++++++++++
->  cxl/lib/libcxl.c   |  53 +++++++++++++
->  cxl/lib/libcxl.sym |   2 +
->  cxl/libcxl.h       |  13 ++++
->  cxl/meson.build    |   1 +
->  7 files changed, 259 insertions(+)
->  create mode 100644 cxl/inject-error.c
-> 
-> diff --git a/cxl/builtin.h b/cxl/builtin.h
-> index c483f30..e82fcb5 100644
-> --- a/cxl/builtin.h
-> +++ b/cxl/builtin.h
-> @@ -25,6 +25,7 @@ int cmd_create_region(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_enable_region(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_disable_region(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_destroy_region(int argc, const char **argv, struct cxl_ctx *ctx);
-> +int cmd_inject_error(int argc, const char **argv, struct cxl_ctx *ctx);
->  #ifdef ENABLE_LIBTRACEFS
->  int cmd_monitor(int argc, const char **argv, struct cxl_ctx *ctx);
->  #else
-> diff --git a/cxl/cxl.c b/cxl/cxl.c
-> index 1643667..f808926 100644
-> --- a/cxl/cxl.c
-> +++ b/cxl/cxl.c
-> @@ -79,6 +79,7 @@ static struct cmd_struct commands[] = {
->  	{ "enable-region", .c_fn = cmd_enable_region },
->  	{ "disable-region", .c_fn = cmd_disable_region },
->  	{ "destroy-region", .c_fn = cmd_destroy_region },
-> +	{ "inject-error", .c_fn = cmd_inject_error },
->  	{ "monitor", .c_fn = cmd_monitor },
->  };
->  
-> diff --git a/cxl/inject-error.c b/cxl/inject-error.c
-> new file mode 100644
+ include/uapi/linux/ndctl.h | 15 +++++++++------
+ drivers/acpi/nfit/intel.c  | 24 ++++++++++++------------
+ 2 files changed, 21 insertions(+), 18 deletions(-)
 
-Can this fit in an existing file?  port.c ?
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 73516e263627..34c11644d5d7 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -227,12 +227,15 @@ enum ars_masks {
+  */
+ 
+ struct nd_cmd_pkg {
+-	__u64   nd_family;		/* family of commands */
+-	__u64   nd_command;
+-	__u32   nd_size_in;		/* INPUT: size of input args */
+-	__u32   nd_size_out;		/* INPUT: size of payload */
+-	__u32   nd_reserved2[9];	/* reserved must be zero */
+-	__u32   nd_fw_size;		/* OUTPUT: size fw wants to return */
++	/* New members MUST be added within the __struct_group() macro below. */
++	__struct_group(nd_cmd_pkg_hdr, __hdr, /* no attrs */,
++		__u64   nd_family;		/* family of commands */
++		__u64   nd_command;
++		__u32   nd_size_in;		/* INPUT: size of input args */
++		__u32   nd_size_out;		/* INPUT: size of payload */
++		__u32   nd_reserved2[9];	/* reserved must be zero */
++		__u32   nd_fw_size;		/* OUTPUT: size fw wants to return */
++	);
+ 	unsigned char nd_payload[];	/* Contents of call      */
+ };
+ 
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 3902759abcba..fe561ce0ddec 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -56,7 +56,7 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	unsigned long security_flags = 0;
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_get_security_state cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -121,7 +121,7 @@ static int intel_security_freeze(struct nvdimm *nvdimm)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_freeze_lock cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -154,7 +154,7 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 		NVDIMM_INTEL_SET_MASTER_PASSPHRASE :
+ 		NVDIMM_INTEL_SET_PASSPHRASE;
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_set_passphrase cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -196,7 +196,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_unlock_unit cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -235,7 +235,7 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_disable_passphrase cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -278,7 +278,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 	unsigned int cmd = ptype == NVDIMM_MASTER ?
+ 		NVDIMM_INTEL_MASTER_SECURE_ERASE : NVDIMM_INTEL_SECURE_ERASE;
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_secure_erase cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -319,7 +319,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_query_overwrite cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -355,7 +355,7 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_overwrite cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -408,7 +408,7 @@ static int intel_bus_fwa_businfo(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nd_intel_bus_fw_activate_businfo *info)
+ {
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_bus_fw_activate_businfo cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -519,7 +519,7 @@ static int intel_bus_fwa_activate(struct nvdimm_bus_descriptor *nd_desc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_bus_fw_activate cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -583,7 +583,7 @@ static int intel_fwa_dimminfo(struct nvdimm *nvdimm,
+ 		struct nd_intel_fw_activate_dimminfo *info)
+ {
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_fw_activate_dimminfo cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+@@ -689,7 +689,7 @@ static int intel_fwa_arm(struct nvdimm *nvdimm, enum nvdimm_fwa_trigger arm)
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
+ 	struct {
+-		struct nd_cmd_pkg pkg;
++		struct nd_cmd_pkg_hdr pkg;
+ 		struct nd_intel_fw_activate_arm cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+-- 
+2.43.0
 
-I didn't review this file yet, so snipping.
-
-
-> index 0000000..3645934
-> --- /dev/null
-> +++ b/cxl/inject-error.c
-
-snip
-
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 91eedd1..8174c11 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -3179,6 +3179,59 @@ CXL_EXPORT int cxl_dport_get_id(struct cxl_dport *dport)
->  	return dport->id;
->  }
->  
-> +CXL_EXPORT int cxl_dport_inject_proto_err(struct cxl_dport *dport,
-> +					  enum cxl_proto_error_types perr,
-> +					  const char *debugfs)
-> +{
-> +	struct cxl_port *port = cxl_dport_get_port(dport);
-> +	size_t path_len = strlen(debugfs) + 24;
-
-What's the path_len math, +24 here and +16 in next fcn.
-I notice other path calloc's in this file padding more, ie +100 or +50.
-
-
-> +	struct cxl_ctx *ctx = port->ctx;
-> +	char buf[32];
-> +	char *path;
-> +	int rc;
-> +
-> +	if (!dport->dev_path) {
-> +		err(ctx, "no dev_path for dport\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	path_len += strlen(dport->dev_path);
-> +	path = calloc(1, path_len);
-> +	if (!path)
-> +		return -ENOMEM;
-> +
-> +	snprintf(path, path_len, "%s/cxl/%s/einj_inject", debugfs,
-> +		 cxl_dport_get_devname(dport));
-> +
-> +	snprintf(buf, sizeof(buf), "0x%lx\n", (u64) perr);
-
-Here, and in cxl_get_proto_errors(), can we check for the path and
-fail with 'unsupported' if it doesn't exist. That'll tell folks
-if feature is not configured, or not enabled ?
-Are kernel configured and port enabled 2 different levels?
-
-There's an example in this file w "if (access(path, F_OK) != 0)"
-
-
-> +	rc = sysfs_write_attr(ctx, path, buf);
-> +	if (rc)
-> +		err(ctx, "could not write to %s: %d\n", path, rc);
-
-for 'sameness' with most err's in this library, do:
-        err(ctx, "failed write to %s: %s\n", path, strerr(-rc));
-
-> +
-> +	free(path);
-> +	return rc;
-> +}
-> +
-> +CXL_EXPORT int cxl_get_proto_errors(struct cxl_ctx *ctx, char *buf,
-> +				    const char *debugfs)
-> +{
-> +	size_t path_len = strlen(debugfs) + 16;
-> +	char *path;
-> +	int rc = 0;
-> +
-> +	path = calloc(1, path_len);
-> +	if (!path)
-> +		return -ENOMEM;
-> +
-> +	snprintf(path, path_len, "%s/cxl/einj_types", debugfs);
-> +	rc = sysfs_read_attr(ctx, path, buf);
-> +	if (rc)
-> +		err(ctx, "could not read from %s: %d\n", path, rc);
-> +
-
-same comments as previous, check path and make err msg similar
-
-
-> +	free(path);
-> +	return rc;
-> +}
-> +
->  CXL_EXPORT struct cxl_port *cxl_dport_get_port(struct cxl_dport *dport)
->  {
->  	return dport->port;
-> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-> index 304d7fa..d39a12d 100644
-> --- a/cxl/lib/libcxl.sym
-> +++ b/cxl/lib/libcxl.sym
-> @@ -281,4 +281,6 @@ global:
->  	cxl_memdev_get_ram_qos_class;
->  	cxl_region_qos_class_mismatch;
->  	cxl_port_decoders_committed;
-> +	cxl_dport_inject_proto_err;
-> +	cxl_get_proto_errors;
->  } LIBCXL_6;
-
-Start a new section above for these new symbols.
-Each ndctl release gets a new section - if symbols added.
-
-
-
-> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-> index fc6dd00..867daa4 100644
-> --- a/cxl/libcxl.h
-> +++ b/cxl/libcxl.h
-> @@ -160,6 +160,15 @@ struct cxl_port *cxl_port_get_next_all(struct cxl_port *port,
->  	for (port = cxl_port_get_first(top); port != NULL;                     \
->  	     port = cxl_port_get_next_all(port, top))
->  
-> +enum cxl_proto_error_types {
-> +	CXL_CACHE_CORRECTABLE = 1 << 12,
-> +	CXL_CACHE_UNCORRECTABLE = 1 << 13,
-> +	CXL_CACHE_FATAL = 1 << 14,
-> +	CXL_MEM_CORRECTABLE = 1 << 15,
-> +	CXL_MEM_UNCORRECTABLE = 1 << 16,
-> +	CXL_MEM_FATAL = 1 << 17,
-> +};
-
-Please align like enum util_json_flags
-Is there a spec reference to add?
-
-That's all.
--- Alison
-
-
-
-> +
->  struct cxl_dport;
->  struct cxl_dport *cxl_dport_get_first(struct cxl_port *port);
->  struct cxl_dport *cxl_dport_get_next(struct cxl_dport *dport);
-> @@ -168,6 +177,10 @@ const char *cxl_dport_get_physical_node(struct cxl_dport *dport);
->  const char *cxl_dport_get_firmware_node(struct cxl_dport *dport);
->  struct cxl_port *cxl_dport_get_port(struct cxl_dport *dport);
->  int cxl_dport_get_id(struct cxl_dport *dport);
-> +int cxl_dport_inject_proto_err(struct cxl_dport *dport,
-> +			       enum cxl_proto_error_types err,
-> +			       const char *debugfs);
-> +int cxl_get_proto_errors(struct cxl_ctx *ctx, char *buf, const char *debugfs);
->  bool cxl_dport_maps_memdev(struct cxl_dport *dport, struct cxl_memdev *memdev);
->  struct cxl_dport *cxl_port_get_dport_by_memdev(struct cxl_port *port,
->  					       struct cxl_memdev *memdev);
-> diff --git a/cxl/meson.build b/cxl/meson.build
-> index 61b4d87..79da4e6 100644
-> --- a/cxl/meson.build
-> +++ b/cxl/meson.build
-> @@ -7,6 +7,7 @@ cxl_src = [
->    'memdev.c',
->    'json.c',
->    'filter.c',
-> +  'inject-error.c',
->    '../daxctl/json.c',
->    '../daxctl/filter.c',
->  ]
-> -- 
-> 2.34.1
-> 
-> 
