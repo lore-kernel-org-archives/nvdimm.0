@@ -1,62 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB2771C84D9;
-	Fri, 14 Feb 2025 23:37:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFD75DDA8
+	for <nvdimm@lists.linux.dev>; Sat, 15 Feb 2025 02:13:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739576260; cv=none; b=B2i4DSFhQiSFuT1kEW3M8pcsH4MmgP5Z6F4sXxz+FZPaMEnn8y6WB4k7NXkqgx2R+fopp6uLUIN9gtpvn1+ZJ7jgoo3hXACKfr3rlbOY9IveBOvIydWhpt6n0QDPZd4OTaoDjIPivyS/hcweWI0YS3XHU17zLNMXF0YJ9TuZ9v0=
+	t=1739585611; cv=none; b=CyILhwJuQCNbbOvvd4Qg3DQMpl+exVdvovPNAGTzsR3BSl867EGzVYFYnDd8w/VMP8BXxVnn1/Qtic+kLHE8Ras4jA7wTlNdqA+kzfqHvFFBGC1dDNNn3N6NX+bHp4OP82zsZXwm18eoYYHqFT4mshW1bWckCS+uL5I8S1KdpaE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739576260; c=relaxed/simple;
-	bh=r0PNd1x2MlwrDxYhFCyXBzRBMGAnrkQjE1QlYWQCxMc=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=qC7RHFDarQVwctl9u4LjsuyelcYebwfIprxQELM+AR6WjFgvqF7/PYyHemAAAA7xs2ikHxG9DLbhfZyiFBgAU2pwWIsOGWN7qO0FP0UieKdzGpp7H+8ChzNRNV3SLLP2RmpsS9RW72hlI3PM3Es/u9wTA/albkbmuUhflKGZ6ss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y7Lhfzlu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739585611; c=relaxed/simple;
+	bh=wegVozxu6q46LilThDAiVgrwuSpj+jm4ui6RIcG+YRo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DnjKf5UeI1/T0K+oo3yyG+bPV+kvjCpz34pl4uonJNN7cVD+ItlOmU8WeQD2mdAaANEybBqWQIx7cN5KSxmsksGcc/PaiqqgBs8pCIuNbkgT58y2QKqCWrcciVMDLcYajXALW9HOrT6aoE6u/hlZKM67XCG1+lVXubjJ3F4R8FE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Y5BLEY4N; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y7Lhfzlu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F14C4CED1;
-	Fri, 14 Feb 2025 23:37:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739576259;
-	bh=r0PNd1x2MlwrDxYhFCyXBzRBMGAnrkQjE1QlYWQCxMc=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Y7LhfzluPL03AlbQ+tNHPtJGO06fXuEjGx9aURj4t94MlXT3+rQA7sxokzTjxg6wr
-	 4qUtFS+UKLuZQTHoh1qUQfvve0qOgl1tfnNncHz/vQ8AL796SLOF8X6EJxUNq9/0b1
-	 2KQipMIFui6GcMO1T07m082f9E/045TpiSqM2GD8=
-Date: Fri, 14 Feb 2025 15:37:38 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, "Matthew Wilcox (Oracle)"
- <willy@infradead.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
- <dave.jiang@intel.com>, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH 1/2] dax: Remove access to page->index
-Message-Id: <20250214153738.4248664ec71581d31d4f9115@linux-foundation.org>
-In-Reply-To: <ivwl5yqx7bfa6hw233gaicmdb3tvqmy6tqsrfbiyghzwlrghxk@yifmg7leosa7>
-References: <20241216155408.8102-1-willy@infradead.org>
-	<677c78a121044_f58f29458@dwillia2-xfh.jf.intel.com.notmuch>
-	<ivwl5yqx7bfa6hw233gaicmdb3tvqmy6tqsrfbiyghzwlrghxk@yifmg7leosa7>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Y5BLEY4N"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1739585609; x=1771121609;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=wegVozxu6q46LilThDAiVgrwuSpj+jm4ui6RIcG+YRo=;
+  b=Y5BLEY4NpT6SYXdgg9+NbW0tCqFsaeBKuO7w940iR2NhzagrhROSFhig
+   x++ucLDJ8q0/WDYEzwc1pwd5BTIoUojfpmuzrsT6ClpZndmIUXbiJacoF
+   5XkEiFZbd5NanzinOogPyQIALxy8YYkOWlfuc66BurToq0UEZK2KlNJZ9
+   YWmcXkPHIYHsqx84n14rswW8cFjVcfW/xa1Ri0PqqW1CFJkho9pLR8Nku
+   8qrH5wE2raXGYimMa2Bdr+atHUfkuC+1KWBKvADrbHLEMgndz6bmy9Mf0
+   3IzOzLNvyNgIZIJfMPVOKTtRISqIE7vKIFAIAXlLGximZ/V0dAS3RaOA5
+   w==;
+X-CSE-ConnectionGUID: tUE8hCzARpemQXOgW1u5LQ==
+X-CSE-MsgGUID: Zn3KT2KSQl6sKnyc7pQO/g==
+X-IronPort-AV: E=McAfee;i="6700,10204,11345"; a="44109894"
+X-IronPort-AV: E=Sophos;i="6.13,287,1732608000"; 
+   d="scan'208";a="44109894"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Feb 2025 18:13:28 -0800
+X-CSE-ConnectionGUID: bmLIowOpRVyK+82qVXmwzg==
+X-CSE-MsgGUID: 3MHaEyJYQrCZmahTsXmoWg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
+   d="scan'208";a="150773211"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.109.91])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Feb 2025 18:13:27 -0800
+From: alison.schofield@intel.com
+To: nvdimm@lists.linux.dev
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	linux-cxl@vger.kernel.org
+Subject: [ndctl PATCH] cxl/lib: remove unimplemented symbol cxl_mapping_get_region
+Date: Fri, 14 Feb 2025 18:13:16 -0800
+Message-ID: <20250215021319.1948097-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Wed, 8 Jan 2025 10:24:00 +1100 Alistair Popple <apopple@nvidia.com> wrote:
+From: Alison Schofield <alison.schofield@intel.com>
 
-> > Question is whether to move ahead with this now and have Alistair
-> > rebase, or push ahead with getting Alistair's series into -next? I am
-> > hoping that Alistair's series can move ahead this cycle, but still
-> > catching up on the latest after the holiday break.
-> 
-> The rebase probably isn't that hard, but if we push ahead with my series it's
-> largely unnecessary as it moves this over to the folio anyway. I've just posted
-> a respin on top of next-20241216 -
-> https://lore.kernel.org/linux-mm/cover.425da7c4e76c2749d0ad1734f972b06114e02d52.1736221254.git-series.apopple@nvidia.com/
+User reports this symbol was added but has never had an implementation
+causing their linker ld.lld to fail like so:
 
-I'll drop your v7 series from mm-unstable and shall add these two
-patches from Matthew.
+ld.lld: error: version script assignment of 'LIBCXL_3' to symbol 'cxl_mapping_get_region' failed: symbol not defined
+
+This likely worked for some builds but not others because of different
+toolchains (linkers), compiler optimizations (garbage collection), or
+linker flags (ignoring or only warning on unused symbols).
+
+Clean this up by removing the symbol.
+
+Reposted here from github pull request:
+https://github.com/pmem/ndctl/pull/267/
+
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ cxl/lib/libcxl.sym | 1 -
+ cxl/libcxl.h       | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+index 0c155a40ad47..763151fbef59 100644
+--- a/cxl/lib/libcxl.sym
++++ b/cxl/lib/libcxl.sym
+@@ -208,7 +208,6 @@ global:
+ 	cxl_mapping_get_first;
+ 	cxl_mapping_get_next;
+ 	cxl_mapping_get_decoder;
+-	cxl_mapping_get_region;
+ 	cxl_mapping_get_position;
+ 	cxl_decoder_get_by_name;
+ 	cxl_decoder_get_memdev;
+diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+index 0a5fd0e13cc2..43c082acd836 100644
+--- a/cxl/libcxl.h
++++ b/cxl/libcxl.h
+@@ -354,7 +354,6 @@ struct cxl_memdev_mapping *cxl_mapping_get_first(struct cxl_region *region);
+ struct cxl_memdev_mapping *
+ cxl_mapping_get_next(struct cxl_memdev_mapping *mapping);
+ struct cxl_decoder *cxl_mapping_get_decoder(struct cxl_memdev_mapping *mapping);
+-struct cxl_region *cxl_mapping_get_region(struct cxl_memdev_mapping *mapping);
+ unsigned int cxl_mapping_get_position(struct cxl_memdev_mapping *mapping);
+ 
+ #define cxl_mapping_foreach(region, mapping) \
+-- 
+2.37.3
+
