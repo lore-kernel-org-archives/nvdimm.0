@@ -1,85 +1,226 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECC37288A2
-	for <nvdimm@lists.linux.dev>; Thu, 20 Feb 2025 13:35:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E7751FDA7B;
+	Thu, 20 Feb 2025 18:34:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740058550; cv=none; b=JakNHoKZImhPBefpNxbgoRajf+bdCz0WYfyqYZxfZWSfeQz+uNNjU1WE8tLHul1wR7j1mHPMFpHAuY2QnC1j/ofonJNDlurp6zGpISTy7epd7g24QTwI3XzmuOLGvYC219od/FymOp5UHTTyGglnIZ4Ymg+r2U7jAMBlZTiX5p0=
+	t=1740076462; cv=none; b=rpZSeqyPmYZhkDg/bOSSv9PADbsOPGnsZRCexSA90TVC6sJDR4Q7y/dL+KWVg1Xz7sOxxW014330eKwbYtlV0RWxnOhY2qjFLyfAmbQLXuemFSiqEfvfT/cERWTscGtRoDyZxTddMxlPJVSURZ8msRXbGVxD80xUyetozAEaqzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740058550; c=relaxed/simple;
-	bh=1tW7VBLl9qamleZ0juNblQcKdfcTcvTW5f+fv/2wKC0=;
-	h=From:To:Cc:Subject:References:Date:In-Reply-To:Message-ID:
-	 MIME-Version:Content-Type; b=de03qQt6trCbUk3c/l+56FUnZPGymlWhxTawQ/xZnLQc9UfbfH7AO9SrK223Q8o34vLXBnZ9rrXAJd1W1pIgaqZMr6yEm18wOIWThOadA3ko3GW0PIfunEcFWzbpvYMjRZzoukOBb0/qkFkvyGhyJP9VehoIzuVqkZcPRpbz3bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ZnECvafP; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1740076462; c=relaxed/simple;
+	bh=/LnWcPRyXKEHQ3gAWHDyZ1PtFJgSTS4Ppsf/IrPzcsU=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=aTw+egj5xb3wecjV139e02Tddg6+i3/fpKvf0Sve4LN43tzuIQ/Cx4kRvMBDB/BldCnawgCtd8yIlM7cGX5KQCsWt/36I155mEuacny6sCJlI4+jh8KlYdvBigyXFu6ZjV2MSDmB9X26ZiZtFK5E2oejNNFUfwVG6MuHwaH1AIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=GxmdfoZg; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZnECvafP"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1740058547;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=p2+p1teF2pKz1azjS8ntkPhlcJXUjNb0K0WphETD1Wg=;
-	b=ZnECvafP+m71wMvMHKu6XrGNHsZ60WLFgR309lV60kgDuj09B+kUQdJRtuoZDxd2Y62i/P
-	OBM8R+hcp+Tv+Crh1seNJmY6FoeUSIKUIhfWNwUIydbXgGgsDDvVwO9lC+vz04hWWHSYUD
-	6ZVGytKprBuCT2u8PlXOER++N+sRGOE=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-633-rhaifzDyPcWk2x7tD_unvg-1; Thu,
- 20 Feb 2025 08:35:44 -0500
-X-MC-Unique: rhaifzDyPcWk2x7tD_unvg-1
-X-Mimecast-MFC-AGG-ID: rhaifzDyPcWk2x7tD_unvg_1740058543
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 5AC82180056F;
-	Thu, 20 Feb 2025 13:35:43 +0000 (UTC)
-Received: from segfault.usersys.redhat.com (unknown [10.22.65.77])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id AD08B180035F;
-	Thu, 20 Feb 2025 13:35:41 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: Donet Tom <donettom@linux.vnet.ibm.com>
-Cc: Alison Schofield <alison.schofield@intel.com>,  nvdimm@lists.linux.dev,
-  linux-cxl@vger.kernel.org,  Ritesh Harjani <ritesh.list@gmail.com>
-Subject: Re: [PATCH] [ndctl PATCH v2] ndctl/list: display region caps for
- any of BTT, PFN, DAX
-References: <20250220062029.9789-1-donettom@linux.vnet.ibm.com>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Thu, 20 Feb 2025 08:35:39 -0500
-In-Reply-To: <20250220062029.9789-1-donettom@linux.vnet.ibm.com> (Donet Tom's
-	message of "Thu, 20 Feb 2025 00:20:29 -0600")
-Message-ID: <x49y0y0oi1g.fsf@segfault.usersys.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.2 (gnu/linux)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="GxmdfoZg"
+Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 51KH1cvh029326;
+	Thu, 20 Feb 2025 18:33:41 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=FcxwqK
+	Cj7AI2VdyyanA1j8RnG7hQzzrm45++xUtPV78=; b=GxmdfoZgDml6SEejBGbeZ+
+	Y77j8DNOaz2mXRpM6AbAAxSet/c5sdfX/1F+tPUMHMSeX6v5qqnHjyZe/MPG8HLb
+	QSM8SuFAYSIdcRkhO600xhqJEswznyYSspSBjplVbNhzQYWlzN49L/Hm5O0+2Hr6
+	sgUKjsIO4Xyf9Aw1vOEh3fsdtvpk1bTuxU/L6UK2X9xS1211KKdtQr/bUyb18CiU
+	p4CL3V0cC4kVkNzTOpw6ADR6na+EWrdSRTGaB3UfMctLCsaYEYOlmNRKk66melyb
+	2rgHDW+6aPz3ncY3WbeRWlD9fmzwXTPGPuunqBnEAgu0duw9YNa9vhRSMxbCmsuQ
+	==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 44wx78kust-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 20 Feb 2025 18:33:40 +0000 (GMT)
+Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 51KISnU6023517;
+	Thu, 20 Feb 2025 18:33:40 GMT
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 44wx78kusk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 20 Feb 2025 18:33:40 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 51KIMhXj027077;
+	Thu, 20 Feb 2025 18:33:38 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 44w025bjes-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 20 Feb 2025 18:33:38 +0000
+Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 51KIXbFU59965808
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 20 Feb 2025 18:33:37 GMT
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0DE4220043;
+	Thu, 20 Feb 2025 18:33:37 +0000 (GMT)
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6433720040;
+	Thu, 20 Feb 2025 18:33:36 +0000 (GMT)
+Received: from thinkpad-T15 (unknown [9.152.212.30])
+	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Thu, 20 Feb 2025 18:33:36 +0000 (GMT)
+Date: Thu, 20 Feb 2025 19:33:34 +0100
+From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, linux-mm@kvack.org,
+        Alison Schofield <alison.schofield@intel.com>, lina@asahilina.net,
+        zhang.lyra@gmail.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
+        logang@deltatee.com, bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca,
+        catalin.marinas@arm.com, will@kernel.org, mpe@ellerman.id.au,
+        npiggin@gmail.com, dave.hansen@linux.intel.com, ira.weiny@intel.com,
+        willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
+        linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
+        linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
+        david@fromorbit.com, chenhuacai@kernel.org, kernel@xen0n.name,
+        loongarch@lists.linux.dev, vgoyal@redhat.com, stefanha@redhat.com
+Subject: Re: [PATCH v8 20/20] device/dax: Properly refcount device dax pages
+ when mapping
+Message-ID: <20250220193334.0f7f4071@thinkpad-T15>
+In-Reply-To: <9d9d33b418dd1aab9323203488305085389f62c1.1739850794.git-series.apopple@nvidia.com>
+References: <cover.a782e309b1328f961da88abddbbc48e5b4579021.1739850794.git-series.apopple@nvidia.com>
+	<9d9d33b418dd1aab9323203488305085389f62c1.1739850794.git-series.apopple@nvidia.com>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.43; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: sCBm3UdPtH7qOnoO_5HgzlnlNcKP6yh362sQDX7ykH0_1740058543
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: zuIWejWRNtbRCsuLFOLDp6zAMkoHhC6z
+X-Proofpoint-ORIG-GUID: y5u7NXx-QaNlJj2myfsdElRbcx1OeQjd
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2025-02-20_08,2025-02-20_02,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ impostorscore=0 phishscore=0 malwarescore=0 mlxscore=0 clxscore=1011
+ spamscore=0 suspectscore=0 mlxlogscore=999 lowpriorityscore=0 bulkscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2502100000 definitions=main-2502200128
 
-> diff --git a/ndctl/json.c b/ndctl/json.c
-> index 23bad7f..7646882 100644
-> --- a/ndctl/json.c
-> +++ b/ndctl/json.c
-> @@ -381,7 +381,7 @@ struct json_object *util_region_capabilities_to_json(struct ndctl_region *region
->  	struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
->  	struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
+On Tue, 18 Feb 2025 14:55:36 +1100
+Alistair Popple <apopple@nvidia.com> wrote:
+
+[...]
+> diff --git a/mm/memremap.c b/mm/memremap.c
+> index 9a8879b..532a52a 100644
+> --- a/mm/memremap.c
+> +++ b/mm/memremap.c
+> @@ -460,11 +460,10 @@ void free_zone_device_folio(struct folio *folio)
+>  {
+>  	struct dev_pagemap *pgmap = folio->pgmap;
 >  
-> -	if (!btt || !pfn || !dax)
-> +	if (!btt && !pfn && !dax)
->  		return NULL;
+> -	if (WARN_ON_ONCE(!pgmap->ops))
+> -		return;
+> -
+> -	if (WARN_ON_ONCE(pgmap->type != MEMORY_DEVICE_FS_DAX &&
+> -			 !pgmap->ops->page_free))
+> +	if (WARN_ON_ONCE((!pgmap->ops &&
+> +			  pgmap->type != MEMORY_DEVICE_GENERIC) ||
+> +			 (pgmap->ops && !pgmap->ops->page_free &&
+> +			  pgmap->type != MEMORY_DEVICE_FS_DAX)))
+
+Playing around with dcssblk, adding devm_memremap_pages() and
+pgmap.type = MEMORY_DEVICE_FS_DAX, similar to the other two existing
+FS_DAX drivers drivers/nvdimm/pmem.c and fs/fuse/virtio_fs.c, I hit
+this warning when executing binaries from DAX-mounted fs.
+
+I do not set up pgmap->ops, similar to fs/fuse/virtio_fs.c, and I don't see
+why they would be needed here anyway, at least for MEMORY_DEVICE_FS_DAX.
+drivers/nvdimm/pmem.c does set up pgmap->ops, but only ->memory_failure,
+which is still good enough to not trigger the warning here, probably just
+by chance.
+
+Now I wonder:
+1) What is this check / warning good for, when this function only ever
+   calls pgmap->ops->page_free(), but not for MEMORY_DEVICE_FS_DAX and
+   not for MEMORY_DEVICE_GENERIC (the latter only after this patch)?
+2) Is the warning also seen for virtio DAX mappings (added Vivek and
+   Stefan on CC)? No pgmap->ops set up there, so I would guess "yes",
+   and already before this series, with the old check / warning.
+3) Could this be changed to only check / warn if pgmap->ops (or maybe
+   rather pgmap->ops->page_free) is not set up, but not for
+   MEMORY_DEVICE_GENERIC and MEMORY_DEVICE_FS_DAX where this is not
+   being called?
+4) Or is there any reason why pgmap->ops would be required for
+   MEMORY_DEVICE_FS_DAX?
+
+Apart from the warning, we would also miss out on the
+wake_up_var(&folio->page) in the MEMORY_DEVICE_FS_DAX case, when no
+pgmap->ops was set up. IIUC, even before this change / series (i.e.
+for virtio DAX only, since dcssblk was not using ZONE_DEVICE before,
+and pmem seems to work by chance because they have ops->memory_failure).
+
+>  		return;
 >  
->  	jcaps = json_object_new_array();
+>  	mem_cgroup_uncharge(folio);
+> @@ -494,7 +493,8 @@ void free_zone_device_folio(struct folio *folio)
+>  	 * zero which indicating the page has been removed from the file
+>  	 * system mapping.
+>  	 */
+> -	if (pgmap->type != MEMORY_DEVICE_FS_DAX)
+> +	if (pgmap->type != MEMORY_DEVICE_FS_DAX &&
+> +	    pgmap->type != MEMORY_DEVICE_GENERIC)
+>  		folio->mapping = NULL;
+>  
+>  	switch (pgmap->type) {
+> @@ -509,7 +509,6 @@ void free_zone_device_folio(struct folio *folio)
+>  		 * Reset the refcount to 1 to prepare for handing out the page
+>  		 * again.
+>  		 */
+> -		pgmap->ops->page_free(folio_page(folio, 0));
 
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Ok, this is probably the reason why you adjusted the check above, since
+no more pgmap->ops needed for MEMORY_DEVICE_GENERIC.
+Still, the MEMORY_DEVICE_FS_DAX case also does not seem to need
+pgmap->ops, and at least the existing virtio DAX should already be
+affected, and of course future dcssblk DAX.
 
+But maybe that should be addressed in a separate patch, since your changes
+here seem consistent, and not change or worsen anything wrt !pgmap->ops
+and MEMORY_DEVICE_FS_DAX.
+
+>  		folio_set_count(folio, 1);
+>  		break;
+>  
+
+For reference, this is call trace I see when I hit the warning:
+
+[  283.567945] ------------[ cut here ]------------
+[  283.567947] WARNING: CPU: 12 PID: 878 at mm/memremap.c:436 free_zone_device_folio+0x6e/0x140
+[  283.567959] Modules linked in:
+[  283.567963] CPU: 12 UID: 0 PID: 878 Comm: ls Not tainted 6.14.0-rc3-next-20250220-00012-gd072dabf62e8-dirty #44
+[  283.567968] Hardware name: IBM 3931 A01 704 (z/VM 7.4.0)
+[  283.567971] Krnl PSW : 0704d00180000000 000001ec0548b44a (free_zone_device_folio+0x72/0x140)
+[  283.567978]            R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:1 PM:0 RI:0 EA:3
+[  283.567982] Krnl GPRS: 0000000000000038 0000000000000000 0000000000000003 000001ec06cc42e8
+[  283.567986]            00000004cc38e400 0000000000000000 0000000000000003 0000000093eacd00
+[  283.567990]            000000009a68413f 0000016614010940 000000009553a640 0000016614010940
+[  283.567994]            0000000000000000 0000000000000000 000001ec0548b416 0000016c05da3bf8
+[  283.568004] Krnl Code: 000001ec0548b43e: a70e0003		chi	%r0,3
+                          000001ec0548b442: a7840006		brc	8,000001ec0548b44e
+                         #000001ec0548b446: af000000		mc	0,0
+                         >000001ec0548b44a: a7f4005f		brc	15,000001ec0548b508
+                          000001ec0548b44e: c00400000008	brcl	0,000001ec0548b45e
+                          000001ec0548b454: b904002b		lgr	%r2,%r11
+                          000001ec0548b458: c0e5001dcd84	brasl	%r14,000001ec05844f60
+                          000001ec0548b45e: 9101b01f		tm	31(%r11),1
+[  283.568035] Call Trace:
+[  283.568038]  [<000001ec0548b44a>] free_zone_device_folio+0x72/0x140 
+[  283.568042] ([<000001ec0548b416>] free_zone_device_folio+0x3e/0x140)
+[  283.568045]  [<000001ec057a4c1c>] wp_page_copy+0x34c/0x6e0 
+[  283.568050]  [<000001ec057ac640>] __handle_mm_fault+0x220/0x4d0 
+[  283.568054]  [<000001ec057ac97e>] handle_mm_fault+0x8e/0x160 
+[  283.568057]  [<000001ec054ca006>] do_exception+0x1a6/0x450 
+[  283.568061]  [<000001ec06264992>] __do_pgm_check+0x132/0x1e0 
+[  283.568065]  [<000001ec0627057e>] pgm_check_handler+0x11e/0x170 
+[  283.568069] Last Breaking-Event-Address:
+[  283.568070]  [<000001ec0548b428>] free_zone_device_folio+0x50/0x140
+[  283.568074] ---[ end trace 0000000000000000 ]---
