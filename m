@@ -1,98 +1,132 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from dggsgout12.his.huawei.com (dggsgout12.his.huawei.com [45.249.212.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77E6E1917E3;
-	Fri, 21 Feb 2025 06:01:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 202F81FFC5B
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 08:14:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740117688; cv=none; b=KNFUsUMvPSpSZDZTsAh/m862VCf5vUaOR/vQn4yj6+idwGpK4/1V9TjnyEAlZgdaMpVbe9Ea4qCB7wK6UEGe/6Lek75v4HqjmiM6z2SWd9Fg30FAZjEXDEKh+t3KVNKQm0x0R/O+UwrFU+JT9ICrtAe3EtXE4Y955PsqXuk1b4k=
+	t=1740125700; cv=none; b=jLWotYxBF6/ZukGozPk2o04P2TY6m2l68HMLcHpaQkVK7bDq23B3P/xPUajQ5+FCwYgExsZb21bIuQdrHvVygmhQyfHtM1h62p5SNFHoIlkv9Bn9hdVjYjN+Ub6cS0q0dIogdvENeyPjppfeqGja3o4k2dZrwWxACV7nZA2WhWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740117688; c=relaxed/simple;
-	bh=fCzc/nNMh2KfoFPRA/XbYY9gHWRIDSlx5rH678Vgm/o=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=eepA6u3yw835P4DAVVrJvwKv6egTMhiPGQplRzrnXRifZYs6ITwmStHXWuFKSaeItpo3Om95BSXrEoazOpjXjPeW06FYhj3idLngUKzDfpZVMpev6ALAQBOMtb7HvkomkFOP1uM+k1n/lcChdZJ7VLyIt0MnGTsxd9DtwNWMsOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=OCOHGOcg; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="OCOHGOcg"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 51L5P45s003571;
-	Fri, 21 Feb 2025 06:01:26 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=d4FmSe
-	9M3mZq4yCy32/8QHZt9cN5EPgh9r7qE2bLzdc=; b=OCOHGOcgdKmfZCTNoj9LQX
-	ajTY+gxx8a9BeumZM6wrDYOwTU/L6t0GLLRDZXRlg6waNOcvr7Tp8hv+FSHsPydZ
-	gHJsiRVTQP77+RcAi5KbQeJno0Q30BiDnEtU8W5T9+nSerJusRF1xVXQZU++ufyb
-	eobpb4tEPRbxaMe4CduxaezUTymQEshiTvwveiJNjnHJV76TPc3ZHCgQ7G1lO7qT
-	6VTjoGTJMkycbNX03ic4PlcVNKj0zNZ8KGijjTUGdhjC09AVQv5XXBUG11bDaETF
-	T1TBZXmSyKrIp+AUmA3t3zbkB6lAp8i4B+z6clOTDUfMw2vXdMS6XFatS9UjiHqQ
-	==
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 44xka8g4bn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 21 Feb 2025 06:01:26 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 51L5CtZa027050;
-	Fri, 21 Feb 2025 06:01:25 GMT
-Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 44w025e86v-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 21 Feb 2025 06:01:25 +0000
-Received: from smtpav03.wdc07v.mail.ibm.com (smtpav03.wdc07v.mail.ibm.com [10.39.53.230])
-	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 51L61ODj28902054
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 21 Feb 2025 06:01:24 GMT
-Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5514458062;
-	Fri, 21 Feb 2025 06:01:24 +0000 (GMT)
-Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9BAA55805A;
-	Fri, 21 Feb 2025 06:01:20 +0000 (GMT)
-Received: from [9.109.211.178] (unknown [9.109.211.178])
-	by smtpav03.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 21 Feb 2025 06:01:20 +0000 (GMT)
-Message-ID: <21af17ce-e125-4c6c-8826-f6cf6b2448d3@linux.ibm.com>
-Date: Fri, 21 Feb 2025 11:31:19 +0530
+	s=arc-20240116; t=1740125700; c=relaxed/simple;
+	bh=BBVR4KXIIdkps/hjFxQA/XkTAjVcHGeHkHfbmS5j0Ig=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=J9SIQRt5M0MxRxodYr7R7MIsefmkVdGkaQziIQ1aa0QcN+WtvofnsYgRFMXxJA6YFsUa6t+i7e08uO5Dbf7iHAvKEKpquW0GLZmyX1jih0qgEQvNXMyxPEnP8kJyJzqHFdPAqf1j9s4kNnwGfP4geqGfPLLF3izc5vIz/CLZlRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
+Received: from mail.maildlp.com (unknown [172.19.93.142])
+	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4YzjbF1ksdz4f3jYB
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:33 +0800 (CST)
+Received: from mail02.huawei.com (unknown [10.116.40.128])
+	by mail.maildlp.com (Postfix) with ESMTP id E132B1A0DC7
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:54 +0800 (CST)
+Received: from huaweicloud.com (unknown [10.175.104.67])
+	by APP4 (Coremail) with SMTP id gCh0CgC3Gl_8NbhnHF3eEQ--.3944S5;
+	Fri, 21 Feb 2025 16:14:54 +0800 (CST)
+From: Zheng Qixing <zhengqixing@huaweicloud.com>
+To: axboe@kernel.dk,
+	song@kernel.org,
+	colyli@kernel.org,
+	yukuai3@huawei.com,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	dlemoal@kernel.org,
+	yanjun.zhu@linux.dev,
+	kch@nvidia.com,
+	hare@suse.de,
+	zhengqixing@huawei.com,
+	john.g.garry@oracle.com,
+	geliang@kernel.org,
+	xni@redhat.com,
+	colyli@suse.de
+Cc: linux-block@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	yi.zhang@huawei.com,
+	yangerkun@huawei.com
+Subject: [PATCH 01/12] badblocks: Fix error shitf ops
+Date: Fri, 21 Feb 2025 16:10:58 +0800
+Message-Id: <20250221081109.734170-2-zhengqixing@huaweicloud.com>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
+References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Change in reported values of some block integrity sysfs
- attributes
-From: M Nikhil <nikh1092@linux.ibm.com>
-To: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: linux-block@vger.kernel.org, dm-devel@lists.linux.dev,
-        linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
-        linux-scsi@vger.kernel.org, hare@suse.de, hch@lst.de,
-        steffen Maier <maier@linux.ibm.com>,
-        Benjamin Block <bblock@linux.ibm.com>,
-        Nihar Panda <niharp@linux.ibm.com>
-References: <f6130475-3ccd-45d2-abde-3ccceada0f0a@linux.ibm.com>
- <yq18qsjdz0r.fsf@ca-mkp.ca.oracle.com>
- <a39d25d3-e6ac-4166-a75e-58a258da4101@linux.ibm.com>
-Content-Language: en-US
-In-Reply-To: <a39d25d3-e6ac-4166-a75e-58a258da4101@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: ntn5dI55lF0o7GPFgeztaTKLqIk3V94R
-X-Proofpoint-ORIG-GUID: ntn5dI55lF0o7GPFgeztaTKLqIk3V94R
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
- definitions=2025-02-21_01,2025-02-20_02,2024-11-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 clxscore=1015
- priorityscore=1501 mlxscore=0 suspectscore=0 lowpriorityscore=0
- adultscore=0 phishscore=0 spamscore=0 malwarescore=0 impostorscore=0
- mlxlogscore=807 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2502100000 definitions=main-2502210044
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:gCh0CgC3Gl_8NbhnHF3eEQ--.3944S5
+X-Coremail-Antispam: 1UD129KBjvJXoW7CrykAw4UJw1rCr1DCrW8Xrb_yoW8Xr15pr
+	4DJ343GrW7W3yj93W5J3WUGr9aqw15JF43Ca1xJa4jkry5K3srta4kXryfZa4a9FW3Jrn0
+	ga1ruryruFZ7C37anT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUP2b4IE77IF4wAFF20E14v26rWj6s0DM7CY07I20VC2zVCF04k2
+	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28IrcIa0xkI8VA2jI8067AKxVWUGw
+	A2048vs2IY020Ec7CjxVAFwI0_Xr0E3s1l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxS
+	w2x7M28EF7xvwVC0I7IYx2IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxV
+	W8Jr0_Cr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v2
+	6rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMc
+	Ij6xIIjxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_
+	Jr0_Gr1lF7xvr2IYc2Ij64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2AFwI
+	0_GFv_Wryl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG
+	67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6rW5MI
+	IYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Gr0_Xr1lIxAIcVC0I7IYx2IY6xkF7I0E
+	14v26F4j6r4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr
+	0_Cr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IU0Ft
+	C7UUUUU==
+X-CM-SenderInfo: x2kh0wptl0x03j6k3tpzhluzxrxghudrp/
 
-gentle ping!!!
+From: Li Nan <linan122@huawei.com>
 
-Hopefully I haven't missed anything. I was wondering if you could find 
-out something and if I can provide more information.
+'bb->shift' is used directly in badblocks. It is wrong, fix it.
+
+Fixes: 3ea3354cb9f0 ("badblocks: improve badblocks_check() for multiple ranges handling")
+Signed-off-by: Li Nan <linan122@huawei.com>
+---
+ block/badblocks.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/block/badblocks.c b/block/badblocks.c
+index db4ec8b9b2a8..bcee057efc47 100644
+--- a/block/badblocks.c
++++ b/block/badblocks.c
+@@ -880,8 +880,8 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+ 		/* round the start down, and the end up */
+ 		sector_t next = s + sectors;
+ 
+-		rounddown(s, bb->shift);
+-		roundup(next, bb->shift);
++		rounddown(s, 1 << bb->shift);
++		roundup(next, 1 << bb->shift);
+ 		sectors = next - s;
+ 	}
+ 
+@@ -1157,8 +1157,8 @@ static int _badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
+ 		 * isn't than to think a block is not bad when it is.
+ 		 */
+ 		target = s + sectors;
+-		roundup(s, bb->shift);
+-		rounddown(target, bb->shift);
++		roundup(s, 1 << bb->shift);
++		rounddown(target, 1 << bb->shift);
+ 		sectors = target - s;
+ 	}
+ 
+@@ -1288,8 +1288,8 @@ static int _badblocks_check(struct badblocks *bb, sector_t s, int sectors,
+ 
+ 		/* round the start down, and the end up */
+ 		target = s + sectors;
+-		rounddown(s, bb->shift);
+-		roundup(target, bb->shift);
++		rounddown(s, 1 << bb->shift);
++		roundup(target, 1 << bb->shift);
+ 		sectors = target - s;
+ 	}
+ 
+-- 
+2.39.2
 
