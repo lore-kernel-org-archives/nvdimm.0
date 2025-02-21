@@ -1,28 +1,28 @@
 Received: from dggsgout12.his.huawei.com (dggsgout12.his.huawei.com [45.249.212.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE26200B9B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3492E201021
 	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 08:15:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740125702; cv=none; b=Fv+bhHXYK4EaC3Afw77V6vQBymPWxTmJ1rF0XTGKDcEQymMAxH3LoIi/R0B8x+P2qJTu0leQrgWeAYYzW+ttR3gSQqwSFS7TJcq0/a2imcJgZmNk8+qKUFpWM0Z7pAgK3+eV+2S6Zlnz/B5UV3yqCAdSfSHsSDDJz33QW75wOSs=
+	t=1740125703; cv=none; b=oT47chFL2ySKtkUQLys4CX/cV/mloHUiFdt8atF1hctLr3moMaBeL6jn1lq4I0eejUgCJcQnaDa0V7/i3cpR5e7ty+zhbetKZLzOP3BhlVSscDHtjGBq0nYLb4jLiGwPB2vMsOBN2gPxXuE0ntNgrb2LiOM2qBMBtRt2r4Yp5pw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740125702; c=relaxed/simple;
-	bh=DgtB7y4vZh9te6M7bK3173Va3ntgqMaiEcp563JO4AE=;
+	s=arc-20240116; t=1740125703; c=relaxed/simple;
+	bh=CbvBFTs6oVuHlnnYB0uVi6sV0YMKAMhrhPzqxWvsxxc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nXMyGzc45v7kWwkMltDtF7uNi2Z2fFncnNj8XnRLsmEdJhMPxKVhoQz+f7ctTrQR0cl2lLwPVXyWTEQKYgnRqfbjztUKzlm0eyc7HSecBbAK1xPOijxxeI2ULQUOWrG2mfgENWreYmOp5rY/3DsGVxAQ1LFNSc5Ktvng6Hvowf4=
+	 MIME-Version:Content-Type; b=lWS06RTyos0kq1Qq9C7BM0rdLCAGtavRyZ5hgIV60pdRzTEwEsNV6NsXQKxY5XKG0hEG+SSteErka21fz3MhmeR/Jk2A6dxe43awXKUXwXgERzYZgMUxozDQt1A3qdJ2C84UXnjF+FUG9znIkQUqp2FF/F9XuFOlYLOawMFnHG4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
-Received: from mail.maildlp.com (unknown [172.19.163.235])
-	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4YzjbH5Ly1z4f3jRG
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:35 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.216])
+	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4YzjbJ43wPz4f3jYC
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:36 +0800 (CST)
 Received: from mail02.huawei.com (unknown [10.116.40.128])
-	by mail.maildlp.com (Postfix) with ESMTP id 68FA71A058E
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:57 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTP id 3BD301A16AA
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:58 +0800 (CST)
 Received: from huaweicloud.com (unknown [10.175.104.67])
-	by APP4 (Coremail) with SMTP id gCh0CgC3Gl_8NbhnHF3eEQ--.3944S8;
-	Fri, 21 Feb 2025 16:14:57 +0800 (CST)
+	by APP4 (Coremail) with SMTP id gCh0CgC3Gl_8NbhnHF3eEQ--.3944S9;
+	Fri, 21 Feb 2025 16:14:58 +0800 (CST)
 From: Zheng Qixing <zhengqixing@huaweicloud.com>
 To: axboe@kernel.dk,
 	song@kernel.org,
@@ -47,9 +47,9 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	yi.zhang@huawei.com,
 	yangerkun@huawei.com
-Subject: [PATCH 04/12] badblocks: return error directly when setting badblocks exceeds 512
-Date: Fri, 21 Feb 2025 16:11:01 +0800
-Message-Id: <20250221081109.734170-5-zhengqixing@huaweicloud.com>
+Subject: [PATCH 05/12] badblocks: return error if any badblock set fails
+Date: Fri, 21 Feb 2025 16:11:02 +0800
+Message-Id: <20250221081109.734170-6-zhengqixing@huaweicloud.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
 References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
@@ -61,10 +61,10 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:gCh0CgC3Gl_8NbhnHF3eEQ--.3944S8
-X-Coremail-Antispam: 1UD129KBjvJXoW3Gry8Xry8ZFW3ur4UXFykAFb_yoW7ZF4kpF
-	sxW393tryDtr1Fg3WkZa1DJr1F934xJFWUCay5Xw10kFy0k3s7WF18X34F9Fyj9rWfGrn0
-	qa18uryrZFWkG3DanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:gCh0CgC3Gl_8NbhnHF3eEQ--.3944S9
+X-Coremail-Antispam: 1UD129KBjvJXoWxAF4rtw4kJrWUtw4xAw15twb_yoW5GF1Dpr
+	sxC3s3KrWjgr1UXF4UZ3Zrtr1Fg34fJF4UW3yrG34jkryUW343tF1kXr4YgFyjqry3AFn0
+	q3W5urWrZ34DG3DanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUUPvb4IE77IF4wAFF20E14v26rWj6s0DM7CY07I20VC2zVCF04k2
 	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28IrcIa0xkI8VA2jI8067AKxVWUAV
 	Cq3wA2048vs2IY020Ec7CjxVAFwI0_Xr0E3s1l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0
@@ -83,207 +83,89 @@ X-CM-SenderInfo: x2kh0wptl0x03j6k3tpzhluzxrxghudrp/
 
 From: Li Nan <linan122@huawei.com>
 
-In the current handling of badblocks settings, a lot of processing has
-been done for scenarios where the number of badblocks exceeds 512.
-This makes the code look quite complex and also introduces some issues,
+_badblocks_set() returns success if at least one badblock is set
+successfully, even if others fail. This can lead to data inconsistencies
+in raid, where a failed badblock set should trigger the disk to be kicked
+out to prevent future reads from failed write areas.
 
-Fixing those issues wouldn’t be too complicated, but it wouldn’t
-simplify the code. In fact, a disk shouldn’t have too many badblocks,
-and for disks with 512 badblocks, attempting to set more bad blocks
-doesn’t make much sense. At that point, the more appropriate action
-would be to replace the disk. Therefore, to resolve these issues and
-simplify the code somewhat, return error directly when setting badblocks
-exceeds 512.
+_badblocks_set() should return error if any badblock set fails. Instead
+of relying on 'rv', directly returning 'sectors' for clearer logic. If all
+badblocks are successfully set, 'sectors' will be 0, otherwise it
+indicates the number of badblocks that have not been set yet, thus
+signaling failure.
+
+By the way, it can also fix an issue: when a newly set unack badblock is
+included in an existing ack badblock, the setting will return an error.
+···
+  echo "0 100" /sys/block/md0/md/dev-loop1/bad_blocks
+  echo "0 100" /sys/block/md0/md/dev-loop1/unacknowledged_bad_blocks
+  -bash: echo: write error: No space left on device
+```
+After fix, it will return success.
 
 Fixes: aa511ff8218b ("badblocks: switch to the improved badblock handling code")
 Signed-off-by: Li Nan <linan122@huawei.com>
 ---
- block/badblocks.c | 121 ++++++++--------------------------------------
- 1 file changed, 19 insertions(+), 102 deletions(-)
+ block/badblocks.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
 diff --git a/block/badblocks.c b/block/badblocks.c
-index ad8652fbe1c8..1c8b8f65f6df 100644
+index 1c8b8f65f6df..a953d2e9417f 100644
 --- a/block/badblocks.c
 +++ b/block/badblocks.c
-@@ -527,51 +527,6 @@ static int prev_badblocks(struct badblocks *bb, struct badblocks_context *bad,
- 	return ret;
- }
- 
--/*
-- * Return 'true' if the range indicated by 'bad' can be backward merged
-- * with the bad range (from the bad table) index by 'behind'.
-- */
--static bool can_merge_behind(struct badblocks *bb,
--			     struct badblocks_context *bad, int behind)
--{
--	sector_t sectors = bad->len;
--	sector_t s = bad->start;
--	u64 *p = bb->page;
--
--	if ((s < BB_OFFSET(p[behind])) &&
--	    ((s + sectors) >= BB_OFFSET(p[behind])) &&
--	    ((BB_END(p[behind]) - s) <= BB_MAX_LEN) &&
--	    BB_ACK(p[behind]) == bad->ack)
--		return true;
--	return false;
--}
--
--/*
-- * Do backward merge for range indicated by 'bad' and the bad range
-- * (from the bad table) indexed by 'behind'. The return value is merged
-- * sectors from bad->len.
-- */
--static int behind_merge(struct badblocks *bb, struct badblocks_context *bad,
--			int behind)
--{
--	sector_t sectors = bad->len;
--	sector_t s = bad->start;
--	u64 *p = bb->page;
--	int merged = 0;
--
--	WARN_ON(s >= BB_OFFSET(p[behind]));
--	WARN_ON((s + sectors) < BB_OFFSET(p[behind]));
--
--	if (s < BB_OFFSET(p[behind])) {
--		merged = BB_OFFSET(p[behind]) - s;
--		p[behind] =  BB_MAKE(s, BB_LEN(p[behind]) + merged, bad->ack);
--
--		WARN_ON((BB_LEN(p[behind]) + merged) >= BB_MAX_LEN);
--	}
--
--	return merged;
--}
--
- /*
-  * Return 'true' if the range indicated by 'bad' can be forward
-  * merged with the bad range (from the bad table) indexed by 'prev'.
-@@ -884,11 +839,9 @@ static bool try_adjacent_combine(struct badblocks *bb, int prev)
- static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 			  int acknowledged)
- {
--	int retried = 0, space_desired = 0;
--	int orig_len, len = 0, added = 0;
-+	int len = 0, added = 0;
+@@ -843,7 +843,6 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
  	struct badblocks_context bad;
  	int prev = -1, hint = -1;
--	sector_t orig_start;
  	unsigned long flags;
- 	int rv = 0;
+-	int rv = 0;
  	u64 *p;
-@@ -912,8 +865,6 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
  
- 	write_seqlock_irqsave(&bb->lock, flags);
- 
--	orig_start = s;
--	orig_len = sectors;
- 	bad.ack = acknowledged;
- 	p = bb->page;
- 
-@@ -922,6 +873,11 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+ 	if (bb->shift < 0)
+@@ -873,10 +872,8 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
  	bad.len = sectors;
  	len = 0;
  
-+	if (badblocks_full(bb)) {
-+		rv = 1;
-+		goto out;
-+	}
-+
+-	if (badblocks_full(bb)) {
+-		rv = 1;
++	if (badblocks_full(bb))
+ 		goto out;
+-	}
+ 
  	if (badblocks_empty(bb)) {
  		len = insert_at(bb, 0, &bad);
- 		bb->count++;
-@@ -933,32 +889,14 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 
- 	/* start before all badblocks */
- 	if (prev < 0) {
--		if (!badblocks_full(bb)) {
--			/* insert on the first */
--			if (bad.len > (BB_OFFSET(p[0]) - bad.start))
--				bad.len = BB_OFFSET(p[0]) - bad.start;
--			len = insert_at(bb, 0, &bad);
--			bb->count++;
--			added++;
--			hint = 0;
--			goto update_sectors;
--		}
--
--		/* No sapce, try to merge */
--		if (overlap_behind(bb, &bad, 0)) {
--			if (can_merge_behind(bb, &bad, 0)) {
--				len = behind_merge(bb, &bad, 0);
--				added++;
--			} else {
--				len = BB_OFFSET(p[0]) - s;
--				space_desired = 1;
--			}
--			hint = 0;
--			goto update_sectors;
--		}
--
--		/* no table space and give up */
--		goto out;
-+		/* insert on the first */
-+		if (bad.len > (BB_OFFSET(p[0]) - bad.start))
-+			bad.len = BB_OFFSET(p[0]) - bad.start;
-+		len = insert_at(bb, 0, &bad);
-+		bb->count++;
-+		added++;
-+		hint = 0;
-+		goto update_sectors;
- 	}
- 
- 	/* in case p[prev-1] can be merged with p[prev] */
-@@ -978,6 +916,11 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+@@ -916,10 +913,8 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
  			int extra = 0;
  
  			if (!can_front_overwrite(bb, prev, &bad, &extra)) {
-+				if (extra > 0) {
-+					rv = 1;
-+					goto out;
-+				}
-+
+-				if (extra > 0) {
+-					rv = 1;
++				if (extra > 0)
+ 					goto out;
+-				}
+ 
  				len = min_t(sector_t,
  					    BB_END(p[prev]) - s, sectors);
- 				hint = prev;
-@@ -1004,24 +947,6 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 		goto update_sectors;
- 	}
+@@ -986,10 +981,7 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
  
--	/* if no space in table, still try to merge in the covered range */
--	if (badblocks_full(bb)) {
--		/* skip the cannot-merge range */
--		if (((prev + 1) < bb->count) &&
--		    overlap_behind(bb, &bad, prev + 1) &&
--		    ((s + sectors) >= BB_END(p[prev + 1]))) {
--			len = BB_END(p[prev + 1]) - s;
--			hint = prev + 1;
--			goto update_sectors;
--		}
--
--		/* no retry any more */
--		len = sectors;
--		space_desired = 1;
--		hint = -1;
--		goto update_sectors;
--	}
--
- 	/* cannot merge and there is space in bad table */
- 	if ((prev + 1) < bb->count &&
- 	    overlap_behind(bb, &bad, prev + 1))
-@@ -1049,14 +974,6 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 	 */
- 	try_adjacent_combine(bb, prev);
+ 	write_sequnlock_irqrestore(&bb->lock, flags);
  
--	if (space_desired && !badblocks_full(bb)) {
--		s = orig_start;
--		sectors = orig_len;
--		space_desired = 0;
--		if (retried++ < 3)
--			goto re_insert;
--	}
+-	if (!added)
+-		rv = 1;
 -
- out:
- 	if (added) {
- 		set_changed(bb);
+-	return rv;
++	return sectors;
+ }
+ 
+ /*
+@@ -1353,7 +1345,7 @@ EXPORT_SYMBOL_GPL(badblocks_check);
+  *
+  * Return:
+  *  0: success
+- *  1: failed to set badblocks (out of space)
++ *  other: failed to set badblocks (out of space)
+  */
+ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+ 			int acknowledged)
 -- 
 2.39.2
 
