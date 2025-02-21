@@ -1,35 +1,32 @@
-Received: from mail69.out.titan.email (mail69.out.titan.email [3.216.99.51])
+Received: from mail87.out.titan.email (mail87.out.titan.email [209.209.25.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF58C19CC20
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 10:28:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=3.216.99.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3A672046A4
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 10:38:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.209.25.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740133706; cv=none; b=nUY4GilZ/hAkYCpIB9KUpfbCAx2oosmp035lAYB5osBEMSRlLKCH4LBPtmtT/W8WkW4y3dyZCJH8Km60lmEEtINVg/Hqr2G6v2BKV1Su0gRjH8Jus6qPhVPQQ3t4MAI5WR04wjBb95jt29hToftDBkADo9PG4tAw/si1K6BWZnM=
+	t=1740134287; cv=none; b=ne3/GcIRD7fOaqPLqrTg01B+R9loCui0g/0POfVjPdjvaY97Gxf3axJSUVKSHBOsTrH/1xnc2ow5b01xd2g9GS2GY8e6dq27doY5j5tlLFUkDjNdMi1j2bb3nQc3dmFW87i7CoM80wbg1iMxlyU0YgxSnNM5rhGVsGdlVmC9bsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740133706; c=relaxed/simple;
-	bh=p+2rsaQ4FhCWyfKQl3y+ihQwoGzxuywBqGvV8Qy4oro=;
+	s=arc-20240116; t=1740134287; c=relaxed/simple;
+	bh=ST+REIAvtLM2EfHTQdejogwwPWs0d5CZXLFqhlK+QKs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kJfNLaWc1NIIUYT5HDVHRjUpmRo3kzeSXVr3D9m3rZYoZLY8toMPMJRv9WafFRmJhMbZ0rWWt4OQ2afrNOw3J6rPF0k1d0BvW/FcONGbtN0QUTy8b8Ru3Yf14Dn1fIe6S3pD5wmCY9HnIsTtNFNJHE7xFLJzKikM4Who4mD2f/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=coly.li; spf=pass smtp.mailfrom=coly.li; dkim=pass (1024-bit key) header.d=t12smtp-sign004.email header.i=@t12smtp-sign004.email header.b=JYWW2Grh; arc=none smtp.client-ip=3.216.99.51
+	 Content-Type:Content-Disposition:In-Reply-To; b=VLPJgf4upUibD8SJWbKvhSM1SJmevvs1eHIzhf6VxncriadLaTgwOhsJgMnhqpHNKS7MoDbyXuJ+MRPk+tHYCCC6blvD2dqvTMcmBU7r5kf0yRYUlH0NjhT6a/T0CRvz6ZbdapF3XD3I/F9fL1jCaxW0C2YP0IxJZWIj9UR0WyI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=coly.li; spf=pass smtp.mailfrom=coly.li; dkim=pass (1024-bit key) header.d=t12smtp-sign004.email header.i=@t12smtp-sign004.email header.b=BvQOp7m4; arc=none smtp.client-ip=209.209.25.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=coly.li
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=coly.li
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=t12smtp-sign004.email header.i=@t12smtp-sign004.email header.b="JYWW2Grh"
-Received: from smtp-out.flockmail.com (localhost [127.0.0.1])
-	by smtp-out.flockmail.com (Postfix) with ESMTP id 6898F140047;
-	Fri, 21 Feb 2025 10:08:48 +0000 (UTC)
-DKIM-Signature: a=rsa-sha256; bh=cqetpmvMD/jN/5sZxj0Bd7e9Bah0FkeGurb936MERnc=;
+	dkim=pass (1024-bit key) header.d=t12smtp-sign004.email header.i=@t12smtp-sign004.email header.b="BvQOp7m4"
+DKIM-Signature: a=rsa-sha256; bh=HJViwRYJWG0zNvDaTVc4+RRFIFm3biUDQdBU/Kmd2zQ=;
 	c=relaxed/relaxed; d=t12smtp-sign004.email;
-	h=message-id:references:mime-version:from:cc:subject:to:date:in-reply-to:from:to:cc:subject:date:message-id:in-reply-to:references:reply-to;
-	q=dns/txt; s=titan1; t=1740132528; v=1;
-	b=JYWW2GrhxrD87R/6VDrIuznv0wXZf8RZQe9zr+sTIISV6NXdTYjOutiXUk70VsmWxiGBZ75f
-	JSOQGAG1c9IBCwtHhIbTpRLV+kr/914VH6Adg+XcNwILI0S88RbLgTGjzj6Vr1U9rmkWekwKYoS
-	DAb9B9d42RFRyglmgNlcYs2k=
+	h=from:message-id:in-reply-to:to:cc:mime-version:date:subject:references:from:to:cc:subject:date:message-id:in-reply-to:references:reply-to;
+	q=dns/txt; s=titan1; t=1740133684; v=1;
+	b=BvQOp7m46YRQYV50svyQ6koecodDG/5NMZ1UF38ZuolCivbcflH9CYqfws8I3uuV0QqBQ9Tt
+	ne/tv2u/zpF7pqJjplOvpOMEfJc25LVrgVcSnYuTYDElRO0wMIQ1u4AHTiy90cBq3YAccdrTLdX
+	EQ+Fg+8qEfkLJxQeH/Z55vho=
 Received: from studio.local (unknown [141.11.218.23])
-	by smtp-out.flockmail.com (Postfix) with ESMTPA id 65BF0140108;
-	Fri, 21 Feb 2025 10:08:38 +0000 (UTC)
-Date: Fri, 21 Feb 2025 18:08:36 +0800
+	by smtp-out.flockmail.com (Postfix) with ESMTPA id AC874E04DF;
+	Fri, 21 Feb 2025 10:27:55 +0000 (UTC)
+Date: Fri, 21 Feb 2025 18:27:52 +0800
 Feedback-ID: :i@coly.li:coly.li:flockmailId
 From: Coly Li <i@coly.li>
 To: Zheng Qixing <zhengqixing@huaweicloud.com>
@@ -40,11 +37,11 @@ Cc: axboe@kernel.dk, song@kernel.org, colyli@kernel.org,
 	geliang@kernel.org, xni@redhat.com, colyli@suse.de, linux-block@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, 
 	yi.zhang@huawei.com, yangerkun@huawei.com
-Subject: Re: [PATCH 03/12] badblocks: attempt to merge adjacent badblocks
- during ack_all_badblocks
-Message-ID: <w527neyzlfzjxzhxge2pmip7qxzwrumn5bvztjtuonu3opoyf6@7umwkulb6eeb>
+Subject: Re: [PATCH 09/12] badblocks: fix missing bad blocks on retry in
+ _badblocks_check()
+Message-ID: <e6iwuml7p5hql4zo4jzkxpr2wgcbqne75xpqva6onteqcxve43@kcr2qzes35ix>
 References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
- <20250221081109.734170-4-zhengqixing@huaweicloud.com>
+ <20250221081109.734170-10-zhengqixing@huaweicloud.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -53,28 +50,28 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250221081109.734170-4-zhengqixing@huaweicloud.com>
+In-Reply-To: <20250221081109.734170-10-zhengqixing@huaweicloud.com>
 X-F-Verdict: SPFVALID
-X-Titan-Src-Out: 1740132528291528194.32605.5719148889041607543@prod-use1-smtp-out1003.
+X-Titan-Src-Out: 1740133684737100912.19601.5384099801505103637@prod-use1-smtp-out1004.
 X-CMAE-Score: 0
-X-CMAE-Analysis: v=2.4 cv=bq22BFai c=1 sm=1 tr=0 ts=67b850b0
+X-CMAE-Analysis: v=2.4 cv=bq22BFai c=1 sm=1 tr=0 ts=67b85534
 	a=USBFZE4A2Ag4MGBBroF6Xg==:117 a=USBFZE4A2Ag4MGBBroF6Xg==:17
 	a=IkcTkHD0fZMA:10 a=CEWIc4RMnpUA:10 a=i0EeH86SAAAA:8 a=VwQbUJbxAAAA:8
-	a=ZuRJGKQMYiGAcWkIlfYA:9 a=QEXdDO2ut3YA:10
-X-Virus-Scanned: ClamAV using ClamSMTP
+	a=MOos5VJAO8cRspPxsMUA:9 a=QEXdDO2ut3YA:10
 
-On Fri, Feb 21, 2025 at 04:11:00PM +0800, Zheng Qixing wrote:
-> From: Li Nan <linan122@huawei.com>
+On Fri, Feb 21, 2025 at 04:11:06PM +0800, Zheng Qixing wrote:
+> From: Zheng Qixing <zhengqixing@huawei.com>
 > 
-> If ack and unack badblocks are adjacent, they will not be merged and will
-> remain as two separate badblocks. Even after the bad blocks are written
-> to disk and both become ack, they will still remain as two independent
-> bad blocks. This is not ideal as it wastes the limited space for
-> badblocks. Therefore, during ack_all_badblocks(), attempt to merge
-> badblocks if they are adjacent.
+> The bad blocks check would miss bad blocks when retrying under contention,
+> as checking parameters are not reset. These stale values from the previous
+> attempt could lead to incorrect scanning in the subsequent retry.
 > 
-> Fixes: aa511ff8218b ("badblocks: switch to the improved badblock handling code")
-> Signed-off-by: Li Nan <linan122@huawei.com>
+> Move seqlock to outer function and reinitialize checking state for each
+> retry. This ensures a clean state for each check attempt, preventing any
+> missed bad blocks.
+> 
+> Fixes: 3ea3354cb9f0 ("badblocks: improve badblocks_check() for multiple ranges handling")
+> Signed-off-by: Zheng Qixing <zhengqixing@huawei.com>
 
 Looks good to me.
 
@@ -83,25 +80,87 @@ Acked-by: Coly Li <colyli@kernel.org>
 Thanks.
 
 > ---
->  block/badblocks.c | 5 +++++
->  1 file changed, 5 insertions(+)
+>  block/badblocks.c | 50 +++++++++++++++++++++++------------------------
+>  1 file changed, 24 insertions(+), 26 deletions(-)
 > 
 > diff --git a/block/badblocks.c b/block/badblocks.c
-> index f069c93e986d..ad8652fbe1c8 100644
+> index 381f9db423d6..79d91be468c4 100644
 > --- a/block/badblocks.c
 > +++ b/block/badblocks.c
-> @@ -1491,6 +1491,11 @@ void ack_all_badblocks(struct badblocks *bb)
->  				p[i] = BB_MAKE(start, len, 1);
->  			}
->  		}
+> @@ -1191,31 +1191,12 @@ static int _badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
+>  static int _badblocks_check(struct badblocks *bb, sector_t s, int sectors,
+>  			    sector_t *first_bad, int *bad_sectors)
+>  {
+> -	int unacked_badblocks, acked_badblocks;
+>  	int prev = -1, hint = -1, set = 0;
+>  	struct badblocks_context bad;
+> -	unsigned int seq;
+> +	int unacked_badblocks = 0;
+> +	int acked_badblocks = 0;
+> +	u64 *p = bb->page;
+>  	int len, rv;
+> -	u64 *p;
+> -
+> -	WARN_ON(bb->shift < 0 || sectors == 0);
+> -
+> -	if (bb->shift > 0) {
+> -		sector_t target;
+> -
+> -		/* round the start down, and the end up */
+> -		target = s + sectors;
+> -		rounddown(s, 1 << bb->shift);
+> -		roundup(target, 1 << bb->shift);
+> -		sectors = target - s;
+> -	}
+> -
+> -retry:
+> -	seq = read_seqbegin(&bb->lock);
+> -
+> -	p = bb->page;
+> -	unacked_badblocks = 0;
+> -	acked_badblocks = 0;
+>  
+>  re_check:
+>  	bad.start = s;
+> @@ -1281,9 +1262,6 @@ static int _badblocks_check(struct badblocks *bb, sector_t s, int sectors,
+>  	else
+>  		rv = 0;
+>  
+> -	if (read_seqretry(&bb->lock, seq))
+> -		goto retry;
+> -
+>  	return rv;
+>  }
+>  
+> @@ -1324,7 +1302,27 @@ static int _badblocks_check(struct badblocks *bb, sector_t s, int sectors,
+>  int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
+>  			sector_t *first_bad, int *bad_sectors)
+>  {
+> -	return _badblocks_check(bb, s, sectors, first_bad, bad_sectors);
+> +	unsigned int seq;
+> +	int rv;
 > +
-> +		for (i = 0; i < bb->count ; i++)
-> +			while (try_adjacent_combine(bb, i))
-> +				;
+> +	WARN_ON(bb->shift < 0 || sectors == 0);
 > +
->  		bb->unacked_exist = 0;
->  	}
->  	write_sequnlock_irq(&bb->lock);
+> +	if (bb->shift > 0) {
+> +		/* round the start down, and the end up */
+> +		sector_t target = s + sectors;
+> +
+> +		rounddown(s, 1 << bb->shift);
+> +		roundup(target, 1 << bb->shift);
+> +		sectors = target - s;
+> +	}
+> +
+> +retry:
+> +	seq = read_seqbegin(&bb->lock);
+> +	rv = _badblocks_check(bb, s, sectors, first_bad, bad_sectors);
+> +	if (read_seqretry(&bb->lock, seq))
+> +		goto retry;
+> +
+> +	return rv;
+>  }
+>  EXPORT_SYMBOL_GPL(badblocks_check);
+>  
 > -- 
 > 2.39.2
 > 
