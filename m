@@ -1,27 +1,27 @@
 Received: from dggsgout12.his.huawei.com (dggsgout12.his.huawei.com [45.249.212.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3492E201021
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 08:15:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38350202C56
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 08:15:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740125703; cv=none; b=oT47chFL2ySKtkUQLys4CX/cV/mloHUiFdt8atF1hctLr3moMaBeL6jn1lq4I0eejUgCJcQnaDa0V7/i3cpR5e7ty+zhbetKZLzOP3BhlVSscDHtjGBq0nYLb4jLiGwPB2vMsOBN2gPxXuE0ntNgrb2LiOM2qBMBtRt2r4Yp5pw=
+	t=1740125704; cv=none; b=CuR5vYdGHB3kEV+n5G4+pslmhGWdKOPaKC/huapDmnOyz6/n9QD8wCvBTc9GK/qazmycDIv3Cb6PF4k3AMxFHv+CiZRepRVJ5JC5A3pXxQJSSrwdYpWqZxrW63KYg0uYHPqpNpiag6cOa35yFiCL3LRzIVp61VfDAeMq56+SqhY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740125703; c=relaxed/simple;
-	bh=CbvBFTs6oVuHlnnYB0uVi6sV0YMKAMhrhPzqxWvsxxc=;
+	s=arc-20240116; t=1740125704; c=relaxed/simple;
+	bh=BVQ2JLHfvl7SJ1XVdk8tTQQ6U/sJhzvQG0qFBGRubgE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lWS06RTyos0kq1Qq9C7BM0rdLCAGtavRyZ5hgIV60pdRzTEwEsNV6NsXQKxY5XKG0hEG+SSteErka21fz3MhmeR/Jk2A6dxe43awXKUXwXgERzYZgMUxozDQt1A3qdJ2C84UXnjF+FUG9znIkQUqp2FF/F9XuFOlYLOawMFnHG4=
+	 MIME-Version; b=CVL914r/fr/4wihPu6nimI9uUcDcnntfrLDgwSOA+mPfo38SQZkhTmoAGRJAgJPwMj4YpuBnd9exjP5encZo6ePh/JjslCS67GzncKs8W7gRakeUUlPmk0mtz26p7VEFSd01hCHVUQ+vtcCrdSTEV1fkVyW//vWDS6FQ7ZxxN3k=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
 Received: from mail.maildlp.com (unknown [172.19.163.216])
-	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4YzjbJ43wPz4f3jYC
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:36 +0800 (CST)
+	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4YzjbK2vMjz4f3jXt
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:37 +0800 (CST)
 Received: from mail02.huawei.com (unknown [10.116.40.128])
-	by mail.maildlp.com (Postfix) with ESMTP id 3BD301A16AA
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:58 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTP id 152C41A1AC2
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 16:14:59 +0800 (CST)
 Received: from huaweicloud.com (unknown [10.175.104.67])
-	by APP4 (Coremail) with SMTP id gCh0CgC3Gl_8NbhnHF3eEQ--.3944S9;
+	by APP4 (Coremail) with SMTP id gCh0CgC3Gl_8NbhnHF3eEQ--.3944S10;
 	Fri, 21 Feb 2025 16:14:58 +0800 (CST)
 From: Zheng Qixing <zhengqixing@huaweicloud.com>
 To: axboe@kernel.dk,
@@ -47,9 +47,9 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	yi.zhang@huawei.com,
 	yangerkun@huawei.com
-Subject: [PATCH 05/12] badblocks: return error if any badblock set fails
-Date: Fri, 21 Feb 2025 16:11:02 +0800
-Message-Id: <20250221081109.734170-6-zhengqixing@huaweicloud.com>
+Subject: [PATCH 06/12] badblocks: fix the using of MAX_BADBLOCKS
+Date: Fri, 21 Feb 2025 16:11:03 +0800
+Message-Id: <20250221081109.734170-7-zhengqixing@huaweicloud.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
 References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
@@ -59,113 +59,60 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:gCh0CgC3Gl_8NbhnHF3eEQ--.3944S9
-X-Coremail-Antispam: 1UD129KBjvJXoWxAF4rtw4kJrWUtw4xAw15twb_yoW5GF1Dpr
-	sxC3s3KrWjgr1UXF4UZ3Zrtr1Fg34fJF4UW3yrG34jkryUW343tF1kXr4YgFyjqry3AFn0
-	q3W5urWrZ34DG3DanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUPvb4IE77IF4wAFF20E14v26rWj6s0DM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28IrcIa0xkI8VA2jI8067AKxVWUAV
-	Cq3wA2048vs2IY020Ec7CjxVAFwI0_Xr0E3s1l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0
-	rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267
-	AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E
-	14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7
-	xfMcIj6xIIjxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Y
-	z7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2
-	AFwI0_GFv_Wryl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAq
-	x4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6r
-	W5MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Gr0_Xr1lIxAIcVC0I7IYx2IY6xkF
-	7I0E14v26r4UJVWxJr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14
-	v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJbIYCTnIWIevJa73UjIFyTuY
-	vjxUI1v3UUUUU
+X-CM-TRANSID:gCh0CgC3Gl_8NbhnHF3eEQ--.3944S10
+X-Coremail-Antispam: 1UD129KBjvdXoWrtF48ZF4rCw1DAr47uw43trb_yoWkGwb_J3
+	WDt3ykWr4kJr1rCw1ayryDtrWFyF47Cr4SkrZ2yr1kZr47tF1DZw45Xr98Xrs8CFWUJanx
+	tw1fZrWS9F4IqjkaLaAFLSUrUUUUbb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUIcSsGvfJTRUUUbgxYFVCjjxCrM7AC8VAFwI0_Wr0E3s1l1xkIjI8I6I8E6xAIw20E
+	Y4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l82xGYIkIc2x26280x7IE14v26r126s
+	0DM28IrcIa0xkI8VCY1x0267AKxVW5JVCq3wA2ocxC64kIII0Yj41l84x0c7CEw4AK67xG
+	Y2AK021l84ACjcxK6xIIjxv20xvE14v26w1j6s0DM28EF7xvwVC0I7IYx2IY6xkF7I0E14
+	v26r4UJVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAF
+	wI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2
+	WlYx0E2Ix0cI8IcVAFwI0_Jrv_JF1lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkE
+	bVWUJVW8JwACjcxG0xvY0x0EwIxGrwACI402YVCY1x02628vn2kIc2xKxwCY1x0262kKe7
+	AKxVW8ZVWrXwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02
+	F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_GFv_Wr
+	ylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVW8JVW5JwCI42IY6xIIjxv20xvEc7Cj
+	xVAFwI0_Gr1j6F4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI
+	0_Gr0_Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x
+	07jxwIDUUUUU=
 X-CM-SenderInfo: x2kh0wptl0x03j6k3tpzhluzxrxghudrp/
 
 From: Li Nan <linan122@huawei.com>
 
-_badblocks_set() returns success if at least one badblock is set
-successfully, even if others fail. This can lead to data inconsistencies
-in raid, where a failed badblock set should trigger the disk to be kicked
-out to prevent future reads from failed write areas.
-
-_badblocks_set() should return error if any badblock set fails. Instead
-of relying on 'rv', directly returning 'sectors' for clearer logic. If all
-badblocks are successfully set, 'sectors' will be 0, otherwise it
-indicates the number of badblocks that have not been set yet, thus
-signaling failure.
-
-By the way, it can also fix an issue: when a newly set unack badblock is
-included in an existing ack badblock, the setting will return an error.
-···
-  echo "0 100" /sys/block/md0/md/dev-loop1/bad_blocks
-  echo "0 100" /sys/block/md0/md/dev-loop1/unacknowledged_bad_blocks
-  -bash: echo: write error: No space left on device
-```
-After fix, it will return success.
+The number of badblocks cannot exceed MAX_BADBLOCKS, but it should be
+allowed to equal MAX_BADBLOCKS.
 
 Fixes: aa511ff8218b ("badblocks: switch to the improved badblock handling code")
 Signed-off-by: Li Nan <linan122@huawei.com>
 ---
- block/badblocks.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ block/badblocks.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/block/badblocks.c b/block/badblocks.c
-index 1c8b8f65f6df..a953d2e9417f 100644
+index a953d2e9417f..87267bae6836 100644
 --- a/block/badblocks.c
 +++ b/block/badblocks.c
-@@ -843,7 +843,6 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 	struct badblocks_context bad;
- 	int prev = -1, hint = -1;
- 	unsigned long flags;
--	int rv = 0;
- 	u64 *p;
+@@ -700,7 +700,7 @@ static bool can_front_overwrite(struct badblocks *bb, int prev,
+ 			*extra = 2;
+ 	}
  
- 	if (bb->shift < 0)
-@@ -873,10 +872,8 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 	bad.len = sectors;
- 	len = 0;
+-	if ((bb->count + (*extra)) >= MAX_BADBLOCKS)
++	if ((bb->count + (*extra)) > MAX_BADBLOCKS)
+ 		return false;
  
--	if (badblocks_full(bb)) {
--		rv = 1;
-+	if (badblocks_full(bb))
- 		goto out;
--	}
- 
- 	if (badblocks_empty(bb)) {
- 		len = insert_at(bb, 0, &bad);
-@@ -916,10 +913,8 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 			int extra = 0;
- 
- 			if (!can_front_overwrite(bb, prev, &bad, &extra)) {
--				if (extra > 0) {
--					rv = 1;
-+				if (extra > 0)
- 					goto out;
--				}
- 
- 				len = min_t(sector_t,
- 					    BB_END(p[prev]) - s, sectors);
-@@ -986,10 +981,7 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 
- 	write_sequnlock_irqrestore(&bb->lock, flags);
- 
--	if (!added)
--		rv = 1;
--
--	return rv;
-+	return sectors;
- }
- 
- /*
-@@ -1353,7 +1345,7 @@ EXPORT_SYMBOL_GPL(badblocks_check);
-  *
-  * Return:
-  *  0: success
-- *  1: failed to set badblocks (out of space)
-+ *  other: failed to set badblocks (out of space)
-  */
- int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 			int acknowledged)
+ 	return true;
+@@ -1135,7 +1135,7 @@ static int _badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
+ 		if ((BB_OFFSET(p[prev]) < bad.start) &&
+ 		    (BB_END(p[prev]) > (bad.start + bad.len))) {
+ 			/* Splitting */
+-			if ((bb->count + 1) < MAX_BADBLOCKS) {
++			if ((bb->count + 1) <= MAX_BADBLOCKS) {
+ 				len = front_splitting_clear(bb, prev, &bad);
+ 				bb->count += 1;
+ 				cleared++;
 -- 
 2.39.2
 
