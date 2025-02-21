@@ -1,29 +1,30 @@
 Received: from dggsgout11.his.huawei.com (dggsgout11.his.huawei.com [45.249.212.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B49920409F
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 09:07:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792E333EA
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 09:12:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740128853; cv=none; b=DKD0R1RwvmU0pyQj4zPm3o71EDVS1hAocBpFPQblvzut1uVIBNwCx3mRNHSrnrD/obQyfclB8e1d6egKaViVzEAmUOgw0nadDQC9AkU5EkemrBE5zpOILfZnipbtvxggsF4Rj7411RjzLApO+iZpEeCGoPj0jtZ8kcKnyAlj2lU=
+	t=1740129175; cv=none; b=pG/qIFx/3J4NF+3rYrzfRn7nWjKjdqwvminCKgNmgOwqMT46zPc5Fra6D+7WFUavnOERGv7b47m1XTOyF7OXsmYXfRvMPGbBrpro6pkq/N5+dLR8s1y6G1FZlHiAz28nYqigw29mNUnLpTpBC84l8WwdcuVka3alTfqVHfwqSPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740128853; c=relaxed/simple;
-	bh=+neqxwX4CL/sv7YarzkigmtgjKOZDE/nFmT4qUSQKXQ=;
+	s=arc-20240116; t=1740129175; c=relaxed/simple;
+	bh=qBNDGok0ZLX8c5yCRbGm5cdISBhSDit295ASxo2LD70=;
 	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=e2chaEB7t2h3XzOOY2OHisFoGcr0l59iGVbvR1lMADp+wTrs8Qoq/lVgFo74K5osfMabpEtAMxTI31s9JcaRxym5EGn6DQQbr80Y3htXHIxYR8G6ST2ac26rvAvoYYs6/d0dgIMtYgI7+AHTt79aV5yHckDs4q/FQi3f6o+1szk=
+	 In-Reply-To:Content-Type; b=W8R/OWgy3WIdw65pC0ABQu4EbiJ7mAbOmBIYJjyeMR94P2TR/NBBp7Efp8d6AAywhOkxoqvkQ2dwPbl/r0CThOgcMX++LxXuiSG6cUZ2O2EX4S4xEkhmn6vkeOtZvmf970f/ckLrlEgp8+j42ssMxwhVP1Kp9/armRnjXgehpaY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
 Received: from mail.maildlp.com (unknown [172.19.163.235])
-	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4Yzkly67Mmz4f3jqq
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 17:07:10 +0800 (CST)
+	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4Yzkt96d6gz4f3jqP
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 17:12:33 +0800 (CST)
 Received: from mail02.huawei.com (unknown [10.116.40.128])
-	by mail.maildlp.com (Postfix) with ESMTP id 37B481A058E
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 17:07:27 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTP id 485671A06DD
+	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 17:12:50 +0800 (CST)
 Received: from [10.174.179.143] (unknown [10.174.179.143])
-	by APP4 (Coremail) with SMTP id gCh0CgDHKl9NQrhnVePhEQ--.4246S3;
-	Fri, 21 Feb 2025 17:07:26 +0800 (CST)
-Subject: Re: [PATCH 02/12] badblocks: factor out a helper try_adjacent_combine
+	by APP4 (Coremail) with SMTP id gCh0CgBXul6PQ7hnsz_iEQ--.4076S3;
+	Fri, 21 Feb 2025 17:12:50 +0800 (CST)
+Subject: Re: [PATCH 03/12] badblocks: attempt to merge adjacent badblocks
+ during ack_all_badblocks
 To: Zheng Qixing <zhengqixing@huaweicloud.com>, axboe@kernel.dk,
  song@kernel.org, colyli@kernel.org, dan.j.williams@intel.com,
  vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com,
@@ -34,10 +35,10 @@ Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, yi.zhang@huawei.com,
  yangerkun@huawei.com, "yukuai (C)" <yukuai3@huawei.com>
 References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
- <20250221081109.734170-3-zhengqixing@huaweicloud.com>
+ <20250221081109.734170-4-zhengqixing@huaweicloud.com>
 From: Yu Kuai <yukuai1@huaweicloud.com>
-Message-ID: <cfad3954-0572-1da8-38a3-85c8b1164371@huaweicloud.com>
-Date: Fri, 21 Feb 2025 17:07:25 +0800
+Message-ID: <95d0bd33-6142-5b89-bf29-317137db9882@huaweicloud.com>
+Date: Fri, 21 Feb 2025 17:12:47 +0800
 User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
  Thunderbird/60.8.0
 Precedence: bulk
@@ -46,97 +47,62 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20250221081109.734170-3-zhengqixing@huaweicloud.com>
+In-Reply-To: <20250221081109.734170-4-zhengqixing@huaweicloud.com>
 Content-Type: text/plain; charset=gbk; format=flowed
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:gCh0CgDHKl9NQrhnVePhEQ--.4246S3
-X-Coremail-Antispam: 1UD129KBjvJXoW7tFWrJr4rtr43Jw1xWw4rKrg_yoW8tw47pr
-	n8Aw1avryxCr1I9a13XanFyr1rCw1xJr4jyF47Jw18GFy8tw1IgF4ktw13ZF9FvrWxJFna
-	qr1UuFyv9FW8t37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9ab4IE77IF4wAFF20E14v26ryj6rWUM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7Cj
-	xVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x
-	0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG
-	6I80ewAv7VC0I7IYx2IY67AKxVWUXVWUAwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFV
-	Cjc4AY6r1j6r4UM4x0Y48IcVAKI48JM4IIrI8v6xkF7I0E8cxan2IY04v7Mxk0xIA0c2IE
-	e2xFo4CEbIxvr21lc7CjxVAaw2AFwI0_GFv_Wryl42xK82IYc2Ij64vIr41l4I8I3I0E4I
-	kC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWU
-	WwC2zVAF1VAY17CE14v26r4a6rW5MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr
-	0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26F4j6r4UJwCI42IY6xAIw20EY4v20xvaj40_
-	Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8Jr
+X-CM-TRANSID:gCh0CgBXul6PQ7hnsz_iEQ--.4076S3
+X-Coremail-Antispam: 1UD129KBjvdXoW7GFyDZw4kXF4xWrWUWr1kGrg_yoWkCFc_Z3
+	92yFyxJr95AF1fCr1Syr18Jr4SgFn8Cr4xGryUJF1rZ3W7tFZ7JwsYyFn8Wrs8GFyDuwnx
+	Ar95Xr1a9ryIvjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUIcSsGvfJTRUUUbaAYFVCjjxCrM7AC8VAFwI0_Xr0_Wr1l1xkIjI8I6I8E6xAIw20E
+	Y4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwV
+	A0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x02
+	67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I
+	0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
+	x7xfMcIj6xIIjxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
+	0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7I2V7IY0VAS
+	07AlzVAYIcxG8wCY1x0262kKe7AKxVW8ZVWrXwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4
+	IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1r
+	MI8E67AF67kF1VAFwI0_GFv_WrylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJV
+	WUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Cr0_Gr1UMIIF0xvE42xK8VAvwI8IcIk0rVWU
+	JVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4UJVWxJr
 	UvcSsGvfC2KfnxnUUI43ZEXa7IU07PEDUUUUU==
 X-CM-SenderInfo: 51xn3trlr6x35dzhxuhorxvhhfrp/
 
-在 2025/02/21 16:10, Zheng Qixing 写道:
+在 2025/02/21 16:11, Zheng Qixing 写道:
 > From: Li Nan <linan122@huawei.com>
 > 
-> Factor out try_adjacent_combine(), and it will be used in the later patch.
+> If ack and unack badblocks are adjacent, they will not be merged and will
+> remain as two separate badblocks. Even after the bad blocks are written
+> to disk and both become ack, they will still remain as two independent
+> bad blocks. This is not ideal as it wastes the limited space for
+> badblocks. Therefore, during ack_all_badblocks(), attempt to merge
+> badblocks if they are adjacent.
 > 
+> Fixes: aa511ff8218b ("badblocks: switch to the improved badblock handling code")
 > Signed-off-by: Li Nan <linan122@huawei.com>
 > ---
->   block/badblocks.c | 40 ++++++++++++++++++++++++++--------------
->   1 file changed, 26 insertions(+), 14 deletions(-)
+>   block/badblocks.c | 5 +++++
+>   1 file changed, 5 insertions(+)
 > 
 LGTM
 Reviewed-by: Yu Kuai <yukuai3@huawei.com>
+
 > diff --git a/block/badblocks.c b/block/badblocks.c
-> index bcee057efc47..f069c93e986d 100644
+> index f069c93e986d..ad8652fbe1c8 100644
 > --- a/block/badblocks.c
 > +++ b/block/badblocks.c
-> @@ -855,6 +855,31 @@ static void badblocks_update_acked(struct badblocks *bb)
+> @@ -1491,6 +1491,11 @@ void ack_all_badblocks(struct badblocks *bb)
+>   				p[i] = BB_MAKE(start, len, 1);
+>   			}
+>   		}
+> +
+> +		for (i = 0; i < bb->count ; i++)
+> +			while (try_adjacent_combine(bb, i))
+> +				;
+> +
 >   		bb->unacked_exist = 0;
->   }
->   
-> +/*
-> + * Return 'true' if the range indicated by 'bad' is exactly backward
-> + * overlapped with the bad range (from bad table) indexed by 'behind'.
-> + */
-> +static bool try_adjacent_combine(struct badblocks *bb, int prev)
-> +{
-> +	u64 *p = bb->page;
-> +
-> +	if (prev >= 0 && (prev + 1) < bb->count &&
-> +	    BB_END(p[prev]) == BB_OFFSET(p[prev + 1]) &&
-> +	    (BB_LEN(p[prev]) + BB_LEN(p[prev + 1])) <= BB_MAX_LEN &&
-> +	    BB_ACK(p[prev]) == BB_ACK(p[prev + 1])) {
-> +		p[prev] = BB_MAKE(BB_OFFSET(p[prev]),
-> +				  BB_LEN(p[prev]) + BB_LEN(p[prev + 1]),
-> +				  BB_ACK(p[prev]));
-> +
-> +		if ((prev + 2) < bb->count)
-> +			memmove(p + prev + 1, p + prev + 2,
-> +				(bb->count -  (prev + 2)) * 8);
-> +		bb->count--;
-> +		return true;
-> +	}
-> +	return false;
-> +}
-> +
->   /* Do exact work to set bad block range into the bad block table */
->   static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
->   			  int acknowledged)
-> @@ -1022,20 +1047,7 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
->   	 * merged. (prev < 0) condition is not handled here,
->   	 * because it's already complicated enough.
->   	 */
-> -	if (prev >= 0 &&
-> -	    (prev + 1) < bb->count &&
-> -	    BB_END(p[prev]) == BB_OFFSET(p[prev + 1]) &&
-> -	    (BB_LEN(p[prev]) + BB_LEN(p[prev + 1])) <= BB_MAX_LEN &&
-> -	    BB_ACK(p[prev]) == BB_ACK(p[prev + 1])) {
-> -		p[prev] = BB_MAKE(BB_OFFSET(p[prev]),
-> -				  BB_LEN(p[prev]) + BB_LEN(p[prev + 1]),
-> -				  BB_ACK(p[prev]));
-> -
-> -		if ((prev + 2) < bb->count)
-> -			memmove(p + prev + 1, p + prev + 2,
-> -				(bb->count -  (prev + 2)) * 8);
-> -		bb->count--;
-> -	}
-> +	try_adjacent_combine(bb, prev);
->   
->   	if (space_desired && !badblocks_full(bb)) {
->   		s = orig_start;
+>   	}
+>   	write_sequnlock_irq(&bb->lock);
 > 
 
