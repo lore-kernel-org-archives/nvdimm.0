@@ -1,99 +1,78 @@
-Received: from mx3.molgen.mpg.de (mx3.molgen.mpg.de [141.14.17.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B09A6F4FA
-	for <nvdimm@lists.linux.dev>; Sat, 22 Feb 2025 04:37:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=141.14.17.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E1264A05;
+	Sat, 22 Feb 2025 06:16:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740199043; cv=none; b=Q0q0FCpoaj9BaaqajGyaLyG0/8KS9B0FRk9FrHNrgAP1ZuDdtfZuvkd0Frz2OucUUW2GeziPC4imrj5GsAU8yrvEn1B9gciV43I59jp6DiG9KP//EQZ9ojEfxMDL/dsZZ+dCxqO7TZI7IdMAbpgANQ/S+ASktxqx0A7U50YV+sI=
+	t=1740204988; cv=none; b=S729q2FE2QviejZwfKC9O9fZzBotxTF/fgmV3LKgHOnqcIZbnKAmbebi4NIGNLQYvYnh7TybnG8G56oBWdetvU0XQTM/8aG1q/aL4cKDZ3xo88hKp2OuFHoSRYL865LBHhtL67EQdL4lFxRo3jPnHK6D/3fL4rcBhPjxrnobA0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740199043; c=relaxed/simple;
-	bh=fwi7rX3NtwsMZaaEKy+0MY5q3o3AJgxXU/T3Qi6xQ3g=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=ZnzuJIUfi/XtXPZ2TqyUo+1ImnC8JnXuGuBnJeplM7DmJ6dU8/tJJu0aSoC9Afjiyy10YI5faDptdc43RvMX4kQwv0p/Ls7u1wHEXgiCMhvwte/SAC9DjOl1bAPzXYjJG8FuAurhkLiG02D3AOHgEHZZHQd3OSDFbp98O1yEIAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=molgen.mpg.de; spf=pass smtp.mailfrom=molgen.mpg.de; arc=none smtp.client-ip=141.14.17.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=molgen.mpg.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=molgen.mpg.de
-Received: from [192.168.0.2] (ip5f5af50a.dynamic.kabel-deutschland.de [95.90.245.10])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: pmenzel)
-	by mx.molgen.mpg.de (Postfix) with ESMTPSA id CD10161E6478F;
-	Sat, 22 Feb 2025 05:36:28 +0100 (CET)
-Message-ID: <4008b6a3-bab2-4f47-a3c5-65206352e882@molgen.mpg.de>
-Date: Sat, 22 Feb 2025 05:36:28 +0100
+	s=arc-20240116; t=1740204988; c=relaxed/simple;
+	bh=oGZoiV9szH/n+CCiiT61/xRNb8iIu1mf7maB15reJTQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nSQO5UMBfQrP56+OGh6Yh3EG4BrPHDOimxrz/CEXCtXIePZT/P8Zj3pSYzAE3mXzNzPY1CVhdA8dN4LGe0UBInbvd2Y72Ll+LXSsCq1zZDKn06eKu4zs66l60RprrQoOmBg983VlCzuGXcOCkhYLW4g4U+hE86lWFEcRDXyfxug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hq+ME5gd; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hq+ME5gd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58B99C4CED1;
+	Sat, 22 Feb 2025 06:16:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1740204987;
+	bh=oGZoiV9szH/n+CCiiT61/xRNb8iIu1mf7maB15reJTQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Hq+ME5gdhxzS2e8SGGcQ3Ithruzy66tOJe642PIpHKndQVtDLRHSlecMJSoJrR4MI
+	 RY1RHAtfKsOPFxTzO+B5HBAwnOMvSEcHLKEuGe9dm325p7KEaxmY0qH7ui/RNUhhuE
+	 AUxZXwMd7zdVENAmvfFdA+mD+FCuRer3voQSuZe4Io/r1eYdpv1M3wNwtTWyBlhTvY
+	 kbGfKiy/WaqcH1CYSSiTn7pzl334FSHYdKAKH4OtoEk0+OIsI3bssjs6CHWPQ1Ghv+
+	 GNSW3X8TzQ83wfkxDKB/wu29Lry2u9ftWN+B54G7w0LONhwDg30a3HR6derXc1vEhn
+	 md3dkAmWy3TEg==
+Date: Sat, 22 Feb 2025 14:16:17 +0800
+From: Coly Li <colyli@kernel.org>
+To: Yu Kuai <yukuai1@huaweicloud.com>
+Cc: Coly Li <i@coly.li>, Zheng Qixing <zhengqixing@huaweicloud.com>, 
+	axboe@kernel.dk, song@kernel.org, dan.j.williams@intel.com, 
+	vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com, dlemoal@kernel.org, 
+	yanjun.zhu@linux.dev, kch@nvidia.com, Hannes Reinecke <hare@suse.de>, 
+	zhengqixing@huawei.com, john.g.garry@oracle.com, geliang@kernel.org, xni@redhat.com, 
+	colyli@suse.de, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, yi.zhang@huawei.com, 
+	yangerkun@huawei.com, "yukuai (C)" <yukuai3@huawei.com>
+Subject: Re: [PATCH 05/12] badblocks: return error if any badblock set fails
+Message-ID: <vdd6yaz3opuhufbfhbkhwtfj4a3oiskem7o23n3axtzy5e74xp@fibgbwxospom>
+References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
+ <20250221081109.734170-6-zhengqixing@huaweicloud.com>
+ <4qo5qliidycbjmauq22tqgv6nbw2dus2xlhg2qvfss7nawdr27@arztxmrwdhzb>
+ <272e37ea-886c-8a44-fd6b-96940a268906@huaweicloud.com>
+ <70D2392E-4F75-43C6-8C34-498AACC78E0C@coly.li>
+ <a3c74c7c-44b6-c4c0-872d-0de7e29214c0@huaweicloud.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 10/12] badblocks: return boolen from badblocks_set() and
- badblocks_clear()
-From: Paul Menzel <pmenzel@molgen.mpg.de>
-To: Yu Kuai <yukuai1@huaweicloud.com>,
- Zheng Qixing <zhengqixing@huaweicloud.com>
-Cc: axboe@kernel.dk, song@kernel.org, colyli@kernel.org,
- dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
- ira.weiny@intel.com, dlemoal@kernel.org, yanjun.zhu@linux.dev,
- kch@nvidia.com, hare@suse.de, zhengqixing@huawei.com,
- john.g.garry@oracle.com, geliang@kernel.org, xni@redhat.com,
- linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, yi.zhang@huawei.com,
- yangerkun@huawei.com, yukuai3@huawei.com
-References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
- <20250221081109.734170-11-zhengqixing@huaweicloud.com>
- <fe2dedca-0b71-3c80-6958-4bca61707fcc@huaweicloud.com>
- <208fde77-d1b9-440e-9a0f-568ef1250a28@molgen.mpg.de>
-Content-Language: en-US
-In-Reply-To: <208fde77-d1b9-440e-9a0f-568ef1250a28@molgen.mpg.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <a3c74c7c-44b6-c4c0-872d-0de7e29214c0@huaweicloud.com>
 
-[Remove non-working colyli@suse.de]
+On Sat, Feb 22, 2025 at 09:12:53AM +0800, Yu Kuai wrote:
+> Hi,
+> 
+> 在 2025/02/21 18:12, Coly Li 写道:
+> > So we don’t need to add a negative return value for partial success/failure?
+> > 
+> > Coly Li.
+> 
+> Yes, I think so. No one really use this value, and patch 10 clean this
+> up by changing return type to bool.
 
-Am 22.02.25 um 05:32 schrieb Paul Menzel:
-> Dear Zheng,
-> 
-> 
-> Thank you for your patch. *boolean* in the summary/title is missing an *a*.
-> 
-> Am 22.02.25 um 02:26 schrieb Yu Kuai:
-> 
->> Just two simple coding styes below.
-> 
-> I’d put these into a separate commit.
-> 
->> 在 2025/02/21 16:11, Zheng Qixing 写道:
->>> From: Zheng Qixing <zhengqixing@huawei.com>
->>>
->>> Change the return type of badblocks_set() and badblocks_clear()
->>> from int to bool, indicating success or failure. Specifically:
->>>
->>> - _badblocks_set() and _badblocks_clear() functions now return
->>> true for success and false for failure.
->>> - All calls to these functions have been updated to handle the
->>> new boolean return type.
-> 
-> I’d use present tense: are updated
-> 
->>> - This change improves code clarity and ensures a more consistent
->>> handling of success and failure states.
->>>
->>> Signed-off-by: Zheng Qixing <zhengqixing@huawei.com>
->>> ---
->>>   block/badblocks.c             | 37 +++++++++++++++++------------------
->>>   drivers/block/null_blk/main.c | 17 ++++++++--------
->>>   drivers/md/md.c               | 35 +++++++++++++++++----------------
->>>   drivers/nvdimm/badrange.c     |  2 +-
->>>   include/linux/badblocks.h     |  6 +++---
->>>   5 files changed, 49 insertions(+), 48 deletions(-)
-> 
-> […]
-> 
-> 
-> Kind regards,
-> 
-> Paul
+OK, then it is fine to me.
+
+It will be good to add a code comment that parital setting will be treated as failure.
+
+Thanks.
+
+
+-- 
+Coly Li
