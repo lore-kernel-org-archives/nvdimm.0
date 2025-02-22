@@ -1,99 +1,86 @@
-Received: from mail38.out.titan.email (mail38.out.titan.email [209.209.25.3])
+Received: from dggsgout11.his.huawei.com (dggsgout11.his.huawei.com [45.249.212.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B9CF20C000
-	for <nvdimm@lists.linux.dev>; Fri, 21 Feb 2025 12:35:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.209.25.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DFA915853B
+	for <nvdimm@lists.linux.dev>; Sat, 22 Feb 2025 01:12:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740141309; cv=none; b=Pl/ydv2aqS/r4zKXvbnFiK8/wZM//FHV7882pjrjjPd1zc1Nq4gmr0lypsHk5PFFnZySyrhSEZSoDGT6YA6Eo3m1J/WuwpZXeWodlZawp25tjyM20nU6hT/l5MOuvNgeAYp7VCeZStardyfBRven9uSRXbyL5Kd9mWYhgWKFQpo=
+	t=1740186780; cv=none; b=XsFeaHHahmCgBJ/ztBkI1kD2MnFcmOR8bS9H5TETesgDxd9hY167BnQebZ8I1CZ0D/weQTZjm4sKo1BdbciXuNf+D1woYkxgtE8CL6bjtXA7zz+HDjTVUpCBj8uVmtM6ueBjep0yxlbl9OPBuw3CKGpzw3BGltSTxJKJGnAf18E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740141309; c=relaxed/simple;
-	bh=OCNBLGjhq7P3rCWeCNzmUkTv7vySlkefy44pB4kpVfE=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=f7hsx4aQiyjG9rI15nkI3lRouBd18MDlQ++/AjghnjSFf/1eKJ871yYBL2OHoogza718JY8HKoF2J8bonnr7IIfvXhOqpM29hyeniB//CCI3Roro4XRl3xsIW7K5pwTOrm3NCusdI7G21vOqLMJN0DwC72Un9iwe3i/PSyh03WY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=coly.li; spf=pass smtp.mailfrom=coly.li; dkim=pass (1024-bit key) header.d=t12smtp-sign004.email header.i=@t12smtp-sign004.email header.b=kO6MvcX0; arc=none smtp.client-ip=209.209.25.3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=coly.li
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=coly.li
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=t12smtp-sign004.email header.i=@t12smtp-sign004.email header.b="kO6MvcX0"
-DKIM-Signature: a=rsa-sha256; bh=iV8YCNjejtbcc05TVav5ewkWbUeHHVZvkhZrrE0KVD8=;
-	c=relaxed/relaxed; d=t12smtp-sign004.email;
-	h=subject:in-reply-to:cc:to:mime-version:message-id:references:date:from:from:to:cc:subject:date:message-id:in-reply-to:references:reply-to;
-	q=dns/txt; s=titan1; t=1740132387; v=1;
-	b=kO6MvcX00hlwOk1XFictjJn6d+nmp42kR7UxdTamUW3Wqg15Up8dUUTaj1RpICWIWKzj96BL
-	OJZYGeYNZugaLRaXHYv4tVCClHdrWrmULeBtKzqRz9mpWhvwFBVakOvWWehe8/V5Fk15pUQR3Cs
-	Q2NTgH/oB1RRch7U/E3tGrKc=
-Received: from smtpclient.apple (unknown [141.11.218.23])
-	by smtp-out.flockmail.com (Postfix) with ESMTPA id CA0376023D;
-	Fri, 21 Feb 2025 10:06:19 +0000 (UTC)
-Content-Type: text/plain;
-	charset=utf-8
+	s=arc-20240116; t=1740186780; c=relaxed/simple;
+	bh=O6DZi57Va/gDUy3dLLvOK2ckmPoBCLLeuimpP9n8whU=;
+	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=D8cQ4h+/ei59gNDYJBCQseBtB54on3dSV3B+yq7JlnaiSadQolClS6HWa9qjgool+p4u+VMnTVzBjR8aFmp6k/+z+CC1fcBk3TfAfTMWf3oNdOhyPkosnppeXJKb3OQVz9F5VpHr68iHRahK8cyPDqQWP8/2s1YCrkPjy5e2U/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
+Received: from mail.maildlp.com (unknown [172.19.163.216])
+	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4Z089y4vqFz4f3jt4
+	for <nvdimm@lists.linux.dev>; Sat, 22 Feb 2025 09:12:38 +0800 (CST)
+Received: from mail02.huawei.com (unknown [10.116.40.128])
+	by mail.maildlp.com (Postfix) with ESMTP id 12D331A1676
+	for <nvdimm@lists.linux.dev>; Sat, 22 Feb 2025 09:12:55 +0800 (CST)
+Received: from [10.174.179.143] (unknown [10.174.179.143])
+	by APP4 (Coremail) with SMTP id gCh0CgB321+VJLlnFggiEg--.19789S3;
+	Sat, 22 Feb 2025 09:12:54 +0800 (CST)
+Subject: Re: [PATCH 05/12] badblocks: return error if any badblock set fails
+To: Coly Li <i@coly.li>, Yu Kuai <yukuai1@huaweicloud.com>
+Cc: Zheng Qixing <zhengqixing@huaweicloud.com>, axboe@kernel.dk,
+ song@kernel.org, colyli@kernel.org, dan.j.williams@intel.com,
+ vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com,
+ dlemoal@kernel.org, yanjun.zhu@linux.dev, kch@nvidia.com,
+ Hannes Reinecke <hare@suse.de>, zhengqixing@huawei.com,
+ john.g.garry@oracle.com, geliang@kernel.org, xni@redhat.com, colyli@suse.de,
+ linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, yi.zhang@huawei.com,
+ yangerkun@huawei.com, "yukuai (C)" <yukuai3@huawei.com>
+References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
+ <20250221081109.734170-6-zhengqixing@huaweicloud.com>
+ <4qo5qliidycbjmauq22tqgv6nbw2dus2xlhg2qvfss7nawdr27@arztxmrwdhzb>
+ <272e37ea-886c-8a44-fd6b-96940a268906@huaweicloud.com>
+ <70D2392E-4F75-43C6-8C34-498AACC78E0C@coly.li>
+From: Yu Kuai <yukuai1@huaweicloud.com>
+Message-ID: <a3c74c7c-44b6-c4c0-872d-0de7e29214c0@huaweicloud.com>
+Date: Sat, 22 Feb 2025 09:12:53 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.400.131.1.6\))
-Subject: Re: [PATCH 02/12] badblocks: factor out a helper try_adjacent_combine
-Feedback-ID: :i@coly.li:coly.li:flockmailId
-From: Coly Li <i@coly.li>
-In-Reply-To: <i5vkxswklce2wtn3aolrd6qrtlib3obtlzgmdix22afcurp7lz@jkxbieqcitx4>
-Date: Fri, 21 Feb 2025 18:06:07 +0800
-Cc: axboe@kernel.dk,
- song@kernel.org,
- colyli@kernel.org,
- yukuai3@huawei.com,
- dan.j.williams@intel.com,
- vishal.l.verma@intel.com,
- dave.jiang@intel.com,
- ira.weiny@intel.com,
- dlemoal@kernel.org,
- yanjun.zhu@linux.dev,
- kch@nvidia.com,
- Hannes Reinecke <hare@suse.de>,
- zhengqixing@huawei.com,
- john.g.garry@oracle.com,
- geliang@kernel.org,
- xni@redhat.com,
- colyli@suse.de,
- linux-block@vger.kernel.org,
- linux-kernel@vger.kernel.org,
- linux-raid@vger.kernel.org,
- nvdimm@lists.linux.dev,
- yi.zhang@huawei.com,
- yangerkun@huawei.com
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <0C74DE43-1DE1-4B35-8EDB-A6A088B522F8@coly.li>
-References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
- <20250221081109.734170-3-zhengqixing@huaweicloud.com>
- <i5vkxswklce2wtn3aolrd6qrtlib3obtlzgmdix22afcurp7lz@jkxbieqcitx4>
-To: Zheng Qixing <zhengqixing@huaweicloud.com>
-X-Mailer: Apple Mail (2.3826.400.131.1.6)
-X-F-Verdict: SPFVALID
-X-Titan-Src-Out: 1740132387684621551.7782.6706041692806606252@prod-use1-smtp-out1001.
-X-CMAE-Score: 0
-X-CMAE-Analysis: v=2.4 cv=bq22BFai c=1 sm=1 tr=0 ts=67b85023
-	a=USBFZE4A2Ag4MGBBroF6Xg==:117 a=USBFZE4A2Ag4MGBBroF6Xg==:17
-	a=IkcTkHD0fZMA:10 a=CEWIc4RMnpUA:10 a=i0EeH86SAAAA:8
-	a=sdqv7Ts4B3WvE9CFP6AA:9 a=QEXdDO2ut3YA:10
+MIME-Version: 1.0
+In-Reply-To: <70D2392E-4F75-43C6-8C34-498AACC78E0C@coly.li>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:gCh0CgB321+VJLlnFggiEg--.19789S3
+X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
+	VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUYK7AC8VAFwI0_Wr0E3s1l1xkIjI8I6I8E
+	6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28Cjx
+	kF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8I
+	cVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87
+	Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE
+	6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r106r15McIj6I8E87Iv67AKxVWUJVW8JwAm72
+	CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4II
+	rI8v6xkF7I0E8cxan2IY04v7Mxk0xIA0c2IEe2xFo4CEbIxvr21l42xK82IYc2Ij64vIr4
+	1l4c8EcI0Ec7CjxVAaw2AFwI0_GFv_Wryl4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAq
+	x4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6r
+	W5MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF
+	7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxV
+	WUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfU
+	FfHUDUUUU
+X-CM-SenderInfo: 51xn3trlr6x35dzhxuhorxvhhfrp/
 
+Hi,
 
+在 2025/02/21 18:12, Coly Li 写道:
+> So we don’t need to add a negative return value for partial success/failure?
+> 
+> Coly Li.
 
-> 2025=E5=B9=B42=E6=9C=8821=E6=97=A5 18:04=EF=BC=8CColy Li <i@coly.li> =
-=E5=86=99=E9=81=93=EF=BC=9A
->=20
-> On Fri, Feb 21, 2025 at 04:10:59PM +0800, Zheng Qixing wrote:
->> From: Li Nan <linan122@huawei.com>
->>=20
->> Factor out try_adjacent_combine(), and it will be used in the later =
-patch.
->>=20
->=20
-> Which patch is try_adjacent_combine() used in? I don't see that at a =
-quick glance.
+Yes, I think so. No one really use this value, and patch 10 clean this
+up by changing return type to bool.
 
-
-OK, I see it is in ack_all_badblocks().  Ignore the above question.
-
-Coly Li
+Thanks,
+Kuai
 
