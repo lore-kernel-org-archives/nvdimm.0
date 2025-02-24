@@ -1,332 +1,172 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from ksmg02.maxima.ru (ksmg02.maxima.ru [81.200.124.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C50F513C3F2;
-	Sat, 22 Feb 2025 06:20:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1248248860
+	for <nvdimm@lists.linux.dev>; Mon, 24 Feb 2025 11:46:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.200.124.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740205245; cv=none; b=QjqiabJ7U1CWHr/FDb/3vSMRpRx9ycnUEZEnjzXiYcWJ324rJY6PKU2///4PQm85ueDXby05KCz3jKS1splCc4MVn0IUg2ZpUGpw1ywXA6lniYHfcXY9jkj6Fm/ZBKRiatWIkfcjIdCRTFppauTROoxBeSySknZ+KkThDLsQujE=
+	t=1740397588; cv=none; b=Cy0x7U+DiKI7hpigDJJ9wik8YVc05GaS5UXNqyY0WsgpaWL/QwMV+tcn1xvKV/02DXqDvkjjkm97qYLT6IIyf5c6zMu/1ZgJk5dlNX7XvpdjDh1hi9w4t0bEj5MyvPpF66YwB2QHpsMbjY0K2/u9RXHA5Jfn0zR5qwIL8qV+5qg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740205245; c=relaxed/simple;
-	bh=tPJoDWNJBIfjfz7qX2Ip9zxoOCbsFLTROfXKiRHuhlA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JQteooqOSxDuh1df0yRiz1eapqgjfbog+Mf7zvRefGnceVEdMCHN4IPu6GpR1cTiY0oXC0sFgVCPiM3Bxd0tmJ+haEBaffCE8H7hZFOpxA7bAR8vnTqmwMdYQE/qJmjxnHjeNcv0h2vNZKDgZnYzJiO7XhnjpyOrTTHBNWGf1ik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rWrJk+9V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740397588; c=relaxed/simple;
+	bh=NlnoUZSFwuABwD0daHXZJr7GkVokqSLQ+bN2yG+cOGk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=h/fcV5YAdNjvUSYU/9qJHuxPxeMnCKBLn/elPWmDr5DFo5R1Ale+OOuXe+R8jWTW4wXbiPrHt+mjPy92jGmiYn9gVcC9QXz+0aDlWskL410UnhbnDaHPOJNZaS/y0vnyBixnyIQNl1tTai38PptazmkY7xlF1i9kKb4rcJHvPTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mt-integration.ru; spf=pass smtp.mailfrom=mt-integration.ru; dkim=pass (2048-bit key) header.d=mt-integration.ru header.i=@mt-integration.ru header.b=VH1JLX91; arc=none smtp.client-ip=81.200.124.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mt-integration.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mt-integration.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rWrJk+9V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2956C4CED1;
-	Sat, 22 Feb 2025 06:20:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1740205244;
-	bh=tPJoDWNJBIfjfz7qX2Ip9zxoOCbsFLTROfXKiRHuhlA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rWrJk+9Vuq8K/so9Tc8dR4CWgd6e/Cfj29a+ul5DslVa20UqAYZZ/P6lZ+1sOvij9
-	 +BIIfzz8/jPoZNQa5xWmLMc3x4X5wUQsYZorMAFnOq0wSy7P0HzxoLROcfYRGMVL8a
-	 UdbZcyYGbOMD5oqz4gaIZiZM3JDOwr1E1ijmSc/FwCZJ3X/r5QwcseWL9pgtJOnvA+
-	 XEL/s/VgpwZTIMSkG5NiVyCWNH1icz2aI/ky+Rw+TlY4BfpAMi711xB8w1h6r/Cdgu
-	 LE18eGD0/ZMWFgFkIZ0oIk5rwbkPKS+FGjqf1pdpbbX2PSw4ylzDE2b+xoYNXGgGfy
-	 ojswzXJ2qyMgQ==
-Date: Sat, 22 Feb 2025 14:20:35 +0800
-From: Coly Li <colyli@kernel.org>
-To: Zheng Qixing <zhengqixing@huaweicloud.com>
-Cc: axboe@kernel.dk, song@kernel.org, yukuai3@huawei.com, 
-	dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, 
-	ira.weiny@intel.com, dlemoal@kernel.org, yanjun.zhu@linux.dev, kch@nvidia.com, 
-	hare@suse.de, zhengqixing@huawei.com, john.g.garry@oracle.com, 
-	geliang@kernel.org, xni@redhat.com, colyli@suse.de, linux-block@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, 
-	yi.zhang@huawei.com, yangerkun@huawei.com
-Subject: Re: [PATCH 10/12] badblocks: return boolen from badblocks_set() and
- badblocks_clear()
-Message-ID: <iqljnntndlnyyn6ghxts3nlyhgsq4jbxe7cnbqxofcvm6tjoib@zfznzosucen3>
-References: <20250221081109.734170-1-zhengqixing@huaweicloud.com>
- <20250221081109.734170-11-zhengqixing@huaweicloud.com>
+	dkim=pass (2048-bit key) header.d=mt-integration.ru header.i=@mt-integration.ru header.b="VH1JLX91"
+Received: from ksmg02.maxima.ru (localhost [127.0.0.1])
+	by ksmg02.maxima.ru (Postfix) with ESMTP id 51BAD1E000D;
+	Mon, 24 Feb 2025 14:36:56 +0300 (MSK)
+DKIM-Filter: OpenDKIM Filter v2.11.0 ksmg02.maxima.ru 51BAD1E000D
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mt-integration.ru;
+	s=sl; t=1740397016; bh=DTItJCPFhbVedZdbaxnqWm55x4dSNHRqn77CJj9NmTU=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:From;
+	b=VH1JLX91L4V8hbBR8Ys8idEMJR4jPCxo+5YOsHQzRKlUEdHnBZsbL1tltsvQmg9eQ
+	 /k6SebhOXLdZmqKYQCR0BBvdznolAgBtl97Ep6KbJWL4MKyTT+o/oAkiEQ0DyhRSUC
+	 QR6KmdVgQsDt9Y0gZYWgieqa9WfhQ70r392ZI3h9pHZBR8B9o2SGh+U8I3mtwUsWwi
+	 1x0Cq3Nb1Fg5Rvm/BJzyApfrorucWsNK4OgGcLddGHW46X/6g6Yh36LJvZnI9xD1D5
+	 TGRLRwIjOYZZCjYmmG25yUAobhbgjIilun7Tva4iN6sUrngU8SIHc/tC31Y2+lq50E
+	 3eNKO1Jg189Bg==
+Received: from ksmg02.maxima.ru (mail.maxima.ru [81.200.124.62])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(Client CN "*.maxima.ru", Issuer "GlobalSign GCC R3 DV TLS CA 2020" (verified OK))
+	by ksmg02.maxima.ru (Postfix) with ESMTPS;
+	Mon, 24 Feb 2025 14:36:56 +0300 (MSK)
+Received: from GS-NOTE-190.mt.ru (10.0.246.182) by mmail-p-exch02.mt.ru
+ (81.200.124.62) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.1544.4; Mon, 24 Feb
+ 2025 14:36:53 +0300
+From: Murad Masimov <m.masimov@mt-integration.ru>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
+	<dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, "Rafael J. Wysocki"
+	<rafael@kernel.org>, Len Brown <lenb@kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<lvc-project@linuxtesting.org>, Murad Masimov <m.masimov@mt-integration.ru>,
+	<stable@vger.kernel.org>,
+	<syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com>
+Subject: [PATCH v2] acpi: nfit: fix narrowing conversion in acpi_nfit_ctl
+Date: Mon, 24 Feb 2025 14:35:46 +0300
+Message-ID: <20250224113546.1441-1-m.masimov@mt-integration.ru>
+X-Mailer: git-send-email 2.46.0.windows.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250221081109.734170-11-zhengqixing@huaweicloud.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: mt-exch-01.mt.ru (91.220.120.210) To mmail-p-exch02.mt.ru
+ (81.200.124.62)
+X-KSMG-AntiPhishing: NotDetected, bases: 2025/02/24 10:30:00
+X-KSMG-AntiSpam-Auth: dmarc=none header.from=mt-integration.ru;spf=none smtp.mailfrom=mt-integration.ru;dkim=none
+X-KSMG-AntiSpam-Envelope-From: m.masimov@mt-integration.ru
+X-KSMG-AntiSpam-Info: LuaCore: 51 0.3.51 68896fb0083a027476849bf400a331a2d5d94398, {rep_avail}, {Tracking_one_url}, {Tracking_uf_ne_domains}, {Tracking_from_domain_doesnt_match_to}, ksmg02.maxima.ru:7.1.1;81.200.124.62:7.1.2;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2;mt-integration.ru:7.1.1;syzkaller.appspot.com:7.1.1,5.0.1, FromAlignment: s, ApMailHostAddress: 81.200.124.62
+X-KSMG-AntiSpam-Interceptor-Info: scan successful
+X-KSMG-AntiSpam-Lua-Profiles: 191224 [Feb 24 2025]
+X-KSMG-AntiSpam-Method: none
+X-KSMG-AntiSpam-Rate: 0
+X-KSMG-AntiSpam-Status: not_detected
+X-KSMG-AntiSpam-Version: 6.1.1.11
+X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.1.1.8310, bases: 2025/02/24 06:47:00 #27427681
+X-KSMG-AntiVirus-Status: NotDetected, skipped
+X-KSMG-LinksScanning: NotDetected, bases: 2025/02/24 10:29:00
+X-KSMG-Message-Action: skipped
+X-KSMG-Rule-ID: 7
 
-On Fri, Feb 21, 2025 at 04:11:07PM +0800, Zheng Qixing wrote:
-> From: Zheng Qixing <zhengqixing@huawei.com>
-> 
-> Change the return type of badblocks_set() and badblocks_clear()
-> from int to bool, indicating success or failure. Specifically:
-> 
-> - _badblocks_set() and _badblocks_clear() functions now return
-> true for success and false for failure.
-> - All calls to these functions have been updated to handle the
-> new boolean return type.
-> - This change improves code clarity and ensures a more consistent
-> handling of success and failure states.
-> 
-> Signed-off-by: Zheng Qixing <zhengqixing@huawei.com>
+Syzkaller has reported a warning in to_nfit_bus_uuid():
 
-For block/badblocks.c and include/linux/badblocks.h it is fine to me,
+==================================================================
+only secondary bus families can be translated
+WARNING: CPU: 0 PID: 15821 at drivers/acpi/nfit/core.c:80 to_nfit_bus_uuid+0x6f/0x90 drivers/acpi/nfit/core.c:79
+Modules linked in:
+CPU: 0 UID: 0 PID: 15821 Comm: syz-executor579 Not tainted 6.11.0-rc7-syzkaller-00020-g8d8d276ba2fb #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:to_nfit_bus_uuid+0x6f/0x90 drivers/acpi/nfit/core.c:79
+Call Trace:
+ <TASK>
+ acpi_nfit_ctl+0x8a9/0x24a0 drivers/acpi/nfit/core.c:489
+ __nd_ioctl drivers/nvdimm/bus.c:1186 [inline]
+ nd_ioctl+0x184d/0x1fe0 drivers/nvdimm/bus.c:1264
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:907 [inline]
+ __se_sys_ioctl+0xfc/0x170 fs/ioctl.c:893
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+==================================================================
 
-Acked-by: Coly Li <colyli@kernel.org>
+This warning is triggered if the argument passed in to_nfit_bus_uuid() is
+equal to 0. It is important that this function expects that the argument
+is between 1 and NVDIMM_BUS_FAMILY_MAX. Therefore, it must be checked
+beforehand. However, in acpi_nfit_ctl() validity checks made before
+calling to_nfit_bus_uuid() are erroneous.
 
-Thanks.
+Function acpi_nfit_ctl() first verifies that a user-provided value
+call_pkg->nd_family of type u64 is not equal to 0. Then the value is
+converted to int (narrowing conversion), and only after that is compared
+to NVDIMM_BUS_FAMILY_MAX. This can lead to passing an invalid argument to
+acpi_nfit_ctl(), if call_pkg->nd_family is non-zero, while the lower 32
+bits are zero.
 
-> ---
->  block/badblocks.c             | 37 +++++++++++++++++------------------
->  drivers/block/null_blk/main.c | 17 ++++++++--------
->  drivers/md/md.c               | 35 +++++++++++++++++----------------
->  drivers/nvdimm/badrange.c     |  2 +-
->  include/linux/badblocks.h     |  6 +++---
->  5 files changed, 49 insertions(+), 48 deletions(-)
-> 
-> diff --git a/block/badblocks.c b/block/badblocks.c
-> index 79d91be468c4..8f057563488a 100644
-> --- a/block/badblocks.c
-> +++ b/block/badblocks.c
-> @@ -836,8 +836,8 @@ static bool try_adjacent_combine(struct badblocks *bb, int prev)
->  }
->  
->  /* Do exact work to set bad block range into the bad block table */
-> -static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-> -			  int acknowledged)
-> +static bool _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-> +			   int acknowledged)
->  {
->  	int len = 0, added = 0;
->  	struct badblocks_context bad;
-> @@ -847,11 +847,11 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
->  
->  	if (bb->shift < 0)
->  		/* badblocks are disabled */
-> -		return 1;
-> +		return false;
->  
->  	if (sectors == 0)
->  		/* Invalid sectors number */
-> -		return 1;
-> +		return false;
->  
->  	if (bb->shift) {
->  		/* round the start down, and the end up */
-> @@ -977,7 +977,7 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
->  
->  	write_sequnlock_irqrestore(&bb->lock, flags);
->  
-> -	return sectors;
-> +	return sectors == 0;
->  }
->  
->  /*
-> @@ -1048,21 +1048,20 @@ static int front_splitting_clear(struct badblocks *bb, int prev,
->  }
->  
->  /* Do the exact work to clear bad block range from the bad block table */
-> -static int _badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
-> +static bool _badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
->  {
->  	struct badblocks_context bad;
->  	int prev = -1, hint = -1;
->  	int len = 0, cleared = 0;
-> -	int rv = 0;
->  	u64 *p;
->  
->  	if (bb->shift < 0)
->  		/* badblocks are disabled */
-> -		return 1;
-> +		return false;
->  
->  	if (sectors == 0)
->  		/* Invalid sectors number */
-> -		return 1;
-> +		return false;
->  
->  	if (bb->shift) {
->  		sector_t target;
-> @@ -1182,9 +1181,9 @@ static int _badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
->  	write_sequnlock_irq(&bb->lock);
->  
->  	if (!cleared)
-> -		rv = 1;
-> +		return false;
->  
-> -	return rv;
-> +	return true;
->  }
->  
->  /* Do the exact work to check bad blocks range from the bad block table */
-> @@ -1338,11 +1337,11 @@ EXPORT_SYMBOL_GPL(badblocks_check);
->   * decide how best to handle it.
->   *
->   * Return:
-> - *  0: success
-> - *  other: failed to set badblocks (out of space)
-> + *  true: success
-> + *  false: failed to set badblocks (out of space)
->   */
-> -int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-> -			int acknowledged)
-> +bool badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-> +		   int acknowledged)
->  {
->  	return _badblocks_set(bb, s, sectors, acknowledged);
->  }
-> @@ -1359,10 +1358,10 @@ EXPORT_SYMBOL_GPL(badblocks_set);
->   * drop the remove request.
->   *
->   * Return:
-> - *  0: success
-> - *  1: failed to clear badblocks
-> + *  true: success
-> + *  false: failed to clear badblocks
->   */
-> -int badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
-> +bool badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
->  {
->  	return _badblocks_clear(bb, s, sectors);
->  }
-> @@ -1484,7 +1483,7 @@ ssize_t badblocks_store(struct badblocks *bb, const char *page, size_t len,
->  		return -EINVAL;
->  	}
->  
-> -	if (badblocks_set(bb, sector, length, !unack))
-> +	if (!badblocks_set(bb, sector, length, !unack))
->  		return -ENOSPC;
->  	else
->  		return len;
-> diff --git a/drivers/block/null_blk/main.c b/drivers/block/null_blk/main.c
-> index d94ef37480bd..623db72ad66b 100644
-> --- a/drivers/block/null_blk/main.c
-> +++ b/drivers/block/null_blk/main.c
-> @@ -559,14 +559,15 @@ static ssize_t nullb_device_badblocks_store(struct config_item *item,
->  		goto out;
->  	/* enable badblocks */
->  	cmpxchg(&t_dev->badblocks.shift, -1, 0);
-> -	if (buf[0] == '+')
-> -		ret = badblocks_set(&t_dev->badblocks, start,
-> -			end - start + 1, 1);
-> -	else
-> -		ret = badblocks_clear(&t_dev->badblocks, start,
-> -			end - start + 1);
-> -	if (ret == 0)
-> -		ret = count;
-> +	if (buf[0] == '+') {
-> +		if (badblocks_set(&t_dev->badblocks, start,
-> +				  end - start + 1, 1))
-> +			ret = count;
-> +	} else {
-> +		if (badblocks_clear(&t_dev->badblocks, start,
-> +				    end - start + 1))
-> +			ret = count;
-> +	}
->  out:
->  	kfree(orig);
->  	return ret;
-> diff --git a/drivers/md/md.c b/drivers/md/md.c
-> index 30b3dbbce2d2..49d826e475cb 100644
-> --- a/drivers/md/md.c
-> +++ b/drivers/md/md.c
-> @@ -1748,7 +1748,7 @@ static int super_1_load(struct md_rdev *rdev, struct md_rdev *refdev, int minor_
->  			count <<= sb->bblog_shift;
->  			if (bb + 1 == 0)
->  				break;
-> -			if (badblocks_set(&rdev->badblocks, sector, count, 1))
-> +			if (!badblocks_set(&rdev->badblocks, sector, count, 1))
->  				return -EINVAL;
->  		}
->  	} else if (sb->bblog_offset != 0)
-> @@ -9846,7 +9846,6 @@ int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
->  		       int is_new)
->  {
->  	struct mddev *mddev = rdev->mddev;
-> -	int rv;
->  
->  	/*
->  	 * Recording new badblocks for faulty rdev will force unnecessary
-> @@ -9862,33 +9861,35 @@ int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
->  		s += rdev->new_data_offset;
->  	else
->  		s += rdev->data_offset;
-> -	rv = badblocks_set(&rdev->badblocks, s, sectors, 0);
-> -	if (rv == 0) {
-> -		/* Make sure they get written out promptly */
-> -		if (test_bit(ExternalBbl, &rdev->flags))
-> -			sysfs_notify_dirent_safe(rdev->sysfs_unack_badblocks);
-> -		sysfs_notify_dirent_safe(rdev->sysfs_state);
-> -		set_mask_bits(&mddev->sb_flags, 0,
-> -			      BIT(MD_SB_CHANGE_CLEAN) | BIT(MD_SB_CHANGE_PENDING));
-> -		md_wakeup_thread(rdev->mddev->thread);
-> -		return 1;
-> -	} else
-> +
-> +	if (!badblocks_set(&rdev->badblocks, s, sectors, 0))
->  		return 0;
-> +
-> +	/* Make sure they get written out promptly */
-> +	if (test_bit(ExternalBbl, &rdev->flags))
-> +		sysfs_notify_dirent_safe(rdev->sysfs_unack_badblocks);
-> +	sysfs_notify_dirent_safe(rdev->sysfs_state);
-> +	set_mask_bits(&mddev->sb_flags, 0,
-> +		      BIT(MD_SB_CHANGE_CLEAN) | BIT(MD_SB_CHANGE_PENDING));
-> +	md_wakeup_thread(rdev->mddev->thread);
-> +	return 1;
->  }
->  EXPORT_SYMBOL_GPL(rdev_set_badblocks);
->  
->  int rdev_clear_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
->  			 int is_new)
->  {
-> -	int rv;
->  	if (is_new)
->  		s += rdev->new_data_offset;
->  	else
->  		s += rdev->data_offset;
-> -	rv = badblocks_clear(&rdev->badblocks, s, sectors);
-> -	if ((rv == 0) && test_bit(ExternalBbl, &rdev->flags))
-> +
-> +	if (!badblocks_clear(&rdev->badblocks, s, sectors))
-> +		return 0;
-> +
-> +	if (test_bit(ExternalBbl, &rdev->flags))
->  		sysfs_notify_dirent_safe(rdev->sysfs_badblocks);
-> -	return rv;
-> +	return 1;
->  }
->  EXPORT_SYMBOL_GPL(rdev_clear_badblocks);
->  
-> diff --git a/drivers/nvdimm/badrange.c b/drivers/nvdimm/badrange.c
-> index a002ea6fdd84..ee478ccde7c6 100644
-> --- a/drivers/nvdimm/badrange.c
-> +++ b/drivers/nvdimm/badrange.c
-> @@ -167,7 +167,7 @@ static void set_badblock(struct badblocks *bb, sector_t s, int num)
->  	dev_dbg(bb->dev, "Found a bad range (0x%llx, 0x%llx)\n",
->  			(u64) s * 512, (u64) num * 512);
->  	/* this isn't an error as the hardware will still throw an exception */
-> -	if (badblocks_set(bb, s, num, 1))
-> +	if (!badblocks_set(bb, s, num, 1))
->  		dev_info_once(bb->dev, "%s: failed for sector %llx\n",
->  				__func__, (u64) s);
->  }
-> diff --git a/include/linux/badblocks.h b/include/linux/badblocks.h
-> index 670f2dae692f..8764bed9ff16 100644
-> --- a/include/linux/badblocks.h
-> +++ b/include/linux/badblocks.h
-> @@ -50,9 +50,9 @@ struct badblocks_context {
->  
->  int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
->  		   sector_t *first_bad, int *bad_sectors);
-> -int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-> -			int acknowledged);
-> -int badblocks_clear(struct badblocks *bb, sector_t s, int sectors);
-> +bool badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-> +		   int acknowledged);
-> +bool badblocks_clear(struct badblocks *bb, sector_t s, int sectors);
->  void ack_all_badblocks(struct badblocks *bb);
->  ssize_t badblocks_show(struct badblocks *bb, char *page, int unack);
->  ssize_t badblocks_store(struct badblocks *bb, const char *page, size_t len,
-> -- 
-> 2.39.2
-> 
+Moreover, the same way zero can be passed in to_nfit_bus_uuid(),
+negative value also may occur. That wouldn't trigger the warning, but
+could lead to a wild-memory-access in test_bit(). This is achieved with
+a slightly modified version of the reproducer generated by Syzkaller.
+The crash report is as follows:
 
--- 
-Coly Li
+==================================================================
+ BUG: KASAN: wild-memory-access in acpi_nfit_ctl (./arch/x86/include/asm/bitops.h:227 (discriminator 6) ./arch/x86/include/asm/bitops.h:239 (discriminator 6) ./include/asm-generic/bitops/instrumented-non-atomic.h:142 (discriminator 6) drivers/acpi/nfit/core.c:489 (discriminator 6))
+ Read of size 8 at addr 1fff888141379358 by task repro/681503
+
+ CPU: 0 UID: 0 PID: 681503 Comm: repro Not tainted 6.13.0-04858-g21266b8df522 #30
+ Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+ Call Trace:
+ <TASK>
+ dump_stack_lvl (lib/dump_stack.c:123)
+ kasan_report (mm/kasan/report.c:604)
+ kasan_check_range (mm/kasan/generic.c:183 mm/kasan/generic.c:189)
+ acpi_nfit_ctl (./arch/x86/include/asm/bitops.h:227 (discriminator 6) ./arch/x86/include/asm/bitops.h:239 (discriminator 6) ./include/asm-generic/bitops/instrumented-non-atomic.h:142 (discriminator 6) drivers/acpi/nfit/core.c:489 (discriminator 6))
+ nd_ioctl (drivers/nvdimm/bus.c:1187 drivers/nvdimm/bus.c:1264)
+ __x64_sys_ioctl (fs/ioctl.c:52 fs/ioctl.c:906 fs/ioctl.c:892 fs/ioctl.c:892)
+ do_syscall_64 (arch/x86/entry/common.c:52 arch/x86/entry/common.c:83)
+ entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:130)
+==================================================================
+
+All checks of the input value should be applied to the original variable
+call_pkg->nd_family. This approach is better suited for the stable
+branches and is much safer than replacing the type of the variable from
+int to u32 or u64 throughout the code, as this could potentially
+introduce new bugs.
+
+Found by Linux Verification Center (linuxtesting.org) with Syzkaller.
+
+Fixes: 6450ddbd5d8e ("ACPI: NFIT: Define runtime firmware activation commands")
+Cc: stable@vger.kernel.org
+Reported-by: syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=c80d8dc0d9fa81a3cd8c
+Signed-off-by: Murad Masimov <m.masimov@mt-integration.ru>
+---
+v2: Add more details to the commit message.
+
+ drivers/acpi/nfit/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index a5d47819b3a4..ae035b93da08 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -485,7 +485,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		cmd_mask = nd_desc->cmd_mask;
+ 		if (cmd == ND_CMD_CALL && call_pkg->nd_family) {
+ 			family = call_pkg->nd_family;
+-			if (family > NVDIMM_BUS_FAMILY_MAX ||
++			if (call_pkg->nd_family > NVDIMM_BUS_FAMILY_MAX ||
+ 			    !test_bit(family, &nd_desc->bus_family_mask))
+ 				return -EINVAL;
+ 			family = array_index_nospec(family,
+--
+2.39.2
+
