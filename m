@@ -1,172 +1,214 @@
-Received: from ksmg02.maxima.ru (ksmg02.maxima.ru [81.200.124.39])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1248248860
-	for <nvdimm@lists.linux.dev>; Mon, 24 Feb 2025 11:46:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.200.124.39
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740397588; cv=none; b=Cy0x7U+DiKI7hpigDJJ9wik8YVc05GaS5UXNqyY0WsgpaWL/QwMV+tcn1xvKV/02DXqDvkjjkm97qYLT6IIyf5c6zMu/1ZgJk5dlNX7XvpdjDh1hi9w4t0bEj5MyvPpF66YwB2QHpsMbjY0K2/u9RXHA5Jfn0zR5qwIL8qV+5qg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740397588; c=relaxed/simple;
-	bh=NlnoUZSFwuABwD0daHXZJr7GkVokqSLQ+bN2yG+cOGk=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=h/fcV5YAdNjvUSYU/9qJHuxPxeMnCKBLn/elPWmDr5DFo5R1Ale+OOuXe+R8jWTW4wXbiPrHt+mjPy92jGmiYn9gVcC9QXz+0aDlWskL410UnhbnDaHPOJNZaS/y0vnyBixnyIQNl1tTai38PptazmkY7xlF1i9kKb4rcJHvPTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mt-integration.ru; spf=pass smtp.mailfrom=mt-integration.ru; dkim=pass (2048-bit key) header.d=mt-integration.ru header.i=@mt-integration.ru header.b=VH1JLX91; arc=none smtp.client-ip=81.200.124.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mt-integration.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mt-integration.ru
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D2112571B4;
+	Tue, 25 Feb 2025 01:07:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1740445653; cv=fail; b=X1rR2+zQwMBF88BcJ9Q5nXuHD49UCnvenCKOmx88KeIuIx/tfAIUhM6Ta1FbdCT+uL96P4W5G35g+T0/2tIPXGGLlWfQD+QSGKmrN72cNiQfrEdKNii0aRhdILK0JVui9vQdVEYFI4yrlkE1wdTrwAPw5aKMcbLQSFD6v8va8E8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1740445653; c=relaxed/simple;
+	bh=2DvEJ4FyLXBTEWiZyofpS0Wc5t2HVZ3rgehY1/IM91Q=;
+	h=To:Cc:Subject:From:In-Reply-To:Message-ID:References:Date:
+	 Content-Type:MIME-Version; b=VL9491TPVe6NXQSkHRLJ4xg+t/6NP9378WY6PgTYFIISidxQsCJgQaFtg2iMe+CVbEuu3w8IPV1KDkESUdk7jIhGSPCWsbWL6A4rttf1L2O1ITC/Eq6Pnjx3GNItbPufzjOqFOp2F3IaMmcGh2eph1n4rV094DaFidXvz9XkaUw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=evPC6NTP; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=YlXb+aDS; arc=fail smtp.client-ip=205.220.177.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mt-integration.ru header.i=@mt-integration.ru header.b="VH1JLX91"
-Received: from ksmg02.maxima.ru (localhost [127.0.0.1])
-	by ksmg02.maxima.ru (Postfix) with ESMTP id 51BAD1E000D;
-	Mon, 24 Feb 2025 14:36:56 +0300 (MSK)
-DKIM-Filter: OpenDKIM Filter v2.11.0 ksmg02.maxima.ru 51BAD1E000D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mt-integration.ru;
-	s=sl; t=1740397016; bh=DTItJCPFhbVedZdbaxnqWm55x4dSNHRqn77CJj9NmTU=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:From;
-	b=VH1JLX91L4V8hbBR8Ys8idEMJR4jPCxo+5YOsHQzRKlUEdHnBZsbL1tltsvQmg9eQ
-	 /k6SebhOXLdZmqKYQCR0BBvdznolAgBtl97Ep6KbJWL4MKyTT+o/oAkiEQ0DyhRSUC
-	 QR6KmdVgQsDt9Y0gZYWgieqa9WfhQ70r392ZI3h9pHZBR8B9o2SGh+U8I3mtwUsWwi
-	 1x0Cq3Nb1Fg5Rvm/BJzyApfrorucWsNK4OgGcLddGHW46X/6g6Yh36LJvZnI9xD1D5
-	 TGRLRwIjOYZZCjYmmG25yUAobhbgjIilun7Tva4iN6sUrngU8SIHc/tC31Y2+lq50E
-	 3eNKO1Jg189Bg==
-Received: from ksmg02.maxima.ru (mail.maxima.ru [81.200.124.62])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(Client CN "*.maxima.ru", Issuer "GlobalSign GCC R3 DV TLS CA 2020" (verified OK))
-	by ksmg02.maxima.ru (Postfix) with ESMTPS;
-	Mon, 24 Feb 2025 14:36:56 +0300 (MSK)
-Received: from GS-NOTE-190.mt.ru (10.0.246.182) by mmail-p-exch02.mt.ru
- (81.200.124.62) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.1544.4; Mon, 24 Feb
- 2025 14:36:53 +0300
-From: Murad Masimov <m.masimov@mt-integration.ru>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
-	<dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, "Rafael J. Wysocki"
-	<rafael@kernel.org>, Len Brown <lenb@kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<lvc-project@linuxtesting.org>, Murad Masimov <m.masimov@mt-integration.ru>,
-	<stable@vger.kernel.org>,
-	<syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com>
-Subject: [PATCH v2] acpi: nfit: fix narrowing conversion in acpi_nfit_ctl
-Date: Mon, 24 Feb 2025 14:35:46 +0300
-Message-ID: <20250224113546.1441-1-m.masimov@mt-integration.ru>
-X-Mailer: git-send-email 2.46.0.windows.1
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="evPC6NTP";
+	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="YlXb+aDS"
+Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 51OMK6eh014580;
+	Tue, 25 Feb 2025 01:07:28 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=corp-2023-11-20; bh=6MLvyJ7Yult5Ouaf22
+	BQ2LU+whC0Vps8RoeBAcO+HaA=; b=evPC6NTP7dg6DIZyera54fnPjOUAQyK+ms
+	i1RSJItXWwR8aM2myPC2Fvvlg5J+Fblz9e73ZDbas1kVX9XXO5jw0SWK4VMWM32/
+	Fpwv5n5jgzFr+Mlf8fgSt9eyB7Fn4L+LHrXRiN+Ce+AT8P7R80YvR2mQaqU6SS6O
+	ePYMrOjU2CAP/FaueHPfqe3V9NazOP2T7+7orYLPN1rAp06MpYB0u6BFKGvX5ulO
+	P45JFIVRbSqoL4cefMkqAm9stVVoeBVV5tVkI0fqsg1X5ou/+9Cy6V0iHbQD77hn
+	cc9tMaE02ohAWVl4ILYN1OYsz8hd2DG3DNU/kNkMLJ+HoBeca2kQ==
+Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 44y5c2byqk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 25 Feb 2025 01:07:28 +0000 (GMT)
+Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 51P0U5cr007534;
+	Tue, 25 Feb 2025 01:07:27 GMT
+Received: from nam10-dm6-obe.outbound.protection.outlook.com (mail-dm6nam10lp2046.outbound.protection.outlook.com [104.47.58.46])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 44y51eh4au-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 25 Feb 2025 01:07:27 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=eE3aXjxS6PelciiG0Vd5e57UHRFy7b1YyGVwBKRce7BTEhUwBHG1KPshJYrBeK1/xlGTXPABKf56v8svJtpXNpxSYYHJhaIxjmmZctltLUT5AX8mfcayiBz+nYmH8KV+5urqe971ap/H+5VtSqM4JzVoA7FbwJ4ar94NcqvsbyjCYTAxzpfdHXukCTriBp60fP9xUsTxK6m20bYFDWlqGnH3qm7+b0mHYNzZxXJldqebvzbsozhLlIKn34VyaL7eqmVLP/Zl0MIPQ95LDt3hIqAonAm94eSXnK39zQhx5KBU+Frw6Eyo3xzhMKuG4jNXQy0xRt8X03ctabZw69DGaw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=6MLvyJ7Yult5Ouaf22BQ2LU+whC0Vps8RoeBAcO+HaA=;
+ b=aTSJU0X08zSt65hBOjwxqvokRHK9oChSsTKWGKk4NM6IReuh40MscoeGrE8tI6r+FJyYQsgPHmOvKP/qOkwJa3sfV2M1Hr8gO1lZNwVyrx3j+OgCK6ENSOUhu+SZFZ3uqBANvXw4YHI9Rz+ERbgbhiDjfO2k17FyZCtfANVC5Z6JZZpebiSXpWHy7Vc/H3ClgvtRMqY0mZxepESjGfEefSQ3a4rmONwCJWRS0EMcy+csac0w7FJ9CzPpr0YvQ/4eVQdBUpr4X0KBtMaGCcn0yaPNJcWw/Cm2ov+HV+lVhmlG8NxSe8iODnLhLHpvskGlse3DuTMsBd+zS4f2F9ZeSw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6MLvyJ7Yult5Ouaf22BQ2LU+whC0Vps8RoeBAcO+HaA=;
+ b=YlXb+aDS4uml1EJMWj8LC+U0uOtFuaqBQcNE3orXDpcLlSQ0nmbM/F2U1B0SkXhGqb2WSou4+t7AVdcPhORB8i1kE7sXBgGCGsjLxPQ0kxETWSP7zYYi67IXahbGKy9/4tmJa8QYz6d2iAUQ45B9xtRRZGsfVA8SOKnRiOcCN8Q=
+Received: from CH0PR10MB5338.namprd10.prod.outlook.com (2603:10b6:610:cb::8)
+ by SN7PR10MB6449.namprd10.prod.outlook.com (2603:10b6:806:2a0::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8466.19; Tue, 25 Feb
+ 2025 01:07:21 +0000
+Received: from CH0PR10MB5338.namprd10.prod.outlook.com
+ ([fe80::5cca:2bcc:cedb:d9bf]) by CH0PR10MB5338.namprd10.prod.outlook.com
+ ([fe80::5cca:2bcc:cedb:d9bf%4]) with mapi id 15.20.8466.016; Tue, 25 Feb 2025
+ 01:07:21 +0000
+To: Anuj Gupta <anuj20.g@samsung.com>
+Cc: Anuj gupta <anuj1072538@gmail.com>,
+        "Martin K. Petersen"
+ <martin.petersen@oracle.com>,
+        Christoph Hellwig <hch@lst.de>, M Nikhil
+ <nikh1092@linux.ibm.com>,
+        linux-block@vger.kernel.org, dm-devel@lists.linux.dev,
+        linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
+        linux-scsi@vger.kernel.org, hare@suse.de,
+        steffen Maier <maier@linux.ibm.com>,
+        Benjamin Block
+ <bblock@linux.ibm.com>,
+        Nihar Panda <niharp@linux.ibm.com>
+Subject: Re: Change in reported values of some block integrity sysfs attributes
+From: "Martin K. Petersen" <martin.petersen@oracle.com>
+In-Reply-To: <20250221120729.GA5233@green245> (Anuj Gupta's message of "Fri,
+	21 Feb 2025 17:37:29 +0530")
+Organization: Oracle Corporation
+Message-ID: <yq1frk2debi.fsf@ca-mkp.ca.oracle.com>
+References: <f6130475-3ccd-45d2-abde-3ccceada0f0a@linux.ibm.com>
+	<yq18qsjdz0r.fsf@ca-mkp.ca.oracle.com>
+	<CGME20250221103836epcas5p2158071e3449f10b80b44b43595d18704@epcas5p2.samsung.com>
+	<CACzX3AvbM4qG+ZOWJoCTNMMgSz8gMjoRcQ10_HJbMyi0Nv9qvQ@mail.gmail.com>
+	<20250221120729.GA5233@green245>
+Date: Mon, 24 Feb 2025 20:07:18 -0500
+Content-Type: text/plain
+X-ClientProxiedBy: BY3PR10CA0014.namprd10.prod.outlook.com
+ (2603:10b6:a03:255::19) To CH0PR10MB5338.namprd10.prod.outlook.com
+ (2603:10b6:610:cb::8)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: mt-exch-01.mt.ru (91.220.120.210) To mmail-p-exch02.mt.ru
- (81.200.124.62)
-X-KSMG-AntiPhishing: NotDetected, bases: 2025/02/24 10:30:00
-X-KSMG-AntiSpam-Auth: dmarc=none header.from=mt-integration.ru;spf=none smtp.mailfrom=mt-integration.ru;dkim=none
-X-KSMG-AntiSpam-Envelope-From: m.masimov@mt-integration.ru
-X-KSMG-AntiSpam-Info: LuaCore: 51 0.3.51 68896fb0083a027476849bf400a331a2d5d94398, {rep_avail}, {Tracking_one_url}, {Tracking_uf_ne_domains}, {Tracking_from_domain_doesnt_match_to}, ksmg02.maxima.ru:7.1.1;81.200.124.62:7.1.2;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2;mt-integration.ru:7.1.1;syzkaller.appspot.com:7.1.1,5.0.1, FromAlignment: s, ApMailHostAddress: 81.200.124.62
-X-KSMG-AntiSpam-Interceptor-Info: scan successful
-X-KSMG-AntiSpam-Lua-Profiles: 191224 [Feb 24 2025]
-X-KSMG-AntiSpam-Method: none
-X-KSMG-AntiSpam-Rate: 0
-X-KSMG-AntiSpam-Status: not_detected
-X-KSMG-AntiSpam-Version: 6.1.1.11
-X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.1.1.8310, bases: 2025/02/24 06:47:00 #27427681
-X-KSMG-AntiVirus-Status: NotDetected, skipped
-X-KSMG-LinksScanning: NotDetected, bases: 2025/02/24 10:29:00
-X-KSMG-Message-Action: skipped
-X-KSMG-Rule-ID: 7
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH0PR10MB5338:EE_|SN7PR10MB6449:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2ff8485c-db58-467f-eec0-08dd5538c15a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|1800799024|7416014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?SrJepj2khL8sDTyqM+UCw/+AS8nqy3AMUXHvUhuaaT/xECr70d5XaJskpkf3?=
+ =?us-ascii?Q?2Q9AEZ7pL8Rwnytl7Rl4ziOy07nOniJUO4XJLLIAZYDn/1w2oSLogqr/+gvP?=
+ =?us-ascii?Q?aoBOKtYcL+PWdeZRiGSFatswpA/ECmAraCWCvslWdhheZGSiIOvQM99nCIHP?=
+ =?us-ascii?Q?apCwVJNZV3dfZlrHa2JdYKfcg0FIxhP+9FYc6wD7/m7rnGzfmdN5Brhr+f/F?=
+ =?us-ascii?Q?VQSLlGVKNcd9Zcz8bdXn2kDmt1k+E+Q+7t5CaEovaIiLg8eVX76912J2yOWP?=
+ =?us-ascii?Q?7uhV1CXMjwycDarAzBpax5HSj66AicORKGihi9AP8p92vJF7epcsR65X/0rh?=
+ =?us-ascii?Q?EaXM8GewrrEEztQQw21y6eAxmaaZYf7nFR09x6iM+Grf49HtXjcW3fCSKxAq?=
+ =?us-ascii?Q?5EQaA8EnTPc7nsqGIZLM3U/ZujHZqwYTgI+RuFK1ULATolWjC1tuQS+r7GCB?=
+ =?us-ascii?Q?AXcAj7/NyYTxR0xtL1cIMH4vXcTsoRkP0Whx7UEYIibxtLf8rb1PZLwVGbPt?=
+ =?us-ascii?Q?Pr+Uv7DOR+/6r7BSEFJDFXGxLYiRw2ThyxTcbDH3afTPg4wiTfGZLmu0YDUJ?=
+ =?us-ascii?Q?dihuH7xeQG/3pirR1GXtsLm5CMRtplilxp5frzWjGvPrE8zIY+AQ8mLBHIFc?=
+ =?us-ascii?Q?oqcQeG6wMtTB/shhpo0HPuGK/dHl19SkYsIQEi3jCBHhlzaj7nu2TthzjY7H?=
+ =?us-ascii?Q?584b6c9SyarbRs1uG85D1ghZi7CUVaAyqThjoDPYVK3HC4LHLz+CWuFGi+1G?=
+ =?us-ascii?Q?0XjfEFxxwsCkZ1D0q/UwR88Vk1LKpdjjYUeyJy7gCXNcnRtiqypPEnhcV5Bn?=
+ =?us-ascii?Q?Quga7sSWJPytklmrXYJ8WZQDQo4u9rQCVQGkInh1Og0bXPGkkoxjLkwX+vtR?=
+ =?us-ascii?Q?kJVJ7FBfUAynM9zf/4891k2WJfT0LsbDcNp3DFS9k9lzjqzTvhjPtE8HRKcW?=
+ =?us-ascii?Q?qPBVMtARR6SrbfbFRsIBLd5wCYTnuBezFwT8wbsuBzyWmZWzP4KPhm+MDc9u?=
+ =?us-ascii?Q?xVVjDtrQWb+kbLYYHaGE2wnYEPKU2fEQPK76G23qw7IyJLTBzGZQihWE9qC2?=
+ =?us-ascii?Q?R70apmuk7tvDaoXHKKd9hsJ6WKxSU7nxJguq8TfGcDSjZqjIwWAH7xJ2V35f?=
+ =?us-ascii?Q?UTH/P5efZbVbDOvRyhPJbicvsa5U8F6SYvz03NVvDR+5rEiNUS3D8gXaRCuN?=
+ =?us-ascii?Q?RItXPu62qkWlzl9fI1WwtyCxD+TtXR4GjaRp9ZnWcsI/176MYEL22C+Bj8i/?=
+ =?us-ascii?Q?IO+R57D8nlWkmuc5IwcNJHCEh+NNol7WVwiMytHGix+90yXY6LhQ7JfCk18f?=
+ =?us-ascii?Q?Xj1eV/swTdoyeyYspREI82Hl9VV0CeNXSwsseYsIsI3yPCNQNZs6FDSZxc4A?=
+ =?us-ascii?Q?jN/QmC07k9KFi5GVcsPRNbvmURyN?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH0PR10MB5338.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024)(7416014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?1dKQDv2mldemwfiabvO/kXk/LjKGpwSSSq/3Zot2jOLeMEteDi5ScuNzroZ5?=
+ =?us-ascii?Q?ftV03Gy/s9a0ItAm8e10V3ZaY4TXf3IPU3Blg4TNEHT+yQgbwLl9LI9+Bofw?=
+ =?us-ascii?Q?vlrcDDB/sJIxBQFxK06QypaFo99vSV7m2LSkGxI8Q0VS4NuirSp1BIpiQQzq?=
+ =?us-ascii?Q?T8EBZeTAzLfdVmXpu0W+SItJzoebLgTu3dtXovkWXQR+ei22yspovudcmidr?=
+ =?us-ascii?Q?/QABFHuvSjvzTMnhw6bfaSn31QYeYfnQAYmJHLWJAF2o4+G5NRGOMutzragf?=
+ =?us-ascii?Q?t0+qiFlsjH9pWXFu/Na7IoSU/nAkjavNqJq1vo9QZ7AO26fDtAyMp1wyVygs?=
+ =?us-ascii?Q?uHf1vKBPys2AvdgAPA+Nov6T12IYLylipuboBXaY02PdTwwaZoVifid8IXGP?=
+ =?us-ascii?Q?pBGfJmAMckzyNsUvep6kzFRbwOsv5u6ZlXQ/YJFGhEpBis4iGUjkJA9mAcbu?=
+ =?us-ascii?Q?6YBH+X154HV6ngvbhmopSqHhjfxv+jzyL51ZmRxvVz2Oas0RBU/NoQid6ya8?=
+ =?us-ascii?Q?2ro6yZcIJ9+qf6u+nQZd5gtSh53XBxiUU8lz0ak+PnRwGEYqEgAgLASFWE2l?=
+ =?us-ascii?Q?zYxNmkSOLmCPeHgJ4tp2F+bD6yHcIpympSClDvYKxZpOkmZ6FV5BP5yjxfns?=
+ =?us-ascii?Q?+FuiHBU8N6yqbT1+WDsQn66kZhAky2yBm/vo6eePuhlCxflDJyQsNKwy1QKk?=
+ =?us-ascii?Q?K0DVXvdmDC0+pU2gQWKh2AkCD7dBbcJwvcpwrLDHtcXOMtQ5r7OkoyOEQ5As?=
+ =?us-ascii?Q?8PT17MiZ/3mdErp66ajqaII6VYoczaAI7qn75JeJl7K/H1ZL80+/ojGuSz4O?=
+ =?us-ascii?Q?wK/0rer4mDBydiQLsFOCIb39gAfq0zOfyXRNaQaT9gm7b4/ylnz+U9Om37mN?=
+ =?us-ascii?Q?henvccawQAdRynVSpEkxwOaKlczCG73Lx0z7d8bSSkj5MZejKhV+mxRmNwZH?=
+ =?us-ascii?Q?mklLMyGHXJvwj80AGillB0/vaNty0H/Una1DXG0FF227GbZjaJ88hg4X58U1?=
+ =?us-ascii?Q?3Fu3NcrXnLyjsKJXeWf5FWMB2UiROvscF2nHvzPdmeOzU25XeV/ophXRCMGZ?=
+ =?us-ascii?Q?j7EMpjbHIx3CbjRF9mbRwoHaqE4wQB9phXyWs+FiiZb0N+SCvHTFdGi7Vthn?=
+ =?us-ascii?Q?c8KT7++4foKYk55Ll1haH5BaxpLmODtZheUv2Bf244aPR8ZmHTabcrFLY3Wo?=
+ =?us-ascii?Q?3KSAFxMAufuajv4OI6EmCAQOCr4Ush82jJYVl/FmcgGvqHJEb9fDCDmZNlQi?=
+ =?us-ascii?Q?fYoyT03t9OQf0CG6G0haGAI2yk6Sn3ckRNj7JuI2i1YThB+4iYug7j8Ear6v?=
+ =?us-ascii?Q?Zc42rJNszvVnaLgk8XU4evm5AGNWO5tdVL8VzBCQB22/2XBT4/bykdzlVvNf?=
+ =?us-ascii?Q?nynnzn+sWLyfx1V5NjAz7+Tc8B7mHD6wVeSOSYGnOnDU3Wk0mPmfSWdv/pgH?=
+ =?us-ascii?Q?hr9ze2TQfbXUM5cTg9XqzuFZr8t3pYyOyku6i2vDojrdaF3Hr+277NvklZuy?=
+ =?us-ascii?Q?FFH9yeNY4kjTjgfD5hBqxt/YKWOlXbmUhp7CFvuzY4LxnyQuprjHbxvweRTR?=
+ =?us-ascii?Q?30tjMcsmJQf8E8nn56s+UBbx+GZd5w6Ck1h2FIdDZfGYcigtdHE5BHdHx/Mt?=
+ =?us-ascii?Q?hw=3D=3D?=
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+	zzOYMAy0dDerXKActP+Onw6K/cDIiwK/1AA3a5YpNXzvOQznKqzE6go2NqgpPn6Q0E4gNcOjUohxuv35v6zXi64AOGkmxeBjsjz/09B2/MHRJrW7r8p/ubyoL6GDuOAiDtGdCtTi4XIJR3WtblNC3u00QrFWCPuMPw7pu+SbibELmaChMCQvQq5J7adoT2l6Lx5U+ZjUtM81AomFGS0RuFQNZ3h/h71LAuKksT9OElUpMObcXcBKUpnUmRx6GN8+e6UukCC9q/87flebrQcP613yzNCYBeiANvkqMadSIOVhdSukoUMFKzDxLV9CCRLSF3JureLTQSlsY1Pb1MArCcQWf1cmWr0ceTOIZ22sPXLn0Tllwx9UD+51hFk5z5hcGoK+lwaVj15QxtwUGIW5Mcojk81zUuGMCueu9CoLJAijkpjpFIVF3/0svUbGU/Wely+iIB1Lqetm45dbFUBv8UkWaKFsRek9rf8IgY3WiV1PermgG1E8NU5o1x2OmDMxB7D1NllaZo85/3HGuu/U7Z4zs3OPSgnnT+qX69xvngDaVleUnxRAB/OhxhkW8Zaoq7IO+XEEjbrGkgYkVSAJLdJn1LRw+7eOWehIpqL3n0I=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2ff8485c-db58-467f-eec0-08dd5538c15a
+X-MS-Exchange-CrossTenant-AuthSource: CH0PR10MB5338.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Feb 2025 01:07:21.0418
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Kdg95MbFxBr5ohrJ/Cn4bac5mtYQ0ZHkz6+0Q52cJd8iOhRjEQvRjPLCqUwbh0GuomyKiP7ira1rVuJVGGL7b9E3G8WQtvqRBIF6PM91Y9Q=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR10MB6449
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2025-02-24_12,2025-02-24_02,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 mlxlogscore=999
+ suspectscore=0 adultscore=0 phishscore=0 bulkscore=0 malwarescore=0
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2502100000 definitions=main-2502250005
+X-Proofpoint-ORIG-GUID: dDwoQH9QnktDKtYQJ2p0uHlK45Bp9gNj
+X-Proofpoint-GUID: dDwoQH9QnktDKtYQJ2p0uHlK45Bp9gNj
 
-Syzkaller has reported a warning in to_nfit_bus_uuid():
 
-==================================================================
-only secondary bus families can be translated
-WARNING: CPU: 0 PID: 15821 at drivers/acpi/nfit/core.c:80 to_nfit_bus_uuid+0x6f/0x90 drivers/acpi/nfit/core.c:79
-Modules linked in:
-CPU: 0 UID: 0 PID: 15821 Comm: syz-executor579 Not tainted 6.11.0-rc7-syzkaller-00020-g8d8d276ba2fb #0
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
-RIP: 0010:to_nfit_bus_uuid+0x6f/0x90 drivers/acpi/nfit/core.c:79
-Call Trace:
- <TASK>
- acpi_nfit_ctl+0x8a9/0x24a0 drivers/acpi/nfit/core.c:489
- __nd_ioctl drivers/nvdimm/bus.c:1186 [inline]
- nd_ioctl+0x184d/0x1fe0 drivers/nvdimm/bus.c:1264
- vfs_ioctl fs/ioctl.c:51 [inline]
- __do_sys_ioctl fs/ioctl.c:907 [inline]
- __se_sys_ioctl+0xfc/0x170 fs/ioctl.c:893
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-==================================================================
+Anuj,
 
-This warning is triggered if the argument passed in to_nfit_bus_uuid() is
-equal to 0. It is important that this function expects that the argument
-is between 1 and NVDIMM_BUS_FAMILY_MAX. Therefore, it must be checked
-beforehand. However, in acpi_nfit_ctl() validity checks made before
-calling to_nfit_bus_uuid() are erroneous.
+> diff --git a/drivers/scsi/sd_dif.c b/drivers/scsi/sd_dif.c
+> index ae6ce6f5d622..be2cd06f500b 100644
+> --- a/drivers/scsi/sd_dif.c
+> +++ b/drivers/scsi/sd_dif.c
+> @@ -40,8 +40,10 @@ void sd_dif_config_host(struct scsi_disk *sdkp, struct queue_limits *lim)
+>  		dif = 0; dix = 1;
+>  	}
+>  
+> -	if (!dix)
+> +	if (!dix) {
+> +		bi->flags |= BLK_INTEGRITY_NOGENERATE | BLK_INTEGRITY_NOVERIFY;
+>  		return;
+> +	}
+>  
+>  	/* Enable DMA of protection information */
+>  	if (scsi_host_get_guard(sdkp->device->host) & SHOST_DIX_GUARD_IP)
+>
 
-Function acpi_nfit_ctl() first verifies that a user-provided value
-call_pkg->nd_family of type u64 is not equal to 0. Then the value is
-converted to int (narrowing conversion), and only after that is compared
-to NVDIMM_BUS_FAMILY_MAX. This can lead to passing an invalid argument to
-acpi_nfit_ctl(), if call_pkg->nd_family is non-zero, while the lower 32
-bits are zero.
+This looks good to me. Originally we didn't register an integrity
+profile at all unless the device was capable.
 
-Moreover, the same way zero can be passed in to_nfit_bus_uuid(),
-negative value also may occur. That wouldn't trigger the warning, but
-could lead to a wild-memory-access in test_bit(). This is achieved with
-a slightly modified version of the reproducer generated by Syzkaller.
-The crash report is as follows:
-
-==================================================================
- BUG: KASAN: wild-memory-access in acpi_nfit_ctl (./arch/x86/include/asm/bitops.h:227 (discriminator 6) ./arch/x86/include/asm/bitops.h:239 (discriminator 6) ./include/asm-generic/bitops/instrumented-non-atomic.h:142 (discriminator 6) drivers/acpi/nfit/core.c:489 (discriminator 6))
- Read of size 8 at addr 1fff888141379358 by task repro/681503
-
- CPU: 0 UID: 0 PID: 681503 Comm: repro Not tainted 6.13.0-04858-g21266b8df522 #30
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
- Call Trace:
- <TASK>
- dump_stack_lvl (lib/dump_stack.c:123)
- kasan_report (mm/kasan/report.c:604)
- kasan_check_range (mm/kasan/generic.c:183 mm/kasan/generic.c:189)
- acpi_nfit_ctl (./arch/x86/include/asm/bitops.h:227 (discriminator 6) ./arch/x86/include/asm/bitops.h:239 (discriminator 6) ./include/asm-generic/bitops/instrumented-non-atomic.h:142 (discriminator 6) drivers/acpi/nfit/core.c:489 (discriminator 6))
- nd_ioctl (drivers/nvdimm/bus.c:1187 drivers/nvdimm/bus.c:1264)
- __x64_sys_ioctl (fs/ioctl.c:52 fs/ioctl.c:906 fs/ioctl.c:892 fs/ioctl.c:892)
- do_syscall_64 (arch/x86/entry/common.c:52 arch/x86/entry/common.c:83)
- entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:130)
-==================================================================
-
-All checks of the input value should be applied to the original variable
-call_pkg->nd_family. This approach is better suited for the stable
-branches and is much safer than replacing the type of the variable from
-int to u32 or u64 throughout the code, as this could potentially
-introduce new bugs.
-
-Found by Linux Verification Center (linuxtesting.org) with Syzkaller.
-
-Fixes: 6450ddbd5d8e ("ACPI: NFIT: Define runtime firmware activation commands")
-Cc: stable@vger.kernel.org
-Reported-by: syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=c80d8dc0d9fa81a3cd8c
-Signed-off-by: Murad Masimov <m.masimov@mt-integration.ru>
----
-v2: Add more details to the commit message.
-
- drivers/acpi/nfit/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a5d47819b3a4..ae035b93da08 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -485,7 +485,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		cmd_mask = nd_desc->cmd_mask;
- 		if (cmd == ND_CMD_CALL && call_pkg->nd_family) {
- 			family = call_pkg->nd_family;
--			if (family > NVDIMM_BUS_FAMILY_MAX ||
-+			if (call_pkg->nd_family > NVDIMM_BUS_FAMILY_MAX ||
- 			    !test_bit(family, &nd_desc->bus_family_mask))
- 				return -EINVAL;
- 			family = array_index_nospec(family,
---
-2.39.2
-
+-- 
+Martin K. Petersen	Oracle Linux Engineering
