@@ -1,136 +1,151 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from dggsgout11.his.huawei.com (dggsgout11.his.huawei.com [45.249.212.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B849217668
-	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 06:14:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09FD2225A22
+	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 07:59:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740636872; cv=none; b=WZ9VbFjQaz6sg5S9U/bU2M1B0Y0FYMI6sOPVFcP3ZdzWd+3qjT3kTlALcvMsFPwmCtFCVTSKLzChTB2BtJut7CkzTilz2dZ0JBqG0EhHcCQxkjr8ffLeC5DNHHw+LRBGaeqOzMNCw5hDzZi0vOFhqIaBbTdaQJNLkLcTq+fj0IY=
+	t=1740643161; cv=none; b=AmZYrR9+v6THTXp4ZQhrhwU/0HauN4E4VaBWNoGg+6ebVfOxs1psFVUitvKAs17CPzF0nZgz3a0aDcFZ/qgTK/VPewE3C2HUEO3pomHG2iS4qFOUha9m1yj0MdixOKK6yGWKhH0lUpa3IIkLKLwv49GDa1Ucm57mEd+Epug3xYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740636872; c=relaxed/simple;
-	bh=n3IW3rgTRU/z88cGxNJpDxyDTMotV6ebg+Hmt3yvmlI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=EYUOD3EVnIDOFmsBxV1IQ9kgmcjNNcna4eydB8shRVWQWQRudkO29gkY277qPS8OHTr1+Ah9xvs9YaCsoawUizhbp9578Ha+HaSUfEYCDvlM7ipQW0MK/flqqaEqTUkIBfuYvV5bqsYig807iMosNCvNxB3bFhI6ysGhERfLYas=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=ZiIzV8Yr; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="ZiIzV8Yr"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 51R5O0vE019699;
-	Thu, 27 Feb 2025 06:14:29 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=wEkq2+
-	JwOpj8+0rjQtyfBmpqgDEWLm1nSYiuGkbpClE=; b=ZiIzV8Yrj08y89+hvrAUL+
-	S3fwP5QckSNMXsvYRp/xOSHohdBJBDknHnLIQHHJJrlKiNzBtjnFMMs0rx3H4xTI
-	u6B3aHeRFB+SrxljdqMIAlSVm3fB8V9WdOChVeO7tOqtvaX8fjt9lKZbEsqCnJ3c
-	MIzB8NQ/cdXhNAgAWoiMqF1UpCvVQDSL5ue+fwB9Bto7R8yYpjMW6UOAlGuqkRJ8
-	W/Lk30HXG7GihaRoqTkECKAnsTLlBOtEuenYDKfiKlL0+sakFkPyzgip2bjtK01E
-	sL1iA+vjDmhDfwXBX8vuC570XAzKXfWsfH7Z74+fZ1P9oTUlr2Y1t7Py/YVkAcmw
-	==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 452hv8r5rj-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 27 Feb 2025 06:14:29 +0000 (GMT)
-Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 51R6ETCt027472;
-	Thu, 27 Feb 2025 06:14:29 GMT
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 452hv8r5re-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 27 Feb 2025 06:14:29 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 51R33pSN002545;
-	Thu, 27 Feb 2025 06:14:28 GMT
-Received: from smtprelay07.dal12v.mail.ibm.com ([172.16.1.9])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 44yu4jxq85-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 27 Feb 2025 06:14:28 +0000
-Received: from smtpav02.dal12v.mail.ibm.com (smtpav02.dal12v.mail.ibm.com [10.241.53.101])
-	by smtprelay07.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 51R6ERFu28574252
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 27 Feb 2025 06:14:27 GMT
-Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BA21F5805E;
-	Thu, 27 Feb 2025 06:14:27 +0000 (GMT)
-Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 95CEC5805C;
-	Thu, 27 Feb 2025 06:14:25 +0000 (GMT)
-Received: from [9.124.214.50] (unknown [9.124.214.50])
-	by smtpav02.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Thu, 27 Feb 2025 06:14:25 +0000 (GMT)
-Message-ID: <3483e769-c8ac-4ffb-a49e-dd14bccb92d4@linux.ibm.com>
-Date: Thu, 27 Feb 2025 11:44:23 +0530
+	s=arc-20240116; t=1740643161; c=relaxed/simple;
+	bh=6UurLvlN43kElnBkczOMnVLHlLCoVgNKvePLk7U36xM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=WzcJqrXYLp1MTbbPToM2e7Ts+gBNAhUyh7sgOIcDPMhK64XS6grkN4AlCOjEgXgcbNXL4WqO4IN87zYMXEjX0bI2q4UvqA0aMgOROK5/yIDqWYRoMczAh45oMs0NNIFn79MnB1jVDrPZIojpkK2LN2YIZv2Uo4hFxBURgU8zRZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
+Received: from mail.maildlp.com (unknown [172.19.163.216])
+	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4Z3NyW1XY6z4f3jtG
+	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 15:58:59 +0800 (CST)
+Received: from mail02.huawei.com (unknown [10.116.40.128])
+	by mail.maildlp.com (Postfix) with ESMTP id B44C71A1782
+	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 15:59:15 +0800 (CST)
+Received: from huaweicloud.com (unknown [10.175.104.67])
+	by APP4 (Coremail) with SMTP id gCh0CgDHKl9PG8Bn6c8gFA--.31377S6;
+	Thu, 27 Feb 2025 15:59:15 +0800 (CST)
+From: Zheng Qixing <zhengqixing@huaweicloud.com>
+To: axboe@kernel.dk,
+	song@kernel.org,
+	yukuai3@huawei.com,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	dlemoal@kernel.org,
+	kch@nvidia.com,
+	yanjun.zhu@linux.dev,
+	hare@suse.de,
+	zhengqixing@huawei.com,
+	colyli@kernel.org,
+	geliang@kernel.org,
+	xni@redhat.com
+Cc: linux-block@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	yi.zhang@huawei.com,
+	yangerkun@huawei.com
+Subject: [PATCH V2 02/12] badblocks: factor out a helper try_adjacent_combine
+Date: Thu, 27 Feb 2025 15:54:57 +0800
+Message-Id: <20250227075507.151331-3-zhengqixing@huaweicloud.com>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20250227075507.151331-1-zhengqixing@huaweicloud.com>
+References: <20250227075507.151331-1-zhengqixing@huaweicloud.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] [ndctl PATCH v2] ndctl/list: display region caps for any
- of BTT, PFN, DAX
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>, Donet Tom <donettom@linux.vnet.ibm.com>,
-        nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-        Ritesh Harjani <ritesh.list@gmail.com>
-References: <20250220062029.9789-1-donettom@linux.vnet.ibm.com>
- <x49y0y0oi1g.fsf@segfault.usersys.redhat.com>
- <6f43cf6e-a3b7-4746-be15-d354cc6dd699@linux.ibm.com>
- <Z79u2ZEkbO5DNnMC@aschofie-mobl2.lan>
-Content-Language: en-US
-From: Donet Tom <donettom@linux.ibm.com>
-In-Reply-To: <Z79u2ZEkbO5DNnMC@aschofie-mobl2.lan>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: YBBj3OAwWuvtQMZaimvjkhd4bT7wKE9C
-X-Proofpoint-GUID: pLKRTG9qm8UVKmMTUeX2a4pNmecSTh18
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
- definitions=2025-02-27_03,2025-02-26_01,2024-11-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 suspectscore=0
- phishscore=0 lowpriorityscore=0 malwarescore=0 adultscore=0 spamscore=0
- impostorscore=0 mlxlogscore=975 priorityscore=1501 mlxscore=0 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.19.0-2502100000
- definitions=main-2502270044
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:gCh0CgDHKl9PG8Bn6c8gFA--.31377S6
+X-Coremail-Antispam: 1UD129KBjvJXoW7AF13Ary5AF1rWryUWFyrCrg_yoW8uw4rpr
+	nxAw1avryxC3WS9anxXa17Aw15C3WxJrWYyFW7J348GFyUtw1S9r18t34fZF9FvrWxJFna
+	q3WUuFyv9FW8t37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUP2b4IE77IF4wAFF20E14v26rWj6s0DM7CY07I20VC2zVCF04k2
+	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28IrcIa0xkI8VA2jI8067AKxVWUXw
+	A2048vs2IY020Ec7CjxVAFwI0_Xr0E3s1l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxS
+	w2x7M28EF7xvwVC0I7IYx2IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxV
+	W8Jr0_Cr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v2
+	6rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMc
+	Ij6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_
+	Jr0_Gr1lF7xvr2IYc2Ij64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2AFwI
+	0_GFv_Wryl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG
+	67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6rW5MI
+	IYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E
+	14v26F4j6r4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr
+	0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IU0I3
+	85UUUUU==
+X-CM-SenderInfo: x2kh0wptl0x03j6k3tpzhluzxrxghudrp/
 
+From: Li Nan <linan122@huawei.com>
 
-On 2/27/25 01:13, Alison Schofield wrote:
-> On Wed, Feb 26, 2025 at 11:32:30AM +0530, Donet Tom wrote:
->> On 2/20/25 19:05, Jeff Moyer wrote:
->>>> diff --git a/ndctl/json.c b/ndctl/json.c
->>>> index 23bad7f..7646882 100644
->>>> --- a/ndctl/json.c
->>>> +++ b/ndctl/json.c
->>>> @@ -381,7 +381,7 @@ struct json_object *util_region_capabilities_to_json(struct ndctl_region *region
->>>>    	struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
->>>>    	struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
->>>> -	if (!btt || !pfn || !dax)
->>>> +	if (!btt && !pfn && !dax)
->>>>    		return NULL;
->>>>    	jcaps = json_object_new_array();
->>> Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
->>>
->> Thanks Jeff
->>
->>
->> Hi Alison
->>
->> Should I send a v3 with Reviewed-by tag or will you take the patch with the
->> tag?
-> No need. The tags with gather automagically upon applying.
-> I'll also rm the text meant for below the --- like Zhijian noted.
+Factor out try_adjacent_combine(), and it will be used in the later patch.
 
+Signed-off-by: Li Nan <linan122@huawei.com>
+Reviewed-by: Yu Kuai <yukuai3@huawei.com>
+---
+ block/badblocks.c | 40 ++++++++++++++++++++++++++--------------
+ 1 file changed, 26 insertions(+), 14 deletions(-)
 
-Thank you.
+diff --git a/block/badblocks.c b/block/badblocks.c
+index bcee057efc47..f069c93e986d 100644
+--- a/block/badblocks.c
++++ b/block/badblocks.c
+@@ -855,6 +855,31 @@ static void badblocks_update_acked(struct badblocks *bb)
+ 		bb->unacked_exist = 0;
+ }
+ 
++/*
++ * Return 'true' if the range indicated by 'bad' is exactly backward
++ * overlapped with the bad range (from bad table) indexed by 'behind'.
++ */
++static bool try_adjacent_combine(struct badblocks *bb, int prev)
++{
++	u64 *p = bb->page;
++
++	if (prev >= 0 && (prev + 1) < bb->count &&
++	    BB_END(p[prev]) == BB_OFFSET(p[prev + 1]) &&
++	    (BB_LEN(p[prev]) + BB_LEN(p[prev + 1])) <= BB_MAX_LEN &&
++	    BB_ACK(p[prev]) == BB_ACK(p[prev + 1])) {
++		p[prev] = BB_MAKE(BB_OFFSET(p[prev]),
++				  BB_LEN(p[prev]) + BB_LEN(p[prev + 1]),
++				  BB_ACK(p[prev]));
++
++		if ((prev + 2) < bb->count)
++			memmove(p + prev + 1, p + prev + 2,
++				(bb->count -  (prev + 2)) * 8);
++		bb->count--;
++		return true;
++	}
++	return false;
++}
++
+ /* Do exact work to set bad block range into the bad block table */
+ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+ 			  int acknowledged)
+@@ -1022,20 +1047,7 @@ static int _badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+ 	 * merged. (prev < 0) condition is not handled here,
+ 	 * because it's already complicated enough.
+ 	 */
+-	if (prev >= 0 &&
+-	    (prev + 1) < bb->count &&
+-	    BB_END(p[prev]) == BB_OFFSET(p[prev + 1]) &&
+-	    (BB_LEN(p[prev]) + BB_LEN(p[prev + 1])) <= BB_MAX_LEN &&
+-	    BB_ACK(p[prev]) == BB_ACK(p[prev + 1])) {
+-		p[prev] = BB_MAKE(BB_OFFSET(p[prev]),
+-				  BB_LEN(p[prev]) + BB_LEN(p[prev + 1]),
+-				  BB_ACK(p[prev]));
+-
+-		if ((prev + 2) < bb->count)
+-			memmove(p + prev + 1, p + prev + 2,
+-				(bb->count -  (prev + 2)) * 8);
+-		bb->count--;
+-	}
++	try_adjacent_combine(bb, prev);
+ 
+ 	if (space_desired && !badblocks_full(bb)) {
+ 		s = orig_start;
+-- 
+2.39.2
 
-
->
-> Thanks for the patch!
->
->
->> Thanks
->> Donet
->>
