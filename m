@@ -1,230 +1,200 @@
-Received: from dggsgout11.his.huawei.com (dggsgout11.his.huawei.com [45.249.212.51])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BBAB374F1
-	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 11:48:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.51
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740656901; cv=none; b=N2HK4zyESDtyoP8O5fhVQIl5m8BVW3T2P+PLVUf68SdZZfJJN/Mu2itt+sEByuuPRZ3yBxJ4b+yJ8sVHmjEk71dmD6XatDQnEzyBGig2JyCarnQ3I1ZYAk6tDSf3W2cmML9cGxw/YJ2b1LxmgEAuVicnEl33ieANjxm4GDhFgSc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740656901; c=relaxed/simple;
-	bh=mbwARO7SYwI4j7mnR1JVJpy9jpdNB2B3SO+uovp03XA=;
-	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=QHW+ZS2vgDR6sMD4UqlDbTlOgFlVMR7sb+BN8fNpZDqYMie/1LCokBLK5K4ClIZjebnrHcRdu9klStKJbbxpXh4zhcSaqNHxlUD7szlBp5I7BpIb2MRe7Wuey/GL1BSSWUBKYC+wUXyaBP+6ilrnOxSOmTj0vItXARJPBdo2js4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
-Received: from mail.maildlp.com (unknown [172.19.163.235])
-	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4Z3V2W6VxQz4f3lDN
-	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 19:47:47 +0800 (CST)
-Received: from mail02.huawei.com (unknown [10.116.40.128])
-	by mail.maildlp.com (Postfix) with ESMTP id 3BF731A058E
-	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 19:48:11 +0800 (CST)
-Received: from [10.174.179.143] (unknown [10.174.179.143])
-	by APP4 (Coremail) with SMTP id gCh0CgDHKl_4UMBnlVUwFA--.34292S3;
-	Thu, 27 Feb 2025 19:48:10 +0800 (CST)
-Subject: Re: [PATCH V2 11/12] md: improve return types of badblocks handling
- functions
-To: Zheng Qixing <zhengqixing@huaweicloud.com>, axboe@kernel.dk,
- song@kernel.org, dan.j.williams@intel.com, vishal.l.verma@intel.com,
- dave.jiang@intel.com, ira.weiny@intel.com, dlemoal@kernel.org,
- kch@nvidia.com, yanjun.zhu@linux.dev, hare@suse.de, zhengqixing@huawei.com,
- colyli@kernel.org, geliang@kernel.org, xni@redhat.com
-Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, yi.zhang@huawei.com,
- yangerkun@huawei.com, "yukuai (C)" <yukuai3@huawei.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83194322B
+	for <nvdimm@lists.linux.dev>; Thu, 27 Feb 2025 15:08:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.9
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1740668920; cv=fail; b=hsUfj1BkGt+0RMyJPeeMtuoDod5eAtyGfez3ldWxlnHG9AtFDWpA0CQM9/eKx4aMRpQOjNA9uFVXMANfSiiqcBDExkX4GnTl58EgFf8k3/xC6UAC6yVNV5ZXQ5vCTu8uYNRYAnM1O694MeOnq2eGlGUzi4w2FuZ9A+tS4aDQe+s=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1740668920; c=relaxed/simple;
+	bh=0dB04sgWHXHY6erKJ93uTz/ZLI9T+x+aZfvhWUVAS64=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=kupttrF25JtvjKa+SGHruCGxqQ04NELujcBddGRfXDh+GGFr6eYSNsb+fH5F5cNuly3HUm5+9M3chHdiSh3y3mWWsuEo9Ey+DFxmSzJXADJuCf3b6J3NR09ygX+CXsycaEZbKcICoaZ1b75GLDcxErhMiuATJYIo2fft0KVoA50=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LGMuad/R; arc=fail smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LGMuad/R"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1740668919; x=1772204919;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=0dB04sgWHXHY6erKJ93uTz/ZLI9T+x+aZfvhWUVAS64=;
+  b=LGMuad/RPExHGkomziP/1dCFWmeEagacCTdweIqr4KF2HSpmwz+E/nnA
+   +NLPf2u55duHqCq3dPAhiWi6dKmkc4BvEB97M8ODAAwEzyonrhHfnu26g
+   96OhynV2as0B++YCBgnrjXz9Y8H12nn43aqr7LJlBTxH6K2vO4+qUvcCj
+   4vo/dyv2SU+A9b8PyvRbL6io4qJhVP2hJt7vPesEPEG+BW+PN3+QZMDzP
+   ksMz9mHyNA0RDQMG4NLunrUVvJ79/dYKuPI3XZOFzBk1pUZ+AIEt+HVPL
+   h1U18m3rg9/fCTKEBsmXkp9eauoVHvgpxyKPJf91xpE6ygBIjvcSvl/oa
+   Q==;
+X-CSE-ConnectionGUID: T7ce2lxwScCumvnUIAY5NA==
+X-CSE-MsgGUID: eKOmlcECT9KLEskN4gTRfA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11358"; a="64030436"
+X-IronPort-AV: E=Sophos;i="6.13,320,1732608000"; 
+   d="scan'208";a="64030436"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2025 07:08:38 -0800
+X-CSE-ConnectionGUID: lsk5zEmZQYeF4LVt4yRfaQ==
+X-CSE-MsgGUID: ABSsQkmmT3mQ3GIJvy0HBA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
+   d="scan'208";a="147968201"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa001.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2025 07:08:37 -0800
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14; Thu, 27 Feb 2025 07:08:36 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14 via Frontend Transport; Thu, 27 Feb 2025 07:08:36 -0800
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.171)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Thu, 27 Feb 2025 07:08:33 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=yvanWeNEIn8ycYqMxLXhdttbXHvRMyO6qScCEJiTd4LZ+Z83C95ZIW7+UD01q2/f2TpgAQiX/uxijwytNV2l2M7D6mgUYbm77RwmDcf/8DncdMXLMuZNSDOEmf64g9VxEqvPDz5fQGzXjTatEZXkJQw/yzQUzIDw7dXXj7BIO5rGnZe8+0HKh96k9BHL68sirohOQAMgoot3gYdsITg9LQGRRQfM5ilWf6F/IYxY3y3Z5D1qknxOWNjIdVjiSVe9pv+nraSOjletXsf9BUyCKSkdGVp13ZJlOS7D3U0qfGPWQtlOo/fq0TjCN2UhCIZm9nnnuIuE/eOfT9KDpqo9MA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=DSLHobSZ2maUKUHSiq0hUvp02tER7PPhmEJGn5QkCx8=;
+ b=NrvPf8rBZ0jJlRVs9yxocO7dEh375QE1SPEZfPKffBaFIsQhlafFuIFXgm4tPgtGveB2d5s6zWaJ+i7ihT5dviL9wV6jj2otGMhIjgDy5jvwydQ4P9VRrmBktBu24SqTWooBdmu/zOThLmlPw2n7Bz5PE2qM7fSSTFNw5S3zE5qYNQeM/XE4RTcX+WNs/sUgd7rsG9KvfL8AtGdGRsg38VUh+ECql+7ClUirWZXVEIbvfHLGmS/SvUM4NKmuzuuj5T5WK0dw3yctbXeNEI7qHDyOjhHSD8dEFRXALC2DtchCkYoBrEhaGE3M2s4y85QvYppxEEbds1PA/C40So58xQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by PH7PR11MB5913.namprd11.prod.outlook.com (2603:10b6:510:137::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8489.19; Thu, 27 Feb
+ 2025 15:08:30 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57%5]) with mapi id 15.20.8489.018; Thu, 27 Feb 2025
+ 15:08:30 +0000
+Date: Thu, 27 Feb 2025 09:08:28 -0600
+From: Ira Weiny <ira.weiny@intel.com>
+To: Zheng Qixing <zhengqixing@huaweicloud.com>, <axboe@kernel.dk>,
+	<song@kernel.org>, <yukuai3@huawei.com>, <dan.j.williams@intel.com>,
+	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <ira.weiny@intel.com>,
+	<dlemoal@kernel.org>, <kch@nvidia.com>, <yanjun.zhu@linux.dev>,
+	<hare@suse.de>, <zhengqixing@huawei.com>, <colyli@kernel.org>,
+	<geliang@kernel.org>, <xni@redhat.com>
+CC: <linux-block@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-raid@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<yi.zhang@huawei.com>, <yangerkun@huawei.com>
+Subject: Re: [PATCH V2 10/12] badblocks: return boolean from badblocks_set()
+ and badblocks_clear()
+Message-ID: <67c07fec6b138_b295929498@iweiny-mobl.notmuch>
 References: <20250227075507.151331-1-zhengqixing@huaweicloud.com>
- <20250227075507.151331-12-zhengqixing@huaweicloud.com>
-From: Yu Kuai <yukuai1@huaweicloud.com>
-Message-ID: <25cce813-7e4e-b82b-48fa-b0ff0b3f3bb2@huaweicloud.com>
-Date: Thu, 27 Feb 2025 19:48:08 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+ <20250227075507.151331-11-zhengqixing@huaweicloud.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20250227075507.151331-11-zhengqixing@huaweicloud.com>
+X-ClientProxiedBy: MW4P220CA0012.NAMP220.PROD.OUTLOOK.COM
+ (2603:10b6:303:115::17) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20250227075507.151331-12-zhengqixing@huaweicloud.com>
-Content-Type: text/plain; charset=gbk; format=flowed
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:gCh0CgDHKl_4UMBnlVUwFA--.34292S3
-X-Coremail-Antispam: 1UD129KBjvJXoW3Aw15uw4DZrW7GFyUXFy3XFb_yoW7Aryrp3
-	yUJFyfJ3y0g34Fg3WUXrWDC3WF9w1fKFWIyrW3W34Ik3s7Kr95KF18XryYvFyvkF9xuF12
-	q3W5WF4Duw1kWrUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU92b4IE77IF4wAFF20E14v26ryj6rWUM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7Cj
-	xVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I
-	0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
-	x7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
-	0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7I2V7IY0VAS
-	07AlzVAYIcxG8wCY1x0262kKe7AKxVW8ZVWrXwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4
-	IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1r
-	MI8E67AF67kF1VAFwI0_GFv_WrylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJV
-	WUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG6r1j
-	6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYx
-	BIdaVFxhVjvjDU0xZFpf9x07jIksgUUUUU=
-X-CM-SenderInfo: 51xn3trlr6x35dzhxuhorxvhhfrp/
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|PH7PR11MB5913:EE_
+X-MS-Office365-Filtering-Correlation-Id: edcb5914-ce91-444f-5beb-08dd5740985f
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|7416014|1800799024|921020;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?4t5rDDyISW73jRnW8+t6UXQ9d6hp3m5+srzRlMBGZJmGttba4MaODyspvDl9?=
+ =?us-ascii?Q?a4WcnagF1doGYdxoj8kYRVzjeUzGQUN9YbwGmvOh3bN24clpACl8JX97u+B1?=
+ =?us-ascii?Q?UK+kdQoHbdDG2ifKnRSAQFL7HIpTz7+dTxL9xooNsffOqPIDT7dueWe/57BA?=
+ =?us-ascii?Q?rlbpQJjaeN3Cbf9VhcWjmPu2JGDtMwXKoKfCcG78H34ozUwBdM1tO/W5PLgF?=
+ =?us-ascii?Q?b+ZYSjFzb+r3qiNIaVjpyHZ/mD9Lv68HsRY70uMRJWgTUksX19hCJXLUH4Zy?=
+ =?us-ascii?Q?wJLObWSgA4zc7lHIeBErY7zvDqFFJdefc1WgMXPQEAt3O1VK8v4vmMNuNW5z?=
+ =?us-ascii?Q?DABDGuDOVYMuWcy3k5WLJVlE1VHXJV2RclUiV/GdxX3N8Fm7EwnPH3nDHSC7?=
+ =?us-ascii?Q?JfH7XTTbRg8P8x1SdOGQaPS6BZ2veQRz0CxN8D3UO/45/SHSKmrv6Q7u+2VT?=
+ =?us-ascii?Q?jG/EVGNMZ4y54Y5xzHMUHDFPRRnhdlE8yLjp90WgFYpoXU+6mqmBBRSuuvIa?=
+ =?us-ascii?Q?GJ138vwU6xsQfFfSWGepy5gW5ZXp4gmZg/af4gIvcLNKXn35E1ZxovAF18Q+?=
+ =?us-ascii?Q?1bEB1gFzmWKpyHGE8NLZ53+ztAvVs/8Rm18gsEheP+d5wgbtFTQPJdw1YbeW?=
+ =?us-ascii?Q?hY+HGH1OqbuBu0YzYTJ71xAyderNhDv2/Kw1vpYvzrvUqcFClGvRJAgf8VtP?=
+ =?us-ascii?Q?63Qxuzu9sEvLG5oMrgTQ0oi0Dxvp7jgcMANn6imyEyNcucjew/+f5A36cICz?=
+ =?us-ascii?Q?Yqw7VEeWukZTm52/Kc/zG3yvGOj/LWFuQINdq1iJPy+I+DfKtdEaedUBF5HO?=
+ =?us-ascii?Q?V76tXX1uzpx7j6amC2M9w5xPeIVwZx3O/WALHDSGotL8M+K4IcYWXg1D0i5V?=
+ =?us-ascii?Q?1j1eNCSvBL778+WJ1C3cWKuuLKI88m/Td9f9RjuNF8gLGTCWpyqTb0PP5LmF?=
+ =?us-ascii?Q?9DaPpVvfwlYc9P4y8GsZpNT2wPqghCa3MHjhsCxXZRL308BGykb/poC2xpE1?=
+ =?us-ascii?Q?aMhLt+nKFw7Hz8hU6n5F8x4GfnYgoAHPQTAuUMKdNulkkrBBhLaCjcn38sxc?=
+ =?us-ascii?Q?8tarZfqPXciZ0ubOAPxiwQG4halFNhLedwcwsRa3fIT7By9NK5I8/n1BWBga?=
+ =?us-ascii?Q?5a8Zu34itmfSZ/1jjNCraUfAQU48j8fjeTD7oaUU6tsaXLclcHi4bRpYQdTJ?=
+ =?us-ascii?Q?/2Hi7r49/no7CFZIhslAm0d7dHYgxi6OBF+enSb40185l07DJk9rSicujjrf?=
+ =?us-ascii?Q?h+dHxt+GYuiuE2IKPF333J3m9pBF+NujMJwe9mXleZIk4leqK7Rar7Sl379Y?=
+ =?us-ascii?Q?8OgTP0DOm1FjcL9WzXXzpduMRZXBnJL2ZtaZ/yY9ra7XT32H+ugJf6T6V/QI?=
+ =?us-ascii?Q?3Hnl2CGa6MEBgwIoaEcqyEIs0aEzBN2wD9jpjFVFACjNbWhaoqpNGiHvy1GY?=
+ =?us-ascii?Q?bZA9UDRihVk=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(7416014)(1800799024)(921020);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?6bYFBbABAMTDuhSezbI4e5BT+MMaAWCzOaamYMGAEGX1lHfN5ykztWUe0jGm?=
+ =?us-ascii?Q?4wJjfIIa0MubkQ6OMkMG3UMKGWDri7zktvumx64Ik3v2ubHIXbpsjqo5++/U?=
+ =?us-ascii?Q?d5W+BZ8YtpbrtgzBFwrs+qNc4dMWzwnk7JOWrV3OukXn8uf+LxEgeFYzDp/J?=
+ =?us-ascii?Q?VJqKqcSz6zVBfCTFFHwSNhQsdOqowRM2Tx7FeQEYMEqEBzS0t/S9tIvde2wJ?=
+ =?us-ascii?Q?Gdarm5iGOw0uFQ/Yzu7z0R6BU2FVo4XMmuyr5/9rp1or5kIFw7JCasjRiGSV?=
+ =?us-ascii?Q?XNEv5iFJVkfThKo0X/snsRciC2DIR8+HwOu3WoXwmnp5K/3iWMsb0iEaZIlJ?=
+ =?us-ascii?Q?skXuB4fdwh2sOetU774uTx4iH2eSJYz+xrMxuvjn6o/P5beHv87DgexmQVwo?=
+ =?us-ascii?Q?vSaOembUKgzm4c/3q8gu3YFYKKi76Uf7rwqFBkSGXwsGlU2ATW4iI+dKlR2J?=
+ =?us-ascii?Q?DaBfW42vBHpK5GjCqL6YukRRGKXyr8wxPjeo6sERo8q+Qcw8L6U8T5ccXyQL?=
+ =?us-ascii?Q?DM+AP4Uei/U5giFcVTEVe3FOgCl7WQeJDX2AyGi0v8b5V6Sq1cxaAnDCfHXH?=
+ =?us-ascii?Q?ueqlbbbdOqKQYa1dAK6i6SGvF3ttq9gtMYXoXSfr2tE7xpNB+HDsyNVxPDtG?=
+ =?us-ascii?Q?9Xdfeg3hmN0nnjBl+qf+sdDC5BUVOG4A6o7dTHMeFzZS/e5vaWSW1vV5crc/?=
+ =?us-ascii?Q?GAAg0i4fJko6JJAzE7D+b8Ddv+G66R5iAsuQ1Kn0JBBPngtP68REnXRLvkq+?=
+ =?us-ascii?Q?TaLqrxy4b4mIgZJwStYs43CFkG4V2OzFeMx11IKDy4IwtGZE+ziVgJcApL/y?=
+ =?us-ascii?Q?OqT+pXoIE5nnCjrsVBIUpj7R1+e2D/YI8xz9nr4GjlUjY5uR66uStn8T1UAm?=
+ =?us-ascii?Q?dKBfoXCNgCllviE/qh9htiwmGp2uOCGB78EWHrTCk9pwAMqtlE6Byzv6EVFx?=
+ =?us-ascii?Q?xIFcXNk5NrjHOt2SskRM6kKeL2k0mUMy/uY7/c36TfTwQj3zgdNZhDILdzEv?=
+ =?us-ascii?Q?DfWSz8OVvkGTM7bTdVh50WOJV7QS+HB9/GuDvANAhALc86jpqaoWCsrnv787?=
+ =?us-ascii?Q?HzDn9wd/Iq8CfZpCovwH7ApqH3/wVQPu8PrwLiaJPbyRu3mheWNYJAwq22aI?=
+ =?us-ascii?Q?gL7OvNfIw9qlsy4AEf5cwP7UvnRfyXWqAEWmi3ni21K9h2sjwVDHP+AB6YiR?=
+ =?us-ascii?Q?N65Yzvm8b2nzNwb5rUI3Lj9JNjyqJ9HwAo5jsxXAs6RUZzUH3I5KI1s2AcPZ?=
+ =?us-ascii?Q?016fT2evb4NMT/vqSyo5tsbKMJnPC7WZitpqEZaR/NafyZeDsXdHQlHxyB0D?=
+ =?us-ascii?Q?Iv1LgmsCnzaTCu45a8G4v6xpwBMPYaWqyKCR124914Q6QXYColaCRX1QNacz?=
+ =?us-ascii?Q?VotUQLhJb0ilpCjiiuEyPX1t8AT4Yd0U9uGuLg297MDX2g/5ARkZARRdSV9a?=
+ =?us-ascii?Q?zvXyKDkXvXHq3O1RxnMB+WT9FKssXHrwI3Wy61WZ2v7L1sNvMSd7Ao/U2Wyw?=
+ =?us-ascii?Q?pax+W+8ec8wH6GaBdYuyKtzfMLa2iqBqLVeszgXMtp4/qrfVNURu5+oYzRFD?=
+ =?us-ascii?Q?zahlHyhNoYMECPkPjtmFdW5RVB1zssonPZt/1Vu0?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: edcb5914-ce91-444f-5beb-08dd5740985f
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Feb 2025 15:08:30.4234
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: WyLf2wAgcrLuob5585hG3+z3f6ejlL+GYlns0AYl+2ajtkl+jTqRoJE1n/5VMV12GSgJBbfXjSDwgywcad+BFg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB5913
+X-OriginatorOrg: intel.com
 
-ÔÚ 2025/02/27 15:55, Zheng Qixing Ð´µÀ:
+Zheng Qixing wrote:
 > From: Zheng Qixing <zhengqixing@huawei.com>
 > 
-> rdev_set_badblocks() only indicates success/failure, so convert its return
-> type from int to boolean for better semantic clarity.
+> Change the return type of badblocks_set() and badblocks_clear()
+> from int to bool, indicating success or failure. Specifically:
 > 
-> rdev_clear_badblocks() return value is never used by any caller, convert it
-> to void. This removes unnecessary value returns.
-> 
-> Also update narrow_write_error() in both raid1 and raid10 to use boolean
-> return type to match rdev_set_badblocks().
+> - _badblocks_set() and _badblocks_clear() functions now return
+> true for success and false for failure.
+> - All calls to these functions are updated to handle the new
+> boolean return type.
+> - This change improves code clarity and ensures a more consistent
+> handling of success and failure states.
 > 
 > Signed-off-by: Zheng Qixing <zhengqixing@huawei.com>
-> ---
->   drivers/md/md.c     | 19 +++++++++----------
->   drivers/md/md.h     |  8 ++++----
->   drivers/md/raid1.c  |  6 +++---
->   drivers/md/raid10.c |  6 +++---
->   4 files changed, 19 insertions(+), 20 deletions(-)
-> 
-LGTM
-Reviewed-by: Yu Kuai <yukuai3@huawei.com>
+> Reviewed-by: Yu Kuai <yukuai3@huawei.com>
+> Acked-by: Coly Li <colyli@kernel.org>
 
-> diff --git a/drivers/md/md.c b/drivers/md/md.c
-> index 49d826e475cb..9b9b2b4131d0 100644
-> --- a/drivers/md/md.c
-> +++ b/drivers/md/md.c
-> @@ -9841,9 +9841,9 @@ EXPORT_SYMBOL(md_finish_reshape);
->   
->   /* Bad block management */
->   
-> -/* Returns 1 on success, 0 on failure */
-> -int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> -		       int is_new)
-> +/* Returns true on success, false on failure */
-> +bool rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> +			int is_new)
->   {
->   	struct mddev *mddev = rdev->mddev;
->   
-> @@ -9855,7 +9855,7 @@ int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
->   	 * avoid it.
->   	 */
->   	if (test_bit(Faulty, &rdev->flags))
-> -		return 1;
-> +		return true;
->   
->   	if (is_new)
->   		s += rdev->new_data_offset;
-> @@ -9863,7 +9863,7 @@ int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
->   		s += rdev->data_offset;
->   
->   	if (!badblocks_set(&rdev->badblocks, s, sectors, 0))
-> -		return 0;
-> +		return false;
->   
->   	/* Make sure they get written out promptly */
->   	if (test_bit(ExternalBbl, &rdev->flags))
-> @@ -9872,12 +9872,12 @@ int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
->   	set_mask_bits(&mddev->sb_flags, 0,
->   		      BIT(MD_SB_CHANGE_CLEAN) | BIT(MD_SB_CHANGE_PENDING));
->   	md_wakeup_thread(rdev->mddev->thread);
-> -	return 1;
-> +	return true;
->   }
->   EXPORT_SYMBOL_GPL(rdev_set_badblocks);
->   
-> -int rdev_clear_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> -			 int is_new)
-> +void rdev_clear_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> +			  int is_new)
->   {
->   	if (is_new)
->   		s += rdev->new_data_offset;
-> @@ -9885,11 +9885,10 @@ int rdev_clear_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
->   		s += rdev->data_offset;
->   
->   	if (!badblocks_clear(&rdev->badblocks, s, sectors))
-> -		return 0;
-> +		return;
->   
->   	if (test_bit(ExternalBbl, &rdev->flags))
->   		sysfs_notify_dirent_safe(rdev->sysfs_badblocks);
-> -	return 1;
->   }
->   EXPORT_SYMBOL_GPL(rdev_clear_badblocks);
->   
-> diff --git a/drivers/md/md.h b/drivers/md/md.h
-> index def808064ad8..923a0ef51efe 100644
-> --- a/drivers/md/md.h
-> +++ b/drivers/md/md.h
-> @@ -289,10 +289,10 @@ static inline int rdev_has_badblock(struct md_rdev *rdev, sector_t s,
->   	return is_badblock(rdev, s, sectors, &first_bad, &bad_sectors);
->   }
->   
-> -extern int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> -			      int is_new);
-> -extern int rdev_clear_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> -				int is_new);
-> +extern bool rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> +			       int is_new);
-> +extern void rdev_clear_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-> +				 int is_new);
->   struct md_cluster_info;
->   
->   /**
-> diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
-> index 10ea3af40991..8e9f303c5603 100644
-> --- a/drivers/md/raid1.c
-> +++ b/drivers/md/raid1.c
-> @@ -2486,7 +2486,7 @@ static void fix_read_error(struct r1conf *conf, struct r1bio *r1_bio)
->   	}
->   }
->   
-> -static int narrow_write_error(struct r1bio *r1_bio, int i)
-> +static bool narrow_write_error(struct r1bio *r1_bio, int i)
->   {
->   	struct mddev *mddev = r1_bio->mddev;
->   	struct r1conf *conf = mddev->private;
-> @@ -2507,10 +2507,10 @@ static int narrow_write_error(struct r1bio *r1_bio, int i)
->   	sector_t sector;
->   	int sectors;
->   	int sect_to_write = r1_bio->sectors;
-> -	int ok = 1;
-> +	bool ok = true;
->   
->   	if (rdev->badblocks.shift < 0)
-> -		return 0;
-> +		return false;
->   
->   	block_sectors = roundup(1 << rdev->badblocks.shift,
->   				bdev_logical_block_size(rdev->bdev) >> 9);
-> diff --git a/drivers/md/raid10.c b/drivers/md/raid10.c
-> index 15b9ae5bf84d..45faa34f0be8 100644
-> --- a/drivers/md/raid10.c
-> +++ b/drivers/md/raid10.c
-> @@ -2786,7 +2786,7 @@ static void fix_read_error(struct r10conf *conf, struct mddev *mddev, struct r10
->   	}
->   }
->   
-> -static int narrow_write_error(struct r10bio *r10_bio, int i)
-> +static bool narrow_write_error(struct r10bio *r10_bio, int i)
->   {
->   	struct bio *bio = r10_bio->master_bio;
->   	struct mddev *mddev = r10_bio->mddev;
-> @@ -2807,10 +2807,10 @@ static int narrow_write_error(struct r10bio *r10_bio, int i)
->   	sector_t sector;
->   	int sectors;
->   	int sect_to_write = r10_bio->sectors;
-> -	int ok = 1;
-> +	bool ok = true;
->   
->   	if (rdev->badblocks.shift < 0)
-> -		return 0;
-> +		return false;
->   
->   	block_sectors = roundup(1 << rdev->badblocks.shift,
->   				bdev_logical_block_size(rdev->bdev) >> 9);
-> 
+I'm not really sure this patch adds much.  But for the nvdimm part.
 
+Acked-by: Ira Weiny <ira.weiny@intel.com>
+
+[snip]
