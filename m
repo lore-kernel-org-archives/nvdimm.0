@@ -1,67 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from dggsgout12.his.huawei.com (dggsgout12.his.huawei.com [45.249.212.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7631273FE;
-	Tue,  4 Mar 2025 04:46:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF7D143736
+	for <nvdimm@lists.linux.dev>; Wed,  5 Mar 2025 01:29:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741063563; cv=none; b=LeAKuuh9li8StLpYV8oeTzRhH1cdK77te397pYZb3gv2PJbsrHiDZhLolNFPPViiDXlXhXdopwdLFALLxwBZro/c/Ye69jkqoV+yIj1euH198GVpg+2h4fq0zqdaOsBnQNX8qmceQYOYQX5HcXyfGqsAPHTeEbjD52ail6ETI2s=
+	t=1741138198; cv=none; b=BYd7ZEvOm97+3kD/02yJk+WlSMsi+mrlBZFkeNqqUTYeY7+rYVnzsy5foo+e0YqHG9dsmW0XkUSoqSIku6eGHoARuJwzrHCFWJY/4mmzeE9yV0ewAkbIY1wOMHLBvmM2iyJXGIP4esibm6vhpQOCOMfuWV5hLb2H5NdfBQTUaZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741063563; c=relaxed/simple;
-	bh=BIFrLh9/bQIuBnwap0eqz54Lk04kbf4V0DZ+B0m2mNI=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=jfB1EMyrwQsdTUZjvh8yd5fsIP45BrcNRWreoPx8oGLW5nmvs39visp7L80Py/VRJd9qbQ+cicRhBh6cOme3XsCCKu+a8kQesVZJZNDmGxfNygrX75bLRMeq9kcmXTqq3QaRAmyCTgmn9J9YrH29Nm/D7dBsYud0YOroVf89XJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dF8tbczv; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dF8tbczv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13364C4CEE5;
-	Tue,  4 Mar 2025 04:46:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741063562;
-	bh=BIFrLh9/bQIuBnwap0eqz54Lk04kbf4V0DZ+B0m2mNI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=dF8tbczvEn6O6hRjSdWKxvQKkGRzNDZEQd6dsg0AiFp2L+F6YCMhGyxTx3ZlL53AI
-	 kaXbQDaf9UtJ2eGtPxCyhDiD+/NG8ggB7max5UArq9jsbxOqNhnoi74SE44bszJ2Pe
-	 oKDZeMXGXB5LFz8Eg4Vk7YAWHaK0unPGQ7GwUCdU=
-Date: Mon, 3 Mar 2025 20:46:00 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: dan.j.williams@intel.com, linux-mm@kvack.org, Alison Schofield
- <alison.schofield@intel.com>, lina@asahilina.net, zhang.lyra@gmail.com,
- gerald.schaefer@linux.ibm.com, vishal.l.verma@intel.com,
- dave.jiang@intel.com, logang@deltatee.com, bhelgaas@google.com,
- jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com, will@kernel.org,
- mpe@ellerman.id.au, npiggin@gmail.com, dave.hansen@linux.intel.com,
- ira.weiny@intel.com, willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
- linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
- david@fromorbit.com, chenhuacai@kernel.org, kernel@xen0n.name,
- loongarch@lists.linux.dev
-Subject: Re: [PATCH v9 00/20] fs/dax: Fix ZONE_DEVICE page reference counts
-Message-Id: <20250303204600.cb49d2d614efcded0b28f8c1@linux-foundation.org>
-In-Reply-To: <xhbru4aekyfl25552le5tvifwonyuwoyioxrqxy6zkm2xlyhc5@oqxnudb4bope>
-References: <cover.8068ad144a7eea4a813670301f4d2a86a8e68ec4.1740713401.git-series.apopple@nvidia.com>
-	<xhbru4aekyfl25552le5tvifwonyuwoyioxrqxy6zkm2xlyhc5@oqxnudb4bope>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	s=arc-20240116; t=1741138198; c=relaxed/simple;
+	bh=Z82A1GypgMf51psxKEymQiZYIfSF+fYhtm8JSfxC4Mw=;
+	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=PMAECtrflcoeeT7vKWMu56dp8SsRbCM62y7xxTsK59mr4mA/krU/SaFj11hDT+cMYDhd6qI14KjXY2AzC8dCUUG7hhy2qbKhO6hgYZnWByeX79Xnj6I/a5tuXtKwVOK5uUE6oFioKPhZNNjq/bTlyyurNwzhy9YpgxX0QYuvFog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=45.249.212.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
+Received: from mail.maildlp.com (unknown [172.19.163.216])
+	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4Z6w2L3ZZSz4f3kpQ
+	for <nvdimm@lists.linux.dev>; Wed,  5 Mar 2025 09:29:30 +0800 (CST)
+Received: from mail02.huawei.com (unknown [10.116.40.128])
+	by mail.maildlp.com (Postfix) with ESMTP id 935691A1393
+	for <nvdimm@lists.linux.dev>; Wed,  5 Mar 2025 09:29:52 +0800 (CST)
+Received: from [10.174.179.143] (unknown [10.174.179.143])
+	by APP4 (Coremail) with SMTP id gCh0CgAHa18PqcdnevVKFg--.56374S3;
+	Wed, 05 Mar 2025 09:29:52 +0800 (CST)
+Subject: Re: [PATCH V2 12/12] badblocks: use sector_t instead of int to avoid
+ truncation of badblocks length
+To: Ira Weiny <ira.weiny@intel.com>,
+ Zheng Qixing <zhengqixing@huaweicloud.com>, axboe@kernel.dk,
+ song@kernel.org, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+ dave.jiang@intel.com, dlemoal@kernel.org, kch@nvidia.com,
+ yanjun.zhu@linux.dev, hare@suse.de, zhengqixing@huawei.com,
+ colyli@kernel.org, geliang@kernel.org, xni@redhat.com
+Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, yi.zhang@huawei.com,
+ yangerkun@huawei.com, "yukuai (C)" <yukuai3@huawei.com>
+References: <20250227075507.151331-1-zhengqixing@huaweicloud.com>
+ <20250227075507.151331-13-zhengqixing@huaweicloud.com>
+ <67c0844fe82af_b2959294d1@iweiny-mobl.notmuch>
+From: Yu Kuai <yukuai1@huaweicloud.com>
+Message-ID: <6f2cafc4-7b18-7bce-94cc-b58a1707f630@huaweicloud.com>
+Date: Wed, 5 Mar 2025 09:29:50 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+In-Reply-To: <67c0844fe82af_b2959294d1@iweiny-mobl.notmuch>
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:gCh0CgAHa18PqcdnevVKFg--.56374S3
+X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
+	VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUYH7kC6x804xWl14x267AKxVW5JVWrJwAF
+	c2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII
+	0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xv
+	wVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4
+	x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG
+	64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_JrI_JrylYx0Ex4A2jsIE14v26r
+	1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvEwIxGrwACI402YVCY1x02628vn2kI
+	c2xKxwCYjI0SjxkI62AI1cAE67vIY487MxAIw28IcxkI7VAKI48JMxAqzxv26xkF7I0En4
+	kS14v26r4a6rW5MxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4l
+	x2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc40Y0x0EwIxGrw
+	CI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI
+	42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z2
+	80aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IUbG2NtUUUUU==
+X-CM-SenderInfo: 51xn3trlr6x35dzhxuhorxvhhfrp/
 
-On Fri, 28 Feb 2025 14:42:40 +1100 Alistair Popple <apopple@nvidia.com> wrote:
+Hi,
 
-> This is essentially the same as what's currently in mm-unstable aside from
-> the two updates listed below. The main thing to note is it incorporates
-> Balbir's fixup which is currently in mm-unstable as c98612955016
-> ("mm-allow-compound-zone-device-pages-fix-fix")
+ÔÚ 2025/02/27 23:27, Ira Weiny Ð´µÀ:
+> __add_badblock_range() in drivers/nvdimm/badrange.c limits the number of
+> badblocks which can be set in each call to badblocks_set().
 > 
+> After this change can that algorithm be eliminated?  I'm not familiar with
+> the badblocks code to know for certain.
 
-Thanks, I've updated mm.git to this v9 series.
+This is another story, badblocks records are at most 512, and each
+record is at most 512 sectors, so pass in INT_MAX will fail 100%.
+
+Thanks,
+Kuai
+
