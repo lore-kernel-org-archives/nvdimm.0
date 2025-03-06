@@ -1,128 +1,88 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F3020B7E0
-	for <nvdimm@lists.linux.dev>; Thu,  6 Mar 2025 22:56:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072361A83EE
+	for <nvdimm@lists.linux.dev>; Thu,  6 Mar 2025 23:50:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741301819; cv=none; b=pGk1aBotiEBKqBhSl2kdGZwL6ZPA0+g9ziS8bnP2VGNw/2a5H7nXC1ILSOAVFkGtsODqhGRm+FgEvotNxIC7O+xRAmu56QEhXkjnOHIMR9bO6kKf5rOP+3LDVVl8p0I9VB32mCpIr53e82jwCfQnEfFdqaCk5azGlDRA1490p+c=
+	t=1741305021; cv=none; b=KFVGixHVruNK8x209MBPB6++rnPa4mHvOPRFooMaGzIwBOIF6ysVkf9/DCC02GHZZMjQFic0cEfUMOaRqmUxtAZOcrwsxcDS2apS3ktID4X1+irsjsfFBCHtmX9x2w4yMffBZrpAJ7A4wx4mELtr5RbAW+l0hexQ+2uvaBYgHa8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741301819; c=relaxed/simple;
-	bh=xXA+KoKP59YNgQ6Rkvk4X99ki2VwPQj2lMPQVmJHny8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=A+iylfDDCM8JdO6jlu2xOsREnxhTrthaVZgmw+/lq+oMkD7D1aPBW9E+zitG0WudXj0V9mjjNl7Pffy5NwVx0MlFZuiCKuKkgUJQ5qBoW9apMNVLo1SsysfXRU6V6nH97E0PB4sl/+3C1rkvQ5hFXIAFTUtSrNKcDzze2gEJvps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cHnHP9Fz; arc=none smtp.client-ip=198.175.65.14
+	s=arc-20240116; t=1741305021; c=relaxed/simple;
+	bh=VfX9sywZwhlVFIFnwIotyJ0c79bHjc2oI9K2sHwaZrI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Tp9OYId0qOE1ggdiwYxBli0jKZsHiP1PbXTKn6Fe6pcGdRMCSWiywVflXUHt2oKlemyJG4N/DrzEhAgRCTDNcosKCI7+VJkquVUV3ld15c210GpI/fJmuwJxD704QcV1e5/h0vQPGtRJF7lxWFqFTSBEWgS9ChHCIS92rwOPPXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aRvJzu2d; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cHnHP9Fz"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aRvJzu2d"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1741301818; x=1772837818;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=xXA+KoKP59YNgQ6Rkvk4X99ki2VwPQj2lMPQVmJHny8=;
-  b=cHnHP9Fzf/jxBiH9lrDy2QtKttGxdOq22sez7oVQ3nVTZUdQUihtbn94
-   2zFFuYPw6CVTruMckBQl2eZUZ7a05+OtoaYYkT+FioLu7E+Wiu5FZ8RsW
-   XAmwCrQOL0fLocjZEBvoBNPxw8T9ANlQTHYGjPNoxf6Y9SaJ9I9jguYGa
-   D6vN8HVYASERNjqfiWKdqyIejyANrXI+XzF1LeC1e6CRl6lysvU5pn0AH
-   7+FCBB1/O/Ae7geBCg+JISGSj00ASRCUYlDU7xn7G11zCIPGKwKTN2HFS
-   RiZarNiztsv2ZEhz7T+Za8uqgu0mpLVq5T6SGpCgAQs4cZ1azDNqgw4Go
-   Q==;
-X-CSE-ConnectionGUID: z7xB5zjITkK8MjBTAygOJA==
-X-CSE-MsgGUID: 3dck7plMSMWKKoiSZYqfwA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11365"; a="46115678"
+  t=1741305020; x=1772841020;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=VfX9sywZwhlVFIFnwIotyJ0c79bHjc2oI9K2sHwaZrI=;
+  b=aRvJzu2dVHf0Wm/eYNAGNvwOxi4vhS/gTREOmn0i8ryDTsjWiDWpAGZ3
+   dwzKRwOIxc5TiglKlnR7RSEoFDWlnOiHEseHm6Gpwd5tc2Qa0fscg7NW1
+   cYPGaD8gyUeCWEN902dQ/5zcefgbqWRu672cMUQL0d/X3hVloC5m43OIx
+   5nqPE+73pNkH/OobSUFvplcnBuELz3JpMhBCMnNjS/znPB/MWmVDwCcf9
+   y1a7Cn+HlPdNY9POLNwxjxNqTTnCmPEGhzPNPUdAIrkQUkmsGSVq+xnRb
+   Ra997ZwERvIrzFvd1hNIMoDjvoEiA6ovDH7cNaYS1UlfGxB7e0z6OKWXZ
+   w==;
+X-CSE-ConnectionGUID: by2t2U7BQ/Wbpajiy3CBCQ==
+X-CSE-MsgGUID: KgRm+aFERseKwJx5oteryg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11365"; a="45150082"
 X-IronPort-AV: E=Sophos;i="6.14,227,1736841600"; 
-   d="scan'208";a="46115678"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2025 14:56:57 -0800
-X-CSE-ConnectionGUID: 2s67KF4dS3GRYTMimAvZkQ==
-X-CSE-MsgGUID: zr5jcBI1TAKG0tzOGW3YjQ==
+   d="scan'208";a="45150082"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2025 15:50:19 -0800
+X-CSE-ConnectionGUID: ENlL+op7Q9ug/TjEzrbWdA==
+X-CSE-MsgGUID: VZ986xqXSZSwvTMB5eY9+Q==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.14,227,1736841600"; 
-   d="scan'208";a="124091727"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.110.63])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2025 14:56:57 -0800
-Date: Thu, 6 Mar 2025 14:56:55 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH 3/5] ndctl/dimm: do not increment a ULLONG_MAX slot
- value
-Message-ID: <Z8ooNxjYx80_OCMU@aschofie-mobl2.lan>
-References: <cover.1741047738.git.alison.schofield@intel.com>
- <6f3f15b368b1d2708f93f00325e009747425cef0.1741047738.git.alison.schofield@intel.com>
- <45c58eac-422d-4c19-ac2a-483eabb8579a@intel.com>
+X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
+   d="scan'208";a="123358688"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.110.63])
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2025 15:50:19 -0800
+From: alison.schofield@intel.com
+To: nvdimm@lists.linux.dev
+Cc: Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH v2 0/5] Address Coverity Scan Defects
+Date: Thu,  6 Mar 2025 15:50:09 -0800
+Message-ID: <cover.1741304303.git.alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <45c58eac-422d-4c19-ac2a-483eabb8579a@intel.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 05, 2025 at 09:38:31AM -0700, Dave Jiang wrote:
-> 
-> 
-> On 3/3/25 5:37 PM, alison.schofield@intel.com wrote:
-> > From: Alison Schofield <alison.schofield@intel.com>
-> > 
-> > A coverity scan higlighted an overflow issue when the slot variable,
-> > an unsigned integer that is initialized to -1, is incremented and
-> > overflows.
-> > 
-> > Initialize slot to 0 and move the increment statement to after slot
-> > is evaluated. That keeps the comparison to a u32 as is and avoids
-> > overflow.
-> > 
-> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> > ---
-> >  ndctl/dimm.c | 8 +++++---
-> >  1 file changed, 5 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-> > index 889b620355fc..c39c69bfa336 100644
-> > --- a/ndctl/dimm.c
-> > +++ b/ndctl/dimm.c
-> > @@ -97,7 +97,7 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
-> >  	struct json_object *jlabel = NULL;
-> >  	struct namespace_label nslabel;
-> >  	unsigned int nsindex_size;
-> > -	unsigned int slot = -1;
-> > +	unsigned int slot = 0;
-> >  	ssize_t offset;
-> >  
-> >  	if (!jarray)
-> > @@ -115,7 +115,6 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
-> >  		struct json_object *jobj;
-> >  		char uuid[40];
-> >  
-> > -		slot++;
-> >  		jlabel = json_object_new_object();
-> >  		if (!jlabel)
-> >  			break;
-> > @@ -127,8 +126,11 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
-> >  		if (len < 0)
-> >  			break;
-> >  
-> > -		if (le32_to_cpu(nslabel.slot) != slot)
-> > +		if (le32_to_cpu(nslabel.slot) != slot) {
-> > +			slot++;
-> >  			continue;
-> > +		}
-> > +		slot++;
-> 
-> Wonder if you can just increment the slot in the for() since it's not being used after this. 
+From: Alison Schofield <alison.schofield@intel.com>
 
-Nice - thanks!
-Changing to: for (offset = nsindex_size * 2; offset < size;
-		  offset += ndctl_dimm_sizeof_namespace_label(dimm), slot++)
+Changes in v2:
+1/5: Put back deleted whitespace (DaveJ)
+     s/maximimum/maximum
+3/5: Move slot++ to for loop header (DaveJ)
+     Update commit log to match
+
+The NDCTL project routinely addresses any and all coverity defects
+before each release. This new set of reports suggests enhancements
+to the scan capabilities since none of this code has been touched
+recently. Game on, we'll squash 'em!
+
+Alison Schofield (5):
+  ndctl/namespace: avoid integer overflow in namespace validation
+  ndctl/namespace: close file descriptor in do_xaction_namespace()
+  ndctl/dimm: do not increment a ULLONG_MAX slot value
+  ndctl/namespace: protect against overflow handling param.offset
+  ndctl/namespace: protect against under|over-flow w bad param.align
+
+ ndctl/dimm.c      |  5 ++---
+ ndctl/namespace.c | 36 ++++++++++++++++++++++++++++--------
+ 2 files changed, 30 insertions(+), 11 deletions(-)
 
 
-> 
-> >  
-> >  		uuid_unparse((void *) nslabel.uuid, uuid);
-> >  		jobj = json_object_new_string(uuid);
-> 
+base-commit: d2c55938a0c7308cba07cb23b598df1be93f1d38
+-- 
+2.37.3
+
