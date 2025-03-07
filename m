@@ -1,58 +1,58 @@
-Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10A121B0F11
-	for <nvdimm@lists.linux.dev>; Fri,  7 Mar 2025 23:03:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81C94208989
+	for <nvdimm@lists.linux.dev>; Fri,  7 Mar 2025 23:13:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741388628; cv=none; b=KFrhfIWPcEMGls89yq2Ut28bbF6hr3DYrMCAaCIEtiibWAo66NwuXyu/AvKoZRxhmpj5PN3fdpDJ4VjNogbxIRZXf7wSU59h0WrizgLUDdkhotk7QyrbLkoiFySo/zvygTVfihTiNb3A/0ueyx1JAx8ejSSSbYKj5XBanlQ+8nA=
+	t=1741389206; cv=none; b=s4SaPq02M7nneE5dsEBs+KuwPpcreiuHywg6xt0zIYpEMtmRjzPeRKyRupKSdQRRk339VLSM5ZM0Pv0R2N8wEheW+12Fca4nck0zLVIdViW1DdVuFW1PerKl4UWIW8OwRoATrM6by6S1iv3hzRUmyk/RxZCrZvTYMkxhD6yuy0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741388628; c=relaxed/simple;
-	bh=Cg7tzJF/cbegOUZRx8dSKGVw+mp1jDxyJ6VHBTQ9Zg4=;
+	s=arc-20240116; t=1741389206; c=relaxed/simple;
+	bh=G63d06X8W9arXCJggGOHT2w3cbPycEOHJ8wMoqYNgPQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RCqT/DIM99x5UvxMs34jQ5glf6mHjpCibe8knipdGOvdtRaAc1Q3GbVZA1nzlcDFofijIuKoWSZwvNWLHoHUitl3fDUo7sorXGTzbW3YEiHc6q1uB8LZiKJxYgkpicPqLdQeqxQ6IG6sWXWxaB5HzP+XbLKVjYmFt8nPKLWTfgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EB7erDS3; arc=none smtp.client-ip=209.85.219.50
+	 To:Cc:Content-Type; b=STk+pPd2Po0kaRIQf8NdnlBpE0zDvdLdNjjpJwYiyhFSZ3imMqMgE7AQOpleKqCKB3Izm9pgdfowfeZQKCIPEO91f5h6svVZB1QqsoJptMmkPPiJik2GZ48cxZAa/kOE5/Kojmg6zgyunwUdvIctuft7BaeUyB1X8qGegR3dAzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TWwfXLwg; arc=none smtp.client-ip=209.85.219.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EB7erDS3"
-Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-6e41e17645dso22129456d6.2
-        for <nvdimm@lists.linux.dev>; Fri, 07 Mar 2025 15:03:46 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TWwfXLwg"
+Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-6e41e18137bso17003216d6.1
+        for <nvdimm@lists.linux.dev>; Fri, 07 Mar 2025 15:13:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1741388626; x=1741993426; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1741389203; x=1741994003; darn=lists.linux.dev;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=QTzXTB5/hI3k/tUV1QdjmWKVi1pI+jp0+a6jtCFIsMQ=;
-        b=EB7erDS39OWM8TNv6lMk1i7WZ14nWhdrhmllkTN8Q74hpCrF5AuwDuknQoYwFWR01z
-         9j7DXOB5AcY6xjQR1kcFYSQqG2ZOnBUXKktJOzrPAnOCz6VK38U5oCsaDM080kliYCBB
-         qVPe5M/KRIfWdbVYj3f735R1Fxrqetu/CiFQBaNli1Usnkxlbhu2tvwanh6X3V5sAsr1
-         mrwxFQmvja8ttIBkX3g+XLXibj6SNlxkIgRACEXhJOTYwp0MlpMD93VWLt4coZWxktQP
-         nyl2Kng4bd3HN5xIFeuDLX+Zmc5qMJQ4q7GX4xCWR6GBd3V9gIqDHBaczgKxVX3QBsrt
-         +F2w==
+        bh=cqomUUPjRLiQmonoip8f3BCduAZxVjsjo6bLnE0yfxE=;
+        b=TWwfXLwg/RV5EY04hH13l7Ks5mWAlRMxQda2gLL43EjGaIySeMLfaQ7nMCCCUO4Yh/
+         TzuE2s/OMt2b5CEi3KmkZU1FooYcN5xvzXnuXOnpDAg2hd3T5SgsFYC1N5HOzQuNL/ar
+         5WR+tHiCcsL43oI1JNVlX0XbOCUL981qxnqYww6GJhLai3nwf37RoN2SvjizQe41STeu
+         G9MhMpHO8ptbiTWBnsj2Oti29djwEzMkwaOQsXDhB5vq2vCdaoQkQ3QcVhTzCPqzxHFs
+         +dZ80UO3K0vkwvVwAUbefRZveTaAKyIss8xKMDDfDCxwGX+N0/1DNUM5V8+i5apwOGnb
+         oW/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741388626; x=1741993426;
+        d=1e100.net; s=20230601; t=1741389203; x=1741994003;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=QTzXTB5/hI3k/tUV1QdjmWKVi1pI+jp0+a6jtCFIsMQ=;
-        b=j3m+dPSNdf71i67TXwgY0bRVCr7KkhhiGmS5oYKp4+bUXgwgGhYAj6csiizw3WUXJT
-         /bXHjJUIcX7+DBNC9AdpLRQQ4xQFQjGL0IN2FgPkL8+tQGxqjO2TUJ0Ub57v3+9wxwLw
-         Ztj2Rz9BX+MRUO8t4C/9OI85PrVxEDbI4+whva1U/FwofjAK1lBWjPnZsxd1ETGKh8h8
-         XnOF3ySCHzVnAAYEOLR6FUf26atLxigL+UngjhLMTXjjHd6e54Fyan8fpM0BGKSghuJ8
-         f9QIMzWCH99ezUfrkTLrFxjAN3v4f+2zQIwP12e5hvDx1fORtSJvYt+GlWo5Ckfb1clA
-         br1Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVYDnoUN67BnnEZPpr0BKn45qwLcA2vzxzw6RyEqS1Qfk7n3OWetQVBLydMwtzjvhUrGRzidW8=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxNMRp4VMRk7A4qDshR2NtS5xD215CE2/GZcR/4Q/UNUF/95OKH
-	kCZnXyn6bxkLGDRWxGSWOvPsijMaaUopIX5Gfb7mHiplhx6ew2/Yt0ucQKQt0+7gHUAq+TqBI8v
-	9foljN0Sn0Ihylx0qmlMAhC5IN2I=
-X-Gm-Gg: ASbGncusMCW+9dxrejZ6qgqvuUCCYVtKfJ2oB9X2wb+p3X5w3mavXGOX4XF3kjBJseX
-	JqvTwOLsogfkld7NHywZQu29U4gSbeAoqni+Q4A0G9Rt88QYsCB3wzdk9EhgAZcUOtjpKedb2zl
-	PuUEQihF/gErpYT8jq65ou2TbiHzVEvsZq0m6ODb+8NQ==
-X-Google-Smtp-Source: AGHT+IGuZ0NkG/KYo9Dv4g1oyD3XwK6X16DBM6QY/A6W3C/6eEhj7vqNq1AeDarxJvsQFObtM42FXnLLMg29Plyo2bk=
-X-Received: by 2002:a05:6214:2aa7:b0:6e8:9e9c:d20f with SMTP id
- 6a1803df08f44-6e900621afcmr58352476d6.21.1741388625281; Fri, 07 Mar 2025
- 15:03:45 -0800 (PST)
+        bh=cqomUUPjRLiQmonoip8f3BCduAZxVjsjo6bLnE0yfxE=;
+        b=ku90cR8xEQ3AIil2XbvsIZcy+eC6/DWuGY7K7shIUA52usK4j4QcMLxCSjl9Oq61dP
+         lxYSC2PpD1IZFACkLJunD4usnrT1lf9aexSDytnVT/zz5KtEcDYFQAX5v1qQSoyffWpd
+         JBFaMj1HIqDbzmFUWDwy46S9zz+Kj2TkVwAmPG9ozzck7AhnyDTnMdRMD7jUzJltC6B+
+         5hvbbkVpYoua46JoPLOwDvY1IxiouW7zhJhRA+IjiLHj02N6hJY40DE4yxKwjxGKxP3j
+         4pem+fG0tOelHBYQVf2qgOkQdz5L6C2CIpD0YAMz0xVv7rfcd0TZfRLNM/oqlWHCACDa
+         zgVg==
+X-Forwarded-Encrypted: i=1; AJvYcCWwxYYqk0En8EYE1rPpoBrDH9YT08nhHodEVZ/1D3mY8uNV2Mj8vd5S6IEQrIvFN40W4paTttE=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzoImuISniAWoq8ZrmWm5cbZ8emJuAJVYosIKw2oW/a0DhM3FEY
+	nxS0sWvhBIWVFPugol9lQEoLtDCJjQpXIHB79LA9xFqiyhDbHY2aesL3koUAYaE8vY2k9vXwpg3
+	b4MtcnoLOAS3alODXQ5KyFhDCEuc=
+X-Gm-Gg: ASbGncsKzUHV7uVIbjWB9TLYVXTlf4T1/QxzgLxooSDWIF5ovE/vAMzcIUokK5JwAE3
+	3SYZ2QfCSwN7xlhC6JZ9dbK4i+ogebCel49WZSECB6TuEju0luYGJRFa7CeFcbHWbdgkUjFF3kf
+	cgmduUp+O6kj+jZ2HD7ErBrkYl0894DKLrg8vm5VUMjA==
+X-Google-Smtp-Source: AGHT+IGgO4waxliJRJEjcjUATYM+tLYXbT7o9vAllgT5zmhdZvJYwca7AqrIUigw62PVDCYdl3bzS0BOeN1gV1tcJBc=
+X-Received: by 2002:a05:6214:21a6:b0:6e4:2dd7:5c88 with SMTP id
+ 6a1803df08f44-6e90068196dmr70464496d6.38.1741389203258; Fri, 07 Mar 2025
+ 15:13:23 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -60,62 +60,92 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20250307120141.1566673-1-qun-wei.lin@mediatek.com>
-In-Reply-To: <20250307120141.1566673-1-qun-wei.lin@mediatek.com>
+ <20250307120141.1566673-3-qun-wei.lin@mediatek.com> <CAGsJ_4xtp9iGPQinu5DOi3R2B47X9o=wS94GdhdY-0JUATf5hw@mail.gmail.com>
+In-Reply-To: <CAGsJ_4xtp9iGPQinu5DOi3R2B47X9o=wS94GdhdY-0JUATf5hw@mail.gmail.com>
 From: Nhat Pham <nphamcs@gmail.com>
-Date: Fri, 7 Mar 2025 15:03:34 -0800
-X-Gm-Features: AQ5f1Jr_FBnz9qk1uNlckq4_7pHKTqldI029tYPnmq326QX8Uckh0mZErYX0PQo
-Message-ID: <CAKEwX=NfKrisQL-DBcNxBwK2ErK-u=MSzHNpETcuWWNBh9s9Bg@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Improve Zram by separating compression context from kswapd
-To: Qun-Wei Lin <qun-wei.lin@mediatek.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Minchan Kim <minchan@kernel.org>, 
-	Sergey Senozhatsky <senozhatsky@chromium.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
+Date: Fri, 7 Mar 2025 15:13:12 -0800
+X-Gm-Features: AQ5f1JooOtTd4HVR7CCnLuHoQkyIFVDhrvbdPzpgk1fPg8et0mZMLZfSKYeQ1OE
+Message-ID: <CAKEwX=OP9PJ9YeUvy3ZMQPByH7ELHLDfeLuuYKvPy3aCQCAJwQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] kcompressd: Add Kcompressd for accelerated zram compression
+To: Barry Song <21cnbao@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>, Jens Axboe <axboe@kernel.dk>, 
+	Minchan Kim <minchan@kernel.org>, Sergey Senozhatsky <senozhatsky@chromium.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, Matthias Brugger <matthias.bgg@gmail.com>, 
 	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Chris Li <chrisl@kernel.org>, 
 	Ryan Roberts <ryan.roberts@arm.com>, "Huang, Ying" <ying.huang@intel.com>, 
 	Kairui Song <kasong@tencent.com>, Dan Schatzberg <schatzberg.dan@gmail.com>, 
-	Barry Song <baohua@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, 
-	nvdimm@lists.linux.dev, linux-mm@kvack.org, 
+	Al Viro <viro@zeniv.linux.org.uk>, linux-kernel@vger.kernel.org, 
+	linux-block@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org, 
 	linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, 
 	Casper Li <casper.li@mediatek.com>, Chinwen Chang <chinwen.chang@mediatek.com>, 
 	Andrew Yang <andrew.yang@mediatek.com>, James Hsu <james.hsu@mediatek.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 7, 2025 at 4:02=E2=80=AFAM Qun-Wei Lin <qun-wei.lin@mediatek.co=
-m> wrote:
+On Fri, Mar 7, 2025 at 11:41=E2=80=AFAM Barry Song <21cnbao@gmail.com> wrot=
+e:
 >
-> This patch series introduces a new mechanism called kcompressd to
-> improve the efficiency of memory reclaiming in the operating system. The
-> main goal is to separate the tasks of page scanning and page compression
-> into distinct processes or threads, thereby reducing the load on the
-> kswapd thread and enhancing overall system performance under high memory
-> pressure conditions.
-
-Please excuse my ignorance, but from your cover letter I still don't
-quite get what is the problem here? And how would decouple compression
-and scanning help?
-
+> On Sat, Mar 8, 2025 at 1:02=E2=80=AFAM Qun-Wei Lin <qun-wei.lin@mediatek.=
+com> wrote:
+> >
+> > Introduced Kcompressd to offload zram page compression, improving
+> > system efficiency by handling compression separately from memory
+> > reclaiming. Added necessary configurations and dependencies.
+> >
+> > Signed-off-by: Qun-Wei Lin <qun-wei.lin@mediatek.com>
+> > ---
+> >  drivers/block/zram/Kconfig      |  11 ++
+> >  drivers/block/zram/Makefile     |   3 +-
+> >  drivers/block/zram/kcompressd.c | 340 ++++++++++++++++++++++++++++++++
+> >  drivers/block/zram/kcompressd.h |  25 +++
+> >  drivers/block/zram/zram_drv.c   |  22 ++-
+> >  5 files changed, 397 insertions(+), 4 deletions(-)
+> >  create mode 100644 drivers/block/zram/kcompressd.c
+> >  create mode 100644 drivers/block/zram/kcompressd.h
+> >
+> > diff --git a/drivers/block/zram/Kconfig b/drivers/block/zram/Kconfig
+> > index 402b7b175863..f0a1b574f770 100644
+> > --- a/drivers/block/zram/Kconfig
+> > +++ b/drivers/block/zram/Kconfig
+> > @@ -145,3 +145,14 @@ config ZRAM_MULTI_COMP
+> >           re-compress pages using a potentially slower but more effecti=
+ve
+> >           compression algorithm. Note, that IDLE page recompression
+> >           requires ZRAM_TRACK_ENTRY_ACTIME.
+> > +
+> > +config KCOMPRESSD
+> > +       tristate "Kcompressd: Accelerated zram compression"
+> > +       depends on ZRAM
+> > +       help
+> > +         Kcompressd creates multiple daemons to accelerate the compres=
+sion of pages
+> > +         in zram, offloading this time-consuming task from the zram dr=
+iver.
+> > +
+> > +         This approach improves system efficiency by handling page com=
+pression separately,
+> > +         which was originally done by kswapd or direct reclaim.
 >
-> Problem:
->  In the current system, the kswapd thread is responsible for both
->  scanning the LRU pages and compressing pages into the ZRAM. This
->  combined responsibility can lead to significant performance bottlenecks,
-
-What bottleneck are we talking about? Is one stage slower than the other?
-
->  especially under high memory pressure. The kswapd thread becomes a
->  single point of contention, causing delays in memory reclaiming and
->  overall system performance degradation.
+> For direct reclaim, we were previously able to compress using multiple CP=
+Us
+> with multi-threading.
+> After your patch, it seems that only a single thread/CPU is used for comp=
+ression
+> so it won't necessarily improve direct reclaim performance?
 >
-> Target:
->  The target of this invention is to improve the efficiency of memory
->  reclaiming. By separating the tasks of page scanning and page
->  compression into distinct processes or threads, the system can handle
->  memory pressure more effectively.
+> Even for kswapd, we used to have multiple threads like [kswapd0], [kswapd=
+1],
+> and [kswapd2] for different nodes. Now, are we also limited to just one t=
+hread?
+> I also wonder if this could be handled at the vmscan level instead of the=
+ zram
+> level. then it might potentially help other sync devices or even zswap la=
+ter.
 
-I'm not a zram maintainer, so I'm definitely not trying to stop this
-patch. But whatever problem zram is facing will likely occur with
-zswap too, so I'd like to learn more :)
+Agree. A shared solution would be much appreciated. We can keep the
+kcompressd idea, but have it accept IO work from multiple sources
+(zram, zswap, whatever) through a shared API.
+
+Otherwise we would need to reinvent the wheel multiple times :)
