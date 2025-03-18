@@ -1,309 +1,360 @@
-Received: from mail-vk1-f176.google.com (mail-vk1-f176.google.com [209.85.221.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from seahorse.cherry.relay.mailchannels.net (seahorse.cherry.relay.mailchannels.net [23.83.223.161])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49F8D6F2F2
-	for <nvdimm@lists.linux.dev>; Thu, 13 Mar 2025 20:37:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.176
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741898240; cv=none; b=VbZ1jFryxPyGsL8cer5WwRh/KW8HlTeB45ENdGRDLSOKTRN0oSmy3SUVj8DzflGSLrBCPVO0APU4DMHbu1L2xqA8i9Xd/WJEodxRZbJfgWco3VR3vPwLa+VesP8nEHnjkjtdIS/hUGzKCFARo4XlJNZmsMnjwcWOYNnDkDAxnY4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741898240; c=relaxed/simple;
-	bh=Riz+i4ewUvQbitF11daR+1wtTdMa52JWkEbn8u2OGD4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sbgWAZ3GrCQZ8qsOIm9mWVf8t11BcmMCCWeTBG+L3gMAQDiuBpSvKZOdF2/csAJLVZLAI7TcMOwESJSCmIQny+WQlyz+nSemO2LNbwKNfUQHHZzTNu+3dEH071tkq/2rflh4AuGpXlHpHRAQ+7ZjZ3aEfwF8RDrEXwovABJ80JU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Sto9fn0b; arc=none smtp.client-ip=209.85.221.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Sto9fn0b"
-Received: by mail-vk1-f176.google.com with SMTP id 71dfb90a1353d-5240a432462so1046438e0c.1
-        for <nvdimm@lists.linux.dev>; Thu, 13 Mar 2025 13:37:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1741898236; x=1742503036; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Dqu3z7xLiOSf+mcYINqf8wHjgnmfkNcGWDDBMVjmjy8=;
-        b=Sto9fn0bFehUqHiqzfxYoq6dzqArcFSa4oBN/YNv7Moot70uEYb4yNf00XqRYmxSBh
-         +fvlDcDgJffC3PngmPI97WxmUcuftT1qabMjYdK0sAr+kP9NKRi+gPG/EwrUjODpreyi
-         EDCjORgyrHPqaIymScBuu7tPtquEayvuOLpJTXXbxGbvxnNPlySA2iGegiRRddHanEdr
-         l2O5HN7HYV1nisSbTj+VuY+Tye9XMW9543s2dFmT0GqxFrrGSCt/iGK53bS3kYltoawq
-         dU4dRtLYlDR8U1DYeMLECQV0LEF2WGBseJD0Tkss7HK9NlrqBfiBbUqDsgBpOe2q88p6
-         w6Ng==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741898236; x=1742503036;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Dqu3z7xLiOSf+mcYINqf8wHjgnmfkNcGWDDBMVjmjy8=;
-        b=i5ooy3rmQ9/UuDApkO8cIShz1AJt67IXfcTSyZX1Ni5jCF8AeyZGEKljgfl2XQrS25
-         ht6xnbFZ41NkMvvMDoLJQkK4VSH+Jx3iExWmF7BqPOST2prS/Hmt6TdF7sEVCyFReAbQ
-         7lnnhnrs3I1Uc3ZKg0JUDLJamUHDIb+MNzOZzYPDjl06LsIB5SQqIzDNCGbY/nVp/4Xp
-         1chetn+9K4F2nYPnh0uqPxx62jwcDaRwGzb0CNqtqKXeYErJIRi8VIQWyYRDuOYHdtPJ
-         U/QoIm32yZ22g1BUNGjyTWpC906MfuqwzfVr6N9uOFAj2LsVxSqa4RCr8oO/Z41pl0Cg
-         cQmQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX89b/6vD9W1RWi1mp3W3GFXFdZ7z58SBkQB1V9ftYcW0Tl6gkJ4ryS1khlIausixCxk3rV8QM=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzDUKzAplwxFVl8Yd4PKAUxQpmB9X10p+vxD4h0+TgeZ176BHdt
-	o3GgmLcxaV2A7hRwqQ4GaqYFtlD0p1YZFSGKSi/uea4mxoRD61UVaAcyBLpSRaIheuXGpLGsphA
-	1texj/gEKT4UPLS6Xgp3mQSqrNoc=
-X-Gm-Gg: ASbGncus4lHzq480yVQjEhR9SgKWf9uJMrVX4VM/2/s/l6iBTtstH3jOf+46ZAdl4aW
-	HAw6U0kP+nFC5sHlRqLKw/D+5eBPbpNXy7ZWkPUgec49rmo3KnAZQn0sLRVKnxAOa2jjZyy0Yi+
-	evTUxlzuHABgfMPXLy8OJMQyguLA==
-X-Google-Smtp-Source: AGHT+IGhWPno/cBlLy5i4JFgfTgN4go/KloyhLNpBTEj6UkmZZkGZMKDNDN1ix3of11Oz/UJSScIn1QWnKmOTjaulGI=
-X-Received: by 2002:a05:6122:3115:b0:523:6eef:af62 with SMTP id
- 71dfb90a1353d-5243a4082e2mr4188850e0c.4.1741898235977; Thu, 13 Mar 2025
- 13:37:15 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FE2E36B
+	for <nvdimm@lists.linux.dev>; Wed, 19 Mar 2025 06:28:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.161
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1742365718; cv=pass; b=mGuwIyZTbYu8ULmuw3ZK7+yXtWmjzYJsmRuVkRQorD1ieTgisddPy/+7n7f4ueFti7H0Gsu+KCkhLUMiFCYEUFFTob5quKicNB5YL90IyP1Rj86JEFGKCMwXnyLSvllDpY/wbzXWx032PxSpcjeyivfImGNbp4EfUxcugfJsctg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1742365718; c=relaxed/simple;
+	bh=ebHUYbPDbqVHmpuJrI4EFKJ3sb1otkw+wv5k74138ro=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=Z+SoJ8QIgIaSj9rW7ZfB7HGtctKoVoyaMcLpo7n8m5J8maRU0SlS3Uf++HgQUlgSxhFpeWsL3oI3e6Wggdh5AdPIa+uGNIovOk2j1BtUJRw5v+/l4+HBwlKx7dFPux9UaUgXWPBAbaYJXw/aWR4RmqpmEIwXQVqFUptKa+MzNxI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; arc=pass smtp.client-ip=23.83.223.161
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 08290844490;
+	Tue, 18 Mar 2025 23:46:30 +0000 (UTC)
+Received: from pdx1-sub0-mail-a315.dreamhost.com (trex-2.trex.outbound.svc.cluster.local [100.125.202.153])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 72A1E845649;
+	Tue, 18 Mar 2025 23:46:29 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1742341589; a=rsa-sha256;
+	cv=none;
+	b=X0Z8Umd3Jh8j0IDbKbiMwM1cNeDvCavjfd1PTm3xOmVjpfF/YfPuSpzr8BC/i3qYQ6GJhj
+	/ps9NcLKTJQrSvk2pZurEMFGUYwCt+RIWW7mNTz/JRCvjfXOL/jN/RXQPHPlzv1rqYPNW/
+	Gtta+6oS6Nvj40qtZcj+n3CI6OK8J1Ay5RjoyRBAVqh77/s2x3hk3pZc2sncIBOvCDAw6f
+	ompMeh+Z29LJYBnd3lSScdumyVJYmZsg/LdiWVC1+gYK8QlWKR8b1Ol8uvm0vpyB0WlD1A
+	321dqSBOD4ZKmJCExVPq8cZYW1G8rAN596JkjZhoriFVDDthjoBxmmKMzGy5PQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1742341589;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=9qBW8NAixzngMAuFMF9sv1HDYT5AMQsrCQaj33vudX0=;
+	b=rgemTNDYhj51CkxSVaXfHIbQsNctooF5AhZh5NynR4o+yR2dHrrZoxRyW/W23QUYn+e3Pg
+	pLpRWeBnKhgArspXZwCMxQ7ZfmBUZRhI7vnxgd0GeAfs3YWhLiFleroLScnG11nIEc9KXP
+	IUUnWY0zMNQ8xtqDEzBce9F97yUvuaphdRToaESNLxK+REJofY0DnorALlw8egSXVwkGCH
+	49oYTx5t0QoH6YcdH3MLeiYCLxP1otrQrsRHmEOnpuePApkacy9D6YGPijfUfgUO5eEn8I
+	zjC5PLmDELhvhSTQE6sVn/NVZxPyLBXOeTpjUTuqBu+hNisHzT9gT05pWPM46g==
+ARC-Authentication-Results: i=1;
+	rspamd-5bd7b8dc7d-jpjgv;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MC-Copy: stored-urls
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Minister-Spill: 5c20bfb62756c249_1742341589961_2699060779
+X-MC-Loop-Signature: 1742341589961:2061857188
+X-MC-Ingress-Time: 1742341589960
+Received: from pdx1-sub0-mail-a315.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.125.202.153 (trex/7.0.2);
+	Tue, 18 Mar 2025 23:46:29 +0000
+Received: from localhost.localdomain (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a315.dreamhost.com (Postfix) with ESMTPSA id 4ZHT506mlxz54;
+	Tue, 18 Mar 2025 16:46:28 -0700 (PDT)
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: alison.schofield@intel.com
+Cc: y-goto@fujitsu.com,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	Davidlohr Bueso <dave@stgolabs.net>
+Subject: [PATCH v4 -ndctl] cxl/memdev: Introduce sanitize-memdev functionality
+Date: Tue, 18 Mar 2025 16:45:43 -0700
+Message-Id: <20250318234543.562359-1-dave@stgolabs.net>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20250307120141.1566673-1-qun-wei.lin@mediatek.com>
- <Z9HOavSkFf01K9xh@google.com> <5gqqbq67th4xiufiw6j3ewih6htdepa4u5lfirdeffrui7hcdn@ly3re3vgez2g>
- <CAGsJ_4xwnVxn1odj=j+z0VXm1DRUmnhugnwCH-coqBLJweDu9Q@mail.gmail.com>
- <Z9MCwXzYDRJoTiIr@google.com> <CAGsJ_4yaSx1vEiZdCouBveeH3D-bQDdvrhRpz=Kbvqn30Eh-nA@mail.gmail.com>
- <Z9MWzDUxUigJrZXt@google.com>
-In-Reply-To: <Z9MWzDUxUigJrZXt@google.com>
-From: Barry Song <21cnbao@gmail.com>
-Date: Fri, 14 Mar 2025 09:37:04 +1300
-X-Gm-Features: AQ5f1JogIHzZmp31Tn9SRX0wI-8utb1OhKH-ruNw33einw0Y1Le7Sq_FlEtZGgo
-Message-ID: <CAGsJ_4z9pSt=LdfDUmQ7YhNocE6CJGxEwighSygGZrDFSyKU+A@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Improve Zram by separating compression context from kswapd
-To: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>, Qun-Wei Lin <qun-wei.lin@mediatek.com>, 
-	Jens Axboe <axboe@kernel.dk>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Chris Li <chrisl@kernel.org>, 
-	Ryan Roberts <ryan.roberts@arm.com>, "Huang, Ying" <ying.huang@intel.com>, 
-	Kairui Song <kasong@tencent.com>, Dan Schatzberg <schatzberg.dan@gmail.com>, 
-	Al Viro <viro@zeniv.linux.org.uk>, linux-kernel@vger.kernel.org, 
-	linux-block@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org, 
-	linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, 
-	Casper Li <casper.li@mediatek.com>, Chinwen Chang <chinwen.chang@mediatek.com>, 
-	Andrew Yang <andrew.yang@mediatek.com>, James Hsu <james.hsu@mediatek.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Fri, Mar 14, 2025 at 6:33=E2=80=AFAM Minchan Kim <minchan@kernel.org> wr=
-ote:
->
-> On Fri, Mar 14, 2025 at 05:58:00AM +1300, Barry Song wrote:
-> > On Fri, Mar 14, 2025 at 5:07=E2=80=AFAM Minchan Kim <minchan@kernel.org=
-> wrote:
-> > >
-> > > On Thu, Mar 13, 2025 at 04:45:54PM +1300, Barry Song wrote:
-> > > > On Thu, Mar 13, 2025 at 4:09=E2=80=AFPM Sergey Senozhatsky
-> > > > <senozhatsky@chromium.org> wrote:
-> > > > >
-> > > > > On (25/03/12 11:11), Minchan Kim wrote:
-> > > > > > On Fri, Mar 07, 2025 at 08:01:02PM +0800, Qun-Wei Lin wrote:
-> > > > > > > This patch series introduces a new mechanism called kcompress=
-d to
-> > > > > > > improve the efficiency of memory reclaiming in the operating =
-system. The
-> > > > > > > main goal is to separate the tasks of page scanning and page =
-compression
-> > > > > > > into distinct processes or threads, thereby reducing the load=
- on the
-> > > > > > > kswapd thread and enhancing overall system performance under =
-high memory
-> > > > > > > pressure conditions.
-> > > > > > >
-> > > > > > > Problem:
-> > > > > > >  In the current system, the kswapd thread is responsible for =
-both
-> > > > > > >  scanning the LRU pages and compressing pages into the ZRAM. =
-This
-> > > > > > >  combined responsibility can lead to significant performance =
-bottlenecks,
-> > > > > > >  especially under high memory pressure. The kswapd thread bec=
-omes a
-> > > > > > >  single point of contention, causing delays in memory reclaim=
-ing and
-> > > > > > >  overall system performance degradation.
-> > > > > >
-> > > > > > Isn't it general problem if backend for swap is slow(but synchr=
-onous)?
-> > > > > > I think zram need to support asynchrnous IO(can do introduce mu=
-ltiple
-> > > > > > threads to compress batched pages) and doesn't declare it's
-> > > > > > synchrnous device for the case.
-> > > > >
-> > > > > The current conclusion is that kcompressd will sit above zram,
-> > > > > because zram is not the only compressing swap backend we have.
-> > >
-> > > Then, how handles the file IO case?
-> >
-> > I didn't quite catch your question :-)
->
-> Sorry for not clear.
->
-> What I meant was zram is also used for fs backend storage, not only
-> for swapbackend. The multiple simultaneous compression can help the case,
-> too.
+Add a new cxl_memdev_sanitize() to libcxl to support triggering memory
+device sanitation, in either Sanitize and/or Secure Erase, per the
+CXL 3.0 spec.
 
-I agree that multiple asynchronous threads might transparently improve
-userspace read/write performance with just one thread or a very few threads=
-.
-However, it's unclear how genuine the requirement is. On the other hand,
-in such cases, userspace can always optimize read/write bandwidth, for
-example, by using aio_write() or similar methods if they do care about
-the read/write bandwidth.
+This is analogous to 'ndctl sanitize-dimm'.
 
-Once the user has multiple threads (close to the number of CPU cores),
-asynchronous multi-threading won't offer any benefit and will only result
-in increased context switching. I guess that is caused by the fundamental
-difference between zram and other real devices with hardware offloads -
-that zram always relies on the CPU and operates synchronously(no
-offload, no interrupt from HW to notify the completion of compression).
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+---
+changes from v3: added missing cxl-sanitize-memdev.txt to the patch
 
->
-> >
-> > >
-> > > >
-> > > > also. it is not good to hack zram to be aware of if it is kswapd
-> > > > , direct reclaim , proactive reclaim and block device with
-> > > > mounted filesystem.
-> > >
-> > > Why shouldn't zram be aware of that instead of just introducing
-> > > queues in the zram with multiple compression threads?
-> > >
-> >
-> > My view is the opposite of yours :-)
-> >
-> > Integrating kswapd, direct reclaim, etc., into the zram driver
-> > would violate layering principles. zram is purely a block device
->
-> That's the my question. What's the reason zram need to know about
-> kswapd, direct_reclaim and so on? I didn't understand your input.
+ Documentation/cxl/cxl-sanitize-memdev.txt | 52 +++++++++++++++++++++++
+ Documentation/cxl/cxl-wait-sanitize.txt   |  1 +
+ Documentation/cxl/meson.build             |  1 +
+ cxl/builtin.h                             |  1 +
+ cxl/cxl.c                                 |  1 +
+ cxl/lib/libcxl.c                          | 15 +++++++
+ cxl/lib/libcxl.sym                        |  1 +
+ cxl/libcxl.h                              |  1 +
+ cxl/memdev.c                              | 38 +++++++++++++++++
+ test/cxl-sanitize.sh                      |  4 +-
+ 10 files changed, 113 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/cxl/cxl-sanitize-memdev.txt
 
-Qun-Wei's patch 2/2, which modifies the zram driver, contains the following
-code within the zram driver:
-
-+int schedule_bio_write(void *mem, struct bio *bio, compress_callback cb)
+diff --git a/Documentation/cxl/cxl-sanitize-memdev.txt b/Documentation/cxl/cxl-sanitize-memdev.txt
+new file mode 100644
+index 000000000000..7a7c9a79b19f
+--- /dev/null
++++ b/Documentation/cxl/cxl-sanitize-memdev.txt
+@@ -0,0 +1,52 @@
++// SPDX-License-Identifier: GPL-2.0
++
++cxl-sanitize-memdev(1)
++======================
++
++NAME
++----
++cxl-sanitize-memdev - Perform a cryptographic destruction or sanitization
++of the contents of the given memdev(s).
++
++SYNOPSIS
++--------
++[verse]
++'cxl sanitize-memdev <mem0> [<mem1>..<memN>] [<options>]'
++
++DESCRIPTION
++-----------
++The 'sanitize-memdev' command performs two different methods of sanitization,
++per the CXL 3.0+ specification. The default is 'sanitize', but additionally,
++a 'secure-erase' option is available. It is required that the memdev be
++disabled before sanitizing, such that the device cannot be actively decoding
++any HPA ranges at the time.
++
++A device Sanitize is meant to securely re-purpose or decommission it. This
++is done by ensuring that all user data and meta data, whether it resides
++in persistent capacity, volatile capacity, or the label storage area,
++is made permanently unavailable by whatever means is appropriate for
++the media type. This sanitization request is merely submitted to the
++kernel, and the completion is asynchronous. Depending on the medium and
++capacity, sanitize may take tens of minutes to many hours. Subsequently,
++'cxl wait-sanitize’ can be used to wait for the memdevs that are under
++the sanitization.
++
++OPTIONS
++-------
++
++include::bus-option.txt[]
++
++-e::
++--secure-erase::
++	Erase user data by changing the media encryption keys for all user
++	data areas of the device.
++
++include::verbose-option.txt[]
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkcxl:cxl-wait-sanitize[1],
++linkcxl:cxl-disable-memdev[1],
++linkcxl:cxl-list[1],
+diff --git a/Documentation/cxl/cxl-wait-sanitize.txt b/Documentation/cxl/cxl-wait-sanitize.txt
+index e8f2044e4882..9391c66eec52 100644
+--- a/Documentation/cxl/cxl-wait-sanitize.txt
++++ b/Documentation/cxl/cxl-wait-sanitize.txt
+@@ -42,3 +42,4 @@ include::../copyright.txt[]
+ SEE ALSO
+ --------
+ linkcxl:cxl-list[1],
++linkcxl:cxl-sanitize-memdev[1],
+diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
+index 8085c1c2c87e..99e6ee782a1c 100644
+--- a/Documentation/cxl/meson.build
++++ b/Documentation/cxl/meson.build
+@@ -49,6 +49,7 @@ cxl_manpages = [
+   'cxl-monitor.txt',
+   'cxl-update-firmware.txt',
+   'cxl-set-alert-config.txt',
++  'cxl-sanitize-memdev.txt',
+   'cxl-wait-sanitize.txt',
+ ]
+ 
+diff --git a/cxl/builtin.h b/cxl/builtin.h
+index c483f301e5e0..29c8ad2a0ad9 100644
+--- a/cxl/builtin.h
++++ b/cxl/builtin.h
+@@ -16,6 +16,7 @@ int cmd_reserve_dpa(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_free_dpa(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_update_fw(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_set_alert_config(int argc, const char **argv, struct cxl_ctx *ctx);
++int cmd_sanitize_memdev(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_wait_sanitize(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_disable_port(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_enable_port(int argc, const char **argv, struct cxl_ctx *ctx);
+diff --git a/cxl/cxl.c b/cxl/cxl.c
+index 16436671dc53..9c9f217c5a93 100644
+--- a/cxl/cxl.c
++++ b/cxl/cxl.c
+@@ -80,6 +80,7 @@ static struct cmd_struct commands[] = {
+ 	{ "disable-region", .c_fn = cmd_disable_region },
+ 	{ "destroy-region", .c_fn = cmd_destroy_region },
+ 	{ "monitor", .c_fn = cmd_monitor },
++	{ "sanitize-memdev", .c_fn = cmd_sanitize_memdev },
+ };
+ 
+ int main(int argc, const char **argv)
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+index 63aa4ef3acdc..d9dd37519aa4 100644
+--- a/cxl/lib/libcxl.c
++++ b/cxl/lib/libcxl.c
+@@ -1414,6 +1414,21 @@ CXL_EXPORT int cxl_memdev_get_id(struct cxl_memdev *memdev)
+ 	return memdev->id;
+ }
+ 
++CXL_EXPORT int cxl_memdev_sanitize(struct cxl_memdev *memdev, char *op)
 +{
-+ ...
++	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
++	char *path = memdev->dev_buf;
++	int len = memdev->buf_len;
 +
-+        if (!nr_kcompressd || !current_is_kswapd())
-+                 return -EBUSY;
-+
++	if (snprintf(path, len,
++		     "%s/security/%s", memdev->dev_path, op) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++		    cxl_memdev_get_devname(memdev));
++		return -ERANGE;
++	}
++	return sysfs_write_attr(ctx, path, "1\n");
 +}
++
+ CXL_EXPORT int cxl_memdev_wait_sanitize(struct cxl_memdev *memdev,
+ 					int timeout_ms)
+ {
+diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+index 0c155a40ad47..bff45d47c29b 100644
+--- a/cxl/lib/libcxl.sym
++++ b/cxl/lib/libcxl.sym
+@@ -287,4 +287,5 @@ LIBECXL_8 {
+ global:
+ 	cxl_memdev_trigger_poison_list;
+ 	cxl_region_trigger_poison_list;
++	cxl_memdev_sanitize;
+ } LIBCXL_7;
+diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+index 0a5fd0e13cc2..e10ea741bf6d 100644
+--- a/cxl/libcxl.h
++++ b/cxl/libcxl.h
+@@ -79,6 +79,7 @@ bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev);
+ size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev);
+ int cxl_memdev_update_fw(struct cxl_memdev *memdev, const char *fw_path);
+ int cxl_memdev_cancel_fw_update(struct cxl_memdev *memdev);
++int cxl_memdev_sanitize(struct cxl_memdev *memdev, char *op);
+ int cxl_memdev_wait_sanitize(struct cxl_memdev *memdev, int timeout_ms);
+ 
+ /* ABI spelling mistakes are forever */
+diff --git a/cxl/memdev.c b/cxl/memdev.c
+index 6e44d1578d03..4a2daab2bbe5 100644
+--- a/cxl/memdev.c
++++ b/cxl/memdev.c
+@@ -35,6 +35,8 @@ static struct parameters {
+ 	bool align;
+ 	bool cancel;
+ 	bool wait;
++	bool sanitize;
++	bool secure_erase;
+ 	const char *type;
+ 	const char *size;
+ 	const char *decoder_filter;
+@@ -160,6 +162,10 @@ OPT_STRING('\0', "pmem-err-alert",                                            \
+ 	   &param.corrected_pmem_err_alert, "'on' or 'off'",                  \
+ 	   "enable or disable corrected pmem error warning alert")
+ 
++#define SANITIZE_OPTIONS()			      \
++OPT_BOOLEAN('e', "secure-erase", &param.secure_erase, \
++	    "Secure Erase a memdev")
++
+ #define WAIT_SANITIZE_OPTIONS()                \
+ OPT_INTEGER('t', "timeout", &param.timeout,    \
+ 	    "time in milliseconds to wait for overwrite completion (default: infinite)")
+@@ -226,6 +232,12 @@ static const struct option set_alert_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option sanitize_options[] = {
++	BASE_OPTIONS(),
++	SANITIZE_OPTIONS(),
++	OPT_END(),
++};
++
+ static const struct option wait_sanitize_options[] = {
+ 	BASE_OPTIONS(),
+ 	WAIT_SANITIZE_OPTIONS(),
+@@ -772,6 +784,19 @@ out_err:
+ 	return rc;
+ }
+ 
++static int action_sanitize_memdev(struct cxl_memdev *memdev,
++				  struct action_context *actx)
++{
++	int rc;
++
++	if (param.secure_erase)
++		rc = cxl_memdev_sanitize(memdev, "erase");
++        else
++		rc = cxl_memdev_sanitize(memdev, "sanitize");
++
++	return rc;
++}
++
+ static int action_wait_sanitize(struct cxl_memdev *memdev,
+ 				struct action_context *actx)
+ {
+@@ -1228,6 +1253,19 @@ int cmd_set_alert_config(int argc, const char **argv, struct cxl_ctx *ctx)
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+ 
++int cmd_sanitize_memdev(int argc, const char **argv, struct cxl_ctx *ctx)
++{
++	int count = memdev_action(
++		argc, argv, ctx, action_sanitize_memdev, sanitize_options,
++		"cxl sanitize-memdev <mem0> [<mem1>..<memn>] [<options>]");
++
++	log_info(&ml, "sanitize %s on %d mem device%s\n",
++		 count >= 0 ? "completed/started" : "failed",
++		 count >= 0 ? count : 0,  count > 1 ? "s" : "");
++
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
++
+ int cmd_wait_sanitize(int argc, const char **argv, struct cxl_ctx *ctx)
+ {
+ 	int count = memdev_action(
+diff --git a/test/cxl-sanitize.sh b/test/cxl-sanitize.sh
+index 9c161014ccb7..8c5027ab9f48 100644
+--- a/test/cxl-sanitize.sh
++++ b/test/cxl-sanitize.sh
+@@ -45,7 +45,7 @@ count=${#active_mem[@]}
+ set_timeout ${active_mem[0]} 2000
+ 
+ # sanitize with an active memdev should fail
+-echo 1 > /sys/bus/cxl/devices/${active_mem[0]}/security/sanitize && err $LINENO
++"$CXL" sanitize-memdev ${active_mem[0]} && err $LINENO
+ 
+ # find an inactive mem
+ inactive=""
+@@ -67,7 +67,7 @@ done
+ # secounds
+ set_timeout $inactive 3000
+ start=$SECONDS
+-echo 1 > /sys/bus/cxl/devices/${inactive}/security/sanitize &
++"$CXL" sanitize-memdev $inactive || err $LINENO
+ "$CXL" wait-sanitize $inactive || err $LINENO
+ ((SECONDS > start + 2)) || err $LINENO
+ 
+-- 
+2.39.5
 
-It's clear that Qun-Wei decided to disable asynchronous threading unless
-the user is kswapd. Qun-Wei might be able to provide more insight on this
-decision.
-
-My guess is:
-
-1. Determining the optimal number of threads is challenging due to varying
-CPU topologies and software workloads. For example, if there are 8 threads
-writing to zram, the default 4 threads might be slower than using all 8 thr=
-eads
-synchronously. For servers, we could have hundreds of CPUs.
-On the other hand, if there is only one thread writing to zram, using 4 thr=
-eads
-might interfere with other workloads too much and cause the phone to heat u=
-p
-quickly.
-
-2. kswapd is the user that truly benefits from asynchronous threads. Since
-it handles asynchronous memory reclamation, speeding up its process
-reduces the likelihood of entering slowpath / direct reclamation. This is
-where it has the greatest potential to make a positive impact.
-
->
-> > driver, and how it is used should be handled separately. Callers have
-> > greater flexibility to determine its usage, similar to how different
-> > I/O models exist in user space.
-> >
-> > Currently, Qun-Wei's patch checks whether the current thread is kswapd.
-> > If it is, compression is performed asynchronously by threads;
-> > otherwise, it is done in the current thread. In the future, we may
->
-> Okay, then, why should we do that without following normal asynchrnous
-> disk storage? VM justs put the IO request and sometimes congestion
-> control. Why is other logic needed for the case?
-
-It seems there is still some uncertainty about why current_is_kswapd()
-is necessary, so let's get input from Qun-Wei as well.
-
-Despite all the discussions, one important point remains: zswap might
-also need this asynchronous thread. For months, Yosry and Nhat have
-been urging the zram and zswap teams to collaborate on those shared
-requirements. Having one per-node thread for each kswapd could be the
-low-hanging fruit for both zswap and zram.
-
-Additionally, I don't see how the prototype I proposed here [1] would confl=
-ict
-with potential future optimizations in zram, particularly those aimed at
-improving filesystem read/write performance through multiple asynchronous
-threads, if that is indeed a valid requirement.
-
-[1] https://lore.kernel.org/lkml/20250313093005.13998-1-21cnbao@gmail.com/
-
->
-> > have additional reclaim threads, such as for damon or
-> > madv_pageout, etc.
-> >
-> > > >
-> > > > so i am thinking sth as below
-> > > >
-> > > > page_io.c
-> > > >
-> > > > if (sync_device or zswap_enabled())
-> > > >    schedule swap_writepage to a separate per-node thread
-> > >
-> > > I am not sure that's a good idea to mix a feature to solve different
-> > > layers. That wouldn't be only swap problem. Such an parallelism under
-> > > device  is common technique these days and it would help file IO case=
-s.
-> > >
-> >
-> > zswap and zram share the same needs, and handling this in page_io
-> > can benefit both through common code. It is up to the callers to decide
-> > the I/O model.
-> >
-> > I agree that "parallelism under the device" is a common technique,
-> > but our case is different=E2=80=94the device achieves parallelism with
-> > offload hardware, whereas we rely on CPUs, which can be scarce.
-> > These threads may also preempt CPUs that are critically needed
-> > by other non-compression tasks, and burst power consumption
-> > can sometimes be difficult to control.
->
-> That's general problem for common resources in the system and always
-> trace-off domain in the workload areas. Eng folks has tried to tune
-> them statically/dynamically depending on system behavior considering
-> what they priorites.
-
-Right, but haven't we yet taken on the task of tuning multi-threaded zram?
-
->
-> >
-> > > Furthermore, it would open the chance for zram to try compress
-> > > multiple pages at once.
-> >
-> > We are already in this situation when multiple callers use zram simulta=
-neously,
-> > such as during direct reclaim or with a mounted filesystem.
-> >
-> > Of course, this allows multiple pages to be compressed simultaneously,
-> > even if the user is single-threaded. However, determining when to enabl=
-e
-> > these threads and whether they will be effective is challenging, as it
-> > depends on system load. For example, Qun-Wei's patch chose not to use
-> > threads for direct reclaim as, I guess,  it might be harmful.
->
-> Direct reclaim is already harmful and that's why VM has the logic
-> to throttle writeback or other special logics for kswapd or direct
-> reclaim path for th IO, which could be applied into the zram, too.
-
-I'm not entirely sure that the existing congestion or throttled writeback
-can automatically tune itself effectively with non-offload resources. For
-offload resources, the number of queues and the bandwidth remain stable,
-but for CPUs, they fluctuate based on changes in system workloads.
-
-Thanks
-Barry
