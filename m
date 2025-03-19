@@ -1,77 +1,70 @@
-Received: from seahorse.cherry.relay.mailchannels.net (seahorse.cherry.relay.mailchannels.net [23.83.223.161])
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2084.outbound.protection.outlook.com [40.107.220.84])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FE2E36B
-	for <nvdimm@lists.linux.dev>; Wed, 19 Mar 2025 06:28:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.161
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E027C20E31B
+	for <nvdimm@lists.linux.dev>; Wed, 19 Mar 2025 11:32:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.220.84
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742365718; cv=pass; b=mGuwIyZTbYu8ULmuw3ZK7+yXtWmjzYJsmRuVkRQorD1ieTgisddPy/+7n7f4ueFti7H0Gsu+KCkhLUMiFCYEUFFTob5quKicNB5YL90IyP1Rj86JEFGKCMwXnyLSvllDpY/wbzXWx032PxSpcjeyivfImGNbp4EfUxcugfJsctg=
+	t=1742383979; cv=fail; b=t5Oc/65fIQxiaXbv+vQVlwIQfEaMue4yYwINcDXiwXE2AM4PGkpEQbZtzEFf3rfkuKfFYbnQXdaOXFHdAzDP5BpFAKw/peQKb2Gxn1ApX5VK5aIvEjyKACCjXwXrQ+qwylYLfPJ8ehNm3s+uXtfNsqpxC8zR5EWp+F/v+jh58iU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742365718; c=relaxed/simple;
-	bh=ebHUYbPDbqVHmpuJrI4EFKJ3sb1otkw+wv5k74138ro=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=Z+SoJ8QIgIaSj9rW7ZfB7HGtctKoVoyaMcLpo7n8m5J8maRU0SlS3Uf++HgQUlgSxhFpeWsL3oI3e6Wggdh5AdPIa+uGNIovOk2j1BtUJRw5v+/l4+HBwlKx7dFPux9UaUgXWPBAbaYJXw/aWR4RmqpmEIwXQVqFUptKa+MzNxI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; arc=pass smtp.client-ip=23.83.223.161
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 08290844490;
-	Tue, 18 Mar 2025 23:46:30 +0000 (UTC)
-Received: from pdx1-sub0-mail-a315.dreamhost.com (trex-2.trex.outbound.svc.cluster.local [100.125.202.153])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 72A1E845649;
-	Tue, 18 Mar 2025 23:46:29 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1742341589; a=rsa-sha256;
-	cv=none;
-	b=X0Z8Umd3Jh8j0IDbKbiMwM1cNeDvCavjfd1PTm3xOmVjpfF/YfPuSpzr8BC/i3qYQ6GJhj
-	/ps9NcLKTJQrSvk2pZurEMFGUYwCt+RIWW7mNTz/JRCvjfXOL/jN/RXQPHPlzv1rqYPNW/
-	Gtta+6oS6Nvj40qtZcj+n3CI6OK8J1Ay5RjoyRBAVqh77/s2x3hk3pZc2sncIBOvCDAw6f
-	ompMeh+Z29LJYBnd3lSScdumyVJYmZsg/LdiWVC1+gYK8QlWKR8b1Ol8uvm0vpyB0WlD1A
-	321dqSBOD4ZKmJCExVPq8cZYW1G8rAN596JkjZhoriFVDDthjoBxmmKMzGy5PQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1742341589;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=9qBW8NAixzngMAuFMF9sv1HDYT5AMQsrCQaj33vudX0=;
-	b=rgemTNDYhj51CkxSVaXfHIbQsNctooF5AhZh5NynR4o+yR2dHrrZoxRyW/W23QUYn+e3Pg
-	pLpRWeBnKhgArspXZwCMxQ7ZfmBUZRhI7vnxgd0GeAfs3YWhLiFleroLScnG11nIEc9KXP
-	IUUnWY0zMNQ8xtqDEzBce9F97yUvuaphdRToaESNLxK+REJofY0DnorALlw8egSXVwkGCH
-	49oYTx5t0QoH6YcdH3MLeiYCLxP1otrQrsRHmEOnpuePApkacy9D6YGPijfUfgUO5eEn8I
-	zjC5PLmDELhvhSTQE6sVn/NVZxPyLBXOeTpjUTuqBu+hNisHzT9gT05pWPM46g==
-ARC-Authentication-Results: i=1;
-	rspamd-5bd7b8dc7d-jpjgv;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MC-Copy: stored-urls
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Minister-Spill: 5c20bfb62756c249_1742341589961_2699060779
-X-MC-Loop-Signature: 1742341589961:2061857188
-X-MC-Ingress-Time: 1742341589960
-Received: from pdx1-sub0-mail-a315.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.125.202.153 (trex/7.0.2);
-	Tue, 18 Mar 2025 23:46:29 +0000
-Received: from localhost.localdomain (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a315.dreamhost.com (Postfix) with ESMTPSA id 4ZHT506mlxz54;
-	Tue, 18 Mar 2025 16:46:28 -0700 (PDT)
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: alison.schofield@intel.com
-Cc: y-goto@fujitsu.com,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH v4 -ndctl] cxl/memdev: Introduce sanitize-memdev functionality
-Date: Tue, 18 Mar 2025 16:45:43 -0700
-Message-Id: <20250318234543.562359-1-dave@stgolabs.net>
+	s=arc-20240116; t=1742383979; c=relaxed/simple;
+	bh=35fYQMyXbAAey5BfB+tGq8ULoKJT/yFek0CuD2SxPzU=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=taTf9vpBLk/5LY/SPkruZY0j8rRgRlAWbbUzC9S3UBV9gk2xFUXO7eQFVSN2kWSV8XsPwj5zb6v2QXzQ4o1bjfaFZczw61stIM+rqCD6k0VKs+X39veK4LGi7keumDcHDtxFwb/pk92RLuE6wIEZGidG8Crw1/eFwWMAarHK0fI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=OFil0Gi8; arc=fail smtp.client-ip=40.107.220.84
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="OFil0Gi8"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=R8ZWtjHqRZuIA6JvG4mHDIHIRjcQUaLDNQ22Fza8zgCiuvAci/HyuH2GXLxLat9DFkXYhGZ9QQ4iixU61Abh4uIFKj79C6sVQUa8pYsHAXlcyKIQH4QXxD4v7LRxMOb98ES3tCVZe3/4oIISxjsz6ETywDvFuIrtc2679cPED2CB3H/yFWDM9CrRaq98Vmo8Nh9mPQWSFGYFkp3ivqMk2vXQu49zxE3+fZS5MaTb2iIPsXphi4RuoezNeBJB9EKTaOloU1JejCYUFRqhExrTijbRgf7F/OQR2a/KysS10GMsT/QKGVqf+Ba/Nuo+6x7hjZ+9dzdNPr5CsSjpo/y7Iw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=TxIBmsBUoszLCXdL+8SIrDZa0JyFEXMfiO9sYN0mdFg=;
+ b=ZW0oXi9VDnM4RkBXWs0yl0SaUEWkuIPAKjV3oHr5tKe2brU18hq3QI4GRkPprq74bupwb7QpmyAJD3zUMUVPozo0OQkEu0aKGwhxOORd5JjQj1rMtWocIg5odPWusjLObG/AvTQkEdD9ZszNVRW2lGgQuee2ve6T5wIgu1kEB65mk8uYbbZ2hqne1NRKH9mlD0B8ZeH91ErBoGAoq/R46AT3psSWU4C0z0jIg3h81WyYlJ8tI97Z9XKA0CL98hBuusOqA87fzVTs6mp2+A3R/FgFAjnhXpMxsbLizX+L95Y0i51LOEdyYtT+AbMWzhG+EBDosAdYbiDvCw/zmbzaJQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=TxIBmsBUoszLCXdL+8SIrDZa0JyFEXMfiO9sYN0mdFg=;
+ b=OFil0Gi8chzRqZXup2+GyIrOL330ywpiVa79KFE2Cf942j3GRwrjIstFWBpKJXCIV+dtNr23Ik0ypdXWlLV3BuIKclUFSj/f1Xgg6kWqWU2DPaiI9CjTUk04a0Ss3tdYyhHzFYz3f3th7l/S8WH9niJEXOGXeFGiKNm/Yy3lEOI=
+Received: from SJ2PR07CA0017.namprd07.prod.outlook.com (2603:10b6:a03:505::17)
+ by DM6PR12MB4156.namprd12.prod.outlook.com (2603:10b6:5:218::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.34; Wed, 19 Mar
+ 2025 11:32:55 +0000
+Received: from MWH0EPF000989EA.namprd02.prod.outlook.com
+ (2603:10b6:a03:505:cafe::c1) by SJ2PR07CA0017.outlook.office365.com
+ (2603:10b6:a03:505::17) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8534.33 via Frontend Transport; Wed,
+ 19 Mar 2025 11:32:54 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ MWH0EPF000989EA.mail.protection.outlook.com (10.167.241.137) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.8534.20 via Frontend Transport; Wed, 19 Mar 2025 11:32:54 +0000
+Received: from rric.localdomain (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Wed, 19 Mar
+ 2025 06:32:50 -0500
+From: Robert Richter <rrichter@amd.com>
+To: Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
+CC: Alison Schofield <alison.schofield@intel.com>, Jonathan Cameron
+	<Jonathan.Cameron@huawei.com>, <linux-cxl@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, "Gregory
+ Price" <gourry@gourry.net>, Terry Bowman <terry.bowman@amd.com>, "Robert
+ Richter" <rrichter@amd.com>, <nvdimm@lists.linux.dev>
+Subject: [PATCH] libnvdimm/labels: Fix divide error in nd_label_data_init()
+Date: Wed, 19 Mar 2025 12:32:14 +0100
+Message-ID: <20250319113215.520902-1-rrichter@amd.com>
 X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -79,282 +72,111 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MWH0EPF000989EA:EE_|DM6PR12MB4156:EE_
+X-MS-Office365-Filtering-Correlation-Id: faa9c908-0a0c-440d-9111-08dd66d9ca66
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|82310400026|36860700013|1800799024;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?IHuTOL4kthzj9sQGAZnUujhWd5TFuJhrMV68VJee+XwyQkMTJrShN3G+pT4g?=
+ =?us-ascii?Q?erarGWJcjEoZBnyHO9M5JouMwSvjF44WPTQboyaxWeyhmkjLHS6EC+r73Zvg?=
+ =?us-ascii?Q?+PfoX9MVa+cxlTui5KzEquq1jbQknaeeCjiizhm2gyhbpSrgG9TkL+gU1940?=
+ =?us-ascii?Q?4Vkb34liHHui3Vri8yhmt1okP2WwLPvOqBox8sJqaggPGq+LnqJek9k7g/oJ?=
+ =?us-ascii?Q?kj8PtFVmXba3ZtPwE20Vu0cm6+xqlk2EgLOdPWYrNhGeWRpu6B8L+GXfcsNI?=
+ =?us-ascii?Q?tNG1je1donzPNktSEl0EkvxWclQRRHnWWFKh+tNFRMADpePkTZQirrePdNj8?=
+ =?us-ascii?Q?etLfpVD1tGShzEMoEMoiZXRk3PWimLTXknBFEeLn486SO3FIMs9uxv+mCqDl?=
+ =?us-ascii?Q?JQSgBlkBUnQ36RBXhNtSBXWd/XvRS+590prjJqusSZ4TEh7ZV2V3J4tIUJ3T?=
+ =?us-ascii?Q?N3TjEmOCQ8fLB2b1oz9R5xrhxR8wgrpja9OrMExpdg4Gle6OcYEl0ZpxIpNq?=
+ =?us-ascii?Q?LWKdG6dr034fUg/2nDb2ywO7+0chOQu5IuYwDckgdw5ULK3QAznemqzfIG1V?=
+ =?us-ascii?Q?CihwPGWNLXaiVJR4CzJ2DDt/VZJI6FVdn0HoJFuvL5isWlK+P/XarliCBi/u?=
+ =?us-ascii?Q?i9ROOwv9BqkkpO6UQsWmrd5FDIagjpAH1u7MOK6iP8wnz/gocHGCvDHIRI6v?=
+ =?us-ascii?Q?X5EhM3NSYj9UfL2EE+hjejXPWjd8nAJp8/mYvsGhrVh16KyRZK37fOri1G5e?=
+ =?us-ascii?Q?OsP97g70ygq9vryQ5pToAD7SuZyggnUrmGi+5Ha7SP1WX246h5v1n7RXzRxf?=
+ =?us-ascii?Q?VCE66tUOxyJMvTlAJ3yTExb5sH5l17u0WuRAqKMlzVPxAFIESaa7iCW5tKfy?=
+ =?us-ascii?Q?qST8zsfSHYAcTpJbmXrTiiGAdadujPM0EpWGuGgRvkykFw5xpZdp1x6FCYyz?=
+ =?us-ascii?Q?LBsd2TiSBTJgJzRtFZ17gsv1NSIwRqV7I3kCODDsZUj3AjQrNjO0UhC2C0mg?=
+ =?us-ascii?Q?cpK/nnC9OQuf/Gew0qwlP0wFohZmaqBDXGOUYCAD8DqopoPsVI0gIwN0erW/?=
+ =?us-ascii?Q?gi95GBkUyzBVVtJfY7MYvKBuaRBH22kZx9Mng4Xkf0sz5q3mrZwbPgI885hA?=
+ =?us-ascii?Q?gM02gKzjWaSwj71ouMWD2SRUYZ/0b+k7FiGgiDdJCC385tSy5TPste8KMnNM?=
+ =?us-ascii?Q?BKCLu5TBF7DIz0+p0HwFlmBkZG2DsjBMbkvOWBq2Mz+xpCxQJJDLojq0xtNJ?=
+ =?us-ascii?Q?pKG4kWBSq/OrcwjqNSI7So/QvIFXJrl2bPTN8mU/UupyBjnDPqThK0w+DOuV?=
+ =?us-ascii?Q?6SGC4RtrnMwMRwymDZPaszTg0+NUaOKnKcUmOkiWb9/rLZZ81CIxBNbrI7NT?=
+ =?us-ascii?Q?tzKUxa6SKOMG8Y1XcuDY3x0Fq94usBN2+a/F/A176KLJ5y6vbtSEkbPagIMY?=
+ =?us-ascii?Q?jkk8udRN+Bp4hxHKvk1ISvrO0S01fdxSntNU5pcs2pbZ3pbOKQLR6WhzgviE?=
+ =?us-ascii?Q?6uuCPq2ekR46fj8=3D?=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(376014)(82310400026)(36860700013)(1800799024);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Mar 2025 11:32:54.4571
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: faa9c908-0a0c-440d-9111-08dd66d9ca66
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	MWH0EPF000989EA.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4156
 
-Add a new cxl_memdev_sanitize() to libcxl to support triggering memory
-device sanitation, in either Sanitize and/or Secure Erase, per the
-CXL 3.0 spec.
+If a CXL memory device returns a broken zero LSA size in its memory
+device information (Identify Memory Device (Opcode 4000h), CXL
+spec. 3.1, 8.2.9.9.1.1), a divide error occurs in the libnvdimm
+driver:
 
-This is analogous to 'ndctl sanitize-dimm'.
+ Oops: divide error: 0000 [#1] PREEMPT SMP NOPTI
+ RIP: 0010:nd_label_data_init+0x10e/0x800 [libnvdimm]
 
-Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Code and flow:
+
+1) CXL Command 4000h returns LSA size = 0,
+2) config_size is assigned to zero LSA size (CXL pmem driver):
+
+drivers/cxl/pmem.c:             .config_size = mds->lsa_size,
+
+3) max_xfer is set to zero (nvdimm driver):
+
+drivers/nvdimm/label.c: max_xfer = min_t(size_t, ndd->nsarea.max_xfer, config_size);
+drivers/nvdimm/label.c: if (read_size < max_xfer) {
+drivers/nvdimm/label.c-         /* trim waste */
+
+4) DIV_ROUND_UP() causes division by zero:
+
+drivers/nvdimm/label.c:         max_xfer -= ((max_xfer - 1) - (config_size - 1) % max_xfer) /
+drivers/nvdimm/label.c:                     DIV_ROUND_UP(config_size, max_xfer);
+drivers/nvdimm/label.c-         /* make certain we read indexes in exactly 1 read */
+drivers/nvdimm/label.c:         if (max_xfer < read_size)
+drivers/nvdimm/label.c:                 max_xfer = read_size;
+drivers/nvdimm/label.c- }
+
+Fix this by checking the config size parameter by extending an
+existing check.
+
+Signed-off-by: Robert Richter <rrichter@amd.com>
 ---
-changes from v3: added missing cxl-sanitize-memdev.txt to the patch
+ drivers/nvdimm/label.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- Documentation/cxl/cxl-sanitize-memdev.txt | 52 +++++++++++++++++++++++
- Documentation/cxl/cxl-wait-sanitize.txt   |  1 +
- Documentation/cxl/meson.build             |  1 +
- cxl/builtin.h                             |  1 +
- cxl/cxl.c                                 |  1 +
- cxl/lib/libcxl.c                          | 15 +++++++
- cxl/lib/libcxl.sym                        |  1 +
- cxl/libcxl.h                              |  1 +
- cxl/memdev.c                              | 38 +++++++++++++++++
- test/cxl-sanitize.sh                      |  4 +-
- 10 files changed, 113 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/cxl/cxl-sanitize-memdev.txt
-
-diff --git a/Documentation/cxl/cxl-sanitize-memdev.txt b/Documentation/cxl/cxl-sanitize-memdev.txt
-new file mode 100644
-index 000000000000..7a7c9a79b19f
---- /dev/null
-+++ b/Documentation/cxl/cxl-sanitize-memdev.txt
-@@ -0,0 +1,52 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+cxl-sanitize-memdev(1)
-+======================
-+
-+NAME
-+----
-+cxl-sanitize-memdev - Perform a cryptographic destruction or sanitization
-+of the contents of the given memdev(s).
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'cxl sanitize-memdev <mem0> [<mem1>..<memN>] [<options>]'
-+
-+DESCRIPTION
-+-----------
-+The 'sanitize-memdev' command performs two different methods of sanitization,
-+per the CXL 3.0+ specification. The default is 'sanitize', but additionally,
-+a 'secure-erase' option is available. It is required that the memdev be
-+disabled before sanitizing, such that the device cannot be actively decoding
-+any HPA ranges at the time.
-+
-+A device Sanitize is meant to securely re-purpose or decommission it. This
-+is done by ensuring that all user data and meta data, whether it resides
-+in persistent capacity, volatile capacity, or the label storage area,
-+is made permanently unavailable by whatever means is appropriate for
-+the media type. This sanitization request is merely submitted to the
-+kernel, and the completion is asynchronous. Depending on the medium and
-+capacity, sanitize may take tens of minutes to many hours. Subsequently,
-+'cxl wait-sanitize’ can be used to wait for the memdevs that are under
-+the sanitization.
-+
-+OPTIONS
-+-------
-+
-+include::bus-option.txt[]
-+
-+-e::
-+--secure-erase::
-+	Erase user data by changing the media encryption keys for all user
-+	data areas of the device.
-+
-+include::verbose-option.txt[]
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkcxl:cxl-wait-sanitize[1],
-+linkcxl:cxl-disable-memdev[1],
-+linkcxl:cxl-list[1],
-diff --git a/Documentation/cxl/cxl-wait-sanitize.txt b/Documentation/cxl/cxl-wait-sanitize.txt
-index e8f2044e4882..9391c66eec52 100644
---- a/Documentation/cxl/cxl-wait-sanitize.txt
-+++ b/Documentation/cxl/cxl-wait-sanitize.txt
-@@ -42,3 +42,4 @@ include::../copyright.txt[]
- SEE ALSO
- --------
- linkcxl:cxl-list[1],
-+linkcxl:cxl-sanitize-memdev[1],
-diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
-index 8085c1c2c87e..99e6ee782a1c 100644
---- a/Documentation/cxl/meson.build
-+++ b/Documentation/cxl/meson.build
-@@ -49,6 +49,7 @@ cxl_manpages = [
-   'cxl-monitor.txt',
-   'cxl-update-firmware.txt',
-   'cxl-set-alert-config.txt',
-+  'cxl-sanitize-memdev.txt',
-   'cxl-wait-sanitize.txt',
- ]
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 082253a3a956..04f4a049599a 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -442,7 +442,8 @@ int nd_label_data_init(struct nvdimm_drvdata *ndd)
+ 	if (ndd->data)
+ 		return 0;
  
-diff --git a/cxl/builtin.h b/cxl/builtin.h
-index c483f301e5e0..29c8ad2a0ad9 100644
---- a/cxl/builtin.h
-+++ b/cxl/builtin.h
-@@ -16,6 +16,7 @@ int cmd_reserve_dpa(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_free_dpa(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_update_fw(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_set_alert_config(int argc, const char **argv, struct cxl_ctx *ctx);
-+int cmd_sanitize_memdev(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_wait_sanitize(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_disable_port(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_enable_port(int argc, const char **argv, struct cxl_ctx *ctx);
-diff --git a/cxl/cxl.c b/cxl/cxl.c
-index 16436671dc53..9c9f217c5a93 100644
---- a/cxl/cxl.c
-+++ b/cxl/cxl.c
-@@ -80,6 +80,7 @@ static struct cmd_struct commands[] = {
- 	{ "disable-region", .c_fn = cmd_disable_region },
- 	{ "destroy-region", .c_fn = cmd_destroy_region },
- 	{ "monitor", .c_fn = cmd_monitor },
-+	{ "sanitize-memdev", .c_fn = cmd_sanitize_memdev },
- };
- 
- int main(int argc, const char **argv)
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 63aa4ef3acdc..d9dd37519aa4 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -1414,6 +1414,21 @@ CXL_EXPORT int cxl_memdev_get_id(struct cxl_memdev *memdev)
- 	return memdev->id;
- }
- 
-+CXL_EXPORT int cxl_memdev_sanitize(struct cxl_memdev *memdev, char *op)
-+{
-+	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
-+	char *path = memdev->dev_buf;
-+	int len = memdev->buf_len;
-+
-+	if (snprintf(path, len,
-+		     "%s/security/%s", memdev->dev_path, op) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+		    cxl_memdev_get_devname(memdev));
-+		return -ERANGE;
-+	}
-+	return sysfs_write_attr(ctx, path, "1\n");
-+}
-+
- CXL_EXPORT int cxl_memdev_wait_sanitize(struct cxl_memdev *memdev,
- 					int timeout_ms)
- {
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 0c155a40ad47..bff45d47c29b 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -287,4 +287,5 @@ LIBECXL_8 {
- global:
- 	cxl_memdev_trigger_poison_list;
- 	cxl_region_trigger_poison_list;
-+	cxl_memdev_sanitize;
- } LIBCXL_7;
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 0a5fd0e13cc2..e10ea741bf6d 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -79,6 +79,7 @@ bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev);
- size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev);
- int cxl_memdev_update_fw(struct cxl_memdev *memdev, const char *fw_path);
- int cxl_memdev_cancel_fw_update(struct cxl_memdev *memdev);
-+int cxl_memdev_sanitize(struct cxl_memdev *memdev, char *op);
- int cxl_memdev_wait_sanitize(struct cxl_memdev *memdev, int timeout_ms);
- 
- /* ABI spelling mistakes are forever */
-diff --git a/cxl/memdev.c b/cxl/memdev.c
-index 6e44d1578d03..4a2daab2bbe5 100644
---- a/cxl/memdev.c
-+++ b/cxl/memdev.c
-@@ -35,6 +35,8 @@ static struct parameters {
- 	bool align;
- 	bool cancel;
- 	bool wait;
-+	bool sanitize;
-+	bool secure_erase;
- 	const char *type;
- 	const char *size;
- 	const char *decoder_filter;
-@@ -160,6 +162,10 @@ OPT_STRING('\0', "pmem-err-alert",                                            \
- 	   &param.corrected_pmem_err_alert, "'on' or 'off'",                  \
- 	   "enable or disable corrected pmem error warning alert")
- 
-+#define SANITIZE_OPTIONS()			      \
-+OPT_BOOLEAN('e', "secure-erase", &param.secure_erase, \
-+	    "Secure Erase a memdev")
-+
- #define WAIT_SANITIZE_OPTIONS()                \
- OPT_INTEGER('t', "timeout", &param.timeout,    \
- 	    "time in milliseconds to wait for overwrite completion (default: infinite)")
-@@ -226,6 +232,12 @@ static const struct option set_alert_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option sanitize_options[] = {
-+	BASE_OPTIONS(),
-+	SANITIZE_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static const struct option wait_sanitize_options[] = {
- 	BASE_OPTIONS(),
- 	WAIT_SANITIZE_OPTIONS(),
-@@ -772,6 +784,19 @@ out_err:
- 	return rc;
- }
- 
-+static int action_sanitize_memdev(struct cxl_memdev *memdev,
-+				  struct action_context *actx)
-+{
-+	int rc;
-+
-+	if (param.secure_erase)
-+		rc = cxl_memdev_sanitize(memdev, "erase");
-+        else
-+		rc = cxl_memdev_sanitize(memdev, "sanitize");
-+
-+	return rc;
-+}
-+
- static int action_wait_sanitize(struct cxl_memdev *memdev,
- 				struct action_context *actx)
- {
-@@ -1228,6 +1253,19 @@ int cmd_set_alert_config(int argc, const char **argv, struct cxl_ctx *ctx)
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
- 
-+int cmd_sanitize_memdev(int argc, const char **argv, struct cxl_ctx *ctx)
-+{
-+	int count = memdev_action(
-+		argc, argv, ctx, action_sanitize_memdev, sanitize_options,
-+		"cxl sanitize-memdev <mem0> [<mem1>..<memn>] [<options>]");
-+
-+	log_info(&ml, "sanitize %s on %d mem device%s\n",
-+		 count >= 0 ? "completed/started" : "failed",
-+		 count >= 0 ? count : 0,  count > 1 ? "s" : "");
-+
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-+
- int cmd_wait_sanitize(int argc, const char **argv, struct cxl_ctx *ctx)
- {
- 	int count = memdev_action(
-diff --git a/test/cxl-sanitize.sh b/test/cxl-sanitize.sh
-index 9c161014ccb7..8c5027ab9f48 100644
---- a/test/cxl-sanitize.sh
-+++ b/test/cxl-sanitize.sh
-@@ -45,7 +45,7 @@ count=${#active_mem[@]}
- set_timeout ${active_mem[0]} 2000
- 
- # sanitize with an active memdev should fail
--echo 1 > /sys/bus/cxl/devices/${active_mem[0]}/security/sanitize && err $LINENO
-+"$CXL" sanitize-memdev ${active_mem[0]} && err $LINENO
- 
- # find an inactive mem
- inactive=""
-@@ -67,7 +67,7 @@ done
- # secounds
- set_timeout $inactive 3000
- start=$SECONDS
--echo 1 > /sys/bus/cxl/devices/${inactive}/security/sanitize &
-+"$CXL" sanitize-memdev $inactive || err $LINENO
- "$CXL" wait-sanitize $inactive || err $LINENO
- ((SECONDS > start + 2)) || err $LINENO
- 
+-	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0) {
++	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0 ||
++	    ndd->nsarea.config_size == 0) {
+ 		dev_dbg(ndd->dev, "failed to init config data area: (%u:%u)\n",
+ 			ndd->nsarea.max_xfer, ndd->nsarea.config_size);
+ 		return -ENXIO;
 -- 
 2.39.5
 
