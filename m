@@ -1,216 +1,174 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D8F022ACCE
-	for <nvdimm@lists.linux.dev>; Fri, 21 Mar 2025 13:41:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.16
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742564500; cv=fail; b=gylHD04/IY8sISkrjEq3XYFlbVLpEADCGCvZm9UgJa8AxyOd+cHyGyW+LNhJbcd7KVygp7X9/5H+c66RJ6QZsAP6CDWnM2YHllnIV8x5MsbXZRBCJLz9AcxhqmQmDnD5S9PpXlU+MVbjrV5JTFhxRwSSM4M4lfufZK+oY4nL47A=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742564500; c=relaxed/simple;
-	bh=1ldajKprA4POSjWwza+ySugY6calZzMTUIUjMSGF9ss=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=WRwZ7kctMHPE6o3jd/Lc40HCeEjWrszhtM61jw10Hd8r2RrBeUQK0YjhNPoenKaBSRZXkRrw/8+rNMV/5y7xW81hV7Pdfrt3K5VKpIpCGf930cXdyhsN/PqhG6vRUUljYBt4EOldhldjJ/hrO7xp9dw+AZq4oaq0/2AN7aDGKtM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aOPiWavl; arc=fail smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F53422DF8A
+	for <nvdimm@lists.linux.dev>; Fri, 21 Mar 2025 18:07:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.181
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1742580457; cv=none; b=r+Bwr8/4UehiZJiS/c/8RL8JsW4KhWhnvo6S25sYlee8C9scCI6B/zZ9daDvo4GIslnoDFRpn3ZFEBj/unS3tlZ+oiI5MI2Jf9i2obfZzsDt0JKBG/BYrn/cLFbbziBwNK5Fssl3E9NwYM84BBn5swEebrefWyy5rFDGqP+in3c=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1742580457; c=relaxed/simple;
+	bh=47Y8hQip99iCf7c6Dmi/CZyHe8FpzUoY9ZGUEv+WWks=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=i8+mD5T1AdPAAtQMpp7ibi9CZpDTmaidrJFcFn1BMf6mTYryHuahNYqo7NadJBjFr/KCIIT50GVtmJd7koZAOocxF7BzWEmoZczyMr86nb3TRw2sTwaB/XeuCo/AxSA4AcJ/f/5Q0trpwBBK6Bjzu8+TgcYuoPKZkc/vBW55iuk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=YNygwB7t; arc=none smtp.client-ip=209.85.222.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aOPiWavl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1742564497; x=1774100497;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=1ldajKprA4POSjWwza+ySugY6calZzMTUIUjMSGF9ss=;
-  b=aOPiWavlDhN+ppMXtOd9lV6pi83vtzzY/wvrKH4IxBUKPjulvpxCo+V9
-   Y2oC6zlZv/AzdPCj3EbVO1OujXN/CJ649FEcUz9u7jCXCBunsCakFMbae
-   LD4k5pdcM861hRsDb7YHOaC3jR4PM96Nv4auroJQKS5Vx12ajvN9DTCf5
-   uG7lDJHYkUAVP7vMLDvhdURR3Hsg5s91s4HMcsk1UGsSyz21HzmBaWzKG
-   ueCKu75fCY4/sdaN+3CHhBuRHcROT/5+/+czy4HuskEjyjDJyLaX5Nq+M
-   4rGatXm7A02YM2MX7kHR9zqO+Bv0xg4VqrzXs7MXnr4B08xlYaH5B7MTM
-   A==;
-X-CSE-ConnectionGUID: BgUaWG7MRwmflANZ6LoxSg==
-X-CSE-MsgGUID: I1KLajmhRnGC9crqDmWwOg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11380"; a="43949478"
-X-IronPort-AV: E=Sophos;i="6.14,264,1736841600"; 
-   d="scan'208";a="43949478"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2025 06:41:37 -0700
-X-CSE-ConnectionGUID: Qp4zOncnT3yMy9qSRQVb9g==
-X-CSE-MsgGUID: 9HrQgk48STCRELSSkV6z4w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.14,264,1736841600"; 
-   d="scan'208";a="124347210"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by orviesa008.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2025 06:41:36 -0700
-Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14; Fri, 21 Mar 2025 06:41:36 -0700
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14 via Frontend Transport; Fri, 21 Mar 2025 06:41:36 -0700
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.168)
- by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Fri, 21 Mar 2025 06:41:36 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=A/7mUQOK/Gx9XSLjbd1NpF1ZTd2EnubFurg5SeKp+uzHUAb6JA6Q+SDuw6ObViQlOIxI9NVKEMRIM+cc6q1EDnKonN/WtKsXxAAB+0IGjerrVMy3isFpQcJPKadYe31I58PH8EStg2/IbwIF/BC2OtJk/Mr6NWRY+AckqWSNeLlyd1IsZJhBUs0onD9TE3EQpP/jc7spRS5EAlGqekJz5Cy9CjW0G+Wyd1KrsG3wBmlSpJH4pdD6qCCc4u/2y2EZXhpTVamcqRXtrNED2Px43e55QMF8bbnqX0+iTuwmuATkHnEjY0tfUtPx4pgjMUmQxiBAa6UYwEPuvt8fTw8Zqw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pRIMuJzbBzrS9dYpTMcJ8dFsy2hMZ6UksqLvhkfwPQE=;
- b=anLL4eWxxfbgD0xcAQO6XqbGpkolGJfGrK9waBn6solocbhD806j0OEfIvMtTP7J3U4iSG8KwTwupcIGDsCABhfg4sJf26Ou83oTX5vV5bDz1dFIj8S4/+uCtWSNEZ3UTW8l7dOu9y4N7ZgBkmmjjeX3+j7gu7Q1hWLfikX/YjgGxwWRzAHwyZ/ijdPOVifIwP33FKBGroKJZOO1J8OVPhcBA0k/f2za7ZwwgeIdlveRMaOzp+aKpsoLE2pZRDn6hdEBHOR52WEeprtIiIXTNbjuhWLQvJMUq1FU3KsAU1A0DhL1V0fXkUYw1mL41rhdUgtW9K5zBCmNgEYCLo/0uA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by CH3PR11MB8703.namprd11.prod.outlook.com (2603:10b6:610:1cd::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.36; Fri, 21 Mar
- 2025 13:41:34 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%5]) with mapi id 15.20.8534.036; Fri, 21 Mar 2025
- 13:41:34 +0000
-Date: Fri, 21 Mar 2025 08:41:47 -0500
-From: Ira Weiny <ira.weiny@intel.com>
-To: Robert Richter <rrichter@amd.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
-CC: Alison Schofield <alison.schofield@intel.com>, Jonathan Cameron
-	<Jonathan.Cameron@huawei.com>, <linux-cxl@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, "Gregory
- Price" <gourry@gourry.net>, Terry Bowman <terry.bowman@amd.com>, "Robert
- Richter" <rrichter@amd.com>, Pankaj Gupta <pankaj.gupta@amd.com>,
-	<nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v2] libnvdimm/labels: Fix divide error in
- nd_label_data_init()
-Message-ID: <67dd6c9b3727d_7836e2947@iweiny-mobl.notmuch>
-References: <20250320112223.608320-1-rrichter@amd.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20250320112223.608320-1-rrichter@amd.com>
-X-ClientProxiedBy: MW4PR03CA0250.namprd03.prod.outlook.com
- (2603:10b6:303:b4::15) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="YNygwB7t"
+Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-7c5b8d13f73so172299985a.0
+        for <nvdimm@lists.linux.dev>; Fri, 21 Mar 2025 11:07:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1742580454; x=1743185254; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=YLZ7c8PVq08fNJyONQLIT/0eP11NvUsx2TyTerL7XHc=;
+        b=YNygwB7tZ4chpmTITHpSz4aKS9wE7I+fJ+fkD5y91fHSV+VpDTv59MwNeTXgYAp9Zb
+         KtI/dzc+2QpbMrCLS0uAVHUE6YTA6c3bsMveFXC0gMl8LMjq8pr+K2RyIyP3cQxPAQXf
+         KQFH57mB+uO8GkOacW8dEPRklPHD8oXJ2NqrjQpmx0H/gzafaJ6mH5+A+lvdai/r7FAC
+         RU6Xcy7zMrvCCp62yCTAgPLoClyjqG4gkuuBvPs0xQOYpmH2C4cb6LR+svylrcXlkGC6
+         PjTvvHfb4iXT2af9QrQmdBoRt1UjUIVLJsAOMjzzz96hGgC1Df+uJsm/uX0PJRqeOJHH
+         4y8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1742580454; x=1743185254;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=YLZ7c8PVq08fNJyONQLIT/0eP11NvUsx2TyTerL7XHc=;
+        b=jlH99RbI+y6RfPni6Qqegv+li9j2GJpEKd0WBgYSrk13ylCRaZJvxL+3/1ZYXVNYIV
+         jgW7liO0i1GzJxIxjboExCQzgfYLkVEv+jCt2vByVz25MfsbkbcbxqPDvzEDsDvBGekR
+         fHvw3jowNxgQH3K/sq2CI7OPH43LmYstHkFZV9SWaFFQD6evigGbLd4MeQFnJuKI6jTK
+         8q9hVROIUa21OEwRRpQRFRv6CKcxG9xp8l4iNIZFlUf3VxapZUUL1OUnK5D5FWdpiSjM
+         A50Qt6Yf/5mB2ZlzCMVAhpjbjvsS3QulhErUCiWFIFddEYgltMWv958wrZ4/3cyhWFwW
+         mZmA==
+X-Gm-Message-State: AOJu0YysLXFu/96LxXMAkXrbSEb4kcKzAEoepCP1JPp9kpK/z7hCCB30
+	gGQZZaE4YHbttsv1ewpCjZwU3qBswSoxRPRIQ5aVg7LBSCH5E7SAsr4LA+cFCF0=
+X-Gm-Gg: ASbGncvp2y4irHpvuRHBO8B+K5PakL5GPNp8uzbP3d0RmHFg6GnJp4FgPRxCtlGF+Fs
+	1hDbp8Kgyeq1c/5VWG4UTVp/1NE+IoOb43F2afknS2J6FYoMl1KrIkJ8dvHoN1QDKgX2uOkeJTU
+	GmyiTcEYtqyrngiCZ4YN9uGpWNrX5GMzFp/SlEdUQkCMnIgEWvW0YSro0x6qu+hzQ3syJbKsyck
+	5C09yjQJPWiRnUBciJRNhC/+7PvFdVcWItS8H4ScFFUe11u+QHguAuEPWxjH4k3ZLWQNzjXfwzn
+	bClkIggu3LiTnbrJer3taTq+fetv6hP1EZS9bCPNOTyifhBF4PlHRaLdOvm9qtyBliO3sjS3YW2
+	Ozq8QNreIZxcDwTgkFeiewzCVLY2AVIW/
+X-Google-Smtp-Source: AGHT+IFUnfQhtjCQYv7DzHsq6hKskzByzvAs8wuY7quw/aYR00Op6Rp9Y4a5IxpqPKPkNuMTQdbM5g==
+X-Received: by 2002:a05:620a:269a:b0:7c5:3ca5:58fe with SMTP id af79cd13be357-7c5ba15a54emr539420085a.22.1742580454012;
+        Fri, 21 Mar 2025 11:07:34 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F.lan (pool-173-79-56-208.washdc.fios.verizon.net. [173.79.56.208])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7c5b92b2bb6sm158643885a.11.2025.03.21.11.07.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 21 Mar 2025 11:07:33 -0700 (PDT)
+From: Gregory Price <gourry@gourry.net>
+To: linux-cxl@vger.kernel.org
+Cc: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	kernel-team@meta.com,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com
+Subject: [PATCH] DAX: warn when kmem regions are truncated for memory block alignment.
+Date: Fri, 21 Mar 2025 14:07:31 -0400
+Message-ID: <20250321180731.568460-1-gourry@gourry.net>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|CH3PR11MB8703:EE_
-X-MS-Office365-Filtering-Correlation-Id: ca0cf64f-a6e5-45a9-d686-08dd687e1841
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|366016|7053199007;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?f5L+yVN1aUhK9IFG13UJFZA7XRzWeXQDupBNwnx3aaBfGjxFoh4qNDVi/g2C?=
- =?us-ascii?Q?QxZ2DZopr+L802//nNg2CCrx2iDGVySvH1JsDtisTZNeCg5UOLG1gCpsYqFs?=
- =?us-ascii?Q?FsBXPhLzLeuBRErOjlCxr6olpcugcjELtYEHc2E/TVpLuPwbA1JzqqdEOEN7?=
- =?us-ascii?Q?faCShV9GYU/1nPU20nuTCEy1ACrcbSuWtXwStAgEfM+UGkkwtJu0/WKPEz0C?=
- =?us-ascii?Q?jG4fH/sFOE1UgUxyTIrosBOP6vzV46Zboi4TYVag9ealpnkg3bJ5FEkZ8h+A?=
- =?us-ascii?Q?4D43j8aK/KcRxf/SxwJtXogIXZ2kINRFlkaidtWJs0b5fp3/D2eN1vQeeVHX?=
- =?us-ascii?Q?V2lOli1hxR3zZkj8OR9+EqfFfizOkCJ1X2F1NZplasSxaOBoEck4+rtG9s5B?=
- =?us-ascii?Q?DCu0PhLor0FkTJDbJWsm3LXS7i9uOREigWzGOyLqz5yXDUBKOElopzEkfJbY?=
- =?us-ascii?Q?LSUc/Ojc6hN6AYWcpNypaU2YksIW5sJy1BLa/vPC/AblW9ZtppIiD77H9Ojl?=
- =?us-ascii?Q?Dp9+L4LkzMfD7ae3I3zhW9CCgMcJ57a8x2aVv9pCw7jZ+Lau59fhjn+EsXbA?=
- =?us-ascii?Q?9U9N5RFxPA2pblJY4GnMk5sxj1LZAwyjYn096l4B124PX7a1/u0kj58LXo3S?=
- =?us-ascii?Q?Y8qIcGvuyzZLRCAbuhj73kArZvhBl1Notirk7x/ca8KadF6ZGlMui0tM5j/C?=
- =?us-ascii?Q?utDhutpkfnDjHG9POPk9BPgFtTggzB9LKn1AfBF66Gy42K7g43oWlBCU+TIK?=
- =?us-ascii?Q?KT3IE/iQJdZscL3BvZQ1e3Jd35xMIVqgCwOIC9btgZ/3h1dntQmVqqI3xiOF?=
- =?us-ascii?Q?LqS1ewGGUfyubHmrXkNvVZEsNgJU1jcVsBGWZFLr2RZFSyUWLbnjwVqpiaZq?=
- =?us-ascii?Q?i28/wx+4czDJ1rx45Zp5259ri+i2/UqXvyms4nK0/BlmiaBILj6XCjnZoLsm?=
- =?us-ascii?Q?Zj0WEQ3hAF4LfEW0Mub2KFWA78Ek5kjZEv/EJBFdFuepZOokog5pZ3Iswdbv?=
- =?us-ascii?Q?pO+cEbxLzHycJv66XXgnJ5Ah4ZxxA+J1TuO0sja8miPBrij8Tih+nZgQJR/Q?=
- =?us-ascii?Q?RuJPwkMgVZ/RGw/otSJ6Pl9KqIoJph0qRLoYJw0DhDeFFHtLG+3O1+EvKIEk?=
- =?us-ascii?Q?PeKwH43QgUlicqgTPY1q11X4Wo24RQs01dBKi5MxXkwLKdppA4lVZ48vz37w?=
- =?us-ascii?Q?mCJWCr5G3ijGKXhAu51TzQ24EyKPBGGdqE7fLiSbPFDBVw04Va8uZNuLcaBa?=
- =?us-ascii?Q?CM7sljxdSTQBd5ZBAeyRcLX7aq77/e92GpWos/sg1JiCBFM5JmGcqYeoFxAz?=
- =?us-ascii?Q?LqCeaycGB14BNuK1sRtJ4finlcFgkfwkJZeFRMhfRo5luJGybIlRcp2Sy00u?=
- =?us-ascii?Q?ndWiZ+sK2Wb7Oj3gxT2Sf2MNnZEv?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(7053199007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?M1TcLVhjhti6BlhnCCiEsiM6TG0RPpvXFEf+BaOIZuxM8SnNtGxqjGK9zWpC?=
- =?us-ascii?Q?j+0y6Y+TxckiXyewhkwZaM0XqziZP2/4DawAmmTNNRhHxZVoHIraEHAIS13Y?=
- =?us-ascii?Q?Rzbbywg8+OhXIrPMaSHY+Ipk9XZWS4lu7JGSstIMg5xrmyy0xnsdI432KA0P?=
- =?us-ascii?Q?w6IcSHYBTOO6r2tB3ryj1swv+eWsjOKRYgDc3Y75+jCTrYkKuxOs5BYHL6/k?=
- =?us-ascii?Q?i8GwxcUEeBf2r65BsmIXkZyibgYfyI73rebi8NlCXO7H5YYbI6LNNYSJEa1J?=
- =?us-ascii?Q?RCCnU7CMp/l5Vqar5Gw9mLblW5JnQU+8BU+KkmKGaCnD33OX5N0XyGRLPAyb?=
- =?us-ascii?Q?/WpLjLbgGO76FwKQ3tFJyy4WxUWB36B/ibh62JSpgoWi0CAJFhsZOAtXYDxI?=
- =?us-ascii?Q?oUJy2Mnnau+zgDqIMV21dD9CSyUG74TjO8BRZmEx5srg6u1YUN9usAEufRKU?=
- =?us-ascii?Q?2IkacsUhexCFLgIgB3SfoQ5xshlsBREkA9Jpk3Kx2KGxr8AVT0RerXLtjKwX?=
- =?us-ascii?Q?U6wtrT/KCa1p3RGoCvVcEIl43MG6SRzZMOZ6qlvczT2Fp0SN4Q7vhbY4Va8k?=
- =?us-ascii?Q?sSn8vdw6RbFohbC4vWEJp23ibYEIorWARuyzhvxM1y4boGKkJhERe089Enkc?=
- =?us-ascii?Q?tODGycxzTuWqZ5Qn83K1QDJH2VR7HlXzrWcQbylE0TzhlrYxD5mMv15uoF8H?=
- =?us-ascii?Q?3RrzBKFkqELJYB2TN7PHMeslpoWlJeWsyjTDiaucaUA6/yOkMXtviEg2CvUj?=
- =?us-ascii?Q?RQOnMb9UVh2MiIZ3QkD2utO7uFAiH3TbGukW2YJ75jcnRU3Sb8YBTcNyORuH?=
- =?us-ascii?Q?985bodNZTDDsVhDqSdp2fZ5k3KPaF0AO4B+HErzvT2IjFrNE/pfHX7E4SLS1?=
- =?us-ascii?Q?KKwKzX3P6JyZoO49bsBcOhcWKNV45lxBBt5mZo/sthznxgNgQ2IKUmWjgsh8?=
- =?us-ascii?Q?11FEN9sO/Vu4ZkpBcER3SX8UzjC3jMC+ScG5eSA3XuVJiKmW5fC45JdcuTeG?=
- =?us-ascii?Q?j4sdo+JZtDVJCywa5ffaKe1VQSXgFhRT8SssyoWRvy349ox8rYpsta47YNWJ?=
- =?us-ascii?Q?34whZOH9voqs3Jy8nFihOjsbOJ/wAJjxXaw1mygt4Le7rCoW9KiAP/Incf80?=
- =?us-ascii?Q?AH6axcLojvSdfrjYpHGx3aWWc1bVrod8WPEybwe7f8Mdc973HUapK2jQUycP?=
- =?us-ascii?Q?ste8hsU2CNyEW4oUSMNfYR9kkU4UoozpXpBytKI+IOO25bzCLZTVicRHu9b3?=
- =?us-ascii?Q?B9IeDbGmY9x0wBwR9bnHDC92+UD4yTU11DHaExzvehQMv0/uKYZSc2O8MfDJ?=
- =?us-ascii?Q?EzgU/vFgEz2N3WC/M9CbPrHVT6KEOGNWI33LMaY6ZNrRng+bULzd83V3Np3l?=
- =?us-ascii?Q?Lv+gsMNH4BKMXrI+DThWIurWSJ1emO/nJXN/zd0HT7JmNzT4S0u8m4ISnA5c?=
- =?us-ascii?Q?mNTzUs64x7wDDRrX+jZOBQRuCDw8728eJfeWMuiCljKfnUfnH938NRgzFHZC?=
- =?us-ascii?Q?T8nwv+LEZAOUeD7cCwOdVlbXIcRmrwjyTZNoEs3UKVC/X/cO7OXYPaKW0wcU?=
- =?us-ascii?Q?mL0X1fV3rjfqsDKLbYEGV2/FVSVs1R5cksR4BN3j?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: ca0cf64f-a6e5-45a9-d686-08dd687e1841
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Mar 2025 13:41:34.0395
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Xocrks0E7UNvB0d4t6xbNtrN8CKyI1HpnOnf+HudOCSpn6LTwmegBQat9yU+6UfYIJ/vlnEQ5JuCnQwekS+fsg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR11MB8703
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-Robert Richter wrote:
-> If a faulty CXL memory device returns a broken zero LSA size in its
-> memory device information (Identify Memory Device (Opcode 4000h), CXL
-> spec. 3.1, 8.2.9.9.1.1), a divide error occurs in the libnvdimm
-> driver:
-> 
->  Oops: divide error: 0000 [#1] PREEMPT SMP NOPTI
->  RIP: 0010:nd_label_data_init+0x10e/0x800 [libnvdimm]
-> 
-> Code and flow:
-> 
-> 1) CXL Command 4000h returns LSA size = 0
-> 2) config_size is assigned to zero LSA size (CXL pmem driver):
-> 
-> drivers/cxl/pmem.c:             .config_size = mds->lsa_size,
-> 
-> 3) max_xfer is set to zero (nvdimm driver):
-> 
-> drivers/nvdimm/label.c: max_xfer = min_t(size_t, ndd->nsarea.max_xfer, config_size);
-> 
-> 4) A subsequent DIV_ROUND_UP() causes a division by zero:
-> 
-> drivers/nvdimm/label.c: /* Make our initial read size a multiple of max_xfer size */
-> drivers/nvdimm/label.c: read_size = min(DIV_ROUND_UP(read_size, max_xfer) * max_xfer,
-> drivers/nvdimm/label.c-                 config_size);
-> 
-> Fix this by checking the config size parameter by extending an
-> existing check.
-> 
-> Signed-off-by: Robert Richter <rrichter@amd.com>
-> Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
-> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Device capacity intended for use as system ram should be aligned to the
+architecture-defined memory block size or that capacity will be silently
+truncated and capacity stranded.
 
-Applied to nvdimm/next
+As hotplug dax memory becomes more prevelant, the memory block size
+alignment becomes more important for platform and device vendors to
+pay attention to - so this truncation should not be silent.
 
-Thanks,
-Ira
+This issue is particularly relevant for CXL Dynamic Capacity devices,
+whose capacity may arrive in spec-aligned but block-misaligned chunks.
 
-[snip]
+Example:
+ [...] kmem dax0.0: dax region truncated 2684354560 bytes - alignment
+ [...] kmem dax1.0: dax region truncated 1610612736 bytes - alignment
+
+Signed-off-by: Gregory Price <gourry@gourry.net>
+---
+ drivers/dax/kmem.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index e97d47f42ee2..15b6807b703d 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -28,7 +28,8 @@ static const char *kmem_name;
+ /* Set if any memory will remain added when the driver will be unloaded. */
+ static bool any_hotremove_failed;
+ 
+-static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
++static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r,
++			  unsigned long *truncated)
+ {
+ 	struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+ 	struct range *range = &dax_range->range;
+@@ -41,6 +42,9 @@ static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
+ 		r->end = range->end;
+ 		return -ENOSPC;
+ 	}
++
++	if (truncated && (r->start != range->start || r->end != range->end))
++		*truncated = (r->start - range->start) + (range->end - r->end);
+ 	return 0;
+ }
+ 
+@@ -75,6 +79,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 	mhp_t mhp_flags;
+ 	int numa_node;
+ 	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
++	unsigned long ttl_trunc = 0;
+ 
+ 	/*
+ 	 * Ensure good NUMA information for the persistent memory.
+@@ -97,7 +102,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct range range;
+ 
+-		rc = dax_kmem_range(dev_dax, i, &range);
++		rc = dax_kmem_range(dev_dax, i, &range, NULL);
+ 		if (rc) {
+ 			dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
+ 					i, range.start, range.end);
+@@ -130,8 +135,9 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct resource *res;
+ 		struct range range;
++		unsigned long truncated = 0;
+ 
+-		rc = dax_kmem_range(dev_dax, i, &range);
++		rc = dax_kmem_range(dev_dax, i, &range, &truncated);
+ 		if (rc)
+ 			continue;
+ 
+@@ -180,8 +186,12 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 				continue;
+ 			goto err_request_mem;
+ 		}
++
++		ttl_trunc += truncated;
+ 		mapped++;
+ 	}
++	if (ttl_trunc)
++		dev_warn(dev, "dax region truncated %ld bytes - alignment\n", ttl_trunc);
+ 
+ 	dev_set_drvdata(dev, data);
+ 
+@@ -216,7 +226,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ 		struct range range;
+ 		int rc;
+ 
+-		rc = dax_kmem_range(dev_dax, i, &range);
++		rc = dax_kmem_range(dev_dax, i, &range, NULL);
+ 		if (rc)
+ 			continue;
+ 
+-- 
+2.48.1
+
