@@ -1,254 +1,652 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDF625383;
-	Wed, 26 Mar 2025 06:27:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.19
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742970466; cv=fail; b=D5yzwmoTzCoX3kYeP/XzXFUj3km7klAzOIUUjT7UIEAIGw6CyTvmJ0jTQiM/kuUYudeRqrgGX4xiU+qk5y2j3NlZzqE3N5Dkf7s4JXB2ReINw3g+iWAt+99pKnRc0Osi+2OFE7FBBauXFnjxZMhAh9YSjLeyCm+SjMGZ5h79b44=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742970466; c=relaxed/simple;
-	bh=dxsy1BITnGVzN3Qw4L6bCEjsJUE0+H337xxppm9MqFc=;
-	h=Date:From:To:CC:Subject:Message-ID:Content-Type:
-	 Content-Disposition:MIME-Version; b=boy0RbHSqvXn0GCR0Vj093mKU6mEOFmn1vT9Xcb84EU45K+It5nbyf0FDDZs1WKc6/IxO2t6fKOGFfBgmW5qIG1HkTZ+hkN36B2xG6F0IQ0CIzh9J0hzhQZpov/z1/yAT5qjeTTCxGNFlhtIZzDQBVM9G8GzAX6WyNH5L8gu13s=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bqGoJAy1; arc=fail smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E4E31F4288;
+	Wed, 26 Mar 2025 16:20:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1743006037; cv=none; b=uOon1wssGpW42h32aUyWw1SKIlXqoP61YGLhEgrgZzD5v+6Xas4Vwqi4KFLHeOPo7PNvb7w20A8ay6gjpQwwOSwFrnuaIEuczqWFh9lrL5AFrAjfZu1oOrnNm2hMIWNCRNosNc7lPhTQXkL1RXcV/ec1RMSGLmUUwiNwL5mMhz0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1743006037; c=relaxed/simple;
+	bh=fT6vyJWXrJFHw+WHik05GpC0tIuzAUjJrqq+9ioaJ28=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=VFDeQyNMT2iZjGb6pqpkF28K1lGWT6KDSyt+ZRPcmKMWoj/JYk9od6CB6m81guQeYYrjcXdd+n98sPzrPobYF1kLj3J0vOQudyyRNTbnTyQVF/zyR9v46nHsREuAUzvJTtsCjKfOTnPRnR41skc6CUO9fQ9YSO6FkpaGz1qY6Cw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Wq7N9B/R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bqGoJAy1"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1742970464; x=1774506464;
-  h=date:from:to:cc:subject:message-id:mime-version;
-  bh=dxsy1BITnGVzN3Qw4L6bCEjsJUE0+H337xxppm9MqFc=;
-  b=bqGoJAy1EQCLsdhomC9eWAlmo9gGvZEFxQzMc7h3nRE5gzUjM/hnCq/7
-   pvDjGjRk6Ls73qL8GysbBTvyd2Evy3SCyBcGIrBbz7hxEQ+oG9AwAamPL
-   ZiCqE/dABIChe5pvKDcu87+qi5liy4djgp9oEyW69OotryZ/HAUt2oR2p
-   rEzcT0Nyf+AhYubIokXTI8rRF0gmJ6xutbO/HhVLu5X4BTqpGAtFEgW4d
-   HkQLjwNMeTr6SER3gff65rvewRyCmaD9B/Je/oYTtXd6XXMAxFCzamGZu
-   xpydcdMHUz/ZqgrJK9Z8+GCxzWVzr8HRHj9EWyzP6QDdvYLOl+H12Knau
-   w==;
-X-CSE-ConnectionGUID: th4VjKMpS+68cuSdcj9WmA==
-X-CSE-MsgGUID: Omsr4Bu9SlC7S4GiqKl6IQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11384"; a="43397019"
-X-IronPort-AV: E=Sophos;i="6.14,277,1736841600"; 
-   d="scan'208";a="43397019"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2025 23:27:43 -0700
-X-CSE-ConnectionGUID: q9dUuxdbQcms68gjZBnDng==
-X-CSE-MsgGUID: 0vVp8LExT4mGAwsUmOGGzw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.14,277,1736841600"; 
-   d="scan'208";a="129676786"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orviesa004.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 25 Mar 2025 23:27:43 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.44; Tue, 25 Mar 2025 23:27:42 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14 via Frontend Transport; Tue, 25 Mar 2025 23:27:42 -0700
-Received: from NAM02-DM3-obe.outbound.protection.outlook.com (104.47.56.45) by
- edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Tue, 25 Mar 2025 23:27:41 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Ei8X9mF6+bamjiX7mR1OMnvGXojsBMQwziBpZUSb2jWYFul7DUVo7MYZnXBzEZZ5oHheuqgV+krnYzGJUaZ1Osgqrl1LCkbbkL640jmrGIJPXxYkpwekuCObE6WyFtwf/AFo3UodSbYi18ad/8aus8yLIcfRnd7H3TdlR4dxA95MKCRmIfHaklaPPYO/Bz8kmNC9H5RMdfj+LqKBTA7nCKVELZOokogwGyns9JaMGXj2xbzp0SjamSz/V2fKhnTPljs6XQ5gn+0Em6lFkrx6ilue5rvENWRsnorVaz3ssMvVJdTYkLiU6cg6z+P2nKR1T6Tih3N8P3xpq7Xqpgc7ig==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ie4234iqMOM9pY3UCPLVMw5t/U6dDG5fTTC9ZHtnxM4=;
- b=KeVQouX1xWbcec6EczaH7Ngs40YjJSmHz5vGPwB79ZhipN00sBiQo/qu99om8dy4kJnll5iWAEypoSYcrIeDNbo1uG4gB5YhQ6AYmn2vDc7eSvC3CwFnYaL48V5hIGUibhTjGNiK9We4lU/8wPOicUdi6PJhCxOyPKqKTv+OkNcqhhYy8M06aiwf188lZWcNCHlh3E3eY7tz8x/JBzPjVRorbqn2SceW0tLIIxw/rcOoXx7N0d6w7L1WwTU/hBvd5gXI6ehavCbu333XQxe/GdmeF5dwYVr9MnXRnVyN6+8krMOl52KXec73lYLs/7oAjr+mpK+qCaZZkPTyqMk5AA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from LV3PR11MB8603.namprd11.prod.outlook.com (2603:10b6:408:1b6::9)
- by MW3PR11MB4745.namprd11.prod.outlook.com (2603:10b6:303:5e::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.44; Wed, 26 Mar
- 2025 06:27:34 +0000
-Received: from LV3PR11MB8603.namprd11.prod.outlook.com
- ([fe80::4622:29cf:32b:7e5c]) by LV3PR11MB8603.namprd11.prod.outlook.com
- ([fe80::4622:29cf:32b:7e5c%4]) with mapi id 15.20.8534.043; Wed, 26 Mar 2025
- 06:27:34 +0000
-Date: Wed, 26 Mar 2025 14:27:14 +0800
-From: kernel test robot <oliver.sang@intel.com>
-To: Alistair Popple <apopple@nvidia.com>
-CC: <oe-lkp@lists.linux.dev>, <lkp@intel.com>, Andrew Morton
-	<akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, "Alison
- Schofield" <alison.schofield@intel.com>, Alexander Gordeev
-	<agordeev@linux.ibm.com>, Asahi Lina <lina@asahilina.net>, Balbir Singh
-	<balbirs@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas
-	<catalin.marinas@arm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Christoph Hellwig <hch@lst.de>, Chunyan Zhang <zhang.lyra@gmail.com>,
-	"Darrick J. Wong" <djwong@kernel.org>, Dave Chinner <david@fromorbit.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	David Hildenbrand <david@redhat.com>, Gerald Schaefer
-	<gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, "Huacai
- Chen" <chenhuacai@kernel.org>, Ira Weiny <ira.weiny@intel.com>, Jan Kara
-	<jack@suse.cz>, Jason Gunthorpe <jgg@nvidia.com>, Jason Gunthorpe
-	<jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, linmiaohe
-	<linmiaohe@huawei.com>, Logan Gunthorpe <logang@deltatee.com>, Matthew Wilcow
-	<willy@infradead.org>, Michael Camp Drill Sergeant Ellerman
-	<mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, Peter Xu
-	<peterx@redhat.com>, Sven Schnelle <svens@linux.ibm.com>, Ted Ts'o
-	<tytso@mit.edu>, Vasily Gorbik <gor@linux.ibm.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Vivek Goyal <vgoyal@redhat.com>, WANG Xuerui
-	<kernel@xen0n.name>, Will Deacon <will@kernel.org>,
-	<linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-xfs@vger.kernel.org>, <oliver.sang@intel.com>
-Subject: [linux-next:master] [fs/dax]  bde708f1a6:  xfstests.generic.462.fail
-Message-ID: <202503261308.e624272d-lkp@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-X-ClientProxiedBy: SI2PR02CA0017.apcprd02.prod.outlook.com
- (2603:1096:4:194::17) To LV3PR11MB8603.namprd11.prod.outlook.com
- (2603:10b6:408:1b6::9)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wq7N9B/R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 935AEC4CEE2;
+	Wed, 26 Mar 2025 16:20:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1743006036;
+	bh=fT6vyJWXrJFHw+WHik05GpC0tIuzAUjJrqq+9ioaJ28=;
+	h=Date:From:To:Cc:Subject:From;
+	b=Wq7N9B/RN+ANt1/83FYQTcsxpMqD8FjnMwsi2/GwKCQenlhzYe12JWTXPJO0fSv+K
+	 /6mXFtTaA/QCXveVjhmlMnq+K40++8pYS1dNaQsaDw+I1Moe56VHtViyXWqe3ec68J
+	 f6/6A/uleeb7hRRqgDTmIGSnfDXEn1o+QT1ZCjLmLPq9tteZxA4URWT80cbgh43yt0
+	 GHfJYVo7OdmhMHsYMdrPpe76tDYXqmw9gXjdIecuSvsHnK6rYv2IIie2Vdh/MG9cJH
+	 B5VeIP5EZa9Cn9rBIIx2l0qAiLTRDND1xYw4ZKND3awO+5gWskDKm1mTMiT9UVq22n
+	 noLgx7B+gxgew==
+Date: Wed, 26 Mar 2025 10:20:33 -0600
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To: Alison Schofield <alison.schofield@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-hardening@vger.kernel.org
+Subject: [PATCH v2][next] acpi: nfit: intel: Avoid multiple
+ -Wflex-array-member-not-at-end warnings
+Message-ID: <Z-QpUcxFCRByYcTA@kspp>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV3PR11MB8603:EE_|MW3PR11MB4745:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4816b4ba-e3b9-45da-3c3a-08dd6c2f4b4d
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|7416014|376014;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?TMZXkNgl8t9bLNTuEms95RYo+fa+N/0HvD1UbRSDpRkpJDb2iwGwEgEmjnY3?=
- =?us-ascii?Q?OQe0PVFQm8sOaozNzQ0gBDlEoXdN1EdLPDSlC7xpvpX7EdJDbvpXrzmv94sN?=
- =?us-ascii?Q?wofddTHKY4MCSahxO73E43wQHm0xuf5dsqSG1uWWDeuThqWuGj0anF9TxSbN?=
- =?us-ascii?Q?4k9+mTZBGg2Cerd4oFRyaIQaVMJBDBkYlEYmg2C2E39yByOWm6Ciw60VjyXi?=
- =?us-ascii?Q?6aXL29kEhUqmR79CDwbvwyRY7Bk7u/hnQdLwvzeF7T/klbHsDO5iW40bg0rT?=
- =?us-ascii?Q?S/RLMYSVW0fEdxKA3CmxXpJ/sIlodWephI7BGxknnvF1nhEnRWxTFFl+HXfq?=
- =?us-ascii?Q?A4qBbSWm9pQPuQh+fg06og/gHTzUvQYL3pn0OUEsBr+3ZR+8gLY78Tk9Rbjj?=
- =?us-ascii?Q?xdZ9KfsfdQSgtfm9KoFZcJLZGNb+aUdmAm1JGa/hJqGD+YJAUCH0pAo665JU?=
- =?us-ascii?Q?bgp1rc/27dRO3hjUdguBXtE/+6dX0gK8oohMH/35HnxXmRg35UQwmwCBsd6D?=
- =?us-ascii?Q?NQybz0tijMgvEG+1SoukxoHXpPP8iUP93zG63Nm+/N7kSTqCAv+UUAxMTV0F?=
- =?us-ascii?Q?m9bb09m38EW0XNYN1eK3fGE/nwipZDa2Bg0maiycMHuR+aYq68+LVAXJPK3q?=
- =?us-ascii?Q?3T21zk0FvhznWOUqOJG7kTD20NeMUwHkKtW8vqKsifAyw7sVJ5uCPQm9VPXu?=
- =?us-ascii?Q?BOvTriCeXTjCVbfCukG5YuQ3U2DmKlkQmC5HgPNL2j/H9LcmtWvuNwsmjNmL?=
- =?us-ascii?Q?iumPGGQhRO1XYNbSI7Nj1+MqitX2mWc/dD8M+eK/ZgyVeiTpivUTIFDWVWYJ?=
- =?us-ascii?Q?tbHUpDqJ1v9YhePAe8bwJhipukuqcBaX46lMb22RIf+C+iiMlRjlp6l6yR09?=
- =?us-ascii?Q?j+SBWp7vMfFcG/Ld2xUniI0SUw6s0u+WW1IKowdiA0QTwfC1YhILl4Jpooyf?=
- =?us-ascii?Q?0WWf4i3I3LZ1y+6snf71JTxvutgllIqUyqrMeaNx0TVgzT5cHPBU54vWBvEL?=
- =?us-ascii?Q?VDXAIN2F/fy0XFw8MEWPxypYFgh0sAN5F2aS2JLOVU9ILtreU7sMJM9Ptz89?=
- =?us-ascii?Q?4y/9E5Y3hQcZeLQagBXgQ7zbgJm58AjJiVqvnkCso0ZBDQJtlJx+hadMslsG?=
- =?us-ascii?Q?XkQ+fQkw6s10c8AYDEW4SG77hQ6nChBf0W+F3g3mKZJ6Su76kskGcXTsF5hC?=
- =?us-ascii?Q?AVcLCGkSWPcgoIqWz/UpP310bor1kZpNE5PXMMhuAD6H9KXefylD215wVvfX?=
- =?us-ascii?Q?jnoZod5hQT1hf7+73cL7ccrOe6PfwyqKLfsUYR8Z3aK6sIpFIyarRSPyBlrB?=
- =?us-ascii?Q?RANZMedbxC74P43HLfNJcfTq+Yz08JGtIBPuT1o2v88Sbg=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV3PR11MB8603.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?HL3P2hmDvMit6JKPmJCacIdf/dp9PN3jJGwJB1XHcELbdfHDE/qvs1ouJSgs?=
- =?us-ascii?Q?Ob2TJh9geY9+a2T+2dVb8vwa18sKUig3GXeHH3fZ+eW/juGdOAV2sBea2Vw/?=
- =?us-ascii?Q?c3RfIGMN16sWr+Vh8fkZ2xXzU9JsYNQcBZoorkHwavUe+jpfd5Mg5zwUwER0?=
- =?us-ascii?Q?4VfVluswVcNR/WxaYVkrsJpl+Jj0hPBSbWWzaZ1pGe1G/e16JNB5824J/Mls?=
- =?us-ascii?Q?OAxJk6Dzliw0YyWEQ76cE6QMzy1g6aVq54gVe7qAmT0umkMXHvCXYk74aJkG?=
- =?us-ascii?Q?rsdtL9f2DJZYdkSjg54hEmMyEakdorq0otHRxmoSYxFxVsz/1RIfEBCGPqR+?=
- =?us-ascii?Q?Cj33I9gHZntYYfSBQ+J3bu+Iar8X36jfjrA/AWFCSOqy6GUbdKCA8inM0+0v?=
- =?us-ascii?Q?IXRLnvxPBeRREmCUKtOt9TUOTMA5vq1u8TuYnrtd2aIrD7aHNk/WY2HEElnl?=
- =?us-ascii?Q?O7iDe6DC57y8G70bQK0957LdXJY3KEuEWdRo17iKXNeJ8yXhzLSlKZxHDpQY?=
- =?us-ascii?Q?vtmwO0y9yCiCYMcnrAKi+Kkom+d3GmCihI4rp1d7lTvU2aT/sgPqfc0YY521?=
- =?us-ascii?Q?3RRjhgNRDd0lATXhwB+8QyX68JZ7KUPnFYUqyVwYR9vK1Mf2ZBKCGEYOvETd?=
- =?us-ascii?Q?XOqVJbi0Eile+m2b8imzU0QY1a8/KWSMP15FAItUQeEnkISigGtWeW5AxpFi?=
- =?us-ascii?Q?O5iviO/FpGoMpRFHZSVuLxCqOXWnTpqs0YKp+ba2qrrHY9JtH1hwpDxotsT8?=
- =?us-ascii?Q?lJXGl76xdyvZkIfssP9bMTqiPaPlxhvhRAQFN7c8eT1hbeu5neg8F0xrbqIV?=
- =?us-ascii?Q?DV4BpsmQn6xQD7XV5p61ILlhFB06ntktkIV2CDV94d3t3AS4eR2pSR2yYCrp?=
- =?us-ascii?Q?IYLHnGg4uc5dlew/hcbOIPMFhRhWQs1wHR9FMVdvUcT91UVnkzVriKW8lubb?=
- =?us-ascii?Q?jrMCnoS9R3if4WUyd7h/0OFZrPHu6PLv87/pECxK+nsATCFPHkYBibSIdz8s?=
- =?us-ascii?Q?6F9o8oSvHQfxvSmoCbqZvCm6VN9GSLJIS42U3uQlY7UJIWjFKexATC+tDZRG?=
- =?us-ascii?Q?NEqOIQzoJdRW7b5IUlyo256U+ODczXHJ6f9yxbq/0JVyEpJ/mH1rYeG/bvex?=
- =?us-ascii?Q?lIQuDSbymmzIJWVyE7O82GBRg0bHUf0EOzv4Nqh1To0i9+B7ZC8D7mOi0qL2?=
- =?us-ascii?Q?9MRk9F22AiyLjFoq2XV8VjCWZD8gKAYIGlypp58lnWIaLCLg8eObPDKNvhKm?=
- =?us-ascii?Q?PknNmQLWk3FyjufHZLVfEgVRnqOW9cEzj4GPmbdjt3S7Gisw57gpWmKmr/dr?=
- =?us-ascii?Q?pRIJ5PzDxZE3ThtBWX4rS0znQnO3WB67uTh1b61UHqSO1/mxIiPdI423xNh/?=
- =?us-ascii?Q?+c2b3C4aaQixAAsh3TrvKATLnTcOfKLMoI31jjImghAqxSZKQJGNtRITmMYI?=
- =?us-ascii?Q?eyOHbv8JGKK2kMzkCrt6HZpeS1w0UX6ja0hw8bD4kUvPr4SI+toUrE1/0i8A?=
- =?us-ascii?Q?Ev7kT8RvMFv3+ZYSqpMl+Gp3r7oV7/0p9otXQK8b90RIj4SvnJIBZ/zTZ4Db?=
- =?us-ascii?Q?yCU9LKPpcLC1NjiuhDtDn6P39qlluXhdllHSceztUsFjkvZlRylMmKDZK6fY?=
- =?us-ascii?Q?IQ=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4816b4ba-e3b9-45da-3c3a-08dd6c2f4b4d
-X-MS-Exchange-CrossTenant-AuthSource: LV3PR11MB8603.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Mar 2025 06:27:34.0257
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: oiEodCd+0nUDzY1vJj31LlfpYTUMqr+aKhcSZQzvcsF5vCnydQCAdkU3p0gg8zE68DTtMkiKKqv0/cHWB+ECgQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4745
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+-Wflex-array-member-not-at-end was introduced in GCC-14, and we are
+getting ready to enable it, globally.
 
+Use the `DEFINE_RAW_FLEX()` helper for on-stack definitions of
+a flexible structure where the size of the flexible-array member
+is known at compile-time, and refactor the rest of the code,
+accordingly.
 
-Hello,
+So, with these changes, fix a dozen of the following warnings:
 
-kernel test robot noticed "xfstests.generic.462.fail" on:
+drivers/acpi/nfit/intel.c:692:35: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
 
-commit: bde708f1a65d025c45575bfe1e7bf7bdf7e71e87 ("fs/dax: always remove DAX page-cache entries when breaking layouts")
-https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git master
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+Changes in v2:
+ - Use DEFINE_RAW_FLEX() instead of __struct_group().
 
-in testcase: xfstests
-version: xfstests-x86_64-8467552f-1_20241215
-with following parameters:
+v1:
+ - Link: https://lore.kernel.org/linux-hardening/Z618ILbAR8YAvTkd@kspp/
 
-	bp1_memmap: 4G!8G
-	bp2_memmap: 4G!10G
-	bp3_memmap: 4G!16G
-	bp4_memmap: 4G!22G
-	nr_pmem: 4
-	fs: ext2
-	test: generic-462
+ drivers/acpi/nfit/intel.c | 388 ++++++++++++++++++--------------------
+ 1 file changed, 179 insertions(+), 209 deletions(-)
 
-
-
-config: x86_64-rhel-9.4-func
-compiler: gcc-12
-test machine: 8 threads Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz (Skylake) with 28G memory
-
-(please refer to attached dmesg/kmsg for entire log/backtrace)
-
-
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <oliver.sang@intel.com>
-| Closes: https://lore.kernel.org/oe-lkp/202503261308.e624272d-lkp@intel.com
-
-
-The kernel config and materials to reproduce are available at:
-https://download.01.org/0day-ci/archive/20250326/202503261308.e624272d-lkp@intel.com
-
-
-2025-03-24 01:16:32 export TEST_DIR=/fs/pmem0
-2025-03-24 01:16:32 export TEST_DEV=/dev/pmem0
-2025-03-24 01:16:32 export FSTYP=ext2
-2025-03-24 01:16:32 export SCRATCH_MNT=/fs/scratch
-2025-03-24 01:16:32 mkdir /fs/scratch -p
-2025-03-24 01:16:32 export SCRATCH_DEV=/dev/pmem3
-2025-03-24 01:16:32 echo generic/462
-2025-03-24 01:16:32 ./check -E tests/exclude/ext2 generic/462
-FSTYP         -- ext2
-PLATFORM      -- Linux/x86_64 lkp-skl-d01 6.14.0-rc6-00297-gbde708f1a65d #1 SMP PREEMPT_DYNAMIC Mon Mar 24 08:39:37 CST 2025
-MKFS_OPTIONS  -- -F /dev/pmem3
-MOUNT_OPTIONS -- -o acl,user_xattr /dev/pmem3 /fs/scratch
-
-generic/462       _check_dmesg: something found in dmesg (see /lkp/benchmarks/xfstests/results//generic/462.dmesg)
-
-Ran: generic/462
-Failures: generic/462
-Failed 1 of 1 tests
-
-
-
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 3902759abcba..114d5b3bb39b 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -55,21 +55,17 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	unsigned long security_flags = 0;
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_get_security_state cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_out =
+-				sizeof(struct nd_intel_get_security_state),
+-			.nd_fw_size =
+-				sizeof(struct nd_intel_get_security_state),
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_get_security_state));
++	struct nd_intel_get_security_state *cmd =
++			(struct nd_intel_get_security_state *)nd_cmd->nd_payload;
+ 	int rc;
+ 
++	nd_cmd->nd_command = NVDIMM_INTEL_GET_SECURITY_STATE;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_out = sizeof(struct nd_intel_get_security_state);
++	nd_cmd->nd_fw_size = sizeof(struct nd_intel_get_security_state);
++
+ 	if (!test_bit(NVDIMM_INTEL_GET_SECURITY_STATE, &nfit_mem->dsm_mask))
+ 		return 0;
+ 
+@@ -81,33 +77,34 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+ 	if (nvdimm_in_overwrite(nvdimm) && ptype == NVDIMM_USER)
+ 		return BIT(NVDIMM_SECURITY_OVERWRITE);
+ 
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+-	if (rc < 0 || nd_cmd.cmd.status) {
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
++	if (rc < 0 || cmd->status) {
+ 		pr_err("%s: security state retrieval failed (%d:%#x)\n",
+-				nvdimm_name(nvdimm), rc, nd_cmd.cmd.status);
++				nvdimm_name(nvdimm), rc, cmd->status);
+ 		return 0;
+ 	}
+ 
+ 	/* check and see if security is enabled and locked */
+ 	if (ptype == NVDIMM_MASTER) {
+-		if (nd_cmd.cmd.extended_state & ND_INTEL_SEC_ESTATE_ENABLED)
++		if (cmd->extended_state & ND_INTEL_SEC_ESTATE_ENABLED)
+ 			set_bit(NVDIMM_SECURITY_UNLOCKED, &security_flags);
+ 		else
+ 			set_bit(NVDIMM_SECURITY_DISABLED, &security_flags);
+-		if (nd_cmd.cmd.extended_state & ND_INTEL_SEC_ESTATE_PLIMIT)
++		if (cmd->extended_state & ND_INTEL_SEC_ESTATE_PLIMIT)
+ 			set_bit(NVDIMM_SECURITY_FROZEN, &security_flags);
+ 		return security_flags;
+ 	}
+ 
+-	if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_UNSUPPORTED)
++	if (cmd->state & ND_INTEL_SEC_STATE_UNSUPPORTED)
+ 		return 0;
+ 
+-	if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
+-		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
+-		    nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
++	if (cmd->state & ND_INTEL_SEC_STATE_ENABLED) {
++		if (cmd->state & ND_INTEL_SEC_STATE_FROZEN ||
++		    cmd->state & ND_INTEL_SEC_STATE_PLIMIT)
+ 			set_bit(NVDIMM_SECURITY_FROZEN, &security_flags);
+ 
+-		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
++		if (cmd->state & ND_INTEL_SEC_STATE_LOCKED)
+ 			set_bit(NVDIMM_SECURITY_LOCKED, &security_flags);
+ 		else
+ 			set_bit(NVDIMM_SECURITY_UNLOCKED, &security_flags);
+@@ -120,26 +117,25 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+ static int intel_security_freeze(struct nvdimm *nvdimm)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_freeze_lock cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_out = ND_INTEL_STATUS_SIZE,
+-			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_freeze_lock));
++	struct nd_intel_freeze_lock *cmd =
++			(struct nd_intel_freeze_lock *)nd_cmd->nd_payload;
+ 	int rc;
+ 
++	nd_cmd->nd_command = NVDIMM_INTEL_FREEZE_LOCK;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_out = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_fw_size = ND_INTEL_STATUS_SIZE;
++
+ 	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 	if (rc < 0)
+ 		return rc;
+-	if (nd_cmd.cmd.status)
++	if (cmd->status)
+ 		return -EIO;
+ 	return 0;
+ }
+@@ -153,32 +149,31 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 	unsigned int cmd = ptype == NVDIMM_MASTER ?
+ 		NVDIMM_INTEL_SET_MASTER_PASSPHRASE :
+ 		NVDIMM_INTEL_SET_PASSPHRASE;
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_set_passphrase cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
+-			.nd_size_out = ND_INTEL_STATUS_SIZE,
+-			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-			.nd_command = cmd,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_set_passphrase));
++	struct nd_intel_set_passphrase *cmd_pp =
++			(struct nd_intel_set_passphrase *)nd_cmd->nd_payload;
+ 	int rc;
+ 
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2;
++	nd_cmd->nd_size_out = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_fw_size = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_command = cmd;
++
+ 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+-	memcpy(nd_cmd.cmd.old_pass, old_data->data,
+-			sizeof(nd_cmd.cmd.old_pass));
+-	memcpy(nd_cmd.cmd.new_pass, new_data->data,
+-			sizeof(nd_cmd.cmd.new_pass));
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	memcpy(cmd_pp->old_pass, old_data->data,
++			sizeof(cmd_pp->old_pass));
++	memcpy(cmd_pp->new_pass, new_data->data,
++			sizeof(cmd_pp->new_pass));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	switch (nd_cmd.cmd.status) {
++	switch (cmd_pp->status) {
+ 	case 0:
+ 		return 0;
+ 	case ND_INTEL_STATUS_INVALID_PASS:
+@@ -195,29 +190,28 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key_data)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_unlock_unit cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_UNLOCK_UNIT,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
+-			.nd_size_out = ND_INTEL_STATUS_SIZE,
+-			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_unlock_unit));
++	struct nd_intel_unlock_unit *cmd =
++			(struct nd_intel_unlock_unit *)nd_cmd->nd_payload;
+ 	int rc;
+ 
++	nd_cmd->nd_command = NVDIMM_INTEL_UNLOCK_UNIT;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_in = ND_INTEL_PASSPHRASE_SIZE;
++	nd_cmd->nd_size_out = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_fw_size = ND_INTEL_STATUS_SIZE;
++
+ 	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+-	memcpy(nd_cmd.cmd.passphrase, key_data->data,
+-			sizeof(nd_cmd.cmd.passphrase));
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	memcpy(cmd->passphrase, key_data->data,
++			sizeof(cmd->passphrase));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 	if (rc < 0)
+ 		return rc;
+-	switch (nd_cmd.cmd.status) {
++	switch (cmd->status) {
+ 	case 0:
+ 		break;
+ 	case ND_INTEL_STATUS_INVALID_PASS:
+@@ -234,29 +228,28 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+ {
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_disable_passphrase cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
+-			.nd_size_out = ND_INTEL_STATUS_SIZE,
+-			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_disable_passphrase));
++	struct nd_intel_disable_passphrase *cmd =
++			(struct nd_intel_disable_passphrase *)nd_cmd->nd_payload;
++
++	nd_cmd->nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_in = ND_INTEL_PASSPHRASE_SIZE;
++	nd_cmd->nd_size_out = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_fw_size = ND_INTEL_STATUS_SIZE;
+ 
+ 	if (!test_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+-	memcpy(nd_cmd.cmd.passphrase, key_data->data,
+-			sizeof(nd_cmd.cmd.passphrase));
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	memcpy(cmd->passphrase, key_data->data,
++			sizeof(cmd->passphrase));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	switch (nd_cmd.cmd.status) {
++	switch (cmd->status) {
+ 	case 0:
+ 		break;
+ 	case ND_INTEL_STATUS_INVALID_PASS:
+@@ -277,29 +270,28 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	unsigned int cmd = ptype == NVDIMM_MASTER ?
+ 		NVDIMM_INTEL_MASTER_SECURE_ERASE : NVDIMM_INTEL_SECURE_ERASE;
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_secure_erase cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
+-			.nd_size_out = ND_INTEL_STATUS_SIZE,
+-			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-			.nd_command = cmd,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_secure_erase));
++	struct nd_intel_secure_erase *cmd_se =
++			(struct nd_intel_secure_erase *)nd_cmd->nd_payload;
++
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_in = ND_INTEL_PASSPHRASE_SIZE;
++	nd_cmd->nd_size_out = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_fw_size = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_command = cmd;
+ 
+ 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+-	memcpy(nd_cmd.cmd.passphrase, key->data,
+-			sizeof(nd_cmd.cmd.passphrase));
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	memcpy(cmd_se->passphrase, key->data,
++			sizeof(cmd_se->passphrase));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	switch (nd_cmd.cmd.status) {
++	switch (cmd_se->status) {
+ 	case 0:
+ 		break;
+ 	case ND_INTEL_STATUS_NOT_SUPPORTED:
+@@ -318,26 +310,25 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ {
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_query_overwrite cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_out = ND_INTEL_STATUS_SIZE,
+-			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_query_overwrite));
++	struct nd_intel_query_overwrite *cmd =
++			(struct nd_intel_query_overwrite *)nd_cmd->nd_payload;
++
++	nd_cmd->nd_command = NVDIMM_INTEL_QUERY_OVERWRITE;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_out = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_fw_size = ND_INTEL_STATUS_SIZE;
+ 
+ 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	switch (nd_cmd.cmd.status) {
++	switch (cmd->status) {
+ 	case 0:
+ 		break;
+ 	case ND_INTEL_STATUS_OQUERY_INPROGRESS:
+@@ -354,29 +345,28 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ {
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_overwrite cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_OVERWRITE,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
+-			.nd_size_out = ND_INTEL_STATUS_SIZE,
+-			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_overwrite));
++	struct nd_intel_overwrite *cmd =
++			(struct nd_intel_overwrite *)nd_cmd->nd_payload;
++
++	nd_cmd->nd_command = NVDIMM_INTEL_OVERWRITE;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_in = ND_INTEL_PASSPHRASE_SIZE;
++	nd_cmd->nd_size_out = ND_INTEL_STATUS_SIZE;
++	nd_cmd->nd_fw_size = ND_INTEL_STATUS_SIZE;
+ 
+ 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+-	memcpy(nd_cmd.cmd.passphrase, nkey->data,
+-			sizeof(nd_cmd.cmd.passphrase));
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	memcpy(cmd->passphrase, nkey->data,
++			sizeof(cmd->passphrase));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	switch (nd_cmd.cmd.status) {
++	switch (cmd->status) {
+ 	case 0:
+ 		return 0;
+ 	case ND_INTEL_STATUS_OVERWRITE_UNSUPPORTED:
+@@ -407,24 +397,18 @@ const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
+ static int intel_bus_fwa_businfo(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nd_intel_bus_fw_activate_businfo *info)
+ {
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_bus_fw_activate_businfo cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO,
+-			.nd_family = NVDIMM_BUS_FAMILY_INTEL,
+-			.nd_size_out =
+-				sizeof(struct nd_intel_bus_fw_activate_businfo),
+-			.nd_fw_size =
+-				sizeof(struct nd_intel_bus_fw_activate_businfo),
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_bus_fw_activate_businfo));
+ 	int rc;
+ 
+-	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd),
+-			NULL);
+-	*info = nd_cmd.cmd;
++	nd_cmd->nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO;
++	nd_cmd->nd_family = NVDIMM_BUS_FAMILY_INTEL;
++	nd_cmd->nd_size_out = sizeof(struct nd_intel_bus_fw_activate_businfo);
++	nd_cmd->nd_fw_size = sizeof(struct nd_intel_bus_fw_activate_businfo);
++
++	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CALL, nd_cmd,
++			    __struct_size(nd_cmd), NULL);
++	*info = *(struct nd_intel_bus_fw_activate_businfo *)nd_cmd->nd_payload;
+ 	return rc;
+ }
+ 
+@@ -518,33 +502,28 @@ static enum nvdimm_fwa_capability intel_bus_fwa_capability(
+ static int intel_bus_fwa_activate(struct nvdimm_bus_descriptor *nd_desc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_bus_fw_activate cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE,
+-			.nd_family = NVDIMM_BUS_FAMILY_INTEL,
+-			.nd_size_in = sizeof(nd_cmd.cmd.iodev_state),
+-			.nd_size_out =
+-				sizeof(struct nd_intel_bus_fw_activate),
+-			.nd_fw_size =
+-				sizeof(struct nd_intel_bus_fw_activate),
+-		},
+-		/*
+-		 * Even though activate is run from a suspended context,
+-		 * for safety, still ask platform firmware to force
+-		 * quiesce devices by default. Let a module
+-		 * parameter override that policy.
+-		 */
+-		.cmd = {
+-			.iodev_state = acpi_desc->fwa_noidle
+-				? ND_INTEL_BUS_FWA_IODEV_OS_IDLE
+-				: ND_INTEL_BUS_FWA_IODEV_FORCE_IDLE,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_bus_fw_activate));
++	struct nd_intel_bus_fw_activate *cmd =
++			(struct nd_intel_bus_fw_activate *)nd_cmd->nd_payload;
+ 	int rc;
+ 
++	nd_cmd->nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE;
++	nd_cmd->nd_family = NVDIMM_BUS_FAMILY_INTEL;
++	nd_cmd->nd_size_in = sizeof(cmd->iodev_state);
++	nd_cmd->nd_size_out = sizeof(struct nd_intel_bus_fw_activate);
++	nd_cmd->nd_fw_size = sizeof(struct nd_intel_bus_fw_activate);
++
++	/*
++	 * Even though activate is run from a suspended context,
++	 * for safety, still ask platform firmware to force
++	 * quiesce devices by default. Let a module
++	 * parameter override that policy.
++	 */
++	cmd->iodev_state = acpi_desc->fwa_noidle
++				? ND_INTEL_BUS_FWA_IODEV_OS_IDLE
++				: ND_INTEL_BUS_FWA_IODEV_FORCE_IDLE;
++
+ 	switch (intel_bus_fwa_state(nd_desc)) {
+ 	case NVDIMM_FWA_ARMED:
+ 	case NVDIMM_FWA_ARM_OVERFLOW:
+@@ -553,8 +532,8 @@ static int intel_bus_fwa_activate(struct nvdimm_bus_descriptor *nd_desc)
+ 		return -ENXIO;
+ 	}
+ 
+-	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd),
+-			NULL);
++	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CALL, nd_cmd,
++			    __struct_size(nd_cmd), NULL);
+ 
+ 	/*
+ 	 * Whether the command succeeded, or failed, the agent checking
+@@ -582,23 +561,18 @@ const struct nvdimm_bus_fw_ops *intel_bus_fw_ops = &__intel_bus_fw_ops;
+ static int intel_fwa_dimminfo(struct nvdimm *nvdimm,
+ 		struct nd_intel_fw_activate_dimminfo *info)
+ {
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_fw_activate_dimminfo cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_out =
+-				sizeof(struct nd_intel_fw_activate_dimminfo),
+-			.nd_fw_size =
+-				sizeof(struct nd_intel_fw_activate_dimminfo),
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_fw_activate_dimminfo));
+ 	int rc;
+ 
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+-	*info = nd_cmd.cmd;
++	nd_cmd->nd_command = NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_out = sizeof(struct nd_intel_fw_activate_dimminfo);
++	nd_cmd->nd_fw_size = sizeof(struct nd_intel_fw_activate_dimminfo);
++
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
++	*info = *(struct nd_intel_fw_activate_dimminfo *)nd_cmd->nd_payload;
+ 	return rc;
+ }
+ 
+@@ -688,27 +662,22 @@ static int intel_fwa_arm(struct nvdimm *nvdimm, enum nvdimm_fwa_trigger arm)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
+-	struct {
+-		struct nd_cmd_pkg pkg;
+-		struct nd_intel_fw_activate_arm cmd;
+-	} nd_cmd = {
+-		.pkg = {
+-			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_ARM,
+-			.nd_family = NVDIMM_FAMILY_INTEL,
+-			.nd_size_in = sizeof(nd_cmd.cmd.activate_arm),
+-			.nd_size_out =
+-				sizeof(struct nd_intel_fw_activate_arm),
+-			.nd_fw_size =
+-				sizeof(struct nd_intel_fw_activate_arm),
+-		},
+-		.cmd = {
+-			.activate_arm = arm == NVDIMM_FWA_ARM
+-				? ND_INTEL_DIMM_FWA_ARM
+-				: ND_INTEL_DIMM_FWA_DISARM,
+-		},
+-	};
++	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
++			sizeof(struct nd_intel_fw_activate_arm));
++	struct nd_intel_fw_activate_arm *cmd =
++			(struct nd_intel_fw_activate_arm *)nd_cmd->nd_payload;
+ 	int rc;
+ 
++	nd_cmd->nd_command = NVDIMM_INTEL_FW_ACTIVATE_ARM;
++	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
++	nd_cmd->nd_size_in = sizeof(cmd->activate_arm);
++	nd_cmd->nd_size_out = sizeof(struct nd_intel_fw_activate_arm);
++	nd_cmd->nd_fw_size = sizeof(struct nd_intel_fw_activate_arm);
++
++	cmd->activate_arm = arm == NVDIMM_FWA_ARM
++					? ND_INTEL_DIMM_FWA_ARM
++					: ND_INTEL_DIMM_FWA_DISARM;
++
+ 	switch (intel_fwa_state(nvdimm)) {
+ 	case NVDIMM_FWA_INVALID:
+ 		return -ENXIO;
+@@ -733,7 +702,8 @@ static int intel_fwa_arm(struct nvdimm *nvdimm, enum nvdimm_fwa_trigger arm)
+ 	acpi_desc->fwa_state = NVDIMM_FWA_INVALID;
+ 	nfit_mem->fwa_state = NVDIMM_FWA_INVALID;
+ 
+-	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, nd_cmd, __struct_size(nd_cmd),
++			NULL);
+ 
+ 	dev_dbg(acpi_desc->dev, "%s result: %d\n", arm == NVDIMM_FWA_ARM
+ 			? "arm" : "disarm", rc);
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.43.0
 
