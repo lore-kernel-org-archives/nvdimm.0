@@ -1,130 +1,222 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF66B214A96
-	for <nvdimm@lists.linux.dev>; Mon, 31 Mar 2025 18:27:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743445662; cv=none; b=mNcXza1CvDnXymV+SHhcRO6BTGlPFqocHsE8UuWArNhvLO0WNJ+HRcAYUl8W+rI0NhE98qRz6/hOX1PnWubPOMnukkJMZGXmfyEReB/6B9NBiGjRd2V+rOSFs8yXcyLjVp0WPoRCrTafstrsZnmhywKxSVKMQeb+bNw7i5kzaoM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743445662; c=relaxed/simple;
-	bh=zRT/zRjU6jVJSZn+qcLAB6z0VYtkrXkjOuI/iNaf2A0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AqtPwJwm1imDoMDY7Y8RZiJcGOjXrWQTwQBr4AURwp61yX/AyAJ+OFzgFaQtv4Nvxj2fjoWRoDgqRqtlDTvwDQOgQIVEcTh2cwFqrEi3EnO3k7R3NTemfWNH0cT7sjyJLM4tBb2jiQ9mBETjDPXTFS4r2GXt/WBpm0Aj9tvua6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Sio9TkCq; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7C321B9D1
+	for <nvdimm@lists.linux.dev>; Mon, 31 Mar 2025 21:16:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1743455805; cv=fail; b=l4iYh+uwcxboG0ttf2jMw0n0bpTv5ediDWKNX6RIFfIEiZm/LgyeXlfJplGq+YKAmYUCuNXe9+1Z/GL0w/Xfa9rKdy59nRwixaAs0MqO6Wm7IQoZFWnhH2tTV05jqgEuHgVVTLZhTzrMLM6w9cjXFR7b6oeDHRMrcyXSIAQn28c=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1743455805; c=relaxed/simple;
+	bh=Pjs7KSPsmH02DPXEEe4mMU0WZxBPykY+DP2yUDMPawQ=;
+	h=Date:From:To:CC:Subject:Message-ID:Content-Type:
+	 Content-Disposition:MIME-Version; b=Ryrwn/3mdtH4xRAF3uDuYwRmWsShIGN2JwwZC4L6gX7nCtTGl0r0TkOhtaVgtlJIhilW1EBWNRYFsh/KCQZ6oiLQ7ofPYY7zd0zP66XwQX0kJv+hBbJEeql2chGuZBlaODmfd9rbzhSF/8xuCGD7qDLsZvSRLhIieZCQ5yUmm+U=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FErCwg+P; arc=fail smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Sio9TkCq"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-476f4e9cf92so35545391cf.3
-        for <nvdimm@lists.linux.dev>; Mon, 31 Mar 2025 11:27:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1743445659; x=1744050459; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=LZeAYSY+ZaMayGoTv0WvIa7xoyxPKFeQjfsqEI/he9A=;
-        b=Sio9TkCq5zayIK54Z1//R2i7UkzIkU2LHFR9r1RBEG6kgTty25xHvHklTRoMEgdvgT
-         AYQ984fCmH/KIKs3bMZUsy0L75gW1tVOIkKoOvLR6MwViNEd3WAt/yatWXjxvb07GBXm
-         3jSL/jjxtbinvOrZP5JVEpF9O72rwZGy6ukmw4YOCxc3o00IkkeM3uRktrAAA481UKV6
-         zpwtLUNQgakrmVgRiHWoaNjoPfp0NLdr19fMUUQoSkZB9ocPiNrqPZsbr0mwf9ffu77+
-         p8Rz/TbEn8AmzcGVzg5crNVCLqi1yy88SbScxK4aUCGYWaENjU3JO7+xiX/In3CmoC1U
-         za1w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743445659; x=1744050459;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LZeAYSY+ZaMayGoTv0WvIa7xoyxPKFeQjfsqEI/he9A=;
-        b=hReXE+uxvzMx+EaZ0Rg0eXPJDguH3XlUd1ZwKefcTLEnx3ESYI79HAGC4mylZtW4TQ
-         VWummOhG7GF3kKVk7u6jidhXs7cR0aFWjBmEUaP4jaJAfTcY5SXNYS9nE8MJM4jik2pE
-         H6AnjO2aV7Ivuk8Y7MEtLuecnO+cJdUaIs+KHH5GC/SinoqRV9lIDprjdwarVsrN7VUV
-         7I119Vl2kmRdfqUtxiwK2YHX/9AKZdGiULC4ho7CC/zIki3XmOL5d8fABKTKDNHrwXSD
-         KmhZ4NvR2fiRtycXframTNVJhke2V5YVasK3JAZ5ioIcv605ZRJME8apR2JDnFkQc+3t
-         z6EA==
-X-Gm-Message-State: AOJu0YyngUtPIuPTt5gCi4A+XImIHl+RsAwrwX77I4DsAwYXVm99zTUz
-	uA5pQewWCxRofItwr7olZYdIUmR6acx1EmbTmJhsbf0MplsyfDqIHzEW2FxvqIQ=
-X-Gm-Gg: ASbGnctF94RMFQaalgXyNqpzzLpyng1mEFn94JCRaWuygvUaQUqqqkumD4UIVQ9oQ7H
-	eKNt4fdojDp6H8sj2Dn3rq3uaDTHGWtlEtELVCsGafUWzeowXthm+iUP3CNlTTogB2TgS2twrBB
-	rggCfoQRmhR6vu9iExSiURs7SeCVz0HZzWMUO5tLGf7PHqahmBLiUV9oC3QdnstYRFmzyYCsjc0
-	rQgx5X0gVRvF2drTBX8JASX90aHZkBucCc8OAAwjGTVoFbwQXdeDe+LX23CMOhuYY6g+U4c//Io
-	qV4MfAkEzDS4r9oJ9xdv81p99NWPPuPeD1i3WmwI7GWyJU+rOhKh9zEUqmZJzOBxPtitWjU167A
-	XvQ6QgcyArVgUMeMYZL+hy64A6Jg=
-X-Google-Smtp-Source: AGHT+IEd+3g87j+NE/c3E2rg8hxwNLiV/aqryel6Odt64jpWEXnougpu8f4ZHVyaNCsH9/emYY2gMw==
-X-Received: by 2002:a05:622a:291:b0:477:7007:7055 with SMTP id d75a77b69052e-477ed7c96cemr130037061cf.12.1743445658865;
-        Mon, 31 Mar 2025 11:27:38 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-56-208.washdc.fios.verizon.net. [173.79.56.208])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-477831a4446sm53218521cf.80.2025.03.31.11.27.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Mar 2025 11:27:38 -0700 (PDT)
-Date: Mon, 31 Mar 2025 14:27:36 -0400
-From: Gregory Price <gourry@gourry.net>
-To: dan.j.williams@intel.com
-Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	kernel-team@meta.com, dan.j.williams@intel.com,
-	vishal.l.verma@intel.com, dave.jiang@intel.com,
-	linux-cxl@vger.kernel.org, david@redhat.com
-Subject: Re: [PATCH] DAX: warn when kmem regions are truncated for memory
- block alignment.
-Message-ID: <Z-remBNWEej6KX3-@gourry-fedora-PF4VCD3F>
-References: <20250321180731.568460-1-gourry@gourry.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FErCwg+P"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1743455804; x=1774991804;
+  h=date:from:to:cc:subject:message-id:mime-version;
+  bh=Pjs7KSPsmH02DPXEEe4mMU0WZxBPykY+DP2yUDMPawQ=;
+  b=FErCwg+PDUvhNrOUkQe9GXpamj6Vqynwrpti5xdyR26CYs0Utkdkd6DZ
+   GD64IlCPbMo6toQtVCpv767Bufg2Bgh80exzpR9XW+WJ4cfShinxq87Kw
+   a0oM3ztTELCMQHiV/52sz38t4SkF1PEOQJ+5hkFeVsCYh5o4ZVVuORHLj
+   +2gF+JwiNjrJGa9pfHLJWMIEPGxAMHz1+aR9exJmNtDAh5qVWzSSgHMx6
+   hCF4HznICplME96x5vTG0jfyN6oyNwZwouNCzDK6sukvu5+ZVIIBVKLEF
+   P2RtXynW/gWlIXioFIrQBA2PcSUWcrXZGs+rHyJkOSplIlB9bk59qFTuo
+   w==;
+X-CSE-ConnectionGUID: 42H/zR+OSjGQedq0FmCCBg==
+X-CSE-MsgGUID: CfKpl4d9TSiXHJWIHR3jdQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11390"; a="44010070"
+X-IronPort-AV: E=Sophos;i="6.14,291,1736841600"; 
+   d="scan'208";a="44010070"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Mar 2025 14:16:43 -0700
+X-CSE-ConnectionGUID: JXhxStO3RYSRZkFwiRbISQ==
+X-CSE-MsgGUID: zPiNw7u6QACcgtkdG4RrHQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.14,291,1736841600"; 
+   d="scan'208";a="131410109"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by orviesa005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Mar 2025 14:16:43 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14; Mon, 31 Mar 2025 14:16:42 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14 via Frontend Transport; Mon, 31 Mar 2025 14:16:42 -0700
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.169)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Mon, 31 Mar 2025 14:16:42 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=qUptYOSwvZvkWyx8q6wLV3kzQdPMQLFwiHLfGXkEKEyc5FTziarQHr0hAWyEda9DrQEgMqzFuPuHDNNi3APi0K8IwejBhmKpiWaX5HOxK1IazZ+OBERijZnj7iB0ZiMXnDcyt8Up82LB+SNyU8i5qhe3MN2K/C1FV/M2QEKMeqLH3HZ3zKNXIaBIqYKqFtDVeKrjSSRu30/AvBZA9r2Ozd5TLRAabtEQiSftCPtx9XRRTYojXzg2wCGD1Mc9JEfkRtQtgw/6hTy8mgNhdOs9xInEZKj7aluEjPkq8Ta8MTXg4MbBl83LpE1mb7QpvWDUc2oIvkmUyeVHQ/ury0kPYg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=UkEsZkmhRlC45uqmf/6C/aXDUzaXNzR+XNID/u7FoUI=;
+ b=xk98548snNFtkWc2iYu0CjSbwj9Cv6ctArn6GiLjTOGbq2Ko/r5rM40Pj9hnV/ygjjTmHYuOXXrtsQ1kvR9bGeOxve9jlTH6+8h3Y/wovVF+a/cZvCPjYsEAoZmQvLyxTRF99gZeY85NNir/JX4JMboB8R0yXab8J8nHADrHXYcTADE+wd99jx84X61GxzTN38UaZVY270hdaQo7ibrG9HNZLjGQZzYon2hnqaz9mT6+U58vUidO3GIlV/LrVT7zOg/vXWnQVX0mQsoXuuN/Cxsh2vCE5eU1VKullovBYWxF9HCXKat70J+825IQC6ziRQnKvF/yshGfhfV+TYuuuA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by DS0PR11MB7786.namprd11.prod.outlook.com (2603:10b6:8:f2::8) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.8534.44; Mon, 31 Mar 2025 21:16:19 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57%5]) with mapi id 15.20.8534.052; Mon, 31 Mar 2025
+ 21:16:19 +0000
+Date: Mon, 31 Mar 2025 16:16:40 -0500
+From: Ira Weiny <ira.weiny@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Dan Williams <dan.j.williams@intel.com>, Dave Jiang
+	<dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>,
+	"Vishal Verma" <vishal.l.verma@intel.com>, Lukas Wunner <lukas@wunner.de>,
+	<linux-kernel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>
+Subject: [GIT PULL] NVDIMM for 6.15
+Message-ID: <67eb0638e6f4c_3b58229447@iweiny-mobl.notmuch>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+X-ClientProxiedBy: MW4PR04CA0345.namprd04.prod.outlook.com
+ (2603:10b6:303:8a::20) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250321180731.568460-1-gourry@gourry.net>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|DS0PR11MB7786:EE_
+X-MS-Office365-Filtering-Correlation-Id: cdd1823b-d3e9-4a85-1e51-08dd709947b5
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?xpPJbat5+5/+y/yQZyVA1ZW9pckYfrEeNOSOTZMtWYQ7UT3v7EoW28RUTzoJ?=
+ =?us-ascii?Q?Y/6GE/eYmF1fT6PZ5c0AyBky2whIm5NPRJKCNKQqaWzlDiQaIGeFFLMRahwC?=
+ =?us-ascii?Q?sI29vxUQ5N3ZxQQUEGbXkpdcj/3PABV70uSgeActvZ+VWbYzgRP7x9mFjds+?=
+ =?us-ascii?Q?4GBSloD60XYCQLPrJ60oBgu77wnA6mU59K5JoIOhUcCD+o1yMrug+S/wOuWu?=
+ =?us-ascii?Q?KzeZ3XXy9pHgkDfVL/YZMhn2OxmQRdAgTWKP3J3mJFtWfrc1HFNs/sPi+yix?=
+ =?us-ascii?Q?/d02nodAtvD6g85SmyaHJk3uMCiH540loqnCl87g73B5QpoTWVQ7Aydi38y8?=
+ =?us-ascii?Q?/oWKPWIfwRlVUD9U1B7j0RB8dw1gl9vurD2FIMbfgk3HeT3jOgqZmZux5Qo0?=
+ =?us-ascii?Q?DRlFN25RUOMVmLY3austzeFM24VREymbcO2qCtDas1suTOfJhPlePdbzHL56?=
+ =?us-ascii?Q?JoVq3xvR3T2P4XMqoqLSXuqzvjkNBYVB+ur3iRLjm/nljmNYu2Gc3UxO03DE?=
+ =?us-ascii?Q?0DIgnn0mhyx+aA4AhAlIPL+BTvp72Hm51RU7eQI8KRhtHXOdNdjC9+i1czwk?=
+ =?us-ascii?Q?9JpVa1gmKkkelycTgqaDzBrE1P1QaL2zc3V8tNH1eodE1Y/POfOd7zJlsFpB?=
+ =?us-ascii?Q?IqNAnN5Bkp0p8tbjhmpOq8UxEs9/iMnyJWg2ujRZM0JR1JryMPNyMLRpVHR5?=
+ =?us-ascii?Q?2BsrS3ptKsWrSvyAL9QgoohN+Q+91hcWbhq52vqkJtprfgzMg6lPbl4Vt+D5?=
+ =?us-ascii?Q?Pua06ay5pZ9DgHxjAUubGri+P/Y2MWD/U8E23g1nb4FSmZAfLMNn1mYv0EEp?=
+ =?us-ascii?Q?KNSkEBMT1Q1CppBijQ8ToHAFu/ql5r/W0Mdlg81CTdfedNfKVd73Rgs10LqI?=
+ =?us-ascii?Q?DuUVjy3Qj7sNJsJBMZ27A/mGgkWtPPfe64Gf4q8ViayGVH3X/l4ycKPa31Ra?=
+ =?us-ascii?Q?GT8akInkgOWBkw7TH8bpuCgGyJXupkHgECGoSWMzR70M39yK1iWtCQxukZJn?=
+ =?us-ascii?Q?xTJ+rjDlFcLsDT/DS+3umKl0YkdSBhAVlANXea1hJeuSV5kFZb38NMBe9f+X?=
+ =?us-ascii?Q?r1ucx4CFKyoC9KUVM5D8oeESRcYHlakQTc4pNd07oK2eB09UJmASW1D3HSrD?=
+ =?us-ascii?Q?MGTdN276oT1V2vuBszJcmHE18c2nhrcHjNCk9l1m23fFB27Uuklx2ByETxPf?=
+ =?us-ascii?Q?ghc8Ix0WZcxT/ubaZq2AGhOqPcx1ehNGVFxWXmwNL3vM+FsfXb65oMMf/tXx?=
+ =?us-ascii?Q?XkGA4vk7Mg6iERill/XlA+duyplh2J70TVhSISgiPCoXgtMOUiab+HREaCTP?=
+ =?us-ascii?Q?SJNKqBbn90Y7UNVWGeylnpxXCTKJOg3LqNiJWUnQ9NgFr8Q8gvJd1tiNX0qt?=
+ =?us-ascii?Q?pYp7apvwlKmB7XAGL5+ccu7TvoG+?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?0fRbebFFL4nswMaN+zjQn78tmbxTlC7hnqDgE6TVRg5Et4PsXvZrz3dYKbxh?=
+ =?us-ascii?Q?+GjZ6K9kYLMjpJIHXyZNHlRtIUxdrpfYej+nlWYDsXpWvaM1mBVNapIvDZqz?=
+ =?us-ascii?Q?qkxbc/Rbh2MbRORJ+eCRf1VSlaC4shn8JN3vTai6bOWfvm6XxGCHXStRq6Xi?=
+ =?us-ascii?Q?6JyUbB92Vk3r6J83QN8FY5bWIFR4gLx/Mq7i1kOJbwcSdWn6YXZImHFO0aB9?=
+ =?us-ascii?Q?J1Xu5xhDDfNX/a5WdKk4a/hvzqPUSoPf64lELI4AMC571pH7/11CvJ6l8CBa?=
+ =?us-ascii?Q?Z+4P6wPyPUdb/yhRi45+tMLic7tKpGRrAKv75Qk5ED04iDs2tFBSMu3XRLFB?=
+ =?us-ascii?Q?uQYM0a27OOE2U+BGIMvDA1mPR1sq16pqde3wsuXP5bysxyI0T0quC05rYBxc?=
+ =?us-ascii?Q?PwYzuXhOz6bso6ov4b4lzE8XBXTOaf1iDrk4LnwXCr0VjYSr9el7tA3QGAOn?=
+ =?us-ascii?Q?CXNe99cMqXFKrCXL/nr/7h5iNev8Svw6K0JTzkqKltkLLDkwFoe1PtMw+nnt?=
+ =?us-ascii?Q?gN0st1SreDDkkK8JAjqtV2yw4AMf8LcHKTVKTwhxdmSQU15uo4j8xJa+6eit?=
+ =?us-ascii?Q?ORot8SXF8Oc1VW9hpnW91ceWZQkxwqQp6sYSU8S+7H3oxdoaYadLm31MnypN?=
+ =?us-ascii?Q?pVeBl1rkitppSFHbLmgODGBdZygtKJE+n+QFI85RwK4qR15pml5fsKV9vRvy?=
+ =?us-ascii?Q?fAPGUNsuLl3+4Vj19k4bt6yV4Ciw/uwTA7RJJszUBYW9B5Y1NESdur1v5Tyk?=
+ =?us-ascii?Q?cIJeGWg5hABa1sH6wntQPlbSm/IWZsS8WWMYp+Y35+ksp5hauESlxxBNtbMD?=
+ =?us-ascii?Q?voHRP6F6jB/rRckSlg0kiQw4evILqezVQp9ZTmZipfVGLL+LRCKylOquGI60?=
+ =?us-ascii?Q?btij5Hr8pO/a31+Kvr0QzOGPQA+hRwTQhXq14iNu9xszUgvs2Yir3r+QnpUB?=
+ =?us-ascii?Q?C32exXyJ/21SzXUj37W9s+Djl66/wBMVFsj1nxJ9ib7W7Pcda1x+rbtU8KiB?=
+ =?us-ascii?Q?pwjVEPb5xC8OKzsAmOw4mN+GTuyIcExF9JeFPHl+9+pFQcZsZwAdQtYR0z2/?=
+ =?us-ascii?Q?N41bQ7JMbZhPYHET/mfCMZV7RvEpp93u9oWXbAMtrztQ024kaTC8sZzcvsib?=
+ =?us-ascii?Q?NeqVTUtELoABc33ApyWd6wvwCQFE1/Ad+4ZsoqrNz3EwCLUwpUOwfS8o36uT?=
+ =?us-ascii?Q?RkWxwLyGtE67NPNY2NkX+0K1HRUQehY3OgJOk+z+GAcqyZxGwfy9uuKf9tLU?=
+ =?us-ascii?Q?RVRR5DjwNfset2ZShO6SrKHU+aRc9IWi3BuhKUPZi5e5V2mOv4jzl5cOFpa1?=
+ =?us-ascii?Q?1jCyQkBE5zw5AE2Z10aS1/QYM5JsL7y23M10PW1huknCQYCA/qYKtwcu+fe2?=
+ =?us-ascii?Q?D9DVJIdfwQ2m78QzOOpy6pws6QNAjay+upryE0+zjGszVF8xaUk29u3jkSm9?=
+ =?us-ascii?Q?kdNmbsfG8VO9hktFVEk7iI0YHcGP5SlCwM0NzJOPWoyjkpZ9+z3OAev1aOXq?=
+ =?us-ascii?Q?icOA/NiUIxKdvndpprT2ZdkXCsLFnQy5hkG08RYaRnLRzZJFws8VmL9r21bC?=
+ =?us-ascii?Q?A+ZjqcaOF8XV0s/Zv3Ekh+dF8P/GDCRN07glwN57?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: cdd1823b-d3e9-4a85-1e51-08dd709947b5
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Mar 2025 21:16:19.3294
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: rubGEwinG3V+h+lNWqgmfGeTINl+cts+24VzcTTgPYAazPpzhxL4qH0C9yN0eJhuRBt8uKKdvp5hjFAw27HbNg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB7786
+X-OriginatorOrg: intel.com
 
-On Fri, Mar 21, 2025 at 02:07:31PM -0400, Gregory Price wrote:
-> Device capacity intended for use as system ram should be aligned to the
-> architecture-defined memory block size or that capacity will be silently
-> truncated and capacity stranded.
-> 
-> As hotplug dax memory becomes more prevelant, the memory block size
-> alignment becomes more important for platform and device vendors to
-> pay attention to - so this truncation should not be silent.
-> 
-> This issue is particularly relevant for CXL Dynamic Capacity devices,
-> whose capacity may arrive in spec-aligned but block-misaligned chunks.
-> 
-> Example:
->  [...] kmem dax0.0: dax region truncated 2684354560 bytes - alignment
->  [...] kmem dax1.0: dax region truncated 1610612736 bytes - alignment
-> 
-> Signed-off-by: Gregory Price <gourry@gourry.net>
+Linus,
 
-Gentle pokes.  There were a couple questions last week whether we should
-warn here or actually fix something in memory-hotplug.
+Please pull the following updates for the nvdimm tree.  Most of the code
+changes are to remove dead code.
 
-Notes from CXL Boot to Bash session discussions:
+The bug fixes are minor, Syzkaller and one for broken devices which are
+unlikely to be in the field.  So no need to backport them.
 
+All have been soaking in linux-next without issues.
 
-We discussed [1] how this auto-sizing can cause 1GB huge page
-allocation failures (assuming you online as ZONE_NORMAL). That means
-ACPI-informed sizing by default would potentially be harmful to existing
-systems and adding yet-another-boot-option just seems nasty.
+Thanks,
+Ira Weiny
 
-I've since dropped acpi-informed block size patch[2].  If there are opinions
-otherwise, I can continue pushing it.
+---
 
+The following changes since commit 7eb172143d5508b4da468ed59ee857c6e5e01da6:
 
-We also discussed[3] variable-sized blocks having some nasty corner cases.
-Not unsolvable, but doesn't help users in the short term.
+  Linux 6.14-rc5 (2025-03-02 11:48:20 -0800)
 
+are available in the Git repository at:
 
-There was some brief discussion about whether a hotplug memblock with a
-portion as offline pages would be possible.  This seems hacky?  There
-was another patch set discussing this, but I can't seem to find it.
+  git@gitolite.kernel.org:pub/scm/linux/kernel/git/nvdimm/nvdimm.git tags/libnvdimm-for-6.15
 
+for you to fetch changes up to ef1d3455bbc1922f94a91ed58d3d7db440652959:
 
-I debated whether to warn here or in ACPI.  This seemed more accurate,
-as platforms could simply over-reserve HPA space to avoid the issue.
+  libnvdimm/labels: Fix divide error in nd_label_data_init() (2025-03-20 16:54:27 -0500)
 
-Thoughts?
-~Gregory
+----------------------------------------------------------------
+libnvdimm additions for 6.15
 
-[1] https://lore.kernel.org/all/bda4cf52-d81a-4935-b45a-09e9439e33b6@redhat.com/
-[2] https://lore.kernel.org/linux-mm/20250127153405.3379117-1-gourry@gourry.net/
-[3]https://lore.kernel.org/all/b4b312c8-1117-45cd-a3c3-c8747aca51bd@redhat.com/
+	- 2 patches to remove dead code
+		nd_attach_ndns() and nd_region_conflict() have not been
+		used since 2017 and 2019 respectively
+	- Fix divide by 0 if device returns a broken LSA value
+	- Fix Syzkaller reported bug
+
+----------------------------------------------------------------
+Dr. David Alan Gilbert (2):
+      libnvdimm: Remove unused nd_region_conflict
+      libnvdimm: Remove unused nd_attach_ndns
+
+Murad Masimov (1):
+      acpi: nfit: fix narrowing conversion in acpi_nfit_ctl
+
+Robert Richter (1):
+      libnvdimm/labels: Fix divide error in nd_label_data_init()
+
+ drivers/acpi/nfit/core.c     |  2 +-
+ drivers/nvdimm/claim.c       | 11 -----------
+ drivers/nvdimm/label.c       |  3 ++-
+ drivers/nvdimm/nd-core.h     |  4 ----
+ drivers/nvdimm/region_devs.c | 41 -----------------------------------------
+ 5 files changed, 3 insertions(+), 58 deletions(-)
