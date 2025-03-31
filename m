@@ -1,249 +1,130 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57969197A8A
-	for <nvdimm@lists.linux.dev>; Thu, 27 Mar 2025 14:04:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.15
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743084282; cv=fail; b=E4urlL5TLCez/gdWOp2Nah6to3joxckgvwz+24Qtwm7ZY2p2IpFD7okVWKBioqSew5H2+sYHLd4YOJ3yYRj4Q7tiq3Gf39yKSiQbDRSFg7sOC6oBaclvp6D4JzlULiLPEunyjAkSV9oZWEPfFTS7vndlIn6ke/7QwpYx1x0Yl+A=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743084282; c=relaxed/simple;
-	bh=/WmpfakWmHC+aRT9xINoBx6NFM5PcRrClUkQoDXD1j4=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=PRsQ5i8oaDWahKt61X1MYIAwc9yR4g9GNrwRlM11J5Hfis+zZj06fV6InjPaAtNUebayIA5iJ21p8QaGGe7FmOsQfbX/eELglzbvMm6r4CoWzrXzj/ol/OJoHYtrJNVHjKUm5tUlsp+Y/wP3Me9Fb9TmK3oo4n84ujRbPWDQ+II=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OkwED3Rg; arc=fail smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF66B214A96
+	for <nvdimm@lists.linux.dev>; Mon, 31 Mar 2025 18:27:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1743445662; cv=none; b=mNcXza1CvDnXymV+SHhcRO6BTGlPFqocHsE8UuWArNhvLO0WNJ+HRcAYUl8W+rI0NhE98qRz6/hOX1PnWubPOMnukkJMZGXmfyEReB/6B9NBiGjRd2V+rOSFs8yXcyLjVp0WPoRCrTafstrsZnmhywKxSVKMQeb+bNw7i5kzaoM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1743445662; c=relaxed/simple;
+	bh=zRT/zRjU6jVJSZn+qcLAB6z0VYtkrXkjOuI/iNaf2A0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=AqtPwJwm1imDoMDY7Y8RZiJcGOjXrWQTwQBr4AURwp61yX/AyAJ+OFzgFaQtv4Nvxj2fjoWRoDgqRqtlDTvwDQOgQIVEcTh2cwFqrEi3EnO3k7R3NTemfWNH0cT7sjyJLM4tBb2jiQ9mBETjDPXTFS4r2GXt/WBpm0Aj9tvua6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Sio9TkCq; arc=none smtp.client-ip=209.85.160.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OkwED3Rg"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1743084280; x=1774620280;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=/WmpfakWmHC+aRT9xINoBx6NFM5PcRrClUkQoDXD1j4=;
-  b=OkwED3RgC6ZDpV+8A4CszHVUjYA4XSu7d0PCaO3oOKp21bbRVW/ubZ+N
-   zPbrKeNxsx8x9mInyK259HpLKCaiGUuNdK8iF8H2HLCK2vhWQGH7eMczs
-   6wf+1DAgLvB8DZ710+t+J6gZC3gjPFH03OkgpzC/ubBf/au6AoL4Z8V5I
-   DoSUODDa+OjDbKI/5WhqQ2ZUw5oxX2H1iyLqY1DQIpOYrSjk4fwVaPmEK
-   yYVXfYd0L942tKPoa56vPDaK6iGvxyCUsZiPIjH3LB7R3N/OCFZ6qAT4f
-   2B7zBrRYMbiFMMU9hLBQ9tyQ+BfZLWcuVhVXi22jiHa0dgd0m8mHxjTto
-   w==;
-X-CSE-ConnectionGUID: hswnwnNxRi2JbntSBOIbzQ==
-X-CSE-MsgGUID: c5bNVxHfS+CrsvPLp0lTVw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11385"; a="44540336"
-X-IronPort-AV: E=Sophos;i="6.14,280,1736841600"; 
-   d="scan'208";a="44540336"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2025 07:04:40 -0700
-X-CSE-ConnectionGUID: 3j+TT+4YTyqEaPYGxtNL2g==
-X-CSE-MsgGUID: BsQMcVvcRXSRUio5wxLK8g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.14,280,1736841600"; 
-   d="scan'208";a="125168190"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orviesa006.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 27 Mar 2025 07:04:40 -0700
-Received: from orsmsx603.amr.corp.intel.com (10.22.229.16) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.44; Thu, 27 Mar 2025 07:04:39 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.44 via Frontend Transport; Thu, 27 Mar 2025 07:04:39 -0700
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.175)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Thu, 27 Mar 2025 07:04:36 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=yoOFogfI0WQJMePsE8T+G/7rbt37+ZV3w7rhyWwQY0XtUIXozBpyZZ43odEqa+5/lA4OAcTBsw3Na5Sg0vl+FzXP31IYwQcZP2BpYj4SKs4BDR16TXpK8zDDLQOSqRgWs81ISwb38CLqdVeRk9RP8jNZFBJ/y5SbR1CywUbO3s454VDm5qiyluKRd5FyYgZXx+iQTrQ7xSGm17ubpPH0AL4Zz/jCseOA6mdKFccby5bJEq8jkNSHS9ORfSh7qAYsehj7IIIyAxJ6GWI+0dQ7epl3AILPXt+DAIQwA9pSVS5e2ctnJwZvOlbrROErvc91CokfGhPOZRyGWxBxHTNdGA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=FywzX2d8h70p2ZICHY8vL6f1o4E8gEOEs5feIPanw6c=;
- b=mzMQvm7X3JuFjNAbCWwpk0ozg3J53riOu7KCHiBhaL7M2gsUZDV0aQ1iCQOmHUAzP9FLiNE2LDez9QDjUJ4+dlDQd65MgaBPmsIJm971DXHrv7qx1/y9N4GOF6cbuHHhgK900efgmDWtHBSnCnc2NtZsqaHusH1Z21cuFr5DBL85FAMPjJWyySRzL+PG1g6n4OjHkbC9r6xLxamTiZn0nk5e2LlTU/+tIaLk4EmbOJf3llsnPrjH4pGwi9okF+DWUEdDsUy4EYUyhJT8M5OY3oiZpVWnsOG4V3N0EnTA2hUUuEXfx3kzvdu4/3PBC94jB5A++o6G0hmfrtbJbcuqCw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by IA1PR11MB7366.namprd11.prod.outlook.com (2603:10b6:208:422::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.44; Thu, 27 Mar
- 2025 14:03:54 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%4]) with mapi id 15.20.8534.043; Thu, 27 Mar 2025
- 14:03:53 +0000
-Date: Thu, 27 Mar 2025 10:03:48 -0400
-From: Dan Williams <dan.j.williams@intel.com>
-To: "Gustavo A. R. Silva" <gustavoars@kernel.org>, Alison Schofield
-	<alison.schofield@intel.com>, Dan Williams <dan.j.williams@intel.com>,
-	"Vishal Verma" <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	"Ira Weiny" <ira.weiny@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
-	"Len Brown" <lenb@kernel.org>
-CC: <nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, "Gustavo A. R. Silva"
-	<gustavoars@kernel.org>, <linux-hardening@vger.kernel.org>
-Subject: Re: [PATCH v2][next] acpi: nfit: intel: Avoid multiple
- -Wflex-array-member-not-at-end warnings
-Message-ID: <67e55ac4dfa2e_13cb29410@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <Z-QpUcxFCRByYcTA@kspp>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <Z-QpUcxFCRByYcTA@kspp>
-X-ClientProxiedBy: MW4PR04CA0295.namprd04.prod.outlook.com
- (2603:10b6:303:89::30) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Sio9TkCq"
+Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-476f4e9cf92so35545391cf.3
+        for <nvdimm@lists.linux.dev>; Mon, 31 Mar 2025 11:27:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1743445659; x=1744050459; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=LZeAYSY+ZaMayGoTv0WvIa7xoyxPKFeQjfsqEI/he9A=;
+        b=Sio9TkCq5zayIK54Z1//R2i7UkzIkU2LHFR9r1RBEG6kgTty25xHvHklTRoMEgdvgT
+         AYQ984fCmH/KIKs3bMZUsy0L75gW1tVOIkKoOvLR6MwViNEd3WAt/yatWXjxvb07GBXm
+         3jSL/jjxtbinvOrZP5JVEpF9O72rwZGy6ukmw4YOCxc3o00IkkeM3uRktrAAA481UKV6
+         zpwtLUNQgakrmVgRiHWoaNjoPfp0NLdr19fMUUQoSkZB9ocPiNrqPZsbr0mwf9ffu77+
+         p8Rz/TbEn8AmzcGVzg5crNVCLqi1yy88SbScxK4aUCGYWaENjU3JO7+xiX/In3CmoC1U
+         za1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1743445659; x=1744050459;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=LZeAYSY+ZaMayGoTv0WvIa7xoyxPKFeQjfsqEI/he9A=;
+        b=hReXE+uxvzMx+EaZ0Rg0eXPJDguH3XlUd1ZwKefcTLEnx3ESYI79HAGC4mylZtW4TQ
+         VWummOhG7GF3kKVk7u6jidhXs7cR0aFWjBmEUaP4jaJAfTcY5SXNYS9nE8MJM4jik2pE
+         H6AnjO2aV7Ivuk8Y7MEtLuecnO+cJdUaIs+KHH5GC/SinoqRV9lIDprjdwarVsrN7VUV
+         7I119Vl2kmRdfqUtxiwK2YHX/9AKZdGiULC4ho7CC/zIki3XmOL5d8fABKTKDNHrwXSD
+         KmhZ4NvR2fiRtycXframTNVJhke2V5YVasK3JAZ5ioIcv605ZRJME8apR2JDnFkQc+3t
+         z6EA==
+X-Gm-Message-State: AOJu0YyngUtPIuPTt5gCi4A+XImIHl+RsAwrwX77I4DsAwYXVm99zTUz
+	uA5pQewWCxRofItwr7olZYdIUmR6acx1EmbTmJhsbf0MplsyfDqIHzEW2FxvqIQ=
+X-Gm-Gg: ASbGnctF94RMFQaalgXyNqpzzLpyng1mEFn94JCRaWuygvUaQUqqqkumD4UIVQ9oQ7H
+	eKNt4fdojDp6H8sj2Dn3rq3uaDTHGWtlEtELVCsGafUWzeowXthm+iUP3CNlTTogB2TgS2twrBB
+	rggCfoQRmhR6vu9iExSiURs7SeCVz0HZzWMUO5tLGf7PHqahmBLiUV9oC3QdnstYRFmzyYCsjc0
+	rQgx5X0gVRvF2drTBX8JASX90aHZkBucCc8OAAwjGTVoFbwQXdeDe+LX23CMOhuYY6g+U4c//Io
+	qV4MfAkEzDS4r9oJ9xdv81p99NWPPuPeD1i3WmwI7GWyJU+rOhKh9zEUqmZJzOBxPtitWjU167A
+	XvQ6QgcyArVgUMeMYZL+hy64A6Jg=
+X-Google-Smtp-Source: AGHT+IEd+3g87j+NE/c3E2rg8hxwNLiV/aqryel6Odt64jpWEXnougpu8f4ZHVyaNCsH9/emYY2gMw==
+X-Received: by 2002:a05:622a:291:b0:477:7007:7055 with SMTP id d75a77b69052e-477ed7c96cemr130037061cf.12.1743445658865;
+        Mon, 31 Mar 2025 11:27:38 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-56-208.washdc.fios.verizon.net. [173.79.56.208])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-477831a4446sm53218521cf.80.2025.03.31.11.27.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 31 Mar 2025 11:27:38 -0700 (PDT)
+Date: Mon, 31 Mar 2025 14:27:36 -0400
+From: Gregory Price <gourry@gourry.net>
+To: dan.j.williams@intel.com
+Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	kernel-team@meta.com, dan.j.williams@intel.com,
+	vishal.l.verma@intel.com, dave.jiang@intel.com,
+	linux-cxl@vger.kernel.org, david@redhat.com
+Subject: Re: [PATCH] DAX: warn when kmem regions are truncated for memory
+ block alignment.
+Message-ID: <Z-remBNWEej6KX3-@gourry-fedora-PF4VCD3F>
+References: <20250321180731.568460-1-gourry@gourry.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|IA1PR11MB7366:EE_
-X-MS-Office365-Filtering-Correlation-Id: a44be066-dc18-434c-4ae1-08dd6d383559
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|7053199007;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?xoDo3tgmWKHAjs57sc07upitHc2A+XR9Y/u2IP//blm94LX9rpN8oFZsrk2i?=
- =?us-ascii?Q?joYLCDaICc0+upoyAdjmZGa4nFitmm8vTJpNxXqoYO8heNboI/CrIml0hvZl?=
- =?us-ascii?Q?Jawx2ew7iCRMYREhGYVAz5jKenwdvyCIZuog/BsnhHg6vJdS2ijyQNmwFrvv?=
- =?us-ascii?Q?b2RsbKnlCImWWue+8E9QKf80upvPrCqjT495eRODB70xKN/CEF8lHB5gcdUy?=
- =?us-ascii?Q?0bpOz2Ka/+tEXkxKb0nzYteNEZK88scUOsbWJo4YlHIpGrPV0h9S1T4d7TDo?=
- =?us-ascii?Q?F0GTyhfSeBCXkm4zhxN6eXKLlv9s8m7f8rZrIoM+v8doKvS8kGKG7r++fb9f?=
- =?us-ascii?Q?Hkjk7fGywutjyuMBLqiM24CQZ7YvfCdX/5BzWFi15QFJGsdYdzz9PTsSpdwg?=
- =?us-ascii?Q?rByAJsOXS4WR8z4YT49vNFGXcv4djM9PYxbrLnx23PeseitBSkZTa/zFJWwk?=
- =?us-ascii?Q?7MWYHTE8oNj1WZJryn0ruNZSwKnsKiN9nTIfN4xIewXDIJKxJDjgQrtp3yZ+?=
- =?us-ascii?Q?C+cWOx5i+bjN5RpVUNIMHLSpLX8AprVHrR27Yfc+oUdG5WBisSJSMvaxV3Gc?=
- =?us-ascii?Q?yiPRTYQtVVtb/QCVfXVQHGroo7R5xstH6q7l5PRI4/limLn6uColIe0l303u?=
- =?us-ascii?Q?AGFUHJodmdvEjsCc5LPa7MuD07rENhy9KOmXid/+wBojspHdSrJvUTxFjAmF?=
- =?us-ascii?Q?tTeQy/ERG94c2JaGfteSfq5SuGn16KkO342VUAwYqnw6/nvjPw8Mer4SPbU6?=
- =?us-ascii?Q?kWmEyyQ4C1yXYxf612G0OOMMj38SIIRND6AwJoYX9GjS5ZjKqwwBcIEHFenS?=
- =?us-ascii?Q?z7mYRARJUQ2bsZDmUrHm1RkW7/Apc75LnGkdTVRfq+OcPrA6rz4xttvDeTpy?=
- =?us-ascii?Q?0b003cM8rrjO6K/2oxVv5YbnWDggsgBS3/f0g7on3vrgKjtyovs11a+fTN48?=
- =?us-ascii?Q?ktzjmHwANNKiqdL2B/dQBt/GMaEFlJBl3sys75rDWxXi4ToPeP3UiKP8IXWr?=
- =?us-ascii?Q?6ATDzAzfQDtEB5mO/eiiAFrbAoS6WeE7euQ9fTbnIOyROu4KKdvp2xq+ABBz?=
- =?us-ascii?Q?YQitkSfsG85Bj79FzH9dUInOK2EXeZJPb+ddpRwh9Vx/D4t8jfMQPVAbbnfz?=
- =?us-ascii?Q?0SYLZX5+8e+1T5nBxDtt1pnn+ozucz7616qTf4lOP5Ayw0ipntNkE7LpEtwR?=
- =?us-ascii?Q?2z8z+DOCxVa9uHRtcAJH+zMm583LZrA5YGj2oq0Ce+oDlPwCtNE30zr/VOyc?=
- =?us-ascii?Q?ZeAIei/OfKPp6VIahkKxTdxgI8Pos0ew6mW9Secl6LlpCberIbokMDGSRGAk?=
- =?us-ascii?Q?840NuXY2/zuaGFVc9QIRyrlNHAyk4jGXp7lFq6Rk7klO6IpTfHcLA3xpfcv+?=
- =?us-ascii?Q?hogb1yEr9iWL3ap1WA4r5pcioEQy?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7053199007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?FXtwYhOGGVeVAvRy+gJIb6VUDmxE9odnEBU03RpWWuQyhaEEp0dtHgpn0Wca?=
- =?us-ascii?Q?uD06u/SeI0kcObL9+TJkqh0WIyaF+wceJYwdE0Z8j/jelPqu0lzYLCLZ6ebY?=
- =?us-ascii?Q?ZPcWEWd17i5kocXtj/iQYtcTkevH9p5gBHPYuo6BXkiafyIHzpnUCdUbh9f1?=
- =?us-ascii?Q?WBSYmyOZb9N1ImadBU4RUxPB2hEXyyUDmVmQC25bByNO3dPmPPPsbVVwK+Pm?=
- =?us-ascii?Q?yRHNBhj482DGjs+JmLUlQO1tpNlIBPaJIEI10mebqPhBjw1Z/BxMjJmAanFu?=
- =?us-ascii?Q?B0rPTj1lTrWBsPf5UnyKTQLABm5Nz/prW5uLFA0R0RCDmmFfDMZA8H0VuS0x?=
- =?us-ascii?Q?vJHI7PyoHIjv46fQw/paZz2iBLp1Z6tY/fkvKbh1A5ZcrkQmww1+TF+R+g0U?=
- =?us-ascii?Q?66Z6bckiHibdBXbVkxum8KxEXvPPZUFnnfEdE+OhCWr28fJX19HFuqQdktMK?=
- =?us-ascii?Q?kzcErkcepGhY4J/SdgA2RL2sNfwdmsh7iwob3TBwcud7kBO9p/bvgANAbu1c?=
- =?us-ascii?Q?Jje3voQ79nU507F6VeqDVwrCA9nZThVc25c64jt8q9xLxEEfaOBwcQ0izw5d?=
- =?us-ascii?Q?igTI4nlV55C6YYrdTbkiUiQ6tdBjCN9O0UhJa3S6xyoRr5hnHoDWQW/n/ln4?=
- =?us-ascii?Q?4z2kfSIn+pR7MCIY217N72kk/C67qQ4o4C4bgYAtpB5cbtQHiZ2JpYVN8MCn?=
- =?us-ascii?Q?i2wA/giANoXtLVH5bPo1Op3I8A0d0F2Y2AqjrPQ9nM5KwfebceCKKhsD1Wi9?=
- =?us-ascii?Q?hO5naVKfq8pWbudcmcxfUOYc1bOaIsdtfFHic6xE2h5HwlYfRlzcWOM7f5q4?=
- =?us-ascii?Q?8/6XkQOS8oUo9/2tQm9+yUnWfed/592KSKhD+71x/t2OmsQg1nyKq2taQ0vh?=
- =?us-ascii?Q?morbER4sEat7YnaYtbrcxDK3DeEpOIAWUegceD4sIz8ObmOebSbWfLngM6PH?=
- =?us-ascii?Q?8gPQvYACiwFClCxhN6Aj4DXfdZupglPX9mOgK8JpLHp5V4JTbfBwWPiHtgZY?=
- =?us-ascii?Q?hZmOcHFX7BQRSTe+VGEqbxRVlbOmRQgJnXXLqGZ6mC7UGYq13vkrDeAeTJOF?=
- =?us-ascii?Q?dGVVvC0f/IGG0BG0nwYyesLzIeK4bieZDuqNrlMQGHgOqVZf73BZchiO540A?=
- =?us-ascii?Q?GtM64BENRS8wF5MlEylPtUGaGf1d7mjC1osfOsluAhV5zujqe7J0OIvrkyPd?=
- =?us-ascii?Q?uARYK+nEqc/0SwbdgEdhKPCeLli+PLXQAeE86UybzVI3FcCprqa/wP7/WbKP?=
- =?us-ascii?Q?Ax0rATZWzoCuASYs1E1mBq6g4gooPCrkL/5cH7Xv7ZoeZlc+xuB+4BK40iRi?=
- =?us-ascii?Q?JmHl+7SSFpoc/b+AoOwINVnIgTdZVgE8DQtpXo/k3UI77SPRc1ZQVBxwcl3Y?=
- =?us-ascii?Q?HaHnW5pAsdwjCnstQzRLdZsCe99NyowXqroo2E9s8DM7ssB0TnNk5DARQNpG?=
- =?us-ascii?Q?lXf8i2+dqYsuTo5ljZ9K+5TRnRcCwVcsPOXxUtUgNO+SSCbr1nI2VzfKWU3E?=
- =?us-ascii?Q?t842Xw0BIvhcaXxDG7KVERMGO7VniT4dKXwoQLc8lz6Q1w1KQkum8edA7yRF?=
- =?us-ascii?Q?Dtgh4W35+odZHM7MFue2BFgi5qs0WehUfHAN8qZ1UTY8kfpCAWD8HnnBm/Pj?=
- =?us-ascii?Q?CA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: a44be066-dc18-434c-4ae1-08dd6d383559
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Mar 2025 14:03:53.8992
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 6/9xe4VyPfU0vzHP2vevL1J1KSYJ9aFAehN+vlvJ+unG3IQDscnIT5KoGxknagateUGTK9+LdlLPO2yHEba0vgNYxQb73H+YTDy4b+SYjhQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR11MB7366
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250321180731.568460-1-gourry@gourry.net>
 
-Gustavo A. R. Silva wrote:
-> -Wflex-array-member-not-at-end was introduced in GCC-14, and we are
-> getting ready to enable it, globally.
+On Fri, Mar 21, 2025 at 02:07:31PM -0400, Gregory Price wrote:
+> Device capacity intended for use as system ram should be aligned to the
+> architecture-defined memory block size or that capacity will be silently
+> truncated and capacity stranded.
 > 
-> Use the `DEFINE_RAW_FLEX()` helper for on-stack definitions of
-> a flexible structure where the size of the flexible-array member
-> is known at compile-time, and refactor the rest of the code,
-> accordingly.
+> As hotplug dax memory becomes more prevelant, the memory block size
+> alignment becomes more important for platform and device vendors to
+> pay attention to - so this truncation should not be silent.
 > 
-> So, with these changes, fix a dozen of the following warnings:
+> This issue is particularly relevant for CXL Dynamic Capacity devices,
+> whose capacity may arrive in spec-aligned but block-misaligned chunks.
 > 
-> drivers/acpi/nfit/intel.c:692:35: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
+> Example:
+>  [...] kmem dax0.0: dax region truncated 2684354560 bytes - alignment
+>  [...] kmem dax1.0: dax region truncated 1610612736 bytes - alignment
 > 
-> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-> ---
-> Changes in v2:
->  - Use DEFINE_RAW_FLEX() instead of __struct_group().
-> 
-> v1:
->  - Link: https://lore.kernel.org/linux-hardening/Z618ILbAR8YAvTkd@kspp/
-> 
->  drivers/acpi/nfit/intel.c | 388 ++++++++++++++++++--------------------
->  1 file changed, 179 insertions(+), 209 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-> index 3902759abcba..114d5b3bb39b 100644
-> --- a/drivers/acpi/nfit/intel.c
-> +++ b/drivers/acpi/nfit/intel.c
-> @@ -55,21 +55,17 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
->  {
->  	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
->  	unsigned long security_flags = 0;
-> -	struct {
-> -		struct nd_cmd_pkg pkg;
-> -		struct nd_intel_get_security_state cmd;
-> -	} nd_cmd = {
-> -		.pkg = {
-> -			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
-> -			.nd_family = NVDIMM_FAMILY_INTEL,
-> -			.nd_size_out =
-> -				sizeof(struct nd_intel_get_security_state),
-> -			.nd_fw_size =
-> -				sizeof(struct nd_intel_get_security_state),
-> -		},
-> -	};
-> +	DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
-> +			sizeof(struct nd_intel_get_security_state));
-> +	struct nd_intel_get_security_state *cmd =
-> +			(struct nd_intel_get_security_state *)nd_cmd->nd_payload;
->  	int rc;
->  
-> +	nd_cmd->nd_command = NVDIMM_INTEL_GET_SECURITY_STATE;
-> +	nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
-> +	nd_cmd->nd_size_out = sizeof(struct nd_intel_get_security_state);
-> +	nd_cmd->nd_fw_size = sizeof(struct nd_intel_get_security_state);
+> Signed-off-by: Gregory Price <gourry@gourry.net>
 
-Can this keep the C99 init-style with something like (untested):
+Gentle pokes.  There were a couple questions last week whether we should
+warn here or actually fix something in memory-hotplug.
 
-_DEFINE_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
-             sizeof(struct nd_intel_get_security_state), {
-		.pkg = {
-		        .nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
-		        .nd_family = NVDIMM_FAMILY_INTEL,
-		        .nd_size_out =
-		                sizeof(struct nd_intel_get_security_state),
-		        .nd_fw_size =
-		                sizeof(struct nd_intel_get_security_state),
-		},
-	});
-	
+Notes from CXL Boot to Bash session discussions:
 
-?
+
+We discussed [1] how this auto-sizing can cause 1GB huge page
+allocation failures (assuming you online as ZONE_NORMAL). That means
+ACPI-informed sizing by default would potentially be harmful to existing
+systems and adding yet-another-boot-option just seems nasty.
+
+I've since dropped acpi-informed block size patch[2].  If there are opinions
+otherwise, I can continue pushing it.
+
+
+We also discussed[3] variable-sized blocks having some nasty corner cases.
+Not unsolvable, but doesn't help users in the short term.
+
+
+There was some brief discussion about whether a hotplug memblock with a
+portion as offline pages would be possible.  This seems hacky?  There
+was another patch set discussing this, but I can't seem to find it.
+
+
+I debated whether to warn here or in ACPI.  This seemed more accurate,
+as platforms could simply over-reserve HPA space to avoid the issue.
+
+Thoughts?
+~Gregory
+
+[1] https://lore.kernel.org/all/bda4cf52-d81a-4935-b45a-09e9439e33b6@redhat.com/
+[2] https://lore.kernel.org/linux-mm/20250127153405.3379117-1-gourry@gourry.net/
+[3]https://lore.kernel.org/all/b4b312c8-1117-45cd-a3c3-c8747aca51bd@redhat.com/
