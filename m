@@ -1,161 +1,312 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33F6F20AF69
-	for <nvdimm@lists.linux.dev>; Tue,  1 Apr 2025 15:29:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743521358; cv=none; b=XLBfnllkJpQJdonu8Uyx+LOhAxuu13NIAJBnp16AjmSjNsmiC+3FacoZOmIR4uayEVYcy0dRyZvrBSC2IH+QUqQo67sckXGY5/+GnCF+VdtACR74ej/7+NesPqITluzhLy2bx86NVdyUez9CC6Xcpm01ak0gpPaMgfEntJULb2M=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743521358; c=relaxed/simple;
-	bh=7csd6OtDvkgO9g6hDGoDH63fg6YM01Q1hsp4ItpDrFg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=RChLgz7nuFJfTnKze3LGGAWZPT661zN/EgYcGYoikvxUuNqOHLBu+y0zqYI+F3/K4TIPym6DHudy5pG13tNBLVkNZmPRAztwRJAS/QSfzLkyh+qK//ocR8zTO5otU4iGjGZTmm9y9FIV7bgzPnL3pk4OpRfdLCjGzq3koIqHg1c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ZZ1LDTgI; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9484853AC
+	for <nvdimm@lists.linux.dev>; Tue,  1 Apr 2025 17:47:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1743529669; cv=fail; b=PinOpaZGyFS4l5//JNFFFUCmzQ0lV9OBYru5ktmw0TTqAsjXoWMAlOjTzALMz7GT04qFYiUmz/K6XAd8hfKIT421l1VEiphyeWkAP7ET+oODnGFqh5xAfSa4EJgvuWk0YyyLfsYXLfgnyL7+7qRWtOKSmBvp/qf9ydM1CMD2Hno=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1743529669; c=relaxed/simple;
+	bh=CcseOYLbrtbQSZMhrasBQnChiIxdBeqTk8HKW33hyQE=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=e6iD1b24lrHsKXMzCxDar+QAKrZqHcdilxVL5QZF2SDY2SGgEJLDjzF3wYUckgT9Kys9P9VPcDi8PYHG3W4SIgVZ0trRYtWeYXc3ja30IWfh3DkL8EZBevuex5JC4eXrPz61I0eNbu6ctCVlWvi3RVA+j0cLM1ycDW5vMfe6qX8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Vp9zHZuP; arc=fail smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZZ1LDTgI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1743521355;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=JKMWjD4/1UoJsnBJJbKHGGdwUYue0iaX5yE7uwOt2R4=;
-	b=ZZ1LDTgIt3NMBYpTSvBf9hd2SeCMZGhRc4PsaNkPmU33o6HuplCAfNqMyo5UheCF4WvsgY
-	t3KrdFRrXGBVcHAgldBeq7vmaLbcBhPnCJ4O5vfFw6n0VZQsoVQA4e7C+oTinDOrAah9tN
-	7QU2TW3qPElOCjbORqalPlfdx2fvgis=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-351-PDexm8RUNtWdCaM76x6r1w-1; Tue, 01 Apr 2025 11:29:13 -0400
-X-MC-Unique: PDexm8RUNtWdCaM76x6r1w-1
-X-Mimecast-MFC-AGG-ID: PDexm8RUNtWdCaM76x6r1w_1743521352
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-43d22c304adso29303205e9.0
-        for <nvdimm@lists.linux.dev>; Tue, 01 Apr 2025 08:29:13 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743521351; x=1744126151;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=JKMWjD4/1UoJsnBJJbKHGGdwUYue0iaX5yE7uwOt2R4=;
-        b=HBchm5gOUjIH4FC7lzOOqYgXr+IdVOfN+8uAnF2buroPNyp9UjSkSA2UENfTxlp4sg
-         GqaxCKurGP8G+94zQQTM4UpP5riBYpq2oufFgIqX9oWbRE9748l9nFJnBidg7CFBsv1t
-         wkNO5DfKJRhuut8UPH1Qop/wXlKtziw43/HGJx9Ve9VPuqJaYgxLZDiWa1NunLe7feAB
-         +n6oVIJwzi7ti6Og87rXkPAiIJt/5FJNqS6Lteo1KuuDlyohWJw2IRVFrM4L37EMZ/UL
-         39XqOguQkvM1DpiEn4olLDqjaX+K/MnSC2jFf5Usc5TarW4BoPTCfJp3jbyuyjjSGTV+
-         m2Rg==
-X-Forwarded-Encrypted: i=1; AJvYcCVDuzARIGiFt5JqLgVSDtU+JeKwS+aaLNnEV7DYT2Tj6mJh+0wfI57JNWhnIOPEF3pn++Z7d2o=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxYzxiGc+HpTlHKJrkUI9B9mxE41tqBiTb5UkN56qdbt+15M//o
-	bewlKR+NS5IFSZDo3lSO2bpQjXTpBEhDmMG+udeKuua0XUSX3G/1fNs/9ldyBd6E0Xe6xg5wjOa
-	K7qdmkn4X6/QR1dDRlP9FPuOhnkrb1cRdeA+ToUp6NYwfKLdXC3g8Cg==
-X-Gm-Gg: ASbGncvcW/dbpsHX+lcDZhEPstswdyua3Y12g7Z/ooaN9EpZ+pdAzPm1Mcu7U2jY2NC
-	23+n4fZN9rDUNi7OUM4YcdHNekmVuzwW5XUC2AAL4XQcGLjblVVWZpl7rzmrfzJjnXiKA3hLvrk
-	8cXxoJai5d300yHfwmOLpwYfvnhW9EnFrtBXlioRHhkbcupo+tsfoAET42jzeidOQZn77O3L3gO
-	tldKenpWj608IXD6/UFtXqh3PiWrJ4QFKNip7Nd81fOQMX4KDYiiWSlEXveiVMpSQwFEKgMthIH
-	+vm2Sb+6V2k/LIk69tgGtOZE4+w0EUAG/RfO/Zx+yJg5gMcgxVUKaQIYpz9p/KyC2xeneJrs3xV
-	aRAKy21lH5TeDgOuRjU9N0WT9/sb7QSg27Gr2g56t
-X-Received: by 2002:a5d:5f50:0:b0:391:bc8:564a with SMTP id ffacd0b85a97d-39c27f31c47mr377404f8f.22.1743521351618;
-        Tue, 01 Apr 2025 08:29:11 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEa2GAOlNF90dGbPyI4uliM2Z3nEo4kY5EmhxPgqtmwN+3cr+l41FVkCjIb27SnNn916HOrlA==
-X-Received: by 2002:a5d:5f50:0:b0:391:bc8:564a with SMTP id ffacd0b85a97d-39c27f31c47mr377392f8f.22.1743521351280;
-        Tue, 01 Apr 2025 08:29:11 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c707:4d00:6ac5:30d:1611:918f? (p200300cbc7074d006ac5030d1611918f.dip0.t-ipconnect.de. [2003:cb:c707:4d00:6ac5:30d:1611:918f])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39c0b7a422dsm14585442f8f.93.2025.04.01.08.29.10
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 01 Apr 2025 08:29:10 -0700 (PDT)
-Message-ID: <e818ddda-180d-4136-9dbb-f9af278db1e9@redhat.com>
-Date: Tue, 1 Apr 2025 17:29:09 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Vp9zHZuP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1743529666; x=1775065666;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=CcseOYLbrtbQSZMhrasBQnChiIxdBeqTk8HKW33hyQE=;
+  b=Vp9zHZuPpKjQXvwNPgSfxzqID5zqe00Uw6yfH76cZylzYkvEMKQd+df5
+   KhoYUzRhkhUsmtLB0tyxLfyrg9F6RxSzW/WsDoNh4PYBDWHTh28iX09L+
+   CANjAqdrEDuUOu46QuaHhQ8fJrjac9kj0kxclRG9elibmn2OHS7wIyLTE
+   PD4PyGy12DeWS8HXZuxS9i1Bf8329KvhUgjFJ40VuR+1cAD0dviWF1X6a
+   /i41HFdoaxgvMDUqryoDFUomAowYNfyeGO57Bg/lUhKXyQXC7QHchHvNI
+   OPMyjX4D4v5Ng7BmmhDw9IJ69k9caSuqR6nxBCRGWvwz86Vt3zer3jw/1
+   A==;
+X-CSE-ConnectionGUID: Rg53ahJFQi6f2dRIAVVpIA==
+X-CSE-MsgGUID: SxpJWFvcR8i1B5ePv8sNnw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11391"; a="70226745"
+X-IronPort-AV: E=Sophos;i="6.14,294,1736841600"; 
+   d="scan'208";a="70226745"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Apr 2025 10:47:45 -0700
+X-CSE-ConnectionGUID: VMX+6qM8RiOAtwA0YmSRog==
+X-CSE-MsgGUID: W+CxXhbUREqSFVOMalnpow==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.14,294,1736841600"; 
+   d="scan'208";a="126211840"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orviesa009.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 01 Apr 2025 10:47:45 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.44; Tue, 1 Apr 2025 10:47:45 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14 via Frontend Transport; Tue, 1 Apr 2025 10:47:45 -0700
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.57.40) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Tue, 1 Apr 2025 10:47:42 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=o0JMIA1gUWiwHZXLJ8+sOKNiVA9sjyB/opG0CUl4UscmoJddmopv6nE2Ix2qvkTtxeHhm7ZM6gIeU+V7nY1Qjb4ei1R+7QxD0kzvoA866b3pzz9we6a9fQPsOy/tihGjIdjj1aoIdOrnIVWq+2GqYH+MI5mHMBKKhWnN3wgEq5m5PDhlFQxhu3iyKQYkxcATpouDbTyi86t/WE7FpwN017oWwshXpzYwBI/ozMLDrjtbslPlwumjemRQK14Po3+bziJseuOtei7x1bmeoYw+wAiqiEDzoCckYfx8oDv1bXes4FEo0VsqvI/KYAR8m6IpSCiYh58dxAtMj0WKiAdPqQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=DNR4KcbjSraO+yGOlrAxa4edc5rkIqm/O8unyaoyVQA=;
+ b=kkEfZXrSJvfO6m0FO2avR7mGoyTaPOwjvtR0QnXLXvnDGAn9goM6UotDKk7CCnreOUfqXo2ZVbnnrhxZupea4ZgHOtjOH2J1tATeK9PfgDOigqAZ8vosyK4ixeXokmjybj9O/0uDuCXGwyj2ZvuNKPOac/B0bmc/jio5rKUHlEynDJS0iPmiyqVHjA+didFyiXNW+ELEvZnk/pXCBULHzloOj+9Cb/5WS3OgawZ4yKoo9mEULmr2gyz+etwW33OWAWkICckO+x+KX2JXkFZp33K6IXhDi3guBPZvyi7bduCzz9Ay+TU6cRdsLGO/yFJ99afd7cS7ZgGcYaI9yRA6tw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by IA0PR11MB7282.namprd11.prod.outlook.com (2603:10b6:208:43a::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.44; Tue, 1 Apr
+ 2025 17:47:12 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8%4]) with mapi id 15.20.8534.043; Tue, 1 Apr 2025
+ 17:47:12 +0000
+Date: Tue, 1 Apr 2025 10:47:09 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: David Hildenbrand <david@redhat.com>, Gregory Price <gourry@gourry.net>,
+	<linux-cxl@vger.kernel.org>
+CC: <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+	<kernel-team@meta.com>, <dan.j.williams@intel.com>,
+	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>
+Subject: Re: [PATCH] DAX: warn when kmem regions are truncated for memory
+ block alignment.
+Message-ID: <67ec269dc51da_1d47294c8@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20250321180731.568460-1-gourry@gourry.net>
+ <88bce46e-a703-4935-b10e-638e33ea91b3@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <88bce46e-a703-4935-b10e-638e33ea91b3@redhat.com>
+X-ClientProxiedBy: MW2PR16CA0070.namprd16.prod.outlook.com
+ (2603:10b6:907:1::47) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] DAX: warn when kmem regions are truncated for memory
- block alignment.
-To: Gregory Price <gourry@gourry.net>
-Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org, kernel-team@meta.com,
- vishal.l.verma@intel.com, dave.jiang@intel.com, linux-cxl@vger.kernel.org
-References: <20250321180731.568460-1-gourry@gourry.net>
- <Z-remBNWEej6KX3-@gourry-fedora-PF4VCD3F>
- <3e3115c0-c3a2-4ec2-8aea-ee1b40057dd6@redhat.com>
- <Z-v7mMZcP1JPIuj4@gourry-fedora-PF4VCD3F>
- <4d051167-9419-43fe-ab80-701c3f46b19f@redhat.com>
- <Z-wDa2aLDKQeetuG@gourry-fedora-PF4VCD3F>
- <a65fd672-6864-433c-8c82-276cb34636f9@redhat.com>
- <Z-wFm_zwDZy6jvVz@gourry-fedora-PF4VCD3F>
-From: David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <Z-wFm_zwDZy6jvVz@gourry-fedora-PF4VCD3F>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: aDu4YsUs9bmEiUE6ElU_0sTSJ8S7Yo-8r9bOR6V60YY_1743521352
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|IA0PR11MB7282:EE_
+X-MS-Office365-Filtering-Correlation-Id: 389fa222-1123-4caa-bfde-08dd71453bbc
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?d4R27fTjFDVNIYV+aJDfUW7HZlq3V9AmQ7wRKme5v5tZqL9IU7zi34xseNBC?=
+ =?us-ascii?Q?OdirBCPTg9CagNL4kqy6Xv6psaSZDwkeiwY8vkLGP1L8Odr1O/51vCrULLd0?=
+ =?us-ascii?Q?8uex/hrS7Zuy7Zp3tomOY4Ue/pO5q6rYMH+dhw0JIk+9aOi4F7Euz61CGAVr?=
+ =?us-ascii?Q?Em74WsbgAYW8nZ8NyhtH8niwzI52vuyEETNOpbo6Xa5PIhJu/BAyozevHVbM?=
+ =?us-ascii?Q?tfIZJ47RlkiybHnDJ0kJeL50cHnsK5KEtmvQM+le0Y+OZmv9LXSuyGDSX75f?=
+ =?us-ascii?Q?YpDMIyQSQ250QBDRp8WJKYqVVsGErUWEpyBbbavykoFA5uJeLW6DD4HTxv2v?=
+ =?us-ascii?Q?S6VAvg5meVVZzpwHoV2H9RMebTxKQCOlV6vu7PDK/WL8tiLqqZGFTurHBnI6?=
+ =?us-ascii?Q?o783ZLpiYB5aHbcZG9GwGBNuONwxHSo+skIFnjfIcnHi/G3pB2LOLTaVWzzB?=
+ =?us-ascii?Q?VGy+0wLoa95Q4Z7Aw3/F1/TTibS1lvzsbJQy5ycYGQjB4XmNuy10h6M2nZGe?=
+ =?us-ascii?Q?wTIXkIA2vS27B5EmvwQILU2fye/gyY7FxhEKlIqpr8XlCyLCs8gCGFdGdy2D?=
+ =?us-ascii?Q?dLRYlt1PTbcTJDqDx6Z3pVReiHtFSXJ1k/R0sOVhdrOAKlH7bPvZRRyh5Hct?=
+ =?us-ascii?Q?5l51nQEvw5vlwaooCAv8OJBSa47YGSmx/JvyL6iR1kC3FD5w9ghs36ckVMAl?=
+ =?us-ascii?Q?HG+yjQtQP4xWCCRVoh8I77sYxyBJ7Q2W8bTKtdP5bgggjCU29BtGyDTvpdtV?=
+ =?us-ascii?Q?1LhOukSjXWc5cQFglseGcBKAbgtTRWHe54fHlXL6TO/Q5m0I9cE1uSHLxVSu?=
+ =?us-ascii?Q?b3wUMcMkuDLn6gL1Lr6EN8IVi+be+SVPiMXudRWtWPEJmCKOeh5Nc77bgbpV?=
+ =?us-ascii?Q?5yiBtZgTSwPPiWUhbXunkM2sTn+8jUHefsWgxqGYvxt9+9Uu9tKy5EVKs1ao?=
+ =?us-ascii?Q?dQToV5d6WZja7U5B7oYp8uFIUyGZs8wEB3bX9HtdQCnfyrNgtIvnyrV6avxD?=
+ =?us-ascii?Q?EtenaAyn1q1cXuj73IOuH6EADBXFekRles89fFriYHmp/SEzaBRnumrnwml+?=
+ =?us-ascii?Q?srUZE6F+GbN26wwZ6fZUcJlF+BOk4sJDO5YbryJ7/4tPmN2SDYfqaRzIYlQa?=
+ =?us-ascii?Q?Paja5fRQmwjvGpj+MxNksI1Yjp7Y57vCCByIf2B/5lE2IXMQ4kr/GoW16kis?=
+ =?us-ascii?Q?hyEptWDKRjSVpDHc1WbQUw36E8W62rMFNkhRrOkPnbMufL3spqJFb8MWIZzN?=
+ =?us-ascii?Q?EPU5x7mVjbltRPsT6ct5w6zSFFI26O2js6lPGyySYhlB0fqE9FpiJCizNzfI?=
+ =?us-ascii?Q?Loflrq53ttkdPKBWhC0u70aWnA4fNmsAxLHcAAw+tcl2SCtQQ5Zp2MPmE04G?=
+ =?us-ascii?Q?Xgkr1o8ttKWmMuRiuMEqkO2cOxAQ?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?YGdK4OSbO/Wq0vdir+1VuY5SLlCLFqgXU+lmVSg9omqGTYFgypCyWyyNKS8f?=
+ =?us-ascii?Q?UiQ4HrDCYToydMmwo06YoI3orJpwLTc8tsQCH5y/2GBs8LWE65mpmc1m5dKA?=
+ =?us-ascii?Q?FOCcZ8SY3lduR9BY7G/ofMrVCmGT1xLGzagdg3EAgGUI5xIEF8/6tU5PKc28?=
+ =?us-ascii?Q?d1lRl1TLiLoVEPBKZrWQOTeCfu5FziB3t18cv1aj9+uMUd6lNP0TyF4bTruU?=
+ =?us-ascii?Q?d+01mCOAKhZqEEgEMqnJygOiOity5T28VPaVQ77t2VszVJm/zCx7sLSAZmVv?=
+ =?us-ascii?Q?XA3HHmesYYBF7hHDM3NcuEzACvZAgxYNJUnUgtjRYRB7ZNYOx587FmFbB/Sg?=
+ =?us-ascii?Q?5G9QSUZ33Jo1N0PChLhrgPqc4j0LgTXVkMuJVw8UnyhDTiptrg+J6i8k0eYr?=
+ =?us-ascii?Q?iyP7OX4PD/PQ7+O1e11eJakL+mlm8h3UEsasC2L1snNyygzN41e3dYrcmyE1?=
+ =?us-ascii?Q?acDXEJ1+xEPOMdpxSSPuNVRi2YpUxJuHVPBYJMKj5wYGFK2MLU3hMpmDPm6+?=
+ =?us-ascii?Q?Dk3qMdwtyljKR7d/QIB0evpnEC84saOqB6AFAQcGKWysdToPF4UsgwLg9NnJ?=
+ =?us-ascii?Q?vbx6c5cE8hGYk5s2H9yE3pd7EgFbGBfAvVKClt5sRbXrerM4ZoEjTnf/2KOv?=
+ =?us-ascii?Q?0in3fj26nW3IvRP7pPmxum5lECKFDOHDci3Jya5k9+ymyrL+40RIcaWX+hbF?=
+ =?us-ascii?Q?sHokQg2hdk2kDx380VuU8FP+N3fVn25k5b5TNEeHixGBXCTLagKFy5+OLF2S?=
+ =?us-ascii?Q?W50kE/OKA4GxNXiTIK+pFEbx8tuEgd82pnOLqgvtX7Ok/5BcDE3IM8HSFMPB?=
+ =?us-ascii?Q?7c+DXEcNYEh8aGrxnYc73LYjSM0/yddg6lxeus/u01e/ehVkjsIIgveHdbek?=
+ =?us-ascii?Q?dgSY428QReXvJQTcFZ4rUFeDPODLiK/R81Hz9rCtx9sxRnq2rrO3wSJqzMsB?=
+ =?us-ascii?Q?zxmMCs6lLep70eeJ+omOnPM+wUhbCBRJc9M5nZOvOhG9k+/8TucTb0pWrfPf?=
+ =?us-ascii?Q?yzY5SLnBLUox2YtF8T+pBiJzCpdUS7dNi4cX7zchzifHDVGrJJ1Kmluf/Scp?=
+ =?us-ascii?Q?eCtg90dQq+QKC/TXuk65wK8l+We9gZGTL9txgxH92sYN6a9HNwV128FEBYdp?=
+ =?us-ascii?Q?IPKhJh7nZ5YKKleNk/+yEdoeb/53nQkL1V1Q47qAH2yAGFLbfASgGA8NT0ZS?=
+ =?us-ascii?Q?r5yf7yUtIfIE3z8y9qhE+VaTrlM1B+HfQZxls/fJRk3mld53KXDTqaegSZVz?=
+ =?us-ascii?Q?0QAzhZeT7sDpKuOtOBbCDrEgViL+vGE+Bc8WKWDPdHP2VIMyyVpAK1rjtmOj?=
+ =?us-ascii?Q?ZyWsS2FIDkJ3YbM81Hf1b9b5V8JkHtowBKg0exIp3nclOWhKWkw3aK1UGvhc?=
+ =?us-ascii?Q?luzr2OUDpaErHLuvY0tF7JFHUki59YcW6mv+YWF6qCoQJ/b/XHvpIsJ85WOw?=
+ =?us-ascii?Q?IRx4s0qYb+HeKp0jR0gqmArZ05RL+RSQloIKZOTT7cm6G8evYp9LwWvpw55l?=
+ =?us-ascii?Q?YI4YjaW5700KtUMcTa3fosYVJ/gU963in4aPummXk2es0LGFTpG5zVIMWzjT?=
+ =?us-ascii?Q?QOKuvAe9iDBQ/P6WpbJ+U1gxMO8p54D2odeUUNSOcxMK5/jtCWrKsox2iRoY?=
+ =?us-ascii?Q?XA=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 389fa222-1123-4caa-bfde-08dd71453bbc
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Apr 2025 17:47:12.7312
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: QXccJxeNtciXeXZGRKbSwn3x8pxLt6kPPzQDGL/TlD0y5LxXxl2lPRPljGnOjE6WCuU58mDC5cMq9zDiWMDOVWO0uzk7oSd46qeilp7Oq6I=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR11MB7282
+X-OriginatorOrg: intel.com
 
-On 01.04.25 17:26, Gregory Price wrote:
-> On Tue, Apr 01, 2025 at 05:19:28PM +0200, David Hildenbrand wrote:
->>
->> Yes, it's valuable I think. But should it be a warning or rather an info?
->>
+David Hildenbrand wrote:
+> On 21.03.25 19:07, Gregory Price wrote:
+> > Device capacity intended for use as system ram should be aligned to the
+> > architecture-defined memory block size or that capacity will be silently
+> > truncated and capacity stranded.
+> > 
+> > As hotplug dax memory becomes more prevelant, the memory block size
+> > alignment becomes more important for platform and device vendors to
+> > pay attention to - so this truncation should not be silent.
+> > 
+> > This issue is particularly relevant for CXL Dynamic Capacity devices,
+> > whose capacity may arrive in spec-aligned but block-misaligned chunks.
+> > 
+> > Example:
+> >   [...] kmem dax0.0: dax region truncated 2684354560 bytes - alignment
+> >   [...] kmem dax1.0: dax region truncated 1610612736 bytes - alignment
+> > 
+> > Signed-off-by: Gregory Price <gourry@gourry.net>
+> > ---
+> >   drivers/dax/kmem.c | 18 ++++++++++++++----
+> >   1 file changed, 14 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> > index e97d47f42ee2..15b6807b703d 100644
+> > --- a/drivers/dax/kmem.c
+> > +++ b/drivers/dax/kmem.c
+> > @@ -28,7 +28,8 @@ static const char *kmem_name;
+> >   /* Set if any memory will remain added when the driver will be unloaded. */
+> >   static bool any_hotremove_failed;
+> >   
+> > -static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
+> > +static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r,
+> > +			  unsigned long *truncated)
+> >   {
+> >   	struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+> >   	struct range *range = &dax_range->range;
+> > @@ -41,6 +42,9 @@ static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
+> >   		r->end = range->end;
+> >   		return -ENOSPC;
+> >   	}
+> > +
+> > +	if (truncated && (r->start != range->start || r->end != range->end))
+> > +		*truncated = (r->start - range->start) + (range->end - r->end);
+> >   	return 0;
+> >   }
+> >   
+> > @@ -75,6 +79,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+> >   	mhp_t mhp_flags;
+> >   	int numa_node;
+> >   	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
+> > +	unsigned long ttl_trunc = 0;
+> >   
+> >   	/*
+> >   	 * Ensure good NUMA information for the persistent memory.
+> > @@ -97,7 +102,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+> >   	for (i = 0; i < dev_dax->nr_range; i++) {
+> >   		struct range range;
+> >   
+> > -		rc = dax_kmem_range(dev_dax, i, &range);
+> > +		rc = dax_kmem_range(dev_dax, i, &range, NULL);
+> >   		if (rc) {
+> >   			dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
+> >   					i, range.start, range.end);
+> > @@ -130,8 +135,9 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+> >   	for (i = 0; i < dev_dax->nr_range; i++) {
+> >   		struct resource *res;
+> >   		struct range range;
+> > +		unsigned long truncated = 0;
+> >   
+> > -		rc = dax_kmem_range(dev_dax, i, &range);
+> > +		rc = dax_kmem_range(dev_dax, i, &range, &truncated);
+> >   		if (rc)
+> >   			continue;
+> >   
+> > @@ -180,8 +186,12 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+> >   				continue;
+> >   			goto err_request_mem;
+> >   		}
+> > +
+> > +		ttl_trunc += truncated;
+> >   		mapped++;
+> >   	}
+> > +	if (ttl_trunc)
+> > +		dev_warn(dev, "dax region truncated %ld bytes - alignment\n", ttl_trunc);
+> >   
+> >   	dev_set_drvdata(dev, data);
+> >   
+> > @@ -216,7 +226,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+> >   		struct range range;
+> >   		int rc;
+> >   
+> > -		rc = dax_kmem_range(dev_dax, i, &range);
+> > +		rc = dax_kmem_range(dev_dax, i, &range, NULL);
+> >   		if (rc)
+> >   			continue;
+> >   
 > 
-> dev_warn, but yeah I think so?  A user expects to get their memory in
-> full, that means we're slightly misbehaving.  I'm fine with either.
+> Can't that be done a bit simpler?
+> 
+> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> index e97d47f42ee2e..23a68ff809cdf 100644
+> --- a/drivers/dax/kmem.c
+> +++ b/drivers/dax/kmem.c
+> @@ -67,8 +67,8 @@ static void kmem_put_memory_types(void)
+>   
+>   static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>   {
+> +       unsigned long total_len = 0, orig_len = 0;
+>          struct device *dev = &dev_dax->dev;
+> -       unsigned long total_len = 0;
+>          struct dax_kmem_data *data;
+>          struct memory_dev_type *mtype;
+>          int i, rc, mapped = 0;
+> @@ -97,6 +97,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>          for (i = 0; i < dev_dax->nr_range; i++) {
+>                  struct range range;
+>   
+> +               orig_len += range_len(&dev_dax->ranges[i].range);
+>                  rc = dax_kmem_range(dev_dax, i, &range);
+>                  if (rc) {
+>                          dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
+> @@ -109,6 +110,9 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>          if (!total_len) {
+>                  dev_warn(dev, "rejecting DAX region without any memory after alignment\n");
+>                  return -EINVAL;
+> +       } else if (total_len != orig_len) {
+> +               dev_warn(dev, "DAX region truncated by %lu bytes due to alignment\n",
+> +                        orig_len - total_len);
 
-Fine with me :)
+This looks good, I agree with it being a warn because the user has lost
+usable capacity and maybe this eventually pressures platform BIOS to
+avoid causing Linux warnings.
 
--- 
-Cheers,
+In terms of making that loss easier for people to report / understand
+how about use string_get_size() to convert raw bytes to power of 10 and
+power of 2 values? I.e.
 
-David / dhildenb
-
+"DAX region truncated by X.XX GiB (Y.YY GB) due to alignment."
