@@ -1,75 +1,75 @@
-Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B483A2046A3
-	for <nvdimm@lists.linux.dev>; Tue,  1 Apr 2025 14:43:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEC33204F6A
+	for <nvdimm@lists.linux.dev>; Tue,  1 Apr 2025 14:44:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743518621; cv=none; b=so1BUmzevx5x8coLjjTaJGtb/jwdP3BZNLzI9OQfQpTmbE9QP4G4vP5rOSPflBXKxIhBX12pd5myDVswbK1YERUfMook37YJwNt91i3GwQoqmW9gCO7+4X+evcgIYZIWK6/DB/ImZ+ibYKRcxnuNv5MYU5HxMMglfkYFXxIGFog=
+	t=1743518662; cv=none; b=k/04RM0LpK+QMPjzuyurPV6CfHrEioKbWa+jisHHHKVhr+mZEwOvtKMyl2zao4x27EoZhOxZiKPmbSw37xlRImoVfGIJR4Ii+wMYo07r1WLJ/AW12NHemCzgSKv/wau9kOLZbGO3QjSBlaKVrm3ktDtafZaxZLaiqoBqVTD7BJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743518621; c=relaxed/simple;
-	bh=SAerp0QX7HEQCu5qAwjKy/c73J7h5TTZmQ/PG1g5oNo=;
+	s=arc-20240116; t=1743518662; c=relaxed/simple;
+	bh=eiIdxMyFX8RWJTV9imHd+E2JMVAxGUjJHomwrwPuLMs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Hjaq2UHqiUrcmLBoJih0o6xVZTO4Yvp+IcZrhxABo7//egyz0xpP1oyCK/LserrkcXTlhHqfaUYCYZatK69uoTn/SkZ+JjWY+XAUFxetqws6FeBtRY2pKXQNIz7U0COaydN25GKuzzql6Gk/2XrAyKsDqwXeuBarK6Us97IVYLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=BgdCug9V; arc=none smtp.client-ip=209.85.160.177
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ytw/j3/ey/k2Yu7yTCg2pnFEm3QKumggE7/EJpXQxYjZ+YA4ECtuzEmo1CNzsgPPriCQ312iT3XqdL3gOy9KvTjurtmNmLYTUcn0ouS/pLyCvAifQgJg4OEZVCwKlax1EbC+tY6NO+nediC+voTwVHM/QHITcdfJdtnOSp0+uLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=mKHtKIAn; arc=none smtp.client-ip=209.85.222.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="BgdCug9V"
-Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-476805acddaso60530411cf.1
-        for <nvdimm@lists.linux.dev>; Tue, 01 Apr 2025 07:43:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="mKHtKIAn"
+Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-7c559b3eb0bso323565985a.1
+        for <nvdimm@lists.linux.dev>; Tue, 01 Apr 2025 07:44:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1743518618; x=1744123418; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1743518660; x=1744123460; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=HN94Rbb3C+JRhW7V34+pZoioef1Q69r5rGBIntjnuf8=;
-        b=BgdCug9VwjX5A5bfeKELzlOfiPeHboUzElmEV1inD3K8tKR7sQlwHhtmPnO96W7gfM
-         n9f3j0qbqZrNglmFVjnqe5VonR3lXNJ5YNOGKzsfvHeuVYgAaWpgeXGy88vAT/L6zKBW
-         nV9l+fTuU9zyddyuaypRAOHgufoF55YLn95e4cPviUFCdE+GSqCk5hF4WGnzf8/iP2rv
-         ad696kAq7SwJzL5WDbadlO8AOcVtcq1ddjKmB403CGZO8n3h0Gm8g9HqjVBZKaP1HOUO
-         5skYFCFb+jZxbJXnwfR4vv+IEoBb5paW1The+YUE0ZRqaWuIFHlo7fc9Kmr5Vr1VkkBm
-         aqiw==
+        bh=7FWXvvIBXjd612osNxdIWGLZO1JiputvQXiNVM/ceGs=;
+        b=mKHtKIAnoROptKV/zJAB4o74aZ/XgqqTtpCMUPv9/LzoBw2QdAJiLnesd5mNH1ua1+
+         llt6hNIjqaVm6vX1bLYs+4h079rXKjlylwYYF2L0CyARSYcjPYNfHCysuAodZ3mDSiaW
+         PBqY1Z2uHOSibuCSnGOPG1Qbvx52ssgiVY84DVV+RFg1pvV2ZGZ78kh3MuzPZ5SXxLDw
+         nKU2ZXKw2H+j2Cv8uOt7iKwi0KkURY8D/1emT5vWN9SAntCtaozaGSOp+CJAC7Qj7OQk
+         1B6k5frDH1NXA5LLaY3UjGL72RWY+bkSpSdv1KN0Q2zDa4NAO298OjNYZ8pBXeJnRK2Z
+         XKww==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743518618; x=1744123418;
+        d=1e100.net; s=20230601; t=1743518660; x=1744123460;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=HN94Rbb3C+JRhW7V34+pZoioef1Q69r5rGBIntjnuf8=;
-        b=TQFpZRcoegYFlVs9xrD7DOIKiNIMZvZfC8JUYfT64UvgmLWeiLp/oz5wh4Je/ZYqmP
-         I/9t7J2d7feghQH1iZSHd0exLvPZozxstWGRxeMm2l0TSVtrAJSEEzw+rUcUVvIvkoCn
-         EGSJKPTd+GL5FDWt7c50Lqts7b8yHWXW6kyYaqHB8zOr/l0K8DyFGQDct6MaZm0Zgyw9
-         SEhiWNY8QgOfh9vQdbDtFpV6t9MlpKNUk6SjuOQT4thzAitV/8WY0l7WlVfJd6sg5/jP
-         h3oJiyZh7o1tgLny4mOEUScrsQJn1GoApKvHvmQ2uUDwImWZVBaeVuJ9wEHdXZsGw9kK
-         if1w==
-X-Forwarded-Encrypted: i=1; AJvYcCUKqI8fbN5OjO8EYPaaGj+4TJMaOKTO/fFPdQUHYwLUdERjT2W1pWvvgJ3llroACS7rs/49/ZA=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxqCbPUqZSXSMX5JD0ovDJ3xJQ35FKmi7YCsk7vaq/7nSD6w+Mt
-	dfqyYb5UHX/fgUTNkmdi4w7RkPQ40WxXEUO05YXoNkxl/VM5LouCG0LHBRCa8No=
-X-Gm-Gg: ASbGncv8kTMomlZNPCjOs9zBCB5OuFr4SVIGj8LhdACIs7Lxm3OvtE1P0b7RzhqiKfa
-	AGOqcV0S3uXyJoNj3u28rDvVU09IR6ogfpB3CoiB8t++moxwuVWYM3r74vm/hp50SvSeKOf43nu
-	Q1oETXfXC7K8xvZZZ4ybh7IML5QpVYGMD2Db+d3/s/boVFPxtRc22336XxKMQRdmAwOKw+SkXYG
-	2zrkY3kAfpEh/GyEU8R2TmXMiHZPswXUzwtTVBjhTGEdhoMO5Hb1DeEMhFOYZvpUBUetElocVBu
-	uQ9hif6ZSYQIsq9KMqmqq1+yEr5dtt2/iEQ2s8bWM9LeJ/tCqi39g+ntsDwbqYUg6LkxTrpNxxu
-	vurL4GFAsGxsYZj7yV4JPLKxyYsg=
-X-Google-Smtp-Source: AGHT+IESWMLbS4rdl9AVCYJaEJTqsnnFG5ywMnL9FotwkE0oq8eGuaFBq1K5pnITmIFvf/Sd3O6CnQ==
-X-Received: by 2002:ac8:7441:0:b0:478:dcdd:a257 with SMTP id d75a77b69052e-478dcdda41amr84695291cf.25.1743518618588;
-        Tue, 01 Apr 2025 07:43:38 -0700 (PDT)
+        bh=7FWXvvIBXjd612osNxdIWGLZO1JiputvQXiNVM/ceGs=;
+        b=wMffzfEJkbSbvEDkhbuBX1UB/Pp2yI4ewzKbvmADrhIpBohapCYMGhlWcehYP9rYG9
+         FOrNRogIZEKxm4cM5HMa5IefA3LA3xmInJC9Z6K74pYLZwlNzI9lmHS6JJMP0lqd0no0
+         b79DDlktoAvjCXKFs6kI0swjpcJRe7aGUUHK3UzK3bTw0nvaWrYmeYKwb25rkdTTt6YA
+         4Zf7HjM77QpLNnr8rqO2fi5Dxlp1qrKjuJsPNQ8n9J6W6riuTEebWkRzakwMISABq6M/
+         librrXeJApVebGXGAczPsKeRX3sni3lRFYi6gTrikZI4/XoAEOk9JYGdQgdH5tz/SoIo
+         oSuA==
+X-Forwarded-Encrypted: i=1; AJvYcCWYwC6cjZ+YneBKabcjb3yDeKSL6O897mVohzD8jktIrBQANVBezWSa0tCbsLAw5G2xFw2/+Eo=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yzp5TJ9CpBhpTgVHcW5lWMK1WcDvjITGLhQPo7asKfvkThtrao7
+	J7l5BUo6sewci+h4YT2G7l4hEavwfc6v9utUh6FhWIxFTqEEXLOfYD0bGN18e2Ud8lZOj088XG5
+	1
+X-Gm-Gg: ASbGncvgA1vOYiKVnE8giaf8p/BQk+dDz05GoFCJPACJahsvRw4DltpRoSgoPsfSr4h
+	xK2s36evhapEwH1IJY1pXGogezNbb5ZdUxy0kw4ZdxfNPhX6tneKJX2OYW1LSmHwYEXVi7yEjQ8
+	Sx6nQJAsAagbuatPUkB0hRW6ZZe9vP0DJqHOamSXtu/GzWERqh0xbQjnW1qKy7pydwtMl9wm11O
+	7FTPBfe5CLyahc2x0Ks6SLoiVpfIRPm3aRBWwjCe2XM7JX5jVYyeuLbvnghIyBhclX8mOBUf9Xw
+	vPnMv1brBKwuY5ya1a21Qglguq33lkJ7fUlNrFx+4752kf06uPKDy+zNv5x9MrpappEDeves5E3
+	4bgZyLaA0IX2Gcy3eUjT6LkvEIVayzq3/NO6Z/g==
+X-Google-Smtp-Source: AGHT+IHWAViNpa9KNwFeFv6Mk2L5a71FCOjF9YatoVlMWR+lTPKcPhRsuUJPd37s2vaScZLIZyzR/g==
+X-Received: by 2002:a05:620a:4492:b0:7c5:5286:4369 with SMTP id af79cd13be357-7c69072eecemr1663920685a.28.1743518659907;
+        Tue, 01 Apr 2025 07:44:19 -0700 (PDT)
 Received: from gourry-fedora-PF4VCD3F (pool-173-79-56-208.washdc.fios.verizon.net. [173.79.56.208])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-47782a4a709sm66857571cf.20.2025.04.01.07.43.37
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6eec9627e9bsm62509246d6.15.2025.04.01.07.44.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Apr 2025 07:43:38 -0700 (PDT)
-Date: Tue, 1 Apr 2025 10:43:36 -0400
+        Tue, 01 Apr 2025 07:44:19 -0700 (PDT)
+Date: Tue, 1 Apr 2025 10:44:17 -0400
 From: Gregory Price <gourry@gourry.net>
 To: David Hildenbrand <david@redhat.com>
-Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, kernel-team@meta.com,
-	vishal.l.verma@intel.com, dave.jiang@intel.com,
-	linux-cxl@vger.kernel.org
+	dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com
 Subject: Re: [PATCH] DAX: warn when kmem regions are truncated for memory
  block alignment.
-Message-ID: <Z-v7mMZcP1JPIuj4@gourry-fedora-PF4VCD3F>
+Message-ID: <Z-v7waimV3OZq_1H@gourry-fedora-PF4VCD3F>
 References: <20250321180731.568460-1-gourry@gourry.net>
- <Z-remBNWEej6KX3-@gourry-fedora-PF4VCD3F>
- <3e3115c0-c3a2-4ec2-8aea-ee1b40057dd6@redhat.com>
+ <88bce46e-a703-4935-b10e-638e33ea91b3@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -78,26 +78,48 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3e3115c0-c3a2-4ec2-8aea-ee1b40057dd6@redhat.com>
+In-Reply-To: <88bce46e-a703-4935-b10e-638e33ea91b3@redhat.com>
 
-On Tue, Apr 01, 2025 at 11:33:59AM +0200, David Hildenbrand wrote:
-> On 31.03.25 20:27, Gregory Price wrote:
-> > We discussed [1] how this auto-sizing can cause 1GB huge page
-> > allocation failures (assuming you online as ZONE_NORMAL). That means
-> > ACPI-informed sizing by default would potentially be harmful to existing
-> > systems and adding yet-another-boot-option just seems nasty.
-> > 
-> > I've since dropped acpi-informed block size patch[2].  If there are opinions
-> > otherwise, I can continue pushing it.
+On Tue, Apr 01, 2025 at 11:47:32AM +0200, David Hildenbrand wrote:
 > 
-> Oh, I thought we would be going forward with that. What's the reason we
-> would not want to do that?
+> Can't that be done a bit simpler?
+
+Yes, this is better, lets do this.  Thank you!
+
 > 
-
-It seemed like having it reduce block size by default would make 1GB huge
-pages less reliable to allocate. If you think this isn't a large concern,
-I can update and push again.  I suppose I could make it a build option.
-
-Any opinions here are welcome.
-
-~Gregory
+> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> index e97d47f42ee2e..23a68ff809cdf 100644
+> --- a/drivers/dax/kmem.c
+> +++ b/drivers/dax/kmem.c
+> @@ -67,8 +67,8 @@ static void kmem_put_memory_types(void)
+>  static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>  {
+> +       unsigned long total_len = 0, orig_len = 0;
+>         struct device *dev = &dev_dax->dev;
+> -       unsigned long total_len = 0;
+>         struct dax_kmem_data *data;
+>         struct memory_dev_type *mtype;
+>         int i, rc, mapped = 0;
+> @@ -97,6 +97,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>         for (i = 0; i < dev_dax->nr_range; i++) {
+>                 struct range range;
+> +               orig_len += range_len(&dev_dax->ranges[i].range);
+>                 rc = dax_kmem_range(dev_dax, i, &range);
+>                 if (rc) {
+>                         dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
+> @@ -109,6 +110,9 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>         if (!total_len) {
+>                 dev_warn(dev, "rejecting DAX region without any memory after alignment\n");
+>                 return -EINVAL;
+> +       } else if (total_len != orig_len) {
+> +               dev_warn(dev, "DAX region truncated by %lu bytes due to alignment\n",
+> +                        orig_len - total_len);
+>         }
+>         init_node_memory_type(numa_node, mtype);
+> 
+> 
+> -- 
+> Cheers,
+> 
+> David / dhildenb
+> 
