@@ -1,72 +1,72 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE6921624D5
-	for <nvdimm@lists.linux.dev>; Tue,  1 Apr 2025 09:34:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07A161E5B7E
+	for <nvdimm@lists.linux.dev>; Tue,  1 Apr 2025 09:47:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743500046; cv=none; b=oVowSWXzo+0cTQ2XGTGTJB5R1oEiay58vSnlADJ54KJsuKF60Qa6pAAlSvf5viqRXH8yIawiNucRpVcYDgCumoBOvyVDV+37/3pE1v4YdU4dinlUU9bDpXjfKZe/VcoJ8JF15EoDVXavpQRaOyJMR/KCJJQHTeWsRbNScLk3I+4=
+	t=1743500859; cv=none; b=a8FmgXnT3crOcD6R1FYDORAM1MeQHrorY4l4rV5cENbeeoYYz1ittR7ECeKj85CGuYROgx1ooWHFZ6dFCTfd0aDX6vyXkm+ps5J0k4oW1CnEGHJfTGb1lCngjMrVJ/yGO6+ExY0I0A2NTeYH8wgwhTCDKOIzE2uiu3QkkrvX5CY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743500046; c=relaxed/simple;
-	bh=iMKn0ausjfwYR6lIOx0cH6PZ301JCLh8GZ6gFWn89o8=;
+	s=arc-20240116; t=1743500859; c=relaxed/simple;
+	bh=/kEDlxs4pWmB9oX/fku3N5QHYUv8wV66SG9+ndFhA8I=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=W6/2ywLSzfTRlYQoLoCg5UdTiqNYBBxRKUmlWfWsSTEKrJluoSHR9Hn+Txg3DE/YQFu6sZ03sFgVDhCd52UI4BQhvMWiGHwHtqFpSU5lQpG3PZXQ9rpS9IgpsJmy4SvDRZwZv+gmXJWhnVjj56z+uQ/cHKTLh2tia57/MxLJnes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=gyUDAZkL; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=L+fHS26Kj0ifFrSAR+tYQQUKSFVteF3Ss/kiuz8EMVQLcpiBUbzebcnsdNEhAaN6HfFhDgHl9OA6rkA1f3sx9F1XhRoVz0rQsMy7XGXPac2rHWzDW1N1R2NocsmiaNxRer9IYJq8Rf6ehS5Vd8uIcl9Q7cXf6tII9Ud+KRYDjIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=HAqJDUG0; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gyUDAZkL"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HAqJDUG0"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1743500043;
+	s=mimecast20190719; t=1743500856;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=yLW4M7GQepknRN85JoLE8ZSwVeAqp3fUrjLO1RbXEVY=;
-	b=gyUDAZkL3a/Zs2+yT2DuYvE/FBgXKJaV8APJ3qxsy1vQgaj4MdsTrjiF21IBRo5MR19DCK
-	NQZWh5SV/SjLSKCsB3JcbaV2sKllF6Iixh87Z7PHTyobogyoWe1gfvfaVOPZN18MtVePH0
-	V7sXPccklj9pIodiAhMvSjfJ8vGtHa8=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=ADDlubXMad228XKT7ftPgPCt5gtgtinY6YissM6OgU4=;
+	b=HAqJDUG0BFxX6CRj0VNTUCWR5Fj9G4t2ARuqtdKa98TbHnGmAu6qZ+tAH77SlXNb8862Og
+	EGHUWMXSNgXE05D9zJRX+yCx3LVRRloYwNvhqv3S7hqAHX5Qfu7E4zjl/rdBYaxy4k5nce
+	qGopIGwAggLUxI0LqW0TkWpn+lFtm6w=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-383-NNE8eGfLPwqJ8IGeCu1cBg-1; Tue, 01 Apr 2025 05:34:02 -0400
-X-MC-Unique: NNE8eGfLPwqJ8IGeCu1cBg-1
-X-Mimecast-MFC-AGG-ID: NNE8eGfLPwqJ8IGeCu1cBg_1743500041
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-43d51bd9b41so47423205e9.3
-        for <nvdimm@lists.linux.dev>; Tue, 01 Apr 2025 02:34:02 -0700 (PDT)
+ us-mta-265-BYjHYzUEPTuWMd74tFOLvA-1; Tue, 01 Apr 2025 05:47:35 -0400
+X-MC-Unique: BYjHYzUEPTuWMd74tFOLvA-1
+X-Mimecast-MFC-AGG-ID: BYjHYzUEPTuWMd74tFOLvA_1743500855
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-43d0830c3f7so44169835e9.2
+        for <nvdimm@lists.linux.dev>; Tue, 01 Apr 2025 02:47:35 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743500041; x=1744104841;
+        d=1e100.net; s=20230601; t=1743500854; x=1744105654;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=yLW4M7GQepknRN85JoLE8ZSwVeAqp3fUrjLO1RbXEVY=;
-        b=D5W2oTC5AN0DqEOQlr9BdqfBc6CDTsftc3KXHIfVTSTDT3pKAx8S9cPHQO0/j2furP
-         KW+adHDXCrk8arAUa0j2k4hS30dpp0DHe3Y6NWy1n+wlxjVtGtFhmepA3sIrSrZ9d6V2
-         x+n//4U0mW5FJkEr35t5hv+ifjirzT6MvzkD5TIGW1MPoIYAylpAeqfl237dfAWgsFU/
-         EPn2yHEj9lhXETM3GISPZNrxcrzLgrv60VaN8LdvTK/u0Ebh5S259cFPm7zAmKQ30UJ6
-         Ko7MRscFVVyGWb9u1yYgmgorzQMjy8CNxedIzCcuZTAnt9jA2QWey5htGajxT6jisCgh
-         5fuA==
-X-Gm-Message-State: AOJu0Yy/2Snry3sexyqVUtNz7+HzqripASzOPx4FK3qH34h9V2QyUkUt
-	ISooUjbxuJ50Bttzr6yGHWHTbQWA9trRI07V/JNgxoCx/HybFRPddebEGLS5pIo0ewfNCCwRCcW
-	RGkz1njMvmZwOOq/klMELhkecZLMVS2xBVDI0USvM07+uIfD46DeF+w==
-X-Gm-Gg: ASbGncse5fHEpZeFts2rQNhGXZCSRRC97JV5yukiewr8G5ZMGKF3soL+Psv7TxMNuGA
-	bEgXQq599H5HpG0E5rv7FDeMgBEN5CL/hNsIrBl1kP99ogYu3BFJiN0A9kB2JijN/StEfGULfFY
-	XbXzvCA7/3Awnao7/QNaQSRV6IJBStYUQNbIZ4mxmt/4RRhf6J6l9jOmh4yRiOx6tk5+h+OmckF
-	zon0srBnV/HK2CcnjnnWmTJnRe3G/UOmkR78CJe9PTYXeiS4+2cwka0zw/iouvWVGmtiS1kIZl7
-	rkyiLyNmAhlC1Bc5agJZTeSH3OKxOZ6YJBn9zTnNMskR1WtJrU/3w54MfTQFefmukXbwXig1r7+
-	WeGHGFTdHCsZlsKVaaaHfDme0xzsbELB50XuBQnnV
-X-Received: by 2002:a05:6000:1447:b0:391:466f:314e with SMTP id ffacd0b85a97d-39c120dba55mr9972730f8f.16.1743500041379;
-        Tue, 01 Apr 2025 02:34:01 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHuhOY4h3uniqh8t2ORHDry92nujdtgLRHvSyISYtelPiE+fYAhj7bnHs3IyJZqGbkWb7WXIA==
-X-Received: by 2002:a05:6000:1447:b0:391:466f:314e with SMTP id ffacd0b85a97d-39c120dba55mr9972710f8f.16.1743500041060;
-        Tue, 01 Apr 2025 02:34:01 -0700 (PDT)
+        bh=ADDlubXMad228XKT7ftPgPCt5gtgtinY6YissM6OgU4=;
+        b=gNYALURDBPQfyO8taRqVsEDLN6cl+3PlUq6KqALDv2Oi0gHBpNAYsi4PTDVhRB3lm/
+         ioHFWuP25Sr7x6yYFaIvRhmFyo4MRKsQiTB/SIrVz6gtWxdWvUQUlJdO4FkTBX3sZtnl
+         Q53ifGnn55V4Z/L4MEdabeGZ5EjSzKP6NGPrQpjBQ85UYVXZ915hzJ80CxsAsXugToCu
+         /qXOBWvraM0UKVTQr7cb1h22vXCszxhFBaKpw1a5p79UEYc3PrV4qliyH+46EXBGehS3
+         SDyd/dAUkXtWyxX2oPDAjkbnn9cUrEnAVokG+cmIHMElYaus6RKDizzkW3sX1DStiWxr
+         bXqA==
+X-Gm-Message-State: AOJu0YyP3SczKVwh8hve/f7yjw8strYf9Aou4hY0cCnIiNsF93dzvSZp
+	vivsLjJJkSQ3oq/h3sdD4Xw8m47n1FPWZZ0bV3SJ6jtqanfW8ez0GF5UiWkth4mDyyqS8SvjnoP
+	X/cv1jxs+7VrraczIpfdVMqACGufhdo6GKQfM8+S8IPevv62UWapQIg==
+X-Gm-Gg: ASbGncv1EXZmK+07o+6hLSwtjQiQ6Mtiu2cNgJmzNHF1DozzhqN9wN0EOT8pAstT1sg
+	4lgztFm6cJGRrOK6tkIV9bBGzFoZA/ueXtU1zTVUntxOzZXtyK5lDEwvCKHNlJ9hp31qjJkbopH
+	kH1dafdHzsyKFozC4kyrZ4CCs4nWpVfWM01LXyXa1kkjEraX/S4rxECDuFAwTeDwHp6LFuyNhqY
+	SRILATDXeoR7DAc16Y9REI3iCQnlvvqoqse3jy9PrN3aqpTToF8wgHzf8R4Jbxt7Muq0gTWMPzl
+	faP2wvl6G/EvblH6smx7BmBKduPnRDozw7+EwBzCa8+0tOjhGA9VNkRGomHfVW6zC8tuqNrmok/
+	iTjkmyM2WbpZljYZwpWv3OHhnnv+RJYr/2MbiJ11P
+X-Received: by 2002:a05:600c:4715:b0:43c:ee3f:2c3 with SMTP id 5b1f17b1804b1-43db62274f4mr92304885e9.7.1743500854592;
+        Tue, 01 Apr 2025 02:47:34 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHi3pJoCFP8+t9OEcAzrHTZEALh9nlhSaUL6YfefKUj+wsSgRQG8T/V7vs1PIYA4jslo+Pxqw==
+X-Received: by 2002:a05:600c:4715:b0:43c:ee3f:2c3 with SMTP id 5b1f17b1804b1-43db62274f4mr92304635e9.7.1743500854131;
+        Tue, 01 Apr 2025 02:47:34 -0700 (PDT)
 Received: from ?IPV6:2003:cb:c707:4d00:6ac5:30d:1611:918f? (p200300cbc7074d006ac5030d1611918f.dip0.t-ipconnect.de. [2003:cb:c707:4d00:6ac5:30d:1611:918f])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39c0b79e136sm13665091f8f.67.2025.04.01.02.34.00
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43d8ff02e84sm150121975e9.32.2025.04.01.02.47.33
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 01 Apr 2025 02:34:00 -0700 (PDT)
-Message-ID: <3e3115c0-c3a2-4ec2-8aea-ee1b40057dd6@redhat.com>
-Date: Tue, 1 Apr 2025 11:33:59 +0200
+        Tue, 01 Apr 2025 02:47:33 -0700 (PDT)
+Message-ID: <88bce46e-a703-4935-b10e-638e33ea91b3@redhat.com>
+Date: Tue, 1 Apr 2025 11:47:32 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -76,12 +76,11 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH] DAX: warn when kmem regions are truncated for memory
  block alignment.
-To: Gregory Price <gourry@gourry.net>, dan.j.williams@intel.com
+To: Gregory Price <gourry@gourry.net>, linux-cxl@vger.kernel.org
 Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
- kernel-team@meta.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
- linux-cxl@vger.kernel.org
+ kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+ dave.jiang@intel.com
 References: <20250321180731.568460-1-gourry@gourry.net>
- <Z-remBNWEej6KX3-@gourry-fedora-PF4VCD3F>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -128,71 +127,145 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <Z-remBNWEej6KX3-@gourry-fedora-PF4VCD3F>
+In-Reply-To: <20250321180731.568460-1-gourry@gourry.net>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: 4gxGsqOLx0zCIRkQNHPtBfG_JfVJm_II4_MizmBpVJ0_1743500041
+X-Mimecast-MFC-PROC-ID: zZ0jcRhGFS-8Rj8xX2PyU4W4BoF7e3uB0BSqWk3dxSs_1743500855
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 31.03.25 20:27, Gregory Price wrote:
-> On Fri, Mar 21, 2025 at 02:07:31PM -0400, Gregory Price wrote:
->> Device capacity intended for use as system ram should be aligned to the
->> architecture-defined memory block size or that capacity will be silently
->> truncated and capacity stranded.
->>
->> As hotplug dax memory becomes more prevelant, the memory block size
->> alignment becomes more important for platform and device vendors to
->> pay attention to - so this truncation should not be silent.
->>
->> This issue is particularly relevant for CXL Dynamic Capacity devices,
->> whose capacity may arrive in spec-aligned but block-misaligned chunks.
->>
->> Example:
->>   [...] kmem dax0.0: dax region truncated 2684354560 bytes - alignment
->>   [...] kmem dax1.0: dax region truncated 1610612736 bytes - alignment
->>
->> Signed-off-by: Gregory Price <gourry@gourry.net>
+On 21.03.25 19:07, Gregory Price wrote:
+> Device capacity intended for use as system ram should be aligned to the
+> architecture-defined memory block size or that capacity will be silently
+> truncated and capacity stranded.
 > 
-> Gentle pokes.  There were a couple questions last week whether we should
-> warn here or actually fix something in memory-hotplug.
+> As hotplug dax memory becomes more prevelant, the memory block size
+> alignment becomes more important for platform and device vendors to
+> pay attention to - so this truncation should not be silent.
 > 
-> Notes from CXL Boot to Bash session discussions:
+> This issue is particularly relevant for CXL Dynamic Capacity devices,
+> whose capacity may arrive in spec-aligned but block-misaligned chunks.
 > 
+> Example:
+>   [...] kmem dax0.0: dax region truncated 2684354560 bytes - alignment
+>   [...] kmem dax1.0: dax region truncated 1610612736 bytes - alignment
 > 
-> We discussed [1] how this auto-sizing can cause 1GB huge page
-> allocation failures (assuming you online as ZONE_NORMAL). That means
-> ACPI-informed sizing by default would potentially be harmful to existing
-> systems and adding yet-another-boot-option just seems nasty.
+> Signed-off-by: Gregory Price <gourry@gourry.net>
+> ---
+>   drivers/dax/kmem.c | 18 ++++++++++++++----
+>   1 file changed, 14 insertions(+), 4 deletions(-)
 > 
-> I've since dropped acpi-informed block size patch[2].  If there are opinions
-> otherwise, I can continue pushing it.
+> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> index e97d47f42ee2..15b6807b703d 100644
+> --- a/drivers/dax/kmem.c
+> +++ b/drivers/dax/kmem.c
+> @@ -28,7 +28,8 @@ static const char *kmem_name;
+>   /* Set if any memory will remain added when the driver will be unloaded. */
+>   static bool any_hotremove_failed;
+>   
+> -static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
+> +static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r,
+> +			  unsigned long *truncated)
+>   {
+>   	struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+>   	struct range *range = &dax_range->range;
+> @@ -41,6 +42,9 @@ static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
+>   		r->end = range->end;
+>   		return -ENOSPC;
+>   	}
+> +
+> +	if (truncated && (r->start != range->start || r->end != range->end))
+> +		*truncated = (r->start - range->start) + (range->end - r->end);
+>   	return 0;
+>   }
+>   
+> @@ -75,6 +79,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>   	mhp_t mhp_flags;
+>   	int numa_node;
+>   	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
+> +	unsigned long ttl_trunc = 0;
+>   
+>   	/*
+>   	 * Ensure good NUMA information for the persistent memory.
+> @@ -97,7 +102,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>   	for (i = 0; i < dev_dax->nr_range; i++) {
+>   		struct range range;
+>   
+> -		rc = dax_kmem_range(dev_dax, i, &range);
+> +		rc = dax_kmem_range(dev_dax, i, &range, NULL);
+>   		if (rc) {
+>   			dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
+>   					i, range.start, range.end);
+> @@ -130,8 +135,9 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>   	for (i = 0; i < dev_dax->nr_range; i++) {
+>   		struct resource *res;
+>   		struct range range;
+> +		unsigned long truncated = 0;
+>   
+> -		rc = dax_kmem_range(dev_dax, i, &range);
+> +		rc = dax_kmem_range(dev_dax, i, &range, &truncated);
+>   		if (rc)
+>   			continue;
+>   
+> @@ -180,8 +186,12 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>   				continue;
+>   			goto err_request_mem;
+>   		}
+> +
+> +		ttl_trunc += truncated;
+>   		mapped++;
+>   	}
+> +	if (ttl_trunc)
+> +		dev_warn(dev, "dax region truncated %ld bytes - alignment\n", ttl_trunc);
+>   
+>   	dev_set_drvdata(dev, data);
+>   
+> @@ -216,7 +226,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+>   		struct range range;
+>   		int rc;
+>   
+> -		rc = dax_kmem_range(dev_dax, i, &range);
+> +		rc = dax_kmem_range(dev_dax, i, &range, NULL);
+>   		if (rc)
+>   			continue;
+>   
 
-Oh, I thought we would be going forward with that. What's the reason we 
-would not want to do that?
+Can't that be done a bit simpler?
 
-> 
-> 
-> We also discussed[3] variable-sized blocks having some nasty corner cases.
-> Not unsolvable, but doesn't help users in the short term.
-> 
-> 
-> There was some brief discussion about whether a hotplug memblock with a
-> portion as offline pages would be possible.  This seems hacky?  There
-> was another patch set discussing this, but I can't seem to find it.
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index e97d47f42ee2e..23a68ff809cdf 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -67,8 +67,8 @@ static void kmem_put_memory_types(void)
+  
+  static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+  {
++       unsigned long total_len = 0, orig_len = 0;
+         struct device *dev = &dev_dax->dev;
+-       unsigned long total_len = 0;
+         struct dax_kmem_data *data;
+         struct memory_dev_type *mtype;
+         int i, rc, mapped = 0;
+@@ -97,6 +97,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+         for (i = 0; i < dev_dax->nr_range; i++) {
+                 struct range range;
+  
++               orig_len += range_len(&dev_dax->ranges[i].range);
+                 rc = dax_kmem_range(dev_dax, i, &range);
+                 if (rc) {
+                         dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
+@@ -109,6 +110,9 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+         if (!total_len) {
+                 dev_warn(dev, "rejecting DAX region without any memory after alignment\n");
+                 return -EINVAL;
++       } else if (total_len != orig_len) {
++               dev_warn(dev, "DAX region truncated by %lu bytes due to alignment\n",
++                        orig_len - total_len);
+         }
+  
+         init_node_memory_type(numa_node, mtype);
 
-Yeah, I proposed something like that as well when I started working on 
-virtio-mem and did not really understand the whole hot(un)plug model in 
-Linux properly. Someone else proposed it again a couple of years ago, 
-but it's just wrong and should not be done that way.
-
-One could implement something like virtio-mem, whereby parts of a Linux 
-memory block can be added/removed independently ("fake offlined"). But 
-the whole idea of virtio-mem is that all memory in the Linux memory 
-block range belongs to it. So it doesn't quite apply to DAX where parts 
-of a Linux memory block might be from something completely different 
-(e.g., boot memory etc).
 
 -- 
 Cheers,
