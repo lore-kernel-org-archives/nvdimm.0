@@ -1,219 +1,233 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2077.outbound.protection.outlook.com [40.107.92.77])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7780D1A2393
-	for <nvdimm@lists.linux.dev>; Thu,  3 Apr 2025 18:50:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.77
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743706249; cv=fail; b=rMrIsHdYyL+CClz2VOu4uhGrMQz75kGX8QYTLUOPvqW4PJRLawvB/seBt2HIzOk3Mfsb4tm7VkHdikhnV3MxCNfMgGWxsW19YWaOXjrCE42axZH+FHnEwasbpjSIQdc8nqGes4XzccXPUefx77U0Su30T+kBKiHCcGB3C07Hr+Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743706249; c=relaxed/simple;
-	bh=gi/HiRVhrayln6tTuxMnwRDelKIvVdEdHaT8GOEaX9o=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=kPXRFZ/yFw29HYhhhW2QjySl/0CNLX04tbKL5BDP9Uqym+S3PkaVWujNjAUyOCxO9p+TCTVrQSkvQtZVuSLS4+g0r5CGbeSaoJpFfZ9ixkT1tDyLpbd5xDDepd8PgVyiqYv8knXzQaWhGzQHf6eU/HckDXPLcJAZ10a4ouxMwKY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=SSvQ2DUz; arc=fail smtp.client-ip=40.107.92.77
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AADA41E5B74;
+	Fri,  4 Apr 2025 12:57:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1743771451; cv=none; b=uB3zopZ/npy5N19gbsAF4eWdSuOFCkDgIQRZGBWnDYV2jqkm5tHSOkh2VaXMUcVpPaS4ATIkzRVp6T1j2ZOl7q6f5cfZnKFl5vsmxhNAGCFH7nW4WuLnbYBHjfNRFu7RJXIIQS7+xh1N4Xu0G7Tob5dlZN/XE+JUizSMLfcLse8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1743771451; c=relaxed/simple;
+	bh=xyYjW+AtxZxWbV1o0CQ1AfEjiVHQH5yQ+vFkf737e4A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=P58kOasHywNo/vD3rQrN59gwOhMq7088H2iOyARLNJ5FbtZAsGTn5tWPo1Mh4mNxtlvOJM2NFd7e0+49r1ur2eCeLkkI43xTIbd6HyQ+UM1jDq/guwZ4BVf/rjH16QDuQITFlg1DoBE/5SISdnAUYVEsApUL14AultVDRPHkWcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Rvu9lNEs; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="SSvQ2DUz"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=KkGRL1UiW3YmrOwIYsSfbjuH4r4HPm/ieGWuOGldT60DhetmU4+fxXt6MCVBgfLrskoQNo3rEBedrbv+L/h38VYajs3/w+xHE04HNgc7grO3wrXEGsDpF7QLFPICXLJDt3bbNRnJ5/UpajNVwIg8HzlvYysEXqQrgYHuSu7Jsva8ZYJQmCnZ0Z5HjzwESuYKAU3YYrp4GXJfQTzOUPMbu+nPvuUAf5vskMjD8WTfrGvPHlBU5Vm1Cw5N+4MOsSjKk+TwWmKOwyA1f+z/5TdHjOFkUmRvzdFRexxZ6e6hlV4m1OS/b9u3+b8SOPvUeSAyOgHxzcfMAlELixmpLjG5nA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AfUMwuZ4Yh01CSuO4FPzWW3orDskLuA15cxgJ5Cw0Jg=;
- b=YoS/5RdOy/bSPEH2+1Lm2V8ZFx0XOBoUnDvND7yW2sLa1EzQUschhnsWSrsMgCC2JiYwTiIvXYABxIB9M501wZOyE2zxTxTw0eJF6DUDrxMuRtiCVl9z6y4e81tex0La8rAI/TEFXkTADlTfQ7VUXUnvsZ3KfMN5f1s4JOPWrwHGh7JfQhL7GXRhfDs2h4I9wohik0hwMBPBM7gMirrmfmIDz/CSY5ylgJyUzhedcFDbTqVVpkQk99uD2nAzd4DCVhoW9eseGbTN63NHYhPDpKYetwFG69sQYT0dhpXC5eJGq67ftoP3exAKZj5V2Z0tfuBZWXuNWJn3vuE+b7flkA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=AfUMwuZ4Yh01CSuO4FPzWW3orDskLuA15cxgJ5Cw0Jg=;
- b=SSvQ2DUzzgT4uMzzneVpszcoYqSNkWVy97qG04blqXnZlHBrhwLp1tpKtvWCF/zv0A7a6M2OroLJZf0Iljjn5pMu18mYyh7R9nKIi3NXumBqQc1MON9mwytpt0wt7w9Sck8JRpm9rP1qisOjBhdQzdwvj/rx7qjh5TiH2LS8noA=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DS0PR12MB6390.namprd12.prod.outlook.com (2603:10b6:8:ce::7) by
- PH7PR12MB5758.namprd12.prod.outlook.com (2603:10b6:510:1d1::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.44; Thu, 3 Apr
- 2025 18:50:43 +0000
-Received: from DS0PR12MB6390.namprd12.prod.outlook.com
- ([fe80::38ec:7496:1a35:599f]) by DS0PR12MB6390.namprd12.prod.outlook.com
- ([fe80::38ec:7496:1a35:599f%5]) with mapi id 15.20.8534.043; Thu, 3 Apr 2025
- 18:50:43 +0000
-Message-ID: <dd9ef946-2d8e-4a43-ac62-dab09f97934a@amd.com>
-Date: Thu, 3 Apr 2025 13:50:38 -0500
-User-Agent: Mozilla Thunderbird
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Rvu9lNEs"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1743771450; x=1775307450;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=xyYjW+AtxZxWbV1o0CQ1AfEjiVHQH5yQ+vFkf737e4A=;
+  b=Rvu9lNEsuKb6Mi9E2RRgu5HYMRyCURp8wKHsILdvqGgRcJ/aXaXmVpUK
+   NiuQx+8HzDy8q1dR2at/oYh80PG2OJOLPv+c4GKq1MmG51FxbNz4x2cSw
+   27Esuqwrm2ARqlVV/SQpH33o/XXeubcNekXlz87U1HQgztckVdSt+fKvf
+   VWWTAlaJ7PnjYM7Vi2sr8McqCLTkoD7YN1nUu5FumdUY2FrCs4/KfWTKa
+   Gx+zde9wQywYXFF2lAE/aK4yc1I+iQYjXVGdWlfTW/EzwO/Ln+YoXNPPk
+   ocWoY8Gw/PD3Qgum8vyAfwScDtPlQ1RSYrST743e4YB8pmxFXzKalLzfF
+   w==;
+X-CSE-ConnectionGUID: LV5OV2NzR++k426JSjNxjg==
+X-CSE-MsgGUID: CIozY4uyQOmZg6M2u9irgA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11393"; a="56576700"
+X-IronPort-AV: E=Sophos;i="6.15,188,1739865600"; 
+   d="scan'208";a="56576700"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Apr 2025 05:57:29 -0700
+X-CSE-ConnectionGUID: 1mEEHg4vSMmejJnBhYjM6Q==
+X-CSE-MsgGUID: 8NydhknOTYy7mydb1oLAjw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,188,1739865600"; 
+   d="scan'208";a="158292383"
+Received: from lkp-server01.sh.intel.com (HELO b207828170a5) ([10.239.97.150])
+  by fmviesa001.fm.intel.com with ESMTP; 04 Apr 2025 05:57:22 -0700
+Received: from kbuild by b207828170a5 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1u0gbo-0001FP-1P;
+	Fri, 04 Apr 2025 12:57:20 +0000
+Date: Fri, 4 Apr 2025 20:57:15 +0800
+From: kernel test robot <lkp@intel.com>
+To: Terry Bowman <terry.bowman@amd.com>, dave@stgolabs.net,
+	jonathan.cameron@huawei.com, dave.jiang@intel.com,
+	alison.schofield@intel.com, vishal.l.verma@intel.com,
+	ira.weiny@intel.com, dan.j.williams@intel.com, willy@infradead.org,
+	jack@suse.cz, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz,
+	ming.li@zohomail.com, nathan.fontenot@amd.com,
+	Smita.KoralahalliChannabasappa@amd.com,
+	huang.ying.caritas@gmail.com, yaoxt.fnst@fujitsu.com,
+	peterz@infradead.org, gregkh@linuxfoundation.org,
+	quic_jjohnson@quicinc.com, ilpo.jarvinen@linux.intel.com,
+	bhelgaas@google.com, andriy.shevchenko@linux.intel.com,
+	mika.westerberg@linux.intel.com, akpm@linux-foundation.org,
+	gourry@gourry.net, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev
 Subject: Re: [PATCH v3 1/4] kernel/resource: Provide mem region release for
  SOFT RESERVES
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: dave@stgolabs.net, jonathan.cameron@huawei.com, dave.jiang@intel.com,
- alison.schofield@intel.com, vishal.l.verma@intel.com, ira.weiny@intel.com,
- dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
- rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, ming.li@zohomail.com,
- nathan.fontenot@amd.com, Smita.KoralahalliChannabasappa@amd.com,
- huang.ying.caritas@gmail.com, yaoxt.fnst@fujitsu.com, peterz@infradead.org,
- gregkh@linuxfoundation.org, quic_jjohnson@quicinc.com,
- ilpo.jarvinen@linux.intel.com, bhelgaas@google.com,
- mika.westerberg@linux.intel.com, akpm@linux-foundation.org,
- gourry@gourry.net, linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
- linux-pm@vger.kernel.org, rrichter@amd.com, benjamin.cheatham@amd.com,
- PradeepVineshReddy.Kodamati@amd.com, lizhijian@fujitsu.com
-References: <20250403183315.286710-1-terry.bowman@amd.com>
- <20250403183315.286710-2-terry.bowman@amd.com>
- <Z-7WImoc5Dg3Xtyq@smile.fi.intel.com>
-Content-Language: en-US
-From: "Bowman, Terry" <terry.bowman@amd.com>
-In-Reply-To: <Z-7WImoc5Dg3Xtyq@smile.fi.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SA1P222CA0180.NAMP222.PROD.OUTLOOK.COM
- (2603:10b6:806:3c4::17) To DS0PR12MB6390.namprd12.prod.outlook.com
- (2603:10b6:8:ce::7)
+Message-ID: <202504042030.Rs5G4dWd-lkp@intel.com>
+References: <20250403183315.286710-2-terry.bowman@amd.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB6390:EE_|PH7PR12MB5758:EE_
-X-MS-Office365-Filtering-Correlation-Id: 56ed4e56-5ed5-47cc-6157-08dd72e06fd5
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016|7416014;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?Sk5KOHZETlhGbkxXZnEvS3ZENlVXd2hmVnFUT2xXTEhQN0xtSXdqTUNXS3BN?=
- =?utf-8?B?RmpUYURoSGZQamZ3QWF2VEIvdFZjKytpeGhISEJ5SFErOXh6OFZFTlhJSjdZ?=
- =?utf-8?B?ZjY0Uk8zdDRVMkJhOWpuTkRITFQ1eTlmKzhtZGZGU3Z4ZmlidC9uekI1L3Zy?=
- =?utf-8?B?L01IcHdjcGpZbjc1TGoyUk1mdTZwN2R0NXI4OXl3Z0JsckNPYWJnanhaL25q?=
- =?utf-8?B?Z0ZRZXovZkNxbkduVnBNSzZPWU80azk5bThDajh3RmVhbk1rNm1vZllGNXhE?=
- =?utf-8?B?Sy9rWmc4UVdaUjFHcmFreWEwTFh2QVRlME9id0lTcVREbDV6THRxYTU0Z21D?=
- =?utf-8?B?Y09iMlVHeHNaaGVOSUVLSHB5YjVZS2NRNHhMZG9CMFN2OThOd3NiR0UzN1hJ?=
- =?utf-8?B?UjJIMEwrbEltM2tuUnl1WnZRcHJ2Yk9oUk1PSWVCUDBVTUtTVm9DSkZFc0ZR?=
- =?utf-8?B?S1hycnFsYUk0SnFlZEVaRkQvQmhXak03QjZZN0NLcFo3ZGFpakV3TUlWR3BP?=
- =?utf-8?B?VmlMQzZKamFERTJ2amxuY3l3MjlQSDlheHdFdVFUVWxQMzJyNzN0Y1VjLzI2?=
- =?utf-8?B?RHgxODQ5cGkrT2x5R0ZDWC8wZXlibGo4TiswQkxCYTd0c3lQUnkrS0R5K0lJ?=
- =?utf-8?B?bC93bFZYOE9CUExFd1pKZjFXOElMVVRicVpITTU2VjVCV3dvZVkrb2xsbnZq?=
- =?utf-8?B?UGI5SlN5dzNQQWlDblFDeVJ0dmV2ODhlZGhnWGF1TG5hSVgyWHYvTURZWjhr?=
- =?utf-8?B?SW9XUmJKSEtyczh5QS9OaFpFWXF0TnhQenB0TFMxeGlFWDIzTFNscENCY0VT?=
- =?utf-8?B?bTM0WHJiekkzYit6U29ZV3BuMCtnbGh4V2RPZUI0ZVJ0SElzODFsSGxEUFln?=
- =?utf-8?B?M2c3WkJhQk5yNzE3WG9JU3dyQkhsaDlQazBFYVRuODV3cER5NFNKRm9lSkdP?=
- =?utf-8?B?SkhPZ2dVMXYxaUU3WCtET1VvV1hZcENwVitvNmZCbzdBMDI0eDkwelNISnpl?=
- =?utf-8?B?cXk3ZlQvQUZBejVhQ25oTnFXeWRZVXY4OXoydjcyMDlpY0NZZWNXTDB5eE9G?=
- =?utf-8?B?ZUJtK01lRTdlNFc0eUdEaHhNdjhnYVI2ZEhML0pIaUZYSU1mQkVTNjBXMmV6?=
- =?utf-8?B?K3pqSnl1TEljRmRrVXg1RCtCRGRnUTNFK0NBcWpCbVArQXpGNU13RW8zOWhV?=
- =?utf-8?B?ZVFPSENmb0QrOWxmaGdLV0xJdDJiVWtKQUEwTW9IVnBQMnRIKzZrV045T3lq?=
- =?utf-8?B?NWtWNkQ1WmN3Ti96REhHalJxQkU5QklENHNDVkp6OWwwMHFCZXM4UUFFWEIr?=
- =?utf-8?B?M2N6SFh5eFA4WnFTamwwZmxJRVFxUnlyOEwyZW5leFppeFRvMldUZFdJTU93?=
- =?utf-8?B?SDJTVU9JaGV5dUxPWWY3TmwwRC9tRnJEUFVacWxZY3VNbFRldUdnSE9lSEdJ?=
- =?utf-8?B?dnRIUGVDdXVhb2lHUGoyQTlZQzNGS0xVeFdwM3ZtWmwraTloanhFblZsSjZF?=
- =?utf-8?B?d0JGQ0lINWxReWZEdmVuUHpUNDJEeC9QbEZkTnN2SEd5ZGFUMnR0bWF5cGFn?=
- =?utf-8?B?OWRkalpabEhyNTFXTngwVW9PRTgzV1M5ZGFaWkNrWVNTMnhIemxvNnFWV1Iz?=
- =?utf-8?B?aWdZdDJ1SXJ2MzMwWlh5MlhZMDIrZmNyTm9WR0NiMDhieXJtNWd4SFQ1ZjA2?=
- =?utf-8?B?M2tGRmk1R2FGWWZvc3M3S3ZyNm1EUlY4Tmt2Q1grN3NzLytlaTVUQTFNakJa?=
- =?utf-8?B?SDg4VnRhazVLNG5xcWEzMlo0d0owWFFhNVY5ZWRlTW9iYU5KeWJxVGxQNUZp?=
- =?utf-8?B?NUt3Mm50RXByZ2pYRlhUU25yeGlkUm12TlFXaHh5aHlaNXRsWVh1SXZlWW5T?=
- =?utf-8?Q?DSuHmccW8rIWu?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB6390.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(7416014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?aGZiVXhnajBwVU9mSFA5SXI1dE45YloyYy90dDQzT2ttcWxoLzFVRjlFYmEx?=
- =?utf-8?B?ZURFSmVJOGZaNzFqclVjd0I4Wnp4ZndpUDB6TW5NeHpCNzhDR2ltbFhPK0xO?=
- =?utf-8?B?d0xjd1JXN1ozQTliMjlNaUlweExrTDlRQVFuYmJaaElFemlteTFiTWEzUUZn?=
- =?utf-8?B?WXhmOHptVXlTY21iVDF6aXE5MlpGRjAyZ2p4emZueHFwamVOQ24xYmxFd2gy?=
- =?utf-8?B?UGIvek5uK2dxby9mMFo1NWZqZktGL0ZUbUNiMk9hdHVRRXVVcW5TaEFVQU9G?=
- =?utf-8?B?U1NDbVEvQmZBNUVUUmc5V091ejl1TWVuY21QWDBEVWxDcnkwcXRpbTYwb2Fm?=
- =?utf-8?B?N2VBRWo2UjVpQ202TDI4ZjdFd09wWCtyV1ZrZGQ3VXBJNHl2NFN5OUpRcTBF?=
- =?utf-8?B?NWNob0JXOTNSbng5ZU8zYTdBQU1ja3ErM3hrcnQrSmtyTVdsVDdDemVpVVZW?=
- =?utf-8?B?eVpHclA2RlBUWVhQT1c2clBtdEZqanZSbkxqaEVySmhMZm5ZRGlOMjN5Rkx4?=
- =?utf-8?B?Q2lIWVBoSURzdnlpNzExWGlPOW8zclpOZ2JRYnphR0Y0NzRhV1U3ZDgvWFc2?=
- =?utf-8?B?UkVmSHpxMjc4RC96dmVTU0dTQVhJM3R0Z0xrdGdMUTBmdTFDK0l4NUxPMk9V?=
- =?utf-8?B?L0RGa2VUOWZXdHpCRUdtUlF6UUlOb3ZQQjZqczFUS0JmV1lHVzllTHVOcWN6?=
- =?utf-8?B?N1I3d01ZY2k0eVlOaUVjWk93K1hqTEhRb2NEeFRlTm1yMnhpUGU2ajhZTTNn?=
- =?utf-8?B?a0tTUVRjMDk1TmZ3ZzM0RzF0bW80bkhFRzlYejFiZmZRcVkzaDA1QVY5M1FS?=
- =?utf-8?B?RHk2ZW9jZmtWM1pjZFFYV0ZGZmZyQjBnZHJwVDlGdDZMcldyVlJQQ3pkbmhm?=
- =?utf-8?B?REV3blc2SFdrQ2lqaVhwU1V5TVc2UHFpS0EwZVBhQUFDd1VwcEVXYko0bTZL?=
- =?utf-8?B?djJRM2luNHJXSDg3eXVoWDBzVzhaczhjYU40b0lsNEhXYys1UmF1dFppZHNL?=
- =?utf-8?B?d2Vvb0Jja1VQdzdDYlp2L0cyL3gxQVhsRkRlRXJGcGRUUmducnZwZ0x5YTdV?=
- =?utf-8?B?TXJuUWtPdEdDekpqU3U4ODF5ZnE4b2dpVEorM1ZOUlVnSi9UaXAyeGhFaXhP?=
- =?utf-8?B?d3Vka09Tdkx1VEMyK0hsYWVoS3Y0U2FKWVlHVjIwUUVLRktZWUcvZmo5bW9w?=
- =?utf-8?B?QXBDeFJvZzhmMThkclRYYzN1TkVmOXhTc2hMa3NoSDJKQUVjZEdMc0NtU1Rp?=
- =?utf-8?B?L05OVEx1ZFFZMmIvdVgyS0ZrSFJGei9vUmhUVlhaNGlCVXdJY05uR1VvbHhZ?=
- =?utf-8?B?bE1TUjYvbHpJblY1WXExaS96THVlbUo3N0xiV20zK3pDK2wvbjFhSmFzN3Fz?=
- =?utf-8?B?NW9RdUUvTVRpT0x5QVlUSVhDZlRIKyt1VlZxT3AxcEo0MDYzaGZEbSt0REEw?=
- =?utf-8?B?UVdRUndQdGp4emFsMkhxT3ZydERlRnlEazJiaFdvUTlFQkFvSUVneVczbkNp?=
- =?utf-8?B?VFlaR1pDbFV5a3FvSWlrK3ZRSlJpMVVjTnpaekhNWFIxVXpoWFl6RjE5cWhV?=
- =?utf-8?B?VGpDYnlFTUpTYkhLS2J3U2JJRll6cWVJdFc1cWd5RmJrU0ZybWYzRWt3OVJn?=
- =?utf-8?B?dlZlMGhVZk9VQjd6SHJrVTV0ZkQrdnFZTXREQy91b2JRcHdDN1RZMm55NDFw?=
- =?utf-8?B?eTNoRTR1Y0dMUTZoemxQaHR4LzJXK0ZQWFBzY3ovQlNETGlKQno3L3BiSjJl?=
- =?utf-8?B?V1M0UEFvQ3hwejV6VGQzYTRUcG9pc2E0Y2FPWU9jQWJDVHhWWFRxajJuRHQy?=
- =?utf-8?B?TTg2Wk1LZUkxSkNMZEV4N3gwek9QbnJ3MzNSbGV6ZmNEYzNoTEt4SkU5V3gx?=
- =?utf-8?B?T2U4SzRLUnR4aWpCc3B3L3dKbGVKZXFqL0JmclZnelJndlhsNjVMRld3c2M2?=
- =?utf-8?B?VmNLdUhnRnNuWDBFWm9TVTJHMGxRbERUQythSmVsSTEzN2Y0bU1kY205K002?=
- =?utf-8?B?N0QyZ252RG95cmhtSzZGSEw0ZVpQamhwbzlYRngzRVc1ZVpabGJPT2pQRDE0?=
- =?utf-8?B?UjBIWU5mR3p3TXNXWmhOZlBWN2JvUWI1dnY1R09ES1I0RExYN1pGeVlLQXRQ?=
- =?utf-8?Q?Wfkf+hYIWXMDTsi+ZvIUW9pyu?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 56ed4e56-5ed5-47cc-6157-08dd72e06fd5
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB6390.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Apr 2025 18:50:43.2672
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: vSLpIi7kHIYcs/KltF6F2m4TuuCgmeDQ7L2qYHvBdaYMDK1/G+UuOs7Wq4EnSTjX/0lGvM/V9JtylM6emjlP+w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB5758
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250403183315.286710-2-terry.bowman@amd.com>
 
-Hi Andy,
+Hi Terry,
 
-Thanks for reviewing this. I'll make updates for all you pointed out below.
+kernel test robot noticed the following build warnings:
 
-Regards,
-Terry
+[auto build test WARNING on aae0594a7053c60b82621136257c8b648c67b512]
 
-On 4/3/2025 1:40 PM, Andy Shevchenko wrote:
-> On Thu, Apr 03, 2025 at 01:33:12PM -0500, Terry Bowman wrote:
->> From: Nathan Fontenot <nathan.fontenot@amd.com>
->>
->> Add a release_Sam_region_adjustable() interface to allow for
->> removing SOFT RESERVE memory resources. This extracts out the code
->> to remove a mem region into a common __release_mem_region_adjustable()
->> routine, this routine takes additional parameters of an IORES
->> descriptor type to add checks for IORES_DESC_* and a flag to check
->> for IORESOURCE_BUSY to control it's behavior.
->>
->> The existing release_mem_region_adjustable() is a front end to the
->> common code and a new release_srmem_region_adjustable() is added to
->> release SOFT RESERVE resources.
-> ...
->
->> +void release_mem_region_adjustable(resource_size_t start, resource_size_t size)
->> +{
->> +	return __release_mem_region_adjustable(start, size,
-> You have still room on the previous line for the parameters.
->
->> +					       true, IORES_DESC_NONE);
-> Return on void?! Interesting... What do you want to do here?
->
->> +}
->> +EXPORT_SYMBOL(release_mem_region_adjustable);
->> +#endif
->> +
->> +#ifdef CONFIG_CXL_REGION
->> +void release_srmem_region_adjustable(resource_size_t start,
->> +				     resource_size_t size)
-> This can be put on a single line.
->
->> +{
->> +	return __release_mem_region_adjustable(start, size,
->> +					       false, IORES_DESC_SOFT_RESERVED);
-> Same comments as per above function.
->
->> +}
->> +EXPORT_SYMBOL(release_srmem_region_adjustable);
->> +#endif
+url:    https://github.com/intel-lab-lkp/linux/commits/Terry-Bowman/kernel-resource-Provide-mem-region-release-for-SOFT-RESERVES/20250404-023601
+base:   aae0594a7053c60b82621136257c8b648c67b512
+patch link:    https://lore.kernel.org/r/20250403183315.286710-2-terry.bowman%40amd.com
+patch subject: [PATCH v3 1/4] kernel/resource: Provide mem region release for SOFT RESERVES
+config: i386-buildonly-randconfig-003-20250404 (https://download.01.org/0day-ci/archive/20250404/202504042030.Rs5G4dWd-lkp@intel.com/config)
+compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250404/202504042030.Rs5G4dWd-lkp@intel.com/reproduce)
 
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202504042030.Rs5G4dWd-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> kernel/resource.c:1414: warning: Function parameter or struct member 'busy_check' not described in '__release_mem_region_adjustable'
+>> kernel/resource.c:1414: warning: Function parameter or struct member 'res_desc' not described in '__release_mem_region_adjustable'
+>> kernel/resource.c:1414: warning: expecting prototype for release_mem_region_adjustable(). Prototype was for __release_mem_region_adjustable() instead
+
+
+vim +1414 kernel/resource.c
+
+^1da177e4c3f41 Linus Torvalds    2005-04-16  1389  
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1390  #if defined(CONFIG_MEMORY_HOTREMOVE) || defined(CONFIG_CXL_REGION)
+825f787bb49676 Toshi Kani        2013-04-29  1391  /**
+825f787bb49676 Toshi Kani        2013-04-29  1392   * release_mem_region_adjustable - release a previously reserved memory region
+825f787bb49676 Toshi Kani        2013-04-29  1393   * @start: resource start address
+825f787bb49676 Toshi Kani        2013-04-29  1394   * @size: resource region size
+825f787bb49676 Toshi Kani        2013-04-29  1395   *
+825f787bb49676 Toshi Kani        2013-04-29  1396   * This interface is intended for memory hot-delete.  The requested region
+825f787bb49676 Toshi Kani        2013-04-29  1397   * is released from a currently busy memory resource.  The requested region
+825f787bb49676 Toshi Kani        2013-04-29  1398   * must either match exactly or fit into a single busy resource entry.  In
+825f787bb49676 Toshi Kani        2013-04-29  1399   * the latter case, the remaining resource is adjusted accordingly.
+825f787bb49676 Toshi Kani        2013-04-29  1400   * Existing children of the busy memory resource must be immutable in the
+825f787bb49676 Toshi Kani        2013-04-29  1401   * request.
+825f787bb49676 Toshi Kani        2013-04-29  1402   *
+825f787bb49676 Toshi Kani        2013-04-29  1403   * Note:
+825f787bb49676 Toshi Kani        2013-04-29  1404   * - Additional release conditions, such as overlapping region, can be
+825f787bb49676 Toshi Kani        2013-04-29  1405   *   supported after they are confirmed as valid cases.
+825f787bb49676 Toshi Kani        2013-04-29  1406   * - When a busy memory resource gets split into two entries, the code
+825f787bb49676 Toshi Kani        2013-04-29  1407   *   assumes that all children remain in the lower address entry for
+825f787bb49676 Toshi Kani        2013-04-29  1408   *   simplicity.  Enhance this logic when necessary.
+825f787bb49676 Toshi Kani        2013-04-29  1409   */
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1410  static void __release_mem_region_adjustable(resource_size_t start,
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1411  					    resource_size_t size,
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1412  					    bool busy_check,
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1413  					    int res_desc)
+825f787bb49676 Toshi Kani        2013-04-29 @1414  {
+cb8e3c8b4f45e4 David Hildenbrand 2020-10-15  1415  	struct resource *parent = &iomem_resource;
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1416  	struct resource *new_res = NULL;
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1417  	bool alloc_nofail = false;
+825f787bb49676 Toshi Kani        2013-04-29  1418  	struct resource **p;
+825f787bb49676 Toshi Kani        2013-04-29  1419  	struct resource *res;
+825f787bb49676 Toshi Kani        2013-04-29  1420  	resource_size_t end;
+825f787bb49676 Toshi Kani        2013-04-29  1421  
+825f787bb49676 Toshi Kani        2013-04-29  1422  	end = start + size - 1;
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1423  	if (WARN_ON_ONCE((start < parent->start) || (end > parent->end)))
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1424  		return;
+825f787bb49676 Toshi Kani        2013-04-29  1425  
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1426  	/*
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1427  	 * We free up quite a lot of memory on memory hotunplug (esp., memap),
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1428  	 * just before releasing the region. This is highly unlikely to
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1429  	 * fail - let's play save and make it never fail as the caller cannot
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1430  	 * perform any error handling (e.g., trying to re-add memory will fail
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1431  	 * similarly).
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1432  	 */
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1433  retry:
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1434  	new_res = alloc_resource(GFP_KERNEL | (alloc_nofail ? __GFP_NOFAIL : 0));
+825f787bb49676 Toshi Kani        2013-04-29  1435  
+825f787bb49676 Toshi Kani        2013-04-29  1436  	p = &parent->child;
+825f787bb49676 Toshi Kani        2013-04-29  1437  	write_lock(&resource_lock);
+825f787bb49676 Toshi Kani        2013-04-29  1438  
+825f787bb49676 Toshi Kani        2013-04-29  1439  	while ((res = *p)) {
+825f787bb49676 Toshi Kani        2013-04-29  1440  		if (res->start >= end)
+825f787bb49676 Toshi Kani        2013-04-29  1441  			break;
+825f787bb49676 Toshi Kani        2013-04-29  1442  
+825f787bb49676 Toshi Kani        2013-04-29  1443  		/* look for the next resource if it does not fit into */
+825f787bb49676 Toshi Kani        2013-04-29  1444  		if (res->start > start || res->end < end) {
+825f787bb49676 Toshi Kani        2013-04-29  1445  			p = &res->sibling;
+825f787bb49676 Toshi Kani        2013-04-29  1446  			continue;
+825f787bb49676 Toshi Kani        2013-04-29  1447  		}
+825f787bb49676 Toshi Kani        2013-04-29  1448  
+825f787bb49676 Toshi Kani        2013-04-29  1449  		if (!(res->flags & IORESOURCE_MEM))
+825f787bb49676 Toshi Kani        2013-04-29  1450  			break;
+825f787bb49676 Toshi Kani        2013-04-29  1451  
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1452  		if (busy_check && !(res->flags & IORESOURCE_BUSY)) {
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1453  			p = &res->child;
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1454  			continue;
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1455  		}
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1456  
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1457  		if (res_desc != IORES_DESC_NONE && res->desc != res_desc) {
+825f787bb49676 Toshi Kani        2013-04-29  1458  			p = &res->child;
+825f787bb49676 Toshi Kani        2013-04-29  1459  			continue;
+825f787bb49676 Toshi Kani        2013-04-29  1460  		}
+825f787bb49676 Toshi Kani        2013-04-29  1461  
+825f787bb49676 Toshi Kani        2013-04-29  1462  		/* found the target resource; let's adjust accordingly */
+825f787bb49676 Toshi Kani        2013-04-29  1463  		if (res->start == start && res->end == end) {
+825f787bb49676 Toshi Kani        2013-04-29  1464  			/* free the whole entry */
+825f787bb49676 Toshi Kani        2013-04-29  1465  			*p = res->sibling;
+ebff7d8f270d04 Yasuaki Ishimatsu 2013-04-29  1466  			free_resource(res);
+825f787bb49676 Toshi Kani        2013-04-29  1467  		} else if (res->start == start && res->end != end) {
+825f787bb49676 Toshi Kani        2013-04-29  1468  			/* adjust the start */
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1469  			WARN_ON_ONCE(__adjust_resource(res, end + 1,
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1470  						       res->end - end));
+825f787bb49676 Toshi Kani        2013-04-29  1471  		} else if (res->start != start && res->end == end) {
+825f787bb49676 Toshi Kani        2013-04-29  1472  			/* adjust the end */
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1473  			WARN_ON_ONCE(__adjust_resource(res, res->start,
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1474  						       start - res->start));
+825f787bb49676 Toshi Kani        2013-04-29  1475  		} else {
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1476  			/* split into two entries - we need a new resource */
+825f787bb49676 Toshi Kani        2013-04-29  1477  			if (!new_res) {
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1478  				new_res = alloc_resource(GFP_ATOMIC);
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1479  				if (!new_res) {
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1480  					alloc_nofail = true;
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1481  					write_unlock(&resource_lock);
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1482  					goto retry;
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1483  				}
+825f787bb49676 Toshi Kani        2013-04-29  1484  			}
+825f787bb49676 Toshi Kani        2013-04-29  1485  			new_res->name = res->name;
+825f787bb49676 Toshi Kani        2013-04-29  1486  			new_res->start = end + 1;
+825f787bb49676 Toshi Kani        2013-04-29  1487  			new_res->end = res->end;
+825f787bb49676 Toshi Kani        2013-04-29  1488  			new_res->flags = res->flags;
+43ee493bde78da Toshi Kani        2016-01-26  1489  			new_res->desc = res->desc;
+825f787bb49676 Toshi Kani        2013-04-29  1490  			new_res->parent = res->parent;
+825f787bb49676 Toshi Kani        2013-04-29  1491  			new_res->sibling = res->sibling;
+825f787bb49676 Toshi Kani        2013-04-29  1492  			new_res->child = NULL;
+825f787bb49676 Toshi Kani        2013-04-29  1493  
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1494  			if (WARN_ON_ONCE(__adjust_resource(res, res->start,
+ec62d04e3fdc4b David Hildenbrand 2020-10-15  1495  							   start - res->start)))
+825f787bb49676 Toshi Kani        2013-04-29  1496  				break;
+825f787bb49676 Toshi Kani        2013-04-29  1497  			res->sibling = new_res;
+825f787bb49676 Toshi Kani        2013-04-29  1498  			new_res = NULL;
+825f787bb49676 Toshi Kani        2013-04-29  1499  		}
+825f787bb49676 Toshi Kani        2013-04-29  1500  
+825f787bb49676 Toshi Kani        2013-04-29  1501  		break;
+825f787bb49676 Toshi Kani        2013-04-29  1502  	}
+825f787bb49676 Toshi Kani        2013-04-29  1503  
+825f787bb49676 Toshi Kani        2013-04-29  1504  	write_unlock(&resource_lock);
+ebff7d8f270d04 Yasuaki Ishimatsu 2013-04-29  1505  	free_resource(new_res);
+825f787bb49676 Toshi Kani        2013-04-29  1506  }
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1507  #endif
+e4ebc182a59bbb Nathan Fontenot   2025-04-03  1508  
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
