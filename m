@@ -1,92 +1,270 @@
-Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B40A8BEA
-	for <nvdimm@lists.linux.dev>; Wed,  9 Apr 2025 22:48:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B697C1B6CE4
+	for <nvdimm@lists.linux.dev>; Wed,  9 Apr 2025 23:10:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744238941; cv=none; b=ky0Ax/5WgVoTfvLi3JsSSpcczu0TGEbr6nrMg9SaXwwRbiVx4+CVmapxvyZxNHQ9cO3nF7kFfs62DwPYdNQmeOPvlE/fOHmvGbfhku2qt9/c9h77677zr7qRkmlfztkEQkzGKKQVwKFxlLLpsBKMSWqqG25I/3QAIeyCQ8C7WA4=
+	t=1744240237; cv=none; b=lw+QUWQyemiEwLfgbC1cUiKoSfgH76v50udrysE1TId2/0tDQ7ZCChIUVvd2+RsVBKJXq/UZPklLCAvp92ANcgmE5eDwYwFQUViJ1tX8+NsRUkLbqb4C3o6MvE0iNHusWafiSP0beSHyWtrLV5i/TAsa4naANymVX6pp8GDUlHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744238941; c=relaxed/simple;
-	bh=9EcjlMK/aECC7Z0EsbqajEnUDd5WSMpfa5B3tFPhdFM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Es88k+4pY/as+m0FY3hhGHJ6wxJ65kt/nfwmX8fsWkSkydCBJKubYrp13DpnfnoX1l00IMnoFFf5VAt2bqXSVdLvEO5DrpNauovFhaemePSl2nfwqGVrxLKvgYOnbO1osqwxnIWhTcxi3a76SM1zn9M0NpLAHAQAy0JGErBeujo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=P4Kfyuk1; arc=none smtp.client-ip=209.85.222.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1744240237; c=relaxed/simple;
+	bh=u/n1aGmfJVgYwSs7QCF5pzObc3G0d4j4oIh8RMHqRTY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=OR4eE1Xr+xNrgfAE/YWtTEZq5Vex/8k2g2h8NDH1ewJKDuE47oVPR1v71OXAyCSJ2KUtjFXjfvy72BVF+S/sgPAPo0cXRaG5TxhWHvjFvXvt69j34TkPs8WdQq0YwkDvCzDI1EtvFkNIpqN8oFW/rY4qHaJQFBIKm/YFfeXtJdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=d+Di66rD; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="P4Kfyuk1"
-Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-7c5c815f8efso19592785a.2
-        for <nvdimm@lists.linux.dev>; Wed, 09 Apr 2025 15:48:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1744238938; x=1744843738; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=/htfkjUcjTtbQhaXMacTvcz8vKgEhUM6n8QlQjKIc+g=;
-        b=P4Kfyuk1+lppU0NjduMPyiBz6GxC5Ld7xJgzUP8AiX5WQBI2zEie4Y4M4Q9pSKYHbx
-         w0Wql8UJHYPegi0pwk0ArEuuAENA/ocX61wy5y118fJffey9WdscqQrhF/MWxiffSMsi
-         QBHZ/F26qUjqIVqaEV/7IKJwpQcjPp3ajAm74dW0of+umZ3D134bz/ELo47f2mgJDtdl
-         ZvWQ2uxnc0dUrcmu8eyINTlSw6QZmYSsXRK+v/kr26n8JXffOdMv9sYZumIDjDC3EC3s
-         zZet7pN/YkFgM6YhqXHe/pPNodWLxKG120dbo1X2vuB6qSbXUDMkxkgEV1hhzt0Irh/9
-         VVfA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744238938; x=1744843738;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/htfkjUcjTtbQhaXMacTvcz8vKgEhUM6n8QlQjKIc+g=;
-        b=nf81UiQeGEKLELQ561P2wqfKruBkwIKlsV8t1putloQAXbhsUOH2i+FKxTWyu1N7gV
-         wLzrtqhSs4icWqWPL25a5bTeJobVWBFEpKKOXmkYmfl08by/vuyomzAb8Boi7m8jYpbv
-         uMSyFslI87d/Ed0a+DyFOZHoe+wz4ldwlPzVsssZX+rpDuaCPL9P653i1rsXY1uZ5EyZ
-         8nZFzjsfuMPbyfY4Nzv2RsBcXHi5L7UCYHpOtbYs6ygjVwCIbH6bO1xz0253w8X6lMdz
-         O8pxYb0BcPUxno4mycQVa0dqpJu58b0atlsAdGL5oBmtPW1rATcwf7TO3pv0jwrPJjqB
-         jgjg==
-X-Forwarded-Encrypted: i=1; AJvYcCW9Ecuj1Ju2sotaxYteu7WbXeOPXxrULsfGgW17JNEdRddro1tyYt/kchqjvkfPlddQMCJ1zeQ=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yyg4zVoIK1LKRM2l2x3GUnMCC990vKHALQHh5q22PRk9Z0I9eQZ
-	fgDx0E5FTPYXctNZ61VoH4SV8i5to6FklA94n9RXFuAmt0NnZTEm2NLhLBoQ67A=
-X-Gm-Gg: ASbGncu5I19LYUDAQLRC/HBx5sqUtHAQt4/i63/KHV53Ev63fTB9/OSrco7+hwr2iOO
-	xYsapZjb4FJEjq62CTgymYTYX+YdzMVJjHbxeugFyR9Jhx4hfmrYKDFaEtBb1/+ZcIEu6jKU45t
-	t/Mo3o27nM+xyR48decS09uYcNd74tECYbF+daXr/YP741XCBA8X7gcB5nTAV6BPTvpj2qJ/+qJ
-	f79ZoJ3Xcats0meSPuEpLCm6LE2CgPUa1zoy//v6XBahTcL+vGro//T3qtYAC/aozvD8pSTxUQ8
-	ZKabUeSuvOeldUXxCz5j5Lz5nqE8vjGDViZ5IwQqT5K1ydmou3laWg==
-X-Google-Smtp-Source: AGHT+IEKFpKNfsSWwOgoi6DRSObHn0c2ff/NBOM3pXCDlmuVPinzb7ITQcqd7tkPTc6RK5Po6EYdag==
-X-Received: by 2002:a05:620a:1712:b0:7c5:dfe6:222a with SMTP id af79cd13be357-7c7a81b14fbmr21927485a.42.1744238937941;
-        Wed, 09 Apr 2025 15:48:57 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F ([2607:fb91:e45:4a49:ba4d:3fcc:71ac:af2a])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7c7a10d0ec7sm126492885a.59.2025.04.09.15.48.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Apr 2025 15:48:57 -0700 (PDT)
-Date: Wed, 9 Apr 2025 18:48:54 -0400
-From: Gregory Price <gourry@gourry.net>
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, kernel-team@meta.com,
-	dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH v2] DAX: warn when kmem regions are truncated for memory
- block alignment.
-Message-ID: <Z_b5VsY0S5cihYga@gourry-fedora-PF4VCD3F>
-References: <20250402015920.819077-1-gourry@gourry.net>
- <Z_bzAapzjzFR3u_P@aschofie-mobl2.lan>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="d+Di66rD"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1744240236; x=1775776236;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=u/n1aGmfJVgYwSs7QCF5pzObc3G0d4j4oIh8RMHqRTY=;
+  b=d+Di66rDH+LBa+VFZhNi5YXr28ocvNrxX1pSImaJYKvonp4pDEISr+Sg
+   78ITTJ033tys0NTOtWe/4ArMenimi2Z7K0nxpme8SXmW1s+mMd09zj8CE
+   lSbaiijGjESj8RbJzq+0IlJ0aeSN5nAmzeYEDtWTp6HOrDFD0veCIRc5m
+   YEMBE8o3j6Z8807zVGI8F5jOZ0DpweRxaGX1Fep2SvvF7o52gvbIjH5pn
+   fgxj9iuPM29XkLbpG45MzgBkCPQB7aLemWCkkVl42lp8uKBjDmnWGb95f
+   uJ5wq8Bu0A/9+dMCvMEKPfOwxhglYJGmyCFGuFym7arfAnJlzxxCU5Lfg
+   g==;
+X-CSE-ConnectionGUID: 7ryKX7nzQgKWlNWSR8eE6Q==
+X-CSE-MsgGUID: IlBMbX+ZTra1FlWT2Z9KNg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11399"; a="55916489"
+X-IronPort-AV: E=Sophos;i="6.15,201,1739865600"; 
+   d="scan'208";a="55916489"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Apr 2025 16:10:35 -0700
+X-CSE-ConnectionGUID: 3Z8dVSIgQOmShvUYqrpciw==
+X-CSE-MsgGUID: EX3LycqjRUaB+7xsOGbZYA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,201,1739865600"; 
+   d="scan'208";a="159690303"
+Received: from ldmartin-desk2.corp.intel.com (HELO [10.125.111.236]) ([10.125.111.236])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Apr 2025 16:10:34 -0700
+Message-ID: <c0094e14-3eec-4be1-b83d-e2e2c301da51@intel.com>
+Date: Wed, 9 Apr 2025 16:10:30 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Z_bzAapzjzFR3u_P@aschofie-mobl2.lan>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [NDCTL PATCH v4 3/3] cxl/test: Add test for cxl features device
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+References: <20250218230116.2689627-1-dave.jiang@intel.com>
+ <20250218230116.2689627-4-dave.jiang@intel.com>
+ <Z_bbK_XRsyYz4ezA@aschofie-mobl2.lan>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <Z_bbK_XRsyYz4ezA@aschofie-mobl2.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Apr 09, 2025 at 03:21:53PM -0700, Alison Schofield wrote:
-> Existing unit test 'daxctl-devices.sh' hits this case:
-> [   52.547521] kmem dax3.0: DAX region truncated by 62.0 MiB due to alignment
+
+
+On 4/9/25 1:40 PM, Alison Schofield wrote:
+> On Tue, Feb 18, 2025 at 03:59:56PM -0700, Dave Jiang wrote:
+>> Add a unit test to verify the features ioctl commands. Test support added
+>> for locating a features device, retrieve and verify the supported features
+>> commands, retrieve specific feature command data, retrieve test feature
+>> data, and write and verify test feature data.
+>>
 > 
-> Tested-by: Alison Schofield <alison.schofield@intel.com>
->
+> Let's revisit the naming -
+> 
+> If the script is cxl-feature.sh then would the C program make sense as
+> feature-control.c or ???
 
-Thanks for testing, good to know there's an existing test for this
+I don't have strong opinions on this. I can change it to feature-control.c. 
 
-will respin w/ Jonathan's recommendations and tags.
+DJ
 
-~Gregory
+> 
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> ---
+>> v4:
+>> - Adjust for kernel changes of input/out data structures
+>> - Setup test script to error out if not -ENODEV
+>> - Remove kernel 6.15 check
+>> ---
+>>  test/cxl-features.sh |  31 ++++
+>>  test/fwctl.c         | 383 +++++++++++++++++++++++++++++++++++++++++++
+>>  test/meson.build     |  45 +++++
+>>  3 files changed, 459 insertions(+)
+>>  create mode 100755 test/cxl-features.sh
+>>  create mode 100644 test/fwctl.c
+>>
+>> diff --git a/test/cxl-features.sh b/test/cxl-features.sh
+> 
+> snip
+> 
+>> diff --git a/test/fwctl.c b/test/fwctl.c
+>> new file mode 100644
+>> index 000000000000..ca39e30f6dca
+>> --- /dev/null
+>> +++ b/test/fwctl.c
+>> @@ -0,0 +1,383 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>> +// Copyright (C) 2024-2025 Intel Corporation. All rights reserved.
+>> +#include <errno.h>
+>> +#include <fcntl.h>
+>> +#include <stdio.h>
+>> +#include <endian.h>
+>> +#include <stdint.h>
+>> +#include <stdlib.h>
+>> +#include <syslog.h>
+>> +#include <string.h>
+>> +#include <unistd.h>
+>> +#include <sys/ioctl.h>
+>> +#include <cxl/libcxl.h>
+>> +#include <cxl/features.h>
+>> +#include <fwctl/fwctl.h>
+>> +#include <fwctl/cxl.h>
+>> +#include <linux/uuid.h>
+>> +#include <uuid/uuid.h>
+>> +#include <util/bitmap.h>
+> 
+> Not clear bitmap.h is needed?
+> 
+>> +
+>> +static const char provider[] = "cxl_test";
+>> +
+>> +UUID_DEFINE(test_uuid,
+>> +	    0xff, 0xff, 0xff, 0xff,
+>> +	    0xff, 0xff,
+>> +	    0xff, 0xff,
+>> +	    0xff, 0xff,
+>> +	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+>> +);
+>> +
+>> +#define CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES	0x0500
+>> +#define CXL_MBOX_OPCODE_GET_FEATURE		0x0501
+>> +#define CXL_MBOX_OPCODE_SET_FEATURE		0x0502
+>> +
+>> +#define GET_FEAT_SIZE	4
+>> +#define SET_FEAT_SIZE	4
+>> +#define EFFECTS_MASK	(BIT(0) | BIT(9))
+>> +
+>> +#define MAX_TEST_FEATURES	1
+>> +#define DEFAULT_TEST_DATA	0xdeadbeef
+>> +#define DEFAULT_TEST_DATA2	0xabcdabcd
+>> +
+>> +struct test_feature {
+>> +	uuid_t uuid;
+>> +	size_t get_size;
+>> +	size_t set_size;
+>> +};
+>> +
+>> +static int send_command(int fd, struct fwctl_rpc *rpc, struct fwctl_rpc_cxl_out *out)
+>> +{
+>> +	if (ioctl(fd, FWCTL_RPC, rpc) == -1) {
+>> +		fprintf(stderr, "RPC ioctl error: %s\n", strerror(errno));
+>> +		return -errno;
+>> +	}
+>> +
+>> +	if (out->retval) {
+>> +		fprintf(stderr, "operation returned failure: %d\n", out->retval);
+>> +		return -ENXIO;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+> 
+> Above the send_command() is factored out and reused. How about doing similar with
+> the ioctl setup - ie a setup_and_send_command() that setups up the ioctl and calls
+> send_command(). That removes redundancy in *get_feature, *set_feature, *get_supported.
+> 
+> 
+>> +
+>> +static int cxl_fwctl_rpc_get_test_feature(int fd, struct test_feature *feat_ctx,
+>> +					  const uint32_t expected_data)
+>> +{
+>> +	struct cxl_mbox_get_feat_in *feat_in;
+>> +	struct fwctl_rpc_cxl_out *out;
+>> +	struct fwctl_rpc rpc = {0};
+>> +	struct fwctl_rpc_cxl *in;
+>> +	size_t out_size, in_size;
+>> +	uint32_t val;
+>> +	void *data;
+>> +	int rc;
+>> +
+>> +	in_size = sizeof(*in) + sizeof(*feat_in);
+>> +	rc = posix_memalign((void **)&in, 16, in_size);
+>> +	if (rc)
+>> +		return -ENOMEM;
+>> +	memset(in, 0, in_size);
+> 
+> How about de-duplicating the repeated posix_memalign() + memset() pattern into
+> one helper func like alloc_aligned_memory() - including the memset on success.
+> 
+> 
+>> +	feat_in = &in->get_feat_in;
+>> +
+>> +	uuid_copy(feat_in->uuid, feat_ctx->uuid);
+>> +	feat_in->count = feat_ctx->get_size;
+>> +
+>> +	out_size = sizeof(*out) + feat_ctx->get_size;
+>> +	rc = posix_memalign((void **)&out, 16, out_size);
+>> +	if (rc)
+>> +		goto free_in;
+>> +	memset(out, 0, out_size);
+>> +
+>> +	in->opcode = CXL_MBOX_OPCODE_GET_FEATURE;
+>> +	in->op_size = sizeof(*feat_in);
+>> +
+>> +	rpc.size = sizeof(rpc);
+>> +	rpc.scope = FWCTL_RPC_CONFIGURATION;
+>> +	rpc.in_len = in_size;
+>> +	rpc.out_len = out_size;
+>> +	rpc.in = (uint64_t)(uint64_t *)in;
+>> +	rpc.out = (uint64_t)(uint64_t *)out;
+>> +
+>> +	rc = send_command(fd, &rpc, out);
+>> +	if (rc)
+>> +		goto free_all;
+>> +
+>> +	data = out->payload;
+>> +	val = le32toh(*(__le32 *)data);
+>> +	if (memcmp(&val, &expected_data, sizeof(val)) != 0) {
+>> +		rc = -ENXIO;
+>> +		goto free_all;
+>> +	}
+>> +
+>> +free_all:
+>> +	free(out);
+>> +free_in:
+>> +	free(in);
+>> +	return rc;
+>> +}
+>> +
+> snip
+> 
+>> +static int test_fwctl_features(struct cxl_memdev *memdev)
+>> +{
+>> +	struct test_feature feat_ctx;
+>> +	unsigned int major, minor;
+>> +	int fd, rc;
+>> +	char path[256];
+>> +
+>> +	major = cxl_memdev_get_fwctl_major(memdev);
+>> +	minor = cxl_memdev_get_fwctl_minor(memdev);
+>> +
+>> +	if (!major && !minor)
+>> +		return -ENODEV;
+>> +
+>> +	sprintf(path, "/dev/char/%d:%d", major, minor);
+>> +
+>> +	fd = open(path, O_RDONLY, 0644);
+>> +	if (!fd) {
+>> +		fprintf(stderr, "Failed to open: %d\n", -errno);
+>> +		return -errno;
+>> +	}
+> 
+> Needs to be "if (fd < 0)"  as open() returns -1 on failure.
+> 
+> snip 
+
