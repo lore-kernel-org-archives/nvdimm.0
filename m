@@ -1,61 +1,50 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83154205E31;
-	Thu, 10 Apr 2025 07:14:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D34FE1EEA5D
+	for <nvdimm@lists.linux.dev>; Thu, 10 Apr 2025 08:48:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744269250; cv=none; b=g6btYPAlhJZrC/EpW4QSHNhPlSRFOnoC+ExXJJsn0paRxYyTmTybpJUz6yIUfZCh/qg9H1tTFWhaEIVG85JSJkiECJgu6EZb+JWsfC3ewDhk7gWZssOZG6tN6s6Q6StrdSV00hEPKltLU1kWUNJt7glgXIG+deNdVaJCngAl2p0=
+	t=1744274909; cv=none; b=QKW+wwVxyIk9bb4eUQlWeGG6VsAB8tIjosv8O7MNDG74LVG6J/bzI+UMmN/EnletKsR9JXw8squLI28DYeG16YXplSVgl7U6pfyVgeXl4sPF2fgdVEKTZNUSMGHEcNCDSPXQK+fyfV8L+h99e3Lm4giVWHpzLm/wvWU4nqCO4C4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744269250; c=relaxed/simple;
-	bh=aykbDz+EBV9MqHd1tGX6R6S9oFQyda8E3u4WyjfFlOI=;
+	s=arc-20240116; t=1744274909; c=relaxed/simple;
+	bh=47xCBNw7cruIIE4oNUTsPdgsxrE+vWzsHCO+aIbxmto=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=my7n9jMkg3Ypm6P7VIBSpy/vT47I4JB/LcS43H5JmiJepuBTYQ8G2AHu8j+XQAiyGc3limk0YdtCcYFWxXeBOIKeD4LmtSbsy4hZgQ5tTXP2hNpRUqbjbhIlTwNAuvtZKaokcNrlYRAx3KgyvZP79Jkrf5PV12bs6eQqQXrhT2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 2E89F68B05; Thu, 10 Apr 2025 09:14:02 +0200 (CEST)
-Date: Thu, 10 Apr 2025 09:14:02 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: kernel test robot <oliver.sang@intel.com>, Jan Kara <jack@suse.cz>,
-	oe-lkp@lists.linux.dev, lkp@intel.com, linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dan Williams <dan.j.williams@intel.com>,
+	 Content-Type:Content-Disposition:In-Reply-To; b=aoHzSpwh8bitqyetjFkRcUwlCMnwkEe2cRTeK1SLZ9ryW++7IJYzXBukcvbjxkMrL1KlbHX3vhYHcXxBr3Dy8r+ASXdh4gKs6GOiaYCaz07hGtwy6V/26ElzSzoU+iJ4IIOeoGd8MNRh9/3f+h5dEpHE/9rzJyG9jTnSS4zrL6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=ZrS5xCvS; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZrS5xCvS"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=m4KfqS8TEuyZgijAbdlQez3pD7H6o8Hu2DstyvBPqHE=; b=ZrS5xCvSGPxJALvHKTyYaMkS/R
+	pet5V59mbGQkMd3XVdIKe9+L37I0fCrDhsR531H1mYrMx72qDqCJ3xBBIGcvctEbkIEObT9Rr9RjJ
+	JphX9jU8CQfmPSbu3GxHaFEfc6M5yaB1/9qAU87QhF9C4d5WJX/kNossy/KQSeEhaBgKWkM46IPLR
+	fM7JqgtgcjYbCU3MNKtOWEQjq0TxG4NTt8XartOkevJVzz5FX1kaRrIW7FRgELE8rMOudFhM3+ldt
+	oGRp9T/FmV15fMZy3or5y5n4FqDlQ/9OEzGlmiUrpQjCJv6+ejfE14F+4deXknvo/y7Rg8ft+qxrj
+	L4zM+neQ==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1u2naD-00000009o1t-2QYA;
+	Thu, 10 Apr 2025 08:48:25 +0000
+Date: Thu, 10 Apr 2025 01:48:25 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>,
 	Alison Schofield <alison.schofield@intel.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Asahi Lina <lina@asahilina.net>, Balbir Singh <balbirs@nvidia.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Christoph Hellwig <hch@lst.de>,
-	Chunyan Zhang <zhang.lyra@gmail.com>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Dave Chinner <david@fromorbit.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@nvidia.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
-	linmiaohe <linmiaohe@huawei.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Matthew Wilcow <willy@infradead.org>,
-	Michael Camp Drill Sergeant Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>, Peter Xu <peterx@redhat.com>,
-	Sven Schnelle <svens@linux.ibm.com>, Ted Ts'o <tytso@mit.edu>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Vivek Goyal <vgoyal@redhat.com>, WANG Xuerui <kernel@xen0n.name>,
-	Will Deacon <will@kernel.org>, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org
-Subject: Re: [linus:master] [fs/dax]  bde708f1a6:
- WARNING:at_mm/truncate.c:#truncate_folio_batch_exceptionals
-Message-ID: <20250410071402.GA32356@lst.de>
-References: <202504101036.390f29a5-lkp@intel.com> <v66t3szdfsfwyl4lw6ns2ykmxrfqecba2nb5wa64l5qqq2kfpb@x7zxzuijty7d>
+	Alistair Popple <apopple@nvidia.com>, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [BUG Report] 6.15-rc1 RIP:
+ 0010:__lruvec_stat_mod_folio+0x7e/0x250
+Message-ID: <Z_eF2YOaidw6OmVZ@infradead.org>
+References: <Z_W9Oeg-D9FhImf3@aschofie-mobl2.lan>
+ <322e93d6-3fe2-48e9-84a9-c387cef41013@redhat.com>
+ <89c869fe-6552-4c7b-ae32-f8179628cade@redhat.com>
+ <67f6d3a52f77e_71fe294f0@dwillia2-xfh.jf.intel.com.notmuch>
+ <edf48c4b-1652-4500-a2e0-1cb98a1f0477@redhat.com>
+ <67f6e97a4dc0b_72052944@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -64,15 +53,13 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <v66t3szdfsfwyl4lw6ns2ykmxrfqecba2nb5wa64l5qqq2kfpb@x7zxzuijty7d>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <67f6e97a4dc0b_72052944@dwillia2-xfh.jf.intel.com.notmuch>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Thu, Apr 10, 2025 at 05:01:26PM +1000, Alistair Popple wrote:
-> However I note that this is ext2. Commit 0e2f80afcfa6 doesn't actually update
-> ext2 so the warning will persist. The fix should basically be the same as for
-> ext4:
+On Wed, Apr 09, 2025 at 02:41:14PM -0700, Dan Williams wrote:
+> The p2p-dma use case does not map into userspace, and the device-dax
+> case has static folio order for all potential folios. So I think this
+> fix is only needed for fsdax.
 
-Are there any actual users of fsdax for ext2, and can't these users to
-switch to ext4 in ext2 mode?  It would be nice to be able to drop the
-barely maintained ext2 dax support.
+p2pdma pages can be mapped to userspace.  Or do you mean something else?
 
