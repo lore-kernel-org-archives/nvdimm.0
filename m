@@ -1,73 +1,77 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C791F0E32;
-	Fri, 11 Apr 2025 14:03:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D4D51F8BD6;
+	Fri, 11 Apr 2025 18:48:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744380221; cv=none; b=K5PkueYYtcxCUlz8sgCUADpS9ZQxrkNi7Vc3trVL7fRxeDMpbyvo6IFXZhtgDOIC2jEiQQOpAFqVhJDHEojD9/eg+pXt3sD3ItXAc0ARaomXdXek5YoC6R1t8sCmqMn5jL8IVnDrumdcEGURQYLi76Vc952pU5tx5GV0BuUqMYQ=
+	t=1744397320; cv=none; b=aMjnkcKGaQdffhpvRW05WioaKxdwi1GG5TXQa76CyPhvOyyA7JGioxFYmVumcaBUkW9UDZc8EYQZc0W2y8e6Dw+XY7trVUi7YSyYV9OqYO1g1PJgg4sq9BSwQVvgkwvi3botEz5Yk1dqGjNNKUbzfyZXbuFn3tjUZGot5/pc8Xc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744380221; c=relaxed/simple;
-	bh=A9uWHZeLASAeqV3pcSaRLVnFs8sczJhLPZO/60JuIrI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fFUufGyu2I4nz+3QXzorYg5QvSviI4UIjSSq68DE/UPXq2ClKwlx+IbchCQjdMiTtbTuFtB/sr5s8+UEB5qRjSFCn6VErdOhIj0KhmmGk5epxc5SABA9IIym7kqdVpCatKtZY5hd6sTlEic4lTezNd0sSl7FZZ8QW9qs8/2PFhA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pilFz60U; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pilFz60U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CD64C4CEE2;
-	Fri, 11 Apr 2025 14:03:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1744380221;
-	bh=A9uWHZeLASAeqV3pcSaRLVnFs8sczJhLPZO/60JuIrI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=pilFz60UlyKzY1WZZ9dfMwWMkW+uicFjF2tMAeTdYrC0y/DBhCyS12drndRX8Ypnt
-	 htzM95GA7M+5XIXlyee3xXx/e43qK82np0I/bWLssRM0IORmnMZ0rwKb93jMcJWZmM
-	 /yxKYIe2JuARQCYCosK2zVhZajBH0K+VQM+w3lxIUz4djrkPyzUqOM3fXDMMm6RfDE
-	 8H1KKJH5Hhxk8DQWy1vGjI30yYSWPYdQui4eFwdnUjuDDBfVjc5nUoCwuPZEl+acdB
-	 M6QVof35nhfs3XgBbkwfvsvHb7mOgbe+OKdeEOznQ8er0iTQtvCDOMyVT5JcQQ2OYv
-	 HGhE+xMz/deZg==
-Date: Fri, 11 Apr 2025 16:03:29 +0200
-From: Christian Brauner <brauner@kernel.org>
-To: Jan Kara <jack@suse.cz>
-Cc: Alistair Popple <apopple@nvidia.com>, 
-	kernel test robot <oliver.sang@intel.com>, oe-lkp@lists.linux.dev, lkp@intel.com, 
-	linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, 
-	Dan Williams <dan.j.williams@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Asahi Lina <lina@asahilina.net>, 
-	Balbir Singh <balbirs@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
-	Christoph Hellwig <hch@lst.de>, Chunyan Zhang <zhang.lyra@gmail.com>, 
-	"Darrick J. Wong" <djwong@kernel.org>, Dave Chinner <david@fromorbit.com>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	David Hildenbrand <david@redhat.com>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
-	Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>, 
-	Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	John Hubbard <jhubbard@nvidia.com>, linmiaohe <linmiaohe@huawei.com>, 
-	Logan Gunthorpe <logang@deltatee.com>, Matthew Wilcow <willy@infradead.org>, 
-	Michael Camp Drill Sergeant Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
-	Peter Xu <peterx@redhat.com>, Sven Schnelle <svens@linux.ibm.com>, Ted Ts'o <tytso@mit.edu>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Vivek Goyal <vgoyal@redhat.com>, WANG Xuerui <kernel@xen0n.name>, Will Deacon <will@kernel.org>, 
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org
-Subject: Re: [linus:master] [fs/dax]  bde708f1a6:
- WARNING:at_mm/truncate.c:#truncate_folio_batch_exceptionals
-Message-ID: <20250411-sehgewohnheiten-blicken-7830519934ab@brauner>
-References: <202504101036.390f29a5-lkp@intel.com>
- <v66t3szdfsfwyl4lw6ns2ykmxrfqecba2nb5wa64l5qqq2kfpb@x7zxzuijty7d>
- <uiu7rcmtooxgbscaiiim7czqsca52bgrt6aiszsafq7jj4n3e7@ge6mfzcmnorl>
+	s=arc-20240116; t=1744397320; c=relaxed/simple;
+	bh=41782EN71bNu2hX/0UNitih58KMQOjsx03F+mT3f4ns=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SQ8NkinjNIIFZvyp5R3Foir5U7IbexKuTWUqGvKVImAVtWP2bTyb/xcleOwgqKrE2PtHwHlmQwtyQmFmYZjmSSErGAd53ogTh4jTB8/y3x1L9GnkCUIO6G6tM2G2A09rw+Qm85HyqP9Auso1eSEWhdGAJRaUuzT8eedyZOi6Q30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A47EBC4CEE2;
+	Fri, 11 Apr 2025 18:48:39 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: alison.schofield@intel.com
+Subject: [NDCTL PATCH v5 0/3] ndctl: Add support and test for CXL Features support
+Date: Fri, 11 Apr 2025 11:47:34 -0700
+Message-ID: <20250411184831.2367464-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <uiu7rcmtooxgbscaiiim7czqsca52bgrt6aiszsafq7jj4n3e7@ge6mfzcmnorl>
+Content-Transfer-Encoding: 8bit
 
-> didn't lift off and DAX ended up being kind of niche, I think the effort
-> to maintain DAX in ext2 is not justified and we should just drop it (and
-> direct existing users to use ext4 driver instead for the cases where they
-> need it). I'll have a look into it.
+v5:
+- Add documentation for exported symbols. (Alison)
+- Create 'struct cxl_fwctl' as object under cxl_memdev. (Dan)
+- Make command prep common code. (Alison)
+- Rename fwctl.c to cxl-features-control.c. (Alison)
+- See individual commits for specific changes from v4.
 
-+1
+v4:
+- Adjust to kernel changes of input/output structs
+- Fixup skip/pass/fail logic
+- Added new kernel headers detection and dependency in meson.build
+
+v3:
+- Update test to use opcode instead of command id.
+
+v2:
+- Drop features device enumeration
+- Add discovery of char device under memdev
+
+The series provides support of libcxl enumerating FWCTL character device
+under the cxl_memdev device. It discovers the char device major
+and minor numbers for the CXL features device in order to allow issuing
+of ioctls to the device. 
+
+A unit test is added to locate cxl_memdev exported by the cxl_test
+kernel module and issue all the supported ioctls to the associated
+FWCTL char device to verify that all the ioctl paths are working as expected.
+
+Kernel series: https://lore.kernel.org/linux-cxl/20250207233914.2375110-1-dave.jiang@intel.com/T/#t
+
+Dave Jiang (3):
+      cxl: Add cxl_bus_get_by_provider()
+      cxl: Enumerate major/minor of FWCTL char device
+      cxl/test: Add test for cxl features device
+
+ Documentation/cxl/lib/libcxl.txt |  23 ++++
+ cxl/lib/libcxl.c                 |  89 ++++++++++++
+ cxl/lib/libcxl.sym               |   8 ++
+ cxl/lib/private.h                |   8 ++
+ cxl/libcxl.h                     |   7 +
+ test/cxl-features-control.c      | 439 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ test/cxl-features.sh             |  31 +++++
+ test/cxl-topology.sh             |   4 +
+ test/meson.build                 |  45 ++++++
+ 9 files changed, 654 insertions(+)
+
