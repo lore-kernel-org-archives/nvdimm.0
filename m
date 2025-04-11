@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3111A296152
-	for <nvdimm@lists.linux.dev>; Fri, 11 Apr 2025 08:28:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29F5827E1CD
+	for <nvdimm@lists.linux.dev>; Fri, 11 Apr 2025 08:37:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744360134; cv=none; b=FwgnH8bUViqYJdqsrJyuk5nKcsfkUjDywXlCCFf5nQnEfDckNxEvsfsv6RmMGQOiXd34tOjlbDqK0LVG4Ix9cispP0Z8zz31ulJa1SsDdMCHiG5EX5wZ8BEGhV9wtB+LomfoCgZc+KR+ZO030ghHG8KNE7r2hBdOmT778ou/TTs=
+	t=1744360644; cv=none; b=s0WGW/p3Kw1yd7olKdSFEvrDXjuDJtxBjvjtr5YRJhIHY95CCc9yan5u5lpY9G8tFUazB7qmEawun+oAR67T/TiuZsm+Wlk8coa7FrBxMHACNovThGtGlRQW126i4KGXHdEL2d71KJSVltSSL4wBPA5pcpoW5RvIV4XV5uVeZIk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744360134; c=relaxed/simple;
-	bh=IPJ9leNQutDhEP9ib8MPyBs4WWbKIFSdy8oKo97gtOg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=c1W1/kr37+XAxcB9kfYUFTW0fF2CpuTbGlZw2QAU6Sl4BT6ZlOyew77SUOeRVDnzOZgdjFztU6wg+6plGcV/B5STDdVuk2ZqoqItGjRwx6E8U15dbHUQ50EBv2MDA0NR3Nd5+vfx/Zw2iPPkQ+kuj41IIL6ptqAiWygoYvo32vQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RKIthJDS; arc=none smtp.client-ip=170.10.133.124
+	s=arc-20240116; t=1744360644; c=relaxed/simple;
+	bh=c0SN2cmlSRibJUhXnObd7lG8PnIaNfQ8ttuK6ETBMRg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:Cc:
+	 In-Reply-To:Content-Type; b=W2R6wTQ5zUtsgbdKLd7RhWZxEwc4iM8UG3BVgoJCa01c6e4LnWxW4rOAhx6mP9Xci4E09zmYhWM6CIWVBy2vHVW/GhLs15hDvQSnFR2/0Mr0rDWJgGI7/xncF4Y/J0qGVm5YubioN38risk/Ej/n59SGVXsgXLAUYANK8oBOVzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ezYBy5GS; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RKIthJDS"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ezYBy5GS"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1744360131;
+	s=mimecast20190719; t=1744360642;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=piFXN2Xmgkl5Go6hnTamk9rAqCYYBNHXThULQUqJm2Y=;
-	b=RKIthJDSI6AxixKJcSHQR6AOiGbj3oS/YTl/JGjjnKI6OCa2giAfMTlYdXu/L8GrMJYW4g
-	K6UH5K4waWCd0O4LqN8M3dySizTVhoGX8kb5zhUdyJAczD+OkMYJIi/4hRvmAX7BUKRyAN
-	CXGW2vcCku4pBxgcOszKtrNAhp0CkmE=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=JLslcSIDe5LlgtBN6zquly6cspPZPxoniRKKH+HI3wY=;
+	b=ezYBy5GSwwPhmhlwbS+49FIzVAz7yFv2J0UXQt/DUWW8q6sSwzzdiFNIoG06cNfY7VY6NI
+	T4nXtxxfTf8lRHSG4XW2o9rtB5axRVoh2XQZIXzSEfMSHpdww9lbhb8Q1pxQdIm357poVK
+	zBG/Bsuh2/AK4bS06pnO844hvRPBKOE=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-124-FNv32BsyO3CXh6xJrVB12Q-1; Fri, 11 Apr 2025 04:28:46 -0400
-X-MC-Unique: FNv32BsyO3CXh6xJrVB12Q-1
-X-Mimecast-MFC-AGG-ID: FNv32BsyO3CXh6xJrVB12Q_1744360126
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-3913f546dfdso926201f8f.1
-        for <nvdimm@lists.linux.dev>; Fri, 11 Apr 2025 01:28:46 -0700 (PDT)
+ us-mta-59-Wv5K4ZA8No-1Y0HimrFziw-1; Fri, 11 Apr 2025 04:37:20 -0400
+X-MC-Unique: Wv5K4ZA8No-1Y0HimrFziw-1
+X-Mimecast-MFC-AGG-ID: Wv5K4ZA8No-1Y0HimrFziw_1744360640
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-39c30f26e31so1102620f8f.3
+        for <nvdimm@lists.linux.dev>; Fri, 11 Apr 2025 01:37:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744360125; x=1744964925;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=piFXN2Xmgkl5Go6hnTamk9rAqCYYBNHXThULQUqJm2Y=;
-        b=mhtVfZU1usWRfF3ek2iPRu93YIiL5QLFz+FtjI3T3GIvK1oVr7u57SofkofFZCMKDM
-         yzg4YOpiCcLpet1r4ZUlTpTB8do6NR84sos5iheBGJv75gt+bynUhUJpL1BP8QYAJrXj
-         dBfsBQqQ/qEm8fef3gQmdEGWueIQY0muIACTciN+rBw7so0e3Vw53BI0FiD2GK9RzwVI
-         NJmIK9hNLdLOqLcBBRlxDH0VRh+zOROp10K+/6BUhuPhXwi4kICaDte2CrMZZf2PHXk9
-         uQyPghETWRZ+tpM0ODe6o87zbRIE1smdcnFpPj/xHTSFhmOsnxeqypr9CpJASom/YdQ5
-         blgw==
-X-Forwarded-Encrypted: i=1; AJvYcCU8FS6cunkzpplQ3gkZu/xSV0yV3QqkiTYKkIivnnhSTdDgXPSLyrAltUOlayw7LKw4nMCG3A8=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yxilta70N+vdIrSOz7l+OoJo1E78PyXMwS3xvqjOyrzpiA4KjJ8
-	o7ZTfLIyLTmDRVe/LW2Q0XJSdBos+sZRd+Zg+kR+vQo7iwwQknWNPZaIHII0lZyC6PL+sXIDZXJ
-	QmY8x74PBOL9utsXpmC9VNu0yYkAo3xZ5Tu2lxknxIo5634B6FG3WvQ==
-X-Gm-Gg: ASbGncuhG8egpCmXDNeT5yKVSB6H9PZwYdLoRbA/n1AdeAZ9frjq9VwvgU+veGTKPzp
-	0So6GjtGKJuNzbs4rRRcY7w/vfFLvlOs0S9NC4PkklLakMxXq6GKv+UqrKTCDJSaBNCQx4yyHHr
-	tEDI9izdE+/vTRGXf7HHRmfuhun7iWr976xE0+MRyfPrTfe7kVTZaGT3+WLsEtQ9jwv/HH2JCzr
-	LId4607VGG/DM6zVb+5hTUcamp43f6b27I15QkeVkl/sEi578GEMxvSdEcMwR7JI0LV5LcHYGqx
-	qHNbjaGdazaTcP0rTF5DwIq5Fftpw8xKrrAOkzE0hDL2Zi0FhE5pEuOY/J+pQ21rVTrS+W1ZFIK
-	rnT7qCBBdiOOSvwWhnffebhSt69KaWQdXrRnm
-X-Received: by 2002:a5d:5f52:0:b0:39c:12ce:67d with SMTP id ffacd0b85a97d-39ea51d0fd7mr1386418f8f.9.1744360125639;
-        Fri, 11 Apr 2025 01:28:45 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEqKQS5VC4HKoM191qR3Wdcx5gkeIGy866+SSbMwJcYUe3advyTAL/vnXDLNSIEGMLmRJ8WcA==
-X-Received: by 2002:a5d:5f52:0:b0:39c:12ce:67d with SMTP id ffacd0b85a97d-39ea51d0fd7mr1386387f8f.9.1744360125295;
-        Fri, 11 Apr 2025 01:28:45 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1744360639; x=1744965439;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt:cc
+         :from:content-language:references:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=JLslcSIDe5LlgtBN6zquly6cspPZPxoniRKKH+HI3wY=;
+        b=iuz1Yl0TqTzVuS6L34ntJDK55HJHGeJWKHP8eigZcoHtyJpopcSiOlNJQE3x3v16Nm
+         dASeETSTz3sg9PFgB5N2dBk3iw56QLfMN8OBnC1qaLJpkoX7TaR93E/IuJSglEc+ImOl
+         RAdC7vrS7t/Mn7+ucg+KSoLxlWqL5BWxUjhtk8vwRPNDKv9X7vLlVfuSWnSZacd4WS1F
+         Pd77q2spNq1WxjncS4UBJvIsQFlPewAZbJhTDTpYrs99bRWAZDztpG5Jw6vqBE6SWau7
+         rykmMKNwt5aWynXaTaaR/enuRf3NEACM8QB69GF8IuLNTaTqgTccqH8zEKoDb3ogA9oS
+         /gog==
+X-Forwarded-Encrypted: i=1; AJvYcCXUW/WO5mKbJHUxpOtXUwuvLTvyI8Ct10Pgz7mRdXMYnVCL1yBccmi1tgR4HMQ9hFx4xvRg4wU=@lists.linux.dev
+X-Gm-Message-State: AOJu0YweEroXx23OT+kFeeYiSLwywKxcUng4VtFvOK3ToOFUabbU6Qkt
+	4wWR4G6rZuhGQyuj+OqV5jNeH5SZI2eetlnx0sH5c36AglCNfMaVv6AWhCizMJGB6Z3F1VDfSOB
+	B2KKFGIIymFw8mpD98EN/2izXG8kA5X707eA8yfJnHh2w0P6YAPYXWg==
+X-Gm-Gg: ASbGnctoopa4Yy8/Z5jzJpt3VbpSCmCBTe3hK+XolLRRGSSuVPl/+3Kw+4ZYpoV6xgu
+	iZAdAjgIH5jyPJmPMmbPbEzHjweyOjHbsn5XWUhmmx5oK01dzqD5snYf6IDhO6Of0MwxzsCH6YI
+	CCyytSAh+mPHZgKBL6na/iFSQKv55N9LR70i2F7vSWeE0n0ayUjgMw4VxaGPryssEcG3vAquNTR
+	VPbIKTn+Q+nZXKTwy9dHQq0uQIN0n7dgdNEx9Qmj3VGZu8J/2GUJVN7lU0QeXazq5mFKasjrbYQ
+	MA17JkVX5i9wwSXurZlWeh+5l9TTjZE2MomUHwcJybJv1XHgRNfigo7RthIM9lX7l1NG9F/4bAr
+	VY6qNLHaOiWsg47I59oQmomYC0eNzcz5cptwY
+X-Received: by 2002:a5d:584b:0:b0:390:de33:b0ef with SMTP id ffacd0b85a97d-39ea644020dmr1231853f8f.30.1744360639575;
+        Fri, 11 Apr 2025 01:37:19 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFy/nxOARvXAgp07ONVwaKQG7V6q2L0VxkCLDReSCXO28buDSxhWR/BAmHdCLtwrV6dKAUbOg==
+X-Received: by 2002:a5d:584b:0:b0:390:de33:b0ef with SMTP id ffacd0b85a97d-39ea644020dmr1231822f8f.30.1744360639093;
+        Fri, 11 Apr 2025 01:37:19 -0700 (PDT)
 Received: from ?IPV6:2003:cb:c726:6800:7ddf:5fc:2ee5:f08a? (p200300cbc72668007ddf05fc2ee5f08a.dip0.t-ipconnect.de. [2003:cb:c726:6800:7ddf:5fc:2ee5:f08a])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39eae979620sm1315106f8f.52.2025.04.11.01.28.44
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39eaf43cb29sm1309748f8f.76.2025.04.11.01.37.17
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 11 Apr 2025 01:28:44 -0700 (PDT)
-Message-ID: <e6962a09-5d98-4860-b21e-0c8b25293cca@redhat.com>
-Date: Fri, 11 Apr 2025 10:28:43 +0200
+        Fri, 11 Apr 2025 01:37:18 -0700 (PDT)
+Message-ID: <6e1a9ad5-c1e1-4f04-af67-cfc05246acbc@redhat.com>
+Date: Fri, 11 Apr 2025 10:37:17 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -77,21 +77,18 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH v1] fs/dax: fix folio splitting issue by resetting old
  folio order + _nr_pages
-To: Matthew Wilcox <willy@infradead.org>,
- Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- Alison Schofield <alison.schofield@intel.com>,
+To: Alistair Popple <apopple@nvidia.com>
+References: <20250410091020.119116-1-david@redhat.com>
+ <qpfgzrstgtyus3jkzrdpwxg2ex7aounhwca65bxwlqxws2drhk@op362gbaestm>
+From: David Hildenbrand <david@redhat.com>
+Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+ nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>,
  Alexander Viro <viro@zeniv.linux.org.uk>,
  Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- Andrew Morton <akpm@linux-foundation.org>,
- Alistair Popple <apopple@nvidia.com>, Christoph Hellwig <hch@infradead.org>
-References: <20250410091020.119116-1-david@redhat.com>
- <67f826cbd874f_72052944e@dwillia2-xfh.jf.intel.com.notmuch>
- <Z_gotADO2ba-Qz9Z@casper.infradead.org>
- <67f82e0e234ea_720529471@dwillia2-xfh.jf.intel.com.notmuch>
- <Z_g-Chjk12ijqf9O@casper.infradead.org>
-From: David Hildenbrand <david@redhat.com>
+ Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>,
+ Alistair Popple <apopple@nvidia.com>, Christoph Hellwig <hch@infradead.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
  dBrn+lhhOYjjNefFQou6478faXE6o2AhmebqT4KiQoUQFV4R7y1KMEKoSyy8hQaK1umALTdL
@@ -137,85 +134,87 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <Z_g-Chjk12ijqf9O@casper.infradead.org>
+In-Reply-To: <qpfgzrstgtyus3jkzrdpwxg2ex7aounhwca65bxwlqxws2drhk@op362gbaestm>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: S93hs5ndEfVOKxuJsEM7_LOgwZq_MAcOXJvjMbKj4Oo_1744360126
+X-Mimecast-MFC-PROC-ID: ISu0mI3fIxWuy67-ZVonwQJuGOJ7-elPO4vGoeQgf4I_1744360640
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 10.04.25 23:54, Matthew Wilcox wrote:
-> On Thu, Apr 10, 2025 at 01:46:06PM -0700, Dan Williams wrote:
->> Matthew Wilcox wrote:
->>> On Thu, Apr 10, 2025 at 01:15:07PM -0700, Dan Williams wrote:
->>>> For consistency and clarity what about this incremental change, to make
->>>> the __split_folio_to_order() path reuse folio_reset_order(), and use
->>>> typical bitfield helpers for manipulating _flags_1?
->>>
->>> I dislike this intensely.  It obfuscates rather than providing clarity.
->>
->> I'm used to pushing folks to use bitfield.h in driver land, but will not
->> push it further here.
+(adding CC list again, because I assume it was dropped by accident)
+
+>> diff --git a/fs/dax.c b/fs/dax.c
+>> index af5045b0f476e..676303419e9e8 100644
+>> --- a/fs/dax.c
+>> +++ b/fs/dax.c
+>> @@ -396,6 +396,7 @@ static inline unsigned long dax_folio_put(struct folio *folio)
+>>   	order = folio_order(folio);
+>>   	if (!order)
+>>   		return 0;
+>> +	folio_reset_order(folio);
 > 
-> I think it can make sense in places.  Just not here.
+> Wouldn't it be better to also move the loop below into this function? The intent
+> of this loop was to reinitialise the small folios after splitting which is what
+> I think this helper should be doing.
+
+As the function does nothing on small folios (as documented), I think 
+this is good enough for now.
+
+Once we decouple folio from page, this code will likely have to change 
+either way ...
+
+The first large folio will become a small folio (so resetting kind-of 
+makes sense), but the other small folios would have to allocate a new 
+"struct folio" for small folios.
+
 > 
->> What about this hunk?
->>
->> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
->> index 2a47682d1ab7..301ca9459122 100644
->> --- a/mm/huge_memory.c
->> +++ b/mm/huge_memory.c
->> @@ -3404,7 +3404,7 @@ static void __split_folio_to_order(struct folio *folio, int old_order,
->>   	if (new_order)
->>   		folio_set_order(folio, new_order);
->>   	else
->> -		ClearPageCompound(&folio->page);
->> +		folio_reset_order(folio);
+>>   	for (i = 0; i < (1UL << order); i++) {
+>>   		struct dev_pagemap *pgmap = page_pgmap(&folio->page);
+>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>> index b7f13f087954b..bf55206935c46 100644
+>> --- a/include/linux/mm.h
+>> +++ b/include/linux/mm.h
+>> @@ -1218,6 +1218,23 @@ static inline unsigned int folio_order(const struct folio *folio)
+>>   	return folio_large_order(folio);
 >>   }
-> 
-> I think that's wrong.  We're splitting this folio into order-0 folios,
-> but folio_reset_order() is going to modify folio->_flags_1 which is in
-> the next page.
-
-Right, clearing in this context might only make sense at the very start.
-
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 2a47682d1ab77..4cd8b394b83a5 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -3312,6 +3312,8 @@ static void __split_folio_to_order(struct folio *folio, int old_order,
-         long nr_pages = 1 << old_order;
-         long i;
-  
-+       folio_reset_order(folio);
-+
-         /*
-          * Skip the first new_nr_pages, since the new folio from them have all
-          * the flags from the original folio.
+>>   
+>> +/**
+>> + * folio_reset_order - Reset the folio order and derived _nr_pages
+>> + * @folio: The folio.
+>> + *
+>> + * Reset the order and derived _nr_pages to 0. Must only be used in the
+>> + * process of splitting large folios.
+>> + */
+>> +static inline void folio_reset_order(struct folio *folio)
+>> +{
+>> +	if (WARN_ON_ONCE(!folio_test_large(folio)))
+>> +		return;
+>> +	folio->_flags_1 &= ~0xffUL;
+>> +#ifdef NR_PAGES_IN_LARGE_FOLIO
+>> +	folio->_nr_pages = 0;
+>> +#endif
+>> +}
+>> +
 
 
-While it looks cleaner, it's in practice not required here, because
+I'm still not sure if this splitting code in fs/dax.c is more similar to 
+THP splitting or to "splitting when freeing in the buddy". I think it's 
+something in between: we want small folios, but the new folios are 
+essentially free.
 
-1) We handle _nr_pages overlay by setting new_folio->memcg_data
+Likely, to be future-proof, we should also look into doing
 
-	new_folio->memcg_data = folio->memcg_data;
+folio->_flags_1 &= ~PAGE_FLAGS_SECOND;
 
-2) We handle the order by setting new_folio->flags
+Or alternatively (better?)
 
-	new_folio->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-
-That should clear all flags (excluding hwpoison), including the order.
+new_folio->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
 
 
-It's worth noting that in free_pages_prepare(), we handle both using
-
-if (compound) {
-	page[1].flags &= ~PAGE_FLAGS_SECOND;
-#ifdef NR_PAGES_IN_LARGE_FOLIO
-	folio->_nr_pages = 0;
-#endif
-
+... but that problem will go away once we decouple page from folio (see 
+above), so I'm not sure if we should really do that at this point unless 
+there is an issue.
 
 -- 
 Cheers,
