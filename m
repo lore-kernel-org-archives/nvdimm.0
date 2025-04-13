@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6328921480B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF0D214A76
 	for <nvdimm@lists.linux.dev>; Sun, 13 Apr 2025 22:52:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744584763; cv=fail; b=hIiTyi2tiot1JkHg6gGOWMOzpyUADx818W+MoNIA59FlSMcPod2ZxiDAR0q5dbC2Rt6r/taKCkSTUaxqSgsyIz7jPKF9zNg+ChxGsZnQalDQjANju8olpz6ec07h9szQZjTR0GGqLAC1M23qxIJn2uEbGt1dR32Sd1ZmFVglUdw=
+	t=1744584763; cv=fail; b=Mh6SbTEvWInAHYdh9VFLAk+Gu5YXMEIEjwmt4kSZMOPTPV2EC9azI0LCly9iHFYtsM+XBRX2eFSwInAZxb5U8xbWbU1pZhzVOu/Qi3QStXWU89A/xfcOYEiuDmOscauzV2sZV3FsLrt6IlRHidJ11LkASCOXA0lfJXpE/dlcz1E=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1744584763; c=relaxed/simple;
-	bh=IXXz9ma+sLFTS3/AZjlqAxGNvG3+Lzvfiga4mSetDHA=;
+	bh=v08CzPvwsIW/3cMosj4dQJdHClkLH7ghZffHXqhCmhA=;
 	h=From:Date:Subject:Content-Type:Message-ID:References:In-Reply-To:
-	 To:CC:MIME-Version; b=MkfBTRxh0esnOFnCJwvu52blDE8B/y60j2ulKeWdIxSnwmWKwHRY2+Xs3w7WAUzzYYqu9uONgq67adRYgdW/3/zzGT/wRHFLYu00BEd2SYD46f9u6WMyOOUkpKfyyXjfjG1LUyhTiGy3MzdJr0RVRdj4NUXEkZvu9PlUsNu7OD0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jKLDeBzQ; arc=fail smtp.client-ip=192.198.163.7
+	 To:CC:MIME-Version; b=idNUlbFdO6kiv2/BFdPVBwYdWBPYVlGiCMjiO0JfMHhL8wpWsZuFMJdOQFvEVrPdnsVauNhMH/fCnrB3/NE+8WcHnHiK8x+aPwZYu/fqdlTZROy9nwfy5Rp8/l8F732FQat8Vlns8G4fKmP3aZLfcLXpPSd4XjNzc/ht+ckjtmQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=P/NmFzj7; arc=fail smtp.client-ip=192.198.163.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jKLDeBzQ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="P/NmFzj7"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1744584761; x=1776120761;
+  t=1744584762; x=1776120762;
   h=from:date:subject:content-transfer-encoding:message-id:
    references:in-reply-to:to:cc:mime-version;
-  bh=IXXz9ma+sLFTS3/AZjlqAxGNvG3+Lzvfiga4mSetDHA=;
-  b=jKLDeBzQGkTI0CaJOjmqA62Tu/PyBWWc3womVD00IaePqSvGElVyZ9sT
-   z81xqR3JcLY0m42OScteDT/eaXdYoNIpozB+Glj9TCRQ5hD7tgc0ii9wB
-   xDrsvA6TTBfKg8BD1ox6eS8tPoXAz4aqvb4lo536dLD++mFjLXGcVzLXk
-   Z4gwCCHDwQJG4UBJ6G2GKRsVNQE4pU7XLZwMacCq7WnkwW/EDSlR4fUWB
-   6KKVAGaaVBb+sIZ4UU8PTK+IafL08PMpajfOCvt4P3UmUeFWS8j0RZpYF
-   mfxZjA2LWK8qYp8ho6zsh3EUSBkRWa1tLH82ydEUocHZXrRYRvZVojKNA
+  bh=v08CzPvwsIW/3cMosj4dQJdHClkLH7ghZffHXqhCmhA=;
+  b=P/NmFzj7nE9K4J4xjmLNZs1HGNGg0D4bPzR+ipr+wAykXkCzpsxTrDIr
+   StR56iGRIcur3QCNjoOdeY+klpjsxXDO+wWgm71Sw5Gf8NP5Eo+PNllPW
+   /OXSDMHSruvlA5XNntwk6BQA47oL3ydogGSmkh0NVLgrn+jZXJOWApWgY
+   VUkeSsjxx8s7uNXSsyeQpX4iTbEtpv7VYd/8ww16R+nxxUhJ1dMtMHdWb
+   6aW8aUkFEg9nft9epawJRLjIbXnUBhbA3jOPGZ041GQhEUHeNC/VZN0AU
+   6RdqYpAV+lOI66vjhTMRka+90RrCyB540nAO8/PC84NbuXW8SimBX+yBx
    A==;
-X-CSE-ConnectionGUID: FaiC1Pf2QJSACkJ/gEHAdA==
-X-CSE-MsgGUID: 1gCMIjLVT6Ojr36ThUKWMA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11402"; a="71431156"
+X-CSE-ConnectionGUID: 02kzIob1SO+iUcd1zLgntw==
+X-CSE-MsgGUID: xX1iCjSxSBm+G3FLIIDeKw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11402"; a="45280987"
 X-IronPort-AV: E=Sophos;i="6.15,211,1739865600"; 
-   d="scan'208";a="71431156"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:40 -0700
-X-CSE-ConnectionGUID: 6K8XBdPBTJGRyzlEGkvZdw==
-X-CSE-MsgGUID: VVrMQQrFTtCTYCrUv63sNg==
+   d="scan'208";a="45280987"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:42 -0700
+X-CSE-ConnectionGUID: KdaQ4WoyQUCi1S/+9fKA/w==
+X-CSE-MsgGUID: vWJM0oFZRaGP8JkixlF/cw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.15,211,1739865600"; 
-   d="scan'208";a="134405598"
-Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
-  by fmviesa005.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:41 -0700
+   d="scan'208";a="129657644"
+Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
+  by fmviesa007.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:41 -0700
 Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
  15.2.1544.14; Sun, 13 Apr 2025 15:52:40 -0700
 Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
@@ -54,14 +54,14 @@ Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
 Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.57.44) by
  edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Sun, 13 Apr 2025 15:52:39 -0700
+ 15.1.2507.44; Sun, 13 Apr 2025 15:52:40 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=vZHfLNlsBrDQPI99YYkPR6EF/BW6R/qn8jV9Y0WDw8rHVxoiyb3mRc57WJmvnEcMeiZ3ltIP8IhWmdzwC/mOMBm0AYBBo/yo3qbfR/vBO6qLG4wiIlscfN3MbvNsM2WVgonGGhZQo0mUe41iUHTSYPOOBnsOgM/OBifeLiZHs00R/vHL8FxBjlVd5/MM6exWWubjU5VdcvzV4p0995VIlylz8QIV0rwswHFs6ujFHnMDxRoFPZI/BOIqNwCPxp46LEF8tj+/hQgLcAPJw9WaXgSMs2EZMiNfr0wOanReFYclgCjO6s54K/9lvgmrWg4k8dV7+n0I0cdrbGYUC6F+4g==
+ b=ooYA/JWuSX46lKnnoaWF9YHIQyQGhM87n8Cwvw+GaS8Zut1FUQptGuQ00+GmPOraewi3XwD17sAlAhnbaNlhXHVplZv2nXQoGQTxTuX7PuvwqsemIYUZwkzwjGvxzK8irVH9fyoNeIOATMCcrsrNkztU5M22mNyJwGFnJQdZg8MQcUFQak45rWsxaAiWllKlTYj8f0jP7Fq2dr0LacKKJCFEP9Ptk1qBOhyw7DC6IZMVUv+XpSpjZcHp6A78v08E9k0tvxCAaDznr6ppgkaQhaiRxpP0yQm2Hl9gpho64vp5VWgKVl7DDN2hVoP1Xx5qYVAz9Vl8ASXINpo8iv7WGA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oZl4Vlki6bfQx7xxAH7vGT4mRBwehSOgPocHtpdgXgU=;
- b=uRYjfek9H6jRh+sSiyPf3TgiTiwYWU3oWutDpR+ivUSC4VyV18l31mB8qnNTCGwDQpQGM5BMKidLWJEpzNM8Op7Fd0F5Bu8dBNs5rAhgVths3swEPoLklycPn/Rp98lw0XBL7dRdN8+VkmzaBp7HdBgFxrc/SwfNVib1ETBpWgmPt7j6PdAB1GdYxFy6dUYnz1gG6qGJeBUh9Lt0U/vyf1VY3tmDOM4lVqtIbneJYgoF2qwHONT5V4sTTJ6R4g8WlYqu+0AgTN6cHetT5j2jV2caDBzAKsEMmwvE7BLdTbyFVdwkudZ7ytKTjjhQSTeECykyjNeBR67zxuUerROzUg==
+ bh=oU8VHnoQLeoj8UGJVPUR011rbMDtdHIvG+2LUNPpCXg=;
+ b=Z46SkVvRAu5f+nPZuZSPywjGKFuSzWLSkjeOjDswQXcRY+sqlFyQcZOUTixnu3vcN8xcsqpzQSnX3DouLC0aO4+fTuuYEXj66or8YxflkgOfImvVtKm98OvWN8c84m9MK7wf5s+zaPHXke5fva/BaI1rL1hkPHz88jiwLwpghCZYgo9y/UUyer8J8BKZ+/XGzKvu5DGpkXlHgd1ujVFn3MQM5625xK7axgDlYtWffoT6HJ+8T/eZiEZefO4YzR4sPiKiCjFbPq0nKcSm8kcMhGulo/YCHk43qI3EJUeaKyDs8M/AqES77Mtq2In550lrTPXWDIGjdY9j52i0jpSn9Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
@@ -71,18 +71,18 @@ Received: from MW4PR11MB6739.namprd11.prod.outlook.com (2603:10b6:303:20b::19)
  by PH7PR11MB7003.namprd11.prod.outlook.com (2603:10b6:510:20a::16) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8632.33; Sun, 13 Apr
- 2025 22:52:37 +0000
+ 2025 22:52:38 +0000
 Received: from MW4PR11MB6739.namprd11.prod.outlook.com
  ([fe80::a7ad:a6e8:fced:3f24]) by MW4PR11MB6739.namprd11.prod.outlook.com
  ([fe80::a7ad:a6e8:fced:3f24%4]) with mapi id 15.20.8606.033; Sun, 13 Apr 2025
- 22:52:37 +0000
+ 22:52:38 +0000
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Sun, 13 Apr 2025 17:52:59 -0500
-Subject: [ndctl PATCH v5 2/5] cxl/region: Add cxl-cli support for dynamic
- RAM A
+Date: Sun, 13 Apr 2025 17:53:00 -0500
+Subject: [ndctl PATCH v5 3/5] libcxl: Add extent functionality to DC
+ regions
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20250413-dcd-region2-v5-2-fbd753a2e0e8@intel.com>
+Message-ID: <20250413-dcd-region2-v5-3-fbd753a2e0e8@intel.com>
 References: <20250413-dcd-region2-v5-0-fbd753a2e0e8@intel.com>
 In-Reply-To: <20250413-dcd-region2-v5-0-fbd753a2e0e8@intel.com>
 To: Alison Schofield <alison.schofield@intel.com>
@@ -92,11 +92,11 @@ CC: Vishal Verma <vishal.l.verma@intel.com>, Jonathan Cameron
  Jiang" <dave.jiang@intel.com>, <linux-cxl@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, Ira Weiny <ira.weiny@intel.com>
 X-Mailer: b4 0.15-dev-c25d1
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1744584788; l=4916;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1744584788; l=8746;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=IXXz9ma+sLFTS3/AZjlqAxGNvG3+Lzvfiga4mSetDHA=;
- b=g2oC7F7fvdFc4wtEIH1VSXIhOwdbScPQp9SZhHuzNI0jECqA7L1z9pXG1Gy3QGaihpFHAbeZf
- vs5exITZQBFBhu2TMHU2g8Ha4lklKbvqvSHsmzxId0jFfoTwe3pvnUy
+ bh=v08CzPvwsIW/3cMosj4dQJdHClkLH7ghZffHXqhCmhA=;
+ b=xaMFgB4JKIixVteVOlgNiJdHDgaeLHIPrsQ8l2MHsaC4mjK2AmYeESyB8uJTzHA3YpSvXjAOQ
+ e5VrHqpqCjqBvzDHTmWy0/yktDfiDIUlYaw67D9xOm7S+SF5ezgMvvF
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 X-ClientProxiedBy: MW2PR2101CA0016.namprd21.prod.outlook.com
@@ -110,238 +110,377 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: MW4PR11MB6739:EE_|PH7PR11MB7003:EE_
-X-MS-Office365-Filtering-Correlation-Id: 16b0440d-16c7-4fb3-23c8-08dd7adde2e3
+X-MS-Office365-Filtering-Correlation-Id: 492e38ec-ec6a-4152-8716-08dd7adde3be
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?TXptenVLaXZwaWgzbmRrTGF0aVlGQ1NvZm1LV1dsTG9Kd0NkSyt3YXVqU3Vi?=
- =?utf-8?B?cWpQUjJRV2sxSUZ4ckUrZFdvODFhMDIxbWJuMjlPYjBIdkJGenNvM2toYm54?=
- =?utf-8?B?WVBWa0ZXM0hPMkRQZkVVeFgxVDhiSHd1VTlETTFqTDJRU2pjd1F2TEQ0eFQz?=
- =?utf-8?B?ZnNiQlcreWFESTVqMVp1dFpOQ01LMXFWLzU1d3JWU0FydkdoSUFtSmxKaXlw?=
- =?utf-8?B?dUtBb2ViYVlIZkZyOW85Y3BVOXVBVEVjRXZUNVhVMWcvWllCclE3TUxBWmVQ?=
- =?utf-8?B?Nmk2L2hSNlYxeUtmR3VsYmlObDVMeVpGVmw3NFlxT3ZFRlhaRGdsbjRDbWx1?=
- =?utf-8?B?N0t0VjZZR29Db1FYVjROR2liT0hKdktVM1N2TU5nTmZiNk4rTUVZN1h2V0JV?=
- =?utf-8?B?MWtzZ1RBNTA4Z2hOa3Y1U085bW1aTGtRK3VuOXJuQWd2Y2lpY3ZHcVkrcHFE?=
- =?utf-8?B?ckN3SzZMR0s0K1N5Qmw0bDFsS1RmZ09KbDlYcUpqWjBkNkNkVjBRaUVkTGZ0?=
- =?utf-8?B?LzUydU5BUlNsYzE1U3g5TVl6aVdRSjJQQ2FuVG5LcHpuU3RLcThSNitROTY2?=
- =?utf-8?B?aXBnQ1JaTzkzNnQ0Z2JCc1ZQVDErQTJwWnQ3VWJRQnJ2MTB3dVAvK2VpTi83?=
- =?utf-8?B?MnRBMEp1cDBaTTJxTmZRUjkxdy9UazBiSC9DNHpHZmUzRE8wK2JlMkRhMGtC?=
- =?utf-8?B?ajlzMHZUdWRaOUwxU0xIbDFPTFhjKytvTFk5MmtUQ0VOakxma0F4emR0MWx4?=
- =?utf-8?B?NzZQZzVNMnBGRnpvNnRTUCt1SmMvMXpBeGs1ek91VEh3T2h0SjduVWt1cmdE?=
- =?utf-8?B?RkU2MFJVN0VIekVONTR5cDI2ZDZFN3Qyb0szZXBjb25LLzJXTXh1YWRVTlVL?=
- =?utf-8?B?UHdIUHo2ZTJlYVZxeWhPandxSTFOR0tCVHVZa3RXdEFldGFlKy9YV2pua0NZ?=
- =?utf-8?B?SnRQWDZLOGIraW5ZbHJyRkxyci9PR01XYzB0cWdsWklSSExsOUQwajJiaXZt?=
- =?utf-8?B?WG9kWjZINGhVa3pmNG15USs4ZXVWOUFqNlIxNXVnR0JVbjhvRm9UcVIrRVBX?=
- =?utf-8?B?bzdCQ2JsenY5bDVPaFMxVVR0S040VWo4VnFMQVlXY3pCaFh2dnN0ZHdWUjBX?=
- =?utf-8?B?YWMvT0syZy91VWhoWHNRU0FqUERZeklSbkxxNEp4cXVYK0VOZ2Z5TXVRRnl2?=
- =?utf-8?B?OE9rTVpWclRnajFIU3V0eXM1S0szRXBrNzV1S2lxNVU3Vy9zdVA4SmRSQ21v?=
- =?utf-8?B?dkdkb0lHcVZEc2ZBbnJLN1VxWTUwVGxOU29PakhEMy85ZE9MamNISjBHZE1O?=
- =?utf-8?B?WFFqRlJVd2R2eHhHcGF2QkhRVEFialN2aTdsMUJQQ3hyeTlkdzN5aTJKUkRH?=
- =?utf-8?B?SnhEWUNUL0I2eE9aQjFydjF5SG9TY3c3d1VuYzNMa2MrZE5TSmprVlJtZ2Iv?=
- =?utf-8?B?YUtwamxNOWNmYmwxandUVGhUSWttMjZ3R1cwb3ZuTjI0MElzdXBNMStBMWIy?=
- =?utf-8?B?a2JRbStpZUo4MXZZV0FHdnFqYjlvbHBzRXFMMXBIOXdWLytSN2laNmlxUVBZ?=
- =?utf-8?B?Uk92ZUVlbWhTQ3JaazhXby9kK0tBK1ZpRktCeWFQdkYwTyt6SXNLUjgzQVRN?=
- =?utf-8?B?NVk5TFVRYktQZ25PQTNYWnRLZldmd1VOS0p0TGVlZEFPdjh5TFBDV2lkWFh0?=
- =?utf-8?B?U3NTeXZrR0dWby9Xei9jc0E4SXF1TFFjUzNjd3QwUTBPdnVLL2hEZldsOS81?=
- =?utf-8?B?TFdFRlBNTEsyZHNKTDlFNUdmdFZwTFJWY1F5V0E2WVN0ZThyMXRMSXFpSlhS?=
- =?utf-8?B?ZmpEYXNFNjlzM3AyMDVlZjU3MElJU1pRQkFQVHdpVVVJamNlSDRuTG50cWNH?=
- =?utf-8?B?VjFYaS9Jdmd3QXRVcnUvOWxKYkZqRkREQ0UvK0M3OERjSjhwRk5IOHowUmo2?=
- =?utf-8?Q?lt5+f95tNFU=3D?=
+X-Microsoft-Antispam-Message-Info: =?utf-8?B?c3dzYThuaXdjMjRGUytZU09ncDhPUElSUWtHSGdCeXdqYVR5RlFaK3g2TVZW?=
+ =?utf-8?B?RlJIb3p6TkRvTHNJVGRZZ1Qvc0xjV0k4TjQrNkJzR1ZYZ0VudDBhMTBleWt2?=
+ =?utf-8?B?a2lNOVF5Z0pCYUFRcjVaODQwM3pyZExEQ2RaRlF2bTFLbTlKQk10WVgvMFd1?=
+ =?utf-8?B?aTdQbXZWeXpiYnhTWkJDU0NxYXA0L21ieVRaQXFqZWEvRm9RNi9XSXd0L2g5?=
+ =?utf-8?B?V0pKTzg2M3o1SCtEMjNkcHI2a3craWZndForaXdGRElCVW1kdHAxM1l2SjNB?=
+ =?utf-8?B?YlozajJqc2wzMk9WYVB4QlZXS0E1OHRRT0dGdzVwMTAxd1RnV20wbEI5bUFH?=
+ =?utf-8?B?WjRWSWZtTHlFUWVtSUJCYkhGT254bjVLSm1WaVpqQi94RHBGczV4cWJibzJP?=
+ =?utf-8?B?QTBBaWl3ZERxSHhuOW9iL1BGeWJvajl0bUFhOGZmRUtGWlFvam5YZGNTMlRa?=
+ =?utf-8?B?b0hVYTNXSUFrOUtza25PQ2ZOODFlNjhYbXIyMHZMRzZCamxRVndqMlJsMGZ5?=
+ =?utf-8?B?Kzl3dTZHaFRjRmw2UmdYSG0wbDNIYno1aTExMENhVEVvUFl1NlVPUDdVZFA1?=
+ =?utf-8?B?dGdYTXJGanpXbG4xY0NNWTQ1RzVUWXl1a3BkeXRzNHZDOUFBNm5OajU2bExG?=
+ =?utf-8?B?Y0JaQ1pCZ2l5TENxTCszbmF5TThkWDF3RHVYZlJ3WVFhMHJmM2dmcDFBY2Fw?=
+ =?utf-8?B?d2JlZThnYU9CbWJLc3dSYVFUUEN1TjJXN2xic21aeDZBV1c4K0syYnNsVC9Q?=
+ =?utf-8?B?Y1laMHlacHBZTVMrelU5RnFlRk4xbWV6TW1sUVMwY1ZGSUtSNEowemtGemw4?=
+ =?utf-8?B?dDRTTVJaRGJJNEo4YktKOUNYanU2dkhUWUdUUVR5eGlOWWk2MnB3c2F0WnBn?=
+ =?utf-8?B?YlpMa0c2VUpGd1lZTDJIUkJEOGxOdXpvODJPUVNHQ0laNlByM1pSOEV4NFUz?=
+ =?utf-8?B?dFlMTjl4TVRSSHRuTy9CZFlTM1BmUFZLeDhYUGZ3TkUwRnV2eGFvOXVtWnlN?=
+ =?utf-8?B?S3lYTnhUYmFTOVF2YzB4VU5YMWpqU3h4bUJGL1RRVFF6dzZyQkh4STAzWFpw?=
+ =?utf-8?B?Q3dZVHAzVEtCbDZqVjNqZG5xd1ZaK3FxRWVUNXFGaDBTRjFEY0hwQzRQNUhk?=
+ =?utf-8?B?QjY3cFdBZXFlWGhtN3BZNTVUekxSZzZob3QyamprTWxFM0xtb0Vsa3U2NldE?=
+ =?utf-8?B?eUJIQTJxeVEvRG5QY2M2Nkc5ZGlvL2hJVkNDRHh2TnZYZkZCZm5TbGFEeVEw?=
+ =?utf-8?B?aHlZZ3VRZDFnMmdGVk9WNzVjbVJsTG5GeTM2QWFMQVNLeVNUcjU4MGlGRkZ6?=
+ =?utf-8?B?cnVKVVhoeXU2QThhS1orUUNJdVQ0a0lMM2syejR3c3BSS2s4ekZ3SzhDOE9w?=
+ =?utf-8?B?RS9Gck1VOWdmMEhFMytMcTgwbVpKMU5IbmZJT2FIOFlDVko5VVJkOC9OOEZQ?=
+ =?utf-8?B?eWErdm9uR1hTRDZGVEtxanlRSlRiMjJNSkpvc012QkhoaTBPZ3F4Z0tPTmNk?=
+ =?utf-8?B?cTFWeVNEUkpiOGJIUG9OdXJqUFNZcFZDR2lMc1BJVStFZEFra0VwMmJwS1Y2?=
+ =?utf-8?B?b2t6Y3BhcGx4Y3RnU3dkMENpSlJQRUM0ZlZqMjRQckdlaFF2aW5md2cvOGVr?=
+ =?utf-8?B?TXdEekFuVzJRN0duc3RER08yS05pYjFLdzNyalFycnFuMHE3c0gwQkJIMnEv?=
+ =?utf-8?B?dUdKaExFYlRiRzMrbW9Ra3lNdklCSWl1KzZkeTZYSUt6RVc5STNlN3FpRkY5?=
+ =?utf-8?B?dFVmdE1jMWVFZmRmdXRxa2tPbGZ0U2JCbVhPVXlLRWJWeXN1L25mazJCZmll?=
+ =?utf-8?B?TWtRakdoZDVKS0xWTzBFRVAzbWNob0ZBb1h6TTRLS0lXSTRDcXR3TmVPQTY3?=
+ =?utf-8?B?NnQrRHJQWkc4aGVzL1RUSWNaVEE5b0txNnFyMnJlRldjOW1mOEFvU2NHSFg5?=
+ =?utf-8?Q?DRTlFyY/OVc=3D?=
 X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW4PR11MB6739.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?L0pGMHhqZFV2aGgrdTlrT2Z1RmIwUEh2OVg3VW1Obm05MkQ3L0NmZFYyL2pp?=
- =?utf-8?B?Wkh0ZVA3Ti9FeVZETy8xT0VUVWFYYjdnd0puSExFSTZpTDFJYzBjZmFtSmFW?=
- =?utf-8?B?dXVYVGdtbWphKzFLeW5jdGxiTFBxWFRHdXFBc0MzdmRaRm1idndTNUJ6TERv?=
- =?utf-8?B?bDV3dEtPYjRuRERKaC9RbVcrZjFkTGZTVFR6OEhnOU9jb1Y5RWQ0dlZYTGZ6?=
- =?utf-8?B?cFFuUTZiWWxOZ2lZS2w0OUtFbXVIcmhVSVBIOVZMcnJqVnpncXZnZU5qYXVj?=
- =?utf-8?B?amZ3dVI3RE9nSmpFbGtGN3N1cDlBZkJvSlRyeDNKMW9qaHFFVGNGRjVNVzdH?=
- =?utf-8?B?V0QxUjR5VXplekNhWDdMTGsvUnphYkxEQ216enhKUTNDMU93UEVtdExvbG9Q?=
- =?utf-8?B?Wk1BWjFPekRINWJZVUd4QTJuWmZTU1lHa0lBc3ptRlFxYVd0ZWR3N1NTakY1?=
- =?utf-8?B?ZVlNazJzTWJaSXN3MFgyczU0MmZvb0N6TGlZSThsblR3MEEzbW96N2E0M3Z2?=
- =?utf-8?B?UWpJYjQzN3F0ZE9hZTZhUEZLakQ3Z2VLVU9CNUNhWlhab3B5OFZ3ejVWUitx?=
- =?utf-8?B?eGo0QWVEb2NtYnhmZlFzbUNnY1JwYnVHdS9iVE45RGxHVEFXT1FWcXJLNVJk?=
- =?utf-8?B?eDV6Z1luTUJKMEFJZVJtMjVlL3RLTS9vVm0xRk8yZ2ZGS2tGZUhHanZwbno2?=
- =?utf-8?B?b1VYTEFHZWR2N1FWRjdVVCtpV2Z3WjJ3bERCZXd6aVExSGVhZ21YQUVjYzI3?=
- =?utf-8?B?Mzh3b2NvL29FVHoyZitRQ0svY2ZYbzc1elBZNy9CaDZEY3V0bDcrcmJ0YXFX?=
- =?utf-8?B?RGQ0eGdrVlBGSCttMTFjWjFkWkk5RHJjNzVYRmtOMTFyOGZFdjNCVkRNck4z?=
- =?utf-8?B?WjZkNTRKUnRnZ2QvSVhUQ2ZsbXBvam1XSlQ4T2R1WVFlclIwSXQwbnZRVFBT?=
- =?utf-8?B?QjZacSthSllNS1FoWmtyL1V1cGk2SzVjRDlITGJsUCtaZitjSHFEcnNqY0Rz?=
- =?utf-8?B?ekpEcHRWcEFaTitQY1h0RVdwQUFQdGc4N3NiQktSZE1EVUJzQ3NTWWY3cUp0?=
- =?utf-8?B?VVRJeFo0L1BsOEpxdkJudGlSdmc4TTVEMzJyeWNjczNsaUV1MEtWN0RwZjYr?=
- =?utf-8?B?U1FxQ0FwRlp5RTI5WW1IMmNYS3E2azdUTUtHV1NhZUloVEpkdGY4ZUtSKzRO?=
- =?utf-8?B?cTN4dFhvSWZZZ1IydHVTMVNEZEY3a2dVLzkyanBGRjhPTEFsWUV2aXVsWVZG?=
- =?utf-8?B?Zm1nYS9ZbEFCbDg2WFZyZVJTODdjdS9PeUttUzhVbUtqdVpCQzFUNmxJemI1?=
- =?utf-8?B?UkJybUE5VzFLRDkxb290SVIxMk4wVnRnMmtzcE54ZnhENloxaVpEWVlsVzJV?=
- =?utf-8?B?dmlLTkp5Y1V3bFUvU3haZVZMUVB2Z1h2b2pFWkdQU29wODFrb0Y0QkwxQnNK?=
- =?utf-8?B?QXZiUTZOQ04wYnUxSVVSOU11RzJURktiVzZpb1dxSG5TdU5xdjZMT3JzZ0VY?=
- =?utf-8?B?VFRSR1hsRVhnc3Z4S0FnQTRDSGhUaHRJbm1SS2xkV2VGWlk2dUM0NThqUFVy?=
- =?utf-8?B?bnBvdEVXdU1EUS9WUDAwVklpNDROUjUwUXVyTVNRMmZSaXdrREJwVEp3STd1?=
- =?utf-8?B?dGFXbE5sR2JYZXFCY3VuR3hGb3Joamh2YzA2N1VpNlVzNTZDSTZWbDJlK0du?=
- =?utf-8?B?dEtpMlVBOVR3L3grS2NZS2VEb1BQdG5PdHp1b01La09KU2RGYzhQUXhibG1r?=
- =?utf-8?B?VXN3RC9jRkp2c3hDTWhMZ2dOVWlRQ1lXQ2RnVnpydWVvWTR1dTRWdlltZDZB?=
- =?utf-8?B?Y0VPNEFXYnlzb09Pc2R2NkNKZHFVNEJUR3MwWGJEb0xPSDFDaXRmTzVLMW9U?=
- =?utf-8?B?YnFBOW02K2pxYVhDZGFxZXZJRU1td0dSWlBZRUVUWWNrdmlucitiTXpCMzhE?=
- =?utf-8?B?d3JBcjFOVExiOG1jMERDRGFkbEJBU3JzSlVhUUkyM3B2OWJSUkpTeGhxcDNi?=
- =?utf-8?B?WWVIN2x3dy8wWko4cDNpY2lHN0RGOGphMDRGNXZYZGkxVHJBcERoYWlUYmpn?=
- =?utf-8?B?dmU0TGdlSHVZWTRocStyRHNCSmYyQVNrb3NYeGFJMVJqVGgwOXYvSjRYVVBL?=
- =?utf-8?Q?Fqk7Sgih0wnQLceUMqFE9o/1F?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 16b0440d-16c7-4fb3-23c8-08dd7adde2e3
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?WHBOT3JXU3ZtMU12VVBMTWsrbDQ3MFJOdmVKUnNjQThNcW9NR3RpZm5ObFpz?=
+ =?utf-8?B?cVBQK1plbUcxMkR6cHFyQnIxOFZzaDE0emY2QWw0VStPclBaUWptSkRQYXFu?=
+ =?utf-8?B?NkhkdEgwREpIdFRZb2tBTEQ3c1ExV2ZGakdjZG5ZYS9jdHh6NWZ5L0xsTDBt?=
+ =?utf-8?B?N1h4VjVQRUJHK09mc3pDTTlZbGpjRW9xSzhleVBrbDIwUlRPL3pFUlJJaDlu?=
+ =?utf-8?B?VjhsK2ppK0dudi9ZOENYWno4TmtxVmFBR01DSUlwYlBUaEFCKzlldld4QUh1?=
+ =?utf-8?B?QmRXbkE4T3ZSS0xKZ3FtYnpwNTlCTklpZE5KVEdDa0VVY05qU1V0Nm03cXhi?=
+ =?utf-8?B?Z0M5NnBsek1ERlpQTWF5NXB5YWlYaG9xVUhOcWJySW54LzR4RllPMjZhWkxR?=
+ =?utf-8?B?RjRaendkZnI1SVRBSDFKamR1cFdISzZrSUhqYnZoeDVCSnpUMll1QmgxYi9m?=
+ =?utf-8?B?TlpzY2hrMUtZb3BXWDE5RUhpcC81UEtNTTdsTDc2SFlPV25ZTnhHR1JYSVRp?=
+ =?utf-8?B?aXRIR2NWOEFYSk1XZFk0TUJlSE1iVXJpVStWZnNEeEU1dWpBYTk0RXhlQWda?=
+ =?utf-8?B?cFQxeHZYY09KU1JRSXo1d09kN1ovRlgyVUdIZ1N2QmpjL3BzeUtlb1dkYUVt?=
+ =?utf-8?B?UEo0Ny9kUjljM1pXcG1CSjdQVDVWY21TNjh6NTlHeGJGajU1Uy8yVmZiRnI5?=
+ =?utf-8?B?NFN5N2UrQVhuNGM4YnJhMXdhSlBaRUkwQzBLWnBPUnU2aGZUYnc4NmxVWHV0?=
+ =?utf-8?B?UnpmTW12d0lVR2xaK0FPc2E5NEtRK3NvVG9aTVZYemtkRG1ZeUFLZkM0RjQr?=
+ =?utf-8?B?Z3VoTmQ5dlg5RFVSa2ZxY1NwM2c3T2JOUk55NDAzc25rR3BxOGRFL1NRSThR?=
+ =?utf-8?B?aFlxMmRYMG9EdXUzQm5scWpYSEdYRm16eWYvMGt0dVdST0hXaWhrV0pVdGM2?=
+ =?utf-8?B?djJ4SStiWmRyQkplWEtXTm1sRkRPeGJxeDg1L2FLU3RQZ3pneHZhWE9GdmRE?=
+ =?utf-8?B?QU9KRHdQZkl2UWRGeDBTZjZVZFNWaGlXb0ZXOVhhUDdKclUvRVgxblVNeDFT?=
+ =?utf-8?B?VGdsYjRtUUtOdXBvZGVwUFZwUkMrTkE2NEZYcWovbHczTkE0Z29obUE4cnZu?=
+ =?utf-8?B?M2NnYU5hRytacWpkWGw5MmdWcURuSGo1SGxVWXZTQVU5WmV0YUoySUd5YTN1?=
+ =?utf-8?B?WWhmMHFISWhGcXl0YWdyZld1SEIvMFg0OTZVNUEzU0dhMHVGaS9VMVpkL0ha?=
+ =?utf-8?B?bDNia0Q4RGlDM1dDSDcrTmpQUC96NTNQL0N1dm5qUDdFMDFJSGM5Y2ZtYmFn?=
+ =?utf-8?B?TG1hU3U1Z1RUSnhxUy9rWXhpR01zcmoxeEhHejZkMWdUTUJvSktBZk1pV0k2?=
+ =?utf-8?B?emt6QnFZWWVoalZHaTJXSm1qNTVoV1NTMENBai9nQ2Y5RGNpeDdOVGdaUEhX?=
+ =?utf-8?B?MDllWnNJUWFJOHZWNWdIK0s5U3J1RWVtZVUvTnNrcy9ZM2IvYW80RUZWZkp4?=
+ =?utf-8?B?NU1WK3JhdG5rNUZtbkM5bXF4aW1IQ0lNVU1qQlk2czBPalVwL1NNMzNwZHhD?=
+ =?utf-8?B?SlJmdnh2Nkc3N2RJN05ORGxPM0g3ZjFYQ0wzaWMxYStYMWVNT1dWRGtIeDVl?=
+ =?utf-8?B?TkE2WnZpOFJtcW5sc05TUHd5R3FMVnR4VXNCUFNTcm5kREdKVjNxYUZ3MEJ0?=
+ =?utf-8?B?M25UeUZaeWRscStLcTdidTJyOWs3bnVlcHc5QkQ0ckF5azRVbVJrLzRYWnIv?=
+ =?utf-8?B?Z043Uk1TblF3SmNpSXFtb0JJMkMzZHgvT09LWlZtNXpSZk8zbUt6SENLZmtu?=
+ =?utf-8?B?OURuWlF1NzBJQWZScWVpYURvWHYxMnNSR2wvMy8xVXhJVkxIdks5NFhqaE5u?=
+ =?utf-8?B?WVV2M0VEQlgwOVk3QUtlMmc0UUloMVVGdzNKZ0E5Nlk4RWdPWFUxdzNNS29U?=
+ =?utf-8?B?S2dLUEZCeER4elJKN3E4bkZzMytNemtmU2lCUDZ1bWFYVzRGbWlIM2dkSHd5?=
+ =?utf-8?B?dVdJdmpQd0hEL29qMm10QWVTQ0t4SWJmSTlzTWZDQnZrOTNBMUFaRXMxL0Jz?=
+ =?utf-8?B?czBrS3h3NmkxV1IzdTVHdVZsL1dYZC9IZ3B2MTY5Y3V5Z3FSR1dCTFpDcHlZ?=
+ =?utf-8?Q?SD9TUGkf6pYzMVeryAb6jntYT?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 492e38ec-ec6a-4152-8716-08dd7adde3be
 X-MS-Exchange-CrossTenant-AuthSource: MW4PR11MB6739.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Apr 2025 22:52:37.1779
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Apr 2025 22:52:38.5376
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 1lF+VGSoNPb53R05D+8uAi1XrF01BKW8bE4CyaczJ+PrszailyDwWvcfFnUtntgrGdQDC7gw5kFzDaCSNlJZsg==
+X-MS-Exchange-CrossTenant-UserPrincipalName: frUscTsUFrhBNzZi5o1YMuqKFbkKmXuh2SmMsS9MSC5uOGI/YZyXw0sfeoa17pnfpNhpg0YS6IM/iws4qWrhjg==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB7003
 X-OriginatorOrg: intel.com
 
-A singular Dynamic RAM partition is exposed via the kernel.
+DCD regions have 0 or more extents.  The ability to list those and their
+properties is useful to end users.
 
-Use this partition in cxl-cli.
+Add extent scanning and reporting functionality to libcxl.
 
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
 ---
 Changes:
-[iweiny: New patch for decoder_ram_a]
+[alison: s/tag/uuid/ for extents]
 ---
- cxl/json.c   | 20 ++++++++++++++++++++
- cxl/memdev.c |  4 +++-
- cxl/region.c | 27 ++++++++++++++++++++++++---
- 3 files changed, 47 insertions(+), 4 deletions(-)
+ Documentation/cxl/lib/libcxl.txt |  27 ++++++++
+ cxl/lib/libcxl.c                 | 138 +++++++++++++++++++++++++++++++++++++++
+ cxl/lib/libcxl.sym               |   5 ++
+ cxl/lib/private.h                |  11 ++++
+ cxl/libcxl.h                     |  11 ++++
+ 5 files changed, 192 insertions(+)
 
-diff --git a/cxl/json.c b/cxl/json.c
-index e65bd803b706..79b2b527f740 100644
---- a/cxl/json.c
-+++ b/cxl/json.c
-@@ -800,6 +800,20 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
- 		}
- 	}
+diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
+index 7e2136519229..84f39d2eda6c 100644
+--- a/Documentation/cxl/lib/libcxl.txt
++++ b/Documentation/cxl/lib/libcxl.txt
+@@ -603,6 +603,33 @@ where its properties can be interrogated by daxctl. The helper
+ cxl_region_get_daxctl_region() returns an 'struct daxctl_region *' that
+ can be used with other libdaxctl APIs.
  
-+	size = cxl_memdev_get_dynamic_ram_a_size(memdev);
-+	if (size) {
-+		jobj = util_json_object_size(size, flags);
-+		if (jobj)
-+			json_object_object_add(jdev, "dynamic_ram_a_size", jobj);
++EXTENTS
++-------
 +
-+		qos_class = cxl_memdev_get_dynamic_ram_a_qos_class(memdev);
-+		if (qos_class != CXL_QOS_CLASS_NONE) {
-+			jobj = json_object_new_int(qos_class);
-+			if (jobj)
-+				json_object_object_add(jdev, "dynamic_ram_a_qos_class", jobj);
-+		}
++=== EXTENT: Enumeration
++----
++struct cxl_region_extent;
++struct cxl_region_extent *cxl_extent_get_first(struct cxl_region *region);
++struct cxl_region_extent *cxl_extent_get_next(struct cxl_region_extent *extent);
++#define cxl_extent_foreach(region, extent) \
++        for (extent = cxl_extent_get_first(region); \
++             extent != NULL; \
++             extent = cxl_extent_get_next(extent))
++
++----
++
++=== EXTENT: Attributes
++----
++unsigned long long cxl_extent_get_offset(struct cxl_region_extent *extent);
++unsigned long long cxl_extent_get_length(struct cxl_region_extent *extent);
++void cxl_extent_get_uuid(struct cxl_region_extent *extent, uuid_t uuid);
++----
++
++Extents represent available memory within a dynamic capacity region.  Extent
++objects are available for informational purposes to aid in allocation of
++memory.
++
++
+ include::../../copyright.txt[]
+ 
+ SEE ALSO
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+index 81810a4ae862..306a46682b71 100644
+--- a/cxl/lib/libcxl.c
++++ b/cxl/lib/libcxl.c
+@@ -571,6 +571,7 @@ static void *add_cxl_region(void *parent, int id, const char *cxlregion_base)
+ 	region->ctx = ctx;
+ 	region->decoder = decoder;
+ 	list_head_init(&region->mappings);
++	list_head_init(&region->extents);
+ 
+ 	region->dev_path = strdup(cxlregion_base);
+ 	if (!region->dev_path)
+@@ -1176,6 +1177,143 @@ cxl_mapping_get_next(struct cxl_memdev_mapping *mapping)
+ 	return list_next(&region->mappings, mapping, list);
+ }
+ 
++static void cxl_extents_init(struct cxl_region *region)
++{
++	const char *devname = cxl_region_get_devname(region);
++	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
++	char *extent_path, *dax_region_path;
++	struct dirent *de;
++	DIR *dir = NULL;
++
++	if (region->extents_init)
++		return;
++	region->extents_init = 1;
++
++	dax_region_path = calloc(1, strlen(region->dev_path) + 64);
++	if (!dax_region_path) {
++		err(ctx, "%s: allocation failure\n", devname);
++		return;
 +	}
 +
- 	if (flags & UTIL_JSON_HEALTH) {
- 		jobj = util_cxl_memdev_health_to_json(memdev, flags);
- 		if (jobj)
-@@ -1059,6 +1073,12 @@ struct json_object *util_cxl_decoder_to_json(struct cxl_decoder *decoder,
- 				json_object_object_add(
- 					jdecoder, "volatile_capable", jobj);
- 		}
-+		if (cxl_decoder_is_dynamic_ram_a_capable(decoder)) {
-+			jobj = json_object_new_boolean(true);
-+			if (jobj)
-+				json_object_object_add(
-+					jdecoder, "dynamic_ram_a_capable", jobj);
++	extent_path = calloc(1, strlen(region->dev_path) + 100);
++	if (!extent_path) {
++		err(ctx, "%s: allocation failure\n", devname);
++		free(dax_region_path);
++		return;
++	}
++
++	sprintf(dax_region_path, "%s/dax_region%d",
++		region->dev_path, region->id);
++	dir = opendir(dax_region_path);
++	if (!dir) {
++		err(ctx, "no extents found (%s): %s\n",
++			strerror(errno), dax_region_path);
++		free(extent_path);
++		free(dax_region_path);
++		return;
++	}
++
++	while ((de = readdir(dir)) != NULL) {
++		struct cxl_region_extent *extent;
++		char buf[SYSFS_ATTR_SIZE];
++		u64 offset, length;
++		int id, region_id;
++
++		if (sscanf(de->d_name, "extent%d.%d", &region_id, &id) != 2)
++			continue;
++
++		sprintf(extent_path, "%s/extent%d.%d/offset",
++			dax_region_path, region_id, id);
++		if (sysfs_read_attr(ctx, extent_path, buf) < 0) {
++			err(ctx, "%s: failed to read extent%d.%d/offset\n",
++				devname, region_id, id);
++			continue;
 +		}
- 	}
- 
- 	if (cxl_port_is_root(port) &&
-diff --git a/cxl/memdev.c b/cxl/memdev.c
-index 6e44d1578d03..bdcb008f1d73 100644
---- a/cxl/memdev.c
-+++ b/cxl/memdev.c
-@@ -269,8 +269,10 @@ static int __reserve_dpa(struct cxl_memdev *memdev,
- 
- 	if (mode == CXL_DECODER_MODE_RAM)
- 		avail_dpa = cxl_memdev_get_ram_size(memdev);
--	else
-+	else if (mode == CXL_DECODER_MODE_PMEM)
- 		avail_dpa = cxl_memdev_get_pmem_size(memdev);
-+	else
-+		avail_dpa = cxl_memdev_get_dynamic_ram_a_size(memdev);
- 
- 	cxl_decoder_foreach(port, decoder) {
- 		size = cxl_decoder_get_dpa_size(decoder);
-diff --git a/cxl/region.c b/cxl/region.c
-index 207cf2d00314..824274e25ed8 100644
---- a/cxl/region.c
-+++ b/cxl/region.c
-@@ -303,7 +303,8 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
- 
- 	if (param.type) {
- 		p->mode = cxl_decoder_mode_from_ident(param.type);
--		if (p->mode == CXL_DECODER_MODE_RAM && param.uuid) {
-+		if ((p->mode == CXL_DECODER_MODE_RAM ||
-+		     p->mode == CXL_DECODER_MODE_DYNAMIC_RAM_A) && param.uuid) {
- 			log_err(&rl,
- 				"can't set UUID for ram / volatile regions");
- 			goto err;
-@@ -417,6 +418,9 @@ static void collect_minsize(struct cxl_ctx *ctx, struct parsed_params *p)
- 		case CXL_DECODER_MODE_PMEM:
- 			size = cxl_memdev_get_pmem_size(memdev);
- 			break;
-+		case CXL_DECODER_MODE_DYNAMIC_RAM_A:
-+			size = cxl_memdev_get_dynamic_ram_a_size(memdev);
-+			break;
- 		default:
- 			/* Shouldn't ever get here */ ;
- 		}
-@@ -448,8 +452,10 @@ static int create_region_validate_qos_class(struct parsed_params *p)
- 
- 		if (p->mode == CXL_DECODER_MODE_RAM)
- 			qos_class = cxl_memdev_get_ram_qos_class(memdev);
--		else
-+		else if (p->mode == CXL_DECODER_MODE_PMEM)
- 			qos_class = cxl_memdev_get_pmem_qos_class(memdev);
-+		else
-+			qos_class = cxl_memdev_get_dynamic_ram_a_qos_class(memdev);
- 
- 		/* No qos_class entries. Possibly no kernel support */
- 		if (qos_class == CXL_QOS_CLASS_NONE)
-@@ -488,6 +494,12 @@ static int validate_decoder(struct cxl_decoder *decoder,
- 			return -EINVAL;
- 		}
- 		break;
-+	case CXL_DECODER_MODE_DYNAMIC_RAM_A:
-+		if (!cxl_decoder_is_dynamic_ram_a_capable(decoder)) {
-+			log_err(&rl, "%s is not dynamic_ram_a capable\n", devname);
-+			return -EINVAL;
++
++		offset = strtoull(buf, NULL, 0);
++		if (offset == ULLONG_MAX) {
++			err(ctx, "%s extent%d.%d: failed to read offset\n",
++				devname, region_id, id);
++			continue;
 +		}
-+		break;
- 	default:
- 		log_err(&rl, "unknown type: %s\n", param.type);
- 		return -EINVAL;
-@@ -509,9 +521,11 @@ static void set_type_from_decoder(struct cxl_ctx *ctx, struct parsed_params *p)
- 		return;
- 
- 	/*
--	 * default to pmem if both types are set, otherwise the single
-+	 * default to pmem if all types are set, otherwise the single
- 	 * capability dominates.
- 	 */
-+	if (cxl_decoder_is_dynamic_ram_a_capable(p->root_decoder))
-+		p->mode = CXL_DECODER_MODE_DYNAMIC_RAM_A;
- 	if (cxl_decoder_is_volatile_capable(p->root_decoder))
- 		p->mode = CXL_DECODER_MODE_RAM;
- 	if (cxl_decoder_is_pmem_capable(p->root_decoder))
-@@ -699,6 +713,13 @@ static int create_region(struct cxl_ctx *ctx, int *count,
- 				param.root_decoder);
- 			return -ENXIO;
- 		}
-+	} else if (p->mode == CXL_DECODER_MODE_DYNAMIC_RAM_A) {
-+		region = cxl_decoder_create_dynamic_ram_a_region(p->root_decoder);
-+		if (!region) {
-+			log_err(&rl, "failed to create region under %s\n",
-+				param.root_decoder);
-+			return -ENXIO;
++
++		sprintf(extent_path, "%s/extent%d.%d/length",
++			dax_region_path, region_id, id);
++		if (sysfs_read_attr(ctx, extent_path, buf) < 0) {
++			err(ctx, "%s: failed to read extent%d.%d/length\n",
++				devname, region_id, id);
++			continue;
 +		}
- 	} else {
- 		log_err(&rl, "region type '%s' is not supported\n",
- 			param.type);
++
++		length = strtoull(buf, NULL, 0);
++		if (length == ULLONG_MAX) {
++			err(ctx, "%s extent%d.%d: failed to read length\n",
++				devname, region_id, id);
++			continue;
++		}
++
++		sprintf(extent_path, "%s/extent%d.%d/tag",
++			dax_region_path, region_id, id);
++		buf[0] = '\0';
++		if (sysfs_read_attr(ctx, extent_path, buf) != 0)
++			dbg(ctx, "%s extent%d.%d: failed to read uuid\n",
++				devname, region_id, id);
++
++		extent = calloc(1, sizeof(*extent));
++		if (!extent) {
++			err(ctx, "%s extent%d.%d: allocation failure\n",
++				devname, region_id, id);
++			continue;
++		}
++		if (strlen(buf) && uuid_parse(buf, extent->uuid) < 0)
++			err(ctx, "%s:%s\n", extent_path, buf);
++		extent->region = region;
++		extent->offset = offset;
++		extent->length = length;
++
++		list_node_init(&extent->list);
++		list_add(&region->extents, &extent->list);
++		dbg(ctx, "%s added extent%d.%d\n", devname, region_id, id);
++	}
++	free(dax_region_path);
++	free(extent_path);
++	closedir(dir);
++}
++
++CXL_EXPORT struct cxl_region_extent *
++cxl_extent_get_first(struct cxl_region *region)
++{
++	cxl_extents_init(region);
++
++	return list_top(&region->extents, struct cxl_region_extent, list);
++}
++
++CXL_EXPORT struct cxl_region_extent *
++cxl_extent_get_next(struct cxl_region_extent *extent)
++{
++	struct cxl_region *region = extent->region;
++
++	return list_next(&region->extents, extent, list);
++}
++
++CXL_EXPORT unsigned long long
++cxl_extent_get_offset(struct cxl_region_extent *extent)
++{
++	return extent->offset;
++}
++
++CXL_EXPORT unsigned long long
++cxl_extent_get_length(struct cxl_region_extent *extent)
++{
++	return extent->length;
++}
++
++CXL_EXPORT void
++cxl_extent_get_uuid(struct cxl_region_extent *extent, uuid_t uuid)
++{
++	memcpy(uuid, extent->uuid, sizeof(uuid_t));
++}
++
+ CXL_EXPORT struct cxl_decoder *
+ cxl_mapping_get_decoder(struct cxl_memdev_mapping *mapping)
+ {
+diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+index 06f7d40344ab..b9d99ec80cec 100644
+--- a/cxl/lib/libcxl.sym
++++ b/cxl/lib/libcxl.sym
+@@ -297,4 +297,9 @@ global:
+ 	cxl_memdev_get_dynamic_ram_a_qos_class;
+ 	cxl_decoder_is_dynamic_ram_a_capable;
+ 	cxl_decoder_create_dynamic_ram_a_region;
++	cxl_extent_get_first;
++	cxl_extent_get_next;
++	cxl_extent_get_offset;
++	cxl_extent_get_length;
++	cxl_extent_get_uuid;
+ } LIBECXL_8;
+diff --git a/cxl/lib/private.h b/cxl/lib/private.h
+index 57c9fa0b8f52..d5e0c0528c42 100644
+--- a/cxl/lib/private.h
++++ b/cxl/lib/private.h
+@@ -164,6 +164,7 @@ struct cxl_region {
+ 	struct cxl_decoder *decoder;
+ 	struct list_node list;
+ 	int mappings_init;
++	int extents_init;
+ 	struct cxl_ctx *ctx;
+ 	void *dev_buf;
+ 	size_t buf_len;
+@@ -179,6 +180,7 @@ struct cxl_region {
+ 	struct daxctl_region *dax_region;
+ 	struct kmod_module *module;
+ 	struct list_head mappings;
++	struct list_head extents;
+ };
+ 
+ struct cxl_memdev_mapping {
+@@ -188,6 +190,15 @@ struct cxl_memdev_mapping {
+ 	struct list_node list;
+ };
+ 
++#define CXL_REGION_EXTENT_TAG 0x10
++struct cxl_region_extent {
++	struct cxl_region *region;
++	u64 offset;
++	u64 length;
++	uuid_t uuid;
++	struct list_node list;
++};
++
+ enum cxl_cmd_query_status {
+ 	CXL_CMD_QUERY_NOT_RUN = 0,
+ 	CXL_CMD_QUERY_OK,
+diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+index de66f2462311..3b3f6ae9a07d 100644
+--- a/cxl/libcxl.h
++++ b/cxl/libcxl.h
+@@ -373,6 +373,17 @@ unsigned int cxl_mapping_get_position(struct cxl_memdev_mapping *mapping);
+              mapping != NULL; \
+              mapping = cxl_mapping_get_next(mapping))
+ 
++struct cxl_region_extent;
++struct cxl_region_extent *cxl_extent_get_first(struct cxl_region *region);
++struct cxl_region_extent *cxl_extent_get_next(struct cxl_region_extent *extent);
++#define cxl_extent_foreach(region, extent) \
++        for (extent = cxl_extent_get_first(region); \
++             extent != NULL; \
++             extent = cxl_extent_get_next(extent))
++unsigned long long cxl_extent_get_offset(struct cxl_region_extent *extent);
++unsigned long long cxl_extent_get_length(struct cxl_region_extent *extent);
++void cxl_extent_get_uuid(struct cxl_region_extent *extent, uuid_t uuid);
++
+ struct cxl_cmd;
+ const char *cxl_cmd_get_devname(struct cxl_cmd *cmd);
+ struct cxl_cmd *cxl_cmd_new_raw(struct cxl_memdev *memdev, int opcode);
 
 -- 
 2.49.0
