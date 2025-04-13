@@ -1,88 +1,88 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 048A41FECBA
-	for <nvdimm@lists.linux.dev>; Sun, 13 Apr 2025 22:52:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B7B51F3FEB
+	for <nvdimm@lists.linux.dev>; Sun, 13 Apr 2025 22:52:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744584747; cv=fail; b=WHKFreBLdzoSsaNh5+u8O377q554SFjvT3IZqKGBo//FbHQBafaz2ZHGb7qmoSyUdHy73PEB4aGTN7in4VQPsfPTUBBuUwCJvR+Xq23KvwwkqLNGBEtc3FbmL5gXoVyQNWIg9C9hUqtR2FMlWTt/Uvgi0BJJIv0K52UjgcFKghA=
+	t=1744584757; cv=fail; b=EiwpNkwmz5eH/ITVhWLW5ihsmofNb2bNxqEp364LvyxZeiG3tWFGWYRZ7We7G0CgGlTN2i2c+hyVR7MbT7jRPTowmhyX3iL9xySvvtGfPZtLnoadJadgPXUJpbXW6dWBP9lmrI7OUF+pCJ0DqAwjBQUyYOtDKQFZEwwAM1b4qRQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744584747; c=relaxed/simple;
-	bh=wkudF2XNTcQS8VPUDMQ571w4CvWff5yrKjJtNZtBW2s=;
+	s=arc-20240116; t=1744584757; c=relaxed/simple;
+	bh=4QxktrWxnejqz2TUfcmWO6HRceAt1/3c56ZBgEUdUaI=;
 	h=From:Date:Subject:Content-Type:Message-ID:References:In-Reply-To:
-	 To:CC:MIME-Version; b=U3szl7pzePmDN7/w4+C7EPUPiYCSprx0nL5B8mzga6Kdfi50DkrtZnQuahKCYikuIKpWyrbyokjjXO0cOrFqVQpqyTZRjkL8z32mSxq8cTVVOw8Rhj9fxj1am/Q4+6xgxlpH7KP2WvVyjk8bdMWZzNhLgW0H63yxEkB2TuRRMlg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DUBXH5ca; arc=fail smtp.client-ip=192.198.163.18
+	 To:CC:MIME-Version; b=DmVYoSBFlnqtZNJhjhrBs4sHz8g254EuFgW+3X1J40VPDgbB9UV3fknu6wp/SBrt+2EqhfwHlaL69jCedxRiltrjw35FQo3w0HAI8sp5+s8NN17cWJC22+0C4N/matvg/D7NuRCsdZ1U7E7i1ux4tQadILkn1Rr6d/6nwGgp63E=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gzCWUHOo; arc=fail smtp.client-ip=192.198.163.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DUBXH5ca"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gzCWUHOo"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1744584745; x=1776120745;
+  t=1744584756; x=1776120756;
   h=from:date:subject:content-transfer-encoding:message-id:
    references:in-reply-to:to:cc:mime-version;
-  bh=wkudF2XNTcQS8VPUDMQ571w4CvWff5yrKjJtNZtBW2s=;
-  b=DUBXH5cai9lmW2iG6HcWGmdk6toSJwz4DBH+QHvYDNe7kUe0uhMwjfmw
-   Ae4pSN2CUMm1358NW1N7LQ1LyKkuXWKlr6Y0ARGZntpQk1JJzTSrhGk8L
-   oUvRk/3Oapqdd9ijtnWQhB/2uxycLxSiur6zySJbxsxOMEPQG1CgpZ3X+
-   /9Z2ZGHb/9jIc0sJRQz8vxepphK3eoy11+npJWWpJaUT3VjHt6JEhAFi5
-   oze5+7Qv3WC9HQglaRhQrZTebbrsg9eKxf9fQZaus2n03G34bldum52X4
-   ZdeDYijAXQHkQejCPEegtV8gGmefUU39edKE9EIO51lb/jr43AazE/sfD
-   g==;
-X-CSE-ConnectionGUID: 8bsd7F2gTyCeUGD6amR0yQ==
-X-CSE-MsgGUID: 1ZA9Oq36TbKcoXKJ5HWqdA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11402"; a="45280947"
+  bh=4QxktrWxnejqz2TUfcmWO6HRceAt1/3c56ZBgEUdUaI=;
+  b=gzCWUHOo9wYeIXeBMvuOMzBpZ7lv6UWdJTZHKxZ0oWz8KgeXA3bcMxnr
+   5hOUslJJn4Oc1MLHNKrlsAaBbC3xB2z5MwWlTsZ2wMF7WHHKiEViu9uso
+   RMGHoDSZfTry6mkeYnoNBVGL9IDGKbZhtAqVSA/Y0TymZoAzvu9BLtAcq
+   4K9eM1PkkorPEs6LSzprdbav5Nl0PFuIHhRskettpd/5yJ4wczaDPdgbA
+   lveI8q4h+aeBtoyoB3vlV3xJe+Mhi0PEVZ+94Cid60RZdxTH+x+kDFWdT
+   xy3HRFhZf39a2CMxPmtCr8vAwcuRtekLKX53z8TXkfv1tsGXsSiyu4zvj
+   A==;
+X-CSE-ConnectionGUID: 8g+T8kqoRHCDx9cnBQjkng==
+X-CSE-MsgGUID: RAM0OeLTRPi9k9SfW59zoQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11402"; a="45280960"
 X-IronPort-AV: E=Sophos;i="6.15,211,1739865600"; 
-   d="scan'208";a="45280947"
+   d="scan'208";a="45280960"
 Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:22 -0700
-X-CSE-ConnectionGUID: 63yr2e9gTqqcH3hTpgEfDw==
-X-CSE-MsgGUID: /cihgiucQ8W8OupWJpRtgg==
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:35 -0700
+X-CSE-ConnectionGUID: hucgneI/QBy8+4zmjQaRCw==
+X-CSE-MsgGUID: 42k62g37RrK55hw3QiNPzA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.15,211,1739865600"; 
-   d="scan'208";a="129657627"
+   d="scan'208";a="129657634"
 Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
-  by fmviesa007.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:22 -0700
+  by fmviesa007.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2025 15:52:35 -0700
 Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
  ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14; Sun, 13 Apr 2025 15:52:21 -0700
+ 15.2.1544.14; Sun, 13 Apr 2025 15:52:34 -0700
 Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
  ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14 via Frontend Transport; Sun, 13 Apr 2025 15:52:21 -0700
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.48) by
+ 15.2.1544.14 via Frontend Transport; Sun, 13 Apr 2025 15:52:34 -0700
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.57.44) by
  edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Sun, 13 Apr 2025 15:52:20 -0700
+ 15.1.2507.44; Sun, 13 Apr 2025 15:52:33 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=WaEqpOAEbVU9uT/MCZX+XZ0VJKOIoVg5TugwxWSDMkuZpAimSXRmDbtGw64BWAxMWzpbMX5sLkNht73POhbxOUw8uliHhRfzUeZPAoJuPxyRl+rZmQK2eMgAgUaSGAJ+r0NCQBZ/wgmUgkJNhmTTaPiVOWdvqWXuSk7AktlLSvHpl1GHG06Fv29m8/TrZDVJbzE/RFxNNUgvh6oc222Ar0PlQbYZqWfT7fxmO/Bhaksez6jE4wcsn4H+6ih8DdgoNhfp7AMFE821Q0Uq/EZngptpCU5oqbSQTGczjLijeRExVJ6rstvkeNrHcQzrRKg2Jua0WjupC+5FkIjXgKavIQ==
+ b=pa2G21XfKcJlz/lYAe7jXxcoEBrGy+x6wRpJ2eTHZZHWkYb8ftLIkj8QaYFC9wQQHUb+TAK9fUtGm+UZ8nyNo+0KIbYpBm4bLF2Wa2eeWEeSrBAdesR9DjQ2Gg4+MLVVbJh84qLXEshow+iOTfXTE1U0MwJSN1xhXea5iI9KDfiI2lts4e+iApiTMG6cJh50pj4IVEooiydw/XVG8hSC7DSc1L+rrqTe+sqY4HM/fGmiFiXPSmn49+JC3QsQRJdrV/6lsT59F6g1rDfyKUFqPmnQEX+KpnCCyX/dE2lCd+jos3gcTglMkUNV9bbuy3Akn1RM18DehMZFsyeQAG4KEg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xHChTg9LEV/qJAb1pJTzHBnMQyur4fyxjR7vjkIpdhk=;
- b=IBJelhyhXSOjQcUVOngq8tQEm2FT8+jx1RsGZAglEXIcQYTBc453ETWaG3yQGzmTZcvsrdNZ9Za52ih1eDfLgMr7/ARXhgxcLT7Nrl+JZyKASoPIKdzBvLYDypUvrOHt40kw+CrbFEiZlHnewMXU/9D5s8SmjNuM3+VJA+OpTSon+3cEsACInz3YokPd/J8f8BuHCiMHrUy+nFNWZMq3hILKluwOrcgWv3d8WEt1EarU9ffNrD6C70nmPINZ6etzfoLoDMQoWhI94JgH28Y16ukKCulEvOBt08omRrxAEN3Xk9conjWcDa5drIe/DWQ5bVGoWAFoYpJElyzfkjCRcQ==
+ bh=MvYgRMhAktNXF4t/3pfUAOXXg8C+qZBgHgfffXR6mRU=;
+ b=oLGmzMkDhxuJRsxN22dijTAcd+1BV5bSF97qISlJRnmAezbYOFYl9eQ25HSr+htClXSKh+XB6ZxLp17oGErknFK8a1zL7nscXUDlAjsRpuaR5TMulwA2TfRCGDiI7jNLDoP6K4CzDiXuTE0p1TWgKPskUZqX9/c3BmWo1vYuaOtIbzW/xZxYJynuY1X5PVb8vkDqYB8choKDnCTfgzHiZsDTYpW5X6w2eddFRhhqRoFdYHsuuSCdXxcfRy7neiDoGzlGzGHX+t5lv2uQPJS7jh4/qbgqD6M3afnl1YjHPK/5z5jNJqsp+FFipT9efqoDfdAqdcUz5oOE9UzpB9rMog==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MW4PR11MB6739.namprd11.prod.outlook.com (2603:10b6:303:20b::19)
- by DM4PR11MB6042.namprd11.prod.outlook.com (2603:10b6:8:61::18) with
+ by PH7PR11MB7003.namprd11.prod.outlook.com (2603:10b6:510:20a::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8632.28; Sun, 13 Apr
- 2025 22:52:00 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8632.33; Sun, 13 Apr
+ 2025 22:52:04 +0000
 Received: from MW4PR11MB6739.namprd11.prod.outlook.com
  ([fe80::a7ad:a6e8:fced:3f24]) by MW4PR11MB6739.namprd11.prod.outlook.com
  ([fe80::a7ad:a6e8:fced:3f24%4]) with mapi id 15.20.8606.033; Sun, 13 Apr 2025
- 22:52:00 +0000
+ 22:52:04 +0000
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Sun, 13 Apr 2025 17:52:19 -0500
-Subject: [PATCH v9 11/19] cxl/core: Return endpoint decoder information
- from region search
+Date: Sun, 13 Apr 2025 17:52:21 -0500
+Subject: [PATCH v9 13/19] cxl/region/extent: Expose region extent
+ information in sysfs
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20250413-dcd-type2-upstream-v9-11-1d4911a0b365@intel.com>
+Message-ID: <20250413-dcd-type2-upstream-v9-13-1d4911a0b365@intel.com>
 References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
 In-Reply-To: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Jonathan
@@ -91,13 +91,13 @@ CC: Dan Williams <dan.j.williams@intel.com>, Davidlohr Bueso
 	<dave@stgolabs.net>, Alison Schofield <alison.schofield@intel.com>, "Vishal
  Verma" <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
 	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Li Ming <ming.li@zohomail.com>
+	<linux-kernel@vger.kernel.org>
 X-Mailer: b4 0.15-dev-c25d1
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1744584735; l=4478;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1744584735; l=4964;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=wkudF2XNTcQS8VPUDMQ571w4CvWff5yrKjJtNZtBW2s=;
- b=qhzG4PaAzvVurrvwp6PNMi09MOnwGo2di6304YuKuEHO3itK6l3RaQvXu6NjdjeEvBwwQzhxv
- 4ZGYHmnYlMJAkvmhyDnvAe+Kx2gnwgxxb71xVol0j6jm5WWesbpJ9TU
+ bh=4QxktrWxnejqz2TUfcmWO6HRceAt1/3c56ZBgEUdUaI=;
+ b=KXsGvbveT4s3jlccnLfPtcpIne+PH6RDv1qMtHp9JjK0/d5oC6VwfYnbnUeflSx+a8NH3ma80
+ 338X1M1ZU7mCB8fIijUF6yGiBMv2LLb6V6KkQqxWnWE7f7mHaSathc1
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 X-ClientProxiedBy: MW4PR03CA0227.namprd03.prod.outlook.com
@@ -110,216 +110,242 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MW4PR11MB6739:EE_|DM4PR11MB6042:EE_
-X-MS-Office365-Filtering-Correlation-Id: d89e3e88-eafe-4c1d-c85f-08dd7addcd11
+X-MS-TrafficTypeDiagnostic: MW4PR11MB6739:EE_|PH7PR11MB7003:EE_
+X-MS-Office365-Filtering-Correlation-Id: 434ae3cb-3d29-4c63-ebd5-08dd7addcf28
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016|7053199007;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?UTdnWWI3NnNNL0QyVktseGxWRWk2RDhPQWpiMzlmUXNpV1REUk1Bc3BsNG5a?=
- =?utf-8?B?d3M2YWIyUDE3dDBjc2FDMzBRRkw2aGpiVjcxRkk5REFpdFBxQ0xuK1ZKNklw?=
- =?utf-8?B?dytYaWhUQm1CU05DRExZT2dOSDZqcmFEdUd6eXBRZHByaEJEMFBBNStSek5q?=
- =?utf-8?B?UElTRXFxK2hVWlJaSy9rNkxlNllRVTlOSzFsaGhGcWRMaEJFM1QxdWNkMzYy?=
- =?utf-8?B?OUZDRGxGejU2MkZNaGhsaVJ2Ylk1ZHVveTFKdTkzQ2Z0cXFHNjRJVVJiWUlj?=
- =?utf-8?B?WUlRTm5vQVNMVFdUbzRpVG1SVWRxUVFIdDVDRE9UQUtlaE9CenUwb2s4WDRi?=
- =?utf-8?B?UzhLa09nT29BeEpDbHB2d2NOMXRtanpqYUhwMmp6enRuem0xWWlvOHhEY0Rr?=
- =?utf-8?B?bjZlYUt4TnVsbk9waUVtZW9zc3pzTVpUMkRyVzQ1R1EyMGRRT1hwRWtFTWRO?=
- =?utf-8?B?ZnhlQkZia0JHd1RSNGUvd2FUK2NaSVRvTnNjcjUvM3BRN0NYQXVXNllFakFh?=
- =?utf-8?B?ZngwdTZBSWdhdlQ5ZCtFMkZlQmtmZzN3T0QrSWxzK1U5MkVYUThZRWttN3dy?=
- =?utf-8?B?V2dyS3RxYzdpWDFrODFkdjRncDhPU2I4N2s1MnoxNlJpaVdyeVhJdXBndmhW?=
- =?utf-8?B?Z2lSZHdvWVkrdTFrV0xlMXpzbVFHeW1RZ0g4MkFhVGZnSlJ5UFdUUFltODhY?=
- =?utf-8?B?cERvdVhJekRtZkN2a2k3b2hCbU5ETHFoTjRlaEFJZ25WamlQcGl6TTlsZG54?=
- =?utf-8?B?eFhUNW1SaUZRRm1PS3IvVUcxT3RqaHhEUG42ckRFQUNZRFplVzZMdGFCV05v?=
- =?utf-8?B?ZGp4dnF1Yi96VGliRnI0OXUzNFdVSFBQR09yWlJrWExBdjIzQkRXSko5WmhQ?=
- =?utf-8?B?aXNBUU5keGxhY3JhQjFaOFp1MzFUbjBXdGMvRW1ZdTFMSzVpcC9YWG9sYlF5?=
- =?utf-8?B?end2MkhYcjhyZjhmV1FMalNqNGFvWDJnditHcEVqUDZUSG1GNHVzYS9kYzhD?=
- =?utf-8?B?cTM2YjUwNGJjUWxQV2wrVWNMN0hkeEpkZ0cwWmZIQ2w4MkVjc3FucmpBY1lW?=
- =?utf-8?B?MUc5aEtmSElHRnlsS3RWb3hVOTh2UzVrQ2dPTnNJcUZ2cHNPQmZQWkx4ZEUw?=
- =?utf-8?B?VmFsTkZSd1ZFZ0YrZkhIRHRabCtRL0JOc3pSVitTQ2cyOUQzeitlZ0xsT2Qz?=
- =?utf-8?B?OTV3dU1WNWlhNmZzNWs1QlVKVjVuZ2RrMjNNT2NWcEFFWWhLM2Y3RVFiczVw?=
- =?utf-8?B?bVBva1JqM3pkN2lxZTdxWitRN3VZdjZsWmNMY0lJbnFZRmRhTzVMaGh3ZUJn?=
- =?utf-8?B?STdQUXJ0RndjUTc4ODJQbUZhVXJ1SzdCNXh1dE5pOXk1Z3FlYnpFcHZkdkJq?=
- =?utf-8?B?OUdyRmpIVllNYnkvS0VadldBZEQwK3Z3LzZGdzIvZ2d0MURKa2JMNU9hMHN2?=
- =?utf-8?B?Ry9vRXpDTU14Q2t4MXNMT3BUbEdMUHZIbU5kQkFqWEk5Y05DckJ5am5RdzV0?=
- =?utf-8?B?Z3JLb1VlZTZ3QXNQUm95bDB5aEE4eFYyTGZkd25HRXRFWEFjaGRtcjJVMldG?=
- =?utf-8?B?ZWVkcVBXWXJMMDhUZWZ3c1kxWWJpQ2UxK3ZTRnRVWjhKSGJBcERTc3JuVXVS?=
- =?utf-8?B?bXpQSzJ2ZitDRHhWZVdXQ1N3WDduUFdZNWZVRjJMOXFMdUF3amo4aVZRV0po?=
- =?utf-8?B?SUdpbkZnZksxdXNxcVp1NWRheTNmK1pyZFRqMUlNQXN3SzNtNGJmbFA2YjVF?=
- =?utf-8?B?Y0krMFhNQ1RVL3ZJZ3ZHbWE2Q29jcWlxaDVmRWF0RGxlcVRpbGpwVjByM1h4?=
- =?utf-8?B?SjAyR085TXYrUFBBNXJ4WEJhOHB1a0lvTlN5K1lVZzk4OWo1MEVpTWdLZkVG?=
- =?utf-8?B?b25iYTZ3V002UldURWZCY3M5OGVBNEc3ZHdlTVJQQlhRamVmcHlKZDZEem0v?=
- =?utf-8?Q?h8X33D9SQbU=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW4PR11MB6739.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(7053199007);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|7053199007;
+X-Microsoft-Antispam-Message-Info: =?utf-8?B?WGw2elVjY3M4c1VrbUZ1YWJBTVRDODJtT1ZHZVFYQjVpaU9ENFFYZlZYZUVO?=
+ =?utf-8?B?WTVlbTdhRER4dTA3T1NNVW9OUnZ2Ti9GTVRlV0lULzBoZW9RbC9ucnIxOEpa?=
+ =?utf-8?B?YXNCaks2YmhIcjkxaE5JdTlINVJWZmIzeElIUWZ0TGlPdEpZakgxTVZmTTlh?=
+ =?utf-8?B?ajF0a0NxTUNmSjFNKzNRNGFpUmNjUjhnemE2WXJBcUJGNVgxb052RVN6ejhW?=
+ =?utf-8?B?TmdQRExhalFrVkFVUVFFeFdwWGpFTmIvSnl3MUtPUVRMZC9XS2pLdFhjNGFu?=
+ =?utf-8?B?WWRTUlMwZVl4ZldrYXFJY2J0bXdiakVBSitSMjBDNzRRcTVBb0VBOE9UTDBx?=
+ =?utf-8?B?d3ZneGpHM1o1dUVyNXVEZ0lQT3Mrd1hqREhNWCtkRGhoSnpxS1kyQ0Fjb1c1?=
+ =?utf-8?B?akxwY0NyMFBuTC8wOWtqRU9NU3NWa3BoTkxxVzZha0I1ZzJIc2ZZaGlQcUdB?=
+ =?utf-8?B?dFhLYm0vNFUvcWFYejQ4VWZxR3VtWnZQc3hpZ1lWUlo3Wm9IR2RlMXlvQUM1?=
+ =?utf-8?B?REt6V251Ukd1TjB1aFBFdTFDTmp0L3NUKzVqaThucE4yVElwMUQvSE9aRnlL?=
+ =?utf-8?B?YU94NnRIZFRVejY3YzBlYjE0REo1NWxBNkVVSk9MK1FIWkFFaHM4QWdrY0Yv?=
+ =?utf-8?B?UE5kZHg5UkE2NCtBRnU1eDR0eXYzT2lZWjlGSUR1cUN0N1pRNUdwcVplcWZt?=
+ =?utf-8?B?UkJKWm1zbjVBcmFKUlFSUHFEL3ZMUUNYaHRZaExscCtEU1Y0c3VVMFNock9M?=
+ =?utf-8?B?UTM1eEFuK3RCZ0F2c1BIbFZzRXVOVDRyaG9TbWczM3FXSkU3WkMzNG0rVWVZ?=
+ =?utf-8?B?TGxEMVdYVTBXRzJkZk5xVm9KY0UzYzZIV3JjVnVsd3psQ05GT2JMeXlVVG1R?=
+ =?utf-8?B?dWZRL21SN2tMRjM0L1ZFb2toZzhobStOR1Zad3RkWHNUSjZMLzlYUnhDQlBT?=
+ =?utf-8?B?TE5YaWNjRGZUMlNYSW1GTkxXUEFEODhWM0sra01sUXpvV0VWVUw4ZlJINkY4?=
+ =?utf-8?B?NjZOSG9WOXNKWlNNakhQaElTS244K2lsMUVBT2JRY283QTgvL2RoenhrWUZU?=
+ =?utf-8?B?ajR3N1ZqaW9NYitBWFpFUEZ2eEtNWE9NSDI0THVlNkJVeWJpcFB2OXd1clcr?=
+ =?utf-8?B?Y3dXWVltOTQvNlB6TndwdXNHSkh5MUhYTlBIRjM2S2l3SVlnbjFQVVMzc1R2?=
+ =?utf-8?B?eis1TGhGNEdCNU1GTFY5aTFnZTU2aFpWZXY3VVdoSGx5Ni83bzk1KzlWYTVF?=
+ =?utf-8?B?MjFPYTVjSWhhaWdmWmtoR2IxUTZ0c3RYeXE0eFpqaDBSRGZndXhaQVN5aEJI?=
+ =?utf-8?B?eWgvSnlLbG5UcDZhWVMvdVZrTzR4ZVZkV2kzWnNXUGl6cTNyaEx1ejRDQ0No?=
+ =?utf-8?B?ZzUwK1pmN1hNWVd1NGw3QnJCcUF3SnI1RnNQdGw1SHBYZC9Bc3ErOE5HSktz?=
+ =?utf-8?B?ajZlRENuRy9zeEc5dUp4RzFTcWZhaXpOb2xFcmZYS05aQVFidFNjNm5WUnEy?=
+ =?utf-8?B?dVBtbEt5Q0hOamNhbjduY2QwSEVZUXNXN2J6eGdTRkJFUFFzYjgrWmhpcUd0?=
+ =?utf-8?B?c3krUGhzSGppV1BFcDBXNXpYQ05QeDBRVUQwemNaVmtjWXNFZDRaM2pHWjg4?=
+ =?utf-8?B?MEhJSGRkWmQ3K2tLMmRvSzVqaVdmNVM3bUxON0Z2Vis2VzNkVnpJSUdsSExt?=
+ =?utf-8?B?OEk0ckdIOUtYL2ZNZkdGZ0RaYUkrVVdXZURCcmhOTXhWSWd5UmZvOTV5MWJZ?=
+ =?utf-8?B?TzlhSXh1SmJHT2UySmVZWEJESGxuOWJkQ3ZUOHRGemtqNk1HMzl0VlNGUkta?=
+ =?utf-8?B?ZjJFRHA3Wml3eUxHa0o2eG42RUdrRUhQbkY1TVB5VnRZaWVkNDVseHA3cFkw?=
+ =?utf-8?B?VTNzcXBUYkpSSTVybVFkMkhiZmpZeDhoQWFpTU0wTlpEbGFndTU3TUN6T3FX?=
+ =?utf-8?Q?ZtaG0xIk2ZQ=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW4PR11MB6739.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7053199007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?UFRGMzRJUTdNRWdBZmVPTldBNWV6Rmt4TndYV3QyMjRNa1J6TjBKZnFOK1FD?=
- =?utf-8?B?OFp2bEFzdC9UMzBhTVNYZ01KM2dtanN0YXl1ME10MDIrWGprVjRvekZoNGEr?=
- =?utf-8?B?anZQZlp5S0ZVTXlGOFpZREkrZEQzTkVmQk5XYmd6Mm12OTVtWCt5NTEyd2xw?=
- =?utf-8?B?YitLMjRST05ZQnRpS3JxbUdRbFpZd1RDajZ3bU5wdHczaEJkbStqREZyTWRo?=
- =?utf-8?B?eVl6cUUrRDc0dlBFVXFwaEI0WVgzcmIzV0o5b1l3MzB5SE1ISXlTVGw1bDJw?=
- =?utf-8?B?Wk5ncHlTY3k3SVBtMTQ2R04wS0FOUFU2d2Z3Mmc5eEUzSC90K3I0c2JxSDZ2?=
- =?utf-8?B?aXNwaTlJL21XQWpoZmpLb1hmMXRBd0dsN3VlaUZRZHhBckcrd3h5bm8yQVQr?=
- =?utf-8?B?UllwTmJReHJWd3RJZksxS29QVjBmTFhHaTJ6eUZnOGlYNW5ETTY4cVU5eTgw?=
- =?utf-8?B?Ui9tbFdJeDFiWVVDK1RzUlZhZGZtODQ1VU04anVGVkdUeUZ5eVh3a1Vhcmx5?=
- =?utf-8?B?WkU0UG1tS1NUN3VNZk4rU3lxUkZaRlFHOUFmdnNOY1pmZkNjODVTb0dIcnM2?=
- =?utf-8?B?bno2MHA3RmJSM2JacE9WNWd0ZVJMTXlRT01ieGZlcTlESm5lcTV1S1VWRVJV?=
- =?utf-8?B?QTFtTDBnaUdEYzQ0Z0hWcWc1WGxHUkNkQUlaeTJKeVpLKzJWTjBiaXpFSUtU?=
- =?utf-8?B?RHMxdjBsTFJtZFRPa00wSGlYUlJxUlMzMGozZEdlaTRUYmt1WU5SRXFxZmZy?=
- =?utf-8?B?elNkY3JyTjFIcHJaWWJqS3Qzemthc3NTRDRFNHArdlZ5SzJ1QVMwUmdnd09P?=
- =?utf-8?B?Wnp3L0Fzd0tlbXZjRWIrMG1CN0tBMXZOT2V6R29BTzlQdC9GaUcrTzl5NkVS?=
- =?utf-8?B?SWUweWFGS3Uyb3MvZGJ1RHZOQUptWlZsajNwdWs5L0QrMENYQ2N1VHNCQmJR?=
- =?utf-8?B?WkNSaVlSQUhxSGhWNVA3aVRQSE01Mk42RGlIM0JxSXBWMEJaeXRqaDNPVFMz?=
- =?utf-8?B?QldQQjhPbjRFeU1abHA4aFZSRlB2T3RsK2VGaXlBKzd1RnRNZ05MZXBaZHRX?=
- =?utf-8?B?ZVp4eTMzN2VlTU1PL2FjNlRzeUVmV3V4cVNzNGNmYnhwd3czVzJPZFhCdzBu?=
- =?utf-8?B?RDVIZERTTlZZMy9GNDR2MnJlS3hnRUlEdTFvcEdXcU0wTUtNM1dYeHU0c25U?=
- =?utf-8?B?S0FwY3VjbmtHT3lIVi9PT2VvTWk3Y0dLb2RXVUFjODdYa1NzU3REWjZpeXRP?=
- =?utf-8?B?TTNrVmdaUi9rMStYQlVubmJaTXhhTTlyTGVMVHRFcUJNY1pObXdTV1c1K0x2?=
- =?utf-8?B?UStrWGZhMmlQNnRjZW45Z0JkMkIrSC9lSjJzRWY4NVkyWU1uZm5CYkY4Z2c0?=
- =?utf-8?B?M3FQakRjZlQ1amtrbUJ1c1FkbHFraEtTY1c1aXFPeFhWd0tHOXZFUUVUVDVq?=
- =?utf-8?B?eC9NZlRESllHZmxSelpYbVZ4enJoUGk5M1RCdU5wRlZodDRaaTIzYkJZM0tm?=
- =?utf-8?B?R2FvZmhaMXM1d0NLcEg4QlhuT0JCUmNUeXhnOFVjdXBGMEYzcFBHbnVqWTFL?=
- =?utf-8?B?VXRZNVN2VXJReS9QeEs1ZVFkNVkvUUZnd05CSVRWVGJHcDVMMXJ5TUxXbU1i?=
- =?utf-8?B?bURFUksrS0NicFdsRGVsMi9aSU9hUVNVMStpSUw4NWhpdWw0ZDloSUtkRnY3?=
- =?utf-8?B?c0VmSWdSdmo3dlRjSmV3STl4VEpXOWpiRjBldWlobU5OZUVKVjdNMkZ4M2Jt?=
- =?utf-8?B?eGl5S3hMOGxWeC9JM2puaUxldTZNcGhsVG1uT29UbDU0QkVXNFJ5eXJDQkw4?=
- =?utf-8?B?M2h2UllxZGJ1Sm50RGVaQURPS3BxWFFBTTBmdUEvdEd4WEhqOEdvTG9RVjBW?=
- =?utf-8?B?cGJJSGk4Rm9VL2s5aTBQeit4dUp1VTJMUGRrdUY4aU90d3QzVDUvOWpRSit1?=
- =?utf-8?B?c1lYSDJqZXF3MHgxM21xVERmZ2Vnb0ttK1plRHpWSUlPL1dMcFprcDM4NUJ6?=
- =?utf-8?B?d1ZKOVZXZHVoc1ZjNkNlblJ6L1dZYWV0c3FQa3RQdDRPaUg5VW5abWhuL1JJ?=
- =?utf-8?B?ZnBPSWdhb3FSQS91eFBwa2hKMUpKRlg0eFkzSzNsYnMzRmIrMTVMUXV3TWJG?=
- =?utf-8?Q?6grNKALy5IZCH9a89Go4scNgy?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: d89e3e88-eafe-4c1d-c85f-08dd7addcd11
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?TEtVbW1NaUg5Z2U1VDh4Tmc3UnR0OFpKR2M0czhnWlV3dzlGYTdLQ3I1WHNL?=
+ =?utf-8?B?RTFCc0tCbENNb255WVZVSUM4a3JSNDFhdjRSeWhrM2krRVh0Kzc0OERGb2py?=
+ =?utf-8?B?Qk1td1J5Y21RYWFNdXVkZU9vOEU5Q2dOM2JIakRsQUh3dk4xVGhVMFk3QlE4?=
+ =?utf-8?B?NzUvM0kvZ0lLblU5eitXYjdZaW9EZ0x0ODByTHk3L0Z1dmNFazMraXVWRFJa?=
+ =?utf-8?B?VHJiN0x6RzhwOEQ2UUJKZk5nR1FPaU1tUktMS1pwZkJyNCtKRlQwZU1MWlox?=
+ =?utf-8?B?WHNzUnJLL3RiMkZUMzRUMzcwWXdhYmV3c2dNcWpSTWo5bTRMRWNJeEZQaTJE?=
+ =?utf-8?B?RHFObnQ4dVFxWjhPeEtPNkFsQUMwN3p0NWRIbkcvQzJMblNsUFgzdC9uUzdP?=
+ =?utf-8?B?c3FJVVNaZmFsMzR5OVNXK2NiM2Zka1lMc0xTRzVVVGttWDBWMk84S1owS2hO?=
+ =?utf-8?B?ZGxVc3lRVTBSTTFqbnVNMU4zNGlGeHVwUE5UbjhIK25CaC9iNmFvVGZSbkpV?=
+ =?utf-8?B?RzhINlpEV2trTzh6YnVjRWwxeDUxTnROWnhPWmVJNWwzOHhOQTgxdDR5cExW?=
+ =?utf-8?B?ZXBnWVBzTnFEcGNiWkRHSjJmUnNZOGpUZjZDb2NqU1htWTBaMlVvcEdlOVhN?=
+ =?utf-8?B?TXoya1FZYUlTelg4Kyt5clJhVWFsMjFqUWI0dmxkQ25qU1Y2bFBHMzg5T0Vr?=
+ =?utf-8?B?YmYrN25wemdYaW83SkxERGFwekhLSm5Qc3ZDVjROZURNVDFVMVNRdGk5V09v?=
+ =?utf-8?B?RFNDZnBLa2IwbTdHdmhXb1p3elYxNzJ1ZkdUdGFyaWgxU3I4dUV5TGYzbVMw?=
+ =?utf-8?B?a08rYTh5V1VmSkp6bXh3QUpXdDI4SGRoemxjSGRoSFdsRTJyNnlaV3p5S3NH?=
+ =?utf-8?B?VDZqdmdFazRtOHdtM0ViMWJhYlMzK3dDekJ5eGpzbEQ4QTlSVGlNeVR4TjY3?=
+ =?utf-8?B?T294M1Z1aWpubG0wbXpvR0pkOThnQ2pnWEcwcldRaVJSN2hTbExlUHBQUE1R?=
+ =?utf-8?B?dFFScTlUR1IvQTd3U1NvSDhiaXVBaTYzK2wzeTlKWVo5S1BpU244NDFpd0da?=
+ =?utf-8?B?WVNrMVZDaE5uZ0dnNWRUU3pBa2dmZ2RyQmFrdURycE0wV2FTV1puS3dNWGw1?=
+ =?utf-8?B?eVVFMWxLYTZFbWd3M2dQWmlvaTBIRDBvRDR3SFovczdwR2FGS0wyYkpLblZx?=
+ =?utf-8?B?czkyQWFNcElwMk1XV3dSdXRsRXFVaU11UzBJbHJpWjluYmFmanhjK09wcUph?=
+ =?utf-8?B?TGdMdkRFZnZMTjJSeDVDOFdQWjhvM3gvRUlmRlVDMEdJQW9tV2taVWJSZ1lh?=
+ =?utf-8?B?OGlucEJqS3laWk1hekV5bC9aMnpLTWNwdnZDcy93N0VlQTlxVlo2K0FhZW53?=
+ =?utf-8?B?cWM2cWJ2VlZTU0NXNHVQdFBTU1Bvd0dXcmRha3lPNTRjL014aElhL3g2UmNY?=
+ =?utf-8?B?cWN5Ri9UbEtGSXNEWlJTNFJuZ0tXL0Nubk5zbVIyVXN6NEZSbTJZTGNJYW52?=
+ =?utf-8?B?L29idFpYVWN1NmxYWmJkVEozQ2diU05telhqYmtJc1E2NlpKbDJOSmYra3I3?=
+ =?utf-8?B?NkhNYUNkYjZnM1JseGhVUVR2SmpLNWg4SXZZNk41V2E1Qkd4ZEJzZVVWcjUy?=
+ =?utf-8?B?Z1h4emZ2dk5nemNhMExxZ0gzZ1BqN1J0VnIvaUZ4YzhTVitJS2I0OC9ka3dv?=
+ =?utf-8?B?ZC92SmxqVnZBNW1XNzdZeFJ6R0RXcHFwSXR4Nlp2VEtBbnk0V3BDWkFJTzEx?=
+ =?utf-8?B?cm1kUWprV3dvN3lvTnYwWTdOSVJFWWduS1VkVjQ2dkhrdkNLaWxFQ2p1OFpu?=
+ =?utf-8?B?RWZTSExvY1FRTzFEcWlHdHUraVV2b2Q4MzUvOTdBQU9LVm1TYUZrRmFiVUg5?=
+ =?utf-8?B?K1g1ekR4dEIzam5aeFdQcXN4MitBNzRBQ3RRWG1hYUNXbkY2dlMyZDdQa25K?=
+ =?utf-8?B?cUNpTVdlNXpnRFNrNzBudCsxUGxzb2s5UWF2WTZDc1lMRXI0cXlzY3FKdXQx?=
+ =?utf-8?B?WmZtNjF0VzlTMDkvd1NSNGthaTZhMEZoNElJQVFySWFwdS81eEl5T2szSzNR?=
+ =?utf-8?B?K3BtYTljRjJyVThiblRwK3hKMFdvZis5S2IycUZVVndtZXZyVEU1QitReVY5?=
+ =?utf-8?Q?8awORSq61wSnwAN+0VXOF8v+h?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 434ae3cb-3d29-4c63-ebd5-08dd7addcf28
 X-MS-Exchange-CrossTenant-AuthSource: MW4PR11MB6739.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Apr 2025 22:52:00.6300
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Apr 2025 22:52:04.0304
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 0jQckqDImRY5pMabHSSwuD9R8CB/bEhYKrCQFvsUvCtaCyJgncQRbC6uB2Hn3BhmW+2YhukkjTIrR6p2YBKgOQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR11MB6042
+X-MS-Exchange-CrossTenant-UserPrincipalName: 0rCIlEwUDPezvvAkC8bcyapHq1+fOHAk+9iBIzRE0fxCZQm16TwgyxPcNeJdfsG1v1Z3DYniFRHO6sZ4B+bZtg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB7003
 X-OriginatorOrg: intel.com
 
-cxl_dpa_to_region() finds the region from a <DPA, device> tuple.
-The search involves finding the device endpoint decoder as well.
+Extent information can be helpful to the user to coordinate memory usage
+with the external orchestrator and FM.
 
-Dynamic capacity extent processing uses the endpoint decoder HPA
-information to calculate the HPA offset.  In addition, well behaved
-extents should be contained within an endpoint decoder.
+Expose the details of region extents by creating the following
+sysfs entries.
 
-Return the endpoint decoder found to be used in subsequent DCD code.
+        /sys/bus/cxl/devices/dax_regionX/extentX.Y
+        /sys/bus/cxl/devices/dax_regionX/extentX.Y/offset
+        /sys/bus/cxl/devices/dax_regionX/extentX.Y/length
+        /sys/bus/cxl/devices/dax_regionX/extentX.Y/tag
+
+Based on an original patch by Navneet Singh.
 
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Reviewed-by: Fan Ni <fan.ni@samsung.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Li Ming <ming.li@zohomail.com>
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Tested-by: Fan Ni <fan.ni@samsung.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
 ---
 Changes:
 [iweiny: rebase]
+[iweiny: s/tag/uuid/ throughout the code]
+[iweiny: update sysfs docs to 2025]
 ---
- drivers/cxl/core/core.h   | 6 ++++--
- drivers/cxl/core/mbox.c   | 2 +-
- drivers/cxl/core/memdev.c | 4 ++--
- drivers/cxl/core/region.c | 8 +++++++-
- 4 files changed, 14 insertions(+), 6 deletions(-)
+ Documentation/ABI/testing/sysfs-bus-cxl | 36 ++++++++++++++++++++
+ drivers/cxl/core/extent.c               | 58 +++++++++++++++++++++++++++++++++
+ 2 files changed, 94 insertions(+)
 
-diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index 08facbc2d270..76e23ec03fb4 100644
---- a/drivers/cxl/core/core.h
-+++ b/drivers/cxl/core/core.h
-@@ -40,7 +40,8 @@ void cxl_decoder_kill_region(struct cxl_endpoint_decoder *cxled);
- int cxl_region_init(void);
- void cxl_region_exit(void);
- int cxl_get_poison_by_endpoint(struct cxl_port *port);
--struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa);
-+struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
-+				     struct cxl_endpoint_decoder **cxled);
- u64 cxl_dpa_to_hpa(struct cxl_region *cxlr, const struct cxl_memdev *cxlmd,
- 		   u64 dpa);
+diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+index 2e26d95ac66f..6e9d60baf546 100644
+--- a/Documentation/ABI/testing/sysfs-bus-cxl
++++ b/Documentation/ABI/testing/sysfs-bus-cxl
+@@ -639,3 +639,39 @@ Description:
+ 		The count is persistent across power loss and wraps back to 0
+ 		upon overflow. If this file is not present, the device does not
+ 		have the necessary support for dirty tracking.
++
++
++What:		/sys/bus/cxl/devices/dax_regionX/extentX.Y/offset
++Date:		May, 2025
++KernelVersion:	v6.16
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) [For Dynamic Capacity regions only] Users can use the
++		extent information to create DAX devices on specific extents.
++		This is done by creating and destroying DAX devices in specific
++		sequences and looking at the mappings created.  Extent offset
++		within the region.
++
++
++What:		/sys/bus/cxl/devices/dax_regionX/extentX.Y/length
++Date:		May, 2025
++KernelVersion:	v6.16
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) [For Dynamic Capacity regions only] Users can use the
++		extent information to create DAX devices on specific extents.
++		This is done by creating and destroying DAX devices in specific
++		sequences and looking at the mappings created.  Extent length
++		within the region.
++
++
++What:		/sys/bus/cxl/devices/dax_regionX/extentX.Y/uuid
++Date:		May, 2025
++KernelVersion:	v6.16
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) [For Dynamic Capacity regions only] Users can use the
++		extent information to create DAX devices on specific extents.
++		This is done by creating and destroying DAX devices in specific
++		sequences and looking at the mappings created.  UUID of this
++		extent.
+diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
+index 6df277caf974..3fb20cd7afc8 100644
+--- a/drivers/cxl/core/extent.c
++++ b/drivers/cxl/core/extent.c
+@@ -6,6 +6,63 @@
  
-@@ -51,7 +52,8 @@ static inline u64 cxl_dpa_to_hpa(struct cxl_region *cxlr,
- 	return ULLONG_MAX;
- }
- static inline
--struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
-+struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
-+				     struct cxl_endpoint_decoder **cxled)
+ #include "core.h"
+ 
++static ssize_t offset_show(struct device *dev, struct device_attribute *attr,
++			   char *buf)
++{
++	struct region_extent *region_extent = to_region_extent(dev);
++
++	return sysfs_emit(buf, "%#llx\n", region_extent->hpa_range.start);
++}
++static DEVICE_ATTR_RO(offset);
++
++static ssize_t length_show(struct device *dev, struct device_attribute *attr,
++			   char *buf)
++{
++	struct region_extent *region_extent = to_region_extent(dev);
++	u64 length = range_len(&region_extent->hpa_range);
++
++	return sysfs_emit(buf, "%#llx\n", length);
++}
++static DEVICE_ATTR_RO(length);
++
++static ssize_t uuid_show(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct region_extent *region_extent = to_region_extent(dev);
++
++	return sysfs_emit(buf, "%pUb\n", &region_extent->uuid);
++}
++static DEVICE_ATTR_RO(uuid);
++
++static struct attribute *region_extent_attrs[] = {
++	&dev_attr_offset.attr,
++	&dev_attr_length.attr,
++	&dev_attr_uuid.attr,
++	NULL
++};
++
++static uuid_t empty_uuid = { 0 };
++
++static umode_t region_extent_visible(struct kobject *kobj,
++				     struct attribute *a, int n)
++{
++	struct device *dev = kobj_to_dev(kobj);
++	struct region_extent *region_extent = to_region_extent(dev);
++
++	if (a == &dev_attr_uuid.attr &&
++	    uuid_equal(&region_extent->uuid, &empty_uuid))
++		return 0;
++
++	return a->mode;
++}
++
++static const struct attribute_group region_extent_attribute_group = {
++	.attrs = region_extent_attrs,
++	.is_visible = region_extent_visible,
++};
++
++__ATTRIBUTE_GROUPS(region_extent_attribute);
++
+ static void cxled_release_extent(struct cxl_endpoint_decoder *cxled,
+ 				 struct cxled_extent *ed_extent)
  {
- 	return NULL;
- }
-diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index c589d8a330bb..b3dd119d166a 100644
---- a/drivers/cxl/core/mbox.c
-+++ b/drivers/cxl/core/mbox.c
-@@ -957,7 +957,7 @@ void cxl_event_trace_record(const struct cxl_memdev *cxlmd,
- 		guard(rwsem_read)(&cxl_dpa_rwsem);
- 
- 		dpa = le64_to_cpu(evt->media_hdr.phys_addr) & CXL_DPA_MASK;
--		cxlr = cxl_dpa_to_region(cxlmd, dpa);
-+		cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
- 		if (cxlr) {
- 			u64 cache_size = cxlr->params.cache_size;
- 
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index 063a14c1973a..d3555d1f13c6 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -320,7 +320,7 @@ int cxl_inject_poison(struct cxl_memdev *cxlmd, u64 dpa)
- 	if (rc)
- 		goto out;
- 
--	cxlr = cxl_dpa_to_region(cxlmd, dpa);
-+	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
- 	if (cxlr)
- 		dev_warn_once(cxl_mbox->host,
- 			      "poison inject dpa:%#llx region: %s\n", dpa,
-@@ -384,7 +384,7 @@ int cxl_clear_poison(struct cxl_memdev *cxlmd, u64 dpa)
- 	if (rc)
- 		goto out;
- 
--	cxlr = cxl_dpa_to_region(cxlmd, dpa);
-+	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
- 	if (cxlr)
- 		dev_warn_once(cxl_mbox->host,
- 			      "poison clear dpa:%#llx region: %s\n", dpa,
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index 716d33140ee8..9c573e8d6ed7 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -2839,6 +2839,7 @@ int cxl_get_poison_by_endpoint(struct cxl_port *port)
- struct cxl_dpa_to_region_context {
- 	struct cxl_region *cxlr;
- 	u64 dpa;
-+	struct cxl_endpoint_decoder *cxled;
+@@ -44,6 +101,7 @@ static void region_extent_release(struct device *dev)
+ static const struct device_type region_extent_type = {
+ 	.name = "extent",
+ 	.release = region_extent_release,
++	.groups = region_extent_attribute_groups,
  };
  
- static int __cxl_dpa_to_region(struct device *dev, void *arg)
-@@ -2872,11 +2873,13 @@ static int __cxl_dpa_to_region(struct device *dev, void *arg)
- 			dev_name(dev));
- 
- 	ctx->cxlr = cxlr;
-+	ctx->cxled = cxled;
- 
- 	return 1;
- }
- 
--struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
-+struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
-+				     struct cxl_endpoint_decoder **cxled)
- {
- 	struct cxl_dpa_to_region_context ctx;
- 	struct cxl_port *port;
-@@ -2888,6 +2891,9 @@ struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
- 	if (port && is_cxl_endpoint(port) && cxl_num_decoders_committed(port))
- 		device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
- 
-+	if (cxled)
-+		*cxled = ctx.cxled;
-+
- 	return ctx.cxlr;
- }
- 
+ bool is_region_extent(struct device *dev)
 
 -- 
 2.49.0
