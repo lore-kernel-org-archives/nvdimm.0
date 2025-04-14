@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E30C274674
-	for <nvdimm@lists.linux.dev>; Mon, 14 Apr 2025 15:36:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 511BC275116
+	for <nvdimm@lists.linux.dev>; Mon, 14 Apr 2025 15:40:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744644972; cv=none; b=a54ZM4WXjYWKDobTP6Gib5az/hUFbgH6bp8AjyDCzdep/w6/Y8YF1mS3p7Xho//AUez9Zk23UsTrIBFMPFJ7Ou6KCpqRMsQblH55VNZuK2okkpgtn33vq7Gdd2AysqNZZ8bGEhcFqloX/cKs67BiqiJ22Hn8DIhTeAtYJk5I2/M=
+	t=1744645256; cv=none; b=TbM1fpVSicFpG0Koljubr9MTwfCiZM4JxExc9iXeeIjdRIgQnEx0aLyZT3JW+VNg41bnT+rZeaD8CLc0O/SlCQjrhvk64SHb1hauaL4jPCsNGZUsJclVDnPN2E3okimJJPbrqeGwCI7nf9o0h1eJREmcxEBaV4d4as5mcIzAEmI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744644972; c=relaxed/simple;
-	bh=HZUyZl0U+ZEgkxFXywMHlDcIaFBX828g6Ua3936TNtE=;
+	s=arc-20240116; t=1744645256; c=relaxed/simple;
+	bh=BHBjCEgKT4Nx1YkwyLzlLRLVMoeQ65ICUzaepBIEOMA=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=E5gCpWdPG/rPoOFmNz91HE+WoLH8xSMKIH6phhg8NPLR4gzNvME5rr6xrYl4MgbNtPhbKmZsQop8SFeyGsOouK/9uAR9ExjE5ASxAZLgBEgcla6X6Uo0kdK+3nS2Ug99eF1ebENc19hNHhgC0IV4dsFTX7uqL+S/S7QrxC7IV+A=
+	 MIME-Version:Content-Type; b=AhbzfKazTTyuDM7++KD2Tb2LWIJbjoWpD5BpUpbcHsr3xNkh0ME8v2GElo+RxNnJGw/LsgWGaaPB4g8VH22qmzeWu2xnk+6nKQ7VMuCIzPNta0CCi+1+mPtf/835GWBQoArz/wX/WgHJRTpcasTgr09Wb2hlmNIU8nqASQ/SGKY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZbrvK2Hr5z6FGcX;
-	Mon, 14 Apr 2025 23:34:53 +0800 (CST)
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZbrxR44qwz6K9gB;
+	Mon, 14 Apr 2025 23:36:43 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 6D8001401DC;
-	Mon, 14 Apr 2025 23:36:08 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 6EE5014050C;
+	Mon, 14 Apr 2025 23:40:52 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Mon, 14 Apr
- 2025 17:36:07 +0200
-Date: Mon, 14 Apr 2025 16:36:06 +0100
+ 2025 17:40:51 +0200
+Date: Mon, 14 Apr 2025 16:40:50 +0100
 From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To: Ira Weiny <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Dan
@@ -32,12 +32,11 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Dan
 	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
 	<vishal.l.verma@intel.com>, <linux-cxl@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v9 06/19] cxl/port: Add 'dynamic_ram_a' to endpoint
- decoder mode
-Message-ID: <20250414163606.00000311@huawei.com>
-In-Reply-To: <20250413-dcd-type2-upstream-v9-6-1d4911a0b365@intel.com>
+Subject: Re: [PATCH v9 07/19] cxl/region: Add sparse DAX region support
+Message-ID: <20250414164050.00003d6c@huawei.com>
+In-Reply-To: <20250413-dcd-type2-upstream-v9-7-1d4911a0b365@intel.com>
 References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
-	<20250413-dcd-type2-upstream-v9-6-1d4911a0b365@intel.com>
+	<20250413-dcd-type2-upstream-v9-7-1d4911a0b365@intel.com>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -50,16 +49,36 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Sun, 13 Apr 2025 17:52:14 -0500
+On Sun, 13 Apr 2025 17:52:15 -0500
 Ira Weiny <ira.weiny@intel.com> wrote:
 
-> Endpoints can now support a single dynamic ram partition following the
-> persistent memory partition.
+> Dynamic Capacity CXL regions must allow memory to be added or removed
+> dynamically.  In addition to the quantity of memory available the
+> location of the memory within a DC partition is dynamic based on the
+> extents offered by a device.  CXL DAX regions must accommodate the
+> sparseness of this memory in the management of DAX regions and devices.
 > 
-> Expand the mode to allow a decoder to point to the first dynamic ram
-> partition.
+> Introduce the concept of a sparse DAX region.  Introduce
+> create_dynamic_ram_a_region() sysfs entry to create such regions.
+> Special case dynamic capable regions to create a 0 sized seed DAX device
+> to maintain compatibility which requires a default DAX device to hold a
+> region reference.
+> 
+> Indicate 0 byte available capacity until such time that capacity is
+> added.
+> 
+> Sparse regions complicate the range mapping of dax devices.  There is no
+> known use case for range mapping on sparse regions.  Avoid the
+> complication by preventing range mapping of dax devices on sparse
+> regions.
+> 
+> Interleaving is deferred for now.  Add checks.
+> 
+> Based on an original patch by Navneet Singh.
 > 
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
+>
+I'm not that familiar with the DAX parts but looks fine to me.
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
 
