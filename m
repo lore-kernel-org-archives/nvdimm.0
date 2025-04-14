@@ -1,43 +1,43 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C3312749F7
-	for <nvdimm@lists.linux.dev>; Mon, 14 Apr 2025 16:15:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5703718C031
+	for <nvdimm@lists.linux.dev>; Mon, 14 Apr 2025 16:48:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744647325; cv=none; b=mJ6ISqnxqqmwJtKRViKvRw4qkcqXkvRWMyOMpSQz2a3wRZl8ErveIHRQp1SkT9UNHaPoa/q5v30kAGP556pHYL2DqNf8uSkTMoVPokxfIs8gNx+i+aJg9K02zIfAZAlJuN7x+I9fgs1N77EhfotZc2W150SaAjB/PPsL1VW8RYg=
+	t=1744649284; cv=none; b=QYe7Tp15VNLoF8hpp0KFvE7fSJjckHzo28OBmvvXcOVZ4bR+Z1mS2pLDG/TOHnr2WprYuIXr0A9y1L1W5wrkbjmVofPfh5IQQJMP0CQ2bBGjyOSkl27mRI/dGm3o9ESV9ChazFNwlNbS0Sk4zmK3B/rT2IcVhJt0GgRdHtW0rQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744647325; c=relaxed/simple;
-	bh=xPSV2jFKY1POy8upqapPFgu16bJi7d1Ky6gqBuT27x4=;
+	s=arc-20240116; t=1744649284; c=relaxed/simple;
+	bh=f/WChhpYkdKS0Bfr+KpWWihP2h/l15jvh0stxorbCfY=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JH7hguGb8oNZdHzvR03yg9M2yM1fjRNmGrMLtPOKkfdn/B2G4b1rVFVwTLw1Wsmsqii6LZj9nNiPrGX3xc87x3a68vJcu1Xwcflg7ILQyodUO+apmt/jrjEiLngPW6QZLt3LpAEK2Nw6E68WL+S5q3IeULn/FxL7vxdppBFxCig=
+	 MIME-Version:Content-Type; b=nE4iGffLb/TDlfHKcC9WxOXTBvL1xx3M6ZLoXvcau5kTawdJjOycBm5pgcKxTISxD61VO8lY2vCxC1nq56wDr4IbqKwixKdAXMuhPxIY/pO58XlhFC4y34SNmHN4NlCVKTv8jaGn2puT9JNi+QnP1M21u/a2LLS3sQL+qJIsROY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZbsjR74Myz6M4wt;
-	Tue, 15 Apr 2025 00:11:23 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZbtQt1W85z6K9BZ;
+	Tue, 15 Apr 2025 00:43:50 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 3AE991402FC;
-	Tue, 15 Apr 2025 00:15:20 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 3693D1402F4;
+	Tue, 15 Apr 2025 00:47:59 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Mon, 14 Apr
- 2025 18:15:19 +0200
-Date: Mon, 14 Apr 2025 17:15:18 +0100
+ 2025 18:47:58 +0200
+Date: Mon, 14 Apr 2025 17:47:57 +0100
 From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To: Ira Weiny <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Dan
  Williams" <dan.j.williams@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
 	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
 	<vishal.l.verma@intel.com>, <linux-cxl@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v9 16/19] cxl/region: Read existing extents on region
- creation
-Message-ID: <20250414171518.00007580@huawei.com>
-In-Reply-To: <20250413-dcd-type2-upstream-v9-16-1d4911a0b365@intel.com>
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>, Li Ming
+	<ming.li@zohomail.com>
+Subject: Re: [PATCH v9 00/19] DCD: Add support for Dynamic Capacity Devices
+ (DCD)
+Message-ID: <20250414174757.00000fea@huawei.com>
+In-Reply-To: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
 References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
-	<20250413-dcd-type2-upstream-v9-16-1d4911a0b365@intel.com>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -47,161 +47,94 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
+X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Sun, 13 Apr 2025 17:52:24 -0500
+On Sun, 13 Apr 2025 17:52:08 -0500
 Ira Weiny <ira.weiny@intel.com> wrote:
 
-> Dynamic capacity device extents may be left in an accepted state on a
-> device due to an unexpected host crash.  In this case it is expected
-> that the creation of a new region on top of a DC partition can read
-> those extents and surface them for continued use.
+> A git tree of this series can be found here:
 > 
-> Once all endpoint decoders are part of a region and the region is being
-> realized, a read of the 'devices extent list' can reveal these
-> previously accepted extents.
+> 	https://github.com/weiny2/linux-kernel/tree/dcd-v6-2025-04-13
 > 
-> CXL r3.1 specifies the mailbox call Get Dynamic Capacity Extent List for
-> this purpose.  The call returns all the extents for all dynamic capacity
-> partitions.  If the fabric manager is adding extents to any DCD
-> partition, the extent list for the recovered region may change.  In this
-> case the query must retry.  Upon retry the query could encounter extents
-> which were accepted on a previous list query.  Adding such extents is
-> ignored without error because they are entirely within a previous
-> accepted extent.  Instead warn on this case to allow for differentiating
-> bad devices from this normal condition.
+> This is now based on 6.15-rc2.
+
+Hi Ira,
+
+Firstly thanks for the update and your hard work driving this forwards.
+
 > 
-> Latch any errors to be bubbled up to ensure notification to the user
-> even if individual errors are rate limited or otherwise ignored.
+> Due to the stagnation of solid requirements for users of DCD I do not
+> plan to rev this work in Q2 of 2025 and possibly beyond.
+
+Hopefully there will be limited need to make changes (it looks pretty 
+good to me - we'll run a bunch of tests though which I haven't done
+yet).  I do have reason to want this code upstream and it is
+now simple enough that I hope it is not controversial. Let's discuss
+path forwards on the sync call tomorrow as I'm sure I'm not the only one.
+
+If needed I'm fine picking up the baton to keep this moving forwards
+(I'm even more happy to let someone else step up though!)
+
+To me we don't need to answer the question of whether we fully understand
+requirements, or whether this support covers them, but rather to ask
+if anyone has requirements that are not sensible to satisfy with additional
+work building on this?
+
+I'm not aware of any such blocker.  For the things I care about the
+path forwards looks fine (particularly tagged capacity and sharing).
+
 > 
-> The scan for existing extents races with the dax_cxl driver.  This is
-> synchronized through the region device lock.  Extents which are found
-> after the driver has loaded will surface through the normal notification
-> path while extents seen prior to the driver are read during driver load.
+> It is anticipated that this will support at least the initial
+> implementation of DCD devices, if and when they appear in the ecosystem.
+> The patch set should be reviewed with the limited set of functionality in
+> mind.  Additional functionality can be added as devices support them.
+
+Personally I think that's a chicken and egg problem but fully understand
+the desire to keep things simple in the short term.  Getting initial DCD
+support in will help reduce the response (that I frequently hear) of
+'the ecosystem isn't ready, let's leave that for a generation'.
+
+
 > 
-> Based on an original patch by Navneet Singh.
+> It is strongly encouraged for individuals or companies wishing to bring
+> DCD devices to market review this set with the customer use cases they
+> have in mind.
 > 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Reviewed-by: Fan Ni <fan.ni@samsung.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-A couple of minor things noticed on taking another look.
+Absolutely.  I can't share anything about devices at this time but you
+can read whatever you want into my willingness to help get this (and a
+bunch of things built on top of it) over the line.
 
-> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index de01c6684530..8af3a4173b99 100644
-> --- a/drivers/cxl/core/mbox.c
-> +++ b/drivers/cxl/core/mbox.c
-> @@ -1737,6 +1737,115 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
->  }
->  EXPORT_SYMBOL_NS_GPL(cxl_dev_dc_identify, "CXL");
->  
-> +/* Return -EAGAIN if the extent list changes while reading */
-> +static int __cxl_process_extent_list(struct cxl_endpoint_decoder *cxled)
-> +{
-> +	u32 current_index, total_read, total_expected, initial_gen_num;
-> +	struct cxl_memdev_state *mds = cxled_to_mds(cxled);
-> +	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-> +	struct device *dev = mds->cxlds.dev;
-> +	struct cxl_mbox_cmd mbox_cmd;
-> +	u32 max_extent_count;
-> +	int latched_rc = 0;
-> +	bool first = true;
-> +
-> +	struct cxl_mbox_get_extent_out *extents __free(kvfree) =
-> +				kvmalloc(cxl_mbox->payload_size, GFP_KERNEL);
-> +	if (!extents)
-> +		return -ENOMEM;
-> +
-> +	total_read = 0;
-> +	current_index = 0;
-> +	total_expected = 0;
-> +	max_extent_count = (cxl_mbox->payload_size - sizeof(*extents)) /
-> +				sizeof(struct cxl_extent);
-> +	do {
-> +		u32 nr_returned, current_total, current_gen_num;
-> +		struct cxl_mbox_get_extent_in get_extent;
-> +		int rc;
-> +
-> +		get_extent = (struct cxl_mbox_get_extent_in) {
-> +			.extent_cnt = cpu_to_le32(max(max_extent_count,
-> +						  total_expected - current_index)),
-> +			.start_extent_index = cpu_to_le32(current_index),
-> +		};
-> +
-> +		mbox_cmd = (struct cxl_mbox_cmd) {
-> +			.opcode = CXL_MBOX_OP_GET_DC_EXTENT_LIST,
-> +			.payload_in = &get_extent,
-> +			.size_in = sizeof(get_extent),
-> +			.size_out = cxl_mbox->payload_size,
-> +			.payload_out = extents,
-> +			.min_out = 1,
 
-Similar to earlier comment (I might well have forgotten how this works) but
-why not 16 which is what I think we should get even if no extents.
 
-> +		};
-> +
-> +		rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
-> +		if (rc < 0)
-> +			return rc;
-> +
-> +		/* Save initial data */
-> +		if (first) {
-> +			total_expected = le32_to_cpu(extents->total_extent_count);
-> +			initial_gen_num = le32_to_cpu(extents->generation_num);
-> +			first = false;
-> +		}
-> +
-> +		nr_returned = le32_to_cpu(extents->returned_extent_count);
-> +		total_read += nr_returned;
-> +		current_total = le32_to_cpu(extents->total_extent_count);
-> +		current_gen_num = le32_to_cpu(extents->generation_num);
-> +
-> +		dev_dbg(dev, "Got extent list %d-%d of %d generation Num:%d\n",
-> +			current_index, total_read - 1, current_total, current_gen_num);
-> +
-> +		if (current_gen_num != initial_gen_num || total_expected != current_total) {
-> +			dev_warn(dev, "Extent list change detected; gen %u != %u : cnt %u != %u\n",
-> +				 current_gen_num, initial_gen_num,
-> +				 total_expected, current_total);
-> +			return -EAGAIN;
-> +		}
-> +
-> +		for (int i = 0; i < nr_returned ; i++) {
-> +			struct cxl_extent *extent = &extents->extent[i];
-> +
-> +			dev_dbg(dev, "Processing extent %d/%d\n",
-> +				current_index + i, total_expected);
-> +
-> +			rc = validate_add_extent(mds, extent);
-> +			if (rc)
-> +				latched_rc = rc;
-> +		}
-> +
-> +		current_index += nr_returned;
-> +	} while (total_expected > total_read);
-> +
-> +	return latched_rc;
-> +}
-
-> +/*
-> + * Get Dynamic Capacity Extent List; Output Payload
-> + * CXL rev 3.1 section 8.2.9.9.9.2; Table 8-167
-> + */
-> +struct cxl_mbox_get_extent_out {
-> +	__le32 returned_extent_count;
-> +	__le32 total_extent_count;
-> +	__le32 generation_num;
-> +	u8 rsvd[4];
-> +	struct cxl_extent extent[];
-
-Throw some counted_by magic at this?
-
-> +} __packed;
-> +
->  struct cxl_mbox_get_supported_logs {
->  	__le16 entries;
->  	u8 rsvd[6];
+> Remaining work:
 > 
+> 	1) Allow mapping to specific extents (perhaps based on
+> 	   label/tag)
+> 	   1a) devise region size reporting based on tags
+> 	2) Interleave support
+
+I'd maybe label these as 'additional possible future features'.
+Personally I'm doubtful that hardware interleave of DCD is a short
+term feature and it definitely doesn't have to be there for this to be useful.
+
+Tags will matter but that is a 'next step' that this series does
+not seem to hinder.
+
+
+> 
+> Possible additional work depending on requirements:
+> 
+> 	1) Accept a new extent which extends (but overlaps) already
+> 	   accepted extent(s)
+> 	2) Rework DAX device interfaces, memfd has been explored a bit
+> 	3) Support more than 1 DC partition
+> 
+> [1] https://github.com/weiny2/ndctl/tree/dcd-region3-2025-04-13
+
+Thanks,
+
+Jonathan
+
 
