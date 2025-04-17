@@ -1,130 +1,78 @@
-Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 731A4197A8A;
-	Wed, 16 Apr 2025 21:40:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC2B03D994;
+	Thu, 17 Apr 2025 03:44:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744839650; cv=none; b=t+whVvfbuP4X3v5xJF7oqvNIyYT2wRgONUBhSOQW6/PgpTe4RpwmYt/XDzFMjd5CkYhR2Izfm0iAKXmIDtMKG3qaijy3Fi3JoE1ABYsbqnubo62gDQjSCDPk6qY624HN0kPj1sH3cbf5L7kMStr/XCK9Gl5Mv055jZlycjmmxVk=
+	t=1744861448; cv=none; b=ePuRofKEGW24UNJmsbGVgSnd2rQ0AJo0x5UaqIvBd9eZUebMAiFY734lrQf9aqcLC+/Ah/T86QHnZYf3bi++HqVOMMrrahk0WVrSQLnBLH2m4+5xUbFb1hxdRFk+lWaJB3zNPBXKHigrauxn5Dgzn/Mrs5eLl6/GJfuyOBpLaR0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744839650; c=relaxed/simple;
-	bh=Akuhkguz9lZ7ogV7BZwatXKI1L5hSvQMKf9rfWq+EjY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CLST3Euc+uPGg+2Y5maSYOyeI3W3/gFGK4USJc3UgMEo9FCiVRPbt30OqGGdLk++ZRt5/VupTEaVDritDapBElCqnHB1PVEIhXi9WXyq1cWd/Qey2ffUwmqN6wkXScc/Wt5CgdXyktUytCIU+gIvqqnHA3+8w0K67XAqcAyXm0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ZVMQ/Jmh; arc=none smtp.client-ip=91.218.175.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1744861448; c=relaxed/simple;
+	bh=R7qsYUeUd1iUm6G89HG5YRgfHabJRXn5qvLM8WYzZhc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kQZ4JIqFpqFZCaTAXQ13UJu4R1ZajbNELf01GIj4eDVlRXEYQGDzdf7g9l1Ea7kWongUS2XA/ipMv9qCcJUUy3aoVe0R0Jrfvt2/CvkIbypUxuU860b2AM34MZAqAP34sSIMD7fV0sTOlaBhLSrpzArdgeKB4kD5+Z+vPiOTQBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PnKDWUqF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ZVMQ/Jmh"
-Message-ID: <235030ca-93a4-4666-93f8-93f8d81ff650@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1744839643;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2gOdc+K/KW6LG2lJV2OfaDngWl4h/oV6BdYZhgh8d5M=;
-	b=ZVMQ/Jmhj/6fVk1TZaMu4zk0rK4L/5c8VUb5YiJ3v6Bhp9vz36HOMXyXbSzeu+BSD/SnGa
-	WXxl5wyCDtJLteOBzlJOaIUqPn9Ald2m0CcX29tmfwt8C3KCCZLZ8f1/vD+gZqZOTaLtRO
-	I6JLeES2NCsrJFdnD4VW2tJN/pns55I=
-Date: Thu, 17 Apr 2025 05:40:35 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PnKDWUqF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68C24C4CEE7;
+	Thu, 17 Apr 2025 03:44:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1744861447;
+	bh=R7qsYUeUd1iUm6G89HG5YRgfHabJRXn5qvLM8WYzZhc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=PnKDWUqFijN2IvXTjfo+QFPvyIILLzxLzDEEIWN6/pdVSsmzJywTV2LVI1STdLoiT
+	 phdnrBLo/4VPhkkuJgqDc1wms+HF0yu23CJeOG7X7HESMnA6mqP+QKw/Xvp63VG1sU
+	 A1qNMPRpONC4dgOvCu+gOnbS40N6a1InPw4qeMZs0sQNbIjY9oBZpkRR2lMFZdt4vz
+	 NG49+2U6mCaJLYiZi5vIyaMGVXdpFfOR0flmKXSva090mLrQFQ4A0OlALio+EoU3/M
+	 FPlOCCsZZg2W0Q34QsGvqOjEZAR3wc4Qr6bbxu92ebF4hPZ0ntALS6Km9Z+Jymk82a
+	 QC4QXj3JmM7sA==
+Date: Wed, 16 Apr 2025 20:44:06 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev, Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Alistair Popple <apopple@nvidia.com>,
+	Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v1] fs/dax: fix folio splitting issue by resetting old
+ folio order + _nr_pages
+Message-ID: <20250417034406.GF25659@frogsfrogsfrogs>
+References: <20250410091020.119116-1-david@redhat.com>
+ <Z_gYIU7Nq-YDYnc7@aschofie-mobl2.lan>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Subject: Re: [RFC PATCH 00/11] pcache: Persistent Memory Cache for Block
- Devices
-To: Jens Axboe <axboe@kernel.dk>, Dan Williams <dan.j.williams@intel.com>,
- hch@lst.de, gregory.price@memverge.com, John@groves.net,
- Jonathan.Cameron@huawei.com, bbhushan2@marvell.com, chaitanyak@nvidia.com,
- rdunlap@infradead.org, agk@redhat.com, snitzer@kernel.org,
- mpatocka@redhat.com
-Cc: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-cxl@vger.kernel.org, linux-bcache@vger.kernel.org,
- nvdimm@lists.linux.dev, dm-devel@lists.linux.dev
-References: <20250414014505.20477-1-dongsheng.yang@linux.dev>
- <67fe9ea2850bc_71fe294d8@dwillia2-xfh.jf.intel.com.notmuch>
- <15e2151a-d788-48eb-8588-1d9a930c64dd@kernel.dk>
- <07f93a57-6459-46e2-8ee3-e0328dd67967@linux.dev>
- <d3231630-9445-4c17-9151-69fe5ae94a0d@kernel.dk>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Dongsheng Yang <dongsheng.yang@linux.dev>
-In-Reply-To: <d3231630-9445-4c17-9151-69fe5ae94a0d@kernel.dk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Z_gYIU7Nq-YDYnc7@aschofie-mobl2.lan>
 
-+ccing md-devel
+On Thu, Apr 10, 2025 at 12:12:33PM -0700, Alison Schofield wrote:
+> On Thu, Apr 10, 2025 at 11:10:20AM +0200, David Hildenbrand wrote:
+> > Alison reports an issue with fsdax when large extends end up using
+> > large ZONE_DEVICE folios:
+> >
+> 
+> Passes the ndctl/dax unit tests.
+> 
+> Tested-by: Alison Schofield <alison.schofield@intel.com>
 
-On 2025/4/16 23:10, Jens Axboe wrote:
-> On 4/16/25 12:08 AM, Dongsheng Yang wrote:
->> On 2025/4/16 9:04, Jens Axboe wrote:
->>> On 4/15/25 12:00 PM, Dan Williams wrote:
->>>> Thanks for making the comparison chart. The immediate question this
->>>> raises is why not add "multi-tree per backend", "log structured
->>>> writeback", "readcache", and "CRC" support to dm-writecache?
->>>> device-mapper is everywhere, has a long track record, and enhancing it
->>>> immediately engages a community of folks in this space.
->>> Strongly agree.
->>
->> Hi Dan and Jens,
->> Thanks for your reply, that's a good question.
->>
->>      1. Why not optimize within dm-writecache?
->>  From my perspective, the design goal of dm-writecache is to be a
->> minimal write cache. It achieves caching by dividing the cache device
->> into n blocks, each managed by a wc_entry, using a very simple
->> management mechanism. On top of this design, it's quite difficult to
->> implement features like multi-tree structures, CRC, or log-structured
->> writeback. Moreover, adding such optimizations?especially a read
->> cache?would deviate from the original semantics of dm-writecache. So,
->> we didn't consider optimizing dm-writecache to meet our goals.
->>
->>      2. Why not optimize within bcache or dm-cache?
->> As mentioned above, dm-writecache is essentially a minimal write
->> cache. So, why not build on bcache or dm-cache, which are more
->> complete caching systems? The truth is, it's also quite difficult.
->> These systems were designed with traditional SSDs/NVMe in mind, and
->> many of their design assumptions no longer hold true in the context of
->> PMEM. Every design targets a specific scenario, which is why, even
->> with dm-cache available, dm-writecache emerged to support DAX-capable
->> PMEM devices.
->>
->>      3. Then why not implement a full PMEM cache within the dm framework?
->> In high-performance IO scenarios?especially with PMEM hardware?adding
->> an extra DM layer in the IO stack is often unnecessary. For example,
->> DM performs a bio clone before calling __map_bio(clone) to invoke the
->> target operation, which introduces overhead.
->>
->> Thank you again for the suggestion. I absolutely agree that leveraging
->> existing frameworks would be helpful in terms of code review, and
->> merging. I, more than anyone, hope more people can help review the
->> code or join in this work. However, I believe that in the long run,
->> building a standalone pcache module is a better choice.
-> I think we'd need much stronger reasons for NOT adopting some kind of dm
-> approach for this, this is really the place to do it. If dm-writecache
-> etc aren't a good fit, add a dm-whatevercache for it? If dm is
-> unnecessarily cloning bios when it doesn't need to, then that seems like
-> something that would be worthwhile fixing in the first place, or at
-> least eliminate for cases that don't need it. That'd benefit everyone,
-> and we would not be stuck with a new stack to manage.
->
-> Would certainly be worth exploring with the dm folks.
+This fixes the crash I complained about here:
+https://lore.kernel.org/linux-fsdevel/20250417030143.GO25675@frogsfrogsfrogs/T/
 
-well, introducing dm-pcache (assuming we use this name) could, on one 
-hand, attract more users and developers from the device-mapper community 
-to pay attention to this project, and on the other hand, serve as a way 
-to validate or improve the dm framework’s performance in 
-high-performance I/O scenarios. If necessary, we can enhance the dm 
-framework instead of bypassing it entirely. This indeed sounds like 
-something that would “benefit everyone.”
+Can we get a fix queued up for -rc3 if it hasn't been already, please?
 
-Hmm, I will seriously consider this approach.
+Tested-by: "Darrick J. Wong" <djwong@kernel.org>
 
-Hi Alasdair, Mike, Mikulas,  Do you have any suggestions?
+--D
 
-Thanx
-
->
+> 
+> snip
+> 
+> 
