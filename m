@@ -1,53 +1,53 @@
-Received: from mail-ed1-f73.google.com (mail-ed1-f73.google.com [209.85.208.73])
+Received: from mail-ed1-f74.google.com (mail-ed1-f74.google.com [209.85.208.74])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C660227E9C
-	for <nvdimm@lists.linux.dev>; Thu, 17 Apr 2025 09:44:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 428A62517B8
+	for <nvdimm@lists.linux.dev>; Thu, 17 Apr 2025 14:25:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.74
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744883096; cv=none; b=Wwd9i/6Wsc3jqS4OcTSHm+ZR8uvG210EprDvnSLYdEComF6DXgE1yBna7SdbrCU1YPziNVp6qdGLoPTs1qoq321wJAcWXNasypfCat6kUJjc4vSTViiV8/CqCZ42uM9VbEu2ZKb94VVRnbac2lbBKOTqaitUhqIZ3mm8cWmASe4=
+	t=1744899961; cv=none; b=WV0ctnaSoiee0DCzH5i0TH6rks6NxU1GtXFshVl3k+usseyQtZTNb+oC3NTjj7udItPA+yp+EVzofm0aRz0K8xEt993m6Y2gwF1/item++BJDbZJP5CEj1Wfkpcx6jmBjQ3bTcZv+C7LUTtk6RJGxXr8rF/2npcik00Vs+g99UM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744883096; c=relaxed/simple;
-	bh=DZ7q0YDfE7N1bPL/mA+UEDFwjr40WMySwkGTehTFR3o=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=YX2fgPIn+qC4+kzCCR2kfijeawV1fEK1vVBve+zmcroDtdlh0RKaodO/lv6vqzhy3pUx4enBWlmAc1TcxYldzOox4Mr4CpLqOb0Sh4+IS091bD8aUHVJz8D93h72N0g1LEIIBVKh7QtjfCF18fjHeeNSNoN8eFjtS+ZYeCQEs3o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--mclapinski.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=TrUX6oX+; arc=none smtp.client-ip=209.85.208.73
+	s=arc-20240116; t=1744899961; c=relaxed/simple;
+	bh=9+7vjTgR6tOQBxCEXpe9sEq8U3zVklK5iZhpXv4zvQk=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=K/amcLFWiXlzLqleVsJ/9N9e0du2weg4miDEN1++8xExUqZbp9pVevfQLArYYvGd1llDJU0gnJNoDbnYH8O69z5bDjz4DMrhl7BoovrrjTvVbVBOgoEAv77B6CHZNXhSxqnS4djZHB90B9KtX2rLZYxkUV5Nzp0GjjiItylY1Y8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--mclapinski.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=o5IdC5SK; arc=none smtp.client-ip=209.85.208.74
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--mclapinski.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="TrUX6oX+"
-Received: by mail-ed1-f73.google.com with SMTP id 4fb4d7f45d1cf-5e5be5ec846so517726a12.2
-        for <nvdimm@lists.linux.dev>; Thu, 17 Apr 2025 02:44:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="o5IdC5SK"
+Received: by mail-ed1-f74.google.com with SMTP id 4fb4d7f45d1cf-5f435440b1cso749168a12.3
+        for <nvdimm@lists.linux.dev>; Thu, 17 Apr 2025 07:25:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1744883091; x=1745487891; darn=lists.linux.dev;
+        d=google.com; s=20230601; t=1744899957; x=1745504757; darn=lists.linux.dev;
         h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=wD7Qk4RrTd9xfQxmaol+oD/P6dpfTs5U+U+3JhrL4nM=;
-        b=TrUX6oX+ugm3fGpV4gy3VjGwt2OI2/sOz03qABussqZJbj2ziwopy/9saqsfVd86cF
-         7iYSvlZy58hY9u7e/qF/uU7ubPmo4JpkC5FclVtl5yVH671H+70017qnvCatKxqGMNQw
-         Z5c1Bb/mhI6Ws2RVyopqdmAKmDxUxz2CSsLI7YmbcmI4BvIe0iNZY8Q1PGo9TpKCfBG/
-         JmR/SG9HKFl7U6lGBiOWbZgB4IM8+Zxd4zUa+jficG8S5qJbeUGcfN1zSqsW2Xip5J+T
-         QYygrgfcQHpu6zkr3Xcs1twtl5v84Lokf2kLkYumP83jicmoeFhdpLzmpGucFn4utVuq
-         G6ww==
+        bh=H+sdaqbuJVHJwWuSmsh/GQYswrYAxKRQh26GCaZXhok=;
+        b=o5IdC5SKKO6InaAYBbJuL75UCR/eJIgu18ovtXO2NgqXrHF0Kv3rysqKSV78yYv/zf
+         9y+aMHKaAkX0DUq0WyVkDD3zFDZ4/mUugZaHEUgOhI6cQaa2l/w5yRjKWYYe1eJCW49e
+         C9KOhUvUn2U5ozi+CUOk6bbAbdvw8H8UzEiqUmfBsyh2Vlh2WeY2zHO/SKqpn9tzTg7F
+         clbwgxj6DH+PmNTYeqDLaCw9srFCaiQzw7E0xkprRLcXEgMUcSd21ylgrX/f+gaxpj3e
+         1xItYI5nORtTDvhYOYPRb6fXzpXOPFeYR7k+hmmHgf9kPtOuw7lM28/AOS8q63YeAOi6
+         MmNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744883091; x=1745487891;
+        d=1e100.net; s=20230601; t=1744899957; x=1745504757;
         h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=wD7Qk4RrTd9xfQxmaol+oD/P6dpfTs5U+U+3JhrL4nM=;
-        b=fvBnCSoDJ/+Jx4KWxm4H6+Ct0k9sILXKJaMNgZkjXe5Gnnege3Rr4ZJNRU4zYnrE6h
-         kyDH5KJS2K7u7OmoWQVNWlMcJr+FK33g00w3xsOV8BQetzJLx7Jk6EIMJTQUtQ/NwXwm
-         MSf9pqVoQbvEeB/QxcyQZPOdwJ1bZnXj2tY0xpvwMA4a3ND9fKOEVtY8t1xdbi0VZqIY
-         p0WxVosQ63RjFhUdY2P64hudLmuX6d2kCSWaO3fO2y63KtvZWHy+I+lrRcUclB8+jhNV
-         F0hgUC5NkrmaFgHp6Q6tPttEc5vEc+Kg/ZJu+64hQiSY6X4ndP8eA49Wcf9C8qwaB+O2
-         HkLA==
-X-Gm-Message-State: AOJu0YxF5vPF+e62hy9WTh/6jG3IFRYQO9uf8dTUHPh2rPAFBryrVN+G
-	wLhN8X2RuOFrxqGcNb2kYkjDsO6WkA79QM1wYtSzmsmOUalQwP/Z9NbYHKrDTZor7vcfUD1KK6i
-	Y2Gx91+PM2856x+9yAw==
-X-Google-Smtp-Source: AGHT+IF3ziPzRL1h03+T3uQPQ+OVjHXAwzHdaqiQIAuXSzMcxLZdGld+ARV/oDwmpyIVSm/HF3CzkYqt6bQHayeI
-X-Received: from edra24.prod.google.com ([2002:aa7:d918:0:b0:5ec:d794:927f])
+        bh=H+sdaqbuJVHJwWuSmsh/GQYswrYAxKRQh26GCaZXhok=;
+        b=nPxaFXoQPOfSCi4aSepw7PlKM4GTMhzzoqTFK1ov42bTxQwZGLWpz0/44IXNFTpccV
+         BIqELp/UGqcorDMgLpreVujvgWduU7MqoDJJ4hBNrbdhwKvHWPLqVRQayjl92Hy54Eod
+         RP94JFgQbbc5DCcYSd4z/DJA8DEZUVowJpDjHdbFBczwQu6Wbrj+XeQpmBJ5A84KJS2B
+         04mN37+XwueHnOfeko0MwJqQ3MmhdZ8VkJogJVaEOWL/4RJQ4Vp11o3yiX/vlmDUyHnu
+         j40C8UEyhfW2ipD3ja73oE2ICRCHkRlvwaqhs02bfz3OjBJSreU8DNtet2pmOGW4A5Ha
+         2sSA==
+X-Gm-Message-State: AOJu0YyFdzWebC4+6ziE3kfHt9Zn+7VsSoBUWTUzQXQj/7iM+z1xwpv7
+	me/vhYQgCbPjLAh0EKX3zfiabpzOdCo/zTq12DF6VNcAEQ5C5s3rUjwfPtqtQZkJWN2xmKHFVWj
+	UeL9k++ts7jw7aRU1kQ==
+X-Google-Smtp-Source: AGHT+IGBqy5TobEpyVuaQspyqyuO7ng/tNpB3r9xw3JUF5HoHKa35Wf85wBwTqhq1424irAfhUpw80t6e7qsEfOU
+X-Received: from edyv23.prod.google.com ([2002:a05:6402:1857:b0:5ec:9a93:5aac])
  (user=mclapinski job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:6402:3549:b0:5e1:dac1:fa22 with SMTP id 4fb4d7f45d1cf-5f4b75dd0b8mr3938873a12.21.1744883091409;
- Thu, 17 Apr 2025 02:44:51 -0700 (PDT)
-Date: Thu, 17 Apr 2025 11:44:32 +0200
+ 2002:a05:6402:354e:b0:5f3:816b:c0cc with SMTP id 4fb4d7f45d1cf-5f4b7204c76mr5985652a12.10.1744899957654;
+ Thu, 17 Apr 2025 07:25:57 -0700 (PDT)
+Date: Thu, 17 Apr 2025 16:25:25 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -55,8 +55,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 X-Mailer: git-send-email 2.49.0.777.g153de2bbd5-goog
-Message-ID: <20250417094432.3690181-1-mclapinski@google.com>
-Subject: [PATCH 1/1] libnvdimm/e820: Add a new parameter to configure many
+Message-ID: <20250417142525.78088-1-mclapinski@google.com>
+Subject: [PATCH v2 1/1] libnvdimm/e820: Add a new parameter to configure many
  regions per e820 entry
 From: Michal Clapinski <mclapinski@google.com>
 To: Pasha Tatashin <pasha.tatashin@soleen.com>, Dan Williams <dan.j.williams@intel.com>, 
@@ -81,6 +81,8 @@ e.g. to specify the type of the device (fsdax/devdax).
 
 Signed-off-by: Michal Clapinski <mclapinski@google.com>
 ---
+v2: Fixed a crash when pmem parameter is omitted.
+---
  .../admin-guide/kernel-parameters.txt         |   7 +
  drivers/nvdimm/e820.c                         | 149 +++++++++++++++++-
  2 files changed, 153 insertions(+), 3 deletions(-)
@@ -104,7 +106,7 @@ index fb8752b42ec85..63af03eb850ed 100644
  			Format: <irq>,<io>,<mem_start>,<mem_end>,<name>
  			Note that mem_start is often overloaded to mean
 diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-index 41c67dfa80158..581fe01553a22 100644
+index 41c67dfa80158..b5559e2e6fc9f 100644
 --- a/drivers/nvdimm/e820.c
 +++ b/drivers/nvdimm/e820.c
 @@ -8,6 +8,87 @@
@@ -227,7 +229,7 @@ index 41c67dfa80158..581fe01553a22 100644
 +	entry = xa_load(walk_data->pmem_xarray, res->start);
 +
 +	if (!entry)
-+		return register_one_pmem(res, data);
++		return register_one_pmem(res, walk_data->nvdimm_bus);
 +
 +	if (entry_size % entry->region_size != 0) {
 +		pr_err("Entry size %lu is not divisible by region size %lu\n",
