@@ -1,62 +1,62 @@
-Received: from mail-ot1-f53.google.com (mail-ot1-f53.google.com [209.85.210.53])
+Received: from mail-oa1-f43.google.com (mail-oa1-f43.google.com [209.85.160.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 266FE19CC06
-	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 01:34:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71B841A23A8
+	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 01:34:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745199267; cv=none; b=M3RcQlFjFY0P0J7QIhq1i/qSR2rVRCmnXteji2YNGjw4utzb5g9s7LSJOv7BTzcf79ShCyKE6OUi6BjmydDFdhmqM1cGcpUrzksX1BmVlfgpMS3LIEARz2d/Pn/BXTa410VTnppOJ18BjjWpHIFWB8DFeCvPMb07CDK/yKHzkNY=
+	t=1745199270; cv=none; b=PtoLjeX9N97ZRyAdx0SCj7gFL/oASl5+Nih7YpxvsUN2514RhWHt2fJWDniklXcpvqm6zk7NZwmLQHnnfkVJxwjjRB4NGvXVP1ZmhI19y9lhdIB+qr6ibentWG30xnxUTf7xIYm3sP0oIUezET2agIKXbpVOKvrvELlEXUs0HTM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745199267; c=relaxed/simple;
-	bh=oeJWVqoXTfM85DPBtFlVkuLxvj/f4i/x+rX/RZYjhZ8=;
+	s=arc-20240116; t=1745199270; c=relaxed/simple;
+	bh=hS9bzYfAqAxrTx0CKZe+FDkhAKFDz+WpXq24E9q0oXo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=m1FD6gETJqGiwoLqu3D654YXW3QVAHGk44kasHvE+cJBZuUlxhhPaI9C5Vc20YqGNZmjhwxrT/f9FYBvKXH9w5kLDLyALtR68cHEwCM+iqEAY0Kym7JGBWcZstu3qs0iHBfV1o7kGeEmEIc+7WBnOuvTepf/QWLomAYucmtW8GU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=C4RYHGbZ; arc=none smtp.client-ip=209.85.210.53
+	 MIME-Version; b=gS8oU6S7wKuH+be42wdTnn+P4hj60Q0MjFRyBm6IAb0Fi2Q9SbKKxWBhNEp80hXZBg1EyKPZ/3iLMV9anXUWfwILmhUy0chbSk4T0VwM3Yhn+Mqu5XgjgyyV9j0HkSyRrYcOEw18fW/YE4H7IVWwX0Z7PhnTdmX5nE0dAUFU+E0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eBKbyVaG; arc=none smtp.client-ip=209.85.160.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C4RYHGbZ"
-Received: by mail-ot1-f53.google.com with SMTP id 46e09a7af769-72c14235af3so2428189a34.3
-        for <nvdimm@lists.linux.dev>; Sun, 20 Apr 2025 18:34:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eBKbyVaG"
+Received: by mail-oa1-f43.google.com with SMTP id 586e51a60fabf-2c6f27599abso924089fac.2
+        for <nvdimm@lists.linux.dev>; Sun, 20 Apr 2025 18:34:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1745199265; x=1745804065; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1745199267; x=1745804067; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=zJTUPxCr5iXCtHx04L7AsNg2Bv7yPa69NQGQVSsPk1Y=;
-        b=C4RYHGbZrp9NV0Ky4BQuVuWYK0uJAzjJS+0L5zQ+I2I/q4e5RoQPkFJYXKlsLmQY4v
-         GJgTqU0qM/XA6Bkww+Ii+MpueNvud1DUJseyUCrsbb0YR767Idy4rKs17v6sHOH7dJNs
-         VuL4XSVLT+FDgyIOXhtbbmRdsWrd7wdUXaW/66nPgWuh5V0iqvBZlVWQjUee8msflBCI
-         4GyRDnAFS2SiYTqcor5YQjzl61dC7LRVLk+vafNs5GnIf+BDZUt8CDJFuP0IwePMMj1Y
-         zMVmXwXoeGzhUCMIetR6hCfD0+F4hiwKi9Hwwl+7ARVYm+OJqSliRUrdO9O15oDgWks5
-         W/9Q==
+        bh=6jlW0o3VSdWrbOaw+r3nQgVEXzp70rzZbAdQEvNAOUs=;
+        b=eBKbyVaGepFqSU9MrKD2d1zJubv+87nUhx8JyMKsGoMbsh6ZJ+RHE03XeEnql6hUMH
+         3tQ877Jgc6PgjZ69PX7OGdrANf6PtRmwOx4AWXE1Fu+DAO0OM0b3meUHK3me5k4pmEwT
+         aREVQT6gOQ8LbsyB/NE+PsagtBdH98QXQsfKkIN3T3V4YHRW5Mk+Svk0pG3GOuK6V03k
+         KSl49g/rni5PAs9o4du2thlbkeUHRYDfLqpb3ez3aTVyGPr/v5Le/SVOWaxSkoqRnqEQ
+         poI+/v9jUaiQlvPl/6qhJRzyGpLN1KOmujErQ/fsvQxQ93f6uRsHBSxDv7Kj8WF14rLp
+         Q/vw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745199265; x=1745804065;
+        d=1e100.net; s=20230601; t=1745199267; x=1745804067;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=zJTUPxCr5iXCtHx04L7AsNg2Bv7yPa69NQGQVSsPk1Y=;
-        b=xQanword0ji5zPE98D/P1iwSopo8zs1L1klGsIPP408Y1JgkOjlO7K63iik4XscVWp
-         1tV1mxvcGvzapGRQMu8yjlaxJ76arPTjCIXMQUNQlyybrPbUquqq8gcpo8M1kqanCBd2
-         BsgYQ0UuUZjOJgLfwx33DeMBP+YY16wTwAANb+6hH9My68NFbiBXDi8a6+DcPj6B4zUW
-         jl8L7sNkehWxQZeQy78MRDQqZmCgr47cdgZmTCcvgEweczSiS2lBJUpDlWlsfHq3Sarx
-         It/DVyKfd+KLucR/K/6I3QVLS+/FYHcv9mGRX+uq254L+6LABAXwfXIZErelEWURBIMt
-         Wgvg==
-X-Forwarded-Encrypted: i=1; AJvYcCUPyEaYUH9UMkFTvQ+SWskVMQBb9pSPWzPtRCIm7gvta4RlE9lz/9JbCDV4qneAIfnZ/MFjtfY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyQvN9y+eJgWhsYP1wBUb2DIAuRG7GVh4hfjVBB7G2v90IFPrVj
-	DHYIZuayIP8hrxMXHgD8IPnwfQAWc7j4MN5c2fb1wJD7KcNfD7Pd
-X-Gm-Gg: ASbGncvUChcERM13q5wg7mXEX3zlHYQvN/R0eCklEmXBUeJk6/5n3puugdIBlWqvU6P
-	7Uyycor00IpliJtVtp/NnIbXFjEXgjnzm8xfRFz4LqoA3LNjIbGu5I4w8GAZ4vjkaUKBXdqPlUj
-	+O1DuMZb1GiYmAANXqc6nIGaG+ybz6PrCiAg/DKchMaYN0wUPR5BfP/2W7rGMeB4EogVSXrxqGP
-	56ItFNPVbQZeNxX1wMVinQmZKbOysHnkkYOwfsGFi+y4PM+hmLRT1aUjm7N2cLQ578eK7M+CMcj
-	p4e+dyFuuvrKlbZpO+W9AEcBpN/sE4Mzw3k2woZOVRosR7VK/T49Jr+dnZpDqoxbfUwcBA==
-X-Google-Smtp-Source: AGHT+IEeWI/ZWY1Oz4SEkKzVLnxG9+3nSwWecNs4VxQIfI4WYWMi4G/PZMw2CRTN5C5Uzp8choe8BQ==
-X-Received: by 2002:a05:6830:3902:b0:727:3e60:b44b with SMTP id 46e09a7af769-7300622c63dmr5997735a34.14.1745199265163;
-        Sun, 20 Apr 2025 18:34:25 -0700 (PDT)
+        bh=6jlW0o3VSdWrbOaw+r3nQgVEXzp70rzZbAdQEvNAOUs=;
+        b=gGi3sp5a3DDx84Jn95eOdBECzsWLDg1tsIHYtHgnpQNLwOxk9nBwFTE1wS1ddUXYkD
+         Xb2oL01ZKHXw7YWUQ31NbT9EzRLQX3UqkjirlwMOIibRfZ16u0jVvaiHed0YKo2dmwQM
+         KNHmR4afUFKPYs2lTBgyj7tW++RKxX04IIJfIsuy4wICzOGMX1YnRkdQs8emjyOAMEdY
+         wSFBIHrSGUscpAc0n82AhsCh8jyM/Bhe9VzOTFxEd/lk46qsWFjdRM4ejP53yoA0Qqmt
+         wlHHgbQDEdYKa1GmWr8CZQkT6tVi7sWfqWL4Y07YB3i7xlLASvGtJAH2LwyRgru3UQub
+         hlHw==
+X-Forwarded-Encrypted: i=1; AJvYcCVyLmsBRmOstBShodPgE6+JqeG7WZX3lRDpjfnsGuFoOI1puUul7PjplO12t8pB0qh9Puo2DtI=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyZxtE/lfO0szADCPkJ6oOI1nmnF0Ge6oQzTBPU5Jv49pkrCoaE
+	/YM5xV+p06a3X6yE+wp7X6Zl+I5lWzbuG/dI6VwWoHjDtLqGvVBR
+X-Gm-Gg: ASbGncso4Ug49oZVV/ocyG0UA0MTXsZwtS0Z0qDb85YDAyCtEY0I1CYVGGTrFAcOOf3
+	5wxRJnEuNRNt6/d9Zk7nXsz2w0t1bTwSCZxzaA50c7A3Nh4tUditpt3PxgDUM/9UUNc9A0SE4pP
+	U3KQYLKrsy+ggk6OszTmJu9dvtYqRef+Z7h08++qAiog6NL2QEjnxO4PscfU2wTUUrdNXoyiTQV
+	u2jQM//Iu7JJsuJ7T2YwT8KLCzk+z2ctmSxgj+gZ3tpRmDN4y7eiHzo4HFxdrIm4Cp7U6b/UJoi
+	hUEMSagUNyfpraXPS4eJaWhdxE4xC1NljKmcC3jlanAauK8oO1a8bkzVvt4fRViBr9JPNQ==
+X-Google-Smtp-Source: AGHT+IF+9XYJIqWLgWlGUpPhWJ2tjvUozsrrXpH8oCW29Y/FQldm3qVZQBAnxt74Itja45OzzhFhaw==
+X-Received: by 2002:a05:6871:bd07:b0:2d5:4fd4:a1a9 with SMTP id 586e51a60fabf-2d54fd4b0a3mr3864201fac.6.1745199267484;
+        Sun, 20 Apr 2025 18:34:27 -0700 (PDT)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:a8f7:1b36:93ce:8dbf])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7300489cd44sm1267588a34.66.2025.04.20.18.34.23
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7300489cd44sm1267588a34.66.2025.04.20.18.34.25
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sun, 20 Apr 2025 18:34:24 -0700 (PDT)
+        Sun, 20 Apr 2025 18:34:27 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -92,9 +92,9 @@ Cc: John Groves <jgroves@micron.com>,
 	Aravind Ramesh <arramesh@micron.com>,
 	Ajay Joshi <ajayjoshi@micron.com>,
 	John Groves <john@groves.net>
-Subject: [RFC PATCH 10/19] famfs_fuse: Basic fuse kernel ABI enablement for famfs
-Date: Sun, 20 Apr 2025 20:33:37 -0500
-Message-Id: <20250421013346.32530-11-john@groves.net>
+Subject: [RFC PATCH 11/19] famfs_fuse: Basic famfs mount opts
+Date: Sun, 20 Apr 2025 20:33:38 -0500
+Message-Id: <20250421013346.32530-12-john@groves.net>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 In-Reply-To: <20250421013346.32530-1-john@groves.net>
 References: <20250421013346.32530-1-john@groves.net>
@@ -106,75 +106,114 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-* FUSE_DAX_FMAP flag in INIT request/reply
-
-* fuse_conn->famfs_iomap (enable famfs-mapped files) to denote a
-  famfs-enabled connection
+* -o shadow=<shadowpath>
+* -o daxdev=<daxdev>
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- fs/fuse/fuse_i.h          | 3 +++
- fs/fuse/inode.c           | 5 +++++
- include/uapi/linux/fuse.h | 2 ++
- 3 files changed, 10 insertions(+)
+ fs/fuse/fuse_i.h |  8 +++++++-
+ fs/fuse/inode.c  | 25 ++++++++++++++++++++++++-
+ 2 files changed, 31 insertions(+), 2 deletions(-)
 
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index e04d160fa995..b2c563b1a1c8 100644
+index b2c563b1a1c8..931613102d32 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
-@@ -870,6 +870,9 @@ struct fuse_conn {
- 	/* Use io_uring for communication */
- 	unsigned int io_uring;
+@@ -580,9 +580,11 @@ struct fuse_fs_context {
+ 	unsigned int blksize;
+ 	const char *subtype;
  
-+	/* dev_dax_iomap support for famfs */
-+	unsigned int famfs_iomap:1;
+-	/* DAX device, may be NULL */
++	/* DAX device for virtiofs, may be NULL */
+ 	struct dax_device *dax_dev;
+ 
++	const char *shadow; /* famfs - null if not famfs */
 +
- 	/** Maximum stack depth for passthrough backing files */
- 	int max_stack_depth;
+ 	/* fuse_dev pointer to fill in, should contain NULL on entry */
+ 	void **fudptr;
+ };
+@@ -938,6 +940,10 @@ struct fuse_conn {
+ 	/**  uring connection information*/
+ 	struct fuse_ring *ring;
+ #endif
++
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	char *shadow;
++#endif
+ };
  
+ /*
 diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 29147657a99f..5c6947b12503 100644
+index 5c6947b12503..7f4b73e739cb 100644
 --- a/fs/fuse/inode.c
 +++ b/fs/fuse/inode.c
-@@ -1392,6 +1392,9 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
- 			}
- 			if (flags & FUSE_OVER_IO_URING && fuse_uring_enabled())
- 				fc->io_uring = 1;
-+			if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&
-+				       flags & FUSE_DAX_FMAP)
-+				fc->famfs_iomap = 1;
- 		} else {
- 			ra_pages = fc->max_read / PAGE_SIZE;
- 			fc->no_lock = 1;
-@@ -1450,6 +1453,8 @@ void fuse_send_init(struct fuse_mount *fm)
- 		flags |= FUSE_SUBMOUNTS;
- 	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
- 		flags |= FUSE_PASSTHROUGH;
-+	if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-+		flags |= FUSE_DAX_FMAP;
+@@ -766,6 +766,9 @@ enum {
+ 	OPT_ALLOW_OTHER,
+ 	OPT_MAX_READ,
+ 	OPT_BLKSIZE,
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	OPT_SHADOW,
++#endif
+ 	OPT_ERR
+ };
  
- 	/*
- 	 * This is just an information flag for fuse server. No need to check
-diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index 5e0eb41d967e..f9e14180367a 100644
---- a/include/uapi/linux/fuse.h
-+++ b/include/uapi/linux/fuse.h
-@@ -435,6 +435,7 @@ struct fuse_file_lock {
-  *		    of the request ID indicates resend requests
-  * FUSE_ALLOW_IDMAP: allow creation of idmapped mounts
-  * FUSE_OVER_IO_URING: Indicate that client supports io-uring
-+ * FUSE_DAX_FMAP: kernel supports dev_dax_iomap (aka famfs) fmaps
-  */
- #define FUSE_ASYNC_READ		(1 << 0)
- #define FUSE_POSIX_LOCKS	(1 << 1)
-@@ -482,6 +483,7 @@ struct fuse_file_lock {
- #define FUSE_DIRECT_IO_RELAX	FUSE_DIRECT_IO_ALLOW_MMAP
- #define FUSE_ALLOW_IDMAP	(1ULL << 40)
- #define FUSE_OVER_IO_URING	(1ULL << 41)
-+#define FUSE_DAX_FMAP		(1ULL << 42)
+@@ -780,6 +783,9 @@ static const struct fs_parameter_spec fuse_fs_parameters[] = {
+ 	fsparam_u32	("max_read",		OPT_MAX_READ),
+ 	fsparam_u32	("blksize",		OPT_BLKSIZE),
+ 	fsparam_string	("subtype",		OPT_SUBTYPE),
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	fsparam_string("shadow",		OPT_SHADOW),
++#endif
+ 	{}
+ };
  
- /**
-  * CUSE INIT request/reply flags
+@@ -875,6 +881,15 @@ static int fuse_parse_param(struct fs_context *fsc, struct fs_parameter *param)
+ 		ctx->blksize = result.uint_32;
+ 		break;
+ 
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	case OPT_SHADOW:
++		if (ctx->shadow)
++			return invalfc(fsc, "Multiple shadows specified");
++		ctx->shadow = param->string;
++		param->string = NULL;
++		break;
++#endif
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -888,6 +903,7 @@ static void fuse_free_fsc(struct fs_context *fsc)
+ 
+ 	if (ctx) {
+ 		kfree(ctx->subtype);
++		kfree(ctx->shadow);
+ 		kfree(ctx);
+ 	}
+ }
+@@ -919,7 +935,10 @@ static int fuse_show_options(struct seq_file *m, struct dentry *root)
+ 	else if (fc->dax_mode == FUSE_DAX_INODE_USER)
+ 		seq_puts(m, ",dax=inode");
+ #endif
+-
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	if (fc->shadow)
++		seq_printf(m, ",shadow=%s", fc->shadow);
++#endif
+ 	return 0;
+ }
+ 
+@@ -1825,6 +1844,10 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
+ 	sb->s_root = root_dentry;
+ 	if (ctx->fudptr)
+ 		*ctx->fudptr = fud;
++
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	fc->shadow = kstrdup(ctx->shadow, GFP_KERNEL);
++#endif
+ 	mutex_unlock(&fuse_mutex);
+ 	return 0;
+ 
 -- 
 2.49.0
 
