@@ -1,64 +1,64 @@
-Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
+Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com [209.85.167.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8790221CC44
-	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 22:00:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 537341C6FE1
+	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 22:31:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745272842; cv=none; b=Fn+8q8X6G103Pvy0GIjxitT1R0kssxQP6bgFxuPh3DPgAePJAoMbm3AupDutfDFFTencDwP/elN7r2FWfzZwKaET7I05mhrJCZqErKhlJS5TxP4KuuBcZswBWBkD5RqrTAkNOJvaIVYduBcYe/PrR7ql2KYmAiJjhOLDd/AeuQc=
+	t=1745274690; cv=none; b=pjrL6BqtQRThp1/5i65QPjVhQIzJRrR7fZbyGxA9NMs0jsAg4W6Oz8HpXpI0sgUyQwBfzVOAUAEpPkzCdZwWC/xGvDLOhO9CkFMt986AWZj9ABRG3X3PjAEep06bN9zGV2ykb4Eq5Owxeg33bNP4zXGyoqvx7DpUYGHQExqZMi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745272842; c=relaxed/simple;
-	bh=6hzwII5miKQuG6SXtRPdqY/6kuFLzBriuYqkXPya9AA=;
+	s=arc-20240116; t=1745274690; c=relaxed/simple;
+	bh=uGFWn0NUS4a5+jnrhvCn5EEH3bytpObjuMaQuFtN32E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WyRdYApSxEFtso2Zt+N+2CeiAK4zQOKk4AV5R52IKmUiXzELrGDKJ1OmD3Q/uRswPm/yV0AR/U6e6m49mxM5VSZyv0hJZj3t1w0rvC2iXx81Pq1Za3EaMR6+C2I0QLtaPLJnmMIqebu3C0O3X4iLDOgeG8A/tw84R1ft5Qc2r+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hYD4MDWe; arc=none smtp.client-ip=209.85.210.52
+	 Content-Type:Content-Disposition:In-Reply-To; b=nkS1nHrgx1ZBL8SkaZ69/DSyupuQWereB7wq0y9xlUK7hwu3+b+7//JlIOCQgHbklmHOWoffCVGNdxPqza6vRPcGvvqyzJDeNdk2WFrIcYXvqHExJ3Fnc5KdqZY6annh12vJ8UeEr4lFnmrN6BZOic/QlRFC8QbGL4Ed5NGBriE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Pxe0J8kl; arc=none smtp.client-ip=209.85.167.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hYD4MDWe"
-Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-72b7a53ceb6so2601117a34.0
-        for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 15:00:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Pxe0J8kl"
+Received: by mail-oi1-f182.google.com with SMTP id 5614622812f47-3fea0363284so2814719b6e.1
+        for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 15:31:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1745272838; x=1745877638; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1745274686; x=1745879486; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=lXpQqv5uH3F8h/08supf4MY46lZuUGYq1TQBRFda+64=;
-        b=hYD4MDWeKQvfNZcwE9bSorH6nmD+pOQAgf/wmU0Esc296L9u5ffQJeYAhSHq+fVJ3u
-         bJVXkxhBI14Ff2nb1zZPg8Av5ujZt3uc2V77nvGQJzI8gP1OpQPqVtct3aTndM7IKvPr
-         UstBcB8+8f4d5Anj5WOtHbXkjFCFw3GQVd5x6mlY5wW1jgJZI1WkU+kz3spvgWDi6MBR
-         xbkKgjvjzcrA7qGS97Uh3YBPRTF9Xi4SlhTQc8JiIa7ooH3CZ2e9Qh8nevJCfYsaRUgj
-         LdKxIPCRqMKBwjOLHxmEBGWFSWKMxsSMMWREXglygtQM2tU61NJgcCWaUEydZvcSqihB
-         Af3A==
+        bh=FXKF5DBzjOcQxYz/UT5w1r9XYBX2zcol6RnXk0eA+E4=;
+        b=Pxe0J8klLRijanfdsJ0dG/kp4PTH5Jz/XB3kLlodQrhLe7Ho/Iji0NWEQwCRPUSvT/
+         ren6a061bv9+dZg4DCNa/zMxwkNzqtBxz9vYp00EGK8awCuRRn6qOU/ik10jNNsng2ZB
+         ufbyz1tLMObp3k80pqup2xaWR85LjWkIxAhuzPf+R2xmQNPCIkhEUi8DYGCrWd6zGSO/
+         xfd17EatpptJ1weCgElDGDGre2mbaL7R+BUAhKDABCdkWM+MUS8BifWkeR0Zs/6SZxxT
+         KWto4xhMOmgeAXd/hgChpi2xTrgaNluTEkIdRLsLN/ERZVZ+WY/GyH6Ieqr+1MByW2wc
+         pwcw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745272838; x=1745877638;
+        d=1e100.net; s=20230601; t=1745274686; x=1745879486;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=lXpQqv5uH3F8h/08supf4MY46lZuUGYq1TQBRFda+64=;
-        b=Ux5NuEgTWeZ+dWS4/uXDh7ONU4d1KXlF0MKwxOMh9TdLzxWoR00uRAN0XIhWrRmJdE
-         wXxkhGNkr4fjj5tc39kZzxuTi/UrQHxnt4aUJb9Uci6kkCTHOmUQcc5Uea2wiRoGF/Jk
-         OlwM/HkYnXBHm9j1sNf5cmExsjVYsmLjPu7aTeRMOxErky1Um2H8H/Hu3wdz9+36HlDP
-         PMWWlmuUE+SQLTyZJnbND/Ej+j8EmUXUXVkSlp+KDcO2pSx8ew40JqP7Vyj78/9IS6cz
-         iH7Z1FZe7PNpj7mQCcRsUDhdN5xzcQeoiq7A6it4zVmLmyAB/r2lgW8hWQ9HRVTb+SeR
-         pObQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUhBvtu3xouZIh/OBkpG3LftnXjRuVBIhgA8hRGZcAI24cXUMc1Mc56VH863ljUN+UzaiJCIDY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzjcBwx1U5dot6m1Pp2Ws9t/LTiptRJu96k4gWTP9d9mssnaS7p
-	td+UnHjwG2GPAz2yCPSiDbpaJG7ABC6eZzvp9fb4C4XS7EQwnJhP
-X-Gm-Gg: ASbGncv5cTgAlt1oTHqXgBLOBX0CfhWfLwADFA6/AfSSDtXgiQf+ySitttlyoUbwHYg
-	zp7QoSBpVFYuoej9bOm0lQf/akpntHbu/MH5w2Ulju4QH+L3JU7buhE3U51PS5EIhawoBDKalEC
-	ofWtcEsPrJNkCT/a1nAM9Xcn/6rMHWrOP336frwRevR8bnhRB2rzSnSwuqBB5KbzElc/8HR8ti7
-	XA3r4qAMysJ3gYEwovYnaxV2txqFBg965nkh3lhvuZj91BPosQyGTDe0xRek5Q8uK9TydXWIamM
-	/kTTj+kTh5KXiPSLgpHNu7rrIctAfXcFUqgHBA0hk46KIZPImYRtmSjvUY5G
-X-Google-Smtp-Source: AGHT+IEDVc4jFKpog8BpBULIi4CIUTHFtA+7oU94cglSMMNMU/TJsJw7dEoU6QcfZkab31kBcOgZtg==
-X-Received: by 2002:a05:6830:4111:b0:72b:974f:de49 with SMTP id 46e09a7af769-73005edb682mr8224337a34.7.1745272838287;
-        Mon, 21 Apr 2025 15:00:38 -0700 (PDT)
+        bh=FXKF5DBzjOcQxYz/UT5w1r9XYBX2zcol6RnXk0eA+E4=;
+        b=V6wM+xQ703d7zVsKRiKvwI4ELIM73a2WRUQi/U4/NDLJIklL/5U8xrK2sl+b89IPOx
+         Lu9w+lik/62V4sUSA2I6hVKdJb4Rcgdy/6okLU/Uf7NHhuld5ewZbjljjtLeVVRGvC0P
+         ysbKhfhofU4y9nN7Nge9mLTUPR1VAb+kLQRwQIWBTbytbqxUjR1J9VoAs7221xal3Boh
+         dIUsjuVFWfVVmvQiw5S/BYH/ByNMnIHCW+MaKe+PfvZlawFAiNLkm79GuZXINTNM387B
+         gPxhnJClyabjzyaPyzMMtD7/dlsx0pQObiIDiSHp5TdOO9Ty4Dwam8DgWACCfKF6tGEj
+         wkFA==
+X-Forwarded-Encrypted: i=1; AJvYcCWGkztyPqSafZT2gDfEoy0nPZ4Qf7eF7Y2utA6qTTMyKo68PAmQQ6DUdLZjClHygPTxT9w5Mj0=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yz6nkwRlrKbdRkBhNveDeSa/G223f1FAfdQpqW9HlGR8BBy62B8
+	mCoaKV04+ERswBBYmh2Kjw6aR01FOvS72oiMDzB0+CwlJGkBDVwU
+X-Gm-Gg: ASbGnctOjhSvbFhl0iPkTbspk96cMf1Me2L6ODUbEP46ikK5y6y19yA8N2tOxFMO3P4
+	fWCCYwSd5BL5rDkETRqU7/uhWha5hAcFQDzTzaoWu+ktEsy/RpRWPZHfMyCWuRJicpbIkKJxtXH
+	2CAN+kZIFMU1Ycx69QXcNXi5dHKw0ejizPrcDdD3F5xKa+GSWOSUDZNSK8M2Zcm67jsGkkSNRyv
+	g0RdzeW2BdWzWXYTWykQmrKeidde4fb2v1dle3fS0rSNoUGsRsoBH9Nf9kU5n8giUOTmy09XBdX
+	CuH/6xzfnJVQvONlaTZZf4zmRg2p84rWQxcVFVll5NM/vYGPK9IGe0mbJbmX
+X-Google-Smtp-Source: AGHT+IFt5wHsCjSlpFEFUHVsJUEoyStNlvmXw+Gm+ahrEHq6vasyVcDWIICCWhEq6uDb8143Fpvq+w==
+X-Received: by 2002:a05:6808:6a93:b0:3f9:176a:3958 with SMTP id 5614622812f47-401bcd13721mr8780591b6e.11.1745274686223;
+        Mon, 21 Apr 2025 15:31:26 -0700 (PDT)
 Received: from Borg-550.local ([2603:8080:1500:3d89:c191:629b:fde5:2f06])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7300489de9esm1633128a34.63.2025.04.21.15.00.36
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-401bf081e2asm1742687b6e.36.2025.04.21.15.31.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Apr 2025 15:00:37 -0700 (PDT)
+        Mon, 21 Apr 2025 15:31:25 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
-Date: Mon, 21 Apr 2025 17:00:35 -0500
+Date: Mon, 21 Apr 2025 17:31:22 -0500
 From: John Groves <John@groves.net>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dan Williams <dan.j.williams@intel.com>, 
@@ -75,10 +75,11 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
 	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
 	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC PATCH 00/19] famfs: port into fuse
-Message-ID: <37ss7esexgblholq5wc5caeizhcjpjhjxsghqjtkxjqri4uxjp@gixtdlggap5i>
+Subject: Re: [RFC PATCH 13/19] famfs_fuse: Create files with famfs fmaps
+Message-ID: <44so2lrfvu6v6m2zdrldyosgkgaszsone4on3duql4yphfoorn@shdy4ibm4zle>
 References: <20250421013346.32530-1-john@groves.net>
- <20250421182758.GJ25659@frogsfrogsfrogs>
+ <20250421013346.32530-14-john@groves.net>
+ <20250421215719.GK25659@frogsfrogsfrogs>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -87,243 +88,374 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250421182758.GJ25659@frogsfrogsfrogs>
+In-Reply-To: <20250421215719.GK25659@frogsfrogsfrogs>
 
-On 25/04/21 11:27AM, Darrick J. Wong wrote:
-> On Sun, Apr 20, 2025 at 08:33:27PM -0500, John Groves wrote:
-> > Subject: famfs: port into fuse
+On 25/04/21 02:57PM, Darrick J. Wong wrote:
+> On Sun, Apr 20, 2025 at 08:33:40PM -0500, John Groves wrote:
+> > On completion of GET_FMAP message/response, setup the full famfs
+> > metadata such that it's possible to handle read/write/mmap directly to
+> > dax. Note that the devdax_iomap plumbing is not in yet...
 > > 
-> > This is the initial RFC for the fabric-attached memory file system (famfs)
-> > integration into fuse. In order to function, this requires a related patch
-> > to libfuse [1] and the famfs user space [2]. 
+> > Update MAINTAINERS for the new files.
 > > 
-> > This RFC is mainly intended to socialize the approach and get feedback from
-> > the fuse developers and maintainers. There is some dax work that needs to
-> > be done before this should be merged (see the "poisoned page|folio problem"
-> > below).
+> > Signed-off-by: John Groves <john@groves.net>
+> > ---
+> >  MAINTAINERS               |   9 +
+> >  fs/fuse/Makefile          |   2 +-
+> >  fs/fuse/dir.c             |   3 +
+> >  fs/fuse/famfs.c           | 344 ++++++++++++++++++++++++++++++++++++++
+> >  fs/fuse/famfs_kfmap.h     |  63 +++++++
+> >  fs/fuse/fuse_i.h          |  16 +-
+> >  fs/fuse/inode.c           |   2 +-
+> >  include/uapi/linux/fuse.h |  42 +++++
+> >  8 files changed, 477 insertions(+), 4 deletions(-)
+> >  create mode 100644 fs/fuse/famfs.c
+> >  create mode 100644 fs/fuse/famfs_kfmap.h
+> > 
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 00e94bec401e..2a5a7e0e8b28 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -8808,6 +8808,15 @@ F:	Documentation/networking/failover.rst
+> >  F:	include/net/failover.h
+> >  F:	net/core/failover.c
+> >  
+> > +FAMFS
+> > +M:	John Groves <jgroves@micron.com>
+> > +M:	John Groves <John@Groves.net>
+> > +L:	linux-cxl@vger.kernel.org
+> > +L:	linux-fsdevel@vger.kernel.org
+> > +S:	Supported
+> > +F:	fs/fuse/famfs.c
+> > +F:	fs/fuse/famfs_kfmap.h
+> > +
+> >  FANOTIFY
+> >  M:	Jan Kara <jack@suse.cz>
+> >  R:	Amir Goldstein <amir73il@gmail.com>
+> > diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
+> > index 3f0f312a31c1..65a12975d734 100644
+> > --- a/fs/fuse/Makefile
+> > +++ b/fs/fuse/Makefile
+> > @@ -16,5 +16,5 @@ fuse-$(CONFIG_FUSE_DAX) += dax.o
+> >  fuse-$(CONFIG_FUSE_PASSTHROUGH) += passthrough.o
+> >  fuse-$(CONFIG_SYSCTL) += sysctl.o
+> >  fuse-$(CONFIG_FUSE_IO_URING) += dev_uring.o
+> > -
+> > +fuse-$(CONFIG_FUSE_FAMFS_DAX) += famfs.o
+> >  virtiofs-y := virtio_fs.o
+> > diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+> > index ae135c55b9f6..b28a1e912d6b 100644
+> > --- a/fs/fuse/dir.c
+> > +++ b/fs/fuse/dir.c
+> > @@ -405,6 +405,9 @@ fuse_get_fmap(struct fuse_mount *fm, struct inode *inode, u64 nodeid)
+> >  	fmap_size = args.out_args[0].size;
+> >  	pr_notice("%s: nodei=%lld fmap_size=%ld\n", __func__, nodeid, fmap_size);
+> >  
+> > +	/* Convert fmap into in-memory format and hang from inode */
+> > +	famfs_file_init_dax(fm, inode, fmap_buf, fmap_size);
+> > +
+> >  	return 0;
+> >  }
+> >  #endif
+> > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
+> > new file mode 100644
+> > index 000000000000..e62c047d0950
+> > --- /dev/null
+> > +++ b/fs/fuse/famfs.c
+> > @@ -0,0 +1,344 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/*
+> > + * famfs - dax file system for shared fabric-attached memory
+> > + *
+> > + * Copyright 2023-2025 Micron Technology, Inc.
+> > + *
+> > + * This file system, originally based on ramfs the dax support from xfs,
+> > + * is intended to allow multiple host systems to mount a common file system
+> > + * view of dax files that map to shared memory.
+> > + */
+> > +
+> > +#include <linux/fs.h>
+> > +#include <linux/mm.h>
+> > +#include <linux/dax.h>
+> > +#include <linux/iomap.h>
+> > +#include <linux/path.h>
+> > +#include <linux/namei.h>
+> > +#include <linux/string.h>
+> > +
+> > +#include "famfs_kfmap.h"
+> > +#include "fuse_i.h"
+> > +
+> > +
+> > +void
+> > +__famfs_meta_free(void *famfs_meta)
+> > +{
+> > +	struct famfs_file_meta *fmap = famfs_meta;
+> > +
+> > +	if (!fmap)
+> > +		return;
+> > +
+> > +	if (fmap) {
+> > +		switch (fmap->fm_extent_type) {
+> > +		case SIMPLE_DAX_EXTENT:
+> > +			kfree(fmap->se);
+> > +			break;
+> > +		case INTERLEAVED_EXTENT:
 > 
-> Note that I'm only looking at the fuse and iomap aspects of this
-> patchset.  I don't know the devdax code at all.
-> 
-> > This patch set fully works with Linux 6.14 -- passing all existing famfs
-> > smoke and unit tests -- and I encourage existing famfs users to test it.
-> > 
-> > This is really two patch sets mashed up:
-> > 
-> > * The patches with the dev_dax_iomap: prefix fill in missing functionality for
-> >   devdax to host an fs-dax file system.
-> > * The famfs_fuse: patches add famfs into fs/fuse/. These are effectively
-> >   unchanged since last year.
-> > 
-> > Because this is not ready to merge yet, I have felt free to leave some debug
-> > prints in place because we still find them useful; those will be cleaned up
-> > in a subsequent revision.
-> > 
-> > Famfs Overview
-> > 
-> > Famfs exposes shared memory as a file system. Famfs consumes shared memory
-> > from dax devices, and provides memory-mappable files that map directly to
-> > the memory - no page cache involvement. Famfs differs from conventional
-> > file systems in fs-dax mode, in that it handles in-memory metadata in a
-> > sharable way (which begins with never caching dirty shared metadata).
-> > 
-> > Famfs started as a standalone file system [3,4], but the consensus at LSFMM
-> > 2024 [5] was that it should be ported into fuse - and this RFC is the first
-> > public evidence that I've been working on that.
-> 
-> This is very timely, as I just started looking into how I might connect
-> iomap to fuse so that most of the hot IO path continues to run in the
-> kernel, and userspace block device filesystem drivers merely supply the
-> file mappings to the kernel.  In other words, we kick the metadata
-> parsing craziness out of the kernel.
+> Are interleaved extents not DAX extents?  Why does one constant refer to
+> DAX but the other does not?
 
-Coool!
-
-> 
-> > The key performance requirement is that famfs must resolve mapping faults
-> > without upcalls. This is achieved by fully caching the file-to-devdax
-> > metadata for all active files. This is done via two fuse client/server
-> > message/response pairs: GET_FMAP and GET_DAXDEV.
-> 
-> Heh, just last week I finally got around to laying out how I think I'd
-> want to expose iomap through fuse to allow ->iomap_begin/->iomap_end
-> upcalls to a fuse server.  Note that I've done zero prototyping but
-> "upload all the mappings at open time" seems like a reasonable place for
-> me to start looking, especially for a filesystem with static mappings.
-> 
-> I think what I want to try to build is an in-kernel mapping cache (sort
-> of like the one you built), only with upcalls to the fuse server when
-> there is no mapping information for a given IO.  I'd probably want to
-> have a means for the fuse server to put new mappings into the cache, or
-> invalidate existing mappings.
-> 
-> (famfs obviously is a simple corner-case of that grandiose vision, but I
-> still have a long way to get to my larger vision so don't take my words
-> as any kind of requirement.)
-> 
-> > Famfs remains the first fs-dax file system that is backed by devdax rather
-> > than pmem in fs-dax mode (hence the need for the dev_dax_iomap fixups).
-> > 
-> > Notes
-> > 
-> > * Once the dev_dax_iomap patches land, I suspect it may make sense for
-> >   virtiofs to update to use the improved interface.
-> > 
-> > * I'm currently maintaining compatibility between the famfs user space and
-> >   both the standalone famfs kernel file system and this new fuse
-> >   implementation. In the near future I'll be running performance comparisons
-> >   and sharing them - but there is no reason to expect significant degradation
-> >   with fuse, since famfs caches entire "fmaps" in the kernel to resolve
-> 
-> I'm curious to hear what you find, performance-wise. :)
-> 
-> >   faults with no upcalls. This patch has a bit too much debug turned on to
-> >   to that testing quite yet. A branch 
-> 
-> A branch ... what?
-
-I trail off sometimes... ;)
-
-> 
-> > * Two new fuse messages / responses are added: GET_FMAP and GET_DAXDEV.
-> > 
-> > * When a file is looked up in a famfs mount, the LOOKUP is followed by a
-> >   GET_FMAP message and response. The "fmap" is the full file-to-dax mapping,
-> >   allowing the fuse/famfs kernel code to handle read/write/fault without any
-> >   upcalls.
-> 
-> Huh, I'd have thought you'd wait until FUSE_OPEN to start preloading
-> mappings into the kernel.
-
-That may be a better approach. Miklos and I discussed it during LPC last year, 
-and thought both were options. Having implemented it at LOOKUP time, I think
-moving it to open might avoid my READDIRPLUS problem (which is that RDP is a
-mashup of READDIR and LOOKUP), therefore might need to add the GET_FMAP
-payload. Moving GET_FMAP to open time, would break that connection in a good
-way, I think.
-
-> 
-> > * After each GET_FMAP, the fmap is checked for extents that reference
-> >   previously-unknown daxdevs. Each such occurence is handled with a
-> >   GET_DAXDEV message and response.
-> 
-> I hadn't figured out how this part would work for my silly prototype.
-> Just out of curiosity, does the famfs fuse server hold an open fd to the
-> storage, in which case the fmap(ping) could just contain the open fd?
-> 
-> Where are the mappings that are sent from the fuse server?  Is that
-> struct fuse_famfs_simple_ext?
-
-See patch 17 or fs/fuse/famfs_kfmap.h for the fmap metadata explanation. 
-Famfs currently supports either simple extents (daxdev, offset, length) or 
-interleaved ones (which describe each "strip" as a simple extent). I think 
-the explanation in famfs_kfmap.h is pretty clear.
-
-A key question is whether any additional basic metadata abstractions would
-be needed - because the kernel needs to understand the full scheme.
-
-With disaggregated memory, the interleave approach is nice because it gets
-aggregated performance and resolving a file offset to daxdev offset is order
-1.
-
-Oh, and there are two fmap formats (ok, more, but the others are legacy ;).
-The fmaps-in-messages structs are currently in the famfs section of
-include/uapi/linux/fuse.h. And the in-memory version is in 
-fs/fuse/famfs_kfmap.h. The former will need to be a versioned interface.
-(ugh...)
+All extents are DAX. Naming evolved over 2+ years, and could be cleaned up.
 
 > 
-> > * Daxdevs are stored in a table (which might become an xarray at some point).
-> >   When entries are added to the table, we acquire exclusive access to the
-> >   daxdev via the fs_dax_get() call (modeled after how fs-dax handles this
-> >   with pmem devices). famfs provides holder_operations to devdax, providing
-> >   a notification path in the event of memory errors.
-> > 
-> > * If devdax notifies famfs of memory errors on a dax device, famfs currently
-> >   bocks all subsequent accesses to data on that device. The recovery is to
-> >   re-initialize the memory and file system. Famfs is memory, not storage...
+> > +			if (fmap->ie)
+> > +				kfree(fmap->ie->ie_strips);
+> > +
+> > +			kfree(fmap->ie);
+> > +			break;
+> > +		default:
+> > +			pr_err("%s: invalid fmap type\n", __func__);
+> > +			break;
+> > +		}
+> > +	}
+> > +	kfree(fmap);
+> > +}
+> > +
+> > +static int
+> > +famfs_check_ext_alignment(struct famfs_meta_simple_ext *se)
+> > +{
+> > +	int errs = 0;
+> > +
+> > +	if (se->dev_index != 0)
+> > +		errs++;
+> > +
+> > +	/* TODO: pass in alignment so we can support the other page sizes */
+> > +	if (!IS_ALIGNED(se->ext_offset, PMD_SIZE))
+> > +		errs++;
+> > +
+> > +	if (!IS_ALIGNED(se->ext_len, PMD_SIZE))
+> > +		errs++;
+> > +
+> > +	return errs;
+> > +}
+> > +
+> > +/**
+> > + * famfs_meta_alloc() - Allocate famfs file metadata
+> > + * @metap:       Pointer to an mcache_map_meta pointer
+> > + * @ext_count:  The number of extents needed
+> > + */
+> > +static int
+> > +famfs_meta_alloc_v3(
 > 
-> Ouch. :)
+> Err, what's with "v3"?  This is a new fs, right?
 
-Cautious initial approach (i.e. I'm trying not to scare people too much ;) 
 
-> 
-> > * Because famfs uses backing (devdax) devices, only privileged mounts are
-> >   supported.
-> > 
-> > * The famfs kernel code never accesses the memory directly - it only
-> >   facilitates read, write and mmap on behalf of user processes. As such,
-> >   the RAS of the shared memory affects applications, but not the kernel.
-> > 
-> > * Famfs has backing device(s), but they are devdax (char) rather than
-> >   block. Right now there is no way to tell the vfs layer that famfs has a
-> >   char backing device (unless we say it's block, but it's not). Currently
-> >   we use the standard anonymous fuse fs_type - but I'm not sure that's
-> >   ultimately optimal (thoughts?)
-> 
-> Does it work if the fusefs server adds "-o fsname=<devdax cdev>" to the
-> fuse_args object?  fuse2fs does that, though I don't recall if that's a
-> reasonable thing to do.
-
-The kernel needs to "own" the dax devices. fs-dax on pmem/block calls
-fs_dax_get_by_bdev() and passes in holder_operations - which are used for
-error upcalls, but also effect exclusive ownership. 
-
-I added fs_dax_get() since the bdev version wasn't really right or char
-devdax. But same holder_operations.
-
-I had originally intended to pass in "-o daxdev=<cdev>", but famfs needs to
-span multiple daxdevs, in order to interleave for performance. The approach
-of retrieving them with GET_DAXDEV handles the generalized case, so "-o"
-just amounts to a second way to do the same thing.
-
-"But wait"... I thought. Doesn't the "-o" approach get the primary daxdev
-locked up sooner, which might be good? Well, no, because famfs creates a
-couple of meta files during mount .meta/.superblock and .meta/.log - and 
-those are guaranteed to reference the primary daxdev. So I concluded the -o
-approach wasn't worth the trouble (though it's not *much* trouble).
+Um, been working on this for 2+ years so there's a not-very-public legacy.
+But I agree naming should be cleaned up.
 
 > 
-> > The "poisoned page|folio problem"
-> > 
-> > * Background: before doing a kernel mount, the famfs user space [2] validates
-> >   the superblock and log. This is done via raw mmap of the primary devdax
-> >   device. If valid, the file system is mounted, and the superblock and log
-> >   get exposed through a pair of files (.meta/.superblock and .meta/.log) -
-> >   because we can't be using raw device mmap when a file system is mounted
-> >   on the device. But this exposes a devdax bug and warning...
-> > 
-> > * Pages that have been memory mapped via devdax are left in a permanently
-> >   problematic state. Devdax sets page|folio->mapping when a page is accessed
-> >   via raw devdax mmap (as famfs does before mount), but never cleans it up.
-> >   When the pages of the famfs superblock and log are accessed via the "meta"
-> >   files after mount, we see a WARN_ONCE() in dax_insert_entry(), which
-> >   notices that page|folio->mapping is still set. I intend to address this
-> >   prior to asking for the famfs patches to be merged.
-> > 
-> > * Alistair Popple's recent dax patch series [6], which has been merged
-> >   for 6.15, addresses some dax issues, but sadly does not fix the poisoned
-> >   page|folio problem - its enhanced refcount checking turns the warning into
-> >   an error.
-> > 
-> > * This 6.14 patch set disables the warning; a proper fix will be required for
-> >   famfs to work at all in 6.15. Dan W. and I are actively discussing how to do
-> >   this properly...
-> > 
-> > * In terms of the correct functionality of famfs, the warning can be ignored.
-> > 
-> > References
-> > 
-> > [1] - https://github.com/libfuse/libfuse/pull/1200
-> > [2] - https://github.com/cxl-micron-reskit/famfs
+> > +	void *fmap_buf,
+> > +	size_t fmap_buf_size,
+> > +	struct famfs_file_meta **metap)
+> > +{
+> > +	struct famfs_file_meta *meta = NULL;
+> > +	struct fuse_famfs_fmap_header *fmh;
+> > +	size_t extent_total = 0;
+> > +	size_t next_offset = 0;
+> > +	int errs = 0;
+> > +	int i, j;
+> > +	int rc;
+> > +
+> > +	fmh = (struct fuse_famfs_fmap_header *)fmap_buf;
+> > +
+> > +	/* Move past fmh in fmap_buf */
+> > +	next_offset += sizeof(*fmh);
+> > +	if (next_offset > fmap_buf_size) {
+> > +		pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
+> > +		       __func__, __LINE__, next_offset, fmap_buf_size);
+> > +		rc = -EINVAL;
+> > +		goto errout;
+> > +	}
+> > +
+> > +	if (fmh->nextents < 1) {
+> > +		pr_err("%s: nextents %d < 1\n", __func__, fmh->nextents);
+> > +		rc = -EINVAL;
+> > +		goto errout;
+> > +	}
+> > +
+> > +	if (fmh->nextents > FUSE_FAMFS_MAX_EXTENTS) {
+> > +		pr_err("%s: nextents %d > max (%d) 1\n",
+> > +		       __func__, fmh->nextents, FUSE_FAMFS_MAX_EXTENTS);
+> > +		rc = -E2BIG;
+> > +		goto errout;
+> > +	}
+> > +
+> > +	meta = kzalloc(sizeof(*meta), GFP_KERNEL);
+> > +	if (!meta)
+> > +		return -ENOMEM;
+> > +	meta->error = false;
+> > +
+> > +	meta->file_type = fmh->file_type;
+> > +	meta->file_size = fmh->file_size;
+> > +	meta->fm_extent_type = fmh->ext_type;
+> > +
+> > +	switch (fmh->ext_type) {
+> > +	case FUSE_FAMFS_EXT_SIMPLE: {
+> > +		struct fuse_famfs_simple_ext *se_in;
+> > +
+> > +		se_in = (struct fuse_famfs_simple_ext *)(fmap_buf + next_offset);
+> > +
+> > +		/* Move past simple extents */
+> > +		next_offset += fmh->nextents * sizeof(*se_in);
+> > +		if (next_offset > fmap_buf_size) {
+> > +			pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
+> > +			       __func__, __LINE__, next_offset, fmap_buf_size);
+> > +			rc = -EINVAL;
+> > +			goto errout;
+> > +		}
+> > +
+> > +		meta->fm_nextents = fmh->nextents;
+> > +
+> > +		meta->se = kcalloc(meta->fm_nextents, sizeof(*(meta->se)),
+> > +				   GFP_KERNEL);
+> > +		if (!meta->se) {
+> > +			rc = -ENOMEM;
+> > +			goto errout;
+> > +		}
+> > +
+> > +		if ((meta->fm_nextents > FUSE_FAMFS_MAX_EXTENTS) ||
 > 
-> Thanks for posting links, I'll have a look there too.
+> FUSE_FAMFS_MAX_EXTENTS is 2?  I gather that simple files in famfs refer
+> to contiguous regions, but why two mappings?
+
+There is no forward-looking, or even current-term reason why it should be 
+limited to 2; But famfs files are strictly pre-allocated, so it takes some 
+special code to test the multi-extent code paths. We do that internally, 
+hence 2 (rather than 1).
+
+Where we do exercise much bigger lists of the same extents in in interleaved
+setups - where the limit is higher.
+
+But dialing it up or even removing the limit provided the GET_FMAP message
+validates should be fine.
+
+> 
+> > +		    (meta->fm_nextents < 1)) {
+> > +			rc = -EINVAL;
+> > +			goto errout;
+> > +		}
+> > +
+> > +		for (i = 0; i < fmh->nextents; i++) {
+> > +			meta->se[i].dev_index  = se_in[i].se_devindex;
+> > +			meta->se[i].ext_offset = se_in[i].se_offset;
+> > +			meta->se[i].ext_len    = se_in[i].se_len;
+> > +
+> > +			/* Record bitmap of referenced daxdev indices */
+> > +			meta->dev_bitmap |= (1 << meta->se[i].dev_index);
+> > +
+> > +			errs += famfs_check_ext_alignment(&meta->se[i]);
+> 
+> Shouldn't you bail out at the first bad mapping?
+
+Probably yes; need to dredge old memory about this...
+
+> 
+> > +			extent_total += meta->se[i].ext_len;
+> > +		}
+> 
+> I took a look at what's already in uapi/linux/fuse.h and saw that
+> there are two operations -- FUSE_{SETUP,REMOVE}MAPPING.  Those two fuse
+> upcalls seem to manage an interval tree in struct fuse_inode_dax, which
+> is used to feed fuse_iomap_begin.  Can you reuse this existing uapi
+> instead of defining a new one that's already pretty similar?
+
+OK, so the pre-existing DAX stuff in fuse is for virtiofs, which is doing
+a very narrow thing (which I don't understand completely, but Stefan is
+on this thread - though if I were him I might not be paying attention :)
+My net assessment: the pre-existing fuse dax stuff was not a viable platform
+for a file system with many files.
+
+I initially implemented famfs as a standalone file system (patches easy
+to find, and there are branches in my github kernel repos - including one
+called famfs_dual that has BOTH). The existing DAX stuff in fuse is quite
+different from the fs-dax interface that xfs uses - and has no notify_failure
+etc.
+
+> 
+> I'm wondering why create all this new code when fuse/dax.c already seems
+> to have the ability to cache mappings and pass them to dax_iomap_rw
+> without restrictions on the number of mappings and all that?
+> 
+> Maybe you're trying to avoid runtime upcalls, but then I would think
+> that you could teach the fuse/dax.c mapping code to pin the mappings
+> if there aren't that many of them in the first place, rather than
+> reinventing mappings?
+> 
+> It occurred to me (perhaps naively) that maybe you created FUSE_GETFMAP
+> because of this interleaving thing because it's probably faster to
+> upload a template for that than it would be to upload a large number of
+> mappings.  But I don't really grok why the interleaving exists, though I
+> guess it's for memory controllers interleaving memory devices or
+> something for better throughput?
+
+In famfsv1 (the standalone version), user space "pushed" mappings into
+the kernel, but fuse doesn't do it that way. It wants to do readdir, lookup,
+etc. So GET_FMAP was the answer I came up with - and so far it works fine.
+
+> 
+> I also see that famfs_meta_to_dax_offset does a linear walk of the
+> mapping array, which does not seem like it will be inefficient when
+> there are many mappings.
+
+Right, that's no big deal. And if there's only one extent (or if the extents
+are fixed-size), it's order 1.
+
+> 
+> > +		break;
+> > +	}
+> > +
+> > +	case FUSE_FAMFS_EXT_INTERLEAVE: {
+> > +		s64 size_remainder = meta->file_size;
+> > +		struct fuse_famfs_iext *ie_in;
+> > +		int niext = fmh->nextents;
+> > +
+> > +		meta->fm_niext = niext;
+> > +
+> > +		/* Allocate interleaved extent */
+> > +		meta->ie = kcalloc(niext, sizeof(*(meta->ie)), GFP_KERNEL);
+> > +		if (!meta->ie) {
+> > +			rc = -ENOMEM;
+> > +			goto errout;
+> > +		}
+> > +
+> > +		/*
+> > +		 * Each interleaved extent has a simple extent list of strips.
+> > +		 * Outer loop is over separate interleaved extents
+> 
+> Hmm, so there's no checking on fmh->nextents here, so I guess we can
+> have as many sets of interleaved extents as we want?  Each with up to 16
+> simple mappings?
 > 
 > --D
-> 
 
-I'm happy to talk if you wanna kick ideas around.
+OK, so I'm remembering a bit more about the legacy around extent limits. 
+There are some MVP simplifications in the famfs metadata log format 
+(which is orthogonal to the message and in-memory metadata formats here). 
+An fmap in the log (a third format, but there is at least one more :-/) 
+is a fully dimensioned compound structure that you can call sizeof on. 
+So that is the second reason (in addition to preallocation) why we didn't 
+need many extents.
 
-Cheers,
+Also, when we resolve file offsets to dax offsets, limit and validity
+checking was already done when the GET_FMAP message was ingested.
+
+I think for fuse famfs, that can be relaxed and ignored - especially if 
+you're gonna test it :D.
+
+Thanks for the review eyeballs, and let me know if you wanna talk through
+some of this stuff.
+
+Regards,
 John
+
+
 
