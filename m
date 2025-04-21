@@ -1,61 +1,62 @@
-Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
+Received: from mail-ot1-f49.google.com (mail-ot1-f49.google.com [209.85.210.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2561F25634
-	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 01:33:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AB1078F47
+	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 01:33:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745199238; cv=none; b=L3hAvOUQuG4VZXXytKfIjTGzerqLAFw8Hy+hkcg24pybbclMBSxZy/aVvfAwwP3MHQFq2I0gSiG3TypKCTN+nGOCkRPllps6ENh8vw818k4aN0I2W4tAnpPt6aK+eMpggRJ+ZxI2glhry5yAS58LKcOz+TgHgwf39/8+YOl+Arc=
+	t=1745199241; cv=none; b=Mt1AZ6X7z2buWE+1ykAdtfgudohSVn3IXBDkKOMV790PjVQyTad6HFkBCqUAWoQRtUrAkgxpbRvnakXVA4QvYEc6Vfe7/Rg77niApIQsp4X3qciw4E0HBkrKma8v40apJNiJUzwFz5PMVw5IkzCU1cOSk5RzKMQXUyoUNxf0VFg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745199238; c=relaxed/simple;
-	bh=iitCClRY2RZF97nMcJ7OCwKPxXVBxVjgO7CXa2LBmSk=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=bdp3QDwwHr+cGuKr8WDNiM+VAtSp5ZkadpiJD3tDf27a8g75/GfyA38hYsdNzzPEgGV4PUcpxs5lSVbQA7SCBaqF6A+dvCbHDceMnHOZ3F9+aPK3gU3wsNb2W62AalnlxHvtlzTbnM2s4xUx3p0yJMfB8DE4Zy2o1n1BXAPge4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KK/xVElZ; arc=none smtp.client-ip=209.85.210.46
+	s=arc-20240116; t=1745199241; c=relaxed/simple;
+	bh=r7zU/NI6k0w2nK9GLUrhezJkiaHouNNrUAqAk2AR65M=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=VXiAb9C72aiWHor4OH42r88I2ubqgOfb2TutnsnuWXRa+mnjhhFHiRPcU9HOQqKg+T9XVVDTJfmYmSyRSLk2Vf2GZewLbEFTZEUMFks9GJtNlkxK24IrkXez+LsNcGd4ltjZB8LAxHJV6xxEN/UP/U9Qwe8zAMn7aQkqtlzxJbg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hl131mXV; arc=none smtp.client-ip=209.85.210.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KK/xVElZ"
-Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-72bb97260ceso1235579a34.1
-        for <nvdimm@lists.linux.dev>; Sun, 20 Apr 2025 18:33:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hl131mXV"
+Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-72bb97260ceso1235609a34.1
+        for <nvdimm@lists.linux.dev>; Sun, 20 Apr 2025 18:33:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1745199234; x=1745804034; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=OjWuB6bvBjqoXXcsjJzpBRBCVCy6dm/LI2cgJfKzZps=;
-        b=KK/xVElZrjoetkCpmMVu53biJTMHpia0j0SrDnVb/bjoC0qAeyxu8l82u0KHdJ3Fen
-         ZF2L7EiVADQacozZw7j+Ob/8Wd65Ake0XzAwEyx+zcJSEiL1kIhZTZBR7BN0TdFnkaYt
-         QeMN1Y6jVnn9ozHpMdfj5lztstF39VBTQm3MzVt1Iir5a9GkA6EYiNkEc0d4kx6lTGTj
-         B4vqa3yPq7obJ+gx4Hdbd3WbbRC0AWHVVcxf6Gz1JQcu3Ga3HtCDzSsWF3tlAMHdLnID
-         Ky2ZIDRjxvHCP0LLF9icdsLTD0LVyWAQeM8VmySWTmWBLPDG3Cg2t8nH7QSgz9J2FqwL
-         OdEA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745199234; x=1745804034;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1745199238; x=1745804038; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=OjWuB6bvBjqoXXcsjJzpBRBCVCy6dm/LI2cgJfKzZps=;
-        b=sHfSAFlSe1N6lO2kF/k2Y0M4Fg7sAHxhWQd982Gjuij8UBe2naygSxA6rYAHmt3u+c
-         rz5Q+mFpa9oTv+jG3K2iuRJgmvXCpVJ36JATQAA4NXBJyyr1NdCLsHsv6rW2ptN9wpmw
-         E/jSjkB/ntVNG0vBbgIBKZ8SKDzGVMENxSJmZ98K/1VEwOF6rUVnXQlwErNg2b1stRp9
-         Y6fkAGe5WDVcIu0DVXSNyZRK58NM001HP/JPxNM9kOErC85te85Q+Eb9RhZ3T7mkuOqs
-         OHN2ntLuyuTLQiV2Qg52Z3Z/9VC3ArkUFChuCiLd5RiJ79qpVE9OlKqqsY1G7LugUVxa
-         8xng==
-X-Forwarded-Encrypted: i=1; AJvYcCV++JqCrhgQxTNXeDN2dLyxfuaXdGRa82pYb5Lox6I2R0/XVxdy57miHewpa8AJQPesZKiI5Oc=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx+rIctuJBaf1pF++PizFyvlZrLL5Sd9zNe91rcgSnTVJbE0IRt
-	O0IqHmFG1ME1k4J6jpiA1Nc+rsu6ue9npc7wZH11N26dKDcnIwlm
-X-Gm-Gg: ASbGncta8tT7doTJIPXnF335DcNWnc2a8AjiqWb3DsXNtM05ZiAh0fHA9pXSihvK9ig
-	8K4fQ6hTrFSm4zn9hNTfeMWG0IfUm20th8TZW3YjfI9Yme6KgTPFNDLOt7WYo3MZZj+yz+khb8r
-	tIMR/kY/rHIoGW9rFcOZgt39NuV8mcT9ODDV/ZkTzbGlnsrP5FjMtfH/jIwmOBDsTUMd2wvqZVB
-	o7T7qK6OdANo0roLjOUDeKel3m2QaCTNAmA/HQdWOW6TmVA/yO/tbc+/DHPTDD47b8iTT4knT92
-	RkCD2EPgT+I1kVLhZUYJrBVBySqo0QfZ55AMosChMC8wK3yxsSx0nndoIK+mbhB5Cos8bIUGNfc
-	Ejk5A
-X-Google-Smtp-Source: AGHT+IH1+yBV/GECKqwdM+T+5fS8mx81YWVmDy89M3OesRg7CwGH5hzmelrPxn+63wTGww6En85fYg==
-X-Received: by 2002:a05:6830:6302:b0:72b:9b1f:2e33 with SMTP id 46e09a7af769-730062f241emr5922066a34.18.1745199233976;
-        Sun, 20 Apr 2025 18:33:53 -0700 (PDT)
+        bh=+TgC0a/U5AW9OV2eqK8aHn6K3OlQMlAMMt+8AXwopR0=;
+        b=hl131mXV9XlOBZX1EEeNg4etqcsPoXDFX0bg7+owv8z7Kv42ePFdIp0TGt+B/Cquqx
+         ZxnDEYcrZi1HNeGibWSlWE0MinXtbpSJSgV3zo4u3b9IGQEkQehJRRliwB3n0RxoaMGX
+         mtAorZJKE9pTLNOSB6Tff/sglJsuL/6R3lSad+ObOoI7X8TWUw6rr7rzyxfOyPPPrQXi
+         N3IKo5qzUCcQ2AymHbyF9+tn9BwBkEMhIOp6SCiOsWj2HrNHa5kfivcnWwMszi9j6kAs
+         aHOferbV236bY66K+GTyU+7CN/fgguEgLi8uV+B0fwHEakqi50GrG83dMqwnBbQlDa4w
+         qtYA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1745199238; x=1745804038;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=+TgC0a/U5AW9OV2eqK8aHn6K3OlQMlAMMt+8AXwopR0=;
+        b=EfuxDMgAQx8SwXsEBzeE4r+9ic1vf24NsnFYb57+39YQZZtF+ffWgTMIP+GL6fRWjk
+         UcHK6o+/RJpFWzyaunlRVU7v1qo8FsNPCotqaz3YsvaVZELb5YDgp0t0u+9d+xKqcPfG
+         H1Oae1CuFYWWvLzJ6NJSdhkGJn/DIfRm1qQIxkCTiKpB9Vz5iBP4IdHUyaL4lrYmKkXQ
+         MX69mW+G3CucEfbqopvuCMc8PIZYNWOKtWU+0YWe1MVGHDjMqKPuGr479AzvEOqHdWNg
+         Xzi9ZZeJNiB3Fufckqdn0Duh0tIBnpalT1/Io76lcsLOUfBOXdeUA1DmerS9EuwVKGiA
+         Vyug==
+X-Forwarded-Encrypted: i=1; AJvYcCWt5/pN7iwviPb7SG5R9Aadr/Fba/FC8w1FuAjT32+/Pqm4Tx+UF34H36YbPbSpYFBh2733aTw=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwzJbXZEX/Zpf93w1tN+kcdOuFmjPZFgdqflB5zgPZJM/N1PbOa
+	kEt7PYZW+UqBJ7jTAp0JGc7kIdP1BNZgGcf6Bt9gAN7WD/9NBVgp
+X-Gm-Gg: ASbGncsq4Inu+oqXLsEkVfYkxGsOAyitRxQu+1QMPOp+80AkBWbmWrHDWzhYBMilCXv
+	izdnPxF9Kcg9L7LQV8Sf2MQREmK08Zvr1BDQ7Mn55I8X/33wf80W0BClqQD26u0+AHtS9pQibVi
+	ViuoIxV47OK/C1C9FQXv52YD8mpuSUjtEXIlhDTLoY2YIMiHcvBus1yV9hx1jXgPwdjmU+UUpsm
+	dTV9bplCUtshc2psZn9kp3gKAyt09Emfc11CFnd4AxAuEKW3lT1F0Dby1vbuu84vP5p2AqPLcOX
+	CGLMwMi/T9BIbmQjN6gziqbSGBXNapnzslA8h37+DdUA5TISG4UuOUI1gkaYfeC/Nqkijg==
+X-Google-Smtp-Source: AGHT+IFBx0fNmEgiQthzAlpMH4F40IVe6eGZu2FBLlSysev0+wG7SqfOtkvNjIGeE/XEwgNUmsfiWQ==
+X-Received: by 2002:a05:6830:3483:b0:727:4576:36f9 with SMTP id 46e09a7af769-730061e81edmr6260327a34.3.1745199238227;
+        Sun, 20 Apr 2025 18:33:58 -0700 (PDT)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:a8f7:1b36:93ce:8dbf])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7300489cd44sm1267588a34.66.2025.04.20.18.33.51
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7300489cd44sm1267588a34.66.2025.04.20.18.33.56
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sun, 20 Apr 2025 18:33:53 -0700 (PDT)
+        Sun, 20 Apr 2025 18:33:57 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -91,10 +92,12 @@ Cc: John Groves <jgroves@micron.com>,
 	Aravind Ramesh <arramesh@micron.com>,
 	Ajay Joshi <ajayjoshi@micron.com>,
 	John Groves <john@groves.net>
-Subject: [RFC PATCH 00/19] famfs: port into fuse
-Date: Sun, 20 Apr 2025 20:33:27 -0500
-Message-Id: <20250421013346.32530-1-john@groves.net>
+Subject: [RFC PATCH 01/19] dev_dax_iomap: Move dax_pgoff_to_phys() from device.c to bus.c
+Date: Sun, 20 Apr 2025 20:33:28 -0500
+Message-Id: <20250421013346.32530-2-john@groves.net>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+In-Reply-To: <20250421013346.32530-1-john@groves.net>
+References: <20250421013346.32530-1-john@groves.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -103,187 +106,91 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Subject: famfs: port into fuse
+No changes to the function - just moved it.
 
-This is the initial RFC for the fabric-attached memory file system (famfs)
-integration into fuse. In order to function, this requires a related patch
-to libfuse [1] and the famfs user space [2]. 
+dev_dax_iomap needs to call this function from
+drivers/dax/bus.c.
 
-This RFC is mainly intended to socialize the approach and get feedback from
-the fuse developers and maintainers. There is some dax work that needs to
-be done before this should be merged (see the "poisoned page|folio problem"
-below).
+drivers/dax/bus.c can't call functions in drivers/dax/device.c -
+that creates a circular linkage dependency - but device.c can
+call functions in bus.c. Also exports dax_pgoff_to_phys() since
+both bus.c and device.c now call it.
 
-This patch set fully works with Linux 6.14 -- passing all existing famfs
-smoke and unit tests -- and I encourage existing famfs users to test it.
+Signed-off-by: John Groves <john@groves.net>
+---
+ drivers/dax/bus.c    | 24 ++++++++++++++++++++++++
+ drivers/dax/device.c | 23 -----------------------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
 
-This is really two patch sets mashed up:
-
-* The patches with the dev_dax_iomap: prefix fill in missing functionality for
-  devdax to host an fs-dax file system.
-* The famfs_fuse: patches add famfs into fs/fuse/. These are effectively
-  unchanged since last year.
-
-Because this is not ready to merge yet, I have felt free to leave some debug
-prints in place because we still find them useful; those will be cleaned up
-in a subsequent revision.
-
-Famfs Overview
-
-Famfs exposes shared memory as a file system. Famfs consumes shared memory
-from dax devices, and provides memory-mappable files that map directly to
-the memory - no page cache involvement. Famfs differs from conventional
-file systems in fs-dax mode, in that it handles in-memory metadata in a
-sharable way (which begins with never caching dirty shared metadata).
-
-Famfs started as a standalone file system [3,4], but the consensus at LSFMM
-2024 [5] was that it should be ported into fuse - and this RFC is the first
-public evidence that I've been working on that.
-
-The key performance requirement is that famfs must resolve mapping faults
-without upcalls. This is achieved by fully caching the file-to-devdax
-metadata for all active files. This is done via two fuse client/server
-message/response pairs: GET_FMAP and GET_DAXDEV.
-
-Famfs remains the first fs-dax file system that is backed by devdax rather
-than pmem in fs-dax mode (hence the need for the dev_dax_iomap fixups).
-
-Notes
-
-* Once the dev_dax_iomap patches land, I suspect it may make sense for
-  virtiofs to update to use the improved interface.
-
-* I'm currently maintaining compatibility between the famfs user space and
-  both the standalone famfs kernel file system and this new fuse
-  implementation. In the near future I'll be running performance comparisons
-  and sharing them - but there is no reason to expect significant degradation
-  with fuse, since famfs caches entire "fmaps" in the kernel to resolve
-  faults with no upcalls. This patch has a bit too much debug turned on to
-  to that testing quite yet. A branch 
-
-* Two new fuse messages / responses are added: GET_FMAP and GET_DAXDEV.
-
-* When a file is looked up in a famfs mount, the LOOKUP is followed by a
-  GET_FMAP message and response. The "fmap" is the full file-to-dax mapping,
-  allowing the fuse/famfs kernel code to handle read/write/fault without any
-  upcalls.
-
-* After each GET_FMAP, the fmap is checked for extents that reference
-  previously-unknown daxdevs. Each such occurence is handled with a
-  GET_DAXDEV message and response.
-
-* Daxdevs are stored in a table (which might become an xarray at some point).
-  When entries are added to the table, we acquire exclusive access to the
-  daxdev via the fs_dax_get() call (modeled after how fs-dax handles this
-  with pmem devices). famfs provides holder_operations to devdax, providing
-  a notification path in the event of memory errors.
-
-* If devdax notifies famfs of memory errors on a dax device, famfs currently
-  bocks all subsequent accesses to data on that device. The recovery is to
-  re-initialize the memory and file system. Famfs is memory, not storage...
-
-* Because famfs uses backing (devdax) devices, only privileged mounts are
-  supported.
-
-* The famfs kernel code never accesses the memory directly - it only
-  facilitates read, write and mmap on behalf of user processes. As such,
-  the RAS of the shared memory affects applications, but not the kernel.
-
-* Famfs has backing device(s), but they are devdax (char) rather than
-  block. Right now there is no way to tell the vfs layer that famfs has a
-  char backing device (unless we say it's block, but it's not). Currently
-  we use the standard anonymous fuse fs_type - but I'm not sure that's
-  ultimately optimal (thoughts?)
-
-The "poisoned page|folio problem"
-
-* Background: before doing a kernel mount, the famfs user space [2] validates
-  the superblock and log. This is done via raw mmap of the primary devdax
-  device. If valid, the file system is mounted, and the superblock and log
-  get exposed through a pair of files (.meta/.superblock and .meta/.log) -
-  because we can't be using raw device mmap when a file system is mounted
-  on the device. But this exposes a devdax bug and warning...
-
-* Pages that have been memory mapped via devdax are left in a permanently
-  problematic state. Devdax sets page|folio->mapping when a page is accessed
-  via raw devdax mmap (as famfs does before mount), but never cleans it up.
-  When the pages of the famfs superblock and log are accessed via the "meta"
-  files after mount, we see a WARN_ONCE() in dax_insert_entry(), which
-  notices that page|folio->mapping is still set. I intend to address this
-  prior to asking for the famfs patches to be merged.
-
-* Alistair Popple's recent dax patch series [6], which has been merged
-  for 6.15, addresses some dax issues, but sadly does not fix the poisoned
-  page|folio problem - its enhanced refcount checking turns the warning into
-  an error.
-
-* This 6.14 patch set disables the warning; a proper fix will be required for
-  famfs to work at all in 6.15. Dan W. and I are actively discussing how to do
-  this properly...
-
-* In terms of the correct functionality of famfs, the warning can be ignored.
-
-References
-
-[1] - https://github.com/libfuse/libfuse/pull/1200
-[2] - https://github.com/cxl-micron-reskit/famfs
-[3] - https://lore.kernel.org/linux-cxl/cover.1708709155.git.john@groves.net/
-[4] - https://lore.kernel.org/linux-cxl/cover.1714409084.git.john@groves.net/
-[5] - https://lwn.net/Articles/983105/
-[6] - https://lore.kernel.org/linux-cxl/cover.8068ad144a7eea4a813670301f4d2a86a8e68ec4.1740713401.git-series.apopple@nvidia.com/
-
-
-John Groves (19):
-  dev_dax_iomap: Move dax_pgoff_to_phys() from device.c to bus.c
-  dev_dax_iomap: Add fs_dax_get() func to prepare dax for fs-dax usage
-  dev_dax_iomap: Save the kva from memremap
-  dev_dax_iomap: Add dax_operations for use by fs-dax on devdax
-  dev_dax_iomap: export dax_dev_get()
-  dev_dax_iomap: (ignore!) Drop poisoned page warning in fs/dax.c
-  famfs_fuse: magic.h: Add famfs magic numbers
-  famfs_fuse: Kconfig
-  famfs_fuse: Update macro s/FUSE_IS_DAX/FUSE_IS_VIRTIO_DAX/
-  famfs_fuse: Basic fuse kernel ABI enablement for famfs
-  famfs_fuse: Basic famfs mount opts
-  famfs_fuse: Plumb the GET_FMAP message/response
-  famfs_fuse: Create files with famfs fmaps
-  famfs_fuse: GET_DAXDEV message and daxdev_table
-  famfs_fuse: Plumb dax iomap and fuse read/write/mmap
-  famfs_fuse: Add holder_operations for dax notify_failure()
-  famfs_fuse: Add famfs metadata documentation
-  famfs_fuse: Add documentation
-  famfs_fuse: (ignore) debug cruft
-
- Documentation/filesystems/famfs.rst |  142 ++++
- Documentation/filesystems/index.rst |    1 +
- MAINTAINERS                         |   10 +
- drivers/dax/Kconfig                 |    6 +
- drivers/dax/bus.c                   |  144 +++-
- drivers/dax/dax-private.h           |    1 +
- drivers/dax/device.c                |   38 +-
- drivers/dax/super.c                 |   33 +-
- fs/dax.c                            |    1 -
- fs/fuse/Kconfig                     |   13 +
- fs/fuse/Makefile                    |    4 +-
- fs/fuse/dev.c                       |   61 ++
- fs/fuse/dir.c                       |   74 +-
- fs/fuse/famfs.c                     | 1105 +++++++++++++++++++++++++++
- fs/fuse/famfs_kfmap.h               |  166 ++++
- fs/fuse/file.c                      |   27 +-
- fs/fuse/fuse_i.h                    |   67 +-
- fs/fuse/inode.c                     |   49 +-
- fs/fuse/iomode.c                    |    2 +-
- fs/namei.c                          |    1 +
- include/linux/dax.h                 |    6 +
- include/uapi/linux/fuse.h           |   63 ++
- include/uapi/linux/magic.h          |    2 +
- 23 files changed, 1973 insertions(+), 43 deletions(-)
- create mode 100644 Documentation/filesystems/famfs.rst
- create mode 100644 fs/fuse/famfs.c
- create mode 100644 fs/fuse/famfs_kfmap.h
-
-
-base-commit: 38fec10eb60d687e30c8c6b5420d86e8149f7557
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index fde29e0ad68b..9d9a4ae7bbc0 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -1417,6 +1417,30 @@ static const struct device_type dev_dax_type = {
+ 	.groups = dax_attribute_groups,
+ };
+ 
++/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c  */
++__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
++			      unsigned long size)
++{
++	int i;
++
++	for (i = 0; i < dev_dax->nr_range; i++) {
++		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
++		struct range *range = &dax_range->range;
++		unsigned long long pgoff_end;
++		phys_addr_t phys;
++
++		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
++		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
++			continue;
++		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
++		if (phys + size - 1 <= range->end)
++			return phys;
++		break;
++	}
++	return -1;
++}
++EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
++
+ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ {
+ 	struct dax_region *dax_region = data->dax_region;
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 6d74e62bbee0..29f61771fef0 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -50,29 +50,6 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 	return 0;
+ }
+ 
+-/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+-__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+-		unsigned long size)
+-{
+-	int i;
+-
+-	for (i = 0; i < dev_dax->nr_range; i++) {
+-		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+-		struct range *range = &dax_range->range;
+-		unsigned long long pgoff_end;
+-		phys_addr_t phys;
+-
+-		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
+-		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
+-			continue;
+-		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+-		if (phys + size - 1 <= range->end)
+-			return phys;
+-		break;
+-	}
+-	return -1;
+-}
+-
+ static void dax_set_mapping(struct vm_fault *vmf, pfn_t pfn,
+ 			      unsigned long fault_size)
+ {
 -- 
 2.49.0
 
