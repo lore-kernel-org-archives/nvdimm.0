@@ -1,211 +1,198 @@
-Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com [209.85.210.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 473D61E572F
-	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 01:34:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.51
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745199297; cv=none; b=h9CTY8EIewTznrp657QDhDJM8TXkAuMue6MP1JLshNvfEq/61aY64bSprqdVKSO2LlTKXZcNF9Hz/16oYjjUoeeWjxzuoHm+pCKEgGnLtY8DcPsPGVqJzBnJKrYLdPdEKLMqfWeozTEc3hetGz+nCDUTXKzwVR7Nekm1exdlBNI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745199297; c=relaxed/simple;
-	bh=PEQixm1WSR8qIvIweIBLz5yb47diHKRVT7ZCrAw41jE=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=V21U9NvoUuibJ15xB7JApqG+xYebKeyuscNLljhFkf42Oiin1txvC1HYulG2epUizprFuQ5g9mN0pEpQ3CzrJCbG/DgtSwmvVbqq+Q0Knco8egxzEixvRzfpKF/qVyHRKDJqGsX28+B35z3DZ6lWYpoew5jBmiR+vyH/yzf0iR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AiZ0KhEw; arc=none smtp.client-ip=209.85.210.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE7910A3E
+	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 02:06:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.11
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1745201197; cv=fail; b=Pv883XbxD4N86iFSNyxVEqo9xd4BJ3jHV5eZQV2KVYNxz0YZIo+QgGTZeOE6ZJYNoOPXrQg3ElEs3HDzkeUIgB1Hk4gfSrgLKQSLLdd/tAVMdXioTqLr1IloNwylL0trhRYkL55RXxcoA1AVFxTZ1+UeEYGFf9ZKrgZwBzCE8Ys=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1745201197; c=relaxed/simple;
+	bh=g3IMCn66cfatjLoR37vg4+aaNRGgDzqPN4DwQ0I4rM4=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=cn67kPYMhTIg564u8uWXy1zl/4JaHk1SDbTxE4MuINeIfS79RGvJi8dUiGMJDGPnoPoM7HwFQSexScPbs/6pDfrg5jvM3z1vpuztxVF2nOTB2TEDy3eFLgnNHyqy6JBii+e7HBBRB7aQGP3oNcBfVKJZHlct/qIEqudT+fGlFiM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jbFBPu55; arc=fail smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AiZ0KhEw"
-Received: by mail-ot1-f51.google.com with SMTP id 46e09a7af769-72c47631b4cso2370039a34.1
-        for <nvdimm@lists.linux.dev>; Sun, 20 Apr 2025 18:34:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1745199294; x=1745804094; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mdQVZhgSGxPpGqga5Gwo7PXNt34SxV9og+/VWo3OSP8=;
-        b=AiZ0KhEwNgkImB8iz7OOuJyYpmiyTd/HAv6yAZw6fDQ1jmJL8m3XzyzTNabL0bongX
-         PQjkq/PktbM5jnRqM1YpQDyvkl/pidXlE5I8lSKmCIOEF8BBhtwJK+BSHJheMJG7V/Rq
-         WMouCk7jDdPaeySKcI8Oqlhn3ZPCadAWzKatgBD2oPu4e4JKDcs/EWAyHTX0+j5GuM+a
-         GmlW9SGhd5Z1HGAFJkU9/dhRbY+f9Djg/GWKwePFb+AIk4w1LV2WAL7sxkwaCy5MHhsu
-         BknVXfpzPg70AbjUps9F6latjfvEAvhKIpq9QdwbI3s8mjxXF53odHiP0wh2u2Yb+qBg
-         Yp8w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745199294; x=1745804094;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=mdQVZhgSGxPpGqga5Gwo7PXNt34SxV9og+/VWo3OSP8=;
-        b=ESubhZyJ900tJ7y3sbDQPW+Xnw1CmGB4Do2tJqFcphFZ0LomoT0qarSnnCEY0Rc32t
-         mbHo/sBBo7kG/mRz390hHJwilbzI90X4jfDE0GY1FR0eWOK2DtrinDe2Mz7YT0YvxpR8
-         4BIQUfi5rGX4+lVq/l4V5LhsovYkMpUGaeZRig4HUf2XtKDhMr232nDQq9MwBqqk5dsn
-         oMJ0kmYEugFuMeTDvksNaeSHnM77UTpDqmVaIJWiEqE+mLPmZYk+RhVakH01GCB3BJRm
-         OkE+J5Jx2qxQvnUkRwHxUJH/xxMyrzGEvy15INjuSnbqZD2e4gIrgYshjo0AOAngmow1
-         qX9w==
-X-Forwarded-Encrypted: i=1; AJvYcCXTF8FyJ+m7k5vKG047NEmIDvIdXI8/DB2jPiKDPQB57QgfatYQxLxPUeeQ6bKL29w7g47jdRs=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzIyWCzn+PahaJ6uG76wZ4BoY/pO93RBvhBoM7OI9HVP16gafZi
-	JBM+KpCz5Sbxl6xYv15KdREFd8GwY07Dkq2FKv0PUwmy396jVTI6
-X-Gm-Gg: ASbGncuNjl3LQyushTNynFU/fadgarL2nsrrYrZlzFFBMaO+Y3M1ea4WVZsEgH6PWW4
-	FNpCZWHCuZthVmWdhtCt6uKjtrqe/a+BCXQHbrU5es5FkYIVqu3uSfubzpgP83tN6QGJcOgA+i+
-	YHmwwlpE+Ey9Nm4ptrjHMJMzVUsXdnz7PUOib1qL2eFOhhgzXpAcpfcEF31foQP6UKLZ4mJ9dMf
-	fyHH7hOwuynNTFjsn5zjIiV2W4xw2UN8hybGLhQUqbtzgDis/coSqJZ5t9GZCQwvfJ2IFBypt/v
-	wgf16AnDhWZvsDHbCaWGKNBlPtxothAZTmk/diU/uzBzFXtfNdVosROPkJGC+RsHBQzeag==
-X-Google-Smtp-Source: AGHT+IFvhi11eKZv5Y/gzRlzyAgr2UzcgOUfeV5gBpd2B3+8/z28bKwE37MnSOlyjxSbt8eeloMeSg==
-X-Received: by 2002:a05:6830:7182:b0:72b:80b8:8c67 with SMTP id 46e09a7af769-73006333e6fmr5754877a34.28.1745199294139;
-        Sun, 20 Apr 2025 18:34:54 -0700 (PDT)
-Received: from localhost.localdomain ([2603:8080:1500:3d89:a8f7:1b36:93ce:8dbf])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7300489cd44sm1267588a34.66.2025.04.20.18.34.52
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sun, 20 Apr 2025 18:34:53 -0700 (PDT)
-Sender: John Groves <grovesaustin@gmail.com>
-From: John Groves <John@Groves.net>
-X-Google-Original-From: John Groves <john@groves.net>
-To: John Groves <John@Groves.net>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Miklos Szeredi <miklos@szeredb.hu>,
-	Bernd Schubert <bschubert@ddn.com>
-Cc: John Groves <jgroves@micron.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	"Darrick J . Wong" <djwong@kernel.org>,
-	Luis Henriques <luis@igalia.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Petr Vorel <pvorel@suse.cz>,
-	Brian Foster <bfoster@redhat.com>,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Amir Goldstein <amir73il@gmail.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Stefan Hajnoczi <shajnocz@redhat.com>,
-	Joanne Koong <joannelkoong@gmail.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>,
-	John Groves <john@groves.net>
-Subject: [RFC PATCH 19/19] famfs_fuse: (ignore) debug cruft
-Date: Sun, 20 Apr 2025 20:33:46 -0500
-Message-Id: <20250421013346.32530-20-john@groves.net>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
-In-Reply-To: <20250421013346.32530-1-john@groves.net>
-References: <20250421013346.32530-1-john@groves.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jbFBPu55"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1745201196; x=1776737196;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=g3IMCn66cfatjLoR37vg4+aaNRGgDzqPN4DwQ0I4rM4=;
+  b=jbFBPu55AeqRjSTO3tyjAummAxY1itDewnokchnm4DcydNmJEn7sS8Td
+   KBH14J8Ul70vitCCLxEGLTosQY9n0lWt80iMwXu7XS/CP3rtX1L28YHDM
+   mUxgGVtP8r09Xun1I7vPo26aB11XO7rSbxX7Nwl0bi4dHl9FCFsQitE+3
+   hPHUbXbxN47icNkDpptHoxZO6zZENYoktzOLoAdipqq/Ap/L8xtg5McZQ
+   kwRewWycSPgrsczejW6uHJJGmZPdxaDyWPzcIFH1iRKC9CqgkGMVc8Bkt
+   Uv41IV5NF/EwfpuomSL3GaNCiCy3A43zKvO6ihRWekgSnfoc0AesVZXEE
+   w==;
+X-CSE-ConnectionGUID: O4Vp+pCGS2+Dh6rZAw4ORg==
+X-CSE-MsgGUID: 0kfzcgAcRDqvV6YD3ejg/g==
+X-IronPort-AV: E=McAfee;i="6700,10204,11409"; a="57390825"
+X-IronPort-AV: E=Sophos;i="6.15,227,1739865600"; 
+   d="scan'208";a="57390825"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Apr 2025 19:06:35 -0700
+X-CSE-ConnectionGUID: LetVaNCtT1GQNnleqGZqFg==
+X-CSE-MsgGUID: FHXeVSnJSZi6nTyYta7LDQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,227,1739865600"; 
+   d="scan'208";a="131342686"
+Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
+  by orviesa009.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Apr 2025 19:06:35 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14; Sun, 20 Apr 2025 19:06:34 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14 via Frontend Transport; Sun, 20 Apr 2025 19:06:34 -0700
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.176)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Sun, 20 Apr 2025 19:06:34 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=wxIvHs8NIKaTR6W/3drEKZVjFyyZbQozt93itWsf8T/yRTtdhuUYwH+fxJJlmxjwB3oKUGNqsonJWFWyaWsQzVIFdtlLNOIsCsVqPXoCisLrC6ClXEs/AHk0eqmam/0qjLFThZ3pKu4qH1kb3ug/HBvJdgXqpITUu8bBKrDhf//+Afen+TR7qSW33u8RkraSNrhjxeopKRqOGv/UtU0eK4f03ZVw8g6zFRDVb7wdBkNAMSFCLNLZm9d6IN6ZEoA81ITyPiyjx70N5GQw2k/c5wtJAQz6tZXC87sGkRjQRRDkHICRMoEgyOFVSIrCCGOvQ7qpCNLZwgg4Ah4OmC9sdA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=CUMQ/futN0iCBbMvmGKZPrrxSB/nfyM+F1+fpuOQ6sQ=;
+ b=LDx2OfVyMTiq8pXnSvUXUGSHuM4MogoTb6tj2eAuQbcW9fsD7cFV/EjuxlZ0SbpxOlwazR0NJKsgZfZ9sz3v1v1DWVHyLt7K3yeCRrIxu12Y8SUsBuZi4J9FykGLGN31yMm46OeK5puT3UaBxpxmBp+oqKWziWL+ujqcVVEiNiFlSJj2lOBcw/ETbpbnrutShJcj/lARp4SecaEaFTzGqtSPO33QYsFPXkFHOvg76PUHidI5dD4JqlWCpKXV/UASk6/rCrC1bKYvzxhY2TTZ7DPOYSseH9dJry/ltvJHuOmU8FnkBkcmqvoMnVf9WTvqTR5THIaVxUrqKNcgB117fg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by DM4PR11MB8090.namprd11.prod.outlook.com (2603:10b6:8:188::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8655.33; Mon, 21 Apr
+ 2025 02:06:17 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57%6]) with mapi id 15.20.8655.031; Mon, 21 Apr 2025
+ 02:06:17 +0000
+Date: Sun, 20 Apr 2025 21:06:48 -0500
+From: Ira Weiny <ira.weiny@intel.com>
+To: Michal Clapinski <mclapinski@google.com>, Pasha Tatashin
+	<pasha.tatashin@soleen.com>, Dan Williams <dan.j.williams@intel.com>, "Vishal
+ Verma" <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Ira
+ Weiny" <ira.weiny@intel.com>, Jonathan Corbet <corbet@lwn.net>
+CC: <nvdimm@lists.linux.dev>, <linux-doc@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Michal Clapinski <mclapinski@google.com>
+Subject: Re: [PATCH v2 1/1] libnvdimm/e820: Add a new parameter to configure
+ many regions per e820 entry
+Message-ID: <6805a8382627f_18b6012946a@iweiny-mobl.notmuch>
+References: <20250417142525.78088-1-mclapinski@google.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20250417142525.78088-1-mclapinski@google.com>
+X-ClientProxiedBy: MW4PR03CA0001.namprd03.prod.outlook.com
+ (2603:10b6:303:8f::6) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|DM4PR11MB8090:EE_
+X-MS-Office365-Filtering-Correlation-Id: f348d453-d708-4297-1d9e-08dd807919ad
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|10070799003|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?g6Wv2Dvx8j+6FVJIU+tSn0rl5v85pPnQMhUDU8ArFVtPdqT20NKtx3Z5GHww?=
+ =?us-ascii?Q?F3t3+0X3/gVWEZlSSfDZ4Ot5FZS1qjWTaawccwuTHWEFEramVqzXo9uUMcie?=
+ =?us-ascii?Q?zEYdz6ibwlC8ZlHbVtl4Ic5GeYtINfGN9ckRUulaSvUtcAeSqK77vDmebuxW?=
+ =?us-ascii?Q?NaW7gLFptzMH1YcbJ2sUL37rF42zq6LnUnD0kufwRxvacKiO5ZOsEbd/1kDP?=
+ =?us-ascii?Q?8Hfcd5tSRMVISVn7sO9gHVH2pXvOQaFbN2fuY5CEC/NrPoZiadanBrOQWy6I?=
+ =?us-ascii?Q?iuN/AlImBh9jphh8d0jaGCpcSg3HXS4Det1O4aXLK0WbW6PzVj9P0XgP3ZCS?=
+ =?us-ascii?Q?0Y+iOCNJwWmHoEQ/tnVwALo7wMDxJkdquvRQ1Pj76aMODcK/eY83e/uIuK56?=
+ =?us-ascii?Q?D4oog8LMQ/aXkMb6OdHjdd1HV9nCbEknNb80SdJhNhUiN1LOwQ3Nj688nc0Q?=
+ =?us-ascii?Q?jkUcLkjq1N753jkVQzxJFQ/wzrOgZTSUB9whX75j2tavddgBs/vueQa9oPM3?=
+ =?us-ascii?Q?LKWS/NMBqxTPzLpwCyhoy5+r/xRqMTgXszMfurghvoPvfTjCXvTDiV3AAgeG?=
+ =?us-ascii?Q?aR1CYrO50f74hJ+Ip/iPKihNw6+1khBNXKZw1syC7lVBVstuzyTe7Xmt/0d2?=
+ =?us-ascii?Q?Sw0f03CdracAEPks7HQGR9nciNAeLxyHgaHijKAC1103PPcalHJEjMS+N68w?=
+ =?us-ascii?Q?l7RS4Q+w1Q/AI3KLetDffP+YW1KGDGNRyCwYwO5uhWyok0WL3T89ONyiKnxm?=
+ =?us-ascii?Q?ljXNigjdFlQsef/hTqfJy6VdsIXSO53ZWVocE66hgRIJ5roZ0O8obo/kwopG?=
+ =?us-ascii?Q?++BXLlSJIpmmr+7o/Owr1w/JBkp0jqo8435fq8vjaIO0fP35B2TzhFEXuWSW?=
+ =?us-ascii?Q?4UtQn4gLMeSFqprtLb9/ZSidSAzbo7MRvfdTkBtJINvz23+MgldRpTIeaueY?=
+ =?us-ascii?Q?2GhEQBp0stzEPIT6b6rVDHQkQFBD/J2Qh+E3KUNF3ia9ysOqBK5r//pr+H96?=
+ =?us-ascii?Q?2PZo3PCUsPdGUMyXkMprp0anXHmHTR3mmm3Sv1GOKeameEY5Vg0mTsWGb190?=
+ =?us-ascii?Q?2ng/IDp1nW1NE3Aox2bxA3FzNNaT/3B2fNkwtizmSPtcOask7gw32dPIO017?=
+ =?us-ascii?Q?r6vp7F7FqV0JQSxs8I7yNLz+mban3dJ4iqkoUe4XKd3OMSqlC7IsNZyQmHj1?=
+ =?us-ascii?Q?re+0sA5vQ4nXh6+bFdE0DsS0O5b3dmAfNVst4VyxOBSr7UiPbhnE4gbvtQL0?=
+ =?us-ascii?Q?10CV3evkbhZn+n6rwZmkYwzUkNNbtxqhZAmNsFd1AS5igY2gPDd+Q9Pr3CnD?=
+ =?us-ascii?Q?LRHs5MN93EuPsWXzFFpCeiXOulxoATcOgpdU2e9LAmOHziT9+2kHa1q6ofLZ?=
+ =?us-ascii?Q?oNzck+1sCG5+4V3DdjLHjahW63Tf31iIeqO3s7IRZztWewgjGnsmBma9rfWo?=
+ =?us-ascii?Q?N88WEWBo06o=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(10070799003)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?4GQIb3ilji8AGcKIWV2fE9PsjEUme21FfZQPIZTUZasawRuQOBjdYNMqO4ua?=
+ =?us-ascii?Q?kVgLcStfMMdmURkKEiiJ4loDB66bVF3p1VWNe+XaduQTIegsNnnuWGGjiAXE?=
+ =?us-ascii?Q?6h+RcJbUGL3smE6xHoaq7frVPkp8ubIjaRM/iG5rCUzhRtQFhW7wBHIqxgbR?=
+ =?us-ascii?Q?8j7ogGmcBuDmq1U9K2LUvicJ2CenD5v6CcDLlhaqfc6HD4OiVx99yRi22iH4?=
+ =?us-ascii?Q?ZYXgpR+6GYJ++u5KpljnYlKLP9JSI7Tw0a7MbP7QIk8qhbrHvTuSkcGWiqEg?=
+ =?us-ascii?Q?yEl0G9TX4BY1C+mjcy9iKMlcxjurmekg98Z76AngbeAMKvsbRXE0pvq50bzJ?=
+ =?us-ascii?Q?z2cEhj7oBze7qXDuliFoxt3VvaffGInKkQhhtN8Q2sQIyFmt9O54c7u94uVb?=
+ =?us-ascii?Q?tqlPZvBqwCrAbj66Lo1M0nw6owBXdSAEAvk50mwwIq17EQzuE49QK9WeMZ1q?=
+ =?us-ascii?Q?FEZC3apdn5nEHGy+SJ+qM1PZTL//Bn85UJGod1nOcLD2oWj+vMJ/Fl9B8uj0?=
+ =?us-ascii?Q?qhuzJ8ANMLTGtQ9fe8bwqo8R+wO3WF9EIeNJoHKZ6FMC8TqqgsBi6RKY32+q?=
+ =?us-ascii?Q?KvVnB1RhUqiwwR9b7sInqXxCOH+Dm6BVwPK5oWB37hgzzg6WGJnpXgcofpUp?=
+ =?us-ascii?Q?Rj0Q/nXh+7zfpwHv50h7iR1z+NzoDqoZi9XT/QB8TQ/2y6EW3lvJeEGqtq55?=
+ =?us-ascii?Q?GSWrnTzh+Dqnah3O8xVOXatTuito/OZ3ieB+TXkrSVJSLfVXFkfnGN12kZpK?=
+ =?us-ascii?Q?oqTNvMzHdweG78AOTbOHgK6i5DxYac0sKwCCCEV2rrQmU81TjM0BM9NjH2FI?=
+ =?us-ascii?Q?iOvW7NrCnN0ZvM6UzPEnq4hqzTbA0XPM7JNQy+m9nS3sYzlhIWdAXhzV+TNi?=
+ =?us-ascii?Q?sjDMSbCOtiUfx6yQULVvyV4aApjgBbALUc5uvYSvPwb86YvLH7tGSqsZAtwc?=
+ =?us-ascii?Q?xriUTXgXUHrJ/o5/wBsY9me2Wh2VKwPpKeNV2zRwpLm9hMPzqUTERJJWo5QB?=
+ =?us-ascii?Q?AoYjGap4LVHLR/1XybDD1BnJSYaW46Mshd6OxR7rv7rLKWsu2LCAzLztgtwb?=
+ =?us-ascii?Q?kcVBSDRJ+/KrsW8oedAxdS6We0cXxAIsSmji+nAT4swjtuo6b6p1cDXS33Ve?=
+ =?us-ascii?Q?YKedCpS1kYMmFKmgUrP47bWnt6khbmqzWLc5LPddiVeS2wCGxWt2ebGKTG5l?=
+ =?us-ascii?Q?hI2Q4f1Nq3PiAAo7AHoo+HP7WkGwAWsU4HpikrYu98TeaMLcz5D8abodCtv6?=
+ =?us-ascii?Q?0G5xmPETpKbjeG99hfYguCTbzEBWCtPDbzu3j+0lttKP8nW58l2GYJ0yy+0S?=
+ =?us-ascii?Q?cUMEgOUK9uhWDuaIrewu2lJ6+cBm8g0SUuWe+KiPIE1hw/yjvGcv2Wzee07u?=
+ =?us-ascii?Q?YGbo5TWsftzyzFtf46u51AVNxtSdh1K/KPPBreMhP4wsqBYl7HK153B7kwYh?=
+ =?us-ascii?Q?XQ+XJyCtNfyg6PkoJuLmmPsr37iNIiY/1za8tCactK8TMfG3dqBGUqpKHshd?=
+ =?us-ascii?Q?2lu7S0A+CQU8B5ZCEsUxWMkduEIb+j5SAjkWyhupDSyPN/ZxRaiyM5g0KvQB?=
+ =?us-ascii?Q?uVN7j3ybRX4QlxZcdLOELZTyt0P3y6Mm+3qmynvdIXECbaTyQaqAeEoqiQo+?=
+ =?us-ascii?Q?mMvn7hDI1ZI5LlG1BNS7xzoeUmG8zzxg6stbPTSO4F+m?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: f348d453-d708-4297-1d9e-08dd807919ad
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Apr 2025 02:06:16.9579
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: WBpjieFgvz86cYF38dSrqoNAm/6UsLDPx+dc2J7uDYL+wk99aNDuxmg2R7vLLz60AfEXJzomocsdjyjMivhqbg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR11MB8090
+X-OriginatorOrg: intel.com
 
-This debug cruft will be dropped from the "real" patch set
+Michal Clapinski wrote:
+> Currently, the user has to specify each memory region to be used with
+> nvdimm via the memmap parameter. Due to the character limit of the
+> command line, this makes it impossible to have a lot of pmem devices.
+> This new parameter solves this issue by allowing users to divide
+> one e820 entry into many nvdimm regions.
+> 
+> This change is needed for the hypervisor live update. VMs' memory will
+> be backed by those emulated pmem devices. To support various VM shapes
+> I want to create devdax devices at 1GB granularity similar to hugetlb.
 
-Signed-off-by: John Groves <john@groves.net>
----
- fs/fuse/Makefile |  2 +-
- fs/fuse/dev.c    | 61 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 62 insertions(+), 1 deletion(-)
+Why is it not sufficient to create a region out of a single memmap range
+and create multiple 1G dax devices within that single range?
 
-diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
-index 65a12975d734..ad3e06a9a809 100644
---- a/fs/fuse/Makefile
-+++ b/fs/fuse/Makefile
-@@ -4,7 +4,7 @@
- #
- 
- # Needed for trace events
--ccflags-y = -I$(src)
-+ccflags-y = -I$(src) -g -DDEBUG -fno-inline -fno-omit-frame-pointer
- 
- obj-$(CONFIG_FUSE_FS) += fuse.o
- obj-$(CONFIG_CUSE) += cuse.o
-diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-index 51e31df4c546..ba947511a379 100644
---- a/fs/fuse/dev.c
-+++ b/fs/fuse/dev.c
-@@ -30,6 +30,60 @@
- MODULE_ALIAS_MISCDEV(FUSE_MINOR);
- MODULE_ALIAS("devname:fuse");
- 
-+static char *opname[] = {
-+	[FUSE_LOOKUP]	   =   "LOOKUP",
-+	[FUSE_FORGET]	   =   "FORGET",
-+	[FUSE_GETATTR]	   =   "GETATTR",
-+	[FUSE_SETATTR]	   =   "SETATTR",
-+	[FUSE_READLINK]	   =   "READLINK",
-+	[FUSE_SYMLINK]	   =   "SYMLINK",
-+	[FUSE_MKNOD]	   =   "MKNOD",
-+	[FUSE_MKDIR]	   =   "MKDIR",
-+	[FUSE_UNLINK]	   =   "UNLINK",
-+	[FUSE_RMDIR]	   =   "RMDIR",
-+	[FUSE_RENAME]	   =   "RENAME",
-+	[FUSE_LINK]	   =   "LINK",
-+	[FUSE_OPEN]	   =   "OPEN",
-+	[FUSE_READ]	   =   "READ",
-+	[FUSE_WRITE]	   =   "WRITE",
-+	[FUSE_STATFS]	   =   "STATFS",
-+	[FUSE_STATX]       =   "STATX",
-+	[FUSE_RELEASE]	   =   "RELEASE",
-+	[FUSE_FSYNC]	   =   "FSYNC",
-+	[FUSE_SETXATTR]	   =   "SETXATTR",
-+	[FUSE_GETXATTR]	   =   "GETXATTR",
-+	[FUSE_LISTXATTR]   =   "LISTXATTR",
-+	[FUSE_REMOVEXATTR] =   "REMOVEXATTR",
-+	[FUSE_FLUSH]	   =   "FLUSH",
-+	[FUSE_INIT]	   =   "INIT",
-+	[FUSE_OPENDIR]	   =   "OPENDIR",
-+	[FUSE_READDIR]	   =   "READDIR",
-+	[FUSE_RELEASEDIR]  =   "RELEASEDIR",
-+	[FUSE_FSYNCDIR]	   =   "FSYNCDIR",
-+	[FUSE_GETLK]	   =   "GETLK",
-+	[FUSE_SETLK]	   =   "SETLK",
-+	[FUSE_SETLKW]	   =   "SETLKW",
-+	[FUSE_ACCESS]	   =  "ACCESS",
-+	[FUSE_CREATE]	   =  "CREATE",
-+	[FUSE_INTERRUPT]   =  "INTERRUPT",
-+	[FUSE_BMAP]	   =  "BMAP",
-+	[FUSE_IOCTL]	   =  "IOCTL",
-+	[FUSE_POLL]	   =  "POLL",
-+	[FUSE_FALLOCATE]   =  "FALLOCATE",
-+	[FUSE_DESTROY]	   =  "DESTROY",
-+	[FUSE_NOTIFY_REPLY] = "NOTIFY_REPLY",
-+	[FUSE_BATCH_FORGET] = "BATCH_FORGET",
-+	[FUSE_READDIRPLUS] = "READDIRPLUS",
-+	[FUSE_RENAME2]     =  "RENAME2",
-+	[FUSE_COPY_FILE_RANGE] = "COPY_FILE_RANGE",
-+	[FUSE_LSEEK]	   = "LSEEK",
-+	[CUSE_INIT]	   = "CUSE_INIT",
-+	[FUSE_TMPFILE]     = "TMPFILE",
-+	[FUSE_SYNCFS]      = "SYNCFS",
-+	[FUSE_GET_FMAP]    = "GET_FMAP",
-+	[FUSE_GET_DAXDEV]  = "GET_DAXDEV",
-+};
-+
- static struct kmem_cache *fuse_req_cachep;
- 
- static void fuse_request_init(struct fuse_mount *fm, struct fuse_req *req)
-@@ -566,6 +620,13 @@ ssize_t __fuse_simple_request(struct mnt_idmap *idmap,
- 	}
- 	fuse_put_request(req);
- 
-+	pr_debug("%s: opcode=%s (%d) nodeid=%lld out_numargs=%d len[0]=%d len[1]=%d\n",
-+		  __func__, opname[args->opcode], args->opcode,
-+		  args->nodeid,
-+		  args->out_numargs,
-+		  args->out_args[0].size,
-+		  (args->out_numargs > 1) ? args->out_args[1].size : 0);
-+
- 	return ret;
- }
- 
--- 
-2.49.0
+Ira
 
+> 
+> It's also possible to expand this parameter in the future,
+> e.g. to specify the type of the device (fsdax/devdax).
+> 
+> Signed-off-by: Michal Clapinski <mclapinski@google.com>
+
+[snip]
