@@ -1,212 +1,106 @@
-Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF223BA36;
-	Mon, 21 Apr 2025 03:52:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F69D150997
+	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 14:56:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745207535; cv=none; b=mn1Vpk7Uc6w3jyLSyzY00WNNG4KRBPVgF4lF/SNnzFGtTwSsKXMJndBOAsOE31KDPASaN2jYXAFccRwKictW5iswL/uLmNXNa7MvlFnJ5nN5mQDdP1GQfJRmPrhvmAvdOySxqlSkwDYpO0fDdckQrMHQ0EPH9psmbf2FmvF11eg=
+	t=1745247366; cv=none; b=PSr6HeZKOkByxYG8tH/kcYxIfXZZTWg+jD07GKkWxzMml9hEXafMlLhAq2qaJHyqfOoNpIIJ6sLIgyZ6GlVt6VAK9ZwTV5rG0uoudhtv9AZxMD5GB0Mx+zRz2K3uvpS8Ld2TxkvOW1Lft9Fv/b9zBRJN8IvHZ7fALR+wwGMQbJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745207535; c=relaxed/simple;
-	bh=SKy360k2jX7Gti4B3tJCD993GCWcNTHmk1yoWFKrfh0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=QgO4LJdZ+cIdD2oYP0xHAoiJJyXOqpupfqxrxOUtG2dK5DmuO3H+3xYsz0Gvo4hnFb7GIgdshEe7y9LpxJvPv+ChA59YTV8DtMgEDxNOLADPsmjXY4eLA3dx1xRm6l32YrKBqOyhxm07oqoTUG+VsamdRb935D383vHM3+ei4xA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=EG7Ld6U4; arc=none smtp.client-ip=90.155.92.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1745247366; c=relaxed/simple;
+	bh=ELRmkTdRqMv3QmAXEhzU+df4jLtDbLH6i9rhrVJgjrk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ecoO82LpCuZyVH/XFfxhBiwztXyuEdkrahaWgHDsjE/XE1W7TLuUC4JRydg9B+EvrFgJdqTaN/tEKu9aSz+xXKQB8bSD4YopgCN5CxyUMdWmbCH0D98NiEg2uct2iy2eDvvt6CPvowKTUVoe0eiBNeGtPcSq8dotxo98HfXiph0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=soleen.com; spf=pass smtp.mailfrom=soleen.com; dkim=pass (2048-bit key) header.d=soleen-com.20230601.gappssmtp.com header.i=@soleen-com.20230601.gappssmtp.com header.b=cALtUQOO; arc=none smtp.client-ip=209.85.160.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=soleen.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=soleen.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="EG7Ld6U4"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
-	:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:
-	Sender:Reply-To:Content-ID:Content-Description;
-	bh=HPPSSA49F2GQFYt4Y3+jo5LCCyAfhAv7rGkUEFsAg2c=; b=EG7Ld6U4DAUbtxsn3tkr+eGn0v
-	kxXkR+MHBvDsceOcYb96/Ypg4Xa6x74Itezu5DqfP/dwzSraKK5DlytGlTIJyNilAyIkZbmiwBcFo
-	Hb21edNODFSLNmnDF0vQ13X5CSFfozaHGwSt6bTVs+BO/94px/OGwnzQNPeQ105jPJF2aD+ytX0NS
-	YwGXBLQycV44ptuCT9l0BdbRIP34dg02Dmt3QY4Tq1goySGanPRlspvFoYrisyUghzDrML4xDoJyp
-	mLs5CjgmNUuATiEC/D0CxhLLu2skBjFVKAFutNuEMzBA8nk+qUyWcofA4eYX/6fffIPDelsC79Hop
-	BhMvra/w==;
-Received: from [50.39.124.201] (helo=[192.168.254.17])
-	by desiato.infradead.org with esmtpsa (Exim 4.98.1 #2 (Red Hat Linux))
-	id 1u6iCK-0000000Azui-2RFo;
-	Mon, 21 Apr 2025 03:51:59 +0000
-Message-ID: <f0b218f4-7379-4fa5-93e4-a1c9dd4c411c@infradead.org>
-Date: Sun, 20 Apr 2025 20:51:48 -0700
+	dkim=pass (2048-bit key) header.d=soleen-com.20230601.gappssmtp.com header.i=@soleen-com.20230601.gappssmtp.com header.b="cALtUQOO"
+Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-476f4e9cf92so29180821cf.3
+        for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 07:56:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=soleen-com.20230601.gappssmtp.com; s=20230601; t=1745247363; x=1745852163; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ELRmkTdRqMv3QmAXEhzU+df4jLtDbLH6i9rhrVJgjrk=;
+        b=cALtUQOO1mD43gxBFyXbgXoi2QgDr+UyPoSGMzdzHzinNt7RfB5H95wqP4yhoz5hUW
+         Ux/IV/tupTfvZI12BFQmWBctDBGwyTmy6jy1MmAIck5lK3YNS+94Klmrsm0TgdRdeDw3
+         wRDeXWNmG3VbPbvLbsNvAeGkANJ9ATV9WDqIov7n66Qw4wnx9lNC/phDhvfP2IP/vC6j
+         v8mDfMbINxSc+l0xPOP/CA+16As8c0VA5rdcR9qGNq2qbhyEU/ioJEZlB3NM2D61YbmJ
+         36xLPASvfCQNbfGS89I3GB6AzKThAb8qLE2AaXb7rYVRLB6HFQXScZ2kg4HImBn3Utni
+         dbLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1745247363; x=1745852163;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ELRmkTdRqMv3QmAXEhzU+df4jLtDbLH6i9rhrVJgjrk=;
+        b=s7bMKxzijXga0CkirosRbZsmGl0FDffZVFzqIF9F8lOvN1qwuuegBFEIgbeUK03i4t
+         n6wQFJ94SfRd6KNr/AEb70uehvZxiyGl4NUvHZQF0bbF9bl2CNFWPdRaeH/aYvvzCDz6
+         nC5k5MisFPjuMXTArcjo873emmSSEuJQElh62Izi5x77jeZiTW1UE/aeEcJB89ZKLScU
+         163RqXqZm8Av9V/n8EWMDvH2ymewp/ixerSd0zbp4lexvBA+YyaukZoGCNDDccoZtGro
+         s/Rck1q99QtPpBmxzrJboSdIgJFFYw0ZGY3zfutd+GC8VF++KUKY6OIPUS0JfgMumF8w
+         +SQQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWC3OoLMB2Lp/1I1pPs4hu7ivbBoga+wmFARTQ8YUcB+sdjLfV370yRPFJURoxp6Yx/IQIR7do=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyXwWPJaZZCpwABZJ4GZ1hfBLsmMEcvGmn+HB/glaozdZj5S2Ec
+	ARTOHUegXqgoMHQYPDuCWaIL4997UiNeS6esQRl9jnw+b9Rho9BU0A+zmCsZ6+HGA7Vi9E6Ngvb
+	1NK9WQSPWEtd4ob2uJW+WDEbIqoGLEzpoKCOYXQ==
+X-Gm-Gg: ASbGncvjbW7u70WvHeF0ZDj8r1ogwlm4vD7MKZbOBWvwJWaSuT+ulWyby6v5TsncGjF
+	AgV5KzPY4GcYxNyUiP1NJVDRKxICWKJuW21KRfKBalcgNZ2wgYlx26zst06rcK2Nw31l4KB576h
+	27gcI9AbcUGOMyJphnavc=
+X-Google-Smtp-Source: AGHT+IG7rZTE99WK1bHTOSOgL8Ei1b2E10Kh9ByX6KEwCjeK4vA8bx+QufdyTPIfemEXj3xR90xjsvbo9nLMMoN+O1w=
+X-Received: by 2002:ac8:5946:0:b0:476:83d6:75ed with SMTP id
+ d75a77b69052e-47aec4c3d0cmr197368441cf.34.1745247363105; Mon, 21 Apr 2025
+ 07:56:03 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 17/19] famfs_fuse: Add famfs metadata documentation
-To: John Groves <John@Groves.net>, Dan Williams <dan.j.williams@intel.com>,
- Miklos Szeredi <miklos@szeredb.hu>, Bernd Schubert <bschubert@ddn.com>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, "Darrick J . Wong"
- <djwong@kernel.org>, Luis Henriques <luis@igalia.com>,
- Jeff Layton <jlayton@kernel.org>, Kent Overstreet
- <kent.overstreet@linux.dev>, Petr Vorel <pvorel@suse.cz>,
- Brian Foster <bfoster@redhat.com>, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- Amir Goldstein <amir73il@gmail.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong
- <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>,
- Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
-References: <20250421013346.32530-1-john@groves.net>
- <20250421013346.32530-18-john@groves.net>
-Content-Language: en-US
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20250421013346.32530-18-john@groves.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20250417142525.78088-1-mclapinski@google.com> <6805a8382627f_18b6012946a@iweiny-mobl.notmuch>
+In-Reply-To: <6805a8382627f_18b6012946a@iweiny-mobl.notmuch>
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Date: Mon, 21 Apr 2025 10:55:25 -0400
+X-Gm-Features: ATxdqUG02lj5rHej_8Beu9BNKw0fpQPgfWQ79J7N0ZJ28950dBS1dnNGeIj5FpI
+Message-ID: <CA+CK2bD8t+s7gFGDCdqA8ZaoS3exM-_9N01mYY3OB4ryBGSCEQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/1] libnvdimm/e820: Add a new parameter to configure
+ many regions per e820 entry
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Michal Clapinski <mclapinski@google.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Jonathan Corbet <corbet@lwn.net>, nvdimm@lists.linux.dev, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Sun, Apr 20, 2025 at 10:06=E2=80=AFPM Ira Weiny <ira.weiny@intel.com> wr=
+ote:
+>
+> Michal Clapinski wrote:
+> > Currently, the user has to specify each memory region to be used with
+> > nvdimm via the memmap parameter. Due to the character limit of the
+> > command line, this makes it impossible to have a lot of pmem devices.
+> > This new parameter solves this issue by allowing users to divide
+> > one e820 entry into many nvdimm regions.
+> >
+> > This change is needed for the hypervisor live update. VMs' memory will
+> > be backed by those emulated pmem devices. To support various VM shapes
+> > I want to create devdax devices at 1GB granularity similar to hugetlb.
+>
+> Why is it not sufficient to create a region out of a single memmap range
+> and create multiple 1G dax devices within that single range?
 
+This method implies using the ndctl tool to create regions and convert
+them to dax devices from userspace. This does not work for our use
+case. We must have these 1 GB regions available during boot because we
+do not want to lose memory for a devdax label. I.e., if fsdax is
+created during boot (i.e. default pmem format), it does not have a
+label. However, if it is created from userspace, we create a label
+with partition properties, UUID, etc. Here, we need to use kernel
+parameters to specify the properties of the pmem devices during boot
+so they can persist across reboots without losing any memory to
+labels.
 
-On 4/20/25 6:33 PM, John Groves wrote:
-> From: John Groves <John@Groves.net>
-> 
-> This describes the fmap metadata - both simple and interleaved
-> 
-> Signed-off-by: John Groves <john@groves.net>
-> ---
->  fs/fuse/famfs_kfmap.h | 90 ++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 85 insertions(+), 5 deletions(-)
-> 
-> diff --git a/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h
-> index 325adb8b99c5..7c8d57b52e64 100644
-> --- a/fs/fuse/famfs_kfmap.h
-> +++ b/fs/fuse/famfs_kfmap.h
-> @@ -7,10 +7,90 @@
->  #ifndef FAMFS_KFMAP_H
->  #define FAMFS_KFMAP_H
->  
-> +
-> +/* KABI version 43 (aka v2) fmap structures
-> + *
-> + * The location of the memory backing for a famfs file is described by
-> + * the response to the GET_FMAP fuse message (devined in
-
-                                                 divined
-
-> + * include/uapi/linux/fuse.h
-> + *
-> + * There are currently two extent formats: Simple and Interleaved.
-> + *
-> + * Simple extents are just (devindex, offset, length) tuples, where devindex
-> + * references a devdax device that must retrievable via the GET_DAXDEV
-
-                                      must be
-
-> + * message/response.
-> + *
-> + * The extent list size must be >= file_size.
-> + *
-> + * Interleaved extents merit some additional explanation. Interleaved
-> + * extents stripe data across a collection of strips. Each strip is a
-> + * contiguous allocation from a single devdax device - and is described by
-> + * a simple_extent structure.
-> + *
-> + * Interleaved_extent example:
-> + *   ie_nstrips = 4
-> + *   ie_chunk_size = 2MiB
-> + *   ie_nbytes = 24MiB
-> + *
-> + * ┌────────────┐────────────┐────────────┐────────────┐
-> + * │Chunk = 0   │Chunk = 1   │Chunk = 2   │Chunk = 3   │
-> + * │Strip = 0   │Strip = 1   │Strip = 2   │Strip = 3   │
-> + * │Stripe = 0  │Stripe = 0  │Stripe = 0  │Stripe = 0  │
-> + * │            │            │            │            │
-> + * └────────────┘────────────┘────────────┘────────────┘
-> + * │Chunk = 4   │Chunk = 5   │Chunk = 6   │Chunk = 7   │
-> + * │Strip = 0   │Strip = 1   │Strip = 2   │Strip = 3   │
-> + * │Stripe = 1  │Stripe = 1  │Stripe = 1  │Stripe = 1  │
-> + * │            │            │            │            │
-> + * └────────────┘────────────┘────────────┘────────────┘
-> + * │Chunk = 8   │Chunk = 9   │Chunk = 10  │Chunk = 11  │
-> + * │Strip = 0   │Strip = 1   │Strip = 2   │Strip = 3   │
-> + * │Stripe = 2  │Stripe = 2  │Stripe = 2  │Stripe = 2  │
-> + * │            │            │            │            │
-> + * └────────────┘────────────┘────────────┘────────────┘
-> + *
-> + * * Data is laid out across chunks in chunk # order
-> + * * Columns are strips
-> + * * Strips are contiguous devdax extents, normally each coming from a
-> + *   different
-> + *   memory device
-
-Combine 2 lines above.
-
-> + * * Rows are stripes
-> + * * The number of chunks is (int)((file_size + chunk_size - 1) / chunk_size)
-> + *   (and obviously the last chunk could be partial)
-> + * * The stripe_size = (nstrips * chunk_size)
-> + * * chunk_num(offset) = offset / chunk_size    //integer division
-> + * * strip_num(offset) = chunk_num(offset) % nchunks
-> + * * stripe_num(offset) = offset / stripe_size  //integer division
-> + * * ...You get the idea - see the code for more details...
-> + *
-> + * Some concrete examples from the layout above:
-> + * * Offset 0 in the file is offset 0 in chunk 0, which is offset 0 in
-> + *   strip 0
-> + * * Offset 4MiB in the file is offset 0 in chunk 2, which is offset 0 in
-> + *   strip 2
-> + * * Offset 15MiB in the file is offset 1MiB in chunk 7, which is offset
-> + *   3MiB in strip 3
-> + *
-> + * Notes about this metadata format:
-> + *
-> + * * For various reasons, chunk_size must be a multiple of the applicable
-> + *   PAGE_SIZE
-> + * * Since chunk_size and nstrips are constant within an interleaved_extent,
-> + *   resolving a file offset to a strip offset within a single
-> + *   interleaved_ext is order 1.
-> + * * If nstrips==1, a list of interleaved_ext structures degenerates to a
-> + *   regular extent list (albeit with some wasted struct space).
-> + */
-> +
-> +
->  /*
-> - * These structures are the in-memory metadata format for famfs files. Metadata
-> - * retrieved via the GET_FMAP response is converted to this format for use in
-> - * resolving file mapping faults.
-> + * The structures below are the in-memory metadata format for famfs files.
-> + * Metadata retrieved via the GET_FMAP response is converted to this format
-> + * for use in  * resolving file mapping faults.
-
-                  ^drop
-
-> + *
-> + * The GET_FMAP response contains the same information, but in a more
-> + * message-and-versioning-friendly format. Those structs can be found in the
-> + * famfs section of include/uapi/linux/fuse.h (aka fuse_kernel.h in libfuse)
->   */
->  
->  enum famfs_file_type {
-> @@ -19,7 +99,7 @@ enum famfs_file_type {
->  	FAMFS_LOG,
->  };
->  
-> -/* We anticipate the possiblity of supporting additional types of extents */
-> +/* We anticipate the possibility of supporting additional types of extents */
->  enum famfs_extent_type {
->  	SIMPLE_DAX_EXTENT,
->  	INTERLEAVED_EXTENT,
-> @@ -63,7 +143,7 @@ struct famfs_file_meta {
->  /*
->   * dax_devlist
->   *
-> - * This is the in-memory daxdev metadata that is populated by
-> + * This is the in-memory daxdev metadata that is populated by parsing
->   * the responses to GET_FMAP messages
->   */
->  struct famfs_daxdev {
-
--- 
-~Randy
-
+Pasha
