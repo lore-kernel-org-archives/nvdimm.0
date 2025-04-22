@@ -1,212 +1,332 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C87E224887
-	for <nvdimm@lists.linux.dev>; Mon, 21 Apr 2025 23:21:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.14
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745277704; cv=fail; b=E6bS9j+iKJzyHyL5Zsiw0jfpc9d3ORLtl4LeLt/TkuAVDHzgMpmMrGv3igtxDcP9p2ppv56j8rimLACt9dR9Ias+JU5LyydLtFgyQP3IBq1bHzu3Pp18Tzzom/M9MMpa37H6LainiIeoRgZElW4mseYkcnT2VFz0dWjVO7zBD7o=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745277704; c=relaxed/simple;
-	bh=X8ODr9yjmjen+/H2N1cTaDJnsfF9/6p7VVgm+NQ5dnc=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=Iz8xJ5Jh6b+mSO3bHLAeaALYESjNqVhzp5DFRE7dRXlSEqu9MrbcO/HI+u0fIuUcfTARj4oAZjo+goZlIw/90ZrTLew567GjrNKBIbLlRM3g16rvDQz89Wo0YshVmBl80wfG/2Km4Im0mOX5K4N6rqV8sv8XzAk2Hyzy72LwxHU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ZWnduDac; arc=fail smtp.client-ip=198.175.65.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE8E0125DF;
+	Tue, 22 Apr 2025 01:25:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1745285138; cv=none; b=EbDiIgtEHooD/T3NZyf8jneA5PvjIVGWYxDFmIL4E9ZagVMLx6EfIUclw89AQOMtUwp8WXoVUjd2YjCxjK2c7vAf0jlYWHflr5iQWazoGN28HTWmCPJE0OQzHHl0aqkaam2t3f6xyLWszIZtSPnhTepyQFod31pFNc42YHB2TZE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1745285138; c=relaxed/simple;
+	bh=beyaRmF+nkMa2OmUzGxepPUNv5XrwYiI3FFAOsjubnE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=S+5/decB+f2WWWIUEKHwMQ3LCxcPrmtvjvDZ30BUnvovnB3ovHA4iCwjcls6YmiNceP8i/u4bbcxLE2nDNliAYMUhnEaHzMGx0Jfxa+SzssXes9FdvJNFy8cHjRj7AWz9Hdhq5ptCiqx8NWi0jVYXb3Avuc5qSeUMh94wYRlEME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VOA26Sow; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZWnduDac"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1745277702; x=1776813702;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=X8ODr9yjmjen+/H2N1cTaDJnsfF9/6p7VVgm+NQ5dnc=;
-  b=ZWnduDacMKXhlCK73gOVl15HSLf/G49fj6ffBIUMf2kTaXCuGIkQb6tR
-   K4klM77cadkG7mdaDUsz1alZKIZMyY1XYpn89oqnqi+8NPDZdXx0DoUgG
-   9zzGf3AEL/a61FtDsI8s6ymuMWogrqT8VwHT+KeHamaj0JvuTVhJPGteD
-   QOsI0Q4KFPuIJRDkz4FDMXD9SZapFeaxop22vfBP2ag7PstwdtvHKbBPD
-   eZQJ8tyUloTHd5lvdmi+b2MiqHgcEfGquNUifLUMaNNYn2jcMKLMxJW83
-   sCIVVhs+KqcuSrqSgrR17cAEtWCBnk0PZGChTxsLX9MMkhjVBUM2NIuNQ
-   g==;
-X-CSE-ConnectionGUID: j4WoWfHmRAaZxC/ToN9hDg==
-X-CSE-MsgGUID: GbMftsouSD6SCdhbmAvBlw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11410"; a="50621885"
-X-IronPort-AV: E=Sophos;i="6.15,229,1739865600"; 
-   d="scan'208";a="50621885"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2025 16:21:42 -0700
-X-CSE-ConnectionGUID: ZmKdDpdhSn6X9CwKmHItEw==
-X-CSE-MsgGUID: 9hovG0COST6lKOSJaO4KGA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,229,1739865600"; 
-   d="scan'208";a="132804951"
-Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
-  by orviesa008.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2025 16:21:42 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14; Mon, 21 Apr 2025 16:21:41 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14 via Frontend Transport; Mon, 21 Apr 2025 16:21:41 -0700
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.48) by
- edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Mon, 21 Apr 2025 16:21:40 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=BRSAJG36BavCf5gdJVInJEuroew01rufY9tlzW+k6Eko6FTi0CpVeCie84B4j71SJkj2lcjSaQ0CXcJH2PW9CeT5lPP9LtnCxW/tcOamMbMIOjxfPwt2Mi8Q5l4luigzqATo8/J948dKamc/SEF++d4eT1y6hH76axxd0PixM1zoXFWhaP2fvHbA8ye6CeAINRpjQg7o9n5tze36U2z88vEeox7HawpYjQVMfieuUOJx6OwHOvCmXOPoZ2LQw+CbIluoCkcf+Ai+isUT2o9XOcJdd8mu7Bz+ynAe34Wpw0fs+QPkaEbJZGLNOLG2StlZ8/9TrLpgBgNkyA82qFNWCQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=h3+lzcBGktDynO3eZX315oiVKoQ0PtBI3xYFVbW4hrk=;
- b=NIh8/YYiIAzkwaOOWaU9YJqJ4NWmsGVu4hc/NzNQK7tV0Z8Ez3QEG5BvPwQDtHif/Bn6iOqEIsakAhNF6v0nThAql4LoKItVQLmRNKcgXi+EJHRhGV9C+owd2rbm91IQqOsyA+TUEux+mO7kRjvCUf16lzyVHD+NN8MU+kS04z7U3EhgqtySGzNJQWNy7Ad3SFRdx4q02f4Z9yqzDnqGU/Ak1iozw/U9ByPcOJqKJkiQUUo+c4saFr+mNusax3SedYls8t3V1/E6LoJl0nlLi0RE/vJLgNs/8Kh++leERwo3KVA7N8gseZC7Fe5KBOA88NvWtHS3koSIBHMd4Viksw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by SJ2PR11MB7545.namprd11.prod.outlook.com (2603:10b6:a03:4cc::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8655.35; Mon, 21 Apr
- 2025 23:20:58 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%4]) with mapi id 15.20.8655.031; Mon, 21 Apr 2025
- 23:20:58 +0000
-Date: Mon, 21 Apr 2025 16:20:55 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Michal Clapinski <mclapinski@google.com>, Pasha Tatashin
-	<pasha.tatashin@soleen.com>, Dan Williams <dan.j.williams@intel.com>, "Vishal
- Verma" <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Ira
- Weiny" <ira.weiny@intel.com>, Jonathan Corbet <corbet@lwn.net>
-CC: <nvdimm@lists.linux.dev>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Michal Clapinski <mclapinski@google.com>
-Subject: Re: [PATCH v2 1/1] libnvdimm/e820: Add a new parameter to configure
- many regions per e820 entry
-Message-ID: <6806d2d6f2aed_71fe294ed@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20250417142525.78088-1-mclapinski@google.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20250417142525.78088-1-mclapinski@google.com>
-X-ClientProxiedBy: MW4PR03CA0004.namprd03.prod.outlook.com
- (2603:10b6:303:8f::9) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VOA26Sow"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E590C4CEE4;
+	Tue, 22 Apr 2025 01:25:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1745285137;
+	bh=beyaRmF+nkMa2OmUzGxepPUNv5XrwYiI3FFAOsjubnE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VOA26SowJhq1l7aJcoGhjG3vwzVWr5XlwywCFShRYH5THKqyA3qaZenEMB5uBFyrU
+	 t+fBsBG6LubT1UH7CEdopx3FCe4xeOI7xt7oXBZLllQ4sOcp+uVR9zHE1g7ejOSf++
+	 Ngcv6d6o1m4UKrAHQLTHGDLE5Vbszp+892CHXiykxwNH7KR132kRtNzDsAbWW/pa2W
+	 JR7Ti6kqEUAZ4IK5q1fGR1OaG9dtwE7O1+iSD1KUDtyMBcJRucAYIUEK8+Z93sma/3
+	 IwVHa1gJ9Z1NAzZXkG9syG65X8lF5xwdipYdCOGNY9ay9+rkZkGLWvKg9BGkBFsTqs
+	 FHnPKitUpDOYQ==
+Date: Mon, 21 Apr 2025 18:25:37 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: John Groves <John@groves.net>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Bernd Schubert <bschubert@ddn.com>,
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Luis Henriques <luis@igalia.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Stefan Hajnoczi <shajnocz@redhat.com>,
+	Joanne Koong <joannelkoong@gmail.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC PATCH 00/19] famfs: port into fuse
+Message-ID: <20250422012537.GL25659@frogsfrogsfrogs>
+References: <20250421013346.32530-1-john@groves.net>
+ <20250421182758.GJ25659@frogsfrogsfrogs>
+ <37ss7esexgblholq5wc5caeizhcjpjhjxsghqjtkxjqri4uxjp@gixtdlggap5i>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SJ2PR11MB7545:EE_
-X-MS-Office365-Filtering-Correlation-Id: 47a57867-5699-43ad-e771-08dd812b2c30
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?ihfxFP3eH4eSJfwIbNx+3ixnEcflwLFUhuhR01UxKdsKGmkH7GYaCzjVBGgQ?=
- =?us-ascii?Q?txMMFKWe/EubdPKCJrzj3kgziVtWruUg7drWWwFMmcwyP9SFugW+eOEzvxjI?=
- =?us-ascii?Q?3vX0I/rT50j6mg6Nl3zKnzJyksI4en3GwKrbz7jzggOdzTWqdirXT+F+Wbwb?=
- =?us-ascii?Q?DlS5Kf4+nUgtjpk9ViHyWSYZhUCHuLPBXcFEUIk35vUrpuNqzWjBz4gF1qGj?=
- =?us-ascii?Q?0XTrFX2VLT7LNuVlTiL513cYGQ7fHhq5qkx+1POWRxIi8n1AfBq8w6UfUxKH?=
- =?us-ascii?Q?6b6DRPaN1PiBF9MXUdd1kqBVZtfLWXNtwN2qiNSXZvV96aU1yioizpxUAgYr?=
- =?us-ascii?Q?Nz1kTl3MvTf00hou7m4LX7+V5HwokIexfUr5JqhMbKWB1s3f2aUyL6L8xTi1?=
- =?us-ascii?Q?VUBIcJWh3/DVkoMDJtwSQaBHCbsTGKxqpM2krqu3WaVnodKh8fZ1C+CXVL/B?=
- =?us-ascii?Q?tJvRpEBpfExOzD2styM6VHLumrCPBBCHutPFVd/HYTdLKduzFSOXON6XAeFI?=
- =?us-ascii?Q?9DRcudVAlI0hEcGizgJR7IM6HBceQ7LcecGh3FxBTrbqLMYjvPwHwfbGI+CS?=
- =?us-ascii?Q?ZsQGtZ+fpNrGA1P0SKSesmvbb09GpelstJIni4lNJxGA5KpnSgH+0l1O+MDq?=
- =?us-ascii?Q?JVhIoy0zySfTY9XJeupFQXPjFFsBjjLLYorvP+6Lo7HWUZLBlS1faEM37ZF8?=
- =?us-ascii?Q?zrU+JBq/I9kRI87iUx4MxX6o+GZbnaxPGZ0sjEZHZ9qRwJeR17iHVVTIQ3yf?=
- =?us-ascii?Q?VItlJ/PGxGPuS8fUcD7CXfUU8rRF1AnPI8xCOuZZ0G1rC8z0c0PNW3SfcB1v?=
- =?us-ascii?Q?23r2kc8s9kHXFbfFouLQ43tbJZNe89M7iMR5M6R0FyR5yhRWXUVJzqEwRV8X?=
- =?us-ascii?Q?M4Ra9aD2wwZ7LmS3dBz/HO+X5eOniHx7YomNOrdem3N8lePKtRz1iNB6H9yX?=
- =?us-ascii?Q?IR3acdURaYeYVV+FwFFyT+6FmnlCbOlsMN0MomLhrNFHk/lyoMD03LGlHg7c?=
- =?us-ascii?Q?FQDbweLWw1q+rB1zQG/oBWWMpKZJLGOj1XjKYicf/D+kZD6hvp8GGHrCEgvR?=
- =?us-ascii?Q?wpxKD2EYSpvfsGQ2wTPfPE+42nucQMTAiTQU0OcQf5rZzT1iBLOwWy9fJ2E+?=
- =?us-ascii?Q?uASsSzLOrfD6OZH16EluOMVYIc+QJdXIwpacL0kaAfbteSB0l29GTIz8z10L?=
- =?us-ascii?Q?LVD4F56x49gEhG7qTNsIKL4d230UAnuvQJu6v33HFxhhxWe7MCc9HYhCFExw?=
- =?us-ascii?Q?+GFIhocc+1aDObtB/FMapI1i+ONfFMuZ+MONqAAWi2rP33wj2TggAuQyTwsN?=
- =?us-ascii?Q?mK3IvAk5mEBiqAH02yULqg7mm1R0ejKcB+/jbN28I4uCUKSh28aUVgqDL8uq?=
- =?us-ascii?Q?/KzJGP7MCiIblGrCCnjSlaT48uMLTICNee6U0avvEnk+M65q3w=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?wA8Ih4L+C8S+hAmhrW+I2E8DCtRWFYKupN6VzxOJByVd7kGsTOVUR9Zy149o?=
- =?us-ascii?Q?HNoJCmgKaJ5idEw3L6kdpj7Ljq6uU12AN22d0ccVESxl14TFL2on3l8aO+Lp?=
- =?us-ascii?Q?4W5isB0wN8KgFRvZVt8ALXfeklTTIaM8xrPQzvzva/VWhPdKAcuO2fgV8Uux?=
- =?us-ascii?Q?3/ntETRhLhPjOPSJj/qLMY6mNbRdmqWWdN4tWWg8fpyGF/IKy3hdytHR7Kgq?=
- =?us-ascii?Q?EZGnSmDHEIt5xA2QgroDL4e5UZefsIwAMLj2Hmp8S9+oui9u+Cg2A0T3cibm?=
- =?us-ascii?Q?ihd2uhhj0EimzOO/roMksnoN/TfUwzhXAkmVKoXF/la2wIBEZ5jnpZNN3Xd7?=
- =?us-ascii?Q?vY1b2m/o8XxEjuDs7J0GCoW+G8ZSkIp8BlEUA+9xCw4eHUZ0X8ejSOmaBAbh?=
- =?us-ascii?Q?cTCrxLJdzS1pCdglHzJCkJy9zw+5v3lxUBY4Ra6ep8Mx5ryzgXF6EYAz/+VK?=
- =?us-ascii?Q?VKMioUfHIfPo0/wh4osX7Jz1StTQBQsxDBDI/R7C8VFHwEYpDsBWy0Z7/HOJ?=
- =?us-ascii?Q?q3gFYvcwd69pmpInHKK00tAE7XE5pegtV/7TTTET95zw42pe57uAJPF6N9Wx?=
- =?us-ascii?Q?5Bhe/km/+JK+W4SJ6EOys37jwhat8hAAyOEH6JljM+D1t1j+2sJVGuClWvlu?=
- =?us-ascii?Q?BKEZwioxKphidRlJMGecmbbggJjSgViV/KeY4rhaJarY8MiiZ7yeJ4Df4imu?=
- =?us-ascii?Q?46GVTN8TOdM5wAwK8lyeRrQgSVY2lpCOMmfE58oUJ8GAbHSKMqAz+ZbN47Bl?=
- =?us-ascii?Q?5JPMCr+LnzKSHYRsHJY076XSNQjvDUMZuY+deEWJDyES/UvzmIil7wBh/79l?=
- =?us-ascii?Q?gBgjvhKO/4GlSh/RS1aNVrmy7y3x1kKO7cAl02zjhljWV5zrgx4k9slj4LnE?=
- =?us-ascii?Q?qjuZ38joCAPHCBuZXsYa0i0QygNbwphrdOTzhbgcDboDiEwMy3JQISUrEVzN?=
- =?us-ascii?Q?Yb3mXgd1q9tYXIWOXbpF8UNbpcQRUhRWmcHkTo8Wms3SFzc5mO4bit8AzmPZ?=
- =?us-ascii?Q?kAPSdn22qiOajoVElgge7RDzMoGssfPOPg3DXz33/DwledJ0PZrfvGymAKo1?=
- =?us-ascii?Q?RUSozUMQ8x0+bTcUTKADoHLl5/5h48i9BYA6jYa7ZrPLndhdsKXaGOAjxjl0?=
- =?us-ascii?Q?VseZOehrG7b62pPzeIY1faXZL+qJLJSUe9JUEnT4fIJKXExPO6oavIU/+c01?=
- =?us-ascii?Q?NLtwBzIe3OKQclGogHK9eL+bKcZPfd3ftv6W1TwCv9maPykRcTRvyKptCFU7?=
- =?us-ascii?Q?KHOxgR6xBfJFAubJsJrgv1EGImUw1lmSoo+qdTs8Zxbp/rET1eWw3k5ZX6P2?=
- =?us-ascii?Q?zfjFfS2vC9W+qeezDX3nrWSCPh/W/BFANMxiObCKhawCcBcZCCnFlIoZp6uZ?=
- =?us-ascii?Q?YpAa5Y7xnmHswfzvqZc2j+jnCobuNszpgP2WP1t7g5ctqILDxCzLuHe4PCEs?=
- =?us-ascii?Q?7FwYVVI2Ax6yAByBEPw3irFpc/YaPaH07SWLNsGPCzIqRjgHaXPvN7GOipTA?=
- =?us-ascii?Q?w/uf7BIT3xaVWb9EnAAAfjk9oKk6mrqH9FZlpyYINaoYLJnINlCW/uEFahNd?=
- =?us-ascii?Q?+yH04pGsUvKUJ2boq7YhLadTxBxt16JYIRu57W6itFvPCGVxRR+RI86rywim?=
- =?us-ascii?Q?ew=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 47a57867-5699-43ad-e771-08dd812b2c30
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Apr 2025 23:20:58.3271
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: UocFCCDaaA3QqK4Tx0W51VALomgczr/FouXabTg0Y6WJSHIyn2k5M42tte45FCiyHxYtDrs22dKvir6dWToJ52E1SI2BPiguPGz/jR74hIQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7545
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37ss7esexgblholq5wc5caeizhcjpjhjxsghqjtkxjqri4uxjp@gixtdlggap5i>
 
-Michal Clapinski wrote:
-> Currently, the user has to specify each memory region to be used with
-> nvdimm via the memmap parameter. Due to the character limit of the
-> command line, this makes it impossible to have a lot of pmem devices.
-> This new parameter solves this issue by allowing users to divide
-> one e820 entry into many nvdimm regions.
+On Mon, Apr 21, 2025 at 05:00:35PM -0500, John Groves wrote:
+> On 25/04/21 11:27AM, Darrick J. Wong wrote:
+> > On Sun, Apr 20, 2025 at 08:33:27PM -0500, John Groves wrote:
+> > > Subject: famfs: port into fuse
+> > > 
+> > > This is the initial RFC for the fabric-attached memory file system (famfs)
+> > > integration into fuse. In order to function, this requires a related patch
+> > > to libfuse [1] and the famfs user space [2]. 
+> > > 
+> > > This RFC is mainly intended to socialize the approach and get feedback from
+> > > the fuse developers and maintainers. There is some dax work that needs to
+> > > be done before this should be merged (see the "poisoned page|folio problem"
+> > > below).
+> > 
+> > Note that I'm only looking at the fuse and iomap aspects of this
+> > patchset.  I don't know the devdax code at all.
+> > 
+> > > This patch set fully works with Linux 6.14 -- passing all existing famfs
+> > > smoke and unit tests -- and I encourage existing famfs users to test it.
+> > > 
+> > > This is really two patch sets mashed up:
+> > > 
+> > > * The patches with the dev_dax_iomap: prefix fill in missing functionality for
+> > >   devdax to host an fs-dax file system.
+> > > * The famfs_fuse: patches add famfs into fs/fuse/. These are effectively
+> > >   unchanged since last year.
+> > > 
+> > > Because this is not ready to merge yet, I have felt free to leave some debug
+> > > prints in place because we still find them useful; those will be cleaned up
+> > > in a subsequent revision.
+> > > 
+> > > Famfs Overview
+> > > 
+> > > Famfs exposes shared memory as a file system. Famfs consumes shared memory
+> > > from dax devices, and provides memory-mappable files that map directly to
+> > > the memory - no page cache involvement. Famfs differs from conventional
+> > > file systems in fs-dax mode, in that it handles in-memory metadata in a
+> > > sharable way (which begins with never caching dirty shared metadata).
+> > > 
+> > > Famfs started as a standalone file system [3,4], but the consensus at LSFMM
+> > > 2024 [5] was that it should be ported into fuse - and this RFC is the first
+> > > public evidence that I've been working on that.
+> > 
+> > This is very timely, as I just started looking into how I might connect
+> > iomap to fuse so that most of the hot IO path continues to run in the
+> > kernel, and userspace block device filesystem drivers merely supply the
+> > file mappings to the kernel.  In other words, we kick the metadata
+> > parsing craziness out of the kernel.
 > 
-> This change is needed for the hypervisor live update. VMs' memory will
-> be backed by those emulated pmem devices. To support various VM shapes
-> I want to create devdax devices at 1GB granularity similar to hugetlb.
+> Coool!
+> 
+> > 
+> > > The key performance requirement is that famfs must resolve mapping faults
+> > > without upcalls. This is achieved by fully caching the file-to-devdax
+> > > metadata for all active files. This is done via two fuse client/server
+> > > message/response pairs: GET_FMAP and GET_DAXDEV.
+> > 
+> > Heh, just last week I finally got around to laying out how I think I'd
+> > want to expose iomap through fuse to allow ->iomap_begin/->iomap_end
+> > upcalls to a fuse server.  Note that I've done zero prototyping but
+> > "upload all the mappings at open time" seems like a reasonable place for
+> > me to start looking, especially for a filesystem with static mappings.
+> > 
+> > I think what I want to try to build is an in-kernel mapping cache (sort
+> > of like the one you built), only with upcalls to the fuse server when
+> > there is no mapping information for a given IO.  I'd probably want to
+> > have a means for the fuse server to put new mappings into the cache, or
+> > invalidate existing mappings.
+> > 
+> > (famfs obviously is a simple corner-case of that grandiose vision, but I
+> > still have a long way to get to my larger vision so don't take my words
+> > as any kind of requirement.)
+> > 
+> > > Famfs remains the first fs-dax file system that is backed by devdax rather
+> > > than pmem in fs-dax mode (hence the need for the dev_dax_iomap fixups).
+> > > 
+> > > Notes
+> > > 
+> > > * Once the dev_dax_iomap patches land, I suspect it may make sense for
+> > >   virtiofs to update to use the improved interface.
+> > > 
+> > > * I'm currently maintaining compatibility between the famfs user space and
+> > >   both the standalone famfs kernel file system and this new fuse
+> > >   implementation. In the near future I'll be running performance comparisons
+> > >   and sharing them - but there is no reason to expect significant degradation
+> > >   with fuse, since famfs caches entire "fmaps" in the kernel to resolve
+> > 
+> > I'm curious to hear what you find, performance-wise. :)
+> > 
+> > >   faults with no upcalls. This patch has a bit too much debug turned on to
+> > >   to that testing quite yet. A branch 
+> > 
+> > A branch ... what?
+> 
+> I trail off sometimes... ;)
+> 
+> > 
+> > > * Two new fuse messages / responses are added: GET_FMAP and GET_DAXDEV.
+> > > 
+> > > * When a file is looked up in a famfs mount, the LOOKUP is followed by a
+> > >   GET_FMAP message and response. The "fmap" is the full file-to-dax mapping,
+> > >   allowing the fuse/famfs kernel code to handle read/write/fault without any
+> > >   upcalls.
+> > 
+> > Huh, I'd have thought you'd wait until FUSE_OPEN to start preloading
+> > mappings into the kernel.
+> 
+> That may be a better approach. Miklos and I discussed it during LPC last year, 
+> and thought both were options. Having implemented it at LOOKUP time, I think
+> moving it to open might avoid my READDIRPLUS problem (which is that RDP is a
+> mashup of READDIR and LOOKUP), therefore might need to add the GET_FMAP
+> payload. Moving GET_FMAP to open time, would break that connection in a good
+> way, I think.
 
-This looks fairly straightforward, but if this moves forward I would
-explicitly call the parameter something like "split" instead of "pmem"
-to align it better with its usage.
+I wonder if we could just add a couple new "notification" types so that
+the fuse server can initiate uploads of mappings whenever it feels like
+it.  For your usage model I don't think it'll make much difference since
+they seem pretty static, but the ability to do that would open up some
+flexibility for famfs.  The more general filesystems will need it
+anyway, and someone's going to want to truncate a famfs file.  They
+always do. ;)
 
-However, while this is expedient I wonder if you would be better
-served with ACPI table injection to get more control and configuration
-options...
+> > 
+> > > * After each GET_FMAP, the fmap is checked for extents that reference
+> > >   previously-unknown daxdevs. Each such occurence is handled with a
+> > >   GET_DAXDEV message and response.
+> > 
+> > I hadn't figured out how this part would work for my silly prototype.
+> > Just out of curiosity, does the famfs fuse server hold an open fd to the
+> > storage, in which case the fmap(ping) could just contain the open fd?
+> > 
+> > Where are the mappings that are sent from the fuse server?  Is that
+> > struct fuse_famfs_simple_ext?
+> 
+> See patch 17 or fs/fuse/famfs_kfmap.h for the fmap metadata explanation. 
+> Famfs currently supports either simple extents (daxdev, offset, length) or 
+> interleaved ones (which describe each "strip" as a simple extent). I think 
+> the explanation in famfs_kfmap.h is pretty clear.
+> 
+> A key question is whether any additional basic metadata abstractions would
+> be needed - because the kernel needs to understand the full scheme.
+> 
+> With disaggregated memory, the interleave approach is nice because it gets
+> aggregated performance and resolving a file offset to daxdev offset is order
+> 1.
+> 
+> Oh, and there are two fmap formats (ok, more, but the others are legacy ;).
+> The fmaps-in-messages structs are currently in the famfs section of
+> include/uapi/linux/fuse.h. And the in-memory version is in 
+> fs/fuse/famfs_kfmap.h. The former will need to be a versioned interface.
+> (ugh...)
 
-> It's also possible to expand this parameter in the future,
-> e.g. to specify the type of the device (fsdax/devdax).
+Ok, will take a look tomorrow morning.
 
-...for example, if you injected or customized your BIOS to supply an
-ACPI NFIT table you could get to deeper degrees of customization without
-wrestling with command lines. Supply an ACPI NFIT that carves up a large
-memory-type range into an aribtrary number of regions. In the NFIT there
-is a natural place to specify whether the range gets sent to PMEM. See
-call to nvdimm_pmem_region_create() near NFIT_SPA_PM in
-acpi_nfit_register_region()", and "simply" pick a new guid to signify
-direct routing to device-dax. I say simply, but that implies new ACPI
-NFIT driver plumbing for the new mode.
+> > 
+> > > * Daxdevs are stored in a table (which might become an xarray at some point).
+> > >   When entries are added to the table, we acquire exclusive access to the
+> > >   daxdev via the fs_dax_get() call (modeled after how fs-dax handles this
+> > >   with pmem devices). famfs provides holder_operations to devdax, providing
+> > >   a notification path in the event of memory errors.
+> > > 
+> > > * If devdax notifies famfs of memory errors on a dax device, famfs currently
+> > >   bocks all subsequent accesses to data on that device. The recovery is to
+> > >   re-initialize the memory and file system. Famfs is memory, not storage...
+> > 
+> > Ouch. :)
+> 
+> Cautious initial approach (i.e. I'm trying not to scare people too much ;) 
+> 
+> > 
+> > > * Because famfs uses backing (devdax) devices, only privileged mounts are
+> > >   supported.
+> > > 
+> > > * The famfs kernel code never accesses the memory directly - it only
+> > >   facilitates read, write and mmap on behalf of user processes. As such,
+> > >   the RAS of the shared memory affects applications, but not the kernel.
+> > > 
+> > > * Famfs has backing device(s), but they are devdax (char) rather than
+> > >   block. Right now there is no way to tell the vfs layer that famfs has a
+> > >   char backing device (unless we say it's block, but it's not). Currently
+> > >   we use the standard anonymous fuse fs_type - but I'm not sure that's
+> > >   ultimately optimal (thoughts?)
+> > 
+> > Does it work if the fusefs server adds "-o fsname=<devdax cdev>" to the
+> > fuse_args object?  fuse2fs does that, though I don't recall if that's a
+> > reasonable thing to do.
+> 
+> The kernel needs to "own" the dax devices. fs-dax on pmem/block calls
+> fs_dax_get_by_bdev() and passes in holder_operations - which are used for
+> error upcalls, but also effect exclusive ownership. 
+> 
+> I added fs_dax_get() since the bdev version wasn't really right or char
+> devdax. But same holder_operations.
+> 
+> I had originally intended to pass in "-o daxdev=<cdev>", but famfs needs to
+> span multiple daxdevs, in order to interleave for performance. The approach
+> of retrieving them with GET_DAXDEV handles the generalized case, so "-o"
+> just amounts to a second way to do the same thing.
 
-Another overlooked detail about NFIT is that there is an opportunity to
-determine cases where the platform might have changed the physical
-address map from one boot to the next. In other words, I cringe at the
-fragility of memmap=, but I understand that it has the benefit of being
-simple. See the "nd_set cookie" concept in
-acpi_nfit_init_interleave_set().
+Oh, hah, it's a multi-device filesystem.  Hee hee hee...
+
+> "But wait"... I thought. Doesn't the "-o" approach get the primary daxdev
+> locked up sooner, which might be good? Well, no, because famfs creates a
+> couple of meta files during mount .meta/.superblock and .meta/.log - and 
+> those are guaranteed to reference the primary daxdev. So I concluded the -o
+> approach wasn't worth the trouble (though it's not *much* trouble).
+
+<nod> For block devices, someone needs to own the bdev O_EXCL, but it
+doesn't have to be the kernel.  Though ... I wonder what *does* happen
+when the something tries to invoke the bdev holder_ops?  Maybe it would
+be nice to freeze the fs, but I don't know if fuse already does that.
+
+> > 
+> > > The "poisoned page|folio problem"
+> > > 
+> > > * Background: before doing a kernel mount, the famfs user space [2] validates
+> > >   the superblock and log. This is done via raw mmap of the primary devdax
+> > >   device. If valid, the file system is mounted, and the superblock and log
+> > >   get exposed through a pair of files (.meta/.superblock and .meta/.log) -
+> > >   because we can't be using raw device mmap when a file system is mounted
+> > >   on the device. But this exposes a devdax bug and warning...
+> > > 
+> > > * Pages that have been memory mapped via devdax are left in a permanently
+> > >   problematic state. Devdax sets page|folio->mapping when a page is accessed
+> > >   via raw devdax mmap (as famfs does before mount), but never cleans it up.
+> > >   When the pages of the famfs superblock and log are accessed via the "meta"
+> > >   files after mount, we see a WARN_ONCE() in dax_insert_entry(), which
+> > >   notices that page|folio->mapping is still set. I intend to address this
+> > >   prior to asking for the famfs patches to be merged.
+> > > 
+> > > * Alistair Popple's recent dax patch series [6], which has been merged
+> > >   for 6.15, addresses some dax issues, but sadly does not fix the poisoned
+> > >   page|folio problem - its enhanced refcount checking turns the warning into
+> > >   an error.
+> > > 
+> > > * This 6.14 patch set disables the warning; a proper fix will be required for
+> > >   famfs to work at all in 6.15. Dan W. and I are actively discussing how to do
+> > >   this properly...
+> > > 
+> > > * In terms of the correct functionality of famfs, the warning can be ignored.
+> > > 
+> > > References
+> > > 
+> > > [1] - https://github.com/libfuse/libfuse/pull/1200
+> > > [2] - https://github.com/cxl-micron-reskit/famfs
+> > 
+> > Thanks for posting links, I'll have a look there too.
+> > 
+> > --D
+> > 
+> 
+> I'm happy to talk if you wanna kick ideas around.
+
+Heheh I will, but give me a day or two to wander through the rest of the
+patches, or maybe just decide to pull the branch and look at one huge
+diff.
+
+--D
+
+> Cheers,
+> John
+> 
+> 
