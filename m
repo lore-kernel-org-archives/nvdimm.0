@@ -1,479 +1,210 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BF1F289359
-	for <nvdimm@lists.linux.dev>; Wed, 23 Apr 2025 18:17:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745432276; cv=fail; b=n2qd3ATU5fVDNbum+cWdnlKJlF5+iUcrM6B+/rUhLpBV9LW46MuVJ7ZjAnjP3QD7pw7ETFw4TsTyFUbPAGLZrVI+o/mgriWcbwLG8EibTXnyfqwzrzd5lwr38HB3nviSOpkRdnALaGfk5BQga10B9+WDeNrk8LdoryJFY5StaYw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745432276; c=relaxed/simple;
-	bh=QSTz87egF5PsIUS6ZqyHUERVuWHJU1xmripoZ6UhAQw=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=GfYhJBrT8saUhN4cHHZ79xLHCEr4nLTFHNPHwfx6IPr/cLT0jE20YMbC01lXUAvRViWw5cwZLLI25/BQ38bs3G+8rStWOrnAt9XVaJVKK1HoiFjPgN/mybi01AiVMik6rlQN8Gkx0wqcmUtTEbF/5uKH6xTZ3TCkq1xTYj6ICLo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PG0BeD6t; arc=fail smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC4021ACED5
+	for <nvdimm@lists.linux.dev>; Wed, 23 Apr 2025 20:19:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.169
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1745439550; cv=none; b=IPVkNQPOZ0t/2pp1tkkAPbFNcwuL21lulLgO0pUYZhZvmYwD6ivADOiitnSjGXJK1zp/DgUxXW3vRX6hE872a1aF5AL4yQge6uViaUnVFvLI9MFZHnZ8pXC4XMq4qe8CDZkBJqAj5OauPf6jEYhSTq/fWYKvbNqzfWe4JmU+nkw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1745439550; c=relaxed/simple;
+	bh=Hjyfm1RDvnrb3r506AIGW33tNSvbha+9sei4TDw4B1U=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dgI/DYqZyIFDFpK7X06vLQstHGK8Ksuq0ln9Unur1RQ5v60YRV3jP6OMWKCjSrV17cY8aejNnBnaovnEpMSBqZZFE0z6nkiTr2Ry31vSHF6gr8UnqoaR86CQ8HMMv7Qhp+e2UuQGyh52fdIW743mBtaTDLxc3VB/OgClFIsZV+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=R2zXwknW; arc=none smtp.client-ip=209.85.167.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PG0BeD6t"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1745432273; x=1776968273;
-  h=date:from:to:cc:subject:message-id:references:
-   content-transfer-encoding:in-reply-to:mime-version;
-  bh=QSTz87egF5PsIUS6ZqyHUERVuWHJU1xmripoZ6UhAQw=;
-  b=PG0BeD6tBQavESFMiZ/nyu3205VwNtpY+vrcx6AGOhhxD3bVEYLNCZil
-   rdDqBRD5aEKlAcC9qGcxKbaRc+O+kiirltMctapmrODJb1ya6591o9iL2
-   QCx2aT+D93tj7+oMl0zK7CVRkktODDmKF+xQb4/UA6/6ZTh/YkDvTPos1
-   SkFPj3gnJE76o8ywZGtJZneY7bjdlqeFXaFRAH57/ioHdmIMYhx/C/jnI
-   ekekyCsGkfPi7u7l3dmlQc6YSWS3XNR92PhCyG8zQd8RYf9XCa3dZ7jSb
-   nTBgI7y0+U5+UEhpTSaIeEVTmUI/uYN6VISRHDOLn5x5YPTxtUqc2isGV
-   g==;
-X-CSE-ConnectionGUID: 1MoKhiuIRcibxmZ7WJHeFw==
-X-CSE-MsgGUID: PxY2aWkYSbCxD+GxUFVFXw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11412"; a="50706163"
-X-IronPort-AV: E=Sophos;i="6.15,233,1739865600"; 
-   d="scan'208";a="50706163"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Apr 2025 11:17:52 -0700
-X-CSE-ConnectionGUID: ZXePOZSaQaCtOvLvg0db3Q==
-X-CSE-MsgGUID: uvwwllAFTO6hL9qfMu2QvA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,233,1739865600"; 
-   d="scan'208";a="132136986"
-Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
-  by orviesa009.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Apr 2025 11:17:53 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14; Wed, 23 Apr 2025 11:17:51 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14 via Frontend Transport; Wed, 23 Apr 2025 11:17:51 -0700
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.174)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Wed, 23 Apr 2025 11:17:51 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=jgql4IlnM8Q1C3WFLAEXEck6X/TcGY0NjLQpAMciJImw55mWc/PLbEd9VECFTtIXHI2rm6Z/6JHispzHG3IFh/mngSnOEwNPG3ITqYkTX9BJhYsf80sGIDd8WIn8CXV4E82eEZ9GqewUc3/qFKgU9RsKmFpwXB64xk4iZYJGeN9QV688TY7RL4+2fAt+VEyqyxU04Pbn51oBVYN25r4trsQr6JZCS6bYcajbTmkOwk1sIY9juBo2C902wWaf3PaOcntA060g86rnnDRDIjMtGxNtQkcFDOrlgIOM8fnGk23Bli5PcsDk/fh5qb997UZIubMFYD3AurpF+ya9ip09Dg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=+v6B8g+7jN3k+GEmPxLH6fYNAWWu6ETuL8dXW7TQy28=;
- b=AJ3GCEr23shhQmZh8m0fNBQHwd5KNtj2siWfJLkhUE5YcWsZ4jaOWSa5eUzhI+WtkrjGzSQEf6fdytofOlMf5bq/US7ckNf9ZODtXkjpka9t0zFYlkiAXjXpB5zhAeQKJbu5HrwwL98m5GpcM6+b0w4eJ0TPpKJBWBIVxenn7x5hUbtqnHIxMPbSCX8t6fOcvs0A8U+zFZWvOhGA8BbsojBMu1CB33t450UdBzkxZ4FiYYdgg5uT5frnyAe/0IPEk/Ea9GBV5DuxhmbE5xfhRd69/DX558CyePTC0o0aJtNMnyDNRAuN9uYl3QGFuSQuq6T7shbO4oYt1heLHDDWxQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB8794.namprd11.prod.outlook.com (2603:10b6:806:46a::5)
- by SA1PR11MB8857.namprd11.prod.outlook.com (2603:10b6:806:46b::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8655.35; Wed, 23 Apr
- 2025 18:17:44 +0000
-Received: from SA1PR11MB8794.namprd11.prod.outlook.com
- ([fe80::a3d4:9d67:2f5d:6720]) by SA1PR11MB8794.namprd11.prod.outlook.com
- ([fe80::a3d4:9d67:2f5d:6720%5]) with mapi id 15.20.8678.021; Wed, 23 Apr 2025
- 18:17:44 +0000
-Date: Wed, 23 Apr 2025 11:17:40 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Davidlohr Bueso <dave@stgolabs.net>
-CC: <y-goto@fujitsu.com>, <nvdimm@lists.linux.dev>,
-	<linux-cxl@vger.kernel.org>
-Subject: Re: [PATCH v4 -ndctl] cxl/memdev: Introduce sanitize-memdev
- functionality
-Message-ID: <aAkuxAG30M_WxT8d@aschofie-mobl2.lan>
-References: <20250318234543.562359-1-dave@stgolabs.net>
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250318234543.562359-1-dave@stgolabs.net>
-X-ClientProxiedBy: MW4P222CA0014.NAMP222.PROD.OUTLOOK.COM
- (2603:10b6:303:114::19) To SA1PR11MB8794.namprd11.prod.outlook.com
- (2603:10b6:806:46a::5)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R2zXwknW"
+Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-3fb3f4bf97aso73769b6e.2
+        for <nvdimm@lists.linux.dev>; Wed, 23 Apr 2025 13:19:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1745439546; x=1746044346; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=g4Ay+yxjyvrecwm+hKWiGn1hvCte1K1DikL5dI6YUSI=;
+        b=R2zXwknW+US1FgXaEpnjNOJb/uxPr7VRKYbpWT3wpASB9kAZIQOWJ55pHeGEgQB2TJ
+         4WV2y9+keb1/V0UiBe7vFbuF/HB2DKeNcU4wJqbilOBgDurRANB8ISNQWbJjAP4NJNgm
+         hFawQOV/T3+QHnM5yDvk2vAQlYubC2Tb3oypwuWeTi2oYLlYhPa+r6GJv2Lsz5ApE9t0
+         Ox6uezbGtIS0TpmLBqgyGrrB+hEhu4jyREQ2ZKFcH1trOFv6sERQk6gRbRHsI2p296r8
+         bGX7mO/QJn5jMjhbU7aCmv4YH6MH7pf5TXYpJjxfZMGQaHY+vBRGu/gkd+qWe1YyTfKo
+         b4KA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1745439546; x=1746044346;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=g4Ay+yxjyvrecwm+hKWiGn1hvCte1K1DikL5dI6YUSI=;
+        b=LQPFEHZuzUneXUPABehfPJfg/TvqWLKZ/k+nY2c+SU/Nnlit4MvhWE4wAkQGkuH6Bx
+         5HT87ERMBO7OEJ+6/x6KsSVbFA0ZIxaN5MqNvO39U6N/8BxQQ8HkrROwTiaAbNCUlof6
+         pJyO/HFeuskAcdpe4PqK03qcC247bdqgkPYj7CQ4WYekGrH3sBAUB8pbrZQRQSrGDoAl
+         kzinW9hXiXnGMgTB/N7KEwVjkqGNyghk3gvhPi5gRFoiFk1FonRsngZEDYdK8dKbxBAD
+         7wQZMuSH3cN5kxab8IViQt+AVNW3KZPhvP8Hgsln6JSw1AeDW023+wW1M1/agd9I5pIp
+         w7DA==
+X-Forwarded-Encrypted: i=1; AJvYcCX6E5VHqAE0fzxiepv+p5Yhyp6K1UPbgwzjUuSHoynBHI+j9raPFxRwbZb9Zkk8bo6ievT+hes=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx0k2786n9JSeBccgGmjF/Gt8Qtort+w+rjDuOgQmjC6Yv4brus
+	Lq0RYILz4GQhW218SdzUx2i7Vk5ML+N/kR/KZv79JIDbL31tW0I/
+X-Gm-Gg: ASbGncuPihJ8WNTZOYc6BmD/NidU/pogykoMFyXO2JZMoyLiChnJR8UGB7ec0VmOD50
+	lHNMHkz3/vKDyAwUTI5z2wkqoKyJP/N9f5WQoZtD3UHQxXsYbxdx/iMHeUdIH1cwAcjpmCV4Idk
+	VTaNKBjkDpSWyuLxTRYClyGvgBLHDsoueV7r4R24dVzNjOszEMZlEFe5tFcEfO2WQtcIGfvheFN
+	PHg0E9taxJcAFRHyBdVdf7WKsHU+vSNcFQLtXLt39LXkZ2XiMfkzajY4zDz2WEImkxdD/1w4MZp
+	BtNteTYxsq31rcf65WPxUR3Jm5tQ0Hxye8kHpRpaJDERNfF2H6NOvPRYVv55xPQkUtf3Y7w=
+X-Google-Smtp-Source: AGHT+IEoll/IipbPMTUh46dRuaEBH4kvJbYYprGZYgOTzElLJasG3TcogRN8wLTOCXAPApRgQMleOQ==
+X-Received: by 2002:a05:6808:1c0a:b0:400:fa6b:5dfb with SMTP id 5614622812f47-401eb3d2997mr176263b6e.36.1745439545564;
+        Wed, 23 Apr 2025 13:19:05 -0700 (PDT)
+Received: from Borg-550.local ([2603:8080:1500:3d89:44cc:5f45:d31b:d18f])
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-401bf09a0a3sm2721677b6e.42.2025.04.23.13.19.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Apr 2025 13:19:05 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Wed, 23 Apr 2025 15:19:02 -0500
+From: John Groves <John@groves.net>
+To: Joanne Koong <joannelkoong@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, 
+	Miklos Szeredi <miklos@szeredb.hu>, Bernd Schubert <bschubert@ddn.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	"Darrick J . Wong" <djwong@kernel.org>, Luis Henriques <luis@igalia.com>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Kent Overstreet <kent.overstreet@linux.dev>, Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC PATCH 11/19] famfs_fuse: Basic famfs mount opts
+Message-ID: <4lknmgdq4d6xlmejrddwumpxuwog3l5iwtmoaet7w6swbtc37i@33xmye5u3g5a>
+References: <20250421013346.32530-1-john@groves.net>
+ <20250421013346.32530-12-john@groves.net>
+ <CAJnrk1a40QE+8q-PTTP6GgpDO9d9i_biuN8zk-KSEEiK7S34kA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB8794:EE_|SA1PR11MB8857:EE_
-X-MS-Office365-Filtering-Correlation-Id: 56453d16-4c02-4163-c9da-08dd82932484
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014|7053199007;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?YStMTldiUEpIUU9WUGE0MkxlVnpaS2dpMnpUMDJFaHRIbW5HamlVbnpaS25X?=
- =?utf-8?B?SHdTcTF2TWZrajgvOEMvQlppZ09ZVm5raTd3SnZ4bHVacDZ4TVpaZHg2ZndO?=
- =?utf-8?B?SkdCb2R6NmFCT080K1luQ0VqVXFvdGYwNHZ2L3dzZTBWN0RkeUs3WmxpWjlz?=
- =?utf-8?B?UGZrdk9FNXIrdDQwK1Rlc1hKb2htWjdYZkt3WGpRZmE0UXA4NVdwdmxxK0c2?=
- =?utf-8?B?UUx6cENKaFNKTU05Y2lXdGRtcjhVR0Z2eFhsaFlkZ28xMDFBQWFmYlBIdURG?=
- =?utf-8?B?NEZzc25vK0FyeHQyb3JObEptdTVRWHdLMGhlcFpTWnF4Q2hxcU9oSzZ5aVhX?=
- =?utf-8?B?MHA4V0UxcEFMdkFoSVlEZWp0SWVRVFVxeE9mV3REV3E2VG84eXMrUHlIUkJs?=
- =?utf-8?B?ZHBVaXZSaXNNOWFpVy9SeFU3SElkM09taHpZeGxHTXZNeE1BRjBzOW1wUmo2?=
- =?utf-8?B?OFQ0MnBDdG56MkE0aXR4d0E3aG5FaTZ4eHBCenF1WlRmZU45ZnBOQWE0VE12?=
- =?utf-8?B?NzBobzZSbXZSU0FKbjcyTlUzVERneSsxc1BwL04vZ0s4bmY4RG4vcWhRM2ly?=
- =?utf-8?B?d1pUMHhkS0VvY0NXYVN3OTFQbDVucTZLeW5GZFR4ODdGemhKdGZTSWhyekZw?=
- =?utf-8?B?eFJsZmFaam1YeWgwdUlXRGF0UVlOeGZaSXBvNktkcFZWZ3J4b1hYLzBjemcy?=
- =?utf-8?B?d0FUdDN4S1VOaE5MTFJYajZBLzNXcXhEczZBb3hmWnA2TFZReUNMUmt4WWl5?=
- =?utf-8?B?VzQyQU1VOVF3UXhRRXVaTDZjNjVvL3dUOWFlbWtvTmxkQytLQUpNbGVoYk9G?=
- =?utf-8?B?aGtvTkdieE1sODRWeEFHaFYxemIyb2t3NEloUjA1TkEzY3dDK3J3b01hUFR3?=
- =?utf-8?B?cjI2V29McFNiT3VKL3RIK0NHTTlxSkw0VkNEdEJqb1N3UldvdEdMREgrZXdo?=
- =?utf-8?B?d1dBVVdWdXhwbXVBc3FKNE9tZjBlKzk5bEZTVWR5VndhSkpsM3dhdmwwMzZx?=
- =?utf-8?B?TkFsTUZNWUhKb2pEMXZaeDdLWUZUbk1PUlAwOWFFKzF1cDNKWmUreml5bmsy?=
- =?utf-8?B?UXpUeTgxVTlCa0xSMzRVbTAzQldoWEhQSnVYdEo3K3NIbXdyS0NqQUVLdWk4?=
- =?utf-8?B?Um1RbjlLSFFqUWFDdElXUUJidEd3dlZmZVBuM2ROOE45ejJFN0hxeUowQ2lY?=
- =?utf-8?B?ZnZIbSs5eVg4enNXODEzY1lKK1BCc29LbFVSalY2OGlDRjQ3R2VoYVRJMXkr?=
- =?utf-8?B?UnRLa3YvWVFoMTBZWFFuSUZNVHNCNytDbDI4cjR4WmE4bFVtYU5zWG00YVBJ?=
- =?utf-8?B?OURLL2pTRmdlUGhlQmo0cXJRL2cyKzhUK0JqZlNpcGFRS3lGOFJ5Mlp5a29Q?=
- =?utf-8?B?UVM3TDIrcGJwTElIT0VnbGV2aWxldWNIRjhadk5IeVJITStyNGlmM3RVMCs5?=
- =?utf-8?B?RFlrY1N1YWpUMnZiNUg0V0pqRXVZSTA1bXcxN2RFZ0twc3VSaEw3OU5uQ2E3?=
- =?utf-8?B?eVZjQkljS1lJQ1Q4QnBqZzAzNWs5QXh1STFxRTN3M0xhZEZML2JPSWxHUjZm?=
- =?utf-8?B?R3Z5RENCMkt2aG1jcW5SNXJQWEh6TGpHTndCNFV5T3JRRjkxditHNzhyUGlV?=
- =?utf-8?B?ODlpR1cvVHBUUy9ISzFQdCs0WGNHR29Ca2pqdTgza3h2ejRFWFlUcnBNTEs4?=
- =?utf-8?B?ZWExclFqb0YxcFQrRU96Wlg1NWF3MkxsTlU1L05MMlpuSWVtWkczZWJvdStE?=
- =?utf-8?B?Ung3Qk5WTi82eUJJWWo0WVc1bVR0N05sZDlXTDNsejZOR2ZiT3I4RDh5RHlF?=
- =?utf-8?B?SzRiUFhwL0x6ZUNpbjhOTG1DSGM0aFNQd2xJeUxJWWNYeEY4dFRUTkJOU0dh?=
- =?utf-8?B?TU9uOHhLVTJyWEJaN2JzaW4rL05pcElId2JONHFmK0dxSm1kOW9vTVMvVU9R?=
- =?utf-8?Q?cJNUKaeG1K8=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB8794.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7053199007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?ZU9NeGtkaXd4VmptRVpqZFRCS3pTWHRld2ZtZlNGaVZUQkNIMHFLTlgxUkNO?=
- =?utf-8?B?M2FqTFhQV1lscUhjTE9zczNKSjZJRW51STNOK3kvV0VXeFBZSkV2ZVZXcU5y?=
- =?utf-8?B?dHBFUGxUcjBUdHZFTlZyMGlvaWNqVmo0RHl5UWxCY3lpT2RDMEJPcDBRNDNC?=
- =?utf-8?B?R0VTVjh1QVE2RHNnVlhqYVEwSCtwNlQ5TWltY25kdjNSZWFteXd5czVwKzc1?=
- =?utf-8?B?b1lWOEhRSVpobFZVbVMxY1VwN293V1JYQTk3UTRBYXZBRmNsL1pvWFhqMmxk?=
- =?utf-8?B?UHQ3REJHZlVZNm9tY05yZUNCSGJkRjRBR3NEYTg2UzluRUVTU1pXNm5NZGVL?=
- =?utf-8?B?d29TM2VhVVJWRHBYb05aZkplQW56aU1LVmV2dE9RN2xSRzg5R0MrVFdIWktr?=
- =?utf-8?B?UU5xcXhUWHp1Yjg1aUtsYnp0bllEbGNNeVYwTGdIS0F6bXRidzFORDVsNVcx?=
- =?utf-8?B?bjV5R29tMDVlQTUrbEMzNUxMeCtzK1ROS2JMSENMRXF5MDY5dWcydXgrNFB6?=
- =?utf-8?B?UGQzUHNoTnZzRktzcGNkdW16WkpuakpvUUdWYWgyQVlTbkdYUENWWkJMSWlL?=
- =?utf-8?B?WVBoZEF0dGdVMUhCdGJPQ2hZWWtJSmQ5R3hEMFYvR3kvN2gvS1ZKdGx0Zzl4?=
- =?utf-8?B?WXRTV3NrcTRGYkFnS05rbmVTRGhNUDZmMWtpSjFUOTdROGUvVk45RGVFcjhK?=
- =?utf-8?B?RU1HdGZmUEk4ZmgrWXJDT2VBOXJOK3lFcW0zdmNoU0ZjUGRaRkZDMmVTSlQ3?=
- =?utf-8?B?NU9MejEralRzdGQ2b3crMnZnZkVaVkIrU2lvZFRFNlp1aVg5amY3YXVwWkpn?=
- =?utf-8?B?eUh4WXM3NGNTN1laTjFyQmczNFV3Y3pPL1BxOE00bCsxUXNpSEVtTFhHL1Zy?=
- =?utf-8?B?QVJPSUQwbXBwTHJuR2RLaG93K0Z4LzFiZm5XYUl6K3A1V3dHRGN4TzFuOVFa?=
- =?utf-8?B?SFFUSGFOTXFtbVN1SklJK0tXSTVINUdrWmIxQW81WU9zNUZhTThwUGtRajBC?=
- =?utf-8?B?cTVoRzVObXQyalptWEhod3hUcGxxTEpscGZRZ003dllzWHBXUDBVMnhzeHFm?=
- =?utf-8?B?b3JhVlpaWTE2Mm1TazJGUDZlaG9VLzRRMVFHbUthUXRJcUF3UnNWZEM0aXl4?=
- =?utf-8?B?UVJJb011RUlvQytvcEJDdlBIbFJhWUlpQzYvTEhoLzdnOVBPdmxXNDlxd2Uw?=
- =?utf-8?B?d0c3eFc0VXArbzRDMWtpalJLdnBNdWFwRXhpWUxDODJ4ekNJWW1sUzM0M1dW?=
- =?utf-8?B?ZFVIbm1XZlN1VzhNSHNCVVkzVy9VazVFVWdMaEJIZFpOMnhReTlRRG56YTZo?=
- =?utf-8?B?L1pXa01rRWpwc0RHRmlaLzJvTmZ4TVdGeWU2N2t5alNkdXVFMUNPN3I0ZlR2?=
- =?utf-8?B?NllZWHUvazc5a3BVV0o5akZpWklleXRXVXJkTVo0dEI4cFcyVldPTnlLNzBJ?=
- =?utf-8?B?T3UwYzZudi8wTzJBRW02aEtTaVMrWFZpbE1IT3lSVkdDSGlVNjBiYVI4MURC?=
- =?utf-8?B?NC85anVmRy9qendyNkhZbGxSS2tBVFE4VUcrcS9iMExScjV6SllOdVM3SjhL?=
- =?utf-8?B?VGgyME02ZEd3ZG1LeE4rZFdiNFZ2Y2w2SjVZUXVCTXl6L2ZoWStFZlVvQ1Qv?=
- =?utf-8?B?SDZEQW5DRElsRU05cGU1a3RCMjh5MFFESFBhQk14Yzk2bjBUcW1adFI1Zkpy?=
- =?utf-8?B?WW15SFZMV2Joc2JOK3NWU25iSDBtTXpWUE5XbFNCTUxSNU84Z3AyVFNTS21C?=
- =?utf-8?B?OU1nNHFuaFZYZ0UzTFhVWUhhQjIwWXFkRHRwZGI4b0NHbnp0YWR3UmpTWEk2?=
- =?utf-8?B?amVSMlhSVFNUck5NamxMUm1TUW5qc0ozUUJTZnVTQWQ5anRZaUk3K1VtNEhj?=
- =?utf-8?B?NkJEd0syRTdzNFpSOE9Ed20yWmxmUlRNb0pMcHM2UGxla2Z5NUJrRHVrV2xJ?=
- =?utf-8?B?U2FTU2RzMkYwdk1tRzNKaVcrZTMwSTkyNTNQdFZTdUJPVmpIRDFQcU5zdllt?=
- =?utf-8?B?ZHlmc3YrS2hOSUthSmZPR3JHanViRTZNTGZpTk5ZZHNHRFNDb0luc2FRUHcx?=
- =?utf-8?B?a2dITEhIdXJVTFhmbTJKR2haUTZYZzdPM2VnVkJMR2tXWW1hNG1xT3VBWnZF?=
- =?utf-8?B?T0Q4UFltb2ZJdHlJWVJLUEVzL3U5OE8rY3UwVXkrcGxOdTY1SmFpS2w1U1Z0?=
- =?utf-8?B?cFE9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 56453d16-4c02-4163-c9da-08dd82932484
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB8794.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2025 18:17:44.4907
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: qdEozGuhDpKnxb6913yxDlTGf/EE8MBPjZQ5s/p+RehBHEqC6MgTqbirrfV96FLJI1Zo8ypS2u6vGdYeyI/VT+ywQsIfhixXzMIL5uOn1H8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB8857
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJnrk1a40QE+8q-PTTP6GgpDO9d9i_biuN8zk-KSEEiK7S34kA@mail.gmail.com>
 
-On Tue, Mar 18, 2025 at 04:45:43PM -0700, Davidlohr Bueso wrote:
-> Add a new cxl_memdev_sanitize() to libcxl to support triggering memory
-> device sanitation, in either Sanitize and/or Secure Erase, per the
-> CXL 3.0 spec.
+On 25/04/22 06:51PM, Joanne Koong wrote:
+> On Sun, Apr 20, 2025 at 6:34 PM John Groves <John@groves.net> wrote:
+> >
+> > * -o shadow=<shadowpath>
+> > * -o daxdev=<daxdev>
+> >
+> > Signed-off-by: John Groves <john@groves.net>
+> > ---
+> >  fs/fuse/fuse_i.h |  8 +++++++-
+> >  fs/fuse/inode.c  | 25 ++++++++++++++++++++++++-
+> >  2 files changed, 31 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+> > index b2c563b1a1c8..931613102d32 100644
+> > --- a/fs/fuse/fuse_i.h
+> > +++ b/fs/fuse/fuse_i.h
+> > @@ -580,9 +580,11 @@ struct fuse_fs_context {
+> >         unsigned int blksize;
+> >         const char *subtype;
+> >
+> > -       /* DAX device, may be NULL */
+> > +       /* DAX device for virtiofs, may be NULL */
+> >         struct dax_device *dax_dev;
+> >
+> > +       const char *shadow; /* famfs - null if not famfs */
+> > +
+> >         /* fuse_dev pointer to fill in, should contain NULL on entry */
+> >         void **fudptr;
+> >  };
+> > @@ -938,6 +940,10 @@ struct fuse_conn {
+> >         /**  uring connection information*/
+> >         struct fuse_ring *ring;
+> >  #endif
+> > +
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       char *shadow;
+> > +#endif
+> >  };
+> >
+> >  /*
+> > diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+> > index 5c6947b12503..7f4b73e739cb 100644
+> > --- a/fs/fuse/inode.c
+> > +++ b/fs/fuse/inode.c
+> > @@ -766,6 +766,9 @@ enum {
+> >         OPT_ALLOW_OTHER,
+> >         OPT_MAX_READ,
+> >         OPT_BLKSIZE,
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       OPT_SHADOW,
+> > +#endif
+> >         OPT_ERR
+> >  };
+> >
+> > @@ -780,6 +783,9 @@ static const struct fs_parameter_spec fuse_fs_parameters[] = {
+> >         fsparam_u32     ("max_read",            OPT_MAX_READ),
+> >         fsparam_u32     ("blksize",             OPT_BLKSIZE),
+> >         fsparam_string  ("subtype",             OPT_SUBTYPE),
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       fsparam_string("shadow",                OPT_SHADOW),
+> > +#endif
+> >         {}
+> >  };
+> >
+> > @@ -875,6 +881,15 @@ static int fuse_parse_param(struct fs_context *fsc, struct fs_parameter *param)
+> >                 ctx->blksize = result.uint_32;
+> >                 break;
+> >
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       case OPT_SHADOW:
+> > +               if (ctx->shadow)
+> > +                       return invalfc(fsc, "Multiple shadows specified");
+> > +               ctx->shadow = param->string;
+> > +               param->string = NULL;
+> > +               break;
+> > +#endif
+> > +
+> >         default:
+> >                 return -EINVAL;
+> >         }
+> > @@ -888,6 +903,7 @@ static void fuse_free_fsc(struct fs_context *fsc)
+> >
+> >         if (ctx) {
+> >                 kfree(ctx->subtype);
+> > +               kfree(ctx->shadow);
+> >                 kfree(ctx);
+> >         }
+> >  }
+> > @@ -919,7 +935,10 @@ static int fuse_show_options(struct seq_file *m, struct dentry *root)
+> >         else if (fc->dax_mode == FUSE_DAX_INODE_USER)
+> >                 seq_puts(m, ",dax=inode");
+> >  #endif
+> > -
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       if (fc->shadow)
+> > +               seq_printf(m, ",shadow=%s", fc->shadow);
+> > +#endif
+> >         return 0;
+> >  }
+> >
+> > @@ -1825,6 +1844,10 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
+> >         sb->s_root = root_dentry;
+> >         if (ctx->fudptr)
+> >                 *ctx->fudptr = fud;
+> > +
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       fc->shadow = kstrdup(ctx->shadow, GFP_KERNEL);
+> > +#endif
 > 
-> This is analogous to 'ndctl sanitize-dimm'.
-> 
-> Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+> Since this is kstrdup-ed, I think you meant to also kfree this in
+> fuse_conn_put() when the last refcount on fc gets dropped?
 
-Hi David,
+Good catch Joanne! That's queued in my "-next" branch.
 
-Is there anyone you can ping directly to review this one?
+Thanks,
+John
 
-It's been lingering a bit and I'd want to see a review by someone other
-than me before merging.
-
---Alison
-
-
-
-> ---
-> changes from v3: added missing cxl-sanitize-memdev.txt to the patch
-> 
->  Documentation/cxl/cxl-sanitize-memdev.txt | 52 +++++++++++++++++++++++
->  Documentation/cxl/cxl-wait-sanitize.txt   |  1 +
->  Documentation/cxl/meson.build             |  1 +
->  cxl/builtin.h                             |  1 +
->  cxl/cxl.c                                 |  1 +
->  cxl/lib/libcxl.c                          | 15 +++++++
->  cxl/lib/libcxl.sym                        |  1 +
->  cxl/libcxl.h                              |  1 +
->  cxl/memdev.c                              | 38 +++++++++++++++++
->  test/cxl-sanitize.sh                      |  4 +-
->  10 files changed, 113 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/cxl/cxl-sanitize-memdev.txt
-> 
-> diff --git a/Documentation/cxl/cxl-sanitize-memdev.txt b/Documentation/cxl/cxl-sanitize-memdev.txt
-> new file mode 100644
-> index 000000000000..7a7c9a79b19f
-> --- /dev/null
-> +++ b/Documentation/cxl/cxl-sanitize-memdev.txt
-> @@ -0,0 +1,52 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +cxl-sanitize-memdev(1)
-> +======================
-> +
-> +NAME
-> +----
-> +cxl-sanitize-memdev - Perform a cryptographic destruction or sanitization
-> +of the contents of the given memdev(s).
-> +
-> +SYNOPSIS
-> +--------
-> +[verse]
-> +'cxl sanitize-memdev <mem0> [<mem1>..<memN>] [<options>]'
-> +
-> +DESCRIPTION
-> +-----------
-> +The 'sanitize-memdev' command performs two different methods of sanitization,
-> +per the CXL 3.0+ specification. The default is 'sanitize', but additionally,
-> +a 'secure-erase' option is available. It is required that the memdev be
-> +disabled before sanitizing, such that the device cannot be actively decoding
-> +any HPA ranges at the time.
-> +
-> +A device Sanitize is meant to securely re-purpose or decommission it. This
-> +is done by ensuring that all user data and meta data, whether it resides
-> +in persistent capacity, volatile capacity, or the label storage area,
-> +is made permanently unavailable by whatever means is appropriate for
-> +the media type. This sanitization request is merely submitted to the
-> +kernel, and the completion is asynchronous. Depending on the medium and
-> +capacity, sanitize may take tens of minutes to many hours. Subsequently,
-> +'cxl wait-sanitize’ can be used to wait for the memdevs that are under
-> +the sanitization.
-> +
-> +OPTIONS
-> +-------
-> +
-> +include::bus-option.txt[]
-> +
-> +-e::
-> +--secure-erase::
-> +	Erase user data by changing the media encryption keys for all user
-> +	data areas of the device.
-> +
-> +include::verbose-option.txt[]
-> +
-> +include::../copyright.txt[]
-> +
-> +SEE ALSO
-> +--------
-> +linkcxl:cxl-wait-sanitize[1],
-> +linkcxl:cxl-disable-memdev[1],
-> +linkcxl:cxl-list[1],
-> diff --git a/Documentation/cxl/cxl-wait-sanitize.txt b/Documentation/cxl/cxl-wait-sanitize.txt
-> index e8f2044e4882..9391c66eec52 100644
-> --- a/Documentation/cxl/cxl-wait-sanitize.txt
-> +++ b/Documentation/cxl/cxl-wait-sanitize.txt
-> @@ -42,3 +42,4 @@ include::../copyright.txt[]
->  SEE ALSO
->  --------
->  linkcxl:cxl-list[1],
-> +linkcxl:cxl-sanitize-memdev[1],
-> diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
-> index 8085c1c2c87e..99e6ee782a1c 100644
-> --- a/Documentation/cxl/meson.build
-> +++ b/Documentation/cxl/meson.build
-> @@ -49,6 +49,7 @@ cxl_manpages = [
->    'cxl-monitor.txt',
->    'cxl-update-firmware.txt',
->    'cxl-set-alert-config.txt',
-> +  'cxl-sanitize-memdev.txt',
->    'cxl-wait-sanitize.txt',
->  ]
->  
-> diff --git a/cxl/builtin.h b/cxl/builtin.h
-> index c483f301e5e0..29c8ad2a0ad9 100644
-> --- a/cxl/builtin.h
-> +++ b/cxl/builtin.h
-> @@ -16,6 +16,7 @@ int cmd_reserve_dpa(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_free_dpa(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_update_fw(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_set_alert_config(int argc, const char **argv, struct cxl_ctx *ctx);
-> +int cmd_sanitize_memdev(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_wait_sanitize(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_disable_port(int argc, const char **argv, struct cxl_ctx *ctx);
->  int cmd_enable_port(int argc, const char **argv, struct cxl_ctx *ctx);
-> diff --git a/cxl/cxl.c b/cxl/cxl.c
-> index 16436671dc53..9c9f217c5a93 100644
-> --- a/cxl/cxl.c
-> +++ b/cxl/cxl.c
-> @@ -80,6 +80,7 @@ static struct cmd_struct commands[] = {
->  	{ "disable-region", .c_fn = cmd_disable_region },
->  	{ "destroy-region", .c_fn = cmd_destroy_region },
->  	{ "monitor", .c_fn = cmd_monitor },
-> +	{ "sanitize-memdev", .c_fn = cmd_sanitize_memdev },
->  };
->  
->  int main(int argc, const char **argv)
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 63aa4ef3acdc..d9dd37519aa4 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -1414,6 +1414,21 @@ CXL_EXPORT int cxl_memdev_get_id(struct cxl_memdev *memdev)
->  	return memdev->id;
->  }
->  
-> +CXL_EXPORT int cxl_memdev_sanitize(struct cxl_memdev *memdev, char *op)
-> +{
-> +	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
-> +	char *path = memdev->dev_buf;
-> +	int len = memdev->buf_len;
-> +
-> +	if (snprintf(path, len,
-> +		     "%s/security/%s", memdev->dev_path, op) >= len) {
-> +		err(ctx, "%s: buffer too small!\n",
-> +		    cxl_memdev_get_devname(memdev));
-> +		return -ERANGE;
-> +	}
-> +	return sysfs_write_attr(ctx, path, "1\n");
-> +}
-> +
->  CXL_EXPORT int cxl_memdev_wait_sanitize(struct cxl_memdev *memdev,
->  					int timeout_ms)
->  {
-> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-> index 0c155a40ad47..bff45d47c29b 100644
-> --- a/cxl/lib/libcxl.sym
-> +++ b/cxl/lib/libcxl.sym
-> @@ -287,4 +287,5 @@ LIBECXL_8 {
->  global:
->  	cxl_memdev_trigger_poison_list;
->  	cxl_region_trigger_poison_list;
-> +	cxl_memdev_sanitize;
->  } LIBCXL_7;
-> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-> index 0a5fd0e13cc2..e10ea741bf6d 100644
-> --- a/cxl/libcxl.h
-> +++ b/cxl/libcxl.h
-> @@ -79,6 +79,7 @@ bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev);
->  size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev);
->  int cxl_memdev_update_fw(struct cxl_memdev *memdev, const char *fw_path);
->  int cxl_memdev_cancel_fw_update(struct cxl_memdev *memdev);
-> +int cxl_memdev_sanitize(struct cxl_memdev *memdev, char *op);
->  int cxl_memdev_wait_sanitize(struct cxl_memdev *memdev, int timeout_ms);
->  
->  /* ABI spelling mistakes are forever */
-> diff --git a/cxl/memdev.c b/cxl/memdev.c
-> index 6e44d1578d03..4a2daab2bbe5 100644
-> --- a/cxl/memdev.c
-> +++ b/cxl/memdev.c
-> @@ -35,6 +35,8 @@ static struct parameters {
->  	bool align;
->  	bool cancel;
->  	bool wait;
-> +	bool sanitize;
-> +	bool secure_erase;
->  	const char *type;
->  	const char *size;
->  	const char *decoder_filter;
-> @@ -160,6 +162,10 @@ OPT_STRING('\0', "pmem-err-alert",                                            \
->  	   &param.corrected_pmem_err_alert, "'on' or 'off'",                  \
->  	   "enable or disable corrected pmem error warning alert")
->  
-> +#define SANITIZE_OPTIONS()			      \
-> +OPT_BOOLEAN('e', "secure-erase", &param.secure_erase, \
-> +	    "Secure Erase a memdev")
-> +
->  #define WAIT_SANITIZE_OPTIONS()                \
->  OPT_INTEGER('t', "timeout", &param.timeout,    \
->  	    "time in milliseconds to wait for overwrite completion (default: infinite)")
-> @@ -226,6 +232,12 @@ static const struct option set_alert_options[] = {
->  	OPT_END(),
->  };
->  
-> +static const struct option sanitize_options[] = {
-> +	BASE_OPTIONS(),
-> +	SANITIZE_OPTIONS(),
-> +	OPT_END(),
-> +};
-> +
->  static const struct option wait_sanitize_options[] = {
->  	BASE_OPTIONS(),
->  	WAIT_SANITIZE_OPTIONS(),
-> @@ -772,6 +784,19 @@ out_err:
->  	return rc;
->  }
->  
-> +static int action_sanitize_memdev(struct cxl_memdev *memdev,
-> +				  struct action_context *actx)
-> +{
-> +	int rc;
-> +
-> +	if (param.secure_erase)
-> +		rc = cxl_memdev_sanitize(memdev, "erase");
-> +        else
-> +		rc = cxl_memdev_sanitize(memdev, "sanitize");
-> +
-> +	return rc;
-> +}
-> +
->  static int action_wait_sanitize(struct cxl_memdev *memdev,
->  				struct action_context *actx)
->  {
-> @@ -1228,6 +1253,19 @@ int cmd_set_alert_config(int argc, const char **argv, struct cxl_ctx *ctx)
->  	return count >= 0 ? 0 : EXIT_FAILURE;
->  }
->  
-> +int cmd_sanitize_memdev(int argc, const char **argv, struct cxl_ctx *ctx)
-> +{
-> +	int count = memdev_action(
-> +		argc, argv, ctx, action_sanitize_memdev, sanitize_options,
-> +		"cxl sanitize-memdev <mem0> [<mem1>..<memn>] [<options>]");
-> +
-> +	log_info(&ml, "sanitize %s on %d mem device%s\n",
-> +		 count >= 0 ? "completed/started" : "failed",
-> +		 count >= 0 ? count : 0,  count > 1 ? "s" : "");
-> +
-> +	return count >= 0 ? 0 : EXIT_FAILURE;
-> +}
-> +
->  int cmd_wait_sanitize(int argc, const char **argv, struct cxl_ctx *ctx)
->  {
->  	int count = memdev_action(
-> diff --git a/test/cxl-sanitize.sh b/test/cxl-sanitize.sh
-> index 9c161014ccb7..8c5027ab9f48 100644
-> --- a/test/cxl-sanitize.sh
-> +++ b/test/cxl-sanitize.sh
-> @@ -45,7 +45,7 @@ count=${#active_mem[@]}
->  set_timeout ${active_mem[0]} 2000
->  
->  # sanitize with an active memdev should fail
-> -echo 1 > /sys/bus/cxl/devices/${active_mem[0]}/security/sanitize && err $LINENO
-> +"$CXL" sanitize-memdev ${active_mem[0]} && err $LINENO
->  
->  # find an inactive mem
->  inactive=""
-> @@ -67,7 +67,7 @@ done
->  # secounds
->  set_timeout $inactive 3000
->  start=$SECONDS
-> -echo 1 > /sys/bus/cxl/devices/${inactive}/security/sanitize &
-> +"$CXL" sanitize-memdev $inactive || err $LINENO
->  "$CXL" wait-sanitize $inactive || err $LINENO
->  ((SECONDS > start + 2)) || err $LINENO
->  
-> -- 
-> 2.39.5
-> 
