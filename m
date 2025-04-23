@@ -1,213 +1,298 @@
-Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF8E1A5BA4
-	for <nvdimm@lists.linux.dev>; Wed, 23 Apr 2025 01:51:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745373086; cv=none; b=GnUcGQrfd/RmtTaNumSB3DX9zWRRRse/S8Ys3+aJi/EzZLLIm4wH/NounWC3HFfnsFtlwDlsWDo4nv/dLsLyt/BN1Frcqb+PMXmdNiBtgjqJgWlvz6FZrk2uDLAEqbD7cvnT60uDtbRrROi/RjrLDza6e6zDGpqyLz/bdKjBjCE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745373086; c=relaxed/simple;
-	bh=f9OSiZEkGRM8hlEdi98DC9VjgWWwvAUcHUnbYzed8hE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=tW4eJJosJk1BV8mVMLjdMwKY1xIY3Su50HOmH2Shlc38lum/O1fVJ5+XY0NxSdydWIFdvNtYwWBwwLIm18Rre2pBEJQFeVj3+onWdhitjpZ6/qBMhDJeaLwtiS6HJUjW5iQhy2wB81bUhdwKlY7IP5qlM6Ujkq7O4XAeMnIDALU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cpaC6so4; arc=none smtp.client-ip=209.85.160.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F4B02AE68
+	for <nvdimm@lists.linux.dev>; Wed, 23 Apr 2025 03:32:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.13
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1745379132; cv=fail; b=VMNMrR10oO9dYqusLbyNDKz7MxbVBJl4ztq+mDAxvfsLV4/OFr5YuKMeyrILBq8D05NUEhQp6mf25s6l8TAyN4akI/tEwNTEFhW25h6MDtEUJnT7gjfroMjM2iurHLUhQHtlqZ5+z7w48Vw0wEpCHW+kXNGa4SZWiYCwZY3k6HA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1745379132; c=relaxed/simple;
+	bh=FnEkoDJssiOQU42n/pGUl/aTVjlO8aLMEZIfUN6oNX8=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=UUDE2eJL+1Rt1czyKOUnmuGnRcvnIs1lBLB/OEK7ftR5E8g+4NmCWBm7DKbLK9d47V5DY4tMaM+yQazkXJlS3H8TqnRkaNdeHi0DWl3aV7Sczrr7Wqo4Oc8+GtpXsXpVC5aeZgmqFAbL2pEi450qV54jBWg1f/RE1peCgLXKgiU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=O3PoKMdI; arc=fail smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cpaC6so4"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-4774ce422easo63488161cf.1
-        for <nvdimm@lists.linux.dev>; Tue, 22 Apr 2025 18:51:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1745373083; x=1745977883; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=z39QQvICDFu+xZrg0TEybs+EUUza3WdIUdzlBs09FsI=;
-        b=cpaC6so40Qqu5jdx1MaAlXA+lERDILV4asOkPc+LmDeAb8KMoxf+wnfDgPKvx0kRLY
-         bg9js1fota09C2OlBuXi9qC94I7+626KrMnlsJOkgmDbvDoBdbMGi5Eu4KXAFhQwugHv
-         Mj/gLgmXFCCtM4aLWqPhrb5tfPCMATBTGqw8TVUUJ+G/wVsSPjcH6ZCmclEqNd8wt1S1
-         p37q3JITT91L1oaBO95HElkPwSL9WQVPMICl5XUzpG5tKCrnt0KeGHWuUenls9N57O45
-         WPCuQcFd62fAZfzRekBT/OgBbBy4vUFtJjhxdMf4QMMkJnLdQJuFwrCLGO7kaOFZX7GA
-         ParQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745373083; x=1745977883;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=z39QQvICDFu+xZrg0TEybs+EUUza3WdIUdzlBs09FsI=;
-        b=j5nns9iJEvx7pz/jjv94HAmZ0mSpFwAexB0zUoays0vILP9cijFdsj/F/ryQNeweSr
-         8I6nKbGAPl/odcJb8rGQY6Aoab6mAIebh1mukdjy+XYZwSPJ485r8uCAQ2/dP9AFHfho
-         u3GwUk1phclPTrRE0CTxBHZFuQbMLmaLFViiBc7i9M3Z+PuxqDGcrHc1hwz0t/dsqKki
-         IndRyO8n274ibOUwI/s55mVc8C5TtMKIx1R80skrilDZIdMm7zWmKsALPYKFL7W7lktI
-         QmzVHRQpzH+rJzM70BVoF8D4HwCTawYAqvGCyjfACEf1gBNvcDcKuB4I8fnQsw6xwNbl
-         FFbQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUT03UvhnwDgtg/aYNeD0wT+IgbE4mrivvU7cy+9OY2PCaTU4uiv1+fC+EiK4RDkbyqxUj/lm8=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzVXTeVRSmqNlnBmv6G8fxiY0WEK/Fm3an2t8wt5TZIG8ysvtWi
-	WaNWWg3jyXS5cOQLQcxRRYMpmAcA0vvYoWJ/U3xilGqGBJBzyVy4/WJNbpQpb6xwhNEdRqKHBF9
-	tDB0ZUMViYTmo6OaycyrJhr6+XpI=
-X-Gm-Gg: ASbGncu7sEtyrXN2uBpouRe8QWKC6nJsk5WqxfgnhNx5WFjRHb1W9aeUr5l82CaCua/
-	tvFgWzlx3yfw7vmysPH6XYjiZYLPAYT0kv5MY0QAmr2VStbqTjxAHLYBcEtFt4h3BxY7ttj1rid
-	C4H/b0VrVguvf8m03TaTapulAIR6+AiUCEHNzMdQ==
-X-Google-Smtp-Source: AGHT+IGa0a0bVLKb/erjEsreWfYBSqscLweitgoP5Ba4+oUKUug/Cv0Q/3GZtabetwmezZbq4TBf+wcWs/4RZE84VeE=
-X-Received: by 2002:a05:622a:1388:b0:474:fc9b:d2a7 with SMTP id
- d75a77b69052e-47aec39a3a6mr276212621cf.6.1745373083515; Tue, 22 Apr 2025
- 18:51:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="O3PoKMdI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1745379130; x=1776915130;
+  h=date:from:to:cc:subject:message-id:references:
+   content-transfer-encoding:in-reply-to:mime-version;
+  bh=FnEkoDJssiOQU42n/pGUl/aTVjlO8aLMEZIfUN6oNX8=;
+  b=O3PoKMdI4Dgl1Q9fnoyqveZsQpkSCbjafhR3GpOxUaOdsJe9nZjz+2un
+   AneFSjJOgQ2CYvi69jmjXl+ga270MEIE77/WjhplsiE6U5s2dqOr83+tN
+   eiVG4W1jBPIrUcFovMoOVdPriGioZtdxEOSptLEf7gvvhinXO5admtoLA
+   KcNSMHgOEVgCS3HDP1kBap+vzmtnGHXGnY6GLOR4j259u5hUPuEblJYik
+   wdrZ6c1/jn/tvaahjoDEjsLYh/ej5Xb8y34X1bR8AaCvx34IG7wzD8qi2
+   +P47xYc+hhm16h9g7cZl17I2CCgK7obcf5+BwTEyPDIEp/mmCNHc/QMIm
+   Q==;
+X-CSE-ConnectionGUID: q2LY3JE0Q3+rey+X/6tWlw==
+X-CSE-MsgGUID: Zi/A5SuuQOCevAPkbVQ9Gg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11411"; a="57939611"
+X-IronPort-AV: E=Sophos;i="6.15,232,1739865600"; 
+   d="scan'208";a="57939611"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Apr 2025 20:32:10 -0700
+X-CSE-ConnectionGUID: UbXNhypFSCahw2L91API1Q==
+X-CSE-MsgGUID: b89lxP3BQ+a3m6ByncRXkg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,232,1739865600"; 
+   d="scan'208";a="133070251"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa009.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Apr 2025 20:32:09 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14; Tue, 22 Apr 2025 20:32:08 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14 via Frontend Transport; Tue, 22 Apr 2025 20:32:08 -0700
+Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.41) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Tue, 22 Apr 2025 20:32:07 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=f94zJrQl0zKMsR57M2nun2sykxH0n3Q6oMKTkOPVhWw3rIseyoiumcZWz7jPkAPt9v08Ww1gWqwZ/e32+VnuCQQvQJWYrYfTEBX67fbhjY1M+HfhD7inSoi0I/fG/nieZPV+bQV5YbS5e1TjMZjiP/P9Kn5sNwX38YJve9UEm7D3H/pRd8YDiro3avsN5QR/eilesG0AnkFGBPLq0Id1bL7YBdi5Xitm6CDq905ymP3eNmAOKYxQil24d6T5DOGAp26sgURhA8i0bTDjneT+GWq/hjhfWEf23Uc3KCBSvWkWLpx+yk4ke4Pe+Mo7jZsyFNVO2yQx6+XKx4A6eK8qMg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=VayJvd3R5ShZqUPnS/2w/8yrNNvFdbnVobqyiw5WMyA=;
+ b=f0yBkT8Py6Uh5Evyg6nDKSkgdyzLUgYc0bPnNk+6GosPY0xKc1hRHBhw6ZR+S//Ok1/vtns5n8mxyPV0U5l/ETfpRtfT6hQM6qzcxfy47s3r8u96Y6ahvBcb7BhX9b9hNMOQivCq0GCN0YmE4US1eh6u2IB0a35xaaG/ggwEj3sJNRzFL6ZQO7fB4SqW2oZsAM5pqYzU1iU1fLprHcxD82Zx55bnD0ZhtD9A68jGhHRpOiIYMs73fIy9lS2UCts+2Uhb9BPOsyfuqp5FUZL0Pdo0CCHsXQ/laOffLfopr4b5d2Ug1J8ROpbWqbcl2EuzccHuhwnqSeeu1F5O6iAgSQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by SA2PR11MB4923.namprd11.prod.outlook.com (2603:10b6:806:fa::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8655.35; Wed, 23 Apr
+ 2025 03:32:00 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8%4]) with mapi id 15.20.8655.031; Wed, 23 Apr 2025
+ 03:32:00 +0000
+Date: Tue, 22 Apr 2025 20:31:56 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>, <linux-cxl@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>
+CC: <alison.schofield@intel.com>
+Subject: Re: [NDCTL PATCH v5 2/3] cxl: Enumerate major/minor of FWCTL char
+ device
+Message-ID: <68085f2cd70da_71fe29420@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20250411184831.2367464-1-dave.jiang@intel.com>
+ <20250411184831.2367464-3-dave.jiang@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20250411184831.2367464-3-dave.jiang@intel.com>
+X-ClientProxiedBy: MW4PR04CA0274.namprd04.prod.outlook.com
+ (2603:10b6:303:89::9) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20250421013346.32530-1-john@groves.net> <20250421013346.32530-12-john@groves.net>
-In-Reply-To: <20250421013346.32530-12-john@groves.net>
-From: Joanne Koong <joannelkoong@gmail.com>
-Date: Tue, 22 Apr 2025 18:51:12 -0700
-X-Gm-Features: ATxdqUHH_imdRr9soL9xq2F-DrMbo1uaH4JTwu64XFNIVCAtRJarimtzdncDBPM
-Message-ID: <CAJnrk1a40QE+8q-PTTP6GgpDO9d9i_biuN8zk-KSEEiK7S34kA@mail.gmail.com>
-Subject: Re: [RFC PATCH 11/19] famfs_fuse: Basic famfs mount opts
-To: John Groves <John@groves.net>
-Cc: Dan Williams <dan.j.williams@intel.com>, Miklos Szeredi <miklos@szeredb.hu>, 
-	Bernd Schubert <bschubert@ddn.com>, John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	"Darrick J . Wong" <djwong@kernel.org>, Luis Henriques <luis@igalia.com>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Kent Overstreet <kent.overstreet@linux.dev>, Petr Vorel <pvorel@suse.cz>, 
-	Brian Foster <bfoster@redhat.com>, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SA2PR11MB4923:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6ea49dd0-6eba-43ed-32d7-08dd82176812
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024;
+X-Microsoft-Antispam-Message-Info: =?utf-8?B?K3EyZkhQUzV0VkoyQ2dsWnpBWk9XdFZodVEzVURSN3VwVGVta1IwWCtsSlM5?=
+ =?utf-8?B?UkVTRnl4eW5NWDdoRFNicGFGSGdhTkhKVkxVVTdVRVhpWGFvbWxsaTAwclZW?=
+ =?utf-8?B?TzI5ckdmOGZxc3ZZdGt5bkFDbjNRTkV5N2JmcXhlY2o2MW1xVStieTcxejZh?=
+ =?utf-8?B?UG5mdmc3QjQ1RUFjclc0UzBlWldTb0lPekRqUU1penZKcGM0NHRwZi9yK3lN?=
+ =?utf-8?B?Nnd4TXVWMW5wU1g2YXBlb1F5aHVKTDdVanBrczVoWTJ4VmZ5S244NDlrSUg2?=
+ =?utf-8?B?MENyb09pQnlOUzcza0VFTjIrWXZJeWc3SHVZWWhTeWdLa0ZxMEcxOUw4SHl1?=
+ =?utf-8?B?WS9FZVE5K0pYZjRFR3REMHAyNGY5Q3RtTU1TQWt6WnRxVCtnN2lEREtxOHRP?=
+ =?utf-8?B?YnE2dU8wL2pQaTUzeEUrZnRhOGFHOFkvWlBTSnlkSkNDQW4zRk5xZ3ZzTU5R?=
+ =?utf-8?B?eUNxcWZmTXU5L1lrSDUvVEx4b05YbTQ3NTZjTUd0NmlFSExyU3IxMWNQNENr?=
+ =?utf-8?B?NzNrY0V0eERQa0xiL1M1OThLOHRNZ3FxUStOcm5rUUt2QndoZTlTUXBhMXVl?=
+ =?utf-8?B?VjFIY1EzQkQ4dUl2UUNlOStXeEx2K0pKWGdVVE0rV283VFMvNlY3UVk4cjlM?=
+ =?utf-8?B?TlRvTnR1KytJb1ZPU2VPUVh2NnpEaVIzM2JYb0ZwUXEwMHN2M3RSbVBmci9R?=
+ =?utf-8?B?VVVkQy9jWUdGUHN0OGI3NWhIQVFiRXlTV3gvdndLWVRvUU93cWljV3l2OVBz?=
+ =?utf-8?B?OU10WnFNVURmZnVsbnN4TWQ5dEJlVzRzaVpXbElDOVJXVTlXdlZHTzBYQzVS?=
+ =?utf-8?B?NTlPQU5SYnZWRDlIMWlpWVpJaytUNVdIdDdXWGsvS0JrL2tOcDhIRkJOWjJ6?=
+ =?utf-8?B?WGFrU1hMcjQ4UWdxTzZ3UlVtTTRmYjNwR0RidWR4eS9yQWRVM2dhVFVOQ20v?=
+ =?utf-8?B?Vm9LU1VxYlZJZlJrM1FhaStlTEI0c2QvRGxhWmE1bCtKdFhPcDcwMElYRnRv?=
+ =?utf-8?B?cWdzYmtSSGxIcjF4UUpCSWkzNE5IdGJtQkdPL1lxaHB6YzNWMG5yMjhVWmZS?=
+ =?utf-8?B?ME4rZkYzWG9qQ3FYeEp5UFlJU1lLVXNuVUZIOWJvT3dRYWNYZGR4MkI5T1Qx?=
+ =?utf-8?B?K2pzbk95K2FJelNFbXdsT04xUVcyWlJMSzZwaWs2VUwrblh6ZG84WGNBMC9r?=
+ =?utf-8?B?c3I4QTFadTBXdVE0bE5sV2VHS0tlSnhFQnZKK3psNk5ycWc4ZTF2dlg0QkFZ?=
+ =?utf-8?B?VWZySFAzaVVNUDA1VW0xYXFvclR3Smx6cFkwcmwySmwwV1VaRkM2eXMvNDNZ?=
+ =?utf-8?B?VWZHTFNkdmt5aFVOcm9VSEl0S1pDSTJEeXFsWldxWE1hcnR1NUQxb3dIbWRv?=
+ =?utf-8?B?eDhLTnhjZ3k4TzlFMDAwVGo0aWhRTy9HU3ZSNXYvR3o1QTdlU0pvWXVOTXhT?=
+ =?utf-8?B?VXdaK01pRVVuUENUZEc1R0JSbUV6bUpjSmVyc09MT05wMVI1RE5KWkQ4VzVt?=
+ =?utf-8?B?Zmw0dEtndjZFa0hPVUcrcFdCR0YzOUlTSlpNakVVY0FtWkpEU1F6TWtLUklV?=
+ =?utf-8?B?aVd4UktISEhxYlk2WTYxQ1VlejgreU1NRUVDZ0Z0MGxEQ2xTZjhzQ2JXeXF3?=
+ =?utf-8?B?QU1FTGIxWTliZFNmNTFOa2pNeE1uK25wMStMYzAxYXNPd0t2L1hhS3R2d2lr?=
+ =?utf-8?B?RVk5bWFlREJEaDhBMjNUcksxN0NNNVcvTGZJSlBOc3FQL0F0amE0dURMUVdq?=
+ =?utf-8?B?NENQMEtXZ0ZwbmlWaVJaeTlMY0hrRXpVYTZrL3VPKzYvRmoyMTFLMXBqMEFu?=
+ =?utf-8?B?dUsvQXlCbWhNTTA5bVEwTDZOYmZ2OUFMQitsR053RTRmcjhSTnZBcHNmYndU?=
+ =?utf-8?B?NVVFcVNGT3VUaU5MazZOUk1POUcwZkNkRlBRdmJ3b1dXWVlHNGo1S3Iwa1NK?=
+ =?utf-8?Q?kYM3wdfUxoU=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?bGJzZU80b210YXI0RzFCWkNGZlI0eFRkc1dzTUozRVpnQm50Sm9WUW82RkND?=
+ =?utf-8?B?Skc3NXU3Y2ltd1BwK0JVSGM5eGhkeFJWV0hkT0VCQW1CZjI4U0dZUGIwdDJk?=
+ =?utf-8?B?YXZ1K1orT2tOTXIxeklMVWM5SkNBSkYzdU9PUkkreUlyQk1TUE42U0JRUmZj?=
+ =?utf-8?B?N0h4bTJodWpQZDNOcDUzcW13UEh4ZGd2djBCNHlhRGloN0xFdHd1Nkt2Sitr?=
+ =?utf-8?B?WHZ1MDVtckZjMGhqYjFpUktoNThUN1N4bisyTmxRRUY3QzlhYWl1cHNCc1Bx?=
+ =?utf-8?B?Nmt3MFpTMk53cDBscFJYVmRVVS9nWVlXeWd1eERITEtmalZRMG1oWStWZDYr?=
+ =?utf-8?B?RnRVVnBCUlRZYzZrbmd5cERBVlU1ODQ4cndOMHN4bU1Eak9oT0pkK1d5SUdp?=
+ =?utf-8?B?R1g4aCtjangwR3kvaFBrRWYyZjFjMk9Kaks5Nzh4NDlsSDExREo4aGVrWDJ2?=
+ =?utf-8?B?UEJraElBcFlLd3pNREtwcXBMMEpNSnF6cWIxWUtZUWZ2TUtCM3V5MktqNVBS?=
+ =?utf-8?B?ZWFTUlR2bzlQYjlhb1dSQU5MQ0lmcFFnYVpKUnJJbXA4R1RKSFViTEFRR0N6?=
+ =?utf-8?B?ZENLelhVTGJhRE9rb1FYTjM3dTZZMmpXWnpEZHNPdER2NlIwMyt0M1JHaVpM?=
+ =?utf-8?B?UzRyL05GSEVaMVdXSWR4VEZRaWY0cytaNzZOelAwNkRIenpCK3AybDF5eXVU?=
+ =?utf-8?B?KzNoMGtqL0JUaXFTKzBiVEJKZzdhNnU4UFBoMjVDTjVQRk5jV3pIc3lJZm9q?=
+ =?utf-8?B?VFovRnpmNmhUa2tnR1llU3EwQzBIV3JZckNvcVhoQWJ3MzBxUStVb2p3RlV3?=
+ =?utf-8?B?UXpUUnJ2WTFiY2IzQ29wdzNoNmp6RzBiMllrMW1oTWRyRDk3VndlTFMrTGwy?=
+ =?utf-8?B?VEt3WnVxNXdzNFNueE1qZ3FsQmRPVW4yTWxoMS9RWlpVOVFtbldzVTR4YWw2?=
+ =?utf-8?B?QWI0ZTJIL1hwRnk5RjM3Qi9SSFpJYm1aTDFrSVZqZ1J1bTRrd25GNmlGTmlX?=
+ =?utf-8?B?cnp3YWYybjRVVUtWQkttVE95dzNyUDdvOGMrNlRiK0YzcG84ZWF4WEJBVXpZ?=
+ =?utf-8?B?R0p2VXFUT2RveURpMk5yT1YwODRhZzIrMjVDZXNhMFU5UzhGUnhlSUhXeTVq?=
+ =?utf-8?B?YTBpbDdIVXVjYVVMYjVzbmFkb2Vvc2ZpUDE5OUJ5dVIrcVZOZm54eEJsVkhW?=
+ =?utf-8?B?eml2T1RucHlMcitFRVZkUVpVNE11d2lMTTR1cUR2V3I0ZTdXb0l0STcvOGVS?=
+ =?utf-8?B?cmhLdXBtNko5M1YvVzhqUkhOOGdJdVVQM1hHWm96Q0ZKMm15N01UNVdrQUNm?=
+ =?utf-8?B?alowRlBPamxzaVdJdzlObEVLUDlRUjdMTURkTEkwU3lkOHM5ejNIcXBQekFR?=
+ =?utf-8?B?OHg0aGpCd0lSMS91TU1RTXhjaXlZbitlSzYvQjlmU2dCaFIvTHFycnE3ZUZz?=
+ =?utf-8?B?SnYyaXNaNFhnV2FBNkN0clJCVFZyZmVhOUxEUzJmTEQzOGVOT0l4c3BKSnJK?=
+ =?utf-8?B?aWFHMllnbHNCc2tXY2Z5Tmo4NTRIMExjSXc2a040bDduWXJFRlFqVFVQZ2E3?=
+ =?utf-8?B?NmQxQUovWXJjK1BQbDBEcGF3K0RNU0RsYUVhRjNzdlBnZGtGU0N3Nytnc2Vh?=
+ =?utf-8?B?aEIvY3I5cFU1NEtZS2t5M08wemV1T3U2djE1ZExSZGdNdE9wN1ByeTd4OTBm?=
+ =?utf-8?B?bmV4dmtpSE1KaGNWWlpjbU1aUWNWOTRTRW1tWjZRc1lLa2dkMjRrWWJSZFBZ?=
+ =?utf-8?B?MnFueU01Yi9mM1hNOHFkUGJJWlFYemVsUExHaFRiWWxPT2xQcjlTVXYrUlNQ?=
+ =?utf-8?B?eCtVemlQdlo0bi92L0NCUjJWeitTWjhEK3JzNEtlMzVQaGUySjFvWDZPWWxP?=
+ =?utf-8?B?ZU1aWFlITXV5b2lxLzc4bVdOQVhOOGkrSWw2VDdUMGVwREgxWno2L3U2SGpx?=
+ =?utf-8?B?N09qaU9vaG15VSsrZGdrczlRT3Fkc3JLb0lMVkIxaXFzZE8xMWV0Q210L2Iv?=
+ =?utf-8?B?dTM3eFFYRStpQkNnbW81TWx6cE5BU3lkZEN1V0lIUmlTUmdleHhJYnl2MnVh?=
+ =?utf-8?B?NXQ5OVVKZHNRTkZRNE80NDlERmNNdmR2TnlWeFBoK05PZXB6MVBDbUF1YU13?=
+ =?utf-8?B?RWdDOWJIOWQyVFFwS3NmaWhkSXQ5dk1NblpVenlXUUZSNDIvSnF2elpieE0w?=
+ =?utf-8?B?WWc9PQ==?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6ea49dd0-6eba-43ed-32d7-08dd82176812
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2025 03:32:00.0940
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: jw31YQqoU0LFUbUt9n8JYknQkxIaOaCGBOB3ybMK88ZMJmFe1skUpqQe4kofLF5SQvlG/GK4o7dKWR9ZlO19tHL8AVTS64v8h+pUsoyLCHc=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA2PR11MB4923
+X-OriginatorOrg: intel.com
 
-On Sun, Apr 20, 2025 at 6:34=E2=80=AFPM John Groves <John@groves.net> wrote=
-:
->
-> * -o shadow=3D<shadowpath>
-> * -o daxdev=3D<daxdev>
->
-> Signed-off-by: John Groves <john@groves.net>
+Dave Jiang wrote:
+> Add major/minor discovery for the FWCTL character device that is associated
+> with supprting CXL Features under 'struct cxl_fwctl'. A 'struct cxl_fwctl'
+> may be installed under cxl_memdev if CXL Features are supported and FWCTL
+> is enabled. Add libcxl API functions to retrieve the major and minor of the
+> FWCTL character device.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 > ---
->  fs/fuse/fuse_i.h |  8 +++++++-
->  fs/fuse/inode.c  | 25 ++++++++++++++++++++++++-
->  2 files changed, 31 insertions(+), 2 deletions(-)
->
-> diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-> index b2c563b1a1c8..931613102d32 100644
-> --- a/fs/fuse/fuse_i.h
-> +++ b/fs/fuse/fuse_i.h
-> @@ -580,9 +580,11 @@ struct fuse_fs_context {
->         unsigned int blksize;
->         const char *subtype;
->
-> -       /* DAX device, may be NULL */
-> +       /* DAX device for virtiofs, may be NULL */
->         struct dax_device *dax_dev;
->
-> +       const char *shadow; /* famfs - null if not famfs */
+> v5:
+> - Add documentation. (Alison)
+> - Alloc path on stack. (Alison)
+> - Deal with out of entry and no match case. (Alison)
+> - Make fwctl operations part of 'struct cxl_fwctl' (Dan)
+> ---
+>  Documentation/cxl/lib/libcxl.txt | 21 +++++++++
+>  cxl/lib/libcxl.c                 | 78 ++++++++++++++++++++++++++++++++
+>  cxl/lib/libcxl.sym               |  3 ++
+>  cxl/lib/private.h                |  8 ++++
+>  cxl/libcxl.h                     |  5 ++
+>  5 files changed, 115 insertions(+)
+> 
+> diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
+> index 25ff406c2920..1e00e2dd1abc 100644
+> --- a/Documentation/cxl/lib/libcxl.txt
+> +++ b/Documentation/cxl/lib/libcxl.txt
+> @@ -42,6 +42,7 @@ struct cxl_memdev *cxl_memdev_get_next(struct cxl_memdev *memdev);
+>  struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev);
+>  const char *cxl_memdev_get_host(struct cxl_memdev *memdev)
+>  struct cxl_memdev *cxl_endpoint_get_memdev(struct cxl_endpoint *endpoint);
+> +struct cxl_fwctl *cxl_memdev_get_fwctl(struct cxl_memdev *memdev);
+>  
+>  #define cxl_memdev_foreach(ctx, memdev) \
+>          for (memdev = cxl_memdev_get_first(ctx); \
+> @@ -59,6 +60,9 @@ specific memdev.
+>  The host of a memdev is the PCIe Endpoint device that registered its CXL
+>  capabilities with the Linux CXL core.
+>  
+> +A memdev may host a 'struct cxl_fwctl' if CXL Features are supported and
+> +Firmware Contrl (FWCTL) is also enabled.
+
+s/Contrl/Control/
+
+Also, do you mean CONFIG_CXL_FEATURES instead of "FWCTL", because
+CONFIG_FWCTL is not sufficient.
+
 > +
->         /* fuse_dev pointer to fill in, should contain NULL on entry */
->         void **fudptr;
->  };
-> @@ -938,6 +940,10 @@ struct fuse_conn {
->         /**  uring connection information*/
->         struct fuse_ring *ring;
->  #endif
+>  === MEMDEV: Attributes
+>  ----
+>  int cxl_memdev_get_id(struct cxl_memdev *memdev);
+> @@ -185,6 +189,23 @@ device is in use. When CXL_SETPART_NEXTBOOT mode is set, the change
+>  in partitioning shall become the “next” configuration, to become
+>  active on the next device reset.
+>  
+> +FWCTL
+> +-----
+> +The object representing a Firmware Control (FWCTL) device is 'struct cxl_fwctl'.
+> +Library interfaces related to these devices have the prefix 'cxl_fwctl_'.
+> +These interfaces are associated with retrieving attributes related to the
+> +CXL FWCTL character device that is a child of the memdev.
+
+I assume any other fwctl helpers that might get added in the future
+would use the object so I would give yourself some wiggle room for
+cxl_fwctl to be used for more than just conveying chardev major / minor.
+
 > +
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +       char *shadow;
-> +#endif
->  };
->
->  /*
-> diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-> index 5c6947b12503..7f4b73e739cb 100644
-> --- a/fs/fuse/inode.c
-> +++ b/fs/fuse/inode.c
-> @@ -766,6 +766,9 @@ enum {
->         OPT_ALLOW_OTHER,
->         OPT_MAX_READ,
->         OPT_BLKSIZE,
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +       OPT_SHADOW,
-> +#endif
->         OPT_ERR
->  };
->
-> @@ -780,6 +783,9 @@ static const struct fs_parameter_spec fuse_fs_paramet=
-ers[] =3D {
->         fsparam_u32     ("max_read",            OPT_MAX_READ),
->         fsparam_u32     ("blksize",             OPT_BLKSIZE),
->         fsparam_string  ("subtype",             OPT_SUBTYPE),
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +       fsparam_string("shadow",                OPT_SHADOW),
-> +#endif
->         {}
->  };
->
-> @@ -875,6 +881,15 @@ static int fuse_parse_param(struct fs_context *fsc, =
-struct fs_parameter *param)
->                 ctx->blksize =3D result.uint_32;
->                 break;
->
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +       case OPT_SHADOW:
-> +               if (ctx->shadow)
-> +                       return invalfc(fsc, "Multiple shadows specified")=
-;
-> +               ctx->shadow =3D param->string;
-> +               param->string =3D NULL;
-> +               break;
-> +#endif
+> +=== FWCTL: Attributes
+> +----
+> +int cxl_fwctl_get_major(struct cxl_memdev *memdev);
+> +int cxl_fwctl_get_minor(struct cxl_memdev *memdev);
+> +----
 > +
->         default:
->                 return -EINVAL;
->         }
-> @@ -888,6 +903,7 @@ static void fuse_free_fsc(struct fs_context *fsc)
->
->         if (ctx) {
->                 kfree(ctx->subtype);
-> +               kfree(ctx->shadow);
->                 kfree(ctx);
->         }
+> +The character device node for Feature (firmware) control can be found by
+> +default at /dev/fwctl/fwctl%d, or created with a major / minor returned
+> +from cxl_memdev_get_fwctl_{major,minor}().
+> +
+>  BUSES
+>  -----
+>  The CXL Memory space is CPU and Device coherent. The address ranges that
+> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> index bab7343e8a4a..be54db1b9bb9 100644
+> --- a/cxl/lib/libcxl.c
+> +++ b/cxl/lib/libcxl.c
+> @@ -88,6 +88,7 @@ static void free_memdev(struct cxl_memdev *memdev, struct list_head *head)
+>  	free(memdev->dev_buf);
+>  	free(memdev->dev_path);
+>  	free(memdev->host_path);
+> +	free(memdev->fwctl);
+>  	free(memdev);
 >  }
-> @@ -919,7 +935,10 @@ static int fuse_show_options(struct seq_file *m, str=
-uct dentry *root)
->         else if (fc->dax_mode =3D=3D FUSE_DAX_INODE_USER)
->                 seq_puts(m, ",dax=3Dinode");
->  #endif
-> -
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +       if (fc->shadow)
-> +               seq_printf(m, ",shadow=3D%s", fc->shadow);
-> +#endif
->         return 0;
+>  
+> @@ -1253,6 +1254,64 @@ static int add_cxl_memdev_fwl(struct cxl_memdev *memdev,
+>  	return -ENOMEM;
 >  }
->
-> @@ -1825,6 +1844,10 @@ int fuse_fill_super_common(struct super_block *sb,=
- struct fuse_fs_context *ctx)
->         sb->s_root =3D root_dentry;
->         if (ctx->fudptr)
->                 *ctx->fudptr =3D fud;
-> +
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +       fc->shadow =3D kstrdup(ctx->shadow, GFP_KERNEL);
-> +#endif
+>  
+> +static const char fwctl_prefix[] = "fwctl";
+> +static int get_feature_chardev(const char *base, char *chardev_path)
+> +{
+> +	char path[CXL_PATH_MAX];
 
-Since this is kstrdup-ed, I think you meant to also kfree this in
-fuse_conn_put() when the last refcount on fc gets dropped?
+This CXL_PATH_MAX approach stands out as different than all the other
+path buffer management in the rest of the implementation.
 
+In all other paths ->dev_buf has the scratch space for printing buffers.
 
-Thanks,
-Joanne
-
->         mutex_unlock(&fuse_mutex);
->         return 0;
->
-> --
-> 2.49.0
->
+It's not broken, but it's also odd for one off functions to switch
+schemes.
