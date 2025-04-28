@@ -1,85 +1,64 @@
-Received: from mail-oa1-f51.google.com (mail-oa1-f51.google.com [209.85.160.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9BBB78F3A
-	for <nvdimm@lists.linux.dev>; Mon, 28 Apr 2025 01:50:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFB6E28C5BF;
+	Mon, 28 Apr 2025 19:00:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745805007; cv=none; b=QBEcp1VuMA1c8WdDR7hzGAuxXt0CvyxY0IPJARtD39xz3MU0r8AEE3sd/6qdKIyiunCwAjg/UBDPHA7ihK5sAnQnu2OIRMsDzGAdmEXuw8ZsNcMpl2s/CdaN20ssZls4vPJqvTlknyX3h9xFit/RyeUtDFYn+Kf7c3nRXv6V4AE=
+	t=1745866811; cv=none; b=Rror9QVoyaE3akyWvZCOKMAhh3hrei2rJXqiAEK3FCKIqS6NMmuxxrrnGo/2ymzNioiYRnlJQD0rNio+e5iTjexQnTxwxbX8hLxo9OCiJ/e085iar5JgaY/SxluxGujnXk8RC+Z2F2tr5CUl9wManXH2TUjm/8f0op75wmxzE74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745805007; c=relaxed/simple;
-	bh=doj6zOgc5VWWmm/qoFnhXtoIVGZlxDYg5PUinPuwuBc=;
+	s=arc-20240116; t=1745866811; c=relaxed/simple;
+	bh=VOBhTYGv7U6EwTbbvDJfFalfxqXT7QXGEu4dGWzP4rs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ElibRTLueDsIigd66oluvtP8IE0kgJJTdRU2mZplj3CG7dwmCw66kNtvnxT5GROcYS9TYg5vAB2x7Gg4xoYJG6R7jFAtpLKHfKeb4wgAeWWEhutEMsAi2wMSsjhPCYOGV9CD03rFy9WkIzRwkxBiun/ZBR2BqiNNA+Mndp0JBoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cjT+l/YD; arc=none smtp.client-ip=209.85.160.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=RPH9hvwZRUCQXc9a6ppPLONlZLj+QUA+hsoUVZPjN/0KfSuko2b37PznxWKaJ+hoYqStehUKTEgpSbOSDFdbq2AepQlzpz4wvPeFfr8aZO082vaf1/SdIFZjOJb78fCyCBlBxtIZgu0gfhYt/aM2NYUKIDbj/91KzxbNzr3qMEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oa/AnQo7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cjT+l/YD"
-Received: by mail-oa1-f51.google.com with SMTP id 586e51a60fabf-2c759bf1b2eso2559300fac.1
-        for <nvdimm@lists.linux.dev>; Sun, 27 Apr 2025 18:50:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1745805005; x=1746409805; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=q/ubERfRjdkzW5emP2ZZP5xPtJL9kCLbv4s5tOyr1d0=;
-        b=cjT+l/YDsGP5nkaNF96G8WpaSHataafpuaLErga3YzMzdzXn2wQAw4g0/nWDVGokmZ
-         it8eNqDbl6ZSQa1CSKYkP6zI9Tw1U6ym8cdKGLcLPMBv55gZd51tx/0OAIa9eejJgzHx
-         dC1jNtx9nD3iwPfa6wa/crQeDbJgVJn4V2SwdTJCyqFxTwrLYuNhjLTV/gYYYWbpqfF5
-         VAX/B5oBNhe5zGHaau1Fb0LYas/fiTTUI5ia/QZKkC0Jyfizy7m54ZAkb9CUCJRYhl+o
-         gMyci3eWGZIlPOYlD//I6qYawuhD7UA+xtMr/aEGPKWFrQ2LrZ15eM3N5qDCgkW/zj21
-         dv2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745805005; x=1746409805;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=q/ubERfRjdkzW5emP2ZZP5xPtJL9kCLbv4s5tOyr1d0=;
-        b=FV6ifEdrn0HeucJtY8u7VsT3rQsuAAsxA8k+cURgEhrOE9dGsKzQCQjAlk+KMCHgdO
-         /OgErMzNUv9WXj0WFtLie9h8WeQ/59eYdVxfGa6lZr8xMTYluNlCdlYKNt2vNPhHARtw
-         K7yBMMEnMDi0a60l+YjQiR/IKEktRJNwhGW/TbYNlAW8mMKwcFcceonR7ysncU8Snzyr
-         b0QXQQHtYNmpEncYSMXRg4xGAneEFwtwOoT9EVN8BoU7A8X6bapBNTYZSaNFr8Ed2UcH
-         mcrQw8bbS5QJWFw89k1Cy8p/kWdGAB5dLdWM0JpsBYzKVzH+QMYN9Xy8OTDWZxazxUZc
-         G55w==
-X-Forwarded-Encrypted: i=1; AJvYcCVvOoOsh5zTq1eHqZ7YixJRKfrbfOViIu7fYGe/0DfPyoMi7Qqvx7MrfF/nGhBNaXy3eUZwHtY=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yz/kUpq4vkOu6rTuUpRryHfWdUVlCTH/ph2EO738b8YIpu89FvU
-	l4If6eCb+MGZaFs0Iurb4iKAVamZ5YlSwGFJtFoY6773WzjlWxgy
-X-Gm-Gg: ASbGnculoPxFKCx230tRap/gSckIEOAYumaPky3OxzIDkx2vaTxCmKPAdiZRhbXRcCd
-	PmR1IzBcPQbkEQ00O0ytLypGprCcdbcUlYz3HYRWgwWolk+g558f2bGQX2D3GvbAOoHs9CLvOSL
-	oZHJX19U7KHGVRixxPs3tfOyDHaAH6JKUbFId9XziKlLuk7ivoZUa5px4MwAFhsoRRkev6vK1g7
-	8Eh/PRQ8v1UG02rxph93wxKl+k+Ki8vLk3WRsrBNQ/bA+ekNOGHmhQZfBsIzAyRaapL5LM4vnVm
-	Zl4fD6oNVAAHz/rqLFZqiu4FMncM9/Rzzcvg/Mq+DL2INazbNhMTJqBxdYPjcQwJ2w==
-X-Google-Smtp-Source: AGHT+IFAMuKE1EJyX06l+5odcVHGZDhKhFY+nBb5zJuOWKhWorN6ZVXS6F1/faYUmlVc/WvBl7O1dg==
-X-Received: by 2002:a05:6870:a794:b0:2c1:6948:d57c with SMTP id 586e51a60fabf-2d99db0acc8mr6417200fac.28.1745805003074;
-        Sun, 27 Apr 2025 18:50:03 -0700 (PDT)
-Received: from groves.net ([2603:8080:1500:3d89:14de:ab78:90c3:bb9a])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-2d9737e73b7sm2071903fac.26.2025.04.27.18.50.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Apr 2025 18:50:02 -0700 (PDT)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Sun, 27 Apr 2025 20:50:00 -0500
-From: John Groves <John@groves.net>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Bernd Schubert <bschubert@ddn.com>, 
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	"Darrick J . Wong" <djwong@kernel.org>, Luis Henriques <luis@igalia.com>, 
-	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
-	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, 
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC PATCH 18/19] famfs_fuse: Add documentation
-Message-ID: <bwazd4vbwj2c7flrrkizycvl22oflufawxdiaan674vqqkgumw@lt4zppeg4l7e>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oa/AnQo7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C882C4CEEC;
+	Mon, 28 Apr 2025 19:00:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1745866811;
+	bh=VOBhTYGv7U6EwTbbvDJfFalfxqXT7QXGEu4dGWzP4rs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=oa/AnQo7UxlB/YwqdvTFZfFeOSpZnl85qblx/x2r/W4sJNe27HhO1NR2aDFfSR2J1
+	 TNnETMr7LmhVYK2fvqL+PTcN1R/hGaS+s2TaGmxVQrboHIgsaz0BncvekH12e66xhc
+	 Tmid+y6i9dWfMSRetHgxzt9ndOHExEJB9Zp81sgdHK+/KUvTUWsF+ckhdMLZ9WgD8A
+	 wPE8qZkXge0jPt0wqErjA3JQdlrcGuHSpOfJBmXDN0dbOMqzOxe/BHeMpVr9p2rp1G
+	 WyHNANrvGcgJpy1/0TqnOr5WFmpQAAYYvlxFYUlDYY6jzu4jGTdcuvItqcGiUKWKnu
+	 iPQ7QYAUblv1Q==
+Date: Mon, 28 Apr 2025 12:00:10 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: John Groves <John@groves.net>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Bernd Schubert <bschubert@ddn.com>,
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Luis Henriques <luis@igalia.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Stefan Hajnoczi <shajnocz@redhat.com>,
+	Joanne Koong <joannelkoong@gmail.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>, 0@groves.net
+Subject: Re: [RFC PATCH 13/19] famfs_fuse: Create files with famfs fmaps
+Message-ID: <20250428190010.GB1035866@frogsfrogsfrogs>
 References: <20250421013346.32530-1-john@groves.net>
- <20250421013346.32530-19-john@groves.net>
- <db2415e3-0ee7-4b72-ac6b-4c7cda875dd3@infradead.org>
+ <20250421013346.32530-14-john@groves.net>
+ <nedxmpb7fnovsgbp2nu6y3cpvduop775jw6leywmmervdrenbn@kp6xy2sm4gxr>
+ <20250424143848.GN25700@frogsfrogsfrogs>
+ <5rwwzsya6f7dkf4de2uje2b3f6fxewrcl4nv5ba6jh6chk36f3@ushxiwxojisf>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -88,135 +67,171 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <db2415e3-0ee7-4b72-ac6b-4c7cda875dd3@infradead.org>
+In-Reply-To: <5rwwzsya6f7dkf4de2uje2b3f6fxewrcl4nv5ba6jh6chk36f3@ushxiwxojisf>
 
-On 25/04/21 07:10PM, Randy Dunlap wrote:
-> 
-> 
-> On 4/20/25 6:33 PM, John Groves wrote:
-> > Add Documentation/filesystems/famfs.rst and update MAINTAINERS
+On Sun, Apr 27, 2025 at 08:48:30PM -0500, John Groves wrote:
+> On 25/04/24 07:38AM, Darrick J. Wong wrote:
+> > On Thu, Apr 24, 2025 at 08:43:33AM -0500, John Groves wrote:
+> > > On 25/04/20 08:33PM, John Groves wrote:
+> > > > On completion of GET_FMAP message/response, setup the full famfs
+> > > > metadata such that it's possible to handle read/write/mmap directly to
+> > > > dax. Note that the devdax_iomap plumbing is not in yet...
+> > > > 
+> > > > Update MAINTAINERS for the new files.
+> > > > 
+> > > > Signed-off-by: John Groves <john@groves.net>
+> > > > ---
+> > > >  MAINTAINERS               |   9 +
+> > > >  fs/fuse/Makefile          |   2 +-
+> > > >  fs/fuse/dir.c             |   3 +
+> > > >  fs/fuse/famfs.c           | 344 ++++++++++++++++++++++++++++++++++++++
+> > > >  fs/fuse/famfs_kfmap.h     |  63 +++++++
+> > > >  fs/fuse/fuse_i.h          |  16 +-
+> > > >  fs/fuse/inode.c           |   2 +-
+> > > >  include/uapi/linux/fuse.h |  42 +++++
+> > > >  8 files changed, 477 insertions(+), 4 deletions(-)
+> > > >  create mode 100644 fs/fuse/famfs.c
+> > > >  create mode 100644 fs/fuse/famfs_kfmap.h
+> > > > 
 > > 
-> > Signed-off-by: John Groves <john@groves.net>
-> > ---
-> >  Documentation/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++
-> >  Documentation/filesystems/index.rst |   1 +
-> >  MAINTAINERS                         |   1 +
-> >  3 files changed, 144 insertions(+)
-> >  create mode 100644 Documentation/filesystems/famfs.rst
+> > <snip>
 > > 
-> > diff --git a/Documentation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst
-> > new file mode 100644
-> > index 000000000000..b6b3500b6905
-> > --- /dev/null
-> > +++ b/Documentation/filesystems/famfs.rst
-> > @@ -0,0 +1,142 @@
-> > +.. SPDX-License-Identifier: GPL-2.0
-> > +
-> > +.. _famfs_index:
-> > +
-> > +==================================================================
-> > +famfs: The fabric-attached memory file system
-> > +==================================================================
-> > +
-> > +- Copyright (C) 2024-2025 Micron Technology, Inc.
-> > +
-> > +Introduction
-> > +============
-> > +Compute Express Link (CXL) provides a mechanism for disaggregated or
-> > +fabric-attached memory (FAM). This creates opportunities for data sharing;
-> > +clustered apps that would otherwise have to shard or replicate data can
-> > +share one copy in disaggregated memory.
-> > +
-> > +Famfs, which is not CXL-specific in any way, provides a mechanism for
-> > +multiple hosts to concurrently access data in shared memory, by giving it
-> > +a file system interface. With famfs, any app that understands files can
-> > +access data sets in shared memory. Although famfs supports read and write,
-> > +the real point is to support mmap, which provides direct (dax) access to
-> > +the memory - either writable or read-only.
-> > +
-> > +Shared memory can pose complex coherency and synchronization issues, but
-> > +there are also simple cases. Two simple and eminently useful patterns that
-> > +occur frequently in data analytics and AI are:
-> > +
-> > +* Serial Sharing - Only one host or process at a time has access to a file
-> > +* Read-only Sharing - Multiple hosts or processes share read-only access
-> > +  to a file
-> > +
-> > +The famfs fuse file system is part of the famfs framework; User space
+> > > > diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+> > > > index d85fb692cf3b..0f6ff1ffb23d 100644
+> > > > --- a/include/uapi/linux/fuse.h
+> > > > +++ b/include/uapi/linux/fuse.h
+> > > > @@ -1286,4 +1286,46 @@ struct fuse_uring_cmd_req {
+> > > >  	uint8_t padding[6];
+> > > >  };
+> > > >  
+> > > > +/* Famfs fmap message components */
+> > > > +
+> > > > +#define FAMFS_FMAP_VERSION 1
+> > > > +
+> > > > +#define FUSE_FAMFS_MAX_EXTENTS 2
+> > > > +#define FUSE_FAMFS_MAX_STRIPS 16
+> > > 
+> > > FYI, after thinking through the conversation with Darrick,  I'm planning 
+> > > to drop FUSE_FAMFS_MAX_(EXTENTS|STRIPS) in the next version.  In the 
+> > > response to GET_FMAP, it's the structures below serialized into a message 
+> > > buffer. If it fits, it's good - and if not it's invalid. When the
+> > > in-memory metadata (defined in famfs_kfmap.h) gets assembled, if there is
+> > > a reason to apply limits it can be done - but I don't currently see a reason
+> > > do to that (so if I'm currently enforcing limits there, I'll probably drop
+> > > that.
+> > 
+> > You could also define GET_FMAP to have an offset in the request buffer,
+> > and have the famfs daemon send back the next offset at the end of its
+> > reply (or -1ULL to stop).  Then the kernel can call GET_FMAP again with
+> > that new offset to get more mappings.
+> > 
+> > Though at this point maybe it should go the /other/ way, where the fuse
+> > server can sends a "notification" to the kernel to populate its mapping
+> > data?  fuse already defines a handful of notifications for invalidating
+> > pagecache and directory links.
+> > 
+> > (Ugly wart: notifications aren't yet implemented for the iouring channel)
 > 
->                                                               user
-> 
-> > +components [1] handle metadata allocation and distribution, and provide a
-> > +low-level fuse server to expose files that map directly to [presumably
-> > +shared] memory.
-> > +
-> > +The famfs framework manages coherency of its own metadata and structures,
-> > +but does not attempt to manage coherency for applications.
-> > +
-> > +Famfs also provides data isolation between files. That is, even though
-> > +the host has access to an entire memory "device" (as a devdax device), apps
-> > +cannot write to memory for which the file is read-only, and mapping one
-> > +file provides isolation from the memory of all other files. This is pretty
-> > +basic, but some experimental shared memory usage patterns provide no such
-> > +isolation.
-> > +
-> > +Principles of Operation
-> > +=======================
-> > +
-> > +Famfs is a file system with one or more devdax devices as a first-class
-> > +backing device(s). Metadata maintenance and query operations happen
-> > +entirely in user space.
-> > +
-> > +The famfs low-level fuse server daemon provides file maps (fmaps) and
-> > +devdax device info to the fuse/famfs kernel component so that
-> > +read/write/mapping faults can be handled without up-calls for all active
-> > +files.
-> > +
-> > +The famfs user space is responsible for maintaining and distributing
-> > +consistent metadata. This is currently handled via an append-only
-> > +metadata log within the memory, but this is orthogonal to the fuse/famfs
-> > +kernel code.
-> > +
-> > +Once instantiated, "the same file" on each host points to the same shared
-> > +memory, but in-memory metadata (inodes, etc.) is ephemeral on each host
-> > +that has a famfs instance mounted. Use cases are free to allow or not
-> > +allow mutations to data on a file-by-file basis.
-> > +
-> > +When an app accesses a data object in a famfs file, there is no page cache
-> > +involvement. The CPU cache is loaded directly from the shared memory. In
-> > +some use cases, this is an enormous reduction read amplification compared
-> > +to loading an entire page into the page cache.
-> > +
-> > +
-> > +Famfs is Not a Conventional File System
-> > +---------------------------------------
-> > +
-> > +Famfs files can be accessed by conventional means, but there are
-> > +limitations. The kernel component of fuse/famfs is not involved in the
-> > +allocation of backing memory for files at all; the famfs user space
-> > +creates files and responds as a low-level fuse server with fmaps and
-> > +devdax device info upon request.
-> > +
-> > +Famfs differs in some important ways from conventional file systems:
-> > +
-> > +* Files must be pre-allocated by the famfs framework; Allocation is never
-> 
->                                                          allocation
-> 
-> > +  performed on (or after) write.
-> > +* Any operation that changes a file's size is considered to put the file
-> > +  in an invalid state, disabling access to the data. It may be possible to
-> > +  revisit this in the future. (Typically the famfs user space can restore
-> > +  files to a valid state by replaying the famfs metadata log.)
-> > +
-> > +Famfs exists to apply the existing file system abstractions to shared
-> > +memory so applications and workflows can more easily adapt to an
-> > +environment with disaggregated shared memory.
-> 
-> 
-> -- 
-> ~Randy
-> 
+> I don't have fully-formed thoughts about notifications yet; thinking...
 
-Both edits applied to the -next branch for the patch set. Thanks!
+Me neither.  The existing ones seem like they /could/ be useful for 
 
+> If the fmap stuff may be shared by more than one use case (as has always
+> seemed possible), it's a good idea to think through a couple of things: 
+> 1) is there anything important missing from this general approach, and 
+
+Well for general iomap caching, I think we'd need to pull in a lot more
+of the iomap fields:
+
+struct fuse_iomap {
+	u64		addr;	/* disk offset of mapping, bytes */
+	loff_t		offset;	/* file offset of mapping, bytes */
+	u64		length;	/* length of mapping, bytes */
+	u16		type;	/* type of mapping */
+	u16		flags;	/* flags for mapping */
+	u32		devindex;
+	u64		validity_cookie; /* used with .iomap_valid() */
+};
+
+fuse would use devindex to find the block_device/dax_device, but
+otherwise the fields are exactly the same as struct iomap.  Given that
+this is exposed to userspace we'd probably want to add some padding.
+
+The validity cookie I'm not 100% sure about -- buffered IO uses it to
+detect stale iomappings after we've locked a folio for write, having
+dropped whatever locks protect the iomappings.  The ->iomap_valid
+function compares the iomap::validity_cookie against some internal magic
+value (this would have to be the iomap cache) to decide if revalidation
+is needed.
+
+One way to make this work is to implement the cookie entirely within the
+fuse-iomap cache itself -- every time a new mapping comes in (or a range
+gets invalidated) the cache bumps its cookie.  The fuse server doesn't
+have to implement the cookie itself, but it will have to push a new
+mapping or invalidate something every time the mappings change.
+
+Another way would be to have the fuse server implement the cookie
+itself, but now we have to find a way to have the kernel and userspace
+share a piece of memory where the cookie lives.  I don't like this
+option, but it does give the fuse server direct control over when the
+cookie value changes.
+
+> 2) do you need to *partially* cache fmaps? (or is the "offset" idea above 
+> just to deal with an fmap that might otherwise overflow a response size?)
+
+It's mostly to cap the amount of mapping data being copied into the
+kernel in a specific GET_FMAP call.  For famfs I don't think you have
+that many mappings, but for (say) an XFS filesystem there could be
+billions of them.
+
+Though at that point it might make more sense to populate the cache
+piecemeal as file IO actually happens.
+
+I wouldn't split an existing mapping, FWIW.  Think "I have 1,000,000
+mappings and I'm only going to upload them 1,000 at a time", not "I'm
+going to upload mappings for 100MB worth of file range at a time".
+
+> The current approach lets the kernel retrieve and cache simple and 
+> interleaved fmaps (and BTW interleaved can be multi-dev or single-dev - 
+> there are current weird cases where that's useful). Also too, FWIW everything
+> that can be done with simple ext list fmaps can be done with a collection
+> of interleaved extents, each with strip count = 1. But I think there is a
+> worthwhile clarity to having both.
+
+<nod> I don't know what Miklos' opinion is about having multiple
+fusecmds that do similar things -- on the one hand keeping yours and my
+efforts separate explodes the amount of userspace abi that everyone must
+maintain, but on the other hand it then doesn't couple our projects
+together, which might be a good thing if it turns out that our domain
+models are /really/ actually quite different.
+
+(Especially because I suspect that interleaving is the norm for memory,
+whereas we try to avoid that for disk filesystems.)
+
+> But the current implementation does not contemplate partially cached fmaps.
+> 
+> Adding notification could address revoking them post-haste (is that why
+> you're thinking about notifications? And if not can you elaborate on what
+> you're after there?).
+
+Yeah, invalidating the mapping cache at random places.  If, say, you
+implement a clustered filesystem with iomap, the metadata server could
+inform the fuse server on the local node that a certain range of inode X
+has been written to, at which point you need to revoke any local leases,
+invalidate the pagecache, and invalidate the iomapping cache to force
+the client to requery the server.
+
+Or if your fuse server wants to implement its own weird operations (e.g.
+XFS EXCHANGE-RANGE) this would make that possible without needing to
+add a bunch of code to fs/fuse/ for the benefit of a single fuse driver.
+
+--D
+
+> 
+> > 
+> > --D
+> 
+> Cheers,
+> John
+> 
+> 
