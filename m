@@ -1,221 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com [209.85.210.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A19B1B87E8;
-	Wed, 30 Apr 2025 21:19:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 961182AEE9
+	for <nvdimm@lists.linux.dev>; Thu,  1 May 2025 02:13:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746047990; cv=none; b=T53IuMp//nwbhjrC+Pff1c9KO0pUDn9hTgBz0qRMCKvhsjGsEJB/HfTn1v1HjCS6FDbjgZtl1zsfuH3PhWDtl6HSYXsmtEHMrksTUidKipN0PtrzSY33i3EkeshGCphTlc6QqwFfOxMB9P9qbMBKMgvWNv4JligojpbujLRsFLs=
+	t=1746065631; cv=none; b=YipbE/daPwf5qu0ARUJErJIK7VCQ0BPVMVkSjJYq78Is/odsCTJtwdQxH8S7j/Swv0gs5Co0NSH1vDFiMiF1FYSlaRR0uTzFz9vR5lss+Acfc+AeAfNQAx9sg+LIZ9fIMdUOHq+0+fvYb8VtcLcLAdCT5Zet2lAKL2O+EKrUSPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746047990; c=relaxed/simple;
-	bh=Zh1g5NmzYNwkXg+SKcvvFymhyFnP4VBrEzUpUXaEi6M=;
+	s=arc-20240116; t=1746065631; c=relaxed/simple;
+	bh=IXL7L7GEzmRTgpRI7W6C+cM7nwoU1zodTrcRAWVG/RY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RiJk9QfIEsDNgxO53IPCzVU4LK0W9U7kJzZTHckVyl3K+AiXoXHmFpYDMvjFMF+/YAElYVFoyurKDohdkXf+YsXXY1r6Ov2ABnQXiqxnNQ0YMqtY8SyKhWq/O4376l2CLwkXeUS4QcJzCvgVj75zOQu8k+2kvI/klPTkGgyXFhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Vg2K3Cum; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=iFtNF2o+pZTPBXJqpZHlBCENkBl9WAwH1+61QtVVbMMN/L8CMghj4VMoMbQ1aFwMtHxCw5FungNtEEvnZ/uJrKZqLSteaXniDtbgFDL42glD1/oZ+2IdNDXQ3ZHFI97KfRlKQa9qHWmClNukn9+kbfN+VrAw/qY+/QWhxPODW5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M8QMQG1i; arc=none smtp.client-ip=209.85.210.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Vg2K3Cum"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86E31C4CEE7;
-	Wed, 30 Apr 2025 21:19:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746047989;
-	bh=Zh1g5NmzYNwkXg+SKcvvFymhyFnP4VBrEzUpUXaEi6M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Vg2K3CumnLN9nnRerQEZDRg2R3e+Qn0BI/W+6N5+RN0xGwI3vOg71asshKdjOVQnw
-	 9DKNf8mlYlc1wad7HyRiWZGp9jXay3Y+4vvqfEGq29a+q6wJ5pClXegBBH/W9eyCyj
-	 hSb4sWoaJxiI28n1+mjHYwm6OqVbxrPkEmw4bSdMKIShD0di1JqVYenhhJyRA4y+9H
-	 /r33efJK/tN++qsow0d1O8AV5zd4u89ol0On98PXgUTbHvj9d8Zi+bNKLoYe4w/td/
-	 qtwtblUKIfDD7+mjqxGFjAvmcyY4kHA0qRG99+Nh028F4OWIofuhJA1DLptGk/G9hy
-	 NKh845kHJB1bw==
-Date: Wed, 30 Apr 2025 14:19:46 -0700
-From: Kees Cook <kees@kernel.org>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-hardening@vger.kernel.org
-Subject: Re: [PATCH v2][next] acpi: nfit: intel: Avoid multiple
- -Wflex-array-member-not-at-end warnings
-Message-ID: <202504301400.3B1EACEB@keescook>
-References: <Z-QpUcxFCRByYcTA@kspp>
- <67e55ac4dfa2e_13cb29410@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <df338a70-fdfc-427e-9915-8b9e50de93ad@embeddedor.com>
- <c4828c41-e46c-43c9-a73a-38ce8ab2c1c4@embeddedor.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M8QMQG1i"
+Received: by mail-ot1-f41.google.com with SMTP id 46e09a7af769-72c172f1de1so285416a34.3
+        for <nvdimm@lists.linux.dev>; Wed, 30 Apr 2025 19:13:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1746065628; x=1746670428; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=IXdPE0dAK6WPnTA+7Y1kfcDmuDvdGOZCfAYjmJvCT6s=;
+        b=M8QMQG1i64fALrWEFMYeXs4CGUwmq0edcHIVWr5SEozLdIeWNVOFew0JeNu6jqPYzn
+         01zjCEo774rXCHzdBbP5y5nCDYpk7uQNoHQu0abeHcYWleOBW4ocG3v+xabn9cu6RUH0
+         aYe6/lPjkPhhapGvojgG8whU4uffOWR90rZNKyAj3b5+JiSbxhrspHT/F8/a2X54F7j4
+         BA3U/EK/OYD7v+b7EpmmG3o5oFWL3FFO91BnSV5j0nuB+RCQY70AHN1tatOqgFsBOf9r
+         29eDhRBi7Fgh6+2U6PDJStnRYkRM5fbwFhZZVvLjHJOXSj/QO4151er4Mg3H/XfQ01uA
+         /Gtg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1746065628; x=1746670428;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=IXdPE0dAK6WPnTA+7Y1kfcDmuDvdGOZCfAYjmJvCT6s=;
+        b=Kg9/wt2rcFK0OO3X9HqldQelukDBEBceztfMCw4uqyVQb/5j8tMhDyMNHvz8vlzDQB
+         0Zqh+xmiuuDP4gLitHJRNmHYj4vg0fTapGFiVieHOaRSh3LEz9hJg8Ge2sMBBud7h4wJ
+         JXsMiRqurfDmuze+dkI0VkIsapQw+rU9TQxUAvvT8Ja1+5UR71dooVf7iw0xgibwQHVe
+         zk1RI5Jfbxt+STILgAJ2MmWPkOjm8DVSSdMYoSB5BKxJPabrIqup2aFeodev7+4SIJNG
+         1owQkTRtagr3fuufz/RBcI7SiXBGR2ujZy0lYT/MiRsHBfvNansKjurKEmdgEnKF0e2A
+         Cuow==
+X-Forwarded-Encrypted: i=1; AJvYcCVTRRTC9WfXPruc5H8DLcObDb47TDkxxq41hdNBelaMKUnjXc5ruzmZcRKiV8iUfpEOHzfVstk=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yxl0CFRLMnik9A6DRpz0k5eYhV1nGaQFUWuCKlFzll69OwmKlB0
+	ukKf1rD26YocIdSq3vjtzwNGuYoidG33TjRK7AWVETd1rmxkCqOL
+X-Gm-Gg: ASbGncvHjkHZ/54VK4dL7qBD0GkQTy2dLMdRU3XGCEqR8qFkzawBL9GXKWE82WsK2JM
+	YPvmHLjdlcXk18fU5/j8D6iVFwY4n+ba5+VL5/cWurDavMJDAOLCZ25xAsi2GVx5Ggo7md7ApQ3
+	B1LnLTvSb+mpKS6fPPkBWSx3UNkJ+V3yIKpavOx6CqMU2IKchz8nUbfv3nfnvfD+x7SRbvRwrKj
+	+30me0JeJJmR4a66xoi99buDEQ7/IwDSmAGg+kjNwtYwl+DcSmsXAB+ivTr2wEM2WL3tfvplFnJ
+	Pv4tnv3VRp3OQLs6FwFv+V389HnvCpQSCL73+4IaqJI2JEKIaQCGZL0R0SxUvEHq7UsdJgDa7gF
+	VLoHuK76l
+X-Google-Smtp-Source: AGHT+IEmR48bt7XEiYsncU5O4Q5GIS0VjcmLqFK0GdoL7joQ9ta5UZGYwgpLnkZ5GqCYSdv4P6TBYA==
+X-Received: by 2002:a05:6830:3982:b0:72b:9cc7:25c4 with SMTP id 46e09a7af769-731ce3f9330mr690833a34.22.1746065628499;
+        Wed, 30 Apr 2025 19:13:48 -0700 (PDT)
+Received: from groves.net (syn-070-114-204-161.res.spectrum.com. [70.114.204.161])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7308b117371sm1140234a34.16.2025.04.30.19.13.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 30 Apr 2025 19:13:47 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Wed, 30 Apr 2025 19:13:37 -0700
+From: John Groves <John@groves.net>
+To: Alireza Sanaee <alireza.sanaee@huawei.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, 
+	Miklos Szeredi <miklos@szeredb.hu>, Bernd Schubert <bschubert@ddn.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	"Darrick J . Wong" <djwong@kernel.org>, Luis Henriques <luis@igalia.com>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Kent Overstreet <kent.overstreet@linux.dev>, Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
+	Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC PATCH 00/19] famfs: port into fuse
+Message-ID: <n4idslcksqlegd5e2nyggyzahwhgfh7qqsh3qni7fgpj342ohr@do2fu5pz7fsv>
+References: <20250421013346.32530-1-john@groves.net>
+ <20250430154232.000045dd.alireza.sanaee@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <c4828c41-e46c-43c9-a73a-38ce8ab2c1c4@embeddedor.com>
+In-Reply-To: <20250430154232.000045dd.alireza.sanaee@huawei.com>
 
-On Wed, Apr 30, 2025 at 02:07:24PM -0600, Gustavo A. R. Silva wrote:
+On 25/04/30 03:42PM, Alireza Sanaee wrote:
+> On Sun, 20 Apr 2025 20:33:27 -0500
+> John Groves <John@Groves.net> wrote:
 > 
+>> <snip>
 > 
-> On 30/04/25 13:41, Gustavo A. R. Silva wrote:
-> > 
-> > 
-> > On 27/03/25 08:03, Dan Williams wrote:
-> > > Gustavo A. R. Silva wrote:
-> > > > -Wflex-array-member-not-at-end was introduced in GCC-14, and we are
-> > > > getting ready to enable it, globally.
-> > > > 
-> > > > Use the `DEFINE_RAW_FLEX()` helper for on-stack definitions of
-> > > > a flexible structure where the size of the flexible-array member
-> > > > is known at compile-time, and refactor the rest of the code,
-> > > > accordingly.
-> > > > 
-> > > > So, with these changes, fix a dozen of the following warnings:
-> > > > 
-> > > > drivers/acpi/nfit/intel.c:692:35: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
-> > > > 
-> > > > Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-> > > > ---
-> > > > Changes in v2:
-> > > >   - Use DEFINE_RAW_FLEX() instead of __struct_group().
-> > > > 
-> > > > v1:
-> > > >   - Link: https://lore.kernel.org/linux-hardening/Z618ILbAR8YAvTkd@kspp/
-> > > > 
-> > > >   drivers/acpi/nfit/intel.c | 388 ++++++++++++++++++--------------------
-> > > >   1 file changed, 179 insertions(+), 209 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-> > > > index 3902759abcba..114d5b3bb39b 100644
-> > > > --- a/drivers/acpi/nfit/intel.c
-> > > > +++ b/drivers/acpi/nfit/intel.c
-> > > > @@ -55,21 +55,17 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
-> > > >   {
-> > > >       struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-> > > >       unsigned long security_flags = 0;
-> > > > -    struct {
-> > > > -        struct nd_cmd_pkg pkg;
-> > > > -        struct nd_intel_get_security_state cmd;
-> > > > -    } nd_cmd = {
-> > > > -        .pkg = {
-> > > > -            .nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
-> > > > -            .nd_family = NVDIMM_FAMILY_INTEL,
-> > > > -            .nd_size_out =
-> > > > -                sizeof(struct nd_intel_get_security_state),
-> > > > -            .nd_fw_size =
-> > > > -                sizeof(struct nd_intel_get_security_state),
-> > > > -        },
-> > > > -    };
-> > > > +    DEFINE_RAW_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
-> > > > +            sizeof(struct nd_intel_get_security_state));
-> > > > +    struct nd_intel_get_security_state *cmd =
-> > > > +            (struct nd_intel_get_security_state *)nd_cmd->nd_payload;
-> > > >       int rc;
-> > > > +    nd_cmd->nd_command = NVDIMM_INTEL_GET_SECURITY_STATE;
-> > > > +    nd_cmd->nd_family = NVDIMM_FAMILY_INTEL;
-> > > > +    nd_cmd->nd_size_out = sizeof(struct nd_intel_get_security_state);
-> > > > +    nd_cmd->nd_fw_size = sizeof(struct nd_intel_get_security_state);
-> > > 
-> > > Can this keep the C99 init-style with something like (untested):
-> > > 
-> > > _DEFINE_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
-> > >               sizeof(struct nd_intel_get_security_state), {
-> > >         .pkg = {
-> > >                 .nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
-> > >                 .nd_family = NVDIMM_FAMILY_INTEL,
-> > >                 .nd_size_out =
-> > >                         sizeof(struct nd_intel_get_security_state),
-> > >                 .nd_fw_size =
-> > >                         sizeof(struct nd_intel_get_security_state),
-> > >         },
-> > >     });
-> > > 
-> > > 
-> > > ?
-> > 
-> > The code below works - however, notice that in this case we should
-> > go through 'obj', which is an object defined in _DEFINE_FLEX().
-> > 
-> >          _DEFINE_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
-> >                          sizeof(struct nd_intel_get_security_state), = {
-> >                  .obj = {
-> >                          .nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
-> >                          .nd_family = NVDIMM_FAMILY_INTEL,
-> >                          .nd_size_out =
-> >                                  sizeof(struct nd_intel_get_security_state),
-> >                          .nd_fw_size =
-> >                                  sizeof(struct nd_intel_get_security_state),
-> >                  },
-> >          });
-> > 
+> Hi John,
 > 
-> Now, I can modify the helper like this:
+> Apologies if the question is far off or irrelevant.
 > 
-> diff --git a/include/linux/overflow.h b/include/linux/overflow.h
-> index 69533e703be5..170d3cfe7ecc 100644
-> --- a/include/linux/overflow.h
-> +++ b/include/linux/overflow.h
-> @@ -404,7 +404,7 @@ static inline size_t __must_check size_sub(size_t minuend, size_t subtrahend)
->         union {                                                                 \
->                 u8 bytes[struct_size_t(type, member, count)];                   \
->                 type obj;                                                       \
-> -       } name##_u initializer;                                                 \
-> +       } name##_u = { .obj initializer };                                      \
->         type *name = (type *)&name##_u
-
-Ah yeah, nice. That could work!
-
-
-I wish we could make it more idiomatic, but even if we pushed the
-initializer to the end, we have to repeat the type...
-
-#define _DEFINE_FLEX(type, name, member, count, initializer...)                 \
-        _Static_assert(__builtin_constant_p(count),                             \
-                       "onstack flex array members require compile-time const count"); \
-        union {                                                                 \
-                u8 bytes[struct_size_t(type, member, count)];                   \
-                type obj;                                                       \
-        } name##_u = { };                                                       \
-        type *name = (type *)&name##_u;						\
-	*name
-
-
-	_DEFINE_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
-		     sizeof(struct nd_intel_get_security_state))
-	= (struct nd_cmd_pkg){
-		.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
-		.nd_family = NVDIMM_FAMILY_INTEL,
-		.nd_size_out =
-			sizeof(struct nd_intel_get_security_state),
-		.nd_fw_size =
-			sizeof(struct nd_intel_get_security_state),
-	};
-
-So, I think what you have is more readable (or perhaps less surprising),
-even if a little "weird". :)
-
+> I am trying to understand FAMFS, and I am thinking where does FAMFS
+> stand when compared to OpenSHMEM PGAS. Can't we have a OpenSHMEM-based
+> shared memory implementation over CXL that serves as FAMFS?
 > 
->  /**
+> Maybe FAMFS does more than that!?!
 > 
-> and then we can use the helper as follows:
-> 
->         _DEFINE_FLEX(struct nd_cmd_pkg, nd_cmd, nd_payload,
->                         sizeof(struct nd_intel_get_security_state), = {
->                         .nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
->                         .nd_family = NVDIMM_FAMILY_INTEL,
->                         .nd_size_out =
->                                 sizeof(struct nd_intel_get_security_state),
->                         .nd_fw_size =
->                                 sizeof(struct nd_intel_get_security_state),
->         });
-> 
-> OK, I'll go and update the helper.
+> Thanks,
+> Alireza
+>
 
-Sounds good!
+Continuation of this conversation likely belongs in the discusison section
+at [1], but a couple of thoughts.
 
--Kees
+Famfs provides a scale-out filesystem mounts where the files that map to the
+same disaggregated shared memory. If you mmap a famfs file, you are accessing
+the memory directly. Since shmem is file-backed (usually tmpfs or
+its ilk), shmem is a higher-level and more specialized abstraction, and
+OpenSHMEM may be able to run atop famfs. It looks like OpenSHMEM and PGAS
+cover the possibility that "shared memory" might require grabbing a copy via
+[r]dma - which famfs will probably never do. Famfs only handles cases where
+the memory is actually shared. (hey, I work for a memory company.)
 
--- 
-Kees Cook
+Since famfs provides memory-mappable files, almost all apps can access them
+(no requirement to write to the shmem, or other related but more estoteric
+interfaces). Apps are responsible for not doing "nonsense" access WRT cache
+coherency, but famfs manages cache coherency for its metadata.
+
+The video at [2] may be useful to get up to speed.
+
+[1] http://github.com/cxl-micron-reskit/famfs
+[2] https://www.youtube.com/watch?v=L1QNpb-8VgM&t=1680
+
