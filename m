@@ -1,135 +1,115 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBFD413B7A3
-	for <nvdimm@lists.linux.dev>; Mon,  5 May 2025 21:04:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADE7528D85F;
+	Mon,  5 May 2025 22:16:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746479099; cv=none; b=en+tPe6UDlRXLT8DXSHSl2xdFkrr/SYqEb/HvZKv1oIcpOKpOnPu8cwEmuGBFHX8whqUHIWJrjOHXTMEG6Ab3bkLObi1UmjA2rO1C2nrbHLGgLiyIAtu430JdoMVNanC2tErluruOPYIAIXnJM1nnxowLCCUfAKoDocZE2EEba8=
+	t=1746483397; cv=none; b=lVrZOUQTf1gEdRLZ98Ffsa67WAdm+GdDiDcLLuoMoxWKZUiCfpc+RzLoErISo3GfiIsdfGnDSu26TvN5G/axxm6SBsiI2IF4pi3L1XtwzbSqb9pqJH9/obQKTDIRl3ptRXCHADjoLmszLz/qYYPy8KeIH6YL5sVXJioJBAzlTRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746479099; c=relaxed/simple;
-	bh=FGiWGc+82PiPbIk6BF5/UnObbgn45qQJgVgN4UIx1T4=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LbyXBv0QOZJzEzDhRSyBHFInlgY9gylHMsajPeK3t+8SN0dyI1ewX+PT/yFRp4fXfyN4pGg1hNiBao82c2C84rQ0bvP3sJo/mpPI18BOg2sPepjx4/0H15foadO33xMJZBftG4f425aUugT5T/aXfO1nelARDCLwCSySofn3zlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RK7GWy4H; arc=none smtp.client-ip=209.85.214.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1746483397; c=relaxed/simple;
+	bh=rRPQrr8rQ2U57aU/QceYFLpT/KG7abauUVPWd1WRWmc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=G0z8Y9plGr+YpZdYk5QUabybbvrZreItn8sTZRRlT/bjsA9GcBVtHZouY8anxHv5N/WmLS/LfTWTrOZ28cz91rNBjrCZlHLz2R1deex201KS80CgjIXNU5hlxaYnn+WmazSzHxkMBxwsUHRevNxR6UhbLEAal7OT0LpT3UvybpM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QdTGkv7S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RK7GWy4H"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-22c33677183so59031015ad.2
-        for <nvdimm@lists.linux.dev>; Mon, 05 May 2025 14:04:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1746479097; x=1747083897; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=f203cTbIpPkVhyyjjbKF+s15CLqMptv+0eTp+x4sYXs=;
-        b=RK7GWy4HSYkcHKY88suJgtm57oWWEYacoFbAAdGJvV33DyVXh3n7T4xZuQwns/XkiG
-         ZbmLzCZN1tOVsiYH5D0CyQvZEOY9IIV1YsgVpobzzHHwoaNf3nLj6GH86MXFLBVrbdp2
-         UQD6G3PTjLSkqzhpk4Z8rnu/nMMhzgsczy6DMou1ECyGfjcwSRj9K5kLDfcUiYVU9XRL
-         XibBfchHYHVudbEAXrhH8WM9gErjqIcnjqPgk1Wo2Z6UNu4q0U1MwAJ8Gndn8tVEC9K+
-         HhnR8iZFlfWeHB2NFu4IXkve/ELvdjAQB+bNz209QxkEGwTG0OtFjyn3pFK541aeKAHG
-         pP6w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746479097; x=1747083897;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=f203cTbIpPkVhyyjjbKF+s15CLqMptv+0eTp+x4sYXs=;
-        b=pz/mb8v43pCdrJrG67oHo8EPg8FUVxcN9N99Eo7YTV7f/EjT1yuFh2ToonECL9OSCV
-         TM0HpbYMZHtM7nMRUyoSKMJioX7Ip53rcnJDYorvXuLDHFUlnIKXXy0FxekZQB0Zssfd
-         knj2WIqblCQ4CapZEW/APLefzM8GvynQYviiQ8QbzfVvvDtcLsIJNJazmpALOtYhNi7v
-         Psv3NWVFSbVF8o1S88lbO4QXFRLUF7JMY/qPFFCckO24GI5A1rSMRcO+cPQ+/f1nPaoD
-         d2p1ROHaDh5ZKPk5qKu21LoAOC0DcCn3dVkGZsFC7iXz8QEAqd5x/ppzb0QUadEzANT4
-         g/Nw==
-X-Forwarded-Encrypted: i=1; AJvYcCVu2h983YlZslNAKNnyXVPXEH1tvjmOyd6hgr3NLiW6UbmYu4H2L15ItMI9a34qJ2eZXIJTiGY=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx059roAUjDhJ2LbyhNRKWL3m6t3JaBtXagtv0wwz/xEbWG2fKz
-	0xHvlhN3eFq0Dn4gX/JfxrpScCjO76iOZcCJoaRH+k09FpK0z2q4
-X-Gm-Gg: ASbGncvBGdGJ1sgq7/Z0W6Qub2HmwA64isa+hVLYZuFYZM0lNkVi2ii/rlwv/ei5OHa
-	IYzQclf4+OFyXrZqb+rXsOsg3pPwMJCBG2fC9GT5b4M/1uJ51wSudetIjJRCKHfdZH1i5+tnrSQ
-	7hoUhmSx7CQwc7gk6G+Vb/BmyGaTWJoUd2v/lath4AP66miWKFTHPFJDeS8oAU/++r2SzGbhpEm
-	sGmDcjjuUF2y7o+lyWln5YBPbxMhg37NTcwItfoYcxzg7oAqp2zbOzwJI8kiU7XWsC3tugUqQbG
-	CEwYEXcKzSB/O2T4iIXfpwuAYfpEghw=
-X-Google-Smtp-Source: AGHT+IEpMlyP16CP04/9tmk3lHcgVxz6nJ39N1Oa0bFBCxZGfdK56DSPwOXRU3TsqUpZZQ+683qOAQ==
-X-Received: by 2002:a17:902:d482:b0:223:67ac:8929 with SMTP id d9443c01a7336-22e1e6ec76amr132240305ad.0.1746479096883;
-        Mon, 05 May 2025 14:04:56 -0700 (PDT)
-Received: from lg ([2607:fb90:87e0:9bc2:145c:221c:4526:62fe])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22e151eb3b0sm59890325ad.103.2025.05.05.14.04.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 05 May 2025 14:04:56 -0700 (PDT)
-From: Fan Ni <nifan.cxl@gmail.com>
-X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
-Date: Mon, 5 May 2025 14:04:51 -0700
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 01/19] cxl/mbox: Flag support for Dynamic Capacity
- Devices (DCD)
-Message-ID: <aBkn813skYvTv7QC@lg>
-References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
- <20250413-dcd-type2-upstream-v9-1-1d4911a0b365@intel.com>
- <20250414151950.00001823@huawei.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QdTGkv7S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 708D4C4CEEF;
+	Mon,  5 May 2025 22:16:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1746483397;
+	bh=rRPQrr8rQ2U57aU/QceYFLpT/KG7abauUVPWd1WRWmc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=QdTGkv7STeGWlnie/AsUjRfQ8f3ZVDNTyNkkqY/A4UeznLTdljssjcSNKUI7aqA1U
+	 c+21+C8WcYtjHzVrIb573U0qlmhaVJOuql43084yFJYOyBaxq8DW3+vcbaHA/+bDU8
+	 p5dRUiHLNVBCWRsj3eMRyFq8oXHTT5kQO5FI2G8mmJeA+OGh6YQhjNaB7Dx5n8aabO
+	 /ovt7EZMs8bR1fbh/KlkEEFY2nf3yjHjZAkeJxrz7OB2nwENrlqhgQVSpLUIERDYKx
+	 5peoOHixl4kATqCHOELxJeWqmd2ZOXQGYVUVBprXd6MGAhd/dd+8Jy9dFE/UOZ4a+/
+	 ho820FFh3P9iw==
+From: Sasha Levin <sashal@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Cc: Robert Richter <rrichter@amd.com>,
+	Pankaj Gupta <pankaj.gupta@amd.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Sasha Levin <sashal@kernel.org>,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	nvdimm@lists.linux.dev
+Subject: [PATCH AUTOSEL 6.14 066/642] libnvdimm/labels: Fix divide error in nd_label_data_init()
+Date: Mon,  5 May 2025 18:04:42 -0400
+Message-Id: <20250505221419.2672473-66-sashal@kernel.org>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20250505221419.2672473-1-sashal@kernel.org>
+References: <20250505221419.2672473-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250414151950.00001823@huawei.com>
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.14.5
+Content-Transfer-Encoding: 8bit
 
-On Mon, Apr 14, 2025 at 03:19:50PM +0100, Jonathan Cameron wrote:
-> On Sun, 13 Apr 2025 17:52:09 -0500
-> Ira Weiny <ira.weiny@intel.com> wrote:
-> 
-> > Per the CXL 3.1 specification software must check the Command Effects
-> > Log (CEL) for dynamic capacity command support.
-> > 
-> > Detect support for the DCD commands while reading the CEL, including:
-> > 
-> > 	Get DC Config
-> > 	Get DC Extent List
-> > 	Add DC Response
-> > 	Release DC
-> > 
-> > Based on an original patch by Navneet Singh.
-> > 
-> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> 
-> 
-> > +
-> > +static bool cxl_verify_dcd_cmds(struct cxl_memdev_state *mds, unsigned long *cmds_seen)
-> 
-> It's not immediately obvious to me what the right behavior
-> from something called cxl_verify_dcd_cmds() is.  A comment might help with that.
-> 
-> I think all it does right now is check if any bits are set. In my head
-> it was going to check that all bits needed for a useful implementation were
-> set. I did have to go check what a 'logical and' of a bitmap was defined as
-> because that bit of the bitmap_and() return value wasn't obvious to me either!
+From: Robert Richter <rrichter@amd.com>
 
-The code only checks if any DCD command (48xx) is supported, if any is
-set, it will set "dcd_supported".
-As you mentioned, it seems we should check all the related commands are
-supported, otherwise it is not valid implementation.
+[ Upstream commit ef1d3455bbc1922f94a91ed58d3d7db440652959 ]
 
-Fan
-> 
-> 
-> > +{
-> > +	DECLARE_BITMAP(all_cmds, CXL_DCD_ENABLED_MAX);
-> > +	DECLARE_BITMAP(dst, CXL_DCD_ENABLED_MAX);
-> > +
-> > +	bitmap_fill(all_cmds, CXL_DCD_ENABLED_MAX);
-> > +	return bitmap_and(dst, cmds_seen, all_cmds, CXL_DCD_ENABLED_MAX);
-> > +}
-> > +
-> 
-> 
+If a faulty CXL memory device returns a broken zero LSA size in its
+memory device information (Identify Memory Device (Opcode 4000h), CXL
+spec. 3.1, 8.2.9.9.1.1), a divide error occurs in the libnvdimm
+driver:
 
+ Oops: divide error: 0000 [#1] PREEMPT SMP NOPTI
+ RIP: 0010:nd_label_data_init+0x10e/0x800 [libnvdimm]
+
+Code and flow:
+
+1) CXL Command 4000h returns LSA size = 0
+2) config_size is assigned to zero LSA size (CXL pmem driver):
+
+drivers/cxl/pmem.c:             .config_size = mds->lsa_size,
+
+3) max_xfer is set to zero (nvdimm driver):
+
+drivers/nvdimm/label.c: max_xfer = min_t(size_t, ndd->nsarea.max_xfer, config_size);
+
+4) A subsequent DIV_ROUND_UP() causes a division by zero:
+
+drivers/nvdimm/label.c: /* Make our initial read size a multiple of max_xfer size */
+drivers/nvdimm/label.c: read_size = min(DIV_ROUND_UP(read_size, max_xfer) * max_xfer,
+drivers/nvdimm/label.c-                 config_size);
+
+Fix this by checking the config size parameter by extending an
+existing check.
+
+Signed-off-by: Robert Richter <rrichter@amd.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Link: https://patch.msgid.link/20250320112223.608320-1-rrichter@amd.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/nvdimm/label.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 082253a3a9560..04f4a049599a1 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -442,7 +442,8 @@ int nd_label_data_init(struct nvdimm_drvdata *ndd)
+ 	if (ndd->data)
+ 		return 0;
+ 
+-	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0) {
++	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0 ||
++	    ndd->nsarea.config_size == 0) {
+ 		dev_dbg(ndd->dev, "failed to init config data area: (%u:%u)\n",
+ 			ndd->nsarea.max_xfer, ndd->nsarea.config_size);
+ 		return -ENXIO;
 -- 
-Fan Ni
+2.39.5
+
