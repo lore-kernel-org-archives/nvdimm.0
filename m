@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B57D3ABCEA;
-	Mon,  5 May 2025 23:18:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB36739B09F;
+	Mon,  5 May 2025 23:14:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746487133; cv=none; b=cNEcBswmr1BbvFkPUaXhGTiH4c2E1uziXiYhAxr4IiM93snAYZQlBy3fh30dZ7zKDB8YtvS7LcW2MRAtNMumk/KdUG2T+l7XnbFaPBSZqi2bLGJD5oN62E2HaLZl3wFXZNNofS7bT/OAS6fOVPGhh1gIWy7RcwZ8ucAsbzMPOww=
+	t=1746486842; cv=none; b=OU9r+n3nZqG5Q9GSW3yGeL3nuw8gQf3M2HKJNpMLbbAKOK9oJ2F0VBb8WJBDOzFno9TDXxANVuGLM0wtsW1ovxWNhk20jE7CYo0l0lb96jl0ohsWmfJwLNFXICUmD4RZh9NVi2sIo3OYaXa5UDdKQ16SBGPLkTCZ3r+C3VWiOr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746487133; c=relaxed/simple;
-	bh=qyEFOo3dGJ8zBBN3Gmf+P6PpGQtWOSG8F0FiNzvT9Ig=;
+	s=arc-20240116; t=1746486842; c=relaxed/simple;
+	bh=NHmzvax4IPbiPdp1bDqYANZe/GMepCja/nvw2NzZI6k=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=LQ9apgjRqwGfvyKfpx1efS3klHRTmr9PP2MHQrL8h4G1Z/TzQTWg9pGBGSLe178fbHTJ8Ucv5LuGwoMN74m398yNOHrH9ile4OUyfu+GK34yYt/mnSRO4sRVRa/IszeCR5rdBJaAgO7b0wQF3Plrfhc3swwBu1T95dW3qWxROFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HbTmzX/6; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=leAYkubneIc8n9g+hLua48+ySqfEGgHq5nlBx5sGqlrfioZCxqB6SYQvJhpXCB6sn34orXuzfxTAVHDAB/yycn8kP1zRv0AWe+GpqDnm2wBYU5D7jNhFGl2sbB5Rgu529h3I1MPONI0TJOAnDwIUSKgcLKsCT8cBZlfDd8GzG+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sDdQRElh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HbTmzX/6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 270C8C4CEE4;
-	Mon,  5 May 2025 23:18:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sDdQRElh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DEEFC4CEE4;
+	Mon,  5 May 2025 23:14:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746487132;
-	bh=qyEFOo3dGJ8zBBN3Gmf+P6PpGQtWOSG8F0FiNzvT9Ig=;
+	s=k20201202; t=1746486841;
+	bh=NHmzvax4IPbiPdp1bDqYANZe/GMepCja/nvw2NzZI6k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HbTmzX/6fz3IXLJIedOeOMeeA+tsjoAfqZ9YuSCUZ+v22Uj/mR1bjZZ4EZqgk4z+g
-	 0qZoW2rtE4TY/vxUMjkcDitkbxGwngAlFE40AM1x5GynhhUtKTXDkeCLW0b/lQDRuI
-	 ujT0Dd2ZJu3Eskf2H8EDXFS9JAm+fn4+F8BxNLgSCEt2xNnKcVXI8YPCSGm/Foc2s1
-	 5z/F+prR2EcwnR7SK6eYVfvb/wq13r4VKyo2f9v9vno/FrUqwyqTuiF1571RpCg0vF
-	 3OpWHyzF/5rOP0VOawWjAqZjDptQ6WwNbMzpDXdTsGUjMHlumrDNr9KejecKlqDlH1
-	 J0Ulxenh2YqXg==
+	b=sDdQRElh3HR9Py76I6uncsgfg4GFgYSBvJfQRmXWlVpunrjRJjhNYkYY74EONReB6
+	 +vBfJBEm94wAa0luMFDPHzuJ5HXCGdnSpmXi2ju9THLGnDXj8ttF5vtggH/Njihjxk
+	 lq1Cksvr267sePWQfzdvMeBAkzrqyqKkBFF2Upaq88cAY8TSbtVV2JGD83hmjn6u6G
+	 /GOsFd3MmEZEQBPf+joqwBCz9HO/zsrHsPV5JPlarvILc+dE83M/937ZcbwQGuwdst
+	 Z0Hqje2F8a03JqXYyTVli6MykiCDC7moAVsD0r1xImL4p5Oit3XeDlWNTM/ANBnSRT
+	 kjLsLr0z4oDxw==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -37,12 +37,12 @@ Cc: Robert Richter <rrichter@amd.com>,
 	vishal.l.verma@intel.com,
 	dave.jiang@intel.com,
 	nvdimm@lists.linux.dev
-Subject: [PATCH AUTOSEL 5.10 015/114] libnvdimm/labels: Fix divide error in nd_label_data_init()
-Date: Mon,  5 May 2025 19:16:38 -0400
-Message-Id: <20250505231817.2697367-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 019/153] libnvdimm/labels: Fix divide error in nd_label_data_init()
+Date: Mon,  5 May 2025 19:11:06 -0400
+Message-Id: <20250505231320.2695319-19-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250505231817.2697367-1-sashal@kernel.org>
-References: <20250505231817.2697367-1-sashal@kernel.org>
+In-Reply-To: <20250505231320.2695319-1-sashal@kernel.org>
+References: <20250505231320.2695319-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -51,7 +51,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.237
+X-stable-base: Linux 5.15.181
 Content-Transfer-Encoding: 8bit
 
 From: Robert Richter <rrichter@amd.com>
@@ -97,10 +97,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 9251441fd8a35..5251058adc4d1 100644
+index 7f473f9db300d..e1b511d09295f 100644
 --- a/drivers/nvdimm/label.c
 +++ b/drivers/nvdimm/label.c
-@@ -421,7 +421,8 @@ int nd_label_data_init(struct nvdimm_drvdata *ndd)
+@@ -437,7 +437,8 @@ int nd_label_data_init(struct nvdimm_drvdata *ndd)
  	if (ndd->data)
  		return 0;
  
