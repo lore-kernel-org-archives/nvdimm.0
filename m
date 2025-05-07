@@ -1,54 +1,25 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09661215197
-	for <nvdimm@lists.linux.dev>; Wed,  7 May 2025 16:16:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55B46153BD9;
+	Wed,  7 May 2025 16:46:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746634583; cv=none; b=nNwavaobcOAxa5VrVR821A3UfNMMjrdj3wgPPTj1hHnukpg1pzWz1ZDSaeiKF2sLxfGk8pGzu5IUkKzBoUZtAcaSK4lo24otqaM4XA199mLXq+PEZa69xriEK/lri8vj+HrFfF0c1myDCCziWtZtWwS4UAFt+eLpSN0m2xeTvzY=
+	t=1746636382; cv=none; b=A/wKX22B92V4i+DX/RYE75fQYoXj6akXDHRtkAN+izbV14LLZfJeLT6cYCKvtK/GFErRRZLBCks8AhfbuNzCNt389HffTZg2nkM52Qau+VmnoLk4z8nxossfQFUo9CTBQqro6dasFcG9/ok/rWgXsrEEyZhtfz4v6n7UPS3TdQ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746634583; c=relaxed/simple;
-	bh=2MZMhW9Y8Pf1lcggUgtVHtJLiN59ZqRd+Sby9HwmQPc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GK3oHalkIQ+ri7Gah49AmwEEMdj9DgMmuM6VIOKocAhbyxhXJsjCT1tJdm210fu8+c/ABGi+n20p08CQjXVoTtUeowCi7a4RkcD+ozMVVvTL5RHMky7/65efF/loJOgdxHca1G8EAaCmXoomTii6DcFneddUywAVeBZ+7gAcJAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=c1g30PLl; arc=none smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c1g30PLl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1746634581; x=1778170581;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=2MZMhW9Y8Pf1lcggUgtVHtJLiN59ZqRd+Sby9HwmQPc=;
-  b=c1g30PLl5qo43pSfKs+aGdKMmKLAVU+L8xwo0AYXbS3S7zT38po6B11/
-   pvnUZhAyRZgGaOS1/dEWBq28MWR+4t3G8vaZqYFd7iAmDmdXvyl+n/KSN
-   JNhiQXWJVwm5YTrgj3kS9ovAe0/765DLfD6+JVkof3qNjg3MUhhvviENJ
-   l5IwUVZa5+BdrC9l/0dJt973VjN5ZRyYktFY6z72szQ3rtUE1GIa8WX9m
-   7Agugcmu1HrIYLSZlZ80hAMQ6bOoROyGpmR1aoVeRMndlHu63RqVN8XRP
-   c3/fW39YbO1BM7Itw3UIgPg8nrPo9gSjFJ2Zc1NCsQxWT6+E3EPC4P0rs
-   w==;
-X-CSE-ConnectionGUID: gMT2HxsVSPWw9Ox7/KhevQ==
-X-CSE-MsgGUID: qZ3dQMIxSSmnrlfY/l2j4g==
-X-IronPort-AV: E=McAfee;i="6700,10204,11426"; a="59366115"
-X-IronPort-AV: E=Sophos;i="6.15,269,1739865600"; 
-   d="scan'208";a="59366115"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2025 09:16:20 -0700
-X-CSE-ConnectionGUID: qx4UuqBsTWmLH4ytDtlaJQ==
-X-CSE-MsgGUID: 5kAqDsvRRaaehfnb1icghg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,269,1739865600"; 
-   d="scan'208";a="135872552"
-Received: from unknown (HELO hyperion.jf.intel.com) ([10.243.61.29])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2025 09:16:21 -0700
-From: marc.herbert@linux.intel.com
+	s=arc-20240116; t=1746636382; c=relaxed/simple;
+	bh=OBWVduvWR+I8XfrtoMjegIgenaJgCDzEvkTk7/FFpc0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZFVkz2P17xcSiz85XVB6kaiMmy8umKcmaiPTdaSJxXpJwZGw/a/YgFYydxa8V4eh2pZrk4oBAThfMW5FEte0niziaWaPTTjFdviDnSQGTOV4a2PAcoEGhw7OED00c4R84X0ZQsvEiO+sHx2SX1zt5nLADGZ/0Tdk4ZqvSu2Ufas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2DC0C4CEE2;
+	Wed,  7 May 2025 16:46:19 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Cc: Marc Herbert <marc.herbert@linux.intel.com>
-Subject: [PATCH] test/meson.build: add missing 'CXL=@0@'.format(cxl_tool.full_path()),
-Date: Wed,  7 May 2025 16:15:15 +0000
-Message-ID: <20250507161547.204216-1-marc.herbert@linux.intel.com>
+Cc: alison.schofield@intel.com
+Subject: [NDCTL PATCH] cxl: Change cxl-topology.sh assumption on host bridge validation
+Date: Wed,  7 May 2025 09:46:18 -0700
+Message-ID: <20250507164618.635320-1-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -58,35 +29,57 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Marc Herbert <marc.herbert@linux.intel.com>
+Current host bridge validation in cxl-topology.sh assumes that the
+decoder enumeration is in order and therefore the port numbers can
+be used as a sorting key. With delayed port enumeration, this
+assumption is no longer true. Change the sorting to by number
+of children ports for each host bridge as the test code expects
+the first 2 host bridges to have 2 children and the third to only
+have 1.
 
-This fixes the ability to copy and paste the helpful meson output when a
-test fails, in order to re-run a failing test directly outside meson and
-from any current directory.
-
-meson never had that problem because it always switches to a constant
-directory before running the tests.
-
-Fixes commit ef85ab79e7a4 ("cxl/test: Add topology enumeration and
-hotplug test") which added the (failing) search for the cxl binary.
-
-Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- test/meson.build | 1 +
- 1 file changed, 1 insertion(+)
+ test/cxl-topology.sh | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/test/meson.build b/test/meson.build
-index d871e28e17ce..2fd7df5211dd 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -255,6 +255,7 @@ foreach t : tests
-     env : [
-       'NDCTL=@0@'.format(ndctl_tool.full_path()),
-       'DAXCTL=@0@'.format(daxctl_tool.full_path()),
-+      'CXL=@0@'.format(cxl_tool.full_path()),
-       'TEST_PATH=@0@'.format(meson.current_build_dir()),
-       'DATA_PATH=@0@'.format(meson.current_source_dir()),
-     ],
+diff --git a/test/cxl-topology.sh b/test/cxl-topology.sh
+index 90b9c98273db..41d6f052394d 100644
+--- a/test/cxl-topology.sh
++++ b/test/cxl-topology.sh
+@@ -37,15 +37,16 @@ root=$(jq -r ".[] | .bus" <<< $json)
+ 
+ 
+ # validate 2 or 3 host bridges under a root port
+-port_sort="sort_by(.port | .[4:] | tonumber)"
+ json=$($CXL list -b cxl_test -BP)
+ count=$(jq ".[] | .[\"ports:$root\"] | length" <<< $json)
+ ((count == 2)) || ((count == 3)) || err "$LINENO"
+ bridges=$count
+ 
+-bridge[0]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[0].port" <<< $json)
+-bridge[1]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[1].port" <<< $json)
+-((bridges > 2)) && bridge[2]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[2].port" <<< $json)
++bridge[0]=$(jq -r --arg key "$root" '.[] | select(has("ports:" + $key)) | .["ports:" + $key] | map({full: ., length: (.["ports:" + .port] | length)}) | sort_by(-.length) | map(.full) | .[0].port' <<< "$json")
++
++bridge[1]=$(jq -r --arg key "$root" '.[] | select(has("ports:" + $key)) | .["ports:" + $key] | map({full: ., length: (.["ports:" + .port] | length)}) | sort_by(-.length) | map(.full) | .[1].port' <<< "$json")
++
++((bridges > 2)) && bridge[2]=$(jq -r --arg key "$root" '.[] | select(has("ports:" + $key)) | .["ports:" + $key] | map({full: ., length: (.["ports:" + .port] | length)}) | sort_by(-.length) | map(.full) | .[2].port' <<< "$json")
+ 
+ # validate root ports per host bridge
+ check_host_bridge()
+@@ -64,6 +65,7 @@ json=$($CXL list -b cxl_test -P -p ${bridge[0]})
+ count=$(jq ".[] | .[\"ports:${bridge[0]}\"] | length" <<< $json)
+ ((count == 2)) || err "$LINENO"
+ 
++port_sort="sort_by(.port | .[4:] | tonumber)"
+ switch[0]=$(jq -r ".[] | .[\"ports:${bridge[0]}\"] | $port_sort | .[0].host" <<< $json)
+ switch[1]=$(jq -r ".[] | .[\"ports:${bridge[0]}\"] | $port_sort | .[1].host" <<< $json)
+ 
+
+base-commit: 92d5203077553bfc9f7bf1c219563db0fc28e660
+prerequisite-patch-id: b16d7a7db948e38a7752c12bdaa34116b5967e00
+prerequisite-patch-id: 35769202bdba1fed259c072ca7ef279c075131e7
+prerequisite-patch-id: b85fc29353224d045e8793c99829f4b372095629
 -- 
 2.49.0
 
