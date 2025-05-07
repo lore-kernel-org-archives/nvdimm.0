@@ -1,64 +1,64 @@
-Received: from mail-yw1-f171.google.com (mail-yw1-f171.google.com [209.85.128.171])
+Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com [209.85.219.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5D081B87D5
-	for <nvdimm@lists.linux.dev>; Wed,  7 May 2025 17:40:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF79628FFE5
+	for <nvdimm@lists.linux.dev>; Wed,  7 May 2025 20:50:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746639653; cv=none; b=niJT+acLwK4M9bzNpBPoNhRZkaSj7jeKGBnxBRHwnEGArGfNOq2N06LdzPTPKwJM0KEabPkDHDtpgmvg31YENQy9eaPyuOmcDZBwzwu4k9ZjCFTjWhSKplRRCkO4wJSEnpvDFMZ9GWQY3baTKxtPQsoXdv4ojGmK2sbStscr6is=
+	t=1746651034; cv=none; b=AgIb+r12gV5aY0Ot5XngYPUvWLzcD8qvoQNMtusRRZpw7LLQD5Z8dlg1lbAcnwu5cDXs3ykB1WnwNHB/NuKzb4Xw45ZJx6o+g8F9CBgAMancdg7r78IpiX/BSQsjF7I/r6AphESeGEuz7FhElBfHWxsZTv+yfHX4I9pPhS2YEsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746639653; c=relaxed/simple;
-	bh=Geqh+D5uJmrUbt0m4p6Vua5oZHF+A+a0M3ZiP1mG2Us=;
+	s=arc-20240116; t=1746651034; c=relaxed/simple;
+	bh=VVAUvEKOj4HzPswBGkWvbXVdFAWer/MiE6UZpiyua84=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Tv3jU1KgCc13B9eSdoyQS9lnZ5JKOcSndVkWjxTKBZzZlMG9TsqOWe7N3jOltjs+Y53MBsK+Skjg1Y+RSY2ekNI6NsbH6zCA58XeDYsa6J2XgC4mWwfgOi3dc99nkJgmNPcwK5FZQlZd6AgMitesDiKI0Zc1noY8ZR6KAWNRWHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RfnnHaF6; arc=none smtp.client-ip=209.85.128.171
+	 Content-Type:Content-Disposition:In-Reply-To; b=QjP/BSchTlrF3gYKQUBAEiHdw303tNeQMAehZA7Oz1gjE8xKhTuKcR4CoLLqFYAfUOk13XFDGSMTmhxjso2WPnuj/mIPcy2AHBqFQtJnRf4I80YuAglW+eqJpTEyyC+akZG8l9pCa8i2fqfyqQGGW1V45W6/Q9weJF/xqqp44SY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DcSmyPoW; arc=none smtp.client-ip=209.85.219.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RfnnHaF6"
-Received: by mail-yw1-f171.google.com with SMTP id 00721157ae682-70a1f2eb39aso1090157b3.1
-        for <nvdimm@lists.linux.dev>; Wed, 07 May 2025 10:40:51 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DcSmyPoW"
+Received: by mail-yb1-f178.google.com with SMTP id 3f1490d57ef6-e733a6ff491so372547276.2
+        for <nvdimm@lists.linux.dev>; Wed, 07 May 2025 13:50:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1746639650; x=1747244450; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1746651031; x=1747255831; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=PrNi7Flwgq4EBMVYXIrmQJ3ObEoQDpAla3Oaux526gs=;
-        b=RfnnHaF6hPH+DFoeBea1wagrceJy8qCsUfDmJKbJNMsgkbGbS3pPziudP5RbPndjOZ
-         LiNOLyhqe+FtpBTA+4ZcD5nntcY9f+HefvmJbpmtgIk5LaOkuBKib+6TLfG/If3UPr3U
-         N/kj/1OBUlrGq4uBirI7AfEFfL8sOGLy8+jxhytHw5RcCDqQqdtbQIQCOnDPSucFMmRC
-         8NH5lJqqlO4yUROTV9BTpXQRKcepAFz36OvNkkNpnNGOYWS2qXtXbJw8SY4sI2mgMNUn
-         3d+BX/D4HeJ6DlOtKMrb2IjtLgAT+rIpRDR99Tx0lJx9fz7RJTp3fG3dIep6CGCMg0gw
-         f3xQ==
+        bh=NM4IVw9+0nh7z3R4MUSvKyjqgkfNUou+WJBeL6F7WaI=;
+        b=DcSmyPoWgTVMlFuDQqZUz75Dvunya2drfeZA8YNCnTjtVKDxMBH+okQX7XAynr2Uhg
+         L5LY4xZellnyC7SvFj4xqjYcuaklJVPBVMriXb2Xd3VHjIU4XNTFfpxX2AONIiRTDCoV
+         Oa2YuIZZ6edCN/2m1GQxSwm4n1e8nL2LGjJsSXmx5RjYKoEx449P8mJ9SEu4H5gxrUc0
+         BQYhIeSp6naXSNsa3bCHPi34U2G4SRaL4wWpKbJCPQvTj+hdOvtMY83LCzqaRAGXoYos
+         CGReVBUKmEEM2nkup1rmv1DczDQUHGpo45JITcL2ZpWPasIsjvkApVWy2JVLwAowjK+D
+         G+Uw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746639650; x=1747244450;
+        d=1e100.net; s=20230601; t=1746651031; x=1747255831;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=PrNi7Flwgq4EBMVYXIrmQJ3ObEoQDpAla3Oaux526gs=;
-        b=HMwnUisijzMEG5WnMB5NhAwvS1wB554C7qpumKPUR/tWmNRzGMqoPlS02M/j1/UeO0
-         xnQNse+JDSsSw/5zku1YUJO/LNPBcAMiH35qpUNP5l9Fh4a7zWBBLAQTEAqhISfWEh3k
-         BW29CYqqvFYYomV8QJOb1jgAVCppg5/vh0lyS6vKw8kbwsKhaMsQChJVoQTvxllmdRPD
-         sYoz3V6eZ5AfEVOobWqMZKrG1weTfFCSXOTk+RGXJRZKg5wH+/aVUQPLYPbP27X5GK9l
-         xLA2RgWUhQr4eiDQFnuKY+KR/yPP3MOQ/hLJ/2XxfshBIHNTlyulmjgrhiXctN9RBueO
-         XSfQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUKfFRwcJlQJ/hNwGFrkybjOrSmQTEzWOlW3cpP73KKRf3EM/W8nH8cUTf+V6L5llwo9zq8FKg=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzFphz1KRVwwZ1XjlLNlrjkcv3M7XcPcSQeZP3HT53BfmWvARU0
-	Z6E+uhQ8ztWp0sBinjO2X+cSAx7cs6KkeuRrQXrgBZ4x4UIovb1C
-X-Gm-Gg: ASbGncualnNDhg8r86fiQ1PCiXhV3kDNYgfVr4y3AgNdfo2piO6TTrZOTB+1SKu3vE1
-	BR7fw6m2cNnBJqpofjQNnPPfqGnGSf2Qyvhd0eg9O86fwXBPUNrx0O4awynYkotbs0/YCkXSgdR
-	jXnfNuhiIHCH3v6CHJZhJDNDQdqj0ZFrtKjpXDtgW66vqdo/vGRJkDnUYT0nrg+2NKEvt9J+i2s
-	oag/m10WxfVcXW7GBg3nlzb+M+PZJtQSqx7JDYnAdgGJyouwQi0B6EjN7zxRC4diZ9oMkJPu3np
-	YvS+Y9WEId7bSpOCrSmFdTw0
-X-Google-Smtp-Source: AGHT+IHwA2DWyR9RT5bJAp/f5MqkoySq95Z1ilqvT6eJXShFtI+LYdAuNTXzjUiKjw5FKah3AzLgLA==
-X-Received: by 2002:a05:690c:46c8:b0:709:17e4:4d27 with SMTP id 00721157ae682-70a2d0b77d9mr5083347b3.23.1746639650373;
-        Wed, 07 May 2025 10:40:50 -0700 (PDT)
+        bh=NM4IVw9+0nh7z3R4MUSvKyjqgkfNUou+WJBeL6F7WaI=;
+        b=GIItW2eAIC7CxJmnHewOjHIQ1n7n1n89L0FhtmPI8Jb+tSy+R1Bp8b+9BfbVIu/L2O
+         sKgmQgXvmFBhW5LhlxuIpnvE+LPDlvX1Qk5ptGOUDn2WxegL47d68sdA2KByoYe51IJv
+         b2jK0KkD89E4fC2YP3Kc6dy8OpVE0Ecbr9NrmdXDX+Rp76UAuc6vJxZBwL9St/BRQ4m/
+         0GwBalvraaGCUienkniQ+eJ1NEYX3ULlW6LEjnPaW6GAcA7WbHm9pxWIJVaj+zH0ltrh
+         FI7YGAPg3zmEX3r/R8tp+pQXG6uIXj32gT7EJtX+6INl89HypXkDwRq5jOxlSSRK2kmm
+         fcsg==
+X-Forwarded-Encrypted: i=1; AJvYcCUQIY98QwAotcqSmqX0bUWWQXC/5HYwE2Fh4ov1e5RWGubEwqeajvhQ4VIKH/7zyV4cDmMAJA8=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxM277UHqRTdY/q9ZBu24OGTi/1B3KqC6T8e3V8UnKPsU8BQeGc
+	UHIv8NQ0N5K1nsWy7b5mMUakHt1LER319NYxwhaHdsl/Cn4WjhDD
+X-Gm-Gg: ASbGncscVhXX+uvkrNaAj9UgvyIdlB583oC4z+BANiioh6dbGcN8nMb+yfwtJmXJujR
+	cOLA2xaFC3E7ABt7lCTYea41vUdTVrv2wY/H/z7S1ISZx0jXe/qLO/KdEdKJ8Shn4RCFzgIaQk3
+	BVKuIQV4x07nKjGyDpnUPqNkDtOUCJNP98h0y55ln1YHmypqaxu5WAVOZuWuLK2Ehd92OiQ+ixv
+	xtsCf1TngUyfSxCS5NtVACSkwKzMdez9dGr1Ew6iuxuyWioBy/RbO3lWwmiHtEbcqG9MwZxEez7
+	Vf1kQsMhTMT1injATv4lfBkH
+X-Google-Smtp-Source: AGHT+IFlv62TQWmywdTvpNRB/hUPMt8yXEwE4S9/0ZxmW9Uoc6lzDYTUSgvknQqrQ8+kVJ31POV57g==
+X-Received: by 2002:a05:6902:248d:b0:e73:520:ab49 with SMTP id 3f1490d57ef6-e78810e73c8mr6562863276.26.1746651031649;
+        Wed, 07 May 2025 13:50:31 -0700 (PDT)
 Received: from lg ([50.205.20.42])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-708c3f0825csm34282207b3.21.2025.05.07.10.40.48
+        by smtp.gmail.com with ESMTPSA id 3f1490d57ef6-e78ee3f4c0dsm190768276.31.2025.05.07.13.50.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 May 2025 10:40:49 -0700 (PDT)
+        Wed, 07 May 2025 13:50:31 -0700 (PDT)
 From: Fan Ni <nifan.cxl@gmail.com>
 X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
-Date: Wed, 7 May 2025 10:40:47 -0700
+Date: Wed, 7 May 2025 13:50:28 -0700
 To: Ira Weiny <ira.weiny@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
@@ -67,11 +67,11 @@ Cc: Dave Jiang <dave.jiang@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 02/19] cxl/mem: Read dynamic capacity configuration
- from the device
-Message-ID: <aBubH5ZDVPEE8N98@lg>
+Subject: Re: [PATCH v9 06/19] cxl/port: Add 'dynamic_ram_a' to endpoint
+ decoder mode
+Message-ID: <aBvHlE9QgxMZrfy4@lg>
 References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
- <20250413-dcd-type2-upstream-v9-2-1d4911a0b365@intel.com>
+ <20250413-dcd-type2-upstream-v9-6-1d4911a0b365@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,119 +80,93 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250413-dcd-type2-upstream-v9-2-1d4911a0b365@intel.com>
+In-Reply-To: <20250413-dcd-type2-upstream-v9-6-1d4911a0b365@intel.com>
 
-On Sun, Apr 13, 2025 at 05:52:10PM -0500, Ira Weiny wrote:
-> Devices which optionally support Dynamic Capacity (DC) are configured
-> via mailbox commands.  CXL 3.2 section 9.13.3 requires the host to issue
-> the Get DC Configuration command in order to properly configure DCDs.
-> Without the Get DC Configuration command DCD can't be supported.
+On Sun, Apr 13, 2025 at 05:52:14PM -0500, Ira Weiny wrote:
+> Endpoints can now support a single dynamic ram partition following the
+> persistent memory partition.
 > 
-> Implement the DC mailbox commands as specified in CXL 3.2 section
-> 8.2.10.9.9 (opcodes 48XXh) to read and store the DCD configuration
-> information.  Disable DCD if an invalid configuration is found.
-> 
-> Linux has no support for more than one dynamic capacity partition.  Read
-> and validate all the partitions but configure only the first partition
-> as 'dynamic ram A'.  Additional partitions can be added in the future if
-> such a device ever materializes.  Additionally is it anticipated that no
-> skips will be present from the end of the pmem partition.  Check for an
-> disallow this configuration as well.
-> 
-> Linux has no use for the trailing fields of the Get Dynamic Capacity
-> Configuration Output Payload (Total number of supported extents, number
-> of available extents, total number of supported tags, and number of
-> available tags).  Avoid defining those fields to use the more useful
-> dynamic C array.
-> 
-> Based on an original patch by Navneet Singh.
+> Expand the mode to allow a decoder to point to the first dynamic ram
+> partition.
 > 
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 > 
+
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+
 > ---
 > Changes:
-> [iweiny: rebase]
-> [iweiny: Update spec references to 3.2]
-> [djbw: Limit to 1 partition]
-> [djbw: Avoid inter-partition skipping]
-> [djbw: s/region/partition/]
-> [djbw: remove cxl_dc_region[partition]_info->name]
-> [iweiny: adjust to lack of dcd_cmds in mds]
-> [iweiny: remove extra 'region' from names]
-> [iweiny: remove unused CXL_DYNAMIC_CAPACITY_SANITIZE_ON_RELEASE_FLAG]
+> [iweiny: completely re-written]
 > ---
->  drivers/cxl/core/hdm.c  |   2 +
->  drivers/cxl/core/mbox.c | 179 ++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/cxl.h       |   1 +
->  drivers/cxl/cxlmem.h    |  54 ++++++++++++++-
->  drivers/cxl/pci.c       |   3 +
->  5 files changed, 238 insertions(+), 1 deletion(-)
-...
->  /* Set Timestamp CXL 3.0 Spec 8.2.9.4.2 */
->  struct cxl_mbox_set_timestamp_in {
->  	__le64 timestamp;
-> @@ -845,9 +871,24 @@ enum {
->  int cxl_internal_send_cmd(struct cxl_mailbox *cxl_mbox,
->  			  struct cxl_mbox_cmd *cmd);
->  int cxl_dev_state_identify(struct cxl_memdev_state *mds);
-> +
-> +struct cxl_mem_dev_info {
-> +	u64 total_bytes;
-> +	u64 volatile_bytes;
-> +	u64 persistent_bytes;
-> +};
-
-Defined, but never used.
-
-Fan
-
-> +
-> +struct cxl_dc_partition_info {
-> +	size_t start;
-> +	size_t size;
-> +};
-> +
-> +int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
-> +			struct cxl_dc_partition_info *dc_info);
->  int cxl_await_media_ready(struct cxl_dev_state *cxlds);
->  int cxl_enumerate_cmds(struct cxl_memdev_state *mds);
->  int cxl_mem_dpa_fetch(struct cxl_memdev_state *mds, struct cxl_dpa_info *info);
-> +void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info);
->  struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev);
->  void set_exclusive_cxl_commands(struct cxl_memdev_state *mds,
->  				unsigned long *cmds);
-> @@ -860,6 +901,17 @@ void cxl_event_trace_record(const struct cxl_memdev *cxlmd,
->  			    const uuid_t *uuid, union cxl_event *evt);
->  int cxl_get_dirty_count(struct cxl_memdev_state *mds, u32 *count);
->  int cxl_arm_dirty_shutdown(struct cxl_memdev_state *mds);
-> +
-> +static inline bool cxl_dcd_supported(struct cxl_memdev_state *mds)
-> +{
-> +	return mds->dcd_supported;
-> +}
-> +
-> +static inline void cxl_disable_dcd(struct cxl_memdev_state *mds)
-> +{
-> +	mds->dcd_supported = false;
-> +}
-> +
->  int cxl_set_timestamp(struct cxl_memdev_state *mds);
->  int cxl_poison_state_init(struct cxl_memdev_state *mds);
->  int cxl_mem_get_poison(struct cxl_memdev *cxlmd, u64 offset, u64 len,
-> diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> index 7b14a154463c..bc40cf6e2fe9 100644
-> --- a/drivers/cxl/pci.c
-> +++ b/drivers/cxl/pci.c
-> @@ -998,6 +998,9 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  	if (rc)
->  		return rc;
+>  Documentation/ABI/testing/sysfs-bus-cxl | 18 +++++++++---------
+>  drivers/cxl/core/port.c                 |  4 ++++
+>  2 files changed, 13 insertions(+), 9 deletions(-)
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> index 2b59041bb410..b2754e6047ca 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -358,22 +358,22 @@ Description:
 >  
-> +	if (cxl_dcd_supported(mds))
-> +		cxl_configure_dcd(mds, &range_info);
-> +
->  	rc = cxl_dpa_setup(cxlds, &range_info);
->  	if (rc)
->  		return rc;
+>  
+>  What:		/sys/bus/cxl/devices/decoderX.Y/mode
+> -Date:		May, 2022
+> -KernelVersion:	v6.0
+> +Date:		May, 2022, May 2025
+> +KernelVersion:	v6.0, v6.16 (dynamic_ram_a)
+>  Contact:	linux-cxl@vger.kernel.org
+>  Description:
+>  		(RW) When a CXL decoder is of devtype "cxl_decoder_endpoint" it
+>  		translates from a host physical address range, to a device
+>  		local address range. Device-local address ranges are further
+> -		split into a 'ram' (volatile memory) range and 'pmem'
+> -		(persistent memory) range. The 'mode' attribute emits one of
+> -		'ram', 'pmem', or 'none'. The 'none' indicates the decoder is
+> -		not actively decoding, or no DPA allocation policy has been
+> -		set.
+> +		split into a 'ram' (volatile memory) range, 'pmem' (persistent
+> +		memory), and 'dynamic_ram_a' (first Dynamic RAM) range. The
+> +		'mode' attribute emits one of 'ram', 'pmem', 'dynamic_ram_a' or
+> +		'none'. The 'none' indicates the decoder is not actively
+> +		decoding, or no DPA allocation policy has been set.
+>  
+>  		'mode' can be written, when the decoder is in the 'disabled'
+> -		state, with either 'ram' or 'pmem' to set the boundaries for the
+> -		next allocation.
+> +		state, with either 'ram', 'pmem', or 'dynamic_ram_a' to set the
+> +		boundaries for the next allocation.
+>  
+>  
+>  What:		/sys/bus/cxl/devices/decoderX.Y/dpa_resource
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index 0fd6646c1a2e..e98605bd39b4 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -125,6 +125,7 @@ static DEVICE_ATTR_RO(name)
+>  
+>  CXL_DECODER_FLAG_ATTR(cap_pmem, CXL_DECODER_F_PMEM);
+>  CXL_DECODER_FLAG_ATTR(cap_ram, CXL_DECODER_F_RAM);
+> +CXL_DECODER_FLAG_ATTR(cap_dynamic_ram_a, CXL_DECODER_F_RAM);
+>  CXL_DECODER_FLAG_ATTR(cap_type2, CXL_DECODER_F_TYPE2);
+>  CXL_DECODER_FLAG_ATTR(cap_type3, CXL_DECODER_F_TYPE3);
+>  CXL_DECODER_FLAG_ATTR(locked, CXL_DECODER_F_LOCK);
+> @@ -219,6 +220,8 @@ static ssize_t mode_store(struct device *dev, struct device_attribute *attr,
+>  		mode = CXL_PARTMODE_PMEM;
+>  	else if (sysfs_streq(buf, "ram"))
+>  		mode = CXL_PARTMODE_RAM;
+> +	else if (sysfs_streq(buf, "dynamic_ram_a"))
+> +		mode = CXL_PARTMODE_DYNAMIC_RAM_A;
+>  	else
+>  		return -EINVAL;
+>  
+> @@ -324,6 +327,7 @@ static struct attribute_group cxl_decoder_base_attribute_group = {
+>  static struct attribute *cxl_decoder_root_attrs[] = {
+>  	&dev_attr_cap_pmem.attr,
+>  	&dev_attr_cap_ram.attr,
+> +	&dev_attr_cap_dynamic_ram_a.attr,
+>  	&dev_attr_cap_type2.attr,
+>  	&dev_attr_cap_type3.attr,
+>  	&dev_attr_target_list.attr,
 > 
 > -- 
 > 2.49.0
