@@ -1,194 +1,182 @@
-Received: from mail-ot1-f50.google.com (mail-ot1-f50.google.com [209.85.210.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00287255E53
-	for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 19:51:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B538A1FC3
+	for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 23:12:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747079511; cv=none; b=M+GCw+63O95x8rXVRzaoUDasTVvpbpysCFcaL3DV+Nnft4b+YTt+IYI7vCKHXpJFyaw9Ct9JRfeRE4WvnOJVSIEfPZbFumxZeA4NLxCfJ157bWC0hiNVYtf3Fs4+1RTuakJt90eLn1XIOTL0u1JizZxpL8deBLQJbZ4eWdUhib0=
+	t=1747091567; cv=none; b=s2HtDuoiiqb2qWPPsqmBNbI1FQNnPHKYoxMkdBKnThXPTRrVLsjwE4WbwVHO0ecckQG6Bj054lTjSo1pnryamh4NTcG0EihpR5VUfRyBe80g3xTfeYLMLZ2KVHKH4vIgmzVlVtQuBSp+bz6gmghIadUsPnWIvPudjI7h96GFTUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747079511; c=relaxed/simple;
-	bh=gzPsO0UrZDgI9iXYum4r5I7+OTPZxIA5JzksCAF1yrc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WIa7fys6JxRupAZfcp6svVknJdWP1p3ulaQrdXKGh+xQSBC43tVkAQNawqdGaQxZ/5u3ZVdqTIE7SgDBk8KDlZd527QxjognAO05xMhn2peVuoNbhFMhYlSxQnyAPfYLH6I2ltPcv7HtHYUE+7MHUUizikn75z6pDs074mWSKTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lApPh3JA; arc=none smtp.client-ip=209.85.210.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1747091567; c=relaxed/simple;
+	bh=mT0j3WCK/jvX+5GoG0x17TyuaepSVBrwlhgtq6VnQMI=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=WkUcx8Wz9KDwGbUNYHoasE3hiSgUBluO4OH5DTzXxRNR9iy6kKBIdCC3MTibYhxcEJ4rN3YSoLgdRqq6FykXiyTZNVpBJzqpyiDCtgRIyJY9jG7UsVRyIBUlJtl9JGFxiVuGd5sBygRNNojju6ioE1jMGkAFhFaQdcJzQqOp/oA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EQrDPCPj; arc=none smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lApPh3JA"
-Received: by mail-ot1-f50.google.com with SMTP id 46e09a7af769-72c172f1de1so2780920a34.3
-        for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 12:51:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747079509; x=1747684309; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=nUkjMRzK3wxS4oootv0crIxPWYrPZ4z6gtzYbFkCOlI=;
-        b=lApPh3JAy61AcGzmyDX0gysdvNSDVD9tnDBYbwEZ0gfNVY6xcLD3hg4DmNK+85Mmzd
-         FtHotcAoKVLQvKiz3PtNHstLa7lz5I8DFeL2rWuW+FyvT/TBoRgviut/WvqXaGbh9AAZ
-         KzfXwzXDx5jyOEi0GNC+TlEHlJMOxqmUGt49y23/5BtKiwaCtKC+t4XBv5vgtksHAmXr
-         v08dzLhcHqPiCnT0WsgGhS6n+poFfHIXB79YvCZ6XSWCELwv6VlrGHrkm+Uv4zJEe/Uy
-         DMTHkFcPKzMQ4gOLJrMvHFJ/ce3Z9Y/iYHcg3LauoIqpQNCdlZEpFfKs3Aw9mEh8zFMU
-         SQIw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747079509; x=1747684309;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=nUkjMRzK3wxS4oootv0crIxPWYrPZ4z6gtzYbFkCOlI=;
-        b=WZwehvaEI4d8lsmzttnzDUBcfofOFgJ04Ze9r0GzI5iGpmUGE15VZ/j2cnhX20fKxf
-         Fuoa6l0pDXOCP5kz0/O1OMYhw5DbpUaHvT7QxiRPh/TWl4VGGGCnQ4HsUO5tot9Umjv9
-         a+/bxZ5EDuS3fyEofs7WMhfnUlwDnNVMQ4tRw9L0i+ksId1NG9n3RcUAO+Uy6G5cYotp
-         S9uc1tp2aQSzSZHgrI4c6wtPhBNe2XwfBJzgKXuTIomlSiJanoisFWxxEyfymJ0wPYgX
-         3u079bqMrARWo8YmPQ/c/MtQhTZIpC8BsnV1BagXyLXnukpSdqyAdeoHMlHuH4KTJ5dE
-         xIzA==
-X-Forwarded-Encrypted: i=1; AJvYcCWlcttwryQR9K0eNf5FsQQudFZfE7gljK6xlSozMJKRLFRm8i1UAOq+O0/5kCgFK0N8GIUJ7Bk=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyAAgnq9DHhnLAiag5dTICj1ZZgoyYWhahqRzAsEgdAK31hBDgx
-	nEeVKoFpDgBUQobO8v/BgYoUMMZTAuOg1LXnhDW5jyLw/6DQwdVU
-X-Gm-Gg: ASbGncvvVS4lymipqXCyAm18Fsqxmm60ZJ9jNWg2TLkmMSjOVPbXVJCtxR9TjFJsLjy
-	Az4uyxnFshMILuH2t409D2A7t1nXYFrt+hj4VhpoSa3Kij/D3eYC1DvZ9hfS9me+D+kJJCjxeH1
-	AUKqMv1fgvkAx1BBBPgzyEjsS5r8/sgwiWzjziQYOhOODsig2JRYDD7DyOvjB6uqnlQA1goZ0Xn
-	92m8VUmhj6vMdlBByej2sjye42julaCTCJ4ZDBSTIbd+rtWB9oWw+7oJK0QNenPmn4KTQUFcSgq
-	3uELztMuuxE8pIZMxKc8G1J8hNq4Y2x/jIbs7u4wd+cBbuwSz8bCok66Lofhqx9gWQ==
-X-Google-Smtp-Source: AGHT+IEAeXjZiozlRYEM0gARp0zQzeR/jbozJkUKlmzreQdwjSlhfL93jt9YN6NYGu8g494ESdu3sw==
-X-Received: by 2002:a05:6830:4903:b0:72a:1d2a:4acf with SMTP id 46e09a7af769-73226aaed7fmr9385724a34.17.1747079508876;
-        Mon, 12 May 2025 12:51:48 -0700 (PDT)
-Received: from groves.net ([2603:8080:1500:3d89:f16b:b065:d67a:e0f7])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-73356c72943sm1353348a34.3.2025.05.12.12.51.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 May 2025 12:51:47 -0700 (PDT)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Mon, 12 May 2025 14:51:45 -0500
-From: John Groves <John@groves.net>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	Luis Henriques <luis@igalia.com>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
-	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, 
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, john@groves.net
-Subject: Re: [RFC PATCH 13/19] famfs_fuse: Create files with famfs fmaps
-Message-ID: <aytnzv4tmp7fdvpgxdfoe2ncu7qaxlp2svsxiskfnrvdnknhmp@uu4ifgc6aj34>
-References: <20250421013346.32530-1-john@groves.net>
- <20250421013346.32530-14-john@groves.net>
- <nedxmpb7fnovsgbp2nu6y3cpvduop775jw6leywmmervdrenbn@kp6xy2sm4gxr>
- <20250424143848.GN25700@frogsfrogsfrogs>
- <5rwwzsya6f7dkf4de2uje2b3f6fxewrcl4nv5ba6jh6chk36f3@ushxiwxojisf>
- <20250428190010.GB1035866@frogsfrogsfrogs>
- <CAJfpegtR28rH1VA-442kS_ZCjbHf-WDD+w_FgrAkWDBxvzmN_g@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EQrDPCPj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1747091566; x=1778627566;
+  h=message-id:date:mime-version:from:subject:to:cc:
+   references:in-reply-to:content-transfer-encoding;
+  bh=mT0j3WCK/jvX+5GoG0x17TyuaepSVBrwlhgtq6VnQMI=;
+  b=EQrDPCPj89knInvKEu/cHlqE+rPrj/O037RLd/nLbP0B5Ms7hrgs+5tU
+   rCWyWEy49TogxjfB2XArnsNXnqVBmDGXSR+k+gI8KR/s8gC/vGhi8SkoC
+   e5/gtwVOx+MWWJviUl9Uo71zYXmEBlr+ntk/GuDl2yYuZHBnHHJ/rUxLX
+   ZwHbavB9JE+yJaqBy02r/j8fdq1G079nrRfAFH+nR5sG7OsKuiVgTCZlo
+   YTN2oOGDmI9K981JjHmVDqp3lfrmupFqxJgg28xVh9I0Q7nUf12BvxCgD
+   BwXHpZQXKQ7z3/6F4NSuRvbZHwdLpooVSzpy4Y0Va3Yj9vggllsBIk0cT
+   Q==;
+X-CSE-ConnectionGUID: i2o9W4BmRqOhRYyLpmvrkQ==
+X-CSE-MsgGUID: 1VYkZnLWRvm3vVdc+5duWw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11431"; a="52567780"
+X-IronPort-AV: E=Sophos;i="6.15,283,1739865600"; 
+   d="scan'208";a="52567780"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2025 16:12:46 -0700
+X-CSE-ConnectionGUID: sZ+0+7y7Q164RMg7bWqgew==
+X-CSE-MsgGUID: 9Tbf+Tw4R/WVKtpviLdzzw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,283,1739865600"; 
+   d="scan'208";a="137537333"
+Received: from unknown (HELO [10.24.8.159]) ([10.24.8.159])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2025 16:12:44 -0700
+Message-ID: <4c923c9d-7e41-42f5-802d-0199c91ec188@linux.intel.com>
+Date: Mon, 12 May 2025 16:12:35 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJfpegtR28rH1VA-442kS_ZCjbHf-WDD+w_FgrAkWDBxvzmN_g@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
+From: Marc Herbert <marc.herbert@linux.intel.com>
+Subject: Re: [ndctl PATCH] test: fail on unexpected kernel error & warning,
+ not just "Call Trace"
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+References: <20250510012046.1067514-1-marc.herbert@linux.intel.com>
+ <aCI_ZxeC7r3UpkvZ@aschofie-mobl2.lan>
+Content-Language: en-US
+In-Reply-To: <aCI_ZxeC7r3UpkvZ@aschofie-mobl2.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On 25/05/06 06:56PM, Miklos Szeredi wrote:
-> On Mon, 28 Apr 2025 at 21:00, Darrick J. Wong <djwong@kernel.org> wrote:
+Thanks for the prompt feedback!
+
+On 2025-05-12 11:35, Alison Schofield wrote:
+
+> Since this patch is doing 2 things, the the journalctl timing, and
+> the parse of additional messages, I would typically ask for 2 patches,
+> but - I want to do even more. I want to revive an old, unmerged set
+> tackling similar work and get it all tidy'd up at once.
 > 
-> > <nod> I don't know what Miklos' opinion is about having multiple
-> > fusecmds that do similar things -- on the one hand keeping yours and my
-> > efforts separate explodes the amount of userspace abi that everyone must
-> > maintain, but on the other hand it then doesn't couple our projects
-> > together, which might be a good thing if it turns out that our domain
-> > models are /really/ actually quite different.
+> https://lore.kernel.org/all/cover.1701143039.git.alison.schofield@intel.com/
+>   cxl/test: add and use cxl_common_[start|stop] helpers
+>   cxl/test: add a cxl_ derivative of check_dmesg()
+>   cxl/test: use an explicit --since time in journalctl
 > 
-> Sharing the interface at least would definitely be worthwhile, as
-> there does not seem to be a great deal of difference between the
-> generic one and the famfs specific one.  Only implementing part of the
-> functionality that the generic one provides would be fine.
+> Please take a look at how the prev patch did journalctl start time.
 
-Agreed. I'm coming around to thinking the most practical approach would be
-to share the GET_FMAP message/response, but to add a separate response
-format for Darrick's use case - when the time comes. In this patch set, 
-that starts with 'struct fuse_famfs_fmap_header' and is followed by the 
-approriate extent structures, serialized in the message. Collectively 
-that's an fmap in message format.
+We've been using a "start time" in
+https://github.com/thesofproject/sof-test for many years and it's been
+only "OK", not great. I did not know about the $SECONDS magic variable
+at the time, otherwise I would have tried it in sof-test! The main
+advantage of $SECONDS: there is nothing to do, meaning there is no
+"cxl_common_start()" to forget or do wrong. Speaking of which: I tested
+this patch on the _entire_ ndctl/test, not just with --suite=cxl whereas
+https://lore.kernel.org/all/d76c005105b7612dc47ccd19e102d462c0f4fc1b.1701143039.git.alison.schofield@intel.com/
+seems to have a CXL-specific "cxl_common_start()" only?
 
-Side note: the current patch set sends back the logically-variable-sized 
-fmap in a fixed-size message, but V2 of the series will address that; 
-I got some help from Bernd there, but haven't finished it yet.
+Also, in my experience some sort of short COOLDOWN is always necessary
+anyway for various reasons:
+- Some tests can sometimes have "after shocks" and a cooldown helps
+  with most of these.
+- A short gap in the logs really help with their _readability_.
+- Clocks can shift, especially inside QEMU (I naively tried to increase
+  the number of cores in run_qemu.sh but had to give up due so "clock skew")
+- Others I probably forgot.
 
-So the next version of the patch set would, say, add a more generic first
-'struct fmap_header' that would indicate whether the next item would be
-'struct fuse_famfs_fmap_header' (i.e. my/famfs metadata) or some other
-to be codified metadata format. I'm going here because I'm dubious that
-we even *can* do grand-unified-fmap-metadata (or that we should try).
+On my system, the average, per-test duration is about 10s and I find that
+10% is an acceptable price to pay for the peace of mind. But a starttime
+should hopefully work too, at least for the majority of the time.
 
-This will require versioning the affected structures, unless we think
-the fmap-in-message structure can be opaque to the rest of fuse. @miklos,
-is there an example to follow regarding struct versioning in 
-already-existing fuse structures?
 
-> 
-> > (Especially because I suspect that interleaving is the norm for memory,
-> > whereas we try to avoid that for disk filesystems.)
-> 
-> So interleaved extents are just like normal ones except they repeat,
-> right?  What about adding a special "repeat last N extent
-> descriptions" type of extent?
+> I believe the kmesg_fail... can be used to catch any of the failed
+> sorts that the old series wanted to do.
 
-It's a bit more than that. The comment at [1] makes it possible to understand
-the scheme, but I'd be happy to talk through it with you on a call if that
-seems helpful.
+Yes it does, I tried to explain that but afraid my English wasn't good
+enough?
 
-An interleaved extent stripes data spread across N memory devices in raid 0
-format; the space from each device is described by a single simple extent 
-(so it's contigous), but it's not consumed contiguously - it's consumed in 
-fixed-sized chunks that precess across the devices. Notwithstanding that I 
-couldn't explain it very well when we talked about it at LPC, I think I 
-could make it pretty clear in a pretty brief call now.
+> Maybe add a brief write up of how to use the kmesg choices per
+> test and in the common code.
 
-In any case, you have my word that it's actually quite elegant :D
-(seriously, but also with a smile...)
+Q.E.D ;-)
 
-> 
-> > > But the current implementation does not contemplate partially cached fmaps.
-> > >
-> > > Adding notification could address revoking them post-haste (is that why
-> > > you're thinking about notifications? And if not can you elaborate on what
-> > > you're after there?).
-> >
-> > Yeah, invalidating the mapping cache at random places.  If, say, you
-> > implement a clustered filesystem with iomap, the metadata server could
-> > inform the fuse server on the local node that a certain range of inode X
-> > has been written to, at which point you need to revoke any local leases,
-> > invalidate the pagecache, and invalidate the iomapping cache to force
-> > the client to requery the server.
-> >
-> > Or if your fuse server wants to implement its own weird operations (e.g.
-> > XFS EXCHANGE-RANGE) this would make that possible without needing to
-> > add a bunch of code to fs/fuse/ for the benefit of a single fuse driver.
-> 
-> Wouldn't existing invalidation framework be sufficient?
-> 
-> Thanks,
-> Miklos
+> Is the new kmesg approach going to fail on any ERROR or WARNING that
+> we don't kmesg_no_fail_on ?
 
-My current thinking is that Darrick's use case doesn't need GET_DAXDEV, but
-famfs does. I think Darrick's use case has one backing device, and that should
-be passed in at mount time. Correct me if you think that might be wrong.
+Yes, this is the main purpose. The other feature is failing when
+any of the _expected_ ERROR or WARNING is not found.
 
-Famfs doesn't necessarily have just one backing dev, which means that famfs
-could pass in the *primary* backing dev at mount time, but it would still
-need GET_DAXDEV to get the rest. But if I just use GET_FMAP every time, I
-only need one way to do this.
+> And then can we simply add dev_dbg() messages to fail if missing.
 
-I'll add a few more responses to Darrick's reply...
+I'm afraid you just lost me at this point... my patch already does that
+without any dev_dbg()...?
 
-Thanks,
-John
+> I'll take a further look for example at the poison test. We want
+> it to warn that the poison is in a region. That is a good and
+> expected warning.  However, if that warn is missing, then the test
+> is broken! It might not 'FAIL', but it's no longer doing what we
+> want.
 
-[1] https://github.com/cxl-micron-reskit/famfs-linux/blob/c57553c4ca91f0634f137285840ab25be8a87c30/fs/fuse/famfs_kfmap.h#L13
+I agree: the expected "poison inject" and "poison clear" messages should
+be in the kmsg_fail_if_missing array[], not in the kmsg_no_fail_on[]
+array. BUT in my experience this makes cxl-poison.sh fail when run
+multiple times.  So yes: there seems to be a problem with this test.  (I
+should probably file a bug somewhere?) So I put them in
+kmsg_fail_if_missing[] for now because I don't have time to look into it
+now and I don't think a problem in a single test should hold back the
+improvement for the entire suite that exposes it. Even with just
+kmsg_no_fail_on[], this test is still better than now.
 
+BTW this is a typical game of whack-a-mole every time you try to tighten
+a test screw. In SOF it took 4-5 years to finally catch all firmware
+errors: https://github.com/thesofproject/sof-test/issues/297
+
+
+
+> So, let's work on a rev 2 that does all the things of both our
+> patches. I'm happy to work it with you, or not.
+
+I agree the COOLDOWN / starttime is a separate feature. But... I needed it
+for the tests to pass! I find it important to keep the tests all passing
+in every commit for bisectability etc., hope you agree. Also, really hard
+to submit anything that does not pass the tests :-)
+
+As of now, the tests tolerate cross-test pollution. Being more
+demanding when inspecting the logs obviously makes them fail, at least
+sometimes. I agree the "timing" solution should go first, so here's
+a suggested plan:
+
+1. a) Either I resubmit my COOLDOWN alone,
+   b) or you generalize your cxl_common_start()/starttime to non-CXL tests.
+
+No check_dmesg() change yet. "cxl_check_dmesg()" is abandoned forever.
+
+Then:
+
+2. I rebase and resubmit my kmsg_no_fail_on=...
+
+This will give more time for people to try and report any issue in the
+timing fix 1. - whichever is it.
+
+In the 1.a) case, I think your [cxl_]common_start() de-duplication is
+99% independent and can be submitted at any point.
+
+
+Thoughts?
+
+PS: keep in mind I may be pulled in other priorities at any time :-(
