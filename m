@@ -1,320 +1,411 @@
-Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC8F11C173C
-	for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 17:47:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.175
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747072054; cv=none; b=EQgMHGyzhE3Z7/B2Zee3KjSboOSKwklVv1hHcL/K3p15veab0zGc4xJH0tLAtfQf25Ky4tIx3r1tdiKyKxRQYJkdB9oEFrfjNs/p9UGf1H4rnTGiZio748JPTMK2mfWRvqUnDfmLBPZMt+kMIA2yfnHNjjUyAdnX5sXPhT9OU14=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747072054; c=relaxed/simple;
-	bh=PV1TfeTgXo3Miq8F1pKou4TGDQ70MOFKYLMFFLrmILs=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TOxkh3BdcrfcdR+/ibwFdUyniZ/jgzsEeVuq5vk2z3Chbr3FH+0pmrcps/D/wf7RKYzGc5i0EfhNXazebm1bMAQkra/XbalvIxAc4K++s6DzVdGJnpLzF32RK5MHfDlQdIktArZIvcSkBxoquumSiLmsoQ7Sxle57Hg5GiVmv+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cy2NF7lF; arc=none smtp.client-ip=209.85.215.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C73AB25485B
+	for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 18:35:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.19
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1747074935; cv=fail; b=DvfCPxhFysTVHrviCuDhMwJGn7C+9OMZhZARq9FLdsKSUD8NXeCg4DV7zt1WtX2pvpnMEWbIzKgv09nd88UtSwXJ14kPe5txWri6k1lBMLJFxVMVK4m21AbV3ZelloYqG6W32Rq2kyYhAATwnP7+1cWsM/0bl+A+V88KHq9FDJ4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1747074935; c=relaxed/simple;
+	bh=xz1ICm75cOuzXF4hxmDyrPZtEk65/qK//XtPWgEHyRI=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=cehE2PUhWiG+yuB+WQbQUpkx0LKa75LsLXZOv3yeiG3sZ0ROEYcfAimb5uLpUxy8ffp3w8+mgN5VYVzpizoEoYJpgS5loSSC0oI9Ls0YORAmE7r6185rssJUGEJVr0GaiWodWSW5SG29Gn4fc3lYX/YOnRq/Er7877PWn9AB2Po=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WQAJSwm0; arc=fail smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cy2NF7lF"
-Received: by mail-pg1-f175.google.com with SMTP id 41be03b00d2f7-b0b2d0b2843so3591082a12.2
-        for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 10:47:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747072052; x=1747676852; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=HypgtS7YKITLhMNbXkMfJuxLzAcwmiO8rI/dW/dWnJk=;
-        b=cy2NF7lFi3JCGZSei5WNTIIM/E0GjPT5D9zjYGq+r+40sR59YDTgB4yfqzF0rQ/CK3
-         889JnofRaLaVO6cwJov40xU91co3IcQg/s1yIiAWFZ+U+VBDv/SrQw1CICpZeGBeuDFz
-         hVmBCC12HtjIVg20IQKKGY+NJvymRTT1I42kjz2306rv3wrGpIp2VynKmKn2oBzAd9F4
-         txqLhM388Vn67NTv9yvk32f/VcBh2EMV1h4zc2kxEONE3+DKTao6/y+VWpbb6Wdkj7JB
-         0NuH+urppH+hHTPlOJ6FYAzPm7mRzCnyvW72dQR0q9q6pQSwR4Dgzcdea5FHNaOjhahT
-         35lw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747072052; x=1747676852;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HypgtS7YKITLhMNbXkMfJuxLzAcwmiO8rI/dW/dWnJk=;
-        b=xOQnUgTKLEi5CcicI/0DgmFJ35PKIqY9AkjByStsOpOkTTO5potBMGy/x/24/uwbqf
-         WV8kVvLlWZGgHY/8AadYEJ+dPdZoY3InRT9S0Zu2BHG5HxT9oR+zsTpsezpW3O/YnaM9
-         e4hmcPfcek12OVo1rh240qsIt/dZY+Km7F0XtBz9C1fZPsIyD9Y1Tae28UiTk2W6dbLW
-         pna45CM0uHJPUAtRLRLUuTHyM0dfXqw6agecnUNbjH4B5dUnF0lKuul+umilIWBP8Hq6
-         kwzclSBzntRDqaS2bBdTXuOem+r/a7vSw+Wu/LIOC6bX1JCeeqlah9Di+h6rjFiA+RYq
-         U66Q==
-X-Forwarded-Encrypted: i=1; AJvYcCUHilroCav5U/VlPJ5Z1wOZoyXCQLUD4KkMQArUAu63YESgAEBgy46NCiDBB3/8s66GDPuZoqY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyP4hIn/d24USllOCVUDm0SHLzST+sJJmwW9PvG3ZbG80c4F4dj
-	enzURkIcCP3uAz7fEGouC83fWFG21lGMM5obgaqCkGrFfEcj8XEY
-X-Gm-Gg: ASbGncv2eA0EmrD6je1l83NEKPSdIXA5Yud9340EWPpeWNAq2amHwRv5C+XYmKEWNrh
-	aXdF4mvXZZvmyZWJ+2O5adZxWHgw3fbDaOCjE/0mCOv29JQCph2f6Pmk0U1LOOjbCqykVbvTNjO
-	1t7ZogLa2E03IhgwfLL2gyLHM/nRhEyH73enK7WOON0tyx3M+euocPJiuyrnY/ChLGMiktGf9KO
-	MF28DmPpShMqL0usj2jyKHmBbBsuki+Z0o70zw1z/6LQDW4PpbDVJ+SrORXn9GvrI3jHNegSvMX
-	j3/WHXDA2bNx8nzk2yiTAJg4xiA0fRiQZWYAEthyxu+70YOMB1buyBc=
-X-Google-Smtp-Source: AGHT+IFZtNDdN2Gq2dB75z4Ec7mMFB9Q1ilvVpGe8e0DJH90CZGTb4Kh+1fOyk61XygKwdJ9TeKNng==
-X-Received: by 2002:a17:902:da90:b0:22e:3b02:c094 with SMTP id d9443c01a7336-22fc8b107a0mr173859635ad.8.1747072051567;
-        Mon, 12 May 2025 10:47:31 -0700 (PDT)
-Received: from smc-140338-bm01 ([149.97.161.244])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22fc828b3a0sm66330515ad.179.2025.05.12.10.47.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 May 2025 10:47:31 -0700 (PDT)
-From: Fan Ni <nifan.cxl@gmail.com>
-X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
-Date: Mon, 12 May 2025 17:47:16 +0000
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	Li Ming <ming.li@zohomail.com>
-Subject: Re: [PATCH v9 12/19] cxl/extent: Process dynamic partition events
- and realize region extents
-Message-ID: <aCI0JC88vIhcTGNH@smc-140338-bm01>
-References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
- <20250413-dcd-type2-upstream-v9-12-1d4911a0b365@intel.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WQAJSwm0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1747074933; x=1778610933;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=xz1ICm75cOuzXF4hxmDyrPZtEk65/qK//XtPWgEHyRI=;
+  b=WQAJSwm0GARwfckr+gHUPV9BZuCjnDDJqbzNV3azwk359Qoc3HPUl8nW
+   Pu8bd8HssGSq3qzBAZJwAnZujZEwqAVOcEhGGabXQAA/kJVL2DtGkzx5p
+   vjob9iDBwPMqhYPu/fVtEwugPwn+xZfVGAWzhDUJyHgnfjuzDJXMKhWlS
+   R4FOtSMsKyOBS1xgYU7UlSdJroqW8jL/TNLLQc+n9tg815PT09UQhb0hZ
+   yEQ5W/Gd1HamiffAMtE6ptdUKJtUXkv5K7QNQECg7cNPgZYhnh5iZG3Tj
+   QFbdmM+rDIZt3hcH1D7imRbsCt2H2FGpSwRN6QphU0wcoNCs2YQOptVZ/
+   Q==;
+X-CSE-ConnectionGUID: /9wvvjq3RKmFyPLMfCwQ6g==
+X-CSE-MsgGUID: mPDy1DYrQVCTjqGxjXXe8w==
+X-IronPort-AV: E=McAfee;i="6700,10204,11431"; a="48759109"
+X-IronPort-AV: E=Sophos;i="6.15,282,1739865600"; 
+   d="scan'208";a="48759109"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2025 11:35:33 -0700
+X-CSE-ConnectionGUID: jdhtSTIlSTaJTNOeH7EUYA==
+X-CSE-MsgGUID: nwwrS0B0S5ex0qMI5+dBxA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,282,1739865600"; 
+   d="scan'208";a="138394875"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by orviesa008.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2025 11:35:32 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14; Mon, 12 May 2025 11:35:31 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14 via Frontend Transport; Mon, 12 May 2025 11:35:31 -0700
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.40) by
+ edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.44; Mon, 12 May 2025 11:35:31 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=cYKNjl6CipzdwPyjpfvU29+hrpMFZnIaqEJhA9a9hLLy0/daT5FfoPGo+xdbMzpOWL37R72GKTC0YPvR/KjmIxztaTnC9EFw3cneqdqFNpnLRrb2s49acMlsGAAxSBDz8v3Y/Omtn2xmUEaxtS2HVgQ8oyliM7plyYWi7iCbhH0mOPkO7OC24FWcR9TcmdK/hHfh2/wXsBB4pj+m/YfEUyBfongxzQaQcZsRRD+cKRZYvcUulcMM0I3P82YIz7C+fwRILvk0cPHiU1XWQG+hLZx+Ar+rs7jZodXvavA7pTL13PcEKLWD6pHdnFbGaR3nrs7GQoNPgM2nk2fesRpy+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=T1dFdBXa81PfEuVyjc6HMGetKQrIsrZCa1sJrUE+mVM=;
+ b=Fbvn80EkMU55qDbSSmHF9ccjqUjZdAGwMnLPqBH7KnhOyjsUa6T+8yT9PzVupeJ/bheRYjJazlaLyZJV3uY9+RL0pXqpYnsALVqvlVFhzPpTZpbc+LLqVjVgsXVgfoWvUAmoS58iOUBPJG/30jYk0NPUw8K8FWi5O48tfWb/pmKS6OsHQzTrTGYSjDWCzF7WCAbZK7C0K+Ys7OPFoxcSRLcci/FZaB5T+Ij3BiWSSZud6iEdA0zwOwf4LaFUf4aH/8GZQdmOlyP2eI36/mT0UGLmu8X7XfNyx/sU8jjOCMANaetIhgd7yi8gYlEjvWGCQhutH1wbbYZgDhMCuOxlUg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB8794.namprd11.prod.outlook.com (2603:10b6:806:46a::5)
+ by MW4PR11MB6571.namprd11.prod.outlook.com (2603:10b6:303:1e2::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.28; Mon, 12 May
+ 2025 18:35:28 +0000
+Received: from SA1PR11MB8794.namprd11.prod.outlook.com
+ ([fe80::a3d4:9d67:2f5d:6720]) by SA1PR11MB8794.namprd11.prod.outlook.com
+ ([fe80::a3d4:9d67:2f5d:6720%5]) with mapi id 15.20.8722.027; Mon, 12 May 2025
+ 18:35:27 +0000
+Date: Mon, 12 May 2025 11:35:19 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: <marc.herbert@linux.intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [ndctl PATCH] test: fail on unexpected kernel error & warning,
+ not just "Call Trace"
+Message-ID: <aCI_ZxeC7r3UpkvZ@aschofie-mobl2.lan>
+References: <20250510012046.1067514-1-marc.herbert@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20250510012046.1067514-1-marc.herbert@linux.intel.com>
+X-ClientProxiedBy: BY5PR04CA0001.namprd04.prod.outlook.com
+ (2603:10b6:a03:1d0::11) To SA1PR11MB8794.namprd11.prod.outlook.com
+ (2603:10b6:806:46a::5)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250413-dcd-type2-upstream-v9-12-1d4911a0b365@intel.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB8794:EE_|MW4PR11MB6571:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7231ac16-0ea6-4d00-0fcb-08dd9183c44a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|1800799024|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?ZJsWSDRMePYEhFAiXE29LnU80g4Ua9huN3YjW06BlSBgpPTZlz/QDIgjZpOE?=
+ =?us-ascii?Q?UMbWZbfCSENxjeCPnNUc1y9mhQyUtk+I7vnuh8KQoIoSkQ3rbxxZnDh2zZGj?=
+ =?us-ascii?Q?qu+ALLIeVBHZKMgzBXJacBjFVM1QMZEKWbRAyrZggSWE7/tBW28+ffvvLx9H?=
+ =?us-ascii?Q?MUEW1gbPhGSMZfrfiECA2L/v+UhDh9lWTSl1/GolIGhYyxMNN6P3OowPp7He?=
+ =?us-ascii?Q?X74EStItBs5ntFCxoywTgF3NXz4iuJHtC18feRPAWK2Tt/YkKK3mvtdcLl2R?=
+ =?us-ascii?Q?5JnrcyPQbUaemciO8qg5ywpfpRhjXC80fNsZLE/2zQ7sidHKCvXfFCI2Hlpg?=
+ =?us-ascii?Q?9RP7PSs2fKlJB6giDuiwedwsrEX6Yye/eF4osWdsqJyabjJ5bqGIBCc9yzXr?=
+ =?us-ascii?Q?X+5cGVXgRCMKQ8lSdP+AQH1EpzV2a535Pg9ijaaeMyYVNoDSr4yUN7eMPAvF?=
+ =?us-ascii?Q?L6CgDuZrLhYsyLW/GwAEGVrREYyyjBNLa6sYEOVKoHbHAHaWMwsjtHxB0z4T?=
+ =?us-ascii?Q?757rL3VhgJjKWqEFrChV2g2OY2lhgTbuC9NE/Skte3w6g/1XQ1J+y/aIZ5LL?=
+ =?us-ascii?Q?3yQxOC9oqxgSHZKIkfwN19Sd62x2jf5FC2GS8lwcni0kSmiSLXrpe7JaLWDr?=
+ =?us-ascii?Q?8+dqdUXdql+RDpUmmB4HOq2nmd3myo7pupmcOY+WlS+99MZv9ie4PIVcgyMp?=
+ =?us-ascii?Q?a1fYm4fem1hvcgMIq+BU26CGwscSW3SvON1JOGdWvRUa7QeewDOXh2Tu7fmu?=
+ =?us-ascii?Q?FevSQSQmoNcJBUKpYnsNzd5Sq3jW+TMRF1bJ5tBzKpXeYcS1f/5NWn8Rf6Vk?=
+ =?us-ascii?Q?GsmqT7+3hiKEddyYCAlOK55JQm0kLyHW8aFMU8q3kTFaBzuJnpkHSgIm/uVs?=
+ =?us-ascii?Q?3xtsCtfaW9GqEN1/Im/Gv+fhHgHyCeaVH7NFZU/FlcaEDOo+1/ACiKvq6cSx?=
+ =?us-ascii?Q?nHTUWPH6TQWS7sfjRKCKBsgEgc47Tp+r0X+Qn3V7RlmelRX5QofOZmi4zGR/?=
+ =?us-ascii?Q?EEmrK57ZOe8Ud8O4fg/AgWoLbKCdfzwOKqnb/YRjOb5ogKfQ11OXdAF6xwle?=
+ =?us-ascii?Q?VSW3Bur9acU/yI+8xYbVz4RzVoIFFRP/6vUTTMeiXO5DLIi4kB726rQzky7O?=
+ =?us-ascii?Q?lJ6sx3muaU4m51AsA1mGUE/PF2k2NeRH6HTYEAMyWQA/wO+CYp360vRrusHV?=
+ =?us-ascii?Q?ySNYLRNpgYJ03Af4MZqpDs7NWPxRRcKXSBaNyCq2GlspxqbKorZ5IGR24oa3?=
+ =?us-ascii?Q?tcrth5qYLSprQHvtIViABc7JYb43uxZOtu+GGnIicr/0zLerSCJW7ifit7UC?=
+ =?us-ascii?Q?WObKIOclf8aORQTdyRy9lzMM+emqi59fqtu9QNtTpvsH4mCNsUtLBcE7R0l3?=
+ =?us-ascii?Q?W5PamCQB/TSJRj4+fTFDaIK4jlDpg0+deqrNsaEG8jx9ukwWFWWGhuItdFVw?=
+ =?us-ascii?Q?d6tUurbRxJU=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB8794.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?vEdaD2WBwLP9holiDPnbWfJHCCjQdpkstzHGnXFfN3cIHjlvNWTCnwRRnvlY?=
+ =?us-ascii?Q?A+OfCxbY2Wl15A0KDGyHHnIkq3RzmAX/J52lp4V1Gvrx7rR/yVouc/7krb1Q?=
+ =?us-ascii?Q?ar63dTdZvfEXJW6gdNXhgr9Copkr5SWovTsWuaWAM6ekF2hgjCp4LJhdyksh?=
+ =?us-ascii?Q?vU/4am66jpAp44VnJ9AFPX9xR++A5V7gxD547YY5GBwGsBDC3LvdrkN8y5dO?=
+ =?us-ascii?Q?ekTuD2f4HAC8KhO2iIZtMzF16mksH1dHhHXdNIQq6IXUMIqy7yQa5Z/X9la6?=
+ =?us-ascii?Q?bxUDNi89WqtqpeFDlrrigmgQQA4Ow0MquYWIPzrJz/S/u0pxF4hUL6A33tLy?=
+ =?us-ascii?Q?dnVOORk8glc37QwgJCHBYucNK08UuRpfL/VONA3K6YdVHEY8HPHeSVfZzHTG?=
+ =?us-ascii?Q?E+uvIuXEhL28Hm5YtOleBtJ+Vzxu21YvkpsHiw2mmQzefZlQgYuNLJueNY69?=
+ =?us-ascii?Q?7ciEhPEP1Ey06Ck9LFavTX9lE7RVTxe1+v0vD8sZmm7xAzWbM4j6yeq4F2x7?=
+ =?us-ascii?Q?SANUJ01Z2h+WEiJxmBibjT8WjaGABSSGuDanVP0RN1ZYCZ8PZgwe1GjqcYEN?=
+ =?us-ascii?Q?Us58pvm+lI4RWFsPw6XXzbbOjZriyLgjisVCR1IKaDaHzOeYdR95K9LIyovt?=
+ =?us-ascii?Q?aeBI5/LUebKbz3xSNSm5URWWnRLHX7eTshB8voXaskj/YtnCkD7tI09zCbTg?=
+ =?us-ascii?Q?E14mjBFD2JU0aMWlznhdFA5uO6eGNh9R53iyhhw6Lna7A0ZlsrmH02FWq533?=
+ =?us-ascii?Q?s0bzUu2lF9n2MPaLYWpEgco+8xNIImX4AS9H4aSmhr5vlgQ1UR+BmbN9hXMm?=
+ =?us-ascii?Q?rwdPiJ5ca5p1U4R73Op1rkPXv168nKK1lqdhsQRhfX0xkZTBxkBgu744Nk2A?=
+ =?us-ascii?Q?ny3pyepsljlHhoQosUOZADiagIfLxJtp3+xBuNlitt0Gvp4nVJ54S5hLan71?=
+ =?us-ascii?Q?GoAOe5MfBlJrkPv5awyGydXaKNyj0cdkiJBK0yuhB091r6jbgjhK3ps8JAqe?=
+ =?us-ascii?Q?Que+ABFLPEmknjVkCAHMz8lbPujFrLKAZOSHMULjFlKOujl7SCYQlVGR9luK?=
+ =?us-ascii?Q?lxq37D1cX3GtuB2P11pUSzv1AcB3P5WoUSfHbols6Bgzi3g1oElTfjLGtWD2?=
+ =?us-ascii?Q?nbru+2UkrHEwzv5AXdYSxafCmsgD/jx5lPUWj+XH++fqfk30kDnssVTXzyqg?=
+ =?us-ascii?Q?ptek0bpXnJFMoTu8UYV+j40I0FaEr/VlhyQcRPqBfugXaH9z7RFOwDydQTk4?=
+ =?us-ascii?Q?7fSOtyFSAZv6pMFtVc1YEAcKXOc++zRjg5tFsO92+++sj64JGUi4pL4LOyN0?=
+ =?us-ascii?Q?A3YjjQPPF8igG8quJrwFJjHKpgU+rnb+m9K1ZW43sjTY0YU7xMKRhu/x/aw0?=
+ =?us-ascii?Q?mDk+SF1YAR/5JKCxoEIrluiTvqExdJ8I1LgBX3J3BvP4ltNrvtHfpzbOCGYB?=
+ =?us-ascii?Q?htLjs38wBWsuWRjtOajDboRvTr/B6uYRCXUQJ9/Q29jvPbRvHsJ0KvamBIgP?=
+ =?us-ascii?Q?EKQxHEjOpvUw0kD5jk1B/pJUR22RwEjYMICR+Yb8opqINZLqZzgcgxVHZkh2?=
+ =?us-ascii?Q?vDoJmTUQ5CFwoussmtIuAjT26hiQM2zEiSNSy5uKoX2YQVIuGpfofC79shCN?=
+ =?us-ascii?Q?Qw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7231ac16-0ea6-4d00-0fcb-08dd9183c44a
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB8794.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 May 2025 18:35:27.8523
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: SZ4e4Er5GwwLknDRSVbxhK5AEb/mPwc6pg8adWkS15TpyJCOXZ9U18Em20SnHa/2OcpOcprLfUOAq5RKZwuvRCoT6Q5HPfe5vkZ9hZ9Ji4c=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR11MB6571
+X-OriginatorOrg: intel.com
 
-On Sun, Apr 13, 2025 at 05:52:20PM -0500, Ira Weiny wrote:
-> A dynamic capacity device (DCD) sends events to signal the host for
-> changes in the availability of Dynamic Capacity (DC) memory.  These
-> events contain extents describing a DPA range and meta data for memory
-> to be added or removed.  Events may be sent from the device at any time.
+On Sat, May 10, 2025 at 01:20:46AM +0000, marc.herbert@linux.intel.com wrote:
+> From: Marc Herbert <marc.herbert@linux.intel.com>
 > 
-...
-> Tag support within the DAX layer is not yet supported.  To maintain
-> compatibility with legacy DAX/region processing only tags with a value
-> of 0 are allowed.  This defines existing DAX devices as having a 0 tag
-> which makes the most logical sense as a default.
+> While a "Call Trace" is usually a bad omen, the show_trace_log_lvl()
+> function supports any log level. So a "Call Trace" is not a reliable
+> indication of a failure. More importantly: any other WARNING or ERROR
+> during a test should make a test FAIL. Before this commit, it does not.
 > 
-> Process DCD events and create region devices.
+> So, leverage log levels for the PASS/FAIL decision.  This catches all
+> issues and not just the ones printing Call Traces.
 > 
-> Based on an original patch by Navneet Singh.
+> Add a simple way to exclude expected warnings and errors, either on a
+> per-test basis or globally.
 > 
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Reviewed-by: Li Ming <ming.li@zohomail.com>
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> Add a way for negative tests to fail when if some expected errors are
+> missing.
 > 
-Hi Ira,
-I have some comments inline. 
-There is one that will need to fix if I understand the code correctly.
+> Add COOLDOWN_MS to address the inaccuracy of the magic $SECONDS
+> variable.
 
+Thanks Marc, this is good stuff.
+Since this patch is doing 2 things, the the journalctl timing, and
+the parse of additional messages, I would typically ask for 2 patches,
+but - I want to do even more. I want to revive an old, unmerged set
+tackling similar work and get it all tidy'd up at once.
+
+https://lore.kernel.org/all/cover.1701143039.git.alison.schofield@intel.com/
+  cxl/test: add and use cxl_common_[start|stop] helpers
+  cxl/test: add a cxl_ derivative of check_dmesg()
+  cxl/test: use an explicit --since time in journalctl
+
+Please take a look at how the prev patch did journalctl start time.
+I believe the kmesg_fail... can be used to catch any of the failed sorts
+that the old series wanted to do.
+
+Maybe add a brief write up of how to use the kmesg choices per
+test and in the common code.
+
+Is the new kmesg approach going to fail on any ERROR or WARNING that
+we don't kmesg_no_fail_on ?
+
+And then can we simply add dev_dbg() messages to fail if missing.
+
+I'll take a further look for example at the poison test. We want
+it to warn that the poison is in a region. That is a good and
+expected warning.  However, if that warn is missing, then the test
+is broken! It might not 'FAIL', but it's no longer doing what we
+want.
+
+So, let's work on a rev 2 that does all the things of both our
+patches. I'm happy to work it with you, or not.
+
+Thanks,
+Alison
+
+
+> 
+> As a good example (which initiated this), the test feedback when hitting
+> bug https://github.com/pmem/ndctl/issues/278, where the cxl_test module
+> errors at load, is completely changed by this. Instead of only half the
+> tests failing with a fairly cryptic and late "Numerical result out of
+> range" error from user space, now all tests are failing early and
+> consistently, all displaying the same, earlier and more relevant error.
+> 
+> This simple log-level based approach has been successfully used for
+> years in the CI of https://github.com/thesofproject and caught
+> countless firmware and kernel bugs.
+> 
+> Note: the popular message "possible circular locking ..." recently fixed
+> by revert v6.15-rc1-4-gdc1771f71854 is at the WARNING level, including
+> its Call Trace.
+> 
+> Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
 > ---
-> Changes:
-> [iweiny: rebase]
-> [djbw: s/region/partition/]
-> [iweiny: Adapt to new partition arch]
-> [iweiny: s/tag/uuid/ throughout the code]
-> ---
->  drivers/cxl/core/Makefile |   2 +-
->  drivers/cxl/core/core.h   |  13 ++
->  drivers/cxl/core/extent.c | 366 ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/core/mbox.c   | 292 +++++++++++++++++++++++++++++++++++-
->  drivers/cxl/core/region.c |   3 +
->  drivers/cxl/cxl.h         |  53 ++++++-
->  drivers/cxl/cxlmem.h      |  27 ++++
->  include/cxl/event.h       |  31 ++++
->  tools/testing/cxl/Kbuild  |   3 +-
->  9 files changed, 786 insertions(+), 4 deletions(-)
-...  
-> +static int send_one_response(struct cxl_mailbox *cxl_mbox,
-I feel like the name is not that informative, maybe 
-send_one_dc_response?
-> +			     struct cxl_mbox_dc_response *response,
-> +			     int opcode, u32 extent_list_size, u8 flags)
-> +{
-> +	struct cxl_mbox_cmd mbox_cmd = (struct cxl_mbox_cmd) {
-> +		.opcode = opcode,
-> +		.size_in = struct_size(response, extent_list, extent_list_size),
-> +		.payload_in = response,
-> +	};
+>  test/common            | 74 +++++++++++++++++++++++++++++++++++++++---
+>  test/cxl-events.sh     |  2 ++
+>  test/cxl-poison.sh     |  5 +++
+>  test/cxl-xor-region.sh |  2 ++
+>  test/dax.sh            |  6 ++++
+>  5 files changed, 84 insertions(+), 5 deletions(-)
+> 
+> diff --git a/test/common b/test/common
+> index 75ff1a6e12be..2a95437186e7 100644
+> --- a/test/common
+> +++ b/test/common
+> @@ -3,6 +3,15 @@
+>  
+>  # Global variables
+>  
+> +# Small gap in journalctl to avoid cross-test pollution.  Unfortunately,
+> +# this needs be at least 1 second because we don't know how bash rounds
+> +# up or down its magic $SECONDS variable that we use below.
+> +COOLDOWN_MS=1200
+> +sleep "${COOLDOWN_MS}E-3"
 > +
-> +	response->extent_list_size = cpu_to_le32(extent_list_size);
-> +	response->flags = flags;
-> +	return cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
+> +# Log anchor, especially useful when running tests back to back
+> +printf "<5>%s: sourcing test/common\n" "$0" > /dev/kmsg
+> +
+>  # NDCTL
+>  if [ -z $NDCTL ]; then
+>  	if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
+> @@ -140,15 +149,70 @@ json2var()
+>  	sed -e "s/[{}\",]//g; s/\[//g; s/\]//g; s/:/=/g"
+>  }
+>  
+> -# check_dmesg
+> +# - "declare -a" gives the main script the freedom to source this file
+> +#   before OR after adding some excludes.
+> +declare -a kmsg_no_fail_on
+> +# kmsg_no_fail_on+=('this array must never be empty to keep the code simple')
+> +
+> +kmsg_no_fail_on+=('cxl_core: loading out-of-tree module taints kernel')
+> +kmsg_no_fail_on+=('cxl_mock_mem.*: CXL MCE unsupported')
+> +kmsg_no_fail_on+=('cxl_mock_mem cxl_mem.*: Extended linear cache calculation failed rc:-2')
+> +
+> +# 'modprobe nfit_test' prints these every time it's not already loaded
+> +kmsg_no_fail_on+=(
+> +    'nd_pmem namespace.*: unable to guarantee persistence of writes'
+> +    'nfit_test nfit_test.*: failed to evaluate _FIT'
+> +    'nfit_test nfit_test.*: Error found in NVDIMM nmem. flags: save_fail restore_fail flush_fail not_armed'
+> +    'nfit_test nfit_test.1: Error found in NVDIMM nmem. flags: map_fail'
+> +)
+> +
+> +declare -a kmsg_fail_if_missing
+> +
+> +print_all_warnings()
+> +{
+> +	( set +x;
+> +	  printf '%s\n' '------------ ALL warnings and errors -----------')
+> +	journalctl -p warning -b --since "-$((SECONDS*1000)) ms"
 > +}
 > +
-> +static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
-> +				struct xarray *extent_array, int cnt)
-> +{
-> +	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-> +	struct cxl_mbox_dc_response *p;
-> +	struct cxl_extent *extent;
-> +	unsigned long index;
-> +	u32 pl_index;
+>  # $1: line number where this is called
+>  check_dmesg()
+>  {
+> -	# validate no WARN or lockdep report during the run
+> +	local _e_kmsg_no_fail_on=()
+> +	for re in "${kmsg_no_fail_on[@]}" "${kmsg_fail_if_missing[@]}"; do
+> +		_e_kmsg_no_fail_on+=('-e' "$re")
+> +	done
 > +
-> +	size_t pl_size = struct_size(p, extent_list, cnt);
-> +	u32 max_extents = cnt;
+> +	# Give some time for a complete kmsg->journalctl flush + any delayed test effect.
+>  	sleep 1
+> -	log=$(journalctl -r -k --since "-$((SECONDS+1))s")
+> -	grep -q "Call Trace" <<< $log && err $1
+> -	true
 > +
-> +	/* May have to use more bit on response. */
-> +	if (pl_size > cxl_mbox->payload_size) {
-> +		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
-> +			      sizeof(struct updated_extent_list);
-> +		pl_size = struct_size(p, extent_list, max_extents);
-> +	}
+> +	# Optional code to manually verify the SECONDS / COOLDOWN_MS logic.
+> +	# journalctl -q -b -o short-precise --since "-$((SECONDS*1000 - COOLDOWN_MS/2)) ms" > journal-"$(basename "$0")".log
+> +	# After enabling, check the timings in:
+> +	#    head -n 7 $(ls -1t build/journal-*.log | tac)
+> +	#    journalctl --since='- 5 min' -o short-precise -g 'test/common'
 > +
-> +	struct cxl_mbox_dc_response *response __free(kfree) =
-> +						kzalloc(pl_size, GFP_KERNEL);
-> +	if (!response)
-> +		return -ENOMEM;
+> +	{ # Redirect to stderr so this is all at the _bottom_ in the log file
+> +	# Fail on kernel WARNING or ERROR. $SECONDS is bash magic.
+> +	if journalctl -q -p warning -k --since "-$((SECONDS*1000 - COOLDOWN_MS/2)) ms" |
+> +		grep -E -v "${_e_kmsg_no_fail_on[@]}"; then
+> +			print_all_warnings
+> +			err "$1"
+> +	fi
 > +
-> +	if (cnt == 0)
-> +		return send_one_response(cxl_mbox, response, opcode, 0, 0);
-> +
-> +	pl_index = 0;
-> +	xa_for_each(extent_array, index, extent) {
-> +		response->extent_list[pl_index].dpa_start = extent->start_dpa;
-> +		response->extent_list[pl_index].length = extent->length;
-> +		pl_index++;
-> +
-> +		if (pl_index == max_extents) {
-> +			u8 flags = 0;
-> +			int rc;
-> +
-> +			if (pl_index < cnt)
-> +				flags |= CXL_DCD_EVENT_MORE;
-> +			rc = send_one_response(cxl_mbox, response, opcode,
-> +					       pl_index, flags);
-> +			if (rc)
-> +				return rc;
-> +			cnt -= pl_index;
-> +			pl_index = 0;
-
-The logic here seems incorrect. 
-Let's say cnt = 8, and max_extents = 5.
-For the first 5 extents, it works fine. But after the first 5 extents
-are processed (response sent), the cnt will become 8-5=3, however,
-max_extents is still 5, so there is no chance we can send response for
-the last 3 extents.
-I think we need to update max_extents based on "cnt" after each
-iteration.
-
+> +	local expected_re
+> +	for expected_re in "${kmsg_fail_if_missing[@]}"; do
+> +		journalctl -q -p warning -k --since "-$((SECONDS*1000 - COOLDOWN_MS/2)) ms" |
+> +			grep -q "${expected_re}" || {
+> +				printf 'FAIL: expected error not found: %s\n' "$expected_re"
+> +				print_all_warnings
+> +				err "$1"
 > +		}
-> +	}
+> +	done
+> +	} >&2
 > +
-> +	if (!pl_index) /* nothing more to do */
-> +		return 0;
-...
-> +/*
-> + * Add Dynamic Capacity Response
-> + * CXL rev 3.1 section 8.2.9.9.9.3; Table 8-168 & Table 8-169
-> + */
-> +struct cxl_mbox_dc_response {
-> +	__le32 extent_list_size;
-
-As jonathan mentioned, "size" may be not a good name.
-Maybe "nr_extents"?
-
-Fan
-> +	u8 flags;
-> +	u8 reserved[3];
-> +	struct updated_extent_list {
-> +		__le64 dpa_start;
-> +		__le64 length;
-> +		u8 reserved[8];
-> +	} __packed extent_list[];
-> +} __packed;
-> +
->  struct cxl_mbox_get_supported_logs {
->  	__le16 entries;
->  	u8 rsvd[6];
-> @@ -644,6 +662,14 @@ struct cxl_mbox_identify {
->  	UUID_INIT(0xfe927475, 0xdd59, 0x4339, 0xa5, 0x86, 0x79, 0xba, 0xb1, \
->  		  0x13, 0xb7, 0x74)
+> +	# Log anchor, especially useful when running tests back to back
+> +	printf "<5>%s: test/common check_dmesg() OK\n" "$0" > /dev/kmsg
+>  }
 >  
-> +/*
-> + * Dynamic Capacity Event Record
-> + * CXL rev 3.1 section 8.2.9.2.1; Table 8-43
-> + */
-> +#define CXL_EVENT_DC_EVENT_UUID                                             \
-> +	UUID_INIT(0xca95afa7, 0xf183, 0x4018, 0x8c, 0x2f, 0x95, 0x26, 0x8e, \
-> +		  0x10, 0x1a, 0x2a)
-> +
->  /*
->   * Get Event Records output payload
->   * CXL rev 3.0 section 8.2.9.2.2; Table 8-50
-> @@ -669,6 +695,7 @@ enum cxl_event_log_type {
->  	CXL_EVENT_TYPE_WARN,
->  	CXL_EVENT_TYPE_FAIL,
->  	CXL_EVENT_TYPE_FATAL,
-> +	CXL_EVENT_TYPE_DCD,
->  	CXL_EVENT_TYPE_MAX
->  };
+>  # CXL COMMON
+> diff --git a/test/cxl-events.sh b/test/cxl-events.sh
+> index c216d6aa9148..1461b487e208 100644
+> --- a/test/cxl-events.sh
+> +++ b/test/cxl-events.sh
+> @@ -25,6 +25,8 @@ rc=1
+>  dev_path="/sys/bus/platform/devices"
+>  trace_path="/sys/kernel/tracing"
 >  
-> diff --git a/include/cxl/event.h b/include/cxl/event.h
-> index f9ae1796da85..0c159eac4337 100644
-> --- a/include/cxl/event.h
-> +++ b/include/cxl/event.h
-> @@ -108,11 +108,42 @@ struct cxl_event_mem_module {
->  	u8 reserved[0x2a];
->  } __packed;
+> +kmsg_no_fail_on+=('cxl_mock_mem cxl_mem.* no CXL window for range')
+> +
+>  test_region_info()
+>  {
+>  	# Trigger a memdev in the cxl_test autodiscovered region
+> diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
+> index 2caf092db460..4df7d7ffbe8a 100644
+> --- a/test/cxl-poison.sh
+> +++ b/test/cxl-poison.sh
+> @@ -8,6 +8,11 @@ rc=77
 >  
-> +/*
-> + * CXL rev 3.1 section 8.2.9.2.1.6; Table 8-51
-> + */
-> +struct cxl_extent {
-> +	__le64 start_dpa;
-> +	__le64 length;
-> +	u8 uuid[UUID_SIZE];
-> +	__le16 shared_extn_seq;
-> +	u8 reserved[0x6];
-> +} __packed;
+>  set -ex
+>  
+> +kmsg_no_fail_on+=(
+> +    'cxl_mock_mem cxl_mem.*: poison inject dpa:0x'
+> +    'cxl_mock_mem cxl_mem.*: poison clear dpa:0x'
+> +)
 > +
-> +/*
-> + * Dynamic Capacity Event Record
-> + * CXL rev 3.1 section 8.2.9.2.1.6; Table 8-50
-> + */
-> +#define CXL_DCD_EVENT_MORE			BIT(0)
-> +struct cxl_event_dcd {
-> +	struct cxl_event_record_hdr hdr;
-> +	u8 event_type;
-> +	u8 validity_flags;
-> +	__le16 host_id;
-> +	u8 partition_index;
-> +	u8 flags;
-> +	u8 reserved1[0x2];
-> +	struct cxl_extent extent;
-> +	u8 reserved2[0x18];
-> +	__le32 num_avail_extents;
-> +	__le32 num_avail_tags;
-> +} __packed;
+>  trap 'err $LINENO' ERR
+>  
+>  check_prereq "jq"
+> diff --git a/test/cxl-xor-region.sh b/test/cxl-xor-region.sh
+> index b9e1d79212d3..f5e0db98b67f 100644
+> --- a/test/cxl-xor-region.sh
+> +++ b/test/cxl-xor-region.sh
+> @@ -17,6 +17,8 @@ modprobe cxl_test interleave_arithmetic=1
+>  udevadm settle
+>  rc=1
+>  
+> +kmsg_fail_if_missing+=('cxl_mock_mem cxl_mem.* no CXL window for range')
 > +
->  union cxl_event {
->  	struct cxl_event_generic generic;
->  	struct cxl_event_gen_media gen_media;
->  	struct cxl_event_dram dram;
->  	struct cxl_event_mem_module mem_module;
-> +	struct cxl_event_dcd dcd;
->  	/* dram & gen_media event header */
->  	struct cxl_event_media_hdr media_hdr;
->  } __packed;
-> diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
-> index 387f3df8b988..916f2b30e2f3 100644
-> --- a/tools/testing/cxl/Kbuild
-> +++ b/tools/testing/cxl/Kbuild
-> @@ -64,7 +64,8 @@ cxl_core-y += $(CXL_CORE_SRC)/cdat.o
->  cxl_core-y += $(CXL_CORE_SRC)/ras.o
->  cxl_core-y += $(CXL_CORE_SRC)/acpi.o
->  cxl_core-$(CONFIG_TRACING) += $(CXL_CORE_SRC)/trace.o
-> -cxl_core-$(CONFIG_CXL_REGION) += $(CXL_CORE_SRC)/region.o
-> +cxl_core-$(CONFIG_CXL_REGION) += $(CXL_CORE_SRC)/region.o \
-> +				 $(CXL_CORE_SRC)/extent.o
->  cxl_core-$(CONFIG_CXL_MCE) += $(CXL_CORE_SRC)/mce.o
->  cxl_core-$(CONFIG_CXL_FEATURES) += $(CXL_CORE_SRC)/features.o
->  cxl_core-y += config_check.o
-> 
+>  # THEORY OF OPERATION: Create x1,2,3,4 regions to exercise the XOR math
+>  # option of the CXL driver. As with other cxl_test tests, changes to the
+>  # CXL topology in tools/testing/cxl/test/cxl.c may require an update here.
+> diff --git a/test/dax.sh b/test/dax.sh
+> index 3ffbc8079eba..c325e144753d 100755
+> --- a/test/dax.sh
+> +++ b/test/dax.sh
+> @@ -118,6 +118,12 @@ else
+>  	run_xfs
+>  fi
+>  
+> +kmsg_fail_if_missing=(
+> +    'nd_pmem pfn.*: unable to guarantee persistence of writes'
+> +    'Memory failure: .*: Sending SIGBUS to dax-pmd:.* due to hardware memory corruption'
+> +    'Memory failure: .*: recovery action for dax page: Recovered'
+> +)
+> +
+>  check_dmesg "$LINENO"
+>  
+>  exit 0
 > -- 
 > 2.49.0
 > 
-
--- 
-Fan Ni (From gmail)
+> 
