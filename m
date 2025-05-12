@@ -1,261 +1,398 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f46.google.com (mail-oo1-f46.google.com [209.85.161.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A0642CCC5
-	for <nvdimm@lists.linux.dev>; Sat, 10 May 2025 01:21:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED7D2505AC
+	for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 16:28:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746840063; cv=none; b=o5dSYgoH/QoxfVyDJGgP+6XsEtgmqKTu70Yhj/crUVSrJCuZl190zcOwHpgFFVs94U8fSGXr8Y2PDh27N6k1NlCaZVJ7uob7iMVAEpntlZghAlPxKk3djykqEUQ1yYzCPhuk5znJ3LOqLhpB9ubpSOsG4WtWrYKflHIE2eUqR70=
+	t=1747067296; cv=none; b=ZgE9if7NgGqAS4d1YVxFI6STgxrI0RKHnprLyUjqv8gYXWLWr8EGc5DGz4SJMBSPuYqSDASr26bv3AahXXHvA3gSA5Q/l33hSxLO57tJg6EV/I/FemApviwsTrEFxsx08ybM10kXC7dGqD3Ufwj97/1DaXe2eb5Fy2l5m5NzTZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746840063; c=relaxed/simple;
-	bh=00l892IqZoSUv5fd235eXrNHgxD0pt0+a8rndCMWpmg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BKLPmv3H+B1jSPy9Yc+HV2p831vFpBJwVa4onuZGsHLxN45ldS9BWMOpkfl+thvxra/yORRLUyuGtIXIyQQMwoWOZtnL1A23niJn1vOL0i6MQPhPOJ07dcNjd27HjWrfolxOTrV4wLHoPyrLTlbB87pbY79N65MZIXmVDKJhUwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Fl/fSdct; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1747067296; c=relaxed/simple;
+	bh=Jt9oZT6MxQ1c9CUyPBdh6LScXwRFEfayip1vATEJODY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=H3OJwU3ENuTMf3nfhY6fuy5AY8RnF5RFoXHBdDytgSW1KZNrno0hW1Tnp63bxA2QcXuoLxJer4HdO6Z1AA6uSHzjFqeD07MKNHOn5nZGVDJ/jXETLNZT19f7BbdOAYhL621B7fJGjW+Fd6545gNYyY1ieTI+xKdKxkdz5xcrbFk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U/QLE/F3; arc=none smtp.client-ip=209.85.161.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Fl/fSdct"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1746840061; x=1778376061;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=00l892IqZoSUv5fd235eXrNHgxD0pt0+a8rndCMWpmg=;
-  b=Fl/fSdctwlZVl8dqVYpbHUIf2IvUAQFoM9A778hwaVhJLjAYUMicHee+
-   +cpzPKPdre5jm9Y2u4edpN879nsV9ewRe2hqUWtVWmqozPxVrviZpvUv4
-   g+47JwDaQ9A6fCQeZrgrjyA3mDzneA4CC5PNh8cEFAf4+wqm1BomD1LRp
-   iOpYajc9qm/yAblYLUOHObT8GN8OpT2Thg2KybuHTE3D/QmFmrXhw0p0G
-   NwjLBrFA+GsInuABR0AM0Zs9NsesoqbzNAwduTJGys5fDKmvfp9a/k77R
-   DRptcIiR8OPw8efCgHsbFpoEJyjSN6s4vJJ0Qa6/TaR9ju8uoD6qUzfq4
-   A==;
-X-CSE-ConnectionGUID: LtWYiJUlT/y35+dEMgLeZg==
-X-CSE-MsgGUID: aOhWtNLcQfm5oRzJ0kyblQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11427"; a="48589269"
-X-IronPort-AV: E=Sophos;i="6.15,276,1739865600"; 
-   d="scan'208";a="48589269"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2025 18:21:00 -0700
-X-CSE-ConnectionGUID: cwRCH3P/TnesW43hGkzhGg==
-X-CSE-MsgGUID: 9IPZU7kiT+2G9a/L/2HoyA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,276,1739865600"; 
-   d="scan'208";a="137720416"
-Received: from unknown (HELO hyperion.jf.intel.com) ([10.243.61.29])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2025 18:21:01 -0700
-From: marc.herbert@linux.intel.com
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: Marc Herbert <marc.herbert@linux.intel.com>
-Subject: [ndctl PATCH] test: fail on unexpected kernel error & warning, not just "Call Trace"
-Date: Sat, 10 May 2025 01:20:46 +0000
-Message-ID: <20250510012046.1067514-1-marc.herbert@linux.intel.com>
-X-Mailer: git-send-email 2.49.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U/QLE/F3"
+Received: by mail-oo1-f46.google.com with SMTP id 006d021491bc7-6063462098eso2917453eaf.0
+        for <nvdimm@lists.linux.dev>; Mon, 12 May 2025 09:28:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747067293; x=1747672093; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=yfXYK2WWJp0fMh8eXP5pHHTLg42XHMgL/jeicNVe0gE=;
+        b=U/QLE/F38+xxV1JJVUfPObpYPQxbSC7ej/otPh6xhqvI3bYwDmrAMK0EBGuBzxD+TY
+         F8yw/sM/1VYax2dgAXPzCFAyWuh/cEC3JY/NJcZcwps5dq1N01GhZB8qYRHbgXVl3syd
+         +iubrklG7oafCz5tbY3i20Sfs1HX6/OOZCgiIYBiCN4vpjN2nBK3X54tn4oBHpJhTrd8
+         sd8jkdiHFBJeH8UoEp4cvpksUNY/Bg03uE8YXlaExYw7Q+kTe8Q41fglwFmgpkjomRiX
+         YtQI2w26MHbDTKXZs+UVaGJKP7dgOKdMYcvNWioCEAA99RaMeCWAAQhn04daZJ0CbWns
+         3eyg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747067293; x=1747672093;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=yfXYK2WWJp0fMh8eXP5pHHTLg42XHMgL/jeicNVe0gE=;
+        b=sq9txGvoOtrE2HcaF79LjTQl5YYvcQoRsx01mOdYME9jxkJdQ8L2aQq2K95iVgNjTg
+         vntraNglzZKYZuvEUPFFS4JhsCehGrnO+9d1x6NBfWpotQk23f9ThoB+KHX724TbAFQe
+         bGZpCNFRxsk4TAJ0fepHqASLg4IJh8CIYrXucVJk6xpMYr8lxaLkSPsQAIhvy7rxbKh+
+         cxlpLU8tbgJyfrrONpa8seabDVfGLNZD5s1QLLSAShnK3n38qWSCmSgalAHE1DBJfTSe
+         3ntN/zwDrNXyxhHyD6IcJrm9p9cK1+W8Ep+cUxzyBRgkxICV5afvP6G6eaiuVSGeIZ0F
+         1ZIg==
+X-Forwarded-Encrypted: i=1; AJvYcCVKCuA6gdJkrOKdeY8+JUx78X79v84NG0Ztnb12Ksq8DIYjes68TaT5T263TpUMi/RTXwNBeaY=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzYXFFWh5toihvEFaC2rcgzDE3Qx+yqs/6jYeaJma9RXGmS/TFb
+	UqKGO2jJUhybavZmZp4XJhkxLwzK6Y5iUNO8bOw+hLVWYcLNSsqX
+X-Gm-Gg: ASbGncv7uZtmOQmgQ9J4rCPeYA1ZlFOEsSyY9fsl/nxACsjWaHxikouQ+2xR+baMQlr
+	Ww8zgyNoFWgBheMmirYpBag4yp6lfTYB1uhLrFo5oPcO33jj3tmjZxukqXX41t5zat/hsO/lj/c
+	bZG8OHixXq6N/OXSq+OI90WgQKtrRmp42voznF/yqFOSvtyEv5f9TOP0JWKvoYEv7kZXKEAJnv7
+	Npi7mCQkwMqyEJVmeODUWy0MNZIKb2SDe5S3Bhl9akjkNLdogQomPB+m3y6kydxQETVSTwXAM7f
+	Mr1Yka+FvAxtJIyZjuZtHxI4OHuHQUZQ69RhKui88TKdQfA7aabt/dK6Q1Dj1qkFBQ==
+X-Google-Smtp-Source: AGHT+IEegXMkAWHU26748SkFBCyunApM/AHaeESZwvCaWTrrzbQhiaf7NFfNXS/WZE1r9TkuTiA14A==
+X-Received: by 2002:a05:6808:1706:b0:403:3503:6a16 with SMTP id 5614622812f47-4037fde77f3mr9050099b6e.1.1747067292387;
+        Mon, 12 May 2025 09:28:12 -0700 (PDT)
+Received: from groves.net ([2603:8080:1500:3d89:f16b:b065:d67a:e0f7])
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-609a8cd7a4fsm985525eaf.10.2025.05.12.09.28.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 May 2025 09:28:11 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Mon, 12 May 2025 11:28:09 -0500
+From: John Groves <John@groves.net>
+To: Joanne Koong <joannelkoong@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Bernd Schubert <bschubert@ddn.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	"Darrick J . Wong" <djwong@kernel.org>, Luis Henriques <luis@igalia.com>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Kent Overstreet <kent.overstreet@linux.dev>, Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC PATCH 12/19] famfs_fuse: Plumb the GET_FMAP message/response
+Message-ID: <xhekfz652u3dla26aj4ge45zr4tk76b2jgkcb22jfo46gvf6ry@zze73cprkx6g>
+References: <20250421013346.32530-1-john@groves.net>
+ <20250421013346.32530-13-john@groves.net>
+ <CAJnrk1ZRSoMN+jan5D9d3UYWnTVxc_5KVaBtP7JV2b+0skrBfg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJnrk1ZRSoMN+jan5D9d3UYWnTVxc_5KVaBtP7JV2b+0skrBfg@mail.gmail.com>
 
-From: Marc Herbert <marc.herbert@linux.intel.com>
+On 25/05/01 10:48PM, Joanne Koong wrote:
+> On Sun, Apr 20, 2025 at 6:34 PM John Groves <John@groves.net> wrote:
+> >
+> > Upon completion of a LOOKUP, if we're in famfs-mode we do a GET_FMAP to
+> > retrieve and cache up the file-to-dax map in the kernel. If this
+> > succeeds, read/write/mmap are resolved direct-to-dax with no upcalls.
+> >
+> > Signed-off-by: John Groves <john@groves.net>
+> > ---
+> >  fs/fuse/dir.c             | 69 +++++++++++++++++++++++++++++++++++++++
+> >  fs/fuse/fuse_i.h          | 36 +++++++++++++++++++-
+> >  fs/fuse/inode.c           | 15 +++++++++
+> >  include/uapi/linux/fuse.h |  4 +++
+> >  4 files changed, 123 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+> > index bc29db0117f4..ae135c55b9f6 100644
+> > --- a/fs/fuse/dir.c
+> > +++ b/fs/fuse/dir.c
+> > @@ -359,6 +359,56 @@ bool fuse_invalid_attr(struct fuse_attr *attr)
+> >         return !fuse_valid_type(attr->mode) || !fuse_valid_size(attr->size);
+> >  }
+> >
+> > +#define FMAP_BUFSIZE 4096
+> > +
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +static void
+> > +fuse_get_fmap_init(
+> > +       struct fuse_conn *fc,
+> > +       struct fuse_args *args,
+> > +       u64 nodeid,
+> > +       void *outbuf,
+> > +       size_t outbuf_size)
+> > +{
+> > +       memset(outbuf, 0, outbuf_size);
+> 
+> I think we can skip the memset here since kcalloc will zero out the
+> memory automatically when the fmap_buf gets allocated
 
-While a "Call Trace" is usually a bad omen, the show_trace_log_lvl()
-function supports any log level. So a "Call Trace" is not a reliable
-indication of a failure. More importantly: any other WARNING or ERROR
-during a test should make a test FAIL. Before this commit, it does not.
+Good catch, thanks. Queued to -next.
 
-So, leverage log levels for the PASS/FAIL decision.  This catches all
-issues and not just the ones printing Call Traces.
+> 
+> > +       args->opcode = FUSE_GET_FMAP;
+> > +       args->nodeid = nodeid;
+> > +
+> > +       args->in_numargs = 0;
+> > +
+> > +       args->out_numargs = 1;
+> > +       args->out_args[0].size = FMAP_BUFSIZE;
+> > +       args->out_args[0].value = outbuf;
+> > +}
+> > +
+> > +static int
+> > +fuse_get_fmap(struct fuse_mount *fm, struct inode *inode, u64 nodeid)
+> > +{
+> > +       size_t fmap_size;
+> > +       void *fmap_buf;
+> > +       int err;
+> > +
+> > +       pr_notice("%s: nodeid=%lld, inode=%llx\n", __func__,
+> > +                 nodeid, (u64)inode);
+> > +       fmap_buf = kcalloc(1, FMAP_BUFSIZE, GFP_KERNEL);
+> > +       FUSE_ARGS(args);
+> > +       fuse_get_fmap_init(fm->fc, &args, nodeid, fmap_buf, FMAP_BUFSIZE);
+> > +
+> > +       /* Send GET_FMAP command */
+> > +       err = fuse_simple_request(fm, &args);
+> 
+> I'm assuming the fmap_buf gets freed in a later patch, but for this
+> one we'll probably need a kfree(fmap_buf) here in the meantime?
 
-Add a simple way to exclude expected warnings and errors, either on a
-per-test basis or globally.
+Nice of you to give me the benefit of the doubt there ;)
 
-Add a way for negative tests to fail when if some expected errors are
-missing.
+At this commit, nothing is done with fmap_buf, and a subsequent
+commit adds a call to famfs_file_init_dax(...fmap_buf...). But
+the fmap_buf was leaked.
 
-Add COOLDOWN_MS to address the inaccuracy of the magic $SECONDS
-variable.
+I'm adding a kfree(fmap_buf) to this commit, which will come after the
+call to famfs_file_init_dax() when that's added in a subsequent
+commit.
 
-As a good example (which initiated this), the test feedback when hitting
-bug https://github.com/pmem/ndctl/issues/278, where the cxl_test module
-errors at load, is completely changed by this. Instead of only half the
-tests failing with a fairly cryptic and late "Numerical result out of
-range" error from user space, now all tests are failing early and
-consistently, all displaying the same, earlier and more relevant error.
+Thanks!
 
-This simple log-level based approach has been successfully used for
-years in the CI of https://github.com/thesofproject and caught
-countless firmware and kernel bugs.
+> 
+> > +       if (err) {
+> > +               pr_err("%s: err=%d from fuse_simple_request()\n",
+> > +                      __func__, err);
+> > +               return err;
+> > +       }
+> > +
+> > +       fmap_size = args.out_args[0].size;
+> > +       pr_notice("%s: nodei=%lld fmap_size=%ld\n", __func__, nodeid, fmap_size);
+> > +
+> > +       return 0;
+> > +}
+> > +#endif
+> > +
+> >  int fuse_lookup_name(struct super_block *sb, u64 nodeid, const struct qstr *name,
+> >                      struct fuse_entry_out *outarg, struct inode **inode)
+> >  {
+> > @@ -404,6 +454,25 @@ int fuse_lookup_name(struct super_block *sb, u64 nodeid, const struct qstr *name
+> >                 fuse_queue_forget(fm->fc, forget, outarg->nodeid, 1);
+> >                 goto out;
+> >         }
+> > +
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       if (fm->fc->famfs_iomap) {
+> > +               if (S_ISREG((*inode)->i_mode)) {
+> > +                       /* Note Lookup returns the looked-up inode in the attr
+> > +                        * struct, but not in outarg->nodeid !
+> > +                        */
+> > +                       pr_notice("%s: outarg: size=%d nodeid=%lld attr.ino=%lld\n",
+> > +                                __func__, args.out_args[0].size, outarg->nodeid,
+> > +                                outarg->attr.ino);
+> > +                       /* Get the famfs fmap */
+> > +                       fuse_get_fmap(fm, *inode, outarg->attr.ino);
+> 
+> I agree with Darrick's comment about fetching the mappings only if the
+> file gets opened. I wonder though if we could bundle the open with the
+> get_fmap so that we don't have to do an additional request / incur 2
+> extra context switches. This seems feasible to me. When we send the
+> open request, we could check if fc->famfs_iomap is set and if so, set
+> inarg.open_flags to include FUSE_OPEN_GET_FMAP and set outarg.value to
+> an allocated buffer that holds both struct fuse_open_out and the
+> fmap_buf and adjust outarg.size accordingly. Then the server could
+> send both the open and corresponding fmap data in the reply.
 
-Note: the popular message "possible circular locking ..." recently fixed
-by revert v6.15-rc1-4-gdc1771f71854 is at the WARNING level, including
-its Call Trace.
+I agree about moving GET_FMAP to open, but I want to be cautious about 
+moving it *into* open. Right now fitting an entire fmap into a single
+message response looks like a totally acceptable requirement for famfs -
+but it might not survive as a permanent requirement, and it seems likely 
+not to work out for Darrick's use cases - which I think would lead us back 
+to needing GET_FMAP.
 
-Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
----
- test/common            | 74 +++++++++++++++++++++++++++++++++++++++---
- test/cxl-events.sh     |  2 ++
- test/cxl-poison.sh     |  5 +++
- test/cxl-xor-region.sh |  2 ++
- test/dax.sh            |  6 ++++
- 5 files changed, 84 insertions(+), 5 deletions(-)
+Elswhere in this thread, and also 1:1, Darrick and I have discussed the
+possibility of partial retrieval of fmaps (in part due to the possibility
+that they might not always fit in a single message). If these responses 
+can get arbitrarily large, this would become a requirement. GET_FMAP could 
+specify an offset, and the reply could also specify its starting  offset; 
+I think it has to be in both places because  the current "elegantly simple" 
+fmap format doesn't always split easily at arbitrary offsets.
 
-diff --git a/test/common b/test/common
-index 75ff1a6e12be..2a95437186e7 100644
---- a/test/common
-+++ b/test/common
-@@ -3,6 +3,15 @@
- 
- # Global variables
- 
-+# Small gap in journalctl to avoid cross-test pollution.  Unfortunately,
-+# this needs be at least 1 second because we don't know how bash rounds
-+# up or down its magic $SECONDS variable that we use below.
-+COOLDOWN_MS=1200
-+sleep "${COOLDOWN_MS}E-3"
-+
-+# Log anchor, especially useful when running tests back to back
-+printf "<5>%s: sourcing test/common\n" "$0" > /dev/kmsg
-+
- # NDCTL
- if [ -z $NDCTL ]; then
- 	if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
-@@ -140,15 +149,70 @@ json2var()
- 	sed -e "s/[{}\",]//g; s/\[//g; s/\]//g; s/:/=/g"
- }
- 
--# check_dmesg
-+# - "declare -a" gives the main script the freedom to source this file
-+#   before OR after adding some excludes.
-+declare -a kmsg_no_fail_on
-+# kmsg_no_fail_on+=('this array must never be empty to keep the code simple')
-+
-+kmsg_no_fail_on+=('cxl_core: loading out-of-tree module taints kernel')
-+kmsg_no_fail_on+=('cxl_mock_mem.*: CXL MCE unsupported')
-+kmsg_no_fail_on+=('cxl_mock_mem cxl_mem.*: Extended linear cache calculation failed rc:-2')
-+
-+# 'modprobe nfit_test' prints these every time it's not already loaded
-+kmsg_no_fail_on+=(
-+    'nd_pmem namespace.*: unable to guarantee persistence of writes'
-+    'nfit_test nfit_test.*: failed to evaluate _FIT'
-+    'nfit_test nfit_test.*: Error found in NVDIMM nmem. flags: save_fail restore_fail flush_fail not_armed'
-+    'nfit_test nfit_test.1: Error found in NVDIMM nmem. flags: map_fail'
-+)
-+
-+declare -a kmsg_fail_if_missing
-+
-+print_all_warnings()
-+{
-+	( set +x;
-+	  printf '%s\n' '------------ ALL warnings and errors -----------')
-+	journalctl -p warning -b --since "-$((SECONDS*1000)) ms"
-+}
-+
- # $1: line number where this is called
- check_dmesg()
- {
--	# validate no WARN or lockdep report during the run
-+	local _e_kmsg_no_fail_on=()
-+	for re in "${kmsg_no_fail_on[@]}" "${kmsg_fail_if_missing[@]}"; do
-+		_e_kmsg_no_fail_on+=('-e' "$re")
-+	done
-+
-+	# Give some time for a complete kmsg->journalctl flush + any delayed test effect.
- 	sleep 1
--	log=$(journalctl -r -k --since "-$((SECONDS+1))s")
--	grep -q "Call Trace" <<< $log && err $1
--	true
-+
-+	# Optional code to manually verify the SECONDS / COOLDOWN_MS logic.
-+	# journalctl -q -b -o short-precise --since "-$((SECONDS*1000 - COOLDOWN_MS/2)) ms" > journal-"$(basename "$0")".log
-+	# After enabling, check the timings in:
-+	#    head -n 7 $(ls -1t build/journal-*.log | tac)
-+	#    journalctl --since='- 5 min' -o short-precise -g 'test/common'
-+
-+	{ # Redirect to stderr so this is all at the _bottom_ in the log file
-+	# Fail on kernel WARNING or ERROR. $SECONDS is bash magic.
-+	if journalctl -q -p warning -k --since "-$((SECONDS*1000 - COOLDOWN_MS/2)) ms" |
-+		grep -E -v "${_e_kmsg_no_fail_on[@]}"; then
-+			print_all_warnings
-+			err "$1"
-+	fi
-+
-+	local expected_re
-+	for expected_re in "${kmsg_fail_if_missing[@]}"; do
-+		journalctl -q -p warning -k --since "-$((SECONDS*1000 - COOLDOWN_MS/2)) ms" |
-+			grep -q "${expected_re}" || {
-+				printf 'FAIL: expected error not found: %s\n' "$expected_re"
-+				print_all_warnings
-+				err "$1"
-+		}
-+	done
-+	} >&2
-+
-+	# Log anchor, especially useful when running tests back to back
-+	printf "<5>%s: test/common check_dmesg() OK\n" "$0" > /dev/kmsg
- }
- 
- # CXL COMMON
-diff --git a/test/cxl-events.sh b/test/cxl-events.sh
-index c216d6aa9148..1461b487e208 100644
---- a/test/cxl-events.sh
-+++ b/test/cxl-events.sh
-@@ -25,6 +25,8 @@ rc=1
- dev_path="/sys/bus/platform/devices"
- trace_path="/sys/kernel/tracing"
- 
-+kmsg_no_fail_on+=('cxl_mock_mem cxl_mem.* no CXL window for range')
-+
- test_region_info()
- {
- 	# Trigger a memdev in the cxl_test autodiscovered region
-diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
-index 2caf092db460..4df7d7ffbe8a 100644
---- a/test/cxl-poison.sh
-+++ b/test/cxl-poison.sh
-@@ -8,6 +8,11 @@ rc=77
- 
- set -ex
- 
-+kmsg_no_fail_on+=(
-+    'cxl_mock_mem cxl_mem.*: poison inject dpa:0x'
-+    'cxl_mock_mem cxl_mem.*: poison clear dpa:0x'
-+)
-+
- trap 'err $LINENO' ERR
- 
- check_prereq "jq"
-diff --git a/test/cxl-xor-region.sh b/test/cxl-xor-region.sh
-index b9e1d79212d3..f5e0db98b67f 100644
---- a/test/cxl-xor-region.sh
-+++ b/test/cxl-xor-region.sh
-@@ -17,6 +17,8 @@ modprobe cxl_test interleave_arithmetic=1
- udevadm settle
- rc=1
- 
-+kmsg_fail_if_missing+=('cxl_mock_mem cxl_mem.* no CXL window for range')
-+
- # THEORY OF OPERATION: Create x1,2,3,4 regions to exercise the XOR math
- # option of the CXL driver. As with other cxl_test tests, changes to the
- # CXL topology in tools/testing/cxl/test/cxl.c may require an update here.
-diff --git a/test/dax.sh b/test/dax.sh
-index 3ffbc8079eba..c325e144753d 100755
---- a/test/dax.sh
-+++ b/test/dax.sh
-@@ -118,6 +118,12 @@ else
- 	run_xfs
- fi
- 
-+kmsg_fail_if_missing=(
-+    'nd_pmem pfn.*: unable to guarantee persistence of writes'
-+    'Memory failure: .*: Sending SIGBUS to dax-pmd:.* due to hardware memory corruption'
-+    'Memory failure: .*: recovery action for dax page: Recovered'
-+)
-+
- check_dmesg "$LINENO"
- 
- exit 0
--- 
-2.49.0
+Also, with famfs I think fmaps can be retained in-kernel past close,
+making the retrieval-on-open only needed if the fmap isn't already
+present. Famfs doesn't currently allow fmaps to change, although there
+are reasons we might relax that later.
+
+This can be revisited down the road.
+
+Unless I run into a blocker, the next rev of the series will call
+GET_FMAP on open...
+
+BTW I think moving GET_FMAP to open will remove the reasons why famfs
+currently needs to avoid READDIRPLUS.
+
+> 
+> > +               } else
+> > +                       pr_notice("%s: no get_fmap for non-regular file\n",
+> > +                                __func__);
+> > +       } else
+> > +               pr_notice("%s: fc->dax_iomap is not set\n", __func__);
+> > +#endif
+> > +
+> >         err = 0;
+> >
+> >   out_put_forget:
+> > diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+> > index 931613102d32..437177c2f092 100644
+> > --- a/fs/fuse/fuse_i.h
+> > +++ b/fs/fuse/fuse_i.h
+> > @@ -193,6 +193,10 @@ struct fuse_inode {
+> >         /** Reference to backing file in passthrough mode */
+> >         struct fuse_backing *fb;
+> >  #endif
+> > +
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       void *famfs_meta;
+> > +#endif
+> >  };
+> >
+> >  /** FUSE inode state bits */
+> > @@ -942,6 +946,8 @@ struct fuse_conn {
+> >  #endif
+> >
+> >  #if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       struct rw_semaphore famfs_devlist_sem;
+> > +       struct famfs_dax_devlist *dax_devlist;
+> >         char *shadow;
+> >  #endif
+> >  };
+> > @@ -1432,11 +1438,14 @@ void fuse_free_conn(struct fuse_conn *fc);
+> >
+> >  /* dax.c */
+> >
+> > +static inline int fuse_file_famfs(struct fuse_inode *fi); /* forward */
+> > +
+> >  /* This macro is used by virtio_fs, but now it also needs to filter for
+> >   * "not famfs"
+> >   */
+> >  #define FUSE_IS_VIRTIO_DAX(fuse_inode) (IS_ENABLED(CONFIG_FUSE_DAX)    \
+> > -                                       && IS_DAX(&fuse_inode->inode))
+> > +                                       && IS_DAX(&fuse_inode->inode)   \
+> > +                                       && !fuse_file_famfs(fuse_inode))
+> >
+> >  ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to);
+> >  ssize_t fuse_dax_write_iter(struct kiocb *iocb, struct iov_iter *from);
+> > @@ -1547,4 +1556,29 @@ extern void fuse_sysctl_unregister(void);
+> >  #define fuse_sysctl_unregister()       do { } while (0)
+> >  #endif /* CONFIG_SYSCTL */
+> >
+> > +/* famfs.c */
+> > +static inline struct fuse_backing *famfs_meta_set(struct fuse_inode *fi,
+> > +                                                      void *meta)
+> > +{
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       return xchg(&fi->famfs_meta, meta);
+> > +#else
+> > +       return NULL;
+> > +#endif
+> > +}
+> > +
+> > +static inline void famfs_meta_free(struct fuse_inode *fi)
+> > +{
+> > +       /* Stub wil be connected in a subsequent commit */
+> > +}
+> > +
+> > +static inline int fuse_file_famfs(struct fuse_inode *fi)
+> > +{
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       return (fi->famfs_meta != NULL);
+> 
+> Does this need to be "return READ_ONCE(fi->famfs_meta) != NULL"?
+
+I'm not sure, but it can't hurt. Queued...
+
+> 
+> > +#else
+> > +       return 0;
+> > +#endif
+> > +}
+> > +
+> >  #endif /* _FS_FUSE_I_H */
+> > diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+> > index 7f4b73e739cb..848c8818e6f7 100644
+> > --- a/fs/fuse/inode.c
+> > +++ b/fs/fuse/inode.c
+> > @@ -117,6 +117,9 @@ static struct inode *fuse_alloc_inode(struct super_block *sb)
+> >         if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
+> >                 fuse_inode_backing_set(fi, NULL);
+> >
+> > +       if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
+> > +               famfs_meta_set(fi, NULL);
+> 
+> "fi->famfs_meta = NULL;" looks simpler here
+
+I toootally agree here, but I was following the passthrough pattern 
+just above.  @miklos or @Amir, got a preference here?
+
+Furthermore, initially I didn't init fi->famfs_meta at all because I 
+*assumed* fi (the fuse_inode) would be zeroed upon allocation - but it's 
+currently not. @miklos, would you object to zeroing fuse_inodes on 
+allocation?  Clearly it's working without that, but it seems like a 
+"normal" thing to do, that might someday pre-empt a problem.
+
+> 
+> > +
+> >         return &fi->inode;
+> >
+> >  out_free_forget:
+> > @@ -138,6 +141,13 @@ static void fuse_free_inode(struct inode *inode)
+> >         if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
+> >                 fuse_backing_put(fuse_inode_backing(fi));
+> >
+> > +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
+> > +       if (S_ISREG(inode->i_mode) && fi->famfs_meta) {
+> > +               famfs_meta_free(fi);
+> > +               famfs_meta_set(fi, NULL);
+> > +       }
+> > +#endif
+> > +
+> >         kmem_cache_free(fuse_inode_cachep, fi);
+> >  }
+> >
+> > @@ -1002,6 +1012,11 @@ void fuse_conn_init(struct fuse_conn *fc, struct fuse_mount *fm,
+> >         if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
+> >                 fuse_backing_files_init(fc);
+> >
+> > +       if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)) {
+> > +               pr_notice("%s: Kernel is FUSE_FAMFS_DAX capable\n", __func__);
+> > +               init_rwsem(&fc->famfs_devlist_sem);
+> > +       }
+> 
+> Should we only init this if the server chooses to opt into famfs (eg
+> if their init reply sets the FUSE_DAX_FMAP flag)? This imo seems to
+> belong more in process_init_reply().
+
+Another good catch. Queued - thanks!
+
+> 
+> 
+> Thanks,
+> Joanne
+
+Thank you!
 
