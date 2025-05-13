@@ -1,216 +1,130 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41A117578;
-	Tue, 13 May 2025 04:03:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F36214223
+	for <nvdimm@lists.linux.dev>; Tue, 13 May 2025 09:15:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747109003; cv=none; b=rPmhIcPFs9fBeY1Ve3CnxivdeFXofKBIgGrSU9a3iwNy1mCt1SLSmzGndAmKFAxIhDidZp+k94M55YgQI74E18mbczKnhhjFvlahOIs2UXR3w9XZHQVe6xHR0NH7AYrP9HaPcT5BdJYUpWzGW94ChIxyAKsLXWPjyyJFU589tEs=
+	t=1747127709; cv=none; b=AnYF8SLlxysTne3Rh+d/L7NiNYUHL+jAjTTLhg9aPGJACNN2tpsz3K+i8offaFHvOvRly05vx1p7Oo5EHuGY3xPBM7K9aUu8o6MGICmCOaW0ZU0TE963yoTUPJHfWK5dv9SN8+ex980K8Si60gN35oo7IfHnbI7SJP0UYBiPET8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747109003; c=relaxed/simple;
-	bh=D63mIX1uEjiZbr7YvIdYOs9REFfIzl+pwZg3OQ9KMxw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ioG2A7Oygal2ZG6pNWPZ6+xAls5SiuT5i+yysCF1NZBoTp035UcQIOIUMmUzIx3lguKxxn+wjdxFPMnzbyP4SezZy+vPYH2sJ5W1bjhRTjgsaRawYh8TUE+woKtiLu1lEXvISD0E84scNDCgCoCcKWFu7AJnei6p2GjOr3QnCDA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T72mnacQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747127709; c=relaxed/simple;
+	bh=dCEwNwEt7AuPcFjOYYqXUKN9++me11ouKXeEDU4JZv0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=f6wvF2pMe0M5zBViT8ttRLjv1JJsSnsG3JTWaMVG2H9LamnX7W0wUDluTKWVBgXAoA4tXIlPnFzUMc3EZP8DxFt2jW7QQcZK832U3E8wp0r+t36xgSHCMCZLIHwAsGJYOGDw+QyvBVCOkO+Dlefl0YSjXLRsm3pJhInqxrntNIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=SpJoz5BP; arc=none smtp.client-ip=209.85.160.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T72mnacQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E0F1C4CEE4;
-	Tue, 13 May 2025 04:03:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1747109002;
-	bh=D63mIX1uEjiZbr7YvIdYOs9REFfIzl+pwZg3OQ9KMxw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=T72mnacQywhUKudxJVYfCFotqqgLmTr6zkKKG21MPYk4l9tFIEYadNqdM/JiWcBvy
-	 sTNNYHNjwRSjKEeMeibeJ6jFeaY0rUiKq0g4vjmIEpxmo2QXp4Ii3GqIpRqSejjdZd
-	 y11IHvkSOdD1kcjt8EjhyFRHakmshuHPcAO24djvCEWWkBo8gdP/LmmRxb44Z+sOcQ
-	 gFP1kEF7MzrE81wCWpfirHrFbbitq4zLrf0WfnuQo/CLvKYjmgv7uT6Mv1fFn/Mky+
-	 dxj4HsMYoorakKZ0BPBMT+h47bb3mjLEacVPBey7ORgLOnLJ7caxd9FDVfpV8GI/ZF
-	 drwbXvwsZS5iQ==
-Date: Mon, 12 May 2025 21:03:21 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: John Groves <John@groves.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Bernd Schubert <bschubert@ddn.com>,
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Luis Henriques <luis@igalia.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Stefan Hajnoczi <shajnocz@redhat.com>,
-	Joanne Koong <joannelkoong@gmail.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC PATCH 13/19] famfs_fuse: Create files with famfs fmaps
-Message-ID: <20250513040321.GO1035866@frogsfrogsfrogs>
-References: <20250421013346.32530-1-john@groves.net>
- <20250421013346.32530-14-john@groves.net>
- <nedxmpb7fnovsgbp2nu6y3cpvduop775jw6leywmmervdrenbn@kp6xy2sm4gxr>
- <20250424143848.GN25700@frogsfrogsfrogs>
- <5rwwzsya6f7dkf4de2uje2b3f6fxewrcl4nv5ba6jh6chk36f3@ushxiwxojisf>
- <20250428190010.GB1035866@frogsfrogsfrogs>
- <CAJfpegtR28rH1VA-442kS_ZCjbHf-WDD+w_FgrAkWDBxvzmN_g@mail.gmail.com>
- <aytnzv4tmp7fdvpgxdfoe2ncu7qaxlp2svsxiskfnrvdnknhmp@uu4ifgc6aj34>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="SpJoz5BP"
+Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-4772f48f516so70138031cf.1
+        for <nvdimm@lists.linux.dev>; Tue, 13 May 2025 02:15:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1747127707; x=1747732507; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=4ihrFZxGWgoMburH5YAF+Sr/kylX3rOORHrh4dczbaY=;
+        b=SpJoz5BP/pmtcq6DoWOn/z/L7AxUPTjSaxuCVbTywb56hZQLGBIf2yNktYaAZPsEf4
+         +lxW8BUsGx3OvbMQQ/qal+e2YGdWnb3CXtROMny8DFu9kIGE2XJqU8IZkkWlqFsm9sQp
+         gkp8VVem51mDsbgZZH46kc/opjlk+5yemXCY8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747127707; x=1747732507;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=4ihrFZxGWgoMburH5YAF+Sr/kylX3rOORHrh4dczbaY=;
+        b=JaUJA6Nlggh713mepSsYxSR9psZqBRfdo+m+ethYO6iOyDjG/K41/NvW4UEAtRxAEq
+         ADF83wRmVuNBj1Zdvh7f+aarelDMd4bEavfJ1TBh0f4Sda5+YW3vE6MhzjypnZrFho12
+         MStQ/RLWJ828SFkWrqiL/2PvVzIkB2rCTPXOGFPjnq7AEC3heldgHOQRr3E1RCNIAHkH
+         ko71SJyg/IIckLXNOw/for0D0srzoNStzT/VHqpehRcMrZ5rypnGFIHLjzdRXwl6Grlq
+         MFgtATBklmkj3PyvSxKRb+KaqBPDmlzuRtHlXXftTLkpxvS7bbXV7V8Lxwh7qLH8wwrT
+         ckPg==
+X-Forwarded-Encrypted: i=1; AJvYcCX0KyLrR4z+d4tELbWH/wo432UCx76g1I3l2BeF0AQOU+wIfy+LTwB/LRH62toj4uoEvu/TbaA=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxSJBrJwNJsihQP8CJ0KmwalGuY7K6dYfcPFjczjq0RBrOj5gdV
+	qMJhWrQTo0APnkBGsw/JTzGo2ofWxy717Urjpcqu59xibY6nCCmeGra3ZwbcjpfU8nsBoo3wlSG
+	SGEMikioSjdUYtqfEGF4Mk3sW9nleQpx4IV+PZA==
+X-Gm-Gg: ASbGnctuybkLnB/4rMAVLAOsQCF8X1RO91SLRd9lOh9zsUeyiFNoSB7LaEUltP7F73p
+	kiE1oD3Ym3bxKDs/5Bu83XcjAPh219pNwtH8LDk6kcLbB3mVVXP9T1Y9AoGHGvzH4zxlWONJTmR
+	UeQtYI/vJdEXEzrS5S2j7yngqmFLqU+YI=
+X-Google-Smtp-Source: AGHT+IE6dZiqGjVqQyApS4pbcBalFyHHbwwvSoEvnbF7u5bEK2A/GpSwhcwNVYs+CDOmzCE0rRDdqSfuQIhXOHmw+f0=
+X-Received: by 2002:a05:622a:1a93:b0:494:6eed:37b1 with SMTP id
+ d75a77b69052e-4948732d7bdmr32223981cf.7.1747127706802; Tue, 13 May 2025
+ 02:15:06 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aytnzv4tmp7fdvpgxdfoe2ncu7qaxlp2svsxiskfnrvdnknhmp@uu4ifgc6aj34>
+References: <20250421013346.32530-1-john@groves.net> <20250421013346.32530-14-john@groves.net>
+ <nedxmpb7fnovsgbp2nu6y3cpvduop775jw6leywmmervdrenbn@kp6xy2sm4gxr>
+ <20250424143848.GN25700@frogsfrogsfrogs> <5rwwzsya6f7dkf4de2uje2b3f6fxewrcl4nv5ba6jh6chk36f3@ushxiwxojisf>
+ <20250428190010.GB1035866@frogsfrogsfrogs> <CAJfpegtR28rH1VA-442kS_ZCjbHf-WDD+w_FgrAkWDBxvzmN_g@mail.gmail.com>
+ <20250508155644.GM1035866@frogsfrogsfrogs>
+In-Reply-To: <20250508155644.GM1035866@frogsfrogsfrogs>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Tue, 13 May 2025 11:14:55 +0200
+X-Gm-Features: AX0GCFsg_IXaIo9w2jh-HmI1-M2cVqc9zT7I6qGhspawMoCH4j3pG6URFnq5ts0
+Message-ID: <CAJfpegt4drCVNomOLqcU8JHM+qLrO1JwaQbp69xnGdjLn5O6wA@mail.gmail.com>
+Subject: Re: [RFC PATCH 13/19] famfs_fuse: Create files with famfs fmaps
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: John Groves <John@groves.net>, Dan Williams <dan.j.williams@intel.com>, 
+	Bernd Schubert <bschubert@ddn.com>, John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Luis Henriques <luis@igalia.com>, Randy Dunlap <rdunlap@infradead.org>, 
+	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
+	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
+	Ajay Joshi <ajayjoshi@micron.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, May 12, 2025 at 02:51:45PM -0500, John Groves wrote:
-> On 25/05/06 06:56PM, Miklos Szeredi wrote:
-> > On Mon, 28 Apr 2025 at 21:00, Darrick J. Wong <djwong@kernel.org> wrote:
-> > 
-> > > <nod> I don't know what Miklos' opinion is about having multiple
-> > > fusecmds that do similar things -- on the one hand keeping yours and my
-> > > efforts separate explodes the amount of userspace abi that everyone must
-> > > maintain, but on the other hand it then doesn't couple our projects
-> > > together, which might be a good thing if it turns out that our domain
-> > > models are /really/ actually quite different.
-> > 
-> > Sharing the interface at least would definitely be worthwhile, as
-> > there does not seem to be a great deal of difference between the
-> > generic one and the famfs specific one.  Only implementing part of the
-> > functionality that the generic one provides would be fine.
-> 
-> Agreed. I'm coming around to thinking the most practical approach would be
-> to share the GET_FMAP message/response, but to add a separate response
-> format for Darrick's use case - when the time comes. In this patch set, 
-> that starts with 'struct fuse_famfs_fmap_header' and is followed by the 
-> approriate extent structures, serialized in the message. Collectively 
-> that's an fmap in message format.
+On Thu, 8 May 2025 at 17:56, Darrick J. Wong <djwong@kernel.org> wrote:
 
-Well in that case I might as well just plumb in the pieces I need as
-separate fuse commands.  fuse_args::opcode is u32, there's plenty of
-space left.
+> Well right now my barely functional prototype exposes this interface
+> for communicating mappings to the kernel.  I've only gotten as far as
+> exposing the ->iomap_{begin,end} and ->iomap_ioend calls to the fuse
+> server with no caching, because the only functions I've implemented so
+> far are FIEMAP, SEEK_{DATA,HOLE}, and directio.
+>
+> So basically the kernel sends a FUSE_IOMAP_BEGIN command with the
+> desired (pos, count) file range to the fuse server, which responds with
+> a struct fuse_iomap_begin_out object that is translated into a struct
+> iomap.
+>
+> The fuse server then responds with a read mapping and a write mapping,
+> which tell the kernel from where to read data, and where to write data.
 
-> Side note: the current patch set sends back the logically-variable-sized 
-> fmap in a fixed-size message, but V2 of the series will address that; 
-> I got some help from Bernd there, but haven't finished it yet.
-> 
-> So the next version of the patch set would, say, add a more generic first
-> 'struct fmap_header' that would indicate whether the next item would be
-> 'struct fuse_famfs_fmap_header' (i.e. my/famfs metadata) or some other
-> to be codified metadata format. I'm going here because I'm dubious that
-> we even *can* do grand-unified-fmap-metadata (or that we should try).
-> 
-> This will require versioning the affected structures, unless we think
-> the fmap-in-message structure can be opaque to the rest of fuse. @miklos,
-> is there an example to follow regarding struct versioning in 
-> already-existing fuse structures?
+So far so good.
 
-/me is a n00b, but isn't that a simple matter of making sure that new
-revisions change the structure size, and then you can key off of that?
+The iomap layer is non-caching, right?   This means that e.g. a
+direct_io request spanning two extents will result in two separate
+requests, since one FUSE_IOMAP_BEGIN can only return one extent.
 
-> > > (Especially because I suspect that interleaving is the norm for memory,
-> > > whereas we try to avoid that for disk filesystems.)
-> > 
-> > So interleaved extents are just like normal ones except they repeat,
-> > right?  What about adding a special "repeat last N extent
-> > descriptions" type of extent?
-> 
-> It's a bit more than that. The comment at [1] makes it possible to understand
-> the scheme, but I'd be happy to talk through it with you on a call if that
-> seems helpful.
-> 
-> An interleaved extent stripes data spread across N memory devices in raid 0
-> format; the space from each device is described by a single simple extent 
-> (so it's contigous), but it's not consumed contiguously - it's consumed in 
-> fixed-sized chunks that precess across the devices. Notwithstanding that I 
-> couldn't explain it very well when we talked about it at LPC, I think I 
-> could make it pretty clear in a pretty brief call now.
-> 
-> In any case, you have my word that it's actually quite elegant :D
-> (seriously, but also with a smile...)
+And the next direct_io request may need to repeat the query for the
+same extent as the previous one if the I/O boundary wasn't on the
+extent boundary (which is likely).
 
-Admittedly the more I think about the interleaving in famfs vs straight
-block mappings for disk filesystems, the more I think they ought to be
-separate interfaces for code that solves different problems.  Then both
-our codebases will remain relatively cohesive.
+So some sort of caching would make sense, but seeing the multitude of
+FUSE_IOMAP_OP_ types I'm not clearly seeing how that would look.
 
-> > > > But the current implementation does not contemplate partially cached fmaps.
-> > > >
-> > > > Adding notification could address revoking them post-haste (is that why
-> > > > you're thinking about notifications? And if not can you elaborate on what
-> > > > you're after there?).
-> > >
-> > > Yeah, invalidating the mapping cache at random places.  If, say, you
-> > > implement a clustered filesystem with iomap, the metadata server could
-> > > inform the fuse server on the local node that a certain range of inode X
-> > > has been written to, at which point you need to revoke any local leases,
-> > > invalidate the pagecache, and invalidate the iomapping cache to force
-> > > the client to requery the server.
-> > >
-> > > Or if your fuse server wants to implement its own weird operations (e.g.
-> > > XFS EXCHANGE-RANGE) this would make that possible without needing to
-> > > add a bunch of code to fs/fuse/ for the benefit of a single fuse driver.
-> > 
-> > Wouldn't existing invalidation framework be sufficient?
-> > 
-> > Thanks,
-> > Miklos
-> 
-> My current thinking is that Darrick's use case doesn't need GET_DAXDEV, but
-> famfs does. I think Darrick's use case has one backing device, and that should
-> be passed in at mount time. Correct me if you think that might be wrong.
+> I'm a little confused, are you talking about FUSE_NOTIFY_INVAL_INODE?
+> If so, then I think that's the wrong layer -- INVAL_INODE invalidates
+> the page cache, whereas I'm talking about caching the file space
+> mappings that iomap uses to construct bios for disk IO, and possibly
+> wanting to invalidate parts of that cache to force the kernel to upcall
+> the fuse server for a new mapping.
 
-Technically speaking iomap can operate on /any/ block or dax device as
-long as you have a reference to them.  Once I get more of the plumbing
-sorted out I'll start thinking about how to handle multi-device
-filesystems like XFS which can put file data on more than 1 block
-device.
+Maybe I'm confused, as the layering is not very clear in my head yet.
 
-I was thinking that the fuse server could just send a REGISTER_DEVICE
-notification to the fuse driver (I know, again with the notifications
-:)), the kernel replies with a magic cookie, and that's what gets passed
-in the {read,write,map}_dev field.
+But in your example you did say that invalidation of data as well as
+mapping needs to be invalidated, so I thought that the simplest thing
+to do is to just invalidate the cached mapping from
+FUSE_NOTIFY_INVAL_INODE as well.
 
-Right now I reconfigured fuse2fs to present itself as a "fuseblk" driver
-so that at least we know that inode->i_sb->s_bdev is a valid pointer.
-It turns out to be useful because the kernel sends FUSE_DESTROY commands
-synchronously during unmount, which avoids the situation where umount
-exits but the block device still can't be opened O_EXCL because the fuse
-server program is still exiting.  It may be useful for some day wiring
-up some of the block device ops to fuse servers.  Though I think it
-might conflict with CONFIG_BLK_DEV_WRITE_MOUNTED=y
-
-I just barely got directio writes and pagecache read/write working
-through iomap today, though I'm still getting used to the fuse inode
-locking model and sorting through the bugs. :)
-
-(I wonder how nasty would it be to pass fds to the fuse kernel driver
-from fuseblk servers?)
-
-> Famfs doesn't necessarily have just one backing dev, which means that famfs
-> could pass in the *primary* backing dev at mount time, but it would still
-> need GET_DAXDEV to get the rest. But if I just use GET_FMAP every time, I
-> only need one way to do this.
-> 
-> I'll add a few more responses to Darrick's reply...
-
-Hehhe onto that message go I.
-
---D
-
-> 
-> Thanks,
-> John
-> 
-> [1] https://github.com/cxl-micron-reskit/famfs-linux/blob/c57553c4ca91f0634f137285840ab25be8a87c30/fs/fuse/famfs_kfmap.h#L13
-> 
-> 
+Thanks,
+Miklos
