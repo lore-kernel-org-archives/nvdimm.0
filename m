@@ -1,303 +1,216 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A50627455
-	for <nvdimm@lists.linux.dev>; Tue, 13 May 2025 00:46:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.10
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747097195; cv=fail; b=KpTCZV7IuyiqQI5f+xdwShJbRq8NEw04QSFWbcUIJDFGxraxFHfwCk92uH7V5MPG9kopd5Ffzg6Djazns/suyAQT/6CXjnDr7qvKYRh14AHrE0fVWC7xaLYK6QeVM5xBD+2apaooGNlqv7VPk80+o+C0YE/pFnIL/+StAYP+G1c=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747097195; c=relaxed/simple;
-	bh=Yb0rpnZLJIzGEM9jWQDLmCiKWHroOEeyA1p2V3P2qsU=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=mSHOD72MS6ihrzT/MtyOBhOYM1li1grc+x2TZHl2RfBj9MJXRiOTR1/m/V42Y06Wwl0ktdioACtW73un6TgctntwlzrLDohVXA86jc+uJ5bdl72YQsK5gsYCxTwi2sohJuNHUrfy3xmRuadwG0SLYDk747oZN1OX90aEpPUKOfA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aqwQLyId; arc=fail smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41A117578;
+	Tue, 13 May 2025 04:03:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1747109003; cv=none; b=rPmhIcPFs9fBeY1Ve3CnxivdeFXofKBIgGrSU9a3iwNy1mCt1SLSmzGndAmKFAxIhDidZp+k94M55YgQI74E18mbczKnhhjFvlahOIs2UXR3w9XZHQVe6xHR0NH7AYrP9HaPcT5BdJYUpWzGW94ChIxyAKsLXWPjyyJFU589tEs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1747109003; c=relaxed/simple;
+	bh=D63mIX1uEjiZbr7YvIdYOs9REFfIzl+pwZg3OQ9KMxw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ioG2A7Oygal2ZG6pNWPZ6+xAls5SiuT5i+yysCF1NZBoTp035UcQIOIUMmUzIx3lguKxxn+wjdxFPMnzbyP4SezZy+vPYH2sJ5W1bjhRTjgsaRawYh8TUE+woKtiLu1lEXvISD0E84scNDCgCoCcKWFu7AJnei6p2GjOr3QnCDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T72mnacQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aqwQLyId"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1747097193; x=1778633193;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=Yb0rpnZLJIzGEM9jWQDLmCiKWHroOEeyA1p2V3P2qsU=;
-  b=aqwQLyIdCyr1C+6pqSgc7juXDUOmJcuD/0Dd59nOF7/7Qp1D1qNHSQXp
-   dMMxvG8tJJAfa3OWTNG11fiiAhVTLyjT0LTRexpjRPvpU0ZaYeNVg7M91
-   ELUgf3nES0s7xBE7TBsLUzAC6ToOuSBGAEZKCNvk0Dk+P/2n/iJdAhL+X
-   U2BYEvSo+REO2ehK+PiuepdIRuGP+cIUheoImNFoc5m22RtWHzzqzj9f/
-   pnRICNNs8+DwcBIJkrtIAIqEGYHNYi7mgz0mFIWB9h1QhGB6Pn5xCJTlm
-   DcCEbxq9TrnjHRK666ZQo37A41Xa5HpXcVbU0KxPYYlPiLyO+qn6k9MJ7
-   g==;
-X-CSE-ConnectionGUID: yNLayJ2dRAm/MAZp4hrLWQ==
-X-CSE-MsgGUID: VatImzc6RrGrs1LhFl/sEg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11431"; a="66328337"
-X-IronPort-AV: E=Sophos;i="6.15,283,1739865600"; 
-   d="scan'208";a="66328337"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2025 17:46:32 -0700
-X-CSE-ConnectionGUID: ZB43DXZGQqa6OpC/5OOYtA==
-X-CSE-MsgGUID: XFDdSpqPTJWDfp1tL68GDw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,283,1739865600"; 
-   d="scan'208";a="142717576"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by fmviesa004.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2025 17:46:31 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14; Mon, 12 May 2025 17:46:30 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14 via Frontend Transport; Mon, 12 May 2025 17:46:30 -0700
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.40) by
- edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Mon, 12 May 2025 17:46:30 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mquiyuwvAVBVPY5BEuAchpvDo5Bro0jQ+JURVyefKvIth0TH4CY6Qoj9eZV1/y5Rn0n6Z7cP15gZIRRcMK51J9us1ElOCq+a1WplIOQ5Bbt7NBqu0cAHvx6PV/UsSCtPXpmDJ0Ybplu/Gv6mfiEcy5rBhEbXnoev/ZYlUnRktYwjrJoFNdBNNw+QyhJGh9rgZ6iWdZoVffQFNkSV0aVUw92U2bylk9EtzvY+C74qi3LgwiVyqtRSsQOYTCtpA110RRYaCRhSSt9+w5j7xHx+qYusC0tpSjCnaHMIoxwQHJiSG8FrKKzfmsB8mqz5+abmB3Coi+DBKLGCttGeSVKFNw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=cmnPcXma8csJJQjeNImANCMC7T6jnA4xWSp+ZSBZWcE=;
- b=RhXPTXMW9FvIqTwip4Ru8ZaW1ExiFtrcboo+z5+6h9HIbYoE+lfkUHoRboL4iEGFDapuzSXXCUmazYVULWuzjTZiORviNHxW9KorKf8rqvuZR3mdfVpXjO0Ig8ko4vL0+cFsBL2K0Y44ji93yhYr5bWiE7LQo1i0i81yAXJ4fJM+ju+/MXC26/b78X6x7gstNcT1cvNolqSfAFEhrhG/Mpfp9gE6xLjhg4xeMs1vMvNa0vSLfD9s6pSztTxmrOanzlDHirIRUCIz3DA1hkDhbU+FUKPRjiyI+BL2u4hQXvIGLmn+wHGQMSTP8RBXRrTSEzeBvFAFLhhaoI8v6sUfyw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB8794.namprd11.prod.outlook.com (2603:10b6:806:46a::5)
- by MW4PR11MB8267.namprd11.prod.outlook.com (2603:10b6:303:1e2::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.26; Tue, 13 May
- 2025 00:46:09 +0000
-Received: from SA1PR11MB8794.namprd11.prod.outlook.com
- ([fe80::a3d4:9d67:2f5d:6720]) by SA1PR11MB8794.namprd11.prod.outlook.com
- ([fe80::a3d4:9d67:2f5d:6720%5]) with mapi id 15.20.8722.027; Tue, 13 May 2025
- 00:46:09 +0000
-Date: Mon, 12 May 2025 17:45:59 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Marc Herbert <marc.herbert@linux.intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
-Subject: Re: [ndctl PATCH] test: fail on unexpected kernel error & warning,
- not just "Call Trace"
-Message-ID: <aCKWR4DdzdUh1VN6@aschofie-mobl2.lan>
-References: <20250510012046.1067514-1-marc.herbert@linux.intel.com>
- <aCI_ZxeC7r3UpkvZ@aschofie-mobl2.lan>
- <4c923c9d-7e41-42f5-802d-0199c91ec188@linux.intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <4c923c9d-7e41-42f5-802d-0199c91ec188@linux.intel.com>
-X-ClientProxiedBy: SJ0PR03CA0144.namprd03.prod.outlook.com
- (2603:10b6:a03:33c::29) To SA1PR11MB8794.namprd11.prod.outlook.com
- (2603:10b6:806:46a::5)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T72mnacQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E0F1C4CEE4;
+	Tue, 13 May 2025 04:03:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1747109002;
+	bh=D63mIX1uEjiZbr7YvIdYOs9REFfIzl+pwZg3OQ9KMxw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=T72mnacQywhUKudxJVYfCFotqqgLmTr6zkKKG21MPYk4l9tFIEYadNqdM/JiWcBvy
+	 sTNNYHNjwRSjKEeMeibeJ6jFeaY0rUiKq0g4vjmIEpxmo2QXp4Ii3GqIpRqSejjdZd
+	 y11IHvkSOdD1kcjt8EjhyFRHakmshuHPcAO24djvCEWWkBo8gdP/LmmRxb44Z+sOcQ
+	 gFP1kEF7MzrE81wCWpfirHrFbbitq4zLrf0WfnuQo/CLvKYjmgv7uT6Mv1fFn/Mky+
+	 dxj4HsMYoorakKZ0BPBMT+h47bb3mjLEacVPBey7ORgLOnLJ7caxd9FDVfpV8GI/ZF
+	 drwbXvwsZS5iQ==
+Date: Mon, 12 May 2025 21:03:21 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: John Groves <John@groves.net>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Bernd Schubert <bschubert@ddn.com>,
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Luis Henriques <luis@igalia.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Stefan Hajnoczi <shajnocz@redhat.com>,
+	Joanne Koong <joannelkoong@gmail.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC PATCH 13/19] famfs_fuse: Create files with famfs fmaps
+Message-ID: <20250513040321.GO1035866@frogsfrogsfrogs>
+References: <20250421013346.32530-1-john@groves.net>
+ <20250421013346.32530-14-john@groves.net>
+ <nedxmpb7fnovsgbp2nu6y3cpvduop775jw6leywmmervdrenbn@kp6xy2sm4gxr>
+ <20250424143848.GN25700@frogsfrogsfrogs>
+ <5rwwzsya6f7dkf4de2uje2b3f6fxewrcl4nv5ba6jh6chk36f3@ushxiwxojisf>
+ <20250428190010.GB1035866@frogsfrogsfrogs>
+ <CAJfpegtR28rH1VA-442kS_ZCjbHf-WDD+w_FgrAkWDBxvzmN_g@mail.gmail.com>
+ <aytnzv4tmp7fdvpgxdfoe2ncu7qaxlp2svsxiskfnrvdnknhmp@uu4ifgc6aj34>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB8794:EE_|MW4PR11MB8267:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9cae1f1d-c0b7-4c1b-6321-08dd91b78d02
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?2a+VjSW0tJX8vE7n25wVzlkIlgjcZEZOeTJEI73lBQVqofpaLK10cHR8/bCu?=
- =?us-ascii?Q?XneBifmtwgtBJTxcLctoinDWPCaCa9mAomal00lWmgQenDehYXlJRu2CW8ME?=
- =?us-ascii?Q?PbcOse4TcQZi/nJ7FmEvOSMjderxyYYEHPg7+QRmM+KYhXfUUbJqTaGisBgO?=
- =?us-ascii?Q?OWhqqf6vcaYfpDpzNjob2Un/mT2nNsPeVG8kSKAmnAwUyewPtg03ld0KKB1Y?=
- =?us-ascii?Q?FvKIpnO4EVdm4UJXHmS9P5AoEO5X8yckTWuz+ETAWVF+KMvm593MF1y5r1ds?=
- =?us-ascii?Q?nycFuHu9TgP+wULrtBHAfbOFtDmySkMvFhdCvRGeYfeWmEhSqL6Q5i2dxc5D?=
- =?us-ascii?Q?MiqSGs3ieAO6NDhVmtFf9ZFv0lZtFao/rqyh277FkyLVx8XCnxiTwE7CQ2fk?=
- =?us-ascii?Q?DplE+Uz4jfGI8VbmhsWPNBURREL8JX2Hvsw2aarIG3vaCh8PnolkJ5XQHpUu?=
- =?us-ascii?Q?sJftYK5KcLKCdeYTgOIWoC8jd7n1fY8czLtAr/VAV2j7pCq8PrMEd5saObsZ?=
- =?us-ascii?Q?pZoDlwZzaFFDcGPKus4oDRW7M6lM97vdHbJqF7td7P8906DBFpwPJaC8Bdnv?=
- =?us-ascii?Q?1nw0+raIUKq1NgZYx3P50oh8JQPp0cArMJ+x5xa0jiw6B90YC/yn8U57sDez?=
- =?us-ascii?Q?MaaRvXGEYaPxjVEzUbN680B2EbnFJyNpANPOt1Mb4DMq45IF/axvEdhP7IlB?=
- =?us-ascii?Q?gCI5dmYUIi14jwRPdP7RtKAHr2jJfottIiwi+HKVgH39f/PouB8EiSsPbKFG?=
- =?us-ascii?Q?QR2hlki3/gMVTf5ic+LLvVNQWlZf8FE8YUHtrXCdUC8VK6sUJ+iF8/7Rz1dR?=
- =?us-ascii?Q?FwnlTtUMPHLHo1+Zw65juXZNyZNIJ9Y9xUvpxg3u0NI9KeQzOxLi5qwIXaef?=
- =?us-ascii?Q?TrR2illsWo2cAcfVuO8jcQho7mbZGUPSOjMLngXrChBSCDJRcD1MQlWL+5KD?=
- =?us-ascii?Q?sc05h7BSabUM7rz0ygX8F72kz8H0hQFbOe76T/3FbEpH1cdJ0aJC1hfNcYR8?=
- =?us-ascii?Q?O1H2RGcsBW/JilwkhiNO/HGhpHJlCjKvaysCojk/GlakWnmPuUQGNMU42Acs?=
- =?us-ascii?Q?m7N9dPiMq5o/mWqgFL9IIRCc747lNEseuOYxzwvVeMC0EH111Gx4X36nDj8d?=
- =?us-ascii?Q?DyNXmWtXRYJ3nfpam8T1FcpJnDmgcdd55zvlj9PVnF9ah/eSjJUwTS+r1glc?=
- =?us-ascii?Q?cPmcomQkwkLijPVmWPJWSMTd41PX1W8axs8D/EYZ9eJzlsfOi426cCl4eBfF?=
- =?us-ascii?Q?E+xIze7nI+bTIOzwgVJj2H8wkTHVdDuATPy0GNw2NfNZMO/zyIQzHm/UiBM2?=
- =?us-ascii?Q?2Os+l7mll7IYcMviehMTl+S5ONqLkmWd1S/5sZN+Q9PXaLx1oBGfOC74C+TL?=
- =?us-ascii?Q?bsWmvDQfxvdcT6mEkaVWT0kDtrBI?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB8794.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?qyFOR2ra9KJvL7AVpAwW8t4mxDYZj/e43bA6NeBaMiUtjb26eS+EEdXC+kBX?=
- =?us-ascii?Q?kLp0gbcDb6Gy4sCgNTvZsuJIWKfqZwVRKrRR7q8mW9zjiST1fi9PO/ay8iyI?=
- =?us-ascii?Q?yFegSlB/KZFI0PLc6gANy459ImiYN9rupCKn6mAMNI/Hgjf9jqeU8rpKhiOk?=
- =?us-ascii?Q?TzFn2ncyZQ7QvAg4m2rATafz9ZGezP85XQzJYKVMdHahT/7do9wvrleflwCk?=
- =?us-ascii?Q?mOGVAbU5XBN8oP0+wxarYKZ5bM/0Ucf1ylk0u1p0yA025/shq4rEvPpqn364?=
- =?us-ascii?Q?ih99EB45XFBu+vfmbfohi8dVVyMvqI0cdiCS4JxBKsg5Ia8YGWrJ8eIpMT0e?=
- =?us-ascii?Q?iaIURR7BSE6ArkVFgi1SESzTq7Ax8tbtnspSUn1ylWaJEaefD3mth99HE/Rb?=
- =?us-ascii?Q?W+T+lGdugXlyfE9OnGziUCO4YK34NazSY4FAx06S3daVzk1yVhPQ6s+Will4?=
- =?us-ascii?Q?mxIwxbmP5w0rge4vOOahOM776Apho3gLlBKjkdwwc0ag2KnVuSAtOmZV+hiy?=
- =?us-ascii?Q?Mp/HQtccyLY1x2/nMDH6iXrJYvweYigTGPa1SE3778vV+4SptNz7yte6f4Os?=
- =?us-ascii?Q?RF+5KwRq67XKy8l8GSyPwAsWtoQXHlQMqjwX7HloqFHcJdvPPk3eyC/a+Y8I?=
- =?us-ascii?Q?5k2l6jPsOb1u1qZxwdUaCPJAADQy7dsW2xe7gxIXj57G3p3vt/CRB3ea9NQV?=
- =?us-ascii?Q?t9z0GN9XmebiGOjccPIKAOX0u1vVsv78o/AOAMTaPVEr28GuH6qnKb6L6hr+?=
- =?us-ascii?Q?qnW4an64Cy0PN5czNX7c+X+vP+pRWsAf8LQfUFZW7Iq4sYvFYk8FoCY3c2fb?=
- =?us-ascii?Q?XEOblvSvUvextL2pUrgjMtxHWDy53lLxQxj5Ds2pMbSqjyhV6WuB7ByMdEZ0?=
- =?us-ascii?Q?ns2VvIRmqUQTUUb5MxeMCLH0SJLDQkjG9xfGZeqwcXl9miEwgyvI1kW8brNL?=
- =?us-ascii?Q?JD5OhC6LXo7U5pa62F5ooK0NarjuBz44LlH+0YBmDAucmqfRqGpjf9bo2J+D?=
- =?us-ascii?Q?zivf+PNwqBoMgzkro8HcfhF6iZVpambmeXM+yY0y6EH+FIQ+nrmH5NlXQ1N8?=
- =?us-ascii?Q?RM/CkJ/6yU7FyULVmrThIrOX8cRiHHAGIhE3Yn0D7jqXT3OetcWCphtRxDap?=
- =?us-ascii?Q?fXkKC44lXqE2MtuzVpf9GLyKgrjZ/51ioSm3zLko27P1zIyHgQiy5MemXcw0?=
- =?us-ascii?Q?0MeZTEK/KUwSNu6ss57w+M8jt1MRH6ZrbGIwPEiEiuVnZxLFUMHaITCi/+q/?=
- =?us-ascii?Q?WuGXNERa43ZRSC69gWmtAjyL2po4+CL1hI4rSYQjcGt8b5JBjnARySwuKaKq?=
- =?us-ascii?Q?WVRn0AaswbsnQRGXLHdI95/rWEtymMoES1kqo6SRsXViT/luuLlzf9LvOAtx?=
- =?us-ascii?Q?6oyoPY7asqeEDqPipzlupG7VRrvdYhGU52SF7JE5pjMKk3Cj+aChqCph4Kza?=
- =?us-ascii?Q?7t8XroZWg/4Uqz+DN8x451ql5nnvcwJykD8gGeibg4uOoTLG93LLr46JebNc?=
- =?us-ascii?Q?HVWYFGFmDLPKZGbs+gGXOPa+PcoQkHBjVdOEQNcDeWkMaUdMn0+Koi1UEWTa?=
- =?us-ascii?Q?bHlq52VCFE0bG2TaPHLVvjsK/3Q2x50B7a35z40ZdoKNCb63uMgcH29rEQbZ?=
- =?us-ascii?Q?HQ=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9cae1f1d-c0b7-4c1b-6321-08dd91b78d02
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB8794.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 May 2025 00:46:08.9451
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: YsV4vbt+QgQBylK//NBYWLljipkJWW3TBR78Y6twMN2qubnEQg1xygAzgBFZ+yVR2HpnY9MgJUC5R/4pOqV9vwMCVLyCx46/5wBtDf0iyM8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR11MB8267
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aytnzv4tmp7fdvpgxdfoe2ncu7qaxlp2svsxiskfnrvdnknhmp@uu4ifgc6aj34>
 
-On Mon, May 12, 2025 at 04:12:35PM -0700, Marc Herbert wrote:
-> Thanks for the prompt feedback!
-> 
-> On 2025-05-12 11:35, Alison Schofield wrote:
-> 
-> > Since this patch is doing 2 things, the the journalctl timing, and
-> > the parse of additional messages, I would typically ask for 2 patches,
-> > but - I want to do even more. I want to revive an old, unmerged set
-> > tackling similar work and get it all tidy'd up at once.
+On Mon, May 12, 2025 at 02:51:45PM -0500, John Groves wrote:
+> On 25/05/06 06:56PM, Miklos Szeredi wrote:
+> > On Mon, 28 Apr 2025 at 21:00, Darrick J. Wong <djwong@kernel.org> wrote:
 > > 
-> > https://lore.kernel.org/all/cover.1701143039.git.alison.schofield@intel.com/
-> >   cxl/test: add and use cxl_common_[start|stop] helpers
-> >   cxl/test: add a cxl_ derivative of check_dmesg()
-> >   cxl/test: use an explicit --since time in journalctl
+> > > <nod> I don't know what Miklos' opinion is about having multiple
+> > > fusecmds that do similar things -- on the one hand keeping yours and my
+> > > efforts separate explodes the amount of userspace abi that everyone must
+> > > maintain, but on the other hand it then doesn't couple our projects
+> > > together, which might be a good thing if it turns out that our domain
+> > > models are /really/ actually quite different.
 > > 
-> > Please take a look at how the prev patch did journalctl start time.
+> > Sharing the interface at least would definitely be worthwhile, as
+> > there does not seem to be a great deal of difference between the
+> > generic one and the famfs specific one.  Only implementing part of the
+> > functionality that the generic one provides would be fine.
 > 
-> We've been using a "start time" in
-> https://github.com/thesofproject/sof-test for many years and it's been
-> only "OK", not great. I did not know about the $SECONDS magic variable
-> at the time, otherwise I would have tried it in sof-test! The main
-> advantage of $SECONDS: there is nothing to do, meaning there is no
-> "cxl_common_start()" to forget or do wrong. Speaking of which: I tested
-> this patch on the _entire_ ndctl/test, not just with --suite=cxl whereas
-> https://lore.kernel.org/all/d76c005105b7612dc47ccd19e102d462c0f4fc1b.1701143039.git.alison.schofield@intel.com/
-> seems to have a CXL-specific "cxl_common_start()" only?
-> 
-> Also, in my experience some sort of short COOLDOWN is always necessary
-> anyway for various reasons:
-> - Some tests can sometimes have "after shocks" and a cooldown helps
->   with most of these.
-> - A short gap in the logs really help with their _readability_.
-> - Clocks can shift, especially inside QEMU (I naively tried to increase
->   the number of cores in run_qemu.sh but had to give up due so "clock skew")
-> - Others I probably forgot.
-> 
-> On my system, the average, per-test duration is about 10s and I find that
-> 10% is an acceptable price to pay for the peace of mind. But a starttime
-> should hopefully work too, at least for the majority of the time.
->
-> 
-> > I believe the kmesg_fail... can be used to catch any of the failed
-> > sorts that the old series wanted to do.
-> 
-> Yes it does, I tried to explain that but afraid my English wasn't good
-> enough?
-> 
-> > Maybe add a brief write up of how to use the kmesg choices per
-> > test and in the common code.
-> 
-> Q.E.D ;-)
-> 
-> > Is the new kmesg approach going to fail on any ERROR or WARNING that
-> > we don't kmesg_no_fail_on ?
-> 
-> Yes, this is the main purpose. The other feature is failing when
-> any of the _expected_ ERROR or WARNING is not found.
-> 
-> > And then can we simply add dev_dbg() messages to fail if missing.
-> 
-> I'm afraid you just lost me at this point... my patch already does that
-> without any dev_dbg()...?
+> Agreed. I'm coming around to thinking the most practical approach would be
+> to share the GET_FMAP message/response, but to add a separate response
+> format for Darrick's use case - when the time comes. In this patch set, 
+> that starts with 'struct fuse_famfs_fmap_header' and is followed by the 
+> approriate extent structures, serialized in the message. Collectively 
+> that's an fmap in message format.
 
-Let me rephrase that - can we simply add dev_dbg() messages to the
-'kmesg_' fail scheme, like in my check_dmesg() patch.
+Well in that case I might as well just plumb in the pieces I need as
+separate fuse commands.  fuse_args::opcode is u32, there's plenty of
+space left.
+
+> Side note: the current patch set sends back the logically-variable-sized 
+> fmap in a fixed-size message, but V2 of the series will address that; 
+> I got some help from Bernd there, but haven't finished it yet.
+> 
+> So the next version of the patch set would, say, add a more generic first
+> 'struct fmap_header' that would indicate whether the next item would be
+> 'struct fuse_famfs_fmap_header' (i.e. my/famfs metadata) or some other
+> to be codified metadata format. I'm going here because I'm dubious that
+> we even *can* do grand-unified-fmap-metadata (or that we should try).
+> 
+> This will require versioning the affected structures, unless we think
+> the fmap-in-message structure can be opaque to the rest of fuse. @miklos,
+> is there an example to follow regarding struct versioning in 
+> already-existing fuse structures?
+
+/me is a n00b, but isn't that a simple matter of making sure that new
+revisions change the structure size, and then you can key off of that?
+
+> > > (Especially because I suspect that interleaving is the norm for memory,
+> > > whereas we try to avoid that for disk filesystems.)
+> > 
+> > So interleaved extents are just like normal ones except they repeat,
+> > right?  What about adding a special "repeat last N extent
+> > descriptions" type of extent?
+> 
+> It's a bit more than that. The comment at [1] makes it possible to understand
+> the scheme, but I'd be happy to talk through it with you on a call if that
+> seems helpful.
+> 
+> An interleaved extent stripes data spread across N memory devices in raid 0
+> format; the space from each device is described by a single simple extent 
+> (so it's contigous), but it's not consumed contiguously - it's consumed in 
+> fixed-sized chunks that precess across the devices. Notwithstanding that I 
+> couldn't explain it very well when we talked about it at LPC, I think I 
+> could make it pretty clear in a pretty brief call now.
+> 
+> In any case, you have my word that it's actually quite elegant :D
+> (seriously, but also with a smile...)
+
+Admittedly the more I think about the interleaving in famfs vs straight
+block mappings for disk filesystems, the more I think they ought to be
+separate interfaces for code that solves different problems.  Then both
+our codebases will remain relatively cohesive.
+
+> > > > But the current implementation does not contemplate partially cached fmaps.
+> > > >
+> > > > Adding notification could address revoking them post-haste (is that why
+> > > > you're thinking about notifications? And if not can you elaborate on what
+> > > > you're after there?).
+> > >
+> > > Yeah, invalidating the mapping cache at random places.  If, say, you
+> > > implement a clustered filesystem with iomap, the metadata server could
+> > > inform the fuse server on the local node that a certain range of inode X
+> > > has been written to, at which point you need to revoke any local leases,
+> > > invalidate the pagecache, and invalidate the iomapping cache to force
+> > > the client to requery the server.
+> > >
+> > > Or if your fuse server wants to implement its own weird operations (e.g.
+> > > XFS EXCHANGE-RANGE) this would make that possible without needing to
+> > > add a bunch of code to fs/fuse/ for the benefit of a single fuse driver.
+> > 
+> > Wouldn't existing invalidation framework be sufficient?
+> > 
+> > Thanks,
+> > Miklos
+> 
+> My current thinking is that Darrick's use case doesn't need GET_DAXDEV, but
+> famfs does. I think Darrick's use case has one backing device, and that should
+> be passed in at mount time. Correct me if you think that might be wrong.
+
+Technically speaking iomap can operate on /any/ block or dax device as
+long as you have a reference to them.  Once I get more of the plumbing
+sorted out I'll start thinking about how to handle multi-device
+filesystems like XFS which can put file data on more than 1 block
+device.
+
+I was thinking that the fuse server could just send a REGISTER_DEVICE
+notification to the fuse driver (I know, again with the notifications
+:)), the kernel replies with a magic cookie, and that's what gets passed
+in the {read,write,map}_dev field.
+
+Right now I reconfigured fuse2fs to present itself as a "fuseblk" driver
+so that at least we know that inode->i_sb->s_bdev is a valid pointer.
+It turns out to be useful because the kernel sends FUSE_DESTROY commands
+synchronously during unmount, which avoids the situation where umount
+exits but the block device still can't be opened O_EXCL because the fuse
+server program is still exiting.  It may be useful for some day wiring
+up some of the block device ops to fuse servers.  Though I think it
+might conflict with CONFIG_BLK_DEV_WRITE_MOUNTED=y
+
+I just barely got directio writes and pagecache read/write working
+through iomap today, though I'm still getting used to the fuse inode
+locking model and sorting through the bugs. :)
+
+(I wonder how nasty would it be to pass fds to the fuse kernel driver
+from fuseblk servers?)
+
+> Famfs doesn't necessarily have just one backing dev, which means that famfs
+> could pass in the *primary* backing dev at mount time, but it would still
+> need GET_DAXDEV to get the rest. But if I just use GET_FMAP every time, I
+> only need one way to do this.
+> 
+> I'll add a few more responses to Darrick's reply...
+
+Hehhe onto that message go I.
+
+--D
 
 > 
-> > I'll take a further look for example at the poison test. We want
-> > it to warn that the poison is in a region. That is a good and
-> > expected warning.  However, if that warn is missing, then the test
-> > is broken! It might not 'FAIL', but it's no longer doing what we
-> > want.
+> Thanks,
+> John
 > 
-> I agree: the expected "poison inject" and "poison clear" messages should
-> be in the kmsg_fail_if_missing array[], not in the kmsg_no_fail_on[]
-> array. BUT in my experience this makes cxl-poison.sh fail when run
-> multiple times.  So yes: there seems to be a problem with this test.  (I
-> should probably file a bug somewhere?) So I put them in
-> kmsg_fail_if_missing[] for now because I don't have time to look into it
-> now and I don't think a problem in a single test should hold back the
-> improvement for the entire suite that exposes it. Even with just
-> kmsg_no_fail_on[], this test is still better than now.
-> 
-> BTW this is a typical game of whack-a-mole every time you try to tighten
-> a test screw. In SOF it took 4-5 years to finally catch all firmware
-> errors: https://github.com/thesofproject/sof-test/issues/297
+> [1] https://github.com/cxl-micron-reskit/famfs-linux/blob/c57553c4ca91f0634f137285840ab25be8a87c30/fs/fuse/famfs_kfmap.h#L13
 > 
 > 
-> 
-> > So, let's work on a rev 2 that does all the things of both our
-> > patches. I'm happy to work it with you, or not.
-> 
-> I agree the COOLDOWN / starttime is a separate feature. But... I needed it
-> for the tests to pass! I find it important to keep the tests all passing
-> in every commit for bisectability etc., hope you agree. Also, really hard
-> to submit anything that does not pass the tests :-)
-> 
-
-How are the tests failing without the COOLDOWN now?
-
-> As of now, the tests tolerate cross-test pollution. Being more
-> demanding when inspecting the logs obviously makes them fail, at least
-> sometimes. I agree the "timing" solution should go first, so here's
-> a suggested plan:
-> 
-> 1. a) Either I resubmit my COOLDOWN alone,
->    b) or you generalize your cxl_common_start()/starttime to non-CXL tests.
-> 
-> No check_dmesg() change yet. "cxl_check_dmesg()" is abandoned forever.
-> 
-> Then:
-> 
-> 2. I rebase and resubmit my kmsg_no_fail_on=...
-> 
-> This will give more time for people to try and report any issue in the
-> timing fix 1. - whichever is it.
-> 
-> In the 1.a) case, I think your [cxl_]common_start() de-duplication is
-> 99% independent and can be submitted at any point.
-> 
-> 
-> Thoughts?
-
-Split them into a patchset for easier review and then I'll take
-a look. Thanks!
-
-> 
-> PS: keep in mind I may be pulled in other priorities at any time :-(
-
-
-
