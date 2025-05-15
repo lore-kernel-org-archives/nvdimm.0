@@ -1,50 +1,49 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F84325D539
-	for <nvdimm@lists.linux.dev>; Thu, 15 May 2025 18:28:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2041A1F461A
+	for <nvdimm@lists.linux.dev>; Thu, 15 May 2025 23:03:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747333687; cv=none; b=A95v1z1jy4Q5+PHWcgLZ6TVhNRV3sm6HI6NP0LLw69+C7jbRebKVLVA160gAnIWkPqh26BeCkwYX3hDOSfbaCDJ9+Erv1TvXY8Kl/3pgiEgteeDckCOILpMmhOZ9YTEmp+3Lrt2rI2djJYoZvSlTdd/rhSYtY6QzMfK2jds8ZJU=
+	t=1747350186; cv=none; b=K8bNQi/vyoFs+AMafzua1sICMA/9vn6WK7JZDE7kLj+JPeAU8cx/rxVyOz6UphZTYkGtHslIS3HQl1iJxlIIpa5OJYbdtytXK/HksBWuIb45iorChd3gfWneHBvac87aLn8b3EklWm7wBaB5HE1k01pGs+2P1/UESezOkE0AZ2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747333687; c=relaxed/simple;
-	bh=DG9VQ1Zs3e3zKoY7O9whzhGa2vKfpSjMY2vFoI/mBqU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bcFDcZXYvnOmRETxDwsroTJFbz2stC0cEaycwhH+kqu4VvAmzkvubujjg4TVMFdDmZhxBwOs0Pydsj0xE4VjgC/nwQPly+RvYfN5JjAWLQ3hSc5fgfuDZsAZB5PHz3Rs+w2t+k5q/HlBicYLJSwayDHBCd0OBvyudlck6d2Y3UA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eZB8vHz9; arc=none smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1747350186; c=relaxed/simple;
+	bh=2KrWgSdKGERWIa4me5l6ZvO0XYhQaJYeR6AwExPY5RM=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:Content-Type; b=NJorzz41GOpnk2jkNACabCCRdjvj9QgNPCBCYVurqWKXOS3dLrXhESAXWQvIjBiHmO6tn0ABxwwJgmQ5K6lDYtCe9psAvBEmvBJsU/9acu+ncKGJiBEcaxkZDC6ohhOYIWhdkjF8oS0D+//MoTB8aLd249R7JUn473L8BVYEU/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cQoxHo5k; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eZB8vHz9"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cQoxHo5k"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1747333685; x=1778869685;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=DG9VQ1Zs3e3zKoY7O9whzhGa2vKfpSjMY2vFoI/mBqU=;
-  b=eZB8vHz9D0f4B3Dgo+Su6r2b7ok0q4o4udvlVPPrejFZmo938B0L2A1d
-   xLfu/vXIrXV+e6LA/L58iw8yHXSNEE+STpXbQEumJYPglROuQgl0WC+Qm
-   q7JJ5rMUB5CkAPvk7s4Ud/gbxZYCdObJU4E0V9Du7bPinY8IfEt9cgVyo
-   RTw3Rnz2ZDHA+K0m+EZHwt/FlpNsgFOy884XK7l/Lk882UJFezDUqPdcZ
-   XNy8rk8qoZJcKhJU8rFawQBfODTMU5sOZflNqohtAooirTA2K5W0VQGdO
-   Z/N/qNnitcQHClM9dYLkllZvOyuNTW3HwbUmd/sWsKXPkY6i9FXlAGIDn
-   g==;
-X-CSE-ConnectionGUID: GnAIfX9+TC+INnmKEbrTvw==
-X-CSE-MsgGUID: PuZoeYZ5Tei6ulgU/NJzDA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11434"; a="49358025"
-X-IronPort-AV: E=Sophos;i="6.15,291,1739865600"; 
-   d="scan'208";a="49358025"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 May 2025 11:28:05 -0700
-X-CSE-ConnectionGUID: tBA8J/K3Stu84CooL+G2xA==
-X-CSE-MsgGUID: Y9Eq5rqqQmGRh8tPkdssDg==
+  t=1747350185; x=1778886185;
+  h=message-id:date:mime-version:from:subject:to:cc:
+   content-transfer-encoding;
+  bh=2KrWgSdKGERWIa4me5l6ZvO0XYhQaJYeR6AwExPY5RM=;
+  b=cQoxHo5kAh4PBZ6KHBxvXcdbU8FoXBjSxNZcE6itdbVyNAcQUezKYURD
+   LRvqrKE9CdCoVOmvQ2lfSgfN/Dd/jfnGfg4ZHKzgeeFEaw2EShY/AtOgE
+   M/DfE8XuLMRW4qnSG4zMSgaQQMGI57d9nzMKMyhaQg6te3W7tjEDdXFTI
+   eoHLVnAGLuivGons4afomZik0aCqDELx6f0QXvXlaHELa3HHOnj2d6VB4
+   KKfWumVJmirllQgjoA/8bU/ADsTG/rBkIp8Ph3NuPQXt7LQs1yn7iEMa/
+   CIWRwjWP+AY5FqMZSys91lk/PJQmgIROFMZNCdRTJv5pp3lwHU1JTRy7U
+   Q==;
+X-CSE-ConnectionGUID: F/Jf7dPkQgqC+pmdhyf+AQ==
+X-CSE-MsgGUID: fWnO2U0xTk6QbwuBba5vUg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11434"; a="60331347"
+X-IronPort-AV: E=Sophos;i="6.15,292,1739865600"; 
+   d="scan'208";a="60331347"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 May 2025 16:03:04 -0700
+X-CSE-ConnectionGUID: 5KEq+8GsRBmKfawggSz2zg==
+X-CSE-MsgGUID: M7/1sCSCR/CrSOAy+XLiRQ==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,291,1739865600"; 
-   d="scan'208";a="169528097"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO [10.125.109.47]) ([10.125.109.47])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 May 2025 11:28:04 -0700
-Message-ID: <1375994d-d3ba-479d-8910-8e564967bace@intel.com>
-Date: Thu, 15 May 2025 11:28:01 -0700
+X-IronPort-AV: E=Sophos;i="6.15,292,1739865600"; 
+   d="scan'208";a="139512626"
+Received: from c02x38vbjhd2mac.jf.intel.com (HELO [10.54.75.26]) ([10.54.75.26])
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 May 2025 16:03:03 -0700
+Message-ID: <aed71134-1029-4b88-ab20-8dfa527a7438@linux.intel.com>
+Date: Thu, 15 May 2025 16:02:56 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,97 +51,62 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [NDCTL PATCH v6 4/4] cxl/test: Add test for cxl features device
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- Dan Williams <dan.j.williams@intel.com>
-References: <20250509164006.687873-1-dave.jiang@intel.com>
- <20250509164006.687873-5-dave.jiang@intel.com>
- <aCYxY8tmvJ14sWB-@aschofie-mobl2.lan>
+From: Marc Herbert <Marc.Herbert@linux.intel.com>
+Subject: List of CONFIG_s currently missing in ndctl.git/README.md
+X-Mozilla-News-Host: news://news://nntp.lore.kernel.org:119
 Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <aCYxY8tmvJ14sWB-@aschofie-mobl2.lan>
+To: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+Cc: Alison Schofield <alison.schofield@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Itaru Kitayama <itaru.kitayama@linux.dev>,
+ "Verma, Vishal L" <vishal.l.verma@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
+Thanks to the patience and help from the Intel people on these lists, I
+think I finally found all the CONFIG_* missing in ndctl.git/README.md
 
-On 5/15/25 11:24 AM, Alison Schofield wrote:
-> On Fri, May 09, 2025 at 09:39:15AM -0700, Dave Jiang wrote:
->> Add a unit test to verify the features ioctl commands. Test support added
->> for locating a features device, retrieve and verify the supported features
->> commands, retrieve specific feature command data, retrieve test feature
->> data, and write and verify test feature data.
->>
->> Acked-by: Dan Williams <dan.j.williams@intel.com>
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
->> ---
->> v6:
->> - Provide a fwctl option and move everything behind it. (Dan)
->> - Rename test app back to fwctl.c. (Dan)
->> - Fix spelling error. (Dan)
->> - Expand scope of fwctl device in documentation. (Dan)
->> ---
->>  cxl/fwctl/cxl.h      |   2 +-
->>  meson_options.txt    |   2 +
->>  test/cxl-features.sh |  31 +++
->>  test/fwctl.c         | 439 +++++++++++++++++++++++++++++++++++++++++++
->>  test/meson.build     |  19 ++
->>  5 files changed, 492 insertions(+), 1 deletion(-)
->>  create mode 100755 test/cxl-features.sh
->>  create mode 100644 test/fwctl.c
->>
-> 
-> skip - 
-> 
-> 
->> diff --git a/test/meson.build b/test/meson.build
->> index d871e28e17ce..918db7e6049b 100644
->> --- a/test/meson.build
->> +++ b/test/meson.build
->> @@ -17,6 +17,13 @@ ndctl_deps = libndctl_deps + [
->>    versiondep,
->>  ]
->>  
->> +libcxl_deps = [
->> +  cxl_dep,
->> +  ndctl_dep,
->> +  uuid,
->> +  kmod,
->> +]
->> +
->>  libndctl = executable('libndctl', testcore + [ 'libndctl.c'],
->>    dependencies : libndctl_deps,
->>    include_directories : root_inc,
->> @@ -235,6 +242,18 @@ if get_option('keyutils').enabled()
->>    ]
->>  endif
->>  
->> +uuid_dep = dependency('uuid', required: false)
->> +if get_option('fwctl').enabled() and uuid_dep.found()
->> +  fwctl = executable('fwctl', 'fwctl.c',
->> +    dependencies : libcxl_deps,
->> +    include_directories : root_inc,
->> +  )
->> +  cxl_features = find_program('cxl-features.sh')
->> +  tests += [
->> +    [ 'cxl-features.sh',        cxl_features,       'cxl'   ],
->> +  ]
->> +endif
-> 
-> Is the fwctl feature enabled fuss still needed now that the UAPI headers
-> are vendored locally?  Seems the test will quickly SKIP if fwctl dev not
-> found. I kind of like the idea of seeing a 'SKIP' and knowing the test
-> didn't run than seeing nothing at all in the test output.
+I tested, fixed and published two CONFIG_ fragments here:
 
-This gives the option to disable fwctl if needed. Also there is a libuuid dependency since we use uuid lib calls. 
+https://github.com/pmem/run_qemu/tree/main/.github/workflows/
 
-> 
->> +
->>  foreach t : tests
->>    test(t[0], t[1],
->>      is_parallel : false,
->> -- 
->> 2.49.0
->>
+- cxl-test.cfg:  CONFIG_ fragment enough for: meson test --suite=cxl
+- nfit-test.cfg: CONFIG_ fragment enough for:
+    meson test --suite=ndctl:ndctl and --suite=ndctl:dax
 
+In my ideal world, these fragments would live in ndctl.git/ directly
+(instead of run_qemu.git/) and ndctl.git/README.md would point at
+them. This would make them _testable_ by any automation. Like this
+automation: https://github.com/pmem/run_qemu/actions
+
+As a second best and much quicker fix, "someone" could simply add to
+ndctl.git/README.md the missing CONFIG_ found in these new .cfg files
+of mine.
+
+Unfortunately, that "someone" cannot be me because I don't know or don't
+understand precisely what many of these CONFIG_s mean: the files in
+https://github.com/pmem/run_qemu/tree/5723a592/.github/workflows/ come
+from "educated" guesses and a lot of trial and error. But these fragments
+pass the tests, so they're already much better than what is in the
+current README.md!
+
+I can already tell that some of these are tricky. For instance,
+CONFIG_MEMORY_FAILURE=y is required for dax-ext4.sh and dax-xfs.sh to
+trigger the error message "Sending SIGBUS due to hardware memory
+corruption" (more context in
+https://lore.kernel.org/nvdimm/20250515021730.1201996-3-marc.herbert@linux.intel.com/T/#u)
+
+BUT, these tests can also pass without CONFIG_MEMORY_FAILURE=y and
+without triggering that error message! So... CONFIG_MEMORY_FAILURE=y is
+not required? Or, it is required but there a bug in that test? Or,
+either choice is fine but CONFIG_MEMORY_FAILURE=y is better because
+it provides more coverage? I don't have that sort of validation expertise
+and it would take me a long time to learn it for every missing CONFIG_
+
+Marc
+
+
+PS: according to Dan, the test code in the kernel should also have more
+build-time checks like the ones in nvdimm/config_check.c but that's not
+mutually exclusive at all and IMHO a separate topic.
