@@ -1,195 +1,135 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61003232379
-	for <nvdimm@lists.linux.dev>; Fri, 16 May 2025 22:35:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770ED15665C;
+	Fri, 16 May 2025 23:17:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747434903; cv=none; b=m8j3YvQMPjyqwTrsW24RnwLzgNel9PJ5a/VM1vVe+WpMBVA1IwZ29tFp3iGDY2IzUDZ2ra6Uo7Yn22TTzIjGMRISOmERis2IeKYfYWL8AixTY2LaEUfyGz7Gjp0Tc4A43C3vztkDqlQk2X7rUnipowuoiExrPZV5xRUSoW1R6YU=
+	t=1747437468; cv=none; b=fXUaqUiz5TNyYkWKgjYHYmNGypjgx5nwX4X1jPr8UWILFWujWia0hYPBt4AvUEmw6gwfizl4NZ/UmzgNP5ImXVaiKgBOd+5ZbMSOsOBJo/UQaAreTr6Q8QXRZGKUP2kHlHZTxIcrUaQ4fi3oYuX58mfrWsqNNrRMXIWpPUDyYE0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747434903; c=relaxed/simple;
-	bh=sodnoNWxSebjqwsyt2Torgdv1eT/Kqgp5Dz1D52Uw0M=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:References:
-	 In-Reply-To:Content-Type; b=Glz8egik3hbzgKsN/2Irs8htZ9yAhaT7Qn2ThE5jUkhCVKEgOa4487sTdbw1YCwNyB/taMXQQbPXk28qKD0znoEXmSxGzFaq+Kp+8T0Kn6By5+hpgnxu7xeJIVLeqJT50X3HLprvAAWrILN8b88Pqo6a77+kvR1QBEQSh3Q9JdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BuzWrGu2; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1747437468; c=relaxed/simple;
+	bh=9QGCU7pQ1CQOC/QLX0rCKLUdZNG8/Rw7HmMWOTN97fo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Gjol4Ly32mugiaSFgCL7ylVxN6I47wmCBKRR5axzWHN5VZGiIm4xI11aWaNqI9pT5Tb8N6RaqyVc6mw9EuBgWET95qajsa5jIw28UFernJKCaCR+QtLECi9Nc2+o+8ol7vVVDtsUr/07o7coFfiLnzSZhQrH551zKxCN2KfBWoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b8OkA7p3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BuzWrGu2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1747434901; x=1778970901;
-  h=message-id:date:mime-version:from:subject:to:references:
-   in-reply-to:content-transfer-encoding;
-  bh=sodnoNWxSebjqwsyt2Torgdv1eT/Kqgp5Dz1D52Uw0M=;
-  b=BuzWrGu2q2OvIQsJNq+OgC+bnq5BWZff3q/U3JP9acBaeCSEZnSD/HHa
-   f8K6IbnJNzPcENGnNVY8TpoKV4WdhYvOH8Nq5rJmY71wQffpq775e5kv6
-   Bl1LjcihQDyyCqn55J4qyQMQZ4Le/6RuM0RC7sGZg0raD/M+OBkIKkc50
-   oNxz2R69VuwLVxYvsjZwhTaeJSZ1xw+E2MyoYEnneLMdExFWOGndQIclI
-   B0GeIFFVK+u7cFPN4KpkKcHBuo9RsdRuDlsetrWIMupCccabJRHjCLJAv
-   X8XGyonyWiA+jP5k6R19tGMrobgSZm9S3dr8rowgMG23L3sfH6ExLeYu4
-   Q==;
-X-CSE-ConnectionGUID: 6thK1a26QFG4qzVGC5CQVA==
-X-CSE-MsgGUID: HqroR+VaR6a+6F9QM/PIfg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11435"; a="60056715"
-X-IronPort-AV: E=Sophos;i="6.15,295,1739865600"; 
-   d="scan'208";a="60056715"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2025 15:35:00 -0700
-X-CSE-ConnectionGUID: I/u7kHU8Q+iOR9Y9s1oGPA==
-X-CSE-MsgGUID: Yr5Nq4fUQ1CUQ/xx/AeMmA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,295,1739865600"; 
-   d="scan'208";a="144060980"
-Received: from rkbains1-mobl.amr.corp.intel.com (HELO [10.125.225.63]) ([10.125.225.63])
-  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 May 2025 15:35:00 -0700
-Message-ID: <15a03474-57f8-43ad-97be-ee986e796df0@linux.intel.com>
-Date: Fri, 16 May 2025 15:34:55 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b8OkA7p3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9775C4CEE4;
+	Fri, 16 May 2025 23:17:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1747437467;
+	bh=9QGCU7pQ1CQOC/QLX0rCKLUdZNG8/Rw7HmMWOTN97fo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=b8OkA7p3XHFQnWkhDZHSvdhBzeJvX2JWajy6uk7rAqdnI8TISnS1C0kUOVHwzAwf6
+	 /t0JOfPD3nXLY06c8Eiq44LxQiwiS8nLRIBmDmEn2XNeMpw2Tfd1U9lQit+Wy1EL9r
+	 6UzybNl8RZcQXn4fh/B8NO6U/Q0AunkgLh2q7wvF+/Z4GtY2gbJRFEaoNYVmNgPdc+
+	 IWMHOkhcvx3en+Vtwn1/8l0JT6qDMsTRjnpbXnE14b2oyY/PDf/lHxf/J+OuygeWYd
+	 xqIy8fwO+ID5o2/YuJt+HJBDdvWn5867w4MzKnuTskhWhVd2+wMXDALPxHKgZq8V7D
+	 5PdG1wNlZxa4g==
+Date: Fri, 16 May 2025 16:17:47 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: John Groves <John@groves.net>, Dan Williams <dan.j.williams@intel.com>,
+	Bernd Schubert <bschubert@ddn.com>,
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Luis Henriques <luis@igalia.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Stefan Hajnoczi <shajnocz@redhat.com>,
+	Joanne Koong <joannelkoong@gmail.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC PATCH 13/19] famfs_fuse: Create files with famfs fmaps
+Message-ID: <20250516231747.GB9730@frogsfrogsfrogs>
+References: <20250421013346.32530-14-john@groves.net>
+ <nedxmpb7fnovsgbp2nu6y3cpvduop775jw6leywmmervdrenbn@kp6xy2sm4gxr>
+ <20250424143848.GN25700@frogsfrogsfrogs>
+ <5rwwzsya6f7dkf4de2uje2b3f6fxewrcl4nv5ba6jh6chk36f3@ushxiwxojisf>
+ <20250428190010.GB1035866@frogsfrogsfrogs>
+ <CAJfpegtR28rH1VA-442kS_ZCjbHf-WDD+w_FgrAkWDBxvzmN_g@mail.gmail.com>
+ <20250508155644.GM1035866@frogsfrogsfrogs>
+ <CAJfpegt4drCVNomOLqcU8JHM+qLrO1JwaQbp69xnGdjLn5O6wA@mail.gmail.com>
+ <20250515020624.GP1035866@frogsfrogsfrogs>
+ <CAJfpegsKf8Zog3Q6Vd1kBmD6anLSdyYyxy4BjD-dvcyWOyr4QQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: Marc Herbert <marc.herbert@linux.intel.com>
-Subject: Re: [ndctl PATCH v2] test/monitor.sh: replace sleep with polling
- after sync
-To: Dan Williams <dan.j.williams@intel.com>, alison.schofield@intel.com,
- nvdimm@lists.linux.dev, Li Zhijian <lizhijian@fujitsu.com>
-References: <20250516044628.1532939-1-alison.schofield@intel.com>
- <6826d67768427_290329430@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Language: en-US
-In-Reply-To: <6826d67768427_290329430@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJfpegsKf8Zog3Q6Vd1kBmD6anLSdyYyxy4BjD-dvcyWOyr4QQ@mail.gmail.com>
 
-On 2025-05-15 23:08, Dan Williams wrote:
-> alison.schofield@ wrote:
-
->>  
->> +wait_for_logfile_update()
->> +{
->> +	local file="$1"
->> +	local prev_size="$2"
->> +	local timeout=30
->> +	local i=0
->> +
->> +	# prev_size is always zero because start_monitor truncates it.
->> +	# Set and check against it anyway to future proof.
->> +	while [ $i -lt $timeout ]; do
->> +		local new_size=$(stat -c%s "$file" 2>/dev/null || echo 0)
->> +		if [ "$new_size" -gt "$prev_size" ]; then
->> +			return 0
->> +		fi
->> +		sleep 0.1
->> +		i=$((i+1))
->> +	done
->> +
->> +	echo "logfile not updated within 3 seconds"
->> +	err "$LINENO"
+On Fri, May 16, 2025 at 12:06:44PM +0200, Miklos Szeredi wrote:
+> On Thu, 15 May 2025 at 04:06, Darrick J. Wong <djwong@kernel.org> wrote:
 > 
-> Hmm... not a fan of this open coded "wait for file to change" bash
-> function. This feels like something that a tool can do... (searches)
+> > Yeah, it's confusing.  The design doc tries to clarify this, but this is
+> > roughly what we need for fuse:
+> >
+> > FUSE_IOMAP_OP_WRITE being set means we're writing to the file.
+> > FUSE_IOMAP_OP_ZERO being set means we're zeroing the file.
+> > Neither of those being set means we're reading the file.
+> >
+> > (3 different operations)
 > 
-> Does inotifywait fit the bill here?
+> Okay, I get why these need to be distinct cases.
 > 
-> https://linux.die.net/man/1/inotifywait
+> Am I right that the only read is sanely cacheable?
 
-If inotify works, go for it. Blocking is always better than polling.  It
-might be tricky because the file does not exist yet. Create an empty
-file yourself first, would that work? Probably not if ndctl monitor
-creates a brand new file.
+That depends on the filesystem.  Old filesystems (e.g. the ones that
+don't support out of place writes or unwritten extents) most likely can
+cache mappings for writes and zeroing.  Filesystems with static mappings
+(like zonefs which are convenient wrappers around hardware) can cache
+most everything too.
 
-If inotify does not work, consider adding to test/common this generic
-polling function that lets you poll in bash literally anything:
+My next step for this prototype is to go build a real cache and make
+fuse2fs manage the cache, which puts the filesystem in charge of
+maintaining the cache however is appropriate for the design.
 
-https://github.com/pmem/run_qemu/pull/177/files
-
-It would require making `prev_size` global which does not look like an
-issue to me.
-
-Before adding it run_qemu, that polling function has been used for years
-and thousands of runs in
-https://github.com/thesofproject/sof-test/blob/main/case-lib/lib.sh
-I mean it's been extremely well tested.
-
-Even if you don't need polling here, it's unfortunately fairly common to
-have to poll from shell scripts. Why I'm suggesting a test/common
-location.
-
->> +}
->> +
->>  start_monitor()
->>  {
->>  	logfile=$(mktemp)
->>  	$NDCTL monitor -c "$monitor_conf" -l "$logfile" $1 &
->>  	monitor_pid=$!
->> -	sync; sleep 3
->> +	sync
->> +	for i in {1..30}; do
->> +		if ps -p "$monitor_pid" > /dev/null; then
->> +			sleep 0.1
->> +			break
->> +		fi
->> +		sleep 0.1
->> +	done
->> +	if ! ps -p "$monitor_pid" > /dev/null; then
->> +		echo "monitor not ready within 3 seconds"
->> +		err "$LINENO"
->> +	fi
+> > FUSE_IOMAP_OP_DIRECT being set means directio, and it not being set
+> > means pagecache.
+> >
+> > (and one flag, for 6 different types of IO)
 > 
-> This does not make sense to. The shell got the pid from the launching
-> the executable. This is effectively testing that bash command execution
-> works. About the only use I can imagine for this is checking that the
-> monitor did not die early, but that should be determined by other parts
-> of the test.
+> Why does this make a difference?
 
-Agreed: I'm afraid the only thing this code does is sleeping 0.1s only
-once instead of 3s. Because not sleeping at all worked for you, no
-surprise a single sleep 0.1 works too.
+Different allocation strategies -- we can use delayed allocation for
+pagecache writes, whereas with direct writes we must have real disk
+space.
 
-I suspect the only case where the "for" loop actually iterates is when the
-"monitor" process crashes extremely fast, faster than the
-"sync". Basically racing with its parent to crash before the latter
-notices. That race does not look like a "feature" to me.
+> Okay, maybe I can imagine difference allocation strategies.  Which
+> means that it only matters for the write case?
 
-I agree this should be replaced by observing side-effects from the
-monitor. Dunno what. grep something in the ndctl monitor -v output?
+Probably.  I don't see why a directio read would be any different from a
+pageacache read(ahead) but the distinction exists for the in-kernel
+iomap callers.
 
+> > FUSE_IOMAP_OP_REPORT is set all by itself for things like FIEMAP and
+> > SEEK_DATA/HOLE.
+> 
+> Which should again always be the same as the read case, no?
 
-By the way, UNTESTED:
+Not entirely -- if the fuse driver is doing weird caching things with
+file data blocks, a read requires it to invalidate its own cache,
+whereas it needn't do anything for a mapping report.  fuse2fs is guilty
+of this, because it does ... crazy things.
 
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -67,7 +67,19 @@ check_result()
- 
- stop_monitor()
- {
--	kill $monitor_pid
-+	kill $monitor_pid || die "monitor $monitor_pid was already dead"
-+
-+	local ret=0
-+	timeout 3 wait $monitor_pid || ret=$?
-+	case "$ret") in
-+	124) # timeout
-+		die "monitor $monitor_pid ignored SIGTERM" ;;
-+	0|127) # either success or killed fast
-+		: ;;
-+	*)
-+		die "unexpected monitor exit status:$ret" ;;
-+	esac
-+
- 	rm "$logfile"
- }
+Also for now I don't support read/write to inline data files, though I
+think it would be possible to use the FUSE_READ/FUSE_WRITE for that...
+as soon as I find a filesystem where inline data for regular files isn't
+a giant trash fire and can be QAd properly.
 
-
-Something like that...
-
-This is all assuming the monitor does not have any kind of "remote
-control"; that would be much better.
-
-I don't know the "monitor", but if it has neither obvious
-side-effects nor any kind of "remote control", then it does a "great"
-job... getting in the way of tests! :-( Maybe the monitor is what should
-be fixed rather than adding shell script "creativity"?
+--D
