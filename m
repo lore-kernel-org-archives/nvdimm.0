@@ -1,160 +1,105 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5178A1581F0
-	for <nvdimm@lists.linux.dev>; Sun, 18 May 2025 03:56:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0853A20ADCF;
+	Sun, 18 May 2025 11:11:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747540566; cv=none; b=ABSu2YWPf2i32MzqGVR3iAswnDZpLo86ijhSbwy8nBj5nGTS72q8BdjKY4bEOsg9WgSxOWYyCJE4vvhXyA+FWaxViQeSkfHaXZup/nUdiDfs3SMcd5xF70Kpnv4f4UPwbdXeAbaXGZGbxoliYadJi3DIv001kIs4gD5deNZmeo0=
+	t=1747566706; cv=none; b=nzOLKPUJ9mVwBemUxuJG3/vPS9LUJcWPwK+7m+upbyHewhGq+LIQyO4+/NvTGTm07evTaIvttnMDuqZ7Gc62szKjObAR7fSk6TpLh/3x6q5Zrt3GwuL/747y+w/VLToiVgcGXHRcC4fNzwAGMriVbfb1gR0YURq1lffVGmlDevA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747540566; c=relaxed/simple;
-	bh=X2R0lRUo/S7bGxarvGbPnwAztmFTvYyHEDZhH43YC3s=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pOe6iU6nWumPl+LBzGWcXsTWm9dH1UNYRNVTR5XHAKhzZi8LGo3ZZ1vlxXYyit06WW6MvZotGaPfdb2gdqwW4NPYnHMAmOj9APFiHBgWTYGzImgMrQpQnTsns5lUBCUFUM4iWE6Mxd8+g4nuH70YU+vIG1w18LXx71K049cecso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com; spf=none smtp.mailfrom=pdp7.com; dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b=dFhYg4Cl; arc=none smtp.client-ip=209.85.221.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=pdp7.com
+	s=arc-20240116; t=1747566706; c=relaxed/simple;
+	bh=jQORaEJCmWX+qNVDyrACWJZ8PX1NcoCkySUGJidoX4Q=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=q8Gcs/EWQco4jHzFX79MfVStj+Vqg9LKYT8DYYIWNZTwYfee5H4CX9LDfkFCJYgZqG62UDUm2+BUhLdit4LgqgjocpLyZPCSAyHX2bXP0dAHQn+z/Uq4qEMKV5bJZ/7cOJ+0NA1KenhdbJA00ALVuL2+FCA5tOnhLd/7oK5IQh0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TytcpQk7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b="dFhYg4Cl"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-3a0bd7f4cd5so3254767f8f.0
-        for <nvdimm@lists.linux.dev>; Sat, 17 May 2025 20:56:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=pdp7-com.20230601.gappssmtp.com; s=20230601; t=1747540562; x=1748145362; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=ag1YP0aXAY2InPlmdvx0/NdA/nmWNYGDzlXrc3yzqww=;
-        b=dFhYg4CloBvTCnF2iUnqUDnmALqUQltWcgMlcUt3aNJ4Ijg7ebPTsdh6OTUkhBhqRp
-         d/ZXtn4VtEGFfvL0MgiSlrsLwk6QMTHcplT2GDcUrPboy0OcohPb2HofIjMrFWJtFfAE
-         KeFWYp+9ckxWYKBIBoQWOGb89psvv25wy4HKDpkFzrEeZqgcNBmG6tl1JnVX543/qoLg
-         eCd0oTRJRtCzQ23LsooWehRVnPRTCvJe+fAD+Fq37KnybZr5k8H0aaATEc0Jv/yhBmFa
-         CnKV47yRecyW2Wwzgp5OFcAlqYDmAQhlsKZVGWjjtgZ4D90JCYPhK6cDAxkWvjIjzLtE
-         GDQA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747540562; x=1748145362;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=ag1YP0aXAY2InPlmdvx0/NdA/nmWNYGDzlXrc3yzqww=;
-        b=d8YKbUqep8qMlH+GvbrIptNL0mOOXIk3ji3kEHPq/Y+W/1aoqeO4sOSgqEB0aPISdi
-         M7voc860A+0A5hGqn+P4JuVScSm+BNtXNAQfE2Ulv+51FBRMmb87ZTGIWC6X5KKCkgXN
-         n0vag6fJdZLC0SraCyYKDLsyKWLuDQs7wd8hw9p2a4UT7AjZiH3t6u3VPSeHWxYOA9jp
-         RNIky+aDttcs2inFundpv0cZ4MgPT/sJrnjUbZOLOuMIKzQLt/08hDQ1+O2IRDsNuYKO
-         aZ/OUvUuvCGCnJPt/4lxWPNe5MWvxf/+mll4nprwc/HN8tc93iZpEreh8B/n8k1hXXnU
-         eN3w==
-X-Forwarded-Encrypted: i=1; AJvYcCXQDv5Bbsq2wm8pGTp2UtTIys+mXAH0dY0QMdySctsuE2yruUwiy4UShfLFLkaZe7FLGujMeLk=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzMBbWY+b2qq7QoHhN9ozX/70qmhacjPcQysENbjVO0fBh0iI9T
-	GNGApK5z94Hr5aRKgdLx4AuTHOllq2yxgdtrHexHP+TunsAtnmUcnPIkeGAiVVPGB1FMwUG5A+1
-	wSJpKzzGS+Q==
-X-Gm-Gg: ASbGncvLi06zdOIaPfx2lmBivA+QY5V0GhtX670AEm4v7PmO8+bTdJWZOJy4uXaPUsk
-	OHskh47RticXDL2exaVIjuzxUodC1PyrmUo14NUfB+MJkQVA1XEiGuHJKHmEkNtkmDd0BUlEqiY
-	LA0CRtxcXFR70J3FD0xMrV1OrsJz9A4/A7+b2lcu7cO9BMkCkKUUCYxosOgY9thFwiU8T9lF1Hb
-	Zd7qckp82Z3VMisrt69npFFYxGneXtiyuSxNUq1e0yOPGlaKBdZfDeLNz75y1EuaKSC7/FIQF+P
-	HcA8JdB27eVs1+21PK0FvdVfiJMcnIMj4Tlb4AxDglsi/ndJk3QjfX0=
-X-Google-Smtp-Source: AGHT+IG93wDD2jjXIrPe3sZUfvLXdAyBTc/CB1QOVVGZp0c5rnsjMhnrqRbw/as6MuAHMcVhp6gCcA==
-X-Received: by 2002:a05:6000:2012:b0:3a0:b84d:805c with SMTP id ffacd0b85a97d-3a35c84ac4cmr7035704f8f.49.1747540562426;
-        Sat, 17 May 2025 20:56:02 -0700 (PDT)
-Received: from gen8.tailc1103.ts.net ([193.57.185.11])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a362b4e2e1sm6730947f8f.96.2025.05.17.20.56.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 May 2025 20:56:01 -0700 (PDT)
-From: Drew Fustini <drew@pdp7.com>
-To: Oliver O'Halloran <oohall@gmail.com>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	nvdimm@lists.linux.dev,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Drew Fustini <drew@pdp7.com>
-Subject: [PATCH] dt-bindings: pmem: Convert binding to YAML
-Date: Sat, 17 May 2025 20:55:38 -0700
-Message-ID: <20250518035539.7961-1-drew@pdp7.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TytcpQk7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 377ADC4CEE7;
+	Sun, 18 May 2025 11:11:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1747566705;
+	bh=jQORaEJCmWX+qNVDyrACWJZ8PX1NcoCkySUGJidoX4Q=;
+	h=Date:Subject:To:References:From:In-Reply-To:From;
+	b=TytcpQk7g6trtxGmQQYzM+elCPnKMUIxMdTeOIg2UcYm1sh06YUd2lhBldBXYQGF6
+	 DAJnm+sE1r0E/RSkTqfqf2mUkhpWb+vRbANqF5ijO5dU9GrgOkptDwwh1Hjgn5LijW
+	 WWQiJxHgyiEnMfSIzBGbsbaUdtZVV4fp+/VoxWZxOawERewKi5/Z0NfzfpKASsk8fV
+	 F/hOBgOf3qbo4BOMmMNKJ11ESvKC04ujtUMiotGNsTCnmgIvCvRUs3T/7OHNn7lO29
+	 +h0qO0Tl+JEoNU+xXWiAtmAx/5dE1teCfRoIkbNCHdPS/zaNlAiclf+yZK+L5EGARi
+	 nqMfUO56F5+eg==
+Message-ID: <7b36d248-7026-4017-be37-e95a0957e57d@kernel.org>
+Date: Sun, 18 May 2025 13:11:41 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] dt-bindings: pmem: Convert binding to YAML
+To: Drew Fustini <drew@pdp7.com>, Oliver O'Halloran <oohall@gmail.com>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>, nvdimm@lists.linux.dev,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20250518035539.7961-1-drew@pdp7.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 a/A=
+In-Reply-To: <20250518035539.7961-1-drew@pdp7.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Convert the PMEM device tree binding from text to YAML. This will allow
-device trees with pmem-region nodes to pass dtbs_check.
+On 18/05/2025 05:55, Drew Fustini wrote:
+> Convert the PMEM device tree binding from text to YAML. This will allow
+> device trees with pmem-region nodes to pass dtbs_check.
+> 
+> Signed-off-by: Drew Fustini <drew@pdp7.com>
+> ---
+>  .../devicetree/bindings/pmem/pmem-region.yaml | 49 +++++++++++++++++++
 
-Signed-off-by: Drew Fustini <drew@pdp7.com>
----
- .../devicetree/bindings/pmem/pmem-region.yaml | 49 +++++++++++++++++++
- MAINTAINERS                                   |  2 +-
- 2 files changed, 50 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.yaml
+I don't see the actual conversion here.
 
-diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.yaml b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-new file mode 100644
-index 000000000000..a4aa4ce3318b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-@@ -0,0 +1,49 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/pmem-region.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+maintainers:
-+  - Bjorn Helgaas <bhelgaas@google.com>
-+  - Oliver O'Halloran <oohall@gmail.com>
-+
-+title: Persistent Memory Regions
-+
-+description: |
-+  Persistent memory refers to a class of memory devices that are:
-+
-+    a) Usable as main system memory (i.e. cacheable), and
-+    b) Retain their contents across power failure.
-+
-+  Given b) it is best to think of persistent memory as a kind of memory mapped
-+  storage device. To ensure data integrity the operating system needs to manage
-+  persistent regions separately to the normal memory pool. To aid with that this
-+  binding provides a standardised interface for discovering where persistent
-+  memory regions exist inside the physical address space.
-+
-+properties:
-+  compatible:
-+    const: pmem-region
-+
-+  reg:
-+    maxItems: 1
-+
-+  volatile:
-+    description: |
-+      Indicates the region is volatile (non-persistent) and the OS can skip
-+      cache flushes for writes
-+    type: boolean
-+
-+required:
-+  - compatible
-+  - reg
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    pmem@5000 {
-+        compatible = "pmem-region";
-+        reg = <0x00005000 0x00001000>;
-+    };
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 96b827049501..68012219f3f7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13564,7 +13564,7 @@ M:	Oliver O'Halloran <oohall@gmail.com>
- L:	nvdimm@lists.linux.dev
- S:	Supported
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
--F:	Documentation/devicetree/bindings/pmem/pmem-region.txt
-+F:	Documentation/devicetree/bindings/pmem/pmem-region.yaml
- F:	drivers/nvdimm/of_pmem.c
- 
- LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
--- 
-2.43.0
 
+Best regards,
+Krzysztof
