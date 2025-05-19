@@ -1,56 +1,27 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A4C20E719
-	for <nvdimm@lists.linux.dev>; Mon, 19 May 2025 19:29:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8AC4B1E73;
+	Mon, 19 May 2025 20:01:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747682946; cv=none; b=doxDbsN6Sh40AbJMRh4OzGa9heljD4PD0wZwiQUWl2ssWY9dIVJAAV+jFrBJdXUuL87Yx8eRHFdssknbpJUF//lI+JjZ4GPmrK98yb8BlgtQUo3yZok84ccmIFh3mj3Su5LUmEFZLHTakB+e3LM5aA0r2DZ32lBdCUmZmBbZnSM=
+	t=1747684867; cv=none; b=o5e9e3Cy1sDdKVSY/5nHvN3nNoqRVcM5ZVpi1+NmjQCPGsnGmrKLnUtqkKJzccYjaPPG82YwRv9VAeg62MEubWuMK+dxHFSMs2NSEzKUWFtuHbfRdTUQ9Fgnyr8KliUSbez34MKGo7zb65E0qK1NPDF4FJJ4d/lVFjiUckDtG3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747682946; c=relaxed/simple;
-	bh=JUIXNfjoB4LSe4KPNAlyjg4xWcdtFtm/JV9Pn68kPFs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VoIS23sBbIGgUZDvIowJJzAlmA8jneYhe7Vsxmt37II5tywuD+3Ky6GiNwBRRdgE+VQaO6BeLoNpMhNKDkEvcYAz4s/iyvso1iPhPJxYbUAqJBgyTS/6mlV5XDhrQ2Hv2bkDYfO4gVS9twsI3ljxdcnYNqI2M65U5shq+SDtKhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m1F3J8lO; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m1F3J8lO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1747682944; x=1779218944;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=JUIXNfjoB4LSe4KPNAlyjg4xWcdtFtm/JV9Pn68kPFs=;
-  b=m1F3J8lOXe2I8RDYi+ZaFGk2qoJV4poTq5shCsCXydMFSxyg8FFtM5fI
-   TkPA+FVEcDDQVYQJUgTl7r8hS4yUwCNBhkFAjOmm1EzoJHRul8129hJgm
-   FVwzcsaS5mWKq/Aj+YwjcvTTj57tMpa1qYemNuVf8KgqtHRB7XYOsb3Dw
-   VobcotWaZ/T+HNHEJshfTxtUx85SyVuC4Jx3xC4AUGgdd8ov+2TXthaNL
-   FkauSYVXz5Ib9e/LMEMnj3tCYRvZcSj7nWAumlKJCZOfdQyxqf+jrUAgB
-   q4ytVZEY0qZQayY38EduxmJDOxsfS35ZqLjDmU2Adoos4XdIcv/sSxiMs
-   w==;
-X-CSE-ConnectionGUID: 2TZ84nu0RHWk1FS6uHKU7Q==
-X-CSE-MsgGUID: OPqNE3twTsKiox2oxq6hIQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11438"; a="67150898"
-X-IronPort-AV: E=Sophos;i="6.15,301,1739865600"; 
-   d="scan'208";a="67150898"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2025 12:29:02 -0700
-X-CSE-ConnectionGUID: ejlzTKMyT7uA4GsCwjqXgg==
-X-CSE-MsgGUID: 0nieJNnbTYuDUL6PJxvB1g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,301,1739865600"; 
-   d="scan'208";a="162758800"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.100])
-  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2025 12:29:02 -0700
-From: alison.schofield@intel.com
-To: nvdimm@lists.linux.dev,
-	Marc Herbert <marc.herbert@linux.intel.com>,
-	Li Zhijian <lizhijian@fujitsu.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH v3] test/monitor.sh: replace sleep with event driven wait
-Date: Mon, 19 May 2025 12:28:56 -0700
-Message-ID: <20250519192858.1611104-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	s=arc-20240116; t=1747684867; c=relaxed/simple;
+	bh=dJ1Sv1Br8WMzR7ssC9Z3i6cZcfcxQmHzZGpf82b+Dxk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hdokouGukyR8AHN+AlMzqL2Gph3xt5Bp4UFOZDsAs09z3eOp3h+2+PE21y3FHiJSm8lmy5cP96DB0uK5dUoh5x0w5dheNGWb5SH2K/MYB5h9qXHJbZgigUKp+IioxShRN5HBJRg5xsjZV+6+xC3ryHmY7wfdYnJMXVWyr/0G/oY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA398C4CEE4;
+	Mon, 19 May 2025 20:01:06 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: alison.schofield@intel.com,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: [NDCTL PATCH v7 0/4] ndctl: Add support and test for CXL Features support
+Date: Mon, 19 May 2025 13:00:50 -0700
+Message-ID: <20250519200056.3901498-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -59,114 +30,73 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Alison Schofield <alison.schofield@intel.com>
+v7:
+- Move enumeration of fwctl behind meson option 'fwctl'. (Dan)
 
-monitor.sh runs for 50 seconds and spends 48 of those seconds sleeping
-after sync. It sleeps for 3 seconds each time it restarts the monitor,
-and 3 seconds before checking for expected log entries.
+v6:
+- Rename cxl-features.control.c back to fwctl.c. (Dan)
+- Move features behind a meson option. (Dan)
+- See individual commits for specific changes from v5.
 
-Add a wait_for_logfile_update() helper that waits a max of 3 seconds
-for an expected string to appear N times in the logfile using tail -F.
+v5:
+- Add documentation for exported symbols. (Alison)
+- Create 'struct cxl_fwctl' as object under cxl_memdev. (Dan)
+- Make command prep common code. (Alison)
+- Rename fwctl.c to cxl-features-control.c. (Alison)
+- See individual commits for specific changes from v4.
 
-Add a "monitor ready" log message to the monitor executable and wait
-for that message once after monitor start. Note that if no DIMM has an
-event flag set, there will be no log entry at startup. Always look for
-the "monitor ready" message.
+v4:
+- Adjust to kernel changes of input/output structs
+- Fixup skip/pass/fail logic
+- Added new kernel headers detection and dependency in meson.build
 
-Expand the check_result() function to handle both the sync and wait
-that were previously duplicated in inject_smart() and call_notify().
-It now waits for the expected N of new log entries.
+v3:
+- Update test to use opcode instead of command id.
 
-Again, looking for Tested-by Tags. Thanks!
+v2:
+- Drop features device enumeration
+- Add discovery of char device under memdev
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
+The series provides support of libcxl enumerating FWCTL character device
+under the cxl_memdev device. It discovers the char device major
+and minor numbers for the CXL features device in order to allow issuing
+of ioctls to the device.
 
-Changes in v3:
-- Add and use a helper that uses tail -F
-- Add ready message to monitor.c
-- Update commit msg and log
-Link to v2: https://lore.kernel.org/nvdimm/20250516044628.1532939-1-alison.schofield@intel.com/
+A unit test is added to locate cxl_memdev exported by the cxl_test
+kernel module and issue all the supported ioctls to the associated
+FWCTL char device to verify that all the ioctl paths are working as expected.
 
-Changes in v2:
-- Poll for 3 seconds instead of removing sleep entirely (MarcH)
-- Update commit msg & log
-Link to v1: https://lore.kernel.org/nvdimm/20250514014133.1431846-1-alison.schofield@intel.com/
+Kernel series: https://lore.kernel.org/linux-cxl/20250207233914.2375110-1-dave.jiang@intel.com/T/#t
+
+Dave Jiang (4):
+  cxl: Add cxl_bus_get_by_provider()
+  cxl: Enumerate major/minor of FWCTL char device
+  ndctl: Add features.h from kernel UAPI
+  cxl/test: Add test for cxl features device
+
+ Documentation/cxl/lib/libcxl.txt |  26 ++
+ config.h.meson                   |   3 +
+ cxl/fwctl/cxl.h                  |  56 ++++
+ cxl/fwctl/features.h             | 179 +++++++++++++
+ cxl/fwctl/fwctl.h                | 141 ++++++++++
+ cxl/lib/libcxl.c                 |  92 +++++++
+ cxl/lib/libcxl.sym               |   8 +
+ cxl/lib/private.h                |   6 +
+ cxl/libcxl.h                     |   7 +
+ meson.build                      |   1 +
+ meson_options.txt                |   2 +
+ test/cxl-features.sh             |  31 +++
+ test/fwctl.c                     | 439 +++++++++++++++++++++++++++++++
+ test/meson.build                 |  19 ++
+ 14 files changed, 1010 insertions(+)
+ create mode 100644 cxl/fwctl/cxl.h
+ create mode 100644 cxl/fwctl/features.h
+ create mode 100644 cxl/fwctl/fwctl.h
+ create mode 100755 test/cxl-features.sh
+ create mode 100644 test/fwctl.c
 
 
- ndctl/monitor.c |  2 +-
- test/monitor.sh | 24 +++++++++++++++++++++---
- 2 files changed, 22 insertions(+), 4 deletions(-)
-
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index bd8a74863476..925b37f4184b 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -658,7 +658,7 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
- 			rc = -ENXIO;
- 		goto out;
- 	}
--
-+	info(&monitor, "monitor ready\n");
- 	rc = monitor_event(ctx, &mfa);
- out:
- 	if (monitor.ctx.log_file)
-diff --git a/test/monitor.sh b/test/monitor.sh
-index be8e24d6f3aa..d0666392ab5b 100755
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -21,12 +21,28 @@ trap 'err $LINENO' ERR
- 
- check_min_kver "4.15" || do_skip "kernel $KVER may not support monitor service"
- 
-+wait_for_logfile_update()
-+{
-+	local expect_string="$1"
-+	local expect_count="$2"
-+
-+	# Wait up to 3s for $expect_count occurrences of $expect_string
-+	# tail -n +1 -F: starts watching the logfile from the first line
-+
-+	if ! timeout 3s tail -n +1 -F "$logfile" | grep -m "$expect_count" -q "$expect_string"; then
-+		echo "logfile not updated in 3 secs"
-+		err "$LINENO"
-+	fi
-+}
-+
- start_monitor()
- {
- 	logfile=$(mktemp)
- 	$NDCTL monitor -c "$monitor_conf" -l "$logfile" $1 &
- 	monitor_pid=$!
--	sync; sleep 3
-+
-+	sync
-+	wait_for_logfile_update "monitor ready" 1
- 	truncate --size 0 "$logfile" #remove startup log
- }
- 
-@@ -49,17 +65,19 @@ get_monitor_dimm()
- call_notify()
- {
- 	"$TEST_PATH"/smart-notify "$smart_supported_bus"
--	sync; sleep 3
- }
- 
- inject_smart()
- {
- 	$NDCTL inject-smart "$monitor_dimms" $1
--	sync; sleep 3
- }
- 
- check_result()
- {
-+	sync
-+	expect_count=$(wc -w <<< "$1")
-+	wait_for_logfile_update "timestamp" "$expect_count"
-+
- 	jlog=$(cat "$logfile")
- 	notify_dimms=$(jq ."dimm"."dev" <<<"$jlog" | sort | uniq | xargs)
- 	[[ "$1" == "$notify_dimms" ]]
+base-commit: 1850ddcbcbf9eebd343c6e87a2c55f3f5e3930c4
 -- 
-2.37.3
+2.49.0
 
