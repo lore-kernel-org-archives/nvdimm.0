@@ -1,105 +1,172 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0853A20ADCF;
-	Sun, 18 May 2025 11:11:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A4C20E719
+	for <nvdimm@lists.linux.dev>; Mon, 19 May 2025 19:29:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747566706; cv=none; b=nzOLKPUJ9mVwBemUxuJG3/vPS9LUJcWPwK+7m+upbyHewhGq+LIQyO4+/NvTGTm07evTaIvttnMDuqZ7Gc62szKjObAR7fSk6TpLh/3x6q5Zrt3GwuL/747y+w/VLToiVgcGXHRcC4fNzwAGMriVbfb1gR0YURq1lffVGmlDevA=
+	t=1747682946; cv=none; b=doxDbsN6Sh40AbJMRh4OzGa9heljD4PD0wZwiQUWl2ssWY9dIVJAAV+jFrBJdXUuL87Yx8eRHFdssknbpJUF//lI+JjZ4GPmrK98yb8BlgtQUo3yZok84ccmIFh3mj3Su5LUmEFZLHTakB+e3LM5aA0r2DZ32lBdCUmZmBbZnSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747566706; c=relaxed/simple;
-	bh=jQORaEJCmWX+qNVDyrACWJZ8PX1NcoCkySUGJidoX4Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=q8Gcs/EWQco4jHzFX79MfVStj+Vqg9LKYT8DYYIWNZTwYfee5H4CX9LDfkFCJYgZqG62UDUm2+BUhLdit4LgqgjocpLyZPCSAyHX2bXP0dAHQn+z/Uq4qEMKV5bJZ/7cOJ+0NA1KenhdbJA00ALVuL2+FCA5tOnhLd/7oK5IQh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TytcpQk7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747682946; c=relaxed/simple;
+	bh=JUIXNfjoB4LSe4KPNAlyjg4xWcdtFtm/JV9Pn68kPFs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VoIS23sBbIGgUZDvIowJJzAlmA8jneYhe7Vsxmt37II5tywuD+3Ky6GiNwBRRdgE+VQaO6BeLoNpMhNKDkEvcYAz4s/iyvso1iPhPJxYbUAqJBgyTS/6mlV5XDhrQ2Hv2bkDYfO4gVS9twsI3ljxdcnYNqI2M65U5shq+SDtKhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m1F3J8lO; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TytcpQk7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 377ADC4CEE7;
-	Sun, 18 May 2025 11:11:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1747566705;
-	bh=jQORaEJCmWX+qNVDyrACWJZ8PX1NcoCkySUGJidoX4Q=;
-	h=Date:Subject:To:References:From:In-Reply-To:From;
-	b=TytcpQk7g6trtxGmQQYzM+elCPnKMUIxMdTeOIg2UcYm1sh06YUd2lhBldBXYQGF6
-	 DAJnm+sE1r0E/RSkTqfqf2mUkhpWb+vRbANqF5ijO5dU9GrgOkptDwwh1Hjgn5LijW
-	 WWQiJxHgyiEnMfSIzBGbsbaUdtZVV4fp+/VoxWZxOawERewKi5/Z0NfzfpKASsk8fV
-	 F/hOBgOf3qbo4BOMmMNKJ11ESvKC04ujtUMiotGNsTCnmgIvCvRUs3T/7OHNn7lO29
-	 +h0qO0Tl+JEoNU+xXWiAtmAx/5dE1teCfRoIkbNCHdPS/zaNlAiclf+yZK+L5EGARi
-	 nqMfUO56F5+eg==
-Message-ID: <7b36d248-7026-4017-be37-e95a0957e57d@kernel.org>
-Date: Sun, 18 May 2025 13:11:41 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m1F3J8lO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1747682944; x=1779218944;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=JUIXNfjoB4LSe4KPNAlyjg4xWcdtFtm/JV9Pn68kPFs=;
+  b=m1F3J8lOXe2I8RDYi+ZaFGk2qoJV4poTq5shCsCXydMFSxyg8FFtM5fI
+   TkPA+FVEcDDQVYQJUgTl7r8hS4yUwCNBhkFAjOmm1EzoJHRul8129hJgm
+   FVwzcsaS5mWKq/Aj+YwjcvTTj57tMpa1qYemNuVf8KgqtHRB7XYOsb3Dw
+   VobcotWaZ/T+HNHEJshfTxtUx85SyVuC4Jx3xC4AUGgdd8ov+2TXthaNL
+   FkauSYVXz5Ib9e/LMEMnj3tCYRvZcSj7nWAumlKJCZOfdQyxqf+jrUAgB
+   q4ytVZEY0qZQayY38EduxmJDOxsfS35ZqLjDmU2Adoos4XdIcv/sSxiMs
+   w==;
+X-CSE-ConnectionGUID: 2TZ84nu0RHWk1FS6uHKU7Q==
+X-CSE-MsgGUID: OPqNE3twTsKiox2oxq6hIQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11438"; a="67150898"
+X-IronPort-AV: E=Sophos;i="6.15,301,1739865600"; 
+   d="scan'208";a="67150898"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2025 12:29:02 -0700
+X-CSE-ConnectionGUID: ejlzTKMyT7uA4GsCwjqXgg==
+X-CSE-MsgGUID: 0nieJNnbTYuDUL6PJxvB1g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,301,1739865600"; 
+   d="scan'208";a="162758800"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.100])
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2025 12:29:02 -0700
+From: alison.schofield@intel.com
+To: nvdimm@lists.linux.dev,
+	Marc Herbert <marc.herbert@linux.intel.com>,
+	Li Zhijian <lizhijian@fujitsu.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH v3] test/monitor.sh: replace sleep with event driven wait
+Date: Mon, 19 May 2025 12:28:56 -0700
+Message-ID: <20250519192858.1611104-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] dt-bindings: pmem: Convert binding to YAML
-To: Drew Fustini <drew@pdp7.com>, Oliver O'Halloran <oohall@gmail.com>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>, nvdimm@lists.linux.dev,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20250518035539.7961-1-drew@pdp7.com>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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 a/A=
-In-Reply-To: <20250518035539.7961-1-drew@pdp7.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 18/05/2025 05:55, Drew Fustini wrote:
-> Convert the PMEM device tree binding from text to YAML. This will allow
-> device trees with pmem-region nodes to pass dtbs_check.
-> 
-> Signed-off-by: Drew Fustini <drew@pdp7.com>
-> ---
->  .../devicetree/bindings/pmem/pmem-region.yaml | 49 +++++++++++++++++++
+From: Alison Schofield <alison.schofield@intel.com>
 
-I don't see the actual conversion here.
+monitor.sh runs for 50 seconds and spends 48 of those seconds sleeping
+after sync. It sleeps for 3 seconds each time it restarts the monitor,
+and 3 seconds before checking for expected log entries.
+
+Add a wait_for_logfile_update() helper that waits a max of 3 seconds
+for an expected string to appear N times in the logfile using tail -F.
+
+Add a "monitor ready" log message to the monitor executable and wait
+for that message once after monitor start. Note that if no DIMM has an
+event flag set, there will be no log entry at startup. Always look for
+the "monitor ready" message.
+
+Expand the check_result() function to handle both the sync and wait
+that were previously duplicated in inject_smart() and call_notify().
+It now waits for the expected N of new log entries.
+
+Again, looking for Tested-by Tags. Thanks!
+
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+
+Changes in v3:
+- Add and use a helper that uses tail -F
+- Add ready message to monitor.c
+- Update commit msg and log
+Link to v2: https://lore.kernel.org/nvdimm/20250516044628.1532939-1-alison.schofield@intel.com/
+
+Changes in v2:
+- Poll for 3 seconds instead of removing sleep entirely (MarcH)
+- Update commit msg & log
+Link to v1: https://lore.kernel.org/nvdimm/20250514014133.1431846-1-alison.schofield@intel.com/
 
 
-Best regards,
-Krzysztof
+ ndctl/monitor.c |  2 +-
+ test/monitor.sh | 24 +++++++++++++++++++++---
+ 2 files changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index bd8a74863476..925b37f4184b 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -658,7 +658,7 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 			rc = -ENXIO;
+ 		goto out;
+ 	}
+-
++	info(&monitor, "monitor ready\n");
+ 	rc = monitor_event(ctx, &mfa);
+ out:
+ 	if (monitor.ctx.log_file)
+diff --git a/test/monitor.sh b/test/monitor.sh
+index be8e24d6f3aa..d0666392ab5b 100755
+--- a/test/monitor.sh
++++ b/test/monitor.sh
+@@ -21,12 +21,28 @@ trap 'err $LINENO' ERR
+ 
+ check_min_kver "4.15" || do_skip "kernel $KVER may not support monitor service"
+ 
++wait_for_logfile_update()
++{
++	local expect_string="$1"
++	local expect_count="$2"
++
++	# Wait up to 3s for $expect_count occurrences of $expect_string
++	# tail -n +1 -F: starts watching the logfile from the first line
++
++	if ! timeout 3s tail -n +1 -F "$logfile" | grep -m "$expect_count" -q "$expect_string"; then
++		echo "logfile not updated in 3 secs"
++		err "$LINENO"
++	fi
++}
++
+ start_monitor()
+ {
+ 	logfile=$(mktemp)
+ 	$NDCTL monitor -c "$monitor_conf" -l "$logfile" $1 &
+ 	monitor_pid=$!
+-	sync; sleep 3
++
++	sync
++	wait_for_logfile_update "monitor ready" 1
+ 	truncate --size 0 "$logfile" #remove startup log
+ }
+ 
+@@ -49,17 +65,19 @@ get_monitor_dimm()
+ call_notify()
+ {
+ 	"$TEST_PATH"/smart-notify "$smart_supported_bus"
+-	sync; sleep 3
+ }
+ 
+ inject_smart()
+ {
+ 	$NDCTL inject-smart "$monitor_dimms" $1
+-	sync; sleep 3
+ }
+ 
+ check_result()
+ {
++	sync
++	expect_count=$(wc -w <<< "$1")
++	wait_for_logfile_update "timestamp" "$expect_count"
++
+ 	jlog=$(cat "$logfile")
+ 	notify_dimms=$(jq ."dimm"."dev" <<<"$jlog" | sort | uniq | xargs)
+ 	[[ "$1" == "$notify_dimms" ]]
+-- 
+2.37.3
+
