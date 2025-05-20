@@ -1,97 +1,95 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30B28255E32
-	for <nvdimm@lists.linux.dev>; Tue, 20 May 2025 19:11:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DB9F2820D3
+	for <nvdimm@lists.linux.dev>; Tue, 20 May 2025 19:25:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.19
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747768289; cv=fail; b=MZSVJandqtGi3uacuNj2iczZDSXGuFY7DXjoaoyiYsOHUKydDRV+QOTIvz3W2i9CAr9TDdp25OFGQbokRTrBPaycsJwGaQ4rlIW4Ue4LmPf6YOPgwX644YJMJyEIRoFXmiyAD1Zu/aqkPbK7QTFBcCTsjrUNGbXliS1aGLqMrqY=
+	t=1747769131; cv=fail; b=umkovoV1ixdaC6wDaJAVhbSJRaGXKQWNwmx8SHQ3aMxc5rQ8dBHRYrRJkMrytp93PhPjCzbQXc14RO2rsaogZyDLglApH+F7PfNx0ydjjmlW02M63oG3YwoVYHn6VeLlJRZP5n7Xr//lmrVfjYiIK/GR25bpiYOfzYD+pBU86Xo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747768289; c=relaxed/simple;
-	bh=6W/N+C1eqjH3EmecxpYDcY7h+dimj9ezJrrESrStWCA=;
+	s=arc-20240116; t=1747769131; c=relaxed/simple;
+	bh=0Ymr089UuuFA4g9dny884V+MFieb22sFDRpC7KhvthU=;
 	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=qvU9nCQ5bFZL+2qNCWOHpbEI4HTmTlM7CkXYw5+akZtW/wLKuTpEDUA91CYo1kZf9vr/h0lu0nZDqulYle3Lr8FFgMv3tNbRqKH/xtaPJW8ml2eWa+pdcQgtdfvWMUzuqSj3BMZ2jhbDwiT89QduznC+0CFTY3qVzIFb2wvrkMI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=djLhyiMb; arc=fail smtp.client-ip=198.175.65.18
+	 Content-Disposition:In-Reply-To:MIME-Version; b=SIyIn2Npxgtpvxcbhm4CcU08oRAfzEd9qCo+F5MWwpzH4z0agTw+zuPecFJM8HpYzBLuoT8YIPOuxJ5k0W97FqDckkFo1Ap9mz6ejqPid7oAcQR5tYZeyu8J99FkZ5ddtGG13HBfTkp7//sl1mUPr865E/rqrcPXjxTXW4FvaNs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=k3zRo/JE; arc=fail smtp.client-ip=198.175.65.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="djLhyiMb"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="k3zRo/JE"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1747768288; x=1779304288;
+  t=1747769130; x=1779305130;
   h=date:from:to:cc:subject:message-id:references:
-   content-transfer-encoding:in-reply-to:mime-version;
-  bh=6W/N+C1eqjH3EmecxpYDcY7h+dimj9ezJrrESrStWCA=;
-  b=djLhyiMbilMJPt6/QMTp2fRbYApK0CeJev7JDmUqX94TaEG8shFgOJHi
-   SaYVm42o3WFxdavTJ4PO8Ao+41NgbavWCuefNdkgJrPyovKhf9mnAaxM3
-   fYD34o9siY7Mcb37iFMbwZu32WJJ1tVOBuunnYSqLREN7gljhGf+7u4iZ
-   q0XRUk8G4V9BVfgkO3HmVjkzdEU5ULuYilC4bH4Rm2HSxtJj8O1KOqVWx
-   WB7w+MF3ZMZRvheU/qHv4NUU0CnNCjs4tdN/JPUNyaRWNyQZBzF+pLHnu
-   gStizBh8mJqpkFv9pzth9SOiXI34CmzPc9AHaJ2twEgK/Ey+JG1okaFag
-   A==;
-X-CSE-ConnectionGUID: rkuWjMDCT2GiOSDvsT/Maw==
-X-CSE-MsgGUID: XqRtKqlzQKSC+EauWzWVxg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11439"; a="49874080"
+   in-reply-to:mime-version;
+  bh=0Ymr089UuuFA4g9dny884V+MFieb22sFDRpC7KhvthU=;
+  b=k3zRo/JE6WG/yVTdJm1fvVM8Z0rjvjxg1snfpzAY3ibeXOfjfUr6BN0t
+   dKo+1tVgAKFChZjxLllJccd1NbEXnbTvGuQfiXZspB77AZiirklkLC2VH
+   pHZkihK5vg9Ri6b8buy5W6ZOA+/ilSCY1KRrusu3zt6P/y4P6yb1cn+ZK
+   T1sJpifHr6cy+zzHyfUXhVJJzZiuMRPrQA4PAF0P8OpwyJaapBSagdNkI
+   yXznR9FAkM33wVLBLOsED2Idwc7RNGVISvxDtb8ZHw+MZWV63hhlFoVic
+   sCs9aprfVkucEJkj/PHo+uzZvyyg8bUhFZ7HHwA6sl+BKwJrdBBpvkwrI
+   g==;
+X-CSE-ConnectionGUID: GYVkIYYoQg6X3DWjmbdRQA==
+X-CSE-MsgGUID: GM4QVgBrRqeiPzsiP2YCFw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11439"; a="49593331"
 X-IronPort-AV: E=Sophos;i="6.15,302,1739865600"; 
-   d="scan'208";a="49874080"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2025 12:11:27 -0700
-X-CSE-ConnectionGUID: OVtoksgBTSW1dkho68KLrA==
-X-CSE-MsgGUID: QdGnT2UwQvy5Z6yi7ZfB0g==
+   d="scan'208";a="49593331"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2025 12:25:29 -0700
+X-CSE-ConnectionGUID: goKhzZh+T7qvjI+MPvPnJg==
+X-CSE-MsgGUID: vv6U+7y9TPaPsAjj5gtq6w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.15,302,1739865600"; 
-   d="scan'208";a="163070599"
-Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
-  by fmviesa002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2025 12:11:27 -0700
+   d="scan'208";a="139666363"
+Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
+  by orviesa006.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2025 12:25:29 -0700
 Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Tue, 20 May 2025 12:25:28 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
  ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Tue, 20 May 2025 12:11:26 -0700
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ 15.2.1544.25 via Frontend Transport; Tue, 20 May 2025 12:25:28 -0700
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.57.45) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25 via Frontend Transport; Tue, 20 May 2025 12:11:26 -0700
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.41) by
- edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.55; Tue, 20 May 2025 12:11:26 -0700
+ 15.1.2507.55; Tue, 20 May 2025 12:25:27 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=GytGtQGTMedDzuiwlgiZYQkKPCdzCDzXtXgoHZeAXyMgaCXJhGSB0KeTzyQEae8UV8rctBUtwB2wf1qvbqBJUkp7Fe2iZzYsu9JhQOKulxN/FCcfhK1qbfCqdOi5iCqm6hpUScSoU0v8CEEpMu1mDa4EeakITMRK5AopupXiBC77OmvTUruH88HiKaXCNvbRTXYOAOuCa/eRrspWrb3dotSJiLuVdu7UAEYwNBmtqDVr5k9lgA1nYQH/WLh9KnPyNIfVUiq4u312ysJtj8N4WxzX5Pi9+eUw349zHs0bH426Lns9lLy7tRwgsVuS7N/LFPNq/zol6ZXvcek0m2rb1A==
+ b=akpCGn5KJTk4OI4KfRGcQGxba7plXTHkv61wLgpO1gCKr7ZC3GFBpSuhQsxGjk+rYrk6HQZh41dMZOcmGmmz6BZvPXc5JPIh+7L8OEA8QtUblydViKRKDURV2QCzg/eWbrAMb+EdwpJlkqgFdEo8heck/xVSRme/Hej0xdGm0Dgw6ll3I9rYTOXkK/kDW2UnQSIR5O5zcw5K1/yEPF5Zw6OFTHN1emR5XE4K7SgxO5753T78Saw5fupltpi7H+jO6qLG7gRKaDhapA8QTA72WH0yvB4ol6NahRcRZ4+TfSmmNRjCOGI00xeRcFYGMTit2bkqr7qWnrOnEpgOgzNdwQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=X7sm9f/wbQ3nO5nFB/ALpFvrYrMpDA+2J2P/P05i7TI=;
- b=LuwjrfYNajvqMw2ydJZ8TZClAkqo/Sg9b0IK8Ks7MifZ3Vr8pQpx9eLg8pBmFnFvHBp1d0YJBDRpzMuT5NiaYE6cZDZ5yf56eZThZSVXWLDcpbASKvTvtMfWC4eydPoBpXqRLRKQUtDd/YQyxh9jlc+ohM99jl7i+RrDHwTPzxKluZvaRWg5TSpq83yYHgo2dTnUqaB+DdsApBXnCGATWI8GcCYHYS4wYDRV48oHIMg57fJlZOtfdA7X0geqgROvdN5EaeCpQgwkxSJz/9l/dEgchKV3FhpBcFmbqSQuutAoZCBzWHlZMr/lepGkWqtS4/Er+P3oQkdFJUQH/78Miw==
+ bh=FJGovIzb7YLGg3beWW5D6w8BIBfsUvqJ27bh46jlvRE=;
+ b=BA1lbPYpNu+tT0LgE3wZov1Y01u50Id0d0qokx5D7oIUny7+z5sk3RV0HGJM0Rvgtwpg7vTzgIWQoYkUFkoFJRPWyC8VtNOYJfYuAVqdrUmoMp+7cJ4hPB+8cD/aqgx0pgqXEQBDeSW06CSUPhnXHzj5J07bOnHUAYSV6cuLtroVVlSZ7m5TAWLe21r0plh3eTUB/lSL0we6ZLOoR8vps0BSP6mGdJW4/d3Atqvu8i2ojOeEPX1EW8OIrf4fpHFjSuqeo9cF8cUGh2R2o0VSoPujuTcLk0VtxHs2qNAdABH47GuBFC35bqk/lBeVk3DA9ke5l8vjGs9AHjfv6DKtGg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from SA1PR11MB8794.namprd11.prod.outlook.com (2603:10b6:806:46a::5)
- by LV3PR11MB8766.namprd11.prod.outlook.com (2603:10b6:408:212::18) with
+ by DS7PR11MB6063.namprd11.prod.outlook.com (2603:10b6:8:76::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8746.30; Tue, 20 May
- 2025 19:11:23 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8746.31; Tue, 20 May
+ 2025 19:25:23 +0000
 Received: from SA1PR11MB8794.namprd11.prod.outlook.com
  ([fe80::a3d4:9d67:2f5d:6720]) by SA1PR11MB8794.namprd11.prod.outlook.com
  ([fe80::a3d4:9d67:2f5d:6720%5]) with mapi id 15.20.8746.030; Tue, 20 May 2025
- 19:11:23 +0000
-Date: Tue, 20 May 2025 12:11:20 -0700
+ 19:25:22 +0000
+Date: Tue, 20 May 2025 12:25:15 -0700
 From: Alison Schofield <alison.schofield@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>
 CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>, Dan Williams
 	<dan.j.williams@intel.com>
-Subject: Re: [NDCTL PATCH v7 2/4] cxl: Enumerate major/minor of FWCTL char
- device
-Message-ID: <aCzT2BE8Ckhhz_LK@aschofie-mobl2.lan>
+Subject: Re: [NDCTL PATCH v7 4/4] cxl/test: Add test for cxl features device
+Message-ID: <aCzXG9IwG6Xr-ssY@aschofie-mobl2.lan>
 References: <20250519200056.3901498-1-dave.jiang@intel.com>
- <20250519200056.3901498-3-dave.jiang@intel.com>
-Content-Type: text/plain; charset="utf-8"
+ <20250519200056.3901498-5-dave.jiang@intel.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250519200056.3901498-3-dave.jiang@intel.com>
-X-ClientProxiedBy: BYAPR11CA0102.namprd11.prod.outlook.com
- (2603:10b6:a03:f4::43) To SA1PR11MB8794.namprd11.prod.outlook.com
+In-Reply-To: <20250519200056.3901498-5-dave.jiang@intel.com>
+X-ClientProxiedBy: BYAPR06CA0016.namprd06.prod.outlook.com
+ (2603:10b6:a03:d4::29) To SA1PR11MB8794.namprd11.prod.outlook.com
  (2603:10b6:806:46a::5)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -100,109 +98,638 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB8794:EE_|LV3PR11MB8766:EE_
-X-MS-Office365-Filtering-Correlation-Id: e1390517-e416-430c-ce6c-08dd97d21c66
+X-MS-TrafficTypeDiagnostic: SA1PR11MB8794:EE_|DS7PR11MB6063:EE_
+X-MS-Office365-Filtering-Correlation-Id: ebe6e9c3-95e5-49b6-f95b-08dd97d410b3
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?NFpYUXlsSDJ0TjkwSHVwelMyclJOZmY3WnM3bXlYL3JwakZEdjUwYUxUWXlC?=
- =?utf-8?B?cGNHVW1YNGM3Q1M0RVFSeFFTNVd4UkljbXIyM29DQXF2N0dIMitMMmRDd2hn?=
- =?utf-8?B?MzdOWmNNbmFuKzBWUnEwRkxNVFdDSzhkMG5FSXFpY0tMS0hUR0VOV0xZNG1G?=
- =?utf-8?B?emx5cjgra1NZTVpmVkcyNCsvbVV0MWlUL2s0RllSZWlMN1FNb21xQWx2TDBV?=
- =?utf-8?B?eU9wYlJnZG9qRzVJeWQ2dzh0dmwvNU5IcUtiVUhIcW5PWWFKTEIwQW5zREx4?=
- =?utf-8?B?NWE0eWRlMk9ZdS9ZWFZCZkd6bERpSWhBV1M4YW13ajdFUFlGeThNMTJOY2s4?=
- =?utf-8?B?dFVRWmVNa2hJdUpEc1ZBQ2pTZmlhV2EyMngwR2Rrd0ttV0Zpd2dtRG55bEJ4?=
- =?utf-8?B?TTVtOHNkQ1RyUlh6enc0djErZHNQRGZkbWdLd3o5dklHTE4zS295NVJ4U0NJ?=
- =?utf-8?B?Nnl0V2hpTm92OUxtRlBmN2N2WDNnZS9MRXBhSWc1clphUFNFK2R6T0dmMWs0?=
- =?utf-8?B?VW5DSENBUXM3cllBQXZMdC8yNGZDd3VPZXNpR0tGd2NTdDAxQmhVRVhhSU1H?=
- =?utf-8?B?b01XN25GbkRxZmNhVVJtZTVIQUl2VjVmZXVqN2dpd2pKWEVENmNFSUhHYUNy?=
- =?utf-8?B?eWl4L1dQdFk5VVFHNWFKemNZZ09OUzBRdU5UMHdUczRmeGpycDkyMzJ1b3Jz?=
- =?utf-8?B?UWNVZVc0dEJtV0ZhQ3lHSUJCa0VsUkZPd0FmZXV1TDBWOXdsTUF5SjRNRnJ0?=
- =?utf-8?B?UXpVZzB2aW9DMXhCZmk3OXhDSVFoNzFxNGhLSTUrR1Zyd2NYK2JhbkxvUXhx?=
- =?utf-8?B?TkRHUHJncjU2NkhKcEJYZ3AwaWVHdjFJWTlua0lDYnVOaDY3RktsT2cxdUhw?=
- =?utf-8?B?SHh0K1FyR1RXRVVGV1ZXcE5NMDQzUEFLN0trbndZVzRNZEh5bUZFV21ZQSt2?=
- =?utf-8?B?M3Q4UTh6bGN1ZDg3ZVVjbkYzOWJTcWFINUFvZUY0aU44WHIrZEFzcjNDdy91?=
- =?utf-8?B?SjI4MzZ4N05oZHB2RlNCSVRkcjFVRVYxRUREZlRoYTNObVdaTldVUzhCdGc0?=
- =?utf-8?B?b0hEUHhWdytsRDlnSFNpZnArdnRDS0NsdElnMEF6TFc2aWRnemp4TUhlSHY0?=
- =?utf-8?B?Ky9uMmFWV29RUDRYR0VLb1hNaFJuc01BWHg4aUtqT0dKY2ZoenVnV0I4cHps?=
- =?utf-8?B?TWZDZ1Y2azFsOWlvTHpkR0FKR0ZUZTZOVkdLeEVoT2JyV3R5TjltS2xzNUFH?=
- =?utf-8?B?em5rbGxrVXR1aHUzMDNadzNkYUVWbXV2b0RTTUV2U3BmZVVqR0lYZGlVSmxR?=
- =?utf-8?B?bDBGZ2pwU1Fadkd6VDBKcTczYmhFU3dzdk1HWC93b0JVRUdHc0hjbkdBM1VO?=
- =?utf-8?B?Q3hjNExVUzBNdEdzRjcrM3RZSlp1S2lZV2ZXNk5tdEh6a0E2eTFMcHNhVkNw?=
- =?utf-8?B?SDNtcTg1K0lvYTVhOWRJRXhKUzBjTmc1U3diTlNnUU5QMkd0eTJvZ20wZzha?=
- =?utf-8?B?a0MzUUdMS1VhM2I1YmZqSHBsUUpFT09tMTZ6SEhYUUJDU3NGSXpiREhCYlVh?=
- =?utf-8?B?MHo1VXRGaDJmTldZbmVjeHJFMzFlUmNiWktPREVPcUtrMElHTzlvajRYOGth?=
- =?utf-8?B?K1RXaXRJU2RYMjN0VmFoeHJEb1ZGMDV6ZEw2MEZNYW1may9sUFFkcHR1N2E3?=
- =?utf-8?B?MjIwMnp5TzJQdWtTczIwSkthZWd4R3doQkd0SGlTNkdVTzRUSFhsU1RzUnVQ?=
- =?utf-8?B?SFcwME0zNU5UUXlSQ3B6YVFiTGFlNFJ0dUY3Qjc0ZmxDUlMwUXBVcGE0Ui9q?=
- =?utf-8?B?eDlKNE42Kzk5OXZlV0lMeUpBV3RqeXBBT0hxK3RMY1Zuckw5OVYvdm5lTHhD?=
- =?utf-8?B?bWs0YXQ3OGM5dEdXVHR1WElWbGhSazdXYjh5bkd1UVZ1dTE0NFR3M09uTVhO?=
- =?utf-8?Q?LTgpOEFX434=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB8794.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?UAR2dBr/C9eenCPqkhblzt57LngjHjJsb/7W0XF0bp9+WFOTqqoDJ9DR49rJ?=
+ =?us-ascii?Q?/BsoOzel3gCaF2riNz+Zmi7+C5GPQHROejTi1ldgIwFNjzAH8WHtF0LkQIkR?=
+ =?us-ascii?Q?Z78bngPneqlYDJMiJy51D2Qgsap503B09uTsRtkafP6J0cnWvLtSQ0NNCZ3A?=
+ =?us-ascii?Q?ZvW9uA0Pq0df47uQ/ffTjSWlSOebzWuk8H6caf3Ki1KPRCDX9NQdvN+qEsOA?=
+ =?us-ascii?Q?UmeF4D0pA2TzqweUz3k8p4Ee87c2bQ/uJ28DFmuaJWiTXAri83eWSU9yguVv?=
+ =?us-ascii?Q?DERM2WuFe9KGWVWsWpBuwjMCMG0zv37IDxIFqvPSa9rz2mKZz//pO9biuqZ6?=
+ =?us-ascii?Q?mSAY+iDjwmIDzweKd248XaBGcCn1eH9xSqcZKPQU0awiZdF/AsxlDJB8zdvi?=
+ =?us-ascii?Q?3waw/cX47XD2z5dMNIKJUgMTYwfx+05psjq5CqE6C8B4zu51zRRrD8eezIxW?=
+ =?us-ascii?Q?dt08bSLT4N+Vq6crVraLeNv03NLjN946fS8v3LaFaXCxcaNZXEjxAXOa8xcN?=
+ =?us-ascii?Q?6IMTUrwctFDFkUjddl77XLsNiHzF89dRIVptdVPRFdp5YdenqzqtG3hhOCEu?=
+ =?us-ascii?Q?F52CtiWZr/VWJZd6f/ghfY0n/hBmmywlr0YNFueWYPYRvoPu5GGRdKII8Ft5?=
+ =?us-ascii?Q?g1sY/0CY9C7mTP7KxzuIr9uyHnx1rY7aMmtk3PkpZUuNhFYD5F5vM6GdBJSV?=
+ =?us-ascii?Q?fjbe0TlZBwrqwTwdbIch//zn39mGE9+yWscJZuqH2RwMtRrb7bG/4HpzoS+E?=
+ =?us-ascii?Q?q5G4FaHc+FSWcScOwIUJwZt/CGyugt15+LfKm/1+MoNoXVqtHAMSKRcuOI3W?=
+ =?us-ascii?Q?KG7GEnjtFlL0O7zDLFiCMyF3uaB7zp//F9DAME7qSSXcit0slYHYHF2zpDCE?=
+ =?us-ascii?Q?T0uwI4OFIwkNbbu1hImZQfihjBpRi5mhEysW6wJ4zWGK8TIFvrR9mnLgcFbt?=
+ =?us-ascii?Q?KmiPSBogz2B/rhTyikbSv02hYJ2UTylXj/P6fXxQLOvUZ1VItvbeEC4CcmxD?=
+ =?us-ascii?Q?T2Awrq8+7sy+l9rAx9rIp+ViUuH90McsRyA6nK3im9b9aQhbO7hWgHV7Z7Ri?=
+ =?us-ascii?Q?JI73HT7sqdIdCwnfeet7OJmi4DEDbVOqyAJUSWIPAnFo4fCXCqC8+lka+our?=
+ =?us-ascii?Q?gt3TOfwH+xuSCTolJFayestm7I6H9rwXeJ2HAGQt3dHf/sXub9K85m0l1brr?=
+ =?us-ascii?Q?yjN2a4flBxpRhSt7fkPUqPs9wi8AI8ZE+BdPIuJSHVxjI+X0myp5cpk0ze0r?=
+ =?us-ascii?Q?U2C42hy+jPtqPsJezR929zr9FNE5+RnCVb49dvIcZKrwdin1kqPNFSn5uOrX?=
+ =?us-ascii?Q?ssNl7HZQnoQMBPQQYEIRabUt+YsvxTvT5C9nbcOpTQFU6Ttmxkr410/Q+Tp2?=
+ =?us-ascii?Q?46WzENDCr2XS+r8lnN7hhMhWU8Tia/1Nf5X+lmDcZJWKyoPFurULh0oSgrg7?=
+ =?us-ascii?Q?5150zozTM6k=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB8794.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?cXkzcGJ1NDhDNXMrZ1hDZkd1S0J2b1paSW9RcnQ4dUJhYVJaYzR5Z0kyb0hP?=
- =?utf-8?B?K2hQcU01RVk4Q3BXMDcxaVZ0czVnV1ZaS1FIS0FHUURUd3BXelUzdUJTNmZE?=
- =?utf-8?B?ZVFSbHFlM1lUMzVkbnV4UWJqRmxHaUQxUzdubi9XV2lFR2d2c0tjMHdydWh4?=
- =?utf-8?B?dUFYOG9LS0dhZzdVU1BRd01zdjhQUWFrR3k0dldBNGV3bC9ndEg3RFhsZUF1?=
- =?utf-8?B?NjF4REg2cHJzQ2ZBRkNLeW54bUJWUFJsREgvN2x5SGVrUmU0YkVBV2F0c0wv?=
- =?utf-8?B?MHJYaXEweWw0M2xONmczZG9SQnZFZmJ2VGsrcHhPeEh6cmk4UW8yYjV2NTlZ?=
- =?utf-8?B?V3JMMlRpLzhUSlVtM3F0dW9XS3d0NEszYkdKcGpEZHlwL0MwVThTeGVuZFcv?=
- =?utf-8?B?Sk5sd0tRekl4QzY5OFZDWm4zVWpJZXgrS1NtdU9LQzM3RzhPWVhoMFltdmZ4?=
- =?utf-8?B?aUsrNHdYZC9IbFhnZ2VPd1VyL3R1aVpvVUpvaFlCZVdzTE9DT3B1OHFtaWxz?=
- =?utf-8?B?SXVaMHBtVkdCWndtQVYxUEhYOEpoSHVpbkVqQzZXTkVwdXhyaUtYcFdJU2Z1?=
- =?utf-8?B?amVhRkZGTThQYlA4MnpCNTZNSWhsVzE4MmpaRnBCUXN1RjBZTzZyNEJrN2R0?=
- =?utf-8?B?UHo1TkczVE5vc1RnR3lIcHUvb0JCVFBSc2hwWE9MN3RiNWQ3aGhrVjBzZDFW?=
- =?utf-8?B?eUM5WEJ2dDZXbkR5alQyblNxenRGMFQvSTJGRXF2WjQxTnJKVElxeVV6bmdh?=
- =?utf-8?B?cUREZDlXcHVyUGptdDh6ckh0MGtlVlhhVkNPMjd3ZmFqWXZJTkZmVlFxZUdn?=
- =?utf-8?B?alF4VDA5NWV0TlI3Vy9MMkM3YU5Pc3J5dlNQV1RxaDZkUkRha3JTOXNDR3J5?=
- =?utf-8?B?STBIVklUZ1Z0ZGZsamZxSm1KbFVNQWE0WXpHOGhJOEs4enptSmxYcnFhUFp4?=
- =?utf-8?B?eTNHd05UTUFpSVZvcXFWWFVkNlVFaWxvanBvY1FNTGVjaUNJbHBNRmx1dVRR?=
- =?utf-8?B?UEloOWhZMmVOcHVXM1U2Z0J3Skx0MWlneGFlWEZCUElWMGVNS0ZoMVN1eDMz?=
- =?utf-8?B?SU9lUVVqZjJyZFBWRHk4WTJWVEkzQjFSbGo2RGhKeTk3ejRzRzJtOFRSbTZv?=
- =?utf-8?B?c2pqVkpWaUdrRUdmRy9XZnVnQVhDQmlUM1crbGRveklGcGdSbVlJTVA5T1dI?=
- =?utf-8?B?UDd0Nk9kVnBnVTZiTjcvbXV5UTV5M2pEZ2N3T29sVUpzZEpQOEREc2FmNCtu?=
- =?utf-8?B?VzF6azMxTkxaMk9IbGRoTTNmRm1QSDR6bTRoaUlLS0Y4RGdQdVVwUngvNUFE?=
- =?utf-8?B?diszQVBKc0xaVUtCT2RpLzVyVnlTT2R6dWZHZHlNZ2JWS1RMOW4veXdod1Jn?=
- =?utf-8?B?ZUdKRjFhRUpiUUYvcHBvMTRJY1htZUZYdkNjWHpCeXJEajdOZlZnZngyWUpP?=
- =?utf-8?B?cUJzYkM5LzA2bFVHaVJKaGp0d0M0aytJMW1SWjc4cFBTUEEveXZnRXlKSXIr?=
- =?utf-8?B?NW1aZXFyWXd1Slh0elNEa1NoSEpSRzV6Tmk3N1ZVeXdnS3JUSXFKaXJGdUJx?=
- =?utf-8?B?V2tTRjNWdDNVSXNzaXladEVqZkNUejdUNDAxanNGRWtlNGZnYVlFRzVsN0pW?=
- =?utf-8?B?MUp4UndDZ1NwbStQRExvaGFER0hhNExwVWJ2bUtTZ08yK1EwSG84SDJtODll?=
- =?utf-8?B?QTZxYWt5WndUMmF1LzdGajI5Q0dkTXdGekFLbnlKK2VVZkx4T2tjY2t2L0Zq?=
- =?utf-8?B?dEJ1VTVYZ2F2UVJqNFZsYmFHNndYUnEyY1ZNNEpWN3N3ajJtZGMrN2dYM1FT?=
- =?utf-8?B?ZUlQcFB3dXFrazEvbEVlSWNmUHQzRjZwNTdyV0pSWGM2OUg4THgxNDREV3FJ?=
- =?utf-8?B?ZUJCcjR4Y3FNWTR1K05EQzVuQU5FdUdFQnBjbWpqZ1liWHlKRFVOdTVQR1h6?=
- =?utf-8?B?U0ZyUEgwdmJLTHpyK1Q3MlQ4Nmp4UHJIeDVIU2laUVVVREFZRStHUzhFZ0kx?=
- =?utf-8?B?WjR3QW5tTnhTR1ZIbzJtTVZ2QVgzbnNyalZOa2p1cmVGRFVZQmZrOGhSSDJS?=
- =?utf-8?B?cmRyNE54dHRnTGhOUjAxWmNLcmU5OEIxQVNGaHZyVDdseUwyb2Q0elY1REJH?=
- =?utf-8?B?OFVwamtXTmt4RGdlR05HWDN5RXFBaHV0QktaOStLc1RiTmtHd0UxOVBrdE1G?=
- =?utf-8?B?NkE9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: e1390517-e416-430c-ce6c-08dd97d21c66
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?ELfq5noDZ0ydusiKJtWhi0nT1fjMKuSJjB3G6HyuMimpWAPq4qDdUEix1P3e?=
+ =?us-ascii?Q?iD4fmuwfNJrKFrGM7E0d8InCfBQv/E05OOPW+dIV4rYsrAQ31o2xvruoDo5s?=
+ =?us-ascii?Q?68kS7CHCFWfUl1CTQrggP58pq2yL6+ZVT9fM+etkx8CUjVnE/hvnfGOL+DAg?=
+ =?us-ascii?Q?vuHQOkZY8YgdqcxBS3PAWq11P4F+CsZmQKsuBwyhUZOEYACh7fdMVS8eajET?=
+ =?us-ascii?Q?w20Bu4BFHgz8PQLP2rxebplIVguC3STcouh+nebnUwbQ5+iKslyKF4Yn5qVa?=
+ =?us-ascii?Q?BJpU/yIHgvv8yr1DOzBgymizvF0BGxMFDLa/iLjTRxgkpegLg3t0DKBmh/lW?=
+ =?us-ascii?Q?oOtIzQL06OaTAGf7BYq3Ek7ye4pIqH1a1QZAh7EDl1rDINSPgj0SkOMdbbb7?=
+ =?us-ascii?Q?FhIFuCb+lZokMsn1rsbPpfnJl+HwWTkK6Tnn/kj5+lVirgdfTRfAGNrJbZy+?=
+ =?us-ascii?Q?SF4kelM3sJo0zZVhGoXr+0BXjT6mJTp2Sn6StbLy4qMpcjpGC5sdtPnqj103?=
+ =?us-ascii?Q?Xc+uWxwgDyJ+dBbDxJUfj/bjI0Mmw0zLWNZAqyRkP/Pwd4kEDnbxwNYogKaP?=
+ =?us-ascii?Q?3lI7jnI5Sz9POGGdvQOPDXKP3WFusUPKsRnwIPrqLF/dSItsJHw38h9U9GKM?=
+ =?us-ascii?Q?1LhGhYToBKSrK76RAbxEO4YqO75XgfVmhJF6u5+A/hsbCCe3oYyENl3jFqGx?=
+ =?us-ascii?Q?bzHXH7aUmnV3c0zIV6pLf7hgFAavSe5Rqpd0KMRxFVWkta6HDyF1QvTz/vZE?=
+ =?us-ascii?Q?IMYy1kCIri610q+Gp/EwlBfErKjcoX4Klw+3qx+/O1VZ0wiqwotmW2lzpZF3?=
+ =?us-ascii?Q?5djsH+R3jXnhcgYNEHt3dCuWGak3O00z7fhyWD+aOsSj+gTVPkK104vqKpw3?=
+ =?us-ascii?Q?KVnREY/E3QDCE/IA+5CIhtEhXLFV7XFAU31i/UzSwhvFxgJlMAlybkbvxcLA?=
+ =?us-ascii?Q?yVU8tXMn96qwFgK/EzfUvNb14mPpFbWTEuFpm4EkO+AJAoW9yOcf0UYl0r6o?=
+ =?us-ascii?Q?axWHckNortvapX0Z4UYUXuwhNW61HUs3XVbgJaFpR/jZ7q66F7H2GYrJgX+v?=
+ =?us-ascii?Q?eKXS25mgouqoszqNzWHWA6P908qvMmz6grETak/xNrSwCmSQZBgAMjDF/8nv?=
+ =?us-ascii?Q?McS1Ek+cs5u2XPlH1WKWXLqw8h1ldwjdJhoryZrIGgYlNmPPYkBqSi2phGPG?=
+ =?us-ascii?Q?7iCQTmWFuXikzRZIH2fPzkE+fPGutsi770lANGaFLBLS/HTo9g2Zto0BJyqd?=
+ =?us-ascii?Q?egek3CLEx4G/gV4m7z0JewhgLWzziLOAFBCjjlru2+Jecac9jIAOF/mBNTDB?=
+ =?us-ascii?Q?1MCAdu1OmBiQCup0/8w/6/ZbBPQsdmtWUuzeHVimCJynpf7IS5fWYfHDKa7X?=
+ =?us-ascii?Q?2sb9gZUa+gtCWAxQnRCEJclHeKe0p0wETWRo5dithxYcNNJv4D+IkPEx6lCT?=
+ =?us-ascii?Q?Y+p4J3rY0J+Ibn348FwNPuFphWAxY1dgDDU+hBmTyhWezpSpuyYaoABaNgB/?=
+ =?us-ascii?Q?M8NMEJf+uQUBp1eH+PASCMDuI3SSPnRrAUmDfX6cxTSwipr+QTZonnbJyrn5?=
+ =?us-ascii?Q?SMbBTgAhnQdq1Mj1QYaVv6H7H0WFBPq2XryohnD9k7u+zqhicA09KxDkN6hu?=
+ =?us-ascii?Q?yg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: ebe6e9c3-95e5-49b6-f95b-08dd97d410b3
 X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB8794.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 May 2025 19:11:23.5571
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 May 2025 19:25:22.8296
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: DejRruGAUbEJmnsEOTXfKAdWDE0w+Hh7mcK5ucc9XUzJ8o2c5l8xHSBhSFc6D262DgFfmH5cHg0fQZb/IjYWpxLZ0+77sccJPn6dasWXk1A=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR11MB8766
+X-MS-Exchange-CrossTenant-UserPrincipalName: 9Uuq6Bvxe5FCfErTYJEtd/b3pswlnl6f0obnOIIBh5dfQhxqhFupMwCYWCZGkNDTCMi60SBjYY5yTg0ewtx9wC8+iU1O8w8L1mV2SLGNoFQ=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR11MB6063
 X-OriginatorOrg: intel.com
 
-On Mon, May 19, 2025 at 01:00:52PM -0700, Dave Jiang wrote:
-> Add major/minor discovery for the FWCTL character device that is associated
-> with supprting CXL Features under 'struct cxl_fwctl'. A 'struct cxl_fwctl'
-> may be installed under cxl_memdev if CXL Features are supported and FWCTL
-> is enabled. Add libcxl API functions to retrieve the major and minor of the
-> FWCTL character device.
+On Mon, May 19, 2025 at 01:00:54PM -0700, Dave Jiang wrote:
+> Add a unit test to verify the features ioctl commands. Test support added
+> for locating a features device, retrieve and verify the supported features
+> commands, retrieve specific feature command data, retrieve test feature
+> data, and write and verify test feature data.
+> 
+> Acked-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  cxl/fwctl/cxl.h      |   2 +-
+>  test/cxl-features.sh |  31 +++
+>  test/fwctl.c         | 439 +++++++++++++++++++++++++++++++++++++++++++
+>  test/meson.build     |  19 ++
+>  4 files changed, 490 insertions(+), 1 deletion(-)
+>  create mode 100755 test/cxl-features.sh
+>  create mode 100644 test/fwctl.c
+> 
+> diff --git a/cxl/fwctl/cxl.h b/cxl/fwctl/cxl.h
+> index 43f522f0cdcd..c560b2a1181d 100644
+> --- a/cxl/fwctl/cxl.h
+> +++ b/cxl/fwctl/cxl.h
+> @@ -9,7 +9,7 @@
+>  
+>  #include <linux/types.h>
+>  #include <linux/stddef.h>
+> -#include <cxl/features.h>
+> +#include "features.h"
+>  
+>  /**
+>   * struct fwctl_rpc_cxl - ioctl(FWCTL_RPC) input for CXL
+> diff --git a/test/cxl-features.sh b/test/cxl-features.sh
+> new file mode 100755
+> index 000000000000..3498fa08be53
+> --- /dev/null
+> +++ b/test/cxl-features.sh
+> @@ -0,0 +1,31 @@
+> +#!/bin/bash -Ex
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (C) 2025 Intel Corporation. All rights reserved.
+> +
+> +rc=77
+> +# 237 is -ENODEV
+> +ERR_NODEV=237
+> +
+> +. $(dirname $0)/common
+> +FEATURES="$TEST_PATH"/fwctl
+> +
+> +trap 'err $LINENO' ERR
+> +
+> +modprobe cxl_test
+> +
+> +test -x "$FEATURES" || do_skip "no CXL Features Contrl"
 
-with this:  meson configure -Dfwctl=disabled
-getting this:
+Seems like a comment to help understand skip - 
 
-[119/252] Compiling C object cxl/lib/libcxl.so.1.0.8.p/libcxl.c.o
-../cxl/lib/libcxl.c:1291:12: warning: ‘memdev_add_fwctl’ defined but not used [-Wunused-function]
- 1291 | static int memdev_add_fwctl(struct cxl_memdev *memdev, const char *cxlmem_base)
-      |            ^~~~~~~~~~~~~~~~
+# fwctl test is omitted when ndctl is built with -Dfwctl=disabled
+# or the kernel is built without CONFIG_CXL_FEATURES enabled.
+
+Now the above is assuming the .sh got in the test list and is 
+not left out completely with -Dfwctl=disabled. Going to look.
 
 
-snip
+> +# disable trap
+> +trap - $(compgen -A signal)
+> +"$FEATURES"
+> +rc=$?
+> +
+> +echo "error: $rc"
+> +if [ "$rc" -eq "$ERR_NODEV" ]; then
+> +	do_skip "no CXL FWCTL char dev"
+> +elif [ "$rc" -ne 0 ]; then
+> +	echo "fail: $LINENO" && exit 1
+> +fi
+> +
+> +trap 'err $LINENO' ERR
+> +
+> +_cxl_cleanup
+> diff --git a/test/fwctl.c b/test/fwctl.c
+> new file mode 100644
+> index 000000000000..7a780e718872
+> --- /dev/null
+> +++ b/test/fwctl.c
+> @@ -0,0 +1,439 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// Copyright (C) 2024-2025 Intel Corporation. All rights reserved.
+> +#include <errno.h>
+> +#include <fcntl.h>
+> +#include <stdio.h>
+> +#include <endian.h>
+> +#include <stdint.h>
+> +#include <stdlib.h>
+> +#include <syslog.h>
+> +#include <string.h>
+> +#include <unistd.h>
+> +#include <sys/ioctl.h>
+> +#include <cxl/libcxl.h>
+> +#include <linux/uuid.h>
+> +#include <uuid/uuid.h>
+> +#include <util/bitmap.h>
+> +#include <cxl/fwctl/features.h>
+> +#include <cxl/fwctl/fwctl.h>
+> +#include <cxl/fwctl/cxl.h>
+> +
+> +static const char provider[] = "cxl_test";
+> +
+> +UUID_DEFINE(test_uuid,
+> +	    0xff, 0xff, 0xff, 0xff,
+> +	    0xff, 0xff,
+> +	    0xff, 0xff,
+> +	    0xff, 0xff,
+> +	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+> +);
+> +
+> +#define CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES	0x0500
+> +#define CXL_MBOX_OPCODE_GET_FEATURE		0x0501
+> +#define CXL_MBOX_OPCODE_SET_FEATURE		0x0502
+> +
+> +#define GET_FEAT_SIZE	4
+> +#define SET_FEAT_SIZE	4
+> +#define EFFECTS_MASK	(BIT(0) | BIT(9))
+> +
+> +#define MAX_TEST_FEATURES	1
+> +#define DEFAULT_TEST_DATA	0xdeadbeef
+> +#define DEFAULT_TEST_DATA2	0xabcdabcd
+> +
+> +struct test_feature {
+> +	uuid_t uuid;
+> +	size_t get_size;
+> +	size_t set_size;
+> +};
+> +
+> +static int send_command(int fd, struct fwctl_rpc *rpc, struct fwctl_rpc_cxl_out *out)
+> +{
+> +	if (ioctl(fd, FWCTL_RPC, rpc) == -1) {
+> +		fprintf(stderr, "RPC ioctl error: %s\n", strerror(errno));
+> +		return -errno;
+> +	}
+> +
+> +	if (out->retval) {
+> +		fprintf(stderr, "operation returned failure: %d\n", out->retval);
+> +		return -ENXIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int get_scope(u16 opcode)
+> +{
+> +	switch (opcode) {
+> +	case CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES:
+> +	case CXL_MBOX_OPCODE_GET_FEATURE:
+> +		return FWCTL_RPC_CONFIGURATION;
+> +	case CXL_MBOX_OPCODE_SET_FEATURE:
+> +		return FWCTL_RPC_DEBUG_WRITE_FULL;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static size_t hw_op_size(u16 opcode)
+> +{
+> +	switch (opcode) {
+> +	case CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES:
+> +		return sizeof(struct cxl_mbox_get_sup_feats_in);
+> +	case CXL_MBOX_OPCODE_GET_FEATURE:
+> +		return sizeof(struct cxl_mbox_get_feat_in);
+> +	case CXL_MBOX_OPCODE_SET_FEATURE:
+> +		return sizeof(struct cxl_mbox_set_feat_in) + sizeof(u32);
+> +	default:
+> +		return SIZE_MAX;
+> +	}
+> +}
+> +
+> +static void free_rpc(struct fwctl_rpc *rpc)
+> +{
+> +	void *in, *out;
+> +
+> +	in = (void *)rpc->in;
+> +	out = (void *)rpc->out;
+> +	free(in);
+> +	free(out);
+> +	free(rpc);
+> +}
+> +
+> +static void *zmalloc_aligned(size_t align, size_t size)
+> +{
+> +	void *ptr;
+> +	int rc;
+> +
+> +	rc = posix_memalign((void **)&ptr, align, size);
+> +	if (rc)
+> +		return NULL;
+> +	memset(ptr, 0, size);
+> +
+> +	return ptr;
+> +}
+> +
+> +static struct fwctl_rpc *get_prepped_command(size_t in_size, size_t out_size,
+> +					     u16 opcode)
+> +{
+> +	struct fwctl_rpc_cxl_out *out;
+> +	struct fwctl_rpc_cxl *in;
+> +	struct fwctl_rpc *rpc;
+> +	size_t op_size;
+> +	int scope;
+> +
+> +	rpc = zmalloc_aligned(16, sizeof(*rpc));
+> +	if (!rpc)
+> +		return NULL;
+> +
+> +	in = zmalloc_aligned(16, in_size);
+> +	if (!in)
+> +		goto free_rpc;
+> +
+> +	out = zmalloc_aligned(16, out_size);
+> +	if (!out)
+> +		goto free_in;
+> +
+> +	in->opcode = opcode;
+> +
+> +	op_size = hw_op_size(opcode);
+> +	if (op_size == SIZE_MAX)
+> +		goto free_in;
+> +
+> +	in->op_size = op_size;
+> +
+> +	rpc->size = sizeof(*rpc);
+> +	scope = get_scope(opcode);
+> +	if (scope < 0)
+> +		goto free_all;
+> +
+> +	rpc->scope = scope;
+> +
+> +	rpc->in_len = in_size;
+> +	rpc->out_len = out_size;
+> +	rpc->in = (uint64_t)(uint64_t *)in;
+> +	rpc->out = (uint64_t)(uint64_t *)out;
+> +
+> +	return rpc;
+> +
+> +free_all:
+> +	free(out);
+> +free_in:
+> +	free(in);
+> +free_rpc:
+> +	free(rpc);
+> +	return NULL;
+> +}
+> +
+> +static int cxl_fwctl_rpc_get_test_feature(int fd, struct test_feature *feat_ctx,
+> +					  const uint32_t expected_data)
+> +{
+> +	struct cxl_mbox_get_feat_in *feat_in;
+> +	struct fwctl_rpc_cxl_out *out;
+> +	size_t out_size, in_size;
+> +	struct fwctl_rpc_cxl *in;
+> +	struct fwctl_rpc *rpc;
+> +	uint32_t val;
+> +	void *data;
+> +	int rc;
+> +
+> +	in_size = sizeof(*in) + sizeof(*feat_in);
+> +	out_size = sizeof(*out) + feat_ctx->get_size;
+> +
+> +	rpc = get_prepped_command(in_size, out_size,
+> +				  CXL_MBOX_OPCODE_GET_FEATURE);
+> +	if (!rpc)
+> +		return -ENXIO;
+> +
+> +	in = (struct fwctl_rpc_cxl *)rpc->in;
+> +	out = (struct fwctl_rpc_cxl_out *)rpc->out;
+> +
+> +	feat_in = &in->get_feat_in;
+> +	uuid_copy(feat_in->uuid, feat_ctx->uuid);
+> +	feat_in->count = feat_ctx->get_size;
+> +
+> +	rc = send_command(fd, rpc, out);
+> +	if (rc)
+> +		goto out;
+> +
+> +	data = out->payload;
+> +	val = le32toh(*(__le32 *)data);
+> +	if (memcmp(&val, &expected_data, sizeof(val)) != 0) {
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +out:
+> +	free_rpc(rpc);
+> +	return rc;
+> +}
+> +
+> +static int cxl_fwctl_rpc_set_test_feature(int fd, struct test_feature *feat_ctx)
+> +{
+> +	struct cxl_mbox_set_feat_in *feat_in;
+> +	struct fwctl_rpc_cxl_out *out;
+> +	size_t in_size, out_size;
+> +	struct fwctl_rpc_cxl *in;
+> +	struct fwctl_rpc *rpc;
+> +	uint32_t val;
+> +	void *data;
+> +	int rc;
+> +
+> +	in_size = sizeof(*in) + sizeof(*feat_in) + sizeof(val);
+> +	out_size = sizeof(*out) + sizeof(val);
+> +	rpc = get_prepped_command(in_size, out_size,
+> +				  CXL_MBOX_OPCODE_SET_FEATURE);
+> +	if (!rpc)
+> +		return -ENXIO;
+> +
+> +	in = (struct fwctl_rpc_cxl *)rpc->in;
+> +	out = (struct fwctl_rpc_cxl_out *)rpc->out;
+> +	feat_in = &in->set_feat_in;
+> +	uuid_copy(feat_in->uuid, feat_ctx->uuid);
+> +	data = feat_in->feat_data;
+> +	val = DEFAULT_TEST_DATA2;
+> +	*(uint32_t *)data = htole32(val);
+> +	feat_in->flags = CXL_SET_FEAT_FLAG_FULL_DATA_TRANSFER;
+> +
+> +	rc = send_command(fd, rpc, out);
+> +	if (rc)
+> +		goto out;
+> +
+> +	rc = cxl_fwctl_rpc_get_test_feature(fd, feat_ctx, DEFAULT_TEST_DATA2);
+> +	if (rc) {
+> +		fprintf(stderr, "Failed ioctl to get feature verify: %d\n", rc);
+> +		goto out;
+> +	}
+> +
+> +out:
+> +	free_rpc(rpc);
+> +	return rc;
+> +}
+> +
+> +static int cxl_fwctl_rpc_get_supported_features(int fd, struct test_feature *feat_ctx)
+> +{
+> +	struct cxl_mbox_get_sup_feats_out *feat_out;
+> +	struct cxl_mbox_get_sup_feats_in *feat_in;
+> +	struct fwctl_rpc_cxl_out *out;
+> +	struct cxl_feat_entry *entry;
+> +	size_t out_size, in_size;
+> +	struct fwctl_rpc_cxl *in;
+> +	struct fwctl_rpc *rpc;
+> +	int feats, rc;
+> +
+> +	in_size = sizeof(*in) + sizeof(*feat_in);
+> +	out_size = sizeof(*out) + sizeof(*feat_out);
+> +	/* First query, to get number of features w/o per feature data */
+> +	rpc = get_prepped_command(in_size, out_size,
+> +				  CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES);
+> +	if (!rpc)
+> +		return -ENXIO;
+> +
+> +	/* No need to fill in feat_in first go as we are passing in all 0's */
+> +
+> +	out = (struct fwctl_rpc_cxl_out *)rpc->out;
+> +	rc = send_command(fd, rpc, out);
+> +	if (rc)
+> +		goto out;
+> +
+> +	feat_out = &out->get_sup_feats_out;
+> +	feats = le16toh(feat_out->supported_feats);
+> +	if (feats != MAX_TEST_FEATURES) {
+> +		fprintf(stderr, "Test device has greater than %d test features.\n",
+> +			MAX_TEST_FEATURES);
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	free_rpc(rpc);
+> +
+> +	/* Going second round to retrieve each feature details */
+> +	in_size = sizeof(*in) + sizeof(*feat_in);
+> +	out_size = sizeof(*out) + sizeof(*feat_out);
+> +	out_size += feats * sizeof(*entry);
+> +	rpc = get_prepped_command(in_size, out_size,
+> +				  CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES);
+> +	if (!rpc)
+> +		return -ENXIO;
+> +
+> +	in = (struct fwctl_rpc_cxl *)rpc->in;
+> +	out = (struct fwctl_rpc_cxl_out *)rpc->out;
+> +	feat_in = &in->get_sup_feats_in;
+> +	feat_in->count = htole32(feats * sizeof(*entry));
+> +
+> +	rc = send_command(fd, rpc, out);
+> +	if (rc)
+> +		goto out;
+> +
+> +	feat_out = &out->get_sup_feats_out;
+> +	feats = le16toh(feat_out->supported_feats);
+> +	if (feats != MAX_TEST_FEATURES) {
+> +		fprintf(stderr, "Test device has greater than %u test features.\n",
+> +			MAX_TEST_FEATURES);
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	if (le16toh(feat_out->num_entries) != MAX_TEST_FEATURES) {
+> +		fprintf(stderr, "Test device did not return expected entries. %u\n",
+> +			le16toh(feat_out->num_entries));
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	entry = &feat_out->ents[0];
+> +	if (uuid_compare(test_uuid, entry->uuid) != 0) {
+> +		fprintf(stderr, "Test device did not export expected test feature.\n");
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	if (le16toh(entry->get_feat_size) != GET_FEAT_SIZE ||
+> +	    le16toh(entry->set_feat_size) != SET_FEAT_SIZE) {
+> +		fprintf(stderr, "Test device feature in/out size incorrect.\n");
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	if (le16toh(entry->effects) != EFFECTS_MASK) {
+> +		fprintf(stderr, "Test device set effects incorrect\n");
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	uuid_copy(feat_ctx->uuid, entry->uuid);
+> +	feat_ctx->get_size = le16toh(entry->get_feat_size);
+> +	feat_ctx->set_size = le16toh(entry->set_feat_size);
+> +
+> +out:
+> +	free_rpc(rpc);
+> +	return rc;
+> +}
+> +
+> +static int test_fwctl_features(struct cxl_memdev *memdev)
+> +{
+> +	struct test_feature feat_ctx;
+> +	unsigned int major, minor;
+> +	struct cxl_fwctl *fwctl;
+> +	int fd, rc;
+> +	char path[256];
+> +
+> +	fwctl = cxl_memdev_get_fwctl(memdev);
+> +	if (!fwctl)
+> +		return -ENODEV;
+> +
+> +	major = cxl_fwctl_get_major(fwctl);
+> +	minor = cxl_fwctl_get_minor(fwctl);
+> +
+> +	if (!major && !minor)
+> +		return -ENODEV;
+> +
+> +	sprintf(path, "/dev/char/%d:%d", major, minor);
+> +
+> +	fd = open(path, O_RDONLY, 0644);
+> +	if (fd < 0) {
+> +		fprintf(stderr, "Failed to open: %d\n", -errno);
+> +		return -errno;
+> +	}
+> +
+> +	rc = cxl_fwctl_rpc_get_supported_features(fd, &feat_ctx);
+> +	if (rc) {
+> +		fprintf(stderr, "Failed ioctl to get supported features: %d\n", rc);
+> +		goto out;
+> +	}
+> +
+> +	rc = cxl_fwctl_rpc_get_test_feature(fd, &feat_ctx, DEFAULT_TEST_DATA);
+> +	if (rc) {
+> +		fprintf(stderr, "Failed ioctl to get feature: %d\n", rc);
+> +		goto out;
+> +	}
+> +
+> +	rc = cxl_fwctl_rpc_set_test_feature(fd, &feat_ctx);
+> +	if (rc) {
+> +		fprintf(stderr, "Failed ioctl to set feature: %d\n", rc);
+> +		goto out;
+> +	}
+> +
+> +out:
+> +	close(fd);
+> +	return rc;
+> +}
+> +
+> +static int test_fwctl(struct cxl_ctx *ctx, struct cxl_bus *bus)
+> +{
+> +	struct cxl_memdev *memdev;
+> +
+> +	cxl_memdev_foreach(ctx, memdev) {
+> +		if (cxl_memdev_get_bus(memdev) != bus)
+> +			continue;
+> +		return test_fwctl_features(memdev);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +int main(int argc, char *argv[])
+> +{
+> +	struct cxl_ctx *ctx;
+> +	struct cxl_bus *bus;
+> +	int rc;
+> +
+> +	rc = cxl_new(&ctx);
+> +	if (rc < 0)
+> +		return rc;
+> +
+> +	cxl_set_log_priority(ctx, LOG_DEBUG);
+> +
+> +	bus = cxl_bus_get_by_provider(ctx, provider);
+> +	if (!bus) {
+> +		fprintf(stderr, "%s: unable to find bus (%s)\n",
+> +			argv[0], provider);
+> +		rc = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	rc = test_fwctl(ctx, bus);
+> +
+> +out:
+> +	cxl_unref(ctx);
+> +	return rc;
+> +}
+> diff --git a/test/meson.build b/test/meson.build
+> index 2fd7df5211dd..93b1d78671ef 100644
+> --- a/test/meson.build
+> +++ b/test/meson.build
+> @@ -17,6 +17,13 @@ ndctl_deps = libndctl_deps + [
+>    versiondep,
+>  ]
+>  
+> +libcxl_deps = [
+> +  cxl_dep,
+> +  ndctl_dep,
+> +  uuid,
+> +  kmod,
+> +]
+> +
+>  libndctl = executable('libndctl', testcore + [ 'libndctl.c'],
+>    dependencies : libndctl_deps,
+>    include_directories : root_inc,
+> @@ -235,6 +242,18 @@ if get_option('keyutils').enabled()
+>    ]
+>  endif
+>  
+> +uuid_dep = dependency('uuid', required: false)
+> +if get_option('fwctl').enabled() and uuid_dep.found()
+> +  fwctl = executable('fwctl', 'fwctl.c',
+> +    dependencies : libcxl_deps,
+> +    include_directories : root_inc,
+> +  )
+> +  cxl_features = find_program('cxl-features.sh')
+> +  tests += [
+> +    [ 'cxl-features.sh',        cxl_features,       'cxl'   ],
+> +  ]
+> +endif
+> +
+>  foreach t : tests
+>    test(t[0], t[1],
+>      is_parallel : false,
+> -- 
+> 2.49.0
+> 
+> 
