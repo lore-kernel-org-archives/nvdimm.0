@@ -1,198 +1,167 @@
-Received: from esa11.fujitsucc.c3s2.iphmx.com (esa11.fujitsucc.c3s2.iphmx.com [216.71.156.121])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f173.google.com (mail-oi1-f173.google.com [209.85.167.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19EAB239E74
-	for <nvdimm@lists.linux.dev>; Wed, 21 May 2025 09:01:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=216.71.156.121
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747818097; cv=fail; b=Lr3/yGo+jB1nGqQw816w8OFC65ZMZpse6gFki8sz4B+XRcNUNPkee3/Z4pDnd6pqPvTAo0ZaHt9M+LR/wUV5uc0etKsLfybMYiogJBD4NGY0lP05RxChw3ehgd+IB6n5Opa55b11sXMhaH06ITx/vAR9R3oxQIuOY67Zc+um5Qk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747818097; c=relaxed/simple;
-	bh=AwCtIlbdogSb5T+92mGZVodP1mwPuU5I1hicsCJQaL0=;
-	h=From:To:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=R3tm2M2kP+OJPPVdvj0dUZAJdrwpDh/mL7a5ashGNIXboctMO/eSXoMnMn8eAM27WDMpNUS1hpFzgcTwLL1fSyKRXbrdb2JnzTK4rw/CiSr4eTbgoIXIlDSradM5sxop8LZeo4XSf5mbKpWMTjhLx9U/Lu0jzI0S5ySxkchrIFo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=CSFtR3Ru; arc=fail smtp.client-ip=216.71.156.121
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6FCD22B8B5
+	for <nvdimm@lists.linux.dev>; Wed, 21 May 2025 22:30:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.173
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1747866619; cv=none; b=iv5yUBajAtIsn0sdcr+kSimu/hEkoutvg+uQ06gFrMD5amL2V9MHaI2n8M9MAdBDIGKyHSe3JYPheTHQfcpVFogoN4tYuTOl/ccge1LR39SlA76Ol1y+K8YAGz0hURgtNCFtUVkno3HmhkhV+eLB6vbE/7SNtbwsEFJjUrIbqzE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1747866619; c=relaxed/simple;
+	bh=nb9O4TtCOuppud69ug4IkU6bS5EpzMCb96C4mzfPqcs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jJc0C2yCLsusDJaXZF1BxodW5ROmB9p6vhAkGwwoe3KjYJZIK24dyygm2JdxUF+qRMcrvQwCXqTsiNaUP1CxYTehrApkAJK5zJLXrBel0L7Yz3R0SnMdODBtbJkRLv4aUNP9znwg1btAXXI7h6o/nA1xEkav0+m8L0dnE0vvXgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EP27ybdF; arc=none smtp.client-ip=209.85.167.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="CSFtR3Ru"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
-  t=1747818094; x=1779354094;
-  h=from:to:subject:date:message-id:references:in-reply-to:
-   content-id:content-transfer-encoding:mime-version;
-  bh=AwCtIlbdogSb5T+92mGZVodP1mwPuU5I1hicsCJQaL0=;
-  b=CSFtR3RuBjh2mInTP45F0zmAAM89ml62OHM8hKlRr7BrNuPBIfJnORJj
-   2cNvcyb4ZGWI4oSomdJaRSWvJm2KINZBQ/tp0H/vNNcRLqHiUn7XXngw0
-   XLCyPJXePxbb4Wy28vRWP5fXq+6FPbChFm+h2gI0Zk8oyeT65F+v2VSHI
-   o9M3iSM7QNJ1FJFidPlB4/pQu1xoasDWsuNwi3HLveg4X9LbTWHfr2F7k
-   nAe/KPg3YnslcB7TCDvBNGpkbbIWZVzbTHfpn6Aibjh5/arFn3xNCTX73
-   6GzkC+y3nc05EGLatZUeK8s4sjVlbI4bTUcch6dRN8UfP8PVPqjt/9Zn9
-   Q==;
-X-CSE-ConnectionGUID: auRvj0jcSoKROBdTFTwN3g==
-X-CSE-MsgGUID: hck/ddaMRouCxDDbzVCKKQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11439"; a="157082634"
-X-IronPort-AV: E=Sophos;i="6.15,303,1739804400"; 
-   d="scan'208";a="157082634"
-Received: from mail-japaneastazlp17011030.outbound.protection.outlook.com (HELO TYVP286CU001.outbound.protection.outlook.com) ([40.93.73.30])
-  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2025 18:00:22 +0900
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=p/zEqKXjNjXcmR5MBm5ym1bCQgU6qffN4o2suoWH1vpAOSLGo0mueoRn33vdd2ofjuUnGwZEBgAg5Ml7HdjiDLPzXO7nBzSYds2XqlBG1PJewwwC/9gFhiLAtztkuU4UCE6mrXsEorQj3kkSIVBNiOhceauo2DijpZIpigmgqWi89zbmPOFAT0TLfKgM0GLSMOaQ6lNOPmrfrske/UL4+EseIWeZ/FEn8MBfAXVfdgrvwsiKbVLH/INXJeMOoFOSH12Ct++deB35APygWDeCQwqKpNH5KPwBlHiIspe8WA/tm5Hwnyw0jJ8BEQ2pD6hdYnBWzO4Ob6F9CfgTSaDSRw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AwCtIlbdogSb5T+92mGZVodP1mwPuU5I1hicsCJQaL0=;
- b=q5FxRrS+alrlA8xk7HIWrs8f6eI4jhzFVU+zrZC3PioCRA+Z9rutCNAD6ikrRu9MOcXnb8x/AF3982WbjgbplVizJAlDcaDGsaGIm/9Q6DJVlvbDiN+1RbvdZALF/j5GOp4yD/pbkf0goXirTHymt07s1LURUz+EASktzKhi67xad1kLNoAWTAMASKOUE8ahszgczqmCUu1g/VPOLN/vEV7mhbrJHKl/X2bi4XSFi4hCTWvQfVP1RqwkSbenwiC/vU+3htnItWa/Gc7X//Tjt5PP5pZe73EpDi4/FMyDnqxgFfFLe5NbDcyUBRaMBnzq6+d2eOB+W3hiT/EFYG1+cQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
- dkim=pass header.d=fujitsu.com; arc=none
-Received: from TY1PR01MB1562.jpnprd01.prod.outlook.com (2603:1096:403:6::12)
- by OSOPR01MB12280.jpnprd01.prod.outlook.com (2603:1096:604:2dc::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8746.31; Wed, 21 May
- 2025 09:00:19 +0000
-Received: from TY1PR01MB1562.jpnprd01.prod.outlook.com
- ([fe80::d9ba:425a:7044:6377]) by TY1PR01MB1562.jpnprd01.prod.outlook.com
- ([fe80::d9ba:425a:7044:6377%4]) with mapi id 15.20.8769.019; Wed, 21 May 2025
- 09:00:19 +0000
-From: "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>
-To: "alison.schofield@intel.com" <alison.schofield@intel.com>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, Marc Herbert
-	<marc.herbert@linux.intel.com>
-Subject: Re: [ndctl PATCH v3] test/monitor.sh: replace sleep with event driven
- wait
-Thread-Topic: [ndctl PATCH v3] test/monitor.sh: replace sleep with event
- driven wait
-Thread-Index: AQHbyPRLuuO5SQHzW0mFd5AuCz6ti7Pcy6MA
-Date: Wed, 21 May 2025 09:00:19 +0000
-Message-ID: <f5174c3c-81c4-4e6b-8d3d-7fec1624e964@fujitsu.com>
-References: <20250519192858.1611104-1-alison.schofield@intel.com>
-In-Reply-To: <20250519192858.1611104-1-alison.schofield@intel.com>
-Accept-Language: en-US, zh-CN
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Mozilla Thunderbird
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=fujitsu.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: TY1PR01MB1562:EE_|OSOPR01MB12280:EE_
-x-ms-office365-filtering-correlation-id: 6d40654d-386b-4214-428d-08dd9845e978
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|1800799024|366016|376014|7053199007|1580799027|38070700018;
-x-microsoft-antispam-message-info:
- =?utf-8?B?eEpmRW1ObnhQNFVWMm1FVkFLWUhFNjN5NWFOWmFHaE5veklpK1R1bGtqWWNl?=
- =?utf-8?B?VXhCbmNXMmJ0amhjSnNIRVZzL1Jzc21xSjNNNTdzaHFXbWd1d1NmSTUyblBZ?=
- =?utf-8?B?VTZYTmdab3pVelZlenhlcmVRT0Y1alBoejF1SXJrUnExNXhtS21xbFRRQ1Fq?=
- =?utf-8?B?NnJPenJhVmMzbVNYNFVJdUloZXFuNFUyY2l3M2lmK0tYb2tWUW90V1MxbSs0?=
- =?utf-8?B?NXVvSmNQMHdMQ3dRMDloL2xRY2w2YnEybzROOEtJK1EwOEo5anJNbTViL3Uw?=
- =?utf-8?B?MEhsOTBTdUxpYmQ5dE9FdWd5Z21OWkY2YjJMVUtZQ21nK2pzclRGS2R4d3Ru?=
- =?utf-8?B?Qzd5YnFaM3FZSFJGcE1BSGNwOXFNQXJCayszM0E2Mm9kVm9DUk5MMXdEV0pO?=
- =?utf-8?B?U1c4aTU1VnM1bURxRk5rY2ZuUnBSWDJxYUk2ckFJZWFUUElpZGRxQStlUTJF?=
- =?utf-8?B?VWNhYkdMT252QklML2sxajV5Sk1MY0FadmMxdUhHK2pjM2ticzQrVWZlYjVp?=
- =?utf-8?B?MG9ORmF1WmJvREhDcmNHd0tpNXJIeEErL3hjNHp5R0tHVGtPVm4rRmdqL1Bz?=
- =?utf-8?B?d0VrRyt2M0hFNi85WWhYUzgzUGNhUVdmczJXL0ZZa2c5WlAyczk1UnhDRTdt?=
- =?utf-8?B?WDUyMjgvVWV2MW1NemJzbFY3TUx1cEc2cS8wck82QXZxTkd2NncyU2RJT1pK?=
- =?utf-8?B?Z29Od1crL21Cak85SmhmVGc2dHNSQjdheTBnbzhJMHR1TStFRHFXYXhOcDFj?=
- =?utf-8?B?UnNQMWdVejNIS2JBa2VhL21VNFZGbjVNNmJmS3E5Q0wwM20yL0RiclUrQm9u?=
- =?utf-8?B?OHpaaVRrNGV3czYxd2NORHpibVlCckRnbTRMRVZvRDVNZEVYNWI4Z0RaYzd2?=
- =?utf-8?B?L0JFRlpiaHlCNWZ0anRpZGFRbTc2SGYwNFN4TkliUU0xL0tlcW5DeGp2ckcx?=
- =?utf-8?B?clorMnZuQW9KVzE0ZWFiREswcXF1MDFLN2Uwd1QvMEovYXlnZnFvbW1yL1Z5?=
- =?utf-8?B?OTVaaU5jV3daajhmZ0I0RUlyMjE5UTBVVUZ5K2dETGdhdXc3WkQzM1FZbG5j?=
- =?utf-8?B?eFBpbFVrQnhsZ0tHRVhmVi9mYWpGY2gvUXQ2bThhY2JPOW90cTdoRkJScE52?=
- =?utf-8?B?N3ljdjMySzcrN0NWU2FkaGhRNlNzV2M1S1hYNjBIVGJQNzFoR1pweWxZTjZz?=
- =?utf-8?B?WUYyQm02c0dhaDZGSlRSbU5OdTNzdkdsR0U0L2dHU2dFVjdxWk5NQndJQlhM?=
- =?utf-8?B?YXoyQi9FTjZ4cU9NZlMyVVpxbkg5TWhxRGhtQTBrQlBTdUFHRnc3S0V3QU9N?=
- =?utf-8?B?NWh5S2JJQU40TmlrcnEybE5tckl1NDBvSFNscHBjb0JkTE5sOTRJV0tTaFRq?=
- =?utf-8?B?UlV5eGhaNWJqcXJsdnVTQys0d0RtSHA3WTdnT0xMOXhYVU9BcUJoM0kwWGpV?=
- =?utf-8?B?WGdPL3RudHh5ZWxOVVAzZ1B1U3JVT2xwZ054cnR3N2ZURUh2N3lGVlQ0cDhG?=
- =?utf-8?B?ZDBQaUNJS1o3RDlmS2w2QUZ3aWVsbXB6WHVGVGhwbHhVZ2x0K0JET2JqZDRz?=
- =?utf-8?B?MlJUQXhPbjNEV200K1NaclFaT1dHYlRxTm0yZ0NuNDNsZEpVR1NBN1p4b0x0?=
- =?utf-8?B?OUd2NWNJRVdZbXBzczZPK2ltWlBIZWVZRG4yVnBzUUo5TWo5OHpjUnd1WjJh?=
- =?utf-8?B?Q3FXREdyQ0xNVHNVSnAvemM2aFpLZm8va2d2NUREWHllbFF4eXhRRDUrdWJ3?=
- =?utf-8?B?OU5MdDFSWWxhYlp6a01QdmNoOG1PaUtOYnNOVEllWEhNblR4OUkzbTJvdEM3?=
- =?utf-8?B?Z2hQUGVDVEtSekdVNnd4WnBTa3VTYkFtRW5tQnhDbW54MFNreHhXRUdPK2g3?=
- =?utf-8?B?aTBHRDZwc1FndWpEb1loRkExQm0yb2wxRlNWSkdaK3lqYUoyVGVUaWJKRnFD?=
- =?utf-8?B?bFppTXVWODBKWlpGZkhTYTBWM2JLK0h6dEdybDZUTTVUNzVOKzFLT0EzcXE3?=
- =?utf-8?B?cUpzZUlaekdLcUlBbjliVTlZT090WGV5aHF6bzVxKzdjY3d1Z21oNXZhV29l?=
- =?utf-8?Q?cFr3Yv?=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TY1PR01MB1562.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7053199007)(1580799027)(38070700018);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?TlJoRUhaNlAzZjZ1cVRBaGZwV0hEN0pZajhIWHZrQnprRXlJZkNTVVp3MGJl?=
- =?utf-8?B?S1ltTXd5N1p2VEY4Q3hFS3VwRDVDVDR5Nm9oQ3dhazluK2pJeUVwekIzOWdO?=
- =?utf-8?B?aHdFUmZXRVNrWHdzU0ZLdEFRcGxOYlFUa2tsdnA0ZERpNHFpTDFnckZoT2F4?=
- =?utf-8?B?K3VBSUFTSVBEVVlrZktGNmJIWlFaMisrVUhiN24zQm1td05NL1BqQ1lTckY2?=
- =?utf-8?B?SWhiakhTYzdSWHRKTlhkUCtXbm9OaXRBUjhSRXEzOXllL0JRZ3JkeDRFUFNC?=
- =?utf-8?B?clZQaktJcitwV0VOR3p4blFNYUZFQ3ZlZFZmU1hneHUyZDBVQWdpQy9nZE9S?=
- =?utf-8?B?N1RYaXV5UzlIVXBTNHBUd0ZWdXFNcWh6RmorUUU5Y2xuL255dEpYT1hoaUFE?=
- =?utf-8?B?WkIvZ0RJR1ppdjFXU1lxWGg4dWh4YXpheE5ya1N5dWorRCtuWFVlZTBHdnNN?=
- =?utf-8?B?SnB6d1BWV2ZFZEJKWWtkdEM1WjVTMi92RTZkMU1sejVZRFRidnFWbnQyQlRa?=
- =?utf-8?B?UG5XNytMN0hpZk9aT0F1Yi8wcWphUzdqL1JxN0tEcGNKd0NKMTdNbzIxUFhO?=
- =?utf-8?B?RzNOZ0UxS1lRYk5WNmhpSWQ3RHRMdDdKRng3OWNhRUV3M3ovV0ZsS2hRQjQx?=
- =?utf-8?B?a0c3ZXBZNWFtang2MXROV1BPdE1kVmlRaXUyMEhFeGtnb2pJUDhQaVFpU1hI?=
- =?utf-8?B?YW9GbFpCWkZsR1ZJdERVZXlTN1BEOVFneFFSUllXSnVKUzhlVG9rS3dML2d3?=
- =?utf-8?B?dlgyZU5BaWhHUXVrbUtqMUdHYVdoUGI2eHZBc2JUSzFtM3ROeUFzNllZNUR6?=
- =?utf-8?B?UDdLUzZDTkJ0N2NEejRJc255ZW9VejNGUjVkMU1iNE5XTlhTMS9LMkdTbzc5?=
- =?utf-8?B?c3NMQmFOdEU3SFpzRHJoSnJGYTdvMUNYdVBUQmRmZTlrN1NSQnE4T3hKSFg5?=
- =?utf-8?B?NUF1dzZ6V2E2VnZTYVhCSXdwSk1BeE50MDhuRVdmLzdDWUNibmNkeGVhb2c3?=
- =?utf-8?B?byt2dkMxdmxUTmd4ODgrTDJ1WHhKWEJPVDZWa0JKMGtScWFmWTMwemNtQ3RR?=
- =?utf-8?B?KzZtNHBnYU80Wjd6SSt6ZFN6eXA3ZjJIZC9CbTRHSE1RV1Y4a2hlQTZoTVJr?=
- =?utf-8?B?U1ROeUdPYUNvRUpTQVlWWFBGb2NpMWFtWmNLUVUxczduK1JGNHc0R2R1U1Fq?=
- =?utf-8?B?SzFVbjZZajQ2NEhla3ppS0pqMkNoa25OdUNnVnBzRXo0MFMvWHE3YU1XVHV6?=
- =?utf-8?B?d3E2MnBnbUYxRngwcVJRTnhCSFl3N1BuQzgxbjk5eTRzWFNFZENPZ0wycE9Y?=
- =?utf-8?B?TE02MkhJSHFOS2Q0K0RmR1BjMElQT25Ud0lFR1ZsMlZkUi84RFFiUSthWGIw?=
- =?utf-8?B?ZEZwa0Q2T0w1NDkvN1FxN2h0Q1F6bXo0RDFPcGFKZ0xqaEdxU0dNYmJUOEo1?=
- =?utf-8?B?N2RGd2ttb1NpazR2ZU0rL09uU0Y4UnlJa2k0WWNqd0MyaThibUxWVnFGdjJw?=
- =?utf-8?B?bTFHdE9Ma0VVZ3ZtbVJVcDJwTWtXME9ra3BncFZSZU5xT3BnNjE5OHJtOXdv?=
- =?utf-8?B?YmlmdDBLNEdFNU5GSSt4OFBMOXRsczRYbWh0TkJrY0Fpa1UxSHF3TnE0M01L?=
- =?utf-8?B?aitLSEJOZVJ2VnVzUC9USVdpZzZvUWpRSy9iclRhTk11eDd1bzB3M01GUjE4?=
- =?utf-8?B?ajhUaDVuZ3NIbG4wSUd1Uld6K25xd3NrY0s1c09mVlc1TlIvcWFWM0doV3Vy?=
- =?utf-8?B?NlFPdVdHVjJ5THRHR0pHUUtJcG1wTHM3R0tsNktOUVBRMWpLUjV5SStuYVcr?=
- =?utf-8?B?WW5vRjJqWjF0UGIvMVBQb2RFV2lqT0lRaHRreWRtVFlZMkdRTkgrSlRGcld3?=
- =?utf-8?B?U21aMlFFcFVWL3pOTGFFckF2TjloWTRrdjF5UmFCTmlRakRUcjc0RTYrSTJY?=
- =?utf-8?B?RnQ5Mmk3L2l0TkNEbTVmZmdVK3gyMjNxT1ZFR3JxUUVpaDJOUk5peDNlMWZ1?=
- =?utf-8?B?VUR1NDA3Z1VtMWVKTkkzVllDNVhJSW9GOHh1SE55S29IU01KWTdSUGorSzF2?=
- =?utf-8?B?K0N4dTVQNXlXaHNZUmd3ZlNFd0FIbkdSai9SWERYNTR5Vy9MZnBjM0JXVUtR?=
- =?utf-8?B?eldsb3lJNjdjUzJwUWlrQjkvYUZYTFlTclRHKzRCUGc5R1lPL1BEdnBTK21o?=
- =?utf-8?B?T1E9PQ==?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <236AA64B216D584CBEB35983F1C5D5F1@jpnprd01.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EP27ybdF"
+Received: by mail-oi1-f173.google.com with SMTP id 5614622812f47-3feaedb531dso2033307b6e.3
+        for <nvdimm@lists.linux.dev>; Wed, 21 May 2025 15:30:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747866616; x=1748471416; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=nb9O4TtCOuppud69ug4IkU6bS5EpzMCb96C4mzfPqcs=;
+        b=EP27ybdF5P0Rrg+GCHd3wbRQpB7V6EoqvJE3+ZAifIC3ysadsWYH0rcxuTjGmVv+Tj
+         zqtty1TfDVSxmurQCSNZ7r9d7p/npluSufXvodPAQDBi7+ll85mBOIu1jMnDUmS1GLjC
+         ZEpanMgzwXNk7vXYD6/tkBjCoww/2+y4eJRcDoXDpx/BNboWPzzlkm14DGxBHmkggR/W
+         rkpo7SSytLm4kFE8G7kLf7/3DHtIB6mP41M7h0QwXS5njGtGa7Pat0GLJN7cmq3vxxgM
+         g7KCkATcGiiDfbd27F32qcmkNy5JYF8L4gCawNgKyWET2gQBoZOWzj7WUKLKItLRT3Dz
+         uPLw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747866616; x=1748471416;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=nb9O4TtCOuppud69ug4IkU6bS5EpzMCb96C4mzfPqcs=;
+        b=m2UvPyyL3XIbRZqeaqm+W9K9t2E+YhPhZHf/v88CvGnHu0Mbn9gpZsuGNSAOlScUGZ
+         8BpX1nhF+Jb6SSELLxKM67AbepmdnlTHskU0ZlGuFxOSaGxsDQnfrxable2fuZ+BD5+U
+         oPxonO9EyrW7B1sbfRSeal6/rJjFIZGJCYqP0XuawWqozdGcJnx+8XVG1bZVOT5wZ9zK
+         4ePhgPkkr6Wlk4Ozac67D9C/goylUaXhy5Ahj1DcZe7TdAv906jMHj1P4HzHtvLsk143
+         uTLFM4h4wZECbW1Tu/6kVnnmTlQijgmLB5URxC7vPNmlK43tcnt3p5yCqUk1+NbrYDf5
+         QZLQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWLXgXzyO7CPE0hBOF4f5la8PpN3PDHtL2FA6yRPi1rbpZIesHRhEaXx8Ot0OA1qSJcbSFqxsY=@lists.linux.dev
+X-Gm-Message-State: AOJu0Ywqx1ImV3RbaJybeDUIffCzL4zw34lbdL/+WsvH001+qjX9d/pn
+	xu5ZuIW6tOAEN6VzfPfLwm1sq7EdM9KYlFEE4EDjG30sRgb1Ka7G2zM1
+X-Gm-Gg: ASbGncuZtAIrjdyOlyyaNtybMyUIpCiJdDxwXjagAMS6uoL+0p7BeCTPydGKzoScFmi
+	ol9eom0xXv0kWS520tIwqPh2GNyPh/f+bFxt+cZ/Uybs8OlQOF4oW2nOxpQaAHEbG0OeIGkDo4n
+	xXk2LO08mAs46rEGT8QCVOolC3oBrZR3O9m47z/tob1S6TLhinuf+kZ1jpSs0iXNeJFBY5xfgBu
+	K9lG9J6FgP2ABfY5yRdjpKpDk1dltb15IE0ZdbmQiQVNXCvMRyjg3tiOq63BSD1h0noOITY4Ixk
+	Q0rwEYqBh+Equ0Vm9qR3+SpekGL1eUgkRKeo7V+EP71n8N+FDku3Pzcu2yNYsASSyNoXoGQ=
+X-Google-Smtp-Source: AGHT+IFRVrKFlC0xucIoI6A+MH0Ub4hMMxnTf/HTOcSeOiiFXD7vWW4zpucHXKEWzpbcRbmwqIHzEQ==
+X-Received: by 2002:a05:6808:6c8b:b0:403:37dd:e26f with SMTP id 5614622812f47-404da82bb8dmr14303754b6e.33.1747866615474;
+        Wed, 21 May 2025 15:30:15 -0700 (PDT)
+Received: from groves.net ([2603:8080:1500:3d89:b8ec:6599:4c13:ce82])
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-404e303ffcasm2023067b6e.4.2025.05.21.15.30.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 21 May 2025 15:30:14 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Wed, 21 May 2025 17:30:12 -0500
+From: John Groves <John@groves.net>
+To: Dan Williams <dan.j.williams@intel.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Bernd Schubert <bschubert@ddn.com>
+Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	"Darrick J . Wong" <djwong@kernel.org>, Luis Henriques <luis@igalia.com>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Kent Overstreet <kent.overstreet@linux.dev>, Petr Vorel <pvorel@suse.cz>, Brian Foster <bfoster@redhat.com>, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
+	Ajay Joshi <ajayjoshi@micron.com>, Alistair Popple <apopple@nvidia.com>, john@groves.net
+Subject: Re: [RFC PATCH 00/19] famfs: port into fuse
+Message-ID: <hobxhwsn5ruaw42z4xuhc2prqnwmfnbouui44lru7lnwimmytj@fwga2crw2ych>
+References: <20250421013346.32530-1-john@groves.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	5SLUiT8dvbnvc3z6RgSo64yYfhe+dWUukspJOvX6SiaDOOHWMbPmpQf+nHkHRjohjT100UrGsY4NY/gBhnvWZDgjBWRabM02yvISSQFshGeZXvu4X0XCE55QCJpmljVP9Qe3hjyxw1jjx+Ws2vB/kWTsARHhXyeuN4MRalwKQU7hGqQH7niSDzXJ9lpIUt7jC/730HeQk8BIxx3o4K3MHwDBUlxQnqnKVH5bZDhlK14ca2ZUAzXU6m68cXihLz4FdMfBCsVhgLgKf2EF8ewTRhF6rMMqCZ9FSM7u0khYUpKPIR4rMvg3EP5fWRHj0LMqzKOXM6H2RCye+NRggZ0E1Vhtn0lTjoaA8GdMMgnfj6IpUPkeCZp6+6TJKqewG6QhpJEcr8qwNQHlVKN9G5PpFV4JppBbvREBfsmJFJqQoi8eKs6UkEG9RjaFuReRXgs8caLnALBFJvG8mBCX9gXpZg7fXpwQBT273194L2G4YRTY2kwp3VyfVuDnL9bocKQLFIqgJGALO5XIOhb6hskmW6GBcHrOTPKUWpA1+P+jKEhB7qWBSsix1n3/Ux0bI/esEkbEe7OgoYkkAvDm8nZtZ0FL6vRnvRYGJnxP8scl24FkEYNOnseDn39O7zrhUaCj
-X-OriginatorOrg: fujitsu.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: TY1PR01MB1562.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6d40654d-386b-4214-428d-08dd9845e978
-X-MS-Exchange-CrossTenant-originalarrivaltime: 21 May 2025 09:00:19.3335
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: r11sxDmOREd/lU14gS1xUWYURPpiYrn8g9D8+zWNnax8Fe6QMkhEcK5fUhHr+vlo7ohmMiXqfK4PQw4/EQWrFQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSOPR01MB12280
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250421013346.32530-1-john@groves.net>
 
-DQoNCk9uIDIwLzA1LzIwMjUgMDM6MjgsIGFsaXNvbi5zY2hvZmllbGRAaW50ZWwuY29tIHdyb3Rl
-Og0KPiBkaWZmIC0tZ2l0IGEvbmRjdGwvbW9uaXRvci5jIGIvbmRjdGwvbW9uaXRvci5jDQo+IGlu
-ZGV4IGJkOGE3NDg2MzQ3Ni4uOTI1YjM3ZjQxODRiIDEwMDY0NA0KPiAtLS0gYS9uZGN0bC9tb25p
-dG9yLmMNCj4gKysrIGIvbmRjdGwvbW9uaXRvci5jDQo+IEBAIC02NTgsNyArNjU4LDcgQEAgaW50
-IGNtZF9tb25pdG9yKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgc3RydWN0IG5kY3RsX2N0
-eCAqY3R4KQ0KPiAgIAkJCXJjID0gLUVOWElPOw0KPiAgIAkJZ290byBvdXQ7DQo+ICAgCX0NCj4g
-LQ0KPiArCWluZm8oJm1vbml0b3IsICJtb25pdG9yIHJlYWR5XG4iKTsNCg0KDQpUaGlzIGJyaW5n
-cyB0byBtaW5kIG15IGluaXRpYWwgY29udHJpYnV0aW9uIHRvIG5kY3RsLCB3aGVyZSBpdCBjb21t
-ZW50ZWQgdGhhdCBtb25pdG9yIGV4cGVjdHMgdG8NCm91dHB1dCBjb250ZW50IGluIGpzb24gZm9y
-bWF0WzFdPyBTbyB0aGlzIHVwZGF0ZSBjb3VsZCBicmVhayBpdCwgZG9lcyBpdCBtYXR0ZXIgbm93
-Pw0KDQpbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvbGludXgtY3hsLzRjMjM0MWM4YTRlNTc5
-ZTk2NDNiN2RhYTNlYjQxMmIwYWMwZGE5OGEuY2FtZWxAaW50ZWwuY29tLw0KDQpUaGFua3MNClpo
-aWppYW4NCg0KPiAgIAlyYyA9IG1vbml0b3JfZXZlbnQoY3R4LCAmbWZhKTsNCj4gICBvdXQ6
+On 25/04/20 08:33PM, John Groves wrote:
+> Subject: famfs: port into fuse
+>
+> <snip>
+
+I'm planning to apply the review comments and send v2 of
+this patch series soon - hopefully next week.
+
+I asked a couple of specific questions for Miklos and
+Amir at [1] that I hope they will answer in the next few
+days. Do you object to zeroing fuse_inodes when they're
+allocated, and do I really need an xchg() to set the
+fi->famfs_meta pointer during fuse_alloc_inode()? cmpxchg
+would be good for avoiding stepping on an "already set"
+pointer, but not useful if fi->famfs_meta has random
+contents (which it does when allocated).
+
+I plan to move the GET_FMAP message to OPEN time rather than
+LOOKUP - unless that leads to problems that I don't
+currently foresee. The GET_FMAP response will also get a
+variable-sized payload.
+
+Darrick and I have met and discussed commonality between our
+use cases, and the only thing from famfs that he will be able
+to directly use is the GET_FMAP message/response - but likely
+with a different response payload. The file operations in
+famfs.c are not applicable for Darrick, as they only handle
+mapping file offsets to devdax offsets (i.e. fs-dax over
+devdax).
+
+Darrick is primarily exploring adapting block-backed file
+systems to use fuse. These are conventional page-cache-backed
+files that will primarily be read and written between
+blockdev and page cache.
+
+(Darrick, correct me if I got anything important wrong there.)
+
+In prep for Darrick, I'll add an offset and length to the
+GET_FMAP message, to specify what range of the file map is
+being requested. I'll also add a new "first header" struct
+in the GET_FMAP response that can accommodate additional fmap
+types, and will specify the file size as well as the offset
+and length of the fmap portion described in the response
+(allowing for GET_FMAP responses that contain an incomplete
+file map).
+
+If there is desire to give GET_FMAP a different name, like
+GET_IOMAP, I don't much care - although the term "iomap" may
+be a bit overloaded already (e.g. the dax_iomap_rw()/
+dax_iomap_fault() functions debatably didn't need "iomap"
+in their names since they're about converting a file offset
+range to daxdev ranges, and they don't handle anything
+specifically iomap-related). At least "FMAP" is more narrowly
+descriptive of what it is.
+
+I don't think Darrick needs GET_DAXDEV (or anything
+analogous), because passing in the backing dev at mount time
+seems entirely sufficient - so I assume that at least for now
+GET_DAXDEV won't be shared. But famfs definitely needs
+GET_DAXDEV, because files must be able to interleave across
+memory devices.
+
+The one issue that I will kick down the road until v3 is
+fixing the "poisoned page|folio" problem. Because of that,
+v2 of this series will still be against a 6.14 kernel. Not
+solving that problem means this series won't be merge-able
+until v3.
+
+I hope this is all clear and obvious. Let me know if not (or
+if so).
+
+Thanks,
+John
+
+
+[1] https://lore.kernel.org/linux-fsdevel/20250421013346.32530-1-john@groves.net/T/#me47467b781d6c637899a38b898c27afb619206e0
+
