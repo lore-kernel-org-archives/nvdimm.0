@@ -1,125 +1,107 @@
-Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5EEF18BBAE
-	for <nvdimm@lists.linux.dev>; Tue, 20 May 2025 21:08:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C50055E69
+	for <nvdimm@lists.linux.dev>; Wed, 21 May 2025 00:27:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747775341; cv=none; b=nV4N4HGvAhkNixDvMATOwQbgzdqoH0xKLtUxeZ9x2oJmZlAVFObvfvXtgoLkwDFfDFu5ftwjC4irPcfB2RBkyPlPt22rSNiDnePPhjeIiixfVUDLmO6f60LDw09xx9Mtw6cpaON3M0EZdH5SdSa6idd4FP5f3RutsOJwteseJ4w=
+	t=1747787223; cv=none; b=Zz+9kN9MHRNYl8I7qwRUNgeKgLL0L3JWNILIGfs4HQqAsphJyKZrFQjuay0YNqDwhpgRmPEQpKqYHCukzF584htjGlUb8jadIrxGPus6CtpOCFPcdC8QLm5MlpX/4ZIXSpMzvh5xK4Oq/tj9A9IkTqLK3+3/OOTMguOyJO1FNYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747775341; c=relaxed/simple;
-	bh=ihB+rwt5XDis//1sTiN024h8VjUw07QCmCpDrWYU5hw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=I1fhLG/6uncehJyywz8cAZ0aqw+dAvi9HFyGrU3QuWf4vjT9r2FgwzpXaD1NMdk42JH/plNZgGNT1FCMEIVhHOEDJk8cYKQMoPDSgmBM24TiV7JaPb4lnLgJCVyjErvbWFzxu79Dnle8OmtD7xhfOMdojZGBZPcINr+jmPeNdbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com; spf=none smtp.mailfrom=pdp7.com; dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b=2+UQxni8; arc=none smtp.client-ip=209.85.210.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=pdp7.com
+	s=arc-20240116; t=1747787223; c=relaxed/simple;
+	bh=JsasuI8EBSJUBttnTRl0qIa0Ar7cUOSsCYI4XvK1ekc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XOS2dtaHw2l2CMLUygR/0/lDAE2m5fj9DLtrgmZ1u4+f4BPx1VB0b43mVwO3UOJ/KdS4dAlZG0IX1rwcw495JPlEhCGVE9bvX6lnYKFR2u0cXYk+W/WOS6nh6EZALnn0stQFVkh2SqZnRwQ7m90SAxsIakAlgXfZ5+cZootbU8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=S4wdLkdH; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b="2+UQxni8"
-Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-7424ccbef4eso6111877b3a.2
-        for <nvdimm@lists.linux.dev>; Tue, 20 May 2025 14:08:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=pdp7-com.20230601.gappssmtp.com; s=20230601; t=1747775339; x=1748380139; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ihB+rwt5XDis//1sTiN024h8VjUw07QCmCpDrWYU5hw=;
-        b=2+UQxni8F9X1/XIY32rEmfzYyDR2J2+TD1ekkpXqTWUgsBdZ4GpL1SZtRs0E9oh4cd
-         XPULqdA2bzbs90T3SC/6k3biXPOoMBtD/GOSV+P6E45TmCsNDXwKfvIiggPp5eUF88C8
-         I3bxbyKdCEizFPpdUxxIJEuBe+j8V0Lx71Lggk1n0laqRcdA8ugHYwlKuh4ttXCtzQUJ
-         L57TQoAGRJZU+SLbEdMpr6Zn14x85A682mh5kPjPInFptUR8VAensH2h+paxBXITvOHU
-         IZaWEbQYJYBgBNaKqAq6nzD2PmfAeYgiyblijHSJylSsbJECf+/QfGotvmiaJ/cMZM4v
-         IEug==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747775339; x=1748380139;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ihB+rwt5XDis//1sTiN024h8VjUw07QCmCpDrWYU5hw=;
-        b=xQxBYM5xcI9ELfErHiBMrUdz1/4Oymdg7zvOBY5Jtq7UY/dGFkQkRA1+Ya0i+h/JQx
-         rqTWtRVnpfD9BWeKdv6gLgxLvGUMgwSCLZupoW0cOEFvaxIqN32eElV5j51DYcEkCBs1
-         6MqRcxwYq0g06pELHWcqutJOcFwi8aau8BfE7JGrg/W64kqau77Qo5RdhouYcre2m3+2
-         PToeMucAEwIUxp1tWJiw4PtzBmcariLRSCmMrKQYRkNyVymqGn3rp3FD0UVijXYbWKMa
-         K6EnY4nYfUSXRNjfnC0LZSBhMAd1+3knhItWeN1wE+czjf5Lw25pM7iuQzszQvgR0851
-         RWkg==
-X-Forwarded-Encrypted: i=1; AJvYcCXB9pB4bbG4yonIok7y3WPgMvDLvs6n65BWFzyB0n6BVN6NhNSYqze4EOEGm28Ez11c44//Gdo=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yxrfh0OLhCM6F5afyZJKQ26M/7wz3N+jR46J/uigNtFn8KcxXwj
-	sI4Z+ORWC8TSRnrXUcrO37+sgTqrazKDvbmlrGcwzzY0AOXF3P3I4xAhehMwW9//wak=
-X-Gm-Gg: ASbGncukbmtZYXiz6gtW8/hY4QBBz54OmYy5V2WbWouWni+WgS8Welr3Ybu+rhxxFfN
-	xDl69syEvhyyQXnRcU1dEzoTiqIgB15tg+q5xFuPP6FycGcpRJ0C0nM1VAkF0aC6jorH2hZ91Lp
-	iXuhZve1k9zd1jD/jee4zLlTf8w9U6bP1j08Bm2I5yWVO1QjXJ1xzaskLYkSnvIwLHkKQmfhC1d
-	PDHqwalU2r4efdI92D6/GU73rqrJgeTUqbF7o7WOZjG5WOAgA1wHXpHsVM6oAEusMCXbgL7Q1Cb
-	vtITBXQdJRu43sWd2l5lhrKHQGKEvg30pL1DBgFaZXgKx9d6XQLGYxaGAo7eGCiWt5b/1igIqg=
-	=
-X-Google-Smtp-Source: AGHT+IG0jhM90gGAp66mKqR5qQF6fDuQGVKEcTsZXkZTJKrN/agp03BwEkWo8NiFt8QodeRgqFhKrQ==
-X-Received: by 2002:a05:6a00:1414:b0:736:450c:fa54 with SMTP id d2e1a72fcca58-742a979528bmr23777834b3a.6.1747775338866;
-        Tue, 20 May 2025 14:08:58 -0700 (PDT)
-Received: from x1 (97-120-251-212.ptld.qwest.net. [97.120.251.212])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-742a9829bbesm8361472b3a.89.2025.05.20.14.08.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 May 2025 14:08:58 -0700 (PDT)
-Date: Tue, 20 May 2025 14:08:56 -0700
-From: Drew Fustini <drew@pdp7.com>
-To: Conor Dooley <conor@kernel.org>
-Cc: Oliver O'Halloran <oohall@gmail.com>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>, nvdimm@lists.linux.dev,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] dt-bindings: pmem: Convert binding to YAML
-Message-ID: <aCzvaPQ0Z3uunjHz@x1>
-References: <20250520021440.24324-1-drew@pdp7.com>
- <aCvnXW12cC97amX3@x1>
- <20250520-refract-fling-d064e11ddbdf@spud>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="S4wdLkdH"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1747787222; x=1779323222;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=JsasuI8EBSJUBttnTRl0qIa0Ar7cUOSsCYI4XvK1ekc=;
+  b=S4wdLkdHofaSg1hSdLTjLqId4AIPZdb41GOAEKWyWU+6Zjl5gpl4ml0q
+   HDeIDVkMAcX7d0c07JjMh1P0P4MojLKgHbHuqQvGthGcB4ld0WUXz7YE8
+   40uBE+cUpunDEWrmaFFWpAboZvDy33aBiZJsW/lxqtYtY8k92n9SKg5nP
+   e4xuP316DmRM6zrMB7aHMJCHfm2aE5wDr8NZpblF7cQfCg5CLQG6JDiWs
+   4QkAB9571Meg9Gpwaa8SSF35g9OSIIR9WpB9fRKqO6FhDfnUpEq4sUXry
+   Bbi/yI+GkMB+SMEJC94KM3jfSGluOIlZW1Gebiqu7VLOyuS19jRX4BRC2
+   A==;
+X-CSE-ConnectionGUID: Whde34f3TiWMFpwmFpUqTQ==
+X-CSE-MsgGUID: 4I/IE6PBTsy3CE/Hb4uq4A==
+X-IronPort-AV: E=McAfee;i="6700,10204,11439"; a="49645886"
+X-IronPort-AV: E=Sophos;i="6.15,303,1739865600"; 
+   d="scan'208";a="49645886"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2025 17:27:01 -0700
+X-CSE-ConnectionGUID: 0TP4sVPVSl6xpftLe7g22Q==
+X-CSE-MsgGUID: C49aQXHRQfa2YOiDcJbohQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,303,1739865600"; 
+   d="scan'208";a="144735084"
+Received: from unknown (HELO hyperion.jf.intel.com) ([10.243.61.29])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2025 17:27:00 -0700
+From: marc.herbert@linux.intel.com
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	alison.schofield@intel.com,
+	dan.j.williams@intel.com
+Cc: Marc Herbert <marc.herbert@linux.intel.com>
+Subject: [ndctl PATCH 1/2] README.md: add CONFIG_s missing to pass NFIT tests
+Date: Wed, 21 May 2025 00:26:39 +0000
+Message-ID: <20250521002640.1700283-1-marc.herbert@linux.intel.com>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="OZWMYPezFAgPwp6M"
-Content-Disposition: inline
-In-Reply-To: <20250520-refract-fling-d064e11ddbdf@spud>
+Content-Transfer-Encoding: 8bit
 
+From: Marc Herbert <marc.herbert@linux.intel.com>
 
---OZWMYPezFAgPwp6M
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Found by trial and error. As of kernel v6.15, the CONFIG_s in this
+version are enough to give to ./scripts/kconfig/merge_config.sh and pass
+`meson test --suite=ndctl:ndctl` and `meson test --suite=ndctl:dax`
 
-On Tue, May 20, 2025 at 04:51:42PM +0100, Conor Dooley wrote:
-> On Mon, May 19, 2025 at 07:22:21PM -0700, Drew Fustini wrote:
-> > On Mon, May 19, 2025 at 07:14:40PM -0700, Drew Fustini wrote:
-> > > Convert the PMEM device tree binding from text to YAML. This will all=
-ow
-> > > device trees with pmem-region nodes to pass dtbs_check.
-> > >=20
-> > > Signed-off-by: Drew Fustini <drew@pdp7.com>
-> > > ---
-> > > v2: remove the txt file to make the conversion complete
-> >=20
-> > Krzysztof/Rob: my apologies, I forgot to add v2 to the Subject. Please
-> > let me know if I should resend.
->=20
-> I see how it is Drew...
-> Acked-by: Conor Dooley <conor.dooley@microchip.com>
+This has been manually tested with only `make defconfig ARCH=x86_64` as
+a starting point. This is admittedly incomplete test coverage but still
+a massively better starting point for other ARCHs and a big time
+saver. There's a good chance it's enough for other ARCHs too.
 
-Thanks for the Ack and sorry about that :)
+Link: https://lore.kernel.org/nvdimm/aed71134-1029-4b88-ab20-8dfa527a7438@linux.intel.com/
+Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
+---
+ README.md | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Is it now just a matter of Rb from Oliver O'Halloran and this patch
-going through the nvdimm tree?
+diff --git a/README.md b/README.md
+index db25a9114402..a37991ccefa2 100644
+--- a/README.md
++++ b/README.md
+@@ -69,10 +69,20 @@ loaded.  To build and install nfit_test.ko:
+    CONFIG_NVDIMM_PFN=y
+    CONFIG_NVDIMM_DAX=y
+    CONFIG_DEV_DAX_PMEM=m
++   CONFIG_FS_DAX=y
++   CONFIG_XFS_FS=y
++   CONFIG_DAX=m
++   CONFIG_DEV_DAX=m
+    CONFIG_ENCRYPTED_KEYS=y
+    CONFIG_NVDIMM_SECURITY_TEST=y
+    CONFIG_STRICT_DEVMEM=y
+    CONFIG_IO_STRICT_DEVMEM=y
++   CONFIG_ACPI_NFIT=m
++   CONFIG_NFIT_SECURITY_DEBUG=y
++   CONFIG_MEMORY_FAILURE=y
++   CONFIG_MEMORY_HOTPLUG=y
++   CONFIG_MEMORY_HOTREMOVE=y
++   CONFIG_TRANSPARENT_HUGEPAGE=y
+    ```
+ 
+ 1. Build and install the unit test enabled libnvdimm modules in the
+-- 
+2.49.0
 
-Thanks,
-Drew
-
---OZWMYPezFAgPwp6M
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQSy8G7QpEpV9aCf6Lbb7CzD2SixDAUCaCzvUQAKCRDb7CzD2Six
-DCUOAP9sDOAZPBBh/QTUuTF1j14KmqDTeNB0fB4FKon6h0DjcAD/ZUEtPbEC3x1+
-kIv4K/IlzKAkFPw7HYaorSXa3OynQw8=
-=TyR2
------END PGP SIGNATURE-----
-
---OZWMYPezFAgPwp6M--
