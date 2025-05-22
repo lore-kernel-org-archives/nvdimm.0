@@ -1,26 +1,27 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 266AC299AA8;
-	Thu, 22 May 2025 15:56:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B6DC2980C3;
+	Thu, 22 May 2025 15:57:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747929420; cv=none; b=Njzo7sHDLoeg9NhxoPAuG+5IccHkycSTFwig7qx5gj57m+hsFDDJI/zNrcSyp3NPY0DljEV/JsJuecQgbF8HeHUl9QVhkpmPc/8t5Ezcw0J9SriGNRmf07SW0JCxRQ9KPxv4fGq5R80K6CoIT3WzJ0ugPECMv3pFqQlzVx19GYM=
+	t=1747929421; cv=none; b=Ip+q3PRFa1iRj73vi+Hr5lW1qsj0Zsa767fQIwYwIegtZ8G/kHZBbLhCA4JjT06w7VAidcO5L4WNEsp58FQ1vpJgSrg3jaMeDk36Y6G+pZFWBd68Oh8JnOmqXJ3kkfvuLsGJYhV3myHpWLASy1KdLVWwsL1z37ZELQyyPwRWQW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747929420; c=relaxed/simple;
-	bh=0yGtnfVjxHn6jkzJgCUNtGpWqaHp5ypwGfpM4Mxa5ys=;
+	s=arc-20240116; t=1747929421; c=relaxed/simple;
+	bh=IfhMDStaa3jHu19acW5E9YeFxEkSArTeZU28rOWyjQs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DAGUUk4RMPp/wcYaavYDh0SXRVdY8nnCF/86v3Y8lnpNQBBNGdqfADGw4iv21XwdDPm2NWC/pFWlEyZPVm7mhSUgbFiO5cITIRuX7a8bFyst9UK5KRYNocWizM7dZ95UpGVXZfSHPS717uYcRQ2/pIRtZYpnXJgTk2gf0RybGmM=
+	 MIME-Version; b=TjU6FGYYAoA12lJI937HHKx7FS3VeUN0DOAi5/akLT98Sw9CAbrRKLt3EFc+AZ77UUUP9lVz+tIe5wptut0NrKqQhnXnbAlWpWN8CeF337ej7rcQudI2rakGQba7YddLa9/T1ccMNpwIoQB54yBjBiQKRDtvHLkOkSOVEoOzK1w=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C400C4CEE4;
-	Thu, 22 May 2025 15:56:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3E14C4CEE4;
+	Thu, 22 May 2025 15:57:00 +0000 (UTC)
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Cc: alison.schofield@intel.com
-Subject: [NDCTL PATCH v8 3/4] ndctl: Add features.h from kernel UAPI
-Date: Thu, 22 May 2025 08:56:51 -0700
-Message-ID: <20250522155653.1346768-4-dave.jiang@intel.com>
+Cc: alison.schofield@intel.com,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: [NDCTL PATCH v8 4/4] cxl/test: Add test for cxl features device
+Date: Thu, 22 May 2025 08:56:52 -0700
+Message-ID: <20250522155653.1346768-5-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250522155653.1346768-1-dave.jiang@intel.com>
 References: <20250522155653.1346768-1-dave.jiang@intel.com>
@@ -32,424 +33,557 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Pull in the kernel UAPI header files from CXL Features support and FWCTL.
-This is needed to support building the CXL Features unit test.
+Add a unit test to verify the features ioctl commands. Test support added
+for locating a features device, retrieve and verify the supported features
+commands, retrieve specific feature command data, retrieve test feature
+data, and write and verify test feature data.
 
+Acked-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
 v8:
-- Add define for __counted_by() to deal with older compilers. (Alison)
+- Fix typo in test script
 ---
- cxl/fwctl/cxl.h      |  56 +++++++++++++
- cxl/fwctl/features.h | 187 +++++++++++++++++++++++++++++++++++++++++++
- cxl/fwctl/fwctl.h    | 141 ++++++++++++++++++++++++++++++++
- 3 files changed, 384 insertions(+)
- create mode 100644 cxl/fwctl/cxl.h
- create mode 100644 cxl/fwctl/features.h
- create mode 100644 cxl/fwctl/fwctl.h
+ cxl/fwctl/cxl.h      |   2 +-
+ test/cxl-features.sh |  31 +++
+ test/fwctl.c         | 439 +++++++++++++++++++++++++++++++++++++++++++
+ test/meson.build     |  19 ++
+ 4 files changed, 490 insertions(+), 1 deletion(-)
+ create mode 100755 test/cxl-features.sh
+ create mode 100644 test/fwctl.c
 
 diff --git a/cxl/fwctl/cxl.h b/cxl/fwctl/cxl.h
-new file mode 100644
-index 000000000000..43f522f0cdcd
---- /dev/null
+index 43f522f0cdcd..c560b2a1181d 100644
+--- a/cxl/fwctl/cxl.h
 +++ b/cxl/fwctl/cxl.h
-@@ -0,0 +1,56 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+/*
-+ * Copyright (c) 2024-2025 Intel Corporation
-+ *
-+ * These are definitions for the mailbox command interface of CXL subsystem.
-+ */
-+#ifndef _UAPI_FWCTL_CXL_H_
-+#define _UAPI_FWCTL_CXL_H_
-+
-+#include <linux/types.h>
-+#include <linux/stddef.h>
-+#include <cxl/features.h>
-+
-+/**
-+ * struct fwctl_rpc_cxl - ioctl(FWCTL_RPC) input for CXL
-+ * @opcode: CXL mailbox command opcode
-+ * @flags: Flags for the command (input).
-+ * @op_size: Size of input payload.
-+ * @reserved1: Reserved. Must be 0s.
-+ * @get_sup_feats_in: Get Supported Features input
-+ * @get_feat_in: Get Feature input
-+ * @set_feat_in: Set Feature input
-+ */
-+struct fwctl_rpc_cxl {
-+	__struct_group(fwctl_rpc_cxl_hdr, hdr, /* no attrs */,
-+		__u32 opcode;
-+		__u32 flags;
-+		__u32 op_size;
-+		__u32 reserved1;
-+	);
-+	union {
-+		struct cxl_mbox_get_sup_feats_in get_sup_feats_in;
-+		struct cxl_mbox_get_feat_in get_feat_in;
-+		struct cxl_mbox_set_feat_in set_feat_in;
-+	};
-+};
-+
-+/**
-+ * struct fwctl_rpc_cxl_out - ioctl(FWCTL_RPC) output for CXL
-+ * @size: Size of the output payload
-+ * @retval: Return value from device
-+ * @get_sup_feats_out: Get Supported Features output
-+ * @payload: raw byte stream of payload
-+ */
-+struct fwctl_rpc_cxl_out {
-+	__struct_group(fwctl_rpc_cxl_out_hdr, hdr, /* no attrs */,
-+		__u32 size;
-+		__u32 retval;
-+	);
-+	union {
-+		struct cxl_mbox_get_sup_feats_out get_sup_feats_out;
-+		__DECLARE_FLEX_ARRAY(__u8, payload);
-+	};
-+};
-+
-+#endif
-diff --git a/cxl/fwctl/features.h b/cxl/fwctl/features.h
-new file mode 100644
-index 000000000000..b71a2fdf2040
+@@ -9,7 +9,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/stddef.h>
+-#include <cxl/features.h>
++#include "features.h"
+ 
+ /**
+  * struct fwctl_rpc_cxl - ioctl(FWCTL_RPC) input for CXL
+diff --git a/test/cxl-features.sh b/test/cxl-features.sh
+new file mode 100755
+index 000000000000..a730310ec7b0
 --- /dev/null
-+++ b/cxl/fwctl/features.h
-@@ -0,0 +1,187 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+/*
-+ * Copyright (c) 2024,2025, Intel Corporation
-+ *
-+ * These are definitions for the mailbox command interface of CXL subsystem.
-+ */
-+#ifndef _UAPI_CXL_FEATURES_H_
-+#define _UAPI_CXL_FEATURES_H_
++++ b/test/cxl-features.sh
+@@ -0,0 +1,31 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2025 Intel Corporation. All rights reserved.
 +
-+#include <linux/types.h>
++rc=77
++# 237 is -ENODEV
++ERR_NODEV=237
 +
-+/*
-+ * Vendored Version: Do not use a compiler attribute that may not be available
-+ * to user space. counted_by_'s are supported in GCC 14.1
-+ */
-+#ifndef __counted_by_le
-+#define __counted_by_le(count)
-+#endif
++. $(dirname $0)/common
++FEATURES="$TEST_PATH"/fwctl
 +
-+typedef unsigned char __uapi_uuid_t[16];
++trap 'err $LINENO' ERR
 +
-+#ifdef __KERNEL__
++modprobe cxl_test
++
++test -x "$FEATURES" || do_skip "no CXL Features Control"
++# disable trap
++trap - $(compgen -A signal)
++"$FEATURES"
++rc=$?
++
++echo "error: $rc"
++if [ "$rc" -eq "$ERR_NODEV" ]; then
++	do_skip "no CXL FWCTL char dev"
++elif [ "$rc" -ne 0 ]; then
++	echo "fail: $LINENO" && exit 1
++fi
++
++trap 'err $LINENO' ERR
++
++_cxl_cleanup
+diff --git a/test/fwctl.c b/test/fwctl.c
+new file mode 100644
+index 000000000000..7a780e718872
+--- /dev/null
++++ b/test/fwctl.c
+@@ -0,0 +1,439 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2024-2025 Intel Corporation. All rights reserved.
++#include <errno.h>
++#include <fcntl.h>
++#include <stdio.h>
++#include <endian.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <syslog.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/ioctl.h>
++#include <cxl/libcxl.h>
 +#include <linux/uuid.h>
-+/*
-+ * Note, __uapi_uuid_t is 1-byte aligned on modern compilers and 4-byte
-+ * aligned on others. Ensure that __uapi_uuid_t in a struct is placed at
-+ * a 4-byte aligned offset, or the structure is packed, to ensure
-+ * consistent padding.
-+ */
-+static_assert(sizeof(__uapi_uuid_t) == sizeof(uuid_t));
-+#define __uapi_uuid_t uuid_t
-+#endif
++#include <uuid/uuid.h>
++#include <util/bitmap.h>
++#include <cxl/fwctl/features.h>
++#include <cxl/fwctl/fwctl.h>
++#include <cxl/fwctl/cxl.h>
 +
-+/*
-+ * struct cxl_mbox_get_sup_feats_in - Get Supported Features input
-+ *
-+ * @count: bytes of Feature data to return in output
-+ * @start_idx: index of first requested Supported Feature Entry, 0 based.
-+ * @reserved: reserved field, must be 0s.
-+ *
-+ * Get Supported Features (0x500h) CXL r3.2 8.2.9.6.1 command.
-+ * Input block for Get support Feature
-+ */
-+struct cxl_mbox_get_sup_feats_in {
-+	__le32 count;
-+	__le16 start_idx;
-+	__u8 reserved[2];
-+} __attribute__ ((__packed__));
++static const char provider[] = "cxl_test";
 +
-+/* CXL spec r3.2 Table 8-87 command effects */
-+#define CXL_CMD_CONFIG_CHANGE_COLD_RESET	BIT(0)
-+#define CXL_CMD_CONFIG_CHANGE_IMMEDIATE		BIT(1)
-+#define CXL_CMD_DATA_CHANGE_IMMEDIATE		BIT(2)
-+#define CXL_CMD_POLICY_CHANGE_IMMEDIATE		BIT(3)
-+#define CXL_CMD_LOG_CHANGE_IMMEDIATE		BIT(4)
-+#define CXL_CMD_SECURITY_STATE_CHANGE		BIT(5)
-+#define CXL_CMD_BACKGROUND			BIT(6)
-+#define CXL_CMD_BGCMD_ABORT_SUPPORTED		BIT(7)
-+#define CXL_CMD_EFFECTS_VALID			BIT(9)
-+#define CXL_CMD_CONFIG_CHANGE_CONV_RESET	BIT(10)
-+#define CXL_CMD_CONFIG_CHANGE_CXL_RESET		BIT(11)
-+#define CXL_CMD_EFFECTS_RESERVED		GENMASK(15, 12)
++UUID_DEFINE(test_uuid,
++	    0xff, 0xff, 0xff, 0xff,
++	    0xff, 0xff,
++	    0xff, 0xff,
++	    0xff, 0xff,
++	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff
++);
 +
-+/*
-+ * struct cxl_feat_entry - Supported Feature Entry
-+ * @uuid: UUID of the Feature
-+ * @id: id to identify the feature. 0 based
-+ * @get_feat_size: max bytes required for Get Feature command for this Feature
-+ * @set_feat_size: max bytes required for Set Feature command for this Feature
-+ * @flags: attribute flags
-+ * @get_feat_ver: Get Feature version
-+ * @set_feat_ver: Set Feature version
-+ * @effects: Set Feature command effects
-+ * @reserved: reserved, must be 0
-+ *
-+ * CXL spec r3.2 Table 8-109
-+ * Get Supported Features Supported Feature Entry
-+ */
-+struct cxl_feat_entry {
-+	__uapi_uuid_t uuid;
-+	__le16 id;
-+	__le16 get_feat_size;
-+	__le16 set_feat_size;
-+	__le32 flags;
-+	__u8 get_feat_ver;
-+	__u8 set_feat_ver;
-+	__le16 effects;
-+	__u8 reserved[18];
-+} __attribute__ ((__packed__));
++#define CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES	0x0500
++#define CXL_MBOX_OPCODE_GET_FEATURE		0x0501
++#define CXL_MBOX_OPCODE_SET_FEATURE		0x0502
 +
-+/* @flags field for 'struct cxl_feat_entry' */
-+#define CXL_FEATURE_F_CHANGEABLE		BIT(0)
-+#define CXL_FEATURE_F_PERSIST_FW_UPDATE		BIT(4)
-+#define CXL_FEATURE_F_DEFAULT_SEL		BIT(5)
-+#define CXL_FEATURE_F_SAVED_SEL			BIT(6)
++#define GET_FEAT_SIZE	4
++#define SET_FEAT_SIZE	4
++#define EFFECTS_MASK	(BIT(0) | BIT(9))
 +
-+/*
-+ * struct cxl_mbox_get_sup_feats_out - Get Supported Features output
-+ * @num_entries: number of Supported Feature Entries returned
-+ * @supported_feats: number of supported Features
-+ * @reserved: reserved, must be 0s.
-+ * @ents: Supported Feature Entries array
-+ *
-+ * CXL spec r3.2 Table 8-108
-+ * Get supported Features Output Payload
-+ */
-+struct cxl_mbox_get_sup_feats_out {
-+	__struct_group(cxl_mbox_get_sup_feats_out_hdr, hdr, /* no attrs */,
-+		__le16 num_entries;
-+		__le16 supported_feats;
-+		__u8 reserved[4];
-+	);
-+	struct cxl_feat_entry ents[] __counted_by_le(num_entries);
-+} __attribute__ ((__packed__));
++#define MAX_TEST_FEATURES	1
++#define DEFAULT_TEST_DATA	0xdeadbeef
++#define DEFAULT_TEST_DATA2	0xabcdabcd
 +
-+/*
-+ * Get Feature CXL spec r3.2 Spec 8.2.9.6.2
-+ */
-+
-+/*
-+ * struct cxl_mbox_get_feat_in - Get Feature input
-+ * @uuid: UUID for Feature
-+ * @offset: offset of the first byte in Feature data for output payload
-+ * @count: count in bytes of Feature data returned
-+ * @selection: 0 current value, 1 default value, 2 saved value
-+ *
-+ * CXL spec r3.2 section 8.2.9.6.2 Table 8-99
-+ */
-+struct cxl_mbox_get_feat_in {
-+	__uapi_uuid_t uuid;
-+	__le16 offset;
-+	__le16 count;
-+	__u8 selection;
-+} __attribute__ ((__packed__));
-+
-+/*
-+ * enum cxl_get_feat_selection - selection field of Get Feature input
-+ */
-+enum cxl_get_feat_selection {
-+	CXL_GET_FEAT_SEL_CURRENT_VALUE,
-+	CXL_GET_FEAT_SEL_DEFAULT_VALUE,
-+	CXL_GET_FEAT_SEL_SAVED_VALUE,
-+	CXL_GET_FEAT_SEL_MAX
++struct test_feature {
++	uuid_t uuid;
++	size_t get_size;
++	size_t set_size;
 +};
 +
-+/*
-+ * Set Feature CXL spec r3.2  8.2.9.6.3
-+ */
++static int send_command(int fd, struct fwctl_rpc *rpc, struct fwctl_rpc_cxl_out *out)
++{
++	if (ioctl(fd, FWCTL_RPC, rpc) == -1) {
++		fprintf(stderr, "RPC ioctl error: %s\n", strerror(errno));
++		return -errno;
++	}
 +
-+/*
-+ * struct cxl_mbox_set_feat_in - Set Features input
-+ * @uuid: UUID for Feature
-+ * @flags: set feature flags
-+ * @offset: byte offset of Feature data to update
-+ * @version: Feature version of the data in Feature Data
-+ * @rsvd: reserved, must be 0s.
-+ * @feat_data: raw byte stream of Features data to update
-+ *
-+ * CXL spec r3.2 section 8.2.9.6.3 Table 8-101
-+ */
-+struct cxl_mbox_set_feat_in {
-+	__struct_group(cxl_mbox_set_feat_hdr, hdr, /* no attrs */,
-+		__uapi_uuid_t uuid;
-+		__le32 flags;
-+		__le16 offset;
-+		__u8 version;
-+		__u8 rsvd[9];
-+	);
-+	__u8 feat_data[];
-+}  __packed;
++	if (out->retval) {
++		fprintf(stderr, "operation returned failure: %d\n", out->retval);
++		return -ENXIO;
++	}
 +
-+/*
-+ * enum cxl_set_feat_flag_data_transfer - Set Feature flags field
-+ */
-+enum cxl_set_feat_flag_data_transfer {
-+	CXL_SET_FEAT_FLAG_FULL_DATA_TRANSFER = 0,
-+	CXL_SET_FEAT_FLAG_INITIATE_DATA_TRANSFER,
-+	CXL_SET_FEAT_FLAG_CONTINUE_DATA_TRANSFER,
-+	CXL_SET_FEAT_FLAG_FINISH_DATA_TRANSFER,
-+	CXL_SET_FEAT_FLAG_ABORT_DATA_TRANSFER,
-+	CXL_SET_FEAT_FLAG_DATA_TRANSFER_MAX
-+};
++	return 0;
++}
 +
-+#define CXL_SET_FEAT_FLAG_DATA_TRANSFER_MASK		GENMASK(2, 0)
-+#define CXL_SET_FEAT_FLAG_DATA_SAVED_ACROSS_RESET	BIT(3)
++static int get_scope(u16 opcode)
++{
++	switch (opcode) {
++	case CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES:
++	case CXL_MBOX_OPCODE_GET_FEATURE:
++		return FWCTL_RPC_CONFIGURATION;
++	case CXL_MBOX_OPCODE_SET_FEATURE:
++		return FWCTL_RPC_DEBUG_WRITE_FULL;
++	default:
++		return -EINVAL;
++	}
++}
 +
-+#endif
-diff --git a/cxl/fwctl/fwctl.h b/cxl/fwctl/fwctl.h
-new file mode 100644
-index 000000000000..716ac0eee42d
---- /dev/null
-+++ b/cxl/fwctl/fwctl.h
-@@ -0,0 +1,141 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+/* Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES.
-+ */
-+#ifndef _UAPI_FWCTL_H
-+#define _UAPI_FWCTL_H
++static size_t hw_op_size(u16 opcode)
++{
++	switch (opcode) {
++	case CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES:
++		return sizeof(struct cxl_mbox_get_sup_feats_in);
++	case CXL_MBOX_OPCODE_GET_FEATURE:
++		return sizeof(struct cxl_mbox_get_feat_in);
++	case CXL_MBOX_OPCODE_SET_FEATURE:
++		return sizeof(struct cxl_mbox_set_feat_in) + sizeof(u32);
++	default:
++		return SIZE_MAX;
++	}
++}
 +
-+#include <linux/types.h>
-+#include <linux/ioctl.h>
++static void free_rpc(struct fwctl_rpc *rpc)
++{
++	void *in, *out;
 +
-+#define FWCTL_TYPE 0x9A
++	in = (void *)rpc->in;
++	out = (void *)rpc->out;
++	free(in);
++	free(out);
++	free(rpc);
++}
 +
-+/**
-+ * DOC: General ioctl format
-+ *
-+ * The ioctl interface follows a general format to allow for extensibility. Each
-+ * ioctl is passed a structure pointer as the argument providing the size of
-+ * the structure in the first u32. The kernel checks that any structure space
-+ * beyond what it understands is 0. This allows userspace to use the backward
-+ * compatible portion while consistently using the newer, larger, structures.
-+ *
-+ * ioctls use a standard meaning for common errnos:
-+ *
-+ *  - ENOTTY: The IOCTL number itself is not supported at all
-+ *  - E2BIG: The IOCTL number is supported, but the provided structure has
-+ *    non-zero in a part the kernel does not understand.
-+ *  - EOPNOTSUPP: The IOCTL number is supported, and the structure is
-+ *    understood, however a known field has a value the kernel does not
-+ *    understand or support.
-+ *  - EINVAL: Everything about the IOCTL was understood, but a field is not
-+ *    correct.
-+ *  - ENOMEM: Out of memory.
-+ *  - ENODEV: The underlying device has been hot-unplugged and the FD is
-+ *            orphaned.
-+ *
-+ * As well as additional errnos, within specific ioctls.
-+ */
-+enum {
-+	FWCTL_CMD_BASE = 0,
-+	FWCTL_CMD_INFO = 0,
-+	FWCTL_CMD_RPC = 1,
-+};
++static void *zmalloc_aligned(size_t align, size_t size)
++{
++	void *ptr;
++	int rc;
 +
-+enum fwctl_device_type {
-+	FWCTL_DEVICE_TYPE_ERROR = 0,
-+	FWCTL_DEVICE_TYPE_MLX5 = 1,
-+	FWCTL_DEVICE_TYPE_CXL = 2,
-+	FWCTL_DEVICE_TYPE_PDS = 4,
-+};
++	rc = posix_memalign((void **)&ptr, align, size);
++	if (rc)
++		return NULL;
++	memset(ptr, 0, size);
 +
-+/**
-+ * struct fwctl_info - ioctl(FWCTL_INFO)
-+ * @size: sizeof(struct fwctl_info)
-+ * @flags: Must be 0
-+ * @out_device_type: Returns the type of the device from enum fwctl_device_type
-+ * @device_data_len: On input the length of the out_device_data memory. On
-+ *	output the size of the kernel's device_data which may be larger or
-+ *	smaller than the input. Maybe 0 on input.
-+ * @out_device_data: Pointer to a memory of device_data_len bytes. Kernel will
-+ *	fill the entire memory, zeroing as required.
-+ *
-+ * Returns basic information about this fwctl instance, particularly what driver
-+ * is being used to define the device_data format.
-+ */
-+struct fwctl_info {
-+	__u32 size;
-+	__u32 flags;
-+	__u32 out_device_type;
-+	__u32 device_data_len;
-+	__aligned_u64 out_device_data;
-+};
-+#define FWCTL_INFO _IO(FWCTL_TYPE, FWCTL_CMD_INFO)
++	return ptr;
++}
 +
-+/**
-+ * enum fwctl_rpc_scope - Scope of access for the RPC
-+ *
-+ * Refer to fwctl.rst for a more detailed discussion of these scopes.
-+ */
-+enum fwctl_rpc_scope {
-+	/**
-+	 * @FWCTL_RPC_CONFIGURATION: Device configuration access scope
-+	 *
-+	 * Read/write access to device configuration. When configuration
-+	 * is written to the device it remains in a fully supported state.
-+	 */
-+	FWCTL_RPC_CONFIGURATION = 0,
-+	/**
-+	 * @FWCTL_RPC_DEBUG_READ_ONLY: Read only access to debug information
-+	 *
-+	 * Readable debug information. Debug information is compatible with
-+	 * kernel lockdown, and does not disclose any sensitive information. For
-+	 * instance exposing any encryption secrets from this information is
-+	 * forbidden.
-+	 */
-+	FWCTL_RPC_DEBUG_READ_ONLY = 1,
-+	/**
-+	 * @FWCTL_RPC_DEBUG_WRITE: Writable access to lockdown compatible debug information
-+	 *
-+	 * Allows write access to data in the device which may leave a fully
-+	 * supported state. This is intended to permit intensive and possibly
-+	 * invasive debugging. This scope will taint the kernel.
-+	 */
-+	FWCTL_RPC_DEBUG_WRITE = 2,
-+	/**
-+	 * @FWCTL_RPC_DEBUG_WRITE_FULL: Write access to all debug information
-+	 *
-+	 * Allows read/write access to everything. Requires CAP_SYS_RAW_IO, so
-+	 * it is not required to follow lockdown principals. If in doubt
-+	 * debugging should be placed in this scope. This scope will taint the
-+	 * kernel.
-+	 */
-+	FWCTL_RPC_DEBUG_WRITE_FULL = 3,
-+};
++static struct fwctl_rpc *get_prepped_command(size_t in_size, size_t out_size,
++					     u16 opcode)
++{
++	struct fwctl_rpc_cxl_out *out;
++	struct fwctl_rpc_cxl *in;
++	struct fwctl_rpc *rpc;
++	size_t op_size;
++	int scope;
 +
-+/**
-+ * struct fwctl_rpc - ioctl(FWCTL_RPC)
-+ * @size: sizeof(struct fwctl_rpc)
-+ * @scope: One of enum fwctl_rpc_scope, required scope for the RPC
-+ * @in_len: Length of the in memory
-+ * @out_len: Length of the out memory
-+ * @in: Request message in device specific format
-+ * @out: Response message in device specific format
-+ *
-+ * Deliver a Remote Procedure Call to the device FW and return the response. The
-+ * call's parameters and return are marshaled into linear buffers of memory. Any
-+ * errno indicates that delivery of the RPC to the device failed. Return status
-+ * originating in the device during a successful delivery must be encoded into
-+ * out.
-+ *
-+ * The format of the buffers matches the out_device_type from FWCTL_INFO.
-+ */
-+struct fwctl_rpc {
-+	__u32 size;
-+	__u32 scope;
-+	__u32 in_len;
-+	__u32 out_len;
-+	__aligned_u64 in;
-+	__aligned_u64 out;
-+};
-+#define FWCTL_RPC _IO(FWCTL_TYPE, FWCTL_CMD_RPC)
++	rpc = zmalloc_aligned(16, sizeof(*rpc));
++	if (!rpc)
++		return NULL;
 +
-+#endif
++	in = zmalloc_aligned(16, in_size);
++	if (!in)
++		goto free_rpc;
++
++	out = zmalloc_aligned(16, out_size);
++	if (!out)
++		goto free_in;
++
++	in->opcode = opcode;
++
++	op_size = hw_op_size(opcode);
++	if (op_size == SIZE_MAX)
++		goto free_in;
++
++	in->op_size = op_size;
++
++	rpc->size = sizeof(*rpc);
++	scope = get_scope(opcode);
++	if (scope < 0)
++		goto free_all;
++
++	rpc->scope = scope;
++
++	rpc->in_len = in_size;
++	rpc->out_len = out_size;
++	rpc->in = (uint64_t)(uint64_t *)in;
++	rpc->out = (uint64_t)(uint64_t *)out;
++
++	return rpc;
++
++free_all:
++	free(out);
++free_in:
++	free(in);
++free_rpc:
++	free(rpc);
++	return NULL;
++}
++
++static int cxl_fwctl_rpc_get_test_feature(int fd, struct test_feature *feat_ctx,
++					  const uint32_t expected_data)
++{
++	struct cxl_mbox_get_feat_in *feat_in;
++	struct fwctl_rpc_cxl_out *out;
++	size_t out_size, in_size;
++	struct fwctl_rpc_cxl *in;
++	struct fwctl_rpc *rpc;
++	uint32_t val;
++	void *data;
++	int rc;
++
++	in_size = sizeof(*in) + sizeof(*feat_in);
++	out_size = sizeof(*out) + feat_ctx->get_size;
++
++	rpc = get_prepped_command(in_size, out_size,
++				  CXL_MBOX_OPCODE_GET_FEATURE);
++	if (!rpc)
++		return -ENXIO;
++
++	in = (struct fwctl_rpc_cxl *)rpc->in;
++	out = (struct fwctl_rpc_cxl_out *)rpc->out;
++
++	feat_in = &in->get_feat_in;
++	uuid_copy(feat_in->uuid, feat_ctx->uuid);
++	feat_in->count = feat_ctx->get_size;
++
++	rc = send_command(fd, rpc, out);
++	if (rc)
++		goto out;
++
++	data = out->payload;
++	val = le32toh(*(__le32 *)data);
++	if (memcmp(&val, &expected_data, sizeof(val)) != 0) {
++		rc = -ENXIO;
++		goto out;
++	}
++
++out:
++	free_rpc(rpc);
++	return rc;
++}
++
++static int cxl_fwctl_rpc_set_test_feature(int fd, struct test_feature *feat_ctx)
++{
++	struct cxl_mbox_set_feat_in *feat_in;
++	struct fwctl_rpc_cxl_out *out;
++	size_t in_size, out_size;
++	struct fwctl_rpc_cxl *in;
++	struct fwctl_rpc *rpc;
++	uint32_t val;
++	void *data;
++	int rc;
++
++	in_size = sizeof(*in) + sizeof(*feat_in) + sizeof(val);
++	out_size = sizeof(*out) + sizeof(val);
++	rpc = get_prepped_command(in_size, out_size,
++				  CXL_MBOX_OPCODE_SET_FEATURE);
++	if (!rpc)
++		return -ENXIO;
++
++	in = (struct fwctl_rpc_cxl *)rpc->in;
++	out = (struct fwctl_rpc_cxl_out *)rpc->out;
++	feat_in = &in->set_feat_in;
++	uuid_copy(feat_in->uuid, feat_ctx->uuid);
++	data = feat_in->feat_data;
++	val = DEFAULT_TEST_DATA2;
++	*(uint32_t *)data = htole32(val);
++	feat_in->flags = CXL_SET_FEAT_FLAG_FULL_DATA_TRANSFER;
++
++	rc = send_command(fd, rpc, out);
++	if (rc)
++		goto out;
++
++	rc = cxl_fwctl_rpc_get_test_feature(fd, feat_ctx, DEFAULT_TEST_DATA2);
++	if (rc) {
++		fprintf(stderr, "Failed ioctl to get feature verify: %d\n", rc);
++		goto out;
++	}
++
++out:
++	free_rpc(rpc);
++	return rc;
++}
++
++static int cxl_fwctl_rpc_get_supported_features(int fd, struct test_feature *feat_ctx)
++{
++	struct cxl_mbox_get_sup_feats_out *feat_out;
++	struct cxl_mbox_get_sup_feats_in *feat_in;
++	struct fwctl_rpc_cxl_out *out;
++	struct cxl_feat_entry *entry;
++	size_t out_size, in_size;
++	struct fwctl_rpc_cxl *in;
++	struct fwctl_rpc *rpc;
++	int feats, rc;
++
++	in_size = sizeof(*in) + sizeof(*feat_in);
++	out_size = sizeof(*out) + sizeof(*feat_out);
++	/* First query, to get number of features w/o per feature data */
++	rpc = get_prepped_command(in_size, out_size,
++				  CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES);
++	if (!rpc)
++		return -ENXIO;
++
++	/* No need to fill in feat_in first go as we are passing in all 0's */
++
++	out = (struct fwctl_rpc_cxl_out *)rpc->out;
++	rc = send_command(fd, rpc, out);
++	if (rc)
++		goto out;
++
++	feat_out = &out->get_sup_feats_out;
++	feats = le16toh(feat_out->supported_feats);
++	if (feats != MAX_TEST_FEATURES) {
++		fprintf(stderr, "Test device has greater than %d test features.\n",
++			MAX_TEST_FEATURES);
++		rc = -ENXIO;
++		goto out;
++	}
++
++	free_rpc(rpc);
++
++	/* Going second round to retrieve each feature details */
++	in_size = sizeof(*in) + sizeof(*feat_in);
++	out_size = sizeof(*out) + sizeof(*feat_out);
++	out_size += feats * sizeof(*entry);
++	rpc = get_prepped_command(in_size, out_size,
++				  CXL_MBOX_OPCODE_GET_SUPPORTED_FEATURES);
++	if (!rpc)
++		return -ENXIO;
++
++	in = (struct fwctl_rpc_cxl *)rpc->in;
++	out = (struct fwctl_rpc_cxl_out *)rpc->out;
++	feat_in = &in->get_sup_feats_in;
++	feat_in->count = htole32(feats * sizeof(*entry));
++
++	rc = send_command(fd, rpc, out);
++	if (rc)
++		goto out;
++
++	feat_out = &out->get_sup_feats_out;
++	feats = le16toh(feat_out->supported_feats);
++	if (feats != MAX_TEST_FEATURES) {
++		fprintf(stderr, "Test device has greater than %u test features.\n",
++			MAX_TEST_FEATURES);
++		rc = -ENXIO;
++		goto out;
++	}
++
++	if (le16toh(feat_out->num_entries) != MAX_TEST_FEATURES) {
++		fprintf(stderr, "Test device did not return expected entries. %u\n",
++			le16toh(feat_out->num_entries));
++		rc = -ENXIO;
++		goto out;
++	}
++
++	entry = &feat_out->ents[0];
++	if (uuid_compare(test_uuid, entry->uuid) != 0) {
++		fprintf(stderr, "Test device did not export expected test feature.\n");
++		rc = -ENXIO;
++		goto out;
++	}
++
++	if (le16toh(entry->get_feat_size) != GET_FEAT_SIZE ||
++	    le16toh(entry->set_feat_size) != SET_FEAT_SIZE) {
++		fprintf(stderr, "Test device feature in/out size incorrect.\n");
++		rc = -ENXIO;
++		goto out;
++	}
++
++	if (le16toh(entry->effects) != EFFECTS_MASK) {
++		fprintf(stderr, "Test device set effects incorrect\n");
++		rc = -ENXIO;
++		goto out;
++	}
++
++	uuid_copy(feat_ctx->uuid, entry->uuid);
++	feat_ctx->get_size = le16toh(entry->get_feat_size);
++	feat_ctx->set_size = le16toh(entry->set_feat_size);
++
++out:
++	free_rpc(rpc);
++	return rc;
++}
++
++static int test_fwctl_features(struct cxl_memdev *memdev)
++{
++	struct test_feature feat_ctx;
++	unsigned int major, minor;
++	struct cxl_fwctl *fwctl;
++	int fd, rc;
++	char path[256];
++
++	fwctl = cxl_memdev_get_fwctl(memdev);
++	if (!fwctl)
++		return -ENODEV;
++
++	major = cxl_fwctl_get_major(fwctl);
++	minor = cxl_fwctl_get_minor(fwctl);
++
++	if (!major && !minor)
++		return -ENODEV;
++
++	sprintf(path, "/dev/char/%d:%d", major, minor);
++
++	fd = open(path, O_RDONLY, 0644);
++	if (fd < 0) {
++		fprintf(stderr, "Failed to open: %d\n", -errno);
++		return -errno;
++	}
++
++	rc = cxl_fwctl_rpc_get_supported_features(fd, &feat_ctx);
++	if (rc) {
++		fprintf(stderr, "Failed ioctl to get supported features: %d\n", rc);
++		goto out;
++	}
++
++	rc = cxl_fwctl_rpc_get_test_feature(fd, &feat_ctx, DEFAULT_TEST_DATA);
++	if (rc) {
++		fprintf(stderr, "Failed ioctl to get feature: %d\n", rc);
++		goto out;
++	}
++
++	rc = cxl_fwctl_rpc_set_test_feature(fd, &feat_ctx);
++	if (rc) {
++		fprintf(stderr, "Failed ioctl to set feature: %d\n", rc);
++		goto out;
++	}
++
++out:
++	close(fd);
++	return rc;
++}
++
++static int test_fwctl(struct cxl_ctx *ctx, struct cxl_bus *bus)
++{
++	struct cxl_memdev *memdev;
++
++	cxl_memdev_foreach(ctx, memdev) {
++		if (cxl_memdev_get_bus(memdev) != bus)
++			continue;
++		return test_fwctl_features(memdev);
++	}
++
++	return 0;
++}
++
++int main(int argc, char *argv[])
++{
++	struct cxl_ctx *ctx;
++	struct cxl_bus *bus;
++	int rc;
++
++	rc = cxl_new(&ctx);
++	if (rc < 0)
++		return rc;
++
++	cxl_set_log_priority(ctx, LOG_DEBUG);
++
++	bus = cxl_bus_get_by_provider(ctx, provider);
++	if (!bus) {
++		fprintf(stderr, "%s: unable to find bus (%s)\n",
++			argv[0], provider);
++		rc = -EINVAL;
++		goto out;
++	}
++
++	rc = test_fwctl(ctx, bus);
++
++out:
++	cxl_unref(ctx);
++	return rc;
++}
+diff --git a/test/meson.build b/test/meson.build
+index 2fd7df5211dd..93b1d78671ef 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -17,6 +17,13 @@ ndctl_deps = libndctl_deps + [
+   versiondep,
+ ]
+ 
++libcxl_deps = [
++  cxl_dep,
++  ndctl_dep,
++  uuid,
++  kmod,
++]
++
+ libndctl = executable('libndctl', testcore + [ 'libndctl.c'],
+   dependencies : libndctl_deps,
+   include_directories : root_inc,
+@@ -235,6 +242,18 @@ if get_option('keyutils').enabled()
+   ]
+ endif
+ 
++uuid_dep = dependency('uuid', required: false)
++if get_option('fwctl').enabled() and uuid_dep.found()
++  fwctl = executable('fwctl', 'fwctl.c',
++    dependencies : libcxl_deps,
++    include_directories : root_inc,
++  )
++  cxl_features = find_program('cxl-features.sh')
++  tests += [
++    [ 'cxl-features.sh',        cxl_features,       'cxl'   ],
++  ]
++endif
++
+ foreach t : tests
+   test(t[0], t[1],
+     is_parallel : false,
 -- 
 2.49.0
 
