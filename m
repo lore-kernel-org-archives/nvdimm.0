@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1B44296FAB
-	for <nvdimm@lists.linux.dev>; Fri, 23 May 2025 16:48:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E9691F3B87
+	for <nvdimm@lists.linux.dev>; Fri, 23 May 2025 21:21:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748018920; cv=none; b=aDYyRgAq4gAR9gJPCZ0aYwqGNjEhRHqGiVzg/VwCP6nyRvFIL49/YFQvRaMLjvhHEWsrErXn0MJvaxwoss6oDguX8ZW9hFIoxMGMfobjajeob1Y/ldHbh/wCqNLJhK7DkGmJL7+VGtQ9Kw+BA43/N1Apua/XVNRWkxp5tNDXDyg=
+	t=1748035264; cv=none; b=CF5217bEKxZy5+A/bfC5qAdWX1nNio3Y1PqTgiJIowoQx18sfuJoM1/NXEadjPhY3tfMiEJ+WwydmRlsGYitcRukkS1Jvvj81Lls54b1btMwq4oQeEh4ShcWsl4zoRDPSfqUkYxTh8gekngqiD9/J5nqWyqYgAwy8KZoIIwzz+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748018920; c=relaxed/simple;
-	bh=iGuhuF506kQhvnhF3Qk/gCnGAIm1DbnxW0qgdDvwxQ8=;
+	s=arc-20240116; t=1748035264; c=relaxed/simple;
+	bh=SxY5ImWL/BAEFRIn7MY2TpA1pe+cC2XJMThAAc0ui2A=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NaIO0nSVYqlKsSRFx/EQhtwJgjn3PTmSsgkmup8tX3XAWfIJz7m9z9FfdCFeELiegMJvHFam7RKZxmh34K2Bc8UWzVWQ+BKkbNcGd7MdnSIz2TdJcxsJxAf9jkltPjyH4Z8wj1Dq7TtBG/Xxha5N9BR9sKEBxDi6DTCYmvorO4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ilm9b3xr; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 In-Reply-To:Content-Type; b=lfd6Ped9uUz0jJxwvL9mFJLbaCIRnbRkVBS/2DiIqCMpHfia4xi+HAm0HllBlOTpzjbi9whtP8JNsvxkJ4Jo9rWhpfltp6BCIbH+RUwxACNj9/BAM1eTrXSBM/btp6B+rPiURmLgdNHYbzU3dpxOTrkc1IQNm021UDcGmoLlAcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=K56NmCQs; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ilm9b3xr"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="K56NmCQs"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1748018918; x=1779554918;
+  t=1748035262; x=1779571262;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=iGuhuF506kQhvnhF3Qk/gCnGAIm1DbnxW0qgdDvwxQ8=;
-  b=Ilm9b3xrZhGoS44H+8Af5CZcPqn9lUc8tC004mPK7DanoKVRoEBUrrsz
-   RPVv3d1b7ZEytyT/JO1omIi5NBUGWIqtYE9dCffUYxE+CO4t5KORP6i+4
-   v1y8+twHi1l3CzWT/Vlf8ax6pInJ8kZa2ZQNiSsUveR3nefWp+udCq0jO
-   GWnJZ4ZE0/BapEsU4PAUNjPW1l4SVCdE+4gX3j1AEWJSvNRN98b6AM8i2
-   3hPEYxwH1mb/mO+SlUTyv8i+hZ91BOy0Lsla9uq1VDXlqk4x73pQ6NKQU
-   BkwWY3jGFpcMCjml66yWzppYTpo5fIt96nTihxV1kw2x4tZ0AflaPVv5G
+  bh=SxY5ImWL/BAEFRIn7MY2TpA1pe+cC2XJMThAAc0ui2A=;
+  b=K56NmCQsHXRhJk8gE2xNAefiWfUWseXfk/b+f/dCtC0bs0kUuSQur4LT
+   /bEk51/A/dP2QB97B5/MsPNr0Ods2w4NmAUZoWOBQOOhn/jSPFoBb0rDp
+   daXptV+Pjx2seJODVuAzQA2RFT8kFSjdVFNylnZffaoUAHJD1F9YATHtx
+   1a8vBOgbmfSD1N7rUn58edqqv9Ki7IIZnjs8c+78UmYT7Y7fOKet0Lvqf
+   obsDsphmiYz0no4IqY5f+94LaLO10WD+C5cGTm9BE60QuJazIsVMi4k33
+   TZCbTdJHxs+nYNTgquARXYVmgUzqJFjXSnpCOSyJfY5wJ8vziiLTIY2S+
    w==;
-X-CSE-ConnectionGUID: XMbXefEsTWajd0HCueT86w==
-X-CSE-MsgGUID: e88THPWISnixKhORktoh9A==
-X-IronPort-AV: E=McAfee;i="6700,10204,11441"; a="50005008"
+X-CSE-ConnectionGUID: Efc8XkakT/uClhzgrHWSCg==
+X-CSE-MsgGUID: 0NVmFJgPQG2rCido8HaHXg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11441"; a="60735740"
 X-IronPort-AV: E=Sophos;i="6.15,309,1739865600"; 
-   d="scan'208";a="50005008"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 May 2025 09:48:38 -0700
-X-CSE-ConnectionGUID: s5apd/ZTTpGX5ICSh9wrrg==
-X-CSE-MsgGUID: j0XHaZ/CQPuYCi8OgGXx4g==
+   d="scan'208";a="60735740"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 May 2025 14:21:01 -0700
+X-CSE-ConnectionGUID: b0qfHEfWSHu6/lnUMGO83A==
+X-CSE-MsgGUID: cLOeG485Q2iBy6c57y+zxQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.15,309,1739865600"; 
-   d="scan'208";a="142240499"
-Received: from jdoman-mobl3.amr.corp.intel.com (HELO [10.125.109.152]) ([10.125.109.152])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 May 2025 09:48:38 -0700
-Message-ID: <6b045edf-ad09-4542-8eed-f85559571df5@intel.com>
-Date: Fri, 23 May 2025 09:48:34 -0700
+   d="scan'208";a="141358962"
+Received: from c02x38vbjhd2mac.jf.intel.com (HELO [10.54.75.6]) ([10.54.75.6])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 May 2025 14:21:02 -0700
+Message-ID: <912b25f7-95be-4933-b024-909bf6eb925f@linux.intel.com>
+Date: Fri, 23 May 2025 14:20:50 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,62 +52,80 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH] cxl/test: skip, don't fail, when kernel tracing is
- not enabled
-To: alison.schofield@intel.com, nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org
-References: <20250523031518.1781309-1-alison.schofield@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20250523031518.1781309-1-alison.schofield@intel.com>
+Subject: Re: [NDCTL PATCH v9 4/4] cxl/test: Add test for cxl features device
+Content-Language: en-GB
+To: Dave Jiang <dave.jiang@intel.com>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev
+Cc: alison.schofield@intel.com, Dan Williams <dan.j.williams@intel.com>
+References: <20250523164641.3346251-1-dave.jiang@intel.com>
+ <20250523164641.3346251-5-dave.jiang@intel.com>
+From: Marc Herbert <marc.herbert@linux.intel.com>
+In-Reply-To: <20250523164641.3346251-5-dave.jiang@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
+Again, apologies for commenting so late (v9).
 
+I reviewed only the shell script below and all these comments
+could be "future improvements" post merge. Or, before merge
+if there is a v10.
 
-On 5/22/25 8:15 PM, alison.schofield@intel.com wrote:
-> From: Alison Schofield <alison.schofield@intel.com>
-> 
-> cxl-events.sh and cxl-poison.sh require a kernel with CONFIG_TRACING
-> enabled and currently report a FAIL when /sys/kernel/tracing is
-> missing. Update these tests to report a SKIP along with a message
-> stating the requirement. This allows the tests to run cleanly on
-> systems without TRACING enabled and gives users the info needed to
-> enable TRACING for testing.
-> 
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
-> 
-> Noticed this behavior in Itaru's test results:
-> https://lore.kernel.org/linux-cxl/FD4183E1-162E-4790-B865-E50F20249A74@linux.dev/
-> 
->  test/cxl-events.sh | 1 +
->  test/cxl-poison.sh | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/test/cxl-events.sh b/test/cxl-events.sh
-> index c216d6aa9148..7326eb7447ee 100644
-> --- a/test/cxl-events.sh
-> +++ b/test/cxl-events.sh
-> @@ -13,6 +13,7 @@ num_info_expected=3
->  rc=77
->  
->  set -ex
-> +[ -d "/sys/kernel/tracing" ] || do_skip "test requires CONFIG_TRACING"
->  
->  trap 'err $LINENO' ERR
->  
-> diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
-> index 2caf092db460..6ed890bc666c 100644
-> --- a/test/cxl-poison.sh
-> +++ b/test/cxl-poison.sh
-> @@ -7,6 +7,7 @@
->  rc=77
->  
->  set -ex
-> +[ -d "/sys/kernel/tracing" ] || do_skip "test requires CONFIG_TRACING"
->  
->  trap 'err $LINENO' ERR
->  
+On 2025-05-23 09:46, Dave Jiang wrote:
+> --- /dev/null
+> +++ b/test/cxl-features.sh
+> @@ -0,0 +1,37 @@
+> +#!/bin/bash -Ex
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (C) 2025 Intel Corporation. All rights reserved.
+> +
+> +main()
+> +{
+> +    local rc=77
+> +    # 237 is -ENODEV
+> +    ERR_NODEV=237
 
+Nit: local ERR_NODEV=237
+
+> +
+> +    . $(dirname "$0")/common
+
+Mmmm... interesting, moving this too goes beyond what I recommended but
+maybe it's better?
+
+In theory, sourced files have no side-effect or barely. In practice
+though...
+
+LGTM!
+
+> +    FEATURES="$TEST_PATH"/fwctl
+> +
+> +    trap 'err $LINENO' ERR
+> +
+> +    modprobe cxl_test
+> +
+> +    test -x "$FEATURES" || do_skip "no CXL Features Control"
+> +
+> +    rc=0
+> +    "$FEATURES" || rc=$?
+> +
+> +    echo "error: $rc"
+
+echo "status: $rc"
+
+> +    if [ "$rc" -eq "$ERR_NODEV" ]; then
+> +	do_skip "no CXL FWCTL char dev"
+> +    elif [ "$rc" -ne 0 ]; then
+> +	echo "fail: $LINENO" && exit 1
+> +    fi
+> +
+> +    trap 'err $LINENO' ERR
+
+I had a chat with David and he confirmed this duplicate is an oversight.
+
+> +
+> +    _cxl_cleanup
+> +}
+> +
+> +{
+> +    main "$@"; exit "$?"
+> +}
