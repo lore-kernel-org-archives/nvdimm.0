@@ -1,113 +1,112 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC1D67DA8C
-	for <nvdimm@lists.linux.dev>; Fri, 23 May 2025 06:00:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A59C22318;
+	Fri, 23 May 2025 16:46:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747980028; cv=none; b=PsAZ52HuFFUjmjY/N1Qc/HcXQUVY/OIFp44K37CJcgHjntNsCSTI01eM9pkZD67LB7cuyHacc76mCWksEQkutl9PtHKGIM1fzk/7cK+prM3eV8Yl/H3K8EbJN8PqHAXw6JDyIYa0FBFtfithp3fUtMb4KUy0wVln3+Xl9moZRFk=
+	t=1748018805; cv=none; b=JqKRgl0Zu856GclY2BSGAxb52cQnkYdLoW05nVFiRgyzGRDtp9tiS04UlaDGaKrhXaw+2sZxl7kMBhcVQewkdEFVvEDXnDuJx21lOTrJiSjbQaopp5KSay03j1ZhPbC8Dyka58ybosQqYmdsiFwMpRxGvcIyNUGXVUzZFz9bVlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747980028; c=relaxed/simple;
-	bh=O5q9Sg68tfPeHqMn3mC/eaNSosBn6I+CRfSPGfxGJhs=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
-	 In-Reply-To:Content-Type; b=ZvGrOdAgeJRNvnngPfKk/4TNfGwLnxQWav5NH3ZyI40SWEx9r3s83x0p2JPGRezSs3R3ohV0Y1mL0JYRjpNfehDbXljSbhNIMwIzvltJJwoIqRWknI6N0KH86Dz9JBx+pqpevCSqRRXrP9ubLH2B1QfyA6WhgjhPa/RPpERby/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XVZmbmFT; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XVZmbmFT"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1747980027; x=1779516027;
-  h=message-id:date:mime-version:from:subject:to:cc:
-   references:in-reply-to:content-transfer-encoding;
-  bh=O5q9Sg68tfPeHqMn3mC/eaNSosBn6I+CRfSPGfxGJhs=;
-  b=XVZmbmFTfc5MaguddSlVrySriGrDIAcvdFXxVx5Jp4ancTbub/GbjxV3
-   DeAWZNwJ6OZ4Qa98RBekUyz74ubzwUbU/kIUxgbj2j731pIynq3yOSGCD
-   LP5p+96a12NX8o6AAoAiFdh6+POWgH28CCdfGc+W1tIfJi9nWMG1i+aLG
-   LHVpjGtywBl9SkgI4qO0k4wHv/cuy68Am3gBbu7YFV3mBjn0/B953K8eD
-   YqvSoxtu8nuS2+DeCi7ARfWKEgOf95P2MjfV3IfE7fIPi051Fos4LX5+A
-   K+zAxEUY8CUIR7P8z6CArRTYCB1087fAho2SpnwBE4MatvhCt7+GPMhJU
-   A==;
-X-CSE-ConnectionGUID: CwNm86/GQfqH2qokOq2KQw==
-X-CSE-MsgGUID: 0L8CugmdSj+EXdsjeOScGQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11441"; a="67441353"
-X-IronPort-AV: E=Sophos;i="6.15,308,1739865600"; 
-   d="scan'208";a="67441353"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2025 23:00:27 -0700
-X-CSE-ConnectionGUID: WSDZx+J2RT6NwkW4yJxQhQ==
-X-CSE-MsgGUID: KZnp0lF9S7atk2jTurRIvQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.15,308,1739865600"; 
-   d="scan'208";a="141398279"
-Received: from lamonsox-mobl1.amr.corp.intel.com (HELO [10.125.63.139]) ([10.125.63.139])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2025 23:00:24 -0700
-Message-ID: <d4ac98ba-bfea-40b3-a7b2-99e1bac5bb41@linux.intel.com>
-Date: Thu, 22 May 2025 23:00:15 -0700
+	s=arc-20240116; t=1748018805; c=relaxed/simple;
+	bh=f2GdJGdH1qO/ZnwkcVTPFHVWaViizZ+H0qDOU+LvK+E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CSWlW10xCMtams0mJNDbS3en9CaVLRtSGTcK9IJrJ3kpScZCZ2PEbMkgMLvPDkBRnFftSo/Ch5TGMMnQstbLAlLpXPKXPkCO87p0JZOEGIlYbNovsn4JomO42f/IJDlgN8TwEoQRJd3EC62chf1BVgsScwQRZtP37zV7HY9IYbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511C3C4CEE9;
+	Fri, 23 May 2025 16:46:44 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: alison.schofield@intel.com,
+	Marc.Herbert@linux.intel.com,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: [NDCTL PATCH v9 0/4] ndctl: Add support and test for CXL Features support
+Date: Fri, 23 May 2025 09:46:35 -0700
+Message-ID: <20250523164641.3346251-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: Marc Herbert <marc.herbert@linux.intel.com>
-Subject: Re: [ndctl PATCH] cxl/test: skip, don't fail, when kernel tracing is
- not enabled
-To: alison.schofield@intel.com, nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org
-References: <20250523031518.1781309-1-alison.schofield@intel.com>
-Content-Language: en-GB
-In-Reply-To: <20250523031518.1781309-1-alison.schofield@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 2025-05-22 20:15, alison.schofield@intel.com wrote:
-> From: Alison Schofield <alison.schofield@intel.com>
-> 
-> cxl-events.sh and cxl-poison.sh require a kernel with CONFIG_TRACING
-> enabled and currently report a FAIL when /sys/kernel/tracing is
-> missing. Update these tests to report a SKIP along with a message
-> stating the requirement. This allows the tests to run cleanly on
-> systems without TRACING enabled and gives users the info needed to
-> enable TRACING for testing.
-> 
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> ---
-> 
-> Noticed this behavior in Itaru's test results:
-> https://lore.kernel.org/linux-cxl/FD4183E1-162E-4790-B865-E50F20249A74@linux.dev/
-> 
->  test/cxl-events.sh | 1 +
->  test/cxl-poison.sh | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/test/cxl-events.sh b/test/cxl-events.sh
-> index c216d6aa9148..7326eb7447ee 100644
-> --- a/test/cxl-events.sh
-> +++ b/test/cxl-events.sh
-> @@ -13,6 +13,7 @@ num_info_expected=3
->  rc=77
->  
->  set -ex
-> +[ -d "/sys/kernel/tracing" ] || do_skip "test requires CONFIG_TRACING"
->  
->  trap 'err $LINENO' ERR
->  
-> diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
-> index 2caf092db460..6ed890bc666c 100644
-> --- a/test/cxl-poison.sh
-> +++ b/test/cxl-poison.sh
-> @@ -7,6 +7,7 @@
->  rc=77
->  
->  set -ex
-> +[ -d "/sys/kernel/tracing" ] || do_skip "test requires CONFIG_TRACING"
->  
->  trap 'err $LINENO' ERR
->  
+v9:
+- Move script body to main(). (Marc)
+- Remove uuid dep for test module. (Marc)
+- Remove removal of error trap. (Marc)
 
-Reviewed-by: Marc Herbert <marc.herbert@linux.intel.com>
+v8:
+- Stash fwctl discovery functions behind ifdef (Alison)
+- Deal with old compilers and __counted_by(). (Alison)
 
+v7:
+- Move enumeration of fwctl behind meson option 'fwctl'. (Dan)
+
+v6:
+- Rename cxl-features.control.c back to fwctl.c. (Dan)
+- Move features behind a meson option. (Dan)
+- See individual commits for specific changes from v5.
+
+v5:
+- Add documentation for exported symbols. (Alison)
+- Create 'struct cxl_fwctl' as object under cxl_memdev. (Dan)
+- Make command prep common code. (Alison)
+- Rename fwctl.c to cxl-features-control.c. (Alison)
+- See individual commits for specific changes from v4.
+
+v4:
+- Adjust to kernel changes of input/output structs
+- Fixup skip/pass/fail logic
+- Added new kernel headers detection and dependency in meson.build
+
+v3:
+- Update test to use opcode instead of command id.
+
+v2:
+- Drop features device enumeration
+- Add discovery of char device under memdev
+
+The series provides support of libcxl enumerating FWCTL character device
+under the cxl_memdev device. It discovers the char device major
+and minor numbers for the CXL features device in order to allow issuing
+of ioctls to the device.
+
+A unit test is added to locate cxl_memdev exported by the cxl_test
+kernel module and issue all the supported ioctls to the associated
+FWCTL char device to verify that all the ioctl paths are working as expected.
+
+Kernel series: https://lore.kernel.org/linux-cxl/20250207233914.2375110-1-dave.jiang@intel.com/T/#t
+
+Dave Jiang (4):
+  cxl: Add cxl_bus_get_by_provider()
+  cxl: Enumerate major/minor of FWCTL char device
+  ndctl: Add features.h from kernel UAPI
+  cxl/test: Add test for cxl features device
+
+ Documentation/cxl/lib/libcxl.txt |  26 ++
+ config.h.meson                   |   3 +
+ cxl/fwctl/cxl.h                  |  56 ++++
+ cxl/fwctl/features.h             | 187 +++++++++++++
+ cxl/fwctl/fwctl.h                | 141 ++++++++++
+ cxl/lib/libcxl.c                 |  94 +++++++
+ cxl/lib/libcxl.sym               |   8 +
+ cxl/lib/private.h                |   6 +
+ cxl/libcxl.h                     |   7 +
+ meson.build                      |   1 +
+ meson_options.txt                |   2 +
+ test/cxl-features.sh             |  37 +++
+ test/fwctl.c                     | 439 +++++++++++++++++++++++++++++++
+ test/meson.build                 |  18 ++
+ 14 files changed, 1025 insertions(+)
+ create mode 100644 cxl/fwctl/cxl.h
+ create mode 100644 cxl/fwctl/features.h
+ create mode 100644 cxl/fwctl/fwctl.h
+ create mode 100755 test/cxl-features.sh
+ create mode 100644 test/fwctl.c
+
+
+base-commit: 1850ddcbcbf9eebd343c6e87a2c55f3f5e3930c4
+-- 
+2.49.0
 
