@@ -1,133 +1,122 @@
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76FFD28B407
-	for <nvdimm@lists.linux.dev>; Wed, 28 May 2025 14:54:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 380AD28DF55
+	for <nvdimm@lists.linux.dev>; Wed, 28 May 2025 18:13:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748444066; cv=none; b=CycS9Q6/vJPjK+azawHBAs/51hcz6bodntz7oSj+eMVV9qNqz5ku476hum7jfJpkjz4yp7slCqOdQHEPeFSXHFMHjqXkElqh4l25pCWq3mxuvWnSLR2a+rPmVjDsOrtNIglyVea7mbEyb3ph3aMDqXSetTZDGJqhMfwWIuz3IUg=
+	t=1748456012; cv=none; b=m2lijC6k4YhsjnkUPjwBjfE4Y1dJytGufDwFR7yRiUgyWok/inFWie2kDY74ASoTSYXPded3ixNAtPqWOIJE7uJEX5IPsg+maJSuJ4FG2f3nVu9nsF1hQ5o9HqhkjdkZc4cMSqaE+hQASwybyCudMVA0SNIGbrLrpNh9NOEYDdA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748444066; c=relaxed/simple;
-	bh=OLQTEynOWLTW2J82I3GAFi2XTNtVPRqouMqsxTdKyrA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dgotu/cK7uDi1SfUFSc5sXr3mwLj6fHj5BQimE2DgUoKxnrQT9DovQSh2o/FNbALfJDCnTXnM1YyFQ2bhf2/BWxLFZgo/ctgCVPJ5mGJBDeZgR5BFwN19E4t2KLlS7bdnPX7hUF8GRggZv8ITMmsvzQ42Jc0gjbQbe85nUqWNuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=soleen.com; spf=pass smtp.mailfrom=soleen.com; dkim=pass (2048-bit key) header.d=soleen-com.20230601.gappssmtp.com header.i=@soleen-com.20230601.gappssmtp.com header.b=vJXLhrI4; arc=none smtp.client-ip=209.85.160.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=soleen.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=soleen.com
+	s=arc-20240116; t=1748456012; c=relaxed/simple;
+	bh=U4kfnRSN59WkHY9Ler2V9T7GAxjBXkqvdf0hrH9hz68=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OD79UrZleR89cAmSEMZi9bLujZVMk/K3alt/Glk3496TEpNMW7rCqEYtSzBrRO/RMfUFaNIJd99R/hP8OSFqxisxeMJjGsZQB4rhv/UMIF5n9ew8pyDWjM59CoehxspsyeN4N/DolfhX1nzqxMxGgILH73fJBN2a4pLipxqEW+I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com; spf=none smtp.mailfrom=pdp7.com; dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b=Q/gcVIUJ; arc=none smtp.client-ip=209.85.210.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=pdp7.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=soleen-com.20230601.gappssmtp.com header.i=@soleen-com.20230601.gappssmtp.com header.b="vJXLhrI4"
-Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-4769b16d4fbso21482321cf.2
-        for <nvdimm@lists.linux.dev>; Wed, 28 May 2025 07:54:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b="Q/gcVIUJ"
+Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-7426c44e014so9337b3a.3
+        for <nvdimm@lists.linux.dev>; Wed, 28 May 2025 11:13:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=soleen-com.20230601.gappssmtp.com; s=20230601; t=1748444063; x=1749048863; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=OLQTEynOWLTW2J82I3GAFi2XTNtVPRqouMqsxTdKyrA=;
-        b=vJXLhrI4HKDtq4DcXGWrXx+ulDG7pMHid8DFPiuJSIBnxHXyZDNF8z7FqDO44niW13
-         8Xzdl7Pf8+Jr60wG4sik2m4qbjh074aAXAry9yV3wfu8SwAFCLRDVGKkSrcczIobh8BR
-         IXGuLRjef9gGlS1QwPFejiJNpGch5bocrbVyopaSP2kfnF7Ne/tcm4nW9DajxsZ84EMl
-         zcH6Yps1q4ElxwLtlPTDLu9ngZ5bA+phQpdbvQXoj68Shiz7Z4VZW7GTcCwz8GuvrXAm
-         spg9jaKA4MF9lZivJW3dCZ5w+T9NBB4QGrbiUvt4PUuoGp8YfUlVtUOt1E/SaKzTriba
-         x9TQ==
+        d=pdp7-com.20230601.gappssmtp.com; s=20230601; t=1748456010; x=1749060810; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=VfQ5QF4QrPtGjwJGXo+I+tvoV3Ek+wsqmkmzYgFTPno=;
+        b=Q/gcVIUJlsj2U5UjjsKO1ixVeN5EthjKbQJaav8NeiUG+uIuQaPa7Yfvjm7Lg9zLLx
+         6oGBliDOjRk6pu1frwr+uhU7Uu9KrdhBpa+9AsErI/ma+ED2hpORMDP8yGo6IedAAl2u
+         NadPhHP9fI4Po75x1LQYKeEdpgs8R5LJDNOY9Wbu5UZ8+ehQGbpsiNRKJmeHG8j6zrlF
+         Mb2Qn5bNQBs098otBENahfdF/1i561o1/JgWKeQJnAmHr5ZmW54/wYDw1Lu3+11jesfy
+         qiK69mFu3aENF/j6985RF1Ex70NBLmEGWJKQVRyY8pEiyWKjsTjQxgsaGPpkTjlhld1U
+         2m3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748444063; x=1749048863;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=OLQTEynOWLTW2J82I3GAFi2XTNtVPRqouMqsxTdKyrA=;
-        b=pktLtEDoHqWfr/c8KVy3pyz9yXn95VL1DzVG2BRtrlBhEJBrm1eFDZYnMDxncK6Vuw
-         yXlkXgDqBGEmqAt/jP5Qce88cuQwN0HPRdc4LbPby7JOCQmChDAD9a3Hmp3jD8E8Q7xs
-         xW7iSeXJstYANnkOCws3QdYs40SRWiNo+2CkXRChObI++p5g0ROAzApqLSA2VFOtCu/I
-         nNszHcGTAPpODLNyvm0nxWxd7QYB4fdgc3f6WPEBlZ7axqy/up9SYUPCP56CdDKxdmqF
-         d98AQspZurhSg5sKU/WDv0Y/2TBPEBmXMe7v+EpcTijUGLrreNYJzL77Zr4BWljvEmvM
-         kXAA==
-X-Forwarded-Encrypted: i=1; AJvYcCVac5m4salK/zzU7dbFgrfQuKSdDTvuR8N8brINO7fJrspRqer/MqLgwEE2faoWvLS/Y3VXW6o=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yxsg1DHD9zWyq2lQ3Hb6+1N5mkJ9QrukFDrj8xlVLJOY5oBCF0+
-	LWY4nqwRFq1dNnH70RuOm0L0tFcH+9ePo4lBGtSpIyzXeFd/JMmzBFupVEKpX+fSJJTFZtLf3mn
-	Riw7WXiwRzSnExfYr8mIPbXiNLUJLsjCYS4/NS2iG2w==
-X-Gm-Gg: ASbGncvhjnkdJsgJ9tpfR1mKO3nmt7B+3j9K5om14oCeBIep9g7fvpf02iHDnyuY9W5
-	QTK3qd05DXNU0morXRS4Ca+6pnr0oWDrLbjC/gssCOU6H84xbz4y6bCsqY/wWEFOoakXbaes+f0
-	BE3mpeJ/2qBnHHzdXI+VAc+1tb7nzS6XxSAxSCptG2
-X-Google-Smtp-Source: AGHT+IEipULtuHP8NgolkdOGZlrY+wJ98orFgKSxJBZZ4sZQQx6BiL/ks+Oa5sABai8uN1rdHCGApBJm6ZxwNh0g7ck=
-X-Received: by 2002:a05:622a:1b10:b0:472:28d:62b0 with SMTP id
- d75a77b69052e-49f47a0ddb2mr278495661cf.41.1748444063296; Wed, 28 May 2025
- 07:54:23 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1748456010; x=1749060810;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VfQ5QF4QrPtGjwJGXo+I+tvoV3Ek+wsqmkmzYgFTPno=;
+        b=vhsYEFHBT2pbuKCuIrCp2scESgBGl28cAN3Ov2TW4yF3jhdEiFLbOnYbbSy3BUkUaw
+         cLBDY9NFrGF9xLCO3kaDjYEMNBOUPyMCwdZlSzB04DDsdEzicGmiRmSpt3rnfIUMFBsU
+         8wbZVqS7p0JPeXop/bJK0MvImbt+BOAo/IhzEHxAF8RI9ust/hLrdvw6UpqN1JfW6vZJ
+         vixlqGDMh5Sxib9xOJLk+S2t2Fkjy7UZT5DkkoYM4fZKDQojZQOVW3kmySU+tESRxtnh
+         76FJxvZMJCjYHUdLQcKABZ7kT4ZT+v6D3A0DUL5Za8GH4hWOEks3CAM4pgAebp/iisW/
+         zmjQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWY2/VfpTKc0TVUfduYjrJYu52zkR0jtDVRH8ig5YfojFIDgxjHAeckacJHXJzHlEeARv1hp9s=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy5EXWcY6P/VE8VSvN45ZnjDPjvFP29DbdMnAyS7sLRDN6AOWig
+	Hcui3Yb6kLrLiji27qh/eDqVH5OxQBCDlr9bRB0kO1LH48rvsxBMJ3MH8hckKY5KpVN4zNMejbK
+	fqorEiLc=
+X-Gm-Gg: ASbGncsHaEQtzuTt5Qq2ZlGgaaoBnf+sNE09MuYuXxiSWtiUE5UGQNzwWablC8emO/I
+	b4IVxSf9wvaQVskfBaiSL26rWFmKZU1l06LU0fFqKhAu742xK9VTVL39d6PSGL5jCOG3wZE0kvx
+	+6cv00d4+LaNhJcvQJGD607uBy9SCek3VvsrrOt8+7ZICdVaJ0BL8PPQOg2blOLBCvyXeChDksQ
+	Fhur7N0BMkljzfOUm/DI8T4BYL3BX7hNe21BxTMbFv9u2M40cBfX8twPpDkX1U40H4FQszgvQF/
+	ibbxf4/IVjaX7CvVivXoWGPjJ+wXQ66ZHSKjedYG2LfWoClcQw14JaRiTQ69D4A=
+X-Google-Smtp-Source: AGHT+IGoXH5nWNXVter/7FoojUs8PwU60p8upKHgzmtsaMD1s8dITxfPj8ze1St+uUzaNtQ6OA7rQA==
+X-Received: by 2002:a05:6a21:46c4:b0:1f5:6abb:7cbb with SMTP id adf61e73a8af0-21aad87d03emr5439458637.23.1748456010381;
+        Wed, 28 May 2025 11:13:30 -0700 (PDT)
+Received: from x1 (97-120-251-212.ptld.qwest.net. [97.120.251.212])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-746e345fe8dsm1571589b3a.174.2025.05.28.11.13.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 28 May 2025 11:13:29 -0700 (PDT)
+Date: Wed, 28 May 2025 11:13:28 -0700
+From: Drew Fustini <drew@pdp7.com>
+To: Conor Dooley <conor@kernel.org>
+Cc: Oliver O'Halloran <oohall@gmail.com>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>, nvdimm@lists.linux.dev,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RESEND PATCH v2] dt-bindings: pmem: Convert binding to YAML
+Message-ID: <aDdSSNeiveSrM9NE@x1>
+References: <20250520021440.24324-1-drew@pdp7.com>
+ <20250528-repulsive-osmosis-d473fbc61716@spud>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20250417142525.78088-1-mclapinski@google.com> <6805a8382627f_18b6012946a@iweiny-mobl.notmuch>
- <CA+CK2bD8t+s7gFGDCdqA8ZaoS3exM-_9N01mYY3OB4ryBGSCEQ@mail.gmail.com> <aDW9YRpTmI66gK_G@kernel.org>
-In-Reply-To: <aDW9YRpTmI66gK_G@kernel.org>
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Date: Wed, 28 May 2025 10:53:45 -0400
-X-Gm-Features: AX0GCFs1Qbwk6LJZXavFVBcYckw_C3R55DAtQO0SII537wDbPP_9ie9BDYZJ2Uo
-Message-ID: <CA+CK2bAUfXQ_CSKs4MaaNNcgPx6MRjE6Jk85tKGYUOQBG8PFNg@mail.gmail.com>
-Subject: Re: [PATCH v2 1/1] libnvdimm/e820: Add a new parameter to configure
- many regions per e820 entry
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>, Michal Clapinski <mclapinski@google.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Jonathan Corbet <corbet@lwn.net>, nvdimm@lists.linux.dev, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="39RrpW82KPLL21NE"
+Content-Disposition: inline
+In-Reply-To: <20250528-repulsive-osmosis-d473fbc61716@spud>
+
+
+--39RrpW82KPLL21NE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 27, 2025 at 9:26=E2=80=AFAM Mike Rapoport <rppt@kernel.org> wro=
-te:
->
-> On Mon, Apr 21, 2025 at 10:55:25AM -0400, Pasha Tatashin wrote:
-> > On Sun, Apr 20, 2025 at 10:06=E2=80=AFPM Ira Weiny <ira.weiny@intel.com=
-> wrote:
-> > >
-> > > Michal Clapinski wrote:
-> > > > Currently, the user has to specify each memory region to be used wi=
+On Wed, May 28, 2025 at 02:43:27PM +0100, Conor Dooley wrote:
+> On Tue, May 27, 2025 at 11:17:04PM -0700, Drew Fustini wrote:
+> > Convert the PMEM device tree binding from text to YAML. This will allow
+> > device trees with pmem-region nodes to pass dtbs_check.
+> >=20
+> > Signed-off-by: Drew Fustini <drew@pdp7.com>
+> > ---
+> > v2 resend:
+> >  - actually put v2 in the Subject
+> >  - add Conor's Acked-by
+> >    - https://lore.kernel.org/all/20250520-refract-fling-d064e11ddbdf@sp=
+ud/
+>=20
+> I guess this is the one you mentioned on irc?
+> Acked-by: Conor Dooley <conor.dooley@microchip.com>
+
+Thanks, yeah, I've become too used to `b4 send --reflect` and managed to bo=
 th
-> > > > nvdimm via the memmap parameter. Due to the character limit of the
-> > > > command line, this makes it impossible to have a lot of pmem device=
-s.
-> > > > This new parameter solves this issue by allowing users to divide
-> > > > one e820 entry into many nvdimm regions.
-> > > >
-> > > > This change is needed for the hypervisor live update. VMs' memory w=
-ill
-> > > > be backed by those emulated pmem devices. To support various VM sha=
-pes
-> > > > I want to create devdax devices at 1GB granularity similar to huget=
-lb.
-> > >
-> > > Why is it not sufficient to create a region out of a single memmap ra=
-nge
-> > > and create multiple 1G dax devices within that single range?
-> >
-> > This method implies using the ndctl tool to create regions and convert
-> > them to dax devices from userspace. This does not work for our use
-> > case. We must have these 1 GB regions available during boot because we
-> > do not want to lose memory for a devdax label. I.e., if fsdax is
-> > created during boot (i.e. default pmem format), it does not have a
-> > label. However, if it is created from userspace, we create a label
-> > with partition properties, UUID, etc. Here, we need to use kernel
->
-> Doesn't ndctl refuse to alter namespaces on "legacy" (i.e. memmap=3D)
-> regions?
+duplicate the message id and not actually include your tag when using
+git send-email - d'oh! ;)
 
-Hi Mike
+Drew
 
-ndctl works with legacy namespaces just fine. We can convert them to
-devdax/fsdax/raw pmem, create remove label, etc.
+--39RrpW82KPLL21NE
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Pasha
+-----BEGIN PGP SIGNATURE-----
 
->
-> > parameters to specify the properties of the pmem devices during boot
-> > so they can persist across reboots without losing any memory to
-> > labels.
-> >
-> > Pasha
->
-> --
-> Sincerely yours,
-> Mike.
+iHUEABYIAB0WIQSy8G7QpEpV9aCf6Lbb7CzD2SixDAUCaDdSOAAKCRDb7CzD2Six
+DHbhAP9XlQng+snuCwTSEULcb16UVf5k2n1W3hLLrDVfGt4ZTAD/ZE3wUuc6HIbm
+UMX2OND4pLWeegQhzQyiJYCOPJ/k8wg=
+=3wuH
+-----END PGP SIGNATURE-----
+
+--39RrpW82KPLL21NE--
