@@ -1,200 +1,190 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2047.outbound.protection.outlook.com [40.107.243.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F90120E6E3
-	for <nvdimm@lists.linux.dev>; Mon,  2 Jun 2025 12:20:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748866862; cv=none; b=nmH37jyWD3LDhviQNsR4vqoIDqvf/d7Q8jpEo5/A2xSPPrNWpTW19MNwF0/WfB6QDETMesCguhc6G3NmMC6N7OKgKVjIEDqLqzY+FSjbBLmRwkEERzietq/iGYyB2LZmisIyD1YX/XEWRKIa17sTUUnABuMe7vfwl2lX9kurIYI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748866862; c=relaxed/simple;
-	bh=7VexDBZvf3qNOI+5jXD27gKijSNLI0gBrzQTwaG/cno=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=jyYdf0vl8gI9081x7wmJHOo2iGdO8GhGJU5mdjVmsxRvGQ4a7AUb6F4byDebERQ7ReSuqG3Iilogf00sRIHpv2FaP4JU9BOn7h/uCMJvMnWe45E+r0UpGRpG8HSrSATISlXtHC4XJdcsXx/rZ5vGyrEpLJ+4eHIXc3eQgvueYJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=gvG3puDF; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA0984C7C
+	for <nvdimm@lists.linux.dev>; Mon,  2 Jun 2025 20:56:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1748897807; cv=fail; b=UiR1XxUs12LMvAEwR2xAwNWbWQo5yvQSgorrLJwlXWTPIahLW7PvlAlVcw8urRuqGspIolT8Jx1cW70Fke7R2XaFvLIHlbcUeJ/mprpzl7yYbtU8tGljbkJp9hHbK6zDzFJRkjW22mkONZomFn6QYXj2Tpmmng+hfbOWZrVu3hk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1748897807; c=relaxed/simple;
+	bh=Tq21xdBwslBalINJG7ZbsT/HZHHkQL2s9lsNUKiw2Q8=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=a8tA140I6h6pq6Gxq4TnA1ulGjBWB9VAWyyoLq1LwSDcDGi3WuNn0yd8dpw8fgh/lYmPxdboPg/7b0NTcdnPmc/rmC87xHrE7XfpPYhkUPS/5cu5u5oWuh68WjqQn61j3iu10BJGOwLjfgVd14ZVxFKYZEG7IUynOjeSTEqzCo4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=ZMz8+yIr; arc=fail smtp.client-ip=40.107.243.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gvG3puDF"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1748866859;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=fha/wYALl1qC/d0EpO8TYe7+VBeqcFERTe14lUW/UoM=;
-	b=gvG3puDFbo/BHnK29MefFtu1ucdKnyyAQ1X0GU9CPHs0GtrYlaEAgkBS/Xyy9vYMtj3rof
-	z2QcchL7GK/2N40r5vAoxZZvADHbfGNCAv1OM2pgrYAp/QThbEc1xZs8Moumu/jOsUz5He
-	qb3BOxgYEXcTqlbPs3d+TbN0KeheSx8=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-537-OmCKMS0XMWiJBIsu_cM-KQ-1; Mon, 02 Jun 2025 08:20:56 -0400
-X-MC-Unique: OmCKMS0XMWiJBIsu_cM-KQ-1
-X-Mimecast-MFC-AGG-ID: OmCKMS0XMWiJBIsu_cM-KQ_1748866855
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-451e24dfe1dso402585e9.0
-        for <nvdimm@lists.linux.dev>; Mon, 02 Jun 2025 05:20:55 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748866855; x=1749471655;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:references:cc:to:from:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=fha/wYALl1qC/d0EpO8TYe7+VBeqcFERTe14lUW/UoM=;
-        b=OZZRsAofsTIChTtEnb3FZA0mfYSRVlQ33hsbeZyj2oNlAwBizAQWR1XI8GgAm7fnXE
-         zBEsRkY0pgkh5SE078V1UFrTKFMbk6I/PGy54vKwln/CVmiZtV/6hKwNCGgRAAY+nuuu
-         k7tdcaFEc6hNCS62SkUZxRmynz2L7HRZu96a62gUiNi7vqXjOoBqDChUn5ZNZPpz+Col
-         lnPbm8T7T1w0naZcQYqFKhle56webelnIEZ6Ru50UAQoClYF6ugEoEA2Yh4VbrV620pq
-         jSOAhEDicFXIAYCGrpipoLc0lLVrwJOhkz8W9rBK0o+a/6BC/PDRRwi/NUVuWLvRLq4v
-         NHBg==
-X-Forwarded-Encrypted: i=1; AJvYcCVNSZ3fx3ta0CGIRk4AbSHkb2C0rZcapmRl+bvQxhP/CVFXVys877xtJNjNE4agtKTPtnaY5N8=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxrXi8GIE/p4SMLAo2LbIrZdDLvJWnlJU2uA1QbvRqW/r0Qb9Yb
-	C34vV2LKbWOQIn5f5hei9GAfpmvdYxVJsJqx/AAJCoqLwKUaaVpCAkTMMHpy5YusQNxMANHpA6s
-	n/9aSDM0vMTcSBP1tHwwYX33NIma97UNYW/yVhllzoSmAEmfZLB2J3LscUQ==
-X-Gm-Gg: ASbGnctSjo53Wtai4htIUaYcpyUm8bXaMYGxW+fDsGBx2LxgdTXP7fT1zjLYiAAdwP1
-	3RtJU2QJb7FeM4/LwPWI9kydLNHuSjc6B6ft4zezSkf6DuvZLZx+3izwhClnPoT+2rG/bHvzxRk
-	B5bKSEDD/9YTQbTPCeeWsw1MB7KnBDhc5bqwggcdFZprVBQkarCeR+QImwhQJ5t7aiA2P//O5jg
-	wCwwomGjFN0wFRLTW2GhxsGExXVtHB/S+q4SPiXqk4OQCI1fXrSiiE44qEiGViMdRETAV/dDMic
-	1uuNvQY/YQADoDGc0/kEE+6lR3OFlL9ySZewMaq4tmxDaU8HDdniSoaTF7+3fFuA/wVDW9Te4BD
-	IGLVtcW+GrUbGZK7gjiBsB8XgmXZwh0msJ+d0T94=
-X-Received: by 2002:a05:600c:608a:b0:43d:3df:42d8 with SMTP id 5b1f17b1804b1-450d87fd857mr103237825e9.6.1748866854937;
-        Mon, 02 Jun 2025 05:20:54 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEIX1lEBcvIjIUWzMHUVHY0RO1zDGA/tS4Yya6bs5LYBrcaJXLO7aiOIgpY/seevYUJEdu6Rg==
-X-Received: by 2002:a05:600c:608a:b0:43d:3df:42d8 with SMTP id 5b1f17b1804b1-450d87fd857mr103237275e9.6.1748866854547;
-        Mon, 02 Jun 2025 05:20:54 -0700 (PDT)
-Received: from ?IPV6:2003:d8:2f34:a300:1c2c:f35e:e8e5:488e? (p200300d82f34a3001c2cf35ee8e5488e.dip0.t-ipconnect.de. [2003:d8:2f34:a300:1c2c:f35e:e8e5:488e])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-450d7f8edf9sm120150665e9.3.2025.06.02.05.20.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 02 Jun 2025 05:20:54 -0700 (PDT)
-Message-ID: <799691d6-d9dd-43fd-805e-7dce6efff3e6@redhat.com>
-Date: Mon, 2 Jun 2025 14:20:52 +0200
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="ZMz8+yIr"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=uZeX9Z0L44EzwHiMq7hFg2SPWzKGZ1H5NsAgi+sXSyyN4/bEMI4Hm0Cgvw26rcXGouq4Yq5pXF2Qgbs/AX8ALmnbgNrZdaXPQE7c2dTQAP7iwzJa974gdZtoEj6pwA0agrM1TxtBOm71uTXWY/NMH8TuvQeHCRwcbAweZKo+8VTZHXgPNGr1O0fsDJWt1gFXGqQ0JsQgdRBEPan7z6llYrbhXQ3KrTIRYXidQLWeGL+hpv9n17bnPpkK1LIxaCBJhOzJdaMc3rTeoEzOfMw6bMIIAabIwpFUVl0c/lHNXwMlCjQeCzI0WeM456Zr/SAJ9pk24/9W8RkROgg/yTTySQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=A4Qaorn836ve7gnZCJMIvKxUzqcjUj8m8erbeYoS304=;
+ b=qju6Fj7cYk+S4pqT59wTHfZpB7IzckrPmY68KkNb1NVzOs65hOeWC7ya7lI6iptLkWMrxkf6Fgkyb7HAEpq643DHS5toYhxyZ3pIWMTXKW2wVPCZVWrqDiJtufWuMAhlphd28gg4/3FNs1LRCuaN2SR6aATgyto7IaOG1pQ39f+wGMuO8GWzF1nPz1aaYujO5fBirZ9g1SUnSiKt1j5QGO80rkp0ZXMs+OhQBupXlixJMhnTdglHLed+2OFIkp2qdlmulEuqp3SxI+NthUxAG34Dat7Jgd+RLNRfU2WbjOyEXXBrj5CtRgsDAUgDg4mkdQlAcS7BMvkJTe5V1OkgmQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=lists.linux.dev smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=A4Qaorn836ve7gnZCJMIvKxUzqcjUj8m8erbeYoS304=;
+ b=ZMz8+yIrqnxDBBJeurkGjq8qsNjZzQ1KwiusP9baUKNnVIvZPOZ9MbLYoCoJA6wx493XoNMq/1azsbVxPZAbNnS73rUVLv8oScYcDAo72F/AS6VWxDl4NZn1GBGVFdOT2U/4M3+i7BXL5olCOCPRSnWBi+kb62TWs7ZiVa9L93o=
+Received: from BN9PR03CA0086.namprd03.prod.outlook.com (2603:10b6:408:fc::31)
+ by DM4PR12MB6351.namprd12.prod.outlook.com (2603:10b6:8:a2::6) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.8769.22; Mon, 2 Jun 2025 20:56:40 +0000
+Received: from BN1PEPF00004688.namprd05.prod.outlook.com
+ (2603:10b6:408:fc:cafe::8e) by BN9PR03CA0086.outlook.office365.com
+ (2603:10b6:408:fc::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8746.29 via Frontend Transport; Mon,
+ 2 Jun 2025 20:56:40 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ BN1PEPF00004688.mail.protection.outlook.com (10.167.243.133) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.8792.29 via Frontend Transport; Mon, 2 Jun 2025 20:56:40 +0000
+Received: from SCS-L-bcheatha.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Mon, 2 Jun
+ 2025 15:56:39 -0500
+From: Ben Cheatham <Benjamin.Cheatham@amd.com>
+To: <nvdimm@lists.linux.dev>
+CC: <linux-cxl@vger.kernel.org>, <benjamin.cheatham@amd.com>,
+	<alison.schofield@intel.com>, <junhyeok.im@samsung.com>
+Subject: [ndctl PATCH v2 0/7] Add error injection support
+Date: Mon, 2 Jun 2025 15:56:26 -0500
+Message-ID: <20250602205633.212-1-Benjamin.Cheatham@amd.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 07/12] mm: Remove redundant pXd_devmap calls
-From: David Hildenbrand <david@redhat.com>
-To: Alistair Popple <apopple@nvidia.com>, linux-mm@kvack.org
-Cc: gerald.schaefer@linux.ibm.com, dan.j.williams@intel.com, jgg@ziepe.ca,
- willy@infradead.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
- zhang.lyra@gmail.com, debug@rivosinc.com, bjorn@kernel.org,
- balbirs@nvidia.com, lorenzo.stoakes@oracle.com,
- linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
- linux-cxl@vger.kernel.org, dri-devel@lists.freedesktop.org, John@Groves.net
-References: <cover.541c2702181b7461b84f1a6967a3f0e823023fcc.1748500293.git-series.apopple@nvidia.com>
- <2ee5a64581d2c78445e5c4180d7eceed085825ca.1748500293.git-series.apopple@nvidia.com>
- <9c465b24-8775-4852-9618-0873cbf2aaf7@redhat.com>
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <9c465b24-8775-4852-9618-0873cbf2aaf7@redhat.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: YfT0JeSR5R4P3ZUIm0lOuvviH57zsE8n7Iv2oHFp7Lc_1748866855
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN1PEPF00004688:EE_|DM4PR12MB6351:EE_
+X-MS-Office365-Filtering-Correlation-Id: a0d1fe4c-7264-41d6-cb9a-08dda217f930
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|82310400026|36860700013|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?BJAxaa32ZlRshrnRtl59SZJYcBLWJ7pZ+wakLOV6ggnVD573qJuaDa+ifAbC?=
+ =?us-ascii?Q?5ipQpnBeH5KalsahsqJC1uREt1hpwaC2Y+O5oXH+b4cyO1SKVljRXScfC87z?=
+ =?us-ascii?Q?PtJ+HNKVzcJy7Au36euP3Dm3rMgWJl8tCPZfWJ8gn4tRME+SpYPIkO5dT7oW?=
+ =?us-ascii?Q?xO6KCJSAQqY8i368YxU+l89Otl7G+IXch11rAeeUAUpvw+WaZK3rOYEgDDo2?=
+ =?us-ascii?Q?3IJN4pYSFzNF0BqfCtZKLHxMOV7RAA1C7x+HVv3Bjul/CUlPHahlWKXW/SRS?=
+ =?us-ascii?Q?YVaLV091ei4roUB4+9j4Qr++EYZuNPTEGTcNbbdGPM5pS0JB7GTBzdSnPPNp?=
+ =?us-ascii?Q?RSAxYoJWMee6nrpwa7ELE7++yU/n2sXC1Ssk21ghOHF9uCi+g2U89oF/9Uyi?=
+ =?us-ascii?Q?Kt4dnl0KZVQSZCOJotKvAogzF7xdAOfym/VxXsqUySbpeix+16vg6cskKzi+?=
+ =?us-ascii?Q?ur0NzSbctQ3WoldwqrebszHE9vLVnPtJQSyQgNOMNn+FX221v5F0D240uq5b?=
+ =?us-ascii?Q?blRc6ziYHqdhpTn9OVBncn8NXHcgDJL9zGdjT5wGeFfJjQIIVZ1Hwc8eGVO1?=
+ =?us-ascii?Q?LyAxCpdcUL4LxRpDR3mDV/FZGtZH3nqYgXA8W4ee80PZAWSbeIuu1itIHtWj?=
+ =?us-ascii?Q?ublzCeiMHL3b6EaTY8dvL2puaJxwXf2LLSndj4s5ysJucDZIIc0NxeM8zFQ4?=
+ =?us-ascii?Q?nWREBsj2axrn05yqu0cMqekcjvws/uULZgNNgRuTJNXA0dK6fbWNFus4/uAZ?=
+ =?us-ascii?Q?G0ypnwkEl99UBkeAQ9mMWWJETWP0OPxhJ9htyk5/qLL8Ut0jhbVFNoHh8LUo?=
+ =?us-ascii?Q?P8g3cYkKbo1MHD0PsClQNkBOHjEuHF4IOZM8oFaKxUwBqxaqel/esIzaMqZ/?=
+ =?us-ascii?Q?MsxUkPG6enjLYIRJgodUc7KtfPMD2Q6Vk6tTAIZe3tZ4jtwRROzDrwaKIUri?=
+ =?us-ascii?Q?URBsCWNIBoZZ0/je12hkkL4g/k1mcMiynYeGXeE/1kcz9SKmT8qhKP2fQ3I8?=
+ =?us-ascii?Q?I7ng3Nour/tylBO9iaGHp1HOaM4dbMeWy+GYRd+eXfb89VZpwwURHbl/kss4?=
+ =?us-ascii?Q?gvo9cw4ujihrK1F+EMQTqIfRw2RKiyZ+JrWur6x+lpJ8X8coANwuFDSjqq/j?=
+ =?us-ascii?Q?eXOJnTlzCSWl4U0rgu7C0fswG05yyOGeVHP5glItxuAdqCS+LC4a0rvCljO7?=
+ =?us-ascii?Q?5eucVxm1ahpJMBC8UzKQzxRfhOEOSi9SRu4GIMa9seSJ2qUty4q1kA9eLgTJ?=
+ =?us-ascii?Q?Ky/qWGAPPQP3vCWAmLQtgKvTMfUJ7gkLx8uwigz2kVcvgWcZDKKyDVa4ONo9?=
+ =?us-ascii?Q?4ctOpTIQbiogpt4fPPuqEglKNPCt1LOkeCe+1pM2Wxncoxb6vPiLMERZnKkh?=
+ =?us-ascii?Q?KvVLLygLMvsqrD9f/PmpIJjQ2o7o+92+ZK/RluPTnJwCZPiUIQO9J/SL73iH?=
+ =?us-ascii?Q?lNn87gdL3LpQC1XlWBSphrsPsm+7k7Zh9qk3RO4mF4dM7N7crx10kQ=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(36860700013)(376014);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jun 2025 20:56:40.4125
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a0d1fe4c-7264-41d6-cb9a-08dda217f930
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN1PEPF00004688.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6351
 
-On 02.06.25 11:33, David Hildenbrand wrote:
->> --- a/mm/huge_memory.c
->> +++ b/mm/huge_memory.c
->> @@ -1398,10 +1398,7 @@ static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
->>    	}
->>    
->>    	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
->> -	if (pfn_t_devmap(pfn))
->> -		entry = pmd_mkdevmap(entry);
->> -	else
->> -		entry = pmd_mkspecial(entry);
->> +	entry = pmd_mkspecial(entry);
->>    	if (write) {
-> 
-> 
-> I just stumbled over this, and I think there is something off here in
-> the PMD/PUD case.
-> 
-> vmf_insert_folio_pmd() does a folio_get() + folio_add_file_rmap_pmd().
-> 
-> But then, we go ahead and turn this into a special mapping by setting it
-> pmd_mkdevmap()/pmd_mkspecial().
-> 
-> Consequently, vm_normal_page_pmd() would ignore them, not following the
-> rules documented for vm_normal_page() and behaving differently than
-> vmf_insert_page_mkwrite()->insert_page().
-> 
-> 
-> folio_add_file_rmap_pmd() should never set these things special/devmap
-> in the first place :/
-> 
-> What am I missing?
-> 
-> Note that fs/dax.c calls vmf_insert_folio_pmd() for PMDs and
-> vmf_insert_page_mkwrite() for PTEs.
-> 
-> Consequently, PTEs will never be marked special (corner case, shared
-> zeropage), but PMDs would always.
-> 
-> Hm?
+v2 Changes:
+	- Make the --clear option of 'inject-error' its own command (Alison)
+	- Debugfs is now found using the /proc/mount entry instead of
+	providing the path using a --debugfs option
+	- Man page added for 'clear-error'
+	- Reword commit descriptions for clarity
 
-What an ugly piece of crap this pmd handling code is.
+This series adds support for injecting CXL protocol (CXL.cache/mem)
+errors[1] into CXL RCH Downstream ports and VH root ports[2] and
+poison into CXL memory devices through the CXL debugfs. Errors are
+injected using a new 'inject-error' command, while errors are reported
+using a new cxl-list "-N"/"--injectable-errors" option. Device poison
+can be cleared using the 'clear-error' command.
 
-Just noting because I stumbled over that myself:
+The 'inject-error'/'clear-error' commands and "-N" option of cxl-list all
+require access to the CXL driver's debugfs.
 
-pmd_mkdevmap() does *not* imply pmd_special().
+The documentation for the new cxl-inject-error command shows both usage
+and the possible device/error types, as well as how to retrieve them
+using cxl-list. The documentation for cxl-list has also been updated to
+show the usage of the new injectable errors option.
 
-... in contrast to pte_mkdevmap(), which will imply pte_special().
+[1]: ACPI v6.5 spec, section 18.6.4
+[2]: ACPI v6.5 spec, table 18.31
 
+--
+
+Alison, I reached out to Junhyeok about his poison injection series but
+never heard back, so I've just continued with my original plans for a
+v2.
+
+Quick note: My testing setup is screwed up at the moment, so this
+revision is untested. I'll try to get it fixed for the next revision.
+
+--
+
+Ben Cheatham (7):
+  libcxl: Add debugfs path to CXL context
+  libcxl: Add CXL protocol errors
+  libcxl: Add poison injection support
+  cxl: Add inject-error command
+  cxl: Add clear-error command
+  cxl/list: Add injectable errors in output
+  Documentation: Add docs for inject/clear-error commands
+
+ Documentation/cxl/cxl-clear-error.txt  |  67 ++++++
+ Documentation/cxl/cxl-inject-error.txt | 129 ++++++++++++
+ Documentation/cxl/cxl-list.txt         |  35 +++-
+ Documentation/cxl/meson.build          |   2 +
+ cxl/builtin.h                          |   2 +
+ cxl/cxl.c                              |   2 +
+ cxl/filter.h                           |   3 +
+ cxl/inject-error.c                     | 253 +++++++++++++++++++++++
+ cxl/json.c                             |  30 +++
+ cxl/lib/libcxl.c                       | 274 +++++++++++++++++++++++++
+ cxl/lib/libcxl.sym                     |  12 ++
+ cxl/lib/private.h                      |  14 ++
+ cxl/libcxl.h                           |  16 ++
+ cxl/list.c                             |   3 +
+ cxl/meson.build                        |   1 +
+ util/json.h                            |   1 +
+ 16 files changed, 843 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/cxl/cxl-clear-error.txt
+ create mode 100644 Documentation/cxl/cxl-inject-error.txt
+ create mode 100644 cxl/inject-error.c
 
 -- 
-Cheers,
-
-David / dhildenb
+2.34.1
 
