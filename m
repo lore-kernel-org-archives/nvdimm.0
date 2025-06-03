@@ -1,73 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38F4C4C74
-	for <nvdimm@lists.linux.dev>; Tue,  3 Jun 2025 21:36:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D775D221F31
+	for <nvdimm@lists.linux.dev>; Tue,  3 Jun 2025 22:02:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748986597; cv=none; b=MQODIvuzHZQNbZQasHs8OSgdQzFA0q8Z/wOTvwo/0Bn2FX3p4Z61erabr8ZnJb8qI79JOI55RqufLxQrvnAHTfVokmxB2Xm6ul1M6X95cIjOBns+Xh5HKXjpZxc/wSrfQpXzfJ0w315elgu7T/vUOkPvRvpHGH2HQS3AS/K4vY8=
+	t=1748988179; cv=none; b=OI029xyi/04DUVJ+r9FLVfzC4nXCtHO5zCINNKjzsrKkl4pIxjf//JTPGQFsdomLhpI/VVZc305jnYxg8siCWMAUutNwnQhNHVCbxQTnYvT4Vk7x0MVqSs1lKMBZcZtdDcCiHk/XuiMHVfNdPnZb1fibQdraN8WvmR/JPYte2F4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748986597; c=relaxed/simple;
-	bh=9iESXUsiowsy5bcAbQrdneF8ZhbHbq1/aJYTuCiIpus=;
+	s=arc-20240116; t=1748988179; c=relaxed/simple;
+	bh=eajd9EavqBNsUT4SvCuI/74b+H2G9N7rEQZ/+V/rvPk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=nEqX95+r10mmrb/2E/A430uLSl4ChAtuf/4HcGp+BLxcLM1Z4dsrTbZ0bJHM7SzSUkxTK6/NcdN750JxCqO6CwHCGgOQAUbtpSRUwmtBNMGCbrR1wWJonOtwYxWUc61k1NM44Z4hOwTaP0wrChV8o/DIPqZSxu6feJSnelXPb+I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=NiTeAqs3; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=gTEjcJP32bLYzAVtxulSMcFMU1hi6Fq1iOyAl8YjeMEf1bCXM02Brn2nPmfsscR8n7RdqCzT2XcG0XwLRay5hHU7s6LrnG9eoQW6JtFNMNKEkUamy0i6fDYsfStiX6IZ9dD9c7ykmNodwD16MiDzPtawxDp4gs/xM+GPpA1kRFM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=H/xtzrQA; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NiTeAqs3"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="H/xtzrQA"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1748986594;
+	s=mimecast20190719; t=1748988176;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=2mtt7sFFf6VjoTBYrIWNH56E46FCaFvey590NiPF5fw=;
-	b=NiTeAqs3xONdeqRhzndNoC0zgaPKOTflhM3PVzNm2Qny1rj+rMh3KFa+6ubs5U/IiPRopI
-	4BEOHwzjqp24lM34Il2xgGiBGcUZPXxjIhIznZSNLBqPJmjOTSdHaHt+vvMOwwBVV4uJL6
-	GCY8gkXNaoIlMLBxz7dxCDdVrBJoM20=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=eS7f7quUUty4CLA6etNXIneQrPITZcpqBLU3n/eJmMA=;
+	b=H/xtzrQAvJ8VVBevXMRSnXgP0y//rXG6a58JCTDSGyI1TdaOD9nm+mSBK8mYZS6eBf9vqy
+	/aGoD6d38hP1K9vpxfQNNA0r+aLXvvrjnJd57WDBk2o7DYq2L9lybv7BM2KYUAsrhQ9cw6
+	sn6RBnXSXuTHNWyXDZN5ney/VDREIyw=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-118-_-hulvEKNuqiKFTDoM_tqA-1; Tue, 03 Jun 2025 17:36:32 -0400
-X-MC-Unique: _-hulvEKNuqiKFTDoM_tqA-1
-X-Mimecast-MFC-AGG-ID: _-hulvEKNuqiKFTDoM_tqA_1748986592
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-442e0e6eb84so39476465e9.0
-        for <nvdimm@lists.linux.dev>; Tue, 03 Jun 2025 14:36:32 -0700 (PDT)
+ us-mta-266-xG6ygOlvOSC3td7LAl78WA-1; Tue, 03 Jun 2025 18:02:55 -0400
+X-MC-Unique: xG6ygOlvOSC3td7LAl78WA-1
+X-Mimecast-MFC-AGG-ID: xG6ygOlvOSC3td7LAl78WA_1748988174
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3a1f6c5f4f2so2221984f8f.2
+        for <nvdimm@lists.linux.dev>; Tue, 03 Jun 2025 15:02:55 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748986591; x=1749591391;
+        d=1e100.net; s=20230601; t=1748988174; x=1749592974;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=2mtt7sFFf6VjoTBYrIWNH56E46FCaFvey590NiPF5fw=;
-        b=OHGwl0G6rk/mCRnLalxcWD17adWRgx0fwCel2v0k6k0XZ6X7mv7GmgRiwi3iftOoEq
-         P5m4jFtSnbenno/7sU6PybuUUDBW2y7iSs+2zs+d+ZeQYLzqmk9K+YuTlJdHti86hCxf
-         PkEL6Wl63oGAZdnqFfeK5WSwUJcPA2xk4t1F6l8yLgx0cieteRHMPC3YlLOXfq263edd
-         xaSKsU5M1elCJcPTJO7rS0nYVe+tfHw7faROgJcZbyAPouKkXNWwi99h6IKFfVtWSd++
-         W0BfLNGNUCYPAN+Y/dFFvw4e31SikRKLJjbsn5xXN72w2ZbrXsNVelwlTDXhE9scW9om
-         XYZQ==
-X-Forwarded-Encrypted: i=1; AJvYcCURNa6nidgWuRma3aUgid0CZOwxCbpcM8UjRJCQEf1doqzrms2hE5B7+V67oUNwXuDCtUGI7UM=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx+ZFjptM7tksJcqOMrjB8/hjHyPGI0E7DV7aDnsnxK9C9/u7sj
-	CiOqhEBcEEruetQjD9FQXJfMb3p6hsNLB0KWd28mfnRenw9JIuqVensItM6rBwHBz87LYnoDNQw
-	wodzjT48E6gDULEDqog9RzNze+oKWkEl93w3rZsCY8gX/eq5gPQy2qWkbuA==
-X-Gm-Gg: ASbGncvVr9Df6lN47wIZvWeaiyIzRmNfOkbap4sCkgtNVvCp+8x1G+g8uORc3nLZXmN
-	rb+ps3THHDi5yuYpXcr9ZZPJh5gpl98b3816xtnHFG62HMsbPop5qSonXIeMpv+2mBx217PuhX9
-	mpPkMQADOGeadIMePYo4LrtYyetLuXIaixrARENVfSnH2lpMAoG1SkQauxJG9NJESl7Vz7Wba21
-	BOCa0pMBjMC6Cysk66M6VBBlCj1+xu0ea7he3RkZdFcR66U8JAwSCDPEDlKjkWt4qeFQvZFfzEL
-	pN38XiPU8VKeYp7tu04v5G6Pcn6KKddnXOhBqm873KQpOjK6WHAGewYGse1eJ6lH4rId6QwqVL7
-	QQ0b9qA/bh4sc0Lvlb6ZroQf9atjq5xfOqu/gbcw=
-X-Received: by 2002:a05:600c:1c29:b0:450:cfa7:5ea1 with SMTP id 5b1f17b1804b1-451f0b156acmr1969185e9.16.1748986591595;
-        Tue, 03 Jun 2025 14:36:31 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGdUILqMKnan6FhGr5tfSPLCbuCD83DCR7fT4qWTAi9vJJDwu/bWvBe5am5UhPIPoj1jIniiw==
-X-Received: by 2002:a05:600c:1c29:b0:450:cfa7:5ea1 with SMTP id 5b1f17b1804b1-451f0b156acmr1969055e9.16.1748986591233;
-        Tue, 03 Jun 2025 14:36:31 -0700 (PDT)
+        bh=eS7f7quUUty4CLA6etNXIneQrPITZcpqBLU3n/eJmMA=;
+        b=CK43evJ/TYzlSRuYHlaJdzCSmbXuvn5g3Mekokd+b2qdzuR6fZOoXnqldSXacSDXdK
+         AuEvTg3mmb2bFoy41oItIu1hi8S6NOb+mZCmpWwRBqi73wHefPaUCTreRAMkZ9iVWy0n
+         TwlV5hLKzBN81gOYHnIwZLK47BVabeMywA7t3YZZxT58x8sWosAr8BFeHd6ttoqw24ID
+         ql43O9fbK7QTNle89Mz75A6olQ2AfPb/cf4AEu4HGgYy0t25GPGN9plW1MxyB6TPoWTu
+         eWB2hlVaW5JFl2ZGcnIcy+NZVKXaKTvF6m96X0Mq0+Bkt6bHiQJqIJpd/ypZ87ic+teZ
+         mz8Q==
+X-Forwarded-Encrypted: i=1; AJvYcCVh45HmavAbjJqLrdesXaLduop/LPPK/LCLucCE4BvFEGG0DqKBhyFC7PG7h+z9jKz/itHXhvQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy0+Bafyvjom3+YWslctE/ZdIFUKaCEsU35Yo3yAYw5psP0MlAC
+	ZyqP7GyDa8CpE8Pg8+7OdDZz2IpCucNw7/G1NLMyJUrb+4Wf2yVJBDPQrThu5iiUmAvWvSrSAKo
+	ngeHtYwsMhpqIh0qAflDyYLxX0G2csXdYEZ8RYnAVNZa1OOPJvGptdzZbL3J0hGFQBRCdpSY=
+X-Gm-Gg: ASbGncupbGJtK5KSp3Isq3xSswtTboGNqNvN/MQWinHNJs37yGPQrsNLKC8xQDM4Udt
+	rneLNZarwTzfp/Pz1RpuGPY6inKKwYJDqR/Vty3AxKrZ/V5X41E4hbKq+3WMdVBoNzP3AllQH8g
+	HUqYW68fjZiQXV64kiICJMkyr/jqT6+EA4zh8iEBPZsppixyzvr8era6NLRFcAN1AUMVFHcQbK1
+	6jbTOGQF0r0M70NT24fspY97Ze5ArCimIrTWvUZAVQA06nZ9f6apx4vRMtD5OusRsZL/tKVj40T
+	8sB70TNTxyNCg8YxMs4IKYl6bnvMZ7J1uXm5owm2KwvPWaL5E7fJXj6os4tM56pfQN9EGYDgk6t
+	qOibLzaKx/dlRX7x0W4S8Gv1H1jGhqxNXFEZjAoA=
+X-Received: by 2002:a05:6000:144f:b0:3a4:f7e6:284b with SMTP id ffacd0b85a97d-3a51d8f6a52mr292326f8f.10.1748988174401;
+        Tue, 03 Jun 2025 15:02:54 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFHKGIadPoiOp938yNpY7WW37URrLF4uvDP2tSTNNwKFPpxKIBCxv1en5PPiTu2Tlm6YnhSjg==
+X-Received: by 2002:a05:6000:144f:b0:3a4:f7e6:284b with SMTP id ffacd0b85a97d-3a51d8f6a52mr292280f8f.10.1748988173962;
+        Tue, 03 Jun 2025 15:02:53 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f0d:f000:eec9:2b8d:4913:f32a? (p200300d82f0df000eec92b8d4913f32a.dip0.t-ipconnect.de. [2003:d8:2f0d:f000:eec9:2b8d:4913:f32a])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-450d7fa2333sm173757825e9.11.2025.06.03.14.36.28
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-450d7f8ed32sm174020795e9.1.2025.06.03.15.02.52
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 03 Jun 2025 14:36:30 -0700 (PDT)
-Message-ID: <b80b62dc-76b9-4b3b-b980-7fa3584c9762@redhat.com>
-Date: Tue, 3 Jun 2025 23:36:28 +0200
+        Tue, 03 Jun 2025 15:02:53 -0700 (PDT)
+Message-ID: <d43be0c9-cad5-4712-813b-225e9969d84e@redhat.com>
+Date: Wed, 4 Jun 2025 00:02:51 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,8 +75,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 0/2] mm/huge_memory: don't mark refcounted pages
- special in vmf_insert_folio_*()
+Subject: Re: [PATCH v1 2/2] mm/huge_memory: don't mark refcounted pages
+ special in vmf_insert_folio_pud()
 To: linux-kernel@vger.kernel.org
 Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -89,6 +89,7 @@ Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
  Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
  Dev Jain <dev.jain@arm.com>, Dan Williams <dan.j.williams@intel.com>
 References: <20250603211634.2925015-1-david@redhat.com>
+ <20250603211634.2925015-3-david@redhat.com>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -135,31 +136,96 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <20250603211634.2925015-1-david@redhat.com>
+In-Reply-To: <20250603211634.2925015-3-david@redhat.com>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: 3Jh4ruQRHFQJN8JhTh68S7oxeAZ0N_cc0vcYKmjnIu0_1748986592
+X-Mimecast-MFC-PROC-ID: 6bKXkKIGs1p0DxF1oZiietllQTdJr4tFkcNP_VhO_c0_1748988174
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 03.06.25 23:16, David Hildenbrand wrote:
-> Based on Linus' master.
+> Marking PUDs that map a "normal" refcounted folios as special is
+> against our rules documented for vm_normal_page().
 > 
-> While working on improving vm_normal_page() and friends, I stumbled
-> over this issues: refcounted "normal" pages must not be marked
-> using pmd_special() / pud_special().
+> Fortunately, there are not that many pud_special() check that can be
+> mislead and are right now rather harmless: e.g., none so far
+> bases decisions whether to grab a folio reference on that decision.
 > 
-> Fortunately, so far there doesn't seem to be serious damage.
+> Well, and GUP-fast will fallback to GUP-slow. All in all, so far no big
+> implications as it seems.
 > 
-> This is only compile-tested so far. Still looking for an easy way to test
-> PMD/PUD mappings with DAX. Any tests I can easily run?
+> Getting this right will get more important as we introduce
+> folio_normal_page_pud() and start using it in more place where we
+> currently special-case based on other VMA flags.
+> 
+> Fix it by just inlining the relevant code, making the whole
+> pud_none() handling cleaner.
+> 
+> Add folio_mk_pud() to mimic what we do with folio_mk_pmd().
+> 
+> While at it, make sure that the pud that is non-none is actually present
+> before comparing PFNs.
+> 
+> Fixes: dbe54153296d ("mm/huge_memory: add vmf_insert_folio_pud()")
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
+>   include/linux/mm.h | 15 +++++++++++++++
+>   mm/huge_memory.c   | 33 +++++++++++++++++++++++----------
+>   2 files changed, 38 insertions(+), 10 deletions(-)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 0ef2ba0c667af..047c8261d4002 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1816,6 +1816,21 @@ static inline pmd_t folio_mk_pmd(struct folio *folio, pgprot_t pgprot)
+>   {
+>   	return pmd_mkhuge(pfn_pmd(folio_pfn(folio), pgprot));
+>   }
+> +
+> +/**
+> + * folio_mk_pud - Create a PUD for this folio
+> + * @folio: The folio to create a PUD for
+> + * @pgprot: The page protection bits to use
+> + *
+> + * Create a page table entry for the first page of this folio.
+> + * This is suitable for passing to set_pud_at().
+> + *
+> + * Return: A page table entry suitable for mapping this folio.
+> + */
+> +static inline pud_t folio_mk_pud(struct folio *folio, pgprot_t pgprot)
+> +{
+> +	return pud_mkhuge(pfn_pud(folio_pfn(folio), pgprot));
+> +}
+>   #endif
+>   #endif /* CONFIG_MMU */
 
-... aaaand I should have waited for the cross compiles.
+The following on top should make cross-compiles happy (git diff output because it's late
+here, probably whitespace messed up):
 
-s390x and loongarch are not happy about pud_mkhuge() and pfn_pud().
 
-Need to fence folio_mk_pud() by CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD.
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 047c8261d4002..b7e2abd8ce0df 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1817,6 +1817,7 @@ static inline pmd_t folio_mk_pmd(struct folio *folio, pgprot_t pgprot)
+         return pmd_mkhuge(pfn_pmd(folio_pfn(folio), pgprot));
+  }
+  
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+  /**
+   * folio_mk_pud - Create a PUD for this folio
+   * @folio: The folio to create a PUD for
+@@ -1831,7 +1832,8 @@ static inline pud_t folio_mk_pud(struct folio *folio, pgprot_t pgprot)
+  {
+         return pud_mkhuge(pfn_pud(folio_pfn(folio), pgprot));
+  }
+-#endif
++#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+  #endif /* CONFIG_MMU */
+  
+  static inline bool folio_has_pincount(const struct folio *folio
 
 -- 
 Cheers,
