@@ -1,46 +1,46 @@
-Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2058.outbound.protection.outlook.com [40.107.95.58])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2054.outbound.protection.outlook.com [40.107.243.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 992FD253F21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD78D253F23
 	for <nvdimm@lists.linux.dev>; Tue,  3 Jun 2025 22:20:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.95.58
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.54
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748989212; cv=fail; b=IYtwk7DrtH8X2+R+inZFxiqkaqriQo7YtNFplJvGoFaWcldf+oEe9dqFUIMkpV406sCFYEfD2JDZAqvOlcCnpddiMBQzoVXHuxqRVHa0HoKj8r1oPEZ3GNuWLboN8tNNarwGfpv4BfFc8yWjrdVAaTanmaNjkjFNGPSnwd+bfFE=
+	t=1748989212; cv=fail; b=Pa1+ewzlkFLw0eecqrGTfttxTclrdoXQLi9WkpkVWa2Z60ofPrxtIEalsRjwQaY+1rMvXDDvlZVkagqFpGPZha4mmZUyltKyVRD+uVqgEPyM9xV3Rpsap0PMsYGZiCVS1hw37W5chUNJEhxAhKFUdtGkE2W6K9/BS/LO9T3ghpc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1748989212; c=relaxed/simple;
-	bh=e8oDyjaAn0rCiJfByJQfNCNHd4YYGM3Fvx+wNGKQZHs=;
+	bh=g5OuHNAzAmcd1mtOUouNRCgxjgjiEgFfNdtgo/cSuHY=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=bSpr+HWml1qp8iUR6zS1xzWOxBqXmkkPlocLVfCgr41BOnjurt9tU3vX5Ro4MmUuVZRqQwvV5RAbAmJdOxwJRmycnd/NNK+yKiTm7f22zlBF0AoeGaLknCzb2JwMunuNHVxEg1Xryk1Z5ZDELzMqwaVFShFQp35iuK7JCs1gdW4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=JdvPe8Ox; arc=fail smtp.client-ip=40.107.95.58
+	 MIME-Version:Content-Type; b=taBJKxcQrtovJ2gPuXfgymdWik8QmT9rXX0ysrV6uuYJOk1G6B9dg7pfh7FoqK7TyS/kE0hQMkcqXwZnrkEI0eLtTcaygYocT40FoxfUsxovDvc1v+3AQcRUPdL787xbBL7bUN4br83NMm+OqBTZfO1aLSORQjWwtk2nSgC+BAo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=qKsIUTbM; arc=fail smtp.client-ip=40.107.243.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="JdvPe8Ox"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="qKsIUTbM"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Lxg0vYmHxJ/dUlG2pSpkzW7F1RkNu/Aknru2Pkw+5fMz4GZ/b2B1JcS2+8pGpTiEzv2HNIBE3zaddubxwS687MqzcK4Yd9B++J9lzj1cS0aNselyyNC7WxsQ1H2afCeNI0X9TaLWBceY7Pmk/vuyctncTBi6hXjqr7KqU0LaRnDFYbP3DLorTpbIMCeiLt7r8p3N43WiplODPx7guA2ZypcrSKDNJdI/9dBaCE3yP6kTj9R/QsRzWkZUMj35WcEL2syaRQRmK4YnwqFw6JMQ+mqqmWxxjUhTID4VE5JQVsIRrZxs3PemAa1kpJUfrJwmqbyl6+kfkUJhh1O21OOihQ==
+ b=yyoRZNdDKdMA6keGcRI90m4lci0KPckb/RZRROACLs5J/KjXL71rg18eZ9WcGmIFFIAWEDbzP1+G66dgCJ1rq8XeH896Xp3tuCgBUbm5AjsV4Q6fPS8fdptFWb6KzGGvEleV6qwzkDiem+10LxEKCd0QNeVpExm/JKgwaGFcpfdwNe65Ag3pb3peiFLTKF/QkexHtyYsdQZd3LOwwwKm/bI07jmtnb2ToKMuJKiydtZKSrjplaDjNr4BmhP9cEr88Ol6Xx1Rb2MRnE3JBjWNfRLkYzpkz4FRiW9ShQH901m+iqX3UyhI12t1NUflrw18ZrXpNqzvECgs1USQxkHgfw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qRuZ6VtrrEFKjSh/DIBH37ZGIOKvDD63I32bxGsxwv0=;
- b=WivKJS4TktNBniYCppPjVl9GQJEfJ+O+BM+fuylE6QeWlgwfxhk76a5R3oJt6D6PfXsab6EnhkmGnC9XcN15DBCaGzbPOeuFFot/noLUumkxqGa7R6up7En2mBM9SqUNbNfB9NPVXS6ElACgKQh7WUCrLqpaVxILBhYdT/XoH74Emt3u80Tplut+K4Puj9leRWlVJVzgUL0Azj3bxqoZvzCXGc8mSLSNKZpaS7yxz6OeDVnN0JgR/eNC9Vmgd1Tx4bnrHNEh0mdutB48oCUAhJMU9WamX2RbnedIaVgULj77SnI4VOxrke2sMKFDk9N9xCLb1XgeVfGunsjMNlDzhg==
+ bh=buMO3LfYHL8RO8UoHaQ5B6GUP+9sOoBoqKH1RQ/FUdE=;
+ b=VxXmxVundBcj7QsiZVIzladUUg3vOmOjgvCAnrEH8KoFoIiAKphBNw9b/7rnBXES3EsdQ/Pg+uFhjw14Dl5c2Q8TZI2aVkX1gLQOpemNWQQ0j4va7jtup4WDXeMLGpmw/kNGqtcrRb+l/iC+i4pbYJRCrLmODDSDVVQtyCNDXEQzaeol/ADZcUMTUa9j2epnAl2KNz/TEWRTIF1Np6H6XkqfpGA+1JgqolYW+7V7KWnJnf1QH5SVxHXo1HyBPowza6jWu7yXfYyOgbQx6BzN4ePX/blGnZtbqa9toumDOOAdSNCuqyGX82RXSHGDs3a4027jtFBjJDDy1cedIC4QkA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qRuZ6VtrrEFKjSh/DIBH37ZGIOKvDD63I32bxGsxwv0=;
- b=JdvPe8OxPdvlJc+Ijl1jZCn0oQlC7wz29stbOz/d32/lCXyOBntMBlB3oX6sfoaiUIwZ6lrrkEwUM2CimpuD4nYvEZ0bAploZ6Wa9/0VbEU69kMq3iLu+zgaynh6kPImmEvPtnsPO/iCxwkMqXYz7xD5tjav8ivZsCdDTWRkRGg=
-Received: from CY5PR04CA0023.namprd04.prod.outlook.com (2603:10b6:930:1e::30)
- by SJ0PR12MB8616.namprd12.prod.outlook.com (2603:10b6:a03:485::20) with
+ bh=buMO3LfYHL8RO8UoHaQ5B6GUP+9sOoBoqKH1RQ/FUdE=;
+ b=qKsIUTbMDzVXkroP4wjJ8h/bIZFFdMnqlkI9K3ieBOQDosIxpX4Y6aCgQBYwcJafgLqSHUlGncMAa46CzCuuAFKS73asihfZ34lih8A2GPGDV6whV2LHTmYivoAGiOJBzVnIjmCU0ujfsEFXzTz8wNcJrJVp2C1QxASpwg1ptPU=
+Received: from SJ0PR13CA0182.namprd13.prod.outlook.com (2603:10b6:a03:2c3::7)
+ by CH3PR12MB8355.namprd12.prod.outlook.com (2603:10b6:610:131::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8769.31; Tue, 3 Jun
- 2025 22:20:03 +0000
-Received: from CY4PEPF0000FCC0.namprd03.prod.outlook.com
- (2603:10b6:930:1e:cafe::33) by CY5PR04CA0023.outlook.office365.com
- (2603:10b6:930:1e::30) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8746.32 via Frontend Transport; Tue,
- 3 Jun 2025 22:20:03 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8792.34; Tue, 3 Jun
+ 2025 22:20:07 +0000
+Received: from CY4PEPF0000FCBF.namprd03.prod.outlook.com
+ (2603:10b6:a03:2c3:cafe::2b) by SJ0PR13CA0182.outlook.office365.com
+ (2603:10b6:a03:2c3::7) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8792.19 via Frontend Transport; Tue,
+ 3 Jun 2025 22:20:07 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,13 +48,13 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
- CY4PEPF0000FCC0.mail.protection.outlook.com (10.167.242.102) with Microsoft
+ CY4PEPF0000FCBF.mail.protection.outlook.com (10.167.242.101) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8792.29 via Frontend Transport; Tue, 3 Jun 2025 22:20:03 +0000
+ 15.20.8792.29 via Frontend Transport; Tue, 3 Jun 2025 22:20:07 +0000
 Received: from ethanolx50f7host.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Tue, 3 Jun
- 2025 17:20:02 -0500
+ 2025 17:20:05 -0500
 From: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 To: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
@@ -74,9 +74,9 @@ CC: Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron
 	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
 	<benjamin.cheatham@amd.com>, PradeepVineshReddy Kodamati
 	<PradeepVineshReddy.Kodamati@amd.com>, Zhijian Li <lizhijian@fujitsu.com>
-Subject: [PATCH v4 2/7] cxl/core: Remove CONFIG_CXL_SUSPEND and always build suspend.o
-Date: Tue, 3 Jun 2025 22:19:44 +0000
-Message-ID: <20250603221949.53272-3-Smita.KoralahalliChannabasappa@amd.com>
+Subject: [PATCH v4 6/7] dax/hmem: Save the DAX HMEM platform device pointer
+Date: Tue, 3 Jun 2025 22:19:48 +0000
+Message-ID: <20250603221949.53272-7-Smita.KoralahalliChannabasappa@amd.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250603221949.53272-1-Smita.KoralahalliChannabasappa@amd.com>
 References: <20250603221949.53272-1-Smita.KoralahalliChannabasappa@amd.com>
@@ -91,60 +91,65 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000FCC0:EE_|SJ0PR12MB8616:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2e013aae-4da0-4176-0be1-08dda2ecc995
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000FCBF:EE_|CH3PR12MB8355:EE_
+X-MS-Office365-Filtering-Correlation-Id: 138b1f30-b838-4124-ce63-08dda2eccc16
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|1800799024|82310400026|36860700013;
+	BCL:0;ARA:13230040|82310400026|36860700013|376014|7416014|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?FEWj4ja72xVjjE3HAvFt+5lvA+8YZgofOY1asHgfxB/xFhq5SwUw0r63kSoi?=
- =?us-ascii?Q?k6LXvAFAvBeaE2efRi4QrypuWDh1DFX/x6WHxHNncnpMjSKjSkA9EOaCrxLG?=
- =?us-ascii?Q?FF+bFeehRVhU0I9snzoqpxYfr5FIWHtUNED9xFry6yr8b5XRVEXYg9tsAGQ2?=
- =?us-ascii?Q?lDVN2plvrW1cITgE8FjC+MnWQn2WL+X1N+40OezZpkrKuAFsKxnKXAybb7qx?=
- =?us-ascii?Q?NWI/ot+DftqjVeKuLxak7QYupBgb5LEcK0wBImS05ZbBf8EuYIvAAhEMgHkz?=
- =?us-ascii?Q?iV8AWY7TdmsHWFByWs67cjmsKUU0Vyb/NdmWnWE6SWH4Jt3BEgWTDwc/cy4y?=
- =?us-ascii?Q?3Q92KYskG2AWjc9k2wrWzwZ0BwDn6BWHwqzOOCqUSBPu+MIA0M7JadJF+Fpk?=
- =?us-ascii?Q?2aosgIdvT0G+nSoamB64ZeF6LBIbOXsU2wC5NMkau9migt75S/R/nreUvdDC?=
- =?us-ascii?Q?MO/Lt1UONycqIPwSvEuKMbl2CaIGf2E95Mq/xVSSGDdMqJ8N34q8A3IrPGza?=
- =?us-ascii?Q?fTFJ6QhvwGDL/7H9iOFyZNqFV0lC+SKxs/ehwm01nDZ5BaIHLI6x9YNWGdac?=
- =?us-ascii?Q?yf9zD86kULDgZ1A1Gir15sCLgVHNyP3sw1rPITB0y8MyIo61H0hiEQPgYm5V?=
- =?us-ascii?Q?qlK7CgN6Ifbd7tnj67FYIgVWzmRHkO9TpHEm8kQaWITbtl24IzAjAxlc+Lvf?=
- =?us-ascii?Q?DeL5z03P5DVPNneKUcWySvdS6KFjeCrzwsuyhLf9KdFeV27bdoX9CMkEqPR6?=
- =?us-ascii?Q?3NYw2nLDxAn4ShLzVP/PKfsVVLPZ8rYKKXxiJB29jIfLDsKY58B7+rZkFSTM?=
- =?us-ascii?Q?F5TPg/TQMxF3zLQWCe12FJD1MgQUkgFHGYFAzzA8ArsA7s27iuHKMQEGHkAE?=
- =?us-ascii?Q?tvpDcVCu+uOe/zPVP4PWG+17ErLSOGBedjDfj8DnuJNo0W1oZh8X8LgJTexg?=
- =?us-ascii?Q?fI8AdM1cQg3q4/pSCxq1KuHIqJ4wvk0TowmlP+Ct1qW5omz5PSwY8LT7GrrY?=
- =?us-ascii?Q?Xn8+fUL2LQJLjmU7zuxrwrMWG23rwL6F0kKhZpHbmbuXjuLUKtrW//jsoEW4?=
- =?us-ascii?Q?6rJEnGfBQhNl8kDoPBNox7ANg38BBKRBSAmvMProdPgBsXMklARReeGiwnrJ?=
- =?us-ascii?Q?Itgm0ncdYPDHsHaBXWFrEeOQ0YXVlgD/1tk7Hb/VRKMaxy0HbW6+27JUP8je?=
- =?us-ascii?Q?stE1ZwaDkq+ZqdiLAMWX07CHpPZEMmQvNsZDjEBN93fSVVReBc60ThoVCrJW?=
- =?us-ascii?Q?zT8OBCYq2/3cdu7Vm7djNqWysM6r2eBIH0rih1xo5GHb59CZubB2rYdJONkI?=
- =?us-ascii?Q?rLCXuO5pXfRZLiqz/WWooCluty3W7jV+1GjAJ+uku4W684cTvbJ5TJXOcXUQ?=
- =?us-ascii?Q?Q+xdJetYkwfmZ/DAGnOJWVVKSee5W4tzzmHo5K645JEhT7OQf+djm3C4Gc6h?=
- =?us-ascii?Q?iT9DUlxpGw6ovSipY9FowRwBM0N6lTdwXMkbJaHtJIiDINlI7FaNONAtbwxd?=
- =?us-ascii?Q?Lva1YVz+OcaZ0XaH5GZWCK0L12BJDiID7DJX?=
+	=?us-ascii?Q?fGcF9T5phHIkDhsNueCzrfsMgMcZzwMbuTOxtrsoKD+/xY/iLG9ngLyPjpdH?=
+ =?us-ascii?Q?UKD9/roJjG+mAHb2V9yh1Ldl8Jg7H5STz85fgTq55F55kafQgsCUXofHXYgA?=
+ =?us-ascii?Q?r2CqCB7d/leU2BD2x4i3ipObva2mamhXjQ/sX10jmC0I1ke3o+zIXcMblFhL?=
+ =?us-ascii?Q?AqccJ3sqWsx8Ct3SobnMcxeIXPSUaiPU7V1CRGsfJMReEP9i0R5oZ49lm6GQ?=
+ =?us-ascii?Q?8x6vPiaF9Qh90cFvTm/29zuTpmV5yN3GaOk2764ohneMmo3WE7XRppEqqJrh?=
+ =?us-ascii?Q?wHKo7b9cePlQcCj8WtxvVYIMlXYXGmp/KX6q0jL11QeDzm6B03ImSJUwQijd?=
+ =?us-ascii?Q?M31KqP+FS1a0Zn1nDBPLikSEiHblLIsEa5zsHaPT2g5AIcS8KAG90xoGKD2z?=
+ =?us-ascii?Q?kCSYNRRg08ginyZQ2lcrRtDImSK+kBs/6oi9I3PK2VPQBcWpg4BFGDXNNsWe?=
+ =?us-ascii?Q?bYYL1Cpa0TcyidpKmMIVsNxeYBsLXRwkROUXL0PNDgFZq+m+0nYIKB9h6L0y?=
+ =?us-ascii?Q?l+uMe1GprL0AO+CLPPtf/0OOCN7xceWYYtPYPsvc7Tmvh2xBS98Ba+A0qYWb?=
+ =?us-ascii?Q?iEyAqFrMhClprKoE0euJe4CYmu6uhurqOjbvMLTsEXegvVB40xQDlywA2xTA?=
+ =?us-ascii?Q?ASyHd4XxkhxwI4D46ZzhEpkfUZxej6A4PVihBc02T/IWJXvf8K/WAmgIgVit?=
+ =?us-ascii?Q?tUo3y7S347MCBWEd163GaKCP5AULVbhujd8lDybDXL0DycbxPEMWeztI3FOj?=
+ =?us-ascii?Q?kgEqw8ouqmyTW6gnpxy1k9xcmCRtKa7ZkN+gznKQLP3ufpBdVZ5y64qXRni6?=
+ =?us-ascii?Q?xLyaa0/p9RBAIJYEIHvMlIFuibVJrVOB4dfEZKapYLtdWBg8esLrC2wEUQw7?=
+ =?us-ascii?Q?8D+mESbws36VY5W59V4C4LMIRfbybFWruluuq8ahQg0OwuRz0wzJIS9lpxLA?=
+ =?us-ascii?Q?GU2zjY4PeKnSlRiLeHNzseQjVuaRXgDBdk6LUPQ9ICJ9Ji/x4THXtv1eUm0p?=
+ =?us-ascii?Q?9FNejMQCjd8D2NzHDZlT2jrW+VHhupTu/nWIkF1nmAaXxDYnwxBmo2kJJoJd?=
+ =?us-ascii?Q?kYuHQtzVn1WkMTXfgTEVkwfwmNvLlonq/tLo370JJaHPSuRC519w/faik2Es?=
+ =?us-ascii?Q?rUlDgeM3w5/hLJOI6muXvUKuFUkmgNXZA4QZhC6+9q814yM9VAOore8ehhAC?=
+ =?us-ascii?Q?Drf/5pCxXrLvO2i1qbJQ4jow03Pw/4L6C9BAi7U0XMfvsoCprXG+X6nK2kJY?=
+ =?us-ascii?Q?k+/nRFnSoBJCAKpkAnfw2tSabDyBi98JnL6vKdLwWlepWeMnkGkUgTk4XMAu?=
+ =?us-ascii?Q?M3avCinry3M1NqFsZiBkhodQZGrteGWsz/gUu2J5uyv8PB3VRCuO09YVue58?=
+ =?us-ascii?Q?COZ3kRomfkOKgqdWFR8uOZJirwwgwbFhTGVdt0OYgtbhJkB5535jVZOO0uWp?=
+ =?us-ascii?Q?9DhmM8cf3N6q7hXid5bHu/gZqd459QA3eJyRh4WZiq1k7Xh3YhWWlZgrzJPH?=
+ =?us-ascii?Q?APyTasadRPIoutNuH3M0uxu0CurpD9tRbKyJ?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(82310400026)(36860700013);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700013)(376014)(7416014)(1800799024);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Jun 2025 22:20:03.3441
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Jun 2025 22:20:07.5506
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2e013aae-4da0-4176-0be1-08dda2ecc995
+X-MS-Exchange-CrossTenant-Network-Message-Id: 138b1f30-b838-4124-ce63-08dda2eccc16
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000FCC0.namprd03.prod.outlook.com
+	CY4PEPF0000FCBF.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB8616
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8355
 
-In preparation for soft-reserved resource handling, make the suspend
-infrastructure always available by removing the CONFIG_CXL_SUSPEND
-Kconfig option.
+From: Nathan Fontenot <nathan.fontenot@amd.com>
 
-This ensures cxl_mem_active_inc()/dec() and cxl_mem_active() are
-unconditionally available, enabling coordination between cxl_pci and
-cxl_mem drivers during region setup and hotplug operations.
+To enable registration of HMEM devices for SOFT RESERVED regions after
+the DAX HMEM device is initialized, this patch saves a reference to the
+DAX HMEM platform device.
+
+This saved pointer will be used in a follow-up patch to allow late
+registration of SOFT RESERVED memory ranges. It also enables
+simplification of the walk_hmem_resources() by removing the need to
+pass a struct device argument.
+
+There are no functional changes.
 
 Co-developed-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
 Signed-off-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
@@ -152,97 +157,81 @@ Co-developed-by: Terry Bowman <terry.bowman@amd.com>
 Signed-off-by: Terry Bowman <terry.bowman@amd.com>
 Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 ---
- drivers/cxl/Kconfig        | 4 ----
- drivers/cxl/core/Makefile  | 2 +-
- drivers/cxl/core/suspend.c | 5 ++++-
- drivers/cxl/cxlmem.h       | 9 ---------
- include/linux/pm.h         | 7 -------
- 5 files changed, 5 insertions(+), 22 deletions(-)
+ drivers/dax/hmem/device.c | 4 ++--
+ drivers/dax/hmem/hmem.c   | 9 ++++++---
+ include/linux/dax.h       | 5 ++---
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
-index cf1ba673b8c2..d09144c2002e 100644
---- a/drivers/cxl/Kconfig
-+++ b/drivers/cxl/Kconfig
-@@ -118,10 +118,6 @@ config CXL_PORT
- 	default CXL_BUS
- 	tristate
+diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
+index f9e1a76a04a9..59ad44761191 100644
+--- a/drivers/dax/hmem/device.c
++++ b/drivers/dax/hmem/device.c
+@@ -17,14 +17,14 @@ static struct resource hmem_active = {
+ 	.flags = IORESOURCE_MEM,
+ };
  
--config CXL_SUSPEND
--	def_bool y
--	depends on SUSPEND && CXL_MEM
--
- config CXL_REGION
- 	bool "CXL: Region Support"
- 	default CXL_BUS
-diff --git a/drivers/cxl/core/Makefile b/drivers/cxl/core/Makefile
-index 086df97a0fcf..035864db8a32 100644
---- a/drivers/cxl/core/Makefile
-+++ b/drivers/cxl/core/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_CXL_BUS) += cxl_core.o
--obj-$(CONFIG_CXL_SUSPEND) += suspend.o
-+obj-y += suspend.o
- 
- ccflags-y += -I$(srctree)/drivers/cxl
- CFLAGS_trace.o = -DTRACE_INCLUDE_PATH=. -I$(src)
-diff --git a/drivers/cxl/core/suspend.c b/drivers/cxl/core/suspend.c
-index 29aa5cc5e565..5ba4b4de0e33 100644
---- a/drivers/cxl/core/suspend.c
-+++ b/drivers/cxl/core/suspend.c
-@@ -8,7 +8,10 @@ static atomic_t mem_active;
- 
- bool cxl_mem_active(void)
+-int walk_hmem_resources(struct device *host, walk_hmem_fn fn)
++int walk_hmem_resources(walk_hmem_fn fn)
  {
--	return atomic_read(&mem_active) != 0;
-+	if (IS_ENABLED(CONFIG_CXL_MEM))
-+		return atomic_read(&mem_active) != 0;
+ 	struct resource *res;
+ 	int rc = 0;
+ 
+ 	mutex_lock(&hmem_resource_lock);
+ 	for (res = hmem_active.child; res; res = res->sibling) {
+-		rc = fn(host, (int) res->desc, res);
++		rc = fn((int) res->desc, res);
+ 		if (rc)
+ 			break;
+ 	}
+diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+index 5e7c53f18491..3aedef5f1be1 100644
+--- a/drivers/dax/hmem/hmem.c
++++ b/drivers/dax/hmem/hmem.c
+@@ -9,6 +9,8 @@
+ static bool region_idle;
+ module_param_named(region_idle, region_idle, bool, 0644);
+ 
++static struct platform_device *dax_hmem_pdev;
 +
-+	return false;
+ static int dax_hmem_probe(struct platform_device *pdev)
+ {
+ 	unsigned long flags = IORESOURCE_DAX_KMEM;
+@@ -59,9 +61,9 @@ static void release_hmem(void *pdev)
+ 	platform_device_unregister(pdev);
  }
  
- void cxl_mem_active_inc(void)
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 3ec6b906371b..1bd1e88c4cc0 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -853,17 +853,8 @@ int cxl_trigger_poison_list(struct cxl_memdev *cxlmd);
- int cxl_inject_poison(struct cxl_memdev *cxlmd, u64 dpa);
- int cxl_clear_poison(struct cxl_memdev *cxlmd, u64 dpa);
+-static int hmem_register_device(struct device *host, int target_nid,
+-				const struct resource *res)
++static int hmem_register_device(int target_nid, const struct resource *res)
+ {
++	struct device *host = &dax_hmem_pdev->dev;
+ 	struct platform_device *pdev;
+ 	struct memregion_info info;
+ 	long id;
+@@ -125,7 +127,8 @@ static int hmem_register_device(struct device *host, int target_nid,
  
--#ifdef CONFIG_CXL_SUSPEND
- void cxl_mem_active_inc(void);
- void cxl_mem_active_dec(void);
--#else
--static inline void cxl_mem_active_inc(void)
--{
--}
--static inline void cxl_mem_active_dec(void)
--{
--}
--#endif
- 
- int cxl_mem_sanitize(struct cxl_memdev *cxlmd, u16 cmd);
- 
-diff --git a/include/linux/pm.h b/include/linux/pm.h
-index f0bd8fbae4f2..415928e0b6ca 100644
---- a/include/linux/pm.h
-+++ b/include/linux/pm.h
-@@ -35,14 +35,7 @@ static inline void pm_vt_switch_unregister(struct device *dev)
+ static int dax_hmem_platform_probe(struct platform_device *pdev)
+ {
+-	return walk_hmem_resources(&pdev->dev, hmem_register_device);
++	dax_hmem_pdev = pdev;
++	return walk_hmem_resources(hmem_register_device);
  }
- #endif /* CONFIG_VT_CONSOLE_SLEEP */
  
--#ifdef CONFIG_CXL_SUSPEND
- bool cxl_mem_active(void);
--#else
--static inline bool cxl_mem_active(void)
--{
--	return false;
--}
--#endif
+ static struct platform_driver dax_hmem_platform_driver = {
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index dcc9fcdf14e4..a4ad3708ea35 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -305,7 +305,6 @@ static inline void hmem_register_resource(int target_nid, struct resource *r)
+ }
+ #endif
  
- /*
-  * Device power management
+-typedef int (*walk_hmem_fn)(struct device *dev, int target_nid,
+-			    const struct resource *res);
+-int walk_hmem_resources(struct device *dev, walk_hmem_fn fn);
++typedef int (*walk_hmem_fn)(int target_nid, const struct resource *res);
++int walk_hmem_resources(walk_hmem_fn fn);
+ #endif
 -- 
 2.17.1
 
