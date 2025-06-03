@@ -1,334 +1,229 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2061.outbound.protection.outlook.com [40.107.237.61])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 843BB255F2D
-	for <nvdimm@lists.linux.dev>; Tue,  3 Jun 2025 22:20:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.61
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748989214; cv=fail; b=Nw9KM4nTPWDRvuzUTPK+5pxe+SZDFul3VQwCcoftEcx6dfSyz602c+J3HUXyVIXzMVt1ndKI/FTQxG5BpStmBKsSq272QmOB9n1ojGS0XNy5lsojU1hCjJuPvPJbKEs4TSrFE6/U2VxCjZK6KSJn6lKK6jHaCdxsUEkaI1FxKus=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748989214; c=relaxed/simple;
-	bh=1osBlMvFUlp2kGJU/zmJFdZEI8qYHmB0DKaac0xYUU8=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=oPO9QMqzsnhusmOWDpnPXTMjqmzwwN+oxDCrdIiARwa1GqV6C72lRzXP2E6yHW5cBHIMzIZN5tfssZiWrPaF5uVPel1q8S/enEPH1ArAw2GrYx86cOINPHpaHaHjMjmB0vDwZI2jp9ipGgUXF2b/L2glRHVvbdRnlMgtKYYs7S0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=DcuzcDVf; arc=fail smtp.client-ip=40.107.237.61
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D702B211C
+	for <nvdimm@lists.linux.dev>; Tue,  3 Jun 2025 23:46:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1748994365; cv=none; b=srzKMv7Xp7greJ3lnZVBmglSK5bljFRKLVaNfAxvOoMUZnOs3vHCLvq9DI+eJx29X0plkMP/5/a86ny2dPE+ieQS0z9HM31UNinP6x0QUm6WhrQDcWTKDgDgf2GMGZyOIowiJ+wFxtX4WRBTgEOKC0nfg+S5Y1BCs3tm7LNb2w4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1748994365; c=relaxed/simple;
+	bh=hWWpMUvDb6toLCS0hdHRob1Q0A+Js+9lzm2MfMkdnK4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=hdqpk5Vvknxa+pINIfUuaUtRckiGbq84BcsJJXsvEFa0Km5ljC04znq3alRwso09fdbFw5XcqpN3pka0+MFa0yae9ckNiGxGkSoT2LMx54KqOk/XMxyqWNatBVVxjX/dx2WZhoaFS1l+6njr/xSQcc5TLJ3K1mZbe5HeUxAtMoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Jjwb9hcc; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="DcuzcDVf"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=uGyQtz3fQ93gFFw74s6V7UPZF6yFGjecd4euR9aJMbRXPsvdVn94XDbjw0dAaFVE0zDzN4ApRsq5cNAzElsEpttXPCCpxlafg8VIIixZJXQC8NIxyeFGS5BrqkAyJbzhhNqxzjd9atjQCpAL6oa0XmLFnzGEHlpVznWeDC3SeURy9DzLcODpA1nPzsYAP7qWgrxD2OCvG58gwbSHcfSYAmnCc4Gn27aoGw97/DP9zci22YP8fm7/IKmYbeibhsh0wbKbUcnR8pBR6hKfFLQ8nTbwQ1ZmedRToXG6efXoYJRpgXg3NWuVPiqW3gR8/21Lh2noaopMfivOP5E1gTHLWw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=K9fmUy2piLdGGKbNxeBJ3C6cYSaNbZu7eNQuByQYbSo=;
- b=YTBJ3dJu98boKtzuACPy8LjdRijDDCsAzY5kFz2LLFIDy9F9EbHa4CM67EGcSXWeRcV8yxa5tyuU9EI4eVj85uRn9FgyO0wE3xpciRU4GOXJ4GjNjdrPScgFIr281IwQS+jSX4/kymANOH+aVcj6opqja+EUuKaGCJCxjdiVcjPJA+I985HFPy45UGrSDS8CYGJrHTYfTr37ORKtobyDqtOJWA9bpwAlVzHtElo1HosZh5oGm0zE7YvKL0zhtnW3Z8pu1lSMEO7Lxy2QUSvwkA+VVNIKlbGPmxgTt65HVsg75CozMSHOcrsBg0bOeYyUzBdRUcpQRPH/T2T+7SD1/Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=K9fmUy2piLdGGKbNxeBJ3C6cYSaNbZu7eNQuByQYbSo=;
- b=DcuzcDVfwlU0pWUObrdCff0cA4ZZQX+l2cbFaPrwagRXL11d9DXEAu7W4rmLc7AaGoaDX3r+Hv8g+FlwnIHM9Ik3YLDkt85Qfsgq9JMjEMuvs19moc/XSQhYpSxBbHawb9cRZXYHe/KukWO48xcEVvBE9BQ9qHTY+OIiSwYbN1g=
-Received: from SJ0PR13CA0199.namprd13.prod.outlook.com (2603:10b6:a03:2c3::24)
- by DM4PR12MB6039.namprd12.prod.outlook.com (2603:10b6:8:aa::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8792.34; Tue, 3 Jun
- 2025 22:20:09 +0000
-Received: from CY4PEPF0000FCBF.namprd03.prod.outlook.com
- (2603:10b6:a03:2c3:cafe::dd) by SJ0PR13CA0199.outlook.office365.com
- (2603:10b6:a03:2c3::24) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8792.26 via Frontend Transport; Tue,
- 3 Jun 2025 22:20:08 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- CY4PEPF0000FCBF.mail.protection.outlook.com (10.167.242.101) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8792.29 via Frontend Transport; Tue, 3 Jun 2025 22:20:08 +0000
-Received: from ethanolx50f7host.amd.com (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Tue, 3 Jun
- 2025 17:20:06 -0500
-From: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-To: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>
-CC: Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron
-	<jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>, "Alison
- Schofield" <alison.schofield@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara
-	<jack@suse.cz>, "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown
-	<len.brown@intel.com>, Pavel Machek <pavel@kernel.org>, Li Ming
-	<ming.li@zohomail.com>, Jeff Johnson <jeff.johnson@oss.qualcomm.com>, "Ying
- Huang" <huang.ying.caritas@gmail.com>, Yao Xingtao <yaoxt.fnst@fujitsu.com>,
-	Peter Zijlstra <peterz@infradead.org>, Greg KH <gregkh@linuxfoundation.org>,
-	Nathan Fontenot <nathan.fontenot@amd.com>, Smita Koralahalli
-	<Smita.KoralahalliChannabasappa@amd.com>, Terry Bowman
-	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, PradeepVineshReddy Kodamati
-	<PradeepVineshReddy.Kodamati@amd.com>, Zhijian Li <lizhijian@fujitsu.com>
-Subject: [PATCH v4 7/7] cxl/dax: Defer DAX consumption of SOFT RESERVED resources until after CXL region creation
-Date: Tue, 3 Jun 2025 22:19:49 +0000
-Message-ID: <20250603221949.53272-8-Smita.KoralahalliChannabasappa@amd.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20250603221949.53272-1-Smita.KoralahalliChannabasappa@amd.com>
-References: <20250603221949.53272-1-Smita.KoralahalliChannabasappa@amd.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Jjwb9hcc"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1748994364; x=1780530364;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=hWWpMUvDb6toLCS0hdHRob1Q0A+Js+9lzm2MfMkdnK4=;
+  b=Jjwb9hccybRjJR2Alawxj0QMKeVFgKRuWjYZQ1w48XqNKLDJqKcGWT1f
+   9nEzQ4ZzeLMuwFtTgkshdVY5IM7jgVvGN/V6HUyF886ujsZz63w+D+vCj
+   fs9mbkVwRvC/pEP5iG74tu3v0vI1aLYmqMYTq878/aYLq1Blp3spCs6kA
+   /KZ4TfirpT/71TTQ19J65+aPNxLf1yoX0AmKNORQKXRWhOYyhNTqsXdFk
+   HU9sqdieb67m3jWkbSgNjwSZURcZM6OSKHK8MYti6zvJzHweUwM6CHTFU
+   9ku8dqXQNo4LIq2sdb8Xlc29jUaB/pkKPyoFwy0FLbt5kRPFWuHW+sclg
+   g==;
+X-CSE-ConnectionGUID: KseHzJUGRBadPZh6mQHPhQ==
+X-CSE-MsgGUID: QTOx5AeVQVSnk6F48+QPAw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11453"; a="54846572"
+X-IronPort-AV: E=Sophos;i="6.16,207,1744095600"; 
+   d="scan'208";a="54846572"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jun 2025 16:46:03 -0700
+X-CSE-ConnectionGUID: MLAtfLerR4SDyGyLL661vw==
+X-CSE-MsgGUID: gaYgkeulTGSxHFyWpRQaMA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,207,1744095600"; 
+   d="scan'208";a="144894636"
+Received: from iherna2-mobl4.amr.corp.intel.com (HELO [10.125.110.198]) ([10.125.110.198])
+  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jun 2025 16:46:01 -0700
+Message-ID: <d9435456-9ae8-4fbe-a67b-e557e2787b0c@intel.com>
+Date: Tue, 3 Jun 2025 16:45:58 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000FCBF:EE_|DM4PR12MB6039:EE_
-X-MS-Office365-Filtering-Correlation-Id: cac8e9a6-6d1b-427c-a759-08dda2eccca4
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|82310400026|36860700013;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?Z3hIbkdtd241RzdIaENNTUJBeDdYbTdKbTdSOW9vSkdmYVRIeTVZN0loUGd5?=
- =?utf-8?B?YUZFd1RFQnBTbDZLT0draEVIdllhV0VyN0NweTg0a2Ewc2N1amQ5b1pTYWwz?=
- =?utf-8?B?YXVTTjFYeDJpendJYzhyUkhGMGJPaXlqRFU5bDRicVcwZjBWYTdsWFVQMlF5?=
- =?utf-8?B?STYyZmlLNFYrQ2ZtWkRidHBMdWNnUnVFQThudlZUbEN2RGZibmtOZVBzTjhy?=
- =?utf-8?B?R0J6VTNuVEJqTFBPZmZuQVRkWTNWWFlvcmJzVDdEOXg5TlZpSm1VR00xUnJE?=
- =?utf-8?B?Vlc3bFlQbEczckc0L2RPUXhCNVYxNkZyUzR6S3VCZG1mTWFDYWl6VzhXUmFw?=
- =?utf-8?B?ZzVoY2VpellKcjJWWG5qaVh1aDh4RU0xcngzaEI5TTlMWXJHTUR3V2tHdFdk?=
- =?utf-8?B?ZGVnTnZyRFIwSGdBTVRDRWdXZWxzTlRmQ0VzMVhWQzluQy9sRWFCSnZHNlFK?=
- =?utf-8?B?UHZOeTduZUU3SWpFU04wbUtsVEtUdTJDRXhnUkViQm5GbUdKSVFtN1J2QXM1?=
- =?utf-8?B?OEJyOTAyelJGRWlnRmdJSC9udW1TTUp6bzBEWkhpejU4TDZQQnhLR29WQkRS?=
- =?utf-8?B?Ym9PMTJ3MXBPWlIwRkNOdS9FcXV1SFFSb0c3T1N0Q0ZqM0h0NFBlRVhIbWpO?=
- =?utf-8?B?YUpxa3JVd0ZGSldNMUFIQTdhTERmd2xMZjhaVy9COE1OenZ5REVnM24rMHBx?=
- =?utf-8?B?eldvZzJrb0RrQ0pBSTRwZFJYRFE0S0pEMnZ4SWhiTG1PaC9WazJROU5hSmoz?=
- =?utf-8?B?YllVdEcyT2M2cC9QWXlzK2J3NGk4bXJRZE02UXpPdjAvcmZUdVdGYlcvUHA5?=
- =?utf-8?B?RVRSc0dGbjNVOTFrRE5QZzVtTWZFbUlZbm5aQmJqbHJaT1BLdG1NMHByMEk2?=
- =?utf-8?B?U01PV21RbkhRWElqWnVNZzM0czhFTzFNR1pJbzQwaitxb0ZUc2MwSjZScnl0?=
- =?utf-8?B?TS8yS05jdDh3SEFJWDJGNkRZNHNXWnFXWml1QjAvS0RxUEZTSTJ5TWlVeHY5?=
- =?utf-8?B?eWN2WDc5MTdkZG9rYUpYWis0QmRpdU93c0U4SXIrcWR3RmZuOTF0VklDZDVj?=
- =?utf-8?B?c2oxUDVMMHUwVDdRU1ZFcE5vbHVXZzQ0UVhML1YzRUhjK1Qvb2VnQmplZmth?=
- =?utf-8?B?bnRyZnRjSDNJdWV6M3ZjakVPOEJrU2RXY0t2U3hSaDVRZ3h5RVR1VjZTdDdV?=
- =?utf-8?B?ZVI1K2tUcFdXeHd0SmZzSnY1aVB4QXFMR01GUVN3UXlpZmltQktrQjBSd204?=
- =?utf-8?B?NmJ2SWtqUXR2YzVlNDJSeEpxV3JLTkZoc1NRZzIwMktXclJDdUxQWWtCYzc1?=
- =?utf-8?B?dzFNSGdwUlRpQktYd1VMOUNOempDYXNqRlBjeFFmLzQ3cHRuN0ZGdkhwNGNL?=
- =?utf-8?B?L1NEWXRXbmJ0WElubnBPczFZVnd5MzlNMnR5WEdXSk9qSDVMUm9hWHZGakhY?=
- =?utf-8?B?UnVTdUJkejhwbVgyb1hIcEJYTzhkV2RhT05JUDBkbTNBdjRtU1kzdXQ4MEFQ?=
- =?utf-8?B?NEpiTFJKQVhMTStHK1pzakhMNStVdU5zeGN0RDVrbnhHN0Q4Z2IwWlZtWlBN?=
- =?utf-8?B?YkhBZVBKY2lveFNBd084QlprWnZzTm1yaXVnQ3BWdUFlQXcvWWhKOEhZTGg1?=
- =?utf-8?B?YSt6a3lZalhPRVZ1MW9hTVc2ZjVPcnFFNzR5dlRJRDhMSFJBdkVka0NlU29p?=
- =?utf-8?B?aThsZ3EzeFVZc2VGQ3BNL0dBby84TjVvU0R6bXV4R0prbHJwQlpmNVVDaTFM?=
- =?utf-8?B?R2JlSkxvSksydlFiRmJuaW5LTmN5THRaYjI1eWFna1cxVWNXTGtaNWNjODRh?=
- =?utf-8?B?MU82R0lMMzZUTXE3UkFaZ0JYRVlDSC8ycktRSERTZFRIclFEK2xUdFdSYjZO?=
- =?utf-8?B?STNnZ2ZSTytEbjNiVHk3QnhYVDBSeHBkL1R1aU9UOERNYkovc2RaSXV4Skcx?=
- =?utf-8?B?MEUvOFJtN1cvUTZzUk5sL0J1RHpEVFBzNnNiTUh4YXlRMngrRUwzQzlsTTJX?=
- =?utf-8?B?UHRFbzIzZkp0MitnRmVvSmFreUlBL1dGRnFqRjVEQVdlMGRNaGsyR3JSRHNj?=
- =?utf-8?Q?yv9g+y?=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(82310400026)(36860700013);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Jun 2025 22:20:08.5214
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: cac8e9a6-6d1b-427c-a759-08dda2eccca4
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000FCBF.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6039
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 4/7] cxl/acpi: Add background worker to wait for
+ cxl_pci and cxl_mem probe
+To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+ linux-pm@vger.kernel.org
+Cc: Davidlohr Bueso <dave@stgolabs.net>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
+ Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
+ Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
+ Ying Huang <huang.ying.caritas@gmail.com>,
+ Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
+ Greg KH <gregkh@linuxfoundation.org>,
+ Nathan Fontenot <nathan.fontenot@amd.com>,
+ Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>,
+ PradeepVineshReddy Kodamati <PradeepVineshReddy.Kodamati@amd.com>,
+ Zhijian Li <lizhijian@fujitsu.com>
+References: <20250603221949.53272-1-Smita.KoralahalliChannabasappa@amd.com>
+ <20250603221949.53272-5-Smita.KoralahalliChannabasappa@amd.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20250603221949.53272-5-Smita.KoralahalliChannabasappa@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-From: Nathan Fontenot <nathan.fontenot@amd.com>
 
-The DAX HMEM driver currently consumes all SOFT RESERVED iomem resources
-during initialization. This interferes with the CXL driver’s ability to
-create regions and trim overlapping SOFT RESERVED ranges before DAX uses
-them.
 
-To resolve this, defer the DAX driver's resource consumption if the
-cxl_acpi driver is enabled. The DAX HMEM initialization skips walking the
-iomem resource tree in this case. After CXL region creation completes,
-any remaining SOFT RESERVED resources are explicitly registered with the
-DAX driver by the CXL driver.
+On 6/3/25 3:19 PM, Smita Koralahalli wrote:
+> Introduce a waitqueue mechanism to coordinate initialization between the
+> cxl_pci and cxl_mem drivers.
+> 
+> Launch a background worker from cxl_acpi_probe() that waits for both
+> drivers to complete initialization before invoking wait_for_device_probe().
+> Without this, the probe completion wait could begin prematurely, before
+> the drivers are present, leading to missed updates.
+> 
+> Co-developed-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
+> Signed-off-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
+> Co-developed-by: Terry Bowman <terry.bowman@amd.com>
+> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
+> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+> ---
+>  drivers/cxl/acpi.c         | 23 +++++++++++++++++++++++
+>  drivers/cxl/core/suspend.c | 21 +++++++++++++++++++++
+>  drivers/cxl/cxl.h          |  2 ++
+>  3 files changed, 46 insertions(+)
+> 
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> index cb14829bb9be..978f63b32b41 100644
+> --- a/drivers/cxl/acpi.c
+> +++ b/drivers/cxl/acpi.c
+> @@ -813,6 +813,24 @@ static int pair_cxl_resource(struct device *dev, void *data)
+>  	return 0;
+>  }
+>  
+> +static void cxl_softreserv_mem_work_fn(struct work_struct *work)
+> +{
+> +	/* Wait for cxl_pci and cxl_mem drivers to load */
+> +	cxl_wait_for_pci_mem();
+> +
+> +	/*
+> +	 * Wait for the driver probe routines to complete after cxl_pci
+> +	 * and cxl_mem drivers are loaded.
+> +	 */
+> +	wait_for_device_probe();
+> +}
+> +static DECLARE_WORK(cxl_sr_work, cxl_softreserv_mem_work_fn);
+> +
+> +static void cxl_softreserv_mem_update(void)
+> +{
+> +	schedule_work(&cxl_sr_work);
+> +}
+> +
+>  static int cxl_acpi_probe(struct platform_device *pdev)
+>  {
+>  	int rc;
+> @@ -887,6 +905,10 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+>  
+>  	/* In case PCI is scanned before ACPI re-trigger memdev attach */
+>  	cxl_bus_rescan();
+> +
+> +	/* Update SOFT RESERVE resources that intersect with CXL regions */
+> +	cxl_softreserv_mem_update();
+> +
+>  	return 0;
+>  }
+>  
+> @@ -918,6 +940,7 @@ static int __init cxl_acpi_init(void)
+>  
+>  static void __exit cxl_acpi_exit(void)
+>  {
+> +	cancel_work_sync(&cxl_sr_work);
+>  	platform_driver_unregister(&cxl_acpi_driver);
+>  	cxl_bus_drain();
+>  }
+> diff --git a/drivers/cxl/core/suspend.c b/drivers/cxl/core/suspend.c
+> index 72818a2c8ec8..c0d8f70aed56 100644
+> --- a/drivers/cxl/core/suspend.c
+> +++ b/drivers/cxl/core/suspend.c
+> @@ -2,12 +2,15 @@
+>  /* Copyright(c) 2022 Intel Corporation. All rights reserved. */
+>  #include <linux/atomic.h>
+>  #include <linux/export.h>
+> +#include <linux/wait.h>
+>  #include "cxlmem.h"
+>  #include "cxlpci.h"
+>  
+>  static atomic_t mem_active;
+>  static atomic_t pci_loaded;
+>  
+> +static DECLARE_WAIT_QUEUE_HEAD(cxl_wait_queue);
+> +
+>  bool cxl_mem_active(void)
+>  {
+>  	if (IS_ENABLED(CONFIG_CXL_MEM))
+> @@ -19,6 +22,7 @@ bool cxl_mem_active(void)
+>  void cxl_mem_active_inc(void)
+>  {
+>  	atomic_inc(&mem_active);
+> +	wake_up(&cxl_wait_queue);
+>  }
+>  EXPORT_SYMBOL_NS_GPL(cxl_mem_active_inc, "CXL");
+>  
+> @@ -28,8 +32,25 @@ void cxl_mem_active_dec(void)
+>  }
+>  EXPORT_SYMBOL_NS_GPL(cxl_mem_active_dec, "CXL");
+>  
+> +static bool cxl_pci_loaded(void)
+> +{
+> +	if (IS_ENABLED(CONFIG_CXL_PCI))
+> +		return atomic_read(&pci_loaded) != 0;
+> +
+> +	return false;
+> +}
+> +
+>  void mark_cxl_pci_loaded(void)
+>  {
+>  	atomic_inc(&pci_loaded);
+> +	wake_up(&cxl_wait_queue);
+>  }
+>  EXPORT_SYMBOL_NS_GPL(mark_cxl_pci_loaded, "CXL");
+> +
+> +void cxl_wait_for_pci_mem(void)
+> +{
+> +	if (!wait_event_timeout(cxl_wait_queue, cxl_pci_loaded() &&
+> +				cxl_mem_active(), 30 * HZ))
 
-This sequencing ensures proper handling of overlaps and fixes hotplug
-failures.
+I'm trying to understand why cxl_pci_loaded() is needed. cxl_mem_active() goes above 0 when a cxl_mem_probe() instance succeeds. cxl_mem_probe() being triggered implies that an instance of cxl_pci_probe() has been called since cxl_mem_probe() is triggered from devm_cxl_add_memdev() with memdev being added and cxl_mem driver also have been loaded. So does cxl_mem_active() not imply cxl_pci_loaded() and makes it unnecessary?
 
-Co-developed-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
-Signed-off-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
-Co-developed-by: Terry Bowman <terry.bowman@amd.com>
-Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
----
- drivers/cxl/core/region.c | 10 +++++++++
- drivers/dax/hmem/device.c | 43 ++++++++++++++++++++-------------------
- drivers/dax/hmem/hmem.c   |  3 ++-
- include/linux/dax.h       |  6 ++++++
- 4 files changed, 40 insertions(+), 22 deletions(-)
+DJ
 
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index 3a5ca44d65f3..c6c0c7ba3b20 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -10,6 +10,7 @@
- #include <linux/sort.h>
- #include <linux/idr.h>
- #include <linux/memory-tiers.h>
-+#include <linux/dax.h>
- #include <cxlmem.h>
- #include <cxl.h>
- #include "core.h"
-@@ -3553,6 +3554,11 @@ static struct resource *normalize_resource(struct resource *res)
- 	return NULL;
- }
- 
-+static int cxl_softreserv_mem_register(struct resource *res, void *unused)
-+{
-+	return hmem_register_device(phys_to_target_node(res->start), res);
-+}
-+
- static int __cxl_region_softreserv_update(struct resource *soft,
- 					  void *_cxlr)
- {
-@@ -3590,6 +3596,10 @@ int cxl_region_softreserv_update(void)
- 				    __cxl_region_softreserv_update);
- 	}
- 
-+	/* Now register any remaining SOFT RESERVES with DAX */
-+	walk_iomem_res_desc(IORES_DESC_SOFT_RESERVED, IORESOURCE_MEM,
-+			    0, -1, NULL, cxl_softreserv_mem_register);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_NS_GPL(cxl_region_softreserv_update, "CXL");
-diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
-index 59ad44761191..cc1ed7bbdb1a 100644
---- a/drivers/dax/hmem/device.c
-+++ b/drivers/dax/hmem/device.c
-@@ -8,7 +8,6 @@
- static bool nohmem;
- module_param_named(disable, nohmem, bool, 0444);
- 
--static bool platform_initialized;
- static DEFINE_MUTEX(hmem_resource_lock);
- static struct resource hmem_active = {
- 	.name = "HMEM devices",
-@@ -35,9 +34,7 @@ EXPORT_SYMBOL_GPL(walk_hmem_resources);
- 
- static void __hmem_register_resource(int target_nid, struct resource *res)
- {
--	struct platform_device *pdev;
- 	struct resource *new;
--	int rc;
- 
- 	new = __request_region(&hmem_active, res->start, resource_size(res), "",
- 			       0);
-@@ -47,21 +44,6 @@ static void __hmem_register_resource(int target_nid, struct resource *res)
- 	}
- 
- 	new->desc = target_nid;
--
--	if (platform_initialized)
--		return;
--
--	pdev = platform_device_alloc("hmem_platform", 0);
--	if (!pdev) {
--		pr_err_once("failed to register device-dax hmem_platform device\n");
--		return;
--	}
--
--	rc = platform_device_add(pdev);
--	if (rc)
--		platform_device_put(pdev);
--	else
--		platform_initialized = true;
- }
- 
- void hmem_register_resource(int target_nid, struct resource *res)
-@@ -83,9 +65,28 @@ static __init int hmem_register_one(struct resource *res, void *data)
- 
- static __init int hmem_init(void)
- {
--	walk_iomem_res_desc(IORES_DESC_SOFT_RESERVED,
--			IORESOURCE_MEM, 0, -1, NULL, hmem_register_one);
--	return 0;
-+	struct platform_device *pdev;
-+	int rc;
-+
-+	if (!IS_ENABLED(CONFIG_CXL_ACPI)) {
-+		walk_iomem_res_desc(IORES_DESC_SOFT_RESERVED,
-+				    IORESOURCE_MEM, 0, -1, NULL,
-+				    hmem_register_one);
-+	}
-+
-+	pdev = platform_device_alloc("hmem_platform", 0);
-+	if (!pdev) {
-+		pr_err("failed to register device-dax hmem_platform device\n");
-+		return -1;
-+	}
-+
-+	rc = platform_device_add(pdev);
-+	if (rc) {
-+		pr_err("failed to add device-dax hmem_platform device\n");
-+		platform_device_put(pdev);
-+	}
-+
-+	return rc;
- }
- 
- /*
-diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-index 3aedef5f1be1..a206b9b383e4 100644
---- a/drivers/dax/hmem/hmem.c
-+++ b/drivers/dax/hmem/hmem.c
-@@ -61,7 +61,7 @@ static void release_hmem(void *pdev)
- 	platform_device_unregister(pdev);
- }
- 
--static int hmem_register_device(int target_nid, const struct resource *res)
-+int hmem_register_device(int target_nid, const struct resource *res)
- {
- 	struct device *host = &dax_hmem_pdev->dev;
- 	struct platform_device *pdev;
-@@ -124,6 +124,7 @@ static int hmem_register_device(int target_nid, const struct resource *res)
- 	platform_device_put(pdev);
- 	return rc;
- }
-+EXPORT_SYMBOL_GPL(hmem_register_device);
- 
- static int dax_hmem_platform_probe(struct platform_device *pdev)
- {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index a4ad3708ea35..5052dca8b3bc 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -299,10 +299,16 @@ static inline int dax_mem2blk_err(int err)
- 
- #ifdef CONFIG_DEV_DAX_HMEM_DEVICES
- void hmem_register_resource(int target_nid, struct resource *r);
-+int hmem_register_device(int target_nid, const struct resource *res);
- #else
- static inline void hmem_register_resource(int target_nid, struct resource *r)
- {
- }
-+
-+static inline int hmem_register_device(int target_nid, const struct resource *res)
-+{
-+	return 0;
-+}
- #endif
- 
- typedef int (*walk_hmem_fn)(int target_nid, const struct resource *res);
--- 
-2.17.1
+
+> +		pr_debug("Timeout waiting for cxl_pci or cxl_mem probing\n");
+> +}
+> +EXPORT_SYMBOL_NS_GPL(cxl_wait_for_pci_mem, "CXL");
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index a9ab46eb0610..1ba7d39c2991 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -902,6 +902,8 @@ void cxl_coordinates_combine(struct access_coordinate *out,
+>  
+>  bool cxl_endpoint_decoder_reset_detected(struct cxl_port *port);
+>  
+> +void cxl_wait_for_pci_mem(void);
+> +
+>  /*
+>   * Unit test builds overrides this to __weak, find the 'strong' version
+>   * of these symbols in tools/testing/cxl/.
 
