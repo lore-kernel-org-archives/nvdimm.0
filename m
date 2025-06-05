@@ -1,838 +1,211 @@
-Received: from out-171.mta0.migadu.com (out-171.mta0.migadu.com [91.218.175.171])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E8227A101
-	for <nvdimm@lists.linux.dev>; Thu,  5 Jun 2025 14:24:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.171
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749133480; cv=none; b=FuC/wuZ/nJ/RjYonzVvjuxX3CUZKcX0Ab6dMbSyzDk506ISEsAvBXvTigj+wPJNOmD43vp+RGvHF4ifUjaVnsTCqkWlpV+h03E8APldrl0hsO0TViNgkKMKkfRB4BpJz0j80QV1JubXn9Fn/ExRl8EqQncXraixQejOKlztX84c=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749133480; c=relaxed/simple;
-	bh=/A3iadZ823T4jWXU0KsYiesROXyMrv+K39jL7V+AGdo=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lwCb7AFb0Hrmbi/pNL/i3NhmOFweqILy6YsGjUeSfgoFfxcfjtf+IImI2ACGj/WK8Fqh1oQvamE85OeYbgbyt1WbHF5ssj1O6/AM8AGgrgqVUtgd6p56I/Zeqmkzo5mUAbOffclIE//PwVbNjo8KHQdY374jk+72cVNep16isfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=UgU8UEdT; arc=none smtp.client-ip=91.218.175.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED83D2E659;
+	Thu,  5 Jun 2025 16:21:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.14
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1749140512; cv=fail; b=LKxQpwAmhzQExhCot/YyeTZ4w2zoL5CyLG7uH811fzIJkFx3jujjXoJJq+KQI+JyCXZiY97Eg5Z656lVi5RRXumR7jufXok2VGRtNY5Q/KDElfRzskdyD97PbMCKHbtQmWIE4V3o+yy1pc1hLfxMfiv2tESS3/sljjKMDKpxCbw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1749140512; c=relaxed/simple;
+	bh=Mo6gYCsg6PbFbaJzqsp02+Il/XmKTHyHLfWMKyussZI=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=O5GfWGfuzYIK0sbgV2Lhj7QJfWU089nHv+mrfR7+GdASn1563J0+WNwmb2ShOSuL9ObBBjBJMUP9kBbr9Ckq0/FKqxL7FpwXhrGkcCpgWRB/pZAx1+h2aNjOAhzbY2awa1RgjRJuDcA0IxvBeMX4qYo7CJzr2aCXeneG/7Uatjo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XN7f+NeX; arc=fail smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="UgU8UEdT"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1749133475;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3f8qrz9MiqdNop3Ktk1Se0PIKM7od+vDdt0z5iHfeiE=;
-	b=UgU8UEdTC1goPHBH6vp/odumcQ5N3iwa6JqNc8efUaQkxjN3+jQVUb5jCtc+8H43qe7/CJ
-	QeKpcPKHHRgYZ4WkyxndpZZkd92B99YzaRt/4LKhJq9W0NAz6urq35IPQoOHckx6l8A990
-	bWnXrkIqv9AMJCOpgihMSgrjY5aYJ9M=
-From: Dongsheng Yang <dongsheng.yang@linux.dev>
-To: mpatocka@redhat.com,
-	agk@redhat.com,
-	snitzer@kernel.org,
-	axboe@kernel.dk,
-	hch@lst.de,
-	dan.j.williams@intel.com,
-	Jonathan.Cameron@Huawei.com
-Cc: linux-block@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	dm-devel@lists.linux.dev,
-	Dongsheng Yang <dongsheng.yang@linux.dev>
-Subject: [RFC PATCH 11/11] dm-pcache: initial dm-pcache target
-Date: Thu,  5 Jun 2025 14:23:06 +0000
-Message-Id: <20250605142306.1930831-12-dongsheng.yang@linux.dev>
-In-Reply-To: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
-References: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XN7f+NeX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1749140511; x=1780676511;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=Mo6gYCsg6PbFbaJzqsp02+Il/XmKTHyHLfWMKyussZI=;
+  b=XN7f+NeXG1NTdIH0sQ43oJ6a2lC0ilepO8h/wkJ+5p3EHt38L/BEeE8d
+   LRX3I8X07xehBFSy6KPcADh3Ktzii+mwhe3OVcjCtTbEp2eFVrREMFNpM
+   SjSZQDbuiQzgcrJKBUAFtWTbY3io90JK2WM5zmJ5o9adsl+wS7vL82btp
+   hP0YNshO99IjpDrokTECZkcM/1iKZinGvuS7HYc5u96/3MrqmkXlPUM05
+   p6uHpmgZk/iUWMlSjn6Jq1wZXgNjAt8NWMZ4duFCyHddvswyQ9MbrgoWB
+   NLt8/kcuWDLbqtWc5kpMSnv1GBhPVhuTmZf46MR/QXXc3AmHbg2brxb4m
+   Q==;
+X-CSE-ConnectionGUID: POQePOpLQqGqy+DhJ03hoA==
+X-CSE-MsgGUID: tZWZ+rxvReWSnGGejj5T1g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11455"; a="51365484"
+X-IronPort-AV: E=Sophos;i="6.16,212,1744095600"; 
+   d="scan'208";a="51365484"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jun 2025 09:21:50 -0700
+X-CSE-ConnectionGUID: w7MUDIoNS7+m7TGMIP45yA==
+X-CSE-MsgGUID: EGehxEZ5TXCtMScxR8cC0Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,212,1744095600"; 
+   d="scan'208";a="146054511"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by fmviesa010.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jun 2025 09:21:50 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Thu, 5 Jun 2025 09:21:49 -0700
+Received: from ORSEDG902.ED.cps.intel.com (10.7.248.12) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25 via Frontend Transport; Thu, 5 Jun 2025 09:21:49 -0700
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (40.107.94.87) by
+ edgegateway.intel.com (134.134.137.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Thu, 5 Jun 2025 09:21:48 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=BkI130YhGFsN8OXCfFSKQ79+t5EfcWWgUs4MzL+SGIvqkLxsn8grW//o4CpnCyiNcTfe1Tn372ULMQ5x8XvPse15ogZG1z3cRLWhyyVsByrV5Bz4Shs39HbdLrjYWu0THZQZh6hkeQAxndcC0+QZfB0mJ4nbZPZovmBCcKaHoGNzJgqVvSi/zKQdogLPFXewSBfNsoCB9gkGhUA53zbvANZ5oSjFd92OPhU4oP+ZP9/Z1v+luEd6fXA1dNCZzZeGC3P95GLBZrN46oXE8Kv2EIp5dJdnTqR2na0hnP3yKSubVSbgnznYFudOflhwA9IQ9fpMaDQ0xkTle3BzQNN+SQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=GoRz3nK3OOG9aBH5vRi8TVAoZbM9WvCRmedPJp4ROxA=;
+ b=ddE+yxBqBvyKQK1GTXb0JAROgKfwSwne9RsOADswPqC0FYfk9K/lrri2uvMDAPFyKI5kXz/KVZMpowOwkb3undWX+1SPLO3nVJ5EJh2vZNAIeY+3MS1LeljQpCyu3LzT76G3u7pRjzm9ARjiv6rwu4/Cbz1afmTBt/CvwcyuddpkVHCGVxW4te4WemuizZVdCx/wfgOw2JrZX+RNFFZ6+d88t5lfkPSairXG1NvP+/rrQu8JxYEVwKXbtD54sy3T5/3yUA6TwoX3huDYtpuFvVL3d3W2lQRDFsNQlaUuI1aqU1jnP1rPQG2B56pOXaBCdPDuT07VJE6F3+jOT5VeXw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by SJ1PR11MB6130.namprd11.prod.outlook.com (2603:10b6:a03:45f::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8813.20; Thu, 5 Jun
+ 2025 16:21:33 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::6b05:74cf:a304:ecd8%6]) with mapi id 15.20.8813.021; Thu, 5 Jun 2025
+ 16:21:33 +0000
+Date: Thu, 5 Jun 2025 09:21:28 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: David Hildenbrand <david@redhat.com>, Christoph Hellwig <hch@lst.de>, "Dan
+ Williams" <dan.j.williams@intel.com>
+CC: Alistair Popple <apopple@nvidia.com>, <linux-mm@kvack.org>,
+	<gerald.schaefer@linux.ibm.com>, <jgg@ziepe.ca>, <willy@infradead.org>,
+	<linux-kernel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-fsdevel@vger.kernel.org>, <linux-ext4@vger.kernel.org>,
+	<linux-xfs@vger.kernel.org>, <jhubbard@nvidia.com>, <zhang.lyra@gmail.com>,
+	<debug@rivosinc.com>, <bjorn@kernel.org>, <balbirs@nvidia.com>,
+	<lorenzo.stoakes@oracle.com>, <linux-arm-kernel@lists.infradead.org>,
+	<loongarch@lists.linux.dev>, <linuxppc-dev@lists.ozlabs.org>,
+	<linux-riscv@lists.infradead.org>, <linux-cxl@vger.kernel.org>,
+	<dri-devel@lists.freedesktop.org>, <John@groves.net>
+Subject: Re: [PATCH 03/12] mm/pagewalk: Skip dax pages in pagewalk
+Message-ID: <6841c408e85d3_249110075@dwillia2-xfh.jf.intel.com.notmuch>
+References: <cover.541c2702181b7461b84f1a6967a3f0e823023fcc.1748500293.git-series.apopple@nvidia.com>
+ <1799c6772825e1401e7ccad81a10646118201953.1748500293.git-series.apopple@nvidia.com>
+ <6840f9ed3785a_249110084@dwillia2-xfh.jf.intel.com.notmuch>
+ <20250605074637.GA7727@lst.de>
+ <b064c820-1735-47db-96e3-6f2b00300c67@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <b064c820-1735-47db-96e3-6f2b00300c67@redhat.com>
+X-ClientProxiedBy: BY3PR05CA0016.namprd05.prod.outlook.com
+ (2603:10b6:a03:254::21) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SJ1PR11MB6130:EE_
+X-MS-Office365-Filtering-Correlation-Id: baf00b6c-75e6-4203-3a06-08dda44d0913
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|7416014|376014;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?krIsw8gi15b9919h06oFrgf/3R24lRZejDwlFZNnuyFrg3hznVVlhR/yp3+b?=
+ =?us-ascii?Q?ktTRV1pveONrzAea/6Gvz4FFkQnbuLJLE/Q/gtw4f8/TUPA/jpKusmMwIdf9?=
+ =?us-ascii?Q?CMpWq7EUJ7aD5ZVCr6v0Y1h8sRMzoS5KUn1jcLjR5ipkqD5yk1amWiCxdk4t?=
+ =?us-ascii?Q?mU1H4Bo/PJCrepCePi1Mj71vje3kYzW4oTtvn4Nwrf3O72l7nsK+zkUKTGly?=
+ =?us-ascii?Q?RutkAiron6GIbKyj4lCemHttMRsy9Xo9yg1AuibOsXY9dOPl/SnEI7OlwIBu?=
+ =?us-ascii?Q?DiWVtUO92yNAopg8oLFn7qlYOJ0wA+YMv5Oy4lyvPzIoaODnHZ0yEKx0KPxG?=
+ =?us-ascii?Q?Z0wlP+9XqO8lyZkJ58SdzMCCT0hd+mK5Tj/leNdFK51PL0qzHoNAomDVs20v?=
+ =?us-ascii?Q?eHUq3Ucg1vsbjDW3WHN21pBXdlW32P52KnO0EhfXDaCrx6CfuM7rhCs+g8jq?=
+ =?us-ascii?Q?6gbyTHk7BXoEpUqZ+GoIS+89vcJuUdecm5la8QENE7JIRPkMDIp/OLQ9/0so?=
+ =?us-ascii?Q?MEkhsr/nMYgju07lWTFmNWKFARPOvOkYCDAwg1+EHtCyR6gZ5WhtIR2h0pQ8?=
+ =?us-ascii?Q?21UddYE/7JWyqQV3QptUSBS7jrheNPUPYGp6phSMhP995ussQslc+/tOYyrB?=
+ =?us-ascii?Q?6e3MrjOF3X9OchBz0SKuJ7whxy/5eMvVd3hQQ3PI3yqWRdCUtGXUIkGUpcT8?=
+ =?us-ascii?Q?EmV1w1OsYyZ0fxM7c76MIOzoXKiahAuOmFmL6viaVz0eVypCtXJGObVFjfx5?=
+ =?us-ascii?Q?gHDedPvZCG1W8jWB+vec+++G3It2Gy1UhlLd0jx9AK8qAJ7wFA1HscFAVgqW?=
+ =?us-ascii?Q?Xlp8CdSEswY9guSpYiv/F1WSrzLbdFNdaXlO7TTp34EWURyRE8VLlz+DfnUa?=
+ =?us-ascii?Q?ogN9allB3FWPGk7OULPPctBBRKjBjjoDSxByAxi3ilg0Z2dJk/Rbyl1heRQ0?=
+ =?us-ascii?Q?nsU7VhY6/RPgC/st5e5S0GlefnXKTJxXdH+p2y/mxlsjUY2gcQQbgUBlyX/Y?=
+ =?us-ascii?Q?yqBidCeTT+IYPd6vbyD70B6ZdUJuq354AEnIXMdxVh4xFItMfWnNGOr6y3s0?=
+ =?us-ascii?Q?AARGETKUovchGG7BCXLIHK91Uefkzr8YsAsuisT7jhEFXU0jHmZxKTIDmXKB?=
+ =?us-ascii?Q?3L376jtSbAibLo8YcXQ4SlSV7BBj7Up+tbJBPEHc8B8ksZ1OayuvwzLPqfwF?=
+ =?us-ascii?Q?98taxmDv4uoq9BY2QQmvLfGC5bnku73RhYYWb5i6R4R+vDS8wewB8pOZ4chT?=
+ =?us-ascii?Q?4Lsb8GtfMDqMLfalfiaQve2MruEHMlTq7hBhFwz18HrWkSP3HIKhn753MU6R?=
+ =?us-ascii?Q?8BkCqVWmPAwsE0Upmn92qLI3qXEXyUJ5yRxg5Cxy8yRKLpr6ksSD/edcfUKm?=
+ =?us-ascii?Q?PbTNJqrzxepzb7HyBSeMFynX84XVq0OgriIDGVPqjz15hn89PEitGue8+vg5?=
+ =?us-ascii?Q?Pn29BcEECrg=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?T4RThw2fA4HYus9JfB7RA7aJcQ7qJaiWByOycySuFptsoqhkFAWx5jyYVAhh?=
+ =?us-ascii?Q?29pBOiio+gzcTOB+PfphbgzFvTZoYVwxUK6IStSWfDcWUEbpdjsSCgvInKp+?=
+ =?us-ascii?Q?gNiW7eWfEAEH0ZHpBTa52RPkQGWJqiZkTjok8I4Cy6RTk5+jozwuvj/AmTjb?=
+ =?us-ascii?Q?OuTneKS0gsaboYf0DB4m0LbLUiC2EYE+XZe3jjBvQt7yZ5G/gFPuEEfYrDaa?=
+ =?us-ascii?Q?6UNJzWnghZg+1+d2qXoJEKX3i93EkKf5CCUnGwbfyC0LCzvatSRL5loHHT3n?=
+ =?us-ascii?Q?EoVFYUudsDdE3l8eNg8s9I30jTXe5DUXIgQr5kpuSUOYy1jCSwf/F6BwlI+A?=
+ =?us-ascii?Q?UBwIhu6Zao/7OVPXS9/1RQl8MqVhclOpbEKH6jST86sdGMypJLtav/7yj/7p?=
+ =?us-ascii?Q?g07fbdNhiKLP3cXJ0V1JI0K7S7f+F10KzOBgNa6Mno3N3LsjO5kmNN15HokD?=
+ =?us-ascii?Q?UPVXd8gTemJTLiGXZUjLQFoIY6fQKTMma4P9haSJF3AeAeHaHscJ9TH0dx6A?=
+ =?us-ascii?Q?FVQvmP9YxA/LDhuZSWNHhRcafJb2POEuVnl7/i6ptbT4lKDgu5H9M7Pvgml5?=
+ =?us-ascii?Q?1q0AOAXu9aUtrh9/vfsCf6uyIhFH7dzDlGu7ISs9+4HUu2v8aftRpmT+jMR+?=
+ =?us-ascii?Q?6UEu4ZDYDFlSOE82ra2s4zq1E6yV8eYi5B28z1kxgSzyVK6gPUpYnYfpT71d?=
+ =?us-ascii?Q?kMNlu4l7a6PPbw2FAeHSTKVo1mD64nmZPPs4nWLYqj7YdtjoASid4F6L5eNs?=
+ =?us-ascii?Q?EjeihHmfVKBp4FqZRVRNh2eGMCkz+1d5tRhMmCxBicc3gIImugbLM5vApT6w?=
+ =?us-ascii?Q?SPkwBdxcUL59ofafO555x/CQkqpunwmVHRbgucPeMuF7t//tQh7gWrIA9xCe?=
+ =?us-ascii?Q?k/IhzPcSR74Ug4QHhOOD8Q2DhvkFGCWxI9cco0u5xmlMbqGanPU8NOpMVTvn?=
+ =?us-ascii?Q?6rpm3Ca5g55eYUOvtXw8onq9e0sMa0o9MZN+WZeaJ+qn7OzzLX629SS/goSC?=
+ =?us-ascii?Q?ROEuP53MpZJubfeNTSvonFB+FIt7GKUNPGHRmL0NI6rcESgvez70q/kt38Iq?=
+ =?us-ascii?Q?Q8/5sBhCSEl9Zkuhb0sWlql71BFnHz+pKHL5W4oNezwLA9qi6vxg/6Fu/f4V?=
+ =?us-ascii?Q?6BBN6cBzWW9NLFieEHGjG0Ftiu6vFCi9RYffdwe/V4SdZM4vZVjvgJ8FqUza?=
+ =?us-ascii?Q?Ew8B//S07FDQ7RsD1I9ULMxfJmQbafjnOraqs+CToLaIh7EUCN3ejc2PI5xv?=
+ =?us-ascii?Q?xGds0l3Divu5y+kkofrdZSriSles+8HDUxFkLnttt/hWPDn1BMQMC63cbU+j?=
+ =?us-ascii?Q?Rz/hsRj6y8FwDQVNUG3CiHFC2T+Yx8yhraX6cMIvyctkpi15C0GU7iGInWpZ?=
+ =?us-ascii?Q?wZ2NaP9w1IwPvkSuuj17QVNO7qpgrJ1BEF9Np6uubNpY0bSnLsXcg8cF9onM?=
+ =?us-ascii?Q?ddEh4UpaUzeK8h8Uu9aJ/g2ZP2fqJg4vAquLjLd9whGDn1DzHGq0t7NuXgk7?=
+ =?us-ascii?Q?WuVS5KUK+ubsAAXnZRxHWyTtxRAhj24v0IkiBr2jvLx9ZRkE7gxp/UmTb40T?=
+ =?us-ascii?Q?yJI+/IsAspWVxvNI2gYHp+u++BiIg20c/gi/3DoyEggn5KSnhM3CLeQR4VaN?=
+ =?us-ascii?Q?bg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: baf00b6c-75e6-4203-3a06-08dda44d0913
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Jun 2025 16:21:32.9680
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 5EqeLNGTcArPNKsa5xcMv17a3Aw27H8NRJr9PtHbcPp0QnRiOHezw7uBEKZuprGpj16ekyHPOin8hfLGPQlYh0FcVLx+/jvt2g/pPF2Z37Q=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR11MB6130
+X-OriginatorOrg: intel.com
 
-Add the top-level integration pieces that make the new persistent-memory
-cache target usable from device-mapper:
+David Hildenbrand wrote:
+> On 05.06.25 09:46, Christoph Hellwig wrote:
+> > On Wed, Jun 04, 2025 at 06:59:09PM -0700, Dan Williams wrote:
+> >> +/* return normal pages backed by the page allocator */
+> >> +static inline struct page *vm_normal_gfp_pmd(struct vm_area_struct *vma,
+> >> +					     unsigned long addr, pmd_t pmd)
+> >> +{
+> >> +	struct page *page = vm_normal_page_pmd(vma, addr, pmd);
+> >> +
+> >> +	if (!is_devdax_page(page) && !is_fsdax_page(page))
+> >> +		return page;
+> >> +	return NULL;
+> > 
+> > If you go for this make it more straight forward by having the
+> > normal path in the main flow:
+> > 
+> > 	if (is_devdax_page(page) || is_fsdax_page(page))
+> > 		return NULL;
+> > 	return page;
+> 
+> +1
+> 
+> But I'd defer introducing that for now if avoidable. I find the naming 
+> rather ... suboptimal :)
 
-* Documentation
-  - `Documentation/admin-guide/device-mapper/dm-pcache.rst` explains the
-    design, table syntax, status fields and runtime messages.
-
-* Core target implementation
-  - `dm_pcache.c` and `dm_pcache.h` register the `"pcache"` DM target,
-    parse constructor arguments, create workqueues, and forward BIOS to
-    the cache core added in earlier patches.
-  - Supports flush/FUA, status reporting, and a “gc_percent” message.
-  - Dont support discard currently.
-  - Dont support table reload for live target currently.
-
-* Device-mapper tables now accept lines like
-    pcache <pmem_dev> <backing_dev> writeback <true|false>
-
-Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
----
- .../admin-guide/device-mapper/dm-pcache.rst   | 200 +++++++++
- MAINTAINERS                                   |   9 +
- drivers/md/Kconfig                            |   2 +
- drivers/md/Makefile                           |   1 +
- drivers/md/dm-pcache/Kconfig                  |  17 +
- drivers/md/dm-pcache/Makefile                 |   3 +
- drivers/md/dm-pcache/dm_pcache.c              | 388 ++++++++++++++++++
- drivers/md/dm-pcache/dm_pcache.h              |  61 +++
- 8 files changed, 681 insertions(+)
- create mode 100644 Documentation/admin-guide/device-mapper/dm-pcache.rst
- create mode 100644 drivers/md/dm-pcache/Kconfig
- create mode 100644 drivers/md/dm-pcache/Makefile
- create mode 100644 drivers/md/dm-pcache/dm_pcache.c
- create mode 100644 drivers/md/dm-pcache/dm_pcache.h
-
-diff --git a/Documentation/admin-guide/device-mapper/dm-pcache.rst b/Documentation/admin-guide/device-mapper/dm-pcache.rst
-new file mode 100644
-index 000000000000..faf797cf29ca
---- /dev/null
-+++ b/Documentation/admin-guide/device-mapper/dm-pcache.rst
-@@ -0,0 +1,200 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+=================================
-+dm-pcache — Persistent Cache
-+=================================
-+
-+*Author: Dongsheng Yang <dongsheng.yang@linux.dev>*
-+
-+This document describes *dm-pcache*, a Device-Mapper target that lets a
-+byte-addressable *DAX* (persistent-memory, “pmem”) region act as a
-+high-performance, crash-persistent cache in front of a slower block
-+device.  The code lives in `drivers/md/dm-pcache/`.
-+
-+Quick feature summary
-+=====================
-+
-+* *Write-back* caching (only mode currently supported).
-+* *16 MiB segments* allocated on the pmem device.
-+* *Data CRC32* verification (optional, per cache).
-+* Crash-safe: every metadata structure is duplicated (`PCACHE_META_INDEX_MAX
-+  == 2`) and protected with CRC+sequence numbers.
-+* *Multi-tree indexing* (one radix tree per CPU backend) for high PMem
-+  parallelism
-+* Pure *DAX path* I/O – no extra BIO round-trips
-+* *Log-structured write-back* that preserves backend crash-consistency
-+
-+-------------------------------------------------------------------------------
-+Constructor
-+===========
-+
-+::
-+
-+    pcache <cache_dev> <backing_dev> <cache_mode> <data_crc>
-+
-+=========================  ====================================================
-+``cache_dev``               Any DAX-capable block device (``/dev/pmem0``…).
-+                            All metadata *and* cached blocks are stored here.
-+
-+``backing_dev``             The slow block device to be cached.
-+
-+``cache_mode``              Only ``writeback`` is accepted at the moment.
-+
-+``data_crc``                ``true``  – store CRC32 for every cached entry and
-+                                      verify on reads
-+                            ``false`` – skip CRC (faster)
-+=========================  ====================================================
-+
-+Example
-+-------
-+
-+.. code-block:: shell
-+
-+   dmsetup create pcache_sdb --table \
-+     "0 $(blockdev --getsz /dev/sdb) pcache /dev/pmem0 /dev/sdb writeback true"
-+
-+The first time a pmem device is used, dm-pcache formats it automatically
-+(super-block, cache_info, etc.).
-+
-+-------------------------------------------------------------------------------
-+Status line
-+===========
-+
-+``dmsetup status <device>`` (``STATUSTYPE_INFO``) prints:
-+
-+::
-+
-+   <sb_flags> <seg_total> <cache_segs> <segs_used> \
-+   <gc_percent> <cache_flags> \
-+   <key_head_seg>:<key_head_off> \
-+   <dirty_tail_seg>:<dirty_tail_off> \
-+   <key_tail_seg>:<key_tail_off>
-+
-+Field meanings
-+--------------
-+
-+===============================  =============================================
-+``sb_flags``                     Super-block flags (e.g. endian marker).
-+
-+``seg_total``                    Number of physical *pmem* segments.
-+
-+``cache_segs``                   Number of segments used for cache.
-+
-+``segs_used``                    Segments currently allocated (bitmap weight).
-+
-+``gc_percent``                   Current GC high-water mark (0-90).
-+
-+``cache_flags``                  Bit 0 – DATA_CRC enabled
-+                                 Bit 1 – INIT_DONE (cache initialised)
-+                                 Bits 2-5 – cache mode (0 == WB).
-+
-+``key_head``                     Where new key-sets are being written.
-+
-+``dirty_tail``                   First dirty key-set that still needs
-+                                 write-back to the backing device.
-+
-+``key_tail``                     First key-set that may be reclaimed by GC.
-+===============================  =============================================
-+
-+-------------------------------------------------------------------------------
-+Messages
-+========
-+
-+*Change GC trigger*
-+
-+::
-+
-+   dmsetup message <dev> 0 gc_percent <0-90>
-+
-+-------------------------------------------------------------------------------
-+Theory of operation
-+===================
-+
-+Sub-devices
-+-----------
-+
-+====================  =========================================================
-+backing_dev             Any block device (SSD/HDD/loop/LVM, etc.).
-+cache_dev               DAX device; must expose direct-access memory.
-+====================  =========================================================
-+
-+Segments and key-sets
-+---------------------
-+
-+* The pmem space is divided into *16 MiB segments*.
-+* Each write allocates space from a per-CPU *data_head* inside a segment.
-+* A *cache-key* records a logical range on the origin and where it lives
-+  inside pmem (segment + offset + generation).
-+* 128 keys form a *key-set* (kset); ksets are written sequentially in pmem
-+  and are themselves crash-safe (CRC).
-+* The pair *(key_tail, dirty_tail)* delimit clean/dirty and live/dead ksets.
-+
-+Write-back
-+----------
-+
-+Dirty keys are queued into a tree; a background worker copies data
-+back to the backing_dev and advances *dirty_tail*.  A FLUSH/FUA bio from the
-+upper layers forces an immediate metadata commit.
-+
-+Garbage collection
-+------------------
-+
-+GC starts when ``segs_used >= seg_total * gc_percent / 100``.  It walks
-+from *key_tail*, frees segments whose every key has been invalidated, and
-+advances *key_tail*.
-+
-+CRC verification
-+----------------
-+
-+If ``data_crc is enabled`` dm-pcache computes a CRC32 over every cached data
-+range when it is inserted and stores it in the on-media key.  Reads
-+validate the CRC before copying to the caller.
-+
-+-------------------------------------------------------------------------------
-+Failure handling
-+================
-+
-+* *pmem media errors* – all metadata copies are read with
-+  ``copy_mc_to_kernel``; an uncorrectable error logs and aborts initialisation.
-+* *Cache full* – if no free segment can be found, writes return ``-EBUSY``;
-+  dm-pcache retries internally (request deferral).
-+* *System crash* – on attach, the driver replays ksets from *key_tail* to
-+  rebuild the in-core trees; every segment’s generation guards against
-+  use-after-free keys.
-+
-+-------------------------------------------------------------------------------
-+Limitations & TODO
-+==================
-+
-+* Only *write-back* mode; other modes planned.
-+* Only FIFO cache invalidate; other (LRU, ARC...) planned.
-+* Table reload is not supported currently.
-+* Discard planned.
-+
-+-------------------------------------------------------------------------------
-+Example workflow
-+================
-+
-+.. code-block:: shell
-+
-+   # 1.  Create devices
-+   dmsetup create pcache_sdb --table \
-+     "0 $(blockdev --getsz /dev/sdb) pcache /dev/pmem0 /dev/sdb writeback true"
-+
-+   # 2.  Put a filesystem on top
-+   mkfs.ext4 /dev/mapper/pcache_sdb
-+   mount /dev/mapper/pcache_sdb /mnt
-+
-+   # 3.  Tune GC threshold to 80 %
-+   dmsetup message pcache_sdb 0 gc_percent 80
-+
-+   # 4.  Observe status
-+   watch -n1 'dmsetup status pcache_sdb'
-+
-+   # 5.  Shutdown
-+   umount /mnt
-+   dmsetup remove pcache_sdb
-+
-+-------------------------------------------------------------------------------
-+``dm-pcache`` is under active development; feedback, bug reports and patches
-+are very welcome!
-diff --git a/MAINTAINERS b/MAINTAINERS
-index dd844ac8d910..aba4e84316b6 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6838,6 +6838,15 @@ S:	Maintained
- F:	Documentation/admin-guide/device-mapper/vdo*.rst
- F:	drivers/md/dm-vdo/
- 
-+DEVICE-MAPPER PCACHE TARGET
-+M:	Dongsheng Yang <dongsheng.yang@linux.dev>
-+M:	Zheng Gu <cengku@gmail.com>
-+R:	Linggang Zeng <linggang.linux@gmail.com>
-+L:	dm-devel@lists.linux.dev
-+S:	Maintained
-+F:	Documentation/admin-guide/device-mapper/dm-pcache.rst
-+F:	drivers/md/dm-pcache/
-+
- DEVLINK
- M:	Jiri Pirko <jiri@resnulli.us>
- L:	netdev@vger.kernel.org
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index ddb37f6670de..cd4d8d1705bb 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -659,4 +659,6 @@ config DM_AUDIT
- 
- source "drivers/md/dm-vdo/Kconfig"
- 
-+source "drivers/md/dm-pcache/Kconfig"
-+
- endif # MD
-diff --git a/drivers/md/Makefile b/drivers/md/Makefile
-index 87bdfc9fe14c..f91a3133677f 100644
---- a/drivers/md/Makefile
-+++ b/drivers/md/Makefile
-@@ -71,6 +71,7 @@ obj-$(CONFIG_DM_RAID)		+= dm-raid.o
- obj-$(CONFIG_DM_THIN_PROVISIONING) += dm-thin-pool.o
- obj-$(CONFIG_DM_VERITY)		+= dm-verity.o
- obj-$(CONFIG_DM_VDO)            += dm-vdo/
-+obj-$(CONFIG_DM_PCACHE)		+= dm-pcache/
- obj-$(CONFIG_DM_CACHE)		+= dm-cache.o
- obj-$(CONFIG_DM_CACHE_SMQ)	+= dm-cache-smq.o
- obj-$(CONFIG_DM_EBS)		+= dm-ebs.o
-diff --git a/drivers/md/dm-pcache/Kconfig b/drivers/md/dm-pcache/Kconfig
-new file mode 100644
-index 000000000000..0e251eca892e
---- /dev/null
-+++ b/drivers/md/dm-pcache/Kconfig
-@@ -0,0 +1,17 @@
-+config DM_PCACHE
-+	tristate "Persistent cache for Block Device (Experimental)"
-+	depends on BLK_DEV_DM
-+	depends on DEV_DAX
-+	help
-+	  PCACHE provides a mechanism to use persistent memory (e.g., CXL persistent memory,
-+	  DAX-enabled devices) as a high-performance cache layer in front of
-+	  traditional block devices such as SSDs or HDDs.
-+
-+	  PCACHE is implemented as a kernel module that integrates with the block
-+	  layer and supports direct access (DAX) to persistent memory for low-latency,
-+	  byte-addressable caching.
-+
-+	  Note: This feature is experimental and should be tested thoroughly
-+	  before use in production environments.
-+
-+	  If unsure, say 'N'.
-diff --git a/drivers/md/dm-pcache/Makefile b/drivers/md/dm-pcache/Makefile
-new file mode 100644
-index 000000000000..86776e4acad2
---- /dev/null
-+++ b/drivers/md/dm-pcache/Makefile
-@@ -0,0 +1,3 @@
-+dm-pcache-y := dm_pcache.o cache_dev.o segment.o backing_dev.o cache.o cache_gc.o cache_writeback.o cache_segment.o cache_key.o cache_req.o
-+
-+obj-m += dm-pcache.o
-diff --git a/drivers/md/dm-pcache/dm_pcache.c b/drivers/md/dm-pcache/dm_pcache.c
-new file mode 100644
-index 000000000000..c4ac51a9cef0
---- /dev/null
-+++ b/drivers/md/dm-pcache/dm_pcache.c
-@@ -0,0 +1,388 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+#include <linux/module.h>
-+#include <linux/blkdev.h>
-+#include <linux/bio.h>
-+
-+#include "../dm-core.h"
-+#include "cache_dev.h"
-+#include "backing_dev.h"
-+#include "cache.h"
-+#include "dm_pcache.h"
-+
-+static void defer_req(struct pcache_request *pcache_req)
-+{
-+	struct dm_pcache *pcache = pcache_req->pcache;
-+
-+	BUG_ON(!list_empty(&pcache_req->list_node));
-+
-+	spin_lock(&pcache->defered_req_list_lock);
-+	list_add(&pcache_req->list_node, &pcache->defered_req_list);
-+	spin_unlock(&pcache->defered_req_list_lock);
-+
-+	queue_delayed_work(pcache->task_wq, &pcache->defered_req_work, msecs_to_jiffies(100));
-+}
-+
-+static void defered_req_fn(struct work_struct *work)
-+{
-+	struct dm_pcache *pcache = container_of(work, struct dm_pcache, defered_req_work.work);
-+	struct pcache_request *pcache_req;
-+	LIST_HEAD(tmp_list);
-+	int ret;
-+
-+	if (pcache_is_stopping(pcache))
-+		return;
-+
-+	spin_lock(&pcache->defered_req_list_lock);
-+	list_splice_init(&pcache->defered_req_list, &tmp_list);
-+	spin_unlock(&pcache->defered_req_list_lock);
-+
-+	while (!list_empty(&tmp_list)) {
-+		pcache_req = list_first_entry(&tmp_list,
-+					    struct pcache_request, list_node);
-+		list_del_init(&pcache_req->list_node);
-+		pcache_req->ret = 0;
-+		ret = pcache_cache_handle_req(&pcache->cache, pcache_req);
-+		if (ret == -ENOMEM || ret == -EBUSY) {
-+			defer_req(pcache_req);
-+			ret = 0;
-+		} else {
-+			pcache_req_put(pcache_req, ret);
-+		}
-+	}
-+}
-+
-+void pcache_req_get(struct pcache_request *pcache_req)
-+{
-+	kref_get(&pcache_req->ref);
-+}
-+
-+static void end_req(struct kref *ref)
-+{
-+	struct pcache_request *pcache_req = container_of(ref, struct pcache_request, ref);
-+	struct bio *bio = pcache_req->bio;
-+	int ret = pcache_req->ret;
-+
-+	if (ret == -ENOMEM || ret == -EBUSY) {
-+		pcache_req_get(pcache_req);
-+		defer_req(pcache_req);
-+	} else {
-+		bio->bi_status = errno_to_blk_status(ret);
-+		bio_endio(bio);
-+	}
-+}
-+
-+void pcache_req_put(struct pcache_request *pcache_req, int ret)
-+{
-+	/* Set the return status if it is not already set */
-+	if (ret && !pcache_req->ret)
-+		pcache_req->ret = ret;
-+
-+	kref_put(&pcache_req->ref, end_req);
-+}
-+
-+static int parse_cache_dev(struct dm_pcache *pcache, struct dm_arg_set *as,
-+				char **error)
-+{
-+	const char *cache_dev_path;
-+	int ret;
-+
-+	if (!as->argc) {
-+		*error = "Cache_dev_path required";
-+		return -EINVAL;
-+	}
-+
-+	cache_dev_path = dm_shift_arg(as);
-+	ret = cache_dev_start(pcache, cache_dev_path);
-+	if (ret) {
-+		*error = "Failed to start cache dev";
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_backing_dev(struct dm_pcache *pcache, struct dm_arg_set *as,
-+				char **error)
-+{
-+	const char *backing_dev_path;
-+	int ret;
-+
-+	if (!as->argc) {
-+		*error = "Backing_dev_path required";
-+		return -EINVAL;
-+	}
-+
-+	backing_dev_path = dm_shift_arg(as);
-+	ret = backing_dev_start(pcache, backing_dev_path);
-+	if (ret) {
-+		*error = "Failed to start backing dev";
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_cache_opts(struct dm_pcache *pcache, struct dm_arg_set *as,
-+				char **error)
-+{
-+	struct pcache_cache_options opts = { 0 };
-+	const char *cache_mode;
-+	const char *data_crc_str;
-+
-+	if (as->argc != 2) {
-+		*error = "Bad cache options, need '<cache_mode> <data_crc(true|false)>'";
-+		return -EINVAL;
-+	}
-+
-+	cache_mode = dm_shift_arg(as);
-+	if (!strcmp(cache_mode, "writeback")) {
-+		opts.cache_mode = PCACHE_CACHE_MODE_WRITEBACK;
-+	} else {
-+		*error = "only writeback cache mode supported currently";
-+		return -EINVAL;
-+	}
-+
-+	data_crc_str = dm_shift_arg(as);
-+	if (!strcmp(data_crc_str, "true")) {
-+		opts.data_crc = true;
-+	} else if (!strcmp(data_crc_str, "false")) {
-+		opts.data_crc = false;
-+	} else {
-+		*error = "Invalid option for data_crc";
-+		return -EINVAL;
-+	}
-+
-+	return pcache_cache_start(pcache, &opts);
-+}
-+
-+static int parse_pcache_args(struct dm_pcache *pcache, unsigned int argc, char **argv,
-+				char **error)
-+{
-+	struct dm_arg_set as;
-+	int ret;
-+
-+	if (argc != 4) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	as.argc = argc;
-+	as.argv = argv;
-+
-+	ret = parse_cache_dev(pcache, &as, error);
-+	if (ret)
-+		goto err;
-+
-+	ret = parse_backing_dev(pcache, &as, error);
-+	if (ret)
-+		goto stop_cache_dev;
-+
-+	ret = parse_cache_opts(pcache, &as, error);
-+	if (ret)
-+		goto stop_backing_dev;
-+
-+	return 0;
-+
-+stop_backing_dev:
-+	backing_dev_stop(pcache);
-+stop_cache_dev:
-+	cache_dev_stop(pcache);
-+err:
-+	return ret;
-+}
-+
-+static int dm_pcache_ctr(struct dm_target *ti, unsigned int argc, char **argv)
-+{
-+	struct mapped_device *md = ti->table->md;
-+	struct dm_pcache *pcache;
-+	int ret;
-+
-+	if (md->map) {
-+		ti->error = "Don't support table loading for live md";
-+		return -EOPNOTSUPP;
-+	}
-+
-+	/* Allocate memory for the cache structure */
-+	pcache = kzalloc(sizeof(struct dm_pcache), GFP_KERNEL);
-+	if (!pcache)
-+		return -ENOMEM;
-+
-+	pcache->task_wq = alloc_workqueue("pcache-%s-wq",  WQ_UNBOUND | WQ_MEM_RECLAIM,
-+					  0, md->name);
-+	if (!pcache->task_wq) {
-+		ret = -ENOMEM;
-+		goto free_pcache;
-+	}
-+
-+	spin_lock_init(&pcache->defered_req_list_lock);
-+	INIT_LIST_HEAD(&pcache->defered_req_list);
-+	INIT_DELAYED_WORK(&pcache->defered_req_work, defered_req_fn);
-+	pcache->ti = ti;
-+
-+	ret = parse_pcache_args(pcache, argc, argv, &ti->error);
-+	if (ret)
-+		goto destroy_wq;
-+
-+	ti->num_flush_bios = 1;
-+	ti->flush_supported = true;
-+	ti->per_io_data_size = sizeof(struct pcache_request);
-+	ti->private = pcache;
-+	atomic_set(&pcache->state, PCACHE_STATE_RUNNING);
-+
-+	return 0;
-+
-+destroy_wq:
-+	destroy_workqueue(pcache->task_wq);
-+free_pcache:
-+	kfree(pcache);
-+
-+	return ret;
-+}
-+
-+static void defer_req_stop(struct dm_pcache *pcache)
-+{
-+	struct pcache_request *pcache_req;
-+	LIST_HEAD(tmp_list);
-+
-+	cancel_delayed_work_sync(&pcache->defered_req_work);
-+
-+	spin_lock(&pcache->defered_req_list_lock);
-+	list_splice_init(&pcache->defered_req_list, &tmp_list);
-+	spin_unlock(&pcache->defered_req_list_lock);
-+
-+	while (!list_empty(&tmp_list)) {
-+		pcache_req = list_first_entry(&tmp_list,
-+					    struct pcache_request, list_node);
-+		list_del_init(&pcache_req->list_node);
-+		pcache_req_put(pcache_req, -EIO);
-+	}
-+}
-+
-+static void dm_pcache_dtr(struct dm_target *ti)
-+{
-+	struct dm_pcache *pcache;
-+
-+	pcache = ti->private;
-+
-+	atomic_set(&pcache->state, PCACHE_STATE_STOPPING);
-+
-+	defer_req_stop(pcache);
-+	pcache_cache_stop(pcache);
-+	backing_dev_stop(pcache);
-+	cache_dev_stop(pcache);
-+
-+	drain_workqueue(pcache->task_wq);
-+	destroy_workqueue(pcache->task_wq);
-+
-+	kfree(pcache);
-+}
-+
-+static int dm_pcache_map_bio(struct dm_target *ti, struct bio *bio)
-+{
-+	struct pcache_request *pcache_req = dm_per_bio_data(bio, sizeof(struct pcache_request));
-+	struct dm_pcache *pcache = ti->private;
-+	int ret;
-+
-+	pcache_req->pcache = pcache;
-+	kref_init(&pcache_req->ref);
-+	pcache_req->ret = 0;
-+	pcache_req->bio = bio;
-+	pcache_req->off = (u64)bio->bi_iter.bi_sector << SECTOR_SHIFT;
-+	pcache_req->data_len = bio->bi_iter.bi_size;
-+	INIT_LIST_HEAD(&pcache_req->list_node);
-+	bio->bi_iter.bi_sector = dm_target_offset(ti, bio->bi_iter.bi_sector);
-+
-+	ret = pcache_cache_handle_req(&pcache->cache, pcache_req);
-+	if (ret == -ENOMEM || ret == -EBUSY) {
-+		defer_req(pcache_req);
-+	} else {
-+		pcache_req_put(pcache_req, ret);
-+	}
-+
-+	return DM_MAPIO_SUBMITTED;
-+}
-+
-+static void dm_pcache_status(struct dm_target *ti, status_type_t type,
-+			     unsigned int status_flags, char *result,
-+			     unsigned int maxlen)
-+{
-+	struct dm_pcache *pcache = ti->private;
-+	struct pcache_cache_dev *cache_dev = &pcache->cache_dev;
-+	struct pcache_backing_dev *backing_dev = &pcache->backing_dev;
-+	struct pcache_cache *cache = &pcache->cache;
-+	unsigned int sz = 0;
-+
-+	switch (type) {
-+	case STATUSTYPE_INFO:
-+		DMEMIT("%x %u %u %u %u %x %u:%u %u:%u %u:%u",
-+		       cache_dev->sb_flags,
-+		       cache_dev->seg_num,
-+		       cache->n_segs,
-+		       bitmap_weight(cache->seg_map, cache->n_segs),
-+		       pcache_cache_get_gc_percent(cache),
-+		       cache->cache_info.flags,
-+		       cache->key_head.cache_seg->cache_seg_id,
-+		       cache->key_head.seg_off,
-+		       cache->dirty_tail.cache_seg->cache_seg_id,
-+		       cache->dirty_tail.seg_off,
-+		       cache->key_tail.cache_seg->cache_seg_id,
-+		       cache->key_tail.seg_off);
-+		break;
-+	case STATUSTYPE_TABLE:
-+		DMEMIT("%s %s writeback %s",
-+		       cache_dev->dm_dev->name,
-+		       backing_dev->dm_dev->name,
-+		       cache_data_crc_on(cache) ? "true" : "false");
-+		break;
-+	case STATUSTYPE_IMA:
-+		*result = '\0';
-+		break;
-+	}
-+}
-+
-+static int dm_pcache_message(struct dm_target *ti, unsigned int argc,
-+			     char **argv, char *result, unsigned int maxlen)
-+{
-+	struct dm_pcache *pcache = ti->private;
-+	unsigned long val;
-+
-+	if (argc != 2)
-+		goto err;
-+
-+	if (!strcasecmp(argv[0], "gc_percent")) {
-+		if (kstrtoul(argv[1], 10, &val))
-+			goto err;
-+
-+		return pcache_cache_set_gc_percent(&pcache->cache, val);
-+	}
-+err:
-+	return -EINVAL;
-+}
-+
-+static struct target_type dm_pcache_target = {
-+	.name		= "pcache",
-+	.version	= {0, 1, 0},
-+	.module		= THIS_MODULE,
-+	.features	= DM_TARGET_SINGLETON,
-+	.ctr		= dm_pcache_ctr,
-+	.dtr		= dm_pcache_dtr,
-+	.map		= dm_pcache_map_bio,
-+	.status		= dm_pcache_status,
-+	.message	= dm_pcache_message,
-+};
-+
-+static int __init dm_pcache_init(void)
-+{
-+	return dm_register_target(&dm_pcache_target);
-+}
-+module_init(dm_pcache_init);
-+
-+static void __exit dm_pcache_exit(void)
-+{
-+	dm_unregister_target(&dm_pcache_target);
-+}
-+module_exit(dm_pcache_exit);
-+
-+MODULE_DESCRIPTION("dm-pcache Persistent Cache for block device");
-+MODULE_AUTHOR("Dongsheng Yang <dongsheng.yang@linux.dev>");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/md/dm-pcache/dm_pcache.h b/drivers/md/dm-pcache/dm_pcache.h
-new file mode 100644
-index 000000000000..07be2e2a2f5b
---- /dev/null
-+++ b/drivers/md/dm-pcache/dm_pcache.h
-@@ -0,0 +1,61 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef _DM_PCACHE_H
-+#define _DM_PCACHE_H
-+#include <linux/device-mapper.h>
-+
-+#include "../dm-core.h"
-+
-+#define CACHE_DEV_TO_PCACHE(cache_dev)		(container_of(cache_dev, struct dm_pcache, cache_dev))
-+#define BACKING_DEV_TO_PCACHE(backing_dev)	(container_of(backing_dev, struct dm_pcache, backing_dev))
-+#define CACHE_TO_PCACHE(cache)			(container_of(cache, struct dm_pcache, cache))
-+
-+#define PCACHE_STATE_RUNNING			1
-+#define PCACHE_STATE_STOPPING			2
-+
-+struct pcache_cache_dev;
-+struct pcache_backing_dev;
-+struct pcache_cache;
-+struct dm_pcache {
-+	struct dm_target *ti;
-+	struct pcache_cache_dev cache_dev;
-+	struct pcache_backing_dev backing_dev;
-+	struct pcache_cache cache;
-+
-+	spinlock_t			defered_req_list_lock;
-+	struct list_head		defered_req_list;
-+	struct workqueue_struct		*task_wq;
-+
-+	struct delayed_work		defered_req_work;
-+
-+	atomic_t			state;
-+};
-+
-+static inline bool pcache_is_stopping(struct dm_pcache *pcache)
-+{
-+	return (atomic_read(&pcache->state) == PCACHE_STATE_STOPPING);
-+}
-+
-+#define pcache_dev_err(pcache, fmt, ...)							\
-+	pcache_err("%s " fmt, pcache->ti->table->md->name, ##__VA_ARGS__)
-+#define pcache_dev_info(pcache, fmt, ...)							\
-+	pcache_info("%s " fmt, pcache->ti->table->md->name, ##__VA_ARGS__)
-+#define pcache_dev_debug(pcache, fmt, ...)							\
-+	pcache_debug("%s " fmt, pcache->ti->table->md->name, ##__VA_ARGS__)
-+
-+struct pcache_request {
-+	struct dm_pcache	*pcache;
-+	struct bio		*bio;
-+
-+	u64			off;
-+	u32			data_len;
-+
-+	struct kref		ref;
-+	int			ret;
-+
-+	struct list_head	list_node;
-+};
-+
-+void pcache_req_get(struct pcache_request *pcache_req);
-+void pcache_req_put(struct pcache_request *pcache_req, int ret);
-+
-+#endif /* _DM_PCACHE_H */
--- 
-2.34.1
-
+Agree, that was a "for lack of a better term" suggestion, but the
+suggestion is indeed lacking.
