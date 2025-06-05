@@ -1,32 +1,32 @@
-Received: from out-179.mta0.migadu.com (out-179.mta0.migadu.com [91.218.175.179])
+Received: from out-171.mta0.migadu.com (out-171.mta0.migadu.com [91.218.175.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0075D27817C
-	for <nvdimm@lists.linux.dev>; Thu,  5 Jun 2025 14:24:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BDE5279785
+	for <nvdimm@lists.linux.dev>; Thu,  5 Jun 2025 14:24:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749133470; cv=none; b=ICaiD3D1eGChxfe3qQthwKMfR4Yne8XziL000PRZpJM7PbVeUruAI02xn1ab84U+5e3XSN0gJ101KyP68JlltIfEltQKbt7aFirjYDhGOkVKy2q1knNHtGkeQZpEXGamvy6dDXZ/3hPBKLmOTiK/Ny6Bm4+m5Y3npvXoetHklSQ=
+	t=1749133475; cv=none; b=GrFonpB070nobzMHNR0QcFEIq569ibTh67Zt3mcK1bSIB/akBz23o9PikltyYE7FCd69MlRcIDCariM+CXFJc38Ysdb2sCU2hxkR99i85lIDYMVMNN2sto6ozsXq9fbEqOTbBBVozP9+Bv7E1/lNJlHGpcTwAtE1hwFnyNGC24g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749133470; c=relaxed/simple;
-	bh=N4os6sbtbf3r4Mpl7Utkk7miFG6udacIIHXLVuPMpEg=;
+	s=arc-20240116; t=1749133475; c=relaxed/simple;
+	bh=0jvAO2EyfS3ST+5dafxqsPDFBUqT9iViP7hfdlYhECc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=f2d1OoN/TJAFucytjfuxQxFgGAILVFjTo1c90l5K+mXD8TWN+w375WaIQFnI2CttIaIfOh/i6oBZUQvIH7qRgmizRJsKlw8Nt/jYM1YnBLXWdqjFzh6JZuTcfo0Y2lNDQjGjFYgt4gQZ4LtTqClTOx03y7GEIGpWO9M9BR0qBFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Q9lZUEpY; arc=none smtp.client-ip=91.218.175.179
+	 MIME-Version:Content-Type; b=UhpzWh7jBtavHUZ7eI8CUEYsuW2kgjec2eAKUjqksGbVk1pkjmGqDXbwiySDDKqQZnJ9rkT+r7S6aAgZHgDAABTTAASL7XAWWCnRixFnsIwqgoLsF1j0/rypde0DspXG0D5NLnPjbRQQWnuW4baxjm4bkPd5++GW3SGTNOG/9F0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=pcHrEYAJ; arc=none smtp.client-ip=91.218.175.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Q9lZUEpY"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="pcHrEYAJ"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1749133464;
+	t=1749133470;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=knt0GAcUqPLVzUWmqbsLyaND1C2CWt5Kq9Ourav/+dY=;
-	b=Q9lZUEpY0LuXsLA8t7mPq/d0VLKbWLNBkQD2zwh52U7j2RSX0vvAoDbEA2gUh1oMzVOq4q
-	srxW1YSufqFv7u+wof3jILuxK5D3SCky+Hv927RmBPvLmZKBe+bK0O6VK9yYCg2oEGYlh2
-	VmDOxmaao3AR6CbfHFECOrQxd32Rs0Q=
+	bh=8qmLXphQFZ/NY+MlLgq6TJWtEbZ3Iz5OyMEm2XexPIc=;
+	b=pcHrEYAJfk5QREJoF+ovIQ0E7mitnmOjjl/aH5hl5uXgWaCkIYqQHRMoxJFIIFuxz/woMq
+	6WE4FsJ9mZjnbWncbW4mWs0p2rUho6WH0yPa8i64L2a3NGh/UgQxYHuVoUS7l4Vdd0LZEI
+	muVIr8lQ9Hpe3g/C8L6E+YWnFjA5XYQ=
 From: Dongsheng Yang <dongsheng.yang@linux.dev>
 To: mpatocka@redhat.com,
 	agk@redhat.com,
@@ -41,9 +41,9 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	dm-devel@lists.linux.dev,
 	Dongsheng Yang <dongsheng.yang@linux.dev>
-Subject: [RFC PATCH 09/11] dm-pcache: add cache_req
-Date: Thu,  5 Jun 2025 14:23:04 +0000
-Message-Id: <20250605142306.1930831-10-dongsheng.yang@linux.dev>
+Subject: [RFC PATCH 10/11] dm-pcache: add cache core
+Date: Thu,  5 Jun 2025 14:23:05 +0000
+Message-Id: <20250605142306.1930831-11-dongsheng.yang@linux.dev>
 In-Reply-To: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
 References: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
 Precedence: bulk
@@ -56,857 +56,1106 @@ Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-Introduce cache_req.c, the high-level engine that
-drives I/O requests through dm-pcache. It decides whether data is served
-from the cache or fetched from the backing device, allocates new cache
-space on writes, and flushes dirty ksets when required.
+Add cache.c and cache.h that introduce the top-level
+“struct pcache_cache”. This object glues together the backing block
+device, the persistent-memory cache device, segment array, RB-tree
+indexes, and the background workers for write-back and garbage
+collection.
 
-* Read path
-  - Traverses the striped RB-trees to locate cached extents.
-  - Generates backing READ requests for gaps and inserts placeholder
-    “empty” keys to avoid duplicate fetches.
-  - Copies valid data directly from pmem into the caller’s bio; CRC and
-    generation checks guard against stale segments.
+* Persistent metadata
+  - pcache_cache_info tracks options such as cache mode, data-crc flag
+    and GC threshold, written atomically with CRC+sequence.
+  - key_tail and dirty_tail positions are double-buffered and recovered
+    at mount time.
 
-* Write path
-  - Allocates space in the current data segment via cache_data_alloc().
-  - Copies data from the bio into pmem, then inserts or updates keys,
-    splitting or trimming overlapped ranges as needed.
-  - Adds each new key to the active kset; forces kset close when FUA is
-    requested or the kset is full.
+* Segment management
+  - kvcalloc()’d array of pcache_cache_segment objects, bitmap for fast
+    allocation, refcounts and generation numbers so GC can invalidate
+    old extents safely.
+  - First segment hosts a pcache_cache_ctrl block shared by all
+    threads.
 
-* Miss handling
-  - create_cache_miss_req() builds a backing READ, optionally attaching
-    an empty key.
-  - miss_read_end_req() replaces the placeholder with real data once the
-    READ completes, or deletes it on error.
+* Request path hooks
+  - pcache_cache_handle_req() dispatches READ, WRITE and FLUSH bios to
+    the engines added in earlier patches.
+  - Per-CPU data_heads support lock-free allocation of space for new
+    writes.
 
-* Flush support
-  - cache_flush() iterates over all ksets and forces them to close,
-    ensuring data durability when REQ_PREFLUSH is received.
+* Background workers
+  - Delayed work items for write-back (5 s) and GC (5 s).
+  - clean_work removes stale keys after segments are reclaimed.
+
+* Lifecycle helpers
+  - pcache_cache_start()/stop() bring the cache online, replay keys,
+    start workers, and flush everything on shutdown.
+
+With this piece in place dm-pcache has a fully initialised cache object
+capable of serving I/O and maintaining its on-disk structures.
 
 Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
 ---
- drivers/md/dm-pcache/cache_req.c | 810 +++++++++++++++++++++++++++++++
- 1 file changed, 810 insertions(+)
- create mode 100644 drivers/md/dm-pcache/cache_req.c
+ drivers/md/dm-pcache/cache.c | 443 ++++++++++++++++++++++++++
+ drivers/md/dm-pcache/cache.h | 601 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 1044 insertions(+)
+ create mode 100644 drivers/md/dm-pcache/cache.c
+ create mode 100644 drivers/md/dm-pcache/cache.h
 
-diff --git a/drivers/md/dm-pcache/cache_req.c b/drivers/md/dm-pcache/cache_req.c
+diff --git a/drivers/md/dm-pcache/cache.c b/drivers/md/dm-pcache/cache.c
 new file mode 100644
-index 000000000000..ab4dd4446d70
+index 000000000000..af2e59f16be8
 --- /dev/null
-+++ b/drivers/md/dm-pcache/cache_req.c
-@@ -0,0 +1,810 @@
++++ b/drivers/md/dm-pcache/cache.c
+@@ -0,0 +1,443 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/blk_types.h>
 +
 +#include "cache.h"
-+#include "backing_dev.h"
 +#include "cache_dev.h"
++#include "backing_dev.h"
 +#include "dm_pcache.h"
 +
-+static int cache_data_head_init(struct pcache_cache *cache)
++static inline struct pcache_cache_info *get_cache_info_addr(struct pcache_cache *cache)
 +{
-+	struct pcache_cache_segment *next_seg;
-+	struct pcache_cache_data_head *data_head;
++	return cache->cache_info_addr + cache->info_index;
++}
 +
-+	data_head = get_data_head(cache);
-+	next_seg = get_cache_segment(cache);
-+	if (!next_seg)
-+		return -EBUSY;
++static void cache_info_write(struct pcache_cache *cache)
++{
++	struct pcache_cache_info *cache_info = &cache->cache_info;
 +
-+	cache_seg_get(next_seg);
-+	data_head->head_pos.cache_seg = next_seg;
-+	data_head->head_pos.seg_off = 0;
++	cache_info->header.seq++;
++	cache_info->header.crc = pcache_meta_crc(&cache_info->header,
++						sizeof(struct pcache_cache_info));
++
++	memcpy_flushcache(get_cache_info_addr(cache), cache_info,
++			sizeof(struct pcache_cache_info));
++
++	cache->info_index = (cache->info_index + 1) % PCACHE_META_INDEX_MAX;
++}
++
++static void cache_info_init_default(struct pcache_cache *cache);
++static int cache_info_init(struct pcache_cache *cache, struct pcache_cache_options *opts)
++{
++	struct dm_pcache *pcache = CACHE_TO_PCACHE(cache);
++	struct pcache_cache_info *cache_info_addr;
++
++	cache_info_addr = pcache_meta_find_latest(&cache->cache_info_addr->header,
++						sizeof(struct pcache_cache_info),
++						PCACHE_CACHE_INFO_SIZE,
++						&cache->cache_info);
++	if (IS_ERR(cache_info_addr))
++		return PTR_ERR(cache_info_addr);
++
++	if (cache_info_addr) {
++		if (opts->data_crc !=
++				(cache->cache_info.flags & PCACHE_CACHE_FLAGS_DATA_CRC)) {
++			pcache_dev_err(pcache, "invalid option for data_crc: %s, expected: %s",
++					opts->data_crc ? "true" : "false",
++					cache->cache_info.flags & PCACHE_CACHE_FLAGS_DATA_CRC ? "true" : "false");
++			return -EINVAL;
++		}
++
++		return 0;
++	}
++
++	/* init cache_info for new cache */
++	cache_info_init_default(cache);
++
++	cache->cache_info.flags &= ~PCACHE_CACHE_FLAGS_CACHE_MODE_MASK;
++	cache->cache_info.flags |= FIELD_PREP(PCACHE_CACHE_FLAGS_CACHE_MODE_MASK, opts->cache_mode);
++
++	if (opts->data_crc)
++		cache->cache_info.flags |= PCACHE_CACHE_FLAGS_DATA_CRC;
 +
 +	return 0;
 +}
 +
-+/*
-+ * cache_data_alloc - Allocate data for a cache key.
-+ * @cache: Pointer to the cache structure.
-+ * @key: Pointer to the cache key to allocate data for.
-+ *
-+ * This function tries to allocate space from the cache segment specified by the
-+ * data head. If the remaining space in the segment is insufficient to allocate
-+ * the requested length for the cache key, it will allocate whatever is available
-+ * and adjust the key's length accordingly. This function does not allocate
-+ * space that crosses segment boundaries.
-+ */
-+static int cache_data_alloc(struct pcache_cache *cache, struct pcache_cache_key *key)
++static void cache_info_set_gc_percent(struct pcache_cache_info *cache_info, u8 percent)
 +{
-+	struct pcache_cache_data_head *data_head;
-+	struct pcache_cache_pos *head_pos;
-+	struct pcache_cache_segment *cache_seg;
-+	u32 seg_remain;
-+	u32 allocated = 0, to_alloc;
-+	int ret = 0;
-+
-+	preempt_disable();
-+	data_head = get_data_head(cache);
-+again:
-+	if (!data_head->head_pos.cache_seg) {
-+		seg_remain = 0;
-+	} else {
-+		cache_pos_copy(&key->cache_pos, &data_head->head_pos);
-+		key->seg_gen = key->cache_pos.cache_seg->gen;
-+
-+		head_pos = &data_head->head_pos;
-+		cache_seg = head_pos->cache_seg;
-+		seg_remain = cache_seg_remain(head_pos);
-+		to_alloc = key->len - allocated;
-+	}
-+
-+	if (seg_remain > to_alloc) {
-+		/* If remaining space in segment is sufficient for the cache key, allocate it. */
-+		cache_pos_advance(head_pos, to_alloc);
-+		allocated += to_alloc;
-+		cache_seg_get(cache_seg);
-+	} else if (seg_remain) {
-+		/* If remaining space is not enough, allocate the remaining space and adjust the cache key length. */
-+		cache_pos_advance(head_pos, seg_remain);
-+		key->len = seg_remain;
-+
-+		/* Get for key: obtain a reference to the cache segment for the key. */
-+		cache_seg_get(cache_seg);
-+		/* Put for head_pos->cache_seg: release the reference for the current head's segment. */
-+		cache_seg_put(head_pos->cache_seg);
-+		head_pos->cache_seg = NULL;
-+	} else {
-+		/* Initialize a new data head if no segment is available. */
-+		ret = cache_data_head_init(cache);
-+		if (ret)
-+			goto out;
-+
-+		goto again;
-+	}
-+
-+out:
-+	preempt_enable();
-+
-+	return ret;
++	cache_info->flags &= ~PCACHE_CACHE_FLAGS_GC_PERCENT_MASK;
++	cache_info->flags |= FIELD_PREP(PCACHE_CACHE_FLAGS_GC_PERCENT_MASK, percent);
 +}
 +
-+static int cache_copy_from_req_bio(struct pcache_cache *cache, struct pcache_cache_key *key,
-+				struct pcache_request *pcache_req, u32 bio_off)
++int pcache_cache_set_gc_percent(struct pcache_cache *cache, u8 percent)
 +{
-+	struct pcache_cache_pos *pos = &key->cache_pos;
-+	struct pcache_segment *segment;
-+
-+	segment = &pos->cache_seg->segment;
-+
-+	return segment_copy_from_bio(segment, pos->seg_off, key->len, pcache_req->bio, bio_off);
-+}
-+
-+static int cache_copy_to_req_bio(struct pcache_cache *cache, struct pcache_request *pcache_req,
-+			    u32 bio_off, u32 len, struct pcache_cache_pos *pos, u64 key_gen)
-+{
-+	struct pcache_cache_segment *cache_seg = pos->cache_seg;
-+	struct pcache_segment *segment = &cache_seg->segment;
-+	int ret;
-+
-+	spin_lock(&cache_seg->gen_lock);
-+	if (key_gen < cache_seg->gen) {
-+		spin_unlock(&cache_seg->gen_lock);
++	if (percent > PCACHE_CACHE_GC_PERCENT_MAX || percent < PCACHE_CACHE_GC_PERCENT_MIN)
 +		return -EINVAL;
-+	}
 +
-+	ret = segment_copy_to_bio(segment, pos->seg_off, len, pcache_req->bio, bio_off);
-+	spin_unlock(&cache_seg->gen_lock);
++	mutex_lock(&cache->cache_info_lock);
++	cache_info_set_gc_percent(&cache->cache_info, percent);
 +
-+	return ret;
-+}
-+
-+/**
-+ * miss_read_end_req - Handle the end of a miss read request.
-+ * @pcache_req: Pointer to the request structure.
-+ * @read_ret: Return value of read.
-+ *
-+ * This function is called when a backing request to read data from
-+ * the backing_dev is completed. If the key associated with the request
-+ * is empty (a placeholder), it allocates cache space for the key,
-+ * copies the data read from the bio into the cache, and updates
-+ * the key's status. If the key has been overwritten by a write
-+ * request during this process, it will be deleted from the cache
-+ * tree and no further action will be taken.
-+ */
-+static void miss_read_end_req(struct pcache_backing_dev_req *backing_req, int read_ret)
-+{
-+	void *priv_data = backing_req->priv_data;
-+	struct pcache_request *pcache_req = backing_req->req.upper_req;
-+	struct pcache_cache *cache = backing_req->backing_dev->cache;
-+	int ret;
-+
-+	if (priv_data) {
-+		struct pcache_cache_key *key;
-+		struct pcache_cache_subtree *cache_subtree;
-+
-+		key = (struct pcache_cache_key *)priv_data;
-+		cache_subtree = key->cache_subtree;
-+
-+		/* if this key was deleted from cache_subtree by a write, key->flags should be cleared,
-+		 * so if cache_key_empty() return true, this key is still in cache_subtree
-+		 */
-+		spin_lock(&cache_subtree->tree_lock);
-+		if (cache_key_empty(key)) {
-+			/* Check if the backing request was successful. */
-+			if (read_ret) {
-+				cache_key_delete(key);
-+				goto unlock;
-+			}
-+
-+			/* Allocate cache space for the key and copy data from the backing_dev. */
-+			ret = cache_data_alloc(cache, key);
-+			if (ret) {
-+				cache_key_delete(key);
-+				goto unlock;
-+			}
-+
-+			ret = cache_copy_from_req_bio(cache, key, pcache_req, backing_req->req.bio_off);
-+			if (ret) {
-+				cache_seg_put(key->cache_pos.cache_seg);
-+				cache_key_delete(key);
-+				goto unlock;
-+			}
-+			key->flags &= ~PCACHE_CACHE_KEY_FLAGS_EMPTY;
-+			key->flags |= PCACHE_CACHE_KEY_FLAGS_CLEAN;
-+
-+			/* Append the key to the cache. */
-+			ret = cache_key_append(cache, key, false);
-+			if (ret) {
-+				cache_seg_put(key->cache_pos.cache_seg);
-+				cache_key_delete(key);
-+				goto unlock;
-+			}
-+		}
-+unlock:
-+		spin_unlock(&cache_subtree->tree_lock);
-+		cache_key_put(key);
-+	}
-+}
-+
-+/**
-+ * submit_cache_miss_req - Submit a backing request when cache data is missing
-+ * @cache: The cache context that manages cache operations
-+ * @pcache_req: The cache request containing information about the read request
-+ *
-+ * This function is used to handle cases where a cache read request cannot locate
-+ * the required data in the cache. When such a miss occurs during `cache_subtree_walk`,
-+ * it triggers a backing read request to fetch data from the backing storage.
-+ *
-+ * If `pcache_req->priv_data` is set, it points to a `pcache_cache_key`, representing
-+ * a new cache key to be inserted into the cache. The function calls `cache_key_insert`
-+ * to attempt adding the key. On insertion failure, it releases the key reference and
-+ * clears `priv_data` to avoid further processing.
-+ */
-+static void submit_cache_miss_req(struct pcache_cache *cache, struct pcache_backing_dev_req *backing_req)
-+{
-+	int ret;
-+
-+	if (backing_req->priv_data) {
-+		struct pcache_cache_key *key;
-+
-+		/* Attempt to insert the key into the cache if priv_data is set */
-+		key = (struct pcache_cache_key *)backing_req->priv_data;
-+		ret = cache_key_insert(&cache->req_key_tree, key, true);
-+		if (ret) {
-+			/* Release the key if insertion fails */
-+			cache_key_put(key);
-+			backing_req->priv_data = NULL;
-+			backing_req->ret = ret;
-+			backing_dev_req_end(backing_req);
-+			return;
-+		}
-+	}
-+	backing_dev_req_submit(backing_req, false);
-+}
-+
-+/**
-+ * create_cache_miss_req - Create a backing read request for a cache miss
-+ * @cache: The cache structure that manages cache operations
-+ * @parent: The parent request structure initiating the miss read
-+ * @off: Offset in the parent request to read from
-+ * @len: Length of data to read from the backing_dev
-+ * @insert_key: Determines whether to insert a placeholder empty key in the cache tree
-+ *
-+ * This function generates a new backing read request when a cache miss occurs. The
-+ * `insert_key` parameter controls whether a placeholder (empty) cache key should be
-+ * added to the cache tree to prevent multiple backing requests for the same missing
-+ * data. Generally, when the miss read occurs in a cache segment that doesn't contain
-+ * the requested data, a placeholder key is created and inserted.
-+ *
-+ * However, if the cache tree already has an empty key at the location for this
-+ * read, there is no need to create another. Instead, this function just send the
-+ * new request without adding a duplicate placeholder.
-+ *
-+ * Returns:
-+ * A pointer to the newly created request structure on success, or NULL on failure.
-+ * If an empty key is created, it will be released if any errors occur during the
-+ * process to ensure proper cleanup.
-+ */
-+static struct pcache_backing_dev_req *create_cache_miss_req(struct pcache_cache *cache, struct pcache_request *parent,
-+					u32 off, u32 len, bool insert_key)
-+{
-+	struct pcache_backing_dev *backing_dev = cache->backing_dev;
-+	struct pcache_backing_dev_req *backing_req;
-+	struct pcache_cache_key *key = NULL;
-+	struct pcache_backing_dev_req_opts req_opts = { 0 };
-+
-+	req_opts.type = BACKING_DEV_REQ_TYPE_REQ;
-+	req_opts.gfp_mask = GFP_NOWAIT;
-+	req_opts.req.upper_req = parent;
-+	req_opts.req.req_off = off;
-+	req_opts.req.len = len;
-+	req_opts.end_fn = miss_read_end_req;
-+
-+	backing_req = backing_dev_req_create(backing_dev, &req_opts);
-+	if (!backing_req)
-+		goto out;
-+
-+	/* Allocate a new empty key if insert_key is set */
-+	if (insert_key) {
-+		key = cache_key_alloc(&cache->req_key_tree);
-+		if (!key) {
-+			backing_req->ret = -ENOMEM;
-+			goto end_req;
-+		}
-+
-+		/* Initialize the empty key with offset, length, and empty flag */
-+		key->off = parent->off + off;
-+		key->len = len;
-+		key->flags |= PCACHE_CACHE_KEY_FLAGS_EMPTY;
-+	}
-+
-+	/* Attach the empty key to the request if it was created */
-+	if (key) {
-+		cache_key_get(key);
-+		backing_req->priv_data = key;
-+	}
-+
-+	return backing_req;
-+
-+end_req:
-+	backing_dev_req_end(backing_req);
-+out:
-+	return NULL;
-+}
-+
-+static int send_cache_miss_req(struct pcache_cache *cache, struct pcache_request *pcache_req,
-+			    u32 off, u32 len, bool insert_key)
-+{
-+	struct pcache_backing_dev_req *backing_req;
-+
-+	backing_req = create_cache_miss_req(cache, pcache_req, off, len, insert_key);
-+	if (!backing_req)
-+		return -ENOMEM;
-+
-+	submit_cache_miss_req(cache, backing_req);
++	cache_info_write(cache);
++	mutex_unlock(&cache->cache_info_lock);
 +
 +	return 0;
 +}
 +
-+/*
-+ * In the process of walking the cache tree to locate cached data, this
-+ * function handles the situation where the requested data range lies
-+ * entirely before an existing cache node (`key_tmp`). This outcome
-+ * signifies that the target data is absent from the cache (cache miss).
-+ *
-+ * To fulfill this portion of the read request, the function creates a
-+ * backing request (`backing_req`) for the missing data range represented
-+ * by `key`. It then appends this request to the submission list in the
-+ * `ctx`, which will later be processed to retrieve the data from backing
-+ * storage. After setting up the backing request, `req_done` in `ctx` is
-+ * updated to reflect the length of the handled range, and the range
-+ * in `key` is adjusted by trimming off the portion that is now handled.
-+ *
-+ * The scenario handled here:
-+ *
-+ *	  |--------|			  key_tmp (existing cached range)
-+ * |====|					   key (requested range, preceding key_tmp)
-+ *
-+ * Since `key` is before `key_tmp`, it signifies that the requested data
-+ * range is missing in the cache (cache miss) and needs retrieval from
-+ * backing storage.
-+ */
-+static int read_before(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
-+		struct pcache_cache_subtree_walk_ctx *ctx)
++void cache_pos_encode(struct pcache_cache *cache,
++			     struct pcache_cache_pos_onmedia *pos_onmedia_base,
++			     struct pcache_cache_pos *pos, u64 seq, u32 *index)
 +{
-+	struct pcache_backing_dev_req *backing_req;
++	struct pcache_cache_pos_onmedia pos_onmedia;
++	struct pcache_cache_pos_onmedia *pos_onmedia_addr = pos_onmedia_base + *index;
++
++	pos_onmedia.cache_seg_id = pos->cache_seg->cache_seg_id;
++	pos_onmedia.seg_off = pos->seg_off;
++	pos_onmedia.header.seq = seq;
++	pos_onmedia.header.crc = cache_pos_onmedia_crc(&pos_onmedia);
++
++	memcpy_flushcache(pos_onmedia_addr, &pos_onmedia, sizeof(struct pcache_cache_pos_onmedia));
++	pmem_wmb();
++
++	*index = (*index + 1) % PCACHE_META_INDEX_MAX;
++}
++
++int cache_pos_decode(struct pcache_cache *cache,
++			    struct pcache_cache_pos_onmedia *pos_onmedia,
++			    struct pcache_cache_pos *pos, u64 *seq, u32 *index)
++{
++	struct pcache_cache_pos_onmedia latest, *latest_addr;
++
++	latest_addr = pcache_meta_find_latest(&pos_onmedia->header,
++					sizeof(struct pcache_cache_pos_onmedia),
++					sizeof(struct pcache_cache_pos_onmedia),
++					&latest);
++	if (IS_ERR(latest_addr))
++		return PTR_ERR(latest_addr);
++
++	if (!latest_addr)
++		return -EIO;
++
++	pos->cache_seg = &cache->segments[latest.cache_seg_id];
++	pos->seg_off = latest.seg_off;
++	*seq = latest.header.seq;
++	*index = (latest_addr - pos_onmedia);
++
++	return 0;
++}
++
++static inline void cache_info_set_seg_id(struct pcache_cache *cache, u32 seg_id)
++{
++	cache->cache_info.seg_id = seg_id;
++}
++
++static int cache_init(struct dm_pcache *pcache)
++{
++	struct pcache_cache *cache = &pcache->cache;
++	struct pcache_backing_dev *backing_dev = &pcache->backing_dev;
++	struct pcache_cache_dev *cache_dev = &pcache->cache_dev;
 +	int ret;
 +
-+	/*
-+	 * In this scenario, `key` represents a range that precedes `key_tmp`,
-+	 * meaning the requested data range is missing from the cache tree
-+	 * and must be retrieved from the backing_dev.
-+	 */
-+	backing_req = create_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, key->len, true);
-+	if (!backing_req) {
++	cache->segments = kvcalloc(cache_dev->seg_num, sizeof(struct pcache_cache_segment), GFP_KERNEL);
++	if (!cache->segments) {
 +		ret = -ENOMEM;
-+		goto out;
++		goto err;
 +	}
 +
-+	list_add(&backing_req->node, ctx->submit_req_list);
-+	ctx->req_done += key->len;
-+	cache_key_cutfront(key, key->len);
-+
-+	return 0;
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * During cache_subtree_walk, this function manages a scenario where part of the
-+ * requested data range overlaps with an existing cache node (`key_tmp`).
-+ *
-+ *	 |----------------|  key_tmp (existing cached range)
-+ * |===========|		   key (requested range, overlapping the tail of key_tmp)
-+ */
-+static int read_overlap_tail(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
-+		struct pcache_cache_subtree_walk_ctx *ctx)
-+{
-+	struct pcache_backing_dev_req *backing_req;
-+	u32 io_len;
-+	int ret;
-+
-+	/*
-+	 * Calculate the length of the non-overlapping portion of `key`
-+	 * before `key_tmp`, representing the data missing in the cache.
-+	 */
-+	io_len = cache_key_lstart(key_tmp) - cache_key_lstart(key);
-+	if (io_len) {
-+		backing_req = create_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, io_len, true);
-+		if (!backing_req) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+
-+		list_add(&backing_req->node, ctx->submit_req_list);
-+		ctx->req_done += io_len;
-+		cache_key_cutfront(key, io_len);
++	cache->seg_map = bitmap_zalloc(cache_dev->seg_num, GFP_KERNEL);
++	if (!cache->seg_map) {
++		ret = -ENOMEM;
++		goto free_segments;
 +	}
 +
-+	/*
-+	 * Handle the overlapping portion by calculating the length of
-+	 * the remaining data in `key` that coincides with `key_tmp`.
-+	 */
-+	io_len = cache_key_lend(key) - cache_key_lstart(key_tmp);
-+	if (cache_key_empty(key_tmp)) {
-+		ret = send_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, io_len, false);
-+		if (ret)
-+			goto out;
-+	} else {
-+		ret = cache_copy_to_req_bio(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done,
-+					io_len, &key_tmp->cache_pos, key_tmp->seg_gen);
-+		if (ret) {
-+			list_add(&key_tmp->list_node, ctx->delete_key_list);
-+			goto out;
-+		}
++	cache->req_cache = KMEM_CACHE(pcache_backing_dev_req, 0);
++	if (!cache->req_cache) {
++		ret = -ENOMEM;
++		goto free_bitmap;
 +	}
 +
-+	ctx->req_done += io_len;
-+	cache_key_cutfront(key, io_len);
++	cache->backing_dev = backing_dev;
++	cache->cache_dev = &pcache->cache_dev;
++	cache->n_segs = cache_dev->seg_num;
++	atomic_set(&cache->gc_errors, 0);
++	spin_lock_init(&cache->seg_map_lock);
++	spin_lock_init(&cache->key_head_lock);
++
++	mutex_init(&cache->cache_info_lock);
++	mutex_init(&cache->key_tail_lock);
++	mutex_init(&cache->dirty_tail_lock);
++	mutex_init(&cache->writeback_lock);
++
++	INIT_DELAYED_WORK(&cache->writeback_work, cache_writeback_fn);
++	INIT_DELAYED_WORK(&cache->gc_work, pcache_cache_gc_fn);
++	INIT_WORK(&cache->clean_work, clean_fn);
 +
 +	return 0;
 +
-+out:
-+	return ret;
-+}
-+
-+/**
-+ * The scenario handled here:
-+ *
-+ *    |----|          key_tmp (existing cached range)
-+ * |==========|       key (requested range)
-+ */
-+static int read_overlap_contain(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
-+		struct pcache_cache_subtree_walk_ctx *ctx)
-+{
-+	struct pcache_backing_dev_req *backing_req;
-+	u32 io_len;
-+	int ret;
-+
-+	/*
-+	 * Calculate the non-overlapping part of `key` before `key_tmp`
-+	 * to identify the missing data length.
-+	 */
-+	io_len = cache_key_lstart(key_tmp) - cache_key_lstart(key);
-+	if (io_len) {
-+		backing_req = create_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, io_len, true);
-+		if (!backing_req) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+		list_add(&backing_req->node, ctx->submit_req_list);
-+
-+		ctx->req_done += io_len;
-+		cache_key_cutfront(key, io_len);
-+	}
-+
-+	/*
-+	 * Handle the overlapping portion between `key` and `key_tmp`.
-+	 */
-+	io_len = key_tmp->len;
-+	if (cache_key_empty(key_tmp)) {
-+		ret = send_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, io_len, false);
-+		if (ret)
-+			goto out;
-+	} else {
-+		ret = cache_copy_to_req_bio(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done,
-+					io_len, &key_tmp->cache_pos, key_tmp->seg_gen);
-+		if (ret) {
-+			list_add(&key_tmp->list_node, ctx->delete_key_list);
-+			goto out;
-+		}
-+	}
-+
-+	ctx->req_done += io_len;
-+	cache_key_cutfront(key, io_len);
-+
-+	return 0;
-+out:
-+	return ret;
-+}
-+
-+/*
-+ *	 |-----------|		key_tmp (existing cached range)
-+ *	   |====|			key (requested range, fully within key_tmp)
-+ *
-+ * If `key_tmp` contains valid cached data, this function copies the relevant
-+ * portion to the request's bio. Otherwise, it sends a backing request to
-+ * fetch the required data range.
-+ */
-+static int read_overlap_contained(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
-+		struct pcache_cache_subtree_walk_ctx *ctx)
-+{
-+	struct pcache_cache_pos pos;
-+	int ret;
-+
-+	/*
-+	 * Check if `key_tmp` is empty, indicating a miss. If so, initiate
-+	 * a backing request to fetch the required data for `key`.
-+	 */
-+	if (cache_key_empty(key_tmp)) {
-+		ret = send_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, key->len, false);
-+		if (ret)
-+			goto out;
-+	} else {
-+		cache_pos_copy(&pos, &key_tmp->cache_pos);
-+		cache_pos_advance(&pos, cache_key_lstart(key) - cache_key_lstart(key_tmp));
-+
-+		ret = cache_copy_to_req_bio(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done,
-+					key->len, &pos, key_tmp->seg_gen);
-+		if (ret) {
-+			list_add(&key_tmp->list_node, ctx->delete_key_list);
-+			goto out;
-+		}
-+	}
-+
-+	ctx->req_done += key->len;
-+	cache_key_cutfront(key, key->len);
-+
-+	return 0;
-+out:
-+	return ret;
-+}
-+
-+/*
-+ *	 |--------|		  key_tmp (existing cached range)
-+ *	   |==========|	  key (requested range, overlapping the head of key_tmp)
-+ */
-+static int read_overlap_head(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
-+		struct pcache_cache_subtree_walk_ctx *ctx)
-+{
-+	struct pcache_cache_pos pos;
-+	u32 io_len;
-+	int ret;
-+
-+	io_len = cache_key_lend(key_tmp) - cache_key_lstart(key);
-+
-+	if (cache_key_empty(key_tmp)) {
-+		ret = send_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, io_len, false);
-+		if (ret)
-+			goto out;
-+	} else {
-+		cache_pos_copy(&pos, &key_tmp->cache_pos);
-+		cache_pos_advance(&pos, cache_key_lstart(key) - cache_key_lstart(key_tmp));
-+
-+		ret = cache_copy_to_req_bio(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done,
-+					io_len, &pos, key_tmp->seg_gen);
-+		if (ret) {
-+			list_add(&key_tmp->list_node, ctx->delete_key_list);
-+			goto out;
-+		}
-+	}
-+
-+	ctx->req_done += io_len;
-+	cache_key_cutfront(key, io_len);
-+
-+	return 0;
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * read_walk_finally - Finalizes the cache read tree walk by submitting any
-+ *					 remaining backing requests
-+ * @ctx:	   Context structure holding information about the cache,
-+ *			 read request, and submission list
-+ *
-+ * This function is called at the end of the `cache_subtree_walk` during a
-+ * cache read operation. It completes the walk by checking if any data
-+ * requested by `key` was not found in the cache tree, and if so, it sends
-+ * a backing request to retrieve that data. Then, it iterates through the
-+ * submission list of backing requests created during the walk, removing
-+ * each request from the list and submitting it.
-+ *
-+ * The scenario managed here includes:
-+ * - Sending a backing request for the remaining length of `key` if it was
-+ *   not fulfilled by existing cache entries.
-+ * - Iterating through `ctx->submit_req_list` to submit each backing request
-+ *   enqueued during the walk.
-+ *
-+ * This ensures all necessary backing requests for cache misses are submitted
-+ * to the backing storage to retrieve any data that could not be found in
-+ * the cache.
-+ */
-+static int read_walk_finally(struct pcache_cache_subtree_walk_ctx *ctx)
-+{
-+	struct pcache_backing_dev_req *backing_req, *next_req;
-+	struct pcache_cache_key *key = ctx->key;
-+	int ret;
-+
-+	if (key->len) {
-+		ret = send_cache_miss_req(ctx->cache_tree->cache, ctx->pcache_req, ctx->req_done, key->len, true);
-+		if (ret)
-+			goto out;
-+		ctx->req_done += key->len;
-+	}
-+
-+	list_for_each_entry_safe(backing_req, next_req, ctx->submit_req_list, node) {
-+		list_del_init(&backing_req->node);
-+		submit_cache_miss_req(ctx->cache_tree->cache, backing_req);
-+	}
-+
-+	return 0;
-+
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * This function is used within `cache_subtree_walk` to determine whether the
-+ * read operation has covered the requested data length. It compares the
-+ * amount of data processed (`ctx->req_done`) with the total data length
-+ * specified in the original request (`ctx->pcache_req->data_len`).
-+ *
-+ * If `req_done` meets or exceeds the required data length, the function
-+ * returns `true`, indicating the walk is complete. Otherwise, it returns `false`,
-+ * signaling that additional data processing is needed to fulfill the request.
-+ */
-+static bool read_walk_done(struct pcache_cache_subtree_walk_ctx *ctx)
-+{
-+	return (ctx->req_done >= ctx->pcache_req->data_len);
-+}
-+
-+/*
-+ * cache_read - Process a read request by traversing the cache tree
-+ * @cache:	 Cache structure holding cache trees and related configurations
-+ * @pcache_req:   Request structure with information about the data to read
-+ *
-+ * This function attempts to fulfill a read request by traversing the cache tree(s)
-+ * to locate cached data for the requested range. If parts of the data are missing
-+ * in the cache, backing requests are generated to retrieve the required segments.
-+ *
-+ * The function operates by initializing a key for the requested data range and
-+ * preparing a context (`walk_ctx`) to manage the cache tree traversal. The context
-+ * includes pointers to functions (e.g., `read_before`, `read_overlap_tail`) that handle
-+ * specific conditions encountered during the traversal. The `walk_finally` and `walk_done`
-+ * functions manage the end stages of the traversal, while the `delete_key_list` and
-+ * `submit_req_list` lists track any keys to be deleted or requests to be submitted.
-+ *
-+ * The function first calculates the requested range and checks if it fits within the
-+ * current cache tree (based on the tree's size limits). It then locks the cache tree
-+ * and performs a search to locate any matching keys. If there are outdated keys,
-+ * these are deleted, and the search is restarted to ensure accurate data retrieval.
-+ *
-+ * If the requested range spans multiple cache trees, the function moves on to the
-+ * next tree once the current range has been processed. This continues until the
-+ * entire requested data length has been handled.
-+ */
-+static int cache_read(struct pcache_cache *cache, struct pcache_request *pcache_req)
-+{
-+	struct pcache_cache_key key_data = { .off = pcache_req->off, .len = pcache_req->data_len };
-+	struct pcache_cache_subtree *cache_subtree;
-+	struct pcache_cache_key *key_tmp = NULL, *key_next;
-+	struct rb_node *prev_node = NULL;
-+	struct pcache_cache_key *key = &key_data;
-+	struct pcache_cache_subtree_walk_ctx walk_ctx = { 0 };
-+	LIST_HEAD(delete_key_list);
-+	LIST_HEAD(submit_req_list);
-+	int ret;
-+
-+	walk_ctx.cache_tree = &cache->req_key_tree;
-+	walk_ctx.req_done = 0;
-+	walk_ctx.pcache_req = pcache_req;
-+	walk_ctx.before = read_before;
-+	walk_ctx.overlap_tail = read_overlap_tail;
-+	walk_ctx.overlap_head = read_overlap_head;
-+	walk_ctx.overlap_contain = read_overlap_contain;
-+	walk_ctx.overlap_contained = read_overlap_contained;
-+	walk_ctx.walk_finally = read_walk_finally;
-+	walk_ctx.walk_done = read_walk_done;
-+	walk_ctx.delete_key_list = &delete_key_list;
-+	walk_ctx.submit_req_list = &submit_req_list;
-+
-+next_tree:
-+	key->off = pcache_req->off + walk_ctx.req_done;
-+	key->len = pcache_req->data_len - walk_ctx.req_done;
-+	if (key->len > PCACHE_CACHE_SUBTREE_SIZE - (key->off & PCACHE_CACHE_SUBTREE_SIZE_MASK))
-+		key->len = PCACHE_CACHE_SUBTREE_SIZE - (key->off & PCACHE_CACHE_SUBTREE_SIZE_MASK);
-+
-+	cache_subtree = get_subtree(&cache->req_key_tree, key->off);
-+	spin_lock(&cache_subtree->tree_lock);
-+
-+search:
-+	prev_node = cache_subtree_search(cache_subtree, key, NULL, NULL, &delete_key_list);
-+
-+cleanup_tree:
-+	if (!list_empty(&delete_key_list)) {
-+		list_for_each_entry_safe(key_tmp, key_next, &delete_key_list, list_node) {
-+			list_del_init(&key_tmp->list_node);
-+			cache_key_delete(key_tmp);
-+		}
-+		goto search;
-+	}
-+
-+	walk_ctx.start_node = prev_node;
-+	walk_ctx.key = key;
-+
-+	ret = cache_subtree_walk(&walk_ctx);
-+	if (ret == -EINVAL)
-+		goto cleanup_tree;
-+	else if (ret)
-+		goto out;
-+
-+	spin_unlock(&cache_subtree->tree_lock);
-+
-+	if (walk_ctx.req_done < pcache_req->data_len)
-+		goto next_tree;
-+
-+	return 0;
-+out:
-+	spin_unlock(&cache_subtree->tree_lock);
-+
-+	return ret;
-+}
-+
-+static int cache_write(struct pcache_cache *cache, struct pcache_request *pcache_req)
-+{
-+	struct pcache_cache_subtree *cache_subtree;
-+	struct pcache_cache_key *key;
-+	u64 offset = pcache_req->off;
-+	u32 length = pcache_req->data_len;
-+	u32 io_done = 0;
-+	int ret;
-+
-+	while (true) {
-+		if (io_done >= length)
-+			break;
-+
-+		key = cache_key_alloc(&cache->req_key_tree);
-+		if (!key) {
-+			ret = -ENOMEM;
-+			goto err;
-+		}
-+
-+		key->off = offset + io_done;
-+		key->len = length - io_done;
-+		if (key->len > PCACHE_CACHE_SUBTREE_SIZE - (key->off & PCACHE_CACHE_SUBTREE_SIZE_MASK))
-+			key->len = PCACHE_CACHE_SUBTREE_SIZE - (key->off & PCACHE_CACHE_SUBTREE_SIZE_MASK);
-+
-+		ret = cache_data_alloc(cache, key);
-+		if (ret) {
-+			cache_key_put(key);
-+			goto err;
-+		}
-+
-+		ret = cache_copy_from_req_bio(cache, key, pcache_req, io_done);
-+		if (ret) {
-+			cache_seg_put(key->cache_pos.cache_seg);
-+			cache_key_put(key);
-+			goto err;
-+		}
-+
-+		cache_subtree = get_subtree(&cache->req_key_tree, key->off);
-+		spin_lock(&cache_subtree->tree_lock);
-+		ret = cache_key_insert(&cache->req_key_tree, key, true);
-+		if (ret) {
-+			cache_seg_put(key->cache_pos.cache_seg);
-+			cache_key_put(key);
-+			goto unlock;
-+		}
-+
-+		ret = cache_key_append(cache, key, pcache_req->bio->bi_opf & REQ_FUA);
-+		if (ret) {
-+			cache_seg_put(key->cache_pos.cache_seg);
-+			cache_key_delete(key);
-+			goto unlock;
-+		}
-+
-+		io_done += key->len;
-+		spin_unlock(&cache_subtree->tree_lock);
-+	}
-+
-+	return 0;
-+unlock:
-+	spin_unlock(&cache_subtree->tree_lock);
++free_bitmap:
++	bitmap_free(cache->seg_map);
++free_segments:
++	kvfree(cache->segments);
 +err:
 +	return ret;
 +}
 +
-+/**
-+ * cache_flush - Flush all ksets to persist any pending cache data
-+ * @cache: Pointer to the cache structure
-+ *
-+ * This function iterates through all ksets associated with the provided `cache`
-+ * and ensures that any data marked for persistence is written to media. For each
-+ * kset, it acquires the kset lock, then invokes `cache_kset_close`, which handles
-+ * the persistence logic for that kset.
-+ *
-+ * If `cache_kset_close` encounters an error, the function exits immediately with
-+ * the respective error code, preventing the flush operation from proceeding to
-+ * subsequent ksets.
-+ */
-+int cache_flush(struct pcache_cache *cache)
++static void cache_exit(struct pcache_cache *cache)
 +{
-+	struct pcache_cache_kset *kset;
-+	u32 i, ret;
++	kmem_cache_destroy(cache->req_cache);
++	bitmap_free(cache->seg_map);
++	kvfree(cache->segments);
++}
 +
-+	for (i = 0; i < cache->n_ksets; i++) {
-+		kset = get_kset(cache, i);
++static void cache_info_init_default(struct pcache_cache *cache)
++{
++	struct pcache_cache_info *cache_info = &cache->cache_info;
 +
-+		spin_lock(&kset->kset_lock);
-+		ret = cache_kset_close(cache, kset);
-+		spin_unlock(&kset->kset_lock);
++	cache_info->header.seq = 0;
++	cache_info->n_segs = cache->cache_dev->seg_num;
++	cache_info_set_gc_percent(cache_info, PCACHE_CACHE_GC_PERCENT_DEFAULT);
++}
 +
++static int cache_tail_init(struct pcache_cache *cache)
++{
++	struct dm_pcache *pcache = CACHE_TO_PCACHE(cache);
++	bool new_cache = !(cache->cache_info.flags & PCACHE_CACHE_FLAGS_INIT_DONE);
++	int ret;
++
++	if (new_cache) {
++		set_bit(0, cache->seg_map);
++
++		cache->key_head.cache_seg = &cache->segments[0];
++		cache->key_head.seg_off = 0;
++		cache_pos_copy(&cache->key_tail, &cache->key_head);
++		cache_pos_copy(&cache->dirty_tail, &cache->key_head);
++
++		cache_encode_dirty_tail(cache);
++		cache_encode_key_tail(cache);
++	} else {
++		if (cache_decode_key_tail(cache) || cache_decode_dirty_tail(cache)) {
++			pcache_dev_err(pcache, "Corrupted key tail or dirty tail.\n");
++			ret = -EIO;
++			goto err;
++		}
++	}
++	return 0;
++err:
++	return ret;
++}
++
++static int get_seg_id(struct pcache_cache *cache,
++		      struct pcache_cache_segment *prev_cache_seg,
++		      bool new_cache, u32 *seg_id)
++{
++	struct dm_pcache *pcache = CACHE_TO_PCACHE(cache);
++	struct pcache_cache_dev *cache_dev = cache->cache_dev;
++	int ret;
++
++	if (new_cache) {
++		ret = cache_dev_get_empty_segment_id(cache_dev, seg_id);
++		if (ret) {
++			pcache_dev_err(pcache, "no available segment\n");
++			goto err;
++		}
++
++		if (prev_cache_seg)
++			cache_seg_set_next_seg(prev_cache_seg, *seg_id);
++		else
++			cache_info_set_seg_id(cache, *seg_id);
++	} else {
++		if (prev_cache_seg) {
++			struct pcache_segment_info *prev_seg_info;
++
++			prev_seg_info = &prev_cache_seg->cache_seg_info;
++			if (!segment_info_has_next(prev_seg_info)) {
++				ret = -EFAULT;
++				goto err;
++			}
++			*seg_id = prev_cache_seg->cache_seg_info.next_seg;
++		} else {
++			*seg_id = cache->cache_info.seg_id;
++		}
++	}
++	return 0;
++err:
++	return ret;
++}
++
++static int cache_segs_init(struct pcache_cache *cache)
++{
++	struct pcache_cache_segment *prev_cache_seg = NULL;
++	struct pcache_cache_info *cache_info = &cache->cache_info;
++	bool new_cache = !(cache->cache_info.flags & PCACHE_CACHE_FLAGS_INIT_DONE);
++	u32 seg_id;
++	int ret;
++	u32 i;
++
++	for (i = 0; i < cache_info->n_segs; i++) {
++		ret = get_seg_id(cache, prev_cache_seg, new_cache, &seg_id);
 +		if (ret)
-+			return ret;
++			goto err;
++
++		ret = cache_seg_init(cache, seg_id, i, new_cache);
++		if (ret)
++			goto err;
++
++		prev_cache_seg = &cache->segments[i];
++	}
++	return 0;
++err:
++	return ret;
++}
++
++static int cache_init_req_keys(struct pcache_cache *cache, u32 n_paral)
++{
++	struct dm_pcache *pcache = CACHE_TO_PCACHE(cache);
++	u32 n_subtrees;
++	int ret;
++	u32 i, cpu;
++
++	/* Calculate number of cache trees based on the device size */
++	n_subtrees = DIV_ROUND_UP(cache->dev_size << SECTOR_SHIFT, PCACHE_CACHE_SUBTREE_SIZE);
++	ret = cache_tree_init(cache, &cache->req_key_tree, n_subtrees);
++	if (ret)
++		goto err;
++
++	cache->n_ksets = n_paral;
++	cache->ksets = kcalloc(cache->n_ksets, PCACHE_KSET_SIZE, GFP_KERNEL);
++	if (!cache->ksets) {
++		ret = -ENOMEM;
++		goto req_tree_exit;
++	}
++
++	/*
++	 * Initialize each kset with a spinlock and delayed work for flushing.
++	 * Each kset is associated with one queue to ensure independent handling
++	 * of cache keys across multiple queues, maximizing multiqueue concurrency.
++	 */
++	for (i = 0; i < cache->n_ksets; i++) {
++		struct pcache_cache_kset *kset = get_kset(cache, i);
++
++		kset->cache = cache;
++		spin_lock_init(&kset->kset_lock);
++		INIT_DELAYED_WORK(&kset->flush_work, kset_flush_fn);
++	}
++
++	cache->data_heads = alloc_percpu(struct pcache_cache_data_head);
++	if (!cache->data_heads) {
++		ret = -ENOMEM;
++		goto free_kset;
++	}
++
++	for_each_possible_cpu(cpu) {
++		struct pcache_cache_data_head *h =
++			per_cpu_ptr(cache->data_heads, cpu);
++		h->head_pos.cache_seg = NULL;
++	}
++
++	/*
++	 * Replay persisted cache keys using cache_replay.
++	 * This function loads and replays cache keys from previously stored
++	 * ksets, allowing the cache to restore its state after a restart.
++	 */
++	ret = cache_replay(cache);
++	if (ret) {
++		pcache_dev_err(pcache, "failed to replay keys\n");
++		goto free_heads;
 +	}
 +
 +	return 0;
++
++free_heads:
++	free_percpu(cache->data_heads);
++free_kset:
++	kfree(cache->ksets);
++req_tree_exit:
++	cache_tree_exit(&cache->req_key_tree);
++err:
++	return ret;
 +}
 +
-+int pcache_cache_handle_req(struct pcache_cache *cache, struct pcache_request *pcache_req)
++static void cache_destroy_req_keys(struct pcache_cache *cache)
 +{
-+	struct bio *bio = pcache_req->bio;
++	u32 i;
 +
-+	if (unlikely(bio->bi_opf & REQ_PREFLUSH))
-+		return cache_flush(cache);
++	for (i = 0; i < cache->n_ksets; i++) {
++		struct pcache_cache_kset *kset = get_kset(cache, i);
 +
-+	if (bio_data_dir(bio) == READ)
-+		return cache_read(cache, pcache_req);
++		cancel_delayed_work_sync(&kset->flush_work);
++	}
 +
-+	return cache_write(cache, pcache_req);
++	free_percpu(cache->data_heads);
++	kfree(cache->ksets);
++	cache_tree_exit(&cache->req_key_tree);
 +}
++
++int pcache_cache_start(struct dm_pcache *pcache, struct pcache_cache_options *opts)
++{
++	struct pcache_backing_dev *backing_dev = &pcache->backing_dev;
++	struct pcache_cache *cache = &pcache->cache;
++	int ret;
++
++	ret = cache_init(pcache);
++	if (ret)
++		return ret;
++
++	cache->cache_info_addr = CACHE_DEV_CACHE_INFO(cache->cache_dev);
++	cache->cache_ctrl = CACHE_DEV_CACHE_CTRL(cache->cache_dev);
++	backing_dev->cache = cache;
++	cache->dev_size = backing_dev->dev_size;
++
++	ret = cache_info_init(cache, opts);
++	if (ret)
++		goto cache_exit;
++
++	ret = cache_segs_init(cache);
++	if (ret)
++		goto cache_exit;
++
++	ret = cache_tail_init(cache);
++	if (ret)
++		goto cache_exit;
++
++	ret = cache_init_req_keys(cache, num_online_cpus());
++	if (ret)
++		goto cache_exit;
++
++	ret = cache_writeback_init(cache);
++	if (ret)
++		goto destroy_keys;
++
++	cache->cache_info.flags |= PCACHE_CACHE_FLAGS_INIT_DONE;
++	cache_info_write(cache);
++	queue_delayed_work(cache_get_wq(cache), &cache->gc_work, 0);
++
++	return 0;
++
++destroy_keys:
++	cache_destroy_req_keys(cache);
++cache_exit:
++	cache_exit(cache);
++
++	return ret;
++}
++
++void pcache_cache_stop(struct dm_pcache *pcache)
++{
++	struct pcache_cache *cache = &pcache->cache;
++
++	cache_flush(cache);
++
++	cancel_delayed_work_sync(&cache->gc_work);
++	flush_work(&cache->clean_work);
++	cache_writeback_exit(cache);
++
++	if (cache->req_key_tree.n_subtrees)
++		cache_destroy_req_keys(cache);
++
++	cache_exit(cache);
++}
++
++struct workqueue_struct *cache_get_wq(struct pcache_cache *cache)
++{
++	struct dm_pcache *pcache = CACHE_TO_PCACHE(cache);
++
++	return pcache->task_wq;
++}
+diff --git a/drivers/md/dm-pcache/cache.h b/drivers/md/dm-pcache/cache.h
+new file mode 100644
+index 000000000000..edb1f9d85c1c
+--- /dev/null
++++ b/drivers/md/dm-pcache/cache.h
+@@ -0,0 +1,601 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef _PCACHE_CACHE_H
++#define _PCACHE_CACHE_H
++
++#include "segment.h"
++
++/* Garbage collection thresholds */
++#define PCACHE_CACHE_GC_PERCENT_MIN       0                   /* Minimum GC percentage */
++#define PCACHE_CACHE_GC_PERCENT_MAX       90                  /* Maximum GC percentage */
++#define PCACHE_CACHE_GC_PERCENT_DEFAULT   70                  /* Default GC percentage */
++
++#define PCACHE_CACHE_SUBTREE_SIZE		(4 * 1024 * 1024)   /* 4MB total tree size */
++#define PCACHE_CACHE_SUBTREE_SIZE_MASK		0x3FFFFF            /* Mask for tree size */
++#define PCACHE_CACHE_SUBTREE_SIZE_SHIFT		22                  /* Bit shift for tree size */
++
++/* Maximum number of keys per key set */
++#define PCACHE_KSET_KEYS_MAX		128
++#define PCACHE_CACHE_SEGS_MAX		(1024 * 1024)	/* maximum cache size for each device is 16T */
++#define PCACHE_KSET_ONMEDIA_SIZE_MAX	struct_size_t(struct pcache_cache_kset_onmedia, data, PCACHE_KSET_KEYS_MAX)
++#define PCACHE_KSET_SIZE		(sizeof(struct pcache_cache_kset) + sizeof(struct pcache_cache_key_onmedia) * PCACHE_KSET_KEYS_MAX)
++
++/* Maximum number of keys to clean in one round of clean_work */
++#define PCACHE_CLEAN_KEYS_MAX             10
++
++/* Writeback and garbage collection intervals in jiffies */
++#define PCACHE_CACHE_WRITEBACK_INTERVAL   (5 * HZ)
++#define PCACHE_CACHE_GC_INTERVAL          (5 * HZ)
++
++/* Macro to get the cache key structure from an rb_node pointer */
++#define CACHE_KEY(node)                (container_of(node, struct pcache_cache_key, rb_node))
++
++struct pcache_cache_pos_onmedia {
++	struct pcache_meta_header header;
++	__u32 cache_seg_id;
++	__u32 seg_off;
++} __packed;
++
++/* Offset and size definitions for cache segment control */
++#define PCACHE_CACHE_SEG_CTRL_OFF     (PCACHE_SEG_INFO_SIZE * PCACHE_META_INDEX_MAX)
++#define PCACHE_CACHE_SEG_CTRL_SIZE    (4 * PCACHE_KB)
++
++struct pcache_cache_seg_gen {
++	struct pcache_meta_header header;
++	__u64 gen;
++} __packed;
++
++/* Control structure for cache segments */
++struct pcache_cache_seg_ctrl {
++	struct pcache_cache_seg_gen gen[PCACHE_META_INDEX_MAX];
++	__u64	res[64];
++} __packed;
++
++#define PCACHE_CACHE_FLAGS_DATA_CRC			BIT(0)
++#define PCACHE_CACHE_FLAGS_INIT_DONE			BIT(1)
++
++#define PCACHE_CACHE_FLAGS_CACHE_MODE_MASK		GENMASK(5, 2)
++#define PCACHE_CACHE_MODE_WRITEBACK			0
++#define PCACHE_CACHE_MODE_WRITETHROUGH			1
++#define PCACHE_CACHE_MODE_WRITEAROUND			2
++#define PCACHE_CACHE_MODE_WRITEONLY			3
++
++#define PCACHE_CACHE_FLAGS_GC_PERCENT_MASK		GENMASK(12, 6)
++
++struct pcache_cache_info {
++	struct pcache_meta_header header;
++	__u32 seg_id;
++	__u32 n_segs;
++	__u32 flags;
++	__u32 reserved;
++} __packed;
++
++struct pcache_cache_pos {
++	struct pcache_cache_segment *cache_seg;
++	u32 seg_off;
++};
++
++struct pcache_cache_segment {
++	struct pcache_cache	*cache;
++	u32			cache_seg_id;   /* Index in cache->segments */
++	struct pcache_segment	segment;
++	atomic_t		refs;
++
++	struct pcache_segment_info cache_seg_info;
++	struct mutex		info_lock;
++	u32			info_index;
++
++	spinlock_t		gen_lock;
++	u64			gen;
++	u64			gen_seq;
++	u32			gen_index;
++
++	struct pcache_cache_seg_ctrl *cache_seg_ctrl;
++	struct mutex		ctrl_lock;
++};
++
++/* rbtree for cache entries */
++struct pcache_cache_subtree {
++	struct rb_root root;
++	spinlock_t tree_lock;
++};
++
++struct pcache_cache_tree {
++	struct pcache_cache		*cache;
++	u32				n_subtrees;
++	struct kmem_cache		*key_cache;
++	struct pcache_cache_subtree	*subtrees;
++};
++
++struct pcache_cache_key {
++	struct pcache_cache_tree	*cache_tree;
++	struct pcache_cache_subtree	*cache_subtree;
++	struct kref			ref;
++	struct rb_node			rb_node;
++	struct list_head		list_node;
++	u64				off;
++	u32				len;
++	u32				flags;
++	struct pcache_cache_pos		cache_pos;
++	u64				seg_gen;
++};
++
++#define PCACHE_CACHE_KEY_FLAGS_EMPTY		BIT(0)
++#define PCACHE_CACHE_KEY_FLAGS_CLEAN		BIT(1)
++
++struct pcache_cache_key_onmedia {
++	__u64 off;
++	__u32 len;
++	__u32 flags;
++	__u32 cache_seg_id;
++	__u32 cache_seg_off;
++	__u64 seg_gen;
++	__u32 data_crc;
++	__u32 reserved;
++} __packed;
++
++struct pcache_cache_kset_onmedia {
++	__u32 crc;
++	union {
++		__u32 key_num;
++		__u32 next_cache_seg_id;
++	};
++	__u64 magic;
++	__u64 flags;
++	struct pcache_cache_key_onmedia data[];
++} __packed;
++
++struct pcache_cache {
++	struct pcache_backing_dev	*backing_dev;
++	struct pcache_cache_dev		*cache_dev;
++	struct pcache_cache_ctrl	*cache_ctrl;
++	u64				dev_size;
++
++	struct pcache_cache_data_head __percpu *data_heads;
++
++	spinlock_t		key_head_lock;
++	struct pcache_cache_pos	key_head;
++	u32			n_ksets;
++	struct pcache_cache_kset	*ksets;
++
++	struct mutex		key_tail_lock;
++	struct pcache_cache_pos	key_tail;
++	u64			key_tail_seq;
++	u32			key_tail_index;
++
++	struct mutex		dirty_tail_lock;
++	struct pcache_cache_pos	dirty_tail;
++	u64			dirty_tail_seq;
++	u32			dirty_tail_index;
++
++	struct pcache_cache_tree	req_key_tree;
++	struct work_struct	clean_work;
++
++	struct mutex		writeback_lock;
++	char wb_kset_onmedia_buf[PCACHE_KSET_ONMEDIA_SIZE_MAX];
++	struct pcache_cache_tree	writeback_key_tree;
++	struct delayed_work	writeback_work;
++
++	char gc_kset_onmedia_buf[PCACHE_KSET_ONMEDIA_SIZE_MAX];
++	struct delayed_work	gc_work;
++	atomic_t		gc_errors;
++
++	struct kmem_cache	*req_cache;
++
++	struct mutex			cache_info_lock;
++	struct pcache_cache_info	cache_info;
++	struct pcache_cache_info	*cache_info_addr;
++	u32				info_index;
++
++	u32			n_segs;
++	unsigned long		*seg_map;
++	u32			last_cache_seg;
++	spinlock_t		seg_map_lock;
++	struct pcache_cache_segment *segments;
++};
++
++struct workqueue_struct *cache_get_wq(struct pcache_cache *cache);
++
++struct dm_pcache;
++struct pcache_cache_options {
++	u32	cache_mode:4;
++	u32	data_crc:1;
++};
++int pcache_cache_start(struct dm_pcache *pcache, struct pcache_cache_options *opts);
++void pcache_cache_stop(struct dm_pcache *pcache);
++
++struct pcache_cache_ctrl {
++	/* Updated by gc_thread */
++	struct pcache_cache_pos_onmedia key_tail_pos[PCACHE_META_INDEX_MAX];
++
++	/* Updated by writeback_thread */
++	struct pcache_cache_pos_onmedia dirty_tail_pos[PCACHE_META_INDEX_MAX];
++};
++
++struct pcache_cache_data_head {
++	struct pcache_cache_pos head_pos;
++};
++
++static inline u16 pcache_cache_get_gc_percent(struct pcache_cache *cache)
++{
++	return FIELD_GET(PCACHE_CACHE_FLAGS_GC_PERCENT_MASK, cache->cache_info.flags);
++}
++
++int pcache_cache_set_gc_percent(struct pcache_cache *cache, u8 percent);
++
++/* cache key */
++struct pcache_cache_key *cache_key_alloc(struct pcache_cache_tree *cache_tree);
++void cache_key_init(struct pcache_cache_tree *cache_tree, struct pcache_cache_key *key);
++void cache_key_get(struct pcache_cache_key *key);
++void cache_key_put(struct pcache_cache_key *key);
++int cache_key_append(struct pcache_cache *cache, struct pcache_cache_key *key, bool force_close);
++int cache_key_insert(struct pcache_cache_tree *cache_tree, struct pcache_cache_key *key, bool fixup);
++int cache_key_decode(struct pcache_cache *cache,
++			struct pcache_cache_key_onmedia *key_onmedia,
++			struct pcache_cache_key *key);
++void cache_pos_advance(struct pcache_cache_pos *pos, u32 len);
++
++#define PCACHE_KSET_FLAGS_LAST		BIT(0)
++#define PCACHE_KSET_MAGIC		0x676894a64e164f1aULL
++
++struct pcache_cache_kset {
++	struct pcache_cache *cache;
++	spinlock_t        kset_lock;
++	struct delayed_work flush_work;
++	struct pcache_cache_kset_onmedia kset_onmedia;
++};
++
++extern struct pcache_cache_kset_onmedia pcache_empty_kset;
++
++struct pcache_cache_subtree_walk_ctx {
++	struct pcache_cache_tree *cache_tree;
++	struct rb_node *start_node;
++	struct pcache_request *pcache_req;
++	u32	req_done;
++	struct pcache_cache_key *key;
++
++	struct list_head *delete_key_list;
++	struct list_head *submit_req_list;
++
++	/*
++	 *	  |--------|		key_tmp
++	 * |====|			key
++	 */
++	int (*before)(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
++			struct pcache_cache_subtree_walk_ctx *ctx);
++
++	/*
++	 * |----------|			key_tmp
++	 *		|=====|		key
++	 */
++	int (*after)(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
++			struct pcache_cache_subtree_walk_ctx *ctx);
++
++	/*
++	 *     |----------------|	key_tmp
++	 * |===========|		key
++	 */
++	int (*overlap_tail)(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
++			struct pcache_cache_subtree_walk_ctx *ctx);
++
++	/*
++	 * |--------|			key_tmp
++	 *   |==========|		key
++	 */
++	int (*overlap_head)(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
++			struct pcache_cache_subtree_walk_ctx *ctx);
++
++	/*
++	 *    |----|			key_tmp
++	 * |==========|			key
++	 */
++	int (*overlap_contain)(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
++			struct pcache_cache_subtree_walk_ctx *ctx);
++
++	/*
++	 * |-----------|		key_tmp
++	 *   |====|			key
++	 */
++	int (*overlap_contained)(struct pcache_cache_key *key, struct pcache_cache_key *key_tmp,
++			struct pcache_cache_subtree_walk_ctx *ctx);
++
++	int (*walk_finally)(struct pcache_cache_subtree_walk_ctx *ctx);
++	bool (*walk_done)(struct pcache_cache_subtree_walk_ctx *ctx);
++};
++
++int cache_subtree_walk(struct pcache_cache_subtree_walk_ctx *ctx);
++struct rb_node *cache_subtree_search(struct pcache_cache_subtree *cache_subtree, struct pcache_cache_key *key,
++				  struct rb_node **parentp, struct rb_node ***newp,
++				  struct list_head *delete_key_list);
++int cache_kset_close(struct pcache_cache *cache, struct pcache_cache_kset *kset);
++void clean_fn(struct work_struct *work);
++void kset_flush_fn(struct work_struct *work);
++int cache_replay(struct pcache_cache *cache);
++int cache_tree_init(struct pcache_cache *cache, struct pcache_cache_tree *cache_tree, u32 n_subtrees);
++void cache_tree_exit(struct pcache_cache_tree *cache_tree);
++
++/* cache segments */
++struct pcache_cache_segment *get_cache_segment(struct pcache_cache *cache);
++int cache_seg_init(struct pcache_cache *cache, u32 seg_id, u32 cache_seg_id,
++		   bool new_cache);
++void cache_seg_get(struct pcache_cache_segment *cache_seg);
++void cache_seg_put(struct pcache_cache_segment *cache_seg);
++void cache_seg_set_next_seg(struct pcache_cache_segment *cache_seg, u32 seg_id);
++
++/* cache request*/
++int cache_flush(struct pcache_cache *cache);
++void miss_read_end_work_fn(struct work_struct *work);
++int pcache_cache_handle_req(struct pcache_cache *cache, struct pcache_request *pcache_req);
++
++/* gc */
++void pcache_cache_gc_fn(struct work_struct *work);
++
++/* writeback */
++void cache_writeback_exit(struct pcache_cache *cache);
++int cache_writeback_init(struct pcache_cache *cache);
++void cache_writeback_fn(struct work_struct *work);
++
++/* inline functions */
++static inline struct pcache_cache_subtree *get_subtree(struct pcache_cache_tree *cache_tree, u64 off)
++{
++	if (cache_tree->n_subtrees == 1)
++		return &cache_tree->subtrees[0];
++
++	return &cache_tree->subtrees[off >> PCACHE_CACHE_SUBTREE_SIZE_SHIFT];
++}
++
++static inline void *cache_pos_addr(struct pcache_cache_pos *pos)
++{
++	return (pos->cache_seg->segment.data + pos->seg_off);
++}
++
++static inline void *get_key_head_addr(struct pcache_cache *cache)
++{
++	return cache_pos_addr(&cache->key_head);
++}
++
++static inline u32 get_kset_id(struct pcache_cache *cache, u64 off)
++{
++	return (off >> PCACHE_CACHE_SUBTREE_SIZE_SHIFT) % cache->n_ksets;
++}
++
++static inline struct pcache_cache_kset *get_kset(struct pcache_cache *cache, u32 kset_id)
++{
++	return (void *)cache->ksets + PCACHE_KSET_SIZE * kset_id;
++}
++
++static inline struct pcache_cache_data_head *get_data_head(struct pcache_cache *cache)
++{
++	return this_cpu_ptr(cache->data_heads);
++}
++
++static inline bool cache_key_empty(struct pcache_cache_key *key)
++{
++	return key->flags & PCACHE_CACHE_KEY_FLAGS_EMPTY;
++}
++
++static inline bool cache_key_clean(struct pcache_cache_key *key)
++{
++	return key->flags & PCACHE_CACHE_KEY_FLAGS_CLEAN;
++}
++
++static inline void cache_pos_copy(struct pcache_cache_pos *dst, struct pcache_cache_pos *src)
++{
++	memcpy(dst, src, sizeof(struct pcache_cache_pos));
++}
++
++/**
++ * cache_seg_is_ctrl_seg - Checks if a cache segment is a cache ctrl segment.
++ * @cache_seg_id: ID of the cache segment.
++ *
++ * Returns true if the cache segment ID corresponds to a cache ctrl segment.
++ *
++ * Note: We extend the segment control of the first cache segment
++ * (cache segment ID 0) to serve as the cache control (pcache_cache_ctrl)
++ * for the entire PCACHE cache. This function determines whether the given
++ * cache segment is the one storing the pcache_cache_ctrl information.
++ */
++static inline bool cache_seg_is_ctrl_seg(u32 cache_seg_id)
++{
++	return (cache_seg_id == 0);
++}
++
++/**
++ * cache_key_cutfront - Cuts a specified length from the front of a cache key.
++ * @key: Pointer to pcache_cache_key structure.
++ * @cut_len: Length to cut from the front.
++ *
++ * Advances the cache key position by cut_len and adjusts offset and length accordingly.
++ */
++static inline void cache_key_cutfront(struct pcache_cache_key *key, u32 cut_len)
++{
++	if (key->cache_pos.cache_seg)
++		cache_pos_advance(&key->cache_pos, cut_len);
++
++	key->off += cut_len;
++	key->len -= cut_len;
++}
++
++/**
++ * cache_key_cutback - Cuts a specified length from the back of a cache key.
++ * @key: Pointer to pcache_cache_key structure.
++ * @cut_len: Length to cut from the back.
++ *
++ * Reduces the length of the cache key by cut_len.
++ */
++static inline void cache_key_cutback(struct pcache_cache_key *key, u32 cut_len)
++{
++	key->len -= cut_len;
++}
++
++static inline void cache_key_delete(struct pcache_cache_key *key)
++{
++	struct pcache_cache_subtree *cache_subtree;
++
++	cache_subtree = key->cache_subtree;
++	if (!cache_subtree)
++		return;
++
++	rb_erase(&key->rb_node, &cache_subtree->root);
++	key->flags = 0;
++	cache_key_put(key);
++}
++
++static inline bool cache_data_crc_on(struct pcache_cache *cache)
++{
++	return (cache->cache_info.flags & PCACHE_CACHE_FLAGS_DATA_CRC);
++}
++
++/**
++ * cache_key_data_crc - Calculates CRC for data in a cache key.
++ * @key: Pointer to the pcache_cache_key structure.
++ *
++ * Returns the CRC-32 checksum of the data within the cache key's position.
++ */
++static inline u32 cache_key_data_crc(struct pcache_cache_key *key)
++{
++	void *data;
++
++	data = cache_pos_addr(&key->cache_pos);
++
++	return crc32(PCACHE_CRC_SEED, data, key->len);
++}
++
++static inline u32 cache_kset_crc(struct pcache_cache_kset_onmedia *kset_onmedia)
++{
++	u32 crc_size;
++
++	if (kset_onmedia->flags & PCACHE_KSET_FLAGS_LAST)
++		crc_size = sizeof(struct pcache_cache_kset_onmedia) - 4;
++	else
++		crc_size = struct_size(kset_onmedia, data, kset_onmedia->key_num) - 4;
++
++	return crc32(PCACHE_CRC_SEED, (void *)kset_onmedia + 4, crc_size);
++}
++
++static inline u32 get_kset_onmedia_size(struct pcache_cache_kset_onmedia *kset_onmedia)
++{
++	return struct_size_t(struct pcache_cache_kset_onmedia, data, kset_onmedia->key_num);
++}
++
++/**
++ * cache_seg_remain - Computes remaining space in a cache segment.
++ * @pos: Pointer to pcache_cache_pos structure.
++ *
++ * Returns the amount of remaining space in the segment data starting from
++ * the current position offset.
++ */
++static inline u32 cache_seg_remain(struct pcache_cache_pos *pos)
++{
++	struct pcache_cache_segment *cache_seg;
++	struct pcache_segment *segment;
++	u32 seg_remain;
++
++	cache_seg = pos->cache_seg;
++	segment = &cache_seg->segment;
++	seg_remain = segment->data_size - pos->seg_off;
++
++	return seg_remain;
++}
++
++/**
++ * cache_key_invalid - Checks if a cache key is invalid.
++ * @key: Pointer to pcache_cache_key structure.
++ *
++ * Returns true if the cache key is invalid due to its generation being
++ * less than the generation of its segment; otherwise returns false.
++ *
++ * When the GC (garbage collection) thread identifies a segment
++ * as reclaimable, it increments the segment's generation (gen). However,
++ * it does not immediately remove all related cache keys. When accessing
++ * such a cache key, this function can be used to determine if the cache
++ * key has already become invalid.
++ */
++static inline bool cache_key_invalid(struct pcache_cache_key *key)
++{
++	if (cache_key_empty(key))
++		return false;
++
++	return (key->seg_gen < key->cache_pos.cache_seg->gen);
++}
++
++/**
++ * cache_key_lstart - Retrieves the logical start offset of a cache key.
++ * @key: Pointer to pcache_cache_key structure.
++ *
++ * Returns the logical start offset for the cache key.
++ */
++static inline u64 cache_key_lstart(struct pcache_cache_key *key)
++{
++	return key->off;
++}
++
++/**
++ * cache_key_lend - Retrieves the logical end offset of a cache key.
++ * @key: Pointer to pcache_cache_key structure.
++ *
++ * Returns the logical end offset for the cache key.
++ */
++static inline u64 cache_key_lend(struct pcache_cache_key *key)
++{
++	return key->off + key->len;
++}
++
++static inline void cache_key_copy(struct pcache_cache_key *key_dst, struct pcache_cache_key *key_src)
++{
++	key_dst->off = key_src->off;
++	key_dst->len = key_src->len;
++	key_dst->seg_gen = key_src->seg_gen;
++	key_dst->cache_tree = key_src->cache_tree;
++	key_dst->cache_subtree = key_src->cache_subtree;
++	key_dst->flags = key_src->flags;
++
++	cache_pos_copy(&key_dst->cache_pos, &key_src->cache_pos);
++}
++
++/**
++ * cache_pos_onmedia_crc - Calculates the CRC for an on-media cache position.
++ * @pos_om: Pointer to pcache_cache_pos_onmedia structure.
++ *
++ * Calculates the CRC-32 checksum of the position, excluding the first 4 bytes.
++ * Returns the computed CRC value.
++ */
++static inline u32 cache_pos_onmedia_crc(struct pcache_cache_pos_onmedia *pos_om)
++{
++	return pcache_meta_crc(&pos_om->header, sizeof(struct pcache_cache_pos_onmedia));
++}
++
++void cache_pos_encode(struct pcache_cache *cache,
++			     struct pcache_cache_pos_onmedia *pos_onmedia,
++			     struct pcache_cache_pos *pos, u64 seq, u32 *index);
++int cache_pos_decode(struct pcache_cache *cache,
++			    struct pcache_cache_pos_onmedia *pos_onmedia,
++			    struct pcache_cache_pos *pos, u64 *seq, u32 *index);
++
++static inline void cache_encode_key_tail(struct pcache_cache *cache)
++{
++	cache_pos_encode(cache, cache->cache_ctrl->key_tail_pos,
++			&cache->key_tail, ++cache->key_tail_seq,
++			&cache->key_tail_index);
++}
++
++static inline int cache_decode_key_tail(struct pcache_cache *cache)
++{
++	return cache_pos_decode(cache, cache->cache_ctrl->key_tail_pos,
++				&cache->key_tail, &cache->key_tail_seq,
++				&cache->key_tail_index);
++}
++
++static inline void cache_encode_dirty_tail(struct pcache_cache *cache)
++{
++	cache_pos_encode(cache, cache->cache_ctrl->dirty_tail_pos,
++			&cache->dirty_tail, ++cache->dirty_tail_seq,
++			&cache->dirty_tail_index);
++}
++
++static inline int cache_decode_dirty_tail(struct pcache_cache *cache)
++{
++	return cache_pos_decode(cache, cache->cache_ctrl->dirty_tail_pos,
++				&cache->dirty_tail, &cache->dirty_tail_seq,
++				&cache->dirty_tail_index);
++}
++#endif /* _PCACHE_CACHE_H */
 -- 
 2.34.1
 
