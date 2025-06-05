@@ -1,32 +1,32 @@
-Received: from out-186.mta0.migadu.com (out-186.mta0.migadu.com [91.218.175.186])
+Received: from out-177.mta0.migadu.com (out-177.mta0.migadu.com [91.218.175.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1B235FEE6
-	for <nvdimm@lists.linux.dev>; Thu,  5 Jun 2025 14:23:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.186
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A9BC2749F0
+	for <nvdimm@lists.linux.dev>; Thu,  5 Jun 2025 14:23:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749133435; cv=none; b=lVj5j/b7fVQc2+Cr73clhKtBuJhAfow3LXM/mKc22NghVHXXu/9I1LJTKUhs3uQZh7RbzOQTthmA/PgFOdUsQWPqp1IlvBN9ruofpE2r7e0K5VK+gWxh06llfIqxqHMuOXDRdybbpXA5kDjGOfHadxVsi7ei4ffGUIbBUu8+e9c=
+	t=1749133439; cv=none; b=OqU0V5QyubtK0qOvIsv88RPeFmX+/8zXd6IYOEZiTnOzRSU5vL82d4OgTh1HX6/1FDDSlBcioyAEEztestUAhpebBXH/N9M41LUZq3BTaEdzsL3tDLGTlgcK/Z9tDRjjU3F/hoFaaAIpbQbDkJYH30dGsIlSgEpT9wJ5XKbP3o4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749133435; c=relaxed/simple;
-	bh=cVqSblQRPUMKuxExdj6fRaq3ounZ01k/ElYFHjbgK58=;
+	s=arc-20240116; t=1749133439; c=relaxed/simple;
+	bh=Wd6UwPHbh5g8fk5xB/7evE07lpJ7pMuMRzQ/jcJuniY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sCqHtqaClZ4OIDM7U7aZGA4iaFSd5Jrnz/u+i1gPKN7BskGbNP1aZb2SKpFqzumkdvvHHF831NcY+aCG5q+Zg0Z9oeYcCQ/EfaATC3NezdY0qcdm+Y8PV2NpPpVJGox0kmhre0EHTrbNNssAWRJphlpqVWOWCJ6NtLYnCVEqoPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Cj5z66+V; arc=none smtp.client-ip=91.218.175.186
+	 MIME-Version:Content-Type; b=glXcvC4dzfWuetlKMZAROtYxiL1S4hzTgIusekDVHaJR/EsHGtUtk2hSIvOEPbGit00VeGShf1My5UwbPSyi+pV6lc3LQS5l5L7pqlq+6ERNpFIY7lw1h1l8tLrZ6bBBuXfW1Ilm8F68Q8ErA5fThNvExKCqKQOOLEmGf51ZGKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=D0WibMpl; arc=none smtp.client-ip=91.218.175.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Cj5z66+V"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="D0WibMpl"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1749133429;
+	t=1749133434;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=fe4m3owosPzB3KvlAMRW3NDZUpPP7y6rq1nR9F2nKx0=;
-	b=Cj5z66+VtoenRz6bZve+z4yR8qfxBbCTSdcG7+t8YbnVMjRbBa9QS2QRrgmnVIj2+KfAHn
-	LLOyyLn1LMtvW5oZC2SHAjCjjpFzZwU5ifWRPLsDS+PRzganlpALEVhsc85OR1whwmxjhh
-	iA25NI5fIdKi0gdrFui2/Q/+63AHw/E=
+	bh=sIsclH7WNkkF/JVTKezZJI19OpMaWanv0inQs2KR4wo=;
+	b=D0WibMplEtLcfccq8vPrYCcauKRxt68c8Y/E+McTQMca2J0+Xul96vIfUTkh0OrR1VhrO0
+	FQC8QFzyv3n8hk2ba6zAyCF+cJYMHpounNKu8Z7Zi93BQl+YW98ZwlwHCm+LUzWG9ckzcf
+	nAL/fEH0piBsnlsbdhbBNxDZhUvUIQI=
 From: Dongsheng Yang <dongsheng.yang@linux.dev>
 To: mpatocka@redhat.com,
 	agk@redhat.com,
@@ -41,9 +41,9 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	dm-devel@lists.linux.dev,
 	Dongsheng Yang <dongsheng.yang@linux.dev>
-Subject: [RFC PATCH 02/11] dm-pcache: add backing device management
-Date: Thu,  5 Jun 2025 14:22:57 +0000
-Message-Id: <20250605142306.1930831-3-dongsheng.yang@linux.dev>
+Subject: [RFC PATCH 03/11] dm-pcache: add cache device
+Date: Thu,  5 Jun 2025 14:22:58 +0000
+Message-Id: <20250605142306.1930831-4-dongsheng.yang@linux.dev>
 In-Reply-To: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
 References: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
 Precedence: bulk
@@ -56,445 +56,440 @@ Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-This patch introduces *backing_dev.{c,h}*, a self-contained layer that
-handles all interaction with the *backing block device* where cache
-write-back and cache-miss reads are serviced.  Isolating this logic
-keeps the core dm-pcache code free of low-level bio plumbing.
+Add cache_dev.{c,h} to manage the persistent-memory device that stores
+all pcache metadata and data segments.  Splitting this logic out keeps
+the main dm-pcache code focused on policy while cache_dev handles the
+low-level interaction with the DAX block device.
 
-* Device setup / teardown
-  - Opens the target with `dm_get_device()`, stores `bdev`, file and
-    size, and initialises a dedicated `bioset`.
-  - Gracefully releases resources via `backing_dev_stop()`.
+* DAX mapping
+  - Opens the underlying device via dm_get_device().
+  - Uses dax_direct_access() to obtain a direct linear mapping; falls
+    back to vmap() when the range is fragmented.
 
-* Request object (`struct pcache_backing_dev_req`)
-  - Two request flavours:
-    - REQ-type – cloned from an upper `struct bio` issued to
-      dm-pcache; trimmed and re-targeted to the backing LBA.
-    - KMEM-type – maps an arbitrary kernel memory buffer
-      into a freshly built.
-  - Private completion callback (`end_req`) propagates status to the
-    upper layer and handles resource recycling.
+* On-disk layout
+  ┌─ 4 KB ─┐  super-block (SB)
+  ├─ 4 KB ─┤  cache_info[0]
+  ├─ 4 KB ─┤  cache_info[1]
+  ├─ 4 KB ─┤  cache_ctrl
+  └─ ...  ─┘  segments
+  Constants and macros in the header expose offsets and sizes.
 
-* Submission & completion path
-  - Lock-protected submit queue + worker (`req_submit_work`) let pcache
-    push many requests asynchronously, at the same time, allow caller
-    to submit backing_dev_req in atomic context.
-  - End-io handler moves finished requests to a completion list processed
-    by `req_complete_work`, ensuring callbacks run in process context.
-  - Direct-submit option for non-atomic context.
+* Super-block handling
+  - sb_read(), sb_validate(), sb_init() verify magic, CRC32 and host
+    endianness (flag *PCACHE_SB_F_BIGENDIAN*).
+  - Formatting zeroes the metadata replicas and initialises the segment
+    bitmap when the SB is blank.
 
-* Flush
-  - `backing_dev_flush()` issues a flush to persist backing-device data.
+* Segment allocator
+  - Bitmap protected by seg_lock; find_next_zero_bit() yields the next
+    free 16 MB segment.
+
+* Lifecycle helpers
+  - cache_dev_start()/stop() encapsulate init/exit and are invoked by
+    dm-pcache core.
+  - Gracefully handles errors: CRC mismatch, wrong endianness, device
+    too small (< 512 MB), or failed DAX mapping.
 
 Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
 ---
- drivers/md/dm-pcache/backing_dev.c | 305 +++++++++++++++++++++++++++++
- drivers/md/dm-pcache/backing_dev.h |  84 ++++++++
- 2 files changed, 389 insertions(+)
- create mode 100644 drivers/md/dm-pcache/backing_dev.c
- create mode 100644 drivers/md/dm-pcache/backing_dev.h
+ drivers/md/dm-pcache/cache_dev.c | 310 +++++++++++++++++++++++++++++++
+ drivers/md/dm-pcache/cache_dev.h |  70 +++++++
+ 2 files changed, 380 insertions(+)
+ create mode 100644 drivers/md/dm-pcache/cache_dev.c
+ create mode 100644 drivers/md/dm-pcache/cache_dev.h
 
-diff --git a/drivers/md/dm-pcache/backing_dev.c b/drivers/md/dm-pcache/backing_dev.c
+diff --git a/drivers/md/dm-pcache/cache_dev.c b/drivers/md/dm-pcache/cache_dev.c
 new file mode 100644
-index 000000000000..080944cd6c93
+index 000000000000..8089518fe5c9
 --- /dev/null
-+++ b/drivers/md/dm-pcache/backing_dev.c
-@@ -0,0 +1,305 @@
++++ b/drivers/md/dm-pcache/cache_dev.c
+@@ -0,0 +1,310 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
-+#include <linux/blkdev.h>
 +
-+#include "../dm-core.h"
-+#include "pcache_internal.h"
++#include <linux/blkdev.h>
++#include <linux/dax.h>
++#include <linux/vmalloc.h>
++#include <linux/pfn_t.h>
++#include <linux/parser.h>
++
 +#include "cache_dev.h"
 +#include "backing_dev.h"
 +#include "cache.h"
 +#include "dm_pcache.h"
 +
-+static void backing_dev_exit(struct pcache_backing_dev *backing_dev)
++static void cache_dev_dax_exit(struct pcache_cache_dev *cache_dev)
 +{
-+	kmem_cache_destroy(backing_dev->backing_req_cache);
++	struct dm_pcache *pcache = CACHE_DEV_TO_PCACHE(cache_dev);
++
++	if (cache_dev->use_vmap)
++		vunmap(cache_dev->mapping);
++
++	dm_put_device(pcache->ti, cache_dev->dm_dev);
 +}
 +
-+static void req_submit_fn(struct work_struct *work);
-+static void req_complete_fn(struct work_struct *work);
-+static int backing_dev_init(struct dm_pcache *pcache)
++static int build_vmap(struct dax_device *dax_dev, long total_pages, void **vaddr)
 +{
-+	struct pcache_backing_dev *backing_dev = &pcache->backing_dev;
++	struct page **pages;
++	long i = 0, chunk;
++	pfn_t pfn;
 +	int ret;
 +
-+	backing_dev->backing_req_cache = KMEM_CACHE(pcache_backing_dev_req, 0);
-+	if (!backing_dev->backing_req_cache) {
++	pages = vmalloc_array(total_pages, sizeof(struct page *));
++	if (!pages)
++		return -ENOMEM;
++
++	do {
++		chunk = dax_direct_access(dax_dev, i, total_pages - i,
++					  DAX_ACCESS, NULL, &pfn);
++		if (chunk <= 0) {
++			ret = chunk ? chunk : -EINVAL;
++			goto out_free;
++		}
++
++		if (!pfn_t_has_page(pfn)) {
++			ret = -EOPNOTSUPP;
++			goto out_free;
++		}
++
++		while (chunk-- && i < total_pages) {
++			pages[i++] = pfn_t_to_page(pfn);
++			pfn.val++;
++			if (!(i & 15))
++				cond_resched();
++		}
++	} while (i < total_pages);
++
++	*vaddr = vmap(pages, total_pages, VM_MAP, PAGE_KERNEL);
++	if (!*vaddr)
 +		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	INIT_LIST_HEAD(&backing_dev->submit_list);
-+	INIT_LIST_HEAD(&backing_dev->complete_list);
-+	spin_lock_init(&backing_dev->submit_lock);
-+	spin_lock_init(&backing_dev->complete_lock);
-+	INIT_WORK(&backing_dev->req_submit_work, req_submit_fn);
-+	INIT_WORK(&backing_dev->req_complete_work, req_complete_fn);
-+
-+	return 0;
-+err:
++out_free:
++	vfree(pages);
 +	return ret;
 +}
 +
-+static int backing_dev_open(struct pcache_backing_dev *backing_dev, const char *path)
++static int cache_dev_dax_init(struct pcache_cache_dev *cache_dev, const char *path)
 +{
-+	struct dm_pcache *pcache = BACKING_DEV_TO_PCACHE(backing_dev);
-+	int ret;
++	struct dm_pcache	*pcache = CACHE_DEV_TO_PCACHE(cache_dev);
++	struct dax_device	*dax_dev;
++	long			total_pages, mapped_pages;
++	u64			bdev_size;
++	void			*vaddr;
++	int			ret, id;
++	pfn_t			pfn;
 +
 +	ret = dm_get_device(pcache->ti, path,
-+			BLK_OPEN_READ | BLK_OPEN_WRITE, &backing_dev->dm_dev);
++			    BLK_OPEN_READ | BLK_OPEN_WRITE, &cache_dev->dm_dev);
 +	if (ret) {
 +		pcache_dev_err(pcache, "failed to open dm_dev: %s: %d", path, ret);
 +		goto err;
 +	}
-+	backing_dev->dev_size = bdev_nr_sectors(backing_dev->dm_dev->bdev);
++
++	dax_dev	= cache_dev->dm_dev->dax_dev;
++
++	/* total size check */
++	bdev_size = bdev_nr_bytes(cache_dev->dm_dev->bdev);
++	if (!bdev_size) {
++		ret = -ENODEV;
++		pcache_dev_err(pcache, "device %s has zero size\n", path);
++		goto put_dm;
++	}
++
++	total_pages = bdev_size >> PAGE_SHIFT;
++	/* attempt: direct-map the whole range */
++	id = dax_read_lock();
++	mapped_pages = dax_direct_access(dax_dev, 0, total_pages,
++					 DAX_ACCESS, &vaddr, &pfn);
++	if (mapped_pages < 0) {
++		pcache_dev_err(pcache, "dax_direct_access failed: %ld\n", mapped_pages);
++		ret = mapped_pages;
++		goto unlock;
++	}
++
++	if (!pfn_t_has_page(pfn)) {
++		ret = -EOPNOTSUPP;
++		goto unlock;
++	}
++
++	if (mapped_pages == total_pages) {
++		/* success: contiguous direct mapping */
++		cache_dev->mapping = vaddr;
++	} else {
++		/* need vmap fallback */
++		ret = build_vmap(dax_dev, total_pages, &vaddr);
++		if (ret) {
++			pcache_dev_err(pcache, "vmap fallback failed: %d\n", ret);
++			goto unlock;
++		}
++
++		cache_dev->mapping	= vaddr;
++		cache_dev->use_vmap	= true;
++	}
++	dax_read_unlock(id);
 +
 +	return 0;
++unlock:
++	dax_read_unlock(id);
++put_dm:
++	dm_put_device(pcache->ti, cache_dev->dm_dev);
 +err:
 +	return ret;
 +}
 +
-+static void backing_dev_close(struct pcache_backing_dev *backing_dev)
++void cache_dev_zero_range(struct pcache_cache_dev *cache_dev, void *pos, u32 size)
 +{
-+	struct dm_pcache *pcache = BACKING_DEV_TO_PCACHE(backing_dev);
-+
-+	dm_put_device(pcache->ti, backing_dev->dm_dev);
++	memset(pos, 0, size);
++	dax_flush(cache_dev->dm_dev->dax_dev, pos, size);
 +}
 +
-+int backing_dev_start(struct dm_pcache *pcache, const char *backing_dev_path)
++static int sb_read(struct pcache_cache_dev *cache_dev, struct pcache_sb *sb)
 +{
-+	struct pcache_backing_dev *backing_dev = &pcache->backing_dev;
++	struct pcache_sb *sb_addr = CACHE_DEV_SB(cache_dev);
++
++	if (copy_mc_to_kernel(sb, sb_addr, sizeof(struct pcache_sb)))
++		return -EIO;
++
++	return 0;
++}
++
++static void sb_write(struct pcache_cache_dev *cache_dev, struct pcache_sb *sb)
++{
++	struct pcache_sb *sb_addr = CACHE_DEV_SB(cache_dev);
++
++	memcpy_flushcache(sb_addr, sb, sizeof(struct pcache_sb));
++	pmem_wmb();
++}
++
++static int sb_init(struct pcache_cache_dev *cache_dev, struct pcache_sb *sb)
++{
++	struct dm_pcache *pcache = CACHE_DEV_TO_PCACHE(cache_dev);
++	u64 nr_segs;
++	u64 cache_dev_size;
++	u64 magic;
++	u32 flags = 0;
++
++	magic = le64_to_cpu(sb->magic);
++	if (magic)
++		return -EEXIST;
++
++	cache_dev_size = bdev_nr_bytes(file_bdev(cache_dev->dm_dev->bdev_file));
++	if (cache_dev_size < PCACHE_CACHE_DEV_SIZE_MIN) {
++		pcache_dev_err(pcache, "dax device is too small, required at least %llu",
++				PCACHE_CACHE_DEV_SIZE_MIN);
++		return -ENOSPC;
++	}
++
++	nr_segs = (cache_dev_size - PCACHE_SEGMENTS_OFF) / ((PCACHE_SEG_SIZE));
++
++#if defined(__BYTE_ORDER) ? (__BIG_ENDIAN == __BYTE_ORDER) : defined(__BIG_ENDIAN)
++	flags |= PCACHE_SB_F_BIGENDIAN;
++#endif
++	sb->flags = cpu_to_le32(flags);
++	sb->magic = cpu_to_le64(PCACHE_MAGIC);
++	sb->seg_num = cpu_to_le32(nr_segs);
++	sb->crc = cpu_to_le32(crc32(PCACHE_CRC_SEED, (void *)(sb) + 4, sizeof(struct pcache_sb) - 4));
++
++	cache_dev_zero_range(cache_dev, CACHE_DEV_CACHE_INFO(cache_dev),
++			     PCACHE_CACHE_INFO_SIZE * PCACHE_META_INDEX_MAX +
++			     PCACHE_CACHE_CTRL_SIZE);
++
++	return 0;
++}
++
++static int sb_validate(struct pcache_cache_dev *cache_dev, struct pcache_sb *sb)
++{
++	struct dm_pcache *pcache = CACHE_DEV_TO_PCACHE(cache_dev);
++	u32 flags;
++	u32 crc;
++
++	if (le64_to_cpu(sb->magic) != PCACHE_MAGIC) {
++		pcache_dev_err(pcache, "unexpected magic: %llx\n",
++				le64_to_cpu(sb->magic));
++		return -EINVAL;
++	}
++
++	crc = crc32(PCACHE_CRC_SEED, (void *)(sb) + 4, sizeof(struct pcache_sb) - 4);
++	if (crc != le32_to_cpu(sb->crc)) {
++		pcache_dev_err(pcache, "corrupted sb: %u, expected: %u\n", crc, le32_to_cpu(sb->crc));
++		return -EINVAL;
++	}
++
++	flags = le32_to_cpu(sb->flags);
++#if defined(__BYTE_ORDER) ? (__BIG_ENDIAN == __BYTE_ORDER) : defined(__BIG_ENDIAN)
++	if (!(flags & PCACHE_SB_F_BIGENDIAN)) {
++		pcache_dev_err(pcache, "cache_dev is not big endian\n");
++		return -EINVAL;
++	}
++#else
++	if (flags & PCACHE_SB_F_BIGENDIAN) {
++		pcache_dev_err(pcache, "cache_dev is big endian\n");
++		return -EINVAL;
++	}
++#endif
++	return 0;
++}
++
++static int cache_dev_init(struct pcache_cache_dev *cache_dev, u32 seg_num)
++{
++	cache_dev->seg_num = seg_num;
++	cache_dev->seg_bitmap = bitmap_zalloc(cache_dev->seg_num, GFP_KERNEL);
++	if (!cache_dev->seg_bitmap)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void cache_dev_exit(struct pcache_cache_dev *cache_dev)
++{
++	bitmap_free(cache_dev->seg_bitmap);
++}
++
++void cache_dev_stop(struct dm_pcache *pcache)
++{
++	struct pcache_cache_dev *cache_dev = &pcache->cache_dev;
++
++	cache_dev_exit(cache_dev);
++	cache_dev_dax_exit(cache_dev);
++}
++
++int cache_dev_start(struct dm_pcache *pcache, const char *cache_dev_path)
++{
++	struct pcache_cache_dev *cache_dev = &pcache->cache_dev;
++	struct pcache_sb sb;
++	bool format = false;
 +	int ret;
 +
-+	ret = backing_dev_init(pcache);
-+	if (ret)
++	mutex_init(&cache_dev->seg_lock);
++
++	ret = cache_dev_dax_init(cache_dev, cache_dev_path);
++	if (ret) {
++		pcache_dev_err(pcache, "failed to init cache_dev via dax way: %d.", ret);
 +		goto err;
++	}
 +
-+	ret = backing_dev_open(backing_dev, backing_dev_path);
++	ret = sb_read(cache_dev, &sb);
 +	if (ret)
-+		goto destroy_backing_dev;
++		goto dax_release;
++
++	if (le64_to_cpu(sb.magic) == 0) {
++		format = true;
++		ret = sb_init(cache_dev, &sb);
++		if (ret < 0)
++			goto dax_release;
++	}
++
++	ret = sb_validate(cache_dev, &sb);
++	if (ret)
++		goto dax_release;
++
++	cache_dev->sb_flags = le32_to_cpu(sb.flags);
++	ret = cache_dev_init(cache_dev, sb.seg_num);
++	if (ret)
++		goto dax_release;
++
++	if (format)
++		sb_write(cache_dev, &sb);
 +
 +	return 0;
 +
-+destroy_backing_dev:
-+	backing_dev_exit(backing_dev);
++dax_release:
++	cache_dev_dax_exit(cache_dev);
 +err:
 +	return ret;
 +}
 +
-+void backing_dev_stop(struct dm_pcache *pcache)
++int cache_dev_get_empty_segment_id(struct pcache_cache_dev *cache_dev, u32 *seg_id)
 +{
-+	struct pcache_backing_dev *backing_dev = &pcache->backing_dev;
-+
-+	flush_work(&backing_dev->req_submit_work);
-+	flush_work(&backing_dev->req_complete_work);
-+
-+	/* There should be no inflight backing_dev_request */
-+	BUG_ON(!list_empty(&backing_dev->submit_list));
-+	BUG_ON(!list_empty(&backing_dev->complete_list));
-+
-+	backing_dev_close(backing_dev);
-+	backing_dev_exit(backing_dev);
-+}
-+
-+/* pcache_backing_dev_req functions */
-+void backing_dev_req_end(struct pcache_backing_dev_req *backing_req)
-+{
-+	struct pcache_backing_dev *backing_dev = backing_req->backing_dev;
-+
-+	if (backing_req->end_req)
-+		backing_req->end_req(backing_req, backing_req->ret);
-+
-+	switch (backing_req->type) {
-+	case BACKING_DEV_REQ_TYPE_REQ:
-+		pcache_req_put(backing_req->req.upper_req, backing_req->ret);
-+		break;
-+	case BACKING_DEV_REQ_TYPE_KMEM:
-+		kfree(backing_req->kmem.bvecs);
-+		break;
-+	default:
-+		BUG();
-+	}
-+
-+	kmem_cache_free(backing_dev->backing_req_cache, backing_req);
-+}
-+
-+static void req_complete_fn(struct work_struct *work)
-+{
-+	struct pcache_backing_dev *backing_dev = container_of(work, struct pcache_backing_dev, req_complete_work);
-+	struct pcache_backing_dev_req *backing_req;
-+	unsigned long flags;
-+	LIST_HEAD(tmp_list);
-+
-+	spin_lock_irqsave(&backing_dev->complete_lock, flags);
-+	list_splice_init(&backing_dev->complete_list, &tmp_list);
-+	spin_unlock_irqrestore(&backing_dev->complete_lock, flags);
-+
-+	while (!list_empty(&tmp_list)) {
-+		backing_req = list_first_entry(&tmp_list,
-+					    struct pcache_backing_dev_req, node);
-+		list_del_init(&backing_req->node);
-+		backing_dev_req_end(backing_req);
-+	}
-+}
-+
-+static void backing_dev_bio_end(struct bio *bio)
-+{
-+	struct pcache_backing_dev_req *backing_req = bio->bi_private;
-+	struct pcache_backing_dev *backing_dev = backing_req->backing_dev;
-+
-+	backing_req->ret = bio->bi_status;
-+
-+	spin_lock(&backing_dev->complete_lock);
-+	list_move_tail(&backing_req->node, &backing_dev->complete_list);
-+	spin_unlock(&backing_dev->complete_lock);
-+
-+	queue_work(BACKING_DEV_TO_PCACHE(backing_dev)->task_wq, &backing_dev->req_complete_work);
-+}
-+
-+static void req_submit_fn(struct work_struct *work)
-+{
-+	struct pcache_backing_dev *backing_dev = container_of(work, struct pcache_backing_dev, req_submit_work);
-+	struct pcache_backing_dev_req *backing_req;
-+	LIST_HEAD(tmp_list);
-+
-+	spin_lock(&backing_dev->submit_lock);
-+	list_splice_init(&backing_dev->submit_list, &tmp_list);
-+	spin_unlock(&backing_dev->submit_lock);
-+
-+	while (!list_empty(&tmp_list)) {
-+		backing_req = list_first_entry(&tmp_list,
-+					    struct pcache_backing_dev_req, node);
-+		list_del_init(&backing_req->node);
-+		submit_bio_noacct(&backing_req->bio);
-+	}
-+}
-+
-+void backing_dev_req_submit(struct pcache_backing_dev_req *backing_req, bool direct)
-+{
-+	struct pcache_backing_dev *backing_dev = backing_req->backing_dev;
-+
-+	if (direct) {
-+		submit_bio_noacct(&backing_req->bio);
-+		return;
-+	}
-+
-+	spin_lock(&backing_dev->submit_lock);
-+	list_add_tail(&backing_req->node, &backing_dev->submit_list);
-+	spin_unlock(&backing_dev->submit_lock);
-+
-+	queue_work(BACKING_DEV_TO_PCACHE(backing_dev)->task_wq, &backing_dev->req_submit_work);
-+}
-+
-+static struct pcache_backing_dev_req *req_type_req_create(struct pcache_backing_dev *backing_dev,
-+							struct pcache_backing_dev_req_opts *opts)
-+{
-+	struct pcache_request *pcache_req = opts->req.upper_req;
-+	struct pcache_backing_dev_req *backing_req;
-+	struct bio *clone, *orig = pcache_req->bio;
-+	u32 off = opts->req.req_off;
-+	u32 len = opts->req.len;
 +	int ret;
 +
-+	backing_req = kmem_cache_zalloc(backing_dev->backing_req_cache, opts->gfp_mask);
-+	if (!backing_req)
-+		return NULL;
-+
-+	ret = bio_init_clone(backing_dev->dm_dev->bdev, &backing_req->bio, orig, opts->gfp_mask);
-+	if (ret)
-+		goto err_free_req;
-+
-+	backing_req->type = BACKING_DEV_REQ_TYPE_REQ;
-+
-+	clone = &backing_req->bio;
-+	BUG_ON(off & SECTOR_MASK);
-+	BUG_ON(len & SECTOR_MASK);
-+	bio_trim(clone, off >> SECTOR_SHIFT, len >> SECTOR_SHIFT);
-+
-+	clone->bi_iter.bi_sector = (pcache_req->off + off) >> SECTOR_SHIFT;
-+	clone->bi_private = backing_req;
-+	clone->bi_end_io = backing_dev_bio_end;
-+
-+	backing_req->backing_dev = backing_dev;
-+	INIT_LIST_HEAD(&backing_req->node);
-+	backing_req->end_req     = opts->end_fn;
-+
-+	pcache_req_get(pcache_req);
-+	backing_req->req.upper_req	= pcache_req;
-+	backing_req->req.bio_off	= off;
-+
-+	return backing_req;
-+
-+err_free_req:
-+	kmem_cache_free(backing_dev->backing_req_cache, backing_req);
-+	return NULL;
-+}
-+
-+static void bio_map(struct bio *bio, void *base, size_t size)
-+{
-+	if (is_vmalloc_addr(base))
-+		flush_kernel_vmap_range(base, size);
-+
-+	while (size) {
-+		struct page *page = is_vmalloc_addr(base)
-+				? vmalloc_to_page(base)
-+				: virt_to_page(base);
-+		unsigned int offset = offset_in_page(base);
-+		unsigned int len = min_t(size_t, PAGE_SIZE - offset, size);
-+
-+		BUG_ON(!bio_add_page(bio, page, len, offset));
-+		size -= len;
-+		base += len;
++	mutex_lock(&cache_dev->seg_lock);
++	*seg_id = find_next_zero_bit(cache_dev->seg_bitmap, cache_dev->seg_num, 0);
++	if (*seg_id == cache_dev->seg_num) {
++		ret = -ENOSPC;
++		goto unlock;
 +	}
++
++	set_bit(*seg_id, cache_dev->seg_bitmap);
++	ret = 0;
++unlock:
++	mutex_unlock(&cache_dev->seg_lock);
++	return ret;
 +}
-+
-+static struct pcache_backing_dev_req *kmem_type_req_create(struct pcache_backing_dev *backing_dev,
-+						struct pcache_backing_dev_req_opts *opts)
-+{
-+	struct pcache_backing_dev_req *backing_req;
-+	struct bio *backing_bio;
-+	u32 n_vecs = DIV_ROUND_UP(opts->kmem.len, PAGE_SIZE);
-+
-+	backing_req = kmem_cache_zalloc(backing_dev->backing_req_cache, opts->gfp_mask);
-+	if (!backing_req)
-+		return NULL;
-+
-+	backing_req->kmem.bvecs = kcalloc(n_vecs, sizeof(struct bio_vec), opts->gfp_mask);
-+	if (!backing_req->kmem.bvecs)
-+		goto err_free_req;
-+
-+	backing_req->type = BACKING_DEV_REQ_TYPE_KMEM;
-+
-+	bio_init(&backing_req->bio, backing_dev->dm_dev->bdev, backing_req->kmem.bvecs,
-+			n_vecs, opts->kmem.opf);
-+
-+	backing_bio = &backing_req->bio;
-+	bio_map(backing_bio, opts->kmem.data, opts->kmem.len);
-+
-+	backing_bio->bi_iter.bi_sector = (opts->kmem.backing_off) >> SECTOR_SHIFT;
-+	backing_bio->bi_private = backing_req;
-+	backing_bio->bi_end_io = backing_dev_bio_end;
-+
-+	backing_req->backing_dev = backing_dev;
-+	INIT_LIST_HEAD(&backing_req->node);
-+	backing_req->end_req     = opts->end_fn;
-+
-+	return backing_req;
-+
-+err_free_req:
-+	kmem_cache_free(backing_dev->backing_req_cache, backing_req);
-+	return NULL;
-+}
-+
-+struct pcache_backing_dev_req *backing_dev_req_create(struct pcache_backing_dev *backing_dev,
-+						struct pcache_backing_dev_req_opts *opts)
-+{
-+	if (opts->type == BACKING_DEV_REQ_TYPE_REQ)
-+		return req_type_req_create(backing_dev, opts);
-+	else if (opts->type == BACKING_DEV_REQ_TYPE_KMEM)
-+		return kmem_type_req_create(backing_dev, opts);
-+
-+	return NULL;
-+}
-+
-+void backing_dev_flush(struct pcache_backing_dev *backing_dev)
-+{
-+	blkdev_issue_flush(backing_dev->dm_dev->bdev);
-+}
-diff --git a/drivers/md/dm-pcache/backing_dev.h b/drivers/md/dm-pcache/backing_dev.h
+diff --git a/drivers/md/dm-pcache/cache_dev.h b/drivers/md/dm-pcache/cache_dev.h
 new file mode 100644
-index 000000000000..935fdd88ef6e
+index 000000000000..3b5249f7128e
 --- /dev/null
-+++ b/drivers/md/dm-pcache/backing_dev.h
-@@ -0,0 +1,84 @@
++++ b/drivers/md/dm-pcache/cache_dev.h
+@@ -0,0 +1,70 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef _BACKING_DEV_H
-+#define _BACKING_DEV_H
++#ifndef _PCACHE_CACHE_DEV_H
++#define _PCACHE_CACHE_DEV_H
 +
++#include <linux/device.h>
 +#include <linux/device-mapper.h>
 +
 +#include "pcache_internal.h"
 +
-+struct pcache_backing_dev_req;
-+typedef void (*backing_req_end_fn_t)(struct pcache_backing_dev_req *backing_req, int ret);
++#define PCACHE_MAGIC				0x65B05EFA96C596EFULL
 +
-+#define BACKING_DEV_REQ_TYPE_REQ		1
-+#define BACKING_DEV_REQ_TYPE_KMEM		2
++#define PCACHE_SB_OFF				(4 * PCACHE_KB)
++#define PCACHE_SB_SIZE				(4 * PCACHE_KB)
 +
-+struct pcache_request;
-+struct pcache_backing_dev_req {
-+	u8				type;
-+	struct bio			bio;
-+	struct pcache_backing_dev	*backing_dev;
++#define PCACHE_CACHE_INFO_OFF			(PCACHE_SB_OFF + PCACHE_SB_SIZE)
++#define PCACHE_CACHE_INFO_SIZE			(4 * PCACHE_KB)
 +
-+	void				*priv_data;
-+	backing_req_end_fn_t		end_req;
++#define PCACHE_CACHE_CTRL_OFF			(PCACHE_CACHE_INFO_OFF + (PCACHE_CACHE_INFO_SIZE * PCACHE_META_INDEX_MAX))
++#define PCACHE_CACHE_CTRL_SIZE			(4 * PCACHE_KB)
 +
-+	struct list_head		node;
-+	int				ret;
++#define PCACHE_SEGMENTS_OFF			(PCACHE_CACHE_CTRL_OFF + PCACHE_CACHE_CTRL_SIZE)
++#define PCACHE_SEG_INFO_SIZE			(4 * PCACHE_KB)
 +
-+	union {
-+		struct {
-+			struct pcache_request		*upper_req;
-+			u32				bio_off;
-+		} req;
-+		struct {
-+			struct bio_vec	*bvecs;
-+		} kmem;
-+	};
++#define PCACHE_CACHE_DEV_SIZE_MIN		(512 * PCACHE_MB)	/* 512 MB */
++#define PCACHE_SEG_SIZE				(16 * PCACHE_MB)	/* Size of each PCACHE segment (16 MB) */
++
++#define CACHE_DEV_SB(cache_dev)			((struct pcache_sb *)(cache_dev->mapping + PCACHE_SB_OFF))
++#define CACHE_DEV_CACHE_INFO(cache_dev)		((void *)cache_dev->mapping + PCACHE_CACHE_INFO_OFF)
++#define CACHE_DEV_CACHE_CTRL(cache_dev)		((void *)cache_dev->mapping + PCACHE_CACHE_CTRL_OFF)
++#define CACHE_DEV_SEGMENTS(cache_dev)		((void *)cache_dev->mapping + PCACHE_SEGMENTS_OFF)
++#define CACHE_DEV_SEGMENT(cache_dev, id)	((void *)CACHE_DEV_SEGMENTS(cache_dev) + (u64)id * PCACHE_SEG_SIZE)
++
++/*
++ * PCACHE SB flags configured during formatting
++ *
++ * The PCACHE_SB_F_xxx flags define registration requirements based on cache_dev
++ * formatting. For a machine to register a cache_dev:
++ * - PCACHE_SB_F_BIGENDIAN: Requires a big-endian machine.
++ */
++#define PCACHE_SB_F_BIGENDIAN			BIT(0)
++
++struct pcache_sb {
++	__le32 crc;
++	__le32 flags;
++	__le64 magic;
++
++	__le32 seg_num;
 +};
 +
-+struct pcache_backing_dev {
-+	struct pcache_cache		*cache;
++struct pcache_cache_dev {
++	u32				sb_flags;
++	u32				seg_num;
++	void				*mapping;
++	bool				use_vmap;
 +
 +	struct dm_dev			*dm_dev;
-+	struct kmem_cache		*backing_req_cache;
 +
-+	struct list_head		submit_list;
-+	spinlock_t			submit_lock;
-+	struct work_struct		req_submit_work;
-+
-+	struct list_head		complete_list;
-+	spinlock_t			complete_lock;
-+	struct work_struct		req_complete_work;
-+
-+	u64				dev_size;
++	struct mutex			seg_lock;
++	unsigned long			*seg_bitmap;
 +};
 +
 +struct dm_pcache;
-+int backing_dev_start(struct dm_pcache *pcache, const char *backing_dev_path);
-+void backing_dev_stop(struct dm_pcache *pcache);
++int cache_dev_start(struct dm_pcache *pcache, const char *cache_dev_path);
++void cache_dev_stop(struct dm_pcache *pcache);
 +
-+struct pcache_backing_dev_req_opts {
-+	u32 type;
-+	union {
-+		struct {
-+			struct pcache_request *upper_req;
-+			u32 req_off;
-+			u32 len;
-+		} req;
-+		struct {
-+			void *data;
-+			blk_opf_t opf;
-+			u32 len;
-+			u64 backing_off;
-+		} kmem;
-+	};
++void cache_dev_zero_range(struct pcache_cache_dev *cache_dev, void *pos, u32 size);
 +
-+	gfp_t gfp_mask;
-+	backing_req_end_fn_t	end_fn;
-+};
++int cache_dev_get_empty_segment_id(struct pcache_cache_dev *cache_dev, u32 *seg_id);
 +
-+void backing_dev_req_submit(struct pcache_backing_dev_req *backing_req, bool direct);
-+void backing_dev_req_end(struct pcache_backing_dev_req *backing_req);
-+struct pcache_backing_dev_req *backing_dev_req_create(struct pcache_backing_dev *backing_dev,
-+						struct pcache_backing_dev_req_opts *opts);
-+void backing_dev_flush(struct pcache_backing_dev *backing_dev);
-+#endif /* _BACKING_DEV_H */
++#endif /* _PCACHE_CACHE_DEV_H */
 -- 
 2.34.1
 
