@@ -1,264 +1,265 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2046.outbound.protection.outlook.com [40.107.243.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2E061E9B31
-	for <nvdimm@lists.linux.dev>; Fri,  6 Jun 2025 18:50:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749235828; cv=none; b=YmvLPYmy+tjmJAkcW97ZEyF76xhWhz0PLMwdSZvEhrha34CLA92GY7JoIXhb054JNxmfcHa4A2Y5dXm/hoH164Jcq3/q+aUrlymRQwAM4KXq67VBabSeeMmf1IAbJSGhtrU4cY0PyOIiRropjrRPmm0+FWw14T39OYBpbNDLwRk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749235828; c=relaxed/simple;
-	bh=/dqd4gsiXRTcfp+0X9yq9B99EvZcupPMVZfAGuQtBNs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=k8COmNOEW2tvnYs73IoACandI7oZHY/gmm+SKhXH+inrwmQIcbjgG6/4nS1zVRM+Iccto+MdhLYR+RSBDihJA3iMNLpXAwm2tCOTKtW3okLXsdnehHwuxuBA5LFAYbncN9K+3LhmW0pYTcCsdhOgZAvn78tkptkmoouYqcvy+YU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com; spf=none smtp.mailfrom=pdp7.com; dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b=fKJ+rdB4; arc=none smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=pdp7.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE8AA4683
+	for <nvdimm@lists.linux.dev>; Fri,  6 Jun 2025 20:09:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1749240577; cv=fail; b=EkGdBXPjLTzKVUKqPUsFEtJg7Llmat84qYUgpa9bak6P+kImlmvFdeWs2fEuNOYlHQWviBhaF3AUx4alThUy0uA6N9/vVAQjKCD90q25V5R/yrBuO1g9Mvd6avClj2JIaMdTIWoAqVdEqC3aDkkn2dc6eae4gJBk28/AHnhyUwQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1749240577; c=relaxed/simple;
+	bh=qozS+yAXkn9OvncEU3vMnAxofzwKbypWgF8hBzRzR+I=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=cPitON3r7QILAY8CtTBHiyKHvaYQapRd+H7y+zlpol75pClarjiuLWlr+etGv8cGZMRcJRG0lD0vkBDVSu2YBSOwo30iJVHt9pIKAAMQiMKwPji+wmnyTSgg2qRKnCwVKgXoct303TDo6AlKovY1Dtbf9z4uRIBUHRXRqGFMTYo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=zqlAVBya; arc=fail smtp.client-ip=40.107.243.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b="fKJ+rdB4"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-234d366e5f2so29392755ad.1
-        for <nvdimm@lists.linux.dev>; Fri, 06 Jun 2025 11:50:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=pdp7-com.20230601.gappssmtp.com; s=20230601; t=1749235825; x=1749840625; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=zDvQKKxsfWnILy2mH3BQ9U7IfG3DuTu++rNRUJOw37w=;
-        b=fKJ+rdB4nE0M+kDgJR1pSRv9Psjs33MdQQ91Z2CnBhlQ+tjP08wLl3iRzDcVPQNUGd
-         5Uv2lB0bnn3CJ4tnCGds7XMXGf5uIWKw0BzEyjqs8/8/ihowNSr6ie3vbbbOw7XWoO7J
-         SuWM5yE/TCZPkPiwQ3QUilsk4uuWIZSzo23izkpOSZ6hXYditrqrM/vG4kGYK2lXdn04
-         Af3ImTJMR60zzzmr/JGY9qMbZkgOb3soQpHad3XqLza2EIHygz8tzur8Qm0S9bvm0fkq
-         WKORc/fXpQNugyLX1RCN+Ii38WFVNWIpffNwpnnHjrXgdGLCAbCWnMZOOfn3T4pNIhBE
-         UJiA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749235825; x=1749840625;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=zDvQKKxsfWnILy2mH3BQ9U7IfG3DuTu++rNRUJOw37w=;
-        b=Y+lkJCWXuQidIZEi9pAwC93+YBL4wsl1IOdFHjhH/KgiScnpnTYJkmNhNdlL7wau0n
-         ADew+0yTfgxHCdCgVAfQNcfqrcQlZ0aJKiVaER9kJo6Z9WgbdVhnD9NBij5L4x0uUtRF
-         Oxff9PmzpXMZZhrQApPewl/bApIk8nWc10ZHQGP+lM3wpNLAfUAQLcQv3LjOWUfzWK0R
-         ViMkxsXs7+/iXYMaLJX6EHTIb0TG3nDGgztu0WeQ9LHDm4Qcm6pxztYqtDNPh//ldeof
-         +u/Nw9dwLCmZIf3riyg0K1FNO514F5jH2++HWUQigOcP7z6Cnuc2kMfGNpdZZA+BDPab
-         +/YA==
-X-Forwarded-Encrypted: i=1; AJvYcCVUxIXJ0Igyu/zURZLFnXei5Bdl9TMnQiKYUbYHr07nlc2MqRNL8DYvTxSaVEXbWS97SVg6qfc=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yxo8DDQ7tHAXPy2oIO2sMmZ7Cogjul/nCz0Zx+jPXy0XiTgFGL1
-	ucnoeIyub4AvUTJVj/YnCUq2/NxdZO0nYyBAUnyP17JOgAWYKbVyv3HkDhMM/vy+Xzc=
-X-Gm-Gg: ASbGncveDNxk4KFss0o+b2EvtEBbhL1p7XXUjIH3qpGWvsfdLO0lOgJNDsx+Eeg2/Dp
-	JoqdicqXZRTQW44tvdEqdZ2dXhDCl8lyRAa8mH/HUeI7CMnFocCROKeqAaXeS6c3TnXoFEl7SbC
-	4QdIsauoa7Qe0Ms0Fyyg3auB8CRHl8eOgO0wELYW47vRR+Xch9Q2B35A7IRxoowgzm/yi4/n+Cn
-	DbdXi88J3lDGCRRRq8xxq0jSAp77O+asVAGGn0myMm1pinSocQk+sjboChWqF1skhuss3HfXkw3
-	TXtAA4axeJaa9PGXCL/Au4wBrHZTt2/phOZZ2nw/WAGOiUrt5FH21cFl5dw=
-X-Google-Smtp-Source: AGHT+IHZJuISdaOQA9ORyw2q+y1x20F/e9MNZXHDSrwlivNtd8EgXD7EmYmmTpZQgthCiMV++qIcEQ==
-X-Received: by 2002:a17:902:ce85:b0:235:f078:4733 with SMTP id d9443c01a7336-23601cf6f4bmr58352295ad.8.1749235825082;
-        Fri, 06 Jun 2025 11:50:25 -0700 (PDT)
-Received: from thelio.tailc1103.ts.net ([97.120.245.255])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b2f5f782246sm1473617a12.51.2025.06.06.11.50.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Jun 2025 11:50:24 -0700 (PDT)
-From: Drew Fustini <drew@pdp7.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	nvdimm@lists.linux.dev
-Cc: Oliver O'Halloran <oohall@gmail.com>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Drew Fustini <drew@pdp7.com>,
-	Conor Dooley <conor.dooley@microchip.com>
-Subject: [PATCH v3] dt-bindings: pmem: Convert binding to YAML
-Date: Fri,  6 Jun 2025 11:11:17 -0700
-Message-ID: <20250606184405.359812-4-drew@pdp7.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="zqlAVBya"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=raHIB8FeGMWyY9G8bwOIux81IJ0FOSG7eXejNT7IIzXrHTXLW5gs9xcaRVzw62cf29J7Fuw6BQD7Zu0rfBKgasdVQD0fzJDAX41KWRQ4M5S+blLZD1H2r67cWI+NZ4xV/1Ee0vI8wFNZsdTviLuw8j5LpQob6YMiWVDicXLilowgDEFX6EVPJr8K6Nn8lJOPe5ulTUl92UQrSz5X78Y8F35kwgY7qwnKqV1F3ZmVOLkJma0jasOP8tow6wstSnUQCbGCqIYXJQPa20Al0mMQco8EzWtL58dmdViRoQ3hju7tn3GYtuzX9ExdNw1hTBYMwEeoTYmW6TI01zsTK/O63g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=72hB59x0XxU8mqjwhJovqr0M6zuhZYLFtg7NlTih6S0=;
+ b=BLRt/kjow6EqZ5xgpBTuBUXr5e+aBW81+9qd/2SF5A8qypz76Neq5hA4bafeKCUVmqmPoeLpaNBniY363VktbQCgk5w1YETKjgcD3Q2wRb6ZnJ9y5pAE1fNPQZdAlleTSyjHrtt4mW1IG2LL8SRqV1dTYicXrvjluQsw+LV3d4ic05rETfCDyvxwYZrAqC0HEbMYNEBW5Kc6iQpyr6KJR/clOuaJ3fUSDP97lFBpBo3S/kJP5kV1h0UbKe4P+7I+IbmoRCK0UDYkNVp7rw7qx/CprvjUCsB09/Mii5HrVOQIyl++yFbbtLeMBmhkpyBSASqSMFmAW3n32+BV1hq7RQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=72hB59x0XxU8mqjwhJovqr0M6zuhZYLFtg7NlTih6S0=;
+ b=zqlAVByaUxDfbeqvEQw9NkmLqrevlH7i5aMiKVJLCWAAKm5TS9ER8T/vUj54y6Pxo8gi8lrf8xMExzIqS2MAvlpzPaRmojJhKERFagGQctIH/lkh5fmn1LqhNU5oOzZmkBmXIlg7x4B4/TWTHtRgGxZElhlJZ/iapUPfE7+1Yb0=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from MN0PR12MB6222.namprd12.prod.outlook.com (2603:10b6:208:3c2::19)
+ by SN7PR12MB8817.namprd12.prod.outlook.com (2603:10b6:806:347::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8792.33; Fri, 6 Jun
+ 2025 20:09:32 +0000
+Received: from MN0PR12MB6222.namprd12.prod.outlook.com
+ ([fe80::4044:a263:92a1:6b3e]) by MN0PR12MB6222.namprd12.prod.outlook.com
+ ([fe80::4044:a263:92a1:6b3e%7]) with mapi id 15.20.8792.034; Fri, 6 Jun 2025
+ 20:09:31 +0000
+Message-ID: <26747982-8e9e-44fe-b89d-3a890c9e2cab@amd.com>
+Date: Fri, 6 Jun 2025 15:09:24 -0500
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 6/7] dax/hmem: Save the DAX HMEM platform device
+ pointer
+To: "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+ "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
+ Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
+ Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
+ Ying Huang <huang.ying.caritas@gmail.com>,
+ "Xingtao Yao (Fujitsu)" <yaoxt.fnst@fujitsu.com>,
+ Peter Zijlstra <peterz@infradead.org>, Greg KH <gregkh@linuxfoundation.org>,
+ Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>,
+ PradeepVineshReddy Kodamati <PradeepVineshReddy.Kodamati@amd.com>
+References: <20250603221949.53272-1-Smita.KoralahalliChannabasappa@amd.com>
+ <20250603221949.53272-7-Smita.KoralahalliChannabasappa@amd.com>
+ <f4b861fe-d10e-497e-b7d3-af4af9c58cac@intel.com>
+ <c14260c7-666c-4612-a4a5-369aa1e47f8a@fujitsu.com>
+From: Nathan Fontenot <nathan.fontenot@amd.com>
+Content-Language: en-US
+Organization: AMD
+In-Reply-To: <c14260c7-666c-4612-a4a5-369aa1e47f8a@fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SJ0PR13CA0072.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c4::17) To MN0PR12MB6222.namprd12.prod.outlook.com
+ (2603:10b6:208:3c2::19)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN0PR12MB6222:EE_|SN7PR12MB8817:EE_
+X-MS-Office365-Filtering-Correlation-Id: 47dcf7c0-ae08-4696-e694-08dda5360cc1
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|7416014|366016;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?ay9taERKMUJrcUJ4SmZLTEdObUFaU2tBVzBYQjkveldGVXR1MVhiRXJVdEVD?=
+ =?utf-8?B?cHBxRkdCY3NSN0dyRFg0QXovSHdsbGp3QlN4aUxoRHV3Vjg2bmlHMDZTS2l3?=
+ =?utf-8?B?Ykxnell0dUgrS3BlM2p3RGRhVW5aWFVkVXNJY0YwUjNkZTdKbUQzclpMdFdN?=
+ =?utf-8?B?UnpSaEJTMXlxTTJsWmNVcy9XOUxuNUUyUTNuY3NqLzNxQnpZWEtoa1VNR3pi?=
+ =?utf-8?B?dkRKajRoZkRYZWJTNXkzZjVEb3hWb0swZHdIUXpxQlFNTDNhMGVZVklyeFlT?=
+ =?utf-8?B?NUxBMURVZk85Vk1hYVZLbGpra01SSFRqZGdTY05NRGl3Tk16Wkg1SlMvV1FD?=
+ =?utf-8?B?c0dpSG5mYjYvU2E4M2F6OVRpbUcvM1JZRURsaHBLYUFKSVlhMjF1TG0yemJ1?=
+ =?utf-8?B?ekhpakFxZEVaSmRJUGttV2w4SCt0dVhTRGV6YmJSUmR6UHBJaE5zdnM5Mksy?=
+ =?utf-8?B?VmhYaW1oWFFqcXN0Sjg2SlhscHpNN21QOGJ3bVpEU0h0a2xPd0FEbTlpRFk0?=
+ =?utf-8?B?ZTFEWWU0SWhETm5XYXhHSDNJclp2SHJMSm1lTzNKa0RidzBSa3NoNkZhRnNL?=
+ =?utf-8?B?TUQ0a1RNZy93QXJvQWpNWjFmWTFBTnhUMjNYUEduOXREZDhsVHI5anV3b3lC?=
+ =?utf-8?B?VHFGUEI2ZjdXTUlpNStqc09tSE5hd1JUd2xNUXRsdEg4RjhXeFA0bFJkVzFP?=
+ =?utf-8?B?eVcrS0hVTTJkMkxpRUUxNVVwZUtzNnY5NVM5Smx4cUpDOGRPbnJKZDVnbHMy?=
+ =?utf-8?B?QkNUaklJTUpTY3JNbVhzNjVtLy9lSGdOWnJtUjYxRkVUS280S0pRM21SZVox?=
+ =?utf-8?B?ZjhFSS9uWmxZZ0s5VXVuYlR6MllZRlp6ZlgzVVNObE1DT2sxOVZUaFVXdWgy?=
+ =?utf-8?B?ajArZjVYakRuT1NZcjNpSGdVblpFZm5ReUFmREZMVFNzSkF2NEFSM2pRRmkw?=
+ =?utf-8?B?bWZ1S1VkQ1pEZWxsQ1liMithcG4xMUZFalJFek5JSTZYbFhGTFpaNVNMRm41?=
+ =?utf-8?B?cmE5TVl1aVJMbWxmS3c1NDh0Qmd4NjRRVEs3empnQlhVMm02bENjQ01GS3dW?=
+ =?utf-8?B?YWEvNzFqak1nQllQOGIzYitUZ2NyVGZHeWIrbXdQNlljR1FUUERJa2dpVzdK?=
+ =?utf-8?B?MXFaUXRKSUplbmNFTTQ2dWZoZHFpTXlpTzlyZ28rYjlBT1hUanBVK2MvS3hk?=
+ =?utf-8?B?aWYrNjBDSVVXbUx6MUduVXF2emZ0aXh6Wm9ZZnM4T2NBOFgrUGJuWEJWSFdF?=
+ =?utf-8?B?SzY4ZEpJM2RuM0U2bUR4ZXlnT1REODJYYk5xSHZUZEJEb2dhczBwQUhTdnQy?=
+ =?utf-8?B?eC81YjNZSGE2OXhVMWxTU21kNDZlNG1RS1pKSlRnaWN0anMxZWVjTlFPdkJM?=
+ =?utf-8?B?TjRHZzdRTFJVVldRSDdxRDJhVDgyNlp2M29yV1N6WS9EcVBxUVc5RWtmNk9N?=
+ =?utf-8?B?TEREaDNTTmUxNjJZWGJzY3dOQWFxMUp4V1BzcHBmTnJaTGdma2tIR3dVVm9V?=
+ =?utf-8?B?WDl2emVZenNyaUNTUy85cTkyOWpyOCtjdlJTSGxyRXJ1TU5sV24xMlV0cDE2?=
+ =?utf-8?B?VmVta0NMOHoyK3dEaElNL056elk1RGFKTEZKUTNkVkxRMjI5OUNYakcxUzFW?=
+ =?utf-8?B?aTVZRFdYM0o0ZVFVOWpHREFoc01xYjk5Wm9mODQ4OWJXbVdWbE1CbUxUMmxU?=
+ =?utf-8?B?MlVhWHBjaU1jQ1ZSemZRVG5NRk13d29oZitpbHhXcTlWZitDQzJVbHBQaTJZ?=
+ =?utf-8?B?Z3FtSW40dlBzSjR1UjRaNWJVUWVQekd2OERKSFg5d2ZNOURqaDdEM2x6VlZQ?=
+ =?utf-8?B?MFMzblhsd0dpTXdFcmt6U3FzR25QbDZscHJLc0J6bWpuRXduK2lmb2JvdTNS?=
+ =?utf-8?B?Q2lwQWpBcC9LVkdvNUo0N3VsRDNLbjZXZHJ4V05obVFhVlV4WDFUY2tzRm9K?=
+ =?utf-8?Q?jutvu2Smvfg=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR12MB6222.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(7416014)(366016);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?dXZjaVhhQnBnQWUwc1Q5UnZWc21rWXBiakF2dkJnOXNYUHZJdTU2RXVYTVNm?=
+ =?utf-8?B?eVFmbEZZT3JwQm9ET0V4NlJBR2xSQmhkTzRRbE1vdHVIaFplOU5uYzROME9k?=
+ =?utf-8?B?ditGUlpvVGZsSEtKVUtPMFRENUxhZkdhaTJRZWoxUG5rQjhnQWZvWk03bWx5?=
+ =?utf-8?B?RUlia3puS0VoTU4vRUtmUlkyTEt3YWtFS1pQMHo3RmRPRGhlYm5IZDJDZkpo?=
+ =?utf-8?B?YnI2QWRCR2pPRjU5K0VTejdLUEVYYUdqUXFnSHE5eTJJZGg0ejlrYnp1UHJV?=
+ =?utf-8?B?Sjd6TlkvaVRUajh6MUdHaUlubVBJSmYzUVQ3OVhVcUprdk9VTS9neC8yZldC?=
+ =?utf-8?B?eENxa3FzWThOcHpJTzE1eWdTUVBvbDlYUTBuY3FmVzdtamQ5aXlaWk50bnY2?=
+ =?utf-8?B?RmxIakptQXcyanFSNEh4SU1yNm1YbTc5QSs4cnJpNnNwM0toU2h1UGI1V2ZK?=
+ =?utf-8?B?VWVwYzUwU2VvcDJuWDVYTVl3TVlpZWdpTkEvc2hGQ0FySWhJYUdpekRFRFc5?=
+ =?utf-8?B?U0VTYW5aaVRYKytWQ1FZU216aThHZ2ozdXpoNjZleXFSdE5sU3U2a0Z0NWFo?=
+ =?utf-8?B?UmVQWjJUN1VXNUpiQjFTb0Z6bmtCUDJUYzlVdEprVXBOZjJ1elEzUzlxdXll?=
+ =?utf-8?B?dVh1ZGN0UWcwVFVubTlKb2p0SnlQQS85Mm1zVFNMUGVrMldVNEJjRitCQ0VT?=
+ =?utf-8?B?Q1pWSlV1NDc0WGMvT2xiN2RGK0J1dTcvNi82dm9NSFFkZi9JR1Z1T3RlandK?=
+ =?utf-8?B?M0RoSHFZcUQyK09scmlhQjJnZDQrdUUrdENwdTJDMTNYQkhFTkJQd2IvSUt6?=
+ =?utf-8?B?SSs1VHVYcmFMcmJKeUhKTjNKbXRLNVlLdXRrRGJKWU9xVGtEb0FIcG4xRU1a?=
+ =?utf-8?B?QmNqQ2R0REtlVHgvOHcrRjJpTHJDUVYwT1Y2Ni9xb2R2aHBsMVRmTzhCQzlz?=
+ =?utf-8?B?TytHZTZ0RHZjaVhFN0w1MEc2UWJETXU2RWFQajgwZEJlMzE1OXQyUy9ZQUFr?=
+ =?utf-8?B?Ti8yT0NvaVlTTyt5Y1lGUmxJSFN0cWFZbk5YZXVuZGlOb29MQUdDR1Z1R2lv?=
+ =?utf-8?B?SWhyNi9qNTlISmk3YnFPRlRCWW1EQzNNVUozeEJCY1hDaENTL0FCUys3VmVz?=
+ =?utf-8?B?YXkrL3k0cnlZYVJScXY1UFkvUFhmOHVNQmJiSzBiWkFaek4wSVBhbFdLLyt0?=
+ =?utf-8?B?ZWxBN2s3WWtDbWhReDAwY05vT2RCTjhiSjhNajhxcGNQRi9xRERQdnhyTzIv?=
+ =?utf-8?B?WTh4RDRoRDBuZXo5NW9FUWJhbGNsZUFFWnFFMzVnUTVWdExuVmpYa041VnJy?=
+ =?utf-8?B?aEdlNVRGRWd2dUl0dk1FM20zTTY3T2krSy9hUXM0dmZHV1FkUmEvMmgyRTZw?=
+ =?utf-8?B?V0UxTTVPRklvT1VHVU5JcS9qWDBLYnc5SkhMVk1kb016c0pUY3ZMTStXNEdN?=
+ =?utf-8?B?WndtaDhUSzhDMnE5VDFCaHljOEM5R1ZaYnMyclJQM2xHU0psTFZTRk13MDhD?=
+ =?utf-8?B?cXMvZkxmU0xjYVVlQ2JOVkpzenJSSEtHR043d0lPRmpoTEwvTEpBU0xjV3Fo?=
+ =?utf-8?B?ZWkxdHd1SnFUL0VEb09PdTdjVUlWVWtYTTJGUnVHWFlsTHI2VlJBZHc5eVJm?=
+ =?utf-8?B?RFFwaFFYTHJHa25EVVg2dGM2cnBlb2dqL2ZkcFBZbVhrL3dIVTBqWnl3b0Fm?=
+ =?utf-8?B?VDNlYUZOSHBJaTZTSThldEhmbFFJWFlkMVZjUkkwVE5aMWNJdFJhSUFKZ0xI?=
+ =?utf-8?B?bG4wTExobTFjVVEyQ1d1NUJ5QnQzSldiWTQ1b01YQnY0QmI3M2g4RzhCWGM3?=
+ =?utf-8?B?ZnZiRnp5R2V3ZkdlZE0zbHluRHZRcy9DZ0FMWkNhOFlGMUcxM1Azd3dmcGRn?=
+ =?utf-8?B?T1pFZkVFb2tCOXRxUEF5OGJtNE9XYkRSVHhITXBEZS9HanJFSGNQVjYveFlS?=
+ =?utf-8?B?aklFNVRKUm9RcVgzeFRFTUdqSlRyL2JlZHR6eHV6WWYzOFlzZmk4TFUwRlpO?=
+ =?utf-8?B?MzB3cWdjbkV1UjdBbzJXK0s4aWdLWXkyZUlIRktlaldEVTNWRGxsaWZxSC9B?=
+ =?utf-8?B?NVprS1ZRNURKQ0RtQWNPditPNTBqVVdDMFYzS3BuTm92dmlXRURQckdGT0Zv?=
+ =?utf-8?Q?xvVeN414cJKKvoIaDdycQ3a4u?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 47dcf7c0-ae08-4696-e694-08dda5360cc1
+X-MS-Exchange-CrossTenant-AuthSource: MN0PR12MB6222.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Jun 2025 20:09:31.8849
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ClHtnsL4p+YFpP5rCU4SJ8bXhzbY6HBtE1DTttiGQYuZII1E5BrEjRnW9IhTDmQQ5stoYWF6AonmthiCmOybew==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB8817
 
-Convert the PMEM device tree binding from text to YAML. This will allow
-device trees with pmem-region nodes to pass dtbs_check.
+On 6/6/2025 3:11 AM, Zhijian Li (Fujitsu) wrote:
+> 
+> 
+> On 06/06/2025 00:54, Dave Jiang wrote:
+>>> -static int hmem_register_device(struct device *host, int target_nid,
+>>> -				const struct resource *res)
+>>> +static int hmem_register_device(int target_nid, const struct resource *res)
+>>>   {
+>>> +	struct device *host = &dax_hmem_pdev->dev;
+>>>   	struct platform_device *pdev;
+>>>   	struct memregion_info info;
+>>>   	long id;
+>>> @@ -125,7 +127,8 @@ static int hmem_register_device(struct device *host, int target_nid,
+>>>   
+>>>   static int dax_hmem_platform_probe(struct platform_device *pdev)
+>>>   {
+>>> -	return walk_hmem_resources(&pdev->dev, hmem_register_device);
+>>> +	dax_hmem_pdev = pdev;
+> 
+>> Is there never more than 1 DAX HMEM platform device that can show up? The global pointer makes me nervous.
+> 
+> IIUC,
+> 
+> Referring to the device creation logic in `__hmem_register_resource()` (shown below),
+> only one `hmem_platform` instance can ever be registered. This ensures the change is safe.
+> 
+> 
+> However, I agree that using a global pointer in a function that may be called multiple times
+> does raise valid concerns.
 
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
-Acked-by: Oliver O'Halloran <oohall@gmail.com>
-Signed-off-by: Drew Fustini <drew@pdp7.com>
----
-Dan/Dave/Vishal: does it make sense for this pmem binding patch to go
-through the nvdimm tree?
+Note: The creation of the platform device is moved in patch 7/7. I think the placed
+it was moved to may not be correct. The creation of the platform device should be
+in hmem_init so that it is always create one instance.
 
-Note: checkpatch complains about "DT binding docs and includes should
-be a separate patch". Rob told me that this a false positive. I'm hoping
-that I can fix the false positive at some point if I can remember enough
-perl :)
+-Nathan
 
-v3:
- - no functional changes
- - add Oliver's Acked-by
- - bump version to avoid duplicate message-id mess in v2 and v2 resend:
-   https://lore.kernel.org/all/20250520021440.24324-1-drew@pdp7.com/
-
-v2 resend:
- - actually put v2 in the Subject
- - add Conor's Acked-by
-   - https://lore.kernel.org/all/20250520-refract-fling-d064e11ddbdf@spud/
-
-v2:
- - remove the txt file to make the conversion complete
- - https://lore.kernel.org/all/20250520021440.24324-1-drew@pdp7.com/
-
-v1:
- - https://lore.kernel.org/all/20250518035539.7961-1-drew@pdp7.com/
-
- .../devicetree/bindings/pmem/pmem-region.txt  | 65 -------------------
- .../devicetree/bindings/pmem/pmem-region.yaml | 49 ++++++++++++++
- MAINTAINERS                                   |  2 +-
- 3 files changed, 50 insertions(+), 66 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.txt
- create mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.yaml
-
-diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.txt b/Documentation/devicetree/bindings/pmem/pmem-region.txt
-deleted file mode 100644
-index cd79975e85ec..000000000000
---- a/Documentation/devicetree/bindings/pmem/pmem-region.txt
-+++ /dev/null
-@@ -1,65 +0,0 @@
--Device-tree bindings for persistent memory regions
-------------------------------------------------------
--
--Persistent memory refers to a class of memory devices that are:
--
--	a) Usable as main system memory (i.e. cacheable), and
--	b) Retain their contents across power failure.
--
--Given b) it is best to think of persistent memory as a kind of memory mapped
--storage device. To ensure data integrity the operating system needs to manage
--persistent regions separately to the normal memory pool. To aid with that this
--binding provides a standardised interface for discovering where persistent
--memory regions exist inside the physical address space.
--
--Bindings for the region nodes:
-------------------------------
--
--Required properties:
--	- compatible = "pmem-region"
--
--	- reg = <base, size>;
--		The reg property should specify an address range that is
--		translatable to a system physical address range. This address
--		range should be mappable as normal system memory would be
--		(i.e cacheable).
--
--		If the reg property contains multiple address ranges
--		each address range will be treated as though it was specified
--		in a separate device node. Having multiple address ranges in a
--		node implies no special relationship between the two ranges.
--
--Optional properties:
--	- Any relevant NUMA associativity properties for the target platform.
--
--	- volatile; This property indicates that this region is actually
--	  backed by non-persistent memory. This lets the OS know that it
--	  may skip the cache flushes required to ensure data is made
--	  persistent after a write.
--
--	  If this property is absent then the OS must assume that the region
--	  is backed by non-volatile memory.
--
--Examples:
----------------------
--
--	/*
--	 * This node specifies one 4KB region spanning from
--	 * 0x5000 to 0x5fff that is backed by non-volatile memory.
--	 */
--	pmem@5000 {
--		compatible = "pmem-region";
--		reg = <0x00005000 0x00001000>;
--	};
--
--	/*
--	 * This node specifies two 4KB regions that are backed by
--	 * volatile (normal) memory.
--	 */
--	pmem@6000 {
--		compatible = "pmem-region";
--		reg = < 0x00006000 0x00001000
--			0x00008000 0x00001000 >;
--		volatile;
--	};
--
-diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.yaml b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-new file mode 100644
-index 000000000000..a4aa4ce3318b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-@@ -0,0 +1,49 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/pmem-region.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+maintainers:
-+  - Bjorn Helgaas <bhelgaas@google.com>
-+  - Oliver O'Halloran <oohall@gmail.com>
-+
-+title: Persistent Memory Regions
-+
-+description: |
-+  Persistent memory refers to a class of memory devices that are:
-+
-+    a) Usable as main system memory (i.e. cacheable), and
-+    b) Retain their contents across power failure.
-+
-+  Given b) it is best to think of persistent memory as a kind of memory mapped
-+  storage device. To ensure data integrity the operating system needs to manage
-+  persistent regions separately to the normal memory pool. To aid with that this
-+  binding provides a standardised interface for discovering where persistent
-+  memory regions exist inside the physical address space.
-+
-+properties:
-+  compatible:
-+    const: pmem-region
-+
-+  reg:
-+    maxItems: 1
-+
-+  volatile:
-+    description: |
-+      Indicates the region is volatile (non-persistent) and the OS can skip
-+      cache flushes for writes
-+    type: boolean
-+
-+required:
-+  - compatible
-+  - reg
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    pmem@5000 {
-+        compatible = "pmem-region";
-+        reg = <0x00005000 0x00001000>;
-+    };
-diff --git a/MAINTAINERS b/MAINTAINERS
-index ee93363ec2cb..eba2b81ec568 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13798,7 +13798,7 @@ M:	Oliver O'Halloran <oohall@gmail.com>
- L:	nvdimm@lists.linux.dev
- S:	Supported
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
--F:	Documentation/devicetree/bindings/pmem/pmem-region.txt
-+F:	Documentation/devicetree/bindings/pmem/pmem-region.yaml
- F:	drivers/nvdimm/of_pmem.c
- 
- LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
--- 
-2.43.0
+> 
+> To strengthen this, how about:
+> 1. Add a comment clarifying single-instance enforcement
+> 2. Add a warn_on/bug_on for it: `WARN_ON(dax_hmem_pdev && dax_hmem_pdev != pdev)`
+> 
+> 
+> static void __hmem_register_resource(int target_nid, struct resource *res)
+> {
+> 	struct platform_device *pdev;
+> 	struct resource *new;
+> 	int rc;
+> 
+> 	new = __request_region(&hmem_active, res->start, resource_size(res), "",
+> 			       0);
+> 	if (!new) {
+> 		pr_debug("hmem range %pr already active\n", res);
+> 		return;
+> 	}
+> 
+> 	new->desc = target_nid;
+> 
+> 	if (platform_initialized)
+> 		return;
+> 
+> 	pdev = platform_device_alloc("hmem_platform", 0);
+> 	if (!pdev) {
+> 		pr_err_once("failed to register device-dax hmem_platform device\n");
+> 		return;
+> 	}
+> 
+> 	rc = platform_device_add(pdev);
+> 	if (rc)
+> 		platform_device_put(pdev);
+> 	else
+> 		platform_initialized = true;
+> }
+> 
+> Thanks
+> Zhijian
+> 
+> 
+> 
+> 
+> 
+>>
+>> DJ
 
