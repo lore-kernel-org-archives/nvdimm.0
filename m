@@ -1,196 +1,275 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mailout2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB3C280A29
-	for <nvdimm@lists.linux.dev>; Tue, 10 Jun 2025 09:38:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97C138BFF
+	for <nvdimm@lists.linux.dev>; Tue, 10 Jun 2025 16:18:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749548288; cv=none; b=QPYV5/o9ESvw4er3jbj2LaYSbEPHswgaS6gfTeI0LlUFxE7K0WUxG7lk+w2zu3CFGiIVYGoZZMjXxGGW8Zq7NhN8+6NTRlEbZa1t6arOHfHzHrf/1GtvffnCnstIErddo0eVKgBFZUe5aCWYvj/0IA6IrzzyEPv1PDNd3Fps5pc=
+	t=1749572296; cv=none; b=HU+JBBCnypIFoRXdd5Re0AilOAKmYks6GdNuaKhzHPPgbMzskHEs48CN9K5LeT/Y3k0nT8K07SN4KVwCylFVpvWOxQYw8Hik6TLR6ejjUPSwIYG1kUd224tjc2P8MZ2L+ZZJI6ZQ9XS/jg0eS6SxZJebc6gOiEVYQdhwAJ20OJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749548288; c=relaxed/simple;
-	bh=7VUpOKqstykfHqwFcxqAxihgk8EigUO4kuTzgEAooz4=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=elLCENPn58JaMNk8B6B9y8kmLcOhV4St2iM3Fa5ZmGoYU466qeD+Zc614nO/6CrK0Kd4m0yP2d8x8sOLZz3/c46k7UywQ7GW89c3Ri9Z7Bvkj+tDUrqCA0oLoEkmQmbAAeYjuymJ6eaSyYVVRe/xpiTaxnuPmvHgitHdFm0U3mA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bGkBP30cjz67KX2;
-	Tue, 10 Jun 2025 17:33:49 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 273A01402FE;
-	Tue, 10 Jun 2025 17:38:04 +0800 (CST)
-Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Tue, 10 Jun
- 2025 11:38:03 +0200
-Date: Tue, 10 Jun 2025 10:38:01 +0100
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To: "Koralahalli Channabasappa, Smita"
-	<Smita.KoralahalliChannabasappa@amd.com>
-CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, Dave Jiang
-	<dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, Vishal
- Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan
- Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>, "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown
-	<len.brown@intel.com>, Pavel Machek <pavel@kernel.org>, Li Ming
-	<ming.li@zohomail.com>, Jeff Johnson <jeff.johnson@oss.qualcomm.com>, Ying
- Huang <huang.ying.caritas@gmail.com>, Yao Xingtao <yaoxt.fnst@fujitsu.com>,
-	Peter Zijlstra <peterz@infradead.org>, Greg KH <gregkh@linuxfoundation.org>,
-	"Nathan Fontenot" <nathan.fontenot@amd.com>, Terry Bowman
-	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, PradeepVineshReddy Kodamati
-	<PradeepVineshReddy.Kodamati@amd.com>, Zhijian Li <lizhijian@fujitsu.com>
-Subject: Re: [PATCH v4 2/7] cxl/core: Remove CONFIG_CXL_SUSPEND and always
- build suspend.o
-Message-ID: <20250610103801.0000121b@huawei.com>
-In-Reply-To: <8e445a49-7209-402f-96ab-5285560a08a1@amd.com>
-References: <20250603221949.53272-1-Smita.KoralahalliChannabasappa@amd.com>
-	<20250603221949.53272-3-Smita.KoralahalliChannabasappa@amd.com>
-	<20250609120237.00002eef@huawei.com>
-	<8e445a49-7209-402f-96ab-5285560a08a1@amd.com>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1749572296; c=relaxed/simple;
+	bh=Otn7uUWDHRH/tgHSK/zpXK1rZWcg7LGnbrHiZK9HH0U=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
+	 Content-Type:References; b=Kf2AYQRPK9onToc4vXTL5vOuc6Pd+cEp4ns2nA0D3szz4LqzYZiK3q3hMr8qxPq8QxcNo6IAlsPheS87nA/r9/iOn6vByFgcR/4P3B6HKRZ/y/tE+R37JFQT9FYjkctw0lW5D2MI1AtXUaSseqC4VW2JJnbr85pFWwnZsrt/r4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=Qrb5syym; arc=none smtp.client-ip=210.118.77.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="Qrb5syym"
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+	by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20250610161811euoutp024091f215db62e9681cd9ae041150cd3c~HurrTSs-N2862228622euoutp02p
+	for <nvdimm@lists.linux.dev>; Tue, 10 Jun 2025 16:18:11 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20250610161811euoutp024091f215db62e9681cd9ae041150cd3c~HurrTSs-N2862228622euoutp02p
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1749572291;
+	bh=pE6uccDncawBTaeE/O1XebhcejC0XaTINrmaJXRgnJw=;
+	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
+	b=Qrb5syymTTlgVW1CdHrabdecFe+3HW/W0tOjr+seluTlv+QTE59KG65YpUlLRDqUE
+	 eLvfvG9qAWD3EJ75jQAFHSLCrsl5fhvWNnxIIY5dSIhgwUlumI2Gtulg1b711TS1yV
+	 SHnK3kgMwPL1wtmCuVmI2yCbxZYcV99JLZhIYlno=
+Received: from eusmtip2.samsung.com (unknown [203.254.199.222]) by
+	eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
+	20250610161811eucas1p18de4ba7b320b6d6ff7da44786b350b6e~Hurq601QC1524815248eucas1p1F;
+	Tue, 10 Jun 2025 16:18:11 +0000 (GMT)
+Received: from [106.210.134.192] (unknown [106.210.134.192]) by
+	eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20250610161809eusmtip2eda1a549605472f8ef4597e13d09bde6~HurpBKaGe2938129381eusmtip2F;
+	Tue, 10 Jun 2025 16:18:09 +0000 (GMT)
+Message-ID: <957c0d9d-2c37-4d5f-a8b8-8bf90cd0aedb@samsung.com>
+Date: Tue, 10 Jun 2025 18:18:09 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
- frapeml500008.china.huawei.com (7.182.85.71)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] mm: Remove PFN_MAP, PFN_SPECIAL, PFN_SG_CHAIN and
+ PFN_SG_LAST
+To: Alistair Popple <apopple@nvidia.com>, linux-mm@kvack.org,
+	akpm@linux-foundation.org, "linux-riscv@lists.infradead.org"
+	<linux-riscv@lists.infradead.org>
+Cc: David Hildenbrand <david@redhat.com>, Christoph Hellwig <hch@lst.de>,
+	Jason Gunthorpe <jgg@nvidia.com>, gerald.schaefer@linux.ibm.com,
+	dan.j.williams@intel.com, jgg@ziepe.ca, willy@infradead.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, jhubbard@nvidia.com,
+	zhang.lyra@gmail.com, debug@rivosinc.com, bjorn@kernel.org,
+	balbirs@nvidia.com, lorenzo.stoakes@oracle.com, John@Groves.net
+Content-Language: en-US
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+In-Reply-To: <20250604032145.463934-1-apopple@nvidia.com>
+Content-Transfer-Encoding: 8bit
+X-CMS-MailID: 20250610161811eucas1p18de4ba7b320b6d6ff7da44786b350b6e
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20250610161811eucas1p18de4ba7b320b6d6ff7da44786b350b6e
+X-EPHeader: CA
+X-CMS-RootMailID: 20250610161811eucas1p18de4ba7b320b6d6ff7da44786b350b6e
+References: <20250604032145.463934-1-apopple@nvidia.com>
+	<CGME20250610161811eucas1p18de4ba7b320b6d6ff7da44786b350b6e@eucas1p1.samsung.com>
 
-On Mon, 9 Jun 2025 16:25:49 -0700
-"Koralahalli Channabasappa, Smita" <Smita.KoralahalliChannabasappa@amd.com> wrote:
+Dear All,
 
-> On 6/9/2025 4:02 AM, Jonathan Cameron wrote:
-> > On Tue, 3 Jun 2025 22:19:44 +0000
-> > Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> wrote:
-> >   
-> >> In preparation for soft-reserved resource handling, make the suspend
-> >> infrastructure always available by removing the CONFIG_CXL_SUSPEND
-> >> Kconfig option.
-> >>
-> >> This ensures cxl_mem_active_inc()/dec() and cxl_mem_active() are
-> >> unconditionally available, enabling coordination between cxl_pci and
-> >> cxl_mem drivers during region setup and hotplug operations.  
-> > 
-> > If these are no longer just being used for suspend, given there
-> > is nothing else in the file, maybe move them to somewhere else?  
-> 
-> There was recommendation to move the wait queue declaration and its
-> related changes to acpi.c. I was considering that. Let me know if there 
-> is any other best place for this.
-> 
-I wasn't sure on the best location (which is why I was lazy an didn't
-suggest one ;)  Dan, Dave etc anyone have strong mental model for where
-this should be?
+On 04.06.2025 05:21, Alistair Popple wrote:
+> The PFN_MAP flag is no longer used for anything, so remove it.
+> The PFN_SG_CHAIN and PFN_SG_LAST flags never appear to have been
+> used so also remove them. The last user of PFN_SPECIAL was removed
+> by 653d7825c149 ("dcssblk: mark DAX broken, remove FS_DAX_LIMITED
+> support").
+>
+> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> Acked-by: David Hildenbrand <david@redhat.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+> Cc: gerald.schaefer@linux.ibm.com
+> Cc: dan.j.williams@intel.com
+> Cc: jgg@ziepe.ca
+> Cc: willy@infradead.org
+> Cc: david@redhat.com
+> Cc: linux-kernel@vger.kernel.org
+> Cc: nvdimm@lists.linux.dev
+> Cc: jhubbard@nvidia.com
+> Cc: hch@lst.de
+> Cc: zhang.lyra@gmail.com
+> Cc: debug@rivosinc.com
+> Cc: bjorn@kernel.org
+> Cc: balbirs@nvidia.com
+> Cc: lorenzo.stoakes@oracle.com
+> Cc: John@Groves.net
+>
+> ---
+>
+> Splitting this off from the rest of my series[1] as a separate clean-up
+> for consideration for the v6.16 merge window as suggested by Christoph.
+>
+> [1] - https://lore.kernel.org/linux-mm/cover.541c2702181b7461b84f1a6967a3f0e823023fcc.1748500293.git-series.apopple@nvidia.com/
+> ---
+>   include/linux/pfn_t.h             | 31 +++----------------------------
+>   mm/memory.c                       |  2 --
+>   tools/testing/nvdimm/test/iomap.c |  4 ----
+>   3 files changed, 3 insertions(+), 34 deletions(-)
 
-> Thanks
-> Smita
-> > 
-> >   
-> >>
-> >> Co-developed-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
-> >> Signed-off-by: Nathan Fontenot <Nathan.Fontenot@amd.com>
-> >> Co-developed-by: Terry Bowman <terry.bowman@amd.com>
-> >> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> >> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-> >> ---
-> >>   drivers/cxl/Kconfig        | 4 ----
-> >>   drivers/cxl/core/Makefile  | 2 +-
-> >>   drivers/cxl/core/suspend.c | 5 ++++-
-> >>   drivers/cxl/cxlmem.h       | 9 ---------
-> >>   include/linux/pm.h         | 7 -------
-> >>   5 files changed, 5 insertions(+), 22 deletions(-)
-> >>
-> >> diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
-> >> index cf1ba673b8c2..d09144c2002e 100644
-> >> --- a/drivers/cxl/Kconfig
-> >> +++ b/drivers/cxl/Kconfig
-> >> @@ -118,10 +118,6 @@ config CXL_PORT
-> >>   	default CXL_BUS
-> >>   	tristate
-> >>   
-> >> -config CXL_SUSPEND
-> >> -	def_bool y
-> >> -	depends on SUSPEND && CXL_MEM
-> >> -
-> >>   config CXL_REGION
-> >>   	bool "CXL: Region Support"
-> >>   	default CXL_BUS
-> >> diff --git a/drivers/cxl/core/Makefile b/drivers/cxl/core/Makefile
-> >> index 086df97a0fcf..035864db8a32 100644
-> >> --- a/drivers/cxl/core/Makefile
-> >> +++ b/drivers/cxl/core/Makefile
-> >> @@ -1,6 +1,6 @@
-> >>   # SPDX-License-Identifier: GPL-2.0
-> >>   obj-$(CONFIG_CXL_BUS) += cxl_core.o
-> >> -obj-$(CONFIG_CXL_SUSPEND) += suspend.o
-> >> +obj-y += suspend.o
-> >>   
-> >>   ccflags-y += -I$(srctree)/drivers/cxl
-> >>   CFLAGS_trace.o = -DTRACE_INCLUDE_PATH=. -I$(src)
-> >> diff --git a/drivers/cxl/core/suspend.c b/drivers/cxl/core/suspend.c
-> >> index 29aa5cc5e565..5ba4b4de0e33 100644
-> >> --- a/drivers/cxl/core/suspend.c
-> >> +++ b/drivers/cxl/core/suspend.c
-> >> @@ -8,7 +8,10 @@ static atomic_t mem_active;
-> >>   
-> >>   bool cxl_mem_active(void)
-> >>   {
-> >> -	return atomic_read(&mem_active) != 0;
-> >> +	if (IS_ENABLED(CONFIG_CXL_MEM))
-> >> +		return atomic_read(&mem_active) != 0;
-> >> +
-> >> +	return false;
-> >>   }
-> >>   
-> >>   void cxl_mem_active_inc(void)
-> >> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> >> index 3ec6b906371b..1bd1e88c4cc0 100644
-> >> --- a/drivers/cxl/cxlmem.h
-> >> +++ b/drivers/cxl/cxlmem.h
-> >> @@ -853,17 +853,8 @@ int cxl_trigger_poison_list(struct cxl_memdev *cxlmd);
-> >>   int cxl_inject_poison(struct cxl_memdev *cxlmd, u64 dpa);
-> >>   int cxl_clear_poison(struct cxl_memdev *cxlmd, u64 dpa);
-> >>   
-> >> -#ifdef CONFIG_CXL_SUSPEND
-> >>   void cxl_mem_active_inc(void);
-> >>   void cxl_mem_active_dec(void);
-> >> -#else
-> >> -static inline void cxl_mem_active_inc(void)
-> >> -{
-> >> -}
-> >> -static inline void cxl_mem_active_dec(void)
-> >> -{
-> >> -}
-> >> -#endif
-> >>   
-> >>   int cxl_mem_sanitize(struct cxl_memdev *cxlmd, u16 cmd);
-> >>   
-> >> diff --git a/include/linux/pm.h b/include/linux/pm.h
-> >> index f0bd8fbae4f2..415928e0b6ca 100644
-> >> --- a/include/linux/pm.h
-> >> +++ b/include/linux/pm.h
-> >> @@ -35,14 +35,7 @@ static inline void pm_vt_switch_unregister(struct device *dev)
-> >>   }
-> >>   #endif /* CONFIG_VT_CONSOLE_SLEEP */
-> >>   
-> >> -#ifdef CONFIG_CXL_SUSPEND
-> >>   bool cxl_mem_active(void);
-> >> -#else
-> >> -static inline bool cxl_mem_active(void)
-> >> -{
-> >> -	return false;
-> >> -}
-> >> -#endif
-> >>   
-> >>   /*
-> >>    * Device power management  
-> >   
-> 
+This patch landed in today's linux-next as commit 28be5676b4a3 ("mm: 
+remove PFN_MAP, PFN_SPECIAL, PFN_SG_CHAIN and PFN_SG_LAST"). In my tests 
+I've noticed that it breaks operation of all RISC-V 64bit boards on my 
+test farm (VisionFive2, BananaPiF3 as well as QEMU's Virt machine). I've 
+isolated the changes responsible for this issue, see the inline comments 
+in the patch below. Here is an example of the issues observed in the 
+logs from those machines:
+
+BUG: Bad page map in process modprobe  pte:20682653 pmd:20f23c01
+page: refcount:1 mapcount:-1 mapping:0000000000000000 index:0x0 pfn:0x81a09
+flags: 0x2004(referenced|reserved|zone=0)
+raw: 0000000000002004 ff1c000000068248 ff1c000000068248 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001fffffffe 0000000000000000
+page dumped because: bad pte
+addr:00007fff84619000 vm_flags:04044411 anon_vma:0000000000000000 
+mapping:0000000000000000 index:0
+file:(null) fault:special_mapping_fault mmap:0x0 mmap_prepare: 0x0 
+read_folio:0x0
+CPU: 1 UID: 0 PID: 58 Comm: modprobe Not tainted 
+6.16.0-rc1-next-20250610+ #15719 NONE
+Hardware name: riscv-virtio,qemu (DT)
+Call Trace:
+[<ffffffff80016152>] dump_backtrace+0x1c/0x24
+[<ffffffff8000147a>] show_stack+0x28/0x34
+[<ffffffff8000f61e>] dump_stack_lvl+0x5e/0x86
+[<ffffffff8000f65a>] dump_stack+0x14/0x1c
+[<ffffffff80234b7e>] print_bad_pte+0x1b4/0x1ee
+[<ffffffff8023854a>] unmap_page_range+0x4da/0xf74
+[<ffffffff80239042>] unmap_single_vma.constprop.0+0x5e/0x90
+[<ffffffff8023913a>] unmap_vmas+0xc6/0x1c4
+[<ffffffff80244a70>] exit_mmap+0xb6/0x418
+[<ffffffff80021dc4>] mmput+0x56/0xf2
+[<ffffffff8002b84e>] do_exit+0x182/0x80e
+[<ffffffff8002c02a>] do_group_exit+0x24/0x70
+[<ffffffff8002c092>] pid_child_should_wake+0x0/0x54
+[<ffffffff80b66112>] do_trap_ecall_u+0x29c/0x4cc
+[<ffffffff80b747e6>] handle_exception+0x146/0x152
+Disabling lock debugging due to kernel taint
+
+
+> diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+> index 2d9148221e9a..46afa12eb33b 100644
+> --- a/include/linux/pfn_t.h
+> +++ b/include/linux/pfn_t.h
+> @@ -5,26 +5,13 @@
+>   
+>   /*
+>    * PFN_FLAGS_MASK - mask of all the possible valid pfn_t flags
+> - * PFN_SG_CHAIN - pfn is a pointer to the next scatterlist entry
+> - * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
+>    * PFN_DEV - pfn is not covered by system memmap by default
+> - * PFN_MAP - pfn has a dynamic page mapping established by a device driver
+> - * PFN_SPECIAL - for CONFIG_FS_DAX_LIMITED builds to allow XIP, but not
+> - *		 get_user_pages
+>    */
+>   #define PFN_FLAGS_MASK (((u64) (~PAGE_MASK)) << (BITS_PER_LONG_LONG - PAGE_SHIFT))
+> -#define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
+> -#define PFN_SG_LAST (1ULL << (BITS_PER_LONG_LONG - 2))
+>   #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
+> -#define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
+> -#define PFN_SPECIAL (1ULL << (BITS_PER_LONG_LONG - 5))
+>   
+>   #define PFN_FLAGS_TRACE \
+> -	{ PFN_SPECIAL,	"SPECIAL" }, \
+> -	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
+> -	{ PFN_SG_LAST,	"SG_LAST" }, \
+> -	{ PFN_DEV,	"DEV" }, \
+> -	{ PFN_MAP,	"MAP" }
+> +	{ PFN_DEV,	"DEV" }
+>   
+>   static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
+>   {
+> @@ -46,7 +33,7 @@ static inline pfn_t phys_to_pfn_t(phys_addr_t addr, u64 flags)
+>   
+>   static inline bool pfn_t_has_page(pfn_t pfn)
+>   {
+> -	return (pfn.val & PFN_MAP) == PFN_MAP || (pfn.val & PFN_DEV) == 0;
+> +	return (pfn.val & PFN_DEV) == 0;
+>   }
+>   
+>   static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
+> @@ -100,7 +87,7 @@ static inline pud_t pfn_t_pud(pfn_t pfn, pgprot_t pgprot)
+>   #ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
+>   static inline bool pfn_t_devmap(pfn_t pfn)
+>   {
+> -	const u64 flags = PFN_DEV|PFN_MAP;
+> +	const u64 flags = PFN_DEV;
+>   
+>   	return (pfn.val & flags) == flags;
+>   }
+
+The above change causes the stability issues on RISC-V based boards. To 
+get them working again with today's linux-next I had to apply the 
+following change:
+
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index 6ff7dd305639..f502860f2a76 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -46,7 +46,6 @@ config RISCV
+         select ARCH_HAS_PREEMPT_LAZY
+         select ARCH_HAS_PREPARE_SYNC_CORE_CMD
+         select ARCH_HAS_PTDUMP if MMU
+-       select ARCH_HAS_PTE_DEVMAP if 64BIT && MMU
+         select ARCH_HAS_PTE_SPECIAL
+         select ARCH_HAS_SET_DIRECT_MAP if MMU
+         select ARCH_HAS_SET_MEMORY if MMU
+
+I'm not sure if this is really the desired solution and frankly speaking 
+I don't understand the code behind the 'devmap' related bits. I can help 
+testing other patches that will fix this issue properly.
+
+
+> @@ -116,16 +103,4 @@ pmd_t pmd_mkdevmap(pmd_t pmd);
+>   pud_t pud_mkdevmap(pud_t pud);
+>   #endif
+>   #endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
+> -
+> -#ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
+> -static inline bool pfn_t_special(pfn_t pfn)
+> -{
+> -	return (pfn.val & PFN_SPECIAL) == PFN_SPECIAL;
+> -}
+> -#else
+> -static inline bool pfn_t_special(pfn_t pfn)
+> -{
+> -	return false;
+> -}
+> -#endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
+>   #endif /* _LINUX_PFN_T_H_ */
+> diff --git a/mm/memory.c b/mm/memory.c
+> index 49199410805c..cc85f814bc1c 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -2569,8 +2569,6 @@ static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn, bool mkwrite)
+>   		return true;
+>   	if (pfn_t_devmap(pfn))
+>   		return true;
+> -	if (pfn_t_special(pfn))
+> -		return true;
+>   	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
+>   		return true;
+>   	return false;
+> diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+> index e4313726fae3..ddceb04b4a9a 100644
+> --- a/tools/testing/nvdimm/test/iomap.c
+> +++ b/tools/testing/nvdimm/test/iomap.c
+> @@ -137,10 +137,6 @@ EXPORT_SYMBOL_GPL(__wrap_devm_memremap_pages);
+>   
+>   pfn_t __wrap_phys_to_pfn_t(phys_addr_t addr, unsigned long flags)
+>   {
+> -	struct nfit_test_resource *nfit_res = get_nfit_res(addr);
+> -
+> -	if (nfit_res)
+> -		flags &= ~PFN_MAP;
+>           return phys_to_pfn_t(addr, flags);
+>   }
+>   EXPORT_SYMBOL(__wrap_phys_to_pfn_t);
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
