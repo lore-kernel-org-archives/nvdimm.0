@@ -1,79 +1,45 @@
-Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16837215F72
-	for <nvdimm@lists.linux.dev>; Wed, 11 Jun 2025 17:11:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8B1D286D57;
+	Wed, 11 Jun 2025 19:52:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749661899; cv=none; b=FfErfzhUX3aKtEJOKe7Gm8K1iBCzzoUZbrnOlLupdUcGmATwLSNQqbcMUhnwcBD0e8bX5R5PguE/cFTDDPLXBW2INFn7rpElP3IJPMecI3DCtuSpt+gPnc0rPufD+exRkaSaq2vWVvS1QWxFe3/7q82g2M+lQT7juqMMuigN0qg=
+	t=1749671565; cv=none; b=nw3mWX57zPL4Ygc7Dql0PR0EeKdydEp6TSlJDcuXoAJ+IxUpIyGWcZX3kb5pNyj5Q3+HPA16y/9ggCyTiHWSzSZUkov3E+tCCWJffUxatX9SzIiz3DrYeadqsKigouleETYcfjiF3iaJvcxj1mhCLZ2KPfMiBXDqJXAQDhDrCDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749661899; c=relaxed/simple;
-	bh=0rrg/j7xfhTAkqxbkBAoMJ5H3OvvTULkSZkoAyObnB0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h38kyadrHM2kdDSp1RDV2LF2bHkOjczvT7B5b7c/eX1KHbLNugDaHN1WqbXmXpvmLU9Hv77yn76XE+1tEDcJH0vCD1p0+H26E9sp2dr3LFflL+J7CvPEx+arsdvQP5WRdvPzPRDOMNgcxIgeAqn1KWy0059S80m1uexkJ4hGRHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com; spf=none smtp.mailfrom=pdp7.com; dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b=uw7t25XI; arc=none smtp.client-ip=209.85.210.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pdp7.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=pdp7.com
+	s=arc-20240116; t=1749671565; c=relaxed/simple;
+	bh=nMYxhhhFnGMD3R90Vo4bzJWsKoPXpLrIlEnkfbCZH7I=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=SAgOnBbb8hPrmv6VQ7B+9HGzy3cdyKF5/jCBPEf9zwF4z6s8XMoxuJ0TIVL54fCdTocX/gM5bqhR9eCfEhIQmb8t/x1MyfUYXrdjwq6fo47J2xzZ9v16Q+O/mDBNtf6XaZsqTA2A7gRaPxImksk6hu9P2xP46r7FI1mL0aleCp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kGR3uUlj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=pdp7-com.20230601.gappssmtp.com header.i=@pdp7-com.20230601.gappssmtp.com header.b="uw7t25XI"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-742c3d06de3so163537b3a.0
-        for <nvdimm@lists.linux.dev>; Wed, 11 Jun 2025 10:11:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=pdp7-com.20230601.gappssmtp.com; s=20230601; t=1749661894; x=1750266694; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=DucyK9ccxpyapq2woQL0qei/WtX3FmKICxB9cQHabrs=;
-        b=uw7t25XIqfZFswMVB7vy/SGbIYP0BUbJtChPLj/j9H53xq4MOipoInjIC43X6AV/p/
-         y4d1hh8bLqIoARec2D10LnscAZBhW40QZIpIOIbJNijemI9WCUZ4yStOEKUqCbU61gK1
-         kRgQE7uB1+rn7PlqeP17blnW20ng0r9QI3VLfI4namwPYnzG4HpvQUIMeYhxXo8FrCuV
-         mgkQBZAGncuQB0OVj9RNBW75rBfvrV+hVXEe4AOd8TpBuCJ6KBF2slmDXMPomI7PYiEe
-         FBwAH7Adjr9wO+Nc5XFyRTwKFTpa6wRKoqBU62LcDwEuawxNqZ3bUZkBXqW85V4nD0gE
-         DBUA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749661894; x=1750266694;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=DucyK9ccxpyapq2woQL0qei/WtX3FmKICxB9cQHabrs=;
-        b=wYKeVx+/pcytD2vJtjLDLdr3OS2KhJFJ5/PKw/kl+D/ALur0LBGAZUAI7zt2yzyinx
-         sw0Fs3rEtmfXMiasWS7lh14rbBHFGvcvOwRrHDLfIASsCxqX3h89TT28byQyrSEEjfmz
-         NiiSmbqFUjzutjDZ6i6Kgejt3S7qCaD3E6hOQCMXKPOcjGXgG1Qu1/pcDmKUVKQ+b4Vj
-         3ZiiEo47JvOGGJ36mfY/+kBtgeGc2HHpI7GpyV5rC8fzM7Htj2g+OdemZyB8Pv680zWr
-         LROSLajyQgL//nkzMPN1bLs0iG63jIYEy+BUC/hV/yXVtdDyypxygAfFw/J8uwKIOewi
-         saNQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXcDBmVlgLbQMyBGY+ztRbk9H98K18VNHHqp6Zyy2cgzV0yUuMy0IKTeiXjUr2S/IZFpWz3g+c=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwB+Qua+CN5szb+57KMikkknR1N1IvagYkOj9699rfKhKQ94H+j
-	y/TUYVSqC9WSY+bd69l0Oue5VC8h+iQp0jBuxuFEDhEHEFu0NB2iUo0N1BfPp1k/0UI=
-X-Gm-Gg: ASbGncvyjI9S2rgMItrMfvpe328CpzM1uec45m0S6w5J75nvZJvpDmsOgkRssk3oIUM
-	T3Q9RwI743IId2320cQymH3A603GOAnzpzPp9uZZ9yJhNhsBHOSIYG0KnFdt788oZQFjybu0TTf
-	aGX5Fei6nw668aZ14ObOMvTaRmQLjS2lUtb6CWySYs/3msYpYpRjNEstp6nAb3FjuCf+4HiNYkv
-	55xXcjL5t6dq9q7Dk1JBI4hbRNv2HSiZ/D+cbmnFaqKHKbvB9NK594vS+0HVPpKx+2DE/xqsC2L
-	X3mAFSwwk/jxokF7YbZXxiX7JuY12pwKaMhiIvdy/QHnZO0j0MdMb6TuP/PW7o9oW1NTYW4gfw=
-	=
-X-Google-Smtp-Source: AGHT+IHPKfiVh9BBq/DHFeVf8RX9T6viUqIN5WUKbWYGpanTpWtdV+/1EZm0Ddh9RKSSQMvhDeO7Ig==
-X-Received: by 2002:a05:6a21:998a:b0:1f5:9d5d:bcdd with SMTP id adf61e73a8af0-21f97753907mr937975637.1.1749661894141;
-        Wed, 11 Jun 2025 10:11:34 -0700 (PDT)
-Received: from x1 (97-120-245-201.ptld.qwest.net. [97.120.245.201])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7482b083f05sm9373821b3a.89.2025.06.11.10.11.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Jun 2025 10:11:33 -0700 (PDT)
-Date: Wed, 11 Jun 2025 10:11:31 -0700
-From: Drew Fustini <drew@pdp7.com>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Rob Herring <robh@kernel.org>, Dan Williams <dan.j.williams@intel.com>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kGR3uUlj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0C9CC4CEE3;
+	Wed, 11 Jun 2025 19:52:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1749671565;
+	bh=nMYxhhhFnGMD3R90Vo4bzJWsKoPXpLrIlEnkfbCZH7I=;
+	h=Date:From:To:Cc:Subject:From;
+	b=kGR3uUlj02j5Do/TNMhY3XgzLEXIYin9QqWXVE0V4k1v5hL50XhTQuaiyep4y4TSE
+	 kzXnSoaxibk3Jv/715vYNqQkuciYfIFJ2SYykIxKXnS0+iQCo3pmtVn6e7tR18GM2b
+	 iSI3r3ZfbZnk2h5M9tfiMlxNVmqKKuxOOU+QAS9A11VxOLA6BnPwtgXXwFLJaS2p9k
+	 qMk7GUXGUDWvtx0YEaGzrm9Ea3LIITqFLkwlc11NjBuz27q9kEbHo6C3trdvPifxe6
+	 lcBazw0usVR0dhq1T2qENIm+fVGBxXFZU+V1wGpMXs8GO2LF/n40AO4QFfMtK+dn+s
+	 J6IBcr4HKvppg==
+Date: Wed, 11 Jun 2025 13:52:41 -0600
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>, devicetree@vger.kernel.org,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Conor Dooley <conor.dooley@microchip.com>
-Subject: Re: [PATCH v3] dt-bindings: pmem: Convert binding to YAML
-Message-ID: <aEm4wztFPMY0KKC4@x1>
-References: <20250606184405.359812-4-drew@pdp7.com>
- <20250609133241.GA1855507-robh@kernel.org>
- <aEh17S0VPqakdsEg@x1>
- <684993ad31c3_1e0a5129482@iweiny-mobl.notmuch>
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-hardening@vger.kernel.org, Kees Cook <kees@kernel.org>
+Subject: [PATCH v3][next] acpi: nfit: intel: avoid multiple
+ -Wflex-array-member-not-at-end warnings
+Message-ID: <aEneid7gdAZr1_kR@kspp>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -82,199 +48,269 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <684993ad31c3_1e0a5129482@iweiny-mobl.notmuch>
 
-On Wed, Jun 11, 2025 at 09:33:17AM -0500, Ira Weiny wrote:
-> Drew Fustini wrote:
-> > On Mon, Jun 09, 2025 at 08:32:41AM -0500, Rob Herring wrote:
-> > > On Fri, Jun 06, 2025 at 11:11:17AM -0700, Drew Fustini wrote:
-> > > > Convert the PMEM device tree binding from text to YAML. This will allow
-> > > > device trees with pmem-region nodes to pass dtbs_check.
-> > > > 
-> > > > Acked-by: Conor Dooley <conor.dooley@microchip.com>
-> > > > Acked-by: Oliver O'Halloran <oohall@gmail.com>
-> > > > Signed-off-by: Drew Fustini <drew@pdp7.com>
-> > > > ---
-> > > > Dan/Dave/Vishal: does it make sense for this pmem binding patch to go
-> > > > through the nvdimm tree?
-> > > > 
-> > > > Note: checkpatch complains about "DT binding docs and includes should
-> > > > be a separate patch". Rob told me that this a false positive. I'm hoping
-> > > > that I can fix the false positive at some point if I can remember enough
-> > > > perl :)
-> > > > 
-> > > > v3:
-> > > >  - no functional changes
-> > > >  - add Oliver's Acked-by
-> > > >  - bump version to avoid duplicate message-id mess in v2 and v2 resend:
-> > > >    https://lore.kernel.org/all/20250520021440.24324-1-drew@pdp7.com/
-> > > > 
-> > > > v2 resend:
-> > > >  - actually put v2 in the Subject
-> > > >  - add Conor's Acked-by
-> > > >    - https://lore.kernel.org/all/20250520-refract-fling-d064e11ddbdf@spud/
-> > > > 
-> > > > v2:
-> > > >  - remove the txt file to make the conversion complete
-> > > >  - https://lore.kernel.org/all/20250520021440.24324-1-drew@pdp7.com/
-> > > > 
-> > > > v1:
-> > > >  - https://lore.kernel.org/all/20250518035539.7961-1-drew@pdp7.com/
-> > > > 
-> > > >  .../devicetree/bindings/pmem/pmem-region.txt  | 65 -------------------
-> > > >  .../devicetree/bindings/pmem/pmem-region.yaml | 49 ++++++++++++++
-> > > >  MAINTAINERS                                   |  2 +-
-> > > >  3 files changed, 50 insertions(+), 66 deletions(-)
-> > > >  delete mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.txt
-> > > >  create mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.yaml
-> > > > 
-> > > > diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.txt b/Documentation/devicetree/bindings/pmem/pmem-region.txt
-> > > > deleted file mode 100644
-> > > > index cd79975e85ec..000000000000
-> > > > --- a/Documentation/devicetree/bindings/pmem/pmem-region.txt
-> > > > +++ /dev/null
-> > > > @@ -1,65 +0,0 @@
-> > > > -Device-tree bindings for persistent memory regions
-> > > > ------------------------------------------------------
-> > > > -
-> > > > -Persistent memory refers to a class of memory devices that are:
-> > > > -
-> > > > -	a) Usable as main system memory (i.e. cacheable), and
-> > > > -	b) Retain their contents across power failure.
-> > > > -
-> > > > -Given b) it is best to think of persistent memory as a kind of memory mapped
-> > > > -storage device. To ensure data integrity the operating system needs to manage
-> > > > -persistent regions separately to the normal memory pool. To aid with that this
-> > > > -binding provides a standardised interface for discovering where persistent
-> > > > -memory regions exist inside the physical address space.
-> > > > -
-> > > > -Bindings for the region nodes:
-> > > > ------------------------------
-> > > > -
-> > > > -Required properties:
-> > > > -	- compatible = "pmem-region"
-> > > > -
-> > > > -	- reg = <base, size>;
-> > > > -		The reg property should specify an address range that is
-> > > > -		translatable to a system physical address range. This address
-> > > > -		range should be mappable as normal system memory would be
-> > > > -		(i.e cacheable).
-> > > > -
-> > > > -		If the reg property contains multiple address ranges
-> > > > -		each address range will be treated as though it was specified
-> > > > -		in a separate device node. Having multiple address ranges in a
-> > > > -		node implies no special relationship between the two ranges.
-> > > > -
-> > > > -Optional properties:
-> > > > -	- Any relevant NUMA associativity properties for the target platform.
-> > > > -
-> > > > -	- volatile; This property indicates that this region is actually
-> > > > -	  backed by non-persistent memory. This lets the OS know that it
-> > > > -	  may skip the cache flushes required to ensure data is made
-> > > > -	  persistent after a write.
-> > > > -
-> > > > -	  If this property is absent then the OS must assume that the region
-> > > > -	  is backed by non-volatile memory.
-> > > > -
-> > > > -Examples:
-> > > > ---------------------
-> > > > -
-> > > > -	/*
-> > > > -	 * This node specifies one 4KB region spanning from
-> > > > -	 * 0x5000 to 0x5fff that is backed by non-volatile memory.
-> > > > -	 */
-> > > > -	pmem@5000 {
-> > > > -		compatible = "pmem-region";
-> > > > -		reg = <0x00005000 0x00001000>;
-> > > > -	};
-> > > > -
-> > > > -	/*
-> > > > -	 * This node specifies two 4KB regions that are backed by
-> > > > -	 * volatile (normal) memory.
-> > > > -	 */
-> > > > -	pmem@6000 {
-> > > > -		compatible = "pmem-region";
-> > > > -		reg = < 0x00006000 0x00001000
-> > > > -			0x00008000 0x00001000 >;
-> > > > -		volatile;
-> > > > -	};
-> > > > -
-> > > > diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.yaml b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-> > > > new file mode 100644
-> > > > index 000000000000..a4aa4ce3318b
-> > > > --- /dev/null
-> > > > +++ b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-> > > > @@ -0,0 +1,49 @@
-> > > > +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> > > > +%YAML 1.2
-> > > > +---
-> > > > +$id: http://devicetree.org/schemas/pmem-region.yaml#
-> > > > +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> > > > +
-> > > > +maintainers:
-> > > > +  - Bjorn Helgaas <bhelgaas@google.com>
-> > > 
-> > > Drop Bjorn. He only did typo fixes on this.
-> > > 
-> > > > +  - Oliver O'Halloran <oohall@gmail.com>
-> > > > +
-> > > > +title: Persistent Memory Regions
-> > > > +
-> > > > +description: |
-> > > > +  Persistent memory refers to a class of memory devices that are:
-> > > > +
-> > > > +    a) Usable as main system memory (i.e. cacheable), and
-> > > > +    b) Retain their contents across power failure.
-> > > > +
-> > > > +  Given b) it is best to think of persistent memory as a kind of memory mapped
-> > > > +  storage device. To ensure data integrity the operating system needs to manage
-> > > > +  persistent regions separately to the normal memory pool. To aid with that this
-> > > > +  binding provides a standardised interface for discovering where persistent
-> > > > +  memory regions exist inside the physical address space.
-> > > > +
-> > > > +properties:
-> > > > +  compatible:
-> > > > +    const: pmem-region
-> > > > +
-> > > > +  reg:
-> > > > +    maxItems: 1
-> > > > +
-> > > > +  volatile:
-> > > > +    description: |
-> > > 
-> > > Don't need '|' here.
-> > 
-> > Rob - Thanks for the feedback. Should I send a new revision with these
-> > two changes?
-> 
-> I can do a clean up as I have not sent to Linus yet.
-> 
-> Here are the changes if you approve I'll change it and push to linux-next.
-> 
-> Ira
-> 
-> diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.yaml b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-> index a4aa4ce3318b..bd0f0c793f03 100644
-> --- a/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-> +++ b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
-> @@ -5,7 +5,6 @@ $id: http://devicetree.org/schemas/pmem-region.yaml#
->  $schema: http://devicetree.org/meta-schemas/core.yaml#
->  
->  maintainers:
-> -  - Bjorn Helgaas <bhelgaas@google.com>
->    - Oliver O'Halloran <oohall@gmail.com>
->  
->  title: Persistent Memory Regions
-> @@ -30,7 +29,7 @@ properties:
->      maxItems: 1
->  
->    volatile:
-> -    description: |
-> +    description:
->        Indicates the region is volatile (non-persistent) and the OS can skip
->        cache flushes for writes
->      type: boolean
+-Wflex-array-member-not-at-end was introduced in GCC-14, and we are
+getting ready to enable it, globally.
 
-Thanks for fixing it up. That looks good to me.
+Refactor multiple structs that contain flexible-array members in the
+middle by replacing them with unions.
 
-Drew
+These changes preserve the memory layout while effectively adjusting
+it so that the flexible-array member is always treated as the last
+member.
+
+With these changes, fix a dozen instances of the following type of
+warning:
+
+drivers/acpi/nfit/intel.c:692:35: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
+
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+Changes in v3:
+ - Use union instead of DEFINE_RAW_FLEX().
+
+Changes in v2:
+ - Use DEFINE_RAW_FLEX() instead of __struct_group().
+ - Link: https://lore.kernel.org/linux-hardening/Z-QpUcxFCRByYcTA@kspp/ 
+
+v1:
+ - Link: https://lore.kernel.org/linux-hardening/Z618ILbAR8YAvTkd@kspp/
+
+ drivers/acpi/nfit/intel.c | 132 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 108 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 3902759abcba..987d427ec2b6 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -55,9 +55,16 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	unsigned long security_flags = 0;
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_get_security_state cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_get_security_state cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
+@@ -120,9 +127,16 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+ static int intel_security_freeze(struct nvdimm *nvdimm)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_freeze_lock cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_freeze_lock cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
+@@ -153,9 +167,16 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 	unsigned int cmd = ptype == NVDIMM_MASTER ?
+ 		NVDIMM_INTEL_SET_MASTER_PASSPHRASE :
+ 		NVDIMM_INTEL_SET_PASSPHRASE;
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_set_passphrase cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_set_passphrase cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_family = NVDIMM_FAMILY_INTEL,
+@@ -195,9 +216,16 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key_data)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_unlock_unit cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_unlock_unit cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_UNLOCK_UNIT,
+@@ -234,9 +262,16 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+ {
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_disable_passphrase cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_disable_passphrase cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
+@@ -277,9 +312,16 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	unsigned int cmd = ptype == NVDIMM_MASTER ?
+ 		NVDIMM_INTEL_MASTER_SECURE_ERASE : NVDIMM_INTEL_SECURE_ERASE;
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_secure_erase cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_secure_erase cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_family = NVDIMM_FAMILY_INTEL,
+@@ -318,9 +360,16 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ {
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_query_overwrite cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_query_overwrite cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
+@@ -354,9 +403,16 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ {
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_overwrite cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_overwrite cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_OVERWRITE,
+@@ -407,9 +463,16 @@ const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
+ static int intel_bus_fwa_businfo(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nd_intel_bus_fw_activate_businfo *info)
+ {
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_bus_fw_activate_businfo cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_bus_fw_activate_businfo cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO,
+@@ -518,9 +581,16 @@ static enum nvdimm_fwa_capability intel_bus_fwa_capability(
+ static int intel_bus_fwa_activate(struct nvdimm_bus_descriptor *nd_desc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_bus_fw_activate cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_bus_fw_activate cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE,
+@@ -582,9 +652,16 @@ const struct nvdimm_bus_fw_ops *intel_bus_fw_ops = &__intel_bus_fw_ops;
+ static int intel_fwa_dimminfo(struct nvdimm *nvdimm,
+ 		struct nd_intel_fw_activate_dimminfo *info)
+ {
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_fw_activate_dimminfo cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_fw_activate_dimminfo cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO,
+@@ -688,9 +765,16 @@ static int intel_fwa_arm(struct nvdimm *nvdimm, enum nvdimm_fwa_trigger arm)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
+-	struct {
++	/*
++	 * This effectively creates a union between the flexible-array member
++	 * and any members after _offset_to_fam.
++	 */
++	union {
+ 		struct nd_cmd_pkg pkg;
+-		struct nd_intel_fw_activate_arm cmd;
++		struct {
++			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
++			struct nd_intel_fw_activate_arm cmd;
++		};
+ 	} nd_cmd = {
+ 		.pkg = {
+ 			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_ARM,
+-- 
+2.43.0
+
