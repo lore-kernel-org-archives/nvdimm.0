@@ -1,266 +1,364 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DB5B27C144
-	for <nvdimm@lists.linux.dev>; Wed, 11 Jun 2025 12:07:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749643638; cv=none; b=IpOtHGg5D7MSbPQFZc087UZJxuSyUlJPJPfNVZcbqgHVIP4+mNtCEXQdd3OrDHakfJesrFIPxkHJGz6pHl7ATfxWDOiBY4OZ7zuUkFlU1o8w5C/7NGuuRTUnamhardOH1AJCJ3e0NVnuFWPdQZy78ec1KmYmTAaL1OLwMfNKUnk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749643638; c=relaxed/simple;
-	bh=lDuMcIkqdVYfT9oTqnsRg9TwWuYN2/pKXvzQU1WFu8o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:content-type; b=TbJ8TiXQ81k7UvFju17F5/CmNOpE9iUANPlC0v9grZsJAZwVZhdm25m/udz1zsRA5qherufGxHa0y3vVe8oAON+mGrjtI6lbfKsbI/ck3saajV2LNLnjWX5C0EFj+uAA67hlu+22kEdNd3CHoGwlNBDRXAnC78M0sKXqrtdmBpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=K1LSq7GX; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AD38189BB5
+	for <nvdimm@lists.linux.dev>; Wed, 11 Jun 2025 14:32:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.11
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1749652351; cv=fail; b=lAQpiyQFDgFi2jofIvA4Me250yE8yRjCXPfxv5+Dum7J1u/ljniqS46TQF6tQC9MOaCDokViAC+A1+dTmy1Yg6tN4QEJIepZmSueLqykOMwQJC5TW93C0Ckz6caPee+Rdo3SLGdanf73+dw5H8VbkLRI5gl/V96LYWI4QhOhDls=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1749652351; c=relaxed/simple;
+	bh=etgpiaQI6N7Qw/lysgdFd9XVvTVGZ8yn6fKLUimzNy0=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=JdJDf4kLLwQ0eAJhpt4JcI3zihxH+b9acHl3NyH7N2Uo5PrI0nEwb5YCH9/KQHjovE/cF3W+bpMTIMXtOoocSBZ+Cljb1A9AsMi3RKktl4rK0EoqGj69MIdSyodtDHo0uBX4sWn3b35wjGw/XibDPJDbxElC4Zo+3uxbLbrkWV4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bQwPBfWa; arc=fail smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="K1LSq7GX"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1749643635;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UtWlysWlQBjRkoN9+CJXCvGFy/ErJq/rTFp6EVa14FI=;
-	b=K1LSq7GX/U83F5Mpdf4tBC1DdyIi5onAS2QF3gFYATFb2EdV21xMN7xdhZellq66CyGYpF
-	auk58mpkC7bTwna2GlUwvdSFCKYrS0YjVyL80dSYtMZiP5QMMp65LjhHeB/WYOi0RjL2a8
-	+jmtobYpXyeDIzwEHXEVg5QpniHvkO4=
-Received: from mail-qv1-f69.google.com (mail-qv1-f69.google.com
- [209.85.219.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-453-QbqSrvPBOtKdbzHW3EGBMg-1; Wed, 11 Jun 2025 08:07:14 -0400
-X-MC-Unique: QbqSrvPBOtKdbzHW3EGBMg-1
-X-Mimecast-MFC-AGG-ID: QbqSrvPBOtKdbzHW3EGBMg_1749643634
-Received: by mail-qv1-f69.google.com with SMTP id 6a1803df08f44-6fad5f1e70fso125591356d6.0
-        for <nvdimm@lists.linux.dev>; Wed, 11 Jun 2025 05:07:14 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749643634; x=1750248434;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=UtWlysWlQBjRkoN9+CJXCvGFy/ErJq/rTFp6EVa14FI=;
-        b=gU6sBMIJt5yhy1AUuFrcqW58qtybw9ahj2gC8IE94MzK4z12S2TQKKoVhwohEgPJDg
-         jFMB+TjsriDvDbP1k5toRzlniYJSepaBeNfLZwITlyymmV7ZqIUZUU4eINwhppgBzv1v
-         sPG7HI7Fbf88+Veq31Cw1GaSNcWrccMs2Xs5wY6uQmABzebGpCoZQgyoU/m2N4k6x+Gl
-         /SgZGMbZGPqP89kb3AyUUlxP5u5pEdasaknjOgG4oXID1GhYq4CS0P7LnwGNM9iT/0rx
-         RkWvedam69AwUmy01wtq3OO1q8sDJr3NF7rNnGQ6mxvdfUPQPA0TVMFjFhkf4XaXd2KQ
-         IDGA==
-X-Forwarded-Encrypted: i=1; AJvYcCUlbFbyORezWkUNwJjtrNi0NhgBDM+leytC2PTyH5AZxdpgsIVtZD1iRAHFfq+WlHcssWMDF+g=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyCLib8ypbzgg/xSAOVYiCABchmPZC2y5MotyNKoNOPN5wz3jMu
-	g903Z2a1TUaBVJ0plEIxzV/7DBnhojSjbVJObvg93P2lajXF8FD8dguRzHZGZoNSxTun2pwHfE6
-	8JA+Xtr8d3pnnkwKuUlpzqWGPEzWbxL3bQfIAh+GOPCz3hla3XcYbftMAIw==
-X-Gm-Gg: ASbGncvtQ5SCvWaTyQEbiMVEIqi9jkNjHtrhEZNP9xqMdACDdHxEhpid1pCVbq04o74
-	bR3rLX3GvAfYcRiD9V2wocG/d81fpc9T1jfTzjXZepAsmepQqwropSS6jKSGpO4oWh0Ehr43anu
-	cVOOeUBcU9i7cfSs5l8iTukY3lAIrwGtzTPRRIrO4OS4JTeL7dK2IEM86lX11IvHKqWFdWYTg1P
-	heC07WI5XmiJE9Y/qp1rKXtX1dAxjLvqTJn56Pa1g0r+motFbcsi+G8hECnOCdQ/f2YpkAVlXfV
-	wj0JtZ9Vs8n68KrovIP4baLbUbLL8Gw6Unc0QOwX7A==
-X-Received: by 2002:a05:6214:2247:b0:6fb:eff:853f with SMTP id 6a1803df08f44-6fb2d1355e8mr38204086d6.11.1749643633912;
-        Wed, 11 Jun 2025 05:07:13 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEM4p2qx6IwsF7ygt/fJLoNiy0HXlnShIRf40WhWevNTjDTOZVqQY8Q1r9EhVLBlQWkw0T8DQ==
-X-Received: by 2002:a05:6214:2247:b0:6fb:eff:853f with SMTP id 6a1803df08f44-6fb2d1355e8mr38203456d6.11.1749643633381;
-        Wed, 11 Jun 2025 05:07:13 -0700 (PDT)
-Received: from localhost (nat-pool-muc-t.redhat.com. [149.14.88.26])
-        by smtp.gmail.com with UTF8SMTPSA id 6a1803df08f44-6fb09b2a1b6sm80566356d6.100.2025.06.11.05.07.10
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Jun 2025 05:07:12 -0700 (PDT)
-From: David Hildenbrand <david@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	David Hildenbrand <david@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Alistair Popple <apopple@nvidia.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Mike Rapoport <rppt@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>,
-	Zi Yan <ziy@nvidia.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Nico Pache <npache@redhat.com>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Dev Jain <dev.jain@arm.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Oscar Salvador <osalvador@suse.de>
-Subject: [PATCH v2 3/3] mm/huge_memory: don't mark refcounted folios special in vmf_insert_folio_pud()
-Date: Wed, 11 Jun 2025 14:06:54 +0200
-Message-ID: <20250611120654.545963-4-david@redhat.com>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250611120654.545963-1-david@redhat.com>
-References: <20250611120654.545963-1-david@redhat.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bQwPBfWa"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1749652350; x=1781188350;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=etgpiaQI6N7Qw/lysgdFd9XVvTVGZ8yn6fKLUimzNy0=;
+  b=bQwPBfWah31sRqWH+zcWpTeXLen7Uo/BgnVXQ+1XUyOvpvubdh0VM1by
+   4WfbMtM9rsnBlFtBHblu1fER/gmaW+4r2mq+X7MzEsB18sq6f4jH7YZPZ
+   CEfdeK+tjfL+0mSD0MvKQX1WjY0iVm6pu/w0G0JHhKMT4agmXgue1ONbl
+   DA/0cV3NMjmOhLccALFMHgpwaMoAS5RCZbXB8Ekgl4TOBo4COL6lp3QOC
+   dSV1y8pfgOc4mJkiuhHo01nRMpTp6RRB/OX0OqtKC/Mn4m/Rz/8SkOb4B
+   /ezaR6zVAmOR2qMktT7onEd5PeMDKui/X1qzUSPA1QAQbu3QLSvsZI7u7
+   g==;
+X-CSE-ConnectionGUID: ri5Q8AQsRoCrk0MZYTow/Q==
+X-CSE-MsgGUID: 7FW6m7JsRnKisYVRnAtLwg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11461"; a="62409365"
+X-IronPort-AV: E=Sophos;i="6.16,228,1744095600"; 
+   d="scan'208";a="62409365"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 07:32:29 -0700
+X-CSE-ConnectionGUID: 4mB8E5YGTNOIRCbyUdkHXg==
+X-CSE-MsgGUID: xKopCyxXRsmXE8gmDZf5zg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,228,1744095600"; 
+   d="scan'208";a="147095251"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by orviesa006.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 07:32:12 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Wed, 11 Jun 2025 07:32:11 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25 via Frontend Transport; Wed, 11 Jun 2025 07:32:11 -0700
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (40.107.244.76)
+ by edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Wed, 11 Jun 2025 07:32:10 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=eTSGZxg2VoliYQeODtaoyCrERmUIKM7NqeMI+uwVMZ55LqjPhzn3iyAUbEfHyxr7s++tam6iwSM9l+XOJumnrYapFUZkuucAwyCJd1sK4L7mJNwNEf+x4K8Zua1pjAp7mCq+ggx5Rc5FBK8y3x+LC8be0pqQsj9pZz/1N0fy0jzf7U+c5RpCHd+QIIpaTxda31F8TuEqVJrO0TFhfSA6vPoKdGDG50PauQx5KnfJG8u5oHKgTGbtFGK9HNBOl/9rey7KZiwsmhza/+ajADLPIFAKMtezzMD+3tidKV2c/fr67Hlk6m0mmbIMfkCLSu74ThzLWQmVeVfy3ahx5b89Ng==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=AdncaAFuMKMg/1OJK9BpBzkAjfkQaUdxXJ4waZnq0IA=;
+ b=PvFn0cwHTQojEO7p725xBlNE71HHdbD9WLy+7/pKjoha4wxwhab/SkWabLQoEYxZOMPis2EmH0xNkebIxpPop+IgjLIOcC3rw3KUzQHrl5ioZUFFOeB8oNuWXyvZ0MydVCECQ2nEeRcbFd0fmHlMg3+i241OxR2SuUB8+H4SzP0+yFdcm6nSIOiW0AGcGnBFfwVtmfrOf4bfMJ1svpH+wVsMgweW9mxPdvztefSuhdgPJU26H111g1G4cVb47No6T1rfqdtCSnDccVvSdJAKjH7ntHBkgiEU+ZzILviYCHB9TRElobiT61FIlacPAAdui8SpNzQ8q913tE3kKuzbDg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c) by MW4PR11MB7125.namprd11.prod.outlook.com
+ (2603:10b6:303:219::12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8746.31; Wed, 11 Jun
+ 2025 14:32:08 +0000
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::19ef:ed1c:d30:468f]) by PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::19ef:ed1c:d30:468f%4]) with mapi id 15.20.8835.018; Wed, 11 Jun 2025
+ 14:32:08 +0000
+Date: Wed, 11 Jun 2025 09:33:17 -0500
+From: Ira Weiny <ira.weiny@intel.com>
+To: Drew Fustini <drew@pdp7.com>, Rob Herring <robh@kernel.org>
+CC: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+	<nvdimm@lists.linux.dev>, Oliver O'Halloran <oohall@gmail.com>, "Krzysztof
+ Kozlowski" <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Conor Dooley
+	<conor.dooley@microchip.com>
+Subject: Re: [PATCH v3] dt-bindings: pmem: Convert binding to YAML
+Message-ID: <684993ad31c3_1e0a5129482@iweiny-mobl.notmuch>
+References: <20250606184405.359812-4-drew@pdp7.com>
+ <20250609133241.GA1855507-robh@kernel.org>
+ <aEh17S0VPqakdsEg@x1>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <aEh17S0VPqakdsEg@x1>
+X-ClientProxiedBy: MW4PR04CA0342.namprd04.prod.outlook.com
+ (2603:10b6:303:8a::17) To PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: -g-np13mY4ZpRfNURbkJBL_FAubd5Darzx64HQQFQJs_1749643634
-X-Mimecast-Originator: redhat.com
-Content-Transfer-Encoding: 8bit
-content-type: text/plain; charset="US-ASCII"; x-default=true
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH3PPF9E162731D:EE_|MW4PR11MB7125:EE_
+X-MS-Office365-Filtering-Correlation-Id: a5b6dd23-2572-41bd-3cb2-08dda8f4beb1
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014|13003099007|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?YsKGG/FGt/dTjebsxOPpjh66e8z1EELbl81xFa/OJlHZYiAQffZai0qNzCPR?=
+ =?us-ascii?Q?gONhzO+l8vzZqjE9ciKai4i5qYi5MKxSAYBnmEKOwxw/NuMLak0QUE1FGm8R?=
+ =?us-ascii?Q?5JPOQIoNUyKTaY2nLGWLP6b7jTSutob98JkbCsiNokKJO2dF6eWQpxI1HBBa?=
+ =?us-ascii?Q?BNP3NSeh0IFmA5jooZx3pZBBqOaO2ltrQd544A7gbXgB80cbER/oHpUV58dI?=
+ =?us-ascii?Q?y2W9EiHwEhEVCUgawDb5140D5vNGlK9n1cJxSx3NiyCEnhdfFduqJ2nmXPf5?=
+ =?us-ascii?Q?87MVTicVwpFSuY4U4Knh6hRkMOlibdlTkvLq7k6dyGSABRcmHIYInTtrOyKQ?=
+ =?us-ascii?Q?lrmFvVyzfF2fj2aeBPH5lafdOPS9LqpgFgo/tlZgRSJbo+QnqtMqVuD/tj7l?=
+ =?us-ascii?Q?aqjhYF15Hal2knOBKQlMalYM1gEpQ/3GpkJhZ0eqKN8XQedxwXSHaQ6bPjsG?=
+ =?us-ascii?Q?2y9f726bd156V3k5y2isk7WLam9aA7iFDZFl059G8O/Cx4T088CoXsQCMUmQ?=
+ =?us-ascii?Q?eNhqMeP+Ms3Txho0Xvd+MK5o+6lkHJJphrL9KHzMGoqHD4dHBXtJQC/xTwKJ?=
+ =?us-ascii?Q?braCBpdxESqRxpo5pG7RIPd0YsLYCXkr6lNQRYjty6UVAcf/wjuQSKVQwuaj?=
+ =?us-ascii?Q?vg7ls80+OIpKNF2uRsPLUxZeLkduJf97I3iIF44mCnnsih3rdOIXTl0ice9H?=
+ =?us-ascii?Q?T+X/TbplIOBHQHcnGdruX2fArWidRQlf8689bKJCiHBuuPg+xMDBFQFCzZBE?=
+ =?us-ascii?Q?sffcuxjz5DFbH7PfSO7KWOAXBNCPwfYcLXX3sfmShjDOBKlXPHAndieMgsMy?=
+ =?us-ascii?Q?6clfm2WPNeCE25mCfaiDSEKw6ch3A9vGbePwvdAI/uTaF7RYCMCwvAEYos+E?=
+ =?us-ascii?Q?0mnqmUYqZb/P9iICG5BLNB9WNNivpHKq0+8EAyx+iKralUCylSyK/K/NMe8m?=
+ =?us-ascii?Q?ky2HP9gBzN2FibZRtrcJvvJ9bcvklgWKN8n3PPXY8qPbadX5IGwL4yc6Bn+q?=
+ =?us-ascii?Q?W+4lhH2ageXjem59r2UTiprJQEpXUd3NEbR6k4Ubb0Sg6IVkENzkf6SB86L3?=
+ =?us-ascii?Q?MuIgJlt0en+yQDSz9JxCV7d2I+u0ZDQZIGlrlrlE2iqzXemU6yntWtVuvz8+?=
+ =?us-ascii?Q?CQ+NHrJBTGFznAWkQEiJVd+v786B0kcx/hy9rCcyAbxTbVUnfHVLQCgpn9Po?=
+ =?us-ascii?Q?IJm0sxS+Hg1+hnhfj7ekFg2TB9BuxyA5KKIwRJw7BVSYLyj7SeDFq5HbBR1f?=
+ =?us-ascii?Q?c38Hvdmeq8+G5tI2/f7IWfw07/VQYtCFkcpP4Xt3fbMJnU5oFXOKOTWeZhLC?=
+ =?us-ascii?Q?4f/amr9EkV5tm/Bpd3mBHF9AYTRSX4O5IxlcCfebKHr2tC66BSRxXYiEHdXB?=
+ =?us-ascii?Q?+DAsBK7QXAj1wgZ4HKqq/6iuKiTJ?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH3PPF9E162731D.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(13003099007)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?m+n2v83tfn49M8ZwbcHaS1Hr7Z97S5DGoC1evPXD5JvlYCT97keeWRh+C8so?=
+ =?us-ascii?Q?YiwnABd5u504kwgd3GTwVpQLtyCECzFAYiucfxgXYAv0urwq3PvNv6etx38C?=
+ =?us-ascii?Q?K8Frun4/aQIGxy7/KdvE1cUeN3prw2JV5GIq3+LNe2ygzJVewEV8QXEJH5oD?=
+ =?us-ascii?Q?Vn3Rx5uCaI7+wkC5ft3oFDrYsu/i3GQE1VHBaqoraW94HZ6jChg3OrZ9YyoG?=
+ =?us-ascii?Q?hjKXVjdUJ7DE6Q7TnRJsHLtpW0sjJT1O/ZsyeRIu+ooFizho0TInKLAXSSLj?=
+ =?us-ascii?Q?j1UIuxmibDnRCW3otjj6XbY7dgUfwooJdEaWDnTivfEwUxqZ4FRCg2suiazf?=
+ =?us-ascii?Q?otGuXRdt5lbbfyUxGG0DcNtrpsS0hFivBKC3LKg8z6giyJg08xjBRyMfntpH?=
+ =?us-ascii?Q?ZSD+UMp7zkZ+DfR2yY31UdfbNFJL+b8ArIqtuKqkuMKRK5H1nv2YRuq/gkQd?=
+ =?us-ascii?Q?ovNMXVItKp6cPTXxOs1oPsvefTZY3m75h0ucq3zzDMFknDDqBI2U+az2Odif?=
+ =?us-ascii?Q?P0AA5PKuX/o9hIcVgPz+Tf/A+yeEgqxe/k3+lnRIkciJH+Si4pBiOc+0APJr?=
+ =?us-ascii?Q?yC/kGYQTuEEHJbrYYplguvtaJJUSofHtFE6tVo3vqnjs9AkZr3CEOTPUQe8K?=
+ =?us-ascii?Q?r9zCPsku1HYrzTgxMnt5GwHEqaT0r6t2SNqb/gDbtoiVqMUiHKZg5yFYd2fb?=
+ =?us-ascii?Q?fN8PzHncwW/o+bTs5dhi+xqC2rqC7+of8bVr38PxQVF9rs1EEmqew2c6/gV7?=
+ =?us-ascii?Q?XfiAjbaRHRmiMMhIO+ZWZm2ILwpLBjPkdDZssztAgVM3vt00F/2EbeUkVrmW?=
+ =?us-ascii?Q?wmTkI8FfXf9eh/j1eFdezhWGeUPnRsXO7mVQFyD/U8fJtwBwQCVLU5oLd9d7?=
+ =?us-ascii?Q?J7k0VTJzjMNIOixPmCtw3kKevNAyXAL6TWf5a3JNniyq62NWAI96TBMEHzwh?=
+ =?us-ascii?Q?r6VW0NceexlQAXZwORCKWQZ6VjHfpkKfEIS5aZBmTOuPYwo/u1lNzsylQgz+?=
+ =?us-ascii?Q?WntL+OZJi/4vUneTpFNvckwwZajfYFVPvojsEucztYV8czeO5C2iTZRK+KOI?=
+ =?us-ascii?Q?VSrbMU55l4eQoF4t/6aVpjxAa1X6WOiNnNlHHtCZ/qQE0PIN9tKiPm4qaAdJ?=
+ =?us-ascii?Q?25hfF4I/KKJuKGV1KHNnnZqtFLC1001IewUKyeBGp8lP2qnQHZ8ZSxJOEZjh?=
+ =?us-ascii?Q?VEN4ENlLVCvpiMk867DLhdTdq4EY9neUIx65A2Hc/TkHO8/TN3P5/dbPLCnH?=
+ =?us-ascii?Q?LZTCmXxa+TZ/ey6P+Tz7wTtj1Oo+Lhm6MFox+IN4zAlEJ4IwdzBOmtOYbdp7?=
+ =?us-ascii?Q?PAgSGPgZTTSiaV15JftqR/CN637w9m01NTjccsLAhf+/7NLZBfHx9f7SZVNa?=
+ =?us-ascii?Q?yTrpDsGZrDyGcZesQJFBWBpRH1bq/Ar9SjaVy0+ss2cyCLh1roG2nSuaoED0?=
+ =?us-ascii?Q?CO+35v39oVptGINciAmw4wDej4vLmiE2Bp4+Fn9eizn67724n4lhj4npxVAz?=
+ =?us-ascii?Q?8PlbB5DaERAbtrrQYoJkn72mgSdB+t8aQNLQuM8w2T1TeWMKD8l2/d5ve7Aa?=
+ =?us-ascii?Q?g0hbV5uFsahvMf4zIdHqyabZDFmS6S2daKXXSVY7?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: a5b6dd23-2572-41bd-3cb2-08dda8f4beb1
+X-MS-Exchange-CrossTenant-AuthSource: PH3PPF9E162731D.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jun 2025 14:32:08.2705
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 6vSTKb5Dv4fVomq81wcj+JNFrq/b1gFywP43f0TMEiT8Onn/LKk7mSRmFWKvumT+Cl1g5Ava75QlojZaZjVkxA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR11MB7125
+X-OriginatorOrg: intel.com
 
-Marking PUDs that map a "normal" refcounted folios as special is
-against our rules documented for vm_normal_page().
+Drew Fustini wrote:
+> On Mon, Jun 09, 2025 at 08:32:41AM -0500, Rob Herring wrote:
+> > On Fri, Jun 06, 2025 at 11:11:17AM -0700, Drew Fustini wrote:
+> > > Convert the PMEM device tree binding from text to YAML. This will allow
+> > > device trees with pmem-region nodes to pass dtbs_check.
+> > > 
+> > > Acked-by: Conor Dooley <conor.dooley@microchip.com>
+> > > Acked-by: Oliver O'Halloran <oohall@gmail.com>
+> > > Signed-off-by: Drew Fustini <drew@pdp7.com>
+> > > ---
+> > > Dan/Dave/Vishal: does it make sense for this pmem binding patch to go
+> > > through the nvdimm tree?
+> > > 
+> > > Note: checkpatch complains about "DT binding docs and includes should
+> > > be a separate patch". Rob told me that this a false positive. I'm hoping
+> > > that I can fix the false positive at some point if I can remember enough
+> > > perl :)
+> > > 
+> > > v3:
+> > >  - no functional changes
+> > >  - add Oliver's Acked-by
+> > >  - bump version to avoid duplicate message-id mess in v2 and v2 resend:
+> > >    https://lore.kernel.org/all/20250520021440.24324-1-drew@pdp7.com/
+> > > 
+> > > v2 resend:
+> > >  - actually put v2 in the Subject
+> > >  - add Conor's Acked-by
+> > >    - https://lore.kernel.org/all/20250520-refract-fling-d064e11ddbdf@spud/
+> > > 
+> > > v2:
+> > >  - remove the txt file to make the conversion complete
+> > >  - https://lore.kernel.org/all/20250520021440.24324-1-drew@pdp7.com/
+> > > 
+> > > v1:
+> > >  - https://lore.kernel.org/all/20250518035539.7961-1-drew@pdp7.com/
+> > > 
+> > >  .../devicetree/bindings/pmem/pmem-region.txt  | 65 -------------------
+> > >  .../devicetree/bindings/pmem/pmem-region.yaml | 49 ++++++++++++++
+> > >  MAINTAINERS                                   |  2 +-
+> > >  3 files changed, 50 insertions(+), 66 deletions(-)
+> > >  delete mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.txt
+> > >  create mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.yaml
+> > > 
+> > > diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.txt b/Documentation/devicetree/bindings/pmem/pmem-region.txt
+> > > deleted file mode 100644
+> > > index cd79975e85ec..000000000000
+> > > --- a/Documentation/devicetree/bindings/pmem/pmem-region.txt
+> > > +++ /dev/null
+> > > @@ -1,65 +0,0 @@
+> > > -Device-tree bindings for persistent memory regions
+> > > ------------------------------------------------------
+> > > -
+> > > -Persistent memory refers to a class of memory devices that are:
+> > > -
+> > > -	a) Usable as main system memory (i.e. cacheable), and
+> > > -	b) Retain their contents across power failure.
+> > > -
+> > > -Given b) it is best to think of persistent memory as a kind of memory mapped
+> > > -storage device. To ensure data integrity the operating system needs to manage
+> > > -persistent regions separately to the normal memory pool. To aid with that this
+> > > -binding provides a standardised interface for discovering where persistent
+> > > -memory regions exist inside the physical address space.
+> > > -
+> > > -Bindings for the region nodes:
+> > > ------------------------------
+> > > -
+> > > -Required properties:
+> > > -	- compatible = "pmem-region"
+> > > -
+> > > -	- reg = <base, size>;
+> > > -		The reg property should specify an address range that is
+> > > -		translatable to a system physical address range. This address
+> > > -		range should be mappable as normal system memory would be
+> > > -		(i.e cacheable).
+> > > -
+> > > -		If the reg property contains multiple address ranges
+> > > -		each address range will be treated as though it was specified
+> > > -		in a separate device node. Having multiple address ranges in a
+> > > -		node implies no special relationship between the two ranges.
+> > > -
+> > > -Optional properties:
+> > > -	- Any relevant NUMA associativity properties for the target platform.
+> > > -
+> > > -	- volatile; This property indicates that this region is actually
+> > > -	  backed by non-persistent memory. This lets the OS know that it
+> > > -	  may skip the cache flushes required to ensure data is made
+> > > -	  persistent after a write.
+> > > -
+> > > -	  If this property is absent then the OS must assume that the region
+> > > -	  is backed by non-volatile memory.
+> > > -
+> > > -Examples:
+> > > ---------------------
+> > > -
+> > > -	/*
+> > > -	 * This node specifies one 4KB region spanning from
+> > > -	 * 0x5000 to 0x5fff that is backed by non-volatile memory.
+> > > -	 */
+> > > -	pmem@5000 {
+> > > -		compatible = "pmem-region";
+> > > -		reg = <0x00005000 0x00001000>;
+> > > -	};
+> > > -
+> > > -	/*
+> > > -	 * This node specifies two 4KB regions that are backed by
+> > > -	 * volatile (normal) memory.
+> > > -	 */
+> > > -	pmem@6000 {
+> > > -		compatible = "pmem-region";
+> > > -		reg = < 0x00006000 0x00001000
+> > > -			0x00008000 0x00001000 >;
+> > > -		volatile;
+> > > -	};
+> > > -
+> > > diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.yaml b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
+> > > new file mode 100644
+> > > index 000000000000..a4aa4ce3318b
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
+> > > @@ -0,0 +1,49 @@
+> > > +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+> > > +%YAML 1.2
+> > > +---
+> > > +$id: http://devicetree.org/schemas/pmem-region.yaml#
+> > > +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> > > +
+> > > +maintainers:
+> > > +  - Bjorn Helgaas <bhelgaas@google.com>
+> > 
+> > Drop Bjorn. He only did typo fixes on this.
+> > 
+> > > +  - Oliver O'Halloran <oohall@gmail.com>
+> > > +
+> > > +title: Persistent Memory Regions
+> > > +
+> > > +description: |
+> > > +  Persistent memory refers to a class of memory devices that are:
+> > > +
+> > > +    a) Usable as main system memory (i.e. cacheable), and
+> > > +    b) Retain their contents across power failure.
+> > > +
+> > > +  Given b) it is best to think of persistent memory as a kind of memory mapped
+> > > +  storage device. To ensure data integrity the operating system needs to manage
+> > > +  persistent regions separately to the normal memory pool. To aid with that this
+> > > +  binding provides a standardised interface for discovering where persistent
+> > > +  memory regions exist inside the physical address space.
+> > > +
+> > > +properties:
+> > > +  compatible:
+> > > +    const: pmem-region
+> > > +
+> > > +  reg:
+> > > +    maxItems: 1
+> > > +
+> > > +  volatile:
+> > > +    description: |
+> > 
+> > Don't need '|' here.
+> 
+> Rob - Thanks for the feedback. Should I send a new revision with these
+> two changes?
 
-Fortunately, there are not that many pud_special() check that can be
-mislead and are right now rather harmless: e.g., none so far
-bases decisions whether to grab a folio reference on that decision.
+I can do a clean up as I have not sent to Linus yet.
 
-Well, and GUP-fast will fallback to GUP-slow. All in all, so far no big
-implications as it seems.
+Here are the changes if you approve I'll change it and push to linux-next.
 
-Getting this right will get more important as we introduce
-folio_normal_page_pud() and start using it in more place where we
-currently special-case based on other VMA flags.
+Ira
 
-Fix it just like we fixed vmf_insert_folio_pmd().
-
-Add folio_mk_pud() to mimic what we do with folio_mk_pmd().
-
-Fixes: dbe54153296d ("mm/huge_memory: add vmf_insert_folio_pud()")
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- include/linux/mm.h | 19 ++++++++++++++++-
- mm/huge_memory.c   | 51 +++++++++++++++++++++++++---------------------
- 2 files changed, 46 insertions(+), 24 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index fa538feaa8d95..912b6d40a12d6 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1816,7 +1816,24 @@ static inline pmd_t folio_mk_pmd(struct folio *folio, pgprot_t pgprot)
- {
- 	return pmd_mkhuge(pfn_pmd(folio_pfn(folio), pgprot));
- }
--#endif
-+
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+/**
-+ * folio_mk_pud - Create a PUD for this folio
-+ * @folio: The folio to create a PUD for
-+ * @pgprot: The page protection bits to use
-+ *
-+ * Create a page table entry for the first page of this folio.
-+ * This is suitable for passing to set_pud_at().
-+ *
-+ * Return: A page table entry suitable for mapping this folio.
-+ */
-+static inline pud_t folio_mk_pud(struct folio *folio, pgprot_t pgprot)
-+{
-+	return pud_mkhuge(pfn_pud(folio_pfn(folio), pgprot));
-+}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif /* CONFIG_MMU */
+diff --git a/Documentation/devicetree/bindings/pmem/pmem-region.yaml b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
+index a4aa4ce3318b..bd0f0c793f03 100644
+--- a/Documentation/devicetree/bindings/pmem/pmem-region.yaml
++++ b/Documentation/devicetree/bindings/pmem/pmem-region.yaml
+@@ -5,7 +5,6 @@ $id: http://devicetree.org/schemas/pmem-region.yaml#
+ $schema: http://devicetree.org/meta-schemas/core.yaml#
  
- static inline bool folio_has_pincount(const struct folio *folio)
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 7e3e9028873e5..4734de1dc0ae4 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1535,15 +1535,18 @@ static pud_t maybe_pud_mkwrite(pud_t pud, struct vm_area_struct *vma)
- 	return pud;
- }
+ maintainers:
+-  - Bjorn Helgaas <bhelgaas@google.com>
+   - Oliver O'Halloran <oohall@gmail.com>
  
--static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
--		pud_t *pud, pfn_t pfn, pgprot_t prot, bool write)
-+static void insert_pud(struct vm_area_struct *vma, unsigned long addr,
-+		pud_t *pud, struct folio_or_pfn fop, pgprot_t prot, bool write)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pud_t entry;
+ title: Persistent Memory Regions
+@@ -30,7 +29,7 @@ properties:
+     maxItems: 1
  
- 	if (!pud_none(*pud)) {
-+		const unsigned long pfn = fop.is_folio ? folio_pfn(fop.folio) :
-+					  pfn_t_to_pfn(fop.pfn);
-+
- 		if (write) {
--			if (WARN_ON_ONCE(pud_pfn(*pud) != pfn_t_to_pfn(pfn)))
-+			if (WARN_ON_ONCE(pud_pfn(*pud) != pfn))
- 				return;
- 			entry = pud_mkyoung(*pud);
- 			entry = maybe_pud_mkwrite(pud_mkdirty(entry), vma);
-@@ -1553,11 +1556,19 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
- 		return;
- 	}
- 
--	entry = pud_mkhuge(pfn_t_pud(pfn, prot));
--	if (pfn_t_devmap(pfn))
--		entry = pud_mkdevmap(entry);
--	else
--		entry = pud_mkspecial(entry);
-+	if (fop.is_folio) {
-+		entry = folio_mk_pud(fop.folio, vma->vm_page_prot);
-+
-+		folio_get(fop.folio);
-+		folio_add_file_rmap_pud(fop.folio, &fop.folio->page, vma);
-+		add_mm_counter(mm, mm_counter_file(fop.folio), HPAGE_PUD_NR);
-+	} else {
-+		entry = pud_mkhuge(pfn_t_pud(fop.pfn, prot));
-+		if (pfn_t_devmap(fop.pfn))
-+			entry = pud_mkdevmap(entry);
-+		else
-+			entry = pud_mkspecial(entry);
-+	}
- 	if (write) {
- 		entry = pud_mkyoung(pud_mkdirty(entry));
- 		entry = maybe_pud_mkwrite(entry, vma);
-@@ -1581,6 +1592,9 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write)
- 	unsigned long addr = vmf->address & PUD_MASK;
- 	struct vm_area_struct *vma = vmf->vma;
- 	pgprot_t pgprot = vma->vm_page_prot;
-+	struct folio_or_pfn fop = {
-+		.pfn = pfn,
-+	};
- 	spinlock_t *ptl;
- 
- 	/*
-@@ -1600,7 +1614,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write)
- 	pfnmap_setup_cachemode_pfn(pfn_t_to_pfn(pfn), &pgprot);
- 
- 	ptl = pud_lock(vma->vm_mm, vmf->pud);
--	insert_pfn_pud(vma, addr, vmf->pud, pfn, pgprot, write);
-+	insert_pud(vma, addr, vmf->pud, fop, pgprot, write);
- 	spin_unlock(ptl);
- 
- 	return VM_FAULT_NOPAGE;
-@@ -1622,6 +1636,10 @@ vm_fault_t vmf_insert_folio_pud(struct vm_fault *vmf, struct folio *folio,
- 	unsigned long addr = vmf->address & PUD_MASK;
- 	pud_t *pud = vmf->pud;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct folio_or_pfn fop = {
-+		.folio = folio,
-+		.is_folio = true,
-+	};
- 	spinlock_t *ptl;
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
-@@ -1631,20 +1649,7 @@ vm_fault_t vmf_insert_folio_pud(struct vm_fault *vmf, struct folio *folio,
- 		return VM_FAULT_SIGBUS;
- 
- 	ptl = pud_lock(mm, pud);
--
--	/*
--	 * If there is already an entry present we assume the folio is
--	 * already mapped, hence no need to take another reference. We
--	 * still call insert_pfn_pud() though in case the mapping needs
--	 * upgrading to writeable.
--	 */
--	if (pud_none(*vmf->pud)) {
--		folio_get(folio);
--		folio_add_file_rmap_pud(folio, &folio->page, vma);
--		add_mm_counter(mm, mm_counter_file(folio), HPAGE_PUD_NR);
--	}
--	insert_pfn_pud(vma, addr, vmf->pud, pfn_to_pfn_t(folio_pfn(folio)),
--		       vma->vm_page_prot, write);
-+	insert_pud(vma, addr, vmf->pud, fop, vma->vm_page_prot, write);
- 	spin_unlock(ptl);
- 
- 	return VM_FAULT_NOPAGE;
--- 
-2.49.0
-
+   volatile:
+-    description: |
++    description:
+       Indicates the region is volatile (non-persistent) and the OS can skip
+       cache flushes for writes
+     type: boolean
