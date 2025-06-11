@@ -1,56 +1,60 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DDA12D8DBD
-	for <nvdimm@lists.linux.dev>; Wed, 11 Jun 2025 23:53:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50A6C2D8DB7
+	for <nvdimm@lists.linux.dev>; Wed, 11 Jun 2025 23:53:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749686006; cv=none; b=TS5Vwu72pe65HQ3CbVa6wfQIxWVfeJgwNdXQmGFP4Cn7oPEMjQDg+CpnyYRDbXEiYCcYNTAdJwtUAwbPNldOWf6cF8h/7SUAJLwZREKCaJydL/NGM3OPJ0ew4+zz26d2xmY4ZN5LgO43m7pKYFV7tm7SI7nHTE387s2cvjadAf8=
+	t=1749686026; cv=none; b=G7z4prajKg/oGQOpqt5/4cWB5RuDxPZ39mRXyxv4tnK05zsbUmoW0ErSh5t72inYKb4vN5qSxj1gBZBsWN1KJbOnPjE7+SZGll14EXSuFN8AQBRXGZiWZYbEwh1jjAOa0yLs3AXFnsF24JH4zANpLz4nf1z9SDQ5NPRWNcFfqQ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749686006; c=relaxed/simple;
-	bh=vOdBg1unCsUGX+Js9OBiWoh/r812m2v89hPz2Y8vNtY=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=X/7G/XC5ilWxjwkKTKbiV8RL1bHNYLTCXlpeNsRsmuy4AU0rBHJfALa4pvg918zC9vvgmDLKzRfRRKNbCOwW8K3ZFRXwUwjlf0vhDAAcY0kZIdwcnVZedmLCWPQF8s4c2y7Q9e0bm/MzTJS4PFokNjVhm+hchaKE4veX/7CKAW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jXLyyo5k; arc=none smtp.client-ip=192.198.163.19
+	s=arc-20240116; t=1749686026; c=relaxed/simple;
+	bh=wN5rDH56DrHhY+AkxZioAxFuoyv/HBhzURbdog7wjz8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=AduiUeRahDe6qBbv0SJs7ntVNiEsQ+WvYhQQ83WIg70WtB3sUq2kOxpl50HmQHAnLfoWP/zXrgDDtxSOx06VUwFQ/RS8LdzEp2LWy2BXDoTO2HEvP8gMzSd5SBuF6V0M8DBdb51nh4FLDw87yC/ndV9syQmKKQydAMXMhrlYHlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=n9Z53L78; arc=none smtp.client-ip=192.198.163.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jXLyyo5k"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="n9Z53L78"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1749686004; x=1781222004;
-  h=from:to:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=vOdBg1unCsUGX+Js9OBiWoh/r812m2v89hPz2Y8vNtY=;
-  b=jXLyyo5kteudWjYcINBZo5P9UryHr6L0WTmJxTC39yRvtL/tcACRG4TY
-   uCSAhO1lp4ijHyJ5d5f7ev0VlJdOwFgHHjoW4fZzxOeZ+IpzxqYBjZ+1X
-   Oxpg2KW0QHaKq62tLR7VB2J6MppO7/Os1RKrpitWaUNmVNPfJbD03U0je
-   fl1XEO/1/ptA5h7FD8qBKPNKvbLCBxCJLeWEEnqXEeqpdg31R3Z5bKhSO
-   2sj2LROKyIsEvgSekiXyOroPd7W2BAWhulfzBLr1X38K4M3OzOgOXZd/O
-   wD+9gJ7l3ypKoAtljZbDeh9V6w9h4ZQHqiaJ6zn6hCLp65JBiMJKnBy8i
-   A==;
-X-CSE-ConnectionGUID: zZh1oqHuS4iyhsjOuoNMEg==
-X-CSE-MsgGUID: n3nd8WGFSkWH8anKlhoedg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11461"; a="50955755"
+  t=1749686025; x=1781222025;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=wN5rDH56DrHhY+AkxZioAxFuoyv/HBhzURbdog7wjz8=;
+  b=n9Z53L781b4/wq0Lg5MCV98JcRHuCaKU91Pf7yjmQm5nDDruXlyuQwqF
+   iGrVXwEgMLms/PtakLKM0Fd66/TFeSfNwfViJisvqvtsIDEKHQ0ZxuVYN
+   RWLcQczOx5dajkOsEjWHXiSoSaYnwE6lsYw3u4TmnAVZYmHRQsfGTssY7
+   pX8tE8KMnyUscwD/wMsuXLH+sZwocLvAZr3JJBbKltzAJWq6vAAScmm2X
+   9IOD7r55IjXfifQy15htykT4HI602cAAOoo+xLzIbuCbuFg7b7YC+0MC2
+   4SBnKD4d80xlqIPeNaz63mFz/9yUMLlzpCdgPQSDeajDnnACZbq1xKg3A
+   Q==;
+X-CSE-ConnectionGUID: Dqzha6uPRSy2Weskmq+w/g==
+X-CSE-MsgGUID: WAC+faahT+iPvMUof2q7oQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11461"; a="50955771"
 X-IronPort-AV: E=Sophos;i="6.16,229,1744095600"; 
-   d="scan'208";a="50955755"
+   d="scan'208";a="50955771"
 Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 16:53:24 -0700
-X-CSE-ConnectionGUID: +gbDAVCQR0eqeeEKq3fViA==
-X-CSE-MsgGUID: hdvF3awUTxWI9wbqMsEbiw==
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 16:53:44 -0700
+X-CSE-ConnectionGUID: VuMjCmWtQWqY8Q3oE4dIhA==
+X-CSE-MsgGUID: jzQSR6x5TMW+qZtPwF74Xg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.16,229,1744095600"; 
-   d="scan'208";a="147243872"
+   d="scan'208";a="147243931"
 Received: from unknown (HELO hyperion.jf.intel.com) ([10.243.61.29])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 16:53:24 -0700
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 16:53:44 -0700
 From: marc.herbert@linux.intel.com
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	alison.schofield@intel.com,
 	dan.j.williams@intel.com
-Subject: [ndctl PATCH v3] test: fail on unexpected kernel error & warning, not just "Call Trace"
-Date: Wed, 11 Jun 2025 23:44:19 +0000
-Message-ID: <20250611235256.3866724-1-marc.herbert@linux.intel.com>
+Cc: Marc Herbert <marc.herbert@linux.intel.com>
+Subject: [ndctl PATCH v3 1/2] test: move err() function at the top
+Date: Wed, 11 Jun 2025 23:44:20 +0000
+Message-ID: <20250611235256.3866724-2-marc.herbert@linux.intel.com>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250611235256.3866724-1-marc.herbert@linux.intel.com>
+References: <20250611235256.3866724-1-marc.herbert@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -59,62 +63,59 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-v3 changes:
+From: Marc Herbert <marc.herbert@linux.intel.com>
 
-- One-line fix of kmsg_no_fail_on exclusion of the warning "Extended
-  linear cache calculation failed". Fixes test failures since kernel
-  commit de7fb30a5870 ("Add extended linear cache support for CXL").
+move err() function at the top so we can fail early. err() does not have
+any dependency so it can be first.
 
-v2 major changes:
+Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
+---
+ test/common | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-- The old $SECONDS variable is dropped from journalctl. Which allows:
-- ... dropping the very short-lived COOLDOWN proposed in version 1.
-- A new, optional NDTEST_LOG_DBG code which allows "stress testing"
-  the approach and proving that it is safe.
-
-I tested and compared for many hours $SECONDS versus the NDTEST_START
-approach that Alison submitted a few months ago and the conclusion is
-very clear:
-- $SECONDS does require a ~1.2 cool down between every test. As it was
-  done in v1.
-- NDTEST_START requires zero cool down.
-
-So that is why I dropped $SECONDS and the cool down.
-
-
-> Split them into a patchset for easier review and then I'll take a
-> look. Thanks!
-
-There are 3 logical changes in the main commit:
-
-A1) Dropping $SECONDS, replaced with NDTEST_START
-
-A2) The new NDTEST_LOG_DBG which was/is critical for:
-   - proving that $SECONDS required a "cool down" (with version 1)
-   - proving NDTEST_START does _not_ require any cool down, safe
-     even without any.
-
-B) The new, _harden_ journalctl check in check_dmesg() and its
-   kmsg_fail_if_missing and kmsg_no_fail_on. The main feature!
-
-
-- B) requires A1) because $SECONDS is too imprecise. With B) only, the
-  tests fail.
-
-- The A2) test code achieves nothing without B), it cannot prove
-  anything without B).
-
-- A1) and A2) are logically independent but their code are fairly
-  intertwined and very painful to separate. Plus, B) would have to sit
-  in the middle: A1->B->A2
-
-Long story short:
-
-- while they could be logically separate, these changes are tightly
-coupled with each other.
-
-- breaking down that (relatively small) commit is theoretically
-possible but would be very labor intensive. I know because I just went
-through a similar "git action"  to compare $SECONDS versus
-NDTEST_START for COOLDOWN reasons and it was not fun at all.
+diff --git a/test/common b/test/common
+index 75ff1a6e12be..74e74dd4fff9 100644
+--- a/test/common
++++ b/test/common
+@@ -1,6 +1,20 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Copyright (C) 2018, FUJITSU LIMITED. All rights reserved.
+ 
++# err
++# $1: line number which error detected
++# $2: cleanup function (optional)
++#
++
++test_basename=$(basename "$0")
++
++err()
++{
++	echo test/"$test_basename": failed at line "$1"
++	[ -n "$2" ] && "$2"
++	exit "$rc"
++}
++
+ # Global variables
+ 
+ # NDCTL
+@@ -53,17 +67,6 @@ E820_BUS="e820"
+ 
+ # Functions
+ 
+-# err
+-# $1: line number which error detected
+-# $2: cleanup function (optional)
+-#
+-err()
+-{
+-	echo test/$(basename $0): failed at line $1
+-	[ -n "$2" ] && "$2"
+-	exit $rc
+-}
+-
+ reset()
+ {
+ 	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
+-- 
+2.49.0
 
