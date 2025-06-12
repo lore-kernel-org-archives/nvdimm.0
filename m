@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28A7F142E73
-	for <nvdimm@lists.linux.dev>; Thu, 12 Jun 2025 07:06:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60CF220B7EA
+	for <nvdimm@lists.linux.dev>; Thu, 12 Jun 2025 07:18:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749711974; cv=none; b=eJ0KCrQTVMDB70prdNGdg/wAyVuq7XbhqAhuTfQ3lqZYbUubUlIVw9Q9Q16fUo7N3IaUfJIx6TYElFTbnU5NFFvBG7c366PisNR8urJzTmm/3WfPkyKqt9lz/zO5IC6pcgDxFR1iJ3grP1wpxh1NnZN7xxnOu10/F70/i4JW8Qo=
+	t=1749712741; cv=none; b=GHuJqtWBR7GUM0gu+fjr6NdZP/9Qcjs/eVfH+0qWTdnxQT4YwuGiE/4FWRwO+jtyu3Gt9TmReQBzceu5eH4cewWO+chihOzROXjhmuju1VZ7GU4/dhl1LwsulUBQZmpr1Tk62uPt6LyXTW8frbCPPg7lT4Bb9wKRUOyBpY49Uag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749711974; c=relaxed/simple;
-	bh=f8prUh6/atF+n9TdAF4v1+dLavgeVHSI2BDX3mFj3lc=;
+	s=arc-20240116; t=1749712741; c=relaxed/simple;
+	bh=E4o4+NkVdMsSwo6NSZE73XR/7IFF09J3OvpKyCjdrdE=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rzj4Y8nqphyR2wFJPYsEYAJzy9g8okDTgJKNWMtVEhDxjwEo0xlqwCJmWbXGMX9pwEwuSDyo8V5aJvdz0mMtqYR8xYK+zB1LqHu11hxxjHzIKIsi9j9/zr6c2eXKZTfEl6iWRq9VTV4P35XVZEUeB4ID5xvBLmmU6M/LHNcBLEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=M4MODApM; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=EHoYrcbiU/qoUBGad8LkjYOZIiF3nP/IKNMX/hHw1Qt0IC9RpBLC1lqHluo1de1p+KqH885BVO2/rXaKynHVyy/OBaqdO5HHRTi8/Vz/SGocYOYjW8ON4HakVzszO9ObCixBZknsIF3XBMrGrgkJD5y5miU1LO4cMkR6LFdfIaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=id2k5UbN; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="M4MODApM"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="id2k5UbN"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1749711970;
+	s=mimecast20190719; t=1749712738;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=bgI7EwmjXl77aJdJaolj+NbSd9BnE0i2KDqrsSDfOf8=;
-	b=M4MODApMADTbtWqVE2IOdAHB67Xzrbc6xD0HUW8EAC6HTcx6x+iLzxCOneFmxj5SHg/WbP
-	ZlyaeFdgZJK6AW3drPiy1GFUl8dI17Pa79Dn5Di7S8IjoMKixIfjf5K79o/4UDPPOODJIY
-	09Mx5FYf82FVZiWCoqxAl58ieEawGDo=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=/FORcX77Z/dfz/4nX8LN31ZOLAOS6nLNcf+1RkLQzco=;
+	b=id2k5UbNMNkYF9BjZ9+B4pQ1jLeJ9tOOeI2yv3RNiTO71FojCG1ehkUMiggjlJSQogoMyG
+	2jXvU+h0m2EGPxTaDlCoK3aZYxFnH7e4nNYD4JONkLez2t656BQKHBgpGshuAAIVS7Eh0J
+	TSPg7VJuIXC6sgIOLVxjvENkfyT4hBc=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-18-RS6TDT3oPmGKpFZ8TZ8NsA-1; Thu, 12 Jun 2025 03:06:08 -0400
-X-MC-Unique: RS6TDT3oPmGKpFZ8TZ8NsA-1
-X-Mimecast-MFC-AGG-ID: RS6TDT3oPmGKpFZ8TZ8NsA_1749711967
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-451d2037f1eso3153415e9.0
-        for <nvdimm@lists.linux.dev>; Thu, 12 Jun 2025 00:06:08 -0700 (PDT)
+ us-mta-225-scTper3RP6SgZ5HYPDLRmA-1; Thu, 12 Jun 2025 03:18:57 -0400
+X-MC-Unique: scTper3RP6SgZ5HYPDLRmA-1
+X-Mimecast-MFC-AGG-ID: scTper3RP6SgZ5HYPDLRmA_1749712736
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-3a4f6ba526eso362866f8f.1
+        for <nvdimm@lists.linux.dev>; Thu, 12 Jun 2025 00:18:56 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749711967; x=1750316767;
+        d=1e100.net; s=20230601; t=1749712736; x=1750317536;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=bgI7EwmjXl77aJdJaolj+NbSd9BnE0i2KDqrsSDfOf8=;
-        b=lOReCwHPszp4Zk4ohAC2+nlV5r2Yt0R5gzX9rwT7fOEzwKGAXazzmuEFB0UB/1jJZ2
-         mQ/jlAbfigMDi5MvfayAwDE4SyuocYVO7WrsvFfX2U0pqBh4t+igF/r+RfWUZR9Cnxni
-         k7WTMR+dhHqmF1OCrkRgccE3Fypc6QHsZcMZbr2p7zPnrRO1knaq5lpsl0D1zeCtfxqu
-         hxOzuUmi4I7dfl+1UIfahvc2edtTnP93KKQSv/o2dz8S4Q2Q/C7EenYyRY+NVodK2qIH
-         yDAWnaEbLC87OVYXGdEve14BMKE3lswiPO7lzf4uL1FyoRIOpDDqSr4J9nHZADV6DUiv
-         EQ1Q==
-X-Forwarded-Encrypted: i=1; AJvYcCU9LPKO1yJ4ilpdF4QRbiy3GrqC1EHPBve4jKlOVj4RwYJ1vvkpAe939wr/qJOBo8SNh46YMMU=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxrDjS+dV3LeZ6DOgX774gHd/0kaHiIpzLb7MTzJYpCD3YytAQo
-	p7jrEwoVYSbpCa5PE1LmK1GlPcB/uyn6rnmXZ4hc2sgdeBuzX0LB+7wtgY3/N7dWA5li4BlCkvN
-	nnqnSKLPcU6Y1XRylW4Nm5HnX5UPfChEPfPktXL6KeBD7rfR0voVYlTBEhw==
-X-Gm-Gg: ASbGncsR6oMIiWgfUTnWOfLOc/GJgxc+wRyLPRv5JZsW097RQGm5IpWJp7ZCcigHD9S
-	d0tRwwcKvmSFYj2EWDvCEnmwokS3GVa5R6mfsgADLGYWSvc+H0mrDqW8C4p9TlzwQDcjYHa3f6v
-	sDLAUDDyVKrqbMHv0UVboyHxLD7jW/0oFAhaW2eaguKjzpkjkQsbzYVtTxVYSAG4FGXMhb9aXY5
-	Mn4L0TIJGlQBsHHQy9ldsnUGGcnAIYKwpxIidy88Ik2jL0dcyuISnsX3HI12yXM6px26t2o7RMB
-	Q2iMpmWI5KwoOLb5sWr+lEZFYBjPD80STlwFfKaBV+WrwONoDUSla9j0XZZAV4ItTRPmzANJfXU
-	lvAioKqIDJT5XWMKAerkfGW8cWpAyjXkP/mQhN6sg+NsdTVFt2Q==
-X-Received: by 2002:a05:600c:6092:b0:43e:afca:808f with SMTP id 5b1f17b1804b1-4532d328cd4mr17301925e9.31.1749711967390;
-        Thu, 12 Jun 2025 00:06:07 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IH7ktzxGj9rxgF3e5K2QU/ZuZlrNO09W01BkOtOhNwjn+efDP3YWSRr1Sn0SDBCN08gcUuT0g==
-X-Received: by 2002:a05:600c:6092:b0:43e:afca:808f with SMTP id 5b1f17b1804b1-4532d328cd4mr17301565e9.31.1749711966971;
-        Thu, 12 Jun 2025 00:06:06 -0700 (PDT)
+        bh=/FORcX77Z/dfz/4nX8LN31ZOLAOS6nLNcf+1RkLQzco=;
+        b=rUFwsQ/2eiY2qjo+kV+fAe6wj3QFUxLTIwRZygVTv10ZDzT+0r6Ts4Q0Tw77Yt/vIS
+         6omvAefxGnBazoEDYusgybVsiAj0a4lwJsEh01xrNBDA0j76WDxyZC6YgJKTQYXYvmRO
+         hg8DHPqZZe8omkBF7oAwsP9i3Y3X5hj7r+guajl1RUPh2tWl5nZmXRIL0oOVr064fHYv
+         5nzw63WZmChFd4on379Ouze9OzPuM9tSR5iFARxolYGW4WPjQcxnNsXnnUf6YT6H2c/h
+         S3+wAhRFnBAHXDtIGAETc45Gc2Dw1qk87yagYPfKUWhgaC+IYQ2e/KGr07lLoByg1orb
+         VdVQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXkY1aZe8SlzaZHeAxzM2eh7/Riqt7CAter3vzNeYuDgjuNW/KWK14ZH5Ejd5YYw/2edtqN62k=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwmWqhVbh6jKuvxUzJCH5ofVT9fkjWIR07OJf21UE1SZZ3ZeusG
+	IL5u/GjieSwzLN/3seaU+hePO0TloTb9vNe+6shiaNPEOryyzF6gu6LW6ZkBKSU+gDaHvYAQMyH
+	5RXBV2KPGZzkDdCVNtr7d2oMzxlilTsZ+qu8x20i5WGfz+uaq9XcOa90XKw==
+X-Gm-Gg: ASbGncuxY1/T9IHeufCsrgJtuhW0y6c/95hMwR3uuphw5Sr72vaGI/WP78Cc3/AjVot
+	NZKEB/YNz3rs3IKOeYxRTQ4ch3k0NbY5Uyia86n5l9+BEI7x48n9YMhiFpP3YObpA3HIOP2/w+A
+	0xXiaKva1v59OhZAczm4V7O+drILTaLchuQF7swF7DlnnlKXncCtTZwCUipzKWNkqzwo/34VX/0
+	j1auNoYuiVtcoWLo4RW5e1X2XE5bJ30CW1LvX8RhJ+qSgwm9lYTfenJMEavWluuiASMiIXyOfyM
+	K6mQpWWbY8G5ghuPGKUjTbRNHK8ofWIT/VO9bUTDNMCg38G8E1OVOTHjFStiKvdz6mUIq93HhmQ
+	nD8fyuWsTW/Uf6iCYjlLTaKnisRPOYMx1Ha/js+k7nOIqwXkoQA==
+X-Received: by 2002:a05:6000:1acc:b0:3a5:1c3c:8d8d with SMTP id ffacd0b85a97d-3a56080ad40mr1700216f8f.55.1749712735793;
+        Thu, 12 Jun 2025 00:18:55 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEnuzBb21Wl7Xf5s9zBtEXduPrHUbE8WIdQsQ0ZDweoN2mKdK4HhlsxKte8GKHdxrB+9zyk/A==
+X-Received: by 2002:a05:6000:1acc:b0:3a5:1c3c:8d8d with SMTP id ffacd0b85a97d-3a56080ad40mr1700180f8f.55.1749712735299;
+        Thu, 12 Jun 2025 00:18:55 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f2c:1e00:1e1e:7a32:e798:6457? (p200300d82f2c1e001e1e7a32e7986457.dip0.t-ipconnect.de. [2003:d8:2f2c:1e00:1e1e:7a32:e798:6457])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4532e24420csm10772795e9.20.2025.06.12.00.06.04
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a5619ab781sm1100303f8f.43.2025.06.12.00.18.54
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 12 Jun 2025 00:06:05 -0700 (PDT)
-Message-ID: <0302ec30-856d-4e4b-be7b-1105966733e8@redhat.com>
-Date: Thu, 12 Jun 2025 09:06:04 +0200
+        Thu, 12 Jun 2025 00:18:54 -0700 (PDT)
+Message-ID: <990ce9cf-0e48-432c-a29f-0bd1704eede4@redhat.com>
+Date: Thu, 12 Jun 2025 09:18:53 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,9 +75,10 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/3] mm/huge_memory: don't mark refcounted folios
- special in vmf_insert_folio_pmd()
-To: Alistair Popple <apopple@nvidia.com>
+Subject: Re: [PATCH v2 0/3] mm/huge_memory: vmf_insert_folio_*() and
+ vmf_insert_pfn_pud() fixes
+To: Dan Williams <dan.j.williams@intel.com>,
+ Alistair Popple <apopple@nvidia.com>
 Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
  linux-cxl@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,
  Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
@@ -86,11 +87,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
  Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
  Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
  Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, Dan Williams <dan.j.williams@intel.com>,
- Oscar Salvador <osalvador@suse.de>
+ Dev Jain <dev.jain@arm.com>, Oscar Salvador <osalvador@suse.de>,
+ marc.herbert@linux.intel.com
 References: <20250611120654.545963-1-david@redhat.com>
- <20250611120654.545963-3-david@redhat.com>
- <xdkrref3md2rfc3sou6lta2vcevz6e4ckjd6q67znpipkvxbmw@gftpxkrtlqnx>
+ <lpfprux2x34qjgpuk6ufvuq4akzolt3gwn5t4hmfakxcqakgqy@ciiwnsoqsl6j>
+ <684a5594eb21d_2491100de@dwillia2-xfh.jf.intel.com.notmuch>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -137,122 +138,153 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <xdkrref3md2rfc3sou6lta2vcevz6e4ckjd6q67znpipkvxbmw@gftpxkrtlqnx>
+In-Reply-To: <684a5594eb21d_2491100de@dwillia2-xfh.jf.intel.com.notmuch>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: PJnYdK04OTJ39J7Lw3X0uTuRaHKBXOJDcuXzv898AN8_1749711967
+X-Mimecast-MFC-PROC-ID: 1OXyveMcW5YL_sHSZzqVyZQfOZx4UolkjIILg1uR3hI_1749712736
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 12.06.25 04:17, Alistair Popple wrote:
-> On Wed, Jun 11, 2025 at 02:06:53PM +0200, David Hildenbrand wrote:
->> Marking PMDs that map a "normal" refcounted folios as special is
->> against our rules documented for vm_normal_page().
+On 12.06.25 06:20, Dan Williams wrote:
+> Alistair Popple wrote:
+>> On Wed, Jun 11, 2025 at 02:06:51PM +0200, David Hildenbrand wrote:
+>>> This is v2 of
+>>> 	"[PATCH v1 0/2] mm/huge_memory: don't mark refcounted pages special
+>>> 	 in vmf_insert_folio_*()"
+>>> Now with one additional fix, based on mm/mm-unstable.
+>>>
+>>> While working on improving vm_normal_page() and friends, I stumbled
+>>> over this issues: refcounted "normal" pages must not be marked
+>>> using pmd_special() / pud_special().
+>>>
+>>> Fortunately, so far there doesn't seem to be serious damage.
+>>>
+>>> I spent too much time trying to get the ndctl tests mentioned by Dan
+>>> running (.config tweaks, memmap= setup, ... ), without getting them to
+>>> pass even without these patches. Some SKIP, some FAIL, some sometimes
+>>> suddenly SKIP on first invocation, ... instructions unclear or the tests
+>>> are shaky. This is how far I got:
 >>
->> Fortunately, there are not that many pmd_special() check that can be
->> mislead, and most vm_normal_page_pmd()/vm_normal_folio_pmd() users that
->> would get this wrong right now are rather harmless: e.g., none so far
->> bases decisions whether to grab a folio reference on that decision.
->>
->> Well, and GUP-fast will fallback to GUP-slow. All in all, so far no big
->> implications as it seems.
->>
->> Getting this right will get more important as we use
->> folio_normal_page_pmd() in more places.
->>
->> Fix it by teaching insert_pfn_pmd() to properly handle folios and
->> pfns -- moving refcount/mapcount/etc handling in there, renaming it to
->> insert_pmd(), and distinguishing between both cases using a new simple
->> "struct folio_or_pfn" structure.
->>
->> Use folio_mk_pmd() to create a pmd for a folio cleanly.
->>
->> Fixes: 6c88f72691f8 ("mm/huge_memory: add vmf_insert_folio_pmd()")
->> Signed-off-by: David Hildenbrand <david@redhat.com>
->> ---
->>   mm/huge_memory.c | 58 ++++++++++++++++++++++++++++++++----------------
->>   1 file changed, 39 insertions(+), 19 deletions(-)
->>
->> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
->> index 49b98082c5401..7e3e9028873e5 100644
->> --- a/mm/huge_memory.c
->> +++ b/mm/huge_memory.c
->> @@ -1372,9 +1372,17 @@ vm_fault_t do_huge_pmd_anonymous_page(struct vm_fault *vmf)
->>   	return __do_huge_pmd_anonymous_page(vmf);
->>   }
->>   
->> -static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
->> -		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write,
->> -		pgtable_t pgtable)
->> +struct folio_or_pfn {
->> +	union {
->> +		struct folio *folio;
->> +		pfn_t pfn;
->> +	};
->> +	bool is_folio;
->> +};
+>> FWIW I had a similar experience, although I eventually got the FAIL cases below
+>> to pass. I forget exactly what I needed to tweak for that though :-/
 > 
-> I know it's simple, but I'm still not a fan particularly as these types of
-> patterns tend to proliferate once introduced. See below for a suggestion.
+> Add Marc who has been working to clean the documentation up to solve the
+> reproducibility problem with standing up new environments to run these
+> tests.
 
-It's much better than abusing pfn_t for folios -- and I don't 
-particularly see a problem with this pattern here as long as it stays in 
-this file.
+I was about to send some doc improvements myself, but I didn't manage to 
+get the tests running in the first place ... even after trying hard :)
+
+I think there is also one issue with a test that requires you to 
+actually install ndctl ... and some tests seem to temporarily fail with 
+weird issues regarding "file size problems with /proc/kallsyms", 
+whereby, ... there are no such file size problems :)
+
+All a bit shaky. The "memmap=" stuff is not documented anywhere for the 
+tests, which is required for some tests I think. Maybe it should be 
+added, not sure how big of an area we actually need, though.
 
 > 
->> +static int insert_pmd(struct vm_area_struct *vma, unsigned long addr,
->> +		pmd_t *pmd, struct folio_or_pfn fop, pgprot_t prot,
->> +		bool write, pgtable_t pgtable)
->>   {
->>   	struct mm_struct *mm = vma->vm_mm;
->>   	pmd_t entry;
->> @@ -1382,8 +1390,11 @@ static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
->>   	lockdep_assert_held(pmd_lockptr(mm, pmd));
->>   
->>   	if (!pmd_none(*pmd)) {
->> +		const unsigned long pfn = fop.is_folio ? folio_pfn(fop.folio) :
->> +					  pfn_t_to_pfn(fop.pfn);
->> +
->>   		if (write) {
->> -			if (pmd_pfn(*pmd) != pfn_t_to_pfn(pfn)) {
->> +			if (pmd_pfn(*pmd) != pfn) {
->>   				WARN_ON_ONCE(!is_huge_zero_pmd(*pmd));
->>   				return -EEXIST;
->>   			}
->> @@ -1396,11 +1407,19 @@ static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
->>   		return -EEXIST;
->>   	}
->>   
->> -	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
->> -	if (pfn_t_devmap(pfn))
->> -		entry = pmd_mkdevmap(entry);
->> -	else
->> -		entry = pmd_mkspecial(entry);
->> +	if (fop.is_folio) {
->> +		entry = folio_mk_pmd(fop.folio, vma->vm_page_prot);
->> +
->> +		folio_get(fop.folio);
->> +		folio_add_file_rmap_pmd(fop.folio, &fop.folio->page, vma);
->> +		add_mm_counter(mm, mm_counter_file(fop.folio), HPAGE_PMD_NR);
->> +	} else {
->> +		entry = pmd_mkhuge(pfn_t_pmd(fop.pfn, prot));
->> +		if (pfn_t_devmap(fop.pfn))
->> +			entry = pmd_mkdevmap(entry);
->> +		else
->> +			entry = pmd_mkspecial(entry);
->> +	}
+> http://lore.kernel.org/20250521002640.1700283-1-marc.herbert@linux.intel.com
 > 
-> Could we change insert_pfn_pmd() to insert_pmd_entry() and have callers call
-> something like pfn_to_pmd_entry() or folio_to_pmd_entry() to create the pmd_t
-> entry as appropriate, which is then passed to insert_pmd_entry() to do the bits
-> common to both?
 
-Yeah, I had that idea as well but discarded it, because the 
-refcounting+mapcounting handling is better placed where we are actually 
-inserting the pmd (not possibly only upgrading permissions of an 
-existing mapping). Avoid 4-line comments as the one we are removing in 
-patch #3 ...
+I think I have CONFIG_XFS_FS=m (instead of y) and CONFIG_DAX=y (instead 
+of =m), and CONFIG_NFIT_SECURITY_DEBUG not set (instead of =y).
+
+Let me try with these settings adjusted.
+
+> There is also the run_qemu project that automates build an environment for this.
+> 
+> https://github.com/pmem/run_qemu
+> 
+> ...but comes with its own set of quirks.
+> 
+> I have the following fixups applied to my environment to get his going on
+> Fedora 42 with v6.16-rc1:
+> 
+> diff --git a/README.md b/README.md
+> index 37314db7a155..8e06908d5921 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -84,6 +84,11 @@ loaded.  To build and install nfit_test.ko:
+>      CONFIG_TRANSPARENT_HUGEPAGE=y
+>      ```
+>   
+> +1. Install the following packages, (Fedora instructions):
+> +   ```
+> +   dnf install e2fsprogs xfsprogs parted jq trace-cmd hostname fio fio-engine-dev-dax
+> +   ```
+> +
+>   1. Build and install the unit test enabled libnvdimm modules in the
+>      following order.  The unit test modules need to be in place prior to
+>      the `depmod` that runs during the final `modules_install`
+> diff --git a/test/dax.sh b/test/dax.sh
+> index 3ffbc8079eba..98faaf0eb9b2 100755
+> --- a/test/dax.sh
+> +++ b/test/dax.sh
+> @@ -37,13 +37,14 @@ run_test() {
+>   	rc=1
+>   	while read -r p; do
+>   		[[ $p ]] || continue
+> +		[[ $p == cpus=* ]] && continue
+>   		if [ "$count" -lt 10 ]; then
+>   			if [ "$p" != "0x100" ] && [ "$p" != "NOPAGE" ]; then
+>   				cleanup "$1"
+>   			fi
+>   		fi
+>   		count=$((count + 1))
+> -	done < <(trace-cmd report | awk '{ print $21 }')
+> +	done < <(trace-cmd report | awk '{ print $NF }')
+>   
+>   	if [ $count -lt 10 ]; then
+>   		cleanup "$1"
+> 
+> In the meantime, do not hesitate to ask me to run these tests.
+
+Yes, thanks, and thanks for running these tests.
+
+> 
+> FWIW with these patches on top of -rc1 I get:
+> 
+> ---
+> 
+> [root@host ndctl]# meson test -C build --suite ndctl:dax
+> ninja: Entering directory `/root/git/ndctl/build'
+> [168/168] Linking target ndctl/ndctl
+>   1/13 ndctl:dax / daxdev-errors.sh          OK              12.60s
+>   2/13 ndctl:dax / multi-dax.sh              OK               2.47s
+>   3/13 ndctl:dax / sub-section.sh            OK               6.30s
+>   4/13 ndctl:dax / dax-dev                   OK               0.04s
+>   5/13 ndctl:dax / dax-ext4.sh               OK               3.04s
+>   6/13 ndctl:dax / dax-xfs.sh                OK               3.10s
+>   7/13 ndctl:dax / device-dax                OK               9.66s
+>   8/13 ndctl:dax / revoke-devmem             OK               0.22s
+>   9/13 ndctl:dax / device-dax-fio.sh         OK              32.32s
+> 10/13 ndctl:dax / daxctl-devices.sh         OK               2.31s
+> 11/13 ndctl:dax / daxctl-create.sh          SKIP             0.25s   exit status 77
+> 12/13 ndctl:dax / dm.sh                     OK               1.00s
+> 13/13 ndctl:dax / mmap.sh                   OK              62.27s
+> 
+> Ok:                12
+> Fail:              0
+> Skipped:           1
+> 
+> Full log written to /root/git/ndctl/build/meson-logs/testlog.txt
+> 
+> ---
+> 
+> Note that the daxctl-create.sh skip is a known unrelated v6.16-rc1 regression
+> fixed with this set:
+> 
+> http://lore.kernel.org/20250607033228.1475625-1-dan.j.williams@intel.com
+> 
+> You can add:
+> 
+> Tested-by: Dan Williams <dan.j.williams@intel.com>
+> 
+
+Thanks!
 
 -- 
 Cheers,
