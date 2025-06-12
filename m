@@ -1,401 +1,186 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2059.outbound.protection.outlook.com [40.107.220.59])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4370221FDD;
-	Thu, 12 Jun 2025 08:32:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749717122; cv=none; b=W7geyEqJ88riRuztqqmYuEZjFEdlvaQpgXNcnAiC2KXQ/2JaM58+hb0JKIN4uJjonZbqPvhCwk3LmxnPFvpXX0m/uEul4Yg6oeG0tdLF3HYUBV7daadW/3gT/Zweacco+9oaSPu+YwbWZ9W+a1kBUndBSgpZDVqjmgZb9qnyVrc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749717122; c=relaxed/simple;
-	bh=ioxNr8DNBEiHDDJ/28rb91WVRuA0d698WZH8DdW09iM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Oa314KgI8UYIlbHV+64WHuWmNYqHZ8pVWuw3tfD/nhwlW+Fax4ITp/w6Gd3VqZhS3ZZEkVndrFVCfT3mYzqAZRNrMCoSChRXfVWKLEc3noZ3b1uE1gos1nwtGWLe3tZaCz1zBl7nlcY+nB9mZhopplvTZ2o03Kxd9KlINhRyszw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FMaKDOlJ; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C1331AB6F1;
+	Thu, 12 Jun 2025 08:47:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.220.59
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1749718046; cv=fail; b=DQ+n1+Ft6+vREHythiEHmBt1YeyKhwZz21CxsRLntZ2i5MwyOzq+jl0Som83mdteaKGPqV/gbaW61ip/Mf59OgHUtglH4JP68hsKfJFIlUxoif1idlofW2d1ExQHUxPqK3eFg0k/5AUAUJoIRem4qkHIU5eSKU0djimC94VE7Qk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1749718046; c=relaxed/simple;
+	bh=dhGa+9cyQaJO1vhkstt4fG+R/heTtow6vfnc/QDpen4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=XV/fdLpd6nyYaTehI5nEugwdzLqZ0yJuGwpW4GIGtTITvB8zyoC5iGiSBdlVUxJvwQ93mOmWqWEdEZT7MEQqYyzQMPUU0h30RKIjIOcGEUainOQtwKNeplwOPOdQCSLPDw2Wvwy4C4W2Nc97kdllxBluTViDuIDkOgH3EdXTk88=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=BmEqgN5q; arc=fail smtp.client-ip=40.107.220.59
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FMaKDOlJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C1BCC4CEF0;
-	Thu, 12 Jun 2025 08:31:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749717122;
-	bh=ioxNr8DNBEiHDDJ/28rb91WVRuA0d698WZH8DdW09iM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FMaKDOlJub/zVk4vHO2I0RYHSrD5xyplgu38Lag4uEkM7XVy+TSJAoGiHACqMjnid
-	 kCBql43oBYLUPCVVDICPA3k2hlsBTc5eMACF/QFVuBo+twBmUNZ89YYXn0c1xc+So6
-	 /aULZseBDKBZO3xLhyhx2XVNVWPnbuOHLfP2kiQ/Hk51VbeQ4veFV15m1t8KMbEFzE
-	 9HY6yP/Qt957S/oAEUTE4d61osrfAGM28MaQSO8VLOs6NGLEGlTgJwnqwPrn5ONqUR
-	 IdqC4Chv3tS6fpdTRBSl7gzdsc7vw6XvR4DL4gpWuOoGtiH6q/kBV+3B6s4ZUd8ugH
-	 /v80PU/mnu0bQ==
-From: Mike Rapoport <rppt@kernel.org>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>,
-	Tyler Hicks <code@tyhicks.com>,
-	linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	"Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: [RFC PATCH 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM DIMM devices
-Date: Thu, 12 Jun 2025 11:31:53 +0300
-Message-ID: <20250612083153.48624-2-rppt@kernel.org>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <20250612083153.48624-1-rppt@kernel.org>
-References: <20250612083153.48624-1-rppt@kernel.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="BmEqgN5q"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=pSL9av6rLnjDPtQYRhNRYroKRPv+gLmUwgKutWEYHtOLsqcEI9nHXX7KPetIGTjxh8q1nCP1N7zufimj1VwflAF7axvvKCSfFeMiYrvUrd2kKhKzsPZo1vonT+4ZoBVYeXneQNkoiETo8/iboXRxxKKCbyMss6yhFFuCiL35Hwm5P6dIAFKdTu9rn1/OSGl/2YavDigjYk2IvYDEblTbJRb9J4wIKj36svopOX6WLHYfqr7QQEj+fWzcJqqdmmH8IxybtsvUYkaNj4oCneXDAir4CvTa/LEw2RknElocja4hZ4V+DZxFHInRUgQ9YkqrtB2AeFQdCBsUIV0ASPt5DQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=0gBLu/HtAKyzpB5+V3m/GmUdRvYCGUrHYIL5WI49w2c=;
+ b=tACQnuiEjKyvPfK1IVTXMjDoyRdZskkeqmhPavraj+UE5axNWRR96ES3sM+P149acYO5uNHwpjpmzNPf6/DziLRuYe6Cd3KUeyVamsBAERAUHpc6XUmBz8AMdQujqh1t+hGi8CW7bmL/ultZsMwn4MFH2psIwmmD/vlXEz+AF+Fu1uKbCoOT5khVooE9UEinrTOQm9MCNu+3Vm9JZXofIevPRekD1bjq0Qt4ZQf16dtJNvPx2Io8NICpr68dI+vQdOmq3yBMhwcsCKP0mTk9gcS4pQdNOox3abeMnBVvTKwHd/co5uABu2t4X2MDlCHydp48hI0gKUeovdNzcxwCVg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=0gBLu/HtAKyzpB5+V3m/GmUdRvYCGUrHYIL5WI49w2c=;
+ b=BmEqgN5qUJtu7ik5y+0hTpYfp9N5x7SL8NOp+S9rq0AvVGYipGxgJSi0yOG6V6ZP/82hO+k65NUSTFZgbtyoxrBuwpBq1/ddUOwRfIECJoaI5oNNHI7d34BH2O8PIIQDh+VP4LVAuxU+LDWatz7lEASv4u7qMCA6oWKIlFM2/SSqsyXjIZYgNUPNJSAqqHWeAQjBUedJKbCZ+z4USq0U4g5QJUg8uvta4kzZFcA8q0u4R0IKGy3mxz2IT5kBEbvBE6bA+swJbn3Mw0+Qt/d/ttfvtNw+Wf7dcgtzFSzqLoS0Nc2YZh1LH+OBX3vG8qgOIC98Jh5GYLR+sNJtBGaIHw==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DS0PR12MB7728.namprd12.prod.outlook.com (2603:10b6:8:13a::10)
+ by DM6PR12MB4201.namprd12.prod.outlook.com (2603:10b6:5:216::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8835.19; Thu, 12 Jun
+ 2025 08:47:22 +0000
+Received: from DS0PR12MB7728.namprd12.prod.outlook.com
+ ([fe80::f790:9057:1f2:6e67]) by DS0PR12MB7728.namprd12.prod.outlook.com
+ ([fe80::f790:9057:1f2:6e67%5]) with mapi id 15.20.8835.018; Thu, 12 Jun 2025
+ 08:47:21 +0000
+Date: Thu, 12 Jun 2025 18:47:17 +1000
+From: Alistair Popple <apopple@nvidia.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>, Christoph Hellwig <hch@lst.de>, 
+	linux-mm@kvack.org, gerald.schaefer@linux.ibm.com, jgg@ziepe.ca, willy@infradead.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jhubbard@nvidia.com, 
+	zhang.lyra@gmail.com, debug@rivosinc.com, bjorn@kernel.org, balbirs@nvidia.com, 
+	lorenzo.stoakes@oracle.com, linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev, 
+	linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-cxl@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, John@groves.net
+Subject: Re: [PATCH 03/12] mm/pagewalk: Skip dax pages in pagewalk
+Message-ID: <wqzr4hv4vv4wd2mcy5m2gapy6n5ipvex7hst4locic4dbeu3cr@47crvlk4kubj>
+References: <cover.541c2702181b7461b84f1a6967a3f0e823023fcc.1748500293.git-series.apopple@nvidia.com>
+ <1799c6772825e1401e7ccad81a10646118201953.1748500293.git-series.apopple@nvidia.com>
+ <6840f9ed3785a_249110084@dwillia2-xfh.jf.intel.com.notmuch>
+ <20250605074637.GA7727@lst.de>
+ <b064c820-1735-47db-96e3-6f2b00300c67@redhat.com>
+ <6841c408e85d3_249110075@dwillia2-xfh.jf.intel.com.notmuch>
+ <axbj5vrowokxfmrm3gl6tw3mn6xbzz7uwbxkf75bbgmzf7htwc@vcr5ajluw3rn>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <axbj5vrowokxfmrm3gl6tw3mn6xbzz7uwbxkf75bbgmzf7htwc@vcr5ajluw3rn>
+X-ClientProxiedBy: SY5PR01CA0006.ausprd01.prod.outlook.com
+ (2603:10c6:10:1fa::10) To DS0PR12MB7728.namprd12.prod.outlook.com
+ (2603:10b6:8:13a::10)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS0PR12MB7728:EE_|DM6PR12MB4201:EE_
+X-MS-Office365-Filtering-Correlation-Id: c2da20c0-3203-4f07-f14e-08dda98dbedd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?qVLUNKBV672PUP59FyxRTw06X2NrNwLWk7p5KT+0CqSPGmfXD4vWXpuFOFFL?=
+ =?us-ascii?Q?fbymzibWhRTt1bXMi8mKscZDFM37p5IVAykTSG8nLCU88OoWG+9DvQrzhvVl?=
+ =?us-ascii?Q?3AcyL+pII45q3CsMKArPJ/JxFGxCv1QueSGrulLUUOeN6dqglnhD4LYrHWrT?=
+ =?us-ascii?Q?rY+MHqTi92iAJ7OgOXpzqIAQSKVSmihpaNGSmrnvc73dKhI8tIenzKucGSKH?=
+ =?us-ascii?Q?a/OVtsLCElodqSdQtWLy80Iyimv0bUsNTms89KzpvnGTdvx3QdH/ghJmYY5M?=
+ =?us-ascii?Q?ErcDiviQDQBO6Xqh8fOb1VsRN/QN6WqzHdXMokSnOBcfZM5zBJ7032cZnHV+?=
+ =?us-ascii?Q?eSB6VTFCkKpyZ1vi8IL3elqrFVfN86wKeN2vECXTlTLC4L4U2DHsNIYFM9qP?=
+ =?us-ascii?Q?+a38WBgEgDOYkji8KMYrhy8G86mqtYkc7U0bjtB7RZOIDgME+jJGuQWgCdqw?=
+ =?us-ascii?Q?3ZLAKfbYwDBCciYCAn1OwM/DnBW/d2ZsXit9H134oUcZACXeMsexcn0bE6Sv?=
+ =?us-ascii?Q?TQhRhtzrJgqTmejdoRTnK3ze0ahD4CLfxrfAZbgwBNwKfAdc9WPtMXO6WmFG?=
+ =?us-ascii?Q?6OCpvpuZdBo4ETX89GbylD19SBJaGGFc3kom2Sobie/+2iYMv62wjIG8LKjP?=
+ =?us-ascii?Q?flWEZVltTSNAxxRMff2FfTMhLgFEgwhoVT+88o29iJYw3TlX1YY8PD+re3ix?=
+ =?us-ascii?Q?rqY+pBPGlEi+a3AY8KakAv2o8FC79rzcvw0pMc42S2/uuVxRghYyRO1DUFiI?=
+ =?us-ascii?Q?PiVfM/prdGwioCE5dj0aWuTtNTEbs7yajIlqrbec8KCSi4VjdMGughNldNAc?=
+ =?us-ascii?Q?zaDf+s8BSDHinS46Z8q+mQUM5u30lxIQCvpPU5MUwnG7TFcQ7KPwLuwip4i7?=
+ =?us-ascii?Q?d5FpN98QsmiNa4sbCacjcgjzZV1WFRmPDTXWxJRz/tAfAcSL4aTiVTtJBO4Z?=
+ =?us-ascii?Q?JAPdsJrHrKKi9l66QfWiSR96onoNsgZjll1KsxKRQ+Q7yvmFZYqc7xRYlTRv?=
+ =?us-ascii?Q?TY2uEb7rhEQvMtqojqzymGdA/0D2hL9145i7712RvcHZBWBj0AuO47sZo3ir?=
+ =?us-ascii?Q?a3cu5ijg8UPN4Rxv98DQ87A2/8BVNexgQx7UmDLdVY6ae8zV8uUEhs53FbpM?=
+ =?us-ascii?Q?hVgR56fW02Auu+CRwxtgprjhVPdlJbrCasfuyDgx6TRyTPJgpokmGYKSTzG7?=
+ =?us-ascii?Q?uPF08dTv0YJN5xz2i/SBND1C9KrG1WwKX93vr4ACCn6yi6ulL9Ur7V6xC142?=
+ =?us-ascii?Q?o3XzmUhjgUyWhKcIExvrEUpwNqKR2hs2TRPyMDYdrIh2evD5KxlRaexjMsrT?=
+ =?us-ascii?Q?q1JpWFOGvy9Oloe8rl1eXIk13Id50qaQskQAmWKmi3y9hwcF6ANhxLvuu7K5?=
+ =?us-ascii?Q?rpA/qLq3noTIub2CQoLh0jSOLJ9zcpJJHafBIYiG1LoZQKRHGZAPIFpSSeLk?=
+ =?us-ascii?Q?3ZLOtfS87Jw=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7728.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?5KlA2IZ1GML2S6ER+/2zlr+vx9BIeU6c0/udDAp60oU2gEuOrUmHQpHAum5H?=
+ =?us-ascii?Q?wh0ukWzMuLpiewTSjO2qXpI5eoKxOVpUXpxgkjfzaYcQBiXBOCgM4GmtGikh?=
+ =?us-ascii?Q?1V+cghh5Elpl8QMZ6JLeDLLWVThk9ZfOayqp2mzN80xZYZmITlYnCYuJx77h?=
+ =?us-ascii?Q?hw7wEZ2FI5txeO6rN536cV9f64jFezdI3Nx+OnoxfHTHc+ZqrCqj0F7GlaN2?=
+ =?us-ascii?Q?Fg1nhvoKi0obfos58BnIUhYB+2vjlX/T/l+ui39q1YMZ/ddXElpcu8UjPYSZ?=
+ =?us-ascii?Q?A/KYwLokHokij8m8gD5QYG3Hy+Y9lUJ2DMeGTwWKz3UJmwK8ai5CpSsZgLl1?=
+ =?us-ascii?Q?8yjOhM3jtHetE44wsZH36v9Q3t2EhZi6BcokY2VYW2kRJ+aCVuxRCes06em5?=
+ =?us-ascii?Q?HjkitfIMVr7jeFHcNFGwOLnCRMCXip4DpGrXD6zoLM55XEjUTQUQF69QKDxW?=
+ =?us-ascii?Q?tP95W/bh7zCa+DGbECk/IWyAmHiYkLO6u1hPwCiB66qyBvr5sssHyth2TFAa?=
+ =?us-ascii?Q?Xbj/c9ba4nVAiEGcw3eSRYMNC+vQPpysMfhXOm+uqFqbUlX0kBxvqoCzlL/v?=
+ =?us-ascii?Q?eMLXREq6oA+toR5VdmDsFKUBadeKp5GOWoKgnNNt71M39cTf8fEdz8JQqMeB?=
+ =?us-ascii?Q?RwPsk6Mssfxp1+BZOWOLN+d3S/0hHnV6U3WZaXuoz0JtWwmiCfIf5lsnzJoa?=
+ =?us-ascii?Q?Ni3bJMwCMaxkqkoJKTh9eZs0tHluawxiUW/Ru2VGmlex28GbuJlKsiyO+jvA?=
+ =?us-ascii?Q?ZaikE2t73Y5MBKlPzmgHcG71w+gAs6ayLE64vEmzxwfU8Uv06Qd+ijvuxBU7?=
+ =?us-ascii?Q?6W46eYDkMhD+Mwib+01iUtBfegSuxNqm6POyyFawALA1KSUuLdcvcl9/ecUY?=
+ =?us-ascii?Q?odsT2Njw4F1skesWBrgeiYFg5+yHP/AiqhNSShagYHqsl5QiOcg+W8+MYFxs?=
+ =?us-ascii?Q?sIljPlk1nlfEtqm0OBir+y6XOgsWLEeTueoCeGtRayeLHuLLzS+HaBarajQk?=
+ =?us-ascii?Q?nb1H1E1mV34DgYUAhviO9Yu+uqVuCdizDxZirMy1RnZqWKmUi2tz3qAcidg+?=
+ =?us-ascii?Q?Pqoc93kFjxhomMFVShmp7pBgRH87lEOHkn/TySfSpPIlJhbgay26E4+PePy1?=
+ =?us-ascii?Q?l6j8kI7Q8jXK7DHv+0wX5VOBw4OX2AERv7xZe9VrLoNrIv4sTIOpEFNrGoQU?=
+ =?us-ascii?Q?GlW+0oLwr1JY12bupwBVHdG2txZbcsqZVFf/jxfv/pWsUzmB6I0nfd0oacKe?=
+ =?us-ascii?Q?slN6BNOf1m6f88epmVPmC6/Jzc1fsbu/dWIF9WArgeuLdYM5RMo1mE5p9y0W?=
+ =?us-ascii?Q?Q8xTl+vIK89UJa065BX/Iw6ABNl9mtlDWIB1DyidmEdoW0euI5tMe5RexotZ?=
+ =?us-ascii?Q?Q4Mm0cZD09VsrC/jUaN8B4WpAHHQeoTw6yEsuj97qSOeNQj6Q7e8lTaCn5Wa?=
+ =?us-ascii?Q?UFjk26XCLV99NYnmAhJr+6pkNUAN4HT6B4YdgwP4ZUG1589aqDDpWFpoCl76?=
+ =?us-ascii?Q?7GVbw4dNEE1XQLxKaxj02ze9FrSmUHjpixUyp/89c1LUGqjAfHZJAE/L8cml?=
+ =?us-ascii?Q?EXkLkZkF/iFid6+fAMlP69XpRr9x351ui/400k72?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c2da20c0-3203-4f07-f14e-08dda98dbedd
+X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7728.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jun 2025 08:47:21.6036
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 8ycjP1ftMoJS44LK8+Qq+frPsDFCii0bnuNtOP/7c0eCjCCO2D4tYcWbsvt0KU7r7rCME8AvPqOC5Kl3L/amhA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4201
 
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+On Thu, Jun 12, 2025 at 05:02:13PM +1000, Alistair Popple wrote:
+> On Thu, Jun 05, 2025 at 09:21:28AM -0700, Dan Williams wrote:
+> > David Hildenbrand wrote:
+> > > On 05.06.25 09:46, Christoph Hellwig wrote:
+> > > > On Wed, Jun 04, 2025 at 06:59:09PM -0700, Dan Williams wrote:
+> > > >> +/* return normal pages backed by the page allocator */
+> > > >> +static inline struct page *vm_normal_gfp_pmd(struct vm_area_struct *vma,
+> > > >> +					     unsigned long addr, pmd_t pmd)
+> > > >> +{
+> > > >> +	struct page *page = vm_normal_page_pmd(vma, addr, pmd);
+> > > >> +
+> > > >> +	if (!is_devdax_page(page) && !is_fsdax_page(page))
+> > > >> +		return page;
+> > > >> +	return NULL;
+> > > > 
+> > > > If you go for this make it more straight forward by having the
+> > > > normal path in the main flow:
+> > > > 
+> > > > 	if (is_devdax_page(page) || is_fsdax_page(page))
+> > > > 		return NULL;
+> > > > 	return page;
+> > > 
+> > > +1
+> > > 
+> > > But I'd defer introducing that for now if avoidable. I find the naming 
+> > > rather ... suboptimal :)
+> > 
+> > Agree, that was a "for lack of a better term" suggestion, but the
+> > suggestion is indeed lacking.
+> 
+> I don't like the naming either ... maybe that is motivation enough for me to
+> audit the callers and have them explicitly filter the pages they don't want.
 
-There are use cases, for example virtual machine hosts, that create
-"persistent" memory regions using memmap= option on x86 or dummy
-pmem-region device tree nodes on DT based systems.
-
-Both these options are inflexible because they create static regions and
-the layout of the "persistent" memory cannot be adjusted without reboot.
-
-Add a ramdax driver that allows creation of DIMM devices on top of
-E820_TYPE_PRAM regions and devicetree pmem-region nodes.
-
-The DIMMs support label space management on the "device" and provide a
-flexible way to access RAM using fsdax and devdax.
-
-Signed-off-by: Mike Rapoport (Mircosoft) <rppt@kernel.org>
----
- drivers/nvdimm/Kconfig  |  15 +++
- drivers/nvdimm/Makefile |   1 +
- drivers/nvdimm/ramdax.c | 279 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 295 insertions(+)
- create mode 100644 drivers/nvdimm/ramdax.c
-
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index fde3e17c836c..7aae74a29f10 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -97,6 +97,21 @@ config OF_PMEM
- 
- 	  Select Y if unsure.
- 
-+config RAMDAX
-+	tristate "Support persistent memory interfaces on RAM carveouts"
-+	depends on OF || (X86 && X86_PMEM_LEGACY=n)
-+	select X86_PMEM_LEGACY_DEVICE
-+	default LIBNVDIMM
-+	help
-+	  Allows creation of DAX devices on RAM carveouts.
-+
-+	  Memory ranges that are manually specified by the
-+	  'memmap=nn[KMG]!ss[KMG]' kernel command line or defined by dummy
-+	  pmem-region device tree nodes would be managed by this driver as DIMM
-+	  devices with support for dynamic layout of namespaces.
-+
-+	  Select N if unsure.
-+
- config NVDIMM_KEYS
- 	def_bool y
- 	depends on ENCRYPTED_KEYS
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index ba0296dca9db..8c268814936c 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -5,6 +5,7 @@ obj-$(CONFIG_ND_BTT) += nd_btt.o
- obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
- obj-$(CONFIG_OF_PMEM) += of_pmem.o
- obj-$(CONFIG_VIRTIO_PMEM) += virtio_pmem.o nd_virtio.o
-+obj-$(CONFIG_RAMDAX) += ramdax.o
- 
- nd_pmem-y := pmem.o
- 
-diff --git a/drivers/nvdimm/ramdax.c b/drivers/nvdimm/ramdax.c
-new file mode 100644
-index 000000000000..67b0a240c0ae
---- /dev/null
-+++ b/drivers/nvdimm/ramdax.c
-@@ -0,0 +1,279 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (c) 2015, Mike Rapoport, Microsoft
-+ *
-+ * Based on e820 pmem driver:
-+ * Copyright (c) 2015, Christoph Hellwig.
-+ * Copyright (c) 2015, Intel Corporation.
-+ */
-+#include <linux/platform_device.h>
-+#include <linux/memory_hotplug.h>
-+#include <linux/libnvdimm.h>
-+#include <linux/module.h>
-+#include <linux/numa.h>
-+#include <linux/io.h>
-+#include <linux/of.h>
-+
-+#include <uapi/linux/ndctl.h>
-+
-+#define LABEL_AREA_SIZE	SZ_128K
-+
-+struct ramdax_dimm {
-+	struct nvdimm *nvdimm;
-+	void *label_area;
-+};
-+
-+static void ramdax_remove(struct platform_device *pdev)
-+{
-+	struct nvdimm_bus *nvdimm_bus = platform_get_drvdata(pdev);
-+
-+	/* FIXME: cleanup dimm and region devices */
-+
-+	nvdimm_bus_unregister(nvdimm_bus);
-+}
-+
-+static int ramdax_register_region(struct resource *res,
-+				    struct nvdimm *nvdimm,
-+				    struct nvdimm_bus *nvdimm_bus)
-+{
-+	struct nd_mapping_desc mapping;
-+	struct nd_region_desc ndr_desc;
-+	struct nd_interleave_set *nd_set;
-+	int nid = phys_to_target_node(res->start);
-+
-+	nd_set = kzalloc(sizeof(*nd_set), GFP_KERNEL);
-+	if (!nd_set)
-+		return -ENOMEM;
-+
-+	nd_set->cookie1 = get_random_u64();
-+	nd_set->cookie2 = nd_set->cookie1;
-+
-+	memset(&mapping, 0, sizeof(mapping));
-+	mapping.nvdimm = nvdimm;
-+	mapping.start = 0;
-+	mapping.size = resource_size(res) - LABEL_AREA_SIZE;
-+
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+	ndr_desc.res = res;
-+	ndr_desc.numa_node = numa_map_to_online_node(nid);
-+	ndr_desc.target_node = nid;
-+	ndr_desc.num_mappings = 1;
-+	ndr_desc.mapping = &mapping;
-+	ndr_desc.nd_set = nd_set;
-+
-+	if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
-+		goto err_free_nd_set;
-+
-+	return 0;
-+
-+err_free_nd_set:
-+	kfree(nd_set);
-+	return -ENXIO;
-+}
-+
-+static int ramdax_register_dimm(struct resource *res, void *data)
-+{
-+	resource_size_t start = res->start;
-+	resource_size_t size = resource_size(res);
-+	unsigned long flags = 0, cmd_mask = 0;
-+	struct nvdimm_bus *nvdimm_bus = data;
-+	struct ramdax_dimm *dimm;
-+	int err;
-+
-+	dimm = kzalloc(sizeof(*dimm), GFP_KERNEL);
-+	if (!dimm)
-+		return -ENOMEM;
-+
-+	dimm->label_area = memremap(start + size - LABEL_AREA_SIZE,
-+				    LABEL_AREA_SIZE, MEMREMAP_WB);
-+	if (!dimm->label_area)
-+		goto err_free_dimm;
-+
-+	set_bit(NDD_LABELING, &flags);
-+	set_bit(NDD_REGISTER_SYNC, &flags);
-+	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
-+	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-+	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-+	dimm->nvdimm = nvdimm_create(nvdimm_bus, dimm,
-+				     /* dimm_attribute_groups */ NULL,
-+				     flags, cmd_mask, 0, NULL);
-+	if (!dimm->nvdimm) {
-+		err = -ENOMEM;
-+		goto err_unmap_label;
-+	}
-+
-+	err = ramdax_register_region(res, dimm->nvdimm, nvdimm_bus);
-+	if (err)
-+		goto err_remove_nvdimm;
-+
-+	return 0;
-+
-+err_remove_nvdimm:
-+	nvdimm_delete(dimm->nvdimm);
-+err_unmap_label:
-+	memunmap(dimm->label_area);
-+err_free_dimm:
-+	kfree(dimm);
-+	return err;
-+}
-+
-+static int ramdax_get_config_size(struct nvdimm *nvdimm, int buf_len,
-+				    struct nd_cmd_get_config_size *cmd)
-+{
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+
-+	*cmd = (struct nd_cmd_get_config_size){
-+		.status = 0,
-+		.config_size = LABEL_AREA_SIZE,
-+		.max_xfer = 8,
-+	};
-+
-+	return 0;
-+}
-+
-+static int ramdax_get_config_data(struct nvdimm *nvdimm, int buf_len,
-+				    struct nd_cmd_get_config_data_hdr *cmd)
-+{
-+	struct ramdax_dimm *dimm = nvdimm_provider_data(nvdimm);
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+	if (struct_size(cmd, out_buf, cmd->in_length) > buf_len)
-+		return -EINVAL;
-+	if (cmd->in_offset + cmd->in_length > LABEL_AREA_SIZE)
-+		return -EINVAL;
-+
-+	memcpy(cmd->out_buf, dimm->label_area + cmd->in_offset, buf_len);
-+
-+	return 0;
-+}
-+
-+static int ramdax_set_config_data(struct nvdimm *nvdimm, int buf_len,
-+				    struct nd_cmd_set_config_hdr *cmd)
-+{
-+	struct ramdax_dimm *dimm = nvdimm_provider_data(nvdimm);
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+	if (struct_size(cmd, in_buf, cmd->in_length) > buf_len)
-+		return -EINVAL;
-+	if (cmd->in_offset + cmd->in_length > LABEL_AREA_SIZE)
-+		return -EINVAL;
-+
-+	memcpy(dimm->label_area + cmd->in_offset, cmd->in_buf, buf_len);
-+
-+	return 0;
-+}
-+
-+static int ramdax_nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd,
-+			       void *buf, unsigned int buf_len)
-+{
-+	unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
-+
-+	if (!test_bit(cmd, &cmd_mask))
-+		return -ENOTTY;
-+
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE:
-+		return ramdax_get_config_size(nvdimm, buf_len, buf);
-+	case ND_CMD_GET_CONFIG_DATA:
-+		return ramdax_get_config_data(nvdimm, buf_len, buf);
-+	case ND_CMD_SET_CONFIG_DATA:
-+		return ramdax_set_config_data(nvdimm, buf_len, buf);
-+	default:
-+		return -ENOTTY;
-+	}
-+}
-+
-+static int ramdax_ctl(struct nvdimm_bus_descriptor *nd_desc,
-+			 struct nvdimm *nvdimm, unsigned int cmd, void *buf,
-+			 unsigned int buf_len, int *cmd_rc)
-+{
-+	/*
-+	 * No firmware response to translate, let the transport error
-+	 * code take precedence.
-+	 */
-+	*cmd_rc = 0;
-+
-+	if (!nvdimm)
-+		return -ENOTTY;
-+	return ramdax_nvdimm_ctl(nvdimm, cmd, buf, buf_len);
-+}
-+
-+static int ramdax_probe_of(struct platform_device *pdev,
-+			     struct nvdimm_bus *bus, struct device_node *np)
-+{
-+	int err;
-+
-+	for (int i = 0; i < pdev->num_resources; i++) {
-+		err = ramdax_register_dimm(&pdev->resource[i], bus);
-+		if (err)
-+			goto err_unregister;
-+	}
-+
-+	return 0;
-+
-+err_unregister:
-+	/*
-+	 * FIXME: should we unregister the dimms that were registered
-+	 * successfully
-+	 */
-+	return err;
-+}
-+
-+static int ramdax_probe(struct platform_device *pdev)
-+{
-+	static struct nvdimm_bus_descriptor nd_desc;
-+	struct device *dev = &pdev->dev;
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct device_node *np;
-+	int rc = -ENXIO;
-+
-+	nd_desc.provider_name = "ramdax";
-+	nd_desc.module = THIS_MODULE;
-+	nd_desc.ndctl = ramdax_ctl;
-+	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
-+	if (!nvdimm_bus)
-+		goto err;
-+
-+	np = dev_of_node(&pdev->dev);
-+	if (np)
-+		rc = ramdax_probe_of(pdev, nvdimm_bus, np);
-+	else
-+		rc = walk_iomem_res_desc(IORES_DESC_PERSISTENT_MEMORY_LEGACY,
-+					 IORESOURCE_MEM, 0, -1, nvdimm_bus,
-+					 ramdax_register_dimm);
-+	if (rc)
-+		goto err;
-+
-+	platform_set_drvdata(pdev, nvdimm_bus);
-+
-+	return 0;
-+err:
-+	nvdimm_bus_unregister(nvdimm_bus);
-+	return rc;
-+}
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id ramdax_of_matches[] = {
-+	{ .compatible = "pmem-region", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, ramdax_of_matches);
-+#endif
-+
-+static struct platform_driver ramdax_driver = {
-+	.probe = ramdax_probe,
-+	.remove = ramdax_remove,
-+	.driver = {
-+		.name = "e820_pmem",
-+		.of_match_table = of_match_ptr(ramdax_of_matches),
-+	},
-+};
-+
-+module_platform_driver(ramdax_driver);
-+
-+MODULE_DESCRIPTION("NVDIMM support for e820 type-12 memory and OF pmem-region");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Microsoft Corporation");
--- 
-2.47.2
-
+Which actually most of them already do. The only ones I'm unsure about are both
+in s390 so I'll be conservative and add checks for folio_is_zone_device() there.
