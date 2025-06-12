@@ -1,69 +1,95 @@
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2088.outbound.protection.outlook.com [40.107.243.88])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C66541B3725
-	for <nvdimm@lists.linux.dev>; Thu, 12 Jun 2025 02:26:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.88
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08B42EADC
+	for <nvdimm@lists.linux.dev>; Thu, 12 Jun 2025 03:30:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749695204; cv=fail; b=XDA3fiU0FW1vhZ4QeY37GeAwdk49oDkxWOPRA3w7NCCJ5Qe7RlQxm+mU+t5hVroiYUuqXrzHDTc31IbuBgY5ww6YeY8ShsXi09Hk3vN0qqXECBSI17PNmfKqbLKjTcKgDMwZDKE/byZxNPd6rwyKqvQST4NGRZ89gWXXgptj3cU=
+	t=1749699022; cv=fail; b=D18tZWZHlsk+D7xxnKWKlphir7pbaoLetKUNWeawckJRevw1xvy4Z+J6MfHUG9Gm61c0Vbrbl59Sz/BlZLb2ffc8yqr6+hNvLoWPeKcdlJbWI05My8pDYGUe6+Yv+aEX3dAnX2dGRwc87IRtzEhKeEBMdfYjZmMapoGldCS5nyU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749695204; c=relaxed/simple;
-	bh=P5yqwOlPtAuxfObqLeBJqaazG3brZQI72UT+KNjuYgg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=H21+x4vHYnWub/hmcW3ykpQovu9DF3SzQRSvJCvAdHgvtKMXemY4cAoqMRKCqmPzquyL9HxXvuuAwq+PY9aGJIZHMTbmOxRCiUofZwe6wjQ+8Egx8FbOFu2FU8Col/xmvQSMeeAbpiOu5Cqnkh6B22hWb4TL4sFC/YqjEd70KY4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=izwy7DSp; arc=fail smtp.client-ip=40.107.243.88
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1749699022; c=relaxed/simple;
+	bh=H3H2vt5SHlj7zX1IKhCVQ+SAmRpSrRZN72hLCavgz94=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=r0xDHLIpos9HgcR9RDsZhUu75ZQy9XCyQNBTRIF0giEyPR56Vr0XOC573uNGRojiOmzcSUEP6qgCNd18PY4RqZjf/M7CBQJ4o2kr1jpZpnc3V0mxN3tDItrQPaJe/weoonOu56cB+3KVVx1x3Xsn0M04V/b0lFTv0hWbmDHVIQs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aZak24XK; arc=fail smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="izwy7DSp"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aZak24XK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1749699019; x=1781235019;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=H3H2vt5SHlj7zX1IKhCVQ+SAmRpSrRZN72hLCavgz94=;
+  b=aZak24XK3Nj7TsNRd+3OonWmWbb4tn4ttSXm+iEXaHcgxQI5bIUqTVm8
+   VhZrhkJs/VQElPJ7kEVly3P/9Iy8kpq+POkTB0D/nkYTb72/SMNe1Xj3y
+   dpbXxHbEk96s2q59Xm/AotS3QqTtd7MNiRGWTaeyP3/oW4Jb6MOGlScJD
+   Du5F9VyE5YPu10MhIv9ZY8+P2k8mrjlHZy64iTWt9+BIgk0cUm2LaG5jp
+   5Ejns9rY6ROhX1MxA1knsYCm+2Xqyib293ij9VaBMkvZBNENdBx6LJ/LH
+   8hLPSnXrTi3eDEHO5KCqrHvBuvHY0JOd/+OZcDzo/MRRd4PylfuDCgLNK
+   w==;
+X-CSE-ConnectionGUID: ZloY+jtOSbSZlbsf4BzD9Q==
+X-CSE-MsgGUID: JI0ZqTmOQb++8RGyRge13w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11461"; a="52006117"
+X-IronPort-AV: E=Sophos;i="6.16,229,1744095600"; 
+   d="scan'208";a="52006117"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 20:30:19 -0700
+X-CSE-ConnectionGUID: 84xjCrJJSqCYT8z0C5shzA==
+X-CSE-MsgGUID: HSHF7u9mT8OyN60JVoXR9g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,229,1744095600"; 
+   d="scan'208";a="152533207"
+Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
+  by fmviesa004.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2025 20:30:18 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Wed, 11 Jun 2025 20:30:17 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25 via Frontend Transport; Wed, 11 Jun 2025 20:30:17 -0700
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (40.107.101.86)
+ by edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Wed, 11 Jun 2025 20:30:17 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=XiaQEUcEIz02Pk9ggPER9FTq6Nui/QgwJ8OAOUSrJqMgax79pp7ht48NVddd7yqvK6nqFOXXqihCcDQKYOjPdt00QhtFVzPuu+OwWJKTMHbFfUNGrnjyxkfvLmGpPpJjffHpMbo7LAtNxAqzjq9FqQDJv3ks4jrKHDReD1wsi+hp0ylivJbUnvP78HW3pcWnaO54DFXN87L6ehmMUhlBAp/2YPcx79kgS1n58PZG+EMLNDVZHBfBDcRC4mn/KIBwpMAokk5vu7z3Z3Du9QegTLBrKXUG8Eq7an0ORN9MxfFvxlCYsr5SvdW2ZQANeGP+vHb+yE6CYBHartvzERwXNg==
+ b=TUasr55K8Z9Hus/AspmmKjyPGx4ycbQRPOFD5XC3RAAOOx5ZgpTcb9uTGw2Dfh+ZynJpvcHyqMQuGyUKJpHv7lMlVPB2xvl16LTiO2Ej8B/pkwMcFVXzaVy84X7KmZllAvxdd25BAJR56iQJeP+EDabBfu4qJsinZIeHldRXtp2nu5Kcmu1r7plKIPEYGfHdZf2NgBs1XbfWOqNcoSAA03Mqd7icItKTj/6iez6L41h3bfskAJodh1+mSHEAk1y9PSs4RtkteFaKZMIQWMsW2Q92td1yc7TYondnLbLxAy+F8ix05UQl4j1JLm40st+hhf5vM+R1/NprfVGKu9MExA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=zB0/jxoQma4/UCPYKsr7V0AJeuucsF5fey2OBWbiObs=;
- b=k9fo1zkE4+Yr9LdzK2gCYI1bF+DygUs2cvLs9bkv2NPZm51js1ghUXzLaw5mFYAuZKt+ePP/1wZUWS+Ea+PUsxHESyQwV2J6NU2rA8Af8g0VlaX7E9K+m3hPo5559atSFO1TA4c91vvTP4PzbxmGknXpB/1KeIAhNiUj0jp4XYSvECgtKCm9DEhUtFMGeq5R4rHq2o2V0GtDU3EAmSIe2V3L07tBIxMP7r/f4RLrRLwdraV7ozcpWe08ydG0GrRIz1x9Eij5h6ovdFUvng32B9HR+pCzWJ47+e3qHr4Dc6nP3gboqV5yJA2NROogU23nSLyufLEVvw2ME2RxpjVX8Q==
+ bh=KmphjMdRUAwCG/jRtnlViqcqE+Lc7Lecl/hgexfeuHY=;
+ b=o+dBedJ5ZZT+MJemDCad8r0VGmCASXUX176+RC8Q31z2egSouATUP29b+C/oOoxVoq3X0K1gjaE21poRWYMIuf5nGyXcyAYjd5Cw66gsrJ9UPao5xof9x5pIcU+xxGeYqhQWi7tTKMFzZmO3bQAKnyld6hsHlmLwUZVBKskZ2VHEL9j44M/3SYb19M8EAR39wREaFMTD7pdnOouD1Qstxdvt5titoSq4+bmSSoTyEPLvTuKH+w8ETUaIUfSFnMoadDFffGlrcu2fOkYt64iAeAZ0QEbIGq3t1oev96z04ndlo0sKlIR2a7UKMbtbNF46rgjWAj1MzWEoQIu5g4goCA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=zB0/jxoQma4/UCPYKsr7V0AJeuucsF5fey2OBWbiObs=;
- b=izwy7DSpih27TxLzH9oXcpuYHIAQFh0pp4cW4HBujy3S1sEWYwREMg5zVkRYbDJpsgq7C48lD4MiwwO3JEPq8njDph0gxS931I+K99STmeEFicnaGptyziQMp2GvpREKDBJzDGXmUyEGnR4rt39GLgGipU+o0o2OZfasPN5Fty0bl+fFcTDvBHtFhkT3EkJUoDd9svjNXdS/58fZxNUunYtd/nCPGUVNwVumzQEzWeSWaueYf7fPaA/i9Tnq1QH8sb2w5vplVsBx1z+fUuQWOAcqDn4+TUcxWEzOyYNw5YxBJ/tSXwdQ7OYGTPLdw+zr3rwGEqM4KUHcqV4/uanRQA==
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7728.namprd12.prod.outlook.com (2603:10b6:8:13a::10)
- by CY8PR12MB7609.namprd12.prod.outlook.com (2603:10b6:930:99::17) with
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB8794.namprd11.prod.outlook.com (2603:10b6:806:46a::5)
+ by SJ5PPF09F392AFF.namprd11.prod.outlook.com (2603:10b6:a0f:fc02::808) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8835.19; Thu, 12 Jun
- 2025 02:26:39 +0000
-Received: from DS0PR12MB7728.namprd12.prod.outlook.com
- ([fe80::f790:9057:1f2:6e67]) by DS0PR12MB7728.namprd12.prod.outlook.com
- ([fe80::f790:9057:1f2:6e67%5]) with mapi id 15.20.8835.018; Thu, 12 Jun 2025
- 02:26:39 +0000
-Date: Thu, 12 Jun 2025 12:26:34 +1000
-From: Alistair Popple <apopple@nvidia.com>
-To: David Hildenbrand <david@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
-	Andrew Morton <akpm@linux-foundation.org>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, 
-	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Oscar Salvador <osalvador@suse.de>
-Subject: Re: [PATCH v2 0/3] mm/huge_memory: vmf_insert_folio_*() and
- vmf_insert_pfn_pud() fixes
-Message-ID: <lpfprux2x34qjgpuk6ufvuq4akzolt3gwn5t4hmfakxcqakgqy@ciiwnsoqsl6j>
-References: <20250611120654.545963-1-david@redhat.com>
-Content-Type: text/plain; charset=us-ascii
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8769.29; Thu, 12 Jun
+ 2025 03:29:48 +0000
+Received: from SA1PR11MB8794.namprd11.prod.outlook.com
+ ([fe80::a3d4:9d67:2f5d:6720]) by SA1PR11MB8794.namprd11.prod.outlook.com
+ ([fe80::a3d4:9d67:2f5d:6720%5]) with mapi id 15.20.8835.023; Thu, 12 Jun 2025
+ 03:29:48 +0000
+Date: Wed, 11 Jun 2025 20:29:38 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Ben Cheatham <Benjamin.Cheatham@amd.com>
+CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<junhyeok.im@samsung.com>
+Subject: Re: [ndctl PATCH v2 0/7] Add error injection support
+Message-ID: <aEpJon2W2m1IpgGx@aschofie-mobl2.lan>
+References: <20250602205633.212-1-Benjamin.Cheatham@amd.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20250611120654.545963-1-david@redhat.com>
-X-ClientProxiedBy: SY5P300CA0039.AUSP300.PROD.OUTLOOK.COM
- (2603:10c6:10:1fd::15) To DS0PR12MB7728.namprd12.prod.outlook.com
- (2603:10b6:8:13a::10)
+In-Reply-To: <20250602205633.212-1-Benjamin.Cheatham@amd.com>
+X-ClientProxiedBy: SJ0PR03CA0022.namprd03.prod.outlook.com
+ (2603:10b6:a03:33a::27) To SA1PR11MB8794.namprd11.prod.outlook.com
+ (2603:10b6:806:46a::5)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -71,159 +97,154 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7728:EE_|CY8PR12MB7609:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7f1791ac-6923-4328-895f-08dda9588f9c
+X-MS-TrafficTypeDiagnostic: SA1PR11MB8794:EE_|SJ5PPF09F392AFF:EE_
+X-MS-Office365-Filtering-Correlation-Id: d006bb83-bb21-4229-6454-08dda9616182
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|7416014|376014;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?stLJSiOAokOAmxPAY1or7ComlWiLkmHbt3pz2rwwzA9dZA9JHWdkzRu/ouEz?=
- =?us-ascii?Q?IUREy5lf3LS4GjGSg3W6Q2g11ldKcJzMqvCgOmfiPHX8FyyAaWvQpwagp3vT?=
- =?us-ascii?Q?O3LsJdm92RnmXWlQMLVj0tD7Lhh0mhn48eHk46JR0MhQevbOhU+xyXMraeR3?=
- =?us-ascii?Q?Hib7wG0BCWQH5sc6eeeZmmypg682SgrdNFQCm5Tb0hEre86vVYpp8AF6U4jT?=
- =?us-ascii?Q?hDWF6fbxH27fOae1Gs7dnfZ7QQmBiU5MBLgxCpN9aXnzS39byhnELD6x4Jyr?=
- =?us-ascii?Q?aRCqRIQ9kiKMt5rwdMUNAPkQI1FdNfJcjSGi5hIcXA+3AXhQXnLAqQulebNl?=
- =?us-ascii?Q?xbUmHDbSJp1pJjAUS4lIsulQCHez6TRqizsxzHxlVFkHYg9qnlkVepHE2ZEp?=
- =?us-ascii?Q?rElPGZD0tWim6X6WUD4UvCduexXMdd1xTxfKBj7uVGGpJXXH5nBcYoANFZeR?=
- =?us-ascii?Q?7Y/H/VdRr5vimAAiNINQ+gwGy1X6ctQaBWigmfRaupXHTR5NaCSK9iZlkXKj?=
- =?us-ascii?Q?PVz0jvQRF+AMS3JGwXIOJ62+z+sZzUBGnz2Bo2IwoMHHMyEBfpe1TFUtQg+p?=
- =?us-ascii?Q?/0JUCIY2EaXKoFjDVqT8kW5Z+q3HOqjcRiPj9F63jaQ8ooE8vDOaD7nW21gB?=
- =?us-ascii?Q?ZERkYX6/Z9u/tsvIC3teJQNCb/IssKBf5jELjjxudUw/+FlcElEYLwlDvHNa?=
- =?us-ascii?Q?+HAlj7M9mt5jxe548PCR33OZAhls34ir2Sm5jtuk/hv+jDsIkMIc1Bq+cjpv?=
- =?us-ascii?Q?6FEzWbQ6EUk0piZaAZvVwACGkomMeI66+/GVNGjngjSkebsgHMZdIzROyzt/?=
- =?us-ascii?Q?L1tp5FEpyWC9urdaVEnjxXeK7LyqpeJO+pvxZIzH9gPHM5qtM5HUb1kL5xbY?=
- =?us-ascii?Q?nhzGCYGZnj1FfW/SPZ2jGaiXzXuoZrhbVhMV137tbmzvaUjPPfWcSzkeQlcG?=
- =?us-ascii?Q?mS3ln0a/nBrHdbaYkOtAwFvnLrkB80kQ93iR5wO1qr7nwoIbnJzGCApc43NQ?=
- =?us-ascii?Q?rSRbdWJcc/KvECEgniw5d9zFC/aZ/DHmH6sIKylCjGSxstYze/p7cGu3oaRC?=
- =?us-ascii?Q?3ZFArkVnpGMM5ByrtQYuTl5wO9E6ZgAUwCutKQj9k8YVKOfL/UZ+4MeXfy78?=
- =?us-ascii?Q?sDTG4WzR+yKpCwcs9XYkeiEomazSb6H1Ho0vWxlB5GKhijpyiPhMs6tVYj2M?=
- =?us-ascii?Q?rxj5GhHgoTFPhdypAYF0tNSpLY/Ns0jZ3VlQKNvuiYDwQBUjo49OvWabsNEA?=
- =?us-ascii?Q?OHxuQ4ChScHWawmIbQMe2bfb+NBD2L4aDZEFdqG+gAfGkbSfldxgmHVrVjzI?=
- =?us-ascii?Q?kTOR5U+w78yxY3EUeOn34cBBbCY98tF+mJoWHlqgwe8AtiRgJbHDUaXXeGc8?=
- =?us-ascii?Q?4GzSVaVusUkXy7QLJjc5fYrdZr5caCHokOiD6MxQwo7YPN0OGhVc5xvTTLlP?=
- =?us-ascii?Q?qT0BVMxRDNo=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7728.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|1800799024;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?ITwzidyOTGXYYL1L2mS1r1V4XV5iEtSMoFXMTsCdlKbeQ/Ri6XnHIsR4buJn?=
+ =?us-ascii?Q?Y+E2KHkf4z7Cgt3ZEEM4wlMWf9Rv+kJjfkZ5CT1Wt3p3lnIYZCQYMq4ByKRi?=
+ =?us-ascii?Q?6nJcHZJXQhENrWwPvnKAyn2bZo8dMp1S6uJTq7I/dMTWdH33pfU9nhoYR72a?=
+ =?us-ascii?Q?rUnOtN0Tbh3FoYI+RaLOFOpPtuJwV5rGo8dvMGxdbJnnIt9Ao4NreCqvMJN5?=
+ =?us-ascii?Q?UfChYeSteahvAeWcVJl/V5tvaOw5GA1zp3yJ/5Pk9MciEHs/TcMS6XFDIQ7f?=
+ =?us-ascii?Q?UtzF7x3BoW3c2wTFnLz3N+Cpu8DacjeXtE9FHf2OIYQX7OIwX+lrSMYKTxgn?=
+ =?us-ascii?Q?Oipk3vmc77wB8H+JmqNwdZ9VTnLQ/h9Q8xjolxEFQqqIFqB4lB009bgPLxDf?=
+ =?us-ascii?Q?/fTuiWG30Xe2nUKyUtlE0omMDXq8G7pBDtti0OjQJxzjRKDL9naZkGudQVvx?=
+ =?us-ascii?Q?J0sKnHoDRk6ZHUmYbrnN//iRBHDugGgfGb9YcOlJ/QrzTPHzELAZKEJJ0WY1?=
+ =?us-ascii?Q?XCb+dCXyWdBcSlz8It+7NnW00JkBhqW3/Se9coA8+jrJqyQVlOIR0JSw9+82?=
+ =?us-ascii?Q?KI8uXsbCFuiWdHPyQbnLzJVVNg9MpO7Z552w1u7ahQWeEvGgZw9VAvCugoUS?=
+ =?us-ascii?Q?8w6a4PP+8BKDcduuLxDX2XSToOvsSAoCcflcIpEgwLmrJ+i5EBY0vT4Jq8I+?=
+ =?us-ascii?Q?C8SQ5M7v/Q18qhr9qlgwIacAlcAxtVx7kEDNj52+tOGn1cI081ZyhYj0rem5?=
+ =?us-ascii?Q?n/8Jabv8KAFif03oarmDLkpfcwhd8eGsiTEdkYCGQ/4Oau69u+QVQ1cAjmH9?=
+ =?us-ascii?Q?msiow4KG1l78kW2BoFUIoP+unEt6D+PqnCbHe/AgvpvNXCqnpBEE7XVrzzIh?=
+ =?us-ascii?Q?+VYLjN4wgYhh1XrnqYEv55gj+wUzdAOgmMUb4btNBpOxiNSlJwx3eVL4YeiH?=
+ =?us-ascii?Q?LPAMgHBsVUsWgT8FU3caRHRecow17VWJ8flXHLqQula1D6o8s/ZgntyX0fP4?=
+ =?us-ascii?Q?gDa7Mr+z7kX4jlf5XoA8s3zeIUkmKBxuGzo1r/CSzNQ6WypW0Sxre3v3L+c4?=
+ =?us-ascii?Q?3v+39GqcbcuZGcPtOFMQfZHp/DdEuiwIHKxoFF64VcMLsZW6EisOjSE2SDt6?=
+ =?us-ascii?Q?jOF2mNNkIzdunziWAgw2Vf5W/0inP42h95cMcl/NzMNBvRzH16WTdNqi7LRn?=
+ =?us-ascii?Q?tJh8LfsM3yBigDZhG6NvPqW8J7jqQDa+o5NBCE2vhqtr7wKkHAcfLUQhAp75?=
+ =?us-ascii?Q?bxulWKk6qpsjzkzii7grVBeniisuyZ9K+978iXyUC8y0g+5TFc17lqtupBRU?=
+ =?us-ascii?Q?9yuu1jKROEMzw8eGZCAdSWCOOPi8r65cFrRGTHhYKsh+4d1KmMh60IQCNhzR?=
+ =?us-ascii?Q?nAzV4MU=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB8794.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?yvSDFopklreaLGyR3Pqx8WNa/KhKgVP+jXciU156EY2KXWh2xs1y3bKPuMcN?=
- =?us-ascii?Q?oeK5KXB1JBb4s9+6vMjbX5xdj6j1GFygSRdruKxosvoOU8mI1DYbY3ZXB2A+?=
- =?us-ascii?Q?kDJqikkY4SP2TYBL0Sq5S0z1EoUD6JQSMH6s/rFaInRCv+q1/48vTDIi0rb/?=
- =?us-ascii?Q?t+sSXSANNIMIg8ubcS4AuCsGW4+7fj7f3fiWrwJ6FCC3q3OHr1U+NdryPmgE?=
- =?us-ascii?Q?tb3nVe8U02Z4F018euybTnBQ1eZkVFGER9IBC0qKWgMNXO/rxkjFxFmPxSdz?=
- =?us-ascii?Q?ZL52scq7FQ5Oy/uY3x2bXaeE4SihmtezAMgkLtTQkV03u0n+BppmhvOaxC6X?=
- =?us-ascii?Q?JrNNeUkVc8kpf02OBbsmfiaqhNrlSCJXNM30EhUx3J0cynoPMLulzA27uaPm?=
- =?us-ascii?Q?lJSKUoDv5nAKVXIMe4YBu/wAGR6gi3V0rdXQ0egjCDQw2MQQPRbyeTAmwgEl?=
- =?us-ascii?Q?bIxouLxnpCqswrRYoRMl232RChK0Uq8dOLWm6qSYQlipZCT111dcBaMSgpO0?=
- =?us-ascii?Q?0c8QKZvmhGmQOfnxPU6OTLSwiO9tZ11MkHhMVKHyiHDt9Q75vL2o4Y6lGnYX?=
- =?us-ascii?Q?56gqXssO7M+20Df79FsW9htCn7pQn/CQTkJhP5mpTr91LGpEk7cCaF9la/c1?=
- =?us-ascii?Q?v1kkA9gLPfZWoVctjTMYZCnW9KZjxk7BYrAY/IOAtOyIAkbd+25YIdzbhxD4?=
- =?us-ascii?Q?yu+h6P0v3HX4/83WF2PDZ5BJGWb6UUCJ7EYzgk2YtK4L90G7lQmX+JOkkDHe?=
- =?us-ascii?Q?hjgtULZEy0zykwF4Ss3sIpCkfWnBqS2EIlTpf7gsYyxF719wJTDxo/vRYYoA?=
- =?us-ascii?Q?XgEDrNyIyyNIz8hWZOQDXD2EEaY6Iu+sIqZi9dv0UlPkTk7bKdbKIuqUfuGw?=
- =?us-ascii?Q?H63M5l8nCwW8QJXpM65Y4c0BjzlXFrOoL0ZyiZxoVeCo6lN+4kvjZPJjuyHL?=
- =?us-ascii?Q?UZ7SfbAaciiDoM6L48/OeDt1ox8EUahyJB/QpmhB/Enxz1R4L0Mp0FKjr3FI?=
- =?us-ascii?Q?08kZ8JqA1/39NH1zaUGlR/MNoj78dBokVah9oG+hOFtWumGBe7PFjY1Xlad2?=
- =?us-ascii?Q?c8uoLeaTZq0HFbo2cFU7+8zmlMmYfRAK23s3LIEC/Ss1LwgHgZXtZwBkcxv3?=
- =?us-ascii?Q?JgE6/oNnj/cb8sbU+YyrNREg5H/0VncAQhV2+phpQuKH316SuBA6GnLLhQTl?=
- =?us-ascii?Q?eZ2aPw4ieoVE9VoL3atslXfOGK3MdSzT7l3abpSvRkZvvSPPxvXmfUH84hEh?=
- =?us-ascii?Q?ddnjEyJGOooKeYeLtcYA55VYveSHyyFmT1u20oQQvrpy+5YtJTjY1snB3tkz?=
- =?us-ascii?Q?jq4hFoXSHygf544rm8acvQr98QWZuvuj7y6FKERBtJKCE5T1zGxEFuNiegH3?=
- =?us-ascii?Q?tY95I7NQsECRaAp/or+3tw3UBrjDQgIHAuyCY/thExwNUNlZvVK4MbUH3KLq?=
- =?us-ascii?Q?gX/0Pka9w0BwSYQRzs3gPAl4Vag/XbSlTjFop5Tdjjh/e2G7RNZlXyYhSEU1?=
- =?us-ascii?Q?ZqWgHxR5HHCEh8toGoFtsUoZ4nFmo3seUhCLzZshT+yCsDhGuVcsIFimnKa8?=
- =?us-ascii?Q?7rHud48yrqAI69r0zdJDudcdbfTyetwkWnYT9evU?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7f1791ac-6923-4328-895f-08dda9588f9c
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7728.namprd12.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Nhfm2PIMjsm2GVK643Vq/uiY9orLBTdEfYHEI6Lw+XPgCzB2LJaGQbBmAOK9?=
+ =?us-ascii?Q?JBuKMSgCkZnrLfNHuck7m5PfsjNzeTSbC9JkOEcCKmOglk3S2ZWUrF1FKEvg?=
+ =?us-ascii?Q?VDEpFzJPbDg30tKYa2wg4k6QY3vAUeFpuHja9rhDaO1hnBLjQPKRR2lVg3gg?=
+ =?us-ascii?Q?SvIKviHMHHAZPhM0A6X03RSb4fRd4CeajbyQeXAFZaZ14VadZrbMGxLMrM36?=
+ =?us-ascii?Q?CemgBO82eglVU/h2lacY6IDs5Xx/l1LG1BAmRu7Zez9peBLeSJHH6p1yvuHk?=
+ =?us-ascii?Q?3HMQsRqcZJyajKnMT9z+ts9UcaVSKNbhBZThdOWaYmYhvOHyMpHnrWMHLynR?=
+ =?us-ascii?Q?23xr+MGi4YjKEehA3ek5YBYjS0U2biyG4dZBrWV7uOeKjiZ0Qrgdmf50xh3v?=
+ =?us-ascii?Q?0eQ0VWhvM41gxAiZXq3icJerC3jJ/JiJ5gEY7/nhoh9O/VokKQGYUfeC4XlQ?=
+ =?us-ascii?Q?VeG68d+3qrV9kbeBMnnGlNSZON5zsQ6D7yeQSFG/Btw3TJsUD474yGqo6iiF?=
+ =?us-ascii?Q?Wdn5sVE9inXj2UB6ELl5bOqJNepYZo34Rc9LuwpdR+sF9H0tj89hrzk166Eh?=
+ =?us-ascii?Q?G81wjqJL8rj/Wq6QxbyP9VK7fokHJrgLdVyH5kTsksgf1JGq96o+T1isZDP0?=
+ =?us-ascii?Q?IdlRWhgBuGSa1p8DbEB2Ifb9z9xY5nNxMAFj0N26zuSfcK5vuoF3Ov2Ft6TL?=
+ =?us-ascii?Q?w0cMjs8lApOyRVsLdbUa8dP8TZnS9FQYU6easeXow6BbzfH9LEL0qE4zc5uk?=
+ =?us-ascii?Q?C+7IV4dSgmD6ipJFAglStR27caziuU5UoZ8gtU/Rp0a7SIJOBg857hfvaDsL?=
+ =?us-ascii?Q?BYAadHT3it80tlFiU0pnHRzela+dcu41hePoiuo9C/uYTtOaxFiwFoRfvtfP?=
+ =?us-ascii?Q?gHe1T6zwzONHiMMZ5R4BiWQu/14pjjcIQON/yQe2/H9GlecE3WbzjQ8pGPvJ?=
+ =?us-ascii?Q?rL5asCIQ1O1whyM2EE/k8jFJ12Kga20K0UErbgNbwrJMf0x2B6FAgmtZVD70?=
+ =?us-ascii?Q?4fkxNMLn58lm9od5NkHebPlBKmz6bmxuE/jG/VCi3yxoDVr2tVa2NdCC+DZd?=
+ =?us-ascii?Q?Ma21v3VcVVYO8DBQCkGlppvcVsgS0gRNiaVStJ0ic3dxAakPKwC1e1qWwAwU?=
+ =?us-ascii?Q?iEMQ9PGc6eXYRCn1Z3RDwCpC3OyMvmUssWkYIUGvSbWfOdQqIolvS+vQ9MMO?=
+ =?us-ascii?Q?N9wmbU37sAfUmzc5AJQsdEPIBns/lC6vlzasP1+T5einbIPJAR3VEvLPHPyz?=
+ =?us-ascii?Q?JXuJut97bb8q51fTfnXdm3cjjRttfxlVWu3foSF+PAEWbhUCicCTt2DU/6Vw?=
+ =?us-ascii?Q?zia/t4jz36mFK/Qj1gZpWa60oCzKl0hYcoqlbYdPN5+htqKqN6kqvC0g6ium?=
+ =?us-ascii?Q?oSoLQmUBV+t/sajjekship9oFBrYhjIGggRGW79IwaOECVN7dy0rYseQq/yE?=
+ =?us-ascii?Q?/v1NZSoIzNy9mtHW3pRjbIHsbLSNhic+vICvhl+8kGLtEyqIlwNNOMKCJ6eH?=
+ =?us-ascii?Q?s7WMo7kKKL2UeY031+e90y95yZMTgaRzB80SwIGFvYfIv1HML1YDFjlDVUSD?=
+ =?us-ascii?Q?wo98mYOQqrBGyq/z+w3Tto+jKhrOWV8HN+2zepOdIlgVROECLea3lwLs2Jkt?=
+ =?us-ascii?Q?Ag=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: d006bb83-bb21-4229-6454-08dda9616182
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB8794.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jun 2025 02:26:39.4538
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jun 2025 03:29:48.2517
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KlxFAe6UlwfktbMGQP33p/AfA5ESB8Z+KyLkN875lgYC/GtxzrkbWQCBh7lmakZ6DSYPiXqY2ATL31YjOzwGtw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7609
+X-MS-Exchange-CrossTenant-UserPrincipalName: 7n6vXfGbvIRtOaM8N+kqqGqhkVHVXw42DV09uTQItaZXO+XKsfqflsogPLokxykb9BK2wOmIrCZ9mqnn18wpkeqUz1EjIkJg/Zgth1JRq2w=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ5PPF09F392AFF
+X-OriginatorOrg: intel.com
 
-On Wed, Jun 11, 2025 at 02:06:51PM +0200, David Hildenbrand wrote:
-> This is v2 of
-> 	"[PATCH v1 0/2] mm/huge_memory: don't mark refcounted pages special
-> 	 in vmf_insert_folio_*()"
-> Now with one additional fix, based on mm/mm-unstable.
+On Mon, Jun 02, 2025 at 03:56:26PM -0500, Ben Cheatham wrote:
+> v2 Changes:
+> 	- Make the --clear option of 'inject-error' its own command (Alison)
+> 	- Debugfs is now found using the /proc/mount entry instead of
+> 	providing the path using a --debugfs option
+> 	- Man page added for 'clear-error'
+> 	- Reword commit descriptions for clarity
 > 
-> While working on improving vm_normal_page() and friends, I stumbled
-> over this issues: refcounted "normal" pages must not be marked
-> using pmd_special() / pud_special().
+> This series adds support for injecting CXL protocol (CXL.cache/mem)
+> errors[1] into CXL RCH Downstream ports and VH root ports[2] and
+> poison into CXL memory devices through the CXL debugfs. Errors are
+> injected using a new 'inject-error' command, while errors are reported
+> using a new cxl-list "-N"/"--injectable-errors" option. Device poison
+> can be cleared using the 'clear-error' command.
 > 
-> Fortunately, so far there doesn't seem to be serious damage.
+> The 'inject-error'/'clear-error' commands and "-N" option of cxl-list all
+> require access to the CXL driver's debugfs.
 > 
-> I spent too much time trying to get the ndctl tests mentioned by Dan
-> running (.config tweaks, memmap= setup, ... ), without getting them to
-> pass even without these patches. Some SKIP, some FAIL, some sometimes
-> suddenly SKIP on first invocation, ... instructions unclear or the tests
-> are shaky. This is how far I got:
+> The documentation for the new cxl-inject-error command shows both usage
+> and the possible device/error types, as well as how to retrieve them
+> using cxl-list. The documentation for cxl-list has also been updated to
+> show the usage of the new injectable errors option.
+> 
+> [1]: ACPI v6.5 spec, section 18.6.4
+> [2]: ACPI v6.5 spec, table 18.31
+> 
+> --
+> 
+> Alison, I reached out to Junhyeok about his poison injection series but
+> never heard back, so I've just continued with my original plans for a
+> v2.
+> 
+> Quick note: My testing setup is screwed up at the moment, so this
+> revision is untested. I'll try to get it fixed for the next revision.
 
-FWIW I had a similar experience, although I eventually got the FAIL cases below
-to pass. I forget exactly what I needed to tweak for that though :-/
+I applied this to v82 (needs a sync up in libcxl.sym) and ran cxl-poison unit
+test using your new cxl-cli cmds instead of writing to debugfs directly.[1]
+Works for me. Just thought I'd share that as proof of life until I review it
+completely.
 
-> # meson test -C build --suite ndctl:dax
-> ninja: Entering directory `/root/ndctl/build'
-> [1/70] Generating version.h with a custom command
->  1/13 ndctl:dax / daxdev-errors.sh          OK              15.08s
->  2/13 ndctl:dax / multi-dax.sh              OK               5.80s
->  3/13 ndctl:dax / sub-section.sh            SKIP             0.39s   exit status 77
->  4/13 ndctl:dax / dax-dev                   OK               1.37s
->  5/13 ndctl:dax / dax-ext4.sh               OK              32.70s
->  6/13 ndctl:dax / dax-xfs.sh                OK              29.43s
->  7/13 ndctl:dax / device-dax                OK              44.50s
->  8/13 ndctl:dax / revoke-devmem             OK               0.98s
->  9/13 ndctl:dax / device-dax-fio.sh         SKIP             0.10s   exit status 77
-> 10/13 ndctl:dax / daxctl-devices.sh         SKIP             0.16s   exit status 77
-> 11/13 ndctl:dax / daxctl-create.sh          FAIL             2.61s   exit status 1
-> 12/13 ndctl:dax / dm.sh                     FAIL             0.23s   exit status 1
-> 13/13 ndctl:dax / mmap.sh                   OK             437.86s
-> 
-> So, no idea if this series breaks something, because the tests are rather
-> unreliable. I have plenty of other debug settings on, maybe that's a
-> problem? I guess if the FS tests and mmap test pass, we're mostly good.
-> 
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Alistair Popple <apopple@nvidia.com>
-> Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-> Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Cc: Mike Rapoport <rppt@kernel.org>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Zi Yan <ziy@nvidia.com>
-> Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-> Cc: Nico Pache <npache@redhat.com>
-> Cc: Ryan Roberts <ryan.roberts@arm.com>
-> Cc: Dev Jain <dev.jain@arm.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Oscar Salvador <osalvador@suse.de>
-> 
-> 
-> v1 -> v2:
-> * "mm/huge_memory: don't ignore queried cachemode in vmf_insert_pfn_pud()"
->  -> Added after stumbling over that
-> * Modified the other tests to reuse the existing function by passing a
->   new struct
-> * Renamed the patches to talk about "folios" instead of pages and adjusted
->   the patch descriptions
-> * Dropped RB/TB from Dan and Oscar due to the changes
-> 
-> David Hildenbrand (3):
->   mm/huge_memory: don't ignore queried cachemode in vmf_insert_pfn_pud()
->   mm/huge_memory: don't mark refcounted folios special in
->     vmf_insert_folio_pmd()
->   mm/huge_memory: don't mark refcounted folios special in
->     vmf_insert_folio_pud()
-> 
->  include/linux/mm.h |  19 +++++++-
->  mm/huge_memory.c   | 110 +++++++++++++++++++++++++++------------------
->  2 files changed, 85 insertions(+), 44 deletions(-)
-> 
-> -- 
-> 2.49.0
-> 
+Adding more test cases to cxl-poison.sh makes sense for the device poison.
+Wondering about the protocol errors. How do we test those?
+
+[1] diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
+index 6ed890bc666c..41ab670b1094 100644
+--- a/test/cxl-poison.sh
++++ b/test/cxl-poison.sh
+@@ -68,7 +68,8 @@ inject_poison_sysfs()
+        memdev="$1"
+        addr="$2"
+ 
+-       echo "$addr" > /sys/kernel/debug/cxl/"$memdev"/inject_poison
++#      echo "$addr" > /sys/kernel/debug/cxl/"$memdev"/inject_poison
++       $CXL inject-error "$memdev" -t poison -a "$addr"
+ }
+ 
+ clear_poison_sysfs()
+@@ -76,7 +77,8 @@ clear_poison_sysfs()
+        memdev="$1"
+        addr="$2"
+ 
+-       echo "$addr" > /sys/kernel/debug/cxl/"$memdev"/clear_poison
++#      echo "$addr" > /sys/kernel/debug/cxl/"$memdev"/clear_poison
++       $CXL clear-error "$memdev" -a "$addr"
+ }
+
+
+While applying this: Documentation: Add docs for inject/clear-error commands
+Got these whitespace complaints:
+234: new blank line at EOF
+158: space before tab in indent.
+        "offset":"0x1000",
+159: space before tab in indent.
+        "length":64,
+160: space before tab in indent.
+        "source":"Injected"
+
+
+-- snip
+
