@@ -1,68 +1,70 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48A881EDA0E
-	for <nvdimm@lists.linux.dev>; Mon, 16 Jun 2025 19:34:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CEC61EDA0E
+	for <nvdimm@lists.linux.dev>; Mon, 16 Jun 2025 19:34:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.165.32
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750102453; cv=fail; b=T3BSoiNHomvY/ARHI3AlFINGdZFA3GxJ7kfNFEo0JknbPBIHtLZuLjhW3ky4U3ZE/bekA+/Dc35ezogny0oyqs3De1lVm+o1DBWxvn95L4ybmBZN4WgKB2NSK+Pv8uSm05+cIolFTeQ1fTPWH5DIucNDBgOGeblJvLVf2RtMZl8=
+	t=1750102456; cv=fail; b=m4LiWA4aml+m8D4Nh3K1lxM42RtyIx49evlzI63ozxpktb9YXKo2HzviA0aVXAp1ocxXOdR2SggAyrVaytXG9bpXmwr8BcUkTBM0mkA1LZxLCnI7DGQOuNyxYiK1SODX3ElJu9518hy5wxVpz2pczmpBxyZJ2w2iDOcsVC37LPQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750102453; c=relaxed/simple;
-	bh=b10t3txl1cVOgMDpZ/F8r8b8TdZuk5fXEIxJ/7zuHec=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=Qy8qfGhW9Krdxgp01xwrJIPZ7Nugh0yIrLGcGS8fcb0q6KbGbIqO0LxyAaxz3cBBH8Xq6/JSnVy1PBacL3ODDA0PqV0xi4mZdspV+4fcxECoRsvLy8wPHhZhKSH60hFUDTAeb76WOFR5ASiB674ZAhvQMlgqUtudvqUINWmSVgk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=DGmsKDvZ; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=ddLFupNW; arc=fail smtp.client-ip=205.220.177.32
+	s=arc-20240116; t=1750102456; c=relaxed/simple;
+	bh=xyvciqq7bBwqxMM8NLqgQkaWhZ9sTqLuc2pVA9yZaEo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=sElR5AzkoT+h/O08dqvT1/LUrMzmHPehD17+hy6JtxHxEHq5O5TAQtT0Vy7cQCNcMOfVt6UfDKAdR0jYksBGqq2340u8BEW9bI1MUQ63mTEvCf0dO5AIwDqy7/J5wD6BCutoRkND9epp8L+SwPj3d8czbiThTlCe+YRt8zzB0xM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=o3wz00KP; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=djWHsynt; arc=fail smtp.client-ip=205.220.165.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="DGmsKDvZ";
-	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="ddLFupNW"
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 55GHuSRp017859;
-	Mon, 16 Jun 2025 19:33:48 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="o3wz00KP";
+	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="djWHsynt"
+Received: from pps.filterd (m0246629.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 55GHuWqN025026;
+	Mon, 16 Jun 2025 19:33:56 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=corp-2025-04-25; bh=XEG2SkBKEOX1HBmA
-	k4ZLq2DCpXTIWzGk0B7pQ7f1axQ=; b=DGmsKDvZ/iMVxMZwzBXARl7IiD6xsmHx
-	esNps7pJOXSsuAKNOYGDali04IoIU7CUnlfaCv2J724oaKu0tuY9Ey0OWasE+fr+
-	o1Fb1GTC2NKWOsBBXBAzr8k5yuHYF58te6uRGIj0fiq2E+pzStm3sxiWKvNNtY5N
-	22Uvwp3dhm0WANRJ/xcOzMALUTMJJ39NXBDrz4ygsSffqqTAFIIl0egzdVszcPW2
-	bo+Uu6fPccSAUgZrJJM1WneCbN6lWnVz7G2XamyNBtJ/pre/d8ft73+cYH+3Xnut
-	a53CMGeccCb4oTlI6rL0v2tCNdPRZ6JHWDglhe8ZcWEWW6zKB28vpA==
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=
+	corp-2025-04-25; bh=OkcVOJolnz5KIPxF3XETf1nbjZvW74UpRHbetRk6v34=; b=
+	o3wz00KPuemHkOiLs/WxM9vDB5azgAW3hzLgEDtewfFJFYH25iYJfCjwPNWkHWN+
+	DYXr2sDx+SNYyut1hhW5fKQ32VW5TtsQqWMkUwtVSG/nr+DLFstLhqY+ygehdjOf
+	5xNo99CdwZfDi/AKskTCXcihNb0GQlGByTwlMxq2b7lELylnLFihF/kbJh8E92wC
+	GR80J0k/q0C7lTnrtwGLEfDOl3gf9ntbrJgIG3aA/g5tqrY6PK3oHqsBR1IkGP/2
+	Pbm/0i23nB0GR+9XPw8yDwL3V9lisi04oShpqenKQW4cjqYf1E9dhYCETAMX1pAa
+	OHZMaM6Sp/Fv/9yY/QKvVw==
 Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 479hvn32kg-1
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4790yd3ntt-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 16 Jun 2025 19:33:47 +0000 (GMT)
+	Mon, 16 Jun 2025 19:33:56 +0000 (GMT)
 Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 55GJAKnT001648;
-	Mon, 16 Jun 2025 19:33:47 GMT
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 55GJAKnc001648;
+	Mon, 16 Jun 2025 19:33:54 GMT
 Received: from bn8pr05cu002.outbound.protection.outlook.com (mail-eastus2azon11011054.outbound.protection.outlook.com [52.101.57.54])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 478yh8bqb0-1
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 478yh8bqb0-4
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 16 Jun 2025 19:33:47 +0000
+	Mon, 16 Jun 2025 19:33:54 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Ma0VjrbYLfajL6YRtaNQZZrwyCSi9QATL906f58ErzpPo9t22QGZJrV9UThb+dzygD4NquVF0duSOk13wsb1L2cd7E343xU9sLsoEryd07Zz9xd7Uq/OLLa0vZW0Wf9YD3ynZaS06MVYNvMqYG/6P2WN6JjTI3RJU2tAG0Dl6x0bXRhOH1kXd5Q7PcQuqMXycVoZGyy+f6h/vcCDUwRy9jZU5k26iv2Gjju7BRKCfOqPUlEtMzg7Bh2aqCXkTovcbsaU4yHcnQRCj5MV9RkwhrMpGR4JCI9TzyLaQA6+knar6YkoW5xLjfnYXjDBbPIPNynEma18F8/ovmfMHj9T1Q==
+ b=jCMOnqxgp4s0IZF0RH6W5WRRogkEzu8FoNGItzdQGeNH3K6/fD9Pvr/P60kSXzYbnUwGkYLbETVEpNyCmfGYL5tJ9rM/g2UAN4VBqlXnch6E2ytpEsZGER26brDGRPuBXI6iDIvtitiNgxjGiY+qSSOqRpB9tcXSk2/EE/zsT5zlrOlUv69uaAG6w6hnFZ1GVrGPqJtRLDntqZUr35ygii3rPV8EY3tLSGxzZR91lC7R+821380QQpQ+pGAn8k4uSWGZnp0Si80w3hrPRVyGN9yj5izMW5bJzb3HB6CzmO4p2Pf8xjWE9sNUa86RX/6+Fq0Nq5dGr6g0kDspyqt7Vw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XEG2SkBKEOX1HBmAk4ZLq2DCpXTIWzGk0B7pQ7f1axQ=;
- b=XKHr4MV2mHF5K0HisH3b1zO5gcCPal4BWbFkGNbZAGLKbbDzXUr0O678oIZBHAaCIfeOp2xei6h/VYWvPkW1itUhL6xXuJ4rXBNWGBXFo42qMdx6Q4yKELLiQEsKuQl+NPKs0Hd3g3YCMd7AjMppRbsFVBWLlYbeqzg/tmAOIZO4RZYyJHJtrPWHy02HPQ9tIbr2LKA5+bEgHlJRWqnSr+ib+JvYNcSSlomGGChnSW9SiqMdD/spNeP1Y4PPnMTALfzkXP6l/GcrWv4HRwf0OO/Vk4Yye5plMIRXkP0zlJQZPjE4Chc0NZ/8FJF69maBuZZ6rxIhGFu2YAtachx+YQ==
+ bh=OkcVOJolnz5KIPxF3XETf1nbjZvW74UpRHbetRk6v34=;
+ b=OHCRkMtiAjUtNxWgTc1inJqDHm8VcZfInMg1zNLG/RruFn+QjwB7CHPKyPoZDKR5bU6RRXHApTLValAtQkeo16ScdUZn0VR2SsNJ5NEEwK35NuivG6P/w5vnGfrmV0E6oIjLVAEbWPLXRFwKM6aw4uPm53RF+/Hp668wP+Ohjh09gWe5HTzEcl+dFzuZXOJ1Li/L6wFCDA7llDbVgc7textToX8YTE970SGw59JNVu0AbdToXTEQTFGG9jAG9xCxXg76QeN06glJS7Hvycg9H8nKNZ1G5vU0/g6ViQl91QRZpcBfBFIKtB6B+alkcyZAW9vJfFYsEHgUzvQUPSG4Qw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XEG2SkBKEOX1HBmAk4ZLq2DCpXTIWzGk0B7pQ7f1axQ=;
- b=ddLFupNW1R2FHghft0yO2iAS+pXvwoUU/A5nRu0pAWa5Ro/kz56oN5QCnfWYy9MJRcnL9/Mx714FdeNFcbg+kK6mmGIUCB09gmylzte93/Y7TEyBJPgaduYy/bnVx1BDo+oIaCGf0rb4qbNVkBdaaugewL8l4SJuHM5zgF7Xgxg=
+ bh=OkcVOJolnz5KIPxF3XETf1nbjZvW74UpRHbetRk6v34=;
+ b=djWHsyntllUA/R354wb1hkzRECPC0Z66PaMpFWwSlV1y0ZsvVNKgYX2iJcq22CqNHx5zfnB8veBffwOsSiiFNoN2hUy2drMBGgmRLzmIgPIj5B5O4m1LhvocFsUotuNV6Htj3USQJe+KSrtI/DdvBdGXRekH59gLTJF3/291tV0=
 Received: from DM4PR10MB8218.namprd10.prod.outlook.com (2603:10b6:8:1cc::16)
  by PH0PR10MB5870.namprd10.prod.outlook.com (2603:10b6:510:143::7) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8835.19; Mon, 16 Jun
- 2025 19:33:40 +0000
+ 2025 19:33:50 +0000
 Received: from DM4PR10MB8218.namprd10.prod.outlook.com
  ([fe80::2650:55cf:2816:5f2]) by DM4PR10MB8218.namprd10.prod.outlook.com
  ([fe80::2650:55cf:2816:5f2%6]) with mapi id 15.20.8835.026; Mon, 16 Jun 2025
- 19:33:40 +0000
+ 19:33:50 +0000
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: "Liam R . Howlett" <Liam.Howlett@oracle.com>, Jens Axboe <axboe@kernel.dk>,
@@ -139,14 +141,16 @@ Cc: "Liam R . Howlett" <Liam.Howlett@oracle.com>, Jens Axboe <axboe@kernel.dk>,
         devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
         samba-technical@lists.samba.org, linux-xfs@vger.kernel.org,
         nvdimm@lists.linux.dev
-Subject: [PATCH 00/10] convert the majority of file systems to mmap_prepare
-Date: Mon, 16 Jun 2025 20:33:19 +0100
-Message-ID: <cover.1750099179.git.lorenzo.stoakes@oracle.com>
+Subject: [PATCH 03/10] fs: consistently use file_has_valid_mmap_hooks() helper
+Date: Mon, 16 Jun 2025 20:33:22 +0100
+Message-ID: <b68145b609532e62bab603dd9686faa6562046ec.1750099179.git.lorenzo.stoakes@oracle.com>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <cover.1750099179.git.lorenzo.stoakes@oracle.com>
+References: <cover.1750099179.git.lorenzo.stoakes@oracle.com>
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: DO2P289CA0012.QATP289.PROD.OUTLOOK.COM
- (2603:1096:790:6::16) To DM4PR10MB8218.namprd10.prod.outlook.com
+X-ClientProxiedBy: LO4P123CA0571.GBRP123.PROD.OUTLOOK.COM
+ (2603:10a6:600:276::10) To DM4PR10MB8218.namprd10.prod.outlook.com
  (2603:10b6:8:1cc::16)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -156,81 +160,81 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: DM4PR10MB8218:EE_|PH0PR10MB5870:EE_
-X-MS-Office365-Filtering-Correlation-Id: 05c93f15-6041-4a47-0306-08ddad0cb293
+X-MS-Office365-Filtering-Correlation-Id: f597330c-860f-42de-fcf8-08ddad0cb86c
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|7416014|376014;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?g8p7urz/ZBpTpt6gbvYpDaVO2vIEsL6X/YDdz57ufpivaIoKF/TuXID8gPC/?=
- =?us-ascii?Q?n+qd7pr3NXLGY5G3uUz6VQzBATHzN7BhOwrRJMF2T2vka1uku83/2clxxrVy?=
- =?us-ascii?Q?bROovRnbk7XSRl22Fyv+Kr+L4vrWZvxiLd/9/vaN3Nh073GBmQ4/QyaVsFa9?=
- =?us-ascii?Q?MruW0vfdLIQT+8FyHgrTk0l4uu95LMCzmrlqU3+7ILY9VFVRLPBK8kXkAt52?=
- =?us-ascii?Q?Viz+cK9SRriXWvIJPrBMShfr13FwVRLt/DKoz5eyeAL4PGh6YkbaxC2u2aQV?=
- =?us-ascii?Q?U7qfEL7YE3p4pRXIXTywKYiF9WnFTDR0RnA/EayUH1heU8YI5uYZMQfz3NzB?=
- =?us-ascii?Q?GQ/7UZNnxqUAxOePJ7JsUcCGChSruKR7NnU5dOtz9rceYpPgDvyl3HM6yor5?=
- =?us-ascii?Q?RNdkqmRQYwPBcc5j+JksBGtFgBTVU5vzFuPZGr1GiMx4kaQm+/znH3MVfAgr?=
- =?us-ascii?Q?zUJ31mo3Y6xvW+YzS/XkvECTQIZDFC/g5FntZ6AUIkkhcJDYmtWWp/3UcYXE?=
- =?us-ascii?Q?FPK2JdGRZP0/ACd+LSxYp0wvt2ppsf/awvfrQJ5FI4TCxni5WwS6TvyfKOGC?=
- =?us-ascii?Q?LCVh2LUWuG//4vQ1z9qPZwr7a7Xpp3PnSDydBG29feYZHiM7W9ffTUetdzVM?=
- =?us-ascii?Q?WijDW92Z1I2vpjR4OO86dKONnOLR35U9vVH4DLNuuCL2tjBl+YAJ3siRswXO?=
- =?us-ascii?Q?NMlh/FMBbD44luUFyd/ONTBSVadltfZHu8yZTudfhTyfZQrdSFnISU68AGog?=
- =?us-ascii?Q?Ty9/tZ1xFEpbgUFgVgPmByHE/UU7MK7a4fCJ1mujQBMLMk+kBsS0kOl08JNy?=
- =?us-ascii?Q?g611PZZeqG7gpTfdvluK+CBWSlleek10f+RYYuiFUOq3aAGqyyZkue0vtcfU?=
- =?us-ascii?Q?M259pBsc+hZT19RRR+f4HNndS0bpQnm+AOTAXs2xyhwLpr8LqQ6fUzDyJi0Z?=
- =?us-ascii?Q?oG86FWQrvIzTasYWC4hJ8Ptl3vOmwTkjkCkM6oSIeZriiWb+uygsJEFGRUH6?=
- =?us-ascii?Q?xC9WuhbP8Q9FhCFW6Z+1MTrYx1Qo4VXA8W+PJmVkdvIGUfKEabvC79l1JVlz?=
- =?us-ascii?Q?5g3xe4rgJSlTIr5wpuxszosCW8q10c0FLq5LZulv8YKnAQorCe9FJxFaglHA?=
- =?us-ascii?Q?Jy3XmF31zEfiD9unrv+1K3V2JqU8fE1dbPbUkXLsNcFWbY6nRCcDbGmNvYxE?=
- =?us-ascii?Q?lRQW4oP5G7bUCG736yRrkTA1Zez0WJ8aQnNBoCvQqD5jrcuxM0H1G94PnUXd?=
- =?us-ascii?Q?z8CYNXEwGcqgX3J+cKm6y0HuZQPjDWMvtiNCWtGqAFCdwdZY5d2eqCDgtJLg?=
- =?us-ascii?Q?i0Nb5xD2CCSQ38RyxFpOHrLzq0PGe1zAGb3XM9igcnrTxEye0UFw+zzEZH7a?=
- =?us-ascii?Q?JYV4ugmuV7qZaDhqh8K55qWFaJi9Lg3s6oXP0CMTWMVxUKpPuCshrM3D7yXZ?=
- =?us-ascii?Q?emq2+O/FSoI=3D?=
+	=?us-ascii?Q?DTaImiHE2zItLT5+WfnXoe2XQyDjdfT0/w281mG5w4VtzXJPPCnRsMn6zQ/k?=
+ =?us-ascii?Q?DovwvHKRTTCiEkhksxrN8sJypZqS5NBTgAUM4XYSipZfE+9q0YZvjZlDXOqR?=
+ =?us-ascii?Q?WqcIUPipsR5o/4DKPQN5q1tLhJF2sgxAKPnl6ld+XoBF20yUrjgkkmxO2xD1?=
+ =?us-ascii?Q?h+k7UGL+Fn4pgVezGCvEGvG3TBnMJimNghCqk1rsXUBt4kHkmaQzrhKhDO30?=
+ =?us-ascii?Q?qYsVD6y1QL2qIfuiwFoTxop8vMttVX6QzEZOvuvPKy+PeMX1Qcn0mo9FnJ9w?=
+ =?us-ascii?Q?bQnQuHZZ1/996fpkGHxFnwWHVONVp/bdPRzLSNqV5lK4cBlkAvr51e7+oC8h?=
+ =?us-ascii?Q?Ek1ky8EmqmE6ZfB5DKAJfHppO/8IDXfRYfBvLOY2A3NFsbJm1P56PZenVSqg?=
+ =?us-ascii?Q?b5ZZVyukLc94eG1WqAZqdOqgzxQG7tiSS+KyanMlduOm4Xl/QIJPdkWHHub2?=
+ =?us-ascii?Q?uCmTC++nDYBYnoDPOW6lO+5abJaStm7j3l5fiE41yRuUjIDkbdPcEsZ7WblH?=
+ =?us-ascii?Q?uNS1R0j2bsgM65/nlreMpAfhhSVQhvnkMU0b1s25TwF37x+NUogMPaYfr/Me?=
+ =?us-ascii?Q?Zq7dgepq8QmL2HiVZtE62StvtUFos1r0GaSjcFQMGJFDf1yZ/PWiispkPTMI?=
+ =?us-ascii?Q?Dt7nP6WTmiyXLt03jIw29xvtQhwen+x7vOV8VjzNSJxjZ7GOZhAMPflx/T2c?=
+ =?us-ascii?Q?nTKJMB81Vx5sYCweXySW+nRgRhk2VBqAi+fmhwH/MhAIsXydmhdyJ92/Eklb?=
+ =?us-ascii?Q?nv1TeCKC4c4Kos+XWODRn5l/x6+J+ttFuNf4AH5My0no1hVkAQKK4aPo4pRf?=
+ =?us-ascii?Q?WrtLNlZ2GUFVOsMeW1h3loFQSm9zokRsgq58SdA5NNvnmewNbFq2dpT6WGHB?=
+ =?us-ascii?Q?yW5J8AycsJ4yZlPgYmkCaqI41VKNAR8VrT/PR/MdeJ9c2WsmwVyY3HpTTWD/?=
+ =?us-ascii?Q?ss9LQiZsi1QVTf7Re3RxNJsQxkhJJZyulpEXrfmXm5iF+1xt7ejH6IjVlRI7?=
+ =?us-ascii?Q?XEBamg77DvJMc08YynCrccRAGRT/2T4JNv5xrXeYgRH2Yuu++OYebi3QKyCl?=
+ =?us-ascii?Q?sk7ezm8owU0LozJBZczzpXUrbKdWlzsnxaVKYVMeG40ke5bWFHXIauWic3Hi?=
+ =?us-ascii?Q?5GguFZfrC4P9ji1qYYa/xEdiAjnxwZJctzRz7ADBKh59aogDcXuWMZNEopOZ?=
+ =?us-ascii?Q?FYmg9XQNAwcPpc0BzDOcjumn+4OT76KIeSmedt4sSyCMLg/J5azSwHEfOuoZ?=
+ =?us-ascii?Q?CG0mfKfzfnIhIQd4tIvnKqdZ6GGP82YPtp+zqxbwntre3oGyndys9OUDcEJP?=
+ =?us-ascii?Q?QragMZJA1KR6lQy4NsGeDCh8czZRLnEpvFpZaNOt0cvf8M4TK7OnQB522bgh?=
+ =?us-ascii?Q?ofUiBruO78utRTy1qOk3S+LTfHS1yVBcw6LFSA0MNCoyhTRRz4wzKpkVHHaE?=
+ =?us-ascii?Q?bvWqoPkcAEw=3D?=
 X-Forefront-Antispam-Report:
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR10MB8218.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?XmV+nIFap7kAWlW2CsduKHT7tMmAgGqqxesBMLPREU4fZcQPC9IEvtS9PctR?=
- =?us-ascii?Q?6L0Hh25XihZ+qcX3nAFejpIrda34C5XkoVW0sdYfK4GUN4oQiIgVVoYZL6AA?=
- =?us-ascii?Q?JHBfEcNacHurl4mdrAyXbrGi0U7PRW5FZNhniQjmCLvv/p7FJkc3QXqAZJyQ?=
- =?us-ascii?Q?UrWh7AQcgayVs+1UDMGAw5A7SYxc8uf4Vu0gRlZ5tB5BZJQOAINj14TUri12?=
- =?us-ascii?Q?rZr0JplF9WzCtKrT7tRrLiHwFRBnLLYpflJsnVyyd5o3WMbWaIZdJa+KcTmb?=
- =?us-ascii?Q?HPSS4K4BaK18+44SfWNJ7UEVczj2z+Ayvfs+8ZiO83Zap0W4lEYmFOmIZLNb?=
- =?us-ascii?Q?LUt/FINe7wMckBMeel/4NzvN5P++2cIZ4DKfc/8qDshbDLnL4o+dDF2UM6gg?=
- =?us-ascii?Q?qVWu0+4DFapRd2m7Fa1O8qJQAtEk5sXAvfgG5pSBWUkeQUe6sU/Ntr7s5J+1?=
- =?us-ascii?Q?tB1ch8IOu8Y25c/gBjzhxTEMeWxj2iXz1W1PVCNsIPhK1woUVykGf67jA6yX?=
- =?us-ascii?Q?GYTsp9DRVHsausXBc/R1a4l1ZbKlw2YtfbgqBZqc2y7WbWNpdUIPQ80kNTc9?=
- =?us-ascii?Q?qFY9ubbGLYZNOKKHLAsW0RPOaYz3qpQ73hiBIX4H3pHrE3AwMM1oT1epvPUh?=
- =?us-ascii?Q?+gkg/4Zyq16SblhZEhHX9Mn9576o7Th29g6i/DiNVR8pris990n/BFcYApZS?=
- =?us-ascii?Q?4j6O1MdiX8W1o+J7fTti1PlllODzOlMO1G7WqozkeGUsNJOgAyjtkJmForQn?=
- =?us-ascii?Q?Wnl0rwdNsBOjS8dElbADnROF8eHMVdfUraaAt70dbwvzNki+mqYFJe/GgAz6?=
- =?us-ascii?Q?UjQ6IAAk8l2HVvDlhgJbniUYrd49Rv1DlL+Si/hqzySTG9msJh/76la9oCkI?=
- =?us-ascii?Q?47u2rn9WkriwS5qoIoHhwUO2gQn108EysYyhRXo7Jn6ELTzmEs6cHxMKBkW5?=
- =?us-ascii?Q?qCmDMs1Iyps4Zm3yPnqBpRrxkzjdKJYu9ZKK+lwuucL/OmvYFeHCGgtlfMdZ?=
- =?us-ascii?Q?C3im8yWOQZKnVf08Oqis5CWpcB9JPMie8iusJWD+km8v+tf6sgBFH2j9UpNr?=
- =?us-ascii?Q?GtA6FAclwSJrKDksQo/5s+iNFWnD3TNfxERlc/e+lRYcGo12JsV+TJqDVQjr?=
- =?us-ascii?Q?KLlHG0knbValjWNJ6TValH+1XyTTh2vFFsf7vz9pUoJwj8kubrtvTo74za0K?=
- =?us-ascii?Q?bwfAZ+qDLV7SpNRVgt6vF62Se5sONCVWjPgpw8H1K2bb09sGnlk0c9Of6VF+?=
- =?us-ascii?Q?HvQc6DdxYJ+OKvW56tdbbEts2bn9SuGEoYNJvh7ERe7O3+bzm7AJdJXaHtIi?=
- =?us-ascii?Q?xImyHIpD90JtaYiJyDtKuz5AgUnIHKLQ54bbGSJV6MX0pvL2LT7YaCVLFmSH?=
- =?us-ascii?Q?ndqLPVnCPALCpVKfJkmuQGe6ZmeQKxwdj+7RGRMYcB7gWjJT9qqzs4Twc2YW?=
- =?us-ascii?Q?Nl76bvgUSi+CxAroqmtmIV5B87/IX8sk/993EBUoaUnr0N1gGU0XoNrJ4h6l?=
- =?us-ascii?Q?PMVRjCrCz2dXc0HHEyQ3iCBz3Z5OtVotQxZmZOjqsJBkdF951zeZwuihT2L4?=
- =?us-ascii?Q?vOkqOXSKJyhI4c4+FzJ+aXzx0SUYHPVUj69W9+kTmsqkGzORxW5EbODvGg8y?=
- =?us-ascii?Q?cw=3D=3D?=
+	=?us-ascii?Q?X/2slln6RQ3COtSAcVNM9ZlQ4Wj/a8KFhj8wyhM+HTP76wpgjunQaSqQ3pZ1?=
+ =?us-ascii?Q?NCelXpZlnVGU2VM0SyvnzhAufe+4Va387Icoj1nrwevoicH1feTRBpKUetxC?=
+ =?us-ascii?Q?pYR4pgE+GdihUHSqEtT+o2WXSeE07U30iS7jXhToKwUs3naMxNZJTh+e/m6u?=
+ =?us-ascii?Q?uIuPniSQM41Zop/6JF86U14btOahfAIr6IEUl2N8D40FWwQ4Xo0Y4Akci+N7?=
+ =?us-ascii?Q?GBpOPpMReCRPVj++1y2ho8IsaSCBUOPY6upL92AwX+6C4Zto12k5dG1Ak48d?=
+ =?us-ascii?Q?0NaQ8r7gHm98a7hOaHvgOMxdT5dKdjX7omqhBiQHfjLLxiToDw3sHIafTYsd?=
+ =?us-ascii?Q?4CnZE9gE453VlKqNXCLzz3d04HE6ZsNbBpT487G7aCXniCSzrqIS+SVAB2q2?=
+ =?us-ascii?Q?EwyN8yQxApy+NAhBwanA2MQ3fPcFgJeF7PdjsBx/1fZnu7z8FQGi+HtcB1fK?=
+ =?us-ascii?Q?5q0spXWqzORKIlQPdgnMa7ZqdA4R8n91iIfNZBcvXBLgp20JhIF8Vn7jSWPu?=
+ =?us-ascii?Q?gDhvk0zPUl2GkiCZr21DpdkK/sWY5UGPv/ycMlqvtHiptxQZ0dRyAji6f8X0?=
+ =?us-ascii?Q?tmolhaU0z/F8tYH2jIZBD2W17ntSSZaam8qh3oWqfLj42CMYw1qhWQZUfmPM?=
+ =?us-ascii?Q?iepGATqvDSg1O32MwkeagWHuESwNHITAgzfc1TzDGAn2CU0k2/VSvOjcpAD4?=
+ =?us-ascii?Q?LJeIYgAHrjDCY7jVURgc+HZyISKecvrP0yY5O6+tE3AGrGmBrgjlU5ruWBkS?=
+ =?us-ascii?Q?vjv9ws06eSb5EnkKgzEj8ndnpwx1OtQMhLIQ8sK6aNN0EApFhXqwgK3PKhEz?=
+ =?us-ascii?Q?L8lGDivRoNSHPqwIRnbjYkTyMaMar96L9BXoWGlxrNxKjioYUp2Vc4fGRHuu?=
+ =?us-ascii?Q?iuhPhpqYn8Zv/PnyqP/8Zs272IsfZ8qS1dW5p/O1U66+r+SCXLhl4WChQFMn?=
+ =?us-ascii?Q?35uciok+GuTJpoPmqMa6Ua2f93vajC3H9nUm97b5tCDAK6jbZkkTFdGKA76p?=
+ =?us-ascii?Q?JMtYaJ1+XDWAwc1CVgl/VgOdJP+QSA3VEfL4BRm5L2Eki5Hl1Fg1DTm1ipzs?=
+ =?us-ascii?Q?VP+10AtNEkv9Ru5UV+4q81gD6Scp4QO6zo5QhvAWLbDFUlTNIq5VIRP3mYsd?=
+ =?us-ascii?Q?VSOAaIQ6ifet5B5P674A4wd5h3OqChdSsX1ZGxfBU6y7gxGtDoaJ+GJAmXYN?=
+ =?us-ascii?Q?zWMN6VvUtkAxkMNwa1a7sFAgv7O69w1aUQ4RfJMqvwy8DyYNu8h9sPzH7TRb?=
+ =?us-ascii?Q?FrdWgU8UQDCDhR50/hPgxPpcpOhPRT0kV7OrdN39Mb+MEMzhy7JQ9uKx91LH?=
+ =?us-ascii?Q?B/sWQQl7QwzwWkfxgmbVizgqwiwvqyoJI5nwFsk0q8k+KWHXPnl1s180R41F?=
+ =?us-ascii?Q?S3mPvbADW5txHMx1Zb+yHOK/hnQNzcOjwaespqsdI2v7EOxl66+zbymHZRoz?=
+ =?us-ascii?Q?ne5RPlRAQSVYwcVSjLvtQdS97N5c9H1ZdocK4LWKWv1giMyIJwXv+7AsJGFI?=
+ =?us-ascii?Q?fcjoQCZc6GL8JZXtX1INCOoXbkpgCw2kiwEQ+Ad0I26Gx4Sfntiq65OML5FR?=
+ =?us-ascii?Q?0g1ATQD1DWuZsMuusbI2yGAV/xsYjI59EK6eDBIKBfmuMMLQIrCDrzQBY2he?=
+ =?us-ascii?Q?3A=3D=3D?=
 X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	igOjeGcYeq8Mj1+3TQ4oVdep8Qgj7iMBK4ABugBEdunQwWxyIJBb7RnxQ7BiiVZwgAxmZIX+nxu7E/LOA6I+u9MtAngJZFAdB1qick4hrFJJSqI/uTKroppys20BAOafr99zwmw53q5r/v1jHcaNDGrj9f2UWNQ5SNsoAaUwdZ24B513NIfqnd3cNH8U8RKq8eOcNnIKJsc/8gTho+woycgQK5/L0/Nch2pGrVbO7ATaPc42SIH7FO0QKUBs7Tffqq546IwZ01TxTngULR0/Ynmcc81x0RpyF2x641RaywnGVZMpbtxBS437n3YxVxlo3l+dud47zid8YDrZPKTzoWiyJS7Ii/dYitfaL00Df6hKd7nyugycdwN0ctWsVZXeBSqlIxN9OjPzLmr8CWQdk57bMRCumP/PR/AHvBOB2R79h7KpjOA/GqsFl376d1V/Pkto3jrq3eoJ0mSDMCQfgnYw+siMIHDMxdx9nRAR3cDL2sXplry+ks4lbDaPZXjW0QPqjVeSjMEVcT2+CJcCexIKW5eCHUhrgPCfVQ+1ahXru5AZb45juAwZVHEeIjnYMVlyTFs4XhlgwvMyZqwmSsKDS9rPiLVorpwQBab5lTo=
+	rnjxcdnFRdPJG2fTGc1le/LGVjzK7+fvVQFuOCgcrqX2TXlcu/TbEw63K9/osoJHuVyhQoApu+oDZUB3HI3ycsh4iXV7kNAW/kGqaZ0Tn5OlQ8dtn0uTGO6gYLoVHH/Ywtv3yoVjiGzmjDfE5Ibn2BwmPYvKUGCndWyo42F6piyeQsEJwU+DnptC2MMAv1G3QxnJfHvzhxmenBYCj0gcokFb/D321jLCRDw0VjRNr4OxbHB0DqSW59QGUn7kHyJ/nohIJHrh0cn/b7bnUDDjB6jRwpFq3rR20uwiaZmKwJ6xF/twmBi2f20/x6orrPgugEaay373dXv8s3X4u+yR0oQBAnmpWcHjqGGZCCES8D+MmWvIwD3tTOBuDYcHxT18kRoClJAjVSjI9LZwBCxgzsEsD79yAis3oOolzon4LDKeCHOtEggjcHJSBmRbsKb+H/zb1jdrCyJVCD+PPBvijdjOYh1zio879sbvrTX3uOWu/w8x+V5h71R0NAyK4446sulk7YYD3zew6FwvmHn22rOMFP/IleBCf8dWviOKGbDQExafq9JKlG6ya7Pl8ZyP6CpKtOdHR09teL4T9AwcT/v1i/AZAiK91gG2lSmgvxM=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 05c93f15-6041-4a47-0306-08ddad0cb293
+X-MS-Exchange-CrossTenant-Network-Message-Id: f597330c-860f-42de-fcf8-08ddad0cb86c
 X-MS-Exchange-CrossTenant-AuthSource: DM4PR10MB8218.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2025 19:33:40.5838
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2025 19:33:50.2973
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: IcFUayvDOLdFoRGV4EPxG1hGzR7lf5Wi2lcY4CsKYA1M7dwrL3SY2GrcrFqLbZeusc6dN8wIrKLHbHOBbhM47BesEMEWrHbHqmWiDVyOxE4=
+X-MS-Exchange-CrossTenant-UserPrincipalName: bhcnPg0S+6pAIkECvW2/GpO8lBue/T+iuq8ZcnRHL+r0bi9OULxxZrpOJ5hrDDu71cbyjrsseYr1EpexYsE17l5A8BNyPqvSBK047uj7zWk=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR10MB5870
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.0.736,FMLib:17.12.80.40
@@ -239,151 +243,113 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 malw
  mlxlogscore=999 mlxscore=0 bulkscore=0 spamscore=0 adultscore=0
  suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2505160000 definitions=main-2506160134
-X-Authority-Analysis: v=2.4 cv=XeSJzJ55 c=1 sm=1 tr=0 ts=6850719c b=1 cx=c_pps a=zPCbziy225d3KhSqZt3L1A==:117 a=zPCbziy225d3KhSqZt3L1A==:17 a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=wKuvFiaSGQ0qltdbU6+NXLB8nM8=:19
- a=Ol13hO9ccFRV9qXi2t6ftBPywas=:19 a=xqWC_Br6kY4A:10 a=6IFa9wvqVegA:10 a=GoEa3M9JfhUA:10 a=CJ9Vzb_pIGcOg4OUlcsA:9 cc=ntf awl=host:13206
-X-Proofpoint-ORIG-GUID: jpC0lvYluP4RAAcPtYk9KDbLDuWpA5nr
-X-Proofpoint-GUID: jpC0lvYluP4RAAcPtYk9KDbLDuWpA5nr
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNjE2MDEzNCBTYWx0ZWRfX9Gi59Q03ZrQ9 xuG1agOe1GJFQSqtjZjcxGkfTv/7S/eVomjm5fDRZJhS9ErXqmjSR8D0St++/WFhVfpGEpdBlCy AkpEmjldpSbpBhc3kDnXd4+Cvn6V39hJEESf/iANcFbDlhgdzQsgblIwIkR93QAXJDMVyFQrYdf
- aNrfFxU+P6PP2gCJImHSuyvcJz4U548dnq+Gb94Z91LewhBohQX3s/AaGXHOOBiYZEIhuUD6R7O peBAkEnXY34u8pX8OWfPiEQXWdW+H9M3VsJKfvHiqB2RHjGVhvUIS3UiAnu6LXifylFI64/n6rO lDFu0j7Uf9Q0ykS0pEhDfhBwC3Jo6oBUgB4IX+B870xWoQ3c/LBqfTeIOjdyyx4Wt1ltNaxj2xw
- upyEhO7tO3pm7ntdmadJMxxfydl9CN3pQF9ke2qVNhVutAbbN/3zSnmGF4zMKR21jE3ELdlN
+X-Proofpoint-GUID: uoaySYg_cNPIBGJ_xRs9zXRC7MN6hZDy
+X-Proofpoint-ORIG-GUID: uoaySYg_cNPIBGJ_xRs9zXRC7MN6hZDy
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNjE2MDEzNCBTYWx0ZWRfX1JTcvioEgmLz 7N6rFe0e/3QGU6bqv7r4YvGcue7LR00SRNBmLr0t/00q58WtLEWwsNafkpi9onKQac6fvgCUQwF sYvk0MI9I6/6gcs8Qy9fxTJOXxDeXtY+ULOYDPDi7wuG05fZ6FPNYW2AGcz288UM8cqsYpw/XKJ
+ FkrFFXYL7EprvNVVzzsgf7P5XXmfuAQfPYKKJsOe50gnDQyaP3/uebeOOXUoxtuLOKNlUb8pZpO 3l6xj+i5l+jvAojZeTqExo9syHn5f2cphhGWOZuoDhNAEwXwaK2Hc9iMHqjtkT9wDKkD6sqvpuu x5CrmvxGZj8DnntbUDdHhbJsOTZe3UVJn9SeOysIQT4q0X+Rlx936MFrG8xsr1+okgAh8jR4gNK
+ ZIpeyd8fI87h6TzMM9AJguSuZ/uNQXQghywqY9Jlf/JzDX9OjN6bcZ8LhwVnZSpS+Y8TuU8d
+X-Authority-Analysis: v=2.4 cv=XZGJzJ55 c=1 sm=1 tr=0 ts=685071a4 b=1 cx=c_pps a=zPCbziy225d3KhSqZt3L1A==:117 a=zPCbziy225d3KhSqZt3L1A==:17 a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=wKuvFiaSGQ0qltdbU6+NXLB8nM8=:19
+ a=Ol13hO9ccFRV9qXi2t6ftBPywas=:19 a=xqWC_Br6kY4A:10 a=6IFa9wvqVegA:10 a=GoEa3M9JfhUA:10 a=yPCof4ZbAAAA:8 a=vxWm5UkIwlaNHXKCl8kA:9 cc=ntf awl=host:13206
 
-REVIEWER'S NOTES
-================
+Since commit c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file
+callback"), the f_op->mmap() hook has been deprecated in favour of
+f_op->mmap_prepare().
 
-I am basing this on the mm-new branch in Andrew's tree, so let me know if I
-should rebase anything here. Given the mm bits touched I did think perhaps
-we should take it through the mm tree, however it may be more sensible to
-take it through an fs tree - let me know!
+Additionally, commit bb666b7c2707 ("mm: add mmap_prepare() compatibility
+layer for nested file systems") permits the use of the .mmap_prepare() hook
+even in nested filesystems like overlayfs.
 
-Apologies for the noise/churn, but there are some prerequisite steps here
-that inform an ordering - "fs: consistently use file_has_valid_mmap_hooks()
-helper" being especially critical, and so I put the bulk of the work in the
-same series.
+There are a number of places where we check only for f_op->mmap - this is
+incorrect now mmap_prepare exists, so update all of these to use the
+general helper file_has_valid_mmap_hooks().
 
-Let me know if there's anything I can do to make life easier here.
+Most notably, this updates the elf logic to allow for the ability to
+execute binaries on filesystems which have the .mmap_prepare hook, but
+additionally we update nested filesystems.
 
-Thanks!
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+---
+ fs/backing-file.c     | 2 +-
+ fs/binfmt_elf.c       | 4 ++--
+ fs/binfmt_elf_fdpic.c | 2 +-
+ fs/coda/file.c        | 2 +-
+ fs/ecryptfs/file.c    | 2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-===============
-
-In commit c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file
-callback"), a new hook for mmap was introduced - f_op->mmap_prepare().
-
-This is preferred to the existing f_op->mmap() hook as it does require a
-VMA to be established yet, thus allowing the mmap logic to invoke this hook
-far, far earlier, prior to inserting a VMA into the virtual address space,
-or performing any other heavy handed operations.
-
-This allows for much simpler unwinding on error, and for there to be a
-single attempt at merging a VMA rather than having to possibly reattempt a
-merge based on potentially altered VMA state.
-
-Far more importantly, it prevents inappropriate manipulation of
-incompletely initialised VMA state, which is something that has been the
-cause of bugs and complexity in the past.
-
-The intent is to gradually deprecate f_op->mmap, and in that vein this
-series coverts the majority of file systems to using f_op->mmap_prepare.
-
-Prerequisite steps are taken - firstly ensuring all checks for mmap
-capabilities use the file_has_valid_mmap_hooks() helper rather than
-directly checking for f_op->mmap (which is now not a valid check) and
-secondly updating daxdev_mapping_supported() to not require a VMA parameter
-to allow ext4 and xfs to be converted.
-
-Commit bb666b7c2707 ("mm: add mmap_prepare() compatibility layer for nested
-file systems") handles the nasty edge-case of nested file systems like
-overlayfs, which introduces a compatibility shim to allow
-f_op->mmap_prepare() to be invoked from an f_op->mmap() callback.
-
-This allows for nested filesystems to continue to function correctly with
-all file systems regardless of which callback is used. Once we finally
-convert all file systems, this shim can be removed.
-
-As a result, ecryptfs, fuse, and overlayfs remain unaltered so they can
-nest all other file systems.
-
-We additionally do not update resctl - as this requires an update to
-remap_pfn_range() (or an alternative to it) which we defer to a later
-series, equally we do not update cramfs which needs a mixed mapping
-insertion with the same issue, nor do we update procfs, hugetlbfs, syfs or
-kernfs all of which require VMAs for internal state and hooks. We shall
-return to all of these later.
-
-Lorenzo Stoakes (10):
-  mm: rename call_mmap/mmap_prepare to vfs_mmap/mmap_prepare
-  mm/nommu: use file_has_valid_mmap_hooks() helper
-  fs: consistently use file_has_valid_mmap_hooks() helper
-  fs/dax: make it possible to check dev dax support without a VMA
-  fs/ext4: transition from deprecated .mmap hook to .mmap_prepare
-  fs/xfs: transition from deprecated .mmap hook to .mmap_prepare
-  mm/filemap: introduce generic_file_*_mmap_prepare() helpers
-  fs: convert simple use of generic_file_*_mmap() to .mmap_prepare()
-  fs: convert most other generic_file_*mmap() users to .mmap_prepare()
-  fs: replace mmap hook with .mmap_prepare for simple mappings
-
- block/fops.c                               |  9 +++---
- drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c |  2 +-
- fs/9p/vfs_file.c                           | 13 +++++----
- fs/adfs/file.c                             |  2 +-
- fs/affs/file.c                             |  2 +-
- fs/afs/file.c                              | 11 ++++----
- fs/aio.c                                   |  8 +++---
- fs/backing-file.c                          |  4 +--
- fs/bcachefs/fs.c                           |  8 +++---
- fs/bfs/file.c                              |  2 +-
- fs/binfmt_elf.c                            |  4 +--
- fs/binfmt_elf_fdpic.c                      |  2 +-
- fs/btrfs/file.c                            |  7 +++--
- fs/ceph/addr.c                             |  5 ++--
- fs/ceph/file.c                             |  2 +-
- fs/ceph/super.h                            |  2 +-
- fs/coda/file.c                             |  6 ++--
- fs/ecryptfs/file.c                         |  2 +-
- fs/erofs/data.c                            | 16 ++++++-----
- fs/exfat/file.c                            |  7 +++--
- fs/ext2/file.c                             | 12 ++++----
- fs/ext4/file.c                             | 13 +++++----
- fs/f2fs/file.c                             |  7 +++--
- fs/fat/file.c                              |  2 +-
- fs/hfs/inode.c                             |  2 +-
- fs/hfsplus/inode.c                         |  2 +-
- fs/hostfs/hostfs_kern.c                    |  2 +-
- fs/hpfs/file.c                             |  2 +-
- fs/jffs2/file.c                            |  2 +-
- fs/jfs/file.c                              |  2 +-
- fs/minix/file.c                            |  2 +-
- fs/nfs/file.c                              | 13 +++++----
- fs/nfs/internal.h                          |  2 +-
- fs/nfs/nfs4file.c                          |  2 +-
- fs/nilfs2/file.c                           |  8 +++---
- fs/ntfs3/file.c                            | 15 +++++-----
- fs/ocfs2/file.c                            |  4 +--
- fs/ocfs2/mmap.c                            |  5 ++--
- fs/ocfs2/mmap.h                            |  2 +-
- fs/omfs/file.c                             |  2 +-
- fs/orangefs/file.c                         | 10 ++++---
- fs/ramfs/file-mmu.c                        |  2 +-
- fs/ramfs/file-nommu.c                      | 12 ++++----
- fs/read_write.c                            |  2 +-
- fs/romfs/mmap-nommu.c                      |  6 ++--
- fs/smb/client/cifsfs.c                     | 12 ++++----
- fs/smb/client/cifsfs.h                     |  4 +--
- fs/smb/client/file.c                       | 14 ++++++----
- fs/ubifs/file.c                            |  8 +++---
- fs/ufs/file.c                              |  2 +-
- fs/vboxsf/file.c                           |  8 +++---
- fs/xfs/xfs_file.c                          | 15 +++++-----
- fs/zonefs/file.c                           | 10 ++++---
- include/linux/dax.h                        | 16 ++++++-----
- include/linux/fs.h                         | 11 ++++----
- ipc/shm.c                                  |  2 +-
- mm/filemap.c                               | 29 ++++++++++++++++++++
- mm/internal.h                              |  2 +-
- mm/nommu.c                                 |  2 +-
- mm/vma.c                                   |  2 +-
- tools/testing/vma/vma_internal.h           | 32 ++++++++++++++++++----
- 61 files changed, 245 insertions(+), 171 deletions(-)
-
---
+diff --git a/fs/backing-file.c b/fs/backing-file.c
+index 04018679bf69..5761db9a52a9 100644
+--- a/fs/backing-file.c
++++ b/fs/backing-file.c
+@@ -333,7 +333,7 @@ int backing_file_mmap(struct file *file, struct vm_area_struct *vma,
+ 	if (WARN_ON_ONCE(!(file->f_mode & FMODE_BACKING)))
+ 		return -EIO;
+ 
+-	if (!file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(file))
+ 		return -ENODEV;
+ 
+ 	vma_set_file(vma, file);
+diff --git a/fs/binfmt_elf.c b/fs/binfmt_elf.c
+index a43363d593e5..a6750bd9392a 100644
+--- a/fs/binfmt_elf.c
++++ b/fs/binfmt_elf.c
+@@ -646,7 +646,7 @@ static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
+ 	if (!elf_check_arch(interp_elf_ex) ||
+ 	    elf_check_fdpic(interp_elf_ex))
+ 		goto out;
+-	if (!interpreter->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(interpreter))
+ 		goto out;
+ 
+ 	total_size = total_mapping_size(interp_elf_phdata,
+@@ -848,7 +848,7 @@ static int load_elf_binary(struct linux_binprm *bprm)
+ 		goto out;
+ 	if (elf_check_fdpic(elf_ex))
+ 		goto out;
+-	if (!bprm->file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(bprm->file))
+ 		goto out;
+ 
+ 	elf_phdata = load_elf_phdrs(elf_ex, bprm->file);
+diff --git a/fs/binfmt_elf_fdpic.c b/fs/binfmt_elf_fdpic.c
+index 9133f3827f90..699bb9a65c27 100644
+--- a/fs/binfmt_elf_fdpic.c
++++ b/fs/binfmt_elf_fdpic.c
+@@ -109,7 +109,7 @@ static int is_elf(struct elfhdr *hdr, struct file *file)
+ 		return 0;
+ 	if (!elf_check_arch(hdr))
+ 		return 0;
+-	if (!file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(file))
+ 		return 0;
+ 	return 1;
+ }
+diff --git a/fs/coda/file.c b/fs/coda/file.c
+index 2e6ea9319b35..eed45a80e9bc 100644
+--- a/fs/coda/file.c
++++ b/fs/coda/file.c
+@@ -160,7 +160,7 @@ coda_file_mmap(struct file *coda_file, struct vm_area_struct *vma)
+ 	size_t count;
+ 	int ret;
+ 
+-	if (!host_file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(host_file))
+ 		return -ENODEV;
+ 
+ 	if (WARN_ON(coda_file != vma->vm_file))
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index ce0a3c5ed0ca..2bd50d1de5ef 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -193,7 +193,7 @@ static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma)
+ 	 * natively.  If FILESYSTEM_MAX_STACK_DEPTH > 2 or ecryptfs
+ 	 * allows recursive mounting, this will need to be extended.
+ 	 */
+-	if (!lower_file->f_op->mmap)
++	if (!file_has_valid_mmap_hooks(lower_file))
+ 		return -ENODEV;
+ 	return generic_file_mmap(file, vma);
+ }
+-- 
 2.49.0
+
