@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54170292918
-	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 09:34:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DAF8291C0C
+	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 09:35:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750152875; cv=none; b=bL6uajIg4iJ3WOkPIFgZHBLs1wDSMPF5Lt09Xjvwq+d5rSIZw/eRSoERybsr1BBe8QMbzJSkt4wjdrJut7yJPriO6mkpMQOoVk6uBxSUkTFjqUQIHFQDardzyr1kiiqLZWHGV7IuKAEllSLYbQwpcBCav3/5lQ2ppo3zNAgxWLs=
+	t=1750152924; cv=none; b=lO0cwSazZUIL8rGWqIEB3OW1TG9fKC0+6VeOJQhPeG9rHHqXWDKnORBeYjIrJsKV3HZEuw6cnEgPKLb3l5ARxbxiYLIdIVBwyAkMLlEvAdL/6em1T6n8M36zNHKXVTOj7DLVaXRDKnK7VWqvzpSXqwJ/xiBEdXdLm2JIk69NpVA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750152875; c=relaxed/simple;
-	bh=/l+blL0P/WvKFXEmP8UAB8+2DcgBYjMRCa/JF+NxGbg=;
+	s=arc-20240116; t=1750152924; c=relaxed/simple;
+	bh=orOmsWmK7arl5guU70AdaHCHCOleWhKkPZuEjky9V7Y=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=emodeeSGmDvz2O0eSnn37Uvo0Aovcygv6/td+8CZ7lx+syAOM4t4SoNf0/UINAkrx/UB+q3qVkUA8UWsDDDMFwm+J30b4fAIVLrvoK9QJaibPwNCliPgE6D2nTTRBz4ra7mUX4IqiXxuSfUDJbKO3xVZMPKTTnTsA342DjSWaLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=H17Ga4VT; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=Lh+SQgFMWS9p+8EzKc6azlHj73TczoTWe9oCUhow65zmYOkj+GvT0K9RO6ZFIUg6APU3wgLGSftXK/tjaKjJdg0EZW5WrvzwSeohEMlNpCpjC52USRpTO48XiH8A34gMY1pZhDoFhR/4W0rXX6vUr0uURrEIbOuEtJR6facUDTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=UIaMpizG; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="H17Ga4VT"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UIaMpizG"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750152872;
+	s=mimecast20190719; t=1750152922;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=UoO6Im3sdMj9qrKiZw97K0g1BjWI//UD+48kISxcxhU=;
-	b=H17Ga4VTXpLcJQtVGtOXTLTdsFRxwKIZHlHmDp2f3q4yHxHlYVq0ynSoYBY/wGSjSEXrdP
-	g/u+MBzDyHyrpTb8c4q4v4wOZCmmwb9NRwni4iJ4qkwmUjmxgg/DTemp6jmXWVHFthclTk
-	fu1Xru0KpxBxLCTSONuPH5GsGdosqhI=
+	bh=sxNGLVvBoDB549OTJwTVX80yqxzNkqnyUmP8nOzpMNA=;
+	b=UIaMpizG1kpopMJyrNz/Je5DLa+mBtAtikYWq43K1MAY/sRzjLnqNOxYW9J6xboFyBvXZE
+	dBhc4HsYQ+sx1cdAurjJXSAyHSucLGufJRBeJ+wNElAuqko5f/R9b7c5ppOwuwEN+9V16I
+	/2RFvyKG7a8sptfnINSqU7juAphyrV4=
 Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
  [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-66-AvY-n-UWM2CWAV7v0_5Yig-1; Tue, 17 Jun 2025 05:34:29 -0400
-X-MC-Unique: AvY-n-UWM2CWAV7v0_5Yig-1
-X-Mimecast-MFC-AGG-ID: AvY-n-UWM2CWAV7v0_5Yig_1750152868
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-450d6768d4dso35501135e9.2
-        for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 02:34:28 -0700 (PDT)
+ us-mta-479-aEt6xQCcMJ-IEFOlVitLgg-1; Tue, 17 Jun 2025 05:35:18 -0400
+X-MC-Unique: aEt6xQCcMJ-IEFOlVitLgg-1
+X-Mimecast-MFC-AGG-ID: aEt6xQCcMJ-IEFOlVitLgg_1750152918
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-43e9b0fd00cso3047635e9.0
+        for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 02:35:18 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750152868; x=1750757668;
+        d=1e100.net; s=20230601; t=1750152917; x=1750757717;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=UoO6Im3sdMj9qrKiZw97K0g1BjWI//UD+48kISxcxhU=;
-        b=UF2VAuQ/WeNmVLHRmf5jCwe3MRpbsD75YA0nnreiMeiyh1hWTBr4jvVzqp3ddJ/8CK
-         4nTzsDIWTMBveUswqGdNpd4oY6+8Of0Vvo4ndqDHVQAyqYZp27bZaOA1GWf1xJlb4Sai
-         F1/Xo5M0pxcaZ1VOC5RpmhQtQE2wZbHX1W6iHj/AljA9LEDJ366ucrdjpq4Dveo7EMJ7
-         gE1oj6OE56oj3GSYYJr/4brxZtEBeABP0UG0Ut7jBEPXZ7suEFqGJK11P7xgUb/igdID
-         c7qNeYh/+NA10Swo4CZ3oMRzl3Ub2QOgf6iMYoopE02u1zoSyp4fHx/waNL7e3+h7L+j
-         DO8Q==
-X-Forwarded-Encrypted: i=1; AJvYcCV+DvmqC2W5/YgalQ891AgMAlU+DRlt1S308J3ATmiRu0IS66Tn3Ys1b7HR2bKGZbRImL+fRGc=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzIpeaKEkogb8FrwOtTLyBbpbc8WrjSTX6iF6HELH/zpRhht1Rs
-	77HlZg5EtJ7TfIuJyWVrLpjcVZyLsmg7ABnLz5wFbtOkDrQcIQ8foSQwVC9+YRWMie+lUgyxZR/
-	KSjZ/4czRR5mbi1CrBDGZ63zESaMqAM/iL3aW9fQu+BBNRVZb8MsETiJvaQ==
-X-Gm-Gg: ASbGncuiqwZfzlpQtm7K+dVoG8ZhPHgDgVrEMc+Otysndwy8LR7VWpc/FzXzkSX97Oz
-	MPicZqSBAD1KAB2dmlAYvHPOO+dmoqhQvEqC3WKeG4QO5mcQUvKShenT2/gJenI3NMkm+BF7y3O
-	il9RZwmix02YBbkcgZc1WU/zjLpITvF6/d6xXdxgKt+pQmYIP5zGyT6i7tJKJzJnikVojE6XtBi
-	GWVeRk9xjdXShaZq+/LjD6WdG7FWxEFJbiZZdsrsrvWxym27uvpSQfdisGimumInoxb98QdXP73
-	CkGDiaHpgHA46RnZjtNgDDeDlQUijg1oDqo5rMJ77hWk5CCxBZBG7RC+CQFe6R0VX5bY5biu8eR
-	r5fwNhbXJG2l/1eVTRHEoWvF9WAIHYFB0TmLvbWYR70HxTnc=
-X-Received: by 2002:a05:6000:480d:b0:3a4:ed2f:e82d with SMTP id ffacd0b85a97d-3a5723a49e0mr9462627f8f.22.1750152867964;
-        Tue, 17 Jun 2025 02:34:27 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGAmkCmIe8r1op6vQb6TFjyJmDKs7yVrH6V8NRIzvLkSM/8ZQuEH09JTbMfp0YgKwsQ3nxlSg==
-X-Received: by 2002:a05:6000:480d:b0:3a4:ed2f:e82d with SMTP id ffacd0b85a97d-3a5723a49e0mr9462594f8f.22.1750152867607;
-        Tue, 17 Jun 2025 02:34:27 -0700 (PDT)
+        bh=sxNGLVvBoDB549OTJwTVX80yqxzNkqnyUmP8nOzpMNA=;
+        b=Nb/1t6lvVZg6424CU1QDjRsbbbnRq7m2/bOK2/ZXtecTcWRtZ/K/w8rhLWBdnco+1U
+         1NmiKc5dIk2qxoT4LezjbEO2A2PKkVi3hLYWW9qoZ/KbEjLooZ8mOb1dDoWPBfNWvOpd
+         vi/izu10pPO9K3wg4Xan1KByIzOWimoIlh0BMkM3EPP9WylhZvu0QjcV7E4VQa70NZ0O
+         nY/ottBi3Gv86jX6fJqRQgLR41ZSr1x1iD/ZCTMMbOg9JNMKeQLUUtZy6l/rNhs+/g36
+         EIY1hkslJjiOg9kseFGE+mTKcKktUrrVc+VYI3H46oJ4t0tNtmqYi4uNkV31WOeXuCKX
+         qy0w==
+X-Forwarded-Encrypted: i=1; AJvYcCUAmcICJGlyJ0dejBl7E2WuuTqFTH1l4IuL3xGnpH3jE5MMBX0sDaHLMk+rOdvEIaMgKetJ2zk=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyj/LJOddAPY8G3wGdeST7haKdMCKh+XiJMWeu04CQIAHruoHBl
+	zc2ZKdnDxy/2LgzxO8lV96kCDnRNX+2qso7t4qgZFtTnRRvZY7L5jDLpDY96PVh6GAhrr4z0YB0
+	/BYXuk+D4V/LQaMrulms0r0+k4gLB+rdfF4Uo+qwZJWvWAvJREgw8LTcd9g==
+X-Gm-Gg: ASbGncv3n/rzGGDqXwl6zuziJGnHmXNR0VKoVh1nQU0Y2YhgY2tmVNyIJADEEVEJ4ct
+	benbgy3WjK9Pj4eOlDdtlTEGu+7WO4dkARGpjLSDdmO6HNHi9zvy3hRKGLssNmhW6ortvMhH6aI
+	2is+iuee6UUJWWoNTI0PQ1lLkXXtDxX0qZoGhwrSC0RfCUOZTNJAKm8bnEv461YFEJcStx+/HiU
+	sICkWT5ugq2Xgu5iw1QbdxavwKx0fssAC4reZZUPj5d7mxD7aXluqTElg3pEw1dojxn0tgyksAI
+	Cq1e6J/ii4WCtTLcdUtpwSAlVfIUNmVj5bB8GeDq8EwU0JgIR7o62yRX9NfFtxzMsRzt2JoTvmZ
+	lVIN6sNKd+D+bTjt1bPc+RWkeyDirvgYMugQ65M3dcVHYjQ4=
+X-Received: by 2002:a05:600c:64c8:b0:442:d9fb:d9a5 with SMTP id 5b1f17b1804b1-4533c92e02dmr116196925e9.9.1750152917435;
+        Tue, 17 Jun 2025 02:35:17 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEit+yPVLJbHP2/NKoMhgu9bHwQKBDL8e7RYDOzVbEtAUjPvQmNHH9hZ4psmoetdsF5NGVCyg==
+X-Received: by 2002:a05:600c:64c8:b0:442:d9fb:d9a5 with SMTP id 5b1f17b1804b1-4533c92e02dmr116195515e9.9.1750152915523;
+        Tue, 17 Jun 2025 02:35:15 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f31:700:3851:c66a:b6b9:3490? (p200300d82f3107003851c66ab6b93490.dip0.t-ipconnect.de. [2003:d8:2f31:700:3851:c66a:b6b9:3490])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a568a7f8f9sm13367621f8f.42.2025.06.17.02.34.26
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a57b15015fsm7801901f8f.95.2025.06.17.02.35.14
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Jun 2025 02:34:27 -0700 (PDT)
-Message-ID: <b2640810-d528-4a3f-b69a-87847943dc2b@redhat.com>
-Date: Tue, 17 Jun 2025 11:34:25 +0200
+        Tue, 17 Jun 2025 02:35:15 -0700 (PDT)
+Message-ID: <69bea6b9-e9e7-4d17-843c-001029d4f2c2@redhat.com>
+Date: Tue, 17 Jun 2025 11:35:13 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,7 +75,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 14/14] mm/memremap: Remove unused devmap_managed_key
+Subject: Re: [PATCH v2 13/14] mm: Remove callers of pfn_t functionality
 To: Alistair Popple <apopple@nvidia.com>, akpm@linux-foundation.org
 Cc: linux-mm@kvack.org, gerald.schaefer@linux.ibm.com,
  dan.j.williams@intel.com, jgg@ziepe.ca, willy@infradead.org,
@@ -89,7 +89,7 @@ Cc: linux-mm@kvack.org, gerald.schaefer@linux.ibm.com,
  linux-cxl@vger.kernel.org, dri-devel@lists.freedesktop.org, John@Groves.net,
  m.szyprowski@samsung.com, Jason Gunthorpe <jgg@nvidia.com>
 References: <cover.8d04615eb17b9e46fc0ae7402ca54b69e04b1043.1750075065.git-series.apopple@nvidia.com>
- <51ccdbbc3d7b76a7f6e2aefb543eba52d653a230.1750075065.git-series.apopple@nvidia.com>
+ <657be8fef1f0d15c377ad3c420d77ca4db918013.1750075065.git-series.apopple@nvidia.com>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -136,20 +136,79 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <51ccdbbc3d7b76a7f6e2aefb543eba52d653a230.1750075065.git-series.apopple@nvidia.com>
+In-Reply-To: <657be8fef1f0d15c377ad3c420d77ca4db918013.1750075065.git-series.apopple@nvidia.com>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: K2VZUbQhL7Ty1xReUlA3Qh3vdNjhmZCm-hXJ_sW2fBI_1750152868
+X-Mimecast-MFC-PROC-ID: Dml86aYonrHolcUVW5jNUvpg3v8jIRbFUrayocvYVpU_1750152918
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 16.06.25 13:58, Alistair Popple wrote:
-> It's no longer used so remove it.
+> All PFN_* pfn_t flags have been removed. Therefore there is no longer
+> a need for the pfn_t type and all uses can be replaced with normal
+> pfns.
 > 
 > Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
 > Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+> 
 > ---
+> 
+> Changes since v1:
+> 
+>   - Rebased on David's cleanup[1]
+> 
+> [1] https://lore.kernel.org/linux-mm/20250611120654.545963-1-david@redhat.com/
+> ---
+>   arch/x86/mm/pat/memtype.c                |  1 +-
+>   drivers/dax/device.c                     | 23 +++----
+>   drivers/dax/hmem/hmem.c                  |  1 +-
+>   drivers/dax/kmem.c                       |  1 +-
+>   drivers/dax/pmem.c                       |  1 +-
+>   drivers/dax/super.c                      |  3 +-
+>   drivers/gpu/drm/exynos/exynos_drm_gem.c  |  1 +-
+>   drivers/gpu/drm/gma500/fbdev.c           |  3 +-
+>   drivers/gpu/drm/i915/gem/i915_gem_mman.c |  1 +-
+>   drivers/gpu/drm/msm/msm_gem.c            |  1 +-
+>   drivers/gpu/drm/omapdrm/omap_gem.c       |  6 +--
+>   drivers/gpu/drm/v3d/v3d_bo.c             |  1 +-
+>   drivers/hwtracing/intel_th/msu.c         |  3 +-
+>   drivers/md/dm-linear.c                   |  2 +-
+>   drivers/md/dm-log-writes.c               |  2 +-
+>   drivers/md/dm-stripe.c                   |  2 +-
+>   drivers/md/dm-target.c                   |  2 +-
+>   drivers/md/dm-writecache.c               | 11 +--
+>   drivers/md/dm.c                          |  2 +-
+>   drivers/nvdimm/pmem.c                    |  8 +--
+>   drivers/nvdimm/pmem.h                    |  4 +-
+>   drivers/s390/block/dcssblk.c             |  9 +--
+>   drivers/vfio/pci/vfio_pci_core.c         |  5 +-
+>   fs/cramfs/inode.c                        |  5 +-
+>   fs/dax.c                                 | 50 +++++++--------
+>   fs/ext4/file.c                           |  2 +-
+>   fs/fuse/dax.c                            |  3 +-
+>   fs/fuse/virtio_fs.c                      |  5 +-
+>   fs/xfs/xfs_file.c                        |  2 +-
+>   include/linux/dax.h                      |  9 +--
+>   include/linux/device-mapper.h            |  2 +-
+>   include/linux/huge_mm.h                  |  6 +-
+>   include/linux/mm.h                       |  4 +-
+>   include/linux/pfn.h                      |  9 +---
+>   include/linux/pfn_t.h                    | 85 +-------------------------
+>   mm/debug_vm_pgtable.c                    |  1 +-
+>   mm/huge_memory.c                         | 21 +++---
+>   mm/memory.c                              | 31 ++++-----
+>   mm/memremap.c                            |  1 +-
+>   mm/migrate.c                             |  1 +-
+>   tools/testing/nvdimm/pmem-dax.c          |  6 +-
+>   tools/testing/nvdimm/test/iomap.c        |  7 +--
+>   tools/testing/nvdimm/test/nfit_test.h    |  1 +-
+>   43 files changed, 109 insertions(+), 235 deletions(-)
+>   delete mode 100644 include/linux/pfn_t.h
+> 
+
+Lovely
 
 Acked-by: David Hildenbrand <david@redhat.com>
 
