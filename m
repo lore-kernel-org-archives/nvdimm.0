@@ -1,70 +1,70 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66D662DFF06
-	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 15:44:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43A1A2EA14C
+	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 15:44:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750175054; cv=none; b=UKHCJ87M63iHpImRvrgxlRz7GbO9lfLw5/kKe5MjjqOLeNVwkDTvcNVcxueSiZ8y+9na0HW5pXkt+nUO/YWq1FQBfWWJrr4HkDjbYtG7J4mWv36uZ1Yw7DZIQF7Yv0FNUNDgsPrD0IZnhLp38BNFO/ut4DAN3Sv0FZCn/aY6sFE=
+	t=1750175059; cv=none; b=Bf5VnYlKNwKj6JCRxNyBbdvpAo8RXOls2e0weXvjrZzEdIa1fTSM7pnK4Zy1UNlBHXYCoAEto61M4JogDOCuZfvkfAEi+Hhu0lDaJzJeigZSij+JTSatJ3Pl2KEJ4YI5reuW3nq6IxW3SOrjwGq0aTtjDR0yikKQMhbxHXfHyPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750175054; c=relaxed/simple;
-	bh=8LbU7WHsSEUDC9XyX0d6DQNa5JIUja8IK4JgIC3/fqo=;
+	s=arc-20240116; t=1750175059; c=relaxed/simple;
+	bh=CpTPvCWCiY6s8YcaOvOWvnzj3sq5tS5GAvvZ9Q2kmdk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:content-type; b=UZDtWo/uzgR/XgYZ3R0/jWZOpZUIPaVpXZNDCSPfAyHBWd8AzSsfnB0pnM6faclS4Bm1pa5PQInnKyiVTlDr6Q5Mz+0HaGrzKoq/GzFkHbKqFS5vULAGRgL8FsQNDpZtXv1cTnJRsHg4MUV1wQyEL/rAzLrSL09dGnWhJb2QFrY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=OqiiKPJg; arc=none smtp.client-ip=170.10.129.124
+	 MIME-Version:content-type; b=K5wdaL6AXq+aREGay4pIK2KFDb8fXNkiIA1H11pPSoxGG9YBx51IjUjjI1RvNj6m6598bEId8kW3NJrC0m9nktzUfwRCF7XywJ9dMjjA4pf5Yy6O1/5vxYaInp/p4c94PZsOqeeRHGGluikzloeVXFyvKBdUcA3hQnka74oGy44=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Wmf9imyO; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OqiiKPJg"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Wmf9imyO"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750175051;
+	s=mimecast20190719; t=1750175056;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=VPSX3LBtUNEGTHSkguHJQ+rqsVYvGpTDP2rR8uKdQH8=;
-	b=OqiiKPJgGjwJvnyHCQ9bW3pWGxsDQtnzRHGZtpFpkrAwwPysza+JZG6oLXQWYs4kI0gQkM
-	DfkyVnH8cUEG4SsVxJRqMjIctx6eX3XIOUM8htIhr5od94Ud/KRB60yMMyPpSLNVyhc2ko
-	FklImE9++mn4oreUwQt4CgL4aFspaJE=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=8nQwds7Yyk6JA3H6HqbSBsBU+gjLOchhVzRWSpa3UwQ=;
+	b=Wmf9imyOGlDiYlmvT86N5sesJUeXU0CMi9trbplXJ3FdVeHf9fyFEWQq0OJylMy4WwqXzy
+	PMGGjSl3GpsDQ3b0edxCVspvzaRvA3GThV7p56x3ZoZ/UJf2UlZNhB/fEQ5+oRGg5IkkOL
+	jpdLW4ezUHH1bIA21htOewi7svspRpw=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-593-d6XGxU7vNo-GiAJWUDR6VQ-1; Tue, 17 Jun 2025 11:44:10 -0400
-X-MC-Unique: d6XGxU7vNo-GiAJWUDR6VQ-1
-X-Mimecast-MFC-AGG-ID: d6XGxU7vNo-GiAJWUDR6VQ_1750175049
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3a4f858bc5eso3623599f8f.0
-        for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 08:44:10 -0700 (PDT)
+ us-mta-611-YDul1KhmNkeSlA3rHqHQbg-1; Tue, 17 Jun 2025 11:44:12 -0400
+X-MC-Unique: YDul1KhmNkeSlA3rHqHQbg-1
+X-Mimecast-MFC-AGG-ID: YDul1KhmNkeSlA3rHqHQbg_1750175051
+Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-3a4e713e05bso2687279f8f.3
+        for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 08:44:12 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750175049; x=1750779849;
+        d=1e100.net; s=20230601; t=1750175051; x=1750779851;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=VPSX3LBtUNEGTHSkguHJQ+rqsVYvGpTDP2rR8uKdQH8=;
-        b=X8a3au9IVHj+LjbedU8STGD5Y2LxKllolAYAcospysb7zyKvokWOiEkOMBxI2puui1
-         rrzt8cU4mUYEaFbUDa+Dhfh2o5FrxdE2sxHowrQ9bps6yKj4xgkCij3pZ9j4V38Sup6g
-         EErEYWUX/nysni1k591QP4H3VUwRY5iXO5a+6s4SpC9rhpSzRrfFzz62MFocfREaNzbF
-         jEbM3vtXKZOkQ1rK/SYqnCH6jeqWaYq7+y1Km7+JsuClGAkmTSacj52o+ddtDXRtdo63
-         kvuQAqaM4AL6DSsu3B0qU5Uj2WdeQKODLyBxxmfSulcTkyQdiu+Og0d7k2EtxPyxIJIu
-         eB/Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVlbexAfmD/cZf5rdlMvggktqQZY9xiNENaH7NU9eWDuF6Tdb88ZoeNHzxQ0FZ1Y3tkmr1xXvQ=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yxuz+JCjSGd6hixilWOPNo8JYsS/fzaKlm1+wTKR3wrixy5irn9
-	NVTkBAWonbLDCJzTOTlTS0AegpUZFJqDhqUFCiuyMifuwjDsktr7W026Qy1dveICBCOHafiGFZB
-	Tyj+SPpm8pSBEELHiTgmNlJMihfL/lcQElksfspF1Ce+0j5sSDia8kXi+GQ==
-X-Gm-Gg: ASbGnctqaUp0vNO8S4mcfP6/8aHgUeGB6dqV6RgkDKlhwlwFx3wx6kY2wjC+C9+80Bz
-	YV39YkEnP/A/Q8a6rKs+pKREYOEtEZvupOQFR22TqSFhf/RiV3HTt7qKAM6L78GYez10GUzNxUu
-	62p9+xdMefcz4DOg6W3HWEWP2kk3zax00Or1GbiCQ8ONMP4BzBFNhqF9awUtXWHWTdprSkNPEPx
-	bCM8Ox0z64xFEb8l540Pd1KD/TLqHcFrWF3oW4DgpE2/2B5j5ul4XCi4QJm3o1EGJsoOdlZuHbJ
-	HQ1WPVnx8NCYGhJ7T7An9X9rF/vktT+cI2qIbOOOL+G7xL9aBIDZz4iHlT6QC7iFIV8tebfb6nm
-	WSIDOpQ==
-X-Received: by 2002:a5d:64c5:0:b0:3a5:2670:e220 with SMTP id ffacd0b85a97d-3a572e6b9ffmr8898795f8f.32.1750175049008;
-        Tue, 17 Jun 2025 08:44:09 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHM5m+wJRDUa8DrC/K/257QBXTR6G19KsTYyK8OpbCkrMRqwW7zfUBGXG+Jg5gfXSGV5z4C0A==
-X-Received: by 2002:a5d:64c5:0:b0:3a5:2670:e220 with SMTP id ffacd0b85a97d-3a572e6b9ffmr8898776f8f.32.1750175048645;
-        Tue, 17 Jun 2025 08:44:08 -0700 (PDT)
+        bh=8nQwds7Yyk6JA3H6HqbSBsBU+gjLOchhVzRWSpa3UwQ=;
+        b=tJYFoBPxEcjwX5HIZZ6zG4+wT5nWv//GJX74DjTWLiiSggHQ/ouHWA2ifcmTjbFUQU
+         45jVokZMZ8Q5HFJz9FP/p8B7lLiJ1hHIns3uVzDtXZRyfsQpOy/bTDQ9dCg/rmA0FUiV
+         c5HRhQZtv00q8QGygrlO0mEOq5V1ywZTGWs4z9twOPaJ05VwX1slgRbz2loIFgUUdkw3
+         4F7j96GPYCeaCxZ/ClNlm/5zOiz0JDej2NM1M54ICQjRgKp+dizShCd1dnW5fJ8HtLdv
+         EfrG95nnHUJs5FuMnBHBOE9eYG8iHWFZCYED6pi5uYdr5i7rujsJpCtqb6HaaBKA+wco
+         /MPg==
+X-Forwarded-Encrypted: i=1; AJvYcCWYGqLdXn2vXzASo+uSIMLGSCiQe9fWSdfOIOgr0ycx5plCw6JWDOh9Um5sTcjjWgaETG4SLA8=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyBEG70G17wUtWrpRKEWPDmbC7BuCgjWwnBy5PEPwQ0VZfCo3dT
+	RVDQkf9oFnA4jWoh1ayemOSpOG73Wz7kR9GdAz488kryV1/3Thd/AqB6tA1CmjShjWsPM6urfUH
+	gO/i5DcNUowwblcZy+V0q7LVUsuK3mLI7JzBa8v5oQv8CQhDtmA5QRgZF7A==
+X-Gm-Gg: ASbGncu3yqsPPNRAkmw+YiID7PHrWrp9kliEjHVl2hw6poTYKSvbgMiqg1R6mmCcf0a
+	ThJ0X50tgrvKVcI4sf1LmmqkCmzCtYve/Z7w6yRorLb6jx7e/qzOKhWSWEuul8Ve5ri52bgJPSW
+	PuYKYVeLCsfuufX3bH+9E3DzTqTQ9eZk265c2kg4Lqx5dLoc2SWejMqrooWfpZlKLUcQ+cDjIc4
+	SngjThhkGHxIHg+nj+eLBeGIV+41gZidetp0pI+3nBO6omFKYKMQViRfRpwTcIYB67D4BAUOtmI
+	qcXLhxIDeoeJgw0hSfhGGk0Hu8zJttYw/WHXKpFHevuVvA07Eptz3n+Obs5vxT5UBp3Jt8xvN/Y
+	p4/Zviw==
+X-Received: by 2002:a05:6000:4282:b0:3a4:fefb:c8d3 with SMTP id ffacd0b85a97d-3a5723af0aamr11566039f8f.40.1750175051237;
+        Tue, 17 Jun 2025 08:44:11 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF/V6oFuqHOfr5zNP3xy/su55zH7TFZMZO7NjqgYAqVSSsBW8t2gqFSXD3CPoL3K9BbxYOdvQ==
+X-Received: by 2002:a05:6000:4282:b0:3a4:fefb:c8d3 with SMTP id ffacd0b85a97d-3a5723af0aamr11566020f8f.40.1750175050826;
+        Tue, 17 Jun 2025 08:44:10 -0700 (PDT)
 Received: from localhost (p200300d82f3107003851c66ab6b93490.dip0.t-ipconnect.de. [2003:d8:2f31:700:3851:c66a:b6b9:3490])
-        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-3a568b1eb9bsm14491105f8f.69.2025.06.17.08.44.07
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-3a568b087f8sm14566243f8f.53.2025.06.17.08.44.09
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Jun 2025 08:44:08 -0700 (PDT)
+        Tue, 17 Jun 2025 08:44:10 -0700 (PDT)
 From: David Hildenbrand <david@redhat.com>
 To: linux-kernel@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org,
@@ -95,9 +95,9 @@ Cc: linux-fsdevel@vger.kernel.org,
 	Michal Hocko <mhocko@suse.com>,
 	Jann Horn <jannh@google.com>,
 	Pedro Falcato <pfalcato@suse.de>
-Subject: [PATCH RFC 09/14] mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
-Date: Tue, 17 Jun 2025 17:43:40 +0200
-Message-ID: <20250617154345.2494405-10-david@redhat.com>
+Subject: [PATCH RFC 10/14] mm/memory: factor out common code from vm_normal_page_*()
+Date: Tue, 17 Jun 2025 17:43:41 +0200
+Message-ID: <20250617154345.2494405-11-david@redhat.com>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250617154345.2494405-1-david@redhat.com>
 References: <20250617154345.2494405-1-david@redhat.com>
@@ -108,69 +108,173 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: sYk2wYQUMPk6Mp5QBxKOIdgQsaydlVdK7Awh16p8fqg_1750175049
+X-Mimecast-MFC-PROC-ID: ZewAe3Q6j05qBj1dGJLfgpZq_7OQsM-3rg1sT4FN8QI_1750175051
 X-Mimecast-Originator: redhat.com
 Content-Transfer-Encoding: 8bit
 content-type: text/plain; charset="US-ASCII"; x-default=true
 
-Let's avoid working with the PMD when not required. If
-vm_normal_page_pmd() would be called on something that is not a present
-pmd, it would already be a bug (pfn possibly garbage).
+Let's reduce the code duplication and factor out the non-pte/pmd related
+magic into vm_normal_page_pfn().
 
-While at it, let's support passing in any pfn covered by the huge zero
-folio by masking off PFN bits -- which should be rather cheap.
+To keep it simpler, check the pfn against both zero folios. We could
+optimize this, but as it's only for the !CONFIG_ARCH_HAS_PTE_SPECIAL
+case, it's not a compelling micro-optimization.
+
+With CONFIG_ARCH_HAS_PTE_SPECIAL we don't have to check anything else,
+really.
+
+It's a good question if we can even hit the !CONFIG_ARCH_HAS_PTE_SPECIAL
+scenario in the PMD case in practice: but doesn't really matter, as
+it's now all unified in vm_normal_page_pfn().
+
+While at it, add a check that pmd_special() is really only set where we
+would expect it.
+
+No functional change intended.
 
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- include/linux/huge_mm.h | 12 +++++++++++-
- mm/memory.c             |  2 +-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ mm/memory.c | 104 +++++++++++++++++++++++-----------------------------
+ 1 file changed, 46 insertions(+), 58 deletions(-)
 
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index 35e34e6a98a27..b260f9a1fd3f2 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -483,9 +483,14 @@ static inline bool is_huge_zero_folio(const struct folio *folio)
- 	return READ_ONCE(huge_zero_folio) == folio;
- }
- 
-+static inline bool is_huge_zero_pfn(unsigned long pfn)
-+{
-+	return READ_ONCE(huge_zero_pfn) == (pfn & ~(HPAGE_PMD_NR - 1));
-+}
-+
- static inline bool is_huge_zero_pmd(pmd_t pmd)
- {
--	return pmd_present(pmd) && READ_ONCE(huge_zero_pfn) == pmd_pfn(pmd);
-+	return pmd_present(pmd) && is_huge_zero_pfn(pmd_pfn(pmd));
- }
- 
- struct folio *mm_get_huge_zero_folio(struct mm_struct *mm);
-@@ -633,6 +638,11 @@ static inline bool is_huge_zero_folio(const struct folio *folio)
- 	return false;
- }
- 
-+static inline bool is_huge_zero_pfn(unsigned long pfn)
-+{
-+	return false;
-+}
-+
- static inline bool is_huge_zero_pmd(pmd_t pmd)
- {
- 	return false;
 diff --git a/mm/memory.c b/mm/memory.c
-index ef277dab69e33..b6c069f4ad11f 100644
+index b6c069f4ad11f..3d3fa01cd217e 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -669,7 +669,7 @@ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
- 		}
- 	}
+@@ -536,6 +536,46 @@ static void print_bad_pte(struct vm_area_struct *vma, unsigned long addr,
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ }
  
--	if (is_huge_zero_pmd(pmd))
-+	if (is_huge_zero_pfn(pfn))
++/* Called only if the page table entry is not marked special. */
++static inline struct page *vm_normal_page_pfn(struct vm_area_struct *vma,
++		unsigned long addr, unsigned long pfn)
++{
++	/*
++	 * With CONFIG_ARCH_HAS_PTE_SPECIAL, any special page table mappings
++	 * (incl. shared zero folios) are marked accordingly.
++	 */
++	if (IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL))
++		goto normal_page;
++
++	if (unlikely(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))) {
++		if (vma->vm_flags & VM_MIXEDMAP) {
++			/* If it has a "struct page", it's "normal". */
++			if (!pfn_valid(pfn))
++				return NULL;
++		} else {
++			unsigned long off = (addr - vma->vm_start) >> PAGE_SHIFT;
++
++			/* Only CoW'ed anon folios are "normal". */
++			if (pfn == vma->vm_pgoff + off)
++				return NULL;
++			if (!is_cow_mapping(vma->vm_flags))
++				return NULL;
++		}
++	}
++
++	if (is_zero_pfn(pfn) || is_huge_zero_pfn(pfn))
++		return NULL;
++
++normal_page:
++	/*
++	 * NOTE! We still have PageReserved() pages in the page tables.
++	 * For example, VDSO mappings can cause them to exist.
++	 */
++	VM_WARN_ON_ONCE(!pfn_valid(pfn));
++	VM_WARN_ON_ONCE(is_zero_pfn(pfn) || is_huge_zero_pfn(pfn));
++	return pfn_to_page(pfn);
++}
++
+ /*
+  * vm_normal_page -- This function gets the "struct page" associated with a pte.
+  *
+@@ -591,9 +631,7 @@ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+ {
+ 	unsigned long pfn = pte_pfn(pte);
+ 
+-	if (IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL)) {
+-		if (likely(!pte_special(pte)))
+-			goto out;
++	if (unlikely(pte_special(pte))) {
+ 		if (vma->vm_ops && vma->vm_ops->find_special_page)
+ 			return vma->vm_ops->find_special_page(vma, addr);
+ 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+@@ -604,34 +642,7 @@ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+ 		print_bad_pte(vma, addr, pte, NULL);
  		return NULL;
+ 	}
+-
+-	/* !CONFIG_ARCH_HAS_PTE_SPECIAL case follows: */
+-
+-	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
+-		if (vma->vm_flags & VM_MIXEDMAP) {
+-			if (!pfn_valid(pfn))
+-				return NULL;
+-		} else {
+-			unsigned long off;
+-			off = (addr - vma->vm_start) >> PAGE_SHIFT;
+-			if (pfn == vma->vm_pgoff + off)
+-				return NULL;
+-			if (!is_cow_mapping(vma->vm_flags))
+-				return NULL;
+-		}
+-	}
+-
+-	if (is_zero_pfn(pfn))
+-		return NULL;
+-
+-	/*
+-	 * NOTE! We still have PageReserved() pages in the page tables.
+-	 * eg. VDSO mappings can cause them to exist.
+-	 */
+-out:
+-	VM_WARN_ON_ONCE(!pfn_valid(pfn));
+-	VM_WARN_ON_ONCE(is_zero_pfn(pfn));
+-	return pfn_to_page(pfn);
++	return vm_normal_page_pfn(vma, addr, pfn);
+ }
  
- 	/*
+ struct folio *vm_normal_folio(struct vm_area_struct *vma, unsigned long addr,
+@@ -650,35 +661,12 @@ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
+ {
+ 	unsigned long pfn = pmd_pfn(pmd);
+ 
+-	/* Currently it's only used for huge pfnmaps */
+-	if (unlikely(pmd_special(pmd)))
++	if (unlikely(pmd_special(pmd))) {
++		VM_WARN_ON_ONCE(!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)) &&
++				!is_huge_zero_pfn(pfn));
+ 		return NULL;
+-
+-	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
+-		if (vma->vm_flags & VM_MIXEDMAP) {
+-			if (!pfn_valid(pfn))
+-				return NULL;
+-			goto out;
+-		} else {
+-			unsigned long off;
+-			off = (addr - vma->vm_start) >> PAGE_SHIFT;
+-			if (pfn == vma->vm_pgoff + off)
+-				return NULL;
+-			if (!is_cow_mapping(vma->vm_flags))
+-				return NULL;
+-		}
+ 	}
+-
+-	if (is_huge_zero_pfn(pfn))
+-		return NULL;
+-
+-	/*
+-	 * NOTE! We still have PageReserved() pages in the page tables.
+-	 * eg. VDSO mappings can cause them to exist.
+-	 */
+-out:
+-	VM_WARN_ON_ONCE(!pfn_valid(pfn));
+-	return pfn_to_page(pfn);
++	return vm_normal_page_pfn(vma, addr, pfn);
+ }
+ 
+ struct folio *vm_normal_folio_pmd(struct vm_area_struct *vma,
 -- 
 2.49.0
 
