@@ -1,47 +1,47 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F7062E06DB
-	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 13:00:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BAF5199947
+	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 13:03:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750165214; cv=none; b=pNaNGiCfWfGV542jg2Wjc+VkcQRttDzgRkBnSbOBu8KfjqVGTKdB6ePsegUjLlmTcHv52vprpcpV6h98nxA5qrAhqK3XUj47jBq2Xsoggw5SfwSfUSn9RDMtEDw0vQGIAzIg0mq8qp5zktkpVHpv3Hey603GVuaXmdSlZN6RJ4o=
+	t=1750165385; cv=none; b=KQ4IFbRVrhi9FNv6YMai35HkIySs4aQv7emTGD73pj1n6luGv6SXl4kAlf7YyDWR7X39U8jZfNa3GrDo7CZyVJR5H1Ej6YW5pP3kkiYd0FOrdw0ZkkBIT0ZCz1fVFI99AgV/tveTOyO4GALxVAu82g60md0653dxDtrz/jojIo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750165214; c=relaxed/simple;
-	bh=zslXoZS65WowKD/Lmd8f2Jv2WYswTyfYnNHk7HroDKo=;
+	s=arc-20240116; t=1750165385; c=relaxed/simple;
+	bh=QlXSwNKK08xmJmbJKsSJdjUq1otE++eQi2O18jgIVVc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:MIME-Version:
-	 Content-Type:References; b=fuUbnuhXQiwJcU7VWz/elAAj71rn4QqF8Atlrodlx3x43zK/AwCtF8DkN1S3ppY5xdb0TFFbIKKgcc1S4q2PHky7R4NnJ6aclK0wFZiQVDfypeQMFKCNUMcm9oE8mzq0SuyQtGUxgopAIFC2dXFNuaEnLAkMpcGVBvQrl7+7i+I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=d5sci6Gr; arc=none smtp.client-ip=203.254.224.24
+	 Content-Type:References; b=O4Tpsy538rlmjIGfcB4o3trAVT1gUuGAbDmwxF9DIdwzBNunYQNRDGbP9iBCc5G5HVQvmH2oilUIRNOA6vMSWwJVbJUboA8dTl+cBkM+XpsUg4845PrJXrs7A22SkkCSOYOBJoY9RfkQi5NaFV9dq9x3GhhpykJs9u6bpiCppos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=kwOm1azn; arc=none smtp.client-ip=203.254.224.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="d5sci6Gr"
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20250617130005epoutp010246c33f39b24ce9166b80c55aaf9a68~J1fs9zm6d0669606696epoutp01c
-	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 13:00:05 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20250617130005epoutp010246c33f39b24ce9166b80c55aaf9a68~J1fs9zm6d0669606696epoutp01c
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="kwOm1azn"
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20250617130302epoutp044b2e316f1078761d5b4be0cc5c641248~J1iR9_BTM2639726397epoutp04W
+	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 13:03:02 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20250617130302epoutp044b2e316f1078761d5b4be0cc5c641248~J1iR9_BTM2639726397epoutp04W
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1750165205;
-	bh=OvY7745ZkvZJo9kPQmH/YuGirR11M2CfV82KQ2zd+7A=;
+	s=mail20170921; t=1750165382;
+	bh=AUkScCfP+dPARUHxdCDWVovECz1k/Y3SmiSq/nmHrz8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=d5sci6GraV9WuTpy/+8iioryTAeQDM9s+Aj4c/QcPzOvTtbT0kcG+6sbnO4s/Zsti
-	 0bSpehcQKzd2sLjWbwWMowwnVjMdJhUqJuapW77qwGH9k9XsiPYcsLgiItpr0rfouz
-	 8pD66c3c07HBohaUdGxQ4W7Xcvp/WuTBxdERBzK0=
-Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20250617130004epcas5p2ae51dba7832578d01602cb87b798db63~J1fsbVX0m1917719177epcas5p2K;
-	Tue, 17 Jun 2025 13:00:04 +0000 (GMT)
-Received: from epcpadp1new (unknown [182.195.40.141]) by
-	epsnrtp03.localdomain (Postfix) with ESMTP id 4bM6R84bvqz3hhT7; Tue, 17 Jun
-	2025 13:00:04 +0000 (GMT)
+	b=kwOm1aznuWuuoUx312HOBUeF9uBuytBZGFN8KF8PZFdVagTQjnSgNoRVvu8ofbDB4
+	 vRYS0MkN14TuRBRf7elyg18DnbmCtt/TvFEHkjFyPooNvUVPMmPkOoz3/N1d4nQzni
+	 Ny9E1rUNf8AT4kvL48/MjY9bFAiPQ790AkONK/6c=
+Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
+	epcas5p1.samsung.com (KnoxPortal) with ESMTPS id
+	20250617130301epcas5p1c19d3a1ccf2ebc19a1e3c9aae64b04fc~J1iRWfUWR2026620266epcas5p1r;
+	Tue, 17 Jun 2025 13:03:01 +0000 (GMT)
+Received: from epcpadp2new (unknown [182.195.40.142]) by
+	epsnrtp04.localdomain (Postfix) with ESMTP id 4bM6VY59J5z6B9mB; Tue, 17 Jun
+	2025 13:03:01 +0000 (GMT)
 Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
 	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
-	20250617124022epcas5p2441d6c5dfaeceb744b5fc00add7ceae0~J1Ofw4JBS0930409304epcas5p2a;
-	Tue, 17 Jun 2025 12:40:22 +0000 (GMT)
+	20250617124052epcas5p24aace8321ed09af8bdd1e8c30c20cd84~J1O7O-EtA0675106751epcas5p27;
+	Tue, 17 Jun 2025 12:40:52 +0000 (GMT)
 Received: from test-PowerEdge-R740xd.samsungds.net (unknown [107.99.41.79])
 	by epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20250617124020epsmtip2908d400eaf4a728bc05db24424442fe8~J1OdQ2LS32488624886epsmtip2T;
-	Tue, 17 Jun 2025 12:40:20 +0000 (GMT)
+	20250617124049epsmtip2a2768a01124f4f18381a9da429110c7c~J1O4vZIJO2488624886epsmtip2Z;
+	Tue, 17 Jun 2025 12:40:49 +0000 (GMT)
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: dan.j.williams@intel.com, dave@stgolabs.net,
 	jonathan.cameron@huawei.com, dave.jiang@intel.com,
@@ -51,10 +51,10 @@ Cc: a.manzanares@samsung.com, nifan.cxl@gmail.com, anisa.su@samsung.com,
 	alok.rathore@samsung.com, s.neeraj@samsung.com, neeraj.kernel@gmail.com,
 	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev, gost.dev@samsung.com, cpgs@samsung.com
-Subject: [RFC PATCH 06/20] nvdimm/region_label: Add region label deletion
- routine
-Date: Tue, 17 Jun 2025 18:09:30 +0530
-Message-Id: <1256440269.161750165204630.JavaMail.epsvc@epcpadp1new>
+Subject: [RFC PATCH 16/20] cxl/mem: Preserve cxl root decoder during mem
+ probe
+Date: Tue, 17 Jun 2025 18:09:40 +0530
+Message-Id: <1891546521.01750165381712.JavaMail.epsvc@epcpadp2new>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20250617123944.78345-1-s.neeraj@samsung.com>
 Precedence: bulk
@@ -64,220 +64,50 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CMS-MailID: 20250617124022epcas5p2441d6c5dfaeceb744b5fc00add7ceae0
+X-CMS-MailID: 20250617124052epcas5p24aace8321ed09af8bdd1e8c30c20cd84
 X-Msg-Generator: CA
 Content-Type: text/plain; charset="utf-8"
 X-Sendblock-Type: REQ_APPROVE
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250617124022epcas5p2441d6c5dfaeceb744b5fc00add7ceae0
+X-CMS-RootMailID: 20250617124052epcas5p24aace8321ed09af8bdd1e8c30c20cd84
 References: <20250617123944.78345-1-s.neeraj@samsung.com>
-	<CGME20250617124022epcas5p2441d6c5dfaeceb744b5fc00add7ceae0@epcas5p2.samsung.com>
+	<CGME20250617124052epcas5p24aace8321ed09af8bdd1e8c30c20cd84@epcas5p2.samsung.com>
 
-Added cxl v2.1 format region label deletion routine. This function is
-used to delete region label from LSA
+Saved root decoder info is required for cxl region persistency
 
 Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
 ---
- drivers/nvdimm/label.c          | 75 ++++++++++++++++++++++++++++++---
- drivers/nvdimm/label.h          |  6 +++
- drivers/nvdimm/namespace_devs.c | 12 ++++++
- drivers/nvdimm/nd.h             |  9 ++++
- include/linux/libnvdimm.h       |  1 +
- 5 files changed, 98 insertions(+), 5 deletions(-)
+ drivers/cxl/cxlmem.h | 1 +
+ drivers/cxl/mem.c    | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 7f33d14ce0ef..9381c50086fc 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -1034,7 +1034,8 @@ static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
- 	return max(num_labels, old_num_labels);
- }
- 
--static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
-+static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid,
-+		enum label_type ltype)
- {
- 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
- 	struct nd_label_ent *label_ent, *e;
-@@ -1058,8 +1059,18 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
- 		if (!nd_label)
- 			continue;
- 		active++;
--		if (!nsl_uuid_equal(ndd, &nd_label->ns_label, uuid))
--			continue;
-+
-+		if (ltype == NS_LABEL_TYPE) {
-+			if (!nsl_uuid_equal(ndd, &nd_label->ns_label, uuid))
-+				continue;
-+		} else if (ltype == RG_LABEL_TYPE) {
-+			if (!nsl_uuid_equal(ndd, &nd_label->ns_label, uuid))
-+				continue;
-+		} else {
-+			dev_err(ndd->dev, "Invalid label type\n");
-+			return 0;
-+		}
-+
- 		active--;
- 		slot = to_slot(ndd, nd_label);
- 		nd_label_free_slot(ndd, slot);
-@@ -1069,7 +1080,7 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
- 	}
- 	list_splice_tail_init(&list, &nd_mapping->labels);
- 
--	if (active == 0) {
-+	if ((ltype == NS_LABEL_TYPE) && (active == 0)) {
- 		nd_mapping_free_labels(nd_mapping);
- 		dev_dbg(ndd->dev, "no more active labels\n");
- 	}
-@@ -1091,7 +1102,8 @@ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
- 		int count = 0;
- 
- 		if (size == 0) {
--			rc = del_labels(nd_mapping, nspm->uuid);
-+			rc = del_labels(nd_mapping, nspm->uuid,
-+					NS_LABEL_TYPE);
- 			if (rc)
- 				return rc;
- 			continue;
-@@ -1259,6 +1271,59 @@ int nd_pmem_region_label_update(struct nd_region *nd_region)
- 	return 0;
- }
- 
-+int nd_pmem_region_label_delete(struct nd_region *nd_region)
-+{
-+	int i, rc;
-+	struct nd_interleave_set *nd_set = nd_region->nd_set;
-+	struct nd_label_ent *label_ent;
-+	bool is_non_rgl = false;
-+	int ns_region_cnt = 0;
-+
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+
-+		/* Find non cxl format supported ndr_mappings */
-+		if (!ndd->cxl)
-+			is_non_rgl = true;
-+
-+		/* Find if any NS label using this region */
-+		mutex_lock(&nd_mapping->lock);
-+		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
-+			if (!label_ent->label)
-+				continue;
-+
-+			/* Check if any available NS labels has same
-+			 * region_uuid in LSA
-+			 */
-+			if (nsl_region_uuid_equal(&label_ent->label->ns_label,
-+						  &nd_set->uuid))
-+				ns_region_cnt++;
-+		}
-+		mutex_unlock(&nd_mapping->lock);
-+	}
-+
-+	if (is_non_rgl) {
-+		dev_dbg(&nd_region->dev, "Region label deletion unsupported\n");
-+		return -EINVAL;
-+	}
-+
-+	if (ns_region_cnt) {
-+		dev_dbg(&nd_region->dev, "Region/Namespace label in use\n");
-+		return -EBUSY;
-+	}
-+
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+
-+		rc = del_labels(nd_mapping, &nd_set->uuid, RG_LABEL_TYPE);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
- int __init nd_label_init(void)
- {
- 	WARN_ON(guid_parse(NVDIMM_BTT_GUID, &nvdimm_btt_guid));
-diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-index 0f428695017d..cc14068511cf 100644
---- a/drivers/nvdimm/label.h
-+++ b/drivers/nvdimm/label.h
-@@ -30,6 +30,11 @@ enum {
- 	ND_NSINDEX_INIT = 0x1,
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 2a25d1957ddb..a14e82d4c9aa 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -54,6 +54,7 @@ struct cxl_memdev {
+ 	struct cxl_nvdimm_bridge *cxl_nvb;
+ 	struct cxl_nvdimm *cxl_nvd;
+ 	struct cxl_port *endpoint;
++	struct cxl_root_decoder *cxlrd;
+ 	int id;
+ 	int depth;
  };
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index aaea4eb178ef..c2e5d0e6b96b 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -152,6 +152,8 @@ static int cxl_mem_probe(struct device *dev)
+ 		return -ENXIO;
+ 	}
  
-+enum label_type {
-+	RG_LABEL_TYPE,
-+	NS_LABEL_TYPE,
-+};
++	cxlmd->cxlrd = cxl_find_root_decoder(parent_port);
 +
- /**
-  * struct nd_namespace_index - label set superblock
-  * @sig: NAMESPACE_INDEX\0
-@@ -235,4 +240,5 @@ struct nd_namespace_pmem;
- int nd_pmem_namespace_label_update(struct nd_region *nd_region,
- 		struct nd_namespace_pmem *nspm, resource_size_t size);
- int nd_pmem_region_label_update(struct nd_region *nd_region);
-+int nd_pmem_region_label_delete(struct nd_region *nd_region);
- #endif /* __LABEL_H__ */
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 6cccb4d2fc7b..b081661b7aaa 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -244,6 +244,18 @@ int nd_region_label_update(struct nd_region *nd_region)
- }
- EXPORT_SYMBOL_GPL(nd_region_label_update);
- 
-+int nd_region_label_delete(struct nd_region *nd_region)
-+{
-+	int rc;
-+
-+	nvdimm_bus_lock(&nd_region->dev);
-+	rc = nd_pmem_region_label_delete(nd_region);
-+	nvdimm_bus_unlock(&nd_region->dev);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(nd_region_label_delete);
-+
- static int nd_namespace_label_update(struct nd_region *nd_region,
- 		struct device *dev)
- {
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 2fdc92b29e8a..1e5a68013735 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -322,6 +322,15 @@ static inline void nsl_set_region_uuid(struct nvdimm_drvdata *ndd,
- 		export_uuid(ns_label->cxl.region_uuid, uuid);
- }
- 
-+static inline bool nsl_region_uuid_equal(struct nd_namespace_label *ns_label,
-+				  const uuid_t *uuid)
-+{
-+	uuid_t tmp;
-+
-+	import_uuid(&tmp, ns_label->cxl.region_uuid);
-+	return uuid_equal(&tmp, uuid);
-+}
-+
- static inline bool rgl_uuid_equal(struct cxl_region_label *rg_label,
- 				  const uuid_t *uuid)
- {
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index b06bd45373f4..b2e16914ab52 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -310,6 +310,7 @@ int nvdimm_has_cache(struct nd_region *nd_region);
- int nvdimm_in_overwrite(struct nvdimm *nvdimm);
- bool is_nvdimm_sync(struct nd_region *nd_region);
- int nd_region_label_update(struct nd_region *nd_region);
-+int nd_region_label_delete(struct nd_region *nd_region);
- 
- static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
+ 	if (dport->rch)
+ 		endpoint_parent = parent_port->uport_dev;
+ 	else
 -- 
 2.34.1
 
