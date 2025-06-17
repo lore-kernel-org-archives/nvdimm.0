@@ -1,73 +1,81 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C38C21BC3F
-	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 18:25:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C24E2EF9A7
+	for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 18:58:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750184748; cv=none; b=MQ4gHNpP8wlSY0SlQfcq6fQJufEaM928LH12fatRQnvFd3EGDHpUkdJNduuvlsF7cbsU1XwfJWOIXFRZG+d6reYlrnDf3kGKakITG2EkxooXEPhuEBYHS9PqzTMFzArdLu9gM/+ET0Bh1NpN5U3SVgUINOEdxha43Ynples8k3w=
+	t=1750186684; cv=none; b=eL+ff+lH9FqDg9IW2HtIdZ5SwV6NEi6VXNrps+ey1dE1PcyAsX28ml46gcxh5nxl75oGfKB0mRkZ0FMdijRbmDxzZTPHuYLcIY1eTGBLRwxLCwOGdPFgNO2Aj0oGex3vnVpFfLjSHGOf67MWazNwYEDu/XGobGw6ZuY9lZv52jM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750184748; c=relaxed/simple;
-	bh=z1HS8C/JLe/RLbl0lUn0/hVKMbgjxeQeiEfHWc5ibyY=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=CJUUgXeT0iRf32yk1vvYPU4aOQ/kGJTzKCHc9Fyh/uLBc7YBw4fbvlVnatADCNH4zlYsId3YVkAi8OUhq1GtgYLdydfTQIVD38Tb2koWoqzLc74wVqNwKirl7zzGi3W5CBaWbY8u0JcwzYYelVl3n/Bd4E3Px5XQYzt7nOVxR24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=S52GKHgL; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1750186684; c=relaxed/simple;
+	bh=szqGztQmJDSY7et8LHJCKiY3zsAU/FrD96MjQ0Re0s8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=l3Ja2M7t11oqBuI/cjHlgEkS9x0aaMTOnESlVydVZiZqlhU1ANHR3FPilO2Lb+aaCH2SfLz9ImssjxEFVuU33QVE/vYEHxBgnoIlz1ti1uf58OxEvDCLUuGOWwKhLI7tFCAut8QeXiXQM2JSg3ajJiAT9kdoEoEbfgxBY5Lcao0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=ZVKFtgJx; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=5D1gAnpO; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=ZVKFtgJx; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=5D1gAnpO; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="S52GKHgL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750184745;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="ZVKFtgJx";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="5D1gAnpO";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="ZVKFtgJx";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="5D1gAnpO"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7242F1F7A8;
+	Tue, 17 Jun 2025 18:57:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1750186679; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Rv8+go54DTXcKgASbvJVTrFfjolX5M2ijJlOPxlnV/8=;
-	b=S52GKHgLcKyd4MuFUqDxndHzF7czQplnjkq+uIpBmwZU+OScVqCdab7akTPI3H6A/55tMN
-	VNGTj8cYi1yo9Qg+22jSIC9ahMJ4TR5CMtcPx/carUsIubumqIhZKHlheS8QW4L4+/c+ny
-	ITV8fRIfzYU7PSH9LkAW6CCMsUX9wHs=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-683-RHUk1XZ6N4aq1W4HVQF3sA-1; Tue, 17 Jun 2025 14:25:44 -0400
-X-MC-Unique: RHUk1XZ6N4aq1W4HVQF3sA-1
-X-Mimecast-MFC-AGG-ID: RHUk1XZ6N4aq1W4HVQF3sA_1750184743
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-451d2037f1eso37098145e9.0
-        for <nvdimm@lists.linux.dev>; Tue, 17 Jun 2025 11:25:44 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750184743; x=1750789543;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:references:cc:to:from:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=Rv8+go54DTXcKgASbvJVTrFfjolX5M2ijJlOPxlnV/8=;
-        b=kaleDS4aGmd75dc4FxMhsFwn+dXdkwUZEAyxYAiGRlaVrPNS3WU4N/773bZjV4eAUC
-         C2li63Q8Tvrtsx0GAZGo6vUxmYP3MckgFL5W3LqroVlHgC6O2OceGqtV6G8kmkp8pkxB
-         jSLLoEW+mseHPb7CB3oFkL3Ttn3e4NsX9FG8wPPsD+LyTDk3K1uOEvXkZI7izcuoVHUi
-         Mo+LUc/XavLlGqTBhiDJgNNsq2SsSKURr/I78wqWyTxNzKvx3krGKrvYTi9SAynyTqyG
-         CmhGBQBMA3gQRoZqQxyoSl/aZBerJfvdUbBZDWRIM2jn3+fYo92nhQY/QyWk9jp3CiO0
-         MtXA==
-X-Forwarded-Encrypted: i=1; AJvYcCUcLHFIoAjXW1pp0fcvFKoms/EVKt2xYV4CkrkYVx9CPe8/CBApgEFqFriM/RsnmE+DgeeWHVs=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxEOjGGwrf40kOEX5oYUIX576mMW0CTj5QLNGHwDnWxOgUulCOq
-	/VeoeAD27yNc1JMawcDhDMBsDjpqsaBl481wvkNJBbpn+aU7RwK8kglwq6O8WtdFNzBTSMEyw/d
-	es9LemZxnZXbAifILaCSnfYAOJUuDIOLGbBEwKcmMnYU4ThW+nsxDYoQcOQ==
-X-Gm-Gg: ASbGnct7zISqugNSXUEflU7Fi0itJNQX4f9JKuvgeFoCJTlqsE0xoP4mLN187N6q82Y
-	w/vEqUBzMrNrb76RjbM4IvMZBm/j13Ok3bFBmZ4dUnVbKX7HfHNImQwOvmscaLVIgOjTz94zkSV
-	U64Usse/fGiOJplrROoSMjrO3tJEgAPvbz6pph5e/USfjU6VmidJgD/687QA4pja4w0ExAgcEhf
-	copwJL/+u69RqWgEkQdobSXHvIuSYSd4Mw04ZcSsLSYT+0coSIYmM3Z7Ml40vJT8AK+HwWnCl99
-	gO7041Ud6Q9m8BGp98axsqvr50MdovnvNd8AmniFmdVkCUapYD039TvZP1ko4sy+eGfwBadJONP
-	oKAgpD+nG70Gz01RpJ/PhD4YPDpGQJUHwrg108xGcb9BpwLY=
-X-Received: by 2002:a05:600c:1c90:b0:450:d3b9:4ba4 with SMTP id 5b1f17b1804b1-4533cadf6c4mr138587625e9.2.1750184742879;
-        Tue, 17 Jun 2025 11:25:42 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFt2u6/6Xe6ws+6S3kiQ4YJn4fe1Kd4pUR7bYe/o2ypTsCl50EnR9pKn3olpsSnQpCyTQ0oWg==
-X-Received: by 2002:a05:600c:1c90:b0:450:d3b9:4ba4 with SMTP id 5b1f17b1804b1-4533cadf6c4mr138587385e9.2.1750184742504;
-        Tue, 17 Jun 2025 11:25:42 -0700 (PDT)
-Received: from ?IPV6:2003:d8:2f31:700:3851:c66a:b6b9:3490? (p200300d82f3107003851c66ab6b93490.dip0.t-ipconnect.de. [2003:d8:2f31:700:3851:c66a:b6b9:3490])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4532e25f207sm182230225e9.35.2025.06.17.11.25.40
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Jun 2025 11:25:42 -0700 (PDT)
-Message-ID: <338bc820-3e43-4da6-b09e-936bf55f657f@redhat.com>
-Date: Tue, 17 Jun 2025 20:25:40 +0200
+	bh=RgNDel3KBIdFRD20NWYscLXk0kRO4T4FPA8qn3r4sXM=;
+	b=ZVKFtgJxgU6rST6x9dHOvq53H+ZPhdDkqsTMNZ7d/0yKJ+jcnU1S6R0rBWo8a7kKqVmKDR
+	ENZeVprBsNGqAloTMjfmaopwBrFh1v3JFCTUXrAM3nsjylqULQ91szWdRb3GulZRtVMafj
+	G1fZdguD9n3huUX618MPIWVd8mTvJbs=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1750186679;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=RgNDel3KBIdFRD20NWYscLXk0kRO4T4FPA8qn3r4sXM=;
+	b=5D1gAnpOzFQUDBJ63fx53UMHmj/Pinvy/HjB9v/V1oneL2XPt7iaxB1I7N+BFb4hFJ+WzO
+	uMSoKL7nLRlBoMDg==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=ZVKFtgJx;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=5D1gAnpO
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1750186679; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=RgNDel3KBIdFRD20NWYscLXk0kRO4T4FPA8qn3r4sXM=;
+	b=ZVKFtgJxgU6rST6x9dHOvq53H+ZPhdDkqsTMNZ7d/0yKJ+jcnU1S6R0rBWo8a7kKqVmKDR
+	ENZeVprBsNGqAloTMjfmaopwBrFh1v3JFCTUXrAM3nsjylqULQ91szWdRb3GulZRtVMafj
+	G1fZdguD9n3huUX618MPIWVd8mTvJbs=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1750186679;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=RgNDel3KBIdFRD20NWYscLXk0kRO4T4FPA8qn3r4sXM=;
+	b=5D1gAnpOzFQUDBJ63fx53UMHmj/Pinvy/HjB9v/V1oneL2XPt7iaxB1I7N+BFb4hFJ+WzO
+	uMSoKL7nLRlBoMDg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 9AF47139E2;
+	Tue, 17 Jun 2025 18:57:58 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id niR8Jba6UWjwOAAAD6G6ig
+	(envelope-from <vbabka@suse.cz>); Tue, 17 Jun 2025 18:57:58 +0000
+Message-ID: <be9523c7-d06e-4c5a-b040-94109420cfed@suse.cz>
+Date: Tue, 17 Jun 2025 20:57:58 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,123 +83,352 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC 00/14] mm: vm_normal_page*() + CoW PFNMAP improvements
-From: David Hildenbrand <david@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
- nvdimm@lists.linux.dev, Andrew Morton <akpm@linux-foundation.org>,
- Juergen Gross <jgross@suse.com>, Stefano Stabellini
- <sstabellini@kernel.org>,
- Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
- Dan Williams <dan.j.williams@intel.com>, Alistair Popple
- <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>,
- Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>,
- Baolin Wang <baolin.wang@linux.alibaba.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>, Nico Pache <npache@redhat.com>,
- Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
- Barry Song <baohua@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
- Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
- Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>,
- Pedro Falcato <pfalcato@suse.de>
-References: <20250617154345.2494405-1-david@redhat.com>
- <e7a6b0de-3f2a-4584-bc77-078569f69f55@redhat.com>
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <e7a6b0de-3f2a-4584-bc77-078569f69f55@redhat.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: 12C8EOreUXRR3v7gFPvmHaYRM7MGqGti45vAxk-05Rc_1750184743
-X-Mimecast-Originator: redhat.com
+Subject: Re: [PATCH 01/10] mm: rename call_mmap/mmap_prepare to
+ vfs_mmap/mmap_prepare
 Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: "Liam R . Howlett" <Liam.Howlett@oracle.com>, Jens Axboe
+ <axboe@kernel.dk>, Jani Nikula <jani.nikula@linux.intel.com>,
+ Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+ Rodrigo Vivi <rodrigo.vivi@intel.com>, Tvrtko Ursulin
+ <tursulin@ursulin.net>, David Airlie <airlied@gmail.com>,
+ Simona Vetter <simona@ffwll.ch>, Eric Van Hensbergen <ericvh@kernel.org>,
+ Latchesar Ionkov <lucho@ionkov.net>,
+ Dominique Martinet <asmadeus@codewreck.org>,
+ Christian Schoenebeck <linux_oss@crudebyte.com>,
+ David Sterba <dsterba@suse.com>, David Howells <dhowells@redhat.com>,
+ Marc Dionne <marc.dionne@auristor.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Benjamin LaHaise <bcrl@kvack.org>, Miklos Szeredi <miklos@szeredi.hu>,
+ Amir Goldstein <amir73il@gmail.com>,
+ Kent Overstreet <kent.overstreet@linux.dev>,
+ "Tigran A . Aivazian" <aivazian.tigran@gmail.com>,
+ Kees Cook <kees@kernel.org>, Chris Mason <clm@fb.com>,
+ Josef Bacik <josef@toxicpanda.com>, Xiubo Li <xiubli@redhat.com>,
+ Ilya Dryomov <idryomov@gmail.com>, Jan Harkes <jaharkes@cs.cmu.edu>,
+ coda@cs.cmu.edu, Tyler Hicks <code@tyhicks.com>, Gao Xiang
+ <xiang@kernel.org>, Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>,
+ Jeffle Xu <jefflexu@linux.alibaba.com>, Sandeep Dhavale
+ <dhavale@google.com>, Hongbo Li <lihongbo22@huawei.com>,
+ Namjae Jeon <linkinjeon@kernel.org>, Sungjong Seo <sj1557.seo@samsung.com>,
+ Yuezhang Mo <yuezhang.mo@sony.com>, Theodore Ts'o <tytso@mit.edu>,
+ Andreas Dilger <adilger.kernel@dilger.ca>, Jaegeuk Kim <jaegeuk@kernel.org>,
+ OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+ Viacheslav Dubeyko <slava@dubeyko.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Yangtao Li <frank.li@vivo.com>, Richard Weinberger <richard@nod.at>,
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+ David Woodhouse <dwmw2@infradead.org>, Dave Kleikamp <shaggy@kernel.org>,
+ Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
+ Ryusuke Konishi <konishi.ryusuke@gmail.com>,
+ Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+ Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>,
+ Joseph Qi <joseph.qi@linux.alibaba.com>, Bob Copeland <me@bobcopeland.com>,
+ Mike Marshall <hubcap@omnibond.com>, Martin Brandenburg
+ <martin@omnibond.com>, Steve French <sfrench@samba.org>,
+ Paulo Alcantara <pc@manguebit.org>,
+ Ronnie Sahlberg <ronniesahlberg@gmail.com>,
+ Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>,
+ Bharath SM <bharathsm@microsoft.com>, Zhihao Cheng
+ <chengzhihao1@huawei.com>, Hans de Goede <hdegoede@redhat.com>,
+ Carlos Maiolino <cem@kernel.org>, Damien Le Moal <dlemoal@kernel.org>,
+ Naohiro Aota <naohiro.aota@wdc.com>, Johannes Thumshirn <jth@kernel.org>,
+ Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>, linux-block@vger.kernel.org,
+ linux-kernel@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, v9fs@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org, linux-afs@lists.infradead.org,
+ linux-aio@kvack.org, linux-unionfs@vger.kernel.org,
+ linux-bcachefs@vger.kernel.org, linux-mm@kvack.org,
+ linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+ codalist@coda.cs.cmu.edu, ecryptfs@vger.kernel.org,
+ linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+ linux-f2fs-devel@lists.sourceforge.net, linux-um@lists.infradead.org,
+ linux-mtd@lists.infradead.org, jfs-discussion@lists.sourceforge.net,
+ linux-nfs@vger.kernel.org, linux-nilfs@vger.kernel.org,
+ ntfs3@lists.linux.dev, ocfs2-devel@lists.linux.dev,
+ linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
+ linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+ linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev
+References: <cover.1750099179.git.lorenzo.stoakes@oracle.com>
+ <8d389f4994fa736aa8f9172bef8533c10a9e9011.1750099179.git.lorenzo.stoakes@oracle.com>
+From: Vlastimil Babka <vbabka@suse.cz>
+Autocrypt: addr=vbabka@suse.cz; keydata=
+ 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
+ m6M14QORSWTLRg==
+In-Reply-To: <8d389f4994fa736aa8f9172bef8533c10a9e9011.1750099179.git.lorenzo.stoakes@oracle.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Queue-Id: 7242F1F7A8
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-1.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	FORGED_RECIPIENTS(2.00)[m:akpm@linux-foundation.org,m:axboe@kernel.dk,m:rodrigo.vivi@intel.com,m:airlied@gmail.com,m:simona@ffwll.ch,m:ericvh@kernel.org,m:lucho@ionkov.net,m:asmadeus@codewreck.org,m:linux_oss@crudebyte.com,m:marc.dionne@auristor.com,m:viro@zeniv.linux.org.uk,m:brauner@kernel.org,m:bcrl@kvack.org,m:amir73il@gmail.com,m:aivazian.tigran@gmail.com,m:kees@kernel.org,m:clm@fb.com,m:idryomov@gmail.com,m:jaharkes@cs.cmu.edu,m:coda@cs.cmu.edu,m:xiang@kernel.org,m:chao@kernel.org,m:zbestahu@gmail.com,m:dhavale@google.com,m:lihongbo22@huawei.com,m:linkinjeon@kernel.org,m:adilger.kernel@dilger.ca,m:jaegeuk@kernel.org,m:slava@dubeyko.com,m:frank.li@vivo.com,m:anton.ivanov@cambridgegreys.com,m:mikulas@artax.karlin.mff.cuni.cz,m:dwmw2@infradead.org,m:shaggy@kernel.org,m:trondmy@kernel.org,m:anna@kernel.org,m:konishi.ryusuke@gmail.com,m:mark@fasheh.com,m:jlbec@evilplan.org,m:me@bobcopeland.com,m:ronniesahlberg@gmail.com,m:chengzhihao1@huawei.com,m:cem@kernel.org,m:dlemoal@kernel.or
+ g,m:naohiro.aota@wdc.com,m:jth@kernel.org,m:dan.j.williams@intel.com,m:willy@infradead.org,m:jannh@google.com,m:linux-aio@kvack.org,m:linux-mm@kvack.org,m:codalist@coda.cs.cmu.edu,s:linux-mtd@lists.infradead.org,s:linux-um@lists.infradead.org,s:ntfs3@lists.linux.dev,s:nvdimm@lists.linux.dev,s:ocfs2-devel@lists.linux.dev,s:devel@lists.orangefs.org,s:samba-technical@lists.samba.org,s:jfs-discussion@lists.sourceforge.net,s:linux-karma-devel@lists.sourceforge.net];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	ARC_NA(0.00)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	FROM_HAS_DN(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[112];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	FREEMAIL_CC(0.00)[oracle.com,kernel.dk,linux.intel.com,intel.com,ursulin.net,gmail.com,ffwll.ch,kernel.org,ionkov.net,codewreck.org,crudebyte.com,suse.com,redhat.com,auristor.com,zeniv.linux.org.uk,suse.cz,kvack.org,szeredi.hu,linux.dev,fb.com,toxicpanda.com,cs.cmu.edu,tyhicks.com,linux.alibaba.com,google.com,huawei.com,samsung.com,sony.com,mit.edu,dilger.ca,mail.parknet.co.jp,dubeyko.com,physik.fu-berlin.de,vivo.com,nod.at,cambridgegreys.com,sipsolutions.net,artax.karlin.mff.cuni.cz,infradead.org,paragon-software.com,fasheh.com,evilplan.org,bobcopeland.com,omnibond.com,samba.org,manguebit.org,microsoft.com,talpey.com,wdc.com,suse.de,vger.kernel.org,lists.freedesktop.org,lists.linux.dev,lists.infradead.org,coda.cs.cmu.edu,lists.ozlabs.org,lists.sourceforge.net,lists.orangefs.org,lists.samba.org];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TAGGED_RCPT(0.00)[];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	R_RATELIMIT(0.00)[to_ip_from(RLtt3oo4rjgrukgqu3o4a3j6w6)];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.cz:mid,suse.cz:dkim,suse.cz:email,oracle.com:email]
+X-Spam-Score: -1.01
+X-Spam-Level: 
 
-On 17.06.25 18:18, David Hildenbrand wrote:
-> On 17.06.25 17:43, David Hildenbrand wrote:
->> RFC because it's based on mm-new where some things might still change
->> around the devmap removal stuff.
->>
->> While removing support for CoW PFNMAPs is a noble goal, I am not even sure
->> if we can remove said support for e.g., /dev/mem that easily.
->>
->> In the end, Cow PFNMAPs are pretty simple: everything is "special" except
->> CoW'ed anon folios, that are "normal".
->>
->> The only complication is: how to identify such pages without pte_special().
->> Because with pte_special(), it's easy.
->>
->> Well, of course, one day all architectures might support pte_special() ...
->> either because we added support for pte_special() or removed support for
->> ... these architectures from Linux.
->>
->> No need to wait for that day. Let's do some cleanups around
->> vm_normal_page()/vm_normal_page_pmd() and handling of the huge zero folio,
->> and remove the "horrible special case to handle copy-on-write behaviour"
->> that does questionable things in remap_pfn_range() with a VMA, simply by
->>
->> ... looking for anonymous folios in CoW PFNMAPs to identify anonymous
->> folios? I know, sounds crazy ;)
+On 6/16/25 21:33, Lorenzo Stoakes wrote:
+> The call_mmap() function violates the existing convention in
+> include/linux/fs.h whereby invocations of virtual file system hooks is
+> performed by functions prefixed with vfs_xxx().
 > 
-> I'll mention one corner case that just occurred to me: assume someone
-> maps arbitrary /dev/mem that is actually used by the kernel for user
-> space, and then some of that memory gets allocated as anonymous memory,
-> it would probably be a problem.
+> Correct this by renaming call_mmap() to vfs_mmap(). This also avoids
+> confusion as to the fact that f_op->mmap_prepare may be invoked here.
 > 
-> Hmm, I'll have to think about that, and the interaction with
-> CONFIG_STRICT_DEVMEM.
+> Also rename __call_mmap_prepare() function to vfs_mmap_prepare() and adjust
+> to accept a file parameter, this is useful later for nested file systems.
+> 
+> Finally, fix up the VMA userland tests and ensure the mmap_prepare -> mmap
+> shim is implemented there.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-The /dev/mem mapping of arbitrary memory is indeed the hard case. To 
-handle all that, patch #11 is too simplistic.
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 
-I have some idea how to make it work, but have to think about a couple 
-of corner cases.
-
--- 
-Cheers,
-
-David / dhildenb
+> ---
+>  drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c |  2 +-
+>  fs/backing-file.c                          |  2 +-
+>  fs/coda/file.c                             |  4 +--
+>  include/linux/fs.h                         |  5 ++--
+>  ipc/shm.c                                  |  2 +-
+>  mm/internal.h                              |  2 +-
+>  mm/vma.c                                   |  2 +-
+>  tools/testing/vma/vma_internal.h           | 32 ++++++++++++++++++----
+>  8 files changed, 35 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c
+> index 05e440643aa2..f4f1c979d1b9 100644
+> --- a/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c
+> +++ b/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c
+> @@ -105,7 +105,7 @@ static int i915_gem_dmabuf_mmap(struct dma_buf *dma_buf, struct vm_area_struct *
+>  	if (!obj->base.filp)
+>  		return -ENODEV;
+>  
+> -	ret = call_mmap(obj->base.filp, vma);
+> +	ret = vfs_mmap(obj->base.filp, vma);
+>  	if (ret)
+>  		return ret;
+>  
+> diff --git a/fs/backing-file.c b/fs/backing-file.c
+> index 763fbe9b72b2..04018679bf69 100644
+> --- a/fs/backing-file.c
+> +++ b/fs/backing-file.c
+> @@ -339,7 +339,7 @@ int backing_file_mmap(struct file *file, struct vm_area_struct *vma,
+>  	vma_set_file(vma, file);
+>  
+>  	old_cred = override_creds(ctx->cred);
+> -	ret = call_mmap(vma->vm_file, vma);
+> +	ret = vfs_mmap(vma->vm_file, vma);
+>  	revert_creds(old_cred);
+>  
+>  	if (ctx->accessed)
+> diff --git a/fs/coda/file.c b/fs/coda/file.c
+> index 148856a582a9..2e6ea9319b35 100644
+> --- a/fs/coda/file.c
+> +++ b/fs/coda/file.c
+> @@ -199,10 +199,10 @@ coda_file_mmap(struct file *coda_file, struct vm_area_struct *vma)
+>  	spin_unlock(&cii->c_lock);
+>  
+>  	vma->vm_file = get_file(host_file);
+> -	ret = call_mmap(vma->vm_file, vma);
+> +	ret = vfs_mmap(vma->vm_file, vma);
+>  
+>  	if (ret) {
+> -		/* if call_mmap fails, our caller will put host_file so we
+> +		/* if vfs_mmap fails, our caller will put host_file so we
+>  		 * should drop the reference to the coda_file that we got.
+>  		 */
+>  		fput(coda_file);
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 93ee0d2d6f1a..7120f80255b3 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2278,7 +2278,7 @@ static inline bool file_has_valid_mmap_hooks(struct file *file)
+>  
+>  int compat_vma_mmap_prepare(struct file *file, struct vm_area_struct *vma);
+>  
+> -static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
+> +static inline int vfs_mmap(struct file *file, struct vm_area_struct *vma)
+>  {
+>  	if (file->f_op->mmap_prepare)
+>  		return compat_vma_mmap_prepare(file, vma);
+> @@ -2286,8 +2286,7 @@ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
+>  	return file->f_op->mmap(file, vma);
+>  }
+>  
+> -static inline int __call_mmap_prepare(struct file *file,
+> -		struct vm_area_desc *desc)
+> +static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
+>  {
+>  	return file->f_op->mmap_prepare(desc);
+>  }
+> diff --git a/ipc/shm.c b/ipc/shm.c
+> index 492fcc699985..a9310b6dbbc3 100644
+> --- a/ipc/shm.c
+> +++ b/ipc/shm.c
+> @@ -602,7 +602,7 @@ static int shm_mmap(struct file *file, struct vm_area_struct *vma)
+>  	if (ret)
+>  		return ret;
+>  
+> -	ret = call_mmap(sfd->file, vma);
+> +	ret = vfs_mmap(sfd->file, vma);
+>  	if (ret) {
+>  		__shm_close(sfd);
+>  		return ret;
+> diff --git a/mm/internal.h b/mm/internal.h
+> index 3823fb356d3b..a55c88afff6d 100644
+> --- a/mm/internal.h
+> +++ b/mm/internal.h
+> @@ -165,7 +165,7 @@ static inline void *folio_raw_mapping(const struct folio *folio)
+>   */
+>  static inline int mmap_file(struct file *file, struct vm_area_struct *vma)
+>  {
+> -	int err = call_mmap(file, vma);
+> +	int err = vfs_mmap(file, vma);
+>  
+>  	if (likely(!err))
+>  		return 0;
+> diff --git a/mm/vma.c b/mm/vma.c
+> index 5d35adadf2b5..f548bede3bbe 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -2582,7 +2582,7 @@ static int call_mmap_prepare(struct mmap_state *map)
+>  	};
+>  
+>  	/* Invoke the hook. */
+> -	err = __call_mmap_prepare(map->file, &desc);
+> +	err = vfs_mmap_prepare(map->file, &desc);
+>  	if (err)
+>  		return err;
+>  
+> diff --git a/tools/testing/vma/vma_internal.h b/tools/testing/vma/vma_internal.h
+> index d7fea56e3bb3..51dd122b8d50 100644
+> --- a/tools/testing/vma/vma_internal.h
+> +++ b/tools/testing/vma/vma_internal.h
+> @@ -1458,6 +1458,27 @@ static inline void free_anon_vma_name(struct vm_area_struct *vma)
+>  	(void)vma;
+>  }
+>  
+> +/* Declared in vma.h. */
+> +static inline void set_vma_from_desc(struct vm_area_struct *vma,
+> +		struct vm_area_desc *desc);
+> +
+> +static inline struct vm_area_desc *vma_to_desc(struct vm_area_struct *vma,
+> +		struct vm_area_desc *desc);
+> +
+> +static int compat_vma_mmap_prepare(struct file *file,
+> +		struct vm_area_struct *vma)
+> +{
+> +	struct vm_area_desc desc;
+> +	int err;
+> +
+> +	err = file->f_op->mmap_prepare(vma_to_desc(vma, &desc));
+> +	if (err)
+> +		return err;
+> +	set_vma_from_desc(vma, &desc);
+> +
+> +	return 0;
+> +}
+> +
+>  /* Did the driver provide valid mmap hook configuration? */
+>  static inline bool file_has_valid_mmap_hooks(struct file *file)
+>  {
+> @@ -1467,22 +1488,21 @@ static inline bool file_has_valid_mmap_hooks(struct file *file)
+>  	/* Hooks are mutually exclusive. */
+>  	if (WARN_ON_ONCE(has_mmap && has_mmap_prepare))
+>  		return false;
+> -	if (WARN_ON_ONCE(!has_mmap && !has_mmap_prepare))
+> +	if (!has_mmap && !has_mmap_prepare)
+>  		return false;
+>  
+>  	return true;
+>  }
+>  
+> -static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
+> +static inline int vfs_mmap(struct file *file, struct vm_area_struct *vma)
+>  {
+> -	if (WARN_ON_ONCE(file->f_op->mmap_prepare))
+> -		return -EINVAL;
+> +	if (file->f_op->mmap_prepare)
+> +		return compat_vma_mmap_prepare(file, vma);
+>  
+>  	return file->f_op->mmap(file, vma);
+>  }
+>  
+> -static inline int __call_mmap_prepare(struct file *file,
+> -		struct vm_area_desc *desc)
+> +static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
+>  {
+>  	return file->f_op->mmap_prepare(desc);
+>  }
 
