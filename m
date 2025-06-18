@@ -1,139 +1,126 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97A17188006;
-	Wed, 18 Jun 2025 20:41:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D6126FA5C
+	for <nvdimm@lists.linux.dev>; Wed, 18 Jun 2025 21:17:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750279279; cv=none; b=D54mu/XI+rVH38DQViNKr6UfQRhvCsPlbPYiuXrdhd1lmBJeQk5R7jvkPrk0TmTOMy0cRW55uj0A5TfRbaq29sYyXxT78M7clNsHWJ0LpFju8xtI8T0Wqw5MAfJLa9klxSt+tBZ0RtUIq/qEDQhMp6UlqFWj4VCoMooQKoydV98=
+	t=1750281438; cv=none; b=RMnMZqxUX1KKylXxj8mm4yD8zgY8+yCVeAioqSqYrAZKKsPWOkrr3eG9XaWUfhJ/m7OBC4/fB0Q2llZpv4jGTAUqLdQ/9sS36LISjsgVrvIM8/GtGP0WWGXzFMgZmVxIaHevceBNV65NsZSetxDtZ7d8abwqOOuyLk9fqUGjN7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750279279; c=relaxed/simple;
-	bh=O4HA3iwZlFIFlpKwbnMUzLJLnJoqRYO06yEEbTvYnqc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sfCISM4X8eBfRWDOgchiB4AMXu7UtXDJgAsnQCXlqVH/6ye+hqiCQYTJReRayJpQ4J96zP5sA22HvktXr/oqcUWjQrMLtcvdthj6MlFPTOQahXS3El+vfMcjy/yl7TPtw6jJhU3S3pjQHMOr4l45ojlOvyWXPJ7V+x2uRLK+Qms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E19C6C4CEE7;
-	Wed, 18 Jun 2025 20:41:18 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: alison.schofield@intel.com
-Subject: [NDCTL PATCH] cxl: Add helper function to verify port is in memdev hierarchy
-Date: Wed, 18 Jun 2025 13:41:17 -0700
-Message-ID: <20250618204117.4039030-1-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.49.0
+	s=arc-20240116; t=1750281438; c=relaxed/simple;
+	bh=KOEdlJiFTe+BKwO/glGv/UDTx5u3EWhGFs42UjnrPvk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BOm6apy3qg27+cv/cZYryLhsKuxJr1LOhrQMvcNubNrysSfIVx7eTMIl7KM8HfNxsQIoXlmCyawskNypiSSma0mM8xkpU2uR9KQR7cINlkJ5gjXcuuMRggNB2gZLRUxw7KZJ4Yi6PAXVICVyAHUo9Edyc7XF+ZbPCJRxA5Djd4w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xalkmmc9; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xalkmmc9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5740BC4CEEF;
+	Wed, 18 Jun 2025 21:17:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1750281438;
+	bh=KOEdlJiFTe+BKwO/glGv/UDTx5u3EWhGFs42UjnrPvk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Xalkmmc9lBVHnHqvSKVAyn2X9Z/p24HQJAE1EnfIInP6cyPmXNiIiZdgA4Vz9P0Ka
+	 vlTMUlRBiP7lfkGLnRMehreY/IaGQQL0FHJ0jyGMaOziObPyRrFqkWMd4h58jcOoBJ
+	 E50oJhdMsrxnP66TK66u/iwiozRJcVrd8WfoZhVD6YN8Y6rpYOI+opR+fbMZxSWahP
+	 NQfPVwI/LPEodjKco+bjeFFspeachc2uyBv+g/pACl5ktiuPgBDNxZxHulA/BmhDb8
+	 k96qY8/zzGBB/NbudKj3nDtjRMaCjMbPEdYGJlexw5KuiI6+B5D/hOnEC97J15D3wl
+	 CGmTR+mfC8Lcg==
+Date: Wed, 18 Jun 2025 14:17:17 -0700
+From: Kees Cook <kees@kernel.org>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Peter Xu <peterx@redhat.com>, David Hildenbrand <david@redhat.com>,
+	Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
+	Harry Yoo <harry.yoo@oracle.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
+Message-ID: <202506181416.A32D378A6@keescook>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
 
-'cxl enable-port -m' uses cxl_port_get_dport_by_memdev() to find the
-memdevs that are associated with a port in order to enable those
-associated memdevs. When the kernel switch to delayed dport
-initialization by enumerating the dports during memdev probe, the
-dports are no longer valid until the memdev is probed. This means
-that cxl_port_get_dport_by_memdev() will not find any memdevs under
-the port.
+On Wed, Jun 18, 2025 at 08:42:53PM +0100, Lorenzo Stoakes wrote:
+> The core kernel code is currently very inconsistent in its use of
+> vm_flags_t vs. unsigned long. This prevents us from changing the type of
+> vm_flags_t in the future and is simply not correct, so correct this.
 
-Add a new helper function cxl_port_is_memdev_hierarchy() that checks if a
-port is in the memdev hierarchy via the memdev->host_path where the sysfs
-path contains all the devices in the hierarchy. This call is also backward
-compatible with the old behavior.
+Thank you for doing this!
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- cxl/lib/libcxl.c   | 31 +++++++++++++++++++++++++++++++
- cxl/lib/libcxl.sym |  5 +++++
- cxl/libcxl.h       |  3 +++
- cxl/port.c         |  2 +-
- 4 files changed, 40 insertions(+), 1 deletion(-)
+> 
+> While this results in rather a lot of churn, it is a critical pre-requisite
+> for a future planned change to VMA flag type.
+> 
+> Additionally, update VMA userland tests to account for the changes.
+> 
+> To make review easier and to break things into smaller parts, driver and
+> architecture-specific changes is left for a subsequent commit.
+> 
+> The code has been adjusted to cascade the changes across all calling code
+> as far as is needed.
+> 
+> We will adjust architecture-specific and driver code in a subsequent patch.
+> 
+> Overall, this patch does not introduce any functional change.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> ---
+>  fs/exec.c                        |   2 +-
 
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 5d97023377ec..cafde1cee4e8 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -2024,6 +2024,37 @@ CXL_EXPORT int cxl_memdev_nvdimm_bridge_active(struct cxl_memdev *memdev)
- 	return is_enabled(path);
- }
- 
-+CXL_EXPORT bool cxl_memdev_is_port_ancestor(struct cxl_memdev *memdev,
-+					    struct cxl_port *port)
-+{
-+	const char *uport = cxl_port_get_host(port);
-+	const char *start = "devices";
-+	const char *pstr = "platform";
-+	char *host, *pos;
-+
-+	host = strdup(memdev->host_path);
-+	if (!host)
-+		return false;
-+
-+	pos = strstr(host, start);
-+	pos += strlen(start) + 1;
-+	if (strncmp(pos, pstr, strlen(pstr)) == 0)
-+		pos += strlen(pstr) + 1;
-+	pos = strtok(pos, "/");
-+
-+	while (pos) {
-+		if (strcmp(pos, uport) == 0) {
-+			free(host);
-+			return true;
-+		}
-+		pos = strtok(NULL, "/");
-+	}
-+
-+	free(host);
-+
-+	return false;
-+}
-+
- static int cxl_port_init(struct cxl_port *port, struct cxl_port *parent_port,
- 			 enum cxl_port_type type, struct cxl_ctx *ctx, int id,
- 			 const char *cxlport_base)
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 3ad0cd06e25a..e01a676cdeb9 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -295,3 +295,8 @@ global:
- 	cxl_fwctl_get_major;
- 	cxl_fwctl_get_minor;
- } LIBECXL_8;
-+
-+LIBCXL_10 {
-+global:
-+	cxl_memdev_is_port_ancestor;
-+} LIBCXL_9;
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 54d97d7bb501..54bc025b121d 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -179,6 +179,9 @@ bool cxl_dport_maps_memdev(struct cxl_dport *dport, struct cxl_memdev *memdev);
- struct cxl_dport *cxl_port_get_dport_by_memdev(struct cxl_port *port,
- 					       struct cxl_memdev *memdev);
- 
-+bool cxl_memdev_is_port_ancestor(struct cxl_memdev *memdev,
-+				 struct cxl_port *port);
-+
- #define cxl_dport_foreach(port, dport)                                         \
- 	for (dport = cxl_dport_get_first(port); dport != NULL;                 \
- 	     dport = cxl_dport_get_next(dport))
-diff --git a/cxl/port.c b/cxl/port.c
-index 89f3916d85aa..c951c0c771e8 100644
---- a/cxl/port.c
-+++ b/cxl/port.c
-@@ -102,7 +102,7 @@ static int action_enable(struct cxl_port *port)
- 		return rc;
- 
- 	cxl_memdev_foreach(ctx, memdev)
--		if (cxl_port_get_dport_by_memdev(port, memdev))
-+		if (cxl_memdev_is_port_ancestor(memdev, port))
- 			cxl_memdev_enable(memdev);
- 	return 0;
- }
+Acked-by: Kees Cook <kees@kernel.org>
 
-base-commit: 74b9e411bf13e87df39a517d10143fafa7e2ea92
 -- 
-2.49.0
-
+Kees Cook
