@@ -1,75 +1,38 @@
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2BE22756A
-	for <nvdimm@lists.linux.dev>; Thu, 19 Jun 2025 12:06:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21E7621D011
+	for <nvdimm@lists.linux.dev>; Thu, 19 Jun 2025 12:12:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750334819; cv=none; b=l21pGUsU0GczdhJMrB0Xvq4qxUXLYfy7MOYYqOinB8wpqurmsxVutNaYO8e5axw/3jlhS9J9l3aa+SlMN+lVt0W9B5X5K7FzZkuu3pe920BDTugZiZolLpmzAW2ySQ/3Ws+f5RRaP2eLtq8OLGaFaQGwQMgKJEwk5p7XHOF9xTs=
+	t=1750335178; cv=none; b=sqmaSP4T+4dWdZYCC4H1Shl20sQRix7AJCgtmSgZ2Id5ekZ24CgC5028km0RmtlMDHlWWcyvhSQVKSy0nBMqTCzc0XcfC8tquYChzX4BOOUnfIyRVZlakUE8NeMFo6VwrlIqdKK9guv5xqKiw7AWAVCg+NJcLexlFyV8+Re1nis=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750334819; c=relaxed/simple;
-	bh=tX+A3EmaSS8rn3OgKbgRud59BlcHQJ+KbZ2DJIx1Omw=;
+	s=arc-20240116; t=1750335178; c=relaxed/simple;
+	bh=3aR7ijKhs4cMdRhIavTaxoR3+StcHCkyGT8FAX3AItY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ArCEoNg90FNVVNZFyMvrWyvi2CfU4IC2n0GXcCHM5LjN5KAJQbPGtwCCJX5vFRH8kMi1iqON4Hjk6trzUCL833xC+y4xZ+krDGZVRGjLtuHq1psz2ee1DfdfrHylThACjd0HyYJjjHn3DC4vnUuezwvbLvaseIANabb3IcoePAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=zqPcFbLf; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=jEwdsj8r; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=zqPcFbLf; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=jEwdsj8r; arc=none smtp.client-ip=195.135.223.131
+	 Content-Type:Content-Disposition:In-Reply-To; b=CldPsiymOsO4Oiyo9I27711XVKj/E+ZUVT8dGjeuEzv03RBTKgu1S36J/RxpDK1szl0luYZragGz1FBsfqofXym5XFAhdPbUbl+SeNgFmElpFXy3Va7zmrt2EY1rmmsjwKPbcD6XxgdlLxMXDJpef7LYUY8OcfI4wm25q/jEKvU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="zqPcFbLf";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="jEwdsj8r";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="zqPcFbLf";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="jEwdsj8r"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id A9CA91F38D;
-	Thu, 19 Jun 2025 12:06:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1750334815; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KDAuEsNXKXygaILSEXeEMNcT2WMigGIcctwMV7a0cE8=;
-	b=zqPcFbLfpUQLjy+Nw4cOX/B2LiApdKR7t9DEm9m3vLLybWpiWlFBWTl6QNGFMMJe81DLE6
-	1uGk7SLFk0EUnA6QiPQBz3Kv/z1D/ZNALQXlfFywd0PzUqn46btyJOJmbpixQ6uQ0pR4Mz
-	lMMpI0foMRv6N403hLovr2WkJq9iRKQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1750334815;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KDAuEsNXKXygaILSEXeEMNcT2WMigGIcctwMV7a0cE8=;
-	b=jEwdsj8rqU+sAaEm1rAhYOm4nratZdmqMyGOXNSbv1Zh1lQm/lkFeChFWsq3xyo2+/dtFQ
-	eI1mhCTdCBSEvaDQ==
+	by smtp-out2.suse.de (Postfix) with ESMTPS id EF7911F38D;
+	Thu, 19 Jun 2025 12:12:54 +0000 (UTC)
 Authentication-Results: smtp-out2.suse.de;
 	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1750334815; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KDAuEsNXKXygaILSEXeEMNcT2WMigGIcctwMV7a0cE8=;
-	b=zqPcFbLfpUQLjy+Nw4cOX/B2LiApdKR7t9DEm9m3vLLybWpiWlFBWTl6QNGFMMJe81DLE6
-	1uGk7SLFk0EUnA6QiPQBz3Kv/z1D/ZNALQXlfFywd0PzUqn46btyJOJmbpixQ6uQ0pR4Mz
-	lMMpI0foMRv6N403hLovr2WkJq9iRKQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1750334815;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KDAuEsNXKXygaILSEXeEMNcT2WMigGIcctwMV7a0cE8=;
-	b=jEwdsj8rqU+sAaEm1rAhYOm4nratZdmqMyGOXNSbv1Zh1lQm/lkFeChFWsq3xyo2+/dtFQ
-	eI1mhCTdCBSEvaDQ==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id AB002136CC;
-	Thu, 19 Jun 2025 12:06:51 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id F06A3136CC;
+	Thu, 19 Jun 2025 12:12:50 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id QUQhJlv9U2iXdgAAD6G6ig
-	(envelope-from <osalvador@suse.de>); Thu, 19 Jun 2025 12:06:51 +0000
-Date: Thu, 19 Jun 2025 14:06:49 +0200
+	id PH/eNsL+U2gneAAAD6G6ig
+	(envelope-from <osalvador@suse.de>); Thu, 19 Jun 2025 12:12:50 +0000
+Date: Thu, 19 Jun 2025 14:12:49 +0200
 From: Oscar Salvador <osalvador@suse.de>
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>,
@@ -120,11 +83,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
 	nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
- consistently
-Message-ID: <aFP9WQSn2AZbRIb4@localhost.localdomain>
+Subject: Re: [PATCH 1/3] mm: change vm_get_page_prot() to accept vm_flags_t
+ argument
+Message-ID: <aFP-wf0w8Dno3YyV@localhost.localdomain>
 References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
- <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
+ <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -133,64 +96,41 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
-X-Spamd-Result: default: False [-8.30 / 50.00];
-	REPLY(-4.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	URIBL_BLOCKED(0.00)[localhost.localdomain:mid,imap1.dmz-prg2.suse.org:helo,suse.de:email,oracle.com:email];
-	TO_DN_SOME(0.00)[];
-	R_RATELIMIT(0.00)[to_ip_from(RLj6zumtikrrmnnbmzkety5zmd)];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[linux-foundation.org,armlinux.org.uk,arm.com,kernel.org,linux.ibm.com,ellerman.id.au,gmail.com,csgroup.eu,davemloft.net,gaisler.com,linux.intel.com,linutronix.de,redhat.com,alien8.de,zytor.com,infradead.org,zeniv.linux.org.uk,suse.cz,nvidia.com,linux.alibaba.com,oracle.com,zte.com.cn,linux.dev,google.com,suse.com,surriel.com,intel.com,goodmis.org,efficios.com,ziepe.ca,suse.de,cmpxchg.org,bytedance.com,lists.infradead.org,vger.kernel.org,lists.ozlabs.org,kvack.org,lists.linux.dev];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_GT_50(0.00)[64];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,oracle.com:email]
+In-Reply-To: <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
 X-Spam-Level: 
+X-Spamd-Result: default: False [-4.00 / 50.00];
+	REPLY(-4.00)[]
 X-Spam-Flag: NO
-X-Spam-Score: -8.30
+X-Rspamd-Queue-Id: EF7911F38D
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
+X-Rspamd-Action: no action
+X-Spam-Score: -4.00
 
-On Wed, Jun 18, 2025 at 08:42:53PM +0100, Lorenzo Stoakes wrote:
-> The core kernel code is currently very inconsistent in its use of
-> vm_flags_t vs. unsigned long. This prevents us from changing the type of
-> vm_flags_t in the future and is simply not correct, so correct this.
+On Wed, Jun 18, 2025 at 08:42:52PM +0100, Lorenzo Stoakes wrote:
+> We abstract the type of the VMA flags to vm_flags_t, however in may places
+                                                                  many?
+> it is simply assumed this is unsigned long, which is simply incorrect.
 > 
-> While this results in rather a lot of churn, it is a critical pre-requisite
-> for a future planned change to VMA flag type.
-> 
-> Additionally, update VMA userland tests to account for the changes.
-> 
-> To make review easier and to break things into smaller parts, driver and
-> architecture-specific changes is left for a subsequent commit.
-> 
-> The code has been adjusted to cascade the changes across all calling code
-> as far as is needed.
-> 
-> We will adjust architecture-specific and driver code in a subsequent patch.
+> At the moment this is simply an incongruity, however in future we plan to
+> change this type and therefore this change is a critical requirement for
+> doing so.
 > 
 > Overall, this patch does not introduce any functional change.
 > 
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 
-Heh, for one second I thought this was about to convert vm_fault->flags to
-the actual enum fault_flag (which wouldn't be bad if you ask me, because
-"unsigned int flags" is not very descriptive).
+Same comments as Vlastimil, you want to push vmflag_to_pte_pkey_bits
+further to patch#2 and bring 
 
-But this is quite good as well, brings in some consistency.
+arch/powerpc/mm/book3s64/pgtable.c:pgprot_t vm_get_page_prot(unsigned long vm_flags)
 
 
 -- 
