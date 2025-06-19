@@ -1,80 +1,80 @@
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F1B621FF33
-	for <nvdimm@lists.linux.dev>; Thu, 19 Jun 2025 11:31:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 527D422DFA8
+	for <nvdimm@lists.linux.dev>; Thu, 19 Jun 2025 11:48:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750332716; cv=none; b=r9r6dx2zgaUponvYI1qJ60ykegR8UyaioAkry/EQgvwdHtl+IZggwRmOiuDtWLSul883A9VOICXtZDJ4nbfxaRRil/CkNJTCUtHezIVE9YUIL3ml/wdxvf3wFuUOOeP+HrZpg/b4QtdpViEt8HAHp18EvWtEs5NovILzSWyEVjw=
+	t=1750333720; cv=none; b=ZoYqDA/fEOAnu5kaxFmJ8BMlctQ/sjIUL1fPsgHU5a2opLBMcWcrxnlSJMMesDvqtkGiPvslGpMgT6Gbab1D1uV7rLI+k6wf5S58s/YnwTaFBM5EaTFVagdxjOhYwX9jwbbVXvGeJVK18aU9CrXE/0/gwm+CKN6NLvZfb1Zww74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750332716; c=relaxed/simple;
-	bh=3MPrInjo3388gIKmhUGr9uGPORntDZqz8a3nFubP/rA=;
+	s=arc-20240116; t=1750333720; c=relaxed/simple;
+	bh=BdsqGUxBzOnKdNyRdeLTIRnnhJzKZjz0Zd3NinBJBeo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=JPlwsS3uM5mEj1933W+rDQAPW7cqDx2vbRYhkeF0wTAKx6Pjuf6BsKeuGVsM1Ke7nV9RtK8fE9K7nGzM7N1hcW41ACnG6eeYeYUYJ9k2X/Y9BFR71Y5g3XFOHFYwxLmH8gXROvzjqvIVXVidd7a7i/k6iUVgGIq07MhFQ/ijs3U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=ORRDZCJo; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=CawkEKS+; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=ORRDZCJo; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=CawkEKS+; arc=none smtp.client-ip=195.135.223.130
+	 In-Reply-To:Content-Type; b=R9obcBuSx/tyqBUvf3mPJW6ik9HGOjMeMkg2pW2FyPnYc+X5NbjH4ehMYzQVJrr3L9DKBxsj3HcQ0ZYI3NLnpSfD1WM6C5PMUpfAoIA37OG6cdde36MbsfOHXGdiGZrl366a8t7/RcDUipey1i9Li3lZzrOI6rfAYoN2JaPXeUA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=GR60kMZn; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=WsHbjhpp; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=GR60kMZn; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=WsHbjhpp; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="ORRDZCJo";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="CawkEKS+";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="ORRDZCJo";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="CawkEKS+"
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="GR60kMZn";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="WsHbjhpp";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="GR60kMZn";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="WsHbjhpp"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id F16ED21167;
-	Thu, 19 Jun 2025 11:31:50 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id C68B2211A5;
+	Thu, 19 Jun 2025 11:48:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1750332711; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1750333714; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Vy6q/qAZZ4wtLIbHS8N+vM6XFaUQj9p52F4nf7N5GdM=;
-	b=ORRDZCJoBM26nDpjd/KgUa/6ZP6tTmYRsVXaRbUN5TowbQQxCyChfOUTcYOFgRdwH7/NWe
-	t93sXgztHbsGfUDdQHOkOYx60mw4QvZHCvcjHbDpI9z36SFidB9BMD9sSeXPPkdlEPPdpx
-	IsNy7wdd8MXe2iaL8Kf+a/WuWlGGaMA=
+	bh=045SGeXJhHUu8JEI4qhgsPRhkcMCEyOeFZ5KmNQEbxY=;
+	b=GR60kMZniEsFi4imY9KmMbHhGvpzq7XPb9jHieIiFEWXiDaL0GNw0vOxFUSA7Z3Rm6u5Lt
+	i8xCUliB6uPVWfbalcczoPtCAk+9qvj9Gkak5xihyA2mKX9GYqxQ2wPZEOiXelXGcrMMRR
+	3zx+ni6e31N4Ij2PxuFYtErktog15CA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1750332711;
+	s=susede2_ed25519; t=1750333714;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Vy6q/qAZZ4wtLIbHS8N+vM6XFaUQj9p52F4nf7N5GdM=;
-	b=CawkEKS+EXyfYcE/uK+4SPivyxpmZHr+oR1eiPkK419rJYeqwUtwQX2UXZTSWdXK6Eq99z
-	EPyKy0xEKIcKsBAg==
+	bh=045SGeXJhHUu8JEI4qhgsPRhkcMCEyOeFZ5KmNQEbxY=;
+	b=WsHbjhppATojPNqwvpWdhAc8jff+LG48TR17NRq6+06zLcCadnM5O6A6z6saTAFbNIwtsW
+	5kNyZue9iIu4PTDQ==
 Authentication-Results: smtp-out1.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1750332711; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1750333714; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Vy6q/qAZZ4wtLIbHS8N+vM6XFaUQj9p52F4nf7N5GdM=;
-	b=ORRDZCJoBM26nDpjd/KgUa/6ZP6tTmYRsVXaRbUN5TowbQQxCyChfOUTcYOFgRdwH7/NWe
-	t93sXgztHbsGfUDdQHOkOYx60mw4QvZHCvcjHbDpI9z36SFidB9BMD9sSeXPPkdlEPPdpx
-	IsNy7wdd8MXe2iaL8Kf+a/WuWlGGaMA=
+	bh=045SGeXJhHUu8JEI4qhgsPRhkcMCEyOeFZ5KmNQEbxY=;
+	b=GR60kMZniEsFi4imY9KmMbHhGvpzq7XPb9jHieIiFEWXiDaL0GNw0vOxFUSA7Z3Rm6u5Lt
+	i8xCUliB6uPVWfbalcczoPtCAk+9qvj9Gkak5xihyA2mKX9GYqxQ2wPZEOiXelXGcrMMRR
+	3zx+ni6e31N4Ij2PxuFYtErktog15CA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1750332711;
+	s=susede2_ed25519; t=1750333714;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Vy6q/qAZZ4wtLIbHS8N+vM6XFaUQj9p52F4nf7N5GdM=;
-	b=CawkEKS+EXyfYcE/uK+4SPivyxpmZHr+oR1eiPkK419rJYeqwUtwQX2UXZTSWdXK6Eq99z
-	EPyKy0xEKIcKsBAg==
+	bh=045SGeXJhHUu8JEI4qhgsPRhkcMCEyOeFZ5KmNQEbxY=;
+	b=WsHbjhppATojPNqwvpWdhAc8jff+LG48TR17NRq6+06zLcCadnM5O6A6z6saTAFbNIwtsW
+	5kNyZue9iIu4PTDQ==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8F9E913721;
-	Thu, 19 Jun 2025 11:31:50 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 60CAD136CC;
+	Thu, 19 Jun 2025 11:48:34 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id SfepIib1U2htbAAAD6G6ig
-	(envelope-from <vbabka@suse.cz>); Thu, 19 Jun 2025 11:31:50 +0000
-Message-ID: <fad65354-804e-447f-9779-2c69a87f3e4d@suse.cz>
-Date: Thu, 19 Jun 2025 13:31:50 +0200
+	id iWtSFxL5U2g4cQAAD6G6ig
+	(envelope-from <vbabka@suse.cz>); Thu, 19 Jun 2025 11:48:34 +0000
+Message-ID: <4735002d-3254-41a2-8a3a-5597afcdc6e6@suse.cz>
+Date: Thu, 19 Jun 2025 13:48:34 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -82,8 +82,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/3] mm: change vm_get_page_prot() to accept vm_flags_t
- argument
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
 Content-Language: en-US
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  Andrew Morton <akpm@linux-foundation.org>
@@ -124,7 +124,7 @@ Cc: Russell King <linux@armlinux.org.uk>,
  linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
  linux-trace-kernel@vger.kernel.org
 References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
- <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
 From: Vlastimil Babka <vbabka@suse.cz>
 Autocrypt: addr=vbabka@suse.cz; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -165,11 +165,9 @@ Autocrypt: addr=vbabka@suse.cz; keydata=
  rywqgzTUhHFKKF6/9L/lYtrNcHU8Z6Y4Ju/MLUiNYkmtrGIMnkjKCiRqlRrZE/v5YFHbayRD
  dJKXobXTtCBYpLJM4ZYRpGZXne/FAtWNe4KbNJJqxMvrTOrnIatPj8NhBVI0RSJRsbilh6TE
  m6M14QORSWTLRg==
-In-Reply-To: <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
+In-Reply-To: <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Spam-Flag: NO
-X-Spam-Score: -8.30
 X-Spamd-Result: default: False [-8.30 / 50.00];
 	REPLY(-4.00)[];
 	BAYES_HAM(-3.00)[100.00%];
@@ -192,44 +190,34 @@ X-Spamd-Result: default: False [-8.30 / 50.00];
 	RCVD_COUNT_TWO(0.00)[2];
 	RCVD_TLS_ALL(0.00)[];
 	RCPT_COUNT_GT_50(0.00)[64];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.cz:mid,suse.cz:email]
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,oracle.com:email]
 X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spam-Score: -8.30
 
 On 6/18/25 21:42, Lorenzo Stoakes wrote:
-> We abstract the type of the VMA flags to vm_flags_t, however in may places
-> it is simply assumed this is unsigned long, which is simply incorrect.
+> The core kernel code is currently very inconsistent in its use of
+> vm_flags_t vs. unsigned long. This prevents us from changing the type of
+> vm_flags_t in the future and is simply not correct, so correct this.
 > 
-> At the moment this is simply an incongruity, however in future we plan to
-> change this type and therefore this change is a critical requirement for
-> doing so.
+> While this results in rather a lot of churn, it is a critical pre-requisite
+> for a future planned change to VMA flag type.
 > 
+> Additionally, update VMA userland tests to account for the changes.
+> 
+> To make review easier and to break things into smaller parts, driver and
+> architecture-specific changes is left for a subsequent commit.
+> 
+> The code has been adjusted to cascade the changes across all calling code
+> as far as is needed.
+> 
+> We will adjust architecture-specific and driver code in a subsequent patch.
+
+Nit: this line is redundant with 2 paragraphs above.
+
 > Overall, this patch does not introduce any functional change.
 > 
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-> diff --git a/arch/powerpc/include/asm/book3s/64/pkeys.h b/arch/powerpc/include/asm/book3s/64/pkeys.h
-> index 5b178139f3c0..6f2075636591 100644
-> --- a/arch/powerpc/include/asm/book3s/64/pkeys.h
-> +++ b/arch/powerpc/include/asm/book3s/64/pkeys.h
-> @@ -4,8 +4,9 @@
->  #define _ASM_POWERPC_BOOK3S_64_PKEYS_H
->  
->  #include <asm/book3s/64/hash-pkey.h>
-> +#include <linux/mm_types.h>
-
-Hopefully not causing a circular header include.
-
-> -static inline u64 vmflag_to_pte_pkey_bits(u64 vm_flags)
-> +static inline u64 vmflag_to_pte_pkey_bits(vm_flags_t vm_flags)
-
-Is this change rather for patch 3? It's not changing vm_get_page_prot().
-OTOH git grep shows me you missed:
-
-arch/powerpc/mm/book3s64/pgtable.c:pgprot_t vm_get_page_prot(unsigned long
-vm_flags)
-
-With that sorted out, feel free to add:
-
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 
-Thanks!
