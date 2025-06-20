@@ -1,154 +1,176 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28945291880
-	for <nvdimm@lists.linux.dev>; Fri, 20 Jun 2025 14:15:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00DA4253F16
+	for <nvdimm@lists.linux.dev>; Fri, 20 Jun 2025 16:40:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750428956; cv=none; b=fSalpnUqbXoOYU2UmStqaj7uFrvO+l3hGOxRfDINbE0SDZkGSDnwUOB5FwGFZlsnGEDjQcGdXlOxJOKq+tC6IOjd0MXrP0GtygM+fvAt5+PKft3DeHoaUrylg4xoSQyu4l0cHbs63mAI9YaoXjQ5EAayG2pAgTc8fzhh8sLTi9c=
+	t=1750437611; cv=none; b=m1TSgJxcHdngSsd4rZEaGfXiQZmkwcAqy99/NnVulhIGxpWuRgFKeh0YWN8Zvw7wBx2sk1xohkyTWSrMGd4oK6761fGrJB296uhFh3NvdEzJAmWKx7lMaPmDwxlhBkbpox9EFZnodi8WgYR9J7hGNQMGCtdV/JW555bGx4G/zko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750428956; c=relaxed/simple;
-	bh=F0sFFg4WY7PQuY4wYewYg9A9zrKflOxg2ty/KbHq+f0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jYiF56jin51DPLMAgmIFM3IHAbF2tMe06iNIldDpR2RTsWxLYhJOS2QqQEFQbllp4k4YGsCAQryuGgV2IbE+i3duc9GkUNvk5RnYGcXgyaryyxI0MOsVNvAz8sQ3OFaSQaAB1l2UDSjzclvCaGBUAhVITYUQK93+ZytRrYHTPfI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=aMTNK6bF; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Dsn/RRgH; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=aMTNK6bF; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Dsn/RRgH; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="aMTNK6bF";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Dsn/RRgH";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="aMTNK6bF";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Dsn/RRgH"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 5B60F211A5;
-	Fri, 20 Jun 2025 14:15:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1750428953; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Iy8uiyDCnb7/ShweAbaj3EpAotYxY8WSok7RG+w29ZU=;
-	b=aMTNK6bFQCzwJWnt+tNCp9QhNUzOyDwE0EIEHu3+va5xDJRAPE30sSH6Fg9X5nw6rO4ByF
-	S8irJXSRXkaoHLiSlL4UF5K+gieACGaABtvu12gV90SDW+QYxFhIi1h27WfG7dPkP+CX0Z
-	x8O7pc7iUloa2Za0TN+9KhwLLOsTmfg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1750428953;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Iy8uiyDCnb7/ShweAbaj3EpAotYxY8WSok7RG+w29ZU=;
-	b=Dsn/RRgHrhRs4IqSLlpoySY7Ty1c7sUK2iWHv69hx8LmEwh6y0Sy1i1Y/lJm13hHYe57aw
-	maj19KwrK5O4gmCw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=aMTNK6bF;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b="Dsn/RRgH"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1750428953; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Iy8uiyDCnb7/ShweAbaj3EpAotYxY8WSok7RG+w29ZU=;
-	b=aMTNK6bFQCzwJWnt+tNCp9QhNUzOyDwE0EIEHu3+va5xDJRAPE30sSH6Fg9X5nw6rO4ByF
-	S8irJXSRXkaoHLiSlL4UF5K+gieACGaABtvu12gV90SDW+QYxFhIi1h27WfG7dPkP+CX0Z
-	x8O7pc7iUloa2Za0TN+9KhwLLOsTmfg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1750428953;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Iy8uiyDCnb7/ShweAbaj3EpAotYxY8WSok7RG+w29ZU=;
-	b=Dsn/RRgHrhRs4IqSLlpoySY7Ty1c7sUK2iWHv69hx8LmEwh6y0Sy1i1Y/lJm13hHYe57aw
-	maj19KwrK5O4gmCw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E289013736;
-	Fri, 20 Jun 2025 14:15:51 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id hDabNBdtVWhhSQAAD6G6ig
-	(envelope-from <osalvador@suse.de>); Fri, 20 Jun 2025 14:15:51 +0000
-Date: Fri, 20 Jun 2025 16:15:41 +0200
-From: Oscar Salvador <osalvador@suse.de>
-To: David Hildenbrand <david@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	linux-mm@kvack.org, nvdimm@lists.linux.dev,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Juergen Gross <jgross@suse.com>,
-	Stefano Stabellini <sstabellini@kernel.org>,
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Alistair Popple <apopple@nvidia.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
-	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>,
-	Pedro Falcato <pfalcato@suse.de>
-Subject: Re: [PATCH RFC 05/14] mm/huge_memory: move more common code into
- insert_pud()
-Message-ID: <aFVtDfNgQzT3mTFF@localhost.localdomain>
-References: <20250617154345.2494405-1-david@redhat.com>
- <20250617154345.2494405-6-david@redhat.com>
+	s=arc-20240116; t=1750437611; c=relaxed/simple;
+	bh=6MOrDPSqajVX9dglL2iIpKlky0ZC16o6M1J4f7fNxNY=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=K0PXggmM8itYYwLSdOgJekXP++PjdKx3q2brdUI1nThWBzUYDuCzj7RrTCVDg5BL3JvqbIwnb2V1ezS0UbXKfNCxJjqIZ7WP1SzgiwJrmS7iGCzDRC+mq7u41zEDSXyl/UI/9ZAVw7ZPwXv09G/GvPFBQqGCRE4SxVZHrhJ58ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bP36y4ySyz6L5jx;
+	Sat, 21 Jun 2025 00:37:46 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id BC89B1402F3;
+	Sat, 21 Jun 2025 00:40:05 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 20 Jun
+ 2025 18:40:04 +0200
+Date: Fri, 20 Jun 2025 17:40:01 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Neeraj Kumar <s.neeraj@samsung.com>
+CC: <dan.j.williams@intel.com>, <dave@stgolabs.net>, <dave.jiang@intel.com>,
+	<alison.schofield@intel.com>, <vishal.l.verma@intel.com>,
+	<ira.weiny@intel.com>, <a.manzanares@samsung.com>, <nifan.cxl@gmail.com>,
+	<anisa.su@samsung.com>, <vishak.g@samsung.com>, <krish.reddy@samsung.com>,
+	<arun.george@samsung.com>, <alok.rathore@samsung.com>,
+	<neeraj.kernel@gmail.com>, <linux-kernel@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<gost.dev@samsung.com>, <cpgs@samsung.com>
+Subject: Re: [RFC PATCH 01/20] nvdimm/label: Introduce NDD_CXL_LABEL flag to
+ set cxl label format
+Message-ID: <20250620174001.00003aa2@huawei.com>
+In-Reply-To: <158453976.61750165203630.JavaMail.epsvc@epcpadp1new>
+References: <20250617123944.78345-1-s.neeraj@samsung.com>
+	<CGME20250617124008epcas5p2e702f786645d44ceb1cdd980a914ce8e@epcas5p2.samsung.com>
+	<158453976.61750165203630.JavaMail.epsvc@epcpadp1new>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250617154345.2494405-6-david@redhat.com>
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	FROM_HAS_DN(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[29];
-	MIME_TRACE(0.00)[0:+];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MISSING_XM_UA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	R_RATELIMIT(0.00)[to_ip_from(RL88oxspsx4bg3gu1yybyqiqt4)];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,localhost.localdomain:mid,suse.de:dkim,suse.de:email]
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Rspamd-Queue-Id: 5B60F211A5
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spam-Score: -4.51
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-On Tue, Jun 17, 2025 at 05:43:36PM +0200, David Hildenbrand wrote:
-> Let's clean it all further up.
+On Tue, 17 Jun 2025 18:09:25 +0530
+Neeraj Kumar <s.neeraj@samsung.com> wrote:
+
+> NDD_CXL_LABEL is introduced to set cxl LSA 2.1 label format
+> Accordingly updated label index version
 > 
-> Signed-off-by: David Hildenbrand <david@redhat.com>
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+A few local comments.  I'll need to read on to figure out how this
+fits in generally.
 
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+> ---
+>  drivers/nvdimm/dimm.c      |  1 +
+>  drivers/nvdimm/dimm_devs.c | 10 ++++++++++
+>  drivers/nvdimm/label.c     | 16 ++++++++++++----
+>  drivers/nvdimm/nd.h        |  1 +
+>  include/linux/libnvdimm.h  |  3 +++
+>  5 files changed, 27 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+> index 91d9163ee303..8753b5cd91cc 100644
+> --- a/drivers/nvdimm/dimm.c
+> +++ b/drivers/nvdimm/dimm.c
+> @@ -62,6 +62,7 @@ static int nvdimm_probe(struct device *dev)
+>  	if (rc < 0)
+>  		dev_dbg(dev, "failed to unlock dimm: %d\n", rc);
+>  
+> +	ndd->cxl = nvdimm_check_cxl_label_format(ndd->dev);
+>  
+>  	/*
+>  	 * EACCES failures reading the namespace label-area-properties
+> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+> index 21498d461fde..e8f545f889fd 100644
+> --- a/drivers/nvdimm/dimm_devs.c
+> +++ b/drivers/nvdimm/dimm_devs.c
+> @@ -18,6 +18,16 @@
+>  
+>  static DEFINE_IDA(dimm_ida);
+>  
+> +bool nvdimm_check_cxl_label_format(struct device *dev)
+> +{
+> +	struct nvdimm *nvdimm = to_nvdimm(dev);
+> +
+> +	if (test_bit(NDD_CXL_LABEL, &nvdimm->flags))
+> +		return true;
+> +
+> +	return false;
 
+	return test_bit(NDD_CXL_LABEL, &nvdimm->flags);
 
--- 
-Oscar Salvador
-SUSE Labs
+Unless this is going to get more complex in later patches, in which case
+may be fine to ignore this comment.
+
+> +}
+> +
+>  /*
+>   * Retrieve bus and dimm handle and return if this bus supports
+>   * get_config_data commands
+> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+> index 082253a3a956..48b5ba90216d 100644
+> --- a/drivers/nvdimm/label.c
+> +++ b/drivers/nvdimm/label.c
+> @@ -687,11 +687,19 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
+>  		- (unsigned long) to_namespace_index(ndd, 0);
+>  	nsindex->labeloff = __cpu_to_le64(offset);
+>  	nsindex->nslot = __cpu_to_le32(nslot);
+> -	nsindex->major = __cpu_to_le16(1);
+> -	if (sizeof_namespace_label(ndd) < 256)
+> +
+> +	/* Support CXL LSA 2.1 label format */
+
+Might be good to sprinkle some extra details in the references.
+E.g. CXL r3.2 Table 9-9 Label Index Block Layout
+
+> +	if (ndd->cxl) {
+> +		nsindex->major = __cpu_to_le16(2);
+>  		nsindex->minor = __cpu_to_le16(1);
+> -	else
+> -		nsindex->minor = __cpu_to_le16(2);
+> +	} else {
+> +		nsindex->major = __cpu_to_le16(1);
+
+Same for these.  Case of making reviewers jobs easier by
+giving them breadcrumb trails to follow.
+
+> +		if (sizeof_namespace_label(ndd) < 256)
+> +			nsindex->minor = __cpu_to_le16(1);
+> +		else
+> +			nsindex->minor = __cpu_to_le16(2);
+> +	}
+> +
+>  	nsindex->checksum = __cpu_to_le64(0);
+>  	if (flags & ND_NSINDEX_INIT) {
+>  		unsigned long *free = (unsigned long *) nsindex->free;
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index 5ca06e9a2d29..304f0e9904f1 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -522,6 +522,7 @@ void nvdimm_set_labeling(struct device *dev);
+>  void nvdimm_set_locked(struct device *dev);
+>  void nvdimm_clear_locked(struct device *dev);
+>  int nvdimm_security_setup_events(struct device *dev);
+> +bool nvdimm_check_cxl_label_format(struct device *dev);
+>  #if IS_ENABLED(CONFIG_NVDIMM_KEYS)
+>  int nvdimm_security_unlock(struct device *dev);
+>  #else
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index e772aae71843..0a55900842c8 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -44,6 +44,9 @@ enum {
+>  	/* dimm provider wants synchronous registration by __nvdimm_create() */
+>  	NDD_REGISTER_SYNC = 8,
+>  
+> +	/* dimm supports region labels (LSA Format 2.1) */
+> +	NDD_CXL_LABEL = 9,
+> +
+>  	/* need to set a limit somewhere, but yes, this is likely overkill */
+>  	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+>  	ND_CMD_MAX_ELEM = 5,
+
