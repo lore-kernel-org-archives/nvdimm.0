@@ -1,317 +1,206 @@
-Received: from out-182.mta0.migadu.com (out-182.mta0.migadu.com [91.218.175.182])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABA22151990
-	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 04:18:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41CB622DF85
+	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 09:05:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750652308; cv=none; b=NgTV+IWGoH4GCHBmDCcNGqmpuxoaWuTkjQpMc3O6AIT0dDKDfd/WkWUh+WkBD89RN8C+s36IUSeHUj9O4+R12zPbEwxcPIdUol/QOeRvuJj7iBvKhpmd2NPVU07/7fwQmUZewnXwRTSEssH6RP3T5cDqucmftsqSPIRSV2PR/qA=
+	t=1750669536; cv=none; b=UaUjZtlcwZCeZ5srA+To95bGL1QCRPJEmt32B4S0TKUvrDstxQThW6/AJL3SVjYWCEa89D0hqoYPmGLa8k7EepCTy3QaYIbvdpjXNHLDH/IBVJf2BEZk1le6ctFc8BRBnsqr2ynhfGKBXlwTH9d+dutXIWguRyziE8cYaV3GC30=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750652308; c=relaxed/simple;
-	bh=LNvTQMohQGbCf669BPvM7Gt/ksdDI8Rt23bDew9iG48=;
-	h=Content-Type:Message-ID:Date:MIME-Version:Subject:From:To:Cc:
-	 References:In-Reply-To; b=MT5umrMrJMGdt8T1ohU2UvOOUj3xNYTZsBRfq7SrdcsBFuQJAaFrHMYjAzIICIVajowDJUK626HSF7lSzC686XFEiulH0K3/zItWx4LXPePGZZdYDAtYiUN1h0oTf6gmCrJlSIemBUZ2h4NPqIa9rABDORntdCZYAEj7uLs7FoM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=cd0y3YNl; arc=none smtp.client-ip=91.218.175.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="cd0y3YNl"
-Content-Type: multipart/mixed; boundary="------------Xeu1yh6QyigQDsRmSTUjsv3o"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1750652294;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1a6j6ymdbum7p7MsHk6NCF4o6R+uaO7oENryoGusN1c=;
-	b=cd0y3YNlQeQtBV0/CejXJE54HeIGC/QP8qxcQioeKpKXzgM0Oh9pHuEyG9IzT22bD721Yi
-	5TUE40R1gznoPE88IlPT9C0IMCNXvAGip9YJQUaXH1SzsVu7v8dZGhiERDffMWhUXUtms3
-	Lym/f5EF4E9sJQZjcQ0hXk8C1UmU5c8=
-Message-ID: <9dd017ea-a0ec-47c4-b7ae-b6f441dbd5ec@linux.dev>
-Date: Mon, 23 Jun 2025 12:18:08 +0800
+	s=arc-20240116; t=1750669536; c=relaxed/simple;
+	bh=RWuS71A2QsnVIVDB4RKGk4iONoi5tzTDwm8Np/A6zUs=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=PgJZgfY0LyCoBKX+H/RpDqTCbVafjnXa9H9C6ftKsk+2hVUzClZtWC8NRKC3YvdAEBta4LzTEi3zC6ZPNmZCuYkomon6GyFVEgQvzwOudN7FQvBvqZCbg8N8gOL3pLAJPEiCpqdQuAOw0stzcQb498tBkW+cCoNy1fj1PHkDeIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bQhtm4tCFz6HJqB;
+	Mon, 23 Jun 2025 17:02:56 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id 4C11F1402F4;
+	Mon, 23 Jun 2025 17:05:23 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Mon, 23 Jun
+ 2025 11:05:22 +0200
+Date: Mon, 23 Jun 2025 10:05:20 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Neeraj Kumar <s.neeraj@samsung.com>
+CC: <dan.j.williams@intel.com>, <dave@stgolabs.net>, <dave.jiang@intel.com>,
+	<alison.schofield@intel.com>, <vishal.l.verma@intel.com>,
+	<ira.weiny@intel.com>, <a.manzanares@samsung.com>, <nifan.cxl@gmail.com>,
+	<anisa.su@samsung.com>, <vishak.g@samsung.com>, <krish.reddy@samsung.com>,
+	<arun.george@samsung.com>, <alok.rathore@samsung.com>,
+	<neeraj.kernel@gmail.com>, <linux-kernel@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<gost.dev@samsung.com>, <cpgs@samsung.com>
+Subject: Re: [RFC PATCH 05/20] nvdimm/region_label: Add region label
+ updation routine
+Message-ID: <20250623100520.00003f34@huawei.com>
+In-Reply-To: <1690859824.141750165204442.JavaMail.epsvc@epcpadp1new>
+References: <20250617123944.78345-1-s.neeraj@samsung.com>
+	<CGME20250617124019epcas5p39815cc0f2b175aee40c194625166695c@epcas5p3.samsung.com>
+	<1690859824.141750165204442.JavaMail.epsvc@epcpadp1new>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Subject: =?UTF-8?Q?Re=3A_=5BRFC_v2_00/11=5D_dm-pcache_=E2=80=93_persistent-m?=
- =?UTF-8?Q?emory_cache_for_block_devices?=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Dongsheng Yang <dongsheng.yang@linux.dev>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Cc: agk@redhat.com, snitzer@kernel.org, axboe@kernel.dk, hch@lst.de,
- dan.j.williams@intel.com, Jonathan.Cameron@Huawei.com,
- linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, dm-devel@lists.linux.dev
-References: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
- <dc019764-5128-526e-d8ea-effa78e37b39@redhat.com>
- <3c9f304a-b830-4242-8e01-04efab4e0eaa@linux.dev>
-In-Reply-To: <3c9f304a-b830-4242-8e01-04efab4e0eaa@linux.dev>
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500011.china.huawei.com (7.191.174.215) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-This is a multi-part message in MIME format.
---------------Xeu1yh6QyigQDsRmSTUjsv3o
-Content-Type: multipart/alternative;
- boundary="------------aMux5mWrKV7NqLbSowDXImIu"
+On Tue, 17 Jun 2025 18:09:29 +0530
+Neeraj Kumar <s.neeraj@samsung.com> wrote:
 
---------------aMux5mWrKV7NqLbSowDXImIu
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Add region label update routine
 
 
-在 6/23/2025 11:13 AM, Dongsheng Yang 写道:
->
-> Hi Mikulas:
->
->      I will send dm-pcache V1 soon, below is my response to your comments.
->
-> 在 6/13/2025 12:57 AM, Mikulas Patocka 写道:
->> Hi
->>
->>
->> On Thu, 5 Jun 2025, Dongsheng Yang wrote:
->>
->>> Hi Mikulas and all,
->>>
->>> This is *RFC v2* of the *pcache* series, a persistent-memory backed cache.
->>>
->>>
->>> ----------------------------------------------------------------------
->>> 1. pmem access layer
->>> ----------------------------------------------------------------------
->>>
->>> * All reads use *copy_mc_to_kernel()* so that uncorrectable media
->>>    errors are detected and reported.
->>> * All writes go through *memcpy_flushcache()* to guarantee durability
->>>    on real persistent memory.
->> You could also try to use normal write and clflushopt for big writes - I
->> found out that for larger regions it is better - see the function
->> memcpy_flushcache_optimized in dm-writecache. Test, which way is better.
->
-> I did a test with fio on /dev/pmem0, with an attached patch on nd_pmem.ko:
->
-> when I use memmap pmem device, I got a similar result with the comment 
-> in memcpy_flushcache_optimized():
->
-> Test (memmap pmem) clflushopt flushcache 
-> ------------------------------------------------- test_randwrite_512 
-> 200 MiB/s 228 MiB/s test_randwrite_1024 378 MiB/s 431 MiB/s 
-> test_randwrite_2K 773 MiB/s 769 MiB/s test_randwrite_4K 1364 MiB/s 
-> 1272 MiB/s test_randwrite_8K 2078 MiB/s 1817 MiB/s test_randwrite_16K 
-> 2745 MiB/s 2098 MiB/s test_randwrite_32K 3232 MiB/s 2231 MiB/s 
-> test_randwrite_64K 3660 MiB/s 2411 MiB/s test_randwrite_128K 3922 
-> MiB/s 2513 MiB/s test_randwrite_1M 3824 MiB/s 2537 MiB/s 
-> test_write_512 228 MiB/s 228 MiB/s test_write_1024 439 MiB/s 423 MiB/s 
-> test_write_2K 841 MiB/s 800 MiB/s test_write_4K 1364 MiB/s 1308 MiB/s 
-> test_write_8K 2107 MiB/s 1838 MiB/s test_write_16K 2752 MiB/s 2166 
-> MiB/s test_write_32K 3213 MiB/s 2247 MiB/s test_write_64K 3661 MiB/s 
-> 2415 MiB/s test_write_128K 3902 MiB/s 2514 MiB/s test_write_1M 3808 
-> MiB/s 2529 MiB/s
->
-> But I got a different result when I use Optane pmem100:
->
-> Test (Optane pmem100) clflushopt flushcache 
-> ------------------------------------------------- test_randwrite_512 
-> 167 MiB/s 226 MiB/s test_randwrite_1024 301 MiB/s 420 MiB/s 
-> test_randwrite_2K 615 MiB/s 639 MiB/s test_randwrite_4K 967 MiB/s 1024 
-> MiB/s test_randwrite_8K 1047 MiB/s 1314 MiB/s test_randwrite_16K 1096 
-> MiB/s 1377 MiB/s test_randwrite_32K 1155 MiB/s 1382 MiB/s 
-> test_randwrite_64K 1184 MiB/s 1452 MiB/s test_randwrite_128K 1199 
-> MiB/s 1488 MiB/s test_randwrite_1M 1178 MiB/s 1499 MiB/s 
-> test_write_512 233 MiB/s 233 MiB/s test_write_1024 424 MiB/s 391 MiB/s 
-> test_write_2K 706 MiB/s 760 MiB/s test_write_4K 978 MiB/s 1076 MiB/s 
-> test_write_8K 1059 MiB/s 1296 MiB/s test_write_16K 1119 MiB/s 1380 
-> MiB/s test_write_32K 1158 MiB/s 1387 MiB/s test_write_64K 1184 MiB/s 
-> 1448 MiB/s test_write_128K 1198 MiB/s 1481 MiB/s test_write_1M 1178 
-> MiB/s 1486 MiB/s
->
->
-> So for now I’d rather keep using flushcache in pcache. In future, once 
-> we’ve come up with a general-purpose optimization, we can switch to that.
->
-Sorry for the formatting issue—the table can be checked in attachment 
-<pmem_test_result>
+> Added __pmem_region_label_update region label update routine to update
+> region label
+> 
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+A few trivial comments inline. 
 
-Thanx
+Jonathan
 
-Dongsheng
+> ---
+>  drivers/nvdimm/label.c          | 142 ++++++++++++++++++++++++++++++++
+>  drivers/nvdimm/label.h          |   2 +
+>  drivers/nvdimm/namespace_devs.c |  12 +++
+>  drivers/nvdimm/nd.h             |  20 +++++
+>  include/linux/libnvdimm.h       |   8 ++
+>  5 files changed, 184 insertions(+)
+> 
+> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+> index d5cfaa99f976..7f33d14ce0ef 100644
+> --- a/drivers/nvdimm/label.c
+> +++ b/drivers/nvdimm/label.c
+> @@ -381,6 +381,16 @@ static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
+>  	nsl_set_checksum(ndd, nd_label, sum);
+>  }
+>  
+> +static void rgl_calculate_checksum(struct nvdimm_drvdata *ndd,
+> +				   struct cxl_region_label *rg_label)
+> +{
+> +	u64 sum;
+> +
+> +	rgl_set_checksum(rg_label, 0);
+> +	sum = nd_fletcher64(rg_label, sizeof_namespace_label(ndd), 1);
+> +	rgl_set_checksum(rg_label, sum);
+> +}
+> +
+>  static bool slot_valid(struct nvdimm_drvdata *ndd,
+>  		struct nd_lsa_label *nd_label, u32 slot)
+>  {
+> @@ -1117,6 +1127,138 @@ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
+>  	return 0;
+>  }
+>  
+> +static int __pmem_region_label_update(struct nd_region *nd_region,
+> +		struct nd_mapping *nd_mapping, int pos, unsigned long flags)
+> +{
+> +	struct nd_interleave_set *nd_set = nd_region->nd_set;
+> +	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+> +	struct nd_lsa_label *nd_label;
+> +	struct cxl_region_label *rg_label;
+> +	struct nd_namespace_index *nsindex;
+> +	struct nd_label_ent *label_ent;
+> +	unsigned long *free;
+> +	u32 nslot, slot;
+> +	size_t offset;
+> +	int rc;
+> +	uuid_t tmp;
+> +
+> +	if (!preamble_next(ndd, &nsindex, &free, &nslot))
+> +		return -ENXIO;
+> +
+> +	/* allocate and write the label to the staging (next) index */
+> +	slot = nd_label_alloc_slot(ndd);
+> +	if (slot == UINT_MAX)
+> +		return -ENXIO;
+> +	dev_dbg(ndd->dev, "allocated: %d\n", slot);
+> +
+> +	nd_label = to_label(ndd, slot);
+> +
+> +	memset(nd_label, 0, sizeof_namespace_label(ndd));
+> +	rg_label = &nd_label->rg_label;
+> +
+> +	/* Set Region Label Format identification UUID */
+> +	uuid_parse(CXL_REGION_UUID, &tmp);
+> +	export_uuid(nd_label->rg_label.type, &tmp);
+> +
+> +	/* Set Current Region Label UUID */
+> +	export_uuid(nd_label->rg_label.uuid, &nd_set->uuid);
+> +
+> +	rg_label->flags = __cpu_to_le32(flags);
+> +	rg_label->nlabel = __cpu_to_le16(nd_region->ndr_mappings);
+> +	rg_label->position = __cpu_to_le16(pos);
+> +	rg_label->dpa = __cpu_to_le64(nd_mapping->start);
+> +	rg_label->rawsize = __cpu_to_le64(nd_mapping->size);
+> +	rg_label->hpa = __cpu_to_le64(nd_set->res->start);
+> +	rg_label->slot = __cpu_to_le32(slot);
+> +	rg_label->ig = __cpu_to_le32(nd_set->interleave_granularity);
+> +	rg_label->align = __cpu_to_le16(0);
+> +
+> +	/* Update fletcher64 Checksum */
+> +	rgl_calculate_checksum(ndd, rg_label);
+> +
+> +	/* update label */
+> +	offset = nd_label_offset(ndd, nd_label);
+> +	rc = nvdimm_set_config_data(ndd, offset, nd_label,
+> +			sizeof_namespace_label(ndd));
+> +	if (rc < 0) {
+> +		nd_label_free_slot(ndd, slot);
+> +		return rc;
+> +	}
+> +
+> +	/* Garbage collect the previous label */
+> +	mutex_lock(&nd_mapping->lock);
 
---------------aMux5mWrKV7NqLbSowDXImIu
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Perhaps use
 
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  </head>
-  <body>
-    <p><br>
-    </p>
-    <div class="moz-cite-prefix">在 6/23/2025 11:13 AM, Dongsheng Yang
-      写道:<br>
-    </div>
-    <blockquote type="cite"
-      cite="mid:3c9f304a-b830-4242-8e01-04efab4e0eaa@linux.dev">
-      <p>Hi Mikulas:</p>
-      <p>     I will send dm-pcache V1 soon, below is my response to
-        your comments.</p>
-      <div class="moz-cite-prefix">在 6/13/2025 12:57 AM, Mikulas Patocka
-        写道:<br>
-      </div>
-      <blockquote type="cite"
-        cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
-        <pre wrap="" class="moz-quote-pre">Hi
+	guard(mutex)(&nd_mapping->lock);
 
+so you can directly return in the error path below and simplify the flow
+a tiny bit.
 
-On Thu, 5 Jun 2025, Dongsheng Yang wrote:
+> +	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+> +		if (!label_ent->label)
+> +			continue;
+> +		if (rgl_uuid_equal(&label_ent->label->rg_label, &nd_set->uuid))
+> +			reap_victim(nd_mapping, label_ent);
+> +	}
+> +
+> +	/* update index */
+> +	rc = nd_label_write_index(ndd, ndd->ns_next,
+> +			nd_inc_seq(__le32_to_cpu(nsindex->seq)), 0);
+> +
+With guard this can be 
+	if (rc)
+		return rec;
 
-</pre>
-        <blockquote type="cite">
-          <pre wrap="" class="moz-quote-pre">Hi Mikulas and all,
+	list_for_each...
 
-This is *RFC v2* of the *pcache* series, a persistent-memory backed cache.
+> +	if (rc == 0) {
+> +		list_for_each_entry(label_ent, &nd_mapping->labels, list)
+> +			if (!label_ent->label) {
+> +				label_ent->label = nd_label;
+> +				nd_label = NULL;
+> +				break;
+> +			}
+> +		dev_WARN_ONCE(&nd_region->dev, nd_label,
+> +				"failed to track label: %d\n",
+> +				to_slot(ndd, nd_label));
+> +		if (nd_label)
+> +			rc = -ENXIO;
+> +	}
+> +	mutex_unlock(&nd_mapping->lock);
+> +
+> +	return rc;
+> +}
 
-
-----------------------------------------------------------------------
-1. pmem access layer
-----------------------------------------------------------------------
-
-* All reads use *copy_mc_to_kernel()* so that uncorrectable media
-  errors are detected and reported.
-* All writes go through *memcpy_flushcache()* to guarantee durability
-  on real persistent memory.
-</pre>
-        </blockquote>
-        <pre wrap="" class="moz-quote-pre">You could also try to use normal write and clflushopt for big writes - I 
-found out that for larger regions it is better - see the function 
-memcpy_flushcache_optimized in dm-writecache. Test, which way is better.</pre>
-      </blockquote>
-      <p>I did a test with fio on /dev/pmem0, with an attached patch on
-        nd_pmem.ko:</p>
-      <p>when I use memmap pmem device, I got a similar result with the
-        comment in <span>memcpy_flushcache_optimized():</span></p>
-      <p><span>Test (memmap pmem) clflushopt flushcache
-          -------------------------------------------------
-          test_randwrite_512 200 MiB/s 228 MiB/s
-          test_randwrite_1024 378 MiB/s 431 MiB/s
-          test_randwrite_2K 773 MiB/s 769 MiB/s
-          test_randwrite_4K 1364 MiB/s 1272 MiB/s
-          test_randwrite_8K 2078 MiB/s 1817 MiB/s
-          test_randwrite_16K 2745 MiB/s 2098 MiB/s
-          test_randwrite_32K 3232 MiB/s 2231 MiB/s
-          test_randwrite_64K 3660 MiB/s 2411 MiB/s
-          test_randwrite_128K 3922 MiB/s 2513 MiB/s
-          test_randwrite_1M 3824 MiB/s 2537 MiB/s
-          test_write_512 228 MiB/s 228 MiB/s
-          test_write_1024 439 MiB/s 423 MiB/s
-          test_write_2K 841 MiB/s 800 MiB/s
-          test_write_4K 1364 MiB/s 1308 MiB/s
-          test_write_8K 2107 MiB/s 1838 MiB/s
-          test_write_16K 2752 MiB/s 2166 MiB/s
-          test_write_32K 3213 MiB/s 2247 MiB/s
-          test_write_64K 3661 MiB/s 2415 MiB/s
-          test_write_128K 3902 MiB/s 2514 MiB/s
-          test_write_1M 3808 MiB/s 2529 MiB/s</span></p>
-      <p><span>But I got a different result when I use Optane pmem100:</span></p>
-      <p><span>Test (Optane pmem100) clflushopt flushcache
-          -------------------------------------------------
-          test_randwrite_512 167 MiB/s 226 MiB/s
-          test_randwrite_1024 301 MiB/s 420 MiB/s
-          test_randwrite_2K 615 MiB/s 639 MiB/s
-          test_randwrite_4K 967 MiB/s 1024 MiB/s
-          test_randwrite_8K 1047 MiB/s 1314 MiB/s
-          test_randwrite_16K 1096 MiB/s 1377 MiB/s
-          test_randwrite_32K 1155 MiB/s 1382 MiB/s
-          test_randwrite_64K 1184 MiB/s 1452 MiB/s
-          test_randwrite_128K 1199 MiB/s 1488 MiB/s
-          test_randwrite_1M 1178 MiB/s 1499 MiB/s
-          test_write_512 233 MiB/s 233 MiB/s
-          test_write_1024 424 MiB/s 391 MiB/s
-          test_write_2K 706 MiB/s 760 MiB/s
-          test_write_4K 978 MiB/s 1076 MiB/s
-          test_write_8K 1059 MiB/s 1296 MiB/s
-          test_write_16K 1119 MiB/s 1380 MiB/s
-          test_write_32K 1158 MiB/s 1387 MiB/s
-          test_write_64K 1184 MiB/s 1448 MiB/s
-          test_write_128K 1198 MiB/s 1481 MiB/s
-          test_write_1M 1178 MiB/s 1486 MiB/s</span></p>
-      <p><br>
-      </p>
-      <p>So for now I’d rather keep using flushcache in pcache. In
-        future, once we’ve come up with a general-purpose optimization,
-        we can switch to that.</p>
-    </blockquote>
-    <p>Sorry for the formatting issue—the table can be checked in
-      attachment &lt;pmem_test_result&gt;</p>
-    <p>Thanx</p>
-    <p>Dongsheng</p>
-    <p>    </p>
-    <blockquote type="cite"
-      cite="mid:3c9f304a-b830-4242-8e01-04efab4e0eaa@linux.dev">
-      <p><span style="white-space: pre-wrap">
-</span></p>
-    </blockquote>
-    <blockquote type="cite"
-      cite="mid:3c9f304a-b830-4242-8e01-04efab4e0eaa@linux.dev">
-      <blockquote type="cite"
-        cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com"> </blockquote>
-    </blockquote>
-  </body>
-</html>
-
---------------aMux5mWrKV7NqLbSowDXImIu--
---------------Xeu1yh6QyigQDsRmSTUjsv3o
-Content-Type: text/plain; charset=UTF-8; name="pmem_test_result.txt"
-Content-Disposition: attachment; filename="pmem_test_result.txt"
-Content-Transfer-Encoding: base64
-
-VGVzdCAobWVtbWFwIHBtZW0pICAgICAgICAgICAgICAgICAgICAgIGNsZmx1c2hvcHQgICBm
-bHVzaGNhY2hlDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tDQp0ZXN0X3JhbmR3cml0ZV81MTIgICAgICAgICAgICAgMjAwIE1pQi9zICAgICAg
-MjI4IE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV8xMDI0ICAgICAgICAgICAgMzc4IE1pQi9zICAg
-ICAgNDMxIE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV8ySyAgICAgICAgICAgICAgNzczIE1pQi9z
-ICAgICAgNzY5IE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV80SyAgICAgICAgICAgICAxMzY0IE1p
-Qi9zICAgICAxMjcyIE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV84SyAgICAgICAgICAgICAyMDc4
-IE1pQi9zICAgICAxODE3IE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV8xNksgICAgICAgICAgICAy
-NzQ1IE1pQi9zICAgICAyMDk4IE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV8zMksgICAgICAgICAg
-ICAzMjMyIE1pQi9zICAgICAyMjMxIE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV82NEsgICAgICAg
-ICAgICAzNjYwIE1pQi9zICAgICAyNDExIE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV8xMjhLICAg
-ICAgICAgICAzOTIyIE1pQi9zICAgICAyNTEzIE1pQi9zDQp0ZXN0X3JhbmR3cml0ZV8xTSAg
-ICAgICAgICAgICAzODI0IE1pQi9zICAgICAyNTM3IE1pQi9zDQp0ZXN0X3dyaXRlXzUxMiAg
-ICAgICAgICAgICAgICAgMjI4IE1pQi9zICAgICAgMjI4IE1pQi9zDQp0ZXN0X3dyaXRlXzEw
-MjQgICAgICAgICAgICAgICAgNDM5IE1pQi9zICAgICAgNDIzIE1pQi9zDQp0ZXN0X3dyaXRl
-XzJLICAgICAgICAgICAgICAgICAgODQxIE1pQi9zICAgICAgODAwIE1pQi9zDQp0ZXN0X3dy
-aXRlXzRLICAgICAgICAgICAgICAgICAxMzY0IE1pQi9zICAgICAxMzA4IE1pQi9zDQp0ZXN0
-X3dyaXRlXzhLICAgICAgICAgICAgICAgICAyMTA3IE1pQi9zICAgICAxODM4IE1pQi9zDQp0
-ZXN0X3dyaXRlXzE2SyAgICAgICAgICAgICAgICAyNzUyIE1pQi9zICAgICAyMTY2IE1pQi9z
-DQp0ZXN0X3dyaXRlXzMySyAgICAgICAgICAgICAgICAzMjEzIE1pQi9zICAgICAyMjQ3IE1p
-Qi9zDQp0ZXN0X3dyaXRlXzY0SyAgICAgICAgICAgICAgICAzNjYxIE1pQi9zICAgICAyNDE1
-IE1pQi9zDQp0ZXN0X3dyaXRlXzEyOEsgICAgICAgICAgICAgICAzOTAyIE1pQi9zICAgICAy
-NTE0IE1pQi9zDQp0ZXN0X3dyaXRlXzFNICAgICAgICAgICAgICAgICAzODA4IE1pQi9zICAg
-ICAyNTI5IE1pQi9zDQoNCg0KVGVzdCAoT3B0YW5lIHBtZW0xMDApICAgICAgICAgICAgICAg
-ICAgICAgY2xmbHVzaG9wdCAgIGZsdXNoY2FjaGUNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnRlc3RfcmFuZHdyaXRlXzUxMiAgICAgICAg
-ICAgICAxNjcgTWlCL3MgICAgICAyMjYgTWlCL3MNCnRlc3RfcmFuZHdyaXRlXzEwMjQgICAg
-ICAgICAgICAzMDEgTWlCL3MgICAgICA0MjAgTWlCL3MNCnRlc3RfcmFuZHdyaXRlXzJLICAg
-ICAgICAgICAgICA2MTUgTWlCL3MgICAgICA2MzkgTWlCL3MNCnRlc3RfcmFuZHdyaXRlXzRL
-ICAgICAgICAgICAgICA5NjcgTWlCL3MgICAgIDEwMjQgTWlCL3MNCnRlc3RfcmFuZHdyaXRl
-XzhLICAgICAgICAgICAgIDEwNDcgTWlCL3MgICAgIDEzMTQgTWlCL3MNCnRlc3RfcmFuZHdy
-aXRlXzE2SyAgICAgICAgICAgIDEwOTYgTWlCL3MgICAgIDEzNzcgTWlCL3MNCnRlc3RfcmFu
-ZHdyaXRlXzMySyAgICAgICAgICAgIDExNTUgTWlCL3MgICAgIDEzODIgTWlCL3MNCnRlc3Rf
-cmFuZHdyaXRlXzY0SyAgICAgICAgICAgIDExODQgTWlCL3MgICAgIDE0NTIgTWlCL3MNCnRl
-c3RfcmFuZHdyaXRlXzEyOEsgICAgICAgICAgIDExOTkgTWlCL3MgICAgIDE0ODggTWlCL3MN
-CnRlc3RfcmFuZHdyaXRlXzFNICAgICAgICAgICAgIDExNzggTWlCL3MgICAgIDE0OTkgTWlC
-L3MNCnRlc3Rfd3JpdGVfNTEyICAgICAgICAgICAgICAgICAyMzMgTWlCL3MgICAgICAyMzMg
-TWlCL3MNCnRlc3Rfd3JpdGVfMTAyNCAgICAgICAgICAgICAgICA0MjQgTWlCL3MgICAgICAz
-OTEgTWlCL3MNCnRlc3Rfd3JpdGVfMksgICAgICAgICAgICAgICAgICA3MDYgTWlCL3MgICAg
-ICA3NjAgTWlCL3MNCnRlc3Rfd3JpdGVfNEsgICAgICAgICAgICAgICAgICA5NzggTWlCL3Mg
-ICAgIDEwNzYgTWlCL3MNCnRlc3Rfd3JpdGVfOEsgICAgICAgICAgICAgICAgIDEwNTkgTWlC
-L3MgICAgIDEyOTYgTWlCL3MNCnRlc3Rfd3JpdGVfMTZLICAgICAgICAgICAgICAgIDExMTkg
-TWlCL3MgICAgIDEzODAgTWlCL3MNCnRlc3Rfd3JpdGVfMzJLICAgICAgICAgICAgICAgIDEx
-NTggTWlCL3MgICAgIDEzODcgTWlCL3MNCnRlc3Rfd3JpdGVfNjRLICAgICAgICAgICAgICAg
-IDExODQgTWlCL3MgICAgIDE0NDggTWlCL3MNCnRlc3Rfd3JpdGVfMTI4SyAgICAgICAgICAg
-ICAgIDExOTggTWlCL3MgICAgIDE0ODEgTWlCL3MNCnRlc3Rfd3JpdGVfMU0gICAgICAgICAg
-ICAgICAgIDExNzggTWlCL3MgICAgIDE0ODYgTWlCL3M=
-
---------------Xeu1yh6QyigQDsRmSTUjsv3o--
