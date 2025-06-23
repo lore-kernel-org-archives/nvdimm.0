@@ -1,163 +1,185 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A92F2441AA;
-	Mon, 23 Jun 2025 10:00:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD0EB13B58B
+	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 10:53:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750672841; cv=none; b=d+UWozm8rsU6WXAydhaDQouLyN4kVkB6TNphJTP17LEy0Pzs2OkRDj3x2QMeFjuYQ232K8slPiw3fbW0nPc3FPsuTvodigVaMsvzB4YjjWv6e5x4NCAD1JeVkiHVI/fOmsy/WwP41LSQ2oAZbSRLOfCu82X4SJmEhd0uv5aGi8o=
+	t=1750676038; cv=none; b=QKi7iNXoA9PSfpc0yPO9F5gxANZRzVlcpec79drQvUi7OfJt1Ti1HcA4QPm4WuIc+Pfa5sk2hBtFB/ZTvdY7U8oMX60njbBxshL1WuBaV8yoUOJcAh7/OjPP0MmnU01++yGxStQQWLjIaY183UEdm4JR4M+fEzEItt1SxlVGHeI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750672841; c=relaxed/simple;
-	bh=mlsBkLPwnwFNOessEiLCY8jBWTi4OVNKvirIMXCCP3s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=km87fvftjrsEYXzGnSNszX1PteTqUvSv+bATX9baGQOy1lkc7HHFJFv6VB6c4/51rB04CL1vibcCZEKSKKyj2paqY7jT3sD94MxlBlUR1/9zHoki6NJJDuO3lpbqvhPaZMw+WnS3/C3c1BSLtee5wkTF76CH0xT0S7hSCdrXSMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=O4+i66bk; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="O4+i66bk"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1750672840; x=1782208840;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=mlsBkLPwnwFNOessEiLCY8jBWTi4OVNKvirIMXCCP3s=;
-  b=O4+i66bk4fulQamcBStdKsgl6cc9YNTTti9HIPSasmoKaKze34MaOZSO
-   Xh5ZdmDa/7pPPE4LMYLqeDsxs999W5/D8uZ8Sq1xRHfFxops5MEOaQzh5
-   f9Os/AAKI4fe1TDbghkzdDZHjJ9CQz0XXVaZ8uHU752g2m9a7Bud5HuIJ
-   Dd0q20ewhaHzgzGiG2tDdRpKeCX60G9lxCrn9oPlt+RyX3XeANbE9ADqM
-   OTdUNT01vT4lYrMzV9hqtLvvslZ9WTHy4EidtdMMgB0aGLVxFsp0BSZQT
-   VqpMwhcF/I77t0N6qRU7r55N4Au9E4gu3mTp1z5/uI3ARxUCGneOfMQw8
-   A==;
-X-CSE-ConnectionGUID: IQOo+QrYQ/mVPZE1hZ6AWA==
-X-CSE-MsgGUID: g74/qNtqQ3WjRhECubDZwQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11472"; a="64227979"
-X-IronPort-AV: E=Sophos;i="6.16,258,1744095600"; 
-   d="scan'208";a="64227979"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2025 03:00:38 -0700
-X-CSE-ConnectionGUID: +kTBJ6BUReqF77uTavrz5A==
-X-CSE-MsgGUID: M67+NKF7SYOMzjjsFSwQZw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,258,1744095600"; 
-   d="scan'208";a="151023876"
-Received: from lkp-server01.sh.intel.com (HELO e8142ee1dce2) ([10.239.97.150])
-  by orviesa006.jf.intel.com with ESMTP; 23 Jun 2025 03:00:32 -0700
-Received: from kbuild by e8142ee1dce2 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1uTdyX-000NvS-0i;
-	Mon, 23 Jun 2025 10:00:29 +0000
-Date: Mon, 23 Jun 2025 18:00:06 +0800
-From: kernel test robot <lkp@intel.com>
-To: Michal Clapinski <mclapinski@google.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	nvdimm@lists.linux.dev
-Cc: oe-kbuild-all@lists.linux.dev, "Paul E. McKenney" <paulmck@kernel.org>,
-	Thomas Huth <thuth@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Memory Management List <linux-mm@kvack.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	"Borislav Petkov (AMD)" <bp@alien8.de>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Pasha Tatashin <pasha.tatashin@soleen.com>,
-	Mike Rapoport <rppt@kernel.org>, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
-	Michal Clapinski <mclapinski@google.com>
-Subject: Re: [PATCH v3 2/2] libnvdimm: add nd_e820.pmem automatic devdax
- conversion
-Message-ID: <202506231721.IePmiDyz-lkp@intel.com>
-References: <20250612114210.2786075-3-mclapinski@google.com>
+	s=arc-20240116; t=1750676038; c=relaxed/simple;
+	bh=zBO6MXFFmO5JL7G17t6OORmf8OccJRCcVgUVBPiXXX4=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=nml5pupSh1NOiKdOlGS0jo2XvUpPklThltRAj71W3LRTaO5zSXtn+xkpHKG/OXhWzQslfHuxtnieE9//dnPOesHNmCG0FiGArMsSFN/RBzn0MxLn6f913L/ms0qKLWHEuKhLebBbX87ShrY1kV0/8nfBGb44xGWlDOs1X3/3EtE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bQlKz0zGMz6L757;
+	Mon, 23 Jun 2025 18:53:11 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id AF30F1402E9;
+	Mon, 23 Jun 2025 18:53:53 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Mon, 23 Jun
+ 2025 12:53:52 +0200
+Date: Mon, 23 Jun 2025 11:53:51 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Neeraj Kumar <s.neeraj@samsung.com>
+CC: <dan.j.williams@intel.com>, <dave@stgolabs.net>, <dave.jiang@intel.com>,
+	<alison.schofield@intel.com>, <vishal.l.verma@intel.com>,
+	<ira.weiny@intel.com>, <a.manzanares@samsung.com>, <nifan.cxl@gmail.com>,
+	<anisa.su@samsung.com>, <vishak.g@samsung.com>, <krish.reddy@samsung.com>,
+	<arun.george@samsung.com>, <alok.rathore@samsung.com>,
+	<neeraj.kernel@gmail.com>, <linux-kernel@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<gost.dev@samsung.com>, <cpgs@samsung.com>
+Subject: Re: [RFC PATCH 02/20] nvdimm/label: Prep patch to accommodate cxl
+ lsa 2.1 support
+Message-ID: <20250623115351.00005312@huawei.com>
+In-Reply-To: <700072760.81750165203833.JavaMail.epsvc@epcpadp1new>
+References: <20250617123944.78345-1-s.neeraj@samsung.com>
+	<CGME20250617124011epcas5p2264e30ec58977907f80d311083265641@epcas5p2.samsung.com>
+	<700072760.81750165203833.JavaMail.epsvc@epcpadp1new>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250612114210.2786075-3-mclapinski@google.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-Hi Michal,
+On Tue, 17 Jun 2025 18:09:26 +0530
+Neeraj Kumar <s.neeraj@samsung.com> wrote:
 
-kernel test robot noticed the following build warnings:
+> In order to accommodate cxl lsa 2.1 format region label, renamed
+> nd_namespace_label to nd_lsa_label.
 
-[auto build test WARNING on linus/master]
-[also build test WARNING on nvdimm/libnvdimm-for-next v6.16-rc3 next-20250623]
-[cannot apply to nvdimm/dax-misc]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+I would add some more information on why.  I've no idea from this
+description whether the issue is a naming clash or a need for a broader
+name or something entirely different.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Michal-Clapinski/libnvdimm-e820-Add-a-new-parameter-to-split-e820-entry-into-many-regions/20250612-194354
-base:   linus/master
-patch link:    https://lore.kernel.org/r/20250612114210.2786075-3-mclapinski%40google.com
-patch subject: [PATCH v3 2/2] libnvdimm: add nd_e820.pmem automatic devdax conversion
-config: x86_64-randconfig-r111-20250621 (https://download.01.org/0day-ci/archive/20250623/202506231721.IePmiDyz-lkp@intel.com/config)
-compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250623/202506231721.IePmiDyz-lkp@intel.com/reproduce)
+Most readers aren't going to be particular familiar with the lsa spec
+version changes, so help them out with a little more detail.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202506231721.IePmiDyz-lkp@intel.com/
+The comment you have with the union is probably the right info
+to duplicate here.
 
-sparse warnings: (new ones prefixed by >>)
->> drivers/nvdimm/pfn_devs.c:684:23: sparse: sparse: incorrect type in assignment (different base types) @@     expected restricted __le32 [usertype] align @@     got restricted __le64 [usertype] @@
-   drivers/nvdimm/pfn_devs.c:684:23: sparse:     expected restricted __le32 [usertype] align
-   drivers/nvdimm/pfn_devs.c:684:23: sparse:     got restricted __le64 [usertype]
+> 
+> No functional change introduced.
+> 
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
 
-vim +684 drivers/nvdimm/pfn_devs.c
+This is quite a lot of churn which, just looking at this patch, could
+be avoided by just setting local variables to point at a particular
+member of the union rather than the containing struct.
+You already do this in a few places like nd_label_reserve_dpa().
 
-   646	
-   647	int nd_pfn_set_dax_defaults(struct nd_pfn *nd_pfn)
-   648	{
-   649		struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
-   650		struct nd_namespace_common *ndns = nd_pfn->ndns;
-   651		struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
-   652		struct nd_namespace_io *nsio;
-   653		struct resource *res;
-   654		unsigned long align;
-   655	
-   656		if (!pfn_sb || !ndns)
-   657			return -ENODEV;
-   658	
-   659		if (!is_memory(nd_pfn->dev.parent))
-   660			return -ENODEV;
-   661	
-   662		if (nd_region->provider_data) {
-   663			align = (unsigned long)nd_region->provider_data;
-   664		} else {
-   665			nsio = to_nd_namespace_io(&ndns->dev);
-   666			res = &nsio->res;
-   667			align = nd_best_supported_alignment(res->start, res->end);
-   668			if (!align) {
-   669				dev_err(&nd_pfn->dev, "init failed, resource misaligned\n");
-   670				return -EOPNOTSUPP;
-   671			}
-   672		}
-   673	
-   674		memset(pfn_sb, 0, sizeof(*pfn_sb));
-   675	
-   676		if (!nd_pfn->uuid) {
-   677			nd_pfn->uuid = kmemdup(pfn_sb->uuid, 16, GFP_KERNEL);
-   678			if (!nd_pfn->uuid)
-   679				return -ENOMEM;
-   680			nd_pfn->align = align;
-   681			nd_pfn->mode = PFN_MODE_RAM;
-   682		}
-   683	
- > 684		pfn_sb->align = cpu_to_le64(nd_pfn->align);
-   685		pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
-   686	
-   687		return nd_pfn_checks(nd_pfn, 0, 0, 0);
-   688	}
-   689	EXPORT_SYMBOL(nd_pfn_set_dax_defaults);
-   690	
+Perhaps it will be come clearer why that doesn't make sense as
+I ready later patches.
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+> index 0650fb4b9821..4883b3a1320f 100644
+> --- a/drivers/nvdimm/label.h
+> +++ b/drivers/nvdimm/label.h
+> @@ -183,6 +183,16 @@ struct nd_namespace_label {
+>  	};
+>  };
+>  
+> +/*
+> + * LSA 2.1 format introduces region label, which can also reside
+> + * into LSA along with only namespace label as per v1.1 and v1.2
+> + */
+> +struct nd_lsa_label {
+> +	union {
+> +		struct nd_namespace_label ns_label;
+> +	};
+> +};
+
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index 55cfbf1e0a95..f180f0068c15 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+
+> @@ -1595,7 +1596,8 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, const uuid_t *uuid,
+>  				return false;
+>  			}
+>  			found_uuid = true;
+> -			if (!nsl_validate_nlabel(nd_region, ndd, nd_label))
+> +			if (!nsl_validate_nlabel(nd_region,
+> +						 ndd, &nd_label->ns_label))
+
+Strange wrap.  I'd move ndd up a line.
+
+
+>  				continue;
+>  			if (position != pos)
+>  				continue;
+> @@ -1615,7 +1617,7 @@ static int select_pmem_id(struct nd_region *nd_region, const uuid_t *pmem_id)
+>  	for (i = 0; i < nd_region->ndr_mappings; i++) {
+>  		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+>  		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+> -		struct nd_namespace_label *nd_label = NULL;
+> +		struct nd_lsa_label *nd_label = NULL;
+>  		u64 hw_start, hw_end, pmem_start, pmem_end;
+>  		struct nd_label_ent *label_ent;
+>  
+
+
+> @@ -1739,14 +1741,14 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  	 * that position at labels[0], and NULL at labels[1].  In the process,
+>  	 * check that the namespace aligns with interleave-set.
+>  	 */
+> -	nsl_get_uuid(ndd, nd_label, &uuid);
+> +	nsl_get_uuid(ndd, &nd_label->ns_label, &uuid);
+>  	rc = select_pmem_id(nd_region, &uuid);
+>  	if (rc)
+>  		goto err;
+>  
+>  	/* Calculate total size and populate namespace properties from label0 */
+>  	for (i = 0; i < nd_region->ndr_mappings; i++) {
+> -		struct nd_namespace_label *label0;
+> +		struct nd_lsa_label *label0;
+
+If you are only ever going to use one part of the union in a given
+bit of code, why not use a struct of that type so you only need to change
+the point where it is assigned rather that lots of places.
+
+So keep this as struct nd_namespace_label *label0;
+
+If that makes sense, check for other places where doing that will reduce the churn
+and complexity of the code.
+
+
+
+>  		struct nvdimm_drvdata *ndd;
+>  
+>  		nd_mapping = &nd_region->mapping[i];
+> @@ -1760,17 +1762,17 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  		}
+>  
+>  		ndd = to_ndd(nd_mapping);
+> -		size += nsl_get_rawsize(ndd, label0);
+> -		if (nsl_get_position(ndd, label0) != 0)
+> +		size += nsl_get_rawsize(ndd, &label0->ns_label);
+> +		if (nsl_get_position(ndd, &label0->ns_label) != 0)
+>  			continue;
+>  		WARN_ON(nspm->alt_name || nspm->uuid);
+> -		nspm->alt_name = kmemdup(nsl_ref_name(ndd, label0),
+> +		nspm->alt_name = kmemdup(nsl_ref_name(ndd, &label0->ns_label),
+>  					 NSLABEL_NAME_LEN, GFP_KERNEL);
+> -		nsl_get_uuid(ndd, label0, &uuid);
+> +		nsl_get_uuid(ndd, &label0->ns_label, &uuid);
+>  		nspm->uuid = kmemdup(&uuid, sizeof(uuid_t), GFP_KERNEL);
+> -		nspm->lbasize = nsl_get_lbasize(ndd, label0);
+> +		nspm->lbasize = nsl_get_lbasize(ndd, &label0->ns_label);
+>  		nspm->nsio.common.claim_class =
+> -			nsl_get_claim_class(ndd, label0);
+> +			nsl_get_claim_class(ndd, &label0->ns_label);
+>  	}
+
