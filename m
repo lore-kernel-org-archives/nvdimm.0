@@ -1,227 +1,934 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from out-172.mta1.migadu.com (out-172.mta1.migadu.com [95.215.58.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDA7D2DF3CF
-	for <nvdimm@lists.linux.dev>; Fri, 20 Jun 2025 20:19:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.8
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750450764; cv=fail; b=gVvJB2GtsQq/UkUz8pSKMKlM0AFALHXZump81jT6a7ZTf8m246DqyfxU0FCwpEoQSrWNkqJaPFqo2oic9HSiJY/WRKCNnnyFgtlB2SeqeNrMfsJSKxFjcWe7ZRv3jFwno4X73lbt0P9R0iyLZS1ZPD5wANVNZMD9BnDQ9Ha838I=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750450764; c=relaxed/simple;
-	bh=/lBkmRxRXuUUlT2FGnBB7hY8Xez2hyTgQ6HA4mjUhb0=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=PBi6wr9NigLyc82WmH5jNIfpupdMfrEDdHvTlTf4mK8bsv7dCMs2jvOD8el2Q/kd2TDpkAtkoYMoB6R4qsYJ31bmnMixBFoATxpUfIJmr9rV7/EamyHEv4/59n6pm1SQh0vPf2qWlrNdyF5OgLInlCr7TmZDqcGSNK1FgG4E22c=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YFPWzt/e; arc=fail smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 020E11C2DB2
+	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 03:13:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1750648408; cv=none; b=lfUb1q9DoUSLeirByeeChspcsDmLHNVRSffall+olNVVqoS5/GH9LVS0FDNtm2cLFz6zKoSCbK3xdvaicmD3CgI3n8DzMN5yPddnu3CXTtg0rdlLrzPk7NLQJfZoWrirGvh7htntqnAmKORoEqavaEqJGZmjdZiSTwl5vxy5k8A=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1750648408; c=relaxed/simple;
+	bh=AoERW9q//7gZjLW4FikHdXW/WHcpKddLdd+/THRibm4=;
+	h=Content-Type:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To; b=F6haAn6fu7zozyEg+rnBfTi2vfmn6PVrGSjcYo2G9yWaW9qTqjrr13NH2pKGWMW+Mtry1r8sFJ26X8HLZjfjbOyuvK0PhG0xVtOZDTCIOQ0PGCXVw9TEPVXWxxI+uat/DmqHF1OgBFqaxR1YB5qQNrh+TlvaSDzd98BLPYwN3wM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Ej+zeCQv; arc=none smtp.client-ip=95.215.58.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YFPWzt/e"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1750450762; x=1781986762;
-  h=date:from:to:cc:subject:message-id:references:
-   content-transfer-encoding:in-reply-to:mime-version;
-  bh=/lBkmRxRXuUUlT2FGnBB7hY8Xez2hyTgQ6HA4mjUhb0=;
-  b=YFPWzt/eV33u3nmLIb6Tp0tAcyKmXE7EQlRvw4jVA0AuAOB+2OaOXY1c
-   tzpyDH09olmK3wwxBo46OXSJZGo6PW+Xir73iTdD5YW9987EfUDZFk9nO
-   8Qxua45t0VZwwT6c9lNh1wJiw4D+WexFRBbGBi/z1/KCgx+8OWd/WY/FS
-   yzq6B7JLncDgQYFzgJCK1znKirNsE7xidboL+WjUcmDjk3uoCUtWF9ZsZ
-   IjQX6RgxS55FpL0vNnMJpGEjn8GTjJt6uNkpTXZ38o/jadHwXhUvR7KpR
-   jept66JJDx2m1HrALWOqV6hJZ0zROSxih7w+ovPLkEbcGCgxrSiZZiXtT
-   g==;
-X-CSE-ConnectionGUID: JfBHtFFGQSK5w+rL4Jywrw==
-X-CSE-MsgGUID: akJmmCP1Qg+0VuD/reW8mQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11469"; a="70292340"
-X-IronPort-AV: E=Sophos;i="6.16,252,1744095600"; 
-   d="scan'208";a="70292340"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2025 13:19:21 -0700
-X-CSE-ConnectionGUID: yWqlltS2Tp+03TEtSrodRA==
-X-CSE-MsgGUID: wXLlFjIvQOq0hiZbfZObaA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,252,1744095600"; 
-   d="scan'208";a="151543459"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by orviesa008.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2025 13:19:22 -0700
-Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Fri, 20 Jun 2025 13:19:21 -0700
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25 via Frontend Transport; Fri, 20 Jun 2025 13:19:21 -0700
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (40.107.96.82) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Fri, 20 Jun 2025 13:19:21 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Rf6nukfuX3zrtW50jPJ/35SDtBp8VrDxuiEZuEJNQRNUeCZSKHTuk2oSJa1bTJdejzgMmYv4bDBXugMN1x8R4Vji0+U1NDpX4+sYsiEGnttMH1oUz6rtQDXe1XoXE+aPwHLAzUYTP7P7ZwlidQIR3WeGGKNvjM6sUGiWwPa9njO6/wX1WM4M/6yuUMWivpIANU8q35sGn7XTA8PBlmWyvLrIHOU3js9orPpSMu1clk2N16xRXNmXzeyotF8duI6UcMTGp+vXtt63Th9iV3hg2AFsilMpCK9Og5wp9zA0u+Ayuggvir7985GzEGnaccGWMsJXrVsZbbfWAjCfxP3Urw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=CVHRsSGcnVycsiWTdg6OyrV5cPqLciITwxPhJmE/1SA=;
- b=hKqEntayRAnDalKZlZsSzUPlz/wftly3RAin8N/ZNK6CCoUshNI/UjeNYqkhaC1E1bzFJ5IYhtJyyt/dEE0vJIPNnwpPlsQEJKCZGyFpJm2UdmyypomnD9KTr+3/gI2/sxdAf25noM/P/v0AN5iIvR7dflA67eNgBL6SJ1d8qOSE3D0mMxmjq46soF558h/h+OGZnszdvrlSlmJu5G1MgRH8GcEnS5XxLucpDhIR4JEEytY5HdVdXZ40X76hZzlzHY88icnchdRu2dVL3zo4Byey7BmFjKcw2e08gVHRI5b9nPul5mBclQKI1lqlVwgcrU+FijkygTFogQ89kbaGSA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB8794.namprd11.prod.outlook.com (2603:10b6:806:46a::5)
- by DM6PR11MB4595.namprd11.prod.outlook.com (2603:10b6:5:2ac::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8857.21; Fri, 20 Jun
- 2025 20:19:19 +0000
-Received: from SA1PR11MB8794.namprd11.prod.outlook.com
- ([fe80::a3d4:9d67:2f5d:6720]) by SA1PR11MB8794.namprd11.prod.outlook.com
- ([fe80::a3d4:9d67:2f5d:6720%6]) with mapi id 15.20.8857.022; Fri, 20 Jun 2025
- 20:19:18 +0000
-Date: Fri, 20 Jun 2025 13:19:15 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-CC: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-cxl@vger.kernel.org"
-	<linux-cxl@vger.kernel.org>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>
-Subject: Re: [ndctl PATCH 3/5] test: Fix dax.sh expectations
-Message-ID: <aFXCQ-Xemscm0vYk@aschofie-mobl2.lan>
-References: <20250618222130.672621-1-dan.j.williams@intel.com>
- <20250618222130.672621-4-dan.j.williams@intel.com>
- <aFNimwh65aJIg-BF@aschofie-mobl2.lan>
- <7562edbc163fd8953b2b84e4df3f728697fa0c6a.camel@intel.com>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <7562edbc163fd8953b2b84e4df3f728697fa0c6a.camel@intel.com>
-X-ClientProxiedBy: SJ0PR13CA0075.namprd13.prod.outlook.com
- (2603:10b6:a03:2c4::20) To SA1PR11MB8794.namprd11.prod.outlook.com
- (2603:10b6:806:46a::5)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Ej+zeCQv"
+Content-Type: multipart/mixed; boundary="------------f6yEcQN9bfuEx8vW3yg03FzF"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1750648393;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WNcVc/8gbZ3qjMYHP0ffM2LCTBOqe/mtoZBwQP+s1p0=;
+	b=Ej+zeCQvi93Ez+qYt145koIzwhBtGLOrhJryKoty9Y/KSr2LOV6oPc+THkv/8K1UCWh1V5
+	jOLIjLtuyNLYGnW16NsFzWgF+iVcJ8WaL0JQmZUQ4Pi6bS0DED2dQ6YHfIQ6m1vNya1+9Z
+	ip1GAFKfSBJsu/WHa56t7Sloj/Cj+KQ=
+Message-ID: <3c9f304a-b830-4242-8e01-04efab4e0eaa@linux.dev>
+Date: Mon, 23 Jun 2025 11:13:04 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB8794:EE_|DM6PR11MB4595:EE_
-X-MS-Office365-Filtering-Correlation-Id: ad4fe883-191a-46e1-2fd8-08ddb037bc4a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014;
-X-Microsoft-Antispam-Message-Info: =?iso-8859-1?Q?iRg2MA7zoiWUeKZ8Jb52TqgsKZipnpYH1LNfxLPpTnMEtL4bUwb8f8gq+y?=
- =?iso-8859-1?Q?IL+w7uu/Oksw+UvJuVSrMKW15Kap07UwithqqUPNaUamMTRsONqjhUTr7j?=
- =?iso-8859-1?Q?Ug3RUr3tsPOCfILQNylcQ9fbcoNSpoWkdm21yzRnKH9jEmzTh2VTE7f+xC?=
- =?iso-8859-1?Q?oHHHKUf9bxPbRj+ZvsiE4R6HbBGmQzYmC4QOnD9BOiBuNuBAdRlf2TO3e1?=
- =?iso-8859-1?Q?gQB8rhnWEmz8PSvQPJcOIL9TYH+AZP5slCbvvxxar/Jpviu1gWJTQRBpf2?=
- =?iso-8859-1?Q?fB/VXrNKFZ5gryj1UiSCDj2O/cGJwm7v9jSX33Q644w1PAPqGHHYh7Pwpn?=
- =?iso-8859-1?Q?UeGQBRbxnpWun895moYP3G+qNn04GIAfv+MeDZV6hD2H7gJ8/EwJ9gehr7?=
- =?iso-8859-1?Q?BMX6eu12+Fggm3CdWWCYGjzUN8PZJn/QYpa64IdbZ6cGiz3lfH5Yaby+ul?=
- =?iso-8859-1?Q?4WjOuJpW5ZPbZkEN91JDomqV6KekfkumhKLsAa/jrk0IDVQ/F3CNzOJeCo?=
- =?iso-8859-1?Q?UfqRkVrkcBr+vuIlFYIRs6KetaVhiXNEFIQfQImHX9HItKZJUcofjbJ0Ij?=
- =?iso-8859-1?Q?P8VJ74c2c7F46cmwY78pU8MP9WQLl7hqWsJBykcfvbb/ySakQKzIr2qVfj?=
- =?iso-8859-1?Q?xL8HOQCLtBynPG6J6f8wcLYAbdHlFv4MKGqfH5kqSWOwXpsUCthl/S4fnD?=
- =?iso-8859-1?Q?K86EJaqSMQyY5ltrOByqBOe9DpgPs9Rk153agC7JDJNR4bmyhCDUJMc15e?=
- =?iso-8859-1?Q?baP4uM5Nt2pKRmJxq/MpjwtlXuKw/krbpnuT2FHQXOwpZZ6TswA+i9HhJz?=
- =?iso-8859-1?Q?ipbrIV7x1oRU0CFkYh3iWyaksyCBqPjtso6iI2hifMCa+0m6KOE5HP7YdX?=
- =?iso-8859-1?Q?Y7FyRl1ChlcLtS0uDtuTSG6YQvTpLalyDV2Vj8NeM/caxw6QCW6Wkt6i0q?=
- =?iso-8859-1?Q?GgNAly+sIR9+xbcr9ZnQ1+VmA4DshSWLWGqhAARL1u5Kalpj20qGPiI8h3?=
- =?iso-8859-1?Q?o4Dd7nr51f9De/ytb2uf0sLmrNKdtCUnO3xO3a6mx6EG6mn+D0/R8JkQzy?=
- =?iso-8859-1?Q?9z9D813aSec7+gj5cCfq7NSda+26IgYecygyg+tJJ7JfWxFuLNSl7qtG8Q?=
- =?iso-8859-1?Q?Lsh6JJdcQAbta2QUB+H/Ub5aIZzd6fMnXb0P9bAyxJ+ZOjLb11y2XX3UI3?=
- =?iso-8859-1?Q?fOreslCndSZnbpWTXgj8NJqOItMlFuewuLY1OyOcR+7QdNgSe/OtEbgTW1?=
- =?iso-8859-1?Q?8A74RmNL1tIAtX/o11aV+82InA0MP+3tp86sH6LUrI6euvXI6DJJXCNwEI?=
- =?iso-8859-1?Q?Ng9Umr9Bp+Co9Gt03/kssbcNZ1muYZPXB6CF+RXX7nf8WJOniDAeYtkfHu?=
- =?iso-8859-1?Q?iDPKwhc3W+DCLZUAxQOHqCwtcGkei2vnIZfMvvuvLFmeh8P3Jj11u+OA9E?=
- =?iso-8859-1?Q?J7bzDBH0dUtgo6Mk6d/NRg+O+2IJS5qUvJTMkrHv8sU9hmtCIsnj/3BE5z?=
- =?iso-8859-1?Q?w=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB8794.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?iso-8859-1?Q?gR7WKEmG2crYdJRuRzCrZEbrp/OVO0vZZ6GMAJl+B26qT/FLNkTuaQ4wCR?=
- =?iso-8859-1?Q?10U8lcUDaILgPZ9GPh77Mjs4xAzXzF3OKpDi5atvdxe0fq1sOSDhOwvMgX?=
- =?iso-8859-1?Q?vUXLUYY5nM7sQV30NHXQ7TGISWILFAmoGESswkcvTJtQaIJG0Tjgk5pNYy?=
- =?iso-8859-1?Q?ZjKN+t397NDoWGDdp63KlwKpvISemby4l9WHbZgwuoh6IBGvogrBqCHT6C?=
- =?iso-8859-1?Q?EACeapTOWqtKKEvmQHAak/ZsN9DMDupXjAApkHTjZKqBDNVN4Z2BaGv1YD?=
- =?iso-8859-1?Q?BAMl9YZGxT7x5vO0l/dN23S6ILHUJzIsWcJ0gn88A3K0OhTSVs2EgtyMgx?=
- =?iso-8859-1?Q?kJlD9ebOogLvS5cwS/ri5xFSqpUSdeKLlBJTZw0NhIylCNODBlh6NybKYz?=
- =?iso-8859-1?Q?wS63SUGP2Ju9hmauFz7oZOUXCOWa0JZBnA0wO/H0+eOi1dLRcdS8DhvTgV?=
- =?iso-8859-1?Q?8P+2R2jkOODdHx0ZujWM+nCJ0CZO5eUgk2RPWtsE0BE6lKnNw+GrShonDI?=
- =?iso-8859-1?Q?fm+nY+h+w6V8YY0aY99oT9jMlowr9cz1Xfzm/cSj7qw8nSWWVkU37A8tRq?=
- =?iso-8859-1?Q?atwlr0XJScB11TVR9h+X2ZNbZVsjTfsmXmLkqVfysCpn/nzQOA/4nTke9Q?=
- =?iso-8859-1?Q?yR2T3K93V0K2WI/94QSf8AuTENL/8hL95zUsy3+JAFNU1clxTYd58fxkEr?=
- =?iso-8859-1?Q?eKhR3cetRiUs1ji7hgkCvzoMjsD5X+7KA8MDptc8XCJAfpCih0S6R2ja15?=
- =?iso-8859-1?Q?VPahIcd1ic0ZCLGTSrMhy/9+7W36zCCnJFB0e3nXB+FiMqMxj3rQcEdJwO?=
- =?iso-8859-1?Q?gLHxR0A3QdL+iY1aM/YDKBvSGYnheYYzdfLV2WfEtmsMB5cZf616GZc+0G?=
- =?iso-8859-1?Q?58TyxEKZG6fmiNKxVx9sUYK6NHhajPnCGo2GGQiSkzOYYAK0AnMiMv8kNH?=
- =?iso-8859-1?Q?59658kD+Kx7i+CClJbzoD/3rSAQ6sLxH2UB/Lm9cTb4gW30cPQsszPPlWc?=
- =?iso-8859-1?Q?CvtqrZSVP7be+T6FpuUcn4XYRiWPGFcd+sPHCYtZmSu3R36weLVZZc5I1e?=
- =?iso-8859-1?Q?Fq7jv/+kATBtN3ziRQ+PYvXDvqZzw8lazqeXyRfX0FEzvhDZZ2LgRCQjXQ?=
- =?iso-8859-1?Q?Jg52RJmVpS/4w/Mp++mpJzufPr8pAS6xHn04HdvK6JWMF1egOLMn3J/WEx?=
- =?iso-8859-1?Q?CJb8Uc8elkxT4G/zU41MX4m/9DHU1yHt1W9Ki5M3QQv9DLNpqGVlTKQaQo?=
- =?iso-8859-1?Q?CPr97JL8N0/NXuaP8WUc2JONAlnLV2dr+1TtiRcQDjA7TB3lI8NhFIglBj?=
- =?iso-8859-1?Q?U6z14SD7K9u27eJG+RPUwtWzy3XUZqiGPk0gQdfFbdNtrs5zHR7GgMkseZ?=
- =?iso-8859-1?Q?Cw5jAGQQEotHRUNuOZ1iYTvl+NQNDtFBz5JwE1+0vejelVWolPnAqAXe9q?=
- =?iso-8859-1?Q?e7BoC0uaue10p4gqmDfsbsjnwuBRhwqDjChzmP+Zt3S3FdjjvBt1o4IOs2?=
- =?iso-8859-1?Q?44wtN+Pqxejv3zbh/CMceDLyTlJQuqwAQINw8JWdxx8nlhvArnXAIrOsPQ?=
- =?iso-8859-1?Q?u1qQVVa4CgayfKQXZXhdn3EllwDwmDVX10igQBld7bvZvrHLVLSf+TpcWX?=
- =?iso-8859-1?Q?vGGWEJlDETZNKFrMnQoDEyAMONqErW2GXf8GX/muH2UP78rJMU+QKMbQ?=
- =?iso-8859-1?Q?=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: ad4fe883-191a-46e1-2fd8-08ddb037bc4a
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB8794.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Jun 2025 20:19:18.8065
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: n3lf4Dc8rOqrNwcDrTHeoO6bnIh2mt2nnw6nin0GVB8SbvYbdfBJVX49uvkZW4tV1bBM80HM1ldzVnuJqAhOdqTjRxbaH2RGYgQnXDfniLQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB4595
-X-OriginatorOrg: intel.com
+Subject: =?UTF-8?Q?Re=3A_=5BRFC_v2_00/11=5D_dm-pcache_=E2=80=93_persistent-m?=
+ =?UTF-8?Q?emory_cache_for_block_devices?=
+To: Mikulas Patocka <mpatocka@redhat.com>
+Cc: agk@redhat.com, snitzer@kernel.org, axboe@kernel.dk, hch@lst.de,
+ dan.j.williams@intel.com, Jonathan.Cameron@Huawei.com,
+ linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, dm-devel@lists.linux.dev
+References: <20250605142306.1930831-1-dongsheng.yang@linux.dev>
+ <dc019764-5128-526e-d8ea-effa78e37b39@redhat.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Dongsheng Yang <dongsheng.yang@linux.dev>
+In-Reply-To: <dc019764-5128-526e-d8ea-effa78e37b39@redhat.com>
+X-Migadu-Flow: FLOW_OUT
 
-On Fri, Jun 20, 2025 at 01:11:00PM -0700, Vishal Verma wrote:
-> On Wed, 2025-06-18 at 18:06 -0700, Alison Schofield wrote:
-> > On Wed, Jun 18, 2025 at 03:21:28PM -0700, Dan Williams wrote:
-> > > With current kernel+tracecmd combinations stdout is no longer purely trace
-> > > records and column "21" is no longer the vmfault_t result.
-> > > 
-> > > Drop, if present, the diagnostic print of how many CPUs are in the trace
-> > > and use the more universally compatible assumption that the fault result is
-> > > the last column rather than a specific column.
-> > > 
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > ---
-> > > �test/dax.sh | 3 ++-
-> > > �1 file changed, 2 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/test/dax.sh b/test/dax.sh
-> > > index 3ffbc8079eba..98faaf0eb9b2 100755
-> > > --- a/test/dax.sh
-> > > +++ b/test/dax.sh
-> > > @@ -37,13 +37,14 @@ run_test() {
-> > > �	rc=1
-> > > �	while read -r p; do
-> > > �		[[ $p ]] || continue
-> > > +		[[ $p == cpus=* ]] && continue
-> > remove above line
-> > > �		if [ "$count" -lt 10 ]; then
-> > > �			if [ "$p" != "0x100" ] && [ "$p" != "NOPAGE" ]; then
-> > > �				cleanup "$1"
-> > > �			fi
-> > > �		fi
-> > > �		count=$((count + 1))
-> > > -	done < <(trace-cmd report | awk '{ print $21 }')
-> > > +	done < <(trace-cmd report | awk '{ print $NF }')
-> > replace above line w
-> > 	done < <(trace-cmd report | grep dax_pmd_fault_done | awk '{ print $NF }')
-> 
-> Very minor nit, but since you're already using awk, no need to grep
-> first, instead you can use awk's 'first part' to do the filtering - 
-> 
->   done < <(trace-cmd report | awk '/dax_pmd_fault_done/{ print $NF }')
-> 
-> You can stick any regex between the /../ and it will only act on lines
-> matching that.
+This is a multi-part message in MIME format.
+--------------f6yEcQN9bfuEx8vW3yg03FzF
+Content-Type: multipart/alternative;
+ boundary="------------vr3vSDl9nGurANl7EDaKM3T0"
 
-Thanks Vishal! I hope to remember that for 'next time' I see grep and awk used
-together. Not rev'ing this one.
+--------------vr3vSDl9nGurANl7EDaKM3T0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+
+Hi Mikulas:
+
+      I will send dm-pcache V1 soon, below is my response to your comments.
+
+在 6/13/2025 12:57 AM, Mikulas Patocka 写道:
+> Hi
+>
+>
+> On Thu, 5 Jun 2025, Dongsheng Yang wrote:
+>
+>> Hi Mikulas and all,
+>>
+>> This is *RFC v2* of the *pcache* series, a persistent-memory backed cache.
+>> Compared with *RFC v1*
+>> <https://lore.kernel.org/lkml/20250414014505.20477-1-dongsheng.yang@linux.dev/>  
+>> the most important change is that the whole cache has been *ported to
+>> the Device-Mapper framework* and is now exposed as a regular DM target.
+>>
+>> Code:
+>>      https://github.com/DataTravelGuide/linux/tree/dm-pcache
+>>
+>> Full RFC v2 test results:
+>>      https://datatravelguide.github.io/dtg-blog/pcache/pcache_rfc_v2_result/results.html
+>>
+>>      All 962 xfstests cases passed successfully under four different
+>> pcache configurations.
+>>
+>>      One of the detailed xfstests run:
+>>          https://datatravelguide.github.io/dtg-blog/pcache/pcache_rfc_v2_result/test-results/02-._pcache.py_PcacheTest.test_run-crc-enable-gc-gc0-test_script-xfstests-a515/debug.log
+>>
+>> Below is a quick tour through the three layers of the implementation,
+>> followed by an example invocation.
+>>
+>> ----------------------------------------------------------------------
+>> 1. pmem access layer
+>> ----------------------------------------------------------------------
+>>
+>> * All reads use *copy_mc_to_kernel()* so that uncorrectable media
+>>    errors are detected and reported.
+>> * All writes go through *memcpy_flushcache()* to guarantee durability
+>>    on real persistent memory.
+> You could also try to use normal write and clflushopt for big writes - I
+> found out that for larger regions it is better - see the function
+> memcpy_flushcache_optimized in dm-writecache. Test, which way is better.
+
+I did a test with fio on /dev/pmem0, with an attached patch on nd_pmem.ko:
+
+when I use memmap pmem device, I got a similar result with the comment 
+in memcpy_flushcache_optimized():
+
+Test (memmap pmem) clflushopt flushcache 
+------------------------------------------------- test_randwrite_512 200 
+MiB/s 228 MiB/s test_randwrite_1024 378 MiB/s 431 MiB/s 
+test_randwrite_2K 773 MiB/s 769 MiB/s test_randwrite_4K 1364 MiB/s 1272 
+MiB/s test_randwrite_8K 2078 MiB/s 1817 MiB/s test_randwrite_16K 2745 
+MiB/s 2098 MiB/s test_randwrite_32K 3232 MiB/s 2231 MiB/s 
+test_randwrite_64K 3660 MiB/s 2411 MiB/s test_randwrite_128K 3922 MiB/s 
+2513 MiB/s test_randwrite_1M 3824 MiB/s 2537 MiB/s test_write_512 228 
+MiB/s 228 MiB/s test_write_1024 439 MiB/s 423 MiB/s test_write_2K 841 
+MiB/s 800 MiB/s test_write_4K 1364 MiB/s 1308 MiB/s test_write_8K 2107 
+MiB/s 1838 MiB/s test_write_16K 2752 MiB/s 2166 MiB/s test_write_32K 
+3213 MiB/s 2247 MiB/s test_write_64K 3661 MiB/s 2415 MiB/s 
+test_write_128K 3902 MiB/s 2514 MiB/s test_write_1M 3808 MiB/s 2529 MiB/s
+
+But I got a different result when I use Optane pmem100:
+
+Test (Optane pmem100) clflushopt flushcache 
+------------------------------------------------- test_randwrite_512 167 
+MiB/s 226 MiB/s test_randwrite_1024 301 MiB/s 420 MiB/s 
+test_randwrite_2K 615 MiB/s 639 MiB/s test_randwrite_4K 967 MiB/s 1024 
+MiB/s test_randwrite_8K 1047 MiB/s 1314 MiB/s test_randwrite_16K 1096 
+MiB/s 1377 MiB/s test_randwrite_32K 1155 MiB/s 1382 MiB/s 
+test_randwrite_64K 1184 MiB/s 1452 MiB/s test_randwrite_128K 1199 MiB/s 
+1488 MiB/s test_randwrite_1M 1178 MiB/s 1499 MiB/s test_write_512 233 
+MiB/s 233 MiB/s test_write_1024 424 MiB/s 391 MiB/s test_write_2K 706 
+MiB/s 760 MiB/s test_write_4K 978 MiB/s 1076 MiB/s test_write_8K 1059 
+MiB/s 1296 MiB/s test_write_16K 1119 MiB/s 1380 MiB/s test_write_32K 
+1158 MiB/s 1387 MiB/s test_write_64K 1184 MiB/s 1448 MiB/s 
+test_write_128K 1198 MiB/s 1481 MiB/s test_write_1M 1178 MiB/s 1486 MiB/s
 
 
+So for now I’d rather keep using flushcache in pcache. In future, once 
+we’ve come up with a general-purpose optimization, we can switch to that.
 
+>
+>> ----------------------------------------------------------------------
+>> 2. cache-logic layer (segments / keys / workers)
+>> ----------------------------------------------------------------------
+>>
+>> Main features
+>>    - 16 MiB pmem segments, log-structured allocation.
+>>    - Multi-subtree RB-tree index for high parallelism.
+>>    - Optional per-entry *CRC32* on cached data.
+> Would it be better to use crc32c because it has hardware support in the
+> SSE4.2 instruction set?
+
+Good suggestion, thanx.
+
+>
+>>    - Background *write-back* worker and watermark-driven *GC*.
+>>    - Crash-safe replay: key-sets are scanned from *key_tail* on start-up.
+>>
+>> Current limitations
+>>    - Only *write-back* mode implemented.
+>>    - Only FIFO cache invalidate; other (LRU, ARC...) planned.
+>>
+>> ----------------------------------------------------------------------
+>> 3. dm-pcache target integration
+>> ----------------------------------------------------------------------
+>>
+>> * Table line
+>>      `pcache <pmem_dev> <origin_dev> writeback <true|false>`
+>> * Features advertised to DM:
+>>    - `ti->flush_supported = true`, so *PREFLUSH* and *FUA* are honoured
+>>      (they force all open key-sets to close and data to be durable).
+>> * Not yet supported:
+>>    - Discard / TRIM.
+>>    - dynamic `dmsetup reload`.
+> If you don't support it, you should at least try to detect that the user
+> did reload and return error - so that there won't be data corruption in
+> this case.
+
+Yes, actually It did return -EOPNOTSUPP。
+
+static int dm_pcache_ctr(struct dm_target *ti, unsigned int argc, char 
+**argv)
+{
+         struct mapped_device *md = ti->table->md;
+         struct dm_pcache *pcache;
+         int ret;
+
+         if (md->map) {
+                 ti->error = "Don't support table loading for live md";
+                 return -EOPNOTSUPP;
+         }
+
+>
+> But it would be better to support table reload. You can support it by a
+> similar mechanism to "__handover_exceptions" in the dm-snap.c driver.
+
+
+Of course, that's planned but we think that's not necessary in initial 
+version of it.
+
+>
+>> Runtime controls
+>>    - `dmsetup message <dev> 0 gc_percent <0-90>` adjusts the GC trigger.
+>>
+>> Status line reports super-block flags, segment counts, GC threshold and
+>> the three tail/head pointers (see the RST document for details).
+> Perhaps these are not real bugs (I didn't analyze it thoroughly), but
+> there are some GFP_NOWAIT and GFP_KERNEL allocations.
+>
+> GFP_NOWAIT can fail anytime (for example, if the machine receives too many
+> network packets), so you must handle the error gracefully.
+>
+> GFP_KERNEL allocation may recurse back into the I/O path through swapping
+> or file writeback, thus they may cause deadlocks. You should use
+> GFP_KERNEL in the target constructor or destructor because there is no I/O
+> to be processed in this time, but they shouldn't be used in the I/O
+> processing path.
+
+
+**Yes**, I'm using the approach I described above.
+
+- **GFP_KERNEL** is only used on the constructor path.
+- **GFP_NOWAIT** is used in two cases: one for allocating `cache_key`, 
+and another for allocating `backing_dev_req` on a cache miss.
+
+Both of these NOWAIT allocations happen while traversing the 
+`cache_subtree` under the `subtree_lock` spinlock—i.e., in contexts 
+where scheduling isn't allowed. That’s why we use `GFP_NOWAIT`.
+
+
+>
+> I see that when you get ENOMEM, you retry the request in 100ms - putting
+> arbitrary waits in the code is generally bad practice - this won't work if
+> the user is swapping to the dm-pcache device. It may be possible that
+> there is no memory free, thus retrying won't help and it will deadlock.
+
+
+In **V1**, I removed the retry-on-ENOMEM mechanism to make pcache more 
+coherent. Now it only retries when the cache is actually full.
+
+- When the cache is full, the `pcache_req` is added to a `defer_list`.
+- When cache invalidation occurs, we kick off all deferred requests to 
+retry.
+
+This eliminates arbitrary waits.
+
+>
+> I suggest to use mempools to guarantee forward progress in out-of-memory
+> situation. A mempool_alloc(GFP_IO) will never return NULL, it will just
+> wait until some other process frees some entry into the mempool.
+
+Both `cache_key` and `backing_dev_req` now use **mempools**, but—as 
+explained—they may still be allocated under a spinlock, so they use 
+**GFP_NOWAIT**.
+
+>
+> Generally, a convention among device mapper targets is that the have a few
+> fixed parameters first, then there is a number of optional parameters and
+> then there are optional parameters (either in "parameter:123" or
+> "parameter 123" format). You should follow this convention, so that it can
+> be easily extended with new parameters later.
+Thanks, that's a good suggestion.
+
+In **V1**, we changed the parameter format to:
+
+  pcache <cache_dev> <backing_dev> [<number_of_optional_arguments> 
+<cache_mode writeback> <data_crc true|false>]
+
+>
+> The __packed attribute causes performance degradation on risc machines
+> without hardware support for unaligned accesses - the compiled will
+> generate byte-by-byte accesses - I suggest to not use it and instead make
+> sure that the members in the structures are naturally aligned (and
+> inserting explicit padding if needed).
+
+
+Thanks — we removed `__packed` in V1.
+
+>
+> The function "memcpy_flushcache" in arch/x86/include/asm/string_64.h is
+> optimized for 4, 8 and 16-byte accesess (because that's what dm-writecache
+> uses) - I suggest to add more optimizations to it for constant sizes that
+> fit the usage pattern of dm-pcache,
+
+Thanks again — as mentioned above, we plan to optimize later, possibly 
+with a more generic solution.
+
+>
+> I see that you are using "queue_delayed_work(cache_get_wq(cache),
+> &cache->writeback_work, 0);" and "queue_delayed_work(cache_get_wq(cache),
+> &cache->writeback_work, delay);" - the problem here is that if the entry
+> is already queued with a delay and you attempt to queue it again with zero
+> again, this new queue attempt will be ignored - I'm not sure if this is
+> intended behavior or not.
+
+Yes, in simple terms:
+1. If after writeback completes the cache is clean, we should delay.
+2. If it's not clean, set delay = 0 so the next writeback cycle can 
+begin immediately.
+
+In theory these are two separate branches, even if a zero delay might be 
+ignored. Since writeback work isn't highly time-sensitive, I believe 
+this is harmless.
+
+>
+> req_complete_fn: this will never run with interrupts disabled, so you can
+> replace spin_lock_irqsave/spin_unlock_irqrestore with
+> spin_lock_irq/spin_unlock_irq.
+
+thanx  Fixed in V1
+
+>
+> backing_dev_bio_end: there's a bug in this function - it may be called
+> both with interrupts disabled and interrupts enabled, so you should not
+> use spin_lock/spin_unlock. You should be called
+> spin_lock_irqsave/spin_unlock_irqrestore.
+
+Good catch，it's fixed in V1
+
+>
+> queue_work(BACKING_DEV_TO_PCACHE - i would move it inside the spinlock -
+> see the commit 829451beaed6165eb11d7a9fb4e28eb17f489980 for a similar
+> problem.
+
+Thanx, Fixed in V1
+
+>
+> bio_map - bio vectors can hold arbitrarily long entries - if the "base"
+> variable is not from vmalloc, you can just add it one bvec entry.
+
+
+Good idea — in V1 we introduced `inline_bvecs`, and when `base` isn’t 
+vmalloc, we use a single bvec entry.
+
+> "backing_req->kmem.bvecs = kcalloc" - you can use kmalloc_array instead of
+> kcalloc, there's no need to zero the value.
+Fixed in V1
+>
+>> +                if (++wait_count >= PCACHE_WAIT_NEW_CACHE_COUNT)
+>> +                        return NULL;
+>> +
+>> +                udelay(PCACHE_WAIT_NEW_CACHE_INTERVAL);
+>> +                goto again;
+> This is not good practice to insert arbitrary waits (here, the wait is
+> burning CPU power, which makes it even worse). You should add the process
+> to a wait queue and wake up the queue.
+>
+> See the functions writecache_wait_on_freelist and writecache_free_entry
+> for an example, how to wait correctly.
+
+
+`get_cache_segment()` may be called under a spinlock, so I originally 
+designed a “short-busy-wait” to wait for a free segment,
+
+If wait_count >= PCACHE_WAIT_NEW_CACHE_COUNT, then return -EBUSY to let 
+dm-pcache defer_list to retry.
+
+However, I later discovered that when the cache is full, there's rarely 
+enough time during that brief short-busy-wait to free a segment.
+
+Therefore in V1 I removed it and instead return `-EBUSY`, allowing 
+dm-pcache’s retry mechanism to wait for a cache invalidation before 
+retrying.
+
+>
+>> +static int dm_pcache_map_bio(struct dm_target *ti, struct bio *bio)
+>> +{
+>> +     struct pcache_request *pcache_req = dm_per_bio_data(bio, sizeof(struct pcache_request));
+>> +     struct dm_pcache *pcache = ti->private;
+>> +     int ret;
+>> +
+>> +     pcache_req->pcache = pcache;
+>> +     kref_init(&pcache_req->ref);
+>> +     pcache_req->ret = 0;
+>> +     pcache_req->bio = bio;
+>> +     pcache_req->off = (u64)bio->bi_iter.bi_sector << SECTOR_SHIFT;
+>> +     pcache_req->data_len = bio->bi_iter.bi_size;
+>> +     INIT_LIST_HEAD(&pcache_req->list_node);
+>> +     bio->bi_iter.bi_sector = dm_target_offset(ti, bio->bi_iter.bi_sector);
+> This looks suspicious because you store the original bi_sector to
+> pcache_req->off and then subtract the target offset from it. Shouldn't
+> "bio->bi_iter.bi_sector = dm_target_offset(ti, bio->bi_iter.bi_sector);"
+> be before "pcache_req->off = (u64)bio->bi_iter.bi_sector <<
+> SECTOR_SHIFT;"?
+
+
+Yes, that logic is indeed questionable, but it works in testing.
+
+Since we define dm-pcache as a **singleton**, both behaviors should 
+effectively be equivalent, IIUC. Also, in V1 I moved the call to 
+`dm_target_offset()` so it runs before setting up `pcache_req->off`, 
+making the code logic correct.
+
+Thanx
+
+Dongsheng
+
+>
+> Generally, the code doesn't seem bad. After reworking the out-of-memory
+> handling and replacing arbitrary waits with wait queues, I can merge it.
+>
+> Mikulas
+>
+--------------vr3vSDl9nGurANl7EDaKM3T0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <p>Hi Mikulas:</p>
+    <p>     I will send dm-pcache V1 soon, below is my response to your
+      comments.</p>
+    <div class="moz-cite-prefix">在 6/13/2025 12:57 AM, Mikulas Patocka
+      写道:<br>
+    </div>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">Hi
+
+
+On Thu, 5 Jun 2025, Dongsheng Yang wrote:
+
+</pre>
+      <blockquote type="cite">
+        <pre wrap="" class="moz-quote-pre">Hi Mikulas and all,
+
+This is *RFC v2* of the *pcache* series, a persistent-memory backed cache.
+Compared with *RFC v1* 
+<a class="moz-txt-link-rfc2396E" href="https://lore.kernel.org/lkml/20250414014505.20477-1-dongsheng.yang@linux.dev/">&lt;https://lore.kernel.org/lkml/20250414014505.20477-1-dongsheng.yang@linux.dev/&gt;</a>  
+the most important change is that the whole cache has been *ported to
+the Device-Mapper framework* and is now exposed as a regular DM target.
+
+Code:
+    <a class="moz-txt-link-freetext" href="https://github.com/DataTravelGuide/linux/tree/dm-pcache">https://github.com/DataTravelGuide/linux/tree/dm-pcache</a>
+
+Full RFC v2 test results:
+    <a class="moz-txt-link-freetext" href="https://datatravelguide.github.io/dtg-blog/pcache/pcache_rfc_v2_result/results.html">https://datatravelguide.github.io/dtg-blog/pcache/pcache_rfc_v2_result/results.html</a>
+
+    All 962 xfstests cases passed successfully under four different
+pcache configurations.
+
+    One of the detailed xfstests run:
+        <a class="moz-txt-link-freetext" href="https://datatravelguide.github.io/dtg-blog/pcache/pcache_rfc_v2_result/test-results/02-._pcache.py_PcacheTest.test_run-crc-enable-gc-gc0-test_script-xfstests-a515/debug.log">https://datatravelguide.github.io/dtg-blog/pcache/pcache_rfc_v2_result/test-results/02-._pcache.py_PcacheTest.test_run-crc-enable-gc-gc0-test_script-xfstests-a515/debug.log</a>
+
+Below is a quick tour through the three layers of the implementation,
+followed by an example invocation.
+
+----------------------------------------------------------------------
+1. pmem access layer
+----------------------------------------------------------------------
+
+* All reads use *copy_mc_to_kernel()* so that uncorrectable media
+  errors are detected and reported.
+* All writes go through *memcpy_flushcache()* to guarantee durability
+  on real persistent memory.
+</pre>
+      </blockquote>
+      <pre wrap="" class="moz-quote-pre">
+You could also try to use normal write and clflushopt for big writes - I 
+found out that for larger regions it is better - see the function 
+memcpy_flushcache_optimized in dm-writecache. Test, which way is better.</pre>
+    </blockquote>
+    <p>I did a test with fio on /dev/pmem0, with an attached patch on
+      nd_pmem.ko:</p>
+    <p>when I use memmap pmem device, I got a similar result with the
+      comment in <span style="white-space: pre-wrap">memcpy_flushcache_optimized():</span></p>
+    <p><span style="white-space: pre-wrap">Test (memmap pmem)                      clflushopt   flushcache
+-------------------------------------------------
+test_randwrite_512             200 MiB/s      228 MiB/s
+test_randwrite_1024            378 MiB/s      431 MiB/s
+test_randwrite_2K              773 MiB/s      769 MiB/s
+test_randwrite_4K             1364 MiB/s     1272 MiB/s
+test_randwrite_8K             2078 MiB/s     1817 MiB/s
+test_randwrite_16K            2745 MiB/s     2098 MiB/s
+test_randwrite_32K            3232 MiB/s     2231 MiB/s
+test_randwrite_64K            3660 MiB/s     2411 MiB/s
+test_randwrite_128K           3922 MiB/s     2513 MiB/s
+test_randwrite_1M             3824 MiB/s     2537 MiB/s
+test_write_512                 228 MiB/s      228 MiB/s
+test_write_1024                439 MiB/s      423 MiB/s
+test_write_2K                  841 MiB/s      800 MiB/s
+test_write_4K                 1364 MiB/s     1308 MiB/s
+test_write_8K                 2107 MiB/s     1838 MiB/s
+test_write_16K                2752 MiB/s     2166 MiB/s
+test_write_32K                3213 MiB/s     2247 MiB/s
+test_write_64K                3661 MiB/s     2415 MiB/s
+test_write_128K               3902 MiB/s     2514 MiB/s
+test_write_1M                 3808 MiB/s     2529 MiB/s</span></p>
+    <p><span style="white-space: pre-wrap">But I got a different result when I use Optane pmem100:</span></p>
+    <p><span style="white-space: pre-wrap">Test (Optane pmem100)                     clflushopt   flushcache
+-------------------------------------------------
+test_randwrite_512             167 MiB/s      226 MiB/s
+test_randwrite_1024            301 MiB/s      420 MiB/s
+test_randwrite_2K              615 MiB/s      639 MiB/s
+test_randwrite_4K              967 MiB/s     1024 MiB/s
+test_randwrite_8K             1047 MiB/s     1314 MiB/s
+test_randwrite_16K            1096 MiB/s     1377 MiB/s
+test_randwrite_32K            1155 MiB/s     1382 MiB/s
+test_randwrite_64K            1184 MiB/s     1452 MiB/s
+test_randwrite_128K           1199 MiB/s     1488 MiB/s
+test_randwrite_1M             1178 MiB/s     1499 MiB/s
+test_write_512                 233 MiB/s      233 MiB/s
+test_write_1024                424 MiB/s      391 MiB/s
+test_write_2K                  706 MiB/s      760 MiB/s
+test_write_4K                  978 MiB/s     1076 MiB/s
+test_write_8K                 1059 MiB/s     1296 MiB/s
+test_write_16K                1119 MiB/s     1380 MiB/s
+test_write_32K                1158 MiB/s     1387 MiB/s
+test_write_64K                1184 MiB/s     1448 MiB/s
+test_write_128K               1198 MiB/s     1481 MiB/s
+test_write_1M                 1178 MiB/s     1486 MiB/s</span></p>
+    <p><br>
+    </p>
+    <p>So for now I’d rather keep using flushcache in pcache. In future,
+      once we’ve come up with a general-purpose optimization, we can
+      switch to that.</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+</pre>
+      <blockquote type="cite">
+        <pre wrap="" class="moz-quote-pre">----------------------------------------------------------------------
+2. cache-logic layer (segments / keys / workers)
+----------------------------------------------------------------------
+
+Main features
+  - 16 MiB pmem segments, log-structured allocation.
+  - Multi-subtree RB-tree index for high parallelism.
+  - Optional per-entry *CRC32* on cached data.
+</pre>
+      </blockquote>
+      <pre wrap="" class="moz-quote-pre">
+Would it be better to use crc32c because it has hardware support in the 
+SSE4.2 instruction set?</pre>
+    </blockquote>
+    <p>Good suggestion, thanx.</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+</pre>
+      <blockquote type="cite">
+        <pre wrap="" class="moz-quote-pre">  - Background *write-back* worker and watermark-driven *GC*.
+  - Crash-safe replay: key-sets are scanned from *key_tail* on start-up.
+
+Current limitations
+  - Only *write-back* mode implemented.
+  - Only FIFO cache invalidate; other (LRU, ARC...) planned.
+
+----------------------------------------------------------------------
+3. dm-pcache target integration
+----------------------------------------------------------------------
+
+* Table line  
+    `pcache &lt;pmem_dev&gt; &lt;origin_dev&gt; writeback &lt;true|false&gt;`
+* Features advertised to DM:
+  - `ti-&gt;flush_supported = true`, so *PREFLUSH* and *FUA* are honoured
+    (they force all open key-sets to close and data to be durable).
+* Not yet supported:
+  - Discard / TRIM.
+  - dynamic `dmsetup reload`.
+</pre>
+      </blockquote>
+      <pre wrap="" class="moz-quote-pre">
+If you don't support it, you should at least try to detect that the user 
+did reload and return error - so that there won't be data corruption in 
+this case.</pre>
+    </blockquote>
+    <p>Yes, actually It did return -EOPNOTSUPP。</p>
+    <p>static int dm_pcache_ctr(struct dm_target *ti, unsigned int argc,
+      char **argv)<br>
+      {<br>
+              struct mapped_device *md = ti-&gt;table-&gt;md;<br>
+              struct dm_pcache *pcache;<br>
+              int ret;<br>
+      <br>
+              if (md-&gt;map) {<br>
+                      ti-&gt;error = "Don't support table loading for
+      live md";<br>
+                      return -EOPNOTSUPP;<br>
+              }</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+But it would be better to support table reload. You can support it by a 
+similar mechanism to "__handover_exceptions" in the dm-snap.c driver.</pre>
+    </blockquote>
+    <p><br>
+    </p>
+    <p>Of course, that's planned but we think that's not necessary in
+      initial version of it.</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+</pre>
+      <blockquote type="cite">
+        <pre wrap="" class="moz-quote-pre">Runtime controls
+  - `dmsetup message &lt;dev&gt; 0 gc_percent &lt;0-90&gt;` adjusts the GC trigger.
+
+Status line reports super-block flags, segment counts, GC threshold and
+the three tail/head pointers (see the RST document for details).
+</pre>
+      </blockquote>
+      <pre wrap="" class="moz-quote-pre">
+Perhaps these are not real bugs (I didn't analyze it thoroughly), but 
+there are some GFP_NOWAIT and GFP_KERNEL allocations.
+
+GFP_NOWAIT can fail anytime (for example, if the machine receives too many 
+network packets), so you must handle the error gracefully.
+
+GFP_KERNEL allocation may recurse back into the I/O path through swapping 
+or file writeback, thus they may cause deadlocks. You should use 
+GFP_KERNEL in the target constructor or destructor because there is no I/O 
+to be processed in this time, but they shouldn't be used in the I/O 
+processing path.</pre>
+    </blockquote>
+    <p><br>
+    </p>
+    <p>**Yes**, I'm using the approach I described above.<br>
+      <br>
+      - **GFP_KERNEL** is only used on the constructor path.  <br>
+      - **GFP_NOWAIT** is used in two cases: one for allocating
+      `cache_key`, and another for allocating `backing_dev_req` on a
+      cache miss.<br>
+      <br>
+      Both of these NOWAIT allocations happen while traversing the
+      `cache_subtree` under the `subtree_lock` spinlock—i.e., in
+      contexts where scheduling isn't allowed. That’s why we use
+      `GFP_NOWAIT`.<br>
+      <br>
+      <br>
+    </p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+I see that when you get ENOMEM, you retry the request in 100ms - putting 
+arbitrary waits in the code is generally bad practice - this won't work if 
+the user is swapping to the dm-pcache device. It may be possible that 
+there is no memory free, thus retrying won't help and it will deadlock.</pre>
+    </blockquote>
+    <p><br>
+    </p>
+    <p>In **V1**, I removed the retry-on-ENOMEM mechanism to make pcache
+      more coherent. Now it only retries when the cache is actually
+      full.<br>
+      <br>
+      - When the cache is full, the `pcache_req` is added to a
+      `defer_list`.  <br>
+      - When cache invalidation occurs, we kick off all deferred
+      requests to retry.<br>
+      <br>
+      This eliminates arbitrary waits.</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+I suggest to use mempools to guarantee forward progress in out-of-memory 
+situation. A mempool_alloc(GFP_IO) will never return NULL, it will just 
+wait until some other process frees some entry into the mempool.</pre>
+    </blockquote>
+    <br>
+    <p>Both `cache_key` and `backing_dev_req` now use **mempools**,
+      but—as explained—they may still be allocated under a spinlock, so
+      they use **GFP_NOWAIT**.</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+Generally, a convention among device mapper targets is that the have a few 
+fixed parameters first, then there is a number of optional parameters and 
+then there are optional parameters (either in "parameter:123" or 
+"parameter 123" format). You should follow this convention, so that it can 
+be easily extended with new parameters later.</pre>
+    </blockquote>
+    Thanks, that's a good suggestion.<br>
+    <br>
+    In **V1**, we changed the parameter format to:
+    <p> pcache &lt;cache_dev&gt; &lt;backing_dev&gt;
+      [&lt;number_of_optional_arguments&gt; &lt;cache_mode writeback&gt;
+      &lt;data_crc true|false&gt;]</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+The __packed attribute causes performance degradation on risc machines 
+without hardware support for unaligned accesses - the compiled will 
+generate byte-by-byte accesses - I suggest to not use it and instead make 
+sure that the members in the structures are naturally aligned (and 
+inserting explicit padding if needed).</pre>
+    </blockquote>
+    <p><br>
+    </p>
+    <p>Thanks — we removed `__packed` in V1.<br>
+      <br>
+    </p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+The function "memcpy_flushcache" in arch/x86/include/asm/string_64.h is 
+optimized for 4, 8 and 16-byte accesess (because that's what dm-writecache 
+uses) - I suggest to add more optimizations to it for constant sizes that 
+fit the usage pattern of dm-pcache,</pre>
+    </blockquote>
+    <br>
+    Thanks again — as mentioned above, we plan to optimize later,
+    possibly with a more generic solution.<br>
+    <br>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+I see that you are using "queue_delayed_work(cache_get_wq(cache), 
+&amp;cache-&gt;writeback_work, 0);" and "queue_delayed_work(cache_get_wq(cache), 
+&amp;cache-&gt;writeback_work, delay);" - the problem here is that if the entry 
+is already queued with a delay and you attempt to queue it again with zero 
+again, this new queue attempt will be ignored - I'm not sure if this is 
+intended behavior or not.</pre>
+    </blockquote>
+    <br>
+    <p>Yes, in simple terms:<br>
+      1. If after writeback completes the cache is clean, we should
+      delay.<br>
+      2. If it's not clean, set delay = 0 so the next writeback cycle
+      can begin immediately.<br>
+      <br>
+      In theory these are two separate branches, even if a zero delay
+      might be ignored. Since writeback work isn't highly
+      time-sensitive, I believe this is harmless.<br>
+      <br>
+    </p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+req_complete_fn: this will never run with interrupts disabled, so you can 
+replace spin_lock_irqsave/spin_unlock_irqrestore with 
+spin_lock_irq/spin_unlock_irq.</pre>
+    </blockquote>
+    <p>thanx  Fixed in V1</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+backing_dev_bio_end: there's a bug in this function - it may be called 
+both with interrupts disabled and interrupts enabled, so you should not 
+use spin_lock/spin_unlock. You should be called 
+spin_lock_irqsave/spin_unlock_irqrestore.</pre>
+    </blockquote>
+    <p>Good catch，it's fixed in V1</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+queue_work(BACKING_DEV_TO_PCACHE - i would move it inside the spinlock - 
+see the commit 829451beaed6165eb11d7a9fb4e28eb17f489980 for a similar 
+problem.</pre>
+    </blockquote>
+    <p>Thanx, Fixed in V1</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+bio_map - bio vectors can hold arbitrarily long entries - if the "base" 
+variable is not from vmalloc, you can just add it one bvec entry.</pre>
+    </blockquote>
+    <p><br>
+    </p>
+    <p>Good idea — in V1 we introduced `inline_bvecs`, and when `base`
+      isn’t vmalloc, we use a single bvec entry.<br>
+      <br>
+    </p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+"backing_req-&gt;kmem.bvecs = kcalloc" - you can use kmalloc_array instead of 
+kcalloc, there's no need to zero the value.</pre>
+    </blockquote>
+    Fixed in V1
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+</pre>
+      <blockquote type="cite">
+        <pre wrap="" class="moz-quote-pre">+                if (++wait_count &gt;= PCACHE_WAIT_NEW_CACHE_COUNT)
++                        return NULL;
++
++                udelay(PCACHE_WAIT_NEW_CACHE_INTERVAL);
++                goto again;
+</pre>
+      </blockquote>
+      <pre wrap="" class="moz-quote-pre">
+This is not good practice to insert arbitrary waits (here, the wait is 
+burning CPU power, which makes it even worse). You should add the process 
+to a wait queue and wake up the queue.
+
+See the functions writecache_wait_on_freelist and writecache_free_entry 
+for an example, how to wait correctly.</pre>
+    </blockquote>
+    <p><br>
+    </p>
+    <p>`get_cache_segment()` may be called under a spinlock, so I
+      originally designed a “short-busy-wait” to wait for a free
+      segment,</p>
+    <p>If wait_count &gt;= <span style="white-space: pre-wrap">PCACHE_WAIT_NEW_CACHE_COUNT, then return -EBUSY to let dm-pcache defer_list to retry.</span></p>
+    <p><span style="white-space: pre-wrap">
+</span></p>
+    <p>However, I later discovered that when the cache is full, there's
+      rarely enough time during that brief short-busy-wait to free a
+      segment.</p>
+    <p>Therefore in V1 I removed it and instead return `-EBUSY`,
+      allowing dm-pcache’s retry mechanism to wait for a cache
+      invalidation before retrying.</p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+</pre>
+      <blockquote type="cite">
+        <pre wrap="" class="moz-quote-pre">+static int dm_pcache_map_bio(struct dm_target *ti, struct bio *bio)
++{
++     struct pcache_request *pcache_req = dm_per_bio_data(bio, sizeof(struct pcache_request));
++     struct dm_pcache *pcache = ti-&gt;private;
++     int ret;
++
++     pcache_req-&gt;pcache = pcache;
++     kref_init(&amp;pcache_req-&gt;ref);
++     pcache_req-&gt;ret = 0;
++     pcache_req-&gt;bio = bio;
++     pcache_req-&gt;off = (u64)bio-&gt;bi_iter.bi_sector &lt;&lt; SECTOR_SHIFT;
++     pcache_req-&gt;data_len = bio-&gt;bi_iter.bi_size;
++     INIT_LIST_HEAD(&amp;pcache_req-&gt;list_node);
++     bio-&gt;bi_iter.bi_sector = dm_target_offset(ti, bio-&gt;bi_iter.bi_sector);
+</pre>
+      </blockquote>
+      <pre wrap="" class="moz-quote-pre">
+This looks suspicious because you store the original bi_sector to
+pcache_req-&gt;off and then subtract the target offset from it. Shouldn't
+"bio-&gt;bi_iter.bi_sector = dm_target_offset(ti, bio-&gt;bi_iter.bi_sector);"
+be before "pcache_req-&gt;off = (u64)bio-&gt;bi_iter.bi_sector &lt;&lt; 
+SECTOR_SHIFT;"?</pre>
+    </blockquote>
+    <p><br>
+    </p>
+    <p><span style="white-space: pre-wrap">Yes, that logic is indeed questionable, but it works in testing. </span></p>
+    <p><span style="white-space: pre-wrap">Since we define dm-pcache as a **singleton**, both behaviors should effectively be equivalent, IIUC.
+
+Also, in V1 I moved the call to `dm_target_offset()` so it runs before setting up `pcache_req-&gt;off`, making the code logic correct.</span></p>
+    <p><span style="white-space: pre-wrap">
+</span></p>
+    <p><span style="white-space: pre-wrap">Thanx</span></p>
+    <p><span style="white-space: pre-wrap">Dongsheng</span></p>
+    <blockquote type="cite"
+      cite="mid:dc019764-5128-526e-d8ea-effa78e37b39@redhat.com">
+      <pre wrap="" class="moz-quote-pre">
+
+Generally, the code doesn't seem bad. After reworking the out-of-memory 
+handling and replacing arbitrary waits with wait queues, I can merge it.
+
+Mikulas
+
+</pre>
+    </blockquote>
+  </body>
+</html>
+
+--------------vr3vSDl9nGurANl7EDaKM3T0--
+--------------f6yEcQN9bfuEx8vW3yg03FzF
+Content-Type: text/plain; charset=UTF-8;
+ name="0001-memcpy_flushcache_optimized-on-nd_pmem.ko.patch"
+Content-Disposition: attachment;
+ filename="0001-memcpy_flushcache_optimized-on-nd_pmem.ko.patch"
+Content-Transfer-Encoding: base64
+
+RnJvbSA4ODQ3NmY5NTgwMWY3MTc3YzNhOGMzMGM2NjNjZGQ3ODhmNzNhM2I1IE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBEb25nc2hlbmcgWWFuZyA8ZG9uZ3NoZW5nLnlhbmdA
+bGludXguZGV2PgpEYXRlOiBNb24sIDIzIEp1biAyMDI1IDEwOjEwOjM3ICswODAwClN1Ympl
+Y3Q6IFtQQVRDSF0gbWVtY3B5X2ZsdXNoY2FjaGVfb3B0aW1pemVkIG9uIG5kX3BtZW0ua28K
+ClNpZ25lZC1vZmYtYnk6IERvbmdzaGVuZyBZYW5nIDxkb25nc2hlbmcueWFuZ0BsaW51eC5k
+ZXY+Ci0tLQogZHJpdmVycy9udmRpbW0vcG1lbS5jIHwgMzkgKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdlZCwgMzggaW5zZXJ0aW9ucygr
+KSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYyBi
+L2RyaXZlcnMvbnZkaW1tL3BtZW0uYwppbmRleCBhYTUwMDA2Yjc2MTYuLjc4YzJlODQ4MTYz
+MCAxMDA2NDQKLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jCisrKyBiL2RyaXZlcnMvbnZk
+aW1tL3BtZW0uYwpAQCAtMTIyLDYgKzEyMiw0MiBAQCBzdGF0aWMgYmxrX3N0YXR1c190IHBt
+ZW1fY2xlYXJfcG9pc29uKHN0cnVjdCBwbWVtX2RldmljZSAqcG1lbSwKIAlyZXR1cm4gQkxL
+X1NUU19PSzsKIH0KIAorc3RhdGljIHZvaWQgbWVtY3B5X2ZsdXNoY2FjaGVfb3B0aW1pemVk
+KHZvaWQgKmRlc3QsIHZvaWQgKnNvdXJjZSwgc2l6ZV90IHNpemUpCit7CisJLyoKKwkgKiBj
+bGZsdXNob3B0IHBlcmZvcm1zIGJldHRlciB3aXRoIGJsb2NrIHNpemUgMTAyNCwgMjA0OCwg
+NDA5NgorCSAqIG5vbi10ZW1wb3JhbCBzdG9yZXMgcGVyZm9ybSBiZXR0ZXIgd2l0aCBibG9j
+ayBzaXplIDUxMgorCSAqCisJICogYmxvY2sgc2l6ZSAgIDUxMiAgICAgICAgICAgICAxMDI0
+ICAgICAgICAgICAgMjA0OCAgICAgICAgICAgIDQwOTYKKwkgKiBtb3ZudGkgICAgICAgNDk2
+IE1CL3MgICAgICAgIDY0MiBNQi9zICAgICAgICA3MjUgTUIvcyAgICAgICAgNzQ0IE1CL3MK
+KwkgKiBjbGZsdXNob3B0ICAgMzczIE1CL3MgICAgICAgIDY4OCBNQi9zICAgICAgICAxLjEg
+R0IvcyAgICAgICAgMS4yIEdCL3MKKwkgKgorCSAqIFdlIHNlZSB0aGF0IG1vdm50aSBwZXJm
+b3JtcyBiZXR0ZXIgZm9yIDUxMi1ieXRlIGJsb2NrcywgYW5kCisJICogY2xmbHVzaG9wdCBw
+ZXJmb3JtcyBiZXR0ZXIgZm9yIDEwMjQtYnl0ZSBhbmQgbGFyZ2VyIGJsb2Nrcy4gU28sIHdl
+CisJICogcHJlZmVyIGNsZmx1c2hvcHQgZm9yIHNpemVzID49IDc2OC4KKwkgKgorCSAqIE5P
+VEU6IHRoaXMgaGFwcGVucyB0byBiZSB0aGUgY2FzZSBub3cgKHdpdGggZG0td3JpdGVjYWNo
+ZSdzIHNpbmdsZQorCSAqIHRocmVhZGVkIG1vZGVsKSBidXQgcmUtZXZhbHVhdGUgdGhpcyBv
+bmNlIG1lbWNweV9mbHVzaGNhY2hlKCkgaXMKKwkgKiBlbmFibGVkIHRvIHVzZSBtb3ZkaXI2
+NGIgd2hpY2ggbWlnaHQgaW52YWxpZGF0ZSB0aGlzIHBlcmZvcm1hbmNlCisJICogYWR2YW50
+YWdlIHNlZW4gd2l0aCBjYWNoZS1hbGxvY2F0aW5nLXdyaXRlcyBwbHVzIGZsdXNoaW5nLgor
+CSAqLworI2lmZGVmIENPTkZJR19YODYKKwlpZiAoc3RhdGljX2NwdV9oYXMoWDg2X0ZFQVRV
+UkVfQ0xGTFVTSE9QVCkgJiYKKwkgICAgbGlrZWx5KGJvb3RfY3B1X2RhdGEueDg2X2NsZmx1
+c2hfc2l6ZSA9PSA2NCkgJiYKKwkgICAgbGlrZWx5KHNpemUgPj0gMCkpIHsKKwkJZG8gewor
+CQkJbWVtY3B5KCh2b2lkICopZGVzdCwgKHZvaWQgKilzb3VyY2UsIDY0KTsKKwkJCWNsZmx1
+c2hvcHQoKHZvaWQgKilkZXN0KTsKKwkJCWRlc3QgKz0gNjQ7CisJCQlzb3VyY2UgKz0gNjQ7
+CisJCQlzaXplIC09IDY0OworCQl9IHdoaWxlIChzaXplID49IDY0KTsKKwkJcmV0dXJuOwor
+CX0KKyNlbmRpZgorCW1lbWNweV9mbHVzaGNhY2hlKGRlc3QsIHNvdXJjZSwgc2l6ZSk7Cit9
+CisKIHN0YXRpYyB2b2lkIHdyaXRlX3BtZW0odm9pZCAqcG1lbV9hZGRyLCBzdHJ1Y3QgcGFn
+ZSAqcGFnZSwKIAkJdW5zaWduZWQgaW50IG9mZiwgdW5zaWduZWQgaW50IGxlbikKIHsKQEAg
+LTEzMSw3ICsxNjcsOCBAQCBzdGF0aWMgdm9pZCB3cml0ZV9wbWVtKHZvaWQgKnBtZW1fYWRk
+ciwgc3RydWN0IHBhZ2UgKnBhZ2UsCiAJd2hpbGUgKGxlbikgewogCQltZW0gPSBrbWFwX2F0
+b21pYyhwYWdlKTsKIAkJY2h1bmsgPSBtaW5fdCh1bnNpZ25lZCBpbnQsIGxlbiwgUEFHRV9T
+SVpFIC0gb2ZmKTsKLQkJbWVtY3B5X2ZsdXNoY2FjaGUocG1lbV9hZGRyLCBtZW0gKyBvZmYs
+IGNodW5rKTsKKwkJLy9tZW1jcHlfZmx1c2hjYWNoZShwbWVtX2FkZHIsIG1lbSArIG9mZiwg
+Y2h1bmspOworCQltZW1jcHlfZmx1c2hjYWNoZV9vcHRpbWl6ZWQocG1lbV9hZGRyLCBtZW0g
+KyBvZmYsIGNodW5rKTsKIAkJa3VubWFwX2F0b21pYyhtZW0pOwogCQlsZW4gLT0gY2h1bms7
+CiAJCW9mZiA9IDA7Ci0tIAoyLjQzLjAKCg==
+
+--------------f6yEcQN9bfuEx8vW3yg03FzF--
