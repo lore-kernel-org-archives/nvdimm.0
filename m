@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 912151C5D7A
-	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 19:20:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C9A1C5D7A
+	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 19:22:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750706402; cv=none; b=qIUFHIzTH4Aw1vNqU9/jEHV8lz2so83iHa3wzxXoh7zca4yrqphOTDtMN+ChL1xNBHCuAzxIitcmeWTMkYbVk8Ja9U/YWkkH2DQcEnMiJeJUlmGoc3/xa2mTaWbA4ErHLp3UpGbKAVRMRzgCPrES8n6aUn1eBz/hSFnVB2JneXU=
+	t=1750706532; cv=none; b=uf59fqIhWyq/LVsCsIB9eCml/K8z0DtRt8Y3pXWfTSCmgpqmGKE9VGBGlpjqgr3FYd0dcwedWrG7qMZ27WMvv8+ca7c4huMWoHht2fEcBnqL6M1LO+vf3gZRteG6Ls98ZoyJafkdFUqvdB+v+wCXcJGg25wcrIhOhELHe4jhvBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750706402; c=relaxed/simple;
-	bh=bPtpUMLV7xr1X126BF6oFqeloarjTFZdO7WU6y+TfGs=;
+	s=arc-20240116; t=1750706532; c=relaxed/simple;
+	bh=ZK3S0XPxcmYiS4vVibj9PCsaH7tpzJ/rlgCHRYNpd4U=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jrUJUy9iZVsCcijqyJBw6InpIceaZiBAukQTnyVcDcUkaw40x8XYP7B0z8IhjVp1l5Ff+w2Cvwq/pZzJLbihgO+Kxm6Y6KOCByrvCmzXA8s+Ly78GYt788ab5VzZL+RWzBe9NWeTkw1U/oqPHhRKDx32UgaQjjrr4gWyMwdHBNo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AAiZ0YAN; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=NnHzSJ+phz6Z/qaLfi+CKIxPNSiBByryy8Qd1U/7UN+UrNT7UQRqM8EktXdwuRAa8ApuOmdV4dzGOcip65FbL2RwhVOgNuKaztC/pTSTe+XyUAVFDu33TkGfQNuc4Bvh6YFvrq+5/r3c7tJmrlLG78lnHwmzwpmeCzL0Ma9FtBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Qiaz0dtn; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AAiZ0YAN"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Qiaz0dtn"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750706399;
+	s=mimecast20190719; t=1750706529;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=Ia36cUstBWOxqzqqBwAJNyhejCeff2f/ZNqE/bIBYoU=;
-	b=AAiZ0YAN91l09mxx4eb2iWOY+Z/VUarSVC65jhUF/dtEf2boHBJEwIe+o54zlS42hbcWDu
-	CQjJKwzrBFhbIkgurBUiPwGtBsmukgE8hQV+pCkgQEYuik2wg/MrrbcH9YsvnatRGGCR2N
-	Ijmdr/e93/+Erllo/X/NGO9y+CMw6fg=
+	bh=bQlmBkT7YPFLGN3jkndyeHxVU2LJMrxMkjzinTzeACw=;
+	b=Qiaz0dtnedw+Mrwqrb1vSYxg9WwO6ND4i41udqhF9DEkIHanzR6cXWFuCOeEZCFtUJzjRY
+	aSOeQ09hI39hgswoQZIumJuOOvLLdALgd2nCtog+SNj2ZYwF3q/6KkSdZn/qX6b604hM+q
+	r9e17si98wn3s6Yoj0IgoMa5SJNbXUA=
 Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
  [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-551-xgoNkCDQOGStWovfSZ1KaQ-1; Mon, 23 Jun 2025 15:19:57 -0400
-X-MC-Unique: xgoNkCDQOGStWovfSZ1KaQ-1
-X-Mimecast-MFC-AGG-ID: xgoNkCDQOGStWovfSZ1KaQ_1750706396
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3a4eec544c6so2256791f8f.0
-        for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 12:19:57 -0700 (PDT)
+ us-mta-74-Rz5anDsCOLOieDO59GnODw-1; Mon, 23 Jun 2025 15:22:07 -0400
+X-MC-Unique: Rz5anDsCOLOieDO59GnODw-1
+X-Mimecast-MFC-AGG-ID: Rz5anDsCOLOieDO59GnODw_1750706526
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3a4f55ea44dso1657057f8f.1
+        for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 12:22:07 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750706396; x=1751311196;
+        d=1e100.net; s=20230601; t=1750706526; x=1751311326;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=Ia36cUstBWOxqzqqBwAJNyhejCeff2f/ZNqE/bIBYoU=;
-        b=nSGzBCdpoQojhMhVATmB8miF2ys6/gbtQE5g+gq5TreFRLp2SDhBK/1Dd7MuuPpuqE
-         mEfW1+I8YSo1xAV8CYS4pC7tQIyph2x0/JDOelKmIH6xPTYyvL5doZ/OEagd0NsY9oQm
-         jwzwLEsLrijxgwZvKCGU2c5UKtbQcdqjTM5i+aaA0q8rbj2lEvQRcWIX4BGqGg8yNpHK
-         QO4gnaqfaiVgtv3TSl5J/2tJSYsMA0ah99t62VNNExHIUJLt6hju9F3Va3QJZw0HBnse
-         S3Wo/p1gajCjNuFjPhYTed92qEbISmRhBTlBO52NarfW1MN37izizv+m1kXQsGU40zWU
-         zHxw==
-X-Forwarded-Encrypted: i=1; AJvYcCVf4h92rNa3J4aAVKzq+hFS6Cc0PWLD4Eh2q/ThPfOJ90cAt3BLAIPDl62Y44DqfvuheC5PjQg=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx4CDjUQ/SSVjiw3JGirHUxqTuERL2PTH4zISzpLgM1OwwQYerR
-	zRpMDSl6UuKWs5aHkk99EM+YP/RpegpI/Ls9JxI+7uCO9pHqxMkcW+a0Iv/mfVqkLMzIhJsCQc+
-	pVPUlRDMqr+Bjb9xUb8vEsgjNm41kIJ5S3oFuGS3XzB05j31sQ4cqcndPfg==
-X-Gm-Gg: ASbGncuNVlePgwz55I2KCTfJVKgNN6AaBrqLa7eariP7LcsG8dLLoYZERxFPLn5UOPt
-	vDrvTRjvoA2IdoiTVzFqy7s7U5tAD+vvpfuJyM6YZw67ijXCuEKUZYwPP86km1Ffe8naZbYfzVA
-	TPzw8vdGUXLS84QTJzMqe2NAZFXr7BSugvJkcjuCsKHQWYHAl8DrhT9oY74sMwSJqUi1GoNEiPZ
-	TkQvv4ZKamWimLVqo4u1GuK9G+EC66oFQICSXJ/YXhWEXzVdYSsJnz7ULRhbLj4ZrP7neri3fMp
-	4DASQ34VU5bsle8+Ukv9S7yncmPYNDvbZtpKNSLirQ1Mi9D9tB5YDQOZH4Qqn0tq0YGFKmf2/Qr
-	rZ6wFc4N0aM9L6fjl5hfc6p2LmNm3OCnqBdsx9kyWc3K0rBDhUg==
-X-Received: by 2002:a05:6000:4107:b0:3a5:8a68:b836 with SMTP id ffacd0b85a97d-3a6d1329befmr10573960f8f.44.1750706396490;
-        Mon, 23 Jun 2025 12:19:56 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHnTvk3P/6PK4mDZPRi5nS+fcbmFs9L1Lavfj+RH/ks3CCp4alELqSqD5c1ZTArrgC0L3tcnQ==
-X-Received: by 2002:a05:6000:4107:b0:3a5:8a68:b836 with SMTP id ffacd0b85a97d-3a6d1329befmr10573942f8f.44.1750706396086;
-        Mon, 23 Jun 2025 12:19:56 -0700 (PDT)
+        bh=bQlmBkT7YPFLGN3jkndyeHxVU2LJMrxMkjzinTzeACw=;
+        b=USBp+yg04fxNpfi99Cr8S6TobpPbcH2+i1O4jTDh/CDFwg8EIgNtmWmwt02jeH80WD
+         kfglrXMBwtt9QSFTsr4MEBAD8dQ1S5kKvpgyttLiOiWfEZ7PTvsF8gE39GiPkRbfDdgR
+         07Xn2gttZaLRDY+DQS6hADJQc+MEEkjWhS7vUfMuEqW44PVTqz2Y/kGzchONl6wkdbmb
+         UW9Bu3cJV99XW/u6AXzFkQX6kQGwwL6dlUDpr02ADMDVdV46nKNU8CVb0HKzXeXccSu0
+         QUlTf4xxuUMsXJCeF2InT9bKRnTkKAVbY+6iAx/zREJ6wkjlClAEx60haVEofRrTieTN
+         y5tQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUPEyZB+nM3pkYl+ii+ky2QbKmzIKqZv0hJR1Ts+wRq7CN3oYtE52yQcAKb78a2tVmSqBirex0=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyRTNA8N3bKmLCb58QMYyBe0yMcFNXXXLuPPY6pNDU+zzwZX9H1
+	1m5cGSZujpBy/AqqjX1VSodSB/l7UAdUdIEjUYPJ3u+b3uUS1AzLf9TLc9AwU6Gwd+kjCFf5hu8
+	0e7EnWCZ6AZz+kX/NfCyqBHqd2bJJ1y/eyVDMH7uuy0QxMS18/1N1fZe9bA==
+X-Gm-Gg: ASbGncvbP5WrQQeNGoIglm0ll9qA4Filv3BMhj5j8KQc2Lr/W6CFl6LKzFewwdcscr8
+	d6PmkKWNnSpkhCm6NCieO6EpSOOvMHBKHfdRQUx46bpKeL7MOzX7PDAyKO+TtoepW7/LQScZGYc
+	UOU/rPsy9rIRaT4etrEWKiwlg4Vp60Jf+BXdyTPLMVrIbW1bZy87XXiOA4LGWt9duVKz4w0Me1b
+	i3vDIV7Oc8mzy4yDmakLam3ye5AzAsyiiXAb989KGpLK0qK72rSMH4w86NDQNb4OC49I7dsPI95
+	Qy6SZRxrIwImp3umWzXeltxA9DXQUXymICMiBLweZ9pF44np++uw2dVcrI6hb1+9MZWt+siDqrc
+	t2xDj6VQhuTfteuJnOiWfcabllxuVfymSx0EB6J5W8Hqx5vpJhA==
+X-Received: by 2002:a05:6000:2890:b0:3a4:d4e5:498a with SMTP id ffacd0b85a97d-3a6d130d49cmr11494757f8f.42.1750706526337;
+        Mon, 23 Jun 2025 12:22:06 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF87md/e3MMQCR4P74foXjnNwaFCtfLKwq6x9gBQ7WUQ/oG8Mjxt52qiatY+Y1JHSf1QQrKdw==
+X-Received: by 2002:a05:6000:2890:b0:3a4:d4e5:498a with SMTP id ffacd0b85a97d-3a6d130d49cmr11494745f8f.42.1750706525946;
+        Mon, 23 Jun 2025 12:22:05 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159? (p200300d82f4efd008e13e3b590c81159.dip0.t-ipconnect.de. [2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a6d117bfd9sm10346368f8f.57.2025.06.23.12.19.53
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a6d0f1d902sm9900905f8f.43.2025.06.23.12.22.04
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Jun 2025 12:19:54 -0700 (PDT)
-Message-ID: <155d1f58-6568-4efa-968e-af3873707ad0@redhat.com>
-Date: Mon, 23 Jun 2025 21:19:53 +0200
+        Mon, 23 Jun 2025 12:22:05 -0700 (PDT)
+Message-ID: <4d35795f-df24-40eb-a1e8-2914b0f5d697@redhat.com>
+Date: Mon, 23 Jun 2025 21:22:03 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -77,7 +77,7 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH RFC 03/14] mm: compare pfns only if the entry is present
  when inserting pfns/pages
-To: Pedro Falcato <pfalcato@suse.de>
+To: Oscar Salvador <osalvador@suse.de>
 Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  linux-mm@kvack.org, nvdimm@lists.linux.dev,
  Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
@@ -93,10 +93,11 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
  Barry Song <baohua@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
  Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
- Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>
+ Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>
 References: <20250617154345.2494405-1-david@redhat.com>
  <20250617154345.2494405-4-david@redhat.com>
- <dq5r2xmw3ypfk2luffas45up525aig4nu7qogojajspukak74o@gtg4kwwvjb5c>
+ <aFVhvYbRH2dtiFKY@localhost.localdomain>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -143,37 +144,84 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <dq5r2xmw3ypfk2luffas45up525aig4nu7qogojajspukak74o@gtg4kwwvjb5c>
+In-Reply-To: <aFVhvYbRH2dtiFKY@localhost.localdomain>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: UuyNPGsAqpDh-xiCpAkzW6BulEGBFF_dHQrn5llzwvo_1750706396
+X-Mimecast-MFC-PROC-ID: ZsNwwmjOnGI8lWVfBhDFBcINtES3u4y0IxmbzZcWIhA_1750706526
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 20.06.25 20:24, Pedro Falcato wrote:
+On 20.06.25 15:27, Oscar Salvador wrote:
 > On Tue, Jun 17, 2025 at 05:43:34PM +0200, David Hildenbrand wrote:
 >> Doing a pte_pfn() etc. of something that is not a present page table
 >> entry is wrong. Let's check in all relevant cases where we want to
 >> upgrade write permissions when inserting pfns/pages whether the entry
 >> is actually present.
->>
+> 
+> Maybe I would add that's because the pte can have other info like
+> marker, swp_entry etc.
+> 
 >> It's not expected to have caused real harm in practice, so this is more a
 >> cleanup than a fix for something that would likely trigger in some
 >> weird circumstances.
+>>
+>> At some point, we should likely unify the two pte handling paths,
+>> similar to how we did it for pmds/puds.
+>>
+>> Signed-off-by: David Hildenbrand <david@redhat.com>
 > 
-> Couldn't we e.g have a swap entry's "pfn" accidentally match the one we're
-> inserting? Isn't that a correctness problem?
+> Reviewed-by: Oscar Salvador <osalvador@suse.de>
+> 
+> Should we scream if someone passes us a non-present entry?
+> 
 
-In theory yes, in practice I think this will not happen.
+Probably? Good point, let me think about that.
 
-... especially because the WARN_ON_ONCE() would already trigger in many 
-other cases before we would find one situation where it doesn't.
+> 
+>> ---
+>>   mm/huge_memory.c | 4 ++--
+>>   mm/memory.c      | 4 ++--
+>>   2 files changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+>> index 8e0e3cfd9f223..e52360df87d15 100644
+>> --- a/mm/huge_memory.c
+>> +++ b/mm/huge_memory.c
+>> @@ -1392,7 +1392,7 @@ static int insert_pmd(struct vm_area_struct *vma, unsigned long addr,
+>>   		const unsigned long pfn = fop.is_folio ? folio_pfn(fop.folio) :
+>>   					  fop.pfn;
+>>   
+>> -		if (write) {
+>> +		if (write && pmd_present(*pmd)) {
+>>   			if (pmd_pfn(*pmd) != pfn) {
+>>   				WARN_ON_ONCE(!is_huge_zero_pmd(*pmd));
+>>   				return -EEXIST;
+>> @@ -1541,7 +1541,7 @@ static void insert_pud(struct vm_area_struct *vma, unsigned long addr,
+>>   		const unsigned long pfn = fop.is_folio ? folio_pfn(fop.folio) :
+>>   					  fop.pfn;
+>>   
+>> -		if (write) {
+>> +		if (write && pud_present(*pud)) {
+>>   			if (WARN_ON_ONCE(pud_pfn(*pud) != pfn))
+>>   				return;
+>>   			entry = pud_mkyoung(*pud);
+>> diff --git a/mm/memory.c b/mm/memory.c
+>> index a1b5575db52ac..9a1acd057ce59 100644
+>> --- a/mm/memory.c
+>> +++ b/mm/memory.c
+>> @@ -2137,7 +2137,7 @@ static int insert_page_into_pte_locked(struct vm_area_struct *vma, pte_t *pte,
+>>   	pte_t pteval = ptep_get(pte);
+>>   
+>>   	if (!pte_none(pteval)) {
+>> -		if (!mkwrite)
+>> +		if (!mkwrite || !pte_present(pteval))
+>>   			return -EBUSY;
+> 
+> Why EBUSY? because it might transitory?
 
-That's why I decided against Fixes: and declaring this more a cleanup, 
-because the starts really would have to align ... :)
-
-Thanks!
+I was confused myself about error handling, and why it differs for all 
+cases ... adding to me todo list to investigate that (clean it up ...) :)
 
 -- 
 Cheers,
