@@ -1,73 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98F8A3A1CD
-	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 14:04:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A18253F13
+	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 14:17:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750687450; cv=none; b=SJtUIozL24G4yKllonI5VrxwzTsT2CJozTGMws6eOW/d5RvO1eyUvE34hRu4vWeo7TvUdmc6Adp+dxEtK0tF73FNKeqK4nMwn7yBKoLp7kdX3rZWkuUdf25J0M8ZpgptwsA/syxQ4Gy/4M/EjeeNjWfCFigasZCqPsuY4VG4Nt8=
+	t=1750688228; cv=none; b=LMKz0Dv3iEIV+3fqGX39aQFC3fEC6pZrU0UIqClxbs+edHg93DFFzXaUxBTu65a7X6QMS2fOgCGlYO9oVxKEcwOVDmM65mtVZeIUYN3pMgu+VMopPZOxBQ9pJNIcH/fj9tM5ynIe9JRuuQrBuJM3SVSVVf+vCdNpEEYUCJRM6M4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750687450; c=relaxed/simple;
-	bh=X4Hd5ZWrXPSq1/1WLrzOgIiIZXd5j48jrptWBaZiW1k=;
+	s=arc-20240116; t=1750688228; c=relaxed/simple;
+	bh=cFKZeL+hYNuWQhIXij5F912cJ1wz6SXdUpucQjuTNnA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NfUMM1jTw+AVazC9VVab328uU8CogwUYIvlNL4HkOnUgEMfWmobdZd9qhbtI/NOUkK2XFtFeg70MAxh4meVSiS+InZrjiUv0YIWInx+L8dyVR6CYjXLXOzu1bCdYYYpkFGe4k6ZurR94q2oMUqS9egH1u20kaD+9UDiFmjAr8a0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RPAKZYjO; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type; b=cAHTLRZo0Gs+esPS207gvsQP4SFWMlQ8bRXoeOcwx3uyUONsA6f5tSwzm0+2cA8Fe8tRwOyZcY8fTs0SfZeOxk2sccDN1m4vFny94dARrbKS7IQbM4axwidshb9yQEUGLhclGVmpClJ6N6C9q9xpKqIDZibvtgFcNPloPqbbBF8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AN3RbZAY; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RPAKZYjO"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AN3RbZAY"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750687447;
+	s=mimecast20190719; t=1750688224;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=KrBCINyJrvJ9eCzCevXV0ad1ST03SBH5k2o0Hivm01s=;
-	b=RPAKZYjOLx/Vh4WZCsoHzhCpYOsRjJvuJ89NtXxIPVJMRS8rL1jjIiTGLBZP8Fqm5zCg5X
-	SrwEUrHI2BNqocTzqx1OLLtzW+DTUBgShOrV9p/zMydlKsjkqLepzsR7VCoJRH09NPvAmA
-	ezbU9yvUQDbHU0DgqCdT3jz6fF1CDtw=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=h8Olqgg5wM7szEFmj8uTM5sjPX8xuFrJrmZyG5BlKBM=;
+	b=AN3RbZAYYyClVirg6fVYBRUu1j/4xGKIOYXAwAQovliShcGmEEotEOCT0/IqA+RU9r8KG+
+	R0Nhv3/iJFZPdVk8wbC8pjKdYZypThgCvJrDJFI58ajXNpS13VRIyIxf+1hdtLFJDJiM0L
+	EvTWj3rFBA6sp0/mabR2rVgetVzTeX8=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-153-23rvEGmvP-O9zJgJC_1GQg-1; Mon, 23 Jun 2025 10:04:06 -0400
-X-MC-Unique: 23rvEGmvP-O9zJgJC_1GQg-1
-X-Mimecast-MFC-AGG-ID: 23rvEGmvP-O9zJgJC_1GQg_1750687445
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-451d3f03b74so22945165e9.3
-        for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 07:04:06 -0700 (PDT)
+ us-mta-302-etqhjrGoPzKKvnKDH8n6lQ-1; Mon, 23 Jun 2025 10:17:03 -0400
+X-MC-Unique: etqhjrGoPzKKvnKDH8n6lQ-1
+X-Mimecast-MFC-AGG-ID: etqhjrGoPzKKvnKDH8n6lQ_1750688222
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3a52bfda108so2075358f8f.3
+        for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 07:17:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750687445; x=1751292245;
+        d=1e100.net; s=20230601; t=1750688222; x=1751293022;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=KrBCINyJrvJ9eCzCevXV0ad1ST03SBH5k2o0Hivm01s=;
-        b=AcHYtkd8ax7drAyy8Q8gJT2Kl5i+Zihft/jxxKQIlgt+Gl0vQyeyE4sZNcXtPzQgXM
-         E/hP/m32KstRgmkootCxsh8cnvktMw1kijIg1G2HD/eHYdJtHi+tuP8pWCNWQUffmjQU
-         5AUDaushRxMiyIVjbW7MrTd4aI3R4GdtUgJyxVHdnRMMjlLFWHRphWuosfc0pkzPNVgb
-         qxR64jPo8LnFnwaF8/g5TGhLDzzaPQBfaM/xbKMfi8t0FdUFBaB3iTTE+WLlFqS76i3F
-         a306GPYAYThvGtCODS/MWb8fSaugjmkXb9aLCXRMoqfTx19WY5RiTY6FfBWQEONXd4wH
-         +JVA==
-X-Forwarded-Encrypted: i=1; AJvYcCWj/YwOEuYOfDbudS3viv6lze8I1s5HhjlhTEj0o2bYpvGI3rhDGcuEyKgke6JRQDnXHXE4OSk=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx6QRKUnCcl+32LgTJJN5PFkdFcL817jNd0fGFBNBywSwJwnyV2
-	dNRuS7YIWzfuBorN3PMqH3rJ++r0xp6MbjcxP1TaGRKGzEFUe2E1ntWs9e5iUlVnqdAfrR1Bcx7
-	Ty2vtLNNPsBBhxrY6EZ9pjtVPS4MiONUIJrK1kfQxX2jFa0Fenagqa+fPjA==
-X-Gm-Gg: ASbGncsSgCeQiFrMOgxG5AqCHvtRb4/8XzbOj9185SicjJWleUIMlByOtemz3n5Bklz
-	905m6bMF0TjGVYSwaSO6SUw2kX0d5f2zjqjXFChFMsqqmTLX7azXWIZjJCWM/w4Gxsp4VJf/R5j
-	03dkUNY/dHzuHJTpxkuEuXrK9HODTlavjY65ZxyQ4eZAqXGj7adHcAuf5hG9RD57qBZLxmIjwyt
-	qKvw8di6H7G0o49feyVG1cIN+438007kyRhWMFn9A6qSxP6q4h38uOKStQVBOLfEn43UG5VU+di
-	WRc4/Z1r2RWOdeycvTKePL6Qx50TVjGwI8/GmXxQn6jRerxTIt5KCFUFdzc7oT8zbCdtt/4LL8O
-	hrtSekB9p0svdGfYe57n4CktEsLTLBjVRAJRUu7KbJ6LWL8wv1w==
-X-Received: by 2002:a05:600c:4ec6:b0:43d:94:2d1e with SMTP id 5b1f17b1804b1-453659c5990mr113650985e9.13.1750687444790;
-        Mon, 23 Jun 2025 07:04:04 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IE95nNZ86PnFHeg7VNuUAm+n3H3UxcLPVNTcJDICuroThLIfwHolxnqvCNMi52XcHJ4LMneaQ==
-X-Received: by 2002:a05:600c:4ec6:b0:43d:94:2d1e with SMTP id 5b1f17b1804b1-453659c5990mr113650125e9.13.1750687444093;
-        Mon, 23 Jun 2025 07:04:04 -0700 (PDT)
+        bh=h8Olqgg5wM7szEFmj8uTM5sjPX8xuFrJrmZyG5BlKBM=;
+        b=W+BvTjXIywhy+fhL4jm60sriQLNzGR/ueThUqsC/aSd7f8t/NNeuaLDa1t+V1J89uy
+         zHw7HAyiyKmEh2mzsV3BpUs1q5MqjrWjx1pVfOaw6C0KvfSjWKcHTZXN5vHCA+9y0sL7
+         7OTEnX3lLFqSmwxUAfra0uaK1elwJJJaI/B9Dw0Jysj8xtmG23rSZUOCsUvKlxrOnzhB
+         luZ19kFTmrKUskLLRnTt85g5r1WWKujEbDWxOM9gh8YJP8ocMV9HzwKHw/ymmAY78tlu
+         i25KnXZmoCWC4dJu2qCE1KWntlR2DwhhKcOEByH32Z1yfwSKXGvPqh9nf5VnBRV2guUX
+         PSfA==
+X-Forwarded-Encrypted: i=1; AJvYcCV6bXMTqqzjmVGxhmOVEUmMkBYVaU4As69fZaa3mJCe24tNc5Akqqqul2SDeeBgjxYd85jBa5A=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxNbWepXd7gviN8mtkjYyp/hLQxHAwqU5Qs3ooR32Eb1o69yDoA
+	AVsXVZBXPJR0+lF4EUIJnYbI4Wk4PqNtMC3SGMG+juRg5FoTlOVdhmQGAYt1PiFe9Upfsi2q9IX
+	J0YjfjbdyusUXuRMRntW1HuMfyameTxK0w0ZyfvZLxIYTjUzLteqprVhMJQ==
+X-Gm-Gg: ASbGncsmE/P9ajQ54BbzxhPvqn5XSrfoGoHO7BErDvfizUa/WjtWMcNTI8gsgMe/JxE
+	3ge10Bhw6BIIJmj+H7i7i6BgAGFry7J2JE+C+yUc9Ii82X0gsdHXU37TnUeFRegm/SZmLHUjWMj
+	OZsizIm+JhFT01tASk+dy5KfWngZik/SqXKBp8Bb2AcmfnscOe74Kg7iV1jyGqKOY2aG+ikg98F
+	WVD1eLC7wW9hqjXZ4OlFQyA4Rt1hXyLx4feowmWphHr50TkfqLnQpypeJ/y0YbybN0l8qqkPX/D
+	+XkZvsamtPXHm3uKumNeCEcA5raa6IQbsmjUJV6AkkNKeHabm9qMKwtbCdbzUvA+U866LV40PQG
+	xhp6qDMRxYgduVEogarGrdHmIjanl7TDym7X6hNym4m+bS+I0aA==
+X-Received: by 2002:a5d:5f87:0:b0:3a3:67bb:8f3f with SMTP id ffacd0b85a97d-3a6d12eb182mr10399949f8f.53.1750688221729;
+        Mon, 23 Jun 2025 07:17:01 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IE8dR6X7fHQaI9fQSh9DO1Tx6U+p+mGsBYH7hTQ0+BF5CKnFOIsqhzs0NiVKWgUUywR+JX//A==
+X-Received: by 2002:a5d:5f87:0:b0:3a3:67bb:8f3f with SMTP id ffacd0b85a97d-3a6d12eb182mr10399861f8f.53.1750688221154;
+        Mon, 23 Jun 2025 07:17:01 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159? (p200300d82f4efd008e13e3b590c81159.dip0.t-ipconnect.de. [2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-453755e7d1dsm29688075e9.10.2025.06.23.07.04.01
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4535e97a908sm145737335e9.4.2025.06.23.07.16.57
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Jun 2025 07:04:03 -0700 (PDT)
-Message-ID: <c88c29d2-d887-4c5a-8b4e-0cf30e71d596@redhat.com>
-Date: Mon, 23 Jun 2025 16:04:01 +0200
+        Mon, 23 Jun 2025 07:17:00 -0700 (PDT)
+Message-ID: <702c58b1-7b07-4cc9-a5b3-8d3f33aba02b@redhat.com>
+Date: Mon, 23 Jun 2025 16:16:56 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,29 +75,48 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC 01/14] mm/memory: drop highest_memmap_pfn sanity check
- in vm_normal_page()
-To: Oscar Salvador <osalvador@suse.de>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-mm@kvack.org, nvdimm@lists.linux.dev,
- Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
- Stefano Stabellini <sstabellini@kernel.org>,
- Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
- Dan Williams <dan.j.williams@intel.com>, Alistair Popple
- <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>,
- Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>,
- Baolin Wang <baolin.wang@linux.alibaba.com>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>, Nico Pache <npache@redhat.com>,
- Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
- Barry Song <baohua@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
+Subject: Re: [PATCH 1/3] mm: change vm_get_page_prot() to accept vm_flags_t
+ argument
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Russell King <linux@armlinux.org.uk>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ "David S . Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>, Jarkko Sakkinen <jarkko@kernel.org>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
+ Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
+ Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
+ "Liam R . Howlett" <Liam.Howlett@oracle.com>, Nico Pache
+ <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Xu Xin <xu.xin16@zte.com.cn>, Chengming Zhou <chengming.zhou@linux.dev>,
+ Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
  Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
- Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>,
- Pedro Falcato <pfalcato@suse.de>
-References: <20250617154345.2494405-1-david@redhat.com>
- <20250617154345.2494405-2-david@redhat.com>
- <aFVZCvOpIpBGAf9w@localhost.localdomain>
+ Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
+ Harry Yoo <harry.yoo@oracle.com>, Dan Williams <dan.j.williams@intel.com>,
+ Matthew Wilcox <willy@infradead.org>, Steven Rostedt <rostedt@goodmis.org>,
+ Masami Hiramatsu <mhiramat@kernel.org>,
+ Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+ Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <zhengqi.arch@bytedance.com>,
+ Shakeel Butt <shakeel.butt@linux.dev>, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ kvm@vger.kernel.org, sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
+ linux-trace-kernel@vger.kernel.org
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <a12769720a2743f235643b158c4f4f0a9911daf0.1750274467.git.lorenzo.stoakes@oracle.com>
+ <552f88e1-2df8-4e95-92b8-812f7c8db829@lucifer.local>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -144,58 +163,37 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <aFVZCvOpIpBGAf9w@localhost.localdomain>
+In-Reply-To: <552f88e1-2df8-4e95-92b8-812f7c8db829@lucifer.local>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: QBDXjUpvS4QMYnuvgiDAJkdw6Z0lwa9obYU_9G1dw7I_1750687445
+X-Mimecast-MFC-PROC-ID: kmAMiF3dbAhSsv2mkPAEt0R5RlKhJu4YBfD_skmF1iM_1750688222
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 20.06.25 14:50, Oscar Salvador wrote:
-> On Tue, Jun 17, 2025 at 05:43:32PM +0200, David Hildenbrand wrote:
->> In 2009, we converted a VM_BUG_ON(!pfn_valid(pfn)) to the current
->> highest_memmap_pfn sanity check in commit 22b31eec63e5 ("badpage:
->> vm_normal_page use print_bad_pte"), because highest_memmap_pfn was
->> readily available.
->>
->> Nowadays, this is the last remaining highest_memmap_pfn user, and this
->> sanity check is not really triggering ... frequently.
->>
->> Let's convert it to VM_WARN_ON_ONCE(!pfn_valid(pfn)), so we can
->> simplify and get rid of highest_memmap_pfn. Checking for
->> pfn_to_online_page() might be even better, but it would not handle
->> ZONE_DEVICE properly.
->>
->> Do the same in vm_normal_page_pmd(), where we don't even report a
->> problem at all ...
->>
->> What might be better in the future is having a runtime option like
->> page-table-check to enable such checks dynamically on-demand. Something
->> for the future.
->>
->> Signed-off-by: David Hildenbrand <david@redhat.com>
+On 19.06.25 14:25, Lorenzo Stoakes wrote:
+> Hi Andrew,
 > 
+> I enclose a quick fix-patch to address a case I missed and to avoid any risk of
+> circular dependency in a header include.
+> 
+> Thanks to Vlastimil and Oscar for spotting this! :)
+> 
+> Cheers, Lorenzo
+> 
+> ----8<----
+>  From d66fe0b934098ccc2ba45f739277fffe86c91442 Mon Sep 17 00:00:00 2001
+> From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> Date: Thu, 19 Jun 2025 13:21:15 +0100
+> Subject: [PATCH] mm: add missing vm_get_page_prot() instance, remove include
+> 
+> I missed a case for powerpc, also remove #include (that is not in practice
+> necessary) to avoid any risk of circular dependency.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> ---
 
-Hi Oscar,
-
-> I'm confused, I'm missing something here.
-> Before this change we would return NULL if e.g: pfn > highest_memmap_pfn, but
-> now we just print the warning and call pfn_to_page() anyway.
-> AFAIK, pfn_to_page() doesn't return NULL?
-
-You're missing that vm_normal_page_pmd() was created as a copy from 
-vm_normal_page() [history of the sanity check above], but as we don't 
-have (and shouldn't have ...) print_bad_pmd(), we made the code look 
-like this would be something that can just happen.
-
-"
-Do the same in vm_normal_page_pmd(), where we don't even report a
-problem at all ...
-"
-
-So we made something that should never happen a runtime sanity check 
-without ever reporting a problem ...
+Acked-by: David Hildenbrand <david@redhat.com>
 
 -- 
 Cheers,
