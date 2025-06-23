@@ -1,185 +1,204 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD0EB13B58B
-	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 10:53:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98F8A3A1CD
+	for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 14:04:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750676038; cv=none; b=QKi7iNXoA9PSfpc0yPO9F5gxANZRzVlcpec79drQvUi7OfJt1Ti1HcA4QPm4WuIc+Pfa5sk2hBtFB/ZTvdY7U8oMX60njbBxshL1WuBaV8yoUOJcAh7/OjPP0MmnU01++yGxStQQWLjIaY183UEdm4JR4M+fEzEItt1SxlVGHeI=
+	t=1750687450; cv=none; b=SJtUIozL24G4yKllonI5VrxwzTsT2CJozTGMws6eOW/d5RvO1eyUvE34hRu4vWeo7TvUdmc6Adp+dxEtK0tF73FNKeqK4nMwn7yBKoLp7kdX3rZWkuUdf25J0M8ZpgptwsA/syxQ4Gy/4M/EjeeNjWfCFigasZCqPsuY4VG4Nt8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750676038; c=relaxed/simple;
-	bh=zBO6MXFFmO5JL7G17t6OORmf8OccJRCcVgUVBPiXXX4=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nml5pupSh1NOiKdOlGS0jo2XvUpPklThltRAj71W3LRTaO5zSXtn+xkpHKG/OXhWzQslfHuxtnieE9//dnPOesHNmCG0FiGArMsSFN/RBzn0MxLn6f913L/ms0qKLWHEuKhLebBbX87ShrY1kV0/8nfBGb44xGWlDOs1X3/3EtE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bQlKz0zGMz6L757;
-	Mon, 23 Jun 2025 18:53:11 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id AF30F1402E9;
-	Mon, 23 Jun 2025 18:53:53 +0800 (CST)
-Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Mon, 23 Jun
- 2025 12:53:52 +0200
-Date: Mon, 23 Jun 2025 11:53:51 +0100
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To: Neeraj Kumar <s.neeraj@samsung.com>
-CC: <dan.j.williams@intel.com>, <dave@stgolabs.net>, <dave.jiang@intel.com>,
-	<alison.schofield@intel.com>, <vishal.l.verma@intel.com>,
-	<ira.weiny@intel.com>, <a.manzanares@samsung.com>, <nifan.cxl@gmail.com>,
-	<anisa.su@samsung.com>, <vishak.g@samsung.com>, <krish.reddy@samsung.com>,
-	<arun.george@samsung.com>, <alok.rathore@samsung.com>,
-	<neeraj.kernel@gmail.com>, <linux-kernel@vger.kernel.org>,
-	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<gost.dev@samsung.com>, <cpgs@samsung.com>
-Subject: Re: [RFC PATCH 02/20] nvdimm/label: Prep patch to accommodate cxl
- lsa 2.1 support
-Message-ID: <20250623115351.00005312@huawei.com>
-In-Reply-To: <700072760.81750165203833.JavaMail.epsvc@epcpadp1new>
-References: <20250617123944.78345-1-s.neeraj@samsung.com>
-	<CGME20250617124011epcas5p2264e30ec58977907f80d311083265641@epcas5p2.samsung.com>
-	<700072760.81750165203833.JavaMail.epsvc@epcpadp1new>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1750687450; c=relaxed/simple;
+	bh=X4Hd5ZWrXPSq1/1WLrzOgIiIZXd5j48jrptWBaZiW1k=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=NfUMM1jTw+AVazC9VVab328uU8CogwUYIvlNL4HkOnUgEMfWmobdZd9qhbtI/NOUkK2XFtFeg70MAxh4meVSiS+InZrjiUv0YIWInx+L8dyVR6CYjXLXOzu1bCdYYYpkFGe4k6ZurR94q2oMUqS9egH1u20kaD+9UDiFmjAr8a0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RPAKZYjO; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RPAKZYjO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1750687447;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=KrBCINyJrvJ9eCzCevXV0ad1ST03SBH5k2o0Hivm01s=;
+	b=RPAKZYjOLx/Vh4WZCsoHzhCpYOsRjJvuJ89NtXxIPVJMRS8rL1jjIiTGLBZP8Fqm5zCg5X
+	SrwEUrHI2BNqocTzqx1OLLtzW+DTUBgShOrV9p/zMydlKsjkqLepzsR7VCoJRH09NPvAmA
+	ezbU9yvUQDbHU0DgqCdT3jz6fF1CDtw=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-153-23rvEGmvP-O9zJgJC_1GQg-1; Mon, 23 Jun 2025 10:04:06 -0400
+X-MC-Unique: 23rvEGmvP-O9zJgJC_1GQg-1
+X-Mimecast-MFC-AGG-ID: 23rvEGmvP-O9zJgJC_1GQg_1750687445
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-451d3f03b74so22945165e9.3
+        for <nvdimm@lists.linux.dev>; Mon, 23 Jun 2025 07:04:06 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1750687445; x=1751292245;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=KrBCINyJrvJ9eCzCevXV0ad1ST03SBH5k2o0Hivm01s=;
+        b=AcHYtkd8ax7drAyy8Q8gJT2Kl5i+Zihft/jxxKQIlgt+Gl0vQyeyE4sZNcXtPzQgXM
+         E/hP/m32KstRgmkootCxsh8cnvktMw1kijIg1G2HD/eHYdJtHi+tuP8pWCNWQUffmjQU
+         5AUDaushRxMiyIVjbW7MrTd4aI3R4GdtUgJyxVHdnRMMjlLFWHRphWuosfc0pkzPNVgb
+         qxR64jPo8LnFnwaF8/g5TGhLDzzaPQBfaM/xbKMfi8t0FdUFBaB3iTTE+WLlFqS76i3F
+         a306GPYAYThvGtCODS/MWb8fSaugjmkXb9aLCXRMoqfTx19WY5RiTY6FfBWQEONXd4wH
+         +JVA==
+X-Forwarded-Encrypted: i=1; AJvYcCWj/YwOEuYOfDbudS3viv6lze8I1s5HhjlhTEj0o2bYpvGI3rhDGcuEyKgke6JRQDnXHXE4OSk=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx6QRKUnCcl+32LgTJJN5PFkdFcL817jNd0fGFBNBywSwJwnyV2
+	dNRuS7YIWzfuBorN3PMqH3rJ++r0xp6MbjcxP1TaGRKGzEFUe2E1ntWs9e5iUlVnqdAfrR1Bcx7
+	Ty2vtLNNPsBBhxrY6EZ9pjtVPS4MiONUIJrK1kfQxX2jFa0Fenagqa+fPjA==
+X-Gm-Gg: ASbGncsSgCeQiFrMOgxG5AqCHvtRb4/8XzbOj9185SicjJWleUIMlByOtemz3n5Bklz
+	905m6bMF0TjGVYSwaSO6SUw2kX0d5f2zjqjXFChFMsqqmTLX7azXWIZjJCWM/w4Gxsp4VJf/R5j
+	03dkUNY/dHzuHJTpxkuEuXrK9HODTlavjY65ZxyQ4eZAqXGj7adHcAuf5hG9RD57qBZLxmIjwyt
+	qKvw8di6H7G0o49feyVG1cIN+438007kyRhWMFn9A6qSxP6q4h38uOKStQVBOLfEn43UG5VU+di
+	WRc4/Z1r2RWOdeycvTKePL6Qx50TVjGwI8/GmXxQn6jRerxTIt5KCFUFdzc7oT8zbCdtt/4LL8O
+	hrtSekB9p0svdGfYe57n4CktEsLTLBjVRAJRUu7KbJ6LWL8wv1w==
+X-Received: by 2002:a05:600c:4ec6:b0:43d:94:2d1e with SMTP id 5b1f17b1804b1-453659c5990mr113650985e9.13.1750687444790;
+        Mon, 23 Jun 2025 07:04:04 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IE95nNZ86PnFHeg7VNuUAm+n3H3UxcLPVNTcJDICuroThLIfwHolxnqvCNMi52XcHJ4LMneaQ==
+X-Received: by 2002:a05:600c:4ec6:b0:43d:94:2d1e with SMTP id 5b1f17b1804b1-453659c5990mr113650125e9.13.1750687444093;
+        Mon, 23 Jun 2025 07:04:04 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159? (p200300d82f4efd008e13e3b590c81159.dip0.t-ipconnect.de. [2003:d8:2f4e:fd00:8e13:e3b5:90c8:1159])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-453755e7d1dsm29688075e9.10.2025.06.23.07.04.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 23 Jun 2025 07:04:03 -0700 (PDT)
+Message-ID: <c88c29d2-d887-4c5a-8b4e-0cf30e71d596@redhat.com>
+Date: Mon, 23 Jun 2025 16:04:01 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC 01/14] mm/memory: drop highest_memmap_pfn sanity check
+ in vm_normal_page()
+To: Oscar Salvador <osalvador@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-mm@kvack.org, nvdimm@lists.linux.dev,
+ Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
+ Stefano Stabellini <sstabellini@kernel.org>,
+ Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+ Dan Williams <dan.j.williams@intel.com>, Alistair Popple
+ <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>,
+ Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>, Nico Pache <npache@redhat.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+ Barry Song <baohua@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>
+References: <20250617154345.2494405-1-david@redhat.com>
+ <20250617154345.2494405-2-david@redhat.com>
+ <aFVZCvOpIpBGAf9w@localhost.localdomain>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <aFVZCvOpIpBGAf9w@localhost.localdomain>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: QBDXjUpvS4QMYnuvgiDAJkdw6Z0lwa9obYU_9G1dw7I_1750687445
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
- frapeml500008.china.huawei.com (7.182.85.71)
 
-On Tue, 17 Jun 2025 18:09:26 +0530
-Neeraj Kumar <s.neeraj@samsung.com> wrote:
-
-> In order to accommodate cxl lsa 2.1 format region label, renamed
-> nd_namespace_label to nd_lsa_label.
-
-I would add some more information on why.  I've no idea from this
-description whether the issue is a naming clash or a need for a broader
-name or something entirely different.
-
-Most readers aren't going to be particular familiar with the lsa spec
-version changes, so help them out with a little more detail.
-
-The comment you have with the union is probably the right info
-to duplicate here.
-
+On 20.06.25 14:50, Oscar Salvador wrote:
+> On Tue, Jun 17, 2025 at 05:43:32PM +0200, David Hildenbrand wrote:
+>> In 2009, we converted a VM_BUG_ON(!pfn_valid(pfn)) to the current
+>> highest_memmap_pfn sanity check in commit 22b31eec63e5 ("badpage:
+>> vm_normal_page use print_bad_pte"), because highest_memmap_pfn was
+>> readily available.
+>>
+>> Nowadays, this is the last remaining highest_memmap_pfn user, and this
+>> sanity check is not really triggering ... frequently.
+>>
+>> Let's convert it to VM_WARN_ON_ONCE(!pfn_valid(pfn)), so we can
+>> simplify and get rid of highest_memmap_pfn. Checking for
+>> pfn_to_online_page() might be even better, but it would not handle
+>> ZONE_DEVICE properly.
+>>
+>> Do the same in vm_normal_page_pmd(), where we don't even report a
+>> problem at all ...
+>>
+>> What might be better in the future is having a runtime option like
+>> page-table-check to enable such checks dynamically on-demand. Something
+>> for the future.
+>>
+>> Signed-off-by: David Hildenbrand <david@redhat.com>
 > 
-> No functional change introduced.
-> 
-> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
 
-This is quite a lot of churn which, just looking at this patch, could
-be avoided by just setting local variables to point at a particular
-member of the union rather than the containing struct.
-You already do this in a few places like nd_label_reserve_dpa().
+Hi Oscar,
 
-Perhaps it will be come clearer why that doesn't make sense as
-I ready later patches.
+> I'm confused, I'm missing something here.
+> Before this change we would return NULL if e.g: pfn > highest_memmap_pfn, but
+> now we just print the warning and call pfn_to_page() anyway.
+> AFAIK, pfn_to_page() doesn't return NULL?
 
-> diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-> index 0650fb4b9821..4883b3a1320f 100644
-> --- a/drivers/nvdimm/label.h
-> +++ b/drivers/nvdimm/label.h
-> @@ -183,6 +183,16 @@ struct nd_namespace_label {
->  	};
->  };
->  
-> +/*
-> + * LSA 2.1 format introduces region label, which can also reside
-> + * into LSA along with only namespace label as per v1.1 and v1.2
-> + */
-> +struct nd_lsa_label {
-> +	union {
-> +		struct nd_namespace_label ns_label;
-> +	};
-> +};
+You're missing that vm_normal_page_pmd() was created as a copy from 
+vm_normal_page() [history of the sanity check above], but as we don't 
+have (and shouldn't have ...) print_bad_pmd(), we made the code look 
+like this would be something that can just happen.
 
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-> index 55cfbf1e0a95..f180f0068c15 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
+"
+Do the same in vm_normal_page_pmd(), where we don't even report a
+problem at all ...
+"
 
-> @@ -1595,7 +1596,8 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, const uuid_t *uuid,
->  				return false;
->  			}
->  			found_uuid = true;
-> -			if (!nsl_validate_nlabel(nd_region, ndd, nd_label))
-> +			if (!nsl_validate_nlabel(nd_region,
-> +						 ndd, &nd_label->ns_label))
+So we made something that should never happen a runtime sanity check 
+without ever reporting a problem ...
 
-Strange wrap.  I'd move ndd up a line.
+-- 
+Cheers,
 
-
->  				continue;
->  			if (position != pos)
->  				continue;
-> @@ -1615,7 +1617,7 @@ static int select_pmem_id(struct nd_region *nd_region, const uuid_t *pmem_id)
->  	for (i = 0; i < nd_region->ndr_mappings; i++) {
->  		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
->  		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-> -		struct nd_namespace_label *nd_label = NULL;
-> +		struct nd_lsa_label *nd_label = NULL;
->  		u64 hw_start, hw_end, pmem_start, pmem_end;
->  		struct nd_label_ent *label_ent;
->  
-
-
-> @@ -1739,14 +1741,14 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  	 * that position at labels[0], and NULL at labels[1].  In the process,
->  	 * check that the namespace aligns with interleave-set.
->  	 */
-> -	nsl_get_uuid(ndd, nd_label, &uuid);
-> +	nsl_get_uuid(ndd, &nd_label->ns_label, &uuid);
->  	rc = select_pmem_id(nd_region, &uuid);
->  	if (rc)
->  		goto err;
->  
->  	/* Calculate total size and populate namespace properties from label0 */
->  	for (i = 0; i < nd_region->ndr_mappings; i++) {
-> -		struct nd_namespace_label *label0;
-> +		struct nd_lsa_label *label0;
-
-If you are only ever going to use one part of the union in a given
-bit of code, why not use a struct of that type so you only need to change
-the point where it is assigned rather that lots of places.
-
-So keep this as struct nd_namespace_label *label0;
-
-If that makes sense, check for other places where doing that will reduce the churn
-and complexity of the code.
-
-
-
->  		struct nvdimm_drvdata *ndd;
->  
->  		nd_mapping = &nd_region->mapping[i];
-> @@ -1760,17 +1762,17 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  		}
->  
->  		ndd = to_ndd(nd_mapping);
-> -		size += nsl_get_rawsize(ndd, label0);
-> -		if (nsl_get_position(ndd, label0) != 0)
-> +		size += nsl_get_rawsize(ndd, &label0->ns_label);
-> +		if (nsl_get_position(ndd, &label0->ns_label) != 0)
->  			continue;
->  		WARN_ON(nspm->alt_name || nspm->uuid);
-> -		nspm->alt_name = kmemdup(nsl_ref_name(ndd, label0),
-> +		nspm->alt_name = kmemdup(nsl_ref_name(ndd, &label0->ns_label),
->  					 NSLABEL_NAME_LEN, GFP_KERNEL);
-> -		nsl_get_uuid(ndd, label0, &uuid);
-> +		nsl_get_uuid(ndd, &label0->ns_label, &uuid);
->  		nspm->uuid = kmemdup(&uuid, sizeof(uuid_t), GFP_KERNEL);
-> -		nspm->lbasize = nsl_get_lbasize(ndd, label0);
-> +		nspm->lbasize = nsl_get_lbasize(ndd, &label0->ns_label);
->  		nspm->nsio.common.claim_class =
-> -			nsl_get_claim_class(ndd, label0);
-> +			nsl_get_claim_class(ndd, &label0->ns_label);
->  	}
+David / dhildenb
 
