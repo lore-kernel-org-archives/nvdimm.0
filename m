@@ -1,921 +1,363 @@
-Received: from out-179.mta1.migadu.com (out-179.mta1.migadu.com [95.215.58.179])
+Received: from omta36.uswest2.a.cloudfilter.net (omta36.uswest2.a.cloudfilter.net [35.89.44.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42BC7252906
-	for <nvdimm@lists.linux.dev>; Tue, 24 Jun 2025 07:35:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C07542E92A7
+	for <nvdimm@lists.linux.dev>; Tue, 24 Jun 2025 19:46:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.89.44.35
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750750513; cv=none; b=jPy9IqGGenWvnwLVGhGfpbLd1SoNjjoMg9gNtLkWm0hK8g1+FgjM8WNIlCmI+VO9Tgn9PKt45+3J1rshXvyA2mwsZVKKtwnAqZySZETp8ZcWzJIFYr7K35Z68n1ojsskzkVQeEp/9IMHKdHPNA6XDRIpdi6ZjnxFA4Ij2bUdhkY=
+	t=1750794408; cv=none; b=EVs45FGhDa4JYaQORxHvcXn0+g6Yb5vbuV5ECzrO0r1Ia7dILPtuTBBejcHbOaTngr0EFkhKwQXJVqDs0XgoHdmg0Cixt+yRjF6NKrcXLWpGc+BaNhhm/WpqDagOfhc4o3q6XXOABYJCIVpcO/ReZifVz1n/MSiSOy6dGE0pg/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750750513; c=relaxed/simple;
-	bh=J0EbSjaYovN9tBZcxCgT1UcbNm0myXJKYaSJbzSmLDo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XlGET/L4+cmLugrikzTMelH/AxfmGF1gT2I4M5TDVeVxR9RZVLK8WG8AUAw1AGCsgnFK+RLUJ1F6HqQ6SAxcMgi4vzWwmBAea8kP5Vopv2Cls3x1KYFZdPyEwp0ebPTcmtF58ZbaeKWn4p/g8G4s8zTN6ovlwwDI7OF8Py/K7Cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=uHVi86Qe; arc=none smtp.client-ip=95.215.58.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1750794408; c=relaxed/simple;
+	bh=/VKNEP0ltWiKSzMv/NxgrMfcRJpj1AtOgeiziegS+qQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=IpelkDf+B2pYbxVJSq/Ia0abzGADInDD8rQ1JV26Iqc2XIUnVYcATZ8y/0857X5n1MeEuKxupUNzvhNH2rhISmrNimNauM7KfRGBwFZSSTjn9rGvY6qcDH6AEpGqUHOPOXmmfqza48AodJ6/w/68o+HJDmsMMOBFmCTSx2VkAzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=embeddedor.com; spf=pass smtp.mailfrom=embeddedor.com; dkim=pass (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b=VZON7Y3w; arc=none smtp.client-ip=35.89.44.35
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=embeddedor.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=embeddedor.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="uHVi86Qe"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1750750508;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=AMIu+JNNFCUeQpKBS0yzTJtn6f8I/wRPudNb+J0yJh4=;
-	b=uHVi86QeJUpvQdStRFZi4ykEfFnzuWcqCUh85sEZLjfj00pQnUvOI1mJyINY9QSY7q2uXU
-	5Rly0rL6S7oGPs5QTbbPMnhAw+/vbqlqZ2W+l9/+OSejJCqvlTE++pZ8G1sMiGQ/2BFSjT
-	NVpePkbq97h+b05AL+PZrsR3t3oxnog=
-From: Dongsheng Yang <dongsheng.yang@linux.dev>
-To: mpatocka@redhat.com,
-	agk@redhat.com,
-	snitzer@kernel.org,
-	axboe@kernel.dk,
-	hch@lst.de,
-	dan.j.williams@intel.com,
-	Jonathan.Cameron@Huawei.com
-Cc: linux-block@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	dm-devel@lists.linux.dev,
-	Dongsheng Yang <dongsheng.yang@linux.dev>
-Subject: [PATCH v1 11/11] dm-pcache: initial dm-pcache target
-Date: Tue, 24 Jun 2025 07:33:58 +0000
-Message-ID: <20250624073359.2041340-12-dongsheng.yang@linux.dev>
-In-Reply-To: <20250624073359.2041340-1-dongsheng.yang@linux.dev>
-References: <20250624073359.2041340-1-dongsheng.yang@linux.dev>
+	dkim=pass (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="VZON7Y3w"
+Received: from eig-obgw-5005a.ext.cloudfilter.net ([10.0.29.234])
+	by cmsmtp with ESMTPS
+	id U20muaQCCMETlU9bRumaFV; Tue, 24 Jun 2025 19:46:45 +0000
+Received: from gator4166.hostgator.com ([108.167.133.22])
+	by cmsmtp with ESMTPS
+	id U9bPuTPV4q3CNU9bQu1cdh; Tue, 24 Jun 2025 19:46:44 +0000
+X-Authority-Analysis: v=2.4 cv=VpfoAP2n c=1 sm=1 tr=0 ts=685b00a4
+ a=1YbLdUo/zbTtOZ3uB5T3HA==:117 a=y7jUFFJD1EYPe7d4fIfORw==:17
+ a=IkcTkHD0fZMA:10 a=6IFa9wvqVegA:10 a=7T7KSl7uo7wA:10 a=VwQbUJbxAAAA:8
+ a=rxE1pZJS_adTsW7E6NAA:9 a=QEXdDO2ut3YA:10 a=xYX6OU9JNrHFPr8prv8u:22
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=UrkOMRXh4VU9szWbhUzcUYJTMJCwbEOG1xhSxMr5j/s=; b=VZON7Y3wKm+1ZIJLeb9xH61f7I
+	x938k9LP1QGcL52x2rmYSeSzzv4KES1aUKkox26nbZFXBY9dSnaYpLwQe79DygG6EudIhvBUQqtax
+	OQ2D2UC4UchUOmmjxl5i+8brKQOBp2FllQUHxAALjGbAkjN8G4h8nHkLKVHSpeMFM82jTwBvY+IYi
+	FMjZEskzilCrgW6jOYSVx46EtrC3JvKb5QCWxR2hu7/wShFB9QQr0xHTW0nINlmMVHq0mY2Nza1dS
+	2+CyeU9MZ4lo5STprt7Fy0zd3WB550f3rfOd473ukD3YzgxjRBlrZfxbzoqMJaOzwgNT3ypQ5vEev
+	x8WFnWyg==;
+Received: from [177.238.16.137] (port=33172 helo=[192.168.0.21])
+	by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.1)
+	(envelope-from <gustavo@embeddedor.com>)
+	id 1uU9bP-00000004Led-076f;
+	Tue, 24 Jun 2025 14:46:43 -0500
+Message-ID: <9782fd09-c6c6-4cac-bcfa-404733ae827a@embeddedor.com>
+Date: Tue, 24 Jun 2025 13:46:32 -0600
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3][next] acpi: nfit: intel: avoid multiple
+ -Wflex-array-member-not-at-end warnings
+To: "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ Ira Weiny <ira.weiny@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Len Brown <lenb@kernel.org>
+Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org,
+ Kees Cook <kees@kernel.org>
+References: <aEneid7gdAZr1_kR@kspp>
+Content-Language: en-US
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+In-Reply-To: <aEneid7gdAZr1_kR@kspp>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
+X-AntiAbuse: Original Domain - lists.linux.dev
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - embeddedor.com
+X-BWhitelist: no
+X-Source-IP: 177.238.16.137
+X-Source-L: No
+X-Exim-ID: 1uU9bP-00000004Led-076f
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+X-Source-Sender: ([192.168.0.21]) [177.238.16.137]:33172
+X-Source-Auth: gustavo@embeddedor.com
+X-Email-Count: 5
+X-Org: HG=hgshared;ORG=hostgator;
+X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
+X-Local-Domain: yes
+X-CMAE-Envelope: MS4xfMjLG+AlvU+UlH6N1WOm0Mr6Xnrg8L4QN6+YQGjMjxsxhFu1lp8Qg4UFp8NS1NRsjcMsbV/6R3B/BVQoGkt7RJ6I2EE8lA9FU/U1bz096+W1Dly3hOyR
+ YCsoOK0vQFrm1Fw8W6kE2rI5i/59PnYBOGno+lf+C3Jkv0Oy6Sgsio+a357Bob3IZhGXf6hpMyUJp4HvXuMpfG8J6MVpkMPd+3s=
 
-Add the top-level integration pieces that make the new persistent-memory
-cache target usable from device-mapper:
+Hi all,
 
-* Documentation
-  - `Documentation/admin-guide/device-mapper/dm-pcache.rst` explains the
-    design, table syntax, status fields and runtime messages.
+Friendly ping: who can review or take this, please? :)
 
-* Core target implementation
-  - `dm_pcache.c` and `dm_pcache.h` register the `"pcache"` DM target,
-    parse constructor arguments, create workqueues, and forward BIOS to
-    the cache core added in earlier patches.
-  - Supports flush/FUA, status reporting, and a “gc_percent” message.
-  - Dont support discard currently.
-  - Dont support table reload for live target currently.
+Thanks!
+-Gustavo
 
-* Device-mapper tables now accept lines like
-    pcache <pmem_dev> <backing_dev> writeback <true|false>
-
-Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
----
- .../admin-guide/device-mapper/dm-pcache.rst   | 201 ++++++++
- MAINTAINERS                                   |   8 +
- drivers/md/Kconfig                            |   2 +
- drivers/md/Makefile                           |   1 +
- drivers/md/dm-pcache/Kconfig                  |  17 +
- drivers/md/dm-pcache/Makefile                 |   3 +
- drivers/md/dm-pcache/dm_pcache.c              | 467 ++++++++++++++++++
- drivers/md/dm-pcache/dm_pcache.h              |  65 +++
- 8 files changed, 764 insertions(+)
- create mode 100644 Documentation/admin-guide/device-mapper/dm-pcache.rst
- create mode 100644 drivers/md/dm-pcache/Kconfig
- create mode 100644 drivers/md/dm-pcache/Makefile
- create mode 100644 drivers/md/dm-pcache/dm_pcache.c
- create mode 100644 drivers/md/dm-pcache/dm_pcache.h
-
-diff --git a/Documentation/admin-guide/device-mapper/dm-pcache.rst b/Documentation/admin-guide/device-mapper/dm-pcache.rst
-new file mode 100644
-index 000000000000..e6433fab7bd6
---- /dev/null
-+++ b/Documentation/admin-guide/device-mapper/dm-pcache.rst
-@@ -0,0 +1,201 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+=================================
-+dm-pcache — Persistent Cache
-+=================================
-+
-+*Author: Dongsheng Yang <dongsheng.yang@linux.dev>*
-+
-+This document describes *dm-pcache*, a Device-Mapper target that lets a
-+byte-addressable *DAX* (persistent-memory, “pmem”) region act as a
-+high-performance, crash-persistent cache in front of a slower block
-+device.  The code lives in `drivers/md/dm-pcache/`.
-+
-+Quick feature summary
-+=====================
-+
-+* *Write-back* caching (only mode currently supported).
-+* *16 MiB segments* allocated on the pmem device.
-+* *Data CRC32* verification (optional, per cache).
-+* Crash-safe: every metadata structure is duplicated (`PCACHE_META_INDEX_MAX
-+  == 2`) and protected with CRC+sequence numbers.
-+* *Multi-tree indexing* (one radix tree per CPU backend) for high PMem
-+  parallelism
-+* Pure *DAX path* I/O – no extra BIO round-trips
-+* *Log-structured write-back* that preserves backend crash-consistency
-+
-+-------------------------------------------------------------------------------
-+Constructor
-+===========
-+
-+::
-+
-+    pcache <cache_dev> <backing_dev> [<number_of_optional_arguments> <cache_mode writeback> <data_crc true|false>]
-+
-+=========================  ====================================================
-+``cache_dev``               Any DAX-capable block device (``/dev/pmem0``…).
-+                            All metadata *and* cached blocks are stored here.
-+
-+``backing_dev``             The slow block device to be cached.
-+
-+``cache_mode``              Optional, Only ``writeback`` is accepted at the moment.
-+
-+``data_crc``                Optional, default to ``false``
-+                            ``true``  – store CRC32 for every cached entry and
-+                                      verify on reads
-+                            ``false`` – skip CRC (faster)
-+=========================  ====================================================
-+
-+Example
-+-------
-+
-+.. code-block:: shell
-+
-+   dmsetup create pcache_sdb --table \
-+     "0 $(blockdev --getsz /dev/sdb) pcache /dev/pmem0 /dev/sdb 4 cache_mode writeback data_crc true"
-+
-+The first time a pmem device is used, dm-pcache formats it automatically
-+(super-block, cache_info, etc.).
-+
-+-------------------------------------------------------------------------------
-+Status line
-+===========
-+
-+``dmsetup status <device>`` (``STATUSTYPE_INFO``) prints:
-+
-+::
-+
-+   <sb_flags> <seg_total> <cache_segs> <segs_used> \
-+   <gc_percent> <cache_flags> \
-+   <key_head_seg>:<key_head_off> \
-+   <dirty_tail_seg>:<dirty_tail_off> \
-+   <key_tail_seg>:<key_tail_off>
-+
-+Field meanings
-+--------------
-+
-+===============================  =============================================
-+``sb_flags``                     Super-block flags (e.g. endian marker).
-+
-+``seg_total``                    Number of physical *pmem* segments.
-+
-+``cache_segs``                   Number of segments used for cache.
-+
-+``segs_used``                    Segments currently allocated (bitmap weight).
-+
-+``gc_percent``                   Current GC high-water mark (0-90).
-+
-+``cache_flags``                  Bit 0 – DATA_CRC enabled
-+                                 Bit 1 – INIT_DONE (cache initialised)
-+                                 Bits 2-5 – cache mode (0 == WB).
-+
-+``key_head``                     Where new key-sets are being written.
-+
-+``dirty_tail``                   First dirty key-set that still needs
-+                                 write-back to the backing device.
-+
-+``key_tail``                     First key-set that may be reclaimed by GC.
-+===============================  =============================================
-+
-+-------------------------------------------------------------------------------
-+Messages
-+========
-+
-+*Change GC trigger*
-+
-+::
-+
-+   dmsetup message <dev> 0 gc_percent <0-90>
-+
-+-------------------------------------------------------------------------------
-+Theory of operation
-+===================
-+
-+Sub-devices
-+-----------
-+
-+====================  =========================================================
-+backing_dev             Any block device (SSD/HDD/loop/LVM, etc.).
-+cache_dev               DAX device; must expose direct-access memory.
-+====================  =========================================================
-+
-+Segments and key-sets
-+---------------------
-+
-+* The pmem space is divided into *16 MiB segments*.
-+* Each write allocates space from a per-CPU *data_head* inside a segment.
-+* A *cache-key* records a logical range on the origin and where it lives
-+  inside pmem (segment + offset + generation).
-+* 128 keys form a *key-set* (kset); ksets are written sequentially in pmem
-+  and are themselves crash-safe (CRC).
-+* The pair *(key_tail, dirty_tail)* delimit clean/dirty and live/dead ksets.
-+
-+Write-back
-+----------
-+
-+Dirty keys are queued into a tree; a background worker copies data
-+back to the backing_dev and advances *dirty_tail*.  A FLUSH/FUA bio from the
-+upper layers forces an immediate metadata commit.
-+
-+Garbage collection
-+------------------
-+
-+GC starts when ``segs_used >= seg_total * gc_percent / 100``.  It walks
-+from *key_tail*, frees segments whose every key has been invalidated, and
-+advances *key_tail*.
-+
-+CRC verification
-+----------------
-+
-+If ``data_crc is enabled`` dm-pcache computes a CRC32 over every cached data
-+range when it is inserted and stores it in the on-media key.  Reads
-+validate the CRC before copying to the caller.
-+
-+-------------------------------------------------------------------------------
-+Failure handling
-+================
-+
-+* *pmem media errors* – all metadata copies are read with
-+  ``copy_mc_to_kernel``; an uncorrectable error logs and aborts initialisation.
-+* *Cache full* – if no free segment can be found, writes return ``-EBUSY``;
-+  dm-pcache retries internally (request deferral).
-+* *System crash* – on attach, the driver replays ksets from *key_tail* to
-+  rebuild the in-core trees; every segment’s generation guards against
-+  use-after-free keys.
-+
-+-------------------------------------------------------------------------------
-+Limitations & TODO
-+==================
-+
-+* Only *write-back* mode; other modes planned.
-+* Only FIFO cache invalidate; other (LRU, ARC...) planned.
-+* Table reload is not supported currently.
-+* Discard planned.
-+
-+-------------------------------------------------------------------------------
-+Example workflow
-+================
-+
-+.. code-block:: shell
-+
-+   # 1.  Create devices
-+   dmsetup create pcache_sdb --table \
-+     "0 $(blockdev --getsz /dev/sdb) pcache /dev/pmem0 /dev/sdb 4 cache_mode writeback data_crc true"
-+
-+   # 2.  Put a filesystem on top
-+   mkfs.ext4 /dev/mapper/pcache_sdb
-+   mount /dev/mapper/pcache_sdb /mnt
-+
-+   # 3.  Tune GC threshold to 80 %
-+   dmsetup message pcache_sdb 0 gc_percent 80
-+
-+   # 4.  Observe status
-+   watch -n1 'dmsetup status pcache_sdb'
-+
-+   # 5.  Shutdown
-+   umount /mnt
-+   dmsetup remove pcache_sdb
-+
-+-------------------------------------------------------------------------------
-+``dm-pcache`` is under active development; feedback, bug reports and patches
-+are very welcome!
-diff --git a/MAINTAINERS b/MAINTAINERS
-index dd844ac8d910..0a7aa53eef96 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6838,6 +6838,14 @@ S:	Maintained
- F:	Documentation/admin-guide/device-mapper/vdo*.rst
- F:	drivers/md/dm-vdo/
- 
-+DEVICE-MAPPER PCACHE TARGET
-+M:	Dongsheng Yang <dongsheng.yang@linux.dev>
-+M:	Zheng Gu <cengku@gmail.com>
-+L:	dm-devel@lists.linux.dev
-+S:	Maintained
-+F:	Documentation/admin-guide/device-mapper/dm-pcache.rst
-+F:	drivers/md/dm-pcache/
-+
- DEVLINK
- M:	Jiri Pirko <jiri@resnulli.us>
- L:	netdev@vger.kernel.org
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index ddb37f6670de..cd4d8d1705bb 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -659,4 +659,6 @@ config DM_AUDIT
- 
- source "drivers/md/dm-vdo/Kconfig"
- 
-+source "drivers/md/dm-pcache/Kconfig"
-+
- endif # MD
-diff --git a/drivers/md/Makefile b/drivers/md/Makefile
-index 87bdfc9fe14c..f91a3133677f 100644
---- a/drivers/md/Makefile
-+++ b/drivers/md/Makefile
-@@ -71,6 +71,7 @@ obj-$(CONFIG_DM_RAID)		+= dm-raid.o
- obj-$(CONFIG_DM_THIN_PROVISIONING) += dm-thin-pool.o
- obj-$(CONFIG_DM_VERITY)		+= dm-verity.o
- obj-$(CONFIG_DM_VDO)            += dm-vdo/
-+obj-$(CONFIG_DM_PCACHE)		+= dm-pcache/
- obj-$(CONFIG_DM_CACHE)		+= dm-cache.o
- obj-$(CONFIG_DM_CACHE_SMQ)	+= dm-cache-smq.o
- obj-$(CONFIG_DM_EBS)		+= dm-ebs.o
-diff --git a/drivers/md/dm-pcache/Kconfig b/drivers/md/dm-pcache/Kconfig
-new file mode 100644
-index 000000000000..0e251eca892e
---- /dev/null
-+++ b/drivers/md/dm-pcache/Kconfig
-@@ -0,0 +1,17 @@
-+config DM_PCACHE
-+	tristate "Persistent cache for Block Device (Experimental)"
-+	depends on BLK_DEV_DM
-+	depends on DEV_DAX
-+	help
-+	  PCACHE provides a mechanism to use persistent memory (e.g., CXL persistent memory,
-+	  DAX-enabled devices) as a high-performance cache layer in front of
-+	  traditional block devices such as SSDs or HDDs.
-+
-+	  PCACHE is implemented as a kernel module that integrates with the block
-+	  layer and supports direct access (DAX) to persistent memory for low-latency,
-+	  byte-addressable caching.
-+
-+	  Note: This feature is experimental and should be tested thoroughly
-+	  before use in production environments.
-+
-+	  If unsure, say 'N'.
-diff --git a/drivers/md/dm-pcache/Makefile b/drivers/md/dm-pcache/Makefile
-new file mode 100644
-index 000000000000..86776e4acad2
---- /dev/null
-+++ b/drivers/md/dm-pcache/Makefile
-@@ -0,0 +1,3 @@
-+dm-pcache-y := dm_pcache.o cache_dev.o segment.o backing_dev.o cache.o cache_gc.o cache_writeback.o cache_segment.o cache_key.o cache_req.o
-+
-+obj-m += dm-pcache.o
-diff --git a/drivers/md/dm-pcache/dm_pcache.c b/drivers/md/dm-pcache/dm_pcache.c
-new file mode 100644
-index 000000000000..a5677f3266df
---- /dev/null
-+++ b/drivers/md/dm-pcache/dm_pcache.c
-@@ -0,0 +1,467 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+#include <linux/module.h>
-+#include <linux/blkdev.h>
-+#include <linux/bio.h>
-+
-+#include "../dm-core.h"
-+#include "cache_dev.h"
-+#include "backing_dev.h"
-+#include "cache.h"
-+#include "dm_pcache.h"
-+
-+void pcache_defer_reqs_kick(struct dm_pcache *pcache)
-+{
-+	struct pcache_cache *cache = &pcache->cache;
-+
-+	spin_lock(&cache->seg_map_lock);
-+	if (!cache->cache_full)
-+		queue_work(pcache->task_wq, &pcache->defered_req_work);
-+	spin_unlock(&cache->seg_map_lock);
-+}
-+
-+static void defer_req(struct pcache_request *pcache_req)
-+{
-+	struct dm_pcache *pcache = pcache_req->pcache;
-+
-+	BUG_ON(!list_empty(&pcache_req->list_node));
-+
-+	spin_lock(&pcache->defered_req_list_lock);
-+	list_add(&pcache_req->list_node, &pcache->defered_req_list);
-+	pcache_defer_reqs_kick(pcache);
-+	spin_unlock(&pcache->defered_req_list_lock);
-+}
-+
-+static void defered_req_fn(struct work_struct *work)
-+{
-+	struct dm_pcache *pcache = container_of(work, struct dm_pcache, defered_req_work);
-+	struct pcache_request *pcache_req;
-+	LIST_HEAD(tmp_list);
-+	int ret;
-+
-+	if (pcache_is_stopping(pcache))
-+		return;
-+
-+	spin_lock(&pcache->defered_req_list_lock);
-+	list_splice_init(&pcache->defered_req_list, &tmp_list);
-+	spin_unlock(&pcache->defered_req_list_lock);
-+
-+	while (!list_empty(&tmp_list)) {
-+		pcache_req = list_first_entry(&tmp_list,
-+					    struct pcache_request, list_node);
-+		list_del_init(&pcache_req->list_node);
-+		pcache_req->ret = 0;
-+		ret = pcache_cache_handle_req(&pcache->cache, pcache_req);
-+		if (ret == -EBUSY)
-+			defer_req(pcache_req);
-+		else
-+			pcache_req_put(pcache_req, ret);
-+	}
-+}
-+
-+void pcache_req_get(struct pcache_request *pcache_req)
-+{
-+	kref_get(&pcache_req->ref);
-+}
-+
-+static void end_req(struct kref *ref)
-+{
-+	struct pcache_request *pcache_req = container_of(ref, struct pcache_request, ref);
-+	struct bio *bio = pcache_req->bio;
-+	int ret = pcache_req->ret;
-+
-+	if (ret == -EBUSY) {
-+		pcache_req_get(pcache_req);
-+		defer_req(pcache_req);
-+	} else {
-+		bio->bi_status = errno_to_blk_status(ret);
-+		bio_endio(bio);
-+	}
-+}
-+
-+void pcache_req_put(struct pcache_request *pcache_req, int ret)
-+{
-+	/* Set the return status if it is not already set */
-+	if (ret && !pcache_req->ret)
-+		pcache_req->ret = ret;
-+
-+	kref_put(&pcache_req->ref, end_req);
-+}
-+
-+static bool at_least_one_arg(struct dm_arg_set *as, char **error)
-+{
-+	if (!as->argc) {
-+		*error = "Insufficient args";
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static int parse_cache_dev(struct dm_pcache *pcache, struct dm_arg_set *as,
-+				char **error)
-+{
-+	int ret;
-+
-+	if (!at_least_one_arg(as, error))
-+		return -EINVAL;
-+	ret = dm_get_device(pcache->ti, dm_shift_arg(as),
-+			  BLK_OPEN_READ | BLK_OPEN_WRITE,
-+			  &pcache->cache_dev.dm_dev);
-+	if (ret) {
-+		*error = "Error opening cache device";
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_backing_dev(struct dm_pcache *pcache, struct dm_arg_set *as,
-+				char **error)
-+{
-+	int ret;
-+
-+	if (!at_least_one_arg(as, error))
-+		return -EINVAL;
-+
-+	ret = dm_get_device(pcache->ti, dm_shift_arg(as),
-+			  BLK_OPEN_READ | BLK_OPEN_WRITE,
-+			  &pcache->backing_dev.dm_dev);
-+	if (ret) {
-+		*error = "Error opening backing device";
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static void pcache_init_opts(struct pcache_cache_options *opts)
-+{
-+	opts->cache_mode = PCACHE_CACHE_MODE_WRITEBACK;
-+	opts->data_crc = false;
-+}
-+
-+static int parse_cache_opts(struct dm_pcache *pcache, struct dm_arg_set *as,
-+                            char **error)
-+{
-+	struct pcache_cache_options *opts = &pcache->opts;
-+	static const struct dm_arg _args[] = {
-+		{0, 4, "Invalid number of cache option arguments"},
-+	};
-+	unsigned int argc;
-+	const char *arg;
-+	int ret;
-+
-+	pcache_init_opts(opts);
-+	if (!as->argc)
-+		return 0;
-+
-+	ret = dm_read_arg_group(_args, as, &argc, error);
-+	if (ret)
-+		return -EINVAL;
-+
-+	while (argc) {
-+		arg = dm_shift_arg(as);
-+		argc--;
-+
-+		if (!strcmp(arg, "cache_mode")) {
-+			arg = dm_shift_arg(as);
-+			if (!strcmp(arg, "writeback")) {
-+				opts->cache_mode = PCACHE_CACHE_MODE_WRITEBACK;
-+			} else {
-+				*error = "Invalid cache mode parameter";
-+				return -EINVAL;
-+			}
-+			argc--;
-+		} else if (!strcmp(arg, "data_crc")) {
-+			arg = dm_shift_arg(as);
-+			if (!strcmp(arg, "true")) {
-+				opts->data_crc = true;
-+			} else if (!strcmp(arg, "false")) {
-+				opts->data_crc = false;
-+			} else {
-+				*error = "Invalid data crc parameter";
-+				return -EINVAL;
-+			}
-+			argc--;
-+		} else {
-+			*error = "Unrecognised cache option requested";
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int pcache_start(struct dm_pcache *pcache, char **error)
-+{
-+	int ret;
-+
-+	ret = cache_dev_start(pcache);
-+	if (ret) {
-+		*error = "Failed to start cache dev";
-+		return ret;
-+	}
-+
-+	ret = backing_dev_start(pcache);
-+	if (ret) {
-+		*error = "Failed to start backing dev";
-+		goto stop_cache;
-+	}
-+
-+	ret = pcache_cache_start(pcache);
-+	if (ret) {
-+		*error = "Failed to start pcache";
-+		goto stop_backing;
-+	}
-+
-+	return 0;
-+stop_backing:
-+	backing_dev_stop(pcache);
-+stop_cache:
-+	cache_dev_stop(pcache);
-+
-+	return ret;
-+}
-+
-+static void pcache_destroy_args(struct dm_pcache *pcache)
-+{
-+	if (pcache->cache_dev.dm_dev)
-+		dm_put_device(pcache->ti, pcache->cache_dev.dm_dev);
-+	if (pcache->backing_dev.dm_dev)
-+		dm_put_device(pcache->ti, pcache->backing_dev.dm_dev);
-+}
-+
-+static int pcache_parse_args(struct dm_pcache *pcache, unsigned int argc, char **argv,
-+				char **error)
-+{
-+	struct dm_arg_set as;
-+	int ret;
-+
-+	as.argc = argc;
-+	as.argv = argv;
-+
-+	/*
-+	 * Parse cache device
-+	 */
-+	ret = parse_cache_dev(pcache, &as, error);
-+	if (ret)
-+		return ret;
-+	/*
-+	 * Parse backing device
-+	 */
-+	ret = parse_backing_dev(pcache, &as, error);
-+	if (ret)
-+		goto out;
-+	/*
-+	 * Parse optional arguments
-+	 */
-+	ret = parse_cache_opts(pcache, &as, error);
-+	if (ret)
-+		goto out;
-+
-+	return 0;
-+out:
-+	pcache_destroy_args(pcache);
-+	return ret;
-+}
-+
-+static int dm_pcache_ctr(struct dm_target *ti, unsigned int argc, char **argv)
-+{
-+	struct mapped_device *md = ti->table->md;
-+	struct dm_pcache *pcache;
-+	int ret;
-+
-+	if (md->map) {
-+		ti->error = "Don't support table loading for live md";
-+		return -EOPNOTSUPP;
-+	}
-+
-+	/* Allocate memory for the cache structure */
-+	pcache = kzalloc(sizeof(struct dm_pcache), GFP_KERNEL);
-+	if (!pcache)
-+		return -ENOMEM;
-+
-+	pcache->task_wq = alloc_workqueue("pcache-%s-wq",  WQ_UNBOUND | WQ_MEM_RECLAIM,
-+					  0, md->name);
-+	if (!pcache->task_wq) {
-+		ret = -ENOMEM;
-+		goto free_pcache;
-+	}
-+
-+	spin_lock_init(&pcache->defered_req_list_lock);
-+	INIT_LIST_HEAD(&pcache->defered_req_list);
-+	INIT_WORK(&pcache->defered_req_work, defered_req_fn);
-+	pcache->ti = ti;
-+
-+	ret = pcache_parse_args(pcache, argc, argv, &ti->error);
-+	if (ret)
-+		goto destroy_wq;
-+
-+	ret = pcache_start(pcache, &ti->error);
-+	if (ret)
-+		goto destroy_args;
-+
-+	ti->num_flush_bios = 1;
-+	ti->flush_supported = true;
-+	ti->per_io_data_size = sizeof(struct pcache_request);
-+	ti->private = pcache;
-+	atomic_set(&pcache->state, PCACHE_STATE_RUNNING);
-+
-+	return 0;
-+destroy_args:
-+	pcache_destroy_args(pcache);
-+destroy_wq:
-+	destroy_workqueue(pcache->task_wq);
-+free_pcache:
-+	kfree(pcache);
-+
-+	return ret;
-+}
-+
-+static void defer_req_stop(struct dm_pcache *pcache)
-+{
-+	struct pcache_request *pcache_req;
-+	LIST_HEAD(tmp_list);
-+
-+	flush_work(&pcache->defered_req_work);
-+
-+	spin_lock(&pcache->defered_req_list_lock);
-+	list_splice_init(&pcache->defered_req_list, &tmp_list);
-+	spin_unlock(&pcache->defered_req_list_lock);
-+
-+	while (!list_empty(&tmp_list)) {
-+		pcache_req = list_first_entry(&tmp_list,
-+					    struct pcache_request, list_node);
-+		list_del_init(&pcache_req->list_node);
-+		pcache_req_put(pcache_req, -EIO);
-+	}
-+}
-+
-+static void dm_pcache_dtr(struct dm_target *ti)
-+{
-+	struct dm_pcache *pcache;
-+
-+	pcache = ti->private;
-+
-+	atomic_set(&pcache->state, PCACHE_STATE_STOPPING);
-+
-+	defer_req_stop(pcache);
-+	pcache_cache_stop(pcache);
-+	backing_dev_stop(pcache);
-+	cache_dev_stop(pcache);
-+
-+	pcache_destroy_args(pcache);
-+	drain_workqueue(pcache->task_wq);
-+	destroy_workqueue(pcache->task_wq);
-+
-+	kfree(pcache);
-+}
-+
-+static int dm_pcache_map_bio(struct dm_target *ti, struct bio *bio)
-+{
-+	struct pcache_request *pcache_req = dm_per_bio_data(bio, sizeof(struct pcache_request));
-+	struct dm_pcache *pcache = ti->private;
-+	int ret;
-+
-+	pcache_req->pcache = pcache;
-+	kref_init(&pcache_req->ref);
-+	pcache_req->ret = 0;
-+	pcache_req->bio = bio;
-+	pcache_req->off = (u64)bio->bi_iter.bi_sector << SECTOR_SHIFT;
-+	pcache_req->data_len = bio->bi_iter.bi_size;
-+	INIT_LIST_HEAD(&pcache_req->list_node);
-+	bio->bi_iter.bi_sector = dm_target_offset(ti, bio->bi_iter.bi_sector);
-+
-+	ret = pcache_cache_handle_req(&pcache->cache, pcache_req);
-+	if (ret == -EBUSY)
-+		defer_req(pcache_req);
-+	else
-+		pcache_req_put(pcache_req, ret);
-+
-+	return DM_MAPIO_SUBMITTED;
-+}
-+
-+static void dm_pcache_status(struct dm_target *ti, status_type_t type,
-+			     unsigned int status_flags, char *result,
-+			     unsigned int maxlen)
-+{
-+	struct dm_pcache *pcache = ti->private;
-+	struct pcache_cache_dev *cache_dev = &pcache->cache_dev;
-+	struct pcache_backing_dev *backing_dev = &pcache->backing_dev;
-+	struct pcache_cache *cache = &pcache->cache;
-+	unsigned int sz = 0;
-+
-+	switch (type) {
-+	case STATUSTYPE_INFO:
-+		DMEMIT("%x %u %u %u %u %x %u:%u %u:%u %u:%u",
-+		       cache_dev->sb_flags,
-+		       cache_dev->seg_num,
-+		       cache->n_segs,
-+		       bitmap_weight(cache->seg_map, cache->n_segs),
-+		       pcache_cache_get_gc_percent(cache),
-+		       cache->cache_info.flags,
-+		       cache->key_head.cache_seg->cache_seg_id,
-+		       cache->key_head.seg_off,
-+		       cache->dirty_tail.cache_seg->cache_seg_id,
-+		       cache->dirty_tail.seg_off,
-+		       cache->key_tail.cache_seg->cache_seg_id,
-+		       cache->key_tail.seg_off);
-+		break;
-+	case STATUSTYPE_TABLE:
-+		DMEMIT("%s %s writeback %s",
-+		       cache_dev->dm_dev->name,
-+		       backing_dev->dm_dev->name,
-+		       cache_data_crc_on(cache) ? "true" : "false");
-+		break;
-+	case STATUSTYPE_IMA:
-+		*result = '\0';
-+		break;
-+	}
-+}
-+
-+static int dm_pcache_message(struct dm_target *ti, unsigned int argc,
-+			     char **argv, char *result, unsigned int maxlen)
-+{
-+	struct dm_pcache *pcache = ti->private;
-+	unsigned long val;
-+
-+	if (argc != 2)
-+		goto err;
-+
-+	if (!strcasecmp(argv[0], "gc_percent")) {
-+		if (kstrtoul(argv[1], 10, &val))
-+			goto err;
-+
-+		return pcache_cache_set_gc_percent(&pcache->cache, val);
-+	}
-+err:
-+	return -EINVAL;
-+}
-+
-+static struct target_type dm_pcache_target = {
-+	.name		= "pcache",
-+	.version	= {0, 1, 0},
-+	.module		= THIS_MODULE,
-+	.features	= DM_TARGET_SINGLETON,
-+	.ctr		= dm_pcache_ctr,
-+	.dtr		= dm_pcache_dtr,
-+	.map		= dm_pcache_map_bio,
-+	.status		= dm_pcache_status,
-+	.message	= dm_pcache_message,
-+};
-+
-+static int __init dm_pcache_init(void)
-+{
-+	return dm_register_target(&dm_pcache_target);
-+}
-+module_init(dm_pcache_init);
-+
-+static void __exit dm_pcache_exit(void)
-+{
-+	dm_unregister_target(&dm_pcache_target);
-+}
-+module_exit(dm_pcache_exit);
-+
-+MODULE_DESCRIPTION("dm-pcache Persistent Cache for block device");
-+MODULE_AUTHOR("Dongsheng Yang <dongsheng.yang@linux.dev>");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/md/dm-pcache/dm_pcache.h b/drivers/md/dm-pcache/dm_pcache.h
-new file mode 100644
-index 000000000000..c0d7b7078640
---- /dev/null
-+++ b/drivers/md/dm-pcache/dm_pcache.h
-@@ -0,0 +1,65 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef _DM_PCACHE_H
-+#define _DM_PCACHE_H
-+#include <linux/device-mapper.h>
-+
-+#include "../dm-core.h"
-+
-+#define CACHE_DEV_TO_PCACHE(cache_dev)		(container_of(cache_dev, struct dm_pcache, cache_dev))
-+#define BACKING_DEV_TO_PCACHE(backing_dev)	(container_of(backing_dev, struct dm_pcache, backing_dev))
-+#define CACHE_TO_PCACHE(cache)			(container_of(cache, struct dm_pcache, cache))
-+
-+#define PCACHE_STATE_RUNNING			1
-+#define PCACHE_STATE_STOPPING			2
-+
-+struct pcache_cache_dev;
-+struct pcache_backing_dev;
-+struct pcache_cache;
-+struct pcache_cache_options;
-+struct dm_pcache {
-+	struct dm_target *ti;
-+	struct pcache_cache_dev cache_dev;
-+	struct pcache_backing_dev backing_dev;
-+	struct pcache_cache cache;
-+	struct pcache_cache_options opts;
-+
-+	spinlock_t			defered_req_list_lock;
-+	struct list_head		defered_req_list;
-+	struct workqueue_struct		*task_wq;
-+
-+	struct work_struct		defered_req_work;
-+
-+	atomic_t			state;
-+};
-+
-+static inline bool pcache_is_stopping(struct dm_pcache *pcache)
-+{
-+	return (atomic_read(&pcache->state) == PCACHE_STATE_STOPPING);
-+}
-+
-+#define pcache_dev_err(pcache, fmt, ...)							\
-+	pcache_err("%s " fmt, pcache->ti->table->md->name, ##__VA_ARGS__)
-+#define pcache_dev_info(pcache, fmt, ...)							\
-+	pcache_info("%s " fmt, pcache->ti->table->md->name, ##__VA_ARGS__)
-+#define pcache_dev_debug(pcache, fmt, ...)							\
-+	pcache_debug("%s " fmt, pcache->ti->table->md->name, ##__VA_ARGS__)
-+
-+struct pcache_request {
-+	struct dm_pcache	*pcache;
-+	struct bio		*bio;
-+
-+	u64			off;
-+	u32			data_len;
-+
-+	struct kref		ref;
-+	int			ret;
-+
-+	struct list_head	list_node;
-+};
-+
-+void pcache_req_get(struct pcache_request *pcache_req);
-+void pcache_req_put(struct pcache_request *pcache_req, int ret);
-+
-+void pcache_defer_reqs_kick(struct dm_pcache *pcache);
-+
-+#endif /* _DM_PCACHE_H */
--- 
-2.43.0
+On 11/06/25 13:52, Gustavo A. R. Silva wrote:
+> -Wflex-array-member-not-at-end was introduced in GCC-14, and we are
+> getting ready to enable it, globally.
+> 
+> Refactor multiple structs that contain flexible-array members in the
+> middle by replacing them with unions.
+> 
+> These changes preserve the memory layout while effectively adjusting
+> it so that the flexible-array member is always treated as the last
+> member.
+> 
+> With these changes, fix a dozen instances of the following type of
+> warning:
+> 
+> drivers/acpi/nfit/intel.c:692:35: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> ---
+> Changes in v3:
+>   - Use union instead of DEFINE_RAW_FLEX().
+> 
+> Changes in v2:
+>   - Use DEFINE_RAW_FLEX() instead of __struct_group().
+>   - Link: https://lore.kernel.org/linux-hardening/Z-QpUcxFCRByYcTA@kspp/
+> 
+> v1:
+>   - Link: https://lore.kernel.org/linux-hardening/Z618ILbAR8YAvTkd@kspp/
+> 
+>   drivers/acpi/nfit/intel.c | 132 +++++++++++++++++++++++++++++++-------
+>   1 file changed, 108 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+> index 3902759abcba..987d427ec2b6 100644
+> --- a/drivers/acpi/nfit/intel.c
+> +++ b/drivers/acpi/nfit/intel.c
+> @@ -55,9 +55,16 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+>   {
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+>   	unsigned long security_flags = 0;
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_get_security_state cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_get_security_state cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
+> @@ -120,9 +127,16 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
+>   static int intel_security_freeze(struct nvdimm *nvdimm)
+>   {
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_freeze_lock cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_freeze_lock cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
+> @@ -153,9 +167,16 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+>   	unsigned int cmd = ptype == NVDIMM_MASTER ?
+>   		NVDIMM_INTEL_SET_MASTER_PASSPHRASE :
+>   		NVDIMM_INTEL_SET_PASSPHRASE;
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_set_passphrase cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_set_passphrase cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_family = NVDIMM_FAMILY_INTEL,
+> @@ -195,9 +216,16 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+>   		const struct nvdimm_key_data *key_data)
+>   {
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_unlock_unit cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_unlock_unit cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_UNLOCK_UNIT,
+> @@ -234,9 +262,16 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+>   {
+>   	int rc;
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_disable_passphrase cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_disable_passphrase cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
+> @@ -277,9 +312,16 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+>   	unsigned int cmd = ptype == NVDIMM_MASTER ?
+>   		NVDIMM_INTEL_MASTER_SECURE_ERASE : NVDIMM_INTEL_SECURE_ERASE;
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_secure_erase cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_secure_erase cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_family = NVDIMM_FAMILY_INTEL,
+> @@ -318,9 +360,16 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+>   {
+>   	int rc;
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_query_overwrite cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_query_overwrite cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
+> @@ -354,9 +403,16 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+>   {
+>   	int rc;
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_overwrite cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_overwrite cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_OVERWRITE,
+> @@ -407,9 +463,16 @@ const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
+>   static int intel_bus_fwa_businfo(struct nvdimm_bus_descriptor *nd_desc,
+>   		struct nd_intel_bus_fw_activate_businfo *info)
+>   {
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_bus_fw_activate_businfo cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_bus_fw_activate_businfo cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO,
+> @@ -518,9 +581,16 @@ static enum nvdimm_fwa_capability intel_bus_fwa_capability(
+>   static int intel_bus_fwa_activate(struct nvdimm_bus_descriptor *nd_desc)
+>   {
+>   	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_bus_fw_activate cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_bus_fw_activate cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE,
+> @@ -582,9 +652,16 @@ const struct nvdimm_bus_fw_ops *intel_bus_fw_ops = &__intel_bus_fw_ops;
+>   static int intel_fwa_dimminfo(struct nvdimm *nvdimm,
+>   		struct nd_intel_fw_activate_dimminfo *info)
+>   {
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_fw_activate_dimminfo cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_fw_activate_dimminfo cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO,
+> @@ -688,9 +765,16 @@ static int intel_fwa_arm(struct nvdimm *nvdimm, enum nvdimm_fwa_trigger arm)
+>   {
+>   	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+>   	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
+> -	struct {
+> +	/*
+> +	 * This effectively creates a union between the flexible-array member
+> +	 * and any members after _offset_to_fam.
+> +	 */
+> +	union {
+>   		struct nd_cmd_pkg pkg;
+> -		struct nd_intel_fw_activate_arm cmd;
+> +		struct {
+> +			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
+> +			struct nd_intel_fw_activate_arm cmd;
+> +		};
+>   	} nd_cmd = {
+>   		.pkg = {
+>   			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_ARM,
 
