@@ -1,258 +1,129 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from omta36.uswest2.a.cloudfilter.net (omta36.uswest2.a.cloudfilter.net [35.89.44.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 283E5248881;
-	Wed, 25 Jun 2025 21:42:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A20525A2C3
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jun 2025 21:44:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.89.44.35
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750887741; cv=none; b=qyyCqESIEebAmUI84x2WTAsuxs4hL+oswDzziyWCTIx7CtcyLY0qV8zNmtj580SzVNfaTDnfxLI1HdyU+s3GXaJJrKa3lYXV8DipCvAlK3SABjeB2kdOxnA+25ukUfKmmX1iDjU5PKKjhFJBSZI7dzztP3UuzEhdtBTlW+RqdmM=
+	t=1750887841; cv=none; b=IrCoN6unsI2IkN86bj8q9rX+i4+akUoGmXE6SUIC7lgHUnW0ivHdaDLt+YZDP7TbAdtWVpP7idbvRH+WLIX176ZGk7zYdBxBe6I20+mQk5HbOPiR+1iv/SBUQg4irKG3J+Q9yOKZbagnuUgsG0MwLbhwxkP1oYaaZAgnhspK4Io=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750887741; c=relaxed/simple;
-	bh=pFVcSUUSzGl88Ok2Nmc7XkcXLiJtNBOYTAVGqHxHIBk=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=cUyGoSNybVjQ0MK1r1oB6nBySD6CXGUNHfTHmuZSlFxhFTUI3wzzc5RHfgfxoqdkZ1ocX7zQatrBG669y7eTWSwolHSQRBShFJHO5O8T1iT1dodSHDwyqp4KffP0lz+K0zF6ew8Gv57s5VVmf3mcyX9KM7l5RkjfqqFHa6eoKOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QWt1a8HM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750887841; c=relaxed/simple;
+	bh=5lynVMriVClgMthsFZJ0Tvkpa1tGB9Lp6lL6aLGaCBE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HO/fnWeqCW4652FrHHolRUZFWRGMAxAyvzXEL5mgtHXn4hFgNKfG1hVMYRcy4l1GHRXbbqNqA2N37VqykzI4akbRAhpivRhgIxLoQuVsZYc+LEe1GUPAS2f/6qB9TMhmIyjQUYiJqR4QHEogfNwY3FSAzkjXUY7Umb/4XpEAPSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=embeddedor.com; spf=pass smtp.mailfrom=embeddedor.com; dkim=pass (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b=WXvUjmL4; arc=none smtp.client-ip=35.89.44.35
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=embeddedor.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=embeddedor.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QWt1a8HM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E701C4CEEA;
-	Wed, 25 Jun 2025 21:42:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750887740;
-	bh=pFVcSUUSzGl88Ok2Nmc7XkcXLiJtNBOYTAVGqHxHIBk=;
-	h=Date:From:To:Cc:Subject:From;
-	b=QWt1a8HMUw5HOtvhpEgXj+EP5bDlat1dDWxwbhMBLfpU8wDOscNwk5SkrWLiLmU29
-	 fmqn+BfZTq5/93Hqri57wzyEutuuKx+9bvmAXBe2BED77NvgYbWz3RuGcqM6j96Rny
-	 vFf6aBo6ZnzcH7nSWXOPlguE1iuJNdTOyIKn97S2wInBty4+VdqUAgH6cRp348AP5a
-	 VT509nbcS8cpGcNozPcpVEU2Xq8XtSfGYqUw1UzPI6BkbcpiRRATBjztHuZyJRpXxu
-	 m3Nb29NfrJoQ0BNjX5QmNGxGRTwci47uO0lxGNzsbZsNp7lRdTr/1mQDiF/FxmnEoh
-	 vRGiUc/klXdlg==
-Date: Wed, 25 Jun 2025 15:42:16 -0600
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To: Kees Cook <kees@kernel.org>, Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	linux-hardening@vger.kernel.org
-Subject: [PATCH v4][for-next/hardening] acpi: nfit: intel: avoid multiple
- -Wflex-array-member-not-at-end warnings
-Message-ID: <aFxtOLs6Yv_uzgt4@kspp>
+	dkim=pass (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="WXvUjmL4"
+Received: from eig-obgw-6001a.ext.cloudfilter.net ([10.0.30.140])
+	by cmsmtp with ESMTPS
+	id UVDyuhk94METlUXuLux6Si; Wed, 25 Jun 2025 21:43:53 +0000
+Received: from gator4166.hostgator.com ([108.167.133.22])
+	by cmsmtp with ESMTPS
+	id UXuKuWQuhgFaXUXuKuPSOX; Wed, 25 Jun 2025 21:43:53 +0000
+X-Authority-Analysis: v=2.4 cv=DbzcqetW c=1 sm=1 tr=0 ts=685c6d99
+ a=1YbLdUo/zbTtOZ3uB5T3HA==:117 a=y7jUFFJD1EYPe7d4fIfORw==:17
+ a=IkcTkHD0fZMA:10 a=6IFa9wvqVegA:10 a=7T7KSl7uo7wA:10 a=QyXUC8HyAAAA:8
+ a=h90DJapn4poTkUJIt3kA:9 a=QEXdDO2ut3YA:10 a=xYX6OU9JNrHFPr8prv8u:22
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=WSgqlLPFusC6Fal/vnl5EKpDH7EySq/W8ghCEckfU5w=; b=WXvUjmL4YQUvHcCnKTe5kb8SCL
+	rnsv9zd6wvXpCP6BdUJEdEbS31FOYKxFzF5vK8xh1+91vJAqPlhKhBaWKsraEtwzk01P9PrbHxwcq
+	I/v7ZOHYGKSTvVY/M84F+sJ4bP7RfEjL4yLqdGRy+lQeah6WgGWd1L7sQ9J3E43eBzflxqbqqvT7k
+	tiAPJXW+zpRgDpS3hwJgcwJjIWx8UYfPrl/b+sEBSLpn7qDUpZNXng7jeq2w5mmOxnemOTgLyJv4x
+	zMvUMqT8j0WOX59MfgQq4dAKM5geL3mQrqWmRTk+LecokoXvh1oy6OAU35KAWqAx570X5V4+YQCIm
+	YB8ybK4A==;
+Received: from [177.238.16.137] (port=49324 helo=[192.168.0.27])
+	by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.1)
+	(envelope-from <gustavo@embeddedor.com>)
+	id 1uUXuJ-00000000LhW-3HeQ;
+	Wed, 25 Jun 2025 16:43:51 -0500
+Message-ID: <ade0c2e6-0698-4829-8c7e-cec3c486aac7@embeddedor.com>
+Date: Wed, 25 Jun 2025 15:43:41 -0600
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3][next] acpi: nfit: intel: avoid multiple
+ -Wflex-array-member-not-at-end warnings
+To: dan.j.williams@intel.com, Kees Cook <kees@kernel.org>,
+ "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
+ <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+References: <aEneid7gdAZr1_kR@kspp> <202506250950.31C8A58E@keescook>
+ <e0adad17-5d4f-4309-9975-81971597da65@embeddedor.com>
+ <685c5d0062f2b_1608bd10051@dwillia2-xfh.jf.intel.com.notmuch>
+ <685c653a6fe42_1608bd100d0@dwillia2-xfh.jf.intel.com.notmuch>
+Content-Language: en-US
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+In-Reply-To: <685c653a6fe42_1608bd100d0@dwillia2-xfh.jf.intel.com.notmuch>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
+X-AntiAbuse: Original Domain - lists.linux.dev
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - embeddedor.com
+X-BWhitelist: no
+X-Source-IP: 177.238.16.137
+X-Source-L: No
+X-Exim-ID: 1uUXuJ-00000000LhW-3HeQ
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+X-Source-Sender: ([192.168.0.27]) [177.238.16.137]:49324
+X-Source-Auth: gustavo@embeddedor.com
+X-Email-Count: 4
+X-Org: HG=hgshared;ORG=hostgator;
+X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
+X-Local-Domain: yes
+X-CMAE-Envelope: MS4xfEIMZDSg5iiuu2iW3dWA/ssLGQwL8zXWR26exzCHEJKRqpch6Bym/oJBdglqkf4jVLA/Pv3sophzkHSCyzjqUQ89ouii0ZYqobzL5xhci8GToYywsmvP
+ axDdpUU85ZCnw5fO8TmxvIA9Ja2rGJnIWw4PyM8YeLNqlC8GAbOpl/KmnVkOGjB66/fJRk+l32RENANwNP/Xlbpyy8PrmxZGemY=
 
--Wflex-array-member-not-at-end was introduced in GCC-14, and we are
-getting ready to enable it, globally.
 
-Use the new TRAILING_OVERLAP() helper to fix a dozen instances of
-the following type of warning:
 
-drivers/acpi/nfit/intel.c:692:35: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
+On 25/06/25 15:08, dan.j.williams@intel.com wrote:
+> dan.j.williams@ wrote:
+>> Gustavo A. R. Silva wrote:
+>> [..]
+>>>> I think it would be a pretty small and direct replacement:
+>>>>
+>>>> 	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
+>>>> 			 struct nd_intel_get_security_state cmd;
+>>>> 	) nd_cmd = {
+>>>> 		...
+>>>
+>>> Yes, this works. Hopefully, maintainers will comment on this and let us
+>>> know what they prefer. :)
+>>
+>> Hey Gustavo, apologies for the latency here. I think TRAILING_OVERLAP()
+>> looks lovely for this if only because I can read that and have an idea
+>> what it means vs wondering what this _offset_to_fam is about and needing
+>> to read the comment.
+>>
+>> If you can get me that patch on top of the TRAILING_OVERLAP() branch I
+>> can test it out and ack it to let it do in through the KSPP tree.
+> 
+> Just to move this along, I gave this conversion a try and all looks good
+> here. So feel free to fold this in and add:
+> 
+> Acked-by: Dan Williams <dan.j.williams@intel.com>
+> Tested-by: Dan Williams <dan.j.williams@intel.com>
+> 
+> ...and take it through the KSPP tree with the TRAILING_OVERLAP() merge.
 
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Tested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
----
-This patch should go through:
-https://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git/ (for-next/hardening)
+Thank you, Dan! :)
 
-Changes in v4:
- - Use the new TRAILING_OVERLAP() helper.
-
-Changes in v3:
- - Use union instead of DEFINE_RAW_FLEX().
- - Link: https://lore.kernel.org/linux-hardening/aEneid7gdAZr1_kR@kspp/
-
-Changes in v2:
- - Use DEFINE_RAW_FLEX() instead of __struct_group().
- - Link: https://lore.kernel.org/linux-hardening/Z-QpUcxFCRByYcTA@kspp/ 
-
-v1:
- - Link: https://lore.kernel.org/linux-hardening/Z618ILbAR8YAvTkd@kspp/
-
- drivers/acpi/nfit/intel.c | 84 +++++++++++++++++----------------------
- 1 file changed, 36 insertions(+), 48 deletions(-)
-
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 3902759abcba..d0b72e906428 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -55,10 +55,9 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 	unsigned long security_flags = 0;
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_get_security_state cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_get_security_state cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -120,10 +119,9 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
- static int intel_security_freeze(struct nvdimm *nvdimm)
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_freeze_lock cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_freeze_lock cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -153,10 +151,9 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
- 	unsigned int cmd = ptype == NVDIMM_MASTER ?
- 		NVDIMM_INTEL_SET_MASTER_PASSPHRASE :
- 		NVDIMM_INTEL_SET_PASSPHRASE;
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_set_passphrase cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_set_passphrase cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_family = NVDIMM_FAMILY_INTEL,
- 			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
-@@ -195,10 +192,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key_data)
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_unlock_unit cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_unlock_unit cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_UNLOCK_UNIT,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -234,10 +230,9 @@ static int intel_security_disable(struct nvdimm *nvdimm,
- {
- 	int rc;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_disable_passphrase cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_disable_passphrase cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -277,10 +272,9 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 	unsigned int cmd = ptype == NVDIMM_MASTER ?
- 		NVDIMM_INTEL_MASTER_SECURE_ERASE : NVDIMM_INTEL_SECURE_ERASE;
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_secure_erase cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_secure_erase cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_family = NVDIMM_FAMILY_INTEL,
- 			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
-@@ -318,10 +312,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- {
- 	int rc;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_query_overwrite cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_query_overwrite cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -354,10 +347,9 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- {
- 	int rc;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_overwrite cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_overwrite cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_OVERWRITE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -407,10 +399,9 @@ const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
- static int intel_bus_fwa_businfo(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nd_intel_bus_fw_activate_businfo *info)
- {
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_bus_fw_activate_businfo cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_bus_fw_activate_businfo cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO,
- 			.nd_family = NVDIMM_BUS_FAMILY_INTEL,
-@@ -518,10 +509,9 @@ static enum nvdimm_fwa_capability intel_bus_fwa_capability(
- static int intel_bus_fwa_activate(struct nvdimm_bus_descriptor *nd_desc)
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_bus_fw_activate cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_bus_fw_activate cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE,
- 			.nd_family = NVDIMM_BUS_FAMILY_INTEL,
-@@ -582,10 +572,9 @@ const struct nvdimm_bus_fw_ops *intel_bus_fw_ops = &__intel_bus_fw_ops;
- static int intel_fwa_dimminfo(struct nvdimm *nvdimm,
- 		struct nd_intel_fw_activate_dimminfo *info)
- {
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_fw_activate_dimminfo cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_fw_activate_dimminfo cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -688,10 +677,9 @@ static int intel_fwa_arm(struct nvdimm *nvdimm, enum nvdimm_fwa_trigger arm)
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
--	struct {
--		struct nd_cmd_pkg pkg;
--		struct nd_intel_fw_activate_arm cmd;
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_fw_activate_arm cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_ARM,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
--- 
-2.43.0
-
+-Gustavo
