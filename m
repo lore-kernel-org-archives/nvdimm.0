@@ -1,304 +1,252 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3CDD01E32D7
-	for <nvdimm@lists.linux.dev>; Wed, 25 Jun 2025 06:08:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750831719; cv=none; b=Ac+VG8JpXLQ/dxOltqmu9wV2GFIjdf0YqT8yCwuUau4hb1wNl3E8rGqX4o3CmarXGqc29M/8UmfwBdRPmiafj0d1Ufmi3zXdHq8NEAlQUnfp1kkTQE0iIHyREOzbt/YZF+yIVdGCtew1+LPUu1o49mFovQ1DvLNHBbFqinGfgZM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750831719; c=relaxed/simple;
-	bh=bLi4ynvV/aqi+1KZSi/tN7G9FBtj+QNghtBZnlKhZlc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CiJDaMZhldqTYRsem+34rL2ImVIsHG3DQzTtAQUPE2tBoRAD8P+foVK+hXVq5Nb1KqBr8NLv1GoQCpiruypBNFG2HzPGiaF9+5eNHSaX4sNwCrx+vHqGbrJo7nAYr3IjepgeMTmLpL5QdONERCd4fpFTIE9dLKIo/Cf+PqZg6qE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6B278106F;
-	Tue, 24 Jun 2025 23:08:19 -0700 (PDT)
-Received: from [10.164.146.16] (J09HK2D2RT.blr.arm.com [10.164.146.16])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 448623F63F;
-	Tue, 24 Jun 2025 23:08:18 -0700 (PDT)
-Message-ID: <52e6b931-3371-4adc-a680-add7413ab71c@arm.com>
-Date: Wed, 25 Jun 2025 11:38:15 +0530
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7511F8937
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jun 2025 06:49:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1750834162; cv=fail; b=SNcMmEPBNOzrZJG/pn6tHaHTlK26UhrY/WK0THh593tOoKxfG18JpiZdj9vrjE+V3M2nsy9JnoLgPRAeFNoTKm+UnY1eYQS6yz4B9HPmnx7sTjTmQsvmvVz0WaOI7U60JrjBg+vs5G1Nm6dtdZNfMkXgQkjR8UfHAbxsgbn9xvI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1750834162; c=relaxed/simple;
+	bh=aO3T4LFnY9oVX+2Pjmrz0kLUwHgxJvI3uc8hyy5ylC4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=TYQAFeceMsTMSdoNcms6J6Ow+WFLN3hq1Y3LUqd8N0qLabp1rVY0/w9jznfE7xoGZy6+ObMTeZfxsmm686cvVbrrg30J6zQg45n1EvxsYkWcVypq+KTEMPCy217fK6/8Ilu855OeiohAKiWyfRkshS5UZr6wx5YFhS0gVqGVmxU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=aOKlrlp1; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=qnntC9DW; arc=fail smtp.client-ip=205.220.177.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="aOKlrlp1";
+	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="qnntC9DW"
+Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 55OMieMn027065;
+	Wed, 25 Jun 2025 06:47:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=corp-2025-04-25; bh=aO3T4LFnY9oVX+2Pjm
+	rz0kLUwHgxJvI3uc8hyy5ylC4=; b=aOKlrlp1hepfPPYeXraU5a12tCoztM0Eu+
+	jemxjOCYXCF38nG2SHglf6gWKBg2vugB/0XOdxobjBx58hbBKaxCsro0BWsDkIDU
+	tv7wJtMaQkyvJ68rribb9/8FFFvXD0AEZlvRyYm5AJsLeANjbJBT2MZ25A/ZNKYN
+	wPYUolmuJ730rV5G6K5DhbS3TL33vrwFyb9pnPVik62xtvcMG8CsfeVb6zkreWMV
+	MZ1iysy/ZuEmdrIKH+q/3MkJt5Fa5Cty642Y6ZQgW3JYHLM0m6imjQ1uqbU3Oly8
+	8wndsHe2dRl3TH7dvNTAJlGIOuudcnIHntjoRNUjUyccTjh3MitA==
+Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 47egt1dhm2-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 25 Jun 2025 06:47:33 +0000 (GMT)
+Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 55P5P5UC038982;
+	Wed, 25 Jun 2025 06:47:32 GMT
+Received: from nam04-bn8-obe.outbound.protection.outlook.com (mail-bn8nam04on2078.outbound.protection.outlook.com [40.107.100.78])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 47ehr5n3yu-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 25 Jun 2025 06:47:32 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=O5zfchnunT7E6DKCcPUhG7yaWOPC594VazDeJAbrVYq5NaDKB7D1cgQMBknuvnH+INvZaKDWzjoUPQe2T9n5COtwSWwnwZTG0xAPPvX8m0vmnLh3Fz8mlbysM0W9/Gz+9/rFyzsCGEXSzHbm+eJedrMLgkk78b7O5AIH+55+sNsJZHiNSCA7tiRA5fk3myEn9gU39o6ATv41khOd03xoB+EVgNQOiTcJ3ZNeEVHORfaLdj8TWpCLabu4wbTlT9/S9YHEB6WCyjwhUm5PAPtcdmEcwSZfH5rKbsJHaW27XyBRG1rH7WJmDAiZv3hnvlMrO05UCqgjHU2Lviw2AxWZnA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=aO3T4LFnY9oVX+2Pjmrz0kLUwHgxJvI3uc8hyy5ylC4=;
+ b=DuHIguDee/fuy/d0VYAjW/ZfAHZyz4L0xGth+n2TEoDW2Km9z0BxBMC5Rkad3I57tD+PoJj2UD651e1kTfVWUGY7haE9FQQJxoJR7ZcZbGU0f7A3g+F2U9JvO8ioT6ZmGv9CwDHj4PfAGJ7cplHapcd2G5WDQN3JGRwQFcXBs8gpOCJjB9qivfn8LOC0IPL3tf8zO/r16G3C1PySd3A39h1tONjzxeMcgqu0+5Z7zwdkyTJf4P6BijClg/6Q/8RcKBt75PkWwmLMnCF28RbZogHN2e4khDGk1qt0AcMtphoUP45ax+gNswLVZol2A6Th318eYfKtXMTlL75TLpd6UA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aO3T4LFnY9oVX+2Pjmrz0kLUwHgxJvI3uc8hyy5ylC4=;
+ b=qnntC9DWUqszGULw5PETUYYZY8v/setXfsRbSw18FZtw+NbGQr28r1HjIuJh2IBzhfXudotSbgMatoBG4qmLE6Zv4105f2xh6VzZzRemZdibg7zadteK9gyTl32WC5Kq9nSCrewADbABcQFbiUMjVAIIT5Q3yAoFYcnjgUB2814=
+Received: from DM4PR10MB8218.namprd10.prod.outlook.com (2603:10b6:8:1cc::16)
+ by MW4PR10MB6559.namprd10.prod.outlook.com (2603:10b6:303:228::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8835.19; Wed, 25 Jun
+ 2025 06:47:28 +0000
+Received: from DM4PR10MB8218.namprd10.prod.outlook.com
+ ([fe80::2650:55cf:2816:5f2]) by DM4PR10MB8218.namprd10.prod.outlook.com
+ ([fe80::2650:55cf:2816:5f2%6]) with mapi id 15.20.8857.026; Wed, 25 Jun 2025
+ 06:47:28 +0000
+Date: Wed, 25 Jun 2025 07:47:23 +0100
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+To: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Madhavan Srinivasan <maddy@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>,
+        Jarkko Sakkinen <jarkko@kernel.org>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+        Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+        Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
+        David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+        Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+        Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+        Xu Xin <xu.xin16@zte.com.cn>,
+        Chengming Zhou <chengming.zhou@linux.dev>,
+        Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
+        Mike Rapoport <rppt@kernel.org>,
+        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+        Rik van Riel <riel@surriel.com>, Harry Yoo <harry.yoo@oracle.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+        Muchun Song <muchun.song@linux.dev>,
+        Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>,
+        Pedro Falcato <pfalcato@suse.de>, Johannes Weiner <hannes@cmpxchg.org>,
+        Qi Zheng <zhengqi.arch@bytedance.com>,
+        Shakeel Butt <shakeel.butt@linux.dev>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+        nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/3] use vm_flags_t consistently
+Message-ID: <d4286364-b138-4219-b022-a9f8f49305a3@lucifer.local>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <46432a2e-1a9d-44f7-aa09-689d6e2a022a@arm.com>
+ <20250624215050.83229f93cee5994f580720e6@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250624215050.83229f93cee5994f580720e6@linux-foundation.org>
+X-ClientProxiedBy: LO4P123CA0025.GBRP123.PROD.OUTLOOK.COM
+ (2603:10a6:600:151::12) To DM4PR10MB8218.namprd10.prod.outlook.com
+ (2603:10b6:8:1cc::16)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/3] mm: update architecture and driver code to use
- vm_flags_t
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- Andrew Morton <akpm@linux-foundation.org>
-Cc: Russell King <linux@armlinux.org.uk>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- "David S . Miller" <davem@davemloft.net>,
- Andreas Larsson <andreas@gaisler.com>, Jarkko Sakkinen <jarkko@kernel.org>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>,
- Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
- David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>,
- Baolin Wang <baolin.wang@linux.alibaba.com>,
- "Liam R . Howlett" <Liam.Howlett@oracle.com>, Nico Pache
- <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
- Xu Xin <xu.xin16@zte.com.cn>, Chengming Zhou <chengming.zhou@linux.dev>,
- Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
- Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
- Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
- Harry Yoo <harry.yoo@oracle.com>, Dan Williams <dan.j.williams@intel.com>,
- Matthew Wilcox <willy@infradead.org>, Steven Rostedt <rostedt@goodmis.org>,
- Masami Hiramatsu <mhiramat@kernel.org>,
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
- Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
- Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
- Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <zhengqi.arch@bytedance.com>,
- Shakeel Butt <shakeel.butt@linux.dev>, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- kvm@vger.kernel.org, sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
- linux-trace-kernel@vger.kernel.org
-References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
- <b6eb1894abc5555ece80bb08af5c022ef780c8bc.1750274467.git.lorenzo.stoakes@oracle.com>
-Content-Language: en-US
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-In-Reply-To: <b6eb1894abc5555ece80bb08af5c022ef780c8bc.1750274467.git.lorenzo.stoakes@oracle.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM4PR10MB8218:EE_|MW4PR10MB6559:EE_
+X-MS-Office365-Filtering-Correlation-Id: fcee87cf-6aa6-47d1-b2c1-08ddb3b42709
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|1800799024|366016|7053199007;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?86Cq6bc3VEpF9CDvGhMxdzZ45el61fvKn4h47CzvQtfSaBR0liI29ZCqslJi?=
+ =?us-ascii?Q?WnS0EdeCMUyYj9TmukDcJqTYR2J6Ltd3wx69/9BRBE76MMj9wzE+G0rAj3CL?=
+ =?us-ascii?Q?rLBGG5bYVnn5Yb766QEGISTvqOFqFEikQgbGZM74u4O47DoO8UYzd58607xz?=
+ =?us-ascii?Q?kjzWzuL+XCdLl8uC3o3lQzcD3fFCmnBC1c8+M8Mbg2PV5A3nogewT4rlmj1W?=
+ =?us-ascii?Q?snRKBygoWrU7HVJ9CoGNR+vMSlYpKwkn/51ju+izDRGa48s2TXukJ3AIt/5h?=
+ =?us-ascii?Q?Fe2Wh7jAONYzzNfE6Ba6uy7Dpe7yQNfINEIzI++dtQmBphefxeyPoo0SaYER?=
+ =?us-ascii?Q?SzTZsU7Cuyh5vrbzbvpQVHZM80YowTUC5tPDEnOPAA7jwTp7z685ImM3BfL/?=
+ =?us-ascii?Q?bU+CG+cFs2RVH/y6BcVw7LNzltwaVtmkbj2QiBR2nCCHmhjT9vk6h9rp+cdN?=
+ =?us-ascii?Q?G8eGSJVd+GTrx1AdFPFsGOuuWBb4jSVqOgfUwgpJ9Mrb3joxJdSoQ3WlxX6g?=
+ =?us-ascii?Q?nR8r5f0yQ2SCEeWklLyTKB8n3qFaJqmltsDGStd3HFvvaEht59vTxpMmxFjs?=
+ =?us-ascii?Q?5omK2OTR7eZPdyL3PX3G86naQDEPcIJWKpyHe2vAwVMQlAXTDu8UK9YkqSfd?=
+ =?us-ascii?Q?pntEcQ+6zTu44WeaU9ajkcIslGyiLGfFYL+13mKtAxhiAnxGI+GUAnnBONBc?=
+ =?us-ascii?Q?IvqAcnVn4x+QByXZaBggO4DLC5c8PWl41o6ceFC/fMP4o+LJTAiRbRyPAcbs?=
+ =?us-ascii?Q?AC0knNDWr1WO6FUl7veWZ2bvT31QffQfTZfJS1YYvvSGGvtfxCDlgCNfvNgs?=
+ =?us-ascii?Q?e5vXkyfJeM4V5GKnyULT+CgrpGvAW/u6oIHcg2TdWfPwbf9Z5KYHj7Woon1x?=
+ =?us-ascii?Q?wCBl0ICkjNAYannXVzMX3MaOFRABEFILSswnddF6whRw0qVO2kHsGfM/HRIA?=
+ =?us-ascii?Q?lfP2KKCIXi9Z7fK2aR841cvPqahX/HKQ/niBcQVnnPZhvzA1cAs24LnP6pFp?=
+ =?us-ascii?Q?OIsdQvD5CE5FRt8a7LLORwscNk+50dTZ0znVUCc6rKcoqfK7lUi/q6aSPxER?=
+ =?us-ascii?Q?X5hRSsBr7EeXUBdN/gUPaFWTSMwzwr4GWD4Sn8DVGkaIejvvpV3f7tU90Rh/?=
+ =?us-ascii?Q?PpdCmFKM9TyQjG+oXkYsULCXZfs3Wrb9dfgGCuPfdofWRsOI1ibVA7vuKx4C?=
+ =?us-ascii?Q?7SJA2G2HR+fIWeMcSOCtfdSJrxDLPTEdChwb/AAbZzltFjYRNQCj7o9SPati?=
+ =?us-ascii?Q?GgXJ2Fc0P++jRcT7fqoOxM/lAmGHw1m9uERyouwgHaSsdaagOR2hVrTmK7cH?=
+ =?us-ascii?Q?AUw3KDqSMKvNehNSJijWX0PwksC+ErwMsY+teGmnSObL+AG37uUPoZN4xRsJ?=
+ =?us-ascii?Q?CRr223C+3iO5e0qpE/Z907C+iBIuJMI4z5b4I8Z69pw2MhxbxdxWtcqWEefT?=
+ =?us-ascii?Q?t5ONEdk06Jw=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR10MB8218.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(366016)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?mXDfwIQTFvjHjCKqEHGBbpweWE5tGqTIfKW+4FgiPuLNz6ROaoNhH2IaSTEI?=
+ =?us-ascii?Q?VY0A3v8N5o3sdujvmCppvUXyphOWzcaBQ8LbG5zXEjyEw1cQs87WaCkbYHRc?=
+ =?us-ascii?Q?eqQUR5dVC2LgIDIfa8CQTIMT4bIvRBDyfg182jLZGmcsIZTAHCLOr3mFho7n?=
+ =?us-ascii?Q?ouZ1/iQy0cP2w0I7LwUXh9XF78HVEfyNLy2vQP/EhZtgcN/lB+9q1lCE50g0?=
+ =?us-ascii?Q?DgXrwnSDzm3FK7sDsPPZtTzYLOQyY8VbnmM0yt6jZAetU+Yl2EJzIBqaHdrc?=
+ =?us-ascii?Q?JVKaE+YkQh0PDBc/puS7GYAQo30xgF0OR2cSPCUf4jaUEoLZkPIVoPRBcrTG?=
+ =?us-ascii?Q?KLvgc9tFAngIl8KE7KXjR9Wc4zibFyErSJZIgf845W+RthQgtSJgZYjLZ+/3?=
+ =?us-ascii?Q?TzwQPOjouxsV7F4GjxOGVq/e3fY8QXT5L9JrV9ZeGAEeaz3jjWpsLepEdocN?=
+ =?us-ascii?Q?6eruWb5GQfazfc1kYhRe6nYiIyReVSLoYH2+UzMDUeoSgGKhwF2S31zQgx1M?=
+ =?us-ascii?Q?IqgvtKCHfa4mnU8/CiBqDnZDSo2ASSTfKd1mCnbnoqMndgC9ClCVVt4NkqG8?=
+ =?us-ascii?Q?ys1hScBqpDGn/yaVZPL8pWLB8zmKjp61fr/1Q4QnGP2pyUZOPGfJBNn/BUX2?=
+ =?us-ascii?Q?MvNAeUiifyEs1ajyEVtYkSiKzu5Z2RoZys1gcOfoEXRilj9joW+HPL8pR5Od?=
+ =?us-ascii?Q?hTykV/Gato6sR1l8eITg5sgYmsxaNaZs8NN5GCXvjG/MszNxKK1Kzykd5AKR?=
+ =?us-ascii?Q?ltN3KBXr3LRsIB4YMhqW7iDyEw4/PrpkF3ut9bv6FpetdOIzu3FesLKkxreu?=
+ =?us-ascii?Q?N1Kh1GpU1j9zMXYVHPTS6iYxMjdVrATkmHNLvSNvNXVCi6adPyluhL37aiRe?=
+ =?us-ascii?Q?LPh0/WbWLseVoeZhGWDy7m2uaTNosNz8rLl5i3rp6keVqPyH717xoC36pC/f?=
+ =?us-ascii?Q?OyKqVInHWOx/HQQwNKEd+iQAwT3UGSSjMoDkwqPRMSHTAQHub5nssgAY9PFC?=
+ =?us-ascii?Q?UMLISn4aOjmqoHmNvw1Ny4pCk5xDREVkMh3GMU0bfE5POwVW/KJGPgyO/en/?=
+ =?us-ascii?Q?jf19t8dy3c7pkWyraCnXSBfNU6QN1g/Blic78l9CqHIuBc82d7TOnppLJqD4?=
+ =?us-ascii?Q?T3jVAoR975yD9slbFHYy38ajI6r9XY99bBmJTw8s46+pyhbmx8YFPW7gzznh?=
+ =?us-ascii?Q?KXtEKpxToebRgxT3BbDqJ88ijBUTy9HDSng7P/OrVePFGVTMz5S5sihtW9Wr?=
+ =?us-ascii?Q?HWddtkqvLrjpfbfPEYnn3OIjHnqswlAKPJlhp79BjS05hA7OvPZEYXSpsjT+?=
+ =?us-ascii?Q?4MmZ8Vv4gl3wI2mpBl5++X4DUilUOWokKWzBo01Q/f9p8uQ2vodxcWaARo13?=
+ =?us-ascii?Q?xpte/TfYt7Kmv3B/D7WBp4HQsMtC4O9jrPkApsDq7FYVta081DSq/V8+fbkS?=
+ =?us-ascii?Q?H5RMfIwwZKzkNULdwVJIXIPnMA2JH1k37j7Eaimbl7UuecHUCBQRXqwVGkEv?=
+ =?us-ascii?Q?dgP27hzpfKzWLpoZYIMIV4sBPvuFS8viIMGX7YJmO/hNbr8/StUw3tyjLIns?=
+ =?us-ascii?Q?zCazIgucdZZKYu19cvnfjPc5bGkil5To0dLS8G/UnmPPSXvR6fgBquvzhJnM?=
+ =?us-ascii?Q?TA=3D=3D?=
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+	1hIZGFSuThG9eYxqK/ITd5jfBu9N0/YoDs9YCl8CFQeQFk/ynKoX1bW/4mjxZHGT5bTtn2BafMeyVKTf3bF/9koSEUp3IWJF6iMHVjVxqf9kcfYSBKYL5EKtyXfVVz0urOzXGCc65aIAErnaDt3x5jiYm4OXJgbliH40krIBPld/Kwa8rmQRr09zYwRqW/aM9sKQ5kb4opE8PS0kzzDlrzSnYwTahfJym9vCcpNyktTWgoMEcCq7z2vetlYJXTakZUSi8oXAic3OKbSDzWq3U4Fp6ajzJzpu0XMDbZ3ZIxfYo0mMG0lr7P7yzFaGPLoMVQk5hGt8HfiQWpYWX3ghrEAttyPVavSU665WvPUbSMZ5s+8rnvVsxJjt9y0bDXBQkxqRmS/OEf4kIMEC8E2d1dinRBiwNdSLQ3uuJIxxATtIlnHLOLcmFKIrKo4W2+3w3/XqkeXGiFgOluFtWLouNOla0givuXsucuiPGzdvJ0Hsv3dzzxKWixUGysOjRvHbtHEGICIqwK2ReZ7WVAumIS038IwyC8Ktub2jkGFWbPV75iEM4VYHMSKm2I5o2ZTLHwKZpevMrWhufz62ESMP4LikMpqH15aXZQ15Y9Jyg0s=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: fcee87cf-6aa6-47d1-b2c1-08ddb3b42709
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR10MB8218.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jun 2025 06:47:28.7737
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 9AHmbbjKu+rWodn04r2Er/sbC8H8T82qjUJhJ22zaqg66lxB7X44qU6yiayTbZApRZXk+tpknW9QA1LVXV+6Koebl7dKOdV9p2RA135fPlw=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR10MB6559
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
+ definitions=2025-06-25_01,2025-06-23_07,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 bulkscore=0 mlxscore=0
+ adultscore=0 mlxlogscore=860 suspectscore=0 malwarescore=0 phishscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2505160000
+ definitions=main-2506250048
+X-Proofpoint-GUID: oLr2_F-Tal5gz-R9VDd0opPybo2e-_Du
+X-Proofpoint-ORIG-GUID: oLr2_F-Tal5gz-R9VDd0opPybo2e-_Du
+X-Authority-Analysis: v=2.4 cv=cpebk04i c=1 sm=1 tr=0 ts=685b9b85 b=1 cx=c_pps a=zPCbziy225d3KhSqZt3L1A==:117 a=zPCbziy225d3KhSqZt3L1A==:17 a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=wKuvFiaSGQ0qltdbU6+NXLB8nM8=:19
+ a=Ol13hO9ccFRV9qXi2t6ftBPywas=:19 a=xqWC_Br6kY4A:10 a=kj9zAlcOel0A:10 a=6IFa9wvqVegA:10 a=GoEa3M9JfhUA:10 a=7CQSdrXTAAAA:8 a=4-0xnxOgkHFIApZ0aV4A:9 a=CjuIK1q_8ugA:10 a=zZCYzV9kfG8A:10 a=a-qgeE7W1pNrGK8U0ZQC:22 cc=ntf awl=host:13206
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNjI1MDA0OSBTYWx0ZWRfX1yJt/Fy+O7qP 92BiULAB9HPhCTlDYkpQo3Pcr5F85wm5ZkvVtz9dzWQ1zVdH1FrdzBxbusSds+rKOpBFoSZGpa8 SQceJLYugZcSqGSZVTMe5KSRT2wliXCvMg4ex2rAhTV4f1x9foVN92puhNDFD6yoMxNN6p5Olw4
+ J98fVOBoJB99w7YazvCZjI1gU9XkNwn+QJsgHz1SdxKSGIMdlrcfNabsX6ufnRz42ga1HT31LIj RfehLD8iPDszu/sxNfgF4j1n8YdwhJtlRT0u2jIrmA7TN2LmScJBQ42BS1brcR1N1RfBF1ATvoE NRoP4xXAwNhpTiAGZIpo+69/KlJ/02mdglF+tyfdBkX4ZlErHsQoiEbHyQVuXGRbgADAEKqGfH4
+ gGpb/eoWikeAYaPpFtKy0+Lv/sOMO/rhC35eJ3HTQs8HQ/7OABnBTWCxldQSEE4DklUs+6Ao
 
+On Tue, Jun 24, 2025 at 09:50:50PM -0700, Andrew Morton wrote:
+> On Wed, 25 Jun 2025 08:25:35 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
+>
+> > ust wondering which tree-branch this series applies ? Tried all the usual
+> > ones but could not apply the series cleanly.
+> >
+> > v6.16-rc3
+> > next-20250624
+> > mm-stable
+> > mm-unstable
+>
+> It's now in mm-unstable if that helps.
 
+Thanks Andrew!
 
-On 19/06/25 1:12 AM, Lorenzo Stoakes wrote:
-> In future we intend to change the vm_flags_t type, so it isn't correct for
-> architecture and driver code to assume it is unsigned long. Correct this
-> assumption across the board.
-> 
-> Overall, this patch does not introduce any functional change.
-> 
-> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-> ---
->  arch/arm/mm/fault.c                |  2 +-
->  arch/arm64/include/asm/mman.h      | 10 +++++-----
->  arch/arm64/mm/fault.c              |  2 +-
->  arch/arm64/mm/mmu.c                |  2 +-
->  arch/powerpc/include/asm/mman.h    |  2 +-
->  arch/powerpc/include/asm/pkeys.h   |  4 ++--
->  arch/powerpc/kvm/book3s_hv_uvmem.c |  2 +-
->  arch/sparc/include/asm/mman.h      |  4 ++--
->  arch/x86/kernel/cpu/sgx/encl.c     |  8 ++++----
->  arch/x86/kernel/cpu/sgx/encl.h     |  2 +-
->  tools/testing/vma/vma_internal.h   |  2 +-
->  11 files changed, 20 insertions(+), 20 deletions(-)
-> 
-> diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
-> index ab01b51de559..46169fe42c61 100644
-> --- a/arch/arm/mm/fault.c
-> +++ b/arch/arm/mm/fault.c
-> @@ -268,7 +268,7 @@ do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
->  	int sig, code;
->  	vm_fault_t fault;
->  	unsigned int flags = FAULT_FLAG_DEFAULT;
-> -	unsigned long vm_flags = VM_ACCESS_FLAGS;
-> +	vm_flags_t vm_flags = VM_ACCESS_FLAGS;
->  
->  	if (kprobe_page_fault(regs, fsr))
->  		return 0;
-> diff --git a/arch/arm64/include/asm/mman.h b/arch/arm64/include/asm/mman.h
-> index 21df8bbd2668..8770c7ee759f 100644
-> --- a/arch/arm64/include/asm/mman.h
-> +++ b/arch/arm64/include/asm/mman.h
-> @@ -11,10 +11,10 @@
->  #include <linux/shmem_fs.h>
->  #include <linux/types.h>
->  
-> -static inline unsigned long arch_calc_vm_prot_bits(unsigned long prot,
-> +static inline vm_flags_t arch_calc_vm_prot_bits(unsigned long prot,
->  	unsigned long pkey)
->  {
-> -	unsigned long ret = 0;
-> +	vm_flags_t ret = 0;
->  
->  	if (system_supports_bti() && (prot & PROT_BTI))
->  		ret |= VM_ARM64_BTI;
-> @@ -34,8 +34,8 @@ static inline unsigned long arch_calc_vm_prot_bits(unsigned long prot,
->  }
->  #define arch_calc_vm_prot_bits(prot, pkey) arch_calc_vm_prot_bits(prot, pkey)
->  
-> -static inline unsigned long arch_calc_vm_flag_bits(struct file *file,
-> -						   unsigned long flags)
-> +static inline vm_flags_t arch_calc_vm_flag_bits(struct file *file,
-> +						unsigned long flags)
->  {
->  	/*
->  	 * Only allow MTE on anonymous mappings as these are guaranteed to be
-> @@ -68,7 +68,7 @@ static inline bool arch_validate_prot(unsigned long prot,
->  }
->  #define arch_validate_prot(prot, addr) arch_validate_prot(prot, addr)
->  
-> -static inline bool arch_validate_flags(unsigned long vm_flags)
-> +static inline bool arch_validate_flags(vm_flags_t vm_flags)
->  {
->  	if (system_supports_mte()) {
->  		/*
-> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> index ec0a337891dd..24be3e632f79 100644
-> --- a/arch/arm64/mm/fault.c
-> +++ b/arch/arm64/mm/fault.c
-> @@ -549,7 +549,7 @@ static int __kprobes do_page_fault(unsigned long far, unsigned long esr,
->  	const struct fault_info *inf;
->  	struct mm_struct *mm = current->mm;
->  	vm_fault_t fault;
-> -	unsigned long vm_flags;
-> +	vm_flags_t vm_flags;
->  	unsigned int mm_flags = FAULT_FLAG_DEFAULT;
->  	unsigned long addr = untagged_addr(far);
->  	struct vm_area_struct *vma;
-> diff --git a/arch/arm64/mm/mmu.c b/arch/arm64/mm/mmu.c
-> index 8fcf59ba39db..248d96349fd0 100644
-> --- a/arch/arm64/mm/mmu.c
-> +++ b/arch/arm64/mm/mmu.c
-> @@ -720,7 +720,7 @@ void mark_rodata_ro(void)
->  
->  static void __init declare_vma(struct vm_struct *vma,
->  			       void *va_start, void *va_end,
-> -			       unsigned long vm_flags)
-> +			       vm_flags_t vm_flags)
->  {
->  	phys_addr_t pa_start = __pa_symbol(va_start);
->  	unsigned long size = va_end - va_start;
-> diff --git a/arch/powerpc/include/asm/mman.h b/arch/powerpc/include/asm/mman.h
-> index 42a51a993d94..912f78a956a1 100644
-> --- a/arch/powerpc/include/asm/mman.h
-> +++ b/arch/powerpc/include/asm/mman.h
-> @@ -14,7 +14,7 @@
->  #include <asm/cpu_has_feature.h>
->  #include <asm/firmware.h>
->  
-> -static inline unsigned long arch_calc_vm_prot_bits(unsigned long prot,
-> +static inline vm_flags_t arch_calc_vm_prot_bits(unsigned long prot,
->  		unsigned long pkey)
->  {
->  #ifdef CONFIG_PPC_MEM_KEYS
-> diff --git a/arch/powerpc/include/asm/pkeys.h b/arch/powerpc/include/asm/pkeys.h
-> index 59a2c7dbc78f..28e752138996 100644
-> --- a/arch/powerpc/include/asm/pkeys.h
-> +++ b/arch/powerpc/include/asm/pkeys.h
-> @@ -30,9 +30,9 @@ extern u32 reserved_allocation_mask; /* bits set for reserved keys */
->  #endif
->  
->  
-> -static inline u64 pkey_to_vmflag_bits(u16 pkey)
-> +static inline vm_flags_t pkey_to_vmflag_bits(u16 pkey)
->  {
-> -	return (((u64)pkey << VM_PKEY_SHIFT) & ARCH_VM_PKEY_FLAGS);
-> +	return (((vm_flags_t)pkey << VM_PKEY_SHIFT) & ARCH_VM_PKEY_FLAGS);
->  }
->  
->  static inline int vma_pkey(struct vm_area_struct *vma)
-> diff --git a/arch/powerpc/kvm/book3s_hv_uvmem.c b/arch/powerpc/kvm/book3s_hv_uvmem.c
-> index 3a6592a31a10..03f8c34fa0a2 100644
-> --- a/arch/powerpc/kvm/book3s_hv_uvmem.c
-> +++ b/arch/powerpc/kvm/book3s_hv_uvmem.c
-> @@ -393,7 +393,7 @@ static int kvmppc_memslot_page_merge(struct kvm *kvm,
->  {
->  	unsigned long gfn = memslot->base_gfn;
->  	unsigned long end, start = gfn_to_hva(kvm, gfn);
-> -	unsigned long vm_flags;
-> +	vm_flags_t vm_flags;
->  	int ret = 0;
->  	struct vm_area_struct *vma;
->  	int merge_flag = (merge) ? MADV_MERGEABLE : MADV_UNMERGEABLE;
-> diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
-> index af9c10c83dc5..3e4bac33be81 100644
-> --- a/arch/sparc/include/asm/mman.h
-> +++ b/arch/sparc/include/asm/mman.h
-> @@ -28,7 +28,7 @@ static inline void ipi_set_tstate_mcde(void *arg)
->  }
->  
->  #define arch_calc_vm_prot_bits(prot, pkey) sparc_calc_vm_prot_bits(prot)
-> -static inline unsigned long sparc_calc_vm_prot_bits(unsigned long prot)
-> +static inline vm_flags_t sparc_calc_vm_prot_bits(unsigned long prot)
->  {
->  	if (adi_capable() && (prot & PROT_ADI)) {
->  		struct pt_regs *regs;
-> @@ -58,7 +58,7 @@ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
->  /* arch_validate_flags() - Ensure combination of flags is valid for a
->   *	VMA.
->   */
-> -static inline bool arch_validate_flags(unsigned long vm_flags)
-> +static inline bool arch_validate_flags(vm_flags_t vm_flags)
->  {
->  	/* If ADI is being enabled on this VMA, check for ADI
->  	 * capability on the platform and ensure VMA is suitable
-> diff --git a/arch/x86/kernel/cpu/sgx/encl.c b/arch/x86/kernel/cpu/sgx/encl.c
-> index 279148e72459..308dbbae6c6e 100644
-> --- a/arch/x86/kernel/cpu/sgx/encl.c
-> +++ b/arch/x86/kernel/cpu/sgx/encl.c
-> @@ -279,7 +279,7 @@ static struct sgx_encl_page *__sgx_encl_load_page(struct sgx_encl *encl,
->  
->  static struct sgx_encl_page *sgx_encl_load_page_in_vma(struct sgx_encl *encl,
->  						       unsigned long addr,
-> -						       unsigned long vm_flags)
-> +						       vm_flags_t vm_flags)
->  {
->  	unsigned long vm_prot_bits = vm_flags & VM_ACCESS_FLAGS;
->  	struct sgx_encl_page *entry;
-> @@ -520,9 +520,9 @@ static void sgx_vma_open(struct vm_area_struct *vma)
->   * Return: 0 on success, -EACCES otherwise
->   */
->  int sgx_encl_may_map(struct sgx_encl *encl, unsigned long start,
-> -		     unsigned long end, unsigned long vm_flags)
-> +		     unsigned long end, vm_flags_t vm_flags)
->  {
-> -	unsigned long vm_prot_bits = vm_flags & VM_ACCESS_FLAGS;
-> +	vm_flags_t vm_prot_bits = vm_flags & VM_ACCESS_FLAGS;
->  	struct sgx_encl_page *page;
->  	unsigned long count = 0;
->  	int ret = 0;
-> @@ -605,7 +605,7 @@ static int sgx_encl_debug_write(struct sgx_encl *encl, struct sgx_encl_page *pag
->   */
->  static struct sgx_encl_page *sgx_encl_reserve_page(struct sgx_encl *encl,
->  						   unsigned long addr,
-> -						   unsigned long vm_flags)
-> +						   vm_flags_t vm_flags)
->  {
->  	struct sgx_encl_page *entry;
->  
-> diff --git a/arch/x86/kernel/cpu/sgx/encl.h b/arch/x86/kernel/cpu/sgx/encl.h
-> index f94ff14c9486..8ff47f6652b9 100644
-> --- a/arch/x86/kernel/cpu/sgx/encl.h
-> +++ b/arch/x86/kernel/cpu/sgx/encl.h
-> @@ -101,7 +101,7 @@ static inline int sgx_encl_find(struct mm_struct *mm, unsigned long addr,
->  }
->  
->  int sgx_encl_may_map(struct sgx_encl *encl, unsigned long start,
-> -		     unsigned long end, unsigned long vm_flags);
-> +		     unsigned long end, vm_flags_t vm_flags);
->  
->  bool current_is_ksgxd(void);
->  void sgx_encl_release(struct kref *ref);
-> diff --git a/tools/testing/vma/vma_internal.h b/tools/testing/vma/vma_internal.h
-> index 7919d7141537..b9eb8c889f96 100644
-> --- a/tools/testing/vma/vma_internal.h
-> +++ b/tools/testing/vma/vma_internal.h
-> @@ -1220,7 +1220,7 @@ static inline void vma_set_page_prot(struct vm_area_struct *vma)
->  	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
->  }
->  
-> -static inline bool arch_validate_flags(unsigned long)
-> +static inline bool arch_validate_flags(vm_flags_t)
->  {
->  	return true;
->  }
+Just FYI Ashuman - it was applied against the new and shiny (TM) mm-new branch,
+maybe we didn't publicise this well enough...
 
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+This is the absolute tippy tip of mm development and so may be broken in hideous
+ways, but it's what new work should be rebased on.
 
+Then if accepted + stable things trickle to mm-unstable for -next testing (we're
+trying to avoid breaking -next too much) and then later mm-stable if all's good
+for send ->Linus.
+
+Cheers, Lorenzo
