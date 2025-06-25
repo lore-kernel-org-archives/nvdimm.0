@@ -1,104 +1,104 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9604A204863
-	for <nvdimm@lists.linux.dev>; Wed, 25 Jun 2025 21:08:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 631B420F098
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jun 2025 21:16:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750885702; cv=fail; b=hBaSh2KmqTtWiKxkOD0pDBv0xHBW3W//JPQoLc7dQZr6W99kNB3qV//uNlzWzcNDr4R9kyckYuxLPgOq867SJECNcy+u/1FsNmFdeo0hqo5wm1yolAicUA/UIE3SHA+JzAvRo42RtHRQ1RY0EHEEVbaEgXoqNlO1I6YHiAtNrMQ=
+	t=1750886176; cv=fail; b=QWR0dJrdfD8NvkCAOAq6Zp/OP9dxFn3iFYhwRpf/B8DRaikaYS3qNargRqnJDFhWz+ZCL7jnpPLlQWsblQ/l98orvkB3ku0Yb+YZ0lrgSO5ts0cJeMr/uXlr7xhXIscDJPY0VpKUeDOuUndziHjQ3VzTbLnuto1gViynQt02yHM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750885702; c=relaxed/simple;
-	bh=twP7W0fUZASF7JyMd3gL9MNiB9XLqLmzf82o1dYILME=;
-	h=From:Date:To:CC:Message-ID:In-Reply-To:References:Subject:
-	 Content-Type:MIME-Version; b=Sy00zd2AdbjZsQmPb9zAmDTx3Gg5iuOJndQ7w5rw4zZVYbEPcF8CoTj+7mbLdVrMDc7bUmowZ8526hHzQJiir6JazgfZfamyiAVpKUPvNMvlddwfbUSVFUEsJ8nJip/7hwbfwTHKUM7KQKGDgASNCDT/de8cuaxHBi+cENEsYjc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OXhSAJp+; arc=fail smtp.client-ip=192.198.163.7
+	s=arc-20240116; t=1750886176; c=relaxed/simple;
+	bh=LaomHZIRzENE+rRs5z9MleDqiY1ciIZGX1+WkNp3N74=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=qeU1n2cqCjPcU3CtbuHpg6+iPT6kc84hDxm2yZQ0eC8aCWV+LW09ajGeuFtR6qSfWBtVh81PuyveJ2KdFsFd9N9y33zvHXYzX5K34i2rdW/uYAIczxnOyEQifMGe57hX4NKqImhfJyhxD4WRei4068K8rC+ELIVBVs5By5FuAII=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cnB1cKJO; arc=fail smtp.client-ip=192.198.163.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OXhSAJp+"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cnB1cKJO"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1750885700; x=1782421700;
-  h=from:date:to:cc:message-id:in-reply-to:references:
-   subject:content-transfer-encoding:mime-version;
-  bh=twP7W0fUZASF7JyMd3gL9MNiB9XLqLmzf82o1dYILME=;
-  b=OXhSAJp+KsAVw7YTNaO+m9ScUXIYkI4fKdeEJFretzEMD86GDOrfxkTE
-   u544C35/5wftxYC3A6q/35dQX2sldUbs+UOloOMxx0sbr0DSam7bI2z1p
-   05WkwfmaILPKPZrk4X5hnSgLGYkGpzBoEvshEVdttSkn//PntaNixHE5n
-   c99oSbdXo63sMY9zvUPlyBoZSDcGMnLYHN5v/hFtvV5zC8Ox0E7RUyOBP
-   I+rVEa1/LXFS+aTZVsh0LKPJZavEaFJ/iBiJ7JMIvqDawsf9pra6lNEsR
-   Pj26Y+MBGsVexld8HCY59PKX26rJh683ZMZLQdq4TqbqNWMJIemJgEFdP
-   g==;
-X-CSE-ConnectionGUID: WNJ3f9v/QsCnvIR0NI3hZQ==
-X-CSE-MsgGUID: O4e0uwYrTr6dgHhrRM68rw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11475"; a="78603882"
+  t=1750886174; x=1782422174;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=LaomHZIRzENE+rRs5z9MleDqiY1ciIZGX1+WkNp3N74=;
+  b=cnB1cKJOtAr5un9OOD8J7J1IHiiz647sy0bh2h1o/Sa6qR5y/ysY7Dzr
+   +pW/vRTB/e/KWHzAso5YbpwBQPxRaw1UTo3jt++aeRDLsagK5ZvN6Nwh5
+   FgST+LENUrYyMVPwnVeB4w9n7pjs8fUyck2yMQq+pCG5RjHnUAumbkKrL
+   msANPWuAxWREtd9y9ON570wwawn8ZXY/Kqlrz7hlH8moROoRxgmhxhnfl
+   vN8ywaLPb1GBvOllZmXD6CC9Qn5NM9aRYN6vgZ2Ci+SZB7vpw5mQBOCvh
+   DvDRQaIW75Eb6O1IVxHqtw/CXuisOCGjNvDQ5v7ZKw5g4Ki9oWFDy1Bgu
+   A==;
+X-CSE-ConnectionGUID: e2czwAkdQomz1JPA7aNxaw==
+X-CSE-MsgGUID: ExmKReH9QYumMWm+hevC8w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11475"; a="78605169"
 X-IronPort-AV: E=Sophos;i="6.16,265,1744095600"; 
-   d="scan'208";a="78603882"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2025 14:08:19 -0700
-X-CSE-ConnectionGUID: Kv3OYeQnQQy+MLCOPD6HaQ==
-X-CSE-MsgGUID: 5OrBBRNGQISqJanWF2R7mQ==
+   d="scan'208";a="78605169"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2025 14:16:14 -0700
+X-CSE-ConnectionGUID: HlFDLAAmT1uQWxRBD21FxA==
+X-CSE-MsgGUID: 4MQAEQA3TT6c83QKfLxTrQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.16,265,1744095600"; 
-   d="scan'208";a="156903161"
-Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
-  by orviesa004.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2025 14:08:18 -0700
-Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+   d="scan'208";a="157825456"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa004.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jun 2025 14:16:09 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Wed, 25 Jun 2025 14:08:18 -0700
-Received: from ORSEDG902.ED.cps.intel.com (10.7.248.12) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ 15.2.1544.25; Wed, 25 Jun 2025 14:16:06 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25 via Frontend Transport; Wed, 25 Jun 2025 14:08:18 -0700
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (40.107.100.82)
- by edgegateway.intel.com (134.134.137.112) with Microsoft SMTP Server
+ 15.2.1544.25 via Frontend Transport; Wed, 25 Jun 2025 14:16:06 -0700
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (40.107.92.78) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Wed, 25 Jun 2025 14:08:18 -0700
+ 15.2.1544.25; Wed, 25 Jun 2025 14:16:03 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v/gyovVHXY6juXgTtl4eqAgiYFftEoVYjs9oowl7181G+gUMHSOkvWld/3+o0/ME4jcSZ/14E/UEru7RmlakO6Th8BFnOoZX/L6QqVp2vJlenNyKdZ4riA0Rsgmo6USnhdElqSW18Mj4rHySD0lTRyDaa0ekxhAj5AWdzyNrx9nUy0hdmh+X3tVGujCT2ZEHGiSSo+pbb2uIFG2GXmbt/jVTlsjpk8Ohzg99yl/aYtO2OrB7Z6mn85MquJpP7lm2dWTZk2pUyLd4zNTQKGBSf2VFB8o5UfCAZMTUNCt6acZj/a24Kmddvy/BwePa+eYpP50pO0D8hVo1YRVx+lDhUA==
+ b=NOYY65EuTB014B9gvEPYA53m5ZRihuNvKzFyz13K6X+GdHmJYU79xGTqsUCXX1js5HZ14NNod3zTrwSQlU/IsqDgF+nhz8Lx3a/K0C0NwUrmosL557OrS/htAPM5xd1Y1TnPtmTHbiCTDCcUmW/pzu3eA+48xglGVLR43p1yamrk/eYADWnybJuv9sxNS1Y+GDXyJFim11ooPXIedlzJzMzHcC7rfWAH7v0jJFlCUBF6UP/SuCnuXiSbxWJ409fI4vA5QOoTP+jVe3krYLsrJA25YlJioMDJLbJuZI2JqlcbGx4gaDGWf3Jwt5Ymxk2ZCERt2MuH3hfRHd03DlVEJg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5MpZbhV7GvTIZOqqs9MqFE4ZXYAKGNXjOVyOkjOIv4w=;
- b=xT/Zwqtyv1RprCgl6jQOQRGgECZwlcZ16fEev1mfAqW9n2HwrKhdSvbFf5tMDOzTUab6OQg3SdYN3Q/hC5YyhDt2fCIvhNXYvOV+vYzthWaYADAGHTFh92OolQbXL9+/xiRuePj3l3GjOB7nE9+Dk2R8x9FXUysLtb96w5seCM27ZLLAzScREvhpfG0da2yK4qay1l9wPwOwETY3eE+SEg6nONpRbxHvpyFWaoavaWHz0jbuGmfvNWM+4143AHH8oGBfjCzLWbLT28GDyIRZ48q6ULKDKQkWo1BxC/YZxReqeRliqFj65rZpin7eK28Js9pZf2iaW9c1eFTm2hq5hg==
+ bh=k5UgbHN8kyYecKv7XSnfVY4S3wAlLbC8oX6rB3BN4QU=;
+ b=viNPC4jJhfPxIY96zo6EcQL//h9r1lxsfUq9qu8j4mvKkuYT8jSaa13uKfD2AM4RZW5IgTGsaITzePn/CjtRWYxTbQ9YC8SMoLhNhZmkthMmVSYS70XlCcmtBce5SiCP7ApFnSfgVhZvL8AE2Ff59QlTcYRu1EIypc9r0Z3GMeC4NFe1Ahn34FtOK+3IkOPGaNwy2AxhZHvXKtbLUPaYkgpUv9rW1QZc5RHbfzHwxy7cUD+LXomTcAbSDDdyIL5sD4LESwbI/7DwMEKS3JtEg+Twx8n0NPxb1Y/NmT2AfzNiuFZwSTZ1hLKA7xFXG4KY358COZ0w/xZtFY/Z9pneHw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by BL1PR11MB5980.namprd11.prod.outlook.com (2603:10b6:208:387::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8857.30; Wed, 25 Jun
- 2025 21:08:15 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%6]) with mapi id 15.20.8857.025; Wed, 25 Jun 2025
- 21:08:12 +0000
-From: <dan.j.williams@intel.com>
-Date: Wed, 25 Jun 2025 14:08:10 -0700
-To: <dan.j.williams@intel.com>, "Gustavo A. R. Silva"
-	<gustavo@embeddedor.com>, Kees Cook <kees@kernel.org>, "Gustavo A. R. Silva"
-	<gustavoars@kernel.org>
-CC: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c) by DM6PR11MB4708.namprd11.prod.outlook.com
+ (2603:10b6:5:28f::12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8880.17; Wed, 25 Jun
+ 2025 21:15:48 +0000
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::19ef:ed1c:d30:468f]) by PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::19ef:ed1c:d30:468f%4]) with mapi id 15.20.8835.018; Wed, 25 Jun 2025
+ 21:15:48 +0000
+Date: Wed, 25 Jun 2025 16:17:06 -0500
+From: Ira Weiny <ira.weiny@intel.com>
+To: Michal Clapinski <mclapinski@google.com>, Jonathan Corbet
+	<corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma
 	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
-	<ira.weiny@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown
-	<lenb@kernel.org>, <nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-hardening@vger.kernel.org>
-Message-ID: <685c653a6fe42_1608bd100d0@dwillia2-xfh.jf.intel.com.notmuch>
-In-Reply-To: <685c5d0062f2b_1608bd10051@dwillia2-xfh.jf.intel.com.notmuch>
-References: <aEneid7gdAZr1_kR@kspp>
- <202506250950.31C8A58E@keescook>
- <e0adad17-5d4f-4309-9975-81971597da65@embeddedor.com>
- <685c5d0062f2b_1608bd10051@dwillia2-xfh.jf.intel.com.notmuch>
-Subject: Re: [PATCH v3][next] acpi: nfit: intel: avoid multiple
- -Wflex-array-member-not-at-end warnings
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BYAPR06CA0071.namprd06.prod.outlook.com
- (2603:10b6:a03:14b::48) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	<ira.weiny@intel.com>, <nvdimm@lists.linux.dev>
+CC: "Paul E. McKenney" <paulmck@kernel.org>, Thomas Huth <thuth@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt
+	<rostedt@goodmis.org>, "Borislav Petkov (AMD)" <bp@alien8.de>, Ard Biesheuvel
+	<ardb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Pasha
+ Tatashin" <pasha.tatashin@soleen.com>, Mike Rapoport <rppt@kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, Michal Clapinski <mclapinski@google.com>
+Subject: Re: [PATCH v3 0/2] libnvdimm/e820: Add a new parameter to configure
+ many regions per e820 entry
+Message-ID: <685c67525ba79_2c35442945@iweiny-mobl.notmuch>
+References: <20250612114210.2786075-1-mclapinski@google.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20250612114210.2786075-1-mclapinski@google.com>
+X-ClientProxiedBy: MW4PR03CA0138.namprd03.prod.outlook.com
+ (2603:10b6:303:8c::23) To PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -106,378 +106,95 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|BL1PR11MB5980:EE_
-X-MS-Office365-Filtering-Correlation-Id: d173f005-8105-4712-ea34-08ddb42c6533
+X-MS-TrafficTypeDiagnostic: PH3PPF9E162731D:EE_|DM6PR11MB4708:EE_
+X-MS-Office365-Filtering-Correlation-Id: a1d5e0e8-6f6b-4be7-51bd-08ddb42d74ba
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|366016;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?ZGJBVUEyZk5HOTNsbjFHZUUzbEx6V1lpTk1mbEtURE9wWnhvNGhEdHdPRzJL?=
- =?utf-8?B?amM4QjIvZFNJS2pGK2VoalZhQ2d4MDhtRXcyMGdzZ1FjeFg0M3RRUXBwMDFG?=
- =?utf-8?B?VllheGEzbyttRTBDbXhiaUhIeHNyN0JZdGRJWGU3R2tCY0FjZmRaZ09KdE1x?=
- =?utf-8?B?bE5XTThCNDVDRFFBSVJLNG05ajVRdk5KeE5BR0VRM3JmQlpWay9PcTF2eVJq?=
- =?utf-8?B?c3pROVFQRDg4Y3JJdnYwWU5WUEhQYzJUODhNR2RPYUI2aE4xcmJvVkdzaExS?=
- =?utf-8?B?ZE5mNzI0T3lzMjVBaEs2aTdDSE9POXdlQlFjSWxOVk5hVzFJNkUybWs4UkRT?=
- =?utf-8?B?Y2c2R1RtQmN6NkRVbEZ4VksreW0waHhEUXFtWE5UYTV5S0c5cHhMOXQvMnN5?=
- =?utf-8?B?TE00TUh1NnFMRkQ2V2gvdzVQQzBFWDRKbWVMVGpZdTZDOXZiYk5SNzMvNmlp?=
- =?utf-8?B?TWh4TDBoYmtMZHNDUmNoSnp4Nys5blZWUlBTcTZDak9uVWF1Q0JDdzIwRktO?=
- =?utf-8?B?V0Y5VnEvV1BoWFROT0NlYy83NlVjelVYM09LbkxlZUhROTRQaEFYRnVWcUI2?=
- =?utf-8?B?Z2JlSEJFYXBzUXluakJoTklNVjFrNUN1NDN5UkRHNWNyZTZUMEpmUDd4V25J?=
- =?utf-8?B?WXFudzcyM1hMTW5QZU5GSit2VjJXcjBBMEhNVWs0bW5lYTY1MlZsVDVSZVdr?=
- =?utf-8?B?eTkrd1UrYk5iQnVYQkdCajRjdFMxYUZFYmphOXJ5UlcxK2JVSkRyRU5JUmdJ?=
- =?utf-8?B?dHcvR05pU0RlZWc4dXhnSGJhcjVKR1c4WGlVYTVQenAzcWtxYXFSbWl6YW4r?=
- =?utf-8?B?U3RqQS90bFBaTmtnL3o1Q1kxOTZ4aWozcE92ZVo5WVF1eGY3eDRwS0VJdStM?=
- =?utf-8?B?KzFDVWgwcWtadk1scHg1NkVMRTQwdHlwajNYdWtlWXFhYkVYVEhSNTFCaHlH?=
- =?utf-8?B?MmRUa1REa3A4aVU1SzltREZONW9DMUZpZ2pGSnY5Wm5kcTVKb3psOGJLcTNt?=
- =?utf-8?B?TWxsdTd0MWFpUFUzWFF3TlhhWXdoYXoxaUNxeS9scTN1WS9NWHhsZ2J0S0I2?=
- =?utf-8?B?MW1mM1oxSGswdWFOY214VW1jRzdKdjFldzBHNEpLVG9DVktCZ2hTWTd2KzVX?=
- =?utf-8?B?UEFObUhXME92bFQ2TlkyUENtME1uQlhwaENoVVBHcjJseE1qWnJyc2xzRVVt?=
- =?utf-8?B?dzFBMDFBNHdDZmMyWXFBcEFBS1k1NjhFb1UwVllQekYrUG8yZWxpUWFIQU5S?=
- =?utf-8?B?U0NzMi9wWk5sRlFhSmtKamxoUjdOVEkvUUxEOWJjN1NZUyt0RDVUMnduT3p0?=
- =?utf-8?B?R3BuTEtKTVNSaE02Y3ZHR2dXK1VkTTBxajhDV0VoRVJKTTA4Yzltb1BBWG8v?=
- =?utf-8?B?UkhuT21pVXcrZDY5c2xIdm9WdStJSDM1K2hWMDRlUXRqMUVLSytZeTIxd2Zt?=
- =?utf-8?B?eUFOczlYbzhQeW1NUjEvci9hNGsrMUZiQ2dZd0hnTjk0L1R4YzNmZGVKblBp?=
- =?utf-8?B?Rk9GaHQ4eDBMWHBUOURHMTVITVlNa1NiZEFvSEo3KytFTjFxeW4ySVE2dHdH?=
- =?utf-8?B?Y0k4SXhFZXJobk0rQjd3ZTl3R2xqa29xMzZKT0NlRi9NVFNlZk9jWU4vWHBq?=
- =?utf-8?B?ZXljRXB2RzJ6ekxjd1FVdS9PLzkrWmN0ZDBBd1RSVWIxdzg2OEZ1NzBtN0o5?=
- =?utf-8?B?Z2Ewb0psR1k1cUt3SHErMzZQdW91alhxdUtVU0krSkVSeHZpM1lVOWlVeW9k?=
- =?utf-8?B?dXk5d0NPM2Z0MElqbXE5WDhaQnNGZ3UveWtpY21ydHRZNFlTMEhJSFJMeDRT?=
- =?utf-8?B?Znc4RGVFajJUVXZEU1RhSThDWUk5K1Y4VkFXZUtiWUduWGJMZk9sOThzZUZY?=
- =?utf-8?B?RzhwdWRSSEdIbzdyazM5V3lvUHVvSEJyVDVjaWh0T0paWFdkUlBELzNXQUg2?=
- =?utf-8?Q?lyqWkFGsHhA=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|366016;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?efxYgff+xwZqrONqdN/lz4ZvFg6Or//ECbIeg91IuNII0mAiOYYmyJNQRUA0?=
+ =?us-ascii?Q?659URtL+odtlps8DVXymRLfQQkZAh3dTE5n5TPKfGi2MUBwjgFUP+q3LTKgt?=
+ =?us-ascii?Q?owI6pi73rLCHFBlGgzhGhyGLc0bufyKRPCbG/mCb+yMYAWjZmJbH1cG9kKJ+?=
+ =?us-ascii?Q?/NtDcSm8bVYPkZlPfppz72v8yDP7lsSEqQ52Z/BQqnZe5C97waEEDPOBoMX1?=
+ =?us-ascii?Q?D/xhjcQVji9pp6kbN1b/ZN1SpMfaP5qdI6FX0zeFzXRs+ZRGc3BEx4am/JmS?=
+ =?us-ascii?Q?xQ0TWJreUiJltEZvsp3nME36BWn3V2U9jH7qQ5LbWXERf0ZX3gm/vYro+MYl?=
+ =?us-ascii?Q?GDkZ3rPOLTyaPslmgP/aSoxaex0u9ZRo2sIcYHJo8LjeLkCUGgG1KKX8NFC6?=
+ =?us-ascii?Q?DgrRuxilWxhi6/YF5zfEY8cSoHA3ueqUUV1wWa+Xv8mdHET3P4BCuWFyeKix?=
+ =?us-ascii?Q?NzBl2gP6fDdlM0UEe86q0as85cJ9x5enkoWccy3xsQJ9Z12nJDB8p2rP6FUV?=
+ =?us-ascii?Q?cwVGNItTdGMgNAhAadRl9fiGOKR6muQJrpQ439rNbHWZjtsyRkg4K2UbV1Dd?=
+ =?us-ascii?Q?DcYoWvP08eVFc6L/QaDqO+Zx0vL2vs7nRmmoyNPohTY39+HLl1MjpTitr7zu?=
+ =?us-ascii?Q?1zQa2lbno9EPw8ucM7mEPTRR8PH0g6rqZ4IMT+UsH5VVcypvpU9hX85l+Aa6?=
+ =?us-ascii?Q?5sznrF8OiUza/LIWkRyTEZholYNz45//cCNhi1lDJ4/KebxoQhnKWKKt1WRq?=
+ =?us-ascii?Q?kL3Cg1N2EUdEblnEEr7d60KfhNPrzhAKJ/ue2O+Goej8DSl312o4O/oFAwEh?=
+ =?us-ascii?Q?1QBSIBllPPt+tkn2oKWHaMFmGDeeaG06kMrwDj3WycSbb3oyDWlsbGgC+1/7?=
+ =?us-ascii?Q?Vzfc3dW+7Y2ZeQgIfDGuoPpSUk5rmZT9zWgHAjlER51c3hFy0+Dcys/UgZFd?=
+ =?us-ascii?Q?gs9OerH6zAjc697W2ATOyUkVyraZ2+9Sm0bvF2avyrMXXA7MGXP98ABw4vzO?=
+ =?us-ascii?Q?Wos53OvZZa+ovt0U6aILBrLxwiGWtFLAe7Y5W9OVLkcDygsJfjmimElz6cTj?=
+ =?us-ascii?Q?qUhHHR1QN7NL/ulnRUHdql3wvmI4csEldGknwArEqxM4yRidKKLy8Vc+zlSo?=
+ =?us-ascii?Q?4ATCH19NAJI+C3Nc/OjxLFXplP0OJhozkgzKOf2/qDwTxq7iacj8gpmg5bPx?=
+ =?us-ascii?Q?v+pWXX2ydZG/FylhO9UeVATXsNX1ylAr6vxcJD3npRaLi5zKI4RhoKrT+viE?=
+ =?us-ascii?Q?Knxwnki/C/dfY5bxObJAoyhkfQJdQ2r30blinW298OJu7a0iKrjGyzx1VDq4?=
+ =?us-ascii?Q?0lgPMGrdYrLhnduU9ScEph6W6kF7IiOBXhr7Vnox22ryY89Up2BMIZK/1Yp1?=
+ =?us-ascii?Q?hKGYYQTbq7PDDi2zpLoZMY9j57AGTCnNI2mSA4e2qRENXb8CgZ761HwaQ1Zm?=
+ =?us-ascii?Q?28r0CLL6IaM=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH3PPF9E162731D.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?SVdLaFhVVEtCSUo1QUVCczlNQkE0cFFaNlhHbmxnK3JzRW1YRlU1S0l4V2tp?=
- =?utf-8?B?VlA0VjdGNlpCdzFKMzYwdkRsU1hLSWFFR1ZBWVU0MXVXUFZIZldGMzlKN0VO?=
- =?utf-8?B?aHZsbFM3aWtwcVB1NC96Y2hkTjZnQngvSzBvWEZDSGRnTnV2MUoydU5RWlZP?=
- =?utf-8?B?Y3Y4a29FRk8xZUEyNmlsVmZNZ1ZTZWdMZWV5SFlpNWE2emV1Zm9xL09lRSsv?=
- =?utf-8?B?aTlyV3RyTk9XUUpYQ0xCbzE4SEhwV2hWbGpiK28wdGlBUVdOeXJXVTBkYWN1?=
- =?utf-8?B?Q2VUcjh5U0huT1NGS1BFRlFGejF6YVFvVkEydmlaNGtRazIxTnBBeTVSYnU3?=
- =?utf-8?B?L3RJVXBiTTdPVjR5bi9zYmlIYzc3TFJWOWlmdUlBRzZmd21kbldiMng5MGFy?=
- =?utf-8?B?Y3NNMnVybXdOaGVFUWx0Wmo2SXBQWCtsWHdWSUtabm1XQ2hTbW9ISndKZWYw?=
- =?utf-8?B?cUNEMDg5RlJuQ2ZINEt0NWFsZDd3YkRqd05jb1UyS3UvTHFNQjE0TWhWdzEv?=
- =?utf-8?B?UmxkZjhvZzA3VWRkdnFCd1Vvb1pJbXJWcmVRbm5zbUdmc0x1c0JjZmE5ZlFt?=
- =?utf-8?B?c2ltVUthcWJRVk5SVEFhdDZBUlh2MGlQWXloSll3L0lhU3hpR0o0dWhvVGM5?=
- =?utf-8?B?MmJlWEVpTkJ2Rm9hcnBoSW5XYUtxNTJMeFdrNmRudlh3amNVcUQrczloZUd2?=
- =?utf-8?B?OWR1Z0ludFQwcDB2VXpaNjFGZEw0THAyd01WdEoyYmE1Zm9WNW02aFh0WVhN?=
- =?utf-8?B?VlJiZ1ZPRXpIMExydURYdkp5RTlyWFgra1ltbnlNTzdjdXFJcGRRNVFNUU1H?=
- =?utf-8?B?VUJWRmlndzJXOTBKbk13SU1TTUJRaWkwZHUyVXlDZ2JqQ2ptOWhNSEttc0Yz?=
- =?utf-8?B?Nml2VFkxYzQ0N0lrcFNRV2RYZ0VObXpYVld6dDdWa2pFTzV1REx1VnFxTVM1?=
- =?utf-8?B?dDVvWmhJalBDUzI0bE9ZYlRVd1BIZk02TnhXS2k3eDVadDk5SklxQ0R5UDVK?=
- =?utf-8?B?Uk5yVXVya241U1VJUWd6TnNIQ1hGZXg5azBGKzZyY2dmYTFIV210SDRqTnV4?=
- =?utf-8?B?UzFVVXJRTGNTRzhXUVMxRThUdk00WXNLNFV5WHFDanJvWkhCVkJTWEhZbllh?=
- =?utf-8?B?MUtLRkR2c1JLOGxRQWd1UzdXM2lnbWRUM3Vlb3pzUzZsRlkzMVZ5SzNUM3BZ?=
- =?utf-8?B?bXRKZ1ZHSTFaVzN1NE0wenc3aE5xUVhiaEpmbFFZTlFBS1o0bUZLcS9nbkVI?=
- =?utf-8?B?TDRoSk52eWs2UXVNWGxNVFEzSVRhZldreko4R3lURHhKbXQwZkxIY0YyOE9V?=
- =?utf-8?B?NkpDQ3BsVUVBYSs5aXJkUjErUnhUbVl0N05QRTVMWkFMUnZTS3VzNWo3SzRX?=
- =?utf-8?B?RDMrbEhXYlJjNFpuNjN6Qjc4UTRXNDZNZkptSk01VzZRS0pqWlM2ZWVWUzhE?=
- =?utf-8?B?UzNVZUZpYnE1ZkVSVElYM2xTNER4OGpyL2NVWExwMC9EUVlUN2pqTzJNTXJW?=
- =?utf-8?B?WlVvSUptTTN6VzR4Wkd1RldPU25JVXhWTWhiTzdseVdxRGxNQUhYdEp4bVZ5?=
- =?utf-8?B?dndZZ3M2WFROYXpmVWRWaTBENlNjand1QVhGaUJRVXJ3UW0rbGxqbWVISVI0?=
- =?utf-8?B?dHRra1orS2VDRktraDBLM0V0Q0NmTGVRaC9SKytXWjNUV0hmbjdyNUhJSmEy?=
- =?utf-8?B?L2JsK0pEeFQ1bUVVVVMzSm50RnNMTDlKY1hyWTVYWHU3MGEzTEFDK2YwS3pJ?=
- =?utf-8?B?VkgrR1NIakp6T0tNdWxCRnYyS3YwWHJyVjJDd0hwb3hFRjhBWXphUnptVHZR?=
- =?utf-8?B?dDVIbTdtNEpzNHg3ZStzYmdRcXVESmg4SVhTYThTWnNzVXVVMlNGbXVITmJ6?=
- =?utf-8?B?NDYrRTI5ZWZUS3dMa1VUYXRIYlhvM2FHaVBNUnIxU3RsMUVndlIzR3VDUEl5?=
- =?utf-8?B?QnR4RjhMN0JjRTdzMW1rM0FJbHM4WE9abUtUWVZXdElvZXVCVG9kL2JjRG5i?=
- =?utf-8?B?TE9VZTlYenFPbzF6Yk0vOU5VbGtVNFhiQVAwd0pMTVJoVFRyVGsySnk3WHVl?=
- =?utf-8?B?ZmljQkFFd3BkaHcyRXA2Umc4RnNJTHNSNWg3SmJYVkVPdzhVNUd0OXgrcm9l?=
- =?utf-8?B?cDlQbWVsbEhjazhsRG8ybis1eU42RW5POHkwdUJ0Ym9UYzBQdTBUWGtTaFBC?=
- =?utf-8?B?NlE9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: d173f005-8105-4712-ea34-08ddb42c6533
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?xRCeFQviTPSkDF64cGn3ezDMmeKW8viprwaVtxQiv/js2Mvlyyf+8BABuIBV?=
+ =?us-ascii?Q?4/2j+2tUbCuHPsqeHobi3CanJSwXQH7rHfRB6mCfBPYOvU8CLOF4w3nMY6I5?=
+ =?us-ascii?Q?MeD53kJY8AsOswOZ4ZwSmom8hHgjxLmJ+QnVWDkIbXt96pjnQnTtJfPTL/j/?=
+ =?us-ascii?Q?3a3AdIhEBlVQTcMBNvQhCuEWghSv+e0gohCCN9bqIZ4WAY+nOEAg2d5jVPyi?=
+ =?us-ascii?Q?VPRLne37YgG0ki60hM4A+eZjJ/Bf1NAPvLYg5scYNehG4IvQQJifzKCNUH2t?=
+ =?us-ascii?Q?FIiQs7uMYw2Nj3nl6Uiq/zE1IileHLCceEdWuj8h2j7E68hbqBRmu5hsjdtc?=
+ =?us-ascii?Q?rEDpCYlrq3/i1qel6RcMSD8UIfLsmTtFJmq2z9zOn7sxUHMv2nbdiLcRV6xT?=
+ =?us-ascii?Q?b+58fx7fB6ip/IK7wDyeHAY2x8zrSl/Bb2D+vX9WJjZyoRsqVGELc42Q+d9N?=
+ =?us-ascii?Q?aHp/9jfc4US/HzwJoAgvNTeixPBshrcnSS5oHcoou96P9CtNdlxlh0pSaQip?=
+ =?us-ascii?Q?cpHwo5+8q/sfeqJ/Zxur0H9ihuDr8gLJRgxamFw1BE1X6Y6VDXBsCVjRkDfX?=
+ =?us-ascii?Q?AcRtOsFEJBqLqMVd8N8VAxKSqDdWif7KC8o+I8WYfYUkxiEN2QmH7oZ1tymS?=
+ =?us-ascii?Q?GkOXuqz9T6DmQNUzPCWb6ehGn/FfYbXtbgPb3U3ci00MDzyFFboDH1uAgmMJ?=
+ =?us-ascii?Q?SbxxTVVBpWRVO/ZL7BlELbJoh7wpMW/miSxMZnsHxBtCOpj+jorgYhAPR1VU?=
+ =?us-ascii?Q?dJuhQoKdi1aShqoP2nDRCzw3qHol8gDNeBslL7irF1zaZoZ/i7LTGb4zxLnk?=
+ =?us-ascii?Q?4roWtUO8Md0V8GNLtYzmmrDcmhv+TqEZC8utOrZqq/n3T9HDv7+rRKklsxS+?=
+ =?us-ascii?Q?HaZz8ozIAKnalJxe6cvzYpoqfDG6w+JWGfxtztElHarJ19EPlEO3Ctrr4Z38?=
+ =?us-ascii?Q?2uSQoOlcLENHhy1vm47QhOz/N6UNjBriSvY+2LC84jdZUQh0fDdfyfCreI5k?=
+ =?us-ascii?Q?cK22YWMYqfDFsUfkcKC8SeC3m8RPJUtQvQ3yuy1fWHDWLzXOZtvtdo0j3lGr?=
+ =?us-ascii?Q?ImTMWDSdCRS9g+QGivvCeP2fPDBmSlzqsIcPTaiNkadrBVZK+o5zmx+Ul12l?=
+ =?us-ascii?Q?/cY1MiO+n0reNdehM9E64srOD8DmZhqmMdw0bTT+k4/N00LESIdGv4sId953?=
+ =?us-ascii?Q?rgzFzuzm2EThMV2DnKS8zeItwfIQ2uARtTlHxNf1FfmLtobOZIcO4lktddzR?=
+ =?us-ascii?Q?LfqBjtX3qbG/5KbB4BcuDCUPZx9y0wr5KzwdMC2al0o6SqmiQB83BRUHib+W?=
+ =?us-ascii?Q?oypz0YyM2OfEHnLbnf2Rvah/YmGjy/tNjoS191VJtOr3gS9q0hrDdfedLH/f?=
+ =?us-ascii?Q?b6gSTelivzc83Fz6nlr939EJAnS5Ne7FagYyONVM6YeDuvNm2/aCDr3mgarr?=
+ =?us-ascii?Q?XRSUijgvIsZaeExU9Rk4EbQyGBPoK9ZUnelZz+geQDcReoCNcCoxbyQMdAgQ?=
+ =?us-ascii?Q?i7jNPkqQzo5Kv+SJSO1E62VLVUxoW8nIJYAs0zRUwYyD3ySIDwFBELpM7gwJ?=
+ =?us-ascii?Q?Vskw3nTmrsCjDKSJOAISluIbtiP7BizuLs+Dax3e?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: a1d5e0e8-6f6b-4be7-51bd-08ddb42d74ba
+X-MS-Exchange-CrossTenant-AuthSource: PH3PPF9E162731D.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jun 2025 21:08:12.8648
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jun 2025 21:15:48.2950
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ztQLGW8EyRbpq4dl2vYQDpwqHUSgoWt80fRcEwQBXXhVZ+yrm6zMvtWABL9y9UJy0wdPqruk71W8K1BxZacOW97Lj4HSNQWZ4H8YOy/jV6g=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR11MB5980
+X-MS-Exchange-CrossTenant-UserPrincipalName: O8n7NRhUIeywgqo2VdU72LXH8jz4w1QumtyxDzrqyAZNl+toukUIPULJ5AQzrCgxwEbV19LNV+3xnBxftPYD4Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB4708
 X-OriginatorOrg: intel.com
 
-dan.j.williams@ wrote:
-> Gustavo A. R. Silva wrote:
-> [..]
-> > > I think it would be a pretty small and direct replacement:
-> > > 
-> > > 	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-> > > 			 struct nd_intel_get_security_state cmd;
-> > > 	) nd_cmd = {
-> > > 		...
-> > 
-> > Yes, this works. Hopefully, maintainers will comment on this and let us
-> > know what they prefer. :)
+Michal Clapinski wrote:
+> This includes:
+> 1. Splitting one e820 entry into many regions.
+> 2. Conversion to devdax during boot.
 > 
-> Hey Gustavo, apologies for the latency here. I think TRAILING_OVERLAP()
-> looks lovely for this if only because I can read that and have an idea
-> what it means vs wondering what this _offset_to_fam is about and needing
-> to read the comment.
-> 
-> If you can get me that patch on top of the TRAILING_OVERLAP() branch I
-> can test it out and ack it to let it do in through the KSPP tree.
+> This change is needed for the hypervisor live update. VMs' memory will
+> be backed by those emulated pmem devices. To support various VM shapes
+> I want to create devdax devices at 1GB granularity similar to hugetlb.
+> Also detecting those devices as devdax during boot speeds up the whole
+> process. Conversion in userspace would be much slower which is
+> unacceptable while trying to minimize
 
-Just to move this along, I gave this conversion a try and all looks good
-here. So feel free to fold this in and add:
+Did you explore the NFIT injection strategy which Dan suggested?[1]
 
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Tested-by: Dan Williams <dan.j.williams@intel.com>
+[1] https://lore.kernel.org/all/6807f0bfbe589_71fe2944d@dwillia2-xfh.jf.intel.com.notmuch/
 
-...and take it through the KSPP tree with the TRAILING_OVERLAP() merge.
+If so why did it not work?
 
--- 8< --
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 987d427ec2b6..c88647428715 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -55,17 +55,9 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 	unsigned long security_flags = 0;
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_get_security_state cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_get_security_state cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -127,17 +119,9 @@ static unsigned long intel_security_flags(struct nvdimm *nvdimm,
- static int intel_security_freeze(struct nvdimm *nvdimm)
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_freeze_lock cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_freeze_lock cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -167,17 +151,9 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
- 	unsigned int cmd = ptype == NVDIMM_MASTER ?
- 		NVDIMM_INTEL_SET_MASTER_PASSPHRASE :
- 		NVDIMM_INTEL_SET_PASSPHRASE;
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_set_passphrase cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_set_passphrase cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_family = NVDIMM_FAMILY_INTEL,
- 			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
-@@ -216,17 +192,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key_data)
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_unlock_unit cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_unlock_unit cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_UNLOCK_UNIT,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -262,17 +230,9 @@ static int intel_security_disable(struct nvdimm *nvdimm,
- {
- 	int rc;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_disable_passphrase cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_disable_passphrase cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -312,17 +272,9 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 	unsigned int cmd = ptype == NVDIMM_MASTER ?
- 		NVDIMM_INTEL_MASTER_SECURE_ERASE : NVDIMM_INTEL_SECURE_ERASE;
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_secure_erase cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_secure_erase cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_family = NVDIMM_FAMILY_INTEL,
- 			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
-@@ -360,17 +312,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- {
- 	int rc;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_query_overwrite cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_query_overwrite cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -403,17 +347,9 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- {
- 	int rc;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_overwrite cmd;
--		};
--	} nd_cmd = {
-+        TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+                         struct nd_intel_overwrite cmd;
-+        ) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_OVERWRITE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -463,17 +399,9 @@ const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
- static int intel_bus_fwa_businfo(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nd_intel_bus_fw_activate_businfo *info)
- {
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_bus_fw_activate_businfo cmd;
--		};
--	} nd_cmd = {
-+        TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+                         struct nd_intel_bus_fw_activate_businfo cmd;
-+        ) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO,
- 			.nd_family = NVDIMM_BUS_FAMILY_INTEL,
-@@ -581,17 +509,9 @@ static enum nvdimm_fwa_capability intel_bus_fwa_capability(
- static int intel_bus_fwa_activate(struct nvdimm_bus_descriptor *nd_desc)
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_bus_fw_activate cmd;
--		};
--	} nd_cmd = {
-+        TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+                         struct nd_intel_bus_fw_activate cmd;
-+        ) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_BUS_INTEL_FW_ACTIVATE,
- 			.nd_family = NVDIMM_BUS_FAMILY_INTEL,
-@@ -652,17 +572,9 @@ const struct nvdimm_bus_fw_ops *intel_bus_fw_ops = &__intel_bus_fw_ops;
- static int intel_fwa_dimminfo(struct nvdimm *nvdimm,
- 		struct nd_intel_fw_activate_dimminfo *info)
- {
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_fw_activate_dimminfo cmd;
--		};
--	} nd_cmd = {
-+        TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+                         struct nd_intel_fw_activate_dimminfo cmd;
-+        ) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
-@@ -765,17 +677,9 @@ static int intel_fwa_arm(struct nvdimm *nvdimm, enum nvdimm_fwa_trigger arm)
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
--	/*
--	 * This effectively creates a union between the flexible-array member
--	 * and any members after _offset_to_fam.
--	 */
--	union {
--		struct nd_cmd_pkg pkg;
--		struct {
--			u8 _offset_to_fam[offsetof(struct nd_cmd_pkg, nd_payload)];
--			struct nd_intel_fw_activate_arm cmd;
--		};
--	} nd_cmd = {
-+	TRAILING_OVERLAP(struct nd_cmd_pkg, pkg, nd_payload,
-+			 struct nd_intel_fw_activate_arm cmd;
-+	) nd_cmd = {
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_FW_ACTIVATE_ARM,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
+Ira
+
+[snip]
