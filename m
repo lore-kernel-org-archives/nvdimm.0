@@ -1,470 +1,113 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E3F3272804
-	for <nvdimm@lists.linux.dev>; Tue,  1 Jul 2025 14:41:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD7B31DE8A8;
+	Tue,  1 Jul 2025 14:47:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751380891; cv=none; b=K+zRwmxmKfhaX43b2scKbgVafhf/V5HONiTR4LTSF+Xb5iwWb9Tj70y3q0xOuOSoi8ITjO5yMTZwH2MDS4eltwF651nRM7qYJgfqZyeWOEmHFNMkylKdNMg2a8pHHFIY6fmeWlm/u0HwJaBqgRNsORl8f7qVS1O0gF0lsdtPoDc=
+	t=1751381226; cv=none; b=VobzVajHGVP2LLeLp5O07lHt5QtCzDgf8hGopzy+dbaAGV/A6wso0lmttBRoWiBxwvBgZwOd4jLl1ovzjJhghK8ZFcMklIEVqpn/ufj2MqTZwh5u4PswUOp0zPqendydAzyB+MIXtTejQ8QGjkjrlgQyexTWNKYudd+LkmzKhGc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751380891; c=relaxed/simple;
-	bh=VKVXKPH0tS6VOOrN+TQ1ufFIJ/Ha8N4f5w1HLUoL2Rg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:content-type; b=HPC8lElIZZddA4UaiXQDnZLv3mjD3S27U8xFQj73C93+h2UHhrekWEeBToKpQK9ollO3c3MhLI20Pj8ew/mt/H+XQTgZDf8F093ywpuEgV2n+SLnQgF/G1nLIeNGocVW+H0Vs2oQCRnbZ1hNvcZmOGMrpO5IXwIOsVy0Wh6gmKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=UCqJOMQH; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UCqJOMQH"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1751380887;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=sXu+I1bOCQ9hgG0fkPJybVoGCiziFnGlDUXLoRd3vvk=;
-	b=UCqJOMQHDICnDMQqGA1Md/j3huBkRVdBWXPrRFCidt69QNBgeDcAFbWA0uvwCDVchGLuxS
-	O/oLLQguqI00mIAyWnsTzlCkXSjoBU49yMoFy4a1Ik6WYU+PLNjrM0ceFQ+RLhhmU/m6T8
-	RT/UoeoLAso8+4//OLU48OfOQyRmlfM=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-404-Su1j0G3_OPOo4FMhnXwf2w-1; Tue,
- 01 Jul 2025 10:41:26 -0400
-X-MC-Unique: Su1j0G3_OPOo4FMhnXwf2w-1
-X-Mimecast-MFC-AGG-ID: Su1j0G3_OPOo4FMhnXwf2w_1751380885
-Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 5ABD21809C8F;
-	Tue,  1 Jul 2025 14:41:25 +0000 (UTC)
-Received: from vm-10-0-76-146.hosted.upshift.rdu2.redhat.com (vm-10-0-76-146.hosted.upshift.rdu2.redhat.com [10.0.76.146])
-	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id A3CE6195608F;
-	Tue,  1 Jul 2025 14:41:24 +0000 (UTC)
-From: Yi Zhang <yi.zhang@redhat.com>
-To: nvdimm@lists.linux.dev
-Cc: alison.schofield@intel.com,
-	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH] ndctl: spelling fixes
-Date: Tue,  1 Jul 2025 10:15:45 -0400
-Message-ID: <20250701141545.2631700-1-yi.zhang@redhat.com>
+	s=arc-20240116; t=1751381226; c=relaxed/simple;
+	bh=OfFbLijbpxyN4dyHU3EIzh9SsoOjBXoGBr1nfJrccmE=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tZE8Rf0SSUbVEYqejrU9M1il95l9kRjZPDWkWvP/x7bOUGXvKabxlVjBeA5UmTPGcCiECmjTunEP7TH0S59pgDOhpdWPEqNdNdknrMpOhfHWgxJ3ujJUIVkmmQwKaB/4ZM4RWPY3sl6N8mILEwt4mtjY7lPRBLk/+mKJhfTjabA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bWm7f4XBdz6L5Gm;
+	Tue,  1 Jul 2025 22:46:38 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id 7D09D1402EA;
+	Tue,  1 Jul 2025 22:47:01 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Tue, 1 Jul
+ 2025 16:47:00 +0200
+Date: Tue, 1 Jul 2025 15:46:59 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Dongsheng Yang <dongsheng.yang@linux.dev>
+CC: <mpatocka@redhat.com>, <agk@redhat.com>, <snitzer@kernel.org>,
+	<axboe@kernel.dk>, <hch@lst.de>, <dan.j.williams@intel.com>,
+	<linux-block@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<dm-devel@lists.linux.dev>
+Subject: Re: [PATCH v1 04/11] dm-pcache: add segment layer
+Message-ID: <20250701154659.000067f9@huawei.com>
+In-Reply-To: <20250624073359.2041340-5-dongsheng.yang@linux.dev>
+References: <20250624073359.2041340-1-dongsheng.yang@linux.dev>
+	<20250624073359.2041340-5-dongsheng.yang@linux.dev>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: EbH7JhA197HLTg09eP-NKfmPU6RjxS-Wr6u30Bjrwjk_1751380885
-X-Mimecast-Originator: redhat.com
-Content-Transfer-Encoding: 8bit
-content-type: text/plain; charset="US-ASCII"; x-default=true
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-Fix various spelling errors in ndctl.
+On Tue, 24 Jun 2025 07:33:51 +0000
+Dongsheng Yang <dongsheng.yang@linux.dev> wrote:
 
-Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
----
- Documentation/cxl/cxl-reserve-dpa.txt          | 2 +-
- Documentation/cxl/lib/libcxl.txt               | 2 +-
- Documentation/daxctl/daxctl-create-device.txt  | 2 +-
- Documentation/ndctl/ndctl-create-namespace.txt | 4 ++--
- ccan/list/list.h                               | 2 +-
- cxl/bus.c                                      | 2 +-
- cxl/lib/libcxl.c                               | 2 +-
- cxl/memdev.c                                   | 2 +-
- meson.build                                    | 2 +-
- ndctl/dimm.c                                   | 2 +-
- ndctl/lib/ars.c                                | 4 ++--
- ndctl/lib/libndctl.c                           | 8 ++++----
- ndctl/lib/papr_pdsm.h                          | 8 ++++----
- ndctl/libndctl.h                               | 4 ++--
- test/cxl-sanitize.sh                           | 2 +-
- test/daxctl-create.sh                          | 4 ++--
- test/daxctl-devices.sh                         | 4 ++--
- test/libndctl.c                                | 2 +-
- test/security.sh                               | 2 +-
- util/parse-options.h                           | 6 +++---
- util/strbuf.h                                  | 2 +-
- 21 files changed, 34 insertions(+), 34 deletions(-)
+> Introduce segment.{c,h}, an internal abstraction that encapsulates
+> everything related to a single pcache *segment* (the fixed-size
+> allocation unit stored on the cache-device).
+>=20
+> * On-disk metadata (`struct pcache_segment_info`)
+>   - Embedded `struct pcache_meta_header` for CRC/sequence handling.
+>   - `flags` field encodes a =E2=80=9Chas-next=E2=80=9D bit and a 4-bit *t=
+ype* class
+>     (`CACHE_DATA` added as the first type).
+>=20
+> * Initialisation
+>   - `pcache_segment_init()` populates the in-memory
+>     `struct pcache_segment` from a given segment id, data offset and
+>     metadata pointer, computing the usable `data_size` and virtual
+>     address within the DAX mapping.
+>=20
+> * IO helpers
+>   - `segment_copy_to_bio()` / `segment_copy_from_bio()` move data
+>     between pmem and a bio, using `_copy_mc_to_iter()` and
+>     `_copy_from_iter_flushcache()` to tolerate hw memory errors and
+>     ensure durability.
+>   - `segment_pos_advance()` advances an internal offset while staying
+>     inside the segment=E2=80=99s data area.
+>=20
+> These helpers allow upper layers (cache key management, write-back
+> logic, GC, etc.) to treat a segment as a contiguous byte array without
+> knowing about DAX mappings or persistence details.
+>=20
+> Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
+Hi
 
-diff --git a/Documentation/cxl/cxl-reserve-dpa.txt b/Documentation/cxl/cxl-reserve-dpa.txt
-index 58cc93e..d51ccd6 100644
---- a/Documentation/cxl/cxl-reserve-dpa.txt
-+++ b/Documentation/cxl/cxl-reserve-dpa.txt
-@@ -38,7 +38,7 @@ include::bus-option.txt[]
- -t::
- --type::
- 	Select the partition for the allocation. CXL devices implement a
--	partition that divdes 'ram' and 'pmem' capacity, where 'pmem' capacity
-+	partition that divides 'ram' and 'pmem' capacity, where 'pmem' capacity
- 	consumes the higher DPA capacity above the partition boundary. The type
- 	defaults to 'pmem'. Note that given CXL DPA allocation constraints, once
- 	any 'pmem' allocation is established then all remaining 'ram' capacity
-diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
-index 2a512fd..ce311b1 100644
---- a/Documentation/cxl/lib/libcxl.txt
-+++ b/Documentation/cxl/lib/libcxl.txt
-@@ -296,7 +296,7 @@ use generic port APIs on root objects.
- Ports are hierarchical. All but the a root object have another CXL port
- as a parent object retrievable via cxl_port_get_parent().
- 
--The root port of a hiearchy can be retrieved via any port instance in
-+The root port of a hierarchy can be retrieved via any port instance in
- that hierarchy via cxl_port_get_bus().
- 
- The host of a port is the corresponding device name of the PCIe Root
-diff --git a/Documentation/daxctl/daxctl-create-device.txt b/Documentation/daxctl/daxctl-create-device.txt
-index 05f4dbd..b774b86 100644
---- a/Documentation/daxctl/daxctl-create-device.txt
-+++ b/Documentation/daxctl/daxctl-create-device.txt
-@@ -62,7 +62,7 @@ DESCRIPTION
- -----------
- 
- Creates dax device in 'devdax' mode in dynamic regions. The resultant can also
--be convereted to the 'system-ram' mode which arranges for the dax range to be
-+be converted to the 'system-ram' mode which arranges for the dax range to be
- hot-plugged into the system as regular memory.
- 
- 'daxctl create-device' expects that the BIOS or kernel defines a range in the
-diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
-index afb085e..3d0a2dd 100644
---- a/Documentation/ndctl/ndctl-create-namespace.txt
-+++ b/Documentation/ndctl/ndctl-create-namespace.txt
-@@ -31,7 +31,7 @@ OPTIONS
- -m::
- --mode=::
- 	- "raw": expose the namespace capacity directly with
--	  limitations. A raw pmem namepace namespace does not support
-+	  limitations. A raw pmem namespace does not support
- 	  sector atomicity (see "sector" mode below). A raw pmem
- 	  namespace may have limited to no dax support depending the
- 	  kernel. In other words operations like direct-I/O targeting a
-@@ -95,7 +95,7 @@ OPTIONS
- 	suffixes "k" or "K" for KiB, "m" or "M" for MiB, "g" or "G" for
- 	GiB and "t" or "T" for TiB.
- 
--	For pmem namepsaces the size must be a multiple of the
-+	For pmem namespaces the size must be a multiple of the
- 	interleave-width and the namespace alignment (see
- 	below).
- 
-diff --git a/ccan/list/list.h b/ccan/list/list.h
-index 15f5fb7..eeaed16 100644
---- a/ccan/list/list.h
-+++ b/ccan/list/list.h
-@@ -712,7 +712,7 @@ static inline void list_prepend_list_(struct list_head *to,
-  * @off: offset(relative to @i) at which list node data resides.
-  *
-  * This is a low-level wrapper to iterate @i over the entire list, used to
-- * implement all oher, more high-level, for-each constructs. It's a for loop,
-+ * implement all other, more high-level, for-each constructs. It's a for loop,
-  * so you can break and continue as normal.
-  *
-  * WARNING! Being the low-level macro that it is, this wrapper doesn't know
-diff --git a/cxl/bus.c b/cxl/bus.c
-index 3321295..9ef04bc 100644
---- a/cxl/bus.c
-+++ b/cxl/bus.c
-@@ -100,7 +100,7 @@ static int bus_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 		if (sscanf(argv[i], "%lu", &id) == 1)
- 			continue;
- 
--		log_err(&bl, "'%s' is not a valid bus identifer\n", argv[i]);
-+		log_err(&bl, "'%s' is not a valid bus identifier\n", argv[i]);
- 		err++;
- 	}
- 
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 5d97023..1da0c1e 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -1785,7 +1785,7 @@ static void bus_invalidate(struct cxl_bus *bus)
- 	struct cxl_memdev *memdev;
- 
- 	/*
--	 * Something happend to cause the state of all ports to be
-+	 * Something happened to cause the state of all ports to be
- 	 * indeterminate, delete them all and start over.
- 	 */
- 	cxl_memdev_foreach(ctx, memdev)
-diff --git a/cxl/memdev.c b/cxl/memdev.c
-index 6e44d15..58087de 100644
---- a/cxl/memdev.c
-+++ b/cxl/memdev.c
-@@ -650,7 +650,7 @@ param_size_to_volatile_size(const char *devname, enum cxl_setpart_type type,
- }
- 
- /*
-- * Return the volatile_size to use in the CXL set paritition
-+ * Return the volatile_size to use in the CXL set partition
-  * command, or ULLONG_MAX if unable to validate the partition
-  * request.
-  */
-diff --git a/meson.build b/meson.build
-index 300eddb..56b7d48 100644
---- a/meson.build
-+++ b/meson.build
-@@ -173,7 +173,7 @@ keyutils = cc.find_library('keyutils', required : get_option('keyutils'))
- 
- # iniparser lacks pkgconfig and its header files are either at '/usr/include' or '/usr/include/iniparser'
- # Use the path provided by user via meson configure -Diniparserdir=<somepath>
--# if thats not provided then try searching for 'iniparser.h' in default system include path
-+# if that's not provided then try searching for 'iniparser.h' in default system include path
- # and if that not found then as a last resort try looking at '/usr/include/iniparser'
- iniparser_headers = ['iniparser.h', 'dictionary.h']
- 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index aaa0abf..533ab04 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -1074,7 +1074,7 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
- 	if (!param.crypto_erase && !param.overwrite) {
- 		param.crypto_erase = true;
- 		if (param.verbose)
--			fprintf(stderr, "No santize method passed in, default to crypto-erase\n");
-+			fprintf(stderr, "No sanitize method passed in, default to crypto-erase\n");
- 	}
- 
- 	if (param.crypto_erase) {
-diff --git a/ndctl/lib/ars.c b/ndctl/lib/ars.c
-index d50c283..b705cf0 100644
---- a/ndctl/lib/ars.c
-+++ b/ndctl/lib/ars.c
-@@ -70,7 +70,7 @@ static bool __validate_ars_cap(struct ndctl_cmd *ars_cap)
- ({ \
- 	bool __valid = __validate_ars_cap(ars_cap); \
- 	if (!__valid) \
--		dbg(ctx, "expected sucessfully completed ars_cap command\n"); \
-+		dbg(ctx, "expected successfully completed ars_cap command\n"); \
- 	__valid; \
- })
- 
-@@ -224,7 +224,7 @@ static bool __validate_ars_stat(struct ndctl_cmd *ars_stat)
- ({ \
- 	bool __valid = __validate_ars_stat(ars_stat); \
- 	if (!__valid) \
--		dbg(ctx, "expected sucessfully completed ars_stat command\n"); \
-+		dbg(ctx, "expected successfully completed ars_stat command\n"); \
- 	__valid; \
- })
- 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index f75dbd4..dd3e802 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -50,7 +50,7 @@ NDCTL_EXPORT size_t ndctl_sizeof_namespace_index(void)
- }
- 
- /**
-- * ndctl_min_namespace_size - minimum namespace size that btt suports
-+ * ndctl_min_namespace_size - minimum namespace size that btt supports
-  */
- NDCTL_EXPORT size_t ndctl_min_namespace_size(void)
- {
-@@ -3184,7 +3184,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg
- 
- 	if (cfg_size->type != ND_CMD_GET_CONFIG_SIZE
- 			|| cfg_size->status != 0) {
--		dbg(ctx, "expected sucessfully completed cfg_size command\n");
-+		dbg(ctx, "expected successfully completed cfg_size command\n");
- 		return NULL;
- 	}
- 
-@@ -3275,7 +3275,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cf
- 	/* enforce rmw */
- 	if (cfg_read->type != ND_CMD_GET_CONFIG_DATA
- 		       || cfg_read->status != 0) {
--		dbg(ctx, "expected sucessfully completed cfg_read command\n");
-+		dbg(ctx, "expected successfully completed cfg_read command\n");
- 		return NULL;
- 	}
- 
-@@ -4694,7 +4694,7 @@ NDCTL_EXPORT int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns)
- 			 * Yes, TOCTOU hole, but if you're racing namespace
- 			 * creation you have other problems, and there's nothing
- 			 * stopping the !bdev case from racing to mount an fs or
--			 * re-enabling the namepace.
-+			 * re-enabling the namespace.
- 			 */
- 			dbg(ctx, "%s: %s failed exclusive open: %s\n",
- 					devname, bdev, strerror(errno));
-diff --git a/ndctl/lib/papr_pdsm.h b/ndctl/lib/papr_pdsm.h
-index 20ac20f..6d808da 100644
---- a/ndctl/lib/papr_pdsm.h
-+++ b/ndctl/lib/papr_pdsm.h
-@@ -44,7 +44,7 @@
-  *
-  * PDSM Header:
-  * This is papr-scm specific header that precedes the payload. This is defined
-- * as nd_cmd_pdsm_pkg.  Following fields aare available in this header:
-+ * as nd_cmd_pdsm_pkg.  Following fields are available in this header:
-  *
-  * 'cmd_status'		: (Out) Errors if any encountered while servicing PDSM.
-  * 'reserved'		: Not used, reserved for future and should be set to 0.
-@@ -83,11 +83,11 @@
-  * Various flags indicate the health status of the dimm.
-  *
-  * extension_flags	: Any extension fields present in the struct.
-- * dimm_unarmed		: Dimm not armed. So contents wont persist.
-+ * dimm_unarmed		: Dimm not armed. So contents won't persist.
-  * dimm_bad_shutdown	: Previous shutdown did not persist contents.
-- * dimm_bad_restore	: Contents from previous shutdown werent restored.
-+ * dimm_bad_restore	: Contents from previous shutdown weren't restored.
-  * dimm_scrubbed	: Contents of the dimm have been scrubbed.
-- * dimm_locked		: Contents of the dimm cant be modified until CEC reboot
-+ * dimm_locked		: Contents of the dimm can't be modified until CEC reboot
-  * dimm_encrypted	: Contents of dimm are encrypted.
-  * dimm_health		: Dimm health indicator. One of PAPR_PDSM_DIMM_XXXX
-  * dimm_fuel_gauge	: Life remaining of DIMM as a percentage from 0-100
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 91ef0f4..5730edf 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -53,7 +53,7 @@ typedef unsigned char uuid_t[16];
-  *
-  * Notes:
-  * 1/ The object ids are not guaranteed to be stable from boot to boot
-- * 2/ While regions and busses are numbered in sequential/bus-discovery
-+ * 2/ While regions and buses are numbered in sequential/bus-discovery
-  *    order, the resulting block devices may appear to have random ids.
-  *    Use static attributes of the devices/device-path to generate a
-  *    persistent name.
-@@ -258,7 +258,7 @@ int ndctl_cmd_ars_stat_get_flag_overflow(struct ndctl_cmd *ars_stat);
- 
- /*
-  * the ndctl.h definition of these are deprecated, libndctl.h is the
-- * authoritative defintion.
-+ * authoritative definition.
-  */
- #define ND_SMART_HEALTH_VALID	(1 << 0)
- #define ND_SMART_SPARES_VALID	(1 << 1)
-diff --git a/test/cxl-sanitize.sh b/test/cxl-sanitize.sh
-index 9c16101..10f07f0 100644
---- a/test/cxl-sanitize.sh
-+++ b/test/cxl-sanitize.sh
-@@ -64,7 +64,7 @@ done
- [ -z $inactive ] && err $LINENO
- 
- # kickoff a background sanitize and make sure the wait takes a couple
--# secounds
-+# seconds
- set_timeout $inactive 3000
- start=$SECONDS
- echo 1 > /sys/bus/cxl/devices/${inactive}/security/sanitize &
-diff --git a/test/daxctl-create.sh b/test/daxctl-create.sh
-index 954a112..ee3756b 100755
---- a/test/daxctl-create.sh
-+++ b/test/daxctl-create.sh
-@@ -279,7 +279,7 @@ daxctl_test_adjust()
- }
- 
- # Test 0:
--# Sucessfully zero out the region device and allocate the whole space again.
-+# Successfully zero out the region device and allocate the whole space again.
- daxctl_test0()
- {
- 	clear_dev
-@@ -287,7 +287,7 @@ daxctl_test0()
- }
- 
- # Test 1:
--# Sucessfully creates and destroys a device with the whole available space
-+# Successfully creates and destroys a device with the whole available space
- daxctl_test1()
- {
- 	local daxdev
-diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
-index dfce74b..659428d 100755
---- a/test/daxctl-devices.sh
-+++ b/test/daxctl-devices.sh
-@@ -117,7 +117,7 @@ daxctl_test()
- 	if ! "$NDCTL" disable-namespace "$testdev"; then
- 		echo "disable-namespace failed as expected"
- 	else
--		echo "disable-namespace succeded, expected failure"
-+		echo "disable-namespace succeeded, expected failure"
- 		echo "reboot required to recover from this state"
- 		return 1
- 	fi
-@@ -130,7 +130,7 @@ daxctl_test()
- 	if ! "$DAXCTL" reconfigure-device -N -m system-ram "$daxdev"; then
- 		echo "reconfigure failed as expected"
- 	else
--		echo "reconfigure succeded, expected failure"
-+		echo "reconfigure succeeded, expected failure"
- 		restore_online_policy
- 		return 1
- 	fi
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 858110c..0c7115b 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -1617,7 +1617,7 @@ static int check_namespaces(struct ndctl_region *region,
- 			 * On the second time through this loop we skip
- 			 * establishing btt|pfn since
- 			 * check_{btt|pfn}_autodetect() destroyed the
--			 * inital instance.
-+			 * initial instance.
- 			 */
- 			if (mode == BTT) {
- 				btt_s = namespace->do_configure > 0
-diff --git a/test/security.sh b/test/security.sh
-index d3a840c..4112d88 100755
---- a/test/security.sh
-+++ b/test/security.sh
-@@ -250,7 +250,7 @@ echo "Test 5, freeze security"
- test_5_security_freeze
- 
- # Load-keys is independent of actual nvdimm security and is part of key
--# mangement testing.
-+# management testing.
- echo "Test 6, test load-keys"
- test_6_load_keys
- 
-diff --git a/util/parse-options.h b/util/parse-options.h
-index 9318fe7..14e87a9 100644
---- a/util/parse-options.h
-+++ b/util/parse-options.h
-@@ -75,7 +75,7 @@ typedef int parse_opt_cb(const struct option *, const char *arg, int unset);
-  *
-  * `flags`::
-  *   mask of parse_opt_option_flags.
-- *   PARSE_OPT_OPTARG: says that the argument is optionnal (not for BOOLEANs)
-+ *   PARSE_OPT_OPTARG: says that the argument is optional (not for BOOLEANs)
-  *   PARSE_OPT_NOARG: says that this option takes no argument, for CALLBACKs
-  *   PARSE_OPT_NONEG: says that this option cannot be negated
-  *   PARSE_OPT_HIDDEN this option is skipped in the default usage, showed in
-@@ -141,7 +141,7 @@ struct option {
- 	.flags = PARSE_OPT_LASTARG_DEFAULT | PARSE_OPT_NOARG}
- 
- /* parse_options() will filter out the processed options and leave the
-- * non-option argments in argv[].
-+ * non-option arguments in argv[].
-  * Returns the number of arguments left in argv[].
-  */
- extern int parse_options(int argc, const char **argv,
-@@ -160,7 +160,7 @@ extern int parse_options_subcommand(int argc, const char **argv,
- extern NORETURN void usage_with_options(const char * const *usagestr,
-                                         const struct option *options);
- 
--/*----- incremantal advanced APIs -----*/
-+/*----- incremental advanced APIs -----*/
- 
- enum {
- 	PARSE_OPT_HELP = -1,
-diff --git a/util/strbuf.h b/util/strbuf.h
-index 3f810a5..614e58b 100644
---- a/util/strbuf.h
-+++ b/util/strbuf.h
-@@ -19,7 +19,7 @@
-  *    build complex strings/buffers whose final size isn't easily known.
-  *
-  *    It is NOT legal to copy the ->buf pointer away.
-- *    `strbuf_detach' is the operation that detachs a buffer from its shell
-+ *    `strbuf_detach' is the operation that detaches a buffer from its shell
-  *    while keeping the shell valid wrt its invariants.
-  *
-  * 2. the ->buf member is a byte array that has at least ->len + 1 bytes
--- 
-2.45.1
+Just one trivial comment.
+
+> diff --git a/drivers/md/dm-pcache/segment.h b/drivers/md/dm-pcache/segmen=
+t.h
+> new file mode 100644
+> index 000000000000..9675951ffaf8
+> --- /dev/null
+> +++ b/drivers/md/dm-pcache/segment.h
+> @@ -0,0 +1,73 @@
+> +/* SPDX-License-Identifier: GPL-2.0-or-later */
+> +#ifndef _PCACHE_SEGMENT_H
+> +#define _PCACHE_SEGMENT_H
+> +
+> +#include <linux/bio.h>
+> +
+> +#include "pcache_internal.h"
+> +
+> +struct pcache_segment_info {
+> +	struct pcache_meta_header	header;	/* Metadata header for the segment */
+
+The comment is fairly obvious given the type of the field. I'd drop the com=
+ment.
+
+> +	__u32			flags;
+> +	__u32			next_seg;
+> +};
+
 
