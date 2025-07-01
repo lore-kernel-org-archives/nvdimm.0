@@ -1,475 +1,191 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F3E9275869
-	for <nvdimm@lists.linux.dev>; Tue,  1 Jul 2025 15:18:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751383119; cv=none; b=KRvNCZzFvUqdcRYIAzxiLmhAMILR5u4Moi25T8WoPsGoTn4kSaweGbr4Q4Mza2rxooEdVzOWYyQy6v7WCHhrMDwcCC+w8VongOBJxKgdg8rWa/joQh+M2fkqrUtbPilA29IAxmO548ltcc8ZUjPHyK8YLktSQihhCXekFiVxVd4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751383119; c=relaxed/simple;
-	bh=gD2I3EOIZ31Z1+7hkLiZ9Y2sWNygt55hZvIbAypzH1Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TXksev3hxRGBRmn0FIUob2qfyPnYQss0LlFqgjH/qhWkT3PWUNPdFJRrGV+Che2OzIu0dFw7ms6vGiezeUDPQd+N7hRjjPBoACVXjdEL78r9juLwu65ehwk6diVxQKgGadSuK7sGnzsh9+JFus709D5C0i19rDJ6O5zs5pzNUow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Gba3wHLU; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 090B726FA53
+	for <nvdimm@lists.linux.dev>; Tue,  1 Jul 2025 16:16:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.19
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1751386599; cv=fail; b=bRs6NfMlwYPGbIYmFaAN3m/sYAd6cvyWPsmk1OPVO+j/HZmRoJU9yWbbJ05Eoge1M8ga8zBAcnVmYqxoAeRA1AfX0VmTXfI1R0nS7G6J3JK2EpbinXIOpFgVGkoFrVLjPja7RK/mSnKj6eW2y7hTXx/xNyvDTmG3cU37i9KupSw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1751386599; c=relaxed/simple;
+	bh=A2DiQZnOuhejP5dgz8xGzzgZU/7whV9z4ChwVeSiojU=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=ZNOUeIcsWmZEKChneP64ldC4nUw086MsFc1VyXIr3iz8399MknwbUqn8XM/iJsRweIvi2GoAf3BSHZ+/dJ1iCr6Xzl0dzlFiC/5R1ZGX+bZEd+LkilUq7ffyDQOtIoBvwFKNaGj5secNqpyNvp6shF36eVNKOw4CMA6fRqEW4Z4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=K2s2McGa; arc=fail smtp.client-ip=192.198.163.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Gba3wHLU"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="K2s2McGa"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1751383117; x=1782919117;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=gD2I3EOIZ31Z1+7hkLiZ9Y2sWNygt55hZvIbAypzH1Q=;
-  b=Gba3wHLUnWym4yksifzAm+KDng5fcFYKaSlM75o3rTXNOoJorgKw+TzN
-   7PbUv1eUnerdS8szZJHb4JJThNfkJiVooJIb9UGVm+KY5rpYuikh+3lSP
-   YGBR35++J8M0P0rdl8sgIIxcLqy9vPTs+GxTynbIh723PTAN51LQ2Gs4q
-   Hf602rOP1b9gnT0o30vx9V5gLQcnIA0cVD8p3KoDrYOCkiRdx4mM+Z6YJ
-   hxyBiKy3k39qCb/DV0+eBjIZJankXSnYTD03uR/sDARYvTiAot9ERBZDl
-   WcCD2lK9h/C+ClajcZ+Ed+OxCweOcmTH/Ci+L3xEd6GbRERAxTYNzk6ZM
-   A==;
-X-CSE-ConnectionGUID: 4mm+yaf/Q22pqMnQB+hDtA==
-X-CSE-MsgGUID: SB/Zpx2KRTqWDRdfgyq/hg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11481"; a="56281167"
+  t=1751386598; x=1782922598;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=A2DiQZnOuhejP5dgz8xGzzgZU/7whV9z4ChwVeSiojU=;
+  b=K2s2McGa6IDvnGQ8RS7NewSk//kotJaF6OvUo6hwydxTOOHXzj3L2Qk3
+   1tWk1x5oPWgni4z4V222AhfPD1WaNPGdT3qBpoLsyQZscss2x7g+mMQ0C
+   oAR6k7RGyIHT+kRXCOlfC21HfuE0r3/R5kbgIwtAmnUhoU4xPQhC7629P
+   pdsowT/RUT3FmoDNtbHfop3c2M7r52XhzBzlqXSQulSTXkiZ5A1tXTOnx
+   gjghsRvzY8IWWWw6iLg/0sjy6lN+OC+AhPyMxpo7HHqlKdTfeyGa2rgTc
+   xAOFidnEz6qp3vhdNfnM1kC1lqLUpDoGH9cNyPc1VHtUrjm6TcwL/Mp9s
+   Q==;
+X-CSE-ConnectionGUID: xPDWm7YxRhigxcTGKNDCXg==
+X-CSE-MsgGUID: 1UOzvW80QIGal2eCMYY5zg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11481"; a="52775333"
 X-IronPort-AV: E=Sophos;i="6.16,279,1744095600"; 
-   d="scan'208";a="56281167"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2025 08:18:33 -0700
-X-CSE-ConnectionGUID: kOuYdBhpTeSXkeP2NiLb3w==
-X-CSE-MsgGUID: Q4MEeP1XQNGdtfR5Q6rfHQ==
+   d="scan'208";a="52775333"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2025 09:16:37 -0700
+X-CSE-ConnectionGUID: Vvi+2vGmRJmQlB/yk1+wzw==
+X-CSE-MsgGUID: +WOGYb/OQAOoXYeXnJykjA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.16,279,1744095600"; 
-   d="scan'208";a="158073001"
-Received: from puneetse-mobl.amr.corp.intel.com (HELO [10.125.109.179]) ([10.125.109.179])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2025 08:18:32 -0700
-Message-ID: <81ad9457-ffa8-4d83-9fcd-3d9d79d8b085@intel.com>
-Date: Tue, 1 Jul 2025 08:18:31 -0700
+   d="scan'208";a="157850151"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2025 09:16:37 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Tue, 1 Jul 2025 09:16:36 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25 via Frontend Transport; Tue, 1 Jul 2025 09:16:36 -0700
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (40.107.244.78)
+ by edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Tue, 1 Jul 2025 09:16:35 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=zP+7qJGmjTY7HpzNRHWYqzxbdmuYKGCE5p5kiU41nxKbCBv+YTrp0lDsinnVJdvKPMZ08oBXoR223uagFnxveodmb2MDsOO2BqIKw3xU9IyfhwLZ5VW5dA1b5bBf4YYw97xmfIuMSgLOlMaYIDj/VkTn4KbDvqaZwuuuWTYHxQ/65hUDrfgLH+MiY5AgqusZzb+A4OsADurS875NMBMqtIF1mkBc8QAdhZCE07zZHd9f1t2PundU/2np5AwXpG3feeE3h0Ze37++DS517H1iRVHS6AaqPAiZtdX+t/viJvfoAP/0Exip1erb3bCXsOSKX1q7p5JOmHksEOXe18NAQA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=CnavLTf3GXANfpcu0+1NNZgdxyFhlrzLgiOYOMRhLK0=;
+ b=yiyhHsSeMFRxFGVjwR9BHpyAmP8Ft3egkgZbrE0v6zFtdflewZuCm8CPtFar3k3I7g6uSx9zeNwoqrikegtoOrdXOOxd2xlNg1n6zdrkMjZoW1LYUQq3gXOcvg8Z8GbOMMWq88GmQugCoDW2mUIdJHzqo+q9ZIkzNEd+rCAlc4ajQZWcJUWmJHjH/OermroTxaSj2yDJVTCDTg1iUcKdM4xMxtQfyd2I+JT4nXtYF070xCrwRoMSVLupDtbyoLmAvOOC0WGUUfrY8fketU/9ApgekNwJFrNyn34tJ8WI8NMbe8oenvALXL8pPOuGHHGZ2edQY8k8E7ITXdjnmCYoBA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c) by IA1PR11MB6196.namprd11.prod.outlook.com
+ (2603:10b6:208:3e8::6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8880.32; Tue, 1 Jul
+ 2025 16:16:15 +0000
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::19ef:ed1c:d30:468f]) by PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::19ef:ed1c:d30:468f%4]) with mapi id 15.20.8835.018; Tue, 1 Jul 2025
+ 16:16:14 +0000
+Date: Tue, 1 Jul 2025 11:17:42 -0500
+From: Ira Weiny <ira.weiny@intel.com>
+To: <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>, Andy Shevchenko
+	<andriy.shevchenko@linux.intel.com>
+CC: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Subject: Re: [PATCH v2 1/1] libnvdimm: Don't use "proxy" headers
+Message-ID: <68640a261c7e7_30815d2944@iweiny-mobl.notmuch>
+References: <20250627142001.994860-1-andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20250627142001.994860-1-andriy.shevchenko@linux.intel.com>
+X-ClientProxiedBy: MW4PR04CA0370.namprd04.prod.outlook.com
+ (2603:10b6:303:81::15) To PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH] ndctl: spelling fixes
-To: Yi Zhang <yi.zhang@redhat.com>, nvdimm@lists.linux.dev
-Cc: alison.schofield@intel.com, linux-cxl@vger.kernel.org
-References: <20250701141545.2631700-1-yi.zhang@redhat.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20250701141545.2631700-1-yi.zhang@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH3PPF9E162731D:EE_|IA1PR11MB6196:EE_
+X-MS-Office365-Filtering-Correlation-Id: 485fc87a-158e-4fb6-c112-08ddb8ba99f1
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|1800799024;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?J9a6d2x+FuQwy2jEcH8K13gSvQLeEiQHJrk69YTgsi9y0I/3MdVRopyMkQWD?=
+ =?us-ascii?Q?TMd5qNkXE1QVocndf6FN1ybbQM8mBn/wOBePf2r8x64MmRMvDLCWIqy+p2Sd?=
+ =?us-ascii?Q?LabDDhgtUs8mOmQ/SqzWzfUwRrhGryP2KmesxPs0/gELL25gHFsjTaEOl6Au?=
+ =?us-ascii?Q?2nEUROY5BPXerd7Wc5Ftd+W1Huv+pXpBCCEntVzGATWH1sWd/hgKEVp8/SlX?=
+ =?us-ascii?Q?gO9NvOOFkeKvT1AUHjMhlVcDdnsxJyyC1hzlpaeOPq3x+4rjbnAW7t8uWCDG?=
+ =?us-ascii?Q?nIzH4lTlj2Sw7FAFMsoR414t3x3EJBZiLnflhE02JFhCosTpWzbNPG5bL4aI?=
+ =?us-ascii?Q?bXyxLUaJ3MWGgp83OhYP+1IGmMtvYGMTWm1EluWmksfhtPQcmWN1kLRz6XHf?=
+ =?us-ascii?Q?uX9Xfuu7RrY8CqdT74zmjo978E4KpYMmHBV+JVtD1+aPR4UcAJviROSXzyXr?=
+ =?us-ascii?Q?Nrg7JDG+WS/LGT262kOMH1SAqI/CyW7gaA22KlB3Dufc2N5PcPlwzXDLinmM?=
+ =?us-ascii?Q?kfpg+hiaXkpRSY9Ks/7hpw3duroJxq9KEhIXJm6oLetVmBOlG7pIU1RM1IQv?=
+ =?us-ascii?Q?6wnL511dLlYIHmmeejvD8Dak5MpLO8JSAq3d6UsBSAsMT6mGcBMpHghlAFaS?=
+ =?us-ascii?Q?qFF+Q7+cLV2sP4H/B1CvKKF4cHGkX9oueIR+CdEnzJMQuT9yMCiLslvbUcuz?=
+ =?us-ascii?Q?TJMg5lR67C9ufORK4mRXFHyuqNBMkgjXUfVf6iUwCtv8UsJIMtvJqSawDjWa?=
+ =?us-ascii?Q?jc2DxOg8W6sq88CRNK3j3iEnUZP9RlKd4PlDoYW48lHspREyBCV6w8PSmU6Z?=
+ =?us-ascii?Q?z4NL1mk8OFeSpL7ZnhAzi9Anoaui2SezzA0NA4xiH3lXyqul9XL5TC+Nt1HM?=
+ =?us-ascii?Q?onByFO7AL6mUIBu5YY4rFQ5yBsWrIHW/twG5RGXlCU2U6GPgP9bw2LmxIuiI?=
+ =?us-ascii?Q?tuM3UJuxBKZWr4MbJC1CJ6leqPPDumeXfzpB1m4Gfl0I1IX8ypbBiVtcI7ZH?=
+ =?us-ascii?Q?6gs0pMvPTPWvhlYEmRsXq7FTQzKnCQa65Uw+nBiT6rzUIcnK85eoDVr3FMC/?=
+ =?us-ascii?Q?tEIAoga7JjMLqSVzcEBB4I00kBaMdamzsBFlz+h2i61cHAyF1jdKQKanA8v5?=
+ =?us-ascii?Q?7kLd5s5hNFNlbKFrPTq1HjhVkKVRUn8hwdpt8iAnU9B0aVNUV02JB5qYWXhz?=
+ =?us-ascii?Q?nPVhzr3th2wz7oA14B99hKzL4BjODJVAPxf/Utc0ErL091/eO3gvVDIgZUd3?=
+ =?us-ascii?Q?wctSrouCrTgAXj3cruuQUtk+TG9Fwu+RcyyKvyeP3kBlzqNTRucG9MyuxjB8?=
+ =?us-ascii?Q?3mmrFrEduKtOhx4Wo/YBdzXvRYbs7kWXCswKAXqDBc5iJBrv4fcmbTpdYkfW?=
+ =?us-ascii?Q?vD5QqpNxoLk/6apmk/AhgQr1uZ3WIg3hWgexbR31tRsIcXRFv+Mqo9b824oh?=
+ =?us-ascii?Q?225T61sDuVA=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH3PPF9E162731D.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?SdsVv60bxCt6D59u1F0O9Cb9lc488ypRuhxs6e1DgHQXV+/M0B/rCRGQ74Bk?=
+ =?us-ascii?Q?//78GOfT79qFLxH2OGdpWjinSB+s5h4xzJFNvKpeOgKGTujdxbTilQ9wxXtn?=
+ =?us-ascii?Q?9bIFBPNhonLwjydNmp+E4KmucLTJjDym9Wzi9w5kvX3fpWcLcwRY9m0+Bdtn?=
+ =?us-ascii?Q?WMTWkwtHUNDRVrXS3cLPRsYI8H0u+SQVeQ5rwh50Ln4xWnxNg3MARNmQq690?=
+ =?us-ascii?Q?ueoBp4hpjTblm+4XWTiED/0FFJ1CLx8UNGrkmHl5pJ/h67Hrp4fOJTmxHY9t?=
+ =?us-ascii?Q?5aCVxcyQSu6ijxj/pEkALoe5iS6aNNBOJfnqzM4C6MDgtleWCraVlxZS7qOj?=
+ =?us-ascii?Q?F733szTvvXA5TN2VAkqqzwOnsLjfLEY19rEVERFFn7mTimO77/HHavlBW88w?=
+ =?us-ascii?Q?BeNShn4iOYjhTZibcSMp0xTyUZYBRU8eNQrqvbOVcoB//3YdsNR5/J+4RNsW?=
+ =?us-ascii?Q?O2wb7Ywl9YA7UzOsfnmYRGTGXf+0dFKjPz6xjj/qCOq8jcuHA85nsLxHNX9o?=
+ =?us-ascii?Q?Lq6F3NCk14nEus9ib10LuMSPPW8S7tl0jRC2gCbxkVjKQYJu/v2pw52HqYS3?=
+ =?us-ascii?Q?qz1QVhKIJtGOWST8lUD6Uwki9MpIUDe9w2/RbgOJnKGfF3yDsLX6As8p8HiU?=
+ =?us-ascii?Q?/+eD43GxDB2y7IXkK3J+25X4Z7WbYeNHLLCSULI5i1f7SyBSWbNlv85ie7dw?=
+ =?us-ascii?Q?ZSKxowd++KCndW3lQs4dxT3TKuarURLegxyGUjrw3nSDFJuB2+fmPOvCXvG/?=
+ =?us-ascii?Q?hMWfYgQaq8SzJtWDzRXOe/ZIHA91XvPzSWVyPH1dLuXfNFS1qdcCzAMw24XH?=
+ =?us-ascii?Q?PRCtxM6jBfMEeIxx95zYTUTDqWMvXinMV0mmXsB4ERjTh8o+HfGbNtrmU84l?=
+ =?us-ascii?Q?SFZWV3zc0EjYUuzP5UtOxqk8sxcjY+2uHx42iS/JTDscYCsNjdNnE4dN1v8j?=
+ =?us-ascii?Q?CZVAqYNKpGrdJnUx/DnbboCs/zam5pvbo6wRdHhzoEr+8dkp89in9VEdisMO?=
+ =?us-ascii?Q?8LTa0g2ZeqaWu2zex3AAaiShiczbpTJ1MKWALgUiqN4sd6dPqUEOwaKwgHwp?=
+ =?us-ascii?Q?+3Ebrc7XLJ1flB5rY/O35nHt9NSjlO3g5ZOQ/F82Eu3kK+3tOg9plXVdQlTR?=
+ =?us-ascii?Q?5khB0cPxCh3l81h9AB1zh7NYDn362oHp98FLoyF0COra3YtaXIPEkU+lOn5H?=
+ =?us-ascii?Q?t12LxpyNF7SF45wOBLHEWglvUqBNnL9eHESyjMiXlXYwZ81YERm1oNbhIzKQ?=
+ =?us-ascii?Q?tinubTx92o5U7feahDo1FPvgR6DrJ/T5ldFsdg9yKrGcAKU6i3nT5rHHUFtx?=
+ =?us-ascii?Q?D/4UEGANlC7yyG+3vuIWXnW/tEdlWC7vYv215FoUHrtILWnm3bY3WeJ2S/+t?=
+ =?us-ascii?Q?Gjq1aky4o6UIQ9Sy5DPTBKes7ScI6lBfnheSMu3UIWyy07uJLA78uA9j06qu?=
+ =?us-ascii?Q?apgLzBx5VZt7Dtvw0B5GbQvgymZQCOAI80yAjZORtDppekURhxsRJGo3e1mp?=
+ =?us-ascii?Q?S9QfNHyScWJ9jFYaU8xJV1tnZPyO/TfhzbQC0i/2NE1aGDHg4t3lPLbGLI5q?=
+ =?us-ascii?Q?dUe/HHpn0Vh9g6AUt8t0gzDAfe8vAAxfiBEnhIoE?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 485fc87a-158e-4fb6-c112-08ddb8ba99f1
+X-MS-Exchange-CrossTenant-AuthSource: PH3PPF9E162731D.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Jul 2025 16:16:14.5628
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: FI5CnBNhLMJuAkQdh9cs7HD7dcYRj/XsMfwQlWfr/I6MJsFCcIeMxPocTnNcD/multWKSNhWvXTfc9mtWH4U3w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR11MB6196
+X-OriginatorOrg: intel.com
 
 
-
-On 7/1/25 7:15 AM, Yi Zhang wrote:
-> Fix various spelling errors in ndctl.
+On Fri, 27 Jun 2025 17:19:23 +0300, Andy Shevchenko wrote:
+> Update header inclusions to follow IWYU (Include What You Use)
+> principle.
 > 
-> Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  Documentation/cxl/cxl-reserve-dpa.txt          | 2 +-
->  Documentation/cxl/lib/libcxl.txt               | 2 +-
->  Documentation/daxctl/daxctl-create-device.txt  | 2 +-
->  Documentation/ndctl/ndctl-create-namespace.txt | 4 ++--
->  ccan/list/list.h                               | 2 +-
->  cxl/bus.c                                      | 2 +-
->  cxl/lib/libcxl.c                               | 2 +-
->  cxl/memdev.c                                   | 2 +-
->  meson.build                                    | 2 +-
->  ndctl/dimm.c                                   | 2 +-
->  ndctl/lib/ars.c                                | 4 ++--
->  ndctl/lib/libndctl.c                           | 8 ++++----
->  ndctl/lib/papr_pdsm.h                          | 8 ++++----
->  ndctl/libndctl.h                               | 4 ++--
->  test/cxl-sanitize.sh                           | 2 +-
->  test/daxctl-create.sh                          | 4 ++--
->  test/daxctl-devices.sh                         | 4 ++--
->  test/libndctl.c                                | 2 +-
->  test/security.sh                               | 2 +-
->  util/parse-options.h                           | 6 +++---
->  util/strbuf.h                                  | 2 +-
->  21 files changed, 34 insertions(+), 34 deletions(-)
+> Note that kernel.h is discouraged to be included as it's written
+> at the top of that file.
 > 
-> diff --git a/Documentation/cxl/cxl-reserve-dpa.txt b/Documentation/cxl/cxl-reserve-dpa.txt
-> index 58cc93e..d51ccd6 100644
-> --- a/Documentation/cxl/cxl-reserve-dpa.txt
-> +++ b/Documentation/cxl/cxl-reserve-dpa.txt
-> @@ -38,7 +38,7 @@ include::bus-option.txt[]
->  -t::
->  --type::
->  	Select the partition for the allocation. CXL devices implement a
-> -	partition that divdes 'ram' and 'pmem' capacity, where 'pmem' capacity
-> +	partition that divides 'ram' and 'pmem' capacity, where 'pmem' capacity
->  	consumes the higher DPA capacity above the partition boundary. The type
->  	defaults to 'pmem'. Note that given CXL DPA allocation constraints, once
->  	any 'pmem' allocation is established then all remaining 'ram' capacity
-> diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
-> index 2a512fd..ce311b1 100644
-> --- a/Documentation/cxl/lib/libcxl.txt
-> +++ b/Documentation/cxl/lib/libcxl.txt
-> @@ -296,7 +296,7 @@ use generic port APIs on root objects.
->  Ports are hierarchical. All but the a root object have another CXL port
->  as a parent object retrievable via cxl_port_get_parent().
->  
-> -The root port of a hiearchy can be retrieved via any port instance in
-> +The root port of a hierarchy can be retrieved via any port instance in
->  that hierarchy via cxl_port_get_bus().
->  
->  The host of a port is the corresponding device name of the PCIe Root
-> diff --git a/Documentation/daxctl/daxctl-create-device.txt b/Documentation/daxctl/daxctl-create-device.txt
-> index 05f4dbd..b774b86 100644
-> --- a/Documentation/daxctl/daxctl-create-device.txt
-> +++ b/Documentation/daxctl/daxctl-create-device.txt
-> @@ -62,7 +62,7 @@ DESCRIPTION
->  -----------
->  
->  Creates dax device in 'devdax' mode in dynamic regions. The resultant can also
-> -be convereted to the 'system-ram' mode which arranges for the dax range to be
-> +be converted to the 'system-ram' mode which arranges for the dax range to be
->  hot-plugged into the system as regular memory.
->  
->  'daxctl create-device' expects that the BIOS or kernel defines a range in the
-> diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
-> index afb085e..3d0a2dd 100644
-> --- a/Documentation/ndctl/ndctl-create-namespace.txt
-> +++ b/Documentation/ndctl/ndctl-create-namespace.txt
-> @@ -31,7 +31,7 @@ OPTIONS
->  -m::
->  --mode=::
->  	- "raw": expose the namespace capacity directly with
-> -	  limitations. A raw pmem namepace namespace does not support
-> +	  limitations. A raw pmem namespace does not support
->  	  sector atomicity (see "sector" mode below). A raw pmem
->  	  namespace may have limited to no dax support depending the
->  	  kernel. In other words operations like direct-I/O targeting a
-> @@ -95,7 +95,7 @@ OPTIONS
->  	suffixes "k" or "K" for KiB, "m" or "M" for MiB, "g" or "G" for
->  	GiB and "t" or "T" for TiB.
->  
-> -	For pmem namepsaces the size must be a multiple of the
-> +	For pmem namespaces the size must be a multiple of the
->  	interleave-width and the namespace alignment (see
->  	below).
->  
-> diff --git a/ccan/list/list.h b/ccan/list/list.h
-> index 15f5fb7..eeaed16 100644
-> --- a/ccan/list/list.h
-> +++ b/ccan/list/list.h
-> @@ -712,7 +712,7 @@ static inline void list_prepend_list_(struct list_head *to,
->   * @off: offset(relative to @i) at which list node data resides.
->   *
->   * This is a low-level wrapper to iterate @i over the entire list, used to
-> - * implement all oher, more high-level, for-each constructs. It's a for loop,
-> + * implement all other, more high-level, for-each constructs. It's a for loop,
->   * so you can break and continue as normal.
->   *
->   * WARNING! Being the low-level macro that it is, this wrapper doesn't know
-> diff --git a/cxl/bus.c b/cxl/bus.c
-> index 3321295..9ef04bc 100644
-> --- a/cxl/bus.c
-> +++ b/cxl/bus.c
-> @@ -100,7 +100,7 @@ static int bus_action(int argc, const char **argv, struct cxl_ctx *ctx,
->  		if (sscanf(argv[i], "%lu", &id) == 1)
->  			continue;
->  
-> -		log_err(&bl, "'%s' is not a valid bus identifer\n", argv[i]);
-> +		log_err(&bl, "'%s' is not a valid bus identifier\n", argv[i]);
->  		err++;
->  	}
->  
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 5d97023..1da0c1e 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -1785,7 +1785,7 @@ static void bus_invalidate(struct cxl_bus *bus)
->  	struct cxl_memdev *memdev;
->  
->  	/*
-> -	 * Something happend to cause the state of all ports to be
-> +	 * Something happened to cause the state of all ports to be
->  	 * indeterminate, delete them all and start over.
->  	 */
->  	cxl_memdev_foreach(ctx, memdev)
-> diff --git a/cxl/memdev.c b/cxl/memdev.c
-> index 6e44d15..58087de 100644
-> --- a/cxl/memdev.c
-> +++ b/cxl/memdev.c
-> @@ -650,7 +650,7 @@ param_size_to_volatile_size(const char *devname, enum cxl_setpart_type type,
->  }
->  
->  /*
-> - * Return the volatile_size to use in the CXL set paritition
-> + * Return the volatile_size to use in the CXL set partition
->   * command, or ULLONG_MAX if unable to validate the partition
->   * request.
->   */
-> diff --git a/meson.build b/meson.build
-> index 300eddb..56b7d48 100644
-> --- a/meson.build
-> +++ b/meson.build
-> @@ -173,7 +173,7 @@ keyutils = cc.find_library('keyutils', required : get_option('keyutils'))
->  
->  # iniparser lacks pkgconfig and its header files are either at '/usr/include' or '/usr/include/iniparser'
->  # Use the path provided by user via meson configure -Diniparserdir=<somepath>
-> -# if thats not provided then try searching for 'iniparser.h' in default system include path
-> +# if that's not provided then try searching for 'iniparser.h' in default system include path
->  # and if that not found then as a last resort try looking at '/usr/include/iniparser'
->  iniparser_headers = ['iniparser.h', 'dictionary.h']
->  
-> diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-> index aaa0abf..533ab04 100644
-> --- a/ndctl/dimm.c
-> +++ b/ndctl/dimm.c
-> @@ -1074,7 +1074,7 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
->  	if (!param.crypto_erase && !param.overwrite) {
->  		param.crypto_erase = true;
->  		if (param.verbose)
-> -			fprintf(stderr, "No santize method passed in, default to crypto-erase\n");
-> +			fprintf(stderr, "No sanitize method passed in, default to crypto-erase\n");
->  	}
->  
->  	if (param.crypto_erase) {
-> diff --git a/ndctl/lib/ars.c b/ndctl/lib/ars.c
-> index d50c283..b705cf0 100644
-> --- a/ndctl/lib/ars.c
-> +++ b/ndctl/lib/ars.c
-> @@ -70,7 +70,7 @@ static bool __validate_ars_cap(struct ndctl_cmd *ars_cap)
->  ({ \
->  	bool __valid = __validate_ars_cap(ars_cap); \
->  	if (!__valid) \
-> -		dbg(ctx, "expected sucessfully completed ars_cap command\n"); \
-> +		dbg(ctx, "expected successfully completed ars_cap command\n"); \
->  	__valid; \
->  })
->  
-> @@ -224,7 +224,7 @@ static bool __validate_ars_stat(struct ndctl_cmd *ars_stat)
->  ({ \
->  	bool __valid = __validate_ars_stat(ars_stat); \
->  	if (!__valid) \
-> -		dbg(ctx, "expected sucessfully completed ars_stat command\n"); \
-> +		dbg(ctx, "expected successfully completed ars_stat command\n"); \
->  	__valid; \
->  })
->  
-> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-> index f75dbd4..dd3e802 100644
-> --- a/ndctl/lib/libndctl.c
-> +++ b/ndctl/lib/libndctl.c
-> @@ -50,7 +50,7 @@ NDCTL_EXPORT size_t ndctl_sizeof_namespace_index(void)
->  }
->  
->  /**
-> - * ndctl_min_namespace_size - minimum namespace size that btt suports
-> + * ndctl_min_namespace_size - minimum namespace size that btt supports
->   */
->  NDCTL_EXPORT size_t ndctl_min_namespace_size(void)
->  {
-> @@ -3184,7 +3184,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg
->  
->  	if (cfg_size->type != ND_CMD_GET_CONFIG_SIZE
->  			|| cfg_size->status != 0) {
-> -		dbg(ctx, "expected sucessfully completed cfg_size command\n");
-> +		dbg(ctx, "expected successfully completed cfg_size command\n");
->  		return NULL;
->  	}
->  
-> @@ -3275,7 +3275,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cf
->  	/* enforce rmw */
->  	if (cfg_read->type != ND_CMD_GET_CONFIG_DATA
->  		       || cfg_read->status != 0) {
-> -		dbg(ctx, "expected sucessfully completed cfg_read command\n");
-> +		dbg(ctx, "expected successfully completed cfg_read command\n");
->  		return NULL;
->  	}
->  
-> @@ -4694,7 +4694,7 @@ NDCTL_EXPORT int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns)
->  			 * Yes, TOCTOU hole, but if you're racing namespace
->  			 * creation you have other problems, and there's nothing
->  			 * stopping the !bdev case from racing to mount an fs or
-> -			 * re-enabling the namepace.
-> +			 * re-enabling the namespace.
->  			 */
->  			dbg(ctx, "%s: %s failed exclusive open: %s\n",
->  					devname, bdev, strerror(errno));
-> diff --git a/ndctl/lib/papr_pdsm.h b/ndctl/lib/papr_pdsm.h
-> index 20ac20f..6d808da 100644
-> --- a/ndctl/lib/papr_pdsm.h
-> +++ b/ndctl/lib/papr_pdsm.h
-> @@ -44,7 +44,7 @@
->   *
->   * PDSM Header:
->   * This is papr-scm specific header that precedes the payload. This is defined
-> - * as nd_cmd_pdsm_pkg.  Following fields aare available in this header:
-> + * as nd_cmd_pdsm_pkg.  Following fields are available in this header:
->   *
->   * 'cmd_status'		: (Out) Errors if any encountered while servicing PDSM.
->   * 'reserved'		: Not used, reserved for future and should be set to 0.
-> @@ -83,11 +83,11 @@
->   * Various flags indicate the health status of the dimm.
->   *
->   * extension_flags	: Any extension fields present in the struct.
-> - * dimm_unarmed		: Dimm not armed. So contents wont persist.
-> + * dimm_unarmed		: Dimm not armed. So contents won't persist.
->   * dimm_bad_shutdown	: Previous shutdown did not persist contents.
-> - * dimm_bad_restore	: Contents from previous shutdown werent restored.
-> + * dimm_bad_restore	: Contents from previous shutdown weren't restored.
->   * dimm_scrubbed	: Contents of the dimm have been scrubbed.
-> - * dimm_locked		: Contents of the dimm cant be modified until CEC reboot
-> + * dimm_locked		: Contents of the dimm can't be modified until CEC reboot
->   * dimm_encrypted	: Contents of dimm are encrypted.
->   * dimm_health		: Dimm health indicator. One of PAPR_PDSM_DIMM_XXXX
->   * dimm_fuel_gauge	: Life remaining of DIMM as a percentage from 0-100
-> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-> index 91ef0f4..5730edf 100644
-> --- a/ndctl/libndctl.h
-> +++ b/ndctl/libndctl.h
-> @@ -53,7 +53,7 @@ typedef unsigned char uuid_t[16];
->   *
->   * Notes:
->   * 1/ The object ids are not guaranteed to be stable from boot to boot
-> - * 2/ While regions and busses are numbered in sequential/bus-discovery
-> + * 2/ While regions and buses are numbered in sequential/bus-discovery
->   *    order, the resulting block devices may appear to have random ids.
->   *    Use static attributes of the devices/device-path to generate a
->   *    persistent name.
-> @@ -258,7 +258,7 @@ int ndctl_cmd_ars_stat_get_flag_overflow(struct ndctl_cmd *ars_stat);
->  
->  /*
->   * the ndctl.h definition of these are deprecated, libndctl.h is the
-> - * authoritative defintion.
-> + * authoritative definition.
->   */
->  #define ND_SMART_HEALTH_VALID	(1 << 0)
->  #define ND_SMART_SPARES_VALID	(1 << 1)
-> diff --git a/test/cxl-sanitize.sh b/test/cxl-sanitize.sh
-> index 9c16101..10f07f0 100644
-> --- a/test/cxl-sanitize.sh
-> +++ b/test/cxl-sanitize.sh
-> @@ -64,7 +64,7 @@ done
->  [ -z $inactive ] && err $LINENO
->  
->  # kickoff a background sanitize and make sure the wait takes a couple
-> -# secounds
-> +# seconds
->  set_timeout $inactive 3000
->  start=$SECONDS
->  echo 1 > /sys/bus/cxl/devices/${inactive}/security/sanitize &
-> diff --git a/test/daxctl-create.sh b/test/daxctl-create.sh
-> index 954a112..ee3756b 100755
-> --- a/test/daxctl-create.sh
-> +++ b/test/daxctl-create.sh
-> @@ -279,7 +279,7 @@ daxctl_test_adjust()
->  }
->  
->  # Test 0:
-> -# Sucessfully zero out the region device and allocate the whole space again.
-> +# Successfully zero out the region device and allocate the whole space again.
->  daxctl_test0()
->  {
->  	clear_dev
-> @@ -287,7 +287,7 @@ daxctl_test0()
->  }
->  
->  # Test 1:
-> -# Sucessfully creates and destroys a device with the whole available space
-> +# Successfully creates and destroys a device with the whole available space
->  daxctl_test1()
->  {
->  	local daxdev
-> diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
-> index dfce74b..659428d 100755
-> --- a/test/daxctl-devices.sh
-> +++ b/test/daxctl-devices.sh
-> @@ -117,7 +117,7 @@ daxctl_test()
->  	if ! "$NDCTL" disable-namespace "$testdev"; then
->  		echo "disable-namespace failed as expected"
->  	else
-> -		echo "disable-namespace succeded, expected failure"
-> +		echo "disable-namespace succeeded, expected failure"
->  		echo "reboot required to recover from this state"
->  		return 1
->  	fi
-> @@ -130,7 +130,7 @@ daxctl_test()
->  	if ! "$DAXCTL" reconfigure-device -N -m system-ram "$daxdev"; then
->  		echo "reconfigure failed as expected"
->  	else
-> -		echo "reconfigure succeded, expected failure"
-> +		echo "reconfigure succeeded, expected failure"
->  		restore_online_policy
->  		return 1
->  	fi
-> diff --git a/test/libndctl.c b/test/libndctl.c
-> index 858110c..0c7115b 100644
-> --- a/test/libndctl.c
-> +++ b/test/libndctl.c
-> @@ -1617,7 +1617,7 @@ static int check_namespaces(struct ndctl_region *region,
->  			 * On the second time through this loop we skip
->  			 * establishing btt|pfn since
->  			 * check_{btt|pfn}_autodetect() destroyed the
-> -			 * inital instance.
-> +			 * initial instance.
->  			 */
->  			if (mode == BTT) {
->  				btt_s = namespace->do_configure > 0
-> diff --git a/test/security.sh b/test/security.sh
-> index d3a840c..4112d88 100755
-> --- a/test/security.sh
-> +++ b/test/security.sh
-> @@ -250,7 +250,7 @@ echo "Test 5, freeze security"
->  test_5_security_freeze
->  
->  # Load-keys is independent of actual nvdimm security and is part of key
-> -# mangement testing.
-> +# management testing.
->  echo "Test 6, test load-keys"
->  test_6_load_keys
->  
-> diff --git a/util/parse-options.h b/util/parse-options.h
-> index 9318fe7..14e87a9 100644
-> --- a/util/parse-options.h
-> +++ b/util/parse-options.h
-> @@ -75,7 +75,7 @@ typedef int parse_opt_cb(const struct option *, const char *arg, int unset);
->   *
->   * `flags`::
->   *   mask of parse_opt_option_flags.
-> - *   PARSE_OPT_OPTARG: says that the argument is optionnal (not for BOOLEANs)
-> + *   PARSE_OPT_OPTARG: says that the argument is optional (not for BOOLEANs)
->   *   PARSE_OPT_NOARG: says that this option takes no argument, for CALLBACKs
->   *   PARSE_OPT_NONEG: says that this option cannot be negated
->   *   PARSE_OPT_HIDDEN this option is skipped in the default usage, showed in
-> @@ -141,7 +141,7 @@ struct option {
->  	.flags = PARSE_OPT_LASTARG_DEFAULT | PARSE_OPT_NOARG}
->  
->  /* parse_options() will filter out the processed options and leave the
-> - * non-option argments in argv[].
-> + * non-option arguments in argv[].
->   * Returns the number of arguments left in argv[].
->   */
->  extern int parse_options(int argc, const char **argv,
-> @@ -160,7 +160,7 @@ extern int parse_options_subcommand(int argc, const char **argv,
->  extern NORETURN void usage_with_options(const char * const *usagestr,
->                                          const struct option *options);
->  
-> -/*----- incremantal advanced APIs -----*/
-> +/*----- incremental advanced APIs -----*/
->  
->  enum {
->  	PARSE_OPT_HELP = -1,
-> diff --git a/util/strbuf.h b/util/strbuf.h
-> index 3f810a5..614e58b 100644
-> --- a/util/strbuf.h
-> +++ b/util/strbuf.h
-> @@ -19,7 +19,7 @@
->   *    build complex strings/buffers whose final size isn't easily known.
->   *
->   *    It is NOT legal to copy the ->buf pointer away.
-> - *    `strbuf_detach' is the operation that detachs a buffer from its shell
-> + *    `strbuf_detach' is the operation that detaches a buffer from its shell
->   *    while keeping the shell valid wrt its invariants.
->   *
->   * 2. the ->buf member is a byte array that has at least ->len + 1 bytes
+> While doing that, sort headers alphabetically.
+> 
+> [...]
 
+Applied, thanks!
+
+[1/1] libnvdimm: Don't use "proxy" headers
+      commit: 536f5941adde41c99a18a0ba03b457adc9702ab8
+
+Best regards,
+-- 
+Ira Weiny <ira.weiny@intel.com>
