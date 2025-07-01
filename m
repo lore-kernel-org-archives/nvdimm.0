@@ -1,154 +1,121 @@
-Received: from out162-62-57-87.mail.qq.com (out162-62-57-87.mail.qq.com [162.62.57.87])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E30D9FC0A
-	for <nvdimm@lists.linux.dev>; Tue,  1 Jul 2025 02:49:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.57.87
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5390E272815
+	for <nvdimm@lists.linux.dev>; Tue,  1 Jul 2025 12:06:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751338164; cv=none; b=R++41XmzQo5n0hDsRpwdyPstY/a5Spt8StHvLMmPy8kVvIlBUgBYYjibNdrinsGk0tdcyXTkDUEYzo0H+9LUBwIVOMH9/6O2iXpfFxbZyHYjSfI7L1DlfUHcoRW5VNAAx4Peyl4v5b4b/4ja+7aJhhi6++AVNAOSHRvICtlAN68=
+	t=1751371593; cv=none; b=kPGl/iNLUExIy5OzJ5L0HXp9CJYFFY+HLjjohwSA4yXHKqOIAU+U8Ak9GbIwxQQWAIs19WFaCv29r3wry8mDo2nD3SyFWR61VjLv/1eid8Gx8o/3tv/UMibEnId5MDaI1V65jyMHwSFGahFI/kkBAMjH+eJVC6Ll11CKMJ1HTXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751338164; c=relaxed/simple;
-	bh=Zm+b7msIzvUU1taQ+/eL2c5T/hzT63m/TqIPO/3nYWA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=h4wTdRU/pv3umx41fhnQpYFwo/ra2DEfpKR90nJofbfhI19MlkdPVJXV1nXzeJLofCtZiKWbF8ieY3LWaVuzpDfUlxLqgjKcZYWQMsJO2C86KChBq5IQjFsAueVIUzkD8OPcTMHFYj4atGHeZXlqMfsTpUA1jSjFtW7m9RIst/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foxmail.com; spf=pass smtp.mailfrom=foxmail.com; dkim=pass (1024-bit key) header.d=foxmail.com header.i=@foxmail.com header.b=btFVcFLf; arc=none smtp.client-ip=162.62.57.87
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foxmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foxmail.com
+	s=arc-20240116; t=1751371593; c=relaxed/simple;
+	bh=fwZQhFulCtk6W9St9reCgVe3JkeISDZLWskJCaogHtY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=gdwFi9eQLXtLKOkb1/sHxyKpihA86/2ybrvMLQhTR0Ziv7hQfmfrURbYQqNgfve6SwPNpgOIBuyizsGm8p+mQUQgt6kU1Ry0uS4y75gZ0wFkmF9S0wi0aByxMB8xTIeSEOA/neRIV7NjG9ffLEZ9Aoiv7p6ZLnXb+TaaFPC+B54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=eKlY/yg1; arc=none smtp.client-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=foxmail.com header.i=@foxmail.com header.b="btFVcFLf"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=foxmail.com;
-	s=s201512; t=1751338133;
-	bh=iCikdi9PFpf0JfYQKaUXWT5hILOT0VaIoEga0SEMW7U=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=btFVcFLfQhoUuYUxZ1NlKgbGYmpxKNI6iIRvd/tur2dQ90SNivQOZWuc2NNewUSJH
-	 4VdHWFIIc1mw+vyz3QUaxHjAUD8H5v/r+jk5NS0cUT74jWGmg5iViBnkwuAVpB5VNz
-	 Udxkv5hL7Bf9s6IIDChkl01U7psYcBiV4o16YvS0=
-Received: from [10.56.52.9] ([39.156.73.10])
-	by newxmesmtplogicsvrsza36-0.qq.com (NewEsmtp) with SMTP
-	id C3416C83; Tue, 01 Jul 2025 10:48:52 +0800
-X-QQ-mid: xmsmtpt1751338132tf0fgvgo8
-Message-ID: <tencent_985F05467310610C8284AEB2102E5955C009@qq.com>
-X-QQ-XMAILINFO: OeJ9zRfntlNPfoTaewtNC7pEiF5g+52uKe2MG7zYislkbu/kAPq03gms+oHEoL
-	 VLQfc3EhKonBWqmxHID4PYQrayfGrzfZpBPfwKe5ybQMulcDXm2aZLTlwd8p1i403/P49uQZJ6rX
-	 NwP9MZXpebgIGpKjYsmx+S8DYuAHihx2z+Bc8TrEmH9UP+/p74JyYnTAB8i9p2IDg17vv4Ph32wQ
-	 xv+O/Y1A8Yd7yExEDIuJOhbxa4C2p+z8q0fG1az4vqfDIKBTtHDdIa5DUCuuS6ENtkSTa1a+QMEQ
-	 0RmqSG5CPWepCc8UkbfBhJDnLozgoHJrUHDv9AsEiA/q23WgilQ/TS64I5asKH/PxI/XsQuPb5QZ
-	 rLlD+UDC/p35p4MYyUqc8AB9B34jC/G4uv4M+PInOQDthLpd/A3ck8v8Mo8lh3uayrsnNcTLnL/X
-	 50DWCht27d8cgM/kXqImkG8Of3xy3wAtSfdSPveX0L8VRWHU1oGhk1wUHiwdZbd7pdyfIqcAqOxP
-	 mazMKl24+SeunDGeN5RhtV/ictWnAnQKwZnD2MM+OqdF1iMnCu3J/4oeBgMHEu3CJUD3MMMxGZAt
-	 tNVltN9+oztm8BtzIvnW3+/sjL+mUpQrUpTNT0OGZ/OLsEi3HMKv3jgm4yS+gpUHPeR5lH5BAmpp
-	 teD0oGhT+BNg2JSiU0hV2K+c136PUxGTCL7D4BROuAVlu24MF5imVg7X7wrX/rug2+H+5O3JDUZb
-	 oPeJ5IbgkMt8hVqr8xqnJCXgDDnIlTq/rnGqdRqMUmw/wb5Sbc8k/II1IYle9+T4NjnHa7kFKR71
-	 dpCPmiHcnim2NMWk2Z6+mNQjHvAgHHN+hSqzAi/8bTspUf7uUpPFSpA6uACQEJDWo6R0lfVEbtph
-	 /Z5nkoNvC1QVcDdOnUi0fbmJ+60R13apLBM0yqOPnjsV6JGX2V2L9x4LOEZxju2PATKtfQvQ5vOn
-	 +gSy6ZDHCfIQr6VvuzNC4Z8raSqnSj5kzz3BYcYWUJmyirPJqGnk/2laC07eI0
-X-QQ-XMRINFO: Mp0Kj//9VHAxr69bL5MkOOs=
-X-OQ-MSGID: <b206022b-fefa-44dc-8bdb-4a5172e7c6bd@foxmail.com>
-Date: Tue, 1 Jul 2025 10:48:51 +0800
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="eKlY/yg1"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2357c61cda7so114245ad.1
+        for <nvdimm@lists.linux.dev>; Tue, 01 Jul 2025 05:06:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1751371592; x=1751976392; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fwZQhFulCtk6W9St9reCgVe3JkeISDZLWskJCaogHtY=;
+        b=eKlY/yg1cUhyQcH5EQF2rw/osxkm9ll97drDqIYdHMCl+EHm1rFmxckLG2WVs1SCEd
+         xVSfooMGvcHsqJVh3t8N3nj+Dfp7HXhqvGxvlcLKUCmhlb+XbiGWsX+ML7Be89Rkaqlb
+         0eVD/kV9pGchmt2YYNYCZq6+ycNQg3vBIHAhAB5C00sPE1LzrhVOn//7dZAGpYBVGp4K
+         hyeBmCMiAeWsQsly+HoiUFaBV5j808K17mkgWg/idWV0lSbSzuJikrQcBPw3fOr33ejk
+         V2xn6XsedL3/9Yumdm6RtzhYwxglQ5qWP8JDDAgbVDdSrRz8zJ348MPUwZ5FUfFu288o
+         S3vA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751371592; x=1751976392;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fwZQhFulCtk6W9St9reCgVe3JkeISDZLWskJCaogHtY=;
+        b=vvikXtObCRdufZZuLa+rjyNJFlD5UaYi9/eNmJFEm2DRJQRzzrVEiJE4IQCNKOwu9V
+         AhJRRgUILv+D06rJTwADc3uCJZcTQtcvmNgBGccXPvkutAY4/p1f0XqBtHao7hgWFV9+
+         h7vzyiNivSnjUJJz3J0270wYvAcXB3Jn41Sd414eOhqK1MF6G/xS8d1FQ2n+/BtrHi7+
+         ERUrZhZcZ+3jwDx2n4yJG2dkv+ny6QI2mCVkyxxq8G2ZEf8e5U8Eva/IMZJfYZx10/Hc
+         4UBjIIw+vhraZzCnq6R+52xINXRlAhnA6ltbz0IJaBcATkf+GFhgMjTIbZd0deCuZvvB
+         R9DQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWKM2sIsvc3Z+SHbxDy8E74Smwd2QAfSr2Qo/djbOEnM/FzKRG8NEWS5L3XVs9v+dYU6Lrxmlc=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyhjRFDdObZiBTh7PpsejRTtkItLA4XKeWqhIw4zpZj5zCQv1kt
+	A78XWiIX0dppLqbsUWLYYSEcs4XWvY2/JUsvRAyb8MEe9TJztdkdCY3KLPkTrG+NuC497DqmLAi
+	xDG7VPDO9P+Jqmus29JRRcDr4XI2Q+kFLhcEdBpUm
+X-Gm-Gg: ASbGncsEjsgrJDILL6hhh65cqlUOxt9Z2iF1ifk64Zzhnr+lNkXtFK1aeV96RFyxgH3
+	p2XyI78MLXipHyJkpw2ngSVwdY/fipmsujrTPsqqwdEcUmGZ/9JzPSCA6qZ2mg3nRn7VIc0Xbbn
+	Lyt1+PlQVSbxnD/DG1Cu1q5vWa5UF615r1Lk/VCVLGDA==
+X-Google-Smtp-Source: AGHT+IGFAwjulo/i4stzSeDZyvangI+UZ0rJXA7wz0l2gf+G3c7FdoUDkNvfVQlKGJ7tNf7XQG97q/uJgkbiheh/1nA=
+X-Received: by 2002:a17:903:110d:b0:23c:5f63:b67 with SMTP id
+ d9443c01a7336-23c5fef26b2mr2103895ad.4.1751371591226; Tue, 01 Jul 2025
+ 05:06:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH] Documentation: cxl,daxctl,ndctl add --list-cmds
- info
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- Rong Tao <rongtao@cestc.cn>, rtoax@foxmail.com
-References: <tencent_9A6812E28AC195905396EEE5A8CAD2ABD306@qq.com>
- <aGMw9JLysjOf2KWY@aschofie-mobl2.lan>
-Content-Language: en-US
-From: Rong Tao <rtoax@foxmail.com>
-In-Reply-To: <aGMw9JLysjOf2KWY@aschofie-mobl2.lan>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20250612114210.2786075-1-mclapinski@google.com> <685c67525ba79_2c35442945@iweiny-mobl.notmuch>
+In-Reply-To: <685c67525ba79_2c35442945@iweiny-mobl.notmuch>
+From: =?UTF-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>
+Date: Tue, 1 Jul 2025 14:05:59 +0200
+X-Gm-Features: Ac12FXxGIEan-Q08VvikT9LVQKRxgvs42efMWiz53YaKommHJZr1vh6fiZw9HYE
+Message-ID: <CAAi7L5cq9OqRGdyZ07rHhsA8GRh2xVXYGh7n20UoTCRfQK03WA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/2] libnvdimm/e820: Add a new parameter to configure
+ many regions per e820 entry
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev, 
+	"Paul E. McKenney" <paulmck@kernel.org>, Thomas Huth <thuth@redhat.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	"Borislav Petkov (AMD)" <bp@alien8.de>, Ard Biesheuvel <ardb@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
+	Mike Rapoport <rppt@kernel.org>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-cxl@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-
-On 7/1/25 08:51, Alison Schofield wrote:
-> On Mon, Jun 30, 2025 at 03:28:25PM +0800, Rong Tao wrote:
->> From: Rong Tao <rongtao@cestc.cn>
->>
->> Such as daxctl(1) manual.
-> What does the 'Such as ...' mean?  I thought that it meant you saw
-> the --list-cmds as an option in another of our family of commands,
-> but I don't see it.
-
-Thanks for your reply, There are three commands has --list-cmds argument:
-
-$ cxl --list-cmds
-
-$ daxctl --list-cmds
-
-$ ndctl --list-cmds
-
-Thus, this patch add --list-cmds in man-page for those three tools.
-
+On Wed, Jun 25, 2025 at 11:16=E2=80=AFPM Ira Weiny <ira.weiny@intel.com> wr=
+ote:
 >
-> For these, the --list-cmds, is a suggestion in the --help option,
-> like this:
+> Michal Clapinski wrote:
+> > This includes:
+> > 1. Splitting one e820 entry into many regions.
+> > 2. Conversion to devdax during boot.
+> >
+> > This change is needed for the hypervisor live update. VMs' memory will
+> > be backed by those emulated pmem devices. To support various VM shapes
+> > I want to create devdax devices at 1GB granularity similar to hugetlb.
+> > Also detecting those devices as devdax during boot speeds up the whole
+> > process. Conversion in userspace would be much slower which is
+> > unacceptable while trying to minimize
 >
-> $ ndctl -h
+> Did you explore the NFIT injection strategy which Dan suggested?[1]
 >
->   usage: ndctl [--version] [--help] COMMAND [ARGS]
+> [1] https://lore.kernel.org/all/6807f0bfbe589_71fe2944d@dwillia2-xfh.jf.i=
+ntel.com.notmuch/
 >
->   See 'ndctl help COMMAND' for more information on a specific command.
->   ndctl --list-cmds to see all available commands
->
->
->
->> Signed-off-by: Rong Tao <rongtao@cestc.cn>
->> ---
->>   Documentation/cxl/cxl.txt       | 3 +++
->>   Documentation/daxctl/daxctl.txt | 3 +++
->>   Documentation/ndctl/ndctl.txt   | 3 +++
->>   3 files changed, 9 insertions(+)
->>
->> diff --git a/Documentation/cxl/cxl.txt b/Documentation/cxl/cxl.txt
->> index 41a51c7d3892..546207d885eb 100644
->> --- a/Documentation/cxl/cxl.txt
->> +++ b/Documentation/cxl/cxl.txt
->> @@ -14,6 +14,9 @@ SYNOPSIS
->>   
->>   OPTIONS
->>   -------
->> +--list-cmds::
->> +  Display all available commands.
->> +
->>   -v::
->>   --version::
->>     Display the version of the 'cxl' utility.
->> diff --git a/Documentation/daxctl/daxctl.txt b/Documentation/daxctl/daxctl.txt
->> index f81b161c9771..606abc3e9635 100644
->> --- a/Documentation/daxctl/daxctl.txt
->> +++ b/Documentation/daxctl/daxctl.txt
->> @@ -14,6 +14,9 @@ SYNOPSIS
->>   
->>   OPTIONS
->>   -------
->> +--list-cmds::
->> +  Display all available commands.
->> +
->>   -v::
->>   --version::
->>     Display daxctl version.
->> diff --git a/Documentation/ndctl/ndctl.txt b/Documentation/ndctl/ndctl.txt
->> index c2919de4692d..08c3e949418a 100644
->> --- a/Documentation/ndctl/ndctl.txt
->> +++ b/Documentation/ndctl/ndctl.txt
->> @@ -14,6 +14,9 @@ SYNOPSIS
->>   
->>   OPTIONS
->>   -------
->> +--list-cmds::
->> +  Display all available commands.
->> +
->>   -v::
->>   --version::
->>     Display ndctl version.
->> -- 
->> 2.50.0
->>
->>
+> If so why did it not work?
 
+I'm new to all this so I might be off on some/all of the things.
+
+My issues with NFIT:
+1. I can either go with custom bios or acpi nfit injection. Custom
+bios sounds rather aggressive to me and I'd prefer to avoid this. The
+NFIT injection is done via initramfs, right? If a system doesn't use
+initramfs at the moment, that would introduce another step in the boot
+process. One of the requirements of the hypervisor live update project
+is that the boot process has to be blazing fast and I'm worried
+introducing initramfs would go against this requirement.
+2. If I were to create an NFIT, it would have to contain thousands of
+entries. That would have to be parsed on every boot. Again, I'm
+worried about the performance.
+
+Do you think an NFIT solution could be as fast as the simple command
+line solution?
+
+[snip]
