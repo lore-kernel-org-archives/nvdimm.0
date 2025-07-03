@@ -1,63 +1,63 @@
-Received: from mail-ot1-f53.google.com (mail-ot1-f53.google.com [209.85.210.53])
+Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com [209.85.210.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 749802F3642
-	for <nvdimm@lists.linux.dev>; Thu,  3 Jul 2025 18:50:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32F80291166
+	for <nvdimm@lists.linux.dev>; Thu,  3 Jul 2025 18:50:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751568648; cv=none; b=VOP320XueRqQhMg2xkCzan1jmAqslI2NOqvpWJE9ukLXcEYBVN0tUWwQSMCWqJ5hFIBR9Rj9wTIcrtP/6asR2/l17TH3i92dtcaXpFSIvU+DDYpq7zb53Ylu2Gd8fy351xzvpjZ52JsHbTSyeQfW9G3Ct9b4JPPzz/zYbh4OcQQ=
+	t=1751568653; cv=none; b=lWdklXmG8Xir9Zc2oT7PNkX+rtMIaBf34vbXoWSP6nZEJGDB9k8AQN4nOXEpIfYz7E6pRxKemg+wvzLWLpZLscYBfx0O0zSabpELoeXu8sxbcd68dbDu2r1sWqMwmHxUEg1vVy6wvHEYTZBYRggpb556FJzAIsCg6deYZeB88Sw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751568648; c=relaxed/simple;
-	bh=SM8Xj4dnyYwoGjDXor6hvaRx7QAO8yyyxbfokVYE+S8=;
+	s=arc-20240116; t=1751568653; c=relaxed/simple;
+	bh=Pw428QKL7vU/Q+rAmnYuMV/vyS2i6xzQE57G20v2vFg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=qha20TER0Jd9W50ULEVLB2UNy3aIWhc8TJU3mrTvvoS63/rTuu2SQ0QB98y13RyHajXJRB+IJVF5QXFEF4qwDOSkuuVW0q1mfR5bphRfTHVAFh3OqdbYUkeLMCmQilnb4FA7rOZMVDTeOXfZZyKVMlfcBVtj9frLFA9f2gHnAhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ACRwtuPR; arc=none smtp.client-ip=209.85.210.53
+	 MIME-Version; b=nfaq8es53bYLRQERFyOa6I6GOXdzN6uQ2bBMMptwjvADvoenxNOHjJ7RnY3DojmmhJyRE3UzvxfHvAYmlX0dUszAMSf20BqcOlpvn/33lTbbR6gDgSxqZSUqktO4obXmyG1LGHdDfoYQsVZdsDTFkYgFHbLriJhYS2ZDw/jG/R0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hJjSHfQI; arc=none smtp.client-ip=209.85.210.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ACRwtuPR"
-Received: by mail-ot1-f53.google.com with SMTP id 46e09a7af769-7382a999970so144715a34.3
-        for <nvdimm@lists.linux.dev>; Thu, 03 Jul 2025 11:50:46 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hJjSHfQI"
+Received: by mail-ot1-f42.google.com with SMTP id 46e09a7af769-72c47631b4cso193851a34.1
+        for <nvdimm@lists.linux.dev>; Thu, 03 Jul 2025 11:50:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751568645; x=1752173445; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1751568651; x=1752173451; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=CJswZ+V2KGwmP5G+n4PEaC6MizB6DbX3hqjndqhvdZU=;
-        b=ACRwtuPRPTUNlFB14jgGQtQ0FayWk/lyuu73WsmSkxrNY+riSYQScDhj9pf2YMwhzi
-         Z+SCKZm3vqJ0wyIIZgyv5RsVoES8B7+UAIayyJgj5zrItIukPcJAxBUgDzVcpAg1ezJA
-         VyMzlRlFFj6SmIdXOllBaovtS7cQsJ4++eNgOKwcCKVBtjetwJcIhtAbptPIfo0D5Fix
-         byp5DkyKMF7qDNP2YFcnzgFpmA+ZK8E6J9ITDKUK1f74au5Wih8fYuLus3Mn5cZTXbsX
-         sSD5Z2fyGzWZWR3F1FPJ1xDxrNNSEFYQQQB0KzAoaoTkGAa3kUKMfzHLe8a6aaG8rG/q
-         asRQ==
+        bh=wgKTg4/Nk6wm5J+WL43f3KfjMbT1HMf3Vkuk3EBDHmU=;
+        b=hJjSHfQIzxB1rFOwFMln/u6bFwVOnyqb9SuQCYJnZXBdyE77qUIb06XvfVa7DGrF3+
+         JJYuWCT4kdy4dCxw8wQ5/pSUu/gKTu7lDxVuHL7IPPfD+ORZw9wdcKpWKI72ER7faQPM
+         7J0Sx9w4keDCkWVbwTnuOAKhvvYClsVd8PuXSgp7YXxppaAYhJ6dKxwrAlBdfldpZ03d
+         Y1Nl+ofyT3gthJfvYvC5Bx2Ucb7e/7UQRx87LnqTgmA0P5Fv/0eIJuYKykr2TRqY+4Vc
+         hYV3EFuDqE3xdwsYS3yLyDRSMC576XyIvtcedgQ6bRKSpxQ0a2xGcRDAELA7CiKlr7QM
+         QnTg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751568645; x=1752173445;
+        d=1e100.net; s=20230601; t=1751568651; x=1752173451;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=CJswZ+V2KGwmP5G+n4PEaC6MizB6DbX3hqjndqhvdZU=;
-        b=ABRuIxhyFVj8aTDhtQJATG9b/VSOaFgpj1ATMEWx0lKP7c/Bt5OLn7WvDQxCDW30Zj
-         cN1k7q0pCRQlr03ghPWHsQvncm+oJLqX8+BbqEvV2hctsWj3RfzZXdN4HWIhzQkhmeBA
-         fdeCHQINPTQfS8ryWTDTPEYou8t7OJGNmOPPAKUQuJkLHIF2U2b8nfd4eCZgthXVDwpu
-         eDh7xOTh7PbkzJJ685lsMaj/bfVZ/oNucaURr/ymgLfmfED+24SD9AUWjbifPBxysBEV
-         a+KlJPMuJwpKNrV/7fz7GJ1Iicnchb76x2JQBbr1p9moF0JgCD295WyN6XOmC/P1Yrkj
-         IwdQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUUy5odMmsx2elMXaKLDYnOZ6x3dSGvW4Z6b+kj2nXhvDi1ZemXrGUahUIbdlr29/v3/l3gI/8=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxeaJAOW7JWCAlDabvr14fZq64LRJtKWZ/TQ5zR2RzNGPcr/GsI
-	pOpcc72QsxIEVXHZsynEFEorfnilJWlN8yf8oVX1hEn8Fvk0XiGsAd7H
-X-Gm-Gg: ASbGncuNd3GMIYYHh2k3fFcbEAqcWMa8pu6WBHq8F1apaKOwmzXszIwNtXUVW/5KRHL
-	D/QMQIf8WJ2Yj7TxPZSBEr3x8ltziaZDQltGETltvb/3SyE0zWdGDsyzvVupOdXQN2k81xVK+ds
-	ywMJErh6DZcFMNf2c9Qup2luwcWGMN+bwSkERUdEw8s9vw+nr5hTd500GjgpYt/JR2WXKO5neEx
-	MrZfidhH+4tKlhhVlFhqKbIFaDp5XcjlS5MADTTcnLSSSDkmY/hFfdcq778krtTB9JyIk33Qv3x
-	4HoLhonOKEqEhwuyPFarJmxxPm/NpaB+TiiywcPHC3zuVpyW6b1kIWogoHopcuNN21QuyCSBdqy
-	QbgICjrRbJ7t9HXd+uWhRKEwO
-X-Google-Smtp-Source: AGHT+IGf6EnisMiDGZyZbVSv29Y7ewVQGRvUqtA17icw2gxtyfeO9BNRhEvAJBrTRu+vFRFvecQ+Zw==
-X-Received: by 2002:a05:6830:2c07:b0:727:24ab:3e4 with SMTP id 46e09a7af769-73c8c248e02mr2426451a34.9.1751568645493;
-        Thu, 03 Jul 2025 11:50:45 -0700 (PDT)
+        bh=wgKTg4/Nk6wm5J+WL43f3KfjMbT1HMf3Vkuk3EBDHmU=;
+        b=OsO4Zun/3wElVtjkD3u9RKpAFqqI+3GGHrt46wfXg8S7o68I9I1NMMQ6Em2SeBs5D+
+         jocgf+gD7S9Qi5IU7XEGnVqKkP0dfbHrnj2Qkec8HIqDJ5MY7wLJAxtOlBw4GOmLly/+
+         z/arLbTjr0SxaUPFoqzPan0FTwzzSQZ3cRWa1Pu1selZZ5QSGoI5nLs5AdQDw0itPWK7
+         WwY2YMdJRztlnQugYAjeWiF1PVAFcJQwCG3ESHnzZYdaktnqYZ3Vt4+SvV/smaFjpVNQ
+         1gscNadWJZXwvKvnjDLTzSn4br+vDtwvlsa/d+0MFi8S/CmBDklT90Hg0cuLjdZ3AQbq
+         4TFg==
+X-Forwarded-Encrypted: i=1; AJvYcCVKPTcHqsTx178xXWhu6kn7rhi6jsChcbdm5BoBJ+LIx0/IAa53x+FCqeAC2SiQ1zVMbgNpz/Q=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwLyZueYfCdcyoU//d5GhL7Z+VknPlzcIKql+FEimzIWZ/w0N0J
+	qVv1oTuS48SauyMoXtAym/h7yjaHOSAXAXRAHgfwLXKTrr6+vrl8bT8L
+X-Gm-Gg: ASbGnct+vclvYfq1bcDeLFiclwBbvV2Lz9kL5ycbRdBT9pqBZIhyUHMS87Ve/VqlYtc
+	bzncIC9EaMX1q059IYJiIXrVOXs/w8BJmfA5KmLGpTKNxBBJKGTI0aO0870LS0Nb2b07aTHOVxn
+	Ym640wgfdICzTCRPw5uOrBKUgFoZ5PfhLlUy/gefXZ8xcj5buXKBwfOeE+l92KTOTQbJhbo7Vs3
+	ZTIf0ZPlTtgztPlPLfV2IMXe2zx4QtSuyFaZbat85wGR7ayLgS4txDCpPn+andfXqpJBHAKMBe+
+	XbekwDmliUflIdlTqsvfU/KewuX35Psf1x9+iCYg+PP6n9n4rrciZpvhIIYEjOQy34vBm1DUPes
+	D5Uu4jJIjz+UyqQ7+ZdDQwLt4
+X-Google-Smtp-Source: AGHT+IGNEYE8azkCu6i4tdt/Jh/JzWWu2d955CfMIRLR2kAADDQEL7D+pI5ll8ogxoQ3Xa3+A+d+Cg==
+X-Received: by 2002:a05:6830:3c8d:b0:739:fcb4:db17 with SMTP id 46e09a7af769-73b4cb2f25amr6347478a34.15.1751568650976;
+        Thu, 03 Jul 2025 11:50:50 -0700 (PDT)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:cd4:2776:8c4a:3597])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-73c9f90d1ccsm68195a34.44.2025.07.03.11.50.43
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-73c9f90d1ccsm68195a34.44.2025.07.03.11.50.48
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Thu, 03 Jul 2025 11:50:45 -0700 (PDT)
+        Thu, 03 Jul 2025 11:50:49 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -90,9 +90,9 @@ Cc: John Groves <jgroves@micron.com>,
 	Aravind Ramesh <arramesh@micron.com>,
 	Ajay Joshi <ajayjoshi@micron.com>,
 	John Groves <john@groves.net>
-Subject: [RFC V2 03/18] dev_dax_iomap: Save the kva from memremap
-Date: Thu,  3 Jul 2025 13:50:17 -0500
-Message-Id: <20250703185032.46568-4-john@groves.net>
+Subject: [RFC V2 04/18] dev_dax_iomap: Add dax_operations for use by fs-dax on devdax
+Date: Thu,  3 Jul 2025 13:50:18 -0500
+Message-Id: <20250703185032.46568-5-john@groves.net>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 In-Reply-To: <20250703185032.46568-1-john@groves.net>
 References: <20250703185032.46568-1-john@groves.net>
@@ -104,71 +104,169 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Save the kva from memremap because we need it for iomap rw support.
+Notes about this commit:
 
-Prior to famfs, there were no iomap users of /dev/dax - so the virtual
-address from memremap was not needed.
+* These methods are based on pmem_dax_ops from drivers/nvdimm/pmem.c
 
-Also: in some cases dev_dax_probe() is called with the first
-dev_dax->range offset past the start of pgmap[0].range. In those cases
-we need to add the difference to virt_addr in order to have the physaddr's
-in dev_dax->ranges match dev_dax->virt_addr.
+* dev_dax_direct_access() is returns the hpa, pfn and kva. The kva was
+  newly stored as dev_dax->virt_addr by dev_dax_probe().
 
-This happens with devdax devices that started as pmem and got converted
-to devdax. I'm not sure whether the offset is due to label storage, or
-page tables, but this works in all known cases.
+* The hpa/pfn are used for mmap (dax_iomap_fault()), and the kva is used
+  for read/write (dax_iomap_rw())
+
+* dev_dax_recovery_write() and dev_dax_zero_page_range() have not been
+  tested yet. I'm looking for suggestions as to how to test those.
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- drivers/dax/dax-private.h |  1 +
- drivers/dax/device.c      | 15 +++++++++++++++
- 2 files changed, 16 insertions(+)
+ drivers/dax/bus.c | 120 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 115 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index 0867115aeef2..2a6b07813f9f 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -81,6 +81,7 @@ struct dev_dax_range {
- struct dev_dax {
- 	struct dax_region *region;
- 	struct dax_device *dax_dev;
-+	void *virt_addr;
- 	unsigned int align;
- 	int target_node;
- 	bool dyn_id;
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 29f61771fef0..583150478dcc 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -372,6 +372,7 @@ static int dev_dax_probe(struct dev_dax *dev_dax)
- 	struct dax_device *dax_dev = dev_dax->dax_dev;
- 	struct device *dev = &dev_dax->dev;
- 	struct dev_pagemap *pgmap;
-+	u64 data_offset = 0;
- 	struct inode *inode;
- 	struct cdev *cdev;
- 	void *addr;
-@@ -426,6 +427,20 @@ static int dev_dax_probe(struct dev_dax *dev_dax)
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 9d9a4ae7bbc0..61a8d1b3c07a 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -7,6 +7,10 @@
+ #include <linux/slab.h>
+ #include <linux/dax.h>
+ #include <linux/io.h>
++#include <linux/backing-dev.h>
++#include <linux/pfn_t.h>
++#include <linux/range.h>
++#include <linux/uio.h>
+ #include "dax-private.h"
+ #include "bus.h"
  
-+	/* Detect whether the data is at a non-zero offset into the memory */
-+	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
-+		u64 phys = dev_dax->ranges[0].range.start;
-+		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
-+		u64 vmemmap_shift = dev_dax->pgmap[0].vmemmap_shift;
+@@ -1441,6 +1445,105 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ }
+ EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
+ 
++#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
 +
-+		if (!WARN_ON(pgmap_phys > phys))
-+			data_offset = phys - pgmap_phys;
++static void write_dax(void *pmem_addr, struct page *page,
++		unsigned int off, unsigned int len)
++{
++	unsigned int chunk;
++	void *mem;
 +
-+		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx shift=%llx\n",
-+		       __func__, phys, pgmap_phys, data_offset, vmemmap_shift);
++	while (len) {
++		mem = kmap_local_page(page);
++		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
++		memcpy_flushcache(pmem_addr, mem + off, chunk);
++		kunmap_local(mem);
++		len -= chunk;
++		off = 0;
++		page++;
++		pmem_addr += chunk;
 +	}
-+	dev_dax->virt_addr = addr + data_offset;
++}
 +
- 	inode = dax_inode(dax_dev);
- 	cdev = inode->i_cdev;
- 	cdev_init(cdev, &dax_fops);
++static long __dev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
++			long nr_pages, enum dax_access_mode mode, void **kaddr,
++			pfn_t *pfn)
++{
++	struct dev_dax *dev_dax = dax_get_private(dax_dev);
++	size_t size = nr_pages << PAGE_SHIFT;
++	size_t offset = pgoff << PAGE_SHIFT;
++	void *virt_addr = dev_dax->virt_addr + offset;
++	u64 flags = PFN_DEV|PFN_MAP;
++	phys_addr_t phys;
++	pfn_t local_pfn;
++	size_t dax_size;
++
++	WARN_ON(!dev_dax->virt_addr);
++
++	if (down_read_interruptible(&dax_dev_rwsem))
++		return 0; /* no valid data since we were killed */
++	dax_size = dev_dax_size(dev_dax);
++	up_read(&dax_dev_rwsem);
++
++	phys = dax_pgoff_to_phys(dev_dax, pgoff, nr_pages << PAGE_SHIFT);
++
++	if (kaddr)
++		*kaddr = virt_addr;
++
++	local_pfn = phys_to_pfn_t(phys, flags); /* are flags correct? */
++	if (pfn)
++		*pfn = local_pfn;
++
++	/* This the valid size at the specified address */
++	return PHYS_PFN(min_t(size_t, size, dax_size - offset));
++}
++
++static int dev_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
++				    size_t nr_pages)
++{
++	long resid = nr_pages << PAGE_SHIFT;
++	long offset = pgoff << PAGE_SHIFT;
++
++	/* Break into one write per dax region */
++	while (resid > 0) {
++		void *kaddr;
++		pgoff_t poff = offset >> PAGE_SHIFT;
++		long len = __dev_dax_direct_access(dax_dev, poff,
++						   nr_pages, DAX_ACCESS, &kaddr, NULL);
++		len = min_t(long, len, PAGE_SIZE);
++		write_dax(kaddr, ZERO_PAGE(0), offset, len);
++
++		offset += len;
++		resid  -= len;
++	}
++	return 0;
++}
++
++static long dev_dax_direct_access(struct dax_device *dax_dev,
++		pgoff_t pgoff, long nr_pages, enum dax_access_mode mode,
++		void **kaddr, pfn_t *pfn)
++{
++	return __dev_dax_direct_access(dax_dev, pgoff, nr_pages, mode, kaddr, pfn);
++}
++
++static size_t dev_dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	size_t off;
++
++	off = offset_in_page(addr);
++
++	return _copy_from_iter_flushcache(addr, bytes, i);
++}
++
++static const struct dax_operations dev_dax_ops = {
++	.direct_access = dev_dax_direct_access,
++	.zero_page_range = dev_dax_zero_page_range,
++	.recovery_write = dev_dax_recovery_write,
++};
++
++#endif /* IS_ENABLED(CONFIG_DEV_DAX_IOMAP) */
++
+ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ {
+ 	struct dax_region *dax_region = data->dax_region;
+@@ -1496,11 +1599,18 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 		}
+ 	}
+ 
+-	/*
+-	 * No dax_operations since there is no access to this device outside of
+-	 * mmap of the resulting character device.
+-	 */
+-	dax_dev = alloc_dax(dev_dax, NULL);
++	if (IS_ENABLED(CONFIG_DEV_DAX_IOMAP))
++		/* holder_ops currently populated separately in a slightly
++		 * hacky way
++		 */
++		dax_dev = alloc_dax(dev_dax, &dev_dax_ops);
++	else
++		/*
++		 * No dax_operations since there is no access to this device
++		 * outside of mmap of the resulting character device.
++		 */
++		dax_dev = alloc_dax(dev_dax, NULL);
++
+ 	if (IS_ERR(dax_dev)) {
+ 		rc = PTR_ERR(dax_dev);
+ 		goto err_alloc_dax;
 -- 
 2.49.0
 
