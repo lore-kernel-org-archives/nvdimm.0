@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2D9223E347
-	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 10:39:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B9792C15AE
+	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 11:29:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751625588; cv=none; b=ACCNxu7cRpf/n3dPWHMfNZMdsTl2Q8SZgaQPTE2xmHD+oQytK7B6NOxW9wRIaeFvi4zHS9JgnUA3zO8tFdNv8zQh5kgb3g8jlQsCb4pnpsZoYfe66sv25W9RFAoLNWNRctMeASRGwIJqeeC7+io6Ps+jHSBxDb0gwgrVhcQ3cMc=
+	t=1751628548; cv=none; b=sOLsKTIImD1wor/9XGGoOAM+VL5lpKAboF8ofko0X6aUZT3FD/d6Z2TMMVkB67Hg4WU9WEaeie3cZsZ4jwqK4vWssxeLZ5Fi4kG4ort8vPmJad2+88IhzIM5r+Z10EazUmaEm44qsQQL8WWUj0UIYsj6+gs56ic6ZuW31Ep0qhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751625588; c=relaxed/simple;
-	bh=LBz82hO1YdtOP7p2XifOwPmwI+x1TPOYXV3bv5losxw=;
+	s=arc-20240116; t=1751628548; c=relaxed/simple;
+	bh=d6izWEeJk2kJa5GSgadR6b2xMlIhvrbazcDk3EqyLmc=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nFpRnZoFlJOhGk1tEDnGbwpknPidT9sy2PO5P39WtsqAEmuTaERlu8e6ILk7auKq2WKkDYizTyLTl2Zsq1/3V4e6CBJqxgbBBIh5QPu0BSgMiif4NS4PoszXGehfMEFbZrZoePI2dG7GU05UH7TCgYk2yqF0GkFLlBMfIhtNOcw=
+	 MIME-Version:Content-Type; b=Jcc/oDYGVbW84+Z0T4wMgxExsmY6G2hqy2q9lQiora/SPMVlJzSkHxNeFKrHjbtJ5dt2ZPcg4qjsy0ZfwEEqr359kA+AworHQgRXUFvCWC24XuLdZNXc1WSq/4ro/HFbRIKVSMGTcTjuixV4LBmQ3aMQshmDsxvsBnew5z/wZ9o=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bYVRq4810z6L53m;
-	Fri,  4 Jul 2025 18:36:39 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bYW8R3VnVz6L5dh;
+	Fri,  4 Jul 2025 19:08:23 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 39FE3140427;
-	Fri,  4 Jul 2025 18:39:38 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 36B8E1404C5;
+	Fri,  4 Jul 2025 19:11:22 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 4 Jul
- 2025 12:39:37 +0200
-Date: Fri, 4 Jul 2025 11:39:35 +0100
+ 2025 13:11:20 +0200
+Date: Fri, 4 Jul 2025 12:11:19 +0100
 From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To: John Groves <John@Groves.net>
 CC: Dan Williams <dan.j.williams@intel.com>, Miklos Szeredi
@@ -41,12 +41,11 @@ CC: Dan Williams <dan.j.williams@intel.com>, Miklos Szeredi
  Hajnoczi" <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, Josef
  Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, Ajay
  Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 02/18] dev_dax_iomap: Add fs_dax_get() func to prepare
- dax for fs-dax usage
-Message-ID: <20250704113935.000028cf@huawei.com>
-In-Reply-To: <20250703185032.46568-3-john@groves.net>
+Subject: Re: [RFC V2 03/18] dev_dax_iomap: Save the kva from memremap
+Message-ID: <20250704121119.00002846@huawei.com>
+In-Reply-To: <20250703185032.46568-4-john@groves.net>
 References: <20250703185032.46568-1-john@groves.net>
-	<20250703185032.46568-3-john@groves.net>
+	<20250703185032.46568-4-john@groves.net>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -56,108 +55,104 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Thu,  3 Jul 2025 13:50:16 -0500
+On Thu,  3 Jul 2025 13:50:17 -0500
 John Groves <John@Groves.net> wrote:
 
-> This function should be called by fs-dax file systems after opening the
-> devdax device. This adds holder_operations, which effects exclusivity
-> between callers of fs_dax_get().
+> Save the kva from memremap because we need it for iomap rw support.
 > 
-> This function serves the same role as fs_dax_get_by_bdev(), which dax
-> file systems call after opening the pmem block device.
+> Prior to famfs, there were no iomap users of /dev/dax - so the virtual
+> address from memremap was not needed.
 > 
-> This also adds the CONFIG_DEV_DAX_IOMAP Kconfig parameter
+> Also: in some cases dev_dax_probe() is called with the first
+> dev_dax->range offset past the start of pgmap[0].range. In those cases
+> we need to add the difference to virt_addr in order to have the physaddr's
+> in dev_dax->ranges match dev_dax->virt_addr.
+> 
+> This happens with devdax devices that started as pmem and got converted
+> to devdax. I'm not sure whether the offset is due to label storage, or
+> page tables, but this works in all known cases.
+
+Clearly a question we need to resolve to understand if this is correct
+handling.
+
 > 
 > Signed-off-by: John Groves <john@groves.net>
-Trivial stuff inline.
-
-
 > ---
->  drivers/dax/Kconfig |  6 ++++++
->  drivers/dax/super.c | 30 ++++++++++++++++++++++++++++++
->  include/linux/dax.h |  5 +++++
->  3 files changed, 41 insertions(+)
+>  drivers/dax/dax-private.h |  1 +
+>  drivers/dax/device.c      | 15 +++++++++++++++
+>  2 files changed, 16 insertions(+)
 > 
-> diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-> index d656e4c0eb84..ad19fa966b8b 100644
-> --- a/drivers/dax/Kconfig
-> +++ b/drivers/dax/Kconfig
-> @@ -78,4 +78,10 @@ config DEV_DAX_KMEM
+> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> index 0867115aeef2..2a6b07813f9f 100644
+> --- a/drivers/dax/dax-private.h
+> +++ b/drivers/dax/dax-private.h
+> @@ -81,6 +81,7 @@ struct dev_dax_range {
+>  struct dev_dax {
+>  	struct dax_region *region;
+>  	struct dax_device *dax_dev;
+> +	void *virt_addr;
+>  	unsigned int align;
+>  	int target_node;
+>  	bool dyn_id;
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index 29f61771fef0..583150478dcc 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -372,6 +372,7 @@ static int dev_dax_probe(struct dev_dax *dev_dax)
+>  	struct dax_device *dax_dev = dev_dax->dax_dev;
+>  	struct device *dev = &dev_dax->dev;
+>  	struct dev_pagemap *pgmap;
+> +	u64 data_offset = 0;
+>  	struct inode *inode;
+>  	struct cdev *cdev;
+>  	void *addr;
+> @@ -426,6 +427,20 @@ static int dev_dax_probe(struct dev_dax *dev_dax)
+>  	if (IS_ERR(addr))
+>  		return PTR_ERR(addr);
 >  
->  	  Say N if unsure.
->  
-> +config DEV_DAX_IOMAP
-> +       depends on DEV_DAX && DAX
-> +       def_bool y
-> +       help
-> +         Support iomap mapping of devdax devices (for FS-DAX file
-> +         systems that reside on character /dev/dax devices)
->  endif
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index e16d1d40d773..48bab9b5f341 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -122,6 +122,36 @@ void fs_put_dax(struct dax_device *dax_dev, void *holder)
->  EXPORT_SYMBOL_GPL(fs_put_dax);
->  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
->  
-> +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
-> +/**
-> + * fs_dax_get()
+> +	/* Detect whether the data is at a non-zero offset into the memory */
+> +	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
 
-Trivial but from what I recall kernel-doc isn't going to like this.
-Needs a short description.
+Using pgmap->range.start here but then getting to the same (I think)
+with  dev_dax->pgmap[0].range.start is rather inconsistent.
 
-> + *
-> + * fs-dax file systems call this function to prepare to use a devdax device for
-> + * fsdax. This is like fs_dax_get_by_bdev(), but the caller already has struct
-> + * dev_dax (and there  * is no bdev). The holder makes this exclusive.
+Also, perhaps drag the assignment of phys and pgmap_phys out of this
+scope so that you can use them for the condition check above and
+then reuse the same in here.
 
-there is no *bdev?  So * in wrong place.
 
-> + *
-> + * @dax_dev: dev to be prepared for fs-dax usage
-> + * @holder: filesystem or mapped device inside the dax_device
-> + * @hops: operations for the inner holder
-> + *
-> + * Returns: 0 on success, <0 on failure
-> + */
-> +int fs_dax_get(struct dax_device *dax_dev, void *holder,
-> +	const struct dax_holder_operations *hops)
-> +{
-> +	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode))
-> +		return -ENODEV;
+> +		u64 phys = dev_dax->ranges[0].range.start;
+> +		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
+> +		u64 vmemmap_shift = dev_dax->pgmap[0].vmemmap_shift;
 > +
-> +	if (cmpxchg(&dax_dev->holder_data, NULL, holder))
-> +		return -EBUSY;
+> +		if (!WARN_ON(pgmap_phys > phys))
+> +			data_offset = phys - pgmap_phys;
+
+In the event of the condition above being false.
+phys == pgmap_phys and data_offset == 0.
+
+So why not do this unconditionally replacing this block with something like
+
+	/* Apply necessary offset */
+
+	dev_dax->virt_addr = addr +
+		(dev_dax->ranges[0].range.start - pgmap->range.start);
 > +
-> +	dax_dev->holder_ops = hops;
+> +		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx shift=%llx\n",
+> +		       __func__, phys, pgmap_phys, data_offset, vmemmap_shift);
+
+If it's only used in the print, I'd just put the path to vmemmap_shift directly in here
+and probably get to it via pgmap->vmemmap_shift
+
+
+
+> +	}
+> +	dev_dax->virt_addr = addr + data_offset;
 > +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_get);
-> +#endif /* DEV_DAX_IOMAP */
-> +
->  enum dax_device_flags {
->  	/* !alive + rcu grace period == no new operations / mappings */
->  	DAXDEV_ALIVE,
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index df41a0017b31..86bf5922f1b0 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -51,6 +51,11 @@ struct dax_holder_operations {
->  
->  #if IS_ENABLED(CONFIG_DAX)
->  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
-> +
-> +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
-> +int fs_dax_get(struct dax_device *dax_dev, void *holder, const struct dax_holder_operations *hops);
-> +struct dax_device *inode_dax(struct inode *inode);
-> +#endif
->  void *dax_holder(struct dax_device *dax_dev);
->  void put_dax(struct dax_device *dax_dev);
->  void kill_dax(struct dax_device *dax_dev);
+>  	inode = dax_inode(dax_dev);
+>  	cdev = inode->i_cdev;
+>  	cdev_init(cdev, &dax_fops);
 
