@@ -1,132 +1,89 @@
-Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A6801E8345
-	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 03:58:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 354A31DF756;
+	Fri,  4 Jul 2025 06:10:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751601496; cv=none; b=X66wuET/dpZZaGKn/O1SutxNduDl9/gP4iC7ROpo6mj5FDdRrRBC4GgRvxeHThHWLJb3kJd7jOL+xKEikPkjyxkc5UAwpyRB2769kqdD51rp77gIFjIZ+ObKGTYhwwooUtw8iP0nqFCtbLfhVeIjuSBNXCSh/Unn9gWl0k7Z/fo=
+	t=1751609424; cv=none; b=ky/6EvSLtWhV8tZXVbP0w0fyPG2tkvcvKkhb+7ivKIub19u3e6rfnIIcfhdMNM9CzAFZmflIqjjpE8vIzSuPBECoboPQyCXZA2wXnPvLr1qk7UEeZw+QelUuv9Xxrt8WWTYcT0SzyAkzAzqci1bITE2gvGHYgXBPnuO3RiuerBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751601496; c=relaxed/simple;
-	bh=6vtiqsGkXH2FbouCDpR/umgLYmDvg9LQPLVhwSO7BKA=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=OiuVDz9SFm/dB6Fu58tdskeiy4J22JuyPv5XwdAZQypBlPIj63AAMyTXTYJjRL+aPPzkfti/rx+nn7bdCg0hajEET251nd8goUSC1ut3EqU2iBPnvBVhITa0rlsyvAiVjftVUq5FFtqI84t6yWbC/Y8a6X7fqQFyTmsz+4/zrgk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=t6Mf+O/D; arc=none smtp.client-ip=203.254.224.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1751609424; c=relaxed/simple;
+	bh=CxHAxktoHJAyt0G6QGsxafp1nKxtEgwB3RWi1pJP4bg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=MjC67l+0zEuowFYvBwMhxfzbDz4gCqiBRJaEyRAPq4YzrFcQf6ulaXGad5NtrUpDOOdBrAmLKhhsx148Mt+aaqf72SkYkxWVF33XwGkwNXNlhy32If5vkbHZ6d0ono2WCKP7ttiqZa1dG7K6XrGKqwhMR+O8O0jqR7nWyg8gJ4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=PTk2Oq3y; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="t6Mf+O/D"
-Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20250704035805epoutp0280e778e2d512908969837e5a58470a56~O8EVcOwSc3081130811epoutp02x
-	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 03:58:05 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20250704035805epoutp0280e778e2d512908969837e5a58470a56~O8EVcOwSc3081130811epoutp02x
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1751601485;
-	bh=y1yk4opDCPjmKM628eHmiZlHMD03Vy1w+UvD8XpWdAU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=t6Mf+O/D4h6/RsSh0wLjN9k6yrkwr6Xm05sR2qz2fNtiXCHizpXr8tB36QHYa/v4V
-	 fzXloFjpk0Fn9x7XQZcRKnwugbe/hTHCJ+2rE1YjSzkmrkF9qIJlM7AgHlKkVXWOhd
-	 vFViyhSjA+3Eh53m3n1pNYpdQbQF4vEn8W5LKWKU=
-Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
-	20250704035805epcas5p4eb1db05d50806200a375ccd34b384339~O8EVA3aRK0395403954epcas5p4y;
-	Fri,  4 Jul 2025 03:58:05 +0000 (GMT)
-Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp03.localdomain (Postfix) with ESMTP id 4bYKbx1zCRz3hhTL; Fri,  4 Jul
-	2025 03:58:05 +0000 (GMT)
-Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
-	20250703095816epcas5p454227536450d705540b7112b997e14d9~OtVhXZavN0423504235epcas5p4I;
-	Thu,  3 Jul 2025 09:58:16 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20250703095813epsmtip287d61729b6612c78d9bc9341d37d40ca~OtVe8l26b2041620416epsmtip2t;
-	Thu,  3 Jul 2025 09:58:13 +0000 (GMT)
-Date: Thu, 3 Jul 2025 15:28:05 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: dan.j.williams@intel.com, dave@stgolabs.net,
-	jonathan.cameron@huawei.com, dave.jiang@intel.com,
-	alison.schofield@intel.com, vishal.l.verma@intel.com,
-	a.manzanares@samsung.com, nifan.cxl@gmail.com, anisa.su@samsung.com,
-	vishak.g@samsung.com, krish.reddy@samsung.com, arun.george@samsung.com,
-	alok.rathore@samsung.com, neeraj.kernel@gmail.com,
-	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, gost.dev@samsung.com, cpgs@samsung.com
-Subject: Re: [RFC PATCH 01/20] nvdimm/label: Introduce NDD_CXL_LABEL flag to
- set cxl label format
-Message-ID: <1931444790.41751601485259.JavaMail.epsvc@epcpadp2new>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="PTk2Oq3y"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description;
+	bh=kQKcvzRgFOqKKs8mwcVW/CGTdsDvbDbBCI43oUXv5xU=; b=PTk2Oq3yzW5wUfahuvMqEMtn2k
+	GghuMT40r9jeqjmT4h1NctLafhvKGd4CbVxJykbRO4v4pXft4/cpWJ3F/Nhjk6NMUt0w1Q0ngAfqj
+	CqK1hfuPJHoqJmpdETP3+6raUjM/ROFVBI8paZ0FFeUrK5b0s6v8OAfwWuYGxDV8xDiCEqkj125Bw
+	Wd3hx1+/dnm0gwsgU9vQ8cj159oOB5MSu7ejUyvRBlXzg4B7DMdNsQbVpD6edadUCwsuc27H7LzKz
+	6GvtrXlT1xHBzboxPPPcS7Aqi/xiOdIOJm7Jfd6vFYtOuNqCMrDGFZTsq+pT3c+a+A0VKHub25FXD
+	B40sBv8A==;
+Received: from [50.53.25.54] (helo=[192.168.254.17])
+	by casper.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1uXZcc-0000000FoJ0-1edk;
+	Fri, 04 Jul 2025 06:10:06 +0000
+Message-ID: <3dfcf93e-ae48-48b4-bfc5-ff3146908adc@infradead.org>
+Date: Thu, 3 Jul 2025 23:09:59 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <686574227268c_30f2b7294f@iweiny-mobl.notmuch>
-X-CMS-MailID: 20250703095816epcas5p454227536450d705540b7112b997e14d9
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----K5ZVV-zrPS8y8iJelFUsagW7KEVVNg7wn3oh2ZJRPRpX678s=_eb8b1_"
-X-Sendblock-Type: REQ_APPROVE
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-X-Hop-Count: 3
-X-CMS-RootMailID: 20250617124008epcas5p2e702f786645d44ceb1cdd980a914ce8e
-References: <20250617123944.78345-1-s.neeraj@samsung.com>
-	<CGME20250617124008epcas5p2e702f786645d44ceb1cdd980a914ce8e@epcas5p2.samsung.com>
-	<158453976.61750165203630.JavaMail.epsvc@epcpadp1new>
-	<686574227268c_30f2b7294f@iweiny-mobl.notmuch>
-
-------K5ZVV-zrPS8y8iJelFUsagW7KEVVNg7wn3oh2ZJRPRpX678s=_eb8b1_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Disposition: inline
-
-On 02/07/25 01:02PM, Ira Weiny wrote:
->Neeraj Kumar wrote:
->> NDD_CXL_LABEL is introduced to set cxl LSA 2.1 label format
->> Accordingly updated label index version
->
->I'm not following why CXL specific code needs to be in nvdimm?
-
-Hi Ira,
-
-Prior to LSA 2.1 version, LSA contain only namespace labels. LSA 2.1 was
-introduced in CXL 2.0 Spec, which introduced region label along with
-namespace label.
-
-NDD_LABELING is the flag used to inform nvdimm driver about namespace
-labels. As region label was introduced in cxl spec. so, I have used
-NDD_CXL_LABEL flag to inform nvdimmm driver about it.
-
-I have taken this naming reference from "drivers/nvdimm/label.h"
-where region label is defined as "struct cxl_region_label"
-
-Please let me know if i should use some other name in place of this
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC V2 18/18] famfs_fuse: Add documentation
+To: John Groves <John@Groves.net>, Dan Williams <dan.j.williams@intel.com>,
+ Miklos Szeredi <miklos@szeredb.hu>, Bernd Schubert <bschubert@ddn.com>
+Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, "Darrick J . Wong"
+ <djwong@kernel.org>, Jeff Layton <jlayton@kernel.org>,
+ Kent Overstreet <kent.overstreet@linux.dev>, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ Amir Goldstein <amir73il@gmail.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong
+ <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>,
+ Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
+References: <20250703185032.46568-1-john@groves.net>
+ <20250703185032.46568-19-john@groves.net>
+Content-Language: en-US
+From: Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <20250703185032.46568-19-john@groves.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
->
->I did not get a cover letter in this thread and looking at lore I don't
->see one either:
->
->https://lore.kernel.org/all/158453976.61750165203630.JavaMail.epsvc@epcpadp1new/
->
->So perhaps I am completely out of the loop here?  Could you point me at a
->cover letter?
 
-Yes, there seems some issue due to which my patch thread got broken into two.
-1. Cover letter:
-https://lore.kernel.org/linux-cxl/1931444790.41750165203442.JavaMail.epsvc@epcpadp1new/
-
-2. Rest of the thread:
-https://lore.kernel.org/linux-cxl/158453976.61750165203630.JavaMail.epsvc@epcpadp1new/
+On 7/3/25 11:50 AM, John Groves wrote:
+> Add Documentation/filesystems/famfs.rst and update MAINTAINERS
+> 
+> Signed-off-by: John Groves <john@groves.net>
+> ---
+>  Documentation/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++
+>  Documentation/filesystems/index.rst |   1 +
+>  MAINTAINERS                         |   1 +
+>  3 files changed, 144 insertions(+)
+>  create mode 100644 Documentation/filesystems/famfs.rst
+> 
 
 
-Regards,
-Neeraj
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
 
-------K5ZVV-zrPS8y8iJelFUsagW7KEVVNg7wn3oh2ZJRPRpX678s=_eb8b1_
-Content-Type: text/plain; charset="utf-8"
+Thanks.
 
 
-------K5ZVV-zrPS8y8iJelFUsagW7KEVVNg7wn3oh2ZJRPRpX678s=_eb8b1_--
-
+-- 
+~Randy
