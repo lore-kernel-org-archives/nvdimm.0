@@ -1,71 +1,71 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E6F2EB5BA
-	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 09:01:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 525F82E541B
+	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 09:13:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751619681; cv=none; b=eOazrwDfeW44C4Fi13sAg0PxefFUlBzBPOAl4doXJK9PyYG7ZXxTdArgaH8tU5GF1eVh28btVJzjEWPEF2DRRyh3EULDSWaJrsAt1UBUYofKjh8jkBkJzxT+jeI44JRJS4bf95HtRy3ShgFgmMP7Fza2nYPiHO/V4bCjjVtHdJA=
+	t=1751620400; cv=none; b=bIX/xOkxoqDCINx07K665hPY+bKyNS33Wq3kxnT/JDex4FKfMAv6yYNtytuXOGn5D3h0g7nRByG03jad0SfCRbbyWsRg+oGQ2lTSNHFO4uYHpXDDGIi32eX1R+QFYVsS7AEnIvfRsAo3INZjiSmhY/a20qT73lLLEJr+heLQ/K0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751619681; c=relaxed/simple;
-	bh=zlipdF4MElw5DqSV73qCW0LpU5ljvro6CG+7WgIeFK8=;
+	s=arc-20240116; t=1751620400; c=relaxed/simple;
+	bh=lkWAbXw9XrHTF1YSFzyGGGV/iywwkb7qRjkgCRr7qoI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fMUtM9469S0qucuJh6yDXq2B/vE2G1XsXXgJ1cqNoyhsq/0mgV0rLXt68j4bDPuUUQj6vy411knz7MBzp7yMgQLfqvxpJxtRq2+LeoLuhTnvlS0k2zdNfQL/iablSVEBVxf1dAH7NmblPh5gqC3bEt5WNP3zLZ2LAqmiRLnpyOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Noa2XmYb; arc=none smtp.client-ip=209.85.208.47
+	 To:Cc:Content-Type; b=o4tc9KBJqOo2p1MCALPN8yS0JsVABfaXdHEBHE8evVBIVwztE8D/6i8X8NOkaDyi9COxsWcdZIBgjNjruQdPJiUoq9Tek1I6McASREgZ/wYXNorq8L0Fh3Iu2OC5Yp21Z9y3wB105ny5SIAOApivJ/p5FCEky8CuaqgmucS62BE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g50h3cSo; arc=none smtp.client-ip=209.85.128.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Noa2XmYb"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6088d856c6eso1411211a12.0
-        for <nvdimm@lists.linux.dev>; Fri, 04 Jul 2025 02:01:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g50h3cSo"
+Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-4537edf2c3cso7200355e9.3
+        for <nvdimm@lists.linux.dev>; Fri, 04 Jul 2025 02:13:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751619678; x=1752224478; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1751620396; x=1752225196; darn=lists.linux.dev;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=/MemEh6ylw1bIQUnXZ+22onk9+pJncd+A+4Mgnk6+jY=;
-        b=Noa2XmYbYNtd2shtTjdELuAOXZBiRkWlrftC0wdLrEUQnRuinN0uVl37JdieXbFeYe
-         vgE8YYEykjKf5sbcKKkPMNm+XouomhXCgjJmXOf5oi7OzWei3Yz9o2bS+UZfpIW5y1cU
-         oAjaQr3Wdc85UEoGNCKy89R88BGRkFUmi+L0Qh6fojvZI+NPjQBjPQ0/2uGsHNU3IRbf
-         iGaFBNEFYkcPz+DJygLguTMKx348p5HlgWyVB7WOzrtTCz57faUYrsVIMp9Mm1dTP062
-         p/K4uCHQjrRQxZ2pRNc8FslufYPRrdyiOrBW6zW0HX7ibCZhLH+PB5Pq/xPTpiEYTPJ1
-         k49g==
+        bh=zfZYO4ycbayyFDmrnQEkk1cRUalL8o7u/oDIAURijNE=;
+        b=g50h3cSo37KswcgVI0X+iJoWPQDnHiL/MEV4+Nm9Z0tN2JE2uoxXmf/ei+V7duompi
+         U5pNDfBTKV1R4JupDcfAJxyDj9DfrVem+02/1/qos1QGxH1Bn7prCVAhqNFoXT3bk2+L
+         djHiwbSts2ZweN5LHydBIbnq9rOjUZj9ZW1Thn7xd5OyAQnSI6lYjZWBn0asYv1PyMbs
+         yfTiDFyG+7Dpe/N93pNuRIECNl4Q0AqGhK1H9e/kWGDSwDTDedtsHNtd78k6Nxg0cbIH
+         oKrlihnheGco6o+gONqdHfE7d7DU/rtwdCV8K8hJlMvq0qAtIlMmonbblfD7txKBSu0E
+         Xrpw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751619678; x=1752224478;
+        d=1e100.net; s=20230601; t=1751620396; x=1752225196;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=/MemEh6ylw1bIQUnXZ+22onk9+pJncd+A+4Mgnk6+jY=;
-        b=vDwHveqgJj4cRJ/HRf0bjB0+UPKUEXdU2WfIIkQaFNmblJGEzt1Jc59CAWvwQydN1K
-         va+HCjYZqwMh2ujPt4hyx2e4xMH2Vtl4KcP+s/GG14rkMKcZW6TRfrx8Fx71coJbpZm7
-         O1OeR0AKHfIdcHSDFLkNcoR7ApHWwbiEEqxoFkUwY6n0HDAS/EEZjZ619ySrl6h03b/C
-         1FNWZWiBNIyqz4wpDBAXpSp1FohZRlwfEiJ8aIFezsVpLqu1GGEdiU5NOyMWlcfBD/HY
-         q/fDKG6Bei5ho74pJAcG+iDOfwRqU8n6L9HeQG2lLBzoEjClUqeU/hQAaQWGT7QoJjuE
-         l1Kw==
-X-Forwarded-Encrypted: i=1; AJvYcCVfXhCAQ52WA6tlsTv86qeJ5g72/2e6n04xuCNf2yRYHx3ebJOkRcoH2YviOGMEhhZ3KqBM+L4=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxQw9BhLzUx3qGPHLitBUSva9MDs81zhBA33u+NzlgZdc31KR7s
-	vVUELJM8+Pnb4FI+092oePjIcOqtsQaXeT74dJZRimfMMCLyjHsTIhhU+2WMb67jSJod66OCRaN
-	HLVN+Rm0XAW1ZnUYSiaIcStFu7Mf/To4=
-X-Gm-Gg: ASbGncvdYHyS+m9mtODY1igM91bfSYi6lpAOIeMuFHi9Ctf+6VZm5u3F8rrKkDMZBtR
-	kOZRpZ855NGXkan3eT30QU5g3iv9rQSAlmAbX+Warf3Q1Yht6Bq0XbIeyux1pyFQNE1VGWuEmXv
-	oEIbIu7mFtCejFWlJ9eJiXlSW1UYmDjEwA0tkxDM5OlyPgbfFve5OFJQ==
-X-Google-Smtp-Source: AGHT+IEP+UBgCG0atCZ99F1YIy29nMs677WSnCaZy1ajvNR9Fd6059ae+qX6ZsMDabBFuAnGffBIdDZYs/phbFWKNAI=
-X-Received: by 2002:a17:906:c104:b0:ade:9b52:4cc0 with SMTP id
- a640c23a62f3a-ae3fbc9eac9mr169976266b.26.1751619677073; Fri, 04 Jul 2025
- 02:01:17 -0700 (PDT)
+        bh=zfZYO4ycbayyFDmrnQEkk1cRUalL8o7u/oDIAURijNE=;
+        b=ucvpDbYM8Nk0JH44FWdTWbRdVJwRrBIvlcMcT1EX5WwMNFOtzFEm6aMI5MQcbERYk3
+         0as/FSf6aGYj82cZDQMTQjOu5eMzTLaF5Q+5au7k7TJGUYKSSvYk0cQy28J9ujaxkylO
+         h5F0eaDs6Ebx+L1vI/mHlga6SvkwhFiFEXsvDpBHeCIUvhc5UkSvVaqdvOBTSbruGj+u
+         fIRI7tnaH4hT9bVa5X+Jn3Pj+N7KNURqajwry6ej+qXEWYFcyqZjyJd5+z0Pu+R9zWKw
+         /+UUN3aGg8C32yaZwJSV1qP3Jf9a3VO1AY1U/PbcOcwmvb4ljphsEWDPD2Bj7LFWyAcl
+         V+qw==
+X-Forwarded-Encrypted: i=1; AJvYcCWNN+cehlG2qZwFfnrHDLSmAVeljr74aNIV5DYUfL6BD0+aT64RgpzMUYAdRTOvPCzgUaDK8L8=@lists.linux.dev
+X-Gm-Message-State: AOJu0Ywo+v8SCMVG1BXdzzh3zuu9xWvHXxIh1F3GL2fB45amuwFeTSr6
+	YYQvxDPT84NoIzk+NXvIDZIbDKILWtnF5rQIERFi/Gyb2rayiY+mhGRQ+fcQdN8zEiGQ0b99j1K
+	VwmLZHHUKOk/osXxngdc1B3xi+K9MFBI=
+X-Gm-Gg: ASbGncvCZV6O39QXuT/crEafU+dQR+WraF7WKUqAZfqek4OEsxR66Zxr5elGHcX80++
+	TMYzkWRK08aNE46wLfy3ZAkF9UKiFA6PsxSufVx6mg7wqafTe6JpV/4HskjC6ZouMmuDaSneRB5
+	YAXysbLIR1FdrkFhPPsCzc73fNIyWXIk/YuaucEylSOzc=
+X-Google-Smtp-Source: AGHT+IEnrEQAh4ik8wXWI7DJJ2Dpomun2GN5NrTGMuOpghbsOQfpvgtARmEqC+L/qMwZGKO9xFrv3bfZnsnBbnMSmb0=
+X-Received: by 2002:a05:600c:8506:b0:439:9b2a:1b2f with SMTP id
+ 5b1f17b1804b1-454b306fabbmr17149545e9.3.1751620396089; Fri, 04 Jul 2025
+ 02:13:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20250703185032.46568-1-john@groves.net> <20250703185032.46568-14-john@groves.net>
-In-Reply-To: <20250703185032.46568-14-john@groves.net>
+References: <20250703185032.46568-1-john@groves.net> <20250703185032.46568-16-john@groves.net>
+In-Reply-To: <20250703185032.46568-16-john@groves.net>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 4 Jul 2025 11:01:03 +0200
-X-Gm-Features: Ac12FXxgaYxa7QSOeQt0_YUeAoy_UbiijMBiEgftqQGpA7Nsh21DsTPu2i9cNQo
-Message-ID: <CAOQ4uxgFoEByjaJPQv_QGMzGHLx=1hZvQcYjxM_ZZi_D063HEg@mail.gmail.com>
-Subject: Re: [RFC V2 13/18] famfs_fuse: Create files with famfs fmaps
+Date: Fri, 4 Jul 2025 11:13:04 +0200
+X-Gm-Features: Ac12FXx8Fhl4lD8hEbxN0FLDrMVkaIWP1KemjpxuFoRhZqjfDAm90Oq3HbQSDD0
+Message-ID: <CAOQ4uxgqXVX8uynEZduNEor0XhgVvch+WK2esiiSJ1G=iy_bcg@mail.gmail.com>
+Subject: Re: [RFC V2 15/18] famfs_fuse: Plumb dax iomap and fuse read/write/mmap
 To: John Groves <John@groves.net>
 Cc: Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
 	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
@@ -85,715 +85,586 @@ Content-Transfer-Encoding: quoted-printable
 
 On Thu, Jul 3, 2025 at 8:51=E2=80=AFPM John Groves <John@groves.net> wrote:
 >
-> On completion of GET_FMAP message/response, setup the full famfs
-> metadata such that it's possible to handle read/write/mmap directly to
-> dax. Note that the devdax_iomap plumbing is not in yet...
->
-> Update MAINTAINERS for the new files.
+> This commit fills in read/write/mmap handling for famfs files. The
+> dev_dax_iomap interface is used - just like xfs in fs-dax mode.
 >
 > Signed-off-by: John Groves <john@groves.net>
 > ---
->  MAINTAINERS               |   9 +
->  fs/fuse/Makefile          |   2 +-
->  fs/fuse/famfs.c           | 360 ++++++++++++++++++++++++++++++++++++++
->  fs/fuse/famfs_kfmap.h     |  63 +++++++
->  fs/fuse/file.c            |  15 +-
->  fs/fuse/fuse_i.h          |  16 +-
->  fs/fuse/inode.c           |   2 +-
->  include/uapi/linux/fuse.h |  56 ++++++
->  8 files changed, 518 insertions(+), 5 deletions(-)
->  create mode 100644 fs/fuse/famfs.c
->  create mode 100644 fs/fuse/famfs_kfmap.h
+>  fs/fuse/famfs.c  | 436 +++++++++++++++++++++++++++++++++++++++++++++++
+>  fs/fuse/file.c   |  14 ++
+>  fs/fuse/fuse_i.h |   3 +
+>  3 files changed, 453 insertions(+)
 >
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index c0d5232a473b..02688f27a4d0 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8808,6 +8808,15 @@ F:       Documentation/networking/failover.rst
->  F:     include/net/failover.h
->  F:     net/core/failover.c
->
-> +FAMFS
-> +M:     John Groves <jgroves@micron.com>
-> +M:     John Groves <John@Groves.net>
-> +L:     linux-cxl@vger.kernel.org
-> +L:     linux-fsdevel@vger.kernel.org
-> +S:     Supported
-> +F:     fs/fuse/famfs.c
-> +F:     fs/fuse/famfs_kfmap.h
-> +
-
-I suggest to follow the pattern of MAINTAINERS sub entries
-FILESYSTEMS [EXPORTFS]
-FILESYSTEMS [IOMAP]
-
-and call this sub entry
-FUSE [FAMFS]
-
-to order it following FUSE entry
-
-Thanks,
-Amir.
-
->  FANOTIFY
->  M:     Jan Kara <jack@suse.cz>
->  R:     Amir Goldstein <amir73il@gmail.com>
-> diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
-> index 3f0f312a31c1..65a12975d734 100644
-> --- a/fs/fuse/Makefile
-> +++ b/fs/fuse/Makefile
-> @@ -16,5 +16,5 @@ fuse-$(CONFIG_FUSE_DAX) +=3D dax.o
->  fuse-$(CONFIG_FUSE_PASSTHROUGH) +=3D passthrough.o
->  fuse-$(CONFIG_SYSCTL) +=3D sysctl.o
->  fuse-$(CONFIG_FUSE_IO_URING) +=3D dev_uring.o
-> -
-> +fuse-$(CONFIG_FUSE_FAMFS_DAX) +=3D famfs.o
->  virtiofs-y :=3D virtio_fs.o
 > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
-> new file mode 100644
-> index 000000000000..41c4d92f1451
-> --- /dev/null
+> index f5e01032b825..1973eb10b60b 100644
+> --- a/fs/fuse/famfs.c
 > +++ b/fs/fuse/famfs.c
-> @@ -0,0 +1,360 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * famfs - dax file system for shared fabric-attached memory
+> @@ -585,3 +585,439 @@ famfs_file_init_dax(
+>         return rc;
+>  }
+>
+> +/*********************************************************************
+> + * iomap_operations
 > + *
-> + * Copyright 2023-2025 Micron Technology, Inc.
-> + *
-> + * This file system, originally based on ramfs the dax support from xfs,
-> + * is intended to allow multiple host systems to mount a common file sys=
-tem
-> + * view of dax files that map to shared memory.
+> + * This stuff uses the iomap (dax-related) helpers to resolve file offse=
+ts to
+> + * offsets within a dax device.
 > + */
 > +
-> +#include <linux/fs.h>
-> +#include <linux/mm.h>
-> +#include <linux/dax.h>
-> +#include <linux/iomap.h>
-> +#include <linux/path.h>
-> +#include <linux/namei.h>
-> +#include <linux/string.h>
-> +
-> +#include "famfs_kfmap.h"
-> +#include "fuse_i.h"
-> +
-> +
-> +void
-> +__famfs_meta_free(void *famfs_meta)
-> +{
-> +       struct famfs_file_meta *fmap =3D famfs_meta;
-> +
-> +       if (!fmap)
-> +               return;
-> +
-> +       if (fmap) {
-> +               switch (fmap->fm_extent_type) {
-> +               case SIMPLE_DAX_EXTENT:
-> +                       kfree(fmap->se);
-> +                       break;
-> +               case INTERLEAVED_EXTENT:
-> +                       if (fmap->ie)
-> +                               kfree(fmap->ie->ie_strips);
-> +
-> +                       kfree(fmap->ie);
-> +                       break;
-> +               default:
-> +                       pr_err("%s: invalid fmap type\n", __func__);
-> +                       break;
-> +               }
-> +       }
-> +       kfree(fmap);
-> +}
+> +static ssize_t famfs_file_bad(struct inode *inode);
 > +
 > +static int
-> +famfs_check_ext_alignment(struct famfs_meta_simple_ext *se)
+> +famfs_interleave_fileofs_to_daxofs(struct inode *inode, struct iomap *io=
+map,
+> +                        loff_t file_offset, off_t len, unsigned int flag=
+s)
 > +{
-> +       int errs =3D 0;
+> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
+> +       struct famfs_file_meta *meta =3D fi->famfs_meta;
+> +       struct fuse_conn *fc =3D get_fuse_conn(inode);
+> +       loff_t local_offset =3D file_offset;
+> +       int i;
 > +
-> +       if (se->dev_index !=3D 0)
-> +               errs++;
+> +       /* This function is only for extent_type INTERLEAVED_EXTENT */
+> +       if (meta->fm_extent_type !=3D INTERLEAVED_EXTENT) {
+> +               pr_err("%s: bad extent type\n", __func__);
+> +               goto err_out;
+> +       }
 > +
-> +       /* TODO: pass in alignment so we can support the other page sizes=
- */
-> +       if (!IS_ALIGNED(se->ext_offset, PMD_SIZE))
-> +               errs++;
+> +       if (famfs_file_bad(inode))
+> +               goto err_out;
 > +
-> +       if (!IS_ALIGNED(se->ext_len, PMD_SIZE))
-> +               errs++;
+> +       iomap->offset =3D file_offset;
 > +
-> +       return errs;
+> +       for (i =3D 0; i < meta->fm_niext; i++) {
+> +               struct famfs_meta_interleaved_ext *fei =3D &meta->ie[i];
+> +               u64 chunk_size =3D fei->fie_chunk_size;
+> +               u64 nstrips =3D fei->fie_nstrips;
+> +               u64 ext_size =3D fei->fie_nbytes;
+> +
+> +               ext_size =3D min_t(u64, ext_size, meta->file_size);
+> +
+> +               if (ext_size =3D=3D 0) {
+> +                       pr_err("%s: ext_size=3D%lld file_size=3D%ld\n",
+> +                              __func__, fei->fie_nbytes, meta->file_size=
+);
+> +                       goto err_out;
+> +               }
+> +
+> +               /* Is the data is in this striped extent? */
+> +               if (local_offset < ext_size) {
+> +                       u64 chunk_num       =3D local_offset / chunk_size=
+;
+> +                       u64 chunk_offset    =3D local_offset % chunk_size=
+;
+> +                       u64 stripe_num      =3D chunk_num / nstrips;
+> +                       u64 strip_num       =3D chunk_num % nstrips;
+> +                       u64 chunk_remainder =3D chunk_size - chunk_offset=
+;
+> +                       u64 strip_offset    =3D chunk_offset + (stripe_nu=
+m * chunk_size);
+> +                       u64 strip_dax_ofs =3D fei->ie_strips[strip_num].e=
+xt_offset;
+> +                       u64 strip_devidx =3D fei->ie_strips[strip_num].de=
+v_index;
+> +
+> +                       if (!fc->dax_devlist->devlist[strip_devidx].valid=
+) {
+> +                               pr_err("%s: daxdev=3D%lld invalid\n", __f=
+unc__,
+> +                                       strip_devidx);
+> +                               goto err_out;
+> +                       }
+> +                       iomap->addr    =3D strip_dax_ofs + strip_offset;
+> +                       iomap->offset  =3D file_offset;
+> +                       iomap->length  =3D min_t(loff_t, len, chunk_remai=
+nder);
+> +
+> +                       iomap->dax_dev =3D fc->dax_devlist->devlist[strip=
+_devidx].devp;
+> +
+> +                       iomap->type    =3D IOMAP_MAPPED;
+> +                       iomap->flags   =3D flags;
+> +
+> +                       return 0;
+> +               }
+> +               local_offset -=3D ext_size; /* offset is beyond this stri=
+ped extent */
+> +       }
+> +
+> + err_out:
+> +       pr_err("%s: err_out\n", __func__);
+> +
+> +       /* We fell out the end of the extent list.
+> +        * Set iomap to zero length in this case, and return 0
+> +        * This just means that the r/w is past EOF
+> +        */
+> +       iomap->addr    =3D 0; /* there is no valid dax device offset */
+> +       iomap->offset  =3D file_offset; /* file offset */
+> +       iomap->length  =3D 0; /* this had better result in no access to d=
+ax mem */
+> +       iomap->dax_dev =3D NULL;
+> +       iomap->type    =3D IOMAP_MAPPED;
+> +       iomap->flags   =3D flags;
+> +
+> +       return 0;
 > +}
 > +
 > +/**
-> + * famfs_fuse_meta_alloc() - Allocate famfs file metadata
-> + * @metap:       Pointer to an mcache_map_meta pointer
-> + * @ext_count:  The number of extents needed
+> + * famfs_fileofs_to_daxofs() - Resolve (file, offset, len) to (daxdev, o=
+ffset, len)
+> + *
+> + * This function is called by famfs_fuse_iomap_begin() to resolve an off=
+set in a
+> + * file to an offset in a dax device. This is upcalled from dax from cal=
+ls to
+> + * both  * dax_iomap_fault() and dax_iomap_rw(). Dax finishes the job re=
+solving
+> + * a fault to a specific physical page (the fault case) or doing a memcp=
+y
+> + * variant (the rw case)
+> + *
+> + * Pages can be PTE (4k), PMD (2MiB) or (theoretically) PuD (1GiB)
+> + * (these sizes are for X86; may vary on other cpu architectures
+> + *
+> + * @inode:  The file where the fault occurred
+> + * @iomap:       To be filled in to indicate where to find the right mem=
+ory,
+> + *               relative  to a dax device.
+> + * @file_offset: Within the file where the fault occurred (will be page =
+boundary)
+> + * @len:         The length of the faulted mapping (will be a page multi=
+ple)
+> + *               (will be trimmed in *iomap if it's disjoint in the exte=
+nt list)
+> + * @flags:
+> + *
+> + * Return values: 0. (info is returned in a modified @iomap struct)
+> + */
+> +static int
+> +famfs_fileofs_to_daxofs(struct inode *inode, struct iomap *iomap,
+> +                        loff_t file_offset, off_t len, unsigned int flag=
+s)
+> +{
+> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
+> +       struct famfs_file_meta *meta =3D fi->famfs_meta;
+> +       struct fuse_conn *fc =3D get_fuse_conn(inode);
+> +       loff_t local_offset =3D file_offset;
+> +       int i;
+> +
+> +       if (!fc->dax_devlist) {
+> +               pr_err("%s: null dax_devlist\n", __func__);
+> +               goto err_out;
+> +       }
+> +
+> +       if (famfs_file_bad(inode))
+> +               goto err_out;
+> +
+> +       if (meta->fm_extent_type =3D=3D INTERLEAVED_EXTENT)
+> +               return famfs_interleave_fileofs_to_daxofs(inode, iomap,
+> +                                                         file_offset,
+> +                                                         len, flags);
+> +
+> +       iomap->offset =3D file_offset;
+> +
+> +       for (i =3D 0; i < meta->fm_nextents; i++) {
+> +               /* TODO: check devindex too */
+> +               loff_t dax_ext_offset =3D meta->se[i].ext_offset;
+> +               loff_t dax_ext_len    =3D meta->se[i].ext_len;
+> +               u64 daxdev_idx =3D meta->se[i].dev_index;
+> +
+> +               if ((dax_ext_offset =3D=3D 0) &&
+> +                   (meta->file_type !=3D FAMFS_SUPERBLOCK))
+> +                       pr_warn("%s: zero offset on non-superblock file!!=
+\n",
+> +                               __func__);
+> +
+> +               /* local_offset is the offset minus the size of extents s=
+kipped
+> +                * so far; If local_offset < dax_ext_len, the data of int=
+erest
+> +                * starts in this extent
+> +                */
+> +               if (local_offset < dax_ext_len) {
+> +                       loff_t ext_len_remainder =3D dax_ext_len - local_=
+offset;
+> +                       struct famfs_daxdev *dd;
+> +
+> +                       dd =3D &fc->dax_devlist->devlist[daxdev_idx];
+> +
+> +                       if (!dd->valid || dd->error) {
+> +                               pr_err("%s: daxdev=3D%lld %s\n", __func__=
+,
+> +                                      daxdev_idx,
+> +                                      dd->valid ? "error" : "invalid");
+> +                               goto err_out;
+> +                       }
+> +
+> +                       /*
+> +                        * OK, we found the file metadata extent where th=
+is
+> +                        * data begins
+> +                        * @local_offset      - The offset within the cur=
+rent
+> +                        *                      extent
+> +                        * @ext_len_remainder - Remaining length of ext a=
+fter
+> +                        *                      skipping local_offset
+> +                        * Outputs:
+> +                        * iomap->addr:   the offset within the dax devic=
+e where
+> +                        *                the  data starts
+> +                        * iomap->offset: the file offset
+> +                        * iomap->length: the valid length resolved here
+> +                        */
+> +                       iomap->addr    =3D dax_ext_offset + local_offset;
+> +                       iomap->offset  =3D file_offset;
+> +                       iomap->length  =3D min_t(loff_t, len, ext_len_rem=
+ainder);
+> +
+> +                       iomap->dax_dev =3D fc->dax_devlist->devlist[daxde=
+v_idx].devp;
+> +
+> +                       iomap->type    =3D IOMAP_MAPPED;
+> +                       iomap->flags   =3D flags;
+> +                       return 0;
+> +               }
+> +               local_offset -=3D dax_ext_len; /* Get ready for the next =
+extent */
+> +       }
+> +
+> + err_out:
+> +       pr_err("%s: err_out\n", __func__);
+> +
+> +       /* We fell out the end of the extent list.
+> +        * Set iomap to zero length in this case, and return 0
+> +        * This just means that the r/w is past EOF
+> +        */
+> +       iomap->addr    =3D 0; /* there is no valid dax device offset */
+> +       iomap->offset  =3D file_offset; /* file offset */
+> +       iomap->length  =3D 0; /* this had better result in no access to d=
+ax mem */
+> +       iomap->dax_dev =3D NULL;
+> +       iomap->type    =3D IOMAP_MAPPED;
+> +       iomap->flags   =3D flags;
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+> + * famfs_fuse_iomap_begin() - Handler for iomap_begin upcall from dax
+> + *
+> + * This function is pretty simple because files are
+> + * * never partially allocated
+> + * * never have holes (never sparse)
+> + * * never "allocate on write"
+> + *
+> + * @inode:  inode for the file being accessed
+> + * @offset: offset within the file
+> + * @length: Length being accessed at offset
+> + * @flags:
+> + * @iomap:  iomap struct to be filled in, resolving (offset, length) to
+> + *          (daxdev, offset, len)
+> + * @srcmap:
+> + */
+> +static int
+> +famfs_fuse_iomap_begin(struct inode *inode, loff_t offset, loff_t length=
+,
+> +                 unsigned int flags, struct iomap *iomap, struct iomap *=
+srcmap)
+> +{
+> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
+> +       struct famfs_file_meta *meta =3D fi->famfs_meta;
+> +       size_t size;
+> +
+> +       size =3D i_size_read(inode);
+> +
+> +       WARN_ON(size !=3D meta->file_size);
+> +
+> +       return famfs_fileofs_to_daxofs(inode, iomap, offset, length, flag=
+s);
+> +}
+> +
+> +/* Note: We never need a special set of write_iomap_ops because famfs ne=
+ver
+> + * performs allocation on write.
+> + */
+> +const struct iomap_ops famfs_iomap_ops =3D {
+> +       .iomap_begin            =3D famfs_fuse_iomap_begin,
+> +};
+> +
+> +/*********************************************************************
+> + * vm_operations
+> + */
+> +static vm_fault_t
+> +__famfs_fuse_filemap_fault(struct vm_fault *vmf, unsigned int pe_size,
+> +                     bool write_fault)
+> +{
+> +       struct inode *inode =3D file_inode(vmf->vma->vm_file);
+> +       vm_fault_t ret;
+> +       pfn_t pfn;
+> +
+> +       if (!IS_DAX(file_inode(vmf->vma->vm_file))) {
+> +               pr_err("%s: file not marked IS_DAX!!\n", __func__);
+> +               return VM_FAULT_SIGBUS;
+> +       }
+> +
+> +       if (write_fault) {
+> +               sb_start_pagefault(inode->i_sb);
+> +               file_update_time(vmf->vma->vm_file);
+> +       }
+> +
+> +       ret =3D dax_iomap_fault(vmf, pe_size, &pfn, NULL, &famfs_iomap_op=
+s);
+> +       if (ret & VM_FAULT_NEEDDSYNC)
+> +               ret =3D dax_finish_sync_fault(vmf, pe_size, pfn);
+> +
+> +       if (write_fault)
+> +               sb_end_pagefault(inode->i_sb);
+> +
+> +       return ret;
+> +}
+> +
+> +static inline bool
+> +famfs_is_write_fault(struct vm_fault *vmf)
+> +{
+> +       return (vmf->flags & FAULT_FLAG_WRITE) &&
+> +              (vmf->vma->vm_flags & VM_SHARED);
+> +}
+> +
+> +static vm_fault_t
+> +famfs_filemap_fault(struct vm_fault *vmf)
+> +{
+> +       return __famfs_fuse_filemap_fault(vmf, 0, famfs_is_write_fault(vm=
+f));
+> +}
+> +
+> +static vm_fault_t
+> +famfs_filemap_huge_fault(struct vm_fault *vmf, unsigned int pe_size)
+> +{
+> +       return __famfs_fuse_filemap_fault(vmf, pe_size, famfs_is_write_fa=
+ult(vmf));
+> +}
+> +
+> +static vm_fault_t
+> +famfs_filemap_page_mkwrite(struct vm_fault *vmf)
+> +{
+> +       return __famfs_fuse_filemap_fault(vmf, 0, true);
+> +}
+> +
+> +static vm_fault_t
+> +famfs_filemap_pfn_mkwrite(struct vm_fault *vmf)
+> +{
+> +       return __famfs_fuse_filemap_fault(vmf, 0, true);
+> +}
+> +
+> +static vm_fault_t
+> +famfs_filemap_map_pages(struct vm_fault        *vmf, pgoff_t start_pgoff=
+,
+> +                       pgoff_t end_pgoff)
+> +{
+> +       return filemap_map_pages(vmf, start_pgoff, end_pgoff);
+> +}
+> +
+> +const struct vm_operations_struct famfs_file_vm_ops =3D {
+> +       .fault          =3D famfs_filemap_fault,
+> +       .huge_fault     =3D famfs_filemap_huge_fault,
+> +       .map_pages      =3D famfs_filemap_map_pages,
+> +       .page_mkwrite   =3D famfs_filemap_page_mkwrite,
+> +       .pfn_mkwrite    =3D famfs_filemap_pfn_mkwrite,
+> +};
+> +
+> +/*********************************************************************
+> + * file_operations
+> + */
+> +
+> +/**
+> + * famfs_file_bad() - Check for files that aren't in a valid state
+> + *
+> + * @inode - inode
 > + *
 > + * Returns: 0=3Dsuccess
 > + *          -errno=3Dfailure
 > + */
-> +static int
-> +famfs_fuse_meta_alloc(
-> +       void *fmap_buf,
-> +       size_t fmap_buf_size,
-> +       struct famfs_file_meta **metap)
+> +static ssize_t
+> +famfs_file_bad(struct inode *inode)
 > +{
-> +       struct famfs_file_meta *meta =3D NULL;
-> +       struct fuse_famfs_fmap_header *fmh;
-> +       size_t extent_total =3D 0;
-> +       size_t next_offset =3D 0;
-> +       int errs =3D 0;
-> +       int i, j;
-> +       int rc;
+> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
+> +       struct famfs_file_meta *meta =3D fi->famfs_meta;
+> +       size_t i_size =3D i_size_read(inode);
 > +
-> +       fmh =3D (struct fuse_famfs_fmap_header *)fmap_buf;
-> +
-> +       /* Move past fmh in fmap_buf */
-> +       next_offset +=3D sizeof(*fmh);
-> +       if (next_offset > fmap_buf_size) {
-> +               pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
-> +                      __func__, __LINE__, next_offset, fmap_buf_size);
-> +               return -EINVAL;
+> +       if (!meta) {
+> +               pr_err("%s: un-initialized famfs file\n", __func__);
+> +               return -EIO;
 > +       }
-> +
-> +       if (fmh->nextents < 1) {
-> +               pr_err("%s: nextents %d < 1\n", __func__, fmh->nextents);
-> +               return -EINVAL;
+> +       if (meta->error) {
+> +               pr_debug("%s: previously detected metadata errors\n", __f=
+unc__);
+> +               return -EIO;
 > +       }
-> +
-> +       if (fmh->nextents > FUSE_FAMFS_MAX_EXTENTS) {
-> +               pr_err("%s: nextents %d > max (%d) 1\n",
-> +                      __func__, fmh->nextents, FUSE_FAMFS_MAX_EXTENTS);
-> +               return -E2BIG;
+> +       if (i_size !=3D meta->file_size) {
+> +               pr_warn("%s: i_size overwritten from %ld to %ld\n",
+> +                      __func__, meta->file_size, i_size);
+> +               meta->error =3D true;
+> +               return -ENXIO;
 > +       }
-> +
-> +       meta =3D kzalloc(sizeof(*meta), GFP_KERNEL);
-> +       if (!meta)
-> +               return -ENOMEM;
-> +
-> +       meta->error =3D false;
-> +       meta->file_type =3D fmh->file_type;
-> +       meta->file_size =3D fmh->file_size;
-> +       meta->fm_extent_type =3D fmh->ext_type;
-> +
-> +       switch (fmh->ext_type) {
-> +       case FUSE_FAMFS_EXT_SIMPLE: {
-> +               struct fuse_famfs_simple_ext *se_in;
-> +
-> +               se_in =3D (struct fuse_famfs_simple_ext *)(fmap_buf + nex=
-t_offset);
-> +
-> +               /* Move past simple extents */
-> +               next_offset +=3D fmh->nextents * sizeof(*se_in);
-> +               if (next_offset > fmap_buf_size) {
-> +                       pr_err("%s:%d: fmap_buf underflow offset/size %ld=
-/%ld\n",
-> +                              __func__, __LINE__, next_offset, fmap_buf_=
-size);
-> +                       rc =3D -EINVAL;
-> +                       goto errout;
-> +               }
-> +
-> +               meta->fm_nextents =3D fmh->nextents;
-> +
-> +               meta->se =3D kcalloc(meta->fm_nextents, sizeof(*(meta->se=
-)),
-> +                                  GFP_KERNEL);
-> +               if (!meta->se) {
-> +                       rc =3D -ENOMEM;
-> +                       goto errout;
-> +               }
-> +
-> +               if ((meta->fm_nextents > FUSE_FAMFS_MAX_EXTENTS) ||
-> +                   (meta->fm_nextents < 1)) {
-> +                       rc =3D -EINVAL;
-> +                       goto errout;
-> +               }
-> +
-> +               for (i =3D 0; i < fmh->nextents; i++) {
-> +                       meta->se[i].dev_index  =3D se_in[i].se_devindex;
-> +                       meta->se[i].ext_offset =3D se_in[i].se_offset;
-> +                       meta->se[i].ext_len    =3D se_in[i].se_len;
-> +
-> +                       /* Record bitmap of referenced daxdev indices */
-> +                       meta->dev_bitmap |=3D (1 << meta->se[i].dev_index=
-);
-> +
-> +                       errs +=3D famfs_check_ext_alignment(&meta->se[i])=
-;
-> +
-> +                       extent_total +=3D meta->se[i].ext_len;
-> +               }
-> +               break;
+> +       if (!IS_DAX(inode)) {
+> +               pr_debug("%s: inode %llx IS_DAX is false\n", __func__, (u=
+64)inode);
+> +               return -ENXIO;
 > +       }
-> +
-> +       case FUSE_FAMFS_EXT_INTERLEAVE: {
-> +               s64 size_remainder =3D meta->file_size;
-> +               struct fuse_famfs_iext *ie_in;
-> +               int niext =3D fmh->nextents;
-> +
-> +               meta->fm_niext =3D niext;
-> +
-> +               /* Allocate interleaved extent */
-> +               meta->ie =3D kcalloc(niext, sizeof(*(meta->ie)), GFP_KERN=
-EL);
-> +               if (!meta->ie) {
-> +                       rc =3D -ENOMEM;
-> +                       goto errout;
-> +               }
-> +
-> +               /*
-> +                * Each interleaved extent has a simple extent list of st=
-rips.
-> +                * Outer loop is over separate interleaved extents
-> +                */
-> +               for (i =3D 0; i < niext; i++) {
-> +                       u64 nstrips;
-> +                       struct fuse_famfs_simple_ext *sie_in;
-> +
-> +                       /* ie_in =3D one interleaved extent in fmap_buf *=
-/
-> +                       ie_in =3D (struct fuse_famfs_iext *)
-> +                               (fmap_buf + next_offset);
-> +
-> +                       /* Move past one interleaved extent header in fma=
-p_buf */
-> +                       next_offset +=3D sizeof(*ie_in);
-> +                       if (next_offset > fmap_buf_size) {
-> +                               pr_err("%s:%d: fmap_buf underflow offset/=
-size %ld/%ld\n",
-> +                                      __func__, __LINE__, next_offset,
-> +                                      fmap_buf_size);
-> +                               rc =3D -EINVAL;
-> +                               goto errout;
-> +                       }
-> +
-> +                       nstrips =3D ie_in->ie_nstrips;
-> +                       meta->ie[i].fie_chunk_size =3D ie_in->ie_chunk_si=
-ze;
-> +                       meta->ie[i].fie_nstrips    =3D ie_in->ie_nstrips;
-> +                       meta->ie[i].fie_nbytes     =3D ie_in->ie_nbytes;
-> +
-> +                       if (!meta->ie[i].fie_nbytes) {
-> +                               pr_err("%s: zero-length interleave!\n",
-> +                                      __func__);
-> +                               rc =3D -EINVAL;
-> +                               goto errout;
-> +                       }
-> +
-> +                       /* sie_in =3D the strip extents in fmap_buf */
-> +                       sie_in =3D (struct fuse_famfs_simple_ext *)
-> +                               (fmap_buf + next_offset);
-> +
-> +                       /* Move past strip extents in fmap_buf */
-> +                       next_offset +=3D nstrips * sizeof(*sie_in);
-> +                       if (next_offset > fmap_buf_size) {
-> +                               pr_err("%s:%d: fmap_buf underflow offset/=
-size %ld/%ld\n",
-> +                                      __func__, __LINE__, next_offset,
-> +                                      fmap_buf_size);
-> +                               rc =3D -EINVAL;
-> +                               goto errout;
-> +                       }
-> +
-> +                       if ((nstrips > FUSE_FAMFS_MAX_STRIPS) || (nstrips=
- < 1)) {
-> +                               pr_err("%s: invalid nstrips=3D%lld (max=
-=3D%d)\n",
-> +                                      __func__, nstrips,
-> +                                      FUSE_FAMFS_MAX_STRIPS);
-> +                               errs++;
-> +                       }
-> +
-> +                       /* Allocate strip extent array */
-> +                       meta->ie[i].ie_strips =3D kcalloc(ie_in->ie_nstri=
-ps,
-> +                                       sizeof(meta->ie[i].ie_strips[0]),
-> +                                                       GFP_KERNEL);
-> +                       if (!meta->ie[i].ie_strips) {
-> +                               rc =3D -ENOMEM;
-> +                               goto errout;
-> +                       }
-> +
-> +                       /* Inner loop is over strips */
-> +                       for (j =3D 0; j < nstrips; j++) {
-> +                               struct famfs_meta_simple_ext *strips_out;
-> +                               u64 devindex =3D sie_in[j].se_devindex;
-> +                               u64 offset   =3D sie_in[j].se_offset;
-> +                               u64 len      =3D sie_in[j].se_len;
-> +
-> +                               strips_out =3D meta->ie[i].ie_strips;
-> +                               strips_out[j].dev_index  =3D devindex;
-> +                               strips_out[j].ext_offset =3D offset;
-> +                               strips_out[j].ext_len    =3D len;
-> +
-> +                               /* Record bitmap of referenced daxdev ind=
-ices */
-> +                               meta->dev_bitmap |=3D (1 << devindex);
-> +
-> +                               extent_total +=3D len;
-> +                               errs +=3D famfs_check_ext_alignment(&stri=
-ps_out[j]);
-> +                               size_remainder -=3D len;
-> +                       }
-> +               }
-> +
-> +               if (size_remainder > 0) {
-> +                       /* Sum of interleaved extent sizes is less than f=
-ile size! */
-> +                       pr_err("%s: size_remainder %lld (0x%llx)\n",
-> +                              __func__, size_remainder, size_remainder);
-> +                       rc =3D -EINVAL;
-> +                       goto errout;
-> +               }
-> +               break;
-> +       }
-> +
-> +       default:
-> +               pr_err("%s: invalid ext_type %d\n", __func__, fmh->ext_ty=
-pe);
-> +               rc =3D -EINVAL;
-> +               goto errout;
-> +       }
-> +
-> +       if (errs > 0) {
-> +               pr_err("%s: %d alignment errors found\n", __func__, errs)=
-;
-> +               rc =3D -EINVAL;
-> +               goto errout;
-> +       }
-> +
-> +       /* More sanity checks */
-> +       if (extent_total < meta->file_size) {
-> +               pr_err("%s: file size %ld larger than map size %ld\n",
-> +                      __func__, meta->file_size, extent_total);
-> +               rc =3D -EINVAL;
-> +               goto errout;
-> +       }
-> +
-> +       *metap =3D meta;
-> +
 > +       return 0;
-> +errout:
-> +       __famfs_meta_free(meta);
-> +       return rc;
 > +}
 > +
-> +/**
-> + * famfs_file_init_dax() - init famfs dax file metadata
-> + *
-> + * @fm:        fuse_mount
-> + * @inode:     the inode
-> + * @fmap_buf:  fmap response message
-> + * @fmap_size: Size of the fmap message
-> + *
-> + * Initialize famfs metadata for a file, based on the contents of the GE=
-T_FMAP
-> + * response
-> + *
-> + * Return: 0=3Dsuccess
-> + *          -errno=3Dfailure
-> + */
-> +int
-> +famfs_file_init_dax(
-> +       struct fuse_mount *fm,
-> +       struct inode *inode,
-> +       void *fmap_buf,
-> +       size_t fmap_size)
+> +static ssize_t
+> +famfs_fuse_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
 > +{
-> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
-> +       struct famfs_file_meta *meta =3D NULL;
-> +       int rc;
+> +       struct inode *inode =3D iocb->ki_filp->f_mapping->host;
+> +       size_t i_size =3D i_size_read(inode);
+> +       size_t count =3D iov_iter_count(ubuf);
+> +       size_t max_count;
+> +       ssize_t rc;
 > +
-> +       if (fi->famfs_meta) {
-> +               pr_notice("%s: i_no=3D%ld fmap_size=3D%ld ALREADY INITIAL=
-IZED\n",
-> +                         __func__,
-> +                         inode->i_ino, fmap_size);
-> +               return -EEXIST;
-> +       }
-> +
-> +       rc =3D famfs_fuse_meta_alloc(fmap_buf, fmap_size, &meta);
+> +       rc =3D famfs_file_bad(inode);
 > +       if (rc)
-> +               goto errout;
+> +               return rc;
 > +
-> +       /* Publish the famfs metadata on fi->famfs_meta */
-> +       inode_lock(inode);
-> +       if (fi->famfs_meta) {
-> +               rc =3D -EEXIST; /* file already has famfs metadata */
-> +       } else {
-> +               if (famfs_meta_set(fi, meta) !=3D NULL) {
-> +                       pr_err("%s: file already had metadata\n", __func_=
-_);
-> +                       rc =3D -EALREADY;
-> +                       goto errout;
-> +               }
-> +               i_size_write(inode, meta->file_size);
-> +               inode->i_flags |=3D S_DAX;
-> +       }
-> +       inode_unlock(inode);
+> +       max_count =3D max_t(size_t, 0, i_size - iocb->ki_pos);
 > +
-> + errout:
-> +       if (rc)
-> +               __famfs_meta_free(meta);
+> +       if (count > max_count)
+> +               iov_iter_truncate(ubuf, max_count);
 > +
-> +       return rc;
-> +}
-> +
-> diff --git a/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h
-> new file mode 100644
-> index 000000000000..ce785d76719c
-> --- /dev/null
-> +++ b/fs/fuse/famfs_kfmap.h
-> @@ -0,0 +1,63 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/*
-> + * famfs - dax file system for shared fabric-attached memory
-> + *
-> + * Copyright 2023-2025 Micron Technology, Inc.
-> + */
-> +#ifndef FAMFS_KFMAP_H
-> +#define FAMFS_KFMAP_H
-> +
-> +/*
-> + * These structures are the in-memory metadata format for famfs files. M=
-etadata
-> + * retrieved via the GET_FMAP response is converted to this format for u=
-se in
-> + * resolving file mapping faults.
-> + */
-> +
-> +enum famfs_file_type {
-> +       FAMFS_REG,
-> +       FAMFS_SUPERBLOCK,
-> +       FAMFS_LOG,
-> +};
-> +
-> +/* We anticipate the possiblity of supporting additional types of extent=
-s */
-> +enum famfs_extent_type {
-> +       SIMPLE_DAX_EXTENT,
-> +       INTERLEAVED_EXTENT,
-> +       INVALID_EXTENT_TYPE,
-> +};
-> +
-> +struct famfs_meta_simple_ext {
-> +       u64 dev_index;
-> +       u64 ext_offset;
-> +       u64 ext_len;
-> +};
-> +
-> +struct famfs_meta_interleaved_ext {
-> +       u64 fie_nstrips;
-> +       u64 fie_chunk_size;
-> +       u64 fie_nbytes;
-> +       struct famfs_meta_simple_ext *ie_strips;
-> +};
-> +
-> +/*
-> + * Each famfs dax file has this hanging from its fuse_inode->famfs_meta
-> + */
-> +struct famfs_file_meta {
-> +       bool                   error;
-> +       enum famfs_file_type   file_type;
-> +       size_t                 file_size;
-> +       enum famfs_extent_type fm_extent_type;
-> +       u64 dev_bitmap; /* bitmap of referenced daxdevs by index */
-> +       union { /* This will make code a bit more readable */
-> +               struct {
-> +                       size_t         fm_nextents;
-> +                       struct famfs_meta_simple_ext  *se;
-> +               };
-> +               struct {
-> +                       size_t         fm_niext;
-> +                       struct famfs_meta_interleaved_ext *ie;
-> +               };
-> +       };
-> +};
-> +
-> +#endif /* FAMFS_KFMAP_H */
-> diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-> index 8616fb0a6d61..5d205eadb48f 100644
-> --- a/fs/fuse/file.c
-> +++ b/fs/fuse/file.c
-> @@ -237,6 +237,7 @@ static void fuse_truncate_update_attr(struct inode *i=
-node, struct file *file)
->  static int
->  fuse_get_fmap(struct fuse_mount *fm, struct inode *inode, u64 nodeid)
->  {
-> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
->         struct fuse_get_fmap_in inarg =3D { 0 };
->         size_t fmap_bufsize =3D FMAP_BUFSIZE;
->         ssize_t fmap_size;
-> @@ -246,6 +247,10 @@ fuse_get_fmap(struct fuse_mount *fm, struct inode *i=
-node, u64 nodeid)
->
->         FUSE_ARGS(args);
->
-> +       /* Don't retrieve if we already have the famfs metadata */
-> +       if (fi->famfs_meta)
+> +       if (!iov_iter_count(ubuf))
 > +               return 0;
 > +
->         fmap_buf =3D kcalloc(1, FMAP_BUFSIZE, GFP_KERNEL);
->         if (!fmap_buf)
->                 return -EIO;
-> @@ -285,6 +290,13 @@ fuse_get_fmap(struct fuse_mount *fm, struct inode *i=
-node, u64 nodeid)
->                  */
->                 fmap_bufsize =3D *((uint32_t *)fmap_buf);
->
-> +               if (fmap_bufsize < fmap_msg_min_size()
-> +                   || fmap_bufsize > FAMFS_FMAP_MAX) {
-> +                       pr_err("%s: fmap_size=3D%ld out of range\n",
-> +                              __func__, fmap_bufsize);
-> +                       return -EIO;
-> +               }
-> +
->                 --retries;
->                 kfree(fmap_buf);
->                 fmap_buf =3D kcalloc(1, fmap_bufsize, GFP_KERNEL);
-> @@ -294,7 +306,8 @@ fuse_get_fmap(struct fuse_mount *fm, struct inode *in=
-ode, u64 nodeid)
->                 goto retry_once;
->         }
->
-> -       /* Will call famfs_file_init_dax() when that gets added */
-> +       /* Convert fmap into in-memory format and hang from inode */
-> +       famfs_file_init_dax(fm, inode, fmap_buf, fmap_size);
->
->         kfree(fmap_buf);
->         return 0;
-> diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-> index e01d6e5c6e93..fb6095655403 100644
-> --- a/fs/fuse/fuse_i.h
-> +++ b/fs/fuse/fuse_i.h
-> @@ -1560,11 +1560,18 @@ extern void fuse_sysctl_unregister(void);
->  #endif /* CONFIG_SYSCTL */
->
->  /* famfs.c */
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +int famfs_file_init_dax(struct fuse_mount *fm,
-> +                            struct inode *inode, void *fmap_buf,
-> +                            size_t fmap_size);
-> +void __famfs_meta_free(void *map);
-> +#endif
-> +
->  static inline struct fuse_backing *famfs_meta_set(struct fuse_inode *fi,
->                                                        void *meta)
->  {
->  #if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> -       return xchg(&fi->famfs_meta, meta);
-> +       return cmpxchg(&fi->famfs_meta, NULL, meta);
->  #else
->         return NULL;
->  #endif
-> @@ -1572,7 +1579,12 @@ static inline struct fuse_backing *famfs_meta_set(=
-struct fuse_inode *fi,
->
->  static inline void famfs_meta_free(struct fuse_inode *fi)
->  {
-> -       /* Stub wil be connected in a subsequent commit */
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +       if (fi->famfs_meta !=3D NULL) {
-> +               __famfs_meta_free(fi->famfs_meta);
-> +               famfs_meta_set(fi, NULL);
-> +       }
-> +#endif
->  }
->
->  static inline int fuse_file_famfs(struct fuse_inode *fi)
-> diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-> index b071d16f7d04..1682755abf30 100644
-> --- a/fs/fuse/inode.c
-> +++ b/fs/fuse/inode.c
-> @@ -118,7 +118,7 @@ static struct inode *fuse_alloc_inode(struct super_bl=
-ock *sb)
->                 fuse_inode_backing_set(fi, NULL);
->
->         if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-> -               famfs_meta_set(fi, NULL);
-> +               fi->famfs_meta =3D NULL; /* XXX new inodes currently not =
-zeroed; why not? */
->
->         return &fi->inode;
->
-> diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-> index dff5aa62543e..ecaaa62910f0 100644
-> --- a/include/uapi/linux/fuse.h
-> +++ b/include/uapi/linux/fuse.h
-> @@ -231,6 +231,13 @@
->   *    - enum fuse_uring_cmd
->   *  7.43
->   *    - Add FUSE_DAX_FMAP capability - ability to handle in-kernel fsdax=
- maps
-> + *    - Add the following structures for the GET_FMAP message reply comp=
-onents:
-> + *      - struct fuse_famfs_simple_ext
-> + *      - struct fuse_famfs_iext
-> + *      - struct fuse_famfs_fmap_header
-> + *    - Add the following enumerated types
-> + *      - enum fuse_famfs_file_type
-> + *      - enum famfs_ext_type
->   */
->
->  #ifndef _LINUX_FUSE_H
-> @@ -1300,6 +1307,55 @@ struct fuse_uring_cmd_req {
->
->  /* Famfs fmap message components */
->
-> +#define FAMFS_FMAP_VERSION 1
-> +
->  #define FAMFS_FMAP_MAX 32768 /* Largest supported fmap message */
-> +#define FUSE_FAMFS_MAX_EXTENTS 32
-> +#define FUSE_FAMFS_MAX_STRIPS 32
-> +
-> +enum fuse_famfs_file_type {
-> +       FUSE_FAMFS_FILE_REG,
-> +       FUSE_FAMFS_FILE_SUPERBLOCK,
-> +       FUSE_FAMFS_FILE_LOG,
-> +};
-> +
-> +enum famfs_ext_type {
-> +       FUSE_FAMFS_EXT_SIMPLE =3D 0,
-> +       FUSE_FAMFS_EXT_INTERLEAVE =3D 1,
-> +};
-> +
-> +struct fuse_famfs_simple_ext {
-> +       uint32_t se_devindex;
-> +       uint32_t reserved;
-> +       uint64_t se_offset;
-> +       uint64_t se_len;
-> +};
-> +
-> +struct fuse_famfs_iext { /* Interleaved extent */
-> +       uint32_t ie_nstrips;
-> +       uint32_t ie_chunk_size;
-> +       uint64_t ie_nbytes; /* Total bytes for this interleaved_ext;
-> +                            * sum of strips may be more
-> +                            */
-> +       uint64_t reserved;
-> +};
-> +
-> +struct fuse_famfs_fmap_header {
-> +       uint8_t file_type; /* enum famfs_file_type */
-> +       uint8_t reserved;
-> +       uint16_t fmap_version;
-> +       uint32_t ext_type; /* enum famfs_log_ext_type */
-> +       uint32_t nextents;
-> +       uint32_t reserved0;
-> +       uint64_t file_size;
-> +       uint64_t reserved1;
-> +};
-> +
-> +static inline int32_t fmap_msg_min_size(void)
-> +{
-> +       /* Smallest fmap message is a header plus one simple extent */
-> +       return (sizeof(struct fuse_famfs_fmap_header)
-> +               + sizeof(struct fuse_famfs_simple_ext));
+> +       return rc;
 > +}
+> +
+> +ssize_t
+> +famfs_fuse_read_iter(struct kiocb *iocb, struct iov_iter       *to)
+> +{
+> +       ssize_t rc;
+> +
+> +       rc =3D famfs_fuse_rw_prep(iocb, to);
+> +       if (rc)
+> +               return rc;
+> +
+> +       if (!iov_iter_count(to))
+> +               return 0;
+> +
+> +       rc =3D dax_iomap_rw(iocb, to, &famfs_iomap_ops);
+> +
+> +       file_accessed(iocb->ki_filp);
+> +       return rc;
+> +}
+> +
+> +ssize_t
+> +famfs_fuse_write_iter(struct kiocb *iocb, struct iov_iter *from)
+> +{
+> +       ssize_t rc;
+> +
+> +       rc =3D famfs_fuse_rw_prep(iocb, from);
+> +       if (rc)
+> +               return rc;
+> +
+> +       if (!iov_iter_count(from))
+> +               return 0;
+> +
+> +       return dax_iomap_rw(iocb, from, &famfs_iomap_ops);
+> +}
+> +
+> +int
+> +famfs_fuse_mmap(struct file *file, struct vm_area_struct *vma)
+> +{
+> +       struct inode *inode =3D file_inode(file);
+> +       ssize_t rc;
+> +
+> +       rc =3D famfs_file_bad(inode);
+> +       if (rc)
+> +               return (int)rc;
+> +
+> +       file_accessed(file);
+> +       vma->vm_ops =3D &famfs_file_vm_ops;
+> +       vm_flags_set(vma, VM_HUGEPAGE);
+> +       return 0;
+> +}
+> diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+> index 5d205eadb48f..24a14b176510 100644
+> --- a/fs/fuse/file.c
+> +++ b/fs/fuse/file.c
+> @@ -1874,6 +1874,8 @@ static ssize_t fuse_file_read_iter(struct kiocb *io=
+cb, struct iov_iter *to)
 >
->  #endif /* _LINUX_FUSE_H */
-> --
-> 2.49.0
+>         if (FUSE_IS_VIRTIO_DAX(fi))
+>                 return fuse_dax_read_iter(iocb, to);
+> +       if (fuse_file_famfs(fi))
+> +               return famfs_fuse_read_iter(iocb, to);
 >
+>         /* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
+>         if (ff->open_flags & FOPEN_DIRECT_IO)
+> @@ -1896,6 +1898,8 @@ static ssize_t fuse_file_write_iter(struct kiocb *i=
+ocb, struct iov_iter *from)
+>
+>         if (FUSE_IS_VIRTIO_DAX(fi))
+>                 return fuse_dax_write_iter(iocb, from);
+> +       if (fuse_file_famfs(fi))
+> +               return famfs_fuse_write_iter(iocb, from);
+>
+>         /* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
+>         if (ff->open_flags & FOPEN_DIRECT_IO)
+> @@ -1911,10 +1915,14 @@ static ssize_t fuse_splice_read(struct file *in, =
+loff_t *ppos,
+>                                 unsigned int flags)
+>  {
+>         struct fuse_file *ff =3D in->private_data;
+> +       struct inode *inode =3D file_inode(in);
+> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
+>
+>         /* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
+>         if (fuse_file_passthrough(ff) && !(ff->open_flags & FOPEN_DIRECT_=
+IO))
+>                 return fuse_passthrough_splice_read(in, ppos, pipe, len, =
+flags);
+> +       else if (fuse_file_famfs(fi))
+> +               return -EIO; /* direct I/O doesn't make sense in dax_ioma=
+p */
+>         else
+>                 return filemap_splice_read(in, ppos, pipe, len, flags);
+>  }
+> @@ -1923,10 +1931,14 @@ static ssize_t fuse_splice_write(struct pipe_inod=
+e_info *pipe, struct file *out,
+>                                  loff_t *ppos, size_t len, unsigned int f=
+lags)
+>  {
+>         struct fuse_file *ff =3D out->private_data;
+> +       struct inode *inode =3D file_inode(out);
+> +       struct fuse_inode *fi =3D get_fuse_inode(inode);
+>
+>         /* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
+>         if (fuse_file_passthrough(ff) && !(ff->open_flags & FOPEN_DIRECT_=
+IO))
+>                 return fuse_passthrough_splice_write(pipe, out, ppos, len=
+, flags);
+> +       else if (fuse_file_famfs(fi))
+> +               return -EIO; /* direct I/O doesn't make sense in dax_ioma=
+p */
+>         else
+>                 return iter_file_splice_write(pipe, out, ppos, len, flags=
+);
+>  }
+
+This looks odd.
+
+Usually, the methods first check for FUSE_IS_VIRTIO_DAX() and
+fuse_file_famfs() to get this condition out of the way so I never needed
+to think about whether or not the code verifies that fuse_file_passthrough(=
+)
+and fuse_file_famfs() cannot co-exist.
+
+Is there a reason why you did not follow the same pattern here?
+
+Also, your comment makes no sense.
+splice is not the case of direct I/O - quite the contrary.
+
+Thanks,
+Amir.
