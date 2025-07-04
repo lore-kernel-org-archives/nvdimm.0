@@ -1,180 +1,162 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f45.google.com (mail-oo1-f45.google.com [209.85.161.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A67B2D94A6
-	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 12:47:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 812AA2D9EED
+	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 12:54:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751633272; cv=none; b=ph5cDje5gAPZvwpNatRaJ6bgWKRlfpdI9rOUuvIIBzbkdk4XqpOeaYcDG7M8slnzcZaYGthknw4/N2/dxcoEsQOJf09kO2oxw2sYOuO98LldpLG+BjrrbuK6gTnT5mPmig9pBYXTCUYpobLbHmZf2jyhA+iMm9meUfyrWPjQmpI=
+	t=1751633689; cv=none; b=RHa0uyBCQrR1mjaXwL6mIFYUmdZJf0xZG3LRcYhoVqcFg0ksqLh/DW/4mnL9YP3O9ZtkytSqqt5ADcJhDjNxAfVpzrrxEBWnkGqqc7+T9BruVefTj5CFlY2PLcA6ulzU8enBnAdREZXjFlQ8CqeOwpejwGy81NKpje4PIKRRZEk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751633272; c=relaxed/simple;
-	bh=q3W6qKOAkT7lw4zg9GWf0eKhGBj+FEgS0+PDTTbEsHg=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WBbruVr604YLc14DsZ/E7cd6KWKFnNZ+GmmhN8CvgSI+tzeAZJnLpAPuHo8uboB6vfO6E1div/1q7qy1sNfFeHVOzVRGn2VPfHI7z3uTMUySjrnte+tpa5QMRAGwHj/oGvXG2J4qNTniA6H5PASCTcx4AP7RiHzNCkG1fP5BV3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bYYLV23QGz6L5Q0;
-	Fri,  4 Jul 2025 20:47:14 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 83D0B1402E9;
-	Fri,  4 Jul 2025 20:47:46 +0800 (CST)
-Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 4 Jul
- 2025 14:47:45 +0200
-Date: Fri, 4 Jul 2025 13:47:44 +0100
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To: John Groves <John@Groves.net>
-CC: Dan Williams <dan.j.williams@intel.com>, Miklos Szeredi
-	<miklos@szeredb.hu>, Bernd Schubert <bschubert@ddn.com>, John Groves
-	<jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Matthew
- Wilcox" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Alexander Viro
-	<viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, "Darrick J
- . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, "Jeff
- Layton" <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
-	<linux-fsdevel@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, "Stefan
- Hajnoczi" <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, Josef
- Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, Ajay
- Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 04/18] dev_dax_iomap: Add dax_operations for use by
- fs-dax on devdax
-Message-ID: <20250704134744.00006bcd@huawei.com>
-In-Reply-To: <20250703185032.46568-5-john@groves.net>
+	s=arc-20240116; t=1751633689; c=relaxed/simple;
+	bh=WFTveO6q4/9I10ER4OzIRFRhszAcOJqSl6IAE70OKT4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=j0hRbmQpL+XwkLlDl7I/brJJwOXbgV8dB0TSpEY8PMmk3f9g1vwHXQwg1jzcJnwctxD26TMGEPhsIoRw5g/xsVtKgD55Fp0y7cZW3FbmAHsf45bueT/esGG34hMVLGz6ztW3wFmAWU96BH85US0/gJ3I71/i5TELvUYDP28CF7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jWtIluUc; arc=none smtp.client-ip=209.85.161.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jWtIluUc"
+Received: by mail-oo1-f45.google.com with SMTP id 006d021491bc7-610db3f3f90so524058eaf.2
+        for <nvdimm@lists.linux.dev>; Fri, 04 Jul 2025 05:54:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1751633686; x=1752238486; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=fWEiBexGknF9z9JpON4CDuydmvoVyHEn0sWhDagRzsw=;
+        b=jWtIluUcOoW2ZHXfnF9jFBKsmZfmOVbzyksa50AkVZDHmaOmFwKOsQuBp5sVY8CKmh
+         zGO2vyIAnc9LUOp8FXGeDNSZ86ZgIUraCnaDtkkVlpUm10wCpGjQwEL8pgLQI/LwiL0F
+         r/5PelBrpgoMn6LRq3hlmYfj/l2iUR8rsYSZubs0ppJeAprkqG6HyITaLjN3kQtHf/h8
+         zMKOWke85bB0MNKqWWgZsjZ8KDT9nsnqfHOykQ+tq0MPnJMzesCPtJBLE5lh2OmU2CEc
+         Cg5ay1lNxIKNcdDCLepO/EL4cnWLhE26MZnx8zBZgG84g0MfkkfgypwonNOSKrZAAT1h
+         OJ9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751633686; x=1752238486;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fWEiBexGknF9z9JpON4CDuydmvoVyHEn0sWhDagRzsw=;
+        b=K4nCEjC4sxg4+A+MiNqCRkM/xlTIQKWafT9LXacZtM4kZg7eFEYwkT77iOeTDJzFu4
+         pH5KBTjzVevg/RF+UDxJCJSDchDzqI4Bzr6zrRn4nbi6CeReu8dfWogLlHWtLLzG3+Xm
+         6oMpPEZdYvN+Z8AgBXoXTNNVqAZyMO3MjG+siUx93cpM0QfmIoTaT/jmN4T/oD8DA6I8
+         5WmUBl2zJixWKIvYdObjdrL8WKEDns33wTRxVkJPjs4se1cx27+X/gU4J+IGafxvrClH
+         g3nG+LQmb/DFbIkj+rAbr183zY8ezFkh1D673JKH+LKBM7HtCo1fXBYBqQ8w/m6iVH4n
+         wapA==
+X-Forwarded-Encrypted: i=1; AJvYcCUQUTmIHH5sVMUiMw9DXsW71QZxakOwXzksaMJwbP6Fz4mPY6gDMxuz002pCW6IV9nv2e+bIsA=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxWZjWT+ToKNk8D31gmJ5nMMW89JkgS1R48xMq1t4ohmPLo1T5s
+	eDofgiWyFfTC5+9hr/nMpdM545izAcVTZlxi4/2IOBsO+mUb7h0tZeYA
+X-Gm-Gg: ASbGncsbVhDNGRQp+U1+43FWQtPxhRA7xz7V0bsHH38qJZdmK99//OLVVmx62R6onkN
+	vsk/BLex0uf1iXD9R8+F0hVmkr2FKN56Hsw57WZ0pKlTUOijgXzvX1unttS9btofc7VDKD8IO9e
+	9t3bCUHCMvGPLJO+Lki993vcsXih/rtyUtG07e0UBVq99W693Md0mqP6hse5VDJxx2SXrKNTg44
+	pxzmH98lEM02BgQ9c1Mtn5ZEZF+W65rUcXO7uOFspfCMTLeWOxs+2NLDIJqqprPU5/f56t76xwX
+	Q/0fXHFE/b4X5wtExn1d0RaR9gYBic1tlt9fIh/ehn2BeLZPOUwnZ4WlF6OUksxHAYh4GOrzI4U
+	=
+X-Google-Smtp-Source: AGHT+IEQCt6EzoQ1S/rGkyJCcVERY+DBQiFOXPfhObXBAnuO2Eb6V1GMOP7z4zut5KZK3JQFhWGgIg==
+X-Received: by 2002:a05:6820:1986:b0:611:b85f:b159 with SMTP id 006d021491bc7-6138ffa3919mr1751955eaf.1.1751633686279;
+        Fri, 04 Jul 2025 05:54:46 -0700 (PDT)
+Received: from groves.net ([2603:8080:1500:3d89:2db1:5c0d:1659:a3c])
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-6138e5c1db3sm304526eaf.35.2025.07.04.05.54.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Jul 2025 05:54:43 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Fri, 4 Jul 2025 07:54:38 -0500
+From: John Groves <John@groves.net>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, 
+	Miklos Szeredi <miklos@szeredb.hu>, Bernd Schubert <bschubert@ddn.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
+	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC V2 02/18] dev_dax_iomap: Add fs_dax_get() func to prepare
+ dax for fs-dax usage
+Message-ID: <or7rm2n4syer4uxaubtotarjtmmilhedih4odgiwvqb4cfkvsl@5w66of2xms5l>
 References: <20250703185032.46568-1-john@groves.net>
-	<20250703185032.46568-5-john@groves.net>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+ <20250703185032.46568-3-john@groves.net>
+ <20250704113935.000028cf@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
- frapeml500008.china.huawei.com (7.182.85.71)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250704113935.000028cf@huawei.com>
 
-On Thu,  3 Jul 2025 13:50:18 -0500
-John Groves <John@Groves.net> wrote:
-
-> Notes about this commit:
+On 25/07/04 11:39AM, Jonathan Cameron wrote:
+> On Thu,  3 Jul 2025 13:50:16 -0500
+> John Groves <John@Groves.net> wrote:
 > 
-> * These methods are based on pmem_dax_ops from drivers/nvdimm/pmem.c
+> > This function should be called by fs-dax file systems after opening the
+> > devdax device. This adds holder_operations, which effects exclusivity
+> > between callers of fs_dax_get().
+> > 
+> > This function serves the same role as fs_dax_get_by_bdev(), which dax
+> > file systems call after opening the pmem block device.
+> > 
+> > This also adds the CONFIG_DEV_DAX_IOMAP Kconfig parameter
+> > 
+> > Signed-off-by: John Groves <john@groves.net>
+> Trivial stuff inline.
 > 
-> * dev_dax_direct_access() is returns the hpa, pfn and kva. The kva was
->   newly stored as dev_dax->virt_addr by dev_dax_probe().
 > 
-> * The hpa/pfn are used for mmap (dax_iomap_fault()), and the kva is used
->   for read/write (dax_iomap_rw())
+> > ---
+> >  drivers/dax/Kconfig |  6 ++++++
+> >  drivers/dax/super.c | 30 ++++++++++++++++++++++++++++++
+> >  include/linux/dax.h |  5 +++++
+> >  3 files changed, 41 insertions(+)
+> > 
+> > diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+> > index d656e4c0eb84..ad19fa966b8b 100644
+> > --- a/drivers/dax/Kconfig
+> > +++ b/drivers/dax/Kconfig
+> > @@ -78,4 +78,10 @@ config DEV_DAX_KMEM
+> >  
+> >  	  Say N if unsure.
+> >  
+> > +config DEV_DAX_IOMAP
+> > +       depends on DEV_DAX && DAX
+> > +       def_bool y
+> > +       help
+> > +         Support iomap mapping of devdax devices (for FS-DAX file
+> > +         systems that reside on character /dev/dax devices)
+> >  endif
+> > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> > index e16d1d40d773..48bab9b5f341 100644
+> > --- a/drivers/dax/super.c
+> > +++ b/drivers/dax/super.c
+> > @@ -122,6 +122,36 @@ void fs_put_dax(struct dax_device *dax_dev, void *holder)
+> >  EXPORT_SYMBOL_GPL(fs_put_dax);
+> >  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
+> >  
+> > +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
+> > +/**
+> > + * fs_dax_get()
 > 
-> * dev_dax_recovery_write() and dev_dax_zero_page_range() have not been
->   tested yet. I'm looking for suggestions as to how to test those.
+> Trivial but from what I recall kernel-doc isn't going to like this.
+> Needs a short description.
+
+Right you are. I thought I'd checked all those, but missed this one.
+Queued to -next.
+
 > 
-> Signed-off-by: John Groves <john@groves.net>
-A few trivial things noticed whilst reading through.
-
-> ---
->  drivers/dax/bus.c | 120 ++++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 115 insertions(+), 5 deletions(-)
+> > + *
+> > + * fs-dax file systems call this function to prepare to use a devdax device for
+> > + * fsdax. This is like fs_dax_get_by_bdev(), but the caller already has struct
+> > + * dev_dax (and there  * is no bdev). The holder makes this exclusive.
 > 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 9d9a4ae7bbc0..61a8d1b3c07a 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -7,6 +7,10 @@
->  #include <linux/slab.h>
->  #include <linux/dax.h>
->  #include <linux/io.h>
-> +#include <linux/backing-dev.h>
-> +#include <linux/pfn_t.h>
-> +#include <linux/range.h>
-> +#include <linux/uio.h>
->  #include "dax-private.h"
->  #include "bus.h"
->  
-> @@ -1441,6 +1445,105 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
->  }
->  EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
->  
-> +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
-> +
-> +static void write_dax(void *pmem_addr, struct page *page,
-> +		unsigned int off, unsigned int len)
-> +{
-> +	unsigned int chunk;
-> +	void *mem;
+> there is no *bdev?  So * in wrong place.
 
-I'd move these two into the loop - similar to what you have
-in other cases with more local scope.
+I think that's a line-break-refactor malfunction on my part. Aueued to -next.
 
-> +
-> +	while (len) {
-> +		mem = kmap_local_page(page);
-> +		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
-> +		memcpy_flushcache(pmem_addr, mem + off, chunk);
-> +		kunmap_local(mem);
-> +		len -= chunk;
-> +		off = 0;
-> +		page++;
-> +		pmem_addr += chunk;
-> +	}
-> +}
-> +
-> +static long __dev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
-> +			long nr_pages, enum dax_access_mode mode, void **kaddr,
-> +			pfn_t *pfn)
-> +{
-> +	struct dev_dax *dev_dax = dax_get_private(dax_dev);
-> +	size_t size = nr_pages << PAGE_SHIFT;
-> +	size_t offset = pgoff << PAGE_SHIFT;
-> +	void *virt_addr = dev_dax->virt_addr + offset;
-> +	u64 flags = PFN_DEV|PFN_MAP;
-
-spaces around the |
-
-Though given it's in just one place, just put these inline next
-to the question...
-
-
-> +	phys_addr_t phys;
-> +	pfn_t local_pfn;
-> +	size_t dax_size;
-> +
-> +	WARN_ON(!dev_dax->virt_addr);
-> +
-> +	if (down_read_interruptible(&dax_dev_rwsem))
-> +		return 0; /* no valid data since we were killed */
-> +	dax_size = dev_dax_size(dev_dax);
-> +	up_read(&dax_dev_rwsem);
-> +
-> +	phys = dax_pgoff_to_phys(dev_dax, pgoff, nr_pages << PAGE_SHIFT);
-> +
-> +	if (kaddr)
-> +		*kaddr = virt_addr;
-> +
-> +	local_pfn = phys_to_pfn_t(phys, flags); /* are flags correct? */
-> +	if (pfn)
-> +		*pfn = local_pfn;
-> +
-> +	/* This the valid size at the specified address */
-> +	return PHYS_PFN(min_t(size_t, size, dax_size - offset));
-> +}
-
-> +static size_t dev_dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
-> +		void *addr, size_t bytes, struct iov_iter *i)
-> +{
-> +	size_t off;
-> +
-> +	off = offset_in_page(addr);
-
-Unused.
-> +
-> +	return _copy_from_iter_flushcache(addr, bytes, i);
-> +}
-
+Thanks,
+John
 
