@@ -1,154 +1,356 @@
-Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com [209.85.210.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF65528EA53
-	for <nvdimm@lists.linux.dev>; Thu,  3 Jul 2025 22:45:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.51
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751582753; cv=none; b=GZVG3ll9b9QieJaig+pSLYi6yXtAPkwxI3CMyVDMvLsNfu1fStmSmKyKThlst3AqFLw7a1rQA111Pnq8lkvJcSG9T+We5IS2iTNVbgrg+AFVWswknRNCrm1sQg1CaEeoi4FR3NeFpedDb3/badCDerg7uJrTPpWxnrhoF9ihIRs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751582753; c=relaxed/simple;
-	bh=HPiHsjtsNUgZ0EFVulpD9xRBLiID8ZLRDhdfVW3IdsM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KLl30j8GsFRTYKGP8fprMK8shDr97NAB1S+mWXimnc3teaSu/obwT4JUO7S6F2vcZ7pWNsxEjmI0iu1OvnB7uO7vmArtEj8CeBo3s1pCvlqrX/n+AifIk0SVFo4KZxSo4Rf7bpxcL79mh8hOl36MWP1vS1wE+4xIRiB+qia1Vds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AyikPN0f; arc=none smtp.client-ip=209.85.210.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D52EF17E4
+	for <nvdimm@lists.linux.dev>; Fri,  4 Jul 2025 00:17:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.15
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1751588246; cv=fail; b=EXlLirFKK/8rvqMsfMZauzjp8zMpMs/Uz+7lqq2QhQfWMsxy3wzp+III4NSuhAY3Qw1X04dffcmbvwTo43rB0tbwENWk+d5c01ETeMhD5xA39ug6XvOWVS6nshfxACMbzKbSqCyL26ou5T76+zaoFfwnO9vXW3g0anOm/htZNl4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1751588246; c=relaxed/simple;
+	bh=8ryC9wd5SJL0MxRl7Vl9bUrodBksz4ziKONRDq6B+ro=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=WbT501i+CEOKyVlN8vzu+xXRgH7Et0BCQTQlqk1KrslDxPGdbJjpyPbp3W1wChQpNIxel1cHigsjn+I7elbLx7F4+JbMsinMdp+vgcIPfHv6tzMLk3FHOTZMARPbcmTyTXvmHmtzJSAYRW3w03bkGDFF+qOwwniQM+7BT3dWP9M=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=j117sme3; arc=fail smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AyikPN0f"
-Received: by mail-ot1-f51.google.com with SMTP id 46e09a7af769-73c89db3dfcso99739a34.3
-        for <nvdimm@lists.linux.dev>; Thu, 03 Jul 2025 15:45:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751582751; x=1752187551; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=/YPfgimj3TTDyL48vSPqdxv4VejexqVlnC8mgGOjy00=;
-        b=AyikPN0fgzEbQt6oguS/LPGxeDsqAb496ehu5JBfBRZqhxnCzh3Ue//C4nS/jno4mm
-         Ge0TXFBblrQZDOiWIghRwDee8VjXEQ4qxloyYr1Pc4Ubmb4iUlufROmHRq+GEgKRx2bu
-         17HLdTfSGuqdq/g+/V32FrJFIjXmBDFqCVjfbjwxeIzbvYnvgMkwWZII6JWuYgFcQVZc
-         3C5n2LcDFKfcCglvy3sTVTepV5N/7fc51MySb0+R2OlC8EIwnMPkommDhhYSl6XDX9b5
-         TepJnz8mQDwrElVBEfIwtOT5GF2TBbWErXRU7odTOSvrpg1uEGpTyyBw8gknvAetf/Ik
-         PR0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751582751; x=1752187551;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/YPfgimj3TTDyL48vSPqdxv4VejexqVlnC8mgGOjy00=;
-        b=dDkb+Mu7xE+n91qLSpF3LrGTjshQ8hjVleilWJx2yKQs5A79eZZXcuB4gR0WBO4xT0
-         QiLnYya2qC0WJ8fjo4mU0YGLj5mDXTMRG46LWlIv5eyoSSymKvBRnmUnanzgxW05auTA
-         HFgmNsLMAT7Zs3CJFxlPxEhGrJIYedheSf/nr8tMWHPpxQNhvTClbHRT75PM6MjAayKU
-         TFenjqALFakY8cFF+tDaWSY5Zqe1+6/vWJ0+MGaE9We1OQM9K1uXD3ly5XV+mgSRWj60
-         e3uG07j3z+Pzza4ptYNU4LmQo7p/DBsDIP0Y+bu1XYhm0PZbh7AuKXiiEh2Hlef42R1E
-         YaeA==
-X-Forwarded-Encrypted: i=1; AJvYcCU7S3kIsucfyvAbNdXtEvqDNMFCo0m2ljfGw/jp9ezA3JLe84QAGMNnLQWy5HMSg+T9qaXrRyU=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxrtiL669ud7lJ4fKh/3/42e4LvlDG7p019Z2sFlqDeVKkRP3DC
-	hwXFAknaat4TQdoCBRzLVKv2eWbxQJksqWxZ3dtFZqdw/jp8ZAJQps3s
-X-Gm-Gg: ASbGncuBzQjhH9JxGgsbi01FimxHQqx0zIgFwCnrsDirEg4o3m9TxaoB+J3LVks3y5M
-	Vr63rKWIlB5D3+NG6H3JyQ8sGozoOG8EUw9J4f+lgkAkwqe31SSDKr6ggkv5TIHctfhcJvTN/Eg
-	itf2e1wcYCvX2W2UjAcS1xZBCBqPN2L8L648gmsq0yjNF1Og9WjOT7GiFhWGYzkYhz/OMch8lMZ
-	0Lxhs6PotrdRv9YlLAMtvwkZwN08G14gVyNaqN8bJNoHzlRoS1bh4c5EXYEq4u8VT1jT1ye5Jgc
-	XYP8mzRDXU6FeBMKvMRQAwAARCGWDftKl12OhbTcgt/3UhlzpHjWqpn88RuF4SbDh/TfZQ57ub9
-	Ao++QWYHgoA==
-X-Google-Smtp-Source: AGHT+IHgGLtiiEgL7LDQ1Ih8w/gzruS2hdwVBLtgvJrCpoHNfH4Jij5JOMCtHWIqD9KxgQY4KtoqHA==
-X-Received: by 2002:a05:6830:2d81:b0:72b:89ca:5120 with SMTP id 46e09a7af769-73ca124817bmr592721a34.8.1751582750775;
-        Thu, 03 Jul 2025 15:45:50 -0700 (PDT)
-Received: from groves.net ([2603:8080:1500:3d89:cd4:2776:8c4a:3597])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-73c9f75356fsm159877a34.26.2025.07.03.15.45.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Jul 2025 15:45:50 -0700 (PDT)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Thu, 3 Jul 2025 17:45:48 -0500
-From: John Groves <John@groves.net>
-To: Dan Williams <dan.j.williams@intel.com>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Bernd Schubert <bschubert@ddn.com>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
-	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 10/18] famfs_fuse: Basic fuse kernel ABI enablement for
- famfs
-Message-ID: <aimijj4mxtklldc3w6xpuwaaneoa7ekv5cnjj7rva3xmzoslgx@x4cwlmwb7dpm>
-References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-11-john@groves.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="j117sme3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1751588244; x=1783124244;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=8ryC9wd5SJL0MxRl7Vl9bUrodBksz4ziKONRDq6B+ro=;
+  b=j117sme3sRc1/JKXHtIOm2AQvsmZ1MzY1P33JFG/eo1Nm6wlNIcXLNjV
+   pWLPG6o9tOlAUVubhPhlrWQRNpHRCV1OZqy8KtjYh5+sQwPoVD7s9/+sI
+   rJ5ZKZEmUod6DwrEmZDw3aTnbEkDyPWztTTqhmdcJ7veuw+faZaA+YZD7
+   xiq9aq8sgs/b2fkzW2f0192k+5MA55V4OV7n4YJjKcj4omo1LL2L8f8U7
+   zsZHfLOWfAaNJubOgz9URll84V+wRnbt2VLkoZ2rS3KMs7UkbvMLoicas
+   dPh2y/UBrfPEDP8c3uHK8qj9tELIoLONBtcjR/XaWDJmu9a68gSj4BSro
+   A==;
+X-CSE-ConnectionGUID: gzFfHTl0SvCgBx8vePOt1Q==
+X-CSE-MsgGUID: BN5+/BWqQ66lz+UvIv0HdQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11483"; a="54069109"
+X-IronPort-AV: E=Sophos;i="6.16,285,1744095600"; 
+   d="scan'208";a="54069109"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2025 17:17:23 -0700
+X-CSE-ConnectionGUID: hoGmzaoiSg638A3G+2Ae5Q==
+X-CSE-MsgGUID: V0QdcvAvT/OrXBjn0Nv8LQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,285,1744095600"; 
+   d="scan'208";a="185456127"
+Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
+  by fmviesa001.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2025 17:17:23 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Thu, 3 Jul 2025 17:17:22 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25 via Frontend Transport; Thu, 3 Jul 2025 17:17:22 -0700
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (40.107.94.48) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.25; Thu, 3 Jul 2025 17:17:22 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=odU/fCAnTkpN3Ho4hn+ODPdyhlgCpBUogq9Ds7seX8uDHeQyz5KsyfZhPW3LlkgYuaZrdUwOWTRV6h40zLh22yCbKEUaR26FeaE9dn4ayx0tDTiiIifASSvNw7soJ6YTWDmQyuaLg2K5LxENbacp0DqRkKVbBRw1Y2yNIw5Z9koiw0p/tjqWw3VezNn84EopUAGDGdbWo3tle5udjIA0hVYKyGvJCGJKBcLEnDlXHUGQ6ZjYlxicLxs8Y6Q0uxKYLhGEXbAKOcwDl5792TlBW/hiMBqud4+LamWQjLz+prMOJTenWw6ly0C714CQC+PFfrwTnMYaNHagR0XQjf1OVQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=kKimAuUfGPlucSUOR8Ghm1K9/iW3eDDO6HY/H8WV2GE=;
+ b=Bi8wyzheFm89lJb3niTFDC32gwDz1BiyRjAPr8WQ2LhZZglO0XfCUR5JQ+0W2mlp5tmL8wczOb1TwlFIuXJTuSz/OU4yITNpVHxoXGuQZQkBinFey4ZJWY9QdAeUNqEAedKPBI8E7iGz4f3DpXetR8GD735u3Eokz+vdncb1KVHnExj3tRshR/wMrClTsK+kCj/B3EBhqRVbgA25HC24WhYiiZbZQSiExw2yDwGkUwmIzhQXDNh67G8rvthKaz67EfrU8NDo1TxAd6YjDiiXJh0U0OqSwlJzT/fHSNJoZ0YG1zcFbtOA83/LgOjPf5Qf6Ul5PFlGLEHD7jWzoo/oGA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by MW3PR11MB4763.namprd11.prod.outlook.com (2603:10b6:303:2c::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8901.19; Fri, 4 Jul
+ 2025 00:17:07 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::8254:d7be:8a06:6efb]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::8254:d7be:8a06:6efb%7]) with mapi id 15.20.8769.022; Fri, 4 Jul 2025
+ 00:17:07 +0000
+Date: Thu, 3 Jul 2025 17:17:00 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [NDCTL PATCH] cxl: Add helper function to verify port is in
+ memdev hierarchy
+Message-ID: <aGcdfKJ0shbKJTCM@aschofie-mobl2.lan>
+References: <20250618204117.4039030-1-dave.jiang@intel.com>
+ <aFM1iWWREEU_dlyF@aschofie-mobl2.lan>
+ <46ea54ab-4e20-47d8-985e-53cb7ebbf33f@intel.com>
+ <aFNBc0JqMxWT5CMu@aschofie-mobl2.lan>
+ <a940a130-4c77-4f7c-812a-e273ddb01458@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <a940a130-4c77-4f7c-812a-e273ddb01458@intel.com>
+X-ClientProxiedBy: BYAPR04CA0016.namprd04.prod.outlook.com
+ (2603:10b6:a03:40::29) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250703185032.46568-11-john@groves.net>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|MW3PR11MB4763:EE_
+X-MS-Office365-Filtering-Correlation-Id: f93d0f5e-8c93-42e1-402f-08ddba901c79
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|1800799024;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?/LohspePg6Y5OfSZegbOxVn5JWjQxgLNSXYZm/pfvadVbvL1qVBPx6DTx0+r?=
+ =?us-ascii?Q?w9hdSRKapGU8Qd/AV2sPtq85up/FF7SAsVNd/WnXaF3HPRKOPVxJNCoXI+Z2?=
+ =?us-ascii?Q?dNeyHXg9RaoLOq8F6iwpwK6rrSdK3touCcqgnV56+jd+HatVQtzVitjnE1+U?=
+ =?us-ascii?Q?5xB1ghlFbH2NFxKjqIq4XV407uWnJRs8QFZXDkC2KN1XeDZL9CUxYui9Z7/f?=
+ =?us-ascii?Q?2jzR7L1dt5mc5zVQeBqYseRs/ZfyEnk4P17iH4jddMKgsBHQKNptcC+1rowy?=
+ =?us-ascii?Q?iv2LDhMD2KHWvy/GE8mHICabYB7FL8Y+NzVz7+/qgP8CElgkjy78eXRx8U6F?=
+ =?us-ascii?Q?eR+mbDG8/IPJtUknoEXShhywd4ZQmzvNBRP3pzoYuVWFg8B5QG1GNKeSxFXU?=
+ =?us-ascii?Q?sguTWo4v9apZS9LF3iL4ZNaZInItmJvMBaw7mWDUqWll/u4NUT8rI/69r69e?=
+ =?us-ascii?Q?yodV/zQw1MV5RmwoBiiemDVggKlt75Nsj92iSPEtH7hfvO2BXDRSCZrKYovn?=
+ =?us-ascii?Q?hDe4f+p3gtB1xKcTvrOxt50uoF5mFaprKnyV7QiqvK7fdr7ZM1xyH0HqWO1g?=
+ =?us-ascii?Q?W6JycxWVyja2KSsday2g6UUbOtSJha07CNy0suKU+cEP9a8e6aJEbjrxbTXr?=
+ =?us-ascii?Q?fgpC+cjJfutFsiVSuT1bEu+/kHG7FkIlOjN2f+MQjGfOW0qyB7171vGRwDvw?=
+ =?us-ascii?Q?iydjrUestTDhSR5DLs7q47RSHaFdXtAKk6pSB54tg8Mfd9LWt26H0VYZ0Bk+?=
+ =?us-ascii?Q?KxEO2s2ERITwqqLK+031HLQtT9hOJjPf+RDNg1C1+I7x4Wb5h4KGheS9GbpQ?=
+ =?us-ascii?Q?LzPBwbpnGQEsoRN9qwscvgwTOf2aZDQelCdIXmbSqQO2yV1jLfU7fmZhjbXh?=
+ =?us-ascii?Q?jqURDz7gigyF3snQhcz55YKqdRNYSAPgMz2kiOvXsXSdKjDIrEHcaCUIW8IG?=
+ =?us-ascii?Q?2Cw6EtLqqA12nLF+Tvk7R5eopFPtcD7A6z3Ek8ePWWXZOK+TflaRvuO2sqOb?=
+ =?us-ascii?Q?Vqp1Y3BTX0l9C6PSYOL00H0AvfWYBxdNdf003U9Q1A/yFWFXtw0AyV/sqQ59?=
+ =?us-ascii?Q?p9CDQvuZLXx1wMxJvvIdIy5N2NQIQLGIntQuG7yRTqUHWTyE8kQ3o8iBn9/f?=
+ =?us-ascii?Q?4OjLkT9cl8mDzVYvIaxYsumIAOjDdiQVtvDvsTb5+p9R7ubPMU9jKyhAkfT7?=
+ =?us-ascii?Q?ez83t4MuJBsQdRzMLrnkhsSaIODqD8PrcuVHt5zHODAXXfk/brU1rT9XfXM8?=
+ =?us-ascii?Q?DWbYjhGMVklPw8gZpspu/qkukntNd+HZMKp7of52hNpakMG0dLFajNcZWlIE?=
+ =?us-ascii?Q?TRejsyVsyQnaR5JXcjG9+CcMLs/h93UcSrTEaLqIDfHQdmCt36qfKXeYWi6A?=
+ =?us-ascii?Q?nBsE3BufVOQ3SvSchhP1N5MUxyVGSoh+fGlycFVcNG/xNKhYoTGiwE5oh9jf?=
+ =?us-ascii?Q?2ftCVZyZVOg=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?+Ig7W6UYgtpUXphNfYgTxPpLk0JM8yAhEA92Y8C1DJQM2Uyhx5OdPm+Nb8n+?=
+ =?us-ascii?Q?pLhRAOiSgEQ9CXHAEYo31A+P3DeaTI7cKx5FRmZjRgYOl2z9FQoAhZ49IDd8?=
+ =?us-ascii?Q?g/1h8NPsO5Zkr03651uy6KXCuPsd1M3xz1c8bXZjX9Ya6Xm/ykK1nQRuNitl?=
+ =?us-ascii?Q?w9dVFBNdLr6mgxLGDt7hLAFrx8zrvZCB2Ey2Sb2ty46iK16cfxC+9NVYFQBf?=
+ =?us-ascii?Q?NSfc97XUGESlUlrpUuH3wjzJ3BXPNjYSop+6KoPun8xE7DkCUOCaetLVvEQZ?=
+ =?us-ascii?Q?wGnz9IGD/6FXLCQdTP8/o75kEqxAqfWaV6As85wcKKKpjQJGUVFwvV0SGRQT?=
+ =?us-ascii?Q?zfcHpLehbeYZSzs8g8AQKEqNJFwe9Xl+c7+mKIKvE8U0lzlQPYVid8KUt0Tf?=
+ =?us-ascii?Q?UJTE+/NbRNeiY1y+be//Fjd+YtWqcUZti+HrdxRIGEIpCJYr8lWqNgicynxQ?=
+ =?us-ascii?Q?FOBMfUPLynxYPCdsOqQZ4owtKV8HkuDH8LRXcMbNyomyNehiwIy7TTdMYrIg?=
+ =?us-ascii?Q?Y/wqA6+4cja+eexjkaZgKfu8V2kJtlBJ2bFSFPPZC3jDC/IUnZ7NMiqPBt54?=
+ =?us-ascii?Q?5gRC5FADZ9cNxyAJM9zSBFGpg1/oBXapQNTSdJ5F61RY0zx4rwX1WO23wpa0?=
+ =?us-ascii?Q?QMu0Gu2brsNCzbS2XnpXRAaOZl0Vh5VTvp6d/HK3zd3JgX2JTwPKT+od9N4g?=
+ =?us-ascii?Q?p+9eIma/cRxxSrupBw0kcPHDgtGvF+qfVqkub3dP6YsDd4glvJyDdHFZWkn+?=
+ =?us-ascii?Q?RC0cyHR0OwIqwHluPi6QNFtTa6CgxOqcD8/gIN0R5kF36YhqXoVNYh+biUcj?=
+ =?us-ascii?Q?TbXwROjNRWxqdSoCYm+Ue40bT6PNzq1yEobZplurTPUieYm+k32NsLUtRrQK?=
+ =?us-ascii?Q?hNkIC53FAfPG6aUR/HeE4sPujLfWrDEjz5wtj2Yb5divC3Xyxi0ATF8axC3v?=
+ =?us-ascii?Q?A4mrzl06TgHzjerBUdXTU7ILOyK/xigXPkQnK5ONzSkGXxteXdRCWXEfC9ZM?=
+ =?us-ascii?Q?oOi7XNWFtq0bzlEVqaBr+7vIkR4PpWV45MoTftxF1nkkUpcOpWApRk0TecAp?=
+ =?us-ascii?Q?9Mn+qi0EUmCiFhB4l8hhiSYw3A8OEl3Ohyidg0o9HsHYgbRoyJf1M8VcWkIy?=
+ =?us-ascii?Q?qqtMZRHjFzTIbQLnYWDXZSp6IB3RaP9JtT8vRx8GhoRkcSY5wmLZHAzJcDiE?=
+ =?us-ascii?Q?yVO6dDXkeHfTdtpcl1qz0Wn+a07DmBG+ELLfuxTjrDByjHW20GQTR688ghgR?=
+ =?us-ascii?Q?wF9v4jfsPu1Q1iA7hgrfEtJ4zZ+RVmmC96CDyepi6qzduLSLIgxUPzFVVOD6?=
+ =?us-ascii?Q?lwYGvufKq+YgCUFY61LsGrKPL9v306/r1NYEJ/RgWt6tgW2WfRqGzjTyf8ts?=
+ =?us-ascii?Q?rnnpf+ZF6zTJpH7tRQQuHsklIxCKr7zPZyLOFNehGHsXe0PCAviE4GEbVWA/?=
+ =?us-ascii?Q?t8vSsnRajaYqCIOdOwgdWEUXcQKhn4VEyfW7njYt7G4bBIwfNMZazo53bRj4?=
+ =?us-ascii?Q?lv7FEZisfw3ElvsvUxvzWUUdrjZc3MJkM28ZvJVBV/mNlnhPyKHqaBNLTfgj?=
+ =?us-ascii?Q?Hm00+CsPdCE5qsRF/uPZ10zLnRCJdFzteGaCtAKf2rsLiPFumSPZ3FV32Z8R?=
+ =?us-ascii?Q?rg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: f93d0f5e-8c93-42e1-402f-08ddba901c79
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jul 2025 00:17:07.3808
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: XdTH78iI2zzyL/ex8R8WSkWE+LeL1KfENwJ5QMQc49tfCUVO0N2v3peH76EUWVWDLOJwLEyLcAGSYQPP+8xigv60/RAAnLlm6qF4jyFBD8k=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4763
+X-OriginatorOrg: intel.com
 
-On 25/07/03 01:50PM, John Groves wrote:
-> * FUSE_DAX_FMAP flag in INIT request/reply
+On Wed, Jun 18, 2025 at 03:50:33PM -0700, Dave Jiang wrote:
 > 
-> * fuse_conn->famfs_iomap (enable famfs-mapped files) to denote a
->   famfs-enabled connection
 > 
-> Signed-off-by: John Groves <john@groves.net>
-> ---
->  fs/fuse/fuse_i.h          |  3 +++
->  fs/fuse/inode.c           | 14 ++++++++++++++
->  include/uapi/linux/fuse.h |  4 ++++
->  3 files changed, 21 insertions(+)
+> On 6/18/25 3:45 PM, Alison Schofield wrote:
+> > On Wed, Jun 18, 2025 at 02:58:13PM -0700, Dave Jiang wrote:
+> >>
+> >>
+> >> On 6/18/25 2:54 PM, Alison Schofield wrote:
+> >>> On Wed, Jun 18, 2025 at 01:41:17PM -0700, Dave Jiang wrote:
+> >>>> 'cxl enable-port -m' uses cxl_port_get_dport_by_memdev() to find the
+> >>>> memdevs that are associated with a port in order to enable those
+> >>>> associated memdevs. When the kernel switch to delayed dport
+> >>>> initialization by enumerating the dports during memdev probe, the
+> >>>> dports are no longer valid until the memdev is probed. This means
+> >>>> that cxl_port_get_dport_by_memdev() will not find any memdevs under
+> >>>> the port.
+> >>>>
+> >>>> Add a new helper function cxl_port_is_memdev_hierarchy() that checks if a
+> >>>> port is in the memdev hierarchy via the memdev->host_path where the sysfs
+> >>>> path contains all the devices in the hierarchy. This call is also backward
+> >>>> compatible with the old behavior.
+> >>>
+> >>> I get how this new function works w the delayed dport init that is
+> >>> coming soon to the CXL driver. I'm not so clear on why we leave the
+> >>> existing function in place when we know it will fail in some use
+> >>> cases. (It is a libcxl fcn afterall)
+> >>>
+> >>> Why not change the behavior of the existing function?
+> >>> How come this usage of cxl_port_get_dport_by_memdev() needs to change
+> >>> to the new helper and not the other usage in action_disable()?
+> >>>
+> >>> If the 'sometimes fails to find' function stays, how about libcxl
+> >>> docs explaining the limitations.
+> >>>
+> >>> Just stirring the pot to better understand ;)
+> >>
+> >> What's the process of retiring API calls? Add deprecated in the doc? Add warnings when called? 
+> > 
+> > What is wanted here? Should a v2 of the existing cxl_port_get_dport...
+> > be replaced with a v2 that can differentiate btw memdev not probed vs
+> > NULL for dport not found.
+> > 
+> > I see example of v2 APIs in ndctl/ndctl lib, so doable, but first need
+> > to define what is wanted.
 > 
-> diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-> index 9d87ac48d724..a592c1002861 100644
-> --- a/fs/fuse/fuse_i.h
-> +++ b/fs/fuse/fuse_i.h
-> @@ -873,6 +873,9 @@ struct fuse_conn {
->  	/* Use io_uring for communication */
->  	unsigned int io_uring;
->  
-> +	/* dev_dax_iomap support for famfs */
-> +	unsigned int famfs_iomap:1;
-> +
->  	/** Maximum stack depth for passthrough backing files */
->  	int max_stack_depth;
->  
-> diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-> index 29147657a99f..e48e11c3f9f3 100644
-> --- a/fs/fuse/inode.c
-> +++ b/fs/fuse/inode.c
-> @@ -1392,6 +1392,18 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
->  			}
->  			if (flags & FUSE_OVER_IO_URING && fuse_uring_enabled())
->  				fc->io_uring = 1;
-> +			if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&
-> +			    flags & FUSE_DAX_FMAP) {
-> +				/* XXX: Should also check that fuse server
-> +				 * has CAP_SYS_RAWIO and/or CAP_SYS_ADMIN,
-> +				 * since it is directing the kernel to access
-> +				 * dax memory directly - but this function
-> +				 * appears not to be called in fuse server
-> +				 * process context (b/c even if it drops
-> +				 * those capabilities, they are held here).
-> +				 */
-> +				fc->famfs_iomap = 1;
+> So there are 2 locations using cxl_port_get_dport_by_memdev(). If the usage in cxl/filter.c can be replaced by the new function, then we can drop the call entirely for CXL CLI. Of course if someone else is using this function in their app, then we would be breaking their app. I wonder if we need to add documentation to explain where it would fail and emit warning of deprecation in the next release?
 
-I think there should be a check here that the fuse server is 
-capable(CAP_SYS_RAWIO) (or maybe CAP_SYS_ADMIN), but this function doesn't 
-run in fuse server context. A famfs fuse server is providing fmaps, which 
-map files to devdax memory, which should not be an unprivileged operation.
+OK, back to this:
+There was no issue or question about adding the new function that only
+checks for existence. In fact, neither of the call sites of the old
+cxl_port_get_dport_by_memdev() use the returned dport - so both can
+switch to use the new function.
 
-1) Does fs/fuse already store the capabilities of the fuse server?
-2) If not, where do you suggest I do that, and where do you suggest I store
-that info? The only dead-obvious place (to me) that fs/fuse runs in server
-context is in fuse_dev_open(), but it doesn't store anything...
+What to do about the old? Can we do something like this.
+I'm thinking we don't need to obsolete the function.
+We can document this alongside the description of the new function.
 
-@Miklos, I'd appreciate your advice here.
+Not so sure of the is_enabled() in this context. It is just checking
+for the sysfs symbolic link.
 
-Thanks!
-John
+cxl_port_get_dport_by_memdev(struct cxl_port *port, struct cxl_memdev *memdev)
+{
+        struct cxl_dport *dport;
 
+	if (cxl_memdev_is_enabled(memdev)) {
+		error message 
+		return NULL;
+	}
+
+        cxl_dport_foreach(port, dport)
+                if (cxl_dport_maps_memdev(dport, memdev))
+                        return dport;
+        return NULL;
+}
+
+
+> > 
+> >>
+> >>>
+> >>> --Alison
+> >>>
+> >>>
+> >>>>
+> >>>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> >>>> ---
+> >>>>  cxl/lib/libcxl.c   | 31 +++++++++++++++++++++++++++++++
+> >>>>  cxl/lib/libcxl.sym |  5 +++++
+> >>>>  cxl/libcxl.h       |  3 +++
+> >>>>  cxl/port.c         |  2 +-
+> >>>>  4 files changed, 40 insertions(+), 1 deletion(-)
+> >>>>
+> >>>> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> >>>> index 5d97023377ec..cafde1cee4e8 100644
+> >>>> --- a/cxl/lib/libcxl.c
+> >>>> +++ b/cxl/lib/libcxl.c
+> >>>> @@ -2024,6 +2024,37 @@ CXL_EXPORT int cxl_memdev_nvdimm_bridge_active(struct cxl_memdev *memdev)
+> >>>>  	return is_enabled(path);
+> >>>>  }
+> >>>>  
+> >>>> +CXL_EXPORT bool cxl_memdev_is_port_ancestor(struct cxl_memdev *memdev,
+> >>>> +					    struct cxl_port *port)
+> >>>> +{
+> >>>> +	const char *uport = cxl_port_get_host(port);
+> >>>> +	const char *start = "devices";
+> >>>> +	const char *pstr = "platform";
+> >>>> +	char *host, *pos;
+> >>>> +
+> >>>> +	host = strdup(memdev->host_path);
+> >>>> +	if (!host)
+> >>>> +		return false;
+> >>>> +
+> >>>> +	pos = strstr(host, start);
+> >>>> +	pos += strlen(start) + 1;
+> >>>> +	if (strncmp(pos, pstr, strlen(pstr)) == 0)
+> >>>> +		pos += strlen(pstr) + 1;
+> >>>> +	pos = strtok(pos, "/");
+> >>>> +
+> >>>> +	while (pos) {
+> >>>> +		if (strcmp(pos, uport) == 0) {
+> >>>> +			free(host);
+> >>>> +			return true;
+> >>>> +		}
+> >>>> +		pos = strtok(NULL, "/");
+> >>>> +	}
+> >>>> +
+> >>>> +	free(host);
+> >>>> +
+> >>>> +	return false;
+> >>>> +}
+> >>>> +
+> >>>>  static int cxl_port_init(struct cxl_port *port, struct cxl_port *parent_port,
+> >>>>  			 enum cxl_port_type type, struct cxl_ctx *ctx, int id,
+> >>>>  			 const char *cxlport_base)
+> >>>> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+> >>>> index 3ad0cd06e25a..e01a676cdeb9 100644
+> >>>> --- a/cxl/lib/libcxl.sym
+> >>>> +++ b/cxl/lib/libcxl.sym
+> >>>> @@ -295,3 +295,8 @@ global:
+> >>>>  	cxl_fwctl_get_major;
+> >>>>  	cxl_fwctl_get_minor;
+> >>>>  } LIBECXL_8;
+> >>>> +
+> >>>> +LIBCXL_10 {
+> >>>> +global:
+> >>>> +	cxl_memdev_is_port_ancestor;
+> >>>> +} LIBCXL_9;
+> >>>> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+> >>>> index 54d97d7bb501..54bc025b121d 100644
+> >>>> --- a/cxl/libcxl.h
+> >>>> +++ b/cxl/libcxl.h
+> >>>> @@ -179,6 +179,9 @@ bool cxl_dport_maps_memdev(struct cxl_dport *dport, struct cxl_memdev *memdev);
+> >>>>  struct cxl_dport *cxl_port_get_dport_by_memdev(struct cxl_port *port,
+> >>>>  					       struct cxl_memdev *memdev);
+> >>>>  
+> >>>> +bool cxl_memdev_is_port_ancestor(struct cxl_memdev *memdev,
+> >>>> +				 struct cxl_port *port);
+> >>>> +
+> >>>>  #define cxl_dport_foreach(port, dport)                                         \
+> >>>>  	for (dport = cxl_dport_get_first(port); dport != NULL;                 \
+> >>>>  	     dport = cxl_dport_get_next(dport))
+> >>>> diff --git a/cxl/port.c b/cxl/port.c
+> >>>> index 89f3916d85aa..c951c0c771e8 100644
+> >>>> --- a/cxl/port.c
+> >>>> +++ b/cxl/port.c
+> >>>> @@ -102,7 +102,7 @@ static int action_enable(struct cxl_port *port)
+> >>>>  		return rc;
+> >>>>  
+> >>>>  	cxl_memdev_foreach(ctx, memdev)
+> >>>> -		if (cxl_port_get_dport_by_memdev(port, memdev))
+> >>>> +		if (cxl_memdev_is_port_ancestor(memdev, port))
+> >>>>  			cxl_memdev_enable(memdev);
+> >>>>  	return 0;
+> >>>>  }
+> >>>>
+> >>>> base-commit: 74b9e411bf13e87df39a517d10143fafa7e2ea92
+> >>>> -- 
+> >>>> 2.49.0
+> >>>>
+> >>>>
+> >>
+> 
