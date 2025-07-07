@@ -1,186 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F35E1C7009;
-	Mon,  7 Jul 2025 17:39:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB3421EF091
+	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 20:16:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751909984; cv=none; b=ClkME5EBTtYCS9tK+svig97wczKIwUiLmbhxLm8WQuH5AFEqG+ptRB3GkXH96XczZia6MQuZkTz4cb7U2FPeQynuv3KMiKZTiFRJYKKJeSlb2L9v58KI6kZefy0P8aexV+MNkI2jtaBF4mNGB6MVyg+0OuPupBUJ+n7ReC4+UUI=
+	t=1751919397; cv=none; b=jJRoUcTlF6C3Da+JpB9IICwfY2DBzYBywHgOgQg75EkquZWvD1aV4kLtE1dpX3vfuHqY9EouDCrfbAkluzguRTWrRuiGB0XVmLGcd4ZLK3WKu1HfCvG7eaZv63YMLCPPpkSCryem2LVN2xN8oJq6Lt0iUwx3lxtBQmErLG7cK90=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751909984; c=relaxed/simple;
-	bh=l+3iXjYGj1UpOXLJrT43d9M5v15VGrgjIsaEmWHnlnQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Q5H6LxHl4/MYBcqt9UVEoZmhLarUnikTdQ2Qh3pzOTswRa2Cof21lWiopDcoZHs55lcShXdeUS/1IByWVom3Nr96zVCITfuMm7P9evLBNDFAmhpGtbfNCEjaV6Au7PzYphpkEcbdABmXw2M3VSPpgM3y9UBF32enkkaY9Wsf5qM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HPttIjEn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751919397; c=relaxed/simple;
+	bh=jYEw+dpQOLsLhqtci6KxjAhEKrOUjQnuRdygwxBmALc=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=bMyfTw6dK/bmt3ed8IBGeWrfH4j1AAAklMYzIgx8xEg2u1eQnnU3Ws4OeViklLn2k7iFoLp5YGFbJWmjWiRzzlbl84k7voAAWeztMBe2+XhkUhbGvA5jB7kMDJ5WsJNcyOfE5ofHUKVed7l1+IvoP2vYQ3qiAk83BoxokbG3P4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Q/34JVyg; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HPttIjEn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93A93C4CEE3;
-	Mon,  7 Jul 2025 17:39:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1751909982;
-	bh=l+3iXjYGj1UpOXLJrT43d9M5v15VGrgjIsaEmWHnlnQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=HPttIjEnmPAnCKgpeOWt4ktMrN65mudK91LH4ggTI9W1jtedjRId7w5nmq4vHdyTr
-	 CEtduZ+pljjwRe6H66Gc5GHT0y7i3zGZ3uCldWnx+wC8sR4+JIDYYbZTNsNWZLXdE2
-	 15lWasxQTL4GDer73CwNfUPutq3FS6KcjyVZ3Vkrh7/k93R1GDL3AylQulro2TKFmx
-	 kfqsX7Rv2PKmDBdtKF8VGsMAtwhy4xv0dB8erpvX3T4ySF4vY+x9/FfhITDmyiWPEq
-	 9fci7JmKqnt7VFb7xgCcljSQXm6wgbFwfa4hm8sWSmN4yEMXyX7j2Z9pFuiRA5mJ8W
-	 MRfIeNrPqkppw==
-Date: Mon, 7 Jul 2025 10:39:42 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: John Groves <John@groves.net>
-Cc: Amir Goldstein <amir73il@gmail.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Bernd Schubert <bschubert@ddn.com>,
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Stefan Hajnoczi <shajnocz@redhat.com>,
-	Joanne Koong <joannelkoong@gmail.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 10/18] famfs_fuse: Basic fuse kernel ABI enablement for
- famfs
-Message-ID: <20250707173942.GC2672029@frogsfrogsfrogs>
-References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-11-john@groves.net>
- <CAOQ4uxi7fvMgYqe1M3_vD3+YXm7x1c4YjA=eKSGLuCz2Dsk0TQ@mail.gmail.com>
- <yhso6jddzt6c7glqadrztrswpisxmuvg7yopc6lp4gn44cxd4m@my4ajaw47q7d>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q/34JVyg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1751919394;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=acOOSG4Qq2nv4W4b3/Nnbhcn7CmsttwwzAN835fhnjc=;
+	b=Q/34JVyg4JXhiOeJgdF51a81Mr+I/8CexS38Ei+GsNCGkkFqVyVaQOOPYNYh9737UbsBXe
+	OWgsFY/zxmZx9R8strL5JKn4eCA2tc7vOS94unByMeMZDHKzUGep/lvfJv+ktUmHZTWYCs
+	HIJ+hdu9lmw6aWMHNRThyckt7tkUCQY=
+Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-473-YFZl0pC0NLq_XoKGDL9m0w-1; Mon,
+ 07 Jul 2025 16:16:31 -0400
+X-MC-Unique: YFZl0pC0NLq_XoKGDL9m0w-1
+X-Mimecast-MFC-AGG-ID: YFZl0pC0NLq_XoKGDL9m0w_1751919390
+Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 349701801208;
+	Mon,  7 Jul 2025 20:16:29 +0000 (UTC)
+Received: from [10.22.80.10] (unknown [10.22.80.10])
+	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 54B6E19560AB;
+	Mon,  7 Jul 2025 20:16:24 +0000 (UTC)
+Date: Mon, 7 Jul 2025 22:16:19 +0200 (CEST)
+From: Mikulas Patocka <mpatocka@redhat.com>
+To: Dongsheng Yang <dongsheng.yang@linux.dev>
+cc: agk@redhat.com, snitzer@kernel.org, axboe@kernel.dk, hch@lst.de, 
+    dan.j.williams@intel.com, Jonathan.Cameron@Huawei.com, 
+    linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, 
+    linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
+    dm-devel@lists.linux.dev
+Subject: =?UTF-8?Q?Re=3A_=5BPATCH_v2_00=2F11=5D_dm-pcache_=E2=80=93_pe?=
+ =?UTF-8?Q?rsistent-memory_cache_for_block_devices?=
+In-Reply-To: <20250707065809.437589-1-dongsheng.yang@linux.dev>
+Message-ID: <85b5cb31-b272-305f-8910-c31152485ecf@redhat.com>
+References: <20250707065809.437589-1-dongsheng.yang@linux.dev>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <yhso6jddzt6c7glqadrztrswpisxmuvg7yopc6lp4gn44cxd4m@my4ajaw47q7d>
+Content-Type: text/plain; charset=US-ASCII
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
 
-On Fri, Jul 04, 2025 at 08:39:59AM -0500, John Groves wrote:
-> On 25/07/04 09:54AM, Amir Goldstein wrote:
-> > On Thu, Jul 3, 2025 at 8:51 PM John Groves <John@groves.net> wrote:
-> > >
-> > > * FUSE_DAX_FMAP flag in INIT request/reply
-> > >
-> > > * fuse_conn->famfs_iomap (enable famfs-mapped files) to denote a
-> > >   famfs-enabled connection
-> > >
-> > > Signed-off-by: John Groves <john@groves.net>
-> > > ---
-> > >  fs/fuse/fuse_i.h          |  3 +++
-> > >  fs/fuse/inode.c           | 14 ++++++++++++++
-> > >  include/uapi/linux/fuse.h |  4 ++++
-> > >  3 files changed, 21 insertions(+)
-> > >
-> > > diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-> > > index 9d87ac48d724..a592c1002861 100644
-> > > --- a/fs/fuse/fuse_i.h
-> > > +++ b/fs/fuse/fuse_i.h
-> > > @@ -873,6 +873,9 @@ struct fuse_conn {
-> > >         /* Use io_uring for communication */
-> > >         unsigned int io_uring;
-> > >
-> > > +       /* dev_dax_iomap support for famfs */
-> > > +       unsigned int famfs_iomap:1;
-> > > +
-> > 
-> > pls move up to the bit fields members.
-> 
-> Oops, done, thanks.
-> 
-> > 
-> > >         /** Maximum stack depth for passthrough backing files */
-> > >         int max_stack_depth;
-> > >
-> > > diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-> > > index 29147657a99f..e48e11c3f9f3 100644
-> > > --- a/fs/fuse/inode.c
-> > > +++ b/fs/fuse/inode.c
-> > > @@ -1392,6 +1392,18 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
-> > >                         }
-> > >                         if (flags & FUSE_OVER_IO_URING && fuse_uring_enabled())
-> > >                                 fc->io_uring = 1;
-> > > +                       if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&
-> > > +                           flags & FUSE_DAX_FMAP) {
-> > > +                               /* XXX: Should also check that fuse server
-> > > +                                * has CAP_SYS_RAWIO and/or CAP_SYS_ADMIN,
-> > > +                                * since it is directing the kernel to access
-> > > +                                * dax memory directly - but this function
-> > > +                                * appears not to be called in fuse server
-> > > +                                * process context (b/c even if it drops
-> > > +                                * those capabilities, they are held here).
-> > > +                                */
-> > > +                               fc->famfs_iomap = 1;
-> > > +                       }
-> > 
-> > 1. As long as the mapping requests are checking capabilities we should be ok
-> >     Right?
-> 
-> It depends on the definition of "are", or maybe of "mapping requests" ;)
-> 
-> Forgive me if this *is* obvious, but the fuse server capabilities are what
-> I think need to be checked here - not the app that it accessing a file.
-> 
-> An app accessing a regular file doesn't need permission to do raw access to
-> the underlying block dev, but the fuse server does - becuase it is directing
-> the kernel to access that for apps.
-> 
-> > 2. What's the deal with capable(CAP_SYS_ADMIN) in process_init_limits then?
-> 
-> I *think* that's checking the capabilities of the app that is accessing the
-> file, and not the fuse server. But I might be wrong - I have not pulled very
-> hard on that thread yet.
 
-The init reply should be processed in the context of the fuse server.
-At that point the kernel hasn't exposed the fs to user programs, so
-(AFAICT) there won't be any other programs accessing that fuse mount.
 
-> > 3. Darrick mentioned the need for a synchronic INIT variant for his work on
-> >     blockdev iomap support [1]
+On Mon, 7 Jul 2025, Dongsheng Yang wrote:
+
+> Hi Mikulas,
+> 	This is V2 for dm-pcache, please take a look.
 > 
-> I'm not sure that's the same thing (Darrick?), but I do think Darrick's
-> use case probably needs to check capabilities for a server that is sending
-> apps (via files) off to access extents of block devices.
-
-I don't know either, Miklos hasn't responded to my questions.  I think
-the motivation for a synchronous 
-
-As for fuse/iomap, I just only need to ask the kernel if iomap support
-is available before calling ext2fs_open2() because the iomap question
-has some implications for how we open the ext4 filesystem.
-
-> > I also wonder how much of your patches and Darrick's patches end up
-> > being an overlap?
+> Code:
+>     https://github.com/DataTravelGuide/linux tags/pcache_v2
 > 
-> Darrick and I spent some time hashing through this, and came to the conclusion
-> that the actual overlap is slim-to-none. 
-
-Yeah.  The neat thing about FMAPs is that you can establish repeating
-patterns, which is useful for interleaved DRAM/pmem devices.  Disk
-filesystems don't do repeating patterns, so they'd much rather manage
-non-repeating mappings.
-
---D
-
-> > 
-> > Thanks,
-> > Amir.
-> > 
-> > [1] https://lore.kernel.org/linux-fsdevel/20250613174413.GM6138@frogsfrogsfrogs/
+> Changelogs
 > 
-> Thank you!
-> John
-> 
+> V2 from V1:
+> 	- introduce req_alloc() and req_init() in backing_dev.c, then we
+> 	  can do req_alloc() before holding spinlock and do req_init()
+> 	  in subtree_walk().
+> 	- introduce pre_alloc_key and pre_alloc_req in walk_ctx, that
+> 	  means we can pre-allocate cache_key or backing_dev_request
+> 	  before subtree walking.
+> 	- use mempool_alloc() with NOIO for the allocation of cache_key
+> 	  and backing_dev_req.
+> 	- some coding style changes from comments of Jonathan.
+
+Hi
+
+mempool_alloc with GFP_NOIO never fails - so you don't have to check the 
+returned value for NULL and propagate the error upwards.
+
+"backing_req->kmem.bvecs = kmalloc_array(n_vecs, sizeof(struct bio_vec), 
+GFP_NOIO)" - this call may fail and you should handle the error gracefully 
+(i.e. don't end the bio with an error). Would it be possible to trim the 
+request to BACKING_DEV_REQ_INLINE_BVECS vectors and retry it? 
+Alternativelly, you can create a mempool for the largest possible n_vecs 
+and allocate from this mempool if kmalloc_array fails.
+
+I'm sending two patches for dm-pcache - the first patch adds the include 
+file linux/bitfield.h - it is needed in my config. The second patch makes 
+slab caches per-module rather than per-device, if you have them 
+per-device, there are warnings about duplicate cache names.
+
+
+BTW. What kind of persistent memory do you use? (afaik Intel killed the 
+Optane products and I don't know of any replacement)
+
+Some times ago I created a filesystem for persistent memory - see 
+git://leontynka.twibright.com/nvfs.git - I'd be interested if you can test 
+it on your persistent memory implementation.
+
+Mikulas
+
