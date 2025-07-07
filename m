@@ -1,32 +1,32 @@
-Received: from out-178.mta1.migadu.com (out-178.mta1.migadu.com [95.215.58.178])
+Received: from out-183.mta1.migadu.com (out-183.mta1.migadu.com [95.215.58.183])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D672427D773
-	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 06:58:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452DB28724E
+	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 06:59:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.183
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751871536; cv=none; b=em8TwPwyUuOABcaqDv6Yr7TzZNy90vWO4j2AjyC2gdOZRQ8TbIbqReV9hQWw9diGeMjKDFqdWuRaSy83fezOMFOBkWukSwGvRY5MPl/MXmk/PTDFLQuwWBUpjM7//duTdX9ttj5Bvjmnq9wEr8YesElKP1f/9PnoSTQM3RSXVMA=
+	t=1751871542; cv=none; b=VBQ8+1m25du2MBiU1xCco0Gkjn9EogG2s4p+r6NqVYhQXKlyQMsVHQ7Jj/k5yScfu/Pv88CTVjH1nTf6UcrDcgTpzTbyX1/fG8RyOPb5QPgumtjLsdgNwdiY4a/oS05KkV7LcTRy+wcojRDs6k90CP22qqH7t4SvOPJBkdueIys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751871536; c=relaxed/simple;
-	bh=ot1HrIYVODNI7Mpms/ts/9xjJzQcl6zJQJoFhEmyi4Q=;
+	s=arc-20240116; t=1751871542; c=relaxed/simple;
+	bh=lIBmtUnbDtt2NsRwGcOkyN+FpjQqtkwFakV+dJxb3cE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KvDM1VD7h2GRCsFxErB9Dlq1J1uoavUW8IkSvYiq/Et2Uqc1zdnv5gsAQx5w/X69T8KkN9svNf+TwZ2HX5j0W3YPjNSCT3TbVA9jFD2mH+h20jnRdmG/Cx/4pKNmyktcg+kWnw0hOVmyPvh3flG3PRBJwjz0sUAkWlYee8jpm6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=wflk3b1Z; arc=none smtp.client-ip=95.215.58.178
+	 MIME-Version:Content-Type; b=IHS2UPDPjWtUFb5yvvHcgRtOaJV2etzrN6z3wP/44XyT15kJwc39ZGv/E8CEmo0v333cMm2PwrPCHzMw2jZ+FkfmAIMBuQtES2U43U8GoaYtAOWazFO5SXKlR687WHPi4razGYReKGszQRKCUjz4pBNlPs2uSkmoeJ5miRHuq80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=UuVm1ISh; arc=none smtp.client-ip=95.215.58.183
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="wflk3b1Z"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="UuVm1ISh"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1751871533;
+	t=1751871538;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=1k4ThIK6HiFXxzP6uiT8FVeRFHMtgqKY+36f0fU2iaM=;
-	b=wflk3b1ZS/QXNxmTbqXLvbBK6/vSkILkkH4i7CfThU5Cdsgu4nCSkBxaZk3jzUQ7eLww13
-	Z+YD9fit8Z/2Z4mm3ruy5cscMCYbXFb+wVdqXpb7hOjGcUHjKTo0hbbxx4pUCV3pjEljd4
-	DnB9m6cfWQCL7FEuTXN8mlOOK6ULMI4=
+	bh=YJq153NSPW76L4xCiOK5DyOP7ElmHsjp8n6ilNH3VoQ=;
+	b=UuVm1ISh7ZmBcsI1mZ5nsKw1mgLscOYxhMfOHSNrspshPDUPJY7f3wE1y8M18A10Jmd6AD
+	43D3V7rkGedwpo/G00zh5T33hdh/b7+kEA2NJrJ0S858C+Mm9Dgn9ECInXo4K5YFm7VZ/9
+	LzGP3lLmyHBYByS0dJVqRXL5/q3KgJo=
 From: Dongsheng Yang <dongsheng.yang@linux.dev>
 To: mpatocka@redhat.com,
 	agk@redhat.com,
@@ -41,9 +41,9 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	dm-devel@lists.linux.dev,
 	Dongsheng Yang <dongsheng.yang@linux.dev>
-Subject: [PATCH v2 04/11] dm-pcache: add segment layer
-Date: Mon,  7 Jul 2025 06:58:02 +0000
-Message-ID: <20250707065809.437589-5-dongsheng.yang@linux.dev>
+Subject: [PATCH v2 05/11] dm-pcache: add cache_segment
+Date: Mon,  7 Jul 2025 06:58:03 +0000
+Message-ID: <20250707065809.437589-6-dongsheng.yang@linux.dev>
 In-Reply-To: <20250707065809.437589-1-dongsheng.yang@linux.dev>
 References: <20250707065809.437589-1-dongsheng.yang@linux.dev>
 Precedence: bulk
@@ -56,187 +56,343 @@ Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-Introduce segment.{c,h}, an internal abstraction that encapsulates
-everything related to a single pcache *segment* (the fixed-size
-allocation unit stored on the cache-device).
+Introduce *cache_segment.c*, the in-memory/on-disk glue that lets a
+`struct pcache_cache` manage its array of data segments.
 
-* On-disk metadata (`struct pcache_segment_info`)
-  - Embedded `struct pcache_meta_header` for CRC/sequence handling.
-  - `flags` field encodes a “has-next” bit and a 4-bit *type* class
-    (`CACHE_DATA` added as the first type).
+* Metadata handling
+  - Loads the most-recent replica of both the segment-info block
+    (`struct pcache_segment_info`) and per-segment generation counter
+    (`struct pcache_cache_seg_gen`) using `pcache_meta_find_latest()`.
+  - Updates those structures atomically with CRC + sequence rollover,
+    writing alternately to the two metadata slots inside each segment.
 
-* Initialisation
-  - `pcache_segment_init()` populates the in-memory
-    `struct pcache_segment` from a given segment id, data offset and
-    metadata pointer, computing the usable `data_size` and virtual
-    address within the DAX mapping.
+* Segment initialisation (`cache_seg_init`)
+  - Builds a `struct pcache_segment` pointing to the segment’s data
+    area, sets up locks, generation counters, and, when formatting a new
+    cache, zeroes the on-segment kset header.
 
-* IO helpers
-  - `segment_copy_to_bio()` / `segment_copy_from_bio()` move data
-    between pmem and a bio, using `_copy_mc_to_iter()` and
-    `_copy_from_iter_flushcache()` to tolerate hw memory errors and
-    ensure durability.
-  - `segment_pos_advance()` advances an internal offset while staying
-    inside the segment’s data area.
+* Linked-list of segments
+  - `cache_seg_set_next_seg()` stores the *next* segment id in
+    `seg_info->next_seg` and sets the HAS_NEXT flag, allowing a cache to
+    span multiple segments. This is important to allow other type of
+    segment added in future.
 
-These helpers allow upper layers (cache key management, write-back
-logic, GC, etc.) to treat a segment as a contiguous byte array without
-knowing about DAX mappings or persistence details.
+* Runtime life-cycle
+  - Reference counting (`cache_seg_get/put`) with invalidate-on-last-put
+    that clears the bitmap slot and schedules cleanup work.
+  - Generation bump (`cache_seg_gen_increase`) persists a new generation
+    record whenever the segment is modified.
+
+* Allocator
+  - `get_cache_segment()` uses a bitmap and per-cache hint to pick the
+    next free segment, retrying with micro-delays when none are
+    immediately available.
 
 Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
 ---
- drivers/md/dm-pcache/segment.c | 61 ++++++++++++++++++++++++++++
- drivers/md/dm-pcache/segment.h | 73 ++++++++++++++++++++++++++++++++++
- 2 files changed, 134 insertions(+)
- create mode 100644 drivers/md/dm-pcache/segment.c
- create mode 100644 drivers/md/dm-pcache/segment.h
+ drivers/md/dm-pcache/cache_segment.c | 293 +++++++++++++++++++++++++++
+ 1 file changed, 293 insertions(+)
+ create mode 100644 drivers/md/dm-pcache/cache_segment.c
 
-diff --git a/drivers/md/dm-pcache/segment.c b/drivers/md/dm-pcache/segment.c
+diff --git a/drivers/md/dm-pcache/cache_segment.c b/drivers/md/dm-pcache/cache_segment.c
 new file mode 100644
-index 000000000000..7e9818701445
+index 000000000000..4c1f037f1fd3
 --- /dev/null
-+++ b/drivers/md/dm-pcache/segment.c
-@@ -0,0 +1,61 @@
++++ b/drivers/md/dm-pcache/cache_segment.c
+@@ -0,0 +1,293 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
-+#include <linux/dax.h>
 +
-+#include "pcache_internal.h"
 +#include "cache_dev.h"
-+#include "segment.h"
++#include "cache.h"
++#include "backing_dev.h"
++#include "dm_pcache.h"
 +
-+int segment_copy_to_bio(struct pcache_segment *segment,
-+		u32 data_off, u32 data_len, struct bio *bio, u32 bio_off)
++static inline struct pcache_segment_info *get_seg_info_addr(struct pcache_cache_segment *cache_seg)
 +{
-+	struct iov_iter iter;
-+	size_t copied;
-+	void *src;
++	struct pcache_segment_info *seg_info_addr;
++	u32 seg_id = cache_seg->segment.seg_id;
++	void *seg_addr;
 +
-+	iov_iter_bvec(&iter, ITER_DEST, &bio->bi_io_vec[bio->bi_iter.bi_idx],
-+			bio_segments(bio), bio->bi_iter.bi_size);
-+	iter.iov_offset = bio->bi_iter.bi_bvec_done;
-+	if (bio_off)
-+		iov_iter_advance(&iter, bio_off);
++	seg_addr = CACHE_DEV_SEGMENT(cache_seg->cache->cache_dev, seg_id);
++	seg_info_addr = seg_addr + PCACHE_SEG_INFO_SIZE * cache_seg->info_index;
 +
-+	src = segment->data + data_off;
-+	copied = _copy_mc_to_iter(src, data_len, &iter);
-+	if (copied != data_len)
-+		return -EIO;
-+
-+	return 0;
++	return seg_info_addr;
 +}
 +
-+int segment_copy_from_bio(struct pcache_segment *segment,
-+		u32 data_off, u32 data_len, struct bio *bio, u32 bio_off)
++static void cache_seg_info_write(struct pcache_cache_segment *cache_seg)
 +{
-+	struct iov_iter iter;
-+	size_t copied;
-+	void *dst;
++	struct pcache_segment_info *seg_info_addr;
++	struct pcache_segment_info *seg_info = &cache_seg->cache_seg_info;
 +
-+	iov_iter_bvec(&iter, ITER_SOURCE, &bio->bi_io_vec[bio->bi_iter.bi_idx],
-+			bio_segments(bio), bio->bi_iter.bi_size);
-+	iter.iov_offset = bio->bi_iter.bi_bvec_done;
-+	if (bio_off)
-+		iov_iter_advance(&iter, bio_off);
++	mutex_lock(&cache_seg->info_lock);
++	seg_info->header.seq++;
++	seg_info->header.crc = pcache_meta_crc(&seg_info->header, sizeof(struct pcache_segment_info));
 +
-+	dst = segment->data + data_off;
-+	copied = _copy_from_iter_flushcache(dst, data_len, &iter);
-+	if (copied != data_len)
-+		return -EIO;
++	seg_info_addr = get_seg_info_addr(cache_seg);
++	memcpy_flushcache(seg_info_addr, seg_info, sizeof(struct pcache_segment_info));
 +	pmem_wmb();
 +
++	cache_seg->info_index = (cache_seg->info_index + 1) % PCACHE_META_INDEX_MAX;
++	mutex_unlock(&cache_seg->info_lock);
++}
++
++static int cache_seg_info_load(struct pcache_cache_segment *cache_seg)
++{
++	struct pcache_segment_info *cache_seg_info_addr_base, *cache_seg_info_addr;
++	struct pcache_cache_dev *cache_dev = cache_seg->cache->cache_dev;
++	struct dm_pcache *pcache = CACHE_DEV_TO_PCACHE(cache_dev);
++	u32 seg_id = cache_seg->segment.seg_id;
++	int ret = 0;
++
++	cache_seg_info_addr_base = CACHE_DEV_SEGMENT(cache_dev, seg_id);
++
++	mutex_lock(&cache_seg->info_lock);
++	cache_seg_info_addr = pcache_meta_find_latest(&cache_seg_info_addr_base->header,
++						sizeof(struct pcache_segment_info),
++						PCACHE_SEG_INFO_SIZE,
++						&cache_seg->cache_seg_info);
++	if (IS_ERR(cache_seg_info_addr)) {
++		ret = PTR_ERR(cache_seg_info_addr);
++		goto out;
++	} else if (!cache_seg_info_addr) {
++		ret = -EIO;
++		goto out;
++	}
++	cache_seg->info_index = cache_seg_info_addr - cache_seg_info_addr_base;
++out:
++	mutex_unlock(&cache_seg->info_lock);
++
++	if (ret)
++		pcache_dev_err(pcache, "can't read segment info of segment: %u, ret: %d\n",
++			      cache_seg->segment.seg_id, ret);
++	return ret;
++}
++
++static int cache_seg_ctrl_load(struct pcache_cache_segment *cache_seg)
++{
++	struct pcache_cache_seg_ctrl *cache_seg_ctrl = cache_seg->cache_seg_ctrl;
++	struct pcache_cache_seg_gen cache_seg_gen, *cache_seg_gen_addr;
++	int ret = 0;
++
++	mutex_lock(&cache_seg->ctrl_lock);
++	cache_seg_gen_addr = pcache_meta_find_latest(&cache_seg_ctrl->gen->header,
++					     sizeof(struct pcache_cache_seg_gen),
++					     sizeof(struct pcache_cache_seg_gen),
++					     &cache_seg_gen);
++	if (IS_ERR(cache_seg_gen_addr)) {
++		ret = PTR_ERR(cache_seg_gen_addr);
++		goto out;
++	}
++
++	if (!cache_seg_gen_addr) {
++		cache_seg->gen = 0;
++		cache_seg->gen_seq = 0;
++		cache_seg->gen_index = 0;
++		goto out;
++	}
++
++	cache_seg->gen = cache_seg_gen.gen;
++	cache_seg->gen_seq = cache_seg_gen.header.seq;
++	cache_seg->gen_index = (cache_seg_gen_addr - cache_seg_ctrl->gen);
++out:
++	mutex_unlock(&cache_seg->ctrl_lock);
++
++	return ret;
++}
++
++static inline struct pcache_cache_seg_gen *get_cache_seg_gen_addr(struct pcache_cache_segment *cache_seg)
++{
++	struct pcache_cache_seg_ctrl *cache_seg_ctrl = cache_seg->cache_seg_ctrl;
++
++	return (cache_seg_ctrl->gen + cache_seg->gen_index);
++}
++
++static void cache_seg_ctrl_write(struct pcache_cache_segment *cache_seg)
++{
++	struct pcache_cache_seg_gen cache_seg_gen;
++
++	mutex_lock(&cache_seg->ctrl_lock);
++	cache_seg_gen.gen = cache_seg->gen;
++	cache_seg_gen.header.seq = ++cache_seg->gen_seq;
++	cache_seg_gen.header.crc = pcache_meta_crc(&cache_seg_gen.header,
++						 sizeof(struct pcache_cache_seg_gen));
++
++	memcpy_flushcache(get_cache_seg_gen_addr(cache_seg), &cache_seg_gen, sizeof(struct pcache_cache_seg_gen));
++	pmem_wmb();
++
++	cache_seg->gen_index = (cache_seg->gen_index + 1) % PCACHE_META_INDEX_MAX;
++	mutex_unlock(&cache_seg->ctrl_lock);
++}
++
++static void cache_seg_ctrl_init(struct pcache_cache_segment *cache_seg)
++{
++	cache_seg->gen = 0;
++	cache_seg->gen_seq = 0;
++	cache_seg->gen_index = 0;
++	cache_seg_ctrl_write(cache_seg);
++}
++
++static int cache_seg_meta_load(struct pcache_cache_segment *cache_seg)
++{
++	int ret;
++
++	ret = cache_seg_info_load(cache_seg);
++	if (ret)
++		goto err;
++
++	ret = cache_seg_ctrl_load(cache_seg);
++	if (ret)
++		goto err;
++
 +	return 0;
++err:
++	return ret;
 +}
 +
-+void pcache_segment_init(struct pcache_cache_dev *cache_dev, struct pcache_segment *segment,
-+		      struct pcache_segment_init_options *options)
++/**
++ * cache_seg_set_next_seg - Sets the ID of the next segment
++ * @cache_seg: Pointer to the cache segment structure.
++ * @seg_id: The segment ID to set as the next segment.
++ *
++ * A pcache_cache allocates multiple cache segments, which are linked together
++ * through next_seg. When loading a pcache_cache, the first cache segment can
++ * be found using cache->seg_id, which allows access to all the cache segments.
++ */
++void cache_seg_set_next_seg(struct pcache_cache_segment *cache_seg, u32 seg_id)
 +{
-+	segment->seg_info = options->seg_info;
-+	segment_info_set_type(segment->seg_info, options->type);
-+
-+	segment->cache_dev = cache_dev;
-+	segment->seg_id = options->seg_id;
-+	segment->data_size = PCACHE_SEG_SIZE - options->data_off;
-+	segment->data = CACHE_DEV_SEGMENT(cache_dev, options->seg_id) + options->data_off;
++	cache_seg->cache_seg_info.flags |= PCACHE_SEG_INFO_FLAGS_HAS_NEXT;
++	cache_seg->cache_seg_info.next_seg = seg_id;
++	cache_seg_info_write(cache_seg);
 +}
-diff --git a/drivers/md/dm-pcache/segment.h b/drivers/md/dm-pcache/segment.h
-new file mode 100644
-index 000000000000..cab53504f1d7
---- /dev/null
-+++ b/drivers/md/dm-pcache/segment.h
-@@ -0,0 +1,73 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef _PCACHE_SEGMENT_H
-+#define _PCACHE_SEGMENT_H
 +
-+#include <linux/bio.h>
-+
-+#include "pcache_internal.h"
-+
-+struct pcache_segment_info {
-+	struct pcache_meta_header	header;
-+	__u32			flags;
-+	__u32			next_seg;
-+};
-+
-+#define PCACHE_SEG_INFO_FLAGS_HAS_NEXT		BIT(0)
-+
-+#define PCACHE_SEG_INFO_FLAGS_TYPE_MASK         GENMASK(4, 1)
-+#define PCACHE_SEGMENT_TYPE_CACHE_DATA		1
-+
-+static inline bool segment_info_has_next(struct pcache_segment_info *seg_info)
++int cache_seg_init(struct pcache_cache *cache, u32 seg_id, u32 cache_seg_id,
++		   bool new_cache)
 +{
-+	return (seg_info->flags & PCACHE_SEG_INFO_FLAGS_HAS_NEXT);
++	struct pcache_cache_dev *cache_dev = cache->cache_dev;
++	struct pcache_cache_segment *cache_seg = &cache->segments[cache_seg_id];
++	struct pcache_segment_init_options seg_options = { 0 };
++	struct pcache_segment *segment = &cache_seg->segment;
++	int ret;
++
++	cache_seg->cache = cache;
++	cache_seg->cache_seg_id = cache_seg_id;
++	spin_lock_init(&cache_seg->gen_lock);
++	atomic_set(&cache_seg->refs, 0);
++	mutex_init(&cache_seg->info_lock);
++	mutex_init(&cache_seg->ctrl_lock);
++
++	/* init pcache_segment */
++	seg_options.type = PCACHE_SEGMENT_TYPE_CACHE_DATA;
++	seg_options.data_off = PCACHE_CACHE_SEG_CTRL_OFF + PCACHE_CACHE_SEG_CTRL_SIZE;
++	seg_options.seg_id = seg_id;
++	seg_options.seg_info = &cache_seg->cache_seg_info;
++	pcache_segment_init(cache_dev, segment, &seg_options);
++
++	cache_seg->cache_seg_ctrl = CACHE_DEV_SEGMENT(cache_dev, seg_id) + PCACHE_CACHE_SEG_CTRL_OFF;
++
++	if (new_cache) {
++		cache_dev_zero_range(cache_dev, CACHE_DEV_SEGMENT(cache_dev, seg_id),
++				     PCACHE_SEG_INFO_SIZE * PCACHE_META_INDEX_MAX +
++				     PCACHE_CACHE_SEG_CTRL_SIZE);
++
++		cache_seg_ctrl_init(cache_seg);
++
++		cache_seg->info_index = 0;
++		cache_seg_info_write(cache_seg);
++
++		/* clear outdated kset in segment */
++		memcpy_flushcache(segment->data, &pcache_empty_kset, sizeof(struct pcache_cache_kset_onmedia));
++		pmem_wmb();
++	} else {
++		ret = cache_seg_meta_load(cache_seg);
++		if (ret)
++			goto err;
++	}
++
++	return 0;
++err:
++	return ret;
 +}
 +
-+static inline void segment_info_set_type(struct pcache_segment_info *seg_info, u8 type)
++/**
++ * get_cache_segment - Retrieves a free cache segment from the cache.
++ * @cache: Pointer to the cache structure.
++ *
++ * This function attempts to find a free cache segment that can be used.
++ * It locks the segment map and checks for the next available segment ID.
++ * If a free segment is found, it initializes it and returns a pointer to the
++ * cache segment structure. Returns NULL if no segments are available.
++ */
++struct pcache_cache_segment *get_cache_segment(struct pcache_cache *cache)
 +{
-+	seg_info->flags &= ~PCACHE_SEG_INFO_FLAGS_TYPE_MASK;
-+	seg_info->flags |= FIELD_PREP(PCACHE_SEG_INFO_FLAGS_TYPE_MASK, type);
++	struct pcache_cache_segment *cache_seg;
++	u32 seg_id;
++
++	spin_lock(&cache->seg_map_lock);
++again:
++	seg_id = find_next_zero_bit(cache->seg_map, cache->n_segs, cache->last_cache_seg);
++	if (seg_id == cache->n_segs) {
++		/* reset the hint of ->last_cache_seg and retry */
++		if (cache->last_cache_seg) {
++			cache->last_cache_seg = 0;
++			goto again;
++		}
++		cache->cache_full = true;
++		spin_unlock(&cache->seg_map_lock);
++		return NULL;
++	}
++
++	/*
++	 * found an available cache_seg, mark it used in seg_map
++	 * and update the search hint ->last_cache_seg
++	 */
++	__set_bit(seg_id, cache->seg_map);
++	cache->last_cache_seg = seg_id;
++	spin_unlock(&cache->seg_map_lock);
++
++	cache_seg = &cache->segments[seg_id];
++	cache_seg->cache_seg_id = seg_id;
++
++	return cache_seg;
 +}
 +
-+static inline u8 segment_info_get_type(struct pcache_segment_info *seg_info)
++static void cache_seg_gen_increase(struct pcache_cache_segment *cache_seg)
 +{
-+	return FIELD_GET(PCACHE_SEG_INFO_FLAGS_TYPE_MASK, seg_info->flags);
++	spin_lock(&cache_seg->gen_lock);
++	cache_seg->gen++;
++	spin_unlock(&cache_seg->gen_lock);
++
++	cache_seg_ctrl_write(cache_seg);
 +}
 +
-+struct pcache_segment_pos {
-+	struct pcache_segment	*segment;	/* Segment associated with the position */
-+	u32			off;		/* Offset within the segment */
-+};
-+
-+struct pcache_segment_init_options {
-+	u8			type;
-+	u32			seg_id;
-+	u32			data_off;
-+
-+	struct pcache_segment_info	*seg_info;
-+};
-+
-+struct pcache_segment {
-+	struct pcache_cache_dev	*cache_dev;
-+
-+	void			*data;
-+	u32			data_size;
-+	u32			seg_id;
-+
-+	struct pcache_segment_info	*seg_info;
-+};
-+
-+int segment_copy_to_bio(struct pcache_segment *segment,
-+		      u32 data_off, u32 data_len, struct bio *bio, u32 bio_off);
-+int segment_copy_from_bio(struct pcache_segment *segment,
-+			u32 data_off, u32 data_len, struct bio *bio, u32 bio_off);
-+
-+static inline void segment_pos_advance(struct pcache_segment_pos *seg_pos, u32 len)
++void cache_seg_get(struct pcache_cache_segment *cache_seg)
 +{
-+	BUG_ON(seg_pos->off + len > seg_pos->segment->data_size);
-+
-+	seg_pos->off += len;
++	atomic_inc(&cache_seg->refs);
 +}
 +
-+void pcache_segment_init(struct pcache_cache_dev *cache_dev, struct pcache_segment *segment,
-+		      struct pcache_segment_init_options *options);
-+#endif /* _PCACHE_SEGMENT_H */
++static void cache_seg_invalidate(struct pcache_cache_segment *cache_seg)
++{
++	struct pcache_cache *cache;
++
++	cache = cache_seg->cache;
++	cache_seg_gen_increase(cache_seg);
++
++	spin_lock(&cache->seg_map_lock);
++	if (cache->cache_full)
++		cache->cache_full = false;
++	clear_bit(cache_seg->cache_seg_id, cache->seg_map);
++	spin_unlock(&cache->seg_map_lock);
++
++	pcache_defer_reqs_kick(CACHE_TO_PCACHE(cache));
++	/* clean_work will clean the bad key in key_tree*/
++	queue_work(cache_get_wq(cache), &cache->clean_work);
++}
++
++void cache_seg_put(struct pcache_cache_segment *cache_seg)
++{
++	if (atomic_dec_and_test(&cache_seg->refs))
++		cache_seg_invalidate(cache_seg);
++}
 -- 
 2.43.0
 
