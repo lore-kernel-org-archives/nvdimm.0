@@ -1,143 +1,198 @@
-Received: from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-171.mta1.migadu.com (out-171.mta1.migadu.com [95.215.58.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 752EB277013
-	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 06:32:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83B7027AC2E
+	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 06:58:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751869926; cv=none; b=JmLIRvXGxTPQDf5u1M9qO80ktUb5w2AGnuZ69/xUjndzpwFLOimVyXJXybv5xdXBZrFPb7njbk3WZQcqQ3ayiMg8l1FJb+otZCqcwdpxzRA8vTQ5HjtUCyJphISEmrcX0BPQ5MY7LXoPcvydIoG3cWyJ2K8tzc35xKzueDrFNl4=
+	t=1751871516; cv=none; b=D0nKgaWq9bOdBPa4Kjk9QgjyVSULcPCoa7DUwd2/0BMRzaIiW2PHVeJVQps2C60YqYcf510AlHxTCkZc7Xi3VDLl8mz6R2eytfmKlssWIUX/+WCeE0R6H3RMCzJiIg2seUTgJtghmK5huKkiUaOAjLT1F1mFkoqpEEYCev5i9Xw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751869926; c=relaxed/simple;
-	bh=vxJe+BPm71cWBNm4iliT8N1/neqQZh47yL4hqyujN3w=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=dCr15S3dR4Go3BzFURyZfOprfVOsnYHQrC5uluC3cAJWIs4/9JarKg4HXXf7jwN+TvYpiDkRO4JEc20Au5LWdBOkM+PWyZ4SIr8/fdUf19dXV9yjZUvJ1l4haGiBLi1yFQK/N8VyBGh60Lyvh0ezOqUCbzfjIW7LNhormAEwMZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rBCd2AzU; arc=none smtp.client-ip=209.85.128.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1751871516; c=relaxed/simple;
+	bh=FATaHSYkQKTtWt9pSwK+X/lCfYVbu/ZC1K1hdRMeA8E=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ulxZkMfAE/cRkv1XcmJG4oVsFA/asot/quoG7TBEo/w20AEEpxIIFXdbE2LcGqaaR+uGK2OPavgCL7WNWUFxbFvFSRtrf+PzzEcPysXemQl07GXz7a7CtWybqr4Wa6f3IKTOCt+++8u2AMWtKyzLt5/m9lsCgV5M9FxTwjowtWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Qde3l70b; arc=none smtp.client-ip=95.215.58.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rBCd2AzU"
-Received: by mail-yw1-f174.google.com with SMTP id 00721157ae682-713fba639f3so21551487b3.1
-        for <nvdimm@lists.linux.dev>; Sun, 06 Jul 2025 23:32:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1751869923; x=1752474723; darn=lists.linux.dev;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=9eregAcGFAIzSiU/cuG1dEAU9nmydwBb6E55/BzC4wc=;
-        b=rBCd2AzUsSTQ6FqUwCEVwH8b3+QbgxfDn1a/aGG2hnzml7FwbLT5C6pNW7dk4dKCXw
-         F0w/NpB5OdPynDJ09+j5Nzvfge0ObrAv0dPlIi5SKaPciQtzhinn3C/8zYWUqbTuXC0h
-         pG1dz6JXuyEblsrThCWzaHcf1HSGP7vzvR0Krh87rrwGga6LZvD7+lW0wK/+SQPIdTWP
-         fpDq0/EO1SeJnYwR6hUvs8zCgv0autTWL2wKs08vkKPlJNvZWgMbMvijqmwRjQfZ9+Bg
-         oLCmmWARloFHkWQ9vNMDBXWRhFu3KLlAX+HfYYW1bjbAxIMrGbhFDjzHqE3dzvphWl9s
-         Rxag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751869923; x=1752474723;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=9eregAcGFAIzSiU/cuG1dEAU9nmydwBb6E55/BzC4wc=;
-        b=KOqu3XBoNyRvjL6lDPWi/3lQvST+GSixQsFwqoRc0Ghgx3529NVfRXtStf99AGVIdQ
-         ERvABm7Dua9zQxm7b/fbHLGk6jCiNAC4E2NVu7lApO2Li/X5z7gXW9aDMKgTOjlAoh7/
-         NQxXz+jatM2fFrcsuf+Bs6p3m1xF/hGMl4VrCtE7khEqyVsOK8Dn5gJUikMZ5EntdGER
-         eVdeH4/Ez0iVD0nkLqx2goTMFiLWuzbx6bBtLUeB271pk11UzCB43HPx0aMF9HnK+WM7
-         tY/Bpvvemq28KeTDk1Pg5yVkhENj/3OwNprD7eWw/3D8s84gRA9QXyLdOY1cHG0l/UaD
-         1lVA==
-X-Forwarded-Encrypted: i=1; AJvYcCVZTpiHELW0lVZuz2mZbPiGxG7482/1gsejMrNb4mHMLp5FTjYVHGKidS+fgxw8k+jysDcWezo=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxtJEecGA6dEAwW17t2ja7haDSuSnNBcd+4r0+DAXdVtXrl1QlV
-	0NvDp35AYnyHl0ONop314Y/LnusMGYEzkxNAknjhtdI4N1kq3DYma+rPBloApbaKJw==
-X-Gm-Gg: ASbGncvCTGZHIo+AmihPdjFIeB0DABOQgRaQgGW44YihTCqfzPHgNAwpAin514s7cA9
-	fi4VGn20VujGloBpmahPZuV5ZdHm6hk8uP4YBZT0Ogj3te5+v4LhQt6PIUiAAYKcnq4U6dIIcaK
-	BN4dKd+wM/5ewOfuYmCpItdM+GoOF9gdCxpaSWfMGwDU/1eWsQ5XfXEjelQau4dtlV+8wLZyy6q
-	dkbyoU8yOnD8U9/7Ig7uBZoWvVuk7dM9gbvQzc6MwLZmUER3G1QCGURnRF2pyBGFvG7Q/lwET/S
-	n0w31TvW+YhnFtwFf/RPU2RQCeZH0VDRPAmgs4+qYF77ZAiQZgIv9G+NV2J0CODKKRsz8XILlfG
-	c9d201FyBv4IyM+XmkpUrsJclbBhGzVPNPjRe1twRYvAwKYM=
-X-Google-Smtp-Source: AGHT+IEFZnGv0RJ81RzX7ADxUWhe/mHbYjhU1NsNdXuTw52DK9SQw7WvK/z0caZXZVeUNpMIcWUJlA==
-X-Received: by 2002:a05:690c:b1d:b0:70e:2d3d:ace6 with SMTP id 00721157ae682-7176c9f96e9mr98750467b3.15.1751869922959;
-        Sun, 06 Jul 2025 23:32:02 -0700 (PDT)
-Received: from darker.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-716659a1440sm15515367b3.35.2025.07.06.23.31.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Jul 2025 23:32:02 -0700 (PDT)
-Date: Sun, 6 Jul 2025 23:31:50 -0700 (PDT)
-From: Hugh Dickins <hughd@google.com>
-To: David Hildenbrand <david@redhat.com>
-cc: Lance Yang <lance.yang@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-    linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-    linux-mm@kvack.org, nvdimm@lists.linux.dev, 
-    Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, 
-    Stefano Stabellini <sstabellini@kernel.org>, 
-    Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, 
-    Dan Williams <dan.j.williams@intel.com>, 
-    Alistair Popple <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>, 
-    Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-    Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>, 
-    Baolin Wang <baolin.wang@linux.alibaba.com>, 
-    Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
-    "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
-    Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>, 
-    Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-    Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
-    Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
-    Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-    Lance Yang <ioworker0@gmail.com>
-Subject: Re: [PATCH RFC 01/14] mm/memory: drop highest_memmap_pfn sanity
- check in vm_normal_page()
-In-Reply-To: <b6d79033-b887-4ce7-b8f2-564cad7ec535@redhat.com>
-Message-ID: <b0984e6e-eabd-ed71-63c3-4c4d362553e8@google.com>
-References: <20250617154345.2494405-1-david@redhat.com> <20250617154345.2494405-2-david@redhat.com> <aFVZCvOpIpBGAf9w@localhost.localdomain> <c88c29d2-d887-4c5a-8b4e-0cf30e71d596@redhat.com> <CABzRoyZtxBgJUZK4p0V1sPAqbNr=6S-aE1S68u8tKo=cZ2ELSw@mail.gmail.com>
- <5e5e8d79-61b1-465d-ab5a-4fa82d401215@redhat.com> <aa977869-f93f-4c2b-a189-f90e2d3bc7da@linux.dev> <b6d79033-b887-4ce7-b8f2-564cad7ec535@redhat.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Qde3l70b"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1751871512;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=mnhGELqlFAoDw+QfbOprESKx0FUv4r2hl6H/rVUFq1U=;
+	b=Qde3l70bsXDB6SHohpwBCvapDvpFCkGzPDf48e8NJHyK+dybmEZBbFqKCQ8Ixpl6Q4v1Ji
+	q6PMd87lC433+/tvgupyaX8WOTZRDz4fYZCnjhwzfKPR0aoiyGOxpkoCgtbriOR/VN8iF3
+	OA/vZ+rZJMFlEmF7LnYwCwBbKXb9yXk=
+From: Dongsheng Yang <dongsheng.yang@linux.dev>
+To: mpatocka@redhat.com,
+	agk@redhat.com,
+	snitzer@kernel.org,
+	axboe@kernel.dk,
+	hch@lst.de,
+	dan.j.williams@intel.com,
+	Jonathan.Cameron@Huawei.com
+Cc: linux-block@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	dm-devel@lists.linux.dev,
+	Dongsheng Yang <dongsheng.yang@linux.dev>
+Subject: [PATCH v2 01/11] dm-pcache: add pcache_internal.h
+Date: Mon,  7 Jul 2025 06:57:59 +0000
+Message-ID: <20250707065809.437589-2-dongsheng.yang@linux.dev>
+In-Reply-To: <20250707065809.437589-1-dongsheng.yang@linux.dev>
+References: <20250707065809.437589-1-dongsheng.yang@linux.dev>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463770367-1279896212-1751869921=:5466"
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Consolidate common PCACHE helpers into a new header so that subsequent
+patches can include them without repeating boiler-plate.
 
----1463770367-1279896212-1751869921=:5466
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+- Logging macros with unified prefix and location info.
+- Common constants (KB/MB helpers, metadata replica count, CRC seed).
+- On-disk metadata header definition and CRC helper.
+- Sequence-number comparison that handles wrap-around.
+- pcache_meta_find_latest() to pick the newest valid metadata copy.
 
-On Fri, 4 Jul 2025, David Hildenbrand wrote:
-> On 03.07.25 16:44, Lance Yang wrote:
-> > On 2025/7/3 20:39, David Hildenbrand wrote:
-> >> On 03.07.25 14:34, Lance Yang wrote:
-> >>> On Mon, Jun 23, 2025 at 10:04=E2=80=AFPM David Hildenbrand <david@red=
-hat.com>
-> >>> wrote:
-> >>>>
-> >>>> On 20.06.25 14:50, Oscar Salvador wrote:
-> >>>>> On Tue, Jun 17, 2025 at 05:43:32PM +0200, David Hildenbrand wrote:
-> >>>>>> In 2009, we converted a VM_BUG_ON(!pfn_valid(pfn)) to the current
-> >>>>>> highest_memmap_pfn sanity check in commit 22b31eec63e5 ("badpage:
-> >>>>>> vm_normal_page use print_bad_pte"), because highest_memmap_pfn was
-> >>>>>> readily available.
-> >>>>>>
-> >>>>>> Nowadays, this is the last remaining highest_memmap_pfn user, and =
-this
-> >>>>>> sanity check is not really triggering ... frequently.
-> >>>>>>
-> >>>>>> Let's convert it to VM_WARN_ON_ONCE(!pfn_valid(pfn)), so we can
-> >>>>>> simplify and get rid of highest_memmap_pfn. Checking for
-> >>>>>> pfn_to_online_page() might be even better, but it would not handle
-> >>>>>> ZONE_DEVICE properly.
-> >>>>>>
-> >>>>>> Do the same in vm_normal_page_pmd(), where we don't even report a
-> >>>>>> problem at all ...
-> >>>>>>
-> >>>>>> What might be better in the future is having a runtime option like
-> >>>>>> page-table-check to enable such checks dynamically on-demand.
-> >>>>>> Something
-> >>>>>> for the future.
-> >>>>>>
-> >>>>>> Signed-off-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
+---
+ drivers/md/dm-pcache/pcache_internal.h | 117 +++++++++++++++++++++++++
+ 1 file changed, 117 insertions(+)
+ create mode 100644 drivers/md/dm-pcache/pcache_internal.h
 
-The author of 22b31eec63e5 thinks this is not at all an improvement.
-Of course the condition is not triggering frequently, of course it
-should not happen: but it does happen, and it still seems worthwhile
-to catch it in production with a "Bad page map" than to let it run on
-to whatever kind of crash it hits instead.
+diff --git a/drivers/md/dm-pcache/pcache_internal.h b/drivers/md/dm-pcache/pcache_internal.h
+new file mode 100644
+index 000000000000..d427e534727c
+--- /dev/null
++++ b/drivers/md/dm-pcache/pcache_internal.h
+@@ -0,0 +1,117 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef _PCACHE_INTERNAL_H
++#define _PCACHE_INTERNAL_H
++
++#include <linux/delay.h>
++#include <linux/crc32c.h>
++
++#define pcache_err(fmt, ...)							\
++	pr_err("dm-pcache: %s:%u " fmt, __func__, __LINE__, ##__VA_ARGS__)
++#define pcache_info(fmt, ...)							\
++	pr_info("dm-pcache: %s:%u " fmt, __func__, __LINE__, ##__VA_ARGS__)
++#define pcache_debug(fmt, ...)							\
++	pr_debug("dm-pcache: %s:%u " fmt, __func__, __LINE__, ##__VA_ARGS__)
++
++#define PCACHE_KB			(1024ULL)
++#define PCACHE_MB			(1024 * PCACHE_KB)
++
++/* Maximum number of metadata indices */
++#define PCACHE_META_INDEX_MAX		2
++
++#define PCACHE_CRC_SEED			0x3B15A
++/*
++ * struct pcache_meta_header - PCACHE metadata header structure
++ * @crc: CRC checksum for validating metadata integrity.
++ * @seq: Sequence number to track metadata updates.
++ * @version: Metadata version.
++ * @res: Reserved space for future use.
++ */
++struct pcache_meta_header {
++	__u32 crc;
++	__u8  seq;
++	__u8  version;
++	__u16 res;
++};
++
++/*
++ * pcache_meta_crc - Calculate CRC for the given metadata header.
++ * @header: Pointer to the metadata header.
++ * @meta_size: Size of the metadata structure.
++ *
++ * Returns the CRC checksum calculated by excluding the CRC field itself.
++ */
++static inline u32 pcache_meta_crc(struct pcache_meta_header *header, u32 meta_size)
++{
++	return crc32c(PCACHE_CRC_SEED, (void *)header + 4, meta_size - 4);
++}
++
++/*
++ * pcache_meta_seq_after - Check if a sequence number is more recent, accounting for overflow.
++ * @seq1: First sequence number.
++ * @seq2: Second sequence number.
++ *
++ * Determines if @seq1 is more recent than @seq2 by calculating the signed
++ * difference between them. This approach allows handling sequence number
++ * overflow correctly because the difference wraps naturally, and any value
++ * greater than zero indicates that @seq1 is "after" @seq2. This method
++ * assumes 8-bit unsigned sequence numbers, where the difference wraps
++ * around if seq1 overflows past seq2.
++ *
++ * Returns:
++ *   - true if @seq1 is more recent than @seq2, indicating it comes "after"
++ *   - false otherwise.
++ */
++static inline bool pcache_meta_seq_after(u8 seq1, u8 seq2)
++{
++	return (s8)(seq1 - seq2) > 0;
++}
++
++/*
++ * pcache_meta_find_latest - Find the latest valid metadata.
++ * @header: Pointer to the metadata header.
++ * @meta_size: Size of each metadata block.
++ *
++ * Finds the latest valid metadata by checking sequence numbers. If a
++ * valid entry with the highest sequence number is found, its pointer
++ * is returned. Returns NULL if no valid metadata is found.
++ */
++static inline void __must_check *pcache_meta_find_latest(struct pcache_meta_header *header,
++					u32 meta_size, u32 meta_max_size,
++					void *meta_ret)
++{
++	struct pcache_meta_header *meta, *latest = NULL;
++	u32 i, seq_latest = 0;
++	void *meta_addr;
++
++	meta = meta_ret;
++
++	for (i = 0; i < PCACHE_META_INDEX_MAX; i++) {
++		meta_addr = (void *)header + (i * meta_max_size);
++		if (copy_mc_to_kernel(meta, meta_addr, meta_size)) {
++			pcache_err("hardware memory error when copy meta");
++			return ERR_PTR(-EIO);
++		}
++
++		/* Skip if CRC check fails, which means corrupted */
++		if (meta->crc != pcache_meta_crc(meta, meta_size))
++			continue;
++
++		/* Update latest if a more recent sequence is found */
++		if (!latest || pcache_meta_seq_after(meta->seq, seq_latest)) {
++			seq_latest = meta->seq;
++			latest = (void *)header + (i * meta_max_size);
++		}
++	}
++
++	if (!latest)
++		return NULL;
++
++	if (copy_mc_to_kernel(meta_ret, latest, meta_size)) {
++		pcache_err("hardware memory error");
++		return ERR_PTR(-EIO);
++	}
++
++	return latest;
++}
++
++#endif /* _PCACHE_INTERNAL_H */
+-- 
+2.43.0
 
-Hugh
----1463770367-1279896212-1751869921=:5466--
