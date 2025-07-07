@@ -1,227 +1,226 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2055.outbound.protection.outlook.com [40.107.92.55])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 588852980B2
-	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 11:50:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.55
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751889057; cv=fail; b=k4UVynPau6AakX8LNu6lzaNx7zi10+vJgmAzbDkQVsoMBPN2C9Qi7v5u7DXjGiAKVT2WwCILSP2416sE4Ba6WwDd8Z1ElVcjBBBcU6sMOh2ihNn53/3y5q2xLfwVcanD8Z/NK9jkcdshHt/F+9+UrDoGTazwkyvmsFGvwbswb98=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751889057; c=relaxed/simple;
-	bh=I+vMqrjD7BDEk9NSL3pM2aB9BH46hIvRo6bA4PnSAjA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=bnG2H5WJv8pevK0JHBwRzK2nmykzBKBiklsCc6WBoX8W1J6HaEXR9YeWPWilx+hK/q9tv2LzRSDBAwvn/ChiALbjM0xfr/KvXJHUPa1d3okrvf/q4NdIZftmv6BJxhCneXpw37o6w24kKI5JeAhpRU4qrJI7De276X4eLDtEuFQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=AaQpRX4J; arc=fail smtp.client-ip=40.107.92.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8F141E51EF
+	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 13:19:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1751894385; cv=none; b=haJWs4N5UgteXpsLCdBUpUhe1tnbqOv0Nxz9cugSzxR4SdwJ5C63rvrxJ2i1v+OD02NKwA6tccH0PzFKtlbJf/jq4wvmg+lyuYKFCqyhac3WI2IB8vqkFxEdDbdSf2yobyWIMiwML7eA7x9YY14hzTb2k8aevKKbsObUaQNPyk0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1751894385; c=relaxed/simple;
+	bh=rtct0nDU+j5TyrJZ+m4PVNBMC7iyuPfgezwKp+Qwn8k=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HKEGRlxHlBMkqjnP+QtuDrZsp66Y8p+IPYIMSRQKk9JLX6J3HP0wbJVNvFxe3lJDNwR3w4Yzr3drHIU7Nzl7ReouwfmnCF/nEHhExrXjAmU2OwybHd4JW4m3LBewE/eBgmDJ3OVLdbMRxrtxucpsID/rMMWJWJVtTW0ynaDpZCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=IfdNoCgb; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="AaQpRX4J"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=xZO+TXhCDU8a67Vy+UXQRljrwF6PY5BPZsFJu1BMgpyFvuy4/GLNQkhr+untl0TKAmWtXeQZHN3HYSxqsONfoe063zI/oRzZ2VGCCU2szDyh+F6c701DulpB7KDAGeNV+ZIjIn9OHfkAmx9aH3GHsProY5SvfHxPrlC6eXR2jRWTBBYiV7JDDyliJYCNdUygiOQCwXDCHt4x0Z15RSfciCLjy1l7Eh0YwAhKQ4LQvc3HQsQ9nzCrdyRuTU/GATRcbkC7CDelYXIG+63MpK0L1alBPkd5oAuPAL9T0j9ORP0nJ5EoZPR8VBwaA6IK4g3g0JCrlaPmCSjBbKXsf1fVGg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kY8j+HBOP9fJ0oSF4AJIvN/y44oOF82sXo1hC7Z/bs8=;
- b=HXUS43vH2vqhAv3kicOwKeN/kubG7CW6PpxBIk5yiRMsmpBYfRQLmb26hwVW9W51ip0IcSKtB3VUzIHQzkHiFvb36lKyco3jom67fJt3eIBjYpQmpOw7Xia+eOWJw5ef/sRaJKQMJ8Ff1imfHpA78kzTQ7xnrVyJzX/vdtt2UMIN1VHgrq/KmKoMH8u3yEEbFU10Y6h/8wZrXs+ZFYyordUQdDVn49rch2LF+5QMrmp+l8hhzCndexTURI86iSzAiL9wd3kJCN3lIvuuHCQkKblpAOKEv9AvvRW/AvutF5aDPEC0cEupxKRQ0WjWCBLkchpBRKQEOJ7Ru4xVgaFe3w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=kY8j+HBOP9fJ0oSF4AJIvN/y44oOF82sXo1hC7Z/bs8=;
- b=AaQpRX4JDYlgwMMNKM8lt6TKxOJCm5czJAwPcIXvKtCZANM+PMeUjcM+E81nHs4tDeKsPc+UcjmoYbuIY9IX8it1mzKyBN0xzAB1p8sx6xYqK1TxflcVWPsUqLTZl30sgkK/6oRzyee43/AuvWYWhbMTrGbN+nAiVnNfsVFX6DAsuNCqRhmFylwl3clnGlwX4PPSyIwpPSebVdQwO7l2zKMGdl1+JikN5+aHAThneUC+2jk0EIGB8A981/QFPfNY4p6JeUsQ+34w4LAN77j/AvXTrZWHsEJIIAsq/OuLAfhIWpSITfLdKducTVHlR/xkxaRPvRT6GZP70l2MMvfrJQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- IA0PR12MB7556.namprd12.prod.outlook.com (2603:10b6:208:43c::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8857.29; Mon, 7 Jul
- 2025 11:50:52 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe%3]) with mapi id 15.20.8901.023; Mon, 7 Jul 2025
- 11:50:52 +0000
-Date: Mon, 7 Jul 2025 21:50:47 +1000
-From: Alistair Popple <apopple@nvidia.com>
-To: David Hildenbrand <david@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-mm@kvack.org, nvdimm@lists.linux.dev, 
-	Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, 
-	Stefano Stabellini <sstabellini@kernel.org>, Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>, Nico Pache <npache@redhat.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>, 
-	Pedro Falcato <pfalcato@suse.de>
-Subject: Re: [PATCH RFC 07/14] fs/dax: use vmf_insert_folio_pmd() to insert
- the huge zero folio
-Message-ID: <orevbupi4lg2qficqzcb6qorctdxw6exexa4xqxcmf5g44ybnc@wzgw7reerin4>
-References: <20250617154345.2494405-1-david@redhat.com>
- <20250617154345.2494405-8-david@redhat.com>
- <cneygxe547b73gcfyjqfgdv2scxjeluwj5cpcsws4gyhx7ejgr@nxkrhie7o2th>
- <74acb38f-da34-448d-9b73-37433a5e342c@redhat.com>
- <36a8f286-1b09-43bd-9efa-5831ef3f315b@redhat.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <36a8f286-1b09-43bd-9efa-5831ef3f315b@redhat.com>
-X-ClientProxiedBy: CH5PR02CA0013.namprd02.prod.outlook.com
- (2603:10b6:610:1ed::27) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="IfdNoCgb"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1751894382;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=nXmXDjuLCVo5wU4ylvvDNkZan/QGMn2o2rEiwIbCGFU=;
+	b=IfdNoCgb85epdZI7jINw3ORUby7uqUneZ90mHgDt6FPba6bszyfGFVYjjXvP+ASopX2wnu
+	PS39C4CgJ1bnNE2PGGOcjKuGGzHFGodU1gvRqXoQPJjMqRbIzZCBYVZmProevOzT770Nvg
+	2ZadXx/IXqTBzmipVQg9yXzLGxiEs5Q=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-656-wB9SO7VVM3yuBp-GW2JE6Q-1; Mon, 07 Jul 2025 09:19:41 -0400
+X-MC-Unique: wB9SO7VVM3yuBp-GW2JE6Q-1
+X-Mimecast-MFC-AGG-ID: wB9SO7VVM3yuBp-GW2JE6Q_1751894380
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-45359bfe631so16116505e9.0
+        for <nvdimm@lists.linux.dev>; Mon, 07 Jul 2025 06:19:41 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751894380; x=1752499180;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=nXmXDjuLCVo5wU4ylvvDNkZan/QGMn2o2rEiwIbCGFU=;
+        b=gDH8qbepyDGbhuGefoDMvajSdG6OrGdvYPDqKbvputP+nz9MdzRoguRVwV3oilyBY8
+         uq7z5FUgfACNR8mrZxfgoXDhIiEzdaYefhxpZ+7RMxg2FCAxhI+TCdELq1Pfp+BhsEHE
+         4XbbnZC5pRS8rdt8ABRGfaiYd6kRd2bWyPn0hMpC4t0VzvJBro1etNBnTFKCpZxI42n4
+         yOZwZnbOmWNRRtMLY2Dn8pQE3/s4DD6ERXgDC0KqkrITw4I58FuXMl/6lQJN+W0xMK9p
+         E3hrAuta4ye+9U9tnHO7cfWouMG6FgOXJgQTjv07RctZrM1u647FIh+fcHgsKmlGzVvR
+         5R+g==
+X-Forwarded-Encrypted: i=1; AJvYcCXEtNEElHQ0Gatb2D7zOtmtg2ifBnVjXGtv/gSeXAifP2lqQsA4q2ZOE5LsaXVYZBBe+ERwefI=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yw8QKLxrDRsbOVAUsEYeeF6OqYUiEID6ZIC8oQIp4DH0dI2SH9u
+	0xwmxvozsfYoDCJbbRXlVy/g/Dezlc8y0Lhu1Toz/nOJJLOnHCw8I2eJCuzMYVvRlhHIo+ns1t/
+	HJYp/8BXdABZtAJtLapBkGPSkGU4M2+G54ZRi7R8BdpZmr4q6LSU+m6yP+g==
+X-Gm-Gg: ASbGncvHxAVfLlHfg/xyK7e9BKUqEiFSQiSVec5lrUpkiwWyHwHAaA35b3CAD7mLgga
+	rKOD5P1vH2/j6KjRN74lBKr/Pb7GRzZwUWla54vG7tdI2AUgKHze7LHteZywy5XdkdqJ5wL05/b
+	Ak/dmeP+AHhZbUXxdyNe/5EW4VvdHl/UcpO/lSCNsJ38ZDJEYSRrD335cq2oGY9KsHqWKyrUzwf
+	P3rXaNXA/+Qf/CoW4V3amCtyjeEa48wlTbPfCgTeml9HwRc1bDynAAJM+IytSfzk7YwzeJCJqs+
+	IvinjTQv+cu0dDn1E8UrCw8crDU9Mbn9pqs/voXU/3DTzHnW852SmZZGh+xIEh7d+m72DW6WS7P
+	l4Mv4h/JmCJ2qe1L2MQo/4eR8WOWGhk3S+JiLqv4LoA3uR/Me/g==
+X-Received: by 2002:a05:600c:3e86:b0:43c:f0ae:da7 with SMTP id 5b1f17b1804b1-454c476aea4mr40553195e9.7.1751894380096;
+        Mon, 07 Jul 2025 06:19:40 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFBfyFuBcaLgbZfGzjnsuMh9lvvAvuC5DlcIKIEAKGMTIqV5yEm9tkEm1VZ5eMoCw4nja+MJw==
+X-Received: by 2002:a05:600c:3e86:b0:43c:f0ae:da7 with SMTP id 5b1f17b1804b1-454c476aea4mr40552695e9.7.1751894379602;
+        Mon, 07 Jul 2025 06:19:39 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f38:1d00:657c:2aac:ecf5:5df8? (p200300d82f381d00657c2aacecf55df8.dip0.t-ipconnect.de. [2003:d8:2f38:1d00:657c:2aac:ecf5:5df8])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-454a9beb22asm141802825e9.36.2025.07.07.06.19.37
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 07 Jul 2025 06:19:39 -0700 (PDT)
+Message-ID: <36dd6b12-f683-48a2-8b9c-c8cd0949dfdc@redhat.com>
+Date: Mon, 7 Jul 2025 15:19:37 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|IA0PR12MB7556:EE_
-X-MS-Office365-Filtering-Correlation-Id: b7823c01-e52b-4ef6-f634-08ddbd4c8602
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014|7416014;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?S7G79Azr0MA9CYfSB2ILi/QdA2ufBVN6PIuDl53AYNE7fSV/TtgRLFVOntVb?=
- =?us-ascii?Q?ViZ2puiiNj3Z22WFepDcIEmY5mNOr8z377H9sCJJaJDciRfpgBPUiW5wdVlk?=
- =?us-ascii?Q?9ya7ofFORwPUldKfOp+6CDxL+OSu6k4x6a49UjG9K0daknvRUMJ7uwy6BgIL?=
- =?us-ascii?Q?oBg7mcq8lCg4yNKpG263DJPHBjh7Z2oAq6vPv1mOxYYXh4c+9E8bSSb2rLGd?=
- =?us-ascii?Q?DjZzvRX/SCNp+JqkyvOdx+X4cADxtfFUMcPQMEihvRb/1lSKwoLMXjvXupsE?=
- =?us-ascii?Q?/EDTdtgUR3jlX9Dqk+NMKqwk4+jnxo6IENuHD0moKZvXA49BSPrDUH0P6Kvk?=
- =?us-ascii?Q?ZavOmRNgye11JjjsNbBEIff/NfuvI/mw8YoL+YtsYv8qncFeN7ZIc9NaaNzP?=
- =?us-ascii?Q?SJRSujQbDwvc6gafMXQlOBUMopIFh2+/aYtxyJNPxpM8G4LlxEJjguNplpyQ?=
- =?us-ascii?Q?HM4hZ3ZCv8lHdjiloE/ILpg1aQYOt8CLQ4mipCtUAlprmdyZcnO/M9Xz2euj?=
- =?us-ascii?Q?d5968Z9zYkkthuRqgc1nZYl/M7p0ij2ii+CT9qQ+/0rrS6ZE9EI47LhzHTZK?=
- =?us-ascii?Q?V+XWyk1ur6V9nZBjli+qdgxEdqeS2CyRvOGkv/Vh1LiuXHhWYWlYeD/fyTNB?=
- =?us-ascii?Q?OlVLcSfrUoBeHLcXj1nsQWb7v1pcJ6hesb+6ESRuyQqzbiHWMCrk/vWub0zo?=
- =?us-ascii?Q?A2+GuIEJu0weKiwhw8Zqpgpl9oXVe2DzlQU6djH0SmptmjPJ737sGIYYRmVy?=
- =?us-ascii?Q?dl3lZatDP3vdLlePPcHVmE1rWOkEMGo05dfnACs5HNGBjSwQuNZvD8j5Y71V?=
- =?us-ascii?Q?gUjYJMHKEXhWWki6gpA4p3GOY8wyPqPLYQn+A5o9PtbkEKwYXn/mhuxBk/5R?=
- =?us-ascii?Q?8j6NkX4/DCFxwSlTqJYZ57yaduyd7WkF/yTLPRMa1olTvdB8Oq0RptiFKHFo?=
- =?us-ascii?Q?X8Y14IFCRKAIqXZ7tXWD1qDL8jDl72N1HAqOkClyUdLCvBf4sUmQ2q2ttuc2?=
- =?us-ascii?Q?c1CKC7uS5QAnpUjbfZ8b4BFdU96+wNEt3HBOrYT8sWg8D8DEQreqvXWoYNDk?=
- =?us-ascii?Q?UZKDmMpfGiR3qUyNf/ZQEWOW3AUgPxP+bB6la2XyQtcXwtV4qYPj/zEOR/du?=
- =?us-ascii?Q?8g9F58IYFYBmdsbIgYscMBWRILCubksXOPx4+aF/NHKdDYNXm6V1R6tHSbC2?=
- =?us-ascii?Q?M6GMP7KL6PztMZkponrHoUuGBfl35co/5Kl809owyPv4YLq2CpMQJP5RKC5v?=
- =?us-ascii?Q?JCs28Wg5fPs0QAZv+mzktQPVWBeYTKKn7131v36t8yDQmcaulgFRsy1aQ9Gj?=
- =?us-ascii?Q?xenCoUmYfonA1NUHJOqVi6pvs61Pp9udbcV5ceLU1kz6e6E5zeiSHEgbuPqD?=
- =?us-ascii?Q?wQ0QpKIHp6INPd6iPI1nF/gAli/8rPNIJh7qDuyOgn/bF/2VaTYgxWL0xOyZ?=
- =?us-ascii?Q?EJ8Z4X1BYRU=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?iMbmt7egNmcncp5nq1ZD0fCDomSVbOmBt9gbgAwp5Wgq43d3shyDdOvacVr6?=
- =?us-ascii?Q?Zx2RJ1itbp9qfnMkb2sUzSYUft9qg/R8WTurUEgUY72Lporpv9By2P7Vr6bo?=
- =?us-ascii?Q?2eN6MBTS5ssGsDduky+8xmE9B2QMyAUDGJYsvuGkWYnf07RsXJlKJKlx0ljE?=
- =?us-ascii?Q?6YsZsSFc9uXcvnAO0lfVwPxUkGlUgATE8Xv+RCZUlQrqtw1s4POxMvzhcFGH?=
- =?us-ascii?Q?uQ/vOEJOuWmUK0A6u4n9t03EsGKbfZcp9wNPP+XKPcjqe6PqhBbvfpg6zXIL?=
- =?us-ascii?Q?E0aaCV6HSovuH64ngQfgjR+mBuheIddA2GCZEbOT+7TqJi6ipEg99sOMpvT9?=
- =?us-ascii?Q?69C0uWrG5WjQ66K7sQ5SHthwlwS32bO2b8Qd+y91tyOAXvYyqHz9y6bYjeKc?=
- =?us-ascii?Q?QE3GU0OPnjTg47bV1EHlrQtVhhuFU+bC46uVFDu3EsS01GzIcLZ71rRDH/eA?=
- =?us-ascii?Q?wSx9M7VTIvujPieYdZULrKhE5P9Ryo3OshNCvn5ixzVxGI765mRqEHRhjgdy?=
- =?us-ascii?Q?lWZ9b8qrQPi8yFNIendYdCvegxXZ7VMqMCYxS+kEE6gKVPcUpmyRqlqYquoj?=
- =?us-ascii?Q?cpEUx5VLHxT3dwekypIqorbQW7wl4jnJVxdPb1+QhAAn1CaU22w/0fJZMrnn?=
- =?us-ascii?Q?JAA43madD8WLa3LCHtIhnK5lPKT244/6PwHCHlhg3sR9qjlhmEdxIQVgu6CL?=
- =?us-ascii?Q?exXwGX/j7pnF6n3lIYXWcvKTu+nW50HVM83vS9fireR9q7HA3FdJdX9NRbvK?=
- =?us-ascii?Q?34S96hMVZiuRLbKZQDdDEwNwpV2tO7aCi0bUfnWh+vXASYsW7GtS07DMOtwf?=
- =?us-ascii?Q?VtCT3VWFWeqiz4ZwBJY2cH1Iksy1hdMQnZgigjk7pUmAcHm8/0Hyxgv66Nb5?=
- =?us-ascii?Q?QE4v6y5inNw2EEWP7dHjorGG0Jx+26lRsM8C+1EHfZNe87fanu8Qa9v4jVr8?=
- =?us-ascii?Q?d6Z9ZrkhqDDVA1MUzVaFHcvYB03d9sd9ngBMBYmFZsUus+HVaA+zDXaxJV6M?=
- =?us-ascii?Q?2xcqbTtyz5eBQ206vg1CggpNKxRqDi23tsLk1urdNNGBNc/Ud4LtBjKy8yuS?=
- =?us-ascii?Q?OS1PgSA2YOCCg04+WfNblJKbDkQ0nnulh0n9tpq0opuN6AQy9abUm0ecG8gT?=
- =?us-ascii?Q?NL1CIv8rYr3ufiumziQDsUTIo+JiuiPiUH7yZDBhKs0q0RxPbw3WMmKElOFZ?=
- =?us-ascii?Q?1PReCZm2ReQowk0uTz+lxT8p2+ljCfL0TGrR0Z1TRwgIcyjP1s9Bbp+srqCf?=
- =?us-ascii?Q?pWX9mt8ICHYZEP9CajnjDFWUPUnaGx6yEhtsY6j7cF0g1PBvuNqOggnTvCQG?=
- =?us-ascii?Q?WsnqFKhSu0NfNJjSd4gHi6NXvna2UyBLCEyogEeP2ZzkUtcsjyZ6Qf1tvW2y?=
- =?us-ascii?Q?rifv5Tmuph+AE5mabzU01ft9Z5ZzuzI6BBz1dFwsttnFGrBPJaOH6PBX+Rgo?=
- =?us-ascii?Q?XHMkwOs0oe+EScrjzQItmXi3SR8/31pVIVwmikIDcesyQYxWgFiRcnNa2/zl?=
- =?us-ascii?Q?Y4cJkO1+7sSkeIloGGEsj/qI3JpVb9Zqfa2+z8pq6swqG92xwUtzKYHwTTOD?=
- =?us-ascii?Q?23TTKsQ+dm6kZ7BU2BzyU5po+HrtpbOTjqN+Lutl?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b7823c01-e52b-4ef6-f634-08ddbd4c8602
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Jul 2025 11:50:52.5541
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Ef9FWW5zjYEFbXqKBNio8c8xbK0jcf+3GKU3Cu/txmHzzEFH9cHeYygVH/fN6c2jBfqF/atMPpNreb1iT7dpBg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB7556
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC 01/14] mm/memory: drop highest_memmap_pfn sanity check
+ in vm_normal_page()
+To: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>, Oscar Salvador <osalvador@suse.de>,
+ linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-mm@kvack.org, nvdimm@lists.linux.dev,
+ Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
+ Stefano Stabellini <sstabellini@kernel.org>,
+ Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+ Dan Williams <dan.j.williams@intel.com>, Alistair Popple
+ <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>,
+ Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>, Nico Pache <npache@redhat.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+ Barry Song <baohua@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>, Lance Yang <ioworker0@gmail.com>
+References: <20250617154345.2494405-1-david@redhat.com>
+ <20250617154345.2494405-2-david@redhat.com>
+ <aFVZCvOpIpBGAf9w@localhost.localdomain>
+ <c88c29d2-d887-4c5a-8b4e-0cf30e71d596@redhat.com>
+ <CABzRoyZtxBgJUZK4p0V1sPAqbNr=6S-aE1S68u8tKo=cZ2ELSw@mail.gmail.com>
+ <5e5e8d79-61b1-465d-ab5a-4fa82d401215@redhat.com>
+ <aa977869-f93f-4c2b-a189-f90e2d3bc7da@linux.dev>
+ <b6d79033-b887-4ce7-b8f2-564cad7ec535@redhat.com>
+ <b0984e6e-eabd-ed71-63c3-4c4d362553e8@google.com>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <b0984e6e-eabd-ed71-63c3-4c4d362553e8@google.com>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: FMfbLCuoxC9ZBuQirUBaVr2NnvBl0_r1vlPzJaPb6kw_1751894380
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jul 04, 2025 at 03:22:28PM +0200, David Hildenbrand wrote:
-> On 25.06.25 11:03, David Hildenbrand wrote:
-> > On 24.06.25 03:16, Alistair Popple wrote:
-> > > On Tue, Jun 17, 2025 at 05:43:38PM +0200, David Hildenbrand wrote:
-> > > > Let's convert to vmf_insert_folio_pmd().
-> > > > 
-> > > > In the unlikely case there is already something mapped, we'll now still
-> > > > call trace_dax_pmd_load_hole() and return VM_FAULT_NOPAGE.
-> > > > 
-> > > > That should probably be fine, no need to add special cases for that.
-> > > 
-> > > I'm not sure about that. Consider dax_iomap_pmd_fault() -> dax_fault_iter() ->
-> > > dax_pmd_load_hole(). It calls split_huge_pmd() in response to VM_FAULT_FALLBACK
-> > > which will no longer happen, what makes that ok?
-> > 
-> > My reasoning was that this is the exact same behavior other
-> > vmf_insert_folio_pmd() users here would result in.
-> > 
-> > But let me dig into the details.
+On 07.07.25 08:31, Hugh Dickins wrote:
+> On Fri, 4 Jul 2025, David Hildenbrand wrote:
+>> On 03.07.25 16:44, Lance Yang wrote:
+>>> On 2025/7/3 20:39, David Hildenbrand wrote:
+>>>> On 03.07.25 14:34, Lance Yang wrote:
+>>>>> On Mon, Jun 23, 2025 at 10:04 PM David Hildenbrand <david@redhat.com>
+>>>>> wrote:
+>>>>>>
+>>>>>> On 20.06.25 14:50, Oscar Salvador wrote:
+>>>>>>> On Tue, Jun 17, 2025 at 05:43:32PM +0200, David Hildenbrand wrote:
+>>>>>>>> In 2009, we converted a VM_BUG_ON(!pfn_valid(pfn)) to the current
+>>>>>>>> highest_memmap_pfn sanity check in commit 22b31eec63e5 ("badpage:
+>>>>>>>> vm_normal_page use print_bad_pte"), because highest_memmap_pfn was
+>>>>>>>> readily available.
+>>>>>>>>
+>>>>>>>> Nowadays, this is the last remaining highest_memmap_pfn user, and this
+>>>>>>>> sanity check is not really triggering ... frequently.
+>>>>>>>>
+>>>>>>>> Let's convert it to VM_WARN_ON_ONCE(!pfn_valid(pfn)), so we can
+>>>>>>>> simplify and get rid of highest_memmap_pfn. Checking for
+>>>>>>>> pfn_to_online_page() might be even better, but it would not handle
+>>>>>>>> ZONE_DEVICE properly.
+>>>>>>>>
+>>>>>>>> Do the same in vm_normal_page_pmd(), where we don't even report a
+>>>>>>>> problem at all ...
+>>>>>>>>
+>>>>>>>> What might be better in the future is having a runtime option like
+>>>>>>>> page-table-check to enable such checks dynamically on-demand.
+>>>>>>>> Something
+>>>>>>>> for the future.
+>>>>>>>>
+>>>>>>>> Signed-off-by: David Hildenbrand <david@redhat.com>
 > 
-> Okay, trying to figure out what to do here.
-> 
-> Assume dax_pmd_load_hole() is called and there is already something. We
-> would have returned VM_FAULT_FALLBACK, now we would return VM_FAULT_NO_PAGE.
-> 
-> That obviously only happens when we have not a write fault (otherwise, the
-> shared zeropage does not apply).
-> 
-> In dax_iomap_pmd_fault(), we would indeed split_huge_pmd(). In the DAX case
-> (!anon vma), that would simply zap whatever is already mapped there.
-> 
-> I guess we would then return VM_FAULT_FALLBACK from huge_fault-> ... ->
-> dax_iomap_fault() and core MM code would fallback to handle_pte_fault() etc.
-> and ... load a single PTE mapping the shared zeropage.
-> 
-> BUT
-> 
-> why is this case handled differently than everything else?
+> The author of 22b31eec63e5 thinks this is not at all an improvement.
+> Of course the condition is not triggering frequently, of course it
+> should not happen: but it does happen, and it still seems worthwhile
+> to catch it in production with a "Bad page map" than to let it run on
+> to whatever kind of crash it hits instead.
 
-Hmm. Good question, I will have a bit more of a think about it, but your
-conclusion below is probably correct.
+Well, obviously I don't agree and was waiting for having this discussion :)
 
-> E.g.,
-> 
-> (1) when we try inserting the shared zeropage through
-> dax_load_hole()->vmf_insert_page_mkwrite() and there is already something
-> ... we return VM_FAULT_NOPAGE.
-> 
-> (2) when we try inserting a PTE mapping an ordinary folio through
-> dax_fault_iter()->vmf_insert_page_mkwrite() and there is already something
-> ... we return VM_FAULT_NOPAGE.
-> 
-> (3) when we try inserting a PMD mapping an ordinary folio through
-> dax_fault_iter()->vmf_insert_folio_pmd() and there is already something ...
-> we return VM_FAULT_NOPAGE.
-> 
-> 
-> So that makes me think ... the VM_FAULT_FALLBACK right now is probably ...
-> wrong? And probably cannot be triggered?
+We catch corruption in a handful of PTE bits, and that's about it. You 
+neither detect corruption of flags nor of PFN bits that result in 
+another valid PFN.
 
-I suspect that's true. At least I just did a full run of xfstest on a XFS DAX
-filesystem and was unable to trigger this path, so it's certainly not easy to
-trigger.
+Corruption of the "special" bit might be fun.
 
-> If there is already the huge zerofolio mapped, all good.
-> 
-> Anything else is really not expected I would assume?
-> 
-> -- 
-> Cheers,
-> 
-> David / dhildenb
-> 
+When I was able to trigger this during development once, the whole 
+machine went down shortly after -- mostly because of use-after-free of 
+something that is now a page table, which is just bad for both users of 
+such a page!
+
+E.g., quit that process and we will happily clear the PTE, corrupting 
+data of the other user. Fun.
+
+I'm sure I could find a way to unify the code while printing some 
+comparable message, but this check as it stands is just not worth it 
+IMHO: trying to handle something gracefully that shouldn't happen, when 
+really we cannot handle it gracefully.
+
+-- 
+Cheers,
+
+David / dhildenb
+
