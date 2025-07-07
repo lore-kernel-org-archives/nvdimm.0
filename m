@@ -1,427 +1,176 @@
-Received: from mail-oa1-f41.google.com (mail-oa1-f41.google.com [209.85.160.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2044.outbound.protection.outlook.com [40.107.95.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1CB814A62B
-	for <nvdimm@lists.linux.dev>; Sun,  6 Jul 2025 17:07:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.41
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751821627; cv=none; b=O0iiGdLwuvY+W2Aau40TQzYcoE2HHzBEZYwD2cEo/jWroHs42dsp44IQyKTNgiJ4ge7yeS5XV2zsxfJDbvmfPC70CpUbsMZbUCbqott55S0a78M+yZptRLl8W2hJHrhFJ1FwwYp1J9Tfr/DQMNf2TwsSnKpr0u1loA6W7SKqPlM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751821627; c=relaxed/simple;
-	bh=V6gT+7sJa2KXWr5XQWhkiaCIBi9O2KT8JuUGcZ8osjQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WcXVoYKeWH7PqJjbqDrI57+cdan7LW7XvsKCjiebhn+dl18+Kk/a0HnexLHzSxmj7CKR8/FLC8NtBdtu4Tpn5IlAL0j8o71MtDqhXyYsmjsV28JC8yW+zkRizmhUqClhDkvGVm86Awv/jydCUPNrO/56iLHrQbI49xOwysyop38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CGZwUzxS; arc=none smtp.client-ip=209.85.160.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21EE3C8EB
+	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 02:48:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.95.44
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1751856503; cv=fail; b=uBeqV1RHA9W5X+mUahtQuaqTajAaN3hicpcEcu/Wq7j3s54mtzzk3Dpn4QIkqnBJAhxb/Da5Z9trmBnYHSM4hKD6Q1ZLHSp2kBWLVOa3Kvk5F5jZeAX3ppQYwZ4tTRoTwUSHx+NW5q2tzBogVtq3tnHCYGYi31UrSRceCuak7X8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1751856503; c=relaxed/simple;
+	bh=tc+C51Tv3CGYBYXTd3IL56fnlJvzb4HwWUENhGwzxTU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=ESQmolbBM+gR6C/evG2g7ZEznLCU1kSb+h+gaiJyX8t5bEviPXzXMliavGeHqaP709RUBpsbaCBF3ERFK0TNm75GumKBrVWL8CGIacg8N54efObMF8aXomHoZAIDqZIBtxYZ92qt4PzDnZRxKtY2PmC2qH73LIscQ8t66gZuvLM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=F0KCHpk4; arc=fail smtp.client-ip=40.107.95.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CGZwUzxS"
-Received: by mail-oa1-f41.google.com with SMTP id 586e51a60fabf-2f3dab2a2a9so2105630fac.2
-        for <nvdimm@lists.linux.dev>; Sun, 06 Jul 2025 10:07:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751821625; x=1752426425; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=y5IMnY0+1bhAhwOIf3AOBIfK74NdjCp0aIZhFzBuCW0=;
-        b=CGZwUzxSKINR3VBoo/VXCx0VK4hROXw6Cge7f8aRVzip4tuQLyFGZd+KdVnCFXUUjz
-         j8j1f8pDsgSM2hgY0uM2K6Qmp46ObKxwMefLkrTWr/XH3fQqNnG7+ps5Uoy0scuu/Dpk
-         lwCcDqmDbjKWIFjGEu09BFtAJEScdwOQvbuC0H8bludgbKTHJMGeBPCusSohQo4yD/l6
-         L8f67Xm1o2gQ5FIxvB41BMKv0aI2Uabhlf969WoFspHSPPEhIYq1rI9OlwMROa+RzJxT
-         aXHgMGgcHi/YKTU7ptKPFfcZIx1X+Rpz7CkvvdWPuJjEqvHrxII6iX8nDsI+ltkgq9t3
-         ZyNQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751821625; x=1752426425;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=y5IMnY0+1bhAhwOIf3AOBIfK74NdjCp0aIZhFzBuCW0=;
-        b=Y5ayrC3d2vC4W2DN+A2Nyxw8ouSWElqggr6tuZai1N45lb6Md2yIybHTAEVhha0f4i
-         DfzTVAQGeE7kKVzfN+uqMKKiMh08tVFQUzO1ChFHMeqwBX3XrhWJC6JOkJqY2kNNBwWT
-         z+oLXqRy4KfN9+iTkcinewbHvZ7jo+1rt4xv93/7KvaO5zHhH73jeeMd/w1KmqpQ1J2f
-         ZqeMKx7/wmJFq2GEIepkhSB2QDPKMcNX63LYoTSjSDRktdp3h+KxUVGvHB1yRm0YgqTE
-         q9WvVtvHpXMKGLNx/rUx3Or3Gg/s2TPFvLHpKO5i8Um//CvonHfynUJ9dPgzYCp4nBC8
-         EN0A==
-X-Forwarded-Encrypted: i=1; AJvYcCUxlpmTwvXOFn3FtdrZe2y3/kGEZ30ax/VU/+6BU8QW4Ts/IWprdS2oMpYRqBm3vwRLMzwmj1g=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzkoZRxuLgMwprDpvTqGr769tFRejAPmKBTrOu+jG/8Ks+r8siz
-	q2ndyUfA77e+Hv0tPd2AOAm29FPHvHdNxWt+7356EG224eTm/Q0Zhp+j
-X-Gm-Gg: ASbGnctewbzYVZIXD1Vzz+fmXyYX7TrKsi5WedEDecS1gTb4hkuQrPzqk0b1QqGh/q4
-	MLUbe0YQS2oOoqzLS7tt0JhKLgsOs2owpZZv/Ehq638TBqCd1NLxJ8hJYoNZgT2KC+xL6zusnQ6
-	la6NkSxIgczLlbc4KqgOqwO1ToBuCkYSUW0YQy8iABvVin8EMH/KsDBLgWRTbAEycmZzmdvn/AO
-	Kc4wfMbfwIfFBDUDDnC12+55QchGqeJiYBLumdIlN6VSUV+b2w30XLXrnmdisF94oUbBnav4n4y
-	pzkCZiEeWC6VyzZVQmJVi9/w36SNfs4cwsPNHAeoAPtgxOt/UE17pQtEki4LbJnZvhNE5Wn4Z80
-	c
-X-Google-Smtp-Source: AGHT+IHqUvSCsufD0rlhHmYE4JqiKvJOkr111yzD4PJVNwoY73SE3XB5lbMVDtDTB8FNjR+DpDanXg==
-X-Received: by 2002:a05:6870:e08f:b0:2cf:bc73:7bb2 with SMTP id 586e51a60fabf-2f7afdb1d76mr4318616fac.14.1751821624631;
-        Sun, 06 Jul 2025 10:07:04 -0700 (PDT)
-Received: from groves.net ([2603:8080:1500:3d89:7c8a:3293:5fd3:bd25])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-2f7901a62f5sm1750012fac.29.2025.07.06.10.07.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Jul 2025 10:07:03 -0700 (PDT)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Sun, 6 Jul 2025 12:07:01 -0500
-From: John Groves <John@groves.net>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Bernd Schubert <bschubert@ddn.com>, 
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 14/18] famfs_fuse: GET_DAXDEV message and daxdev_table
-Message-ID: <5rw4mc7kqbxic3iunmwz5s3zv4sl2xlw3qdwndtmnxceqsrdyo@uxu252gg5t2a>
-References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-15-john@groves.net>
- <20250704142037.00002717@huawei.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="F0KCHpk4"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=hdCWHyQK23gElbIgNyOW3C2fqOCW1oiQBvDk5Vb1USDAgwYSNw4+2WAMmaZgkGAP7OhLmiFvdWqzmSt7zDvZqrv63dBm2rwCx2sbj0uNeoIbC7tX00nXXKX9Lrjdbh0XUk4EYdGHwhsTPRMbRwHYRj4o0PjQmQMccd+btUrfevz++fziSHAgeTVAnbBa/Zb++k71TG57NzsPWd30+xlCt7JZ9jD2Gs1dQRPc61m+9qygEQaeyPrGD6r285Y1YlIwlcXVTMp0qUpBToYjvOK9VU9miU5JNMmQM7H142+9dN1tRRM9y7HYeE/kjIsL6pHUxtGtdQbrpmStK9g+dH+hXg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=lqME9v+A4zQD31H0N3RQFvWcPnIh+C+00R4y4vAiSIQ=;
+ b=gP8WLvRlDQ28C6DefFnCY/fNdgz+jXXk04K/zVmj60KeU+EoD72/GHVvllIcJACngcgYLbcBiiOWqjREdk0MCzUTLPBU+ZKUZs+dcaYMDOAjSNA1gbO2RbLDnbfTqzEeETTFjKnywqXBrZrZaDDYlaBBr7IRxJyDeub4HqsoOSrBDEHdpQ0WxRPmLXMiL3mYcB85NGZK+0vPUomnBUot3q49tBVQdrkLFmkeVDTddkEZi6UeqCqnALLbocaJfZ3URvsi70rcQzLuVDVhI4WeAXz4ZjcGi5+bt/fjBKHIPfbqq2Agk3bYFwIOdNjBR0DL9QfXCybuo6jYwz86R2r95g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lqME9v+A4zQD31H0N3RQFvWcPnIh+C+00R4y4vAiSIQ=;
+ b=F0KCHpk4VyQS7pI3WSHM5AVLQPU3HZkAhRmIqlGSMpf+WFmagC3tcRpxPbl17ce85/jcSyl2EoJoA/gFr5/a42QYbD8HgEXuz8DtCM+734WLfC4z0TrokDHZUjRfftk/QdhM9f+gt1Ln/hhuXYWQteUvORLbvnGY2Ew9jraa2O5eLk9BbljKZmX8Zs6W7Ie1nddv9pT2UOP7WCiRNwEwj348P57hYiEJf4KQYMskx2CJ1LIc1tnPRQXfSHXpy+adQT6EH2kf5OWMpew3W9yKtwdFi890tkAYH6sVgC55/SYXnH1tDnF/y2EHu9VOlHKm6i2+DjDbXiSvsfEGs/PF/A==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
+ MW4PR12MB6684.namprd12.prod.outlook.com (2603:10b6:303:1ee::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8901.26; Mon, 7 Jul
+ 2025 02:48:19 +0000
+Received: from DS0PR12MB7726.namprd12.prod.outlook.com
+ ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
+ ([fe80::953f:2f80:90c5:67fe%3]) with mapi id 15.20.8901.023; Mon, 7 Jul 2025
+ 02:48:18 +0000
+Date: Mon, 7 Jul 2025 12:48:12 +1000
+From: Alistair Popple <apopple@nvidia.com>
+To: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev, 
+	Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, 
+	Stefano Stabellini <sstabellini@kernel.org>, Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, 
+	Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>, Nico Pache <npache@redhat.com>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>, 
+	Pedro Falcato <pfalcato@suse.de>
+Subject: Re: [PATCH RFC 04/14] mm/huge_memory: move more common code into
+ insert_pmd()
+Message-ID: <q4efnowrbxbmuoimuzpeamhf6f5uddi4oz6xf3yiukvacdqjyr@gl2mh4cnn2tx>
+References: <20250617154345.2494405-1-david@redhat.com>
+ <20250617154345.2494405-5-david@redhat.com>
+ <aFVsU9-ZhZ9Ai53a@localhost.localdomain>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aFVsU9-ZhZ9Ai53a@localhost.localdomain>
+X-ClientProxiedBy: SYCPR01CA0018.ausprd01.prod.outlook.com
+ (2603:10c6:10:31::30) To DS0PR12MB7726.namprd12.prod.outlook.com
+ (2603:10b6:8:130::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250704142037.00002717@huawei.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|MW4PR12MB6684:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4c6460b0-5444-40aa-2975-08ddbd00ba6a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|7416014|376014|7053199007;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?5zsKccGD9SeUym6ezVPcM5urdgF8k/+aozeh6B1yVDK/hBdP2DWxeqLRslrk?=
+ =?us-ascii?Q?e37SSYoA51wkQUJTir93ht8q5klTXfUbE5elJtdvUZo6hsT61mjkaVUx++e8?=
+ =?us-ascii?Q?P5bc9VWamCIkjvgM1Jt7GHjG06Q2j8JoaNn/MAiKJmR4KDHU3Qwe04H2T80r?=
+ =?us-ascii?Q?7j3aPvKeqVfY2Y3hoFMLHQvu4CgJZlhFUSgb/ltnY9YZdu9ixfCPWFckOO7W?=
+ =?us-ascii?Q?IWb9pW4frQ5cXg5YVMmXZ8N1oem6DKC+dAeMUqrI0kPMnDeNr7uegAmeIWWq?=
+ =?us-ascii?Q?+Or6QQdoDJm4yTEvbzOFn1PW0JkInbg3SKFkoYnS13RJbWV7WEe/QBtyVgJz?=
+ =?us-ascii?Q?m6oZ/6Pp2920kQ1kj1jDF9J+3FgxO2W0vXBn4IYJS6IUJlvB2UG6sACc+nin?=
+ =?us-ascii?Q?oMeUNknWUD/BMs4eUMFO82/5zlsAtfhUwvr0JeYUoisvgLqw8oIbpTJcgeN/?=
+ =?us-ascii?Q?nztpWb+Kv/p+HDbydGKNt/Q48j5O0GHO70XgiNZhzQib77h7x45B8FuQXx5T?=
+ =?us-ascii?Q?t8k8yL3gx2rVbSRBl/wA0ZyjgHbelCab6sLq7OU5aruzAE+IAW8qoZvvGIRe?=
+ =?us-ascii?Q?sLQiki6uN2nqaTTBmY0A1Ah4TkK84hzkEYvXXOcX3TENtapu76h05jQ9owvY?=
+ =?us-ascii?Q?PDAYpYihJWn1zbF7POujKf0Ijd0xVLdw9sJcFzchH9GFxDC/yJoIpyGE12zL?=
+ =?us-ascii?Q?WcGn2IzxY4ZfT2QefvB/cbpdRb5rvZGWeRDLC8LkutSrTi1Zs3YY2iel/Xx4?=
+ =?us-ascii?Q?tple7lAkNh4xs/l66Ce4zN7C+y/jqZM3zBE53imjCZ4ld8PD//Nk7lU0h2lf?=
+ =?us-ascii?Q?5txqtvv6Flwq9kvQrtxKVk/Ck9kgUMCFOOS9qidDl7mns8D5gdFILfzkZODB?=
+ =?us-ascii?Q?48g5rJhW2tKrbYTXsuvi5X6bEpyiOUAj1lmAJqdEakHST72OIqH3+gxXJXpR?=
+ =?us-ascii?Q?avVEUcsou3m/g4YM/OP6rj36Gne0X1WD161holV74WlgX7D85jFNdO6C1qxy?=
+ =?us-ascii?Q?OgJ0+Sff8aakIaZnbsB0vynP0Ir3G1OYNf6g3YVctuB6St70k3wzEtOUZj4d?=
+ =?us-ascii?Q?IpokG91/h3WlqDi3UQXiQ8IjNiOUUlrHT4AExqEORk68lv9Bs0fiRb+9Fcja?=
+ =?us-ascii?Q?VelnGE8gXqu8hw53lsqwIZjJm3DDEspeh4HOyptwoimTBICb4TuaKsRKgwHZ?=
+ =?us-ascii?Q?iEpbR3MNqdry56dv99OkZrj4/4D5FwL0Nxxobr35W1N+KrD1JzWR2xKgj0HX?=
+ =?us-ascii?Q?LacScpAgKO4xSSgNuQRkTfcjVvCHMTKWj9K4yclnMuX3pT0EXgMHKvo70+ae?=
+ =?us-ascii?Q?0c/x0AOTRIIa0ljzM0siT4VC3zu2bSVYCkvz/FzWzfDllmjsCP2LOEK3UC+J?=
+ =?us-ascii?Q?+Upma2AwnqVRLnJBAPPgBhGZM1XgY+5x1agMp6oofv4YEnQo8bOsCt0i5iUe?=
+ =?us-ascii?Q?h9Vyj4T6m0I=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?U4D3J2YH/Fn/zFDMvRzFba/DtY0l2R+qeJZg2dorSS2cpPKy4MDX9qUDEBqz?=
+ =?us-ascii?Q?PvzdGXABR+Qclu03hOZpRHegsZXQE+n2Xkrt29SGg9tHktK4jliN1OLwvwUC?=
+ =?us-ascii?Q?alMuxTWahmt3gCdmS5CcACHYOw5yfxVWjHskZJxzI1bY7/SBgSUjygCq5Zxr?=
+ =?us-ascii?Q?R5qjwssRiSzp1/XmypmszLULRhHtGED5mux0ZoTOq6aYzbB2ekaQ+amW36sd?=
+ =?us-ascii?Q?CUHqVHUGhc5jckE9PiimVzuM2OkOqt+xXTHht0YhTTjTMs5Zl2MGwf6Cbob4?=
+ =?us-ascii?Q?MX4250lARO3+hNr4b53Ub8YzLbWsykyIOn9vEX4K5CAYHps9ITyXGbVphVWZ?=
+ =?us-ascii?Q?a2WOApfdkXFg0G2FyuGiOtiHlVB87RF8OpvyXM3tsxm9K9SKLKk7I50Y249m?=
+ =?us-ascii?Q?Qv+1TCfusNH5CFz8Y3ynth/W0S809FVOWiOSbzqbFFb822CJzcPlBQ7f+oyH?=
+ =?us-ascii?Q?hbGMgbQrcGiEMTg62huFlUgReeTG6xtdy2m9G0l+6O0DpOhrmxflQDnYJaFh?=
+ =?us-ascii?Q?MzUjaYjwP6RlSGWS+LayTchCh0kCrCygIODcUCUeFe5FUPQ34E/yxj4iLeLf?=
+ =?us-ascii?Q?6wuQnGro2QkYgLaVubLeCCAX33kuQZKdIqda1MP8GCLnsns/CqOTG/Wd80Da?=
+ =?us-ascii?Q?M6xHz0jd/5AZ7tnqnVomZbm59U4UtULIHOHwCq0cbLYuT+5dZSqw+lC5iC0A?=
+ =?us-ascii?Q?Jkfrg1J9U8sXodMUW9MIns1gaoPB1qiLNJW+UQa/olU6wopshbn3ql+FjiRn?=
+ =?us-ascii?Q?vAAiMqRu+KtAMZdypUi/2PUYflPvBUnJPsEfdXS0Tt3A/KOFQMYi6tZrr5/p?=
+ =?us-ascii?Q?DnnitUDLfjJ3awVK/RkFO4KAqJXVYntw3x2V4s/CwvxPwq4+KS3Wjly9o23i?=
+ =?us-ascii?Q?mRvm4GrNYFqywA0ycdBGF6e72plEwNgmES4clctRTK2jFm5gj7m+CZCJSz3F?=
+ =?us-ascii?Q?f8KnytpMVlTMhu/Gt+xZMSYrIdmiQ3/Lx2FebdlwztYeqAFM9iW35kBn5kUz?=
+ =?us-ascii?Q?VF0fR0cjykXhaZfI28LAQZOACTH+kzlH6qiZ5A4nTF1lkaHyFpiAObvlHRaQ?=
+ =?us-ascii?Q?8K47VMy5s7S7qsximtzsodt0walDTXltEdaBZsflovaGcNZ4Xi8rvVPlziJv?=
+ =?us-ascii?Q?sQEx798As/OJlUa/9cUGo9eqLOe8EqtqZcgRO3mQOkhZJOhgEHzFEfF6g3Ys?=
+ =?us-ascii?Q?yh2W/u7vbkCxUqlGkd1fc28WaYICSeRYKxenXebSlGGwlSA1wsCyqa9KmPCf?=
+ =?us-ascii?Q?3FyQ7rQEu/PX+Ynzms6aRoMO5p1yTKK+F67wkVJs02zZl86yi/63GK8pX8F6?=
+ =?us-ascii?Q?aAEZu+OLI7VEesAM2L0Luaie8QtrTGEAkv5Qxg4ZQfeZ0tP4uUlDWjgrDuxg?=
+ =?us-ascii?Q?Ct0n+GuGZgoUbbhLOETrtCk0SWocw/F/YmQSSrGhQ9Ln3OimQg9/uoj+cWaT?=
+ =?us-ascii?Q?EG661/OqJMLRjSm6WKXu+xE2btf72K1ku6iKjp5LPYZ6btdY7sb6yq61cD7F?=
+ =?us-ascii?Q?cTDn/yzyXXCJabPZt9yMf3tOcc7dE/4iVJycnRO8UQi4D6HOeDS//JHkrf4G?=
+ =?us-ascii?Q?qtylKbG7cZ2m2j7X8bPqYKUWa5+PUqUVqQZUoGtH?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4c6460b0-5444-40aa-2975-08ddbd00ba6a
+X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Jul 2025 02:48:18.3507
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: I75/enYc6jOwVSM3/ZH3WnVkxpMFtKveRX/FTLXJTnZuS2v18HtaKLucDEFcGWQkouZlfVlJ9nXMB0/H1b4VpQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6684
 
-On 25/07/04 02:20PM, Jonathan Cameron wrote:
-> On Thu,  3 Jul 2025 13:50:28 -0500
-> John Groves <John@Groves.net> wrote:
-> 
-> > * The new GET_DAXDEV message/response is enabled
-> > * The command it triggered by the update_daxdev_table() call, if there
-> >   are any daxdevs in the subject fmap that are not represented in the
-> >   daxdev_dable yet.
+On Fri, Jun 20, 2025 at 04:12:35PM +0200, Oscar Salvador wrote:
+> On Tue, Jun 17, 2025 at 05:43:35PM +0200, David Hildenbrand wrote:
+> > Let's clean it all further up.
 > > 
-> > Signed-off-by: John Groves <john@groves.net>
+> > Signed-off-by: David Hildenbrand <david@redhat.com>
 > 
-> More drive by stuff you can ignore for now if you like.
-
-Always appreciated...
-
+> Reviewed-by: Oscar Salvador <osalvador@suse.de>
 > 
-> > ---
-> >  fs/fuse/famfs.c           | 227 ++++++++++++++++++++++++++++++++++++++
-> >  fs/fuse/famfs_kfmap.h     |  26 +++++
-> >  fs/fuse/fuse_i.h          |   1 +
-> >  fs/fuse/inode.c           |   4 +-
-> >  fs/namei.c                |   1 +
-> >  include/uapi/linux/fuse.h |  18 +++
-> >  6 files changed, 276 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
-> > index 41c4d92f1451..f5e01032b825 100644
-> > --- a/fs/fuse/famfs.c
-> > +++ b/fs/fuse/famfs.c
-> 
-> > +/**
-> > + * famfs_fuse_get_daxdev() - Retrieve info for a DAX device from fuse server
-> > + *
-> > + * Send a GET_DAXDEV message to the fuse server to retrieve info on a
-> > + * dax device.
-> > + *
-> > + * @fm:     fuse_mount
-> > + * @index:  the index of the dax device; daxdevs are referred to by index
-> > + *          in fmaps, and the server resolves the index to a particular daxdev
-> > + *
-> > + * Returns: 0=success
-> > + *          -errno=failure
-> > + */
-> > +static int
-> > +famfs_fuse_get_daxdev(struct fuse_mount *fm, const u64 index)
-> > +{
-> > +	struct fuse_daxdev_out daxdev_out = { 0 };
-> > +	struct fuse_conn *fc = fm->fc;
-> > +	struct famfs_daxdev *daxdev;
-> > +	int err = 0;
-> > +
-> > +	FUSE_ARGS(args);
-> > +
-> > +	/* Store the daxdev in our table */
-> > +	if (index >= fc->dax_devlist->nslots) {
-> > +		pr_err("%s: index(%lld) > nslots(%d)\n",
-> > +		       __func__, index, fc->dax_devlist->nslots);
-> > +		err = -EINVAL;
-> > +		goto out;
-> > +	}
-> > +
-> > +	args.opcode = FUSE_GET_DAXDEV;
-> > +	args.nodeid = index;
-> > +
-> > +	args.in_numargs = 0;
-> > +
-> > +	args.out_numargs = 1;
-> > +	args.out_args[0].size = sizeof(daxdev_out);
-> > +	args.out_args[0].value = &daxdev_out;
-> > +
-> > +	/* Send GET_DAXDEV command */
-> > +	err = fuse_simple_request(fm, &args);
-> > +	if (err) {
-> > +		pr_err("%s: err=%d from fuse_simple_request()\n",
-> > +		       __func__, err);
-> > +		/*
-> > +		 * Error will be that the payload is smaller than FMAP_BUFSIZE,
-> > +		 * which is the max we can handle. Empty payload handled below.
-> > +		 */
-> > +		goto out;
-> > +	}
-> > +
-> > +	down_write(&fc->famfs_devlist_sem);
-> 
-> Worth thinking about guard() in this code in general.
-> Simplify some of the error paths at least.
+> I was thinking maybe we want to pass 'struct vm_fault' directly to insert_pmd(),
+> and retrieve the fields in there, but since you have to retrieve some in
+> insert_pfn_pmd().. maybe not.
 
-Thinking about it. Not sure I'll go there yet; I find the guard macros 
-a bit confusing...
+Where practical I quite like having callers retrieve context struct fields
+rather than passing the whole struct down. It makes it very obvious what
+elements insert_pmd() cares about (in this case one of about fourteen fields).
 
-> 
-> > +
-> > +	daxdev = &fc->dax_devlist->devlist[index];
-> > +
-> > +	/* Abort if daxdev is now valid */
-> > +	if (daxdev->valid) {
-> > +		up_write(&fc->famfs_devlist_sem);
-> > +		/* We already have a valid entry at this index */
-> > +		err = -EALREADY;
-> > +		goto out;
-> > +	}
-> > +
-> > +	/* Verify that the dev is valid and can be opened and gets the devno */
-> > +	err = famfs_verify_daxdev(daxdev_out.name, &daxdev->devno);
-> > +	if (err) {
-> > +		up_write(&fc->famfs_devlist_sem);
-> > +		pr_err("%s: err=%d from famfs_verify_daxdev()\n", __func__, err);
-> > +		goto out;
-> > +	}
-> > +
-> > +	/* This will fail if it's not a dax device */
-> > +	daxdev->devp = dax_dev_get(daxdev->devno);
-> > +	if (!daxdev->devp) {
-> > +		up_write(&fc->famfs_devlist_sem);
-> > +		pr_warn("%s: device %s not found or not dax\n",
-> > +			__func__, daxdev_out.name);
-> > +		err = -ENODEV;
-> > +		goto out;
-> > +	}
-> > +
-> > +	daxdev->name = kstrdup(daxdev_out.name, GFP_KERNEL);
-> > +	wmb(); /* all daxdev fields must be visible before marking it valid */
-> > +	daxdev->valid = 1;
-> > +
-> > +	up_write(&fc->famfs_devlist_sem);
-> > +
-> > +out:
-> > +	return err;
-> > +}
-> > +
-> > +/**
-> > + * famfs_update_daxdev_table() - Update the daxdev table
-> > + * @fm   - fuse_mount
-> > + * @meta - famfs_file_meta, in-memory format, built from a GET_FMAP response
-> > + *
-> > + * This function is called for each new file fmap, to verify whether all
-> > + * referenced daxdevs are already known (i.e. in the table). Any daxdev
-> > + * indices that referenced in @meta but not in the table will be retrieved via
-> > + * famfs_fuse_get_daxdev() and added to the table
-> > + *
-> > + * Return: 0=success
-> > + *         -errno=failure
-> > + */
-> > +static int
-> > +famfs_update_daxdev_table(
-> > +	struct fuse_mount *fm,
-> > +	const struct famfs_file_meta *meta)
-> > +{
-> > +	struct famfs_dax_devlist *local_devlist;
-> > +	struct fuse_conn *fc = fm->fc;
-> > +	int err;
-> > +	int i;
-> > +
-> > +	/* First time through we will need to allocate the dax_devlist */
-> > +	if (!fc->dax_devlist) {
-> > +		local_devlist = kcalloc(1, sizeof(*fc->dax_devlist), GFP_KERNEL);
-> > +		if (!local_devlist)
-> > +			return -ENOMEM;
-> > +
-> > +		local_devlist->nslots = MAX_DAXDEVS;
-> > +
-> > +		local_devlist->devlist = kcalloc(MAX_DAXDEVS,
-> > +						 sizeof(struct famfs_daxdev),
-> > +						 GFP_KERNEL);
-> > +		if (!local_devlist->devlist) {
-> > +			kfree(local_devlist);
-> > +			return -ENOMEM;
-> > +		}
-> > +
-> > +		/* We don't need the famfs_devlist_sem here because we use cmpxchg... */
-> > +		if (cmpxchg(&fc->dax_devlist, NULL, local_devlist) != NULL) {
-> > +			kfree(local_devlist->devlist);
-> > +			kfree(local_devlist); /* another thread beat us to it */
-> > +		}
-> > +	}
-> > +
-> > +	down_read(&fc->famfs_devlist_sem);
-> > +	for (i = 0; i < fc->dax_devlist->nslots; i++) {
-> > +		if (meta->dev_bitmap & (1ULL << i)) {
-> Flip for readability.
-> 		if (!(meta->dev_bitmap & (1ULL << i))
-> 			continue;
+Anyway looks good, thanks:
 
-I like it - done..
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 
-> 
-> Or can we use bitmap_from_arr64() and
-> for_each_set_bit() to optimize this a little.
-
-Could do, but I feel like that's a bit harder [for me] to read.
-
-> 
-> > +			/* This file meta struct references devindex i
-> > +			 * if devindex i isn't in the table; get it...
-> > +			 */
-> > +			if (!(fc->dax_devlist->devlist[i].valid)) {
-> > +				up_read(&fc->famfs_devlist_sem);
-> > +
-> > +				err = famfs_fuse_get_daxdev(fm, i);
-> > +				if (err)
-> > +					pr_err("%s: failed to get daxdev=%d\n",
-> > +					       __func__, i);
-> Don't want to surface that error?
-
-I'm thinking on that. Failure to retrieve a dax device is currently
-game over for the whole mount (because there is just one of them currently,
-and it's retrieved to get access to the superblock and metadata log).
-Once additional daxdevs are enabled there will be more nuance, but any
-file that references a 'missing' dax device will be non-operative, so
-putting something in the log makes sense to me.
-
-I may surface it a bit differently, but I think it needs to surface.
-
-> > +
-> > +				down_read(&fc->famfs_devlist_sem);
-> > +			}
-> > +		}
-> > +	}
-> > +	up_read(&fc->famfs_devlist_sem);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +/***************************************************************************/
-> 
-> ?
-
-One of my tics is divider comments. Will probably drop it though ;)
-
-> 
-> > diff --git a/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h
-> > index ce785d76719c..f79707b9f761 100644
-> > --- a/fs/fuse/famfs_kfmap.h
-> > +++ b/fs/fuse/famfs_kfmap.h
-> > @@ -60,4 +60,30 @@ struct famfs_file_meta {
-> >  	};
-> >  };
-> >  
-> > +/**
-> > + * famfs_daxdev - tracking struct for a daxdev within a famfs file system
-> > + *
-> > + * This is the in-memory daxdev metadata that is populated by
-> > + * the responses to GET_FMAP messages
-> > + */
-> > +struct famfs_daxdev {
-> > +	/* Include dev uuid? */
-> > +	bool valid;
-> > +	bool error;
-> > +	dev_t devno;
-> > +	struct dax_device *devp;
-> > +	char *name;
-> > +};
-> > +
-> > +#define MAX_DAXDEVS 24
-> > +
-> > +/**
-> > + * famfs_dax_devlist - list of famfs_daxdev's
-> 
-> Run kernel-doc script over these. It gets grumpy about partial
-> documentation.
-
-Thank you... I just did, and fixed a couple of issues it complained about.
-
-> 
-> > + */
-> > +struct famfs_dax_devlist {
-> > +	int nslots;
-> > +	int ndevs;
-> > +	struct famfs_daxdev *devlist; /* XXX: make this an xarray! */
-> > +};
-> > +
-> >  #endif /* FAMFS_KFMAP_H */
-> 
-> > diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-> > index ecaaa62910f0..8a81b6c334fe 100644
-> > --- a/include/uapi/linux/fuse.h
-> > +++ b/include/uapi/linux/fuse.h
-> > @@ -235,6 +235,9 @@
-> >   *      - struct fuse_famfs_simple_ext
-> >   *      - struct fuse_famfs_iext
-> >   *      - struct fuse_famfs_fmap_header
-> > + *    - Add the following structs for the GET_DAXDEV message and reply
-> > + *      - struct fuse_get_daxdev_in
-> > + *      - struct fuse_get_daxdev_out
-> >   *    - Add the following enumerated types
-> >   *      - enum fuse_famfs_file_type
-> >   *      - enum famfs_ext_type
-> > @@ -1351,6 +1354,20 @@ struct fuse_famfs_fmap_header {
-> >  	uint64_t reserved1;
-> >  };
-> >  
-> > +struct fuse_get_daxdev_in {
-> > +	uint32_t        daxdev_num;
-> > +};
-> > +
-> > +#define DAXDEV_NAME_MAX 256
-> > +struct fuse_daxdev_out {
-> > +	uint16_t index;
-> > +	uint16_t reserved;
-> > +	uint32_t reserved2;
-> > +	uint64_t reserved3; /* enough space for a uuid if we need it */
-> 
-> Odd place for the comment. If it just refers to reserved3 then nope
-> not enough space.  If you mean that and reserved4 then fiar enough
-> but that's not obvious as it stands.
-
-Good point. Moved it above in -next
-
-> 
-> > +	uint64_t reserved4;
-> > +	char name[DAXDEV_NAME_MAX];
-> > +};
-> > +
-> >  static inline int32_t fmap_msg_min_size(void)
-> >  {
-> >  	/* Smallest fmap message is a header plus one simple extent */
-> > @@ -1358,4 +1375,5 @@ static inline int32_t fmap_msg_min_size(void)
-> >  		+ sizeof(struct fuse_famfs_simple_ext));
-> >  }
-> >  
-> > +
-> Stray change.  Worth a quick scrub to clean these out (even in an RFC) as they just add
-> noise to the bits you want people to look at!
-
-Yup, will fix.
-
-BTW, public service announcement: I've discovered the awesomeness of jj
-(aka ju jutsu, aka jj-vcs) as a wrapper for git that is great at the kind
-of rebase problems that come with factoring and re-factoring patch set
-branches. Without jj, more stuff like this would have slipped through ;)
-
-<snip>
-
-Thanks!
-John
+> -- 
+> Oscar Salvador
+> SUSE Labs
