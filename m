@@ -1,127 +1,143 @@
-Received: from out-184.mta0.migadu.com (out-184.mta0.migadu.com [91.218.175.184])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFEAD278E63
-	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 06:25:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.184
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 752EB277013
+	for <nvdimm@lists.linux.dev>; Mon,  7 Jul 2025 06:32:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751869515; cv=none; b=HCp4cN6pDYq+LyNiVgRTJTCgzavxF3FGdvLlyebeWdqSHqg83U6DYUP9MvzlAjHH6DuhF0gbLGJtoImtW5T4xFmIqHh4rShNMPBYHCfUE2R7GjfBsnvuu5XggIptS+rjmPRqZQ29utS8s0l+nSYADXTdIwdVBOnY1D9ZHZabo1Q=
+	t=1751869926; cv=none; b=JmLIRvXGxTPQDf5u1M9qO80ktUb5w2AGnuZ69/xUjndzpwFLOimVyXJXybv5xdXBZrFPb7njbk3WZQcqQ3ayiMg8l1FJb+otZCqcwdpxzRA8vTQ5HjtUCyJphISEmrcX0BPQ5MY7LXoPcvydIoG3cWyJ2K8tzc35xKzueDrFNl4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751869515; c=relaxed/simple;
-	bh=L1OJFZePJC7bm+TGpqgXhtHPxDrMC7hzgIqvLtOGIeE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=tUVTy6UtAm3El6OWILBt0yZPV4Mw3BKQweNmSrTUsg8ktN8HSENa7awJzVx1g7nLIXog21p3J5W0F+aa4P8sKIZrc0o8sF5l7VjEBfFGUsVnmcX3kiVbj0WPyPGCBshsuxnOIHXDjculuzAWH1Y06P2+CMdtL4Z+YTqiLuVF1co=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=V48NXUfD; arc=none smtp.client-ip=91.218.175.184
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1751869926; c=relaxed/simple;
+	bh=vxJe+BPm71cWBNm4iliT8N1/neqQZh47yL4hqyujN3w=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=dCr15S3dR4Go3BzFURyZfOprfVOsnYHQrC5uluC3cAJWIs4/9JarKg4HXXf7jwN+TvYpiDkRO4JEc20Au5LWdBOkM+PWyZ4SIr8/fdUf19dXV9yjZUvJ1l4haGiBLi1yFQK/N8VyBGh60Lyvh0ezOqUCbzfjIW7LNhormAEwMZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rBCd2AzU; arc=none smtp.client-ip=209.85.128.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="V48NXUfD"
-Message-ID: <e9386b67-9c4c-415e-91d8-511ac8d0ded5@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1751869512;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vMXBEkTsI7ndCSL5SBx4dyxJbRzHSLL2t1hoBK/+038=;
-	b=V48NXUfDPPkP9rAIAXNmboO99SKyX46T3QjGrGoD26aoCtb56O84XZ5u2CUocciZ5cZgKX
-	zYi4I92NJiUt4flXdDJyO6ANnjhIZ26H0hh0waeLkBTHIX46PKCmqaWcj1jZFi8WOVgWBB
-	lTbQeUoOwYdcBQ+/XGCIGJrnT4gVUfQ=
-Date: Mon, 7 Jul 2025 14:25:06 +0800
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rBCd2AzU"
+Received: by mail-yw1-f174.google.com with SMTP id 00721157ae682-713fba639f3so21551487b3.1
+        for <nvdimm@lists.linux.dev>; Sun, 06 Jul 2025 23:32:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1751869923; x=1752474723; darn=lists.linux.dev;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=9eregAcGFAIzSiU/cuG1dEAU9nmydwBb6E55/BzC4wc=;
+        b=rBCd2AzUsSTQ6FqUwCEVwH8b3+QbgxfDn1a/aGG2hnzml7FwbLT5C6pNW7dk4dKCXw
+         F0w/NpB5OdPynDJ09+j5Nzvfge0ObrAv0dPlIi5SKaPciQtzhinn3C/8zYWUqbTuXC0h
+         pG1dz6JXuyEblsrThCWzaHcf1HSGP7vzvR0Krh87rrwGga6LZvD7+lW0wK/+SQPIdTWP
+         fpDq0/EO1SeJnYwR6hUvs8zCgv0autTWL2wKs08vkKPlJNvZWgMbMvijqmwRjQfZ9+Bg
+         oLCmmWARloFHkWQ9vNMDBXWRhFu3KLlAX+HfYYW1bjbAxIMrGbhFDjzHqE3dzvphWl9s
+         Rxag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751869923; x=1752474723;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=9eregAcGFAIzSiU/cuG1dEAU9nmydwBb6E55/BzC4wc=;
+        b=KOqu3XBoNyRvjL6lDPWi/3lQvST+GSixQsFwqoRc0Ghgx3529NVfRXtStf99AGVIdQ
+         ERvABm7Dua9zQxm7b/fbHLGk6jCiNAC4E2NVu7lApO2Li/X5z7gXW9aDMKgTOjlAoh7/
+         NQxXz+jatM2fFrcsuf+Bs6p3m1xF/hGMl4VrCtE7khEqyVsOK8Dn5gJUikMZ5EntdGER
+         eVdeH4/Ez0iVD0nkLqx2goTMFiLWuzbx6bBtLUeB271pk11UzCB43HPx0aMF9HnK+WM7
+         tY/Bpvvemq28KeTDk1Pg5yVkhENj/3OwNprD7eWw/3D8s84gRA9QXyLdOY1cHG0l/UaD
+         1lVA==
+X-Forwarded-Encrypted: i=1; AJvYcCVZTpiHELW0lVZuz2mZbPiGxG7482/1gsejMrNb4mHMLp5FTjYVHGKidS+fgxw8k+jysDcWezo=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxtJEecGA6dEAwW17t2ja7haDSuSnNBcd+4r0+DAXdVtXrl1QlV
+	0NvDp35AYnyHl0ONop314Y/LnusMGYEzkxNAknjhtdI4N1kq3DYma+rPBloApbaKJw==
+X-Gm-Gg: ASbGncvCTGZHIo+AmihPdjFIeB0DABOQgRaQgGW44YihTCqfzPHgNAwpAin514s7cA9
+	fi4VGn20VujGloBpmahPZuV5ZdHm6hk8uP4YBZT0Ogj3te5+v4LhQt6PIUiAAYKcnq4U6dIIcaK
+	BN4dKd+wM/5ewOfuYmCpItdM+GoOF9gdCxpaSWfMGwDU/1eWsQ5XfXEjelQau4dtlV+8wLZyy6q
+	dkbyoU8yOnD8U9/7Ig7uBZoWvVuk7dM9gbvQzc6MwLZmUER3G1QCGURnRF2pyBGFvG7Q/lwET/S
+	n0w31TvW+YhnFtwFf/RPU2RQCeZH0VDRPAmgs4+qYF77ZAiQZgIv9G+NV2J0CODKKRsz8XILlfG
+	c9d201FyBv4IyM+XmkpUrsJclbBhGzVPNPjRe1twRYvAwKYM=
+X-Google-Smtp-Source: AGHT+IEFZnGv0RJ81RzX7ADxUWhe/mHbYjhU1NsNdXuTw52DK9SQw7WvK/z0caZXZVeUNpMIcWUJlA==
+X-Received: by 2002:a05:690c:b1d:b0:70e:2d3d:ace6 with SMTP id 00721157ae682-7176c9f96e9mr98750467b3.15.1751869922959;
+        Sun, 06 Jul 2025 23:32:02 -0700 (PDT)
+Received: from darker.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-716659a1440sm15515367b3.35.2025.07.06.23.31.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 06 Jul 2025 23:32:02 -0700 (PDT)
+Date: Sun, 6 Jul 2025 23:31:50 -0700 (PDT)
+From: Hugh Dickins <hughd@google.com>
+To: David Hildenbrand <david@redhat.com>
+cc: Lance Yang <lance.yang@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+    linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+    linux-mm@kvack.org, nvdimm@lists.linux.dev, 
+    Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, 
+    Stefano Stabellini <sstabellini@kernel.org>, 
+    Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, 
+    Dan Williams <dan.j.williams@intel.com>, 
+    Alistair Popple <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>, 
+    Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+    Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>, 
+    Baolin Wang <baolin.wang@linux.alibaba.com>, 
+    Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
+    "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
+    Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>, 
+    Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+    Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
+    Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
+    Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+    Lance Yang <ioworker0@gmail.com>
+Subject: Re: [PATCH RFC 01/14] mm/memory: drop highest_memmap_pfn sanity
+ check in vm_normal_page()
+In-Reply-To: <b6d79033-b887-4ce7-b8f2-564cad7ec535@redhat.com>
+Message-ID: <b0984e6e-eabd-ed71-63c3-4c4d362553e8@google.com>
+References: <20250617154345.2494405-1-david@redhat.com> <20250617154345.2494405-2-david@redhat.com> <aFVZCvOpIpBGAf9w@localhost.localdomain> <c88c29d2-d887-4c5a-8b4e-0cf30e71d596@redhat.com> <CABzRoyZtxBgJUZK4p0V1sPAqbNr=6S-aE1S68u8tKo=cZ2ELSw@mail.gmail.com>
+ <5e5e8d79-61b1-465d-ab5a-4fa82d401215@redhat.com> <aa977869-f93f-4c2b-a189-f90e2d3bc7da@linux.dev> <b6d79033-b887-4ce7-b8f2-564cad7ec535@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Subject: Re: [PATCH v1 02/11] dm-pcache: add backing device management
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: mpatocka@redhat.com, agk@redhat.com, snitzer@kernel.org, axboe@kernel.dk,
- hch@lst.de, dan.j.williams@intel.com, linux-block@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev, dm-devel@lists.linux.dev
-References: <20250624073359.2041340-1-dongsheng.yang@linux.dev>
- <20250624073359.2041340-3-dongsheng.yang@linux.dev>
- <20250701145650.00004e72@huawei.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Dongsheng Yang <dongsheng.yang@linux.dev>
-In-Reply-To: <20250701145650.00004e72@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: multipart/mixed; boundary="-1463770367-1279896212-1751869921=:5466"
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-在 7/1/2025 9:56 PM, Jonathan Cameron 写道:
-> On Tue, 24 Jun 2025 07:33:49 +0000
-> Dongsheng Yang <dongsheng.yang@linux.dev> wrote:
->
->> This patch introduces *backing_dev.{c,h}*, a self-contained layer that
->> handles all interaction with the *backing block device* where cache
->> write-back and cache-miss reads are serviced.  Isolating this logic
->> keeps the core dm-pcache code free of low-level bio plumbing.
->>
->> * Device setup / teardown
->>    - Opens the target with `dm_get_device()`, stores `bdev`, file and
->>      size, and initialises a dedicated `bioset`.
->>    - Gracefully releases resources via `backing_dev_stop()`.
->>
->> * Request object (`struct pcache_backing_dev_req`)
->>    - Two request flavours:
->>      - REQ-type – cloned from an upper `struct bio` issued to
->>        dm-pcache; trimmed and re-targeted to the backing LBA.
->>      - KMEM-type – maps an arbitrary kernel memory buffer
->>        into a freshly built.
->>    - Private completion callback (`end_req`) propagates status to the
->>      upper layer and handles resource recycling.
->>
->> * Submission & completion path
->>    - Lock-protected submit queue + worker (`req_submit_work`) let pcache
->>      push many requests asynchronously, at the same time, allow caller
->>      to submit backing_dev_req in atomic context.
->>    - End-io handler moves finished requests to a completion list processed
->>      by `req_complete_work`, ensuring callbacks run in process context.
->>    - Direct-submit option for non-atomic context.
->>
->> * Flush
->>    - `backing_dev_flush()` issues a flush to persist backing-device data.
->>
->> Signed-off-by: Dongsheng Yang <dongsheng.yang@linux.dev>
->> ---
->>   drivers/md/dm-pcache/backing_dev.c | 292 +++++++++++++++++++++++++++++
->>   drivers/md/dm-pcache/backing_dev.h |  88 +++++++++
->>   2 files changed, 380 insertions(+)
->>   create mode 100644 drivers/md/dm-pcache/backing_dev.c
->>   create mode 100644 drivers/md/dm-pcache/backing_dev.h
->> +
->> +struct pcache_backing_dev_req *backing_dev_req_create(struct pcache_backing_dev *backing_dev,
->> +						struct pcache_backing_dev_req_opts *opts)
->> +{
->> +	if (opts->type == BACKING_DEV_REQ_TYPE_REQ)
->> +		return req_type_req_create(backing_dev, opts);
->> +	else if (opts->type == BACKING_DEV_REQ_TYPE_KMEM)
->>
-> returned in earlier branch so go with simpler
->
-> 	if (opts->type..)
+---1463770367-1279896212-1751869921=:5466
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hi Jonathan,
+On Fri, 4 Jul 2025, David Hildenbrand wrote:
+> On 03.07.25 16:44, Lance Yang wrote:
+> > On 2025/7/3 20:39, David Hildenbrand wrote:
+> >> On 03.07.25 14:34, Lance Yang wrote:
+> >>> On Mon, Jun 23, 2025 at 10:04=E2=80=AFPM David Hildenbrand <david@red=
+hat.com>
+> >>> wrote:
+> >>>>
+> >>>> On 20.06.25 14:50, Oscar Salvador wrote:
+> >>>>> On Tue, Jun 17, 2025 at 05:43:32PM +0200, David Hildenbrand wrote:
+> >>>>>> In 2009, we converted a VM_BUG_ON(!pfn_valid(pfn)) to the current
+> >>>>>> highest_memmap_pfn sanity check in commit 22b31eec63e5 ("badpage:
+> >>>>>> vm_normal_page use print_bad_pte"), because highest_memmap_pfn was
+> >>>>>> readily available.
+> >>>>>>
+> >>>>>> Nowadays, this is the last remaining highest_memmap_pfn user, and =
+this
+> >>>>>> sanity check is not really triggering ... frequently.
+> >>>>>>
+> >>>>>> Let's convert it to VM_WARN_ON_ONCE(!pfn_valid(pfn)), so we can
+> >>>>>> simplify and get rid of highest_memmap_pfn. Checking for
+> >>>>>> pfn_to_online_page() might be even better, but it would not handle
+> >>>>>> ZONE_DEVICE properly.
+> >>>>>>
+> >>>>>> Do the same in vm_normal_page_pmd(), where we don't even report a
+> >>>>>> problem at all ...
+> >>>>>>
+> >>>>>> What might be better in the future is having a runtime option like
+> >>>>>> page-table-check to enable such checks dynamically on-demand.
+> >>>>>> Something
+> >>>>>> for the future.
+> >>>>>>
+> >>>>>> Signed-off-by: David Hildenbrand <david@redhat.com>
 
-This looks good, I am willing to do this change.
+The author of 22b31eec63e5 thinks this is not at all an improvement.
+Of course the condition is not triggering frequently, of course it
+should not happen: but it does happen, and it still seems worthwhile
+to catch it in production with a "Bad page map" than to let it run on
+to whatever kind of crash it hits instead.
 
-
-Thanx
-
-Dongsheng
-
-> Or use a switch statement if you expect to get more entries in this over time.
->
->> +		return kmem_type_req_create(backing_dev, opts);
->> +
->> +	return NULL;
->> +}
->> +
->> +void backing_dev_flush(struct pcache_backing_dev *backing_dev)
->> +{
->> +	blkdev_issue_flush(backing_dev->dm_dev->bdev);
->> +}
->
+Hugh
+---1463770367-1279896212-1751869921=:5466--
