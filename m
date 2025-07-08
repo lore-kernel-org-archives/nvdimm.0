@@ -1,231 +1,233 @@
-Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
+Received: from mail-ot1-f49.google.com (mail-ot1-f49.google.com [209.85.210.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 062A2225404
-	for <nvdimm@lists.linux.dev>; Tue,  8 Jul 2025 02:53:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD39E26B75A
+	for <nvdimm@lists.linux.dev>; Tue,  8 Jul 2025 12:02:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751943190; cv=none; b=cVgYzl5TUT6Rf5kRCouWV8o1yGc0Z1/pt+Y9cONg9XYAzWmrm14SMY2nkt0knCnvgGdzK6IksBuK8aeehno5I+X9HpqBZin2hlwfabENl6yPYRPP3nKBnDZ9GLnP8FM8INGEtlbvi43ZDYbdXc+WjUrCXVlG2EDDgEz8tLmKqUw=
+	t=1751976131; cv=none; b=IzCRqyPomOeaXGsqTO5HeT9sBuyQmIoYYsj8auBL6yRTJB7iaXa7Jp7lU3ByysQachxsBRbEKjR0X1IygZk4XuTYWY2K7kjrdd3Pp702a9dEeXgPeMCoN/sFsIlR7t1FFmeSzS2MjVv02CsdwVVNBF/VB7dgZS0pEHcTEvuVpRU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751943190; c=relaxed/simple;
-	bh=XF/uGrtSptwtHtREcaHsc5q1URje318fjfLC475Pkuk=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=La7U0XoNdz401MRANWTsaxj4LORaUXiVgHJ8plOIYEftsqrYVfr2gRquOQ+EPocG9G5aRBBQcb+twNtuYylEAJcNpH1m23TKFsjdg/bzG0UJlQhm8uXACa/DKvNI+CzWqTCo90NN0AeTA8Mc+GWLyxdto9kAJQzJuv3vZTy+bg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=fjp9jTz7; arc=none smtp.client-ip=209.85.128.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1751976131; c=relaxed/simple;
+	bh=Jn8hrsRg86sOLVXHmouC0yMQPqN2iUaDm1mOlavqijo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kivbi2YR+ETVmdZ5FoQAuD8fCZAWY+yAQgtd37A9D7v8wvxRqqykRU0xI5gS5MlQ0xsRoMKEYAltzvww9vc7X1poKFoj85hbPbwgB7aj2vey70dswgA6IXxepBXMux0xF/VWFPqvUc/4QKvtNmnElS1g77L4sYtJCGoTffG0Slk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Bj56SdOK; arc=none smtp.client-ip=209.85.210.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="fjp9jTz7"
-Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-717a2ef8943so902207b3.1
-        for <nvdimm@lists.linux.dev>; Mon, 07 Jul 2025 19:53:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bj56SdOK"
+Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-72c14138668so1412325a34.2
+        for <nvdimm@lists.linux.dev>; Tue, 08 Jul 2025 05:02:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1751943188; x=1752547988; darn=lists.linux.dev;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=/zGCQGxHrSRe/NxvAWIAsgtbup/awoRMVdcTUBJfyTs=;
-        b=fjp9jTz7umdPnUbi5CTqRkvE4epAeFZt+ThFBuDDfA6COETQh0n7fUlXNHIVpXRbi2
-         52BNY2WRZuaZMToXsN8WZ706OragRXiKRKQ6wySj27u6unjr1ZekuB9fVdR1aMKsizeb
-         eDZrzT2tDJY1PwgKPJptg5QQBOMSwDHWRNwKRM/PTOtfd/55pZNmCuIBlWsNcs8xZEGJ
-         BWi0jwJozGumktJgEVWtHDoYbDZGRyWrftYSMnffsZ94kuUNrhBkdpNvDPYhIoaFY408
-         5TaMogoAZ3Ybg++JaCwjV44Umfb8LsbXxdVHTDBciihwzIud9EAGcaqC2A42Y7vWM+n8
-         DiGg==
+        d=gmail.com; s=20230601; t=1751976129; x=1752580929; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=2uGq9fv0o0kRTxTwHbXLzg/jeWoB7j9lh1A3UENkLmc=;
+        b=Bj56SdOKf+5XZtFCx0P3OB1aSOc4WdjChvUItxx5FRGLRe2lRCXET/QTgQcFA2RbkB
+         9AH3gvTbQfcdJ+LDEULjQmkozunWv5ZgGoomyj9uP2wQbT2XhdjxZ8qTCCdrVvHBmH2G
+         WK0+YjJvrcBZt8DAAZH+ZtaeyUq56fhotAhgWUkTAeQjNPbOJkeas9zXqxpF9DqDLfih
+         SU2lEB1rvKumQJR6ajR7JvChJtmkhw9I0lNMeavdrbThwUbynwopZn/4e/ZJzZjDxp7H
+         MSOuYeUUS0scQWCSlzct7V9Q4aJ8jZeyrF8GjrHQ93SfEJPcImIW6tn5PB3wgyNwAQxu
+         yfRg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751943188; x=1752547988;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=/zGCQGxHrSRe/NxvAWIAsgtbup/awoRMVdcTUBJfyTs=;
-        b=ZOyRnpF6m2yaFR/hECT6wTFFkWtmsakCk6Ckpfff2slPbgrM+dL7vfxOFuI4srVps8
-         t3iosEyIGN7kGAE8HWHBavw73oDuJ/LnAU8ccOftWquzDgbT1IJwvxF0h2cu96L5gEjO
-         /Ev+OkDl4mhyQ2flw/5ROt+TChmDSI8vwXhXh/IDgeEYRMBVnrh1Kc80ch8iiMPbk5Ko
-         knvtIrFm7M482ph1MBrKxuWtyV9LAW7NFfIwsCfP0Oyi7sA/kVYA5kL7vuLqWouIl8OI
-         HiEe16eNoCPZ+sNRFCA2a6rkwHNCvTjrBvJkScRxyGcnywgS6R26Ep7VxUSdy6nA1WWh
-         SFIw==
-X-Forwarded-Encrypted: i=1; AJvYcCVFKig48Kk2PpZ1BeDwW46vjMUGvOxABQOXZNKAVUqX/esI2kvKf11c50xy02DmuBuCAwh6Pck=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxY0CRxuugahnWzE1lyQhIqfbX5YzzvZ45nwAh1ddjrU9pfFcjt
-	/eGjd8Zauw4CbZ0bmBISLWoN8LfTd2b2uxMsosmDWhXTj83aOMjKD72Oxl67dh4T9A==
-X-Gm-Gg: ASbGnctKo0wyxpTvRRaPIcrEtDh+GlNphrZh961nVuX/YlC+/KrI3k7mQ1SX6hXnIXf
-	w8nKTFipp2cfuXQBvDG2At59p1fc57FAsZ2hetyRRrvYoE+PtHnZ7peEjKkB9gpxKaWJS4CD40q
-	SLguJNUaDBAeg1Wc6dLBpflRkS/V6AvDIE/hoQqOGc8nS+e/7q5S7ETySCeH3pPBwfohYNw8sWF
-	f/6zqcy8wVloSiSobLroE4+C5pv1rbbXkFa4OvXCRFBBoSH6GFjV4RNaixY6PvooBetBvi/J9er
-	c5WWvcUwKHfdzuIBVrNCaD/ZHfEqKwfGx8cn420ER/G7fgfuLWiLZ9cIfJW85lQNmFW/1c6DQpD
-	GBb7djfm/skX6Xu+wQsQxyVxjTH/EpqcVWOSJjpuIiKhOuS8=
-X-Google-Smtp-Source: AGHT+IFGk1zw6u42yZgVl3xmkGAoYOyMoRKxLmKRqsd/hjEURFvgk/4mOy+h8KG+4313YBELzU59vA==
-X-Received: by 2002:a05:690c:62c6:b0:716:69e0:bb85 with SMTP id 00721157ae682-717a036f27fmr14923907b3.18.1751943187668;
-        Mon, 07 Jul 2025 19:53:07 -0700 (PDT)
-Received: from darker.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-71665ae2c29sm19151417b3.78.2025.07.07.19.53.03
+        d=1e100.net; s=20230601; t=1751976129; x=1752580929;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=2uGq9fv0o0kRTxTwHbXLzg/jeWoB7j9lh1A3UENkLmc=;
+        b=YzobzcBC2S+BE8kP6xpXKgvM3LjnAuZAd8wZSYoho6Gogbu3rSKMnc2BiYeje9eytv
+         lFYEnTJC+uSc8XJVcx4vC40lDmBkvYg1gjsTPF1ql/Q78xsotRB6mNzEik1QCDCTi0T2
+         R/kZBAXEGHWgPVpaEpu1ubpTj5dZc445TDDbIuvFxAlFcWhB1bOrdH2a9+WXQRk3zJp2
+         EvYWtTu15uqg5CdGIJ+zO7FAnYlXBWFZiOnBHAGSupaFjlKzKx4QQqg2/QHw4cnHuJ9l
+         Ohp/0LZ2WJGxBbjKpLIde6gtmv71+p65NRsL3IOWDYxhLIwjoCFrh0Pv/2bfbu7kJskL
+         kAEA==
+X-Forwarded-Encrypted: i=1; AJvYcCX/RzGI3oQKELXkR3Ctl8yPeHFe/lr822MDvU9yoveKTZTvuJCfbIuzJUTwOyLGQLA7L0DeKJA=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyav8fl30vVDXqVB8DJX7yQBZ7ktj76KbOBuyaCUa4RZmABmduX
+	Z3EAPgLS0MhRewW7vofWVHYCj9J8b87guckWz7Fjf7OfhuT1d8ssyw5k
+X-Gm-Gg: ASbGncsi+s1mwfPusFnck7MrYJpzf9sFf30bxE21ZFxNs+SlmUbt9pg7M2zIWGu8jqu
+	WEz/cVrsHF+BkOz3hSPG95HA/n+tAJVs0AlZmg4/yifE+uIey7j2+RVlb42ukjvt2Vp63pJK5yH
+	QK8+E/QlZCli/YzxNDYXTT4K++tyePRQys/549gSLGlLZzrQripjQ5KEoZCpd7upTrXHfRNsN7l
+	wPndme2aZQm8dK2suv7ONjr/op1mBkmzffXHgBLUyPTJ4GX/RG6mhDKUVYYtIw2h4NO5+P2hiGq
+	8HxHDuKgDA1a/ikLG7m6jx5g9+RfuMkDDmERxq9ea/3b794Tay6FlEBqwLM3MjgzWEi2COMAIQx
+	d
+X-Google-Smtp-Source: AGHT+IE/EwQcJny5luA2L1jmlPqgPI2OAQPJnI9paMkK4frs6m/TZ8wBkc3niX9u+apPS0vL9gnf0g==
+X-Received: by 2002:a05:6808:4442:b0:40b:4208:8440 with SMTP id 5614622812f47-4110de96df3mr2403977b6e.3.1751976126686;
+        Tue, 08 Jul 2025 05:02:06 -0700 (PDT)
+Received: from groves.net ([2603:8080:1500:3d89:a416:8b40:fe30:49a3])
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-40d02aeed45sm1630594b6e.50.2025.07.08.05.02.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Jul 2025 19:53:06 -0700 (PDT)
-Date: Mon, 7 Jul 2025 19:52:51 -0700 (PDT)
-From: Hugh Dickins <hughd@google.com>
-To: David Hildenbrand <david@redhat.com>
-cc: Hugh Dickins <hughd@google.com>, Lance Yang <lance.yang@linux.dev>, 
-    Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, 
-    linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev, 
-    Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, 
-    Stefano Stabellini <sstabellini@kernel.org>, 
-    Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, 
-    Dan Williams <dan.j.williams@intel.com>, 
-    Alistair Popple <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>, 
-    Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-    Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>, 
-    Baolin Wang <baolin.wang@linux.alibaba.com>, 
-    Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, 
-    "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
-    Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>, 
-    Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-    Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
-    Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
-    Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-    Lance Yang <ioworker0@gmail.com>
-Subject: Re: [PATCH RFC 01/14] mm/memory: drop highest_memmap_pfn sanity
- check in vm_normal_page()
-In-Reply-To: <36dd6b12-f683-48a2-8b9c-c8cd0949dfdc@redhat.com>
-Message-ID: <0b1cb496-4e50-252e-5bcf-74a89a78a8c0@google.com>
-References: <20250617154345.2494405-1-david@redhat.com> <20250617154345.2494405-2-david@redhat.com> <aFVZCvOpIpBGAf9w@localhost.localdomain> <c88c29d2-d887-4c5a-8b4e-0cf30e71d596@redhat.com> <CABzRoyZtxBgJUZK4p0V1sPAqbNr=6S-aE1S68u8tKo=cZ2ELSw@mail.gmail.com>
- <5e5e8d79-61b1-465d-ab5a-4fa82d401215@redhat.com> <aa977869-f93f-4c2b-a189-f90e2d3bc7da@linux.dev> <b6d79033-b887-4ce7-b8f2-564cad7ec535@redhat.com> <b0984e6e-eabd-ed71-63c3-4c4d362553e8@google.com> <36dd6b12-f683-48a2-8b9c-c8cd0949dfdc@redhat.com>
+        Tue, 08 Jul 2025 05:02:05 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Tue, 8 Jul 2025 07:02:03 -0500
+From: John Groves <John@groves.net>
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, 
+	Dan Williams <dan.j.williams@intel.com>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Bernd Schubert <bschubert@ddn.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Kent Overstreet <kent.overstreet@linux.dev>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC V2 10/18] famfs_fuse: Basic fuse kernel ABI enablement for
+ famfs
+Message-ID: <ueepqz3oqeqzwiidk2wlf3f7enxxte4ws27gtxhakfmdiq4t26@cvfmozym5rme>
+References: <20250703185032.46568-1-john@groves.net>
+ <20250703185032.46568-11-john@groves.net>
+ <CAOQ4uxi7fvMgYqe1M3_vD3+YXm7x1c4YjA=eKSGLuCz2Dsk0TQ@mail.gmail.com>
+ <yhso6jddzt6c7glqadrztrswpisxmuvg7yopc6lp4gn44cxd4m@my4ajaw47q7d>
+ <20250707173942.GC2672029@frogsfrogsfrogs>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463770367-475110467-1751943186=:6773"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20250707173942.GC2672029@frogsfrogsfrogs>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 25/07/07 10:39AM, Darrick J. Wong wrote:
+> On Fri, Jul 04, 2025 at 08:39:59AM -0500, John Groves wrote:
+> > On 25/07/04 09:54AM, Amir Goldstein wrote:
+> > > On Thu, Jul 3, 2025 at 8:51 PM John Groves <John@groves.net> wrote:
+> > > >
+> > > > * FUSE_DAX_FMAP flag in INIT request/reply
+> > > >
+> > > > * fuse_conn->famfs_iomap (enable famfs-mapped files) to denote a
+> > > >   famfs-enabled connection
+> > > >
+> > > > Signed-off-by: John Groves <john@groves.net>
+> > > > ---
+> > > >  fs/fuse/fuse_i.h          |  3 +++
+> > > >  fs/fuse/inode.c           | 14 ++++++++++++++
+> > > >  include/uapi/linux/fuse.h |  4 ++++
+> > > >  3 files changed, 21 insertions(+)
+> > > >
+> > > > diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+> > > > index 9d87ac48d724..a592c1002861 100644
+> > > > --- a/fs/fuse/fuse_i.h
+> > > > +++ b/fs/fuse/fuse_i.h
+> > > > @@ -873,6 +873,9 @@ struct fuse_conn {
+> > > >         /* Use io_uring for communication */
+> > > >         unsigned int io_uring;
+> > > >
+> > > > +       /* dev_dax_iomap support for famfs */
+> > > > +       unsigned int famfs_iomap:1;
+> > > > +
+> > > 
+> > > pls move up to the bit fields members.
+> > 
+> > Oops, done, thanks.
+> > 
+> > > 
+> > > >         /** Maximum stack depth for passthrough backing files */
+> > > >         int max_stack_depth;
+> > > >
+> > > > diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+> > > > index 29147657a99f..e48e11c3f9f3 100644
+> > > > --- a/fs/fuse/inode.c
+> > > > +++ b/fs/fuse/inode.c
+> > > > @@ -1392,6 +1392,18 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
+> > > >                         }
+> > > >                         if (flags & FUSE_OVER_IO_URING && fuse_uring_enabled())
+> > > >                                 fc->io_uring = 1;
+> > > > +                       if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&
+> > > > +                           flags & FUSE_DAX_FMAP) {
+> > > > +                               /* XXX: Should also check that fuse server
+> > > > +                                * has CAP_SYS_RAWIO and/or CAP_SYS_ADMIN,
+> > > > +                                * since it is directing the kernel to access
+> > > > +                                * dax memory directly - but this function
+> > > > +                                * appears not to be called in fuse server
+> > > > +                                * process context (b/c even if it drops
+> > > > +                                * those capabilities, they are held here).
+> > > > +                                */
+> > > > +                               fc->famfs_iomap = 1;
+> > > > +                       }
+> > > 
+> > > 1. As long as the mapping requests are checking capabilities we should be ok
+> > >     Right?
+> > 
+> > It depends on the definition of "are", or maybe of "mapping requests" ;)
+> > 
+> > Forgive me if this *is* obvious, but the fuse server capabilities are what
+> > I think need to be checked here - not the app that it accessing a file.
+> > 
+> > An app accessing a regular file doesn't need permission to do raw access to
+> > the underlying block dev, but the fuse server does - becuase it is directing
+> > the kernel to access that for apps.
+> > 
+> > > 2. What's the deal with capable(CAP_SYS_ADMIN) in process_init_limits then?
+> > 
+> > I *think* that's checking the capabilities of the app that is accessing the
+> > file, and not the fuse server. But I might be wrong - I have not pulled very
+> > hard on that thread yet.
+> 
+> The init reply should be processed in the context of the fuse server.
+> At that point the kernel hasn't exposed the fs to user programs, so
+> (AFAICT) there won't be any other programs accessing that fuse mount.
 
----1463770367-475110467-1751943186=:6773
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Hmm. It would be good if you're right about that. My fuse server *is* running
+as root, and when I check those capabilities in process_init_reply(), I
+find those capabilities. So far so good.
 
-On Mon, 7 Jul 2025, David Hildenbrand wrote:
-> On 07.07.25 08:31, Hugh Dickins wrote:
-> > On Fri, 4 Jul 2025, David Hildenbrand wrote:
-> >> On 03.07.25 16:44, Lance Yang wrote:
-> >>> On 2025/7/3 20:39, David Hildenbrand wrote:
-> >>>> On 03.07.25 14:34, Lance Yang wrote:
-> >>>>> On Mon, Jun 23, 2025 at 10:04=E2=80=AFPM David Hildenbrand <david@r=
-edhat.com>
-> >>>>> wrote:
-> >>>>>>
-> >>>>>> On 20.06.25 14:50, Oscar Salvador wrote:
-> >>>>>>> On Tue, Jun 17, 2025 at 05:43:32PM +0200, David Hildenbrand wrote=
-:
-> >>>>>>>> In 2009, we converted a VM_BUG_ON(!pfn_valid(pfn)) to the curren=
-t
-> >>>>>>>> highest_memmap_pfn sanity check in commit 22b31eec63e5 ("badpage=
-:
-> >>>>>>>> vm_normal_page use print_bad_pte"), because highest_memmap_pfn w=
-as
-> >>>>>>>> readily available.
+Then I added code to my fuse server to drop those capabilities prior to
+starting the fuse session (prctl(PR_CAPBSET_DROP, CAP_SYS_RAWIO) and 
+prctl(PR_CAPBSET_DROP, CAP_SYS_ADMIN). I expected (hoped?) to see those 
+capabilities disappear in process_init_reply() - but they did not disappear.
 
-highest_memmap_pfn was introduced by that commit for this purpose.
+I'm all ears if somebody can see a flaw in my logic here. Otherwise, the
+capabilities need to be stashed away before the reply is processsed, when 
+fs/fuse *is* running in fuse server context.
 
-> >>>>>>>>
-> >>>>>>>> Nowadays, this is the last remaining highest_memmap_pfn user, an=
-d
-> >>>>>>>> this
-> >>>>>>>> sanity check is not really triggering ... frequently.
-> >>>>>>>>
-> >>>>>>>> Let's convert it to VM_WARN_ON_ONCE(!pfn_valid(pfn)), so we can
-> >>>>>>>> simplify and get rid of highest_memmap_pfn. Checking for
-> >>>>>>>> pfn_to_online_page() might be even better, but it would not hand=
-le
-> >>>>>>>> ZONE_DEVICE properly.
-> >>>>>>>>
-> >>>>>>>> Do the same in vm_normal_page_pmd(), where we don't even report =
-a
-> >>>>>>>> problem at all ...
-> >>>>>>>>
-> >>>>>>>> What might be better in the future is having a runtime option li=
-ke
-> >>>>>>>> page-table-check to enable such checks dynamically on-demand.
-> >>>>>>>> Something
-> >>>>>>>> for the future.
-> >>>>>>>>
-> >>>>>>>> Signed-off-by: David Hildenbrand <david@redhat.com>
-> >=20
-> > The author of 22b31eec63e5 thinks this is not at all an improvement.
-> > Of course the condition is not triggering frequently, of course it
-> > should not happen: but it does happen, and it still seems worthwhile
-> > to catch it in production with a "Bad page map" than to let it run on
-> > to whatever kind of crash it hits instead.
->=20
-> Well, obviously I don't agree and was waiting for having this discussion =
-:)
->=20
-> We catch corruption in a handful of PTE bits, and that's about it. You ne=
-ither
-> detect corruption of flags nor of PFN bits that result in another valid P=
-FN.
+I'm somewhat surprised if that isn't already happening somewhere...
 
-Of course it's limited in what it can catch (and won't even get called
-if the present bit was not set - a more complete patch might unify with
-those various "Bad swap" messages). Of course. But it's still useful for
-stopping pfn_to_page() veering off the end of the memmap[] (in some configs=
-).
-And it's still useful for printing out a series of "Bad page map" messages
-when the page table is corrupted: from which a picture can sometimes be
-built up (isolated instance may just be a bitflip; series of them can
-sometimes show e.g. ascii text, occasionally helpful for debugging).
+> 
+> > > 3. Darrick mentioned the need for a synchronic INIT variant for his work on
+> > >     blockdev iomap support [1]
+> > 
+> > I'm not sure that's the same thing (Darrick?), but I do think Darrick's
+> > use case probably needs to check capabilities for a server that is sending
+> > apps (via files) off to access extents of block devices.
+> 
+> I don't know either, Miklos hasn't responded to my questions.  I think
+> the motivation for a synchronous 
 
->=20
-> Corruption of the "special" bit might be fun.
->=20
-> When I was able to trigger this during development once, the whole machin=
-e
-> went down shortly after -- mostly because of use-after-free of something =
-that
-> is now a page table, which is just bad for both users of such a page!
->=20
-> E.g., quit that process and we will happily clear the PTE, corrupting dat=
-a of
-> the other user. Fun.
->=20
-> I'm sure I could find a way to unify the code while printing some compara=
-ble
-> message, but this check as it stands is just not worth it IMHO: trying to
-> handle something gracefully that shouldn't happen, when really we cannot
-> handle it gracefully.
+?
 
-So, you have experience of a time when it didn't help you. Okay. And we
-have had experience of other times when it has helped, if only a little.
-Like with other "Bad page"s: sometimes helpful, often not; but tending to
-build up a big picture from repeated occurrences.
+> 
+> As for fuse/iomap, I just only need to ask the kernel if iomap support
+> is available before calling ext2fs_open2() because the iomap question
+> has some implications for how we open the ext4 filesystem.
+> 
+> > > I also wonder how much of your patches and Darrick's patches end up
+> > > being an overlap?
+> > 
+> > Darrick and I spent some time hashing through this, and came to the conclusion
+> > that the actual overlap is slim-to-none. 
+> 
+> Yeah.  The neat thing about FMAPs is that you can establish repeating
+> patterns, which is useful for interleaved DRAM/pmem devices.  Disk
+> filesystems don't do repeating patterns, so they'd much rather manage
+> non-repeating mappings.
 
-We continue to disagree. I can't argue more than append the 2.6.29
-commit message, which seems to me as valid now as it was then.
+Right. Interleaving is critical to how we use memory, so fmaps are designed
+to support it.
 
-From=2022b31eec63e5f2e219a3ee15f456897272bc73e8 Mon Sep 17 00:00:00 2001
-From: Hugh Dickins <hugh@veritas.com>
-Date: Tue, 6 Jan 2009 14:40:09 -0800
-Subject: [PATCH] badpage: vm_normal_page use print_bad_pte
+Tangent: at some point a broader-than-just-me discussion of how block devices
+have the device mapper, but memory has no such layout tools, might be good
+to have. Without such a thing (which might or might not be possible/practical),
+it's essential that famfs do the interleaving. Lacking a mapper layer also
+means that we need dax to provide a clean "device abstraction" (meaning
+a single CXL allocation [which has a uuid/tag] needs to appear as a single
+dax device whether or not it's HPA-contiguous).
 
-print_bad_pte() is so far being called only when zap_pte_range() finds
-negative page_mapcount, or there's a fault on a pte_file where it does not
-belong.  That's weak coverage when we suspect pagetable corruption.
+Cheers,
+John
 
-Originally, it was called when vm_normal_page() found an invalid pfn: but
-pfn_valid is expensive on some architectures and configurations, so 2.6.24
-put that under CONFIG_DEBUG_VM (which doesn't help in the field), then
-2.6.26 replaced it by a VM_BUG_ON (likewise).
-
-Reinstate the print_bad_pte() in vm_normal_page(), but use a cheaper test
-than pfn_valid(): memmap_init_zone() (used in bootup and hotplug) keep a
-__read_mostly note of the highest_memmap_pfn, vm_normal_page() then check
-pfn against that.  We could call this pfn_plausible() or pfn_sane(), but I
-doubt we'll need it elsewhere: of course it's not reliable, but gives much
-stronger pagetable validation on many boxes.
-
-Also use print_bad_pte() when the pte_special bit is found outside a
-VM_PFNMAP or VM_MIXEDMAP area, instead of VM_BUG_ON.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
----1463770367-475110467-1751943186=:6773--
