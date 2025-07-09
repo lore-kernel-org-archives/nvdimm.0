@@ -1,415 +1,138 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-174.mta1.migadu.com (out-174.mta1.migadu.com [95.215.58.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099643208;
-	Wed,  9 Jul 2025 04:27:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8FA6287248
+	for <nvdimm@lists.linux.dev>; Wed,  9 Jul 2025 09:45:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752035235; cv=none; b=ZdYvbTDtvFZ9AZyNCDKaqYj8hQgI0Fl3UpEwD3NceEmLKxiQwLgVyET16Sf1YOE6q/AxbRCenShCC2V1fvAAU2H1i1FjMApNi/NbR0u32e+wS5qvHyT1Eo+N6h2QjTuu8myUh32ng8RdLltvzdMug3YaGPZqn+VKqaUpAswTv6E=
+	t=1752054344; cv=none; b=KA6Tuda6PDGMj4zKVHAM6sPuVDC4Z+6oOIAgX3wbYgKYyKMXb+nOO5clZvTBFROoERxogGLxqOR52lxyO37YeULT3sW7pEHckMrv6u3krHB089/sa7ov0kinQhSx5LIrLDgG+MDl11BiAu6p5/vo1CojbICNrV49aZZ9dylVHKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752035235; c=relaxed/simple;
-	bh=EBr1lkE8sHUohfFNAoRCnwD9j/iidGX0VlvLabJZgIk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fb208eDAsZVAniHQf/BbhgyXtJLyQk7hyktKvfT69j9RL4dTqspADjiJPwvsbBo1eQrIG4w/cJCkpuHBICdQflYa1J0ozcXsVXy8H2EnGygNn4Y3vXjzQQMV1PCfidQqD9aEtKx3n8AKnEmYfrRm9IbME2lLZZl5CBvSpdzzeHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FHdJYdpq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752054344; c=relaxed/simple;
+	bh=c6W+pjdL3fLgs4DKE4VuxDUC5yEKStcV+xtF81Jhgic=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=VnRMiKJlXCYACYqMLcGEZCsfWxbb30ZBYsE1Y/bZARp70LABEhuzmgnTPZcvdj4jJICZQXq6maHubLxVEW1UisUlyP+SEC+HtMgLod5yoyUTwKd77NEErQZbdQ2aUAkewM8mtGUyMkXd2xb5dH1XxZNFfoo/tqe7Yh5HVjkGhDg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=HQo71xhS; arc=none smtp.client-ip=95.215.58.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FHdJYdpq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E19BC4CEF1;
-	Wed,  9 Jul 2025 04:27:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752035234;
-	bh=EBr1lkE8sHUohfFNAoRCnwD9j/iidGX0VlvLabJZgIk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=FHdJYdpqgojht7/gdGR24KNevf5ZfGr5bZpWgUNlliCFFv6fFqMTIIFN6+aZG+xmI
-	 /BH5wiK1FNwAD6ibzMXEZYsJDBsqub/8sP7HslCT3so9GhiszHOcJM9pJdAFyvXfOT
-	 /luOV+BaVn806RFro+v6ZkkXugFymWIgovKY4ra4nkCaP8QlGWsYLRjnxMXBJFa6wt
-	 +aH2Vyq+o3OVVv1r+HNGyTlkvJeL/58TX64ELE4h2yjlPSFZ5eCQc47/JJnAMd/xNQ
-	 sT7+qSfZyaznmKJp/JhQCJk+TDo9bfal8rbYAPssedlEWPmUYCw7esLxAmnJMu9oip
-	 8IBuko67Kg07g==
-Date: Tue, 8 Jul 2025 21:27:13 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: John Groves <John@groves.net>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Miklos Szeredi <miklos@szeredb.hu>,
-	Bernd Schubert <bschubert@ddn.com>,
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Stefan Hajnoczi <shajnocz@redhat.com>,
-	Joanne Koong <joannelkoong@gmail.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 12/18] famfs_fuse: Plumb the GET_FMAP message/response
-Message-ID: <20250709042713.GF2672029@frogsfrogsfrogs>
-References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-13-john@groves.net>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="HQo71xhS"
+Message-ID: <e50ef45e-4c1a-4874-8d5f-9ca86f9a532c@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1752054340;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WTz2wkEPilJ291aBXf8EittiLv9aIr5saM/qqA8YaKY=;
+	b=HQo71xhSDwkfGOSIB3FWw3v/YQdNclez8WkEdYwBvOTAIOl6AqbhbkkiJL16330Fl8+IFB
+	JIkYnrPO3KuLCRrrExhedm3XPWRaiA0VaUDJTQKabNmyYEFozGZqLnF6S6ObqT2+JOBPnh
+	CPfeQNHTjT8MKj0ZxmbHLM06SQaVEyI=
+Date: Wed, 9 Jul 2025 17:45:23 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250703185032.46568-13-john@groves.net>
+Subject: =?UTF-8?Q?Re=3A_=5BPATCH_v2_00/11=5D_dm-pcache_=E2=80=93_persistent?=
+ =?UTF-8?Q?-memory_cache_for_block_devices?=
+To: Mikulas Patocka <mpatocka@redhat.com>
+Cc: agk@redhat.com, snitzer@kernel.org, axboe@kernel.dk, hch@lst.de,
+ dan.j.williams@intel.com, Jonathan.Cameron@Huawei.com,
+ linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, dm-devel@lists.linux.dev
+References: <20250707065809.437589-1-dongsheng.yang@linux.dev>
+ <85b5cb31-b272-305f-8910-c31152485ecf@redhat.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Dongsheng Yang <dongsheng.yang@linux.dev>
+In-Reply-To: <85b5cb31-b272-305f-8910-c31152485ecf@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Thu, Jul 03, 2025 at 01:50:26PM -0500, John Groves wrote:
-> Upon completion of an OPEN, if we're in famfs-mode we do a GET_FMAP to
-> retrieve and cache up the file-to-dax map in the kernel. If this
-> succeeds, read/write/mmap are resolved direct-to-dax with no upcalls.
-> 
-> GET_FMAP has a variable-size response payload, and the allocated size
-> is sent in the in_args[0].size field. If the fmap would overflow the
-> message, the fuse server sends a reply of size 'sizeof(uint32_t)' which
-> specifies the size of the fmap message. Then the kernel can realloc a
-> large enough buffer and try again.
-> 
-> Signed-off-by: John Groves <john@groves.net>
-> ---
->  fs/fuse/file.c            | 84 +++++++++++++++++++++++++++++++++++++++
->  fs/fuse/fuse_i.h          | 36 ++++++++++++++++-
->  fs/fuse/inode.c           | 19 +++++++--
->  fs/fuse/iomode.c          |  2 +-
->  include/uapi/linux/fuse.h | 18 +++++++++
->  5 files changed, 154 insertions(+), 5 deletions(-)
-> 
-> diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-> index 93b82660f0c8..8616fb0a6d61 100644
-> --- a/fs/fuse/file.c
-> +++ b/fs/fuse/file.c
-> @@ -230,6 +230,77 @@ static void fuse_truncate_update_attr(struct inode *inode, struct file *file)
->  	fuse_invalidate_attr_mask(inode, FUSE_STATX_MODSIZE);
->  }
->  
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +
-> +#define FMAP_BUFSIZE 4096
 
-PAGE_SIZE ?
+在 7/8/2025 4:16 AM, Mikulas Patocka 写道:
+>
+> On Mon, 7 Jul 2025, Dongsheng Yang wrote:
+>
+>> Hi Mikulas,
+>> 	This is V2 for dm-pcache, please take a look.
+>>
+>> Code:
+>>      https://github.com/DataTravelGuide/linux tags/pcache_v2
+>>
+>> Changelogs
+>>
+>> V2 from V1:
+>> 	- introduce req_alloc() and req_init() in backing_dev.c, then we
+>> 	  can do req_alloc() before holding spinlock and do req_init()
+>> 	  in subtree_walk().
+>> 	- introduce pre_alloc_key and pre_alloc_req in walk_ctx, that
+>> 	  means we can pre-allocate cache_key or backing_dev_request
+>> 	  before subtree walking.
+>> 	- use mempool_alloc() with NOIO for the allocation of cache_key
+>> 	  and backing_dev_req.
+>> 	- some coding style changes from comments of Jonathan.
+> Hi
+>
+> mempool_alloc with GFP_NOIO never fails - so you don't have to check the
+> returned value for NULL and propagate the error upwards.
 
-> +
-> +static int
-> +fuse_get_fmap(struct fuse_mount *fm, struct inode *inode, u64 nodeid)
-> +{
-> +	struct fuse_get_fmap_in inarg = { 0 };
-> +	size_t fmap_bufsize = FMAP_BUFSIZE;
-> +	ssize_t fmap_size;
-> +	int retries = 1;
-> +	void *fmap_buf;
-> +	int rc;
-> +
-> +	FUSE_ARGS(args);
-> +
-> +	fmap_buf = kcalloc(1, FMAP_BUFSIZE, GFP_KERNEL);
-> +	if (!fmap_buf)
-> +		return -EIO;
-> +
-> + retry_once:
-> +	inarg.size = fmap_bufsize;
-> +
-> +	args.opcode = FUSE_GET_FMAP;
-> +	args.nodeid = nodeid;
-> +
-> +	args.in_numargs = 1;
-> +	args.in_args[0].size = sizeof(inarg);
-> +	args.in_args[0].value = &inarg;
-> +
-> +	/* Variable-sized output buffer
-> +	 * this causes fuse_simple_request() to return the size of the
-> +	 * output payload
-> +	 */
-> +	args.out_argvar = true;
-> +	args.out_numargs = 1;
-> +	args.out_args[0].size = fmap_bufsize;
-> +	args.out_args[0].value = fmap_buf;
-> +
-> +	/* Send GET_FMAP command */
-> +	rc = fuse_simple_request(fm, &args);
-> +	if (rc < 0) {
-> +		pr_err("%s: err=%d from fuse_simple_request()\n",
-> +		       __func__, rc);
-> +		return rc;
-> +	}
-> +	fmap_size = rc;
-> +
-> +	if (retries && fmap_size == sizeof(uint32_t)) {
-> +		/* fmap size exceeded fmap_bufsize;
-> +		 * actual fmap size returned in fmap_buf;
-> +		 * realloc and retry once
-> +		 */
-> +		fmap_bufsize = *((uint32_t *)fmap_buf);
-> +
-> +		--retries;
-> +		kfree(fmap_buf);
-> +		fmap_buf = kcalloc(1, fmap_bufsize, GFP_KERNEL);
-> +		if (!fmap_buf)
-> +			return -EIO;
-> +
-> +		goto retry_once;
-> +	}
-> +
-> +	/* Will call famfs_file_init_dax() when that gets added */
 
-Hard to say what this does without looking further down in the patchset.
-:)
+Hi Mikulas:
 
-> +	kfree(fmap_buf);
-> +	return 0;
-> +}
-> +#endif
-> +
->  static int fuse_open(struct inode *inode, struct file *file)
->  {
->  	struct fuse_mount *fm = get_fuse_mount(inode);
-> @@ -263,6 +334,19 @@ static int fuse_open(struct inode *inode, struct file *file)
->  
->  	err = fuse_do_open(fm, get_node_id(inode), file, false);
->  	if (!err) {
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +		if (fm->fc->famfs_iomap) {
-> +			if (S_ISREG(inode->i_mode)) {
+    I noticed that the implementation of mempool_alloc—it waits for 5 
+seconds and retries when allocation fails.
 
-/me wonders if you want to turn this into a dumb helper to reduce the
-indenting levels?
+With this in mind, I propose that we handle -ENOMEM inside defer_req() 
+using a similar mechanism. something like this commit:
 
-#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-static inline bool fuse_is_famfs_file(struct inode *inode)
-{
-	return fm->fc->famfs_iomap && S_ISREG(inode->i_mode);
-}
-#else
-# define fuse_is_famfs_file(...)	(false)
-#endif
 
-	if (!err) {
-		if (fuse_is_famfs_file(inode)) {
-			rc = fuse_get_fmap(fm, inode);
-			...
-		}
-	}
+https://github.com/DataTravelGuide/linux/commit/e6fc2e5012b1fe2312ed7dd02d6fbc2d038962c0
 
-> +				int rc;
-> +				/* Get the famfs fmap */
-> +				rc = fuse_get_fmap(fm, inode,
-> +						   get_node_id(inode));
 
-Just get_node_id inside fuse_get_fmap to reduce the parameter count.
+Here are two key reasons why:
 
-> +				if (rc)
-> +					pr_err("%s: fuse_get_fmap err=%d\n",
-> +					       __func__, rc);
-> +			}
-> +		}
-> +#endif
->  		ff = file->private_data;
->  		err = fuse_finish_open(inode, file);
->  		if (err)
-> diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-> index f4ee61046578..e01d6e5c6e93 100644
-> --- a/fs/fuse/fuse_i.h
-> +++ b/fs/fuse/fuse_i.h
-> @@ -193,6 +193,10 @@ struct fuse_inode {
->  	/** Reference to backing file in passthrough mode */
->  	struct fuse_backing *fb;
->  #endif
-> +
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +	void *famfs_meta;
-> +#endif
+(1) If we manage -ENOMEM in defer_req(), we don’t need to modify every 
+lower-level allocation to use mempool to avoid failures—for example,
 
-What gets stored in here?
+cache_key, backing_req, and the kmem.bvecs you mentioned. More 
+importantly, there’s no easy way to prevent allocation failure in some 
+places—for instance, bio_init_clone() could still return -ENOMEM.
 
->  };
->  
->  /** FUSE inode state bits */
-> @@ -945,6 +949,8 @@ struct fuse_conn {
->  #endif
->  
->  #if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +	struct rw_semaphore famfs_devlist_sem;
-> +	struct famfs_dax_devlist *dax_devlist;
->  	char *shadow;
->  #endif
->  };
-> @@ -1435,11 +1441,14 @@ void fuse_free_conn(struct fuse_conn *fc);
->  
->  /* dax.c */
->  
-> +static inline int fuse_file_famfs(struct fuse_inode *fi); /* forward */
-> +
->  /* This macro is used by virtio_fs, but now it also needs to filter for
->   * "not famfs"
->   */
->  #define FUSE_IS_VIRTIO_DAX(fuse_inode) (IS_ENABLED(CONFIG_FUSE_DAX)	\
-> -					&& IS_DAX(&fuse_inode->inode))
-> +					&& IS_DAX(&fuse_inode->inode)	\
-> +					&& !fuse_file_famfs(fuse_inode))
->  
->  ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to);
->  ssize_t fuse_dax_write_iter(struct kiocb *iocb, struct iov_iter *from);
-> @@ -1550,4 +1559,29 @@ extern void fuse_sysctl_unregister(void);
->  #define fuse_sysctl_unregister()	do { } while (0)
->  #endif /* CONFIG_SYSCTL */
->  
-> +/* famfs.c */
-> +static inline struct fuse_backing *famfs_meta_set(struct fuse_inode *fi,
-> +						       void *meta)
-> +{
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +	return xchg(&fi->famfs_meta, meta);
-> +#else
-> +	return NULL;
-> +#endif
-> +}
-> +
-> +static inline void famfs_meta_free(struct fuse_inode *fi)
-> +{
-> +	/* Stub wil be connected in a subsequent commit */
-> +}
-> +
-> +static inline int fuse_file_famfs(struct fuse_inode *fi)
-> +{
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +	return (READ_ONCE(fi->famfs_meta) != NULL);
-> +#else
-> +	return 0;
-> +#endif
-> +}
+(2) If we use a mempool, it will block and wait indefinitely when memory 
+is unavailable, preventing the process from exiting.
 
-...or maybe this is the predicate you want to see if you really need to
-fmapping related stuff?
+But with defer_req(), the user can still manually stop the pcache device 
+using dmsetup remove, releasing some memory if user want.
 
-> +
->  #endif /* _FS_FUSE_I_H */
-> diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-> index a7e1cf8257b0..b071d16f7d04 100644
-> --- a/fs/fuse/inode.c
-> +++ b/fs/fuse/inode.c
-> @@ -117,6 +117,9 @@ static struct inode *fuse_alloc_inode(struct super_block *sb)
->  	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
->  		fuse_inode_backing_set(fi, NULL);
->  
-> +	if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-> +		famfs_meta_set(fi, NULL);
-> +
->  	return &fi->inode;
->  
->  out_free_forget:
-> @@ -138,6 +141,13 @@ static void fuse_free_inode(struct inode *inode)
->  	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
->  		fuse_backing_put(fuse_inode_backing(fi));
->  
-> +#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> +	if (S_ISREG(inode->i_mode) && fi->famfs_meta) {
-> +		famfs_meta_free(fi);
-> +		famfs_meta_set(fi, NULL);
 
-_free should null out the pointer, no?
+What do you think?
 
---D
+Thanx
 
-> +	}
-> +#endif
-> +
->  	kmem_cache_free(fuse_inode_cachep, fi);
->  }
->  
-> @@ -1002,6 +1012,9 @@ void fuse_conn_init(struct fuse_conn *fc, struct fuse_mount *fm,
->  	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
->  		fuse_backing_files_init(fc);
->  
-> +	if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-> +		pr_notice("%s: Kernel is FUSE_FAMFS_DAX capable\n", __func__);
-> +
->  	INIT_LIST_HEAD(&fc->mounts);
->  	list_add(&fm->fc_entry, &fc->mounts);
->  	fm->fc = fc;
-> @@ -1036,9 +1049,8 @@ void fuse_conn_put(struct fuse_conn *fc)
->  		}
->  		if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
->  			fuse_backing_files_free(fc);
-> -#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
-> -		kfree(fc->shadow);
-> -#endif
-> +		if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-> +			kfree(fc->shadow);
->  		call_rcu(&fc->rcu, delayed_release);
->  	}
->  }
-> @@ -1425,6 +1437,7 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
->  				 * those capabilities, they are held here).
->  				 */
->  				fc->famfs_iomap = 1;
-> +				init_rwsem(&fc->famfs_devlist_sem);
->  			}
->  		} else {
->  			ra_pages = fc->max_read / PAGE_SIZE;
-> diff --git a/fs/fuse/iomode.c b/fs/fuse/iomode.c
-> index aec4aecb5d79..443b337b0c05 100644
-> --- a/fs/fuse/iomode.c
-> +++ b/fs/fuse/iomode.c
-> @@ -204,7 +204,7 @@ int fuse_file_io_open(struct file *file, struct inode *inode)
->  	 * io modes are not relevant with DAX and with server that does not
->  	 * implement open.
->  	 */
-> -	if (FUSE_IS_VIRTIO_DAX(fi) || !ff->args)
-> +	if (FUSE_IS_VIRTIO_DAX(fi) || fuse_file_famfs(fi) || !ff->args)
->  		return 0;
->  
->  	/*
-> diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-> index 6c384640c79b..dff5aa62543e 100644
-> --- a/include/uapi/linux/fuse.h
-> +++ b/include/uapi/linux/fuse.h
-> @@ -654,6 +654,10 @@ enum fuse_opcode {
->  	FUSE_TMPFILE		= 51,
->  	FUSE_STATX		= 52,
->  
-> +	/* Famfs / devdax opcodes */
-> +	FUSE_GET_FMAP           = 53,
-> +	FUSE_GET_DAXDEV         = 54,
-> +
->  	/* CUSE specific operations */
->  	CUSE_INIT		= 4096,
->  
-> @@ -888,6 +892,16 @@ struct fuse_access_in {
->  	uint32_t	padding;
->  };
->  
-> +struct fuse_get_fmap_in {
-> +	uint32_t	size;
-> +	uint32_t	padding;
-> +};
-> +
-> +struct fuse_get_fmap_out {
-> +	uint32_t	size;
-> +	uint32_t	padding;
-> +};
-> +
->  struct fuse_init_in {
->  	uint32_t	major;
->  	uint32_t	minor;
-> @@ -1284,4 +1298,8 @@ struct fuse_uring_cmd_req {
->  	uint8_t padding[6];
->  };
->  
-> +/* Famfs fmap message components */
-> +
-> +#define FAMFS_FMAP_MAX 32768 /* Largest supported fmap message */
-> +
->  #endif /* _LINUX_FUSE_H */
-> -- 
-> 2.49.0
-> 
-> 
+Dongsheng
+
+>
+> "backing_req->kmem.bvecs = kmalloc_array(n_vecs, sizeof(struct bio_vec),
+> GFP_NOIO)" - this call may fail and you should handle the error gracefully
+> (i.e. don't end the bio with an error). Would it be possible to trim the
+> request to BACKING_DEV_REQ_INLINE_BVECS vectors and retry it?
+> Alternativelly, you can create a mempool for the largest possible n_vecs
+> and allocate from this mempool if kmalloc_array fails.
+>
+> I'm sending two patches for dm-pcache - the first patch adds the include
+> file linux/bitfield.h - it is needed in my config. The second patch makes
+> slab caches per-module rather than per-device, if you have them
+> per-device, there are warnings about duplicate cache names.
+>
+>
+> BTW. What kind of persistent memory do you use? (afaik Intel killed the
+> Optane products and I don't know of any replacement)
+>
+> Some times ago I created a filesystem for persistent memory - see
+> git://leontynka.twibright.com/nvfs.git - I'd be interested if you can test
+> it on your persistent memory implementation.
+>
+> Mikulas
+>
