@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D9E223A9BD
-	for <nvdimm@lists.linux.dev>; Wed,  9 Jul 2025 22:57:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D866F8F54
+	for <nvdimm@lists.linux.dev>; Thu, 10 Jul 2025 00:38:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752101882; cv=none; b=IGXSDuuZU8psUxTVNpg2ApHA1KpfaFarDq5pRy/m674oCR89efc1poiNDNswEu9GdRfW4KjZ22f0/PTPzk75psw3X7gGptpXSvXojOaxlTpQwOuazQxpzlIFL3qleq69WU9icGuUZIpDz7ja7ytq/tcLJarDkK/hl/LXXyT2qqU=
+	t=1752107904; cv=none; b=RALocZP/cY1K5te2YdAgjenO40ZCdC657/kIe5dksxQyOMPLLmRbysQhfK3JojIG0u7V/lCIp9P+FPYRWkC2nzLAp6QAd1sJRu/cVK1D1jGouv26C9ze/Maj+NFCAwyxQBfX5Tii88soq6Pn62Fn8xT79e8XnYyZgeUgEAw7yPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752101882; c=relaxed/simple;
-	bh=uk4Ygi3xRp5yMXcD0rsVfOaHfe6B37s589dGCGzojNU=;
+	s=arc-20240116; t=1752107904; c=relaxed/simple;
+	bh=6woKX6GhDyCDrcd4Q3lO5KNPuG8p69WsE56+c3oHo+E=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MYm5dsY5N8cyfEP7CDesw1tn8RMg1zJ5XL9c29lY8OJrUtmMpY8RIn9303sI74as5fIoL6gkljWQ3dOJjEakLBtmU8tWaiiwdSmObXJ7jEJGLLzIbgGUk9wH9p8mHEBZH332GDnVV6H7Uj56/IUo5Oxw0nIM+OFGOsCv9Xv+48Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bNG1DTvK; arc=none smtp.client-ip=192.198.163.18
+	 In-Reply-To:Content-Type; b=WDnNPa7FOz8FucZM5HxNw+s9+GJz6b1RyAZfnctbKZTw/cxow5qyU+UjUBY3dLX9MFo4aoZirb32VgG7rULKBDoNzfbnx4YpBdvAy3i62HkG89GnucWwZ2nfoFI3jzVMXp4bh/7SMgjUwdbDnqZii200/yXK+LPZ3kKXhXxY7Y4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kp8zH5xj; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bNG1DTvK"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kp8zH5xj"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1752101880; x=1783637880;
+  t=1752107902; x=1783643902;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=uk4Ygi3xRp5yMXcD0rsVfOaHfe6B37s589dGCGzojNU=;
-  b=bNG1DTvKSBPqILk2wdfOtosA5gf42xw4zxhuQde97xGEsm6AqFI1+/v4
-   nsWen0PsjpTcYn8VRQGum68Z/QtvwvM7t+tuOrkCNZdKnTDveadBpmW3V
-   con9+LzuxHc2YSd+Zfv7GZwjhFUJMClP01oKtaHE2ZQQiicZs7cd+gxKz
-   no2OJYvu1p9G182kP6NYTtjc2vssSNCmcsXULsppVPHRzc4DisDxj3dYR
-   Ku4TW+fJxD3DWmlFXwiCnlo5t9L636RCZPtpEO3J3OKLCX+FAyym2V6qy
-   ZIcStK2qEaQxNim7T/Us4f0Uge3Uu1Y2EopSTDddpM3SRHHaaFYFiH3vt
-   g==;
-X-CSE-ConnectionGUID: tRnTGZkgRKSiiOuOfWyBQQ==
-X-CSE-MsgGUID: 9SSOQJCtSCG+7FxaS1CM2g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11489"; a="53591169"
+  bh=6woKX6GhDyCDrcd4Q3lO5KNPuG8p69WsE56+c3oHo+E=;
+  b=kp8zH5xjN8slLOEFsVJwYVhHVeCiRKnyaUlIZLP4OC+LY8dGXupJE4h2
+   /5Vb421fHgfSKE5jdaiHbVlhshpf2QBfCd2Wj2gMcWgm24D2lnp+/OSL9
+   arAZNNKIklEOHjMZz93RKqoMuUt9t5qnXJAP1NAR5qN/0T4EIJfzf53Rx
+   BY8IxK7qIJr3LhootD03zsxozUFQadzEUvSTN20z9WeK9D/WtSJV4hS1z
+   LIIrzomaHLNe3PLihkMB6dWTKiHT4tNFKBbPGyCLkc6JnWCEiyV02jAdw
+   7CwAHqeJZoEYPgjGdfHACDo67zroqHAAuJAj49vyKFvPZaU+Kkm4h2zQq
+   Q==;
+X-CSE-ConnectionGUID: kdpeB+j9RHagHcAqSSf2Xw==
+X-CSE-MsgGUID: 4S4iP5JlRhqYowKi8JtPnA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11489"; a="76924826"
 X-IronPort-AV: E=Sophos;i="6.16,299,1744095600"; 
-   d="scan'208";a="53591169"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2025 15:57:59 -0700
-X-CSE-ConnectionGUID: ygFa/YscT5WobKlvzD5YRw==
-X-CSE-MsgGUID: I8fMGIQ7T5ya811xsoR2AA==
+   d="scan'208";a="76924826"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2025 17:38:22 -0700
+X-CSE-ConnectionGUID: kwr7oHZkRziSWHn733Onrg==
+X-CSE-MsgGUID: ZKcA0Ld+QYK9Sijihu95Pg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.16,299,1744095600"; 
-   d="scan'208";a="161558024"
+   d="scan'208";a="186895158"
 Received: from inaky-mobl1.amr.corp.intel.com (HELO [10.125.110.203]) ([10.125.110.203])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2025 15:57:58 -0700
-Message-ID: <624c255d-d7e2-4ea3-9186-b435499838a7@intel.com>
-Date: Wed, 9 Jul 2025 15:57:57 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2025 17:38:19 -0700
+Message-ID: <3670eb1d-eaf5-4b8b-b3fe-1190724ee7d7@intel.com>
+Date: Wed, 9 Jul 2025 17:38:18 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,8 +52,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 01/20] nvdimm/label: Introduce NDD_CXL_LABEL flag to
- set cxl label format
+Subject: Re: [RFC PATCH 13/20] cxl/mem: Refactor cxl pmem region
+ auto-assembling
 To: Neeraj Kumar <s.neeraj@samsung.com>, dan.j.williams@intel.com,
  dave@stgolabs.net, jonathan.cameron@huawei.com, alison.schofield@intel.com,
  vishal.l.verma@intel.com, ira.weiny@intel.com
@@ -63,125 +63,212 @@ Cc: a.manzanares@samsung.com, nifan.cxl@gmail.com, anisa.su@samsung.com,
  linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
  nvdimm@lists.linux.dev, gost.dev@samsung.com, cpgs@samsung.com
 References: <20250617123944.78345-1-s.neeraj@samsung.com>
- <CGME20250617124008epcas5p2e702f786645d44ceb1cdd980a914ce8e@epcas5p2.samsung.com>
- <158453976.61750165203630.JavaMail.epsvc@epcpadp1new>
+ <CGME20250617124043epcas5p21e5b77aa3a6acfa7e01847ffd58350ed@epcas5p2.samsung.com>
+ <1213349904.281750165205974.JavaMail.epsvc@epcpadp1new>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <158453976.61750165203630.JavaMail.epsvc@epcpadp1new>
+In-Reply-To: <1213349904.281750165205974.JavaMail.epsvc@epcpadp1new>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
 On 6/17/25 5:39 AM, Neeraj Kumar wrote:
-> NDD_CXL_LABEL is introduced to set cxl LSA 2.1 label format
-> Accordingly updated label index version
+> In 84ec985944ef3, For cxl pmem region auto-assembly after endpoint port
+> probing, cxl_nvd presence was required. And for cxl region persistency,
+> region creation happens during nvdimm_probe which need the completion
+> of endpoint probe.
+> 
+> It is therefore refactored cxl pmem region auto-assembly after endpoint
+> probing to cxl mem probing
 
-Maybe add the spec reference that defines label 2.1 format
+The region auto-assembly is moved after the endpoint device is added. However, it's not guaranteed that the endpoint probe has completed and completed successfully. You are just getting lucky timing wise that endpoint probe is completed when the new region discovery is starting. Return of devm_cxl_add_nvdimm() only adds the nvdimm device and triggers the async probe of nvdimm driver. You have to take the endpoint port lock and check if the driver is attached to be certain that endpoint probe is done and successful. Therefore moving the region discovery location probably does not do what you think it does. Maybe take a deeper look at the region discovery code and see how it does retry if things are not present and approach it from that angle? 
+ 
 > 
 > Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
 > ---
->  drivers/nvdimm/dimm.c      |  1 +
->  drivers/nvdimm/dimm_devs.c | 10 ++++++++++
->  drivers/nvdimm/label.c     | 16 ++++++++++++----
->  drivers/nvdimm/nd.h        |  1 +
->  include/linux/libnvdimm.h  |  3 +++
->  5 files changed, 27 insertions(+), 4 deletions(-)
+>  drivers/cxl/core/port.c | 38 ++++++++++++++++++++++++++++++++++++++
+>  drivers/cxl/cxl.h       |  1 +
+>  drivers/cxl/mem.c       | 27 ++++++++++++++++++---------
+>  drivers/cxl/port.c      | 38 --------------------------------------
+>  4 files changed, 57 insertions(+), 47 deletions(-)
 > 
-> diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-> index 91d9163ee303..8753b5cd91cc 100644
-> --- a/drivers/nvdimm/dimm.c
-> +++ b/drivers/nvdimm/dimm.c
-> @@ -62,6 +62,7 @@ static int nvdimm_probe(struct device *dev)
->  	if (rc < 0)
->  		dev_dbg(dev, "failed to unlock dimm: %d\n", rc);
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index 78a5c2c25982..bca668193c49 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -1038,6 +1038,44 @@ void put_cxl_root(struct cxl_root *cxl_root)
+>  }
+>  EXPORT_SYMBOL_NS_GPL(put_cxl_root, "CXL");
 >  
-> +	ndd->cxl = nvdimm_check_cxl_label_format(ndd->dev);
->  
->  	/*
->  	 * EACCES failures reading the namespace label-area-properties
-> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-> index 21498d461fde..e8f545f889fd 100644
-> --- a/drivers/nvdimm/dimm_devs.c
-> +++ b/drivers/nvdimm/dimm_devs.c
-> @@ -18,6 +18,16 @@
->  
->  static DEFINE_IDA(dimm_ida);
->  
-> +bool nvdimm_check_cxl_label_format(struct device *dev)
+> +static int discover_region(struct device *dev, void *root)
 > +{
-> +	struct nvdimm *nvdimm = to_nvdimm(dev);
+> +	struct cxl_endpoint_decoder *cxled;
+> +	int rc;
 > +
-> +	if (test_bit(NDD_CXL_LABEL, &nvdimm->flags))
-> +		return true;
+> +	if (!is_endpoint_decoder(dev))
+> +		return 0;
 > +
-> +	return false;
+> +	cxled = to_cxl_endpoint_decoder(dev);
+> +	if ((cxled->cxld.flags & CXL_DECODER_F_ENABLE) == 0)
+> +		return 0;
+> +
+> +	if (cxled->state != CXL_DECODER_STATE_AUTO)
+> +		return 0;
+> +
+> +	/*
+> +	 * Region enumeration is opportunistic, if this add-event fails,
+> +	 * continue to the next endpoint decoder.
+> +	 */
+> +	rc = cxl_add_to_region(root, cxled);
+> +	if (rc)
+> +		dev_dbg(dev, "failed to add to region: %#llx-%#llx\n",
+> +			cxled->cxld.hpa_range.start, cxled->cxld.hpa_range.end);
+> +
+> +	return 0;
 > +}
-
-I think we may want to move the checking of the flag to where the patch also set the flag in order to provide a more coherent review experience. Given that I haven't read the rest of the patchset and don't know how NDD_CXL_LABEL is set, I really can't comment on whether there's a better way to detect LSA 2.1 labels. Is there a generic way to determine label versions without the implication of this is CXL device?
-
 > +
->  /*
->   * Retrieve bus and dimm handle and return if this bus supports
->   * get_config_data commands
-> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-> index 082253a3a956..48b5ba90216d 100644
-> --- a/drivers/nvdimm/label.c
-> +++ b/drivers/nvdimm/label.c
-> @@ -687,11 +687,19 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
->  		- (unsigned long) to_namespace_index(ndd, 0);
->  	nsindex->labeloff = __cpu_to_le64(offset);
->  	nsindex->nslot = __cpu_to_le32(nslot);
-> -	nsindex->major = __cpu_to_le16(1);
-> -	if (sizeof_namespace_label(ndd) < 256)
+> +void cxl_region_discovery(struct cxl_port *port)
+> +{
+> +	struct cxl_port *root;
+> +	struct cxl_root *cxl_root __free(put_cxl_root) = find_cxl_root(port);
 > +
-> +	/* Support CXL LSA 2.1 label format */
-> +	if (ndd->cxl) {
-> +		nsindex->major = __cpu_to_le16(2);
->  		nsindex->minor = __cpu_to_le16(1);
-> -	else
-> -		nsindex->minor = __cpu_to_le16(2);
-> +	} else {
-> +		nsindex->major = __cpu_to_le16(1);
-> +		if (sizeof_namespace_label(ndd) < 256)
-> +			nsindex->minor = __cpu_to_le16(1);
-> +		else
-> +			nsindex->minor = __cpu_to_le16(2);
-> +	}
-
-Would like to see a more coherent way of detecting label versioning. What happens when there are newer versions introduced later on? This currently feels very disjointed.
-
+> +	root = &cxl_root->port;
 > +
->  	nsindex->checksum = __cpu_to_le64(0);
->  	if (flags & ND_NSINDEX_INIT) {
->  		unsigned long *free = (unsigned long *) nsindex->free;
-> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-> index 5ca06e9a2d29..304f0e9904f1 100644
-> --- a/drivers/nvdimm/nd.h
-> +++ b/drivers/nvdimm/nd.h
-> @@ -522,6 +522,7 @@ void nvdimm_set_labeling(struct device *dev);
->  void nvdimm_set_locked(struct device *dev);
->  void nvdimm_clear_locked(struct device *dev);
->  int nvdimm_security_setup_events(struct device *dev);
-> +bool nvdimm_check_cxl_label_format(struct device *dev);
->  #if IS_ENABLED(CONFIG_NVDIMM_KEYS)
->  int nvdimm_security_unlock(struct device *dev);
->  #else
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index e772aae71843..0a55900842c8 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -44,6 +44,9 @@ enum {
->  	/* dimm provider wants synchronous registration by __nvdimm_create() */
->  	NDD_REGISTER_SYNC = 8,
+> +	device_for_each_child(&port->dev, root, discover_region);
+> +}
+> +EXPORT_SYMBOL_NS_GPL(cxl_region_discovery, "CXL");
+> +
+
+I have concerns about adding region related code in core/port.c while the rest of the region code is walled behind CONFIG_CXL_REGION. I think this change needs to go to core/region.c.
+
+DJ
+
+>  static struct cxl_dport *find_dport(struct cxl_port *port, int id)
+>  {
+>  	struct cxl_dport *dport;
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index dcf2a127efc7..9423ea3509ad 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -869,6 +869,7 @@ bool is_cxl_nvdimm(struct device *dev);
+>  bool is_cxl_nvdimm_bridge(struct device *dev);
+>  int devm_cxl_add_nvdimm(struct cxl_port *parent_port, struct cxl_memdev *cxlmd);
+>  struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct cxl_port *port);
+> +void cxl_region_discovery(struct cxl_port *port);
 >  
-> +	/* dimm supports region labels (LSA Format 2.1) */
-> +	NDD_CXL_LABEL = 9,
-
-While 2.1 is defined by the CXL spec, is there anything declared by the CXL spec that makes 2.1 exclusive to CXL? Maybe the focus should be to support LSA 2.1 and avoid dragging naming CXL into the conversation at this point. It can be made more generic right? I'm concerned about dragging CXL into nvdimm when it isn't necessary. Maybe introduce a label cap field where when an nvdimm device is registered, the caller can pass in that it's capable of supporting up to a certain version of labeling? Just throwing ideas out to see if it's feasible.
-
+>  #ifdef CONFIG_CXL_REGION
+>  bool is_cxl_pmem_region(struct device *dev);
+> diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+> index 2f03a4d5606e..aaea4eb178ef 100644
+> --- a/drivers/cxl/mem.c
+> +++ b/drivers/cxl/mem.c
+> @@ -152,15 +152,6 @@ static int cxl_mem_probe(struct device *dev)
+>  		return -ENXIO;
+>  	}
+>  
+> -	if (resource_size(&cxlds->pmem_res) && IS_ENABLED(CONFIG_CXL_PMEM)) {
+> -		rc = devm_cxl_add_nvdimm(parent_port, cxlmd);
+> -		if (rc) {
+> -			if (rc == -ENODEV)
+> -				dev_info(dev, "PMEM disabled by platform\n");
+> -			return rc;
+> -		}
+> -	}
+> -
+>  	if (dport->rch)
+>  		endpoint_parent = parent_port->uport_dev;
+>  	else
+> @@ -180,6 +171,24 @@ static int cxl_mem_probe(struct device *dev)
+>  			return rc;
+>  	}
+>  
+> +	if (resource_size(&cxlds->pmem_res) && IS_ENABLED(CONFIG_CXL_PMEM)) {
+> +		rc = devm_cxl_add_nvdimm(parent_port, cxlmd);
+> +		if (rc) {
+> +			if (rc == -ENODEV)
+> +				dev_info(dev, "PMEM disabled by platform\n");
+> +			return rc;
+> +		}
+> +	}
 > +
->  	/* need to set a limit somewhere, but yes, this is likely overkill */
->  	ND_IOCTL_MAX_BUFLEN = SZ_4M,
->  	ND_CMD_MAX_ELEM = 5,
+> +	/*
+> +	 * Now that all endpoint decoders are successfully enumerated, try to
+> +	 * assemble region autodiscovery from committed decoders.
+> +	 * Earlier it was part of cxl_endpoint_port_probe, So moved it here
+> +	 * as cxl_nvd of the memdev needs to be available during the pmem
+> +	 * region auto-assembling
+> +	 */
+> +	cxl_region_discovery(cxlmd->endpoint);
+> +
+>  	/*
+>  	 * The kernel may be operating out of CXL memory on this device,
+>  	 * there is no spec defined way to determine whether this device
+> diff --git a/drivers/cxl/port.c b/drivers/cxl/port.c
+> index d2bfd1ff5492..361544760a4c 100644
+> --- a/drivers/cxl/port.c
+> +++ b/drivers/cxl/port.c
+> @@ -30,33 +30,6 @@ static void schedule_detach(void *cxlmd)
+>  	schedule_cxl_memdev_detach(cxlmd);
+>  }
+>  
+> -static int discover_region(struct device *dev, void *root)
+> -{
+> -	struct cxl_endpoint_decoder *cxled;
+> -	int rc;
+> -
+> -	if (!is_endpoint_decoder(dev))
+> -		return 0;
+> -
+> -	cxled = to_cxl_endpoint_decoder(dev);
+> -	if ((cxled->cxld.flags & CXL_DECODER_F_ENABLE) == 0)
+> -		return 0;
+> -
+> -	if (cxled->state != CXL_DECODER_STATE_AUTO)
+> -		return 0;
+> -
+> -	/*
+> -	 * Region enumeration is opportunistic, if this add-event fails,
+> -	 * continue to the next endpoint decoder.
+> -	 */
+> -	rc = cxl_add_to_region(root, cxled);
+> -	if (rc)
+> -		dev_dbg(dev, "failed to add to region: %#llx-%#llx\n",
+> -			cxled->cxld.hpa_range.start, cxled->cxld.hpa_range.end);
+> -
+> -	return 0;
+> -}
+> -
+>  static int cxl_switch_port_probe(struct cxl_port *port)
+>  {
+>  	struct cxl_hdm *cxlhdm;
+> @@ -95,7 +68,6 @@ static int cxl_endpoint_port_probe(struct cxl_port *port)
+>  	struct cxl_memdev *cxlmd = to_cxl_memdev(port->uport_dev);
+>  	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+>  	struct cxl_hdm *cxlhdm;
+> -	struct cxl_port *root;
+>  	int rc;
+>  
+>  	rc = cxl_dvsec_rr_decode(cxlds, &info);
+> @@ -125,20 +97,10 @@ static int cxl_endpoint_port_probe(struct cxl_port *port)
+>  	rc = devm_cxl_enumerate_decoders(cxlhdm, &info);
+>  	if (rc)
+>  		return rc;
+> -
+>  	/*
+>  	 * This can't fail in practice as CXL root exit unregisters all
+>  	 * descendant ports and that in turn synchronizes with cxl_port_probe()
+>  	 */
+> -	struct cxl_root *cxl_root __free(put_cxl_root) = find_cxl_root(port);
+> -
+> -	root = &cxl_root->port;
+> -
+> -	/*
+> -	 * Now that all endpoint decoders are successfully enumerated, try to
+> -	 * assemble regions from committed decoders
+> -	 */
+> -	device_for_each_child(&port->dev, root, discover_region);
+>  
+>  	return 0;
+>  }
 
