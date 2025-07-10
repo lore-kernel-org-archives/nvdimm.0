@@ -1,153 +1,399 @@
-Received: from out-178.mta0.migadu.com (out-178.mta0.migadu.com [91.218.175.178])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A956A23DEAD
-	for <nvdimm@lists.linux.dev>; Thu, 10 Jul 2025 11:00:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1667A276049
+	for <nvdimm@lists.linux.dev>; Thu, 10 Jul 2025 15:59:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752145205; cv=none; b=Owxy0aiJab9wYZBDc0CdpikOFewyFC+tpj5KaBMF8alT4K7CjdFfoyLhOpG/Bz5KhlnAuktRVhEI1hvT2Z/E0NUFfegjwgE/kKs0gySDU5soRDhAAIpK3i478MD7STGeoZIWGmdcjUIzHsxyi/crAfFfC9Npv3zwg6OBg88iZ9g=
+	t=1752163161; cv=none; b=UQLgvFe3jCKSzuNLcLky3QDf/6iZnFlZ05TejyzvMI1wq1CPQPS+OCIPf85k6DhAM1ZLuDF/3GnOTQIGAeGHWMxl2ODyB+x8ykMY4tjxz0AQACMzaKgkhudMEiAiDs1Zm2xMsGJISj5qRw7g+3IBVJlIaDPcCMYpUJ61NwGvH+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752145205; c=relaxed/simple;
-	bh=4DFOJCCsvI24QKbrJDm/aFnyarYSoJI2WT5J2wb9AVM=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=Ku/c9axVObPaQeMXuW0X3pf13khOeMBq+kdpUSRZ4Qt/WRYUjYSR8exyE1fAF7C9UU/5Dbp0stTfWCAt6tYt2rP3VoMcpqL5bqvVR8iVslJ3UR1sHFcKXTAsVuqUnt+Y1l/BtM0dMCv3sfysrnQjq0yhsR8JECzJvHLH5rbWpZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=JTkO1R1x; arc=none smtp.client-ip=91.218.175.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1752163161; c=relaxed/simple;
+	bh=bwVzv/j/qkUeRBNJ68ryYxQQl4TurY9s7hpGOGVG1gY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=fTppePpDrIoovdU9JmBqFx9xAyxJkj3DUVJmsCSsI32/JVMyG3sdUdlqS4AWHGXQelCvQrrXwPaSa7eF6WjSAIgV5BRgsb7J6VaXkRvvdGA4S7nE5r79AuTvk1YIEpNn3BICiI+aet+K6YFivuMocVA1GgUoX1jTCLffQ4la2D4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JNhNyc5d; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="JTkO1R1x"
-Message-ID: <41d1245c-8a7f-4c5a-ba84-8e7e33b896b2@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1752145191;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KtJpoUInX8ucjkyFAiUJkj/ubfAu8PdaUF9qEnnOSvU=;
-	b=JTkO1R1xjDfTuBgYIJDFm3myKaXQxfj7KA99JQhTwFwRfJfdlMfVqNb/32AJd5hVEQc+/y
-	ikDzG1CMPk+cf8GKLXp/oLnpGKCdp7YDNo5FxvVniKBGn3a8Zm+sh5S0I4Llam3Gk8JIy6
-	rXWG6A9C3kEzH2Wcxqp1WgkQkckbLIs=
-Date: Thu, 10 Jul 2025 18:59:40 +0800
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JNhNyc5d"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1752163160; x=1783699160;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=bwVzv/j/qkUeRBNJ68ryYxQQl4TurY9s7hpGOGVG1gY=;
+  b=JNhNyc5dt0Xwfpa6X1EVph6zFufDlDnmLZog703HsloRTzWjsVYQv3Gi
+   G5OW68Z5+35AIrxnfpV6VIADoNl9wvEUAPTFA8LmITG0DmvPV2h0RpmHT
+   OtXNvS5/1oxKIifMjrvaB5rPF1+8gEfzFN96M0oCbj2qpJK2TcLZfBHd9
+   Ajyz/EJp8awtr+k1lNnB30xoeYP9vT6+fz1CKhu72qAuPpEB8gYLTaCb9
+   Vo/4faVUoS538lEsxQP3kN41jPyl4KCKnUIqvvKVx5QOxEF09b7Tdy8oj
+   JeoMY1ALQXx6lUn5Dcfng8BBQ2kdKD8K+NWZ8U9OFXkmJx/k39xKj2rEp
+   w==;
+X-CSE-ConnectionGUID: tJeiXE1rSIqyxTL9LTcDgg==
+X-CSE-MsgGUID: tENvF7UlQWy0z97vw2He4Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11490"; a="54604005"
+X-IronPort-AV: E=Sophos;i="6.16,300,1744095600"; 
+   d="scan'208";a="54604005"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2025 08:59:18 -0700
+X-CSE-ConnectionGUID: B4RwQo3HTJ2wkEFvA92x2Q==
+X-CSE-MsgGUID: cwLLBVawRfWpriuHpHWrLA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,300,1744095600"; 
+   d="scan'208";a="156692416"
+Received: from vverma7-desk1.amr.corp.intel.com (HELO [10.125.110.242]) ([10.125.110.242])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2025 08:59:17 -0700
+Message-ID: <fdc06026-c681-4dae-9202-ad89293931a5@intel.com>
+Date: Thu, 10 Jul 2025 08:59:15 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Subject: =?UTF-8?Q?Re=3A_=5BPATCH_v2_00/11=5D_dm-pcache_=E2=80=93_persistent?=
- =?UTF-8?Q?-memory_cache_for_block_devices?=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Dongsheng Yang <dongsheng.yang@linux.dev>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Cc: agk@redhat.com, snitzer@kernel.org, axboe@kernel.dk, hch@lst.de,
- dan.j.williams@intel.com, Jonathan.Cameron@Huawei.com,
- linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, dm-devel@lists.linux.dev
-References: <20250707065809.437589-1-dongsheng.yang@linux.dev>
- <85b5cb31-b272-305f-8910-c31152485ecf@redhat.com>
- <e50ef45e-4c1a-4874-8d5f-9ca86f9a532c@linux.dev>
-In-Reply-To: <e50ef45e-4c1a-4874-8d5f-9ca86f9a532c@linux.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 14/20] cxl/region: Add cxl pmem region creation
+ routine for region persistency
+To: Neeraj Kumar <s.neeraj@samsung.com>, dan.j.williams@intel.com,
+ dave@stgolabs.net, jonathan.cameron@huawei.com, alison.schofield@intel.com,
+ vishal.l.verma@intel.com, ira.weiny@intel.com
+Cc: a.manzanares@samsung.com, nifan.cxl@gmail.com, anisa.su@samsung.com,
+ vishak.g@samsung.com, krish.reddy@samsung.com, arun.george@samsung.com,
+ alok.rathore@samsung.com, neeraj.kernel@gmail.com,
+ linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, gost.dev@samsung.com, cpgs@samsung.com
+References: <20250617123944.78345-1-s.neeraj@samsung.com>
+ <CGME20250617124046epcas5p16a45d2afe3b41ca08994a5cca09bfb68@epcas5p1.samsung.com>
+ <1691538257.61750165382463.JavaMail.epsvc@epcpadp2new>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <1691538257.61750165382463.JavaMail.epsvc@epcpadp2new>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
-在 7/9/2025 5:45 PM, Dongsheng Yang 写道:
->
-> 在 7/8/2025 4:16 AM, Mikulas Patocka 写道:
->>
->> On Mon, 7 Jul 2025, Dongsheng Yang wrote:
->>
->>> Hi Mikulas,
->>>     This is V2 for dm-pcache, please take a look.
->>>
->>> Code:
->>>      https://github.com/DataTravelGuide/linux tags/pcache_v2
->>>
->>> Changelogs
->>>
->>> V2 from V1:
->>>     - introduce req_alloc() and req_init() in backing_dev.c, then we
->>>       can do req_alloc() before holding spinlock and do req_init()
->>>       in subtree_walk().
->>>     - introduce pre_alloc_key and pre_alloc_req in walk_ctx, that
->>>       means we can pre-allocate cache_key or backing_dev_request
->>>       before subtree walking.
->>>     - use mempool_alloc() with NOIO for the allocation of cache_key
->>>       and backing_dev_req.
->>>     - some coding style changes from comments of Jonathan.
->> Hi
->>
->> mempool_alloc with GFP_NOIO never fails - so you don't have to check the
->> returned value for NULL and propagate the error upwards.
->
->
-> Hi Mikulas:
->
->    I noticed that the implementation of mempool_alloc—it waits for 5 
-> seconds and retries when allocation fails.
->
-> With this in mind, I propose that we handle -ENOMEM inside defer_req() 
-> using a similar mechanism. something like this commit:
->
->
-> https://github.com/DataTravelGuide/linux/commit/e6fc2e5012b1fe2312ed7dd02d6fbc2d038962c0 
->
->
->
-> Here are two key reasons why:
->
-> (1) If we manage -ENOMEM in defer_req(), we don’t need to modify every 
-> lower-level allocation to use mempool to avoid failures—for example,
->
-> cache_key, backing_req, and the kmem.bvecs you mentioned. More 
-> importantly, there’s no easy way to prevent allocation failure in some 
-> places—for instance, bio_init_clone() could still return -ENOMEM.
->
-> (2) If we use a mempool, it will block and wait indefinitely when 
-> memory is unavailable, preventing the process from exiting.
->
-> But with defer_req(), the user can still manually stop the pcache 
-> device using dmsetup remove, releasing some memory if user want.
->
->
-> What do you think?
 
+On 6/17/25 5:39 AM, Neeraj Kumar wrote:
+> Added exported cxl_create_pmem_region routine to create cxl pmem region
+> from LSA parsed cxl region information.
+> Inspirition for the function is taken from ndctl device attribute
+> (_store) call. It allocates cxlr and fills information parsed from LSA
+> and calls device_add(&cxlr->dev) to initiates further region creation
+> porbes
+> 
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+> ---
+>  drivers/cxl/core/port.c   |   6 ++
+>  drivers/cxl/core/region.c | 208 ++++++++++++++++++++++++++++++++++++++
+>  drivers/cxl/cxl.h         |  11 ++
+>  3 files changed, 225 insertions(+)
+> 
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index bca668193c49..2452f7c15b2d 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -2150,6 +2150,12 @@ void cxl_bus_drain(void)
+>  }
+>  EXPORT_SYMBOL_NS_GPL(cxl_bus_drain, "CXL");
+>  
+> +void cxl_wq_flush(void)
+> +{
+> +	flush_workqueue(cxl_bus_wq);
+> +}
+> +EXPORT_SYMBOL_NS_GPL(cxl_wq_flush, "CXL");
+> +
+>  bool schedule_cxl_memdev_detach(struct cxl_memdev *cxlmd)
+>  {
+>  	return queue_work(cxl_bus_wq, &cxlmd->detach_work);
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index b98b1ccffd1c..8990e3c3474d 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -2522,6 +2522,214 @@ static ssize_t create_ram_region_show(struct device *dev,
+>  	return __create_region_show(to_cxl_root_decoder(dev), buf);
+>  }
+>  
+> +static ssize_t update_region_size(struct cxl_region *cxlr, u64 val)
 
-BTW, I added a test case for NOMEM scenario by using failslab:
+Maybe call it resize_or_free_region_hpa()?
 
+Also rename 'val' to 'size'
 
-https://github.com/DataTravelGuide/dtg-tests/blob/main/pcache.py.data/pcache_failslab.sh
+> +{
+> +	int rc;
+> +
+> +	rc = down_write_killable(&cxl_region_rwsem);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (val)
+> +		rc = alloc_hpa(cxlr, val);
+> +	else
+> +		rc = free_hpa(cxlr);
+> +	up_write(&cxl_region_rwsem);
+> +
+> +	if (rc)
+> +		return rc;
+> +
+> +	return 0;
+> +}
 
->
-> Thanx
->
-> Dongsheng
->
->>
->> "backing_req->kmem.bvecs = kmalloc_array(n_vecs, sizeof(struct bio_vec),
->> GFP_NOIO)" - this call may fail and you should handle the error 
->> gracefully
->> (i.e. don't end the bio with an error). Would it be possible to trim the
->> request to BACKING_DEV_REQ_INLINE_BVECS vectors and retry it?
->> Alternativelly, you can create a mempool for the largest possible n_vecs
->> and allocate from this mempool if kmalloc_array fails.
->>
->> I'm sending two patches for dm-pcache - the first patch adds the include
->> file linux/bitfield.h - it is needed in my config. The second patch 
->> makes
->> slab caches per-module rather than per-device, if you have them
->> per-device, there are warnings about duplicate cache names.
->>
->>
->> BTW. What kind of persistent memory do you use? (afaik Intel killed the
->> Optane products and I don't know of any replacement)
->>
->> Some times ago I created a filesystem for persistent memory - see
->> git://leontynka.twibright.com/nvfs.git - I'd be interested if you can 
->> test
->> it on your persistent memory implementation.
->>
->> Mikulas
->>
->
+Share common code with core/region.c:size_store(). Please use helper function and not duplicate code.
+
+> +
+> +static ssize_t update_region_dpa_size(struct cxl_region *cxlr,
+
+resize_or_free_dpa()
+
+> +		struct cxl_decoder *cxld,
+> +		unsigned long long size)
+
+u64 size
+
+> +{
+> +	int rc;
+> +	struct cxl_endpoint_decoder *cxled =
+> +		to_cxl_endpoint_decoder(&cxld->dev);
+> +
+> +	if (!IS_ALIGNED(size, SZ_256M))
+> +		return -EINVAL;
+> +
+> +	rc = cxl_dpa_free(cxled);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (size == 0)
+> +		return 0;
+> +
+> +	rc = cxl_dpa_alloc(cxled, size);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return 0;
+> +}
+
+Share common code with core/port.c:dpa_size_store(). Please use helper function and not duplicate code.
+
+> +
+> +static ssize_t update_region_dpa_mode(struct cxl_region *cxlr,
+> +		struct cxl_decoder *cxld)
+> +{
+> +	int rc;
+> +	struct cxl_endpoint_decoder *cxled =
+> +		to_cxl_endpoint_decoder(&cxld->dev);
+> +
+> +	rc = cxl_dpa_set_mode(cxled, CXL_DECODER_PMEM);
+
+Don't think CXL_DECODER_PMEM exists any longer. It's CXL_PARTMODE_PMEM. Just beware there have been some changes while you are rebasing to the latest upstream code.
+
+> +	if (rc)
+> +		return rc;
+> +
+> +	return 0;
+> +}
+> +
+> +static size_t attach_region_target(struct cxl_region *cxlr,
+> +		struct cxl_decoder *cxld, int pos)
+> +{
+> +	int rc;
+> +	struct cxl_endpoint_decoder *cxled =
+> +		to_cxl_endpoint_decoder(&cxld->dev);
+> +
+> +	rc = attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
+> +
+> +	if (rc < 0)
+> +		return rc;
+> +
+> +	return 0;
+> +}
+> +
+> +static ssize_t commit_region(struct cxl_region *cxlr)
+> +{
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	ssize_t rc;
+> +
+> +	rc = down_write_killable(&cxl_region_rwsem);
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* Already in the requested state? */
+> +	if (p->state >= CXL_CONFIG_COMMIT)
+> +		goto out;
+> +
+> +	/* Not ready to commit? */
+> +	if (p->state < CXL_CONFIG_ACTIVE) {
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	/*
+> +	 * Invalidate caches before region setup to drop any speculative
+> +	 * consumption of this address space
+> +	 */
+> +	rc = cxl_region_invalidate_memregion(cxlr);
+> +	if (rc)
+> +		goto out;
+> +
+> +	rc = cxl_region_decode_commit(cxlr);
+> +	if (rc == 0)
+> +		p->state = CXL_CONFIG_COMMIT;
+> +out:
+> +	up_write(&cxl_region_rwsem);
+> +	if (rc)
+> +		return rc;
+> +	return 0;
+> +}
+
+Sharing common code with core/region.c:commit_store()?
+
+> +
+> +static struct cxl_region *
+> +devm_cxl_pmem_add_region(struct cxl_root_decoder *cxlrd,
+> +		struct cxl_decoder *cxld,
+> +		struct cxl_pmem_region_params *params, int id,
+> +		enum cxl_decoder_mode mode, enum cxl_decoder_type type)
+> +{
+> +	struct cxl_port *port;
+> +	struct cxl_region *cxlr;
+> +	struct cxl_region_params *p;
+> +	struct device *dev;
+> +	int rc;
+> +
+> +	if (!cxlrd)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	port = to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
+> +
+> +	cxlr = cxl_region_alloc(cxlrd, id);
+> +	if (IS_ERR(cxlr))
+> +		return cxlr;
+> +	cxlr->mode = mode;
+> +	cxlr->type = type;
+> +
+> +	dev = &cxlr->dev;
+> +	rc = dev_set_name(dev, "region%d", id);
+> +	if (rc)
+> +		goto err;
+> +> +	p = &cxlr->params;
+> +	p->uuid = params->uuid;
+> +	p->interleave_ways = params->nlabel;
+> +	p->interleave_granularity = params->ig;
+> +
+> +	/* Update region size */
+Not sure what value this comment adds
+> +	if (update_region_size(cxlr, params->rawsize))
+> +		goto err;
+> +
+> +	/* Flush cxl wq */
+Can you explain here why a flush is needed?
+> +	cxl_wq_flush();
+> +
+> +	/* Clear DPA Size */
+comment provides no value
+> +	if (update_region_dpa_size(cxlr, cxld, 0))
+> +		goto err;
+> +
+> +	/* Update DPA mode */
+same as above
+> +	if (update_region_dpa_mode(cxlr, cxld))
+> +		goto err;
+> +
+> +	/* Update DPA Size */
+same as above
+> +	if (update_region_dpa_size(cxlr, cxld, params->rawsize))
+> +		goto err;
+> +
+> +	/* Attach region targets */
+same as above
+> +	if (attach_region_target(cxlr, cxld, params->position))
+> +		goto err;
+> +
+> +	/* Commit Region */
+same as above
+> +	if (commit_region(cxlr))
+> +		goto err;
+
+Can you please provide some verbose explanation as to what all these extra steps are doing for pmem versus devm_cxl_add_region() for dram?
+
+> +
+> +	rc = device_add(dev);
+> +	if (rc)
+> +		goto err;
+> +
+> +	rc = devm_add_action_or_reset(port->uport_dev, unregister_region, cxlr);
+> +	if (rc)
+> +		return ERR_PTR(rc);
+> +
+> +	dev_dbg(port->uport_dev, "%s: created %s\n",
+> +		dev_name(&cxlrd->cxlsd.cxld.dev), dev_name(dev));
+> +	return cxlr;
+> +
+> +err:
+> +	put_device(dev);
+> +	return ERR_PTR(rc);
+> +}
+> +
+> +struct cxl_region *cxl_create_pmem_region(struct cxl_root_decoder *cxlrd,
+> +		struct cxl_decoder *cxld,
+> +		struct cxl_pmem_region_params *params, int id)
+> +{
+> +	int rc;
+> +
+> +	rc = memregion_alloc(GFP_KERNEL);
+> +	if (rc < 0)
+> +		return ERR_PTR(rc);
+> +
+> +	if (atomic_cmpxchg(&cxlrd->region_id, id, rc) != id) {
+> +		memregion_free(rc);
+> +		return ERR_PTR(-EBUSY);
+> +	}
+> +
+> +	return devm_cxl_pmem_add_region(cxlrd, cxld, params, id,
+> +			CXL_DECODER_PMEM, CXL_DECODER_HOSTONLYMEM);
+> +}
+> +EXPORT_SYMBOL_NS_GPL(cxl_create_pmem_region, "CXL");
+
+Can __create_region() be modified to determine whether to create dram region or pmem?
+
+DJ
+> +
+>  static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
+>  					  enum cxl_decoder_mode mode, int id)
+>  {
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 9423ea3509ad..30c80e04cb27 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -759,6 +759,7 @@ DEFINE_FREE(put_cxl_port, struct cxl_port *, if (!IS_ERR_OR_NULL(_T)) put_device
+>  int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd);
+>  void cxl_bus_rescan(void);
+>  void cxl_bus_drain(void);
+> +void cxl_wq_flush(void);
+>  struct cxl_port *cxl_pci_find_port(struct pci_dev *pdev,
+>  				   struct cxl_dport **dport);
+>  struct cxl_port *cxl_mem_find_port(struct cxl_memdev *cxlmd,
+> @@ -877,6 +878,9 @@ struct cxl_pmem_region *to_cxl_pmem_region(struct device *dev);
+>  int cxl_add_to_region(struct cxl_port *root,
+>  		      struct cxl_endpoint_decoder *cxled);
+>  struct cxl_dax_region *to_cxl_dax_region(struct device *dev);
+> +struct cxl_region *cxl_create_pmem_region(struct cxl_root_decoder *cxlrd,
+> +		struct cxl_decoder *cxld,
+> +		struct cxl_pmem_region_params *params, int id);
+>  #else
+>  static inline bool is_cxl_pmem_region(struct device *dev)
+>  {
+> @@ -895,6 +899,13 @@ static inline struct cxl_dax_region *to_cxl_dax_region(struct device *dev)
+>  {
+>  	return NULL;
+>  }
+> +static inline struct cxl_region *cxl_create_pmem_region(
+> +		struct cxl_root_decoder *cxlrd,
+> +		struct cxl_decoder *cxld,
+> +		struct cxl_pmem_region_params *params, int id)
+> +{
+> +	return NULL;
+> +}
+>  #endif
+>  
+>  void cxl_endpoint_parse_cdat(struct cxl_port *port);
+
