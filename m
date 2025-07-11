@@ -1,185 +1,111 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f45.google.com (mail-ot1-f45.google.com [209.85.210.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BC0E283FE8
-	for <nvdimm@lists.linux.dev>; Thu, 10 Jul 2025 17:18:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B672A55
+	for <nvdimm@lists.linux.dev>; Fri, 11 Jul 2025 01:18:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752167913; cv=none; b=Q/C+d1KuoaCcGRZBnE1+ut4b9vGiAni+ySI58Iey69/s4CP5BdMDp15j8FKiwZO5fa3MobpqVdF3ERlZ33OF76VGRJMtDmnJf+KeQEjXUIlMzIhw7dh5gKPzgiIPY7+U5wRY7RCna0a8rEpEzwC3/SEJdiOpo8YZEwNVt7/hi0I=
+	t=1752196732; cv=none; b=YFHIBqnrTsL/d7rDakW6aU/29nVU6tg3nowaCV6Cg34cGoQYkhT5uNSBVy49gA75yZ2QRsZXylXhl1Oqa8ONlEDrE0R5ncFYhKHRClZUby/ymcuC9h6B+lVQIl4teHCZBAwzp2xUpb+Od31Gpxf3oiij5H3Y2Qjtj3g3zzTrWDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752167913; c=relaxed/simple;
-	bh=5gyg9rYJ+egrYstYAbgunAN1HeUaP9Gl1TjTxT96v8U=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cfrbZJMUy+aqGngOB/AlBdcPAi+fbIu5Q0MzosqH6ja3IsCfIxZ0iSJpSjpM9KcH5vzEo2LWvX9coAMFyNKAdU0uvxrC8t902h4GmfjKzlPv9JWNGK23zwiDfBSN4B7AKvpC16JMQS6cJFkNuCDqvqFpc9C1gwhovBQloF/QZvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=g+HwFXFo; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1752196732; c=relaxed/simple;
+	bh=R8AABabAlWYs5sROsKxYgIr8UcUVRhflbLr2PL7WTUE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QCR2DDJkDBlcKGFLeGKRvhpAmVWuGzDWvZmWMKlfbXx6M83yW2xTYjx6w1+aH7yEbv1foQaD3ZQ2MMfUnNMJPw/UxkqqKTpLetSJZNT0g8McRx9JGG11//aosvgGcgx+uR3F0ijdhg1xXLuUHp8fX/o/UP8sonzYVRLf/tMlkv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YSbrfjQK; arc=none smtp.client-ip=209.85.210.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="g+HwFXFo"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1752167910; x=1783703910;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=5gyg9rYJ+egrYstYAbgunAN1HeUaP9Gl1TjTxT96v8U=;
-  b=g+HwFXFoTdnNRpvBZ24iMlf+M0oHUcPDwnpXCbBvpsJFQSShmRlRkyLL
-   WwXTGYArI97AwFU9E/7YVUO++BarGYti/ztbGHhF2cR/eNkrWTTAMbcvU
-   ovF8kTHl4noJ3YAvvmN30PnNUzaEY/QxRKqmxhUP1LwVBzapw5vL5NZnA
-   mgwv/Cui5ukSG7Izziex7xDK9iBFd3DTCjQ6CwYukUBkWFBSYnBl7T9It
-   imPqNxGg3YfbVqEBeACPF8Ag6QU3Hkfw42vX+boz6eEruHfxjHCUbSQqj
-   pnE/zeIknUXhEqB7YNwbTHEo0Wgmcp8Aee6ptQeqA2WDYLUFCPsBAxWkn
-   w==;
-X-CSE-ConnectionGUID: PMuTRVjkR1yQ1adOuE5/NA==
-X-CSE-MsgGUID: x5sKJ3d1TZO+x+N+Dgxvmg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11490"; a="53678046"
-X-IronPort-AV: E=Sophos;i="6.16,301,1744095600"; 
-   d="scan'208";a="53678046"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2025 10:18:30 -0700
-X-CSE-ConnectionGUID: lzbY+D7oQ7mK/+Z1Gp8Alg==
-X-CSE-MsgGUID: eBp5sAI/Q9iYYWQsxRdpnA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,301,1744095600"; 
-   d="scan'208";a="156494179"
-Received: from vverma7-desk1.amr.corp.intel.com (HELO [10.125.110.242]) ([10.125.110.242])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2025 10:18:28 -0700
-Message-ID: <45c254fe-fd74-46e7-bf06-5614810f7193@intel.com>
-Date: Thu, 10 Jul 2025 10:18:27 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YSbrfjQK"
+Received: by mail-ot1-f45.google.com with SMTP id 46e09a7af769-73c89db3dfcso356647a34.3
+        for <nvdimm@lists.linux.dev>; Thu, 10 Jul 2025 18:18:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1752196730; x=1752801530; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=2g0KFXDxtk/APA3qVySJRW2x29mZCIrc20VuPGvJudw=;
+        b=YSbrfjQKQLZfwoys0RrEec17o64TvwxD3DSx/ogcJoyXX5xEbGg26XIgyh6AV77rlv
+         0hdwQAKMebLrdA8zxxW7RLJwue2x3gh4PE/2/H7Es9oVYtSJAnegES/okm45zsLccRbX
+         M8LWyobB4V6ztwfHM7RphKlHtQqtz6KAhZj8vuOY8wyGMajWWzVrA2vrbTAaltmyS7+O
+         G0eCLCYtflsULofhlQ6iGqRp+TjQf4AQlKun9ha+6sJpssJiMOtwq/9xKjZtpXaAa1tC
+         GYN46L6SmzXjhju98OknPSUNY7U1aZgzSpkt8qoo9SyRSpJJAd8mAIhaZjETOm3nlm9p
+         tMAQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752196730; x=1752801530;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=2g0KFXDxtk/APA3qVySJRW2x29mZCIrc20VuPGvJudw=;
+        b=NB5C1AAt34ypccbxov3HfFI9afbEF7WdauiY4xH7slXXdzY7eMoRHL/TwZsGRBAKRG
+         6LfiMkIaTejw1JFu29fmaGSDz9qWniMDci+XKcLrjnWMoGLhqexfXYi3kCti+abJI4wO
+         qVuLjI88Fyd70PYLjsYENmweNIa1OJ2B3BZOwNr/1zLzMSartRjoJUK/4l43oXholMUH
+         2KGKMgtQLYgYiWmCX4e/1rUGE3BsJ2Qyt8X6/r0I5N0nsULZQe+jbMeOHgY4CcIS/ndS
+         c0eCgq/wzFAkq4gdwp6LxhuKRCgZGGpw5zUs38ai8cbHcHHkPKQ1cL8koWbW812aWiOc
+         KlHw==
+X-Forwarded-Encrypted: i=1; AJvYcCW+UL5nScc4qA890/vVi5J2wM+U2Auq3gofx5SIdt7yN7Igcs4t3+sXARR04/IMV9tp1fN6WLw=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzO5n2SBvwHhJ4pmrEVtOSEUZuPF4YoUx6HNlaA/V/FfpgZokoc
+	pGsC4EW65KlTQZRJyPtoc+ObkVi9SuUOyjqjgL/djWFl9cSRRgfq1S8U
+X-Gm-Gg: ASbGncu4WSVm39nfHXrIapqQWv8XvUyBsXKRb8g2fpwkM42QlOwXXFtXLHbkzTsMf4l
+	0lviAML/S0Gx0AJQQdYQGTKrokG84iBFJAdMLsuo77UimtK7bm91J6QZ3No5HhW/mkKF3lelWuu
+	WUJlEm8f1f5mlBRBareGVIdARx05gAMlmeENFB9X/X09dxSChOm/BEK9J/oYAlCVJMUCyyhvmex
+	U/Echxac4+/wo0prHYmpkPCitqrnZGayGWIuQihqwuP0/rgOSkSrVYrTFL4ZRJB1YftOqsAwjlM
+	QtNWkWSSbBMSbAlaAWT+3SmvdwfGwtFY0gqBXpBcZn1ABVt2TnQRcqhFBPJ5SX7Sepr7Y4p+5vG
+	UVIGToperWGMF4yNT10RZejG+aqp3Jv6YQhS9
+X-Google-Smtp-Source: AGHT+IGJCnaqGvb/J1NAhW1XcF8WESVSsXDnoLdvhZ4+00xo2gwgbnca4tl65tWGfO6KVztDNniiVg==
+X-Received: by 2002:a05:6830:6c0d:b0:727:3957:8522 with SMTP id 46e09a7af769-73cf9f2c45emr1252973a34.20.1752196730333;
+        Thu, 10 Jul 2025 18:18:50 -0700 (PDT)
+Received: from groves.net ([2603:8080:1500:3d89:25b0:db8a:a7d3:ffe1])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-73cf108af60sm396801a34.21.2025.07.10.18.18.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Jul 2025 18:18:49 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Thu, 10 Jul 2025 20:18:47 -0500
+From: John Groves <John@groves.net>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Dan Williams <dan.j.williams@intel.com>, 
+	Bernd Schubert <bschubert@ddn.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
+	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
+	Ajay Joshi <ajayjoshi@micron.com>
+Subject: Re: [RFC V2 00/18] famfs: port into fuse
+Message-ID: <qcro3gfcssyvto7rtqkykurb6uh5kqslse4zllosk6bukaualp@xmy6jchvm65p>
+References: <20250703185032.46568-1-john@groves.net>
+ <os4kk3dq6pyntqgcm4kmzb2tvzpywooim2qi5esvsyvn5mjkmt@zpzxxbzuw3lq>
+ <CAJfpeguOAZ0np25+pv2P-AHPOepMn+ycQeMwiqnPs4e0kmWwuQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 18/20] cxl/pmem: Add support of cxl lsa 2.1 support in
- cxl pmem
-To: Neeraj Kumar <s.neeraj@samsung.com>, dan.j.williams@intel.com,
- dave@stgolabs.net, jonathan.cameron@huawei.com, alison.schofield@intel.com,
- vishal.l.verma@intel.com, ira.weiny@intel.com
-Cc: a.manzanares@samsung.com, nifan.cxl@gmail.com, anisa.su@samsung.com,
- vishak.g@samsung.com, krish.reddy@samsung.com, arun.george@samsung.com,
- alok.rathore@samsung.com, neeraj.kernel@gmail.com,
- linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev, gost.dev@samsung.com, cpgs@samsung.com
-References: <20250617123944.78345-1-s.neeraj@samsung.com>
- <CGME20250617124058epcas5p2324bd3b1bf95d47f553d90fdc727e50d@epcas5p2.samsung.com>
- <592959754.121750165383213.JavaMail.epsvc@epcpadp2new>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <592959754.121750165383213.JavaMail.epsvc@epcpadp2new>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJfpeguOAZ0np25+pv2P-AHPOepMn+ycQeMwiqnPs4e0kmWwuQ@mail.gmail.com>
 
-
-
-On 6/17/25 5:39 AM, Neeraj Kumar wrote:
-> Add support of cxl lsa 2.1 using NDD_CXL_LABEL flag. It also creates cxl
-> region based on region information parsed from LSA.
+On 25/07/09 05:26AM, Miklos Szeredi wrote:
+> On Thu, 3 Jul 2025 at 20:56, John Groves <John@groves.net> wrote:
+> >
+> > DERP: I did it again; Miklos' email is wrong in this series.
 > 
-> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
-> ---
->  drivers/cxl/pmem.c | 59 ++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 59 insertions(+)
+> linux-fsdevel also lands in my inbox, so I don't even notice.
 > 
-> diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-> index ffcebb8d382f..2733d79b32d5 100644
-> --- a/drivers/cxl/pmem.c
-> +++ b/drivers/cxl/pmem.c
-> @@ -58,6 +58,63 @@ static const struct attribute_group *cxl_dimm_attribute_groups[] = {
->  	NULL
->  };
->  
-> +static int match_ep_decoder(struct device *dev, void *data)
-> +{
-> +	struct cxl_decoder *cxld = to_cxl_decoder(dev);
-> +
-> +	if (!cxld->region)
-> +		return 1;
-> +	else
-> +		return 0;
-> +}
+> I won't get to review this until August, sorry about that.
+> 
+> Thanks,
+> Miklos
 
-return !cxld->region;
+Thanks Miklos. I'll probably get one more update out to this series by
+August. Best possible case, I will have fixed the poisoned page problem - 
+but I haven't worked out what the fix is yet, so that's an aspiration.
 
-
-> +
-> +static struct cxl_decoder *cxl_find_free_decoder(struct cxl_port *port)
-> +{
-> +	struct device *dev;
-> +
-> +	dev = device_find_child(&port->dev, NULL, match_ep_decoder);
-> +	if (!dev)
-> +		return NULL;
-> +
-> +	return to_cxl_decoder(dev);
-> +}
-> +
-> +static int create_pmem_region(struct nvdimm *nvdimm)
-> +{
-> +	struct cxl_nvdimm *cxl_nvd;
-> +	struct cxl_memdev *cxlmd;
-> +	struct cxl_nvdimm_bridge *cxl_nvb;
-> +	struct cxl_pmem_region_params *params;
-> +	struct cxl_root_decoder *cxlrd;
-> +	struct cxl_decoder *cxld;
-> +	struct cxl_region *cxlr;
-> +
-
-probably need a lockdep_assert_held(&cxl_region_rwsem).
-
-> +	if (!nvdimm)
-> +		return -ENOTTY;
-
--ENODEV?
-
-> +
-> +	if (!nvdimm_has_cxl_region(nvdimm))
-> +		return 0;
-> +
-> +	cxl_nvd = nvdimm_provider_data(nvdimm);
-> +	params = nvdimm_get_cxl_region_param(nvdimm);
-> +	cxlmd = cxl_nvd->cxlmd;
-> +	cxl_nvb = cxlmd->cxl_nvb;
-> +	cxlrd = cxlmd->cxlrd;
-> +
-> +	/* FIXME: Limitation: Region creation only when interleave way == 1 */
-> +	if (params->nlabel == 1) {
-> +		cxld = cxl_find_free_decoder(cxlmd->endpoint);
-> +		cxlr = cxl_create_pmem_region(cxlrd, cxld, params,
-> +				atomic_read(&cxlrd->region_id));
-> +		if (IS_ERR(cxlr))
-> +			dev_dbg(&cxlmd->dev, "Region Creation failed\n");
-
-return PTR_ERR(cxlr); ?
-
-> +	} else {
-> +		dev_dbg(&cxlmd->dev, "Region Creation is not supported with iw > 1\n");
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int cxl_nvdimm_probe(struct device *dev)
->  {
->  	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
-> @@ -74,6 +131,7 @@ static int cxl_nvdimm_probe(struct device *dev)
->  		return rc;
->  
->  	set_bit(NDD_LABELING, &flags);
-> +	set_bit(NDD_CXL_LABEL, &flags);
-
-Ok here's the NDD_CXL_LABEL set. I think the driver should be probing the label index block and retrieve the label version and determine how to support from there instead of hard coding a flag. 
-
->  	set_bit(NDD_REGISTER_SYNC, &flags);
->  	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
->  	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-> @@ -86,6 +144,7 @@ static int cxl_nvdimm_probe(struct device *dev)
->  		return -ENOMEM;
->  
->  	dev_set_drvdata(dev, nvdimm);
-> +	create_pmem_region(nvdimm);
->  	return devm_add_action_or_reset(dev, unregister_nvdimm, nvdimm);
->  }
->  
+Regards,
+John
 
