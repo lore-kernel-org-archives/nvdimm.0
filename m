@@ -1,122 +1,189 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 923604C7F;
-	Sat, 12 Jul 2025 05:54:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A853F24A046
+	for <nvdimm@lists.linux.dev>; Mon, 14 Jul 2025 12:41:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752299646; cv=none; b=F4NCAB5Da3Jdiqp480oNeGBwL+Byn/uhIDytILhkraMn0D12p5ScKwgXgV+lil/XV5GOSccEUDbgLH13ANL8fELksSxHSQ4XvWORZTUUW9CCcTySJcbR9CjrhqcP44AjNdEXT8aMMgT0ToO1wamrCk+amOigWZDyOnveA4j+cv4=
+	t=1752496885; cv=none; b=PxMqM9xCOUuWGEy1U5NEcAlpOSRlrwxrHzccuDi0zzbzHfthzdtVCuU9n/wMnk1vjDkAbi1CBRnChbpAzMECQ0UTYvF6znJcucA67+a10Be935qvQqhVuk4gkmdZW/WwxH5uGVQpkFoKCpbZyIKPHvjfROsjk5nzII4MNdCzUGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752299646; c=relaxed/simple;
-	bh=rFWl3Q13e5QPMxcRC35Ux1buXtJYF88GSwwmW4kTpLM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OXMm40vW3K+A3R6/K16aq8Sh3uD1Qf0kcavKPeuV+Grpdd59ZGEUQz3KstP4S1Hq1uF4sYYkwXw8fb2iH+uY8gp0x6PkIdx4TuyAaajCoXbUBx6bLyydotXwfPX9+LIxbnYD4chJO7zCccte1OgEn1B8IKEbuM4NMoN7VJJ/yVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F/ctmFCp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752496885; c=relaxed/simple;
+	bh=EU/9ZDtsuN6eH1IZPhEa5PdVZBdPTGac/TKiXXM/Z6g=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=pP/n70fGwxwh7wy+gUSGkJiiE+m4bnAwTUo5SCg1Q24Kq3zrEutJM3uu2TVh0aF2MJYwrTdsAqjYw8eu9ihH4GGGdkCDI+eBMjWeR8WHBFBw6ZM81E0efd4g6PViQhqZYNYX+SuyoHjCUXb/HaGZKmrUW6DgVDLhHUk7OynuaqU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=M60gA9nA; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F/ctmFCp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05B65C4CEEF;
-	Sat, 12 Jul 2025 05:54:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752299646;
-	bh=rFWl3Q13e5QPMxcRC35Ux1buXtJYF88GSwwmW4kTpLM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=F/ctmFCpHYpKeqGDCdCFR36u2S2ySZVT6jp5O5E7FlOasj+1TMXaYp4DFVJZtTncZ
-	 6JWUH0rN1ghDoNaTE4u2fZ5ZGcvPmVWHz0l6GaICRTGvoixkZ1VYpZbt4g8AyIyd+N
-	 UjfUZbLXKiuKVnnOJNLPUV+kD9ptmHy7yc1qZfIk4zdU6D9uX9xu4Iji46TiZkXUZN
-	 VqtbGkKLgKIfTLZUZGZd7d5mPawtDpQcos+QV+GyqK2zDM4J9MTZQOklAGsfMWzWME
-	 8zLVNcQhoyhmiKQJIdwJMCC1usVoMPekZxLT4sd6xIrreIOsF5QW57b93eth1Ctsvj
-	 eBeiv4uBKaMuQ==
-Date: Fri, 11 Jul 2025 22:54:05 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: John Groves <John@groves.net>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Bernd Schubert <bschubert@ddn.com>,
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Stefan Hajnoczi <shajnocz@redhat.com>,
-	Joanne Koong <joannelkoong@gmail.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 11/18] famfs_fuse: Basic famfs mount opts
-Message-ID: <20250712055405.GK2672029@frogsfrogsfrogs>
-References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-12-john@groves.net>
- <20250709035911.GE2672029@frogsfrogsfrogs>
- <ttjh3gqk3fmykwrb7dg6xaqhkpxk7g773fkvuzvbdlefimpseg@l5ermgxixeen>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="M60gA9nA"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1752496882;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=AlhL0g61tcP/asJxs4tblcpuvuh9N/0WRyDkg4z1yL8=;
+	b=M60gA9nAkaplahhGl9258XSNpZzsphQIjQcotjYIFpioCXhHiEShdc7TCG77eUIrqH2PSm
+	cjmOsArPXmbDz4bFhyeokG75nGz61lHeKugg4iOBWSXg5qeWByOqblzQh29y3JvWgc+jIN
+	7wRHNM5RDaCpB0jLr2O2Whe7pBvimbI=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-117-ddRLtefLMJWF191_janAPg-1; Mon, 14 Jul 2025 08:41:16 -0400
+X-MC-Unique: ddRLtefLMJWF191_janAPg-1
+X-Mimecast-MFC-AGG-ID: ddRLtefLMJWF191_janAPg_1752496875
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-43e9b0fd00cso24684335e9.0
+        for <nvdimm@lists.linux.dev>; Mon, 14 Jul 2025 05:41:16 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752496875; x=1753101675;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=AlhL0g61tcP/asJxs4tblcpuvuh9N/0WRyDkg4z1yL8=;
+        b=W89aRwckV0gvQ6i9pCZRYHBv69Jqdw8bL1YErTg4VL4ge4MJiLTES9DsFt2kXSZEvk
+         lSKWX+xL2aInWHuncrCcebRjy3Oi/nWrqUEL1wrWbZ2z7Id2+KiYIJa4NA1x4/0lPegp
+         CzDEdpKp4Klxu+3YTjo30YPEpwJfPLjkg+rClMkQz55HjG9UnMUSzt7M7DM8VvCxcrRj
+         digRlTrCjEkDvSThxSbjxFjVgeRNlYtiupeOB3RC0L+MoO61Tj9DBRW1wBclND+YfZSy
+         R7jn52yic9fA89lO2MjyStSm9TAYpQuaj33BDhx8gPqDgLEm1WgZcmvFTEP3tKeSWoZe
+         qoJQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX5PfTpFRTDmm0qkgYvI15rnooy6I/SGfPSJz+aRFZUlvFWWB2um7sFHP0b7MhvZ+wNYuyHgDM=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzZFRsf+D79B7pSNQtrm1cFu0up6J/xMxEbhY+NmU/zp1A666yf
+	OzzF3nHzckv0DhYBqVeuMLHyJq5BXW0ubotzJON92B+XH13yMq+32rRweuR3wu0Olxcsvuc9p48
+	OLgLXqPXlFQGVkHC3zSGelL+e1vVxEpKYuv2oM8ghNcs09hiegoleShEwAg==
+X-Gm-Gg: ASbGncvUEA4Xa18bbC/NFzaxqiHKCF+0caH1X5ABaaNM0aqI+uto7cNUA4RRYLCKMRN
+	o5O5Pp6Lzaht2RnIPtZXksFqjlAsPx34sEVMC+fFdFKoYkrAMx1scl0ZlznBsKfDnRSfZLk8sCV
+	LPOE5Op16bk7A3x9WaLjkE0hRAm/ozy50f/caSImvaySoP493pBgEhzvp5gQnIJsLt7DAdpfhRf
+	33eAGdMw1CFEspwunQLcQTdNYLy3drPmNf+gGBib4ieMMVKcQtaLO5CAoberI1qoGm/xd3JXc7i
+	u+tMJiFPHhKnhoMFVvbMbwJI1ybM4UYuEgNXVw2BdskwCzOLrKYuGFoUo6BpRUGGPRqvlFOroF7
+	75TM+hb7+Jgb4D3RSg4gUkMdLw3KlHJLSkTT3eeZWB7pX2iZRCGbMZFh8S6wNzNiD
+X-Received: by 2002:a05:600c:3f07:b0:456:15a1:9ae0 with SMTP id 5b1f17b1804b1-45615a19f78mr50490865e9.13.1752496875387;
+        Mon, 14 Jul 2025 05:41:15 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IG7DuhvnhvQSDasJMYJlX2NuMhbqjgqBZ9IwWcjRy08mrRHLkhE2Ly+4rRmtT0k0blUgZ5iBg==
+X-Received: by 2002:a05:600c:3f07:b0:456:15a1:9ae0 with SMTP id 5b1f17b1804b1-45615a19f78mr50490335e9.13.1752496874860;
+        Mon, 14 Jul 2025 05:41:14 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f38:ca00:ca3a:83da:653e:234? (p200300d82f38ca00ca3a83da653e0234.dip0.t-ipconnect.de. [2003:d8:2f38:ca00:ca3a:83da:653e:234])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-454dd466154sm129926275e9.12.2025.07.14.05.41.12
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 14 Jul 2025 05:41:14 -0700 (PDT)
+Message-ID: <3db65a9c-4ee4-4bba-ba8b-f1171f942766@redhat.com>
+Date: Mon, 14 Jul 2025 14:41:12 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ttjh3gqk3fmykwrb7dg6xaqhkpxk7g773fkvuzvbdlefimpseg@l5ermgxixeen>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC 08/14] mm/huge_memory: mark PMD mappings of the huge
+ zero folio special
+To: Oscar Salvador <osalvador@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-mm@kvack.org, nvdimm@lists.linux.dev,
+ Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
+ Stefano Stabellini <sstabellini@kernel.org>,
+ Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+ Dan Williams <dan.j.williams@intel.com>, Alistair Popple
+ <apopple@nvidia.com>, Matthew Wilcox <willy@infradead.org>,
+ Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>, Nico Pache <npache@redhat.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+ Barry Song <baohua@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>
+References: <20250617154345.2494405-1-david@redhat.com>
+ <20250617154345.2494405-9-david@redhat.com>
+ <aFu0H_AgdM2W2-R_@localhost.localdomain>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <aFu0H_AgdM2W2-R_@localhost.localdomain>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: 21j2zCXO4ev-aOLqdx0vHL5gk5j3dTlf8AUBRC0mxuY_1752496875
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 11, 2025 at 10:28:20AM -0500, John Groves wrote:
-> On 25/07/08 08:59PM, Darrick J. Wong wrote:
-> > On Thu, Jul 03, 2025 at 01:50:25PM -0500, John Groves wrote:
-> > > * -o shadow=<shadowpath>
-> > 
-> > What is a shadow?
-> > 
-> > > * -o daxdev=<daxdev>
+On 25.06.25 10:32, Oscar Salvador wrote:
+> On Tue, Jun 17, 2025 at 05:43:39PM +0200, David Hildenbrand wrote:
+>> The huge zero folio is refcounted (+mapcounted -- is that a word?)
+>> differently than "normal" folios, similarly (but different) to the ordinary
+>> shared zeropage.
+>>
+>> For this reason, we special-case these pages in
+>> vm_normal_page*/vm_normal_folio*, and only allow selected callers to
+>> still use them (e.g., GUP can still take a reference on them).
+>>
+>> vm_normal_page_pmd() already filters out the huge zero folio. However,
+>> so far we are not marking it as special like we do with the ordinary
+>> shared zeropage. Let's mark it as special, so we can further refactor
+>> vm_normal_page_pmd() and vm_normal_page().
+>>
+>> While at it, update the doc regarding the shared zero folios.
+>>
+>> Signed-off-by: David Hildenbrand <david@redhat.com>
 > 
-> Derp - OK, that's a stale commit message. Here is the one for the -next
-> version of this patch:
+> Reviewed-by: Oscar Salvador <osalvador@suse.de>
 > 
->     famfs_fuse: Basic famfs mount opt: -o shadow=<shadowpath>
+> While doing this, would it make sense to update vm_normal_page_pmd()
+> comments to refelect that pmd_special will also catch huge_zero_folio()?
+> It only mentions huge pfnmaps.
 > 
->     The shadow path is a (usually tmpfs) file system area used by the famfs 
->     user space to commuicate with the famfs fuse server. There is a minor 
->     dilemma that the user space tools must be able to resolve from a mount 
->     point path to a shadow path. The shadow path is exposed via /proc/mounts, 
->     but otherwise not used by the kernel. User space gets the shadow path 
->     from /proc/mounts...
+> It might not be worth doing since you remove that code later on, but
+> maybe if someone stares at this commit alone..
 
-Ah.  A service directory, of sorts.
+Yes, it should be removed in this patch, thanks!
 
-> > And, uh, if there's a FUSE_GET_DAXDEV command, then what does this mount
-> > option do?  Pre-populate the first element of that set?
-> > 
-> > --D
-> > 
-> 
-> I took out -o daxdev, but had failed to update the commit msg.
-> 
-> The logic is this: The general model requires the FUSE_GET_DAXDEV message /
-> response, so passing in the primary daxdev as a -o arg creates two ways to
-> do the same thing.
-> 
-> The only initial heartburn about this was one could imagine a case where a
-> mount happens, but no I/O happens for a while so the mount could "succeed",
-> only to fail later if the primary daxdev could not be accessed.
-> 
-> But this can't happen with famfs, because the mount procedure includes 
-> creating "meta files" - .meta/.superblock and .meta/.log and accessing them
-> immediately. So it is guaranteed that FUSE_GET_DAXDEV will be sent right away,
-> and if it fails, the mount will be unwound.
+-- 
+Cheers,
 
-<nod> 
+David / dhildenb
 
---D
-
-> Thanks Darrick!
-> John
-> 
-> <snip>
-> 
-> 
