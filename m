@@ -1,106 +1,205 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8688A1DE2D8
-	for <nvdimm@lists.linux.dev>; Mon, 14 Jul 2025 22:46:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E18B2E1758
+	for <nvdimm@lists.linux.dev>; Tue, 15 Jul 2025 13:23:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752533193; cv=none; b=S3tijdi6cK2HxyxqfMkGDppfX5L8H6qyvxKpJmPHUaMFQYQPTSN5VuYizO8B/grspffRu3cSB9OK4sSNUVJXzBDDyTsQoGaV2+RkaMPtCIq7DW0+PInIYPwoI/4GCe1SE4agY0rhJ1ICG71Q/Kimr1wrg1JB6z4NEKTVGjvqBcQ=
+	t=1752585838; cv=none; b=TfO8k0gfmdMjAWgwjEY5MS+7k7WgEnt008jdiEde+9zYT/x7wFrFNaEAEm+VIwCqmwPDnCaUrlS3rSlC64h9jWmZpYKl9Rwt6HwqUaZ15864qb6WetYK2/JG+J86WmUB6tmxV+isPdJLo0VNp7ChG8lGN/Z7B9LWH+UKB1aOrhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752533193; c=relaxed/simple;
-	bh=KHikLRAvLAWccDh6KWRsx4zSb7I4VWCifL/HsMOZbkg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jiIB+TpdZr6hjMc5PXd0ePvB5qtZwOEXgv1TDm5UgyYTqwtxVK5F0hSXd4juUzz/MpNk4hxhSmOJ3u0pNeTySAZDxlqlfcGESG5xK+MdSl3R+BGONq5FUEhXxUhhxdboddS3fmnidn779JWKHFJJWh6wmzNKtg8d4PUtM2X5iSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=oLBMumwn; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1752585838; c=relaxed/simple;
+	bh=kXdFNneQJlViZW8aFNu2Wo0nKhuTK82N9UJKOX0x5tc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:content-type; b=LkB6RJJsn5gqnoCMT3BJTSHgeXPjhtwXkgYQYSwxFvNMkUJ2uOhobXq1eYZuXj2JtYE8Z5fZ+GBuJfEotjecrFBV4DArpqJBxhTHWNypie09TV2ygt9wcRC8UgqihYlwpMTWpaGc0fIC94YWi9DhJ5DbYWqMtF20oPG6z2N8InE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=M5cq5ieS; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="oLBMumwn"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1752533191; x=1784069191;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=KHikLRAvLAWccDh6KWRsx4zSb7I4VWCifL/HsMOZbkg=;
-  b=oLBMumwnRjVtDKrZAot7Tkr2oo9N5G7DqgPEWJSxflWIa29cH9RjLAt1
-   5Td+Rwl74mihlQhHat3t+1krpYrws53VSrNvJRjTHF+UB5Y07mVqDMuR4
-   yt0quXluRSn1eZJUn276Y/U20OSIYlSH8fJYbBoOYk6ZX2lNcb+8k9b95
-   4+o7xiD7fvJVyt95WvrZsE7HgMW2hPgQCTHxACBtzCQssOzMCIVg9WIzS
-   eOGmM3xROSVjr7Y2Ubn5B1Rg5QyyS3rQkJUAyMs8DJoHI9D3dfWjoLU4M
-   gRK5sUSphiB8Ybc0P1F1uLP1mN78R6X3kzKIlLJ+hApDFaM3u9C8Xjois
-   Q==;
-X-CSE-ConnectionGUID: UoB1g/vPQSm+vSsU55eycw==
-X-CSE-MsgGUID: 8k74TcKEQFOfYlDSkLOqbg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11491"; a="66097481"
-X-IronPort-AV: E=Sophos;i="6.16,312,1744095600"; 
-   d="scan'208";a="66097481"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2025 15:46:30 -0700
-X-CSE-ConnectionGUID: Xqr59AfASL+Hq7baB79qbA==
-X-CSE-MsgGUID: 5UWPc+QlRviidl2ANpHszw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,312,1744095600"; 
-   d="scan'208";a="157763698"
-Received: from tfalcon-desk.amr.corp.intel.com (HELO [10.125.111.97]) ([10.125.111.97])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2025 15:46:29 -0700
-Message-ID: <bb66089e-71e8-4d0d-89b3-ed2e30a482f0@intel.com>
-Date: Mon, 14 Jul 2025 15:46:28 -0700
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="M5cq5ieS"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1752585835;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=I+njjEeJUfoyHVChoDSaOpmOHc6CwMwYKPYbj7nDuS0=;
+	b=M5cq5ieS9rO+feWcHJHj9JnVBYteNMjQ5AoUJMO0myQCcEgCEo2RkImDrxad3etoNo3Mkw
+	56gNSP/CgfaDijdRluJP6h8AEHilziODhcfWbt4+Dr47vJqt0IrkAI9f8ESbv+JlGtHuEy
+	CkjurXOnxOtlVzgBqF0Op30HqXOF7ow=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-692-W6h_VBhxOeGf3CkjXDdHJg-1; Tue, 15 Jul 2025 09:23:54 -0400
+X-MC-Unique: W6h_VBhxOeGf3CkjXDdHJg-1
+X-Mimecast-MFC-AGG-ID: W6h_VBhxOeGf3CkjXDdHJg_1752585833
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-451d7de4ae3so35045335e9.2
+        for <nvdimm@lists.linux.dev>; Tue, 15 Jul 2025 06:23:53 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752585833; x=1753190633;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=I+njjEeJUfoyHVChoDSaOpmOHc6CwMwYKPYbj7nDuS0=;
+        b=EIFpqxCaxw0LlqzOH9Rqj1rqmeJtbd95zw/xN/Z8isFiw1ikNffZ58xfyL+MJtj6Ol
+         U44dwuwmYFzigawJEVoKUmXD+wvHtovS4pTRuGFaCwgTRWznc4/SnNYU6UBDUgO1W1lR
+         JSCwdjjtnQ724chsFwgT0OwsRE+HgEE12edxxnOmk0ZUAySk3I6uD4/Fb6RJZpiO98pd
+         OW4VrxjuUmcXcHQV97FXKPBd0YR9/bfQoKEdP82RtLwvLL9veXF3gkTJUgzuyqQp3nWX
+         QoKL+SoPoqRTALI38Y2Oo5jJpLW6hZaTiCrodzdlE+XLdg3Qk2n1JWI9zsN4LK5vJ4yw
+         Ck0w==
+X-Forwarded-Encrypted: i=1; AJvYcCUoZOdx3bmalCrXeEA8uZJDqIRACr6S+Dz+PFkG+lEXIwE/Wy/EtKOVq2ULiEmIq5CN7i0yolQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzhC1VU5yq4Fx4IV4EXBaGGwumFgfPqbu2ykeWDveWfv2KIgYF6
+	ql9eG6hi1uZ4Skck1SLLGS/+0n7zRkTpKC5l56WXysudRuJ/2JNf77lQnHNWxvhsvn6XtTHM+BB
+	1BsMv4QQREHYrGU4xa+7WgQDOpuo9lGsgx5YjXmGnqPIYzAdZGzKcUu8dlRdtqw0HYQYW
+X-Gm-Gg: ASbGncvW1yMmTIUalL0y4p7ZQCRftaYERl2BOGYU7VeqPrCFGzSorv59cQM2g6ijLLF
+	Ii0kzrIE0YulDjypkNCAXtKkYQVBX8Awrkv493W8I2gfN0KWukgUqlmyRad0tbWxFYQugXa/UFA
+	VLoiCIq4lGkpdoJHSFzQPftvpsboV280eb5JzdnGONvLYxMMxAw+AnEyYBq/CTbXqrVr30TxuKY
+	6FQwK+govLnWRjaT0bG11ols4MrpU3D2ugzZsgYMiyuwVYfbPWBm+K3X4khWyy+2Nclf4sAhLn2
+	m2iJ1hZ5dT0jOygpn623ZBiA9bO+1PzIvO7Rhz/Gx6M1XRq7afmDbkTGlaWVA67nEhdZw3kyoCM
+	tk+Fpa9BJaETVuOGQkwGjzXZu
+X-Received: by 2002:adf:9b97:0:b0:3a5:7944:c9b with SMTP id ffacd0b85a97d-3b5f18808c9mr9743505f8f.16.1752585832756;
+        Tue, 15 Jul 2025 06:23:52 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHEkZDRkA14IcXQD+lQPeKL7StailaRmICkp2BJ1WOb6DFxYeWLDyvLUcHDBHF9Bf7MHtKqWA==
+X-Received: by 2002:adf:9b97:0:b0:3a5:7944:c9b with SMTP id ffacd0b85a97d-3b5f18808c9mr9743472f8f.16.1752585832205;
+        Tue, 15 Jul 2025 06:23:52 -0700 (PDT)
+Received: from localhost (p200300d82f2849002c244e201f219fbd.dip0.t-ipconnect.de. [2003:d8:2f28:4900:2c24:4e20:1f21:9fbd])
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-3b5e8e14e82sm15213383f8f.71.2025.07.15.06.23.50
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 15 Jul 2025 06:23:51 -0700 (PDT)
+From: David Hildenbrand <david@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org,
+	xen-devel@lists.xenproject.org,
+	linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	David Hildenbrand <david@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Juergen Gross <jgross@suse.com>,
+	Stefano Stabellini <sstabellini@kernel.org>,
+	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Nico Pache <npache@redhat.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>,
+	Barry Song <baohua@kernel.org>,
+	Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Hugh Dickins <hughd@google.com>,
+	Oscar Salvador <osalvador@suse.de>,
+	Lance Yang <lance.yang@linux.dev>
+Subject: [PATCH v1 0/9] mm: vm_normal_page*() improvements
+Date: Tue, 15 Jul 2025 15:23:41 +0200
+Message-ID: <20250715132350.2448901-1-david@redhat.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [NDCTL PATCH v2] cxl: Add helper function to verify port is in
- memdev hierarchy
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-Cc: "Schofield, Alison" <alison.schofield@intel.com>
-References: <20250711223350.3196213-1-dave.jiang@intel.com>
- <4da519268938070b448f56d55535f0e3ea4585b0.camel@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <4da519268938070b448f56d55535f0e3ea4585b0.camel@intel.com>
-Content-Type: text/plain; charset=UTF-8
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: AQocYBhC8RwLZ6M9Q0hiezkKuoo0x1Nj26TPxcBFnY8_1752585833
+X-Mimecast-Originator: redhat.com
 Content-Transfer-Encoding: 8bit
+content-type: text/plain; charset="US-ASCII"; x-default=true
+
+This is the follow-up of [1]:
+	[PATCH RFC 00/14] mm: vm_normal_page*() + CoW PFNMAP improvements
+
+Based on mm/mm-new. I dropped the CoW PFNMAP changes for now, still
+working on a better way to sort all that out cleanly.
+
+Cleanup and unify vm_normal_page_*() handling, also marking the
+huge zerofolio as special in the PMD. Add+use vm_normal_page_pud() and
+cleanup that XEN vm_ops->find_special_page thingy.
+
+There are plans of using vm_normal_page_*() more widely soon.
+
+Briefly tested on UML (making sure vm_normal_page() still works as expected
+without pte_special() support) and on x86-64 with a bunch of tests.
+
+[1] https://lkml.kernel.org/r/20250617154345.2494405-1-david@redhat.com
+
+RFC -> v1:
+* Dropped the highest_memmap_pfn removal stuff and instead added
+  "mm/memory: convert print_bad_pte() to print_bad_page_map()"
+* Dropped "mm: compare pfns only if the entry is present when inserting
+  pfns/pages" for now, will probably clean that up separately.
+* Dropped "mm: remove "horrible special case to handle copy-on-write
+  behaviour"", and "mm: drop addr parameter from vm_normal_*_pmd()" will
+  require more thought
+* "mm/huge_memory: support huge zero folio in vmf_insert_folio_pmd()"
+ -> Extend patch description.
+* "fs/dax: use vmf_insert_folio_pmd() to insert the huge zero folio"
+ -> Extend patch description.
+* "mm/huge_memory: mark PMD mappings of the huge zero folio special"
+ -> Remove comment from vm_normal_page_pmd().
+* "mm/memory: factor out common code from vm_normal_page_*()"
+ -> Adjust to print_bad_page_map()/highest_memmap_pfn changes.
+ -> Add proper kernel doc to all involved functions
+* "mm: introduce and use vm_normal_page_pud()"
+ -> Adjust to print_bad_page_map() changes.
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Lance Yang <lance.yang@linux.dev>
+
+David Hildenbrand (9):
+  mm/huge_memory: move more common code into insert_pmd()
+  mm/huge_memory: move more common code into insert_pud()
+  mm/huge_memory: support huge zero folio in vmf_insert_folio_pmd()
+  fs/dax: use vmf_insert_folio_pmd() to insert the huge zero folio
+  mm/huge_memory: mark PMD mappings of the huge zero folio special
+  mm/memory: convert print_bad_pte() to print_bad_page_map()
+  mm/memory: factor out common code from vm_normal_page_*()
+  mm: introduce and use vm_normal_page_pud()
+  mm: rename vm_ops->find_special_page() to vm_ops->find_normal_page()
+
+ drivers/xen/Kconfig              |   1 +
+ drivers/xen/gntdev.c             |   5 +-
+ fs/dax.c                         |  47 +----
+ include/linux/mm.h               |  20 +-
+ mm/Kconfig                       |   2 +
+ mm/huge_memory.c                 | 119 ++++-------
+ mm/memory.c                      | 346 ++++++++++++++++++++++---------
+ mm/pagewalk.c                    |  20 +-
+ tools/testing/vma/vma_internal.h |  18 +-
+ 9 files changed, 343 insertions(+), 235 deletions(-)
 
 
-
-On 7/14/25 3:27 PM, Verma, Vishal L wrote:
-> On Fri, 2025-07-11 at 15:33 -0700, Dave Jiang wrote:
->> 'cxl enable-port -m' uses cxl_port_get_dport_by_memdev() to find the
->> memdevs that are associated with a port in order to enable those
->> associated memdevs. When the kernel switch to delayed dport
->> initialization by enumerating the dports during memdev probe, the
->> dports are no longer valid until the memdev is probed. This means
->> that cxl_port_get_dport_by_memdev() will not find any memdevs under
->> the port.
->>
->> Add a new helper function cxl_port_is_memdev_hierarchy() that checks if a
-> 
-> Stale commit message - since the actual helper is called
-> cxl_memdev_is_port_ancestor() ?
-
-Ooops. Maybe Alison can fix it up when she applies if there are no other changes.
-
-> 
->> port is in the memdev hierarchy via the memdev->host_path where the sysfs
->> path contains all the devices in the hierarchy. This call is also backward
->> compatible with the old behavior.
->>
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
->> ---
->> v2:
->> - Remove usages of cxl_port_get_dport_by_memdev() and add documentation to explain
->>   when cxl_port_get_dport_by_memdev() should be used. (Alison)
->> ---
->>  Documentation/cxl/lib/libcxl.txt |  5 +++++
->>  cxl/filter.c                     |  2 +-
->>  cxl/lib/libcxl.c                 | 31 +++++++++++++++++++++++++++++++
->>  cxl/lib/libcxl.sym               |  5 +++++
->>  cxl/libcxl.h                     |  3 +++
->>  cxl/port.c                       |  4 ++--
->>  6 files changed, 47 insertions(+), 3 deletions(-)
+base-commit: 64d19a2cdb7b62bcea83d9309d83e06d7aff4722
+-- 
+2.50.1
 
