@@ -1,73 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE7ED7346F
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 20:14:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 635592AEF5
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 20:31:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752783281; cv=none; b=XhetfEtTOZDKxU2E+JDg/P0b3hbxbA6ikVWpbdBGFegnfEpCmxpXMEcrm/2p2UVvwU2nMjpWeuAOugyH+W72GwSiGVDy1ZHZ3L3KxNIbkKcfMFBfI/rL5KfYbQrcrMQQt+uasT8vBlyE8W2JrKdpQEpPvQrxM2xZVaWVs6o2vP4=
+	t=1752784297; cv=none; b=hG8TMgnmR6apV7tpbbOsQBiGRAtIEhgkCPq6bn++bEhkkUIm5Gt2Cy9aFpu8RheV/YjNVM73Uzw4uuGex++jBTpU3X/zo86aRouUY3OcBZMsH4aH02tpoAXnezJ04Oft+Vig8Wo4MvspER85WB/OnC5QEBPi9A5s0yXRi/KP/AE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752783281; c=relaxed/simple;
-	bh=9dgH0W8+tWamyM2cWuqdarjrgO6ZCJ5nf+a4W42EmOc=;
+	s=arc-20240116; t=1752784297; c=relaxed/simple;
+	bh=pFPFJKnPh+LxRAPYyWV0RCCGoZ/H3zxmjWKAYb/1YDg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=chmN0RQZGVwU6OWG3NRqU/EOW4g7nPri7YdgsGs3K7VtrT622EGXikrVNvM92szQiYVnEDajRNugfr4PwcABVipD3kOOXwQVKZwAsUn9w+qtNSnnvJ4bAw/vQevKYxsJkJEO6qH6mvjlVsC1jMWNG7bOPMlGto/7uq3CEsvkYWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=XNE0yPlY; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=BZYYRaLfjR5kc4imgaqUjH7f3xo5rC45Ik1Qw9SiIJ8xnA6C339VUqo4Poqv01nTEPHmWlvJkbu5NuN0hs3r0V0wcFPu7SL8cqHBnOZWYx4NiFutwk8E+eds3fDbjNu+wEFkcbzSYBNHV53umQKWmvrKVdSItK75YOu4c4/J3os=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=UbCdS9x5; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XNE0yPlY"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UbCdS9x5"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1752783278;
+	s=mimecast20190719; t=1752784294;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=QlYYu3k/BYRc6Kiix2dPUNypQutbN2D0tRZWGefeAe0=;
-	b=XNE0yPlYp9iRm06Xm9KSQLYTiZD9enAu+Pq2ysYWnqHrzSTrIGwgsnI2I2HtetYPHV42lh
-	qoD39C65lPaQvKK3Psag3wRDYMkXGRlaYcmE4KFElPyuzWJ5Y7UbiiMHbC64XdRvHhRYxO
-	eoyOv2dFFtvrpXw6FBhygulcYgvybCk=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=wdJcKQDQ4sesr9sR1PHs3Eav2q9b1afpxqhEJb8a738=;
+	b=UbCdS9x5DoSAxDqxzkrwZEd6Cqc5uwohWLqFDEXPG1FR+cz8tH+wwGekf1zoVTKwb/ltp8
+	NeMC5W9FRlOkQuVx9vWOoaCapjg0pyyhzpHNLou9a3gNbfzbOYjpXzOy/Pq55oQ5hxYqGo
+	sMa9PkJcfPQyAnStmMqoauVF4WORz3w=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-52-ucukA8O0Ov2n_SSnnYdqGA-1; Thu, 17 Jul 2025 16:14:37 -0400
-X-MC-Unique: ucukA8O0Ov2n_SSnnYdqGA-1
-X-Mimecast-MFC-AGG-ID: ucukA8O0Ov2n_SSnnYdqGA_1752783276
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3a5281ba3a4so883868f8f.0
-        for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 13:14:37 -0700 (PDT)
+ us-mta-534-kUAhqqo_MmKzYxMzwJPQnw-1; Thu, 17 Jul 2025 16:31:33 -0400
+X-MC-Unique: kUAhqqo_MmKzYxMzwJPQnw-1
+X-Mimecast-MFC-AGG-ID: kUAhqqo_MmKzYxMzwJPQnw_1752784292
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3af3c860ed7so638236f8f.1
+        for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 13:31:32 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752783276; x=1753388076;
+        d=1e100.net; s=20230601; t=1752784292; x=1753389092;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=QlYYu3k/BYRc6Kiix2dPUNypQutbN2D0tRZWGefeAe0=;
-        b=aQpc4lIlxA18DJN3sDjaxAa8ohb61du5hutHY+qAHUGWU6dGYClXiwRnZxNU06263z
-         ycnWfsyrKPylMtYrBVNrvwMDLlLNBEMyJ22AcF2MzFGzqqNjpiEvYsEMvsi9Kd53j95X
-         2buneJAbfeQyiJhVIecBsUtUAQUWKkY1PpohYj/NmEuJ3IZmBgEWWZa1R0k+9JdOJVIs
-         CU7RpvIzbUruJ9oEqDfVzy0HluFW/qfXwWMypAX00iKUS0xGRf6+nNHWH3kPKNu2Kh50
-         /nb2/7MKqWz7zkOcI1WlQMfSDdnek3gr8z1igJgEUy2jOSotiIBmaQhqdfqu9x0DGTFc
-         ZzXA==
-X-Forwarded-Encrypted: i=1; AJvYcCW3LbCxMXIY8j+CKgUErxysicqOGyjSvr+f7VbdKlBLPSQLRHSexi23t6AUkLJrAMs3k7sL35U=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzpWlRQ8qub55OtFL+OI3ziWEV/jNDs+0zAgGmxnOA1Um5TmPNu
-	O0Qm3vnATLQBDxItPasKIlMnpJEvycg5beCuoJmA36xnyxXPBRgmn0Vyu7hXvVZK33TKBfd/xx/
-	q35eYVlHzLd3e5MxSlpU/0PQtNsZ7gmTBwLEB6F9kmWIh9v+AbdYXdxJBRA==
-X-Gm-Gg: ASbGncteWra8OIjqthXqUM4Dge1ZIZy5Qmsw8S9p9sbYCP+rNk+ieiDcoSNn0DHySZC
-	ieROwxt/s+J/3wB8z1/FiE02myfE0XMiQy0xRZ/AyBnqIbcbZlZZrXsYp2Y8dneGRe+cWYCEfqW
-	BYCFOthmiau9+cEh4qPiBo8y4cp7W6lrNWyjArFRcrqNfcDpVs4MC8HSrxAYSj33WmWSLC4qdaR
-	qSZJDw6+eCqlZfzM/7opOqzCuBNa+pdpBbqEoDOvrP6kce5CJUbrBy6+rYpn8qmxwY9H5+aXKPa
-	s1Vl/Ovjdb+SJ4m7ZRsTHNdPpXeZM3CDwNXvv34VsGGof6GdrnGTRidJIS4ZJsSSg73bJDhyq04
-	QLT4vAJx1oAx8j0hxTav0w39qadebD023rm6WwTx/r2gSu81nM3aDTgjBOzYrxeKJ
-X-Received: by 2002:a05:6000:992:b0:3a4:f663:acb9 with SMTP id ffacd0b85a97d-3b61b0ec0dbmr197227f8f.9.1752783276431;
-        Thu, 17 Jul 2025 13:14:36 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEXZyoKOBqIpYS/jO2KmsvWvIMoN9zXhccC8DWWsod9nvdf0NNHfT+L/AueK3GG0g1XLIDWaQ==
-X-Received: by 2002:a05:6000:992:b0:3a4:f663:acb9 with SMTP id ffacd0b85a97d-3b61b0ec0dbmr197194f8f.9.1752783275956;
-        Thu, 17 Jul 2025 13:14:35 -0700 (PDT)
+        bh=wdJcKQDQ4sesr9sR1PHs3Eav2q9b1afpxqhEJb8a738=;
+        b=C4GZ1MdKVhh8ykPDPyrp8g9loDJG99RPcOptZkoySyXQ59E+o5q1XVCCCnipzlnai+
+         jawgXvSzbQfH3pIwBc0g7CKKAmtYaZDVoeAbSh/1IYZl/y4oTB9fXqwiL3L0mZwu6AEc
+         boKV2y59bpiJnm/a4ysb5ysrh5d5+wDYEKfQ6uDao5EGKzL02r+t5slelxTBgbf1N/TZ
+         KveJjVv9vK2XZ95vGiBkXOZKDscHjh+ecVK9fhJs04+0lSZSQ5FNR4nHbs2XWfcc0eRV
+         Quzn8+wWjpEJK9hi1gWU0Yy/vnDScLNgT8d+KkyLXaNXd6RgT0hbmBJp72cKlwzckVpr
+         pGEQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV9r1s3nuLjhLb5ZqwY/Q0YribA32+APEYix/zjFJM/EdApMdS52Y7HxEBIhQnnFFQHJjbwv58=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yycp6Mv9c4HQLqLMmkR5w4utuDrh7+P/uzbhFkGv0iFeHUylDiB
+	UEDF2cmKMYB1kyHFgEV7r7Sh1AB14V34jRRc/bRrpwcypDvfiLHuNLh5kOd7WqlhyBpuLnlHriM
+	nwbwSa4ESkiMx9CB4YhnA04nxbTJ5kq0bqz9XoWNaw+nleS9HleGGyxHUHQ==
+X-Gm-Gg: ASbGncvqDLv4D/U0lF8JS3yQ+9HRerzSqmRv86t/z13BwLfPHFYdryAa2mLXcAek3To
+	81+vhoGNxhcFdLXERNnGHT2aIz8xapvM+XZGQ3YEo0meCLYURrZtHog2ElF9eOOw4r32jcWcQ3m
+	OM9/rvSWj9lSG06Vkrmu6859W/n1AZ9IeQi3hkUniQfonS1rz6wXVlbcqId1D2BPfkx6HcI0ylE
+	4fuX+HQjQ3u+Q8WpTgrQsgAE0iIvYW0zo5i4Xw95f66S4Ir70PHm2Ic9VkZgWopASlkwqDy75jO
+	bg8NUFyStJzxjGnk5vdK9zXApRyRNRr23BXQtQ0Km8bvAKFCAKGUT0KUWIOeTSvG27vt4CBvJCK
+	7QPAKoKmIYXcVnisT+YAjWzRA18zwHJDYoiNKWF9W7qLMIxiLdtrdvYHdpBDXSdL2
+X-Received: by 2002:a05:6000:490c:b0:3a4:d02e:84af with SMTP id ffacd0b85a97d-3b60e5531d6mr5324998f8f.58.1752784291436;
+        Thu, 17 Jul 2025 13:31:31 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFIXuB/mCdSLCE80mgA6xcOKmEIZL5NFnU1Qt11L0ORhR2cLptcTnShZQeEWrqbZqx0e0NMtA==
+X-Received: by 2002:a05:6000:490c:b0:3a4:d02e:84af with SMTP id ffacd0b85a97d-3b60e5531d6mr5324966f8f.58.1752784290908;
+        Thu, 17 Jul 2025 13:31:30 -0700 (PDT)
 Received: from ?IPV6:2003:d8:2f35:2b00:b1a5:704a:6a0c:9ae? (p200300d82f352b00b1a5704a6a0c09ae.dip0.t-ipconnect.de. [2003:d8:2f35:2b00:b1a5:704a:6a0c:9ae])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4562e8026e4sm59374615e9.11.2025.07.17.13.14.33
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4562e7f4289sm60881935e9.7.2025.07.17.13.31.29
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 17 Jul 2025 13:14:35 -0700 (PDT)
-Message-ID: <fdc7f162-e027-493c-bfa1-3e3905930c24@redhat.com>
-Date: Thu, 17 Jul 2025 22:14:33 +0200
+        Thu, 17 Jul 2025 13:31:30 -0700 (PDT)
+Message-ID: <7701f2e8-ae17-4367-b260-925d1d3cd4df@redhat.com>
+Date: Thu, 17 Jul 2025 22:31:28 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,7 +75,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 8/9] mm: introduce and use vm_normal_page_pud()
+Subject: Re: [PATCH v2 5/9] mm/huge_memory: mark PMD mappings of the huge zero
+ folio special
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  xen-devel@lists.xenproject.org, linux-fsdevel@vger.kernel.org,
@@ -97,8 +98,8 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  Hugh Dickins <hughd@google.com>, Oscar Salvador <osalvador@suse.de>,
  Lance Yang <lance.yang@linux.dev>
 References: <20250717115212.1825089-1-david@redhat.com>
- <20250717115212.1825089-9-david@redhat.com>
- <4750f39e-279b-4806-9eee-73f9fcc58187@lucifer.local>
+ <20250717115212.1825089-6-david@redhat.com>
+ <46c9a90c-46b8-4136-9890-b9b2b97ee1bb@lucifer.local>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -145,28 +146,172 @@ Autocrypt: addr=david@redhat.com; keydata=
  WBe5lqcozu9LpNDH/brVSzHCSb7vjNGvvSVESDuoiHK8gNlf0v+epy5WYd7CGAgODPvDShGN
  g3eXuA==
 Organization: Red Hat
-In-Reply-To: <4750f39e-279b-4806-9eee-73f9fcc58187@lucifer.local>
+In-Reply-To: <46c9a90c-46b8-4136-9890-b9b2b97ee1bb@lucifer.local>
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: 2tOmsYceWr5CPluv9TTmh8Xfk2rG9kZnhD9VnWTvd24_1752783276
+X-Mimecast-MFC-PROC-ID: pw_61mG70Pl9O9CkfLyu2viPp8MsHmIIp6Mq0KaiEDM_1752784292
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 17.07.25 22:03, Lorenzo Stoakes wrote:
-> On Thu, Jul 17, 2025 at 01:52:11PM +0200, David Hildenbrand wrote:
->> Let's introduce vm_normal_page_pud(), which ends up being fairly simple
->> because of our new common helpers and there not being a PUD-sized zero
->> folio.
->>
->> Use vm_normal_page_pud() in folio_walk_start() to resolve a TODO,
->> structuring the code like the other (pmd/pte) cases. Defer
->> introducing vm_normal_folio_pud() until really used.
+On 17.07.25 20:29, Lorenzo Stoakes wrote:
+> On Thu, Jul 17, 2025 at 01:52:08PM +0200, David Hildenbrand wrote:
+>> The huge zero folio is refcounted (+mapcounted -- is that a word?)
+>> differently than "normal" folios, similarly (but different) to the ordinary
+>> shared zeropage.
 > 
-> I mean fine :P but does anybody really use this?
+> Yeah, I sort of wonder if we shouldn't just _not_ do any of that with zero
+> pages?
 
-This is a unified PFN walker (!hugetlb + hugetlb), so you can easily run 
-into hugetlb PUDs, DAX PUDs and huge pfnmap (vfio) PUDs :)
+I wish we could get rid of the weird refcounting of the huge zero folio 
+and get rid of the shrinker. But as long as the shrinker exists, I'm 
+afraid that weird per-process refcounting must stay.
+
+> 
+> But for some reason the huge zero page wants to exist or not exist based on
+> usage for one. Which is stupid to me.
+
+Yes, I will try at some point (once we have the static huge zero folio) 
+to remove the shrinker part and make it always static. Well, at least 
+for reasonable architectures.
+
+> 
+>>
+>> For this reason, we special-case these pages in
+>> vm_normal_page*/vm_normal_folio*, and only allow selected callers to
+>> still use them (e.g., GUP can still take a reference on them).
+>>
+>> vm_normal_page_pmd() already filters out the huge zero folio. However,
+>> so far we are not marking it as special like we do with the ordinary
+>> shared zeropage. Let's mark it as special, so we can further refactor
+>> vm_normal_page_pmd() and vm_normal_page().
+>>
+>> While at it, update the doc regarding the shared zero folios.
+> 
+> Hmm I wonder how this will interact with the static PMD series at [0]?
+
+No, it shouldn't.
+
+> 
+> I wonder if more use of that might result in some weirdness with refcounting
+> etc.?
+
+I don't think so.
+
+> 
+> Also, that series was (though I reviewed against it) moving stuff that
+> references the huge zero folio out of there, but also generally allows
+> access and mapping of this folio via largest_zero_folio() so not only via
+> insert_pmd().
+> 
+> So we're going to end up with mappings of this that are not marked special
+> that are potentially going to have refcount/mapcount manipulation that
+> contradict what you're doing here perhaps?
+
+I don't think so. It's just like having the existing static (small) 
+shared zeropage where the same rules about refcounting+mapcounting apply.
+
+> 
+> [0]: https://lore.kernel.org/all/20250707142319.319642-1-kernel@pankajraghav.com/
+> 
+>>
+>> Reviewed-by: Oscar Salvador <osalvador@suse.de>
+>> Signed-off-by: David Hildenbrand <david@redhat.com>
+> 
+> I looked thorugh places that use vm_normal_page_pm() (other than decl of
+> function):
+> 
+> fs/proc/task_mmu.c - seems to handle NULL page correctly + still undertsands zero page
+> mm/pagewalk.c - correctly handles NULL page + huge zero page
+> mm/huge_memory.c - can_change_pmd_writable() correctly returns false.
+> 
+> And all seems to work wtih this change.
+> 
+> Overall, other than concerns above + nits below LGTM, we should treat all
+> the zero folios the same in this regard, so:
+> 
+> Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+
+Thanks!
+
+> 
+>> ---
+>>   mm/huge_memory.c |  5 ++++-
+>>   mm/memory.c      | 14 +++++++++-----
+>>   2 files changed, 13 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+>> index db08c37b87077..3f9a27812a590 100644
+>> --- a/mm/huge_memory.c
+>> +++ b/mm/huge_memory.c
+>> @@ -1320,6 +1320,7 @@ static void set_huge_zero_folio(pgtable_t pgtable, struct mm_struct *mm,
+>>   {
+>>   	pmd_t entry;
+>>   	entry = folio_mk_pmd(zero_folio, vma->vm_page_prot);
+>> +	entry = pmd_mkspecial(entry);
+>>   	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+>>   	set_pmd_at(mm, haddr, pmd, entry);
+>>   	mm_inc_nr_ptes(mm);
+>> @@ -1429,7 +1430,9 @@ static vm_fault_t insert_pmd(struct vm_area_struct *vma, unsigned long addr,
+>>   	if (fop.is_folio) {
+>>   		entry = folio_mk_pmd(fop.folio, vma->vm_page_prot);
+>>
+>> -		if (!is_huge_zero_folio(fop.folio)) {
+>> +		if (is_huge_zero_folio(fop.folio)) {
+>> +			entry = pmd_mkspecial(entry);
+>> +		} else {
+>>   			folio_get(fop.folio);
+>>   			folio_add_file_rmap_pmd(fop.folio, &fop.folio->page, vma);
+>>   			add_mm_counter(mm, mm_counter_file(fop.folio), HPAGE_PMD_NR);
+>> diff --git a/mm/memory.c b/mm/memory.c
+>> index 92fd18a5d8d1f..173eb6267e0ac 100644
+>> --- a/mm/memory.c
+>> +++ b/mm/memory.c
+>> @@ -537,7 +537,13 @@ static void print_bad_pte(struct vm_area_struct *vma, unsigned long addr,
+>>    *
+>>    * "Special" mappings do not wish to be associated with a "struct page" (either
+>>    * it doesn't exist, or it exists but they don't want to touch it). In this
+>> - * case, NULL is returned here. "Normal" mappings do have a struct page.
+>> + * case, NULL is returned here. "Normal" mappings do have a struct page and
+>> + * are ordinarily refcounted.
+>> + *
+>> + * Page mappings of the shared zero folios are always considered "special", as
+>> + * they are not ordinarily refcounted. However, selected page table walkers
+>> + * (such as GUP) can still identify these mappings and work with the
+>> + * underlying "struct page".
+> 
+> I feel like we need more detail or something more explicit about what 'not
+> ordinary' refcounting constitutes. This is a bit vague.
+
+Hm, I am not sure this is the correct place to document that. But let me 
+see if I can come up with something reasonable
+
+(like, the refcount and mapcount of these folios is never adjusted when 
+mapping them into page tables)
+
+> 
+>>    *
+>>    * There are 2 broad cases. Firstly, an architecture may define a pte_special()
+>>    * pte bit, in which case this function is trivial. Secondly, an architecture
+>> @@ -567,9 +573,8 @@ static void print_bad_pte(struct vm_area_struct *vma, unsigned long addr,
+>>    *
+>>    * VM_MIXEDMAP mappings can likewise contain memory with or without "struct
+>>    * page" backing, however the difference is that _all_ pages with a struct
+>> - * page (that is, those where pfn_valid is true) are refcounted and considered
+>> - * normal pages by the VM. The only exception are zeropages, which are
+>> - * *never* refcounted.
+>> + * page (that is, those where pfn_valid is true, except the shared zero
+>> + * folios) are refcounted and considered normal pages by the VM.
+>>    *
+>>    * The disadvantage is that pages are refcounted (which can be slower and
+>>    * simply not an option for some PFNMAP users). The advantage is that we
+>> @@ -649,7 +654,6 @@ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
+> 
+> You know I"m semi-ashamed to admit I didn't even know this function
+> exists. But yikes that we have a separate function like this just for PMDs.
+
+It's a bit new-ish :)
+
 
 -- 
 Cheers,
