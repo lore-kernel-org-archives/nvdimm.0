@@ -1,242 +1,263 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2058.outbound.protection.outlook.com [40.107.243.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74255253931
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 07:35:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752737709; cv=none; b=PwMYPjwjDVkcKGChYEX/taHTQn+VqUXDAnBCo3tYYGkdq6OO/B74S88ZB2uP6dif45bgKMx5mqkP477rgN797GC0gduPBeVcDjCo09IfYe8CmEmYcyrjEfZ0oZL9d1o5XFlh+mx+jxG5vO3uOEXwcHhie+xPY5cb+WgZ/H9zXTo=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752737709; c=relaxed/simple;
-	bh=+PQqRj/+APqDPfJKyjrfclx/vTYwfsNsxaUV9DAeknA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=uFIiLHP5N277D11pZFXxCMpoEm3zIM7dm1uNiBPoer5CeEijtrn7YfS4NDwmswna+GdlbJ8uWssGD2abAXa6O54CB2JfoYM1Tcd5TwG2B+7s/uKu1x6Yxi9ZTI43KfIRK4wqO5R+LxEX2O/0Sna75HaEAv6WrZKgjRKCM0pXbhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=If+ElQ16; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A039E1C84DF
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 08:38:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.58
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1752741527; cv=fail; b=XOiB/snYEQ63BMk4BzhRY+tcXruSUHF0wbuISjT+p+QUsZAh2DmoLZVdlAhz585IdCDh2ezT3oXF1Mtb80cOaClT9K3xG9EKv7Z8TfsWCnVU5u1iZjsM5HNNrbLfdg9mNNNI2OJA6idpO5V6hiDdEnoXrOjF2V0NV+dIJhiWXcM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1752741527; c=relaxed/simple;
+	bh=SgHsUWmI5t5tmuABUzbzFTSUtmxGgv14n2b5VP56YZU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=Qs0HuryOhuWve36nnAUMGEqHB+ZhM59v0CbuPTaWgXMBsSbmAUYGAdl7D1hvLC4YCxz6xdVTu+yVY22wMWaVLe31M6HxZLBsGNgCTVOYGUA00L8Il7rya51U4ix/LbwX5uC/orfgJVwA+ky72JAdcrT/TpgoRx1oaFClb/Zb1E4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=savuiPVu; arc=fail smtp.client-ip=40.107.243.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="If+ElQ16"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1752737706;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=dujvEOHGoGkKIbh2VcvWWUHTqJBgDW3Vgo4cGXVPWNY=;
-	b=If+ElQ16GalXdMYvqQgQWxUcnUYTmHP8pkM2iSnPGze89/riUnVDuCf+stownz4XvAm/Ul
-	Cv6ZiXcrZfvVxbKuz9i54/mpyVZbjY71mDlcc9fo/qWcjo0qbMYFmIsIiUQVBD6q1Uf2yj
-	Y8k+0jdfFpe6G0XlYPVY21KzWB10p9M=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-437-u8k5q24NO-OTIIyeUnIUHw-1; Thu, 17 Jul 2025 03:35:05 -0400
-X-MC-Unique: u8k5q24NO-OTIIyeUnIUHw-1
-X-Mimecast-MFC-AGG-ID: u8k5q24NO-OTIIyeUnIUHw_1752737704
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4561611dc2aso5603955e9.0
-        for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 00:35:05 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752737704; x=1753342504;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=dujvEOHGoGkKIbh2VcvWWUHTqJBgDW3Vgo4cGXVPWNY=;
-        b=dJNOiEz8u37FCq/bmZ76qFrDWw9xxVt7APy4vM1cuyagw9NA1SQQFtkVDu81bhrL8+
-         ieFW0h3kjMm7SdHVMVwGJEt4AaYFIPuKGKUK4Fvtld8o7hS0J/joQG2oqmqbECutDjer
-         hM6yxvRtRJVxMjhm4hhFltIwMHyIxRNhjQO5opPvmBxYIhHzyCvEMSHh6rYqcJFIWKbK
-         MOm24OfNowgD58ABBVZQtez0kjReDFbeOnyaeAkG5HED5uTH4ldBtLkRKN/dVZjQLWBy
-         NgedDYQxnos1KABcoI8UTnL1cCJMoa7jYyLRYAUzPntWQZgRxNfePh5S8BBYQP31oj05
-         TbHg==
-X-Forwarded-Encrypted: i=1; AJvYcCXpVSTQ1wcW1x3x67wljudnpLiuESWPTO75jfr2Z6jINixedLLivAk81mknJlzPwMkXlIl7/0M=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwMEodIYOFbodlawIvhxkAovfL70jtIvhP1CoyhAVVX1SAhNNOM
-	Tmi/st0bw4Kz8vHIm7wF9sb+GOpjTiiA4PBtdAunBVLNLJ5LPsmWnB+oqpYuAsp9X8VC5UGhbqv
-	kspVEwzu6IdMnoGlt6zlYfV72U+RQ6a1hMasAUKIwmmn33neMID5sJw2iHg==
-X-Gm-Gg: ASbGnctEztIrM5JZS5tFSA4g4noHO+5TPyNatFW0B6N9I0fXry2EcaQ3KKNgxDceuih
-	ed7cGSP4aGgkcMfaXclz++V4x+Y5mC1lydXVyT9MQsrU6WAmXWJFHDwfogpa27ih0k1aZCd3+/3
-	yvPLPR5aow5Ye0KEuyVi0muNLLqHz1ZcmSSyI7kehSqmaV1XQ6IgiWwig7h/jsxlpMUkrl1BstN
-	Y2WZ7duJtVc6mInWWTEdgpkSrWaOebIiGATFln1b0HvvCppUYv7cX7JSFBWX65eWNbiFSSDmnfa
-	7n10S6Z5U5j6EvDo456WuuKtGFUFzxGCZpmMvRsRJ/gUxSvvHkztd7T2DCtJPUw0S+k5jlBwQFp
-	W2xq94Ils5Rwghy+ipAr8q1AoCN094eBDGV++a6mzuFbAPqzqV2kZZOH7pxRJseEn
-X-Received: by 2002:a05:600c:820f:b0:43c:ec0a:ddfd with SMTP id 5b1f17b1804b1-4562ed57638mr48600575e9.6.1752737703920;
-        Thu, 17 Jul 2025 00:35:03 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEtTyLPcaxAHqteD7RhIpkLjY6DinVSnPGFlCTrTsNMCpipiqNTjkckjgG4pKMNN42D/qwMTg==
-X-Received: by 2002:a05:600c:820f:b0:43c:ec0a:ddfd with SMTP id 5b1f17b1804b1-4562ed57638mr48600205e9.6.1752737703460;
-        Thu, 17 Jul 2025 00:35:03 -0700 (PDT)
-Received: from ?IPV6:2003:d8:2f1f:3600:dc8:26ee:9aa9:fdc7? (p200300d82f1f36000dc826ee9aa9fdc7.dip0.t-ipconnect.de. [2003:d8:2f1f:3600:dc8:26ee:9aa9:fdc7])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4562e7f2d4fsm43469055e9.4.2025.07.17.00.35.01
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 17 Jul 2025 00:35:02 -0700 (PDT)
-Message-ID: <336b1801-869d-47ff-a942-c100e0d07d75@redhat.com>
-Date: Thu, 17 Jul 2025 09:35:01 +0200
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="savuiPVu"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Q0D+EhujCq2Rs6QWQc+Hx91gKjOa9ElWTeKmY+FfoA7NTa0mi81C2KM9+lN0JejAXtDF9R/DoU6WYQfVFDEyU8Rxz9XB3YGoKGknxRj3VOBulCcpiahY159zXnJMD3+bTgTTgKw36XGwKaeU7cOrDnB1hBqVOBIRYQEAc3BjQwSq5wZ+jmg0fc1XPDDKwA2bRqZxP3jUhBvKRoZL8S3rLAA3UmsMDFHXU21HWOV5uSAvFPuiWMXvkjlX0NYXXbnoNUlaFYUhSkyqVIj8A08PJ+oJloUP+xRx6XJ8F6bXpeHJxUHdGwrVj9adZ61IEfAQuKpECSDV/LI2UW9B8xdDVw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JQi9He8XVkJej9/b4Ng8MPhEEKpfWLON3bRlvZUWyIM=;
+ b=c3cixuveHLuqVshk6cyb1J/EDgaG7qh75DkkYIOV8/9HfcIL2vdOAjlxz2HL0TogmbmZXVHyomD5Q+zbvcdqNpKDLqACy612ZS0nL2ybGQcp/BDna2sTmVmTweO0y54MKBcMpPcWGx5XIf749OlegqXNdKlZfeFoTF6f/aIWCYb506xB5fyUPrM7KDcoqBOzNdjD7BArapIIE16oHji+rBQXZsiLbFy06xpbZRCxdLxjSPnk/wEphB/YTPqvfm+rZLAPhcu9ZLVLjEdVaQU1lk4XEmK4CA7hT87JWvV5Awt0Yif3Bo0uuz/ejs8ZM/Elr9vZRHVDiYliGyT4eyIcFQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JQi9He8XVkJej9/b4Ng8MPhEEKpfWLON3bRlvZUWyIM=;
+ b=savuiPVuBXg6eAP/8t0Hvj1ldey6WsTaAQVnes18E5pWqpx1Vijmqc4qVpLGC54tvAsN10hEyoW5DqAUe0uqxKsQ5WiumdlxXTchHNyszxSg8TwYDlwVcY2jPmJJ4n4AJ5Wk/jJ5HcUul0GvTHExg8Cpog5QSH3AS+HWYE6VvAJzSPePkMJuu+KOGddioxLeIAJ7P46LZK0ntwSWk5WxDkTV72/5CXlnQPT/KcapbfbF+C+Z4LmF52VFHzloN9Z+v2nRT3cpc7SfM/VURwA0KsqrFfS9ZX69ev2XIj2hOWH4obrQN3x3WuEeL77rNXtgfHs/Yc9XRsFb+DXv1lSYTg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
+ SJ2PR12MB7989.namprd12.prod.outlook.com (2603:10b6:a03:4c3::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8901.37; Thu, 17 Jul
+ 2025 08:38:41 +0000
+Received: from DS0PR12MB7726.namprd12.prod.outlook.com
+ ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
+ ([fe80::953f:2f80:90c5:67fe%3]) with mapi id 15.20.8922.037; Thu, 17 Jul 2025
+ 08:38:40 +0000
+Date: Thu, 17 Jul 2025 18:38:35 +1000
+From: Alistair Popple <apopple@nvidia.com>
+To: David Hildenbrand <david@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
+	xen-devel@lists.xenproject.org, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>, 
+	Stefano Stabellini <sstabellini@kernel.org>, Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, 
+	Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	Hugh Dickins <hughd@google.com>, Oscar Salvador <osalvador@suse.de>, 
+	Lance Yang <lance.yang@linux.dev>
+Subject: Re: [PATCH v1 4/9] fs/dax: use vmf_insert_folio_pmd() to insert the
+ huge zero folio
+Message-ID: <x32buctb6cdgr7kfwd54blmcqs6d3ixpsujx2qlde2cf6ziayu@mrltytvzg54p>
+References: <20250715132350.2448901-1-david@redhat.com>
+ <20250715132350.2448901-5-david@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250715132350.2448901-5-david@redhat.com>
+X-ClientProxiedBy: SYBPR01CA0120.ausprd01.prod.outlook.com
+ (2603:10c6:10:1::36) To DS0PR12MB7726.namprd12.prod.outlook.com
+ (2603:10b6:8:130::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 0/9] mm: vm_normal_page*() improvements
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- xen-devel@lists.xenproject.org, linux-fsdevel@vger.kernel.org,
- nvdimm@lists.linux.dev, Juergen Gross <jgross@suse.com>,
- Stefano Stabellini <sstabellini@kernel.org>,
- Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
- Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
- <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
- <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
- Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
- Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
- Hugh Dickins <hughd@google.com>, Oscar Salvador <osalvador@suse.de>,
- Lance Yang <lance.yang@linux.dev>
-References: <20250715132350.2448901-1-david@redhat.com>
- <20250715163126.7bcaca25364dd68835bd9c8b@linux-foundation.org>
- <17a539fa-977c-4f3f-bedf-badd1fc1287a@redhat.com>
- <20250716152710.59e09fe5056010322de2a1a3@linux-foundation.org>
-From: David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- g3eXuA==
-Organization: Red Hat
-In-Reply-To: <20250716152710.59e09fe5056010322de2a1a3@linux-foundation.org>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: rsZQtb6RTzKtRVQGK91CVdhhFhhpj5SJ74D3im5q_zc_1752737704
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|SJ2PR12MB7989:EE_
+X-MS-Office365-Filtering-Correlation-Id: 67b9e4c6-3a6d-48a1-7418-08ddc50d545e
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|7053199007;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?eGTJ0d6S9CoEJ39Sy40OpPMZAxB/s8aNdSpaxzaOw7MVgZqmffzPInjmKCgx?=
+ =?us-ascii?Q?IxDyj/8fu1vYjPAf5OYfT2gVPsqKA0GRpOq57/ziI0T7xwPziq/cMlmbDbTN?=
+ =?us-ascii?Q?davgS0jpA6ASXK+xFE6KvYwo89d60Izaf87iqcLrbOG7cUKtIGTLL9Os2y/h?=
+ =?us-ascii?Q?xGN7ANIOofw5JwpCOeuYugFlb2Qo0xrotVy4+ovrNPBSV55JIz0Dgw/JF3V6?=
+ =?us-ascii?Q?6ndFcTQs+CPaiMKZZ0YicBIogfZVa149ovPc9Ui7vjI7Jwxir9aO4OIqYaak?=
+ =?us-ascii?Q?Y6PrIKKxIy67eXjq33rkPDss+c7bRwi3mIdqCCQUit/1lPX2H1/O2Yd7ylhg?=
+ =?us-ascii?Q?aOUDcdLOKDlos2JwO5dC6kP3xIc0oCpQeVrJG6wWlZLkaQcM09Rmf6KnpGiS?=
+ =?us-ascii?Q?vCTp3QAvVhk4BSLT1uWsTSw+DAPmgDdaBF//nRl6RWq10t/ufSXHvCRJgMA9?=
+ =?us-ascii?Q?Ahk1TdhCVE3Js0cE5fhlGJJ4Gcf0l12PHHE0H0RY7BpyPgze68DIgWhZDYwP?=
+ =?us-ascii?Q?1TGbQ89Y9M++17gTNFdwe3am6v7i7NEku5d9K8QkXYRdAe5VXGcE5LPsIryX?=
+ =?us-ascii?Q?Vw+J4wylTpFHceYwbgRLOVBrf6eWL5ISBqvYf3Lkz4O8KpMyULLdc4YQYgvZ?=
+ =?us-ascii?Q?heDfZRikcPuL5QjvYEQm3rsPiozLS8lijxcAjdReAmNMQB4ZYfIlmXuKLj6b?=
+ =?us-ascii?Q?KHqnEmeYOF8azPiqMoETBeRMBQvaEhZ1wja7KmEs2pIu1dEIX78rc4D3iL6G?=
+ =?us-ascii?Q?d7pMVzn2XHMO3fC3076gcV6lg5i99gBWx1ziT6DP7MTwReUMZ0dRtY8ohqlQ?=
+ =?us-ascii?Q?XjTXAzhZLLow/Nna6bhr/B8zrped0rZNP/lc+Qu4O86EA36XOXRy+IvFKmOb?=
+ =?us-ascii?Q?gXkbliWY8NObo7IcqKfH6/KDqdBaQcJLbKM0V1IqJ6FqR8eYFe34kuRn8/P8?=
+ =?us-ascii?Q?UUsVKY/l5areunH8VeC15n95vQ0DkqCw09gL840WCRHwOUEddFbqM5HxFY9B?=
+ =?us-ascii?Q?dKlqtlXnqa1o/C2TEn4I+gtqJ15cVFF5HxxWi5ehea+2UOXpaUx7PGA31ahZ?=
+ =?us-ascii?Q?t+jAiIGlc3jU66KHSYw/Vp4vjyTNA+s81O+6HifRrrgoovkyqiatqIaiBhLa?=
+ =?us-ascii?Q?MOxTjOtin5tzCX5SxBYl0ee4ctryMSkID5dS44BDO0TJt1P8fr0ODKdLoZ1t?=
+ =?us-ascii?Q?0FB1O4mjixbmn9DGw3GzX1NFzbrzDIF6oYGgoSmQCaBRTCROWlV54OZwEMxM?=
+ =?us-ascii?Q?N0bq+IMOtl1JwEynJm1kNBOltQ3CA6Nrts7Fpw6H3gGb+3ClRdYiUmMgYxbr?=
+ =?us-ascii?Q?FArWTlRAlM4D4ysVb4Ak0D0+aUD0m4SSbhXTSrushDm9hkC9x/EEBrFd0uY2?=
+ =?us-ascii?Q?MMtlhPDV7UOUQfCH+wW2PIrPPqPwExykpRfuxvrGG+7oSdbQLZGuwz/HIkFj?=
+ =?us-ascii?Q?EyFIwvCZB4s=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?uTXM/Bal4Y6zMhRHiow2qgjL747XeOSpLz3r4z2vQLHcNbcggcwjaicwtWAV?=
+ =?us-ascii?Q?UDY7mVOe3PFO+zBMCHQ8aPhSXDvr2T7W4EvCElAl46lkJ2U/1NKjs1LAg4Hf?=
+ =?us-ascii?Q?pNB/upCW33SVtETpo05hcuQc9izfZsB6ywR5GZkv6KBP7JGxxbTIpgJMmgMv?=
+ =?us-ascii?Q?T1wuPuBQdZcnPiz/CNbxeyZ9F/oc/1+N+wPnjhFvNjYyxYQGTEo5SavYHPUJ?=
+ =?us-ascii?Q?alveoh5JjGaTNP7R1g0i+qXE9v72krNOD6hFG2l5YhnkzDXmL3aQC1/PJYvi?=
+ =?us-ascii?Q?uaNL81IhbebckAJ+A3Deojacm6RoFKrqL+Ci3Tq+rAomfURykFcaM+z9tGtc?=
+ =?us-ascii?Q?vSzu8JUMYxcTXfINOGRqTpy/xfNztjMcRv8N6VYwhCJv46hnVAnhXgylUd/M?=
+ =?us-ascii?Q?CfOp762ffDACN9myhQ6YrCjLA6AGNj+j7is5hXF49I44GVqgZEIMrqFxf/JA?=
+ =?us-ascii?Q?XoJqzE0ps3v/iCCcXvyiRzZwM0q/KgX9d0EQ54vieSiSBbT276CjHNgfWGDM?=
+ =?us-ascii?Q?u+b4cot3owNHADT5BGjshxUv57Rnz65VzaTqSMyaAuo5+7vVV1lY2bfLdeJq?=
+ =?us-ascii?Q?UJ6/wqoVsOorTfuhmOM2czFVmju+Soi7ET337x6FK+x6+G3bj/3+x7oHY0YT?=
+ =?us-ascii?Q?oGd/UhpUR63U3HRKGcJTQLs5zs6644sFFk2h4rMb+2Ei+vj/m1r1erRVRD5C?=
+ =?us-ascii?Q?JovcEUntf8FIWGDR+ShZfm9rraGXZzxxHSLA84WpipXjrCfJqHDxuVwhaqYS?=
+ =?us-ascii?Q?caQ8nA2noQMw8kIgr/5JNDlvshMT//DqP/KMX1c0q7l7VbEo6DPGmBI4CP+B?=
+ =?us-ascii?Q?m87yNcoYus6ThjcuAewyIX1hd6VrR3h4RgaPQ6+fYWICy8G2fRjYH8tvX8Gf?=
+ =?us-ascii?Q?GH9ezYmAZqE2yWch1HKUfHFSlZ0iDZ+yn9bQ+Us0RCJcKfSoAOl50xpubxiD?=
+ =?us-ascii?Q?Lh1sV4wMvq3u89wm9xapUrFm95riJG4mab6md+sVfNNgXsKabdNXiA6p6us3?=
+ =?us-ascii?Q?yuEiWod/s2Hrn0Vfoj+J8DafIaxpBOknqCm9UpYYvtt+rVqtHNazt6JO+FA4?=
+ =?us-ascii?Q?3I1pBsLLy/RiOX+CCeeaytISH/fcK2NwNPah88IbrycexMJTsZz1HmDbt8Ow?=
+ =?us-ascii?Q?trWAkxM8LZotR6VmPiuaqOTmeH6iW9mpx6jQShQz5k4Z08xw/6Avp6EkAUQy?=
+ =?us-ascii?Q?YCeexlswYNmIvTCvphMGdvcRneicnqeEyiC9Qb8IJEoZvArGHtxpR6chUaYv?=
+ =?us-ascii?Q?g8t0GvB9e2JCaG69NIEXXpTgSdkbEMG/A8y0NaRUhuYLwum0C0lw5+/wdJuv?=
+ =?us-ascii?Q?nEkmH1zcIGH12LcEE7ggImy+/4BkYBFZ4SW5ggkmHVzJ2IwAjCobeYJof1yY?=
+ =?us-ascii?Q?zYWzjU4PDTFxoIZTKd2XmzzQS4/xeQmB1tfqU0tR3mm1Sl3drGU8TkTnhOH/?=
+ =?us-ascii?Q?IfriDAiKzyam2sepUxW+JbGnzluMf1ldD8358I5lY/GA3fASD/pRV7tTA21E?=
+ =?us-ascii?Q?7ENKH03iKWGcXAVWTa9qYHNRnZy+KFDLlAaNdYi70k1515bdxqy+mU+bkTC9?=
+ =?us-ascii?Q?6g2njDTG7UpMSlJkqJ51XPH979sLWvm5xnXZOCf3?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 67b9e4c6-3a6d-48a1-7418-08ddc50d545e
+X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jul 2025 08:38:40.1387
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: EyNe9zIvcfLiegqn04MDXvjwKH7Ma8b9Ac8wNsZjz5IjbpYKhzDzaWPc7OMq06ZEqBWankCpVepIdz3FtdKOBQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB7989
 
-On 17.07.25 00:27, Andrew Morton wrote:
-> On Wed, 16 Jul 2025 10:47:29 +0200 David Hildenbrand <david@redhat.com> wrote:
+On Tue, Jul 15, 2025 at 03:23:45PM +0200, David Hildenbrand wrote:
+> Let's convert to vmf_insert_folio_pmd().
 > 
->>>
->>> However the series rejects due to the is_huge_zero_pmd ->
->>> is_huge_zero_pfn changes in Luiz's "mm: introduce snapshot_page() v3"
->>> series, so could we please have a redo against present mm-new?
->>
->> I'm confused: mm-new *still* contains the patch from Luiz series that
->> was originally part of the RFC here.
->>
->> commit 791cb64cd7f8c2314c65d1dd5cb9e05e51c4cd70
->> Author: David Hildenbrand <david@redhat.com>
->> Date:   Mon Jul 14 09:16:51 2025 -0400
->>
->>       mm/memory: introduce is_huge_zero_pfn() and use it in vm_normal_page_pmd()
->>
->> If you want to put this series here before Luiz', you'll have to move that
->> single patch as well.
->>
->> But probably this series should be done on top of Luiz work, because Luiz
->> fixes something.
+> There is a theoretical change in behavior: in the unlikely case there is
+> already something mapped, we'll now still call trace_dax_pmd_load_hole()
+> and return VM_FAULT_NOPAGE.
 > 
-> I'm confused at your confused.  mm-new presently contains Luiz's latest
-> v3 series "mm: introduce snapshot_page()" which includes a copy of your
-> "mm/memory: introduce is_huge_zero_pfn() and use it in
-> vm_normal_page_pmd()".
+> Previously, we would have returned VM_FAULT_FALLBACK, and the caller
+> would have zapped the PMD to try a PTE fault.
+> 
+> However, that behavior was different to other PTE+PMD faults, when there
+> would already be something mapped, and it's not even clear if it could
+> be triggered.
+> 
+> Assuming the huge zero folio is already mapped, all good, no need to
+> fallback to PTEs.
+> 
+> Assuming there is already a leaf page table ... the behavior would be
+> just like when trying to insert a PMD mapping a folio through
+> dax_fault_iter()->vmf_insert_folio_pmd().
+> 
+> Assuming there is already something else mapped as PMD? It sounds like
+> a BUG, and the behavior would be just like when trying to insert a PMD
+> mapping a folio through dax_fault_iter()->vmf_insert_folio_pmd().
+> 
+> So, it sounds reasonable to not handle huge zero folios differently
+> to inserting PMDs mapping folios when there already is something mapped.
 
-Let's recap: you said "the series rejects due to the is_huge_zero_pmd ->
-is_huge_zero_pfn changes in Luiz's "mm: introduce snapshot_page() v3"
-series"
+Yeah, this all sounds reasonable and I was never able to hit this path with the
+RFC version of this series anyway. So I suspect it really is impossible to hit
+and therefore any change is theoretical.
 
-$ git checkout mm/mm-new -b tmp
-branch 'tmp' set up to track 'mm/mm-new'.
-Switched to a new branch 'tmp'
-$ b4 shazam 20250715132350.2448901-1-david@redhat.com
-Grabbing thread from lore.kernel.org/all/20250715132350.2448901-1-david@redhat.com/t.mbox.gz
-Checking for newer revisions
-Grabbing search results from lore.kernel.org
-Analyzing 17 messages in the thread
-Looking for additional code-review trailers on lore.kernel.org
-Analyzing 65 code-review messages
-Checking attestation on all messages, may take a moment...
----
-   ✓ [PATCH v1 1/9] mm/huge_memory: move more common code into insert_pmd()
-   ✓ [PATCH v1 2/9] mm/huge_memory: move more common code into insert_pud()
-   ✓ [PATCH v1 3/9] mm/huge_memory: support huge zero folio in vmf_insert_folio_pmd()
-   ✓ [PATCH v1 4/9] fs/dax: use vmf_insert_folio_pmd() to insert the huge zero folio
-   ✓ [PATCH v1 5/9] mm/huge_memory: mark PMD mappings of the huge zero folio special
-   ✓ [PATCH v1 6/9] mm/memory: convert print_bad_pte() to print_bad_page_map()
-   ✓ [PATCH v1 7/9] mm/memory: factor out common code from vm_normal_page_*()
-     + Reviewed-by: Oscar Salvador <osalvador@suse.de> (✓ DKIM/suse.de)
-   ✓ [PATCH v1 8/9] mm: introduce and use vm_normal_page_pud()
-     + Reviewed-by: Oscar Salvador <osalvador@suse.de> (✓ DKIM/suse.de)
-   ✓ [PATCH v1 9/9] mm: rename vm_ops->find_special_page() to vm_ops->find_normal_page()
-     + Reviewed-by: Oscar Salvador <osalvador@suse.de> (✓ DKIM/suse.de)
-   ---
-   ✓ Signed: DKIM/redhat.com
----
-Total patches: 9
----
-  Base: using specified base-commit 64d19a2cdb7b62bcea83d9309d83e06d7aff4722
-Applying: mm/huge_memory: move more common code into insert_pmd()
-Applying: mm/huge_memory: move more common code into insert_pud()
-Applying: mm/huge_memory: support huge zero folio in vmf_insert_folio_pmd()
-Applying: fs/dax: use vmf_insert_folio_pmd() to insert the huge zero folio
-Applying: mm/huge_memory: mark PMD mappings of the huge zero folio special
-Applying: mm/memory: convert print_bad_pte() to print_bad_page_map()
-Applying: mm/memory: factor out common code from vm_normal_page_*()
-Applying: mm: introduce and use vm_normal_page_pud()
-Applying: mm: rename vm_ops->find_special_page() to vm_ops->find_normal_page()
-$ make mm/memory.o
-...
-   CC      mm/memory.o
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 
-I know that a tree from yesterday temporarily didn't have Luiz patches, so
-maybe that's what you ran into.
-
-*anyhow*, I will resend to work around that arm pgdp_get() issue.
-
-
--- 
-Cheers,
-
-David / dhildenb
-
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
+>  fs/dax.c | 47 ++++++++++-------------------------------------
+>  1 file changed, 10 insertions(+), 37 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 4229513806bea..ae90706674a3f 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1375,51 +1375,24 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+>  		const struct iomap_iter *iter, void **entry)
+>  {
+>  	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+> -	unsigned long pmd_addr = vmf->address & PMD_MASK;
+> -	struct vm_area_struct *vma = vmf->vma;
+>  	struct inode *inode = mapping->host;
+> -	pgtable_t pgtable = NULL;
+>  	struct folio *zero_folio;
+> -	spinlock_t *ptl;
+> -	pmd_t pmd_entry;
+> -	unsigned long pfn;
+> +	vm_fault_t ret;
+>  
+>  	zero_folio = mm_get_huge_zero_folio(vmf->vma->vm_mm);
+>  
+> -	if (unlikely(!zero_folio))
+> -		goto fallback;
+> -
+> -	pfn = page_to_pfn(&zero_folio->page);
+> -	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn,
+> -				  DAX_PMD | DAX_ZERO_PAGE);
+> -
+> -	if (arch_needs_pgtable_deposit()) {
+> -		pgtable = pte_alloc_one(vma->vm_mm);
+> -		if (!pgtable)
+> -			return VM_FAULT_OOM;
+> -	}
+> -
+> -	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+> -	if (!pmd_none(*(vmf->pmd))) {
+> -		spin_unlock(ptl);
+> -		goto fallback;
+> +	if (unlikely(!zero_folio)) {
+> +		trace_dax_pmd_load_hole_fallback(inode, vmf, zero_folio, *entry);
+> +		return VM_FAULT_FALLBACK;
+>  	}
+>  
+> -	if (pgtable) {
+> -		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
+> -		mm_inc_nr_ptes(vma->vm_mm);
+> -	}
+> -	pmd_entry = folio_mk_pmd(zero_folio, vmf->vma->vm_page_prot);
+> -	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
+> -	spin_unlock(ptl);
+> -	trace_dax_pmd_load_hole(inode, vmf, zero_folio, *entry);
+> -	return VM_FAULT_NOPAGE;
+> +	*entry = dax_insert_entry(xas, vmf, iter, *entry, folio_pfn(zero_folio),
+> +				  DAX_PMD | DAX_ZERO_PAGE);
+>  
+> -fallback:
+> -	if (pgtable)
+> -		pte_free(vma->vm_mm, pgtable);
+> -	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_folio, *entry);
+> -	return VM_FAULT_FALLBACK;
+> +	ret = vmf_insert_folio_pmd(vmf, zero_folio, false);
+> +	if (ret == VM_FAULT_NOPAGE)
+> +		trace_dax_pmd_load_hole(inode, vmf, zero_folio, *entry);
+> +	return ret;
+>  }
+>  #else
+>  static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+> -- 
+> 2.50.1
+> 
+> 
