@@ -1,410 +1,379 @@
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA6942AEF5
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 22:07:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2142D225A35
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 22:53:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752790030; cv=none; b=FfL9BiUpmHBqeM0eWi/+/1ZYYVdEWr1of+6ClA+3vj/QO8YI2V9ioUsr4HujltbxojPZbFMxG3rc+x/nBZ9naHwk5SR481/hXOnz/g+OvWWxY3UEQeVyYXC8FdwcuyfgMlsqoxin6ZpO6yX9IjMVWMbqc2CKBG/Gl4P9yfLPupo=
+	t=1752792797; cv=none; b=nm99Z15JY1/P5Y03jaIrLREQIlqwfp/LwNLtHU9DwEeA5/pPK8qfIjgQocx9n7jCs/vTozpi+0Tt1qzaA8iKYnK6IyaF4GpI1AgQMs5R4MgzRmBklK4KC+F8pHQlY/V0DhPN/mMsUwSXTLX+MVocNXPhNa4o9lNN9u9EdoFEOmw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752790030; c=relaxed/simple;
-	bh=CDJlSE7VNER2P7wgY0kxcl8XvcDE28evpbxEgMszzns=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=EeX0OqXtQSYvsta3aSSVX1FS8CTDhLvW74KCI9LhersmRMjK1wWpe44i9fEQbkT3fzY9/wfbZGpq44S81W6mOBNSF6/1AaS7m7EQ8GJJeogIu+uPikxqgi4MAmGAyRvhQvuH5t4NxRzc40rVKR2ViJqwnu2/6Mfnc2LWV2pJeyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KGf9r+k8; arc=none smtp.client-ip=209.85.160.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1752792797; c=relaxed/simple;
+	bh=9e3AIQXj23hWPeNFUN9Iuk2Jsn2bHQgdUUiz5mOhDvc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=mUr/okcECUiFZFPc+Af9s5Clx/2/yuJycVaylfoPoMfzIYIU0uKMwe9gnObT6rbiCPnID9/inhjLVIft9Mt9jusYlmczqQ62R6NFhhF1OU3Al123RnYhQt10h6Z/l1iTYKn86D2iHpq5zC77hzRD3e9GPDwI94MyIZTJwbgAggI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M+GXfy38; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KGf9r+k8"
-Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-4ab3fb340e7so27812911cf.1
-        for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 15:07:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752790028; x=1753394828; darn=lists.linux.dev;
-        h=in-reply-to:autocrypt:from:content-language:references:cc:to
-         :subject:user-agent:mime-version:date:message-id:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=i7BRxVgXDk5dYzgY9RMPqFRWzkfU7l6PtXKt81xpEmw=;
-        b=KGf9r+k8Cl5tyXsBNpCIs8DHf9RxGH5HbdQYO8uJEBr949cEFK0oI0JuVcEEDFn+W6
-         vyVIL4I/Plya01oShPY02fVwyMo9fmPHcB5TQlEup/wAUFxpI0siAnGipgiRe2x9FDMt
-         x3y4fPpYAGnSh3umLq/xTdsrqXybA7xBk9w3G0p6rZYcLE4BYy5xlX9Th44E8BSthjl5
-         nA6/vERmXlnm6yEXdf35gHwlPxj3UIBU09JyFOJtIs/urSoFxvYF/x8GfwlQ6E4izs8b
-         O0gPzX7vkRlv2L+iemS1HfjEuhW/rdydX2JBhD/bi5pBCcxCxznnnGF+j7pXgnr7LX6h
-         8REw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752790028; x=1753394828;
-        h=in-reply-to:autocrypt:from:content-language:references:cc:to
-         :subject:user-agent:mime-version:date:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=i7BRxVgXDk5dYzgY9RMPqFRWzkfU7l6PtXKt81xpEmw=;
-        b=Y1aGrthDKHEW2/BByUmUyA8PdWAIedF2LP9mM3335v4vO7qBh2plOx7pKEFRXCicXx
-         Do9no6vabNHe7iETQLtewCHLLYPVfII6xED6hIwjt8Fc/RtK1RND5hQCLAKqqPvxdwCG
-         MNepvme/Gu1y+oMHQMJ67W+Su9RlVT5+eueiLgeK46kQrGdyPIpVIutE+gLP0cRnzmAj
-         hdy4zsg5u4WHGa0kV5r9NMz9+bo58AUkxUk2g0UQJ70iF8YuPPncd/1xq60AZ9w9j+a/
-         dPWU9uLHion4y3oBFUugGrtUI5mXpo4SaGP9trHh3/61+R7UenszdgcaCvLY5+ZsfDLW
-         KsHA==
-X-Forwarded-Encrypted: i=1; AJvYcCVhaRgkB35dsfSJ87Dp0KyL4zGY5ee0av1gyAD9SXmfxsQbjQ/U1qmx/IDPt31MTWm/qshJD5k=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzO9nqUHwO1Ug0Q4tEx9d/N0i6EQkStUDtRdG48WHBUV//MhsZH
-	+UYVe2VSNBFdHSds/vQE0pfeFR6RRo+81VVZ3JEN2+cmrlAvKKFMSZas
-X-Gm-Gg: ASbGnctPCoUcRcUr6eteqIdHAE1RvHBmyQr72tlvoW0NY95uhDtso7d5F/G7m97E41x
-	qobojoH1hJE5i+4ywNkt/FumKccfFkLjpbPF7kM8Ia4syuV/LDvWGi/MlV5i/p3V2TGFmPk14vK
-	IUB+qawqdmb7MZ8SnWRp/12hq1UTUG0eHxtqc7niB6c53vQyL9SWWBLBNojGU16SLQPO2dlYt3w
-	vCgB4sZBvdbNeZEecZS7MYRYHG8k67r4uu6g1Jiu+tBH2SsNvbDdjbQnz7XU7DwkGFVz1qfCNO1
-	E0h3fcTu/htfJwdVdiaE9zPaTJD5pEC1BN+aThbmevPlKwwJnMB21fQq3y4e44rgytkgedzYwyE
-	/vKkriIxagEqdxkcmfXhpMJQhtX6zUIkGyez43w==
-X-Google-Smtp-Source: AGHT+IE/S+XEoX9m2D+U6HfftFEZfN7ljpCvq35JAayatrZXXtjFxeO1y96sE8zn7ScPxF/IBm2UGw==
-X-Received: by 2002:ac8:5910:0:b0:4ab:76d2:1982 with SMTP id d75a77b69052e-4abb2c7b45fmr10825911cf.2.1752790027399;
-        Thu, 17 Jul 2025 15:07:07 -0700 (PDT)
-Received: from [10.138.10.6] ([89.187.178.201])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4abb4b204cdsm294881cf.56.2025.07.17.15.07.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 17 Jul 2025 15:07:06 -0700 (PDT)
-Message-ID: <30268c21-a907-43d9-ac12-f6215cd95d03@gmail.com>
-Date: Thu, 17 Jul 2025 18:06:47 -0400
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M+GXfy38"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1752792795; x=1784328795;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=9e3AIQXj23hWPeNFUN9Iuk2Jsn2bHQgdUUiz5mOhDvc=;
+  b=M+GXfy38jPQqwpq17kDh7FdYg1jkHjT3cZr/AxoG40ZjgErSQyvvl4Rg
+   BKXVbkQ4VJ3++JLiaPiV/tejXg+HMbRhFlf6QGpjErnhfpiVC2CvGTj1b
+   GVjT5RFJW907JqLiRueW6UIhq+IEeaJ8y5rxHZXXABk32Sui/5AwN/Tin
+   Ailv8l0HYRYNB/C0EJSdYmEx6H6x6azYK51PbvmMwJ07B2HS+skOxTclV
+   oLDevhPw9ytYUjXWshw2dLSW/VE+X97hyJsHUzVPAeqPDsoxsQJX5KBWx
+   KEDg7EAysfQjiDPj/mDuj+jG/fyajUE0fbrkR+I9IIBWwXDxcL39uisNR
+   w==;
+X-CSE-ConnectionGUID: /PH680v3Qye8fh3DInw0Ew==
+X-CSE-MsgGUID: 2bav0tIaQze89ZJQF4Irhw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11495"; a="66432322"
+X-IronPort-AV: E=Sophos;i="6.16,320,1744095600"; 
+   d="scan'208";a="66432322"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2025 15:53:15 -0700
+X-CSE-ConnectionGUID: Z8/ewd2OQRimuhQcw+JZOg==
+X-CSE-MsgGUID: oiSGKo66Sn2wzf+6byfzAw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,320,1744095600"; 
+   d="scan'208";a="157306802"
+Received: from fdefranc-mobl3.ger.corp.intel.com (HELO fdefranc-mobl3.localnet) ([10.245.246.211])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2025 15:53:08 -0700
+From: "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>
+To: dan.j.williams@intel.com, dave@stgolabs.net, jonathan.cameron@huawei.com,
+ dave.jiang@intel.com, alison.schofield@intel.com, vishal.l.verma@intel.com,
+ ira.weiny@intel.com, Neeraj Kumar <s.neeraj@samsung.com>
+Cc: a.manzanares@samsung.com, nifan.cxl@gmail.com, anisa.su@samsung.com,
+ vishak.g@samsung.com, krish.reddy@samsung.com, arun.george@samsung.com,
+ alok.rathore@samsung.com, s.neeraj@samsung.com, neeraj.kernel@gmail.com,
+ linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, gost.dev@samsung.com, cpgs@samsung.com
+Subject:
+ Re: [RFC PATCH 05/20] nvdimm/region_label: Add region label updation routine
+Date: Fri, 18 Jul 2025 00:53:05 +0200
+Message-ID: <2354653.gBsaNRSFpC@fdefranc-mobl3>
+In-Reply-To: <1690859824.141750165204442.JavaMail.epsvc@epcpadp1new>
+References:
+ <20250617123944.78345-1-s.neeraj@samsung.com>
+ <CGME20250617124019epcas5p39815cc0f2b175aee40c194625166695c@epcas5p3.samsung.com>
+ <1690859824.141750165204442.JavaMail.epsvc@epcpadp1new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 6/9] mm/memory: convert print_bad_pte() to
- print_bad_page_map()
-To: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org, xen-devel@lists.xenproject.org,
- linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
- Stefano Stabellini <sstabellini@kernel.org>,
- Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
- Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
- <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
- <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
- Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
- Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
- Hugh Dickins <hughd@google.com>, Oscar Salvador <osalvador@suse.de>,
- Lance Yang <lance.yang@linux.dev>
-References: <20250717115212.1825089-1-david@redhat.com>
- <20250717115212.1825089-7-david@redhat.com>
-Content-Language: en-US
-From: Demi Marie Obenour <demiobenour@gmail.com>
-Autocrypt: addr=demiobenour@gmail.com; keydata=
- xsFNBFp+A0oBEADffj6anl9/BHhUSxGTICeVl2tob7hPDdhHNgPR4C8xlYt5q49yB+l2nipd
- aq+4Gk6FZfqC825TKl7eRpUjMriwle4r3R0ydSIGcy4M6eb0IcxmuPYfbWpr/si88QKgyGSV
- Z7GeNW1UnzTdhYHuFlk8dBSmB1fzhEYEk0RcJqg4AKoq6/3/UorR+FaSuVwT7rqzGrTlscnT
- DlPWgRzrQ3jssesI7sZLm82E3pJSgaUoCdCOlL7MMPCJwI8JpPlBedRpe9tfVyfu3euTPLPx
- wcV3L/cfWPGSL4PofBtB8NUU6QwYiQ9Hzx4xOyn67zW73/G0Q2vPPRst8LBDqlxLjbtx/WLR
- 6h3nBc3eyuZ+q62HS1pJ5EvUT1vjyJ1ySrqtUXWQ4XlZyoEFUfpJxJoN0A9HCxmHGVckzTRl
- 5FMWo8TCniHynNXsBtDQbabt7aNEOaAJdE7to0AH3T/Bvwzcp0ZJtBk0EM6YeMLtotUut7h2
- Bkg1b//r6bTBswMBXVJ5H44Qf0+eKeUg7whSC9qpYOzzrm7+0r9F5u3qF8ZTx55TJc2g656C
- 9a1P1MYVysLvkLvS4H+crmxA/i08Tc1h+x9RRvqba4lSzZ6/Tmt60DPM5Sc4R0nSm9BBff0N
- m0bSNRS8InXdO1Aq3362QKX2NOwcL5YaStwODNyZUqF7izjK4QARAQABzTxEZW1pIE1hcmll
- IE9iZW5vdXIgKGxvdmVyIG9mIGNvZGluZykgPGRlbWlvYmVub3VyQGdtYWlsLmNvbT7CwXgE
- EwECACIFAlp+A0oCGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheAAAoJELKItV//nCLBhr8Q
- AK/xrb4wyi71xII2hkFBpT59ObLN+32FQT7R3lbZRjVFjc6yMUjOb1H/hJVxx+yo5gsSj5LS
- 9AwggioUSrcUKldfA/PKKai2mzTlUDxTcF3vKx6iMXKA6AqwAw4B57ZEJoMM6egm57TV19kz
- PMc879NV2nc6+elaKl+/kbVeD3qvBuEwsTe2Do3HAAdrfUG/j9erwIk6gha/Hp9yZlCnPTX+
- VK+xifQqt8RtMqS5R/S8z0msJMI/ajNU03kFjOpqrYziv6OZLJ5cuKb3bZU5aoaRQRDzkFIR
- 6aqtFLTohTo20QywXwRa39uFaOT/0YMpNyel0kdOszFOykTEGI2u+kja35g9TkH90kkBTG+a
- EWttIht0Hy6YFmwjcAxisSakBuHnHuMSOiyRQLu43ej2+mDWgItLZ48Mu0C3IG1seeQDjEYP
- tqvyZ6bGkf2Vj+L6wLoLLIhRZxQOedqArIk/Sb2SzQYuxN44IDRt+3ZcDqsPppoKcxSyd1Ny
- 2tpvjYJXlfKmOYLhTWs8nwlAlSHX/c/jz/ywwf7eSvGknToo1Y0VpRtoxMaKW1nvH0OeCSVJ
- itfRP7YbiRVc2aNqWPCSgtqHAuVraBRbAFLKh9d2rKFB3BmynTUpc1BQLJP8+D5oNyb8Ts4x
- Xd3iV/uD8JLGJfYZIR7oGWFLP4uZ3tkneDfYzsFNBFp+A0oBEAC9ynZI9LU+uJkMeEJeJyQ/
- 8VFkCJQPQZEsIGzOTlPnwvVna0AS86n2Z+rK7R/usYs5iJCZ55/JISWd8xD57ue0eB47bcJv
- VqGlObI2DEG8TwaW0O0duRhDgzMEL4t1KdRAepIESBEA/iPpI4gfUbVEIEQuqdqQyO4GAe+M
- kD0Hy5JH/0qgFmbaSegNTdQg5iqYjRZ3ttiswalql1/iSyv1WYeC1OAs+2BLOAT2NEggSiVO
- txEfgewsQtCWi8H1SoirakIfo45Hz0tk/Ad9ZWh2PvOGt97Ka85o4TLJxgJJqGEnqcFUZnJJ
- riwoaRIS8N2C8/nEM53jb1sH0gYddMU3QxY7dYNLIUrRKQeNkF30dK7V6JRH7pleRlf+wQcN
- fRAIUrNlatj9TxwivQrKnC9aIFFHEy/0mAgtrQShcMRmMgVlRoOA5B8RTulRLCmkafvwuhs6
- dCxN0GNAORIVVFxjx9Vn7OqYPgwiofZ6SbEl0hgPyWBQvE85klFLZLoj7p+joDY1XNQztmfA
- rnJ9x+YV4igjWImINAZSlmEcYtd+xy3Li/8oeYDAqrsnrOjb+WvGhCykJk4urBog2LNtcyCj
- kTs7F+WeXGUo0NDhbd3Z6AyFfqeF7uJ3D5hlpX2nI9no/ugPrrTVoVZAgrrnNz0iZG2DVx46
- x913pVKHl5mlYQARAQABwsFfBBgBAgAJBQJafgNKAhsMAAoJELKItV//nCLBwNIP/AiIHE8b
- oIqReFQyaMzxq6lE4YZCZNj65B/nkDOvodSiwfwjjVVE2V3iEzxMHbgyTCGA67+Bo/d5aQGj
- gn0TPtsGzelyQHipaUzEyrsceUGWYoKXYyVWKEfyh0cDfnd9diAm3VeNqchtcMpoehETH8fr
- RHnJdBcjf112PzQSdKC6kqU0Q196c4Vp5HDOQfNiDnTf7gZSj0BraHOByy9LEDCLhQiCmr+2
- E0rW4tBtDAn2HkT9uf32ZGqJCn1O+2uVfFhGu6vPE5qkqrbSE8TG+03H8ecU2q50zgHWPdHM
- OBvy3EhzfAh2VmOSTcRK+tSUe/u3wdLRDPwv/DTzGI36Kgky9MsDC5gpIwNbOJP2G/q1wT1o
- Gkw4IXfWv2ufWiXqJ+k7HEi2N1sree7Dy9KBCqb+ca1vFhYPDJfhP75I/VnzHVssZ/rYZ9+5
- 1yDoUABoNdJNSGUYl+Yh9Pw9pE3Kt4EFzUlFZWbE4xKL/NPno+z4J9aWemLLszcYz/u3XnbO
- vUSQHSrmfOzX3cV4yfmjM5lewgSstoxGyTx2M8enslgdXhPthZlDnTnOT+C+OTsh8+m5tos8
- HQjaPM01MKBiAqdPgksm1wu2DrrwUi6ChRVTUBcj6+/9IJ81H2P2gJk3Ls3AVIxIffLoY34E
- +MYSfkEjBz0E8CLOcAw7JIwAaeBT
-In-Reply-To: <20250717115212.1825089-7-david@redhat.com>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------SHjgOg5Jql0bG0wbh87Oeqfj"
-
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------SHjgOg5Jql0bG0wbh87Oeqfj
-Content-Type: multipart/mixed; boundary="------------yIjP8WLJtOljwEWqY45CvJcF";
- protected-headers="v1"
-From: Demi Marie Obenour <demiobenour@gmail.com>
-To: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org, xen-devel@lists.xenproject.org,
- linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
- Stefano Stabellini <sstabellini@kernel.org>,
- Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
- Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
- <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>,
- Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
- "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
- <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
- Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
- Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
- Hugh Dickins <hughd@google.com>, Oscar Salvador <osalvador@suse.de>,
- Lance Yang <lance.yang@linux.dev>
-Message-ID: <30268c21-a907-43d9-ac12-f6215cd95d03@gmail.com>
-Subject: Re: [PATCH v2 6/9] mm/memory: convert print_bad_pte() to
- print_bad_page_map()
-References: <20250717115212.1825089-1-david@redhat.com>
- <20250717115212.1825089-7-david@redhat.com>
-In-Reply-To: <20250717115212.1825089-7-david@redhat.com>
-Autocrypt-Gossip: addr=jgross@suse.com; keydata=
- xsBNBFOMcBYBCACgGjqjoGvbEouQZw/ToiBg9W98AlM2QHV+iNHsEs7kxWhKMjrioyspZKOB
- ycWxw3ie3j9uvg9EOB3aN4xiTv4qbnGiTr3oJhkB1gsb6ToJQZ8uxGq2kaV2KL9650I1SJve
- dYm8Of8Zd621lSmoKOwlNClALZNew72NjJLEzTalU1OdT7/i1TXkH09XSSI8mEQ/ouNcMvIJ
- NwQpd369y9bfIhWUiVXEK7MlRgUG6MvIj6Y3Am/BBLUVbDa4+gmzDC9ezlZkTZG2t14zWPvx
- XP3FAp2pkW0xqG7/377qptDmrk42GlSKN4z76ELnLxussxc7I2hx18NUcbP8+uty4bMxABEB
- AAHNH0p1ZXJnZW4gR3Jvc3MgPGpncm9zc0BzdXNlLmNvbT7CwHkEEwECACMFAlOMcK8CGwMH
- CwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAAKCRCw3p3WKL8TL8eZB/9G0juS/kDY9LhEXseh
- mE9U+iA1VsLhgDqVbsOtZ/S14LRFHczNd/Lqkn7souCSoyWsBs3/wO+OjPvxf7m+Ef+sMtr0
- G5lCWEWa9wa0IXx5HRPW/ScL+e4AVUbL7rurYMfwCzco+7TfjhMEOkC+va5gzi1KrErgNRHH
- kg3PhlnRY0Udyqx++UYkAsN4TQuEhNN32MvN0Np3WlBJOgKcuXpIElmMM5f1BBzJSKBkW0Jc
- Wy3h2Wy912vHKpPV/Xv7ZwVJ27v7KcuZcErtptDevAljxJtE7aJG6WiBzm+v9EswyWxwMCIO
- RoVBYuiocc51872tRGywc03xaQydB+9R7BHPzsBNBFOMcBYBCADLMfoA44MwGOB9YT1V4KCy
- vAfd7E0BTfaAurbG+Olacciz3yd09QOmejFZC6AnoykydyvTFLAWYcSCdISMr88COmmCbJzn
- sHAogjexXiif6ANUUlHpjxlHCCcELmZUzomNDnEOTxZFeWMTFF9Rf2k2F0Tl4E5kmsNGgtSa
- aMO0rNZoOEiD/7UfPP3dfh8JCQ1VtUUsQtT1sxos8Eb/HmriJhnaTZ7Hp3jtgTVkV0ybpgFg
- w6WMaRkrBh17mV0z2ajjmabB7SJxcouSkR0hcpNl4oM74d2/VqoW4BxxxOD1FcNCObCELfIS
- auZx+XT6s+CE7Qi/c44ibBMR7hyjdzWbABEBAAHCwF8EGAECAAkFAlOMcBYCGwwACgkQsN6d
- 1ii/Ey9D+Af/WFr3q+bg/8v5tCknCtn92d5lyYTBNt7xgWzDZX8G6/pngzKyWfedArllp0Pn
- fgIXtMNV+3t8Li1Tg843EXkP7+2+CQ98MB8XvvPLYAfW8nNDV85TyVgWlldNcgdv7nn1Sq8g
- HwB2BHdIAkYce3hEoDQXt/mKlgEGsLpzJcnLKimtPXQQy9TxUaLBe9PInPd+Ohix0XOlY+Uk
- QFEx50Ki3rSDl2Zt2tnkNYKUCvTJq7jvOlaPd6d/W0tZqpyy7KVay+K4aMobDsodB3dvEAs6
- ScCnh03dDAFgIq5nsB11j3KPKdVoPlfucX2c7kGNH+LUMbzqV6beIENfNexkOfxHfw==
-
---------------yIjP8WLJtOljwEWqY45CvJcF
-Content-Type: multipart/mixed; boundary="------------8g3eOtYBs5ZvfjQ3PpbBaTNy"
-
---------------8g3eOtYBs5ZvfjQ3PpbBaTNy
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 
-On 7/17/25 07:52, David Hildenbrand wrote:
-> print_bad_pte() looks like something that should actually be a WARN
-> or similar, but historically it apparently has proven to be useful to
-> detect corruption of page tables even on production systems -- report
-> the issue and keep the system running to make it easier to actually det=
-ect
-> what is going wrong (e.g., multiple such messages might shed a light).
+On Tuesday, June 17, 2025 2:39:29=E2=80=AFPM Central European Summer Time N=
+eeraj Kumar wrote:
+> Added __pmem_region_label_update region label update routine to update
+> region label
 >=20
-> As we want to unify vm_normal_page_*() handling for PTE/PMD/PUD, we'll =
-have
-> to take care of print_bad_pte() as well.
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+> ---
+>  drivers/nvdimm/label.c          | 142 ++++++++++++++++++++++++++++++++
+>  drivers/nvdimm/label.h          |   2 +
+>  drivers/nvdimm/namespace_devs.c |  12 +++
+>  drivers/nvdimm/nd.h             |  20 +++++
+>  include/linux/libnvdimm.h       |   8 ++
+>  5 files changed, 184 insertions(+)
 >=20
-> Let's prepare for using print_bad_pte() also for non-PTEs by adjusting =
-the
-> implementation and renaming the function -- we'll rename it to what
-> we actually print: bad (page) mappings. Maybe it should be called
-> "print_bad_table_entry()"? We'll just call it "print_bad_page_map()"
-> because the assumption is that we are dealing with some (previously)
-> present page table entry that got corrupted in weird ways.
+> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+> index d5cfaa99f976..7f33d14ce0ef 100644
+> --- a/drivers/nvdimm/label.c
+> +++ b/drivers/nvdimm/label.c
+> @@ -381,6 +381,16 @@ static void nsl_calculate_checksum(struct nvdimm_drv=
+data *ndd,
+>  	nsl_set_checksum(ndd, nd_label, sum);
+>  }
+> =20
+> +static void rgl_calculate_checksum(struct nvdimm_drvdata *ndd,
+> +				   struct cxl_region_label *rg_label)
+> +{
+> +	u64 sum;
+> +
+> +	rgl_set_checksum(rg_label, 0);
+> +	sum =3D nd_fletcher64(rg_label, sizeof_namespace_label(ndd), 1);
+> +	rgl_set_checksum(rg_label, sum);
+> +}
+> +
+>  static bool slot_valid(struct nvdimm_drvdata *ndd,
+>  		struct nd_lsa_label *nd_label, u32 slot)
+>  {
+> @@ -1117,6 +1127,138 @@ int nd_pmem_namespace_label_update(struct nd_regi=
+on *nd_region,
+>  	return 0;
+>  }
+> =20
+> +static int __pmem_region_label_update(struct nd_region *nd_region,
+> +		struct nd_mapping *nd_mapping, int pos, unsigned long flags)
+
+Hi Neeraj,
+
+I've noticed that __pmem_region_label_update() shares many similarities=20
+with the existing __pmem_label_update().
+
+> +{
+> +	struct nd_interleave_set *nd_set =3D nd_region->nd_set;
+> +	struct nvdimm_drvdata *ndd =3D to_ndd(nd_mapping);
+> +	struct nd_lsa_label *nd_label;
+> +	struct cxl_region_label *rg_label;
+> +	struct nd_namespace_index *nsindex;
+> +	struct nd_label_ent *label_ent;
+> +	unsigned long *free;
+> +	u32 nslot, slot;
+> +	size_t offset;
+> +	int rc;
+> +	uuid_t tmp;
+> +
+> +	if (!preamble_next(ndd, &nsindex, &free, &nslot))
+> +		return -ENXIO;
+> +
+> +	/* allocate and write the label to the staging (next) index */
+> +	slot =3D nd_label_alloc_slot(ndd);
+> +	if (slot =3D=3D UINT_MAX)
+> +		return -ENXIO;
+> +	dev_dbg(ndd->dev, "allocated: %d\n", slot);
+> +
+> +	nd_label =3D to_label(ndd, slot);
+> +
+> +	memset(nd_label, 0, sizeof_namespace_label(ndd));
+> +	rg_label =3D &nd_label->rg_label;
+> +
+> +	/* Set Region Label Format identification UUID */
+> +	uuid_parse(CXL_REGION_UUID, &tmp);
+> +	export_uuid(nd_label->rg_label.type, &tmp);
+> +
+> +	/* Set Current Region Label UUID */
+> +	export_uuid(nd_label->rg_label.uuid, &nd_set->uuid);
+> +
+> +	rg_label->flags =3D __cpu_to_le32(flags);
+> +	rg_label->nlabel =3D __cpu_to_le16(nd_region->ndr_mappings);
+> +	rg_label->position =3D __cpu_to_le16(pos);
+> +	rg_label->dpa =3D __cpu_to_le64(nd_mapping->start);
+> +	rg_label->rawsize =3D __cpu_to_le64(nd_mapping->size);
+> +	rg_label->hpa =3D __cpu_to_le64(nd_set->res->start);
+> +	rg_label->slot =3D __cpu_to_le32(slot);
+> +	rg_label->ig =3D __cpu_to_le32(nd_set->interleave_granularity);
+> +	rg_label->align =3D __cpu_to_le16(0);
+> +
+> +	/* Update fletcher64 Checksum */
+> +	rgl_calculate_checksum(ndd, rg_label);
+> +
+> +	/* update label */
+> +	offset =3D nd_label_offset(ndd, nd_label);
+> +	rc =3D nvdimm_set_config_data(ndd, offset, nd_label,
+> +			sizeof_namespace_label(ndd));
+> +	if (rc < 0) {
+> +		nd_label_free_slot(ndd, slot);
+> +		return rc;
+> +	}
+> +
+> +	/* Garbage collect the previous label */
+> +	mutex_lock(&nd_mapping->lock);
+> +	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+> +		if (!label_ent->label)
+> +			continue;
+> +		if (rgl_uuid_equal(&label_ent->label->rg_label, &nd_set->uuid))
+> +			reap_victim(nd_mapping, label_ent);
+> +	}
+> +
+> +	/* update index */
+> +	rc =3D nd_label_write_index(ndd, ndd->ns_next,
+> +			nd_inc_seq(__le32_to_cpu(nsindex->seq)), 0);
+> +
+> +	if (rc =3D=3D 0) {
+> +		list_for_each_entry(label_ent, &nd_mapping->labels, list)
+> +			if (!label_ent->label) {
+> +				label_ent->label =3D nd_label;
+> +				nd_label =3D NULL;
+> +				break;
+> +			}
+> +		dev_WARN_ONCE(&nd_region->dev, nd_label,
+> +				"failed to track label: %d\n",
+> +				to_slot(ndd, nd_label));
+> +		if (nd_label)
+> +			rc =3D -ENXIO;
+> +	}
+> +	mutex_unlock(&nd_mapping->lock);
+> +
+> +	return rc;
+> +}
+> +
+> +int nd_pmem_region_label_update(struct nd_region *nd_region)
+
+Same here. nd_pmem_region_label_update() is almost identical to the=20
+existing nd_pmem_namespace_label_update.=20
+
+Although I'm not familiar with drivers/nvdimm, it seems preferable to=20
+reuse and adapt the existing functions to reduce redundancy and simplify=20
+future maintenance, unless there are specific reasons for not doing so=20
+that I'm unaware of.
+
+Thanks,=20
+
+=46abio
+
+> +{
+> +	int i, rc;
+> +
+> +	for (i =3D 0; i < nd_region->ndr_mappings; i++) {
+> +		struct nd_mapping *nd_mapping =3D &nd_region->mapping[i];
+> +		struct nvdimm_drvdata *ndd =3D to_ndd(nd_mapping);
+> +
+> +		/* No need to update region label for non cxl format */
+> +		if (!ndd->cxl)
+> +			continue;
+> +
+> +		/* Init labels to include region label */
+> +		rc =3D init_labels(nd_mapping, 1);
+> +
+> +		if (rc < 0)
+> +			return rc;
+> +
+> +		rc =3D __pmem_region_label_update(nd_region, nd_mapping, i,
+> +					NSLABEL_FLAG_UPDATING);
+> +
+> +		if (rc)
+> +			return rc;
+> +	}
+> +
+> +	/* Clear the UPDATING flag per UEFI 2.7 expectations */
+> +	for (i =3D 0; i < nd_region->ndr_mappings; i++) {
+> +		struct nd_mapping *nd_mapping =3D &nd_region->mapping[i];
+> +		struct nvdimm_drvdata *ndd =3D to_ndd(nd_mapping);
+> +
+> +		/* No need to update region label for non cxl format */
+> +		if (!ndd->cxl)
+> +			continue;
+> +
+> +		rc =3D __pmem_region_label_update(nd_region, nd_mapping, i, 0);
+> +
+> +		if (rc)
+> +			return rc;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  int __init nd_label_init(void)
+>  {
+>  	WARN_ON(guid_parse(NVDIMM_BTT_GUID, &nvdimm_btt_guid));
+> diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+> index 4883b3a1320f..0f428695017d 100644
+> --- a/drivers/nvdimm/label.h
+> +++ b/drivers/nvdimm/label.h
+> @@ -190,6 +190,7 @@ struct nd_namespace_label {
+>  struct nd_lsa_label {
+>  	union {
+>  		struct nd_namespace_label ns_label;
+> +		struct cxl_region_label rg_label;
+>  	};
+>  };
+> =20
+> @@ -233,4 +234,5 @@ struct nd_region;
+>  struct nd_namespace_pmem;
+>  int nd_pmem_namespace_label_update(struct nd_region *nd_region,
+>  		struct nd_namespace_pmem *nspm, resource_size_t size);
+> +int nd_pmem_region_label_update(struct nd_region *nd_region);
+>  #endif /* __LABEL_H__ */
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_d=
+evs.c
+> index 23b9def71012..6cccb4d2fc7b 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -232,6 +232,18 @@ static ssize_t __alt_name_store(struct device *dev, =
+const char *buf,
+>  	return rc;
+>  }
+> =20
+> +int nd_region_label_update(struct nd_region *nd_region)
+> +{
+> +	int rc;
+> +
+> +	nvdimm_bus_lock(&nd_region->dev);
+> +	rc =3D nd_pmem_region_label_update(nd_region);
+> +	nvdimm_bus_unlock(&nd_region->dev);
+> +
+> +	return rc;
+> +}
+> +EXPORT_SYMBOL_GPL(nd_region_label_update);
+> +
+>  static int nd_namespace_label_update(struct nd_region *nd_region,
+>  		struct device *dev)
+>  {
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index 07d665f18bf6..2fdc92b29e8a 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -322,6 +322,26 @@ static inline void nsl_set_region_uuid(struct nvdimm=
+_drvdata *ndd,
+>  		export_uuid(ns_label->cxl.region_uuid, uuid);
+>  }
+> =20
+> +static inline bool rgl_uuid_equal(struct cxl_region_label *rg_label,
+> +				  const uuid_t *uuid)
+> +{
+> +	uuid_t tmp;
+> +
+> +	import_uuid(&tmp, rg_label->uuid);
+> +	return uuid_equal(&tmp, uuid);
+> +}
+> +
+> +static inline u64 rgl_get_checksum(struct cxl_region_label *rg_label)
+> +{
+> +	return __le64_to_cpu(rg_label->checksum);
+> +}
+> +
+> +static inline void rgl_set_checksum(struct cxl_region_label *rg_label,
+> +				    u64 checksum)
+> +{
+> +	rg_label->checksum =3D __cpu_to_le64(checksum);
+> +}
+> +
+>  bool nsl_validate_type_guid(struct nvdimm_drvdata *ndd,
+>  			    struct nd_namespace_label *nd_label, guid_t *guid);
+>  enum nvdimm_claim_class nsl_get_claim_class(struct nvdimm_drvdata *ndd,
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index 0a55900842c8..b06bd45373f4 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -115,6 +115,13 @@ struct nd_interleave_set {
+>  	u64 altcookie;
+> =20
+>  	guid_t type_guid;
+> +
+> +	/* v2.1 region label info */
+> +	uuid_t uuid;
+> +	int interleave_ways;
+> +	int interleave_granularity;
+> +	struct resource *res;
+> +	int nr_targets;
+>  };
+> =20
+>  struct nd_mapping_desc {
+> @@ -302,6 +309,7 @@ int nvdimm_has_flush(struct nd_region *nd_region);
+>  int nvdimm_has_cache(struct nd_region *nd_region);
+>  int nvdimm_in_overwrite(struct nvdimm *nvdimm);
+>  bool is_nvdimm_sync(struct nd_region *nd_region);
+> +int nd_region_label_update(struct nd_region *nd_region);
+> =20
+>  static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, vo=
+id *buf,
+>  		unsigned int buf_len, int *cmd_rc)
+> --=20
+> 2.34.1
 >=20
-> Whether it is a PTE or something else will usually become obvious from =
-the
-> page table dump or from the dumped stack. If ever required in the futur=
-e,
-> we could pass the entry level type similar to "enum rmap_level". For no=
-w,
-> let's keep it simple.
 >=20
-> To make the function a bit more readable, factor out the ratelimit chec=
-k
-> into is_bad_page_map_ratelimited() and place the dumping of page
-> table content into __dump_bad_page_map_pgtable(). We'll now dump
-> information from each level in a single line, and just stop the table
-> walk once we hit something that is not a present page table.
 >=20
-> Use print_bad_page_map() in vm_normal_page_pmd() similar to how we do i=
-t
-> for vm_normal_page(), now that we have a function that can handle it.
 >=20
-> The report will now look something like (dumping pgd to pmd values):
->=20
-> [   77.943408] BUG: Bad page map in process XXX  entry:80000001233f5867=
 
-> [   77.944077] addr:00007fd84bb1c000 vm_flags:08100071 anon_vma: ...
-> [   77.945186] pgd:10a89f067 p4d:10a89f067 pud:10e5a2067 pmd:105327067
->=20
-> Not using pgdp_get(), because that does not work properly on some arm
-> configs where pgd_t is an array. Note that we are dumping all levels
-> even when levels are folded for simplicity.
->=20
-> Signed-off-by: David Hildenbrand <david@redhat.com>
 
-Should this still use a WARN?  If the admin sets panic-on-warn they
-have asked for "crash if anything goes wrong" and so that is what
-they should get.  Otherwise the system will still stay up.
---=20
-Sincerely,
-Demi Marie Obenour (she/her/hers)
---------------8g3eOtYBs5ZvfjQ3PpbBaTNy
-Content-Type: application/pgp-keys; name="OpenPGP_0xB288B55FFF9C22C1.asc"
-Content-Disposition: attachment; filename="OpenPGP_0xB288B55FFF9C22C1.asc"
-Content-Description: OpenPGP public key
-Content-Transfer-Encoding: quoted-printable
 
------BEGIN PGP PUBLIC KEY BLOCK-----
 
-xsFNBFp+A0oBEADffj6anl9/BHhUSxGTICeVl2tob7hPDdhHNgPR4C8xlYt5q49y
-B+l2nipdaq+4Gk6FZfqC825TKl7eRpUjMriwle4r3R0ydSIGcy4M6eb0IcxmuPYf
-bWpr/si88QKgyGSVZ7GeNW1UnzTdhYHuFlk8dBSmB1fzhEYEk0RcJqg4AKoq6/3/
-UorR+FaSuVwT7rqzGrTlscnTDlPWgRzrQ3jssesI7sZLm82E3pJSgaUoCdCOlL7M
-MPCJwI8JpPlBedRpe9tfVyfu3euTPLPxwcV3L/cfWPGSL4PofBtB8NUU6QwYiQ9H
-zx4xOyn67zW73/G0Q2vPPRst8LBDqlxLjbtx/WLR6h3nBc3eyuZ+q62HS1pJ5EvU
-T1vjyJ1ySrqtUXWQ4XlZyoEFUfpJxJoN0A9HCxmHGVckzTRl5FMWo8TCniHynNXs
-BtDQbabt7aNEOaAJdE7to0AH3T/Bvwzcp0ZJtBk0EM6YeMLtotUut7h2Bkg1b//r
-6bTBswMBXVJ5H44Qf0+eKeUg7whSC9qpYOzzrm7+0r9F5u3qF8ZTx55TJc2g656C
-9a1P1MYVysLvkLvS4H+crmxA/i08Tc1h+x9RRvqba4lSzZ6/Tmt60DPM5Sc4R0nS
-m9BBff0Nm0bSNRS8InXdO1Aq3362QKX2NOwcL5YaStwODNyZUqF7izjK4QARAQAB
-zTxEZW1pIE9iZW5vdXIgKElUTCBFbWFpbCBLZXkpIDxhdGhlbmFAaW52aXNpYmxl
-dGhpbmdzbGFiLmNvbT7CwY4EEwEIADgWIQR2h02fEza6IlkHHHGyiLVf/5wiwQUC
-X6YJvQIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRCyiLVf/5wiwWRhD/0Y
-R+YYC5Kduv/2LBgQJIygMsFiRHbR4+tWXuTFqgrxxFSlMktZ6gQrQCWe38WnOXkB
-oY6n/5lSJdfnuGd2UagZ/9dkaGMUkqt+5WshLFly4BnP7pSsWReKgMP7etRTwn3S
-zk1OwFx2lzY1EnnconPLfPBc6rWG2moA6l0WX+3WNR1B1ndqpl2hPSjT2jUCBWDV
-rGOUSX7r5f1WgtBeNYnEXPBCUUM51pFGESmfHIXQrqFDA7nBNiIVFDJTmQzuEqIy
-Jl67pKNgooij5mKzRhFKHfjLRAH4mmWZlB9UjDStAfFBAoDFHwd1HL5VQCNQdqEc
-/9lZDApqWuCPadZN+pGouqLysesIYsNxUhJ7dtWOWHl0vs7/3qkWmWun/2uOJMQh
-ra2u8nA9g91FbOobWqjrDd6x3ZJoGQf4zLqjmn/P514gb697788e573WN/MpQ5XI
-Fl7aM2d6/GJiq6LC9T2gSUW4rbPBiqOCeiUx7Kd/sVm41p9TOA7fEG4bYddCfDsN
-xaQJH6VRK3NOuBUGeL+iQEVF5Xs6Yp+U+jwvv2M5Lel3EqAYo5xXTx4ls0xaxDCu
-fudcAh8CMMqx3fguSb7Mi31WlnZpk0fDuWQVNKyDP7lYpwc4nCCGNKCj622ZSocH
-AcQmX28L8pJdLYacv9pU3jPy4fHcQYvmTavTqowGnM08RGVtaSBNYXJpZSBPYmVu
-b3VyIChsb3ZlciBvZiBjb2RpbmcpIDxkZW1pb2Jlbm91ckBnbWFpbC5jb20+wsF4
-BBMBAgAiBQJafgNKAhsDBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRCyiLVf
-/5wiwYa/EACv8a2+MMou9cSCNoZBQaU+fTmyzft9hUE+0d5W2UY1RY3OsjFIzm9R
-/4SVccfsqOYLEo+S0vQMIIIqFEq3FCpXXwPzyimotps05VA8U3Bd7yseojFygOgK
-sAMOAee2RCaDDOnoJue01dfZMzzHPO/TVdp3OvnpWipfv5G1Xg96rwbhMLE3tg6N
-xwAHa31Bv4/Xq8CJOoIWvx6fcmZQpz01/lSvsYn0KrfEbTKkuUf0vM9JrCTCP2oz
-VNN5BYzqaq2M4r+jmSyeXLim922VOWqGkUEQ85BSEemqrRS06IU6NtEMsF8EWt/b
-hWjk/9GDKTcnpdJHTrMxTspExBiNrvpI2t+YPU5B/dJJAUxvmhFrbSIbdB8umBZs
-I3AMYrEmpAbh5x7jEjoskUC7uN3o9vpg1oCLS2ePDLtAtyBtbHnkA4xGD7ar8mem
-xpH9lY/i+sC6CyyIUWcUDnnagKyJP0m9ks0GLsTeOCA0bft2XA6rD6aaCnMUsndT
-ctrab42CV5XypjmC4U1rPJ8JQJUh1/3P48/8sMH+3krxpJ06KNWNFaUbaMTGiltZ
-7x9DngklSYrX0T+2G4kVXNmjaljwkoLahwLla2gUWwBSyofXdqyhQdwZsp01KXNQ
-UCyT/Pg+aDcm/E7OMV3d4lf7g/CSxiX2GSEe6BlhSz+Lmd7ZJ3g32M1ARGVtaSBN
-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
-EtJuZYM5blWncBOJCoWMnBEcTEo/viU3GgcVRw=3D=3D
-=3Dx94R
------END PGP PUBLIC KEY BLOCK-----
-
---------------8g3eOtYBs5ZvfjQ3PpbBaTNy--
-
---------------yIjP8WLJtOljwEWqY45CvJcF--
-
---------------SHjgOg5Jql0bG0wbh87Oeqfj
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEopQtqVJW1aeuo9/sszaHOrMp8lMFAmh5dAAACgkQszaHOrMp
-8lM8vA/+Mo3M94bCYFSgBdkwqEyfcTvdrfIsxDPbZ/VjK+kVLcgcDbzffsYQDTVz
-6Q8k0b4fDdIkhchWPzkZc2Bwi4qbRNRZMjPLP7qzlKsjpswCddq/p9kx7k8+KdSr
-CaSbowhDN2MGpqPM44QI3F6suxHUalZdX+h9dWJTwid02eb8o0TK9vwDTLpgKqq6
-qbCcYCR6P4iOGMIiDAunQU/pyPW9d0xB1Ogqu1Bovwciae/WVEEUDB3FQ82AmKmU
-kKCsEYRe9KiWdG5Qw2M9hdcO1cDKslQY4xsgQyeZuIlR4I8dms7X2yXVYSq6dB++
-UnomO239Hd8L1IDyVNyNzUWAaPdjYtDfu2wQ/WWvM7oFaF2sdbbhUx8b27oF358W
-dpVQObz780qseY2GtUJHNanMyPLhVdhQS034Yl9r/F7G3eDTcuZ0RLzpAbfyzNpd
-6O8bWHlxywcxgWpnWCepzYwe8dNuANa2Koen0FH60K6YbZeYj18+HpsREl5ibCy2
-sQxj/ivyBYBXrC5QfScfbTXIL7hpYv77vddtqPQsXDQAnyHpVs4XQlUzHfsW+iVU
-HyatakCBD5GgPmywvgSBLoe7MtWZ7B7RbiQ7FhF3HVCm+EOlyml42LNyxeUL53+I
-XJNQ2JJp9g/Z+s0rgaUIKG2eczw1q74XKHL3OOyi5gEDYPjNFog=
-=NNjd
------END PGP SIGNATURE-----
-
---------------SHjgOg5Jql0bG0wbh87Oeqfj--
