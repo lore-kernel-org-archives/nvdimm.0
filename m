@@ -1,70 +1,70 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E45062BE040
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 11:52:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 492792BE049
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 11:52:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752753158; cv=none; b=u7CYhR/j4xL18qz4AFTG1mVV9SnfdD+DnGHiSeW3eyLuLtv3/i480hTlx4tvkHLFqW+ispUrCZxzr6rk8ekK91mIzA1bJBHJzhn5l9qNnLnkjLTSr9xcGXlzECRmxKLNuGvJINldyeM4ydqacX40TS0O9tvvHxxHmd6bV2G9WZ8=
+	t=1752753159; cv=none; b=trXJl1qBRAUarCKc8wFcYG00g1lBFapIBAy+ChQ+GA0MXyvEoU3kLhYhzktLE18Ry1AUgbi/VYqlnCc6PVhGCa95gZq5p7ifC0OD1tCgjBCejH4/kUz9qO5xxelX2WEzy+08Ik5tgIhkf0UgwbD8nP9kbqtDN+pKMngy2sjd5+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752753158; c=relaxed/simple;
-	bh=gMrA8DSKuXMfo6Oy1S6H8o432DllXJJ9TU8eUm58p9M=;
+	s=arc-20240116; t=1752753159; c=relaxed/simple;
+	bh=6/jjLRxyu6Gk21aB2ScFk9YQfi5MLdI3W8BYCgHrJ7Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:content-type; b=uQRvVplI51lj4aLlPGo5iE62YvSXufMzoDN205BL+jikZHHqp8f6RsXE18SusG1ghrZqSzXk0QOWQJyRUzEu2rs7nUMpkqdDLXgyoTQFEx7+aj+iLD9CpbRY6LN1uBk0DdcTz+yRKa57Sd/qFCqU/UMkm10lRShM8sRBLTWYQKA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=c0ZC3o+3; arc=none smtp.client-ip=170.10.129.124
+	 MIME-Version:content-type; b=kRDPHKHomjHj2NCh5+7wNjoSeOirGGqdYmVHHe7vm6hYrUajF17PkHiTteyuM8aRbVHVP+uANv07GIuH8ZJ2uzBhudrqHBWcTiKsCxf9zRsYERwf6NYqG85JkkJj6hbRNaog2Pk+W2EczjF2TU5DRtn0QODpkmwC2cWSeyshZKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=R3v2dTQl; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="c0ZC3o+3"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="R3v2dTQl"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1752753155;
+	s=mimecast20190719; t=1752753157;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=S6ocb38IkVcnlHaJeHNVb3Jrmzmc76tJoqI7g7ZBmQA=;
-	b=c0ZC3o+3zi2P08qppE0kJ/+tNkr9Y5uJyCvpfNJt7umwD3Yv8oL1UchX0mLhIL+mGKtEQ3
-	m4hkNXFS/O+vOG6qdW8KuCWpWXqQ+k52/aBdruihDuceH7cTI9K10iVG2hHU1RavL2tf4d
-	rj11FjmEprDfjSpJgeBdjfg2i7U37JY=
-Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
- [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=y93PTvMkvM029q6ldi/06ftGqYZT07G8pbjSDy6T3hs=;
+	b=R3v2dTQlfSz+DnV/cac/LtblYmupdjepB/veUESKoJSFRGzSM6dyFsPdjPe3NNce6zcTmr
+	o+WRCq6JWoYMKbsfV3kThMsXG8yE20NXMe6Ch1rLYrlTcJ1CcIc+5MFhohQYgiq6+XMoij
+	zcyxWXzAgPmCRsdH4OpBNR5hR5Q+tvE=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-251-vtEJykgsOyyU4f6Um8JEnQ-1; Thu, 17 Jul 2025 07:52:34 -0400
-X-MC-Unique: vtEJykgsOyyU4f6Um8JEnQ-1
-X-Mimecast-MFC-AGG-ID: vtEJykgsOyyU4f6Um8JEnQ_1752753153
-Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-3a4f7f1b932so563417f8f.2
-        for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 04:52:33 -0700 (PDT)
+ us-mta-314-JlQd8tLhOOqIWldgjrqxbA-1; Thu, 17 Jul 2025 07:52:36 -0400
+X-MC-Unique: JlQd8tLhOOqIWldgjrqxbA-1
+X-Mimecast-MFC-AGG-ID: JlQd8tLhOOqIWldgjrqxbA_1752753155
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3a4f7f1b932so563441f8f.2
+        for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 04:52:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752753153; x=1753357953;
+        d=1e100.net; s=20230601; t=1752753155; x=1753357955;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=S6ocb38IkVcnlHaJeHNVb3Jrmzmc76tJoqI7g7ZBmQA=;
-        b=Qp1RExe/BMiceUU5TBSxTbTf9fE7DiLen7slr1XW7+T2Kv3Hj2RunIGWVDiFju8MjY
-         32q3pimlFJldI2GzUdKnuq1U0VBWx2Gfod9WQU1kSK3S2gdhXznkaMwD9v0thU/60UPc
-         dnLQoJ08Svb0wf+q5CO+hpeRiSft+bWEVnAqA8ocnwTsgHnxdYIMqF8ufey1IDfVy34x
-         oluOnNljVwG63DacSUJelCohQyWZlN08oSe0p56i7LZEvX8oVqOLaVzo2oN7v6j5oFY1
-         fC3oWCGaZ3tmGdhuSHjtX9uTpDLgKKOub6ZbRfSpji3Vmh6TK71gpnSS4LPSvRqQfojj
-         qz9A==
-X-Forwarded-Encrypted: i=1; AJvYcCVU/4ze2C5rOS6mV6TTMJUDc3BnLV4wBQjLYWC11N4hXsHqMrEOf1LxIs9w+qnOh4e6W3p2ZIw=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwMoADTSlkT0S87bdJZ0vqb0k/evIoOHN/ZpgfvkOGLT9n78BYf
-	e9NsSsYorQ/9dR9z467XRxgEWDMZpzLaIwaMgUSyo2ss0z13KDlbj5wvfMgwDvxuo/NB33WBgFz
-	r7x/2BAEc3wCSmOyZ8QMrHG1ZAno9xS0hhWFS9lFJCVnmVyh0/9ZVGnQIhg==
-X-Gm-Gg: ASbGncsxiYpitLD+Vl32xFliLTgncuzwh92qeAc4CvJPvQYyWWuSU6rjjXhyaF9pDkq
-	GfTQmc6Yq24Z82+iwhPlbqqlUi5lc1fIyQV10oAAs1BFQ3Gt71vzSF9ijxjSZi9TWglUJGefbAd
-	wcW6JPEDDFuJYvrnaKeTy0hyv6Uc2v+Pr9okCh2tVwSsrmBb55VDmL6tcca+qa/C999baYjSkDr
-	BYmEhWTSMvFpsvSwQqnI7rS2oL1kDLgcmAtYJO3XZ/A/X6jdKUjOvs1SkGk+hi3n9VxcylavyM0
-	meihDphJWTOPJOg+99nYp0C9kGkuqN/dQSE0blx2ou3FNYBhcFkn4yHMLZrx/6//Er0oMTqmTvL
-	6d9cXU5Adag/xepZwLIOW/lg=
-X-Received: by 2002:a05:6000:43c6:10b0:3a4:f744:e01b with SMTP id ffacd0b85a97d-3b60e50fde7mr3995232f8f.39.1752753152618;
-        Thu, 17 Jul 2025 04:52:32 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGLcgp48Noardv8I0f6W2NZTd1NV9HbsxHjW8GgnbNobVHwjA5VMkKS9pv04KvpTaqXa6tubA==
-X-Received: by 2002:a05:6000:43c6:10b0:3a4:f744:e01b with SMTP id ffacd0b85a97d-3b60e50fde7mr3995202f8f.39.1752753152069;
-        Thu, 17 Jul 2025 04:52:32 -0700 (PDT)
+        bh=y93PTvMkvM029q6ldi/06ftGqYZT07G8pbjSDy6T3hs=;
+        b=fSWswtECqd9Q7lOOYJhtJ4XlXBAgW0guqiPpUUm7GL/ArMuUzH4Nsz3oqnsixVXZ3V
+         zOFAQcGGqSfIRYF9gt0e/FNjprKSzc+QC9vLuV/8PgCCGwZx3SydQG8UgMHlaHnKN8hY
+         IPuSu7RPauyoCpxADDAR+e8+6D9ovxFpusXEjOCbYIXT5Db3Lt8ufDdFLhQTAwBByob3
+         nVIpclHIKx0jTRsGzxU3jnUDa+8LDkvTh7ijGdr9+fAPkp/UShTsafXQjOBL8V9KSpaR
+         rCf35IszpBdtAwEQeCZdf8eVIb3pWOf3frL7qIiwIQvrQrCaQRFoH5+7aBZhJGKe0ONw
+         i6OA==
+X-Forwarded-Encrypted: i=1; AJvYcCWX0/nEIRVfj5pU8heLEhd6Tw2q+QK7HS+9hi6i0YfLmAt+tmujjQz5vIq+RWXmRCUO+ctSj+Q=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyr7OQ5l6x0ejaGWhchSa7zKTDhD3Pdz1+QXDuGctUAwx1DKbFp
+	HEvSxKKEHBQj8y1g95E3FGLntW8E3IbjFPoAZLDA9w37RU+26Vc4u3nS9mGXkYbMhh37CF7bnMK
+	NpisTxGRClIeKraSaR28rRUQGW+sV7iAUmtWm/3S4sGAoflxDfsZQSABbCA==
+X-Gm-Gg: ASbGnctvc5nba0gXVgPrD+OPpBDdem/VcWbQVKCEuKw/JFSies8OMe/8dFlOYpHe8VA
+	9Dm4oFpmUKfeAo8B7Zrbrqb/E8i7waUBZA9N66Gl+vZPDFdZD0WUafY89K8LR6LPN2p8GJBQ+ra
+	GIFAgDn5Ezbdq8mF5Eu2tLBfLHXhqRPyynhbVkXlODBrbz//WElNtUrmrCGkm4yUjphSkZpiq9X
+	pnQdi/U3cs+xAoQv+tFfbP3ONesI0F0tL7rm4LE1xfWrnvWGBg+Q446eNttnlg4T7jsPEjCidLT
+	p2CYAthdBS6kC9x3p3bMII384n8S1OqgOKWmStii79DDznEerDYjXVoXCEk1b7SYJl/XID+3EpZ
+	iazbW9uRPUnnU8H5gwn043yo=
+X-Received: by 2002:a5d:6f14:0:b0:3a4:f661:c3e0 with SMTP id ffacd0b85a97d-3b60e510baamr4180684f8f.45.1752753154939;
+        Thu, 17 Jul 2025 04:52:34 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEAqQmPlaR0MqxERo3NRLrhaU4oEs8iGAGrgiheQNLTojFB3jUgPbGxNACr3plB8i5Bf9h92A==
+X-Received: by 2002:a5d:6f14:0:b0:3a4:f661:c3e0 with SMTP id ffacd0b85a97d-3b60e510baamr4180643f8f.45.1752753154425;
+        Thu, 17 Jul 2025 04:52:34 -0700 (PDT)
 Received: from localhost (p200300d82f1f36000dc826ee9aa9fdc7.dip0.t-ipconnect.de. [2003:d8:2f1f:3600:dc8:26ee:9aa9:fdc7])
-        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-45634ec9162sm20451645e9.0.2025.07.17.04.52.30
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-3b5e8bd18ffsm20281626f8f.9.2025.07.17.04.52.32
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 17 Jul 2025 04:52:31 -0700 (PDT)
+        Thu, 17 Jul 2025 04:52:33 -0700 (PDT)
 From: David Hildenbrand <david@redhat.com>
 To: linux-kernel@vger.kernel.org
 Cc: linux-mm@kvack.org,
@@ -98,9 +98,9 @@ Cc: linux-mm@kvack.org,
 	Hugh Dickins <hughd@google.com>,
 	Oscar Salvador <osalvador@suse.de>,
 	Lance Yang <lance.yang@linux.dev>
-Subject: [PATCH v2 7/9] mm/memory: factor out common code from vm_normal_page_*()
-Date: Thu, 17 Jul 2025 13:52:10 +0200
-Message-ID: <20250717115212.1825089-8-david@redhat.com>
+Subject: [PATCH v2 8/9] mm: introduce and use vm_normal_page_pud()
+Date: Thu, 17 Jul 2025 13:52:11 +0200
+Message-ID: <20250717115212.1825089-9-david@redhat.com>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20250717115212.1825089-1-david@redhat.com>
 References: <20250717115212.1825089-1-david@redhat.com>
@@ -111,274 +111,116 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: GVyMyMEmVF0Tgoqs1SvlAIrT3L410NVsl7eBw7vf6pU_1752753153
+X-Mimecast-MFC-PROC-ID: KSXTQ7YTsyq-gav9jDdma5p5qLdqRRq9mo1faIHTRRU_1752753155
 X-Mimecast-Originator: redhat.com
 Content-Transfer-Encoding: 8bit
 content-type: text/plain; charset="US-ASCII"; x-default=true
 
-Let's reduce the code duplication and factor out the non-pte/pmd related
-magic into vm_normal_page_pfn().
+Let's introduce vm_normal_page_pud(), which ends up being fairly simple
+because of our new common helpers and there not being a PUD-sized zero
+folio.
 
-To keep it simpler, check the pfn against both zero folios. We could
-optimize this, but as it's only for the !CONFIG_ARCH_HAS_PTE_SPECIAL
-case, it's not a compelling micro-optimization.
-
-With CONFIG_ARCH_HAS_PTE_SPECIAL we don't have to check anything else,
-really.
-
-It's a good question if we can even hit the !CONFIG_ARCH_HAS_PTE_SPECIAL
-scenario in the PMD case in practice: but doesn't really matter, as
-it's now all unified in vm_normal_page_pfn().
-
-Add kerneldoc for all involved functions.
-
-No functional change intended.
+Use vm_normal_page_pud() in folio_walk_start() to resolve a TODO,
+structuring the code like the other (pmd/pte) cases. Defer
+introducing vm_normal_folio_pud() until really used.
 
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- mm/memory.c | 183 +++++++++++++++++++++++++++++++---------------------
- 1 file changed, 109 insertions(+), 74 deletions(-)
+ include/linux/mm.h |  2 ++
+ mm/memory.c        | 27 +++++++++++++++++++++++++++
+ mm/pagewalk.c      | 20 ++++++++++----------
+ 3 files changed, 39 insertions(+), 10 deletions(-)
 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index abc47f1f307fb..0eb991262fbbf 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2349,6 +2349,8 @@ struct folio *vm_normal_folio_pmd(struct vm_area_struct *vma,
+ 				  unsigned long addr, pmd_t pmd);
+ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 				pmd_t pmd);
++struct page *vm_normal_page_pud(struct vm_area_struct *vma, unsigned long addr,
++		pud_t pud);
+ 
+ void zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
+ 		  unsigned long size);
 diff --git a/mm/memory.c b/mm/memory.c
-index 08d16ed7b4cc7..c43ae5e4d7644 100644
+index c43ae5e4d7644..00a0d7ae3ba4a 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -590,8 +590,13 @@ static void print_bad_page_map(struct vm_area_struct *vma,
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+@@ -796,6 +796,33 @@ struct folio *vm_normal_folio_pmd(struct vm_area_struct *vma,
+ 		return page_folio(page);
+ 	return NULL;
  }
- 
--/*
-- * vm_normal_page -- This function gets the "struct page" associated with a pte.
++
 +/**
-+ * vm_normal_page_pfn() - Get the "struct page" associated with a PFN in a
-+ *			  non-special page table entry.
-+ * @vma: The VMA mapping the @pfn.
-+ * @addr: The address where the @pfn is mapped.
-+ * @pfn: The PFN.
-+ * @entry: The page table entry value for error reporting purposes.
-  *
-  * "Special" mappings do not wish to be associated with a "struct page" (either
-  * it doesn't exist, or it exists but they don't want to touch it). In this
-@@ -603,10 +608,10 @@ static void print_bad_page_map(struct vm_area_struct *vma,
-  * (such as GUP) can still identify these mappings and work with the
-  * underlying "struct page".
-  *
-- * There are 2 broad cases. Firstly, an architecture may define a pte_special()
-- * pte bit, in which case this function is trivial. Secondly, an architecture
-- * may not have a spare pte bit, which requires a more complicated scheme,
-- * described below.
-+ * There are 2 broad cases. Firstly, an architecture may define a "special"
-+ * page table entry bit (e.g., pte_special()), in which case this function is
-+ * trivial. Secondly, an architecture may not have a spare page table
-+ * entry bit, which requires a more complicated scheme, described below.
-  *
-  * A raw VM_PFNMAP mapping (ie. one that is not COWed) is always considered a
-  * special mapping (even if there are underlying and valid "struct pages").
-@@ -639,15 +644,72 @@ static void print_bad_page_map(struct vm_area_struct *vma,
-  * don't have to follow the strict linearity rule of PFNMAP mappings in
-  * order to support COWable mappings.
-  *
-+ * This function is not expected to be called for obviously special mappings:
-+ * when the page table entry has the "special" bit set.
++ * vm_normal_page_pud() - Get the "struct page" associated with a PUD
++ * @vma: The VMA mapping the @pud.
++ * @addr: The address where the @pud is mapped.
++ * @pud: The PUD.
++ *
++ * Get the "struct page" associated with a PUD. See vm_normal_page_pfn()
++ * for details.
 + *
 + * Return: Returns the "struct page" if this is a "normal" mapping. Returns
 + *	   NULL if this is a "special" mapping.
 + */
-+static inline struct page *vm_normal_page_pfn(struct vm_area_struct *vma,
-+		unsigned long addr, unsigned long pfn, unsigned long long entry)
++struct page *vm_normal_page_pud(struct vm_area_struct *vma,
++		unsigned long addr, pud_t pud)
 +{
-+	/*
-+	 * With CONFIG_ARCH_HAS_PTE_SPECIAL, any special page table mappings
-+	 * (incl. shared zero folios) are marked accordingly and are handled
-+	 * by the caller.
-+	 */
-+	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL)) {
-+		if (unlikely(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))) {
-+			if (vma->vm_flags & VM_MIXEDMAP) {
-+				/* If it has a "struct page", it's "normal". */
-+				if (!pfn_valid(pfn))
-+					return NULL;
-+			} else {
-+				unsigned long off = (addr - vma->vm_start) >> PAGE_SHIFT;
++	unsigned long pfn = pud_pfn(pud);
 +
-+				/* Only CoW'ed anon folios are "normal". */
-+				if (pfn == vma->vm_pgoff + off)
-+					return NULL;
-+				if (!is_cow_mapping(vma->vm_flags))
-+					return NULL;
-+			}
-+		}
-+
-+		if (is_zero_pfn(pfn) || is_huge_zero_pfn(pfn))
++	if (unlikely(pud_special(pud))) {
++		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
 +			return NULL;
-+	}
 +
-+	/* Cheap check for corrupted page table entries. */
-+	if (pfn > highest_memmap_pfn) {
-+		print_bad_page_map(vma, addr, entry, NULL);
++		print_bad_page_map(vma, addr, pud_val(pud), NULL);
 +		return NULL;
 +	}
-+	/*
-+	 * NOTE! We still have PageReserved() pages in the page tables.
-+	 * For example, VDSO mappings can cause them to exist.
-+	 */
-+	VM_WARN_ON_ONCE(is_zero_pfn(pfn) || is_huge_zero_pfn(pfn));
-+	return pfn_to_page(pfn);
++	return vm_normal_page_pfn(vma, addr, pfn, pud_val(pud));
 +}
-+
-+/**
-+ * vm_normal_page() - Get the "struct page" associated with a PTE
-+ * @vma: The VMA mapping the @pte.
-+ * @addr: The address where the @pte is mapped.
-+ * @pte: The PTE.
-+ *
-+ * Get the "struct page" associated with a PTE. See vm_normal_page_pfn()
-+ * for details.
-+ *
-+ * Return: Returns the "struct page" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-  */
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 			    pte_t pte)
- {
- 	unsigned long pfn = pte_pfn(pte);
+ #endif
  
--	if (IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL)) {
--		if (likely(!pte_special(pte)))
--			goto check_pfn;
-+	if (unlikely(pte_special(pte))) {
- 		if (vma->vm_ops && vma->vm_ops->find_special_page)
- 			return vma->vm_ops->find_special_page(vma, addr);
- 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
-@@ -658,44 +720,21 @@ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 		print_bad_page_map(vma, addr, pte_val(pte), NULL);
- 		return NULL;
+ /**
+diff --git a/mm/pagewalk.c b/mm/pagewalk.c
+index 648038247a8d2..c6753d370ff4e 100644
+--- a/mm/pagewalk.c
++++ b/mm/pagewalk.c
+@@ -902,23 +902,23 @@ struct folio *folio_walk_start(struct folio_walk *fw,
+ 		fw->pudp = pudp;
+ 		fw->pud = pud;
+ 
+-		/*
+-		 * TODO: FW_MIGRATION support for PUD migration entries
+-		 * once there are relevant users.
+-		 */
+-		if (!pud_present(pud) || pud_special(pud)) {
++		if (pud_none(pud)) {
+ 			spin_unlock(ptl);
+ 			goto not_found;
+-		} else if (!pud_leaf(pud)) {
++		} else if (pud_present(pud) && !pud_leaf(pud)) {
+ 			spin_unlock(ptl);
+ 			goto pmd_table;
++		} else if (pud_present(pud)) {
++			page = vm_normal_page_pud(vma, addr, pud);
++			if (page)
++				goto found;
+ 		}
+ 		/*
+-		 * TODO: vm_normal_page_pud() will be handy once we want to
+-		 * support PUD mappings in VM_PFNMAP|VM_MIXEDMAP VMAs.
++		 * TODO: FW_MIGRATION support for PUD migration entries
++		 * once there are relevant users.
+ 		 */
+-		page = pud_page(pud);
+-		goto found;
++		spin_unlock(ptl);
++		goto not_found;
  	}
--
--	/* !CONFIG_ARCH_HAS_PTE_SPECIAL case follows: */
--
--	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
--		if (vma->vm_flags & VM_MIXEDMAP) {
--			if (!pfn_valid(pfn))
--				return NULL;
--			if (is_zero_pfn(pfn))
--				return NULL;
--			goto out;
--		} else {
--			unsigned long off;
--			off = (addr - vma->vm_start) >> PAGE_SHIFT;
--			if (pfn == vma->vm_pgoff + off)
--				return NULL;
--			if (!is_cow_mapping(vma->vm_flags))
--				return NULL;
--		}
--	}
--
--	if (is_zero_pfn(pfn))
--		return NULL;
--
--check_pfn:
--	if (unlikely(pfn > highest_memmap_pfn)) {
--		print_bad_page_map(vma, addr, pte_val(pte), NULL);
--		return NULL;
--	}
--
--	/*
--	 * NOTE! We still have PageReserved() pages in the page tables.
--	 * eg. VDSO mappings can cause them to exist.
--	 */
--out:
--	VM_WARN_ON_ONCE(is_zero_pfn(pfn));
--	return pfn_to_page(pfn);
-+	return vm_normal_page_pfn(vma, addr, pfn, pte_val(pte));
- }
  
-+/**
-+ * vm_normal_folio() - Get the "struct folio" associated with a PTE
-+ * @vma: The VMA mapping the @pte.
-+ * @addr: The address where the @pte is mapped.
-+ * @pte: The PTE.
-+ *
-+ * Get the "struct folio" associated with a PTE. See vm_normal_page_pfn()
-+ * for details.
-+ *
-+ * Return: Returns the "struct folio" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-+ */
- struct folio *vm_normal_folio(struct vm_area_struct *vma, unsigned long addr,
- 			    pte_t pte)
- {
-@@ -707,6 +746,18 @@ struct folio *vm_normal_folio(struct vm_area_struct *vma, unsigned long addr,
- }
- 
- #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
-+/**
-+ * vm_normal_page_pmd() - Get the "struct page" associated with a PMD
-+ * @vma: The VMA mapping the @pmd.
-+ * @addr: The address where the @pmd is mapped.
-+ * @pmd: The PMD.
-+ *
-+ * Get the "struct page" associated with a PMD. See vm_normal_page_pfn()
-+ * for details.
-+ *
-+ * Return: Returns the "struct page" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-+ */
- struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
- 				pmd_t pmd)
- {
-@@ -721,37 +772,21 @@ struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
- 		print_bad_page_map(vma, addr, pmd_val(pmd), NULL);
- 		return NULL;
- 	}
--
--	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
--		if (vma->vm_flags & VM_MIXEDMAP) {
--			if (!pfn_valid(pfn))
--				return NULL;
--			goto out;
--		} else {
--			unsigned long off;
--			off = (addr - vma->vm_start) >> PAGE_SHIFT;
--			if (pfn == vma->vm_pgoff + off)
--				return NULL;
--			if (!is_cow_mapping(vma->vm_flags))
--				return NULL;
--		}
--	}
--
--	if (is_huge_zero_pfn(pfn))
--		return NULL;
--	if (unlikely(pfn > highest_memmap_pfn)) {
--		print_bad_page_map(vma, addr, pmd_val(pmd), NULL);
--		return NULL;
--	}
--
--	/*
--	 * NOTE! We still have PageReserved() pages in the page tables.
--	 * eg. VDSO mappings can cause them to exist.
--	 */
--out:
--	return pfn_to_page(pfn);
-+	return vm_normal_page_pfn(vma, addr, pfn, pmd_val(pmd));
- }
- 
-+/**
-+ * vm_normal_folio_pmd() - Get the "struct folio" associated with a PMD
-+ * @vma: The VMA mapping the @pmd.
-+ * @addr: The address where the @pmd is mapped.
-+ * @pmd: The PMD.
-+ *
-+ * Get the "struct folio" associated with a PMD. See vm_normal_page_pfn()
-+ * for details.
-+ *
-+ * Return: Returns the "struct folio" if this is a "normal" mapping. Returns
-+ *	   NULL if this is a "special" mapping.
-+ */
- struct folio *vm_normal_folio_pmd(struct vm_area_struct *vma,
- 				  unsigned long addr, pmd_t pmd)
- {
+ pmd_table:
 -- 
 2.50.1
 
