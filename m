@@ -1,50 +1,73 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2DA3225A39
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jul 2025 23:30:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA36524167C
+	for <nvdimm@lists.linux.dev>; Fri, 18 Jul 2025 07:44:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752795015; cv=none; b=RiurQOtglSTT4qosXDJpECm1QLnKpWtK4HMKZTGssC4HRnTnrk4Go9I9KzKXl/nhW6Q/w+0Ep1z0ZadszzpXkXDniDsrXfjxED0Ol+8uduAF/mZW/ygHIChn9lqfyFVCIgyAwuovPnaFI2RHGpn956ESnWg8/NezcS8v0ly5u/A=
+	t=1752824680; cv=none; b=iDvJ8HECyEKqdbaODH1uqkx1Gw+KM60zDBs5G/K92u+WLma4Lv4PCAUXt/G8dtIp/erya1sGiTJZaP8ZJ+KEOAZkQg5suN2bCmtYyKMGmjUlorbfSsdsKrgzM56ehtAPWYOLafTLexhgGtJGLbYYAGHnxU5+T44fM91vI1QG65w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752795015; c=relaxed/simple;
-	bh=+To6mgWrS77GrePuDAmGHzjc7XaKL9HmNu2b9nYB8ig=;
+	s=arc-20240116; t=1752824680; c=relaxed/simple;
+	bh=5/rGqPhi94KGE6KAHQ9NxDL4a2s4Ps6HqsDhAIIpN3k=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gXbiNiCb/Qe44/zBTHtDjWobkMMPUOc+zsixBboccy5uC/w5TyYSPc4zVRvVsZc4eA4ApBNFmWC3JrsSkH0inBNh31jXrWBDKoHlzG5T46eQrgGdV5JO/XnZiHaW8M3bz/3J571jW+V5twj+sykIEC0UGiXB24TI3fv8VjewNGc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QKpQ9CLg; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 In-Reply-To:Content-Type; b=RAOM0NMzkePDlshQxCq5l0QtbWLmS13awJloTkvcdZQTyuyEcA8/1QU9K64hmz20Juy/gKHWyW4p4RiJK0X4UuG3h/rrtNl7KZOh2xZfslyKBduopHE+hPFzs9VdC1ZrEwWM9ImlOGG2jjAu+REdybOBB1uPaEEBVDOeWrtzOlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RaWsIrzT; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QKpQ9CLg"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1752795012; x=1784331012;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=+To6mgWrS77GrePuDAmGHzjc7XaKL9HmNu2b9nYB8ig=;
-  b=QKpQ9CLg4PnHa+ci70zL4POXgrcItMm96q48bosPZ2V5LG/qoufYavUl
-   e9zg/e2GT3uhxjNyzzZrKNQT6ju9Nuhg9z03pC2HYkdHVwPHrN6EKXaI0
-   tTQE5lQeO0HufmsBGsFeSZsRS3uTmkf0kBYfiHEbgz8slvKC6xPBTqEhV
-   gMTsMwoAvsHrnu7xGql/I/HF25HZFbKhTP/wplwm7nYPUU5L5e/ZdG7vV
-   6QIZuTMaizi1uLPm4IV9RR68wAkYZnd0BFHBlzI/3bi07ziKEnJJJ43yE
-   dZfHtnE+qi1GaCwHWw6qJR5+zXqo6VUC89y/9i0OaqsT61gW3FdCOp8mn
-   g==;
-X-CSE-ConnectionGUID: 19cMGhP5TG+y5LIAL4IkIg==
-X-CSE-MsgGUID: 3ap97ELWSeCqs5rZ9LcohQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11495"; a="77624781"
-X-IronPort-AV: E=Sophos;i="6.16,320,1744095600"; 
-   d="scan'208";a="77624781"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2025 16:30:11 -0700
-X-CSE-ConnectionGUID: M49pwBJvSFq16d5M9p+5eQ==
-X-CSE-MsgGUID: vTxQITMLQieLISsVJ5VVaA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,320,1744095600"; 
-   d="scan'208";a="158615585"
-Received: from ldmartin-desk2.corp.intel.com (HELO [10.125.108.3]) ([10.125.108.3])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2025 16:30:08 -0700
-Message-ID: <739ad358-2260-417f-896d-26d98d8dec53@intel.com>
-Date: Thu, 17 Jul 2025 16:30:05 -0700
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RaWsIrzT"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1752824677;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=qGtC2UAOiEHDc/WZSgt5GQzm+DwTH4N8cwGDpL/GTcQ=;
+	b=RaWsIrzToo8lu96C1qh4OphmG0pYaKa5B9eQJPHqDD0ziJ+EgTp61FNf492oIxmM+ElBMT
+	EHWRiRVOe1tS/AL3uXHxCQxuFHaLBO2xjsfuY0wP/zUhrYECliytqJwins+MOfxkUMhnvo
+	5P0f2wpjeVsxkj0Hosy1Sj5bN+K0WaY=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-650-bDBg4E1bMOKKu7kFXRcOfw-1; Fri, 18 Jul 2025 03:44:35 -0400
+X-MC-Unique: bDBg4E1bMOKKu7kFXRcOfw-1
+X-Mimecast-MFC-AGG-ID: bDBg4E1bMOKKu7kFXRcOfw_1752824675
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-3b39cc43f15so868021f8f.2
+        for <nvdimm@lists.linux.dev>; Fri, 18 Jul 2025 00:44:35 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752824674; x=1753429474;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=qGtC2UAOiEHDc/WZSgt5GQzm+DwTH4N8cwGDpL/GTcQ=;
+        b=fiA2/QLwlrMJpXKNAIq+PXwRu0AUR9IP5iWzU6afbFswFygbPsz+jzHqFQ4etbmntm
+         pkDS4WidKr8FFbepO+0C8b1hUlvD8YsWB5BQd6I1mFDbSijLQd8QsMdxbK9snVfIBrVo
+         TUdQ9Et7/qgmUAUFzYedD9kvJm3ZOrONd1sgNVIFeHSYagPaakwiviZnIUXybHlBPk4A
+         UJyqXcWW/7UDz03nCvwsmpBKt68/Z0+pkNxt3eERxTmt7HHiu7IQEhWaeYulma2uHNYo
+         ckrdmUx0PellkbRXmjfRFUuWkug45xKtzC+dfIyoGNp+PA1wvJ3y4XUfrJFvFsnF6oJN
+         Hw8w==
+X-Forwarded-Encrypted: i=1; AJvYcCUr3Fpui14b1KmnahOoR10q4GSWTLtsdC32hF+PIWhoC17BkK7a0FBE/Erc3Vap2mH43uV5+U8=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy/xUghtkcSo5t4jBI+kve9wajLBULli/UoR7kOlmi88z7k7wgU
+	qVhoDg7qXom/Xq6GiRNqpw9BxHP+CwsXd8x06cWXS9jwhHqxVormJdfv8JIewh1wlvTZRotgRJe
+	MqASDy5/p+Q4BZLYX+1CckTOedWMTWEGuH6S9gElT2W78++u+78oF40Umbg==
+X-Gm-Gg: ASbGnctxV3ilZxaFlbmcJEZCaBRoYAyCMspoPpqEotqDr1fkXtz/k2OGJq8Ir2+0xMH
+	6qrLjybf2FJfZZZO8j/RFog7Pc/90WOwR4TuPPv/dg5k4+iYLyLKfL8BKgeCG5HXfPRVfvaCdKI
+	EeZlRh/ASwgAtSN30M7E9F7RVlXiZ7AHgsUfoN8QjVSQM13uN7kKua3EUYX/pG+NllBfS2Q37x1
+	qszY4j49KZ/UadadmcalH9tK7K1g/NyYdt4irp8OfYSUEkJb99iuTUYVOFXv99okLZChv5FSREQ
+	wzhMHFJUqIEUv/BYW+3j8gKuJJQcFxHE8T3tpQlj18VCDpGmRDpYPqEOCBQN2DmvzZySytODVoy
+	fQSTp5ijlHO+9DOk65mcVlZON9hLSltu46DwlA0CA3OggoHIztmRFmgFy/uK245mNBMI=
+X-Received: by 2002:a5d:5f08:0:b0:3a4:f8fa:8a3a with SMTP id ffacd0b85a97d-3b60e4c90dcmr5648660f8f.18.1752824674532;
+        Fri, 18 Jul 2025 00:44:34 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF0zLZpC0D/QOmV7CdR1EgXAVgv/zzqS+ak2er/pZh94lqsPj3d+RnROPTkQqniibLJJP6P6w==
+X-Received: by 2002:a5d:5f08:0:b0:3a4:f8fa:8a3a with SMTP id ffacd0b85a97d-3b60e4c90dcmr5648628f8f.18.1752824674000;
+        Fri, 18 Jul 2025 00:44:34 -0700 (PDT)
+Received: from ?IPV6:2003:d8:2f43:8900:f364:1333:2a67:d49e? (p200300d82f438900f36413332a67d49e.dip0.t-ipconnect.de. [2003:d8:2f43:8900:f364:1333:2a67:d49e])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3b61ca4d732sm1048555f8f.61.2025.07.18.00.44.32
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 18 Jul 2025 00:44:33 -0700 (PDT)
+Message-ID: <62cc8974-ddad-44a0-9f7c-e8a75a53ff99@redhat.com>
+Date: Fri, 18 Jul 2025 09:44:31 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,518 +75,149 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 0/7] Add managed SOFT RESERVE resource handling
-To: "Koralahalli Channabasappa, Smita"
- <Smita.KoralahalliChannabasappa@amd.com>,
- Alison Schofield <alison.schofield@intel.com>
-Cc: linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
- linux-pm@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+Subject: Re: [PATCH v2 6/9] mm/memory: convert print_bad_pte() to
+ print_bad_page_map()
+To: Demi Marie Obenour <demiobenour@gmail.com>, linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org, xen-devel@lists.xenproject.org,
+ linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+ Andrew Morton <akpm@linux-foundation.org>, Juergen Gross <jgross@suse.com>,
+ Stefano Stabellini <sstabellini@kernel.org>,
+ Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
  Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
  <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
- Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
- Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
- Ying Huang <huang.ying.caritas@gmail.com>,
- Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
- Greg KH <gregkh@linuxfoundation.org>,
- Nathan Fontenot <nathan.fontenot@amd.com>,
- Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
- Benjamin Cheatham <benjamin.cheatham@amd.com>,
- PradeepVineshReddy Kodamati <PradeepVineshReddy.Kodamati@amd.com>,
- Zhijian Li <lizhijian@fujitsu.com>
-References: <20250715180407.47426-1-Smita.KoralahalliChannabasappa@amd.com>
- <aHbDLaKt30TglvFa@aschofie-mobl2.lan>
- <4ac55e2c-54a9-4fab-b0c5-2a928faef33e@amd.com>
- <aHgJq6mZiATsY-nX@aschofie-mobl2.lan>
- <9fc29940-3d73-4c71-bb2d-e0c9a0259228@amd.com>
- <aHg6Ri74pew-lenA@aschofie-mobl2.lan>
- <844ed7f7-f185-4706-a0ab-efc2f93e6ebb@amd.com>
- <d6844c8e-ea40-451e-8607-a8e6bb4f352b@intel.com>
- <c6891159-1f86-48d8-b411-7115fddf261c@amd.com>
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>,
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+ "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka
+ <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Zi Yan <ziy@nvidia.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+ Hugh Dickins <hughd@google.com>, Oscar Salvador <osalvador@suse.de>,
+ Lance Yang <lance.yang@linux.dev>
+References: <20250717115212.1825089-1-david@redhat.com>
+ <20250717115212.1825089-7-david@redhat.com>
+ <30268c21-a907-43d9-ac12-f6215cd95d03@gmail.com>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ g3eXuA==
+Organization: Red Hat
+In-Reply-To: <30268c21-a907-43d9-ac12-f6215cd95d03@gmail.com>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: KaqQyTl2NsZN4BHQoderv8iTqE7FQjmqT9ntL5IgwNs_1752824675
+X-Mimecast-Originator: redhat.com
 Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <c6891159-1f86-48d8-b411-7115fddf261c@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
+On 18.07.25 00:06, Demi Marie Obenour wrote:
+> On 7/17/25 07:52, David Hildenbrand wrote:
+>> print_bad_pte() looks like something that should actually be a WARN
+>> or similar, but historically it apparently has proven to be useful to
+>> detect corruption of page tables even on production systems -- report
+>> the issue and keep the system running to make it easier to actually detect
+>> what is going wrong (e.g., multiple such messages might shed a light).
+>>
+>> As we want to unify vm_normal_page_*() handling for PTE/PMD/PUD, we'll have
+>> to take care of print_bad_pte() as well.
+>>
+>> Let's prepare for using print_bad_pte() also for non-PTEs by adjusting the
+>> implementation and renaming the function -- we'll rename it to what
+>> we actually print: bad (page) mappings. Maybe it should be called
+>> "print_bad_table_entry()"? We'll just call it "print_bad_page_map()"
+>> because the assumption is that we are dealing with some (previously)
+>> present page table entry that got corrupted in weird ways.
+>>
+>> Whether it is a PTE or something else will usually become obvious from the
+>> page table dump or from the dumped stack. If ever required in the future,
+>> we could pass the entry level type similar to "enum rmap_level". For now,
+>> let's keep it simple.
+>>
+>> To make the function a bit more readable, factor out the ratelimit check
+>> into is_bad_page_map_ratelimited() and place the dumping of page
+>> table content into __dump_bad_page_map_pgtable(). We'll now dump
+>> information from each level in a single line, and just stop the table
+>> walk once we hit something that is not a present page table.
+>>
+>> Use print_bad_page_map() in vm_normal_page_pmd() similar to how we do it
+>> for vm_normal_page(), now that we have a function that can handle it.
+>>
+>> The report will now look something like (dumping pgd to pmd values):
+>>
+>> [   77.943408] BUG: Bad page map in process XXX  entry:80000001233f5867
+>> [   77.944077] addr:00007fd84bb1c000 vm_flags:08100071 anon_vma: ...
+>> [   77.945186] pgd:10a89f067 p4d:10a89f067 pud:10e5a2067 pmd:105327067
+>>
+>> Not using pgdp_get(), because that does not work properly on some arm
+>> configs where pgd_t is an array. Note that we are dumping all levels
+>> even when levels are folded for simplicity.
+>>
+>> Signed-off-by: David Hildenbrand <david@redhat.com>
+> 
+> Should this still use a WARN?  If the admin sets panic-on-warn they
+> have asked for "crash if anything goes wrong" and so that is what
+> they should get.  Otherwise the system will still stay up.
 
+I assume you're comment is in context of the other proposal regarding 
+panicking.
 
-On 7/17/25 4:20 PM, Koralahalli Channabasappa, Smita wrote:
-> On 7/17/2025 12:06 PM, Dave Jiang wrote:
->>
->>
->> On 7/17/25 10:58 AM, Koralahalli Channabasappa, Smita wrote:
->>>
->>>
->>> On 7/16/2025 4:48 PM, Alison Schofield wrote:
->>>> On Wed, Jul 16, 2025 at 02:29:52PM -0700, Koralahalli Channabasappa, Smita wrote:
->>>>> On 7/16/2025 1:20 PM, Alison Schofield wrote:
->>>>>> On Tue, Jul 15, 2025 at 11:01:23PM -0700, Koralahalli Channabasappa, Smita wrote:
->>>>>>> Hi Alison,
->>>>>>>
->>>>>>> On 7/15/2025 2:07 PM, Alison Schofield wrote:
->>>>>>>> On Tue, Jul 15, 2025 at 06:04:00PM +0000, Smita Koralahalli wrote:
->>>>>>>>> This series introduces the ability to manage SOFT RESERVED iomem
->>>>>>>>> resources, enabling the CXL driver to remove any portions that
->>>>>>>>> intersect with created CXL regions.
->>>>>>>>
->>>>>>>> Hi Smita,
->>>>>>>>
->>>>>>>> This set applied cleanly to todays cxl-next but fails like appended
->>>>>>>> before region probe.
->>>>>>>>
->>>>>>>> BTW - there were sparse warnings in the build that look related:
->>>>>>>>       CHECK   drivers/dax/hmem/hmem_notify.c
->>>>>>>> drivers/dax/hmem/hmem_notify.c:10:6: warning: context imbalance in 'hmem_register_fallback_handler' - wrong count at exit
->>>>>>>> drivers/dax/hmem/hmem_notify.c:24:9: warning: context imbalance in 'hmem_fallback_register_device' - wrong count at exit
->>>>>>>
->>>>>>> Thanks for pointing this bug. I failed to release the spinlock before
->>>>>>> calling hmem_register_device(), which internally calls platform_device_add()
->>>>>>> and can sleep. The following fix addresses that bug. I’ll incorporate this
->>>>>>> into v6:
->>>>>>>
->>>>>>> diff --git a/drivers/dax/hmem/hmem_notify.c b/drivers/dax/hmem/hmem_notify.c
->>>>>>> index 6c276c5bd51d..8f411f3fe7bd 100644
->>>>>>> --- a/drivers/dax/hmem/hmem_notify.c
->>>>>>> +++ b/drivers/dax/hmem/hmem_notify.c
->>>>>>> @@ -18,8 +18,9 @@ void hmem_fallback_register_device(int target_nid, const
->>>>>>> struct resource *res)
->>>>>>>     {
->>>>>>>            walk_hmem_fn hmem_fn;
->>>>>>>
->>>>>>> -       guard(spinlock)(&hmem_notify_lock);
->>>>>>> +       spin_lock(&hmem_notify_lock);
->>>>>>>            hmem_fn = hmem_fallback_fn;
->>>>>>> +       spin_unlock(&hmem_notify_lock);
->>>>>>>
->>>>>>>            if (hmem_fn)
->>>>>>>                    hmem_fn(target_nid, res);
->>>>>>> -- 
->>>>>>
->>>>>> Hi Smita,  Adding the above got me past that, and doubling the timeout
->>>>>> below stopped that from happening. After that, I haven't had time to
->>>>>> trace so, I'll just dump on you for now:
->>>>>>
->>>>>> In /proc/iomem
->>>>>> Here, we see a regions resource, no CXL Window, and no dax, and no
->>>>>> actual region, not even disabled, is available.
->>>>>> c080000000-c47fffffff : region0
->>>>>>
->>>>>> And, here no CXL Window, no region, and a soft reserved.
->>>>>> 68e80000000-70e7fffffff : Soft Reserved
->>>>>>      68e80000000-70e7fffffff : dax1.0
->>>>>>        68e80000000-70e7fffffff : System RAM (kmem)
->>>>>>
->>>>>> I haven't yet walked through the v4 to v5 changes so I'll do that next.
->>>>>
->>>>> Hi Alison,
->>>>>
->>>>> To help better understand the current behavior, could you share more about
->>>>> your platform configuration? specifically, are there two memory cards
->>>>> involved? One at c080000000 (which appears as region0) and another at
->>>>> 68e80000000 (which is falling back to kmem via dax1.0)? Additionally, how
->>>>> are the Soft Reserved ranges laid out on your system for these cards? I'm
->>>>> trying to understand the "before" state of the resources i.e, prior to
->>>>> trimming applied by my patches.
->>>>
->>>> Here are the soft reserveds -
->>>> [] BIOS-e820: [mem 0x000000c080000000-0x000000c47fffffff] soft reserved
->>>> [] BIOS-e820: [mem 0x0000068e80000000-0x0000070e7fffffff] soft reserved
->>>>
->>>> And this is what we expect -
->>>>
->>>> c080000000-17dbfffffff : CXL Window 0
->>>>     c080000000-c47fffffff : region2
->>>>       c080000000-c47fffffff : dax0.0
->>>>         c080000000-c47fffffff : System RAM (kmem)
->>>>
->>>>
->>>> 68e80000000-8d37fffffff : CXL Window 1
->>>>     68e80000000-70e7fffffff : region5
->>>>       68e80000000-70e7fffffff : dax1.0
->>>>         68e80000000-70e7fffffff : System RAM (kmem)
->>>>
->>>> And, like in prev message, iv v5 we get -
->>>>
->>>> c080000000-c47fffffff : region0
->>>>
->>>> 68e80000000-70e7fffffff : Soft Reserved
->>>>     68e80000000-70e7fffffff : dax1.0
->>>>       68e80000000-70e7fffffff : System RAM (kmem)
->>>>
->>>>
->>>> In v4, we 'almost' had what we expect, except that the HMEM driver
->>>> created those dax devices our of Soft Reserveds before region driver
->>>> could do same.
->>>>
->>>
->>> Yeah, the only part I’m uncertain about in v5 is scheduling the fallback work from the failure path of cxl_acpi_probe(). That doesn’t feel like the right place to do it, and I suspect it might be contributing to the unexpected behavior.
->>>
->>> v4 had most of the necessary pieces in place, but it didn’t handle situations well when the driver load order didn’t go as expected.
->>>
->>> Even if we modify v4 to avoid triggering hmem_register_device() directly from cxl_acpi_probe() which helps avoid unresolved symbol errors when cxl_acpi_probe() loads too early, and instead only rely on dax_hmem to pick up Soft Reserved regions after cxl_acpi creates regions, we still run into timing issues..
->>>
->>> Specifically, there's no guarantee that hmem_register_device() will correctly skip the following check if the region state isn't fully ready, even with MODULE_SOFTDEP("pre: cxl_acpi") or using late_initcall() (which I tried):
->>>
->>> if (IS_ENABLED(CONFIG_CXL_REGION) &&
->>>          region_intersects(res->start, resource_size(res), IORESOURCE_MEM, IORES_DESC_CXL) != REGION_DISJOINT) {..
->>>
->>> At this point, I’m running out of ideas on how to reliably coordinate this.. :(
->>>
->>> Thanks
->>> Smita
->>>
->>>>>
->>>>> Also, do you think it's feasible to change the direction of the soft reserve
->>>>> trimming, that is, defer it until after CXL region or memdev creation is
->>>>> complete? In this case it would be trimmed after but inline the existing
->>>>> region or memdev creation. This might simplify the flow by removing the need
->>>>> for wait_event_timeout(), wait_for_device_probe() and the workqueue logic
->>>>> inside cxl_acpi_probe().
->>>>
->>>> Yes that aligns with my simple thinking. There's the trimming after a region
->>>> is successfully created, and it seems that could simply be called at the end
->>>> of *that* region creation.
->>>>
->>>> Then, there's the round up of all the unused Soft Reserveds, and that has
->>>> to wait until after all regions are created, ie. all endpoints have arrived
->>>> and we've given up all hope of creating another region in that space.
->>>> That's the timing challenge.
->>>>
->>>> -- Alison
->>>>
->>>>>
->>>>> (As a side note I experimented changing cxl_acpi_init() to a late_initcall()
->>>>> and observed that it consistently avoided probe ordering issues in my setup.
->>>>>
->>>>> Additional note: I realized that even when cxl_acpi_probe() fails, the
->>>>> fallback DAX registration path (via cxl_softreserv_mem_update()) still waits
->>>>> on cxl_mem_active() and wait_for_device_probe(). I plan to address this in
->>>>> v6 by immediately triggering fallback DAX registration
->>>>> (hmem_register_device()) when the ACPI probe fails, instead of waiting.)
->>>>>
->>>>> Thanks
->>>>> Smita
->>>>>
->>>>>>
->>>>>>>
->>>>>>> As for the log:
->>>>>>> [   53.652454] cxl_acpi:cxl_softreserv_mem_work_fn:888: Timeout waiting for
->>>>>>> cxl_mem probing
->>>>>>>
->>>>>>> I’m still analyzing that. Here's what was my thought process so far.
->>>>>>>
->>>>>>> - This occurs when cxl_acpi_probe() runs significantly earlier than
->>>>>>> cxl_mem_probe(), so CXL region creation (which happens in
->>>>>>> cxl_port_endpoint_probe()) may or may not have completed by the time
->>>>>>> trimming is attempted.
->>>>>>>
->>>>>>> - Both cxl_acpi and cxl_mem have MODULE_SOFTDEPs on cxl_port. This does
->>>>>>> guarantee load order when all components are built as modules. So even if
->>>>>>> the timeout occurs and cxl_mem_probe() hasn’t run within the wait window,
->>>>>>> MODULE_SOFTDEP ensures that cxl_port is loaded before both cxl_acpi and
->>>>>>> cxl_mem in modular configurations. As a result, region creation is
->>>>>>> eventually guaranteed, and wait_for_device_probe() will succeed once the
->>>>>>> relevant probes complete.
->>>>>>>
->>>>>>> - However, when both CONFIG_CXL_PORT=y and CONFIG_CXL_ACPI=y, there's no
->>>>>>> guarantee of probe ordering. In such cases, cxl_acpi_probe() may finish
->>>>>>> before cxl_port_probe() even begins, which can cause wait_for_device_probe()
->>>>>>> to return prematurely and trigger the timeout.
->>>>>>>
->>>>>>> - In my local setup, I observed that a 30-second timeout was generally
->>>>>>> sufficient to catch this race, allowing cxl_port_probe() to load while
->>>>>>> cxl_acpi_probe() is still active. Since we cannot mix built-in and modular
->>>>>>> components (i.e., have cxl_acpi=y and cxl_port=m), the timeout serves as a
->>>>>>> best-effort mechanism. After the timeout, wait_for_device_probe() ensures
->>>>>>> cxl_port_probe() has completed before trimming proceeds, making the logic
->>>>>>> good enough to most boot-time races.
->>>>>>>
->>>>>>> One possible improvement I’m considering is to schedule a
->>>>>>> delayed_workqueue() from cxl_acpi_probe(). This deferred work could wait
->>>>>>> slightly longer for cxl_mem_probe() to complete (which itself softdeps on
->>>>>>> cxl_port) before initiating the soft reserve trimming.
->>>>>>>
->>>>>>> That said, I'm still evaluating better options to more robustly coordinate
->>>>>>> probe ordering between cxl_acpi, cxl_port, cxl_mem and cxl_region and
->>>>>>> looking for suggestions here.
->>
->> Hi Smita,
->> Reading this thread and thinking about what can be done to deal with this. Throwing out some ideas and see what you think. My idea is to create two global counters that are are protected by a lock. You hava delayed workqueue that checks these counters. If counter1 is 0, go back to sleep and check later continuously with a reasonable time period. Every time a memdev endpoint starts probe, increment counter1 and counter2 atomically. Every time the probe is successful, decrement counter2. When you reach the condition of 'if (counter1 && counter2 == 0)' I think you can start soft reserve discovery.
->>
->> A different idea came from Dan. Arm a timer on the first memdev probe. Kick the timer to increment every time a new memdev gets probed. At some point things settles and timer goes off to trigger soft reserved discovery.
->>
->> I think either one will not require special ordering of the modules being loaded.
->>
->> DJ
-> 
-> I think we might need both, the counters and a settling timer to coordinate Soft Reserved trimming and DAX registration.
-> 
-> Here's the rough flow I'm thinking of. Let me know the flaws in this approach.
+It's a good question whether we should WARN: likely we should convert 
+the "BUG:" ... message into a WARN. On panic-on-warn you'd panic 
+immediately without being able to observe any other such messages (and 
+as discussed in the RFC, apparently that can be valuable for debugging, 
+because a single such report is often insufficient)
 
-Seems reasonable to me. Don't forget to cancel timer if your condition is met and you are woken up early by a probe() finish. It really is best effort in dealing with the situation.
+But as panic-on-warn is "panic on the first sight of a problem", that 
+sounds right.
 
-DJ
+That change should not be part of this patch, though.
 
-> 
-> 1. cxl_acpi_probe() schedules cxl_softreserv_work_fn() and exits early.
-> This work item is responsible for trimming leftover Soft Reserved memory ranges once all cxl_mem devices have finished probing.
-> 
-> 2. A delayed work is initialized for the settle timer:
-> 
-> INIT_DELAYED_WORK(&cxl_probe_settle_work, cxl_probe_settle_fn);
-> 
-> 3. In cxl_mem_probe():
->      - Increment counter2 (memdevs in progress).
->      - Increment counter1 (memdevs discovered).
->      - On probe completion (success or failure), decrement counter2.
->      - After each probe, re-arm the settle timer to extend the quiet
->        period if more devices arrive (this might fail Im not sure if cxl
->        mem devices come in too late)..
->        mod_delayed_work(system_wq, &cxl_probe_settle_work, 30 * HZ);
->      - Call wake_up(&cxl_softreserv_waitq); after each probe to notify
->        listeners.
-> 
-> 4. The settle timer callback (cxl_probe_settle_fn()) runs when no new devices have probed for a while (30s)
->      timer_expired = true;
->      wake_up(&cxl_softreserv_waitq);
-> 
-> 5. In cxl_softreserv_work_fn()
->     wait_event(cxl_softreserv_waitq,
->     atomic_read(&cxl_mem_counter1) > 0 &&
->     atomic_read(&cxl_mem_counter2) == 0 &&
->     atomic_read(&timer_expired));
-> 
-> 6. Once unblocked, cxl_softreserv_work_fn() trims Soft Reserved regions via cxl_region_softreserv_update().
-> (We do not perform any DAX fallback here as we dont want to endup with unresolved symbols when DAX_HMEM loads too late..)
-> 
-> 7. Separately, dax_hmem_platform_probe() runs independently on module load, but also blocks on the same wait_event() condition if CONFIG_CXL_ACPI is enabled. Once the condition is satisfied, it invokes hmem_register_device() to register leftover Soft Reserved memory.
-> 
-> Thanks
-> Smita
-> 
->>
->>>>>>>
->>>>>>> Thanks
->>>>>>> Smita
->>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> This isn't all the logs, I trimmed. Let me know if you need more or
->>>>>>>> other info to reproduce.
->>>>>>>>
->>>>>>>> [   53.652454] cxl_acpi:cxl_softreserv_mem_work_fn:888: Timeout waiting for cxl_mem probing
->>>>>>>> [   53.653293] BUG: sleeping function called from invalid context at ./include/linux/sched/mm.h:321
->>>>>>>> [   53.653513] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 1875, name: kworker/46:1
->>>>>>>> [   53.653540] preempt_count: 1, expected: 0
->>>>>>>> [   53.653554] RCU nest depth: 0, expected: 0
->>>>>>>> [   53.653568] 3 locks held by kworker/46:1/1875:
->>>>>>>> [   53.653569]  #0: ff37d78240041548 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x578/0x630
->>>>>>>> [   53.653583]  #1: ff6b0385dedf3e38 (cxl_sr_work){+.+.}-{0:0}, at: process_one_work+0x1bd/0x630
->>>>>>>> [   53.653589]  #2: ffffffffb33476d8 (hmem_notify_lock){+.+.}-{3:3}, at: hmem_fallback_register_device+0x23/0x60
->>>>>>>> [   53.653598] Preemption disabled at:
->>>>>>>> [   53.653599] [<ffffffffb1e23993>] hmem_fallback_register_device+0x23/0x60
->>>>>>>> [   53.653640] CPU: 46 UID: 0 PID: 1875 Comm: kworker/46:1 Not tainted 6.16.0CXL-NEXT-ALISON-SR-V5+ #5 PREEMPT(voluntary)
->>>>>>>> [   53.653643] Workqueue: events cxl_softreserv_mem_work_fn [cxl_acpi]
->>>>>>>> [   53.653648] Call Trace:
->>>>>>>> [   53.653649]  <TASK>
->>>>>>>> [   53.653652]  dump_stack_lvl+0xa8/0xd0
->>>>>>>> [   53.653658]  dump_stack+0x14/0x20
->>>>>>>> [   53.653659]  __might_resched+0x1ae/0x2d0
->>>>>>>> [   53.653666]  __might_sleep+0x48/0x70
->>>>>>>> [   53.653668]  __kmalloc_node_track_caller_noprof+0x349/0x510
->>>>>>>> [   53.653674]  ? __devm_add_action+0x3d/0x160
->>>>>>>> [   53.653685]  ? __pfx_devm_action_release+0x10/0x10
->>>>>>>> [   53.653688]  __devres_alloc_node+0x4a/0x90
->>>>>>>> [   53.653689]  ? __devres_alloc_node+0x4a/0x90
->>>>>>>> [   53.653691]  ? __pfx_release_memregion+0x10/0x10 [dax_hmem]
->>>>>>>> [   53.653693]  __devm_add_action+0x3d/0x160
->>>>>>>> [   53.653696]  hmem_register_device+0xea/0x230 [dax_hmem]
->>>>>>>> [   53.653700]  hmem_fallback_register_device+0x37/0x60
->>>>>>>> [   53.653703]  cxl_softreserv_mem_register+0x24/0x30 [cxl_core]
->>>>>>>> [   53.653739]  walk_iomem_res_desc+0x55/0xb0
->>>>>>>> [   53.653744]  ? __pfx_cxl_softreserv_mem_register+0x10/0x10 [cxl_core]
->>>>>>>> [   53.653755]  cxl_region_softreserv_update+0x46/0x50 [cxl_core]
->>>>>>>> [   53.653761]  cxl_softreserv_mem_work_fn+0x4a/0x110 [cxl_acpi]
->>>>>>>> [   53.653763]  ? __pfx_autoremove_wake_function+0x10/0x10
->>>>>>>> [   53.653768]  process_one_work+0x1fa/0x630
->>>>>>>> [   53.653774]  worker_thread+0x1b2/0x360
->>>>>>>> [   53.653777]  kthread+0x128/0x250
->>>>>>>> [   53.653781]  ? __pfx_worker_thread+0x10/0x10
->>>>>>>> [   53.653784]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.653786]  ret_from_fork+0x139/0x1e0
->>>>>>>> [   53.653790]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.653792]  ret_from_fork_asm+0x1a/0x30
->>>>>>>> [   53.653801]  </TASK>
->>>>>>>>
->>>>>>>> [   53.654193] =============================
->>>>>>>> [   53.654203] [ BUG: Invalid wait context ]
->>>>>>>> [   53.654451] 6.16.0CXL-NEXT-ALISON-SR-V5+ #5 Tainted: G        W
->>>>>>>> [   53.654623] -----------------------------
->>>>>>>> [   53.654785] kworker/46:1/1875 is trying to lock:
->>>>>>>> [   53.654946] ff37d7824096d588 (&root->kernfs_rwsem){++++}-{4:4}, at: kernfs_add_one+0x34/0x390
->>>>>>>> [   53.655115] other info that might help us debug this:
->>>>>>>> [   53.655273] context-{5:5}
->>>>>>>> [   53.655428] 3 locks held by kworker/46:1/1875:
->>>>>>>> [   53.655579]  #0: ff37d78240041548 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x578/0x630
->>>>>>>> [   53.655739]  #1: ff6b0385dedf3e38 (cxl_sr_work){+.+.}-{0:0}, at: process_one_work+0x1bd/0x630
->>>>>>>> [   53.655900]  #2: ffffffffb33476d8 (hmem_notify_lock){+.+.}-{3:3}, at: hmem_fallback_register_device+0x23/0x60
->>>>>>>> [   53.656062] stack backtrace:
->>>>>>>> [   53.656224] CPU: 46 UID: 0 PID: 1875 Comm: kworker/46:1 Tainted: G        W           6.16.0CXL-NEXT-ALISON-SR-V5+ #5 PREEMPT(voluntary)
->>>>>>>> [   53.656227] Tainted: [W]=WARN
->>>>>>>> [   53.656228] Workqueue: events cxl_softreserv_mem_work_fn [cxl_acpi]
->>>>>>>> [   53.656232] Call Trace:
->>>>>>>> [   53.656232]  <TASK>
->>>>>>>> [   53.656234]  dump_stack_lvl+0x85/0xd0
->>>>>>>> [   53.656238]  dump_stack+0x14/0x20
->>>>>>>> [   53.656239]  __lock_acquire+0xaf4/0x2200
->>>>>>>> [   53.656246]  lock_acquire+0xd8/0x300
->>>>>>>> [   53.656248]  ? kernfs_add_one+0x34/0x390
->>>>>>>> [   53.656252]  ? __might_resched+0x208/0x2d0
->>>>>>>> [   53.656257]  down_write+0x44/0xe0
->>>>>>>> [   53.656262]  ? kernfs_add_one+0x34/0x390
->>>>>>>> [   53.656263]  kernfs_add_one+0x34/0x390
->>>>>>>> [   53.656265]  kernfs_create_dir_ns+0x5a/0xa0
->>>>>>>> [   53.656268]  sysfs_create_dir_ns+0x74/0xd0
->>>>>>>> [   53.656270]  kobject_add_internal+0xb1/0x2f0
->>>>>>>> [   53.656273]  kobject_add+0x7d/0xf0
->>>>>>>> [   53.656275]  ? get_device_parent+0x28/0x1e0
->>>>>>>> [   53.656280]  ? __pfx_klist_children_get+0x10/0x10
->>>>>>>> [   53.656282]  device_add+0x124/0x8b0
->>>>>>>> [   53.656285]  ? dev_set_name+0x56/0x70
->>>>>>>> [   53.656287]  platform_device_add+0x102/0x260
->>>>>>>> [   53.656289]  hmem_register_device+0x160/0x230 [dax_hmem]
->>>>>>>> [   53.656291]  hmem_fallback_register_device+0x37/0x60
->>>>>>>> [   53.656294]  cxl_softreserv_mem_register+0x24/0x30 [cxl_core]
->>>>>>>> [   53.656323]  walk_iomem_res_desc+0x55/0xb0
->>>>>>>> [   53.656326]  ? __pfx_cxl_softreserv_mem_register+0x10/0x10 [cxl_core]
->>>>>>>> [   53.656335]  cxl_region_softreserv_update+0x46/0x50 [cxl_core]
->>>>>>>> [   53.656342]  cxl_softreserv_mem_work_fn+0x4a/0x110 [cxl_acpi]
->>>>>>>> [   53.656343]  ? __pfx_autoremove_wake_function+0x10/0x10
->>>>>>>> [   53.656346]  process_one_work+0x1fa/0x630
->>>>>>>> [   53.656350]  worker_thread+0x1b2/0x360
->>>>>>>> [   53.656352]  kthread+0x128/0x250
->>>>>>>> [   53.656354]  ? __pfx_worker_thread+0x10/0x10
->>>>>>>> [   53.656356]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.656357]  ret_from_fork+0x139/0x1e0
->>>>>>>> [   53.656360]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.656361]  ret_from_fork_asm+0x1a/0x30
->>>>>>>> [   53.656366]  </TASK>
->>>>>>>> [   53.662274] BUG: scheduling while atomic: kworker/46:1/1875/0x00000002
->>>>>>>> [   53.663552]  schedule+0x4a/0x160
->>>>>>>> [   53.663553]  schedule_timeout+0x10a/0x120
->>>>>>>> [   53.663555]  ? debug_smp_processor_id+0x1b/0x30
->>>>>>>> [   53.663556]  ? trace_hardirqs_on+0x5f/0xd0
->>>>>>>> [   53.663558]  __wait_for_common+0xb9/0x1c0
->>>>>>>> [   53.663559]  ? __pfx_schedule_timeout+0x10/0x10
->>>>>>>> [   53.663561]  wait_for_completion+0x28/0x30
->>>>>>>> [   53.663562]  __synchronize_srcu+0xbf/0x180
->>>>>>>> [   53.663566]  ? __pfx_wakeme_after_rcu+0x10/0x10
->>>>>>>> [   53.663571]  ? i2c_repstart+0x30/0x80
->>>>>>>> [   53.663576]  synchronize_srcu+0x46/0x120
->>>>>>>> [   53.663577]  kill_dax+0x47/0x70
->>>>>>>> [   53.663580]  __devm_create_dev_dax+0x112/0x470
->>>>>>>> [   53.663582]  devm_create_dev_dax+0x26/0x50
->>>>>>>> [   53.663584]  dax_hmem_probe+0x87/0xd0 [dax_hmem]
->>>>>>>> [   53.663585]  platform_probe+0x61/0xd0
->>>>>>>> [   53.663589]  really_probe+0xe2/0x390
->>>>>>>> [   53.663591]  ? __pfx___device_attach_driver+0x10/0x10
->>>>>>>> [   53.663593]  __driver_probe_device+0x7e/0x160
->>>>>>>> [   53.663594]  driver_probe_device+0x23/0xa0
->>>>>>>> [   53.663596]  __device_attach_driver+0x92/0x120
->>>>>>>> [   53.663597]  bus_for_each_drv+0x8c/0xf0
->>>>>>>> [   53.663599]  __device_attach+0xc2/0x1f0
->>>>>>>> [   53.663601]  device_initial_probe+0x17/0x20
->>>>>>>> [   53.663603]  bus_probe_device+0xa8/0xb0
->>>>>>>> [   53.663604]  device_add+0x687/0x8b0
->>>>>>>> [   53.663607]  ? dev_set_name+0x56/0x70
->>>>>>>> [   53.663609]  platform_device_add+0x102/0x260
->>>>>>>> [   53.663610]  hmem_register_device+0x160/0x230 [dax_hmem]
->>>>>>>> [   53.663612]  hmem_fallback_register_device+0x37/0x60
->>>>>>>> [   53.663614]  cxl_softreserv_mem_register+0x24/0x30 [cxl_core]
->>>>>>>> [   53.663637]  walk_iomem_res_desc+0x55/0xb0
->>>>>>>> [   53.663640]  ? __pfx_cxl_softreserv_mem_register+0x10/0x10 [cxl_core]
->>>>>>>> [   53.663647]  cxl_region_softreserv_update+0x46/0x50 [cxl_core]
->>>>>>>> [   53.663654]  cxl_softreserv_mem_work_fn+0x4a/0x110 [cxl_acpi]
->>>>>>>> [   53.663655]  ? __pfx_autoremove_wake_function+0x10/0x10
->>>>>>>> [   53.663658]  process_one_work+0x1fa/0x630
->>>>>>>> [   53.663662]  worker_thread+0x1b2/0x360
->>>>>>>> [   53.663664]  kthread+0x128/0x250
->>>>>>>> [   53.663666]  ? __pfx_worker_thread+0x10/0x10
->>>>>>>> [   53.663668]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.663670]  ret_from_fork+0x139/0x1e0
->>>>>>>> [   53.663672]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.663673]  ret_from_fork_asm+0x1a/0x30
->>>>>>>> [   53.663677]  </TASK>
->>>>>>>> [   53.700107] BUG: scheduling while atomic: kworker/46:1/1875/0x00000002
->>>>>>>> [   53.700264] INFO: lockdep is turned off.
->>>>>>>> [   53.701315] Preemption disabled at:
->>>>>>>> [   53.701316] [<ffffffffb1e23993>] hmem_fallback_register_device+0x23/0x60
->>>>>>>> [   53.701631] CPU: 46 UID: 0 PID: 1875 Comm: kworker/46:1 Tainted: G        W           6.16.0CXL-NEXT-ALISON-SR-V5+ #5 PREEMPT(voluntary)
->>>>>>>> [   53.701633] Tainted: [W]=WARN
->>>>>>>> [   53.701635] Workqueue: events cxl_softreserv_mem_work_fn [cxl_acpi]
->>>>>>>> [   53.701638] Call Trace:
->>>>>>>> [   53.701638]  <TASK>
->>>>>>>> [   53.701640]  dump_stack_lvl+0xa8/0xd0
->>>>>>>> [   53.701644]  dump_stack+0x14/0x20
->>>>>>>> [   53.701645]  __schedule_bug+0xa2/0xd0
->>>>>>>> [   53.701649]  __schedule+0xe6f/0x10d0
->>>>>>>> [   53.701652]  ? debug_smp_processor_id+0x1b/0x30
->>>>>>>> [   53.701655]  ? lock_release+0x1e6/0x2b0
->>>>>>>> [   53.701658]  ? trace_hardirqs_on+0x5f/0xd0
->>>>>>>> [   53.701661]  schedule+0x4a/0x160
->>>>>>>> [   53.701662]  schedule_timeout+0x10a/0x120
->>>>>>>> [   53.701664]  ? debug_smp_processor_id+0x1b/0x30
->>>>>>>> [   53.701666]  ? trace_hardirqs_on+0x5f/0xd0
->>>>>>>> [   53.701667]  __wait_for_common+0xb9/0x1c0
->>>>>>>> [   53.701668]  ? __pfx_schedule_timeout+0x10/0x10
->>>>>>>> [   53.701670]  wait_for_completion+0x28/0x30
->>>>>>>> [   53.701671]  __synchronize_srcu+0xbf/0x180
->>>>>>>> [   53.701677]  ? __pfx_wakeme_after_rcu+0x10/0x10
->>>>>>>> [   53.701682]  ? i2c_repstart+0x30/0x80
->>>>>>>> [   53.701685]  synchronize_srcu+0x46/0x120
->>>>>>>> [   53.701687]  kill_dax+0x47/0x70
->>>>>>>> [   53.701689]  __devm_create_dev_dax+0x112/0x470
->>>>>>>> [   53.701691]  devm_create_dev_dax+0x26/0x50
->>>>>>>> [   53.701693]  dax_hmem_probe+0x87/0xd0 [dax_hmem]
->>>>>>>> [   53.701695]  platform_probe+0x61/0xd0
->>>>>>>> [   53.701698]  really_probe+0xe2/0x390
->>>>>>>> [   53.701700]  ? __pfx___device_attach_driver+0x10/0x10
->>>>>>>> [   53.701701]  __driver_probe_device+0x7e/0x160
->>>>>>>> [   53.701703]  driver_probe_device+0x23/0xa0
->>>>>>>> [   53.701704]  __device_attach_driver+0x92/0x120
->>>>>>>> [   53.701706]  bus_for_each_drv+0x8c/0xf0
->>>>>>>> [   53.701708]  __device_attach+0xc2/0x1f0
->>>>>>>> [   53.701710]  device_initial_probe+0x17/0x20
->>>>>>>> [   53.701711]  bus_probe_device+0xa8/0xb0
->>>>>>>> [   53.701712]  device_add+0x687/0x8b0
->>>>>>>> [   53.701715]  ? dev_set_name+0x56/0x70
->>>>>>>> [   53.701717]  platform_device_add+0x102/0x260
->>>>>>>> [   53.701718]  hmem_register_device+0x160/0x230 [dax_hmem]
->>>>>>>> [   53.701720]  hmem_fallback_register_device+0x37/0x60
->>>>>>>> [   53.701722]  cxl_softreserv_mem_register+0x24/0x30 [cxl_core]
->>>>>>>> [   53.701734]  walk_iomem_res_desc+0x55/0xb0
->>>>>>>> [   53.701738]  ? __pfx_cxl_softreserv_mem_register+0x10/0x10 [cxl_core]
->>>>>>>> [   53.701745]  cxl_region_softreserv_update+0x46/0x50 [cxl_core]
->>>>>>>> [   53.701751]  cxl_softreserv_mem_work_fn+0x4a/0x110 [cxl_acpi]
->>>>>>>> [   53.701752]  ? __pfx_autoremove_wake_function+0x10/0x10
->>>>>>>> [   53.701756]  process_one_work+0x1fa/0x630
->>>>>>>> [   53.701760]  worker_thread+0x1b2/0x360
->>>>>>>> [   53.701762]  kthread+0x128/0x250
->>>>>>>> [   53.701765]  ? __pfx_worker_thread+0x10/0x10
->>>>>>>> [   53.701766]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.701768]  ret_from_fork+0x139/0x1e0
->>>>>>>> [   53.701771]  ? __pfx_kthread+0x10/0x10
->>>>>>>> [   53.701772]  ret_from_fork_asm+0x1a/0x30
->>>>>>>> [   53.701777]  </TASK>
->>>>>>>>
->>>>>>>
->>>>>
->>>
->>
-> 
-> 
+-- 
+Cheers,
+
+David / dhildenb
 
