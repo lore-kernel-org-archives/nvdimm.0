@@ -1,48 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0920246782
-	for <nvdimm@lists.linux.dev>; Thu, 24 Jul 2025 22:16:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47A40246BB6
+	for <nvdimm@lists.linux.dev>; Thu, 24 Jul 2025 22:16:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753395373; cv=none; b=XtfkhwjRscePZtcxqDtmWqPz/I/sqdTiEh4h5z8vztgED5e9xg0rH9MoehFgld10783memZakm7X9FAjS15m77lsvg98sqY/aqvNBQtn/qFOsfG/6J1J0/uHUt0lQyb+3a7jmQrJMWZWhrnFubXgy6GtX2q+XOOxPOtyMYGMh3g=
+	t=1753395376; cv=none; b=JM+sBymb/LsRbHBvBYrjfwib2f3H10twsPq+1SxpNt1kkO6/Rd5cVS7ysbuphDVip3QYVhgyURvekp2Hnv3AE7sgz+0A6jKVd8GVMay3fvlwXyfu2rxyw1QH+7U7stXklVidGYSlgfIv6/r14mbqQeFntZQXI1Jcj0EZjp9c3nw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753395373; c=relaxed/simple;
-	bh=yQwrgVBQA3NOFo1CbCy+cQWmg65yV2ti/DEfrI/EY6E=;
+	s=arc-20240116; t=1753395376; c=relaxed/simple;
+	bh=VcikA3UnCwqrCY5NEwwfm7B+1JKK+OkZgnq+NMvjpUI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dcY4PwIrQIodSL67c/vOMIcg1x3TFsvfJtLKMu/A4u45wvYldB86H+1ZeM3emqPx15JvIh3+1E0/FdNlsPduBezY1qbTZ3HR0omnBiw/tZngs2EsnQ9anwLqo6rthdH8P7W1vAaLgE4yXkE6hE0mDI//qQ26LXa/pZOzBSV9OJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SS8XHEe7; arc=none smtp.client-ip=192.198.163.18
+	 MIME-Version; b=OCuKhc3BjIvIJX8zlyfIJKai1fcUL16MIm7UnHk1dPrF14zMeW32Vg452w0gvvXcyn6gPqmCpkpLhx5UID4mPTZQXuMkIBCMn2rL6EOV17J+XJZS9PdFE0uE5PL0j4peJAGJwq0y4Ens8QoIgehEmalHuye4BMK21m8Ad5O7d64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=A82Z9zAs; arc=none smtp.client-ip=192.198.163.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SS8XHEe7"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="A82Z9zAs"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1753395372; x=1784931372;
+  t=1753395375; x=1784931375;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=yQwrgVBQA3NOFo1CbCy+cQWmg65yV2ti/DEfrI/EY6E=;
-  b=SS8XHEe7cRsGJ2vOlQc1J24AO2usIc+nHRNMPXQ2fK74mtB0Dy77yG1Z
-   k26oGirq2g8gqQVolLmoUMJMVGBQpngBkoWABcpOL+UnjmR0JaephtJES
-   tnedEk/YmjRiO69sKC9xv2Z40skRPP1fieRat0Cn9qtaA3JURSM6l3m7v
-   /raMneHFiOf1LXWhdmTiWNrfVlBfSedxUukq89cuAmobXRrFgzQER0lEu
-   Nc3B/HFalW50/aYDN2WRW6s8R08oWHOMEz/YOy2H17L8HP1OoZqDXtukG
-   bYQUtfA4oTq7x/ERAHFAGuDJS43hDGO77j90FcmVA5Vb+23bVsdyG0Nfs
-   w==;
-X-CSE-ConnectionGUID: aUQ8Zi/lQrqibcacBYXDSg==
-X-CSE-MsgGUID: MPg0JTY3TgqgUyEMujTHpw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11501"; a="54941698"
+  bh=VcikA3UnCwqrCY5NEwwfm7B+1JKK+OkZgnq+NMvjpUI=;
+  b=A82Z9zAsfTB6s9X32WPDJqTRyPhU4zI31zshvzL45OO9U0gsFEP+Mj/I
+   +R14JXPMz6mIWM8lEwETYXrGtcja9oCL0y8JpJrBOYXQ1eVdIcrJHAVEA
+   dB/lARbHcqw3revuwobnw6ErYXQPxj3rgYFhJxHtQFk8+tG1rMxGXfKoo
+   gcr12sTmyFsi90AWIM/c8B0Y7DMjarsHmVkuW3ay779dm4EbAQ7Y5YYBn
+   4HR/FzO3auTv/+6f22jahfLNric9kr+jT8kuyVp2ryni4WBsApri8ZGUp
+   5DCHvUYG+wb45zBAMxwYHYoQ300MHcMtLnDKQ3BjwNs31FVdo98dBZqrW
+   Q==;
+X-CSE-ConnectionGUID: 89q6YTYDSnSqMQI91VQ1Kg==
+X-CSE-MsgGUID: FrrFkP5PTt6CTdVuw7bdyQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11501"; a="54941719"
 X-IronPort-AV: E=Sophos;i="6.16,337,1744095600"; 
-   d="scan'208";a="54941698"
+   d="scan'208";a="54941719"
 Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:11 -0700
-X-CSE-ConnectionGUID: FPgesz45S4+4GnCuc+iyRA==
-X-CSE-MsgGUID: UmZmlNZXS96BraSYcvjAVw==
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:15 -0700
+X-CSE-ConnectionGUID: g0L8JAI3S4eaxtysAGj4Tw==
+X-CSE-MsgGUID: I8id3XjETdSBl7IMLSqYqw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.16,337,1744095600"; 
-   d="scan'208";a="160504474"
+   d="scan'208";a="160504718"
 Received: from unknown (HELO hyperion.jf.intel.com) ([10.243.61.29])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:11 -0700
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:15 -0700
 From: marc.herbert@linux.intel.com
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev,
@@ -50,9 +50,9 @@ To: linux-cxl@vger.kernel.org,
 	dan.j.williams@intel.com,
 	dave.jiang@intel.com
 Cc: Marc Herbert <marc.herbert@linux.intel.com>
-Subject: [ndctl PATCH 1/3] test/common: add missing quotes
-Date: Thu, 24 Jul 2025 22:00:44 +0000
-Message-ID: <20250724221323.365191-2-marc.herbert@linux.intel.com>
+Subject: [ndctl PATCH 2/3] test/common: move err() function at the top
+Date: Thu, 24 Jul 2025 22:00:45 +0000
+Message-ID: <20250724221323.365191-3-marc.herbert@linux.intel.com>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20250724221323.365191-1-marc.herbert@linux.intel.com>
 References: <20250724221323.365191-1-marc.herbert@linux.intel.com>
@@ -66,71 +66,57 @@ Content-Transfer-Encoding: 8bit
 
 From: Marc Herbert <marc.herbert@linux.intel.com>
 
-This makes shellcheck much happier and its output readable and usable.
+move err() function at the top so we can fail early. err() does not have
+any dependency so it can be first.
 
 Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
 ---
- test/common | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ test/common | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
 diff --git a/test/common b/test/common
-index 75ff1a6e12be..2d8422f26436 100644
+index 2d8422f26436..2d076402ef7c 100644
 --- a/test/common
 +++ b/test/common
-@@ -4,7 +4,7 @@
+@@ -1,6 +1,20 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Copyright (C) 2018, FUJITSU LIMITED. All rights reserved.
+ 
++# err
++# $1: line number which error detected
++# $2: cleanup function (optional)
++#
++
++test_basename=$(basename "$0")
++
++err()
++{
++	echo test/"$test_basename": failed at line "$1"
++	[ -n "$2" ] && "$2"
++	exit "$rc"
++}
++
  # Global variables
  
  # NDCTL
--if [ -z $NDCTL ]; then
-+if [ -z "$NDCTL" ]; then
- 	if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
- 		export NDCTL=../ndctl/ndctl
- 	elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
-@@ -16,7 +16,7 @@ if [ -z $NDCTL ]; then
- fi
+@@ -53,17 +67,6 @@ E820_BUS="e820"
  
- # DAXCTL
--if [ -z $DAXCTL ]; then
-+if [ -z "$DAXCTL" ]; then
- 	if [ -f "../daxctl/daxctl" ] && [ -x "../daxctl/daxctl" ]; then
- 		export DAXCTL=../daxctl/daxctl
- 	elif [ -f "./daxctl/daxctl" ] && [ -x "./daxctl/daxctl" ]; then
-@@ -28,7 +28,7 @@ if [ -z $DAXCTL ]; then
- fi
+ # Functions
  
- # CXL
--if [ -z $CXL ]; then
-+if [ -z "$CXL" ]; then
- 	if [ -f "../cxl/cxl" ] && [ -x "../cxl/cxl" ]; then
- 		export CXL=../cxl/cxl
- 	elif [ -f "./cxl/cxl" ] && [ -x "./cxl/cxl" ]; then
-@@ -39,7 +39,7 @@ if [ -z $CXL ]; then
- 	fi
- fi
- 
--if [ -z $TEST_PATH ]; then
-+if [ -z "$TEST_PATH" ]; then
- 	export TEST_PATH=.
- fi
- 
-@@ -103,7 +103,7 @@ check_min_kver()
- #
- do_skip()
+-# err
+-# $1: line number which error detected
+-# $2: cleanup function (optional)
+-#
+-err()
+-{
+-	echo test/$(basename $0): failed at line $1
+-	[ -n "$2" ] && "$2"
+-	exit $rc
+-}
+-
+ reset()
  {
--	echo kernel $(uname -r): $1
-+	echo kernel "$(uname -r)": "$1"
- 	exit 77
- }
- 
-@@ -147,7 +147,7 @@ check_dmesg()
- 	# validate no WARN or lockdep report during the run
- 	sleep 1
- 	log=$(journalctl -r -k --since "-$((SECONDS+1))s")
--	grep -q "Call Trace" <<< $log && err $1
-+	grep -q "Call Trace" <<< "$log" && err "$1"
- 	true
- }
- 
+ 	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
 -- 
 2.50.1
 
