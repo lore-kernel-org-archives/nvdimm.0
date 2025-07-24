@@ -1,48 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47A40246BB6
-	for <nvdimm@lists.linux.dev>; Thu, 24 Jul 2025 22:16:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A170C246BAC
+	for <nvdimm@lists.linux.dev>; Thu, 24 Jul 2025 22:16:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753395376; cv=none; b=JM+sBymb/LsRbHBvBYrjfwib2f3H10twsPq+1SxpNt1kkO6/Rd5cVS7ysbuphDVip3QYVhgyURvekp2Hnv3AE7sgz+0A6jKVd8GVMay3fvlwXyfu2rxyw1QH+7U7stXklVidGYSlgfIv6/r14mbqQeFntZQXI1Jcj0EZjp9c3nw=
+	t=1753395378; cv=none; b=s/dZwyyRYHfmwAuCVF9V0UT69Yplp8sSaRRubC6b/LEpkYGszDBcMi5GuXj9wI1ktNWI55DQ+FXMPhWW5CfS09CAUhTYrhDPu8IZ9YNcHEc17cNjUOePFqy+QhDtGkxirU+9xzX/MGY3LhTmz29pq2LMp8CPcP1Tjcc2oj5AqRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753395376; c=relaxed/simple;
-	bh=VcikA3UnCwqrCY5NEwwfm7B+1JKK+OkZgnq+NMvjpUI=;
+	s=arc-20240116; t=1753395378; c=relaxed/simple;
+	bh=VOsrWcJrCpJKt37WVVeZE3pPOc8UDCo9mApEEhIRFYA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OCuKhc3BjIvIJX8zlyfIJKai1fcUL16MIm7UnHk1dPrF14zMeW32Vg452w0gvvXcyn6gPqmCpkpLhx5UID4mPTZQXuMkIBCMn2rL6EOV17J+XJZS9PdFE0uE5PL0j4peJAGJwq0y4Ens8QoIgehEmalHuye4BMK21m8Ad5O7d64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=A82Z9zAs; arc=none smtp.client-ip=192.198.163.18
+	 MIME-Version; b=GwLq5ttlD6f87TZC7tb0p3MRElbBduP3tyCo+enlU0GMNkxL2UngXGzKQjRiXlgHVynwhrglmsnAwogFMb80P3/BQGcial7OnVEm0rt+0f2MG/JBBol1TUFe+J2pqUyEtpU7rKDcyt7MktOhC77qLBfPlkIUTKyR47pBbNtoEtk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gJzfCiJc; arc=none smtp.client-ip=192.198.163.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="A82Z9zAs"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gJzfCiJc"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1753395375; x=1784931375;
+  t=1753395376; x=1784931376;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=VcikA3UnCwqrCY5NEwwfm7B+1JKK+OkZgnq+NMvjpUI=;
-  b=A82Z9zAsfTB6s9X32WPDJqTRyPhU4zI31zshvzL45OO9U0gsFEP+Mj/I
-   +R14JXPMz6mIWM8lEwETYXrGtcja9oCL0y8JpJrBOYXQ1eVdIcrJHAVEA
-   dB/lARbHcqw3revuwobnw6ErYXQPxj3rgYFhJxHtQFk8+tG1rMxGXfKoo
-   gcr12sTmyFsi90AWIM/c8B0Y7DMjarsHmVkuW3ay779dm4EbAQ7Y5YYBn
-   4HR/FzO3auTv/+6f22jahfLNric9kr+jT8kuyVp2ryni4WBsApri8ZGUp
-   5DCHvUYG+wb45zBAMxwYHYoQ300MHcMtLnDKQ3BjwNs31FVdo98dBZqrW
-   Q==;
-X-CSE-ConnectionGUID: 89q6YTYDSnSqMQI91VQ1Kg==
-X-CSE-MsgGUID: FrrFkP5PTt6CTdVuw7bdyQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11501"; a="54941719"
+  bh=VOsrWcJrCpJKt37WVVeZE3pPOc8UDCo9mApEEhIRFYA=;
+  b=gJzfCiJc/ndE+aoYplGDFb6+SGOxpDHGqZGr3CIXCh+XPtlA5tOBjoku
+   ZM8HxVMFZjnfInbjaBp/a+e9irx+SZHfiHXxxAc2h+j428rnXbr30UUVC
+   bwvt5oYAeytzDwfC3E8AqAU8qAujt2gnrkou4+uovRwe3DPQEjCQv0uc0
+   9THwb8D7u1vxIPI9n1h6++3IRhahRdfO5u/vn4ntIxbwK4eImZTVXY6fK
+   CjeVMCveRt/vzhx/9chVbsZN6VZixw5Q4fW2NOjxSiv9A394yyEfoOCNL
+   EcMPKXYSU7XnSpB36wYId/wOlz+5M1/dNEsIEDfygdVPZBw260/ndNr2f
+   w==;
+X-CSE-ConnectionGUID: rPL0nCJVTdKFrThj3VVcWQ==
+X-CSE-MsgGUID: 3IN4gZAZRBe/JcZ/lAmj6g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11501"; a="54941726"
 X-IronPort-AV: E=Sophos;i="6.16,337,1744095600"; 
-   d="scan'208";a="54941719"
+   d="scan'208";a="54941726"
 Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:15 -0700
-X-CSE-ConnectionGUID: g0L8JAI3S4eaxtysAGj4Tw==
-X-CSE-MsgGUID: I8id3XjETdSBl7IMLSqYqw==
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:16 -0700
+X-CSE-ConnectionGUID: 3Cte6RVxTNi4VVeMPQAhLA==
+X-CSE-MsgGUID: 3UmnhAO8QU2eczd8AzfDHQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.16,337,1744095600"; 
-   d="scan'208";a="160504718"
+   d="scan'208";a="160504791"
 Received: from unknown (HELO hyperion.jf.intel.com) ([10.243.61.29])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:15 -0700
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2025 15:16:16 -0700
 From: marc.herbert@linux.intel.com
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev,
@@ -50,9 +50,9 @@ To: linux-cxl@vger.kernel.org,
 	dan.j.williams@intel.com,
 	dave.jiang@intel.com
 Cc: Marc Herbert <marc.herbert@linux.intel.com>
-Subject: [ndctl PATCH 2/3] test/common: move err() function at the top
-Date: Thu, 24 Jul 2025 22:00:45 +0000
-Message-ID: <20250724221323.365191-3-marc.herbert@linux.intel.com>
+Subject: [ndctl PATCH 3/3] test/common: stop relying on bash $SECONDS in check_dmesg()
+Date: Thu, 24 Jul 2025 22:00:46 +0000
+Message-ID: <20250724221323.365191-4-marc.herbert@linux.intel.com>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20250724221323.365191-1-marc.herbert@linux.intel.com>
 References: <20250724221323.365191-1-marc.herbert@linux.intel.com>
@@ -66,57 +66,96 @@ Content-Transfer-Encoding: 8bit
 
 From: Marc Herbert <marc.herbert@linux.intel.com>
 
-move err() function at the top so we can fail early. err() does not have
-any dependency so it can be first.
+Stop relying on the imprecise bash $SECONDS variable as a test start
+timestamp when scanning the logs for issues.
+
+$SECONDS was convenient because it came "for free" and did not require
+any time_init(). But it was not fine-grained enough and its rounding
+process is not even documented. Keep using $SECONDS in log messages
+where it is easy to use and more user-friendly than bare timestamps, but
+switch the critical journalctl scan to a new, absolute NDTEST_START
+timestamp initialized when test/common is sourced. Use a SECONDS-based,
+rough sanity check in time_init() to make sure test/common is always
+sourced early.
 
 Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
 ---
- test/common | 25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ test/common | 52 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 50 insertions(+), 2 deletions(-)
 
 diff --git a/test/common b/test/common
-index 2d8422f26436..2d076402ef7c 100644
+index 2d076402ef7c..0214c6aaed5f 100644
 --- a/test/common
 +++ b/test/common
-@@ -1,6 +1,20 @@
- # SPDX-License-Identifier: GPL-2.0
- # Copyright (C) 2018, FUJITSU LIMITED. All rights reserved.
+@@ -15,6 +15,25 @@ err()
+ 	exit "$rc"
+ }
  
-+# err
-+# $1: line number which error detected
-+# $2: cleanup function (optional)
-+#
-+
-+test_basename=$(basename "$0")
-+
-+err()
++# Initialize the NDTEST_START timestamp used to scan the logs.
++# Insert an anchor/bookmark in the logs to quickly locate the start of any test.
++time_init()
 +{
-+	echo test/"$test_basename": failed at line "$1"
-+	[ -n "$2" ] && "$2"
-+	exit "$rc"
++	# Refuse to run if anything lasted for too long before this point
++	# because that would make NDTEST_START incorrect.
++	test "$SECONDS" -le 1 || err 'test/common must be included first!'
++
++	NDTEST_START=$(LC_TIME=C date '+%F %T.%3N')
++
++	# Log anchor, especially useful when running tests back to back
++	printf "<5>%s@%ds: sourcing test/common: NDTEST_START=%s\n" \
++		"$test_basename" "$SECONDS" "$NDTEST_START" > /dev/kmsg
++
++	# Default value, can be overridden by the environment
++	: "${NDTEST_LOG_DBG:=false}"
 +}
++time_init
 +
  # Global variables
  
  # NDCTL
-@@ -53,17 +67,6 @@ E820_BUS="e820"
- 
- # Functions
- 
--# err
--# $1: line number which error detected
--# $2: cleanup function (optional)
--#
--err()
--{
--	echo test/$(basename $0): failed at line $1
--	[ -n "$2" ] && "$2"
--	exit $rc
--}
--
- reset()
+@@ -147,11 +166,40 @@ json2var()
+ # $1: line number where this is called
+ check_dmesg()
  {
- 	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
++	if "$NDTEST_LOG_DBG"; then
++		# Keep a record of which log lines we scanned
++		journalctl -q -b --since "$NDTEST_START" \
++			-o short-precise > journal-"$(basename "$0")".log
++	fi
++	# After enabling with `NDTEST_LOG_DBG=true meson test`, inspect with:
++	#    head -n 7 $(ls -1t build/journal-*.log | tac)
++	#    journalctl --since='- 5 min' -o short-precise -g 'test/common'
++
+ 	# validate no WARN or lockdep report during the run
+-	sleep 1
+-	log=$(journalctl -r -k --since "-$((SECONDS+1))s")
++	log=$(journalctl -r -k --since "$NDTEST_START")
+ 	grep -q "Call Trace" <<< "$log" && err "$1"
+ 	true
++
++	# Log anchor, especially useful when running tests back to back
++	printf "<5>%s@%ds: test/common: check_dmesg() OK\n" "$test_basename" "$SECONDS" > /dev/kmsg
++
++	if "$NDTEST_LOG_DBG"; then
++	    log_stress from_check_dmesg
++	fi
++}
++
++# While they should, many tests don't use check_dmesg(). So double down here. Also, this
++# runs later which is better.
++# Before enabling NDTEST_LOG_DBG=true, make sure no test started defining its own
++# EXIT trap.
++if "$NDTEST_LOG_DBG"; then
++    trap 'log_stress from_trap' EXIT
++fi
++
++log_stress()
++{
++	printf '<3>%s@%ds: NDTEST_LOG_DBG Call Trace; trying to break the next check_dmesg() %s\n' \
++		"$test_basename" "$SECONDS" "$1" > /dev/kmsg
+ }
+ 
+ # CXL COMMON
 -- 
 2.50.1
 
