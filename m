@@ -1,123 +1,141 @@
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 205A62698BF
-	for <nvdimm@lists.linux.dev>; Tue, 29 Jul 2025 07:53:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 796352AE66
+	for <nvdimm@lists.linux.dev>; Tue, 29 Jul 2025 15:14:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753775618; cv=none; b=hNUfAYg5+MGHDjnejSNXDh0bDCe2eOp6i0wE5YyKLxx7K9gWwsK0QY7k+d4tMFbtVhVH+9jNioborTyrT7A110AtWJzaMB4lPfUDWFcmQ03z25NNUFKZesPrnaO9vh3t2FvaSvXksmxF1bhYG/teNBa8+wWH14dTC3i9mlqGgII=
+	t=1753802059; cv=none; b=L0PhJL/4kJGITPiYHFGo/KLq7uojc8AAkqnfXss0XaDMZAqrM6TCIzWzCn8YyfmA1oIt4UgMx7IL0SMUFTN76m7Jz+4GYeV/pJXxtjEyCXFWp/YSQhPX5ySP3ZHQwdOdHgZLru1oO5o+ybQ/ezDJTA8BowVwDHDgJcI4VN2vVik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753775618; c=relaxed/simple;
-	bh=aes4PlrG7u8ZTpHznRKhnbdzYLwksa7kjjCc3G53RK4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=E4VKdrrBfLXw9r/j7bILheRNfqDpZk7oF0Fu7OkruHWYniUGWB6NO+/xKDmxBpA9/MsOmlNiosfuqAiDe2BMqqrRKuSBGscLdclBTXJSN+FvVUDr8Krb/larzNDHvOLLCJ9FmxsHLkfX/Aks/JjAsCK5ouv1x+80fYu4+JFyUMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=b0xomXec; arc=none smtp.client-ip=209.85.208.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1753802059; c=relaxed/simple;
+	bh=BUEESWeE6xLm5I64Xq3gmJuj//dqBzAN5GflIxxD3RE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=suBKQL2s7zFQSi5qKGMIUP33OId4HQZeQCkCfrlw8epXcNLNlNPqbjch/NxbAMuUTQwDWEdZOUSYcrUN0oIOhHXH0zjXmEZkB03RvWAUEpysR5ZjOP1vklan8/2wdIf0t4kn6WOYbVfKC9xhJ8vr5jqoX0C0ym6Whjsi5dkq0QI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lijwcD5s; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="b0xomXec"
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-61557997574so2074889a12.3
-        for <nvdimm@lists.linux.dev>; Tue, 29 Jul 2025 00:53:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1753775614; x=1754380414; darn=lists.linux.dev;
-        h=user-agent:in-reply-to:content-disposition:mime-version:references
-         :reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xsVo12V6n1cHZPjfQGvjTgS28eByrDkHggKW6JJVbsg=;
-        b=b0xomXecd98jYlJi8muZzUDRW55jshBzpksH0MwwnwiNmMQn9oRWODPPXOXL7oMnvW
-         kepFzC43ePjS27Jcav4j3M7pnR0HgRtQSZA+OE0A7ydb/+xwLKEKEZn7IuSFi3QZag4z
-         L2z6q6KQLocLD+70ns05lTkqcAd0hDAjC5oOZNhdzjIXaaC0LkV2mN7cmxoZ3rAkbcEj
-         TI2SXFuoySqLS0nJH6YjqaVrBzHO0Hu+R09rK/PQQL8UL7Abgyz2NKWjjPh/R1V+2lak
-         MDFIh7c86ekxGXOAuVbWTvjtk/bLlXI48j8AYq/K0LaNTPfe4Wt4xdAlSHz9UtgLCVe1
-         9eFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753775614; x=1754380414;
-        h=user-agent:in-reply-to:content-disposition:mime-version:references
-         :reply-to:message-id:subject:cc:to:from:date:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=xsVo12V6n1cHZPjfQGvjTgS28eByrDkHggKW6JJVbsg=;
-        b=J3n1v2q2APGObG2ihI6lPpJE9dtbMeiDQFcMz87ZAt5rvfGZ8z25obYSUYIFPmsXnp
-         O2bxSrHUnQ9lfwhnEa7NWKW99ZAp2D/1V9C3h+77lMpFuCvUXa6m/Tb62tAc3fpVzk3R
-         +4iayeGxrwm5YVf/h26WTNnjwr8qlr8Zofj1hZUxQDx/zZku2Kh8EKOejb8T0SiEjzQl
-         BVvM24dFU2IKvIiONQVWNtDKW6jdJJME0q90Vch2kT17cayXUek40lDn6OVl6T8sEEA1
-         88uj2LfvAybr2tmL2y4rQtTAHCgyNDqSGo1PDCSmp5W3CeIQeBioD6F5kHWZHrnEE2j6
-         F0Gg==
-X-Forwarded-Encrypted: i=1; AJvYcCVQkDwUfV1m0KAr4FZUdLkRgZjPYFMv6IDzJIgDgw9ar6yQBZnYU+SYtm1fZRadZIBSEkFbhGY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxPXLOLsJ/NNuNVSUsUr+eXTagBi2SXx+AwydmmNCC5EnrrJ+CF
-	TRoZvCLyqOjfCmyr8MXLJ1g2ZVC8Jhd6sE+Q3huOIUxd9PPQJwmmOe7x
-X-Gm-Gg: ASbGncuVnCIsDN6AsKn9mSdRr18aJfGCsIpDK4mCY5IbI0AcQKcOJF4vbQeDqH7qgOX
-	67L4MV8wnWxmNo4n5JrbcsEzKARVjKPynLXR+G6Rs4vfdOzP4QXDAN6ZYFJhT24SlgLAvkGOiX3
-	G+EZIjnpB53nLHidRbGsGipbly9s+IWWeREucWL9okBcs6HX5/0c5JJiiK5CiSXt9HWAfppwuEi
-	gkClaE3mXBWfnyBbBXYAY5Puvu9Q5p2a74PLONmZdyi6NKFLYSjfywVhNaP7tla2BZMuhK3S1UF
-	I3VlWRRZXi4aWxhyhBMCBggGpn51dCdWY0qRRaQLScCBj6AAL/mf/w5Py4zUhOmjfIopOBDnPGb
-	7h/es0Bw6KCLRlIdRM49ryw==
-X-Google-Smtp-Source: AGHT+IGAnknk8rhP20f+2sNuwxA4iW0E1pa7hcWsSRXI9dwJsSvI+o2WMSlmcCRhgf1zJ9FE5orwQQ==
-X-Received: by 2002:a05:6402:2789:b0:615:4655:c74c with SMTP id 4fb4d7f45d1cf-6154655ca5emr5234235a12.31.1753775614152;
-        Tue, 29 Jul 2025 00:53:34 -0700 (PDT)
-Received: from localhost ([185.92.221.13])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-61556326ee7sm1444188a12.55.2025.07.29.00.53.33
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 29 Jul 2025 00:53:33 -0700 (PDT)
-Date: Tue, 29 Jul 2025 07:53:33 +0000
-From: Wei Yang <richard.weiyang@gmail.com>
-To: David Hildenbrand <david@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	xen-devel@lists.xenproject.org, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, Andrew Morton <akpm@linux-foundation.org>,
-	Juergen Gross <jgross@suse.com>,
-	Stefano Stabellini <sstabellini@kernel.org>,
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
-	"Liam R. Howlett" <Liam.Howlett@oracle.com>,
-	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>, Zi Yan <ziy@nvidia.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
-	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
-	Hugh Dickins <hughd@google.com>, Oscar Salvador <osalvador@suse.de>,
-	Lance Yang <lance.yang@linux.dev>,
-	David Vrabel <david.vrabel@citrix.com>
-Subject: Re: [PATCH v2 9/9] mm: rename vm_ops->find_special_page() to
- vm_ops->find_normal_page()
-Message-ID: <20250729075333.47jnxp7fly5wfx6n@master>
-Reply-To: Wei Yang <richard.weiyang@gmail.com>
-References: <20250717115212.1825089-1-david@redhat.com>
- <20250717115212.1825089-10-david@redhat.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lijwcD5s"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1753802058; x=1785338058;
+  h=message-id:date:mime-version:subject:to:references:from:
+   in-reply-to:content-transfer-encoding;
+  bh=BUEESWeE6xLm5I64Xq3gmJuj//dqBzAN5GflIxxD3RE=;
+  b=lijwcD5slpWqk8p9HlINWzoRIogxbrm+tA/mVPOamApXxYWDNImQ+cxL
+   YXs+cbo5OCI6ZFYVieQUCaUzIIRkND4IIhNxBIn/mdC1eGWUlovsBj64j
+   DCma8/Nk79LjTkMLRPfXYG1+71LBRGBpsCCpxCFhXjip1V+3Mpr9lVcmL
+   M4s1eOIW7uCVp52TJ8gZW9au19taVHODtzYdFme4PvkMTgFm/42v0s7B9
+   BbLlWhMIsgoM7D5REnY6rxCNt1SXMLDmSg1NRSeQjyl+5lM3V4Mwyn6CP
+   vTmN5EUZ5EZpejmWvpmi9D06SoTNL74sVSvv0td4Kt1A/Z/jUyXcGRI8W
+   A==;
+X-CSE-ConnectionGUID: DQNVTRUBRiCVqIC4z1Avrw==
+X-CSE-MsgGUID: 92kFyQnaRFWh9es82chTkA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11506"; a="43680244"
+X-IronPort-AV: E=Sophos;i="6.16,349,1744095600"; 
+   d="scan'208";a="43680244"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jul 2025 08:14:18 -0700
+X-CSE-ConnectionGUID: CII+nkzyTYC34tXuviE06A==
+X-CSE-MsgGUID: 3gPCP+04RVuY5mnXIqXunw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,349,1744095600"; 
+   d="scan'208";a="162611163"
+Received: from bvivekan-mobl2.gar.corp.intel.com (HELO [10.247.118.247]) ([10.247.118.247])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jul 2025 08:14:15 -0700
+Message-ID: <c797ab06-2e83-48b4-9e0e-852323ff13e8@intel.com>
+Date: Tue, 29 Jul 2025 08:14:10 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250717115212.1825089-10-david@redhat.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [ndctl PATCH 1/3] test/common: add missing quotes
+To: marc.herbert@linux.intel.com, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, alison.schofield@intel.com, dan.j.williams@intel.com
+References: <20250724221323.365191-1-marc.herbert@linux.intel.com>
+ <20250724221323.365191-2-marc.herbert@linux.intel.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20250724221323.365191-2-marc.herbert@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 17, 2025 at 01:52:12PM +0200, David Hildenbrand wrote:
->... and hide it behind a kconfig option. There is really no need for
->any !xen code to perform this check.
->
->The naming is a bit off: we want to find the "normal" page when a PTE
->was marked "special". So it's really not "finding a special" page.
->
->Improve the documentation, and add a comment in the code where XEN ends
->up performing the pte_mkspecial() through a hypercall. More details can
->be found in commit 923b2919e2c3 ("xen/gntdev: mark userspace PTEs as
->special on x86 PV guests").
->
->Cc: David Vrabel <david.vrabel@citrix.com>
->Reviewed-by: Oscar Salvador <osalvador@suse.de>
->Signed-off-by: David Hildenbrand <david@redhat.com>
 
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 
--- 
-Wei Yang
-Help you, Help me
+On 7/24/25 3:00 PM, marc.herbert@linux.intel.com wrote:
+> From: Marc Herbert <marc.herbert@linux.intel.com>
+> 
+> This makes shellcheck much happier and its output readable and usable.
+
+Probably should mention what exactly you are changing.
+
+> 
+> Signed-off-by: Marc Herbert <marc.herbert@linux.intel.com>
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  test/common | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/test/common b/test/common
+> index 75ff1a6e12be..2d8422f26436 100644
+> --- a/test/common
+> +++ b/test/common
+> @@ -4,7 +4,7 @@
+>  # Global variables
+>  
+>  # NDCTL
+> -if [ -z $NDCTL ]; then
+> +if [ -z "$NDCTL" ]; then
+>  	if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
+>  		export NDCTL=../ndctl/ndctl
+>  	elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
+> @@ -16,7 +16,7 @@ if [ -z $NDCTL ]; then
+>  fi
+>  
+>  # DAXCTL
+> -if [ -z $DAXCTL ]; then
+> +if [ -z "$DAXCTL" ]; then
+>  	if [ -f "../daxctl/daxctl" ] && [ -x "../daxctl/daxctl" ]; then
+>  		export DAXCTL=../daxctl/daxctl
+>  	elif [ -f "./daxctl/daxctl" ] && [ -x "./daxctl/daxctl" ]; then
+> @@ -28,7 +28,7 @@ if [ -z $DAXCTL ]; then
+>  fi
+>  
+>  # CXL
+> -if [ -z $CXL ]; then
+> +if [ -z "$CXL" ]; then
+>  	if [ -f "../cxl/cxl" ] && [ -x "../cxl/cxl" ]; then
+>  		export CXL=../cxl/cxl
+>  	elif [ -f "./cxl/cxl" ] && [ -x "./cxl/cxl" ]; then
+> @@ -39,7 +39,7 @@ if [ -z $CXL ]; then
+>  	fi
+>  fi
+>  
+> -if [ -z $TEST_PATH ]; then
+> +if [ -z "$TEST_PATH" ]; then
+>  	export TEST_PATH=.
+>  fi
+>  
+> @@ -103,7 +103,7 @@ check_min_kver()
+>  #
+>  do_skip()
+>  {
+> -	echo kernel $(uname -r): $1
+> +	echo kernel "$(uname -r)": "$1"
+>  	exit 77
+>  }
+>  
+> @@ -147,7 +147,7 @@ check_dmesg()
+>  	# validate no WARN or lockdep report during the run
+>  	sleep 1
+>  	log=$(journalctl -r -k --since "-$((SECONDS+1))s")
+> -	grep -q "Call Trace" <<< $log && err $1
+> +	grep -q "Call Trace" <<< "$log" && err "$1"
+>  	true
+>  }
+>  
+
