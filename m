@@ -1,66 +1,64 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B95BD7F477;
-	Thu, 31 Jul 2025 02:17:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5637E13B284;
+	Thu, 31 Jul 2025 10:36:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753928268; cv=none; b=RNH+NNnjnThR6TULp3hS6gER7LVQztkQP12hbpL4awmZUfmDGoqrkiXPXKN42kzHAGPV9OBU5mnegDt4ItTf5I+tf7jsRR9FZN5iGBNxllUKw0vR3VM5vP0/oERSKrBy4PrW1ahNlCqry5iAypuGU1TjMM9eAhS2lDFqmszbsmk=
+	t=1753958198; cv=none; b=FkTmMIVMRUnjcl62yNeSJvjM7gQTg+bq3kwapu9F7315f0czAIU4eQa+pJyDn2XGgkJQxbVuvDuWQqXrg996oxaaJTt8c1f3a/3M3QUAC8dkG6hty98loQO7yNZMEgrmFvMOhfNK9sJgLgXHfP5dtVVMiadWY6hyxN/ZW4xd39o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753928268; c=relaxed/simple;
-	bh=vnsmv7tQNXaWSWWP/6OdzOgjtQ6fSmz6QBABH81KmAM=;
+	s=arc-20240116; t=1753958198; c=relaxed/simple;
+	bh=jQ2ihjVLU372ldX8Ock8Nt7ZOSTEavpx4ginsVjs6to=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Vwu3UtSnFHwqce28PsPjHLp6nDm6zh4G5Xc+RDJurJR7QncVZfgNMeujuU53uQka/s0i/pZv7FmXP1CKA9i1o3EM3nVeBujS0ka4rMCR48RsPANTud7Vfa5dO2ZIHjQvKZ22FJiRkAAgjY5zo0kiBL/613iBrDdpk1u+1yf8kKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lwDUocjQ; arc=none smtp.client-ip=198.175.65.15
+	 Content-Type:Content-Disposition:In-Reply-To; b=k5nCqsycjAl18gTzVC23S4kzh99hgud55+mA08E/nhCq8O4QzpMCBC8cYx513up3acKNottEUVtx48xk73vvM1BPf198mORwtXm5w9cEVwnpp5S4aufbb26NVTdgkBuPDaM4K64PTIdYSYWUCacgWEX/qz9FNGZes+AXMJZl6RY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RZ7QR96B; arc=none smtp.client-ip=192.198.163.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lwDUocjQ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RZ7QR96B"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1753928267; x=1785464267;
+  t=1753958196; x=1785494196;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=vnsmv7tQNXaWSWWP/6OdzOgjtQ6fSmz6QBABH81KmAM=;
-  b=lwDUocjQhr1L+mdJJwJpMH0HhdWmSiG9L8+lL1iIzfOoIPYA8NrWVuP6
-   hTl95U8RbxSyCwIdJsoFfmqweEroYUmf4Tz9qSCarzuD+Vbb54iqAHx9N
-   X1gjQ8lLZA0o5OGX3TNItleE44YHh8XRxm9cdl4+oSA2D2VJ5VZC4VU9E
-   qAX94UVorIoityKBKGYBjCjCXrOeXxR46/jxjS7VxxqKpDJzl2cicT2uw
-   +Do5OP5NF8uPTYn/3tNmLEcp3IzGW4MEQQPeJ2/n+qpi1ezuHhAlCS18s
-   8C05A4oIFA91WVKc5Et0f5nS+9b2mhQrHpYzkFMORywbL3yzFsaE2FKtn
+  bh=jQ2ihjVLU372ldX8Ock8Nt7ZOSTEavpx4ginsVjs6to=;
+  b=RZ7QR96BOnTPpCQtuuTA7m56hsrFN9toFgYQuZ8nuwJhNUVBbMch/hyI
+   vBmkbV2KnutGUPdzkkpF+A/ER4CkKXGIcb0oocNpSjc92fUToVY388bfG
+   bUDi8ZDXNqwiZ70kroGAl8uaIUh3/AUbz8AzYWHRbGXZ1A7CGSSH5dLcc
+   JrRvEKu5ime1MPmFuBIfl7OKbTH54AZ5fSng4i7oo6y/Nn1CGSXJq/Der
+   BLD1tJJpyon5wAaaGzBxe/LIX8IeHlio8tgE5oO4QOA/esJhtp83CUCv3
+   WRkVM/t4/rmXzvFwQdvs/csmB9JZz5/u8XL/eiNxl3FyyoFdrjOH8TnXI
    g==;
-X-CSE-ConnectionGUID: jeK9mJuHT3iiBeX69m8yBQ==
-X-CSE-MsgGUID: hNMGz1TgSteNutkf29GJRg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11507"; a="59887948"
+X-CSE-ConnectionGUID: NgPXKYgxRFevUgJW0rsY7Q==
+X-CSE-MsgGUID: 2wa1q5rtQx2bS0P6GUmJnA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11507"; a="81728074"
 X-IronPort-AV: E=Sophos;i="6.16,353,1744095600"; 
-   d="scan'208";a="59887948"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jul 2025 19:17:47 -0700
-X-CSE-ConnectionGUID: 7AwyyvrUR0uccKqLvoLehA==
-X-CSE-MsgGUID: YiHMoHhUQDGtjlup+hfZNw==
+   d="scan'208";a="81728074"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jul 2025 03:36:35 -0700
+X-CSE-ConnectionGUID: I5c8qlVxQw2mKI0lBWKGiQ==
+X-CSE-MsgGUID: oZU8eTfdQtOJmE9b+f3SSg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.16,353,1744095600"; 
-   d="scan'208";a="163924185"
+   d="scan'208";a="163571393"
 Received: from lkp-server01.sh.intel.com (HELO 160750d4a34c) ([10.239.97.150])
-  by fmviesa010.fm.intel.com with ESMTP; 30 Jul 2025 19:17:43 -0700
+  by fmviesa009.fm.intel.com with ESMTP; 31 Jul 2025 03:36:33 -0700
 Received: from kbuild by 160750d4a34c with local (Exim 4.96)
 	(envelope-from <lkp@intel.com>)
-	id 1uhIrV-0003LE-2K;
-	Thu, 31 Jul 2025 02:17:41 +0000
-Date: Thu, 31 Jul 2025 10:17:28 +0800
+	id 1uhQeF-0003fw-24;
+	Thu, 31 Jul 2025 10:36:31 +0000
+Date: Thu, 31 Jul 2025 18:36:23 +0800
 From: kernel test robot <lkp@intel.com>
 To: Neeraj Kumar <s.neeraj@samsung.com>, linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
 	gost.dev@samsung.com
-Cc: Paul Gazzillo <paul@pgazz.com>,
-	Necip Fazil Yildiran <fazilyildiran@gmail.com>,
-	oe-kbuild-all@lists.linux.dev, a.manzanares@samsung.com,
+Cc: oe-kbuild-all@lists.linux.dev, a.manzanares@samsung.com,
 	vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	Neeraj Kumar <s.neeraj@samsung.com>
-Subject: Re: [PATCH V2 19/20] cxl/pmem_region: Prep patch to accommodate
- pmem_region attributes
-Message-ID: <202507311017.7ApKmtQc-lkp@intel.com>
-References: <20250730121209.303202-20-s.neeraj@samsung.com>
+Subject: Re: [PATCH V2 20/20] cxl/pmem_region: Add sysfs attribute cxl region
+ label updation/deletion
+Message-ID: <202507311814.ngKmd10b-lkp@intel.com>
+References: <20250730121209.303202-21-s.neeraj@samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -69,7 +67,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250730121209.303202-20-s.neeraj@samsung.com>
+In-Reply-To: <20250730121209.303202-21-s.neeraj@samsung.com>
 
 Hi Neeraj,
 
@@ -79,22 +77,60 @@ kernel test robot noticed the following build warnings:
 
 url:    https://github.com/intel-lab-lkp/linux/commits/Neeraj-Kumar/nvdimm-label-Introduce-NDD_CXL_LABEL-flag-to-set-cxl-label-format/20250730-202209
 base:   f11a5f89910a7ae970fbce4fdc02d86a8ba8570f
-patch link:    https://lore.kernel.org/r/20250730121209.303202-20-s.neeraj%40samsung.com
-patch subject: [PATCH V2 19/20] cxl/pmem_region: Prep patch to accommodate pmem_region attributes
-config: x86_64-kismet-CONFIG_LIBNVDIMM-CONFIG_CXL_PMEM_REGION-0-0 (https://download.01.org/0day-ci/archive/20250731/202507311017.7ApKmtQc-lkp@intel.com/config)
-reproduce: (https://download.01.org/0day-ci/archive/20250731/202507311017.7ApKmtQc-lkp@intel.com/reproduce)
+patch link:    https://lore.kernel.org/r/20250730121209.303202-21-s.neeraj%40samsung.com
+patch subject: [PATCH V2 20/20] cxl/pmem_region: Add sysfs attribute cxl region label updation/deletion
+config: i386-randconfig-062-20250731 (https://download.01.org/0day-ci/archive/20250731/202507311814.ngKmd10b-lkp@intel.com/config)
+compiler: gcc-12 (Debian 12.2.0-14+deb12u1) 12.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250731/202507311814.ngKmd10b-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202507311017.7ApKmtQc-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202507311814.ngKmd10b-lkp@intel.com/
 
-kismet warnings: (new ones prefixed by >>)
->> kismet: WARNING: unmet direct dependencies detected for LIBNVDIMM when selected by CXL_PMEM_REGION
-   WARNING: unmet direct dependencies detected for LIBNVDIMM
-     Depends on [n]: PHYS_ADDR_T_64BIT [=y] && HAS_IOMEM [=y] && BLK_DEV [=n]
-     Selected by [y]:
-     - CXL_PMEM_REGION [=y] && CXL_BUS [=y] && CXL_REGION [=y]
+sparse warnings: (new ones prefixed by >>)
+>> drivers/cxl/core/pmem_region.c:127:1: sparse: sparse: symbol 'dev_attr_region_label_delete' was not declared. Should it be static?
+>> drivers/cxl/core/pmem_region.c:135:24: sparse: sparse: symbol 'cxl_pmem_region_group' was not declared. Should it be static?
+
+vim +/dev_attr_region_label_delete +127 drivers/cxl/core/pmem_region.c
+
+   102	
+   103	static ssize_t region_label_delete_store(struct device *dev,
+   104					   struct device_attribute *attr,
+   105					   const char *buf, size_t len)
+   106	{
+   107		struct cxl_pmem_region *cxlr_pmem = to_cxl_pmem_region(dev);
+   108		struct cxl_region *cxlr = cxlr_pmem->cxlr;
+   109		struct cxl_region_params *p = &cxlr->params;
+   110		ssize_t rc;
+   111	
+   112		ACQUIRE(rwsem_write_kill, rwsem)(&cxl_rwsem.region);
+   113		rc = ACQUIRE_ERR(rwsem_write_kill, &rwsem);
+   114		if (rc)
+   115			return rc;
+   116	
+   117		if (cxlr && cxlr->cxlr_pmem && cxlr->cxlr_pmem->nd_region) {
+   118			rc = nd_region_label_delete(cxlr->cxlr_pmem->nd_region);
+   119			if (rc)
+   120				return rc;
+   121		}
+   122	
+   123		p->region_label_state = 0;
+   124	
+   125		return len;
+   126	}
+ > 127	DEVICE_ATTR_WO(region_label_delete);
+   128	
+   129	static struct attribute *cxl_pmem_region_attrs[] = {
+   130		&dev_attr_region_label_update.attr,
+   131		&dev_attr_region_label_delete.attr,
+   132		NULL
+   133	};
+   134	
+ > 135	struct attribute_group cxl_pmem_region_group = {
+   136		.attrs = cxl_pmem_region_attrs,
+   137	};
+   138	
 
 -- 
 0-DAY CI Kernel Test Service
