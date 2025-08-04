@@ -1,405 +1,206 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f181.google.com (mail-lj1-f181.google.com [209.85.208.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E830C243964
-	for <nvdimm@lists.linux.dev>; Mon,  4 Aug 2025 09:01:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D31C8323E
+	for <nvdimm@lists.linux.dev>; Mon,  4 Aug 2025 10:54:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754298103; cv=none; b=WzW5TN/Cw69VjkzDp5Bi1ydtwhH57hbqqAug9vqmhK6o2zy7e/NctmG+bWxPDqmr/mNfNURth3qgodTJNZM3QlDD07G/YBG1ktd9GbtCAwTwi/cHERG9lIXm5PKXNF3lc/tHUE19hH1WQielIBxrzgB9ROMwKYg+yigGhNh1HEw=
+	t=1754304871; cv=none; b=m//pRFBBgzYUdlYeuDiYkGaDb9guc0JW2vQjRi+pFMPQQd6QWOj0/HYQlp/ALkWJVIuBmeNpJQm27NoSSgyc2205S6w+kdU0QaU52yFb2vdTLVvzzEGnaQcFYx3NiRJXKWHyQ7UlrQ9fmzgk0GN3MEtGv1fahQ7p+1YtD1MAC+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754298103; c=relaxed/simple;
-	bh=4yFU3wAC2aa+FSEwpbKHuT+pG7q6tGWOkvFuBdfSqSY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=n933uR6bROuiuVrd0Xx33ynqBhYwfBCJ3Z8VBfW8N2sb0MxEYlN5DMZA+eAr8AOtBX9d8/p/x0VEXsjb5Cl/OWi3TzJihSyS/2wTgB0WgGg9rbuQHBRDYhW6W4HXwTgw+rZVSCwQAABy9tyxIVT9GZK3x96GuqJl31AlpJ6myFk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=W9bwgoz7; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1754304871; c=relaxed/simple;
+	bh=LLYmh07tODzNKrSqXaL0z3ysxtPy/JmLxTic6NiwVjE=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ov2B4Z+1XE7OwKefx/80lvOVxzdoz0RgshwJgXxU4+HcVH4yh+C9ZFPjK9ar1tJloWMBdZIsbuMEAqg+30p0cI8d8KsEN1ejUQztOX+wxsmXhDyoBbNI7qI79QdZGwA+FwK7Radx7o/FK/VQQHy2AYpDR2UXsuztWAmGuyh7iwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AWwiBChY; arc=none smtp.client-ip=209.85.208.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="W9bwgoz7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1754298102; x=1785834102;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=4yFU3wAC2aa+FSEwpbKHuT+pG7q6tGWOkvFuBdfSqSY=;
-  b=W9bwgoz74t+bDhKCinqtMshD7UEsbUHm0OruxQQ0aU3KiMzYUgQHFv6A
-   GQlBl9s5HIaEqArXc/vP8iBh705+XSfsOFRKzutQuo9+BJi4JW09J3gtF
-   VEDxBZT8xh+HIQQDLlkLtNGi28hG6uqvv5T5t+8BTHD+7WITb4fSSXO1w
-   Flyb1goZ6NeSCC9XimxaX2isMGVPR4LMVaMitR+IUirF24/RTQILO6kJj
-   cWsoYnQGIMmqUdqNmMal6P5WO3SHQ1fz56kr8X7Nps3KpC4b77CkSHVTR
-   SOJwFHAxP2qI3z0J330cKeKzfS9NMuKZcCNao957c8fN0DlWUf0LXoBR9
-   Q==;
-X-CSE-ConnectionGUID: PPi3VgmfQ9iz/4khmFmpZA==
-X-CSE-MsgGUID: f/XhtejvTh2hNG2jwuW/ew==
-X-IronPort-AV: E=McAfee;i="6800,10657,11511"; a="56443378"
-X-IronPort-AV: E=Sophos;i="6.17,258,1747724400"; 
-   d="scan'208";a="56443378"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2025 02:01:41 -0700
-X-CSE-ConnectionGUID: 5YbDb/y4QLCJxOTNnlI0qQ==
-X-CSE-MsgGUID: VFnxtZsWSTapQVCWfARLFg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.17,258,1747724400"; 
-   d="scan'208";a="164106420"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.223.77])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2025 02:01:41 -0700
-From: alison.schofield@intel.com
-To: nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH] cxl: Add cxl-translate.sh unit test
-Date: Mon,  4 Aug 2025 02:01:35 -0700
-Message-ID: <20250804090137.2593137-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AWwiBChY"
+Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-33211f7f06eso35695211fa.2
+        for <nvdimm@lists.linux.dev>; Mon, 04 Aug 2025 03:54:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1754304868; x=1754909668; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=X4RxvHMamXD48DKrjLVxOGxx8Xo0bomZZqlvqy6+mMo=;
+        b=AWwiBChY7L7BekIXkEaTN6dMqfcRkgf2ZyEAmU4KpNy3Q0hf3rNxSb7u4M+TvP4UIQ
+         iAcE2fc+pHUli+gODm9FE6bxBgDY1Wg+9E9P6Q8lKAyZHyUXSt4gOU3lJ/50qhX56HfD
+         jGwVtuazVTojr+aD/szoLidvleJZcyRnynDt7z7nJwUMR8t753VdFESgvoAOXoH3oI4A
+         V/bpsPyAge4Xg91ipU5f4xZJKSGsUl42E+D8vWWAbA0jQcrryoeiwSP5Z5/RptLTj5WV
+         36rTs7WFUmaawL7dNoggc5F5FtjVK0/VXf3UL+0BuUywIgqz/vNRNJuZse/UVpNh5U+L
+         QFGQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1754304868; x=1754909668;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=X4RxvHMamXD48DKrjLVxOGxx8Xo0bomZZqlvqy6+mMo=;
+        b=Aa7yxZas0I35vPvZQanJ/DaM3Xo4UcBE/xNf7//rGnzhZwnx2LYpAsLvAOqhY+nTY+
+         8yRkhOzncy192ZeyREqWD2Ww5imndUo49OOLnX//KqNaUL8aY1kwED+NE05Cgv56EYjC
+         zgDOwFjXc3hP3qETm9Xo6LTXeUH4gYCgA1cBGgDyLeh8vMY871A3LYkn6tsBkAgyabrY
+         HkQgsacReC5ZavT5EKPXVmkPmKQkQep1CqMDbhQXFbZwv/J+vVRcm01rtdXSS+smUOxE
+         S/2+S2x0DDEZEzoVKZGQ4v+5ilg7QX6B6VqXcW5IcU8/1MMbu/k7eMrIQNByUE3aCglW
+         gbNw==
+X-Forwarded-Encrypted: i=1; AJvYcCW/lhd9aNHqUIHAqIvzadMDaYQHID71godkT4RHFZ4Z4JomVcSFmJgebDuJdLsB8sK7SgXSSBw=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxnCeRMiwIK1vBjGN13Ar90d915RH5cja3CBMkVwfPu+IJd+ppz
+	DG55eJQiTIqa2gTzqnUXIPXdmjEghUpX0dzJj0hpy8mX9R4hQLAsA+z2
+X-Gm-Gg: ASbGncsnujqnC6JXfJE6cvY/KrBC0AvGEE0zUHl8uBjlmjm7mpQHAXYNkpVF8erNm1D
+	GxPIHwDkyZRYMcW7e38r4X1jTv6Qx+yXRcd6w9s4d/VKLMw0coFZog2x+c5BkXxxvF/54KMp/HS
+	noweY3y78vNpPrl4hJOrQNlNIYwaBM7g42zSwH3m9TN97TGY79FBPinNDH3tHSrq42mOzB+378H
+	tlKmwRwldezvDavKQ5sFNsEJNUMnV7aiR5YPsh2b86yt2dWol6tUmBQa0ElNqxGqqu3JEai7WJQ
+	4Tcl5oHjrZ9mTpy3rBGaNSotM5oLgf1KV8yZyFj5mPtMvg1CjQUQfPUs06xaUftops/lWZ3ubCt
+	tB7/Du55viPcwbOWxBnbo9xYYpTQM239Nmp1gGEgdvayJWIUSSh2kLCGHlKnm
+X-Google-Smtp-Source: AGHT+IGJZZFcFy8qBb/9BVJvSpxogtzfM17wxVB5B1bfSxKSrolhCiqzChAu468YcmIMkpSbHFvpbA==
+X-Received: by 2002:a05:651c:20ce:20b0:332:4a77:ad9f with SMTP id 38308e7fff4ca-3325677af91mr12521651fa.24.1754304867614;
+        Mon, 04 Aug 2025 03:54:27 -0700 (PDT)
+Received: from pc636 (host-95-203-22-207.mobileonline.telia.com. [95.203.22.207])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-33238271bdfsm16396311fa.6.2025.08.04.03.54.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 04 Aug 2025 03:54:26 -0700 (PDT)
+From: Uladzislau Rezki <urezki@gmail.com>
+X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
+Date: Mon, 4 Aug 2025 12:54:21 +0200
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>, Harry Yoo <harry.yoo@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Christophe Leroy <christophe.leroy@csgroup.eu>,
+	"David S . Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Kees Cook <kees@kernel.org>, Peter Xu <peterx@redhat.com>,
+	David Hildenbrand <david@redhat.com>, Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Qi Zheng <zhengqi.arch@bytedance.com>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-sgx@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev, linux-trace-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] mm: update core kernel code to use vm_flags_t
+ consistently
+Message-ID: <aJCRXVP-ZFEPtl1Y@pc636>
+References: <cover.1750274467.git.lorenzo.stoakes@oracle.com>
+ <d1588e7bb96d1ea3fe7b9df2c699d5b4592d901d.1750274467.git.lorenzo.stoakes@oracle.com>
+ <aIgSpAnU8EaIcqd9@hyeyoo>
+ <73764aaa-2186-4c8e-8523-55705018d842@lucifer.local>
+ <aIkVRTouPqhcxOes@pc636>
+ <69860c97-8a76-4ce5-b1d6-9d7c8370d9cd@lucifer.local>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <69860c97-8a76-4ce5-b1d6-9d7c8370d9cd@lucifer.local>
 
-From: Alison Schofield <alison.schofield@intel.com>
+Hello, Lorenzo!
 
-The cxl-translate.sh unit test feeds trusted data sets to a kernel
-test module: cxl_translate. The module accesses the CXL Drivers's
-address translation functions.
+> So sorry Ulad, I meant to get back to you on this sooner!
+> 
+> On Tue, Jul 29, 2025 at 08:39:01PM +0200, Uladzislau Rezki wrote:
+> > On Tue, Jul 29, 2025 at 06:25:39AM +0100, Lorenzo Stoakes wrote:
+> > > Andrew - FYI there's nothing to worry about here, the type remains
+> > > precisely the same, and I'll send a patch to fix this trivial issue so when
+> > > later this type changes vmalloc will be uaffected.
+> > >
+> > > On Tue, Jul 29, 2025 at 09:15:51AM +0900, Harry Yoo wrote:
+> > > > [Adding Uladzislau to Cc]
+> > >
+> > > Ulad - could we PLEASE get rid of 'vm_flags' in vmalloc? It's the precise
+> > > same name and (currently) type as vma->vm_flags and is already the source
+> > > of confusion.
+> > >
+> > You mean all "vm_flags" variable names? "vm_struct" has flags as a
+> > member. So you want:
+> >
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+> > 29:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 39:             vm_flags |= VM_DEFER_KMEMLEAK;
+> > 41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+> > 45:                              pgprot, vm_flags, NUMA_NO_NODE,
+> > 51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+> > 85:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+> > 266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+> > 376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+> > 385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/vmalloc.c
+> > 3853: * @vm_flags:                additional vm area flags (e.g. %VM_NO_GUARD)
+> > 3875:                   pgprot_t prot, unsigned long vm_flags, int node,
+> > 3894:   if (vmap_allow_huge && (vm_flags & VM_ALLOW_HUGE_VMAP)) {
+> > 3912:                             VM_UNINITIALIZED | vm_flags, start, end, node,
+> > 3977:   if (!(vm_flags & VM_DEFER_KMEMLEAK))
+> > 4621:   vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags mm/execmem.c
+> > 29:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 39:             vm_flags |= VM_DEFER_KMEMLEAK;
+> > 41:     if (vm_flags & VM_ALLOW_HUGE_VMAP)
+> > 45:                              pgprot, vm_flags, NUMA_NO_NODE,
+> > 51:                                      pgprot, vm_flags, NUMA_NO_NODE,
+> > 85:                          pgprot_t pgprot, unsigned long vm_flags)
+> > 259:    unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
+> > 266:    p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+> > 376:    unsigned long vm_flags = VM_FLUSH_RESET_PERMS;
+> > 385:            p = execmem_vmalloc(range, size, pgprot, vm_flags);
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$ grep -rn vm_flags ./include/linux/vmalloc.h
+> > 172:                    pgprot_t prot, unsigned long vm_flags, int node,
+> > urezki@pc638:~/data/backup/coding/linux-not-broken.git$
+> >
+> > to rename all those "vm_flags" to something, for example, like "flags"?
+> 
+> Yeah, sorry I know it's a churny pain, but I think it's such a silly source
+> of confusion _in general_, not only this series where I made a mistake (of
+> course entirely my fault but certainly more understandable given the
+> naming), but in the past I've certainly sat there thinking 'hmmm wait' :)
+> 
+> Really I think we should rename 'vm_struct' too, but if that causes _too
+> much_ churn fair enough.
+> 
+> I think even though it's long-winded, 'vmalloc_flags' would be good, both
+> in fields and local params as it makes things very very clear.
+>
+> 
+> Equally 'vm_struct' -> 'vmalloc_struct' would be a good change.
+> 
+Uh.. This could be a pain :) I will have a look and see what we can do.
 
-The trusted samples are either from the CXL Driver Writers Guide[1]
-or from another source that has been verified. ie a spreadsheet
-reviewed by CXL developers.
+Thanks!
 
-[1] https://www.intel.com/content/www/us/en/content-details/643805/cxl-memory-device-sw-guide.html
-
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- test/cxl-translate.sh | 297 ++++++++++++++++++++++++++++++++++++++++++
- test/meson.build      |   2 +
- 2 files changed, 299 insertions(+)
- create mode 100755 test/cxl-translate.sh
-
-diff --git a/test/cxl-translate.sh b/test/cxl-translate.sh
-new file mode 100755
-index 000000000000..5a300f24af8f
---- /dev/null
-+++ b/test/cxl-translate.sh
-@@ -0,0 +1,297 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2025 Intel Corporation. All rights reserved.
-+
-+# Allow what shellcheck suspects are unused - the arrays
-+# shellcheck disable=SC2034
-+
-+# source common to get the err()
-+. "$(dirname "$0")"/common
-+
-+trap 'err $LINENO' ERR
-+set -ex
-+rc=1
-+
-+MODULO=0
-+XOR=1
-+
-+
-+# Test against 'Sample Sets' and 'XOR Tables'
-+#
-+# Sample Set's have a pattern and the expected HPAs have been verified
-+# although maybe not published. They verify Modulo and XOR translations.
-+#
-+# XOR Table's are extracted from the CXL Driver Writers Guide [1].
-+# Although the XOR Tables do not include an explicit check of the Modulo
-+# translation result, a Modulo calculation is always the first step in
-+# any XOR calculation. ie. if Modulo fails so does XOR.
-+#
-+# [1] https://www.intel.com/content/www/us/en/content-details/643805/cxl-memory-device-sw-guide.html
-+
-+# Start time for kernel log checking at millisecond granularity
-+set_log_start_time() {
-+        log_start_time=$(date '+%Y-%m-%d %H:%M:%S.%3N')
-+}
-+
-+check_dmesg_results() {
-+        local nr_entries=$1
-+        local expect_failures=${2:-false}  # Optional param
-+        local log nr_pass nr_fail
-+
-+        log=$(journalctl -r -k --since "$log_start_time")
-+
-+	nr_pass=$(echo "$log" | grep -c "CXL Translate Test.*PASS") || nr_pass=0
-+        nr_fail=$(echo "$log" | grep -c "CXL Translate Test.*FAIL") || nr_fail=0
-+
-+        if [ "$expect_failures" = "false" ]; then
-+                # Expect all PASS and no FAIL
-+                [ "$nr_pass" -eq "$nr_entries" ] || err "$LINENO"
-+                [ "$nr_fail" -eq 0 ] || err "$LINENO"
-+        else
-+                # Expect no PASS and all FAIL
-+		[ "$nr_pass" -eq 0 ] || err "$LINENO"
-+                [ "$nr_fail" -eq "$nr_entries" ] || err "$LINENO"
-+        fi
-+}
-+
-+# Sample Sets
-+#
-+# params_#: dpa, region eiw, region eig, host bridge ways
-+# expect_[modulo|xor]_#: expected spa for each position in the region
-+# 	interleave set for the modulo|xor math.
-+#
-+# Feeds the parameters with an expected SPA for each position in the region
-+# interleave to the test module. Returns success if the calculation matches
-+# the expected SPA and the reverse calculation returns the original DPA and
-+# position.
-+
-+# 4 way region interleave using 4 host bridges
-+# Notation: 1+1+1+1
-+declare -A Sample_4R_4H=(
-+	["params_0"]="0 2 0 4"
-+	["expect_modulo_0"]="0 256 512 768"
-+	["expect_xor_0"]="0 256 512 768"
-+	["params_1"]="256 2 0 4"
-+	["expect_modulo_1"]="1024 1280 1536 1792"
-+	["expect_xor_1"]="1024 1280 1536 1792"
-+	["params_2"]="2048 2 0 4"
-+	["expect_modulo_2"]="8192 8448 8704 8960"
-+	["expect_xor_2"]="8192 8448 8704 8960"
-+)
-+
-+# 12 way region interleave using 12 host bridges
-+# Notation: 1+1+1+1+1+1+1+1+1+1+1+1
-+declare -A Sample_12R_12H=(
-+	["params_0"]="0 10 0 12"
-+	["expect_modulo_0"]="0 256 512 768 1024 1280 1536 1792 2048 2304 2560 2816"
-+	["expect_xor_0"]="0 256 512 768 1024 1280 1536 1792 2304 2048 2816 2560"
-+	["params_1"]="512 10 0 12"
-+	["expect_modulo_1"]="6144 6400 6656 6912 7168 7424 7680 7936 8192 8448 8704 8960"
-+	["expect_xor_1"]="6912 6656 6400 6144 7936 7680 7424 7168 8192 8448 8704 8960"
-+)
-+
-+decode_r_eiw()
-+{
-+	case $1 in
-+		0) echo 1 ;;
-+		1) echo 2 ;;
-+		2) echo 4 ;;
-+		3) echo 8 ;;
-+		4) echo 16 ;;
-+		8) echo 3 ;;
-+		9) echo 6 ;;
-+		10) echo 12 ;;
-+		*) echo "Invalid r_eiw value: $1" ; err "$LINENO" ;;
-+	esac
-+}
-+
-+generate_sample_tests() {
-+        local -n input_sample_set=$1
-+        local -n output_array=$2
-+
-+        # Find all params_* keys and extract the index
-+        local indices=()
-+        for key in "${!input_sample_set[@]}"; do
-+                if [[ $key =~ ^params_([0-9]+)$ ]]; then
-+                        indices+=("${BASH_REMATCH[1]}")
-+                fi
-+        done
-+
-+        # Sort indices to process in order
-+	mapfile -t indices < <(printf '%s\n' "${indices[@]}" | sort -n)
-+
-+        for i in "${indices[@]}"; do
-+                # Split the parameters and expected spa values
-+                IFS=' ' read -r dpa r_eiw r_eig hb_ways <<< "${input_sample_set["params_$i"]}"
-+                IFS=' ' read -r -a expect_modulo_values <<< "${input_sample_set["expect_modulo_$i"]}"
-+                IFS=' ' read -r -a expect_xor_values <<< "${input_sample_set["expect_xor_$i"]}"
-+
-+                ways=$(decode_r_eiw "$r_eiw")
-+                for ((pos = 0; pos < ways; pos++)); do
-+                        expect_spa_modulo=${expect_modulo_values[$pos]}
-+                        expect_spa_xor=${expect_xor_values[$pos]}
-+
-+                        # Add the MODULO test case, then the XOR test case
-+                        output_array+=("$dpa $pos $r_eiw $r_eig $hb_ways $MODULO $expect_spa_modulo")
-+                        output_array+=("$dpa $pos $r_eiw $r_eig $hb_ways $XOR $expect_spa_xor")
-+                done
-+        done
-+}
-+
-+test_sample_sets() {
-+        local sample_name=$1
-+        local -n sample_set=$1
-+        local generated_tests=()
-+
-+        generate_sample_tests sample_set generated_tests
-+
-+        IFS=','
-+        table_string="${generated_tests[*]}"
-+        IFS=' '
-+
-+        modprobe -r cxl-translate
-+        set_log_start_time
-+        echo "Testing $sample_name with ${#generated_tests[@]} test entries"
-+        modprobe cxl-translate "table=$table_string"
-+        check_dmesg_results "${#generated_tests[@]}"
-+}
-+
-+# XOR Tables
-+#
-+# The tables that follow are the XOR translation examples in the
-+# CXL Driver Writers Guide Sections 2.13.24.1 and 25.1
-+# Note that the Guide uses the device number in its table notation.
-+# Here the 'position' of that device number is used, not the
-+# device number itself, which is meaningless in this context.
-+#
-+# Format: "dpa pos r_eiw r_eig hb_ways xor_math(0|1) xor_spa:
-+
-+# 4 way region interleave using 4 host bridges
-+# Notation: 1+1+1+1
-+XOR_Table_4R_4H=(
-+	"248   0 2 0 4 1 248"
-+	"16    1 2 0 4 1 272"
-+	"16    2 2 0 4 1 528"
-+	"32    3 2 0 4 1 800"
-+	"288   0 2 0 4 1 1056"
-+	"288   1 2 0 4 1 1312"
-+	"288   2 2 0 4 1 1568"
-+	"288   3 2 0 4 1 1824"
-+	"544   1 2 0 4 1 2080"
-+	"544   0 2 0 4 1 2336"
-+	"544   3 2 0 4 1 2592"
-+	"1040  2 2 0 4 1 4112"
-+	"1568  3 2 0 4 1 6176"
-+	"32784 1 2 0 4 1 131088"
-+	"65552 2 2 0 4 1 262160"
-+	"98336 3 2 0 4 1 393248"
-+	"98328 2 2 0 4 1 393496"
-+	"98352 2 2 0 4 1 393520"
-+	"443953523 0 2 0 4 1 1775813747"
-+)
-+
-+XOR_Table_8R_4H=(
-+	"248       0 3 0 4 1 248"
-+	"16        1 3 0 4 1 272"
-+	"16        2 3 0 4 1 528"
-+	"32        3 3 0 4 1 800"
-+	"272       1 3 0 4 1 2064"
-+	"528       2 3 0 4 1 4112"
-+	"800       3 3 0 4 1 6176"
-+	"16400     1 3 0 4 1 131088"
-+	"32784     2 3 0 4 1 262160"
-+	"49184     3 3 0 4 1 393248"
-+	"49176     2 3 0 4 1 393496"
-+	"49200     2 3 0 4 1 393520"
-+	"116520373 3 3 0 4 1 932162229"
-+	"244690459 5 3 0 4 1 1957525275"
-+	"292862215 5 3 0 4 1 2342899463"
-+	"30721158  4 3 0 4 1 245769350"
-+	"246386959 4 3 0 4 1 1971096847"
-+	"72701249  5 3 0 4 1 581610561"
-+	"529382429 5 3 0 4 1 4235060509"
-+	"191132300 2 3 0 4 1 1529057420"
-+	"18589081  1 3 0 4 1 148712089"
-+	"344295715 7 3 0 4 1 2754367011"
-+)
-+
-+XOR_Table_12R_12H=(
-+	"224 0 10 0 12 1 224"
-+	"16  1 10 0 12 1 272"
-+	"16  2 10 0 12 1 528"
-+	"32  3 10 0 12 1 800"
-+	"32  4 10 0 12 1 1056"
-+	"32  5 10 0 12 1 1312"
-+	"32  6 10 0 12 1 1568"
-+	"32  7 10 0 12 1 1824"
-+	"32  9 10 0 12 1 2080"
-+	"32  8 10 0 12 1 2336"
-+	"32 11 10 0 12 1 2592"
-+	"32 10 10 0 12 1 2848"
-+	"288 0 10 0 12 1 3360"
-+	"299017087 7 10 0 12 1 3588205439"
-+	"329210435 0 10 0 12 1 3950524995"
-+	"151050637 11 10 0 12 1 1812608653"
-+	"145169214  2 10 0 12 1 1742030654"
-+	"328998732 10 10 0 12 1 3947985996"
-+	"159252439  3 10 0 12 1 1911027415"
-+	"342098916  5 10 0 12 1 4105186020"
-+	"97970344   8 10 0 12 1 1175645096"
-+	"214995572  8 10 0 12 1 2579948404"
-+	"101289661  7 10 0 12 1 1215475645"
-+	"40424079   7 10 0 12 1 485088911"
-+	"231458716  7 10 0 12 1 2777503900"
-+)
-+
-+# A fail table entry is expected to fail the DPA->SPA calculation.
-+# Intent is to show that the test module can tell good from bad.
-+# If one of these cases passes, don't trust other pass results.
-+# This is not a test of module parsing, so don't send garbage.
-+Expect_Fail_Table=(
-+	"544   3 2 0 4 1 2080" # Change position
-+        "544   2 2 0 4 1 2336"
-+        "544   1 2 0 4 1 2592"
-+	"272   1 2 0 4 1 2064" # Change r_eiw
-+	"528   2 1 0 4 1 4112"
-+	"800   3 10 0 4 1 6176"
-+	"32  4 10 0 12 1 1156" # Change expected spa
-+	"32  5 10 0 12 1 1112"
-+	"32  6 10 0 12 1 1168"
-+	"32  7 10 0 12 1 1124"
-+)
-+
-+test_tables() {
-+        local table_name=$1
-+        local -n table_ref=$1
-+        local expect_failures=${2:-false}  # Optional parameter, defaults to false
-+        local IFS
-+
-+        IFS=','
-+        table_string="${table_ref[*]}"
-+        IFS=' '
-+
-+        if [ "$expect_failures" = "true" ]; then
-+                echo "Testing $table_name with ${#table_ref[@]} entries (expecting FAIL results)"
-+        else
-+                echo "Testing $table_name with ${#table_ref[@]} test entries"
-+        fi
-+
-+        modprobe -r cxl-translate
-+        set_log_start_time
-+        modprobe cxl-translate "table=$table_string"
-+
-+        check_dmesg_results "${#table_ref[@]}" "$expect_failures"
-+}
-+
-+test_tables Expect_Fail_Table true
-+test_sample_sets Sample_4R_4H
-+test_sample_sets Sample_12R_12H
-+test_tables XOR_Table_4R_4H
-+test_tables XOR_Table_8R_4H
-+test_tables XOR_Table_12R_12H
-+
-+echo "Translate test complete with no failures"
-+
-+modprobe -r cxl-translate
-+
-+
-diff --git a/test/meson.build b/test/meson.build
-index 91eb6c2b1363..bf4d73eea918 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -168,6 +168,7 @@ cxl_sanitize = find_program('cxl-sanitize.sh')
- cxl_destroy_region = find_program('cxl-destroy-region.sh')
- cxl_qos_class = find_program('cxl-qos-class.sh')
- cxl_poison = find_program('cxl-poison.sh')
-+cxl_translate = find_program('cxl-translate.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -201,6 +202,7 @@ tests = [
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-   [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
-   [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
-+  [ 'cxl-translate.sh',       cxl_translate,      'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.37.3
-
+--
+Uladzislau Rezki
