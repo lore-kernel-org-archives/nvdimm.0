@@ -1,35 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF7DC20298D;
-	Thu, 14 Aug 2025 17:19:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE848319841;
+	Thu, 14 Aug 2025 18:05:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755191983; cv=none; b=upNQ1K216ohOiaLHDeqQ9vKnM84qTaKjMLNNrAiVcVO5GCXXHwodN9i8Vef4h2p+OWYw0+nBPWD5E7LcLlQRtydhGkct1Fj0f6l9T4xIvQw1ERUliM2mmE/gPkrwE5zmmT0ZgJhIafgAwg+FLHUezWrPVPkGWDI1SDw57PEp8pI=
+	t=1755194713; cv=none; b=OVDTI5G2F+f1f+WH+46EtGDa+w18BkeGuGfFLCqBa107AKp79zgKKhJbOWnv605CvGnRS/VFUb3vprtirw2sPmypWVFj7qGKW0qrTC/lBMcMfkStLtE4F+u60ZhpDhYEE5doOkITbs1qGr5QFa/sWn5xF/K9CwbidKHRi+3mjow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755191983; c=relaxed/simple;
-	bh=IFafzpayfaPkdGpJ1GtHgExVV5V7zc9Jcmdm1ZW+Jck=;
+	s=arc-20240116; t=1755194713; c=relaxed/simple;
+	bh=XcO2ZEADFwBfK6kPEWOR8tIjaxQkyjMynvJHLUKTg8I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jUo8cmiUM0hO7qcB6kID3mG10bpNn+kRV46MRHjsrWLi2x+ATtZwGLmlg3oQfvS++zNpNukkTtkZKcbOjU8NNeIYAmmutsR31p4Ifj7VD4R/aLZGVh1GyBxtyOAL4dgaRuuRFETJVU2D0msnM3KqzgIFPBj4qUKhqC9eTv26kig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dAIl1XhD; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=RvmBF6D2e+X0z0EOR3ei7qhTc5w6H5ThbLQtClsKx+mSY2UlNrzHDFgxwX9zIfU454av7BwQyMiqACWOXHuk4EXiXmkAhqSgCprThitgMO4SC4wdtClJrEpADaQoGYTyQ5ivjGWV2h++hnFFlsfcgq64eiWUqgEzt6idriDtT8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eEj06vMH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dAIl1XhD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B809C4CEED;
-	Thu, 14 Aug 2025 17:19:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eEj06vMH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99FE2C4CEED;
+	Thu, 14 Aug 2025 18:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755191982;
-	bh=IFafzpayfaPkdGpJ1GtHgExVV5V7zc9Jcmdm1ZW+Jck=;
+	s=k20201202; t=1755194712;
+	bh=XcO2ZEADFwBfK6kPEWOR8tIjaxQkyjMynvJHLUKTg8I=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=dAIl1XhD/dwGVguLT7QUA0xT3pHiwW6jTWLwC4UaCStiMSMO2wqT+QkJkc1EAy/jf
-	 VF3ifXD1d10MIhzPQMUFRxh7iC3rTbfqzctyd6ggUbYJNQ/mnJ7mXpyrxX1CKwMpU5
-	 mXlilT2kfIFLwwfTCOwElE2xGOA7yuFyHWngfuwkELMy9K4ldkXm5bWRQZcIoAxza8
-	 6TKjyNyQBqDMNW5fPrY8ab6mbFAl8HSsFxT54GDT39x+9B+tA0RnLessSz6OBfuhug
-	 //2QlgFN4GpBRVwpxAVAfLdejs2WPQRCsynfUANFq/k+EV67krLc8hbr3GnZ9d7tpg
-	 rRWMzT/4uJCjw==
-Date: Thu, 14 Aug 2025 10:19:41 -0700
+	b=eEj06vMH1nQfwpU1V+P3jkjBWcHIiYZphKlnN4NnBf4JofA/Nawf0Aqgfa4Am8Hid
+	 18h9T03E7YRMCgnw/qmFEQwgTMfbhZNaAcj0FXUY0MEukRXd625/4eJi9lqTtJ5P6U
+	 z/xmMPYyBgsX4eplbTmM+AgroA2Ae+cc+H9jZqAjk9nxVT9KXFC9Afzi1zAweqdXoA
+	 Y3B30bhyGWGpWr2Mafxe/kBnGDALPvD5P1lOwnGaPczf6aoT2xGYpGrpGU2oSw8OZB
+	 KJVtTpdX8M9d3DpBWgn/qV5fHoH9CtV847eb/oXTNSLYE8idadchk1zHfMrfig/fTJ
+	 Z/CtkKdFgtGMA==
+Date: Thu, 14 Aug 2025 11:05:12 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: John Groves <John@groves.net>, Dan Williams <dan.j.williams@intel.com>,
+	Miklos Szeredi <miklos@szeredb.hu>,
 	Bernd Schubert <bschubert@ddn.com>,
 	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
 	Vishal Verma <vishal.l.verma@intel.com>,
@@ -49,11 +50,11 @@ Cc: John Groves <John@groves.net>, Dan Williams <dan.j.williams@intel.com>,
 	Josef Bacik <josef@toxicpanda.com>,
 	Aravind Ramesh <arramesh@micron.com>,
 	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 14/18] famfs_fuse: GET_DAXDEV message and daxdev_table
-Message-ID: <20250814171941.GU7942@frogsfrogsfrogs>
+Subject: Re: [RFC V2 12/18] famfs_fuse: Plumb the GET_FMAP message/response
+Message-ID: <20250814180512.GV7942@frogsfrogsfrogs>
 References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-15-john@groves.net>
- <CAJfpegv19wFrT0QFkwFrKbc6KXmktt0Ba2Lq9fZoihA=eb8muA@mail.gmail.com>
+ <20250703185032.46568-13-john@groves.net>
+ <CAJfpegv6wHOniQE6dgGymq4h1430oc2EyV3OQ2S9DqA20nZZUQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -62,31 +63,104 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAJfpegv19wFrT0QFkwFrKbc6KXmktt0Ba2Lq9fZoihA=eb8muA@mail.gmail.com>
+In-Reply-To: <CAJfpegv6wHOniQE6dgGymq4h1430oc2EyV3OQ2S9DqA20nZZUQ@mail.gmail.com>
 
-On Thu, Aug 14, 2025 at 03:58:58PM +0200, Miklos Szeredi wrote:
+On Thu, Aug 14, 2025 at 03:36:26PM +0200, Miklos Szeredi wrote:
 > On Thu, 3 Jul 2025 at 20:54, John Groves <John@groves.net> wrote:
 > >
-> > * The new GET_DAXDEV message/response is enabled
-> > * The command it triggered by the update_daxdev_table() call, if there
-> >   are any daxdevs in the subject fmap that are not represented in the
-> >   daxdev_dable yet.
+> > Upon completion of an OPEN, if we're in famfs-mode we do a GET_FMAP to
+> > retrieve and cache up the file-to-dax map in the kernel. If this
+> > succeeds, read/write/mmap are resolved direct-to-dax with no upcalls.
 > 
-> This is rather convoluted, the server *should know* which dax devices
-> it has registered, hence it shouldn't need to be explicitly asked.
+> Nothing to do at this time unless you want a side project:  doing this
+> with compound requests would save a roundtrip (OPEN + GET_FMAP in one
+> go).
 > 
-> And there's already an API for registering file descriptors:
-> FUSE_DEV_IOC_BACKING_OPEN.  Is there a reason that interface couldn't
-> be used by famfs?
+> > GET_FMAP has a variable-size response payload, and the allocated size
+> > is sent in the in_args[0].size field. If the fmap would overflow the
+> > message, the fuse server sends a reply of size 'sizeof(uint32_t)' which
+> > specifies the size of the fmap message. Then the kernel can realloc a
+> > large enough buffer and try again.
+> 
+> There is a better way to do this: the allocation can happen when we
+> get the response.  Just need to add infrastructure to dev.c.
+> 
+> > diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+> > index 6c384640c79b..dff5aa62543e 100644
+> > --- a/include/uapi/linux/fuse.h
+> > +++ b/include/uapi/linux/fuse.h
+> > @@ -654,6 +654,10 @@ enum fuse_opcode {
+> >         FUSE_TMPFILE            = 51,
+> >         FUSE_STATX              = 52,
+> >
+> > +       /* Famfs / devdax opcodes */
+> > +       FUSE_GET_FMAP           = 53,
+> > +       FUSE_GET_DAXDEV         = 54,
+> 
+> Introduced too early.
+> 
+> > +
+> >         /* CUSE specific operations */
+> >         CUSE_INIT               = 4096,
+> >
+> > @@ -888,6 +892,16 @@ struct fuse_access_in {
+> >         uint32_t        padding;
+> >  };
+> >
+> > +struct fuse_get_fmap_in {
+> > +       uint32_t        size;
+> > +       uint32_t        padding;
+> > +};
+> 
+> As noted, passing size to server really makes no sense.  I'd just omit
+> fuse_get_fmap_in completely.
+> 
+> > +
+> > +struct fuse_get_fmap_out {
+> > +       uint32_t        size;
+> > +       uint32_t        padding;
+> > +};
+> > +
+> >  struct fuse_init_in {
+> >         uint32_t        major;
+> >         uint32_t        minor;
+> > @@ -1284,4 +1298,8 @@ struct fuse_uring_cmd_req {
+> >         uint8_t padding[6];
+> >  };
+> >
+> > +/* Famfs fmap message components */
+> > +
+> > +#define FAMFS_FMAP_MAX 32768 /* Largest supported fmap message */
+> > +
+> 
+> Hmm, Darrick's interface gets one extents at a time.   This one tries
+> to get the whole map in one go.
+> 
+> The single extent thing can be inefficient even for plain block fs, so
+> it would be nice to get multiple extents.  The whole map has an
 
-What happens if you want to have a fuse server that hosts both famfs
-files /and/ backing files?  That'd be pretty crazy to mix both paths in
-one filesystem, but it's in theory possible, particularly if the famfs
-server wanted to export a pseudofile where everyone could find that
-shadow file?
+The fuse/iomap series adds a mapping upsertion "notification" that the
+fuse server can use to prepopulate mappings in the kernel so that it
+doesn't have to call back to the server for reads and pure overwrites.
+Maybe it would be useful to be able to upsert mappings for more than a
+single file range, but so far it hasn't been necessary.
+
+> artificial limit that currently may seem sufficient but down the line
+> could cause pain.
+> 
+> I'm still hoping some common ground would benefit both interfaces.
+> Just not sure what it should be.
+
+It's possible that famfs could use the mapping upsertion notification to
+upload mappings into the kernel.  As far as I can tell, fuse servers can
+send notifications even when they're in the middle of handling a fuse
+request, so the famfs daemon's ->open function could upload mappings
+before completing the open operation.
+
+As for the other use of FMAP (uploading a description of striping data
+from which one can construct mappings) ... I don't know what to say
+about that.  That one isn't so useful for block filesystems. :)
+
+(onto the next reply)
 
 --D
-
-> Thanks,
-> Miklos
-> 
