@@ -1,103 +1,142 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A918A318148
-	for <nvdimm@lists.linux.dev>; Thu, 14 Aug 2025 10:37:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BD6F8F49
+	for <nvdimm@lists.linux.dev>; Thu, 14 Aug 2025 10:38:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755167842; cv=none; b=qbDWfO8kdpN3U5apdv95Uiq7Kgbrqy5xLUaf8eWuucCIZjIRj6RL1E0U8G4AT2u5QvTks9JVymr22GlYBbvHsI3Q5bAsP61sjddTDkjeXrJUqguyRySVLY9GEPwwLqU/sGMT+yIBzY+IxcsIuwesSXjw/4nq0zz+YXgxkv1kciw=
+	t=1755167882; cv=none; b=D707v0KIDNMefZZ6wASi92vFERW+Pp+iOgLpJGS1pmmtkJzbXjWhTqVQ66aAFr0FCBmtrAx+iUXuNGKfwqU8BUZKIYq4KfFtj3mov8Gc+BR7oFn6KsBR8OL+002SDTlA7yDNSyf0gMNo1G01a/tcR9NqtkkrrFsgYRRxUtxuSvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755167842; c=relaxed/simple;
-	bh=2z4KHp3G9a5b9AfVC4TLzGl8oU7ja1D8uVs4f94B57E=;
+	s=arc-20240116; t=1755167882; c=relaxed/simple;
+	bh=XmRNPUT+R3mB+8K5Wxjbt3OHg0HJY834eV5whN3hKlw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CjgRpUh6b2L1+LqQx3/xHtcBZ4oDomp71bPSjNhrCv8oLiwRw6ScCaK1vmKRycMTkZ/rr30FvL5RFMRrei5gD8Y/2IWQqi3/6Lp87xE+ITdLRIODp00RCbz2bZO7CGKhCdUB+s+IUJv03oZpuciXTzl0PP5wCWZTVd75UUxItQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=QJbk3fgq; arc=none smtp.client-ip=209.85.222.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=cImli2dheIxuT25jrCW8MH/7L+pTZxPyX96wKv7hmN0itcbZL8vZ5FlrC79I1sFd1USY+vgD3VTcXVDkeSkKKpjs9l5El9j5QBI7TlQv0eP6V17g+tAF3WcafinarCLfsvcYbBiz+uE7cUuV6/bqjtKG+83KkfvK4OGq04cnsj4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SocHT5T3; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="QJbk3fgq"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-7e870325db1so71013885a.0
-        for <nvdimm@lists.linux.dev>; Thu, 14 Aug 2025 03:37:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1755167839; x=1755772639; darn=lists.linux.dev;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=kfg1xdeLOfyreKnr328hQaYYjz2z+mng0dgiwOWK8Ho=;
-        b=QJbk3fgqiiq8hkk3mq5ra0+RetPhxZJPsFiBxPTsZe4G9rIUKE84/0UUxiIaplqrjR
-         jMOzb2m2BUROqXfhiHYV5bajZX28PdqeUoq5fU4ZQva3Iz8XI+voPhSyY9XRKS3T0XcK
-         IdLI+WQoouRqJYp8D6xO378t4QA4InJ8ag8UQ=
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SocHT5T3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1755167880;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ox9VSg794T86GyyHHZvdI0EJOqaz4rB8EprvWh10zrw=;
+	b=SocHT5T3jUuIAIFayJ64cruqsPP9S9QmJ7kUSy7J/DEnCeA2bmW+jtEShHVddiEDj16vXl
+	TKtwcCCUoVDs981FsuPicuVj8TtLNMXwZUg83RY1xgF3m6EYYx48Ce9FFJX+yeeqaPvzkX
+	/Z5YDlPUQFzlRGDQI56Yk138dEzljLU=
+Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
+ [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-643-ltH0WZddOEebDrbPhztF8Q-1; Thu, 14 Aug 2025 06:37:59 -0400
+X-MC-Unique: ltH0WZddOEebDrbPhztF8Q-1
+X-Mimecast-MFC-AGG-ID: ltH0WZddOEebDrbPhztF8Q_1755167877
+Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-55ce52745a2so338198e87.3
+        for <nvdimm@lists.linux.dev>; Thu, 14 Aug 2025 03:37:58 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755167839; x=1755772639;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=kfg1xdeLOfyreKnr328hQaYYjz2z+mng0dgiwOWK8Ho=;
-        b=EOTtz7P1BEv907dkIGofwQfUi5A9nDOrY+HDW1tSDeWgE2C4tYyt9DQ8kciunG0XG2
-         edVMOmIjmDdxA+TLl8OEMbOmoPqWgpbNr0csJVGQ6hxtN2w2Xiiuxa7icah9pXMkWARq
-         gy7ntMUnce7triH2MMKxY6kkJ51XF0bhSfz8xtQDthHvQg181T8/Lh4tiyTSQQTqY9Mh
-         gRCMPs79nxcocuDbQXiy22zA5sxb69r93M4zIdGBZ4HFR+Ngu99bpahwjQtT/3LxK+XB
-         0w7CA3T04suGwHuGqQp63qahyMVifC6hf5yu0pQmn/7bNU7EiHjSttPPbO7t+Co0pKVz
-         yN5w==
-X-Forwarded-Encrypted: i=1; AJvYcCWVFUHFBocKylTNlm2uMUU/6vvwGl+bjd8L6QvRIIXAqGl67NWqNEv+T9GsdJvw6BNM7Vxgtlo=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwIj5rngEusmWRKg6hUBxRKMstgJ+K84O27JD9tZKhvKURtKUPV
-	AT2j1m5IjirzUMjQ9JbNaHvd3xUSg72QyzaZjdc1qPOX3oZrkqagP1mJpgLlgyT4T7OBs0SyCyh
-	m51U2q/T8pnWucIUFIDN4ykKAzNwSwwRd2thkbjQ75A==
-X-Gm-Gg: ASbGncspUmw9JHiRdyE0Y+SfkTemqvL78Ynfm0lQJELb50RW0xMKV1Bx2vFVcwk6Fdq
-	mEeHldF3Y8AQNPi5f79WfmYKR4p047dyMraeKYkUHm//ksU0dC0uQBeyw9wreRUGQwDOSl9kusa
-	rHvx/vzJIqsUn6xYYEK4TVGbQJdks/FQ2q2ehQOBW9hyTEv8hjM5QifwB1ax7kk/Nt1S30XTBct
-	ovZ
-X-Google-Smtp-Source: AGHT+IGCyQ+LrtnuvvD4cnfS9KWxmodF+LtsJHdOQQ03BWq4ghzPdSAt/rs4hdQANvXyGJmp0NayklHjGgL6sn9UaHM=
-X-Received: by 2002:a05:620a:17a8:b0:7e7:f84c:9d65 with SMTP id
- af79cd13be357-7e87066e73cmr321505585a.38.1755167839208; Thu, 14 Aug 2025
- 03:37:19 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1755167877; x=1755772677;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Ox9VSg794T86GyyHHZvdI0EJOqaz4rB8EprvWh10zrw=;
+        b=JElILMuLRAl37J/CsQsvn46dOSg8cMwbvrNPnQXDLKKOdiOvizoJMQV/Fwa3jgS3nQ
+         RJqU5KwYOKnjCYsE1KvMzOiPZ6EA0IiN/Gtuv0EP66BsM5p6rbbwoXSmH8DSOqJQGtZd
+         fp0x7nDupy0lkPGZ+u7ITihQ2KpKHP4TsswPRWbHlk2U14Af22IbZjuYYz21w5jXePTJ
+         s9FWvJUJqPvex4Y9CqwVm5OY2Bs/d1D4TohKXKNFh5+qM092heQVNfHQ5FdPLWGnINfT
+         P+UfGzCdXihnYXev4s/7uKCcjZhMT94vEA8We5F72zgeg6d3FDCP4Hetpmo7EAhGKqyJ
+         HngQ==
+X-Gm-Message-State: AOJu0YwxskCWedI5JfBj/6tkOqCvh+vTZvhqC9OyADxDHLfdyng2Vie+
+	lLZuNg8dMdgaoSQlrXNknB8LuLmwq/PfLndfRLXjoE9mgYHk9DoyvbUVaLY/K5LXebFDpHezFk2
+	JyPB3N1NF0xnc9S/ylNLZ0/oTjVxSGEhEEIxAzOqyLS26fUhTfX94Dsj632sDMuBJsThZQvHSbT
+	1WGXRHMPjquvxMZ802HRCiip4fhDap0bRY
+X-Gm-Gg: ASbGncvAmW26zShzTd92O6aymO7BCDekM+ECT9y7KhxIt6pnf8jJ6dhC4RnhZZqUJju
+	tJjfUDw5kFLzx3zqdW2bUTznnABrOSd8TBP02kav7vnkhbNSeCQSnHYH2dx0K3dAhPyY6TiHCUa
+	55ZzafRZPUskhL0QyvgbpScA==
+X-Received: by 2002:a05:6512:2c96:b0:55a:5122:91ea with SMTP id 2adb3069b0e04-55ce5032d30mr816019e87.34.1755167877342;
+        Thu, 14 Aug 2025 03:37:57 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFWp3q2pY3smOI1UfTvHXbMgpIXg9RBy/l6M/x7NEe1yHnUkqPcfbaze+XqWVraUXQrOZS9W3x/SukErs51Ovc=
+X-Received: by 2002:a05:6512:2c96:b0:55a:5122:91ea with SMTP id
+ 2adb3069b0e04-55ce5032d30mr816013e87.34.1755167876897; Thu, 14 Aug 2025
+ 03:37:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20250703185032.46568-1-john@groves.net> <20250703185032.46568-12-john@groves.net>
- <20250709035911.GE2672029@frogsfrogsfrogs> <ttjh3gqk3fmykwrb7dg6xaqhkpxk7g773fkvuzvbdlefimpseg@l5ermgxixeen>
- <20250712055405.GK2672029@frogsfrogsfrogs>
-In-Reply-To: <20250712055405.GK2672029@frogsfrogsfrogs>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 14 Aug 2025 12:37:08 +0200
-X-Gm-Features: Ac12FXw_tUJvAdswzhdrUe0cP4gCxZqTC0WTTpEt7BoMabiUDl0tjdFveoca6_Y
-Message-ID: <CAJfpegspQYVbWVztU5_XFwbGaTQKe2NCm2mcui6J3qv1VDxdSQ@mail.gmail.com>
-Subject: Re: [RFC V2 11/18] famfs_fuse: Basic famfs mount opts
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: John Groves <John@groves.net>, Dan Williams <dan.j.williams@intel.com>, 
-	Bernd Schubert <bschubert@ddn.com>, John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Kent Overstreet <kent.overstreet@linux.dev>, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
-	Ajay Joshi <ajayjoshi@micron.com>
+References: <20250702041837.2677896-1-yi.zhang@redhat.com> <aGViCzgmAQLaGnLR@aschofie-mobl2.lan>
+In-Reply-To: <aGViCzgmAQLaGnLR@aschofie-mobl2.lan>
+From: Yi Zhang <yi.zhang@redhat.com>
+Date: Thu, 14 Aug 2025 18:37:42 +0800
+X-Gm-Features: Ac12FXwpXHYZ9tTQyCC3j0_OJc5okGmY98zi0aJK-ikaB082d86ZMuvD5rNTmEM
+Message-ID: <CAHj4cs_GQG2PNOY5Y3dyTfWbKP6CKcJ5GW+jdS-ZCjt_kryJVQ@mail.gmail.com>
+Subject: Re: [ndctl PATCH V2] Various typos fix in Documention/, cxl/, ndctl/,
+ test/, util/ and meson.build
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+	Dave Jiang <dave.jiang@intel.com>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: 4B8RvNJ1by3jDUcWEx_95s3P5J0U_MDjtTgAbKcKtBc_1755167877
+X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, 12 Jul 2025 at 07:54, Darrick J. Wong <djwong@kernel.org> wrote:
+Hi Alison
+Sorry for the late response, I just found this mail sent to Spam.
+I've sent V3 based on your comments, thanks.
+
+On Thu, Jul 3, 2025 at 12:45=E2=80=AFAM Alison Schofield
+<alison.schofield@intel.com> wrote:
 >
-> On Fri, Jul 11, 2025 at 10:28:20AM -0500, John Groves wrote:
-
-> >     famfs_fuse: Basic famfs mount opt: -o shadow=<shadowpath>
+> On Wed, Jul 02, 2025 at 12:18:37AM -0400, Yi Zhang wrote:
+> > Most of them caught by https://github.com/codespell-project/codespell
 > >
-> >     The shadow path is a (usually tmpfs) file system area used by the famfs
-> >     user space to commuicate with the famfs fuse server. There is a minor
-> >     dilemma that the user space tools must be able to resolve from a mount
-> >     point path to a shadow path. The shadow path is exposed via /proc/mounts,
-> >     but otherwise not used by the kernel. User space gets the shadow path
-> >     from /proc/mounts...
+> > s/divdes/divides
+> > s/hiearchy/hierarchy
+> > s/convereted/converted
+> > s/namepace namespace/namespace
+> > s/namepsaces/namespaces
+> > s/oher/other
+> > s/identifer/identifier
+> > s/happend/happened
+> > s/paritition/partition
+> > s/thats/that's
+> > s/santize/sanitize
+> > s/sucessfully/successfully
+> > s/suports/supports
+> > s/namepace/namespace
+> > s/aare/are
+> > s/wont/won't
+> > s/werent/weren't
+> > s/cant/can't
+> > s/defintion/definition
+> > s/secounds/seconds
+> > s/Sucessfully/Successfully
+> > s/succeded/succeeded
+> > s/inital/initial
+> > s/mangement/management
+> > s/optionnal/optional
+> > s/argments/arguments
+> > s/incremantal/incremental
+> > s/detachs/detaches
+> >
+> > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> > Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
+> > ---
+> > changes from v1:
+> > - Add reviewed-by tag
+> > - Add more details about the typos and how they were caught
+>
+> Hi Yi Zhang - This update does not address my feedback on v1.
+> Please check that and ask about what isn't clear.
+> -- Alison
+>
+> snip
+>
 
-Don't know if we want to go that way.  Is there no other way?
 
-But if we do, at least do it in a generic way.  I.e. fuse server can
-tell the kernel to display options A, B and C in /proc/mounts.
+--=20
+Best Regards,
+  Yi Zhang
 
-Thanks,
-Miklos
