@@ -1,246 +1,254 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0020779FE
-	for <nvdimm@lists.linux.dev>; Thu, 14 Aug 2025 04:05:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.14
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755144344; cv=fail; b=nowGZqg+yMtg57AsQev+hNbimMTMNbK9IAixksMAGGxDrj+insCjRK2hukamuJjdeg5wTd7FTfma4znx/NNwxKo1GE5otYz18tT3c1Oa4aey9xP1gzJLb+YurXgQBJxkXiBn/e/5u+LdBgfvObTbkqZxxsf1yI6JrN22y3ZchV4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755144344; c=relaxed/simple;
-	bh=5iUQ6rHmDePwK/ztHXFuirAKqjNjkNDu/yE6KvRMgCA=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=GsWIt5dM0jxB42vTaqzQZahJueL5vwEyiEMnJddES4il4rwFUVcTSQ/fA/+G4IsiJlvJJTGtz1AlAj3mz1Avf19iFcF8p3YTIRA6lRj7OAaFhyFM3VLAVrVrNED3p+LVZKzZRP+8653eQrMYzk6rFl9M1p3GS27W2i/Q1dJ9Oj0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Wr/kCguW; arc=fail smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C83131815E
+	for <nvdimm@lists.linux.dev>; Thu, 14 Aug 2025 10:35:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1755167729; cv=none; b=hsnoK41rLHCOcmWoVHfv+GsTo2MAhLh9kkpgaT2Q1pm6LBJo1q4PoQvzZkGWBvf3Arq2oj0mKdb/SxLVxB+3n7oz0Ak/oTw2RtRBLHLLtBqUtjXpocznbcyu96wlmWslWqSDmESyCzkzHpeFlZ/lMCBL3/sgN9Vl1LY0YT7uJR8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1755167729; c=relaxed/simple;
+	bh=5KY/6Z88xG7WpJfG8wj9f/E8kmUWNLlh5y12Oy3L1Jo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:content-type; b=fdutZjt1GUQH17NVmFMs8mmq4ptX86iiN+JEJVYp5SGmreC7kr5ZpX/4x4M1QJY1K7suOm5itu5n2KQ4WiuVE1v4amL3hjt4Kl9JQ7T246eXnXhvDmVJCjNOmaJbRTdd0vBPds3Qk5pxChrjDlFnFa58jCWHJh3AaiT3HvWM6UM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ejtQTp9o; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Wr/kCguW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1755144343; x=1786680343;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=5iUQ6rHmDePwK/ztHXFuirAKqjNjkNDu/yE6KvRMgCA=;
-  b=Wr/kCguWkXOpQak4Oeem0neUXdZIU5vTnliR9dxNiln3IlOXYgWiUnVO
-   UDLPb9VigA4EmxdBD+iCPC8wLTAbQEsGE/35MgixUxu2Y/+t8999Fg/Lw
-   326eqYatCnnvP6c6zKVlXnmbFheTGP3djKS8d3QZBlu4VurM+PxgMVZer
-   5j5wbl/4bO3CnAfBM0TRA0pJbf9PS20s6PKVlTQDY3ei5moR//cb1Ob0y
-   L2NnVeXS7o0yLpZ08zXXV8NRXIwaDyNaF6CwXXLMbiIp/jEz3JjmJOJmY
-   R3Juldzv6fx3n/C1JSS5NyudFttTOsp8x2suxa5Mh1n1oOTO61C4al6ah
-   w==;
-X-CSE-ConnectionGUID: Mgc+ElqURciwInlOkFD4nw==
-X-CSE-MsgGUID: 4rwqPmPfRAi5dJFZSx1N1Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11520"; a="57520641"
-X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
-   d="scan'208";a="57520641"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2025 21:05:40 -0700
-X-CSE-ConnectionGUID: XAIIuFf2QaS66cbl6qW2Sg==
-X-CSE-MsgGUID: 33DLhPn5TbGd/r+Ss46nKg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
-   d="scan'208";a="171113318"
-Received: from fmsmsx903.amr.corp.intel.com ([10.18.126.92])
-  by orviesa004.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2025 21:05:40 -0700
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
- fmsmsx903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.17; Wed, 13 Aug 2025 21:05:39 -0700
-Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.17 via Frontend Transport; Wed, 13 Aug 2025 21:05:39 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (40.107.236.64)
- by edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1748.26; Wed, 13 Aug 2025 21:05:38 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=bYVpdtoUj+CCjhlJFCJKLmFG8v09yr++RLwSZlDJnP6KcHFjfrtrg6nGALeDcQohLOUjeGyJtdkoL2rC7CJhbDA+9YiP+ItJvgZWPpkoitsp4I4iJltq/g9r8dwyz5UuaG1GYFHA5ZynJmoHf+xu71a+GdBRZS8JoiA8iTPpQnaJsHokXWkTRiPJ2XBUAxLn68VD3+FgMpYQ/2CsXzRinyhS9YKQ7XSd6PdM6td1f2gt5c2iWU9dTKZeSEieLWUT6msc7lXDN50FIOZ+S3t1OFd3afnC9JWJ8BeE5pddVCdy5H9cLWeiKTXtS0qLL7tQhNkS94FAfZBOEyDxILEbvA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=jb6CmAd+1SOCv+zBHLo1GQDlHs97mhzCBTQ01p9YzkA=;
- b=vM2+KcCEjvU6CpXevFFvssVSl/1R7GpL+5HE6ct6YOJzsHrhtU9bQz7PlS/uKyE+RCYeFUL5qfuxBTDMFK7X7cNeO1/YrEcOVpid32+IS0NNXwMbny2I9zkTOVvASSHMiYb32HfWiIEteJU+9RA6HBgJHe3wPzwGBNgU/hipZZnVAM++b0Q8DL/0xtt2mEC5P+NNaJuc+JJH8O0AChaDNHMLS5as1ptdB9CKca4dWWWoAVCCJ4U4+Ei6cOlkIIQ4LttxPuePMVk6swiG/ymjxUMOMg+4VfAN1rHrfwBXO2qQMN8l8s87H8gBpEzB2z/bktx7UaEdUtDhHpSZi6hPdA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by DS7PR11MB6221.namprd11.prod.outlook.com (2603:10b6:8:9a::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9031.13; Thu, 14 Aug
- 2025 04:05:37 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::4e89:bb6b:bb46:4808]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::4e89:bb6b:bb46:4808%5]) with mapi id 15.20.9009.018; Thu, 14 Aug 2025
- 04:05:36 +0000
-Date: Wed, 13 Aug 2025 21:05:29 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Marc Herbert <marc.herbert@linux.intel.com>
-CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>
-Subject: Re: [ndctl PATCH] cxl: Add cxl-translate.sh unit test
-Message-ID: <aJ1gidnZblX8EQTK@aschofie-mobl2.lan>
-References: <20250804090137.2593137-1-alison.schofield@intel.com>
- <176191f6-3cf6-4d96-819d-28146f4646d1@linux.intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <176191f6-3cf6-4d96-819d-28146f4646d1@linux.intel.com>
-X-ClientProxiedBy: BYAPR07CA0053.namprd07.prod.outlook.com
- (2603:10b6:a03:60::30) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ejtQTp9o"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1755167726;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=5tuftH4Jby4W6v9QLUI9M9VH/qC8GTi6wgPWA8Blp4g=;
+	b=ejtQTp9ov2dDOUJoKQBb5ci7k+tTCwYgCsflvTgWm3Y7L2MAXhwCzP+EDMes8Cc/27NTGg
+	7xWZ4qSSwKj6G9BqKDKGnBeCKOFnSVp5FJ48majpDJ+uT7NUlUWNeqdsjRWrJb/4N7CrHs
+	1C+z3o62HSXuSbZbUlkdNvlrpgGG7qc=
+Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-196--DrsSdiWPI--4L0a1zPJCw-1; Thu,
+ 14 Aug 2025 06:35:23 -0400
+X-MC-Unique: -DrsSdiWPI--4L0a1zPJCw-1
+X-Mimecast-MFC-AGG-ID: -DrsSdiWPI--4L0a1zPJCw_1755167721
+Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 1AE1D18004A7;
+	Thu, 14 Aug 2025 10:35:21 +0000 (UTC)
+Received: from vm-10-0-76-146.hosted.upshift.rdu2.redhat.com (vm-10-0-76-146.hosted.upshift.rdu2.redhat.com [10.0.76.146])
+	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 3821418003FC;
+	Thu, 14 Aug 2025 10:35:19 +0000 (UTC)
+From: Yi Zhang <yi.zhang@redhat.com>
+To: nvdimm@lists.linux.dev
+Cc: alison.schofield@intel.com,
+	linux-cxl@vger.kernel.org,
+	Dave Jiang <dave.jiang@intel.com>
+Subject: [ndctl PATCH v3] ndctl: fix user visible spelling errors
+Date: Thu, 14 Aug 2025 06:07:01 -0400
+Message-ID: <20250814100701.2056883-1-yi.zhang@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|DS7PR11MB6221:EE_
-X-MS-Office365-Filtering-Correlation-Id: d5b181b0-e8af-49c2-31d1-08dddae7d2dc
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?eM5wuBs92jQcqtuVpR+X7fOwXbTKcTuyh/9uQkWhpgbYDhmDi33AmB3+/FGq?=
- =?us-ascii?Q?pX72CPe6ZR7Bnq7SNFFhjr73/HNZ2NjtJXhob/CXAUbF1dzNkrRqwkAyTHqx?=
- =?us-ascii?Q?SxPbldHj3W6NZKde7BswJk8Y0UpTGB9RspBct33bdqSIwBYq+hKZsNXguhLd?=
- =?us-ascii?Q?0o8CWxoLoBXFf9DiM6cVVtLBWgRHOW7XiH+DevdpsAd2WNS+VEoBZRgbJH5h?=
- =?us-ascii?Q?om3drTh0VcGVOf+zV0JQWoieIL8QmUmwHr86x5PWj1BLpOC4tJAj1QukePy+?=
- =?us-ascii?Q?mTBKFW8EHVBnBzCTk4o7Q+6s8hdKHRCLmSwid/GqWdNFjjX6Zb4Cg+V7Pt0O?=
- =?us-ascii?Q?NRnO++171Gf0ZlUFx+6+QVBqtKnkNkohY553tsiJftj55/UtDfWXnd3TipLk?=
- =?us-ascii?Q?G3SccTYlEk3nyjEYE/t75FsRSAFpJF1YmwrJgwlKhnEvVWcrGTeLr67fF+Bk?=
- =?us-ascii?Q?PX7jSM+ciheALnr7/V/3921iZnIlAbZLirr9k9oNGu9oOg+Da5dLvzLo3XFs?=
- =?us-ascii?Q?YWEwfRrPI1GPWZ2usFqju269HYwIMvYapBQeM5L1x/kfvjymQ6jY5reY03ag?=
- =?us-ascii?Q?Z5ucZcVtVJE2Cpk+Zw6M+P30Hk2Htzmd2RuE4YQ4bzC9t+4CPBkRRk6kyQaY?=
- =?us-ascii?Q?Mfgfs/eiToSGiVmMgM6+byUQcJSGIRLmuGzn5Q+uCLQJCO1sNEsI5TEzpqF1?=
- =?us-ascii?Q?VrAFbJdKnpV5rVcpyE0NeNAkWzJ7o5MplOwcvFSFIWACgfRIcq8FndwlyJ7Q?=
- =?us-ascii?Q?8lIxMAVqf2GM6MHAfe2sz242JmRX0ewcZH2ut7oMYB65XmJtafEL7uqSe+Zk?=
- =?us-ascii?Q?44sgjDyAc9qqgwJuPPC6hcRTbqf/YXfV07y0vIoEFSKYy++pAQk5QX+NQ82i?=
- =?us-ascii?Q?t2oq0u5w4GeI2x60D4dCBRg6YkXamkc1lXmZW76DiXdlpR8R5uRfWTWAuRvm?=
- =?us-ascii?Q?OmOcw89aMcP2VdlRfozposrXJMNmWRnLcORVXJsXKbV20iUfnVLVpo7Q63/b?=
- =?us-ascii?Q?2IcDTQfWxGSQX3L/7cGNRlNa7dAnrhr7mhl2FSo0JnYSVpIfshsLCAHg9rD/?=
- =?us-ascii?Q?aIgNgVujd4Utu+/5iEuGM/fZX/DO/yaCkmtzhAK63XyeYP57LmZJmvAMYxDj?=
- =?us-ascii?Q?o4gRfLMK7hH2/r2eSZIVbjR9SiCYG6NcKBN6izMDbxzuZh+PpobQlW6WV4xS?=
- =?us-ascii?Q?ZEy1puVgvh1UAs7JJdeAwJlR5qOwU7vLftRECfldo1Ev5coioYIX80DQ+A0C?=
- =?us-ascii?Q?iPxv6Z7kph3jlXJTTBtq0HQycbpFTVm9aN30msgYkrqbt/KZKkkGs3CcTRY8?=
- =?us-ascii?Q?JHrH9xGhT6cZh7W1OTVYY9saLV2ctGKf60bmdCdtBhEPQO9arBoxllYMhhXP?=
- =?us-ascii?Q?KWrvLnA3mupKsO6lRZEDTrbQ2bn9M9KwSFLfC7dqOgQxAaqGahW8B9XZhA8f?=
- =?us-ascii?Q?FUv95rahogI=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?o7bB+M4Vq43a3tc15/W2RyufJ06q0OUi3gUHhaMdKYBcIGHe6Q3hYXvG1Wwc?=
- =?us-ascii?Q?LJKiKegPDdfb76IBy/nfr4pkFYywdDBtsPwKKk3bp0zkYSS82QTyCkaI3NWr?=
- =?us-ascii?Q?nsz4yM0HbNQcn2lhwtTY9giz6YAYWZBZBNJs3sfmvjaBHB+I2BlyW0JJih6y?=
- =?us-ascii?Q?N8atJPKhmfNgSiDhFVrQvzDjJYmkKWjTvGgxzjZqTlEVJLMBX1cjYUoOKpVb?=
- =?us-ascii?Q?kInV2YkIjJKsrG3G21E3GqHmLz6Uld6XXHHC5gKl+yeUuUUp7H0CPhWy/rPx?=
- =?us-ascii?Q?y5aEujFLYsaYnR/bVEBzCYwrVMXxFecVT7JpcJ+Ru14J1zPGX2RJaDtEahsF?=
- =?us-ascii?Q?TGrPFXD8VUbRX08izIh+ENCrk0PZz/JTXq2bIiDgN4byafH8+dIF4ZzD8Msj?=
- =?us-ascii?Q?+eGRfSlYwDIR+VgzeKeUIS8C22pR+xoUfZ6TdwU2DBC4PdEI3P3BpwyZmwL0?=
- =?us-ascii?Q?13mL9ixg+4W0IqVIWwrsteRx6Nh28+jzhixb5JrrMMC0HZZWlKu7SX6mjAoW?=
- =?us-ascii?Q?qwOPSEp0uCpdkw2XAxQ5GCX5+PgyaqWVMul+rxbRmfIlqSH6RrO9uGVMUabF?=
- =?us-ascii?Q?TzQtswqB4puNMZiupRu48mHurg5G3xH9Z/+inTIUu/UMYy4hJ530T7XLwm7o?=
- =?us-ascii?Q?yfBQQjUd8AxtY8lZWNDK29RpCHLolGPoHLmJvIa6qwOaK2Q/ZlwAXSeSp9By?=
- =?us-ascii?Q?mB9hSmVF6uKzxWlOYWQ0pX2WumiKu7OC2rnqyuFmrgK3k00fXFC3LpsznFCg?=
- =?us-ascii?Q?TFBp6lNShcjncpCGqPN/f7kJbh3MYiecRYaF46MpcVav/mPyk6jW4PRCF1Rw?=
- =?us-ascii?Q?Xn75Dq63HVI3Q7sA9VgiuoMUWyfV2qr6WOtWcug/nOnFvllWcq6mIBJQNPXw?=
- =?us-ascii?Q?PYNUXAQhvMlykl8Ji+T7S5PHCIR+3i8mawvbdIERpc5I+UK0OA7CM4Gnnnhb?=
- =?us-ascii?Q?jl4q6ShlBwVe/+M6DMdgFSxFjogNg05wkrE+NHx8PhslalaG82zhioRmpLCV?=
- =?us-ascii?Q?YS5ujy/K9CiLRKPqzy+tD1N28xamulHCCGr6UROJIdF9mYEmJzZUHKpwVUZ2?=
- =?us-ascii?Q?pyh6/gENgdnsTRHqSUQPUgV/Gd18t2ImqHoyVc4zyxUDXglsO+cI6FVleLHG?=
- =?us-ascii?Q?UQxujIiuzgKXNN7We9uJlCxRIfoBPzS59QSarjGOAJHHrnIGKJM/J/pnzjoX?=
- =?us-ascii?Q?XZmU2gN436vOEc6jahdHtKP2AcKcoi74FWR3LlMGs7xoT77xvALOeTZyK+QI?=
- =?us-ascii?Q?ilC28IfRIUMQZUv1EqWMVNaur5Sxwv633HXXD+zNXuSrbTgJ1b3sg1lNshqG?=
- =?us-ascii?Q?VshGQiz+7L9i0/O1KMBgEjK4uVANC0wGb/vAn41umWbiZSjKh9Xm3m2gJrXC?=
- =?us-ascii?Q?6VDhD68FYjrqqzNX+Bl3wPrmcYEPudSTLm8FP5fRBIWpxfeZgXw7JCm9dOkm?=
- =?us-ascii?Q?4kdGNf44+V7UxQWM2r5cx8lRVO1XqkEUIb3RbW9AtJ0e5BzC8HrrR6Qfnmn+?=
- =?us-ascii?Q?uGfWYOv4uKN7q/dcCzanbQVcQ/UsQEWADKghUl4AgZ2oFit1uLIkZ8jPq0MG?=
- =?us-ascii?Q?eKMDWfaoaHV0B5NIle7sSiYj7UV9iS62zj9tQNy3b0bL778ORRpYNCo31LBz?=
- =?us-ascii?Q?6g=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: d5b181b0-e8af-49c2-31d1-08dddae7d2dc
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Aug 2025 04:05:36.8592
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Iqe5mkGNcQvyao7ppnWW+EWzy8iCOUF1tizjNYGqY0QBSxn+vXJHNcKtHlnHqWTUzp+fpSwUvGl0lcbe1zoO3KppTjGvfrt7NiKNp4VlEzc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR11MB6221
-X-OriginatorOrg: intel.com
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: M4DH5OSMihZQONqdjHp_A8Mi7L6QyMembv7aLCTyU7A_1755167721
+X-Mimecast-Originator: redhat.com
+Content-Transfer-Encoding: 8bit
+content-type: text/plain; charset="US-ASCII"; x-default=true
 
-On Wed, Aug 13, 2025 at 06:28:14PM -0700, Marc Herbert wrote:
-> Reviewing only the shell language part, not the CXL logic.
-> 
-> On 2025-08-04 02:01, alison.schofield@intel.com wrote:
-> 
-> > +# Allow what shellcheck suspects are unused - the arrays
-> > +# shellcheck disable=SC2034
-> 
-> That's very indiscriminate and shellcheck -x is usually pretty good
-> there... did you use -x?
+The spelling errors are from
+- log_err(), fprintf(), dbg() output messages
+- echo statemetns in test scripts
+- Documentation/*.txt files
 
-Yes. Shellcheck -x doesn't ignore SC2034.
+Corrected user-visible spelling errors include:
+- identifer -> identifier (log_err in cxl/bus.c)
+- santize -> sanitize (fprintf in ndctl/dimm.c)
+- sucessfully -> successfully (dbg in ndctl/lib/ars.c, ndctl/lib/libndctl.c)
+- succeded -> succeeded (echo in test/daxctl-devices.sh)
+- Documentation fixes in 4 .txt files
 
-> 
-> Alternatively, could you place this only before the arrays that
-> shellcheck gets wrong for some reason? (which reason?)
+All the spelling errors were identified by the codespell project:
+https://github.com/codespell-project/codespell
 
-I considered and chose the global disable for the arrays and commented
-same. The syntax is valid bash syntax that shellcheck has not caught up
-to understanding yet.
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
+---
+changes from v2:
+- Only fix the user visible spelling errors
+changes from v1:
+- Add reviewed-by tag
+- Add more details about the typos and how they were caught
+---
+ Documentation/cxl/cxl-reserve-dpa.txt          | 2 +-
+ Documentation/cxl/lib/libcxl.txt               | 2 +-
+ Documentation/daxctl/daxctl-create-device.txt  | 2 +-
+ Documentation/ndctl/ndctl-create-namespace.txt | 4 ++--
+ cxl/bus.c                                      | 2 +-
+ ndctl/dimm.c                                   | 2 +-
+ ndctl/lib/ars.c                                | 4 ++--
+ ndctl/lib/libndctl.c                           | 4 ++--
+ test/daxctl-devices.sh                         | 4 ++--
+ 9 files changed, 13 insertions(+), 13 deletions(-)
 
-There is always this option to see what may be masked by shellcheck
-disables:
+diff --git a/Documentation/cxl/cxl-reserve-dpa.txt b/Documentation/cxl/cxl-reserve-dpa.txt
+index 58cc93e..d51ccd6 100644
+--- a/Documentation/cxl/cxl-reserve-dpa.txt
++++ b/Documentation/cxl/cxl-reserve-dpa.txt
+@@ -38,7 +38,7 @@ include::bus-option.txt[]
+ -t::
+ --type::
+ 	Select the partition for the allocation. CXL devices implement a
+-	partition that divdes 'ram' and 'pmem' capacity, where 'pmem' capacity
++	partition that divides 'ram' and 'pmem' capacity, where 'pmem' capacity
+ 	consumes the higher DPA capacity above the partition boundary. The type
+ 	defaults to 'pmem'. Note that given CXL DPA allocation constraints, once
+ 	any 'pmem' allocation is established then all remaining 'ram' capacity
+diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
+index 2a512fd..ce311b1 100644
+--- a/Documentation/cxl/lib/libcxl.txt
++++ b/Documentation/cxl/lib/libcxl.txt
+@@ -296,7 +296,7 @@ use generic port APIs on root objects.
+ Ports are hierarchical. All but the a root object have another CXL port
+ as a parent object retrievable via cxl_port_get_parent().
+ 
+-The root port of a hiearchy can be retrieved via any port instance in
++The root port of a hierarchy can be retrieved via any port instance in
+ that hierarchy via cxl_port_get_bus().
+ 
+ The host of a port is the corresponding device name of the PCIe Root
+diff --git a/Documentation/daxctl/daxctl-create-device.txt b/Documentation/daxctl/daxctl-create-device.txt
+index 05f4dbd..b774b86 100644
+--- a/Documentation/daxctl/daxctl-create-device.txt
++++ b/Documentation/daxctl/daxctl-create-device.txt
+@@ -62,7 +62,7 @@ DESCRIPTION
+ -----------
+ 
+ Creates dax device in 'devdax' mode in dynamic regions. The resultant can also
+-be convereted to the 'system-ram' mode which arranges for the dax range to be
++be converted to the 'system-ram' mode which arranges for the dax range to be
+ hot-plugged into the system as regular memory.
+ 
+ 'daxctl create-device' expects that the BIOS or kernel defines a range in the
+diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
+index afb085e..3d0a2dd 100644
+--- a/Documentation/ndctl/ndctl-create-namespace.txt
++++ b/Documentation/ndctl/ndctl-create-namespace.txt
+@@ -31,7 +31,7 @@ OPTIONS
+ -m::
+ --mode=::
+ 	- "raw": expose the namespace capacity directly with
+-	  limitations. A raw pmem namepace namespace does not support
++	  limitations. A raw pmem namespace does not support
+ 	  sector atomicity (see "sector" mode below). A raw pmem
+ 	  namespace may have limited to no dax support depending the
+ 	  kernel. In other words operations like direct-I/O targeting a
+@@ -95,7 +95,7 @@ OPTIONS
+ 	suffixes "k" or "K" for KiB, "m" or "M" for MiB, "g" or "G" for
+ 	GiB and "t" or "T" for TiB.
+ 
+-	For pmem namepsaces the size must be a multiple of the
++	For pmem namespaces the size must be a multiple of the
+ 	interleave-width and the namespace alignment (see
+ 	below).
+ 
+diff --git a/cxl/bus.c b/cxl/bus.c
+index 3321295..9ef04bc 100644
+--- a/cxl/bus.c
++++ b/cxl/bus.c
+@@ -100,7 +100,7 @@ static int bus_action(int argc, const char **argv, struct cxl_ctx *ctx,
+ 		if (sscanf(argv[i], "%lu", &id) == 1)
+ 			continue;
+ 
+-		log_err(&bl, "'%s' is not a valid bus identifer\n", argv[i]);
++		log_err(&bl, "'%s' is not a valid bus identifier\n", argv[i]);
+ 		err++;
+ 	}
+ 
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index aaa0abf..533ab04 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -1074,7 +1074,7 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 	if (!param.crypto_erase && !param.overwrite) {
+ 		param.crypto_erase = true;
+ 		if (param.verbose)
+-			fprintf(stderr, "No santize method passed in, default to crypto-erase\n");
++			fprintf(stderr, "No sanitize method passed in, default to crypto-erase\n");
+ 	}
+ 
+ 	if (param.crypto_erase) {
+diff --git a/ndctl/lib/ars.c b/ndctl/lib/ars.c
+index d50c283..b705cf0 100644
+--- a/ndctl/lib/ars.c
++++ b/ndctl/lib/ars.c
+@@ -70,7 +70,7 @@ static bool __validate_ars_cap(struct ndctl_cmd *ars_cap)
+ ({ \
+ 	bool __valid = __validate_ars_cap(ars_cap); \
+ 	if (!__valid) \
+-		dbg(ctx, "expected sucessfully completed ars_cap command\n"); \
++		dbg(ctx, "expected successfully completed ars_cap command\n"); \
+ 	__valid; \
+ })
+ 
+@@ -224,7 +224,7 @@ static bool __validate_ars_stat(struct ndctl_cmd *ars_stat)
+ ({ \
+ 	bool __valid = __validate_ars_stat(ars_stat); \
+ 	if (!__valid) \
+-		dbg(ctx, "expected sucessfully completed ars_stat command\n"); \
++		dbg(ctx, "expected successfully completed ars_stat command\n"); \
+ 	__valid; \
+ })
+ 
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index f75dbd4..0925d6d 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -3184,7 +3184,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg
+ 
+ 	if (cfg_size->type != ND_CMD_GET_CONFIG_SIZE
+ 			|| cfg_size->status != 0) {
+-		dbg(ctx, "expected sucessfully completed cfg_size command\n");
++		dbg(ctx, "expected successfully completed cfg_size command\n");
+ 		return NULL;
+ 	}
+ 
+@@ -3275,7 +3275,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cf
+ 	/* enforce rmw */
+ 	if (cfg_read->type != ND_CMD_GET_CONFIG_DATA
+ 		       || cfg_read->status != 0) {
+-		dbg(ctx, "expected sucessfully completed cfg_read command\n");
++		dbg(ctx, "expected successfully completed cfg_read command\n");
+ 		return NULL;
+ 	}
+ 
+diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
+index dfce74b..659428d 100755
+--- a/test/daxctl-devices.sh
++++ b/test/daxctl-devices.sh
+@@ -117,7 +117,7 @@ daxctl_test()
+ 	if ! "$NDCTL" disable-namespace "$testdev"; then
+ 		echo "disable-namespace failed as expected"
+ 	else
+-		echo "disable-namespace succeded, expected failure"
++		echo "disable-namespace succeeded, expected failure"
+ 		echo "reboot required to recover from this state"
+ 		return 1
+ 	fi
+@@ -130,7 +130,7 @@ daxctl_test()
+ 	if ! "$DAXCTL" reconfigure-device -N -m system-ram "$daxdev"; then
+ 		echo "reconfigure failed as expected"
+ 	else
+-		echo "reconfigure succeded, expected failure"
++		echo "reconfigure succeeded, expected failure"
+ 		restore_online_policy
+ 		return 1
+ 	fi
+-- 
+2.50.1
 
-grep -v -E '^\s*#\s*shellcheck\s+disable=' cxl-translate.sh | shellcheck -x -
-
-> 
-> 
-> > +
-> > +check_dmesg_results() {
-> > +        local nr_entries=$1
-> > +        local expect_failures=${2:-false}  # Optional param
-> > +        local log nr_pass nr_fail
-> > +
-> > +        log=$(journalctl -r -k --since "$log_start_time")
-> 
-> -r is IMHO not a very common option:
-
-I'll expand both -r and -k options.
-
-> 
->         log=$(journalctl --reverse -k --since "$NDTEST_START")
-> 
-> 
-> > +	nr_pass=$(echo "$log" | grep -c "CXL Translate Test.*PASS") || nr_pass=0
-> > +        nr_fail=$(echo "$log" | grep -c "CXL Translate Test.*FAIL") || nr_fail=0
-> 
-> Not sure about reading the entire log in memory. Also not sure about
-> size limit with variables... How about something like this instead:
-
-This is reading the dmesg log per test_table or test_sample_set.
-There are currently 6 data sets that are run thru the test and results
-checked per data set. Each set has an expected number of PASS or FAIL.
-I'm pretty sure any one log is much smaller than any log we typically
-generate just by loading the cxl-test module in other cxl-tests.
-
-I don't expect to use the general check_dmesg() here because anything
-this test wants to evaluate is in the logs it reads after each data
-set.
-
-> 
->     local jnl_cmd='journalctl --reverse -k --grep="CXL Translate Test" --since '"$NDTEST_START"
->     local nr_pass; nr_pass=$($jnl_cmd | grep 'PASS' | wc -l)
->     local nr_fail; nr_pass=$($jnl_cmd | grep 'FAIL' | wc -l)
-> 
-> 
-> > +        if [ "$expect_failures" = "false" ]; then
-> 
->        if "$expect_failures"; then
-
-Is the existing pattern wrong or is that an ask for brevity?
-
-Thanks for the review!
-
-> 
