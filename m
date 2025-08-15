@@ -1,87 +1,85 @@
-Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com [209.85.210.51])
+Received: from mail-oo1-f41.google.com (mail-oo1-f41.google.com [209.85.161.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D85F92192F9
-	for <nvdimm@lists.linux.dev>; Fri, 15 Aug 2025 15:06:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 280CF3093B4
+	for <nvdimm@lists.linux.dev>; Fri, 15 Aug 2025 16:38:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755270367; cv=none; b=J3hEutRMy8nle+Glxd2WTUpYd6V8wt57ese5N/w5Tu9NPtePDYDJta85nU0w8IDzF40CsuHCcvza/st599vestZdbsY2hKkkv0NrgrzT3HfUn/E0P633FVXndsYYWxYT7aqApIFMdzFpEUWHSXpzgnLgLgI6M82r2/xPDZbrvm8=
+	t=1755275887; cv=none; b=Q/dT4QE14cv8euFDHJtAcfDhxWpTO5HNX3bDWyFIDZPx9adCPaRr626+yV+5k4ea4qSUCJZh9BlarGcviG1+YZtK0+JOvVLt0+Ihqh0XQCg+SawJZJw/hPCQNqRf30yAz3w4EafkvCgwfLWSuGmgra7NcGwNTX7oBvy+uJ/v7TM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755270367; c=relaxed/simple;
-	bh=Hv6COFjM439OcVUsu3MmySHKd9Z183npAzo+Lkk0SrQ=;
+	s=arc-20240116; t=1755275887; c=relaxed/simple;
+	bh=wvKG9q6ho4RgZrrJIdGv5TeB043vsJ7FH5BLK3VX8eA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MJOlqZ1mh7/82Mx7al7bcu4ZVt9QQ8Og7zzVnq4GU5BhMdEakeWJDJnQTnrQW0etGcinlhgqP3kBG2HFejRj5RzZH1Ur1SdJJPlp6cBTYswt2AiNFhM086Yl+fESR02IZMAPnh5qR+aoZr/bmE0CVtqmkzt0fx5TRVlUsyuZ/EE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OIJvsDEM; arc=none smtp.client-ip=209.85.210.51
+	 Content-Type:Content-Disposition:In-Reply-To; b=SN7PFrd+hV+N58DH5PHX3QtsVD/7ziim93aHLRTRfIszyMZyZhZKUrqnzhexqxSgwYOMsulChwvLwqK+Y7zSvwyj6fmUgat2CFVqjDSO3iot/tdbHXOVSxp+a1rCOZlDcE3a+msK4SQM3iRVKUfDTBFyJZjAFrsFCE5jsVNhUcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SeaT1J+u; arc=none smtp.client-ip=209.85.161.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OIJvsDEM"
-Received: by mail-ot1-f51.google.com with SMTP id 46e09a7af769-74381ff668cso1129615a34.3
-        for <nvdimm@lists.linux.dev>; Fri, 15 Aug 2025 08:06:05 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SeaT1J+u"
+Received: by mail-oo1-f41.google.com with SMTP id 006d021491bc7-61bd4eaa7adso446474eaf.3
+        for <nvdimm@lists.linux.dev>; Fri, 15 Aug 2025 09:38:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1755270365; x=1755875165; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1755275885; x=1755880685; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=AMU3P7S8F7Aw6uN0IIUSqn9Ly+qBjCwhp5TaPqOj3Q8=;
-        b=OIJvsDEMAxjqqLzdAhtoz4zwHxWJI4QhLF6tTT8RBzc0xBanPi4oA6R9sN/vWvUada
-         Wj66+Mf+zhQ1k2t72ifIcd2yDCHhlhkktLBjFsh6bKubeUvOn7C7MMuxmF5pRgKXtm5V
-         kxsvPabClCX8Y53gQeLHstR6hOyytbIu8pLNpy1VHSYE89xCo5Cqey6pNKpq7j4uBsnB
-         ZG48F0TFFb18qgRPViZtOz/2xv42BbyRAsMPhGcEd9QoOCXhdUPcg5GzAxiyZEgCSMky
-         Fyyc23nMTBXMbif1l6/FqecaXAVN/1sZCcedcGgYDPoCge47XeqEJK94G6x6QPtggjO6
-         SduQ==
+        bh=dsMGeBFSMhVbn3vuzD+PKSwFX2QkoR6dSZaKAtY6lT0=;
+        b=SeaT1J+unF0RPwV3hy+KiAvDBakEZZ/McsEkocE0e7O3Ce90b6rNXOv3A1wSFeySLF
+         RTTJHUW7OnE7foyPDnGFD2GRF/pmUhzRqcwHTdwnBa4/fDExzzhNc2krbLp57K8TE6mo
+         IA4fYCZ7fua/5M61g17RV3r7LW+nr10mKvL9NmTRU9cS2TiaWKuRrGzdk9JYEvEH3kzz
+         UJJXoD5FOG6SNF80yuQrH7cAD8hfcKlE1XQgoHSGqUQvIgaC6/FmCzydam5fJa3xSxhU
+         MYe1AZC4f104W5JRaZymzShPEdEV2c8JFTzGvgET0Y4USs6lphCemqwbNXgCT1F/YzGR
+         A/yA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755270365; x=1755875165;
+        d=1e100.net; s=20230601; t=1755275885; x=1755880685;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=AMU3P7S8F7Aw6uN0IIUSqn9Ly+qBjCwhp5TaPqOj3Q8=;
-        b=vR7i1Wpkj1cAxKWbu/+VZEh4wVyFTCyb760RAVEMMbYCB/2VJea2z6x6HG5nvj2l7n
-         fOeuzhsiGJqptxKthD+6NhnRdqKKhWYzRAc0RnCCHa4BjGNWlpf5HrS6wAsh8udBIB4c
-         q10XjQ61IHa50FuQUT+HlV9wK1uWj4AZJKoKlbN1Y6GhK9qw1A6j6QbpNPQJZqlNT5MF
-         mhy/tigqNBx9w+ULtOUgX6I/+QwJ9W2WU0A9t8XTvEPE+Mcbbwb/dlEubhV5kXs6O/Aj
-         63hqh+MLAG/mPZekt7s75ifDm3MR3oqTylfTJHdNKJOnYj4Nd8gm7toSDmdS8GvwRU3a
-         Hy2g==
-X-Forwarded-Encrypted: i=1; AJvYcCV+fWrPJNHZ7AMfJW8xCtGxg6IS3rP0q4hRxRw4ymNOxS2I1NO/R7fqF8fOtGCXZsgvg47y9os=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwDmlEmS4XNWD+U2mjZkfqB4UC67lU33lnzxikXAQ6689vu0Wli
-	WaUngU3OItzrB8Uz7gWkQXp76PJmqHAV4q33Qt4M7qy9O894moxljeXd
-X-Gm-Gg: ASbGncvGkFVVKgDCeC24t6IMG494IgBBR8Qrt+kvqfo1jN2EbjVxByA+jaeG/rn6Piv
-	3FJDR4sSwyTHtQgFk0PUDnCbznP8roItTOZYdy01PWKeqL5RcCYOEwBAWyVJEqHEewTHs8qkbm6
-	OUedQu/maNIaCXvAH7vNlMVFLbW6p53Z/tycwskouPexRvSXzqByid5eeorS/XahHvAwbtF5sqc
-	FSL1OMRSmL9LLMGTtHtU5LmefEHZM8KyVUUcSkfXE6OmIXOuyfU2kb3wTaIoZUwR167RN112reC
-	To8OBwuwQ2TR2v6h1gqQ6DbcE/IYfVT8SJRSW29i4fwg6RscvQMTI/jshjZ08H+loxKzMahObme
-	IguEuoBXl/qMnJzcx2WBK6SB+Ts5EMUh9oaPu
-X-Google-Smtp-Source: AGHT+IExS7Qt3BoP7WsTyBTrr1V2BYGnO3GcQJg9xqGFg1jMcr6eYkPlR3LXsnRgQW/iQZY9uRNbxw==
-X-Received: by 2002:a05:6830:448c:b0:739:f3b2:80f6 with SMTP id 46e09a7af769-743924651c2mr1338051a34.14.1755270364063;
-        Fri, 15 Aug 2025 08:06:04 -0700 (PDT)
+        bh=dsMGeBFSMhVbn3vuzD+PKSwFX2QkoR6dSZaKAtY6lT0=;
+        b=v1WxlmDbRFpToXH8FXzQFpdhdIEsCq+xV0kDBn2cx9KTN/bUJVaHhoQBdxjAbYSWKA
+         FXew/VM70vIfhH+u7m9HSUt4QsU74cbgDVHGGt3hHcxb5FIPMSclxOTXbpyIPskvC38z
+         Oi0sZc60pvDsj0fxVYTiqTlmKF/GLawXsNdsN0lTWCtGlTo4x9BHnb2WbHYSpkd4EpBW
+         n8x+lw9Rv4CXonrs2O/e9TFdl0FfXpUYIvN51zi64ID5sRCrujMjXeDqCQnzLTJ3WjIR
+         EGV+/0CrnUIKtDboiMFpyxB7A6elM+rjXw1V/FmEh2uo4nHEBPDX/2TlafGyakWMYR8Z
+         HeYg==
+X-Forwarded-Encrypted: i=1; AJvYcCVicGJZPw8eI5ggi0Jx7USuyePfZuT6tJqWIFTgGcTfxcXzBOqn8L7kCdnH6lcMDMa5RDoo2AE=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yz6Ht4hkmbDRscVmfEJfHBZbcksMlQeYwIBaCCgGAOhS69+cJx/
+	hPlAxg/DpOLG2hi84ff8lfRo1JWvAV9//fclcQELlmeOdNnA7WNVzJak
+X-Gm-Gg: ASbGncvVSJRJuqyP52FFYFQKknzrUMiSlMMS1vpE94UoNP9ANWPgpNWfT8PHjB74VUp
+	4htlHx8ECGdyl6wIyRfFgJZFFaIrsv9oYsKm0tTe1kEHv/nFzN2M6v3vs8pDRauh7aW4ulH4IgM
+	8ewxNRGAmDWPPRWWxWg8/vIT8IrHjBXQUumr27ymON2373artZmyA0X4fJYOYPdKFca3mOyYDil
+	FrjUOz4teE3ghLkcDE/sZhf6XqljhlI7cDczbYr/WnbO+M2yietxPd5KhV4fGrLA+GYIMkTkEnN
+	qGNfuUdw9y27TjyPGgNgsftQhLj3tvH4oyxxUoQ1/7HpZnTynJna64MZIgBMWHPSmdeezw7+sN0
+	iGU+GzA2DMHPwYHPEO8Wm889NaDPhcX7TZIjW
+X-Google-Smtp-Source: AGHT+IFcdjxfw9AaYkhVjHgYkiqDkUXLAcvGkFoOPrg34Eo+AprZt6K9wZhsOSbhz56+5rnDzpwgzw==
+X-Received: by 2002:a05:6871:61c5:b0:2f4:da72:5689 with SMTP id 586e51a60fabf-310aab51ff6mr1625953fac.15.1755275885079;
+        Fri, 15 Aug 2025 09:38:05 -0700 (PDT)
 Received: from groves.net ([2603:8080:1500:3d89:c95b:3a76:bbcf:777c])
-        by smtp.gmail.com with ESMTPSA id 006d021491bc7-61bec13e5c6sm145880eaf.25.2025.08.15.08.06.02
+        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-310ab87a7c7sm518355fac.4.2025.08.15.09.38.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Aug 2025 08:06:03 -0700 (PDT)
+        Fri, 15 Aug 2025 09:38:04 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
-Date: Fri, 15 Aug 2025 10:06:01 -0500
+Date: Fri, 15 Aug 2025 11:38:02 -0500
 From: John Groves <John@groves.net>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Dan Williams <dan.j.williams@intel.com>, 
+	Bernd Schubert <bschubert@ddn.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Kent Overstreet <kent.overstreet@linux.dev>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
+	Jeff Layton <jlayton@kernel.org>, Kent Overstreet <kent.overstreet@linux.dev>, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
 	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
 	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
 	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
-	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 12/18] famfs_fuse: Plumb the GET_FMAP message/response
-Message-ID: <hd3tancdc6pgjka44nwhk6laawnasob44jqagwxawrmxtevihe@2orrcse6xyjx>
+	Ajay Joshi <ajayjoshi@micron.com>, john@groves.net
+Subject: Re: [RFC V2 14/18] famfs_fuse: GET_DAXDEV message and daxdev_table
+Message-ID: <oolcpxrjdzrkqnmj4xvcymnyb6ovdt7np7trxlgndniqe35l3s@ru5adqnjxexh>
 References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-13-john@groves.net>
- <CAJfpegv6wHOniQE6dgGymq4h1430oc2EyV3OQ2S9DqA20nZZUQ@mail.gmail.com>
- <CAJfpegv=ACZchaG-xt0k481W1ZUKb3hWmLi-Js-aKg92d=yObw@mail.gmail.com>
- <20250814182022.GW7942@frogsfrogsfrogs>
+ <20250703185032.46568-15-john@groves.net>
+ <CAJfpegv19wFrT0QFkwFrKbc6KXmktt0Ba2Lq9fZoihA=eb8muA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -90,79 +88,53 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250814182022.GW7942@frogsfrogsfrogs>
+In-Reply-To: <CAJfpegv19wFrT0QFkwFrKbc6KXmktt0Ba2Lq9fZoihA=eb8muA@mail.gmail.com>
 
-On 25/08/14 11:20AM, Darrick J. Wong wrote:
-> On Thu, Aug 14, 2025 at 04:36:57PM +0200, Miklos Szeredi wrote:
-> > On Thu, 14 Aug 2025 at 15:36, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > 
-> > > I'm still hoping some common ground would benefit both interfaces.
-> > > Just not sure what it should be.
-> > 
-> > Something very high level:
-> > 
-> >  - allow several map formats: say a plain one with a list of extents
-> > and a famfs one
+On 25/08/14 03:58PM, Miklos Szeredi wrote:
+> On Thu, 3 Jul 2025 at 20:54, John Groves <John@groves.net> wrote:
+> >
+> > * The new GET_DAXDEV message/response is enabled
+> > * The command it triggered by the update_daxdev_table() call, if there
+> >   are any daxdevs in the subject fmap that are not represented in the
+> >   daxdev_dable yet.
 > 
-> Yes, I think that's needed.
+> This is rather convoluted, the server *should know* which dax devices
+> it has registered, hence it shouldn't need to be explicitly asked.
 
-Agreed
-
-> 
-> >  - allow several types of backing files: say regular and dax dev
-> 
-> "block device", for iomap.
-> 
-> >  - querying maps has a common protocol, format of maps is opaque to this
-> >  - maps are cached by a common facility
-> 
-> I've written such a cache already. :)
-
-I guess I need to take a look at that. Can you point me to the right place?
+That's not impossible, but it's also a bit harder than the current
+approach for the famfs user space - which I think would need to become
+stateful as to which daxdevs had been pushed into the kernel. The
+famfs user space is as unstateful as possible ;)
 
 > 
-> >  - each type of mapping has a decoder module
-> 
-> I don't know that you need much "decoding" -- for famfs, the regular
-> mappings correspond to FUSE_IOMAP_TYPE_MAPPED.  The one goofy part is
-> the device cookie in each IO mapping: fuse-iomap maps each block device
-> you give it to a device cookie, so I guess famfs will have to do the
-> same.
-> 
-> OTOH you can then have a famfs backed by many persistent memory
-> devices.
+> And there's already an API for registering file descriptors:
+> FUSE_DEV_IOC_BACKING_OPEN.  Is there a reason that interface couldn't
+> be used by famfs?
 
-That's handled in the famfs fmaps already. When an fmap is ingested,
-if it references any previously-unknown daxdevs, they get retrieved
-(FUSE_GET_DAXDEV).
+FUSE_DEV_IOC_BACKING_OPEN looks pretty specific to passthrough. The
+procedure for opening a daxdev is stolen from the way xfs does it in 
+fs-dax mode. It calls fs_dax_get() rather then open(), and passes in 
+'famfs_fuse_dax_holder_ops' to 1) effect exclusivity, and 2) receive
+callbacks in the event of memory errors. See famfs_fuse_get_daxdev()...
 
-Oversimplifying a bit, I assume that famfs fmaps won't really change,
-they'll just be retrieved by a more flexible method and be preceded
-by a header that identifies the payload as a famfs fmap.
+A *similar* ioctl could be added to push in a daxdev, but that would
+still add statefulness that isn't required in the current implementation.
+I didn't go there because there are so few IOCTLs currently (the overall 
+model is more 'pull' than 'push').
 
-> 
-> >  - each type of backing file has a module for handling I/O
-> > 
-> > Does this make sense?
-> 
-> More or less.
+Keep in mind that the baseline case with famfs will be files that are 
+interleaved across strips from many daxdevs. We commonly create files 
+that are striped across 16 daxdevs, selected at random from a
+significantly larger pool. Because interleaving is essential to memory 
+performance...
 
-I'm nervous about going for too much generalization too soon here,
-but otherwise yeah.
+There is no "device mapper" analog for memory, so famfs really does 
+have to span daxdevs. As Darrick commented somewhere, famfs fmaps do 
+repeating patterns well (i.e. striping)...
 
-> 
-> > This doesn't have to be implemented in one go, but for example
-> > GET_FMAP could be renamed to GET_READ_MAP with an added offset and
-> > size parameter.  For famfs the offset/size would be set to zero/inf.
-> > I'd be content with that for now.
-> 
-> I'll try to cough up a RFC v4 next week.
+I think there is a certain elegance to the current approach, but
+if you feel strongly I will change it.
 
-Darrick, let's try to chat next week to compare notes.
-
-Based on this thinking, I will keep my rework of GET_FMAP to a minimum
-since that will likely be a new shared message/response. I think that
-part can be merged later in the cycle...
-
+Thanks!
 John
 
