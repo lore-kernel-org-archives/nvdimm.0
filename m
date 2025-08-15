@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF394308F25
-	for <nvdimm@lists.linux.dev>; Fri, 15 Aug 2025 18:06:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBF5E17A2FC
+	for <nvdimm@lists.linux.dev>; Fri, 15 Aug 2025 21:02:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755281177; cv=none; b=JVkJ3fTsPsQR6pgIfY3+MjDv9LX043ZwCnLdCMkvKf+Up+W3xc6m88zoCp6+LPzUTvTPwk0AoFVS3xV2pAWtszo4lNo9M3eDwW7Fu8kaquzwslzy7nLofM0+98oTs0auztOdruFcSN/TKKxmntwo2CWCcJmFk60k4w4kap59dD8=
+	t=1755291742; cv=none; b=rSbsq9i82IXOHtp3JDzaXHjhODb2uH19DzX8KyVkIsm3AREj3y4aSy9QJ6Lpu19AMrY3hEG4z+LAyiFphwpBoKDsZIxvcGyibh4+KiYKfUQfbaSyqXdbyMk8VBbN5aJZ4Jmq/ROSLjzPa3cjkZFp6O4YumuiKU9H/eFnHK1X+lM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755281177; c=relaxed/simple;
-	bh=SJDcsSJXahvK6w3PVLzUoWHXDtQZ5aGGi+KFg2tF+4s=;
+	s=arc-20240116; t=1755291742; c=relaxed/simple;
+	bh=1YF5sy8dldm5R8DgrzVScACFRpxgR2SPXO69iZ65HFw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=VOhJUBblV/N+IeoA6TTW9Hpn4x10SF2CX2FsldBTUQQKzPobcCaKu8MZXAlRBv4kLE8vMCK9+DlQio8NkkaBbWO8UryZDrdqK9fOeUSExHlG2pBoyqZVWCuybYvhxQPJ6U5dBKBT9I4NHIyY5ajSU0YNiX2BI3BAMSHdt2dLyVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MqI4eLjT; arc=none smtp.client-ip=192.198.163.12
+	 In-Reply-To:Content-Type; b=ANx7LpqDerPoEC7Qsm0LJifsXPQfy2GPGj/ej4WxHIaaHD3OfHy+wTCTPpCnay1XH1iNAsVZk3zSuCv0RnZSO/Gmk+FCPcVJ7j7DXGKJRx8YMYwG/JMhyhG80YYpQAGCuLj5Z3+15V3F7g7ACeHvgpYgLBBT9+ScdzVVnjGb6VA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=j4YvPAqK; arc=none smtp.client-ip=192.198.163.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MqI4eLjT"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="j4YvPAqK"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1755281176; x=1786817176;
+  t=1755291741; x=1786827741;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=SJDcsSJXahvK6w3PVLzUoWHXDtQZ5aGGi+KFg2tF+4s=;
-  b=MqI4eLjTnsA/z9PALk2BhWPYqsDomep9zlXByBtH5QB5763ea+XNeNNG
-   tfeJp+lC7dCHQl/JtQSL/vHURiRojcqkgrDwh/CcrQOFWpgvS/ssZzTIi
-   4Y2XLx/cF4RW35c1PnnvysXGCoHiM60xFrMyqDfKueII40Iqgi74mzhyc
-   TlHVcM9bG34btPi1qIlWIeNdmWqCg2JQ8kOINPZ3TL6FNqBNNch6O8SPl
-   B7wyI45d58PcfHXB1wpID4Ha3tYLT7OfJXqcCXGQ3rWt3dDxU+Ru5MBAE
-   kvyVmPSabxNuFqMvLXpQGCmsSVOOWvliVBWnRRxHUVd2k69/jbjKaPoRk
-   Q==;
-X-CSE-ConnectionGUID: WHxqTmaZTzCCgViRvD8i5w==
-X-CSE-MsgGUID: Kna35Nk7R2CqkJWyMXnNFw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11523"; a="61417155"
+  bh=1YF5sy8dldm5R8DgrzVScACFRpxgR2SPXO69iZ65HFw=;
+  b=j4YvPAqK22tCXLIUl4niL3K+RcxNvLpHjduwL8gFRY+UAdyNC23/wxjL
+   PM2MVjt53zgLmeEQWzkFxwOP3z7G5s9VLbxWJGmTeKNz7WSkNJ0S2bbQy
+   iuUgloeGkB12Ezye35lf/oPAqzwcVyDIeP2m+Qu3Wy3pY2ILZkAXSKvEE
+   S5/Ezaxq8rbiI06eh4D86xt678nhcS/6tutT9gX3tK07DaBJQdEKGod/o
+   mpxwf3k1sV62jx1b7tjpP+hVfJ1i483KjLF5LdUCgl2byB+B1eG26RskF
+   FV3OPVzpyksep1EU+oepCdXuZ5BiaE7+b08upSrIqCfrwOJppq0aqaqmr
+   A==;
+X-CSE-ConnectionGUID: NGIzEOKeRb+50hBIMd/BiQ==
+X-CSE-MsgGUID: JhCN1VyNTIumz39QqfZvqw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11523"; a="57720361"
 X-IronPort-AV: E=Sophos;i="6.17,293,1747724400"; 
-   d="scan'208";a="61417155"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2025 11:06:15 -0700
-X-CSE-ConnectionGUID: 9vGjZEVGRQaT9wmWLRC5eA==
-X-CSE-MsgGUID: McxF2AsDSm+AEHvcC7cKrA==
+   d="scan'208";a="57720361"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2025 14:02:20 -0700
+X-CSE-ConnectionGUID: efQmceHTQlOOS6SP7fmfgw==
+X-CSE-MsgGUID: AguZBKEmRu6XOj2/yvIUFA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.17,293,1747724400"; 
-   d="scan'208";a="171318698"
+   d="scan'208";a="167439454"
 Received: from anmitta2-mobl4.gar.corp.intel.com (HELO [10.247.119.183]) ([10.247.119.183])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2025 11:06:09 -0700
-Message-ID: <7ff8b51b-7263-4d9c-99f8-1b507cf46262@intel.com>
-Date: Fri, 15 Aug 2025 11:06:04 -0700
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2025 14:02:16 -0700
+Message-ID: <a05bbfe7-dec6-4858-8f9f-9f80deda48ae@intel.com>
+Date: Fri, 15 Aug 2025 14:02:10 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,125 +52,67 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V2 01/20] nvdimm/label: Introduce NDD_CXL_LABEL flag to
- set cxl label format
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Neeraj Kumar <s.neeraj@samsung.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org, gost.dev@samsung.com,
- a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com
+Subject: Re: [PATCH V2 04/20] nvdimm/label: CXL labels skip the need for
+ 'interleave-set cookie'
+To: Neeraj Kumar <s.neeraj@samsung.com>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, gost.dev@samsung.com
+Cc: a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com
 References: <20250730121209.303202-1-s.neeraj@samsung.com>
- <CGME20250730121223epcas5p1386bdf99a0af820dd4411fbdbd413cd5@epcas5p1.samsung.com>
- <20250730121209.303202-2-s.neeraj@samsung.com>
- <20250813141218.0000091f@huawei.com>
+ <CGME20250730121227epcas5p4675fdb3130de49cd99351c5efd09e29e@epcas5p4.samsung.com>
+ <20250730121209.303202-5-s.neeraj@samsung.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20250813141218.0000091f@huawei.com>
+In-Reply-To: <20250730121209.303202-5-s.neeraj@samsung.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 8/13/25 6:12 AM, Jonathan Cameron wrote:
-> On Wed, 30 Jul 2025 17:41:50 +0530
-> Neeraj Kumar <s.neeraj@samsung.com> wrote:
+On 7/30/25 5:11 AM, Neeraj Kumar wrote:
+> CXL LSA v2.1 utilizes the region labels stored in the LSA for interleave
+> set configuration instead of interleave-set cookie used in previous LSA
+> versions. As interleave-set cookie is not required for CXL LSA v2.1 format
+> so skip its usage for CXL LSA 2.1 format
 > 
->> Prior to LSA 2.1 version, LSA contain only namespace labels. LSA 2.1
->> introduced in CXL 2.0 Spec, which contain region label along with
->> namespace label.
->>
->> NDD_LABELING flag is used for namespace. Introduced NDD_CXL_LABEL
->> flag for region label. Based on these flags nvdimm driver performs
->> operation on namespace label or region label.
->>
->> NDD_CXL_LABEL will be utilized by cxl driver to enable LSA2.1 region
->> label support
->>
->> Accordingly updated label index version
->>
->> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
-> Hi Neeraj,
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+> ---
+>  drivers/nvdimm/namespace_devs.c | 3 ++-
+>  drivers/nvdimm/region_devs.c    | 5 +++++
+>  2 files changed, 7 insertions(+), 1 deletion(-)
 > 
-> A few comments inline.
-> 
->> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
->> index 04f4a049599a..7a011ee02d79 100644
->> --- a/drivers/nvdimm/label.c
->> +++ b/drivers/nvdimm/label.c
->> @@ -688,11 +688,25 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
->>  		- (unsigned long) to_namespace_index(ndd, 0);
->>  	nsindex->labeloff = __cpu_to_le64(offset);
->>  	nsindex->nslot = __cpu_to_le32(nslot);
->> -	nsindex->major = __cpu_to_le16(1);
->> -	if (sizeof_namespace_label(ndd) < 256)
->> +
->> +	/* Set LSA Label Index Version */
->> +	if (ndd->cxl) {
->> +		/* CXL r3.2 Spec: Table 9-9 Label Index Block Layout */
->> +		nsindex->major = __cpu_to_le16(2);
->>  		nsindex->minor = __cpu_to_le16(1);
->> -	else
->> -		nsindex->minor = __cpu_to_le16(2);
->> +	} else {
->> +		nsindex->major = __cpu_to_le16(1);
->> +		/*
->> +		 * NVDIMM Namespace Specification
->> +		 * Table 2: Namespace Label Index Block Fields
->> +		 */
->> +		if (sizeof_namespace_label(ndd) < 256)
->> +			nsindex->minor = __cpu_to_le16(1);
->> +		else
->> +		 /* UEFI Specification 2.7: Label Index Block Definitions */
-> 
-> Odd comment alignment. Either put it on the else so
-> 		else /* UEFI 2.7: Label Index Block Defintions */
-> 
-> or indent it an extra tab
-> 
-> 		else
-> 			/* UEFI 2.7: Label Index Block Definitions */
-> 			
->> +			nsindex->minor = __cpu_to_le16(2);
->> +	}
->> +
->>  	nsindex->checksum = __cpu_to_le64(0);
->>  	if (flags & ND_NSINDEX_INIT) {
->>  		unsigned long *free = (unsigned long *) nsindex->free;
-> 
->> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
->> index e772aae71843..0a55900842c8 100644
->> --- a/include/linux/libnvdimm.h
->> +++ b/include/linux/libnvdimm.h
->> @@ -44,6 +44,9 @@ enum {
->>  	/* dimm provider wants synchronous registration by __nvdimm_create() */
->>  	NDD_REGISTER_SYNC = 8,
->>  
->> +	/* dimm supports region labels (LSA Format 2.1) */
->> +	NDD_CXL_LABEL = 9,
-> 
-> This enum is 'curious'.  It combined flags from a bunch of different
-> flags fields and some stuff that are nothing to do with flags.
-> 
-> Anyhow, putting that aside I'd either rename it to something like
-> NDD_REGION_LABELING (similar to NDD_LABELING that is there for namespace labels
-> or just have it a meaning it is LSA Format 2.1 and drop the fact htat
-> also means region labels are supported.
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index bdf1ed6f23d8..5b73119dc8fd 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1692,7 +1692,8 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  	int rc = 0;
+>  	u16 i;
+>  
+> -	if (cookie == 0) {
+> +	/* CXL labels skip the need for 'interleave-set cookie' */
 
-I agree. I had a conversation with Dan about it where I mentioned calling it CXL to describe LSA 2.1 just doesn't seem quite right. He also offered up something like NDD_REGION_LABELING instead of NDD_CXL_LABEL. So +1 to this comment.
+This comment doesn't make sense to me. If it's a CXL label, we continue to execute. There's no skipping. Or are you trying to say if it's CXL label, then checking of cookie value is unnecessary? But the cookie value still is being used later on. Maybe a bit more comments on what's going on here would be helpful.
 
-DJ 
+DJ
 
-> 
-> Combination of a comment that talks about one thing and a definition name
-> that doesn't associate with it seems confusing to me.
-> 
-> Jonathan
-> 
-> 
->> +
->>  	/* need to set a limit somewhere, but yes, this is likely overkill */
->>  	ND_IOCTL_MAX_BUFLEN = SZ_4M,
->>  	ND_CMD_MAX_ELEM = 5,
-> 
-> 
+> +	if (!ndd->cxl && cookie == 0) {
+>  		dev_dbg(&nd_region->dev, "invalid interleave-set-cookie\n");
+>  		return ERR_PTR(-ENXIO);
+>  	}
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index de1ee5ebc851..2debe60f8bf0 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -858,6 +858,11 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region,
+>  	if (!nd_set)
+>  		return 0;
+>  
+> +	/* CXL labels skip the need for 'interleave-set cookie' */
+> +	if (nsindex && __le16_to_cpu(nsindex->major) == 2
+> +			&& __le16_to_cpu(nsindex->minor) == 1)
+> +		return 0;
+> +
+>  	if (nsindex && __le16_to_cpu(nsindex->major) == 1
+>  			&& __le16_to_cpu(nsindex->minor) == 1)
+>  		return nd_set->cookie1;
 
