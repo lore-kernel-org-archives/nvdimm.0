@@ -1,72 +1,72 @@
-Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com [209.85.210.42])
+Received: from mail-oa1-f52.google.com (mail-oa1-f52.google.com [209.85.160.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BA712E9EAB
-	for <nvdimm@lists.linux.dev>; Sat, 16 Aug 2025 15:00:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 504A3128819
+	for <nvdimm@lists.linux.dev>; Sat, 16 Aug 2025 16:22:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755356428; cv=none; b=lxLjJMuSXe+ZdiJQ99M/wkI6rZe/VhO1dw9Y2liDlpMX6kDkzxiXpMgDhXa4eS3b7tBhfXeMD9FOvEuLM7HalNgduw7w0uNcK8V23hPM8nY1tGC1VIEdmhjxxHi/ZQ8oHjjRRJFxzqgMDixqUCdr1CD+i3f4iCOmAIo2TYVNueA=
+	t=1755361374; cv=none; b=IMpeMyvX6tYAjEjsolW6EHCA0KWwHeHcVkSskS2nw2QOr53PWBm6HOB9B071Kg6Mc1F7efLRDA2GI4Sw4BiI18Oag3gRTdG8v0iG5uMRW3vispz70oCIg5y2fisCNNKHTLhULPQ1D2njniRfCeXVK3zAbCMFicSctREV03hKdqg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755356428; c=relaxed/simple;
-	bh=VigReBL8M6MI529Z8Xk8Ix7rUQBlX7NkF4iKwyADbaA=;
+	s=arc-20240116; t=1755361374; c=relaxed/simple;
+	bh=NZM13o2Exswd9U+U96wypdU8sDgj2Ia3oSNRi53SxnI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=W5ijLIhlLMVGJSGaKp2pLMzjJljEsU5Ukty7swrVFvGRZpCNieycy5gz4grA6MhsjjCZ3YU89kll7Sr96B0zeOMbDvvXveunNdJaolTZhCSTKfyMwohEY+nHoE3nfgiLIGtw7rigQV8fOFusOXbtrPLC021sk+YvEwG2IUXvEXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=P+FJvQMb; arc=none smtp.client-ip=209.85.210.42
+	 Content-Type:Content-Disposition:In-Reply-To; b=bKy6+E7ubn+ue7dT97Uq2IeHLt9jnDlZhWNmzFzxDLvuL6dSwMOC2NzEvB7PqLKnDaA0HX8evQENrPNVUVmtZh+twIV7H+xP7qzhWpErJ90Xcf7wkPCi2luWFsjSR5Oja/KwBQ7uXjW/+RlIn+U2OBSTvJGrZIUfVoKMRosDA1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UFgDpYHJ; arc=none smtp.client-ip=209.85.160.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P+FJvQMb"
-Received: by mail-ot1-f42.google.com with SMTP id 46e09a7af769-74381df8cf1so757350a34.0
-        for <nvdimm@lists.linux.dev>; Sat, 16 Aug 2025 08:00:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UFgDpYHJ"
+Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-30ccec2515dso2251149fac.3
+        for <nvdimm@lists.linux.dev>; Sat, 16 Aug 2025 09:22:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1755356426; x=1755961226; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1755361372; x=1755966172; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=gwjPbg8KA3rFGnPGiayWOqsstlBug/9B8GI8n0PblXs=;
-        b=P+FJvQMbKgvirfGQII0VU++zOUTKssnode/hcYUQHmOgtGuzTWmOhmRV+J87AW6E7a
-         Bt+ra6rZ8Iiz+Y6pr5nfTX487bB/6WN1HvH5t9WU/pf9bSUoIiviKEobuY5D1OeubgAu
-         SCQI65YS8gsfxrPYzrtMUyob7qnSZ3vrQAguX6LfBRuXhT3F8aO5QVnvaHW4KzCZ2Syl
-         mZ6EmyWTbZoY7lIlJPyVE1yHmgXh6Yb7chyEs75GWnTziKGsASOwtfmwH+S1V8T/ZB6q
-         fhKy3aJ0QASVHdTgKkJVuc9LaGc6+9yhnODycNlKUcI7ExER0dgfEYaRnOKUqxqPO73P
-         VIdA==
+        bh=+Rtpc5s7M7/+q1cABKsKTJfzX3/F+/4NGbX+n4VhZH8=;
+        b=UFgDpYHJJjr783B0zCBpR+0xCNcJqCsojeRSsCTfTqQToQDVKiooj8xWCzA9PFmUTr
+         T1XbbFhGqCxeS5xz/DjmLa5jgtzJpOMcpWK7pPfFS/gd+O+7tsNVPas9PNoWftBFwygR
+         Q2UnXF7WH9S27bkBQrIZ5y7qF73G7Hn23nzwY0596NGnLg42MxUPHMLQaME9voiNx9kS
+         8HGEOofNVfAbvU18E9w1EysmYpKLLif6p2AoSlcpoh1V756SqlYfabZBOdU0PoluuAPr
+         VJycHAAKh+kF9LFoXWAwvDoX5o8mrCEFHO2Ejd2jFr3AVcJ6A7ug8XbE0DBuLg4KoAX+
+         Hf6g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755356426; x=1755961226;
+        d=1e100.net; s=20230601; t=1755361372; x=1755966172;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=gwjPbg8KA3rFGnPGiayWOqsstlBug/9B8GI8n0PblXs=;
-        b=lVWOyqtx2HUjImTAFYjlMcviTNX2pUtFclqI0/vzRq1Zq05khO7q6PrvEkNMQfbBbk
-         z1N2Z5VzxWlazgkJSu5ekGtQH/9gfhlS9xDdHoaPw7CasbgAa0/WbiMsoE9nI0UHVsI8
-         5QxIVh9z7JNEC+oHPxlA3vXMCwqbAoPbt1HSX+gKexBs1/H7c201DwtH8i3Z+LRqefsv
-         JSx1OC8vQ0INTM0ijOuqT90po21OTXCb3Wik2rSc+CZY2tXJPQCWkOiwrkW+CXvcihzN
-         yDeciCH36yjGrdCySqumltRmUB9uCJkjFLR/89Y5Wmz+H143nePDf/lYWC5GVdAP57N7
-         MRBg==
-X-Forwarded-Encrypted: i=1; AJvYcCUAH5+q9euQG0Vi7eXgyXmqpxe8HOnIPSY1IBlSg2UZ7lXP6ClwV9VDsCSQXbImUbYrqH5R3k8=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwoSXy7UI5E0Slz4HlosbxL7rP8csPWq4iZNdsGqfsBD3Bmk5MT
-	mU5Mo48Jr0NeWKCCOVhSjbVteDW6jGkd6nihOHxLvfc9lB3Pue+WLj30
-X-Gm-Gg: ASbGnct8yZ6mz23wlY3MPvGQOkrIZOGs7VXUeFhebTxnH/1v/nx4MgbiPClCwP/wG91
-	6KbWNGV3kz+ZiJgFwJXMjnRcLzKzWv+7jj9YZaDgVJRNXn4f0OAhWkDoEdLthzrtcNdlSS+y9mF
-	KXkOihqxCYTGaevmMBOT5Z2+ZxVdVg990V4yxUcaRtbXNdTNJ3rKHrHeRFOKfMRUrYww38m4SVQ
-	WLHnM6+X3ULqc8lam6TiLVAN2cq9JXtSRE2QaF7FF1gMi6mRpGgI64GzTD041eFbj+Ytydrcgvo
-	JSUCul26KsxfbmxmysswTPWXi5x/WX87Xtoyk6vCHCQ+z5rcsrW9gGtHUF8bdNQs7wXLSmWUyq8
-	v9cVgaxep66zqMv2Shq4QOCGuo8/uMsPaZ/PG
-X-Google-Smtp-Source: AGHT+IFFQO6oO7eKhRJoor1ccKngWoereGVcBCKxuKO/JrshNXE7oZADMU90CYmE2ChdFmofXtpRPQ==
-X-Received: by 2002:a05:6830:912:b0:731:e808:be5f with SMTP id 46e09a7af769-743924f57b2mr4023050a34.28.1755356426238;
-        Sat, 16 Aug 2025 08:00:26 -0700 (PDT)
+        bh=+Rtpc5s7M7/+q1cABKsKTJfzX3/F+/4NGbX+n4VhZH8=;
+        b=xQTz8jDADGoLbQfugqS0kn8HAbSrqf/2unzGn+GjvB6ZYB4w3c8mOt8xMGHyfDoBbb
+         JuyI/oPLKUt/yIFzY3MI6df0DrD7DIqUO0hmq927V317aIX9LWoRfAvICxdwByj2oblt
+         XYG0AVCSQHjeT46L6t4qd7DA2/fVsVYxTxblnTvrIW5YcPDql5taSb/3gBRDs1A+oLiH
+         PUJi3qcf2Cb5RCSfxqTyMXYYXwlJtPRGaOnXELWOiHZkryWIvRJcIv4c85Xe0T0vXbvj
+         Z6RH6gL30lu7xml4uPDNpQYBkaIEDzVRtDzpOgONWpGkPwJHc08l8eTyZN05FfXE+j0W
+         9QBg==
+X-Forwarded-Encrypted: i=1; AJvYcCUZfmlx83/UmItF1gpfAmdhOO5iC+yelpP+bpBjRzOTRTOH5XhOok/bZkkP57HbWhaJzwbdLm8=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyje8RcBcRlT5KZccAgvtD9QgEJRUqTSt0CDu6ee0mqsKea/0jl
+	7TOQmP0t5Xa0kLR32dMXgxTLpS7OlXrDp5/nYR3mCaSrsaAZ5TrPgXja
+X-Gm-Gg: ASbGncvKI1Hs4l1i9zFJP7ADqyHw4dGkl1+Kt7wI5CKI3vrdg0bg5zxBqMWXVWVYYtU
+	KJgBIKUzsiNR95mQMo+dv2gZPxmSGXqbyYA0NVsPuz5d21yCUQCr4ETVciVoiBwFUCPSSe3R7bY
+	RnjQQoOn5UzM7JqINw4bkgZSM5WhcOfP0aZrmAT4vRWsX23sINXf/siodabFCRRQB74e6a4qVNH
+	R4DqhqXYyvS1ZjvDMbebI/Wn7hAfEFVAWShlq523t5+Km+nVaHRrKQue9r/zyr8wiaGcb83vQF2
+	Nlfly4YlQeA9ogcFRa9iGYbt+ewk6Za1/tc8iF10seVgc+5+ThFSZZjtM/EJIQlCF+PH2jNCuON
+	MGQwWb6jgHqDdEvpFETQV0XeVBqSmZUK6fC96
+X-Google-Smtp-Source: AGHT+IHCxUIkdlGxbKhRgkda2hbannURDDEsuMBjaUCvPESePWFZyXXJu5EUcQ/LJ4zZvF6BnvAeCQ==
+X-Received: by 2002:a05:6870:15c8:b0:30c:5189:5707 with SMTP id 586e51a60fabf-310aae9750cmr3295321fac.28.1755361372333;
+        Sat, 16 Aug 2025 09:22:52 -0700 (PDT)
 Received: from groves.net ([2603:8080:1500:3d89:1d43:22e9:7ffa:494a])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-74391bd220fsm881978a34.13.2025.08.16.08.00.24
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-74391bd20a3sm911591a34.21.2025.08.16.09.22.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 16 Aug 2025 08:00:25 -0700 (PDT)
+        Sat, 16 Aug 2025 09:22:51 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
-Date: Sat, 16 Aug 2025 10:00:23 -0500
+Date: Sat, 16 Aug 2025 11:22:49 -0500
 From: John Groves <John@groves.net>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Miklos Szeredi <miklos@szeredb.hu>, 
-	Bernd Schubert <bschubert@ddn.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "Darrick J. Wong" <djwong@kernel.org>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
 	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
 	Kent Overstreet <kent.overstreet@linux.dev>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
@@ -75,12 +75,13 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
 	Josef Bacik <josef@toxicpanda.com>, Aravind Ramesh <arramesh@micron.com>, 
 	Ajay Joshi <ajayjoshi@micron.com>, john@groves.net
-Subject: Re: [RFC V2 12/18] famfs_fuse: Plumb the GET_FMAP message/response
-Message-ID: <a6smxrjvz5zifw2wattd7abmxhsizkh7vmwrkruqe3l4k6tg7e@gjwj44tqgpnq>
+Subject: Re: [RFC V2 14/18] famfs_fuse: GET_DAXDEV message and daxdev_table
+Message-ID: <vfg7t7dzqjf6g6374wavesakk332n4dqabgokw4xobsar5jnxm@m7xfan6vhyty>
 References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-13-john@groves.net>
- <CAJfpegv6wHOniQE6dgGymq4h1430oc2EyV3OQ2S9DqA20nZZUQ@mail.gmail.com>
- <20250814180512.GV7942@frogsfrogsfrogs>
+ <20250703185032.46568-15-john@groves.net>
+ <CAJfpegv19wFrT0QFkwFrKbc6KXmktt0Ba2Lq9fZoihA=eb8muA@mail.gmail.com>
+ <20250814171941.GU7942@frogsfrogsfrogs>
+ <CAJfpegv8Ta+w4CTb7gvYUTx3kka1-pxcWX_ik=17wteU9XBT1g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -89,28 +90,63 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250814180512.GV7942@frogsfrogsfrogs>
+In-Reply-To: <CAJfpegv8Ta+w4CTb7gvYUTx3kka1-pxcWX_ik=17wteU9XBT1g@mail.gmail.com>
 
-On 25/08/14 11:05AM, Darrick J. Wong wrote:
-<snip>
-> It's possible that famfs could use the mapping upsertion notification to
-> upload mappings into the kernel.  As far as I can tell, fuse servers can
-> send notifications even when they're in the middle of handling a fuse
-> request, so the famfs daemon's ->open function could upload mappings
-> before completing the open operation.
+On 25/08/14 08:25PM, Miklos Szeredi wrote:
+> On Thu, 14 Aug 2025 at 19:19, Darrick J. Wong <djwong@kernel.org> wrote:
+> > What happens if you want to have a fuse server that hosts both famfs
+> > files /and/ backing files?  That'd be pretty crazy to mix both paths in
+> > one filesystem, but it's in theory possible, particularly if the famfs
+> > server wanted to export a pseudofile where everyone could find that
+> > shadow file?
 > 
+> Either FUSE_DEV_IOC_BACKING_OPEN detects what kind of object it has
+> been handed, or we add a flag that explicitly says this is a dax dev
+> or a block dev or a regular file.  I'd prefer the latter.
+> 
+> Thanks,
+> Miklos
 
-Famfs dax mappings don't change (and might or might not ever change).
-Plus, famfs is exposing memory, so it must run at memory speed - which
-is why it needs to cache the entire fmap for any active file. That way
-mapping faults happen at lookup-in-fmap speed (which is order 1 for
-interleaved fmaps, and order-small-n for non-interleaved.
+I have future ideas of famfs supporting non-dax-memory files in a mixed
+namespace with normal famfs dax files. This seems like the simplest way 
+to relax the "files are strictly pre-allocated" rule. But I think this 
+is orthogonal to how fmaps and backing devs are passed into the kernel. 
 
-I wouldn't rule out ever using upsert, but probably not before we
-integrate famfs with PNFS, or some other major generalizing event.
+The way I'm thinking about it, the difference would be handled in
+read/write/mmap. Taking fuse_file_read_iter as the example, the code 
+currently looks like this:
 
-Thanks,
+	if (FUSE_IS_VIRTIO_DAX(fi))
+		return fuse_dax_read_iter(iocb, to);
+	if (fuse_file_famfs(fi))
+		return famfs_fuse_read_iter(iocb, to);
+
+	/* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
+	if (ff->open_flags & FOPEN_DIRECT_IO)
+		return fuse_direct_read_iter(iocb, to);
+	else if (fuse_file_passthrough(ff))
+		return fuse_passthrough_read_iter(iocb, to);
+	else
+		return fuse_cache_read_iter(iocb, to);
+
+If the famfs fuse servert wants a particular file handled via another 
+mechanism -- e.g. READ message to server or passthrough -- the famfs 
+fuse server can just provide an fmap that indicates such.  Then 
+fuse_file_famfs(fi) would return false for that file, and it would be 
+handled through other existing mechanisms (which the famfs fuse 
+server would have to handle correctly).
+
+Famfs could, for example, allow files to be created as generic or
+passthrough, and then have a "commit" step that allocated dax memory, 
+moved the data from a non-dax into dax, and appended the file to the 
+famfs metadata log - flipping the file to full-monty-famfs (tm). 
+Prior to the "commit", performance is less but all manner of mutations 
+could be allowed.
+
+So I don't think this looks very be hard, and it's independent of the 
+mechanism by which fmaps get into the kernel.
+
+Regards,
 John
 
-<snip>
 
