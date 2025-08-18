@@ -1,173 +1,447 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA69F301499
-	for <nvdimm@lists.linux.dev>; Mon, 18 Aug 2025 08:34:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EB8A1DDC2C
+	for <nvdimm@lists.linux.dev>; Mon, 18 Aug 2025 21:48:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755506079; cv=none; b=TQ8K9f1xMXnHAFdB1QhFBol0W535IOADE8NNstIObSMwBZmu9UrtfGj+kPfQYsDMVsAB/gEl3FSMseuBvqth6CAssozLHqW2FfPorVwPhxyLv9UPPWct8NHZKpwyAwnQUhnO2XBZrfe5UO3jI9kcBUVai1ao4ptTd8N7Z0V7PGQ=
+	t=1755553701; cv=none; b=F+mRPgZvbyrhYttvive96DTclDFNbK1P/F+4EXT4jdxu4c3xZuoUWf6aNT5bnXod7Mogx/lAIbu1TXUaWrRr+Y2Qkbhzz+Eieu+X7fFsFWD2JDmLEWBD3bnUS9lPBvwegtOSQdfrMv8LVOxRYyqE4tgzlTfXYBxJqdfO1LUvsS0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755506079; c=relaxed/simple;
-	bh=YKnYr324eUUhj+QvrdVq/1e4Gz0w8e7EzwXqGsvWiSk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rC1CZUH0dheFXucQoWIFRHg18Noa8kK3Xz9+mei5ThmOgswKaTVy+BwCoPBEq78bivJODeaOjuY7MT1JVcJcKK/+kGP3HBPj5poNKkBgyLI2b0E7BF8oFTOfxfwTpJyGC6UELXAtlsAtpqyPnloXklA1f8lyCOShU1lGUpmArBU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=Aze4Y5K8; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1755553701; c=relaxed/simple;
+	bh=+XGp83OEOVEbMOfmz+WvGkuETiOBs9pPS+A3PfIJvz0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=WERZWuMYfpYJ9t4q2YJe0HmC2B2sCKWw0torDE3HrqK3hjLyeS8fCzBVOetDCgwuz2F2sXZae4oMK3x4BqlxjqlA/cfoY3ommmLaeJllH34oUBwsb7Wli3XuFltQlBQfl5OnfjOAUQIbMg2rZzjm1sFKbQaxB0bERSz3QIbenBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mvDN1AKN; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="Aze4Y5K8"
-Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 57HNfrwq030261
-	for <nvdimm@lists.linux.dev>; Mon, 18 Aug 2025 08:34:34 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	YKnYr324eUUhj+QvrdVq/1e4Gz0w8e7EzwXqGsvWiSk=; b=Aze4Y5K8XQlzwnRF
-	KS2Vkdxd7n2qp5VewK8A0a6hxTVqbzMOozD5we+cTVDCFI/JgzI4KiILotlO/UDT
-	5nep91KwnnHHqgiAzY1H8M3CWe1zTEmZYyWHunj4Ox0D6WSd5grZgkLGRwPg1VDC
-	AV7KF5nJZeWoctIPiE0ufDcHdCnyV7xMUGfrwbXbmIslahVPylvI9zmR1/9esOJY
-	AFEx5vpmQjcRyyhWxPm+CoJZ5aqsnT0c5D/yh/yGTOu1npeEZWylk1LpzGMfAn+L
-	zrROeF6fcgqEzADtHMgH4NoIVLArFoA6z69DOF0yue7AxwnGRTjpFvxh/tfVJGe1
-	wi1rZg==
-Received: from mail-pl1-f200.google.com (mail-pl1-f200.google.com [209.85.214.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 48jhjyby2a-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
-	for <nvdimm@lists.linux.dev>; Mon, 18 Aug 2025 08:34:34 +0000 (GMT)
-Received: by mail-pl1-f200.google.com with SMTP id d9443c01a7336-244581950a1so43849765ad.2
-        for <nvdimm@lists.linux.dev>; Mon, 18 Aug 2025 01:34:34 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755506073; x=1756110873;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=YKnYr324eUUhj+QvrdVq/1e4Gz0w8e7EzwXqGsvWiSk=;
-        b=OeyNtJYNB1AxdTgYCkNV2ZDtnZxuYktL560gc5r3fr25SAGiKfgFOfUaMr9FIKaVJQ
-         2Hnm8oOxWIDA7n3qpeTsd3io0GEHkOCT1R++Nt4BJbUXGOqQkbz03GTQzMT+rcjdyFTc
-         6AFWPvKK5zvZMOJXcYkJ967JjEzAdVUbWLERENKTvyKWUZ0YaZ7SfRguFoIGMVxOs/h+
-         XrGi2rTs2KSSRv7UiryX/Y3+6iFv1iUkSpbfemMc3pcfJePBCo6sfzj/kunhA3Mm0niL
-         snb6t1RbPhvaIBrn5HplGd+rTMw8fqzCe0NPo8eubt5F7ZjYpJUWImR0EKSjsYxvIur+
-         mX6w==
-X-Forwarded-Encrypted: i=1; AJvYcCVMFopF/AzlG3TMX5f5eTK0qfqPff+onnBtMBa9UC2Q2IW8uNzEkfdGgaWQt+fvKKynPe+Dn0s=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yw6AWBvoBogMO0zk2z3x5k2juYan2/sJzPm0Iqajc8r2janXu+9
-	UKv4ZxZkaZBqM+uhEsX1f8BkeERFITHJ2x9Z+/Tmkn5/hgTOkyF9PONLhTsBcSSrFT8ChS9T6C0
-	M+Q+WNYxujUOuiF1tVtOY82r+FsoIas6KFLiHMS1V8gFr0vUNcECeeX1aiLKjsHi0BqCXPW2upM
-	X6m7EEGcetgKv+xrvweD8b146YEEsTZRrLCg==
-X-Gm-Gg: ASbGncsQh3fYMGu12sfZa60QxI0+JpzXyXCmZN7bIOa2ul8yTLkjppU8LP35riuxkKW
-	yvff6cXLvMJ+02MgZb26QJTncdZKe+dsSAy8TlYZW7lJ/9jqfBc451NozWIQtoTlYj+VusINLi9
-	EZ52mEuR3gbt1ar3S5m1r1zA==
-X-Received: by 2002:a17:903:b07:b0:23d:fa76:5c3b with SMTP id d9443c01a7336-2446d745130mr162001905ad.22.1755506072923;
-        Mon, 18 Aug 2025 01:34:32 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IF0iaKkOx5HF+G/2fDa+4Vn+rw7qYZXEvgZcGmIZ96t7UkZ4Y6iVl499qKwZ/lWHVbWQiw75ZkO9MQbjWLb6hM=
-X-Received: by 2002:a17:903:b07:b0:23d:fa76:5c3b with SMTP id
- d9443c01a7336-2446d745130mr162001485ad.22.1755506072460; Mon, 18 Aug 2025
- 01:34:32 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mvDN1AKN"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1755553699; x=1787089699;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=+XGp83OEOVEbMOfmz+WvGkuETiOBs9pPS+A3PfIJvz0=;
+  b=mvDN1AKNCAtIWlyibcDsQoTK5/LDwpNXdj+cpwczrdujCNm8Jphm7hqG
+   sW81KGWCXzGxqYcw39YV9HB2L7HFHoHIe6erZdK0tRr2wC6+kdu2XsUOJ
+   h79OjS3oq35XFL6bFWjmd4ZogesImis8qZ5+K3hyFS7IvM1rnogDX8BXp
+   zBALOyZSllk82WvVBkHSOjsJYffyOV5PTqSym/kKGAAmlj3R4jzZ+js1v
+   q3YuFgOmp0pHvc8AwD788JfKA+pZTVFQdUwvwO53MzesXYSvfXlUz4CwH
+   9AOUGNpSFhjSG6FYiBX1ovuNCWw5JUaCBV+HmtpREJ0HGLHi1+SegTxkR
+   g==;
+X-CSE-ConnectionGUID: i5U5HLXLSMiUG+uyQgygcg==
+X-CSE-MsgGUID: IMuny2FEQ8KLVMY2mfArcw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11526"; a="57860613"
+X-IronPort-AV: E=Sophos;i="6.17,300,1747724400"; 
+   d="scan'208";a="57860613"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Aug 2025 14:48:17 -0700
+X-CSE-ConnectionGUID: /BQu7J0pSWe7V+MK57FT1g==
+X-CSE-MsgGUID: p+BGS0cRTo+d5K6+A0rdyg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.17,300,1747724400"; 
+   d="scan'208";a="168492686"
+Received: from bvivekan-mobl2.gar.corp.intel.com (HELO [10.247.119.196]) ([10.247.119.196])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Aug 2025 14:48:12 -0700
+Message-ID: <22727c86-fa5a-416c-a02a-e6be581c748c@intel.com>
+Date: Mon, 18 Aug 2025 14:48:07 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20250818-numa_memblks-v1-1-9eb29ade560a@oss.qualcomm.com>
- <d7cdb65d-c241-478c-aa01-bc1a5f188e4f@redhat.com> <CALzOmR0C8BFY+-u-_aprVeAhq4uPOQa+f2L5m+yZH+=XZ2cv_w@mail.gmail.com>
- <63082884-1fe2-4740-8e6a-e1d06aa5e239@redhat.com>
-In-Reply-To: <63082884-1fe2-4740-8e6a-e1d06aa5e239@redhat.com>
-From: Pratyush Brahma <pratyush.brahma@oss.qualcomm.com>
-Date: Mon, 18 Aug 2025 14:04:20 +0530
-X-Gm-Features: Ac12FXzX5PzSlv6roYThUOo89xclaREe5qOUHnsYKt7fIrY-t8kJ9YEJL5m2flQ
-Message-ID: <CALzOmR0MJv8EgPiFTvvbdkk8H_0BEDA4QQXKyqRPOCwwzGwjsw@mail.gmail.com>
-Subject: Re: [PATCH] mm/numa: Rename memory_add_physaddr_to_nid to memory_get_phys_to_nid
-To: David Hildenbrand <david@redhat.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-        Oscar Salvador <osalvador@suse.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Danilo Krummrich <dakr@kernel.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Jonathan Cameron <jonathan.cameron@huawei.com>,
-        Alison Schofield <alison.schofield@intel.com>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
-        Dexuan Cui <decui@microsoft.com>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Jason Wang <jasowang@redhat.com>,
-        Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-        =?UTF-8?Q?Eugenio_P=C3=A9rez?= <eperezma@redhat.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mike Rapoport <rppt@kernel.org>, linuxppc-dev@lists.ozlabs.org,
-        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-acpi@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org,
-        linux-cxl@vger.kernel.org, linux-hyperv@vger.kernel.org,
-        virtualization@lists.linux.dev, xen-devel@lists.xenproject.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Proofpoint-ORIG-GUID: vekqVa47w6JhIY4-6C10_m2hbCeU0DUL
-X-Authority-Analysis: v=2.4 cv=ZJHXmW7b c=1 sm=1 tr=0 ts=68a2e59a cx=c_pps
- a=IZJwPbhc+fLeJZngyXXI0A==:117 a=IkcTkHD0fZMA:10 a=2OwXVqhp2XgA:10
- a=20KFwNOVAAAA:8 a=EUspDBNiAAAA:8 a=AFlVVsuRyXfiT6IdkpsA:9 a=QEXdDO2ut3YA:10
- a=uG9DUKGECoFWVXl0Dc02:22
-X-Proofpoint-GUID: vekqVa47w6JhIY4-6C10_m2hbCeU0DUL
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODE2MDAyOCBTYWx0ZWRfX7U8gIB1lmzvh
- G+ed7d0xtv+gaznqVN3jvdHf1w1HEuZoIfbgJ5XRjBckRUu2PN+5pSWRT6SB7F645G/pxxnhZcs
- qlTc6tptS/qcjpowiA9gNE5TK/dxL0Cin0UXIvpEP7AQCK/ut2NXccZ2clX5FfIFTR9PGDFeVc7
- 6IBY5KGjA7quTSJ71ubBoAVY+Z65G/7PFNXXnKXTbiPCZ+tUw+0OHQUakFhsjg79HTNeUIEMn8V
- 21ar17bJqpr0T5OA1Mmx1xkP9m/krIYztbfXQZ4fy2TRhCsblOMVxX6GFqBGyZ7/MHasmLcjx31
- JU/HUyUsWGVBMRQFNiFqvu31EWv+CwYN/aWSQ4OHOBrB/VmWQ8fazIjWkfrqjWEGntz5N1H3Kiw
- x7i8ZUZx
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
- definitions=2025-08-18_03,2025-08-14_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 adultscore=0 phishscore=0 suspectscore=0 clxscore=1015
- bulkscore=0 spamscore=0 impostorscore=0 priorityscore=1501
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.19.0-2507300000 definitions=main-2508160028
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH V2 02/20] nvdimm/label: Prep patch to accommodate cxl lsa
+ 2.1 support
+To: Neeraj Kumar <s.neeraj@samsung.com>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, gost.dev@samsung.com
+Cc: a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com
+References: <20250730121209.303202-1-s.neeraj@samsung.com>
+ <CGME20250730121224epcas5p3c3a6563ce186d2fdb9c3ff5f66e37f3e@epcas5p3.samsung.com>
+ <20250730121209.303202-3-s.neeraj@samsung.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20250730121209.303202-3-s.neeraj@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, Aug 18, 2025 at 2:01=E2=80=AFPM David Hildenbrand <david@redhat.com=
-> wrote:
->
-> On 18.08.25 10:27, Pratyush Brahma wrote:
-> > On Mon, Aug 18, 2025 at 12:29=E2=80=AFPM David Hildenbrand <david@redha=
-t.com> wrote:
-> >>
-> >> On 18.08.25 08:41, pratyush.brahma@oss.qualcomm.com wrote:
-> >>> From: Pratyush Brahma <pratyush.brahma@oss.qualcomm.com>
-> >>>
-> >>> The function `memory_add_physaddr_to_nid` seems a misnomer.
-> >>> It does not to "add" a physical address to a NID mapping,
-> >>> but rather it gets the NID associated with a given physical address.
-> >>
-> >> You probably misunderstood what the function is used for: memory hotpl=
-ug
-> >> aka "memory_add".
-> > Thanks for your feedback. I get the part about memory hotplug here but
-> > using memory_add still seems a little odd as it doesn't truly reflect
-> > what this api is doing.
-> > However, I agree that my current suggestion
-> > may not be the perfect choice for the name, so I'm open to suggestions.
-> >
-> > Perhaps, something like "memory_add_get_nid_by_phys" may work here?
->
-> I don't think this name is really any better and worth the churn :(
->
-Sure. Thanks for taking a look. Will drop this.
-> --
-> Cheers
->
-> David / dhildenb
->
-Thanks & Regards
-Pratyush
+
+
+On 7/30/25 5:11 AM, Neeraj Kumar wrote:
+> LSA 2.1 format introduces region label, which can also reside
+> into LSA along with only namespace label as per v1.1 and v1.2
+> 
+> As both namespace and region labels are of same size of 256 bytes.
+> Thus renamed "struct nd_namespace_label" to "struct nd_lsa_label",
+> where both namespace label and region label can stay as union.
+> 
+> No functional change introduced.
+> 
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+> ---
+>  drivers/nvdimm/label.c          | 58 +++++++++++++++++++--------------
+>  drivers/nvdimm/label.h          | 12 ++++++-
+>  drivers/nvdimm/namespace_devs.c | 33 +++++++++++++------
+>  drivers/nvdimm/nd.h             |  2 +-
+>  4 files changed, 68 insertions(+), 37 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+> index 7a011ee02d79..75bc11da4c11 100644
+> --- a/drivers/nvdimm/label.c
+> +++ b/drivers/nvdimm/label.c
+> @@ -271,7 +271,7 @@ static void nd_label_copy(struct nvdimm_drvdata *ndd,
+>  	memcpy(dst, src, sizeof_namespace_index(ndd));
+>  }
+>  
+> -static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
+> +static struct nd_lsa_label *nd_label_base(struct nvdimm_drvdata *ndd)
+
+This function caught my eye. I think that given the way it's being used, maybe it should be returning 'unsigned long' instead of a struct given every instance it's being used, it gets converted back to 'unsigned long'.
+
+$ git grep -n nd_label_base
+label.c:274:static struct nd_lsa_label *nd_label_base(struct nvdimm_drvdata *ndd)
+label.c:287:    base = (unsigned long) nd_label_base(ndd);
+label.c:296:    base = (unsigned long) nd_label_base(ndd);
+label.c:782:    offset = (unsigned long) nd_label_base(ndd)
+
+>  {
+>  	void *base = to_namespace_index(ndd, 0);
+>  
+> @@ -279,7 +279,7 @@ static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
+>  }
+>  
+>  static int to_slot(struct nvdimm_drvdata *ndd,
+> -		struct nd_namespace_label *nd_label)
+> +		struct nd_lsa_label *nd_label)
+>  {
+>  	unsigned long label, base;
+>  
+> @@ -289,14 +289,14 @@ static int to_slot(struct nvdimm_drvdata *ndd,
+>  	return (label - base) / sizeof_namespace_label(ndd);
+>  }
+>  
+> -static struct nd_namespace_label *to_label(struct nvdimm_drvdata *ndd, int slot)
+> +static struct nd_lsa_label *to_label(struct nvdimm_drvdata *ndd, int slot)
+>  {
+>  	unsigned long label, base;
+>  
+>  	base = (unsigned long) nd_label_base(ndd);
+>  	label = base + sizeof_namespace_label(ndd) * slot;
+>  
+> -	return (struct nd_namespace_label *) label;
+> +	return (struct nd_lsa_label *) label;
+>  }
+>  
+>  #define for_each_clear_bit_le(bit, addr, size) \
+> @@ -382,9 +382,10 @@ static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
+>  }
+>  
+>  static bool slot_valid(struct nvdimm_drvdata *ndd,
+> -		struct nd_namespace_label *nd_label, u32 slot)
+> +		struct nd_lsa_label *lsa_label, u32 slot)
+>  {
+>  	bool valid;
+> +	struct nd_namespace_label *nd_label = &lsa_label->ns_label;
+>  
+>  	/* check that we are written where we expect to be written */
+>  	if (slot != nsl_get_slot(ndd, nd_label))
+> @@ -405,6 +406,7 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+>  		return 0; /* no label, nothing to reserve */
+>  
+>  	for_each_clear_bit_le(slot, free, nslot) {
+> +		struct nd_lsa_label *lsa_label;
+>  		struct nd_namespace_label *nd_label;
+>  		struct nd_region *nd_region = NULL;
+>  		struct nd_label_id label_id;
+> @@ -412,9 +414,10 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+>  		uuid_t label_uuid;
+>  		u32 flags;
+>  
+> -		nd_label = to_label(ndd, slot);
+> +		lsa_label = to_label(ndd, slot);
+> +		nd_label = &lsa_label->ns_label;
+>  
+> -		if (!slot_valid(ndd, nd_label, slot))
+> +		if (!slot_valid(ndd, lsa_label, slot))
+>  			continue;
+>  
+>  		nsl_get_uuid(ndd, nd_label, &label_uuid);
+> @@ -565,11 +568,13 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
+>  		return 0;
+>  
+>  	for_each_clear_bit_le(slot, free, nslot) {
+> +		struct nd_lsa_label *lsa_label;
+>  		struct nd_namespace_label *nd_label;
+>  
+> -		nd_label = to_label(ndd, slot);
+> +		lsa_label = to_label(ndd, slot);
+> +		nd_label = &lsa_label->ns_label;
+>  
+> -		if (!slot_valid(ndd, nd_label, slot)) {
+> +		if (!slot_valid(ndd, lsa_label, slot)) {
+>  			u32 label_slot = nsl_get_slot(ndd, nd_label);
+>  			u64 size = nsl_get_rawsize(ndd, nd_label);
+>  			u64 dpa = nsl_get_dpa(ndd, nd_label);
+> @@ -584,7 +589,7 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
+>  	return count;
+>  }
+>  
+> -struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+> +struct nd_lsa_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+>  {
+>  	struct nd_namespace_index *nsindex;
+>  	unsigned long *free;
+> @@ -594,10 +599,10 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+>  		return NULL;
+>  
+>  	for_each_clear_bit_le(slot, free, nslot) {
+> -		struct nd_namespace_label *nd_label;
+> +		struct nd_lsa_label *lsa_label;
+>  
+> -		nd_label = to_label(ndd, slot);
+> -		if (!slot_valid(ndd, nd_label, slot))
+> +		lsa_label = to_label(ndd, slot);
+> +		if (!slot_valid(ndd, lsa_label, slot))
+>  			continue;
+>  
+>  		if (n-- == 0)
+> @@ -738,7 +743,7 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
+>  }
+>  
+>  static unsigned long nd_label_offset(struct nvdimm_drvdata *ndd,
+> -		struct nd_namespace_label *nd_label)
+> +		struct nd_lsa_label *nd_label)
+>  {
+>  	return (unsigned long) nd_label
+>  		- (unsigned long) to_namespace_index(ndd, 0);
+> @@ -892,6 +897,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>  	struct nd_namespace_common *ndns = &nspm->nsio.common;
+>  	struct nd_interleave_set *nd_set = nd_region->nd_set;
+>  	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+> +	struct nd_lsa_label *lsa_label;
+>  	struct nd_namespace_label *nd_label;
+>  	struct nd_namespace_index *nsindex;
+>  	struct nd_label_ent *label_ent;
+> @@ -923,8 +929,10 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>  		return -ENXIO;
+>  	dev_dbg(ndd->dev, "allocated: %d\n", slot);
+>  
+> -	nd_label = to_label(ndd, slot);
+> -	memset(nd_label, 0, sizeof_namespace_label(ndd));
+> +	lsa_label = to_label(ndd, slot);
+> +	memset(lsa_label, 0, sizeof_namespace_label(ndd));
+> +
+> +	nd_label = &lsa_label->ns_label;
+>  	nsl_set_uuid(ndd, nd_label, nspm->uuid);
+>  	nsl_set_name(ndd, nd_label, nspm->alt_name);
+>  	nsl_set_flags(ndd, nd_label, flags);
+> @@ -942,7 +950,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>  	nd_dbg_dpa(nd_region, ndd, res, "\n");
+>  
+>  	/* update label */
+> -	offset = nd_label_offset(ndd, nd_label);
+> +	offset = nd_label_offset(ndd, lsa_label);
+>  	rc = nvdimm_set_config_data(ndd, offset, nd_label,
+>  			sizeof_namespace_label(ndd));
+>  	if (rc < 0)
+> @@ -954,7 +962,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>  		if (!label_ent->label)
+>  			continue;
+>  		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags) ||
+> -		    nsl_uuid_equal(ndd, label_ent->label, nspm->uuid))
+> +		    nsl_uuid_equal(ndd, &label_ent->label->ns_label, nspm->uuid))
+>  			reap_victim(nd_mapping, label_ent);
+>  	}
+>  
+> @@ -964,14 +972,14 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>  	if (rc == 0) {
+>  		list_for_each_entry(label_ent, &nd_mapping->labels, list)
+>  			if (!label_ent->label) {
+> -				label_ent->label = nd_label;
+> -				nd_label = NULL;
+> +				label_ent->label = lsa_label;
+> +				lsa_label = NULL;
+>  				break;
+>  			}
+> -		dev_WARN_ONCE(&nspm->nsio.common.dev, nd_label,
+> +		dev_WARN_ONCE(&nspm->nsio.common.dev, lsa_label,
+>  				"failed to track label: %d\n",
+> -				to_slot(ndd, nd_label));
+> -		if (nd_label)
+> +				to_slot(ndd, lsa_label));
+> +		if (lsa_label)
+>  			rc = -ENXIO;
+>  	}
+>  	mutex_unlock(&nd_mapping->lock);
+> @@ -1042,12 +1050,12 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
+>  
+>  	mutex_lock(&nd_mapping->lock);
+>  	list_for_each_entry_safe(label_ent, e, &nd_mapping->labels, list) {
+> -		struct nd_namespace_label *nd_label = label_ent->label;
+> +		struct nd_lsa_label *nd_label = label_ent->label;
+>  
+>  		if (!nd_label)
+>  			continue;
+>  		active++;
+> -		if (!nsl_uuid_equal(ndd, nd_label, uuid))
+> +		if (!nsl_uuid_equal(ndd, &nd_label->ns_label, uuid))
+>  			continue;
+>  		active--;
+>  		slot = to_slot(ndd, nd_label);
+> diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+> index 0650fb4b9821..4883b3a1320f 100644
+> --- a/drivers/nvdimm/label.h
+> +++ b/drivers/nvdimm/label.h
+> @@ -183,6 +183,16 @@ struct nd_namespace_label {
+>  	};
+>  };
+>  
+> +/*
+> + * LSA 2.1 format introduces region label, which can also reside
+> + * into LSA along with only namespace label as per v1.1 and v1.2
+> + */
+> +struct nd_lsa_label {
+> +	union {
+> +		struct nd_namespace_label ns_label;
+> +	};
+> +};
+> +
+>  #define NVDIMM_BTT_GUID "8aed63a2-29a2-4c66-8b12-f05d15d3922a"
+>  #define NVDIMM_BTT2_GUID "18633bfc-1735-4217-8ac9-17239282d3f8"
+>  #define NVDIMM_PFN_GUID "266400ba-fb9f-4677-bcb0-968f11d0d225"
+> @@ -215,7 +225,7 @@ struct nvdimm_drvdata;
+>  int nd_label_data_init(struct nvdimm_drvdata *ndd);
+>  size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd);
+>  int nd_label_active_count(struct nvdimm_drvdata *ndd);
+> -struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n);
+> +struct nd_lsa_label *nd_label_active(struct nvdimm_drvdata *ndd, int n);
+>  u32 nd_label_alloc_slot(struct nvdimm_drvdata *ndd);
+>  bool nd_label_free_slot(struct nvdimm_drvdata *ndd, u32 slot);
+>  u32 nd_label_nfree(struct nvdimm_drvdata *ndd);
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index 55cfbf1e0a95..bdf1ed6f23d8 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1009,10 +1009,11 @@ static int namespace_update_uuid(struct nd_region *nd_region,
+>  
+>  		mutex_lock(&nd_mapping->lock);
+>  		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+> -			struct nd_namespace_label *nd_label = label_ent->label;
+> +			struct nd_namespace_label *nd_label;
+>  			struct nd_label_id label_id;
+>  			uuid_t uuid;
+>  
+> +			nd_label = &label_ent->label->ns_label;
+>  			if (!nd_label)
+>  				continue;
+>  			nsl_get_uuid(ndd, nd_label, &uuid);
+> @@ -1573,11 +1574,14 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, const uuid_t *uuid,
+>  		bool found_uuid = false;
+>  
+>  		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+> -			struct nd_namespace_label *nd_label = label_ent->label;
+> +			struct nd_lsa_label *lsa_label = label_ent->label;
+> +			struct nd_namespace_label *nd_label;
+>  			u16 position;
+>  
+> -			if (!nd_label)
+> +			if (!lsa_label)
+>  				continue;
+> +
+> +			nd_label = &lsa_label->ns_label;
+>  			position = nsl_get_position(ndd, nd_label);
+>  
+>  			if (!nsl_validate_isetcookie(ndd, nd_label, cookie))
+> @@ -1615,17 +1619,21 @@ static int select_pmem_id(struct nd_region *nd_region, const uuid_t *pmem_id)
+>  	for (i = 0; i < nd_region->ndr_mappings; i++) {
+>  		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+>  		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+> +		struct nd_lsa_label *lsa_label = NULL;
+>  		struct nd_namespace_label *nd_label = NULL;
+>  		u64 hw_start, hw_end, pmem_start, pmem_end;
+>  		struct nd_label_ent *label_ent;
+>  
+>  		lockdep_assert_held(&nd_mapping->lock);
+>  		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+> -			nd_label = label_ent->label;
+> -			if (!nd_label)
+> +			lsa_label = label_ent->label;
+> +			if (!lsa_label)
+>  				continue;
+> +
+> +			nd_label = &lsa_label->ns_label;
+>  			if (nsl_uuid_equal(ndd, nd_label, pmem_id))
+>  				break;
+> +			lsa_label = NULL;
+>  			nd_label = NULL;
+>  		}
+>  
+> @@ -1746,19 +1754,21 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  
+>  	/* Calculate total size and populate namespace properties from label0 */
+>  	for (i = 0; i < nd_region->ndr_mappings; i++) {
+> +		struct nd_lsa_label *lsa_label;
+>  		struct nd_namespace_label *label0;
+>  		struct nvdimm_drvdata *ndd;
+>  
+>  		nd_mapping = &nd_region->mapping[i];
+>  		label_ent = list_first_entry_or_null(&nd_mapping->labels,
+>  				typeof(*label_ent), list);
+> -		label0 = label_ent ? label_ent->label : NULL;
+> +		lsa_label = label_ent ? label_ent->label : NULL;
+>  
+> -		if (!label0) {
+> +		if (!lsa_label) {
+>  			WARN_ON(1);
+>  			continue;
+>  		}
+>  
+> +		label0 = &lsa_label->ns_label;
+>  		ndd = to_ndd(nd_mapping);
+>  		size += nsl_get_rawsize(ndd, label0);
+>  		if (nsl_get_position(ndd, label0) != 0)
+> @@ -1943,12 +1953,15 @@ static struct device **scan_labels(struct nd_region *nd_region)
+>  
+>  	/* "safe" because create_namespace_pmem() might list_move() label_ent */
+>  	list_for_each_entry_safe(label_ent, e, &nd_mapping->labels, list) {
+> -		struct nd_namespace_label *nd_label = label_ent->label;
+> +		struct nd_lsa_label *lsa_label = label_ent->label;
+> +		struct nd_namespace_label *nd_label;
+>  		struct device **__devs;
+>  
+> -		if (!nd_label)
+> +		if (!lsa_label)
+>  			continue;
+>  
+> +		nd_label = &lsa_label->ns_label;
+> +
+>  		/* skip labels that describe extents outside of the region */
+>  		if (nsl_get_dpa(ndd, nd_label) < nd_mapping->start ||
+>  		    nsl_get_dpa(ndd, nd_label) > map_end)
+> @@ -2122,7 +2135,7 @@ static int init_active_labels(struct nd_region *nd_region)
+>  		if (!count)
+>  			continue;
+>  		for (j = 0; j < count; j++) {
+> -			struct nd_namespace_label *label;
+> +			struct nd_lsa_label *label;
+>  
+>  			label_ent = kzalloc(sizeof(*label_ent), GFP_KERNEL);
+>  			if (!label_ent)
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index 1cc06cc58d14..61348dee687d 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -376,7 +376,7 @@ enum nd_label_flags {
+>  struct nd_label_ent {
+>  	struct list_head list;
+>  	unsigned long flags;
+> -	struct nd_namespace_label *label;
+> +	struct nd_lsa_label *label;
+
+Looking at the series a bit more, I don't think creating 'struct nd_lsa_label' and making all the changes in this patch is necessary. I think an unamed union here of 'struct nd_namespace_label' and 'struct cxl_region_label' should be fine. Most of the CXL region handling should be quite different than namespace handling that the code paths will diverge. Adding a few helper functions should address some of the common code paths or creating separate cxl region based helpers to deal with the rest. i.e. slot_valid() can take a slot number rather than a label type. Being intentional in handling sepcific labeling may be better than trying to force a union between region and namespace labeling.    
+
+>  };
+>  
+>  enum nd_mapping_lock_class {
+
