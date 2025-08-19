@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B2B4220687;
-	Tue, 19 Aug 2025 21:55:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD8CD353347;
+	Tue, 19 Aug 2025 22:13:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755640511; cv=none; b=nuUPbwPG1eeo+PyWqPmQ0oyiERAUco7H3KmlXnZ7J2BC2QRydqSG3gDAl9MZ718JA98501+VJVEFIv6qllsVydAfKqF6P8dK7+2yBMOaroFGBMOWrq6sFdOA0uB5ITBvdfOCIT0rwPm4fdA6V6qP+dJ/L59cr7UQr0W0n35GAVI=
+	t=1755641594; cv=none; b=AytEtATVsadnXc0h6rW89Rl+3genBDpCh7zVBR15IxOjvDuVf2yo8Idm84uDHf9OsCvQrN8sPoFfAyT9ENg/2DBg+ObaIGQnw0JbEFiU/HrylSS2F3F0gs8HY12rXA9CKPkTpK719QRWnmWNhEJAc0ls52DOEl6/EgElDKshx/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755640511; c=relaxed/simple;
-	bh=gRjtTaJQgCQg4iLt7DACCXcUdygAh1cA8bBXzSnuB/M=;
+	s=arc-20240116; t=1755641594; c=relaxed/simple;
+	bh=VFxI+i2VfitSPQQL35e2MeXqm+Bb2LPPHqOW1EzsTEA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DvBXMN++luTLBJa4jIoNiL3ajKUGO3PTKkhBtHcN9nZVX87qMVH3xML4OGNOYaTSygAbgkV+skWSNoZbcRaNGVnLa9OkhV8txU0jCHXWvNtbOTkA9V1Ft8vEptw/jHBsxfowWXBHDZcuNZPB/p7jFoLqMtFFBp95qG71WpyExMU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cD6x203S; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=VdpoKa+T5AavgJF7+JfVWdSrAwYoJRvT9XcMTPsy//l7bXQjeC0X5aFqVhxd8h7sk8GQOi+PgkNcmXh3shYNY3TEhkzpE1ughDatyiT3a096mrHLRik3CFFZQIS4Eqt5s1kU1Icn61qcMLd/hLeOivl83g9dIuVIWWb/7tPG7r8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BWrjHVR5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cD6x203S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7DAAC113CF;
-	Tue, 19 Aug 2025 21:55:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BWrjHVR5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49BC9C4CEF1;
+	Tue, 19 Aug 2025 22:13:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755640510;
-	bh=gRjtTaJQgCQg4iLt7DACCXcUdygAh1cA8bBXzSnuB/M=;
+	s=k20201202; t=1755641593;
+	bh=VFxI+i2VfitSPQQL35e2MeXqm+Bb2LPPHqOW1EzsTEA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=cD6x203SdI5KeE17Bz9o6vUDD4o/uLGZMbnQG7CTynA32xxJn5G7sWzHCaC/ufxDD
-	 ijaAWbK/met3XTbK0z90vbG3Jk1t1w89yzUHsouH6VRThw35iW9wQngIQx+PqoJjsN
-	 06gSlYHGygWoA1pKJZRCDidRcSxJ8z3BHnv+hpbSZrjzWa66rsPejsJMbDCrzh4b/0
-	 nDE+C5XqI5NmuXxKRjvcxaIj5nvIQo3SztfR3mmgVSy13BxQ3numI4KDhoC/1DuqIF
-	 5CkYwpLA6dDMsxrLXqSW0HCcS5IJ9YlSKgcMnWl4WTC8qwo522/wluiuV6ywXHIOXO
-	 1xDourXu0rrQQ==
-Date: Tue, 19 Aug 2025 14:55:10 -0700
+	b=BWrjHVR5FKke1AOPUpRO50Sds8CKE+RXHD3Tl983RaePzpcAioGZqjRT+OsMIPm1C
+	 cpqc+hVsPs0P9g8EgfmwJUIFKCCnn+MhE1KvodHFOaaPiIZTa46krZjOt6PbctxDUN
+	 HWh15yNjwtEw/xah5jPfcX9UObgjheGSojIlr7wpNLZMgvm2aFTYKDtkS0njxT8Zqz
+	 A04inUILslYdQl1UIPMtSWsRhtFGsHtOcrjGM55nfuUoBw31cG+kbZP7VzK1raAz85
+	 mNOwhsM62U308brrG8ncHSMj7YGZEl+N7p4voWc9yK1p9PnAT/AoFfdC4/OYHvE53v
+	 n01MKX6sn6uQQ==
+Date: Tue, 19 Aug 2025 15:13:12 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
 To: John Groves <John@groves.net>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
@@ -51,13 +51,12 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Aravind Ramesh <arramesh@micron.com>,
 	Ajay Joshi <ajayjoshi@micron.com>
 Subject: Re: [RFC V2 12/18] famfs_fuse: Plumb the GET_FMAP message/response
-Message-ID: <20250819215510.GD7942@frogsfrogsfrogs>
+Message-ID: <20250819221312.GE7942@frogsfrogsfrogs>
 References: <20250703185032.46568-1-john@groves.net>
  <20250703185032.46568-13-john@groves.net>
  <CAJfpegv6wHOniQE6dgGymq4h1430oc2EyV3OQ2S9DqA20nZZUQ@mail.gmail.com>
  <CAJfpegv=ACZchaG-xt0k481W1ZUKb3hWmLi-Js-aKg92d=yObw@mail.gmail.com>
- <20250814182022.GW7942@frogsfrogsfrogs>
- <hd3tancdc6pgjka44nwhk6laawnasob44jqagwxawrmxtevihe@2orrcse6xyjx>
+ <mwnzafopjjpcgf3mznua3nphgmhdpiaato5pvojz7uz3bdw57n@zl7x2uz2hkfj>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -66,115 +65,60 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <hd3tancdc6pgjka44nwhk6laawnasob44jqagwxawrmxtevihe@2orrcse6xyjx>
+In-Reply-To: <mwnzafopjjpcgf3mznua3nphgmhdpiaato5pvojz7uz3bdw57n@zl7x2uz2hkfj>
 
-On Fri, Aug 15, 2025 at 10:06:01AM -0500, John Groves wrote:
-> On 25/08/14 11:20AM, Darrick J. Wong wrote:
-> > On Thu, Aug 14, 2025 at 04:36:57PM +0200, Miklos Szeredi wrote:
-> > > On Thu, 14 Aug 2025 at 15:36, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > > 
-> > > > I'm still hoping some common ground would benefit both interfaces.
-> > > > Just not sure what it should be.
-> > > 
-> > > Something very high level:
-> > > 
-> > >  - allow several map formats: say a plain one with a list of extents
-> > > and a famfs one
+On Fri, Aug 15, 2025 at 11:53:16AM -0500, John Groves wrote:
+> On 25/08/14 04:36PM, Miklos Szeredi wrote:
+> > On Thu, 14 Aug 2025 at 15:36, Miklos Szeredi <miklos@szeredi.hu> wrote:
 > > 
-> > Yes, I think that's needed.
+> > > I'm still hoping some common ground would benefit both interfaces.
+> > > Just not sure what it should be.
+> > 
+> > Something very high level:
+> > 
+> >  - allow several map formats: say a plain one with a list of extents
+> > and a famfs one
+> >  - allow several types of backing files: say regular and dax dev
+> >  - querying maps has a common protocol, format of maps is opaque to this
+> >  - maps are cached by a common facility
+> >  - each type of mapping has a decoder module
+> >  - each type of backing file has a module for handling I/O
+> > 
+> > Does this make sense?
+> > 
+> > This doesn't have to be implemented in one go, but for example
+> > GET_FMAP could be renamed to GET_READ_MAP with an added offset and
+> > size parameter.  For famfs the offset/size would be set to zero/inf.
+> > I'd be content with that for now.
 > 
-> Agreed
-> 
-> > 
-> > >  - allow several types of backing files: say regular and dax dev
-> > 
-> > "block device", for iomap.
-> > 
-> > >  - querying maps has a common protocol, format of maps is opaque to this
-> > >  - maps are cached by a common facility
-> > 
-> > I've written such a cache already. :)
-> 
-> I guess I need to take a look at that. Can you point me to the right place?
-> 
-> > 
-> > >  - each type of mapping has a decoder module
-> > 
-> > I don't know that you need much "decoding" -- for famfs, the regular
-> > mappings correspond to FUSE_IOMAP_TYPE_MAPPED.  The one goofy part is
-> > the device cookie in each IO mapping: fuse-iomap maps each block device
-> > you give it to a device cookie, so I guess famfs will have to do the
-> > same.
-> > 
-> > OTOH you can then have a famfs backed by many persistent memory
-> > devices.
-> 
-> That's handled in the famfs fmaps already. When an fmap is ingested,
-> if it references any previously-unknown daxdevs, they get retrieved
-> (FUSE_GET_DAXDEV).
-> 
-> Oversimplifying a bit, I assume that famfs fmaps won't really change,
-> they'll just be retrieved by a more flexible method and be preceded
-> by a header that identifies the payload as a famfs fmap.
+> Maybe GET_FILE_MAP or GET_FILE_IOMAP if we want to keep overloading 
+> the term iomap. Maps are to backing-dev for regular file systems,
+> and to device memory (devdax) for famfs - in all cases both read
+> and write (when write is allowed).
 
-<nod> Well, I suppose fmaps aren't supposed to change much, but I get
-the strong sense that Miklos would rather we both use the
-FUSE_DEV_IOC_BACKING_OPEN interface...
+The calling model for fuse-iomap is the same as fs/iomap -- there's an
+IOMAP_BEGIN upcall to get a mapping from the filesystem, and an
+IOMAP_END upcall to tell the fuse server whatever it did with the
+mapping.  Some filesystems will reserve delayed allocation reservations
+in iomap_begin for a pagecache write, and need to cancel those
+reservations if the write fails.
 
-> > 
-> > >  - each type of backing file has a module for handling I/O
-> > > 
-> > > Does this make sense?
-> > 
-> > More or less.
-> 
-> I'm nervous about going for too much generalization too soon here,
-> but otherwise yeah.
+For a pagecache write you need both a read and a write mapping because
+the caller's file range isn't guaranteed to be fsblock-aligned.  famfs
+mappings are a subcase of iomappings -- the read & write mappings are
+the same, and they're always FUSE_IOMAP_TYPE_MAPPED.
 
-...and I've tried to make it simple for famfs to pick up the interface.
-From the new fuse_backing_open:
+IOWs, I don't want "GET_FILE_IOMAP" because that's not how iomap works.
+(There's a separate FUSE_IOMAP_IOEND to pass along IO completions from
+storage)
 
-	/*
-	 * Each _backing_open function should either:
-	 *
-	 * 1. Take a ref to fb if it wants the file and return 0.
-	 * 2. Return 0 without taking a ref if the backing file isn't needed.
-	 * 3. Return an errno explaining why it couldn't attach.
-	 *
-	 * If at least one subsystem bumps the reference count to open it,
-	 * we'll install it into the index and return the index.  If nobody
-	 * opens the file, the error code will be passed up.  EPERM is the
-	 * default.
-	 */
-	passthrough_res = fuse_passthrough_backing_open(fc, fb);
-	iomap_res = fuse_iomap_backing_open(fc, fb);
-
-	if (refcount_read(&fb->count) < 2)
-		/* drop the fuse_backing and return one of the res */
-
-So all your famfs_backing_open function has to do is check that fb->file
-points to a pmem device.  If so, it sets fb->famfs = 1 and bumps the
-fb->count refcount.
-
-Full code here:
-https://git.kernel.org/pub/scm/linux/kernel/git/djwong/xfs-linux.git/log/?h=fuse-iomap-attrs_2025-08-19
-
-I'll let the build robots find any facepalm problems and post this whole
-series tomorrow.
-
-> > > This doesn't have to be implemented in one go, but for example
-> > > GET_FMAP could be renamed to GET_READ_MAP with an added offset and
-> > > size parameter.  For famfs the offset/size would be set to zero/inf.
-> > > I'd be content with that for now.
-> > 
-> > I'll try to cough up a RFC v4 next week.
-> 
-> Darrick, let's try to chat next week to compare notes.
-> 
-> Based on this thinking, I will keep my rework of GET_FMAP to a minimum
-> since that will likely be a new shared message/response. I think that
-> part can be merged later in the cycle...
-
-<nod>
+Given that famfs just calls dax_iomap_rw with an iomap_ops struct, I
+seriously wonder if I should just wire up fsdax for RFC v5 and then
+let's see how much code famfs actually needs on top of that.
 
 --D
+
+> Thanks,
+> John
+> 
+> 
