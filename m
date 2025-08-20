@@ -1,126 +1,399 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17BFD531;
-	Tue, 19 Aug 2025 22:34:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2186772625
+	for <nvdimm@lists.linux.dev>; Wed, 20 Aug 2025 00:31:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755642877; cv=none; b=Y3+8Z9BxxUYYBQ9L8wF1mymXi0kEcRbRrX9pOcds1dtyZcglNd0oHGdisj+w8K1yCwLYOYwqlYekx4O1cKu9jh6odPGxBHc511XtHVnhcmlo6afJiIIyLtHoAdo8Q19XQywQio8mQzVaW0YFRc5go2vgzfaVuej59H10tRbzo4Q=
+	t=1755649871; cv=none; b=sUY/yZVRltJSDDGtMubKKX2ot0r9Ou61Tm9/OjuQkWtd2Alup2+lQQi3bXQEc4916+RO32H8ypGDeB/6wPtromkw376N8er3rbvfrlDGQVcSW1/cQp1Gs5EJyhmLgj8kmajZ7qHwMrhOta5Yet58i1/StYC0F1VdbqV05j/v+ww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755642877; c=relaxed/simple;
-	bh=6Sk/MNWBFDioqL39rNr4B4PX+fafxYE5hU6kqwLAC60=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KMeLj4JgA6/Y/5utEJUYvtQKEY7cYJ0QaoF8isMRTA1n2sKsYM3gPISAEq13l4DDF3b/Xtizr7N0F7YDg1ULlTUj9ezN6mgElE4956GbfYNxfADo4s8BxHpmGgRIE+g5tm3vASrC6gu41zsXEPEOSpI4Gax4poIGY9mArTIIuCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m8is8tYV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755649871; c=relaxed/simple;
+	bh=orKiwU+NW3c2Yfxd9xwUkBFgqvDuDKlS4t1PSjWD4G8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Y4yJgkJ4aIoKhXGWu6FWPvIEvXfJb1qUEzyGwxoTyAaV5zbiArhRQJhPwpYPIp4BR/eCn8hJI1wZqNX9hc0c/5mxkxEA9sYEPIl1I/gmq1WukiMDAlD+/gvWh25+YIwQiXnw/z1Vn+FLgV6nFFZonkx15DmfEdMWpF3+4U2uJkE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WcJLfcaO; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m8is8tYV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AEE3C4CEF1;
-	Tue, 19 Aug 2025 22:34:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755642876;
-	bh=6Sk/MNWBFDioqL39rNr4B4PX+fafxYE5hU6kqwLAC60=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=m8is8tYVtpytE05vnC4AEAiO2Sgb7LQHcA84q4ih6q/pvpskZWaCzrkq70rRw5t37
-	 jW2niufEFAxRDqrPWRCD0R/8ggeM8n9qBliJuziaUG++cgEhWhangonf92ydflG+mm
-	 3DLxBojovVmZmKBTIw68Wc3luWbPWKJbwE+tbrn1RihdyBh1GzgimLUXFppQEnU5Jz
-	 z9pLaxJHCy+hmzcXVv9k3smq+JfcDv9Z78Jp11BGue9+KhjXHJcIxLfkV52Fjoh6Dc
-	 t/qzkwcJ20hJFn0UL+ndD71H2VAdrXTXq2pUxkvYaGdALMFnKKzmQBHeRynzFkWnlM
-	 FXTZ+rPBQni3A==
-Date: Tue, 19 Aug 2025 15:34:35 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: John Groves <John@groves.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Bernd Schubert <bschubert@ddn.com>,
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Stefan Hajnoczi <shajnocz@redhat.com>,
-	Joanne Koong <joannelkoong@gmail.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>
-Subject: Re: [RFC V2 14/18] famfs_fuse: GET_DAXDEV message and daxdev_table
-Message-ID: <20250819223435.GH7942@frogsfrogsfrogs>
-References: <20250703185032.46568-1-john@groves.net>
- <20250703185032.46568-15-john@groves.net>
- <CAJfpegv19wFrT0QFkwFrKbc6KXmktt0Ba2Lq9fZoihA=eb8muA@mail.gmail.com>
- <oolcpxrjdzrkqnmj4xvcymnyb6ovdt7np7trxlgndniqe35l3s@ru5adqnjxexh>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WcJLfcaO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1755649870; x=1787185870;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=orKiwU+NW3c2Yfxd9xwUkBFgqvDuDKlS4t1PSjWD4G8=;
+  b=WcJLfcaOZnjOQrNllTQWk4FE/uW2np0YFu19q8rkGU5kDIYNz5kbrrfO
+   wJ87HH7/5QgValXSTzkx57Kby6NOkHljkzdp1QEAlWs502T5LPsYS9s32
+   OAVeXuO2raFGTFWmOgQ9cAlFt6+QjeyZBzmzlI7MlIkx5D9f0z9S/DKDT
+   /4dUYamd4KoSXe3CH1tbIaurlWzq/yJXnIQZvjRf4vhx6/xlae653ISaK
+   5I/Mg42qJykpBS106la/XsQfUTVB1zoyUk6Oe101mSRnpNSuKPf80bbrq
+   5s2qEAMx6/Zv1md0nsMYESlHhMjy3Rf+V8lrY5CO2IzaKLYgT/UouaEf/
+   A==;
+X-CSE-ConnectionGUID: 3Jlyg7ezQDiljkXFZtKFvg==
+X-CSE-MsgGUID: FV4ih//4S7+GlUvveuH1rA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11527"; a="57975328"
+X-IronPort-AV: E=Sophos;i="6.17,302,1747724400"; 
+   d="scan'208";a="57975328"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2025 17:31:09 -0700
+X-CSE-ConnectionGUID: LGekBot5Sk++xRkh4qoVcQ==
+X-CSE-MsgGUID: rl8RMa59T0GUxu7QGdBrGA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.17,302,1747724400"; 
+   d="scan'208";a="173224396"
+Received: from unknown (HELO [10.247.119.200]) ([10.247.119.200])
+  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2025 17:31:04 -0700
+Message-ID: <54012143-0925-4e76-a1e9-0092e10b8c84@intel.com>
+Date: Tue, 19 Aug 2025 17:30:58 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <oolcpxrjdzrkqnmj4xvcymnyb6ovdt7np7trxlgndniqe35l3s@ru5adqnjxexh>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH V2 14/20] cxl/region: Add devm_cxl_pmem_add_region() for
+ pmem region creation
+To: Neeraj Kumar <s.neeraj@samsung.com>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, gost.dev@samsung.com
+Cc: a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com
+References: <20250730121209.303202-1-s.neeraj@samsung.com>
+ <CGME20250730121241epcas5p3e5708a89d764d1de9322fd759f921de0@epcas5p3.samsung.com>
+ <20250730121209.303202-15-s.neeraj@samsung.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20250730121209.303202-15-s.neeraj@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, Aug 15, 2025 at 11:38:02AM -0500, John Groves wrote:
-> On 25/08/14 03:58PM, Miklos Szeredi wrote:
-> > On Thu, 3 Jul 2025 at 20:54, John Groves <John@groves.net> wrote:
-> > >
-> > > * The new GET_DAXDEV message/response is enabled
-> > > * The command it triggered by the update_daxdev_table() call, if there
-> > >   are any daxdevs in the subject fmap that are not represented in the
-> > >   daxdev_dable yet.
-> > 
-> > This is rather convoluted, the server *should know* which dax devices
-> > it has registered, hence it shouldn't need to be explicitly asked.
-> 
-> That's not impossible, but it's also a bit harder than the current
-> approach for the famfs user space - which I think would need to become
-> stateful as to which daxdevs had been pushed into the kernel. The
-> famfs user space is as unstateful as possible ;)
-> 
-> > 
-> > And there's already an API for registering file descriptors:
-> > FUSE_DEV_IOC_BACKING_OPEN.  Is there a reason that interface couldn't
-> > be used by famfs?
-> 
-> FUSE_DEV_IOC_BACKING_OPEN looks pretty specific to passthrough. The
-> procedure for opening a daxdev is stolen from the way xfs does it in 
-> fs-dax mode. It calls fs_dax_get() rather then open(), and passes in 
-> 'famfs_fuse_dax_holder_ops' to 1) effect exclusivity, and 2) receive
-> callbacks in the event of memory errors. See famfs_fuse_get_daxdev()...
 
-Yeah, that's about what I would do to wire up fsdax in fuse-iomap.
 
-> A *similar* ioctl could be added to push in a daxdev, but that would
-> still add statefulness that isn't required in the current implementation.
-> I didn't go there because there are so few IOCTLs currently (the overall 
-> model is more 'pull' than 'push').
+On 7/30/25 5:12 AM, Neeraj Kumar wrote:
+> devm_cxl_pmem_add_region() is used to create cxl region based on region
+> information scanned from LSA.
 > 
-> Keep in mind that the baseline case with famfs will be files that are 
-> interleaved across strips from many daxdevs. We commonly create files 
-> that are striped across 16 daxdevs, selected at random from a
-> significantly larger pool. Because interleaving is essential to memory 
-> performance...
+> devm_cxl_add_region() is used to just allocate cxlr and its fields are
+> filled later by userspace tool using device attributes (*_store()).
 > 
-> There is no "device mapper" analog for memory, so famfs really does 
-> have to span daxdevs. As Darrick commented somewhere, famfs fmaps do 
-> repeating patterns well (i.e. striping)...
+> Inspiration for devm_cxl_pmem_add_region() is taken from these device
+> attributes (_store*) calls. It allocates cxlr and fills information
+> parsed from LSA and calls device_add(&cxlr->dev) to initiate further
+> region creation porbes
 > 
-> I think there is a certain elegance to the current approach, but
-> if you feel strongly I will change it.
+> Renamed __create_region() to cxl_create_region() and make it an exported
+> routine. This will be used in later patch to create cxl region after
+> fetching region information from LSA.
+> 
+> Also created some helper routines and refactored dpa_size_store(),
+> commit_store() to avoid duplicate code usage in devm_cxl_pmem_add_region()
 
-I still kinda wonder if you actually want BPF for this sort of thing
-(programmatically computed file IO mappings) since they'd give you more
-flexibility than hardcoded C in the kernel.
+"Some helper routines are created to...."
 
---D
+I would drop the "Also"
 
-> Thanks!
-> John
+
 > 
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+> ---
+>  drivers/cxl/core/core.h   |   1 +
+>  drivers/cxl/core/port.c   |  29 ++++++----
+>  drivers/cxl/core/region.c | 118 +++++++++++++++++++++++++++++++++-----
+>  drivers/cxl/cxl.h         |  12 ++++
+>  4 files changed, 134 insertions(+), 26 deletions(-)
 > 
+> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+> index 2669f251d677..80c83e0117c6 100644
+> --- a/drivers/cxl/core/core.h
+> +++ b/drivers/cxl/core/core.h
+> @@ -94,6 +94,7 @@ int cxl_dpa_free(struct cxl_endpoint_decoder *cxled);
+>  resource_size_t cxl_dpa_size(struct cxl_endpoint_decoder *cxled);
+>  resource_size_t cxl_dpa_resource_start(struct cxl_endpoint_decoder *cxled);
+>  bool cxl_resource_contains_addr(const struct resource *res, const resource_size_t addr);
+> +ssize_t resize_or_free_dpa(struct cxl_endpoint_decoder *cxled, u64 size);
+>  
+>  enum cxl_rcrb {
+>  	CXL_RCRB_DOWNSTREAM,
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index 29197376b18e..ba743e31f721 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -243,16 +243,9 @@ static ssize_t dpa_size_show(struct device *dev, struct device_attribute *attr,
+>  	return sysfs_emit(buf, "%pa\n", &size);
+>  }
+>  
+> -static ssize_t dpa_size_store(struct device *dev, struct device_attribute *attr,
+> -			      const char *buf, size_t len)
+> +ssize_t resize_or_free_dpa(struct cxl_endpoint_decoder *cxled, u64 size)
+
+Maybe it should be called cxl_realloc_dpa()? More comments later on...
+ 
+>  {
+> -	struct cxl_endpoint_decoder *cxled = to_cxl_endpoint_decoder(dev);
+> -	unsigned long long size;
+> -	ssize_t rc;
+> -
+> -	rc = kstrtoull(buf, 0, &size);
+> -	if (rc)
+> -		return rc;
+> +	int rc;
+>  
+>  	if (!IS_ALIGNED(size, SZ_256M))
+>  		return -EINVAL;
+> @@ -262,9 +255,23 @@ static ssize_t dpa_size_store(struct device *dev, struct device_attribute *attr,
+>  		return rc;
+>  
+>  	if (size == 0)
+> -		return len;
+> +		return 0;
+> +
+> +	return cxl_dpa_alloc(cxled, size);
+> +}
+> +
+> +static ssize_t dpa_size_store(struct device *dev, struct device_attribute *attr,
+> +			      const char *buf, size_t len)
+> +{
+> +	struct cxl_endpoint_decoder *cxled = to_cxl_endpoint_decoder(dev);
+> +	unsigned long long size;
+> +	ssize_t rc;
+> +
+> +	rc = kstrtoull(buf, 0, &size);
+> +	if (rc)
+> +		return rc;
+>  
+> -	rc = cxl_dpa_alloc(cxled, size);
+> +	rc = resize_or_free_dpa(cxled, size);
+>  	if (rc)
+>  		return rc;
+>  
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index eef501f3384c..8578e046aa78 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -703,6 +703,23 @@ static int free_hpa(struct cxl_region *cxlr)
+>  	return 0;
+>  }
+>  
+> +static ssize_t resize_or_free_region_hpa(struct cxl_region *cxlr, u64 size)
+> +{
+> +	int rc;
+> +
+> +	ACQUIRE(rwsem_write_kill, rwsem)(&cxl_rwsem.region);
+> +	rc = ACQUIRE_ERR(rwsem_write_kill, &rwsem);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (size)
+> +		rc = alloc_hpa(cxlr, size);
+> +	else
+> +		rc = free_hpa(cxlr);
+> +
+> +	return rc;
+> +}
+
+I think it's better to have 2 helper functions rather a single ambiguous one here. alloc_region_hpa() and free_region_hpa(). More on why later.
+
+> +
+>  static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+>  			  const char *buf, size_t len)
+>  {
+> @@ -714,15 +731,7 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+>  	if (rc)
+>  		return rc;
+>  
+> -	ACQUIRE(rwsem_write_kill, rwsem)(&cxl_rwsem.region);
+> -	if ((rc = ACQUIRE_ERR(rwsem_write_kill, &rwsem)))
+> -		return rc;
+> -
+> -	if (val)
+> -		rc = alloc_hpa(cxlr, val);
+> -	else
+> -		rc = free_hpa(cxlr);
+> -
+> +	rc = resize_or_free_region_hpa(cxlr, val);
+>  	if (rc)
+>  		return rc;
+>  
+> @@ -2569,6 +2578,76 @@ static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
+>  	return ERR_PTR(rc);
+>  }
+>  
+> +static struct cxl_region *
+> +devm_cxl_pmem_add_region(struct cxl_root_decoder *cxlrd,
+> +			 int id,
+> +			 enum cxl_partition_mode mode,
+> +			 enum cxl_decoder_type type,
+> +			 struct cxl_pmem_region_params *params,
+> +			 struct cxl_decoder *cxld)
+> +{
+> +	struct cxl_port *root_port;
+> +	struct cxl_region *cxlr;
+> +	struct cxl_endpoint_decoder *cxled;
+> +	struct cxl_region_params *p;
+> +	struct device *dev;
+> +	int rc;
+> +
+> +	cxlr = cxl_region_alloc(cxlrd, id);
+I think you can use __free() here to drop all the gotos.
+
+struct cxl_region *cxlr __free(put_cxl_region) = cxl_region_alloc(cxlrd, id);
+
+Just make sure to 'return no_free_ptr(cxlr)' at the successful end.
+
+
+> +	if (IS_ERR(cxlr))
+> +		return cxlr;
+> +	cxlr->mode = mode;
+> +	cxlr->type = type;
+> +
+> +	dev = &cxlr->dev;
+> +	rc = dev_set_name(dev, "region%d", id);
+> +	if (rc)
+> +		goto err;
+> +
+> +	p = &cxlr->params;
+> +	p->uuid = params->uuid;
+> +	p->interleave_ways = params->nlabel;
+> +	p->interleave_granularity = params->ig;
+> +
+> +	if (resize_or_free_region_hpa(cxlr, params->rawsize))
+> +		goto err;
+
+Given this is _add_region(), it really should only be calling alloc_region_hpa() and not have to deal with free. Maybe a check before this and make sure params->rawsize is not 0 is needed.
+
+> +
+> +	cxled = to_cxl_endpoint_decoder(&cxld->dev);
+> +	if (resize_or_free_dpa(cxled, 0))
+Given that resize_or_free_dpa() always frees, is this call necessary here? 
+
+> +		goto err;
+> +
+> +	if (cxl_dpa_set_part(cxled, CXL_PARTMODE_PMEM))
+> +		goto err;
+> +
+> +	if (resize_or_free_dpa(cxled, params->rawsize))
+
+Seems like it can be called once here instead and it'll just free and then re-allocate whatever size in params->rawsize.
+
+> +		goto err;
+> +
+> +	/* Attaching only one target due to interleave_way == 1 */
+Is it missing a check of interleave_ways here? Also maybe additional comments on why support iw==1 only?
+
+> +	if (attach_target(cxlr, cxled, params->position, TASK_INTERRUPTIBLE))
+> +		goto err;
+> +
+> +	if (__commit(cxlr))
+> +		goto err;
+> +
+> +	rc = device_add(dev);
+> +	if (rc)
+> +		goto err;
+> +
+> +	root_port = to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
+> +	rc = devm_add_action_or_reset(root_port->uport_dev,
+> +			unregister_region, cxlr);
+> +	if (rc)
+> +		return ERR_PTR(rc);
+> +
+> +	dev_dbg(root_port->uport_dev, "%s: created %s\n",
+> +		dev_name(&cxlrd->cxlsd.cxld.dev), dev_name(dev));
+> +	return cxlr;
+> +
+> +err:
+> +	put_device(dev);
+> +	return ERR_PTR(rc);
+> +}
+> +
+>  static ssize_t __create_region_show(struct cxl_root_decoder *cxlrd, char *buf)
+>  {
+>  	return sysfs_emit(buf, "region%u\n", atomic_read(&cxlrd->region_id));
+> @@ -2586,8 +2665,10 @@ static ssize_t create_ram_region_show(struct device *dev,
+>  	return __create_region_show(to_cxl_root_decoder(dev), buf);
+>  }
+>  
+> -static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
+> -					  enum cxl_partition_mode mode, int id)
+> +struct cxl_region *cxl_create_region(struct cxl_root_decoder *cxlrd,
+> +				     enum cxl_partition_mode mode, int id,
+> +				     struct cxl_pmem_region_params *params,
+
+Maybe name it pmem_params to avoid confusion with cxl region params.
+
+> +				     struct cxl_decoder *cxld)
+>  {
+>  	int rc;
+>  
+> @@ -2609,8 +2690,14 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
+>  		return ERR_PTR(-EBUSY);
+>  	}
+>  
+> -	return devm_cxl_add_region(cxlrd, id, mode, CXL_DECODER_HOSTONLYMEM);
+> +	if (params)
+> +		return devm_cxl_pmem_add_region(cxlrd, id, mode,
+> +				CXL_DECODER_HOSTONLYMEM, params, cxld);
+> +	else
+
+'else' not needed here. Just directly return.
+
+> +		return devm_cxl_add_region(cxlrd, id, mode,
+> +				CXL_DECODER_HOSTONLYMEM);
+>  }
+> +EXPORT_SYMBOL_NS_GPL(cxl_create_region, "CXL");
+>  
+>  static ssize_t create_region_store(struct device *dev, const char *buf,
+>  				   size_t len, enum cxl_partition_mode mode)
+> @@ -2623,7 +2710,7 @@ static ssize_t create_region_store(struct device *dev, const char *buf,
+>  	if (rc != 1)
+>  		return -EINVAL;
+>  
+> -	cxlr = __create_region(cxlrd, mode, id);
+> +	cxlr = cxl_create_region(cxlrd, mode, id, NULL, NULL);
+>  	if (IS_ERR(cxlr))
+>  		return PTR_ERR(cxlr);
+>  
+> @@ -3414,8 +3501,9 @@ static struct cxl_region *construct_region(struct cxl_root_decoder *cxlrd,
+>  	struct cxl_region *cxlr;
+>  
+>  	do {
+> -		cxlr = __create_region(cxlrd, cxlds->part[part].mode,
+> -				       atomic_read(&cxlrd->region_id));
+> +		cxlr = cxl_create_region(cxlrd, cxlds->part[part].mode,
+> +					 atomic_read(&cxlrd->region_id),
+> +					 NULL, NULL);
+>  	} while (IS_ERR(cxlr) && PTR_ERR(cxlr) == -EBUSY);
+>  
+>  	if (IS_ERR(cxlr)) {
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 6edcec95e9ba..129db2e49aa7 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -865,6 +865,10 @@ int cxl_add_to_region(struct cxl_endpoint_decoder *cxled);
+>  struct cxl_dax_region *to_cxl_dax_region(struct device *dev);
+>  u64 cxl_port_get_spa_cache_alias(struct cxl_port *endpoint, u64 spa);
+>  void cxl_region_discovery(struct cxl_port *port);
+> +struct cxl_region *cxl_create_region(struct cxl_root_decoder *cxlrd,
+> +				     enum cxl_partition_mode mode, int id,
+> +				     struct cxl_pmem_region_params *params,
+> +				     struct cxl_decoder *cxld);
+>  #else
+>  static inline bool is_cxl_pmem_region(struct device *dev)
+>  {
+> @@ -890,6 +894,14 @@ static inline u64 cxl_port_get_spa_cache_alias(struct cxl_port *endpoint,
+>  static inline void cxl_region_discovery(struct cxl_port *port)
+>  {
+>  }
+> +static inline struct cxl_region *
+> +cxl_create_region(struct cxl_root_decoder *cxlrd,
+> +		  enum cxl_partition_mode mode, int id,
+> +		  struct cxl_pmem_region_params *params,
+> +		  struct cxl_decoder *cxld)
+> +{
+> +	return NULL;
+
+return ERR_PTR(-EOPNOTSUPP);
+
+> +}
+>  #endif
+>  
+>  void cxl_endpoint_parse_cdat(struct cxl_port *port);
+
