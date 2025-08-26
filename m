@@ -1,181 +1,215 @@
-Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7774F31A55D
-	for <nvdimm@lists.linux.dev>; Tue, 26 Aug 2025 16:37:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.169
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756226262; cv=none; b=KB7DAzWe/FvA49n8A7FEoQ2vaaZXKgWrbhW3DNOtUCrVI5qTEL38IxHrk7GyfrtWGGlwlmijW+D2jmAlcM1FaYnioMJlugS6BlZXGYxfDXtPLo/FbL4yDJnZyJdXY0R4NH8xNUUV/ixY7nsmPHujH1+/tBmvSBvAZrNx/0cUiQY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756226262; c=relaxed/simple;
-	bh=AEdKHjzMg9eUTtDLSUEGj/0UGdfhDJa9ocC7lXKnb8w=;
-	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
-	 MIME-Version:Content-Type; b=g9V4AdypVcTZ2wiJCLIzdPhHr2vk3S9dhYEIf7LjDhGateiJJ9WHYGoaW6PcbWBqlCSbAUf0u3Q4RebQash7fyAGCyk+f2rwQsdiRUXn8gb3Stkm4ShTl0h1KIdlvkfIJu24JYoCoNYnJxuUGdaXqA/RZtkApBIajMuTVT3XWVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Es7F9EcH; arc=none smtp.client-ip=209.85.215.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C5A12D543A
+	for <nvdimm@lists.linux.dev>; Tue, 26 Aug 2025 23:21:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1756250478; cv=fail; b=r2I1L4MoyoOcsFcJQSPgwT+jISoL7mij9PXp6o8Lg17ie1yYc+UvI5SSFqb0ZOspAMPC+YahkTuas0bj6/jsrEJvZ1Y+OyK9g548HrvyBzYZZ6Fz9F/5eh4cQibT64Y6VGtUn4Wd4lorE2f1+7qT/o4LMgv68+v4xAXQPh9pbtU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1756250478; c=relaxed/simple;
+	bh=VAie6FCzvAPOTP1vGgkK0NylHUaTQWwSR4cX/0DYMVo=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=ItiJnVphAEBgj3Q55zX16l82MC8ZemFKeWovUa/DDuxaLzmLrbUHwlOjy3aMl3HVBYDSbH0LqpcqJcRUbmqo+pxNw6lNP6qtMCmSBw6+cBIi1rm7YkfvB9WwM17Uk6wy8qfKs53EDTmTAwpt4d1PwyD3Xi4xFEYD4fEXJt3RaE0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EXcWBRpe; arc=fail smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Es7F9EcH"
-Received: by mail-pg1-f169.google.com with SMTP id 41be03b00d2f7-b47174c8e45so5627452a12.2
-        for <nvdimm@lists.linux.dev>; Tue, 26 Aug 2025 09:37:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1756226261; x=1756831061; darn=lists.linux.dev;
-        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=jyPF/dL+2YqZRv98PVCshXGneATY8Fvhth5O4vhMkWc=;
-        b=Es7F9EcHLwr9bQoN9EghlLXVJEuPnoKWkGmXqJKXt1nBDIAfsxBhcU/lNX2kEreS9W
-         rCUdjPNbusTZwdEGNMc2ZTtCQPkuiXt8vGPno7l+WzsqEei4FOvSMk8rdYQbZkjRtWd4
-         iLDNs6P6WQPyAHPppILu8UoafRACxExuhjFclrTuDMkJqeD08iaaU+jqjPVHvHNtXKmt
-         ipsaWRog4Md/oYmn0vhBahPbp8IPCygnxP/b+ujxpR7bhvT3CHO/dK+nHCUMmrOP1I3K
-         NsFQLXIcxOWZHLciKwIg/gDS8EdbfxVawPHmZA7elMEwjU+zF+bZMA4u4834SN7rXFUm
-         NMjA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756226261; x=1756831061;
-        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=jyPF/dL+2YqZRv98PVCshXGneATY8Fvhth5O4vhMkWc=;
-        b=H5gFfjd2OpaD7Xkmg2FQ6bUDdibsvQmkEPIDtDKjhfLonnJ/xLjGMS9plk6/sZcM/7
-         lwZz8Rr6cSCs5nqZpxYJ91x4r8VHLOL5nxk2h8xXAcpC92XjEFUF+N9ZL9SEWfWChjzF
-         bw0eME0l33VnLn/BH43hlVztfnT/deluXD0v5yxpKNkGYOfjvd2g6VBSXBz8y9zyGtQL
-         t30rvMonO8174ENpn534UJbwEIRR7ijUfg4fOmkGIcBIFT69zOHZ/XUIHWCyNRgi5Wa+
-         czHOwFNDSKQ5QhZhUF6HAzC7Xe6ThZCxcfHfZYxy0u/A3ZNqZDbnRt9djuNLfD4YnPoZ
-         DY9Q==
-X-Forwarded-Encrypted: i=1; AJvYcCWCZZfhrYCagNVQU5RMcRwpwiYlF2gi1+kvIi9c6/jHVZBgXGCmi0R14oNxjBFQx+SJmfw34EE=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx26cinjJ+0xENaSaMwRw3AFO/YDMDu4wpKX/jYi8RoiSWAWFit
-	AzHJw4RW3AODrHDovHoW4Y/AGlaOxbWJia1yQcuTFzaW0E6U4YKM/7R5
-X-Gm-Gg: ASbGnctsCQHpLm+PlsUiweImFdhTLlryNefN8VHmUslxWDmBWTGUPijhvcf+XHB4IcY
-	OkvbZbmMm+ZEMTwIErU1JWi4PLP0G0n0DyoYzTJksgaUmXhkgdrmkHgZcCGDJu3GS1bXIQqGyE9
-	inlpy0psoCrre2bpYsLIRDKhFzkWrE7MQieJu+oCWxglRlmNuB78GRnLGbRBmUp2Ttb7F/CFyXg
-	X/CKqqkdBk6hUnvHxmj9OrCHG4bmzrzfNbE6lRUKLhD1e6ZPqB+I3t6xEnvHjskXc28NCYXMP8D
-	Gb8ash4uUGJHq+Yk3N7NzbWeKcJOksnY/7xXC+S1zgSfyepQkoG2eZ/2g/bb+7Hc7UuBaQrL6vj
-	cpIfkl2hpWsLsXg==
-X-Google-Smtp-Source: AGHT+IHkpBzdMdA7eE7qfwfc1lxqW0m87+LkJnM6/YhAHtUnIYSPMtiSiZLKGMu2nLQJcFkeNv4YGw==
-X-Received: by 2002:a17:903:32c8:b0:248:79d4:939b with SMTP id d9443c01a7336-24879d4978cmr26372675ad.54.1756226260428;
-        Tue, 26 Aug 2025 09:37:40 -0700 (PDT)
-Received: from dw-tp ([171.76.82.15])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-248681adacdsm21450705ad.10.2025.08.26.09.37.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Aug 2025 09:37:39 -0700 (PDT)
-From: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-To: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org, xen-devel@lists.xenproject.org, 
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linuxppc-dev@lists.ozlabs.org, David Hildenbrand <david@redhat.com>, 
-	Andrew Morton <akpm@linux-foundation.org>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
-	Christophe Leroy <christophe.leroy@csgroup.eu>, Juergen Gross <jgross@suse.com>, 
-	Stefano Stabellini <sstabellini@kernel.org>, 
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Dan Williams <dan.j.williams@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
-	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, Hugh Dickins <hughd@google.com>, 
-	Oscar Salvador <osalvador@suse.de>, Lance Yang <lance.yang@linux.dev>
-Subject: Re: [PATCH v3 06/11] powerpc/ptdump: rename "struct pgtable_level" to "struct ptdump_pglevel"
-In-Reply-To: <20250811112631.759341-7-david@redhat.com>
-Date: Tue, 26 Aug 2025 21:58:09 +0530
-Message-ID: <87a53mqc86.fsf@gmail.com>
-References: <20250811112631.759341-1-david@redhat.com> <20250811112631.759341-7-david@redhat.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EXcWBRpe"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1756250476; x=1787786476;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=VAie6FCzvAPOTP1vGgkK0NylHUaTQWwSR4cX/0DYMVo=;
+  b=EXcWBRpeGRxvimjH9GjvkG0gE521XYeQpvXxD8G2nydcJP3YME+sKU8Y
+   UMiVB8RTQ0pMoksf5ckJfzNoUN9D0KeqxchdZAvpBtB9wKjcaGLqKiFqF
+   HioKGdNSrSvZF0W6KMts65USazfgMhu0yR/mY/pekWuwAViKEGXZnuIxa
+   86h0XnHmmpYx7iMcvlnnkPCxmCPJTCYx68H2ViKan/Lc4QPkr5zsTO7tU
+   FlLH5l8na+adsL9+7q/ThoDHZyiYgPKt+Z2mB00uj3LAWq20XjS7E1bHU
+   CC7N8L5r2JSAW300x0xxs1tJLrckQkfRdpBRGIvOXJNSWTPDJojprXXRk
+   w==;
+X-CSE-ConnectionGUID: OKOmnpntSo6lmv0Y2uDZhg==
+X-CSE-MsgGUID: OhLWxHrwRQuBjCXAB0cRtg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11534"; a="62145128"
+X-IronPort-AV: E=Sophos;i="6.18,214,1751266800"; 
+   d="scan'208";a="62145128"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2025 16:21:15 -0700
+X-CSE-ConnectionGUID: 4fgoqFD3RwW8VMLCrB21Ww==
+X-CSE-MsgGUID: teWiB7/LQiyZ9REpZdWMkg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.18,214,1751266800"; 
+   d="scan'208";a="169632701"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by fmviesa006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2025 16:21:13 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.17; Tue, 26 Aug 2025 16:21:12 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.17 via Frontend Transport; Tue, 26 Aug 2025 16:21:12 -0700
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (40.107.94.72) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.17; Tue, 26 Aug 2025 16:21:12 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=J1yedYNu0IwdIn3izOp5Y3TgEw3uczH68LAICPkYSyCrGHQXuH+6sTfnUrwCwyNu6FblzaDTdBM70LlmRVhKF/XpsVLiFWpG4WLGqdIX8PBRBBrBkDCk3uMSTZd4j+5AJmaftzrAdTpIZv9nvpVD0DoGuBlMDDJOBoDpNym9XTmmsu5k96OhQAzx25iA/73lz39UHe3P4wCtXbmHBfgMoVWa7QnmDB65ApZh/RXPJzE4kKseFTkKWKwQIdnc+m/nMPLb9QSJscl6vCHEvhW6OlKsWsb177mou27m2BuCyatuQ2D3MqFlEK+GqT4UzpoZ94hEDBdRuo2fsqbqVm/K1w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=h2OJ8XJEIss3vmb8b0HpDaNJ2e6g+44HvB7Lj2jTzeY=;
+ b=aIpnDzqgiO0HPie9yqKV14iL0+zLx+5YkhhSPNm1zuRz13Z7gGYYMSvLkxDFaFbVjfA80G8e9+Vjbo2Y+J3XdSgzy/AnokWH5MqSdu8/cmpvhkg3BqQaB9JKH+1+D2Cv6W0UkSP325lU5GXUlinesIf3AhQWtZTbA1OZlg4QVdxpgW+7ekr9lYrR2gF7BscORgqGIc7V+QatfjQGpwux0t7mmmQrNc3+Df4R+zzYFVFkYWu2ewZJfwHz/IDQ30jFzn7NyzRkLfPvBHOBZcSIIxnYY8DTfXJsdlIeKAYvGo1FcPU7ANT9qK7UdWA9ZROypKCgoaDETcQZlot98Jdi6w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ (2603:10b6:a0f:fc02::80b) by SJ2PR11MB8471.namprd11.prod.outlook.com
+ (2603:10b6:a03:578::5) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9073.13; Tue, 26 Aug
+ 2025 23:21:11 +0000
+Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ ([fe80::4df9:6ae0:ba12:2dde]) by SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ ([fe80::4df9:6ae0:ba12:2dde%7]) with mapi id 15.20.9052.013; Tue, 26 Aug 2025
+ 23:21:11 +0000
+Date: Tue, 26 Aug 2025 16:21:07 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, "Jonathan
+ Cameron" <jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	"Dan Williams" <dan.j.williams@intel.com>, Matthew Wilcox
+	<willy@infradead.org>, Jan Kara <jack@suse.cz>, "Rafael J . Wysocki"
+	<rafael@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek
+	<pavel@kernel.org>, Li Ming <ming.li@zohomail.com>, Jeff Johnson
+	<jeff.johnson@oss.qualcomm.com>, "Ying Huang" <huang.ying.caritas@gmail.com>,
+	Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
+	Greg KH <gregkh@linuxfoundation.org>, Nathan Fontenot
+	<nathan.fontenot@amd.com>, Terry Bowman <terry.bowman@amd.com>, Robert
+ Richter <rrichter@amd.com>, Benjamin Cheatham <benjamin.cheatham@amd.com>,
+	PradeepVineshReddy Kodamati <PradeepVineshReddy.Kodamati@amd.com>, Zhijian Li
+	<lizhijian@fujitsu.com>
+Subject: Re: [PATCH 0/6] dax/hmem, cxl: Coordinate Soft Reserved handling
+ with CXL
+Message-ID: <aK5BY7bQ_dMZLFNT@aschofie-mobl2.lan>
+References: <20250822034202.26896-1-Smita.KoralahalliChannabasappa@amd.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20250822034202.26896-1-Smita.KoralahalliChannabasappa@amd.com>
+X-ClientProxiedBy: BYAPR07CA0003.namprd07.prod.outlook.com
+ (2603:10b6:a02:bc::16) To SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ (2603:10b6:a0f:fc02::80b)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ5PPF0D43D62C4:EE_|SJ2PR11MB8471:EE_
+X-MS-Office365-Filtering-Correlation-Id: ddfa5387-8f47-478c-2c85-08dde4f73e26
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?jHGTIT1Zz2kp8GZh+6EZgBasYi/ES+lbxVwE/tRHCQSuq1dEepCFF9QcVM89?=
+ =?us-ascii?Q?Iqsy/VeelqEDVrfgMf2cDAssHmG+XMyaY8PzeItCrY3dQumXJbC0sMDzPgsn?=
+ =?us-ascii?Q?em+12bUniBL48QmqRwVw77GdtFWWjcwlImipl41Bd9BDPN9rRhaUaLjJjhSq?=
+ =?us-ascii?Q?l5tUzZRlIYS5myZAUZC/1258Z/0epXZ5ezsn1wsA4+xATkBzpVvKb0t3uhdN?=
+ =?us-ascii?Q?Nai81obKw+wLgfwtS9iPmOUGXvh8YTGfuByPnYMR642LpQAYg70XUI4RPI4F?=
+ =?us-ascii?Q?StW7ungge6CRlzzxZmb28UIlcdEZL4o5DKnfLkDzbIuYjOMCCc1VspQbvFgX?=
+ =?us-ascii?Q?nICTKtmy/RRuUO7WsUK4/1XNkSI/gKroUWOeS04QWWeZxYD5ddII7IAG1rIo?=
+ =?us-ascii?Q?exmk9vpDaXpjJwN0E8lM2Xgj2ZF54gwulx1m3RnxvfEnYpJcztfZPxiJhvmA?=
+ =?us-ascii?Q?oAULvTktPS80T0FvzvP1JIqWUhw5mom9+qezb4AJanabp53YoQJ8bX0ymUou?=
+ =?us-ascii?Q?zwLd5zw3ZZTF27WQs04oSVN6YNrjnFvxNEYCMqu0jFQlMMX6OY8uvUOnO7O2?=
+ =?us-ascii?Q?PowViLTYzSXpJPy+Jjp5s8DgtBrDGOB/9Dt+I2uCGA8RYsqbdkZ69gczrjT6?=
+ =?us-ascii?Q?Py/acc8TzTODcG+/1zCs8rfNjYQQgvw93cUVSrEy9zvA6zXuoJT01lvdRFWa?=
+ =?us-ascii?Q?dW/x5iLx1qhiYtclyjZHo2SHpoxI/DG2klG1zF8gfkTowoWx861OxX+w/VX0?=
+ =?us-ascii?Q?HQHJ+5BINVYgnCy86o2mWkyvlT0zBkQe0ez6vCOOwMSIGoRI5N6f+WDjLTyo?=
+ =?us-ascii?Q?MY8AZL+5wMSl8Qd+l44g5ifWIfQfi/l75eoCcuCrMDv5zKXS4pMy3XWCLWYH?=
+ =?us-ascii?Q?ZhUD6sVsFU0kjfFpzodEV+wfR//G0RQxH1dSwBbEtwL4ch9Pdu1sRN9CoWWT?=
+ =?us-ascii?Q?3brfPy9wgb8fdCDhruMZWuhsGz2bgpAEisrxxZLFsAd2sbPw7x40T9WvJuC6?=
+ =?us-ascii?Q?tEk5d1XTju3XIQ1SWGGSDBAE2h7ekWerJh69ekBgL58XJkx9w6c7oDtDqy9s?=
+ =?us-ascii?Q?z8QfHGh+U2XsTtTtHUJJrA0/qikIJYGQU1djnIh16Hfxs+ZVK9VcD25S7uZE?=
+ =?us-ascii?Q?ecKzpfW5Q6jBi0GlbY+2LCM0bigP6Qc9gSEuBDzJ/Hx17ytVMIIYUC42JTua?=
+ =?us-ascii?Q?OofNjqDg9miyT0b1+rk7aDDWHFQQse7z5RS7uqwUJj1HRtUS7m9cJSVjy6SV?=
+ =?us-ascii?Q?ZvTYhr8ERveLtGq6uNS0yOy1THKWBcmBlhn+ERwW7dZDvV0StADQwXBb+wLs?=
+ =?us-ascii?Q?BEbI4wnv0aDstwAUlH30DCcAn8Ho5hhcKP+xYQavFru5wphqvsezpZ2iXoMm?=
+ =?us-ascii?Q?tAM1i+8sENFefFhCxVaLwoeUkJ8FkFrEzYJun8Pv8rfBguKATVp57GcHwMEr?=
+ =?us-ascii?Q?jlR+QSV/9WU=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ5PPF0D43D62C4.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?uR0zcsBx+5YL08eZSJYYBd5ueJPFCekZs9eWuQXQHUrwCbQuG5VlgUFrepsJ?=
+ =?us-ascii?Q?ILROWsUPkgrJZQc5n/QOS39vZhz/4RCsHHZZ76I+yLtbBRyMhcHI9wyIBjRy?=
+ =?us-ascii?Q?JbvwpaOq/jVaR6Dr+IoWs28zVEjrvhUe0KifrI2rheqoD/VVMEJWyatjxiIH?=
+ =?us-ascii?Q?H6FnwNuLU8/qYzAjXqt/IcqI3TlMqxW2tJT7EOVWYe1c1Zo1JZyAzv3zggNO?=
+ =?us-ascii?Q?wQ3YTGC2G3WySwefPGp+FXHfTCrXBKJX7Xw/hBphg9pwrvUO8cdos3aXFtxd?=
+ =?us-ascii?Q?zMXLsOVtZBs/RfWZxmtE+KxrM/OgMVzwFK49Y//ObnUpbOuto8HzXTxML7Yx?=
+ =?us-ascii?Q?4XL+7ayDAs1ukC4+TcGIXfPWnOOut/OSM4d7p2Wkm5ZE9AqIbWVQ7I0RVOz4?=
+ =?us-ascii?Q?p233SYwGTkoGZjGU33p15aP3C+YTJipmQmZUAUMVyRW6aeCg7wHKY7W3uCg6?=
+ =?us-ascii?Q?YuCurlJPc4JvPLIaiKkgGFnvrH+Pmyf2ZE7/tfSldNHN+QENFvb0x++CBXEs?=
+ =?us-ascii?Q?PkvG9MG6F9HMwNZtL0NaF+bxhUAL0C0yT0qrZ+eXrKF5/SFw6HKqeMWr5deD?=
+ =?us-ascii?Q?yUBBmtta9HP0vg8Nk+p++wNzQc/yuOudcn3LsFr02VIPPxcVeLW1uXMzQc8D?=
+ =?us-ascii?Q?vNMfSXJ7RUas7kwD5T3qd8qKfx4ACpbyFcCQtu3MtB59TznGfrhpTLg5o8vm?=
+ =?us-ascii?Q?1Mngzre44rGY92gLmtvBfcdjh6vGKHS6kJrGaCAg1DEDNaddo9KC0gpx2hCt?=
+ =?us-ascii?Q?zjg88R/zfgW9gfbou+AgvmMbkmS8unB2boDwajBcDjxXseCbapz1O/yjPz74?=
+ =?us-ascii?Q?SUJIrTe6ffRngeh6lRSNqv9wQOFLAbddJE3YPEbHUFbXRetb70rHWyNRZyp1?=
+ =?us-ascii?Q?2a+E7rm/CXFKql2leAHqrTdj0eJZDj9cwpQo7+zlvqFtmfaQJPZXCRlQSNKq?=
+ =?us-ascii?Q?NUZyv3z9ApJPt1eyX9SWrghiAecSI6n1tnlkBkD101iOOrTR+kkB0pEGr7cr?=
+ =?us-ascii?Q?OmNo1u8P4oO82tN/rsHf6zjZ7vRmx/8yWgmvhO4WAX5m2PHhcubIp9V7p2XG?=
+ =?us-ascii?Q?RpE0e4Uxr/xsB+2/lAHExHHjXxxJpjKhn/G3KXjMEyw1MZqeGnvd4OTqyl8T?=
+ =?us-ascii?Q?oiEUcuIzw8+IkVoW5vKxygLVjHE4LxVPzim121swBbqyiLs9kLvYLWx4PkJx?=
+ =?us-ascii?Q?Uy1tUzPy6mgqVLncIAtKTxtX0OdMg3qFYvxJY/dqm9fK5eaRZaN40AINC/Lx?=
+ =?us-ascii?Q?6+4qhhU+qiN3c6f2ZYn4qxdObfuN5o2JPEil5+e7QLShtHyyWFp/VO+0jxCG?=
+ =?us-ascii?Q?HVuZFmsixIb3qmSD/uhrdgLzYbMXz11TLB6IQuYX1F/JmX2KkhuTO/MyfdRG?=
+ =?us-ascii?Q?GiFuntX03/ePRVMEFiONPQEB4h5YaBbVqz9mWAjsXmNJljwJeNkcDMrW1Mui?=
+ =?us-ascii?Q?sTxxz2ErcVDEpDyRXhYgwdfWNOgU5WIKGTwIpZfIIkH8vhvbTYn9NjHSWJHu?=
+ =?us-ascii?Q?Ms8yC4PUPoGFhD1+v+xV7pRBCQX4h2RetjN9Ex2fZuJiyy7UQukkUkkY6LX2?=
+ =?us-ascii?Q?crq/LeDpQWchIr7CpSKA2xT9NqwvWY1LWhtZ0nzu9jnkYi45tN9Ce48NBaMk?=
+ =?us-ascii?Q?iQ=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: ddfa5387-8f47-478c-2c85-08dde4f73e26
+X-MS-Exchange-CrossTenant-AuthSource: SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Aug 2025 23:21:10.9622
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 0LVVsZBxDpKR1aANZwbnAMv0cNpRot41uYhu6WCapTaDUKDdGJ8CC/5b2/kqzUSnQhSq0y8tQJLzwR00OQtLJ+k4dn5Z1V0oRt+OKkwPJR8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB8471
+X-OriginatorOrg: intel.com
 
-David Hildenbrand <david@redhat.com> writes:
+On Fri, Aug 22, 2025 at 03:41:56AM +0000, Smita Koralahalli wrote:
+> This series aims to address long-standing conflicts between dax_hmem and
+> CXL when handling Soft Reserved memory ranges.
 
-> We want to make use of "pgtable_level" for an enum in core-mm. Other
-> architectures seem to call "struct pgtable_level" either:
-> * "struct pg_level" when not exposed in a header (riscv, arm)
-> * "struct ptdump_pg_level" when expose in a header (arm64)
->
-> So let's follow what arm64 does.
->
-> Signed-off-by: David Hildenbrand <david@redhat.com>
-> ---
->  arch/powerpc/mm/ptdump/8xx.c      | 2 +-
->  arch/powerpc/mm/ptdump/book3s64.c | 2 +-
->  arch/powerpc/mm/ptdump/ptdump.h   | 4 ++--
->  arch/powerpc/mm/ptdump/shared.c   | 2 +-
->  4 files changed, 5 insertions(+), 5 deletions(-)
+Hi Smita,
 
+I was able to try this out today and it looks good. See one question
+about the !CXL_REGION case below.
 
-As mentioned in commit msg mostly a mechanical change to convert 
-"struct pgtable_level" to "struct ptdump_pg_level" for aforementioned purpose.. 
+Test case of a hot replace a dax region worked as expected. It appeared
+with no soft reserved and after tear down, the same region could be
+rebuilt in place.
 
-The patch looks ok and compiles fine on my book3s64 and ppc32 platform. 
+Test case with CONFIG_CXL_REGION=N looks good too, as in DAX consumed
+the entire resource. Do we intend the Soft Reserved resource to remain
+like this:
+c080000000-17dbfffffff : CXL Window 0
+  c080000000-c47fffffff : Soft Reserved
+    c080000000-c47fffffff : dax2.0
+      c080000000-c47fffffff : System RAM (kmem)
 
-I think we should fix the subject line.. s/ptdump_pglevel/ptdump_pg_level
+These other issues noted previously did not re-appear:
+- kmem dax3.0: probe with driver kmem failed with error -16
+- resource: Unaddressable device  [ ] conflicts with []
 
-Otherwise the changes looks good to me. So please feel free to add - 
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+-- Alison
 
+snip
 
-
->
-> diff --git a/arch/powerpc/mm/ptdump/8xx.c b/arch/powerpc/mm/ptdump/8xx.c
-> index b5c79b11ea3c2..4ca9cf7a90c9e 100644
-> --- a/arch/powerpc/mm/ptdump/8xx.c
-> +++ b/arch/powerpc/mm/ptdump/8xx.c
-> @@ -69,7 +69,7 @@ static const struct flag_info flag_array[] = {
->  	}
->  };
->  
-> -struct pgtable_level pg_level[5] = {
-> +struct ptdump_pg_level pg_level[5] = {
->  	{ /* pgd */
->  		.flag	= flag_array,
->  		.num	= ARRAY_SIZE(flag_array),
-> diff --git a/arch/powerpc/mm/ptdump/book3s64.c b/arch/powerpc/mm/ptdump/book3s64.c
-> index 5ad92d9dc5d10..6b2da9241d4c4 100644
-> --- a/arch/powerpc/mm/ptdump/book3s64.c
-> +++ b/arch/powerpc/mm/ptdump/book3s64.c
-> @@ -102,7 +102,7 @@ static const struct flag_info flag_array[] = {
->  	}
->  };
->  
-> -struct pgtable_level pg_level[5] = {
-> +struct ptdump_pg_level pg_level[5] = {
->  	{ /* pgd */
->  		.flag	= flag_array,
->  		.num	= ARRAY_SIZE(flag_array),
-> diff --git a/arch/powerpc/mm/ptdump/ptdump.h b/arch/powerpc/mm/ptdump/ptdump.h
-> index 154efae96ae09..4232aa4b57eae 100644
-> --- a/arch/powerpc/mm/ptdump/ptdump.h
-> +++ b/arch/powerpc/mm/ptdump/ptdump.h
-> @@ -11,12 +11,12 @@ struct flag_info {
->  	int		shift;
->  };
->  
-> -struct pgtable_level {
-> +struct ptdump_pg_level {
->  	const struct flag_info *flag;
->  	size_t num;
->  	u64 mask;
->  };
->  
-> -extern struct pgtable_level pg_level[5];
-> +extern struct ptdump_pg_level pg_level[5];
->  
->  void pt_dump_size(struct seq_file *m, unsigned long delta);
-> diff --git a/arch/powerpc/mm/ptdump/shared.c b/arch/powerpc/mm/ptdump/shared.c
-> index 39c30c62b7ea7..58998960eb9a4 100644
-> --- a/arch/powerpc/mm/ptdump/shared.c
-> +++ b/arch/powerpc/mm/ptdump/shared.c
-> @@ -67,7 +67,7 @@ static const struct flag_info flag_array[] = {
->  	}
->  };
->  
-> -struct pgtable_level pg_level[5] = {
-> +struct ptdump_pg_level pg_level[5] = {
->  	{ /* pgd */
->  		.flag	= flag_array,
->  		.num	= ARRAY_SIZE(flag_array),
-> -- 
-> 2.50.1
