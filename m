@@ -1,365 +1,181 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8670D17B505;
-	Tue, 26 Aug 2025 08:04:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7774F31A55D
+	for <nvdimm@lists.linux.dev>; Tue, 26 Aug 2025 16:37:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756195480; cv=none; b=b+aGK5X1cjyxA9suJuzjKJvM0QnVsdwvZrZe6Bh9jsz5Ja9D0NTrjd/rC5meTTYsoIaep+MGKTHH1pX+tzgxahccqx8CVB9tZxOWNiMnWmDEhq9IQ2uMFMT8YaZ1wuxJ25VDbUva+qD5/EO239KEtyIiXFtPpBpa5sqxz9Lbw2g=
+	t=1756226262; cv=none; b=KB7DAzWe/FvA49n8A7FEoQ2vaaZXKgWrbhW3DNOtUCrVI5qTEL38IxHrk7GyfrtWGGlwlmijW+D2jmAlcM1FaYnioMJlugS6BlZXGYxfDXtPLo/FbL4yDJnZyJdXY0R4NH8xNUUV/ixY7nsmPHujH1+/tBmvSBvAZrNx/0cUiQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756195480; c=relaxed/simple;
-	bh=0wPoe/3MAh9xsVV1QEIy2QbhyZ1GWQaZL32ILILoEsU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MSlTvGIfpy72JDtVaE5W/S4yF4q70nE0yQCqJTYPQ6aTxIj5NRQLmFYFf6ilJ22ht4JxJhW/jrISk2it86Q6kEMXnMVauJDdJZgoJY06rMH4tUgPWkO85FYTbh6fIM1ddbKVIhhIGx0dAAT2FLHxrhhM4elYuFXydP7BHFoZAgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BW7zhk7D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756226262; c=relaxed/simple;
+	bh=AEdKHjzMg9eUTtDLSUEGj/0UGdfhDJa9ocC7lXKnb8w=;
+	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
+	 MIME-Version:Content-Type; b=g9V4AdypVcTZ2wiJCLIzdPhHr2vk3S9dhYEIf7LjDhGateiJJ9WHYGoaW6PcbWBqlCSbAUf0u3Q4RebQash7fyAGCyk+f2rwQsdiRUXn8gb3Stkm4ShTl0h1KIdlvkfIJu24JYoCoNYnJxuUGdaXqA/RZtkApBIajMuTVT3XWVc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Es7F9EcH; arc=none smtp.client-ip=209.85.215.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BW7zhk7D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89854C116B1;
-	Tue, 26 Aug 2025 08:04:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1756195480;
-	bh=0wPoe/3MAh9xsVV1QEIy2QbhyZ1GWQaZL32ILILoEsU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BW7zhk7DmCwH3NJL7lurvl/39EkGXAydG1oUYufA1HRHqSqOOfdi7NqnNIAIqcsYv
-	 V6OxMT7A0SlsqCAZdqU7uY3+LMojflpjSkblFFR/TYusHv6e0LHiRTivTOHU66TvNQ
-	 1AQvhKxIVVt6VxF/vwgPt/kQ7weBX9Aj6NlXvJQrP8Q5GbqAJqCFjhelLl/CcUAVp5
-	 HJu/ctRSPtPXQlcswEkUAwnRnmFS+lJdwrr7SGr+VEanhzPMTyuaSbiJ8UCKIab6MC
-	 tUKuYV5KpHu4h9zeQj771iEX0j3xEgHz1cLBNQ9eo+8w95UkrGcW7vwAt3pcwjEJ3Q
-	 U0WmAuIx7KC3g==
-From: Mike Rapoport <rppt@kernel.org>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Cc: jane.chu@oracle.com,
-	Mike Rapoport <rppt@kernel.org>,
-	Pasha Tatashin <pasha.tatashin@soleen.com>,
-	Tyler Hicks <code@tyhicks.com>,
-	linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Subject: [PATCH 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM DIMM devices
-Date: Tue, 26 Aug 2025 11:04:30 +0300
-Message-ID: <20250826080430.1952982-2-rppt@kernel.org>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20250826080430.1952982-1-rppt@kernel.org>
-References: <20250826080430.1952982-1-rppt@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Es7F9EcH"
+Received: by mail-pg1-f169.google.com with SMTP id 41be03b00d2f7-b47174c8e45so5627452a12.2
+        for <nvdimm@lists.linux.dev>; Tue, 26 Aug 2025 09:37:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1756226261; x=1756831061; darn=lists.linux.dev;
+        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=jyPF/dL+2YqZRv98PVCshXGneATY8Fvhth5O4vhMkWc=;
+        b=Es7F9EcHLwr9bQoN9EghlLXVJEuPnoKWkGmXqJKXt1nBDIAfsxBhcU/lNX2kEreS9W
+         rCUdjPNbusTZwdEGNMc2ZTtCQPkuiXt8vGPno7l+WzsqEei4FOvSMk8rdYQbZkjRtWd4
+         iLDNs6P6WQPyAHPppILu8UoafRACxExuhjFclrTuDMkJqeD08iaaU+jqjPVHvHNtXKmt
+         ipsaWRog4Md/oYmn0vhBahPbp8IPCygnxP/b+ujxpR7bhvT3CHO/dK+nHCUMmrOP1I3K
+         NsFQLXIcxOWZHLciKwIg/gDS8EdbfxVawPHmZA7elMEwjU+zF+bZMA4u4834SN7rXFUm
+         NMjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756226261; x=1756831061;
+        h=mime-version:references:message-id:date:in-reply-to:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=jyPF/dL+2YqZRv98PVCshXGneATY8Fvhth5O4vhMkWc=;
+        b=H5gFfjd2OpaD7Xkmg2FQ6bUDdibsvQmkEPIDtDKjhfLonnJ/xLjGMS9plk6/sZcM/7
+         lwZz8Rr6cSCs5nqZpxYJ91x4r8VHLOL5nxk2h8xXAcpC92XjEFUF+N9ZL9SEWfWChjzF
+         bw0eME0l33VnLn/BH43hlVztfnT/deluXD0v5yxpKNkGYOfjvd2g6VBSXBz8y9zyGtQL
+         t30rvMonO8174ENpn534UJbwEIRR7ijUfg4fOmkGIcBIFT69zOHZ/XUIHWCyNRgi5Wa+
+         czHOwFNDSKQ5QhZhUF6HAzC7Xe6ThZCxcfHfZYxy0u/A3ZNqZDbnRt9djuNLfD4YnPoZ
+         DY9Q==
+X-Forwarded-Encrypted: i=1; AJvYcCWCZZfhrYCagNVQU5RMcRwpwiYlF2gi1+kvIi9c6/jHVZBgXGCmi0R14oNxjBFQx+SJmfw34EE=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx26cinjJ+0xENaSaMwRw3AFO/YDMDu4wpKX/jYi8RoiSWAWFit
+	AzHJw4RW3AODrHDovHoW4Y/AGlaOxbWJia1yQcuTFzaW0E6U4YKM/7R5
+X-Gm-Gg: ASbGnctsCQHpLm+PlsUiweImFdhTLlryNefN8VHmUslxWDmBWTGUPijhvcf+XHB4IcY
+	OkvbZbmMm+ZEMTwIErU1JWi4PLP0G0n0DyoYzTJksgaUmXhkgdrmkHgZcCGDJu3GS1bXIQqGyE9
+	inlpy0psoCrre2bpYsLIRDKhFzkWrE7MQieJu+oCWxglRlmNuB78GRnLGbRBmUp2Ttb7F/CFyXg
+	X/CKqqkdBk6hUnvHxmj9OrCHG4bmzrzfNbE6lRUKLhD1e6ZPqB+I3t6xEnvHjskXc28NCYXMP8D
+	Gb8ash4uUGJHq+Yk3N7NzbWeKcJOksnY/7xXC+S1zgSfyepQkoG2eZ/2g/bb+7Hc7UuBaQrL6vj
+	cpIfkl2hpWsLsXg==
+X-Google-Smtp-Source: AGHT+IHkpBzdMdA7eE7qfwfc1lxqW0m87+LkJnM6/YhAHtUnIYSPMtiSiZLKGMu2nLQJcFkeNv4YGw==
+X-Received: by 2002:a17:903:32c8:b0:248:79d4:939b with SMTP id d9443c01a7336-24879d4978cmr26372675ad.54.1756226260428;
+        Tue, 26 Aug 2025 09:37:40 -0700 (PDT)
+Received: from dw-tp ([171.76.82.15])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-248681adacdsm21450705ad.10.2025.08.26.09.37.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 26 Aug 2025 09:37:39 -0700 (PDT)
+From: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+To: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org, xen-devel@lists.xenproject.org, 
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linuxppc-dev@lists.ozlabs.org, David Hildenbrand <david@redhat.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <christophe.leroy@csgroup.eu>, Juergen Gross <jgross@suse.com>, 
+	Stefano Stabellini <sstabellini@kernel.org>, 
+	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	Michal Hocko <mhocko@suse.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, Hugh Dickins <hughd@google.com>, 
+	Oscar Salvador <osalvador@suse.de>, Lance Yang <lance.yang@linux.dev>
+Subject: Re: [PATCH v3 06/11] powerpc/ptdump: rename "struct pgtable_level" to "struct ptdump_pglevel"
+In-Reply-To: <20250811112631.759341-7-david@redhat.com>
+Date: Tue, 26 Aug 2025 21:58:09 +0530
+Message-ID: <87a53mqc86.fsf@gmail.com>
+References: <20250811112631.759341-1-david@redhat.com> <20250811112631.759341-7-david@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+David Hildenbrand <david@redhat.com> writes:
 
-There are use cases, for example virtual machine hosts, that create
-"persistent" memory regions using memmap= option on x86 or dummy
-pmem-region device tree nodes on DT based systems.
+> We want to make use of "pgtable_level" for an enum in core-mm. Other
+> architectures seem to call "struct pgtable_level" either:
+> * "struct pg_level" when not exposed in a header (riscv, arm)
+> * "struct ptdump_pg_level" when expose in a header (arm64)
+>
+> So let's follow what arm64 does.
+>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
+>  arch/powerpc/mm/ptdump/8xx.c      | 2 +-
+>  arch/powerpc/mm/ptdump/book3s64.c | 2 +-
+>  arch/powerpc/mm/ptdump/ptdump.h   | 4 ++--
+>  arch/powerpc/mm/ptdump/shared.c   | 2 +-
+>  4 files changed, 5 insertions(+), 5 deletions(-)
 
-Both these options are inflexible because they create static regions and
-the layout of the "persistent" memory cannot be adjusted without reboot
-and sometimes they even require firmware update.
 
-Add a ramdax driver that allows creation of DIMM devices on top of
-E820_TYPE_PRAM regions and devicetree pmem-region nodes.
+As mentioned in commit msg mostly a mechanical change to convert 
+"struct pgtable_level" to "struct ptdump_pg_level" for aforementioned purpose.. 
 
-The DIMMs support label space management on the "device" and provide a
-flexible way to access RAM using fsdax and devdax.
+The patch looks ok and compiles fine on my book3s64 and ppc32 platform. 
 
-Signed-off-by: Mike Rapoport (Mircosoft) <rppt@kernel.org>
----
- drivers/nvdimm/ramdax.c | 281 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 281 insertions(+)
- create mode 100644 drivers/nvdimm/ramdax.c
+I think we should fix the subject line.. s/ptdump_pglevel/ptdump_pg_level
 
-diff --git a/drivers/nvdimm/ramdax.c b/drivers/nvdimm/ramdax.c
-new file mode 100644
-index 000000000000..27c5102f600c
---- /dev/null
-+++ b/drivers/nvdimm/ramdax.c
-@@ -0,0 +1,281 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (c) 2015, Mike Rapoport, Microsoft
-+ *
-+ * Based on e820 pmem driver:
-+ * Copyright (c) 2015, Christoph Hellwig.
-+ * Copyright (c) 2015, Intel Corporation.
-+ */
-+#include <linux/platform_device.h>
-+#include <linux/memory_hotplug.h>
-+#include <linux/libnvdimm.h>
-+#include <linux/module.h>
-+#include <linux/numa.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/of.h>
-+
-+#include <uapi/linux/ndctl.h>
-+
-+#define LABEL_AREA_SIZE	SZ_128K
-+
-+struct ramdax_dimm {
-+	struct nvdimm *nvdimm;
-+	void *label_area;
-+};
-+
-+static void ramdax_remove(struct platform_device *pdev)
-+{
-+	struct nvdimm_bus *nvdimm_bus = platform_get_drvdata(pdev);
-+
-+	/* FIXME: cleanup dimm and region devices */
-+
-+	nvdimm_bus_unregister(nvdimm_bus);
-+}
-+
-+static int ramdax_register_region(struct resource *res,
-+				    struct nvdimm *nvdimm,
-+				    struct nvdimm_bus *nvdimm_bus)
-+{
-+	struct nd_mapping_desc mapping;
-+	struct nd_region_desc ndr_desc;
-+	struct nd_interleave_set *nd_set;
-+	int nid = phys_to_target_node(res->start);
-+
-+	nd_set = kzalloc(sizeof(*nd_set), GFP_KERNEL);
-+	if (!nd_set)
-+		return -ENOMEM;
-+
-+	nd_set->cookie1 = 0xcafebeefcafebeef;
-+	nd_set->cookie2 = nd_set->cookie1;
-+	nd_set->altcookie = nd_set->cookie1;
-+
-+	memset(&mapping, 0, sizeof(mapping));
-+	mapping.nvdimm = nvdimm;
-+	mapping.start = 0;
-+	mapping.size = resource_size(res) - LABEL_AREA_SIZE;
-+
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+	ndr_desc.res = res;
-+	ndr_desc.numa_node = numa_map_to_online_node(nid);
-+	ndr_desc.target_node = nid;
-+	ndr_desc.num_mappings = 1;
-+	ndr_desc.mapping = &mapping;
-+	ndr_desc.nd_set = nd_set;
-+
-+	if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
-+		goto err_free_nd_set;
-+
-+	return 0;
-+
-+err_free_nd_set:
-+	kfree(nd_set);
-+	return -ENXIO;
-+}
-+
-+static int ramdax_register_dimm(struct resource *res, void *data)
-+{
-+	resource_size_t start = res->start;
-+	resource_size_t size = resource_size(res);
-+	unsigned long flags = 0, cmd_mask = 0;
-+	struct nvdimm_bus *nvdimm_bus = data;
-+	struct ramdax_dimm *dimm;
-+	int err;
-+
-+	dimm = kzalloc(sizeof(*dimm), GFP_KERNEL);
-+	if (!dimm)
-+		return -ENOMEM;
-+
-+	dimm->label_area = memremap(start + size - LABEL_AREA_SIZE,
-+				    LABEL_AREA_SIZE, MEMREMAP_WB);
-+	if (!dimm->label_area)
-+		goto err_free_dimm;
-+
-+	set_bit(NDD_LABELING, &flags);
-+	set_bit(NDD_REGISTER_SYNC, &flags);
-+	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
-+	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-+	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-+	dimm->nvdimm = nvdimm_create(nvdimm_bus, dimm,
-+				     /* dimm_attribute_groups */ NULL,
-+				     flags, cmd_mask, 0, NULL);
-+	if (!dimm->nvdimm) {
-+		err = -ENOMEM;
-+		goto err_unmap_label;
-+	}
-+
-+	err = ramdax_register_region(res, dimm->nvdimm, nvdimm_bus);
-+	if (err)
-+		goto err_remove_nvdimm;
-+
-+	return 0;
-+
-+err_remove_nvdimm:
-+	nvdimm_delete(dimm->nvdimm);
-+err_unmap_label:
-+	memunmap(dimm->label_area);
-+err_free_dimm:
-+	kfree(dimm);
-+	return err;
-+}
-+
-+static int ramdax_get_config_size(struct nvdimm *nvdimm, int buf_len,
-+				    struct nd_cmd_get_config_size *cmd)
-+{
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+
-+	*cmd = (struct nd_cmd_get_config_size){
-+		.status = 0,
-+		.config_size = LABEL_AREA_SIZE,
-+		.max_xfer = 8,
-+	};
-+
-+	return 0;
-+}
-+
-+static int ramdax_get_config_data(struct nvdimm *nvdimm, int buf_len,
-+				    struct nd_cmd_get_config_data_hdr *cmd)
-+{
-+	struct ramdax_dimm *dimm = nvdimm_provider_data(nvdimm);
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+	if (struct_size(cmd, out_buf, cmd->in_length) > buf_len)
-+		return -EINVAL;
-+	if (cmd->in_offset + cmd->in_length > LABEL_AREA_SIZE)
-+		return -EINVAL;
-+
-+	memcpy(cmd->out_buf, dimm->label_area + cmd->in_offset, cmd->in_length);
-+
-+	return 0;
-+}
-+
-+static int ramdax_set_config_data(struct nvdimm *nvdimm, int buf_len,
-+				    struct nd_cmd_set_config_hdr *cmd)
-+{
-+	struct ramdax_dimm *dimm = nvdimm_provider_data(nvdimm);
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+	if (struct_size(cmd, in_buf, cmd->in_length) > buf_len)
-+		return -EINVAL;
-+	if (cmd->in_offset + cmd->in_length > LABEL_AREA_SIZE)
-+		return -EINVAL;
-+
-+	memcpy(dimm->label_area + cmd->in_offset, cmd->in_buf, cmd->in_length);
-+
-+	return 0;
-+}
-+
-+static int ramdax_nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd,
-+			       void *buf, unsigned int buf_len)
-+{
-+	unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
-+
-+	if (!test_bit(cmd, &cmd_mask))
-+		return -ENOTTY;
-+
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE:
-+		return ramdax_get_config_size(nvdimm, buf_len, buf);
-+	case ND_CMD_GET_CONFIG_DATA:
-+		return ramdax_get_config_data(nvdimm, buf_len, buf);
-+	case ND_CMD_SET_CONFIG_DATA:
-+		return ramdax_set_config_data(nvdimm, buf_len, buf);
-+	default:
-+		return -ENOTTY;
-+	}
-+}
-+
-+static int ramdax_ctl(struct nvdimm_bus_descriptor *nd_desc,
-+			 struct nvdimm *nvdimm, unsigned int cmd, void *buf,
-+			 unsigned int buf_len, int *cmd_rc)
-+{
-+	/*
-+	 * No firmware response to translate, let the transport error
-+	 * code take precedence.
-+	 */
-+	*cmd_rc = 0;
-+
-+	if (!nvdimm)
-+		return -ENOTTY;
-+	return ramdax_nvdimm_ctl(nvdimm, cmd, buf, buf_len);
-+}
-+
-+static int ramdax_probe_of(struct platform_device *pdev,
-+			     struct nvdimm_bus *bus, struct device_node *np)
-+{
-+	int err;
-+
-+	for (int i = 0; i < pdev->num_resources; i++) {
-+		err = ramdax_register_dimm(&pdev->resource[i], bus);
-+		if (err)
-+			goto err_unregister;
-+	}
-+
-+	return 0;
-+
-+err_unregister:
-+	/*
-+	 * FIXME: should we unregister the dimms that were registered
-+	 * successfully
-+	 */
-+	return err;
-+}
-+
-+static int ramdax_probe(struct platform_device *pdev)
-+{
-+	static struct nvdimm_bus_descriptor nd_desc;
-+	struct device *dev = &pdev->dev;
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct device_node *np;
-+	int rc = -ENXIO;
-+
-+	nd_desc.provider_name = "ramdax";
-+	nd_desc.module = THIS_MODULE;
-+	nd_desc.ndctl = ramdax_ctl;
-+	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
-+	if (!nvdimm_bus)
-+		goto err;
-+
-+	np = dev_of_node(&pdev->dev);
-+	if (np)
-+		rc = ramdax_probe_of(pdev, nvdimm_bus, np);
-+	else
-+		rc = walk_iomem_res_desc(IORES_DESC_PERSISTENT_MEMORY_LEGACY,
-+					 IORESOURCE_MEM, 0, -1, nvdimm_bus,
-+					 ramdax_register_dimm);
-+	if (rc)
-+		goto err;
-+
-+	platform_set_drvdata(pdev, nvdimm_bus);
-+
-+	return 0;
-+err:
-+	nvdimm_bus_unregister(nvdimm_bus);
-+	return rc;
-+}
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id ramdax_of_matches[] = {
-+	{ .compatible = "pmem-region", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, ramdax_of_matches);
-+#endif
-+
-+static struct platform_driver ramdax_driver = {
-+	.probe = ramdax_probe,
-+	.remove = ramdax_remove,
-+	.driver = {
-+		.name = "e820_pmem",
-+		.of_match_table = of_match_ptr(ramdax_of_matches),
-+	},
-+};
-+
-+module_platform_driver(ramdax_driver);
-+
-+MODULE_DESCRIPTION("NVDIMM support for e820 type-12 memory and OF pmem-region");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Microsoft Corporation");
--- 
-2.50.1
+Otherwise the changes looks good to me. So please feel free to add - 
+Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 
+
+
+>
+> diff --git a/arch/powerpc/mm/ptdump/8xx.c b/arch/powerpc/mm/ptdump/8xx.c
+> index b5c79b11ea3c2..4ca9cf7a90c9e 100644
+> --- a/arch/powerpc/mm/ptdump/8xx.c
+> +++ b/arch/powerpc/mm/ptdump/8xx.c
+> @@ -69,7 +69,7 @@ static const struct flag_info flag_array[] = {
+>  	}
+>  };
+>  
+> -struct pgtable_level pg_level[5] = {
+> +struct ptdump_pg_level pg_level[5] = {
+>  	{ /* pgd */
+>  		.flag	= flag_array,
+>  		.num	= ARRAY_SIZE(flag_array),
+> diff --git a/arch/powerpc/mm/ptdump/book3s64.c b/arch/powerpc/mm/ptdump/book3s64.c
+> index 5ad92d9dc5d10..6b2da9241d4c4 100644
+> --- a/arch/powerpc/mm/ptdump/book3s64.c
+> +++ b/arch/powerpc/mm/ptdump/book3s64.c
+> @@ -102,7 +102,7 @@ static const struct flag_info flag_array[] = {
+>  	}
+>  };
+>  
+> -struct pgtable_level pg_level[5] = {
+> +struct ptdump_pg_level pg_level[5] = {
+>  	{ /* pgd */
+>  		.flag	= flag_array,
+>  		.num	= ARRAY_SIZE(flag_array),
+> diff --git a/arch/powerpc/mm/ptdump/ptdump.h b/arch/powerpc/mm/ptdump/ptdump.h
+> index 154efae96ae09..4232aa4b57eae 100644
+> --- a/arch/powerpc/mm/ptdump/ptdump.h
+> +++ b/arch/powerpc/mm/ptdump/ptdump.h
+> @@ -11,12 +11,12 @@ struct flag_info {
+>  	int		shift;
+>  };
+>  
+> -struct pgtable_level {
+> +struct ptdump_pg_level {
+>  	const struct flag_info *flag;
+>  	size_t num;
+>  	u64 mask;
+>  };
+>  
+> -extern struct pgtable_level pg_level[5];
+> +extern struct ptdump_pg_level pg_level[5];
+>  
+>  void pt_dump_size(struct seq_file *m, unsigned long delta);
+> diff --git a/arch/powerpc/mm/ptdump/shared.c b/arch/powerpc/mm/ptdump/shared.c
+> index 39c30c62b7ea7..58998960eb9a4 100644
+> --- a/arch/powerpc/mm/ptdump/shared.c
+> +++ b/arch/powerpc/mm/ptdump/shared.c
+> @@ -67,7 +67,7 @@ static const struct flag_info flag_array[] = {
+>  	}
+>  };
+>  
+> -struct pgtable_level pg_level[5] = {
+> +struct ptdump_pg_level pg_level[5] = {
+>  	{ /* pgd */
+>  		.flag	= flag_array,
+>  		.num	= ARRAY_SIZE(flag_array),
+> -- 
+> 2.50.1
