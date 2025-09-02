@@ -1,109 +1,131 @@
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60A6F30C63C
-	for <nvdimm@lists.linux.dev>; Tue,  2 Sep 2025 11:46:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 253F82EF669;
+	Tue,  2 Sep 2025 15:35:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756813576; cv=none; b=TVfIPGEglgwYc/QHZvK2FYcsVYc+xlsfdQMHTZbYmfRyuTe+q1hNKtP6MuTHIt4lQk0bUiD4DPMnSIAERcTy5fEtV/FdPwCNuPs2MBWKnuqVw/gQMLyjRgqyNsEIlU1JPiO60P67J0EB/AhufBP+KgkBxpjFPMW4TUBfAYQI5co=
+	t=1756827320; cv=none; b=oGYdcf6mWcVSYuqpwIxFC/LT6Low1gtejVMCeTPX9bxQsFMDvTOZDK78XjEGiQwun01AhaRpo4UpncMqIqqtDYyLln+HTOtlOTZ/mADnmu16MT4/0iVdV8eV6RYfrAZpV8tiUpDddp60ThmZv/GJgwPaIBSOcN38/XQn0+Rz/z8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756813576; c=relaxed/simple;
-	bh=b2dzqMeUqWyWDJ6+jIt81dE/5kfkNj+Ptj+goWcMI5g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=tEem3Hf4FWF/8RGlwgfE7ou+CLD5mVeFN9QK9Xh/6+WQYGmJiOtHUkoA2caQ8HvflXxLQI62VK6oJqHnqKiMe836uTETgY3ijN/4jXmde9pAQOBfWvOPpFOP+nuYMRp3dV+p0JqNlpldMx4VHECoBgyXd2IActcfOJCYJ/HPOOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IARCXFXg; arc=none smtp.client-ip=209.85.221.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1756827320; c=relaxed/simple;
+	bh=kzYKGVadSPv9NME2aJItAScHQKnKboMO69iumtu+g7k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Lx3jzdZcfynRPRUsRhxXWVCp65e7sIemGZNiKarIF4ESdmZfxG6v46Pz1QTjNgLXsQrbDzQOeXyMkxU+1LcKEHtkvexZrgHKswIwB12Js/T0USguIXnLvNaX2NsuxZCrtfkG1fAhGBt4EB7iO6wucDQMhheIQJ/2kZoQz8xyq6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HQHjMSHM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IARCXFXg"
-Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-3b9edf4cf6cso4523924f8f.3
-        for <nvdimm@lists.linux.dev>; Tue, 02 Sep 2025 04:46:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1756813570; x=1757418370; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=CSpYSwOXNofPRqPJb67ltbn5EWSPohwy2KpciLMYW2U=;
-        b=IARCXFXg/pSS1351tgKAGfWtu/JUICzvrJF1LEzDrjo+5PiU2Bwmz8P8XQ7BiM0/14
-         I5M5rvfvnt1Q6D2i7r3bKD70bJYUP+zR2Xl5sHpjNh5yuQbTucroAxEOghEnOhCtlV3t
-         QV86/s8zI+f+JhiXHbkMTi/jANHWLz6r79A7N9+i7i8V//yQHM2zTia5prfL/PHKvdDv
-         3s/Q5QhG/VgDFPHVKTiVRop1dXllR953D6QPj+L1KPLWb8ngkJA/Q0e1WzRpDWCkJX1E
-         W0wkz2tlMFh75oQzo9VhTt027h0vPB4rmndtGDL7NhO8Wyw99n8t5JHJhlzECCxP1b9o
-         PFpw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756813571; x=1757418371;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=CSpYSwOXNofPRqPJb67ltbn5EWSPohwy2KpciLMYW2U=;
-        b=XNClhrA3i67EfoVT2Xl+MzWVvHnbjfCh0gKzd/1kErM7zYUGyGg/9TJWlU/9vnfmjj
-         ACvLhZyCYFH3DZ+B5X+CsCLIXq9xW6vvuq62zOduB1pMTs73nZyQ1oCnlMXD05M8j9br
-         DNWLZKyUgKNa6hOv01fL5y+Jjy/wflWVfDFC3p2DWxYWU7+wv3v9WaQgGAGjBRw5IZ9m
-         nq6ma1Qah/EOXHFDKXremJwjPXyRBO5BPqYzY8AxzQXVZa9Uff9phGLlwQ4GZ+cwFO6B
-         GQDDsPJxPxxcH9Dh5hnT9fmp4v1II2myw8fvuuR9wzOMSsabPU51xFp4CtWPrF83gH7Z
-         g0wg==
-X-Forwarded-Encrypted: i=1; AJvYcCVyXzALWrUm7Ha8S+tBEGl4yiIMI04I2Bm4JxXoX6B6hXFwu3YiM0L8cFrdKjTjdM8cOdn5J3k=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yya3ngQOSnHsTEXGEAl7aa+f2T3waMsTXGqvs20LADBxCWaFjdk
-	uJlPkSff5wneBa29twW+bCp/x/aHoMArHCM1Ny6Qep/kKTdjJVl5NTT9
-X-Gm-Gg: ASbGncsFszRImh5e+ZB0vlEWXcjE/0esPoEi/axsFZCkrYh7nYe2VKJ+06PT2fYCV2F
-	QrAVVuo6vQ0FA4Kyn+GLJ2rj71D7kaeUzllGekqobcp3W2/tkpcWNOZpXRlGOyWhy3V5tMIVt3s
-	Dl+gKDATS3hZEXPSH0zD/Ueswrs5JY1NJN61SwbtOoxiIZK4dZwuHrCx+G69RzdoyVXHcY7rTdP
-	32/a7OzPlO1ED3k6cz2hUQTeEYCAl5HyI9GZD5IcX8EQ/QCwVtrzF5Y3LIXv07ZL1kxq5eVAhtm
-	weroT/gRcpQ6N4cCpWUaAxkx8jKroRbbaQfxUJtKJmPIQudGIj2Rii39Ku3WESh5nN06iAGsBPm
-	dTvXG6otaBH0qETb5wAh/
-X-Google-Smtp-Source: AGHT+IFSx1ZLxuVxr4IHYwG/kkbItLSnigBFcwtrJLVgNw4wTdNNofAu9Ao+jN20uMosvQnfKfZH2g==
-X-Received: by 2002:a05:6000:4202:b0:3cb:285f:8d9c with SMTP id ffacd0b85a97d-3d1dea8e31amr8673398f8f.48.1756813570540;
-        Tue, 02 Sep 2025 04:46:10 -0700 (PDT)
-Received: from localhost ([87.254.0.133])
-        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-3cf8a64fce8sm19086547f8f.34.2025.09.02.04.46.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 02 Sep 2025 04:46:04 -0700 (PDT)
-From: Colin Ian King <colin.i.king@gmail.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HQHjMSHM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FD86C4CEF5;
+	Tue,  2 Sep 2025 15:35:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1756827320;
+	bh=kzYKGVadSPv9NME2aJItAScHQKnKboMO69iumtu+g7k=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=HQHjMSHMoSkGigOCLVQnJxNXj5QNvpKbBfznH62inZWwfFDFVp9PrfOfO42PXjf3V
+	 HBy4F/pQUciXmHqluZgcSBOvbEGsDIDPNvQaW5SRy0jl3QdR69VDmYDUQ/cYKJzJzJ
+	 eryE1wC5lIxqm5A5DQxxK+3RKarkSO04n7fEV3ip8S5I/JIXKI1dsJBLWwMR2a10US
+	 NbNjwzkgoiLZ6XVOOhYi7D+GHzWgS1BWAobQrqqVoTGH7dBZ+A10zQ86LuwYySQpzs
+	 9pZ5XRr9y4rZu6IKNkuYrR0tBpmrwKLLIJLnku3F81uMA22UuGJgmGoTxP9hPueQ6C
+	 ovSeGGMEwit3w==
+Date: Tue, 2 Sep 2025 18:35:12 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: =?utf-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>
+Cc: Ira Weiny <ira.weiny@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Jia He <justin.he@arm.com>,
-	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH][next] ACPI: NFIT: Fix incorrect ndr_desc being reportedin dev_err message
-Date: Tue,  2 Sep 2025 12:45:18 +0100
-Message-ID: <20250902114518.2625680-1-colin.i.king@gmail.com>
-X-Mailer: git-send-email 2.51.0
+	Vishal Verma <vishal.l.verma@intel.com>, jane.chu@oracle.com,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Tyler Hicks <code@tyhicks.com>, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM DIMM
+ devices
+Message-ID: <aLcOsDa2K7qMcXtU@kernel.org>
+References: <20250826080430.1952982-1-rppt@kernel.org>
+ <20250826080430.1952982-2-rppt@kernel.org>
+ <68b0f8a31a2b8_293b3294ae@iweiny-mobl.notmuch>
+ <aLFdVX4eXrDnDD25@kernel.org>
+ <CAAi7L5eWB33dKTuNQ26Dtna9fq2ihiVCP_4NoTFjmFFrJzWtGQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAAi7L5eWB33dKTuNQ26Dtna9fq2ihiVCP_4NoTFjmFFrJzWtGQ@mail.gmail.com>
 
-There appears to be a cut-n-paste error with the incorrect field
-ndr_desc->numa_node being reported for the target node. Fix this by
-using ndr_desc->target_node instead.
+Hi Michał,
 
-Fixes: f060db99374e ("ACPI: NFIT: Use fallback node id when numa info in NFIT table is incorrect")
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
----
- drivers/acpi/nfit/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Sep 01, 2025 at 06:01:25PM +0200, Michał Cłapiński wrote:
+> On Fri, Aug 29, 2025 at 9:57 AM Mike Rapoport <rppt@kernel.org> wrote:
+> >
+> > Hi Ira,
+> >
+> > On Thu, Aug 28, 2025 at 07:47:31PM -0500, Ira Weiny wrote:
+> > > + Michal
+> > >
+> > > Mike Rapoport wrote:
+> > > > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> > > >
+> > > > There are use cases, for example virtual machine hosts, that create
+> > > > "persistent" memory regions using memmap= option on x86 or dummy
+> > > > pmem-region device tree nodes on DT based systems.
+> > > >
+> > > > Both these options are inflexible because they create static regions and
+> > > > the layout of the "persistent" memory cannot be adjusted without reboot
+> > > > and sometimes they even require firmware update.
+> > > >
+> > > > Add a ramdax driver that allows creation of DIMM devices on top of
+> > > > E820_TYPE_PRAM regions and devicetree pmem-region nodes.
+> > >
+> > > While I recognize this driver and the e820 driver are mutually
+> > > exclusive[1][2].  I do wonder if the use cases are the same?
+> >
+> > They are mutually exclusive in the sense that they cannot be loaded
+> > together so I had this in Kconfig in RFC posting
+> >
+> > config RAMDAX
+> >         tristate "Support persistent memory interfaces on RAM carveouts"
+> >         depends on OF || (X86 && X86_PMEM_LEGACY=n)
+> >
+> > (somehow my rebase lost Makefile and Kconfig changes :( )
+> >
+> > As Pasha said in the other thread [1] the use-cases are different. My goal
+> > is to achieve flexibility in managing carved out "PMEM" regions and
+> > Michal's patches aim to optimize boot time by autoconfiguring multiple PMEM
+> > regions in the kernel without upcalls to ndctl.
+> >
+> > > From a high level I don't like the idea of adding kernel parameters.  So
+> > > if this could solve Michal's problem I'm inclined to go this direction.
+> >
+> > I think it could help with optimizing the reboot times. On the first boot
+> > the PMEM is partitioned using ndctl and then the partitioning remains there
+> > so that on subsequent reboots kernel recreates dax devices without upcalls
+> > to userspace.
+> 
+> Using this patch, if I want to divide 500GB of memory into 1GB chunks,
+> the last 128kB of every chunk would be taken by the label, right?
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ae035b93da08..3eb56b77cb6d 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2637,7 +2637,7 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 	if (ndr_desc->target_node == NUMA_NO_NODE) {
- 		ndr_desc->target_node = phys_to_target_node(spa->address);
- 		dev_info(acpi_desc->dev, "changing target node from %d to %d for nfit region [%pa-%pa]",
--			NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &res.end);
-+			NUMA_NO_NODE, ndr_desc->target_node, &res.start, &res.end);
- 	}
+No, there will be a single 128kB namespace label area in the end of 500GB.
+It's easy to add an option to put this area in the beginning.
+
+Using dimm device with namespace labels instead of region device for e820
+memory allows to partition a single memmap= region and it is similar to
+patch 1 in your series.
+
+> My patch disables labels, so we can divide the memory into 1GB chunks
+> without any losses and they all remain aligned to the 1GB boundary. I
+> think this is necessary for vmemmap dax optimization.
  
- 	/*
--- 
-2.51.0
+My understanding is that you mean info-block reserved in each devdax device
+and AFAIU it's different from namespace labels. 
 
+My patch does not deal with it, but I believe it also can be addressed
+with a small "on device" structure outside the actual "partitions".
+
+> > [1] https://lore.kernel.org/all/CA+CK2bAPJR00j3eFZtF7WgvgXuqmmOtqjc8xO70bGyQUSKTKGg@mail.gmail.com/
+
+-- 
+Sincerely yours,
+Mike.
