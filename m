@@ -1,183 +1,341 @@
-Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAE0F1C84B9
-	for <nvdimm@lists.linux.dev>; Fri,  5 Sep 2025 07:00:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F9FD2D3EDB
+	for <nvdimm@lists.linux.dev>; Fri,  5 Sep 2025 07:00:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757055616; cv=none; b=hyZOBrWPbzEBNZ1+LFuWyNUbSbNvpW2z7PdKGs1m+1YLqBqI+RghODGZPYMZV8pRRPsclJOsj9xDsAmWlZHAeifIxYcp8ODvEV6XQ/rxQ8RTPsxZi7yU56VSc0/X9B33hw4Kp+bM7VzgXSVt8nYZCJ6NzNegJ3ryN/jRYie6I3Q=
+	t=1757055617; cv=none; b=LZdJExmgBHZ4dVL0de9DAHAFgQxZOoThxh3xhYy1iLoUqNyNu/thF8/h86YCYbF9QSLMFv0SVpnk5uUotXodX0YeBIMBao35a++SPvb6tmA7yaNdMNOYhsQgJNTwfXc3vAYDtNQJ+S18AvBXNr4ulaz9rkiNGzAtBfKiwo3EZaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757055616; c=relaxed/simple;
-	bh=nHVvz5lhl/XbT/mu17TtR0WDza+IuiXy9pkEoOXmrdk=;
+	s=arc-20240116; t=1757055617; c=relaxed/simple;
+	bh=l3KnqaB0M2j0UmNc6t7mk+FOUMRtIFQrORQWjl3osgA=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=iDvuz2lOii2FzQiQeZC8JWKORhTimldRVJ3P+CI2RUerP1lusDjYq2DQeYUo6gC++7gY47W4FyL9sctLpS8zfsX3g4KnP1AJwq+PSmqujSgeU6hxaXGTtWf70tZo9YQb3aj5MjiGq0Xy7KyKQtuWoYcsmMRQ4+aWMRA0CS/1Cso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=oYOXrIHY; arc=none smtp.client-ip=203.254.224.34
+	 Content-Type:References; b=safHx6946MBi9EMPjbNkzXkqvd8fJyGfhCfmBWXTDuW8fU8vcpxbXMTMa1eHMJ2iJIGTO+i/4A/jjYGpmwugGZm0fR6s6k12bsUzs2sryvFpfvuXQp3GBm5yOpWxLT7FEdnVPgWlqE9/749oFzaR2QYbyvrndbDt4qXXfm630Iw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=YSrU2kLc; arc=none smtp.client-ip=203.254.224.33
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="oYOXrIHY"
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
-	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20250905070003epoutp04a2d383c5f47af19d0d70bb887fc388e7~iUMMwU2Ii1720717207epoutp04r
-	for <nvdimm@lists.linux.dev>; Fri,  5 Sep 2025 07:00:03 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20250905070003epoutp04a2d383c5f47af19d0d70bb887fc388e7~iUMMwU2Ii1720717207epoutp04r
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="YSrU2kLc"
+Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20250905070004epoutp03aafebed07b2503d69e91dcee4f3423fa~iUMM6U5pC2589125891epoutp03o
+	for <nvdimm@lists.linux.dev>; Fri,  5 Sep 2025 07:00:04 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20250905070004epoutp03aafebed07b2503d69e91dcee4f3423fa~iUMM6U5pC2589125891epoutp03o
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1757055603;
-	bh=Cs1Wwg/pcc9OLfauYBxaMcnQ8auZ8WYaY8tqm6cdbXk=;
+	s=mail20170921; t=1757055604;
+	bh=h4INDyhFjcSpltNPzDpZnG1HrUtc84FD4H4sHXn+1no=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=oYOXrIHY/5dLRAsqkCZhwP3HQGhlrSmK3/Epto2+epb5ev3HRcbPIiwUlYvL2zYzK
-	 9Wg4GHlNCnzJQpKndv2ZP1RnVGSuHeW9JpO0MwtqoLfq6gg0iA7s2sFMFQDEvTegx9
-	 Op/N8vDJSlptNg8GPY6beJ31ixQvT8QObQI9XLdM=
-Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPS id
-	20250905070003epcas5p1d0b0001fb09ce8f85b09cc966455ba63~iUMMTAjWQ1344713447epcas5p1J;
+	b=YSrU2kLcSQGuTsW4Fj5t0keZiFlaBt02HQgDn26dMMzI951+XTOMLpVBroaPeH9RM
+	 Mk4rs6H551IXMeD1ePA1eX94vcMy4C62cP+6z7VZA8vHfzmytplVWmOyNOPR3PwHe8
+	 /QsCRM9ZiEKhaXuIu+jVAdEUKitnAkcDbtqIcMxo=
+Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
+	20250905070003epcas5p3483f0101e4eb3ede6bf38b0ee52e05ac~iUMMk9DZt2257122571epcas5p33;
 	Fri,  5 Sep 2025 07:00:03 +0000 (GMT)
 Received: from epcpadp1new (unknown [182.195.40.141]) by
-	epsnrtp04.localdomain (Postfix) with ESMTP id 4cJ6fq2Ysqz6B9mb; Fri,  5 Sep
+	epsnrtp01.localdomain (Postfix) with ESMTP id 4cJ6fq4k1Tz6B9mF; Fri,  5 Sep
 	2025 07:00:03 +0000 (GMT)
 Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
 	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
-	20250904132422epcas5p3253bf8b371a27169899f4ce089d40244~iFydmnS-X1243012430epcas5p3t;
-	Thu,  4 Sep 2025 13:24:22 +0000 (GMT)
+	20250904133130epcas5p33295624f445e07f8c8292c57e7b4f33f~iF4sZOnRk3106431064epcas5p35;
+	Thu,  4 Sep 2025 13:31:30 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
 	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20250904132421epsmtip1610130f243c2a3f9adb650a9d7c6041e~iFycHnEsI2709727097epsmtip1l;
-	Thu,  4 Sep 2025 13:24:20 +0000 (GMT)
-Date: Thu, 4 Sep 2025 18:54:07 +0530
+	20250904133129epsmtip1535d80366a28402e97dd12e3a86d47cc~iF4rQaXpv0149801498epsmtip1J;
+	Thu,  4 Sep 2025 13:31:29 +0000 (GMT)
+Date: Thu, 4 Sep 2025 19:01:22 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: Dave Jiang <dave.jiang@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V2 01/20] nvdimm/label: Introduce NDD_CXL_LABEL flag to
- set cxl label format
-Message-ID: <1983025922.01757055603347.JavaMail.epsvc@epcpadp1new>
+Subject: Re: [PATCH V2 02/20] nvdimm/label: Prep patch to accommodate cxl
+ lsa 2.1 support
+Message-ID: <1296674576.21757055603660.JavaMail.epsvc@epcpadp1new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <7ff8b51b-7263-4d9c-99f8-1b507cf46262@intel.com>
-X-CMS-MailID: 20250904132422epcas5p3253bf8b371a27169899f4ce089d40244
+In-Reply-To: <cf66eadc-baf2-4962-a9c4-2a6205b5233b@intel.com>
+X-CMS-MailID: 20250904133130epcas5p33295624f445e07f8c8292c57e7b4f33f
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----At96h8_oYHqdM-HzD.Qv-z6Hqrsj5DpI3AOnKMLFsbTdazMP=_eab9c_"
+	boundary="----CDBSwZz52MZUMeM1Rx6lI.cEW_5b_YZAAzr3v09AM7rvldzc=_ea573_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250730121223epcas5p1386bdf99a0af820dd4411fbdbd413cd5
+X-CMS-RootMailID: 20250730121224epcas5p3c3a6563ce186d2fdb9c3ff5f66e37f3e
 References: <20250730121209.303202-1-s.neeraj@samsung.com>
-	<CGME20250730121223epcas5p1386bdf99a0af820dd4411fbdbd413cd5@epcas5p1.samsung.com>
-	<20250730121209.303202-2-s.neeraj@samsung.com>
-	<20250813141218.0000091f@huawei.com>
-	<7ff8b51b-7263-4d9c-99f8-1b507cf46262@intel.com>
+	<CGME20250730121224epcas5p3c3a6563ce186d2fdb9c3ff5f66e37f3e@epcas5p3.samsung.com>
+	<20250730121209.303202-3-s.neeraj@samsung.com>
+	<cf66eadc-baf2-4962-a9c4-2a6205b5233b@intel.com>
 
-------At96h8_oYHqdM-HzD.Qv-z6Hqrsj5DpI3AOnKMLFsbTdazMP=_eab9c_
+------CDBSwZz52MZUMeM1Rx6lI.cEW_5b_YZAAzr3v09AM7rvldzc=_ea573_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 15/08/25 11:06AM, Dave Jiang wrote:
+On 15/08/25 03:02PM, Dave Jiang wrote:
 >
 >
->On 8/13/25 6:12 AM, Jonathan Cameron wrote:
->> On Wed, 30 Jul 2025 17:41:50 +0530
->> Neeraj Kumar <s.neeraj@samsung.com> wrote:
+>On 7/30/25 5:11 AM, Neeraj Kumar wrote:
+>> LSA 2.1 format introduces region label, which can also reside
+>> into LSA along with only namespace label as per v1.1 and v1.2
 >>
->>> Prior to LSA 2.1 version, LSA contain only namespace labels. LSA 2.1
->>> introduced in CXL 2.0 Spec, which contain region label along with
->>> namespace label.
->>>
->>> NDD_LABELING flag is used for namespace. Introduced NDD_CXL_LABEL
->>> flag for region label. Based on these flags nvdimm driver performs
->>> operation on namespace label or region label.
->>>
->>> NDD_CXL_LABEL will be utilized by cxl driver to enable LSA2.1 region
->>> label support
->>>
->>> Accordingly updated label index version
->>>
->>> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
->> Hi Neeraj,
+>> As both namespace and region labels are of same size of 256 bytes.
+>> Thus renamed "struct nd_namespace_label" to "struct nd_lsa_label",
+>> where both namespace label and region label can stay as union.
 >>
->> A few comments inline.
+>> No functional change introduced.
 >>
->>> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
->>> index 04f4a049599a..7a011ee02d79 100644
->>> --- a/drivers/nvdimm/label.c
->>> +++ b/drivers/nvdimm/label.c
->>> @@ -688,11 +688,25 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
->>>  		- (unsigned long) to_namespace_index(ndd, 0);
->>>  	nsindex->labeloff = __cpu_to_le64(offset);
->>>  	nsindex->nslot = __cpu_to_le32(nslot);
->>> -	nsindex->major = __cpu_to_le16(1);
->>> -	if (sizeof_namespace_label(ndd) < 256)
->>> +
->>> +	/* Set LSA Label Index Version */
->>> +	if (ndd->cxl) {
->>> +		/* CXL r3.2 Spec: Table 9-9 Label Index Block Layout */
->>> +		nsindex->major = __cpu_to_le16(2);
->>>  		nsindex->minor = __cpu_to_le16(1);
->>> -	else
->>> -		nsindex->minor = __cpu_to_le16(2);
->>> +	} else {
->>> +		nsindex->major = __cpu_to_le16(1);
->>> +		/*
->>> +		 * NVDIMM Namespace Specification
->>> +		 * Table 2: Namespace Label Index Block Fields
->>> +		 */
->>> +		if (sizeof_namespace_label(ndd) < 256)
->>> +			nsindex->minor = __cpu_to_le16(1);
->>> +		else
->>> +		 /* UEFI Specification 2.7: Label Index Block Definitions */
+>> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+>> ---
+>>  drivers/nvdimm/label.c          | 58 +++++++++++++++++++--------------
+>>  drivers/nvdimm/label.h          | 12 ++++++-
+>>  drivers/nvdimm/namespace_devs.c | 33 +++++++++++++------
+>>  drivers/nvdimm/nd.h             |  2 +-
+>>  4 files changed, 68 insertions(+), 37 deletions(-)
 >>
->> Odd comment alignment. Either put it on the else so
->> 		else /* UEFI 2.7: Label Index Block Defintions */
+>> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+>> index 7a011ee02d79..75bc11da4c11 100644
+>> --- a/drivers/nvdimm/label.c
+>> +++ b/drivers/nvdimm/label.c
+>> @@ -271,7 +271,7 @@ static void nd_label_copy(struct nvdimm_drvdata *ndd,
+>>  	memcpy(dst, src, sizeof_namespace_index(ndd));
+>>  }
 >>
->> or indent it an extra tab
+>> -static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
+>> +static struct nd_lsa_label *nd_label_base(struct nvdimm_drvdata *ndd)
+>>  {
+>>  	void *base = to_namespace_index(ndd, 0);
 >>
->> 		else
->> 			/* UEFI 2.7: Label Index Block Definitions */
->> 			
->>> +			nsindex->minor = __cpu_to_le16(2);
->>> +	}
->>> +
->>>  	nsindex->checksum = __cpu_to_le64(0);
->>>  	if (flags & ND_NSINDEX_INIT) {
->>>  		unsigned long *free = (unsigned long *) nsindex->free;
+>> @@ -279,7 +279,7 @@ static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
+>>  }
 >>
->>> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
->>> index e772aae71843..0a55900842c8 100644
->>> --- a/include/linux/libnvdimm.h
->>> +++ b/include/linux/libnvdimm.h
->>> @@ -44,6 +44,9 @@ enum {
->>>  	/* dimm provider wants synchronous registration by __nvdimm_create() */
->>>  	NDD_REGISTER_SYNC = 8,
->>>
->>> +	/* dimm supports region labels (LSA Format 2.1) */
->>> +	NDD_CXL_LABEL = 9,
+>>  static int to_slot(struct nvdimm_drvdata *ndd,
+>> -		struct nd_namespace_label *nd_label)
+>> +		struct nd_lsa_label *nd_label)
+>>  {
+>>  	unsigned long label, base;
 >>
->> This enum is 'curious'.  It combined flags from a bunch of different
->> flags fields and some stuff that are nothing to do with flags.
+>> @@ -289,14 +289,14 @@ static int to_slot(struct nvdimm_drvdata *ndd,
+>>  	return (label - base) / sizeof_namespace_label(ndd);
+>>  }
 >>
->> Anyhow, putting that aside I'd either rename it to something like
->> NDD_REGION_LABELING (similar to NDD_LABELING that is there for namespace labels
->> or just have it a meaning it is LSA Format 2.1 and drop the fact htat
->> also means region labels are supported.
+>> -static struct nd_namespace_label *to_label(struct nvdimm_drvdata *ndd, int slot)
+>> +static struct nd_lsa_label *to_label(struct nvdimm_drvdata *ndd, int slot)
+>>  {
+>>  	unsigned long label, base;
+>>
+>>  	base = (unsigned long) nd_label_base(ndd);
+>>  	label = base + sizeof_namespace_label(ndd) * slot;
+>>
+>> -	return (struct nd_namespace_label *) label;
+>> +	return (struct nd_lsa_label *) label;
+>>  }
+>>
+>>  #define for_each_clear_bit_le(bit, addr, size) \
+>> @@ -382,9 +382,10 @@ static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
+>>  }
+>>
+>>  static bool slot_valid(struct nvdimm_drvdata *ndd,
+>> -		struct nd_namespace_label *nd_label, u32 slot)
+>> +		struct nd_lsa_label *lsa_label, u32 slot)
+>>  {
+>>  	bool valid;
+>> +	struct nd_namespace_label *nd_label = &lsa_label->ns_label;
+>>
+>>  	/* check that we are written where we expect to be written */
+>>  	if (slot != nsl_get_slot(ndd, nd_label))
+>> @@ -405,6 +406,7 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+>>  		return 0; /* no label, nothing to reserve */
+>>
+>>  	for_each_clear_bit_le(slot, free, nslot) {
+>> +		struct nd_lsa_label *lsa_label;
+>>  		struct nd_namespace_label *nd_label;
+>>  		struct nd_region *nd_region = NULL;
+>>  		struct nd_label_id label_id;
+>> @@ -412,9 +414,10 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+>>  		uuid_t label_uuid;
+>>  		u32 flags;
+>>
+>> -		nd_label = to_label(ndd, slot);
+>> +		lsa_label = to_label(ndd, slot);
+>> +		nd_label = &lsa_label->ns_label;
+>>
+>> -		if (!slot_valid(ndd, nd_label, slot))
+>> +		if (!slot_valid(ndd, lsa_label, slot))
+>>  			continue;
+>>
+>>  		nsl_get_uuid(ndd, nd_label, &label_uuid);
+>> @@ -565,11 +568,13 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
+>>  		return 0;
+>>
+>>  	for_each_clear_bit_le(slot, free, nslot) {
+>> +		struct nd_lsa_label *lsa_label;
+>>  		struct nd_namespace_label *nd_label;
+>>
+>> -		nd_label = to_label(ndd, slot);
+>> +		lsa_label = to_label(ndd, slot);
+>> +		nd_label = &lsa_label->ns_label;
+>>
+>> -		if (!slot_valid(ndd, nd_label, slot)) {
+>> +		if (!slot_valid(ndd, lsa_label, slot)) {
+>>  			u32 label_slot = nsl_get_slot(ndd, nd_label);
+>>  			u64 size = nsl_get_rawsize(ndd, nd_label);
+>>  			u64 dpa = nsl_get_dpa(ndd, nd_label);
+>> @@ -584,7 +589,7 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
+>>  	return count;
+>>  }
+>>
+>> -struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+>> +struct nd_lsa_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+>>  {
+>>  	struct nd_namespace_index *nsindex;
+>>  	unsigned long *free;
+>> @@ -594,10 +599,10 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+>>  		return NULL;
+>>
+>>  	for_each_clear_bit_le(slot, free, nslot) {
+>> -		struct nd_namespace_label *nd_label;
+>> +		struct nd_lsa_label *lsa_label;
+>>
+>> -		nd_label = to_label(ndd, slot);
+>> -		if (!slot_valid(ndd, nd_label, slot))
+>> +		lsa_label = to_label(ndd, slot);
+>> +		if (!slot_valid(ndd, lsa_label, slot))
+>>  			continue;
+>>
+>>  		if (n-- == 0)
+>> @@ -738,7 +743,7 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
+>>  }
+>>
+>>  static unsigned long nd_label_offset(struct nvdimm_drvdata *ndd,
+>> -		struct nd_namespace_label *nd_label)
+>> +		struct nd_lsa_label *nd_label)
+>>  {
+>>  	return (unsigned long) nd_label
+>>  		- (unsigned long) to_namespace_index(ndd, 0);
+>> @@ -892,6 +897,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>>  	struct nd_namespace_common *ndns = &nspm->nsio.common;
+>>  	struct nd_interleave_set *nd_set = nd_region->nd_set;
+>>  	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+>> +	struct nd_lsa_label *lsa_label;
+>>  	struct nd_namespace_label *nd_label;
+>>  	struct nd_namespace_index *nsindex;
+>>  	struct nd_label_ent *label_ent;
+>> @@ -923,8 +929,10 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>>  		return -ENXIO;
+>>  	dev_dbg(ndd->dev, "allocated: %d\n", slot);
+>>
+>> -	nd_label = to_label(ndd, slot);
+>> -	memset(nd_label, 0, sizeof_namespace_label(ndd));
+>> +	lsa_label = to_label(ndd, slot);
+>> +	memset(lsa_label, 0, sizeof_namespace_label(ndd));
+>> +
+>> +	nd_label = &lsa_label->ns_label;
+>>  	nsl_set_uuid(ndd, nd_label, nspm->uuid);
+>>  	nsl_set_name(ndd, nd_label, nspm->alt_name);
+>>  	nsl_set_flags(ndd, nd_label, flags);
+>> @@ -942,7 +950,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>>  	nd_dbg_dpa(nd_region, ndd, res, "\n");
+>>
+>>  	/* update label */
+>> -	offset = nd_label_offset(ndd, nd_label);
+>> +	offset = nd_label_offset(ndd, lsa_label);
+>>  	rc = nvdimm_set_config_data(ndd, offset, nd_label,
+>>  			sizeof_namespace_label(ndd));
+>>  	if (rc < 0)
+>> @@ -954,7 +962,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>>  		if (!label_ent->label)
+>>  			continue;
+>>  		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags) ||
+>> -		    nsl_uuid_equal(ndd, label_ent->label, nspm->uuid))
+>> +		    nsl_uuid_equal(ndd, &label_ent->label->ns_label, nspm->uuid))
+>>  			reap_victim(nd_mapping, label_ent);
+>>  	}
+>>
+>> @@ -964,14 +972,14 @@ static int __pmem_label_update(struct nd_region *nd_region,
+>>  	if (rc == 0) {
+>>  		list_for_each_entry(label_ent, &nd_mapping->labels, list)
+>>  			if (!label_ent->label) {
+>> -				label_ent->label = nd_label;
+>> -				nd_label = NULL;
+>> +				label_ent->label = lsa_label;
+>> +				lsa_label = NULL;
+>>  				break;
+>>  			}
+>> -		dev_WARN_ONCE(&nspm->nsio.common.dev, nd_label,
+>> +		dev_WARN_ONCE(&nspm->nsio.common.dev, lsa_label,
+>>  				"failed to track label: %d\n",
+>> -				to_slot(ndd, nd_label));
+>> -		if (nd_label)
+>> +				to_slot(ndd, lsa_label));
+>> +		if (lsa_label)
+>>  			rc = -ENXIO;
+>>  	}
+>>  	mutex_unlock(&nd_mapping->lock);
+>> @@ -1042,12 +1050,12 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
+>>
+>>  	mutex_lock(&nd_mapping->lock);
+>>  	list_for_each_entry_safe(label_ent, e, &nd_mapping->labels, list) {
+>> -		struct nd_namespace_label *nd_label = label_ent->label;
+>> +		struct nd_lsa_label *nd_label = label_ent->label;
+>>
+>>  		if (!nd_label)
+>>  			continue;
+>>  		active++;
+>> -		if (!nsl_uuid_equal(ndd, nd_label, uuid))
+>> +		if (!nsl_uuid_equal(ndd, &nd_label->ns_label, uuid))
+>>  			continue;
+>>  		active--;
+>>  		slot = to_slot(ndd, nd_label);
+>> diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+>> index 0650fb4b9821..4883b3a1320f 100644
+>> --- a/drivers/nvdimm/label.h
+>> +++ b/drivers/nvdimm/label.h
+>> @@ -183,6 +183,16 @@ struct nd_namespace_label {
+>>  	};
+>>  };
+>>
+>> +/*
+>> + * LSA 2.1 format introduces region label, which can also reside
+>> + * into LSA along with only namespace label as per v1.1 and v1.2
+>> + */
+>> +struct nd_lsa_label {
+>> +	union {
+>> +		struct nd_namespace_label ns_label;
+>> +	};
+>> +};
 >
->I agree. I had a conversation with Dan about it where I mentioned calling it CXL to describe LSA 2.1 just doesn't seem quite right. He also offered up something like NDD_REGION_LABELING instead of NDD_CXL_LABEL. So +1 to this comment.
+>I think originally 'struct nd_namespace_label' wrapped a union to avoid changing code that already has 'struct nd_namespace_label' in the function. But since you are creating a whole new thing, maybe just create a union directly since you end up touching all the function parameters in this patch anyways.
+>
+>union nd_lsa_label {
+>	struct nd_namespace_label ns_label;
+>	struct cxl_region_label region_label;
+>};
 >
 >DJ
 
-Sure Dave, I will rename it to NDD_REGION_LABELING in next patch-set
+Thanks Dave for your suggestion. Yes I have wrapped a union here to
+avoid changing existing code which may create more noise.
+
+I think changing "struct nd_lsa_label" to "union nd_lsa_label" will be
+kind of same. Only diff will be usage of "union" in place of "struct",
+wherever I use nd_lsa_label.
+
+I understand that this renaming has created some extra noise in existing
+code. May be I will revisit this change and try using region label handling
+separately instead of using union.
+
 
 Regards,
 Neeraj
 
-------At96h8_oYHqdM-HzD.Qv-z6Hqrsj5DpI3AOnKMLFsbTdazMP=_eab9c_
+------CDBSwZz52MZUMeM1Rx6lI.cEW_5b_YZAAzr3v09AM7rvldzc=_ea573_
 Content-Type: text/plain; charset="utf-8"
 
 
-------At96h8_oYHqdM-HzD.Qv-z6Hqrsj5DpI3AOnKMLFsbTdazMP=_eab9c_--
+------CDBSwZz52MZUMeM1Rx6lI.cEW_5b_YZAAzr3v09AM7rvldzc=_ea573_--
 
