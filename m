@@ -1,124 +1,98 @@
-Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27F963093C7
-	for <nvdimm@lists.linux.dev>; Thu,  4 Sep 2025 14:34:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 913B0246790
+	for <nvdimm@lists.linux.dev>; Thu,  4 Sep 2025 15:26:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756996492; cv=none; b=Kcd/5uYy1s+6ftD/Rd+scSXI6l58xkO0x5Y3ni+xZy3r+idCGY6XPOl2GPNH2S3i0lHcCBObGQwByDP0+lSSbz4Dr+BnN5awHLjnmnLZlMt+WxQ2v272zFSlSJhHHANDJTy9FS8uQ167weHmM01XZqPXd5RMdZFveAgrf6W88EM=
+	t=1756999594; cv=none; b=A7EcWT2dVvassrd+5/Sq9eVrCV6+JL828qYHzhxvnhu6LRsYU1thS4zWdoMRoUKVITUujXbWVVki+zfjlD6lL5n4fXNJKh7EHfFqJbkjK8J+DYm5LcLTTN2QDnS5o1hNtD9QfR8XmcwV/4GxOQnND87WAcUAGgs7/Rg0yc23zQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756996492; c=relaxed/simple;
-	bh=5bp/92ROC/MIhinmDI/pNyNNDoOoefSD9Kf2q8amg/A=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=nBfh4FZdWIY5eucj01rySJRBQnuZmmld0ncqNkDvMd3JZoklm+BzablNMHlsitAMEDOholaE6YQAoad+drguxcMxdSkwbYFtcP/VPrjVwufisZDafTnX3MooRVMn81smz9DO19kwKNkEXlJWyK3byV+Ns+lHZgnZ1sDy2e7fhZ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=Ft7R67z6; arc=none smtp.client-ip=203.254.224.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1756999594; c=relaxed/simple;
+	bh=wC8KtLroHY6HeVoIP1n4WQrJA2JwWtEVxeQPQFEVy+0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=KPmbeDPeFBUw59SjAKd39K0Ga2DcIIJik6cnhH1u2TVs3OsqmBK7MGeXec3KTFbZx5eiGanxdcJv/I6J0ocB9tYVupkc0Vhag+aWRvEoFFKc9B+MiG+IHLo4DKcsx7PXVcfd44zO9z6keIbzeQZjcguAs+GeKoHL2kN5Yzu6cHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uiwiCbT7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="Ft7R67z6"
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20250904143448epoutp026775ecd010a210840146bbaf495a2bba~iGv9K8IaP2123721237epoutp02U
-	for <nvdimm@lists.linux.dev>; Thu,  4 Sep 2025 14:34:48 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20250904143448epoutp026775ecd010a210840146bbaf495a2bba~iGv9K8IaP2123721237epoutp02U
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1756996488;
-	bh=jnfTWRF/FMaqmWy+MGqeeb2CttG3aCtI8os1JvqG2AU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Ft7R67z6oETGIdpRuLeRNGdMWi/wf1IaP2G6d0SsoIBXezRXx9Rt99XnNKKP3idSc
-	 MGl7Miwx6UqEiQfQTYR6zyuZYXriuVeWHU+ZsxxK93GOF4dd8U3iaHiMUg+BA0Ke/H
-	 3GvQ3tpG9gZ5jN/Kwop/RSCllNYuZg7qPdrmvySw=
-Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
-	20250904143447epcas5p3d02bc4203cd4e4a428a60dd0a71b533a~iGv8YJIZz2391723917epcas5p3O;
-	Thu,  4 Sep 2025 14:34:47 +0000 (GMT)
-Received: from epcas5p3.samsung.com (unknown [182.195.38.88]) by
-	epsnrtp01.localdomain (Postfix) with ESMTP id 4cHhny4Bcjz6B9m4; Thu,  4 Sep
-	2025 14:34:46 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
-	20250904143446epcas5p3ecf61b44e98a9e6eda2d8d49e4992de0~iGv7Aaf7K2391723917epcas5p3N;
-	Thu,  4 Sep 2025 14:34:46 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20250904143444epsmtip1336043d5c30befc8ec88a30fd6779655~iGv53pWe50814008140epsmtip1h;
-	Thu,  4 Sep 2025 14:34:44 +0000 (GMT)
-Date: Thu, 4 Sep 2025 20:04:40 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
-	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
-	cpgs@samsung.com
-Subject: Re: [PATCH V2 12/20] nvdimm/namespace_label: Skip region label
- during namespace creation
-Message-ID: <20250904143440.l5fca2dgvmi2c325@test-PowerEdge-R740xd>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uiwiCbT7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C8D6C4CEF0
+	for <nvdimm@lists.linux.dev>; Thu,  4 Sep 2025 15:26:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1756999594;
+	bh=wC8KtLroHY6HeVoIP1n4WQrJA2JwWtEVxeQPQFEVy+0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=uiwiCbT7tDybnc6JCMNGYmd8VyWCfkuJquOpTvAeOpIsBWTnk6LcevRXhcoXDbsWY
+	 gTE+Lp+9U1hNeUVN/gKjwXG/Ob7slHdfCUGwgZ3MC4cWBrae/1wXVS1GGF0Qki4gBB
+	 IhmbiFoh4MyaXev/bmCiBE0NzqZkR2iU0BXMYdyXDI5JBH1/adah7O0ycyFgDgbl21
+	 BPzLwR65vCbaH2uzPOC2O9POqEJEn/KNXX81MqDsbjpgA8GwQAIFK/7FJn3YU6cFFw
+	 +yDipSY0zxYNJYo2Q1dVc9nVneE2w/zH+iz0yr9rwRE9JMdqEv8Po7MBaWymVr6xQK
+	 YuWooFSTssOJg==
+Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-7459d088020so632084a34.3
+        for <nvdimm@lists.linux.dev>; Thu, 04 Sep 2025 08:26:34 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXGccjDMFV8gKktFkxm4i3gZjYKtwtDJ0VsW2Uv+S/KlDQze8qklrQ+jU763yhoPmG9LCDBtoU=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy4ifh3vqwo75HJGOK4BhKyuQo/R+8XoVOjDO+sWhbuR//uUxMX
+	G2CcN4c4+hKeYk6egx4a9GUXmM8lbnq8gKohjVCzU7XUlKznaJmIin5vZ4YWtanr40YpqpGnw7C
+	EXikmmgHWk72gaZhdTwYjAWboyvUDwAc=
+X-Google-Smtp-Source: AGHT+IH4TIuaj3rlH6hzohb9REICq+MfcRyQItpmQuOhi7hkIA0OW9a770eUyjGII+FElzkYd84asozifkcr7K4oXOc=
+X-Received: by 2002:a05:6808:1a16:b0:438:33fd:3193 with SMTP id
+ 5614622812f47-43833fd4474mr2227125b6e.24.1756999593478; Thu, 04 Sep 2025
+ 08:26:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20250813165554.00002dea@huawei.com>
-X-CMS-MailID: 20250904143446epcas5p3ecf61b44e98a9e6eda2d8d49e4992de0
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----OUxkrUiS_5tNAtfPKy2OQMQtEkPPDXVoOsIej.5k6A4J0mxM=_ead3a_"
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-cpgsPolicy: CPGSC10-542,Y
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20250730121238epcas5p212dcce5cc5713173913ee154d5098a2c
-References: <20250730121209.303202-1-s.neeraj@samsung.com>
-	<CGME20250730121238epcas5p212dcce5cc5713173913ee154d5098a2c@epcas5p2.samsung.com>
-	<20250730121209.303202-13-s.neeraj@samsung.com>
-	<20250813165554.00002dea@huawei.com>
+References: <20250902114518.2625680-1-colin.i.king@gmail.com>
+In-Reply-To: <20250902114518.2625680-1-colin.i.king@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 4 Sep 2025 17:26:21 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0je-10aKyA0zeDZbqTXzjxNb7yTfsWkt_-a-7uwqYdmcA@mail.gmail.com>
+X-Gm-Features: Ac12FXysfBvBxpPrwhnHfQCMCaA6rmhjAG40wp_mam7L4JRE-FKaDYponTHdN1c
+Message-ID: <CAJZ5v0je-10aKyA0zeDZbqTXzjxNb7yTfsWkt_-a-7uwqYdmcA@mail.gmail.com>
+Subject: Re: [PATCH][next] ACPI: NFIT: Fix incorrect ndr_desc being reportedin
+ dev_err message
+To: Colin Ian King <colin.i.king@gmail.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Len Brown <lenb@kernel.org>, Jia He <justin.he@arm.com>, nvdimm@lists.linux.dev, 
+	linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-------OUxkrUiS_5tNAtfPKy2OQMQtEkPPDXVoOsIej.5k6A4J0mxM=_ead3a_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Disposition: inline
-
-On 13/08/25 04:55PM, Jonathan Cameron wrote:
->On Wed, 30 Jul 2025 17:42:01 +0530
->Neeraj Kumar <s.neeraj@samsung.com> wrote:
+On Tue, Sep 2, 2025 at 1:46=E2=80=AFPM Colin Ian King <colin.i.king@gmail.c=
+om> wrote:
 >
->> During namespace creation skip presence of region label if present.
+> There appears to be a cut-n-paste error with the incorrect field
+> ndr_desc->numa_node being reported for the target node. Fix this by
+> using ndr_desc->target_node instead.
 >
->Confusing description.  What does skipping presence mean?
->Reword.
+> Fixes: f060db99374e ("ACPI: NFIT: Use fallback node id when numa info in =
+NFIT table is incorrect")
+> Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
->During namespace creation, skip any region labels found.
-
-Thanks Jonathan, I will fix it in next patch-set
-
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index ae035b93da08..3eb56b77cb6d 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2637,7 +2637,7 @@ static int acpi_nfit_register_region(struct acpi_nf=
+it_desc *acpi_desc,
+>         if (ndr_desc->target_node =3D=3D NUMA_NO_NODE) {
+>                 ndr_desc->target_node =3D phys_to_target_node(spa->addres=
+s);
+>                 dev_info(acpi_desc->dev, "changing target node from %d to=
+ %d for nfit region [%pa-%pa]",
+> -                       NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &r=
+es.end);
+> +                       NUMA_NO_NODE, ndr_desc->target_node, &res.start, =
+&res.end);
+>         }
 >
->
->> Also preserve region label into labels list if present.
->>
->> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
->> ---
->>  drivers/nvdimm/namespace_devs.c | 50 +++++++++++++++++++++++++++++----
->>  1 file changed, 45 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
->> index e5c2f78ca7dd..8edd26407939 100644
->> --- a/drivers/nvdimm/namespace_devs.c
->> +++ b/drivers/nvdimm/namespace_devs.c
->> @@ -1985,6 +1985,10 @@ static struct device **scan_labels(struct nd_region *nd_region)
->>  		if (!lsa_label)
->>  			continue;
->>
->> +		/* skip region labels if present */
->
->This is kind of obvious comment. I'd drop it.
+>         /*
+> --
 
-Sure, I will drop it in next patch-set
-
-
-Regards,
-Neeraj
-
-------OUxkrUiS_5tNAtfPKy2OQMQtEkPPDXVoOsIej.5k6A4J0mxM=_ead3a_
-Content-Type: text/plain; charset="utf-8"
-
-
-------OUxkrUiS_5tNAtfPKy2OQMQtEkPPDXVoOsIej.5k6A4J0mxM=_ead3a_--
+Dan, Dave, are you guys going to take this one, or should I take care of it=
+?
