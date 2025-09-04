@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F162E30DD06
-	for <nvdimm@lists.linux.dev>; Thu,  4 Sep 2025 17:35:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922CE3090E2
+	for <nvdimm@lists.linux.dev>; Thu,  4 Sep 2025 18:14:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757007360; cv=none; b=kbq8Y8pnHswmVgOJ6IRJ8+0kLxruuvRLFWLfK0XWVv3bRUnn9A5IP1jdLewthVjBbuCasLBpyEsc5PRbPvccF6NXJAx63xnkwRS1NNIe6msVN/Z1BjR+uzaUL9LgLcAkPRMqCe2hJVst1Pws76Tw1kjaIIgaV+nSHRYxIR7TtC8=
+	t=1757009660; cv=none; b=Yipl0miklET8xJEJNjmwHom6BvrZJCeZY4W/tpMdYi6xJN/JPEux9AyGuBqpNGNYQEyJh4nA30Bc04UXPgO7XgReroxCK8D8H0AX+9TCAGhn6n05oM/U1pI2SwpKULV7FZ+tItylhYb2UHKa/6j6wHQWt4TzC19GgarQHd4T4fI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757007360; c=relaxed/simple;
-	bh=CRYMSgrsarXvYi1//yRrN7dpQZoWaaGRrmsLjMroS9s=;
+	s=arc-20240116; t=1757009660; c=relaxed/simple;
+	bh=snRYZy8sFUcGEZgJH9P6mgJNhGmYsmCzIsOzo2eyGW4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rDQ2PaixBTROqM8IMD9YU7HtJ9wpauTx7Xn5MCzwLGqCE64nhUU6ou4NRkaj+42DLqZGDLbwCOzQWkN/5udqoXP345JYtxCMchImS1w71n5SKtclHQFTJob5zy7CWUgDRdVqw2zyuJGQASvoq1Mq06k3EsHSgt89Mwhlh563XBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XI4K3Fcb; arc=none smtp.client-ip=192.198.163.18
+	 In-Reply-To:Content-Type; b=a2vJ1HFSMVfjnV5Q3S1EfvMKOvmPNVjNTlcFJdghqHtpv90zkvCuVYiHgApaY8+yZ5o4P5JBNxX/oblS6Sf41J940ZpOdi1/x/8N8xhhfJ/ZTxb3LpP24l13w/dSzdVpEAMrdACUpMMAjzRxzta9834/9ZWoSBcNoH99kUiF+7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Jaw00GqV; arc=none smtp.client-ip=198.175.65.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XI4K3Fcb"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Jaw00GqV"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1757007359; x=1788543359;
+  t=1757009658; x=1788545658;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=CRYMSgrsarXvYi1//yRrN7dpQZoWaaGRrmsLjMroS9s=;
-  b=XI4K3Fcb5F9w9/rZd+sovXpUBBejuCqBqJIoco2iGw4CNwYWklddMJ0P
-   BupBVJnb6xK02nUukJ36x1w2wr/J+H6IlmVopbEzVVkGTpZ0Lv8p869vc
-   E6ZdtuBwYXGGujYCy1CYK6ariAv+KB3MCCs3KuI7XdJv9gx74Y380CVDl
-   0S6V76uBKzBsoGv2F21Ck3GBhdv9e3l+ElB2xL6KvASHbhPX+aGhrv7fQ
-   CzKSSEam9RnHYNb7yTS1jQRzTVVdkKEbx2Idke1UjYf6K9DZ7oXf3/qbe
-   s2Sj+IAW40b2yG5sVFI8DHQUuWvlact75xVvy3ZBJ8cJ2ckWjYA+/wBhh
-   g==;
-X-CSE-ConnectionGUID: fpqTZubaSkmq3ic42RULbg==
-X-CSE-MsgGUID: hUHfO3CDTc2Lp38jyVYuZQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11543"; a="58569648"
+  bh=snRYZy8sFUcGEZgJH9P6mgJNhGmYsmCzIsOzo2eyGW4=;
+  b=Jaw00GqVNWfQlgJBQsYhi5N2jGUlLg0p0hbxuHBUiIRPyLlMvnvjRK/V
+   F897XlXnTAh0IGECbRrzjkPNGMgJbH5JqdDTFbvyp3wZieXP5pB4MwV0k
+   Q7aIzW9KY0Rnwb8Cbv/qDoIetRTRr4jij45zSuF+nFN3SSnwhY63iu6BY
+   wfdUAAjQPsEhNXNdGadRohmT9ty1bSDi7dK73HmcqgI2+rHS0dj0YF9+n
+   4rvNm2FHgjc08RtV4HzG9aj1AlDpKEacMKHI0krCSs71BUHBaQtQeB98G
+   25mfyhqaXxmtC+QlY5GcaNZ4GQbWKLc5yy4qyWHCpd8yJ7uIQ3CtwCyU8
+   w==;
+X-CSE-ConnectionGUID: Qm2CZrR8TzKWmUzpFQoV8w==
+X-CSE-MsgGUID: GLYPslMBQfeze7D7M+nPIQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11543"; a="76814959"
 X-IronPort-AV: E=Sophos;i="6.18,239,1751266800"; 
-   d="scan'208";a="58569648"
+   d="scan'208";a="76814959"
 Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2025 10:35:58 -0700
-X-CSE-ConnectionGUID: M1fSyPrMSqKYRsjrqVUZaQ==
-X-CSE-MsgGUID: 5tFWot6LQXCV9U/ClRxpgg==
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2025 11:14:18 -0700
+X-CSE-ConnectionGUID: uXWQ13oQTYOxPlfW1q2Xow==
+X-CSE-MsgGUID: vt+G3bBGQMSvNLBiSWtcYA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.18,239,1751266800"; 
-   d="scan'208";a="176289057"
+   d="scan'208";a="176300742"
 Received: from cmdeoliv-mobl4.amr.corp.intel.com (HELO [10.125.110.24]) ([10.125.110.24])
-  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2025 10:35:56 -0700
-Message-ID: <7c8ff1d6-1c74-4f46-a96d-74336451d81a@intel.com>
-Date: Thu, 4 Sep 2025 10:35:55 -0700
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2025 11:14:16 -0700
+Message-ID: <14d94e89-8342-4bd7-9c53-a3b46e22caa7@intel.com>
+Date: Thu, 4 Sep 2025 11:14:15 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,8 +52,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/6] dax/hmem: Request cxl_acpi and cxl_pci before walking
- Soft Reserved ranges
+Subject: Re: [PATCH 5/6] dax/hmem: Reintroduce Soft Reserved ranges back into
+ the iomem tree
 To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
  linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
  nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
@@ -76,74 +76,89 @@ Cc: Davidlohr Bueso <dave@stgolabs.net>,
  PradeepVineshReddy Kodamati <PradeepVineshReddy.Kodamati@amd.com>,
  Zhijian Li <lizhijian@fujitsu.com>
 References: <20250822034202.26896-1-Smita.KoralahalliChannabasappa@amd.com>
- <20250822034202.26896-3-Smita.KoralahalliChannabasappa@amd.com>
+ <20250822034202.26896-6-Smita.KoralahalliChannabasappa@amd.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20250822034202.26896-3-Smita.KoralahalliChannabasappa@amd.com>
+In-Reply-To: <20250822034202.26896-6-Smita.KoralahalliChannabasappa@amd.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 8/21/25 8:41 PM, Smita Koralahalli wrote:
-> Ensure that cxl_acpi has published CXL Window resources before dax_hmem
-> walks Soft Reserved ranges.
+On 8/21/25 8:42 PM, Smita Koralahalli wrote:
+> Reworked from a patch by Alison Schofield <alison.schofield@intel.com>
 > 
-> Replace MODULE_SOFTDEP("pre: cxl_acpi") with an explicit, synchronous
-> request_module("cxl_acpi"). MODULE_SOFTDEP() only guarantees eventual
-> loading, it does not enforce that the dependency has finished init
-> before the current module runs. This can cause dax_hmem to start before
-> cxl_acpi has populated the resource tree, breaking detection of overlaps
-> between Soft Reserved and CXL Windows.
+> Reintroduce Soft Reserved range into the iomem_resource tree for dax_hmem
+> to consume.
 > 
-> Also, request cxl_pci before dax_hmem walks Soft Reserved ranges. Unlike
-> cxl_acpi, cxl_pci attach is asynchronous and creates dependent devices
-> that trigger further module loads. Asynchronous probe flushing
-> (wait_for_device_probe()) is added later in the series in a deferred
-> context before dax_hmem makes ownership decisions for Soft Reserved
-> ranges.
+> This restores visibility in /proc/iomem for ranges actively in use, while
+> avoiding the early-boot conflicts that occurred when Soft Reserved was
+> published into iomem before CXL window and region discovery.
 > 
+> Link: https://lore.kernel.org/linux-cxl/29312c0765224ae76862d59a17748c8188fb95f1.1692638817.git.alison.schofield@intel.com/
+> Co-developed-by: Alison Schofield <alison.schofield@intel.com>
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 > Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 > ---
->  drivers/dax/hmem/hmem.c | 17 ++++++++++-------
->  1 file changed, 10 insertions(+), 7 deletions(-)
+>  drivers/dax/hmem/hmem.c | 38 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 38 insertions(+)
 > 
 > diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-> index d5b8f06d531e..9277e5ea0019 100644
+> index 90978518e5f4..24a6e7e3d916 100644
 > --- a/drivers/dax/hmem/hmem.c
 > +++ b/drivers/dax/hmem/hmem.c
-> @@ -146,6 +146,16 @@ static __init int dax_hmem_init(void)
->  {
->  	int rc;
+> @@ -93,6 +93,40 @@ static void process_defer_work(struct work_struct *_work)
+>  	walk_hmem_resources(&pdev->dev, handle_deferred_cxl);
+>  }
 >  
-> +	/*
-> +	 * Ensure that cxl_acpi and cxl_pci have a chance to kick off
-> +	 * CXL topology discovery at least once before scanning the
-> +	 * iomem resource tree for IORES_DESC_CXL resources.
-> +	 */
-> +	if (IS_ENABLED(CONFIG_DEV_DAX_CXL)) {
-> +		request_module("cxl_acpi");
-> +		request_module("cxl_pci");
+> +static void remove_soft_reserved(void *data)
+> +{
+> +	struct resource *r = data;
+> +
+> +	remove_resource(r);
+> +	kfree(r);
+> +}
+> +
+> +static int add_soft_reserve_into_iomem(struct device *host,
+> +				       const struct resource *res)
+> +{
+> +	struct resource *soft = kzalloc(sizeof(*soft), GFP_KERNEL);
+> +	int rc;
+> +
+> +	if (!soft)
+> +		return -ENOMEM;
+> +
+> +	*soft = DEFINE_RES_NAMED_DESC(res->start, (res->end - res->start + 1),
+> +				      "Soft Reserved", IORESOURCE_MEM,
+> +				      IORES_DESC_SOFT_RESERVED);
+> +
+> +	rc = insert_resource(&iomem_resource, soft);
+> +	if (rc) {
+> +		kfree(soft);
+> +		return rc;
 > +	}
 > +
->  	rc = platform_driver_register(&dax_hmem_platform_driver);
->  	if (rc)
->  		return rc;
-> @@ -166,13 +176,6 @@ static __exit void dax_hmem_exit(void)
->  module_init(dax_hmem_init);
->  module_exit(dax_hmem_exit);
->  
-> -/* Allow for CXL to define its own dax regions */
-> -#if IS_ENABLED(CONFIG_CXL_REGION)
-> -#if IS_MODULE(CONFIG_CXL_ACPI)
-> -MODULE_SOFTDEP("pre: cxl_acpi");
-> -#endif
-> -#endif
-> -
->  MODULE_ALIAS("platform:hmem*");
->  MODULE_ALIAS("platform:hmem_platform*");
->  MODULE_DESCRIPTION("HMEM DAX: direct access to 'specific purpose' memory");
+> +	rc = devm_add_action_or_reset(host, remove_soft_reserved, soft);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return 0;
+> +}
+> +
+>  static int hmem_register_device(struct device *host, int target_nid,
+>  				const struct resource *res)
+>  {
+> @@ -125,6 +159,10 @@ static int hmem_register_device(struct device *host, int target_nid,
+>  					    IORES_DESC_SOFT_RESERVED);
+>  	if (rc != REGION_INTERSECTS)
+>  		return 0;
+> +
+> +	rc = add_soft_reserve_into_iomem(host, res);
+> +	if (rc)
+> +		return rc;
+>  #else
+>  	rc = region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
+>  			       IORES_DESC_SOFT_RESERVED);
 
