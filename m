@@ -1,151 +1,180 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4626275AF2
-	for <nvdimm@lists.linux.dev>; Tue,  9 Sep 2025 16:13:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8838345756
+	for <nvdimm@lists.linux.dev>; Tue,  9 Sep 2025 16:43:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757434384; cv=none; b=hAQfA3/QeMSkHe4PsPiOr7rJQm5TOnAptWzrMFevIQejhcm3BMiVCiGJ97+ifIYVH4dalq7j45FBGLaV43x/f1y0PWpMGxbePwX643Pv3G7eBo4BKdUhQXyGtZtmu099jRhm0diyMxXxjp+B3IJJAZGB4r7TM82IGG6ezxrI4mw=
+	t=1757436223; cv=none; b=asPWNErgn53tWeW0iro92WHRUfjch77QsqQKnf/yT8O8ZHqG8dMMAWApwHrJ6rM5XtAsnq4SZlmn/PnDOq/KXL125h0xC48u4ag9tHEjt6Gn9IM/DVevPpoZS2A/NDaHGCv+nTMmm7yRhhvNLX4bTbnW48ZJKSkexdXOQXRm/S8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757434384; c=relaxed/simple;
-	bh=zF+pibFWFF+py+h3GHMhUcPWe6XzCW0OIVU4fGG31Sc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=H+EgDsyR4okaBmi1Rwlupjc1P78VWUrZldbFv+p2v4kJvhS0cYjv4JEWubx2c14cW12hBVbFTluvlRpl5TioqlKJLkbaWbMxtwfNNUulflo8kYyeVIHRQWV3oZA3ndVGl0AZ5ksuhhIehaM4Ocbwb43MHGKsLmFK/uwz9sngFFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=fail (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=Kn2NOuvD reason="signature verification failed"; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1757436223; c=relaxed/simple;
+	bh=QvvxVmrQ6ERDo1A0ifaFO0uKs7uSQdW94E943VWjhCY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=oWy6bSYu1m8DOKI0vF3y0+Tpk3aJ4Gw5aQOqND7SUJk+ngrmk6OjZxda5G1tqEGaAB4LUOGNVcGa7X2xZwcJkmVz9XKH76MUuvlSswJa7ioLYVqIgnkm/m1lBVWOOasiBKt5pBjXGvxzUsdQQKvJqpl4xO92c3px6amILr0O2eU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=x0KslDfv; arc=none smtp.client-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="Kn2NOuvD"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 5515540E01B0;
-	Tue,  9 Sep 2025 16:12:53 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=fail (4096-bit key)
-	reason="fail (body has been altered)" header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id WjqufeJ0WJTY; Tue,  9 Sep 2025 16:12:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1757434367; bh=R6cxdKUTP067b/7o2F/e5uNSuLE+BTpfOFxYXHQQkFI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Kn2NOuvDOy8qA+j1Q/vTeTO7R77GC4i0Ukib8EUb2wmZoacKVuBBgqRCERAj8gN1/
-	 FwW2WldBidmRNCtsWqhq+CvnCI2cLrIO7UWHurN0/OXaD6hzSSvXfCUFIGs1RIcjl+
-	 5mad77mhIhzMtq5UrrgkS7qjr2/GDoasLQWh7dEQpGqEL7Fxp2EFlkQl+dHajy7aS2
-	 5lOGgUBONF990KX89fnDfXsWw/hElN8aCgpwPcvVqgroat89w5wRY9Gv6Dm1tlTDd9
-	 H9Ksr0+DgAJnYgzGVtfNhP/kBI2RNSgMw+AKk//8qWBSaHmQAffltBeF+odAPo+kJ7
-	 jU3zHrjjLdMIEyow9s2n2l/q41zJny82p86eLCx5GE8cKQN0h0b5i/WEii0qlyGXfv
-	 /KeykfLmCCwujLO+DpxzXKK0JiXkC+qg0gISuHPC9UBPjwGkVDcqzx6zsGaVV3TMY7
-	 lMqRzEIBcfSuIxhQVBSHvPLlieDwUX5iL8exZPvgW7MB5i7NvUdBzeGRNxf8Jx7Nn9
-	 qOUogClBFvGfZc5NFWEt9ZcKijH1ADF+qOyi6i2V6LBmhVWnh+DsDkkMi+xzZFzOVs
-	 bVSmHA1seIl+yQjLwjScUfNqOZsZ8+1LuMHP4rrbYssLcQoM/mUCN5ULCnjElcoVsO
-	 cNSzloV0TZma0UIFT3fUEQKU=
-Received: from zn.tnic (p5de8ed27.dip0.t-ipconnect.de [93.232.237.39])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with UTF8SMTPSA id 2365440E0176;
-	Tue,  9 Sep 2025 16:12:17 +0000 (UTC)
-Date: Tue, 9 Sep 2025 18:12:10 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-Cc: linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-pm@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <len.brown@intel.com>, Pavel Machek <pavel@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
-	Ying Huang <huang.ying.caritas@gmail.com>,
-	Yao Xingtao <yaoxt.fnst@fujitsu.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Nathan Fontenot <nathan.fontenot@amd.com>,
-	Terry Bowman <terry.bowman@amd.com>,
-	Robert Richter <rrichter@amd.com>,
-	Benjamin Cheatham <benjamin.cheatham@amd.com>,
-	PradeepVineshReddy Kodamati <PradeepVineshReddy.Kodamati@amd.com>,
-	Zhijian Li <lizhijian@fujitsu.com>
-Subject: Re: [PATCH 1/6] dax/hmem, e820, resource: Defer Soft Reserved
- registration until hmem is ready
-Message-ID: <20250909161210.GBaMBR2rN8h6eT9JHe@fat_crate.local>
-References: <20250822034202.26896-1-Smita.KoralahalliChannabasappa@amd.com>
- <20250822034202.26896-2-Smita.KoralahalliChannabasappa@amd.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="x0KslDfv"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-61cfbb21fd1so223a12.0
+        for <nvdimm@lists.linux.dev>; Tue, 09 Sep 2025 09:43:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1757436219; x=1758041019; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=X9zR1ns6r4tli6kgpMkZXeVyHg9onE4yZmroH/q5x2E=;
+        b=x0KslDfvCoXfDG5IzMT2yFB7ttqD61AOkRBkmTIGdOv2GzTxDJUk5pzlHFwwgsUC1C
+         h13gpgk7ujcQzKRZ7GQ+3OVfEtGm9NiSpcu7m9CqUm4r0g27DYjp0UZy+7nveSJNMwAF
+         lUojsuJzPiCnaYHAmXRLh7R6sB32ZMdQhzZCeat38HbnOyTQ3BpxgFqK46O+Ips/M0uK
+         eDcOyeSLbbdCwp32Sf2FuRyRLENTBZXSvx423WybEzXN1Bmwb+VmX1BjNulj4D3/0CHY
+         V3aXJRahvV5YHK/ZK5y4vn68Cesl8lGZmtbINb5tl5Tz4hxVWOhn7ZeiW+cJI9hPEtPL
+         fixA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1757436219; x=1758041019;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=X9zR1ns6r4tli6kgpMkZXeVyHg9onE4yZmroH/q5x2E=;
+        b=Bd9/t5tL407kNpTvu02yfwmn6gvez1IetdkUMOwwrrfCop55lyLfTY29dwzhks4oYc
+         dO8hsXDmtlQR9FjrhmFgcLfrjpuQ10beMNRW65mDLUBhmLDZdYOsHLrIuLJkG/GjQRO6
+         B05JjZ+6wmHWEfvWQ4Ws1mGnjSK529bX1eOiqRkxhkqBamDvKdkK1RKCEplezLtpcj3r
+         baqXV7QrsUxjLJosKV9a2uAcnXlHkUhB73AmOO8RpBTB+K+W65VKr+uPhVAAkqLfdB7t
+         LQJPQQtEEy8O2tnzFZfLbdQUl0v5G2f7eeu+pmpwNWnlI57hPazss1GANrFG8I4OliIc
+         4i8g==
+X-Forwarded-Encrypted: i=1; AJvYcCXPiAw4mo3/DQ4GVuguVNUx+FEPqUWjaK62tfxVZS4Ta5zOBHQOsIHFIyazZ+tMNRW5UsfKaOU=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxosTRRwpgK8qZp4hXCPu87mi7YAhZ4cmDc4P1kk/DqUSOWjEdp
+	kQQtl4efzgTJ1dbLqFaYs6xZrh1kfwKwR+Nsxu//rs6rB0Sel7Oc1WBtqQFksQV1YufUCYS6XRG
+	M/fM45EtPyxlPVVjN8abeeHrdiYH7vWCEzeaQe9RQ
+X-Gm-Gg: ASbGnctaywVGGUfwwAUtkqh19I4+ds6XJHPZIjQXPLbIlEQ/ENUS4NK+qxFovcfiM2I
+	ER5KlPw2UZinh6OCW2mRtRGKPyUA1pzNGCDkWMW5Mgv/vWRHB+fXc8x9BJE90VMmkBBk315Cf4s
+	Wcq4bOufmTki8IibygGFAXsxsi3BfmnbnF740ZFT6MImLCmckbL56LZU77/ELuVCoAIMN6DTpmn
+	oNV6VYrZ7UiYPHfl4AYPlKDC3QXyPAybS9pXNoPcbbhsc3uBMBZm0U=
+X-Google-Smtp-Source: AGHT+IELrtj08JXZeKFczydeIaWz+ZDdGREnJhxstnY5vYYsKxfzgQANvCdFJ1mjoGgstj0WHnOScZjfoo2Pzh65Zfk=
+X-Received: by 2002:a05:6402:4024:b0:61c:c9e3:18f9 with SMTP id
+ 4fb4d7f45d1cf-623d2c4dda5mr356673a12.3.1757436218862; Tue, 09 Sep 2025
+ 09:43:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250822034202.26896-2-Smita.KoralahalliChannabasappa@amd.com>
+References: <cover.1757329751.git.lorenzo.stoakes@oracle.com>
+ <ea1a5ab9fff7330b69f0b97c123ec95308818c98.1757329751.git.lorenzo.stoakes@oracle.com>
+ <ad69e837-b5c7-4e2d-a268-c63c9b4095cf@redhat.com> <c04357f9-795e-4a5d-b762-f140e3d413d8@lucifer.local>
+ <e882bb41-f112-4ec3-a611-0b7fcf51d105@redhat.com> <8994a0f1-1217-49e6-a0db-54ddb5ab8830@lucifer.local>
+In-Reply-To: <8994a0f1-1217-49e6-a0db-54ddb5ab8830@lucifer.local>
+From: Suren Baghdasaryan <surenb@google.com>
+Date: Tue, 9 Sep 2025 09:43:25 -0700
+X-Gm-Features: AS18NWB56jIrhZDM4c-qSVZLOkH6X6dA_iJA_IjgEAuDFh14nG2Q8lK0Ov1ujjQ
+Message-ID: <CAJuCfpEeUkta7UfN2qzSxHuohHnm7qXe=rEzVjfynhmn2WF0fA@mail.gmail.com>
+Subject: Re: [PATCH 06/16] mm: introduce the f_op->mmap_complete, mmap_abort hooks
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>, Guo Ren <guoren@kernel.org>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	"David S . Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Nicolas Pitre <nico@fluxnic.net>, Muchun Song <muchun.song@linux.dev>, 
+	Oscar Salvador <osalvador@suse.de>, 
+	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Baoquan He <bhe@redhat.com>, 
+	Vivek Goyal <vgoyal@redhat.com>, Dave Young <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>, 
+	Reinette Chatre <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, 
+	James Morse <james.morse@arm.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, 
+	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Uladzislau Rezki <urezki@gmail.com>, 
+	Dmitry Vyukov <dvyukov@google.com>, Andrey Konovalov <andreyknvl@gmail.com>, Jann Horn <jannh@google.com>, 
+	Pedro Falcato <pfalcato@suse.de>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-csky@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-s390@vger.kernel.org, 
+	sparclinux@vger.kernel.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+	linux-mm@kvack.org, ntfs3@lists.linux.dev, kexec@lists.infradead.org, 
+	kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 22, 2025 at 03:41:57AM +0000, Smita Koralahalli wrote:
-> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-> index c3acbd26408b..aef1ff2cabda 100644
-> --- a/arch/x86/kernel/e820.c
-> +++ b/arch/x86/kernel/e820.c
-> @@ -1153,7 +1153,7 @@ void __init e820__reserve_resources_late(void)
->  	res =3D e820_res;
->  	for (i =3D 0; i < e820_table->nr_entries; i++) {
->  		if (!res->parent && res->end)
-> -			insert_resource_expand_to_fit(&iomem_resource, res);
-> +			insert_resource_late(res);
->  		res++;
->  	}
+On Tue, Sep 9, 2025 at 2:37=E2=80=AFAM Lorenzo Stoakes
+<lorenzo.stoakes@oracle.com> wrote:
 >
+> On Tue, Sep 09, 2025 at 11:26:21AM +0200, David Hildenbrand wrote:
+> > > >
+> > > > In particular, the mmap_complete() looks like another candidate for=
+ letting
+> > > > a driver just go crazy on the vma? :)
+> > >
+> > > Well there's only so much we can do. In an ideal world we'd treat VMA=
+s as
+> > > entirely internal data structures and pass some sort of opaque thing =
+around, but
+> > > we have to keep things real here :)
+> >
+> > Right, we'd pass something around that cannot be easily abused (like
+> > modifying random vma flags in mmap_complete).
+> >
+> > So I was wondering if most operations that driver would perform during =
+the
+> > mmap_complete() could be be abstracted, and only those then be called w=
+ith
+> > whatever opaque thing we return here.
+>
+> Well there's 2 issues at play:
+>
+> 1. I might end up having to rewrite _large parts_ of kernel functionality=
+ all of
+>    which relies on there being a vma parameter (or might find that to be
+>    intractable).
+>
+> 2. There's always the 'odd ones out' :) so there'll be some drivers that
+>    absolutely do need to have access to this.
+>
+> But as I was writing this I thought of an idea - why don't we have someth=
+ing
+> opaque like this, perhaps with accessor functions, but then _give the abi=
+lity to
+> get the VMA if you REALLY have to_.
+>
+> That way we can handle both problems without too much trouble.
+>
+> Also Jason suggested generic functions that can just be assigned to
+> .mmap_complete for instance, which would obviously eliminate the crazy
+> factor a lot too.
+>
+> I'm going to refactor to try to put ONLY prepopulate logic in
+> .mmap_complete where possible which fits with all of this.
 
-Btw, this doesn't even build and cover letter doesn't say what it applies
-ontop so I applied it on my pile of tip/master.
+Thinking along these lines, do you have a case when mmap_abort() needs
+vm_private_data? I was thinking if VMA mapping failed, why would you
+need vm_private_data to unwind prep work? You already have the context
+pointer for that, no?
 
-kernel/resource.c: In function =E2=80=98region_intersects_soft_reserve=E2=
-=80=99:
-kernel/resource.c:694:36: error: =E2=80=98soft_reserve_resource=E2=80=99 =
-undeclared (first use in this function); did you mean =E2=80=98devm_relea=
-se_resource=E2=80=99?
-  694 |         ret =3D __region_intersects(&soft_reserve_resource, start=
-, size, flags,
-      |                                    ^~~~~~~~~~~~~~~~~~~~~
-      |                                    devm_release_resource
-kernel/resource.c:694:36: note: each undeclared identifier is reported on=
-ly once for each function it appears in
-make[3]: *** [scripts/Makefile.build:287: kernel/resource.o] Error 1
-make[2]: *** [scripts/Makefile.build:556: kernel] Error 2
-make[2]: *** Waiting for unfinished jobs....
-make[1]: *** [/mnt/kernel/kernel/2nd/linux/Makefile:2011: .] Error 2
-make: *** [Makefile:248: __sub-make] Error 2
-
-Also, I'd do this resource insertion a bit differently:
-
-insert_resource_expand_to_fit(struct resource *new)
-{
-	struct resource *root =3D &iomem_resource;
-
-	if (new->desc =3D=3D IORES_DESC_SOFT_RESERVED)
-		root =3D &soft_reserve_resource;
-
-	return __insert_resource_expand_to_fit(root, new);
-}
-
-and rename the current insert_resource_expand_to_fit() to the __ variant.
-
-It looks like you want to intercept all callers of
-insert_resource_expand_to_fit() instead of defining a separate set which =
-works
-on the soft-reserve thing.
-
-Oh well, the resource code is yucky already.
-
---=20
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+>
+> >
+> > But I have no feeling about what crazy things a driver might do. Just
+> > calling remap_pfn_range() would be easy, for example, and we could abst=
+ract
+> > that.
+>
+> Yeah, I've obviously already added some wrappers for these.
+>
+> BTW I really really hate that STUPID ->vm_pgoff hack, if not for that, li=
+fe
+> would be much simpler.
+>
+> But instead now we need to specify PFN in the damn remap prepare wrapper =
+in
+> case of CoW. God.
+>
+> >
+> > --
+> > Cheers
+> >
+> > David / dhildenb
+> >
+>
+> Cheers, Lorenzo
