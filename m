@@ -1,53 +1,45 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CDF131195A
-	for <nvdimm@lists.linux.dev>; Wed, 10 Sep 2025 13:41:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F45D1A9B24
+	for <nvdimm@lists.linux.dev>; Wed, 10 Sep 2025 14:03:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757511702; cv=none; b=S2bw6apFujHjZS5Y6NecYIz9o9UGM5hUy/WkA35ifq7dACeHLjb2LYJu0EHhTtTyoTMC62ha4jGBxai2i2HlZOjfur0REvc3j+6ixYGI+AUaUqazjca+aTEt503htwLSLUZiHB3zph0qBlRk97mz8Lbw+IUVrO4FBgmt4k/MP+I=
+	t=1757513009; cv=none; b=OppHyfvRvf0JWvihpyQXSVNFFwWv6yPLXFR4TLC0l1v2TMMoUF25UTroWcrr6E2rBG77H/u24ALAPTbB6SCUxOboTS0dGhm7Tw9391esvGfke/a0x4oo5FXPRZtSzf7IWZCLNNDGdwQsV0MMfcnnMT/iaQeJk2Xs7tnrqO1fr/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757511702; c=relaxed/simple;
-	bh=/60SYAM/5dBbuXfohlZHRDxhelvt0nUOOqE7eCNk7RI=;
+	s=arc-20240116; t=1757513009; c=relaxed/simple;
+	bh=TQDrVeY3489/FH/73wZC6CHaQ0RWriZ2IW3o9GYBPSE=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D6f3pvPf+cgGzD0rml4tN8jFtqM4n27MaQFdBKSCxoVhkROvif5XOuAE2SbMwzuwa4ITk+N1KnoNTiEPTo0JuAnpNmansqiluf8CxJ7vGqbB61mn7h5Jv62NiDSzS//DEOYgB1VTYJG+GP+Izu+/3j2xcZVQMgnnDIF0T9X7kxc=
+	 MIME-Version:Content-Type; b=ZmXvWz2X5hcgqevx4w296gtVekX1nHUBUcKonlLOtrB30b6nwpebSfp54O9aBg6R4bcQSEPoYIkohIbn3RksTkFGzlnk21KFkcl/wNQ0hYEj5evDU+EvSo8ft098dwPUt3Qi0rwc/I4nsU3on7ET92iJVfJKMPy+heM4xBG1fOM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4cMMGr0P6xz6LDJl;
-	Wed, 10 Sep 2025 21:39:00 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4cMMkB0cgMz6K5xZ;
+	Wed, 10 Sep 2025 21:59:14 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 7B30F1404FD;
-	Wed, 10 Sep 2025 21:41:38 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id AD2FF1402F7;
+	Wed, 10 Sep 2025 22:03:24 +0800 (CST)
 Received: from localhost (10.203.177.15) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Wed, 10 Sep
- 2025 15:41:37 +0200
-Date: Wed, 10 Sep 2025 14:41:36 +0100
+ 2025 16:03:23 +0200
+Date: Wed, 10 Sep 2025 15:03:22 +0100
 From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, Dave Jiang
-	<dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, Vishal
- Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan
- Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>, "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown
-	<len.brown@intel.com>, Pavel Machek <pavel@kernel.org>, Li Ming
-	<ming.li@zohomail.com>, Jeff Johnson <jeff.johnson@oss.qualcomm.com>, Ying
- Huang <huang.ying.caritas@gmail.com>, Yao Xingtao <yaoxt.fnst@fujitsu.com>,
-	"Peter Zijlstra" <peterz@infradead.org>, Greg KH
-	<gregkh@linuxfoundation.org>, Nathan Fontenot <nathan.fontenot@amd.com>,
-	Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
-	"Benjamin Cheatham" <benjamin.cheatham@amd.com>, PradeepVineshReddy Kodamati
-	<PradeepVineshReddy.Kodamati@amd.com>, Zhijian Li <lizhijian@fujitsu.com>
-Subject: Re: [PATCH 5/6] dax/hmem: Reintroduce Soft Reserved ranges back
- into the iomem tree
-Message-ID: <20250910144136.000002e2@huawei.com>
-In-Reply-To: <20250822034202.26896-6-Smita.KoralahalliChannabasappa@amd.com>
-References: <20250822034202.26896-1-Smita.KoralahalliChannabasappa@amd.com>
-	<20250822034202.26896-6-Smita.KoralahalliChannabasappa@amd.com>
+To: Neeraj Kumar <s.neeraj@samsung.com>
+CC: Dave Jiang <dave.jiang@intel.com>, <linux-cxl@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+	<gost.dev@samsung.com>, <a.manzanares@samsung.com>, <vishak.g@samsung.com>,
+	<neeraj.kernel@gmail.com>, <cpgs@samsung.com>
+Subject: Re: [PATCH V2 05/20] nvdimm/region_label: Add region label updation
+ routine
+Message-ID: <20250910150322.00001ea4@huawei.com>
+In-Reply-To: <158453976.61757055783236.JavaMail.epsvc@epcpadp2new>
+References: <20250730121209.303202-1-s.neeraj@samsung.com>
+	<CGME20250730121228epcas5p411e5cc6d29fb9417178dbd07a1d8f02d@epcas5p4.samsung.com>
+	<20250730121209.303202-6-s.neeraj@samsung.com>
+	<534936cc-4ecc-46e5-8196-bc3992e086ab@intel.com>
+	<158453976.61757055783236.JavaMail.epsvc@epcpadp2new>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -57,89 +49,66 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100009.china.huawei.com (7.191.174.83) To
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Fri, 22 Aug 2025 03:42:01 +0000
-Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> wrote:
+On Thu, 4 Sep 2025 19:42:31 +0530
+Neeraj Kumar <s.neeraj@samsung.com> wrote:
 
-> Reworked from a patch by Alison Schofield <alison.schofield@intel.com>
+> On 15/08/25 02:55PM, Dave Jiang wrote:
+> >
+> >
+> >On 7/30/25 5:11 AM, Neeraj Kumar wrote:  
+> >> Added __pmem_region_label_update region label update routine to update
+> >> region label.
+> >>
+> >> Also used guard(mutex)(&nd_mapping->lock) in place of mutex_lock() and
+> >> mutex_unlock()
+> >>
+> >> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>  
+> >
+> >Subject, s/updation/update/ ?  
 > 
-> Reintroduce Soft Reserved range into the iomem_resource tree for dax_hmem
-> to consume.
+> Thanks Dave, Sure. Will fix it in next patch-set
 > 
-> This restores visibility in /proc/iomem for ranges actively in use, while
-> avoiding the early-boot conflicts that occurred when Soft Reserved was
-> published into iomem before CXL window and region discovery.
+
+Hi Neeraj,
+ 
+Really small process point.  We all get too many emails, so
+when replying crop out anything that doesn't need more discussion.
+Where you are just saying you agree, leave that for the change logs of the
+next version (and appropriate thanks can go there as well).
+
+I know not replying can feel little rude, but trust me when I say all
+or almost all who review a lot appreciate efficiency!
+
+It also makes it a lot harder to miss the more substantial replies.
+
+> >> +int nd_pmem_region_label_update(struct nd_region *nd_region)
+> >> +{
+> >> +	int i, rc;
+> >> +
+> >> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
+> >> +		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+> >> +		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+> >> +
+> >> +		/* No need to update region label for non cxl format */
+> >> +		if (!ndd->cxl)
+> >> +			continue;  
+> >
+> >Would there be a mix of different nd mappings? I wonder if you can just 'return 0' if you find ndd->cxl on the first one and just skip everything.  
 > 
-> Link: https://lore.kernel.org/linux-cxl/29312c0765224ae76862d59a17748c8188fb95f1.1692638817.git.alison.schofield@intel.com/
-> Co-developed-by: Alison Schofield <alison.schofield@intel.com>
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-A few trivial things inline. Not are important enough to need a change though.
-
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-
-> ---
->  drivers/dax/hmem/hmem.c | 38 ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 38 insertions(+)
+> When we create cxl region with two mem device, then we will have two separate
+> nd_mapping for both mem devices. But Yes, I don't see difference in both device
+> nd_mapping characters. So instead of "continue", I will just "return 0".
 > 
-> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-> index 90978518e5f4..24a6e7e3d916 100644
-> --- a/drivers/dax/hmem/hmem.c
-> +++ b/drivers/dax/hmem/hmem.c
-> @@ -93,6 +93,40 @@ static void process_defer_work(struct work_struct *_work)
->  	walk_hmem_resources(&pdev->dev, handle_deferred_cxl);
->  }
->  
-> +static void remove_soft_reserved(void *data)
-> +{
-> +	struct resource *r = data;
-> +
-> +	remove_resource(r);
 
-Type doesn't really help us here so why not skip the local variable.
-	remove_resource(data);
-	kfree(data);
+This for instance is good discussion and well worth the reply!
 
-Though I'd rename data to r.
+Good discussion is great, but reducing the noise is key to keeping
+things manageable.
 
-> +	kfree(r);
-> +}
-> +
-> +static int add_soft_reserve_into_iomem(struct device *host,
-> +				       const struct resource *res)
-> +{
-> +	struct resource *soft = kzalloc(sizeof(*soft), GFP_KERNEL);
-> +	int rc;
-> +
-> +	if (!soft)
-> +		return -ENOMEM;
-> +
-> +	*soft = DEFINE_RES_NAMED_DESC(res->start, (res->end - res->start + 1),
-> +				      "Soft Reserved", IORESOURCE_MEM,
-> +				      IORES_DESC_SOFT_RESERVED);
-> +
-> +	rc = insert_resource(&iomem_resource, soft);
-> +	if (rc) {
-> +		kfree(soft);
+Jonathan
 
-Could use __free() magic here and steal the pointer when you setup the
-devm action below.  Only a small simplification in this case, so up to
-you.
-
-> +		return rc;
-> +	}
-> +
-> +	rc = devm_add_action_or_reset(host, remove_soft_reserved, soft);
-> +	if (rc)
-> +		return rc;
-> +
-> +	return 0;
-
-Trivial:
-
-	return dev_add_action_or_reset(host...)
-
-> +}
-
+p.s. I'm having a full day or reviewing code so getting a little grumpier
+than I was first thing this morning when I might not have given this feedback!
