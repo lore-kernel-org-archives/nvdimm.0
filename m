@@ -1,96 +1,87 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BEB131282F;
-	Wed, 10 Sep 2025 21:38:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A329517D2
+	for <nvdimm@lists.linux.dev>; Thu, 11 Sep 2025 00:59:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757540328; cv=none; b=cw4ML15bEZG8krnxGfAOFhH8Jul7Q8VgDf5QQfLCMcLQo+hq3HN96Dy2bq9XSd6WEXefJqWba1nWdh0ONJGLglKo+9QAlkeBLTeaOf9fuExiocsJZn9bcBDDJpJ+AEL9Ph9RxuPpzpY35Ee0WDzckKZn2hKq2Q4eaf4WdAtOxYA=
+	t=1757552348; cv=none; b=ofFG9zqxEXDoHYHdg/eiOQxTMY7+V50QwN8qZ104UMBk8K5cezFE3QfSOgTSfSJp8/9/g9SR1ZiLyFtZv0Iw5fEifyjy/VaLQOjKoW9PD5RnZSU+2Y0DxNW+n6CBb0/pif72a7au8NY4Nqp3/ui+T5bTilOY0Aa++nWGJP7SZrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757540328; c=relaxed/simple;
-	bh=M0egxu8FbVh7lEFbI9KpqlK3Xem+oaa7R3cdZDtUNQQ=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=JEEzDZjnAVMBsBfNIz6QjKnRcKBMNvyxPPe+5ktZwQxJne3fBFc5TyMR+tfoUWPicZsGthqetl/qdfR9Kf00DKelAooh1iBR5k2KasmL+CJuRnVEYaxWz9S0cvOmHBoukDUJk9AAA+L+QyddbF5FKisp2tDyMZY3YnnIYpcjubQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ERlNyzA+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757552348; c=relaxed/simple;
+	bh=1PDJzxFfGfCHvBgkGhs2IUqQvAebQxljIXngKDKZe0g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:content-type; b=Q4ckhubH8gCvx1QE+ulUbMApCaYztt2xJ58nxBMueHPlMx8VH6YwEkSJEeC8diGSzzhG53XolzZR4V4p9o5ED+e6ZrMU0iJF02tYX4o8zLpJe9Sbm5DvCIiX5FyV9xGJdAms56yEacsRbcabKmrf+WzlQiQRCfTIyihf0uC35OQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=VFIE1+Sl; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ERlNyzA+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16257C4CEEB;
-	Wed, 10 Sep 2025 21:38:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757540327;
-	bh=M0egxu8FbVh7lEFbI9KpqlK3Xem+oaa7R3cdZDtUNQQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=ERlNyzA+aJCVNQscjQFOcHN3rHi5u0odDg8HJ53DGP17XEJUpaKk2IgWSZVS/hpeF
-	 5p1Ihuc6sdEVaV7cYZYmFtUpA2LlaeGvkTYNkZIfig/XRZmY6YJGSG8lm1Xuk3QIE8
-	 jwrcsmPjtEE9QD5hE3bNL3Ol+tJm9HLfh0DU00FI=
-Date: Wed, 10 Sep 2025 14:38:45 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>,
- Guo Ren <guoren@kernel.org>, Thomas Bogendoerfer
- <tsbogend@alpha.franken.de>, Heiko Carstens <hca@linux.ibm.com>, Vasily
- Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>,
- Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle
- <svens@linux.ibm.com>, "David S . Miller" <davem@davemloft.net>, Andreas
- Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>, Greg
- Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams
- <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave
- Jiang <dave.jiang@intel.com>, Nicolas Pitre <nico@fluxnic.net>, Muchun Song
- <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, David
- Hildenbrand <david@redhat.com>, Konstantin Komarov
- <almaz.alexandrovich@paragon-software.com>, Baoquan He <bhe@redhat.com>,
- Vivek Goyal <vgoyal@redhat.com>, Dave Young <dyoung@redhat.com>, Tony Luck
- <tony.luck@intel.com>, Reinette Chatre <reinette.chatre@intel.com>, Dave
- Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>, Alexander
- Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan
- Kara <jack@suse.cz>, "Liam R . Howlett" <Liam.Howlett@oracle.com>,
- Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, Suren
- Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Hugh
- Dickins <hughd@google.com>, Baolin Wang <baolin.wang@linux.alibaba.com>,
- Uladzislau Rezki <urezki@gmail.com>, Dmitry Vyukov <dvyukov@google.com>,
- Andrey Konovalov <andreyknvl@gmail.com>, Jann Horn <jannh@google.com>,
- Pedro Falcato <pfalcato@suse.de>, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-mm@kvack.org,
- ntfs3@lists.linux.dev, kexec@lists.infradead.org,
- kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2 00/16] expand mmap_prepare functionality, port more
- users
-Message-Id: <20250910143845.7ecfed713e436ed532c93491@linux-foundation.org>
-In-Reply-To: <cover.1757534913.git.lorenzo.stoakes@oracle.com>
-References: <cover.1757534913.git.lorenzo.stoakes@oracle.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VFIE1+Sl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1757552344;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=tAbj6OcDfKvJEXKa3ESUNs66JlqMBCcW3djeprN8t8Q=;
+	b=VFIE1+Sl+ZJUCHFFbNne6PdZI84pSi1vMVpoKZNtqhH2qyxs0oNV/3RWF+LeimcS3x3Z8a
+	Bdznhjskf3ZYHFcftVc8N9zeTXGjQTvaTrGyOw+3ezWsqDq0Je+74QGWGtPtNYGugWYaA+
+	eUMQ5s8hjg3Vt/fdyRmbSy+TquvSmAE=
+Received: from mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-223-sOhzwXLTPDunDgAbBgqcig-1; Wed,
+ 10 Sep 2025 20:59:01 -0400
+X-MC-Unique: sOhzwXLTPDunDgAbBgqcig-1
+X-Mimecast-MFC-AGG-ID: sOhzwXLTPDunDgAbBgqcig_1757552340
+Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 0120619560AE;
+	Thu, 11 Sep 2025 00:59:00 +0000 (UTC)
+Received: from vm-10-0-76-146.hosted.upshift.rdu2.redhat.com (vm-10-0-76-146.hosted.upshift.rdu2.redhat.com [10.0.76.146])
+	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 2B9421955F24;
+	Thu, 11 Sep 2025 00:58:58 +0000 (UTC)
+From: Yi Zhang <yi.zhang@redhat.com>
+To: nvdimm@lists.linux.dev
+Cc: alison.schofield@intel.com,
+	linux-cxl@vger.kernel.org,
+	dave.jiang@intel.com
+Subject: [ndctl PATCH] test/dm.sh: fix incorrect script name in cleanup error message
+Date: Wed, 10 Sep 2025 20:29:06 -0400
+Message-ID: <20250911002906.806359-1-yi.zhang@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: e_7c-3XjHA90u82dscoIOziovIuUad3bosdMR1XSJW8_1757552340
+X-Mimecast-Originator: redhat.com
+Content-Transfer-Encoding: 8bit
+content-type: text/plain; charset="US-ASCII"; x-default=true
 
-On Wed, 10 Sep 2025 21:21:55 +0100 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
+The cleanup() function was incorrectly referencing "test/sub-section.sh"
+instead of "test/dm.sh" in its error message.
 
-> Since commit c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file
-> callback"), The f_op->mmap hook has been deprecated in favour of
-> f_op->mmap_prepare.
-> 
-> This was introduced in order to make it possible for us to eventually
-> eliminate the f_op->mmap hook which is highly problematic as it allows
-> drivers and filesystems raw access to a VMA which is not yet correctly
-> initialised.
-> 
-> This hook also introduced complexity for the memory mapping operation, as
-> we must correctly unwind what we do should an error arises.
-> 
-> Overall this interface being so open has caused significant problems for
-> us, including security issues, it is important for us to simply eliminate
-> this as a source of problems.
-> 
-> Therefore this series continues what was established by extending the
-> functionality further to permit more drivers and filesystems to use
-> mmap_prepare.
+Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
+---
+ test/dm.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Cool, I'll add this to mm-new but I'll suppress the usual emails.
+diff --git a/test/dm.sh b/test/dm.sh
+index b780a65..e68d491 100755
+--- a/test/dm.sh
++++ b/test/dm.sh
+@@ -36,7 +36,7 @@ cleanup() {
+ 	for i in $namespaces
+ 	do
+ 		if ! $NDCTL destroy-namespace -f $i; then
+-			echo "test/sub-section.sh: cleanup() failed to destroy $i"
++			echo "test/dm.sh: cleanup() failed to destroy $i"
+ 		fi
+ 	done
+ 	exit $rc
+-- 
+2.45.1
+
