@@ -1,77 +1,77 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C36D12580E4
-	for <nvdimm@lists.linux.dev>; Thu, 11 Sep 2025 08:38:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01D592E7185
+	for <nvdimm@lists.linux.dev>; Thu, 11 Sep 2025 08:55:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757579926; cv=none; b=oD+lyaqoIem3y0agfdYLCSnspFIVciU8KFEGoK/i1sKp1wI+Onv/hKdcCG/cFYC4aM898JuYoW/vHTXOmms+pBgrTpd1j6nD4YQelb4VBFkJ58nNzyTvnBa1U73PyjVGhrW4LImj7LNpyfU9ACOSQgXMVHKp33TwYPFXB/4XsGo=
+	t=1757580952; cv=none; b=RDYOXQypHEX8vCgzvWMxwgmy3ftm92lS+3k3712hRUkflS/Vd0RyWL+d9i3glX3RWysZBfCX9vN6OFiYUNrWnxXCSiWbV/pNCVQHwtyWaFBNj5G2A+GODBlKyFdtUaDtKu7xy45NIsTvU3uDdrtLhB02dv/gLRrpy+sxk6Se1jE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757579926; c=relaxed/simple;
-	bh=atT5lX6jOkLcVnWSxAH3q2pNOse2zMGHzP1HFQw/Be8=;
+	s=arc-20240116; t=1757580952; c=relaxed/simple;
+	bh=g8rjLkGZDz8l75aKfZa7HlbA3xNuO5qdMG27VMFj5qU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=H8i4CQoR8fRY7mI4e5C6T9Fe1uSQphr96H2XG72eexTpF/+QwT/5fxedqCJq3f16xTwZLVgj3i4CQnMVv9jVs9YgUCdO1LImdlBboP+XWBTzShoa2V/iBJJahaUk29ttHgoJ8OwBFMP+RHF+q1Bt8J9ibtOP/iyHIZtLlVFM4z0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=xB4gv7V3; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=PrOFG9bh; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=xB4gv7V3; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=PrOFG9bh; arc=none smtp.client-ip=195.135.223.130
+	 Content-Type:Content-Disposition:In-Reply-To; b=NaEBONNJuzhJe99taGaNTSU1hYk6MBTFzHNYCKnMrQxnoaoDR1AwrbFyKlU0jRRcEvuzgQsk8x8NWoBQLg3Eh1yDhTMYfRhOwehpVMoRwypwoZGpPQrCRh5E7uC8YpjSbLpl0YXZDHJPbJZVoutdnALiCtYS41KvVXjhJ9qBWAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=H06dORKL; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=0iIQ+Ipq; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=H06dORKL; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=0iIQ+Ipq; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="xB4gv7V3";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="PrOFG9bh";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="xB4gv7V3";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="PrOFG9bh"
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="H06dORKL";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="0iIQ+Ipq";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="H06dORKL";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="0iIQ+Ipq"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 9E8A93F958;
-	Thu, 11 Sep 2025 08:38:42 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id B730E68010;
+	Thu, 11 Sep 2025 08:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1757579922; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1757580946; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=C9OZHv6l97MqIsXfPxgJwmp3fJXxpsxaT+6E3H63F4A=;
-	b=xB4gv7V39AjvzZqhbFvpMeDM5nwbiNwlcCmMOJwTz+PdsznaXJuTdLn3SoDQMoeUWdkeii
-	1r2pEaTWog+deAhwvgwTELQPnF8oZ0yYguW4upel7rfdVE+3wrH3qFra+HpwdHuYteaBSS
-	arDvuQko9RTMU9ux7Cb1QQtSWsvsur4=
+	bh=g+JbXqJwzf7cOodAKH9xqcseUyaAMBde80ixVE0ZgKU=;
+	b=H06dORKLeqy9oLKCwBAyy8KbyMMgBGmw2umEdwRHB5t4//gwrPu6p/UqepgBh+cqtCMGYj
+	gu16/N0MH0OUE8I2dmmLR/foB3LQlqym6FvW7Qq9xnnjWKvZeFtm5D+PPNO1HxnjqxADHx
+	R9Jg+XWpXeRhDFWLoByfZA9usPYkdhw=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1757579922;
+	s=susede2_ed25519; t=1757580946;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=C9OZHv6l97MqIsXfPxgJwmp3fJXxpsxaT+6E3H63F4A=;
-	b=PrOFG9bhllLqFULElo/ImR0TtrXr4AVrHSKP1NkH/s/biYgBBErxRpzuzCM3a8Sfmolf0X
-	olWF0zUGczMgn/Ag==
-Authentication-Results: smtp-out1.suse.de;
+	bh=g+JbXqJwzf7cOodAKH9xqcseUyaAMBde80ixVE0ZgKU=;
+	b=0iIQ+Ipqu9W5Px/nULTByH8LjK8QRRM8NgGXedpdy+DrzCu/JG3h5fU1YWI+FWRaeWdOMk
+	PDTOzamFaGTIDVCw==
+Authentication-Results: smtp-out2.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1757579922; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1757580946; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=C9OZHv6l97MqIsXfPxgJwmp3fJXxpsxaT+6E3H63F4A=;
-	b=xB4gv7V39AjvzZqhbFvpMeDM5nwbiNwlcCmMOJwTz+PdsznaXJuTdLn3SoDQMoeUWdkeii
-	1r2pEaTWog+deAhwvgwTELQPnF8oZ0yYguW4upel7rfdVE+3wrH3qFra+HpwdHuYteaBSS
-	arDvuQko9RTMU9ux7Cb1QQtSWsvsur4=
+	bh=g+JbXqJwzf7cOodAKH9xqcseUyaAMBde80ixVE0ZgKU=;
+	b=H06dORKLeqy9oLKCwBAyy8KbyMMgBGmw2umEdwRHB5t4//gwrPu6p/UqepgBh+cqtCMGYj
+	gu16/N0MH0OUE8I2dmmLR/foB3LQlqym6FvW7Qq9xnnjWKvZeFtm5D+PPNO1HxnjqxADHx
+	R9Jg+XWpXeRhDFWLoByfZA9usPYkdhw=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1757579922;
+	s=susede2_ed25519; t=1757580946;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=C9OZHv6l97MqIsXfPxgJwmp3fJXxpsxaT+6E3H63F4A=;
-	b=PrOFG9bhllLqFULElo/ImR0TtrXr4AVrHSKP1NkH/s/biYgBBErxRpzuzCM3a8Sfmolf0X
-	olWF0zUGczMgn/Ag==
+	bh=g+JbXqJwzf7cOodAKH9xqcseUyaAMBde80ixVE0ZgKU=;
+	b=0iIQ+Ipqu9W5Px/nULTByH8LjK8QRRM8NgGXedpdy+DrzCu/JG3h5fU1YWI+FWRaeWdOMk
+	PDTOzamFaGTIDVCw==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8EE661372E;
-	Thu, 11 Sep 2025 08:38:42 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A7DA113301;
+	Thu, 11 Sep 2025 08:55:46 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id RzXXIpKKwmiAcwAAD6G6ig
-	(envelope-from <jack@suse.cz>); Thu, 11 Sep 2025 08:38:42 +0000
+	id Pmj1KJKOwmjpeAAAD6G6ig
+	(envelope-from <jack@suse.cz>); Thu, 11 Sep 2025 08:55:46 +0000
 Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id 4D7CAA0A2D; Thu, 11 Sep 2025 10:38:42 +0200 (CEST)
-Date: Thu, 11 Sep 2025 10:38:42 +0200
+	id 5F916A0A2D; Thu, 11 Sep 2025 10:55:42 +0200 (CEST)
+Date: Thu, 11 Sep 2025 10:55:42 +0200
 From: Jan Kara <jack@suse.cz>
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -101,10 +101,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-mm@kvack.org, 
 	ntfs3@lists.linux.dev, kexec@lists.infradead.org, kasan-dev@googlegroups.com, 
 	Jason Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2 04/16] relay: update relay to use mmap_prepare
-Message-ID: <q5kr5klayp7wcdv5535etvhfcmsftf2h5pi2nhxjpxsyu4h6qt@e6fidg7kolk2>
+Subject: Re: [PATCH v2 09/16] doc: update porting, vfs documentation for
+ mmap_prepare actions
+Message-ID: <xbz56k25ftkjbjpjpslqad5b77klaxg3ganckhbnwe3mf6vtpy@3ytagvaq4gk5>
 References: <cover.1757534913.git.lorenzo.stoakes@oracle.com>
- <3e34bb15a386d64e308c897ea1125e5e24fc6fa4.1757534913.git.lorenzo.stoakes@oracle.com>
+ <e50e91a6f6173f81addb838c5049bed2833f7b0d.1757534913.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -113,7 +114,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3e34bb15a386d64e308c897ea1125e5e24fc6fa4.1757534913.git.lorenzo.stoakes@oracle.com>
+In-Reply-To: <e50e91a6f6173f81addb838c5049bed2833f7b0d.1757534913.git.lorenzo.stoakes@oracle.com>
 X-Spam-Level: 
 X-Spamd-Result: default: False [-2.30 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
@@ -138,15 +139,16 @@ X-Spamd-Result: default: False [-2.30 / 50.00];
 	RCVD_TLS_LAST(0.00)[];
 	TO_MATCH_ENVRCPT_SOME(0.00)[];
 	RCPT_COUNT_GT_50(0.00)[59];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,oracle.com:email,suse.com:email]
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,oracle.com:email,suse.cz:email,suse.com:email]
 X-Spam-Flag: NO
 X-Spam-Score: -2.30
 
-On Wed 10-09-25 21:21:59, Lorenzo Stoakes wrote:
-> It is relatively trivial to update this code to use the f_op->mmap_prepare
-> hook in favour of the deprecated f_op->mmap hook, so do so.
+On Wed 10-09-25 21:22:04, Lorenzo Stoakes wrote:
+> Now we have introduced the ability to specify that actions should be taken
+> after a VMA is established via the vm_area_desc->action field as specified
+> in mmap_prepare, update both the VFS documentation and the porting guide to
+> describe this.
 > 
-> Reviewed-by: David Hildenbrand <david@redhat.com>
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
 Looks good. Feel free to add:
@@ -156,83 +158,38 @@ Reviewed-by: Jan Kara <jack@suse.cz>
 								Honza
 
 > ---
->  kernel/relay.c | 33 +++++++++++++++++----------------
->  1 file changed, 17 insertions(+), 16 deletions(-)
+>  Documentation/filesystems/porting.rst | 5 +++++
+>  Documentation/filesystems/vfs.rst     | 4 ++++
+>  2 files changed, 9 insertions(+)
 > 
-> diff --git a/kernel/relay.c b/kernel/relay.c
-> index 8d915fe98198..e36f6b926f7f 100644
-> --- a/kernel/relay.c
-> +++ b/kernel/relay.c
-> @@ -72,17 +72,18 @@ static void relay_free_page_array(struct page **array)
->  }
->  
->  /**
-> - *	relay_mmap_buf: - mmap channel buffer to process address space
-> - *	@buf: relay channel buffer
-> - *	@vma: vm_area_struct describing memory to be mapped
-> + *	relay_mmap_prepare_buf: - mmap channel buffer to process address space
-> + *	@buf: the relay channel buffer
-> + *	@desc: describing what to map
->   *
->   *	Returns 0 if ok, negative on error
->   *
->   *	Caller should already have grabbed mmap_lock.
->   */
-> -static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
-> +static int relay_mmap_prepare_buf(struct rchan_buf *buf,
-> +				  struct vm_area_desc *desc)
->  {
-> -	unsigned long length = vma->vm_end - vma->vm_start;
-> +	unsigned long length = vma_desc_size(desc);
->  
->  	if (!buf)
->  		return -EBADF;
-> @@ -90,9 +91,9 @@ static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
->  	if (length != (unsigned long)buf->chan->alloc_size)
->  		return -EINVAL;
->  
-> -	vma->vm_ops = &relay_file_mmap_ops;
-> -	vm_flags_set(vma, VM_DONTEXPAND);
-> -	vma->vm_private_data = buf;
-> +	desc->vm_ops = &relay_file_mmap_ops;
-> +	desc->vm_flags |= VM_DONTEXPAND;
-> +	desc->private_data = buf;
->  
->  	return 0;
->  }
-> @@ -749,16 +750,16 @@ static int relay_file_open(struct inode *inode, struct file *filp)
->  }
->  
->  /**
-> - *	relay_file_mmap - mmap file op for relay files
-> - *	@filp: the file
-> - *	@vma: the vma describing what to map
-> + *	relay_file_mmap_prepare - mmap file op for relay files
-> + *	@desc: describing what to map
->   *
-> - *	Calls upon relay_mmap_buf() to map the file into user space.
-> + *	Calls upon relay_mmap_prepare_buf() to map the file into user space.
->   */
-> -static int relay_file_mmap(struct file *filp, struct vm_area_struct *vma)
-> +static int relay_file_mmap_prepare(struct vm_area_desc *desc)
->  {
-> -	struct rchan_buf *buf = filp->private_data;
-> -	return relay_mmap_buf(buf, vma);
-> +	struct rchan_buf *buf = desc->file->private_data;
+> diff --git a/Documentation/filesystems/porting.rst b/Documentation/filesystems/porting.rst
+> index 85f590254f07..6743ed0b9112 100644
+> --- a/Documentation/filesystems/porting.rst
+> +++ b/Documentation/filesystems/porting.rst
+> @@ -1285,3 +1285,8 @@ rather than a VMA, as the VMA at this stage is not yet valid.
+>  The vm_area_desc provides the minimum required information for a filesystem
+>  to initialise state upon memory mapping of a file-backed region, and output
+>  parameters for the file system to set this state.
 > +
-> +	return relay_mmap_prepare_buf(buf, desc);
->  }
+> +In nearly all cases, this is all that is required for a filesystem. However, if
+> +a filesystem needs to perform an operation such a pre-population of page tables,
+> +then that action can be specified in the vm_area_desc->action field, which can
+> +be configured using the mmap_action_*() helpers.
+> diff --git a/Documentation/filesystems/vfs.rst b/Documentation/filesystems/vfs.rst
+> index 486a91633474..9e96c46ee10e 100644
+> --- a/Documentation/filesystems/vfs.rst
+> +++ b/Documentation/filesystems/vfs.rst
+> @@ -1236,6 +1236,10 @@ otherwise noted.
+>  	file-backed memory mapping, most notably establishing relevant
+>  	private state and VMA callbacks.
 >  
->  /**
-> @@ -1006,7 +1007,7 @@ static ssize_t relay_file_read(struct file *filp,
->  const struct file_operations relay_file_operations = {
->  	.open		= relay_file_open,
->  	.poll		= relay_file_poll,
-> -	.mmap		= relay_file_mmap,
-> +	.mmap_prepare	= relay_file_mmap_prepare,
->  	.read		= relay_file_read,
->  	.release	= relay_file_release,
->  };
+> +	If further action such as pre-population of page tables is required,
+> +	this can be specified by the vm_area_desc->action field and related
+> +	parameters.
+> +
+>  Note that the file operations are implemented by the specific
+>  filesystem in which the inode resides.  When opening a device node
+>  (character or block special) most filesystems will call special
 > -- 
 > 2.51.0
 > 
