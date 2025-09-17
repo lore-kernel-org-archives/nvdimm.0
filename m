@@ -1,75 +1,75 @@
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AE272F9DAD
-	for <nvdimm@lists.linux.dev>; Wed, 17 Sep 2025 10:30:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E0CD32D5AC
+	for <nvdimm@lists.linux.dev>; Wed, 17 Sep 2025 10:37:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758105048; cv=none; b=tibvlTiQEQ6vnwJ86d6u9/1GXCIb0z1hGBzD3XU0qPm1YQke3G/+5xKSRJWZSWkPcmbzAI4hyh2dPCrdrMUNcNg38TE5XzOwWdn9Sith8DmWmLZDrEcR4eLB/xTHFmgX7N/noggXTO20HdS5S1Vtmitps4mrBOgrSakPi7pPXzA=
+	t=1758105445; cv=none; b=mypIUNqgISksrV/rGObedQU5ggRz6xnUg5eqSaU+gc93xJDnIJO/Y6IbqES1XgFgrz9nHbDl7yMdPRNLJofKFXGsvpYt7ecpI4R7nTikeNX9kxed7q3b9yCPvBOXrsJKdayzAomfTEFB0qIVVwPGs5oUx5DIuMgN3bD3ZW2JVp8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758105048; c=relaxed/simple;
-	bh=UG+KJnw6Det+UDiULy/COsBEoVh+YsDxy3obF3C2huE=;
+	s=arc-20240116; t=1758105445; c=relaxed/simple;
+	bh=d7BrBasROwlOu738a4q4rF1WjwCSMVJlZ6ASYpcTTSA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h3YUUmgZB1Wxvm+SgU3v5kfh0cNXNTdeCqvgGQ0y7n27qRXO6PoU/j96M/ksVbpeEd0Ty8Ecd45ZFEGHc3cESUrpLZ3YNnxZ73rwk9l/Joib7nEQOeJwNSxA+PvXGB8CX2+qGftZN9HiVNe4ZrlKd0ZxAP4K/t1EMgD6EuakUGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=DqGz99zL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=TvBdrFOG; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=DqGz99zL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=TvBdrFOG; arc=none smtp.client-ip=195.135.223.131
+	 Content-Type:Content-Disposition:In-Reply-To; b=dSkOqYE5Rhmu93BZPRQMwj6q/0sFNTOi8dMe8nCSMYnOA4IiuFiK3i9sqBCx3VS1XjL6H/Prxc97ZDkTgjNHNpm1W6Cmts8RqTUtnJkuA8mJCa63dV0rQjCx7yG8w6qmWtVECE0q+ul2AYc+N524YESceWWGyceEW7SfVcBEyww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=kNJ/uzXV; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=lCKrd/3S; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=kNJ/uzXV; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=lCKrd/3S; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="DqGz99zL";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="TvBdrFOG";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="DqGz99zL";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="TvBdrFOG"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="kNJ/uzXV";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="lCKrd/3S";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="kNJ/uzXV";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="lCKrd/3S"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 698CD1F7A4;
-	Wed, 17 Sep 2025 10:30:42 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 5CAD71F7BC;
+	Wed, 17 Sep 2025 10:37:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758105042; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1758105441; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=1zHHraw2A4XXMh05M5xDQ/FIBzoxt7xagq0j6ASLE/8=;
-	b=DqGz99zLZi7gBVK2fSpkmcFDQp+G3N1rsQtOWflY51o39LFUbbat4CrXeIS9F5/IJ0cXSf
-	o+geSvjpoF0ZXNGAs1g7+dAtLkl/Tv7OkTkU5kFSZlOAD62xQTFH7ZCebde3coO4ZyZKMQ
-	DDpAbzeqLk3TQWOx95Sxs7A/BO6tyzk=
+	bh=nZoP7xI9bh5cuZAC2MMMkkaHSM2qArN4UzTRm8GitpU=;
+	b=kNJ/uzXVRbTatfy05IVGNQLIzQ9yPArYK0Vuo18L+EvSl9LkJwvDxVTm6ipLRjopRYl37Q
+	lmkvpfx9V6hiDWJ3AUH0fo1eVRtgsuz3WXVd+0UCwW7ZT7gSDrbreDLFTElddZkurFO0tw
+	GBvYGseZhe+WcZcn66UCFBOvcVxQJvE=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758105042;
+	s=susede2_ed25519; t=1758105441;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=1zHHraw2A4XXMh05M5xDQ/FIBzoxt7xagq0j6ASLE/8=;
-	b=TvBdrFOGBW3c3Mtg0Mty8fKLlQApRtpmeFJ2kHvCrO4Oa93K6SSguxvDOL3Hma6jgZ7/bh
-	ZMvCmbgDAYSn9ECQ==
+	bh=nZoP7xI9bh5cuZAC2MMMkkaHSM2qArN4UzTRm8GitpU=;
+	b=lCKrd/3SMkAsu71vkV/44IEKXQSRO5fArYajtSwRNnnRLyN7UEpS4+bqwddhUAybMv2xHJ
+	mWtV6X5XQFK+a+CA==
 Authentication-Results: smtp-out2.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758105042; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1758105441; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=1zHHraw2A4XXMh05M5xDQ/FIBzoxt7xagq0j6ASLE/8=;
-	b=DqGz99zLZi7gBVK2fSpkmcFDQp+G3N1rsQtOWflY51o39LFUbbat4CrXeIS9F5/IJ0cXSf
-	o+geSvjpoF0ZXNGAs1g7+dAtLkl/Tv7OkTkU5kFSZlOAD62xQTFH7ZCebde3coO4ZyZKMQ
-	DDpAbzeqLk3TQWOx95Sxs7A/BO6tyzk=
+	bh=nZoP7xI9bh5cuZAC2MMMkkaHSM2qArN4UzTRm8GitpU=;
+	b=kNJ/uzXVRbTatfy05IVGNQLIzQ9yPArYK0Vuo18L+EvSl9LkJwvDxVTm6ipLRjopRYl37Q
+	lmkvpfx9V6hiDWJ3AUH0fo1eVRtgsuz3WXVd+0UCwW7ZT7gSDrbreDLFTElddZkurFO0tw
+	GBvYGseZhe+WcZcn66UCFBOvcVxQJvE=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758105042;
+	s=susede2_ed25519; t=1758105441;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=1zHHraw2A4XXMh05M5xDQ/FIBzoxt7xagq0j6ASLE/8=;
-	b=TvBdrFOGBW3c3Mtg0Mty8fKLlQApRtpmeFJ2kHvCrO4Oa93K6SSguxvDOL3Hma6jgZ7/bh
-	ZMvCmbgDAYSn9ECQ==
+	bh=nZoP7xI9bh5cuZAC2MMMkkaHSM2qArN4UzTRm8GitpU=;
+	b=lCKrd/3SMkAsu71vkV/44IEKXQSRO5fArYajtSwRNnnRLyN7UEpS4+bqwddhUAybMv2xHJ
+	mWtV6X5XQFK+a+CA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E6B6E1368D;
-	Wed, 17 Sep 2025 10:30:38 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id BE4BD1368D;
+	Wed, 17 Sep 2025 10:37:17 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id pYOYNM6NymjANgAAD6G6ig
-	(envelope-from <pfalcato@suse.de>); Wed, 17 Sep 2025 10:30:38 +0000
-Date: Wed, 17 Sep 2025 11:30:37 +0100
+	id SZxDK12Pymj2OAAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Wed, 17 Sep 2025 10:37:17 +0000
+Date: Wed, 17 Sep 2025 11:37:07 +0100
 From: Pedro Falcato <pfalcato@suse.de>
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -100,10 +100,10 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	kexec@lists.infradead.org, kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>, 
 	iommu@lists.linux.dev, Kevin Tian <kevin.tian@intel.com>, Will Deacon <will@kernel.org>, 
 	Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v3 01/13] mm/shmem: update shmem to use mmap_prepare
-Message-ID: <ixvivcg7sr6twekgyfgas7yl23nv7zi5bmn6xyqjvsvuituc4d@usfryzkaf7dm>
+Subject: Re: [PATCH v3 02/13] device/dax: update devdax to use mmap_prepare
+Message-ID: <2jvm2x7krh7bkt43goiufksuxntncu2hxx67jos3i7zwj63jhh@rw47665pa25y>
 References: <cover.1758031792.git.lorenzo.stoakes@oracle.com>
- <cfefa4bad911f09d7accea74a605c49326be16d9.1758031792.git.lorenzo.stoakes@oracle.com>
+ <bfd55a49b89ebbdf2266d77c1f8df9339a99b97a.1758031792.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -112,7 +112,8 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <cfefa4bad911f09d7accea74a605c49326be16d9.1758031792.git.lorenzo.stoakes@oracle.com>
+In-Reply-To: <bfd55a49b89ebbdf2266d77c1f8df9339a99b97a.1758031792.git.lorenzo.stoakes@oracle.com>
+X-Spam-Level: 
 X-Spamd-Result: default: False [-2.30 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	SUSPICIOUS_RECIPS(1.50)[];
@@ -138,18 +139,82 @@ X-Spamd-Result: default: False [-2.30 / 50.00];
 	RCPT_COUNT_GT_50(0.00)[62];
 	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,imap1.dmz-prg2.suse.org:helo]
 X-Spam-Flag: NO
-X-Spam-Level: 
 X-Spam-Score: -2.30
 
-On Tue, Sep 16, 2025 at 03:11:47PM +0100, Lorenzo Stoakes wrote:
-> This simply assigns the vm_ops so is easily updated - do so.
+On Tue, Sep 16, 2025 at 03:11:48PM +0100, Lorenzo Stoakes wrote:
+> The devdax driver does nothing special in its f_op->mmap hook, so
+> straightforwardly update it to use the mmap_prepare hook instead.
 > 
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-> Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-> Reviewed-by: David Hildenbrand <david@redhat.com>
+> Acked-by: David Hildenbrand <david@redhat.com>
 > Reviewed-by: Jan Kara <jack@suse.cz>
 
-Reviewed-by: Pedro Faclato <pfalcato@suse.de>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+
+> ---
+>  drivers/dax/device.c | 32 +++++++++++++++++++++-----------
+>  1 file changed, 21 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index 2bb40a6060af..c2181439f925 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -13,8 +13,9 @@
+>  #include "dax-private.h"
+>  #include "bus.h"
+>  
+> -static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+> -		const char *func)
+> +static int __check_vma(struct dev_dax *dev_dax, vm_flags_t vm_flags,
+> +		       unsigned long start, unsigned long end, struct file *file,
+> +		       const char *func)
+>  {
+>  	struct device *dev = &dev_dax->dev;
+>  	unsigned long mask;
+> @@ -23,7 +24,7 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+>  		return -ENXIO;
+>  
+>  	/* prevent private mappings from being established */
+> -	if ((vma->vm_flags & VM_MAYSHARE) != VM_MAYSHARE) {
+> +	if ((vm_flags & VM_MAYSHARE) != VM_MAYSHARE) {
+>  		dev_info_ratelimited(dev,
+>  				"%s: %s: fail, attempted private mapping\n",
+>  				current->comm, func);
+> @@ -31,15 +32,15 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+>  	}
+>  
+>  	mask = dev_dax->align - 1;
+> -	if (vma->vm_start & mask || vma->vm_end & mask) {
+> +	if (start & mask || end & mask) {
+>  		dev_info_ratelimited(dev,
+>  				"%s: %s: fail, unaligned vma (%#lx - %#lx, %#lx)\n",
+> -				current->comm, func, vma->vm_start, vma->vm_end,
+> +				current->comm, func, start, end,
+>  				mask);
+>  		return -EINVAL;
+>  	}
+>  
+> -	if (!vma_is_dax(vma)) {
+> +	if (!file_is_dax(file)) {
+>  		dev_info_ratelimited(dev,
+>  				"%s: %s: fail, vma is not DAX capable\n",
+>  				current->comm, func);
+> @@ -49,6 +50,13 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+>  	return 0;
+>  }
+>  
+> +static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+> +		     const char *func)
+> +{
+> +	return __check_vma(dev_dax, vma->vm_flags, vma->vm_start, vma->vm_end,
+> +			   vma->vm_file, func);
+> +}
+> +
+
+Side comment: I'm no DAX expert at all, but this check_vma() thing looks... smelly?
+Besides the !dax_alive() check, I don't see the need to recheck vma limits at
+every ->huge_fault() call. Even taking mremap() into account,
+->get_unmapped_area() should Do The Right Thing, no?
 
 -- 
 Pedro
