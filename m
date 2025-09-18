@@ -1,42 +1,42 @@
 Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 858162D8796;
-	Thu, 18 Sep 2025 19:12:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC5512D3745;
+	Thu, 18 Sep 2025 19:46:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.145.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758222751; cv=none; b=GxBomJlv0p0R2KiKZWGQ9dhGqwz6GT+wQAJHtc3cnWr3L0yo/eZl8Wj5PQ5nwLC97ABA1O5dVxaxWXnJ0E1ZV19bPgVE4e780VmvmekfvuQrLtthEz3ASusu7LbvZTAs4pEfC/oZ4elTKcG76tw85/1JFqjRS7OO+q6QzU1aeOs=
+	t=1758224813; cv=none; b=hA0PSGFfdCL+JZWvgmY05LwZQkGE3jLZ0onXD0foPwXhWBvhrolxwfbV99mor7UK2E4InCfizMoJopBpiQsWP1RDIVn4YIU8nlS3DjOa5PY13dCNTq6w6EM3adBPIe3uCjMSQpeLnU5ILbM1xYm8SdaFcklaoxy4tXROLW55XcY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758222751; c=relaxed/simple;
-	bh=lOR27FB60WfaXG9XY9l0rBk9RW2/T7eyBicEZvQ9F+4=;
+	s=arc-20240116; t=1758224813; c=relaxed/simple;
+	bh=JURX/TaKnyaqFdI7pmEWFXVzqASX8RS1pLZIi8kSx/A=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=SeW5l1FPiy7XmpTFhlCpoJOpL1g4WwIQL5acXVZ8VQHpsonPvY44a9HTlaOqIfU8QHHcQH6DW35lEEYsKRonY6msls2kAX81XgZWDVOdQs3m5qhgtYP+kWrbaSD/204r+QWspgrD8jY0chwb4cZGHdkCPF0k/Mtoh6F9Qg1mb8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=e1PjzYEw; arc=none smtp.client-ip=67.231.145.42
+	 MIME-Version:Content-Type; b=N9xvZrpOAj+obQl/xHdhma8sLonMWdRS4Y3yCHa8dKilW3CfmEbmeagM1AiiKqGdW4O+kPbG214Pxfur9tHAH+wLqfr91jaqsXSN/vCKpBKYHGbBq2pvYhTq981fNHFre1n30WRLKbl0illX2RvXAaV8xIwXQyAPauY/1TSRNWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=oUvgxHX4; arc=none smtp.client-ip=67.231.145.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="e1PjzYEw"
-Received: from pps.filterd (m0148461.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 58IHFrYs3277934;
-	Thu, 18 Sep 2025 12:11:42 -0700
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="oUvgxHX4"
+Received: from pps.filterd (m0109333.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 58IEpiMR2943542;
+	Thu, 18 Sep 2025 12:46:16 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=s2048-2025-q2;
-	 bh=n7WMUyT5L/wA654bmEoUeQzuO+YeNxS6ichaQfAm4K0=; b=e1PjzYEwP6rW
-	SfUk5eeciJxn+YRaNAOwJfo0mF1M9af1ue6fOutyvFad79DSht413xYSjq60mDZn
-	YfAeHI3teHoLHj2Ahw36GPsEKjr9nWC6XNFV5yDHpZFkBziHEg6+zY9tRtbFHZ7L
-	euLc+3yKJdYsaDbCHeYUrokmz4OdnyNONXB/EoFpk84RGhgSRcJayfWUqspezpej
-	t5GboU+18x4kwUz9VDEY546JJy77c6NrIDp7S3nspwxS3VyRR3cDcJUXjns/AlUx
-	vHU6c1NA5Yk/53XX8iJhs34HuxkDG9lTlReCBuQkPbYQPU3FHSiVsk3ft4wTv6TT
-	ArN8tU50uw==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 498f7yccgs-1
+	 bh=BNnQo0sMp5meQ8eMdhpYCpDIuJZVf4B2s9e5frOewII=; b=oUvgxHX4Zvag
+	QvZfvT5qsSg7XUUNcEKSGHGxSpk1x6xVdjCczVBB0sDEs21e34wV0jIolvVbNYkN
+	jTgvyrHUUYwV+lo6u++rCkGbO2ffVmXnU9nQyCKh24yMCSSEvr42Bh75J9IwX/o6
+	ZAMcfYDTc7pK2dypZ8HhlzYDN64uYjUg4u+fxTFlpDoC/odFQWOZTvcKC4A4hp68
+	PF1Pcn5X6fKmq6NSA1PbQHzCAk0OWb7eyHWUkOL09qiC+8w9o8+rBip4NJAIBH08
+	tXqKtlvjXykOV5OBQ6V2VEvoNjk8ciX51kX75Dg+301sFyrxCmy9z2VXMMG5QHsq
+	FEXUxCTt9w==
+Received: from maileast.thefacebook.com ([163.114.135.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 498m7fjkq1-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Thu, 18 Sep 2025 12:11:41 -0700 (PDT)
-Received: from devbig091.ldc1.facebook.com (2620:10d:c085:108::150d) by
- mail.thefacebook.com (2620:10d:c08b:78::c78f) with Microsoft SMTP Server
+	Thu, 18 Sep 2025 12:46:16 -0700 (PDT)
+Received: from devbig091.ldc1.facebook.com (2620:10d:c0a8:1b::30) by
+ mail.thefacebook.com (2620:10d:c0a9:6f::8fd4) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.2.2562.20; Thu, 18 Sep 2025 19:11:36 +0000
+ 15.2.2562.20; Thu, 18 Sep 2025 19:46:14 +0000
 From: Chris Mason <clm@meta.com>
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 CC: Chris Mason <clm@meta.com>, Andrew Morton <akpm@linux-foundation.org>,
@@ -100,11 +100,11 @@ CC: Chris Mason <clm@meta.com>, Andrew Morton <akpm@linux-foundation.org>,
         <linux-cxl@vger.kernel.org>, <linux-mm@kvack.org>,
         <ntfs3@lists.linux.dev>, <kexec@lists.infradead.org>,
         <kasan-dev@googlegroups.com>, Jason Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2 11/16] mm: update mem char driver to use mmap_prepare
-Date: Thu, 18 Sep 2025 12:11:05 -0700
-Message-ID: <20250918191119.3622358-1-clm@meta.com>
+Subject: Re: [PATCH v2 16/16] kcov: update kcov to use mmap_prepare
+Date: Thu, 18 Sep 2025 12:45:38 -0700
+Message-ID: <20250918194556.3814405-1-clm@meta.com>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <aeee6a4896304d6dc7515e79d74f8bc5ec424415.1757534913.git.lorenzo.stoakes@oracle.com>
+In-Reply-To: <5b1ab8ef7065093884fc9af15364b48c0a02599a.1757534913.git.lorenzo.stoakes@oracle.com>
 References:
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -114,87 +114,92 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Authority-Analysis: v=2.4 cv=Wr8rMcfv c=1 sm=1 tr=0 ts=68cc596e cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
- a=yJojWOMRYYMA:10 a=yPCof4ZbAAAA:8 a=QLIaiyCFZkuJlwHvl48A:9
-X-Proofpoint-ORIG-GUID: yzU4eNHLhAUfSh4h33V6r2BXOldJckJZ
-X-Proofpoint-GUID: yzU4eNHLhAUfSh4h33V6r2BXOldJckJZ
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTE4MDE3MCBTYWx0ZWRfX+OH6/CZXfYF1
- ZQZSd3MY5d1+huXM92tmUuaixGbvXh9eslNEM1bRcbWXduWBJkY9hM7pAwYK1UmVGB6+KtMLK3+
- 5xu0OvXnTYTE5X3/j7r0YUT9jTEQIyg7vs2wzGv7et2oYHzPIQqFSONTUbrUfKZtQGE+5Ql2G/m
- FB+fFTcxSnJqueTYbtn/kFdO7ZXWcwZvUvPEHQAajQYNZXBbU5RIDDKbQMkKIDQGqkR8eZiO5xs
- q0uwGSCKiMwePOEm2hD3yphFf7LSfGFQnTUqyn0uufzwKaznKzrNA1c2BW91Ht07S88ASQbLxJd
- y3Z61QWwzOnbaToH1kdrhAuNayIEpInurTQIzwra/DJzb/lInqX9Bhz50sofEw=
+X-Proofpoint-ORIG-GUID: -nb3wVnAtqomihwZ5BzjAk2px7ex6dUi
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTE4MDE3NiBTYWx0ZWRfX4Y8q+OJtcR0W
+ +oYOau8ot7ilGTzu5PMGr/c3x1bedT9B3gqOZHC7hM/Xi6+uaY0+lHxn/Ka9lE213kL68CII/7K
+ z3B5d+3wpbiSc/ygeHsIhiWDxHAwN+fGFwFsRE7UhGTUUvWkFkY05ELfd3kxwScqvazqt9rbonW
+ bOXl1lczG5Z9G+teTpxDti5TNxhuajRiwYF0JOVA2rBw9NRviqGPh4HP+n9iXtIIMtm1GoToIaT
+ Hu39ICr9dMFPAjamuD3EgvUaHLFY/4+APB4u9SBfeGw7HWZlMuLwY/AgydoBSK6opKQCrvQOWH5
+ 3JASKIaygraugixdHv8cWWJX9wRaKGzhstUShrgPXa9rw8BJZv52JiSljT0Adk=
+X-Authority-Analysis: v=2.4 cv=G6AcE8k5 c=1 sm=1 tr=0 ts=68cc6188 cx=c_pps
+ a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
+ a=yJojWOMRYYMA:10 a=yPCof4ZbAAAA:8 a=auZRGODfdbgPxNsHCnAA:9
+X-Proofpoint-GUID: -nb3wVnAtqomihwZ5BzjAk2px7ex6dUi
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
  definitions=2025-09-18_02,2025-09-18_02,2025-03-28_01
 
-On Wed, 10 Sep 2025 21:22:06 +0100 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
+On Wed, 10 Sep 2025 21:22:11 +0100 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
 
-> Update the mem char driver (backing /dev/mem and /dev/zero) to use
-> f_op->mmap_prepare hook rather than the deprecated f_op->mmap.
+> We can use the mmap insert pages functionality provided for use in
+> mmap_prepare to insert the kcov pages as required.
 > 
-> The /dev/zero implementation has a very unique and rather concerning
-> characteristic in that it converts MAP_PRIVATE mmap() mappings anonymous
-> when they are, in fact, not.
-> 
-> The new f_op->mmap_prepare() can support this, but rather than introducing
-> a helper function to perform this hack (and risk introducing other users),
-> simply set desc->vm_op to NULL here and add a comment describing what's
-> going on.
-> 
-> We also introduce shmem_zero_setup_desc() to allow for the shared mapping
-> case via an f_op->mmap_prepare() hook, and generalise the code between this
-> and shmem_zero_setup().
-> 
-> We also use the desc->action_error_hook to filter the remap error to
-> -EAGAIN to keep behaviour consistent.
+> This does necessitate an allocation, but since it's in the mmap path this
+> doesn't seem egregious. The allocation/freeing of the pages array is
+> handled automatically by vma_desc_set_mixedmap_pages() and the mapping
+> logic.
 > 
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 > ---
->  drivers/char/mem.c       | 75 ++++++++++++++++++++++------------------
->  include/linux/shmem_fs.h |  3 +-
->  mm/shmem.c               | 40 ++++++++++++++++-----
->  3 files changed, 76 insertions(+), 42 deletions(-)
+>  kernel/kcov.c | 42 ++++++++++++++++++++++++++----------------
+>  1 file changed, 26 insertions(+), 16 deletions(-)
 > 
-
-[ ... ]
-
-> diff --git a/mm/shmem.c b/mm/shmem.c
-> index 990e33c6a776..cb6ff00eb4cb 100644
-> --- a/mm/shmem.c
-> +++ b/mm/shmem.c
-
-[ ... ]
-
-> @@ -5920,6 +5925,25 @@ int shmem_zero_setup(struct vm_area_struct *vma)
->  	return 0;
+> diff --git a/kernel/kcov.c b/kernel/kcov.c
+> index 1d85597057e1..2bcf403e5f6f 100644
+> --- a/kernel/kcov.c
+> +++ b/kernel/kcov.c
+> @@ -484,31 +484,41 @@ void kcov_task_exit(struct task_struct *t)
+>  	kcov_put(kcov);
 >  }
 >  
-> +/**
-> + * shmem_zero_setup_desc - same as shmem_zero_setup, but determined by VMA
-> + * descriptor for convenience.
-> + * @desc: Describes VMA
-> + * Returns: 0 on success, or error
-> + */
-> +int shmem_zero_setup_desc(struct vm_area_desc *desc)
+> -static int kcov_mmap(struct file *filep, struct vm_area_struct *vma)
+> +static int kcov_mmap_error(int err)
 > +{
-> +	struct file *file = __shmem_zero_setup(desc->start, desc->end, desc->vm_flags);
-> +
-> +	if (IS_ERR(file))
-> +		return PTR_ERR(file);
-> +
-> +	desc->vm_file = file;
-> +	desc->vm_ops = &shmem_anon_vm_ops;
-> +
-> +	return 0;
+> +	pr_warn_once("kcov: vm_insert_page() failed\n");
+> +	return err;
 > +}
 > +
+> +static int kcov_mmap_prepare(struct vm_area_desc *desc)
+>  {
+>  	int res = 0;
+> -	struct kcov *kcov = vma->vm_file->private_data;
+> -	unsigned long size, off;
+> -	struct page *page;
+> +	struct kcov *kcov = desc->file->private_data;
+> +	unsigned long size, nr_pages, i;
+> +	struct page **pages;
+>  	unsigned long flags;
+>  
+>  	spin_lock_irqsave(&kcov->lock, flags);
+>  	size = kcov->size * sizeof(unsigned long);
+> -	if (kcov->area == NULL || vma->vm_pgoff != 0 ||
+> -	    vma->vm_end - vma->vm_start != size) {
+> +	if (kcov->area == NULL || desc->pgoff != 0 ||
+> +	    vma_desc_size(desc) != size) {
+>  		res = -EINVAL;
+>  		goto exit;
+>  	}
+>  	spin_unlock_irqrestore(&kcov->lock, flags);
+> -	vm_flags_set(vma, VM_DONTEXPAND);
+> -	for (off = 0; off < size; off += PAGE_SIZE) {
+> -		page = vmalloc_to_page(kcov->area + off);
+> -		res = vm_insert_page(vma, vma->vm_start + off, page);
+> -		if (res) {
+> -			pr_warn_once("kcov: vm_insert_page() failed\n");
+> -			return res;
+> -		}
+> -	}
+> +
+> +	desc->vm_flags |= VM_DONTEXPAND;
+> +	nr_pages = size >> PAGE_SHIFT;
+> +
+> +	pages = mmap_action_mixedmap_pages(&desc->action, desc->start,
+> +					   nr_pages);
 
 Hi Lorenzo,
 
-shmem_zero_setup() does a if (vma->vm_file) fput(vma->vm_file) dance.
-
-It looks like we need one here too?
+Not sure if it belongs here before the EINVAL tests, but it looks like
+kcov->size doesn't have any page alignment.  I think size could be
+4000 bytes other unaligned values, so nr_pages should round up.
 
 -chris
