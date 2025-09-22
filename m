@@ -1,120 +1,131 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 142D130DECB
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC0B30DD34
 	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758556387; cv=none; b=tpzStm9XV0IEAzZxRGxvdFNNleeswVwpdFPBTZ5Zv2MxdfBm+rTavruKLk2TzdYOocmuhaTz1Q5rtVotkpFkg5osLdMjDBXTL60xpypcepKiM38iWLrRiuxmMyv/r2fn7rmzNi2t3JGhYbhcZ6IzLGZvepypf+I6XYNCR1K29Gc=
+	t=1758556388; cv=none; b=ioWVAIb2tYbcRPU+NnRYrFEZxl0GQ4h3qgx4AUzTi0+F5pifC/jSXgAF0micaCt6UrkNu9cTG9axvJaucRJV3h4EKpV/gdAL6LUTKbkfsQ6MW2ed0Ua9SjOrHB42Klc5HwnW0La/Es/yBWfCKk1rfBqEcT7qrfVhI45Y/zxpiuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758556387; c=relaxed/simple;
-	bh=8SEjtJkR1/QQGTb33RuQl+wFIsWRN+uRNGbRS1qOw2M=;
+	s=arc-20240116; t=1758556388; c=relaxed/simple;
+	bh=nTAiUXc7YPNhzVMskHwfnAtKOJU1lFSzoQUAunE5Nh0=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=AcwPL+ewKwdyi8b8/JhshlEvPWT2I5TWk2U+a3j2+D8eDbqUnUhJuZNKKzqvfkIGmgtGoghrIgj83fQxDOyRc0KNr/a88o0m9ZPtHEPTGk+22ngjANws8vbLeeQlACiZEkfPXA7Ig3xCqnpbRx1W7GVzyc6yx1tGKwQCtX6fico=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=stD218Td; arc=none smtp.client-ip=203.254.224.24
+	 Content-Type:References; b=WQVe60pQ5/O1q1Ql6UW7KU9rLm7E8HmfLygAB+yp4atvGcv+rjjYfXYdZTmRQuNhsrd9vZASRcr4qzU1ro4Y5OzNU4Wu5RB1vreMskmbISMte/DyeIVsK1MGo9OdCeaCdPpGUL+6mBFgDVIg8Mwa8eQ0iMb+2OefdcNuLDnkJmU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=tcDAp9xS; arc=none smtp.client-ip=203.254.224.33
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="stD218Td"
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20250922155302epoutp01e9463f8694dd95f86ca5de276334e6a6~npbaD8Rbl3039630396epoutp01m
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="tcDAp9xS"
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20250922155302epoutp031d8acacb7a8626c0357ec1d9fba2b0fa~npbaErxDC0931809318epoutp03Q
 	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:02 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20250922155302epoutp01e9463f8694dd95f86ca5de276334e6a6~npbaD8Rbl3039630396epoutp01m
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20250922155302epoutp031d8acacb7a8626c0357ec1d9fba2b0fa~npbaErxDC0931809318epoutp03Q
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
 	s=mail20170921; t=1758556382;
-	bh=nc4HWbzks6zhlSuczii+f3QofCotvzcWDnaQo6EtSvw=;
+	bh=cb+U+Tkli/i0cLtgDmQMqdfYAS8rfARZ0T/H5mDemaw=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=stD218Td0elRP7NI8Nr4PZ92onNxA7xQ/vrvm765SZF7CqPC4ebKgAlvSY38r8UoR
-	 WTdiY9/v7j5O3JuPrjh2i2HAYbMUyGNUSCOBk5zjjrxgCw6ss5WWNtrUZAnzs5sTM8
-	 ISr1z8svCy2PxR5HGzXejsll3RyVBjPKvFEpEUu0=
-Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
+	b=tcDAp9xSmTdHUJljmabG39R5XZM5yL8vQILO8WVX5r20RComWj0t3xuLtX666lhh/
+	 0/UIhgIoQ+4kjz4bAS8AteBEYPlxfrfaXVtinrgJg6FdgBtySxIGEfQ2h6pvBnJgfb
+	 WV7sBDMEOMxGJgUHfWpSJp7YLhH59nWHfkZ5vVDs=
+Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
 	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
-	20250922155302epcas5p4587782eb24be033a3dd04584d97ca36e~npbZzcNdq1175111751epcas5p4x;
+	20250922155302epcas5p498ca7e2ea2f11c115de16c4cc34cd33e~npbZl6IhI1157911579epcas5p4v;
 	Mon, 22 Sep 2025 15:53:02 +0000 (GMT)
 Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp01.localdomain (Postfix) with ESMTP id 4cVngy3hQVz6B9m4; Mon, 22 Sep
+	epsnrtp04.localdomain (Postfix) with ESMTP id 4cVngy23sVz6B9m5; Mon, 22 Sep
 	2025 15:53:02 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
 	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
-	20250922124446epcas5p3d8583bdee0d74ae4306b46d22c920b09~nm3BGCDfX0848608486epcas5p3Z;
-	Mon, 22 Sep 2025 12:44:46 +0000 (GMT)
+	20250922124141epcas5p37e5a72c3edcaff0e7b1b9912b199a91c~nm0VansYh0475204752epcas5p34;
+	Mon, 22 Sep 2025 12:41:41 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20250922124444epsmtip194a409310d64ea59eb73a9c33bdeb98e~nm2-8ST-R2872528725epsmtip1b;
-	Mon, 22 Sep 2025 12:44:44 +0000 (GMT)
-Date: Mon, 22 Sep 2025 18:14:40 +0530
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20250922124139epsmtip2d92509fd3289b4dd18e0d18fbb3766a4~nm0Tvwp422506525065epsmtip2G;
+	Mon, 22 Sep 2025 12:41:39 +0000 (GMT)
+Date: Mon, 22 Sep 2025 18:11:34 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V3 03/20] nvdimm/label: Modify nd_label_base() signature
-Message-ID: <1296674576.21758556382506.JavaMail.epsvc@epcpadp2new>
+Subject: Re: [PATCH V3 01/20] nvdimm/label: Introduce NDD_REGION_LABELING
+ flag to set region label
+Message-ID: <1983025922.01758556382272.JavaMail.epsvc@epcpadp2new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <7622b25c-a0d8-47b6-910b-9b2e42e099e4@intel.com>
-X-CMS-MailID: 20250922124446epcas5p3d8583bdee0d74ae4306b46d22c920b09
+In-Reply-To: <8c6bb8fc-7801-45d3-8563-054b12295df0@intel.com>
+X-CMS-MailID: 20250922124141epcas5p37e5a72c3edcaff0e7b1b9912b199a91c
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----soDBqDLjZY69.qOUSh5c6eSvt.JbqG5U1KsulcNjaVs9ke29=_26d06_"
+	boundary="----M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134134epcas5p3f64af9556015ed9dfb881f852ea854c4
+X-CMS-RootMailID: 20250917134130epcas5p417d7c26bc564d64d1bcea6e04d55704d
 References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134134epcas5p3f64af9556015ed9dfb881f852ea854c4@epcas5p3.samsung.com>
-	<20250917134116.1623730-4-s.neeraj@samsung.com>
-	<7622b25c-a0d8-47b6-910b-9b2e42e099e4@intel.com>
+	<CGME20250917134130epcas5p417d7c26bc564d64d1bcea6e04d55704d@epcas5p4.samsung.com>
+	<20250917134116.1623730-2-s.neeraj@samsung.com>
+	<8c6bb8fc-7801-45d3-8563-054b12295df0@intel.com>
 
-------soDBqDLjZY69.qOUSh5c6eSvt.JbqG5U1KsulcNjaVs9ke29=_26d06_
+------M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 19/09/25 04:34PM, Dave Jiang wrote:
+On 19/09/25 04:10PM, Dave Jiang wrote:
 >
 >
 >On 9/17/25 6:40 AM, Neeraj Kumar wrote:
->> nd_label_base() was being used after typecasting with 'unsigned long'. Thus
->> modified nd_label_base() to return 'unsigned long' instead of 'struct
->> nd_namespace_label *'
+>> Prior to LSA 2.1 version, LSA contain only namespace labels. LSA 2.1
+>> introduced in CXL 2.0 Spec, which contain region label along with
+>> namespace label.
+>>
+>> NDD_LABELING flag is used for namespace. Introduced NDD_REGION_LABELING
+>> flag for region label. Based on these flags nvdimm driver performs
+>> operation on namespace label or region label.
+>>
+>> NDD_REGION_LABELING will be utilized by cxl driver to enable LSA 2.1
+>> region label support
+>>
+>> Accordingly updated label index version
 >>
 >> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+>
+>With the change noted below,
 >Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 >
->Just a nit below:
->
->
->> ---
->>  drivers/nvdimm/label.c | 10 +++++-----
->>  1 file changed, 5 insertions(+), 5 deletions(-)
+
+
+<Snip>
+>>  	/*
+>>  	 * EACCES failures reading the namespace label-area-properties
+>> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+>> index 21498d461fde..918c3db93195 100644
+>> --- a/drivers/nvdimm/dimm_devs.c
+>> +++ b/drivers/nvdimm/dimm_devs.c
+>> @@ -18,6 +18,13 @@
 >>
->> -static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
->> +static unsigned long nd_label_base(struct nvdimm_drvdata *ndd)
->>  {
->>  	void *base = to_namespace_index(ndd, 0);
+>>  static DEFINE_IDA(dimm_ida);
 >>
->> -	return base + 2 * sizeof_namespace_index(ndd);
->> +	return (unsigned long) (base + 2 * sizeof_namespace_index(ndd));
+>> +bool nvdimm_check_region_label_format(struct device *dev)
 >
->Space is not needed between casting and the var. Also applies to other instances in this commit.
+>Should be called nvdimm_region_label_supported() since a bool return is expected instead of resolving the checking in the function.
 >
 >DJ
 
-Thanks Jonathan, Ira and Dave for RB tag. Sure, I will fix this in next
-patch-set.
+Thanks Jonathan and Dave for RB tag. Sure, I will rename it accordingly
 
 
 Regards,
 Neeraj
 
-------soDBqDLjZY69.qOUSh5c6eSvt.JbqG5U1KsulcNjaVs9ke29=_26d06_
+------M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_
 Content-Type: text/plain; charset="utf-8"
 
 
-------soDBqDLjZY69.qOUSh5c6eSvt.JbqG5U1KsulcNjaVs9ke29=_26d06_--
+------M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_--
 
