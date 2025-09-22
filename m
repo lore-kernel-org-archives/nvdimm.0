@@ -1,131 +1,114 @@
-Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B988B30E0E6
-	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFDE630E844
+	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758556388; cv=none; b=jCOH3o9cH4fh6fhxRjoIERJk7TCSDTft9uTs8y6/xjcsWmMXxfgc8mmBD5eWT/BR6bfBC440+EbL7+kuNfBpo6GWZk3KS4Nz8PL1q07QcRBLQEtZHUdEweJLaXPe0F+usk1LUp0YvBhB/jlxbGoVzy43aHN8tHcHit/Ip6fMjGo=
+	t=1758556388; cv=none; b=l6CyTYyAeW6uCVU8YgNYuGyovh4s9poOOjp+STO/TZIGzMLModm+9waCMBpJkkevjGmnTMrxJlDSaaJYM/4b5/bsDNfPh9naRBG+qThks6R0GRUftHIuBr73PRSkXT5qKul1lmrmoigBdSdg1/JuQb3hVWW6vpTPX9CpoPOWWLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1758556388; c=relaxed/simple;
-	bh=a0VM598UmrtwlhEnoREdw/eGGyyu2lW3+nizfHZq7Vw=;
+	bh=UO9DQsrKA93JMMQ0MKH6EUkVh9p3xM8BKS5q1KtAVsI=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=PTQh/ipL6J+Z71ihAZmdOr9Mme2LtGPuuNJRObJLC+PDjJhjogJGpPvg6STIsdBW9mB4DZDP0KdRK9eC2KyJkIyoCQpCpdhAlkGescSPy2bXOth/nfcw7uPVsQPfwdIUBrgxZl9nY/KOvj89UW8ptFTm4vzcXQCWex0pi5jAO0Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=Ml1utP8k; arc=none smtp.client-ip=203.254.224.25
+	 Content-Type:References; b=KkyooDBOvkl7rLbAm3VgoWHi+BuM0fez4kmM9Z4/OyHk3CqKV6u1VfE8IxSNSKAc6oSitaF92u+bHUEYq7FhEpDBDIK+wHd8yx0+r7ujAhQigmeCxUTzeQpaZMJn4ZFsgwHEFZKyIauKthg8LreGxt8SjCIKpTT+SjWB55BHrxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=QBj6/FJ+; arc=none smtp.client-ip=203.254.224.33
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="Ml1utP8k"
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20250922155303epoutp02de51b8c3397b5d0188311e1d5ab39612~npbamf8J_2556925569epoutp02a
-	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:03 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20250922155303epoutp02de51b8c3397b5d0188311e1d5ab39612~npbamf8J_2556925569epoutp02a
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="QBj6/FJ+"
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20250922155304epoutp0324c55f43b564cd7c675d9d72da7af0f9~npbbTLMET0931409314epoutp03U
+	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:04 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20250922155304epoutp0324c55f43b564cd7c675d9d72da7af0f9~npbbTLMET0931409314epoutp03U
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1758556383;
-	bh=vQZ4r71Cb4s5PLW+U6pVlKP0LhcG2XqBbROkB8bQCy4=;
+	s=mail20170921; t=1758556384;
+	bh=PVd11SH1umpLuTwKukA509cqXTgpF93/PRhn1vgp1GA=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Ml1utP8kGRZuMvSxGUAIGkJl5TmuN9q62qHlFb2ewmDR9KBqxZi2TiMweyOaZUSPc
-	 jMToSCMZ7mkhJjZpV4XnQqjge31W9Z+gVFW9C/SUUT9tx5Xoiy1r46EpCjJQirwO3e
-	 UyOqR2QINj412RtOR0vJFYkiHQgM6K/exISlVkmI=
-Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
-	20250922155302epcas5p4483db74191ac63160995d0bfcc33eb50~npbaJogbs0767807678epcas5p4F;
-	Mon, 22 Sep 2025 15:53:02 +0000 (GMT)
+	b=QBj6/FJ+hkoZGUnS2nAwzbAbALmgBHZEIKjLjiMZw6dyXvpum0Ramut76Q8DUxwaC
+	 1UZQEm8Z5eN5+Ms1JPS0ev59Ig8D32j3pjccHKD0PNbIb8+IlQyHIGYXHP9Py9wZ5d
+	 X/sJ0vqC8/fbFR2M6eYVSEXzzviXvIVf/DjYwJzc=
+Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
+	20250922155303epcas5p2f292b1c915746b799e0bb319493f2f33~npbadzrlk0096500965epcas5p2q;
+	Mon, 22 Sep 2025 15:53:03 +0000 (GMT)
 Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp03.localdomain (Postfix) with ESMTP id 4cVngy6L7gz3hhT3; Mon, 22 Sep
-	2025 15:53:02 +0000 (GMT)
-Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPA id
-	20250922130121epcas5p1e5708a72f32d70655808270e7ad0adf8~nnFgHTssN0654806548epcas5p1D;
-	Mon, 22 Sep 2025 13:01:21 +0000 (GMT)
+	epsnrtp04.localdomain (Postfix) with ESMTP id 4cVngz1dRzz6B9m5; Mon, 22 Sep
+	2025 15:53:03 +0000 (GMT)
+Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
+	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
+	20250922130536epcas5p4dab9590bdc86b86dc3d8ad92ac9346c6~nnJNs1ET90059300593epcas5p4v;
+	Mon, 22 Sep 2025 13:05:36 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20250922130119epsmtip2858063a29a6239a486d3d124fe6ab444~nnFeLP4Wo0544205442epsmtip2R;
-	Mon, 22 Sep 2025 13:01:19 +0000 (GMT)
-Date: Mon, 22 Sep 2025 18:31:13 +0530
+	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20250922130534epsmtip10e7ced87578cd0711d11a8a085964319~nnJLce0H50967409674epsmtip1G;
+	Mon, 22 Sep 2025 13:05:33 +0000 (GMT)
+Date: Mon, 22 Sep 2025 18:35:29 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: Ira Weiny <ira.weiny@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, gost.dev@samsung.com,
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V3 04/20] nvdimm/label: Update mutex_lock() with
- guard(mutex)()
-Message-ID: <158453976.61758556382881.JavaMail.epsvc@epcpadp2new>
+Subject: Re: [PATCH V3 05/20] nvdimm/namespace_label: Add namespace label
+ changes as per CXL LSA v2.1
+Message-ID: <439928219.101758556383225.JavaMail.epsvc@epcpadp2new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <68cee7e7a00f5_1c391729430@iweiny-mobl.notmuch>
-X-CMS-MailID: 20250922130121epcas5p1e5708a72f32d70655808270e7ad0adf8
+In-Reply-To: <68cdd281bd9bf_1a2a1729410@iweiny-mobl.notmuch>
+X-CMS-MailID: 20250922130536epcas5p4dab9590bdc86b86dc3d8ad92ac9346c6
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----ZIrY0_0zhFg6fYJHUyNEB7j3gF23gHMfocaodaZuRcC4aiL3=_26e47_"
+	boundary="----eh7qRvcfO6PRFbEYZqDEORj5Ys3ZDDqSWzhM1v_RBQGd0jaZ=_26d2b_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134136epcas5p118f18ce5139d489d90ac608e3887c1fc
+X-CMS-RootMailID: 20250917134138epcas5p2b02390404681df79c26f7a1a0f0262b8
 References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134136epcas5p118f18ce5139d489d90ac608e3887c1fc@epcas5p1.samsung.com>
-	<20250917134116.1623730-5-s.neeraj@samsung.com>
-	<b66e4c0b-a82f-4c18-8e8b-ba37b6551964@intel.com>
-	<68cee7e7a00f5_1c391729430@iweiny-mobl.notmuch>
+	<CGME20250917134138epcas5p2b02390404681df79c26f7a1a0f0262b8@epcas5p2.samsung.com>
+	<20250917134116.1623730-6-s.neeraj@samsung.com>
+	<68cdd281bd9bf_1a2a1729410@iweiny-mobl.notmuch>
 
-------ZIrY0_0zhFg6fYJHUyNEB7j3gF23gHMfocaodaZuRcC4aiL3=_26e47_
+------eh7qRvcfO6PRFbEYZqDEORj5Ys3ZDDqSWzhM1v_RBQGd0jaZ=_26d2b_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 20/09/25 12:44PM, Ira Weiny wrote:
->Dave Jiang wrote:
+On 19/09/25 05:00PM, Ira Weiny wrote:
+>Neeraj Kumar wrote:
+>> CXL 3.2 Spec mentions CXL LSA 2.1 Namespace Labels at section 9.13.2.5
+>> Modified __pmem_label_update function using setter functions to update
+>> namespace label as per CXL LSA 2.1
 >
->[snip]
+>Again I'm curious as to why?
 >
->> > @@ -998,9 +998,8 @@ static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
->> >  		label_ent = kzalloc(sizeof(*label_ent), GFP_KERNEL);
->> >  		if (!label_ent)
->> >  			return -ENOMEM;
->> > -		mutex_lock(&nd_mapping->lock);
->> > +		guard(mutex)(&nd_mapping->lock);
->> >  		list_add_tail(&label_ent->list, &nd_mapping->labels);
->> > -		mutex_unlock(&nd_mapping->lock);
->>
->> I would not mix and match old and new locking flow in a function. If you are going to convert, then do the whole function. I think earlier in this function you may need a scoped_guard() call.
->>
+>Is it to be able to use the setter's later?  I see a call to
+>nsl_set_type() added later in the series but then deleted in an even later
+>patch.  (??)
 >
->FWIW I would limit the changes to __pmem_label_update() because that is
->the function which benefits from these changes.
->
->> >  	}
->> >
->> >  	if (ndd->ns_current == -1 || ndd->ns_next == -1)
->> > @@ -1039,7 +1038,7 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
->> >  	if (!preamble_next(ndd, &nsindex, &free, &nslot))
->> >  		return 0;
->> >
->> > -	mutex_lock(&nd_mapping->lock);
->> > +	guard(mutex)(&nd_mapping->lock);
->>
->> So this change now includes nd_label_write_index() in the lock context as well compare to the old code. So either you should use a scoped_guard() or create a helper function and move the block of code being locked to the helper function with guard() to avoid changing the original code flow.
->>
->
->Sure you could do this but again I don't think these updates are worth
->this amount of work right now.
->
+>I don't have time ATM to really follow this through but giving a why in
+>the commit message may have made this a simple patch to review.  Now I'm
+>not clear if it is ok or not.
 
-Yes Ira,
+Hi Ira,
 
-Adding change as per Dave's suggestion would require some extra code change which may not be required here.
-I will fix the locking in __pmem_label_update() only.
+Yes these setter functions are required because of namespace
+modifications as per LSA 2.1.
+
+Actually it looks deleted due to refactoring of __pmem_label_update() in
+later patch.
+
+I got your point, I will re-arrange it after __pmem_label_update() refactoring.
 
 
 Regards,
 Neeraj
 
-------ZIrY0_0zhFg6fYJHUyNEB7j3gF23gHMfocaodaZuRcC4aiL3=_26e47_
+------eh7qRvcfO6PRFbEYZqDEORj5Ys3ZDDqSWzhM1v_RBQGd0jaZ=_26d2b_
 Content-Type: text/plain; charset="utf-8"
 
 
-------ZIrY0_0zhFg6fYJHUyNEB7j3gF23gHMfocaodaZuRcC4aiL3=_26e47_--
+------eh7qRvcfO6PRFbEYZqDEORj5Ys3ZDDqSWzhM1v_RBQGd0jaZ=_26d2b_--
 
