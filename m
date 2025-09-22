@@ -1,131 +1,139 @@
-Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
+Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC0B30DD34
-	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7226730E0C6
+	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758556388; cv=none; b=ioWVAIb2tYbcRPU+NnRYrFEZxl0GQ4h3qgx4AUzTi0+F5pifC/jSXgAF0micaCt6UrkNu9cTG9axvJaucRJV3h4EKpV/gdAL6LUTKbkfsQ6MW2ed0Ua9SjOrHB42Klc5HwnW0La/Es/yBWfCKk1rfBqEcT7qrfVhI45Y/zxpiuk=
+	t=1758556388; cv=none; b=cMhz6dLQFrWGXLH8eg5rInlnjZ4a56n5mbiYloPRc+ujhtLW+XQysDeXzkevMws7dzaDML6rl6qqPyZAukhhop/jQvGbOuwTZZ9AQmIWQi20qipOZgF8FZ0G/UmK00tp0DzflRVIlCl0MZPDyt7GI2NFkt7rbJb5nOb1M1JS6zk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1758556388; c=relaxed/simple;
-	bh=nTAiUXc7YPNhzVMskHwfnAtKOJU1lFSzoQUAunE5Nh0=;
+	bh=QRjXyQFSuI4J3thCUkXLzHQGmvtCQn/loIzOPpxNs+U=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=WQVe60pQ5/O1q1Ql6UW7KU9rLm7E8HmfLygAB+yp4atvGcv+rjjYfXYdZTmRQuNhsrd9vZASRcr4qzU1ro4Y5OzNU4Wu5RB1vreMskmbISMte/DyeIVsK1MGo9OdCeaCdPpGUL+6mBFgDVIg8Mwa8eQ0iMb+2OefdcNuLDnkJmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=tcDAp9xS; arc=none smtp.client-ip=203.254.224.33
+	 Content-Type:References; b=EbG1l/8xv9mHqR4N1WSgdD+jyndc3+YJe4G8UT1WeqwHEG495dFBqNje9YeIA4UXpP/UBwdaWoZeG5RU2/cVVbRq6p+dGSO/q0uQaBDcL0JNuxHD9rimOt/Nti3d5n14iLLEoIZ727IzxSN6TsJUiGyDuY3z9/tZF/ZtQ4/rcGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=FOpL3ggM; arc=none smtp.client-ip=203.254.224.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="tcDAp9xS"
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="FOpL3ggM"
 Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
-	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20250922155302epoutp031d8acacb7a8626c0357ec1d9fba2b0fa~npbaErxDC0931809318epoutp03Q
-	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:02 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20250922155302epoutp031d8acacb7a8626c0357ec1d9fba2b0fa~npbaErxDC0931809318epoutp03Q
+	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20250922155303epoutp0451aa0c41f3a9e975563064be81f4f546~npbaUi1wI1922319223epoutp048
+	for <nvdimm@lists.linux.dev>; Mon, 22 Sep 2025 15:53:03 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20250922155303epoutp0451aa0c41f3a9e975563064be81f4f546~npbaUi1wI1922319223epoutp048
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1758556382;
-	bh=cb+U+Tkli/i0cLtgDmQMqdfYAS8rfARZ0T/H5mDemaw=;
+	s=mail20170921; t=1758556383;
+	bh=W36mltLmev3mjFYBVD0fRRwSlXih6RCojOhs+gu7fi8=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=tcDAp9xSmTdHUJljmabG39R5XZM5yL8vQILO8WVX5r20RComWj0t3xuLtX666lhh/
-	 0/UIhgIoQ+4kjz4bAS8AteBEYPlxfrfaXVtinrgJg6FdgBtySxIGEfQ2h6pvBnJgfb
-	 WV7sBDMEOMxGJgUHfWpSJp7YLhH59nWHfkZ5vVDs=
+	b=FOpL3ggMOPi4XIp2KzM0JE08lppxWs+/eVihWJxxJof7waWHlazZ2YvIu+XRabnEL
+	 mrsQdkgZAtpGfTpQepkVU7lSM4WMBXaFvDe0vvGKu1aeYRwugBhDFJ0gDYXxGBSaLM
+	 KPQB4HB/idDbH73fQzjpAQRvnI63Cs2KxxLm4bWM=
 Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
 	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
-	20250922155302epcas5p498ca7e2ea2f11c115de16c4cc34cd33e~npbZl6IhI1157911579epcas5p4v;
+	20250922155302epcas5p451082652195f094bf46e43c816b5db81~npbZ_zdk91175111751epcas5p4z;
 	Mon, 22 Sep 2025 15:53:02 +0000 (GMT)
 Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp04.localdomain (Postfix) with ESMTP id 4cVngy23sVz6B9m5; Mon, 22 Sep
+	epsnrtp04.localdomain (Postfix) with ESMTP id 4cVngy5321z6B9m5; Mon, 22 Sep
 	2025 15:53:02 +0000 (GMT)
 Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
-	20250922124141epcas5p37e5a72c3edcaff0e7b1b9912b199a91c~nm0VansYh0475204752epcas5p34;
-	Mon, 22 Sep 2025 12:41:41 +0000 (GMT)
+	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
+	20250922125700epcas5p4925f1a3a1b0773452a046964ffa4aac9~nnBtD4k3K2405124051epcas5p4Z;
+	Mon, 22 Sep 2025 12:57:00 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
 	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20250922124139epsmtip2d92509fd3289b4dd18e0d18fbb3766a4~nm0Tvwp422506525065epsmtip2G;
-	Mon, 22 Sep 2025 12:41:39 +0000 (GMT)
-Date: Mon, 22 Sep 2025 18:11:34 +0530
+	20250922125659epsmtip23d2e35208c7270805e984af5f39155cb~nnBr6JblQ0131301313epsmtip2z;
+	Mon, 22 Sep 2025 12:56:59 +0000 (GMT)
+Date: Mon, 22 Sep 2025 18:26:54 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Dave Jiang <dave.jiang@intel.com>
+To: Ira Weiny <ira.weiny@intel.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V3 01/20] nvdimm/label: Introduce NDD_REGION_LABELING
- flag to set region label
-Message-ID: <1983025922.01758556382272.JavaMail.epsvc@epcpadp2new>
+Subject: Re: [PATCH V3 04/20] nvdimm/label: Update mutex_lock() with
+ guard(mutex)()
+Message-ID: <1931444790.41758556382694.JavaMail.epsvc@epcpadp2new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <8c6bb8fc-7801-45d3-8563-054b12295df0@intel.com>
-X-CMS-MailID: 20250922124141epcas5p37e5a72c3edcaff0e7b1b9912b199a91c
+In-Reply-To: <68cdd157cf7be_1a2a17294f1@iweiny-mobl.notmuch>
+X-CMS-MailID: 20250922125700epcas5p4925f1a3a1b0773452a046964ffa4aac9
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_"
+	boundary="----.2eTkDb0Wtw7DpTqHNw2IdxlY1ZkgCZiGa8-Nl.IQwSrXKTD=_26e6e_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134130epcas5p417d7c26bc564d64d1bcea6e04d55704d
+X-CMS-RootMailID: 20250917134136epcas5p118f18ce5139d489d90ac608e3887c1fc
 References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134130epcas5p417d7c26bc564d64d1bcea6e04d55704d@epcas5p4.samsung.com>
-	<20250917134116.1623730-2-s.neeraj@samsung.com>
-	<8c6bb8fc-7801-45d3-8563-054b12295df0@intel.com>
+	<CGME20250917134136epcas5p118f18ce5139d489d90ac608e3887c1fc@epcas5p1.samsung.com>
+	<20250917134116.1623730-5-s.neeraj@samsung.com>
+	<68cdd157cf7be_1a2a17294f1@iweiny-mobl.notmuch>
 
-------M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_
+------.2eTkDb0Wtw7DpTqHNw2IdxlY1ZkgCZiGa8-Nl.IQwSrXKTD=_26e6e_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 19/09/25 04:10PM, Dave Jiang wrote:
+On 19/09/25 04:55PM, Ira Weiny wrote:
+>Neeraj Kumar wrote:
+>> Updated mutex_lock() with guard(mutex)()
 >
+>You are missing the 'why' justification here.
 >
->On 9/17/25 6:40 AM, Neeraj Kumar wrote:
->> Prior to LSA 2.1 version, LSA contain only namespace labels. LSA 2.1
->> introduced in CXL 2.0 Spec, which contain region label along with
->> namespace label.
->>
->> NDD_LABELING flag is used for namespace. Introduced NDD_REGION_LABELING
->> flag for region label. Based on these flags nvdimm driver performs
->> operation on namespace label or region label.
->>
->> NDD_REGION_LABELING will be utilized by cxl driver to enable LSA 2.1
->> region label support
->>
->> Accordingly updated label index version
->>
->> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+>The detail is that __pmem_label_update() is getting more complex and this
+>change helps to reduce the complexity later.
 >
->With the change noted below,
->Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+>However...
 >
+>[snip]
+>
+>> @@ -998,9 +998,8 @@ static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
+>>  		label_ent = kzalloc(sizeof(*label_ent), GFP_KERNEL);
+>>  		if (!label_ent)
+>>  			return -ENOMEM;
+>> -		mutex_lock(&nd_mapping->lock);
+>> +		guard(mutex)(&nd_mapping->lock);
+>>  		list_add_tail(&label_ent->list, &nd_mapping->labels);
+>> -		mutex_unlock(&nd_mapping->lock);
+>
+>... this change is of little value.  And...
+>
+>>  	}
+>>
+>>  	if (ndd->ns_current == -1 || ndd->ns_next == -1)
+>> @@ -1039,7 +1038,7 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
+>>  	if (!preamble_next(ndd, &nsindex, &free, &nslot))
+>>  		return 0;
+>>
+>> -	mutex_lock(&nd_mapping->lock);
+>> +	guard(mutex)(&nd_mapping->lock);
+>>  	list_for_each_entry_safe(label_ent, e, &nd_mapping->labels, list) {
+>>  		struct nd_namespace_label *nd_label = label_ent->label;
+>>
+>> @@ -1061,7 +1060,6 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
+>>  		nd_mapping_free_labels(nd_mapping);
+>>  		dev_dbg(ndd->dev, "no more active labels\n");
+>>  	}
+>> -	mutex_unlock(&nd_mapping->lock);
+>
+>... this technically changes the scope of the lock to include writing the
+>index under the lock.
+>
+>It does not affect anything AFAICS but really these last two changes
+>should be dropped from this patch.
+>
+>Ira
 
-
-<Snip>
->>  	/*
->>  	 * EACCES failures reading the namespace label-area-properties
->> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
->> index 21498d461fde..918c3db93195 100644
->> --- a/drivers/nvdimm/dimm_devs.c
->> +++ b/drivers/nvdimm/dimm_devs.c
->> @@ -18,6 +18,13 @@
->>
->>  static DEFINE_IDA(dimm_ida);
->>
->> +bool nvdimm_check_region_label_format(struct device *dev)
->
->Should be called nvdimm_region_label_supported() since a bool return is expected instead of resolving the checking in the function.
->
->DJ
-
-Thanks Jonathan and Dave for RB tag. Sure, I will rename it accordingly
-
+Sure Ira, I will drop the last two hunks and elaborate commit message.
 
 Regards,
 Neeraj
 
-------M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_
+------.2eTkDb0Wtw7DpTqHNw2IdxlY1ZkgCZiGa8-Nl.IQwSrXKTD=_26e6e_
 Content-Type: text/plain; charset="utf-8"
 
 
-------M3TZWmnaQcCgpq3P2cdOV_lud716KtFuwxspURBH1dZsF.eH=_26d70_--
+------.2eTkDb0Wtw7DpTqHNw2IdxlY1ZkgCZiGa8-Nl.IQwSrXKTD=_26e6e_--
 
