@@ -1,721 +1,230 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF50A238C0A
-	for <nvdimm@lists.linux.dev>; Tue, 23 Sep 2025 10:18:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E035C2E8881;
+	Tue, 23 Sep 2025 11:52:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758622689; cv=none; b=qvkCtceCXRIzT0TRhH+ZkOwlOAxd0DrKTR1cpdKris/ekpqQ0wqaJlhkiqcvKDeTvdNfCZlCCTXZoyFY32uhvtlSamIX660+HpICat4TGF2NKHLK44Oh/xmIg1YMmlUKgk1b5MqTFFoGCFUMXEDTKhIpFYrkR47Gjt76ME/KQ4Y=
+	t=1758628364; cv=none; b=rB9vFK0KFKs+4s2Y2fL52h3O0EX4IAMpJmXgcXqGWDg6Q2ktKBtem0z0ghhOus8Idaq2mMTeLIi23fdFCU/JMylb//gMIkCv3Z0kt6o87/2qCk6uxoRjZlPgJMns1yFKDwWSU8k9KFwff584HRyb/vGhR+5QuP8/Jd25J4TjaGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758622689; c=relaxed/simple;
-	bh=mErpwrnnUt1a4UbgMPITpz273rY3AVhVIAbWJHjwDDE=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MSkvZu8JB4qGiXWtR6SXMqQatEJADj7uMgA+sXkKAcoN/K7Ptc15OOVEcioggON7MKfIzAXFMXoERVLqW+c/qQElh6NRgU9PKbmY6nYhnxvsNrxsyNyhNqhMZUK9qlzif++6gC+V8F4giu9vIbgUT1ZNtuP2mvcXqo0BzOd6+Ac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4cWG7Z1R58z6D92b;
-	Tue, 23 Sep 2025 18:15:06 +0800 (CST)
-Received: from dubpeml100005.china.huawei.com (unknown [7.214.146.113])
-	by mail.maildlp.com (Postfix) with ESMTPS id 367911401DC;
-	Tue, 23 Sep 2025 18:18:03 +0800 (CST)
-Received: from localhost (10.203.177.15) by dubpeml100005.china.huawei.com
- (7.214.146.113) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Tue, 23 Sep
- 2025 11:18:02 +0100
-Date: Tue, 23 Sep 2025 11:18:01 +0100
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Dave Jiang <dave.jiang@intel.com>
-CC: <nvdimm@lists.linux.dev>, <ira.weiny@intel.com>,
-	<vishal.l.verma@intel.com>, <dan.j.williams@intel.com>,
-	<s.neeraj@samsung.com>
-Subject: Re: [PATCH] nvdimm: Introduce guard() for nvdimm_bus_lock
-Message-ID: <20250923111801.00001d62@huawei.com>
-In-Reply-To: <20250922211330.1433044-1-dave.jiang@intel.com>
-References: <20250922211330.1433044-1-dave.jiang@intel.com>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1758628364; c=relaxed/simple;
+	bh=uC3KukjZxErvZyqVNyTZvCwwhubZja1S6u22ZrF2EwI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TGwa4UcMFm5V44413O0DA7vHGWQBBiF5yfO81RF0Wy76WpAsDO5eTgOR1iVv7POjSabu0HRjWhRc8/UBj3dkx58BuzMYsrYpCuGX4KldTvRgyyDZbVSqMoZj4DGklSrUXY/6OH48hgM4AwYkRm46/wmuZ8ztOBWBWBr9eHO2P7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=EFGvr8Qy; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="EFGvr8Qy"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58N8Y12b008695;
+	Tue, 23 Sep 2025 11:52:19 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=FZaoT1QNSR93wIPtHts3CPzp0ctIk0
+	vYDNbzffEOi0c=; b=EFGvr8QyltIf32/aszOR/qJfepgW+UcWXreJDplTglupit
+	m+X7rmX3tdEzuL1hJj2o5XWwJ0r+pCJ4BjGEMOhGvQ5uA7F1CUxQtR7TqdF163bV
+	I3YXhbagNN2r+8NAvqFEHYkOG72rBgt1rm+ek1A/MwpmvyPZqT+huO4x+iKBFWTR
+	eo6ih9hfsFn2nHia9aCP+YLY6UeADcGZp/ivckC/FFUA6i0IL4LnbBeJbqc6eiAl
+	5jWsuCjMMTLD7wV7h8suNXD082oB3YYd9QtgvibDoicaRjRsG3bClbPAwbAw7H1U
+	VId+vHnlTcxFpVyEmlJvEr0+HDviZMbBrXxprVQA==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 499n0jgm9c-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Sep 2025 11:52:19 +0000 (GMT)
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58NBn9Dd005820;
+	Tue, 23 Sep 2025 11:52:18 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 499n0jgm96-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Sep 2025 11:52:18 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58N9Tk1U019675;
+	Tue, 23 Sep 2025 11:52:17 GMT
+Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 49a83k31qr-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Sep 2025 11:52:17 +0000
+Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
+	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58NBqDIE43516160
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 23 Sep 2025 11:52:13 GMT
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id F401A20043;
+	Tue, 23 Sep 2025 11:52:12 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A61F420040;
+	Tue, 23 Sep 2025 11:52:10 +0000 (GMT)
+Received: from li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com (unknown [9.87.150.243])
+	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Tue, 23 Sep 2025 11:52:10 +0000 (GMT)
+Date: Tue, 23 Sep 2025 13:52:09 +0200
+From: Sumanth Korikkar <sumanthk@linux.ibm.com>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Jonathan Corbet <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>,
+        Guo Ren <guoren@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, Nicolas Pitre <nico@fluxnic.net>,
+        Muchun Song <muchun.song@linux.dev>,
+        Oscar Salvador <osalvador@suse.de>,
+        David Hildenbrand <david@redhat.com>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Baoquan He <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>,
+        Dave Young <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>,
+        Reinette Chatre <reinette.chatre@intel.com>,
+        Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+        "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+        Hugh Dickins <hughd@google.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Uladzislau Rezki <urezki@gmail.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Andrey Konovalov <andreyknvl@gmail.com>, Jann Horn <jannh@google.com>,
+        Pedro Falcato <pfalcato@suse.de>, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-mm@kvack.org,
+        ntfs3@lists.linux.dev, kexec@lists.infradead.org,
+        kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>,
+        iommu@lists.linux.dev, Kevin Tian <kevin.tian@intel.com>,
+        Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v4 11/14] mm/hugetlbfs: update hugetlbfs to use
+ mmap_prepare
+Message-ID: <aNKJ6b7kmT_u0A4c@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
+References: <cover.1758135681.git.lorenzo.stoakes@oracle.com>
+ <e5532a0aff1991a1b5435dcb358b7d35abc80f3b.1758135681.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500012.china.huawei.com (7.191.174.4) To
- dubpeml100005.china.huawei.com (7.214.146.113)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e5532a0aff1991a1b5435dcb358b7d35abc80f3b.1758135681.git.lorenzo.stoakes@oracle.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTIwMDAzMyBTYWx0ZWRfX1/CT4ehdu5F7
+ 6VnJC5JZb/TGq0GTxXqzwutGBpnh5zvXhqXxihnE0ZIBeLxavZe5A1rzKbuxO1bDNyuFhUEM+Rk
+ 4I1KMXyeBzNEU/g4Tedu1h1rULa5Sn/p0/UqkELdAnxrKDhWjf96WssSMg0ltTS+aMBZqn2U8bf
+ Mm6V030K3rfmUmm6+2tKL/Lil9yhk2vaa1ilZs3936p1XOaPfvsu3tSuBabaOBW+S4p6UJCCS7o
+ UssKxq/W9pewKawoXgWRMXrenvRD0Q+OeFvs8GRRauXhjlsHet/L1r4+QnnsJQ0kVijCVo4qQhY
+ p/3nafFZQN3AWkhiFthvrI3hfInHVuTDSlQN3xLdzE/r0zMDPQuTX7WW9M8m8X+BWNkt+j6HOZU
+ bcmWMt/c
+X-Authority-Analysis: v=2.4 cv=TOlFS0la c=1 sm=1 tr=0 ts=68d289f3 cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=kj9zAlcOel0A:10 a=yJojWOMRYYMA:10 a=NEAV23lmAAAA:8 a=yPCof4ZbAAAA:8
+ a=Ikd4Dj_1AAAA:8 a=P7Dlay8f7KcL8MNlhToA:9 a=CjuIK1q_8ugA:10
+X-Proofpoint-ORIG-GUID: F6nP2Q8ol4BSxLNz15joz3bImrmTREZ1
+X-Proofpoint-GUID: 5HR21TLQQZuGh5ctB-qo8M6ErsQDpoDW
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
+ definitions=2025-09-23_02,2025-09-22_05,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1011 priorityscore=1501 phishscore=0 impostorscore=0 adultscore=0
+ suspectscore=0 spamscore=0 bulkscore=0 malwarescore=0 classifier=typeunknown
+ authscore=0 authtc= authcc= route=outbound adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2507300000 definitions=main-2509200033
 
-On Mon, 22 Sep 2025 14:13:30 -0700
-Dave Jiang <dave.jiang@intel.com> wrote:
-
-> Converting nvdimm_bus_lock/unlock to guard() to clean up usage
-> of gotos for error handling and avoid future mistakes of missed
-> unlock on error paths.
+On Wed, Sep 17, 2025 at 08:11:13PM +0100, Lorenzo Stoakes wrote:
+> Since we can now perform actions after the VMA is established via
+> mmap_prepare, use desc->action_success_hook to set up the hugetlb lock
+> once the VMA is setup.
 > 
-> Link: https://lore.kernel.org/linux-cxl/20250917163623.00004a3c@huawei.com/
-> Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Hi Dave,
-
-Thanks for looking at this.
-
-Fully agree with Dan about the getting rid of all gotos by end of series.
-
-A few other things inline.  Mostly places where the use of guard()
-opens up low hanging fruit that improves readability (+ shortens code).
-
-This code has a lot of dev_dbg() and some of them are so generic I'm not
-sure they are actually useful (cover a whole set of error paths).  Perhaps
-it is worth splitting some of those up, or reducing the paths that trigger
-them as part of this refactor.
-
-Jonathan
-
-
->  EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
-> diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-> index 497fd434a6a1..b35bcbe5db7f 100644
-> --- a/drivers/nvdimm/btt_devs.c
-> +++ b/drivers/nvdimm/btt_devs.c
-
-...
-
-> @@ -95,10 +93,9 @@ static ssize_t namespace_show(struct device *dev,
->  	struct nd_btt *nd_btt = to_nd_btt(dev);
->  	ssize_t rc;
+> We also make changes throughout hugetlbfs to make this possible.
+> 
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+> ---
+>  fs/hugetlbfs/inode.c           | 36 ++++++++++------
+>  include/linux/hugetlb.h        |  9 +++-
+>  include/linux/hugetlb_inline.h | 15 ++++---
+>  mm/hugetlb.c                   | 77 ++++++++++++++++++++--------------
+>  4 files changed, 85 insertions(+), 52 deletions(-)
+> 
+> diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+> index f42548ee9083..9e0625167517 100644
+> --- a/fs/hugetlbfs/inode.c
+> +++ b/fs/hugetlbfs/inode.c
+> @@ -96,8 +96,15 @@ static const struct fs_parameter_spec hugetlb_fs_parameters[] = {
+>  #define PGOFF_LOFFT_MAX \
+>  	(((1UL << (PAGE_SHIFT + 1)) - 1) <<  (BITS_PER_LONG - (PAGE_SHIFT + 1)))
 >  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	rc = sprintf(buf, "%s\n", nd_btt->ndns
->  			? dev_name(&nd_btt->ndns->dev) : "");
-
-
-	return sprintf();
-and drop the local variable.
-
-
-> -	nvdimm_bus_unlock(dev);
->  	return rc;
->  }
->  
-
-> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-> index 0ccf4a9e523a..d2c2d71e7fe0 100644
-> --- a/drivers/nvdimm/bus.c
-> +++ b/drivers/nvdimm/bus.c
->  static int nvdimm_bus_probe(struct device *dev)
-> @@ -1177,15 +1175,15 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
->  		goto out;
->  	}
->  
-> -	device_lock(dev);
-> -	nvdimm_bus_lock(dev);
-> +	guard(device)(dev);
-> +	guard(nvdimm_bus)(dev);
->  	rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, func, buf);
->  	if (rc)
-> -		goto out_unlock;
-> +		goto out;
->  
->  	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, &cmd_rc);
->  	if (rc < 0)
-> -		goto out_unlock;
-> +		goto out;
->  
->  	if (!nvdimm && cmd == ND_CMD_CLEAR_ERROR && cmd_rc >= 0) {
->  		struct nd_cmd_clear_error *clear_err = buf;
-> @@ -1197,9 +1195,6 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
->  	if (copy_to_user(p, buf, buf_len))
->  		rc = -EFAULT;
->  
-> -out_unlock:
-> -	nvdimm_bus_unlock(dev);
-> -	device_unlock(dev);
->  out:
-Hmm. I'm not a fan of gotos that rely on initializing a bunch of pointers to NULL
-so fewer labels are used. Will be nice to replace that as well via __free
-
-Going to need a DEFINE_FREE for the vfree that follow these but that looks standard to me.
-
->  	kfree(in_env);
->  	kfree(out_env);
-> diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-> index 51614651d2e7..e53a2cc04695 100644
-> --- a/drivers/nvdimm/claim.c
-> +++ b/drivers/nvdimm/claim.c
-> @@ -35,9 +35,8 @@ void nd_detach_ndns(struct device *dev,
->  	if (!ndns)
->  		return;
->  	get_device(&ndns->dev);
-> -	nvdimm_bus_lock(&ndns->dev);
-> -	__nd_detach_ndns(dev, _ndns);
-> -	nvdimm_bus_unlock(&ndns->dev);
-> +	scoped_guard(nvdimm_bus, &ndns->dev)
-> +		__nd_detach_ndns(dev, _ndns);
->  	put_device(&ndns->dev);
-
-maybe a guard for this as well? Then you could just use
-guards for both rather than needing the scoped guard.
-
-
-
->  }
-
-> diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-> index 37b743acbb7b..a5d44b5c9452 100644
-> --- a/drivers/nvdimm/dax_devs.c
-> +++ b/drivers/nvdimm/dax_devs.c
-> @@ -104,10 +104,10 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
->  		return -ENODEV;
->  	}
->  
-> -	nvdimm_bus_lock(&ndns->dev);
-> -	nd_dax = nd_dax_alloc(nd_region);
-> -	dax_dev = nd_dax_devinit(nd_dax, ndns);
-> -	nvdimm_bus_unlock(&ndns->dev);
-> +	scoped_guard(nvdimm_bus, &ndns->dev) {
-> +		nd_dax = nd_dax_alloc(nd_region);
-> +		dax_dev = nd_dax_devinit(nd_dax, ndns);
-> +	}
->  	if (!dax_dev)
->  		return -ENOMEM;
-Maybe move this check under the lock? For me that would be a little more obvious
-as right next to where it is set.
-
->  	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
-> diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-> index 91d9163ee303..2018458a3dba 100644
-> --- a/drivers/nvdimm/dimm.c
-> +++ b/drivers/nvdimm/dimm.c
-> @@ -95,13 +95,13 @@ static int nvdimm_probe(struct device *dev)
->  
->  	dev_dbg(dev, "config data size: %d\n", ndd->nsarea.config_size);
->  
-> -	nvdimm_bus_lock(dev);
-> -	if (ndd->ns_current >= 0) {
-> -		rc = nd_label_reserve_dpa(ndd);
-> -		if (rc == 0)
-> -			nvdimm_set_labeling(dev);
-> +	scoped_guard(nvdimm_bus, dev) {
-> +		if (ndd->ns_current >= 0) {
-> +			rc = nd_label_reserve_dpa(ndd);
-> +			if (rc == 0)
-> +				nvdimm_set_labeling(dev);
-> +		}
->  	}
-> -	nvdimm_bus_unlock(dev);
-
-This one looks awkward wrt to the goto and put_ndd().
-Might not be worth the bother.  I tend to take the view that it is
-fine to use guard() for a lock where it helps but not force it to be
-used universally if there are places where it doesn't.
-
-
->  
->  	if (rc)
->  		goto err;
-> @@ -117,9 +117,8 @@ static void nvdimm_remove(struct device *dev)
+> -static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+> +static int hugetlb_file_mmap_prepare_success(const struct vm_area_struct *vma)
 >  {
->  	struct nvdimm_drvdata *ndd = dev_get_drvdata(dev);
->  
-> -	nvdimm_bus_lock(dev);
-> -	dev_set_drvdata(dev, NULL);
-> -	nvdimm_bus_unlock(dev);
-> +	scoped_guard(nvdimm_bus, dev)
-> +		dev_set_drvdata(dev, NULL);
->  	put_ndd(ndd);
->  }
->  
-> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-> index 21498d461fde..4b293c4ad15c 100644
-> --- a/drivers/nvdimm/dimm_devs.c
-> +++ b/drivers/nvdimm/dimm_devs.c
-
-> @@ -326,7 +326,7 @@ static ssize_t __available_slots_show(struct nvdimm_drvdata *ndd, char *buf)
->  		return -ENXIO;
->  
->  	dev = ndd->dev;
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	nfree = nd_label_nfree(ndd);
->  	if (nfree - 1 > nfree) {
->  		dev_WARN_ONCE(dev, 1, "we ate our last label?\n");
-> @@ -334,7 +334,6 @@ static ssize_t __available_slots_show(struct nvdimm_drvdata *ndd, char *buf)
->  	} else
->  		nfree--;
->  	rc = sprintf(buf, "%d\n", nfree);
-> -	nvdimm_bus_unlock(dev);
->  	return rc;
-
-return sprintf() nad drop then then unused rc.
-
-
->  }
->  
-> @@ -395,12 +394,10 @@ static ssize_t security_store(struct device *dev,
->  	 * done while probing is idle and the DIMM is not in active use
->  	 * in any region.
->  	 */
-> -	device_lock(dev);
-> -	nvdimm_bus_lock(dev);
-> +	guard(device)(dev);
-> +	guard(nvdimm_bus)(dev);
->  	wait_nvdimm_bus_probe_idle(dev);
->  	rc = nvdimm_security_store(dev, buf, len);
-
-return nvdimm_security_store()
-
-> -	nvdimm_bus_unlock(dev);
-> -	device_unlock(dev);
->  
->  	return rc;
->  }
-> @@ -454,9 +451,8 @@ static ssize_t result_show(struct device *dev, struct device_attribute *attr, ch
->  	if (!nvdimm->fw_ops)
->  		return -EOPNOTSUPP;
->  
-> -	nvdimm_bus_lock(dev);
-> -	result = nvdimm->fw_ops->activate_result(nvdimm);
-> -	nvdimm_bus_unlock(dev);
-> +	scoped_guard(nvdimm_bus, dev)
-
-Maybe just guard?  Seems unlikely to matter if we do the prints under the lock.
-
-> +		result = nvdimm->fw_ops->activate_result(nvdimm);
->  
->  	switch (result) {
->  	case NVDIMM_FWA_RESULT_NONE:
-> @@ -483,9 +479,8 @@ static ssize_t activate_show(struct device *dev, struct device_attribute *attr,
->  	if (!nvdimm->fw_ops)
->  		return -EOPNOTSUPP;
->  
-> -	nvdimm_bus_lock(dev);
-> -	state = nvdimm->fw_ops->activate_state(nvdimm);
-> -	nvdimm_bus_unlock(dev);
-> +	scoped_guard(nvdimm_bus, dev)
-Similar to above. I'd just hold it to function exit to simplify the code a little.
-
-> +		state = nvdimm->fw_ops->activate_state(nvdimm);
->  
->  	switch (state) {
->  	case NVDIMM_FWA_IDLE:
-..
-
-
-> @@ -641,11 +634,11 @@ void nvdimm_delete(struct nvdimm *nvdimm)
->  	bool dev_put = false;
->  
->  	/* We are shutting down. Make state frozen artificially. */
-> -	nvdimm_bus_lock(dev);
-> -	set_bit(NVDIMM_SECURITY_FROZEN, &nvdimm->sec.flags);
-> -	if (test_and_clear_bit(NDD_WORK_PENDING, &nvdimm->flags))
-> -		dev_put = true;
-> -	nvdimm_bus_unlock(dev);
-> +	scoped_guard(nvdimm_bus, dev) {
-> +		set_bit(NVDIMM_SECURITY_FROZEN, &nvdimm->sec.flags);
-> +		if (test_and_clear_bit(NDD_WORK_PENDING, &nvdimm->flags))
-> +			dev_put = true;
-Not sure why this isn't
-
-		dev_put = test_and_clear_bit();
-
-Maybe some earlier refactoring left this somewhat odd bit of code or
-
-
-> +	}
->  	cancel_delayed_work_sync(&nvdimm->dwork);
->  	if (dev_put)
->  		put_device(dev);
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-> index 55cfbf1e0a95..38933abfb2a6 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-
-...
-
-> @@ -893,9 +888,8 @@ resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns)
->  {
->  	resource_size_t size;
->  
-> -	nvdimm_bus_lock(&ndns->dev);
-> +	guard(nvdimm_bus)(&ndns->dev);
->  	size = __nvdimm_namespace_capacity(ndns);
-> -	nvdimm_bus_unlock(&ndns->dev);
->  
->  	return size;
-	
-	return __nvdimm_namespace_capacity(ndns);
-
->  }
-
-> @@ -1119,8 +1111,8 @@ static ssize_t sector_size_store(struct device *dev,
->  	} else
->  		return -ENXIO;
->  
-> -	device_lock(dev);
-> -	nvdimm_bus_lock(dev);
-> +	guard(device)(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (to_ndns(dev)->claim)
->  		rc = -EBUSY;
->  	if (rc >= 0)
-
-There is a bit mess of if (rc >= 0)
-stuff in here that could just become early exits and generally result I think
-in more readable code flow (enabled by the guard() usage)  The side effect
-being the dev_dbg() might need to be replicated but it could ten say what actually
-happened rather than current case of one of 3 things failed.
-
-	if (to_ndns(dev)->claim) {
-		dev_dbg(dev...)
-		return -EBUSY;
-	}
-	rc = nd_size_select_store();
-	if (rc < 0) {
-		dev_dbg()
-		return rc;
-	}
-	rc = nd_namespace_label_update(nd_region, dev);
-	if (rc < 0) {
-		dev_dbg();  // if all these are actually useful given we know what we wrote and what failed.
-		return rc;
-	}
-
-
-> @@ -1145,7 +1135,7 @@ static ssize_t dpa_extents_show(struct device *dev,
->  	int count = 0, i;
->  	u32 flags = 0;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (is_namespace_pmem(dev)) {
->  		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
->  
-> @@ -1167,8 +1157,6 @@ static ssize_t dpa_extents_show(struct device *dev,
->  				count++;
->  	}
->   out:
-
-Can drop this and return early particularly as it's just
-	return sprintf(buf, "0\n");
-in that one path.
-
-
-> -	nvdimm_bus_unlock(dev);
-> -
->  	return sprintf(buf, "%d\n", count);
->  }
->  static DEVICE_ATTR_RO(dpa_extents);
-
-> @@ -2152,31 +2138,38 @@ static int init_active_labels(struct nd_region *nd_region)
->  					nd_region);
->  }
->  
-> +static int __create_namespaces(struct nd_region *nd_region, int *type,
-naming is a little odd given it calls create_namespaces internally.
-Maybe
-
-create_relevant_namespace() or something along those lines.
-Or rename the create_namespaces() to be PMEM specific and reuse
-that name for the wrapper.
-
-
-> +			       struct device ***devs)
-> +{
-> +	int rc;
-> +
-> +	guard(nvdimm_bus)(&nd_region->dev);
-> +	rc = init_active_labels(nd_region);
-> +	if (rc)
-> +		return rc;
-> +
-> +	*type = nd_region_to_nstype(nd_region);
-> +	switch (*type) {
-> +	case ND_DEVICE_NAMESPACE_IO:
-> +		*devs = create_namespace_io(nd_region);
-> +		break;
-> +	case ND_DEVICE_NAMESPACE_PMEM:
-> +		*devs = create_namespaces(nd_region);
-> +		break;
-> +	}
-> +
-> +	return 0;
+> +	/* Unfortunate we have to reassign vma->vm_private_data. */
+> +	return hugetlb_vma_lock_alloc((struct vm_area_struct *)vma);
 > +}
-> +
->  int nd_region_register_namespaces(struct nd_region *nd_region, int *err)
->  {
->  	struct device **devs = NULL;
->  	int i, rc = 0, type;
->  
->  	*err = 0;
-> -	nvdimm_bus_lock(&nd_region->dev);
-> -	rc = init_active_labels(nd_region);
-> -	if (rc) {
-> -		nvdimm_bus_unlock(&nd_region->dev);
-> +	rc = __create_namespaces(nd_region, &type, &devs);
-> +	if (rc)
->  		return rc;
-> -	}
-> -
-> -	type = nd_region_to_nstype(nd_region);
-> -	switch (type) {
-> -	case ND_DEVICE_NAMESPACE_IO:
-> -		devs = create_namespace_io(nd_region);
-> -		break;
-> -	case ND_DEVICE_NAMESPACE_PMEM:
-> -		devs = create_namespaces(nd_region);
-> -		break;
-> -	default:
-> -		break;
-> -	}
-> -	nvdimm_bus_unlock(&nd_region->dev);
->  
->  	if (!devs)
->  		return -ENODEV;
-> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-> index cc5c8f3f81e8..a8013033509c 100644
-> --- a/drivers/nvdimm/nd.h
-> +++ b/drivers/nvdimm/nd.h
-> @@ -632,6 +632,8 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region,
->  u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region);
->  void nvdimm_bus_lock(struct device *dev);
->  void nvdimm_bus_unlock(struct device *dev);
-> +DEFINE_GUARD(nvdimm_bus, struct device *, nvdimm_bus_lock(_T), nvdimm_bus_unlock(_T));
 
-You want that if (_T) or the IS_ERR_OR_NULL variant if appropriate.
-Technically not needed, but as Peter Z pointed out in a similar case, sometimes the compiler
-might spot that _T is always NULL in a path and optimize out the call.  So he was
-very keen to keep that guard in the definition unless the the cleanup was also visible
-(As an inline in the header for instance).
+Hi Lorenzo,
 
-> +
->  bool is_nvdimm_bus_locked(struct device *dev);
->  void nvdimm_check_and_set_ro(struct gendisk *disk);
->  void nvdimm_drvdata_release(struct kref *kref);
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index 8f3e816e805d..f2a44d1f62be 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-> @@ -57,8 +57,8 @@ static ssize_t mode_store(struct device *dev,
->  	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
->  	ssize_t rc = 0;
->  
-> -	device_lock(dev);
-> -	nvdimm_bus_lock(dev);
-> +	guard(device)(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (dev->driver)
->  		rc = -EBUSY;
+The following tests causes the kernel to enter a blocked state,
+suggesting an issue related to locking order. I was able to reproduce
+this behavior in certain test runs.
 
-Maybe just do an early return here.  Is it really that useful to
-see anything other than -EBUSY?  If so maybe have a new dev_dbg()
-for this path. Nice to reduce the indent on the rest.
-
->  	else {
-> @@ -78,8 +78,6 @@ static ssize_t mode_store(struct device *dev,
->  	}
->  	dev_dbg(dev, "result: %zd wrote: %s%s", rc, buf,
->  			buf[len - 1] == '\n' ? "" : "\n");
-> -	nvdimm_bus_unlock(dev);
-> -	device_unlock(dev);
->  
->  	return rc ? rc : len;
->  }
-
-> @@ -170,10 +166,9 @@ static ssize_t namespace_show(struct device *dev,
->  	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
->  	ssize_t rc;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	rc = sprintf(buf, "%s\n", nd_pfn->ndns
->  			? dev_name(&nd_pfn->ndns->dev) : "");
-> -	nvdimm_bus_unlock(dev);
->  	return rc;
-
-return sprintf()
-
->  }
-
+Test case:
+git clone https://github.com/libhugetlbfs/libhugetlbfs.git
+cd libhugetlbfs ; ./configure
+make -j32
+cd tests
+echo 100 > /proc/sys/vm/nr_hugepages
+mkdir -p /test-hugepages && mount -t hugetlbfs nodev /test-hugepages
+./run_tests.py <in a loop>
 ...
+shm-fork 10 100 (1024K: 64):    PASS
+set shmmax limit to 104857600
+shm-getraw 100 /dev/full (1024K: 32):
+shm-getraw 100 /dev/full (1024K: 64):   PASS
+fallocate_stress.sh (1024K: 64):  <blocked>
+
+Blocked task state below:
+
+task:fallocate_stres state:D stack:0     pid:5106  tgid:5106  ppid:5103
+task_flags:0x400000 flags:0x00000001
+Call Trace:
+ [<00000255adc646f0>] __schedule+0x370/0x7f0
+ [<00000255adc64bb0>] schedule+0x40/0xc0
+ [<00000255adc64d32>] schedule_preempt_disabled+0x22/0x30
+ [<00000255adc68492>] rwsem_down_write_slowpath+0x232/0x610
+ [<00000255adc68922>] down_write_killable+0x52/0x80
+ [<00000255ad12c980>] vm_mmap_pgoff+0xc0/0x1f0
+ [<00000255ad164bbe>] ksys_mmap_pgoff+0x17e/0x220
+ [<00000255ad164d3c>] __s390x_sys_old_mmap+0x7c/0xa0
+ [<00000255adc60e4e>] __do_syscall+0x12e/0x350
+ [<00000255adc6cfee>] system_call+0x6e/0x90
+task:fallocate_stres state:D stack:0     pid:5109  tgid:5106  ppid:5103
+task_flags:0x400040 flags:0x00000001
+Call Trace:
+ [<00000255adc646f0>] __schedule+0x370/0x7f0
+ [<00000255adc64bb0>] schedule+0x40/0xc0
+ [<00000255adc64d32>] schedule_preempt_disabled+0x22/0x30
+ [<00000255adc68492>] rwsem_down_write_slowpath+0x232/0x610
+ [<00000255adc688be>] down_write+0x4e/0x60
+ [<00000255ad1c11ec>] __hugetlb_zap_begin+0x3c/0x70
+ [<00000255ad158b9c>] unmap_vmas+0x10c/0x1a0
+ [<00000255ad180844>] vms_complete_munmap_vmas+0x134/0x2e0
+ [<00000255ad1811be>] do_vmi_align_munmap+0x13e/0x170
+ [<00000255ad1812ae>] do_vmi_munmap+0xbe/0x140
+ [<00000255ad183f86>] __vm_munmap+0xe6/0x190
+ [<00000255ad166832>] __s390x_sys_munmap+0x32/0x40
+ [<00000255adc60e4e>] __do_syscall+0x12e/0x350
+ [<00000255adc6cfee>] system_call+0x6e/0x90
 
 
-> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> index de1ee5ebc851..b2b4519e9f4c 100644
-> --- a/drivers/nvdimm/region_devs.c
-> +++ b/drivers/nvdimm/region_devs.c
-
-> +int nd_region_activate(struct nd_region *nd_region)
-> +{
-> +	int i, j, rc, num_flush;
-> +	struct nd_region_data *ndrd;
-> +	struct device *dev = &nd_region->dev;
-> +	size_t flush_data_size;
-> +
-> +	rc = get_flush_data(nd_region, &flush_data_size, &num_flush);
-> +	if (rc)
-> +		return rc;
->  
->  	rc = nd_region_invalidate_memregion(nd_region);
->  	if (rc)
-> @@ -327,8 +340,8 @@ static ssize_t set_cookie_show(struct device *dev,
->  	 * the v1.1 namespace label cookie definition. To read all this
->  	 * data we need to wait for probing to settle.
->  	 */
-> -	device_lock(dev);
-> -	nvdimm_bus_lock(dev);
-> +	guard(device)(dev);
-> +	guard(nvdimm_bus)(dev);
->  	wait_nvdimm_bus_probe_idle(dev);
->  	if (nd_region->ndr_mappings) {
->  		struct nd_mapping *nd_mapping = &nd_region->mapping[0];
-> @@ -343,8 +356,6 @@ static ssize_t set_cookie_show(struct device *dev,
->  						nsindex));
->  		}
->  	}
-> -	nvdimm_bus_unlock(dev);
-> -	device_unlock(dev);
->  
->  	if (rc)
->  		return rc;
-> @@ -401,12 +412,10 @@ static ssize_t available_size_show(struct device *dev,
->  	 * memory nvdimm_bus_lock() is dropped, but that's userspace's
->  	 * problem to not race itself.
->  	 */
-> -	device_lock(dev);
-> -	nvdimm_bus_lock(dev);
-> +	guard(device)(dev);
-> +	guard(nvdimm_bus)(dev);
->  	wait_nvdimm_bus_probe_idle(dev);
->  	available = nd_region_available_dpa(nd_region);
-> -	nvdimm_bus_unlock(dev);
-> -	device_unlock(dev);
->  
->  	return sprintf(buf, "%llu\n", available);
-
-Could role this together without I think any real loss of readability.
-
-	return sprintf(buf, "%llu\n", nd_region_available_dpa(nd_region));
-
->  }
-> @@ -418,12 +427,10 @@ static ssize_t max_available_extent_show(struct device *dev,
->  	struct nd_region *nd_region = to_nd_region(dev);
->  	unsigned long long available = 0;
->  
-> -	device_lock(dev);
-> -	nvdimm_bus_lock(dev);
-> +	guard(device)(dev);
-> +	guard(nvdimm_bus)(dev);
->  	wait_nvdimm_bus_probe_idle(dev);
->  	available = nd_region_allocatable_dpa(nd_region);
-> -	nvdimm_bus_unlock(dev);
-> -	device_unlock(dev);
->  
->  	return sprintf(buf, "%llu\n", available);
-Similarly.
-
->  }
-> @@ -435,12 +442,11 @@ static ssize_t init_namespaces_show(struct device *dev,
->  	struct nd_region_data *ndrd = dev_get_drvdata(dev);
->  	ssize_t rc;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (ndrd)
->  		rc = sprintf(buf, "%d/%d\n", ndrd->ns_active, ndrd->ns_count);
->  	else
->  		rc = -ENXIO;
-> -	nvdimm_bus_unlock(dev);
->  
->  	return rc;
-I'd do
-	if (!ndrd)
-		return -ENXIO;
-
-	return sprintf();
->  }
-> @@ -452,12 +458,11 @@ static ssize_t namespace_seed_show(struct device *dev,
->  	struct nd_region *nd_region = to_nd_region(dev);
->  	ssize_t rc;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (nd_region->ns_seed)
->  		rc = sprintf(buf, "%s\n", dev_name(nd_region->ns_seed));
->  	else
->  		rc = sprintf(buf, "\n");
-> -	nvdimm_bus_unlock(dev);
->  	return rc;
-
-likewise, I'd just return directly in each of the legs
-
->  }
->  static DEVICE_ATTR_RO(namespace_seed);
-> @@ -468,12 +473,11 @@ static ssize_t btt_seed_show(struct device *dev,
->  	struct nd_region *nd_region = to_nd_region(dev);
->  	ssize_t rc;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (nd_region->btt_seed)
->  		rc = sprintf(buf, "%s\n", dev_name(nd_region->btt_seed));
->  	else
->  		rc = sprintf(buf, "\n");
-> -	nvdimm_bus_unlock(dev);
->  
->  	return rc;
-
-Here as well.
-
->  }
-> @@ -485,12 +489,11 @@ static ssize_t pfn_seed_show(struct device *dev,
->  	struct nd_region *nd_region = to_nd_region(dev);
->  	ssize_t rc;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (nd_region->pfn_seed)
->  		rc = sprintf(buf, "%s\n", dev_name(nd_region->pfn_seed));
->  	else
->  		rc = sprintf(buf, "\n");
-> -	nvdimm_bus_unlock(dev);
->  
->  	return rc;
-A common theme is emerging ;)
-
->  }
-> @@ -502,12 +505,11 @@ static ssize_t dax_seed_show(struct device *dev,
->  	struct nd_region *nd_region = to_nd_region(dev);
->  	ssize_t rc;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	if (nd_region->dax_seed)
->  		rc = sprintf(buf, "%s\n", dev_name(nd_region->dax_seed));
->  	else
->  		rc = sprintf(buf, "\n");
-> -	nvdimm_bus_unlock(dev);
-And again.
->  
->  	return rc;
->  }
-
-
-> diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-> index a03e3c45f297..e70dc3b08458 100644
-> --- a/drivers/nvdimm/security.c
-> +++ b/drivers/nvdimm/security.c
-> @@ -221,9 +221,8 @@ int nvdimm_security_unlock(struct device *dev)
->  	struct nvdimm *nvdimm = to_nvdimm(dev);
->  	int rc;
->  
-> -	nvdimm_bus_lock(dev);
-> +	guard(nvdimm_bus)(dev);
->  	rc = __nvdimm_security_unlock(nvdimm);
-> -	nvdimm_bus_unlock(dev);
->  	return rc;
-return __nvdimm_se...
-
->  }
->  
+Thanks,
+Sumanth
