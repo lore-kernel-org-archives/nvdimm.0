@@ -1,130 +1,101 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85EB130F54A
-	for <nvdimm@lists.linux.dev>; Tue, 23 Sep 2025 20:23:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B26BF309F12;
+	Tue, 23 Sep 2025 21:17:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758659002; cv=none; b=oG1cBb10iJoWTMfF9/jOwlbDv8YtzUe8StuDNKVcT+1xmRcIGbXSYIDxhS73suBgfk2Wpqs1m+H5oCqnPwiBi8eDUq8zyHe9SE0Gb9iYvvbeksMX902MdDvxHKP3nmcxYUCpwZyig4k456CvFdoKq/4F3WV+l0YtUp0OyEhsN4w=
+	t=1758662228; cv=none; b=PVHlDbqMvJZj0ItQGaDgQ+uqwAiaN64FgKa0TKo2KsUWa2H51pg71vABtbhN+1kN6tIMgUVHEXfFvrGsaKyMLj6R7wCeKjaPq6PPL2chUT1rkMLDKYfwnDgSjSnx2JxM3xpFTmcreDIP41Edm73mi0YdfiMxMB2A1ZcqHJeTt3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758659002; c=relaxed/simple;
-	bh=+cwFEtuDaXb/DaQ6ejtcHJQygdA5jvR5zMxQFdoqSFk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=l343C6mX1uOOW8ITDZywNcdxmbBsnASy3OVaUv2j3gSDhea2raTDIuQbFGhiTffW7TP/FNXtb01iQdDqNaNlbi+YWbTWxjUG0Jx/MAYMFpOa8Y+WuZK3TMeea5XA8c1iHkOtgNdeCmcyVC6WaJdmpFdA6RaG6zBWY/478nC2e64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HsPmAthl; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1758662228; c=relaxed/simple;
+	bh=9maMwx7/tfxHiKFTD825WGlX9Scv4cfcxvOcT74ZDTg=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=Pi0DfaJdRl5ndPhT9JZmFJDPc3iVs+8tFZuMJf37jiy6ALr6yMWpKMuN4fNUflp9U2An4pEBQR4Ya4B6fV5NrhXYbo2O3OujraoYOp4x4/LMAHnDdEvBxr79LruOlqifo+gnrVFcTyU5xX+LkTg8gqJ73cpF+YT4kzPUAms4Hrk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YQt4yJD4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HsPmAthl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1758659001; x=1790195001;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=+cwFEtuDaXb/DaQ6ejtcHJQygdA5jvR5zMxQFdoqSFk=;
-  b=HsPmAthlWfsigzEXYtP9nHy436LEhS9Eyb+ixCMsYpVbDc6t9Pz0WxoO
-   LHxztIZOfIxZWcq75EmtQ4/otb7ekV7BIa6RcxH35WH29BBzdtL7oHOWQ
-   Pt69bNy7qocfWeN82quuq+D+IVT1/ArN5ot5/uVhvtf09u1gzVTptAiM5
-   sWLEwddNG65OvRM/29AIJiPLjUMowTEEPVtqX4c3RGXowB2gysRN1QhgG
-   EKLwh7Q49hlpv+2kmjNEIJhUhJQoGyXWas30Ccxm9IclnnXZWeFlEiFIw
-   4e+G1EK8fKqN1q5/+aZRb5ldGEtnXr1mjJo6O3OCKb6xzAReixjQzLmok
-   A==;
-X-CSE-ConnectionGUID: XWFnYxR+T7CaPXD+Q8gDgQ==
-X-CSE-MsgGUID: C6F/QKyET6qnXDGvca/80w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11561"; a="71194079"
-X-IronPort-AV: E=Sophos;i="6.18,289,1751266800"; 
-   d="scan'208";a="71194079"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Sep 2025 13:23:20 -0700
-X-CSE-ConnectionGUID: bhr+XJUFT/KBngXpreS9eQ==
-X-CSE-MsgGUID: kuRAh+4HR1W49QaMFRrEig==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.18,289,1751266800"; 
-   d="scan'208";a="177642711"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO [10.125.108.174]) ([10.125.108.174])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Sep 2025 13:23:17 -0700
-Message-ID: <a1fa16f1-c75f-4f7d-b297-a32ba4c7d109@intel.com>
-Date: Tue, 23 Sep 2025 13:23:16 -0700
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YQt4yJD4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51CB1C4CEF5;
+	Tue, 23 Sep 2025 21:17:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1758662227;
+	bh=9maMwx7/tfxHiKFTD825WGlX9Scv4cfcxvOcT74ZDTg=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=YQt4yJD4LLyMB/AA7fhRdzHKMMyKrYX7tPYO7bcgLcaYZEMTEEDS+V/u87paR8mvk
+	 vaZ6Hf5HJhiz4iN6UcpLvuzXo0K/kulYjPZuGmcFLhgj45aLOuctbBJIR6+SoLAoCq
+	 q1aNHSIO3K1aKeAi1QD+S0yrDrsK77/N3Jf/bOOk=
+Date: Tue, 23 Sep 2025 14:17:04 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Jonathan Corbet
+ <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>, Guo Ren
+ <guoren@kernel.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Heiko
+ Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Alexander
+ Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger
+ <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>,
+ "David S . Miller" <davem@davemloft.net>, Andreas Larsson
+ <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ Nicolas Pitre <nico@fluxnic.net>, Muchun Song <muchun.song@linux.dev>,
+ Oscar Salvador <osalvador@suse.de>, David Hildenbrand <david@redhat.com>,
+ Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Baoquan He
+ <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>, Dave Young
+ <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>, Reinette Chatre
+ <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, James Morse
+ <james.morse@arm.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Christian
+ Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, "Liam R . Howlett"
+ <Liam.Howlett@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport
+ <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, Michal Hocko
+ <mhocko@suse.com>, Hugh Dickins <hughd@google.com>, Baolin Wang
+ <baolin.wang@linux.alibaba.com>, Uladzislau Rezki <urezki@gmail.com>,
+ Dmitry Vyukov <dvyukov@google.com>, Andrey Konovalov
+ <andreyknvl@gmail.com>, Jann Horn <jannh@google.com>, Pedro Falcato
+ <pfalcato@suse.de>, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-mm@kvack.org,
+ ntfs3@lists.linux.dev, kexec@lists.infradead.org,
+ kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>,
+ iommu@lists.linux.dev, Kevin Tian <kevin.tian@intel.com>, Will Deacon
+ <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v4 11/14] mm/hugetlbfs: update hugetlbfs to use
+ mmap_prepare
+Message-Id: <20250923141704.90fba5bdf8c790e0496e6ac1@linux-foundation.org>
+In-Reply-To: <aNKJ6b7kmT_u0A4c@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
+References: <cover.1758135681.git.lorenzo.stoakes@oracle.com>
+	<e5532a0aff1991a1b5435dcb358b7d35abc80f3b.1758135681.git.lorenzo.stoakes@oracle.com>
+	<aNKJ6b7kmT_u0A4c@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V3 12/20] nvdimm/region_label: Export routine to fetch
- region information
-To: Neeraj Kumar <s.neeraj@samsung.com>, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, gost.dev@samsung.com
-Cc: a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
- cpgs@samsung.com
-References: <20250917134116.1623730-1-s.neeraj@samsung.com>
- <CGME20250917134153epcas5p1e1f7a7a19fb41d12b9397c3e6265f823@epcas5p1.samsung.com>
- <20250917134116.1623730-13-s.neeraj@samsung.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20250917134116.1623730-13-s.neeraj@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
+On Tue, 23 Sep 2025 13:52:09 +0200 Sumanth Korikkar <sumanthk@linux.ibm.com> wrote:
 
-
-On 9/17/25 6:41 AM, Neeraj Kumar wrote:
-> CXL region information preserved from the LSA needs to be exported for
-> use by the CXL driver for CXL region re-creation.
+> > --- a/fs/hugetlbfs/inode.c
+> > +++ b/fs/hugetlbfs/inode.c
+> > @@ -96,8 +96,15 @@ static const struct fs_parameter_spec hugetlb_fs_parameters[] = {
+> >  #define PGOFF_LOFFT_MAX \
+> >  	(((1UL << (PAGE_SHIFT + 1)) - 1) <<  (BITS_PER_LONG - (PAGE_SHIFT + 1)))
+> >  
+> > -static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+> > +static int hugetlb_file_mmap_prepare_success(const struct vm_area_struct *vma)
+> >  {
+> > +	/* Unfortunate we have to reassign vma->vm_private_data. */
+> > +	return hugetlb_vma_lock_alloc((struct vm_area_struct *)vma);
+> > +}
 > 
-> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
-> ---
->  drivers/nvdimm/dimm_devs.c | 18 ++++++++++++++++++
->  include/linux/libnvdimm.h  |  2 ++
->  2 files changed, 20 insertions(+)
+> Hi Lorenzo,
 > 
-> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-> index 918c3db93195..619c8ce56dce 100644
-> --- a/drivers/nvdimm/dimm_devs.c
-> +++ b/drivers/nvdimm/dimm_devs.c
-> @@ -280,6 +280,24 @@ void *nvdimm_provider_data(struct nvdimm *nvdimm)
->  }
->  EXPORT_SYMBOL_GPL(nvdimm_provider_data);
->  
-> +bool nvdimm_has_cxl_region(struct nvdimm *nvdimm)
-> +{
-> +	if (nvdimm)
-> +		return nvdimm->is_region_label;
-> +
-> +	return false;
+> The following tests causes the kernel to enter a blocked state,
+> suggesting an issue related to locking order. I was able to reproduce
+> this behavior in certain test runs.
 
-Just a nit. Would prefer return error early and return the success case last.
-
-> +}
-> +EXPORT_SYMBOL_GPL(nvdimm_has_cxl_region);
-> +
-> +void *nvdimm_get_cxl_region_param(struct nvdimm *nvdimm)
-> +{
-> +	if (nvdimm)
-> +		return &nvdimm->cxl_region_params;
-> +
-> +	return NULL;
-
-same comment
-
-> +}
-> +EXPORT_SYMBOL_GPL(nvdimm_get_cxl_region_param);
-> +
->  static ssize_t commands_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index 07ea2e3f821a..3ffd50ab6ac4 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -330,6 +330,8 @@ int nvdimm_in_overwrite(struct nvdimm *nvdimm);
->  bool is_nvdimm_sync(struct nd_region *nd_region);
->  int nd_region_label_update(struct nd_region *nd_region);
->  int nd_region_label_delete(struct nd_region *nd_region);
-> +bool nvdimm_has_cxl_region(struct nvdimm *nvdimm);
-> +void *nvdimm_get_cxl_region_param(struct nvdimm *nvdimm);
->  
->  static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
->  		unsigned int buf_len, int *cmd_rc)
-
+Thanks.  I pulled this series out of mm.git's mm-stable branch, put it
+back into mm-unstable.
