@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00E273148CD
-	for <nvdimm@lists.linux.dev>; Wed, 24 Sep 2025 15:34:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6585B303CA4
+	for <nvdimm@lists.linux.dev>; Wed, 24 Sep 2025 15:40:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758728074; cv=none; b=QoQzVXWe6XZ/9m3ysuWS7keq/ITc0fM/ujnVTqJ+2MvcZgYsqKtt/OgAOfZGCqa4N/dy+zgsPwOISKjk9J9qJXIWCBm2TWa0xRvwNsWboYp8UqnkgQp0+ERdq2hBRHTX38BVvPyE/mvcO1pccFwhjMBuWMa1apQCYXiPdCTxzRA=
+	t=1758728449; cv=none; b=UC39pjlno49AlKxjTG0a6ZR1kzxwoM2huTtUUckuDx5TndBSNpS7EZPT14w57TYS2PKOfL/UXDwrlByKdYMyGF4VJo56T+ijUL4KvM8KE/gGa4R1Sz0lL78cJqZ7DGiuF1T5m8J8OV1ZC0F6FrIB/s62+8r5J/MULyun10afHI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758728074; c=relaxed/simple;
-	bh=wxPjznd3Mk72Y0HMGgxizVz3V7feCsOOYY3Ap7k4Ml4=;
+	s=arc-20240116; t=1758728449; c=relaxed/simple;
+	bh=BeE25GckMF3etOBsxhayMsUckPAlry33zyH8/MNQvmY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=hGUlGUSmMegTiE91aW49xbYDvi1AJvirCjDTDK/wPH7GfEXZiOM3JCi3xdzCRxklmYr4LCsxTUgIezvYiOwJHo/ixISA6zBKX4C0w1tWHH51mVKM7hiyfiwbL5AGY7jsxaxEbnhvHqB6+EDNd4tz78eIjg9XtD6QTjcbf19gBiI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Yzljfjh+; arc=none smtp.client-ip=192.198.163.13
+	 In-Reply-To:Content-Type; b=q/ebl/pI8Uxs46hkOa7ytmaVv7FZbRF2F7nmCcE9Eq9We8a5xooL+U++r1G/oLVUVe9LrDSNap7A3zOVqc/kGhZ56Ai9wRPHbEl/s+VpmwWTnPhr+GDpvbA3DBgVoYHMtuiVPFLUzhlca8/aCeUvfb22e7LjqH404yER8tLdSNk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EaVK4DZq; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Yzljfjh+"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EaVK4DZq"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1758728073; x=1790264073;
+  t=1758728448; x=1790264448;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=wxPjznd3Mk72Y0HMGgxizVz3V7feCsOOYY3Ap7k4Ml4=;
-  b=Yzljfjh+gQmZg/Rvc+I5yydhs2pfcEqCSscGDXcjuYOq6k1uxY7Wui6c
-   29vk0X+w8mevcVcGnA2iMi0/xB204xNR3Tn7DnUwssB2mww+i/7sDjVt3
-   xYIi8KhWnBPWU3MXIs9+5BX2RGDRciwcY1AXiuA5XwBdDPDBefVMExD0U
-   XWbpQni3I1iUmK8ebKnO9u3ZqxY4owrdly2chfxhz4QBbOEtw/UoaEuT1
-   VTD9397YHaRMEaQg/qmqYiuA7+Mx8K3S81OTIVO2aQlTDPH1WsOsKRetu
-   W709yoLlYX+rpyK7pRkWWnLjZ0ij+6VJxkf2VghvEgKdHXce9djA/vTEz
-   A==;
-X-CSE-ConnectionGUID: qOKm3H99S1OO/rcOcvAKnQ==
-X-CSE-MsgGUID: 8ayprsVRSe65KecvS7/2pQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11563"; a="63657307"
+  bh=BeE25GckMF3etOBsxhayMsUckPAlry33zyH8/MNQvmY=;
+  b=EaVK4DZqsesGVorfw2WL8MwIY0iV853YH5meswzpZe9yaGlDz+/ru0bf
+   IrcFYsYtxxDscNUl6316GIpbX/ScSFgJk6NNdv7uCT57DsD9FaxLYprIY
+   Of6qJyfw5csnY12EV4VEPWe67PLXH/3+laiPiCUhbPtQCys25Op7gERzQ
+   qH5T9GJ1cQL9E0SUSlp88paCQ2Tx9AUcQJJNjpSWbcVxIQWoe2HHcNx70
+   OB18B6ONPO7KiqG/nVrrFtl0o3kFVwX8/vsNq7j3/EYyRhKLplxUCbFp0
+   Y+PITYdeN4x/Z0od3xqw2AA728Cy5rk3wPmUy8E/Ae+NCl/PCnqKiBx8c
+   Q==;
+X-CSE-ConnectionGUID: /JA+uMTKRMS1+va3CFsppg==
+X-CSE-MsgGUID: zSi/HvwjSpqf8XPG9sAHkg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11563"; a="83632533"
 X-IronPort-AV: E=Sophos;i="6.18,290,1751266800"; 
-   d="scan'208";a="63657307"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 08:34:32 -0700
-X-CSE-ConnectionGUID: a078IQKxT/aol6KoHAiYvQ==
-X-CSE-MsgGUID: 9pHK2N6nRhmENOQyBRy5WA==
+   d="scan'208";a="83632533"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 08:40:47 -0700
+X-CSE-ConnectionGUID: 9ESTVYF/SSCiUkkSkQEeDw==
+X-CSE-MsgGUID: znyRkVVhTHScBTNysxMh5Q==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.18,290,1751266800"; 
-   d="scan'208";a="177503430"
+   d="scan'208";a="176183371"
 Received: from gabaabhi-mobl2.amr.corp.intel.com (HELO [10.125.108.218]) ([10.125.108.218])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 08:34:31 -0700
-Message-ID: <0116557c-3b60-441e-8976-ebce1a658a01@intel.com>
-Date: Wed, 24 Sep 2025 08:34:30 -0700
+  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 08:40:47 -0700
+Message-ID: <3e84c6a3-f30c-4eda-adb3-97fe1c42744c@intel.com>
+Date: Wed, 24 Sep 2025 08:40:45 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,130 +52,179 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] nvdimm: ndtest: Return -ENOMEM if devm_kcalloc() fails
- in ndtest_probe()
-To: Guangshuo Li <lgs201920130244@gmail.com>,
- Alison Schofield <alison.schofield@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Santosh Sivaraj <santosh@fossix.org>, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-References: <20250923125953.1859373-1-lgs201920130244@gmail.com>
- <767ef629-519c-431d-9a89-224ceabf22be@intel.com>
- <aNLsXewwa0LXcRUk@aschofie-mobl2.lan>
- <CANUHTR9X2=VPHPY8r++SqHZu-+i7GGP7sqbGUnAx+M89iiYS4A@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2] cxl/list: remove libtracefs build dependency for
+ --media-errors
+To: Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org
+Cc: Andreas Hasenack <andreas.hasenack@canonical.com>
+References: <20250924045302.90074-1-alison.schofield@intel.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <CANUHTR9X2=VPHPY8r++SqHZu-+i7GGP7sqbGUnAx+M89iiYS4A@mail.gmail.com>
+In-Reply-To: <20250924045302.90074-1-alison.schofield@intel.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
 
 
-On 9/24/25 12:42 AM, Guangshuo Li wrote:
-> Hi Alison, Dave, and all,
+On 9/23/25 9:52 PM, Alison Schofield wrote:
+> When the --media-errors option was added to cxl list it inadvertently
+> changed the optional libtracefs requirement into a mandatory one.
+> Ndctl versions 80,81,82 no longer build without libtracefs.
 > 
-> Thanks for the feedback. I’ve adopted your suggestions. Below is what I plan to take in v3.
+> Remove that dependency.
 > 
-> -       p->dcr_dma = devm_kcalloc(&p->pdev.dev <http://pdev.dev>, NUM_DCR,
-> -                                 sizeof(dma_addr_t), GFP_KERNEL);
-> -       p->label_dma = devm_kcalloc(&p->pdev.dev <http://pdev.dev>, NUM_DCR,
-> -                                   sizeof(dma_addr_t), GFP_KERNEL);
-> -       p->dimm_dma = devm_kcalloc(&p->pdev.dev <http://pdev.dev>, NUM_DCR,
-> -                                  sizeof(dma_addr_t), GFP_KERNEL);
+> When libtracefs is disabled the user will see a 'Notice' level
+> message, like this:
+> 	$ cxl list -r region0 --media-errors --targets
+> 	cxl list: cmd_list: --media-errors support disabled at build time
 > 
-> +       p->dcr_dma = devm_kcalloc(&p->pdev.dev <http://pdev.dev>, NUM_DCR,
-> +                                 sizeof(dma_addr_t), GFP_KERNEL);
-> +       if (!p->dcr_dma) {
-> +               rc = -ENOMEM;
-> +               goto err;
-> +       }
+> ...followed by the region listing including the output for any other
+> valid command line options, like --targets in the example above.
+> 
+> When libtracefs is disabled the cxl-poison.sh unit test is omitted.
+> 
+> The man page gets a note:
+> 	The media-error option is only available with -Dlibtracefs=enabled.
+> 
+> Reported-by: Andreas Hasenack <andreas.hasenack@canonical.com>
+> Fixes: d7532bb049e0 ("cxl/list: add --media-errors option to cxl list")
+> Closes: https://github.com/pmem/ndctl/issues/289
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+> 
+> Changes in v2:
+> - Notify and continue when --media-error info is unavailable (Dan)
+> 
+> 
+>  Documentation/cxl/cxl-list.txt |  2 ++
+>  config.h.meson                 |  2 +-
+>  cxl/json.c                     | 15 ++++++++++++++-
+>  cxl/list.c                     |  6 ++++++
+>  test/meson.build               |  9 +++++++--
+>  5 files changed, 30 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+> index 9a9911e7dd9b..0595638ee054 100644
+> --- a/Documentation/cxl/cxl-list.txt
+> +++ b/Documentation/cxl/cxl-list.txt
+> @@ -425,6 +425,8 @@ OPTIONS
+>  	"source:" is one of: External, Internal, Injected, Vendor Specific,
+>  	or Unknown, as defined in CXL Specification v3.1 Table 8-140.
+>  
+> +The media-errors option is only available with '-Dlibtracefs=enabled'.
 > +
-> +       p->label_dma = devm_kcalloc(&p->pdev.dev <http://pdev.dev>, NUM_DCR,
-> +                                   sizeof(dma_addr_t), GFP_KERNEL);
-> +       if (!p->label_dma) {
-> +               rc = -ENOMEM;
-> +               goto err;
-> +       }
+>  ----
+>  # cxl list -m mem9 --media-errors -u
+>  {
+> diff --git a/config.h.meson b/config.h.meson
+> index f75db3e6360f..e8539f8d04df 100644
+> --- a/config.h.meson
+> +++ b/config.h.meson
+> @@ -19,7 +19,7 @@
+>  /* ndctl test support */
+>  #mesondefine ENABLE_TEST
+>  
+> -/* cxl monitor support */
+> +/* cxl monitor and cxl list --media-errors support */
+>  #mesondefine ENABLE_LIBTRACEFS
+>  
+>  /* Define to 1 if big-endian-arch */
+> diff --git a/cxl/json.c b/cxl/json.c
+> index e65bd803b706..a75928bf43ed 100644
+> --- a/cxl/json.c
+> +++ b/cxl/json.c
+> @@ -9,12 +9,15 @@
+>  #include <json-c/json.h>
+>  #include <json-c/printbuf.h>
+>  #include <ccan/short_types/short_types.h>
 > +
-> +       p->dimm_dma = devm_kcalloc(&p->pdev.dev <http://pdev.dev>, NUM_DCR,
-> +                                  sizeof(dma_addr_t), GFP_KERNEL);
-> +       if (!p->dimm_dma) {
-> +               rc = -ENOMEM;
-> +               goto err;
-> +       }
-
-You'll need to create new goto labels because you'll have to free previously allocated memory in the error path. Diff below is uncompiled and untested.
-
-diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-index 68a064ce598c..49d326819ea9 100644
---- a/tools/testing/nvdimm/test/ndtest.c
-+++ b/tools/testing/nvdimm/test/ndtest.c
-@@ -841,6 +841,7 @@ static void ndtest_remove(struct platform_device *pdev)
-
- static int ndtest_probe(struct platform_device *pdev)
- {
-+       struct device *dev = &pdev->dev;
-        struct ndtest_priv *p;
-        int rc;
-
-@@ -848,12 +849,23 @@ static int ndtest_probe(struct platform_device *pdev)
-        if (ndtest_bus_register(p))
-                return -ENOMEM;
-
--       p->dcr_dma = devm_kcalloc(&p->pdev.dev, NUM_DCR,
--                                sizeof(dma_addr_t), GFP_KERNEL);
--       p->label_dma = devm_kcalloc(&p->pdev.dev, NUM_DCR,
--                                  sizeof(dma_addr_t), GFP_KERNEL);
--       p->dimm_dma = devm_kcalloc(&p->pdev.dev, NUM_DCR,
--                                 sizeof(dma_addr_t), GFP_KERNEL);
-+       p->dcr_dma = devm_kcalloc(dev, NUM_DCR, sizeof(dma_addr_t), GFP_KERNEL);
-+       if (!p->dcr_dma)
-+               return -ENOMEM;
-+
-+       p->label_dma = devm_kcalloc(dev, NUM_DCR, sizeof(dma_addr_t),
-+                                   GFP_KERNEL);
-+       if (!p->label_dma) {
-+               rc = -ENOMEM;
-+               goto err_label_dma;
-+       }
-+
-+       p->dimm_dma = devm_kcalloc(dev, NUM_DCR, sizeof(dma_addr_t),
-+                                  GFP_KERNEL);
-+       if (!p->dimm_dma) {
-+               rc = -ENOMEM;
-+               goto err_dimm_dma;
-+       }
-
-        rc = ndtest_nvdimm_init(p);
-        if (rc)
-@@ -863,7 +875,7 @@ static int ndtest_probe(struct platform_device *pdev)
-        if (rc)
-                goto err;
-
--       rc = devm_add_action_or_reset(&pdev->dev, put_dimms, p);
-+       rc = devm_add_action_or_reset(dev, put_dimms, p);
-        if (rc)
-                goto err;
-@@ -872,6 +884,11 @@ static int ndtest_probe(struct platform_device *pdev)
-        return 0;
-
- err:
-+       devm_kfree(dev, p->dimm_dma);
-+err_dimm_dma:
-+       devm_kfree(dev, p->label_dma);
-+err_label_dma:
-+       devm_kfree(dev, p->dcr_dma);
-        pr_err("%s:%d Failed nvdimm init\n", __func__, __LINE__);
-        return rc;
- }
-
-> 
-> If this looks good, I’ll send v3 accordingly. Also, if you’re comfortable with the changes, may I add your Reviewed-by tags?
-
-Please don't add review tags until they are given.
-
-> 
-> Best regards,
-> Guangshuo
+> +#ifdef ENABLE_LIBTRACEFS
+>  #include <tracefs.h>
+> +#include "../util/event_trace.h"
+> +#endif
+>  
+>  #include "filter.h"
+>  #include "json.h"
+>  #include "../daxctl/json.h"
+> -#include "../util/event_trace.h"
+>  
+>  #define CXL_FW_VERSION_STR_LEN	16
+>  #define CXL_FW_MAX_SLOTS	4
+> @@ -575,6 +578,7 @@ err_jobj:
+>  	return NULL;
+>  }
+>  
+> +#ifdef ENABLE_LIBTRACEFS
+>  /* CXL Spec 3.1 Table 8-140 Media Error Record */
+>  #define CXL_POISON_SOURCE_MAX 7
+>  static const char *const poison_source[] = { "Unknown", "External", "Internal",
+> @@ -753,6 +757,15 @@ err_free:
+>  	tracefs_instance_free(inst);
+>  	return jpoison;
+>  }
+> +#else
+> +static struct json_object *
+> +util_cxl_poison_list_to_json(struct cxl_region *region,
+> +			     struct cxl_memdev *memdev,
+> +			     unsigned long flags)
+> +{
+> +	return NULL;
+> +}
+> +#endif
+>  
+>  struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+>  		unsigned long flags)
+> diff --git a/cxl/list.c b/cxl/list.c
+> index 0b25d78248d5..48bd1ebc3c0e 100644
+> --- a/cxl/list.c
+> +++ b/cxl/list.c
+> @@ -146,6 +146,12 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+>  		param.ctx.log_priority = LOG_DEBUG;
+>  	}
+>  
+> +#ifndef ENABLE_LIBTRACEFS
+> +	if (param.media_errors) {
+> +		notice(&param, "--media-errors support disabled at build time\n");
+> +		param.media_errors = false;
+> +	}
+> +#endif
+>  	if (cxl_filter_has(param.port_filter, "root") && param.ports)
+>  		param.buses = true;
+>  
+> diff --git a/test/meson.build b/test/meson.build
+> index 775542c1b787..615376ea635a 100644
+> --- a/test/meson.build
+> +++ b/test/meson.build
+> @@ -167,7 +167,6 @@ cxl_events = find_program('cxl-events.sh')
+>  cxl_sanitize = find_program('cxl-sanitize.sh')
+>  cxl_destroy_region = find_program('cxl-destroy-region.sh')
+>  cxl_qos_class = find_program('cxl-qos-class.sh')
+> -cxl_poison = find_program('cxl-poison.sh')
+>  
+>  tests = [
+>    [ 'libndctl',               libndctl,		  'ndctl' ],
+> @@ -200,7 +199,6 @@ tests = [
+>    [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
+>    [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
+>    [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
+> -  [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
+>  ]
+>  
+>  if get_option('destructive').enabled()
+> @@ -253,6 +251,13 @@ if get_option('fwctl').enabled()
+>    ]
+>  endif
+>  
+> +if get_option('libtracefs').enabled()
+> +  cxl_poison = find_program('cxl-poison.sh')
+> +  tests += [
+> +    [ 'cxl-poison.sh', cxl_poison, 'cxl' ],
+> +  ]
+> +endif
+> +
+>  test_env = [
+>      'LC_ALL=C',
+>      'NDCTL=@0@'.format(ndctl_tool.full_path()),
 
