@@ -1,100 +1,99 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6AA1283FE9
-	for <nvdimm@lists.linux.dev>; Wed, 24 Sep 2025 21:31:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3C162820CE
+	for <nvdimm@lists.linux.dev>; Wed, 24 Sep 2025 21:38:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.16
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758749477; cv=fail; b=rdW2H9iw6batbf9T3GeDKqMsGlbrh81+Aybd/FeYdEHYZD76r25S8tojK0Hl45QNmWizy9A3isUGCPI4lk28YAhc9wOM5VtEGegYdMJUABVTgj3azxrIsewSA9dru14PRx3wE8APDJk3vLxp5+X6EMAYqIN0KfkxaORwBuHVd+g=
+	t=1758749935; cv=fail; b=Al569i09X9mwrkgORdbuxVCdq10IA0iQwHkpMnTKrrQf9rYjgQljfnMzN32iX3heXwUoZhEwV3OiZAPAFNlOwzcGvxOph1VScvarQlXfM8Fei1gqd+DHSfEAjviLALCA9v/Ag6kJF6xVpcoU4v3jMEyAUj6A8o/nYTiYmePqbWo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758749477; c=relaxed/simple;
-	bh=0ff6xtfjewlvs0K5WtY4B+XfwGjkY1r+P2nluwsbPSE=;
+	s=arc-20240116; t=1758749935; c=relaxed/simple;
+	bh=vkIp2prvTxTxKF3H4Male61z2Z57C1nG/yJGRHmZnfA=;
 	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=o3qry326mhJESBlfiK0qaGatHGieBfUqyLLQ7oXyZn7DOVGPvvSn8sfHlJTP754YTmyC84+FOw2oHnfObM2aWDcwDuQ+PtcxPDfXOuruAN2Fj3jIaUn+UK5YUQ4XVENMrahiu/n5B1HICeksOt+uYVK1ozL7c43Fm4GszSrHtNU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AtBty+8C; arc=fail smtp.client-ip=192.198.163.12
+	 Content-Disposition:In-Reply-To:MIME-Version; b=cmlIsaZWcwk3JFMdG2NSuoxtdItNBKO6/CTAVg0A5pXw5r3uOWQRkHvdIAx+rtP6lA7RUcrTFX7ijzTUAaYIKzdtuHqxM1qpjvxIWvZ+WS+57z+CFE2OemIXi9ZuZF6ggW8JQOhgeFET6/SU9Sfo2H44S6GdZPGIV//mKo3CNgk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=TWCiVH9z; arc=fail smtp.client-ip=192.198.163.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AtBty+8C"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TWCiVH9z"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1758749475; x=1790285475;
+  t=1758749933; x=1790285933;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=0ff6xtfjewlvs0K5WtY4B+XfwGjkY1r+P2nluwsbPSE=;
-  b=AtBty+8CBKBbR53CM4FI+gp2ofnU3/xEqhfjwGAREOP8KcMoYbjFJTm7
-   FuEPBVzDjAIq097UYK/jeA5aOMXFw+IcG/w1irL+1js2qFpwdlsMInMCc
-   Kvgz6YIEAZW1sKABJT4xTRKQk9WWfmsQvBdp6h8e+gjlLoaREntpi74yw
-   ZJM3cxqbeNUdXuL2kmd+kp1ckqQXnxe47wrwxag458KQ7adNa4UsZ+UTF
-   S3xs5YTIjUCp1mcvaQjmGr+G+iO305jgeE9SFl0zx6qIlQx+nid3JE+XI
-   gHXPocK8qukWpD14Bgp0J+Gi8jigLmzBybprLgsjtlNB1RoD2EnN1snkx
-   w==;
-X-CSE-ConnectionGUID: 0iSCzjddSZC4Pfk9RIcSyQ==
-X-CSE-MsgGUID: Kdva41XxTpyMMHbFktnumA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11563"; a="64896296"
+  bh=vkIp2prvTxTxKF3H4Male61z2Z57C1nG/yJGRHmZnfA=;
+  b=TWCiVH9zdF66vwPf7R4+Z9BZFx0AvbLvpk5j2kEq2zR4v5C757sZQznI
+   YSGiHOp1SWef0uXxmn+pZ6xinl93GyUg6LgPDR48rDe1dSwoeNjaCajV9
+   FM+JhRtkdlpkUkGHODsSP0yaVANNxxljSSNX4W9r4mQVD+6ZYK6uVbNK2
+   WcPH+UF40dyxVfhYRVriLi7QQuc0WHanI+/UC8dH7pSpahCLI2JIWnzUK
+   eVMbnt8HvfS+AKUM+Eilu9oH+rIa3vqnEVY+cFcoNThflflQzG7SdfcQR
+   xUp/NRs+oKGO1E6skki9a6ETB8oPXOy9Y50HYLhoVTMKSooUQ+f8WMdKo
+   A==;
+X-CSE-ConnectionGUID: RM5k3NEERbKploQoIzM64Q==
+X-CSE-MsgGUID: XoHxOcw+S22iXn+BwJSyPQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11563"; a="48623073"
 X-IronPort-AV: E=Sophos;i="6.18,291,1751266800"; 
-   d="scan'208";a="64896296"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 14:31:14 -0700
-X-CSE-ConnectionGUID: 9BMZjU4NTyK5GlVbj+U1GQ==
-X-CSE-MsgGUID: hRrlPM3kQjq+EI95mNoh2Q==
+   d="scan'208";a="48623073"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 14:38:31 -0700
+X-CSE-ConnectionGUID: HZbhhgjNTCa2h5x3lAuzSw==
+X-CSE-MsgGUID: ONN2WYrVQK6lINas6eG2rg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.18,291,1751266800"; 
-   d="scan'208";a="214266392"
-Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
-  by orviesa001.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 14:31:14 -0700
-Received: from FMSMSX901.amr.corp.intel.com (10.18.126.90) by
- fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+   d="scan'208";a="200832181"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by fmviesa002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 14:38:30 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Wed, 24 Sep 2025 14:31:12 -0700
-Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
- FMSMSX901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ 15.2.2562.27; Wed, 24 Sep 2025 14:38:29 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27 via Frontend Transport; Wed, 24 Sep 2025 14:31:12 -0700
-Received: from CH4PR04CU002.outbound.protection.outlook.com (40.107.201.71) by
- edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
+ 15.2.2562.27 via Frontend Transport; Wed, 24 Sep 2025 14:38:29 -0700
+Received: from PH8PR06CU001.outbound.protection.outlook.com (40.107.209.20) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.17; Wed, 24 Sep 2025 14:31:12 -0700
+ 15.2.2562.17; Wed, 24 Sep 2025 14:38:29 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=tSHD/TXs3VmZcoF33eoxMZDbtAymHlQ7nzfei8E4iqgIXV00IAWXXHQvmYaE1nrRk/QqLyPErBRdN1YOv4jnhbwomuPZm3An27jI5txIJzQdaUsCAZ91HB/kxu4QllR8tdDjhFxY7Wm2uOMD+Do6bm3SishY1+mll+XzZ+BfCh0vuR7Ce1ojwr/JB+jFUOLKdb5QDGaJvusNxXiX2kOouseSvehN4pJWSmE5y0acCoHu/T9yST0ZmGJ9QDV9fSEk8NO/T0vfoCMEwQ7v8D2NKtvjtHvVpNo9d7JMgfSmo/Mn4i9ewxL8QRPzw51mWESO54/7wWzldTNWS0QWLEKVmQ==
+ b=rfbdpHxSKr/jR5QbXrKs5rkpsQ698hBrh5d75ArOdlo2Lf7aipLJ/yNOnDa8xhYUk4fgp2DwTudFYVip9buxnFrWoFqQGVAQy6GwJzeyArAdrsADvPpkIzkFkwVSL8xY0P2qHUcGr6AAZpDH0V74ev0twOAirmCRarTaKQGyWnDpwtSqz3qIb/F7FklDF0YkVrpVL7cSZ6/CfIV+iYUbanQ5cjVHjK22c6GU8T7MfvzheKuUsRUl5lF/5MNkbQsK/UWz/VpszC39Zh72tDK28zEi2a8h96ow200OhOtfDyFRaXSl3oYvVYSUSq0gwxk77Wttu6oMFhK9TReYMfVjmA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=jBJ9KsO6AjiJkDVDAS116K/FjC1mn6Z4RyiKVL8QIv8=;
- b=hPEu/mzhcWEvwagm4O6dAxYcrY0IQWeatCgKN/v+dtkOJGS+h63gLNY/I9fPp21lbAmNmqin74WXzM2o6tc/HNIxgn7gYAzpNWtd6A5MJ+ORLzavCD5lnQ3gABWWyHYyrus5DNTDXqAeRBLQ6bgFvYbHGnI2JIoK3e4oX3PYSAj/LGpH0vguG98TGjz98bfsxrjPme6/j+nMgYnpFNlizRK2DsydKVddhXTJrix7e1k1UL8Zrfe5sj++CpViN1UYHKmiIfYdqbvpyHV0+SASTGkMIm6LoZsdBLfOlir7YRsPVa5Tsxa0+OefUWH43NJwnbl3FowcvDjdybjqzZMWNw==
+ bh=sVx3E6CBwunclX0JPInCYdeb4sVKY8Q78xCPFB7MtQ0=;
+ b=Kp7jrHPXoWL26b3LoRXnkZPMCeZ7PK75hf67PrhkqsUiwUmzFaHowddijqfLyTGIzXW+A1JRK2WCeeppQD5SyUO9w4lIiBpPQW6PkVsHEdLhObXSaFgPOf4l5xAB7mDzyKy8qJcGw5Q2KrwSZcBksVQriI1uwD281vWR0AS7mX1L5ZAuMjae/6Hle7KX93l0JfivLFwajN5Cm7Mp/AIAvaNY8xqn7XpRw7cbYIgcqFglt2fUWgzJbvjINreNHroRlZ/okuUqFuPal0AdbPKnipSTLkOoAE3SJnloxcrDW/yzM/ycCTiCrBfGBijDts+gIBpr2AO7NJeHyamggczixg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- (2603:10b6:a0f:fc02::80b) by PH7PR11MB7961.namprd11.prod.outlook.com
- (2603:10b6:510:244::18) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9160.9; Wed, 24 Sep
- 2025 21:31:09 +0000
+ (2603:10b6:a0f:fc02::80b) by SJ0PR11MB5814.namprd11.prod.outlook.com
+ (2603:10b6:a03:423::11) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9137.14; Wed, 24 Sep
+ 2025 21:38:27 +0000
 Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
  ([fe80::4df9:6ae0:ba12:2dde]) by SJ5PPF0D43D62C4.namprd11.prod.outlook.com
  ([fe80::4df9:6ae0:ba12:2dde%8]) with mapi id 15.20.9137.012; Wed, 24 Sep 2025
- 21:31:09 +0000
-Date: Wed, 24 Sep 2025 14:30:59 -0700
+ 21:38:27 +0000
+Date: Wed, 24 Sep 2025 14:38:23 -0700
 From: Alison Schofield <alison.schofield@intel.com>
 To: Neeraj Kumar <s.neeraj@samsung.com>
 CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
 	<linux-kernel@vger.kernel.org>, <gost.dev@samsung.com>,
 	<a.manzanares@samsung.com>, <vishak.g@samsung.com>,
-	<neeraj.kernel@gmail.com>, <cpgs@samsung.com>, Jonathan Cameron
-	<jonathan.cameron@huawei.com>
-Subject: Re: [PATCH V3 08/20] nvdimm/label: Include region label in slot
- validation
-Message-ID: <aNRjE9gckXeC60-Q@aschofie-mobl2.lan>
+	<neeraj.kernel@gmail.com>, <cpgs@samsung.com>
+Subject: Re: [PATCH V3 16/20] cxl/mem: Preserve cxl root decoder during mem
+ probe
+Message-ID: <aNRkzw5GrqyZjE6s@aschofie-mobl2.lan>
 References: <20250917134116.1623730-1-s.neeraj@samsung.com>
- <CGME20250917134144epcas5p498fb4b005516fca56e68533ce017fba0@epcas5p4.samsung.com>
- <20250917134116.1623730-9-s.neeraj@samsung.com>
+ <CGME20250917134203epcas5p3819aee1deecdeaed95bd92d19d3b1910@epcas5p3.samsung.com>
+ <20250917134116.1623730-17-s.neeraj@samsung.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20250917134116.1623730-9-s.neeraj@samsung.com>
-X-ClientProxiedBy: SJ0PR03CA0253.namprd03.prod.outlook.com
- (2603:10b6:a03:3a0::18) To SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+In-Reply-To: <20250917134116.1623730-17-s.neeraj@samsung.com>
+X-ClientProxiedBy: BYAPR08CA0029.namprd08.prod.outlook.com
+ (2603:10b6:a03:100::42) To SJ5PPF0D43D62C4.namprd11.prod.outlook.com
  (2603:10b6:a0f:fc02::80b)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -103,254 +102,120 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PPF0D43D62C4:EE_|PH7PR11MB7961:EE_
-X-MS-Office365-Filtering-Correlation-Id: d091aaa2-02a8-4bde-a5db-08ddfbb1ad9b
+X-MS-TrafficTypeDiagnostic: SJ5PPF0D43D62C4:EE_|SJ0PR11MB5814:EE_
+X-MS-Office365-Filtering-Correlation-Id: d3316b45-7d05-4139-c529-08ddfbb2b214
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|7416014|376014|7053199007;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?qMkU+08jILGeceErtevjtvaTjCYsKTOR7L/kwW45VRJC6cW3+1K91xVzUE8N?=
- =?us-ascii?Q?pV24zRItEzxYiFJRmFABUoaXyzY4yGk8dBCPZxzZd5LjNNaiDhSmA+KCrz15?=
- =?us-ascii?Q?PHC/HCd/9oEMvtdD8HRf0xWTma44CHnouXriCyLVXvVTDTcwdR7zSrvE+DRf?=
- =?us-ascii?Q?B95wK2VdILe01gfOIAJ5rxEiI+Ezvlc+r3oXUOd2wE2G4fzInfNizlQDsvXA?=
- =?us-ascii?Q?LtOzJwmBvlarPXufb+CLBnbTwAR+gF58I7OoO+QQV53q7rdfNezk12MQeqMe?=
- =?us-ascii?Q?q3qNwFskBWg1FW/nu93aGuqeqshZP9+eKP5lGKPT1xtbQqgBDDpQ1BkRZr4X?=
- =?us-ascii?Q?FaN6tfufGriN7Uv5RuqvhMsahhT6GF8u3Afq98nW+IoigSNtJ4LAzCbZEtKS?=
- =?us-ascii?Q?oQOQgBpUOio5IKdSr7NFtIz0JfQZJLzKRN/F3k6vnm/KZMgLT7htKB3lT2cE?=
- =?us-ascii?Q?QPfTj4WnzPvAi+Fszq4bvueiXaEKh89MXNOTWsLv1yvS7VVgfsNeRKDHLhtB?=
- =?us-ascii?Q?zJwkcb3MqhdgH+Fcwkljh09hEDXwngIhZYLm/dCEcfrn0bX68Gu8y4bDy717?=
- =?us-ascii?Q?3C54X9r+QZkeQwITEZbu8NufRYswiOhTMV+zbKa/+uN+nxPKsyYbivRvFsLJ?=
- =?us-ascii?Q?bSe6TyhIGcKIKRUAiuuxrNGPM0YzxilOmksuS8/JCRz/AEOlRR2AIwXHg6AD?=
- =?us-ascii?Q?SxxWh/+trnMec5fsXq45hIk0ZMYeAdwCmd5rAx8n6v6ypmtM2YdEUhLg5nza?=
- =?us-ascii?Q?7WL5DQ3TIPvXFpvsXeaqeDga2r1c0LXgSxpA8/bniCRKdti17tniCp7ORrcE?=
- =?us-ascii?Q?4KkUFkgb2Wrb0dz4nGC3cMQYYQ0qmlg3btNjKuHUnfULLKoR6zGyw4+TPJyB?=
- =?us-ascii?Q?2IozpgZDGHYCb7nDgDOhwn6ArWG4dcoG3CVp9Q6pU5NEjRxYVqOhVAqi9MSj?=
- =?us-ascii?Q?CHciamlexQS9jCm2pFgtXaEpQxYvy52GiVyk1GRY3WaSuYITxHoqGcXH6T7v?=
- =?us-ascii?Q?m6ZGgmTENFhlpDWttyssNAXF+RuWDvyuFbheBFcHizVD6NWAOKuxdwUdeKuT?=
- =?us-ascii?Q?5UQWCZ/CWS1MMW8qMyH0h1CD3uPe49GZXYnptBHvUkYeHVnOMGgb2dvmpHkJ?=
- =?us-ascii?Q?M2vZzHvageZfYX6QvyXm0Cqmh9KGVrkkpMKbyR+UdKEDrGEtwJrxOzvkdncm?=
- =?us-ascii?Q?0pIpkDHdEWfcKzko1ykYhwlS3DFm4cooAumE2mJ1FAcUxBxmqWsEHCMcsGgR?=
- =?us-ascii?Q?GcgtMxt2jRXnBjiMrj3a5TA39n1IWvO9bFbOvGvIXxVzZTPBzpQcHhRtBBaX?=
- =?us-ascii?Q?pix8XluiMBHAL4julFST+lBiL7vSqnQB0gYZTLqnEueevt3NvVAt+l5Wud4/?=
- =?us-ascii?Q?9EviEGvFNffB1IPz3CU2ltlV8XLPQW256QKDRo9LtRNGNu2fjK1hovp3qAUu?=
- =?us-ascii?Q?nQ8MV98uKew=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ5PPF0D43D62C4.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014)(7053199007);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?WDfEP//6ojdXykuppHwQFbts0OcVn2GehGnhsbO1ktUaqXJkLFi6coTmzfjB?=
+ =?us-ascii?Q?iVcXXRhBtp1vN2T41d3cUFF/q/E2gwNzJOQZdezuQWzLWh/943EYnMtjiBuV?=
+ =?us-ascii?Q?w5hHmRnCZogUOP74vs4MXtoRB+fAp4T+vtDliU6v0VpnPb66Cb1nZD0iklma?=
+ =?us-ascii?Q?fFEeCOgZb9nR5LDu5Ul+yWHuTJNlG+sSunezjLw/+ccsE69qPP3335F+oDyi?=
+ =?us-ascii?Q?PdAkkh8yTs/ZL9gdYagPnri9qAED8RIZ0GbKR6753GaQ49LWG29hQZkJCfOH?=
+ =?us-ascii?Q?ZrHSbEaRZYu/8xwdSddxCXz0mkZ8OTsQjQhq8/j9EU1h3PaPWCofVEYsMMCL?=
+ =?us-ascii?Q?2mIMW1xA0MVqQhnL/+oQlmW+WTKgpR6NQEpDBS4w2LpZpCwmqrs/AxPqPT4x?=
+ =?us-ascii?Q?i7xQ9KVHWRYwxK0bsK8ZYKt217XwjalzNXjJ9SgluwMmWAvFjT+IG3b2V0ZE?=
+ =?us-ascii?Q?aMCEyptdaGX3nLaBs99pTlq1ncdxEPF42plrjk0boppfJPYPReyRlwvyBdM0?=
+ =?us-ascii?Q?rkRVo+CUTJuh5SP4mbQ0aqowBGu2xBFOiGn6NgVqTQC1zvDnAITLweMubD5L?=
+ =?us-ascii?Q?7S5AJhn0jQhSOQm0phNGX/rWbiAzPDv184EU/ctz5inSDgMnIScel3h/nD6O?=
+ =?us-ascii?Q?/Ld1r1sRssrIjiTZRQsmp+D36yhxCoEFKjAYei2tYs4hT0Cxdpd3g7E8M9bn?=
+ =?us-ascii?Q?cJH+72D0S0/tTKCW+PsoydwHY2Kuf9EtvjPBGD4po1xFtEebRJw9yVkqtlNn?=
+ =?us-ascii?Q?WDNkO0coIVl29JMoFZEG5QU7GJI/w+qRPlVVsslRLX17U37jRj8l8YCqdoS4?=
+ =?us-ascii?Q?dOgvMmmTSpUl60whoQUig8xFLhn6CsiKVvaT09+KuDarArwxREqffaCt/R+/?=
+ =?us-ascii?Q?nPTZD0/kXL2hDfany0+++faxeEt1AjYolHfbvih3/LyCiD0TKs8i6sWwYhjh?=
+ =?us-ascii?Q?OvVfudLzMNL+wtAhfDmFVV4SaSoKLYousYxsLCgFt5VI/UKNVMBomha+fQSz?=
+ =?us-ascii?Q?g9BqbJKcSx/G228HdHURclI1Obl7CB0Lynl/NSTbtM+Ye6xXmdgNwjnKRAh1?=
+ =?us-ascii?Q?w/+wjZtkOmzwRFIwUU4dynsioHmJZ1lKJKgT29jK4RwtC4My2oNIqQKlWMRJ?=
+ =?us-ascii?Q?toipptoVqkivWmXHec9QAXgKur+IifuHkVw3EqKEJsHERkEqlyxYDdXb0YSu?=
+ =?us-ascii?Q?IIkgeBqQa9h1RwipsreYYMNxS9mSXcBIJm2+m3ypEDk6Kg7bpUyI/apzMQTN?=
+ =?us-ascii?Q?J5gH7TRRBh/6SK2j6hXFP5wohgFiReX4Z26IymKF+WDWlN4JzC/gxvomBd7d?=
+ =?us-ascii?Q?DRZ9um2NEA+EIq+YJrM/IDanI44WEwG45egnBxA9ikfzkCGTeVEB+/e+hVBb?=
+ =?us-ascii?Q?JHWqM+FlsqLuNUCWeh7ZAk9W67UnYkE6p2djC3ODFAPDBXPjaoFxYh/+aln9?=
+ =?us-ascii?Q?ZLa9W8fKTq4=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ5PPF0D43D62C4.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(7053199007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?LrR9uG/Hqe/Y4/YNHw5yVK5xkAiCV/XPXXbSZ+SenhYV4UyRGxZi0z3z6ww1?=
- =?us-ascii?Q?2AUahSxwctccqwOoPmLg0QgFeGTXUYci0BbvWyKYFcjw3Rfb3VtFAm0fXA6D?=
- =?us-ascii?Q?BmgPmqniycgHZARsJ3lMMSOK38DX2r50qCw7uDi4x9U5uvze4m6PY26T8sdE?=
- =?us-ascii?Q?2Qybfv50Icr5KAgIDPfCRcn3rfymLpYryZYdUlr417NWN6AM+0U3elyU3QeM?=
- =?us-ascii?Q?O2mfkE5HMk/kXZ5GhJ64+729gOJTexVJqv5cNoVelBCMB3+1znboaCmFEOW2?=
- =?us-ascii?Q?608ghyE9NKQhiK5K4ONZLLmv2faA4GgKl3UAw3KiOO+TynBNjrDEob27h1fk?=
- =?us-ascii?Q?zHUjloW49LP5RL6Kk7P/9Ji+TjGt7t6QBLNyOr/66dNC6Dh3ieWkC6zKss5/?=
- =?us-ascii?Q?gVhAFIu5RWlxKhMdU+NsBLkZ02+sS0rL8RUz0WK16Duf5YP1VdfxrwUbWnqI?=
- =?us-ascii?Q?h8EeJRqUffcHxMUKXY8uniiyAeUVaSy7PFRQmhNkYo3o4XfcyGeEDbyKpXsK?=
- =?us-ascii?Q?DD5K8pNlIKRdZhoz4uBcvDmPOrLyUWX/80qVWf1wjuE4f+y5rc4zaD1MQtk7?=
- =?us-ascii?Q?MN7/cPhe1ERlkaNU2zujDNnGknIRbvhXtVj2yjF0uljQy4eNlpS0ZCZ5KPgr?=
- =?us-ascii?Q?gWUcVihFIv0WUGB3sb1DprZ23663ovv/urH+MMZICQvYbvZ7jvixX8n0HrUu?=
- =?us-ascii?Q?7XYJu/lcdxKLaINmzZ5e7eGDXweNn3ukgy7/MiCbmioQeLe5ubdJVqOIP0A1?=
- =?us-ascii?Q?ntr8Hgf8TmDQYGFz84hG1hLf/xqX0snXsc0tvdIMSlQT0EBQjACVcpYWHiS6?=
- =?us-ascii?Q?Wg18UROmhGEfLjbD6yon0IjyU6eyTBqKmfmhqEubvvpyy+RWoI7kW2pcrou7?=
- =?us-ascii?Q?Tc0tGxRa35xvtHnMy+tAPRKYPix3bj1tn6Bhk8rvM2ExFj6kXeqAntuA9Aex?=
- =?us-ascii?Q?lBOVX1NTDm3txVCNgJWqOiuEDafgDVnM+ZReAo3px03epn2kYrn/RlMvQ+UA?=
- =?us-ascii?Q?/oKqYmu0ugzgA9lmjOxt/VwfT6j3RvIssZBW5EDY/r3R+x4jNL8DWu9KbEjt?=
- =?us-ascii?Q?pYRj1z+e6vuUIiB9/QOQHuQtg0PZ7RoFYaKFOyBdcXLcXaAJmOGogdv6nOSK?=
- =?us-ascii?Q?hSEEZBPmdPyrdB8L8jcfTz7zOG+f7XtExfjPY6LWHl9JoTGm5VdczVt4JCAf?=
- =?us-ascii?Q?rDLgmlFCtNdxmRGFWIOLPFpGEt5gNk0JO/MJIlzFsWm0JIbeACP367S4Mt0a?=
- =?us-ascii?Q?XIYIYRmyN/SmdYJdCzmP4uILUTtpz9Xn5zTRdQXULWZzQPDp0bK8LtW0wMSG?=
- =?us-ascii?Q?OAB1oBDV2ahZMZHDbSN3QM16By++VdB1+FvgcIZmVsxprCaR0uyvVyAphrwZ?=
- =?us-ascii?Q?RxRy7LcX1uabQZZYkiTJsqeiwKEFiqnbSqgkBRdbbNiLyCGIkbgDnsjAhUXf?=
- =?us-ascii?Q?eFjbeX235esUqi6za/wUv0qLicTjfoqLWrvIXnH5xwK0QypgI+ffxO0C0JeS?=
- =?us-ascii?Q?kr0gDugiBHRWrPnO7iPwVhpjAbLGjBapeKkBD6vBZjNpuCv7TaJlAY2YqVfb?=
- =?us-ascii?Q?EPhg18s9JZVUi9YntqfVde/qZlrSgd9+/ny21+QEuL+D+AAw1YYF02b52jRN?=
- =?us-ascii?Q?cg=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: d091aaa2-02a8-4bde-a5db-08ddfbb1ad9b
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?aW3HTMPRv8RP8dQgMhmkpLIvVFXxtPVMzqcDuJChf+jey+gQFOZ1Db59/kND?=
+ =?us-ascii?Q?S+0p3ZLxG4v6GDx0eQvWmd2cZaAukiKHlYuFBCYRhBTl03HQH+p5Bm/s2gin?=
+ =?us-ascii?Q?TgBrczzU+xxP8hCYX/a7kiOYAKTmVOLRPINplJ6dRmEYHeaUo1rYQzZVdgxQ?=
+ =?us-ascii?Q?CmFI7QdYNVX+yEGryZgViZXD4TKh76l8eV00wV/M93dLkQY95tppWPnLNk0O?=
+ =?us-ascii?Q?XjdY6TA+2nDXV03iMf9TMrohV1wSUzDuFfKtYgITBIkv6f6cwGHdjQ7PrD5z?=
+ =?us-ascii?Q?lYfUARsVIC2gpDhbRJppT3u3zDTgiARq+Ojw5vrRjhzEm1F5wggoDomKgmI3?=
+ =?us-ascii?Q?I6nifTa82mTZ34185ah1v2fcfMZGa13oHzbMqNX8T05CdJoc0fwnRoBdT9Fo?=
+ =?us-ascii?Q?taQHhR+yO/lLJvcwbHp5T8QsibIejRZFGo5qTVH2bKGX239oUEmdL89KX+8T?=
+ =?us-ascii?Q?1RWMXWyecHTaqECsHAS1RYNkXRGaNCuJ3YZnR7skwW65XsLYtEfOf7MfyZMX?=
+ =?us-ascii?Q?QmL7QkjnN3DMqBteUbwi7bGeVdZxx1x7PV9zOd8sbyYsRyH16aMS7rY0U3Gh?=
+ =?us-ascii?Q?HuHcgHVrQosOoon+tUd2Mij0snFqahclNEg8yZ3UydN8CYg76EmYK7nku+gL?=
+ =?us-ascii?Q?cI8/8cWvoYvAZAOwO4OZW3f4bIk2qheuRR9gOnrkjJb86oI021/tMZ1E49Sp?=
+ =?us-ascii?Q?vckFl2lTITvAFHK2WglMwgxOWdGNFUHWfsY8tx4cf8kqiqWZKBeY/lJbYPIm?=
+ =?us-ascii?Q?i7qEqfmHJLtcLzeIr2C2MuWSWO5B58vtxRsDj7wLav984+T3GLFhIXHpk9rO?=
+ =?us-ascii?Q?wEztPe0YYy9v4oXpZSwFF3JDLPFEjJtwYtAFM4Wo1p4Y2/e0Owj6yRhO4WIX?=
+ =?us-ascii?Q?59MboiHH7uWvYt/UDSsf/gN3Wehgi70HtFWdo3vmaVd5wcszWaLaCVEcxJFH?=
+ =?us-ascii?Q?IDgS5yDuEmwhTWQgP4WavNpMvH1GeRa9pN8w1Y74qhRAHaDHT9MyajiJRgYG?=
+ =?us-ascii?Q?3T4fq9SgAOJaInzqMG1cX6YFnvt3HHHH1UyFY+ChdN5Crolk/VqM8w0w72ob?=
+ =?us-ascii?Q?4vUNdzONsSCK6GFOCIsIzGmJycxzxONsZIH/DOYSQySDc6PeMWs4LyDUD+rq?=
+ =?us-ascii?Q?sjLVDOYJ1nInS8Ynd449JiUEKmAEmcdV9iDRuigXmoFUIquUrrHV1iD6Tfk9?=
+ =?us-ascii?Q?Mz3vXrOL3erU7lnONHiFgS4i7vW0PikX1WovKd2TJEawnd/27V5ALfoLClSI?=
+ =?us-ascii?Q?5sKKsc12IOBwtQ0zTxzP+IquIQb4hzKzSNsVc7r/c/dn29k0w8aSUxLLkyYR?=
+ =?us-ascii?Q?pn++Zsc7D6AzQPHzQkCDIACb80m6jXIhjMrhczEBMf7HYbSH1GJWPVVQGFV5?=
+ =?us-ascii?Q?Bjqvomi+g/+k/bVRjkuRC6senJW+f9hteqDxW9LeLeKB5eA2Yu3U791KkqPv?=
+ =?us-ascii?Q?ww3EyHzPJhwDTioLtR38reQ0yOGqHwTvCHGhqDXXtz3vZ7HXi+GmNEeOQea2?=
+ =?us-ascii?Q?LXztNinYHdtAWAy+MMxSHzYV4DzVet7nzrPpKXkwM5FoAtWyk9gioeREW98x?=
+ =?us-ascii?Q?yR8grCic016cH28klce7N8SSy6upz67vtgtkR6O2S3zHilpS/p2bbBeYbpAp?=
+ =?us-ascii?Q?2A=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: d3316b45-7d05-4139-c529-08ddfbb2b214
 X-MS-Exchange-CrossTenant-AuthSource: SJ5PPF0D43D62C4.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Sep 2025 21:31:09.8390
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Sep 2025 21:38:26.9615
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: yP8amLSU6yV+kg7Uruod2f6hupIVLGH2WrwnHQUh6IhKWz56+O3r6mzkSwxu2Yoqyo2OmRF/pqucNd7UR88BIMnYpribw0o8nKaAdVYE6Nc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB7961
+X-MS-Exchange-CrossTenant-UserPrincipalName: VE+yh3Zal8ClmVqlwX59Bdn7ms2ZgnnMW+hotcv7V8O0a2wEg5XdJuWtIAt5/8pGNAKtTTbdmFzkM7bNHpC73nRY4KrYI3l5PQc78EJFc2Q=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR11MB5814
 X-OriginatorOrg: intel.com
 
-On Wed, Sep 17, 2025 at 07:11:04PM +0530, Neeraj Kumar wrote:
-> Slot validation routine validates label slot by calculating label
-> checksum. It was only validating namespace label. This changeset also
-> validates region label if present.
+On Wed, Sep 17, 2025 at 07:11:12PM +0530, Neeraj Kumar wrote:
+> Saved root decoder info is required for cxl region persistency
 
-Neeraj,
+It seem there must be a more detailed story here.
+Saving the root decoder in struct cxl_memdev does not sound
+persistent. Please add more detail on how this step fits
+into the grander scheme.
 
-Was it previously wrong 'only validating namespace label'
-- or -
-Is validating region label something new available with cxl
-namespaces that we now must add?
-
-I'm looking for that pattern in these commit messages, ie
-this is how it use to be, this is why it doesn't work now,
-so here is the change.
-
--- Alison
 
 
 > 
 > Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 > ---
->  drivers/nvdimm/label.c | 72 ++++++++++++++++++++++++++++++++----------
->  drivers/nvdimm/nd.h    |  5 +++
->  2 files changed, 60 insertions(+), 17 deletions(-)
+>  drivers/cxl/cxlmem.h | 1 +
+>  drivers/cxl/mem.c    | 2 ++
+>  2 files changed, 3 insertions(+)
 > 
-> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-> index d33db96ba8ba..5e476154cf81 100644
-> --- a/drivers/nvdimm/label.c
-> +++ b/drivers/nvdimm/label.c
-> @@ -359,7 +359,7 @@ static bool nsl_validate_checksum(struct nvdimm_drvdata *ndd,
->  {
->  	u64 sum, sum_save;
+> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> index 434031a0c1f7..25cb115b72bd 100644
+> --- a/drivers/cxl/cxlmem.h
+> +++ b/drivers/cxl/cxlmem.h
+> @@ -59,6 +59,7 @@ struct cxl_memdev {
+>  	struct cxl_nvdimm_bridge *cxl_nvb;
+>  	struct cxl_nvdimm *cxl_nvd;
+>  	struct cxl_port *endpoint;
+> +	struct cxl_root_decoder *cxlrd;
+>  	int id;
+>  	int depth;
+>  	u8 scrub_cycle;
+> diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+> index 54501616ff09..1a0da7253a24 100644
+> --- a/drivers/cxl/mem.c
+> +++ b/drivers/cxl/mem.c
+> @@ -152,6 +152,8 @@ static int cxl_mem_probe(struct device *dev)
+>  		return -ENXIO;
+>  	}
 >  
-> -	if (!ndd->cxl && !efi_namespace_label_has(ndd, checksum))
-> +	if (!efi_namespace_label_has(ndd, checksum))
->  		return true;
->  
->  	sum_save = nsl_get_checksum(ndd, nd_label);
-> @@ -374,13 +374,25 @@ static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
->  {
->  	u64 sum;
->  
-> -	if (!ndd->cxl && !efi_namespace_label_has(ndd, checksum))
-> +	if (!efi_namespace_label_has(ndd, checksum))
->  		return;
->  	nsl_set_checksum(ndd, nd_label, 0);
->  	sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
->  	nsl_set_checksum(ndd, nd_label, sum);
->  }
->  
-> +static bool region_label_validate_checksum(struct nvdimm_drvdata *ndd,
-> +				struct cxl_region_label *region_label)
-> +{
-> +	u64 sum, sum_save;
+> +	cxlmd->cxlrd = cxl_find_root_decoder_by_port(parent_port);
 > +
-> +	sum_save = region_label_get_checksum(region_label);
-> +	region_label_set_checksum(region_label, 0);
-> +	sum = nd_fletcher64(region_label, sizeof_namespace_label(ndd), 1);
-> +	region_label_set_checksum(region_label, sum_save);
-> +	return sum == sum_save;
-> +}
-> +
->  static void region_label_calculate_checksum(struct nvdimm_drvdata *ndd,
->  				   struct cxl_region_label *region_label)
->  {
-> @@ -392,16 +404,30 @@ static void region_label_calculate_checksum(struct nvdimm_drvdata *ndd,
->  }
->  
->  static bool slot_valid(struct nvdimm_drvdata *ndd,
-> -		struct nd_namespace_label *nd_label, u32 slot)
-> +		       union nd_lsa_label *lsa_label, u32 slot)
->  {
-> +	struct cxl_region_label *region_label = &lsa_label->region_label;
-> +	struct nd_namespace_label *nd_label = &lsa_label->ns_label;
-> +	char *label_name;
->  	bool valid;
->  
->  	/* check that we are written where we expect to be written */
-> -	if (slot != nsl_get_slot(ndd, nd_label))
-> -		return false;
-> -	valid = nsl_validate_checksum(ndd, nd_label);
-> +	if (is_region_label(ndd, lsa_label)) {
-> +		label_name = "rg";
-> +		if (slot != region_label_get_slot(region_label))
-> +			return false;
-> +		valid = region_label_validate_checksum(ndd, region_label);
-> +	} else {
-> +		label_name = "ns";
-> +		if (slot != nsl_get_slot(ndd, nd_label))
-> +			return false;
-> +		valid = nsl_validate_checksum(ndd, nd_label);
-> +	}
-> +
->  	if (!valid)
-> -		dev_dbg(ndd->dev, "fail checksum. slot: %d\n", slot);
-> +		dev_dbg(ndd->dev, "%s label checksum fail. slot: %d\n",
-> +			label_name, slot);
-> +
->  	return valid;
->  }
->  
-> @@ -424,7 +450,7 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
->  
->  		nd_label = to_label(ndd, slot);
->  
-> -		if (!slot_valid(ndd, nd_label, slot))
-> +		if (!slot_valid(ndd, (union nd_lsa_label *) nd_label, slot))
->  			continue;
->  
->  		nsl_get_uuid(ndd, nd_label, &label_uuid);
-> @@ -575,18 +601,30 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
->  		return 0;
->  
->  	for_each_clear_bit_le(slot, free, nslot) {
-> +		struct cxl_region_label *region_label;
->  		struct nd_namespace_label *nd_label;
-> -
-> -		nd_label = to_label(ndd, slot);
-> -
-> -		if (!slot_valid(ndd, nd_label, slot)) {
-> -			u32 label_slot = nsl_get_slot(ndd, nd_label);
-> -			u64 size = nsl_get_rawsize(ndd, nd_label);
-> -			u64 dpa = nsl_get_dpa(ndd, nd_label);
-> +		union nd_lsa_label *lsa_label;
-> +		u32 lslot;
-> +		u64 size, dpa;
-> +
-> +		lsa_label = (union nd_lsa_label *) to_label(ndd, slot);
-> +		nd_label = &lsa_label->ns_label;
-> +		region_label = &lsa_label->region_label;
-> +
-> +		if (!slot_valid(ndd, lsa_label, slot)) {
-> +			if (is_region_label(ndd, lsa_label)) {
-> +				lslot = __le32_to_cpu(region_label->slot);
-> +				size = __le64_to_cpu(region_label->rawsize);
-> +				dpa = __le64_to_cpu(region_label->dpa);
-> +			} else {
-> +				lslot = nsl_get_slot(ndd, nd_label);
-> +				size = nsl_get_rawsize(ndd, nd_label);
-> +				dpa = nsl_get_dpa(ndd, nd_label);
-> +			}
->  
->  			dev_dbg(ndd->dev,
->  				"slot%d invalid slot: %d dpa: %llx size: %llx\n",
-> -					slot, label_slot, dpa, size);
-> +					slot, lslot, dpa, size);
->  			continue;
->  		}
->  		count++;
-> @@ -607,7 +645,7 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
->  		struct nd_namespace_label *nd_label;
->  
->  		nd_label = to_label(ndd, slot);
-> -		if (!slot_valid(ndd, nd_label, slot))
-> +		if (!slot_valid(ndd, (union nd_lsa_label *) nd_label, slot))
->  			continue;
->  
->  		if (n-- == 0)
-> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-> index 046063ea08b6..c985f91728dd 100644
-> --- a/drivers/nvdimm/nd.h
-> +++ b/drivers/nvdimm/nd.h
-> @@ -344,6 +344,11 @@ region_label_uuid_equal(struct cxl_region_label *region_label,
->  	return uuid_equal((uuid_t *) region_label->uuid, uuid);
->  }
->  
-> +static inline u32 region_label_get_slot(struct cxl_region_label *region_label)
-> +{
-> +	return __le32_to_cpu(region_label->slot);
-> +}
-> +
->  static inline u64
->  region_label_get_checksum(struct cxl_region_label *region_label)
->  {
+>  	if (dport->rch)
+>  		endpoint_parent = parent_port->uport_dev;
+>  	else
 > -- 
 > 2.34.1
 > 
