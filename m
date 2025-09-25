@@ -1,316 +1,136 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F374849C
-	for <nvdimm@lists.linux.dev>; Thu, 25 Sep 2025 00:27:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758760038; cv=fail; b=QsqLcxvyCRih/Yd+S6981mF1bVINgqQeqNrReoKP1mI01v7ULpQFJ9+5yvACZo1DEYcW4ROfPygSMGLzXN8bHOrBx0AtBoeTR5Uwul8X/IeYsmbzdO0i7ef3WMFwtn2VFizmNivfB8Nqxbb0vF9IC0vNBrgYS4um2d2XOh7SU3s=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758760038; c=relaxed/simple;
-	bh=aAwu7XB7wkF4Z5lRqYq3dajuuuekRBPQ8s/p/auCysY=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=psVPp/TdVzhSsdXidCPXIvP+7nJR2XTFZs+mEa57pn5M2xvdqh5ePW7p/gbFxRcQ/8L2JnUK/6mzH6y/gpxjQ+T10Gpvew/roKHUNRR9PytzkuhkJTVFgVovAa/Xmgkj3rTxSMbqYWBxw8WM1nsd7nYsIjqgRQ5HFHpvaKVm1eA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nlo3/wxo; arc=fail smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5B7C15530C
+	for <nvdimm@lists.linux.dev>; Thu, 25 Sep 2025 06:45:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.169
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1758782707; cv=none; b=SqZEYCgVM8MUnrQ7cB7aKyJdV8pj8Xa+WE0TfcmGC4Aaj8qRI5DOLthXBfhQ9x+lMGn/XRwkqgC/xdKU/TENEmVBInyLZwjnrFAWs1e75BeqBm8AUNl1/seG32yPoHiDLhMtmEACrucoS+SK0da5PJlUDtrEA/FUMtzeBZcbRac=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1758782707; c=relaxed/simple;
+	bh=bbqdLAvx27nbu3tvSbwfNO0qFRmAy4gvrfSqHxZwiK8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XgOMs5wR8hZrobVD0YIdO1tURqxTTkg4H2Ir5sgFtXNuRDGVYJWgCCgDpG7bEM+D/XEqzWsmBLLes9l70faqR7c+aydE0D81DmiVkYRaBOFt1//8Qup5BAbha9JdMy+WmQUXJ4fzaOQws9gT5RUZ/cni976geRqVk8zaXQQPKsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=R/6iNCZS; arc=none smtp.client-ip=209.85.215.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nlo3/wxo"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1758760036; x=1790296036;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=aAwu7XB7wkF4Z5lRqYq3dajuuuekRBPQ8s/p/auCysY=;
-  b=nlo3/wxoIOw8/4c8ctAj5m5S+XDUFgckgMnPHO6rozLWRPXdx/JtGn1a
-   LmfID17kusf7+kOB/TtVBS++96UKpDoFKXJeEf3nkiYbbt2H5/ov509JL
-   7BfP0atfQ9V2IHnENSrlAxL1BGOeCrMmiAnId6hJPtjzY8SCbwYvntrpX
-   mXvZLS5lvMTop2kKxr9suRR8+Mw+Qc0fzJ3GIBAsYA6tfwe7LQGvBbxjK
-   rr26eFpdxERXtv0e5kqt089wCcXZU2UjIQS6k8lHhOQEspW2w+xrRxE+l
-   gJakH5D/5Bf8wJ6cuXJ+twITAlkFMtrb0pXKmMawrXrdDZcyjjU8E4ivK
-   w==;
-X-CSE-ConnectionGUID: KyAxTVyQQEiGtaRdJdk0nA==
-X-CSE-MsgGUID: 3TW2WqXlRgWXFqTlzriSHA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11563"; a="86515599"
-X-IronPort-AV: E=Sophos;i="6.18,291,1751266800"; 
-   d="scan'208";a="86515599"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 17:27:15 -0700
-X-CSE-ConnectionGUID: Hm44DitIR8yIYuD6WpYLKA==
-X-CSE-MsgGUID: oUw/La/JRQS5jrVHzW6AoQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.18,291,1751266800"; 
-   d="scan'208";a="176470047"
-Received: from fmsmsx903.amr.corp.intel.com ([10.18.126.92])
-  by orviesa010.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2025 17:27:15 -0700
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
- fmsmsx903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Wed, 24 Sep 2025 17:27:14 -0700
-Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27 via Frontend Transport; Wed, 24 Sep 2025 17:27:14 -0700
-Received: from CO1PR03CU002.outbound.protection.outlook.com (52.101.46.2) by
- edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.17; Wed, 24 Sep 2025 17:27:13 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=En03E2RdAQyx0yF64SHIliDUiNgn7Yfc8Sy++IydK4cmk4h+b1sPgH8Y2hz6+8ECV6tYnDjssb21ou+kQOfAqNh7981IMB7CIuPQm7s4h6gkYTXtnLhIO3rTWKJdMR6Iy229ecv9sOX1MWLoswTskSh363Xop7uV99a2bStns5wLpWrDDzVQr92npeyFd5Z0Yt3qb7QROXBzAykt75yHeXPl8XRr1o0DcbuDxbwO82PMJTDbT7FBCnWakDc+A5bw5gGzNpkIYuSG2h6hiOjJpkhMt9aCAe5JUrOaoW1Jdy/yJlgtBOYoQrnnxFS4rGJxJX0W5iwHaO8YAj9ZyvgN8w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kRMFAPCQ2viTRBfes3WnfUqv7zTjJVAWUFKsplqTkNE=;
- b=WpW333OcZsR85boy+1xeIEegYOOue/InFpnKNaGSiirVQU+Werbhutcp9MelBA9hJU8jlE745TAvZHgSrMB0KfrOopDcOwmOJ1IWyPkQeP5lj550VWkdOlk3yjZmcVzWg25ddO33ayZr7WPeEJTwofasKxwwv73A32eCFqqw1MOBMeXlIVeYtI2p5ZuD9ZsTlX0GmuI5MmLFcFzs3CDZ/dWdmXnHX6HBH7wLkdcC4+BeOnBeiKFNP6r5PC2oGR60XM9HOH64SwxZ0V3EqLVVG8pNQUYWEBjpqeJi59hP0sOyFu7WxQj/hKj61Y1AGu7pRDEpMUtnd6bv5ZlOhMuHXg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- (2603:10b6:a0f:fc02::80b) by IA0PR11MB7815.namprd11.prod.outlook.com
- (2603:10b6:208:404::16) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9137.19; Thu, 25 Sep
- 2025 00:27:11 +0000
-Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- ([fe80::4df9:6ae0:ba12:2dde]) by SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- ([fe80::4df9:6ae0:ba12:2dde%8]) with mapi id 15.20.9137.012; Thu, 25 Sep 2025
- 00:27:10 +0000
-Date: Wed, 24 Sep 2025 17:27:08 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: <dan.j.williams@intel.com>
-CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>, Andreas Hasenack
-	<andreas.hasenack@canonical.com>
-Subject: Re: [ndctl PATCH v2] cxl/list: remove libtracefs build dependency
- for --media-errors
-Message-ID: <aNSMXEP2YD3-MK3l@aschofie-mobl2.lan>
-References: <20250924045302.90074-1-alison.schofield@intel.com>
- <68d47a5d13605_1c791001d@dwillia2-mobl4.notmuch>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <68d47a5d13605_1c791001d@dwillia2-mobl4.notmuch>
-X-ClientProxiedBy: BYAPR05CA0053.namprd05.prod.outlook.com
- (2603:10b6:a03:74::30) To SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- (2603:10b6:a0f:fc02::80b)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R/6iNCZS"
+Received: by mail-pg1-f169.google.com with SMTP id 41be03b00d2f7-b55115148b4so487155a12.3
+        for <nvdimm@lists.linux.dev>; Wed, 24 Sep 2025 23:45:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1758782705; x=1759387505; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=qwRwggwBb3rmsP7hAuRkEzNpFvdy0j6v2pW8m7D4xoA=;
+        b=R/6iNCZSaxnxo82vstu91HtxoI3yV/TrnmS55f0WD0b9TQQbSfjrT2J6lJe3dHm8F6
+         u2eeWz8G/zipJRYqpEl0V3TmcmBBsVDz9ss445sRJs82OCXfHholaIS3spYerok3LAYq
+         BA5HmNO31DhjSBoL+l4jPUtblCeWx4NS9PDSX9c2cgnDEqNBtWP79DBXg/KB2qBA5fJB
+         48Ij04kyRNM51k0IhDG0UL5/8XnC8jRyrYMQxp+BqLHQjp1erovXMAF/v90I/jamm09c
+         0NdW/YGwCnSmpimqFYYQy/13gCXJVHkfT5rPqL52rPFiBr6TpyndXMhgaCjUMYEmssLg
+         z7sw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758782705; x=1759387505;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=qwRwggwBb3rmsP7hAuRkEzNpFvdy0j6v2pW8m7D4xoA=;
+        b=KM6gFDgJBfpFN8TTAxosRuSBcd1qGDJcX1ZMaGp3d1zDr/Vo+ljG/9pJ/cuqwbG9le
+         xFrq39pXaj5lwiTPWqM0kKeBt5/CR5xJM0G0FeZNgtdSvW2f+Xzab+ieE7KTpQPdKUk3
+         8l3LjGgIZT5HmnUsepKltE0td6hjWrc/96xMpRxo1P2VJTm6ZcWXZipKiBsyPWHTWuGG
+         To7T6lXwi9SleUOTBsPDeqlshUH4JG3RUcqH5+c6EvBKb//krnKoSsPJ+/ambHoP9JXu
+         yJCwiJA+dVXfJ9CN/kd7A55d1hD6AESJI2GO4IPh7/uJxUcCoMbJAhho9bTvWngG1G6H
+         7xsQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU+5AU8+Ypp9g2JXrseKNvQn/fwHehS+tVLmHk7x7IlbYXsE2oOS4o34wK5ZYTc65e4GUEpStw=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwTckhYXPL1pulmRa2S+GiZkKPvePoDB8E6QVvnw+EbCNbZ9Vrx
+	uE+KLNa2ooXfIy7k+b9RzD9eRpQ03VbCaKnGblcopLjc1qRagJXmwyKc
+X-Gm-Gg: ASbGncv+RN8EIlj+cfDLvk7Cnn6pXsGtIrL+w2M5KmLWVhwcOJdZ61EiIoKURB7roOc
+	Q3SSq+/HLzwqBuIwZTKEaqbYAeMdG+4nYFKe2M+d4Czobg3MfcbtP/xvkcCQS7rU5wwmDwzAg5V
+	CVUZ20zZYEK3EIl4o3ha3pdpKipEEIr3PzX1IrcKefDuTjW8oZxVAKpUwiX4Uvy38sdgCzH/7cG
+	qpwbQpTNtkeEx7hPl45fTxrtykLrEExbBR6fYK77V7NwZdA5ZCiPVVRnTonM1z0HsEVB+SfbucA
+	rxQvRqzsWwH9XdUEBGPv8oWOS8JkAMGpgMjkCEt68ISgczsNT5bXyg8dDyPMfIlqsyCmkQ5nuGC
+	6TL0Qa3RGb3x7iiqGlkq1VsD7hK515S2SkWY=
+X-Google-Smtp-Source: AGHT+IHt19jtOEnBkeB66T1h510FySIpowgoYjHbNvNGdh2zxGfDHDDIanQQL8ZzNs+QeMAQPJrNJg==
+X-Received: by 2002:a17:902:ebc8:b0:271:6af4:15c with SMTP id d9443c01a7336-27ed4a91a97mr31723675ad.36.1758782705016;
+        Wed, 24 Sep 2025 23:45:05 -0700 (PDT)
+Received: from lgs.. ([2408:8418:1100:9530:1f22:92a4:6034:d4c4])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-27ed6ad21e9sm13507665ad.144.2025.09.24.23.44.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Sep 2025 23:45:04 -0700 (PDT)
+From: Guangshuo Li <lgs201920130244@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Guangshuo Li <lgs201920130244@gmail.com>,
+	Santosh Sivaraj <santosh@fossix.org>,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+Subject: [PATCH v3] nvdimm: ndtest: Return -ENOMEM if devm_kcalloc() fails in ndtest_probe()
+Date: Thu, 25 Sep 2025 14:44:48 +0800
+Message-ID: <20250925064448.1908583-1-lgs201920130244@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PPF0D43D62C4:EE_|IA0PR11MB7815:EE_
-X-MS-Office365-Filtering-Correlation-Id: f6ae0790-5de0-4066-cafa-08ddfbca4469
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?9FQHdcN/ff60I7lYEbBd9EBXCf8vUu3oOUZQXBhw7fCU3CjNYgSF33MDkDZ5?=
- =?us-ascii?Q?rk2nKIghF+MeA8fhDdI4HWejGEKb2zuSmI+2ivUGjpHPiOUW53tSz+4hWMCj?=
- =?us-ascii?Q?kqNiJuyXlANAPEIv8NMIJe1NLLte7pvLVy8K6remMrd9PsbtDzh+CytMYuX4?=
- =?us-ascii?Q?PsukESu3bhx3vbK9UPtaao2ikwNZ/UlWKpqonZgE1ddTb+8tzIhZwg6+xO8y?=
- =?us-ascii?Q?2dv79mab4bYep4Xybm9xioyX2z8SrlQLwmH6eIPfg4ShgjauYHHL+5ufzG6d?=
- =?us-ascii?Q?BUj2XHDo8iO2Kv3aKS+T/GoLL9CeZ2D4AThHEWol1lK+0XQdmIJyH1/Kc3q/?=
- =?us-ascii?Q?QEn8mrw3nlVvbU5cJcj+jlM6PC/E4tdjcIbMtVQObhI0D8HlE4obCQ5vIvrL?=
- =?us-ascii?Q?IvQ3InWL4kt4kKokHwWlqhs8fwCSz+s/VCQYkd13lSxMEKhkCur4DWQTQzGP?=
- =?us-ascii?Q?OTGjrt7SmWoaJIPkexnqvpHijuy7sqhMC1DpoFVU77KiotP/Fr+MWGAU1O4d?=
- =?us-ascii?Q?/jI89kwhCWDtjj/498+1Q5dVekMXnVI++e4AgsF/HcrEmYCBUnE2RiP7RpPF?=
- =?us-ascii?Q?hbgePhoJwHHD/bAPTpLMJMGk8LN7iLNly/i+Ghpg3w94rIhegqvPJOlmsVqZ?=
- =?us-ascii?Q?MENzLITE++zi/FrYBPlv212fFkrF8Fb+Lx0ICuCTGTScn1avuFmyjk5TEvo7?=
- =?us-ascii?Q?LTJTdhQb4XT3C2oNzNJpt7IMqll+4jf7HI8GwM3iMymEGXKic00gN85WFx7i?=
- =?us-ascii?Q?+wpJzEgax2cPeXT+KMdSqFerm0oF1ZaJnZcus0izMEuOPuSv+SSdQITzkWcL?=
- =?us-ascii?Q?vJf+SfegSxXFI9YGJuJ2caPkIinohP8SbV1PnDVwtHxaWnj4W+EHXh+fl7H0?=
- =?us-ascii?Q?gv6ke38+bRWGSJMZpQamhp1TlbfoNABrLp4s5vq+HzMHvCqG0Upp7OWwsiw0?=
- =?us-ascii?Q?/PoxUQAFPGkSeLSyal2QI6NqxEfYxmJ/DTyVarnx+CdgnkD4cAiJokZutPoL?=
- =?us-ascii?Q?odSFbtXwoiaDfTQopxgD/qVn7efKVqkraN8RkDfx0Eui5V2sVdVRlKrZ0Lbx?=
- =?us-ascii?Q?C1JyLHYZmqhkXZ7bFPPz3BA4mwrFpO1mdWzvaJZRveyY5ATZJmE3/wtSiiym?=
- =?us-ascii?Q?9ZMtRJ/XyjO8R5NMoI0LbqtvOP3s7Y5T3A+b4kEpubMXg9PeJp+LjuxADZLz?=
- =?us-ascii?Q?w4WGq+zuBKFYzO/NYlu4XNPxd3oZylwrPeK0dZDmMo+orZETnn91JK2Ya1ZO?=
- =?us-ascii?Q?tRnTMcAMsa6Fv5ThH5dVWLB5DuBnGva4f2olN75iJYRHPOL1sqWHb6taYdgN?=
- =?us-ascii?Q?i+cONLTkZaaKk/Jf/mDIJdXXY+BDyO13qOu5z/PXlI5eAD+yzbJ2AZ46VPL4?=
- =?us-ascii?Q?WGMZNazJRITj7s5kCehz5pt1ltbafHW+SBjGSO4m8maKFN4yNOJhM7A5GutF?=
- =?us-ascii?Q?cwWEGbyfEdI=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ5PPF0D43D62C4.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?1Pbjw06oJLUMw0kdof3/iV9EaWNshtpdkZ/eoUGsPJKJ4A3SDie2IH+mHxG2?=
- =?us-ascii?Q?axajO8Vy+u/3x+M4aSHk3eK0kShAZOEwhoMMGXK0xSPvva2p3BM+RiqgaJTt?=
- =?us-ascii?Q?x4q0dRJYr2JIfkW3fy+695z+UNTrvlmSZ4Gin2zRr245+jyer6c31acI5UO4?=
- =?us-ascii?Q?AI86uhftcPrQVHlmTOfDLUj5VqElcNnV8F/Fg5ta5AL9pEZJ0sKKjxxPUSaI?=
- =?us-ascii?Q?YDm3Lp/BqrVtzqCqu2swP464/njqPg3ZHFFtrixo3tRw3BcZMa1BWwDTkLdw?=
- =?us-ascii?Q?BLFnTUDV9yL8a0nxLuaDUknUoto5FQb2tby/NDiJIrILz3yWKIpOIz94udLH?=
- =?us-ascii?Q?6jretChG7yt9ZnF7sCcAbF/68N2Tx1ZczkoDz7cx1Od1+JQQD2nnJvlJcdZ6?=
- =?us-ascii?Q?dsF9XCruGrSl2b/3l67JrrSvxaLdyaCL0jQs0XL2QLV9cAGM3jJqUXCh05HA?=
- =?us-ascii?Q?rkBPw1IULrMOMNIVY1ujViA7LZwrbySM5pQyNOmZY8rxROuuRy0VqAHH090J?=
- =?us-ascii?Q?hY16SqdoZJNuBqLjDcLkURl1fKX/tCsPORozoLpGhFhA5xbbZqdeeLyKQScO?=
- =?us-ascii?Q?x7FB8ACLLxU9/j77yro1Fuk+ANd/zku3qU0mPYGRv017BDcfr3PKjE0qpTgH?=
- =?us-ascii?Q?K0ui0miiouQgMe9h40LFll4n/rj79VZL1UJ0T4g0Ox7tSbhHHGJWfpZqcx1Q?=
- =?us-ascii?Q?ka0/OwVRXLPmPP2RTEJOsKbzPNDansh/H8NcdTNCg8j/Qc+Ylyfg1dMqXWb3?=
- =?us-ascii?Q?vHwu3jvhwzXB6GYyhElrL7pJr4blPWXr7hl+REvky50Lo2C+sTomozkh6WQ9?=
- =?us-ascii?Q?YMOW7el3RzSAyT/0kyEkipOByCatmaWhRYLA5g/Q7AVbjDnITsYlzyBQmszM?=
- =?us-ascii?Q?SZN6xZYC967XNz9IOuR5cf+SL68gG54nMB6X7fh5pzgWUZvN/T64M0Vt1VJ0?=
- =?us-ascii?Q?HmhNr/LwqgqJWYUwQI5LgCVCBOW43l6EUoEiZ1pZ4t6tRnYndyCrLy5XUNt+?=
- =?us-ascii?Q?8WdhOXpgwYd9I3LqM9d+NR6Wxfz7Ey2Cf56sMvneXJKxL6BAYdjcp8lXOxg5?=
- =?us-ascii?Q?IFTVp0LP6j0CYt/EMhOWliIZXtJo7EQvwe5y2eo74PKwGE5w+uSY2e3Q3Vfn?=
- =?us-ascii?Q?CDCsMQx0UjS7O2xGNKwD2qgONaKgBT1rcw0r2NOsbP075Ax1GPwvkL58T/3T?=
- =?us-ascii?Q?9PyzvugKVn/gpuwr7ymYjWju1/al+ylDPxNrikvroL5DibJdA9EQkLy8sg9i?=
- =?us-ascii?Q?nxjROTfYobJSgRdc4fuEbXjQkg4Zbc4/EhFjmLyMQG8OPDKfxrf0JZBIOrsU?=
- =?us-ascii?Q?qJhCO9xDOAD3WD9BrKBeJGFOeNMrlwC7O44Y6yYjyZ8nVyeblonrxMMbiMEU?=
- =?us-ascii?Q?XKgk3GPphWc0BYyTNsWh1cIbwIgIsM/LZGKBfRg7d4r+7F6KUwowSnu9kPO3?=
- =?us-ascii?Q?CAVWVn2u8Y5mGMRBceZgzuwd46vUbHoOE5T2CV/5GudAP2k5ng3kiqjYwJWK?=
- =?us-ascii?Q?wXusaxsp6NBM7pyh+vJF8UrvPSF0YED42G44LojH0t0+Af/aR5Pj5mXn+9CZ?=
- =?us-ascii?Q?OlPjnEQsfGSGZIqjBG6u3U6f8R+9PgeVtOaBlX1kDjZfjsPoT/rbsx3ZXf6T?=
- =?us-ascii?Q?2Q=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: f6ae0790-5de0-4066-cafa-08ddfbca4469
-X-MS-Exchange-CrossTenant-AuthSource: SJ5PPF0D43D62C4.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2025 00:27:10.9164
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 5IMpmfe64lKjM6XmhmSKDPqOQtoOsakjFpiLMmDoL/D9nMAcUfigAfA1hzcleUlstbPVQhFIEBO7dfpwOUJypWtjM9a8J9ODeAs9pi2btik=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR11MB7815
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-On Wed, Sep 24, 2025 at 04:10:21PM -0700, Dan Williams wrote:
-> Alison Schofield wrote:
-> > When the --media-errors option was added to cxl list it inadvertently
-> > changed the optional libtracefs requirement into a mandatory one.
-> > Ndctl versions 80,81,82 no longer build without libtracefs.
-> > 
-> > Remove that dependency.
-> > 
-> > When libtracefs is disabled the user will see a 'Notice' level
-> > message, like this:
-> > 	$ cxl list -r region0 --media-errors --targets
-> > 	cxl list: cmd_list: --media-errors support disabled at build time
-> > 
-> > ...followed by the region listing including the output for any other
-> > valid command line options, like --targets in the example above.
-> > 
-> > When libtracefs is disabled the cxl-poison.sh unit test is omitted.
-> > 
-> > The man page gets a note:
-> > 	The media-error option is only available with -Dlibtracefs=enabled.
-> > 
-> > Reported-by: Andreas Hasenack <andreas.hasenack@canonical.com>
-> > Fixes: d7532bb049e0 ("cxl/list: add --media-errors option to cxl list")
-> > Closes: https://github.com/pmem/ndctl/issues/289
-> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> > ---
-> > 
-> > Changes in v2:
-> > - Notify and continue when --media-error info is unavailable (Dan)
-> > 
-> > 
-> >  Documentation/cxl/cxl-list.txt |  2 ++
-> >  config.h.meson                 |  2 +-
-> >  cxl/json.c                     | 15 ++++++++++++++-
-> >  cxl/list.c                     |  6 ++++++
-> >  test/meson.build               |  9 +++++++--
-> >  5 files changed, 30 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
-> > index 9a9911e7dd9b..0595638ee054 100644
-> > --- a/Documentation/cxl/cxl-list.txt
-> > +++ b/Documentation/cxl/cxl-list.txt
-> > @@ -425,6 +425,8 @@ OPTIONS
-> >  	"source:" is one of: External, Internal, Injected, Vendor Specific,
-> >  	or Unknown, as defined in CXL Specification v3.1 Table 8-140.
-> >  
-> > +The media-errors option is only available with '-Dlibtracefs=enabled'.
-> > +
-> >  ----
-> >  # cxl list -m mem9 --media-errors -u
-> >  {
-> > diff --git a/config.h.meson b/config.h.meson
-> > index f75db3e6360f..e8539f8d04df 100644
-> > --- a/config.h.meson
-> > +++ b/config.h.meson
-> > @@ -19,7 +19,7 @@
-> >  /* ndctl test support */
-> >  #mesondefine ENABLE_TEST
-> >  
-> > -/* cxl monitor support */
-> > +/* cxl monitor and cxl list --media-errors support */
-> >  #mesondefine ENABLE_LIBTRACEFS
-> >  
-> >  /* Define to 1 if big-endian-arch */
-> > diff --git a/cxl/json.c b/cxl/json.c
-> > index e65bd803b706..a75928bf43ed 100644
-> > --- a/cxl/json.c
-> > +++ b/cxl/json.c
-> > @@ -9,12 +9,15 @@
-> >  #include <json-c/json.h>
-> >  #include <json-c/printbuf.h>
-> >  #include <ccan/short_types/short_types.h>
-> > +
-> > +#ifdef ENABLE_LIBTRACEFS
-> >  #include <tracefs.h>
-> > +#include "../util/event_trace.h"
-> > +#endif
-> 
-> Maybe this is my kernel taste leaking through, but I am allergic to
-> ifdef in ".c" files. In this case you could move the include of
-> tracefs.h into event_trace.h and then ifdef guard all the parts of
-> event_trace.h that need tracefs.h.
-> 
-> >  
-> >  #include "filter.h"
-> >  #include "json.h"
-> >  #include "../daxctl/json.h"
-> > -#include "../util/event_trace.h"
-> >  
-> >  #define CXL_FW_VERSION_STR_LEN	16
-> >  #define CXL_FW_MAX_SLOTS	4
-> > @@ -575,6 +578,7 @@ err_jobj:
-> >  	return NULL;
-> >  }
-> >  
-> > +#ifdef ENABLE_LIBTRACEFS
-> >  /* CXL Spec 3.1 Table 8-140 Media Error Record */
-> >  #define CXL_POISON_SOURCE_MAX 7
-> >  static const char *const poison_source[] = { "Unknown", "External", "Internal",
-> > @@ -753,6 +757,15 @@ err_free:
-> >  	tracefs_instance_free(inst);
-> >  	return jpoison;
-> >  }
-> > +#else
-> > +static struct json_object *
-> > +util_cxl_poison_list_to_json(struct cxl_region *region,
-> > +			     struct cxl_memdev *memdev,
-> > +			     unsigned long flags)
-> > +{
-> > +	return NULL;
-> > +}
-> > +#endif
-> 
-> This would move a new conditionally compiled ".c" file for just these
-> trace helpers.
-> 
-> >  struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
-> >  		unsigned long flags)
-> > diff --git a/cxl/list.c b/cxl/list.c
-> > index 0b25d78248d5..48bd1ebc3c0e 100644
-> > --- a/cxl/list.c
-> > +++ b/cxl/list.c
-> > @@ -146,6 +146,12 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
-> >  		param.ctx.log_priority = LOG_DEBUG;
-> >  	}
-> >  
-> > +#ifndef ENABLE_LIBTRACEFS
-> > +	if (param.media_errors) {
-> > +		notice(&param, "--media-errors support disabled at build time\n");
-> > +		param.media_errors = false;
-> > +	}
-> > +#endif
-> 
-> This would be a static inline helper in a header file that optionally
-> reports the problem.
-> 
-> All that said, I am not the maintainer so go with what you want, but
-> leaking ifdef in ".c" is, in my opinion, a slow walk into an
-> increasingly unreadable code base.
+devm_kcalloc() may fail. ndtest_probe() allocates three DMA address
+arrays (dcr_dma, label_dma, dimm_dma) and later unconditionally uses
+them in ndtest_nvdimm_init(), which can lead to a NULL pointer
+dereference under low-memory conditions.
 
-I can do what you suggest, with bells on!
-See you in v3 :)
+Check all three allocations and return -ENOMEM if any allocation fails,
+jumping to the common error path. Do not emit an extra error message
+since the allocator already warns on allocation failure.
+
+Fixes: 9399ab61ad82 ("ndtest: Add dimms to the two buses")
+Cc: stable@vger.kernel.org
+Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
+---
+changelog:
+v3:
+- Add NULL checks for all three devm_kcalloc() calls and goto the common
+  error label on failure.
+
+v2:
+- Drop pr_err() on allocation failure; only NULL-check and return -ENOMEM.
+- No other changes.
+---
+ tools/testing/nvdimm/test/ndtest.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
+index 68a064ce598c..8e3b6be53839 100644
+--- a/tools/testing/nvdimm/test/ndtest.c
++++ b/tools/testing/nvdimm/test/ndtest.c
+@@ -850,11 +850,22 @@ static int ndtest_probe(struct platform_device *pdev)
+ 
+ 	p->dcr_dma = devm_kcalloc(&p->pdev.dev, NUM_DCR,
+ 				 sizeof(dma_addr_t), GFP_KERNEL);
++	if (!p->dcr_dma) {
++		rc = -ENOMEM;
++		goto err;
++	}
+ 	p->label_dma = devm_kcalloc(&p->pdev.dev, NUM_DCR,
+ 				   sizeof(dma_addr_t), GFP_KERNEL);
++	if (!p->label_dma) {
++		rc = -ENOMEM;
++		goto err;
++	}
+ 	p->dimm_dma = devm_kcalloc(&p->pdev.dev, NUM_DCR,
+ 				  sizeof(dma_addr_t), GFP_KERNEL);
+-
++	if (!p->dimm_dma) {
++		rc = -ENOMEM;
++		goto err;
++	}
+ 	rc = ndtest_nvdimm_init(p);
+ 	if (rc)
+ 		goto err;
+-- 
+2.43.0
 
