@@ -1,107 +1,122 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7703F24338F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F6E8243371
 	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759726506; cv=none; b=lLTdx9ckbunuIV+B2Uh/csJEpk4vdhB4JLrWdLJMF1OWmMXYOLVzeOt7lpgDY8+wNKuyD4Nosx1IJvCNBMyXn77IjeHeeQHjj+T2X9bdvkD23A6qLt8tmfFbYW5srZfCkOQ/EsKZhnLKXcfTXSpXeAES59BMgqMbigfzj6njI2w=
+	t=1759726506; cv=none; b=IfhNP34vomjSrffE8NRUTTZIOlxO/DNHI3mKPFwpR4zRpT1bKgfpQeqqE0s6lekevq8Kxuld0WXSRHvMd1XnUUTA7pTX0XNjzL0XqHW/vNmu2ov87ACVoxr+6CI7eQydUtxPRE+OyWU0kkvqFhY9g3HPtOM/B9wzFjRTxoa2gE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1759726506; c=relaxed/simple;
-	bh=MKALniklbjQIocFCA57F3nu6eiXvymrCYPcaLd8sC4I=;
+	bh=DKU28B+/WjX4w+CMrSwaFs4Rp+lzGbVv7IqWeGOeiog=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=ArLL3N+bXMm0GNVOMZWTsIAyeA0dcMN3Ww004ouRZ9m/aDSgU3LiW/+kASeojzi81aVbbLL0Q9ditdnpDovVpXmX2bJzCxxv2e5rDvCgUNSNpPzSjzZC1TL/oi7ZNf+P/OtwCNJdyqMboI4bk/k9YddH63AeUbkCAse1U9yllao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=WAaorx8w; arc=none smtp.client-ip=203.254.224.24
+	 Content-Type:References; b=IWzhKjVjnU4Xvzt/kT/lk3e+10NOkCt7/pxRlcCWNPoICle7XUEYze8jFXwvxD1e65+X3g1Um64fDeC1o0E3GFE8epRb+RWCoBYX8vHfZyHzoZKKU2b+zutnVwals2zwIC90vi3vTSM7dJusbCHxQ7NWTSOtfCDMWJ7HxwkdToI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=aBOCXBY5; arc=none smtp.client-ip=203.254.224.33
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="WAaorx8w"
-Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251006045502epoutp01d430c3bc64047a6a087954943ea6b639~rze465c591733617336epoutp01n
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="aBOCXBY5"
+Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20251006045502epoutp03d4a548d70c5259929958968d73bb4226~rze5Hc7BF1934019340epoutp03b
 	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:02 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251006045502epoutp01d430c3bc64047a6a087954943ea6b639~rze465c591733617336epoutp01n
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20251006045502epoutp03d4a548d70c5259929958968d73bb4226~rze5Hc7BF1934019340epoutp03b
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
 	s=mail20170921; t=1759726502;
-	bh=PCOjeKOKq4wxWMpLXXZiAxcmwm9HhVz+6b9LjvlRY50=;
+	bh=fjLhaWamRPh5gBXF3MRUevGTJ7eSPdiTSpInpVK3mCk=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=WAaorx8wVBS4B5BhbRLYjxy2rVi0UR7HVtiWNLKql70ZU3Ypf0yv8lbK9Ved/CX/Y
-	 ZPSbRFYIJeHB7hilnOfCA7IYE5jykWlSVT0Yj6CfWYW8NMXKHesbgxgPrugZcf2MKg
-	 JyfAFkmTO/04XR4JpBSv1Ny5D0mHdqcT/D6CpYbE=
-Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	b=aBOCXBY5R88heo8ppdBi9BLGK5S/7h2EKApLXwMSmIaMYwI1OSdvSg56tfRqIaRd3
+	 JCYceOqCyuW16FRgrSmwQUFHmTv0eHuj4TRdBCeccIl+rNq4/a8oLVTxDvw8QwX7s7
+	 2WvqplZLAz9gYunjDHf7sVwNA+4mIDRFtuPb82Tg=
+Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
 	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
-	20251006045502epcas5p37cf5a6205e8131722d8efb9a77eac21a~rze4l9_A-0897408974epcas5p3P;
+	20251006045502epcas5p3896b06cef2dd8c5096b9dd66cf0c7cd8~rze4zEbOd0897408974epcas5p3T;
 	Mon,  6 Oct 2025 04:55:02 +0000 (GMT)
 Received: from epcpadp1new (unknown [182.195.40.141]) by
-	epsnrtp02.localdomain (Postfix) with ESMTP id 4cg6QG0m9wz2SSKZ; Mon,  6 Oct
+	epsnrtp04.localdomain (Postfix) with ESMTP id 4cg6QG2L2bz6B9m8; Mon,  6 Oct
 	2025 04:55:02 +0000 (GMT)
 Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
-	20250929132812epcas5p31fb057eacb430527a75b55e392e23a43~pw98SWmkQ0800708007epcas5p31;
-	Mon, 29 Sep 2025 13:28:12 +0000 (GMT)
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
+	20250929133109epcas5p2488fa4c42ce0d77a9d0370fa2466b71a~pxAhoS2cT2725427254epcas5p2j;
+	Mon, 29 Sep 2025 13:31:09 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
 	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20250929132809epsmtip2ca45d493073e84cfdeddb4df4320b6b7~pw96Eulyg2379723797epsmtip2x;
-	Mon, 29 Sep 2025 13:28:09 +0000 (GMT)
-Date: Mon, 29 Sep 2025 18:58:05 +0530
+	20250929133107epsmtip294f6c9ace51791cc7f26e853cb553f0a~pxAfIeSEu2881328813epsmtip2K;
+	Mon, 29 Sep 2025 13:31:06 +0000 (GMT)
+Date: Mon, 29 Sep 2025 19:00:59 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V3 05/20] nvdimm/namespace_label: Add namespace label
- changes as per CXL LSA v2.1
-Message-ID: <1983025922.01759726502090.JavaMail.epsvc@epcpadp1new>
+Subject: Re: [PATCH V3 13/20] cxl/mem: Refactor cxl pmem region
+ auto-assembling
+Message-ID: <1296674576.21759726502325.JavaMail.epsvc@epcpadp1new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <aaccf5c7-b9e8-4b27-8464-09ef3732c0c1@intel.com>
-X-CMS-MailID: 20250929132812epcas5p31fb057eacb430527a75b55e392e23a43
+In-Reply-To: <c7b41eb6-b946-4ac0-9ddd-e75ba4ceb636@intel.com>
+X-CMS-MailID: 20250929133109epcas5p2488fa4c42ce0d77a9d0370fa2466b71a
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_"
+	boundary="----xsJXu.fD5V5xDhddWNWtQINaZQo.kzBR_hLvg.7oVeVxw7Lp=_7371_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134138epcas5p2b02390404681df79c26f7a1a0f0262b8
+X-CMS-RootMailID: 20250917134157epcas5p1b30306bc8596b7b50548ddf3683c3b97
 References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134138epcas5p2b02390404681df79c26f7a1a0f0262b8@epcas5p2.samsung.com>
-	<20250917134116.1623730-6-s.neeraj@samsung.com>
-	<aaccf5c7-b9e8-4b27-8464-09ef3732c0c1@intel.com>
+	<CGME20250917134157epcas5p1b30306bc8596b7b50548ddf3683c3b97@epcas5p1.samsung.com>
+	<20250917134116.1623730-14-s.neeraj@samsung.com>
+	<c7b41eb6-b946-4ac0-9ddd-e75ba4ceb636@intel.com>
 
-------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_
+------xsJXu.fD5V5xDhddWNWtQINaZQo.kzBR_hLvg.7oVeVxw7Lp=_7371_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 23/09/25 02:48PM, Dave Jiang wrote:
->> +static inline void nsl_set_type(struct nvdimm_drvdata *ndd,
->> +				struct nd_namespace_label *ns_label)
->> +{
->> +	if (ndd->cxl && ns_label)
->> +		uuid_parse(CXL_NAMESPACE_UUID, (uuid_t *) ns_label->cxl.type);
+On 23/09/25 03:37PM, Dave Jiang wrote:
 >
->You can do:
->uuid_copy(ns_label->cxl.type, cxl_namespace_uuid);
 >
->All the constant UUIDs are preparsed by nd_label_init(). For the entire series you can use those pre-parsed uuid_t and just use uuid_copy() instead of having to do string to uuid_t conversions.
+>On 9/17/25 6:41 AM, Neeraj Kumar wrote:
+>> In 84ec985944ef3, devm_cxl_add_nvdimm() sequence was changed and called
+>> before devm_cxl_add_endpoint(). It's because cxl pmem region auto-assembly
+>> used to get called at last in cxl_endpoint_port_probe(), which requires
+>> cxl_nvd presence.
+>>
+>> For cxl region persistency, region creation happens during nvdimm_probe
+>> which need the completion of endpoint probe.
+>>
+>> In order to accommodate both cxl pmem region auto-assembly and cxl region
+>> persistency, refactored following
+>>
+>> 1. Re-Sequence devm_cxl_add_nvdimm() after devm_cxl_add_endpoint(). This
+>>    will be called only after successful completion of endpoint probe.
+>>
+>> 2. Moved cxl pmem region auto-assembly from cxl_endpoint_port_probe() to
+>>    cxl_mem_probe() after devm_cxl_add_nvdimm(). It gurantees both the
+>>    completion of endpoint probe and cxl_nvd presence before its call.
+>
+>Given that we are going forward with this implementation [1] from Dan and drivers like the type2 enabling are going to be using it as well, can you please consider converting this change to Dan's mechanism instead of creating a whole new one?
+>
+>I think the region discovery can be done via the ops->probe() callback. Thanks.
+>
+>[1]: https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/commit/?h=for-6.18/cxl-probe-order&id=88aec5ea7a24da00dc92c7778df4851fe4fd3ec6
 >
 >DJ
 >
 
-Yes using preparsed UUID's will help to avoid extra uuid_parse() usage.
-Sure, I will fix it accordingly
+Sure, Let me revisit this.
+It seems [1] is there in seperate branch "for-6.18/cxl-probe-order", and not yet merged into next, right?
 
 
 Regards,
 Neeraj
 
-
-------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_
+------xsJXu.fD5V5xDhddWNWtQINaZQo.kzBR_hLvg.7oVeVxw7Lp=_7371_
 Content-Type: text/plain; charset="utf-8"
 
 
-------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_--
+------xsJXu.fD5V5xDhddWNWtQINaZQo.kzBR_hLvg.7oVeVxw7Lp=_7371_--
 
