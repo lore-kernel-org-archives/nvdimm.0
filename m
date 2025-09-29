@@ -1,108 +1,107 @@
 Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1AEC243958
-	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:53:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7703F24338F
+	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759726392; cv=none; b=d3r4x72IBdSJ8MktAnOTpyEZMa+uGGIoC1Swmv0APy4SZ1mYYE2AXkx/9Qx+MnFARe6iBhPvnp25tQiQXLTC1B0hWVC3HCdVjUf7RO4b3M8JEswwNXg1JeKoavgdhsuxRF9cmV89K5a3TSY+7sh+epiirbsyDhqzKFRGdp/kD94=
+	t=1759726506; cv=none; b=lLTdx9ckbunuIV+B2Uh/csJEpk4vdhB4JLrWdLJMF1OWmMXYOLVzeOt7lpgDY8+wNKuyD4Nosx1IJvCNBMyXn77IjeHeeQHjj+T2X9bdvkD23A6qLt8tmfFbYW5srZfCkOQ/EsKZhnLKXcfTXSpXeAES59BMgqMbigfzj6njI2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759726392; c=relaxed/simple;
-	bh=sGSDfyrLHX/ORp1k9Hn0dLzDv7OYfmDBNqEalyBOapw=;
+	s=arc-20240116; t=1759726506; c=relaxed/simple;
+	bh=MKALniklbjQIocFCA57F3nu6eiXvymrCYPcaLd8sC4I=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=n6UcLmwTrD7wEnWoyWSPHj9SBR8D5JBJWQhvns1v2REx4FybqbJpwmrKchFr5yKHrrAykw4/u/KjIjsRjPmlMmZcebYJQ850rDgBdph1eOVnmfsX2wmngnhahUNQpIaDrcrnRPVflt831losS2nCbUBzVWOZhMPxNNsFf4DwZaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=B7iA4fk6; arc=none smtp.client-ip=203.254.224.24
+	 Content-Type:References; b=ArLL3N+bXMm0GNVOMZWTsIAyeA0dcMN3Ww004ouRZ9m/aDSgU3LiW/+kASeojzi81aVbbLL0Q9ditdnpDovVpXmX2bJzCxxv2e5rDvCgUNSNpPzSjzZC1TL/oi7ZNf+P/OtwCNJdyqMboI4bk/k9YddH63AeUbkCAse1U9yllao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=WAaorx8w; arc=none smtp.client-ip=203.254.224.24
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="B7iA4fk6"
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251006045302epoutp01adad5b5ea46f4b6e41aed2fc0b336503~rzdJNGjIx1590815908epoutp01J
-	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:53:02 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251006045302epoutp01adad5b5ea46f4b6e41aed2fc0b336503~rzdJNGjIx1590815908epoutp01J
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="WAaorx8w"
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251006045502epoutp01d430c3bc64047a6a087954943ea6b639~rze465c591733617336epoutp01n
+	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:02 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251006045502epoutp01d430c3bc64047a6a087954943ea6b639~rze465c591733617336epoutp01n
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1759726382;
-	bh=ljQwjAPpFplu64VEbVhcdW8SJG06I2gvcvkEKRwd9S8=;
+	s=mail20170921; t=1759726502;
+	bh=PCOjeKOKq4wxWMpLXXZiAxcmwm9HhVz+6b9LjvlRY50=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=B7iA4fk6a+lCkvjnMi3UDQvP+NLGy9/r42/c0f7yOAb1a5K17Lk1/e8cV5cd5XMq2
-	 mgLozzwsLOe1UzO8rK7qRG/aSgS6MEa9Kt2l8flFVxc5x1jXKssWAdMxQMDEa49nMh
-	 iiPa0ajLbj/Lx3/R/Xc48Zrta0WAEs7K3/wPh9ug=
+	b=WAaorx8wVBS4B5BhbRLYjxy2rVi0UR7HVtiWNLKql70ZU3Ypf0yv8lbK9Ved/CX/Y
+	 ZPSbRFYIJeHB7hilnOfCA7IYE5jykWlSVT0Yj6CfWYW8NMXKHesbgxgPrugZcf2MKg
+	 JyfAFkmTO/04XR4JpBSv1Ny5D0mHdqcT/D6CpYbE=
 Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPS id
-	20251006045302epcas5p12eeb2e226c96b0e6158e85743a6addd1~rzdI3tdsP3136831368epcas5p1o;
-	Mon,  6 Oct 2025 04:53:02 +0000 (GMT)
-Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp02.localdomain (Postfix) with ESMTP id 4cg6My12YFz2SSKY; Mon,  6 Oct
-	2025 04:53:02 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
-	20250929132418epcas5p4d2b45aa62e3f7abe35921b79d0192b61~pw6il-t6o2533625336epcas5p4P;
-	Mon, 29 Sep 2025 13:24:18 +0000 (GMT)
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
+	20251006045502epcas5p37cf5a6205e8131722d8efb9a77eac21a~rze4l9_A-0897408974epcas5p3P;
+	Mon,  6 Oct 2025 04:55:02 +0000 (GMT)
+Received: from epcpadp1new (unknown [182.195.40.141]) by
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4cg6QG0m9wz2SSKZ; Mon,  6 Oct
+	2025 04:55:02 +0000 (GMT)
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
+	20250929132812epcas5p31fb057eacb430527a75b55e392e23a43~pw98SWmkQ0800708007epcas5p31;
+	Mon, 29 Sep 2025 13:28:12 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20250929132417epsmtip1715b846028fe1616a97732f0bac42d70~pw6haIBxp2638126381epsmtip1X;
-	Mon, 29 Sep 2025 13:24:16 +0000 (GMT)
-Date: Mon, 29 Sep 2025 18:54:06 +0530
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20250929132809epsmtip2ca45d493073e84cfdeddb4df4320b6b7~pw96Eulyg2379723797epsmtip2x;
+	Mon, 29 Sep 2025 13:28:09 +0000 (GMT)
+Date: Mon, 29 Sep 2025 18:58:05 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V3 06/20] nvdimm/region_label: Add region label update
- support
-Message-ID: <1931444790.41759726382136.JavaMail.epsvc@epcpadp2new>
+Subject: Re: [PATCH V3 05/20] nvdimm/namespace_label: Add namespace label
+ changes as per CXL LSA v2.1
+Message-ID: <1983025922.01759726502090.JavaMail.epsvc@epcpadp1new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <b8361ada-8d99-4e07-b5a3-6cc43dae07f7@intel.com>
-X-CMS-MailID: 20250929132418epcas5p4d2b45aa62e3f7abe35921b79d0192b61
+In-Reply-To: <aaccf5c7-b9e8-4b27-8464-09ef3732c0c1@intel.com>
+X-CMS-MailID: 20250929132812epcas5p31fb057eacb430527a75b55e392e23a43
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_739c_"
+	boundary="----fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134140epcas5p23c007dab49ed7e98726b0dd9a2ce077a
+X-CMS-RootMailID: 20250917134138epcas5p2b02390404681df79c26f7a1a0f0262b8
 References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134140epcas5p23c007dab49ed7e98726b0dd9a2ce077a@epcas5p2.samsung.com>
-	<20250917134116.1623730-7-s.neeraj@samsung.com>
-	<b8361ada-8d99-4e07-b5a3-6cc43dae07f7@intel.com>
+	<CGME20250917134138epcas5p2b02390404681df79c26f7a1a0f0262b8@epcas5p2.samsung.com>
+	<20250917134116.1623730-6-s.neeraj@samsung.com>
+	<aaccf5c7-b9e8-4b27-8464-09ef3732c0c1@intel.com>
 
-------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_739c_
+------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 22/09/25 04:11PM, Dave Jiang wrote:
->> +static inline bool is_region_label(struct nvdimm_drvdata *ndd,
->> +				   union nd_lsa_label *nd_label)
+On 23/09/25 02:48PM, Dave Jiang wrote:
+>> +static inline void nsl_set_type(struct nvdimm_drvdata *ndd,
+>> +				struct nd_namespace_label *ns_label)
 >> +{
->> +	uuid_t region_type, *ns_type;
->> +
->> +	if (!ndd->cxl || !nd_label)
->> +		return false;
->> +
->> +	uuid_parse(CXL_REGION_UUID, &region_type);
->> +	ns_type = (uuid_t *) nd_label->ns_label.cxl.type;
+>> +	if (ndd->cxl && ns_label)
+>> +		uuid_parse(CXL_NAMESPACE_UUID, (uuid_t *) ns_label->cxl.type);
 >
->So in addition to Jonathan's comments, I think we should consider utilizing the common field (UUID) of all the labels. i.e. if you are to use a union, you can also include 'uuid_t label_type' as a member. Perhaps this function can just pass in a UUID rather than a label struct. And we can probably skip passing in 'ndd' and not bother with ndd->cxl check. This function can just rely on checking the UUID and see if it's the expected region label UUID. Just thinking of the places we can maybe avoid doing casting if possible.
+>You can do:
+>uuid_copy(ns_label->cxl.type, cxl_namespace_uuid);
+>
+>All the constant UUIDs are preparsed by nd_label_init(). For the entire series you can use those pre-parsed uuid_t and just use uuid_copy() instead of having to do string to uuid_t conversions.
 >
 >DJ
+>
 
-Thanks Dave for detailed suggestion. I will handle this in next
-patch-set
+Yes using preparsed UUID's will help to avoid extra uuid_parse() usage.
+Sure, I will fix it accordingly
 
 
 Regards,
 Neeraj
 
 
-------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_739c_
+------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_
 Content-Type: text/plain; charset="utf-8"
 
 
-------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_739c_--
+------fevm_dXp0U54qslEOU8oiqO.VnigTQz743t4hqwhjBnK2JlQ=_7417_--
 
