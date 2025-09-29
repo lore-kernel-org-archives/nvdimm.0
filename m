@@ -1,134 +1,112 @@
 Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AEB0247287
-	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB35F248898
+	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759726510; cv=none; b=hEzB53lj/skN0bhv3SwgInIdUxLZsqTy6S1gRqepfqEQCzHv4IsrmZbs4b/fhxyRVX9espBmvQD5EJN3f4YxqOO25aW8Cec+W/SClMnx5qjJVpuNc9Li5nz75dNLidIrjCwTKgy4FCn1d/iqeW1RTZz6KBkLaOWp1gizkzg7PZk=
+	t=1759726510; cv=none; b=ZS+rLtBQQ57mEMgn9W/5SPi2z3AOp+25g8UP3eNmB9+OE89cC5e6h0euBOrHK/xCJ7gyZwUDEBa/J/4LScme4H8vReml2PasQLXutKtBfJFx2k7bgqFn4AWBtPyXNmRfpBUsWfkniC2xc/J/7lr35aj2VKbZGcQDaP+aysGYyAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1759726510; c=relaxed/simple;
-	bh=tSY4x4vxebts9gODXbyGa+eGhARGSZMq2iBv9gh/YpA=;
+	bh=8EAJ8vay+2DUuI3NAgkhbUX2Sof31dSYp76My0hLXso=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=Z8GoNd9OXDcYmtIuV6ujc5T75DK1bHn8WjI0uiKQqPEi7Yl3FBB6eGzd/oIaJOmnesXOyECz7OIyqcORSkHSdnDHK2G79JkWfGXzuZbrPsdhXerTUqm5A6xk1zS/vq+TjUUQW+rQgnlYErcOlkEzIz5/w/zRCWA7ud0kGZp9xSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=Kc7o7ree; arc=none smtp.client-ip=203.254.224.24
+	 Content-Type:References; b=Yd40AAyPRjBESSbm4KV+u0oGw62NQ8cfxPh6b6BE4mGqwbwCECuiHCgtdAVpRzQLfgEgemp3O4SUYyBoqmOO8JWGEhSrS0TMERRmxnzKD7AXshhrteOOBvU5i2LEA0Y6FJ7OTo19JBqHYowP+TXLpoeuiJ5Dvpc1jRV+VqRPFWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=n1tkSp6d; arc=none smtp.client-ip=203.254.224.24
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="Kc7o7ree"
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251006045505epoutp01db004999585a738c027023649912c5ae~rze7YVb8-1805018050epoutp01W
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="n1tkSp6d"
+Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
+	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251006045505epoutp0143527402049c2d0e3111d7abd6b077bb~rze8EUUNG1805018050epoutp01Y
 	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:05 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251006045505epoutp01db004999585a738c027023649912c5ae~rze7YVb8-1805018050epoutp01W
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251006045505epoutp0143527402049c2d0e3111d7abd6b077bb~rze8EUUNG1805018050epoutp01Y
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
 	s=mail20170921; t=1759726505;
-	bh=tNN+FazP8ImXDuBGAG2Zx9hJXJuQjwtfjXILk1sFxO4=;
+	bh=r9lhFdtvtHSUGUtk6iX8Rl6CN04u/DZX/3b/mKjaUaw=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Kc7o7reet+yIbN9Vm3E0AfJKebiWkyn9LJeLnbepvyUrTiFCCo5B6rmtZc/qoyxrx
-	 p++GpgiL3paUt5faWRbrvapEyETEwnqw92cZ3HFQMKmPxG/969IyRtmj1kPsaDCZKf
-	 gMSIqMxJLvBTAvNaif+6Zs8fQwx8U3gzhd0ePKBs=
-Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20251006045504epcas5p2cf325e6820622dcc6c5ca96983dbeff9~rze7GMwZG0811608116epcas5p2u;
-	Mon,  6 Oct 2025 04:55:04 +0000 (GMT)
+	b=n1tkSp6dr2B3KZPPSmjQGO7vDrihI3f6G+RDoaInEhcmth1dqwAbF0JOD22PRL9zE
+	 N8DNd4lUaTTLJx/YxFoJ7Z65b1omKjVa39kGf5B72ycQrJjUP/Ua15DcONbIuy5pXj
+	 Od6Z5dwFRHU2liW66FBQAVcOsiNXbWCZO/4JfsGA=
+Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
+	20251006045505epcas5p30966ee343fcea294d676dea0218dc23f~rze7kb1FD0897408974epcas5p3l;
+	Mon,  6 Oct 2025 04:55:05 +0000 (GMT)
 Received: from epcpadp1new (unknown [182.195.40.141]) by
-	epsnrtp04.localdomain (Postfix) with ESMTP id 4cg6QJ5gZKz6B9mC; Mon,  6 Oct
-	2025 04:55:04 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPA id
-	20250929140720epcas5p196c2aa8ca4e2978fb13f5e562b94aa5c~pxgHFqRt20518905189epcas5p1S;
-	Mon, 29 Sep 2025 14:07:20 +0000 (GMT)
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4cg6QK290Vz2SSKY; Mon,  6 Oct
+	2025 04:55:05 +0000 (GMT)
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
+	20250929141400epcas5p28196fd5d1b919926b274ce14c46031cd~pxl8IXBvX3203932039epcas5p2S;
+	Mon, 29 Sep 2025 14:14:00 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20250929140718epsmtip12a19cda4f0e2588cbca6590fd017bc3c~pxgFy-rV71914219142epsmtip1V;
-	Mon, 29 Sep 2025 14:07:18 +0000 (GMT)
-Date: Mon, 29 Sep 2025 19:37:15 +0530
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20250929141358epsmtip29c4e319e87980ff024d15c621c7715cc~pxl6BfSI01882218822epsmtip2A;
+	Mon, 29 Sep 2025 14:13:57 +0000 (GMT)
+Date: Mon, 29 Sep 2025 19:43:54 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: Alison Schofield <alison.schofield@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, gost.dev@samsung.com,
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V3 03/20] nvdimm/label: Modify nd_label_base() signature
-Message-ID: <148912029.181759726504783.JavaMail.epsvc@epcpadp1new>
+Subject: Re: [PATCH V3 16/20] cxl/mem: Preserve cxl root decoder during mem
+ probe
+Message-ID: <680779399.221759726505299.JavaMail.epsvc@epcpadp1new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <aNRccteuoHH0oPw4@aschofie-mobl2.lan>
-X-CMS-MailID: 20250929140720epcas5p196c2aa8ca4e2978fb13f5e562b94aa5c
+In-Reply-To: <aNRkzw5GrqyZjE6s@aschofie-mobl2.lan>
+X-CMS-MailID: 20250929141400epcas5p28196fd5d1b919926b274ce14c46031cd
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75c0_"
+	boundary="----u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75f6_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134134epcas5p3f64af9556015ed9dfb881f852ea854c4
+X-CMS-RootMailID: 20250917134203epcas5p3819aee1deecdeaed95bd92d19d3b1910
 References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134134epcas5p3f64af9556015ed9dfb881f852ea854c4@epcas5p3.samsung.com>
-	<20250917134116.1623730-4-s.neeraj@samsung.com>
-	<7622b25c-a0d8-47b6-910b-9b2e42e099e4@intel.com>
-	<1296674576.21758556382506.JavaMail.epsvc@epcpadp2new>
-	<aNRccteuoHH0oPw4@aschofie-mobl2.lan>
+	<CGME20250917134203epcas5p3819aee1deecdeaed95bd92d19d3b1910@epcas5p3.samsung.com>
+	<20250917134116.1623730-17-s.neeraj@samsung.com>
+	<aNRkzw5GrqyZjE6s@aschofie-mobl2.lan>
 
-------u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75c0_
+------u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75f6_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 24/09/25 02:02PM, Alison Schofield wrote:
->On Mon, Sep 22, 2025 at 06:14:40PM +0530, Neeraj Kumar wrote:
->> On 19/09/25 04:34PM, Dave Jiang wrote:
->> >
->> >
->> > On 9/17/25 6:40 AM, Neeraj Kumar wrote:
->> > > nd_label_base() was being used after typecasting with 'unsigned long'. Thus
->> > > modified nd_label_base() to return 'unsigned long' instead of 'struct
->> > > nd_namespace_label *'
->> > >
->> > > Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
->> > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
->> >
->> > Just a nit below:
->> >
->> >
->> > > ---
->> > >  drivers/nvdimm/label.c | 10 +++++-----
->> > >  1 file changed, 5 insertions(+), 5 deletions(-)
->> > >
->> > > -static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
->> > > +static unsigned long nd_label_base(struct nvdimm_drvdata *ndd)
->> > >  {
->> > >  	void *base = to_namespace_index(ndd, 0);
->> > >
->> > > -	return base + 2 * sizeof_namespace_index(ndd);
->> > > +	return (unsigned long) (base + 2 * sizeof_namespace_index(ndd));
->> >
->> > Space is not needed between casting and the var. Also applies to other instances in this commit.
->> >
->> > DJ
->>
->> Thanks Jonathan, Ira and Dave for RB tag. Sure, I will fix this in next
->> patch-set.
+On 24/09/25 02:38PM, Alison Schofield wrote:
+>On Wed, Sep 17, 2025 at 07:11:12PM +0530, Neeraj Kumar wrote:
+>> Saved root decoder info is required for cxl region persistency
 >
->This is independent of the patchset, right?
->How about just sending a one off patch for this, and shortening this
->set by a tiny bit :)
+>It seem there must be a more detailed story here.
+>Saving the root decoder in struct cxl_memdev does not sound
+>persistent. Please add more detail on how this step fits
+>into the grander scheme.
 >
 
-Yes Alison, This patch is independent and not directly related with LSA
-2.1 support series. Sure, Will push it seperately.
+Yes it has story. For region creation using cxl_create_region()
+we need to know the root decoder. 
+
+In current case cxl root decocer is provided from ndctl using device
+attribute create_region_store(). And saving root decoder (cxlrd) in
+cxl_memdev(cxlmd) helps to get root decoder during region creation.
+
+Actually, cxl_memdev instance is saved in struct cxl_nvdimm(cxl_nvd). So
+after parsing region information from nvdimm driver we recreate region
+and thus cxlmd is available from cxl_nvd along with saved cxlrd
+
+I will elaborate commit message with above information
 
 
 Regards,
 Neeraj
 
 
-
-------u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75c0_
+------u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75f6_
 Content-Type: text/plain; charset="utf-8"
 
 
-------u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75c0_--
+------u9L2QgHoAwvmxKKc9G9JEwVzlbmkcdkJo4LdlrEXZ6gvS-I0=_75f6_--
 
