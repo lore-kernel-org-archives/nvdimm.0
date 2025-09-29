@@ -1,91 +1,145 @@
-Received: from mail-ej1-f74.google.com (mail-ej1-f74.google.com [209.85.218.74])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAB430CB5D
-	for <nvdimm@lists.linux.dev>; Thu,  2 Oct 2025 13:19:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EB011A9FB0
+	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:53:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759411150; cv=none; b=Jr5CBWwAIAcG2OzE4fuHxc/sAHrMIKcIRavuphXCoPrCT6VIreyqA8m0bkM17DIUIa+YIjHINfSjmLKHBisTkBHF6bIK/hH91UhHAtKcVmKt+5kWk0rMPEQoZ910H7M73myczaMzj7Y3q46lGac0vt9NHbvpxLmZ22HsgkyAS04=
+	t=1759726392; cv=none; b=ExAFOQM3T3paaC2GCNH3z2G5AWG1d8otoiFViWRdMBdRgE2K/Wfw53HNW+9kHcLP8mjGyJ0BeNQsNJ2PKxF8vofy569EoJ5oeJBrnwAwfotpl/IapS9k+ND6nzEFdDA4aTgSXN2wICfrwmz4Qrz4t+KxyENE48/Crih/eqZrrwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759411150; c=relaxed/simple;
-	bh=ppas900mz8UZ1nAze0k0cgvVf6bsDr1n1l1Zsx5qMIg=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=tcRWU4ByxKJGprxF/04dztzOWmvPgdz8JIAPtU6M4AQ7RTsSwEyeYDBohkivnyFJSQpK+7Fd7SBkoJjwoYzGiAP/hHF1VWtZAbg5ue4r7043xtOpR5yiG7mqfaPQ3Z15/HMv165mFAegCfbV8nEURPu5M1G07gS+r2JJp1Ea4Xc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--mclapinski.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rleKfnRh; arc=none smtp.client-ip=209.85.218.74
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--mclapinski.bounces.google.com
+	s=arc-20240116; t=1759726392; c=relaxed/simple;
+	bh=Q2kmveq+C7RooPxNI2u+eaupkIQfD19EQoUNvxI1XPc=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
+	 Content-Type:References; b=hdMGks0dWoLnrUS6yIIKuQf9EMVX6YkE1ny3ju3g6Z0oDkv6o0cAN5JC0cpZGsmQrDBEC+DgdFHtU+xE61dc/9bRjIULXhmZgRNmT7znD6S46LY3I0AvkVZcJ+X1J9MhUt0kXsfcP0J5hKSm+IsM31LQXWbqY3XLk14/3GeOlE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=fh9cJ4iQ; arc=none smtp.client-ip=203.254.224.24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rleKfnRh"
-Received: by mail-ej1-f74.google.com with SMTP id a640c23a62f3a-b3d6645acd3so104084266b.1
-        for <nvdimm@lists.linux.dev>; Thu, 02 Oct 2025 06:19:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1759411147; x=1760015947; darn=lists.linux.dev;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=opsuLXZalKgBtjjtUFfr16++aW0WmcWbDZvURSoXadw=;
-        b=rleKfnRhTTo+JoPlThhF+7ydZsxhtn7gQswEpax32WJKapu1TgnETksfEwP+qPOAwh
-         y2yHlPuUupFS4qAnfl4bcAVDSsCwSTn10KOHtnDWJjJzpLw2+oB23kqEAznXI33jJRDu
-         QblsIRrV9TngL/KM0GeyDpIHmB00bU8AmQzZYB+Mgpmt7zDJ0PCUqIFH6YzuMfcEuHom
-         shajcHPKkVseApm55CZpWxGYl8IXcthQ+Aa/YUxX4jMC0fVYHSIExp3JNkmwi4D5L/00
-         QDtz8LsuXsEgoBQYtfY/rWKupT0F5JPEl7Q0+hSOwaCW3ADWHZLGv1d2VVHxW9h5CAUI
-         neuQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1759411147; x=1760015947;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=opsuLXZalKgBtjjtUFfr16++aW0WmcWbDZvURSoXadw=;
-        b=PYKSQnfTtYIZwDubV/iINwU3Kc1kRIdYx1h0J5JJcUZf0PeX91mby1PX9hfkqqs87k
-         KCdp95/Fb+PhEi+ZhQiuxIc5K+D+I1XdyDTvNMcaFdMB2ZONk4sYC38Fu+B/hiVyq74j
-         wzoFRNjOyikz64+awLcsinlu2/6co3EFEqjujsiVn/mH9lOk9Ifwt7+kuy5hPRrzZQv2
-         0PUUzL8tDlx3xKku/d300TJElT0HGwluZOMNFWgwQruwJBu/UNTkNuR88BynWf7HICnA
-         JYZhjJVGwMd0gyT5lVYkcjwh+pDKywaZ5hkuDfyTZssCg3kcg1jhyUnxGrfD3ti4tSd/
-         lE/g==
-X-Forwarded-Encrypted: i=1; AJvYcCX9de4RVcgGP1zgFKHtds43oVMzgjeDI/lyqqdgF+Prl9w60OynUbtGcKE/tzNb/hlRl0yN4yY=@lists.linux.dev
-X-Gm-Message-State: AOJu0Ywd4/kZS/XBlAK2FbI8fEwaDjd9QLcJDPpu74xuy0ZqNexy1BJN
-	szDFRsc/p/GcwFXf1TtF0DeEEuiBd58uf/JqbEIGuXRoPzdCaCmK6rloxOunZcFow29aasSaHff
-	8943zpjOpUlyQPbOY/XbI9Q==
-X-Google-Smtp-Source: AGHT+IEBOtinBILzYUipbzKT6uP64K+v7i7D/BSugv8X6CMyxWJNMehP5LgieusjsvQy15d5i9FRZHYKNzdUhUgV
-X-Received: from edqh26.prod.google.com ([2002:aa7:c61a:0:b0:637:b54a:d88e])
- (user=mclapinski job=prod-delivery.src-stubby-dispatcher) by
- 2002:a17:907:94d2:b0:b2f:2c8a:680b with SMTP id a640c23a62f3a-b46e7bbb560mr870743666b.58.1759411147168;
- Thu, 02 Oct 2025 06:19:07 -0700 (PDT)
-Date: Thu,  2 Oct 2025 15:19:00 +0200
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="fh9cJ4iQ"
+Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
+	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251006045302epoutp01c63293acbf26b823595ebfdc7d6b391a~rzdI1Tgub1645616456epoutp01j
+	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:53:02 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251006045302epoutp01c63293acbf26b823595ebfdc7d6b391a~rzdI1Tgub1645616456epoutp01j
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1759726382;
+	bh=nfKFNKfeJiqkNVGd8THAVIqpLF2bjXYQMQChn0Sqbbg=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=fh9cJ4iQxFb/K2uAl8i1VNNwrNfVsnidvhyNF8fQV+VRzsYRnbbzS+Vqw16wmKEKw
+	 ntOPLe0jbAMbV4kVgctXk8E8hWQ/LRFoce40YhFZbjwdm5mk9xkkDiyW3AuCJNfaHP
+	 dTtpOg32vanRhOABQ6QKSTWY7mxeT0iLVJE5MsqM=
+Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
+	20251006045301epcas5p366ae7b70217b12b8c77f26d410d2ca37~rzdIhCpiN0330803308epcas5p3S;
+	Mon,  6 Oct 2025 04:53:01 +0000 (GMT)
+Received: from epcpadp2new (unknown [182.195.40.142]) by
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4cg6Mx5Rrfz2SSKY; Mon,  6 Oct
+	2025 04:53:01 +0000 (GMT)
+Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
+	20250929131341epcas5p3002671c37f155252b7012e141e196d88~pwxRFPOK_3271832718epcas5p3t;
+	Mon, 29 Sep 2025 13:13:41 +0000 (GMT)
+Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
+	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20250929131339epsmtip17fa8c0e777da6bc46ea4fc62eb1682a9~pwxPoySny1879918799epsmtip1T;
+	Mon, 29 Sep 2025 13:13:39 +0000 (GMT)
+Date: Mon, 29 Sep 2025 18:43:31 +0530
+From: Neeraj Kumar <s.neeraj@samsung.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
+	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
+	cpgs@samsung.com
+Subject: Re: [PATCH V3 07/20] nvdimm/region_label: Add region label delete
+ support
+Message-ID: <1983025922.01759726381745.JavaMail.epsvc@epcpadp2new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.51.0.618.g983fd99d29-goog
-Message-ID: <20251002131900.3252980-1-mclapinski@google.com>
-Subject: [PATCH 1/1] dax: add PROBE_PREFER_ASYNCHRONOUS to the pmem driver
-From: Michal Clapinski <mclapinski@google.com>
-To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>, linux-kernel@vger.kernel.org, 
-	Michal Clapinski <mclapinski@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+In-Reply-To: <77672d54-8133-4324-9ae7-39d11a335cb2@intel.com>
+X-CMS-MailID: 20250929131341epcas5p3002671c37f155252b7012e141e196d88
+X-Msg-Generator: CA
+Content-Type: multipart/mixed;
+	boundary="----mxO_4HALYOJvr1vdRg0el_y50LUdjfkHM5FQPcyM.heriKG9=_7331_"
+CMS-TYPE: 105P
+X-CPGSPASS: Y
+X-Hop-Count: 3
+X-CMS-RootMailID: 20250917134142epcas5p49d85873cf3ea5f3166c63381ab668fc7
+References: <20250917134116.1623730-1-s.neeraj@samsung.com>
+	<CGME20250917134142epcas5p49d85873cf3ea5f3166c63381ab668fc7@epcas5p4.samsung.com>
+	<20250917134116.1623730-8-s.neeraj@samsung.com>
+	<77672d54-8133-4324-9ae7-39d11a335cb2@intel.com>
 
-Comments in linux/device/driver.h say that the goal is to do async
-probing on all devices. The current behavior unnecessarily slows down
-the boot by synchronous probing dax_pmem devices, so let's change that.
+------mxO_4HALYOJvr1vdRg0el_y50LUdjfkHM5FQPcyM.heriKG9=_7331_
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Disposition: inline
 
-Signed-off-by: Michal Clapinski <mclapinski@google.com>
----
- drivers/dax/pmem.c | 1 +
- 1 file changed, 1 insertion(+)
+On 22/09/25 02:37PM, Dave Jiang wrote:
+>
+>> +int nd_pmem_region_label_delete(struct nd_region *nd_region)
+>> +{
+>> +	struct nd_interleave_set *nd_set = nd_region->nd_set;
+>> +	struct nd_label_ent *label_ent;
+>> +	int ns_region_cnt = 0;
+>> +	int i, rc;
+>> +
+>> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
+>> +		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+>> +		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+>> +
+>> +		/* Find non cxl format supported ndr_mappings */
+>> +		if (!ndd->cxl) {
+>> +			dev_info(&nd_region->dev, "Unsupported region label\n");
+>> +			return -EINVAL;
+>> +		}
+>> +
+>> +		/* Find if any NS label using this region */
+>> +		guard(mutex)(&nd_mapping->lock);
+>> +		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+>> +			if (!label_ent->label)
+>> +				continue;
+>> +
+>> +			/*
+>> +			 * Check if any available NS labels has same
+>> +			 * region_uuid in LSA
+>> +			 */
+>> +			if (nsl_region_uuid_equal(label_ent->label,
+>> +						  &nd_set->uuid))
+>> +				ns_region_cnt++;
+>
+>Why not just return -EBUSY here immediately? It seems the code returns -EBUSY as long as there's 1 or more below.
+>
+>> +		}
+>> +	}
+>> +
+>> +	if (ns_region_cnt) {
+>> +		dev_dbg(&nd_region->dev, "Region/Namespace label in use\n");
+>> +		return -EBUSY;
+>> +	}
+>> +
+>> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
+>> +		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+>> +
+>> +		rc = del_labels(nd_mapping, &nd_set->uuid, RG_LABEL_TYPE);
+>> +		if (rc)
+>> +			return rc;
+>> +	}
+>
+>Can this be folded into the for loop above or does it a full pass to check before starting the label deletion process?
+>
+>DJ
 
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index bee93066a849..737654e8c5e8 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -77,6 +77,7 @@ static struct nd_device_driver dax_pmem_driver = {
- 	.probe = dax_pmem_probe,
- 	.drv = {
- 		.name = "dax_pmem",
-+		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
- 	},
- 	.type = ND_DRIVER_DAX_PMEM,
- };
--- 
-2.51.0.618.g983fd99d29-goog
+Yes, if we use "return -EBUSY" in first loop itself then we can call del_labels()
+I will fix this in next patch-set
+
+Regards,
+Neeraj
+
+------mxO_4HALYOJvr1vdRg0el_y50LUdjfkHM5FQPcyM.heriKG9=_7331_
+Content-Type: text/plain; charset="utf-8"
+
+
+------mxO_4HALYOJvr1vdRg0el_y50LUdjfkHM5FQPcyM.heriKG9=_7331_--
 
