@@ -1,89 +1,101 @@
-Received: from jpms-ob01-os7.noc.sony.co.jp (jpms-ob01-os7.noc.sony.co.jp [211.125.139.71])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27BEA27F756
-	for <nvdimm@lists.linux.dev>; Tue, 30 Sep 2025 05:54:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=211.125.139.71
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C3F3221FC6;
+	Tue, 30 Sep 2025 10:11:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759211678; cv=none; b=bQ8NVdm3m/IYBhRE3PaX6kfLPkPwtfOW1SC9tG/Sz3kzgio7FJatuki6nqZIpzywWdiUhGLa3P9ve3diTwKJFht95ukdyIAdboX0mJog3ht3+JY0F0KTHOw/lx7WXO91woffIHi2k5VskxLVxipP/CRLGfWd2xwB3n9U6aRG+SE=
+	t=1759227104; cv=none; b=SeeDCxdW7SxUxsz2SOnMszDw3EX/y6/eFeAJH2tTvVmiRdlJFDaSyy4iwLMSWqPsNqUZVty284kine3eMcouebIj2EcQInDb3D3xB60goEdTB2J7OfguXzvBxsKw6YhBNvE+di7q2DlNuc7GTMFQ3i51aVmZak3sPLVqEpjfWZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759211678; c=relaxed/simple;
-	bh=75Ez7Llij/FP+65V0SEWePsRytsP9jwhJzUu3dNd6FE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PIBZpJdHDs9V0rowlQr7P+KiUpmafLGWKMJr4mDZzY/tZXt8QhuWjgmMQ/VBa6rBihHcLJNqM8nYpWSoIlDGD0JCOFIFGI0ElrIbMFFYS2Ec734QOuuOpGSLpBVTAHMmF73yhz+Poo8ZslyCfWRhYqMd5XbDtlezi8Jg/SWLjoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sony.com; spf=fail smtp.mailfrom=sony.com; dkim=pass (2048-bit key) header.d=sony.com header.i=@sony.com header.b=xs4KcPnu; arc=none smtp.client-ip=211.125.139.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sony.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=sony.com
+	s=arc-20240116; t=1759227104; c=relaxed/simple;
+	bh=nQiB9x6LVTor0rUg13JxaN9DSoNnxVocFRy7A4rwhN4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Q0eav9z7mjfF0vHKb2FnXiIkftZk3/rb2IJKm4DYeMrLzsd8C/Z2gw9lztgZCKNQXx0IWME2SoKEOmfvukh21SIq+/94oe50l3QXezVAq97mVseCQzAajcqSpXjxndYpjI2XcX1TxGdyJgM77moYZIxpll8vvDPgM7AXOWz7h8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PFCo7Wxt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sony.com header.i=@sony.com header.b="xs4KcPnu"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=sony.com; s=s1jp; t=1759211674; x=1790747674;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=Jrcsq7Bu0Yk3UAMt03x6tUgoyIW9LMRiz/7TzP+TiEw=;
-  b=xs4KcPnuwtmwIAcv8JTeEnRrwS4uAqd4Rh5+KLz1pkNj/HhC4yhhuS1J
-   3aVgeB+fX0pUduaLu4+LoNK1j1PR3BOOFpmAZQ2suGwbBTTVn1U+boSG3
-   KL4as9vf9azEooMSNURY1Q0UzZB77+4TVxdNMLYE8q9a2YpoP9S58kFbR
-   GWhZW7MHYXVfZ/DXnbrqQTLhkmRXCyk1dkxS9TysFgMC4HdCDI5n4qQpq
-   SHfBd3qtN+VvKkIqmN2vhVUiI+GawcaqVSsQaWU7Gv//0IM/O8l4Hw7S/
-   CvgC67UyWKU3t94FgVljk3fgKLj4t9gr5mS/tz8z3UQJfJanzhEGm6raH
-   A==;
-Received: from unknown (HELO jpmta-ob01-os7.noc.sony.co.jp) ([IPv6:2001:cf8:acf:1104::6])
-  by jpms-ob01-os7.noc.sony.co.jp with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2025 14:44:24 +0900
-X-IronPort-AV: E=Sophos;i="6.18,303,1751209200"; 
-   d="scan'208";a="39195439"
-Received: from unknown (HELO cscsh-7000014390..) ([43.82.111.225])
-  by jpmta-ob01-os7.noc.sony.co.jp with ESMTP; 30 Sep 2025 14:44:24 +0900
-From: Yuezhang Mo <Yuezhang.Mo@sony.com>
-To: linux-fsdevel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PFCo7Wxt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76F3AC4CEF0;
+	Tue, 30 Sep 2025 10:11:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1759227103;
+	bh=nQiB9x6LVTor0rUg13JxaN9DSoNnxVocFRy7A4rwhN4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=PFCo7WxtPFsgR+fJZk1IYzTYSR7R4gVmihaKer2MbfEfvZil4Sc5gGoUHTJsE0AjC
+	 LWdt7CuX9zl859TVUkm2BcqPXtkBTiZ0PxjavQGwR2UhvS1a7C9F1xYSd2RDhJcmk+
+	 pkyxIbFWI+SEoh1ffi8vAIQg5qOrCMDV5ZfVgfueTp9DPIN1xKa2OGEKpSq2XmGT5f
+	 Rqj+6K4DGhwdbWXdmuuiAfs4ZC9ZYTXimCD6EFLVt4yZPlXANp8U2Q9vGAd1TDlDA9
+	 QY61zxcshu5eF0yHC7Kv/EP7txFUCCHxYdxTmxpHTlqbO+nZ2lTHR2mFI8CQghhtHl
+	 N7OLorNNRxgZQ==
+Date: Tue, 30 Sep 2025 12:11:37 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: dan.j.williams@intel.com
+Cc: Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, jane.chu@oracle.com,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Tyler Hicks <code@tyhicks.com>, linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com,
-	hch@lst.de,
-	Yuezhang Mo <Yuezhang.Mo@sony.com>,
-	Friendy Su <friendy.su@sony.com>,
-	Daniel Palmer <daniel.palmer@sony.com>
-Subject: [PATCH v1] dax: skip read lock assertion for read-only filesystems
-Date: Tue, 30 Sep 2025 13:42:57 +0800
-Message-ID: <20250930054256.2461984-2-Yuezhang.Mo@sony.com>
-X-Mailer: git-send-email 2.43.0
+Subject: Re: [PATCH 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM DIMM
+ devices
+Message-ID: <aNus2chNlLGmEiOg@kernel.org>
+References: <20250826080430.1952982-1-rppt@kernel.org>
+ <20250826080430.1952982-2-rppt@kernel.org>
+ <68d34488c5b8d_10520100b6@dwillia2-mobl4.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <68d34488c5b8d_10520100b6@dwillia2-mobl4.notmuch>
 
-The commit 168316db3583("dax: assert that i_rwsem is held
-exclusive for writes") added lock assertions to ensure proper
-locking in DAX operations. However, these assertions trigger
-false-positive lockdep warnings since read lock is unnecessary
-on read-only filesystems(e.g., erofs).
+On Tue, Sep 23, 2025 at 06:08:24PM -0700, dan.j.williams@intel.com wrote:
+> Mike Rapoport wrote:
+> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> > 
+> > There are use cases, for example virtual machine hosts, that create
+> > "persistent" memory regions using memmap= option on x86 or dummy
+> > pmem-region device tree nodes on DT based systems.
+> > 
+> > Both these options are inflexible because they create static regions and
+> > the layout of the "persistent" memory cannot be adjusted without reboot
+> > and sometimes they even require firmware update.
+> > 
+> > Add a ramdax driver that allows creation of DIMM devices on top of
+> > E820_TYPE_PRAM regions and devicetree pmem-region nodes.
+> > 
+> > The DIMMs support label space management on the "device" and provide a
+> > flexible way to access RAM using fsdax and devdax.
+> 
+> Hi Mike, I like this. Some questions below:
+> 
+> > +static struct platform_driver ramdax_driver = {
+> > +	.probe = ramdax_probe,
+> > +	.remove = ramdax_remove,
+> > +	.driver = {
+> > +		.name = "e820_pmem",
+> > +		.of_match_table = of_match_ptr(ramdax_of_matches),
+> 
+> So this driver collides with both e820_pmem and of_pmem, but I think it
+> would be useful to have both options (with/without labels) available and
+> not require disabling both those other drivers at compile time.
+> 
+> 'struct pci_device_id' has this useful "override_only" flag to require
+> that the only driver that attaches is one that is explicitly requested
+> (see pci_match_device()).
+> 
+> Now, admittedly platform_match() is a bit more complicated in that it
+> matches 3 different platform device id types, but I think the ability to
+> opt-in to this turns this from a "cloud-host-provider-only" config
+> option to something distro kernels can enable by default.
 
-This patch skips the read lock assertion for read-only filesystems,
-eliminating the spurious warnings while maintaining the integrity
-checks for writable filesystems.
+It looks like /sys/bus/platform/devices/e820_pmem/driver_override does the
+trick.
 
-Fixes: 168316db3583 ("dax: assert that i_rwsem is held exclusive for writes")
-Signed-off-by: Yuezhang Mo <Yuezhang.Mo@sony.com>
-Reviewed-by: Friendy Su <friendy.su@sony.com>
-Reviewed-by: Daniel Palmer <daniel.palmer@sony.com>
----
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I'll make the driver to use "ramdax" as the name and rely on
+driver_override for binding it to a device.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 20ecf652c129..260e063e3bc2 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1752,7 +1752,7 @@ dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 	if (iov_iter_rw(iter) == WRITE) {
- 		lockdep_assert_held_write(&iomi.inode->i_rwsem);
- 		iomi.flags |= IOMAP_WRITE;
--	} else {
-+	} else if (!sb_rdonly(iomi.inode->i_sb)) {
- 		lockdep_assert_held(&iomi.inode->i_rwsem);
- 	}
- 
 -- 
-2.43.0
-
+Sincerely yours,
+Mike.
