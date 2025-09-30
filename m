@@ -1,99 +1,86 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010013.outbound.protection.outlook.com [52.101.193.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25A9F30CDB2
-	for <nvdimm@lists.linux.dev>; Mon, 29 Sep 2025 17:24:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5AB725B30D
+	for <nvdimm@lists.linux.dev>; Tue, 30 Sep 2025 04:01:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.13
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759166644; cv=fail; b=LXmL5MH5DfDWncY9TXSWAuj0zbdIcM29o8k6EFhVNMpE/0BN0Km/zW1p3JZ9UXnxMG8R9zTvaZNzheIaLpHe/vIYtrM82Sr/O+zKnh4FD2oV6s4NJt917i+1sIfk9PgTrYOUDK00Sqjsa0TVh4LkxXD4RaU3QB5CXfru2SOFSPw=
+	t=1759204913; cv=fail; b=bYdOYaYj3vQ4GRca4FAlV37RUQCmIQUmJm9WiRYF7VEgDhN5XzW8nsIOdcJ/LOVgm9eWdE02o8w6ESP4jL5fDSJ7eIjgJPNUqi2fLU2URSNI1FpTgw8jqjhQ9d0/h2g1fLUhtwDkSC5Fgz5xahJpVZIrsR6js6aiRpWSYFfCNDA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759166644; c=relaxed/simple;
-	bh=0IEo4suGbBJ3vzjaSmsHwlaXfeK99spoxdetMCsDE3c=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=tjxRBKURky3Sh7hUoD7BwSVNxKTaRumQLMyq9E8SOCbVEvje7IokNMSqwoGTRKtEprrfa1zx92hEzZx8zRfhkFPNrYA1qt9p7mZB1wt4sftMheE/0fjNhHTyHMh9PIDn+Pt1dkTxtq5yjnEPym8IzAXSdF7iP+u60FUjxLDJxFw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ittYpwJK; arc=fail smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1759204913; c=relaxed/simple;
+	bh=141dONpKK0uBNTRV+saoqomSL3268h7Al7B54EteHRc=;
+	h=Message-ID:Date:From:Subject:To:Cc:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=SPTF+jVPODlgpO9aKT7iZULYV+9QtKIRYxua/cF3MCuz7PbLtzSBP6KBpC2FhiIfcURw5hLwZ2G3JLw6R6JhDvaPKIAIMdmiQIjtM8Ol/7zv0Eg5z6XgjqDS/0TewG7PpFAc3oPKVLCW9wqKb6fPV6HpE7FXNCoIL6OWM3TiDTE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Wj2N7JjP; arc=fail smtp.client-ip=52.101.193.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ittYpwJK"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1759166643; x=1790702643;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=0IEo4suGbBJ3vzjaSmsHwlaXfeK99spoxdetMCsDE3c=;
-  b=ittYpwJKopUVTLtW8D1jh9kH3mJyPJE/ijCThyEnjnNjxIc8zJYNjxuU
-   C294Qkcq8+wURPqTRMROQVAf5rF0K+VYnN5s0Sh2UOAnOQyUiyRyUpE5F
-   ph0pnd1u8/NnmE1AIQRCyCVwc3ACKvMcEWcvipgmQnF64YqmD6r3igwmB
-   TGjN8+0FNBLCzBkB3E3kFos+XUhqXxAo3CQJsmMXQr72+tqp40m78/nZS
-   /JUJR526yIhf96ywN1KqNK/2j62F/oqJXH+8y+LidIgkyn0ZBB4CQxyhI
-   EXR8cFCP5vvpSOZQwLnDxOjHb4ramBJ3ruzlBlPGNlYuaUNXnOOcWP7t5
-   w==;
-X-CSE-ConnectionGUID: oT/qYj3wQmKH6RFMLTjh0A==
-X-CSE-MsgGUID: 4dftvhaqQIGw+NWAGuWYow==
-X-IronPort-AV: E=McAfee;i="6800,10657,11568"; a="61524158"
-X-IronPort-AV: E=Sophos;i="6.18,302,1751266800"; 
-   d="scan'208";a="61524158"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Sep 2025 10:24:01 -0700
-X-CSE-ConnectionGUID: buCFbF6iSduJNn1RzJddOA==
-X-CSE-MsgGUID: FhuRgWV+QdC7Xlek0jEYGg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.18,302,1751266800"; 
-   d="scan'208";a="209000658"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by orviesa002.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Sep 2025 10:23:52 -0700
-Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Mon, 29 Sep 2025 10:23:49 -0700
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27 via Frontend Transport; Mon, 29 Sep 2025 10:23:49 -0700
-Received: from CH1PR05CU001.outbound.protection.outlook.com (52.101.193.11) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Mon, 29 Sep 2025 10:23:47 -0700
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Wj2N7JjP"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=yv06xB63HbkqUpt7AQTIQAS8uEm2hTybkGpfAmBNsejat0uPwC4nKSstRwoG8EIaJis7XAfc+z3X7GO8517lyDwGWz0S/9MlKwHa8KU1QX4Xm0F+wHb+zg4WWvN25L0/YKaeiIfHI4q3bSXE5/a/1CXP+jaH4eZi8h1EPJ/H+9iFEKxzhnSaOrkHYxWcXXDx4RLEINXgHsCot07lShkeZacft4Fsi7Bf17ZIt0YEEAr6POw7A06XBoSbmaAmkxMHotce/TcVBKjbVkdVnT0PgZgSz1S7TI0w4UN/4KRSHDWFtGbFAxvjiyw4J6iGBoY82cIOHUVBuVFKFeFBQlGrRg==
+ b=M51kVuZPQMcdXMbArBygxFfAai4lzPH9Cz12T9IMPmGwsmdBWEz7NbMjhpycvvjfksysgxwZmkDRGS7A2deNNOY9cOC/JAnOj2gEL2u8wA9JFqDoJyuNjHMG6P2oaPa/24QYFr4r2Sa3ECsxvV4GwYOc2XdMApfhjhL4FaOAhYrr6gy/o3o+w9ca2mPOzs1LBKeDwxiBUzEKWLPiWxMEKRzE4PgSteDlp24ZQbDhFfM5ZRV6PvXYmdPQR/zicv2NkAM7I9V+qkhrFsRiF9yFj+z7q68xpIO3FmKw2V1rP3RH+4mmYP513oLBugNbOfbNlAzm4ojDOIAzGGZhWpOVMg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=3pO0pRzfAEP9k6CJ6ysMj3OO9cBpj+Dtz98rh5sdDgc=;
- b=PAtQfyLNYak/3CmBhgCTjoyJEafpbGnzDtjkXvv+a+yoBZmN8tAZMrh4e5qs7/N4LihAAyJfwlzTUeMQS0D+5VbMqgJp1IehQfnY9DIFR5QStbQl1PUTyLJgbgN8Mh4FBCsrfPCgsQXCGW62nx7M3dCsqcZxU3O57xIGXSpaUJiMBlg6w6GjsbpqxiIXr4CkgkK/ED+8nIPQ4rjkRtTPVCx8mioZCLFfrUt/T6OsdJ2kn6DRmvr35LPW/88Umc77JkKGU1dnqBoCQhsqo0T4NWwADDTpItJPKI66pNCvoJJKOlDwq+CrLUw1yZjyO52RIQpOUGZLYBuPOnUgOn6/3w==
+ bh=gECve8jIviamsmD/OoM+nMQ5GWbn20uscfo0AGB5QPs=;
+ b=Ungpm16f6FhRB7XHx7XVz7hzGIylV90I4AHzKd+SlcUnqvZbzUOQRIlGssZo3yV715azl7zf55zRhB/3lArTbtrxrEiO98KOICug7uit/ksuf1BZBj4zR3IQDWS7SbmIo4LCUX4VoJSSyjRmq83a2NeEpjoAGAlakLVoeBr5i+OflhVAtXPvTx45MG8LIaSxwznxtWvmd8xsvcO4vmkRkemqjOhoodmyYC2nsVq8SCL/85771DgBK2Hrq3PeqjltoBVXu5n/e4N1lnpC/n57aNSjHEXeTnd3Rn2rvzQkUzwn5qeU5PDQq587fLX8b9SpbXYFU/n/PGT7CH+Bko5/zQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=gECve8jIviamsmD/OoM+nMQ5GWbn20uscfo0AGB5QPs=;
+ b=Wj2N7JjPDoEWMslLzOS5371G8HoftrhuX9XP4+LczEVzKcHhlRYI2tAVqDCrDRHr9dt7teFTcrjiFM2PBk6CyjCbN2KNWh529K4tDuEHAu3l8lHnqij5+NKEV0b1xlDUn6ECkaCHQUCDEzGcU5cXwoHUYUUHGic/7/GlAhyM/Js=
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- (2603:10b6:a0f:fc02::80b) by SJ2PR11MB7671.namprd11.prod.outlook.com
- (2603:10b6:a03:4c4::17) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9160.17; Mon, 29 Sep
- 2025 17:23:45 +0000
-Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- ([fe80::4df9:6ae0:ba12:2dde]) by SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- ([fe80::4df9:6ae0:ba12:2dde%8]) with mapi id 15.20.9160.008; Mon, 29 Sep 2025
- 17:23:45 +0000
-Date: Mon, 29 Sep 2025 10:23:42 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Ira Weiny <ira.weiny@intel.com>
-CC: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>,
-	<dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Abaci Robot <abaci@linux.alibaba.com>
-Subject: Re: [PATCH -next] nvdimm: Remove duplicate linux/slab.h header
-Message-ID: <aNrAnhYMyvZ-farN@aschofie-mobl2.lan>
-References: <20250928013110.1452090-1-jiapeng.chong@linux.alibaba.com>
- <aNngNaDpVJAyYKYx@aschofie-mobl2.lan>
- <68daa03bbd9a5_270161294bd@iweiny-mobl.notmuch>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <68daa03bbd9a5_270161294bd@iweiny-mobl.notmuch>
-X-ClientProxiedBy: SJ0PR05CA0099.namprd05.prod.outlook.com
- (2603:10b6:a03:334::14) To SJ5PPF0D43D62C4.namprd11.prod.outlook.com
- (2603:10b6:a0f:fc02::80b)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from MW4PR12MB7142.namprd12.prod.outlook.com (2603:10b6:303:220::6)
+ by MW5PR12MB5598.namprd12.prod.outlook.com (2603:10b6:303:193::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9160.17; Tue, 30 Sep
+ 2025 04:01:45 +0000
+Received: from MW4PR12MB7142.namprd12.prod.outlook.com
+ ([fe80::e5b2:cd7c:ba7d:4be3]) by MW4PR12MB7142.namprd12.prod.outlook.com
+ ([fe80::e5b2:cd7c:ba7d:4be3%7]) with mapi id 15.20.9160.015; Tue, 30 Sep 2025
+ 04:01:45 +0000
+Message-ID: <a6e9ef76-cdb4-4dde-a7e9-955549f3a825@amd.com>
+Date: Mon, 29 Sep 2025 21:01:39 -0700
+User-Agent: Mozilla Thunderbird
+From: "Koralahalli Channabasappa, Smita" <skoralah@amd.com>
+Subject: Re: [PATCH 1/6] dax/hmem, e820, resource: Defer Soft Reserved
+ registration until hmem is ready
+To: "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>,
+ Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+ "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
+ Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
+ Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
+ Ying Huang <huang.ying.caritas@gmail.com>,
+ "Xingtao Yao (Fujitsu)" <yaoxt.fnst@fujitsu.com>,
+ Peter Zijlstra <peterz@infradead.org>, Greg KH <gregkh@linuxfoundation.org>,
+ Nathan Fontenot <nathan.fontenot@amd.com>,
+ Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>,
+ PradeepVineshReddy Kodamati <PradeepVineshReddy.Kodamati@amd.com>
+References: <20250822034202.26896-1-Smita.KoralahalliChannabasappa@amd.com>
+ <20250822034202.26896-2-Smita.KoralahalliChannabasappa@amd.com>
+ <537527fe-55be-4661-a0c6-ba9fe344bc35@fujitsu.com>
+Content-Language: en-US
+In-Reply-To: <537527fe-55be-4661-a0c6-ba9fe344bc35@fujitsu.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SJ0PR03CA0260.namprd03.prod.outlook.com
+ (2603:10b6:a03:3a0::25) To MW4PR12MB7142.namprd12.prod.outlook.com
+ (2603:10b6:303:220::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -101,138 +88,375 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PPF0D43D62C4:EE_|SJ2PR11MB7671:EE_
-X-MS-Office365-Filtering-Correlation-Id: b7eb8c44-bf46-41bf-bc27-08ddff7cf184
+X-MS-TrafficTypeDiagnostic: MW4PR12MB7142:EE_|MW5PR12MB5598:EE_
+X-MS-Office365-Filtering-Correlation-Id: 04505d06-51dd-45c0-0c44-08ddffd6121b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016|7053199007;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?Ss85qm829c/PEWm4hmds2gYGkX6IW3kSTkQwByd4S4u75QSTd101gJAJOozI?=
- =?us-ascii?Q?xPDRqbXpOIv8fi0jETKK0zfLnlH+cpMhdk68K6zO5sggYOVperseaNmlaJBq?=
- =?us-ascii?Q?M6qdnLYbdsny5BFuAMPjM5mU5/znnzpTFFaZivBZHcES1h/uzTQQwTwTLjRj?=
- =?us-ascii?Q?+5r5j6nXAG4GUcB3kBIJsp69TvKFaBUqrRe7oykp3QTsvMrtAVZHIdiDlRw0?=
- =?us-ascii?Q?k/JwNLWy9iigVQYy7OjK2gS35oA+fO/5DpkhrNo43ZyfVeGVKsOCdjlP9zc9?=
- =?us-ascii?Q?gyz4F/yG5J3li37zaOhGTPIfUjbC9KwnIPreE9KZ4EjvwHpttWKodt1Ikc1y?=
- =?us-ascii?Q?HiEegyHujWuljQ7ybutDZFZDLviQ9XNmCNFw9/9pW7XrOSemOmkLeR4DxAB8?=
- =?us-ascii?Q?jU8sGLaV7ysQJ/Fx0KKTIdKHsUkuuceRvgoRt8bQlbe/QBi0zH+fEpN0+VIE?=
- =?us-ascii?Q?U+m1IfS5o6AdJP4BlKy1H89pjAHx+dUPkpsrB5Sg/QScc7xvq+BQn4/FuT55?=
- =?us-ascii?Q?630njDfouhx7TjdD85Wci1pGFLXvZ7lplXIh/d9pJdMNkOahNxTKElySdABT?=
- =?us-ascii?Q?hOuBH5CiR5Xpi5hxPTF+yYo84cnMfzMFw6Be2uxQM9LomyEOSgGFDW+Dsu2P?=
- =?us-ascii?Q?v/qrskP/+CA0SAWzlpiMhCn/IMiBlqPVNL2f0whoJ6epHiEczlUxI8K++/0Z?=
- =?us-ascii?Q?tGiJnbGNuKbQlPa5PXb8/eVlNW3SWMtwdM9ZB4NP1ptZYwamai82FeMK4xDK?=
- =?us-ascii?Q?A/90bU2jC4hblmsyh/BoHzpE99MO/Z2pT/dwpwUqCmQ2QoXyb30wYsPonaOo?=
- =?us-ascii?Q?l6t3vemvjFgh3jkxcIdGYwI/L37BzwPvAQcYHgm5AtUCnwgFBhbCr1Qi8M6V?=
- =?us-ascii?Q?K1560/1RavxiK5Zi4Dn12J7OXN+VGyp8F6nj6ZQNztJCMbgV/4HaLeAwU3kG?=
- =?us-ascii?Q?VVFNl2toyKW5+WSYH9DJVaDg9tbyLR9VjJLhEZW1hjjog6+ocXK4fBq80miW?=
- =?us-ascii?Q?tqKJmc6iIOLPoWzTpOb2hAcHnRmsuOkilQgnCM5gemMZVdYXmcayYbx9O0+y?=
- =?us-ascii?Q?yEvUwj83HPRQnK6xSK06PwCvWgOi36HMspk3EaIRSoIZYN/hx2eWh8ZD1rPc?=
- =?us-ascii?Q?NUh1x7LTR3uBUCbmmdLabR/gSbIfTqpUVOFWJjUEnbUGKJRV6QnSo6+SHRUj?=
- =?us-ascii?Q?IFTpHeOexEa6kZVwbfHC8bir2AiDd/OTb4I/Ool7HLd9mfdTff9BMqncN8Bl?=
- =?us-ascii?Q?BFUJLeltYn7TG8/saWcgPZh/ov46MAhEYfJ4dhzbFmEdWMMwiZnFTmmt86/d?=
- =?us-ascii?Q?lLWohiqbF8KmbVUFsjgIyV4GnGrLkXQhD1UzMFjo9N0sVJ7s3yuXuM/WaR93?=
- =?us-ascii?Q?z8vOSUzSmrZ40fQKTljQ9bs4+RuTfg+7lw1RMwaZiZYcOaYhyw=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ5PPF0D43D62C4.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(7053199007);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?Y1dtSFhLQ0k3ZTI3bWo4RXhDVVhMNlVSV05VZVkrNmpwOHF5TWIyN3RBZmRT?=
+ =?utf-8?B?L3A4a0RaMkRSUFFtajFhRHBlZGtvOGlKYmhKaXBvZ1BQQjJ2UEZKTTZOSnRz?=
+ =?utf-8?B?SDZvV0lZcmdEQzN1UmdId28yT1l3WGI3WVdOaVhJeVV3b0JmRFo0M1Y5NDdw?=
+ =?utf-8?B?Mlc0R0hVanlRcWJNQ0dzancyUWhydDNKZnJJMVZiVENMMVNqQTRyMllhKzNt?=
+ =?utf-8?B?eTF0VXRMSC94VGVIS1FhMk5zdFJQeG5KbFNSWFo2QkYzOXQvVURQanRuZkNO?=
+ =?utf-8?B?Ump4UndFMDg1Z2F5YzhIRVZJcDU3VlRRdlk5NWVualdTbWRYWHpnRGxJdHBw?=
+ =?utf-8?B?U2ZtMDNlb2g4aDlyc1dEeTVRemo1Wmc5U0hQc1JEQVhWZHhIN3lRR0lOVzkw?=
+ =?utf-8?B?RFQrbzVwMlFXb25DS013dTZXY0hqREFYRnkvRGZBbE5GdDZ0Rms2dE9MSUN3?=
+ =?utf-8?B?dVUzdTFqR1IxUksxbmlObHZWdUZPejdBUjFRZi9ZMWNqUnY2OXNGeE1YdytX?=
+ =?utf-8?B?RzNxOXBtTG1pNDBIYUZOdEkyUHpkRmdlNGkrNlFKdnRBWDlCVFg2a3hZMnh3?=
+ =?utf-8?B?eGt0aGhGQmk5NnZQeEo1ZHZHaWdlSWxzR2hScldmVVJjOW9VMmRuWHhPTDly?=
+ =?utf-8?B?WUsvQlBpSkdDWXU5UGZ3OWVKV1ZqSjJXbTY1RGQ2RFpBeTVVbWxVc2p3STFz?=
+ =?utf-8?B?dFRZN1lQS1VBcWxhcjVaUEJ4cWJtOVBNeWlBYmg5TE1YUlpiTEZwbDZTdFNz?=
+ =?utf-8?B?Q3V1cXA1NjFCcjRveG5lNXpZM3VocE5ac0tlSytGeTRpQmJUUXl0RmhPQXlh?=
+ =?utf-8?B?WnJXejVSVmRrMVZ2bk43VitRNndvaUZMMzZmek84aDVsQUZKVWFnTTlRRWVG?=
+ =?utf-8?B?bit2RG94Q3ZWcWxEV0FsQUJMd3l6Ry9QTEg3SGEzRytnMm4wb21jYWt0NVRm?=
+ =?utf-8?B?RkdYZzFwYlFFL3l4dWFINzFIWm53dmJUaEFFWENCcWJjaXhMNHhmV0k1dWtH?=
+ =?utf-8?B?MjlqeTE1ZzZaa3E0VUo4dEVuWlczMDVIT09Cb0dnblZzSVNaNGFnbFdEVEVI?=
+ =?utf-8?B?MTEySlg1Q0dyaWU1dnFDdFpSZjFmL1JGNUp6dmU1cjZlNjZ1Y1ZHdVh1TG5L?=
+ =?utf-8?B?ckNJOVBqc1M3STkyczJqYnRWS2V1SG5NUUJWRDBKbFZtOWk3QVNlc3E2YU5W?=
+ =?utf-8?B?Rk1OcGdMeng1YjNPeHJZczJERUEycDFXQm9Gc2NhNDUySkFCb1Z4UTBtMHAr?=
+ =?utf-8?B?MlFmd2I4L25HeExzdHk5YVhSMWZCaytSbzZCZmpwRnY3UXRkUFB0VDFTTnRp?=
+ =?utf-8?B?TnZKTW5WMHhIbmY0czdNTEMyTjRBVFhiTVlxOU56Mml6WGxqZ3E5TFJXbWFs?=
+ =?utf-8?B?WGlpYzU5WlBTNUJRdDBsVmdTejgyV1FsdkpISWd2Z3dvWG9NdDNHZFFpeXhx?=
+ =?utf-8?B?RXYvMEJ0MkZPbDBQNnFJRGZTdmNvaWRTRjRZTFNEbXQ4YVVCalNsSFExQmhu?=
+ =?utf-8?B?dmV5VFR3blhDclZHTjVJR0JDVGU0Z2lBc00yalJ1aElsY21OKzZXVCtBYTZr?=
+ =?utf-8?B?anovbjUwRjZmV0p5bkZWRnJBa1BsSHBoRUdaU3ZGRElZeGtUL3VEQitpQzNK?=
+ =?utf-8?B?SlEvUVRKUU9ucVRLazg4Z3ZxazVRYlNzczgwVVBVcHhHTlZLOG9ZMUZyYWtp?=
+ =?utf-8?B?NnJVbk82YTBiY1MxM29ud1RWMGZCNzhCc1UvRjM1UW00WXFOeVU1bGZJMzhn?=
+ =?utf-8?B?OGFCRlJkSHNOMUNrdXpQd1ZWNUN3QU1GRmgxT3RURWtYdlFIUUR6YWVKTUlC?=
+ =?utf-8?B?U2xlTlFPanZoMlBPcG1PYWs5WStFU3ZWUnpnTEhaN0Ezdk9zangvVStVVllL?=
+ =?utf-8?B?cFNCUlpEZWJwNzJJUGM2Q09sK3c0VXJLWXFnSll6R3ROOEJMRTlkdlJKYXFn?=
+ =?utf-8?Q?+TVy8L9aH9BtRv74vkGbfhWOeRtobGXS?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW4PR12MB7142.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?j3+zuiTQcz8Kd7G2nigKS9kFiCI4fNAYY7W2ZpMOL0Fmv4dwa1NLhzq57q9k?=
- =?us-ascii?Q?JyJErdd8AL/gi2ofDi3yA4fTq5wkI75V4lvAZ2sMk4PK8oNCSqiw/RXh4mQe?=
- =?us-ascii?Q?ilceqIeq/vjsKbCWafzKvF2EEY9htz0InDk0sxl5mw4NrJW7X9xpbSGcGByV?=
- =?us-ascii?Q?l7+J9o87HMVXu0SGC0IZT/9a8eRAUXs9FTEik6J/23se4FOd844mSqa5CPHR?=
- =?us-ascii?Q?5XPOk0PnxhYZfvfiMaiHO0q/NTRa3jUOXZiHFA/erRjbFpAmrx1ZLGE74eCn?=
- =?us-ascii?Q?H97ZyL980A1bLThnm0yxf01pEYOgt2tcFOtd7Qip2vmuovKDIB5or1uaXF8r?=
- =?us-ascii?Q?sa/4urzCg0U+3DbQeCkkHz1t+1NM/beTejDfKVJ3+W3TKa1zSLPNzskP/8MI?=
- =?us-ascii?Q?c0KF5JNff25k2hNMWmT5az8tpnjVGcDZpNnNV8C7fawgUkIxLc4TN6Ze1Iwt?=
- =?us-ascii?Q?qZDafr+PXwbXrwpGxZGPA6JdXe7TjKnT3stuxHADVmVxWNrbGlcWO07fWdtr?=
- =?us-ascii?Q?Gwi8GYvsYPDLlYKSwu2RIv9YezyUM8iUN+Cp6QA8vSJLteTO9nqCTdhy/dgN?=
- =?us-ascii?Q?aH/GfkdfIY2CGw5o6wS5zWD9aW3JTVMa5kCDoxK8n38mPeA3Dg1z3h9Rg6hO?=
- =?us-ascii?Q?269b0vevxlaYMnd7RMYV5WZiIVLZtVvVVVUXKhL9H4bhkAkQcQK0VAa70H10?=
- =?us-ascii?Q?EQOZ1DZkovAZUEotSaAjj2g+dvq4gG/Nubs9+bzz6M3O+sky5khws063t3Md?=
- =?us-ascii?Q?IH31n/ikScHcrGok2GUXtqJbw7hLx+93dxidwED0PMk4kWiujfRvfuQtvNPH?=
- =?us-ascii?Q?eCbzEH3RrkyP/WjG40SpnEiRsDrUYA9dmFN7h/eIfDFeibSsACTv8wdMDaIW?=
- =?us-ascii?Q?JJIFR8MjhD9TSkpWt6tJ6uUYbikOVeFZq1UV5k8N9funMz4gya9vmj5fwSa1?=
- =?us-ascii?Q?uCBuMARfGHmwKpT4RkUFBv82LrvNGZyKDSRG/W+f37H0mCKxMsNdSEaXEx8L?=
- =?us-ascii?Q?uKmxQTY+YSzHtASmazTQu3VITQdNBbsd8iC4/5f6+TwIArnnzh3oeUThGGJY?=
- =?us-ascii?Q?ix61ImaEc5KBnR39tEa/nkvPIk9QryBXl998sGmuw6a3VygCCLhMrKVRVyAq?=
- =?us-ascii?Q?iXLTViwYmTfEn9BYIYmvbNmrfIAWLuU4sX3vsULHGv/ZyKg/pFtlLYHdVyiz?=
- =?us-ascii?Q?3EPbE92XdIeGlGUBvnAg5u14V6mOUPnmeqhrMw0zR+oNYNcqQnSytfZhHey7?=
- =?us-ascii?Q?YN0B3WhMtyClRZSVwyjCjDVRnOFj4Z+rHaU6xXLGG4Flc7Ktl9jeEzRzuYfT?=
- =?us-ascii?Q?9j6ke5DGKs8Fb4qro9fh3odtfxYmjYIhdznoIsy7IFzphuXhmMmoNffiiAEY?=
- =?us-ascii?Q?4SbQcTRwgJ3lfa1saOSA64bMpzZDf9lDCJ8DdYsXQQVtr1UPxCw945hXpHiV?=
- =?us-ascii?Q?23m+TJmepP5P03/loCFwZN/Dt0D3SgE2VinoKo8/tcKjKwS4iIIo7F5WtVe+?=
- =?us-ascii?Q?jVoLx+/xzgWVE9cMbjGYJre6XFOcuzIsalaA0ePjpZqydIRJNHgHO0RLX8dX?=
- =?us-ascii?Q?TVhSFBOe89IuEqKGH1CWXOWZR2T5FRu3Ss2uKft6m2OFURE3oZIHHlPQmvbh?=
- =?us-ascii?Q?Ow=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: b7eb8c44-bf46-41bf-bc27-08ddff7cf184
-X-MS-Exchange-CrossTenant-AuthSource: SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?aS90OUpWRXBFL3k2K0FwdTBML09qcHhySTA1b3R0ZllQSXVlWFhRdEdhK3dy?=
+ =?utf-8?B?aE8wUS9OV1BpdksvaDVKM3d5aXp2RkUzMFBjSHZMb2xITkhXZGU5UTZFaHV1?=
+ =?utf-8?B?SjFBWW1EZXJmQ2dncUVJQSsrZXRFOE9QMk1UYkRJd1hTTWZpTlZTUnoyZUVr?=
+ =?utf-8?B?TkNBZnY5M1g3dXUyQ1BvMUIxRnpBMENiTUN1NEFJK0JsdTBmVmpvYTdXc3R6?=
+ =?utf-8?B?bExITzRmOU9EWC83NEJXOVJPTVY1MEtJK2N3NDVMajN4V0hSSnlYS0djY3lZ?=
+ =?utf-8?B?TmExSlhrMWsrMmJVNHd6d0JCNTc1RWJ1SkJQSmFGVEhpc1BoaHlSTVRGeVdQ?=
+ =?utf-8?B?SUt0cld5eW9nc1RVNnd0cXB2M1JXaXkyV25sM3hBQ043QlA5R0J2a0FsLzZx?=
+ =?utf-8?B?WlF3SlNVL2VVY0ZTcG5mRHBibVdaYVp3VG5xbCtTNEc1TW5TdjdGTnZpY09D?=
+ =?utf-8?B?ZFYrTjF4Vko4dExsWlIxZ0Z5Qk5tNFI0WFpsREdYUVliOStFTDhaZS8vdVZT?=
+ =?utf-8?B?N1EwVlJ3UWE2NGx5aisvNEZibHFrNnNBQjJhRXJoZHlvOGdKcHJmZDg1ZlZL?=
+ =?utf-8?B?ZjRUZE0xa1RvVDNpRC9QQXc3VlFrejd0TjdXbDZ4VGtOZEljYWE4Z2tsOFdi?=
+ =?utf-8?B?OTRZekxkZDBGVXhmb0U3MFNJdjlFY0xobGFZUFNWOFgxZzc1Yko3WW5QS0pG?=
+ =?utf-8?B?c2YyYnZwSElmK2Q5TGdEUmJwajYwTTZZQ3JGcUUySm1OSkVZZjEwUmJuWi9o?=
+ =?utf-8?B?UVEwSGV5b2wveTl6eGtORkRwcFhrUkhpeWRPVEZmYlVpVmNpREgxd3MxYml1?=
+ =?utf-8?B?NG8ySm9zTWtLRkFEN1pybEY3T0N0aFFXN3c1UWdtOGJGdWsra3NUZDRSOTBH?=
+ =?utf-8?B?SVZ0OCtBNUE2UmpLTEx6Y3p1MVJBWlNhUnFrUFM3Q0VaYzIrV0hwS1g2citE?=
+ =?utf-8?B?WFJaMnFRbzJZT3JDc2JxMjhGMTJZcjRtMzBtTXRGV1ZMRU01QUNjMXhmK2Nh?=
+ =?utf-8?B?SFhzTmwwUGZCSDlmQU9mOFlZeWJKeWZ4RmtnbXFIbUNTNEYybnBvVVVhYnMy?=
+ =?utf-8?B?VUV5aGovU21NZHl1V0Q0Njk4VitSY3IvV2k1STUyb21iaWxjV05XMVlLTURk?=
+ =?utf-8?B?TjNhVTlmOVY5NnhUQUVybmtxaE5ndXUrWktJeEpJNUZITWpHZi9ZOHNZTkgx?=
+ =?utf-8?B?ay9laDZmbUtZdkRxS2JXV3ROcHhLdFB0R0ZQWitRYlovSGpkcTRvN2FDUFhh?=
+ =?utf-8?B?eGtOU09ONEpreEhGNXhSZTYxVFU4U3p3MWlGY3p2WEJtcXpBejBZTjBJa0FH?=
+ =?utf-8?B?clRGZmJWUWJMeFBqSXNhVDA3KzlNNWpieE9LUk1GbFNoSFNNRnpDVE9ZMFJm?=
+ =?utf-8?B?WFFleThQbFB6Q1hGQjBoYmZIcXVLL0tQS2ZoR3ZmVGdQT1RnRHVtemJrTG43?=
+ =?utf-8?B?QUhUMWN2aGo2STc0V2VUQS9UZDZ5MmZFd2tBMkg4WXhxRE00M3p4aVpOaHBN?=
+ =?utf-8?B?a1NNK0I2WVg4TE9razJROCs4QmFucVpXcTZWbnZNMW5SUFhIS2ZWYVhxWjJv?=
+ =?utf-8?B?UDNqdzlRY3JPdTVnaWxXaWJNVHdXRC9yQkU3OEhYUVpyMzJzOXJMMWp5QVVI?=
+ =?utf-8?B?MkUxRU1TenpQeWE3aDBhY2Z4QW9iOVVVMVVwZWNuNFoyNHNEZ2crNkhEU1Ar?=
+ =?utf-8?B?b1hCVlJGcXF3RFgrWnBWWEsydnRIQzU5UWhRQ0FtTEpldlp6Uk9BUVhUYkJH?=
+ =?utf-8?B?Y3ViRGlVVktmTnBwczdVMldwVHBtNWhLRWJNZzZOaWg5ZUN4dStaTFJnN1o5?=
+ =?utf-8?B?eDFpU1U2Q1dpellhbGtHc1JuaENsaGlob00wY2N5RG4rMDcxREF1eEdGVnFF?=
+ =?utf-8?B?enl3TFBVaG1uR2NFWjg5TlBOdFFRQUpvSCtrOXhlZzFVVVhqdHNmT0JtQ1ls?=
+ =?utf-8?B?M2tLd29qRVlEZEFpYkxvOXV0N1hkTDlGMlVEWnZlVnlLSDRodzFFVVRYOHh5?=
+ =?utf-8?B?OUZPMEpNN29QdisvZFpSL0cvT0hBcGVuWVArN2k4NEVQTzNaNVBMWmcxYVRT?=
+ =?utf-8?B?OW9STFpMbHFTQkhsUndNOXRYcEdpbzkrbk50VkJHSlp0bENXeGl5N1lPV2N1?=
+ =?utf-8?Q?ePuxI0E15lU7uA5i3+xQ7bNb5?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 04505d06-51dd-45c0-0c44-08ddffd6121b
+X-MS-Exchange-CrossTenant-AuthSource: MW4PR12MB7142.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Sep 2025 17:23:45.1619
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2025 04:01:45.1269
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: WC4Ybd8aLvj4x3eUxIMRKOGpq1HxptjMBRa0t/6jqE2gJvA/zvqQ/ZjkUQiOZNYT5VDAwvLKskQGMVisEreIGPNACOB8pmVu7RwmFFwGVT8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7671
-X-OriginatorOrg: intel.com
+X-MS-Exchange-CrossTenant-UserPrincipalName: iYqQVfd3ugVtcmeI0gG0eAZDns3ehbcwgsZJL079kdYowEX6ilZtHipNvEaVZE9czzfHXEFi2zeMNykfjQw09w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW5PR12MB5598
 
-On Mon, Sep 29, 2025 at 10:05:31AM -0500, Ira Weiny wrote:
-> Alison Schofield wrote:
-> > On Sun, Sep 28, 2025 at 09:31:10AM +0800, Jiapeng Chong wrote:
-> > > ./drivers/nvdimm/bus.c: linux/slab.h is included more than once.
-> > 
-> > Hi Jiapeng,
-> > 
-> > It would have been useful here to note where else slab.h was included,
-> > since it wasn't simply a duplicate #include in bus.c.
-> 
-> Actually Alison this is a bug against linux-next where it was an issue
-> with Dave's patch here:
-> 
-> https://lore.kernel.org/all/20250923174013.3319780-3-dave.jiang@intel.com/
+Hi Zhijian,
 
-Ah, I see this removes the dup that the above patch added.
+Sorry for the delay here.
 
-Why not remove fs.h instead of slab.h and get a clean up and de-dup
-in one shot?
+On 8/31/2025 7:59 PM, Zhijian Li (Fujitsu) wrote:
+> 
+> 
+> On 22/08/2025 11:41, Smita Koralahalli wrote:
+>> Insert Soft Reserved memory into a dedicated soft_reserve_resource tree
+>> instead of the iomem_resource tree at boot.
+>>
+>> Publishing Soft Reserved ranges into iomem too early causes conflicts with
+>> CXL hotplug and region assembly failure, especially when Soft Reserved
+>> overlaps CXL regions.
+>>
+>> Re-inserting these ranges into iomem will be handled in follow-up patches,
+>> after ensuring CXL window publication ordering is stabilized and when the
+>> dax_hmem is ready to consume them.
+>>
+>> This avoids trimming or deleting resources later and provides a cleaner
+>> handoff between EFI-defined memory and CXL resource management.
+>>
+>> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>    arch/x86/kernel/e820.c    |  2 +-
+>>    drivers/dax/hmem/device.c |  4 +--
+>>    drivers/dax/hmem/hmem.c   |  8 +++++
+>>    include/linux/ioport.h    | 24 +++++++++++++
+>>    kernel/resource.c         | 73 +++++++++++++++++++++++++++++++++------
+>>    5 files changed, 97 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+>> index c3acbd26408b..aef1ff2cabda 100644
+>> --- a/arch/x86/kernel/e820.c
+>> +++ b/arch/x86/kernel/e820.c
+>> @@ -1153,7 +1153,7 @@ void __init e820__reserve_resources_late(void)
+>>    	res = e820_res;
+>>    	for (i = 0; i < e820_table->nr_entries; i++) {
+>>    		if (!res->parent && res->end)
+>> -			insert_resource_expand_to_fit(&iomem_resource, res);
+>> +			insert_resource_late(res);
+>>    		res++;
+>>    	}
+>>    
+>> diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
+>> index f9e1a76a04a9..22732b729017 100644
+>> --- a/drivers/dax/hmem/device.c
+>> +++ b/drivers/dax/hmem/device.c
+>> @@ -83,8 +83,8 @@ static __init int hmem_register_one(struct resource *res, void *data)
+>>    
+>>    static __init int hmem_init(void)
+>>    {
+>> -	walk_iomem_res_desc(IORES_DESC_SOFT_RESERVED,
+>> -			IORESOURCE_MEM, 0, -1, NULL, hmem_register_one);
+>> +	walk_soft_reserve_res_desc(IORES_DESC_SOFT_RESERVED, IORESOURCE_MEM, 0,
+>> +				   -1, NULL, hmem_register_one);
+>>    	return 0;
+>>    }
+>>    
+>> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+>> index c18451a37e4f..d5b8f06d531e 100644
+>> --- a/drivers/dax/hmem/hmem.c
+>> +++ b/drivers/dax/hmem/hmem.c
+>> @@ -73,10 +73,18 @@ static int hmem_register_device(struct device *host, int target_nid,
+>>    		return 0;
+>>    	}
+>>    
+>> +#ifdef CONFIG_EFI_SOFT_RESERVE
+> 
+> 
+> Note that dax_kmem currently depends on CONFIG_EFI_SOFT_RESERVED, so this conditional check may be redundant.
+
+Removed in v2.
 
 > 
-> I'll queue this up.
-> 
-> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-> 
-> Thanks,
-> Ira
-> 
-> > 
-> > I found slab.h is also in #include <linux/fs.h>. Then I found that this
-> > compiles if I remove both of those includes. It would be worthwhile to
-> > check all the includes and send a new tested version of this patch that
-> > does this "Remove needless #include's in bus.c"
-> > 
-> > BTW - I didn't check all #includes.There may be more beyond slab.h & fs.h.
-> > 
-> > --Alison
-> > 
-> > > 
-> > > Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-> > > Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=25516
-> > > Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-> > > ---
-> > >  drivers/nvdimm/bus.c | 1 -
-> > >  1 file changed, 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-> > > index ad3a0493f474..87178a53ff9c 100644
-> > > --- a/drivers/nvdimm/bus.c
-> > > +++ b/drivers/nvdimm/bus.c
-> > > @@ -13,7 +13,6 @@
-> > >  #include <linux/async.h>
-> > >  #include <linux/ndctl.h>
-> > >  #include <linux/sched.h>
-> > > -#include <linux/slab.h>
-> > >  #include <linux/cpu.h>
-> > >  #include <linux/fs.h>
-> > >  #include <linux/io.h>
-> > > -- 
-> > > 2.43.5
-> > > 
-> > > 
 > 
 > 
+>> +	rc = region_intersects_soft_reserve(res->start, resource_size(res),
+>> +					    IORESOURCE_MEM,
+>> +					    IORES_DESC_SOFT_RESERVED);
+>> +	if (rc != REGION_INTERSECTS)
+>> +		return 0;
+>> +#else
+>>    	rc = region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
+>>    			       IORES_DESC_SOFT_RESERVED);
+>>    	if (rc != REGION_INTERSECTS)
+>>    		return 0;
+>> +#endif
+>>    
+> 
+> Additionally, please add a TODO note here (e.g., "Add soft-reserved memory back to iomem").
+
+Added.
+
+> 
+> 
+>>    	id = memregion_alloc(GFP_KERNEL);
+>>    	if (id < 0) {
+>> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+>> index e8b2d6aa4013..889bc4982777 100644
+>> --- a/include/linux/ioport.h
+>> +++ b/include/linux/ioport.h
+>> @@ -232,6 +232,9 @@ struct resource_constraint {
+>>    /* PC/ISA/whatever - the normal PC address spaces: IO and memory */
+>>    extern struct resource ioport_resource;
+>>    extern struct resource iomem_resource;
+>> +#ifdef CONFIG_EFI_SOFT_RESERVE
+>> +extern struct resource soft_reserve_resource;
+>> +#endif
+>>    
+>>    extern struct resource *request_resource_conflict(struct resource *root, struct resource *new);
+>>    extern int request_resource(struct resource *root, struct resource *new);
+>> @@ -255,6 +258,22 @@ int adjust_resource(struct resource *res, resource_size_t start,
+>>    		    resource_size_t size);
+>>    resource_size_t resource_alignment(struct resource *res);
+>>    
+>> +
+>> +#ifdef CONFIG_EFI_SOFT_RESERVE
+>> +static inline void insert_resource_late(struct resource *new)
+>> +{
+>> +	if (new->desc == IORES_DESC_SOFT_RESERVED)
+>> +		insert_resource_expand_to_fit(&soft_reserve_resource, new);
+>> +	else
+>> +		insert_resource_expand_to_fit(&iomem_resource, new);
+>> +}
+>> +#else
+>> +static inline void insert_resource_late(struct resource *new)
+>> +{
+>> +	insert_resource_expand_to_fit(&iomem_resource, new);
+>> +}
+>> +#endif
+>> +
+>>    /**
+>>     * resource_set_size - Calculate resource end address from size and start
+>>     * @res: Resource descriptor
+>> @@ -409,6 +428,11 @@ walk_system_ram_res_rev(u64 start, u64 end, void *arg,
+>>    extern int
+>>    walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
+>>    		    void *arg, int (*func)(struct resource *, void *));
+>> +int walk_soft_reserve_res_desc(unsigned long desc, unsigned long flags,
+>> +			       u64 start, u64 end, void *arg,
+>> +			       int (*func)(struct resource *, void *));
+>> +int region_intersects_soft_reserve(resource_size_t start, size_t size,
+>> +				   unsigned long flags, unsigned long desc);
+>>    
+>>    struct resource *devm_request_free_mem_region(struct device *dev,
+>>    		struct resource *base, unsigned long size);
+>> diff --git a/kernel/resource.c b/kernel/resource.c
+>> index f9bb5481501a..8479a99441e2 100644
+>> --- a/kernel/resource.c
+>> +++ b/kernel/resource.c
+>> @@ -321,13 +321,14 @@ static bool is_type_match(struct resource *p, unsigned long flags, unsigned long
+>>    }
+>>    
+>>    /**
+>> - * find_next_iomem_res - Finds the lowest iomem resource that covers part of
+>> - *			 [@start..@end].
+>> + * find_next_res - Finds the lowest resource that covers part of
+>> + *		   [@start..@end].
+>>     *
+>>     * If a resource is found, returns 0 and @*res is overwritten with the part
+>>     * of the resource that's within [@start..@end]; if none is found, returns
+>>     * -ENODEV.  Returns -EINVAL for invalid parameters.
+>>     *
+>> + * @parent:	resource tree root to search
+>>     * @start:	start address of the resource searched for
+>>     * @end:	end address of same resource
+>>     * @flags:	flags which the resource must have
+>> @@ -337,9 +338,9 @@ static bool is_type_match(struct resource *p, unsigned long flags, unsigned long
+>>     * The caller must specify @start, @end, @flags, and @desc
+>>     * (which may be IORES_DESC_NONE).
+>>     */
+>> -static int find_next_iomem_res(resource_size_t start, resource_size_t end,
+>> -			       unsigned long flags, unsigned long desc,
+>> -			       struct resource *res)
+>> +static int find_next_res(struct resource *parent, resource_size_t start,
+>> +			 resource_size_t end, unsigned long flags,
+>> +			 unsigned long desc, struct resource *res)
+>>    {
+>>    	struct resource *p;
+>>    
+>> @@ -351,7 +352,7 @@ static int find_next_iomem_res(resource_size_t start, resource_size_t end,
+>>    
+>>    	read_lock(&resource_lock);
+>>    
+>> -	for_each_resource(&iomem_resource, p, false) {
+>> +	for_each_resource(parent, p, false) {
+>>    		/* If we passed the resource we are looking for, stop */
+>>    		if (p->start > end) {
+>>    			p = NULL;
+>> @@ -382,16 +383,23 @@ static int find_next_iomem_res(resource_size_t start, resource_size_t end,
+>>    	return p ? 0 : -ENODEV;
+>>    }
+>>    
+>> -static int __walk_iomem_res_desc(resource_size_t start, resource_size_t end,
+>> -				 unsigned long flags, unsigned long desc,
+>> -				 void *arg,
+>> -				 int (*func)(struct resource *, void *))
+>> +static int find_next_iomem_res(resource_size_t start, resource_size_t end,
+>> +			       unsigned long flags, unsigned long desc,
+>> +			       struct resource *res)
+>> +{
+>> +	return find_next_res(&iomem_resource, start, end, flags, desc, res);
+>> +}
+>> +
+>> +static int walk_res_desc(struct resource *parent, resource_size_t start,
+>> +			 resource_size_t end, unsigned long flags,
+>> +			 unsigned long desc, void *arg,
+>> +			 int (*func)(struct resource *, void *))
+>>    {
+>>    	struct resource res;
+>>    	int ret = -EINVAL;
+>>    
+>>    	while (start < end &&
+>> -	       !find_next_iomem_res(start, end, flags, desc, &res)) {
+>> +	       !find_next_res(parent, start, end, flags, desc, &res)) {
+>>    		ret = (*func)(&res, arg);
+>>    		if (ret)
+>>    			break;
+>> @@ -402,6 +410,15 @@ static int __walk_iomem_res_desc(resource_size_t start, resource_size_t end,
+>>    	return ret;
+>>    }
+>>    
+>> +static int __walk_iomem_res_desc(resource_size_t start, resource_size_t end,
+>> +				 unsigned long flags, unsigned long desc,
+>> +				 void *arg,
+>> +				 int (*func)(struct resource *, void *))
+>> +{
+>> +	return walk_res_desc(&iomem_resource, start, end, flags, desc, arg, func);
+>> +}
+>> +
+>> +
+>>    /**
+>>     * walk_iomem_res_desc - Walks through iomem resources and calls func()
+>>     *			 with matching resource ranges.
+>> @@ -426,6 +443,26 @@ int walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start,
+>>    }
+>>    EXPORT_SYMBOL_GPL(walk_iomem_res_desc);
+>>    
+>> +#ifdef CONFIG_EFI_SOFT_RESERVE
+>> +struct resource soft_reserve_resource = {
+>> +	.name	= "Soft Reserved",
+>> +	.start	= 0,
+>> +	.end	= -1,
+>> +	.desc	= IORES_DESC_SOFT_RESERVED,
+>> +	.flags	= IORESOURCE_MEM,
+>> +};
+>> +EXPORT_SYMBOL_GPL(soft_reserve_resource);
+>> +
+>> +int walk_soft_reserve_res_desc(unsigned long desc, unsigned long flags,
+>> +			       u64 start, u64 end, void *arg,
+>> +			       int (*func)(struct resource *, void *))
+>> +{
+>> +	return walk_res_desc(&soft_reserve_resource, start, end, flags, desc,
+>> +			     arg, func);
+>> +}
+>> +EXPORT_SYMBOL_GPL(walk_soft_reserve_res_desc);
+>> +#endif
+>> +
+>>    /*
+>>     * This function calls the @func callback against all memory ranges of type
+>>     * System RAM which are marked as IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY.
+>> @@ -648,6 +685,20 @@ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
+>>    }
+>>    EXPORT_SYMBOL_GPL(region_intersects);
+>>    
+>> +int region_intersects_soft_reserve(resource_size_t start, size_t size,
+>> +				   unsigned long flags, unsigned long desc)
+> 
+> 
+> Shouldn't this function be implemented uder `#if CONFIG_EFI_SOFT_RESERVE`? Otherwise it may cause compilation failures when the config is disabled.
+
+Fixed it.
+
+Thanks
+Smita
+> 
+> Thanks
+> Zhijian
+
