@@ -1,295 +1,147 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f79.google.com (mail-io1-f79.google.com [209.85.166.79])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D92DD2868BD
-	for <nvdimm@lists.linux.dev>; Wed,  1 Oct 2025 22:28:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.20
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759357728; cv=fail; b=kSGGhTE1dpviR/KwEgXzb/S28VmF0PwcmuBNRjYgbm2faeUwehDgllzmdVIYWjo5b+cWlPrgf3On9rSZKTgAhphT+BklhQLQpQdw4pR+TlpQ88m/jZQeuy1ulnxQhI076de4puKYEcIOcCkZC7OS8u3pxeleL71BLPTSlbD6mx8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759357728; c=relaxed/simple;
-	bh=3ur7Ka4gjOnYSkDLUUiGa0QypM2IgmmH+t/EMotsmkc=;
-	h=From:Date:To:CC:Message-ID:In-Reply-To:References:Subject:
-	 Content-Type:MIME-Version; b=tRrADHQ7cTc2p66s/ZL4xw0+g3cDFBfJR8udrvIco4Y827dUvNbl9cFosvUMnVUDqb4RGqoyAncPXQg00wFPq4KyPrtcwG5DqEq7CNmSezz+vODcmjUxp4gj1Ai2qI+fGfCmbEaWe6kZFG0rH/LXnwtJj0QuUC/FvkpeznZYHzc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VjvjT3LM; arc=fail smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VjvjT3LM"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1759357727; x=1790893727;
-  h=from:date:to:cc:message-id:in-reply-to:references:
-   subject:content-transfer-encoding:mime-version;
-  bh=3ur7Ka4gjOnYSkDLUUiGa0QypM2IgmmH+t/EMotsmkc=;
-  b=VjvjT3LM8XDqdnzuPGsVB8OiRjrKyZ4ycWenxSeSSElglpajfPXj/QEP
-   BUnnmyjr3NrNlv7uN6ccbPWcGcLIa2Pb1gKHw66CmeRarVhLcmRUAYYKz
-   /4io/DQLRiAazQydR2PekMNkPB5QecVGMkqMuUQz18Ir9lwNgXW4mEOfz
-   DOqqYFgEMyLzvGW9UtpSxUhaeG+u1Vv1EWyQMBVelFWT9CYKoQKkf+SlA
-   x94g14nU+z6MBRJK5pamONkc6qay2YzbjkEGZsF8bTuWUb7HCTcCbWptC
-   EOTM8+xP+1PkjO4JVxVY7PM0ky4rctuAptCwiLciknkU8K98wmT6IkO1C
-   g==;
-X-CSE-ConnectionGUID: W5g/FwxtSQGb962NO+lqFQ==
-X-CSE-MsgGUID: 1HOSk2I1S+ScK2oU/zV4Wg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11569"; a="61353268"
-X-IronPort-AV: E=Sophos;i="6.18,307,1751266800"; 
-   d="scan'208";a="61353268"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2025 15:28:47 -0700
-X-CSE-ConnectionGUID: s/ro2aMHThyOOKhzoazpfQ==
-X-CSE-MsgGUID: 6SNXGzISStaAsAuViR4r4Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.18,307,1751266800"; 
-   d="scan'208";a="178013656"
-Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
-  by orviesa006.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2025 15:28:46 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Wed, 1 Oct 2025 15:28:45 -0700
-Received: from ORSEDG902.ED.cps.intel.com (10.7.248.12) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27 via Frontend Transport; Wed, 1 Oct 2025 15:28:45 -0700
-Received: from PH8PR06CU001.outbound.protection.outlook.com (40.107.209.37) by
- edgegateway.intel.com (134.134.137.112) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Wed, 1 Oct 2025 15:28:45 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=NebSftrVcvGqIRIjV9y1tD8CGwvKbIos9YO9RKOgBKp1zDgvZ/wHlvPTnYzbjx6ULQhflWqxlesHwUAFwxRCNwg5bOKlx+8o/rtemjbQ26aknGl+81yfXglTA3TJ+/mvKgsUZ7Fe+J6wL9YOORnrbvfXVRE1n5D+xSqRsuHCZkORqFX5kkPVwGDynrLI5AXnBXYi0Aqohy+HVDoGS+b6o4gOjUJyWUVtaF4cwO63KLYEmB9KVzGrSkG1sK/maY23vmF02ixpEYoaueifYu0gf4QDSjycQIZVcDBGX5QylJ4+gT3WTp7CCmLtPxbwvCM4jmfEUVrJrC2aQT8teVYj2w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=3ur7Ka4gjOnYSkDLUUiGa0QypM2IgmmH+t/EMotsmkc=;
- b=Gen8N1KXp/4iS+UwfKNEl60sgKFur//9pmCT9RiKVvOeoA5bBOSJFissjv0sAWWzpDE30FJnGopy7p+FNkKBU/dnF8p2Ia7T8jGJzN/VgisgjJkXrDTBMp/f6hph9PvFDVKwtBzr8z4qqIW9tq1Vx1qrMGe/5SoAdRqxLu0Kw/+4AwD1Xxu6Dujd91tkynqqbJiRL8678mIUM6ge22OWBFAno75Gvynk+JMlJ51XMKyxJOJmCG1qg5KzE7l0HE11GbpiaHVY5KcHtWI+GnD+3Cyh9Xx7F/tpsQpNuED8G9lYuN4Epv73Kt5ZjHtuB/zbSMJFawlokzMtBiKf2tGMwQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by PH8PR11MB6563.namprd11.prod.outlook.com (2603:10b6:510:1c2::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9160.18; Wed, 1 Oct
- 2025 22:28:34 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%2]) with mapi id 15.20.9160.008; Wed, 1 Oct 2025
- 22:28:34 +0000
-From: <dan.j.williams@intel.com>
-Date: Wed, 1 Oct 2025 15:28:33 -0700
-To: =?UTF-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>,
-	<dan.j.williams@intel.com>
-CC: Mike Rapoport <rppt@kernel.org>, Ira Weiny <ira.weiny@intel.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<jane.chu@oracle.com>, Pasha Tatashin <pasha.tatashin@soleen.com>, "Tyler
- Hicks" <code@tyhicks.com>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>
-Message-ID: <68ddab118dcd4_1fa21007f@dwillia2-mobl4.notmuch>
-In-Reply-To: <CAAi7L5dWpzfodg3J4QqGP564qDnLmqPCKHJ-1BTmzwMUhz6rLg@mail.gmail.com>
-References: <20250826080430.1952982-1-rppt@kernel.org>
- <20250826080430.1952982-2-rppt@kernel.org>
- <68b0f8a31a2b8_293b3294ae@iweiny-mobl.notmuch>
- <aLFdVX4eXrDnDD25@kernel.org>
- <CAAi7L5eWB33dKTuNQ26Dtna9fq2ihiVCP_4NoTFjmFFrJzWtGQ@mail.gmail.com>
- <68d3465541f82_105201005@dwillia2-mobl4.notmuch>
- <CAAi7L5esz-vxbbP-4ay-cCfc1osXLkvGDx5thijuBXFBQNwiug@mail.gmail.com>
- <68d6df3f410de_1052010059@dwillia2-mobl4.notmuch>
- <CAAi7L5dWpzfodg3J4QqGP564qDnLmqPCKHJ-1BTmzwMUhz6rLg@mail.gmail.com>
-Subject: Re: [PATCH 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM DIMM
- devices
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: BYAPR11CA0072.namprd11.prod.outlook.com
- (2603:10b6:a03:80::49) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A05210F1
+	for <nvdimm@lists.linux.dev>; Thu,  2 Oct 2025 00:10:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.79
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1759363836; cv=none; b=tNW0dnVeJ/N0dwNl5bnUL3peeut5s2bCAKGQamOpbkEP5UyWKPjyT591Xhda6bXaRWxzT31+2+e79R2O5xkoY3gTsH3HrKfPArvImmAS2NtEZsDB5DXWyXtbHFUcl30gZB0W9Hrm3nRh9A/KU7naCyzq8+xYE+Rt0/fyxW+zpoY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1759363836; c=relaxed/simple;
+	bh=cyQPuwS82c3qKwDs1IXD5ItrhxNtnnwRc3Fgo/LjYOY=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=jh515P1Yx5+Ru6hyh5kP+W5BxbWYwL8RJyX3+hZZPtPk8cL56ON3Q/CvcfjE2FOu2+7Cip8d4JZpqwjSbbn9JnU/9+bcpwxHCw/cWA3yzd31jvZjYdgBm7TrQGXbUAJF9K0KIhr6H+Pqht/lg6PBDcsSA9PGTnJnMoIyA9q6Y6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.79
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f79.google.com with SMTP id ca18e2360f4ac-8ccb7d90c82so55152539f.2
+        for <nvdimm@lists.linux.dev>; Wed, 01 Oct 2025 17:10:34 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1759363833; x=1759968633;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=k+4I3VinM/g0IwZH7qpZY41xIHfXvj8Dn0TeRI7omzg=;
+        b=g1//pBvPPRv8OXqJx9rKPOsAj9wYaW2d6uAqGGvGRQ9HHibHmxlg2BU7Kkb11IGDH6
+         LN89+R4cUBs+NyZsqsdKkIpmfV96sPm51fvsfml4Jvh7Fv0KmVtT23ir2tkb6D3kwReq
+         b5GQng+/mD+osWM2qZNIL2mXLW0gV4IXzbM3uXPrcuaNdtMp9QCDz/dkpFRZ9zjB0MWP
+         ZLi5tKLukTt+xtglsoCMcLBL22grqKKLL8nsygcQa6xjtvNFJpePJBzbETc5nZNoj9Rz
+         I3TFxPdrIZtxVf0PkomFrycK06pOSC4zR33G9Ba3e1ErQNCd1LipWrPGObEdCdEWqeGZ
+         Ql+g==
+X-Forwarded-Encrypted: i=1; AJvYcCW5ENhAGRvjgU9bGNFWTEPxxKR3y3qKNNq0z06xubod5UIaPIZljWomx6GrEudfTJwERO4m4R0=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzwwCclhA7bA/DG15ErIK1ypPTHGkDtfX5wDhjExsWTogflkxcN
+	YK8gq6UZj3hiper7v+/1RTkz7HT5n6byYgySxOV6cxxtcwiEuznLY3ZgrsRzSSxUQ+Z98CGicOb
+	x3TXAGi12dDJk3BUl38kbT5YO/NKe6Dxf6txwFNNb6npejo8Rrubu37uGo9w=
+X-Google-Smtp-Source: AGHT+IE1y4VBYe8gL4btTD/TP03j3wgZRy1gTrrLiuVEGEC0nLniFFbXaPWxl9JheO+7+RBWePTX/t1UdzDxprw4A+hTUHhJ+Q8n
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|PH8PR11MB6563:EE_
-X-MS-Office365-Filtering-Correlation-Id: a3990e0f-2a9f-429f-e1a0-08de0139dbdc
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?R0NCNE1zNUtCbVk4R0lNRTBVYmlJNkd3eWpRWDlVWWVLczd6clhZUERBTnow?=
- =?utf-8?B?R1hIMS9SSkNoYllZbVNuN0NwSXFhTXBRMTZ5dEJaSW1HYXB1OUd4ZktIM2ZX?=
- =?utf-8?B?ZFdBS2RYZHhxbWlCblc3YU9Gb29hVjRWVWZoSzhOdEgrSUY4Tm5zNFo4UElj?=
- =?utf-8?B?eXliSVJrdi9LbVFJbEFWN3BrRXpmTDNnN3lvTjhDMEdXMmRoY0R2TGZuRjJs?=
- =?utf-8?B?VzhYL2FTMktwalRjWVpiR0Z5ODdNYm5TVVBaS3J6eXVXcjQxNloxdXdiNVhL?=
- =?utf-8?B?dmxCZDFvd2RZd1hmTFhiYngyTEVwNVlBdmx3UUJWbHRqREF5WVI4Y2crNXBM?=
- =?utf-8?B?M0luRUlXdHU3dUh3YUM5cjdDVGlYVW05cGIwdStnZFBoVThYa0JDbXoxU0Rp?=
- =?utf-8?B?ZmVOL0NjQzVGL2JLU1BValJTeFVGczF0RDFJUS9ESDh2VTBGSEZSZGpRc0Q0?=
- =?utf-8?B?enpaL0ZWNWpRZGljV2Iwbm5QcHBXdFRJeDl6UDBtRFVLQXUwajVNUXV0Mkhu?=
- =?utf-8?B?VFBPUzI2b2JvakZtUTBMMitobndleW9NYXZHM3pTc3gveTNOMTU0NmNjeDNq?=
- =?utf-8?B?MWdxL2txYVJoUVNwdXdWNEZBOVNUcVlWeXJuVUFESis3RFE0L2JhM0JrQ0Nh?=
- =?utf-8?B?bzU5L1ZCZmpCU1dvNDAzVXlySGJvM1p1R0tIeE5Mc2Y0amU1ZjFMTW9adlM5?=
- =?utf-8?B?N1Z4LzcxSXBQdThtQVk1T1BGZWdSRU9xUFk3dGVnUGZ4RFg5Vmd5MXVzeFE0?=
- =?utf-8?B?Q2w4T0RNVFlyQW9EMk4rUk1XRUVXQ3RKSjVJUHh0eWdobUxjZ25jZVlscGVh?=
- =?utf-8?B?bmZIRXJuR3ZFdkw4N1ZnaG8vYWxTcnA4T2tBempBR2d5azZxZ1pFd2xiOXFD?=
- =?utf-8?B?NWxydWZDOVRvS3BEcGRmSW5xenVDTm9PQVBQQ1IyU2ZNdWlaR0M5OHRFQ0Ix?=
- =?utf-8?B?VDNTUzlIdFluYTlWckFscXFJT0liWUVmQmtIcHhJNkpzTGx6T0svUlRFbitO?=
- =?utf-8?B?U0lPQ2l0R2ZXYWh2YkNYbEJEbmhEc3NxV3FGQXY0RmVOVE1vczlBUE41TmpU?=
- =?utf-8?B?NXFqVnpnUFkybnhVUnlqa3J6WnM4MVFZYjNiMks5a3Z3ZlNFMkFXa29QOUVB?=
- =?utf-8?B?SkttK21zQ056NjFBRWNweW5TemUwQXFWanFod0VUb3hPdC82T3hqZEU1VHVE?=
- =?utf-8?B?VjliL25EL1l0bXh5YUo4UTljcFZVRHlZRnJIV2pEbVJxSlRjT2FIeDJXRDZE?=
- =?utf-8?B?WklHbmV0dkhzN0NQZkZ0eGFXN0g0Vy9NUWgwRExIK3YwWndCZkw0TUU5dExi?=
- =?utf-8?B?c05BWWdjME91LzZsQ2RvbWI1TXI1ckttSFZJMEUxRDJKRm1yUENIRW1XYTBy?=
- =?utf-8?B?TTFUUHBZZklRM3BKUnJpRVhUbS9Bak16MEFTdEo4cnBOSjJxckN2cktlbzdD?=
- =?utf-8?B?c0FVV1Fka1lEdm1HV1dOUHdZOHA0U04rRy9xa29wV2tJOGprVCtSNFhrekpG?=
- =?utf-8?B?UU9JSHhQby92OHNYRXlTd1RUSHFwS0FJTmxDaGxxcnZUQ3B6ckNmTWZ6K2pn?=
- =?utf-8?B?RG4yV2RSMzdscUo3eUE2WG1icG9lM21lRzJ0bm5jRVpHS2VwOXlyWjhIN00y?=
- =?utf-8?B?Rm9CbU4vUGFFOHUrYlFjSStvbTE0aDhlWENxbmFkZmt5MHFPekxPN1l5MHR0?=
- =?utf-8?B?K2ZqTVdFSnNmY2JxeDUwRDN0ZlZWdnpwcERwTmVDS3NVOEl1ajVyMmhkQzht?=
- =?utf-8?B?RHB3Zk1LSzJmcWVkcDlDcCtIZEJ0RFVSdHpZcHc0SmlHb2VmOUZCMFFMZGJm?=
- =?utf-8?B?QUxsSzNVdWhIM0w5MFFWaFhlUlJucHAxMzZRaDNQdE15REppTU44b3lpeDFJ?=
- =?utf-8?B?bTc0WlNGRWxXMTRHaTJSakI0NnpsYVRBSlRCK1BOZHEwbkVCMmtIQVFIYkdr?=
- =?utf-8?Q?VAbNqn4G0nW0gKkG6ErqBsaoLrm1wjqb?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?RzlOUFc1VmVJOHBhb1dOOU5NNHhoaVlmRnVMcFViTEhMcVNLL2RTaFJFTHpm?=
- =?utf-8?B?UGxrWloxUlVRYkVXVHFGbkQrRk9ac2RSMUNKMnozYmdMQm0rbEpyWExmTTJj?=
- =?utf-8?B?YWVyYVNRdDJjMUVSK0NvTWRmYzN4S1VGMTJqQUlWaFZybk1YSUxLZTZvUzd4?=
- =?utf-8?B?VWs1ZFhNR04zZVJnelZVZGxwY0xSOWFNMDk4TVQwdW0xQ0ZNZWhGMG9PcTlF?=
- =?utf-8?B?OW83NGJXSE9aaGJLSTdnMCt4VzFRTStuZU91eTBadkIybGFDVUFRYmREOWg1?=
- =?utf-8?B?SUt1OWFNNUNDcjZINGNaMEpOVE9kMzlSL21LM1hEemZ3TW5hYitxNFk1MS9l?=
- =?utf-8?B?eGJDc2FlbXYyVEZqN2pRczB4L0krQXdCMXhBc1BqYVNjaXNWbzJKYzZnZ1Zw?=
- =?utf-8?B?T00xbzdQYXliVDNpYjdnT0RJeWtDNy9iT3ZyQU1JOHBrbGttK2Q1SFpsaWxJ?=
- =?utf-8?B?SHR4MEROS1p5TUtLaWd4TnUvVjcxeWwzNTVEU2lVNk83bFpSQ2JwZW1qVmlQ?=
- =?utf-8?B?SnF1SEtZSWRlS3p3NllUSFpiQ1p3dHh1cTZqRU5yRUtqMThBUGlPVXpMYUVh?=
- =?utf-8?B?dURuRWtndk5CaTFhSHZYWDFXYTl5NDNNWHB6QVJBZzdIbW1KRHBwa0JBQU1I?=
- =?utf-8?B?U1RFUGVwL0h3b3dQOENmV1IrMlVHWC9zaUVLa083blFNRFAxL2ZHcHlzWnpW?=
- =?utf-8?B?UWpFZkVLejJISjVZb1VoeHJIbFpnRENydFVZSzZoKzB4aDNNaW52NHdHeGhr?=
- =?utf-8?B?RGVUbEVURWlkL3NwNTRRNkgwU3J5aG5FWlF5cExEUkpPeUxaZm5tZ2V0VXBj?=
- =?utf-8?B?VXZmU1YxdkxPekdiTkRqTUJuMmFLSUpTT2lTVkR2QUZLbDBtSU4wQVJHbmtE?=
- =?utf-8?B?NDA1ek1WVTZKaTJWa29lVStrdUxGcmE2b0VvOWRjMTlUbHdIK01RcnFpSzl5?=
- =?utf-8?B?WnZzTzQ5ZUVTa09jd1EyTlZDVHpqVGRnVUJRUVQ5blh0SDFZR1ZIUEs2M3NH?=
- =?utf-8?B?ZkkvSkQ1NldlM1JjSGJFdmdhcXVERzlveTEwWDNPUEhXZVczdDlSbmpTQkh4?=
- =?utf-8?B?N1MyU29mSS9oTUdZK05BajRib0tmU3Yrdzl3QWZXK3ZyYzhKYzFWTEMxNnR4?=
- =?utf-8?B?VkFHTEJUN0R4Q0Zha2x1MWk3Ylg5QmMrWWpUenRXVDBNUmhPd3AvaHVzd3lT?=
- =?utf-8?B?N2NqZC83ZElzOGEyeWk4aXZERzVWNld0b1kxVlJTeXR3NWJNM3djVzRtN3hJ?=
- =?utf-8?B?UDNUdldiWnoydFRROTE1WVBrWHB1bTVEUjVjRnBmU0tuVUZmbXd3djZSZXV2?=
- =?utf-8?B?R1RIVG80QUx4Q3pkT3huN1lRLzZVRVRoNGZGOEZyMVI3WEw4ZXFwT0pQNzZ2?=
- =?utf-8?B?QTJjMkNrSW9WY3RxRTVEVXN1Z1pmOXBGaHdjM2NmWHVYVFBCTjkrSDhlYzc2?=
- =?utf-8?B?LzVXR0k4MmVKVldyREJzUTJyd1ZuSDFmNW9KOEVaUm1EWmdzd2YrMWlxSmx5?=
- =?utf-8?B?bWQ2ZDhscG5EcFEvYVlaa2VNOGxJRkl0NU5jMncwOWVRT2kxckJEUWE3djlH?=
- =?utf-8?B?M1lrS0N0Qnloa0F5UVBoOVpPbXFpaDcvM1diek51REZoZFlWRWlPaXoyeHpk?=
- =?utf-8?B?MlF5SGgwdFhoV2toT0xDN1NaYnBLQjZ2c3RYRXVSZ21IWkU4bXlBZFpzUk5y?=
- =?utf-8?B?VXJhQ0V2SGRIMVE4bDNmKzhDYTF6R3BiNS9kSnZaZDlqVFQ3cFlPSVdFbUd6?=
- =?utf-8?B?bkJMSzN2QmQyaEdJendIVUZmRFV0dW9jQ0kyUU9VOTVuNllkY2FuYVFlVWNX?=
- =?utf-8?B?ZnR6UW9FS280dDA5VUthYlBCck5haFpJUkNrUnlabjJObVRFRllPRzNpQ0t4?=
- =?utf-8?B?NGNUQjI5NENoc0FjZUZNT0oxTlVpWWJMdjNQc1JEcTMzdldLa1JCbXF6ZWRh?=
- =?utf-8?B?YVRDWXRnTXBsL2ovREE5Y29Eei9tTTRIdXJ6Q3lNNnpLbmw0dlQzU2h3TE5P?=
- =?utf-8?B?eUxCVS9zL3Z4S3VxdVNIZUpVd3pHcWIwdnJMZ0hOT2RDL1BDeCs5c2U2aTJ1?=
- =?utf-8?B?SGZabFZ0ZUZLTTV6WG1BTVdGdXRQcTQ0dGQ4NWRzd3FBa3F3NCtNZ0Y0U01M?=
- =?utf-8?B?K1BCenYxcjZDTG9Sa2JvNFJlRnIweWhYcC8xUXpxRldMa1BHaERtNThnQUhh?=
- =?utf-8?B?QXc9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: a3990e0f-2a9f-429f-e1a0-08de0139dbdc
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Oct 2025 22:28:34.8784
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: YrkSuv86AORNGFx3D4WYSjGbVgcBRF1pjMKLsA9iBWpP6tABTRtEKZtcBtecnvWpIpAPNZ3Na+EBRJ8t0QV5L/fDrAaflTN4pGgd3aOwKTc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR11MB6563
-X-OriginatorOrg: intel.com
+X-Received: by 2002:a05:6e02:188c:b0:42d:bb9d:5358 with SMTP id
+ e9e14a558f8ab-42dbb9d5492mr5195145ab.27.1759363833558; Wed, 01 Oct 2025
+ 17:10:33 -0700 (PDT)
+Date: Wed, 01 Oct 2025 17:10:33 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <68ddc2f9.a00a0220.102ee.006e.GAE@google.com>
+Subject: [syzbot] [erofs?] WARNING in dax_iomap_rw
+From: syzbot <syzbot+47680984f2d4969027ea@syzkaller.appspotmail.com>
+To: brauner@kernel.org, chao@kernel.org, dan.j.williams@intel.com, 
+	jack@suse.cz, linux-erofs@lists.ozlabs.org, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk, willy@infradead.org, 
+	xiang@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Micha=C5=82 C=C5=82api=C5=84ski wrote:
-> On Fri, Sep 26, 2025 at 8:45=E2=80=AFPM <dan.j.williams@intel.com> wrote:
-> >
-> > Micha=C5=82 C=C5=82api=C5=84ski wrote:
-> > [..]
-> > > > As Mike says you would lose 128K at the end, but that indeed become=
-s
-> > > > losing that 1GB given alignment constraints.
-> > > >
-> > > > However, I think that could be solved by just separately vmalloc'in=
-g the
-> > > > label space for this. Then instead of kernel parameters to sub-divi=
-de a
-> > > > region, you just have an initramfs script to do the same.
-> > > >
-> > > > Does that meet your needs?
-> > >
-> > > Sorry, I'm having trouble imagining this.
-> > > If I wanted 500 1GB chunks, I would request a region of 500GB+space
-> > > for the label? Or is that a label and info-blocks?
-> >
-> > You would specify an memmap=3D range of 500GB+128K*.
-> >
-> > Force attach that range to Mike's RAMDAX driver.
-> >
-> > [ modprobe -r nd_e820, don't build nd_820, or modprobe policy blocks nd=
-_e820 ]
-> > echo ramdax > /sys/bus/platform/devices/e820_pmem/driver_override
-> > echo e820_pmem > /sys/bus/platform/drivers/ramdax
-> >
-> > * forget what I said about vmalloc() previously, not needed
-> >
-> > > Then on each boot the kernel would check if there is an actual
-> > > label/info-blocks in that space and if yes, it would recreate my
-> > > devices (including the fsdax/devdax type)?
-> >
-> > Right, if that range is persistent the kernel would automatically parse
-> > the label space each boot and divide up the 500GB region space into
-> > namespaces.
-> >
-> > 128K of label spaces gives you 509 potential namespaces.
->=20
-> That's not enough for us. We would need ~1 order of magnitude more.
-> Sorry I'm being vague about this but I can't discuss the actual
-> machine sizes.
+Hello,
 
-Sure, then make it 1280K of label space. There's no practical limit in
-the implementation.
+syzbot found the following issue on:
 
-> > > One of the requirements for live update is that the kexec reboot has
-> > > to be fast. My solution introduced a delay of tens of milliseconds
-> > > since the actual device creation is asynchronous. Manually dividing a
-> > > region into thousands of devices from userspace would be very slow bu=
-t
-> >
-> > Wait, 500GB Region / 1GB Namespace =3D thousands of Namespaces?
->=20
-> I was talking about devices and AFAIK 1 namespace equals 5 devices for
-> us currently (nd/{namespace, pfn, btt, dax}, dax/dax). Though the
-> device creation is asynchronous so I guess the actual device count is
-> not important.
+HEAD commit:    50c19e20ed2e Merge tag 'nolibc-20250928-for-6.18-1' of git..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=136ee6e2580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=ee1d7eda39c03d2c
+dashboard link: https://syzkaller.appspot.com/bug?extid=47680984f2d4969027ea
+compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1181036f980000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15875d04580000
 
-I do not see how it is relevant. You also get 1000s of devices with
-plain memory block devices.
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-50c19e20.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/33a22a854fe0/vmlinux-50c19e20.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/e68f79994eb8/bzImage-50c19e20.xz
+mounted in repro: https://storage.googleapis.com/syzbot-assets/71839d8fa466/mount_0.gz
+  fsck result: failed (log: https://syzkaller.appspot.com/x/fsck.log?x=17630a7c580000)
 
-> > > I would have to do that only on the first boot, right?
-> >
-> > Yes, the expectation is only incur that overhead once. It also allows
-> > for VMs to be able to lookup their capacity by name. So you do not need
-> > a separate mapping of 1GB Namepsace blocks to VMs. Just give some VMs
-> > bigger Namespaces than others by name.
->=20
-> Sure, I can do that at first. But after some time fragmentation will
-> happen, right?
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+47680984f2d4969027ea@syzkaller.appspotmail.com
 
-Why would fragementation be more of a problem with labels vs command
-line if the expectation is maintaining a persistent namespace layout
-over time?
+loop0: detected capacity change from 0 to 16
+erofs (device loop0): mounted with root inode @ nid 36.
+process 'syz.0.17' launched './file2' with NULL argv: empty string added
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 5507 at fs/dax.c:1756 dax_iomap_rw+0xe34/0xed0 fs/dax.c:1756
+Modules linked in:
+CPU: 0 UID: 0 PID: 5507 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:dax_iomap_rw+0xe34/0xed0 fs/dax.c:1756
+Code: ff ff 49 bd 00 00 00 00 00 fc ff df eb 84 e8 33 d7 6f ff 90 0f 0b 90 80 8c 24 c4 01 00 00 01 e9 b9 f4 ff ff e8 1d d7 6f ff 90 <0f> 0b 90 e9 ab f4 ff ff 89 d9 80 e1 07 80 c1 03 38 c1 0f 8c 56 f3
+RSP: 0018:ffffc9000296f840 EFLAGS: 00010293
+RAX: ffffffff824eae63 RBX: ffffc9000296fc00 RCX: ffff88801f938000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffc9000296fb30 R08: ffffc9000296fa9f R09: 0000000000000000
+R10: ffffc9000296f9f8 R11: fffff5200052df54 R12: 1ffff9200052df80
+R13: dffffc0000000000 R14: 0000000000000000 R15: 0000000000000001
+FS:  0000555575829500(0000) GS:ffff88808d967000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f41f4179286 CR3: 0000000050011000 CR4: 0000000000352ef0
+Call Trace:
+ <TASK>
+ __kernel_read+0x4cc/0x960 fs/read_write.c:530
+ prepare_binprm fs/exec.c:1609 [inline]
+ search_binary_handler fs/exec.c:1656 [inline]
+ exec_binprm fs/exec.c:1702 [inline]
+ bprm_execve+0x8ce/0x1450 fs/exec.c:1754
+ do_execveat_common+0x510/0x6a0 fs/exec.c:1860
+ do_execveat fs/exec.c:1945 [inline]
+ __do_sys_execveat fs/exec.c:2019 [inline]
+ __se_sys_execveat fs/exec.c:2013 [inline]
+ __x64_sys_execveat+0xc4/0xe0 fs/exec.c:2013
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f7556f8eec9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffea3815728 EFLAGS: 00000246 ORIG_RAX: 0000000000000142
+RAX: ffffffffffffffda RBX: 00007f75571e5fa0 RCX: 00007f7556f8eec9
+RDX: 0000000000000000 RSI: 0000200000000000 RDI: ffffffffffffff9c
+RBP: 00007f7557011f91 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f75571e5fa0 R14: 00007f75571e5fa0 R15: 0000000000000005
+ </TASK>
 
-> At some point I will have to give VMs a bunch of smaller namespaces
-> here and there.
->=20
-> Btw. one more thing I don't understand. Why are maintainers so much
-> against adding new kernel parameters?
 
-This label code is already written and it is less burden to maintain a
-new use of existing code vs new mechanism for a niche use case. Also,
-memmap=3D has long been a footgun, making that problem worse for
-questionable benefit to wider Linux project does not feel like the right
-tradeoff.
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-The other alternative to labels is ACPI NFIT table injection. Again the
-tradeoff is that is just another reuse of an existing well worn
-mechanism for delineating PMEM.=
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
