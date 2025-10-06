@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0C1A1DF982
-	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 16:06:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6962E23ABA1
+	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 16:09:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759766790; cv=none; b=XhiFKI2gLUoBpQTlZVfV+m2ikS4aeWqKTYePv4PVyO6maT7CrImBKFo9uL7l0LdvmppnhdgCjwc1phHQflnSLjE4PyH3N6yls0DS5dJXIdKHZaLx1RXlL0UIRQFwUISbG9KC4g7wyjwZW6qS1S204MqPfQoUsBw7TxWRVRtY52g=
+	t=1759766981; cv=none; b=n2KOP8ExKADOdvCopq9luI9b5yEu1FvCu7IkQm7wv2igG3qCA8fJ6SYnkPZR4uh65PnYnbCBBt05OYB+RSf/TLPhoFdbKWkm4T93kqlMVj5GAvfCIypMNEgxBaqm1zFtkJmBeAKyTXU/6Gsc0PgxxqKr1E16I6MtTWUnEurENgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759766790; c=relaxed/simple;
-	bh=G7QG3+/2/Dyp16EoSQYPRrzMXelmXKhdN1+e9k61Mi4=;
+	s=arc-20240116; t=1759766981; c=relaxed/simple;
+	bh=givZed0PpwJdCIhCZbPswU9FycNDWl/nLqzjLr1upuo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gnWOrWkIXXNn1DS+YMJ7V3Mby37euWDYJr8EeSyFg6Pukr8gMqxC+842GZb/D750lpOW9hnnlrv3jL0S9xB71Bify/pt+pC/USyLjQOPcegY5ygMcQwwMIRERShTWiBr3d+I/m3EBcvF4oUAQIXEeZUuBTdOnPOfIMyONdGLQLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AXJVgd+K; arc=none smtp.client-ip=192.198.163.11
+	 In-Reply-To:Content-Type; b=e5+14wXHJx2VAHV0jmgJgKuAGlqMkp1Jda/D54z428mNK0y5NOfpmx21U1HiJiR9bdnv1kIjDSr1xnQHsR3iE1VlY3cle2xV2jwUuEYgkLQ2e3xf5Ky2J5Q6MG7GvNleMZMaD7zMVTs8H9qW96YN82KwC+JXYwN8OGO2lnTvbmE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=C2CClYHS; arc=none smtp.client-ip=192.198.163.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AXJVgd+K"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C2CClYHS"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1759766789; x=1791302789;
+  t=1759766980; x=1791302980;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=G7QG3+/2/Dyp16EoSQYPRrzMXelmXKhdN1+e9k61Mi4=;
-  b=AXJVgd+KdeyTJ61RQncg7xJN15Ef3VB92HHR/SOUArs81j4ndjbDCPPz
-   2vo4yGsRVz+Z9I6cwPu6ncbusiwjf/lJlpPQ2BHE9uGExf3SJMDGKsBwL
-   4BMoKpXhuZh68I3Lm2BBGcrpf76RAGjO4dp1ih76A3eTUd0EAhAO6YNqg
-   b367yyj1Ypkef5f5XgMgl6TPAPVF1ZD6IQRz9CwG9bJMZrGfwPxFJ8WTH
-   VQp0TeAGc1y+BBz3q+v6Lw204nsbDuOTC7+xAapvhRffuE7Sz1SVYegaY
-   0WtgFVxEDte9KxG1AOOdCmulJGMoaXSWkpmEZt833kXL+bSaqr018i92I
-   Q==;
-X-CSE-ConnectionGUID: +/StIqcTQi+c0gbrQubbpA==
-X-CSE-MsgGUID: oDa+U7adQlmv3sT/7oyUBw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11574"; a="72557658"
+  bh=givZed0PpwJdCIhCZbPswU9FycNDWl/nLqzjLr1upuo=;
+  b=C2CClYHSNrgwZb9+D2jDiXcukYqz1d7icbNfj1SpraXDHfU0EjomdOOM
+   6eF6oWdOfk0QEpNzTKmDuzQ8Enjxo74uHNmiLAoEMJCY7pBcCu9LUjG+k
+   EvUQcsixxB+Y+DlEKi03sVORCrTF6DFLN/cJtc13z9dLRL9q3Uubvv6UX
+   6KoS05lljFFDdA3p8hmEARiYqG2SD8INiiKccB6HkNOXlLOU8BXpEnT26
+   Ptlj0yy0kdZ3koF3y1T5z6VhJv2wztaJW/lHl14evbnYsHcsfpHbEOTBP
+   +5dwWJlFzKknCZJ6G9jjIU/KS7WCaNruGcImISrxTx3a9IRXHUOKWRck0
+   A==;
+X-CSE-ConnectionGUID: qzShjdY/TBa2/vu695/xKg==
+X-CSE-MsgGUID: nUjqJvMJSGu9uTbJDTwF8Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11574"; a="61976301"
 X-IronPort-AV: E=Sophos;i="6.18,320,1751266800"; 
-   d="scan'208";a="72557658"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2025 09:06:28 -0700
-X-CSE-ConnectionGUID: nC8Lj1xzS7+53cBp2yHTgA==
-X-CSE-MsgGUID: nW2tsgZRS5ekdpwj0aiglA==
+   d="scan'208";a="61976301"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2025 09:09:39 -0700
+X-CSE-ConnectionGUID: k2UWq0gIS1iA14uL6ykWcg==
+X-CSE-MsgGUID: nCPFZlBiRKe2pdF33nDutw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.18,320,1751266800"; 
-   d="scan'208";a="179732410"
+   d="scan'208";a="184195947"
 Received: from cmdeoliv-mobl4.amr.corp.intel.com (HELO [10.125.110.110]) ([10.125.110.110])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2025 09:06:27 -0700
-Message-ID: <6e893bd1-467a-4e9a-91ca-536afa6e4767@intel.com>
-Date: Mon, 6 Oct 2025 09:06:26 -0700
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2025 09:09:37 -0700
+Message-ID: <1ba93727-e673-48c8-b3b4-2aba96304053@intel.com>
+Date: Mon, 6 Oct 2025 09:09:37 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -96,11 +96,6 @@ On 9/29/25 6:57 AM, Neeraj Kumar wrote:
 > Because of this movemement of code we have churn introduced in this patch.
 > Can you please suggest optimized way to handle dependency on libnvdimm
 > with minimum code changes.
-
-Hmm....maybe relegate the introduction of core/pmem_region.c new file and only the moving of the existing bits into the new file to a patch. And then your patch will be rid of the delete/add bits of the old code? Would that work?
-
-DJ
- 
 > 
 >>
 >>> diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
@@ -197,6 +192,11 @@ DJ
 > 
 > Even we can remove declaration of is_cxl_region() and to_cxl_region()
 > from drivers/cxl/cxl.h as these functions are internal to cxl/core/region.c
+
+Yes we should probably clean that up if it's not being used externally. I don't think it should break cxl_test, but you should compile verify after you make the changes.
+
+make M=tools/testing/cxl
+
 > 
 > 
 > Regards,
