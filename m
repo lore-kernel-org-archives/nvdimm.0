@@ -1,104 +1,84 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F92524A04A
-	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FB9E212569;
+	Mon,  6 Oct 2025 11:01:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759726510; cv=none; b=e4QAWrxkW4OCGn31llYepXwbs/fLo34jS+fMylcQyeKc31D6VxsEMFKZESqqz7laBM74WalrsOlR1hknfAEkNTp6pPNQ+HQa6fg/FtKaFltnJRtN11aCKSmSqg4bNnu+G6rE/2y7AmRS3C+t/ijO/2j8KwzhttX45EU1YGU7zAg=
+	t=1759748500; cv=none; b=VbxDTkZghqv+APuv/Io5AYLK1eeX13WiFkmwJ7zXIKCr7qjvGkZ0c1xBhuJPplAA05pjfDodhfLP/GnT2dbdYCC+E8WyFREd4ogyXLgK8F0FjrtzdlOIUPPFk7ItXwdjX9mMaNvO0Ju+URgXBSX6vDpeQB0ePqEIMPu2u05DY74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759726510; c=relaxed/simple;
-	bh=ivNLbrcVf31S8sBPae+ncnEMp0uVn4p3a8QV2tab48U=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=eooCZZjHUB4PPjdJFKneGICp49fYnj5QZTQdEsGKd/01MqrYqoBI8MbThslz+cVObnQGBn/xSWsd1sN0G/+mrM8YHP+EI4Zb4yVlmXfozAYQ/HQkwVjN9aeBV3//f7ccaSQraBDJ5XgfiVszFq5L8TL9lLv8mE0zutHfHs4ySuY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=S1Bq9dIE; arc=none smtp.client-ip=203.254.224.24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1759748500; c=relaxed/simple;
+	bh=eycDTVfwVxk6grbRt+XeCahztVPOUI91eRKprLsAxls=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=CG2uyR5mA/shnhbLJa5anBgGoAWkBDANYuaJo5IAEWAlSrS+GzKBKOeV/9nSzciPlzsldDwTKjgIKYKpl6vhI30ea114bUZmDnr1N6lsJbUZAInmpaQVof2i4fCUR9qMv6Kjo+ctLXqVdEuN75H4DO/w5/t7NnjXcZpya1DlnYo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tZLeMuzp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="S1Bq9dIE"
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251006045505epoutp017fb2df3ae8164c4cbccffa78ebec5c50~rze8FZLO91645616456epoutp01G
-	for <nvdimm@lists.linux.dev>; Mon,  6 Oct 2025 04:55:05 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251006045505epoutp017fb2df3ae8164c4cbccffa78ebec5c50~rze8FZLO91645616456epoutp01G
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1759726505;
-	bh=ivNLbrcVf31S8sBPae+ncnEMp0uVn4p3a8QV2tab48U=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=S1Bq9dIEJKGcEpGQorBManeodrB/OzpdAJ/ZKW4ZtUHBJ5G/KgXUWMre1emF944XI
-	 fJLHdmVg4MTxZ4jjAcXFXvUrKUrAqZ3BVA+t3vteYDKME4ADZwbG7ir2Qhkixh3Xa5
-	 EEOju8ABpzY/QOXFuIZjjpe4K6wrgHj+gj9DL7zc=
-Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
-	20251006045505epcas5p31ab6da49f91e0ee8a2955e1dbfed18bb~rze7thTUR2860328603epcas5p3J;
-	Mon,  6 Oct 2025 04:55:05 +0000 (GMT)
-Received: from epcpadp1new (unknown [182.195.40.141]) by
-	epsnrtp04.localdomain (Postfix) with ESMTP id 4cg6QK3Fhrz6B9mB; Mon,  6 Oct
-	2025 04:55:05 +0000 (GMT)
-Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPA id
-	20250929141921epcas5p108726cfc1dcbc0f911df2ac28e6b54b4~pxqmxKVhp2852028520epcas5p1x;
-	Mon, 29 Sep 2025 14:19:21 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20250929141917epsmtip2886d4998032f062d081d50a0dfcd91bf~pxqjJhU8W1938819388epsmtip2v;
-	Mon, 29 Sep 2025 14:19:17 +0000 (GMT)
-Date: Mon, 29 Sep 2025 19:49:13 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
-	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
-	cpgs@samsung.com
-Subject: Re: [PATCH V3 04/20] nvdimm/label: Update mutex_lock() with
- guard(mutex)()
-Message-ID: <720167805.241759726505455.JavaMail.epsvc@epcpadp1new>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tZLeMuzp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF414C4CEF7;
+	Mon,  6 Oct 2025 11:01:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1759748499;
+	bh=eycDTVfwVxk6grbRt+XeCahztVPOUI91eRKprLsAxls=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=tZLeMuzpLiqjBBU+3IfvpSv8VnWtLtOKEvk4b7jFKxEcfwVRnC8JkFDdByqTrVAJ8
+	 b6372Zu908TWTk5DMKxTwSfem4V2A438rqUq2Ts0HjwsNbww6FtuycIqt2QaziJskd
+	 K4heISUpTH9nTY8JDIGDSMqe3FJVysP2Cld/IUN3HY52UuQY2bun5gzjt1SzcjSker
+	 wrMkO99ko4X8/wuEuoHCOH3sW34H7IvSM7Wk1wJ6LTYvmUG4R9ZTX2oN7RSnkalm7y
+	 r8gGdF0YaFQUgatm4wv3s4SmfCNa50ixD1bq+0zN0HrIjmY/5yhJWTtckDu7/yx3lw
+	 0RxgflVcXbqVA==
+From: Christian Brauner <brauner@kernel.org>
+To: linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	Yuezhang Mo <Yuezhang.Mo@sony.com>
+Cc: Christian Brauner <brauner@kernel.org>,
+	dan.j.williams@intel.com,
+	hch@lst.de,
+	Friendy Su <friendy.su@sony.com>,
+	Daniel Palmer <daniel.palmer@sony.com>
+Subject: Re: [PATCH v1] dax: skip read lock assertion for read-only filesystems
+Date: Mon,  6 Oct 2025 13:01:33 +0200
+Message-ID: <20251006-kalziumreich-backt-0bf810100070@brauner>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20250930054256.2461984-2-Yuezhang.Mo@sony.com>
+References: <20250930054256.2461984-2-Yuezhang.Mo@sony.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <aNRlzI9b2oFk_VeC@aschofie-mobl2.lan>
-X-CMS-MailID: 20250929141921epcas5p108726cfc1dcbc0f911df2ac28e6b54b4
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----SANDhlYmavlWOafSlba8Uwn5SYx3JopzY9bfx6BHCYDp5Sgs=_75b2_"
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134136epcas5p118f18ce5139d489d90ac608e3887c1fc
-References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134136epcas5p118f18ce5139d489d90ac608e3887c1fc@epcas5p1.samsung.com>
-	<20250917134116.1623730-5-s.neeraj@samsung.com>
-	<aNRlzI9b2oFk_VeC@aschofie-mobl2.lan>
-
-------SANDhlYmavlWOafSlba8Uwn5SYx3JopzY9bfx6BHCYDp5Sgs=_75b2_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Disposition: inline
-
-On 24/09/25 02:42PM, Alison Schofield wrote:
->On Wed, Sep 17, 2025 at 07:11:00PM +0530, Neeraj Kumar wrote:
->> Updated mutex_lock() with guard(mutex)()
->
->Along with the other reviewer comments to limit the application
->of guard() to where it is most useful, can this be spun off
->as a single patch that would be done irregardless on the
->new label support?
->
->I'm asking the question. I don't know the answer ;)
->
-
-This patch is independent and not related with this series.
-Its good to send this seperately.
-
-
-Regards,
-Neeraj
-
-
-------SANDhlYmavlWOafSlba8Uwn5SYx3JopzY9bfx6BHCYDp5Sgs=_75b2_
 Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1317; i=brauner@kernel.org; h=from:subject:message-id; bh=eycDTVfwVxk6grbRt+XeCahztVPOUI91eRKprLsAxls=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQ8Xti363/eS7dzMrOnzlw/vflG2KMXQcm/FStWhEbwW 2WdXH0psKOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAiPoKMDPf27mYtUG3uY+Xa FvuiP8O0wlA9Z95G3pTjMZ8r57xdv5yRYYPsG/nM9tsZl16GL1nXEbd8dd+8f+G8gpMm5dzwYt6 gzgEA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
+On Tue, 30 Sep 2025 13:42:57 +0800, Yuezhang Mo wrote:
+> The commit 168316db3583("dax: assert that i_rwsem is held
+> exclusive for writes") added lock assertions to ensure proper
+> locking in DAX operations. However, these assertions trigger
+> false-positive lockdep warnings since read lock is unnecessary
+> on read-only filesystems(e.g., erofs).
+> 
+> This patch skips the read lock assertion for read-only filesystems,
+> eliminating the spurious warnings while maintaining the integrity
+> checks for writable filesystems.
+> 
+> [...]
 
-------SANDhlYmavlWOafSlba8Uwn5SYx3JopzY9bfx6BHCYDp5Sgs=_75b2_--
+Applied to the vfs.fixes branch of the vfs/vfs.git tree.
+Patches in the vfs.fixes branch should appear in linux-next soon.
 
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
+
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
+
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.fixes
+
+[1/1] dax: skip read lock assertion for read-only filesystems
+      https://git.kernel.org/vfs/vfs/c/81dd0be374ca
