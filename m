@@ -1,27 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ADD621E0AD;
-	Tue, 14 Oct 2025 18:36:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C91F2C11C9;
+	Wed, 15 Oct 2025 08:00:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760466975; cv=none; b=jp6lME24o7L6Jfsk9mY0/wWoFwYqDBSUPOw21p43c6ULw3sg75qQqinsoqJNAwpTkdlqdMM+CO58K303ZXy0mMmX9md5/bwq+QYL8hrsN8Hpl7V7ePZ4bbZfH9a8v8Fvby3fG76N78lrPCbX43x7SjEn3zLHUsfIteVozZ8kRvw=
+	t=1760515228; cv=none; b=SEbpgCMdMWD1fxL3CN2gRQ5EwJ61Y2R6Xh++KWFOTmi3OuoqVYqzq6WF5egXyJDT9Sd6EHet6yPgI7fxpVgcyje3oE7RY/HL+5vuFcpU5G04THLf9P0nRM8t8uQzIpCeLTYADaAEujDyFPTmyslYZtDdGPH9Zu/FPLpBmS7uzq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760466975; c=relaxed/simple;
-	bh=GUTdYF0h43Ye6bYurXtSBA08HW0HtwtpZFiTIVqD/Qg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HeUVwOoFGiE15/4QST2g0sdQCLy1H28vzhflIV2MknSvwJPSp8joV4TaOIA/OTxUnQvncnY3FLUUcP6Y8eXZdcxXXIy/4eoz3JgjN4uLOj5mnOxaonQuGzqrH/K1zJa2o/VKBT/66Ns69dQFj1PhvvxczwM1rLu9c/6eVuRIBRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3468C4CEF9;
-	Tue, 14 Oct 2025 18:36:14 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
+	s=arc-20240116; t=1760515228; c=relaxed/simple;
+	bh=RNrrJqa56pWAbo41aiG9jd+Ywovn3AVFWvtfkggn8p8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=f7nonEPF1k+xOdEbZmXr6LXJ4PJjurv9Jto2mTl+NJbXTkZrk4YZwaXW4BBpLGpBc2SrDmn6bA6UblU1STkrh7BEpq+wl+XUgv2KiGpHWHM6e3ljNbwk1UeYOEaSiTufWQw1q1tnBswgT9Mi5m7F+vkO/z3GlMe93LXEDSppKLQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=exqAfd4S; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="exqAfd4S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA17BC4CEF8;
+	Wed, 15 Oct 2025 08:00:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1760515227;
+	bh=RNrrJqa56pWAbo41aiG9jd+Ywovn3AVFWvtfkggn8p8=;
+	h=From:To:Cc:Subject:Date:From;
+	b=exqAfd4Sb99/xQT02RBtFP32VOcOX/wzoFjxKIzTnEIRiWrFTEpwV4taWKaPg6Fud
+	 abjOxYTJRxuRWKA68hMHiOIujwt+eJEs5fYERQPd2m+/9o2ORsvVZ0ZpDW5DnmgW4L
+	 UK6kohUn7QUCq7pT5+tWqfU2UmNfyO7MekH2QD8JFvouL40fvv6I0Q1lLChcZCdPAM
+	 Fh193BByRXTRsBY0/vtleHkb59KUU0RvXPqqHajSqp1X6cCExLRudIvVVK6jx0U8qA
+	 P9sWUl4z5dqEPaYrU17INKM5vUOVPWgNdmFjnLHzJeSsjGPpDgLs/3WBY/0Y9jyyCU
+	 03LArymegIx3w==
+From: Mike Rapoport <rppt@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Cc: jane.chu@oracle.com,
+	=?UTF-8?q?Micha=C5=82=20C=C5=82api=C5=84ski?= <mclapinski@google.com>,
+	Mike Rapoport <rppt@kernel.org>,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Tyler Hicks <code@tyhicks.com>,
+	linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Cc: alison.schofield@intel.com,
-	vishal.l.verma@intel.com
-Subject: [NDCTL PATCH] cxl: Add support for extended linear cache
-Date: Tue, 14 Oct 2025 11:36:13 -0700
-Message-ID: <20251014183613.1699995-1-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.51.0
+Subject: [PATCH v2 0/1] nvdimm: allow exposing RAM as libnvdimm DIMMs
+Date: Wed, 15 Oct 2025 11:00:19 +0300
+Message-ID: <20251015080020.3018581-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -30,109 +49,53 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add the retrieval of extended linear cache if the sysfs attribute exists
-and the libcxl function that retrieves the size of the extended linear
-cache. Support for cxl list also is added and presents the json
-attribute if the extended linear cache size is greater than 0.
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- cxl/json.c         | 10 ++++++++++
- cxl/lib/libcxl.c   | 10 ++++++++++
- cxl/lib/libcxl.sym |  5 +++++
- cxl/lib/private.h  |  1 +
- cxl/libcxl.h       |  2 ++
- 5 files changed, 28 insertions(+)
+Hi,
 
-diff --git a/cxl/json.c b/cxl/json.c
-index bde4589065e7..e9cb88afa43f 100644
---- a/cxl/json.c
-+++ b/cxl/json.c
-@@ -994,6 +994,16 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
- 			json_object_object_add(jregion, "size", jobj);
- 	}
- 
-+	val = cxl_region_get_extended_linear_cache_size(region);
-+	if (val > 0) {
-+		jobj = util_json_object_size(val, flags);
-+		if (jobj) {
-+			json_object_object_add(jregion,
-+					       "extended_linear_cache_size",
-+					       jobj);
-+		}
-+	}
-+
- 	if (mode != CXL_DECODER_MODE_NONE) {
- 		jobj = json_object_new_string(cxl_decoder_mode_name(mode));
- 		if (jobj)
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index cafde1cee4e8..32728de9cab6 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -585,6 +585,10 @@ static void *add_cxl_region(void *parent, int id, const char *cxlregion_base)
- 	else
- 		region->size = strtoull(buf, NULL, 0);
- 
-+	sprintf(path, "%s/extended_linear_cache_size", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		region->cache_size = strtoull(buf, NULL, 0);
-+
- 	sprintf(path, "%s/resource", cxlregion_base);
- 	if (sysfs_read_attr(ctx, path, buf) == 0)
- 		resource = strtoull(buf, NULL, 0);
-@@ -744,6 +748,12 @@ CXL_EXPORT unsigned long long cxl_region_get_size(struct cxl_region *region)
- 	return region->size;
- }
- 
-+CXL_EXPORT unsigned long long
-+cxl_region_get_extended_linear_cache_size(struct cxl_region *region)
-+{
-+	return region->cache_size;
-+}
-+
- CXL_EXPORT unsigned long long cxl_region_get_resource(struct cxl_region *region)
- {
- 	return region->start;
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index e01a676cdeb9..36a93c3c262a 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -300,3 +300,8 @@ LIBCXL_10 {
- global:
- 	cxl_memdev_is_port_ancestor;
- } LIBCXL_9;
-+
-+LIBCXL_11 {
-+global:
-+	cxl_region_get_extended_linear_cache_size;
-+} LIBCXL_10;
-diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index 7d5a1bcc14ac..542cdb7eec7c 100644
---- a/cxl/lib/private.h
-+++ b/cxl/lib/private.h
-@@ -174,6 +174,7 @@ struct cxl_region {
- 	uuid_t uuid;
- 	u64 start;
- 	u64 size;
-+	u64 cache_size;
- 	unsigned int interleave_ways;
- 	unsigned int interleave_granularity;
- 	enum cxl_decode_state decode_state;
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 54bc025b121d..9371aac943fb 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -327,6 +327,8 @@ int cxl_region_get_id(struct cxl_region *region);
- const char *cxl_region_get_devname(struct cxl_region *region);
- void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu);
- unsigned long long cxl_region_get_size(struct cxl_region *region);
-+unsigned long long
-+cxl_region_get_extended_linear_cache_size(struct cxl_region *region);
- unsigned long long cxl_region_get_resource(struct cxl_region *region);
- enum cxl_decoder_mode cxl_region_get_mode(struct cxl_region *region);
- unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
+It's not uncommon that libnvdimm/dax/ndctl are used with normal volatile
+memory for a whole bunch of $reasons.
 
-base-commit: 38f04b06ac0b0d116b24cefc603cdeb479ab205b
--- 
-2.51.0
+Probably the most common usecase is to back VMs memory with fsdax/devdax,
+but there are others as well when there's a requirement to manage memory
+separately from the kernel.
 
+The existing mechanisms to expose normal ram as "persistent", such as
+memmap=x!y on x86 or dummy pmem-region device tree nodes on DT systems lack
+flexibility to dynamically partition a single region without rebooting the
+system and sometimes even updating the system firmware. Also, to create
+several DAX devices with different properties it's necessary to repeat
+the memmap= command line option or add several pmem-region nodes to the
+DT.
+
+I propose a new ramdax driver that will create a DIMM device on
+E820_TYPE_PRAM/pmem-region and that will allow partitioning that device
+dynamically. The label area is kept in the end of that region and managed
+by the driver.
+
+v2 changes:
+* Change the way driver is bound to a device, following Dan's
+  suggestion. Instead of forcing mutual exclusion of ramdax and
+  nr_e820/of-pmem at build time, rely on 'driver_override' attribute to
+  allow binding ramdax driver to e820_pmem/pmem-region devices.
+* Fix build warning reported by kbuild
+
+v1: https://lore.kernel.org/all/20250826080430.1952982-1-rppt@kernel.org
+* fix offset calculations in ramdax_{get,set}_config_data
+* use a magic constant instead of a random number as nd_set->cookie*
+
+RFC: https://lore.kernel.org/all/20250612083153.48624-1-rppt@kernel.org
+
+Mike Rapoport (Microsoft) (1):
+  nvdimm: allow exposing RAM carveouts as NVDIMM DIMM devices
+
+ drivers/nvdimm/Kconfig  |  17 +++
+ drivers/nvdimm/Makefile |   1 +
+ drivers/nvdimm/ramdax.c | 272 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 290 insertions(+)
+ create mode 100644 drivers/nvdimm/ramdax.c
+
+
+base-commit: 3a8660878839faadb4f1a6dd72c3179c1df56787
+--
+2.50.1
