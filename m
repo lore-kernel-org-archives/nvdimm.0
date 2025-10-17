@@ -1,99 +1,177 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71ECC214A79
-	for <nvdimm@lists.linux.dev>; Thu, 16 Oct 2025 21:12:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC35D30C61F;
+	Fri, 17 Oct 2025 12:28:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760649144; cv=none; b=i76FY+NhCpTslukOWP5UFIldKJxSkqpgAuIwyczq9c3llm5pvydugvdu2NZLXbDCAtzccbVXUNj09Gx6TtWBlFWTujn/OzqHMRk9gT1Srjo5anuw4NbsnyOGHIpBZH+wAkuk42Uu4j3Td7VSTb+ZBE7hnn/tpO+FunxguR+3L+c=
+	t=1760704104; cv=none; b=i4FU9yrsHj9Klmf7iuDwRbmkgIep1c+5oyruOP1bubKxO9Dxg6oDG1C5AR9MXXBnwqiWnDwVxk73vL6jCECAM1ctwmgi+emb7nVEfYtj3l6lgycHEnVr6yOU9LH4dyqStvfkjrG84VodDqfytRpysS9IEWY0//O3h4H/ipKgwlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760649144; c=relaxed/simple;
-	bh=KHK7I670oRMrWGeBaFZ9Bw2rnLfggfRJoEkZ7ISt2A8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=p7xZ3fhsV2Yxo5GlpaapOFcu5bQH0/qG+ByOZy7WveqjM7PC3NRpz6MA5I2gyMNlSULy9BG7Mnwwm3DCVCscyfG8xP95yCJQ8X8F926On3YBU0kEfE+lV9yU8vqbza1XnfJJEmAzxw+/RsNJhVOJbI0fjKCV+F2KCHOeQOXg8fM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bv5XTbrp; arc=none smtp.client-ip=198.175.65.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1760704104; c=relaxed/simple;
+	bh=kSd/Ls5L3AtHUzQLW/f0nkA8Foo/0v2sZRfvkQmkirU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Vk90sYRoZzwly3krPMY8c3EfNay3go9N1C3nUixJI/QHVkPFz6cRXMr2I5gckPihy0iKHlQPlLVlYJ1p1j6nqi3yZt1HLpUzitliB6dZZyu/a6m41ws0MLuVXRE53dkSG31mvzGdopyI0VQOf9XJl2idty3Xrxt1u1KB9g7ddb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=eE5W0N9n; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bv5XTbrp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1760649143; x=1792185143;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=KHK7I670oRMrWGeBaFZ9Bw2rnLfggfRJoEkZ7ISt2A8=;
-  b=bv5XTbrpeXEYIB9hfx4YG04CmUIXNY5u0+4CkKBu9HIc0OU+vKs2s8Ju
-   cc/KOoEfMCDDSoD7CpfcQ3raN0+P3Wki7hQojm5ZehniWzI3SM9fkdMjc
-   ghLzqFnv+OGBR7UmiHz5j3Ll2fJkLVbam+CKgjIl58cqK+NHtpIF21i/Y
-   eTgMOVvzMJrrDQj2zaspj/DKYAJ+ZRv5h7n8PysLdJdiBNcHxACC1plZj
-   M1iXNIDGUxTIZnZDxeCNJ7FKyVlGQWfBLEUB9ZtgpIOlbyRCw3eddixq9
-   Fgz5uCvd4/HP+jyqr1KyN/FsHVyL2murRPf2MoLm/q5yJJ2DmvGy0NgcM
-   w==;
-X-CSE-ConnectionGUID: An5q/XAnSyuV/5k6mJ9BWg==
-X-CSE-MsgGUID: SPnup0JEQyCkEu1jF0wQXQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11531"; a="66689176"
-X-IronPort-AV: E=Sophos;i="6.17,312,1747724400"; 
-   d="scan'208";a="66689176"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2025 14:12:23 -0700
-X-CSE-ConnectionGUID: NCTAk1dzRqWAbp98wjTmFQ==
-X-CSE-MsgGUID: d6GCJLmVTOeXPIe3tkWpbA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.19,234,1754982000"; 
-   d="scan'208";a="213143132"
-Received: from gabaabhi-mobl2.amr.corp.intel.com (HELO [10.125.108.4]) ([10.125.108.4])
-  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2025 14:12:23 -0700
-Message-ID: <8c65e30c-5273-4098-ab63-cba51563c244@intel.com>
-Date: Thu, 16 Oct 2025 14:12:21 -0700
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="eE5W0N9n"
+Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 59HAarsL010294;
+	Fri, 17 Oct 2025 12:28:03 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pp1; bh=zcD/4uYFsGN+ddlc5XN7jrlEbZPy90
+	Q3VYii2jxgM9Y=; b=eE5W0N9ngKQsBCaEoKP5X7uMprOx6srXl/Y5VSnftyarLC
+	FSGEDSCmpjEvwqDQFh7AEijQZhgnsC4DjNtYcVSD2tWylUvlrd4mw2tUZr96iquP
+	/Z+lp47gr9mIxlR3dOKgFjPzYEUIvnSowb+LGqWv/mwux3Hir+753eGvRXblGAVl
+	S/1vztL894fE4p+ROE4dyTuhsSxnbHKOHNZ8TZpwoVVIQRwGqR1AFUMHqQ1rhx5Y
+	oJV9EhNt4y4mTiiWLDsGZ5H7lIV3YJc8+elXhzspQaeNoIjaX6oeGSgjxMHKd8Bi
+	2/n7WNnKjsQMvJom9/+Vry4AmFzLW57ZDlOaJsVg==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 49qewujm35-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 17 Oct 2025 12:28:03 +0000 (GMT)
+Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 59HCS2e4011949;
+	Fri, 17 Oct 2025 12:28:02 GMT
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 49qewujm2x-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 17 Oct 2025 12:28:02 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 59H9Ms3A015041;
+	Fri, 17 Oct 2025 12:28:01 GMT
+Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 49r3sjvxxw-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 17 Oct 2025 12:28:01 +0000
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 59HCRviL24904158
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 17 Oct 2025 12:27:57 GMT
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 80522200F0;
+	Fri, 17 Oct 2025 12:27:57 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id DE081200ED;
+	Fri, 17 Oct 2025 12:27:54 +0000 (GMT)
+Received: from li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com (unknown [9.111.68.179])
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Fri, 17 Oct 2025 12:27:54 +0000 (GMT)
+Date: Fri, 17 Oct 2025 14:27:53 +0200
+From: Sumanth Korikkar <sumanthk@linux.ibm.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+        Jonathan Corbet <corbet@lwn.net>, Matthew Wilcox <willy@infradead.org>,
+        Guo Ren <guoren@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, Nicolas Pitre <nico@fluxnic.net>,
+        Muchun Song <muchun.song@linux.dev>,
+        Oscar Salvador <osalvador@suse.de>,
+        David Hildenbrand <david@redhat.com>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Baoquan He <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>,
+        Dave Young <dyoung@redhat.com>, Tony Luck <tony.luck@intel.com>,
+        Reinette Chatre <reinette.chatre@intel.com>,
+        Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+        "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+        Hugh Dickins <hughd@google.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Uladzislau Rezki <urezki@gmail.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Andrey Konovalov <andreyknvl@gmail.com>, Jann Horn <jannh@google.com>,
+        Pedro Falcato <pfalcato@suse.de>, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-mm@kvack.org,
+        ntfs3@lists.linux.dev, kexec@lists.infradead.org,
+        kasan-dev@googlegroups.com, Jason Gunthorpe <jgg@nvidia.com>,
+        iommu@lists.linux.dev, Kevin Tian <kevin.tian@intel.com>,
+        Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v4 11/14] mm/hugetlbfs: update hugetlbfs to use
+ mmap_prepare
+Message-ID: <aPI2SZ5rFgZVT-I8@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
+References: <cover.1758135681.git.lorenzo.stoakes@oracle.com>
+ <e5532a0aff1991a1b5435dcb358b7d35abc80f3b.1758135681.git.lorenzo.stoakes@oracle.com>
+ <aNKJ6b7kmT_u0A4c@li-2b55cdcc-350b-11b2-a85c-a78bff51fc11.ibm.com>
+ <20250923141704.90fba5bdf8c790e0496e6ac1@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] acpi/hmat: Fix lockdep warning for
- hmem_register_resource()
-To: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: vishal.l.verma@intel.com, ira.weiny@intel.com, rafael@kernel.org
-References: <20251015162958.11249-1-dave.jiang@intel.com>
- <68f001e4e4a2c_2f8991001a@dwillia2-mobl4.notmuch>
- <32ca1961-5ed6-47b5-af0e-70e7e87bba96@intel.com>
- <68f1421f4320b_2a2b1004e@dwillia2-mobl4.notmuch>
-From: Dave Jiang <dave.jiang@intel.com>
-Content-Language: en-US
-In-Reply-To: <68f1421f4320b_2a2b1004e@dwillia2-mobl4.notmuch>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250923141704.90fba5bdf8c790e0496e6ac1@linux-foundation.org>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: oq4BBwfqQ48M4fFrJYto5eFg6cOrIUo4
+X-Authority-Analysis: v=2.4 cv=Kr1AGGWN c=1 sm=1 tr=0 ts=68f23653 cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=kj9zAlcOel0A:10 a=x6icFKpwvdMA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=VnNF1IyMAAAA:8 a=Q64uQKxdJJvBSAPQG9IA:9 a=CjuIK1q_8ugA:10
+ a=UhEZJTgQB8St2RibIkdl:22 a=Z5ABNNGmrOfJ6cZ5bIyy:22 a=QOGEsqRv6VhmHaoFNykA:22
+X-Proofpoint-ORIG-GUID: 6VusDNc5IkEdh68Kaj2ZTeyqGB4LSNCy
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUxMDExMDAxNCBTYWx0ZWRfXxloq0CHfoAPH
+ XWVL1aBHdkm9/xfBCuiQ3NRDkHBHHJBzuRDZONYMy2fb9zEbQIvnfmYJ/id2eywCKro3ajwNeBN
+ 4kh50+Ptwe9WC/jgv6TvlSU3BjTjj8J4e8Q28WaUW15+fWE4+obYIhdatSNa8pR7s7K3qc9B/vz
+ /NrDUP9sclcVLmwCaUq8/8kitasnnMGBQ+06iNPPJ2JLfYTXft3CE9tZA6j7MvZnByxSm0WG2L9
+ 6HJF8v/KHOyke08jKmTMex92BViTc6nNAZ8Mf08l0p8tEVPKsDoeg+/woBR1eJnDItXypZ8WKoi
+ 4hmgIRXSm+rnxVDlrmJgusCv4UyparD/Ec+dlPRV+dFyojmExkE6m1pDYvzlIJcGkJRfebaDxiR
+ gMuyJhCR/K7vXVkZsF8tcUl7kIfexg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.80.40
+ definitions=2025-10-17_04,2025-10-13_01,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 priorityscore=1501 lowpriorityscore=0 bulkscore=0 adultscore=0
+ phishscore=0 suspectscore=0 malwarescore=0 clxscore=1015 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2510020000 definitions=main-2510110014
 
-
-
-On 10/16/25 12:06 PM, dan.j.williams@intel.com wrote:
-> Dave Jiang wrote:
-> [..]
->>> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
->>> index 5a36d57289b4..9f9f09480765 100644
->>> --- a/drivers/acpi/numa/hmat.c
->>> +++ b/drivers/acpi/numa/hmat.c
->>> @@ -867,6 +867,9 @@ static void hmat_register_target_devices(struct memory_target *target)
->>>         if (!IS_ENABLED(CONFIG_DEV_DAX_HMEM))
->>>                 return;
->>>  
->>> +       if (target->registered)
->>> +               return;
->>> +
->>
->> So this still triggers the lockdep warning. I don't think it's smart
->> enough to know that it gets around the issue. My changes with a new
->> flag does not trigger the lockdep.
+On Tue, Sep 23, 2025 at 02:17:04PM -0700, Andrew Morton wrote:
+> On Tue, 23 Sep 2025 13:52:09 +0200 Sumanth Korikkar <sumanthk@linux.ibm.com> wrote:
 > 
-> You have a case where target->registered is false in the
-> hmat_callback() path? How does that happen?
+> > > --- a/fs/hugetlbfs/inode.c
+> > > +++ b/fs/hugetlbfs/inode.c
+> > > @@ -96,8 +96,15 @@ static const struct fs_parameter_spec hugetlb_fs_parameters[] = {
+> > >  #define PGOFF_LOFFT_MAX \
+> > >  	(((1UL << (PAGE_SHIFT + 1)) - 1) <<  (BITS_PER_LONG - (PAGE_SHIFT + 1)))
+> > >  
+> > > -static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+> > > +static int hugetlb_file_mmap_prepare_success(const struct vm_area_struct *vma)
+> > >  {
+> > > +	/* Unfortunate we have to reassign vma->vm_private_data. */
+> > > +	return hugetlb_vma_lock_alloc((struct vm_area_struct *)vma);
+> > > +}
+> > 
+> > Hi Lorenzo,
+> > 
+> > The following tests causes the kernel to enter a blocked state,
+> > suggesting an issue related to locking order. I was able to reproduce
+> > this behavior in certain test runs.
+> 
+> Thanks.  I pulled this series out of mm.git's mm-stable branch, put it
+> back into mm-unstable.
 
-It seems the ELC nodes are not on CPU node and also not generic port nodes. This platform has socket 0 and 1 where the memory targets are registered. However, node 2 and 3 gets hot-plugged and does not target registered at hmat_callback() time. > 
-> ...and the splat is the same hmem_resource lock entanglement?
+Hi all,
 
-yes
+The issue is reproducible again in linux-next with the following commit:
+5fdb155933fa ("mm/hugetlbfs: update hugetlbfs to use mmap_prepare")
 
-Yes.
+Thanks,
+Sumanth
