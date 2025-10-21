@@ -1,46 +1,46 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012051.outbound.protection.outlook.com [52.101.48.51])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010050.outbound.protection.outlook.com [52.101.193.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619EB34D902
-	for <nvdimm@lists.linux.dev>; Tue, 21 Oct 2025 18:33:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74DF234D902
+	for <nvdimm@lists.linux.dev>; Tue, 21 Oct 2025 18:33:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.50
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761071587; cv=fail; b=l7xtOXwX7GlUOUDw1yAiJvfiZ+v8poMmtKZz7ZxVA+YiRPTeRQxTTwMVWqULNqWmCiHMRV1MB7vMXwq1CpHN3M1IxqkdZ8JpojGKfDdAXMdooUzzm9HZ/mRB/JeLQhGf8QxLs1gayjk4T4w8sSttP6eVgoVjE4nGYtFeraD6s60=
+	t=1761071602; cv=fail; b=Ukv7LAdhYdgpo9A20Po2ZclrBpKm3s6+cb59i+0Vx8dDBMn/4+JWgQ0SwoCA6kO91SZlVf5RWz7DzXZcf98CKjRVsF6pLY3dOnuoeWQtnvytCvOa5qKuXqzzbocj2dNZBKxxJ2CVnrfA+qaNHb2DdwJUUoPRajpdWeW9zUBG8QU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761071587; c=relaxed/simple;
-	bh=bbr8CXS1Qxd5LCoie9ltNleUurZvmePZX8dJ3AFx0+8=;
+	s=arc-20240116; t=1761071602; c=relaxed/simple;
+	bh=VF+K/HaHS+LPx8xDf3RcBCeY8ztMAUKYrXJu3SRl26o=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=beYwi7Q4ILVob3X/+rfGchShfaw1h4js+msfTxpvvfeKsnwIf45ZGijq3p7FVofX7W79LxWQiJKUwCf5H7nQuEOi5MUeoss0gEqN6g+tTgigg7tvGBFjZFvTzS8mlN5fkXCld9OVhV8u2mHNqv+UCi03aqNsHLQ0oQyK/ol1Cpk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=DoiLeAK6; arc=fail smtp.client-ip=52.101.48.51
+	 MIME-Version:Content-Type; b=TuIlugNeT4fQ4BoLrLTtIin//WHq6KZihf3DTI/2gp1Qhcrw3+eR6rydzP6u29tBvSdhskg+U7HdRS/hqh6Gb4FOLFje+zxKE+OAxlBX+YubmdbDHbyAvnlRn+IqSLumZzupYsVFZJd13SgPAOaDNBos6I1eoaxaQwDC0yKkJPA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=rmJQrIOr; arc=fail smtp.client-ip=52.101.193.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="DoiLeAK6"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="rmJQrIOr"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=u2Gxv51m1thJSsXjDYUyiUyLRP0u3KyI7NoeZSlDwA+Bd8udYyUx1yxSYgLIhGOwcUD8G2CXc9pGGK1NyJM39M7DLMhz3bvrddR2TLQl9iCQAi50s5dpmH2ysfWM807G0iMDTv7Av+I7brq5Xak+apWeuxgG9qh2mGMI/EXoG3v8ytashU19Wje3WUm80nRxZzBdsKyHsjzYaQ5YlDYjp713t7eh4BD8SgsRmSrCT9oxy6EP/WiWrJP4VUG9pvBQ/NjZHVEY+0/WuCJpRo5mnY5gPwrEn9Uh0rRHVLE8eGc9MTHvNLswLm+L1GrVZfZDCBgeBjLKoXhWksfiDc8XOw==
+ b=XSN6Q8bVkHh84P415x4PqfBcLXS7FXFcB86mXLNX5PDctBpc14ZSz+AZH5lm/tqV2r8M+v0zGnl8FLE0IU58cU+jkCN/uIkrx4MiRv659N4Te+djEwO15nPQ9XmyK0UzZGry7EuHWnm3ajKEtn+IiV4CY47fKo0cqHHMB1zxLGKSxX66rHKoQHAxY4jtT8BSXm/LqQfEb/p5hKHhs1TbcUV7zE7p4UkdmvA5wzzxjwxHPs/kEhqzgTjiLk2mXFev1lWG+bHc1qEWEgAKSwTewgR4rG9ztLlnGJ+5MWsp7cYIu5x9nXLqwjmX5FIUkFKWCfAi5PChQL57RiZBJYJ4zw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NrezgD37hSNiXkMfXNF2uRneEyEmSP/dUYpaos9FYSU=;
- b=R1iz0SUQtp168uLMKwhBTayevc9ZQlJHp2GyCWDhL/Gpip+DegcTUkfH5fhDQ+6QsKjaoPIhGVQdjmTlfYvA5b/G81bcIAT6FmvDqc7S+Hqq7jgyekQzgPZedPikZLQTl5pcFYBJz/jTeAXt6xjW9/AqIfcGZ4BprsJFzXLvfyLe2OMzlA8F+PQBlyyJXQP66VUsJ2fK5GzTXT9zXYgf+sNtYggQhLWweVdoSoPPMafxBbsSURh0BEqwRqZEX3XHH5ghOSnRghfuGd4CxxTIXXFRePIMEEiPYxGhMMuMEBsKB8SkTNLwyTmT5fjju/WbPm2CSOGIbnxAK/YiShyCtQ==
+ bh=8Xo6QnHVDhu8rH69hVUiFtV0xnebuqvhh6JFW4WzyEM=;
+ b=SNMh4kg9wKbO4XJ2yYwELmV8lxGXiQt9bsDi5aOegfFbPU6jIu8py/3Fp56Vfu4PmfZT5eComkgxApKTk0z8umKwnx+xmaH2AX2o0MG53oz+OA3lrrJeo2Pv39cWP9ijV//vZ6/AuZtBVF92jCuC0bqp1amAHeppBvE04YRG+bqh/AZbVZVdASDkjhKkLdr11NK43oSQG9C2keK6etRe3vczkK8oSq7s7SRv45BI+U4qMJbjQLeSVPxy/exbiStsNNF/ZmDylYhYGIeTP36/NN3w9LTIBNROKZIkOTklM+bPedKG2LrJRRmSIp5MIcgLNkDogbM5jivOosyy8GCboA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=lists.linux.dev smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=NrezgD37hSNiXkMfXNF2uRneEyEmSP/dUYpaos9FYSU=;
- b=DoiLeAK6J2JQ/kWt19EnKtDkTqrIyEId9xB7jFFsQZfRf1e/1WzPBImHa8udBmWQUTFS6iqvmYAiRUx+6uGb+svxLVrHoI4zlLegaBCkCbZq5lJteiZzZICk9NIhjjhUK2L/CKH8cm0E5dzLk6dkhIfvEXQ6iLn2iz+7ZZLIjbI=
-Received: from PH8PR05CA0008.namprd05.prod.outlook.com (2603:10b6:510:2cc::19)
- by MW4PR12MB6778.namprd12.prod.outlook.com (2603:10b6:303:1e8::14) with
+ bh=8Xo6QnHVDhu8rH69hVUiFtV0xnebuqvhh6JFW4WzyEM=;
+ b=rmJQrIOrBsVpFaOt2pb/fq+g36zJDVuI2e6nGuuet2i8CvLu0lv7bsuhdyok9OcOdgjmhjXEGb84/mDU264HWwsIyaYuYRRvXJdtsrttwwYyDIqlF4wwItFEFmfsYeXlP7Fzw3Tg0mlkI2HM/cZiJtz5VgAzcKunZbKiiA5bKD0=
+Received: from PH8PR21CA0013.namprd21.prod.outlook.com (2603:10b6:510:2ce::22)
+ by LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9228.12; Tue, 21 Oct
- 2025 18:33:01 +0000
-Received: from CY4PEPF0000EE38.namprd03.prod.outlook.com
- (2603:10b6:510:2cc:cafe::c7) by PH8PR05CA0008.outlook.office365.com
- (2603:10b6:510:2cc::19) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9253.12 via Frontend Transport; Tue,
- 21 Oct 2025 18:32:52 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9228.16; Tue, 21 Oct
+ 2025 18:33:12 +0000
+Received: from CY4PEPF0000EE3C.namprd03.prod.outlook.com
+ (2603:10b6:510:2ce:cafe::6b) by PH8PR21CA0013.outlook.office365.com
+ (2603:10b6:510:2ce::22) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9275.4 via Frontend Transport; Tue,
+ 21 Oct 2025 18:33:09 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,20 +48,20 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
 Received: from satlexmb07.amd.com (165.204.84.17) by
- CY4PEPF0000EE38.mail.protection.outlook.com (10.167.242.10) with Microsoft
+ CY4PEPF0000EE3C.mail.protection.outlook.com (10.167.242.13) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9253.7 via Frontend Transport; Tue, 21 Oct 2025 18:33:00 +0000
+ 15.20.9253.7 via Frontend Transport; Tue, 21 Oct 2025 18:33:11 +0000
 Received: from SCS-L-bcheatha.amd.com (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Tue, 21 Oct
- 2025 11:32:59 -0700
+ 2025 11:33:10 -0700
 From: Ben Cheatham <Benjamin.Cheatham@amd.com>
 To: <nvdimm@lists.linux.dev>
 CC: <linux-cxl@vger.kernel.org>, <alison.schofield@intel.com>, Ben Cheatham
 	<Benjamin.Cheatham@amd.com>
-Subject: [ndctl PATCH v3 5/7] cxl: Add clear-error command
-Date: Tue, 21 Oct 2025 13:31:22 -0500
-Message-ID: <20251021183124.2311-6-Benjamin.Cheatham@amd.com>
+Subject: [ndctl PATCH v3 6/7] cxl/list: Add injectable errors in output
+Date: Tue, 21 Oct 2025 13:31:23 -0500
+Message-ID: <20251021183124.2311-7-Benjamin.Cheatham@amd.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20251021183124.2311-1-Benjamin.Cheatham@amd.com>
 References: <20251021183124.2311-1-Benjamin.Cheatham@amd.com>
@@ -77,203 +77,240 @@ X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000EE38:EE_|MW4PR12MB6778:EE_
-X-MS-Office365-Filtering-Correlation-Id: c372c9af-a42b-4c0e-b6d5-08de10d0438f
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000EE3C:EE_|LV8PR12MB9620:EE_
+X-MS-Office365-Filtering-Correlation-Id: 046bcb17-770a-42ea-a8fb-08de10d04a31
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
+	BCL:0;ARA:13230040|36860700013|1800799024|376014|82310400026;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?yq11GABZe1cXCPfOm0QonAsKYQsQ/NQ8z6Ez1G0/HkRXw73fwb+5TO1MGHU0?=
- =?us-ascii?Q?DNp1Wm6MKJQqSNQW/4DZC6aVlmHi5T34OCbps3QXpj/o5AgPluXzxBwMbFZF?=
- =?us-ascii?Q?9P+omK1DQBaUmRDTeXceRp/0Vn1sovmi4A+PCQhRVWant3HSnm6KOUj1YAoQ?=
- =?us-ascii?Q?6iVNLAGkdAHmF4p27SUR9TKBNcsXkX3qPSaU+5DuJG43nSYSDSJu1CrcN5cG?=
- =?us-ascii?Q?wIOCtSyGRo4XcreiSzJdNRfQJO+pwxC1xNxxxLOVM3pO+pPmT+HA8jt2BqH9?=
- =?us-ascii?Q?2Dpzb9X8CnniKAYU9/kvHDVVwTOnHW+y7hj+CnB9sk8O86qAh0D26MTKzrVd?=
- =?us-ascii?Q?oCnAQJErV/ei36VqhRwvoF6WVyv5zpCDXpwt1kfgcmcNdxT3k3TpDQ1uKT7n?=
- =?us-ascii?Q?+KGbqyq43InZ4LiEy1O941yIAkR1p9QTccj7hvOoJCxVktPzaLBN8BMlaWQ2?=
- =?us-ascii?Q?d61Tfi5icflWWWP8DOMijOqXX04gnkqabTZHT6O3Sq0K6rMkcsHHsV782egd?=
- =?us-ascii?Q?nEC4sScUyo2CsXq1oqxyMlkvwoxjOtQMaLWkCVR92YvMeX+AUFA6MrfzgV3t?=
- =?us-ascii?Q?9XoHVwytH3d+RXx+jY9uVm9kDswtEL3FwrwXIjf7LQCfYbdpCjJBttz1TO7H?=
- =?us-ascii?Q?JsA36UG9RpHClS4Xg539HoqH6QvHWxVw1tQCKmohwhC0ZtOE4+vEBlWSdGQP?=
- =?us-ascii?Q?WmqmkgPxdpkj30lyj/SGXjbH4CP+xo/JOEJMmnbuVfwPkj+V5Bg+pV1yHn3M?=
- =?us-ascii?Q?1BI4GOm+T6D5ii9DpEr9HgLxAqbKQCt7opBXgN0hQXzCDeltbShivexWMB1+?=
- =?us-ascii?Q?jPZU+p9aVp1jOVZdB2+iiqhcf2H6wUokpgbESwzyAYK/lHTz04O6E8HJhWgo?=
- =?us-ascii?Q?iENf7pdraafKix+w692jPPp1mCsm0aG8mNJTGY4kUBsdmefjJsbQb0oo4r0p?=
- =?us-ascii?Q?IG82slm5jcEcG3irHmngxlAvvsT9h6ZeDWUfDnSiqcNly7RPSIfegPezg5l+?=
- =?us-ascii?Q?fTsoRei9FYayNuWfYw6OUplZAHTFwsIgx5lvW9DMq8dKegRv675vwlv28CXw?=
- =?us-ascii?Q?DSr2cuNP0l2Ev4Kvv8uLQJU02Yicb527Zpnq1pn0Fd8d7nyp34B3LRKvqwQB?=
- =?us-ascii?Q?lcxI5E8LCAIkjhmHx5kaagvOmjBinV6hiVAqLgCsIZfG+HhOXSoXi4DeIjPM?=
- =?us-ascii?Q?j2lJMg/gMvQjeP8iejYlE1xVhadoiXU4o59y80iKVcZIBweeYzHGhhywyHBK?=
- =?us-ascii?Q?HTHbxpKLEeNsXtE0UR0YlvKNk/pN2/22mcozaPoEPbHscr3hf7VfggGlme/m?=
- =?us-ascii?Q?z5dPQCBDlIxAHiDYlKjeufVsAVstNodUT2GG9J2i7v6CbXVprKxCGuaKOnWw?=
- =?us-ascii?Q?zU3YUt+MsU+zIUES4XHK2doxtpqdioatz7cZzVvXVDQWoKsY+RR71jeizGfX?=
- =?us-ascii?Q?cXSActhXY9GE67RLa0Uxc52w41ZHYiz3utC2DDpKeN0lcZihW1UO0CJWZqF8?=
- =?us-ascii?Q?IZ/pQHPLdSULkFEs+grzpGlowjdpOifsk9ac35CByIV6gUpeh5UiXBKCE8cK?=
- =?us-ascii?Q?u3Qfc0WYp3lUzPSt5tE=3D?=
+	=?us-ascii?Q?nl/zoCQfzpreWP3H8MxhDGp07MbudgnUNlZoEUW0PjO8IGHx76ZIZLw6Hc01?=
+ =?us-ascii?Q?/bSvtWve6etZ/KX6+v9yAwt0W0+aaaau3gf2DRXgNlHrM/tfsx6K230qbjNk?=
+ =?us-ascii?Q?qzwbxU5akAY30kHz/YNY8lyfN2QjDdqZe4Xv1bzi+OaG/uM68O3x+G/JRuUb?=
+ =?us-ascii?Q?c7ErBS8rgCb21GKgtnBhG+eF05Ccf2t/CF2L5QJ52qocOVTud0jJh05rKBpM?=
+ =?us-ascii?Q?4HflJ5O+9uwjwJYlyQVUJ3KVEkjF5CEB/V0JPWa+UH869uWUz37fvp3D/oOl?=
+ =?us-ascii?Q?dAFszPyKj0InkEKkxtJBd53V+NKlkwXYyYGWJ5tIhzdmo0sxZCDHSEu5jhLq?=
+ =?us-ascii?Q?FJsRyA1+6WBk8X7hKIVHazokd9IjclL1qWAVr3R5Pxj1xFyykTpdBRzLhBNP?=
+ =?us-ascii?Q?dXZGlfhK9yIcj1J4XE9JAmjGg12ep1b5t2uuVGvnNREyd0klaDsKINRF8LZh?=
+ =?us-ascii?Q?1Jh8fSXvfJI5jGGQUQT9LvSNmFw1WKnA8kXSzlgDJb/NI60R2zUpPHcSlSAY?=
+ =?us-ascii?Q?MP5cEu6dPUwpl+ED4OtXT0GSc1XpMwAAqQqkCjgwjP1RrGLfo9M1CrK6JKce?=
+ =?us-ascii?Q?CWjABFI0VnDQOyz9JEWid/LzpDd+joRBZcA+9dYS8qMweUwZt2p4s5Zl6wBD?=
+ =?us-ascii?Q?gI7fnqZelblqiwE5DAu1CNRXCe8XJ2pq3LBPN0uiQsVRyPTiu/SNhMF08MxP?=
+ =?us-ascii?Q?OmpMoqjImETGviIHRy5dD0/Eg2Cqjl0AmniD2LstIBnNscnMcEPzsqFcbDCH?=
+ =?us-ascii?Q?Q8f6SWhz8MoIiIobpv78wE5mdryKiPFNMNCKMMIB9wxzOf5f38xNFPFkrkij?=
+ =?us-ascii?Q?rP5pj/Kp4lhqwW5HDn4eqT7qEuircQVf9eLLYrciLMITQ05tIVUVKwbSYqAM?=
+ =?us-ascii?Q?XKNZZkinI2QnDiKIMf56h1GY98A6LfjSDgBgswKDxJxm6JVuE2wlWvPNMNuH?=
+ =?us-ascii?Q?rc0vJgxJGoQugUH5HE1F2ntccJG50UH1fMlZK3WFuMGOQjr47dtnnmDrJHIh?=
+ =?us-ascii?Q?Jw1aiPpl63SL6fKLKuP5l6PLOwGuyRVhp0y5glAQQ/YjEE2Obz8HIU4MvCGk?=
+ =?us-ascii?Q?+T5pHbM6U89l5UQR1FpLsyM15BTLWikV5PiHNTycHFhZcuAN75dLCx2m6YI4?=
+ =?us-ascii?Q?tfesKSoXfdzjhsSy2Svp5dK91sqmVot5Fr/otGGAQZE2Zy6um9J9vkoLafDS?=
+ =?us-ascii?Q?lkfHODQm6ZlzdC/9mVdlBKnCUxIX4UW3TNINnwTtI3TZ7ma1AlGq6vyIAGiI?=
+ =?us-ascii?Q?+/4VYlJhvQBan8yN7l13cAwg60L99bcGKcYoDzVxDUQS1Rl6wlKdb9AwH/u5?=
+ =?us-ascii?Q?RF1SPGiE95UVlOsw+CWz6fK2pyUGRfBjlW08Iup2noJ4y3vQP+kEkpxh6l4N?=
+ =?us-ascii?Q?btnARXIS3BiE4efha6IA1ZV2SSorHbVe0xSoCFrjA1nCxdbnPQMr12cgpn5j?=
+ =?us-ascii?Q?plAFt//5fuwhosBClsEEbH0AQ9vPjqblvRO7n2+Ko1qJpKL2Bdb5CiEgn+Ht?=
+ =?us-ascii?Q?uYAhbuaGw62gPxiLGaElcZkle9TKA2A2e2misstF6EstlYI2tTksLXF49xHt?=
+ =?us-ascii?Q?iVkqbU3j64a1uFfAscc=3D?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(376014)(82310400026);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Oct 2025 18:33:00.5051
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Oct 2025 18:33:11.6248
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c372c9af-a42b-4c0e-b6d5-08de10d0438f
+X-MS-Exchange-CrossTenant-Network-Message-Id: 046bcb17-770a-42ea-a8fb-08de10d04a31
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000EE38.namprd03.prod.outlook.com
+	CY4PEPF0000EE3C.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6778
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR12MB9620
 
-Add the 'cxl-clear-error' command. This command allows the user to clear
-device poison from CXL memory devices.
+Add the "--injectable-errors"/"-N" option to show injectable error
+information for CXL devices. The applicable devices are CXL memory
+devices and CXL busses.
+
+For CXL memory devices the option reports whether the device supports
+poison injection (the "--media-errors"/"-L" option shows injected
+poison).
+
+For CXL busses the option shows injectable CXL protocol error types. The
+information will be the same across busses because the error types are
+system-wide. The information is presented under the bus for easier
+filtering.
+
+Update the man page for 'cxl-list' to show the usage of the new option.
 
 Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
 ---
- cxl/builtin.h      |  1 +
- cxl/cxl.c          |  1 +
- cxl/inject-error.c | 68 ++++++++++++++++++++++++++++++++++++++++++----
- 3 files changed, 65 insertions(+), 5 deletions(-)
+ Documentation/cxl/cxl-list.txt | 35 +++++++++++++++++++++++++++++++++-
+ cxl/filter.h                   |  3 +++
+ cxl/json.c                     | 30 +++++++++++++++++++++++++++++
+ cxl/list.c                     |  3 +++
+ util/json.h                    |  1 +
+ 5 files changed, 71 insertions(+), 1 deletion(-)
 
-diff --git a/cxl/builtin.h b/cxl/builtin.h
-index e82fcb5..68ed1de 100644
---- a/cxl/builtin.h
-+++ b/cxl/builtin.h
-@@ -26,6 +26,7 @@ int cmd_enable_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_disable_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_destroy_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_inject_error(int argc, const char **argv, struct cxl_ctx *ctx);
-+int cmd_clear_error(int argc, const char **argv, struct cxl_ctx *ctx);
- #ifdef ENABLE_LIBTRACEFS
- int cmd_monitor(int argc, const char **argv, struct cxl_ctx *ctx);
- #else
-diff --git a/cxl/cxl.c b/cxl/cxl.c
-index a98bd6b..e1740b5 100644
---- a/cxl/cxl.c
-+++ b/cxl/cxl.c
-@@ -81,6 +81,7 @@ static struct cmd_struct commands[] = {
- 	{ "destroy-region", .c_fn = cmd_destroy_region },
- 	{ "monitor", .c_fn = cmd_monitor },
- 	{ "inject-error", .c_fn = cmd_inject_error },
-+	{ "clear-error", .c_fn = cmd_clear_error },
- };
+diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+index 0595638..35ff542 100644
+--- a/Documentation/cxl/cxl-list.txt
++++ b/Documentation/cxl/cxl-list.txt
+@@ -471,6 +471,38 @@ The media-errors option is only available with '-Dlibtracefs=enabled'.
+ }
+ ----
  
- int main(int argc, const char **argv)
-diff --git a/cxl/inject-error.c b/cxl/inject-error.c
-index c48ea69..f8a9445 100644
---- a/cxl/inject-error.c
-+++ b/cxl/inject-error.c
-@@ -19,6 +19,10 @@ static struct inject_params {
- 	const char *address;
- } inj_param;
- 
-+static struct clear_params {
-+	const char *address;
-+} clear_param;
++-N::
++--injectable-errors::
++	Include injectable error information in the output. For CXL memory devices
++	this includes whether poison is injectable through the kernel debug filesystem.
++	The types of CXL protocol errors available for injection into downstream ports
++	are listed as part of a CXL bus object.
 +
- static const struct option inject_options[] = {
- 	OPT_STRING('t', "type", &inj_param.type, "Error type",
- 		   "Error type to inject into <device>"),
-@@ -30,6 +34,15 @@ static const struct option inject_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option clear_options[] = {
-+	OPT_STRING('a', "address", &clear_param.address, "Address for poison clearing",
-+		   "Device physical address to clear poison from in hex or decimal"),
-+#ifdef ENABLE_DEBUG
-+	OPT_BOOLEAN(0, "debug", &debug, "turn on debug output"),
-+#endif
-+	OPT_END(),
-+};
++----
++# cxl list -NB
++[
++  {
++	"bus":"root0",
++	"provider":"ACPI.CXL",
++	"injectable_protocol_errors":[
++	  "mem-correctable",
++	  "mem-fatal",
++	]
++  }
++]
 +
- static struct log_ctx iel;
++# cxl list -N
++[
++  {
++    "memdev":"mem0",
++    "pmem_size":268435456,
++    "ram_size":268435456,
++    "serial":2,
++	"poison_injectable":true
++  }
++]
++
++----
+ -v::
+ --verbose::
+ 	Increase verbosity of the output. This can be specified
+@@ -487,7 +519,8 @@ The media-errors option is only available with '-Dlibtracefs=enabled'.
+ 	  devices with --idle.
+ 	- *-vvv*
+ 	  Everything *-vv* provides, plus enable
+-	  --health, --partition, and --media-errors.
++	  --health, --partition, --media-errors, and
++	  --injectable-errors.
  
- static struct cxl_protocol_error *find_cxl_proto_err(struct cxl_ctx *ctx,
-@@ -106,7 +119,7 @@ static int inject_proto_err(struct cxl_ctx *ctx, const char *devname,
+ --debug::
+ 	If the cxl tool was built with debug enabled, turn on debug
+diff --git a/cxl/filter.h b/cxl/filter.h
+index 956a46e..34f8387 100644
+--- a/cxl/filter.h
++++ b/cxl/filter.h
+@@ -31,6 +31,7 @@ struct cxl_filter_params {
+ 	bool alert_config;
+ 	bool dax;
+ 	bool media_errors;
++	bool inj_errors;
+ 	int verbose;
+ 	struct log_ctx ctx;
+ };
+@@ -91,6 +92,8 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
+ 		flags |= UTIL_JSON_DAX | UTIL_JSON_DAX_DEVS;
+ 	if (param->media_errors)
+ 		flags |= UTIL_JSON_MEDIA_ERRORS;
++	if (param->inj_errors)
++		flags |= UTIL_JSON_INJ_ERRORS;
+ 	return flags;
  }
  
- static int poison_action(struct cxl_ctx *ctx, const char *filter,
--			 const char *addr)
-+			 const char *addr, bool clear)
+diff --git a/cxl/json.c b/cxl/json.c
+index bde4589..2917477 100644
+--- a/cxl/json.c
++++ b/cxl/json.c
+@@ -675,6 +675,12 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 			json_object_object_add(jdev, "firmware", jobj);
+ 	}
+ 
++	if (flags & UTIL_JSON_INJ_ERRORS) {
++		jobj = json_object_new_boolean(cxl_memdev_has_poison_injection(memdev));
++		if (jobj)
++			json_object_object_add(jdev, "poison_injectable", jobj);
++	}
++
+ 	if (flags & UTIL_JSON_MEDIA_ERRORS) {
+ 		jobj = util_cxl_poison_list_to_json(NULL, memdev, flags);
+ 		if (jobj)
+@@ -750,6 +756,8 @@ struct json_object *util_cxl_bus_to_json(struct cxl_bus *bus,
+ 					 unsigned long flags)
  {
- 	struct cxl_memdev *memdev;
- 	size_t a;
-@@ -133,13 +146,17 @@ static int poison_action(struct cxl_ctx *ctx, const char *filter,
- 		return -EINVAL;
- 	}
+ 	const char *devname = cxl_bus_get_devname(bus);
++	struct cxl_ctx *ctx = cxl_bus_get_ctx(bus);
++	struct cxl_protocol_error *perror;
+ 	struct json_object *jbus, *jobj;
  
--	rc = cxl_memdev_inject_poison(memdev, a);
-+	if (clear)
-+		rc = cxl_memdev_clear_poison(memdev, a);
-+	else
-+		rc = cxl_memdev_inject_poison(memdev, a);
+ 	jbus = json_object_new_object();
+@@ -765,6 +773,28 @@ struct json_object *util_cxl_bus_to_json(struct cxl_bus *bus,
+ 		json_object_object_add(jbus, "provider", jobj);
  
- 	if (rc)
--		log_err(&iel, "failed to inject poison at %s:%s: %s\n",
-+		log_err(&iel, "failed to %s %s:%s: %s\n",
-+			clear ? "clear poison at" : "inject point at",
- 			cxl_memdev_get_devname(memdev), addr, strerror(-rc));
- 	else
--		printf("poison injected at %s:%s\n",
-+		printf("poison %s at %s:%s\n", clear ? "cleared" : "injected",
- 		       cxl_memdev_get_devname(memdev), addr);
- 
- 	return rc;
-@@ -171,7 +188,7 @@ static int inject_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 	}
- 
- 	if (strcmp(inj_param.type, "poison") == 0) {
--		rc = poison_action(ctx, argv[0], inj_param.address);
-+		rc = poison_action(ctx, argv[0], inj_param.address, false);
- 		return rc;
- 	}
- 
-@@ -193,3 +210,44 @@ int cmd_inject_error(int argc, const char **argv, struct cxl_ctx *ctx)
- 
- 	return rc ? EXIT_FAILURE : EXIT_SUCCESS;
+ 	json_object_set_userdata(jbus, bus, NULL);
++
++	if (flags & UTIL_JSON_INJ_ERRORS) {
++		jobj = json_object_new_array();
++		if (!jobj)
++			return jbus;
++
++		cxl_protocol_error_foreach(ctx, perror)
++		{
++			struct json_object *jerr_str;
++			const char *perror_str;
++
++			perror_str = cxl_protocol_error_get_str(perror);
++
++			jerr_str = json_object_new_string(perror_str);
++			if (jerr_str)
++				json_object_array_add(jobj, jerr_str);
++		}
++
++		json_object_object_add(jbus, "injectable_protocol_errors",
++				       jobj);
++	}
++
+ 	return jbus;
  }
-+
-+static int clear_action(int argc, const char **argv, struct cxl_ctx *ctx,
-+			const struct option *options, const char *usage)
-+{
-+	const char * const u[] = {
-+		usage,
-+		NULL
-+	};
-+	int rc = -EINVAL;
-+
-+	log_init(&iel, "cxl clear-error", "CXL_CLEAR_LOG");
-+	argc = parse_options(argc, argv, options, u, 0);
-+
-+	if (debug) {
-+		cxl_set_log_priority(ctx, LOG_DEBUG);
-+		iel.log_priority = LOG_DEBUG;
-+	} else {
-+		iel.log_priority = LOG_INFO;
-+	}
-+
-+	if (argc != 1) {
-+		usage_with_options(u, options);
-+		return rc;
-+	}
-+
-+	rc = poison_action(ctx, argv[0], clear_param.address, true);
-+	if (rc) {
-+		log_err(&iel, "Failed to inject poison into %s: %s\n",
-+			argv[0], strerror(-rc));
-+		return rc;
-+	}
-+
-+	return rc;
-+}
-+
-+int cmd_clear_error(int argc, const char **argv, struct cxl_ctx *ctx)
-+{
-+	int rc = clear_action(argc, argv, ctx, clear_options,
-+			      "clear-error <device> [<options>]");
-+	return rc ? EXIT_FAILURE : EXIT_SUCCESS;
-+}
+ 
+diff --git a/cxl/list.c b/cxl/list.c
+index 0b25d78..a505ed6 100644
+--- a/cxl/list.c
++++ b/cxl/list.c
+@@ -59,6 +59,8 @@ static const struct option options[] = {
+ 		    "include alert configuration information"),
+ 	OPT_BOOLEAN('L', "media-errors", &param.media_errors,
+ 		    "include media-error information "),
++	OPT_BOOLEAN('N', "injectable-errors", &param.inj_errors,
++		    "include injectable error information"),
+ 	OPT_INCR('v', "verbose", &param.verbose, "increase output detail"),
+ #ifdef ENABLE_DEBUG
+ 	OPT_BOOLEAN(0, "debug", &debug, "debug list walk"),
+@@ -124,6 +126,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+ 		param.alert_config = true;
+ 		param.dax = true;
+ 		param.media_errors = true;
++		param.inj_errors = true;
+ 		/* fallthrough */
+ 	case 2:
+ 		param.idle = true;
+diff --git a/util/json.h b/util/json.h
+index 560f845..57278cb 100644
+--- a/util/json.h
++++ b/util/json.h
+@@ -21,6 +21,7 @@ enum util_json_flags {
+ 	UTIL_JSON_TARGETS	= (1 << 11),
+ 	UTIL_JSON_PARTITION	= (1 << 12),
+ 	UTIL_JSON_ALERT_CONFIG	= (1 << 13),
++	UTIL_JSON_INJ_ERRORS	= (1 << 14),
+ };
+ 
+ void util_display_json_array(FILE *f_out, struct json_object *jarray,
 -- 
 2.34.1
 
