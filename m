@@ -1,183 +1,111 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AE8C34C9BE;
-	Wed, 22 Oct 2025 14:47:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 918F031A7FE
+	for <nvdimm@lists.linux.dev>; Wed, 22 Oct 2025 15:04:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761144470; cv=none; b=hgiG+xBTUPSbJ1qZ/TdbsEXcUAwRZ1WsDEaLZzW2n/F7enJwsrmtVTlWt1IepQhjcUxWvDrE/U4dlq1VZaBaYBJ15Q+6f1u6njEwNLWlmQogD4zvFAznXXYpl8iaHuZPYnEjOiV3/6CZiVzOB1u8m9rQg21tTICvZQS4umBRnPk=
+	t=1761145497; cv=none; b=pelvCYEIH3cCwUwcs2xvddUVK+EtROWtuawJcRZZJHQmqdntTwO+L3jkWMOW9oBafnjl+orQJurj5clXJ1nNi4/lNKCwDUG67kW9AAX3wNTcwEj2NTQjy5VsOuJeKpALbJ+8m/vwdcE3AceSzOjSykrtOsyeVRqg3j6/IqTD1vg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761144470; c=relaxed/simple;
-	bh=Z1awYP775zcmRIPxtIP7LDM5gU9pja6nxuYhnSfCHwU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZDewiGv6/OeH8wzBbVxR1y621yfYH3eI1IlJpURMJli8/w/3hXcLq1ipTgeCRFAY3ywY6wYkt9IF4NdH+sJm3YnyImoSm1NFmziBtUd1DlTBSJ/SEeOkIJsUgnsoscjFjjbKEgO5GFhKyJADzoT+LVae7LDB/gsrPzcF4rvcd3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U1QpJ40o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761145497; c=relaxed/simple;
+	bh=iW+FTqaMo0YUZ/DdwuMszfMWV+XVQ+AxrUIygW4bQy0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=qgAnxX3j5nuvusU9gK6duJVmD5RRlxCUgMut+tKKBXOl6/zu4KmLabtQ1uzrnB/t2YoY3sbFnHA+o39pSERo1F+6aJKPLij9aI0C3m734ZP9nZYmMcQpNyHTuUB1c03EQc4igWLoD1weEZm6r28Q5YfiB/3eBxojNlHG05/2JEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ebctZrqT; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U1QpJ40o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F13DBC4CEE7;
-	Wed, 22 Oct 2025 14:47:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1761144469;
-	bh=Z1awYP775zcmRIPxtIP7LDM5gU9pja6nxuYhnSfCHwU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=U1QpJ40o66G6/TVUkWpx0/dz1vlGkwNZ1VOIZyJUGJszkMRpjvNLXc4+vcHL+cvuQ
-	 nuTA8alGqU9uNl/jhWZ3gdqiEK5Z7UHaISu50Nc2LJR5xXdrj+Pj9LxPo5NwVW6TX2
-	 zSxS14I0cjYf94gFsOxjidhXAWTe7sztaWJn/xrkNSMbvpRveODQTtos9GFonls1+8
-	 Ce+PVi6NsMeDMZUyDq5pF2ZGhQ8193V7agtk1l2CQOW/sDEhIWTuXfh88E6smHURsz
-	 qHEVeawHqp9S5XSnwz537mLA+9ZdtA8udXLXr/B7Tk7uxEW+Mc7DsWNoumPnZrqW3I
-	 p3nvHrkxxctJQ==
-Date: Wed, 22 Oct 2025 17:47:41 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: dan.j.williams@intel.com
-Cc: Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, jane.chu@oracle.com,
-	=?utf-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>,
-	Pasha Tatashin <pasha.tatashin@soleen.com>,
-	Tyler Hicks <code@tyhicks.com>, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Subject: Re: [PATCH v2 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM
- DIMM devices
-Message-ID: <aPjujSjgLSWsAtsb@kernel.org>
-References: <20251015080020.3018581-1-rppt@kernel.org>
- <20251015080020.3018581-2-rppt@kernel.org>
- <68f2da6bd013e_2a201008c@dwillia2-mobl4.notmuch>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ebctZrqT"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1761145496; x=1792681496;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=iW+FTqaMo0YUZ/DdwuMszfMWV+XVQ+AxrUIygW4bQy0=;
+  b=ebctZrqTSIxFqS7l6SttBulw8En8ucnHiDG9BOzJe45K02EHVyGv+MfC
+   Ecq8V3GHOmt2+8GNqOqR88ClyZMB/TF9jbhQHdRTchu5wCoQ/0zE8b0cZ
+   V12zoMAyhFyRj1AOXyJWmThKxKkcmVGaYI/mfY9Sx8gTG47i2lTtU4zvF
+   xjrpiPxZmM99zkPleL70VaNN8UbuYzstpJRUgu2jdc9YXRhoC7bwrVWiM
+   QY1+51lsEfF0t21Vq8FkOUVeXkY/+2juZQtndmilQO97pc8IEde4p+URA
+   /ZPLlVE2DtAbtj1WAG81gd63xAdB+4WG1k7UF01E6qmDh4lthu8H5RpnA
+   w==;
+X-CSE-ConnectionGUID: UnL9iLHyQ8m9q8wyP3nM2Q==
+X-CSE-MsgGUID: BnLwhA0tSayG+IyXAC2zmA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11586"; a="74736188"
+X-IronPort-AV: E=Sophos;i="6.19,247,1754982000"; 
+   d="scan'208";a="74736188"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 08:04:55 -0700
+X-CSE-ConnectionGUID: hU43e6DZRce/ZChq5nN8kQ==
+X-CSE-MsgGUID: 0P0qhWFcT+GUNYTCsHCiOg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.19,247,1754982000"; 
+   d="scan'208";a="183485278"
+Received: from cmdeoliv-mobl4.amr.corp.intel.com (HELO [10.125.108.213]) ([10.125.108.213])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 08:04:55 -0700
+Message-ID: <7687ba73-0f8f-4cf1-b6e5-8525e8fbadec@intel.com>
+Date: Wed, 22 Oct 2025 08:04:54 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <68f2da6bd013e_2a201008c@dwillia2-mobl4.notmuch>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [ndctl PATCH] ndctl/test: fully reset nfit_test in pmem_ns unit
+ test
+To: Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev
+Cc: Marc Herbert <marc.herbert@intel.com>
+References: <20251021212648.997901-1-alison.schofield@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Content-Language: en-US
+In-Reply-To: <20251021212648.997901-1-alison.schofield@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 17, 2025 at 05:08:11PM -0700, dan.j.williams@intel.com wrote:
-> Mike Rapoport wrote:
-> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> > 
-> > There are use cases, for example virtual machine hosts, that create
-> > "persistent" memory regions using memmap= option on x86 or dummy
-> > pmem-region device tree nodes on DT based systems.
-> > 
-> > Both these options are inflexible because they create static regions and
-> > the layout of the "persistent" memory cannot be adjusted without reboot
-> > and sometimes they even require firmware update.
-> > 
-> > Add a ramdax driver that allows creation of DIMM devices on top of
-> > E820_TYPE_PRAM regions and devicetree pmem-region nodes.
-> > 
-> > The DIMMs support label space management on the "device" and provide a
-> > flexible way to access RAM using fsdax and devdax.
-> > 
-> > Signed-off-by: Mike Rapoport (Mircosoft) <rppt@kernel.org>
-> > ---
-> >  drivers/nvdimm/Kconfig  |  17 +++
-> >  drivers/nvdimm/Makefile |   1 +
-> >  drivers/nvdimm/ramdax.c | 272 ++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 290 insertions(+)
-> >  create mode 100644 drivers/nvdimm/ramdax.c
-> > 
-> > diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-> > index fde3e17c836c..9ac96a7cd773 100644
-> > --- a/drivers/nvdimm/Kconfig
-> > +++ b/drivers/nvdimm/Kconfig
-> > @@ -97,6 +97,23 @@ config OF_PMEM
-> >  
-> >  	  Select Y if unsure.
-> >  
-> > +config RAMDAX
-> > +	tristate "Support persistent memory interfaces on RAM carveouts"
-> > +	depends on OF || X86
+
+
+On 10/21/25 2:26 PM, Alison Schofield wrote:
+> The pmem_ns unit test frequently fails when run as part of the full
+> suite, yet passes when executed alone.
 > 
-> I see no compile time dependency for CONFIG_OF. The one call to
-> dev_of_node() looks like it still builds in the CONFIG_OF=n case. For
-> CONFIG_X86 the situation is different because the kernel needs
-> infrastructure to build the device.
+> The test first looks for an ACPI.NFIT bus with a usable region, and if
+> none is found, falls back to using the nfit_test bus. However, that
+> fallback consistently fails with errors such as:
 > 
-> So maybe change the dependency to drop OF and make it:
+> path: /sys/devices/platform/nfit_test.0/ndbus2/region7/namespace7.0/uuid
+> libndctl: write_attr: failed to open /sys/devices/platform/nfit_test.0/ndbus2/region7/namespace7.0/uuid: No such file or directory
+> /root/ndctl/build/test/pmem-ns: failed to create PMEM namespace
 > 
-> 	depends on X86_PMEM_LEGACY if X86
-
-We can't put if in a depends statement :(
-My intention with "depends on OF || X86" was that if it's not really
-possible to use this driver if it's not X86 or OF because there's nothing
-to define a platform device for ramdax to bind.
-
-Maybe what we actually need is
-
-	select X86_PMEM_LEGACY_DEVICE if X86
-	default n
-
-so that it could be only explicitly enabled in the configuration and if it
-is, it will also enable X86_PMEM_LEGACY_DEVICE on x86.
-With default set to no it won't be build "accidentailly", but OTOH cloud
-providers can disable X86_PMEM_LEGACY and enable RAMDAX and distros can
-build them as modules on x86 and architectures that support OF. 
-
-What do you think?
-
-> > +	select X86_PMEM_LEGACY_DEVICE
+> This occurs because calling ndctl_test_init() with a NULL context only
+> unloads and reloads the nfit_test module, but does not invalidate and
+> reinitialize the libndctl context or sysfs view from previous runs.
+> The resulting stale state prevents the pmem_ns test from creating a
+> new namespace cleanly.
 > 
-> ...and drop this select.
+> Replace the NULL context parameter when calling ndctl_test_init()
+> with the available ndctl_ctx to ensure pmem_ns can find usable PMEM
+> regions.
 > 
-> > +	default LIBNVDIMM
-> > +	help
-> > +	  Allows creation of DAX devices on RAM carveouts.
-> > +
-> > +	  Memory ranges that are manually specified by the
-> > +	  'memmap=nn[KMG]!ss[KMG]' kernel command line or defined by dummy
-> > +	  pmem-region device tree nodes would be managed by this driver as DIMM
-> > +	  devices with support for dynamic layout of namespaces.
-> > +	  The driver can be bound to e820_pmem or pmem-region platform
-> > +	  devices using 'driver_override' device attribute.
-> 
-> Maybe some notes for details like:
-> 
-> * 128K stolen at the end of the memmap range
-> * supports 509 namespaces (see 'ndctl create-namespace --help')
-> * must be force bound via driver_override
+> Reported-by: Marc Herbert <marc.herbert@intel.com>
+> Closes: https://github.com/pmem/ndctl/issues/290
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 
-Sure.
- 
-> [..]
-> > +static int ramdax_probe(struct platform_device *pdev)
-> > +{
-> > +	static struct nvdimm_bus_descriptor nd_desc;
-> > +	struct device *dev = &pdev->dev;
-> > +	struct nvdimm_bus *nvdimm_bus;
-> > +	struct device_node *np;
-> > +	int rc = -ENXIO;
-> > +
-> > +	nd_desc.provider_name = "ramdax";
-> > +	nd_desc.module = THIS_MODULE;
-> > +	nd_desc.ndctl = ramdax_ctl;
-> > +	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
-> > +	if (!nvdimm_bus)
-> > +		goto err;
-> > +
-> > +	np = dev_of_node(&pdev->dev);
-> > +	if (np)
-> > +		rc = ramdax_probe_of(pdev, nvdimm_bus, np);
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>> ---
+>  test/pmem_namespaces.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Hmm, I do not see any confirmation that this node is actually a
-> "pmem-region". If you attach the kernel to the wrong device I think you
-> get fireworks that could be avoided with a manual of_match_node() check
-> of the same device_id list as the of_pmem driver.
-> 
-> That still would not require a "depends on OF" given of_match_node()
-> compiles away in the CONFIG_OF=n case.
+> diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
+> index 4bafff5164c8..7b8de9dcb61d 100644
+> --- a/test/pmem_namespaces.c
+> +++ b/test/pmem_namespaces.c
+> @@ -191,7 +191,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+>  
+>  	if (!bus) {
+>  		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+> -		rc = ndctl_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+> +		rc = ndctl_test_init(&kmod_ctx, &mod, ctx, log_level, test);
+>  		ndctl_invalidate(ctx);
+>  		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+>  		if (rc < 0 || !bus) {
 
-With how driver_override is implemented it's possible to get fireworks with
-any platform device :)
-
-I'll add a manual check for of_match_node() to be on the safer side.
-
-> [..]
-> 
-> This looks good to me. With the above comments addressed you can add:
-> 
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-
--- 
-Sincerely yours,
-Mike.
