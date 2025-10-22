@@ -1,191 +1,183 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795A728D83D
-	for <nvdimm@lists.linux.dev>; Tue, 21 Oct 2025 23:44:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AE8C34C9BE;
+	Wed, 22 Oct 2025 14:47:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761090293; cv=none; b=c4VUQ/0cfhT5/BYsuCGQGhjkhnHg7gt8RG04rXCH/bTFfufkhKS/rp3TbRQmAr2iB2gIG6rnmTAKzMbLMxjiIW4TmWD5x6+zF9P4lQ/1uMHBfDk5A4KpT02SgRf7A0eCfo4nMh/YPuiDDwyr17No8hj66vbgR/0h/d0XF05qe40=
+	t=1761144470; cv=none; b=hgiG+xBTUPSbJ1qZ/TdbsEXcUAwRZ1WsDEaLZzW2n/F7enJwsrmtVTlWt1IepQhjcUxWvDrE/U4dlq1VZaBaYBJ15Q+6f1u6njEwNLWlmQogD4zvFAznXXYpl8iaHuZPYnEjOiV3/6CZiVzOB1u8m9rQg21tTICvZQS4umBRnPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761090293; c=relaxed/simple;
-	bh=qezin9qfpUOS7iqA5K8z5H3JR61M5maoDKMujTe1kLw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HwJHOrtSRpRU/XoYdD1ZXHSHn5g1WSBeYBkC1tuetaSjZizBAC2cZu1lQWdJyjWH/kaaEys131K/YmGbk/xien5W8lawl0FcPnQNU8zYI7nDxnAUUOxvIHY8rTRITBZ3fGCcCrRxuUadpl6WZZ6x3LU3bMTbbOHKG47KytIevHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Qa6/ZHUY; arc=none smtp.client-ip=192.198.163.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1761144470; c=relaxed/simple;
+	bh=Z1awYP775zcmRIPxtIP7LDM5gU9pja6nxuYhnSfCHwU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZDewiGv6/OeH8wzBbVxR1y621yfYH3eI1IlJpURMJli8/w/3hXcLq1ipTgeCRFAY3ywY6wYkt9IF4NdH+sJm3YnyImoSm1NFmziBtUd1DlTBSJ/SEeOkIJsUgnsoscjFjjbKEgO5GFhKyJADzoT+LVae7LDB/gsrPzcF4rvcd3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U1QpJ40o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Qa6/ZHUY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1761090292; x=1792626292;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=qezin9qfpUOS7iqA5K8z5H3JR61M5maoDKMujTe1kLw=;
-  b=Qa6/ZHUYa2I6docYi/VDBhR7bNxNrOZ3VFItH8Ch3H82PycHr0ZjRXVK
-   h1pqAIcAYR2HpLOj6cJgEkjzXjpBeI4FQ3wJwjiDdLD7ySy/7ttwRMqSZ
-   9CQk0T/m4zg2yYqfNHjou8EZkWC0mWe+C7J4Ze7XK2D9q7/bF/PSFplMg
-   uQ0dAWboDqeLNUR/DAhZYnkDEZuisYc/b8OThq83jRWfejSJTkC4Ln02H
-   4Zsgf/Z9Cy8eXcSjc08+q8uZrJ8Lhu6IYQcsSz1xBT55xIJFgBf6dcOAw
-   mfVuJTkOthw/j8yIeVa02qliWIKbyz0bY1eaKN7Mriohx4Dpx8Nz5J+cf
-   w==;
-X-CSE-ConnectionGUID: JQxNx7GBQ92I7u0NUgFC1Q==
-X-CSE-MsgGUID: KBT357izStS3qnOxMuRO2w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11586"; a="50803821"
-X-IronPort-AV: E=Sophos;i="6.19,246,1754982000"; 
-   d="scan'208";a="50803821"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2025 16:44:51 -0700
-X-CSE-ConnectionGUID: OylGxD/rQ3GXXJWHr2IJZw==
-X-CSE-MsgGUID: YVlZ3BYmSemelRPkoArJqg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.19,246,1754982000"; 
-   d="scan'208";a="188123793"
-Received: from schen9-mobl4.amr.corp.intel.com (HELO [10.125.108.169]) ([10.125.108.169])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2025 16:44:50 -0700
-Message-ID: <4c452ff5-bcd3-4a3e-9fc1-04fb741f9e14@intel.com>
-Date: Tue, 21 Oct 2025 16:44:49 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U1QpJ40o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F13DBC4CEE7;
+	Wed, 22 Oct 2025 14:47:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1761144469;
+	bh=Z1awYP775zcmRIPxtIP7LDM5gU9pja6nxuYhnSfCHwU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=U1QpJ40o66G6/TVUkWpx0/dz1vlGkwNZ1VOIZyJUGJszkMRpjvNLXc4+vcHL+cvuQ
+	 nuTA8alGqU9uNl/jhWZ3gdqiEK5Z7UHaISu50Nc2LJR5xXdrj+Pj9LxPo5NwVW6TX2
+	 zSxS14I0cjYf94gFsOxjidhXAWTe7sztaWJn/xrkNSMbvpRveODQTtos9GFonls1+8
+	 Ce+PVi6NsMeDMZUyDq5pF2ZGhQ8193V7agtk1l2CQOW/sDEhIWTuXfh88E6smHURsz
+	 qHEVeawHqp9S5XSnwz537mLA+9ZdtA8udXLXr/B7Tk7uxEW+Mc7DsWNoumPnZrqW3I
+	 p3nvHrkxxctJQ==
+Date: Wed, 22 Oct 2025 17:47:41 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: dan.j.williams@intel.com
+Cc: Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, jane.chu@oracle.com,
+	=?utf-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Tyler Hicks <code@tyhicks.com>, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH v2 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM
+ DIMM devices
+Message-ID: <aPjujSjgLSWsAtsb@kernel.org>
+References: <20251015080020.3018581-1-rppt@kernel.org>
+ <20251015080020.3018581-2-rppt@kernel.org>
+ <68f2da6bd013e_2a201008c@dwillia2-mobl4.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH v3 3/7] libcxl: Add poison injection support
-To: Ben Cheatham <Benjamin.Cheatham@amd.com>, nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org, alison.schofield@intel.com
-References: <20251021183124.2311-1-Benjamin.Cheatham@amd.com>
- <20251021183124.2311-4-Benjamin.Cheatham@amd.com>
-From: Dave Jiang <dave.jiang@intel.com>
-Content-Language: en-US
-In-Reply-To: <20251021183124.2311-4-Benjamin.Cheatham@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <68f2da6bd013e_2a201008c@dwillia2-mobl4.notmuch>
 
-
-
-On 10/21/25 11:31 AM, Ben Cheatham wrote:
-> Add a library API for clearing and injecting poison into a CXL memory
-> device through the CXL debugfs.
+On Fri, Oct 17, 2025 at 05:08:11PM -0700, dan.j.williams@intel.com wrote:
+> Mike Rapoport wrote:
+> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> > 
+> > There are use cases, for example virtual machine hosts, that create
+> > "persistent" memory regions using memmap= option on x86 or dummy
+> > pmem-region device tree nodes on DT based systems.
+> > 
+> > Both these options are inflexible because they create static regions and
+> > the layout of the "persistent" memory cannot be adjusted without reboot
+> > and sometimes they even require firmware update.
+> > 
+> > Add a ramdax driver that allows creation of DIMM devices on top of
+> > E820_TYPE_PRAM regions and devicetree pmem-region nodes.
+> > 
+> > The DIMMs support label space management on the "device" and provide a
+> > flexible way to access RAM using fsdax and devdax.
+> > 
+> > Signed-off-by: Mike Rapoport (Mircosoft) <rppt@kernel.org>
+> > ---
+> >  drivers/nvdimm/Kconfig  |  17 +++
+> >  drivers/nvdimm/Makefile |   1 +
+> >  drivers/nvdimm/ramdax.c | 272 ++++++++++++++++++++++++++++++++++++++++
+> >  3 files changed, 290 insertions(+)
+> >  create mode 100644 drivers/nvdimm/ramdax.c
+> > 
+> > diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+> > index fde3e17c836c..9ac96a7cd773 100644
+> > --- a/drivers/nvdimm/Kconfig
+> > +++ b/drivers/nvdimm/Kconfig
+> > @@ -97,6 +97,23 @@ config OF_PMEM
+> >  
+> >  	  Select Y if unsure.
+> >  
+> > +config RAMDAX
+> > +	tristate "Support persistent memory interfaces on RAM carveouts"
+> > +	depends on OF || X86
 > 
-> This API will be used by the 'cxl-inject-error' and 'cxl-clear-error'
-> commands in later commits.
+> I see no compile time dependency for CONFIG_OF. The one call to
+> dev_of_node() looks like it still builds in the CONFIG_OF=n case. For
+> CONFIG_X86 the situation is different because the kernel needs
+> infrastructure to build the device.
 > 
-> Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
-> ---
->  cxl/lib/libcxl.c   | 60 ++++++++++++++++++++++++++++++++++++++++++++++
->  cxl/lib/libcxl.sym |  3 +++
->  cxl/libcxl.h       |  3 +++
->  3 files changed, 66 insertions(+)
+> So maybe change the dependency to drop OF and make it:
 > 
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 9486b0f..9d4bd80 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -5019,3 +5019,63 @@ CXL_EXPORT struct cxl_cmd *cxl_cmd_new_set_alert_config(struct cxl_memdev *memde
->  {
->  	return cxl_cmd_new_generic(memdev, CXL_MEM_COMMAND_ID_SET_ALERT_CONFIG);
->  }
-> +
-> +CXL_EXPORT bool cxl_memdev_has_poison_injection(struct cxl_memdev *memdev)
-> +{
-> +	struct cxl_ctx *ctx = memdev->ctx;
-> +	size_t path_len;
-> +	bool exists;
-> +	char *path;
-> +
-> +	if (!ctx->debugfs)
-> +		return false;
-> +
-> +	path_len = strlen(ctx->debugfs) + 100;
-> +	path = calloc(path_len, sizeof(char));
-> +	if (!path)
-> +		return false;
-> +
-> +	snprintf(path, path_len, "%s/cxl/%s/inject_poison", ctx->debugfs,
-> +		 cxl_memdev_get_devname(memdev));
+> 	depends on X86_PMEM_LEGACY if X86
 
-check return value
+We can't put if in a depends statement :(
+My intention with "depends on OF || X86" was that if it's not really
+possible to use this driver if it's not X86 or OF because there's nothing
+to define a platform device for ramdax to bind.
 
-> +	exists = access(path, F_OK) == 0;
+Maybe what we actually need is
 
-While this works, it is more readable this way:
+	select X86_PMEM_LEGACY_DEVICE if X86
+	default n
 
-	exists = true;
-	...
-	rc = access(path, F_OK);
-	if (rc)
-		exists = false;> +
-> +	free(path);
-> +	return exists;
-> +}
-> +
-> +static int cxl_memdev_poison_action(struct cxl_memdev *memdev, size_t dpa,
-> +				    bool clear)
-> +{
-> +	struct cxl_ctx *ctx = memdev->ctx;
-> +	size_t path_len;
-> +	char addr[32];
-> +	char *path;
-> +	int rc;
-> +
-> +	if (!ctx->debugfs)
-> +		return -ENOENT;
-> +
-> +	path_len = strlen(ctx->debugfs) + 100;
-> +	path = calloc(path_len, sizeof(char));
-> +	if (!path)
-> +		return -ENOMEM;
-> +
-> +	snprintf(path, path_len, "%s/cxl/%s/%s", ctx->debugfs,
-> +		 cxl_memdev_get_devname(memdev),
-> +		 clear ? "clear_poison" : "inject_poison");
-> +	snprintf(addr, 32, "0x%lx\n", dpa);
+so that it could be only explicitly enabled in the configuration and if it
+is, it will also enable X86_PMEM_LEGACY_DEVICE on x86.
+With default set to no it won't be build "accidentailly", but OTOH cloud
+providers can disable X86_PMEM_LEGACY and enable RAMDAX and distros can
+build them as modules on x86 and architectures that support OF. 
 
-check return values for both snprintf()
+What do you think?
 
-DJ
+> > +	select X86_PMEM_LEGACY_DEVICE
+> 
+> ...and drop this select.
+> 
+> > +	default LIBNVDIMM
+> > +	help
+> > +	  Allows creation of DAX devices on RAM carveouts.
+> > +
+> > +	  Memory ranges that are manually specified by the
+> > +	  'memmap=nn[KMG]!ss[KMG]' kernel command line or defined by dummy
+> > +	  pmem-region device tree nodes would be managed by this driver as DIMM
+> > +	  devices with support for dynamic layout of namespaces.
+> > +	  The driver can be bound to e820_pmem or pmem-region platform
+> > +	  devices using 'driver_override' device attribute.
+> 
+> Maybe some notes for details like:
+> 
+> * 128K stolen at the end of the memmap range
+> * supports 509 namespaces (see 'ndctl create-namespace --help')
+> * must be force bound via driver_override
 
-> +
-> +	rc = sysfs_write_attr(ctx, path, addr);
-> +	free(path);
-> +	return rc;
-> +}
-> +
-> +CXL_EXPORT int cxl_memdev_inject_poison(struct cxl_memdev *memdev, size_t addr)
-> +{
-> +	return cxl_memdev_poison_action(memdev, addr, false);
-> +}
-> +
-> +CXL_EXPORT int cxl_memdev_clear_poison(struct cxl_memdev *memdev, size_t addr)
-> +{
-> +	return cxl_memdev_poison_action(memdev, addr, true);
-> +}
-> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-> index 02d5119..3bce60d 100644
-> --- a/cxl/lib/libcxl.sym
-> +++ b/cxl/lib/libcxl.sym
-> @@ -304,4 +304,7 @@ global:
->  	cxl_protocol_error_get_num;
->  	cxl_protocol_error_get_str;
->  	cxl_dport_protocol_error_inject;
-> +	cxl_memdev_has_poison_injection;
-> +	cxl_memdev_inject_poison;
-> +	cxl_memdev_clear_poison;
->  } LIBCXL_9;
-> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-> index 9026e05..3b51d61 100644
-> --- a/cxl/libcxl.h
-> +++ b/cxl/libcxl.h
-> @@ -105,6 +105,9 @@ int cxl_memdev_read_label(struct cxl_memdev *memdev, void *buf, size_t length,
->  		size_t offset);
->  int cxl_memdev_write_label(struct cxl_memdev *memdev, void *buf, size_t length,
->  		size_t offset);
-> +bool cxl_memdev_has_poison_injection(struct cxl_memdev *memdev);
-> +int cxl_memdev_inject_poison(struct cxl_memdev *memdev, size_t dpa);
-> +int cxl_memdev_clear_poison(struct cxl_memdev *memdev, size_t dpa);
->  struct cxl_cmd *cxl_cmd_new_get_fw_info(struct cxl_memdev *memdev);
->  unsigned int cxl_cmd_fw_info_get_num_slots(struct cxl_cmd *cmd);
->  unsigned int cxl_cmd_fw_info_get_active_slot(struct cxl_cmd *cmd);
+Sure.
+ 
+> [..]
+> > +static int ramdax_probe(struct platform_device *pdev)
+> > +{
+> > +	static struct nvdimm_bus_descriptor nd_desc;
+> > +	struct device *dev = &pdev->dev;
+> > +	struct nvdimm_bus *nvdimm_bus;
+> > +	struct device_node *np;
+> > +	int rc = -ENXIO;
+> > +
+> > +	nd_desc.provider_name = "ramdax";
+> > +	nd_desc.module = THIS_MODULE;
+> > +	nd_desc.ndctl = ramdax_ctl;
+> > +	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
+> > +	if (!nvdimm_bus)
+> > +		goto err;
+> > +
+> > +	np = dev_of_node(&pdev->dev);
+> > +	if (np)
+> > +		rc = ramdax_probe_of(pdev, nvdimm_bus, np);
+> 
+> Hmm, I do not see any confirmation that this node is actually a
+> "pmem-region". If you attach the kernel to the wrong device I think you
+> get fireworks that could be avoided with a manual of_match_node() check
+> of the same device_id list as the of_pmem driver.
+> 
+> That still would not require a "depends on OF" given of_match_node()
+> compiles away in the CONFIG_OF=n case.
 
+With how driver_override is implemented it's possible to get fireworks with
+any platform device :)
+
+I'll add a manual check for of_match_node() to be on the safer side.
+
+> [..]
+> 
+> This looks good to me. With the above comments addressed you can add:
+> 
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+
+-- 
+Sincerely yours,
+Mike.
