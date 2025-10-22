@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D280A2472AA
-	for <nvdimm@lists.linux.dev>; Wed, 22 Oct 2025 17:18:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13FFC1D63C7
+	for <nvdimm@lists.linux.dev>; Wed, 22 Oct 2025 17:22:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761153518; cv=none; b=DirkopAAoxmvxsyflx2SvCJpZUOX5dQCi+xEhpXG7WknDhWI/S4aqugaStWgmdXhul+bh01eAhaRZ+3RMOqGl+JU8jTV31i5C1vHLJXXbf4kyNcFreZ62iutqH4u1P2qSS/LqWDSumKQwt1XFmsv2iNQxFSeIhlvQtfavGQB+jo=
+	t=1761153747; cv=none; b=McDa8SUZ9iWLW8AyW3Q8BHHZGbSDI5IVC8ADe19IG2/xIs9Divq3tUhJT6ozqSTN6Ba7oXTKXKJqvkOhoc9l0UOaAfoZDgQykQOWq8XRtn4L9YOCIFndcXkKS1GQ2qcrXWqYi9xhE7YDs1baRHHIFCG6pdZ+fxlv1jqu6ogRFtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761153518; c=relaxed/simple;
-	bh=MvWU16vKox1u9R9ViJt9Ay/Ms5zb2ZyHucH1KFbbzo4=;
+	s=arc-20240116; t=1761153747; c=relaxed/simple;
+	bh=gXytS0kIbg67VrR4iTAET5yHSHxTYUQsHwV0EMO9Oes=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=qzLXpI1UvgVbZmYctIChj+4nF1wrq1f3RJ7LLrAZ2+RbwVurhtlZhDo1QZm4kn5GPV9ydfFtTNidWCCHH/2yJ/lgBRV1erGUxvIVjn0QyTuB1/5ccrv220V4FA6PtXudQ6bBxWne3jHMCHfjDp8lRrKZUclS0756KGZmV/OjMAM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CUC3lc74; arc=none smtp.client-ip=198.175.65.19
+	 In-Reply-To:Content-Type; b=WsywKQLMzxZflcEZ3SvzMIO5rEOK68vqgwY9adwQlxo/czecunenbm4zh+x/nJmFFysxFH31oqOFYUsmhK+9IfWdaNIpK2DyQ2nOxgajuNY+4G1KNQ7A+PFVFDE6BkYPaerZVYWUAL2ZyhjXFqTBlqH27cirBkOAGG2md/Vyuws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AG9TuD1u; arc=none smtp.client-ip=198.175.65.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CUC3lc74"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AG9TuD1u"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1761153516; x=1792689516;
+  t=1761153746; x=1792689746;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=MvWU16vKox1u9R9ViJt9Ay/Ms5zb2ZyHucH1KFbbzo4=;
-  b=CUC3lc74CN2P9EkbZwfwIK+njBdAsSwpPMX+hNWH3zeEOMcMdlV0L/qH
-   0U7HucEifHRmW5zIb/q2sFgQ+QGEsH3Yx0oyqptZEJiFqaXEDunHWzPLI
-   pJ7Soc82AQzBiJtsAhScyHmHthTxBN6WW5X/eTtarwT1+fNEtwj34oZY+
-   IxlumV2aKJZUJSvZ3fQ2sAMyovM90DVgYvssSGOmFErpZMKA50MO3Blkv
-   r8ZUcJBViz3eYFzo3GdT84yP2pzUKtCZT6/R9Jv6nr4FjylUQQPFUQNgt
-   fo5cfJZEqzhq0PGy1B1HUobm1we6p50imjd6i8CHTzeXGQFJK3SPqmkML
-   g==;
-X-CSE-ConnectionGUID: 3G+vgo7iRhq8MHc18ogNhA==
-X-CSE-MsgGUID: fERa4XmqSJ6eJ931rJLCiA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11586"; a="63206177"
-X-IronPort-AV: E=Sophos;i="6.19,247,1754982000"; 
-   d="scan'208";a="63206177"
+  bh=gXytS0kIbg67VrR4iTAET5yHSHxTYUQsHwV0EMO9Oes=;
+  b=AG9TuD1ufbvo9RMADBkuxVkZA/MOZZ12G0ggpOPFhGOkoihyHUu78CGL
+   meDboqN1QA6d63TXZuBkMAOWebCIOk4f6YBVbSKLTMjAVh1Q2s2RQMUzG
+   R6NweFlD5cDcnWj9sHly4lscFq0OEzc5cOVYmqmfYXxPuJWWULlazmouq
+   TFMLiCTfYWSZmThlVYKnvzivq/vL7ZclMDFgftXvIOAsFaugaZ0SYwR6u
+   mPF8nWh+68bLiHAg6WAMqIrCc/9OC1aMLjsfoh0DLvCbyTeIbfWj2epVB
+   F2m5rkKN7O0k9u444QkTYL1kSEwERMzUtvdTU3eFoXa40ycL5khcnYlTT
+   A==;
+X-CSE-ConnectionGUID: Qte1BWuCSDKXXkEN6JMp/w==
+X-CSE-MsgGUID: lS6BMZqFRa+LVwvHRGyzhg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11531"; a="63233721"
+X-IronPort-AV: E=Sophos;i="6.17,312,1747724400"; 
+   d="scan'208";a="63233721"
 Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 10:18:35 -0700
-X-CSE-ConnectionGUID: bYBGWtXxS/qB95gJVTo7UQ==
-X-CSE-MsgGUID: j3rdhbhNT1SARhD/kZ3B1Q==
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 10:22:26 -0700
+X-CSE-ConnectionGUID: kOKjPqD3Tf2mjZrl+hEXhg==
+X-CSE-MsgGUID: vzywaNKcS9iQesKnyHOOlg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.19,247,1754982000"; 
-   d="scan'208";a="183518120"
+   d="scan'208";a="183518755"
 Received: from cmdeoliv-mobl4.amr.corp.intel.com (HELO [10.125.108.213]) ([10.125.108.213])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 10:18:34 -0700
-Message-ID: <d3e7142c-3b4f-40fb-9917-c1016961808f@intel.com>
-Date: Wed, 22 Oct 2025 10:18:34 -0700
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 10:22:25 -0700
+Message-ID: <47cbf704-78dc-437e-a3de-e446c89b914d@intel.com>
+Date: Wed, 22 Oct 2025 10:22:24 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,61 +52,146 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH v3 6/7] cxl/list: Add injectable errors in output
+Subject: Re: [ndctl PATCH v3 7/7] Documentation: Add docs for
+ inject/clear-error commands
 To: Ben Cheatham <Benjamin.Cheatham@amd.com>, nvdimm@lists.linux.dev
 Cc: linux-cxl@vger.kernel.org, alison.schofield@intel.com
 References: <20251021183124.2311-1-Benjamin.Cheatham@amd.com>
- <20251021183124.2311-7-Benjamin.Cheatham@amd.com>
+ <20251021183124.2311-8-Benjamin.Cheatham@amd.com>
 From: Dave Jiang <dave.jiang@intel.com>
 Content-Language: en-US
-In-Reply-To: <20251021183124.2311-7-Benjamin.Cheatham@amd.com>
+In-Reply-To: <20251021183124.2311-8-Benjamin.Cheatham@amd.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
 On 10/21/25 11:31 AM, Ben Cheatham wrote:
-> Add the "--injectable-errors"/"-N" option to show injectable error
-> information for CXL devices. The applicable devices are CXL memory
-> devices and CXL busses.
-> 
-> For CXL memory devices the option reports whether the device supports
-> poison injection (the "--media-errors"/"-L" option shows injected
-> poison).
-> 
-> For CXL busses the option shows injectable CXL protocol error types. The
-> information will be the same across busses because the error types are
-> system-wide. The information is presented under the bus for easier
-> filtering.
-> 
-> Update the man page for 'cxl-list' to show the usage of the new option.
+> Add man pages for the 'cxl-inject-error' and 'cxl-clear-error' commands.
+> These man pages show usage and examples for each of their use cases.
 > 
 > Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
 
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>> ---
->  Documentation/cxl/cxl-list.txt | 35 +++++++++++++++++++++++++++++++++-
->  cxl/filter.h                   |  3 +++
->  cxl/json.c                     | 30 +++++++++++++++++++++++++++++
->  cxl/list.c                     |  3 +++
->  util/json.h                    |  1 +
->  5 files changed, 71 insertions(+), 1 deletion(-)
+>  Documentation/cxl/cxl-clear-error.txt  |  67 +++++++++++++
+>  Documentation/cxl/cxl-inject-error.txt | 129 +++++++++++++++++++++++++
+>  Documentation/cxl/meson.build          |   2 +
+>  3 files changed, 198 insertions(+)
+>  create mode 100644 Documentation/cxl/cxl-clear-error.txt
+>  create mode 100644 Documentation/cxl/cxl-inject-error.txt
 > 
-> diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
-> index 0595638..35ff542 100644
-> --- a/Documentation/cxl/cxl-list.txt
-> +++ b/Documentation/cxl/cxl-list.txt
-> @@ -471,6 +471,38 @@ The media-errors option is only available with '-Dlibtracefs=enabled'.
->  }
->  ----
->  
-> +-N::
-> +--injectable-errors::
-> +	Include injectable error information in the output. For CXL memory devices
-> +	this includes whether poison is injectable through the kernel debug filesystem.
-> +	The types of CXL protocol errors available for injection into downstream ports
-> +	are listed as part of a CXL bus object.
+> diff --git a/Documentation/cxl/cxl-clear-error.txt b/Documentation/cxl/cxl-clear-error.txt
+> new file mode 100644
+> index 0000000..ccb0e63
+> --- /dev/null
+> +++ b/Documentation/cxl/cxl-clear-error.txt
+> @@ -0,0 +1,67 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +cxl-clear-error(1)
+> +==================
+> +
+> +NAME
+> +----
+> +cxl-clear-error - Clear CXL errors from CXL devices
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'cxl clear-error' <device name> [<options>]
+> +
+> +Clear an error from a CXL device. The types of devices supported are:
+> +
+> +"memdevs":: A CXL memory device. Memory devices are specified by device
+> +name ("mem0"), device id ("0") and/or host device name ("0000:35:00.0").
+> +
+> +Only device poison (viewable using the '-L'/'--media-errors' option of
+> +'cxl-list') can be cleared from a device using this command. For example:
 > +
 > +----
+> +
+> +# cxl list -m mem0 -L -u
+> +{
+> +  "memdev":"mem0",
+> +  "ram_size":"1024.00 MiB (1073.74 MB)",
+> +  "ram_qos_class":42,
+> +  "serial":"0x0",
+> +  "numa_node:1,
+> +  "host":"0000:35:00.0",
+> +  "media_errors":[
+> +    {
+> +	  "offset":"0x1000",
+> +	  "length":64,
+> +	  "source":"Injected"
+> +	}
+> +  ]
+> +}
+> +
+> +# cxl clear-error mem0 -a 0x1000
+> +poison cleared at mem0:0x1000
+> +
+> +# cxl list -m mem0 -L -u
+> +{
+> +  "memdev":"mem0",
+> +  "ram_size":"1024.00 MiB (1073.74 MB)",
+> +  "ram_qos_class":42,
+> +  "serial":"0x0",
+> +  "numa_node:1,
+> +  "host":"0000:35:00.0",
+> +  "media_errors":[
+> +  ]
+> +}
+> +
+> +----
+> +
+> +OPTIONS
+> +-------
+> +-a::
+> +--address::
+> +	Device physical address (DPA) to clear poison from. Address can be specified
+> +	in hex or decimal. Required for clearing poison.
+> +
+> +--debug::
+> +	Enable debug output
+> diff --git a/Documentation/cxl/cxl-inject-error.txt b/Documentation/cxl/cxl-inject-error.txt
+> new file mode 100644
+> index 0000000..e1bebd7
+> --- /dev/null
+> +++ b/Documentation/cxl/cxl-inject-error.txt
+> @@ -0,0 +1,129 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +cxl-inject-error(1)
+> +===================
+> +
+> +NAME
+> +----
+> +cxl-inject-error - Inject CXL errors into CXL devices
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'cxl inject-error' <device name> [<options>]
+> +
+> +Inject an error into a CXL device. The type of errors supported depend on the
+> +device specified. The types of devices supported are:
+> +
+> +"Downstream Ports":: A CXL RCH downstream port (dport) or a CXL VH root port.
+> +Eligible CXL 2.0+ ports are dports of ports at depth 1 in the output of cxl-list.
+> +Dports are specified by host name ("0000:0e:01.1").
+> +"memdevs":: A CXL memory device. Memory devices are specified by device name
+> +("mem0"), device id ("0"), and/or host device name ("0000:35:00.0").
+> +
+> +There are two types of errors which can be injected: CXL protocol errors
+> +and device poison.
+> +
+> +CXL protocol errors can only be used with downstream ports (as defined above).
+> +Protocol errors follow the format of "<protocol>-<severity>". For example,
+> +a "mem-fatal" error is a CXL.mem fatal protocol error. Protocol errors can be
+> +found with the '-N' option of 'cxl-list' under a CXL bus object. For example:
+> +
+> +----
+> +
 > +# cxl list -NB
 > +[
 > +  {
@@ -119,138 +204,101 @@ Reviewed-by: Dave Jiang <dave.jiang@intel.com>> ---
 > +  }
 > +]
 > +
-> +# cxl list -N
-> +[
-> +  {
-> +    "memdev":"mem0",
-> +    "pmem_size":268435456,
-> +    "ram_size":268435456,
-> +    "serial":2,
-> +	"poison_injectable":true
-> +  }
-> +]
+> +----
+> +
+> +CXL protocol (CXL.cache/mem) error injection requires the platform to support
+> +ACPI v6.5+ error injection (EINJ). In addition to platform support, the
+> +CONFIG_ACPI_APEI_EINJ and CONFIG_ACPI_APEI_EINJ_CXL kernel configuration options
+> +will need to be enabled. For more information, view the Linux kernel documentation
+> +on EINJ.
+> +
+> +Device poison can only by used with CXL memory devices. A device physical address
+> +(DPA) is required to do poison injection. DPAs range from 0 to the size of
+> +device's memory, which can be found using 'cxl-list'. An example injection:
 > +
 > +----
->  -v::
->  --verbose::
->  	Increase verbosity of the output. This can be specified
-> @@ -487,7 +519,8 @@ The media-errors option is only available with '-Dlibtracefs=enabled'.
->  	  devices with --idle.
->  	- *-vvv*
->  	  Everything *-vv* provides, plus enable
-> -	  --health, --partition, and --media-errors.
-> +	  --health, --partition, --media-errors, and
-> +	  --injectable-errors.
->  
->  --debug::
->  	If the cxl tool was built with debug enabled, turn on debug
-> diff --git a/cxl/filter.h b/cxl/filter.h
-> index 956a46e..34f8387 100644
-> --- a/cxl/filter.h
-> +++ b/cxl/filter.h
-> @@ -31,6 +31,7 @@ struct cxl_filter_params {
->  	bool alert_config;
->  	bool dax;
->  	bool media_errors;
-> +	bool inj_errors;
->  	int verbose;
->  	struct log_ctx ctx;
->  };
-> @@ -91,6 +92,8 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
->  		flags |= UTIL_JSON_DAX | UTIL_JSON_DAX_DEVS;
->  	if (param->media_errors)
->  		flags |= UTIL_JSON_MEDIA_ERRORS;
-> +	if (param->inj_errors)
-> +		flags |= UTIL_JSON_INJ_ERRORS;
->  	return flags;
->  }
->  
-> diff --git a/cxl/json.c b/cxl/json.c
-> index bde4589..2917477 100644
-> --- a/cxl/json.c
-> +++ b/cxl/json.c
-> @@ -675,6 +675,12 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
->  			json_object_object_add(jdev, "firmware", jobj);
->  	}
->  
-> +	if (flags & UTIL_JSON_INJ_ERRORS) {
-> +		jobj = json_object_new_boolean(cxl_memdev_has_poison_injection(memdev));
-> +		if (jobj)
-> +			json_object_object_add(jdev, "poison_injectable", jobj);
-> +	}
 > +
->  	if (flags & UTIL_JSON_MEDIA_ERRORS) {
->  		jobj = util_cxl_poison_list_to_json(NULL, memdev, flags);
->  		if (jobj)
-> @@ -750,6 +756,8 @@ struct json_object *util_cxl_bus_to_json(struct cxl_bus *bus,
->  					 unsigned long flags)
->  {
->  	const char *devname = cxl_bus_get_devname(bus);
-> +	struct cxl_ctx *ctx = cxl_bus_get_ctx(bus);
-> +	struct cxl_protocol_error *perror;
->  	struct json_object *jbus, *jobj;
+> +# cxl inject-error mem0 -t poison -a 0x1000
+> +poison injected at mem0:0x1000
+> +# cxl list -m mem0 -u --media-errors
+> +{
+> +  "memdev":"mem0",
+> +  "ram_size":"256.00 MiB (268.44 MB)",
+> +  "serial":"0",
+> +  "host":"0000:0d:00.0",
+> +  "firmware_version":"BWFW VERSION 00",
+> +  "media_errors":[
+> +    {
+> +      "offset":"0x1000",
+> +      "length":64,
+> +      "source":"Injected"
+> +    }
+> +  ]
+> +}
+> +
+> +----
+> +
+> +Not all devices support poison injection. To see if a device supports poison injection
+> +through debugfs, use 'cxl-list' with the '-N' option and look for the "poison-injectable"
+> +attribute under the device. Example:
+> +
+> +----
+> +
+> +# cxl list -Nu -m mem0
+> +{
+> +  "memdev":"mem0",
+> +  "ram_size":"256.00 MiB (268.44 MB)",
+> +  "serial":"0",
+> +  "host":"0000:0d:00.0",
+> +  "firmware_version":"BWFW VERSION 00",
+> +  "poison_injectable":true
+> +}
+> +
+> +----
+> +
+> +This command depends on the kernel debug filesystem (debugfs) to do CXL protocol
+> +error and device poison injection.
+> +
+> +OPTIONS
+> +-------
+> +-a::
+> +--address::
+> +	Device physical address (DPA) to use for poison injection. Address can
+> +	be specified in hex or decimal. Required for poison injection.
+> +
+> +-t::
+> +--type::
+> +	Type of error to inject into <device name>. The type of error is restricted
+> +	by device type. The following shows the possible types under their associated
+> +	device type(s):
+> +----
+> +
+> +Downstream Ports: ::
+> +	cache-correctable, cache-uncorrectable, cache-fatal, mem-correctable,
+> +	mem-fatal
+> +
+> +Memdevs: ::
+> +	poison
+> +
+> +----
+> +
+> +--debug::
+> +	Enable debug output
+> +
+> +SEE ALSO
+> +--------
+> +linkcxl:cxl-list[1]
+> diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
+> index 8085c1c..0b75eed 100644
+> --- a/Documentation/cxl/meson.build
+> +++ b/Documentation/cxl/meson.build
+> @@ -50,6 +50,8 @@ cxl_manpages = [
+>    'cxl-update-firmware.txt',
+>    'cxl-set-alert-config.txt',
+>    'cxl-wait-sanitize.txt',
+> +  'cxl-inject-error.txt',
+> +  'cxl-clear-error.txt',
+>  ]
 >  
->  	jbus = json_object_new_object();
-> @@ -765,6 +773,28 @@ struct json_object *util_cxl_bus_to_json(struct cxl_bus *bus,
->  		json_object_object_add(jbus, "provider", jobj);
->  
->  	json_object_set_userdata(jbus, bus, NULL);
-> +
-> +	if (flags & UTIL_JSON_INJ_ERRORS) {
-> +		jobj = json_object_new_array();
-> +		if (!jobj)
-> +			return jbus;
-> +
-> +		cxl_protocol_error_foreach(ctx, perror)
-> +		{
-> +			struct json_object *jerr_str;
-> +			const char *perror_str;
-> +
-> +			perror_str = cxl_protocol_error_get_str(perror);
-> +
-> +			jerr_str = json_object_new_string(perror_str);
-> +			if (jerr_str)
-> +				json_object_array_add(jobj, jerr_str);
-> +		}
-> +
-> +		json_object_object_add(jbus, "injectable_protocol_errors",
-> +				       jobj);
-> +	}
-> +
->  	return jbus;
->  }
->  
-> diff --git a/cxl/list.c b/cxl/list.c
-> index 0b25d78..a505ed6 100644
-> --- a/cxl/list.c
-> +++ b/cxl/list.c
-> @@ -59,6 +59,8 @@ static const struct option options[] = {
->  		    "include alert configuration information"),
->  	OPT_BOOLEAN('L', "media-errors", &param.media_errors,
->  		    "include media-error information "),
-> +	OPT_BOOLEAN('N', "injectable-errors", &param.inj_errors,
-> +		    "include injectable error information"),
->  	OPT_INCR('v', "verbose", &param.verbose, "increase output detail"),
->  #ifdef ENABLE_DEBUG
->  	OPT_BOOLEAN(0, "debug", &debug, "debug list walk"),
-> @@ -124,6 +126,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
->  		param.alert_config = true;
->  		param.dax = true;
->  		param.media_errors = true;
-> +		param.inj_errors = true;
->  		/* fallthrough */
->  	case 2:
->  		param.idle = true;
-> diff --git a/util/json.h b/util/json.h
-> index 560f845..57278cb 100644
-> --- a/util/json.h
-> +++ b/util/json.h
-> @@ -21,6 +21,7 @@ enum util_json_flags {
->  	UTIL_JSON_TARGETS	= (1 << 11),
->  	UTIL_JSON_PARTITION	= (1 << 12),
->  	UTIL_JSON_ALERT_CONFIG	= (1 << 13),
-> +	UTIL_JSON_INJ_ERRORS	= (1 << 14),
->  };
->  
->  void util_display_json_array(FILE *f_out, struct json_object *jarray,
+>  foreach man : cxl_manpages
 
