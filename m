@@ -1,100 +1,96 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E14CC21C16E
-	for <nvdimm@lists.linux.dev>; Thu, 23 Oct 2025 03:50:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6450D2110E
+	for <nvdimm@lists.linux.dev>; Thu, 23 Oct 2025 05:15:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.12
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761191459; cv=fail; b=l2H5n9naNB5pfhEHivK8sKElG54rT2tvBl7G+1ypt916FujJZONeVYSwSh3YEnabpSV9upxxSrfbZF0bvcLV6yQooAsjVQwbQRCsuXsXZW+NL6bPBHahtu8u++1MELj4aA5NE39zvu3Jko4A04MmZKdgxgv4j2WxtoX/hE0IQlo=
+	t=1761196519; cv=fail; b=EXqfdgOwzIqu+9ndX8WwSo0P/QKYseTziCDlHowl3rLOcIVP7OJUaPHRshYwU5p8X5qwbNXCVz6ZOt2ZPnpS2LwrCVuQh3a4ORQDuoudYOIGcG7u4E54KQz+WWchGy4MR7mXBF/+0B1nc7cs1LvPXd57ZBpMyOeBG76lGQVVZvc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761191459; c=relaxed/simple;
-	bh=xQe6Srq9awM7jyDlHNx+FMwGQyd6CuZDSvBonaDYuKM=;
-	h=From:Date:To:CC:Message-ID:In-Reply-To:References:Subject:
-	 Content-Type:MIME-Version; b=Ba8TpGq5JpHV3OXW/UBiMn/lM289FtL1tChAr2kdRW78Qb16mXYTnob5uO1R714B8q1OrMjIvVkr6h+cOSyBDrLIjMmAfrpBo0DP6nHiFspAamdoh2MZMJOyeF2XDwMRzqh7MpvIDmEmMePcW91dAmoSDXXzeeY/0ytwTLfJbNo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UNnZTyVK; arc=fail smtp.client-ip=198.175.65.11
+	s=arc-20240116; t=1761196519; c=relaxed/simple;
+	bh=+Iym0utuBVmZ1NN8EDaMFZB08iCM72OVCGkPdbHvIHw=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=sPTWjzv1MIzt6+ajBmqa7h6ezufV38VaaxtBTTqZWOb+u4evKxRWGlkQ6NgBJt6+A90B2aoITB/iLhVvo066x3L356YNxXUOvwKD6Bn+91q94yP5Iw4G1cSKl7762R54VURLqnLVliRseylnGsY3Gk4GMrKtR03fXGsifRGnSzQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dOqZZ1A4; arc=fail smtp.client-ip=192.198.163.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UNnZTyVK"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dOqZZ1A4"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1761191459; x=1792727459;
-  h=from:date:to:cc:message-id:in-reply-to:references:
-   subject:content-transfer-encoding:mime-version;
-  bh=xQe6Srq9awM7jyDlHNx+FMwGQyd6CuZDSvBonaDYuKM=;
-  b=UNnZTyVKsl+gVUN47vVWrYznR35Du6t86DUMIhJFoV6M6w/gFSGi+AIH
-   siXe2nE1fRUVuyvI6b+zW5GenOzyDNt5wiFkCWfNoz0juqY3qJ3gYc9Ys
-   6/Y+JrWZ2ODY40/kF9VgVbxvGPgb/tGEmu2agBgmdpKwy0BENfxJyyYl5
-   6YmckOnosMe2GEQu1TkjF3l+c3xa9aXK9DxC4DmIvw77dNKZ/qOD18XG2
-   EbNpSkniOGIdlphAxFkPymglJYUiRUaYvazS1pK9BrEETZcbbYi7/fSF8
-   Z1BjDiMYq5HbuH/BP6Y7AXQFyoDsipagR7euWpvhJgfcDCbx0Bqp5hLkQ
-   w==;
-X-CSE-ConnectionGUID: gzoEitXVSXikjLT6TZ232A==
-X-CSE-MsgGUID: kavI5np+S2mFrx1jqgql0g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11586"; a="73640784"
+  t=1761196517; x=1792732517;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=+Iym0utuBVmZ1NN8EDaMFZB08iCM72OVCGkPdbHvIHw=;
+  b=dOqZZ1A4cPI75cWqIlH20b9oHlDFaDda/CxzrdGKnd7gBAM3EIXmQi+c
+   FMuXLbzjDuYt59DxxuFxWvXcS0MHVW0ys7xTiebx7Ezh4XHb0Ibo2tvp1
+   VvykW5MY9Ktm/xF8WbSVnT0XZ2TtvQHj3KdjlXRueVVDvGudZ7Pu4kaJK
+   UsTKD9Ge4IpL0qC5Fl+kZ18NadAgZAwkoPQojg42sDsDGqeY2VvQYiTMd
+   tj2wTrXB4LfEKW8azCNXRoI4U7ByhHAqGuEJUwYepvZ3fb9JwOztM515M
+   7kHfbCtCgLWtCJ6rnZlqfPuIo94MgduMyqPhC4Mbkk4agX8SkRl31mcmB
+   A==;
+X-CSE-ConnectionGUID: gAMo7RYsR2CP2Mikm7sqbg==
+X-CSE-MsgGUID: PGXng74ATdeYSHyXV0LHIQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11586"; a="67221192"
 X-IronPort-AV: E=Sophos;i="6.19,248,1754982000"; 
-   d="scan'208";a="73640784"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 20:50:58 -0700
-X-CSE-ConnectionGUID: vXNedRsEQaW9EcJl7dd3BA==
-X-CSE-MsgGUID: M9m2FNZgRsaIYLtL+qQKdg==
+   d="scan'208";a="67221192"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 22:15:16 -0700
+X-CSE-ConnectionGUID: 3C3W6sIsSHKqlfkQA2KzuA==
+X-CSE-MsgGUID: n3ogoUC0Rhihfhb5HHnuRw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.19,248,1754982000"; 
-   d="scan'208";a="184819684"
-Received: from fmsmsx903.amr.corp.intel.com ([10.18.126.92])
-  by fmviesa010.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 20:50:57 -0700
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
- fmsmsx903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+   d="scan'208";a="183659574"
+Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
+  by orviesa009.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2025 22:15:17 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Wed, 22 Oct 2025 20:50:56 -0700
-Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ 15.2.2562.27; Wed, 22 Oct 2025 22:15:16 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27 via Frontend Transport; Wed, 22 Oct 2025 20:50:56 -0700
-Received: from CO1PR03CU002.outbound.protection.outlook.com (52.101.46.9) by
- edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
+ 15.2.2562.27 via Frontend Transport; Wed, 22 Oct 2025 22:15:16 -0700
+Received: from CY7PR03CU001.outbound.protection.outlook.com (40.93.198.64) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.27; Wed, 22 Oct 2025 20:50:56 -0700
+ 15.2.2562.27; Wed, 22 Oct 2025 22:15:16 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Zj/9f/JU+sjLvzYOcUulGGliLWlg+tnv5LveDAAPyhHexBm1fohu4GqHInbeMdo7W34NomngHr7soi82k3ZMD4Nc8wnDv32FCQJjBafkf4It0DYd5/kIeYt5bCPVQh7OTw6BYoFORmSt5MW87oIkZ8asOneGjWuTujdlyWdwM1WwOPHA7jVDRKaVxp0QVnBCMRROM9rXxD28PS592XXS5sCbMMSrH4YQy+WXK5x5aIDO/0t2z5gDOzx9StI5smVmoKNhWS+W7ysZf1t8lb+1W7UdzkyRA11Aty5Zz8JpgWrBjju5izEB7RrZzI+8oKzH8JRJn0ZQsIJhYer3DmMWtA==
+ b=jLEZmWDi56aaUEaNRidx/YJcJe0on6ohJT7U2ZlfIfHiC3OP56udusiJcGX2FEUbYLMo72/HDL7iNdxaYM9b5cmGc5xLwBa0yy4WA5dvGuPJZNOOcKn2oRqtMz6Lz1WMNlZ1zepWN8pywv9Xn/CSiyZGtsDmfF1MoPBXqMfEgpYe2P/udglX0ae2ojOM+wQGaZSffkLMg3Iw9M+mh9vNVgnTbad+QsJAtxrDlVBY+n1SOBD80lODjPixofwCpwSdlLPOUL3dmoCwtBl8MoX3CWy/f94vHBN4vChKT9DU2yjvE6wUrB4MW2kHy6hMHXbKYGK3Xy3Zo5ILw0PAIxPgcw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xQe6Srq9awM7jyDlHNx+FMwGQyd6CuZDSvBonaDYuKM=;
- b=fEtC/jiELjc9eNzOHC/oBoihK9cN+zeBy1BoBGvBLbOTP6s0o20dxlV/2c39VziCird3To/RbgpSLuT24oiiRYKy69Y5WrC5ool7dDgiMCnGtby4OeHlY0GNBQYrEGt6Q7jVXPGUjm48IsLo9CpkqSyN7k0+R0FhLnwo5aLIULBh0FiTdDMQObLcI405Y1n+HwDxGvxsFQV6GgsYiaO2TDOXtaQk5U6L02dmDl2r4Yke3paxSBJ6dqkbPv0bir/VMdeGh7lt48LYBX8tbZ/esdoAcFwho5ylhxJkYEhT2YImKqAbya2dUXVVfMY7zhDzkeUKwurdgM7974LoYeBpeQ==
+ bh=bkpOZWOS7MJOqLtrNGji9QUKHhe8Vnd8/jtJ6Zzwb7A=;
+ b=XNYg8s/+ilAysBO69q5x7dDHtSiKR7mW0JXhFjeZpRtPAm1Uu6mcsXfVen1AFWEr4t9rHuVxOeT+7attadtc7BMxeDRGPIOltXOBbXTdGj8TkuNZdXFzVSEd41lxw0UMSZeJubYGrn0vRMbceyThCuuX0V7dZf4zOaJD9hPIB0uyQVC0O3ZarRanhLivec0XQ2fDKw57DfaKLWZpe0tX1TohSYSzGSLdYTcAbDoee/7DkaO0mKN2ObwLjPjG3ySJdO5KvSS/I58CgpPwgVr8bRq9+CG//VN0xh98sJAHKZyBzF3l1AGkTlN2C1z4CBNoo03Ye1vXWo70jgmyMxyclw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by LV3PR11MB8601.namprd11.prod.outlook.com (2603:10b6:408:1b8::8) with
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by SN7PR11MB7137.namprd11.prod.outlook.com (2603:10b6:806:2a0::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9253.13; Thu, 23 Oct
- 2025 03:50:54 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%5]) with mapi id 15.20.9253.011; Thu, 23 Oct 2025
- 03:50:54 +0000
-From: <dan.j.williams@intel.com>
-Date: Wed, 22 Oct 2025 20:50:52 -0700
-To: =?UTF-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>,
-	<dan.j.williams@intel.com>
-CC: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
-	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-cxl@vger.kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>,
-	<linux-kernel@vger.kernel.org>
-Message-ID: <68f9a61ccc6b1_10e9100e5@dwillia2-mobl4.notmuch>
-In-Reply-To: <CAAi7L5eY898mdBLsW113c1VNdm9n+1rydT8WLLNJX86n8Q+zHQ@mail.gmail.com>
-References: <20251002131900.3252980-1-mclapinski@google.com>
- <68f96adc63d_10e9100fc@dwillia2-mobl4.notmuch>
- <CAAi7L5eY898mdBLsW113c1VNdm9n+1rydT8WLLNJX86n8Q+zHQ@mail.gmail.com>
-Subject: Re: [PATCH 1/1] dax: add PROBE_PREFER_ASYNCHRONOUS to the pmem driver
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: BY5PR16CA0009.namprd16.prod.outlook.com
- (2603:10b6:a03:1a0::22) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9253.12; Thu, 23 Oct
+ 2025 05:15:14 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::46c9:7f71:993d:8aee]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::46c9:7f71:993d:8aee%8]) with mapi id 15.20.9253.011; Thu, 23 Oct 2025
+ 05:15:13 +0000
+Date: Wed, 22 Oct 2025 22:15:07 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Marc Herbert <marc.herbert@linux.intel.com>
+CC: <nvdimm@lists.linux.dev>, Marc Herbert <marc.herbert@intel.com>
+Subject: Re: [ndctl PATCH] ndctl/test: fully reset nfit_test in pmem_ns unit
+ test
+Message-ID: <aPm524Y0hIEOUehg@aschofie-mobl2.lan>
+References: <20251021212648.997901-1-alison.schofield@intel.com>
+ <a9806830-6ce7-4d1b-a72d-7fa123e8b326@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <a9806830-6ce7-4d1b-a72d-7fa123e8b326@linux.intel.com>
+X-ClientProxiedBy: BYAPR03CA0016.namprd03.prod.outlook.com
+ (2603:10b6:a02:a8::29) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -102,118 +98,209 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|LV3PR11MB8601:EE_
-X-MS-Office365-Filtering-Correlation-Id: 50fb8d5f-7c99-44ab-4017-08de11e75de9
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SN7PR11MB7137:EE_
+X-MS-Office365-Filtering-Correlation-Id: c3afebfb-17d8-4614-dcb6-08de11f32559
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|1800799024;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?S2JCcHJ6RCtBcjZCRFpjL0dxVmhrOE13aGZJQzZCa2tLRmJKYTdpc3Mwdzha?=
- =?utf-8?B?ang1RG4rMlRkL1VNSG9pVm51ZEUxNm9IbWRLSzV5QVR0ZXZ5M0lzbnhISUIx?=
- =?utf-8?B?OFNFcDBvSm51Q053d0FzQmxyWDJvU1lCMk1IdC9mS3U0Y2V3OEpuUGJRK2JX?=
- =?utf-8?B?bWQzN2hDemVIK01KWVVSOHdjMGU5aEZneTJycTMwekF3Q1ZESXBwWHJrK2ZZ?=
- =?utf-8?B?UDFWa3lHVkZXU2tVYUFkdkNjRnZ3UFBlVlNscTNwQ0FDa3BQZ3IzU002aDFu?=
- =?utf-8?B?dXlGRmhsaDZacmhPbUxVdHhSSUtOL2pMWWZ6S29iMlZZaXdMV2lYd3lTcm8y?=
- =?utf-8?B?cDZpYVIwL3BiS2M1K3NiLzNLbmhoaERkWW5lWThrT0hFbWN1b0E3eFVvU2Ew?=
- =?utf-8?B?UVB6TTFxTkFZRHFaYUQ4aEEzckFNTFE5OU53bmZhK2R3VW5jMXI4TUUwR1JM?=
- =?utf-8?B?UGRZZ3hJYTN3bmZjZHZzY1lIbEJGUGVnS0I2VHpmSXhnZytWTEtIcHczWlJS?=
- =?utf-8?B?SmVNa21haGkreC8vMHJ1MEdyTGs5REIwZU11bTQvbzFCVHlFazNLMGJYMFQ5?=
- =?utf-8?B?bXVMZG1oNDFhRGh3YXR0UUY4ZHlITC8wOGcvU0llUlh6OGM3MHVSeS9KNm9j?=
- =?utf-8?B?VUVKa0dOM1FleXFQUTRIeFBrZXlkeVo3MEYrTVZpSmtRNGhjSHdabXNqS25v?=
- =?utf-8?B?OUhtbDdTamJVZG5vd2pBeTdSWStaTmNPek1qSTNtYVZEcWkxazdNUGM3akxI?=
- =?utf-8?B?UXMvVitUV0VJOWY3alFJc3NCbDFDTldnY2hsczNFZDBaZXRKMVdRRlJVdHNT?=
- =?utf-8?B?b1BtRmdydEtOdUMyK0Y3bkc3M3RVb1BEQXJPbzQzWGZxMGJHQjJQbncrc1pE?=
- =?utf-8?B?N0svVUZUMkN5RXgveTlkNTY4UkZSTG04VVdkSTZnRXVHNFpVVUlrUHc5cno5?=
- =?utf-8?B?TitWY0Q1S0ZLczFiT3lkcWVaaWU0ZWI3bFpvUHJhSnpSTXZpYW1IOHRqNmJi?=
- =?utf-8?B?emJka0JWTG52SmFVODlzMzVzSjY3U1ovNTA5V1ptTUt2ZlBPMVNHVmNCeTlQ?=
- =?utf-8?B?NTB4RTNCMmJKMHNHUjJENHhtSHlZdGhJRFRldHhHL1B4ajJlUnA4R2QzV3JG?=
- =?utf-8?B?Uk5wSVM2SmhIOWIzSmpxVjM2NHdzRTdmY1B3TGdtNkxkbk4wRC8wZGMxdk5Q?=
- =?utf-8?B?L0tpdnZoQ3BFUGVkQVVEZDUwQTdCcFFtYUZ0L2tUamI0WVB0Nm10UkxNQVg5?=
- =?utf-8?B?SDNKTGFBTnQ0VHpvRUxhaGw1UUhHOWJnWDdzYkdJSWV1SW5SNi9GTXZldVRj?=
- =?utf-8?B?RmJvRU5GWHZlWGg4Si83dDIzclJ1TGRnNDYvNFJIcUZFVEQyVTdHdHREL1NJ?=
- =?utf-8?B?TkpQci9ZUWI0bzQ4b3ZRUDdsbHZsSXFkMTROWkRoS3I0VUp5MnpaSzFmTnlO?=
- =?utf-8?B?clVUb0h2ZGJPTUlJTGdhYWErTmhZRm02TDJzWVBhOVlSUFlsc2xyZFIrTDdN?=
- =?utf-8?B?UnBtdDc4dHU4dnNhYjRhWkp1WkFPWWFneFBXcW1tajlBbitiYVZ4ZGFvekRj?=
- =?utf-8?B?NzFFM3Jmdnp1QTRrSExXUGlvcFZROEtpQStMd0c0TGNvUFQ3UHVOREkvZHdE?=
- =?utf-8?B?MXZRelU3alhqVHVtaEFLV3dJOTJVbmlyU1hXeVluZzV1cUZGMWp6WTByUHJh?=
- =?utf-8?B?VTROY0pYODQ5NktnMmVEeEpnUGN0QmtvN2FhYmxLQ0p0VUNsM3JqYUZMeTF1?=
- =?utf-8?B?SXJPUzQ5R3E4VWI3Ry9WNFkzMmlsYkFDbGpEekZicFZmNGVZS3B1S2RFWUxz?=
- =?utf-8?B?SXJwK2Y5R0dPbVdaK0cwN2lPSFBMRWFWdUhWT1QzQ0FZWHd4S1paQ1BtTlNX?=
- =?utf-8?B?MTNsUW5md3Ava1ZwMUR6dEpwNTdzV2FReFFPZTVMZDlqSHpIZURVQnZGN0FP?=
- =?utf-8?Q?gOKe+g2dHfWBhRNL2J90F+1eP764NhLd?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016|13003099007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?thdzADy1OAN/qxTQsk5DRh5LjgY67vLDjA60vb1YDmYHNKQpY6MPlLtobmac?=
+ =?us-ascii?Q?Vm0mukF0HuMit31f1EahMmS5KYhzTfoeYhTnN3eNJbk2Ju/nljlUnI2XXMX0?=
+ =?us-ascii?Q?eo/sQiOcqY7A3J7DiCqtozZactK+wptLpBOAbbz/6CpQ6J1sGJVz8q8kr1dL?=
+ =?us-ascii?Q?ZxRzPL0aef0W0DqrNrZtfbZl8Md+P39sDF32lsScF6OaHWzyJo+iBkZBfPVO?=
+ =?us-ascii?Q?1TGmzAkbwZpN2LUhP3QyD7cMnDCruw1oP4pkqYvuTkVRrLWwrE5nmhFmzndY?=
+ =?us-ascii?Q?JRM718ow5cVoyi9TNDhFzEXQvBZ83pYjsccvcMkAwV3KWCCDZu3bkIk0UeLL?=
+ =?us-ascii?Q?ja5d+hswZ5PAZPw4uJfOlJlFi3LN4oodAou1D9DgWk3yusRBwYIcu0fDFI+j?=
+ =?us-ascii?Q?mXOLBjDnT87G6/WBtW+hhyKucLY8GKr8WPYDHBeaNG+OdqKj4QoPfyq9ermv?=
+ =?us-ascii?Q?RSBZdxVXgU0OxvuIMfG2yPYJ6uUjBwtf9MisjSsNdMNJwtDFxwQ5ISBE/UxC?=
+ =?us-ascii?Q?a69dUKH7FoaQMVMY6uf2jQsWfFwyr4ft3urLeKNwdQPzBWQQY5PaFBlLrhcc?=
+ =?us-ascii?Q?tLfqgkFl2kVZ9efRAuHehPyChvc3MVQ/g9c9WGmbyag8iVMA439sWTkF3iVF?=
+ =?us-ascii?Q?rX5PmoWgbWMmR0FFBTo437OKPN0pnd9O0yc3708+eT9Z3vwmdj2LfiPD7ZXK?=
+ =?us-ascii?Q?2seEPMa5DOeAZhz2+rUW7IJ2Y+UTErFfJw8r1ApNLmD+fCPw6RvnKikz94RN?=
+ =?us-ascii?Q?dMUMQzJ3TT6IVf/J5QymISu2Ii8RLx3yMLYrI84Dg0E+8ghDDx4ArgTtfmXI?=
+ =?us-ascii?Q?aCkFOvrS99sI34nbV8znjWnvAHwYH3M2ken7qtqtMzQ4QuTo5PauVtfKR5SO?=
+ =?us-ascii?Q?dAWzyn9sfVRy+2f60ydDjy1Ri5/ZWIgc+knl9tFjHoJ3VDvL3xUMM4pHXavd?=
+ =?us-ascii?Q?92AxdRZiPstk5BrzCOXt6e1fUXPyl6vEW01TAjwGKzv8oD3l2JPttn0HhgAb?=
+ =?us-ascii?Q?USEfeEUAE+6tgXsJoQy9Ix3dDu5mN+PS1R7kpm0Qzi/QCbSm7uS7eFn59FgY?=
+ =?us-ascii?Q?cN893m3uekKmqTCd8eq6zy6C7pneLgB36+pIMyjAcL1lmU6sg4q6CC3ZCl4H?=
+ =?us-ascii?Q?pfQ/25CH+1gYEvTfhc7+JeQWaBNA+TTNJw+gN/5G3d1igCViokp8TfbJHvU/?=
+ =?us-ascii?Q?b9/VOYsXuXhaOeRKgN4c0AHhYztKVuZenephu6yW46B5uIxI3gvVo8Wm7Zl4?=
+ =?us-ascii?Q?h480/53lgyfJ/ZxuAAD83MrtdKy0mKm5j7VwPtTWJIL8BY/0yEvjadlQh7pO?=
+ =?us-ascii?Q?E9dcDBNhQbvuJ47dYjV/u5/1445YnLiz0/1FLCDcwhXgM/rB4YpZR4HPk602?=
+ =?us-ascii?Q?/vE+ryXinWWnlJ/afPC/O6PiVA/OlikpPnJz7dTizXf2QH7wb9eiFnP8uAXE?=
+ =?us-ascii?Q?EbTKNQx2o3rbcnd6IFycm1LiianFzPjMLfSGHj/p+m2UqWIqJvAEgA=3D=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(13003099007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?akpoUmJMR1hZN1ByYlVQQzdJc1JQWnc5SmlEZ2FML1p4amZncVB2RUYxdzh3?=
- =?utf-8?B?d1dnLzF3VU93eXhnK3UyOFdvSW9SeEpvako4S2VlTU9ueXNjck1CbWlLQ0Ju?=
- =?utf-8?B?T0VhNzVGdTJDSERMelBDejF1MktOMm5tTWFhZGg5RWhWZVFnM3pDMXNkNU50?=
- =?utf-8?B?aVU1bE81TGZmay8zdElSeVMwZDZaSmFZR0RwNHBmTkJSSS96VVFOSTViUjR2?=
- =?utf-8?B?ZE1sbUZIQnVQNDNpclN4TFVMZkpMQzdGNTBOVk4rTFlieU9QazdhQitXOE1Y?=
- =?utf-8?B?cEtkc2l6RHNWUFFVYVlsRnlxN1UwT1dMb3VFWlVUQm5ZTGxhLzIyMHppc0Fy?=
- =?utf-8?B?bW83UG94VkNRTGtpWFFDb3FwSmJUZWhzaEUrbUh0VWcyN0xidzlSUTVIc3Ra?=
- =?utf-8?B?QVlJc2lraEtmTS9OYUQ0Uk1aUzRtMG4xa2RyMXh4eDFXRG5rRExjWm5NTDZI?=
- =?utf-8?B?YlZnbUN4UFJtYmFJN3hkSmhRM3JrQkdUWURHZWphRTFKQWh4TjdPVDhjUVp6?=
- =?utf-8?B?TVVVaUVVTkp6azhqYWhLMTBOb2wvTXMzbEFmZmErUkVWRkJtUGJHVjRpZXM3?=
- =?utf-8?B?Rm5ENWtsZGN5eGlTY0JMMGZuZ2d4VXdVK2tkeUZkRnRTQUd2Y3JJd1pVODNZ?=
- =?utf-8?B?ZDFCT0t6WnBVdDlSMCtvYUpWVlgxUTNpS3Z2MXJoZEdOQVc3UXJrcDJ0Uk1i?=
- =?utf-8?B?a0dHRG44Tlp4SFZPcGVWcTBoOTRYbHVnMzRmbmZPRW5wZnZrR2JzLzEwL09o?=
- =?utf-8?B?Q2Y0UTdaMjJvZUFLejB2ek9KdGM5cU0yYytnOXFWZ3Y0SHFkS3hDL3JhWWRi?=
- =?utf-8?B?djhDcDZkM2Y2cmtqTHNkMkQwc0FuQUtDRUtnVC9SVU1acTU4VGFOTGNjMzdh?=
- =?utf-8?B?cmpEakxCbjVRbTZWeFdpUmtLTnAxb3Y5VjBlTnlaNXNoeXptRjJWL0RDVFdP?=
- =?utf-8?B?c3pRaXN1VHJZU2tvQ1RnTnBIMnVLVUdJUHhmck5VTEFpTjBsT055bmZMNkdP?=
- =?utf-8?B?SG1YRk5XL2N4U0ZkTmV2YjlvTHhLdjlwakZSRlZMWTg4RlBOMHRKQ3JtSXFO?=
- =?utf-8?B?ditPaXVISXVsUjBlOUhhaUgwdXY1T3owb0ZoR3BoUzFvT2NmeTI3MTZPSUZh?=
- =?utf-8?B?VkJ4NFlQRHpVZGtKWVRMNEJiR0hsWndZWEEybWtrNUFOaytsci9rVUY0K1Jk?=
- =?utf-8?B?endTdXducXdaZi8ybHc2V0FqVmpsM00rTHJoeFdoQzgrTXpxbHMrbzcwZnpT?=
- =?utf-8?B?bVlmRkdXZUR6VHRvMDRCUGVzWUJ4TDdTbU9xMC9ISEZoZGFpalJGWXZaakZT?=
- =?utf-8?B?TzJ1VFVSekRZYXFjYkwzSVFBYk16aS9Ob1JGbDh4ZC9hLzNTNlErWE0rODc3?=
- =?utf-8?B?SEFYbHBhaHJoTFErOXdYSXFtd3R2dTZ6YjNyTnp2aWVWV2JIdWR1aUNFZEI1?=
- =?utf-8?B?QXEzaEVHWHBmUHBiaks2eEtFODNhTllMdklBQTY3ZkxCTy90WFFMckpWMndl?=
- =?utf-8?B?OEdsTTRIcU5mSTAzeWc1Vjg4Tk9wcjMxaWgzWE4yRTZ1cHBJNGVjc0twUW1i?=
- =?utf-8?B?Y2FCanJnU1h2ZkRBSS9qdFRFZ2FnaGJxR25KMmpadW9KU3FwUTVtMnZNdXRW?=
- =?utf-8?B?a2QyYzdJRTRCajdkUTRick1LKzZmZlc2ZFoybGNqSEJvUXJ2R1o3RUVocFN5?=
- =?utf-8?B?SzkvMmM4NzN5V3pVdjdKYlh1bEwyWW41WWtPSUEzS1U1dlp6MkZGMTYrOVRl?=
- =?utf-8?B?UTJUanBFQ1dLYW5HejdoVTFzSkhxdERUVEZoaXJ6ekNDRFpUdk9qclB0N0dk?=
- =?utf-8?B?eWp4Z05jeENhbm9SazYweTErL1JDZy9FS1F1ZlNKRTFQdGs0UDdTbkw5a21V?=
- =?utf-8?B?Zm9JYWhiUWVDYXJlQ29YMGtEazdMcDgreit2MnBvUmlwSmk5TkpOOS9FQlp5?=
- =?utf-8?B?MFRpYnhHdmU1K1Rzb3czK3hnclp6SE5YY0ZJRklmWEMvaU0rQjY1OFBhdnFv?=
- =?utf-8?B?OWc4ZWxGb3JEckQzQVgveXV0TEg2TVhOYXpxZXZDaW9XYkJlSTNEa2llMUJU?=
- =?utf-8?B?VFdrNWNIM3ZvcE1OdkJ2U0FNRzNjdmlQTVZRb3VTUkJNWHlWVG5VTThOMmhh?=
- =?utf-8?B?SmZTWFJnVVZGaFFpbEtQUllpNllIRFNLK1A3Q3Y5d3diamVIYXoxd0J3T1pF?=
- =?utf-8?B?Unc9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 50fb8d5f-7c99-44ab-4017-08de11e75de9
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?9Mq8g0UV8r8l8WC3GmdXzLY23yykczAvssEaX0EhD/g0dgq7GD2KnGBCNFao?=
+ =?us-ascii?Q?TiNezzTqSsYU7pPzDURRb68F65e352cJv7SWk62U8t5zrxxBr3aLiThIEivF?=
+ =?us-ascii?Q?z3VyQYSH7HbixysdOh4etA9PilEqtg0CGPAzdoOEd5/7Ory6sPmS8k39enhE?=
+ =?us-ascii?Q?8V8Rvq2SuOoTqZ+1lRy/YLuc45mJPTr2z0ak+qL4jjHUQhuMGIRYNtbb4cWi?=
+ =?us-ascii?Q?TmLk/kSYOUyQsy3zaK3jboj9gctrOXW3k15EtQjWO4BpW/I3Ko8thGP9Cu75?=
+ =?us-ascii?Q?ClPJ4QI7sP11gAVDS2f8Q/SmDP1GFA4JcvklgaH26XZzvxKPefJlkdQrXtW8?=
+ =?us-ascii?Q?hlIMQUO6qDfGit51Q3r3R+aFjy9BvathtYOEOVtwrCphRVwhHQYixfJkGR+C?=
+ =?us-ascii?Q?lj8CZy0TciMgaVDoa8FXXwdMZo1BHIiN+h3pnbK7U/s9i8P6F3Etas7EecTa?=
+ =?us-ascii?Q?taQv3bc+l7Lj0bJ+nM1x2y/odVYo2tXzGBqqaXw5fwzIoUjsbVApnoRb6Ipo?=
+ =?us-ascii?Q?/yaumYcCuTuXALT4hyJYhX2y9YG+wTv/5lU7yNnCl+EC0E8bjzrfjNrzaDnZ?=
+ =?us-ascii?Q?Hr8Loyv1j03QL1z40+OvZY1mQCh77Gxm7TbyLwrkzuJmq6u1suewf1Mx9iim?=
+ =?us-ascii?Q?ddMXCnzNsoxZbtyVr9rv+YAXCSD6TP6lz+fbzlAs01zrXY0t5I7nyhmqwSd9?=
+ =?us-ascii?Q?Wb+32pht0UGPlEbnyfk5s9lDKNZbtzJ4NrGSbQwHaBD1XrYplqJEcQTdWzkd?=
+ =?us-ascii?Q?0On0HxKYs9cu5cuJAhTCBn0ggk06YqMHxDPzkLL1eV5XSSwpBA2QnrtP/m87?=
+ =?us-ascii?Q?Qa5UupbcTEoBxGpxKhWNdzylRD+V1QQG9P7U0kgXTonnc/xSvKe5RqejZoFY?=
+ =?us-ascii?Q?fnmZBrkAEd9yfbQJjEYXIezM/Qj6s5vMUs+Kz2x/yFA/ubiksz3GI6s47tfE?=
+ =?us-ascii?Q?N9uxtkMCasnOt91OW2UcVBu1pNmkbj6YyyKCaBsYNAxutkAGJsFvWGYDtbM7?=
+ =?us-ascii?Q?aodsMbigs58HDvg5qWeBBiJF3HPzOe9d4PBSX8a9ueoDVjGK10CueOgRvOLn?=
+ =?us-ascii?Q?cxpJb+FcMckgPF8w7q7QyurV/azSnY3MmxYnAmVCbOhT0LgvpSeM8v0NCMim?=
+ =?us-ascii?Q?u6Yg/jyi2FfizRJC01Ws24SbECDqgqB4dlZmNwuaTxgvoGfwnWombGv7BaGr?=
+ =?us-ascii?Q?jrsHb/fnXybw3UswyWiPy2vuhcZqImOUeJtRxTS1GtnTI+CvGeiwnqSACSPm?=
+ =?us-ascii?Q?yE4qFLJrLykBLDWVabn3aiJP4CpaqfghW+BpMKv7Sln2EPkPwgM21iZaL6cb?=
+ =?us-ascii?Q?Ee1TG/vvs/6xYYPnES8Xg97k2eP2eAihNuGSwpCdCamN8CYy6pfqfmA6bRHa?=
+ =?us-ascii?Q?NQRpVQSCexNK4CFxM7MFGqfWU89hnopbx39lC9NLl6Z4CPqV8LiiVpkLsZGD?=
+ =?us-ascii?Q?ZaP7X/Utg3V7tIRYpEDJI2gEtaBxndBzi/GwcDis/VrI/WwNZHujJ+m917Lp?=
+ =?us-ascii?Q?rRsR3jdsnIB0LpaTuyDoagMgxcDw50HQdyoe7NFskangJaa3kUsqDcAtpXVl?=
+ =?us-ascii?Q?o8EO+v4FhQtNazMi7H4zdSIv0CRd+LodilsAI0AUtY3ecGPLK9RhuUQD6D2V?=
+ =?us-ascii?Q?5Q=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: c3afebfb-17d8-4614-dcb6-08de11f32559
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Oct 2025 03:50:54.5696
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Oct 2025 05:15:13.8584
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: TzZNJDcSbkteAuqp4A8Z2qjKIB5W3KZ5B8OO0liQVLzYOshUULC7i0Gs+QVqjjbkaopR7TpALQ0PvyD86e+bBbFVWxAawP7GQIk/crBdwbg=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR11MB8601
+X-MS-Exchange-CrossTenant-UserPrincipalName: pXgqx//NXJQGeDY6ytcIMCqtgJCbGjeewxHXumRDivW5Nwma/gXk8fD3Kcr1H/f1tjSlK4bF+7HpyT1/TAuIyz1w9w0ebO5T/gbql0ZqIqg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR11MB7137
 X-OriginatorOrg: intel.com
 
-Micha=C5=82 C=C5=82api=C5=84ski wrote:
-[..]
-> > However, I believe that falls back to synchronous probing if the driver
-> > is loaded after the device has already arrived. Is that the case you ar=
-e
-> > hitting?
->=20
-> Yes. I use all pmem/devdax modules built into the kernel so loading
-> them is in the critical path for kernel boot.
-> I use memmap=3D with devdax. So first, the pmem device is created
-> asynchronously, which means loading the nd_e820 module is always fast.
-> But then, the dax_pmem driver is loaded. If the dax device has not yet
-> been created by the async code, then loading this module is also fast.
-> But if the dax device has already been created, then attaching it to
-> the dax_pmem driver will be synchronous and on the critical boot path.
->=20
-> For thousands of dax devices, this increases the boot time by more
-> than a second. With the patch it takes ~10ms.
->=20
-> > I am ok with this in concept, but if we do this it should be done for
-> > all dax drivers, not just dax_pmem.
->=20
-> Will do in v2.
+On Wed, Oct 22, 2025 at 11:37:37AM -0700, Marc Herbert wrote:
+> On 2025-10-21 14:26, Alison Schofield wrote:
+> > The pmem_ns unit test frequently fails when run as part of the full
+> > suite, yet passes when executed alone.
+> > 
+> > [...]
+> > > Replace the NULL context parameter when calling ndctl_test_init()
+> > with the available ndctl_ctx to ensure pmem_ns can find usable PMEM
+> > regions.
+> > 
+> > Reported-by: Marc Herbert <marc.herbert@intel.com>
+> > Closes: https://github.com/pmem/ndctl/issues/290
+> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> > ---
+> >  test/pmem_namespaces.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
+> > index 4bafff5164c8..7b8de9dcb61d 100644
+> > --- a/test/pmem_namespaces.c
+> > +++ b/test/pmem_namespaces.c
+> > @@ -191,7 +191,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+> >  
+> >  	if (!bus) {
+> >  		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+> > -		rc = ndctl_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+> > +		rc = ndctl_test_init(&kmod_ctx, &mod, ctx, log_level, test);
+> >  		ndctl_invalidate(ctx);
+> >  		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+> >  		if (rc < 0 || !bus) {
+> 
+> Thanks Alison! This does fix the crash, so you can also add my Tested-By:!
+> 
+> But to test, I had to combine this fix with this temporary hack from
+> https://github.com/pmem/ndctl/issues/290
 
-Sounds good, include that detail above and I'll ack / poke Ira to pick
-it up.=
+Ah, yes I did similar to debug and test.
+
+> 
+> --- a/test/pmem_namespaces.c
+> +++ b/test/pmem_namespaces.c
+> @@ -189,7 +189,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+>  			bus = NULL;
+>  	}
+>  
+> -	if (!bus) {
+> +	if (!bus || true) {
+>  		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+>  		rc = ndctl_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+>  		ndctl_invalidate(ctx);
+> 
+> 
+> 
+> ... which explains why I disagree with... the commit message! I don't think
+> this necessary fix "closes" https://github.com/pmem/ndctl/issues/290 entirely.
+
+Marc,
+
+Thanks for the review!
+
+Ah, you disagree with the Closes tag? I added the close tag expecting
+the test case will now pass. pmem-ns will successfully fallback to
+nfit_test region if ACPI.NFIT is not present or does not have the pmem
+capable region. 
+
+wrt the reason why ACPI.NFIT fails to find a suitable region, I haven't
+given up on it. In my setup, it fails because the region type is 
+ND_DEVICE_NAMESPACE_IO (4) rather than ND_DEVICE_NAMESPACE_PMEM (5)
+
+wrt why it fails in your case, a full test run after boot, and with
+my reproducer (simply run pmem-ns alone). I don't have the soln yet.
+
+If you have time to check that your failure is same as with my
+reproducer, you can collect and share this:
+
+ND_DEVICE_NAMESPACE_IO is 4
+ND_DEVICE_NAMESPACE_PMEM is 5
+
+
+diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
+index 4bafff5164c8..c2f25bb02025 100644
+--- a/test/pmem_namespaces.c
++++ b/test/pmem_namespaces.c
+@@ -180,11 +180,15 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+
+        bus = ndctl_bus_get_by_provider(ctx, "ACPI.NFIT");
+        if (bus) {
++               int nstype;
++
+                /* skip this bus if no label-enabled PMEM regions */
+-               ndctl_region_foreach(bus, region)
+-                       if (ndctl_region_get_nstype(region)
+-                                       == ND_DEVICE_NAMESPACE_PMEM)
++               ndctl_region_foreach(bus, region) {
++                       nstype = ndctl_region_get_nstype(region);
++                       fprintf(stderr, "ALISON nstype %d\n", nstype);
++                       if (nstype == ND_DEVICE_NAMESPACE_PMEM)
+                                break;
++               }
+                if (!region)
+                        bus = NULL;
+        }
+
+> 
+> This fix does stop  the test from failing which is great and it lowers dramatically
+> the severity of 290. But we still don't know why ACPI.NFIT is "available" most of
+> the time and... sometimes not. In other words, we still don't know why this test is
+> non-deterministic. Of course, there will always be some non-determinism because
+> the kernel and QEMU are too complex to be deterministic but I don't think
+> non-determism should extend to test fixtures and test code themselves like this.
+> Why 290 should stay open IMHO.
+> 
+> Also, this feels like a (missed?) opportunity to add better logging of this
+> non-determinism, I mean stuff like:
+> https://github.com/pmem/ndctl/issues/290#issuecomment-3260168362
+> This is test code, it should not be mean with logging. All bash scripts run
+> with "set -x" already so this would not make much difference to the total
+> volume.
+> 
+> 
+> Generally speaking, tests should follow a CLEAN - TEST - CLEAN logic to
+> minimize interferences; as much as time allows[*]. Bug 290 demonstrates that:
+> 1. Some unknown test running before pmem-ns does not clean properly after itself, and
+> 2. The pmem-ns test is not capable of creating a deterministic setup for itself.
+> 
+> We still have no clue about 1. and 2. is not mitigated with logs
+> and source comments. So there's still an open bug there.
+> 
+> Marc
+> 
+> 
+> 
+> 
+> [*] there are practical limits: rebooting QEMU for each test would be too slow.
