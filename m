@@ -1,202 +1,130 @@
-Received: from mail1.bemta41.messagelabs.com (mail1.bemta41.messagelabs.com [195.245.230.1])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF8330171C
-	for <nvdimm@lists.linux.dev>; Mon,  3 Nov 2025 11:19:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.245.230.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0DA12FBE0A
+	for <nvdimm@lists.linux.dev>; Mon,  3 Nov 2025 15:32:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762168742; cv=none; b=Ed2/257C0MFZtgJxiL38uFT+VT5GIcXswiXUe+U9BC5x9hAjEus9bunEb5hj59l40tTlOfKQudP2vGX2w4CaKEPO/ciW67GVyBzfKmux5foJMzTiUbvU+UeFdyb/pWcpE5lwhhtAOf8L4MdBJUWvcDON6/pyMKGABZ06YaufvAI=
+	t=1762183932; cv=none; b=WrLLh/iIZnzEfdnWm7nrsDjcH/Hc3ylzuSwm/V3DNRPGGlWxo7OLaDFV4VePbhtLKCPvgESRrgeljmVi5WFxh4r0NrxNlVpdICDjIMWLNpxyGIIbnSPaQHDNcJ7k+nOtK8iydynmpw/Y5g7TX6XAaPz/Ue3VtsVRlPfgEk/I2Ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762168742; c=relaxed/simple;
-	bh=O/a7IoG10D6HLlLciKIAfeG+yrgUWRtc1OljxapqmNI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aZKIpPcnDsV7eKQHMHb68fKRruXrjopbVpSKX7Um/nYjn+dJgQzkpuF9PcyJ7E5JWGEAnaBYkNc/+m1rIlnMpsCW+aRmKoMrWJrfi7/3KHTIZNf0kmoLFy80mZ3WCgKTpoRJHtcjV2O0S0s7UYntxDjzMwlIZtGT54CkNJdbMfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=vNgT36HX; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=gKncODgr; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=M9Q6EN/h; arc=none smtp.client-ip=195.245.230.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	s=arc-20240116; t=1762183932; c=relaxed/simple;
+	bh=CLjvPQOnyGhackzsm+kh8BLXHz1of9cY4P8NRMpf1J8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=tnNvETWeQ9nwcbukZjJfg/9595GVn1RgE1erJoVafM6WVEdpHrrHPaKGyCzot6ox+nGM7ZpeCHOfQe1wQ/GiBCvjewHSMMhwSqZ3FZVfGwFxl62lzB22KIyU4/YMIqxac6Qm8DtWOJw1/CrXYtWzJizf3KNvSk0VlEgqKgl/UzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GHtM8ecX; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="vNgT36HX";
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="gKncODgr";
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="M9Q6EN/h"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1762168738; i=@fujitsu.com;
-	bh=lWTfQaYpm6VfJ/9xy4tbemZZIjRJl7XPms8i1uMtQrA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	b=vNgT36HXcahiUoOr+WTvCOk4n19fpHCC4ZY9+acbRHCd2P/ufjH2AUX/RSZovoYdQ
-	 WEJ1CmvmDL9cnU4qMGVJZK2wManAuWhXeJuxZaAqkUsJxvmq6JhMitDrxfBGKdQPh2
-	 PXqbOhXwonIC5OA1QAfLrH/dN7AD9ri3Mhf3MU+wF2BNFKvrfD99pFKOaY3eeVZb5Y
-	 BNYAaJD74/ZhNCY8cMXYRSEmiGMNnc/cR9ckbNEX5i7ErhAUaxsyrtN4uJKfYCGLyC
-	 soIJjcL/ckGK/wRyvTpx7+sg1xtsJN1Wv9x9TVamDn3Ewhy4EpzW30yeR1gBRySijG
-	 gNobxAN49CtnQ==
-X-Brightmail-Tracker: H4sIAAAAAAAAA1WSfUwTdxjH+d1djxMoOcqLP5mgdogLpmW4aH4
-  6cEyz7SRBlk2zxCWyUg56SWnrXWGwZBvlZVEZvqBdR0FAZKiIYQNGUCAwJPI6QAYKZWyOQdZB
-  BDbY7AJsu9Kh7r8nz+f7/T7fPx4Klw2RgRSbbmR5nUorJz2I/ZFUnaL0LMW9OMyjiZ8HSfTX0
-  jxA50v+xNDil3+TyGIeBKhrzESiG2PVAGVfqSHRQN0KiVqnfyFQkSUbQwWNIziqunyfRNaLLR
-  gasPYQqLmlm0Df3S4m0WJ+B0C5JY8AOjltxtB1x4oEnZzPxFFnfhuGLi2ZcfT9Z5UAWeyrElS
-  99BuOxrsGJMh27i6Glh3FZHQw8zj3DMHkDq2SzC3rhDuT0/FIwtRdC2OuNP+KMbVVp0im9VK1
-  O2OvKwRM28wqYMxFHzN9ZR3uzGJtMLNcdBe86X1MwukS9OnvSTTtn8xihnsB6V3dZpAJsn1PA
-  w9KRtcCWHBn0v002EARdCxsmmyWOAFBNxDQ1D8LnEBG52Kw7HrMumh44BTumkXRHy0hrqTPAZ
-  zNthNOQNLhcPRC8ZrZjw6GD2ry1lJx+h8J7LTPrQFf+ii8YL/63+ntsHiqYS1VSu+Htp8eYs4
-  Z0lvgzMU6iXPeQO+Cl5tKMFejCHhr1gZceh/YXTglHqbEAztgTYnMucZFa/bXRbgrJhSO9Nfi
-  54Cf9RmH9anD+oyjDOBVAAksn8byit3KBJ5L1hhTVJxWqfpAoVayqbzewCreZwVjhDJZbVCyg
-  qAUMlLU2kSljjXWAvG9PBa2nm8EpVM54e1gE4XJ/aUv6ShO5p2gT8zQqARNPJ+qZYV2sJmi5F
-  BqzxeZD88ms+lJnFZ80nUMKS+5nzQmRcRSwaBKEbhkF+oBCuqrH9pacBmh0+vYwI3SVz4VRbR
-  TpEnVPYlYf/UhEBToKwVubm4yLwPLp3DG//MZsJECcl9pjrOJF6czPrk0I5bAxBJ2zN1Zwqh6
-  igIzsdibWcPxaV5YVFEG2JzWy+1enezY9sarbnHR3HTnnoCVQ+9GR8UGhc035O8YHnu9TH+zt
-  Kdv4aNSU1zltdCkEX1BuQMG//hFaH+B5zd7TeNbiLiob/Ne8/WPPMFEtY8GJI1++HaIW2TFpm
-  TcQxHRKqseenDQm9h39r7nPvMZajB/QO2J/56XVL63bcwBD/bXx20v1PJdWYPHj0Bbz1zijWO
-  Wynq4c/r5O8v84ccxCYcPFNvmOip6bVd9vKbKFS1b+Ymm50bGyyez/ExvzZlePh5/IHd1+UTQ
-  gqFS/Y5DH9hYUd8bvss/1LAtLnJP7CF1xgvmvp0hXP/Rew5+Nh08vG05IicEjSoiDOcF1b8tN
-  b+NZQQAAA==
-X-Env-Sender: tomasz.wolski@fujitsu.com
-X-Msg-Ref: server-8.tower-858.messagelabs.com!1762168731!338533!1
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.119.0; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 23889 invoked from network); 3 Nov 2025 11:18:53 -0000
-Received: from unknown (HELO n03ukasimr04.n03.fujitsu.local) (62.60.8.179)
-  by server-8.tower-858.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 3 Nov 2025 11:18:53 -0000
-Received: from n03ukasimr04.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr04.n03.fujitsu.local (Postfix) with ESMTP id 0AC01151D;
-	Mon,  3 Nov 2025 11:18:51 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 n03ukasimr04.n03.fujitsu.local 0AC01151D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=dspueurope; t=1762168731;
-	bh=lWTfQaYpm6VfJ/9xy4tbemZZIjRJl7XPms8i1uMtQrA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gKncODgrZzwHl4PEYLXht0aC7IzMZ1z9L+eCdas5sX0gWQw2ci7M/QHv8lm17ksmv
-	 WKCtSHsbkGtqisHTIHRElitvmWdWsJvfEIHMqs9Vx9W57rBwPLBEp07kAT7Q0I2OVu
-	 6oXl1c07LH5rYH0K7TpYng+lUqBaTiZvqQgCPRZaiJTm240GVrcQE/ntTB0olUAWMe
-	 HqpZefvqeKGX1jBhoGcXB6ojjMz84YcKEV92lwuo2N/yqW5KImwvgnmR9yTUTxVpkM
-	 89KtLCtV7mAF/ggysSRhmDYOdI/NqJoySRuTta1UlECnDyIqjAwZcnNdwR9v+RcIi0
-	 OOL9UkqCFw8vA==
-Received: from ubuntudhcp (unknown [10.172.107.4])
-	(using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr04.n03.fujitsu.local (Postfix) with ESMTPS id D97581536;
-	Mon,  3 Nov 2025 11:18:50 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 n03ukasimr04.n03.fujitsu.local D97581536
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=dspueurope; t=1762168730;
-	bh=lWTfQaYpm6VfJ/9xy4tbemZZIjRJl7XPms8i1uMtQrA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=M9Q6EN/h+42pxoTlI4UOVvRWaRiLvHO9CiLKwlEffXZJn6m1tyYwyMpy52NChaBNU
-	 kFTVz2K6ltS1k68OVkcyI1tjYdVSl8hMNWkTkyYtQNfIrq9+w1hAb836ckoxRG+UJP
-	 czLDEsBjFA/quhMV+RSuyTBq/8/5O5XFUqJop041tH0CH/TrSbNxbZGunxjcAaUdlc
-	 9y0xoh8MuFNaWYVoHPiuZAP7Lc83op5gVszxkpnuUQ49EPFJM2Xoo5/PuXfFkuvuR4
-	 gyeGGoDEurAKlN0TAX/pWpxy9tIp4N8F33hE1biKMToMkXfkibAsFMxZ8gkSmU16kx
-	 IPjyyosHmoEEQ==
-Received: from localhost.BIOS.GDCv6 (unknown [10.172.196.36])
-	by ubuntudhcp (Postfix) with ESMTP id 78A702202BC;
-	Mon,  3 Nov 2025 11:18:50 +0000 (UTC)
-From: Tomasz Wolski <tomasz.wolski@fujitsu.com>
-To: alison.schofield@intel.com
-Cc: Smita.KoralahalliChannabasappa@amd.com,
-	ardb@kernel.org,
-	benjamin.cheatham@amd.com,
-	bp@alien8.de,
-	dan.j.williams@intel.com,
-	dave.jiang@intel.com,
-	dave@stgolabs.net,
-	gregkh@linuxfoundation.org,
-	huang.ying.caritas@gmail.com,
-	ira.weiny@intel.com,
-	jack@suse.cz,
-	jeff.johnson@oss.qualcomm.com,
-	jonathan.cameron@huawei.com,
-	len.brown@intel.com,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	lizhijian@fujitsu.com,
-	ming.li@zohomail.com,
-	nathan.fontenot@amd.com,
-	nvdimm@lists.linux.dev,
-	pavel@kernel.org,
-	peterz@infradead.org,
-	rafael@kernel.org,
-	rrichter@amd.com,
-	skoralah@amd.com,
-	terry.bowman@amd.com,
-	vishal.l.verma@intel.com,
-	willy@infradead.org,
-	yaoxt.fnst@fujitsu.com
-Subject: Re: [PATCH v3 0/5] dax/hmem, cxl: Coordinate Soft Reserved handling with CXL
-Date: Mon,  3 Nov 2025 12:18:37 +0100
-Message-ID: <20251103111840.22057-1-tomasz.wolski@fujitsu.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <aQAmhrS3Im21m_jw@aschofie-mobl2.lan>
-References: <aQAmhrS3Im21m_jw@aschofie-mobl2.lan>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GHtM8ecX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1762183931; x=1793719931;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=CLjvPQOnyGhackzsm+kh8BLXHz1of9cY4P8NRMpf1J8=;
+  b=GHtM8ecXAO0WXBIHRghPWDtvVIqlMiFAKEhtz4wJ3WH4E80M8cGDkNpJ
+   dZRYHZp0kXk9UKV9Un2HlX9f15DxNPHXtX06GvbYeW7qthw/cpKxZTW5i
+   1MMYxeWnVQtwRSlHE9EiNO/LrsV1JrYzUMEQF1ROKSYe86EtOc26Axe/G
+   ftOqYnFzEFnCNxqXSCxIBC6XSvLm20Q1b9S+xnO8u8IlqIHo3KpI3fHrq
+   uYzvPeWIAqoiS6xv3MUm25Nez3gfRvjKd2Sejq2VZJ5QEIlMtUzBEK7Om
+   HAV5dfZy8lSPKzNWsH7DoEJEcoU0QZQRLFtEEUMi+YlnP5DzZpOPPNnZb
+   w==;
+X-CSE-ConnectionGUID: AmhuWGMUQsO6eYxt2Zdq4g==
+X-CSE-MsgGUID: WIVaBHgOQLqkHd+bpOs+qQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11602"; a="74864166"
+X-IronPort-AV: E=Sophos;i="6.19,276,1754982000"; 
+   d="scan'208";a="74864166"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2025 07:32:10 -0800
+X-CSE-ConnectionGUID: 8ZxUf6WtTUaf5Xr0cVyDyg==
+X-CSE-MsgGUID: 59IB1wMIR5mNfT/itbLbIA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.19,276,1754982000"; 
+   d="scan'208";a="186569918"
+Received: from dwesterg-mobl1.amr.corp.intel.com (HELO [10.125.110.133]) ([10.125.110.133])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2025 07:32:10 -0800
+Message-ID: <01e17cd1-a48d-4bf5-8ec7-4c858d3d0f71@intel.com>
+Date: Mon, 3 Nov 2025 08:32:08 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] tools/testing/nvdimm: Use per-DIMM device handle
+To: Alison Schofield <alison.schofield@intel.com>,
+ Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>
+Cc: nvdimm@lists.linux.dev, stable@vger.kernel.org
+References: <20251031234227.1303113-1-alison.schofield@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Content-Language: en-US
+In-Reply-To: <20251031234227.1303113-1-alison.schofield@intel.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 7bit
 
-Hi Alison and Smita,
 
-I’ve been following your patch proposal and testing it on a few QEMU setups
 
-> Will it work to search directly for the region above by using params
-> IORESOURCE_MEM, IORES_DESC_NONE. This way we only get region conflicts,
-> no empty windows to examine. I think that might replace cxl_region_exists()
-> work below.
+On 10/31/25 4:42 PM, Alison Schofield wrote:
+> KASAN reports a global-out-of-bounds access when running these nfit
+> tests: clear.sh, pmem-errors.sh, pfn-meta-errors.sh, btt-errors.sh,
+> daxdev-errors.sh, and inject-error.sh.
+> 
+> [] BUG: KASAN: global-out-of-bounds in nfit_test_ctl+0x769f/0x7840 [nfit_test]
+> [] Read of size 4 at addr ffffffffc03ea01c by task ndctl/1215
+> [] The buggy address belongs to the variable:
+> [] handle+0x1c/0x1df4 [nfit_test]
+> 
+> nfit_test_search_spa() uses handle[nvdimm->id] to retrieve a device
+> handle and triggers a KASAN error when it reads past the end of the
+> handle array. It should not be indexing the handle array at all.
+> 
+> The correct device handle is stored in per-DIMM test data. Each DIMM
+> has a struct nfit_mem that embeds a struct acpi_nfit_memdev that
+> describes the NFIT device handle. Use that device handle here. 
+> 
+> Fixes: 10246dc84dfc ("acpi nfit: nfit_test supports translate SPA")
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 
-I see expected 'dropping CXL range' message (case when region covers full CXL window)
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>> ---
+> 
+> Changes in v2:
+> - Use the correct handle in per-DIMM test data (Dan)
+> - Update commit message and log
+> - Update Fixes Tag
+> 
+> 
+>  tools/testing/nvdimm/test/nfit.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+> index cfd4378e2129..f87e9f251d13 100644
+> --- a/tools/testing/nvdimm/test/nfit.c
+> +++ b/tools/testing/nvdimm/test/nfit.c
+> @@ -670,6 +670,7 @@ static int nfit_test_search_spa(struct nvdimm_bus *bus,
+>  		.addr = spa->spa,
+>  		.region = NULL,
+>  	};
+> +	struct nfit_mem *nfit_mem;
+>  	u64 dpa;
+>  
+>  	ret = device_for_each_child(&bus->dev, &ctx,
+> @@ -687,8 +688,12 @@ static int nfit_test_search_spa(struct nvdimm_bus *bus,
+>  	 */
+>  	nd_mapping = &nd_region->mapping[nd_region->ndr_mappings - 1];
+>  	nvdimm = nd_mapping->nvdimm;
+> +	nfit_mem = nvdimm_provider_data(nvdimm);
+> +	if (!nfit_mem)
+> +		return -EINVAL;
+>  
+> -	spa->devices[0].nfit_device_handle = handle[nvdimm->id];
+> +	spa->devices[0].nfit_device_handle =
+> +		__to_nfit_memdev(nfit_mem)->device_handle;
+>  	spa->num_nvdimms = 1;
+>  	spa->devices[0].dpa = dpa;
+>  
+> 
+> base-commit: 211ddde0823f1442e4ad052a2f30f050145ccada
 
-[   31.783945] hmem_platform hmem_platform.0: deferring range to CXL: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-[   31.784609] deferring range to CXL: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-[   31.790588] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-[   31.791102] dropping CXL range: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-
-a90000000-b8fffffff : CXL Window 0
-  a90000000-b8fffffff : region0
-    a90000000-b8fffffff : dax0.0
-      a90000000-b8fffffff : System RAM (kmem)
-
-[   31.384899] hmem_platform hmem_platform.0: deferring range to CXL: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-[   31.385586] deferring range to CXL: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-[   31.391107] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-[   31.391676] dropping CXL range: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-
-a90000000-c8fffffff : CXL Window 0
-  a90000000-b8fffffff : region0
-    a90000000-b8fffffff : dax0.0
-      a90000000-b8fffffff : System RAM (kmem)
-  b90000000-c8fffffff : region1
-    b90000000-c8fffffff : dax1.0
-      b90000000-c8fffffff : System RAM (kmem)
-	  
-a90000000-b8fffffff : CXL Window 0
-  a90000000-b8fffffff : region0
-    a90000000-b8fffffff : dax0.0
-      a90000000-b8fffffff : System RAM (kmem)
-b90000000-c8fffffff : CXL Window 1
-  b90000000-c8fffffff : region1
-    b90000000-c8fffffff : dax1.0
-      b90000000-c8fffffff : System RAM (kmem)
-
-However, when testing version with cxl_region_exists() I didn't see expected 'registering CXL range' message
-when the CXL region does not fully occupy CXL window - please see below.
-I should mention that I’m still getting familiar with CXL internals, so maybe I might be missing some context :)
-
-a90000000-bcfffffff : CXL Window 0
-  a90000000-b8fffffff : region0
-    a90000000-b8fffffff : dax0.0
-      a90000000-b8fffffff : System RAM (kmem)
-
-[   30.434385] hmem_platform hmem_platform.0: deferring range to CXL: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-[   30.435116] deferring range to CXL: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-[   30.436530] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-[   30.437070] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-[   30.437599] dropping CXL range: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-
-Thanks,
-Tomasz
