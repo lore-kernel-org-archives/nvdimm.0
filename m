@@ -1,120 +1,75 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 553562DC77B
-	for <nvdimm@lists.linux.dev>; Tue,  4 Nov 2025 23:25:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2582D2080C8
+	for <nvdimm@lists.linux.dev>; Wed,  5 Nov 2025 02:42:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762298720; cv=none; b=GyL/9BRbToll1FX7n8VMZQmfmzXcMJT/RpS7RS01YVrdMSvaN2JkA5wSpyr0dSVaIolx9VcqF66HFeTtdEPpJ6xsftMxgwrCqxpdY85O4vKVgJH9FQUcrGRhr6qwwghiMRp8HPkEBkFyWgCBOH7Vm2JFkPovW5isiqVig+tKPMM=
+	t=1762310571; cv=none; b=EIQeh06aisf2p0uEnJjdwwYsv+1lLOp2vaA69Wv7YUp+nL4LJmJgkGNtdDG8Zs98GGdHvGUULm9BAUwMFPfB8gfSYnYtVNAWDRJes4tiVoFuWtEsVxa677fenCyrXkGuzLua8BlXWHZ8HuUqgZAITdg6fikJ1q//74ZA7nLV1hw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762298720; c=relaxed/simple;
-	bh=fr5q5V5kxjPdkKrv3NCrE521KVSHGjQM+j+07OoxTpk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=BHluGxTDIMEXLBFWZg14aoiT2RfbI/zcrwoTZQ+fgbEEWMlKoF+UaqOoMVupMh5idAlHpKUZqipO8T/G6nateQPhdu4CCYUwFWgE3l+RTCsM/QkYLHR5CFVUgOR7qHqKKpVbtecEJ0gQN4OlbUBNcjh4ssAuYmr4VL55nawcxLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GgaB8pE6; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1762310571; c=relaxed/simple;
+	bh=a0mHHpA3kqbqeKN0ClJTM/QISZsWFMMWv9Rj6gRIVVA=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=PdZEt5dEc86rvo7vHnfRcriQljTWwMIxSfdXk2FW2s+o0ugXFgMq8YC8oI8oOI3eJ+aT7FB2v54G5sZOtk3YWzVqhiYCCjMNofNg7JS+XMD939ykNNGeRMlE2v4d5TGlhXEhPdsFeXHtsZm/1Zd5nOBqR3nVvhRCHIhGhlShaLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PcbTT2zy; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GgaB8pE6"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PcbTT2zy"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1762298718; x=1793834718;
-  h=message-id:date:mime-version:subject:to:references:from:
-   in-reply-to:content-transfer-encoding;
-  bh=fr5q5V5kxjPdkKrv3NCrE521KVSHGjQM+j+07OoxTpk=;
-  b=GgaB8pE6JVt4wJJ1OSNW3za4ljI2rmze/nqGq1PF4gb2N6HrhvmW4pE/
-   mSxx8pw5XsOFyhr6GvxhlPTi5n9cbeOO4st/UEtkyryTlUOmL9lNIcSFW
-   ITHG4nEd9b5EPzabEw0m75lc7lYq0kbcdRt8XxBFxJVSncZ9Jbg+OvNpp
-   ftXZM+Q2+qZZmOU19yvQ8iVg136J/Lzho11iPTGTGVBvb4snBFXkxtCKZ
-   G37kz0AJoc3UUocHqg/LM1Os4QyiX4KWmA82SgaOrGmmJTYRADf2j6++D
-   0utWlGXCS2SJliPPVT1OpgEScFGdyJPwdIEntXkt39BEJ34GlKcKgY3HF
+  t=1762310568; x=1793846568;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=a0mHHpA3kqbqeKN0ClJTM/QISZsWFMMWv9Rj6gRIVVA=;
+  b=PcbTT2zyDR9y85iVQGjCUj2aIwga3sZ7I2M3TorfAMIVfaRJg0+kiUuK
+   xDREd5EBqhXZGIT/g6KU2tkxs01Rir7pF2xnskYqCj1eyywGOVsLCL3yq
+   lYvhWgYIIx2OtaSQGrj1iLItWfAl06wdjwrG9Vq7fFFF0HePkSsKZ3X9s
+   fApBwNx0hHqDtGOmp0Px4RRoWFmkqVWPFqqDPdO2wQNYSZ9lFPh5wNbdJ
+   paYIrO3NZTQ0nmhrG2uQc5gSq9NdgTmrda/JmB/jIuTdcjF+alVHtzeLh
+   bzT9jNwYmg/EZxzs8s0tblbaLF7Kio8RMSNbk6E85RyohMlhmGkf71F/s
    w==;
-X-CSE-ConnectionGUID: XPLSQnYoSv2HjpPSK+S4pA==
-X-CSE-MsgGUID: yc2BV8yySu2SD41QnV00qg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11603"; a="75012099"
+X-CSE-ConnectionGUID: Csey7MprSAWqT9UQPDf0yA==
+X-CSE-MsgGUID: aJ1uwrkmTde5CsXmswq8Og==
+X-IronPort-AV: E=McAfee;i="6800,10657,11603"; a="74711569"
 X-IronPort-AV: E=Sophos;i="6.19,280,1754982000"; 
-   d="scan'208";a="75012099"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2025 15:25:18 -0800
-X-CSE-ConnectionGUID: NijjKA60S2GEsDHigxtCVw==
-X-CSE-MsgGUID: YMZVHTCcS8OFdhjy+UGmHg==
+   d="scan'208";a="74711569"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2025 18:42:47 -0800
+X-CSE-ConnectionGUID: XOuMYo0TSjmowV39XEwHKg==
+X-CSE-MsgGUID: oRSwK4KjQU66of/39CG9xA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.19,280,1754982000"; 
-   d="scan'208";a="187235877"
-Received: from vverma7-desk1.amr.corp.intel.com (HELO [10.125.110.201]) ([10.125.110.201])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2025 15:25:18 -0800
-Message-ID: <10262fc6-72e7-4c71-8a02-86a20fa0915f@intel.com>
-Date: Tue, 4 Nov 2025 16:25:16 -0700
+   d="scan'208";a="191681061"
+Received: from c02x38vbjhd2mac.jf.intel.com ([10.88.27.157])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2025 18:42:47 -0800
+From: Marc Herbert <marc.herbert@linux.intel.com>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: nvdimm@lists.linux.dev,  linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH v3] cxl: Add cxl-translate.sh unit test
+In-Reply-To: <20250918003457.4111254-1-alison.schofield@intel.com> (Alison
+	Schofield's message of "Wed, 17 Sep 2025 17:34:55 -0700")
+References: <20250918003457.4111254-1-alison.schofield@intel.com>
+Date: Tue, 04 Nov 2025 18:42:40 -0800
+Message-ID: <m2bjlhtd27.fsf@C02X38VBJHD2mac.jf.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH v3] cxl: Add cxl-translate.sh unit test
-To: Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org
-References: <20250918003457.4111254-1-alison.schofield@intel.com>
-From: Dave Jiang <dave.jiang@intel.com>
-Content-Language: en-US
-In-Reply-To: <20250918003457.4111254-1-alison.schofield@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 
 
+"Usual" disclaimer: only sharing my shell experience. Unfortunately
+still cannot review the actual test logic.
 
-On 9/17/25 5:34 PM, Alison Schofield wrote:
-> cxl-translate.sh performs 2 types of testing of the CXL Driver's
-> address translation capabilities:
-> 
-> 1. Parameterized test vectors:
-> The cxl-translate.sh unit test feeds trusted data sets to a kernel
-> test module: cxl_translate. That module accesses the CXL region
-> driver's address translation functions. The trusted samples are either
-> from the CXL Driver Writers Guide[1] or from another verified source
-> ie a spreadsheet reviewed by CXL developers.
-> 
-> 2. Internal validation testing:
-> The unit test also kicks off internal tests of the cxl_translate
-> module that validate parameters and exercise address translation
-> with randomly generated valid parameters.
-> 
-> [1] https://www.intel.com/content/www/us/en/content-details/643805/cxl-memory-device-sw-guide.html
-> 
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-
-Tested-by: Dave Jiang <dave.jiang@intel.com>
-
-> ---
-> 
-> Changes in v3: 
-> Add test_internal() that that kicks off newly added tests in v3 of
-> the cxl_translate test module, in review here:
-> https://lore.kernel.org/linux-cxl/a2c74fa976862fe6472537eb438ec061278fb099.1758150087.git.alison.schofield@intel.com/
-> 
-> Changes in v2:
-> Use shell builtins true|false rather than string compares (Marc)
-> Further explain the disable of SC2034 for nameref's  (Marc)
-> Use long format journalctl options, ie. --reverse (Marc)
-> Correct module name as cxl_translate in commit log
-> 
-> 
->  test/cxl-translate.sh | 320 ++++++++++++++++++++++++++++++++++++++++++
->  test/meson.build      |   2 +
->  2 files changed, 322 insertions(+)
->  create mode 100755 test/cxl-translate.sh
-> 
-> diff --git a/test/cxl-translate.sh b/test/cxl-translate.sh
-> new file mode 100755
-> index 000000000000..1c1a39deb484
+Alison Schofield <alison.schofield@intel.com> writes:
 > --- /dev/null
 > +++ b/test/cxl-translate.sh
 > @@ -0,0 +1,320 @@
-> +#!/bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (C) 2025 Intel Corporation. All rights reserved.
-> +
+
 > +# shellcheck disable=SC2034
 > +#
 > +# Arrays in this script are passed by name into helper functions using Bash's
@@ -123,43 +78,53 @@ Tested-by: Dave Jiang <dave.jiang@intel.com>
 > +# passing the array name. ShellCheck doesn't track nameref indirection, so it
 > +# incorrectly reports these arrays as unused (SC2034). At runtime they are
 > +# fully used through the nameref, so these warnings are safe to ignore.
-> +
-> +# source common to get the err() only
-> +. "$(dirname "$0")"/common
-> +
-> +trap 'err $LINENO' ERR
-> +set -ex
-> +rc=1
-> +
-> +MODULO=0
-> +XOR=1
-> +
-> +# Test against 'Sample Sets' and 'XOR Tables'
-> +#
-> +# Sample Set's have a pattern and the expected HPAs have been verified
-> +# although maybe not published. They verify Modulo and XOR translations.
-> +#
-> +# XOR Table's are extracted from the CXL Driver Writers Guide [1].
-> +# Although the XOR Tables do not include an explicit check of the Modulo
-> +# translation result, a Modulo calculation is always the first step in
-> +# any XOR calculation. ie. if Modulo fails so does XOR.
-> +#
-> +# [1] https://www.intel.com/content/www/us/en/content-details/643805/cxl-memory-device-sw-guide.html
-> +
-> +# Start time for kernel log checking at millisecond granularity
-> +set_log_start_time() {
-> +        log_start_time=$(date '+%Y-%m-%d %H:%M:%S.%3N')
-> +}
-> +
+
+As mentioned before in Message-ID
+<b64b9227-2406-440a-8cd8-95519f987b0e@linux.intel.com>, I still think
+disabling this for the entire file is harmful and not necessary. I
+tested the 4 lines below and they still work. "X is unused" is a useful
+warning that has caught real bugs in other scripts before. For instance:
+changing a variable name but not everywhere. Or just a typo. Due to the
+nature of the language, such bugs can end up consuming significant
+time. You do you.
+
+# At the bottom of the script:
+# shellcheck disable=SC2034
+declare -a  Expect_Fail_Table XOR_Table_4R_4H XOR_Table_8R_4H XOR_Table_12R_12H
+# shellcheck disable=SC2034
+declare -A  Sample_4R_4H Sample_12R_12H
+
+You would also need this one:
+
+test_sample_sets() {
+        local sample_name=$1
+        # shellcheck disable=SC2034
+        local -n sample_set=$1
+
+
 > +check_dmesg_results() {
 > +        local nr_entries=$1
 > +        local expect_failures=${2:-false}  # Optional param, builtin true|false
 > +        local log nr_pass nr_fail
 > +
 > +        log=$(journalctl --reverse --dmesg --since "$log_start_time")
-> +
+
+In cxl-translate.sh line 297:
+	local log=$(journalctl --reverse --dmesg --since "$log_start_time")
+              ^-^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+Easily fixed with:
+    local log; log=$(journalctl --reverse --dmesg --since "$log_start_time")
+
+This matters for "set -e", see the SC2155 doc.
+
+
 > +	nr_pass=$(echo "$log" | grep -c "CXL Translate Test.*PASS") || nr_pass=0
 > +        nr_fail=$(echo "$log" | grep -c "CXL Translate Test.*FAIL") || nr_fail=0
+
+Mix of tabs and spaces, here and elsewhere (I configured my editor to
+show them in a different shade).
+
 > +
 > +        if ! $expect_failures; then
 > +                # Expect all PASS and no FAIL
@@ -170,285 +135,24 @@ Tested-by: Dave Jiang <dave.jiang@intel.com>
 > +		[ "$nr_pass" -eq 0 ] || err "$LINENO"
 > +                [ "$nr_fail" -eq "$nr_entries" ] || err "$LINENO"
 > +        fi
-> +}
-> +
-> +# Sample Sets
-> +#
-> +# params_#: dpa, region eiw, region eig, host bridge ways
-> +# expect_[modulo|xor]_#: expected spa for each position in the region
-> +# 	interleave set for the modulo|xor math.
-> +#
-> +# Feeds the parameters with an expected SPA for each position in the region
-> +# interleave to the test module. Returns success if the calculation matches
-> +# the expected SPA and the reverse calculation returns the original DPA and
-> +# position.
-> +
-> +# 4 way region interleave using 4 host bridges
-> +# Notation: 1+1+1+1
-> +declare -A Sample_4R_4H=(
-> +	["params_0"]="0 2 0 4"
-> +	["expect_modulo_0"]="0 256 512 768"
-> +	["expect_xor_0"]="0 256 512 768"
-> +	["params_1"]="256 2 0 4"
-> +	["expect_modulo_1"]="1024 1280 1536 1792"
-> +	["expect_xor_1"]="1024 1280 1536 1792"
-> +	["params_2"]="2048 2 0 4"
-> +	["expect_modulo_2"]="8192 8448 8704 8960"
-> +	["expect_xor_2"]="8192 8448 8704 8960"
-> +)
-> +
-> +# 12 way region interleave using 12 host bridges
-> +# Notation: 1+1+1+1+1+1+1+1+1+1+1+1
-> +declare -A Sample_12R_12H=(
-> +	["params_0"]="0 10 0 12"
-> +	["expect_modulo_0"]="0 256 512 768 1024 1280 1536 1792 2048 2304 2560 2816"
-> +	["expect_xor_0"]="0 256 512 768 1024 1280 1536 1792 2304 2048 2816 2560"
-> +	["params_1"]="512 10 0 12"
-> +	["expect_modulo_1"]="6144 6400 6656 6912 7168 7424 7680 7936 8192 8448 8704 8960"
-> +	["expect_xor_1"]="6912 6656 6400 6144 7936 7680 7424 7168 8192 8448 8704 8960"
-> +)
-> +
-> +decode_r_eiw()
-> +{
-> +	case $1 in
-> +		0) echo 1 ;;
-> +		1) echo 2 ;;
-> +		2) echo 4 ;;
-> +		3) echo 8 ;;
-> +		4) echo 16 ;;
-> +		8) echo 3 ;;
-> +		9) echo 6 ;;
-> +		10) echo 12 ;;
-> +		*) echo "Invalid r_eiw value: $1" ; err "$LINENO" ;;
-> +	esac
-> +}
-> +
-> +generate_sample_tests() {
-> +        local -n input_sample_set=$1
-> +        local -n output_array=$2
-> +
-> +        # Find all params_* keys and extract the index
-> +        local indices=()
-> +        for key in "${!input_sample_set[@]}"; do
-> +                if [[ $key =~ ^params_([0-9]+)$ ]]; then
-> +                        indices+=("${BASH_REMATCH[1]}")
-> +                fi
-> +        done
-> +
-> +        # Sort indices to process in order
-> +	mapfile -t indices < <(printf '%s\n' "${indices[@]}" | sort -n)
-> +
-> +        for i in "${indices[@]}"; do
-> +                # Split the parameters and expected spa values
-> +                IFS=' ' read -r dpa r_eiw r_eig hb_ways <<< "${input_sample_set["params_$i"]}"
-> +                IFS=' ' read -r -a expect_modulo_values <<< "${input_sample_set["expect_modulo_$i"]}"
-> +                IFS=' ' read -r -a expect_xor_values <<< "${input_sample_set["expect_xor_$i"]}"
-> +
-> +                ways=$(decode_r_eiw "$r_eiw")
-> +                for ((pos = 0; pos < ways; pos++)); do
-> +                        expect_spa_modulo=${expect_modulo_values[$pos]}
-> +                        expect_spa_xor=${expect_xor_values[$pos]}
-> +
-> +                        # Add the MODULO test case, then the XOR test case
-> +                        output_array+=("$dpa $pos $r_eiw $r_eig $hb_ways $MODULO $expect_spa_modulo")
-> +                        output_array+=("$dpa $pos $r_eiw $r_eig $hb_ways $XOR $expect_spa_xor")
-> +                done
-> +        done
-> +}
-> +
-> +test_sample_sets() {
-> +        local sample_name=$1
-> +        local -n sample_set=$1
-> +        local generated_tests=()
-> +
-> +        generate_sample_tests sample_set generated_tests
-> +
-> +        IFS=','
-> +        table_string="${generated_tests[*]}"
-> +        IFS=' '
-> +
-> +        modprobe -r cxl-translate
-> +        set_log_start_time
-> +        echo "Testing $sample_name with ${#generated_tests[@]} test entries"
-> +        modprobe cxl-translate "table=$table_string"
-> +        check_dmesg_results "${#generated_tests[@]}"
-> +}
-> +
-> +# XOR Tables
-> +#
-> +# The tables that follow are the XOR translation examples in the
-> +# CXL Driver Writers Guide Sections 2.13.24.1 and 25.1
-> +# Note that the Guide uses the device number in its table notation.
-> +# Here the 'position' of that device number is used, not the
-> +# device number itself, which is meaningless in this context.
-> +#
-> +# Format: "dpa pos r_eiw r_eig hb_ways xor_math(0|1) xor_spa:
-> +
-> +# 4 way region interleave using 4 host bridges
-> +# Notation: 1+1+1+1
-> +XOR_Table_4R_4H=(
-> +	"248   0 2 0 4 1 248"
-> +	"16    1 2 0 4 1 272"
-> +	"16    2 2 0 4 1 528"
-> +	"32    3 2 0 4 1 800"
-> +	"288   0 2 0 4 1 1056"
-> +	"288   1 2 0 4 1 1312"
-> +	"288   2 2 0 4 1 1568"
-> +	"288   3 2 0 4 1 1824"
-> +	"544   1 2 0 4 1 2080"
-> +	"544   0 2 0 4 1 2336"
-> +	"544   3 2 0 4 1 2592"
-> +	"1040  2 2 0 4 1 4112"
-> +	"1568  3 2 0 4 1 6176"
-> +	"32784 1 2 0 4 1 131088"
-> +	"65552 2 2 0 4 1 262160"
-> +	"98336 3 2 0 4 1 393248"
-> +	"98328 2 2 0 4 1 393496"
-> +	"98352 2 2 0 4 1 393520"
-> +	"443953523 0 2 0 4 1 1775813747"
-> +)
-> +
-> +XOR_Table_8R_4H=(
-> +	"248       0 3 0 4 1 248"
-> +	"16        1 3 0 4 1 272"
-> +	"16        2 3 0 4 1 528"
-> +	"32        3 3 0 4 1 800"
-> +	"272       1 3 0 4 1 2064"
-> +	"528       2 3 0 4 1 4112"
-> +	"800       3 3 0 4 1 6176"
-> +	"16400     1 3 0 4 1 131088"
-> +	"32784     2 3 0 4 1 262160"
-> +	"49184     3 3 0 4 1 393248"
-> +	"49176     2 3 0 4 1 393496"
-> +	"49200     2 3 0 4 1 393520"
-> +	"116520373 3 3 0 4 1 932162229"
-> +	"244690459 5 3 0 4 1 1957525275"
-> +	"292862215 5 3 0 4 1 2342899463"
-> +	"30721158  4 3 0 4 1 245769350"
-> +	"246386959 4 3 0 4 1 1971096847"
-> +	"72701249  5 3 0 4 1 581610561"
-> +	"529382429 5 3 0 4 1 4235060509"
-> +	"191132300 2 3 0 4 1 1529057420"
-> +	"18589081  1 3 0 4 1 148712089"
-> +	"344295715 7 3 0 4 1 2754367011"
-> +)
-> +
-> +XOR_Table_12R_12H=(
-> +	"224 0 10 0 12 1 224"
-> +	"16  1 10 0 12 1 272"
-> +	"16  2 10 0 12 1 528"
-> +	"32  3 10 0 12 1 800"
-> +	"32  4 10 0 12 1 1056"
-> +	"32  5 10 0 12 1 1312"
-> +	"32  6 10 0 12 1 1568"
-> +	"32  7 10 0 12 1 1824"
-> +	"32  9 10 0 12 1 2080"
-> +	"32  8 10 0 12 1 2336"
-> +	"32 11 10 0 12 1 2592"
-> +	"32 10 10 0 12 1 2848"
-> +	"288 0 10 0 12 1 3360"
-> +	"299017087 7 10 0 12 1 3588205439"
-> +	"329210435 0 10 0 12 1 3950524995"
-> +	"151050637 11 10 0 12 1 1812608653"
-> +	"145169214  2 10 0 12 1 1742030654"
-> +	"328998732 10 10 0 12 1 3947985996"
-> +	"159252439  3 10 0 12 1 1911027415"
-> +	"342098916  5 10 0 12 1 4105186020"
-> +	"97970344   8 10 0 12 1 1175645096"
-> +	"214995572  8 10 0 12 1 2579948404"
-> +	"101289661  7 10 0 12 1 1215475645"
-> +	"40424079   7 10 0 12 1 485088911"
-> +	"231458716  7 10 0 12 1 2777503900"
-> +)
-> +
-> +# A fail table entry is expected to fail the DPA->SPA calculation.
-> +# Intent is to show that the test module can tell good from bad.
-> +# If one of these cases passes, don't trust other pass results.
-> +# This is not a test of module parsing, so don't send garbage.
-> +Expect_Fail_Table=(
-> +	"544   3 2 0 4 1 2080" # Change position
-> +        "544   2 2 0 4 1 2336"
-> +        "544   1 2 0 4 1 2592"
-> +	"272   1 2 0 4 1 2064" # Change r_eiw
-> +	"528   2 1 0 4 1 4112"
-> +	"800   3 10 0 4 1 6176"
-> +	"32  4 10 0 12 1 1156" # Change expected spa
-> +	"32  5 10 0 12 1 1112"
-> +	"32  6 10 0 12 1 1168"
-> +	"32  7 10 0 12 1 1124"
-> +)
-> +
-> +test_tables() {
-> +        local table_name=$1
-> +        local -n table_ref=$1
-> +        local expect_failures=${2:-false}  # Optional param, builtin true|false
-> +        local IFS
-> +
-> +        IFS=','
-> +        table_string="${table_ref[*]}"
-> +        IFS=' '
-> +
-> +        if $expect_failures; then
-> +                echo "Testing $table_name with ${#table_ref[@]} entries (expecting FAIL results)"
-> +        else
-> +                echo "Testing $table_name with ${#table_ref[@]} test entries"
-> +        fi
-> +
-> +        modprobe -r cxl-translate
-> +        set_log_start_time
-> +        modprobe cxl-translate "table=$table_string"
-> +
-> +        check_dmesg_results "${#table_ref[@]}" "$expect_failures"
-> +}
-> +
-> +test_internal() {
-> +	echo "Running internal validation..."
-> +	modprobe -r cxl-translate
-> +	set_log_start_time
-> +	modprobe cxl-translate
-> +
-> +	local log=$(journalctl --reverse --dmesg --since "$log_start_time")
-> +
-> +	if echo "$log" | grep -q "Internal validation test completed successfully"; then
-> +		echo "Internal validation test: PASS"
-> +	else
-> +		echo "Internal validation test: FAIL"
-> +		err "$LINENO"
-> +	fi
-> +
-> +	modprobe -r cxl-translate
-> +}
-> +
-> +test_internal
-> +
-> +test_tables Expect_Fail_Table true
-> +test_sample_sets Sample_4R_4H
-> +test_sample_sets Sample_12R_12H
-> +test_tables XOR_Table_4R_4H
-> +test_tables XOR_Table_8R_4H
-> +test_tables XOR_Table_12R_12H
-> +
-> +echo "Translate test complete with no failures"
-> +
-> +modprobe -r cxl-translate
-> diff --git a/test/meson.build b/test/meson.build
-> index 91eb6c2b1363..bf4d73eea918 100644
-> --- a/test/meson.build
-> +++ b/test/meson.build
-> @@ -168,6 +168,7 @@ cxl_sanitize = find_program('cxl-sanitize.sh')
->  cxl_destroy_region = find_program('cxl-destroy-region.sh')
->  cxl_qos_class = find_program('cxl-qos-class.sh')
->  cxl_poison = find_program('cxl-poison.sh')
-> +cxl_translate = find_program('cxl-translate.sh')
->  
->  tests = [
->    [ 'libndctl',               libndctl,		  'ndctl' ],
-> @@ -201,6 +202,7 @@ tests = [
->    [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
+
+Nit: I would flip the order to avoid the "double" negation (a failure is
+generally considered "negative")
+
+
+No other shell issue spotted.
+
+
 >    [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
 >    [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
 > +  [ 'cxl-translate.sh',       cxl_translate,      'cxl'   ],
 >  ]
->  
->  if get_option('destructive').enabled()
 
+Just FYI: this now conflicts with b26e9ae3b1dc. I got very confused
+because I was missing a commit and kept looking for the correct
+"pending" branch when in fact it's v3 missing a commit, not me.
+Also, I forgot how clueless "git am" is. Even "patch" is better.
+
+These lists are a regular source of conflicts when all the activity
+always happens at the end. Defining some sort of order (alphabetical or
+whatever) reduces the frequency of conflicts considerably.
