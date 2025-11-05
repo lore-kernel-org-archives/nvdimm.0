@@ -1,321 +1,111 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013025.outbound.protection.outlook.com [40.93.201.25])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f178.google.com (mail-il1-f178.google.com [209.85.166.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 412EC2222D0
-	for <nvdimm@lists.linux.dev>; Wed,  5 Nov 2025 03:00:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.25
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762311612; cv=fail; b=az8S/gMrUEHJr/TJD5V6PsFSLuVscECvnsuSRPG5qxUHZ+PKLIXRfV0tzgGVye0/6JYXjnRZFMS/jni4ZPWxCKzMq4x+ByvL0SLHY0xP6cgik7imPiOwTCkLPhZ/chEDAIZJ6FVgB7csQ8QN6RIY3Hzy6xAYibf9byjKdY2swgs=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762311612; c=relaxed/simple;
-	bh=EVjWRp0TiOr6+/kf50FO8UwfNLNwSmizAp3ZkNGfAG4=;
-	h=Message-ID:Date:From:Subject:To:Cc:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=BkP8iKGVHxzMFhUOPqE/0BbU95C9AKXnlFhFxZeQSpfive95o9bUrZSguoNg8I2vzRgdveFd5wMuUiWXjQWJ69J/xTJBj1A83LSwKIbihmyaos6evce4kY/0oYsNia3hJlvCFPC7scd4m0W3vA7aJidNIiOWUD/ggenwi7cpLOk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=keyWjXu8; arc=fail smtp.client-ip=40.93.201.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52E6313284
+	for <nvdimm@lists.linux.dev>; Wed,  5 Nov 2025 12:47:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.178
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1762346851; cv=none; b=OUq0I8ZfeSUS8XHJcIqNAmJenv0enXOkpE3iszFvPICOtGKN1a6GDuOmkLh+q36BwtFDcC9agX/JpInTyg69BKlHbsKMztltHWtTQf4SlKxX3UA0MT+8bmiMkWKFsojR5CuPIDsNlOcFx4/j4LpluBYav/WNqllq8d3YgUs29ew=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1762346851; c=relaxed/simple;
+	bh=6EDEoQ8G1aeH7k2mK0kTG53ah50zIFSO89NPX7Nmkvo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=u5Vj8agp2lneqRexvzt8Qmlxp/NdI46YTudhQ3lLzVs1ydjKlwnEHHSjlz4ds5JdoM+YIOh+TF+5cmIxAGEW72pzkSdgjjHFr+Mx0tuKToOpAM2+i+79LdSoO2qNo1N0CJjPZHLODScUHeY9SBRqqylUyufyRchWRbvcVJLPyPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EK9uV/9u; arc=none smtp.client-ip=209.85.166.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="keyWjXu8"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Gy3OgWjMnAjoGBC6p1Xp7/mBxH7XmUE4H3nE6r+cV03KPDott8Zt2WdU8rtj3UcP7W2/2s0r92y+KteVk5GrawfaAq6vmXCjLzkRha2uKg/Uk66KeAAmwvPw50lmKSIE57nSgteRwANPUHgND0lh7spkMQFOcaZVWcy4oJhtzPrIYYeUdNS5LOzMASSrsMLxzF2O850iOcIKGLBFho/43hLUdaonFoR+vZNbDL8+zA6wLzapwTENTvxjI/k4hS/Vk/Mp9ydOZuKwEVx11ImgfWbQNEmQLLLFRDwYUPkbZ0TKGZaGXu9uUFMii4ZJxAdKCf79wKpZJuzmW81nFJdslA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=dYGk9CMSoD4/w/JZaCie4bdwD+PRauDEN+0Hxrru7cM=;
- b=yE4K2rlXIgiUFnZUBDsZIuBE4UjuB4daDdPHhFjrir9G9SRvOHzdli8/D+z409s8CaCQyx7ORfyipTq9TS0c4ITDcLXfaH/h5KDumjH+6f3x5aKK6lkWCQPfK86R3E73yynoIc4MTQnjS88qzblH6GXpPQMa1HsjFrpQjXoDXcwuZgK316pcgXzIT3rFMjnnNPJ3i4LpiRH+3U9NwEWDqtRbuut3+V2yOnVu7T3yYpNVYJ+7zTgt6bfCBGxUS/NRLAqFEEZniarSpaHI0b/6iJ0NNcTkFebGBFfqCDXvdOp08+Im4pc1ZDKvlbd+XeFiCbpmgWLzdtwooq26Hvqmqw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=dYGk9CMSoD4/w/JZaCie4bdwD+PRauDEN+0Hxrru7cM=;
- b=keyWjXu8o5SNPAiZoKx2AoeFPvUEgFU26wldpbviw3fch5c5nZvLz7aJCfqamrWlUEGFmwWpoM8fal/+wgZvwicJeULiYnQaTUeTfI5OWJ6/2996e0qxHXJ4tf+AvGh6FCGLa6KwMzCpSlioTTa0VB5aEJaonDnh60spNPO1wIE=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from LV8PR12MB9714.namprd12.prod.outlook.com (2603:10b6:408:2a0::5)
- by CH0PR12MB8488.namprd12.prod.outlook.com (2603:10b6:610:18d::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9298.7; Wed, 5 Nov
- 2025 03:00:03 +0000
-Received: from LV8PR12MB9714.namprd12.prod.outlook.com
- ([fe80::c18e:2d2:3255:7a8c]) by LV8PR12MB9714.namprd12.prod.outlook.com
- ([fe80::c18e:2d2:3255:7a8c%4]) with mapi id 15.20.9275.015; Wed, 5 Nov 2025
- 03:00:02 +0000
-Message-ID: <d4b9402e-7dc9-4933-bded-0d92f4aeb064@amd.com>
-Date: Tue, 4 Nov 2025 18:59:57 -0800
-User-Agent: Mozilla Thunderbird
-From: "Koralahalli Channabasappa, Smita" <skoralah@amd.com>
-Subject: Re: [PATCH v3 0/5] dax/hmem, cxl: Coordinate Soft Reserved handling
- with CXL
-To: Tomasz Wolski <tomasz.wolski@fujitsu.com>, alison.schofield@intel.com,
- Dan Williams <dan.j.williams@intel.com>
-Cc: Smita.KoralahalliChannabasappa@amd.com, ardb@kernel.org,
- benjamin.cheatham@amd.com, bp@alien8.de, dan.j.williams@intel.com,
- dave.jiang@intel.com, dave@stgolabs.net, gregkh@linuxfoundation.org,
- huang.ying.caritas@gmail.com, ira.weiny@intel.com, jack@suse.cz,
- jeff.johnson@oss.qualcomm.com, jonathan.cameron@huawei.com,
- len.brown@intel.com, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, lizhijian@fujitsu.com, ming.li@zohomail.com,
- nathan.fontenot@amd.com, nvdimm@lists.linux.dev, pavel@kernel.org,
- peterz@infradead.org, rafael@kernel.org, rrichter@amd.com,
- terry.bowman@amd.com, vishal.l.verma@intel.com, willy@infradead.org,
- yaoxt.fnst@fujitsu.com
-References: <aQAmhrS3Im21m_jw@aschofie-mobl2.lan>
- <20251103111840.22057-1-tomasz.wolski@fujitsu.com>
-Content-Language: en-US
-In-Reply-To: <20251103111840.22057-1-tomasz.wolski@fujitsu.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: BY3PR10CA0030.namprd10.prod.outlook.com
- (2603:10b6:a03:255::35) To LV8PR12MB9714.namprd12.prod.outlook.com
- (2603:10b6:408:2a0::5)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EK9uV/9u"
+Received: by mail-il1-f178.google.com with SMTP id e9e14a558f8ab-433100c59dcso20454315ab.0
+        for <nvdimm@lists.linux.dev>; Wed, 05 Nov 2025 04:47:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1762346849; x=1762951649; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=jK/gceny5PWDz/DbB/PatvWx/loVHzoFjA0SzuhB540=;
+        b=EK9uV/9uNN3jxbgkojwS4ZK4nvigA+i3mzphXV8RuNWCii8nXNHqwyNzyBFpUaRiVk
+         JPlls1OUl22xl3qTxnoWNNUjhZVXpJ4Szp53iphJ6eVA8TsCGFVXeq1zA0Lc8VUOOX1V
+         zqbFF/8coW/zGF95bmDs9vIb9YUqg9Fxs0p5tmOLrMIPrHca3s5c0SGTeSBGdW18l8+a
+         olK8mnoZGYlXJGmpKGq5SEy83CTn/rYyibYu/milBOvM1KkWb0Qo9LY4NKf5sSdprS0s
+         0pzjvanlVjBAArPGihxDtPhi9Tsn8TkXXk9OEsQlSRlMgAxsBWi6v7BLIQuXaJzywEZI
+         fgFw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1762346849; x=1762951649;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=jK/gceny5PWDz/DbB/PatvWx/loVHzoFjA0SzuhB540=;
+        b=HD9KxdwtKltMLwHZyJ0+NaUlVOX9Hnvl0GhVcwXIj4S2jAoCKI4T4XjebiQM3+hiW+
+         tCEVW2DShtr2AfNyI7EHhy6P90jpuZWIiZxALifrYcIZX/AFyn9rlWFM4dL5JDKrJ952
+         aybq+A82QpdZ9Uy+OHccR43rGrfSp8lLjQ5XS4mpFdi8eQtmElNdWXmadwqspyNnGzVP
+         j975jNAapXuCLwgnLJrq2TvLTpEU5eeaus8h2dxTCbM1eVsEuFhb/QTB2N9uJ3Z5H3sX
+         JaZQn9oDbvvGxsBrdC6YqhqJm+OQOc/fYR1ulBUoNtiR9aoLfBJQpdNm7A2MIEhrahbj
+         oH/Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXJo8/agAjXWvdploe40QrEnyG7Q9L4/kqnf/f/kmATZgCWc+3+qkcHAlsRRvYaT6nwSeD1lL0=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzXSMzrmYR6Ts3bXlK5maByeFGYoFF9EF6BiPKlZAi6/K8cjIlA
+	NffHEmyQFK1sUkV4CMXNRuFytkxYpt2l5UsjVUCoaqTHSlB0H+TLJiE3
+X-Gm-Gg: ASbGncsUVVqcY/FaBqXl0o7XkSUlIvf1m2WmmlgxVNlNSsaKYj7RUb4yovHJGW0ccYp
+	Xwf/e68K+o2iD6Q8jz9not+eM7YC6CTHUdG87LiofjScFwQfCCFTrjbqwZl7E09iqIUitDqdnOQ
+	crjtmlWSF5IuwGQ5QRuyVe44l5t6Y2WfX3K/var7ROKeSlvER2eXjnVpTI5cGlMOAA17f7EWjih
+	BkO7HKCVjhXLjA5IoIFDXHvBwzJ5WZaZtBjfPkKjKPlMRcD9lQn5ATMTHyNWIVaJD1RMxvvIWu3
+	aFdKtTeAjR0BP6xX2E5Arxp91420m6Tr4JyRW0KVy4lyuyEq+A0DNeXfmcqNhj6C2o38fJG7sat
+	LuRUAMtnAZ5+DmAGuddc+SPsDWnxgOwnjVzigkm+l57+Teu8r5d8Cv1uqnL7bgByYWXL2I7LMLi
+	LXyCJTgV0EZZq/CUvXqHYmvQ==
+X-Google-Smtp-Source: AGHT+IEYO5OB88hN6eQ+81LrxblmPXtqVllaL/oYvPXtpbKz7v2GjUAoOuzLaXR4zN+F70sNBnHk1Q==
+X-Received: by 2002:a05:6e02:12c5:b0:433:2711:c5cc with SMTP id e9e14a558f8ab-433407d953bmr38615765ab.32.1762346848847;
+        Wed, 05 Nov 2025 04:47:28 -0800 (PST)
+Received: from archie.me ([210.87.74.117])
+        by smtp.gmail.com with ESMTPSA id e9e14a558f8ab-43335a91956sm25775835ab.6.2025.11.05.04.47.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Nov 2025 04:47:27 -0800 (PST)
+Received: by archie.me (Postfix, from userid 1000)
+	id 34F4C420A6A0; Wed, 05 Nov 2025 19:47:23 +0700 (WIB)
+From: Bagas Sanjaya <bagasdotme@gmail.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Documentation <linux-doc@vger.kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Bagas Sanjaya <bagasdotme@gmail.com>
+Subject: [PATCH] Documentation: btt: Unwrap bit 31-30 nested table
+Date: Wed,  5 Nov 2025 19:47:08 +0700
+Message-ID: <20251105124707.44736-2-bagasdotme@gmail.com>
+X-Mailer: git-send-email 2.51.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9714:EE_|CH0PR12MB8488:EE_
-X-MS-Office365-Filtering-Correlation-Id: a81c3012-701b-4ec7-ac90-08de1c176a27
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|7416014|366016;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?Y1ZvYTA3WkRqeUp1eWNSdUU4cjQwR04yZXVuWkplWEFadUR0Mk5FaVYxSm5T?=
- =?utf-8?B?elZjYVZleitrUnNvckR6TmJrdGZhNjFKK3FMZWhNa0hTbGpNVUZJWlgvUjRX?=
- =?utf-8?B?djVYT0xJYXdRQjdtSy83WjFSZno2K1BTaEptVmlhcG54Ty95VzE3aHdQbWwx?=
- =?utf-8?B?NnZScmNCLy9ERzJKRzJNNzlxd2pPdGw3T1Q2ViswdXhOSUU1YUtIaHlYemtN?=
- =?utf-8?B?c3BBTmY3ZHRuWG9UZzdWQmh6Y1U5b01pOFVPenRwM0Rwa2xMQ2NNYnlmUEgz?=
- =?utf-8?B?YUwxTVpYSFZsME1yMzBmTFM5NlRGSWF3NEhtOGNCQ05HdkpKL1A2RFFRbkVP?=
- =?utf-8?B?ZFRmbjgvWTZxUUx3ZGxSVW5wUDluSjdqNlhEQkVuUlBDV2cySFJjM1N0eGFv?=
- =?utf-8?B?aGI3TVM3eDhpSmVCOHAwRVI4S3Z0UXFPZEhxZE1xUmkzWDVpMDNQam40eGJP?=
- =?utf-8?B?NitZUlVMWWN3NzF6K05XdjIvMzFsWVorczM2R3J1N2xyeEFYblZWaVFEV1VK?=
- =?utf-8?B?Mmx1S1JJS0lWZUErckNUVWEwbGhZZTZCSTQ5K1lYOTVLcUVvV0F4Mlp6dW9T?=
- =?utf-8?B?N2h0Q2pEMkZkaWFoV2xLRm1wS2M5U0JjaU5mWmhoMjRVYWtSZjhNdzBiUUsy?=
- =?utf-8?B?ejNMTkFLamJTRS9kOW1ESTVqd20yODlkdWxiamRPUXdPSXNNZG9WMHhYWjJo?=
- =?utf-8?B?T295endjWmhJRkc2TTc4R2JHQXNlL3lvZUJGc3dDektTbG1DR09Zc2xKS3VL?=
- =?utf-8?B?cmVTaWhzUUNTMlVyRTBaOTV1d1g5WVR6QnZ6MlZQTytQeWQ0czhkUTFaZ0Zv?=
- =?utf-8?B?cFJNZVg5M1F4OURYbmF4Z2tqZGp4eUpMWmVMZVhPTEFVdXhRQ2NFZlY3b0lI?=
- =?utf-8?B?elkxL1J4YXJaeWY1Y1I2bVFnMjVGZnk3MDNtYSsyOXFUZUt6c3I4akRYcksz?=
- =?utf-8?B?alEvNUszWW5GR2tlWnlnWU03SG1MZzg5TzJ4RFVrV1ZRMUNpeU9qWlJ3QWIv?=
- =?utf-8?B?emJNWTd4NU1JclVTU0h1a0w0WkQrckNUTXFDWkt3R3lrZGRZdW1KMmxuVkow?=
- =?utf-8?B?UTZHQko4OGdnRENqZHpjdGRhRXhUbWtyK1VHam8vRXR2emFqNVorY1ZOYXd4?=
- =?utf-8?B?dDE1d3h0dUdVbXJHWWZmQlVneWNFaWRyajM3ZEFXcXJlZDYxUzJJSlo4RFk4?=
- =?utf-8?B?akVnN25VS1AzM0pNbGUxbndvZ3Roc0M1ZFVRbUVyNXdycGw1YWR4alo5N1BM?=
- =?utf-8?B?eDlIak9WM1ROV0hpZlJaUGpvYUVtWHZPRVM5d1RwZkhoQlJ3NVBBYUc4TXRy?=
- =?utf-8?B?Tjd2RldVK2xOcmRhVVR1RDJabHZTTHRBYjFtemdEUkd0anFmU1RnUWF0VmhB?=
- =?utf-8?B?ZGtMU3pDWWEzQmh6cm44cmlLdFRJK0RmUHV3M0c5VzljQ0NHSFFBbGdCVUYx?=
- =?utf-8?B?RmVHZHJ2QyttUW03TVJwM2d5V21FdG9GSGxVWWlxd3dzQVpDdFpYV2lYYm4y?=
- =?utf-8?B?VlJWNGg4UDhGa21MVVRnZENxOXp5ZzFCYU1WcUxveEJoamNxWG9BMjFyYStH?=
- =?utf-8?B?d2gzSkJpSXQ1eERxWXA2VnpHVC9UK3BsV2pUSXhBSmdGZE5zZHcxamtZUWVS?=
- =?utf-8?B?NWtKZkFibXFkcy91Zjd3M0d6aDZQaytXRE9wSGN0ZEFSZXg1TnRLSGhvcjBn?=
- =?utf-8?B?NXBtL25XV0g5UG1tUVVjcnppWVc1dmdRVTBoSFl0dTdJb1lIcXc5Rlo1cXQ5?=
- =?utf-8?B?SnpucGU2Q25nN2dkeVdUZ3MrNDhWcTVzdmpucEFlQXRManhYOG55MjVLOTlH?=
- =?utf-8?B?enB3YmFLbGtZOEJueGtmTGVDUStnb1lEd0Nsc3lQYTVkUDlTQXhUdmJhS2tj?=
- =?utf-8?B?SmpvelErNDNMS0lWdlMrQ05xVjBwTmNuRkdNY3llOXpaU3o1bGo1SVpoUStB?=
- =?utf-8?Q?JEDvak/9KUKdkYTlUPjQCmcY3ByWgX2n?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9714.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?Q3BISjc1Vy9HRDBzYUd4UCs1TnlDZEdrS3duSXNrL3kzamdNMWwyZTRydFhK?=
- =?utf-8?B?NTR5ZjJJckJ5d1hsK0hMSzZpbXl4QWpXMEs0U1NWVm1NdlE5NmRJMGFsVEdj?=
- =?utf-8?B?RXgxd0ErbnVuaW15dDhZN1B1QkpDZGxmclhUMzVxT3plMW4wM2M1cDl2akhj?=
- =?utf-8?B?ajdrWWtwcEdrMUlrUXV0Tm9kSWRWUDZnSFpIQ0dOZUJIYUg4T1NBVGpDMHFx?=
- =?utf-8?B?TXBQbGVNQjdBdENhR2dqMTBubklIdW5EUlBPUEhQN3AyVTQ0VHB2WEtKMUMr?=
- =?utf-8?B?RHlIaG9tdFlsUUdMWWEreGJlbGlFTnV4SUM1RHp2Wlc5TFJjcjJUQ3FRQWZm?=
- =?utf-8?B?aHRza0QzelNkNE9HeG9MREFtcHhVdW40MTdGcmZ6K3FHU0ozRkJINnd5d2sw?=
- =?utf-8?B?RkZzN3BQcCtJcCtETTFpa29oRHlGdEFpVXhFUEwzZHNmUEpsUWhzZzZxb2Y2?=
- =?utf-8?B?VkV0TkpvRk1iOHpzVTE5TDhJeUwwUVNvSFNzRkRDYmdzL2NuOXJRSGE2UnhO?=
- =?utf-8?B?SXNKbjd6OUVqYVduUW5HbVRKeW1EdVhqdjl0WFE0UVhibzRXT29VRjV4a0V0?=
- =?utf-8?B?d1JrZFNKaFBaQXZRSDgxTDRINk0rQkZSRitOcFgxbml5V0VQZ3lrWnVCb3NK?=
- =?utf-8?B?K3V2aXRRTmtjY2VGVHVQcXpqMHNmekw4eFhjZFRBbktNbDJKWUsray9KWjVC?=
- =?utf-8?B?bjFuSjhzdEJiVDFqYVJYWkFqSnd4UURPMVJJNXFlNDV2RU9COVJZWnZhT0Nr?=
- =?utf-8?B?WVJoVGN4OEx3MEd5aVBjb1VBTlZkTjhzMExlRzYyTVd4MWFXVkY4SXB2eSt3?=
- =?utf-8?B?aFo4L3dSd0lqWjRRSDFOdWFjb1grRHp1RFZXbWZjdEF5LzBwbzJjSGtzQmF2?=
- =?utf-8?B?MVk5S2EvTlhTVmpQRkd3Z0ZweGUzRmt2NXJramlOVzVMN3l3NmhMd09LT0Qx?=
- =?utf-8?B?YmE2T3VaK1lkVGtOQXJsK3l2SDFmUWFJSStCQ3FFZmdHampXVUY5cTFIWFJ1?=
- =?utf-8?B?RzNwamtpU25BUVM4aFFwWUxsNHZBSHYwYWI2VmJrQ1UwWlJZWlVjSG9POFVZ?=
- =?utf-8?B?ZFJxNW1YOE9EMGRLL3RzM1UzbU1TZ3pWRFUrM3A5bC9pcndXdFh2V3VCbFRi?=
- =?utf-8?B?eWpMVXpsTjNCUTRzempUQ0hiWHhXWFVIbnVoaGhFc1R4VEt2WWs5ZVR3YWVl?=
- =?utf-8?B?VkpxS0lWbW0zaFdsR3JDemRvWVk1N09XMGdkQm5ielVnczd6alQvK2dPdkww?=
- =?utf-8?B?SndmTk11TkQrTnNBVlN4UHF5VGhjZFpDK2pTWVVmV0QrKzVTaFRYVGtqSXpJ?=
- =?utf-8?B?aCtQSytiSklXUm55ZE5WbU5QOXVjamJ1eVlYOG1FL0FKakhBcTVFckxEMVk4?=
- =?utf-8?B?UzU4cWk3SWRON2lHUERpWHZmMi9lK0haWTBVaS9RTnVBZzBld3RQQUZmUFYz?=
- =?utf-8?B?R1lSbVVrZVNoUG1wNGpaWjNaQUFndDlpRzJDM3ZudktVUzZZYnNxVDUvVGl4?=
- =?utf-8?B?VFlvenlMWVhMK2orNk9iL1F0ZkVPcjIwZU5qQzFTUXpZZ1F4MTZ5ajU3aGlS?=
- =?utf-8?B?VnRxZjlSN1pjNUwwTnh6bHFIVzE4ZzRvdE1OY2ZERUdMc3lXNFRNU1c2d2ZU?=
- =?utf-8?B?WXhTbkxobStXektlRFJMcUYvK1l1RnZiaTVvOEIvZllocDB6YXVyTDRtNkl0?=
- =?utf-8?B?WWJqaXFLd0hoaGtQdW8zUTdkZzcwVjVGVnAydzcvbU5TWGJwVjA5am5ZdDl6?=
- =?utf-8?B?a1ZzOTViT3ptcm85aWV2NkVTNEtYZEJMTUtWN2RaVy8vcW55K2xUbVBhZnZk?=
- =?utf-8?B?UmQ3b0NnRFhZelBCQWh0TElZZmNQeDV0eVprdmpFZzFUQ1k5YUxsN28rNStN?=
- =?utf-8?B?MGZ3MFNWRzVsOThvd1A4ZnF6M2p4OVovNGd1QnZrVmpDTzJ2OFdpaHVMYnIy?=
- =?utf-8?B?YWNPa0xTZnAwS2EwTjVZQlBZL2NwOTNFdGc4dTI4VW1YS0swVWgwamJUaXZs?=
- =?utf-8?B?aURQUnV3M3pmRk9FbkFHRGU2TlNVWmJyc05Cajdud0lhR2s3RVdiMUNVSGhn?=
- =?utf-8?B?dTZvOGpGblVnUzJ1UzJpVXBCM3Q4TGZnR3QzYWVIcEs4YjViaVJIQXYzV0hD?=
- =?utf-8?Q?pTfMSqRTiOX55qDHeGN+oh0aO?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: a81c3012-701b-4ec7-ac90-08de1c176a27
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9714.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2025 03:00:02.6485
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4mUzUoDRgLXcdADgWFCn75+4rVTTA5zSf90xMcLTjv+Fmhb022iwCkXm7nxUMs81tjq575rJjGk8tbbeBonLxQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH0PR12MB8488
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1100; i=bagasdotme@gmail.com; h=from:subject; bh=6EDEoQ8G1aeH7k2mK0kTG53ah50zIFSO89NPX7Nmkvo=; b=owGbwMvMwCX2bWenZ2ig32LG02pJDJncbjOS1rX8C5NtP+1iKPE08O1B3+IO8QazyyabDETDT VNk3B93lLIwiHExyIopskxK5Gs6vctI5EL7WkeYOaxMIEMYuDgFYCLGmQz/fbmqW3c0rN3CrZr3 786N+jzWK8md8lbFakq3zDX8JKq9GBn6gypMP+cZrJy/wNT8Wc4f13k3brrduMjYqyDROeWzdTU DAA==
+X-Developer-Key: i=bagasdotme@gmail.com; a=openpgp; fpr=701B806FDCA5D3A58FFB8F7D7C276C64A5E44A1D
+Content-Transfer-Encoding: 8bit
 
-Hi Tomasz,
+Bit 31-30 usage table is already formatted as reST simple table, but it
+is wrapped in literal code block instead. Unwrap it.
 
-On 11/3/2025 3:18 AM, Tomasz Wolski wrote:
-> Hi Alison and Smita,
-> 
-> I’ve been following your patch proposal and testing it on a few QEMU setups
-> 
->> Will it work to search directly for the region above by using params
->> IORESOURCE_MEM, IORES_DESC_NONE. This way we only get region conflicts,
->> no empty windows to examine. I think that might replace cxl_region_exists()
->> work below.
-> 
-> I see expected 'dropping CXL range' message (case when region covers full CXL window)
-> 
-> [   31.783945] hmem_platform hmem_platform.0: deferring range to CXL: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-> [   31.784609] deferring range to CXL: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-> [   31.790588] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-> [   31.791102] dropping CXL range: [mem 0xa90000000-0xb8fffffff flags 0x80000200]
-> 
-> a90000000-b8fffffff : CXL Window 0
->    a90000000-b8fffffff : region0
->      a90000000-b8fffffff : dax0.0
->        a90000000-b8fffffff : System RAM (kmem)
-> 
-> [   31.384899] hmem_platform hmem_platform.0: deferring range to CXL: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-> [   31.385586] deferring range to CXL: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-> [   31.391107] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-> [   31.391676] dropping CXL range: [mem 0xa90000000-0xc8fffffff flags 0x80000200]
-> 
-> a90000000-c8fffffff : CXL Window 0
->    a90000000-b8fffffff : region0
->      a90000000-b8fffffff : dax0.0
->        a90000000-b8fffffff : System RAM (kmem)
->    b90000000-c8fffffff : region1
->      b90000000-c8fffffff : dax1.0
->        b90000000-c8fffffff : System RAM (kmem)
-> 	
-> a90000000-b8fffffff : CXL Window 0
->    a90000000-b8fffffff : region0
->      a90000000-b8fffffff : dax0.0
->        a90000000-b8fffffff : System RAM (kmem)
-> b90000000-c8fffffff : CXL Window 1
->    b90000000-c8fffffff : region1
->      b90000000-c8fffffff : dax1.0
->        b90000000-c8fffffff : System RAM (kmem)
-> 
-> However, when testing version with cxl_region_exists() I didn't see expected 'registering CXL range' message
-> when the CXL region does not fully occupy CXL window - please see below.
-> I should mention that I’m still getting familiar with CXL internals, so maybe I might be missing some context :)
-> 
-> a90000000-bcfffffff : CXL Window 0
->    a90000000-b8fffffff : region0
->      a90000000-b8fffffff : dax0.0
->        a90000000-b8fffffff : System RAM (kmem)
-> 
-> [   30.434385] hmem_platform hmem_platform.0: deferring range to CXL: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-> [   30.435116] deferring range to CXL: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-> [   30.436530] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-> [   30.437070] hmem_platform hmem_platform.0: dropping CXL range: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
-> [   30.437599] dropping CXL range: [mem 0xa90000000-0xbcfffffff flags 0x80000200]
+Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
+---
+ Documentation/driver-api/nvdimm/btt.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for testing and sharing the logs.
+diff --git a/Documentation/driver-api/nvdimm/btt.rst b/Documentation/driver-api/nvdimm/btt.rst
+index 107395c042ae07..2d8269f834bd60 100644
+--- a/Documentation/driver-api/nvdimm/btt.rst
++++ b/Documentation/driver-api/nvdimm/btt.rst
+@@ -83,7 +83,7 @@ flags, and the remaining form the internal block number.
+ ======== =============================================================
+ Bit      Description
+ ======== =============================================================
+-31 - 30	 Error and Zero flags - Used in the following way::
++31 - 30	 Error and Zero flags - Used in the following way:
+ 
+ 	   == ==  ====================================================
+ 	   31 30  Description
 
-After off-list discussion with Alison and Dan (please jump in if I’m 
-misrepresenting anything)
-
-Ownership is determined by CXL regions, not window sizing. A CXL Window 
-may be larger or smaller than the Soft Reserved (SR) span and that 
-should not affect the decision.
-
-Key thing to check is: Do the CXL regions fully and contiguously cover 
-the entire Soft Reserved range?
-
-Yes - CXL owns SR (“dropping CXL range”).
-
-No - CXL must give up SR (“registering CXL range”). More on giving up SR 
-below.
-
-The previous child->start <= start && child->end <= end check needs to 
-be replaced with a full coverage test:
-
-1. Decide ownership based on region coverage: We check whether all CXL 
-regions together fully and contiguously cover the "given" SR range.
-If fully covered - CXL owns it.
-If not fully covered - CXL must give up and the SR is owned by HMEM.
-
-2. If CXL must give up - Remove the CXL regions that overlap SR before 
-registering the SR via hmem_register_device().
-
-3. Ensure dax_kmem never onlines memory until after this decision. 
-dax_kmem must always probe after dax_hmem decides ownership.
-
-Some of the valid configs (CXL owns: drop CXL range)
-
-1.3ff0d0000000-3ff10fffffff : SR
-     3ff0d0000000-3ff10fffffff : Window 1
-         3ff0d0000000-3ff0dfffffff : region1
-         3ff0e0000000-3ff0efffffff : region2
-          3ff0f0000000-3ff0ffffffff : region3
-          3ff100000000-3ff10fffffff : region4
-
-2. 3ff0d0000000-3ff10fffffff : Window 1
-      3ff0d0000000-3ff0dfffffff : SR
-         3ff0d0000000-3ff0dfffffff : region1
-      3ff0e0000000-3ff0efffffff : SR
-         3ff0e0000000-3ff0efffffff : region2
-      3ff0f0000000-3ff0ffffffff : SR
-          3ff0f0000000-3ff0ffffffff : region3
-      3ff100000000-3ff10fffffff : SR
-          3ff100000000-3ff10fffffff : region4
-
-3. 3ff0d0000000-3ff20fffffff : Window 1
-       3ff0d0000000-3ff10fffffff : SR
-         3ff0d0000000-3ff0dfffffff : region1
-         3ff0e0000000-3ff0efffffff : region2
-          3ff0f0000000-3ff0ffffffff : region3
-          3ff100000000-3ff10fffffff : region4
-
-4. 3ff0d0000000-3ff10fffffff : SR
-     3ff0d0000000-3ff10fffffff : Window 1
-         3ff0d0000000-3ff10fffffff : region1
-
-Invalid configs (HMEM owns: registering CXL range)
-
-1. 3ff0d0000000-3ff20fffffff : SR
-     3ff0d0000000-3ff20fffffff : Window 1
-         3ff0d0000000-3ff10fffffff : region1
-
-2. 3ff0d0000000-3ff20fffffff : SR
-     3ff0d0000000-3ff10fffffff : Window 1
-         3ff0d0000000-3ff0dfffffff : region1
-         3ff0e0000000-3ff0efffffff : region2
-          3ff0f0000000-3ff0ffffffff : region3
-          3ff100000000-3ff10fffffff : region4
-
-3. region2 assembly failed or incorrect BIOS config
-3ff0d0000000-3ff10fffffff : SR
-     3ff0d0000000-3ff10fffffff : Window 1
-         3ff0d0000000-3ff0dfffffff : region1
-          3ff0f0000000-3ff0ffffffff : region3
-          3ff100000000-3ff10fffffff : region4
-
-I will work on incorporating the 3 steps mentioned above.
-
-Thanks
-Smita
-
-> 
-> Thanks,
-> Tomasz
+base-commit: 27600b51fbc8b9a4eba18c8d88d7edb146605f3f
+-- 
+An old man doll... just what I always wanted! - Clara
 
