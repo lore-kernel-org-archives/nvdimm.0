@@ -1,65 +1,65 @@
-Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00D7A329390
-	for <nvdimm@lists.linux.dev>; Fri,  7 Nov 2025 22:50:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0127331A73
+	for <nvdimm@lists.linux.dev>; Fri,  7 Nov 2025 22:50:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762555824; cv=none; b=WaRo6odoxTqxVnh+z1d51YCbXcfEDjcxLNP8eZ2b+pbZr1AMWJLNAAS0C1vgsRtjuY7n3GF1LT+cr5UlfNHVnVYjUsSBBykJwWv41rqssSvBy1fVwVLDA8GHr8odQ19uBp8t62qWw4GSFnt1HcEaZ/z2j9KJOKIIsz2u7a27fAA=
+	t=1762555828; cv=none; b=rTYCUfxdRcCqJSLNbPktoe2C63l+uBFpT2hZEbU57xJlTNmxgKUrt7UvcGjZ4n61hLf3DnuYpbHes3uu1vjrpwDFSitvzOvIvQFAc/fbh24DQgp6AT0Fj/9bnQZW/Z+OJ0P4RY6BjgjDzBus5Sm0SlxRq4YaJAqEMUX81Ppxp94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762555824; c=relaxed/simple;
-	bh=aVCsq29TRfkUneUg7VcXHP54fL2RXfk+IKU2j2Nc0iM=;
+	s=arc-20240116; t=1762555828; c=relaxed/simple;
+	bh=tSh2k/90dL3dI0zpcxARGhUF4rlq7O4vW4BNP7CcNwc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jJdu5wuYMVONb90rPUaJWDEKf5nlWAxWoGmNYiG89jVOvM9M/9JnKanUYY7Jbe3Y+pKzNupURudAZp+IDvHm7S7jQGcf+ck/vFwFCnTyrk/Xhvy/XzBTNNVdahdfKjnfwzcdl3NPRjI0ScUG1OGQ42fWQrHuxAbUZFDNB80VEy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=mpNr2Siu; arc=none smtp.client-ip=209.85.160.172
+	 MIME-Version; b=c3KtObxZbnKg2vVfCTNXBafjXeLIXx6bE3ELT+r2y/FxC5tAb+lhe41o+UrHvA1RAm5Syzfd+HpXWM71oPlLZSaK7g6MXxNipOh9HjlS7K/68hFMWyem9RZJtpWvBbuPUX9syXxVtIrAOarFMIRN1Td2Rh2d1Mfg7rHOQ7BUfHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=HdKvWxcS; arc=none smtp.client-ip=209.85.160.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="mpNr2Siu"
-Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-4eda057f3c0so7164811cf.2
-        for <nvdimm@lists.linux.dev>; Fri, 07 Nov 2025 14:50:22 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="HdKvWxcS"
+Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-4ed7024c8c5so9957991cf.3
+        for <nvdimm@lists.linux.dev>; Fri, 07 Nov 2025 14:50:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1762555822; x=1763160622; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1762555824; x=1763160624; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=THbr/Y85WnAbuULOZYzy4wMGCXZ829d22z7gMjfvDN0=;
-        b=mpNr2SiuSJev6FZJvKjjZgV7fCBgFge2lU2YbfkJvJOnfUvdNCG+cbuGp/S0VW9Qa9
-         86KGhnkX9TTlVvIfc/w/Q6vMwGoUg3wFGCF4UM9H5/YfU95TOKUCqT9jS5c43r87huKP
-         CcPY9JAou2nGhelpqn+joRZCrUkIItGOLeTLFGjAXmlOFzyZXb+1SHZjIPIKRLyh8Yar
-         cAwNdMKRK51P8Ke2KvxpWoWpPwkgOZoRYK9KxrWESZ+Uy1Tvn00EWTiuM/DKXi1v3bAV
-         xbBfEh3lQphyNZxHg5UUpPf+3bclvuA9RdCe3E29qY6W5bKw0wcHFjoZ/mABE2xD6dgH
-         BUDA==
+        bh=CwxO6b4UaIu9W6F2d/g8AaHHPWCBsuMNbHYfAmKzKTo=;
+        b=HdKvWxcSgkVQ+85Ed+3EK/nz/o4nANOpWXscTQjg5klkPjHvtapo+GywGlp02BzZkq
+         mgzUH4ONVUAfYnbP+uOibE97ru6E5+n6iMLOWTAI39obUIFeSNVOG+5htXkxp6sq9WDV
+         1e0vRyvIZB+MWdA0gXu8tlT68YUTtjoIqRpFfJ/XpCGdR89kjmbJrJmQo1V42UR3EqSA
+         tIfpZM7qut0N5UdAsOmDlg5px0XrGrH4RKMNWpGVF63eczCBFQlb3WxZsrQjOoddsRdh
+         uVmvB3RzP9oOiFPRc4ADjp7LSq8wJv7idtc8J7iEkJTwGPqVEq4ggRtw+c6vVA3ReqqF
+         b6KA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762555822; x=1763160622;
+        d=1e100.net; s=20230601; t=1762555825; x=1763160625;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=THbr/Y85WnAbuULOZYzy4wMGCXZ829d22z7gMjfvDN0=;
-        b=X0PQORZFYUSuwICvvnd8wdJqXKhn2loFZYS39f3FFgegIt9sBhR1PcCGVD6CQ1YU+5
-         BxU5NMpkbP39SLOZ1fgylwVSBIEfFDyOwqRdXmlfnM55kNGNsUasz0WgbjedCyYHdF+9
-         t1JEtlygFRikjdqJXr+UkYmg/4iuE6RpOn7+KjN8OFFdkKH3nQPWPvPz3KbJ2u2wRoFf
-         q47+RLlR3r89o2uvvGAZYyJNX4lpB03xkXtKITdTGyTdoee/FddMG6xzX3BfMfUx5/Ir
-         fR5rNfofbo5VnDKlTrFKxPhwgAKk8Mp5r2rKf8s8w7tQPF3rT9cIrQr4SNHqB8iXmMZY
-         SB5g==
-X-Forwarded-Encrypted: i=1; AJvYcCWJFAHZi+oveShZWyQbR2pAhq25UDKQUitwDtj/2Or4/LCPhfPy4s1D8DF3rJKi2LhQ9tsrhbE=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzvdKhBODLFQdkX6k01Sca4Y/HnN1CszWFsPUUo034BBroyjNB0
-	SKACPLWZhNYFgoVjfRTuEfki/6gHmO9rsHBH/i+7MNMDSj7EM3HjCrRvwLFFY1agl2s=
-X-Gm-Gg: ASbGncuirc9A5ieDKv0CHYCVi0j+NEwhhvvnmVDpEvSaHT8nh1BrjoNY5wLFQ+xmw1x
-	tj49tZMYMD2rHcOQykwBUmT+x9v5FCjGHCyhLyOqE3tec9QGiEzwtDINF+2gxNoinM4gHe63rYj
-	VYwji7iT7/AO04HFr00VM/MPzZzp+7MEuUPc/WfQijRFO3nPG2ObEoKaRbwDSrLUFGzoXmuUhw9
-	sUS6Eor2Zqyk3efNHUwaPcf1y9GT3n7kAXSlRSlu1nmfZPMG51qHL9B7Xf5NvO5mtyElC/NIvch
-	AdFuAe8hSb02L7TjII9F8bFlGOg7pxtISe+rrg8+mtChZNyl2pB63zEFL8XjafcV6F25QtyJFRS
-	GfqCQNYkAWTf2oBcZ8UvGZ9mCDkP7vCynT1tVce3tSl2T12DVGI0igF2zoedCHoOwkNp6DXlH5k
-	b1CQ6jDOdw8UtgirdISwAqBe96rZCyHyQH9Un4qM60C425RREyHVCnDdFBWEQICK0KukuAJg2/b
-	Tktln4PFf4TCA==
-X-Google-Smtp-Source: AGHT+IFWQljTxYPO6CFPNauC805q+VElYGBru+/DO5QGOLDAxl11WHp9VZk3rhHcoNcRJaJ5IM73qw==
-X-Received: by 2002:a05:622a:386:b0:4ec:a564:3e66 with SMTP id d75a77b69052e-4eda4ec8aa5mr11288381cf.29.1762555821864;
-        Fri, 07 Nov 2025 14:50:21 -0800 (PST)
+        bh=CwxO6b4UaIu9W6F2d/g8AaHHPWCBsuMNbHYfAmKzKTo=;
+        b=uZgeUlLqAtKZAZiNo5/dbkMYg2qVlbe5RKMbaaCUHxe7EiQlPNc6irXUG+QMAkLjXL
+         WTQ/JXan70gKrE1GTwpZNX60cGx5GlaOPzZWsv7/ohZkXwdjSQXiAN6d5Xn3LqbbMQkk
+         GMzq5twkEW5XTma9MnQOMuqlLYj9K7XoLWSPtJtTWRgivyCjWj48DWlqGc0o29LfgJXv
+         uITAkvEzRqVeltWzTov6CwZDKKxOMvBKMDuR3Iz4+tRJYx4MW+J4jlMGBQxGhdJN/dhR
+         Ym7ILubGmzdJpeTiUOFxq/phgKe6Dn/ep1P0+wS279WAlzhVMhHYWKsc9K5eB570TQMQ
+         3Tkg==
+X-Forwarded-Encrypted: i=1; AJvYcCXibS6OKX592EK50GprwVQfnJYAM7LSsE8F6G07h2nh/at7Asni0Oo3NAi1QM7ztxKZi2Dj70E=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx5Lpx0/OB0VmrMbDZybOqzQWIe3Cg4Xd6LONgMiJqsFOGoTarz
+	zGzcrIUinR1thrGDQLKTOPDXImb6EFCP9oIH45ykUfbquVp1tNl/wN2IhQacRhsnDuo=
+X-Gm-Gg: ASbGncvnK/zz4UpzRKriEhk9fl4z5k6f18ej/kBhWiW/gqPsmLrzvJ0yYNK3OCEUiZT
+	0aTcqD8hnav+mpstkL7q9CBJCy5qQguGfzBvz9gh5v0UNjo/o710493d7xq30xqNrfOktq1c84h
+	H8EVuBrQCWwifGbGYJ4R5CXhlMHrinzsDkpKYLsT5tiNahODoRqq/b++cw6AYfK8bx44W2lUTBQ
+	c6rxrztPpTCWo4rX+wWrdluZMuSVdluqdH+k8Tc08mQVlVO5zUClwCJaLVNsXCBZzoFAiXFXtmJ
+	lKMIdXEhlWqCTjTZrOyNUfA56bKI9+PTRt4xAtW1ZPmhx6Sj0r61VjiwSXpv6y3cukfa4kxzJDS
+	MFYR43M5NWuyAmgzXb82gJphWLVULNJX+iJj4cfTk5zRAH5iVXjkMhmzuMpQ7y4+noGwnBsFFCJ
+	E0jdSKZCjrYUZfIRrAGkef2270KR0uKe7TJFz0kZmyoN1mzZHKLIvfH/i/PJygJlrRbDKFUfkIt
+	eg=
+X-Google-Smtp-Source: AGHT+IGGUkY/hMvQZUDcDXSyhiDaml+qPtZeSmCY7fYoXMiela3sPEpJdPQ5lN6VWEde9PlUke632Q==
+X-Received: by 2002:a05:622a:1ba9:b0:4ed:43fe:f51e with SMTP id d75a77b69052e-4eda4f8ffb3mr10117651cf.39.1762555824542;
+        Fri, 07 Nov 2025 14:50:24 -0800 (PST)
 Received: from gourry-fedora-PF4VCD3F.lan (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4eda57ad8e6sm3293421cf.27.2025.11.07.14.50.20
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4eda57ad8e6sm3293421cf.27.2025.11.07.14.50.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 07 Nov 2025 14:50:21 -0800 (PST)
+        Fri, 07 Nov 2025 14:50:24 -0800 (PST)
 From: Gregory Price <gourry@gourry.net>
 To: linux-mm@kvack.org
 Cc: linux-cxl@vger.kernel.org,
@@ -128,9 +128,9 @@ Cc: linux-cxl@vger.kernel.org,
 	namcao@linutronix.de,
 	escape@linux.alibaba.com,
 	dongjoo.seo1@samsung.com
-Subject: [RFC PATCH 6/9] mm/memory_hotplug: add MHP_PROTECTED_MEMORY flag
-Date: Fri,  7 Nov 2025 17:49:51 -0500
-Message-ID: <20251107224956.477056-7-gourry@gourry.net>
+Subject: [RFC PATCH 7/9] drivers/dax: add protected memory bit to dev_dax
+Date: Fri,  7 Nov 2025 17:49:52 -0500
+Message-ID: <20251107224956.477056-8-gourry@gourry.net>
 X-Mailer: git-send-email 2.51.1
 In-Reply-To: <20251107224956.477056-1-gourry@gourry.net>
 References: <20251107224956.477056-1-gourry@gourry.net>
@@ -142,106 +142,119 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add support for protected memory blocks/nodes, which signal to
-memory_hotplug that a given memory block is considered "protected".
-
-A protected memory block/node is not exposed as SystemRAM by default
-via default_sysram_nodes.  Protected memory cannot be added to sysram
-nodes, and non-protected memory cannot be added to protected nodes.
-
-This enables these memory blocks to be protected from allocation by
-general actions (page faults, demotion, etc) without explicit
-integration points which are memory-tier aware.
+This bit is used by dax/kmem to determine whether to set the
+MHP_PROTECTED_MEMORY flags, which will make whether hotplug memory
+should be restricted to a protected memory NUMA node.
 
 Signed-off-by: Gregory Price <gourry@gourry.net>
 ---
- include/linux/memory_hotplug.h | 10 ++++++++++
- mm/memory_hotplug.c            | 23 +++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ drivers/dax/bus.c         | 39 +++++++++++++++++++++++++++++++++++++++
+ drivers/dax/bus.h         |  1 +
+ drivers/dax/dax-private.h |  1 +
+ drivers/dax/kmem.c        |  2 ++
+ 4 files changed, 43 insertions(+)
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 23f038a16231..89f4e5b7054d 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -74,6 +74,16 @@ typedef int __bitwise mhp_t;
-  * helpful in low-memory situations.
-  */
- #define MHP_OFFLINE_INACCESSIBLE	((__force mhp_t)BIT(3))
-+/*
-+ * The hotplugged memory can only be added to a NUMA node which is
-+ * not in default_sysram_nodes.  This prevents the node from be accessible
-+ * by the page allocator (mm/page_alloc.c) by way of userland configuration.
-+ *
-+ * Attempting to hotplug protected memory into a node in default_sysram_nodes
-+ * will result in an -EINVAL, and attempting to hotplug non-protected memory
-+ * into protected memory node will also result in an -EINVAL.
-+ */
-+#define MHP_PROTECTED_MEMORY	((__force mhp_t)BIT(4))
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index fde29e0ad68b..4321e80276f0 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -1361,6 +1361,43 @@ static ssize_t memmap_on_memory_store(struct device *dev,
+ }
+ static DEVICE_ATTR_RW(memmap_on_memory);
  
- /*
-  * Extended parameters for memory hotplug:
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 0be83039c3b5..ceab56b7231d 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -20,6 +20,7 @@
- #include <linux/memory.h>
- #include <linux/memremap.h>
- #include <linux/memory_hotplug.h>
-+#include <linux/memory-tiers.h>
- #include <linux/vmalloc.h>
- #include <linux/ioport.h>
- #include <linux/delay.h>
-@@ -1506,6 +1507,7 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
- 	struct memory_group *group = NULL;
- 	u64 start, size;
- 	bool new_node = false;
-+	bool node_has_blocks, protected_mem, node_is_sysram;
- 	int ret;
- 
- 	start = res->start;
-@@ -1529,6 +1531,19 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
- 
- 	mem_hotplug_begin();
- 
-+	/*
-+	 * If the NUMA node already has memory blocks, then we can only allow
-+	 * additional memory blocks of the same protection type (protected or
-+	 * un-protected).  Online/offline does not matter at this point.
-+	 */
-+	node_has_blocks = node_has_memory_blocks(nid);
-+	protected_mem = !!(mhp_flags & MHP_PROTECTED_MEMORY);
-+	node_is_sysram = node_isset(nid, *default_sysram_nodes);
-+	if (node_has_blocks && (protected_mem ^ node_is_sysram)) {
-+		ret = -EINVAL;
-+		goto error_mem_hotplug_end;
++static ssize_t protected_memory_show(struct device *dev,
++				     struct device_attribute *attr, char *buf)
++{
++	struct dev_dax *dev_dax = to_dev_dax(dev);
++
++	return sysfs_emit(buf, "%d\n", dev_dax->protected_memory);
++}
++
++static ssize_t protected_memory_store(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf, size_t len)
++{
++	struct dev_dax *dev_dax = to_dev_dax(dev);
++	bool val;
++	int rc;
++
++	rc = kstrtobool(buf, &val);
++	if (rc)
++		return rc;
++
++	rc = down_write_killable(&dax_dev_rwsem);
++	if (rc)
++		return rc;
++
++	if (dev_dax->protected_memory != val && dev->driver &&
++	    to_dax_drv(dev->driver)->type == DAXDRV_KMEM_TYPE) {
++		up_write(&dax_dev_rwsem);
++		return -EBUSY;
 +	}
 +
- 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK)) {
- 		if (res->flags & IORESOURCE_SYSRAM_DRIVER_MANAGED)
- 			memblock_flags = MEMBLOCK_DRIVER_MANAGED;
-@@ -1574,6 +1589,10 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
- 	register_memory_blocks_under_node_hotplug(nid, PFN_DOWN(start),
- 					  PFN_UP(start + size - 1));
- 
-+	/* At this point if not protected, we can add node to sysram nodes */
-+	if (!(mhp_flags & MHP_PROTECTED_MEMORY))
-+		node_set(nid, *default_sysram_nodes);
++	dev_dax->protected_memory = val;
++	up_write(&dax_dev_rwsem);
 +
- 	/* create new memmap entry */
- 	if (!strcmp(res->name, "System RAM"))
- 		firmware_map_add_hotplug(start, start + size, "System RAM");
-@@ -2274,6 +2293,10 @@ static int try_remove_memory(u64 start, u64 size)
- 	if (nid != NUMA_NO_NODE)
- 		try_offline_node(nid);
- 
-+	/* If no more memblocks, remove node from default sysram nodemask */
-+	if (!node_has_memory_blocks(nid))
-+		node_clear(nid, *default_sysram_nodes);
++	return len;
++}
++static DEVICE_ATTR_RW(protected_memory);
 +
- 	mem_hotplug_done();
- 	return 0;
- }
+ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+@@ -1388,6 +1425,7 @@ static struct attribute *dev_dax_attributes[] = {
+ 	&dev_attr_resource.attr,
+ 	&dev_attr_numa_node.attr,
+ 	&dev_attr_memmap_on_memory.attr,
++	&dev_attr_protected_memory.attr,
+ 	NULL,
+ };
+ 
+@@ -1494,6 +1532,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 	ida_init(&dev_dax->ida);
+ 
+ 	dev_dax->memmap_on_memory = data->memmap_on_memory;
++	dev_dax->protected_memory = data->protected_memory;
+ 
+ 	inode = dax_inode(dax_dev);
+ 	dev->devt = inode->i_rdev;
+diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+index cbbf64443098..0a885bf9839f 100644
+--- a/drivers/dax/bus.h
++++ b/drivers/dax/bus.h
+@@ -24,6 +24,7 @@ struct dev_dax_data {
+ 	resource_size_t size;
+ 	int id;
+ 	bool memmap_on_memory;
++	bool protected_memory;
+ };
+ 
+ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data);
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index 0867115aeef2..605b7ed87ffe 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -89,6 +89,7 @@ struct dev_dax {
+ 	struct device dev;
+ 	struct dev_pagemap *pgmap;
+ 	bool memmap_on_memory;
++	bool protected_memory;
+ 	int nr_range;
+ 	struct dev_dax_range *ranges;
+ };
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index c036e4d0b610..140c6cb0ac88 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -169,6 +169,8 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 		mhp_flags = MHP_NID_IS_MGID;
+ 		if (dev_dax->memmap_on_memory)
+ 			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
++		if (dev_dax->protected_memory)
++			mhp_flags |= MHP_PROTECTED_MEMORY;
+ 
+ 		/*
+ 		 * Ensure that future kexec'd kernels will not treat
 -- 
 2.51.1
 
