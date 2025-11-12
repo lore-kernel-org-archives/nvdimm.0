@@ -1,189 +1,313 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3931A340280
-	for <nvdimm@lists.linux.dev>; Wed, 12 Nov 2025 15:55:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C633F337BA6
+	for <nvdimm@lists.linux.dev>; Wed, 12 Nov 2025 19:29:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762962949; cv=none; b=dzP1fa9nijEg/W2vVNpiRCD6PFxKWAVPkboWOyUoBvC/10L5G64uIsyMbw9PeRH8N5fQA0tjxaOCLySJB2pnkrtmTY3eH2sP2rHGAALTdZOD/5c1MFPzB3GVCYEh4UwFqU9ST1UrJS+2Z/Hd09082mcHzfoBIGd2Z3siG5z6KGo=
+	t=1762975790; cv=none; b=FSyBlo2GDiGOzcsQqmG3JatvaTj5NPC1DYjIlq88z+TpxJBEZboahMtCRYpPUO8QQ6XAkWYrwWB5yIYAZoEddpzJsdXiUhucr+Sn5G6gQoBc9wPcoLTXga37VZXa+c4O1Xjp5qrdnFwtTr65uosV1mockaFKDBKU9OCsdot3wQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762962949; c=relaxed/simple;
-	bh=XBvdmJ37bzVPfaNJQdFZ0mHd+DP97BaYdjtePvKH4rw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Y2Bt5ltENA5tsC4rz32tLOtG9INv4sL3Fgju2Dt6f9tSzgVIZ6iQfSSQKmZsCq0JFQPf2QVkqkuj3v8aLQo1O/YF6y23zWEuo8quik2lGzwEtGfosiYZHDhtDNNjPUAztAnIupAOk6Yu4VW76GJMOA1WmDi8S9AQf4WLDZ8nP14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FsBY6DDI; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1762975790; c=relaxed/simple;
+	bh=StySJd2HRBF/nsbSvPA1UpC//DtcjLkEErMiwN89jiY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DAGiB91+itGR0/B980pc6Qmaod8z1L/7vVc1Hc3AEOTYAsu0U0dHA5N0MWJQxEzV4aZGDKmsdjVESau37CBy4imYdAvVQ29+EMF8qxi7QpX2FKk+eQ+LrBGKsW+Q0gclsW29gEXCbYVF3NuV+afNfXN7Z7xK1e1YpBYrX9PB8WY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=O94lSbfR; arc=none smtp.client-ip=209.85.222.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FsBY6DDI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1762962947; x=1794498947;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=XBvdmJ37bzVPfaNJQdFZ0mHd+DP97BaYdjtePvKH4rw=;
-  b=FsBY6DDIF5Dz2EIBAjF9FWwhzyG23LtnJJEeJap3X4pL/iCa9/jbd3O4
-   Iejls7fi1aWypKPWlpIO+K0MHW6kHoMGCplpf+HGUuvbU3BDuawUTLLBY
-   1xTuWIXZE7Xo8HnxcJG2rd7D+m5Rvcl25jIV0lHcRUrEkje0faS5Aasps
-   LHzlDlwEPYNREaAfM/6pI8wBkXpxvazVSuYjsrVaYJgzdF9PzXssSX1Qc
-   yFsb6Vs/NIUIvNBXc/vnDHCH7/oM9eSzipp8ZyduZ56SrjRfrd0CVMTg8
-   sYK16BAzM6y8s/QO8DjAvrPttnOWNmlXYkJql2ueiDCYVKA7HcT435skx
-   g==;
-X-CSE-ConnectionGUID: 9OdF5vZwRjSckyMrSAJtkA==
-X-CSE-MsgGUID: jm/G36+KTX2gIzhtVe/jWQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11611"; a="67630322"
-X-IronPort-AV: E=Sophos;i="6.19,299,1754982000"; 
-   d="scan'208";a="67630322"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2025 07:55:46 -0800
-X-CSE-ConnectionGUID: JORSUiZkR5i/BhCSGCphTw==
-X-CSE-MsgGUID: QtTUdJYtQGC5vM30Ae7zYg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.19,299,1754982000"; 
-   d="scan'208";a="226529653"
-Received: from spandruv-mobl4.amr.corp.intel.com (HELO [10.125.108.30]) ([10.125.108.30])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2025 07:55:46 -0800
-Message-ID: <a204bc0e-1111-4ff9-a8d2-eeb8b7b9fe8d@intel.com>
-Date: Wed, 12 Nov 2025 08:55:45 -0700
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="O94lSbfR"
+Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-8b1f2fbaed7so3120085a.2
+        for <nvdimm@lists.linux.dev>; Wed, 12 Nov 2025 11:29:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1762975788; x=1763580588; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=4+0KzZp8SwB3qOByrtp+OoMjU8q91P/BfZmx06JIMXk=;
+        b=O94lSbfRL/usFzFGmHHxUJi2fAxgDb4QqWVqtKzJFuAFjuqgC4hGZHrqI0vz6rWlQ/
+         m3a1D2Gnq7CjLogNDtR79DahHYA4J9pScViugB2zkqvsBtbGvhv2ODUNdnKvz+0scbLZ
+         0vHQ5mh9Xj3UgTGAF30bDiMiQo19XDYdCivVZTXPyKqOfhYrnYAKuQas5HFn4+TLSwLc
+         UeEB0ZH7qyi/aJwBPuJTJhwRIIP5SKtCd3Yxgg6VnY/WmKM4FkPwBFZVGuV8Ehf9jHGi
+         ZtPEPKUjBYp+XnLUcJ9flZIIDliQVzVhS6Ig2aEjoeTzhVXZ1JJQGRSgmu+2DUCgpczO
+         E1ww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1762975788; x=1763580588;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4+0KzZp8SwB3qOByrtp+OoMjU8q91P/BfZmx06JIMXk=;
+        b=l1zxQm/H2x4LTiWCJwcf4/NuKnN75bxDkK6xVIyFyx8qNRuuEfII8CtEoUjBsHmxF8
+         kEuGcowIOnrHmi08Ixxjm0Wmodhy3R9uEpUCf5ucYEyJTAQkWJOn1ABM4YBC2R6fAyhk
+         x+JXxs6KB1HLxdXnv+SZlxF8OtZT0dQw2PE9mhpXnT56t/reZn9sOu2h1Rx3fvhQYpea
+         uFP82BhmYVDcp8hOcA6rSje1dTQAZsJQo53zPhI44m5lnrmCkNrWFlgtQSNZ61TGkADT
+         +yxnfBTXNI3y83rlh+MQ7lIqu7l5SXkobsW7umOMZLmSDdHACaNiAh3AHDA8PwWGWUO/
+         /aYw==
+X-Forwarded-Encrypted: i=1; AJvYcCV5UpIwi1iTUzfrp70UoLl8uUjQ9JrhQJoXvu34ROKtQyLgV6+ug7YWCEQzULnFkIfnox2xxwA=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzbfLI5NhZ2NCvC2stXt05Gln5Atcf7QWPXGKVmv8AeOGxc1VQ1
+	A0FORvi99Gd7DkIt3MBBliWlaYFqxMtU10AX130MovwUcbXU5aXXgRXEUG0SqDDt3Js=
+X-Gm-Gg: ASbGnct0fDE0YhCiX0AaJXwVWjbEQ/MpTRZTG4LdsqBiuY5zcgrFrvGa9zlObfis6cO
+	6XScBBtP5+Xq8WL5gxFRYiimP9nXJZIvFGT8VaZHaQgdSlAD9GpVx7xEsWAosj6GpxAWzLPbcIv
+	fyzW3eTU+K+UV9vHQix6ZlUg2iTk2EE6mdNHbzHSnziyG12bMZgjOaAYxvKYiJkSZUH0BqDvh0R
+	3cDGNSBIGI8mTQ+TU9rvb1usmw87z8ZgtzhRh1b1DnUSvFObS9SiaqNmXnKmuOHo370PJLQn+rt
+	aUwOdBTkB9pG2NWFAa1WyYeJ79G0ZhI6Mg4MeO3Yq6I+53OSvZKxV8I+MT9sJi5UEDpLUS+uyk9
+	OFnV3Remf4XVDjsmewkk3jukc3/QXqHM2eKZL3pzSXTBYhzVBL3CYpyJf72FoYsAhF+P7HTbbzd
+	SvZyADrOd5SDKG4kGKqIIXSyD0XYZXajMXfF6a1SXSEy040AUQONPf/neK1egws54H
+X-Google-Smtp-Source: AGHT+IED/6odDPyQbULX4YBs7xZBD1FyA57cRMNb3Lw5e2EsWmuJNVD+txeZjw/L/EjeaGulzMWhyA==
+X-Received: by 2002:a05:620a:f15:b0:892:8439:2efa with SMTP id af79cd13be357-8b29b77ab2bmr557638985a.23.1762975787508;
+        Wed, 12 Nov 2025 11:29:47 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F.lan (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8b29aa0082esm243922885a.50.2025.11.12.11.29.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 12 Nov 2025 11:29:47 -0800 (PST)
+From: Gregory Price <gourry@gourry.net>
+To: linux-mm@kvack.org
+Cc: kernel-team@meta.com,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org,
+	cgroups@vger.kernel.org,
+	dave@stgolabs.net,
+	jonathan.cameron@huawei.com,
+	dave.jiang@intel.com,
+	alison.schofield@intel.com,
+	vishal.l.verma@intel.com,
+	ira.weiny@intel.com,
+	dan.j.williams@intel.com,
+	longman@redhat.com,
+	akpm@linux-foundation.org,
+	david@redhat.com,
+	lorenzo.stoakes@oracle.com,
+	Liam.Howlett@oracle.com,
+	vbabka@suse.cz,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	osalvador@suse.de,
+	ziy@nvidia.com,
+	matthew.brost@intel.com,
+	joshua.hahnjy@gmail.com,
+	rakie.kim@sk.com,
+	byungchul@sk.com,
+	gourry@gourry.net,
+	ying.huang@linux.alibaba.com,
+	apopple@nvidia.com,
+	mingo@redhat.com,
+	peterz@infradead.org,
+	juri.lelli@redhat.com,
+	vincent.guittot@linaro.org,
+	dietmar.eggemann@arm.com,
+	rostedt@goodmis.org,
+	bsegall@google.com,
+	mgorman@suse.de,
+	vschneid@redhat.com,
+	tj@kernel.org,
+	hannes@cmpxchg.org,
+	mkoutny@suse.com,
+	kees@kernel.org,
+	muchun.song@linux.dev,
+	roman.gushchin@linux.dev,
+	shakeel.butt@linux.dev,
+	rientjes@google.com,
+	jackmanb@google.com,
+	cl@gentwo.org,
+	harry.yoo@oracle.com,
+	axelrasmussen@google.com,
+	yuanchu@google.com,
+	weixugc@google.com,
+	zhengqi.arch@bytedance.com,
+	yosry.ahmed@linux.dev,
+	nphamcs@gmail.com,
+	chengming.zhou@linux.dev,
+	fabio.m.de.francesco@linux.intel.com,
+	rrichter@amd.com,
+	ming.li@zohomail.com,
+	usamaarif642@gmail.com,
+	brauner@kernel.org,
+	oleg@redhat.com,
+	namcao@linutronix.de,
+	escape@linux.alibaba.com,
+	dongjoo.seo1@samsung.com
+Subject: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
+Date: Wed, 12 Nov 2025 14:29:16 -0500
+Message-ID: <20251112192936.2574429-1-gourry@gourry.net>
+X-Mailer: git-send-email 2.51.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V3 13/20] cxl/mem: Refactor cxl pmem region
- auto-assembling
-To: Neeraj Kumar <s.neeraj@samsung.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org, gost.dev@samsung.com,
- a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
- cpgs@samsung.com
-References: <20250917134116.1623730-1-s.neeraj@samsung.com>
- <CGME20250917134157epcas5p1b30306bc8596b7b50548ddf3683c3b97@epcas5p1.samsung.com>
- <20250917134116.1623730-14-s.neeraj@samsung.com>
- <c7b41eb6-b946-4ac0-9ddd-e75ba4ceb636@intel.com>
- <1296674576.21759726502325.JavaMail.epsvc@epcpadp1new>
- <361d0e84-9362-4389-a909-37878910b90f@intel.com>
- <1983025922.01762749301758.JavaMail.epsvc@epcpadp1new>
-From: Dave Jiang <dave.jiang@intel.com>
-Content-Language: en-US
-In-Reply-To: <1983025922.01762749301758.JavaMail.epsvc@epcpadp1new>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
+This is a code RFC for discussion related to
+
+"Mempolicy is dead, long live memory policy!"
+https://lpc.events/event/19/contributions/2143/
+
+base-commit: 24172e0d79900908cf5ebf366600616d29c9b417
+(version notes at end)
+
+At LSF 2026, I plan to discuss:
+- Why? (In short: shunting to DAX is a failed pattern for users)
+- Other designs I considered (mempolicy, cpusets, zone_device)
+- Why mempolicy.c and cpusets as-is are insufficient
+- SPM types seeking this form of interface (Accelerator, Compression)
+- Platform extensions that would be nice to see (SPM-only Bits)
+
+Open Questions
+- Single SPM nodemask, or multiple based on features?
+- Apply SPM/SysRAM bit on-boot only or at-hotplug?
+- Allocate extra "possible" NUMA nodes for flexbility?
+- Should SPM Nodes be zone-restricted? (MOVABLE only?)
+- How to handle things like reclaim and compaction on these nodes.
 
 
-On 11/7/25 5:39 AM, Neeraj Kumar wrote:
-> On 06/10/25 08:55AM, Dave Jiang wrote:
->>
->>
->> On 9/29/25 6:30 AM, Neeraj Kumar wrote:
->>> On 23/09/25 03:37PM, Dave Jiang wrote:
->>>>
->>>>
->>>> On 9/17/25 6:41 AM, Neeraj Kumar wrote:
->>>>> In 84ec985944ef3, devm_cxl_add_nvdimm() sequence was changed and called
->>>>> before devm_cxl_add_endpoint(). It's because cxl pmem region auto-assembly
->>>>> used to get called at last in cxl_endpoint_port_probe(), which requires
->>>>> cxl_nvd presence.
->>>>>
->>>>> For cxl region persistency, region creation happens during nvdimm_probe
->>>>> which need the completion of endpoint probe.
->>>>>
->>>>> In order to accommodate both cxl pmem region auto-assembly and cxl region
->>>>> persistency, refactored following
->>>>>
->>>>> 1. Re-Sequence devm_cxl_add_nvdimm() after devm_cxl_add_endpoint(). This
->>>>>    will be called only after successful completion of endpoint probe.
->>>>>
->>>>> 2. Moved cxl pmem region auto-assembly from cxl_endpoint_port_probe() to
->>>>>    cxl_mem_probe() after devm_cxl_add_nvdimm(). It gurantees both the
->>>>>    completion of endpoint probe and cxl_nvd presence before its call.
->>>>
->>>> Given that we are going forward with this implementation [1] from Dan and drivers like the type2 enabling are going to be using it as well, can you please consider converting this change to Dan's mechanism instead of creating a whole new one?
->>>>
->>>> I think the region discovery can be done via the ops->probe() callback. Thanks.
->>>>
->>>> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/commit/?h=for-6.18/cxl-probe-order&id=88aec5ea7a24da00dc92c7778df4851fe4fd3ec6
->>>>
->>>> DJ
->>>>
->>>
->>> Sure, Let me revisit this.
->>> It seems [1] is there in seperate branch "for-6.18/cxl-probe-order", and not yet merged into next, right?
->>
->> Right. I believe Smita and Alejandro are using that as well. Depending on who gets there first. We can setup an immutable branch at some point.
->>
->> [1]: https://lore.kernel.org/linux-cxl/20250822034202.26896-1-Smita.KoralahalliChannabasappa@amd.com/T/#t
->>
->> DJ
-> 
-> Hi Dave,
-> 
-> As per Dan's [1] newly introduced infra, Following is my understanding.
-> 
-> Currently cxl_pci does not care about the attach state of the cxl_memdev
-> because all generic memory expansion functionality can be handled by the
-> cxl_core. For accelerators, the driver needs to know and perform driver
-> specific initialization if CXL is available, or exectute a fallback to PCIe
-> only operation.
-> 
-> Dan's new infra is needed for CXL accelerator device drivers that need to
-> make decisions about enabling CXL dependent functionality in the device, or
-> falling back to PCIe-only operation.
-> 
-> During cxl_pci_probe() we call devm_cxl_add_memdev(struct cxl_memdev_ops *ops)
-> where function pointer as ops gets registered which gets called in cxl_mem_probe()
-> using cxlmd->ops->probe()
-> 
-> The probe callback runs after the port topology is successfully attached for
-> the given memdev.
-> 
-> So to use this infra we have to pass cxl_region_discovery() as ops parameter
-> of devm_cxl_add_memdev() getting called from cxl_pci_probe().
->  
-> In this patch-set cxl_region_discovery() signature is different from cxlmd->ops->probe()
-> 
->    {{{
->     void cxl_region_discovery(struct cxl_port *port)
->     {
->             device_for_each_child(&port->dev, NULL, discover_region);
->     }
-> 
->     struct cxl_memdev_ops {
->             int (*probe)(struct cxl_memdev *cxlmd);
->     };
->    }}}
-> 
-> Even after changing the signature of cxl_region_discovery() as per cxlmd->ops->probe()
-> may create problem as when the ops->probe() fails, then it will halts the probe sequence
-> of cxl_pci_probe()
-> 
-> It is because discover_region() may fail if two memdevs are participating into one region
+With this set, we aim to enable allocation of "special purpose memory"
+with the page allocator (mm/page_alloc.c) without exposing the same
+memory as "System RAM".  Unless a non-userland component, and does so
+with the GFP_SPM_NODE flag, memory on these nodes cannot be allocated.
 
-While discover_region() may fail, the return value is ignored. The current code disregards failures from device_for_each_child(). And also above, cxl_region_discovery() returns void. So I don't follow how ops->probe() would fail if we ignore errors from discover_region().
+This isolation mechanism is a requirement for memory policies which
+depend on certain sets of memory never being used outside special
+interfaces (such as a specific mm/component or driver).
 
-DJ
+We present an example of using this mechanism within ZSWAP, as-if
+a "compressed memory node" was present.  How to describe the features
+of memory present on nodes is left up to comment here and at LPC '26.
 
-> 
-> Also, region auto assembly is mandatory functionality which creates region
-> if (cxled->state == CXL_DECODER_STATE_AUTO) gets satisfied.
-> 
-> Currently region auto assembly (added by a32320b71f085) happens after successfull
-> enumeration of endpoint decoders at cxl_endpoint_port_probe(), which I have moved at
-> cxl_mem_probe() after devm_cxl_add_nvdimm() which prepares cxl_nvd infra required by it.
-> 
-> As discussed in [1], this patch-set does the movement of auto region assembly from
-> cxl_endpoint_port_probe() to cxl_mem_probe() and resolved the conflicting dependency
-> of cxl_nvd infra required by both region creation using LSA and auto region assembly.
-> 
-> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/commit/?h=for-6.18/cxl-probe-order&id=88aec5ea7a24da00dc92c7778df4851fe4fd3ec6 [2]: https://lore.kernel.org/linux-cxl/1931444790.41752909482841.JavaMail.epsvc@epcpadp2new/
-> 
-> Please let me know if my understanding is correct or I am missing something?
-> 
-> 
-> Regards,
-> Neeraj
-> 
->
+Userspace-driven allocations are restricted by the sysram_nodes mask,
+nothing in userspace can explicitly request memory from SPM nodes.
+
+Instead, the intent is to create new components which understand memory
+features and register those nodes with those components. This abstracts
+the hardware complexity away from userland while also not requiring new
+memory innovations to carry entirely new allocators.
+
+The ZSwap example demonstrates this with the `mt_spm_nodemask`.  This
+hack treats all spm nodes as-if they are compressed memory nodes, and
+we bypass the software compression logic in zswap in favor of simply
+copying memory directly to the allocated page.  In a real design
+
+There are 4 major changes in this set:
+
+1) Introducing mt_sysram_nodelist in mm/memory-tiers.c which denotes
+   the set of nodes which are eligible for use as normal system ram
+
+   Some existing users now pass mt_sysram_nodelist into the page
+   allocator instead of NULL, but passing a NULL pointer in will simply
+   have it replaced by mt_sysram_nodelist anyway.  Should a fully NULL
+   pointer still make it to the page allocator, without GFP_SPM_NODE
+   SPM node zones will simply be skipped.
+
+   mt_sysram_nodelist is always guaranteed to contain the N_MEMORY nodes
+   present during __init, but if empty the use of mt_sysram_nodes()
+   will return a NULL to preserve current behavior.
+
+
+2) The addition of `cpuset.mems.sysram` which restricts allocations to
+   `mt_sysram_nodes` unless GFP_SPM_NODE is used.
+
+   SPM Nodes are still allowed in cpuset.mems.allowed and effective.
+
+   This is done to allow separate control over sysram and SPM node sets
+   by cgroups while maintaining the existing hierarchical rules.
+
+   current cpuset configuration
+   cpuset.mems_allowed
+    |.mems_effective         < (mems_allowed ∩ parent.mems_effective)
+    |->tasks.mems_allowed    < cpuset.mems_effective
+
+   new cpuset configuration
+   cpuset.mems_allowed
+    |.mems_effective         < (mems_allowed ∩ parent.mems_effective)
+    |.sysram_nodes           < (mems_effective ∩ default_sys_nodemask)
+    |->task.sysram_nodes     < cpuset.sysram_nodes
+
+   This means mems_allowed still restricts all node usage in any given
+   task context, which is the existing behavior.
+
+3) Addition of MHP_SPM_NODE flag to instruct memory_hotplug.c that the
+   capacity being added should mark the node as an SPM Node. 
+
+   A node is either SysRAM or SPM - never both.  Attempting to add
+   incompatible memory to a node results in hotplug failure.
+
+   DAX and CXL are made aware of the bit and have `spm_node` bits added
+   to their relevant subsystems.
+
+4) Adding GFP_SPM_NODE - which allows page_alloc.c to request memory
+   from the provided node or nodemask.  It changes the behavior of
+   the cpuset mems_allowed and mt_node_allowed() checks.
+
+v1->v2:
+- naming improvements
+    default_node -> sysram_node
+    protected    -> spm (Specific Purpose Memory)
+- add missing constify patch
+- add patch to update callers of __cpuset_zone_allowed
+- add additional logic to the mm sysram_nodes patch
+- fix bot build issues (ifdef config builds)
+- fix out-of-tree driver build issues (function renames)
+- change compressed_nodelist to spm_nodelist
+- add latch mechanism for sysram/spm nodes (Dan Williams)
+  this drops some extra memory-hotplug logic which is nice
+v1: https://lore.kernel.org/linux-mm/20251107224956.477056-1-gourry@gourry.net/
+
+Gregory Price (11):
+  mm: constify oom_control, scan_control, and alloc_context nodemask
+  mm: change callers of __cpuset_zone_allowed to cpuset_zone_allowed
+  gfp: Add GFP_SPM_NODE for Specific Purpose Memory (SPM) allocations
+  memory-tiers: Introduce SysRAM and Specific Purpose Memory Nodes
+  mm: restrict slub, oom, compaction, and page_alloc to sysram by
+    default
+  mm,cpusets: rename task->mems_allowed to task->sysram_nodes
+  cpuset: introduce cpuset.mems.sysram
+  mm/memory_hotplug: add MHP_SPM_NODE flag
+  drivers/dax: add spm_node bit to dev_dax
+  drivers/cxl: add spm_node bit to cxl region
+  [HACK] mm/zswap: compressed ram integration example
+
+ drivers/cxl/core/region.c       |  30 ++++++
+ drivers/cxl/cxl.h               |   2 +
+ drivers/dax/bus.c               |  39 ++++++++
+ drivers/dax/bus.h               |   1 +
+ drivers/dax/cxl.c               |   1 +
+ drivers/dax/dax-private.h       |   1 +
+ drivers/dax/kmem.c              |   2 +
+ fs/proc/array.c                 |   2 +-
+ include/linux/cpuset.h          |  62 +++++++------
+ include/linux/gfp_types.h       |   5 +
+ include/linux/memory-tiers.h    |  47 ++++++++++
+ include/linux/memory_hotplug.h  |  10 ++
+ include/linux/mempolicy.h       |   2 +-
+ include/linux/mm.h              |   4 +-
+ include/linux/mmzone.h          |   6 +-
+ include/linux/oom.h             |   2 +-
+ include/linux/sched.h           |   6 +-
+ include/linux/swap.h            |   2 +-
+ init/init_task.c                |   2 +-
+ kernel/cgroup/cpuset-internal.h |   8 ++
+ kernel/cgroup/cpuset-v1.c       |   7 ++
+ kernel/cgroup/cpuset.c          | 158 ++++++++++++++++++++------------
+ kernel/fork.c                   |   2 +-
+ kernel/sched/fair.c             |   4 +-
+ mm/compaction.c                 |  10 +-
+ mm/hugetlb.c                    |   8 +-
+ mm/internal.h                   |   2 +-
+ mm/memcontrol.c                 |   3 +-
+ mm/memory-tiers.c               |  66 ++++++++++++-
+ mm/memory_hotplug.c             |   7 ++
+ mm/mempolicy.c                  |  34 +++----
+ mm/migrate.c                    |   4 +-
+ mm/mmzone.c                     |   5 +-
+ mm/oom_kill.c                   |  11 ++-
+ mm/page_alloc.c                 |  57 +++++++-----
+ mm/show_mem.c                   |  11 ++-
+ mm/slub.c                       |  15 ++-
+ mm/vmscan.c                     |   6 +-
+ mm/zswap.c                      |  66 ++++++++++++-
+ 39 files changed, 532 insertions(+), 178 deletions(-)
+
+-- 
+2.51.1
+
