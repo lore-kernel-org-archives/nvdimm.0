@@ -1,141 +1,108 @@
-Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80B1532F763
-	for <nvdimm@lists.linux.dev>; Thu, 13 Nov 2025 07:50:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B65F145A1F
+	for <nvdimm@lists.linux.dev>; Fri, 14 Nov 2025 12:25:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763020210; cv=none; b=YwWjwMru0wZEmgHepkm7WzEQju2kLr+qUwnAzTBk3amPrDTfYa0lDtGRVKxh3nj7ULrOZ/pm9Vh6sn0VNCMJagE7hVcaSc4aMJkq9hPzARg8p7naBLcAI6Kp2/9KeUCrQCDW3lvHUsLCmUz+wFDHE27VeBxPyftkrnZcyIHPxwk=
+	t=1763123104; cv=none; b=icMS8VhzVAIDQ2hZ4X1/y3+3Yw39BjEyr/z1R5p6SwiMCKxzJH2caMOkXkp8CWHC69PPUN8jO1J1sxzee7Utmn7FNGhdAZ0TU86vnBMAkIPNtO8R4JODkRL1/wB09pLVXIC6enfKbkf+EQdI3kea3Q0tmW0jpbis7XKqpOYjv4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763020210; c=relaxed/simple;
-	bh=rPpv0YpI1s5IrHKxhIrzkZ9tfhot0vKl5EEgO7jMoXw=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=K4GeU6kKYsxUrCCTIWbbq+RZI7f1NQ5AIab/i5ZKZ6ErHmnDQ2/DZE8CTrGQir676uFveNei2L3x1ZEXMzSIRL52zH0jU70djelG3Fybgimj6uLeMD+1tIG86iGWSLwxnUVjL7BbRuVCEaESQxCpDp4CLsOzj02a0noAuNbvADI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=A9l14zFZ; arc=none smtp.client-ip=203.254.224.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1763123104; c=relaxed/simple;
+	bh=D7DC5uL4Z2X8dZSOZq44ppvBWzR1P9VrOwHfckJIB74=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=t+rKFmZNUKBRNZICu/TjKCP4384nlxdKxCzsPMbdzWk+w4CBJx+DVLG6mZgBkMEa3gUuGZ2VPAqMfmvqvh1Zh5dOmOvZJ/tyyiUgg2GuGOTELeyfOo2rOKT84NikuMo/8k02N1gQkAw+UaBzNNY/5JKhSelzbwl6z2oG9RVRNtM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ba/pQdDU; arc=none smtp.client-ip=209.85.208.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="A9l14zFZ"
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
-	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20251113075002epoutp03ed3f9f753f1d130adfec881624a36c6f~3gYiBfUbt1120511205epoutp03D
-	for <nvdimm@lists.linux.dev>; Thu, 13 Nov 2025 07:50:02 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20251113075002epoutp03ed3f9f753f1d130adfec881624a36c6f~3gYiBfUbt1120511205epoutp03D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1763020202;
-	bh=rPpv0YpI1s5IrHKxhIrzkZ9tfhot0vKl5EEgO7jMoXw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=A9l14zFZuSkh+OidejInaqgr+qLiNd+IwX/OebIx1AoomckDymuGsivNFVyzMEwEE
-	 JSpmaW/oWo78pYwbzW5R0ws3qAspDdoj3sXsTWRSHOx+ipaBSxoHOIkeVTrc3C01kf
-	 ItnqK9I6WqBjgC2a/DoCJ+mazpcyG9U01k/sEP2M=
-Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20251113075002epcas5p2223c3bb7ed92c0b3dd1494dc7113ef43~3gYhvQe4-2564525645epcas5p2O;
-	Thu, 13 Nov 2025 07:50:02 +0000 (GMT)
-Received: from epcpadp1new (unknown [182.195.40.141]) by
-	epsnrtp04.localdomain (Postfix) with ESMTP id 4d6XVf0cddz6B9m6; Thu, 13 Nov
-	2025 07:50:02 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
-	20251113072717epcas5p22ac6aa251df5c33fadfe2c100ab833b1~3gEqdwnW62353123531epcas5p2U;
-	Thu, 13 Nov 2025 07:27:17 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20251113072715epsmtip1f93902a24349817692a96ba43c340c6c~3gEpFe0zQ2815128151epsmtip1S;
-	Thu, 13 Nov 2025 07:27:15 +0000 (GMT)
-Date: Thu, 13 Nov 2025 12:57:09 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
-	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
-	cpgs@samsung.com
-Subject: Re: [PATCH V3 13/20] cxl/mem: Refactor cxl pmem region
- auto-assembling
-Message-ID: <1983025922.01763020202072.JavaMail.epsvc@epcpadp1new>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ba/pQdDU"
+Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-643165976dcso6995a12.1
+        for <nvdimm@lists.linux.dev>; Fri, 14 Nov 2025 04:25:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1763123101; x=1763727901; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=CnqGkWyuyOdPpbsRCorGUws6JHDjFj9s2aEZUULAgcI=;
+        b=ba/pQdDUOoPbLRo5p3cU73jY5caqZhPm5TBmnax+awVXtSlGPTbO4wBh5PpDECD8xZ
+         LCJJk26rly2b4jcluiyQnXC9r+fscohxGKTJxCLZS2pY5NqM2+XRv8Kn34RlW3P5xa0o
+         TNayQ7VyYP9dkMRfibyRUfbKr/O75aiSLmV+na8fydoyh3e90fGVhUoLnhuwHoYqkyR4
+         WfajalHd8gX4Psv+P41CPW9gz2eky6HOYbxUUsnin9G8w2Zj/mnyfAcc0d2EOZoytOwE
+         MwDRWvnZb93RwxSQ9SjQvImO9sla0babITsAcTr14VS0WJgMUEstViyqrw25FZ5S36pG
+         yRCw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763123101; x=1763727901;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=CnqGkWyuyOdPpbsRCorGUws6JHDjFj9s2aEZUULAgcI=;
+        b=f5vyA0LJBWo7Px44TzkAu7rFkxtbVGdr9+vje7gw+fS/mX0P/y6TUNE4XF3wKv5Lx8
+         0W54CZhixxpVaq0itfQJgFZj6MwjWh+nbnaY0jH5PHGtGUttEkb/8RItn99SGVszqbtb
+         FnK+keW9sUFy367Lgc+HS1p7g+on5YR4UWXsJWiIi17tUOEXYtIejLc85AFLyXIzOJAN
+         8ZRsZklu4b3U0NZZuxiwBT4SFKnhR4gSpFwYjAx5DWRjUBFRmCoG1ASjfRL0FocIbA0j
+         cveO6s/eJZfKvjDZsM7kOdLG0Twg5bRiqsYCAF1olQJhV6dvepw6Sl5bQQXFbhy4Li3s
+         cS9g==
+X-Forwarded-Encrypted: i=1; AJvYcCX5/lDKG3IBcAknVS9iZe2KkeWLZfnnxn/uUdexfLJNuaC9BTJoHakRgEwzZFHydriFHCIEDaU=@lists.linux.dev
+X-Gm-Message-State: AOJu0YycJ6VExLn0iDbDo+MPj1f+XWWLQs95DS/ktLOK5JVOGWREF+dv
+	hK3Sse5J8CkUz77n/FNPHMizuZN0KjnHKEkUcO4gNve0mug5MyJZYj3Ld6wItuxcYcFlYiQSJ4n
+	YdHuG772GPmpipOft2rfFum+Z3oJXx/oXLmNZhafS
+X-Gm-Gg: ASbGncs7GCNyglAlFhEruBva9LJfBflAxzsfLpGPosxZ+Sy87dh1ttr9zSmLXrQRRpM
+	hT7+7bpU/OVhhCkrLS1OeuRctuJp+2TzSTI3o/PbDF3Pe8VbgmwHbL51Umb/DVCoB9FIA2rRDOd
+	cYgo3VbEvXGK1Qtf2VZa3N5yAKAquNd+1Fey9Pl38neJXs9qNASq8v0slXZubAVqgGl+t7b3gY7
+	rFadvxn29X/DnM6jbPrtXFMiltSXKt+VX5CaBtDmDO/BIWW+gd+SyC9XzDYKOYejqhTQwiTFC/a
+	cdHBDOnd7mBgED0dNZLMsfac2duTk2HmTaOn
+X-Google-Smtp-Source: AGHT+IH5irDABmMGZpAhpnUvlVYenFsVwXZ6X2xmt7hHD2N3QUeeQ21yBa4LfJ9O3U3wPXL+fECXsccLV9IYfniWJJI=
+X-Received: by 2002:aa7:c4d1:0:b0:624:45d0:4b33 with SMTP id
+ 4fb4d7f45d1cf-64355121feamr44767a12.7.1763123100641; Fri, 14 Nov 2025
+ 04:25:00 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <a204bc0e-1111-4ff9-a8d2-eeb8b7b9fe8d@intel.com>
-X-CMS-MailID: 20251113072717epcas5p22ac6aa251df5c33fadfe2c100ab833b1
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----DpLuDkH5jVwtRmV_no6S5rPRFid5ecuUEflgz2nUXUkLddKC=_bc0e0_"
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-X-Hop-Count: 3
-X-CMS-RootMailID: 20250917134157epcas5p1b30306bc8596b7b50548ddf3683c3b97
-References: <20250917134116.1623730-1-s.neeraj@samsung.com>
-	<CGME20250917134157epcas5p1b30306bc8596b7b50548ddf3683c3b97@epcas5p1.samsung.com>
-	<20250917134116.1623730-14-s.neeraj@samsung.com>
-	<c7b41eb6-b946-4ac0-9ddd-e75ba4ceb636@intel.com>
-	<1296674576.21759726502325.JavaMail.epsvc@epcpadp1new>
-	<361d0e84-9362-4389-a909-37878910b90f@intel.com>
-	<1983025922.01762749301758.JavaMail.epsvc@epcpadp1new>
-	<a204bc0e-1111-4ff9-a8d2-eeb8b7b9fe8d@intel.com>
+References: <20251024210518.2126504-1-mclapinski@google.com>
+In-Reply-To: <20251024210518.2126504-1-mclapinski@google.com>
+From: =?UTF-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>
+Date: Fri, 14 Nov 2025 13:24:49 +0100
+X-Gm-Features: AWmQ_bl8jW_docsBVraFMSwYLTTq5hk31EtHqWGFvt8QiGs4Z3vqGdZ08ivlenU
+Message-ID: <CAAi7L5dWCNiD2WOfowdaca09_i6Z2-8xFqatOpjPjA335puuVQ@mail.gmail.com>
+Subject: Re: [PATCH v3 0/5] dax: add PROBE_PREFER_ASYNCHRONOUS to all the dax drivers
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>, linux-kernel@vger.kernel.org, 
+	Ira Weiny <ira.weiny@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-------DpLuDkH5jVwtRmV_no6S5rPRFid5ecuUEflgz2nUXUkLddKC=_bc0e0_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
-
-On 12/11/25 08:55AM, Dave Jiang wrote:
+On Fri, Oct 24, 2025 at 11:05=E2=80=AFPM Michal Clapinski <mclapinski@googl=
+e.com> wrote:
 >
+> Comments in linux/device/driver.h say that the goal is to do async
+> probing on all devices. The current behavior unnecessarily slows down
+> the boot by synchronously probing dax devices, so let's change that.
+>
+> For thousands of devices, this change saves >1s of boot time.
+>
+> Michal Clapinski (5):
+>   dax: add PROBE_PREFER_ASYNCHRONOUS to the pmem driver
+>   dax: add PROBE_PREFER_ASYNCHRONOUS to the kmem driver
+>   dax: add PROBE_PREFER_ASYNCHRONOUS to the cxl driver
+>   dax: add PROBE_PREFER_ASYNCHRONOUS to the hmem drivers
+>   dax: add PROBE_PREFER_ASYNCHRONOUS to the dax device driver
+>
+>  drivers/dax/cxl.c       | 1 +
+>  drivers/dax/device.c    | 3 +++
+>  drivers/dax/hmem/hmem.c | 2 ++
+>  drivers/dax/kmem.c      | 3 +++
+>  drivers/dax/pmem.c      | 1 +
+>  5 files changed, 10 insertions(+)
+>
+> --
+> 2.51.1.821.gb6fe4d2222-goog
 >
 
-<snip>
++Ira (you're not listed as a maintainer of drivers/dax/ in the MAINTAINERS =
+file)
 
->> During cxl_pci_probe() we call devm_cxl_add_memdev(struct cxl_memdev_ops *ops)
->> where function pointer as ops gets registered which gets called in cxl_mem_probe()
->> using cxlmd->ops->probe()
->>
->> The probe callback runs after the port topology is successfully attached for
->> the given memdev.
->>
->> So to use this infra we have to pass cxl_region_discovery() as ops parameter
->> of devm_cxl_add_memdev() getting called from cxl_pci_probe().
->>  
->> In this patch-set cxl_region_discovery() signature is different from cxlmd->ops->probe()
->>
->>    {{{
->>     void cxl_region_discovery(struct cxl_port *port)
->>     {
->>             device_for_each_child(&port->dev, NULL, discover_region);
->>     }
->>
->>     struct cxl_memdev_ops {
->>             int (*probe)(struct cxl_memdev *cxlmd);
->>     };
->>    }}}
->>
->> Even after changing the signature of cxl_region_discovery() as per cxlmd->ops->probe()
->> may create problem as when the ops->probe() fails, then it will halts the probe sequence
->> of cxl_pci_probe()
->>
->> It is because discover_region() may fail if two memdevs are participating into one region
->
->While discover_region() may fail, the return value is ignored. The current code disregards failures from device_for_each_child(). And also above, cxl_region_discovery() returns void. So I don't follow how ops->probe() would fail if we ignore errors from discover_region().
->
->DJ
-
-Hi Dave,
-
-Yes, you are correct. We can just change signature of cxl_region_discovery() as per
-cxlmd->ops->probe(), anyway we are ignoring errors from discover_region().
-With this change we can directly register cxl_region_discovery() with
-devm_cxl_add_memdev(struct cxl_memdev_ops *ops) during pci_probe() using Dan's Infra.
-
-I will use this new infra for region auto-assembling and share the v4 series shortly.
-
-
-Regards,
-Neeraj
-
-------DpLuDkH5jVwtRmV_no6S5rPRFid5ecuUEflgz2nUXUkLddKC=_bc0e0_
-Content-Type: text/plain; charset="utf-8"
-
-
-------DpLuDkH5jVwtRmV_no6S5rPRFid5ecuUEflgz2nUXUkLddKC=_bc0e0_--
-
+Is there anything else required from my side or can this be merged?
