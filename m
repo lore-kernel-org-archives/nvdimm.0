@@ -1,58 +1,57 @@
-Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
+Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1B1E2D9EFB
-	for <nvdimm@lists.linux.dev>; Wed, 19 Nov 2025 07:53:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 233D92E0927
+	for <nvdimm@lists.linux.dev>; Wed, 19 Nov 2025 07:53:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763538799; cv=none; b=WSwVlmrRao5WUtQSuGF2FvPUji6yMR9mUSpSpTt7LyRCTF9huCZabYGVivzef7AgG+Jfa+EMSiN4paLQL1L+8akwBN7YVdR0N+8jRrIdWv6Zniv9eDXtc74G3abJn101gdaJEQK3jTA593MJ3zsOIXjYSDB+NhOWyYjLNqTo+GU=
+	t=1763538800; cv=none; b=I75RqXvaNROwzg8/41WfEpLWNmIL6UFTiO2cEkxz50T5wXPGyY4J6gaJDWnBKTEvL8xrchTpCAszB+veS56Tmky4vVCiiF6GPk7xw2yBR4RF7f574rVtWtHqzNb+u9eczHKOkwjN9M0mR6KF8PE4eCN1xz7sCR+6DU7qGVQji24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763538799; c=relaxed/simple;
-	bh=fljmTRcrPwyCRxBUrfkV3a7vXAxFW8thJBz/EBDNK2M=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:MIME-Version:
-	 Content-Type:References; b=cMW/HgR6x4qQVc/5gWxC7FYxMjR0jLmbmxHx9yG6nktNlFEv0MTsfl2iR9fKT6DmbT10YDw+Gt5wZGVTj0LVJaL96B51o81578npohCBxIVZniduEhI6E5TvxiOTj5jWg5bhiL0abI+JNyHxzHZJrwQd8D9fOo+LAxNT3i+iqTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=u4txUZtU; arc=none smtp.client-ip=203.254.224.33
+	s=arc-20240116; t=1763538800; c=relaxed/simple;
+	bh=OoCL1vidC1ntP9kYRf1m8AIPcicVLQBDHrkJGLprSns=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type:
+	 References; b=d+V0uvc9iRuhUnFvRDLbbl8YC7sqt+85Gz7vOh29KOoiaWcfbD5FxKSmw0jAuEK9Wls3wK481Soz1Sq7CWNUIUjADAvmx8HwIg1rhKE7DKaLWCpTdubSym2DAvhGdIl/zi214Mr7YUwb3Vu5XgkzB0WWN6OiYfKzFVXa9NiBlTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=NHveG0Gp; arc=none smtp.client-ip=203.254.224.24
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="u4txUZtU"
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20251119075313epoutp03d080eb0038c364c14bedca37fe60f602~5WTBge8GM3019930199epoutp03d
-	for <nvdimm@lists.linux.dev>; Wed, 19 Nov 2025 07:53:13 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20251119075313epoutp03d080eb0038c364c14bedca37fe60f602~5WTBge8GM3019930199epoutp03d
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="NHveG0Gp"
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20251119075309epoutp0128e8051b4a980fbf77906ea6bca7c2d9~5WS9ay6dR0084400844epoutp01G
+	for <nvdimm@lists.linux.dev>; Wed, 19 Nov 2025 07:53:09 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20251119075309epoutp0128e8051b4a980fbf77906ea6bca7c2d9~5WS9ay6dR0084400844epoutp01G
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1763538793;
-	bh=WsBTiypWECecOfnMGFc+3wSFBkG6XUMQfj1GvbwkftA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=u4txUZtUl792A4GcP92DRQ8Zu9QxgEs8+d8oB71dHiHgeOTvtlC5YdGvEKQ9L6hd8
-	 c7Ldy2aWDkG3PxJtWhrbwmG6eW8U48wNdwGccDplwfKGYhRi/16ukF3bwn5lWArTkA
-	 I06TfbCIvdOgIvfdC6h9CRLVmJ5XDyHOGdwNHDEc=
-Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20251119075312epcas5p2fc463f3767aeaccd97cce053530dd955~5WTA8MPss0912909129epcas5p2q;
-	Wed, 19 Nov 2025 07:53:12 +0000 (GMT)
-Received: from epcas5p3.samsung.com (unknown [182.195.38.90]) by
-	epsnrtp03.localdomain (Postfix) with ESMTP id 4dBDHW59Cgz3hhT4; Wed, 19 Nov
-	2025 07:53:11 +0000 (GMT)
+	s=mail20170921; t=1763538789;
+	bh=uuYvamklocyJ1nt6pfnCiZclsSZY1+fnIhhnYcUECwE=;
+	h=From:To:Cc:Subject:Date:References:From;
+	b=NHveG0GpTjnytAzQ0GeNt7Uo/sbb8yrKinrpGxBhMErNwYe04svIc2nn+MiTvifIo
+	 hQJNQqXbfD34tDFSIxucVlFDtq6/gDQWnArBCU0QwsbhoxW2kmysg/uS8RZvSx1S8G
+	 HeD81eI1IU6V8110gLah+s86OEnXphHLh40JEJms=
+Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
+	epcas5p1.samsung.com (KnoxPortal) with ESMTPS id
+	20251119075308epcas5p1363d19d3781b21ec66dc9207f0bfaffb~5WS9G1Gin3162631626epcas5p1A;
+	Wed, 19 Nov 2025 07:53:08 +0000 (GMT)
+Received: from epcas5p2.samsung.com (unknown [182.195.38.95]) by
+	epsnrtp01.localdomain (Postfix) with ESMTP id 4dBDHR2bQDz6B9mN; Wed, 19 Nov
+	2025 07:53:07 +0000 (GMT)
 Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPA id
-	20251119075311epcas5p1af6f86ca65fd4a8452979e861b87a841~5WS-eR5Br1599915999epcas5p1N;
-	Wed, 19 Nov 2025 07:53:11 +0000 (GMT)
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
+	20251119075306epcas5p22a87515de65a3c668275b394cdea83b0~5WS65--3F0870808708epcas5p2t;
+	Wed, 19 Nov 2025 07:53:06 +0000 (GMT)
 Received: from test-PowerEdge-R740xd.samsungds.net (unknown [107.99.41.79])
 	by epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20251119075309epsmtip170bd564a375b01a9533016ef774c97f6~5WS9_QIjC2566025660epsmtip1A;
-	Wed, 19 Nov 2025 07:53:09 +0000 (GMT)
+	20251119075305epsmtip15da946aa7a10f362be19e9dbf13ae1f5~5WS5xQKv92565625656epsmtip1_;
+	Wed, 19 Nov 2025 07:53:04 +0000 (GMT)
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com
 Cc: a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	Neeraj Kumar <s.neeraj@samsung.com>
-Subject: [PATCH V4 03/17] nvdimm/label: Add namespace/region label support
- as per LSA 2.1
-Date: Wed, 19 Nov 2025 13:22:41 +0530
-Message-Id: <20251119075255.2637388-4-s.neeraj@samsung.com>
+Subject: [PATCH V4 00/17] Add CXL LSA 2.1 format support in nvdimm and cxl
+ pmem
+Date: Wed, 19 Nov 2025 13:22:38 +0530
+Message-Id: <20251119075255.2637388-1-s.neeraj@samsung.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20251119075255.2637388-1-s.neeraj@samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -60,773 +59,472 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CMS-MailID: 20251119075311epcas5p1af6f86ca65fd4a8452979e861b87a841
+X-CMS-MailID: 20251119075306epcas5p22a87515de65a3c668275b394cdea83b0
 X-Msg-Generator: CA
 Content-Type: text/plain; charset="utf-8"
 CMS-TYPE: 105P
 cpgsPolicy: CPGSC10-542,Y
 X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20251119075311epcas5p1af6f86ca65fd4a8452979e861b87a841
-References: <20251119075255.2637388-1-s.neeraj@samsung.com>
-	<CGME20251119075311epcas5p1af6f86ca65fd4a8452979e861b87a841@epcas5p1.samsung.com>
+X-CMS-RootMailID: 20251119075306epcas5p22a87515de65a3c668275b394cdea83b0
+References: <CGME20251119075306epcas5p22a87515de65a3c668275b394cdea83b0@epcas5p2.samsung.com>
 
-Modify __pmem_label_update() to update region labels into LSA
+Introduction:
+=============
+CXL Persistent Memory (Pmem) devices region, namespace and content must be
+persistent across system reboot. In order to achieve this persistency, it
+uses Label Storage Area (LSA) to store respective metadata. During system
+reboot, stored metadata in LSA is used to bring back the region, namespace
+and content of CXL device in its previous state.
+CXL specification provides Get_LSA (4102h) and Set_LSA (4103h) mailbox
+commands to access the LSA area. nvdimm driver is using same commands to
+get/set LSA data.
 
-CXL 3.2 Spec mentions CXL LSA 2.1 Namespace Labels at section 9.13.2.5
-Modified __pmem_label_update() using setter functions to update
-namespace label as per CXL LSA 2.1
+There are three types of LSA format and these are part of following
+specifications: 
+ - v1.1: https://pmem.io/documents/NVDIMM_Namespace_Spec.pdf
+ - v1.2: https://uefi.org/sites/default/files/resources/UEFI_Spec_2_7.pdf
+ - v2.1: https://computeexpresslink.org/wp-content/uploads/2024/02/CXL-2.0-Specification.pdf
 
-Create export routine nd_region_label_update() used for creating
-region label into LSA. It will be used later from CXL subsystem
+Basic differences between these LSA formats:
+ - v1.1: Support Namespace persistency. Size of Namespace Label is 128 bytes
+ - v1.2: Support Namespace persistency. Size of Namespace Label is 256 bytes
+ - v2.1: Support Namespace and Region persistency. Size of Namespace and
+   Region Label is 256 bytes.
 
-Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
----
- drivers/nvdimm/label.c          | 360 ++++++++++++++++++++++++++------
- drivers/nvdimm/label.h          |  17 +-
- drivers/nvdimm/namespace_devs.c |  25 ++-
- drivers/nvdimm/nd.h             |  66 ++++++
- include/linux/libnvdimm.h       |   8 +
- 5 files changed, 406 insertions(+), 70 deletions(-)
+Linux nvdimm driver supports only v1.1 and v1.2 LSA format. CXL pmem device
+require support of LSA v2.1 format for region and namespace persistency.
+Initial support of LSA 2.1 was add in [1].
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 0a9b6c5cb2c3..0d587a5b9f7e 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -22,8 +22,8 @@ static uuid_t nvdimm_btt2_uuid;
- static uuid_t nvdimm_pfn_uuid;
- static uuid_t nvdimm_dax_uuid;
- 
--static uuid_t cxl_region_uuid;
--static uuid_t cxl_namespace_uuid;
-+uuid_t cxl_region_uuid;
-+uuid_t cxl_namespace_uuid;
- 
- static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
- 
-@@ -278,15 +278,38 @@ static struct nd_namespace_label *nd_label_base(struct nvdimm_drvdata *ndd)
- 	return base + 2 * sizeof_namespace_index(ndd);
- }
- 
-+static unsigned long find_slot(struct nvdimm_drvdata *ndd,
-+			       unsigned long label)
-+{
-+	unsigned long base;
-+
-+	base = (unsigned long) nd_label_base(ndd);
-+	return (label - base) / sizeof_namespace_label(ndd);
-+}
-+
-+static int to_lsa_slot(struct nvdimm_drvdata *ndd,
-+		       union nd_lsa_label *lsa_label)
-+{
-+	return find_slot(ndd, (unsigned long) lsa_label);
-+}
-+
- static int to_slot(struct nvdimm_drvdata *ndd,
--		struct nd_namespace_label *nd_label)
-+		   struct nd_label_ent *label_ent)
-+{
-+	if (uuid_equal(&cxl_region_uuid, &label_ent->label_uuid))
-+		return find_slot(ndd, (unsigned long) label_ent->region_label);
-+	else
-+		return find_slot(ndd, (unsigned long) label_ent->label);
-+}
-+
-+static union nd_lsa_label *to_lsa_label(struct nvdimm_drvdata *ndd, int slot)
- {
- 	unsigned long label, base;
- 
--	label = (unsigned long) nd_label;
- 	base = (unsigned long) nd_label_base(ndd);
-+	label = base + sizeof_namespace_label(ndd) * slot;
- 
--	return (label - base) / sizeof_namespace_label(ndd);
-+	return (union nd_lsa_label *) label;
- }
- 
- static struct nd_namespace_label *to_label(struct nvdimm_drvdata *ndd, int slot)
-@@ -381,6 +404,16 @@ static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
- 	nsl_set_checksum(ndd, nd_label, sum);
- }
- 
-+static void region_label_calculate_checksum(struct nvdimm_drvdata *ndd,
-+				   struct cxl_region_label *region_label)
-+{
-+	u64 sum;
-+
-+	region_label_set_checksum(region_label, 0);
-+	sum = nd_fletcher64(region_label, sizeof_namespace_label(ndd), 1);
-+	region_label_set_checksum(region_label, sum);
-+}
-+
- static bool slot_valid(struct nvdimm_drvdata *ndd,
- 		struct nd_namespace_label *nd_label, u32 slot)
- {
-@@ -584,7 +617,7 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
- 	return count;
- }
- 
--struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
-+union nd_lsa_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
- {
- 	struct nd_namespace_index *nsindex;
- 	unsigned long *free;
-@@ -601,7 +634,7 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
- 			continue;
- 
- 		if (n-- == 0)
--			return to_label(ndd, slot);
-+			return to_lsa_label(ndd, slot);
- 	}
- 
- 	return NULL;
-@@ -737,9 +770,9 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
- }
- 
- static unsigned long nd_label_offset(struct nvdimm_drvdata *ndd,
--		struct nd_namespace_label *nd_label)
-+		union nd_lsa_label *lsa_label)
- {
--	return (unsigned long) nd_label
-+	return (unsigned long) lsa_label
- 		- (unsigned long) to_namespace_index(ndd, 0);
- }
- 
-@@ -823,11 +856,15 @@ static void reap_victim(struct nd_mapping *nd_mapping,
- 		struct nd_label_ent *victim)
- {
- 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
--	u32 slot = to_slot(ndd, victim->label);
-+	u32 slot = to_slot(ndd, victim);
- 
- 	dev_dbg(ndd->dev, "free: %d\n", slot);
- 	nd_label_free_slot(ndd, slot);
--	victim->label = NULL;
-+
-+	if (uuid_equal(&cxl_region_uuid, &victim->label_uuid))
-+		victim->region_label = NULL;
-+	else
-+		victim->label = NULL;
- }
- 
- static void nsl_set_type_guid(struct nvdimm_drvdata *ndd,
-@@ -884,26 +921,20 @@ enum nvdimm_claim_class nsl_get_claim_class(struct nvdimm_drvdata *ndd,
- 	return guid_to_nvdimm_cclass(&nd_label->efi.abstraction_guid);
- }
- 
--static int __pmem_label_update(struct nd_region *nd_region,
--		struct nd_mapping *nd_mapping, struct nd_namespace_pmem *nspm,
--		int pos, unsigned long flags)
-+static int namespace_label_update(struct nd_region *nd_region,
-+				  struct nd_mapping *nd_mapping,
-+				  struct nd_namespace_pmem *nspm,
-+				  int pos, u64 flags,
-+				  struct nd_namespace_label *ns_label,
-+				  struct nd_namespace_index *nsindex,
-+				  u32 slot)
- {
- 	struct nd_namespace_common *ndns = &nspm->nsio.common;
- 	struct nd_interleave_set *nd_set = nd_region->nd_set;
- 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
--	struct nd_namespace_label *nd_label;
--	struct nd_namespace_index *nsindex;
--	struct nd_label_ent *label_ent;
- 	struct nd_label_id label_id;
- 	struct resource *res;
--	unsigned long *free;
--	u32 nslot, slot;
--	size_t offset;
- 	u64 cookie;
--	int rc;
--
--	if (!preamble_next(ndd, &nsindex, &free, &nslot))
--		return -ENXIO;
- 
- 	cookie = nd_region_interleave_set_cookie(nd_region, nsindex);
- 	nd_label_gen_id(&label_id, nspm->uuid, 0);
-@@ -916,33 +947,150 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 		return -ENXIO;
- 	}
- 
-+	nsl_set_type(ndd, ns_label);
-+	nsl_set_uuid(ndd, ns_label, nspm->uuid);
-+	nsl_set_name(ndd, ns_label, nspm->alt_name);
-+	nsl_set_flags(ndd, ns_label, flags);
-+	nsl_set_nlabel(ndd, ns_label, nd_region->ndr_mappings);
-+	nsl_set_nrange(ndd, ns_label, 1);
-+	nsl_set_position(ndd, ns_label, pos);
-+	nsl_set_isetcookie(ndd, ns_label, cookie);
-+	nsl_set_rawsize(ndd, ns_label, resource_size(res));
-+	nsl_set_lbasize(ndd, ns_label, nspm->lbasize);
-+	nsl_set_dpa(ndd, ns_label, res->start);
-+	nsl_set_slot(ndd, ns_label, slot);
-+	nsl_set_alignment(ndd, ns_label, 0);
-+	nsl_set_type_guid(ndd, ns_label, &nd_set->type_guid);
-+	nsl_set_region_uuid(ndd, ns_label, &nd_set->uuid);
-+	nsl_set_claim_class(ndd, ns_label, ndns->claim_class);
-+	nsl_calculate_checksum(ndd, ns_label);
-+	nd_dbg_dpa(nd_region, ndd, res, "\n");
-+
-+	return 0;
-+}
-+
-+static void region_label_update(struct nd_region *nd_region,
-+				struct cxl_region_label *region_label,
-+				struct nd_mapping *nd_mapping,
-+				int pos, u64 flags, u32 slot)
-+{
-+	struct nd_interleave_set *nd_set = nd_region->nd_set;
-+	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+
-+	/* Set Region Label Format identification UUID */
-+	uuid_copy((uuid_t *)region_label->type, &cxl_region_uuid);
-+
-+	/* Set Current Region Label UUID */
-+	export_uuid(region_label->uuid, &nd_set->uuid);
-+
-+	region_label->flags = __cpu_to_le32(flags);
-+	region_label->nlabel = __cpu_to_le16(nd_region->ndr_mappings);
-+	region_label->position = __cpu_to_le16(pos);
-+	region_label->dpa = __cpu_to_le64(nd_mapping->start);
-+	region_label->rawsize = __cpu_to_le64(nd_mapping->size);
-+	region_label->hpa = __cpu_to_le64(nd_set->res->start);
-+	region_label->slot = __cpu_to_le32(slot);
-+	region_label->ig = __cpu_to_le32(nd_set->interleave_granularity);
-+	region_label->align = __cpu_to_le32(0);
-+
-+	/* Update fletcher64 Checksum */
-+	region_label_calculate_checksum(ndd, region_label);
-+}
-+
-+static bool is_label_reapable(struct nd_interleave_set *nd_set,
-+			       struct nd_namespace_pmem *nspm,
-+			       struct nvdimm_drvdata *ndd,
-+			       struct nd_label_ent *label_ent,
-+			       enum label_type ltype,
-+			       unsigned long *flags)
-+{
-+	switch (ltype) {
-+	case NS_LABEL_TYPE:
-+		if (test_and_clear_bit(ND_LABEL_REAP, flags) ||
-+		    nsl_uuid_equal(ndd, label_ent->label, nspm->uuid))
-+			return true;
-+
-+		break;
-+	case RG_LABEL_TYPE:
-+		if (region_label_uuid_equal(label_ent->region_label,
-+		    &nd_set->uuid))
-+			return true;
-+
-+		break;
-+	}
-+
-+	return false;
-+}
-+
-+static bool is_label_present(struct nd_label_ent *label_ent,
-+			     enum label_type ltype)
-+{
-+	switch (ltype) {
-+	case NS_LABEL_TYPE:
-+		if (label_ent->label)
-+			return true;
-+
-+		break;
-+	case RG_LABEL_TYPE:
-+		if (label_ent->region_label)
-+			return true;
-+
-+		break;
-+	}
-+
-+	return false;
-+}
-+
-+static int __pmem_label_update(struct nd_region *nd_region,
-+			       struct nd_mapping *nd_mapping,
-+			       struct nd_namespace_pmem *nspm,
-+			       int pos, unsigned long flags,
-+			       enum label_type ltype)
-+{
-+	struct nd_interleave_set *nd_set = nd_region->nd_set;
-+	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+	struct nd_namespace_index *nsindex;
-+	struct nd_label_ent *label_ent;
-+	union nd_lsa_label *lsa_label;
-+	unsigned long *free;
-+	struct device *dev;
-+	u32 nslot, slot;
-+	size_t offset;
-+	int rc;
-+
-+	if (!preamble_next(ndd, &nsindex, &free, &nslot))
-+		return -ENXIO;
-+
- 	/* allocate and write the label to the staging (next) index */
- 	slot = nd_label_alloc_slot(ndd);
- 	if (slot == UINT_MAX)
- 		return -ENXIO;
- 	dev_dbg(ndd->dev, "allocated: %d\n", slot);
- 
--	nd_label = to_label(ndd, slot);
--	memset(nd_label, 0, sizeof_namespace_label(ndd));
--	nsl_set_uuid(ndd, nd_label, nspm->uuid);
--	nsl_set_name(ndd, nd_label, nspm->alt_name);
--	nsl_set_flags(ndd, nd_label, flags);
--	nsl_set_nlabel(ndd, nd_label, nd_region->ndr_mappings);
--	nsl_set_nrange(ndd, nd_label, 1);
--	nsl_set_position(ndd, nd_label, pos);
--	nsl_set_isetcookie(ndd, nd_label, cookie);
--	nsl_set_rawsize(ndd, nd_label, resource_size(res));
--	nsl_set_lbasize(ndd, nd_label, nspm->lbasize);
--	nsl_set_dpa(ndd, nd_label, res->start);
--	nsl_set_slot(ndd, nd_label, slot);
--	nsl_set_type_guid(ndd, nd_label, &nd_set->type_guid);
--	nsl_set_claim_class(ndd, nd_label, ndns->claim_class);
--	nsl_calculate_checksum(ndd, nd_label);
--	nd_dbg_dpa(nd_region, ndd, res, "\n");
-+	lsa_label = to_lsa_label(ndd, slot);
-+	memset(lsa_label, 0, sizeof_namespace_label(ndd));
-+
-+	switch (ltype) {
-+	case NS_LABEL_TYPE:
-+		dev = &nspm->nsio.common.dev;
-+		rc = namespace_label_update(nd_region, nd_mapping,
-+				nspm, pos, flags, &lsa_label->ns_label,
-+				nsindex, slot);
-+		if (rc)
-+			return rc;
-+
-+		break;
-+	case RG_LABEL_TYPE:
-+		dev = &nd_region->dev;
-+		region_label_update(nd_region, &lsa_label->region_label,
-+				    nd_mapping, pos, flags, slot);
-+
-+		break;
-+	}
- 
- 	/* update label */
--	offset = nd_label_offset(ndd, nd_label);
--	rc = nvdimm_set_config_data(ndd, offset, nd_label,
-+	offset = nd_label_offset(ndd, lsa_label);
-+	rc = nvdimm_set_config_data(ndd, offset, lsa_label,
- 			sizeof_namespace_label(ndd));
- 	if (rc < 0)
- 		return rc;
-@@ -950,10 +1098,11 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	/* Garbage collect the previous label */
- 	mutex_lock(&nd_mapping->lock);
- 	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
--		if (!label_ent->label)
-+		if (!is_label_present(label_ent, ltype))
- 			continue;
--		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags) ||
--		    nsl_uuid_equal(ndd, label_ent->label, nspm->uuid))
-+
-+		if (is_label_reapable(nd_set, nspm, ndd, label_ent, ltype,
-+				      &label_ent->flags))
- 			reap_victim(nd_mapping, label_ent);
- 	}
- 
-@@ -961,16 +1110,21 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	rc = nd_label_write_index(ndd, ndd->ns_next,
- 			nd_inc_seq(__le32_to_cpu(nsindex->seq)), 0);
- 	if (rc == 0) {
--		list_for_each_entry(label_ent, &nd_mapping->labels, list)
--			if (!label_ent->label) {
--				label_ent->label = nd_label;
--				nd_label = NULL;
--				break;
--			}
--		dev_WARN_ONCE(&nspm->nsio.common.dev, nd_label,
--				"failed to track label: %d\n",
--				to_slot(ndd, nd_label));
--		if (nd_label)
-+		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
-+			if (is_label_present(label_ent, ltype))
-+				continue;
-+
-+			if (ltype == NS_LABEL_TYPE)
-+				label_ent->label = &lsa_label->ns_label;
-+			else
-+				label_ent->region_label = &lsa_label->region_label;
-+
-+			lsa_label = NULL;
-+			break;
-+		}
-+		dev_WARN_ONCE(dev, lsa_label, "failed to track label: %d\n",
-+			      to_lsa_slot(ndd, lsa_label));
-+		if (lsa_label)
- 			rc = -ENXIO;
- 	}
- 	mutex_unlock(&nd_mapping->lock);
-@@ -978,7 +1132,8 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	return rc;
- }
- 
--static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
-+static int init_labels(struct nd_mapping *nd_mapping, int num_labels,
-+		       enum label_type ltype)
- {
- 	int i, old_num_labels = 0;
- 	struct nd_label_ent *label_ent;
-@@ -998,6 +1153,16 @@ static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
- 		label_ent = kzalloc(sizeof(*label_ent), GFP_KERNEL);
- 		if (!label_ent)
- 			return -ENOMEM;
-+
-+		switch (ltype) {
-+		case NS_LABEL_TYPE:
-+			uuid_copy(&label_ent->label_uuid, &cxl_namespace_uuid);
-+			break;
-+		case RG_LABEL_TYPE:
-+			uuid_copy(&label_ent->label_uuid, &cxl_region_uuid);
-+			break;
-+		}
-+
- 		mutex_lock(&nd_mapping->lock);
- 		list_add_tail(&label_ent->list, &nd_mapping->labels);
- 		mutex_unlock(&nd_mapping->lock);
-@@ -1041,19 +1206,19 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
- 
- 	mutex_lock(&nd_mapping->lock);
- 	list_for_each_entry_safe(label_ent, e, &nd_mapping->labels, list) {
--		struct nd_namespace_label *nd_label = label_ent->label;
--
--		if (!nd_label)
-+		if (label_ent->label)
- 			continue;
- 		active++;
--		if (!nsl_uuid_equal(ndd, nd_label, uuid))
-+		if (!nsl_uuid_equal(ndd, label_ent->label, uuid))
- 			continue;
- 		active--;
--		slot = to_slot(ndd, nd_label);
-+		slot = to_slot(ndd, label_ent);
- 		nd_label_free_slot(ndd, slot);
- 		dev_dbg(ndd->dev, "free: %d\n", slot);
- 		list_move_tail(&label_ent->list, &list);
--		label_ent->label = NULL;
-+
-+		if (uuid_equal(&cxl_namespace_uuid, &label_ent->label_uuid))
-+			label_ent->label = NULL;
- 	}
- 	list_splice_tail_init(&list, &nd_mapping->labels);
- 
-@@ -1067,6 +1232,19 @@ static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
- 			nd_inc_seq(__le32_to_cpu(nsindex->seq)), 0);
- }
- 
-+static int find_region_label_count(struct nd_mapping *nd_mapping)
-+{
-+	struct nd_label_ent *label_ent;
-+	int region_label_cnt = 0;
-+
-+	guard(mutex)(&nd_mapping->lock);
-+	list_for_each_entry(label_ent, &nd_mapping->labels, list)
-+		if (uuid_equal(&cxl_region_uuid, &label_ent->label_uuid))
-+			region_label_cnt++;
-+
-+	return region_label_cnt;
-+}
-+
- int nd_pmem_namespace_label_update(struct nd_region *nd_region,
- 		struct nd_namespace_pmem *nspm, resource_size_t size)
- {
-@@ -1075,6 +1253,7 @@ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
- 	for (i = 0; i < nd_region->ndr_mappings; i++) {
- 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+		int region_label_cnt = 0;
- 		struct resource *res;
- 		int count = 0;
- 
-@@ -1090,12 +1269,20 @@ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
- 				count++;
- 		WARN_ON_ONCE(!count);
- 
--		rc = init_labels(nd_mapping, count);
-+		region_label_cnt = find_region_label_count(nd_mapping);
-+		/*
-+		 * init_labels() scan labels and allocate new label based
-+		 * on its second parameter (num_labels). Therefore to
-+		 * allocate new namespace label also include previously
-+		 * added region label
-+		 */
-+		rc = init_labels(nd_mapping, count + region_label_cnt,
-+				 NS_LABEL_TYPE);
- 		if (rc < 0)
- 			return rc;
- 
- 		rc = __pmem_label_update(nd_region, nd_mapping, nspm, i,
--				NSLABEL_FLAG_UPDATING);
-+				NSLABEL_FLAG_UPDATING, NS_LABEL_TYPE);
- 		if (rc)
- 			return rc;
- 	}
-@@ -1107,7 +1294,48 @@ int nd_pmem_namespace_label_update(struct nd_region *nd_region,
- 	for (i = 0; i < nd_region->ndr_mappings; i++) {
- 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 
--		rc = __pmem_label_update(nd_region, nd_mapping, nspm, i, 0);
-+		rc = __pmem_label_update(nd_region, nd_mapping, nspm, i, 0,
-+				NS_LABEL_TYPE);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+int nd_pmem_region_label_update(struct nd_region *nd_region)
-+{
-+	int i, rc;
-+
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+		int region_label_cnt = 0;
-+
-+		/* No need to update region label for non cxl format */
-+		if (!ndd->cxl)
-+			return 0;
-+
-+		region_label_cnt = find_region_label_count(nd_mapping);
-+		rc = init_labels(nd_mapping, region_label_cnt + 1,
-+				 RG_LABEL_TYPE);
-+		if (rc < 0)
-+			return rc;
-+
-+		rc = __pmem_label_update(nd_region, nd_mapping, NULL, i,
-+				NSLABEL_FLAG_UPDATING, RG_LABEL_TYPE);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	/* Clear the UPDATING flag per UEFI 2.7 expectations */
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+
-+		WARN_ON_ONCE(!ndd->cxl);
-+		rc = __pmem_label_update(nd_region, nd_mapping, NULL, i, 0,
-+				RG_LABEL_TYPE);
- 		if (rc)
- 			return rc;
- 	}
-diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-index 0650fb4b9821..f11f54056353 100644
---- a/drivers/nvdimm/label.h
-+++ b/drivers/nvdimm/label.h
-@@ -30,6 +30,11 @@ enum {
- 	ND_NSINDEX_INIT = 0x1,
- };
- 
-+enum label_type {
-+	RG_LABEL_TYPE,
-+	NS_LABEL_TYPE,
-+};
-+
- /**
-  * struct nd_namespace_index - label set superblock
-  * @sig: NAMESPACE_INDEX\0
-@@ -183,6 +188,15 @@ struct nd_namespace_label {
- 	};
- };
- 
-+/*
-+ * LSA 2.1 format introduces region label, which can also reside
-+ * into LSA along with only namespace label as per v1.1 and v1.2
-+ */
-+union nd_lsa_label {
-+	struct nd_namespace_label ns_label;
-+	struct cxl_region_label region_label;
-+};
-+
- #define NVDIMM_BTT_GUID "8aed63a2-29a2-4c66-8b12-f05d15d3922a"
- #define NVDIMM_BTT2_GUID "18633bfc-1735-4217-8ac9-17239282d3f8"
- #define NVDIMM_PFN_GUID "266400ba-fb9f-4677-bcb0-968f11d0d225"
-@@ -215,7 +229,7 @@ struct nvdimm_drvdata;
- int nd_label_data_init(struct nvdimm_drvdata *ndd);
- size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd);
- int nd_label_active_count(struct nvdimm_drvdata *ndd);
--struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n);
-+union nd_lsa_label *nd_label_active(struct nvdimm_drvdata *ndd, int n);
- u32 nd_label_alloc_slot(struct nvdimm_drvdata *ndd);
- bool nd_label_free_slot(struct nvdimm_drvdata *ndd, u32 slot);
- u32 nd_label_nfree(struct nvdimm_drvdata *ndd);
-@@ -223,4 +237,5 @@ struct nd_region;
- struct nd_namespace_pmem;
- int nd_pmem_namespace_label_update(struct nd_region *nd_region,
- 		struct nd_namespace_pmem *nspm, resource_size_t size);
-+int nd_pmem_region_label_update(struct nd_region *nd_region);
- #endif /* __LABEL_H__ */
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 43fdb806532e..b1abbe602a5e 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -232,6 +232,18 @@ static ssize_t __alt_name_store(struct device *dev, const char *buf,
- 	return rc;
- }
- 
-+int nd_region_label_update(struct nd_region *nd_region)
-+{
-+	int rc;
-+
-+	nvdimm_bus_lock(&nd_region->dev);
-+	rc = nd_pmem_region_label_update(nd_region);
-+	nvdimm_bus_unlock(&nd_region->dev);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(nd_region_label_update);
-+
- static int nd_namespace_label_update(struct nd_region *nd_region,
- 		struct device *dev)
- {
-@@ -2122,13 +2134,20 @@ static int init_active_labels(struct nd_region *nd_region)
- 		if (!count)
- 			continue;
- 		for (j = 0; j < count; j++) {
--			struct nd_namespace_label *label;
-+			union nd_lsa_label *lsa_label;
- 
- 			label_ent = kzalloc(sizeof(*label_ent), GFP_KERNEL);
- 			if (!label_ent)
- 				break;
--			label = nd_label_active(ndd, j);
--			label_ent->label = label;
-+
-+			lsa_label = nd_label_active(ndd, j);
-+			if (is_region_label(ndd, lsa_label)) {
-+				label_ent->region_label = &lsa_label->region_label;
-+				uuid_copy(&label_ent->label_uuid, &cxl_region_uuid);
-+			} else {
-+				label_ent->label = &lsa_label->ns_label;
-+				uuid_copy(&label_ent->label_uuid, &cxl_namespace_uuid);
-+			}
- 
- 			mutex_lock(&nd_mapping->lock);
- 			list_add_tail(&label_ent->list, &nd_mapping->labels);
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index f631bd84d6f0..5fd69c28ffe7 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -14,6 +14,9 @@
- #include <linux/nd.h>
- #include "label.h"
- 
-+extern uuid_t cxl_namespace_uuid;
-+extern uuid_t cxl_region_uuid;
-+
- enum {
- 	/*
- 	 * Limits the maximum number of block apertures a dimm can
-@@ -295,6 +298,67 @@ static inline const u8 *nsl_uuid_raw(struct nvdimm_drvdata *ndd,
- 	return nd_label->efi.uuid;
- }
- 
-+static inline void nsl_set_type(struct nvdimm_drvdata *ndd,
-+				struct nd_namespace_label *ns_label)
-+{
-+	if (!(ndd->cxl && ns_label))
-+		return;
-+
-+	uuid_copy((uuid_t *)ns_label->cxl.type, &cxl_namespace_uuid);
-+}
-+
-+static inline void nsl_set_alignment(struct nvdimm_drvdata *ndd,
-+				     struct nd_namespace_label *ns_label,
-+				     u32 align)
-+{
-+	if (!ndd->cxl)
-+		return;
-+
-+	ns_label->cxl.align = __cpu_to_le32(align);
-+}
-+
-+static inline void nsl_set_region_uuid(struct nvdimm_drvdata *ndd,
-+				       struct nd_namespace_label *ns_label,
-+				       const uuid_t *uuid)
-+{
-+	if (!(ndd->cxl && uuid))
-+		return;
-+
-+	export_uuid(ns_label->cxl.region_uuid, uuid);
-+}
-+
-+static inline bool is_region_label(struct nvdimm_drvdata *ndd,
-+				   union nd_lsa_label *lsa_label)
-+{
-+	uuid_t *region_type;
-+
-+	if (!ndd->cxl)
-+		return false;
-+
-+	region_type = (uuid_t *) lsa_label->region_label.type;
-+	return uuid_equal(&cxl_region_uuid, region_type);
-+}
-+
-+static inline bool
-+region_label_uuid_equal(struct cxl_region_label *region_label,
-+			const uuid_t *uuid)
-+{
-+	return uuid_equal((uuid_t *) region_label->uuid, uuid);
-+}
-+
-+static inline u64
-+region_label_get_checksum(struct cxl_region_label *region_label)
-+{
-+	return __le64_to_cpu(region_label->checksum);
-+}
-+
-+static inline void
-+region_label_set_checksum(struct cxl_region_label *region_label,
-+			  u64 checksum)
-+{
-+	region_label->checksum = __cpu_to_le64(checksum);
-+}
-+
- bool nsl_validate_type_guid(struct nvdimm_drvdata *ndd,
- 			    struct nd_namespace_label *nd_label, guid_t *guid);
- enum nvdimm_claim_class nsl_get_claim_class(struct nvdimm_drvdata *ndd,
-@@ -376,7 +440,9 @@ enum nd_label_flags {
- struct nd_label_ent {
- 	struct list_head list;
- 	unsigned long flags;
-+	uuid_t label_uuid;
- 	struct nd_namespace_label *label;
-+	struct cxl_region_label *region_label;
- };
- 
- enum nd_mapping_lock_class {
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 5696715c33bb..2c213b9dac66 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -117,6 +117,13 @@ struct nd_interleave_set {
- 	u64 altcookie;
- 
- 	guid_t type_guid;
-+
-+	/* v2.1 region label info */
-+	uuid_t uuid;
-+	int interleave_ways;
-+	int interleave_granularity;
-+	struct resource *res;
-+	int nr_targets;
- };
- 
- struct nd_mapping_desc {
-@@ -307,6 +314,7 @@ int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
- int nvdimm_in_overwrite(struct nvdimm *nvdimm);
- bool is_nvdimm_sync(struct nd_region *nd_region);
-+int nd_region_label_update(struct nd_region *nd_region);
- 
- static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
+This patchset adds support of LSA 2.1 in nvdimm and cxl pmem driver.
+
+Patch 1:     Introduce NDD_CXL_LABEL flag and Update cxl label index as per v2.1
+Patch 2:     Skip the need for 'interleave-set cookie' for LSA 2.1 support
+Patch 3-9:   Introduce region label and update namespace label as per LSA 2.1
+Patch 10:    Refactor cxl pmem region auto assembly using Dan's Infra [2]
+Patch 11-12: Save cxl region info in LSA and region recreation during reboot
+Patch 13:14: Segregate out cxl pmem region code from region.c to pmem_region.c
+Patch 15:    Introduce cxl region addition/deletion attributes
+Patch 16-17: Add support of cxl pmem region re-creation from CXL as per LSA 2.1
+
+Pre-requisite:
+==============
+This patch series has dependency on Dan's Infra [2]
+
+Testing:
+========
+In order to test this patchset, I also added the support of LSA v2.1 format
+in ndctl. ndctl changes are available at [3]. After review, I’ll push in
+ndctl repo for community review.
+
+1. Used Qemu using following CXL topology
+   M2="-object memory-backend-file,id=cxl-mem1,share=on,mem-path=$TMP_DIR/cxltest.raw,size=512M \
+       -object memory-backend-file,id=cxl-lsa1,share=on,mem-path=$TMP_DIR/lsa.raw,size=1M \
+       -object memory-backend-file,id=cxl-mem2,share=on,mem-path=$TMP_DIR/cxltest2.raw,size=512M \
+       -object memory-backend-file,id=cxl-lsa2,share=on,mem-path=$TMP_DIR/lsa2.raw,size=1M \
+       -device pxb-cxl,bus_nr=10,bus=pcie.0,id=cxl.1 \
+       -device cxl-rp,port=1,bus=cxl.1,id=root_port11,chassis=0,slot=1 \
+       -device cxl-type3,bus=root_port11,memdev=cxl-mem1,lsa=cxl-lsa1,id=cxl-pmem1,sn=1 \
+       -device cxl-rp,port=2,bus=cxl.1,id=root_port12,chassis=0,slot=2 \
+       -device cxl-type3,bus=root_port12,memdev=cxl-mem2,lsa=cxl-lsa2,id=cxl-pmem2,sn=2 \
+       -M cxl-fmw.0.targets.0=cxl.1,cxl-fmw.0.size=4G,cxl-fmw.0.interleave-granularity=8k"
+
+2. Create cxl region on both devices
+	cxl create-region -d decoder0.0 -m mem0
+	cxl create-region -d decoder0.0 -m mem1
+
+	root@QEMUCXL6060pmem:~# cxl list
+	[
+	  {
+	    "memdevs":[
+	      {
+	        "memdev":"mem0",
+	        "pmem_size":536870912,
+	        "serial":2,
+	        "host":"0000:0c:00.0",
+	        "firmware_version":"BWFW VERSION 00"
+	      },
+	      {
+	        "memdev":"mem1",
+	        "pmem_size":536870912,
+	        "serial":1,
+	        "host":"0000:0b:00.0",
+	        "firmware_version":"BWFW VERSION 00"
+	      }
+	    ]
+	  },
+	  {
+	    "regions":[
+	      {
+	        "region":"region0",
+	        "resource":45365592064,
+	        "size":536870912,
+	        "type":"pmem",
+	        "interleave_ways":1,
+	        "interleave_granularity":256,
+	        "decode_state":"commit",
+	        "qos_class_mismatch":true
+	      },
+	      {
+	        "region":"region1",
+	        "resource":45902462976,
+	        "size":536870912,
+	        "type":"pmem",
+	        "interleave_ways":1,
+	        "interleave_granularity":256,
+	        "decode_state":"commit",
+	        "qos_class_mismatch":true
+	      }
+	    ]
+	  }
+	]
+
+3. Re-Start Qemu and we could see cxl region persistency using "cxl list"
+
+4. Create namespace for both regions
+	root@QEMUCXL6060pmem:~# time ndctl create-namespace --mode=fsdax --region=region0 --size=128M
+	{
+	  "dev":"namespace0.0",
+	  "mode":"fsdax",
+	  "map":"dev",
+	  "size":"124.00 MiB (130.02 MB)",
+	  "uuid":"8a125dcb-f992-406d-b3ad-be82fc518f05",
+	  "sector_size":512,
+	  "align":2097152,
+	  "blockdev":"pmem0"
+	}
+	
+	real    0m31.866s
+	user    0m0.183s
+	sys     0m14.855s
+
+	root@QEMUCXL6060pmem:~# time ndctl create-namespace --mode=fsdax --region=region1 --size=256M
+	{
+	  "dev":"namespace1.0",
+	  "mode":"fsdax",
+	  "map":"dev",
+	  "size":"250.00 MiB (262.14 MB)",
+	  "uuid":"8e16d950-c11d-4253-94a0-5b2928926433",
+	  "sector_size":512,
+	  "align":2097152,
+	  "blockdev":"pmem1"
+	}
+	
+	real    0m44.359s
+	user    0m0.196s
+	sys     0m26.768s
+
+	root@QEMUCXL6060pmem:~# time ndctl create-namespace --mode=fsdax --region=region0 --size=256M
+	{
+	  "dev":"namespace0.1",
+	  "mode":"fsdax",
+	  "map":"dev",
+	  "size":"250.00 MiB (262.14 MB)",
+	  "uuid":"f3170bfe-548a-4ce4-ae00-145a24e70426",
+	  "sector_size":512,
+	  "align":2097152,
+	  "blockdev":"pmem0.1"
+	}
+	
+	real    0m44.004s
+	user    0m0.220s
+	sys     0m25.711s
+
+	root@QEMUCXL6060pmem:~# time ndctl create-namespace --mode=fsdax --region=region1 --size=128M
+	{
+	  "dev":"namespace1.1",
+	  "mode":"fsdax",
+	  "map":"dev",
+	  "size":"124.00 MiB (130.02 MB)",
+	  "uuid":"6318d2d9-bc78-4896-84f9-6c18c3a8f58c",
+	  "sector_size":512,
+	  "align":2097152,
+	  "blockdev":"pmem1.1"
+	}
+	
+	real    0m36.612s
+	user    0m0.225s
+	sys     0m16.457s
+
+	root@QEMUCXL6060pmem:~# ndctl list
+	[
+	  {
+	    "dev":"namespace1.0",
+	    "mode":"fsdax",
+	    "map":"dev",
+	    "size":262144000,
+	    "uuid":"e07564eb-6653-4d67-ab07-434c22474001",
+	    "sector_size":512,
+	    "align":2097152,
+	    "blockdev":"pmem1"
+	  },
+	  {
+	    "dev":"namespace1.1",
+	    "mode":"fsdax",
+	    "map":"dev",
+	    "size":130023424,
+	    "uuid":"27dfd65a-c428-426a-8316-f340a59e0671",
+	    "sector_size":512,
+	    "align":2097152,
+	    "blockdev":"pmem1.1"
+	  },
+	  {
+	    "dev":"namespace0.1",
+	    "mode":"fsdax",
+	    "map":"dev",
+	    "size":130023424,
+	    "uuid":"689b4135-668d-4885-b138-b86f27d7602f",
+	    "sector_size":512,
+	    "align":2097152,
+	    "blockdev":"pmem0.1"
+	  },
+	  {
+	    "dev":"namespace0.0",
+	    "mode":"fsdax",
+	    "map":"dev",
+	    "size":262144000,
+	    "uuid":"ed15c67a-842d-4d5d-8996-be3aa24985e4",
+	    "sector_size":512,
+	    "align":2097152,
+	    "blockdev":"pmem0"
+	  }
+	]
+
+5. Re-Start Qemu and we could see
+	- Region persistency using "cxl list"
+	- Namespace persistency using "ndctl list" and cat /proc/iomem
+
+	root@QEMUCXL6060pmem:~# cat /proc/iomem
+	
+	a90000000-b8fffffff : CXL Window 0
+	  a90000000-aafffffff : Persistent Memory
+	    a90000000-aafffffff : region0
+	      a90000000-a97ffffff : namespace0.0
+	      a98000000-aa7ffffff : namespace0.1
+	  ab0000000-acfffffff : Persistent Memory
+	    ab0000000-acfffffff : region1
+	      ab0000000-abfffffff : namespace1.0
+	      ac0000000-ac7ffffff : namespace1.1
+	
+
+	- NOTE: We can see some lag in restart. Look at Observesation below
+
+6. Also verify LSA version using "ndctl read-labels -j nmem0"
+	root@QEMUCXL6060pmem:~# ndctl read-labels -j nmem0
+	{
+	  "dev":"nmem0",
+	  "index":[
+	    {
+	      "signature":"NAMESPACE_INDEX",
+	      "major":2,
+	      "minor":1,
+	      "labelsize":256,
+	      "seq":2,
+	      "nslot":4090
+	    },
+	    {
+	      "signature":"NAMESPACE_INDEX",
+	      "major":2,
+	      "minor":1,
+	      "labelsize":256,
+	      "seq":1,
+	      "nslot":4090
+	    }
+	  ],
+	  "label":[
+	    {
+	      "type":"68bb2c0a-5a77-4937-9f85-3caf41a0f93c",
+	      "uuid":"cbb3fe1e-9345-4ae7-95ca-2638db27ee7d",
+	      "name":"",
+	      "flags":8,
+	      "nrange":1,
+	      "position":0,
+	      "dpa":134217728,
+	      "rawsize":268435456,
+	      "slot":0,
+	      "align":0,
+	      "region_uuid":"50d806c8-fd11-49eb-b19e-77fc67f6364b",
+	      "abstraction_uuid":"266400ba-fb9f-4677-bcb0-968f11d0d225",
+	      "lbasize":512
+	    },
+	    {
+	      "type":"529d7c61-da07-47c4-a93f-ecdf2c06f444",
+	      "uuid":"50d806c8-fd11-49eb-b19e-77fc67f6364b",
+	      "flags":0,
+	      "nlabel":1,
+	      "position":0,
+	      "dpa":0,
+	      "rawsize":536870912,
+	      "hpa":45365592064,
+	      "slot":1,
+	      "interleave granularity":256,
+	      "align":0
+	    },
+	    {
+	      "type":"68bb2c0a-5a77-4937-9f85-3caf41a0f93c",
+	      "uuid":"d9ef8d35-ef84-4111-b302-bce53c94a2ad",
+	      "name":"",
+	      "flags":0,
+	      "nrange":1,
+	      "position":0,
+	      "dpa":0,
+	      "rawsize":134217728,
+	      "slot":2,
+	      "align":0,
+	      "region_uuid":"50d806c8-fd11-49eb-b19e-77fc67f6364b",
+	      "abstraction_uuid":"266400ba-fb9f-4677-bcb0-968f11d0d225",
+	      "lbasize":512
+	    },
+	    {
+	      "type":"68bb2c0a-5a77-4937-9f85-3caf41a0f93c",
+	      "uuid":"cbb3fe1e-9345-4ae7-95ca-2638db27ee7d",
+	      "name":"",
+	      "flags":0,
+	      "nrange":1,
+	      "position":0,
+	      "dpa":134217728,
+	      "rawsize":268435456,
+	      "slot":3,
+	      "align":0,
+	      "region_uuid":"50d806c8-fd11-49eb-b19e-77fc67f6364b",
+	      "abstraction_uuid":"266400ba-fb9f-4677-bcb0-968f11d0d225",
+	      "lbasize":512
+	    }
+	  ]
+	}
+	read 1 nmem
+
+	- NOTE: We have following UUID types as per CXL Spec
+		"type":"529d7c61-da07-47c4-a93f-ecdf2c06f444" is region label
+		"type":"68bb2c0a-5a77-4937-9f85-3caf41a0f93c" is namespace label
+
+
+Limitation (WIP):
+================
+Current changes only support interleave way == 1
+
+
+Observation:
+============
+First time namespace creation using ndctl takes around 10 to 20 second time
+while executing "devm_memremap_pages" at [4]
+
+As using this patchset, after auto region creation, namespace creation is
+happening in boot sequence (if nvdimm and cxl drivers are static), It is
+therefore boot sequence is increased by around 10 to 20 sec.
+
+Changes:
+========
+Changes in v3->v4
+-----------------
+[MISC Changes]
+- Reduce Patch Series Commits from 20 to 17
+- Re-arranged few commits
+[PATCH 01/17]
+- Rename nvdimm_region_label_supported() [Dave]
+- Add Jonathan RB tag
+- Add Dave RB tag
+[PATCH 02/17]
+- Add Dave RB tag
+[PATCH 03/17]
+- Merge v3 patch 05-06/20 in v4 patch 03/17
+- Use pre-parsed namespace and region labels uuids - [Dave]
+- Remove dubious typecasting [Jonathan]
+- Add 'uuid_t label_uuid' member in ' struct nd_label_ent' [Dave]
+- Introduce to_lsa_label() along with to_label()
+[PATCH 04/17]
+- Re-arrange v3 patch 08/20 in v4 patch 04/17
+- Create static string table enumerated by 'enum label_type' [Dave]
+- Elaborate commit message [Alison]
+- Replace use of to_label() with new to_lsa_label()
+[PATCH 07/17]
+- Immediate return -EBUSY in region label deletion [Dave]
+[PATCH 09/17]
+- Return error early and return the success case last [Dave]
+[PATCH 10/17]
+- Call region discovery via the ops->probe() callback using [2] [Dave]
+[PATCH 11/17]
+- Conform to existing style in the subsystem [Dave]
+- Remove mode from devm_cxl_pmem_add_region() [Dave]
+- Fix error return from EINVAL to EOPNOTSUPP [Dave]
+[PATCH 13/17]
+- Prep patch with just code movement from region.c to pmem_region.c [Dave]
+[PATCH 13/17]
+- Introduce CONFIG_CXL_PMEM_REGION for core/pmem_region.c [Dave]
+[PATCH 15/17]
+- Return error early and return the success case last [Dave]
+- Change region_label_state as enum in struct cxl_region_params [Dave]
+[PATCH 16/17]
+- Caller release the device reference [Dave]
+- Add is_endpoint_decoder() check in match_free_ep_decoder [Dave]
+- Use dev_dbg() instead of dev_info() in create_pmem_region() [Dave]
+- Use dev_warn() instead of dev_info() in create_pmem_region() [Dave] 
+
+Previous Series:
+----------------
+- Find v3 link at [5]
+- Find v2 link at [6]
+- v1 patch-set was broken. Find the v1 links at [7] and [8]
+
+
+[1]: https://lore.kernel.org/all/163116432405.2460985.5547867384570123403.stgit@dwillia2-desk3.amr.corp.intel.com/
+[2]: https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/patch/?id=ab70c6227ee6165a562c215d9dcb4a1c55620d5d
+[3]: https://github.com/neerajoss/ndctl/commits/linux-cxl/V1_CXL_LSA_2.1_Support/
+[4]: https://elixir.bootlin.com/linux/v6.13.7/source/drivers/nvdimm/pmem.c#L520
+[5]: https://lore.kernel.org/linux-cxl/20250917134116.1623730-1-s.neeraj@samsung.com/ 
+[6]: https://lore.kernel.org/linux-cxl/20250730121209.303202-1-s.neeraj@samsung.com/ 
+[7] v1 Cover Letter: https://lore.kernel.org/linux-cxl/1931444790.41750165203442.JavaMail.epsvc@epcpadp1new/
+[8] v1 Rest Thread: https://lore.kernel.org/linux-cxl/158453976.61750165203630.JavaMail.epsvc@epcpadp1new/
+
+
+Neeraj Kumar (17):
+  nvdimm/label: Introduce NDD_REGION_LABELING flag to set region label
+  nvdimm/label: CXL labels skip the need for 'interleave-set cookie'
+  nvdimm/label: Add namespace/region label support as per LSA 2.1
+  nvdimm/label: Include region label in slot validation
+  nvdimm/label: Skip region label during ns label DPA reservation
+  nvdimm/label: Preserve region label during namespace creation
+  nvdimm/label: Add region label delete support
+  nvdimm/label: Preserve cxl region information from region label
+  nvdimm/label: Export routine to fetch region information
+  cxl/mem: Refactor cxl pmem region auto-assembling
+  cxl/region: Add devm_cxl_pmem_add_region() for pmem region creation
+  cxl/pmem: Preserve region information into nd_set
+  cxl/pmem_region: Prep patch to accommodate pmem_region attributes
+  cxl/pmem_region: Introduce CONFIG_CXL_PMEM_REGION for core/pmem_region.c
+  cxl/pmem_region: Add sysfs attribute cxl region label updation/deletion
+  cxl/pmem_region: Create pmem region using information parsed from LSA
+  cxl/pmem: Add CXL LSA 2.1 support in cxl pmem
+
+ Documentation/ABI/testing/sysfs-bus-cxl |  22 +
+ drivers/cxl/Kconfig                     |  15 +
+ drivers/cxl/core/Makefile               |   1 +
+ drivers/cxl/core/core.h                 |  35 +-
+ drivers/cxl/core/pmem_region.c          | 390 ++++++++++++++++
+ drivers/cxl/core/region.c               | 364 +++++++--------
+ drivers/cxl/cxl.h                       |  41 +-
+ drivers/cxl/mem.c                       |  18 +-
+ drivers/cxl/pci.c                       |   4 +-
+ drivers/cxl/pmem.c                      |  15 +-
+ drivers/cxl/port.c                      |  39 +-
+ drivers/nvdimm/dimm.c                   |   5 +
+ drivers/nvdimm/dimm_devs.c              |  25 +
+ drivers/nvdimm/label.c                  | 579 ++++++++++++++++++++----
+ drivers/nvdimm/label.h                  |  18 +-
+ drivers/nvdimm/namespace_devs.c         |  92 +++-
+ drivers/nvdimm/nd-core.h                |   2 +
+ drivers/nvdimm/nd.h                     |  79 ++++
+ drivers/nvdimm/region_devs.c            |  10 +
+ include/linux/libnvdimm.h               |  28 ++
+ tools/testing/cxl/Kbuild                |   1 +
+ 21 files changed, 1413 insertions(+), 370 deletions(-)
+ create mode 100644 drivers/cxl/core/pmem_region.c
+
+
+base-commit: ea5514e300568cbe8f19431c3e424d4791db8291
+prerequisite-patch-id: f6e07504b17ccf39d9486352b6f7305a03897863
+prerequisite-patch-id: cd6bad0c8b993bb59369941905f418f3b799c89d
+prerequisite-patch-id: 08ebdae0888c0a2631c3b26990679a0261f34f14
+prerequisite-patch-id: 42c75ec8c08c7c8518024f46d31eb114f95a1bac
 -- 
 2.34.1
 
