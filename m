@@ -1,214 +1,108 @@
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011061.outbound.protection.outlook.com [40.107.208.61])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6613330F522
-	for <nvdimm@lists.linux.dev>; Thu, 20 Nov 2025 03:20:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.61
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763608804; cv=fail; b=PbSZ2/Jpj6AizvLYtjfOisb7QM30ugD5B+WGZbuXr2yzNC9btu8F6+b6kcXWhsYSHa6Ndd1+Ewi5ApI+kafHANwsT0qUvUZ7hh0NWIyBSh6SWRIBTrW9xpM7mMhINJlsK8kELagZiUnMNYHj7zpAOWh89mTAkP04vayXu9RC01M=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763608804; c=relaxed/simple;
-	bh=EHX/DvhCVyz6Vnsxchbt4UURzEGn2DCP2LvKu4nmETA=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hsrHfhETNtqdm4kl/K3GNNAj5UFgpI71ni0J+B4UUx8O6lKoTb7o2xdUwuStMUVO+tO0JQUg8sMmwVsB7oBpM3xCHMAa4roQRGeJr0uhy3wMjW96OO/Recz2QUX344+w940tPB7U5cJlRJsZsblu6WU7HPkk3Oi4aR0BOmT7aBU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=jeYKwExK; arc=fail smtp.client-ip=40.107.208.61
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90CD73A1CF2
+	for <nvdimm@lists.linux.dev>; Thu, 20 Nov 2025 17:11:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1763658705; cv=none; b=icIz7Kx9wDPkPZY4IRLsIR5qHcyqnVBvcJnBma22Dq+xJqZ1HV2Va/AM2bQsojVg7SKc6MN7oLoGeIrwdQhDXt1+q61z/2J4q8S3P2rm3JqVwdkR6OhYEltlbFEyiXwCgq48nKcWD4iyP90U4TrzH/yD+3z2Iy3/3JmCa/vDfKg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1763658705; c=relaxed/simple;
+	bh=2U5H0M+AmHJOzPsmhzLUd9oy7nlu/R+qhpQ/NyzGF28=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=OuS6JWgmsML4La3vgXMiesMtwabmIgq09ke6smuHX3BKSAZMkFJy6iRtbHkIF9Yl1I3Nf5P+fPWuVi4hTr088HFn1ayyHhGTCIzhmIzJVENWKROM56e/xriRPk602zZcOwb0jXNvOnKbL3N9BeLzqw0Wp6iOBdX37QygadnPahM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=K25EBDGH; arc=none smtp.client-ip=209.85.208.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="jeYKwExK"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=PHWuhxVFTqbLXtSzw4iQlR1fPbJ/f6fG/ephokVAiIAWd03Evw7LDWBSHbHUfHxKfSvrEZHCN4bU//noGpLZvGOplyc4vVFRAitRdcPGCFoiN9LGCQSChV8bimlP2pjp/KttO4lxo7p+VtFsWIAvN1LKCW2DnEcTPZuo3VyY3fN1eIDJlHyiJgjOZ093mMq/M4RTwfuCpt4WHpbqM2t9UJiUbz2PkKSpRDxBP5e49DHyu2GH0q3CV3KKa8SfForY0nFuSdUafyCKUx4EZXCEz+uW5hs0r+uMKSeE3rKV7WJLb46l6WRIZGR++RHC5aZaoqAIIhbLT+IBOJuhPxHxkw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=nFodpRhLBNvZ8lYQ5rn8WkUcu6dYAZJOvPlu7kNMu+U=;
- b=Y1xml+FwxPdG30uy1ai5QmbyXzMzEDTTZDYYq6s4HaC0MHVxpD3RczZHbxPNC7yMDVUFm0W4IsW/8086rUqVS4cvWc2R6c9mR9BwspafHEETZEvMF90biGwwXv9cbhVl0KbLDNcIwZZIGs8B+zwNhcrPAVrDB+avXZ7wkWBMv+RbM7ElKWtw/7GXPKsxL6mMjcw6Z/1wrD9XDFpZypu/JeuNpS2OEKI/kln6csytNTDmSVn8ZJCc4alTAk9zH/FSgsCRB0EnWe5nu7km70UaO8bnAOUWp6EBbD34cp5XdwV3KlaNDexBLZ92CWY6L+pK2O5UI471XB61xCaNRhgW1g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=nFodpRhLBNvZ8lYQ5rn8WkUcu6dYAZJOvPlu7kNMu+U=;
- b=jeYKwExKl448KJ0TRCygezPCxOzzeHhUrRaaisJ9BN/iWbRlMcn0I6Erupb5VIEe+NTrFNl12KZDw0XY+qEXapeNNKCWsM3d7PeR4LFasg+XLu7eYKV4aZh/dGxYrBafFpG0yNsBHneUwEv4Yady9m1eR3oFaftpffE/JBQhNB0=
-Received: from CH2PR18CA0039.namprd18.prod.outlook.com (2603:10b6:610:55::19)
- by PH7PR12MB7209.namprd12.prod.outlook.com (2603:10b6:510:204::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9343.10; Thu, 20 Nov
- 2025 03:19:57 +0000
-Received: from CH1PEPF0000AD7B.namprd04.prod.outlook.com
- (2603:10b6:610:55:cafe::79) by CH2PR18CA0039.outlook.office365.com
- (2603:10b6:610:55::19) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9343.10 via Frontend Transport; Thu,
- 20 Nov 2025 03:19:57 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- CH1PEPF0000AD7B.mail.protection.outlook.com (10.167.244.58) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9343.9 via Frontend Transport; Thu, 20 Nov 2025 03:19:57 +0000
-Received: from ethanolx50f7host.amd.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Wed, 19 Nov
- 2025 19:19:43 -0800
-From: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-To: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>
-CC: Alison Schofield <alison.schofield@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Yazen Ghannam <yazen.ghannam@amd.com>, Dave Jiang <dave.jiang@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, Matthew Wilcox <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>, "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown
-	<len.brown@intel.com>, Pavel Machek <pavel@kernel.org>, Li Ming
-	<ming.li@zohomail.com>, Jeff Johnson <jeff.johnson@oss.qualcomm.com>, "Ying
- Huang" <huang.ying.caritas@gmail.com>, Yao Xingtao <yaoxt.fnst@fujitsu.com>,
-	Peter Zijlstra <peterz@infradead.org>, Greg KH <gregkh@linuxfoundation.org>,
-	Nathan Fontenot <nathan.fontenot@amd.com>, Terry Bowman
-	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, Zhijian Li <lizhijian@fujitsu.com>, "Borislav
- Petkov" <bp@alien8.de>, Ard Biesheuvel <ardb@kernel.org>
-Subject: [PATCH v4 9/9] dax/hmem: Reintroduce Soft Reserved ranges back into the iomem tree
-Date: Thu, 20 Nov 2025 03:19:25 +0000
-Message-ID: <20251120031925.87762-10-Smita.KoralahalliChannabasappa@amd.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20251120031925.87762-1-Smita.KoralahalliChannabasappa@amd.com>
-References: <20251120031925.87762-1-Smita.KoralahalliChannabasappa@amd.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="K25EBDGH"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-644fbd758b3so13387a12.0
+        for <nvdimm@lists.linux.dev>; Thu, 20 Nov 2025 09:11:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1763658702; x=1764263502; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=N/Z72n9Cl1RL7pgenMI30Fd9ER6zUw/sTuQNIj1Gn78=;
+        b=K25EBDGHiYLor4fr/+6dYo+h4GFpeQyDbpxM++qhxa8teEdObs2OBCxfz/vz04E4aK
+         jm1i38brpYWLHbnomdHEWMozhxvAkDGbYT9xe/u9c0EWdghl0XDDk6xdL87UdDQRDO5b
+         Qu5B8D+tekEReDHWzOCML8iYrQoqgqhgOPDkrIwsAG8iYel82gN2r3H11CfcsK2kUi07
+         15fbCHJjwRRlzY+9MokcjO7OTmMmleTj7cz9oeCfYUeGmX1VgG8LlHLrguCNYY/wn77J
+         5UlzewgB28owgjFdI1WgZ9aKByIuy7PsQp3rai+Wiyn1Cj6jbyUaKEtx8fwpe2XEN7Kk
+         YY6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763658702; x=1764263502;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=N/Z72n9Cl1RL7pgenMI30Fd9ER6zUw/sTuQNIj1Gn78=;
+        b=VJZzh3Z1aN9gtfnSNM4XUrUvDhGs6zEQ9cdboL1KvQbqHzcgUtbf0/TiYDYYxruPAB
+         fU0lfovOWUwhSBbyU172So9WPkDJInY2gYcXZXPshbuwoKwSYbxC/nAW4VX4pJx01Sc+
+         65vN9ukyOFIe+CIm7eREjMS8cNG2wcIINyJZKoycOxRo3WwH8PNryZaPYrBRvoHZQowY
+         HtM526NNzzNHKeZVUaQimq/1NA/LvUd6/uSwBhtM/Pdlv4NbRrUQsGaclPecYlGtMkA8
+         fhKNuvqqq6Ho0MawhZ8U0GTxm5SYVJSpXwpj4SmVlJ0aYpTPGzqxzcgg41Uq5tWi4P4B
+         O5kA==
+X-Forwarded-Encrypted: i=1; AJvYcCU3BB6kO8ObtzAHgYEx/VIg2iM//ahhLzNziBNkXPKOj/RwXRLLYfSbYZefh9z+1wXeciUCAnQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0Ywu2hgaJ3pZHgRruSqr206cXY+R3DGxAIJF4QUwWLldJ4R1FZI2
+	Lq+N6V4CzMaMIDnBEQo+UVioA1rETDMaHaMR+nesJw4bPPaZXb8/1qWFaDop00Qd3HTM7+LKPtW
+	IoK0MHRACGcMNbyXb0a7FZfB9xYZ+ZmfbOx0bk63e
+X-Gm-Gg: ASbGncs/vyEAAmoK2zGerEXOsRrWCfDEKh7ZPqBCRg6CbEmLRiIxhWRAKE+E+BkWlyU
+	tV6hjFryWuhq4Ymk/+MCGLeVo2GOIQrAG5w2C04wqINAoe81ruk/qVLSEpZyAGdABhOkSCX6zrI
+	wkXvkg+17wYBp88dBGT/+jWq2WrGnsNhXu2L3ya4h/RxwOmu+8+u4mR9cQgQvUTj664PwczsJ61
+	d87iNZpSCXma/DJT8kAkBIj0d6wMsRFpQHdmlyIPm2VLVy8FTr2SxhUyNTBgIgdfFMVmIPF2GuF
+	iMs0MxiKb3Y7e7X87bZh47vvQw==
+X-Google-Smtp-Source: AGHT+IGeUbm7Ie6pXSb+0wmq57u5fAGeqTIJ1BMG7y6hDCVTSEGpacFalC/5UQNwdn4sUHRkFYy+wUrbd07aK5lUCBY=
+X-Received: by 2002:a05:6402:460b:20b0:62f:9f43:2117 with SMTP id
+ 4fb4d7f45d1cf-645369d2740mr52100a12.0.1763658701850; Thu, 20 Nov 2025
+ 09:11:41 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD7B:EE_|PH7PR12MB7209:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5abf1174-0537-438e-4cbb-08de27e3aea7
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|82310400026|36860700013|13003099007;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?xgm8uBuiCQ2jbCHmlUzTGXZNLxqSiu9ydXLESsadK6cVuTdqEsgO+LU8D8+O?=
- =?us-ascii?Q?4F8rPzpJUAfLwsejiLj09ftFQAEA6IDhA9qabfobNu0XN5x7viyxPyOPBQjY?=
- =?us-ascii?Q?fOESXHHB3MUvBpwd7kNxGZwbs+H5abqnLsfhu1Lmbl2ifSEvZv9NaaR9pSnm?=
- =?us-ascii?Q?4LH2M2K5/trzEAGN6euC4XOOAgk1geFlZDoalHfQSyiehPwx6tjwazvv3BaW?=
- =?us-ascii?Q?F8CN27vfpwDgUDgS4kPbpkQ+E1Jr051vm1HDg2RGvsjZBSiy/QnlVRNpaR5Y?=
- =?us-ascii?Q?WcrBTLWHdkjIZGa7aSQdYB2UEFYThM5aQTI4geRA9AnJjQla4mF7CGnqV8ZP?=
- =?us-ascii?Q?BDG9S3Qz8kD026MSmv0ZDanmiaUiER3xCnxitr1f2EjLIAdjnCzyQIsKNpvA?=
- =?us-ascii?Q?opbteYKvfoScFRFHwwAgZR+FjffNHhZbye20hTeRejbvEBREe0QC6rZyUu69?=
- =?us-ascii?Q?SkqHlsC+P6Di1XnR5SkueOrwTaW6EK8HxrrRVZL9vDAvk/cjrX0lBSSG2dju?=
- =?us-ascii?Q?q48BA48Avqj97/42Xmmro2e2Qk9HWQSJ30XNeVP8gAHOej5kBMgXi19Xhl4R?=
- =?us-ascii?Q?AP+T2E3+ayo55ZtcDm0ZFu/P6PNxrFU+jOVY13pomfvaKLGnd+AODt7O60hD?=
- =?us-ascii?Q?hrxorGTe4jlGpPW/LHgbmRoAW+P8fh2LXH25ta4Cor1IKSuf2xCvWIfgPNXK?=
- =?us-ascii?Q?9z2nvOcxSXKOJbRR+p1Gr3CnRL66xIjvxjBr9SZ2zBszkjPNWVljaT8Dkc1U?=
- =?us-ascii?Q?epQkcNSDX/Ihmvjm/i7HcuvkIdcUQOvs+83wN1xJeFVLgANQHrIvdta26qkR?=
- =?us-ascii?Q?bDMRmmafc5nEDOuL2SJeSAA+oOWp19IlZ5MhlAi8ASmMZwP/TUbIsezehYqp?=
- =?us-ascii?Q?f+l3vN0AW95SLV0/V29QIhJGyKOLZUaig+7Bu/Thw+iIN6zfaowp3lJkCBMe?=
- =?us-ascii?Q?vsAKSu8KbRRUTq8Dt6fOdx9JxXsd8T0lNIX5bcAvez1A7Z1DQF5g6rh2YMVl?=
- =?us-ascii?Q?XR4bvBZvtp/X+WplOUTTZ9Y/rVH0fPEsVVGA6hp9m6TcDWj8zZVFUb+zbuRi?=
- =?us-ascii?Q?EiOs65AZsV2zjDJXJdYs5uhQkD62+TopW7GXJ4+Xn/XieOG31MCDgehk1DsC?=
- =?us-ascii?Q?o4R9X0bu6QL+w8cTHjr02wXDuSViVF6BBkcvyau0jJ/k9eoq9iCVqx+oG7mh?=
- =?us-ascii?Q?fWD57wsbtsXPvuYzmzRHB47rEAc2AWbGNM+I+gHPUGWPHi6Kcv7hl1z9U7ii?=
- =?us-ascii?Q?VwzTz78/Q2kFf4HZunv6E513hRzPuC64zo/gRpjFB539VYxRBhWU1wu5lz98?=
- =?us-ascii?Q?1gHtbXY3qzAFCqZqSTQ89ZdBAmtfGG7Duuj0Yv1zGEoRSc27ewxTdZwlD8QB?=
- =?us-ascii?Q?PsyMjHctiXUXyc2ebonuy185wPwGvOn9gpwwwl+fzkRY3U/yZAUd3g/faEEL?=
- =?us-ascii?Q?en6dgc9aCLASzuqYDehFTVYes5wqtT+ceew9QuvZLfha84MyLkp9/S19El19?=
- =?us-ascii?Q?5RigZap4ujmZZ7ArFJfB8DZzdhyN9Hz/dhDP1NDwIpBN2MT1u2lE/2j7NDxM?=
- =?us-ascii?Q?u40FYHM3XueCEDV2ink=3D?=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(82310400026)(36860700013)(13003099007);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Nov 2025 03:19:57.4129
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5abf1174-0537-438e-4cbb-08de27e3aea7
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH1PEPF0000AD7B.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7209
+References: <20251024210518.2126504-1-mclapinski@google.com>
+ <20251024210518.2126504-6-mclapinski@google.com> <691ce9acae44c_7a9a10020@iweiny-mobl.notmuch>
+In-Reply-To: <691ce9acae44c_7a9a10020@iweiny-mobl.notmuch>
+From: =?UTF-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>
+Date: Thu, 20 Nov 2025 18:11:29 +0100
+X-Gm-Features: AWmQ_bkl38cRsErW02FYYsJNSvgkRtb1E7YCtig5YF_mXurH4QMwznjZdg5sa3s
+Message-ID: <CAAi7L5foTbvvskLxKW50T49bdUBbedoxQHifZ-4NJYf+Fv7YvA@mail.gmail.com>
+Subject: Re: [PATCH v3 5/5] dax: add PROBE_PREFER_ASYNCHRONOUS to the dax
+ device driver
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+	Pasha Tatashin <pasha.tatashin@soleen.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Reworked from a patch by Alison Schofield <alison.schofield@intel.com>
+On Tue, Nov 18, 2025 at 10:46=E2=80=AFPM Ira Weiny <ira.weiny@intel.com> wr=
+ote:
+>
+> Michal Clapinski wrote:
+> > Signed-off-by: Michal Clapinski <mclapinski@google.com>
+> > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Sorry for the delay.  I picked up this series but I find that this breaks
+> the device-dax and daxctl-create.sh.
+>
+> I was able to fix device-dax with a sleep, see below.
+>
+> I'm not 100% sure what to do about this.
+>
+> I don't want to sprinkle sleeps around the tests.  daxctl-create.sh also
+> randomly fail due to the races introduced.  So not sure exactly where to
+> sprinkle them without more work.
 
-Reintroduce Soft Reserved range into the iomem_resource tree for HMEM
-to consume.
+I see 2 possible solutions here:
+1. Modify the tests to just poll for the devices to appear.
+2. Modify ndctl to poll for the devices to appear before returning.
 
-This restores visibility in /proc/iomem for ranges actively in use, while
-avoiding the early-boot conflicts that occurred when Soft Reserved was
-published into iomem before CXL window and region discovery.
+What do you think about those?
 
-Link: https://lore.kernel.org/linux-cxl/29312c0765224ae76862d59a17748c8188fb95f1.1692638817.git.alison.schofield@intel.com/
-Co-developed-by: Alison Schofield <alison.schofield@intel.com>
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-Co-developed-by: Zhijian Li <lizhijian@fujitsu.com>
-Signed-off-by: Zhijian Li <lizhijian@fujitsu.com>
-Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
----
- drivers/dax/hmem/hmem.c | 32 +++++++++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
+> Could dropping just this patch and landing the others achieve most of wha=
+t
+> you need?
 
-diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-index 7d874ee169ac..5f36b0374cf4 100644
---- a/drivers/dax/hmem/hmem.c
-+++ b/drivers/dax/hmem/hmem.c
-@@ -71,6 +71,34 @@ struct dax_defer_work {
- 	struct work_struct work;
- };
- 
-+static void remove_soft_reserved(void *r)
-+{
-+	remove_resource(r);
-+	kfree(r);
-+}
-+
-+static int add_soft_reserve_into_iomem(struct device *host,
-+				       const struct resource *res)
-+{
-+	struct resource *soft __free(kfree) =
-+		kzalloc(sizeof(*soft), GFP_KERNEL);
-+	int rc;
-+
-+	if (!soft)
-+		return -ENOMEM;
-+
-+	*soft = DEFINE_RES_NAMED_DESC(res->start, (res->end - res->start + 1),
-+				      "Soft Reserved", IORESOURCE_MEM,
-+				      IORES_DESC_SOFT_RESERVED);
-+
-+	rc = insert_resource(&iomem_resource, soft);
-+	if (rc)
-+		return rc;
-+
-+	return devm_add_action_or_reset(host, remove_soft_reserved,
-+					no_free_ptr(soft));
-+}
-+
- static int hmem_register_device(struct device *host, int target_nid,
- 				const struct resource *res)
- {
-@@ -103,7 +131,9 @@ static int hmem_register_device(struct device *host, int target_nid,
- 	if (rc != REGION_INTERSECTS)
- 		return 0;
- 
--	/* TODO: Add Soft-Reserved memory back to iomem */
-+	rc = add_soft_reserve_into_iomem(host, res);
-+	if (rc)
-+		return rc;
- 
- 	id = memregion_alloc(GFP_KERNEL);
- 	if (id < 0) {
--- 
-2.17.1
-
+No, device-dax is the only one I actually care about.
