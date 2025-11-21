@@ -1,117 +1,160 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E0C2F12DC
-	for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 17:12:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF9172877D7
+	for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 21:07:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763745166; cv=none; b=gfhHhNS6YK3ID8FrsumTgF8P9VIZhTnCWe20LIa8I5ziO1ULpVTF1UOOCtJTSb3fupjHSKPgEHo6I3rRZFOTXORykyv2RVqXbVCP16TsBgyAbNDAibSX8XJx6Bhlxm3MchOL1gdda0wSd/ngJTLYPkEnXiGshTOt9f1GLgWh2Tw=
+	t=1763759270; cv=none; b=GLVZhssQUm667ZckHPactlSJj9YXQtYB8TbpJWSTpPo9laLHDW7hm9KOM592VznzXYGcY3t4iR5t9AGBnQmsICZueSPtSDFqbWcFcmac805AWTPWF/dyEI6wjB0Vynm2yoYwLUUaVcv7mo1TSsTddEGWXH6JAWtwcdwTHrt14iY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763745166; c=relaxed/simple;
-	bh=4knX7UdpV5PqcFPGudPF/uxcuJbYSUmyGMDEJIBJ6aQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RqH7snMgsOqAlyX6W7s1Q/Go/wYG+G6UZw2/jVpTgwrs6tHp9L01OXa6UVZOTKnBxmEblXVWx77y6VKqw5j3ipP7c4tRAl/3Z0m4Khnp28vx+YF9zhdS5ue5ndzGAioqah91x1lsyx1yOb0pOFgHRTeSo6gm3ECI8eTc0GBrRIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=MGYsuK2O; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1763759270; c=relaxed/simple;
+	bh=shSHymcVpVsJRS3DnGEq5zOC8PBxp/thlGXIe4I1Liw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XSIkwuK+N/2zRt0FL0p0Fu/JTHsabCnbOdfwFJe0ws5XNL2+cE5S1lGZSR1ZylEaMa31GE3VV9GRln2cbRBgJMQc2PN1mGbG/PbePlbcbcjgDqjumyQK38yt3PMY1c4W0xqO4zu9UMUd6vs2rIJ+8cBk+DkKpVPh/Kb373qGD3E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=q36k2ero; arc=none smtp.client-ip=209.85.160.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MGYsuK2O"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1763745164;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FRU2qLfbf/wNhvSHqqWH92nPqYewb6NVEbhZtNPwvUI=;
-	b=MGYsuK2OT1bhcvlmnhzrM3LO07R/cufFkPFl9HQdnTegJ6fEAdxPEurgSgf7DsIoUsxawX
-	ukcywsvoelhkWQIn6IbwxK7bfmfA+nxo1KxUXoQSOZJ3n4ihBilew0WY16u+7ntkgz+Bc+
-	HKZnHCvKbY7T2w6QhUtSa9PeZIvWVPY=
-Received: from mail-yw1-f200.google.com (mail-yw1-f200.google.com
- [209.85.128.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-635-r5FjVxHeNCqMmGX1hWZnhw-1; Fri, 21 Nov 2025 12:12:40 -0500
-X-MC-Unique: r5FjVxHeNCqMmGX1hWZnhw-1
-X-Mimecast-MFC-AGG-ID: r5FjVxHeNCqMmGX1hWZnhw_1763745160
-Received: by mail-yw1-f200.google.com with SMTP id 00721157ae682-787e3b03cc2so33528277b3.1
-        for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 09:12:40 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="q36k2ero"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-4ee257e56aaso22882231cf.0
+        for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 13:07:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1763759267; x=1764364067; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Svi+I8ywJ8k5uxtzxqjpEGX4Qh9Fr5IeUT/6ziPIoB4=;
+        b=q36k2eroSfGfBhYAUdPtgc8hyIy+HFaDSj+sWmKXyt+gK1/84cj0FhGzfpk7xXvRx/
+         mPbEyd21tW1D3UYtk3GN3eyqB7+uHYSWh1GPUQAyldwpYiyjU56igOWQICelbSfAtsVI
+         GyZZzAN/mjEIqtxL/bPjqY6zlrONtJBzfC4Isi/9yX11Q4HZcqlpgpPzLtByjJRIdRNJ
+         fDo1tmKcHVc/76us0/keTQFYX8MXtSZuPvouVYi8SrypzTbXxwO6pDrGPYI/wzJJSs0+
+         5DZ/T8abCL5uIqZyLXxsuC01YGMzyjTa0kqrmxB6/N8/KgiUSlx4H2QnrC3x++cR0qtX
+         Rf3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763745160; x=1764349960;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=FRU2qLfbf/wNhvSHqqWH92nPqYewb6NVEbhZtNPwvUI=;
-        b=BaM4FURFho95inxIJE3wLjXTPGVaqxckyLAAwav9y2yrPZD5QyCiJizSaOnDOjv5Gk
-         xFhl/hrZdCCCSvldZVwJJlEMqKyFR2Ro4CRhZOd/0LBeVNjd90w2HIS140pX0/bFJUG7
-         n0jcBV5BuKdGRVk67CABecWuRxxFK6SarFJVJslM9zlKZF7hq+Bub3q2Pno3+48uzmG1
-         9SYDcjRu6mRO4We/P0lmNzqrkRXZZuvbx4wHiDWnZaH0mb+94GSTy6/VxLmZcwWlVdPe
-         8Cd1AVl4a65Vt0y0KimPBCmtzN7W3SL365ebHDnQ3YfoeSaP5rkrudlkQ2qB+fvMAOp3
-         bNzA==
-X-Forwarded-Encrypted: i=1; AJvYcCXUlYXn9tYUEcAnt/b8CCzDG6g9UpWaJrWpjA3+XfxApuiQAAUTpsmUhevPxxLoPhJ7CCOn3dE=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yyfx2i80zadl77Mm08rqd1DtIqQdBdWmtlMIVsJT4VquhikV+fU
-	DlWJ0SiP3R4NgqSYl4dSYYKvI/N6e3JXnQ+mYC/7JvB2hDo7Xct/irvxMzsPFNqW2wqrx3C5xU5
-	lvrAkkcGC5BdDoLu6yi7H62OFhofe0VKKuAGo23YlLmRIeMAKjusfdQMbf1jji9LoAAkVSxuvsW
-	bh1cCGEl8HFHXovp4fMcW6T+bzg8Ob0L0o
-X-Gm-Gg: ASbGncvKCxHOzsn1BDW+xovqzjK1vy9rh2ZPgrXH3MhNBULGrrNxdsn0r/VpB+wr2Hd
-	a/nSRB+GCLl9R293gkwz6s62mHqoExWbT1GlktOXH9WfSdNOfy437OG3RIueb3qRDq6TQ3AtluD
-	3thSqIScN/eX11V9sUJigF9aNyFHi/mtZAyZqUbUHmoTmBh2QLOJKsIl8MB8/0XSNZ
-X-Received: by 2002:a05:690c:4c09:b0:787:bf16:d489 with SMTP id 00721157ae682-78a8b5681a0mr24167027b3.62.1763745160075;
-        Fri, 21 Nov 2025 09:12:40 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IFJMtLvkeHiv5tBcVk8Zunn6fcLBfbMFj2OlEQ7sDWssH1e01yWoO2IMY4KicgI4AI0qMGjQLfshccde2mHq/o=
-X-Received: by 2002:a05:690c:4c09:b0:787:bf16:d489 with SMTP id
- 00721157ae682-78a8b5681a0mr24166847b3.62.1763745159764; Fri, 21 Nov 2025
- 09:12:39 -0800 (PST)
+        d=1e100.net; s=20230601; t=1763759267; x=1764364067;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Svi+I8ywJ8k5uxtzxqjpEGX4Qh9Fr5IeUT/6ziPIoB4=;
+        b=Xet4e9wg/m34A1pCDn4Njf/p1o+oX4s0+wrcMmVG7e79SlDFmXMbI+owRRsNPzCVFU
+         c6NUwNalXgkNOlP4vNNNMayFHI4eDZ/ed17mhT0dgXBvG03ZteUT0iX17HwrztAjtP6q
+         fO9bVw6dpLvVP7cEBf/eZ1xjuHB/lpS409au3ie5PoqwDHKWtCK/gC4jv8y1W5R2vu3+
+         Yki+xvhc6iswLuOXvHKPV2kGVmh75wQJ5vqCacw6hW8sMON5kqp7ftseGmfFKKt5ldgO
+         QHqP/qdGNvXkA3s15tTzcHwo9eT5XjEUFI23Twm6PfnupQayK3ZktRx4HmfZSr3zr/Qb
+         XVdQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX8Ak3U8IOW/xa5u5gymc84hS4E2FLTRaHNrvgLo+kBEze2BrI/3Zi5h/gF+f2k6DypJ+Xn9sk=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyfwnCO5G56klvqBwBrbN4WY6SCrsX0AnzRB528QAypAUrzmpob
+	/7dwRKhazCshCcjOM1RQSOjbQpmgx65hvcTRtXzm+0r1GWq15hDL/brslN7hglRxL6Q=
+X-Gm-Gg: ASbGncuL7+ADGA4FlW3AqcQX1Te8eErVx6jWfbHi3t6dYnLvU+jRIUo2ytUF/yUX6pr
+	YcBIksRD2WQKko0v/KBIGkgXT7C9ctrj2vt2NNsMzRoPmTGW96biq9TQcoDIbTYEA3T3VRIU95p
+	BzKQduIYc8jHx4yvX+Ewre0FCHj26R1+ilw5S6BwMnkasVrlGOqPmOjW6xzR/TWBASdzzitrobA
+	46klpJFvzWjfsgHn2J22oHkKDhR7TK88nKQ+h/bnTDgYGTszIyYIxA2vf12RLuANgShJDCto9wv
+	b3+1gjDrqsc89K/e5jwcbdGp2luzQP02R98UlxRkW0NFDPxrT5ddDSZqjkR0JX40w1WbuNjwv2d
+	yTF2/6YaiypyPNY/sqdK0bCg3C2oVs6MwBqTbJMqAa1eP1joAHZaPm+obET/JMKjlQOgKcRYq6T
+	vJswVd0sIsQmHG740LQnKe52EMkH/n2aio3E3Z0dbr2w25iGtcHZ9zbN7uQ7rO5fwRUr2ZIA==
+X-Google-Smtp-Source: AGHT+IHB54I5/pxWYI0YylL4DbWXryCZhFk7bd7fb71QpMMtzOgbCdkOeFKpCqsEbmreSLGZDE/f8Q==
+X-Received: by 2002:a05:622a:c6:b0:4eb:a457:394 with SMTP id d75a77b69052e-4ee587d2ef1mr64635291cf.12.1763759267374;
+        Fri, 21 Nov 2025 13:07:47 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4ee48e65e3bsm42420991cf.17.2025.11.21.13.07.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 21 Nov 2025 13:07:46 -0800 (PST)
+Date: Fri, 21 Nov 2025 16:07:35 -0500
+From: Gregory Price <gourry@gourry.net>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: linux-mm@kvack.org, kernel-team@meta.com, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
+	dave@stgolabs.net, jonathan.cameron@huawei.com,
+	dave.jiang@intel.com, alison.schofield@intel.com,
+	vishal.l.verma@intel.com, ira.weiny@intel.com,
+	dan.j.williams@intel.com, longman@redhat.com,
+	akpm@linux-foundation.org, david@redhat.com,
+	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+	osalvador@suse.de, ziy@nvidia.com, matthew.brost@intel.com,
+	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
+	ying.huang@linux.alibaba.com, mingo@redhat.com,
+	peterz@infradead.org, juri.lelli@redhat.com,
+	vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
+	rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
+	vschneid@redhat.com, tj@kernel.org, hannes@cmpxchg.org,
+	mkoutny@suse.com, kees@kernel.org, muchun.song@linux.dev,
+	roman.gushchin@linux.dev, shakeel.butt@linux.dev,
+	rientjes@google.com, jackmanb@google.com, cl@gentwo.org,
+	harry.yoo@oracle.com, axelrasmussen@google.com, yuanchu@google.com,
+	weixugc@google.com, zhengqi.arch@bytedance.com,
+	yosry.ahmed@linux.dev, nphamcs@gmail.com, chengming.zhou@linux.dev,
+	fabio.m.de.francesco@linux.intel.com, rrichter@amd.com,
+	ming.li@zohomail.com, usamaarif642@gmail.com, brauner@kernel.org,
+	oleg@redhat.com, namcao@linutronix.de, escape@linux.alibaba.com,
+	dongjoo.seo1@samsung.com
+Subject: Re: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
+Message-ID: <aSDUl7kU73LJR78g@gourry-fedora-PF4VCD3F>
+References: <20251112192936.2574429-1-gourry@gourry.net>
+ <aktv2ivkrvtrox6nvcpxsnq6sagxnmj4yymelgkst6pazzpogo@aexnxfcklg75>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20251121081748.1443507-1-zhangshida@kylinos.cn> <20251121081748.1443507-3-zhangshida@kylinos.cn>
-In-Reply-To: <20251121081748.1443507-3-zhangshida@kylinos.cn>
-From: Andreas Gruenbacher <agruenba@redhat.com>
-Date: Fri, 21 Nov 2025 18:12:28 +0100
-X-Gm-Features: AWmQ_bnhlFe4bz2evbPrSI0Jb0EHnrWDpAVAemzJqi8jgCPnPPGI5CuseKDcbLY
-Message-ID: <CAHc6FU7eL6Xuoc5dYjm9pYLr=akDH6ETow_yNPR0JpLGcz8QWw@mail.gmail.com>
-Subject: Re: [PATCH 2/9] block: export bio_chain_and_submit
-To: zhangshida <starzhangzsd@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, 
-	nvdimm@lists.linux.dev, virtualization@lists.linux.dev, 
-	linux-nvme@lists.infradead.org, gfs2@lists.linux.dev, ntfs3@lists.linux.dev, 
-	linux-xfs@vger.kernel.org, zhangshida@kylinos.cn
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: oiZeYMi7reIwyPRph0IKFTCfnOtHtbUf5rdoWukM0ZM_1763745160
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aktv2ivkrvtrox6nvcpxsnq6sagxnmj4yymelgkst6pazzpogo@aexnxfcklg75>
 
-On Fri, Nov 21, 2025 at 9:27=E2=80=AFAM zhangshida <starzhangzsd@gmail.com>=
- wrote:
-> From: Shida Zhang <zhangshida@kylinos.cn>
->
-> Signed-off-by: Shida Zhang <zhangshida@kylinos.cn>
-> ---
->  block/bio.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/block/bio.c b/block/bio.c
-> index 55c2c1a0020..a6912aa8d69 100644
-> --- a/block/bio.c
-> +++ b/block/bio.c
-> @@ -363,6 +363,7 @@ struct bio *bio_chain_and_submit(struct bio *prev, st=
-ruct bio *new)
->         }
->         return new;
->  }
-> +EXPORT_SYMBOL_GPL(bio_chain_and_submit);
->
->  struct bio *blk_next_bio(struct bio *bio, struct block_device *bdev,
->                 unsigned int nr_pages, blk_opf_t opf, gfp_t gfp)
-> --
-> 2.34.1
+On Tue, Nov 18, 2025 at 06:02:02PM +1100, Alistair Popple wrote:
+> 
+> I'm interested in the contrast with zone_device, and in particular why
+> device_coherent memory doesn't end up being a good fit for this.
+> 
+> > - Why mempolicy.c and cpusets as-is are insufficient
+> > - SPM types seeking this form of interface (Accelerator, Compression)
+> 
+> I'm sure you can guess my interest is in GPUs which also have memory some people
+> consider should only be used for specific purposes :-) Currently our coherent
+> GPUs online this as a normal NUMA noode, for which we have also generally
+> found mempolicy, cpusets, etc. inadequate as well, so it will be interesting to
+> hear what short comings you have been running into (I'm less familiar with the
+> Compression cases you talk about here though).
+> 
 
-Can this and the following patches please go in a separate patch
-queue? It's got nothing to do with the bug.
+after some thought, talks, and doc readings it seems like the
+zone_device setups don't allow the CPU to map the devmem into page
+tables, and instead depends on migrate_device logic (unless the docs are
+out of sync with the code these days).  That's at least what's described
+in hmm and migrate_device.  
 
-Thanks,
-Andreas
+Assuming this is out of date and ZONE_DEVICE memory is mappable into
+page tables, assuming you want sparse allocation, ZONE_DEVICE seems to
+suggest you at least have to re-implement the buddy logic (which isn't
+that tall of an ask).
+
+But I could imagine an (overly simplistic) pattern with SPM Nodes:
+
+fd = open("/dev/gpu_mem", ...)
+buf = mmap(fd, ...)
+buf[0] 
+   1) driver takes the fault
+   2) driver calls alloc_page(..., gpu_node, GFP_SPM_NODE)
+   3) driver manages any special page table masks
+      Like marking pages RO/RW to manage ownership.
+   4) driver sends the gpu the (mapping_id, pfn, index) information
+      so that gpu can map the region in its page tables.
+   5) since the memory is cache coherent, gpu and cpu are free to
+      operate directly on the pages without any additional magic
+      (except typical concurrency controls).
+
+Driver doesn't have to do much in the way of allocationg management.
+
+This is probably less compelling since you don't want general purposes
+services like reclaim, migration, compaction, tiering - etc.  
+
+The value is clearly that you get to manage GPU memory like any other
+memory, but without worry that other parts of the system will touch it.
+
+I'm much more focused on the "I have memory that is otherwise general
+purpose, and wants services like reclaim and compaction, but I want
+strong controls over how things can land there in the first place".
+
+~Gregory
 
