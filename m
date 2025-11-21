@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84B4A2264A3;
-	Fri, 21 Nov 2025 00:20:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 183ED23183B;
+	Fri, 21 Nov 2025 00:20:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763684422; cv=none; b=M619EWQdaaLbH+pjE0kz9J0z0GLM+nFMsHX4lHBPvYdEBz4n4isUY94HPQ2OmswgHUFDaDINA14G/pPQBF7qUUFNfo/2kXZQbU1gWJRlMf5Bf2sSR1Maf4qppfeJuaVwPPLY6j/wA62/VCzgMwnwOdacHw00TaNAH1msFSEQfdw=
+	t=1763684424; cv=none; b=r7iQAGhKQvzfUtDTml8rHXZqtONUMtD0NMJo2K7vzNQcrcnzohcsjRJU2gSuvlYqWBtf6hWCMD1rbCdz1q/XPvAtxKiSfDnszd9iQKYM+2uhtVsqcXRYwvMWSmsmKg7vlFpBAT12WRpMgol8PcSnCh3Kkgi1/1VXYel09lsTeDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763684422; c=relaxed/simple;
-	bh=//jhmdrfz+vSAcGRzBHLOBVp3S2nLfBZu874Dcf3vQw=;
+	s=arc-20240116; t=1763684424; c=relaxed/simple;
+	bh=7GU98SPfEH904grARy5f84PKbH2wR2d7zEeNcalsEkY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=m3PCe5bmXO9RfUGbEmuglIJwOrDCTZYG/Kjb14mfMm7neIl4aLPb5QtIdJZgxcY1UZNmR2gWg+N9wq5MRjd5ZN/VdCGoSYYsYs/rJTXoUdKsmNTAPcQ9KuPC/wf3eN2BGY08gkPAZCqVjTqEHB5tYAGVsmMuYUwXqpD/sRZL2r8=
+	 MIME-Version; b=d0AIx/LkWO6RA7gDBYDiBqIW9gSMQizDqqQJ9RLeJnH6Cxx281ETTW1qpe6Ggo7F73XAOre/xjRlx+zNo0vIow7V0Qy/qC2AObAWVV0gWavW31IEp6zNw+KFDcVZXxNpbqD6wZIOBOhQwNh5XSTVFPXvHPklA3aNtVWnd8bYgv4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 078A5C116B1;
-	Fri, 21 Nov 2025 00:20:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 851ABC4CEF1;
+	Fri, 21 Nov 2025 00:20:23 +0000 (UTC)
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
@@ -23,9 +23,9 @@ Cc: dave@stgolabs.net,
 	vishal.l.verma@intel.com,
 	ira.weiny@intel.com,
 	dan.j.williams@intel.com
-Subject: [NDCTL PATCH v2 1/2] cxl/test: Add test for extended linear cache support
-Date: Thu, 20 Nov 2025 17:20:17 -0700
-Message-ID: <20251121002018.4136006-2-dave.jiang@intel.com>
+Subject: [NDCTL PATCH v2 2/2] cxl/test: Add support for poison test for ELC
+Date: Thu, 20 Nov 2025 17:20:18 -0700
+Message-ID: <20251121002018.4136006-3-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.51.1
 In-Reply-To: <20251121002018.4136006-1-dave.jiang@intel.com>
 References: <20251121002018.4136006-1-dave.jiang@intel.com>
@@ -37,153 +37,116 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a unit test that verifies the extended linear cache setup paths
-in the kernel driver. cxl_test provides a mock'd version. The test
-verifies the sysfs attribute that indicates extended linear cache support
-is correctly reported. It also verifies the sizing and offset of the
-regions and decoders.
-
-The expecation is that CFMWS covers the entire extended linear cache
-region. The first part is DRAM and second part is CXL memory in a 1:1
-setup. The start base for hardware decoders should be offsetted by the
-DRAM size.
+Expand cxl-poison.sh test to include extended linear cache testing.
+Additional adjustments are needed for test_poison_by_region_offset()
+to test ELC functionality.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
-v2:
-- skip if no extended_linear_cache mod param. (Alison)
-- Cleanup at the end. (Alison)
-- Fix shellcheck double quote issues. (Alison)
-- Err if elc region not found for cxl_test. (Alison)
-- Add missing call to find_region() (Alison)
-- Fixup jq query when setup also has qemu cxl devices.
----
- test/cxl-elc.sh  | 95 ++++++++++++++++++++++++++++++++++++++++++++++++
- test/meson.build |  2 +
- 2 files changed, 97 insertions(+)
- create mode 100755 test/cxl-elc.sh
+ test/cxl-poison.sh | 61 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 39 insertions(+), 22 deletions(-)
 
-diff --git a/test/cxl-elc.sh b/test/cxl-elc.sh
-new file mode 100755
-index 000000000000..1edd2f4b76de
---- /dev/null
-+++ b/test/cxl-elc.sh
-@@ -0,0 +1,95 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2025 Intel Corporation. All rights reserved.
+diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
+index 8dfed1877907..0cb7bc77b814 100644
+--- a/test/cxl-poison.sh
++++ b/test/cxl-poison.sh
+@@ -13,11 +13,6 @@ trap 'err $LINENO' ERR
+ 
+ check_prereq "jq"
+ 
+-modprobe -r cxl_test
+-modprobe cxl_test
+-
+-rc=1
+-
+ # THEORY OF OPERATION: Exercise cxl-cli and cxl driver ability to
+ # inject, clear, and get the poison list. Do it by memdev and by region.
+ 
+@@ -150,9 +145,18 @@ test_poison_by_region_by_dpa()
+ 
+ test_poison_by_region_offset()
+ {
+-	local base gran hpa1 hpa2
++	local base gran hpa1 hpa2 cache_size
+ 	base=$(cat /sys/bus/cxl/devices/"$region"/resource)
+ 	gran=$(cat /sys/bus/cxl/devices/"$region"/interleave_granularity)
++	cache_size=0
 +
-+. "$(dirname "$0")"/common
++	if [ -f "/sys/bus/cxl/devices/$region/extended_linear_cache_size" ]; then
++		cache_size=$(cat /sys/bus/cxl/devices/"$region"/extended_linear_cache_size)
++	fi
 +
-+rc=77
-+
-+set -ex
-+[ -d "/sys/kernel/tracing" ] || do_skip "test requires CONFIG_TRACING"
-+
-+trap 'err $LINENO' ERR
-+
-+check_prereq "jq"
++	if [[ $cache_size -gt 0 ]]; then
++		base=$((base + cache_size))
++	fi
+ 
+ 	# Test two HPA addresses: base and base + granularity
+ 	# This hits the two memdevs in the region interleave.
+@@ -162,15 +166,15 @@ test_poison_by_region_offset()
+ 	# Inject at the offset and check result using the hpa
+ 	# ABI takes an offset, but recall the hpa to check trace event
+ 
+-	inject_poison_sysfs "$region" 0
++	inject_poison_sysfs "$region" "$cache_size"
+ 	check_trace_entry "$region" "$hpa1"
+-	inject_poison_sysfs "$region" "$gran"
++	inject_poison_sysfs "$region" "$((gran + cache_size))"
+ 	check_trace_entry "$region" "$hpa2"
+ 	validate_poison_found "-r $region" 2
+ 
+-	clear_poison_sysfs "$region" 0
++	clear_poison_sysfs "$region" "$cache_size"
+ 	check_trace_entry "$region" "$hpa1"
+-	clear_poison_sysfs "$region" "$gran"
++	clear_poison_sysfs "$region" "$((gran + cache_size))"
+ 	check_trace_entry "$region" "$hpa2"
+ 	validate_poison_found "-r $region" 0
+ }
+@@ -207,19 +211,32 @@ test_poison_by_region_offset_negative()
+ 	clear_poison_sysfs "$region" "$large_offset" true
+ }
+ 
+-# Clear old trace events, enable cxl_poison, enable global tracing
+-echo "" > /sys/kernel/tracing/trace
+-echo 1 > /sys/kernel/tracing/events/cxl/cxl_poison/enable
+-echo 1 > /sys/kernel/tracing/tracing_on
++run_poison_test()
++{
++	# Clear old trace events, enable cxl_poison, enable global tracing
++	echo "" > /sys/kernel/tracing/trace
++	echo 1 > /sys/kernel/tracing/events/cxl/cxl_poison/enable
++	echo 1 > /sys/kernel/tracing/tracing_on
+ 
+-test_poison_by_memdev_by_dpa
+-find_auto_region
+-test_poison_by_region_by_dpa
+-[ -f "/sys/kernel/debug/cxl/$region/inject_poison" ] ||
+-       do_skip "test cases requires inject by region kernel support"
+-test_poison_by_region_offset
+-test_poison_by_region_offset_negative
++	test_poison_by_memdev_by_dpa
++	find_auto_region
++	test_poison_by_region_by_dpa
++	[ -f "/sys/kernel/debug/cxl/$region/inject_poison" ] ||
++		do_skip "test cases requires inject by region kernel support"
++	test_poison_by_region_offset
++	test_poison_by_region_offset_negative
+ 
+-check_dmesg "$LINENO"
++	check_dmesg "$LINENO"
++}
 +
 +modprobe -r cxl_test
-+modprobe cxl_test extended_linear_cache=1
-+[ -f /sys/module/cxl_test/parameters/extended_linear_cache ] || \
-+    do_skip "cxl_test extended_linear_cache module param not available"
-+
++modprobe cxl_test
 +rc=1
++run_poison_test
+ 
+ modprobe -r cxl-test
++modprobe cxl_test extended_linear_cache=1
++rc=1
++run_poison_test
 +
-+find_region()
-+{
-+	json="$($CXL list -b cxl_test -R)"
-+	region=$(echo "$json" | jq -r '.[] | select(has("extended_linear_cache_size") and .extended_linear_cache_size != null) | .region')
-+	[[ -n "$region" && "$region" != "null" ]] || err "no test extended linear cache region found"
-+}
-+
-+retrieve_info()
-+{
-+	# Root decoder name
-+	cxlrd="$($CXL list -r"$region" -D | jq -r '.[] | select(has("root decoders")) | ."root decoders"[0].decoder')"
-+	# Root decoder (CFMWS) window size
-+	cxlrd_size="$($CXL list -b cxl_test -d "$cxlrd" | jq '.[] | to_entries[] | select(.key | startswith("decoders:")) | .value[].size')"
-+	# Root decoder (CFMWS) window address base
-+	cxlrd_hpa="$($CXL list -b cxl_test -d "$cxlrd" | jq '.[] | to_entries[] | select(.key | startswith("decoders:")) | .value[].resource')"
-+
-+	# Region size
-+	region_size="$($CXL list -b cxl_test -r "$region" | jq '.[] | to_entries[] | select(.key | startswith("regions:")) | .value[].size')"
-+
-+	# switch port 0 size
-+	swp0_size="$($CXL list -r "$region" -D | jq '.[] | select(has("port decoders")) | ."port decoders"[0] | .size')"
-+	# switch port 0 base address
-+	swp0_hpa="$($CXL list -r "$region" -D | jq '.[] | select(has("port decoders")) | ."port decoders"[0] | .resource')"
-+
-+	# switch port 1 size
-+	swp1_size="$($CXL list -r "$region" -D | jq '.[] | select(has("port decoders")) | ."port decoders"[1] | .size')"
-+	# switch port 1 base address
-+	swp1_hpa="$($CXL list -r "$region" -D | jq '.[] | select(has("port decoders")) | ."port decoders"[1] | .resource')"
-+
-+	# endpoint port 0 size
-+	ep0_size="$($CXL list -r "$region" -D | jq '.[] | select(has("endpoint decoders")) | ."endpoint decoders"[0] | .size')"
-+	# endpoint port 0 base address
-+	ep0_hpa="$($CXL list -r "$region" -D | jq '.[] | select(has("endpoint decoders")) | ."endpoint decoders"[0] | .resource')"
-+
-+	# endpoint port 1 size
-+	ep1_size="$($CXL list -r "$region" -D | jq '.[] | select(has("endpoint decoders")) | ."endpoint decoders"[1] | .size')"
-+	# endpoint port 1 base address
-+	ep1_hpa="$($CXL list -r "$region" -D | jq '.[] | select(has("endpoint decoders")) | ."endpoint decoders"[1] | .resource')"
-+}
-+
-+compare_sizes()
-+{
-+	# The CXL region size should equal to the CFMWS size.
-+	# It should be DRAM+CXL size combined
-+	((cxlrd_size == region_size)) || err "$LINENO"
-+
-+	# The switch decoder size should be half of CFMWS size.
-+	((cxlrd_size == swp0_size * 2)) || err "$LINENO"
-+	((cxlrd_size == swp1_size * 2)) || err "$LINENO"
-+
-+	# The endpoint decoder size should be half of CFMWS size
-+	((cxlrd_size == ep0_size * 2)) || err "$LINENO"
-+	((cxlrd_size == ep1_size * 2)) || err "$LINENO"
-+}
-+
-+# The extended linear cache is expected to be DRAM:CXL of 1:1 size
-+# The CXL region occupies the second half of the CFMWS
-+compare_bases()
-+{
-+	((cxlrd_hpa == swp0_hpa - swp0_size)) || err "$LINENO"
-+	((cxlrd_hpa == swp1_hpa - swp1_size)) || err "$LINENO"
-+
-+	((cxlrd_hpa == ep0_hpa - ep0_size)) || err "$LINENO"
-+	((cxlrd_hpa == ep1_hpa - ep1_size)) || err "$LINENO"
-+}
-+
-+find_region
-+retrieve_info
-+compare_sizes
-+compare_bases
-+
-+check_dmesg "$LINENO"
 +modprobe -r cxl_test
-diff --git a/test/meson.build b/test/meson.build
-index 663d31cd333e..8a3718d2b558 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -168,6 +168,7 @@ cxl_sanitize = find_program('cxl-sanitize.sh')
- cxl_destroy_region = find_program('cxl-destroy-region.sh')
- cxl_qos_class = find_program('cxl-qos-class.sh')
- cxl_translate = find_program('cxl-translate.sh')
-+cxl_elc = find_program('cxl-elc.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -201,6 +202,7 @@ tests = [
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-   [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
-   [ 'cxl-translate.sh',       cxl_translate,      'cxl'   ],
-+  [ 'cxl-elc.sh',             cxl_elc,            'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
 -- 
 2.51.1
 
