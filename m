@@ -1,112 +1,117 @@
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F022929AAFD
-	for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 16:33:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E0C2F12DC
+	for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 17:12:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763742800; cv=none; b=DA6XqxCqYmIHREIAUkVPzXV6DF5ubcofnneoc8dTNA/R1Dle9DB7i/4VOBYfgOUyERmZoOZ1xCEOqgvVoqXp5uKF1hQkKBtuOwEnGwWnFozIG7RESnKarcs3S4lVuUNuHyg12yp/dz4ETxUG00O9+HySd90z8ppx9RTbTOq09d0=
+	t=1763745166; cv=none; b=gfhHhNS6YK3ID8FrsumTgF8P9VIZhTnCWe20LIa8I5ziO1ULpVTF1UOOCtJTSb3fupjHSKPgEHo6I3rRZFOTXORykyv2RVqXbVCP16TsBgyAbNDAibSX8XJx6Bhlxm3MchOL1gdda0wSd/ngJTLYPkEnXiGshTOt9f1GLgWh2Tw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763742800; c=relaxed/simple;
-	bh=i8lB6Xhq5qIw2LcR2aiuLwMvtK9l/CCFSlX/E7C3KfM=;
+	s=arc-20240116; t=1763745166; c=relaxed/simple;
+	bh=4knX7UdpV5PqcFPGudPF/uxcuJbYSUmyGMDEJIBJ6aQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rzKl6hsFRib9ndIRIQJ+mn1A5zquusVrRTSnkFntRJb6L+BhjwZ3CC1pvZDQF9/pQAZ+5UC01TbESZRqNsrkLBwL8LGtJt2KGco/PKny+DHrjdZvdc6YPCEk73nh6l4drlitug1pifd/vXKpKKiPWMCT+LON52DLFoVk6yZKzzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jrGRwIZ7; arc=none smtp.client-ip=209.85.208.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	 To:Cc:Content-Type; b=RqH7snMgsOqAlyX6W7s1Q/Go/wYG+G6UZw2/jVpTgwrs6tHp9L01OXa6UVZOTKnBxmEblXVWx77y6VKqw5j3ipP7c4tRAl/3Z0m4Khnp28vx+YF9zhdS5ue5ndzGAioqah91x1lsyx1yOb0pOFgHRTeSo6gm3ECI8eTc0GBrRIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=MGYsuK2O; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jrGRwIZ7"
-Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-640fb02a662so9807a12.1
-        for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 08:33:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1763742796; x=1764347596; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=7JzPZ5dDJUXWF4qsjg1CzRRu4TDRFyC7Z3p5Tit9Rbc=;
-        b=jrGRwIZ7PwuEXPg1Oldd6eHZ7/9jf4e1L/MZlG9OpbbZpsKLa7LnSWhZ2g6CRfWzcI
-         +IPebdxP1WZQkJ9F46E9+krGL+DoFgH74k1Uwt06LSzYGmz7DqYbKGNMPhsUTXgFhi8m
-         ka8K7Yjw7xSQ451n3GdiZiOcASdjVti+dwIVCPl8qERvlw4aaCxt0B94CGWZfNil/Y+H
-         y6A7gtT9R+6AEvMVzwHN6aETNblMjLkwtAQLQ4fl2wSi4/PpkIoGzSfQmenbej0OwGnK
-         5Mz3ksUI0hEc4PdO0W0y0b+YnZWaIx2jOxEVvvSEGuHOeJY92pmrKoiENAiV6NHfGd3A
-         lBDw==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MGYsuK2O"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1763745164;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FRU2qLfbf/wNhvSHqqWH92nPqYewb6NVEbhZtNPwvUI=;
+	b=MGYsuK2OT1bhcvlmnhzrM3LO07R/cufFkPFl9HQdnTegJ6fEAdxPEurgSgf7DsIoUsxawX
+	ukcywsvoelhkWQIn6IbwxK7bfmfA+nxo1KxUXoQSOZJ3n4ihBilew0WY16u+7ntkgz+Bc+
+	HKZnHCvKbY7T2w6QhUtSa9PeZIvWVPY=
+Received: from mail-yw1-f200.google.com (mail-yw1-f200.google.com
+ [209.85.128.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-635-r5FjVxHeNCqMmGX1hWZnhw-1; Fri, 21 Nov 2025 12:12:40 -0500
+X-MC-Unique: r5FjVxHeNCqMmGX1hWZnhw-1
+X-Mimecast-MFC-AGG-ID: r5FjVxHeNCqMmGX1hWZnhw_1763745160
+Received: by mail-yw1-f200.google.com with SMTP id 00721157ae682-787e3b03cc2so33528277b3.1
+        for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 09:12:40 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763742796; x=1764347596;
+        d=1e100.net; s=20230601; t=1763745160; x=1764349960;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=7JzPZ5dDJUXWF4qsjg1CzRRu4TDRFyC7Z3p5Tit9Rbc=;
-        b=bR8GMVNS47Hn5XcrLXogoaJi4oo/ah1D15H0/OAp3dauSKK67OS+eduUXtnaIrtBXF
-         6BziRPSa9N5fGNhpPWL03Y9t41bltIGQe1qk+/A/FUe920wUBBWtwa7CzKLW8MjJFWzi
-         Zgjl+nAo+qYCWhBGkLuudkKpywtD0EYyW8GpBcg4aromL8RTVeDXleKggJGYxGaICnyw
-         aw5B5hY7HmkFERlgWfixcNDMddUSH9ymuxPF7MqZCWwL2lqbcGCWfgrYDUVbRikkLU7v
-         xuOvosIPoB6s41frn764XgEGmO2RTBTdWx9KHLaTQef7ZHOoo8EHChZFACW5DBBDF63w
-         fdIQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWDTCg8qHllgTGknXUKyYJSmmw+xiwLJdygL6qceza5UV6R3uAsa/751g1klhseWccvsCnHS+U=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxeWhbOC4cuWQovkN+04YIa+hMvNImcpukcR2Zkkd6w5pCCj0Iu
-	pl//tlsSa1/g0SAgPcVShAHzRw7c+dV3HIFUm9a+Q6bzEVsCnV0lZd5j/qS0D0ygqxikNYRiCPM
-	F3SYIGthaRTPmYH7/KqgUfom/slkwEqlwTvHTtzIt
-X-Gm-Gg: ASbGnctfgf4Jjn4KX1lLuw/Odjc2KyWQvZwErSwRNbxnMhtDEKpYfnKr8Bjsjjhn6OR
-	X3ZLEc0C3cw2On7tZs/XEpE/CgZc8cZlVFshUUtsFGILCNRDvs5TaG7Csg9w/wbY6HhTQu83Fyn
-	OpdbEah+yRFMf4zwX1MuMoG+imjjcS8CqwzJd0PVaDy55h5m2bGAqKpjOgN32B0v3Qov/MqFnQ7
-	NaKhKTy8UaBt/yT55oLztK5Urwqe0CgWPFFLcOA5xctwLbSdMRDdSDwhs8yd+09MXgjHg==
-X-Google-Smtp-Source: AGHT+IFpxSpkHvgiR26r1tEmf7VxOLY1UkCTmNLNhgG/6y5ncF7GrU9I7etp9Olb6Azm/mZLVSBUngvpmUYPrboW9KM=
-X-Received: by 2002:a05:6402:1214:b0:634:90ba:2361 with SMTP id
- 4fb4d7f45d1cf-645548332cbmr42770a12.7.1763742795987; Fri, 21 Nov 2025
- 08:33:15 -0800 (PST)
+        bh=FRU2qLfbf/wNhvSHqqWH92nPqYewb6NVEbhZtNPwvUI=;
+        b=BaM4FURFho95inxIJE3wLjXTPGVaqxckyLAAwav9y2yrPZD5QyCiJizSaOnDOjv5Gk
+         xFhl/hrZdCCCSvldZVwJJlEMqKyFR2Ro4CRhZOd/0LBeVNjd90w2HIS140pX0/bFJUG7
+         n0jcBV5BuKdGRVk67CABecWuRxxFK6SarFJVJslM9zlKZF7hq+Bub3q2Pno3+48uzmG1
+         9SYDcjRu6mRO4We/P0lmNzqrkRXZZuvbx4wHiDWnZaH0mb+94GSTy6/VxLmZcwWlVdPe
+         8Cd1AVl4a65Vt0y0KimPBCmtzN7W3SL365ebHDnQ3YfoeSaP5rkrudlkQ2qB+fvMAOp3
+         bNzA==
+X-Forwarded-Encrypted: i=1; AJvYcCXUlYXn9tYUEcAnt/b8CCzDG6g9UpWaJrWpjA3+XfxApuiQAAUTpsmUhevPxxLoPhJ7CCOn3dE=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyfx2i80zadl77Mm08rqd1DtIqQdBdWmtlMIVsJT4VquhikV+fU
+	DlWJ0SiP3R4NgqSYl4dSYYKvI/N6e3JXnQ+mYC/7JvB2hDo7Xct/irvxMzsPFNqW2wqrx3C5xU5
+	lvrAkkcGC5BdDoLu6yi7H62OFhofe0VKKuAGo23YlLmRIeMAKjusfdQMbf1jji9LoAAkVSxuvsW
+	bh1cCGEl8HFHXovp4fMcW6T+bzg8Ob0L0o
+X-Gm-Gg: ASbGncvKCxHOzsn1BDW+xovqzjK1vy9rh2ZPgrXH3MhNBULGrrNxdsn0r/VpB+wr2Hd
+	a/nSRB+GCLl9R293gkwz6s62mHqoExWbT1GlktOXH9WfSdNOfy437OG3RIueb3qRDq6TQ3AtluD
+	3thSqIScN/eX11V9sUJigF9aNyFHi/mtZAyZqUbUHmoTmBh2QLOJKsIl8MB8/0XSNZ
+X-Received: by 2002:a05:690c:4c09:b0:787:bf16:d489 with SMTP id 00721157ae682-78a8b5681a0mr24167027b3.62.1763745160075;
+        Fri, 21 Nov 2025 09:12:40 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IFJMtLvkeHiv5tBcVk8Zunn6fcLBfbMFj2OlEQ7sDWssH1e01yWoO2IMY4KicgI4AI0qMGjQLfshccde2mHq/o=
+X-Received: by 2002:a05:690c:4c09:b0:787:bf16:d489 with SMTP id
+ 00721157ae682-78a8b5681a0mr24166847b3.62.1763745159764; Fri, 21 Nov 2025
+ 09:12:39 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20251024210518.2126504-1-mclapinski@google.com> <691fb94f7aee9_1eb85100cd@dwillia2-mobl4.notmuch>
-In-Reply-To: <691fb94f7aee9_1eb85100cd@dwillia2-mobl4.notmuch>
-From: =?UTF-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>
-Date: Fri, 21 Nov 2025 17:33:05 +0100
-X-Gm-Features: AWmQ_bmBax4LGJ2h84vcUCeMiOFbAjV3E_6Wqj0TFMrz__FQfZpYWYQp8nAZZRc
-Message-ID: <CAAi7L5fMGANdMts8k4NGxJcWYsPmNwy4zJOXJ-t9T7h3h=mjOg@mail.gmail.com>
-Subject: Re: [PATCH v3 0/5] dax: add PROBE_PREFER_ASYNCHRONOUS to all the dax drivers
-To: dan.j.williams@intel.com
-Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
-	Pasha Tatashin <pasha.tatashin@soleen.com>, linux-kernel@vger.kernel.org
+References: <20251121081748.1443507-1-zhangshida@kylinos.cn> <20251121081748.1443507-3-zhangshida@kylinos.cn>
+In-Reply-To: <20251121081748.1443507-3-zhangshida@kylinos.cn>
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Date: Fri, 21 Nov 2025 18:12:28 +0100
+X-Gm-Features: AWmQ_bnhlFe4bz2evbPrSI0Jb0EHnrWDpAVAemzJqi8jgCPnPPGI5CuseKDcbLY
+Message-ID: <CAHc6FU7eL6Xuoc5dYjm9pYLr=akDH6ETow_yNPR0JpLGcz8QWw@mail.gmail.com>
+Subject: Re: [PATCH 2/9] block: export bio_chain_and_submit
+To: zhangshida <starzhangzsd@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, 
+	nvdimm@lists.linux.dev, virtualization@lists.linux.dev, 
+	linux-nvme@lists.infradead.org, gfs2@lists.linux.dev, ntfs3@lists.linux.dev, 
+	linux-xfs@vger.kernel.org, zhangshida@kylinos.cn
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: oiZeYMi7reIwyPRph0IKFTCfnOtHtbUf5rdoWukM0ZM_1763745160
+X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 21, 2025 at 1:59=E2=80=AFAM <dan.j.williams@intel.com> wrote:
+On Fri, Nov 21, 2025 at 9:27=E2=80=AFAM zhangshida <starzhangzsd@gmail.com>=
+ wrote:
+> From: Shida Zhang <zhangshida@kylinos.cn>
 >
-> Michal Clapinski wrote:
-> > Comments in linux/device/driver.h say that the goal is to do async
-> > probing on all devices. The current behavior unnecessarily slows down
-> > the boot by synchronously probing dax devices, so let's change that.
-> >
-> > For thousands of devices, this change saves >1s of boot time.
-> >
-> > Michal Clapinski (5):
-> >   dax: add PROBE_PREFER_ASYNCHRONOUS to the pmem driver
-> >   dax: add PROBE_PREFER_ASYNCHRONOUS to the kmem driver
-> >   dax: add PROBE_PREFER_ASYNCHRONOUS to the cxl driver
-> >   dax: add PROBE_PREFER_ASYNCHRONOUS to the hmem drivers
-> >   dax: add PROBE_PREFER_ASYNCHRONOUS to the dax device driver
+> Signed-off-by: Shida Zhang <zhangshida@kylinos.cn>
+> ---
+>  block/bio.c | 1 +
+>  1 file changed, 1 insertion(+)
 >
-> After seeing the trouble this causes with libdaxctl and failing to find
-> a quick fix I wonder if you should just go through route of eating the
-> potential regressions in your own environment.
+> diff --git a/block/bio.c b/block/bio.c
+> index 55c2c1a0020..a6912aa8d69 100644
+> --- a/block/bio.c
+> +++ b/block/bio.c
+> @@ -363,6 +363,7 @@ struct bio *bio_chain_and_submit(struct bio *prev, st=
+ruct bio *new)
+>         }
+>         return new;
+>  }
+> +EXPORT_SYMBOL_GPL(bio_chain_and_submit);
 >
-> I.e. instead of making it a problem that the kernel needs to debug for
-> all legacy users, how about you just boot with the command line option:
->
->    driver_async_probe=3Ddevice_dax
->
-> ...or add the following to your mopdrobe configuration:
->
->    options device_dax async_probe
->
-> I.e. do you really need to change this policy globally for everyone at
-> this point?
+>  struct bio *blk_next_bio(struct bio *bio, struct block_device *bdev,
+>                 unsigned int nr_pages, blk_opf_t opf, gfp_t gfp)
+> --
+> 2.34.1
 
-I'll do that or I'll just cherry-pick this to our kernel. Thank you.
+Can this and the following patches please go in a separate patch
+queue? It's got nothing to do with the bug.
 
-> I do want to improve this, but I think it will take time for libdaxctl
-> to get ready for this flag day.
+Thanks,
+Andreas
+
