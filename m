@@ -1,117 +1,66 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EA8C272E6D;
-	Thu, 20 Nov 2025 20:22:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A753020CCE4;
+	Fri, 21 Nov 2025 00:20:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763670142; cv=none; b=IqvotWF1YfhJIMXgq+4bTrUoh+kt7qd5M0GJiHwG/yHx3qJJLLKxAn9erW4Yrt5BI1YHjNS/PG61OqQgGPjalE5CMjk0yOL/TBqukSOq8M2UEZZiEwqCqOnaFjjG5KWMsSGUDE4QQnNkcGpGbwDs1pfBAXiISeHB/m0Z/YSUc0c=
+	t=1763684420; cv=none; b=Yc3J3NUC7BvHDHLl/QpBVPAXOmA9Mtx5a9av+dQC1GCorxmrDHlNoI+ypc4+72+W3m8AsjAjHBgzmVtKQ1xPsSfF3xG25LZG0LYaOPII1R1uYBGWKUzDetoCZ/zYEj38D7iN+uTiJUrK2ElMw0dA5zxXQW8h+Kfn5cOep1QNTRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763670142; c=relaxed/simple;
-	bh=IIjNXmxsCQvExGI6pwxUj0v63rRpN+xaKbXaacnUje0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=T10ODCEb11YPYN24M36wt40XuiOUAq1hzMlDqfuxIrKY3w8YWW0tBBZM96IBJ0fP6tdJEjlErWTGd8Ia0SEFqCO5zP3hLL45514ZELFsT64D2ub43zdT7WSzTNe0dCbUU26+XuS8CrKGY2a+26OF/xyey3MvJn7c1CPvYBie8e8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gd6+ReOT; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gd6+ReOT"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1763670142; x=1795206142;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=IIjNXmxsCQvExGI6pwxUj0v63rRpN+xaKbXaacnUje0=;
-  b=gd6+ReOTj5EZn2Mh9Bv2vXwEtMNLi+rm+7R4EOG8rGQXxYjVp3bAhs4g
-   abfmh3Z2hBP0sZDOAc/dMqvwMxycxtnr+5Lc3KkLpyHR1j85hY8elEWJo
-   L9WlbpZsx9u9Ft91x2GlxqJNyb6DW/txoGCjRVkAK9xz7Tv88ns3Wb98/
-   /EmFM+BYKwwdOsewoW6njedF90Ok9tq7sK4lBng43sFpS2u6hYxccvdFG
-   tuX3bSusJaCcS3od5jJvZOIsWFMZvRaYUTNRImFrid60JiOTe/r68R+tl
-   yFcWEmI+XTn7YB9Fcjw9kON0hjv/6I5s9mQ3O/U5Ew/n1MenBAnd63bt+
-   g==;
-X-CSE-ConnectionGUID: rbVOjoWVQYi6vVkflIaRvQ==
-X-CSE-MsgGUID: skdNvOgVQoy5jsyQFFdEZA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11619"; a="77224513"
-X-IronPort-AV: E=Sophos;i="6.20,213,1758610800"; 
-   d="scan'208";a="77224513"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2025 12:22:21 -0800
-X-CSE-ConnectionGUID: 6C1LP+SMTQS2yG2jUAy5QA==
-X-CSE-MsgGUID: xvx7Lhn0RaS+CqXzcboOtw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.20,213,1758610800"; 
-   d="scan'208";a="222123473"
-Received: from lkp-server01.sh.intel.com (HELO adf6d29aa8d9) ([10.239.97.150])
-  by orviesa002.jf.intel.com with ESMTP; 20 Nov 2025 12:22:14 -0800
-Received: from kbuild by adf6d29aa8d9 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1vMBAR-0004Wx-1T;
-	Thu, 20 Nov 2025 20:22:11 +0000
-Date: Fri, 21 Nov 2025 04:21:51 +0800
-From: kernel test robot <lkp@intel.com>
-To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
-	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-pm@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Yazen Ghannam <yazen.ghannam@amd.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <len.brown@intel.com>, Pavel Machek <pavel@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
-	Ying Huang <huang.ying.caritas@gmail.com>,
-	Yao Xingtao <yaoxt.fnst@fujitsu.com>,
-	Peter Zijlstra <peterz@infradead.org>, Greg KH <greg@kroah.com>,
-	Nathan Fontenot <nathan.fontenot@amd.com>,
-	Terry Bowman <terry.bowman@amd.com>,
-	Robert Richter <rrichter@amd.com>,
-	Benjamin Cheatham <benjamin.cheatham@amd.com>,
-	Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v4 6/9] cxl/region: Add register_dax flag to defer DAX
- setup
-Message-ID: <202511210343.c0vb4NRc-lkp@intel.com>
-References: <20251120031925.87762-7-Smita.KoralahalliChannabasappa@amd.com>
+	s=arc-20240116; t=1763684420; c=relaxed/simple;
+	bh=54DzKL4MckkpDLwBpQGwvnzxW0T0Se+BCMUxNNCo99E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fLwenQXWAjajsmpHMxl/nv1WwJv8Q0JD27I9+m5xkdFjEvxTK/9GKXp+j8KNtBKNXzEcpZBuQZwL9DAR8MOALDS6pF7Xx4S++rSzWb85jxy/52Z/duQvR2oYVIV1e2NYKl08vwErQtRMzG3iLSfBKSFay/GsrCfdlU7CfCg9Fpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BAC5C4CEF1;
+	Fri, 21 Nov 2025 00:20:20 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: dave@stgolabs.net,
+	jonathan.cameron@huawei.com,
+	alison.schofield@intel.com,
+	vishal.l.verma@intel.com,
+	ira.weiny@intel.com,
+	dan.j.williams@intel.com
+Subject: [NDCTL PATCH v2 0/2] cxl: Add tests for extended linear cache support
+Date: Thu, 20 Nov 2025 17:20:16 -0700
+Message-ID: <20251121002018.4136006-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.51.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251120031925.87762-7-Smita.KoralahalliChannabasappa@amd.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Smita,
+v2:
+- skip if no extended_linear_cache mod param. (Alison)
+- Cleanup at the end. (Alison)
+- Fix shellcheck double quote issues. (Alison)
+- Err if elc region not found for cxl_test. (Alison)
+- Add missing call to find_region() (Alison)
+- Fixup jq query when setup also has qemu cxl devices.
+- Dropped folded in patches. 2 and 3.
+- Move poison changes to cxl-poison.sh and drop 4 and 5.
 
-kernel test robot noticed the following build warnings:
+The series adds unit tests to verify the kernel support for extended
+linear cache (ELC). Added a test to check if the ELC region is setup
+correctly, and augments the test to go through the poison handling flow
+via the poison injection testing.
 
-[auto build test WARNING on 211ddde0823f1442e4ad052a2f30f050145ccada]
+Dave Jiang (2):
+  cxl/test: Add test for extended linear cache support
+  cxl/test: Add support for poison test for ELC
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Smita-Koralahalli/dax-hmem-e820-resource-Defer-Soft-Reserved-insertion-until-hmem-is-ready/20251120-112457
-base:   211ddde0823f1442e4ad052a2f30f050145ccada
-patch link:    https://lore.kernel.org/r/20251120031925.87762-7-Smita.KoralahalliChannabasappa%40amd.com
-patch subject: [PATCH v4 6/9] cxl/region: Add register_dax flag to defer DAX setup
-config: sparc64-randconfig-6002-20251120 (https://download.01.org/0day-ci/archive/20251121/202511210343.c0vb4NRc-lkp@intel.com/config)
-compiler: sparc64-linux-gcc (GCC) 13.4.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20251121/202511210343.c0vb4NRc-lkp@intel.com/reproduce)
+ test/cxl-elc.sh    | 95 ++++++++++++++++++++++++++++++++++++++++++++++
+ test/cxl-poison.sh | 61 ++++++++++++++++++-----------
+ test/meson.build   |  2 +
+ 3 files changed, 136 insertions(+), 22 deletions(-)
+ create mode 100755 test/cxl-elc.sh
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202511210343.c0vb4NRc-lkp@intel.com/
 
-All warnings (new ones prefixed by >>):
-
->> Warning: drivers/cxl/core/region.c:2544 function parameter 'register_dax' not described in 'devm_cxl_add_region'
-
+base-commit: 8a94356bc9c0af493be76c0428eee24fe2f5594a
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.51.1
+
