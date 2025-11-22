@@ -1,97 +1,58 @@
-Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF9172877D7
-	for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 21:07:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E73A1199234
+	for <nvdimm@lists.linux.dev>; Sat, 22 Nov 2025 03:35:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763759270; cv=none; b=GLVZhssQUm667ZckHPactlSJj9YXQtYB8TbpJWSTpPo9laLHDW7hm9KOM592VznzXYGcY3t4iR5t9AGBnQmsICZueSPtSDFqbWcFcmac805AWTPWF/dyEI6wjB0Vynm2yoYwLUUaVcv7mo1TSsTddEGWXH6JAWtwcdwTHrt14iY=
+	t=1763782552; cv=none; b=qQnK4nyHtVOPzLJaH3xjvj6WorKyK98esQD7ZCwSI8P5qC5xWQLEOAW5mFdlohp7lp9cF7adP2POHlbTQMJyKku5lobfWmZRmi2y1kzoOIyKA+n7MHq/NO9d1WH3z5D5uvlQ6llIEe+qBV03v1MV7A4gEyvLqPAS9uuvr7zqgxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763759270; c=relaxed/simple;
-	bh=shSHymcVpVsJRS3DnGEq5zOC8PBxp/thlGXIe4I1Liw=;
+	s=arc-20240116; t=1763782552; c=relaxed/simple;
+	bh=DtlZjjB5GXBxNimbN1fUyBrU1LDcvuZ//NBqVnUr52c=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XSIkwuK+N/2zRt0FL0p0Fu/JTHsabCnbOdfwFJe0ws5XNL2+cE5S1lGZSR1ZylEaMa31GE3VV9GRln2cbRBgJMQc2PN1mGbG/PbePlbcbcjgDqjumyQK38yt3PMY1c4W0xqO4zu9UMUd6vs2rIJ+8cBk+DkKpVPh/Kb373qGD3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=q36k2ero; arc=none smtp.client-ip=209.85.160.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=FDZ/9o85ha9AsHbNmOSDikBizhMzNA1KJUTG8OSmGmJ4jMcOxLsEJDKs4xlt+LfmH/+/+Ty8Kw73tmODJYd9hcFwQyWYpCTTAX/tBFMf1/utEqmW5rnWf/u3+uNgQC2JNf/L86bM42RSf9xY5C0CiGt5gg/m7vZk+9YHkEeB210=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=cl9rkfde; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="q36k2ero"
-Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-4ee257e56aaso22882231cf.0
-        for <nvdimm@lists.linux.dev>; Fri, 21 Nov 2025 13:07:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1763759267; x=1764364067; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Svi+I8ywJ8k5uxtzxqjpEGX4Qh9Fr5IeUT/6ziPIoB4=;
-        b=q36k2eroSfGfBhYAUdPtgc8hyIy+HFaDSj+sWmKXyt+gK1/84cj0FhGzfpk7xXvRx/
-         mPbEyd21tW1D3UYtk3GN3eyqB7+uHYSWh1GPUQAyldwpYiyjU56igOWQICelbSfAtsVI
-         GyZZzAN/mjEIqtxL/bPjqY6zlrONtJBzfC4Isi/9yX11Q4HZcqlpgpPzLtByjJRIdRNJ
-         fDo1tmKcHVc/76us0/keTQFYX8MXtSZuPvouVYi8SrypzTbXxwO6pDrGPYI/wzJJSs0+
-         5DZ/T8abCL5uIqZyLXxsuC01YGMzyjTa0kqrmxB6/N8/KgiUSlx4H2QnrC3x++cR0qtX
-         Rf3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763759267; x=1764364067;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Svi+I8ywJ8k5uxtzxqjpEGX4Qh9Fr5IeUT/6ziPIoB4=;
-        b=Xet4e9wg/m34A1pCDn4Njf/p1o+oX4s0+wrcMmVG7e79SlDFmXMbI+owRRsNPzCVFU
-         c6NUwNalXgkNOlP4vNNNMayFHI4eDZ/ed17mhT0dgXBvG03ZteUT0iX17HwrztAjtP6q
-         fO9bVw6dpLvVP7cEBf/eZ1xjuHB/lpS409au3ie5PoqwDHKWtCK/gC4jv8y1W5R2vu3+
-         Yki+xvhc6iswLuOXvHKPV2kGVmh75wQJ5vqCacw6hW8sMON5kqp7ftseGmfFKKt5ldgO
-         QHqP/qdGNvXkA3s15tTzcHwo9eT5XjEUFI23Twm6PfnupQayK3ZktRx4HmfZSr3zr/Qb
-         XVdQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX8Ak3U8IOW/xa5u5gymc84hS4E2FLTRaHNrvgLo+kBEze2BrI/3Zi5h/gF+f2k6DypJ+Xn9sk=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyfwnCO5G56klvqBwBrbN4WY6SCrsX0AnzRB528QAypAUrzmpob
-	/7dwRKhazCshCcjOM1RQSOjbQpmgx65hvcTRtXzm+0r1GWq15hDL/brslN7hglRxL6Q=
-X-Gm-Gg: ASbGncuL7+ADGA4FlW3AqcQX1Te8eErVx6jWfbHi3t6dYnLvU+jRIUo2ytUF/yUX6pr
-	YcBIksRD2WQKko0v/KBIGkgXT7C9ctrj2vt2NNsMzRoPmTGW96biq9TQcoDIbTYEA3T3VRIU95p
-	BzKQduIYc8jHx4yvX+Ewre0FCHj26R1+ilw5S6BwMnkasVrlGOqPmOjW6xzR/TWBASdzzitrobA
-	46klpJFvzWjfsgHn2J22oHkKDhR7TK88nKQ+h/bnTDgYGTszIyYIxA2vf12RLuANgShJDCto9wv
-	b3+1gjDrqsc89K/e5jwcbdGp2luzQP02R98UlxRkW0NFDPxrT5ddDSZqjkR0JX40w1WbuNjwv2d
-	yTF2/6YaiypyPNY/sqdK0bCg3C2oVs6MwBqTbJMqAa1eP1joAHZaPm+obET/JMKjlQOgKcRYq6T
-	vJswVd0sIsQmHG740LQnKe52EMkH/n2aio3E3Z0dbr2w25iGtcHZ9zbN7uQ7rO5fwRUr2ZIA==
-X-Google-Smtp-Source: AGHT+IHB54I5/pxWYI0YylL4DbWXryCZhFk7bd7fb71QpMMtzOgbCdkOeFKpCqsEbmreSLGZDE/f8Q==
-X-Received: by 2002:a05:622a:c6:b0:4eb:a457:394 with SMTP id d75a77b69052e-4ee587d2ef1mr64635291cf.12.1763759267374;
-        Fri, 21 Nov 2025 13:07:47 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4ee48e65e3bsm42420991cf.17.2025.11.21.13.07.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Nov 2025 13:07:46 -0800 (PST)
-Date: Fri, 21 Nov 2025 16:07:35 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: linux-mm@kvack.org, kernel-team@meta.com, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
-	dave@stgolabs.net, jonathan.cameron@huawei.com,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	vishal.l.verma@intel.com, ira.weiny@intel.com,
-	dan.j.williams@intel.com, longman@redhat.com,
-	akpm@linux-foundation.org, david@redhat.com,
-	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
-	osalvador@suse.de, ziy@nvidia.com, matthew.brost@intel.com,
-	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
-	ying.huang@linux.alibaba.com, mingo@redhat.com,
-	peterz@infradead.org, juri.lelli@redhat.com,
-	vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
-	rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
-	vschneid@redhat.com, tj@kernel.org, hannes@cmpxchg.org,
-	mkoutny@suse.com, kees@kernel.org, muchun.song@linux.dev,
-	roman.gushchin@linux.dev, shakeel.butt@linux.dev,
-	rientjes@google.com, jackmanb@google.com, cl@gentwo.org,
-	harry.yoo@oracle.com, axelrasmussen@google.com, yuanchu@google.com,
-	weixugc@google.com, zhengqi.arch@bytedance.com,
-	yosry.ahmed@linux.dev, nphamcs@gmail.com, chengming.zhou@linux.dev,
-	fabio.m.de.francesco@linux.intel.com, rrichter@amd.com,
-	ming.li@zohomail.com, usamaarif642@gmail.com, brauner@kernel.org,
-	oleg@redhat.com, namcao@linutronix.de, escape@linux.alibaba.com,
-	dongjoo.seo1@samsung.com
-Subject: Re: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
-Message-ID: <aSDUl7kU73LJR78g@gourry-fedora-PF4VCD3F>
-References: <20251112192936.2574429-1-gourry@gourry.net>
- <aktv2ivkrvtrox6nvcpxsnq6sagxnmj4yymelgkst6pazzpogo@aexnxfcklg75>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cl9rkfde"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1763782549;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Jjkw7I36uekbrB3Ab3Kh8mBpfHiwM7PFy2Oe3WuWs0A=;
+	b=cl9rkfdeVXSAJzKOEZ4MxwQp9mioDgXLCjW6FteGMmrFElT83Ul02/d9WJtmhvkxUnxKdJ
+	s+m7b+iB0D1IE4fGu+z9xb3bewQXnSrh8oehIy30/vfNGddgT5S5yVQEwKPwDNZ2COi6WZ
+	OXG7MJg4osGQTJcd8p0MRA/+2Vr0xGc=
+Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-141-1VuEGGSHOMylSb3CeDK9wg-1; Fri,
+ 21 Nov 2025 22:35:46 -0500
+X-MC-Unique: 1VuEGGSHOMylSb3CeDK9wg-1
+X-Mimecast-MFC-AGG-ID: 1VuEGGSHOMylSb3CeDK9wg_1763782544
+Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id CC2E1180049F;
+	Sat, 22 Nov 2025 03:35:43 +0000 (UTC)
+Received: from fedora (unknown [10.72.116.9])
+	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 11E371956045;
+	Sat, 22 Nov 2025 03:35:35 +0000 (UTC)
+Date: Sat, 22 Nov 2025 11:35:31 +0800
+From: Ming Lei <ming.lei@redhat.com>
+To: zhangshida <starzhangzsd@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+	nvdimm@lists.linux.dev, virtualization@lists.linux.dev,
+	linux-nvme@lists.infradead.org, gfs2@lists.linux.dev,
+	ntfs3@lists.linux.dev, linux-xfs@vger.kernel.org,
+	zhangshida@kylinos.cn
+Subject: Re: Fix potential data loss and corruption due to Incorrect BIO
+ Chain Handling
+Message-ID: <aSEvg8z9qxSwJmZn@fedora>
+References: <20251121081748.1443507-1-zhangshida@kylinos.cn>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -100,61 +61,85 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aktv2ivkrvtrox6nvcpxsnq6sagxnmj4yymelgkst6pazzpogo@aexnxfcklg75>
+In-Reply-To: <20251121081748.1443507-1-zhangshida@kylinos.cn>
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-On Tue, Nov 18, 2025 at 06:02:02PM +1100, Alistair Popple wrote:
+On Fri, Nov 21, 2025 at 04:17:39PM +0800, zhangshida wrote:
+> From: Shida Zhang <zhangshida@kylinos.cn>
 > 
-> I'm interested in the contrast with zone_device, and in particular why
-> device_coherent memory doesn't end up being a good fit for this.
+> Hello everyone,
 > 
-> > - Why mempolicy.c and cpusets as-is are insufficient
-> > - SPM types seeking this form of interface (Accelerator, Compression)
+> We have recently encountered a severe data loss issue on kernel version 4.19,
+> and we suspect the same underlying problem may exist in the latest kernel versions.
 > 
-> I'm sure you can guess my interest is in GPUs which also have memory some people
-> consider should only be used for specific purposes :-) Currently our coherent
-> GPUs online this as a normal NUMA noode, for which we have also generally
-> found mempolicy, cpusets, etc. inadequate as well, so it will be interesting to
-> hear what short comings you have been running into (I'm less familiar with the
-> Compression cases you talk about here though).
+> Environment:
+> *   **Architecture:** arm64
+> *   **Page Size:** 64KB
+> *   **Filesystem:** XFS with a 4KB block size
 > 
+> Scenario:
+> The issue occurs while running a MySQL instance where one thread appends data
+> to a log file, and a separate thread concurrently reads that file to perform
+> CRC checks on its contents.
+> 
+> Problem Description:
+> Occasionally, the reading thread detects data corruption. Specifically, it finds
+> that stale data has been exposed in the middle of the file.
+> 
+> We have captured four instances of this corruption in our production environment.
+> In each case, we observed a distinct pattern:
+>     The corruption starts at an offset that aligns with the beginning of an XFS extent.
+>     The corruption ends at an offset that is aligned to the system's `PAGE_SIZE` (64KB in our case).
+> 
+> Corruption Instances:
+> 1.  Start:`0x73be000`, **End:** `0x73c0000` (Length: 8KB)
+> 2.  Start:`0x10791a000`, **End:** `0x107920000` (Length: 24KB)
+> 3.  Start:`0x14535a000`, **End:** `0x145b70000` (Length: 8280KB)
+> 4.  Start:`0x370d000`, **End:** `0x3710000` (Length: 12KB)
+> 
+> After analysis, we believe the root cause is in the handling of chained bios, specifically
+> related to out-of-order io completion.
+> 
+> Consider a bio chain where `bi_remaining` is decremented as each bio in the chain completes.
+> For example,
+> if a chain consists of three bios (bio1 -> bio2 -> bio3) with
+> bi_remaining count:
+> 1->2->2
 
-after some thought, talks, and doc readings it seems like the
-zone_device setups don't allow the CPU to map the devmem into page
-tables, and instead depends on migrate_device logic (unless the docs are
-out of sync with the code these days).  That's at least what's described
-in hmm and migrate_device.  
+Right.
 
-Assuming this is out of date and ZONE_DEVICE memory is mappable into
-page tables, assuming you want sparse allocation, ZONE_DEVICE seems to
-suggest you at least have to re-implement the buddy logic (which isn't
-that tall of an ask).
+> if the bio completes in the reverse order, there will be a problem. 
+> if bio 3 completes first, it will become:
+> 1->2->1
 
-But I could imagine an (overly simplistic) pattern with SPM Nodes:
+Yes.
 
-fd = open("/dev/gpu_mem", ...)
-buf = mmap(fd, ...)
-buf[0] 
-   1) driver takes the fault
-   2) driver calls alloc_page(..., gpu_node, GFP_SPM_NODE)
-   3) driver manages any special page table masks
-      Like marking pages RO/RW to manage ownership.
-   4) driver sends the gpu the (mapping_id, pfn, index) information
-      so that gpu can map the region in its page tables.
-   5) since the memory is cache coherent, gpu and cpu are free to
-      operate directly on the pages without any additional magic
-      (except typical concurrency controls).
+> then bio 2 completes:
+> 1->1->0
 
-Driver doesn't have to do much in the way of allocationg management.
+No, it is supposed to be 1->1->1.
 
-This is probably less compelling since you don't want general purposes
-services like reclaim, migration, compaction, tiering - etc.  
+When bio 1 completes, it will become 0->0->0
 
-The value is clearly that you get to manage GPU memory like any other
-memory, but without worry that other parts of the system will touch it.
+bio3's `__bi_remaining` won't drop to zero until bio2's reaches
+zero, and bio2 won't be done until bio1 is ended.
 
-I'm much more focused on the "I have memory that is otherwise general
-purpose, and wants services like reclaim and compaction, but I want
-strong controls over how things can land there in the first place".
+Please look at bio_endio():
 
-~Gregory
+void bio_endio(struct bio *bio)
+{
+again:
+	if (!bio_remaining_done(bio))
+		return;
+	...
+	if (bio->bi_end_io == bio_chain_endio) {
+		bio = __bio_chain_endio(bio);
+        goto again;
+	}
+	...
+}
+
+
+Thanks,
+Ming
 
