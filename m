@@ -1,75 +1,121 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 523C9256D;
-	Mon, 24 Nov 2025 06:22:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9F1B2F362C;
+	Mon, 24 Nov 2025 09:19:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763965366; cv=none; b=JghcO8rNclcvUWRionGltQSG3HtdABmfQWC33zwZr4RXKzwUH7oI5YjeZvNAFaKU3jyrE6bJWg2u4sPBb+8lSgNTYuKfn1OIyzFq+XzHiXvDdrZ3mRmP3HQlAvXMXEeHDiFd0gN9XoDq130SHqYN0yHNxPvjIzgdYBqLo2OPh4c=
+	t=1763975995; cv=none; b=pylL2ougsMyApxbJNoCNSCn9xwqFikN09xvlJYOYU4oYcP67swYFD5gFHc+yFLIEcKsafQe95NBPQvmKQsAtg2yPV3Xq5RRMDsNCB6KVmJkIWTrpnRw6j+kkEd3OIh+N866xAVW0xC/p0yvyGDltJRJviCjkoXqBe43g6A8xtMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763965366; c=relaxed/simple;
-	bh=nx3VukjuuMOBSyaDA6zUnfhDxdBh573OnuZhnglTync=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PJiX7bPuFhNENBY7+czpzWSp46MMmaOpMJP/pqBLeaMv5vcOq0Nk2moo/xJR+lAA1Oc6G96efujyUZ1qIP4jYCSu98fT4rT6ELKn5mkOmfF+Osu2ZF03biQ10SzjEUGw2MKZKsvrk0d7F6t3XAWFllWOSw+D0unkt1oP+127VZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=qH8qp2/x; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1763975995; c=relaxed/simple;
+	bh=Uwsm69iJr36s6Dx79ksuQKNJ6J1krQHDg+amvtrWEWc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=hQB/4QJaNArj7fr7klFHNhFXi32lreRq4MpJh3POBIjLbDVdC1nD3qABqz7WtSBfRYXFhGe2RjUCJS6is5HnOX2wmVTrDl+aDtb2PJmlpjrBYi9P/CPuDU1Cz1UR4TsZViHFR2MAvdkrgwCLleNxPQVJaJmLWoXSPVBFIoUn2iM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GFCQiqYK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="qH8qp2/x"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=dp3mlPd1tGPSHjwalGRl3+OXBzlUltt5c2g4rrDWar4=; b=qH8qp2/x9cZUMrdILRqeU862Zl
-	rY+YcfF4XPEPXN/zjHR+j1pwqvCwhGipGukmvP7MEANpCrlePLgfvo+05kOyRgrrA3iEWaXcdkfwy
-	n5MFvlXTOYs8cCMXaPqm2NJrQn6ejYfHPXF6Fk+6S1lNaAbGp001jBuqd3Yx8ixJeykV21c62OgO9
-	IxdMSY6IQXNeDIUGXAoKu3y67wRgr7iijuqp1G/8PN73v/lq0LzcuS/sL2NNnuTiZz+ePoC33OgqI
-	5JyrqgQXsohfKx04w9wzb+dCx2vOLMZs814+VxsjteBNXfNEM5E8FFaII+89JtbsMIzbCxoUqIaPn
-	6AjZf4SA==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vNPyE-0000000B90n-31B1;
-	Mon, 24 Nov 2025 06:22:42 +0000
-Date: Sun, 23 Nov 2025 22:22:42 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Stephen Zhang <starzhangzsd@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>, linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org, nvdimm@lists.linux.dev,
-	virtualization@lists.linux.dev, linux-nvme@lists.infradead.org,
-	gfs2@lists.linux.dev, ntfs3@lists.linux.dev,
-	linux-xfs@vger.kernel.org, zhangshida@kylinos.cn
-Subject: Re: Fix potential data loss and corruption due to Incorrect BIO
- Chain Handling
-Message-ID: <aSP5svsQfFe8x8Fb@infradead.org>
-References: <20251121081748.1443507-1-zhangshida@kylinos.cn>
- <aSBA4xc9WgxkVIUh@infradead.org>
- <CANubcdVjXbKc88G6gzHAoJCwwxxHUYTzexqH+GaWAhEVrwr6Dg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GFCQiqYK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96C39C19421;
+	Mon, 24 Nov 2025 09:19:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1763975995;
+	bh=Uwsm69iJr36s6Dx79ksuQKNJ6J1krQHDg+amvtrWEWc=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=GFCQiqYKon870o58vf/NYMJtPCbHtRI8ZICYKlyCfE81df7+gpBmxPj3EbeLSHO1X
+	 1UvuSAoCl4U9xj6Jbr0HAdBbzo9o9t5GQOecPxtK3wA4xyMC4Ic2KM0oHSVCP64Y1D
+	 SnlgxQcsPs0hTQcZV+GXo3/yHD5qNM1blQylkWVXWWjJUb6SwjTit+ANBY3Xiano1w
+	 q3NY53RNpfjN5zI+iWgsCLWFCKSxdmkDazDpCnd4Vs9x9uuXIPFaTtWnsNyfBXhlMV
+	 /r/Hldd8z7RlyZYsGRfELm50EShpyk1YO43/5Ie0fuREjfPoTOGwbFJtvub2RdD06r
+	 WHP6KFE7wH66w==
+Message-ID: <de15aca2-a27c-4a9b-b2bf-3f132990cd98@kernel.org>
+Date: Mon, 24 Nov 2025 10:19:37 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CANubcdVjXbKc88G6gzHAoJCwwxxHUYTzexqH+GaWAhEVrwr6Dg@mail.gmail.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
+To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
+Cc: kernel-team@meta.com, linux-cxl@vger.kernel.org,
+ linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org, dave@stgolabs.net,
+ jonathan.cameron@huawei.com, dave.jiang@intel.com,
+ alison.schofield@intel.com, vishal.l.verma@intel.com, ira.weiny@intel.com,
+ dan.j.williams@intel.com, longman@redhat.com, akpm@linux-foundation.org,
+ lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
+ rppt@kernel.org, surenb@google.com, mhocko@suse.com, osalvador@suse.de,
+ ziy@nvidia.com, matthew.brost@intel.com, joshua.hahnjy@gmail.com,
+ rakie.kim@sk.com, byungchul@sk.com, ying.huang@linux.alibaba.com,
+ apopple@nvidia.com, mingo@redhat.com, peterz@infradead.org,
+ juri.lelli@redhat.com, vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
+ rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
+ vschneid@redhat.com, tj@kernel.org, hannes@cmpxchg.org, mkoutny@suse.com,
+ kees@kernel.org, muchun.song@linux.dev, roman.gushchin@linux.dev,
+ shakeel.butt@linux.dev, rientjes@google.com, jackmanb@google.com,
+ cl@gentwo.org, harry.yoo@oracle.com, axelrasmussen@google.com,
+ yuanchu@google.com, weixugc@google.com, zhengqi.arch@bytedance.com,
+ yosry.ahmed@linux.dev, nphamcs@gmail.com, chengming.zhou@linux.dev,
+ fabio.m.de.francesco@linux.intel.com, rrichter@amd.com,
+ ming.li@zohomail.com, usamaarif642@gmail.com, brauner@kernel.org,
+ oleg@redhat.com, namcao@linutronix.de, escape@linux.alibaba.com,
+ dongjoo.seo1@samsung.com
+References: <20251112192936.2574429-1-gourry@gourry.net>
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Content-Language: en-US
+In-Reply-To: <20251112192936.2574429-1-gourry@gourry.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Sat, Nov 22, 2025 at 02:38:59PM +0800, Stephen Zhang wrote:
-> ======code analysis======
-> In kernel version 4.19, XFS handles extent I/O using the ioend structure,
+[...]
 
-Linux 4.19 is more than four years old, and both the block I/O code
-and the XFS/iomap code changed a lot since then.
+> 2) The addition of `cpuset.mems.sysram` which restricts allocations to
+>     `mt_sysram_nodes` unless GFP_SPM_NODE is used.
+> 
+>     SPM Nodes are still allowed in cpuset.mems.allowed and effective.
+> 
+>     This is done to allow separate control over sysram and SPM node sets
+>     by cgroups while maintaining the existing hierarchical rules.
+> 
+>     current cpuset configuration
+>     cpuset.mems_allowed
+>      |.mems_effective         < (mems_allowed ∩ parent.mems_effective)
+>      |->tasks.mems_allowed    < cpuset.mems_effective
+> 
+>     new cpuset configuration
+>     cpuset.mems_allowed
+>      |.mems_effective         < (mems_allowed ∩ parent.mems_effective)
+>      |.sysram_nodes           < (mems_effective ∩ default_sys_nodemask)
+>      |->task.sysram_nodes     < cpuset.sysram_nodes
+> 
+>     This means mems_allowed still restricts all node usage in any given
+>     task context, which is the existing behavior.
+> 
+> 3) Addition of MHP_SPM_NODE flag to instruct memory_hotplug.c that the
+>     capacity being added should mark the node as an SPM Node.
 
-> changes the logic. Since there are still many code paths that use
-> bio_chain, I am including these cleanups with the fix. This provides a reason
-> to CC all related communities. That way, developers who are monitoring
-> this can help identify similar problems if someone asks for help in the future,
-> if that is the right analysis and fix.
+Sounds a bit like the wrong interface for configuring this. This smells 
+like a per-node setting that should be configured before hotplugging any 
+memory.
 
-As many pointed out something in the analysis doesn't end up.  How do
-you even managed to call bio_chain_endio as almost no one should be
-calling it.  Are you using bcache?  Are the others callers in the
-obsolete kernel you are using?  Are they calling it without calling
-bio_endio first (which the bcache case does, and which is buggy).
+> 
+>     A node is either SysRAM or SPM - never both.  Attempting to add
+>     incompatible memory to a node results in hotplug failure.
+> 
+>     DAX and CXL are made aware of the bit and have `spm_node` bits added
+>     to their relevant subsystems.
+> 
+> 4) Adding GFP_SPM_NODE - which allows page_alloc.c to request memory
+>     from the provided node or nodemask.  It changes the behavior of
+>     the cpuset mems_allowed and mt_node_allowed() checks.
 
+I wonder why that is required. Couldn't we disallow allocation from one 
+of these special nodes as default, and only allow it if someone 
+explicitly passes in the node for allocation?
+
+What's the problem with that?
+
+-- 
+Cheers
+
+David
