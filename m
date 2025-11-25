@@ -1,108 +1,97 @@
-Received: from flow-a2-smtp.messagingengine.com (flow-a2-smtp.messagingengine.com [103.168.172.137])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A3EE32252D
-	for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 14:09:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A591326959
+	for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 15:05:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764079788; cv=none; b=IGZqti2cFhyUDEXVIJEVh6vI/TX9IYN9o4OaBtyardgA9NRrpALQWWinPIZq4jKTgu0scH3IrtxFoFTcMuftw8q0Q82ej9tA9bygPG3Quu90XbQXHgCIAqhJ3ooVEqPlMSmqGsel5RLHiyv5G7wfonkhYK5zPJ2qG4lF9xXfPXc=
+	t=1764083130; cv=none; b=aJEu9Ln5gES1DiuOmcLtRy0IkkjU8e+gWXCNilKG+MDqm+IcB3QJGR6qr0/bO6D9I+aCVimHvrIQjB2MXz2gWQTFravpSYecZLG9FoKgcUv3aeP+ohOBE50IZHX9lxIxMu0CRNZEGZomScpHtvrmG1VKZ5OVYmlLMhwEUWQ9Dm4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764079788; c=relaxed/simple;
-	bh=41wuBfK6KmZfFSph9AoLMj/4UnC1VKX3ed8Fm4gY7Qk=;
+	s=arc-20240116; t=1764083130; c=relaxed/simple;
+	bh=pjzHMxpUkO8Li3i8jQNI3TpiuWXXjBQIOqEQEY3Q07Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rls3yt4yCFbF/9hoYA8mXJ+oOeKK5Ca6wbD5+gZzK4Q9nKoFdqgdm5uHyzbx8WOOM9rz0HeITfzXKPmNwhczxXyt4IX6PlVWIYnphmOgGOZDSLwRmFEG+bwyfTQG84qg3mDLIgyxLMiWGGaAZ12pNcwnT/rqfBkGn+95bQnRS74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name; spf=pass smtp.mailfrom=shutemov.name; dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b=OMPvzKlF; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=YLka3iJJ; arc=none smtp.client-ip=103.168.172.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shutemov.name
+	 Content-Type:Content-Disposition:In-Reply-To; b=t8jfmly41OrEANQsg9e57u7igR6tip4Jddj4XtWIi3GcUhTh5lqKEqQAf/TjIO5qo1LrWO1CIybXO0z5PAAzu6WSBaXHuotLyH/3EIVAJ69m8UdlVtPsj+DAa2z4+czIbVfTDqSrzS+6id6xDxG8qtDd/g8NU+/nIupySoNAB2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=UYPdSq6r; arc=none smtp.client-ip=209.85.222.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b="OMPvzKlF";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="YLka3iJJ"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailflow.phl.internal (Postfix) with ESMTP id 809B21380546;
-	Tue, 25 Nov 2025 09:09:45 -0500 (EST)
-Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-05.internal (MEProxy); Tue, 25 Nov 2025 09:09:45 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
-	 h=cc:cc:content-type:content-type:date:date:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to; s=fm2; t=1764079785; x=
-	1764086985; bh=3bMvsZSIiVU3pUA1Q96vlRsnQkJ+zVUPQsOHI7GHg2U=; b=O
-	MPvzKlFHkHMEkgAvO1Uyss+96M/hGKj5YsQfHejRjOSc4qcoxmXMj4hhXg44W1Ef
-	f+2FZmek/Vp7VMAcKSWKu5vw2ELUh/4TKqh05W+XH3fqT/kg0gRDs1cSTZFEzwsY
-	lfUK/XstLQ/GgwvHNBGpiPsihS3C907bycj46mTcTPjPWBcIFuNO2mkJK87dq41v
-	nEaYF+SW/r9n3rXEn7zZvJvhaqJKngqjJVqgYKouNkyWaY7csAolp+xbmx+7XCc6
-	NTnu6vEK2LnrusXBylHkCIdYJU8Qwx8yLU37YVnlHB1bRfm2yV73RrmEmaeu/OnY
-	zVRksTDa34siBV1sEgVBg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-	1764079785; x=1764086985; bh=3bMvsZSIiVU3pUA1Q96vlRsnQkJ+zVUPQsO
-	HI7GHg2U=; b=YLka3iJJS4uHYf+RVmsIhTYDXpAvrL5WrL9BPBFcYF8nsukYggb
-	QHO6tT2dwT3h9TcJys0ZthsLNKdLgkuGaDv5MkN8DaRBDYOvSDFB76gBeKNn5W0/
-	CVCemM3ZxiBVvJLvrV/KsXaaVnrH/XSHm5BR36zUS10Fj/JaEk3C0JUVf4tBZhI1
-	rwv6nH1MsGZq8Rx4O9829S+HBuzkXZM4K4wcZY5iTTS7mIR4Fo1mVU9WkuJ1CMd2
-	uD6szhHUcKTSLnb6TESaW5TxAiS8SqYaev0d0D3FkzA2naE3DgHaXS1hUhvkgcn9
-	odS/eCQqz0+KbMLRtjqc8IUq4qTlSRV2bug==
-X-ME-Sender: <xms:pbglaWvKN1DJZAzYSwKMRx9-OgT3rdfcTgkjojWPEw8KNW7Cx0AEAw>
-    <xme:pbglaTXf9w3AHkCR2Fi9l8wIxJHg69s8vY_NmbLplbMAS7ZPJhAxU4ZyvP7W59tRY
-    6tYZ94S8k6_dYSWuO2CmKlawxLgNFJRUNzUYh5ghix47LoIvHqcJ3E>
-X-ME-Received: <xmr:pbglaTVq6gxwgmVLYbKwhZEo3Ue8V3Yipkq04ow2rgFUWOH-1wlLy2M77sQWTg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggddvgeduieejucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucenucfjughrpeffhffvvefukfhfgggtuggjsehttdfstd
-    dttddvnecuhfhrohhmpefmihhrhihlucfuhhhuthhsvghmrghuuceokhhirhhilhhlsehs
-    hhhuthgvmhhovhdrnhgrmhgvqeenucggtffrrghtthgvrhhnpeejheeufeduvdfgjeekie
-    dvjedvgeejgfefieetveffhfdtvddtleduhfeffeffudenucevlhhushhtvghrufhiiigv
-    pedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehkihhrihhllhesshhhuhhtvghmohhvrd
-    hnrghmvgdpnhgspghrtghpthhtohepudefiedpmhhouggvpehsmhhtphhouhhtpdhrtghp
-    thhtohepghhouhhrrhihsehgohhurhhrhidrnhgvthdprhgtphhtthhopehlihhnuhigqd
-    hmmheskhhvrggtkhdrohhrghdprhgtphhtthhopehkvghrnhgvlhdqthgvrghmsehmvght
-    rgdrtghomhdprhgtphhtthhopehlihhnuhigqdgtgihlsehvghgvrhdrkhgvrhhnvghlrd
-    horhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghl
-    rdhorhhgpdhrtghpthhtohepnhhvughimhhmsehlihhsthhsrdhlihhnuhigrdguvghvpd
-    hrtghpthhtoheplhhinhhugidqfhhsuggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhr
-    ghdprhgtphhtthhopegtghhrohhuphhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtg
-    hpthhtohepuggrvhgvsehsthhgohhlrggsshdrnhgvth
-X-ME-Proxy: <xmx:pbglaW_0cXMtMthUHN5H-fE7CGn6DIwBKbPochRZeWCN8gj92pgAfQ>
-    <xmx:pbglab-e-8tK-jGoWZSTzd4htoSykssNFuRJIH-N3luEajg_qhcROg>
-    <xmx:pbglaS8xVJOZqKo-Vsq3I59doGzt7pGvGwt-1UuY4j1VdvVF-sGV3A>
-    <xmx:pbglabLAvm1PrWnHzKLnOzKQUK7tS39E5pLPz3qn6MaXu68uj2z1VA>
-    <xmx:qbglaXODIQJ_Tp6UtA9zcmakBUdCO8tVHH50Z00bPS2jBHC-6eFUxFQ4>
-Feedback-ID: ie3994620:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 25 Nov 2025 09:09:40 -0500 (EST)
-Date: Tue, 25 Nov 2025 14:09:39 +0000
-From: Kiryl Shutsemau <kirill@shutemov.name>
-To: Gregory Price <gourry@gourry.net>
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="UYPdSq6r"
+Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-8b0f54370ecso562664385a.2
+        for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 07:05:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1764083127; x=1764687927; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=ardSa1fh2pHETKiwXzwSN9Th9brxN1pF2dM3Ndqaang=;
+        b=UYPdSq6rRLV58cdoPZ1ywz5lQ1x3wMAn+vX+CGbqJZQ9xhyfX5Xekf7aowiTuLRO9T
+         AyHxIDdP7vfk6w5gRYQytwZbuwOM61LhGy8DD3dxgbDh7Y6aKdjjoz5xWFkWZUZLdCUo
+         hC/CiIXZZEfqfp16zTR4AeWYYPRdFvgQSsegzlfE1ca7ATWO2GFmVhpoz5HhBaklideV
+         +YQElqyA9J0H5OKOTkm6kFoEgMrIu4WlzMadK2yx5EwrbOAbheXuZsyPyjgocIku0cRl
+         Up5l1BVVTZl/BXK7nHUtRaXJXQRXmYVJIgyk2+/ePc/I5/OvNd93uu7jFMpYrKh7lZYR
+         5iWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764083127; x=1764687927;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ardSa1fh2pHETKiwXzwSN9Th9brxN1pF2dM3Ndqaang=;
+        b=I3qrzTtNd9nX0YywbzT9Mk23AefuH+BnYYyIl3b9zJqc/S0CBpoBGejnaFCyZwtWgx
+         dsB04hvu80fZszE+kYRbKrT53trcPdB4eAGcxTHkeZLN7QlM4MbVOdlBrx/rlKrQZTCr
+         1yE2PTirXqKMFXwSsAAGs9ghPcPqULrsLDUfShSs9pVA+MOjARrr4Kb/lA1IO9umO8k9
+         SII8EI78XizdKVeOcfRJYCWwwwFg1teO+J0X/YaiGn8RqJvcgpBgkTlCAaDyDeW1hxmi
+         WtR+n5ukVmwEuA0zcWClYdT4zDuuiid5/R070WzWIMI/lFTH7/OUgsyrG28Kalhajf2t
+         MZNQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXN1sYRWpoiXRX9/0U3SRYUFEslR8gGwK8CJGt8DB7a3tSCR+q88EMnM7I7NXbhmno5JEENVho=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyKtKlP+2+CEtYQUZIulwLEzUK7jfUC8alKgMYDFFHsB27ZDKRl
+	NkbR2G3+Zd4iy0rDOAvIOGrjDeJWS0rW5nWm0+68i0+WF/dYcTKuYx12rH3z5cGWWm8=
+X-Gm-Gg: ASbGncsDvT+Q3yy6roj7Gop8s8smYxvF2+Yg4z6c7/PDV6fI0hhbXAalDybmlzPYQqN
+	bJRn+8Oj0Z2b9pyRhme/oNUIGHqbFlX8o7noDi4+MI9H34GVMK05SwRS9TPlL76oK5R8Qr4aP8n
+	KHNPE2jcErkAetKlBD06wVgTdCxmnJEUYetM+YBp93nIbxb94XSE0PgPayFVOM/u69oF9QdcTPM
+	dAUbQJjNokj9NeiVee9F0nxTUQuyfc9U0QfYgXH3imDtf3cwnaByz26px24kxmGlc0n2fNyge6B
+	WYICeSzzPmtXGldlSy21ukKSYzQbIpz9273ihNFy1Y4coT6EdjV7C5nqkLTK9XxNxYrl8uGzniA
+	g4zJBxnsJin/jOj/0CioxKsSeTEA2u8oi/6p8r2As9MWrRz2SWRvj7gCc5GEagxzC0JJqdWovmV
+	mHoUCRYueOb35GsI3ZfLFMIV1IoBZDFB15dHehr2f1cQdgSA6ABfUsgUzN7jfYyisPJ/gsbQ==
+X-Google-Smtp-Source: AGHT+IEFL/RZ3x9jACD+3qnEV8d73oOLgzxVvrrp/q6V+1ebLXwAT8RkswYTT3oWsjpBiQE2LKDSqw==
+X-Received: by 2002:ac8:7c55:0:b0:4ee:1e63:a4e0 with SMTP id d75a77b69052e-4efbdb25399mr46248441cf.74.1764083126842;
+        Tue, 25 Nov 2025 07:05:26 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8b3295f2f6dsm1195203285a.54.2025.11.25.07.05.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Nov 2025 07:05:25 -0800 (PST)
+Date: Tue, 25 Nov 2025 10:05:21 -0500
+From: Gregory Price <gourry@gourry.net>
+To: Kiryl Shutsemau <kirill@shutemov.name>
 Cc: linux-mm@kvack.org, kernel-team@meta.com, linux-cxl@vger.kernel.org,
- 	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-fsdevel@vger.kernel.org, 	cgroups@vger.kernel.org,
- dave@stgolabs.net, jonathan.cameron@huawei.com, 	dave.jiang@intel.com,
- alison.schofield@intel.com, vishal.l.verma@intel.com,
- 	ira.weiny@intel.com, dan.j.williams@intel.com, longman@redhat.com,
- 	akpm@linux-foundation.org, david@redhat.com, lorenzo.stoakes@oracle.com,
- 	Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org,
- surenb@google.com, 	mhocko@suse.com, osalvador@suse.de, ziy@nvidia.com,
- matthew.brost@intel.com, 	joshua.hahnjy@gmail.com, rakie.kim@sk.com,
- byungchul@sk.com, ying.huang@linux.alibaba.com, 	apopple@nvidia.com,
- mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com,
- 	vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
- rostedt@goodmis.org, 	bsegall@google.com, mgorman@suse.de,
- vschneid@redhat.com, tj@kernel.org, 	hannes@cmpxchg.org,
- mkoutny@suse.com, kees@kernel.org, muchun.song@linux.dev,
- 	roman.gushchin@linux.dev, shakeel.butt@linux.dev, rientjes@google.com,
- jackmanb@google.com, 	cl@gentwo.org, harry.yoo@oracle.com,
- axelrasmussen@google.com, 	yuanchu@google.com, weixugc@google.com,
- zhengqi.arch@bytedance.com, 	yosry.ahmed@linux.dev, nphamcs@gmail.com,
- chengming.zhou@linux.dev, 	fabio.m.de.francesco@linux.intel.com,
- rrichter@amd.com, ming.li@zohomail.com, usamaarif642@gmail.com,
- 	brauner@kernel.org, oleg@redhat.com, namcao@linutronix.de,
- escape@linux.alibaba.com, 	dongjoo.seo1@samsung.com
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
+	dave@stgolabs.net, jonathan.cameron@huawei.com,
+	dave.jiang@intel.com, alison.schofield@intel.com,
+	vishal.l.verma@intel.com, ira.weiny@intel.com,
+	dan.j.williams@intel.com, longman@redhat.com,
+	akpm@linux-foundation.org, david@redhat.com,
+	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+	osalvador@suse.de, ziy@nvidia.com, matthew.brost@intel.com,
+	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
+	ying.huang@linux.alibaba.com, apopple@nvidia.com, mingo@redhat.com,
+	peterz@infradead.org, juri.lelli@redhat.com,
+	vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
+	rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
+	vschneid@redhat.com, tj@kernel.org, hannes@cmpxchg.org,
+	mkoutny@suse.com, kees@kernel.org, muchun.song@linux.dev,
+	roman.gushchin@linux.dev, shakeel.butt@linux.dev,
+	rientjes@google.com, jackmanb@google.com, cl@gentwo.org,
+	harry.yoo@oracle.com, axelrasmussen@google.com, yuanchu@google.com,
+	weixugc@google.com, zhengqi.arch@bytedance.com,
+	yosry.ahmed@linux.dev, nphamcs@gmail.com, chengming.zhou@linux.dev,
+	fabio.m.de.francesco@linux.intel.com, rrichter@amd.com,
+	ming.li@zohomail.com, usamaarif642@gmail.com, brauner@kernel.org,
+	oleg@redhat.com, namcao@linutronix.de, escape@linux.alibaba.com,
+	dongjoo.seo1@samsung.com
 Subject: Re: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
-Message-ID: <h7vt26ek4wzrls6twsveinxz7aarwqtkhydbgvihsm7xzsjiuz@yk2dltuf2eoh>
+Message-ID: <aSXFseE5FMx-YzqX@gourry-fedora-PF4VCD3F>
 References: <20251112192936.2574429-1-gourry@gourry.net>
+ <h7vt26ek4wzrls6twsveinxz7aarwqtkhydbgvihsm7xzsjiuz@yk2dltuf2eoh>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -111,44 +100,175 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251112192936.2574429-1-gourry@gourry.net>
+In-Reply-To: <h7vt26ek4wzrls6twsveinxz7aarwqtkhydbgvihsm7xzsjiuz@yk2dltuf2eoh>
 
-On Wed, Nov 12, 2025 at 02:29:16PM -0500, Gregory Price wrote:
-> With this set, we aim to enable allocation of "special purpose memory"
-> with the page allocator (mm/page_alloc.c) without exposing the same
-> memory as "System RAM".  Unless a non-userland component, and does so
-> with the GFP_SPM_NODE flag, memory on these nodes cannot be allocated.
-
-How special is "special purpose memory"? If the only difference is a
-latency/bandwidth discrepancy compared to "System RAM", I don't believe
-it deserves this designation.
-
-I am not in favor of the new GFP flag approach. To me, this indicates
-that our infrastructure surrounding nodemasks is lacking. I believe we
-would benefit more by improving it rather than simply adding a GFP flag
-on top.
-
-While I am not an expert in NUMA, it appears that the approach with
-default and opt-in NUMA nodes could be generally useful. Like,
-introduce a system-wide default NUMA nodemask that is a subset of all
-possible nodes. This way, users can request the "special" nodes by using
-a wider mask than the default.
-
-cpusets should allow to set both default and possible masks in a
-hierarchical manner where a child's default/possible mask cannot be
-wider than the parent's possible mask and default is not wider that
-own possible.
-
-> Userspace-driven allocations are restricted by the sysram_nodes mask,
-> nothing in userspace can explicitly request memory from SPM nodes.
+On Tue, Nov 25, 2025 at 02:09:39PM +0000, Kiryl Shutsemau wrote:
+> On Wed, Nov 12, 2025 at 02:29:16PM -0500, Gregory Price wrote:
+> > With this set, we aim to enable allocation of "special purpose memory"
+> > with the page allocator (mm/page_alloc.c) without exposing the same
+> > memory as "System RAM".  Unless a non-userland component, and does so
+> > with the GFP_SPM_NODE flag, memory on these nodes cannot be allocated.
 > 
-> Instead, the intent is to create new components which understand memory
-> features and register those nodes with those components. This abstracts
-> the hardware complexity away from userland while also not requiring new
-> memory innovations to carry entirely new allocators.
+> How special is "special purpose memory"? If the only difference is a
+> latency/bandwidth discrepancy compared to "System RAM", I don't believe
+> it deserves this designation.
+> 
 
-I don't see how it is a positive. It seems to be negative side-effect of
-GFP being a leaky abstraction.
+That is not the only discrepancy, but it can certainly be one of them.
 
--- 
-  Kiryl Shutsemau / Kirill A. Shutemov
+I do think, at a certain latency/bandwidth level, memory becomes
+"Specific Purpose" - because the performance implications become so
+dramatic that you cannot allow just anything to land there.
+
+In my head, I've been thinking about this list
+
+1) Plain old memory (<100ns)
+2) Kinda slower, but basically still memory (100-300ns)
+3) Slow Memory (>300ns, up to 2-3us loaded latencies)
+4) Types 1-3, but with a special feature (Such as compression)
+5) Coherent Accelerator Memory (various interconnects now exist)
+6) Non-coherent Shared Memory and PMEM (FAMFS, Optane, etc)
+
+Originally I was considering [3,4], but with Alistar's comments I am
+also thinking about [5] since apparently some accelerators already
+toss their memory into the page allocator for management.
+
+
+Re: Slow memory --
+
+   Think >500-700ns cache line fetches, or 1-2us loaded.
+
+   It's still "Basically just memory", but the scenarios in which
+   you can use it transparently shrink significantly.  If you can
+   control what and how things can land there with good policy,
+   this can still be a boon compared to hitting I/O.
+
+   But you still want things like reclaim and compaction to run
+   on this memory, and you still want buddy-allocation of this memory.
+
+Re: Compression
+
+  This is a class of memory device which presents "usable memory"
+  but which carries stipulations around its use.
+
+  The compressed case is the example I use in this set.  There is an
+  inline compression mechanism on the device.  If the compression ratio
+  drops to low, writes can get dropped resulting in memory poison.
+
+  We could solve this kind of problem only allowing allocation via
+  demotion and hack off the Write-bit in the PTE. This provides the
+  interposition needed to fend-off compression ratio issues.
+
+  But... it's basically still "just memory" - you can even leave it
+  mapped in the CPU page tables and allow userland to read unimpeded.
+
+  In fact, we even want things like compaction and reclaim to run here.
+  This cannot be done *unless* this memory is in the page allocator,
+  and basically necessitates reimplementing all the core services the
+  kernel provides.
+
+Re: Accelerators
+
+  Alistair has described accelerators onlining their memory as NUMA
+  nodes being an existing pattern (apparently not in-tree as far as I
+  can see, though).
+
+  General consensus is "don't do this" - and it should be obvious
+  why.  Memory pressure can cause non-workload memory to spill to
+  these NUMA nodes as fallback allocation targets.
+
+  But if we had a strong isolation mechanism, this could be supported.
+  I'm not convinced this kind of memory actually needs core services
+  like reclaim, so I will wait to see those arguments/data before I
+  conclude whether the idea is sound.
+
+
+>
+> I am not in favor of the new GFP flag approach. To me, this indicates
+> that our infrastructure surrounding nodemasks is lacking. I believe we
+> would benefit more by improving it rather than simply adding a GFP flag
+> on top.
+> 
+
+The core of this series is not the GFP flag, it is the splitting of
+(cpuset.mems_allowed) into (cpuset.mems_allowed, cpuset.sysram_nodes)
+
+That is the nodemask infrastructure improvement.  The GFP flag is one
+mechanism of loosening the validation logic from limiting allocations
+from (sysram_nodes) to including all nodes present in (mems_allowed).
+
+> While I am not an expert in NUMA, it appears that the approach with
+> default and opt-in NUMA nodes could be generally useful. Like,
+> introduce a system-wide default NUMA nodemask that is a subset of all
+> possible nodes.
+
+This patch set does that (cpuset.sysram_nodes and mt_sysram_nodemask)
+
+> This way, users can request the "special" nodes by using
+> a wider mask than the default.
+> 
+
+I describe in the response to David that this is possible, but creates
+extreme tripping hazards for a large swath of existing software.
+
+snippet
+'''
+Simple answer:  We can choose how hard this guardrail is to break.
+
+This initial attempt makes it "Hard":
+   You cannot "accidentally" allocate SPM, the call must be explicit.
+
+Removing the GFP would work, and make it "Easier" to access SPM memory.
+
+This would allow a trivial 
+
+   mbind(range, SPM_NODE_ID)
+
+Which is great, but is also an incredible tripping hazard:
+
+   numactl --interleave --all
+
+and in kernel land:
+
+   __alloc_pages_noprof(..., nodes[N_MEMORY])
+
+These will now instantly be subject to SPM node memory.
+'''
+
+There are many places that use these patterns already.
+
+But at the end of the day, it is preference: we can choose to do that.
+
+> cpusets should allow to set both default and possible masks in a
+> hierarchical manner where a child's default/possible mask cannot be
+> wider than the parent's possible mask and default is not wider that
+> own possible.
+> 
+
+This patch set implements exactly what you describe:
+   sysram_nodes = default
+   mems_allowed = possible
+
+> > Userspace-driven allocations are restricted by the sysram_nodes mask,
+> > nothing in userspace can explicitly request memory from SPM nodes.
+> > 
+> > Instead, the intent is to create new components which understand memory
+> > features and register those nodes with those components. This abstracts
+> > the hardware complexity away from userland while also not requiring new
+> > memory innovations to carry entirely new allocators.
+> 
+> I don't see how it is a positive. It seems to be negative side-effect of
+> GFP being a leaky abstraction.
+> 
+
+It's a matter of applying an isolation mechanism and then punching an
+explicit hole in it.  As it is right now, GFP is "leaky" in that there
+are, basically, no walls.  Reclaim even ignored cpuset controls until
+recently, and the page_alloc code even says to ignore cpuset when 
+in an interrupt context.
+
+The core of the proposal here is to provide a strong isolation mechanism
+and then allow punching explicit holes in it.  The GFP flag is one
+pattern, I'm open to others.
+
+~Gregory
