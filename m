@@ -1,74 +1,108 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-a2-smtp.messagingengine.com (flow-a2-smtp.messagingengine.com [103.168.172.137])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A25A02459EA
-	for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 13:54:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A3EE32252D
+	for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 14:09:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.137
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764078850; cv=none; b=btMrfGpZdzyOZ7wg/fJHVE41zv8WZt+HvpF9AZhK+nYRG09kG6WaOEuHGrlhN0udkgGaOwPwuBn4W6LyG1I9PK2dWP2U/zm6zR4IBlDCPYNBm7eQhRq2z8WOUzf74ZLEgGA71bwyDZPg5+j7WAaISIFpREYjxkEKmALdZMl0mVU=
+	t=1764079788; cv=none; b=IGZqti2cFhyUDEXVIJEVh6vI/TX9IYN9o4OaBtyardgA9NRrpALQWWinPIZq4jKTgu0scH3IrtxFoFTcMuftw8q0Q82ej9tA9bygPG3Quu90XbQXHgCIAqhJ3ooVEqPlMSmqGsel5RLHiyv5G7wfonkhYK5zPJ2qG4lF9xXfPXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764078850; c=relaxed/simple;
-	bh=l6KJEbEVM5y7rexEcKSpqScYa9AjmZUzszGRaxbfMbw=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=oNCXp3DI/T53EDoVtv7PkxgEyzw8lDY0x/WPnBroU8uhZE2fdsA0JwpAMMOg1bcGg4HW+qI+Hh8IEeOL5nxFMamZIIJ9vJQpm3JtaHf/rdsEQFHUl1t4UT4KLNS+2qa/2lMIxal5kFoNQDbdOIWQAlq9EnONMBuYoC1DK7wox5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=lRCpbtVA; arc=none smtp.client-ip=209.85.128.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1764079788; c=relaxed/simple;
+	bh=41wuBfK6KmZfFSph9AoLMj/4UnC1VKX3ed8Fm4gY7Qk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rls3yt4yCFbF/9hoYA8mXJ+oOeKK5Ca6wbD5+gZzK4Q9nKoFdqgdm5uHyzbx8WOOM9rz0HeITfzXKPmNwhczxXyt4IX6PlVWIYnphmOgGOZDSLwRmFEG+bwyfTQG84qg3mDLIgyxLMiWGGaAZ12pNcwnT/rqfBkGn+95bQnRS74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name; spf=pass smtp.mailfrom=shutemov.name; dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b=OMPvzKlF; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=YLka3iJJ; arc=none smtp.client-ip=103.168.172.137
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shutemov.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="lRCpbtVA"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-477b1cc8fb4so31678205e9.1
-        for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 05:54:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1764078847; x=1764683647; darn=lists.linux.dev;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=PfZmCnQkSgXm6bGG1U92mqMyyCoId2oi/fIXBdd/gDE=;
-        b=lRCpbtVA30DXLRQoqJ3XUkrac4LSbPVtyisaDpihMroW+Tbyd6XAeOpQrmTXRYsbLR
-         A7P/QQlWoMTTmNEqm84tI7eTJmcJ0acF5/lOXCvtuLg2nJHuWcjcXdZmkjgk5Sy3o8+I
-         ZatxEFY8mrvlIb7uM+fc6iAkXayKd4nIO44cLKOMVcb2BrxT3vF1AFsynaw7+Sn8VHGW
-         us9gyPaIVfbrZ9vadLt6Uvt1GtDLGEtKkQjEK9WmXew3zjDhTWQB4YwnGNhBXrq7qDDQ
-         yJVC6VpR9fEKGWqpxgIRTvof7Gz3SN/R3+m9kBwrKDbt9i+Vrkp2cwTOwtsJegsZjwpb
-         ynBQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764078847; x=1764683647;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=PfZmCnQkSgXm6bGG1U92mqMyyCoId2oi/fIXBdd/gDE=;
-        b=D8ei5lwzwXIvElWWRhucRo4r8HsSKgSVT2j0NqdFRudoD2z5KsBxBzLcWWAUP1SfJK
-         DgwGtF/Xsda/2EvM7JLd7gpA3vk5j1TmcIeX/+GkcXoL2qm7CgfNqAYgs3S0vNtDoihF
-         2nkOi9jO1cP4GI3jUPBgpyNaAaJgqp60InCnTaye3vbqR7hEOfFkAE41eETzx3TR7/fy
-         q4FZ3M4BGf75k+3p0e8zfFu4f7KJV/skPCkMGmLgk+/soA5sbitf94FRNPzsiALK053g
-         qUvffbrSrsFEgP3UsiBEfRJdRXzQxxcP0+bEL8dQQWc/GoeLoCZz/zAE6S1NFdMkXGfV
-         GU5Q==
-X-Forwarded-Encrypted: i=1; AJvYcCUnH9InoqKoBaOVqNbu13iAvUc3LhMtSOIQqmNiHQcuK9U5qBUzBAN2pGWOjqkFHZXMWCAgY5w=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yzo3RYonulwYPWyMf6NGYZy7UxZskBqh3ZX4w6YEDu1Y+selLKu
-	kfXc9sdN0Aa65lYR+ogqRKdIKs81i/St+Qb5TGkjTqWZ+slwhLkHbMKBcubrX/kweu4=
-X-Gm-Gg: ASbGnctg8f2aMIVdjjNJMJ00DPMsQ0G05aqBbDGePT/bGFuBd/+Am6JTDcJbitAIF2f
-	+zMtz8IcPxbQVELEiew5zvtwy+ELbNHetpXIh7UQ7x6a0zUBjXwmTMCifc2UJvXuDaXSiGJ1QFO
-	qXovXa56yejTMYYfKM8ok4YKBG9xFmEwAWWGcGRcTECt/lCx1QqeySPNosY2YWDGt+iOB0uSDQz
-	3KOMS+rwg7vDTOsvhGr/GWZMOMIwnECoyjY95IVU9CwgRoClWtStd7Hc1P2J7nuzri7OKpFWNDO
-	eFc78VDD5wfkUX1FquhuoV2qu11Im1vFnbXtY/wMlNimUGBEZftbrrelasOQPUB11H+oV61fdsJ
-	EF+3WxBUzsghKDOaAdu5dJGWsupHm7zqzKAhCt+OA/fgx5wQ6b0wOL4CKQXq889MP+5oTTBvQ78
-	WvjqNwpN6j3HjD3heZ
-X-Google-Smtp-Source: AGHT+IE6Z/i4LBBFZymostPyZofb9RWGBQcEhAavUgAtLmc+CAwBQkdpZHZEouVOs2i7Ai+1mMZV8A==
-X-Received: by 2002:a05:600c:3b9c:b0:477:af07:dd22 with SMTP id 5b1f17b1804b1-47904b24243mr26387045e9.28.1764078847095;
-        Tue, 25 Nov 2025 05:54:07 -0800 (PST)
-Received: from localhost ([196.207.164.177])
-        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-477bf22dfc1sm250227535e9.12.2025.11.25.05.54.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Nov 2025 05:54:06 -0800 (PST)
-Date: Tue, 25 Nov 2025 16:54:03 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH next] nvdimm: Prevent integer overflow in
- ramdax_get_config_data()
-Message-ID: <aSW0-9cJcTMTynTj@stanley.mountain>
+	dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b="OMPvzKlF";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="YLka3iJJ"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailflow.phl.internal (Postfix) with ESMTP id 809B21380546;
+	Tue, 25 Nov 2025 09:09:45 -0500 (EST)
+Received: from phl-mailfrontend-02 ([10.202.2.163])
+  by phl-compute-05.internal (MEProxy); Tue, 25 Nov 2025 09:09:45 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
+	 h=cc:cc:content-type:content-type:date:date:from:from
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=fm2; t=1764079785; x=
+	1764086985; bh=3bMvsZSIiVU3pUA1Q96vlRsnQkJ+zVUPQsOHI7GHg2U=; b=O
+	MPvzKlFHkHMEkgAvO1Uyss+96M/hGKj5YsQfHejRjOSc4qcoxmXMj4hhXg44W1Ef
+	f+2FZmek/Vp7VMAcKSWKu5vw2ELUh/4TKqh05W+XH3fqT/kg0gRDs1cSTZFEzwsY
+	lfUK/XstLQ/GgwvHNBGpiPsihS3C907bycj46mTcTPjPWBcIFuNO2mkJK87dq41v
+	nEaYF+SW/r9n3rXEn7zZvJvhaqJKngqjJVqgYKouNkyWaY7csAolp+xbmx+7XCc6
+	NTnu6vEK2LnrusXBylHkCIdYJU8Qwx8yLU37YVnlHB1bRfm2yV73RrmEmaeu/OnY
+	zVRksTDa34siBV1sEgVBg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1764079785; x=1764086985; bh=3bMvsZSIiVU3pUA1Q96vlRsnQkJ+zVUPQsO
+	HI7GHg2U=; b=YLka3iJJS4uHYf+RVmsIhTYDXpAvrL5WrL9BPBFcYF8nsukYggb
+	QHO6tT2dwT3h9TcJys0ZthsLNKdLgkuGaDv5MkN8DaRBDYOvSDFB76gBeKNn5W0/
+	CVCemM3ZxiBVvJLvrV/KsXaaVnrH/XSHm5BR36zUS10Fj/JaEk3C0JUVf4tBZhI1
+	rwv6nH1MsGZq8Rx4O9829S+HBuzkXZM4K4wcZY5iTTS7mIR4Fo1mVU9WkuJ1CMd2
+	uD6szhHUcKTSLnb6TESaW5TxAiS8SqYaev0d0D3FkzA2naE3DgHaXS1hUhvkgcn9
+	odS/eCQqz0+KbMLRtjqc8IUq4qTlSRV2bug==
+X-ME-Sender: <xms:pbglaWvKN1DJZAzYSwKMRx9-OgT3rdfcTgkjojWPEw8KNW7Cx0AEAw>
+    <xme:pbglaTXf9w3AHkCR2Fi9l8wIxJHg69s8vY_NmbLplbMAS7ZPJhAxU4ZyvP7W59tRY
+    6tYZ94S8k6_dYSWuO2CmKlawxLgNFJRUNzUYh5ghix47LoIvHqcJ3E>
+X-ME-Received: <xmr:pbglaTVq6gxwgmVLYbKwhZEo3Ue8V3Yipkq04ow2rgFUWOH-1wlLy2M77sQWTg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggddvgeduieejucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucenucfjughrpeffhffvvefukfhfgggtuggjsehttdfstd
+    dttddvnecuhfhrohhmpefmihhrhihlucfuhhhuthhsvghmrghuuceokhhirhhilhhlsehs
+    hhhuthgvmhhovhdrnhgrmhgvqeenucggtffrrghtthgvrhhnpeejheeufeduvdfgjeekie
+    dvjedvgeejgfefieetveffhfdtvddtleduhfeffeffudenucevlhhushhtvghrufhiiigv
+    pedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehkihhrihhllhesshhhuhhtvghmohhvrd
+    hnrghmvgdpnhgspghrtghpthhtohepudefiedpmhhouggvpehsmhhtphhouhhtpdhrtghp
+    thhtohepghhouhhrrhihsehgohhurhhrhidrnhgvthdprhgtphhtthhopehlihhnuhigqd
+    hmmheskhhvrggtkhdrohhrghdprhgtphhtthhopehkvghrnhgvlhdqthgvrghmsehmvght
+    rgdrtghomhdprhgtphhtthhopehlihhnuhigqdgtgihlsehvghgvrhdrkhgvrhhnvghlrd
+    horhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghl
+    rdhorhhgpdhrtghpthhtohepnhhvughimhhmsehlihhsthhsrdhlihhnuhigrdguvghvpd
+    hrtghpthhtoheplhhinhhugidqfhhsuggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhr
+    ghdprhgtphhtthhopegtghhrohhuphhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtg
+    hpthhtohepuggrvhgvsehsthhgohhlrggsshdrnhgvth
+X-ME-Proxy: <xmx:pbglaW_0cXMtMthUHN5H-fE7CGn6DIwBKbPochRZeWCN8gj92pgAfQ>
+    <xmx:pbglab-e-8tK-jGoWZSTzd4htoSykssNFuRJIH-N3luEajg_qhcROg>
+    <xmx:pbglaS8xVJOZqKo-Vsq3I59doGzt7pGvGwt-1UuY4j1VdvVF-sGV3A>
+    <xmx:pbglabLAvm1PrWnHzKLnOzKQUK7tS39E5pLPz3qn6MaXu68uj2z1VA>
+    <xmx:qbglaXODIQJ_Tp6UtA9zcmakBUdCO8tVHH50Z00bPS2jBHC-6eFUxFQ4>
+Feedback-ID: ie3994620:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 25 Nov 2025 09:09:40 -0500 (EST)
+Date: Tue, 25 Nov 2025 14:09:39 +0000
+From: Kiryl Shutsemau <kirill@shutemov.name>
+To: Gregory Price <gourry@gourry.net>
+Cc: linux-mm@kvack.org, kernel-team@meta.com, linux-cxl@vger.kernel.org,
+ 	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org, 	cgroups@vger.kernel.org,
+ dave@stgolabs.net, jonathan.cameron@huawei.com, 	dave.jiang@intel.com,
+ alison.schofield@intel.com, vishal.l.verma@intel.com,
+ 	ira.weiny@intel.com, dan.j.williams@intel.com, longman@redhat.com,
+ 	akpm@linux-foundation.org, david@redhat.com, lorenzo.stoakes@oracle.com,
+ 	Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org,
+ surenb@google.com, 	mhocko@suse.com, osalvador@suse.de, ziy@nvidia.com,
+ matthew.brost@intel.com, 	joshua.hahnjy@gmail.com, rakie.kim@sk.com,
+ byungchul@sk.com, ying.huang@linux.alibaba.com, 	apopple@nvidia.com,
+ mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com,
+ 	vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
+ rostedt@goodmis.org, 	bsegall@google.com, mgorman@suse.de,
+ vschneid@redhat.com, tj@kernel.org, 	hannes@cmpxchg.org,
+ mkoutny@suse.com, kees@kernel.org, muchun.song@linux.dev,
+ 	roman.gushchin@linux.dev, shakeel.butt@linux.dev, rientjes@google.com,
+ jackmanb@google.com, 	cl@gentwo.org, harry.yoo@oracle.com,
+ axelrasmussen@google.com, 	yuanchu@google.com, weixugc@google.com,
+ zhengqi.arch@bytedance.com, 	yosry.ahmed@linux.dev, nphamcs@gmail.com,
+ chengming.zhou@linux.dev, 	fabio.m.de.francesco@linux.intel.com,
+ rrichter@amd.com, ming.li@zohomail.com, usamaarif642@gmail.com,
+ 	brauner@kernel.org, oleg@redhat.com, namcao@linutronix.de,
+ escape@linux.alibaba.com, 	dongjoo.seo1@samsung.com
+Subject: Re: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
+Message-ID: <h7vt26ek4wzrls6twsveinxz7aarwqtkhydbgvihsm7xzsjiuz@yk2dltuf2eoh>
+References: <20251112192936.2574429-1-gourry@gourry.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -77,33 +111,44 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-X-Mailer: git-send-email haha only kidding
+In-Reply-To: <20251112192936.2574429-1-gourry@gourry.net>
 
-The "cmd->in_offset" variable comes from the user via the __nd_ioctl()
-function.  The problem is that the "cmd->in_offset + cmd->in_length"
-addition could have an integer wrapping issue if cmd->in_offset is close
-to UINT_MAX .  The "cmd->in_length" variable has been capped, but the
-"cmd->in_offset" variable has not.  Both of these variables are type u32.
+On Wed, Nov 12, 2025 at 02:29:16PM -0500, Gregory Price wrote:
+> With this set, we aim to enable allocation of "special purpose memory"
+> with the page allocator (mm/page_alloc.c) without exposing the same
+> memory as "System RAM".  Unless a non-userland component, and does so
+> with the GFP_SPM_NODE flag, memory on these nodes cannot be allocated.
 
-Fixes: 43bc0aa19a21 ("nvdimm: allow exposing RAM carveouts as NVDIMM DIMM devices")
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
----
- drivers/nvdimm/ramdax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+How special is "special purpose memory"? If the only difference is a
+latency/bandwidth discrepancy compared to "System RAM", I don't believe
+it deserves this designation.
 
-diff --git a/drivers/nvdimm/ramdax.c b/drivers/nvdimm/ramdax.c
-index 63cf05791829..faa6f3101972 100644
---- a/drivers/nvdimm/ramdax.c
-+++ b/drivers/nvdimm/ramdax.c
-@@ -143,7 +143,7 @@ static int ramdax_get_config_data(struct nvdimm *nvdimm, int buf_len,
- 		return -EINVAL;
- 	if (struct_size(cmd, out_buf, cmd->in_length) > buf_len)
- 		return -EINVAL;
--	if (cmd->in_offset + cmd->in_length > LABEL_AREA_SIZE)
-+	if (size_add(cmd->in_offset, cmd->in_length) > LABEL_AREA_SIZE)
- 		return -EINVAL;
- 
- 	memcpy(cmd->out_buf, dimm->label_area + cmd->in_offset, cmd->in_length);
+I am not in favor of the new GFP flag approach. To me, this indicates
+that our infrastructure surrounding nodemasks is lacking. I believe we
+would benefit more by improving it rather than simply adding a GFP flag
+on top.
+
+While I am not an expert in NUMA, it appears that the approach with
+default and opt-in NUMA nodes could be generally useful. Like,
+introduce a system-wide default NUMA nodemask that is a subset of all
+possible nodes. This way, users can request the "special" nodes by using
+a wider mask than the default.
+
+cpusets should allow to set both default and possible masks in a
+hierarchical manner where a child's default/possible mask cannot be
+wider than the parent's possible mask and default is not wider that
+own possible.
+
+> Userspace-driven allocations are restricted by the sysram_nodes mask,
+> nothing in userspace can explicitly request memory from SPM nodes.
+> 
+> Instead, the intent is to create new components which understand memory
+> features and register those nodes with those components. This abstracts
+> the hardware complexity away from userland while also not requiring new
+> memory innovations to carry entirely new allocators.
+
+I don't see how it is a positive. It seems to be negative side-effect of
+GFP being a leaky abstraction.
+
 -- 
-2.51.0
-
+  Kiryl Shutsemau / Kirill A. Shutemov
