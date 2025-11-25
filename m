@@ -1,274 +1,211 @@
-Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A591326959
-	for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 15:05:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764083130; cv=none; b=aJEu9Ln5gES1DiuOmcLtRy0IkkjU8e+gWXCNilKG+MDqm+IcB3QJGR6qr0/bO6D9I+aCVimHvrIQjB2MXz2gWQTFravpSYecZLG9FoKgcUv3aeP+ohOBE50IZHX9lxIxMu0CRNZEGZomScpHtvrmG1VKZ5OVYmlLMhwEUWQ9Dm4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764083130; c=relaxed/simple;
-	bh=pjzHMxpUkO8Li3i8jQNI3TpiuWXXjBQIOqEQEY3Q07Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t8jfmly41OrEANQsg9e57u7igR6tip4Jddj4XtWIi3GcUhTh5lqKEqQAf/TjIO5qo1LrWO1CIybXO0z5PAAzu6WSBaXHuotLyH/3EIVAJ69m8UdlVtPsj+DAa2z4+czIbVfTDqSrzS+6id6xDxG8qtDd/g8NU+/nIupySoNAB2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=UYPdSq6r; arc=none smtp.client-ip=209.85.222.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E12EC1487E9
+	for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 16:36:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.11
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1764088562; cv=fail; b=fg+RV1m/+2hXcJXQgLVcYJflG4yJHFi9g9PfiikUFGX/InP1/QfBKtXVydY62p447zSd3rBJuxu7BnPxooRfJRfh28yxJAKvGdbka9s2U6Fcz3LLWdUsAMiPEGGla1kIyNd0mJtk5texwYsAljmJTuJjvLT7tssJZ9j//D8biBQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1764088562; c=relaxed/simple;
+	bh=Z9jLvCtjZH5wsm01OR8NeNhla8u6ttgcsWAmE3HKlhI=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=Uq0iELmEBNYr0oDE1jyUK3vKpZKGjfbVspcurVicn0viHT5qv/sVmGADQk7aBqlMZ1cmI2wjhpRB1MId+F++TQRtszIkyol/R/MyWRKVrxB9DP4DWmnZ+p76/423NtV/8E2aiMYMyBP6a2VfdEUIJhxxf5nn+Aqf5kK9fqk4Sns=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Z9v2/O4v; arc=fail smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="UYPdSq6r"
-Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-8b0f54370ecso562664385a.2
-        for <nvdimm@lists.linux.dev>; Tue, 25 Nov 2025 07:05:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1764083127; x=1764687927; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ardSa1fh2pHETKiwXzwSN9Th9brxN1pF2dM3Ndqaang=;
-        b=UYPdSq6rRLV58cdoPZ1ywz5lQ1x3wMAn+vX+CGbqJZQ9xhyfX5Xekf7aowiTuLRO9T
-         AyHxIDdP7vfk6w5gRYQytwZbuwOM61LhGy8DD3dxgbDh7Y6aKdjjoz5xWFkWZUZLdCUo
-         hC/CiIXZZEfqfp16zTR4AeWYYPRdFvgQSsegzlfE1ca7ATWO2GFmVhpoz5HhBaklideV
-         +YQElqyA9J0H5OKOTkm6kFoEgMrIu4WlzMadK2yx5EwrbOAbheXuZsyPyjgocIku0cRl
-         Up5l1BVVTZl/BXK7nHUtRaXJXQRXmYVJIgyk2+/ePc/I5/OvNd93uu7jFMpYrKh7lZYR
-         5iWA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764083127; x=1764687927;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ardSa1fh2pHETKiwXzwSN9Th9brxN1pF2dM3Ndqaang=;
-        b=I3qrzTtNd9nX0YywbzT9Mk23AefuH+BnYYyIl3b9zJqc/S0CBpoBGejnaFCyZwtWgx
-         dsB04hvu80fZszE+kYRbKrT53trcPdB4eAGcxTHkeZLN7QlM4MbVOdlBrx/rlKrQZTCr
-         1yE2PTirXqKMFXwSsAAGs9ghPcPqULrsLDUfShSs9pVA+MOjARrr4Kb/lA1IO9umO8k9
-         SII8EI78XizdKVeOcfRJYCWwwwFg1teO+J0X/YaiGn8RqJvcgpBgkTlCAaDyDeW1hxmi
-         WtR+n5ukVmwEuA0zcWClYdT4zDuuiid5/R070WzWIMI/lFTH7/OUgsyrG28Kalhajf2t
-         MZNQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXN1sYRWpoiXRX9/0U3SRYUFEslR8gGwK8CJGt8DB7a3tSCR+q88EMnM7I7NXbhmno5JEENVho=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyKtKlP+2+CEtYQUZIulwLEzUK7jfUC8alKgMYDFFHsB27ZDKRl
-	NkbR2G3+Zd4iy0rDOAvIOGrjDeJWS0rW5nWm0+68i0+WF/dYcTKuYx12rH3z5cGWWm8=
-X-Gm-Gg: ASbGncsDvT+Q3yy6roj7Gop8s8smYxvF2+Yg4z6c7/PDV6fI0hhbXAalDybmlzPYQqN
-	bJRn+8Oj0Z2b9pyRhme/oNUIGHqbFlX8o7noDi4+MI9H34GVMK05SwRS9TPlL76oK5R8Qr4aP8n
-	KHNPE2jcErkAetKlBD06wVgTdCxmnJEUYetM+YBp93nIbxb94XSE0PgPayFVOM/u69oF9QdcTPM
-	dAUbQJjNokj9NeiVee9F0nxTUQuyfc9U0QfYgXH3imDtf3cwnaByz26px24kxmGlc0n2fNyge6B
-	WYICeSzzPmtXGldlSy21ukKSYzQbIpz9273ihNFy1Y4coT6EdjV7C5nqkLTK9XxNxYrl8uGzniA
-	g4zJBxnsJin/jOj/0CioxKsSeTEA2u8oi/6p8r2As9MWrRz2SWRvj7gCc5GEagxzC0JJqdWovmV
-	mHoUCRYueOb35GsI3ZfLFMIV1IoBZDFB15dHehr2f1cQdgSA6ABfUsgUzN7jfYyisPJ/gsbQ==
-X-Google-Smtp-Source: AGHT+IEFL/RZ3x9jACD+3qnEV8d73oOLgzxVvrrp/q6V+1ebLXwAT8RkswYTT3oWsjpBiQE2LKDSqw==
-X-Received: by 2002:ac8:7c55:0:b0:4ee:1e63:a4e0 with SMTP id d75a77b69052e-4efbdb25399mr46248441cf.74.1764083126842;
-        Tue, 25 Nov 2025 07:05:26 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8b3295f2f6dsm1195203285a.54.2025.11.25.07.05.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Nov 2025 07:05:25 -0800 (PST)
-Date: Tue, 25 Nov 2025 10:05:21 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Kiryl Shutsemau <kirill@shutemov.name>
-Cc: linux-mm@kvack.org, kernel-team@meta.com, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
-	dave@stgolabs.net, jonathan.cameron@huawei.com,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	vishal.l.verma@intel.com, ira.weiny@intel.com,
-	dan.j.williams@intel.com, longman@redhat.com,
-	akpm@linux-foundation.org, david@redhat.com,
-	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
-	osalvador@suse.de, ziy@nvidia.com, matthew.brost@intel.com,
-	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
-	ying.huang@linux.alibaba.com, apopple@nvidia.com, mingo@redhat.com,
-	peterz@infradead.org, juri.lelli@redhat.com,
-	vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
-	rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
-	vschneid@redhat.com, tj@kernel.org, hannes@cmpxchg.org,
-	mkoutny@suse.com, kees@kernel.org, muchun.song@linux.dev,
-	roman.gushchin@linux.dev, shakeel.butt@linux.dev,
-	rientjes@google.com, jackmanb@google.com, cl@gentwo.org,
-	harry.yoo@oracle.com, axelrasmussen@google.com, yuanchu@google.com,
-	weixugc@google.com, zhengqi.arch@bytedance.com,
-	yosry.ahmed@linux.dev, nphamcs@gmail.com, chengming.zhou@linux.dev,
-	fabio.m.de.francesco@linux.intel.com, rrichter@amd.com,
-	ming.li@zohomail.com, usamaarif642@gmail.com, brauner@kernel.org,
-	oleg@redhat.com, namcao@linutronix.de, escape@linux.alibaba.com,
-	dongjoo.seo1@samsung.com
-Subject: Re: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
-Message-ID: <aSXFseE5FMx-YzqX@gourry-fedora-PF4VCD3F>
-References: <20251112192936.2574429-1-gourry@gourry.net>
- <h7vt26ek4wzrls6twsveinxz7aarwqtkhydbgvihsm7xzsjiuz@yk2dltuf2eoh>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Z9v2/O4v"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1764088561; x=1795624561;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=Z9jLvCtjZH5wsm01OR8NeNhla8u6ttgcsWAmE3HKlhI=;
+  b=Z9v2/O4v6B1YHKf2cpt4+M6sMKYqOmJswmgCXqXl8Hn8LZZpyLXQdYfH
+   1AmSiw6omMgWVcEzPinaWu+kNV9zMadnQ/EBslAlvuz+OqYokyQQ8nPy4
+   F45k7ftzjeVq1WKD6eCrFgS68Dof+2cmDQNS+NlI2B3hjQi/kw0FYQAoH
+   N+BZCQ6wGZnlgHWOLdUdS0CXNQKvp7ZtR94QjWewYoGy7egRF8n88LnxC
+   OwDyQH+697LW2SqkBgpL5yal+1sS/LhJuWQ7Ha0DNWTH8r/QstcYrDtCY
+   e36+ODMkRa0GIUjyGCuck1ABjjnFAMseixAG/9SiKp5ikL6NTO8UOGwEF
+   Q==;
+X-CSE-ConnectionGUID: Kxjd6yplTceR8JUqAA19kA==
+X-CSE-MsgGUID: cWss+Hx8SUi0hQSR6NdgkQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11624"; a="76437356"
+X-IronPort-AV: E=Sophos;i="6.20,226,1758610800"; 
+   d="scan'208";a="76437356"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2025 08:36:01 -0800
+X-CSE-ConnectionGUID: bVdbXiU8SqCZuYy/1M0xpw==
+X-CSE-MsgGUID: 1LcxylfgTpamF1yI4n1TKw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.20,226,1758610800"; 
+   d="scan'208";a="192481819"
+Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
+  by orviesa009.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2025 08:36:00 -0800
+Received: from FMSMSX901.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.29; Tue, 25 Nov 2025 08:35:59 -0800
+Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
+ FMSMSX901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.29 via Frontend Transport; Tue, 25 Nov 2025 08:35:59 -0800
+Received: from SA9PR02CU001.outbound.protection.outlook.com (40.93.196.50) by
+ edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.29; Tue, 25 Nov 2025 08:35:59 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=KuNCFJdu9tUtyHc3FXGIoHWnk/z4/+xvt1qzlgsr9k30P4x34UHw3mSO3Bk2mknvw7Ad1h5j4dy5Up9q0kTaKXRjnlnNSL8XoLjwTW7ET3+wpLRUu7LbYM/GKyd56V4JMopdgvjunz2A7WyDpepVUXvKuUru+qVZ5dkdWYT0XjxHkKja9kAtqhQnpMQkt4uh82PhAiasO/jUogNL/LmET2YerONFpiMrVQVZ8/CsE/zHnHeaosX8K9UGRlVQCCgDBuMHUjlSbeo0r2/N1KZjRruaMUAfVa1eEvYNFq2HglGyK3Ewmj2jnZpGHui1h4suJCYP14rouskyyFzhfm/NdQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=HNIv9J3qKsjNgn/UZ3ou02nwr6NCofCVhA7/jlWx9lU=;
+ b=WkkI9TSBGbrDwtJd34PavZQTul4aq+2BfrcSZddEpHzLDVBKvgRGlUBktEjVQnb5yW9fg+IXO8a07SYlVoVlxxllpS9KgsQlMCIXKZKjJTL18s8876gzHz2RK2WyoBXKQlv/D9z/iaNtshg5U24kAwX+5mTo4cObaVcYKz+Vufvi1S0urWiQpp7GkfBTRiSHl/2qs4dFn9bj/MWmuRiVnAmGpTs7uHNA2keSL9OCaxdM3I4Ls3z2aZCmKi5deDC311WNLyicIv6xt+UMOM444pwhI1a8MSMFNi6xXyubOfFz0ivW8ETvJhMUPkD8jgsjy7/oz6zFFLZOFynAjxs2NQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c) by IA4PR11MB8892.namprd11.prod.outlook.com
+ (2603:10b6:208:55c::10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9343.17; Tue, 25 Nov
+ 2025 16:35:57 +0000
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::8289:cecc:ea5b:f0c]) by PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::8289:cecc:ea5b:f0c%8]) with mapi id 15.20.9343.016; Tue, 25 Nov 2025
+ 16:35:56 +0000
+Date: Tue, 25 Nov 2025 10:38:29 -0600
+From: Ira Weiny <ira.weiny@intel.com>
+To: Dan Carpenter <dan.carpenter@linaro.org>, Mike Rapoport <rppt@kernel.org>
+CC: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
+	<ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+Subject: Re: [PATCH next] nvdimm: Prevent integer overflow in
+ ramdax_get_config_data()
+Message-ID: <6925db85a9343_63977100fd@iweiny-mobl.notmuch>
+References: <aSW0-9cJcTMTynTj@stanley.mountain>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <aSW0-9cJcTMTynTj@stanley.mountain>
+X-ClientProxiedBy: BY5PR13CA0007.namprd13.prod.outlook.com
+ (2603:10b6:a03:180::20) To PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <h7vt26ek4wzrls6twsveinxz7aarwqtkhydbgvihsm7xzsjiuz@yk2dltuf2eoh>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH3PPF9E162731D:EE_|IA4PR11MB8892:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3f304865-5308-49b2-dad9-08de2c40b511
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?k8yMPs8Gj96UB8T/O9+f+xoPF0zlbrCvFF0mlvRmYJdLQNIu6QQ2qmKPZvN9?=
+ =?us-ascii?Q?vS34Wn4YRjcrhKV08XUIyPeN82y9njC87O7w2HQ3VrF3E1op+uMxcEEQz8tP?=
+ =?us-ascii?Q?fG4Ws2CcoDh2rd6y9LEUck2wFhC0pf/tL8V4/vkAieEoY0W6DKQcP4W+XU0p?=
+ =?us-ascii?Q?8xqupOH6RDsG3PtMnOCIUJvFDYD2x5h8WKjs6c3qEqihPW1EPmFGgRebojcG?=
+ =?us-ascii?Q?1uhxuJ1uzc8qHhTnZNstCFBQ8KRGDXLvf5IDCsm+Ju4j0lhM35jag107mF11?=
+ =?us-ascii?Q?cf8jRIbHiY2MYv4/xoWbtddtl2/edQLmTuzWXyWkLLRxaY7/OnzRTvBhsG7g?=
+ =?us-ascii?Q?XK8P917r0J0B6b39owcCoKwwfIhcRaTwY7d/wfIovzq52jKR0mM80Q79OSqw?=
+ =?us-ascii?Q?a+0m5N+/x/2YpGbQBVeN8nQ33S/YRFFQBJ68Zf8EpKScMDkp28dyLXSF9CvB?=
+ =?us-ascii?Q?aQeULICB1iBsbZROfu9osts0nIP3qTqhvY2LEzoWWmh6jDkQ6sjcxsPMGiZY?=
+ =?us-ascii?Q?uSJxPTE5nMa5maVjjev+QworTjnrQIDIrSpzN1I7EvHaIAzng1M47N0RaBcM?=
+ =?us-ascii?Q?1oPLTUYGat0qXJIryUbX+cIfl60RNj6wMLrJtp7PwhjaPJ8IyVc39EWxluFJ?=
+ =?us-ascii?Q?VhroJpjqX0rkt5X2z+rCj8n2gnZ4/zVRkLp0B0mjbmt9sxd+19wf3Tm0OM2N?=
+ =?us-ascii?Q?0vG9Oi8qxJKddoWLk9Iwj5y7xxBO9aWwcC59sb/RribrFlHvg7zTpbvssAPr?=
+ =?us-ascii?Q?6+JfHNij2fIeykrDMhxIsbpzjaDtBH1OgZ0X+YgrCVraqfGdUMhTan/cvk3j?=
+ =?us-ascii?Q?8FX2mmfGMQtGyWek8EC9G16QWiOp1VcbQ14n5EbNWbBDkV7YrwS0xPMQG4KY?=
+ =?us-ascii?Q?8ryn7eNFJbM1sSWgjfILGof/9PalA4jNUfgOu+A6YUlRUzR6imLCbfrhfBdd?=
+ =?us-ascii?Q?77dcsoZbjasEf6j84d0lc/gwN9iaFLajU+7NK8nJFzIfcZ0NF7KzrbTQPUrH?=
+ =?us-ascii?Q?461GseGihnWvbNzOL23qXhDzYxM3pCpHu9bYuiKRVU5KlgwU5+mUenfHVdX5?=
+ =?us-ascii?Q?Kh7Jvwi4Sag8LkEzfZQ4KdR3H8vNkAF7pfXtqvF4Jh62Dh6tVe5/qBEIeDgc?=
+ =?us-ascii?Q?V3ozGNzeCH77idV2Fu4t8xsjdm09NqDhIADyiwcp30Mmek+XzNhHOXsldmSH?=
+ =?us-ascii?Q?M/oL3JA223Wc3x9aiwUmeS3Zneo5CvAIgBHKyqsXrEZDGRIiwddLMUeoPHq3?=
+ =?us-ascii?Q?EXVWuw4k4AfsvG7aPqQ6iDRSYfAQZltuPPvhlrNMnkrIJVs/p1HhTiKwqHDV?=
+ =?us-ascii?Q?3R6Am2hqeKT8ai//7LOdYL8X3zzNlt8km3q2BJJEl+LkgiVhOhgOyr8nbkGg?=
+ =?us-ascii?Q?gC93PtHJga4YuzhDpWOSf5uNqZ8QrtnNcs8nH2wJusNmr2loYZ3nBCHIVlJw?=
+ =?us-ascii?Q?SECRb+VCUO35tTPHd3dh5vdvBJt0xjFX?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH3PPF9E162731D.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?a/qBo8W2XDOcHxKgHL63Sv0r9i8hODd7v3mTWsOrQp5sdkb+bzCAaVcGVkDx?=
+ =?us-ascii?Q?nqh5D3+GrGBYdJ8gn6bNoJZvSWE+qXnvKpoNZad97jagHQVP7v4Ekq4LgrAE?=
+ =?us-ascii?Q?gC9sOJV8PLJbFG3dY9JmERf74xnBlvhz+XkqF759TMtHtooeQZNF420Xp2wI?=
+ =?us-ascii?Q?xHh94BwneuF8xAyfMp6gEQD2oZPhEM3xXuT+td3wNd+1mzqSjQK7JSjdIyw3?=
+ =?us-ascii?Q?SKUJ1FVX3Kigkx0Jd+2WbDnwTAyTr8sxO1831EXylvyyDTHxuHummyAeHFh4?=
+ =?us-ascii?Q?ejZZstNCWCpFAXhAmB5e7HP8hFfyj0xmHXuPZu1RlYVrJ5LZ5X1MaZZexK8b?=
+ =?us-ascii?Q?zUAOBWXx++7RbVaa7vu2o82PsDH6YdBrxnyI6uht2BEay3r51Yjbv/8pQ3Hv?=
+ =?us-ascii?Q?kJRWKZPGrJBRDbiULWcACCFXxsuRmzbxDJ9B8hoV9drNos7UDI604eS3SP0u?=
+ =?us-ascii?Q?LKLEunjOtvjclaRpF7nOBDvBz4C25STTNbJneDvXjfMAchYuHLH6I7AyzsKj?=
+ =?us-ascii?Q?BM/cWdPG2PH+ocI829N6jJV17AvnXugEmLi+egHEve2IEBxAdRGraOwuLwQ6?=
+ =?us-ascii?Q?OxGslwiOY4KZa0tz1tPzqmlng8wcImG/mnzdQmIlNLybUiF4F98YYUT/NQ4A?=
+ =?us-ascii?Q?sgcjVESZknQwd/PEhHwPVI2CSGfmoAkcjcfdXH7YWDJppqicIl/4DAMOxgHL?=
+ =?us-ascii?Q?6kfgUvZIyqeHdTDgJkZjBk+l5KOzHznHO0ZGvWjnXdHlUTeFh9VKPHwZGdqa?=
+ =?us-ascii?Q?UgV5Y+XjABY8D+sxSlurchtk3Zkfu2ZHPJrOoJedlaEhhmPJnuBP1BY9O3qI?=
+ =?us-ascii?Q?znaKfENz+6Ijr6JeEmzRcFWbPIWigpyKLx7C8qxz05pia9R/rdaEwArM1HqE?=
+ =?us-ascii?Q?TXt1MPlauylX/5AAxFKNlsv8S9aXU36sEZFp1Siz/zk9Q1G3/Qw4JvO7EdZF?=
+ =?us-ascii?Q?aQW9Y+mGCALAkQxX3fpbAnzeht6Y2VuSz7QHwCMeI2heTg5waLmmadYg03PJ?=
+ =?us-ascii?Q?s/qQ1gQyEMu1fmmFiPZV44CFQCxHpqITGBFcf8mK52hB3vkOSMNEQlZM3p1F?=
+ =?us-ascii?Q?ABwFe7SMsfKg8c+D07JHOxoUz2XICGVhhc7huhLE4fOopCQbGEpOQI78+fhN?=
+ =?us-ascii?Q?Fstj673o7DV4M+ExBjCfFoqyUX3Zr2M8Y735/j3BkJ9u7SWYNc4W5UToCIOa?=
+ =?us-ascii?Q?Vvc8iVXba/AUK3b6HNO8sqNKjvhEt3CdijUkrWBbFk4IShCIHmbB3pqWcKp2?=
+ =?us-ascii?Q?A199HE1JDdRKJx1aGpoqfsm8oo5Q1J7ZubM59velHa7Z+H8H3kSbZxwqTN+N?=
+ =?us-ascii?Q?EYJ/cN+w5b6uzHMWrcoG1qN3d9VjUJ6n4DgJT/zA+/gzB5UxPAzfar5deYTp?=
+ =?us-ascii?Q?lHIAWRcSGD2Bd5ZdZrBdrraoKW4a9qxUCP2VOLyseSolIYEoxVFbxhyB2Qhp?=
+ =?us-ascii?Q?P2AC5RumrcXTyXKsjM3votwKlngpwjA7+EX8TXUTkDymsS2B4xI0Bb8k7OCs?=
+ =?us-ascii?Q?/4iqAlZzQRUVuh3dkH+GPp3iOoTrkiO8NGpqWyEI3Y5Mj0hZTTaA89KV8oCV?=
+ =?us-ascii?Q?1OEN7NFh/xm4qY5qzrtqg1V6sNJfxBYyeflzWaVi?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3f304865-5308-49b2-dad9-08de2c40b511
+X-MS-Exchange-CrossTenant-AuthSource: PH3PPF9E162731D.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Nov 2025 16:35:56.5872
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: gK66XVrrbbOMcxrXxqnAJ4OIweocxfuFWvYS9qW9KZEGJfEAo0P4yM9qWgxzPXvaAd9hkqbOUU6UDDcM1doh9g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA4PR11MB8892
+X-OriginatorOrg: intel.com
 
-On Tue, Nov 25, 2025 at 02:09:39PM +0000, Kiryl Shutsemau wrote:
-> On Wed, Nov 12, 2025 at 02:29:16PM -0500, Gregory Price wrote:
-> > With this set, we aim to enable allocation of "special purpose memory"
-> > with the page allocator (mm/page_alloc.c) without exposing the same
-> > memory as "System RAM".  Unless a non-userland component, and does so
-> > with the GFP_SPM_NODE flag, memory on these nodes cannot be allocated.
+Dan Carpenter wrote:
+> The "cmd->in_offset" variable comes from the user via the __nd_ioctl()
+> function.  The problem is that the "cmd->in_offset + cmd->in_length"
+> addition could have an integer wrapping issue if cmd->in_offset is close
+> to UINT_MAX .  The "cmd->in_length" variable has been capped, but the
+> "cmd->in_offset" variable has not.  Both of these variables are type u32.
+
+Does ramdax_set_config_data() also need this?  I'm not quite following
+where in_length is capped so I'm inclined to add size_add in both set and
+get.
+
+Ira
+
 > 
-> How special is "special purpose memory"? If the only difference is a
-> latency/bandwidth discrepancy compared to "System RAM", I don't believe
-> it deserves this designation.
+> Fixes: 43bc0aa19a21 ("nvdimm: allow exposing RAM carveouts as NVDIMM DIMM devices")
+> Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+> ---
+>  drivers/nvdimm/ramdax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-
-That is not the only discrepancy, but it can certainly be one of them.
-
-I do think, at a certain latency/bandwidth level, memory becomes
-"Specific Purpose" - because the performance implications become so
-dramatic that you cannot allow just anything to land there.
-
-In my head, I've been thinking about this list
-
-1) Plain old memory (<100ns)
-2) Kinda slower, but basically still memory (100-300ns)
-3) Slow Memory (>300ns, up to 2-3us loaded latencies)
-4) Types 1-3, but with a special feature (Such as compression)
-5) Coherent Accelerator Memory (various interconnects now exist)
-6) Non-coherent Shared Memory and PMEM (FAMFS, Optane, etc)
-
-Originally I was considering [3,4], but with Alistar's comments I am
-also thinking about [5] since apparently some accelerators already
-toss their memory into the page allocator for management.
-
-
-Re: Slow memory --
-
-   Think >500-700ns cache line fetches, or 1-2us loaded.
-
-   It's still "Basically just memory", but the scenarios in which
-   you can use it transparently shrink significantly.  If you can
-   control what and how things can land there with good policy,
-   this can still be a boon compared to hitting I/O.
-
-   But you still want things like reclaim and compaction to run
-   on this memory, and you still want buddy-allocation of this memory.
-
-Re: Compression
-
-  This is a class of memory device which presents "usable memory"
-  but which carries stipulations around its use.
-
-  The compressed case is the example I use in this set.  There is an
-  inline compression mechanism on the device.  If the compression ratio
-  drops to low, writes can get dropped resulting in memory poison.
-
-  We could solve this kind of problem only allowing allocation via
-  demotion and hack off the Write-bit in the PTE. This provides the
-  interposition needed to fend-off compression ratio issues.
-
-  But... it's basically still "just memory" - you can even leave it
-  mapped in the CPU page tables and allow userland to read unimpeded.
-
-  In fact, we even want things like compaction and reclaim to run here.
-  This cannot be done *unless* this memory is in the page allocator,
-  and basically necessitates reimplementing all the core services the
-  kernel provides.
-
-Re: Accelerators
-
-  Alistair has described accelerators onlining their memory as NUMA
-  nodes being an existing pattern (apparently not in-tree as far as I
-  can see, though).
-
-  General consensus is "don't do this" - and it should be obvious
-  why.  Memory pressure can cause non-workload memory to spill to
-  these NUMA nodes as fallback allocation targets.
-
-  But if we had a strong isolation mechanism, this could be supported.
-  I'm not convinced this kind of memory actually needs core services
-  like reclaim, so I will wait to see those arguments/data before I
-  conclude whether the idea is sound.
-
-
->
-> I am not in favor of the new GFP flag approach. To me, this indicates
-> that our infrastructure surrounding nodemasks is lacking. I believe we
-> would benefit more by improving it rather than simply adding a GFP flag
-> on top.
-> 
-
-The core of this series is not the GFP flag, it is the splitting of
-(cpuset.mems_allowed) into (cpuset.mems_allowed, cpuset.sysram_nodes)
-
-That is the nodemask infrastructure improvement.  The GFP flag is one
-mechanism of loosening the validation logic from limiting allocations
-from (sysram_nodes) to including all nodes present in (mems_allowed).
-
-> While I am not an expert in NUMA, it appears that the approach with
-> default and opt-in NUMA nodes could be generally useful. Like,
-> introduce a system-wide default NUMA nodemask that is a subset of all
-> possible nodes.
-
-This patch set does that (cpuset.sysram_nodes and mt_sysram_nodemask)
-
-> This way, users can request the "special" nodes by using
-> a wider mask than the default.
-> 
-
-I describe in the response to David that this is possible, but creates
-extreme tripping hazards for a large swath of existing software.
-
-snippet
-'''
-Simple answer:  We can choose how hard this guardrail is to break.
-
-This initial attempt makes it "Hard":
-   You cannot "accidentally" allocate SPM, the call must be explicit.
-
-Removing the GFP would work, and make it "Easier" to access SPM memory.
-
-This would allow a trivial 
-
-   mbind(range, SPM_NODE_ID)
-
-Which is great, but is also an incredible tripping hazard:
-
-   numactl --interleave --all
-
-and in kernel land:
-
-   __alloc_pages_noprof(..., nodes[N_MEMORY])
-
-These will now instantly be subject to SPM node memory.
-'''
-
-There are many places that use these patterns already.
-
-But at the end of the day, it is preference: we can choose to do that.
-
-> cpusets should allow to set both default and possible masks in a
-> hierarchical manner where a child's default/possible mask cannot be
-> wider than the parent's possible mask and default is not wider that
-> own possible.
+> diff --git a/drivers/nvdimm/ramdax.c b/drivers/nvdimm/ramdax.c
+> index 63cf05791829..faa6f3101972 100644
+> --- a/drivers/nvdimm/ramdax.c
+> +++ b/drivers/nvdimm/ramdax.c
+> @@ -143,7 +143,7 @@ static int ramdax_get_config_data(struct nvdimm *nvdimm, int buf_len,
+>  		return -EINVAL;
+>  	if (struct_size(cmd, out_buf, cmd->in_length) > buf_len)
+>  		return -EINVAL;
+> -	if (cmd->in_offset + cmd->in_length > LABEL_AREA_SIZE)
+> +	if (size_add(cmd->in_offset, cmd->in_length) > LABEL_AREA_SIZE)
+>  		return -EINVAL;
+>  
+>  	memcpy(cmd->out_buf, dimm->label_area + cmd->in_offset, cmd->in_length);
+> -- 
+> 2.51.0
 > 
 
-This patch set implements exactly what you describe:
-   sysram_nodes = default
-   mems_allowed = possible
 
-> > Userspace-driven allocations are restricted by the sysram_nodes mask,
-> > nothing in userspace can explicitly request memory from SPM nodes.
-> > 
-> > Instead, the intent is to create new components which understand memory
-> > features and register those nodes with those components. This abstracts
-> > the hardware complexity away from userland while also not requiring new
-> > memory innovations to carry entirely new allocators.
-> 
-> I don't see how it is a positive. It seems to be negative side-effect of
-> GFP being a leaky abstraction.
-> 
-
-It's a matter of applying an isolation mechanism and then punching an
-explicit hole in it.  As it is right now, GFP is "leaky" in that there
-are, basically, no walls.  Reclaim even ignored cpuset controls until
-recently, and the page_alloc code even says to ignore cpuset when 
-in an interrupt context.
-
-The core of the proposal here is to provide a strong isolation mechanism
-and then allow punching explicit holes in it.  The GFP flag is one
-pattern, I'm open to others.
-
-~Gregory
