@@ -1,65 +1,60 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B1C9328B5C
-	for <nvdimm@lists.linux.dev>; Fri, 28 Nov 2025 13:11:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FC93333433
+	for <nvdimm@lists.linux.dev>; Fri, 28 Nov 2025 19:44:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764335495; cv=none; b=cphm/SMkmmkcTfiaVEhuVIhfkHFbMg9054sqRh48NnWDsjDiX4rqDHXuxKvpwHWaZZhYzTY0mO4tooXw65O5XX2rBIC/vDr6kQPgLJ1PuHlsOcdOqjDH4H8WecHMfPq8cnj8A/6ctjn12x+VLXa1KEzAfqaSMH/RCS7UEZxe4yI=
+	t=1764359100; cv=none; b=XX8PrxKeGvHmWaoeEmhxQeSA7E03kqn6aDVSPY8QIHQgynjLRxYFYS9qvm+Xj/lCKXVCBtf+pTfPU/hREXmT14ndnCGDRmwJWxfsaqb0fxT7KmxPli8bohpEUzNkXQQ8Q0BJ6u+LknV800s5ylDPUFZayQ0Frb8iJ/SCm0pMrPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764335495; c=relaxed/simple;
-	bh=cT5VambQLzg4yYEkETS1DAEPp4cL0vkJ6BivaulYb7M=;
+	s=arc-20240116; t=1764359100; c=relaxed/simple;
+	bh=Bj3AP+5QeibKDhdHKJOIKyIGtMszqSOZbOkDUOZlHKs=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=VWrt8U/6vgGChEGm20T4gprTzXe6qS39bhJvIyymaTdUfwjZMulYr8DHiZJ0ZY8xWUkvENdHlEUegPLOUIgML5wnvX3nRbc0e3mES0NwkzbLlQ15+UrifRZ60oz+eqchhxpRImjzxRJ7tnh3nqqGANoI5nEar5jzwfgjcOgO2zo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=NIygpMCj; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 To:Cc:Content-Type; b=PzcXXWqNBH8NFuf+l90yXT/ez6GKnlIudgFGiCs1hH0s+2kpGebWxeE3zIzNjL3969bp4fofqTElRMMuaRbobZ4e5we6QffF7cPhYREgtV5I9CWKR98hqf1KtxvS369CWJzdaJCjPpFUhE1OhVpBzP4eyGrOwTFS7eezG8vY7c0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com; spf=fail smtp.mailfrom=purestorage.com; dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b=V+3+9VKo; arc=none smtp.client-ip=209.85.210.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=purestorage.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NIygpMCj"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1764335492;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=cDb8wvl+/S3cs8WDouA4IaIUDYl/lhw5kT6xFlbeDqo=;
-	b=NIygpMCjROe06ApYalrjCwRGN6G2Tx+linFraEADItEpQw2KNmtseValASb2gjO06Aw76q
-	n1FD02DdItSdCyNLrX400ubJ06v/7QuXk03zt3yYqPeTo2DW/sTEKRYaCG2V9XX/LqKz6H
-	ia/Dj+q5XlYYmWUNeQDjF/EmM7g2jfs=
-Received: from mail-yx1-f70.google.com (mail-yx1-f70.google.com
- [74.125.224.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-49-neeyRcEAMWWCWJGo-61y3A-1; Fri, 28 Nov 2025 08:11:31 -0500
-X-MC-Unique: neeyRcEAMWWCWJGo-61y3A-1
-X-Mimecast-MFC-AGG-ID: neeyRcEAMWWCWJGo-61y3A_1764335490
-Received: by mail-yx1-f70.google.com with SMTP id 956f58d0204a3-63e35e48a1aso2084419d50.0
-        for <nvdimm@lists.linux.dev>; Fri, 28 Nov 2025 05:11:31 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b="V+3+9VKo"
+Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-7ae1c96ece1so160255b3a.0
+        for <nvdimm@lists.linux.dev>; Fri, 28 Nov 2025 11:44:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=purestorage.com; s=google2022; t=1764359098; x=1764963898; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EL5lnQB6ArvqmktVf7HK0TGQSj04Cghit8sLG5wYDU0=;
+        b=V+3+9VKo6f6+Ecy/6ad0lvY61x8VsCXil1NpGLHm5ITHSLnYK9zWWBBqio+Q743NsI
+         NUZSCXBrboEOeTl4STegFWTZ+Gbr23WRSIYyOLMYyhM6EcGxQnnJNCjjfpxLNm2Ziw+6
+         QaKYP4yuetjCHb1zFT47EI8rdPpZmXqYZnQr2FoCuKLj2QSsbdgTT2QxmbpWgYduiMFy
+         7tECGCuEiKvrgsOrc2sFtJzZ697wd8qlHLrp7c79jdToj7FyExbFaAdBqiHkg4pmmJsE
+         pDk2iyHgRQdGV68KtT4uz6tKKc7VRHNAqDZ7eNgF6j1Y9nyAzDOH2W7gffg9i4UD0IHH
+         cUjA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764335490; x=1764940290;
+        d=1e100.net; s=20230601; t=1764359098; x=1764963898;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=cDb8wvl+/S3cs8WDouA4IaIUDYl/lhw5kT6xFlbeDqo=;
-        b=edAcp5LM+xofhYBcF+D17R7tooNJch/5B4vWuZikRh3aPLx52F5LxCuLGCyVQNJ00u
-         jraDau6dTlXBQUE43hRBqpbx5rNrxExnUmM3NLQIcVlJ8qyKHmHy61kCovdfktgySk5R
-         CRiIAmg3iF8utuoIVViRcVkhuocBbIWbOAr482ccDlmbd2of9GR1Wcv6pszU7/7aM+Yb
-         vN0h6FA3//3LVPkPZXeLViCQWbVieLtEagFlX2+Vxdz6YVDSBKRkpNswMs/m52MT9T8W
-         IH/u8SBrHFs6lErkOXfaSSszV8fXYFL1PsKpkXPPpTUrGq09X2VCbH2tLZB4nWWRooAZ
-         dtJQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVF1gUMrQOAFXKeRVOveTU85AP84vk9A0KdlTnmQHO2Lo+Zecr7a1NPGcz65WxcR8BqhRivUpg=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzKtGEvceAuH8wySYKjVYVficD1PFD+6oDvKbAT/GofxoV7EbPr
-	LbtjOFYIaF3x2Cz03i+6CqFeHKjfQd2Hq+EWuHEwVVqMCDT6iXFAiUIfznq4tPT7Qyh92jPo+QN
-	DX/VeOpm4u2++m8ylV6CjergOBpBFD1xKeW0DsZcBUVbwJ0KD8CzMuesKXFWik4Qrq+1st/4Q3n
-	qXyP8jEYjkFmydEBkkX6LupO40Ku1Y0kSz
-X-Gm-Gg: ASbGncub7KdUY+BWBTAwmeo6FnkLwCQ9upze8+EYM8lIXZj44nIxquP84x54eZNk4y/
-	C/A8MDeb3sBvs7LxFfMvM831pdd1H0JuMwiJy2hI56TnJNKwJYRV/K59fHXIsqyXvZvY7/d6cMr
-	990A6Ze2qscd1r7GyrXSkpotLnzzQaYQd8F5nPW2msxztk/JC+ehzNstD0TVRzyRlw
-X-Received: by 2002:a05:690e:8d2:b0:63f:bd67:7c52 with SMTP id 956f58d0204a3-64302a48446mr15103911d50.29.1764335490415;
-        Fri, 28 Nov 2025 05:11:30 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IFpYs6Bqkkw2QMj53nrShI4JIcUgw0aEZxMMPQ2h/FT8I7boFY7Ao7pNuY9j2sTWaBF/Hvop1CT06FKU/ZbYVo=
-X-Received: by 2002:a05:690e:8d2:b0:63f:bd67:7c52 with SMTP id
- 956f58d0204a3-64302a48446mr15103893d50.29.1764335490100; Fri, 28 Nov 2025
- 05:11:30 -0800 (PST)
+        bh=EL5lnQB6ArvqmktVf7HK0TGQSj04Cghit8sLG5wYDU0=;
+        b=K0E2WhpTROQyPIaJxjMYwUSU85QMLJAH7/2O/K1F7ACQuYhvHHVt6NFT4cySs+YYPp
+         LYx7O4WtUl8nXaOoevFcCpplBfou0KLURS8/0GZULIrmGwtEdB4bj4/nWYm2/uOXC1Aa
+         q9bgOKhHDuU8agzY09JjmcYrivA8IdMb/pjjh9Sn/tF7YldlrZN/phWgF7qMRwUIgH0J
+         1fAGQA5NLI8b4g5b2qdZBZYaWMiRqPCQXEgadl5ujDYTqrOoVNN9zMmbbHzDooPeXlQw
+         PY8DPBfmzd6aRVIeeIsuwVvKq1DuCdvEdWMXg36EkFwAUMPyMLoum0qVcDbvQdTYqcsp
+         ilFg==
+X-Forwarded-Encrypted: i=1; AJvYcCWk5XpxWJuymtvQMbOXy65O7v5vJafq/laADj9hvFKL5Je6iIajAXo0jYWn+h2PSJiRrX4TPtA=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyG5tWdhSYk4h6I0gu8BnC/Tq0tstlz6ynlLSX3KUFlYCeaYle3
+	RsMVEkSjtFRX8CuPI71WJwLQ2WHv4S1iAncBbXSXnjf6Nd6/YtEp3vEYC1cMAMwXk2h6qHzozWb
+	gu2tR1FV4WfSUyXq5VQymScAnYmsyXO8nwJMLs8sRjA==
+X-Gm-Gg: ASbGncuStVT3tXVQZutkKigi510VyIKYIdwCgcVCH+o/lKUM3iVLVgEENnaPVZtKoxZ
+	1ydZhkhiW/eaMPzUWx53edHZoJ+u6f4LZcwif3NGaPMJvyMiYBF6q8AApVAc4R6e8Wc9r5xydqo
+	qZHK1XLOnyqemRUOTeskNBJiXrUbU0lTICGXTiCBK4/CwOPOdM9oBtptZEQ68yMi5JmiFj/KQrC
+	vpmNR4+Pm61nDExnDN7IlOr+tBMQ+iWa2oO9Z9Y6hl+EhF+/KG1OOg2TYrgZOZtVksliUbIxSxB
+	NtgRgdU=
+X-Google-Smtp-Source: AGHT+IGrCksmBbxz9v6OODWXw3jg5JUAuqr2uXfNM+p+AOqeGW6UtPYXkYo+cITOMsNqpMT81gOSwHim2ngfe4fkcew=
+X-Received: by 2002:a05:7022:69a9:b0:119:e56a:4ffb with SMTP id
+ a92af1059eb24-11c9d5538e8mr18207898c88.0.1764359097859; Fri, 28 Nov 2025
+ 11:44:57 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -68,10 +63,10 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20251128083219.2332407-1-zhangshida@kylinos.cn> <20251128083219.2332407-3-zhangshida@kylinos.cn>
 In-Reply-To: <20251128083219.2332407-3-zhangshida@kylinos.cn>
-From: Andreas Gruenbacher <agruenba@redhat.com>
-Date: Fri, 28 Nov 2025 14:11:19 +0100
-X-Gm-Features: AWmQ_bmMbDxUx7xf6l9s72idOADcxGPBv_GTFewzDFs5Yo-0xMy2x8K16_Wfsjs
-Message-ID: <CAHc6FU43FWMYm2y2b9EvrFzsJdOn55s2QOMxCfRiHKVMVRqQaQ@mail.gmail.com>
+From: Caleb Sander Mateos <csander@purestorage.com>
+Date: Fri, 28 Nov 2025 11:44:46 -0800
+X-Gm-Features: AWmQ_bnZzeizOKu2WLPi5AEBKsrxZhyOw3plwI8tIQrc3qIRhB_hMon5zXQE3Nw
+Message-ID: <CADUfDZqBYdygou9BSgpC+Mg+6+vaE2q-K=i1WJB1+KAeBkS1dg@mail.gmail.com>
 Subject: Re: [PATCH v2 02/12] block: prevent race condition on bi_status in __bio_chain_endio
 To: zhangshida <starzhangzsd@gmail.com>
 Cc: Johannes.Thumshirn@wdc.com, hch@infradead.org, gruenba@redhat.com, 
@@ -79,15 +74,14 @@ Cc: Johannes.Thumshirn@wdc.com, hch@infradead.org, gruenba@redhat.com,
 	linux-bcache@vger.kernel.org, nvdimm@lists.linux.dev, 
 	virtualization@lists.linux.dev, linux-nvme@lists.infradead.org, 
 	gfs2@lists.linux.dev, ntfs3@lists.linux.dev, linux-xfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, zhangshida@kylinos.cn
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: _-7SRYutdgrFFeovVnm2oSrwmv4-BCKcEz5IKSZNC_4_1764335490
-X-Mimecast-Originator: redhat.com
+	linux-kernel@vger.kernel.org, zhangshida@kylinos.cn, 
+	Andreas Gruenbacher <agruenba@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 28, 2025 at 9:32=E2=80=AFAM zhangshida <starzhangzsd@gmail.com>=
- wrote:
+On Fri, Nov 28, 2025 at 12:34=E2=80=AFAM zhangshida <starzhangzsd@gmail.com=
+> wrote:
+>
 > From: Shida Zhang <zhangshida@kylinos.cn>
 >
 > Andreas point out that multiple completions can race setting
@@ -114,15 +108,17 @@ On Fri, Nov 28, 2025 at 9:32=E2=80=AFAM zhangshida <starzhangzsd@gmail.com>=
 >  {
 >         struct bio *parent =3D bio->bi_private;
 > +       blk_status_t *status =3D &parent->bi_status;
+
+nit: this variable seems unnecessary, just use &parent->bi_status
+directly in the one place it's needed?
+
+Best,
+Caleb
+
 > +       blk_status_t new_status =3D bio->bi_status;
 > +
 > +       if (new_status !=3D BLK_STS_OK)
 > +               cmpxchg(status, BLK_STS_OK, new_status);
-
-This isn't wrong, but bi_status is explicitly set to 0 and compared
-with 0 all over the place, so putting in BLK_STS_OK here doesn't
-really help IMHO.
-
 >
 > -       if (bio->bi_status && !parent->bi_status)
 > -               parent->bi_status =3D bio->bi_status;
@@ -132,7 +128,4 @@ really help IMHO.
 > --
 > 2.34.1
 >
-
-Thanks,
-Andreas
-
+>
