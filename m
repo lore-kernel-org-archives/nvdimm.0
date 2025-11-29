@@ -1,187 +1,119 @@
-Received: from buffalo.tulip.relay.mailchannels.net (buffalo.tulip.relay.mailchannels.net [23.83.218.24])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3442D061D
-	for <nvdimm@lists.linux.dev>; Fri, 28 Nov 2025 22:03:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.24
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764367382; cv=pass; b=BmeonH7KGr6NHh8l2sLJsQD41ilL/B+7ZeoRdoOCRv3wk2bCBiV4Q4etHEFpcALvUDamhYxKgjzuOFkeMRnNtmjOGzHzbiDbY3fw3LqR51KWttIjQl0wF0zoxxpkGHW0gfib/Ojw1bBSVurv2QGSP+toxmIAVeGxNhhk/pcgjxY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764367382; c=relaxed/simple;
-	bh=K0a6bK8tDOW7lYpg+jxM+uHkwNlnPd3XQEag7cD90gA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=KpIKvQ29YxnTCfv2jOu9lAXOwUgOTHthU47H/ALQQ0tniVSseHMcgp5RC6dvIf2Tk0ZBtGAdBcO0mfvot9WF8wCfiPZvi/8rZm7W+i7LqMI+b1tgIVd/ihfivu9ZUPxUq5tcN7C6NsSsPYOQDalvSUNhwTGATb66Va0yCIP2BmI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=fail smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=RvDG+2yD; arc=pass smtp.client-ip=23.83.218.24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=stgolabs.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCA991A3178
+	for <nvdimm@lists.linux.dev>; Sat, 29 Nov 2025 01:20:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1764379208; cv=none; b=logHdam6Ug/x3K3dKgEEVltO4mzSIXktCyv5hTPRtwqpBl8rHYvXk+hC1tpwjARBdTW7yqpo2sffsN3pz25gbeypfn5AunaLJpsSBM5tvdY2jfHBhD8fOnI9x+QFPfJJwyAyVQOq7SfGbGW+bQzKle83UdPpRo15GKVtWKCep6I=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1764379208; c=relaxed/simple;
+	bh=CQ4gu5qwHISanFuymuvKH3qflMdaqJ/uuGBrjJ6tlTI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QXhN+4deOpUMRFa3FP4PoCDIJ2DQTwpVRvwK6fD5Wu1chdFlH/0QbDNyRRzKITV4x4G8/HADzUA9YLZ/qRwjI3wbEGhansyhKUMXuhMIioJ3DmjdRZht2xgbCe+IDX3ndjXOgrtkhixtnSe/5iQaSeT52DXm/PLplDnoHNMhglg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YXBIA5iV; arc=none smtp.client-ip=209.85.160.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="RvDG+2yD"
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id E7A78800C0C;
-	Fri, 28 Nov 2025 21:23:10 +0000 (UTC)
-Received: from pdx1-sub0-mail-a252.dreamhost.com (trex-green-9.trex.outbound.svc.cluster.local [100.102.148.76])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 84531800B79;
-	Fri, 28 Nov 2025 21:23:10 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; d=mailchannels.net; s=arc-2022; cv=none;
-	t=1764364990;
-	b=vxR64DgZ3KdujCtEdYrecbFgZqHGJph3x6Z59dKdOiUrEuDPEM5MB47/xMhF4uiHzbPoyc
-	Nm27+ZRYCUKwPU6xYi3qmjCrMB7d9AoV8vJoS73CNcVF9HULkbjoxD7viIooJFqKlOn3Fa
-	nKQgnSSpS2QD03S7GWLYSHLodoyuCyONpa/Wy8L/r7la+V/Mzk13Wdh8opBHRQ6KhomzyH
-	vOZwtU+Cm2vRQqG+TM0o8iTS80GdTDoPBcgO5rQ/zRX1dMs0/7RbQL1x9InP7rGyalDU4B
-	IgOx/cl2cawQUdNgrWM9mwFBQXnFaZY0a5xChESQOe/lqzgxl4RSpxdTDihRng==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1764364990;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:dkim-signature;
-	bh=jYHOyMy2SoqRqm1HCA7uqwIWTwSDiYufINfDVDJIerU=;
-	b=TNfsGgf51Usfs2aG3t2ZeQs0bVRGZrshYB3069+AN6/jChkoLNtwxQdmWfJd0aVc20xIEz
-	VIB4e/JMKI+B6dzmL2rWHYPyntUgKmhqttxtwSa5Ql6slPZpJf0knOrLuTq/a72PGFiigB
-	kU3aypXIPwKoLaoDGmztmLdcwh1SJ7QH6UxEAgqDI2wm9NcnV3wZmSFU3de9KX0YhK9wY+
-	y9Ie9fVyySJYlxqL06CzH6sYBsFRqBHdZu3VY1GrYPc4JjuQBZsgt/GonLXueHP0Jo4kUC
-	Laa36RIJriEqSYBj9dSfeKE71K7taA8lZ2kjsTJLKMcpg/1i3csxGnGzuGKhZg==
-ARC-Authentication-Results: i=1;
-	rspamd-545f6844bd-dvp77;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Zesty-Industry: 05e4d16e6d340686_1764364990798_3858559878
-X-MC-Loop-Signature: 1764364990798:2090581189
-X-MC-Ingress-Time: 1764364990797
-Received: from pdx1-sub0-mail-a252.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.102.148.76 (trex/7.1.3);
-	Fri, 28 Nov 2025 21:23:10 +0000
-Received: from offworld.lan (unknown [76.167.199.67])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a252.dreamhost.com (Postfix) with ESMTPSA id 4dJ5qx6wkvz105b;
-	Fri, 28 Nov 2025 13:23:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1764364990;
-	bh=jYHOyMy2SoqRqm1HCA7uqwIWTwSDiYufINfDVDJIerU=;
-	h=From:To:Cc:Subject:Date:Content-Transfer-Encoding;
-	b=RvDG+2yDmeLzuaD+0+iSqDkhHR6xqIvSspYmk81Tll9K8LSikZyWcYxZ9G3mZIRpj
-	 ta+0j15Zr62WiMlck/k2y82UmQRsYdPhESApW5SdkfBo6pYdazRd0xF/pLAD1aeVJo
-	 RlpMaRx3VoSnZLlOvOVy1pWRB5x3O8xo6Vo6iKRVOHcDgXcsAvddetT3GzXPZbh9S1
-	 zbYGkQPDUZYW2QT9NWLsCDT79ADFMB+69HkScYA1qddZOryFCY9m8xNeDWEBMOCHKF
-	 2K4itYWrKqZM+I7vWHbDdu/aJI+EDX50Tba1XaaBUK8f7zUpiOKxK1hrrWru1Pxz1G
-	 gKLYQIp8ZtK5Q==
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: vishal.l.verma@intel.com,
-	dan.j.williams@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com
-Cc: nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH] drivers/nvdimm: Use local kmaps
-Date: Fri, 28 Nov 2025 13:23:03 -0800
-Message-Id: <20251128212303.2170933-1-dave@stgolabs.net>
-X-Mailer: git-send-email 2.39.5
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YXBIA5iV"
+Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-4ed7a7ddc27so21162711cf.2
+        for <nvdimm@lists.linux.dev>; Fri, 28 Nov 2025 17:20:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1764379204; x=1764984004; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Fs0ohHvC2dybiBLIXiSQxGJyUXrOOQGSRM7UOWCS5dA=;
+        b=YXBIA5iVl1jJ5Lr3sJof78zHrpkQn1dv/8eluXaKvm32Rk8AuqcfQVRsVooNHK2otr
+         aHoMIx7jrWK9uXoX/C93RHrOKC0iGW7fu5sisSxAeno2g4qXRBxArmLzjWFMvV3AX28g
+         Rqx2GyRwTNAB1/dkvXERUptXB4ZdlaW1ySQuNITL6QKP7dxiJYIZsF/DaxQ8HNXkwehS
+         E1Mdy66W+XkRZaosTdduZzG6lYC7a3GgdrEVXTeciPRUjPMuIEjUoQ/+qtA/VvRP6S0o
+         CwLQJedoX3txhIqe3elS9Ja0QbOWGfC8HDWm5V4aqHZpaPYoS+9vD3/zvbabP2y3Md2k
+         +u1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764379204; x=1764984004;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Fs0ohHvC2dybiBLIXiSQxGJyUXrOOQGSRM7UOWCS5dA=;
+        b=grnaNRTh+niCfaRSlftCiGg8GDlUtOV8TCps+EmCbh3F/aGb0qMaPEk6LAq8tvJa7l
+         AD4PWiycUC8zkXHVGpFBRTu2CrVHOi43oUg0hi8SQnIefiQ4LG9Jq0hFZE3zU1AtbEFC
+         rBv0dS2nrpOG8FISga0eD6mTvAVb1XcvdfJCcylPt/HR12xLz1UU3HVX1wONCp4YUHhn
+         Twab7Z4TCJzUabr4PoeffPSUEBI7B2pNgIk0GRBnwbvE51TL+L9YOZWvZDltdxdo9sak
+         bNz3fzDvqoZxwl508bWCTtinFGh7iRpor0w+CVORjULqXulyrDXb5O9ZUDeJX12XGAHD
+         zYMw==
+X-Forwarded-Encrypted: i=1; AJvYcCVNYWMNjiTdFTZUbHtW1EjT/6gfPCNS/CtzMeTpFmuVqgL2cL0olO4HZLwbJwHe1M7MxprXHRM=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yxe1gtPwWEfGFA1fahU6tqsWns0EUXe8TXmXznUFGpljgzeEOW6
+	Oz3YO9ZB8LhnDvSHK33FiqoggAUR02PWaFIlBjUegpAiyc+zHoxCvUOkSxBIucIVxHrgUeBtWbJ
+	En5XqaFxJQtKD5V3K6hDRfx4l/9LMDh0=
+X-Gm-Gg: ASbGnctmlzGugBUxIou9PfRb/mykezCPPSYolm8H3VuHlBJSbZTU1ygZyXeKOEu7Ygu
+	m9SVRWXrDGHY4Cu4o4+atM3/fZlYz+GqhZsGSm0lRxutIoLSeYCvJW1m927DcO9eikFCoBEC/G6
+	qMxKfjGv8JqIJJ0cVz7arw8f9rYBeaBNkRKXkUQ4ng46yU6LknteVUJsnfYN46/G+qBFYKX2bLC
+	83pRe4xWI5uuS1IeWeegEchICE1cfQGa7huLif/z0vCIoJGHFmCssAnSg8YkKvLKGWyug==
+X-Google-Smtp-Source: AGHT+IGvVajIc41VyAxCuPyxqWUXb2OrVTIXZXouCyBBkNWEtauVL8pGUlccoVwLRAWDPyhKgINw+5nh517v8WUU60c=
+X-Received: by 2002:ac8:7c43:0:b0:4ed:b1fe:f87f with SMTP id
+ d75a77b69052e-4efbda3957amr254551091cf.20.1764379203672; Fri, 28 Nov 2025
+ 17:20:03 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20251128083219.2332407-1-zhangshida@kylinos.cn> <20251128083219.2332407-13-zhangshida@kylinos.cn>
+In-Reply-To: <20251128083219.2332407-13-zhangshida@kylinos.cn>
+From: Stephen Zhang <starzhangzsd@gmail.com>
+Date: Sat, 29 Nov 2025 09:19:27 +0800
+X-Gm-Features: AWmQ_bn06KtcfeC8pChk4HEBjz19bArSXx8IRJxxttyX3p2OYoBSLr0JgGawFZU
+Message-ID: <CANubcdXJyE6Y5J3C5Zgc1jA7qSXk+_Hb0pm8Q-8cTb3Z_eM4sA@mail.gmail.com>
+Subject: Re: [PATCH v2 12/12] nvmet: use bio_chain_and_submit to simplify bio chaining
+To: Johannes.Thumshirn@wdc.com, hch@infradead.org, gruenba@redhat.com, 
+	ming.lei@redhat.com, Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: linux-block@vger.kernel.org, linux-bcache@vger.kernel.org, 
+	nvdimm@lists.linux.dev, virtualization@lists.linux.dev, 
+	linux-nvme@lists.infradead.org, gfs2@lists.linux.dev, ntfs3@lists.linux.dev, 
+	linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	zhangshida@kylinos.cn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Replace the now deprecated kmap_atomic() with kmap_local_page().
+zhangshida <starzhangzsd@gmail.com> =E4=BA=8E2025=E5=B9=B411=E6=9C=8828=E6=
+=97=A5=E5=91=A8=E4=BA=94 16:33=E5=86=99=E9=81=93=EF=BC=9A
+>
+> From: Shida Zhang <zhangshida@kylinos.cn>
+>
+> Replace repetitive bio chaining patterns with bio_chain_and_submit.
+> Note that while the parameter order (prev vs new) differs from the
+> original code, the chaining order does not affect bio chain
+> functionality.
+>
+> Signed-off-by: Shida Zhang <zhangshida@kylinos.cn>
+> ---
+>  drivers/nvme/target/io-cmd-bdev.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/nvme/target/io-cmd-bdev.c b/drivers/nvme/target/io-c=
+md-bdev.c
+> index 8d246b8ca60..4af45659bd2 100644
+> --- a/drivers/nvme/target/io-cmd-bdev.c
+> +++ b/drivers/nvme/target/io-cmd-bdev.c
+> @@ -312,8 +312,7 @@ static void nvmet_bdev_execute_rw(struct nvmet_req *r=
+eq)
+>                                         opf, GFP_KERNEL);
+>                         bio->bi_iter.bi_sector =3D sector;
+>
+> -                       bio_chain(bio, prev);
+> -                       submit_bio(prev);
+> +                       bio_chain_and_submit(prev, bio);
+>                 }
+>
 
-Optimizing nvdimm/pmem for highmem makes no sense as this is always
-64bit, and the mapped regions for both btt and pmem do not require
-disabling preemption and pagefaults. Specifically, kmap does not care
-about the caller's atomic context (such as reads holding the btt arena
-spinlock) or NVDIMM_IO_ATOMIC semantics to avoid error handling when
-accessing the btt arena in general. Same for the memcpy cases. kmap
-local temporary mappings will hold valid across any context switches.
+My apologies.  I think the order really matters here, will drop this patch.
 
-Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
----
- drivers/nvdimm/btt.c  | 12 ++++++------
- drivers/nvdimm/pmem.c |  8 ++++----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+Thanks,
+shida
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index a933db961ed7..237edfa1c624 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1104,10 +1104,10 @@ static int btt_data_read(struct arena_info *arena, struct page *page,
- {
- 	int ret;
- 	u64 nsoff = to_namespace_offset(arena, lba);
--	void *mem = kmap_atomic(page);
-+	void *mem = kmap_local_page(page);
- 
- 	ret = arena_read_bytes(arena, nsoff, mem + off, len, NVDIMM_IO_ATOMIC);
--	kunmap_atomic(mem);
-+	kunmap_local(mem);
- 
- 	return ret;
- }
-@@ -1117,20 +1117,20 @@ static int btt_data_write(struct arena_info *arena, u32 lba,
- {
- 	int ret;
- 	u64 nsoff = to_namespace_offset(arena, lba);
--	void *mem = kmap_atomic(page);
-+	void *mem = kmap_local_page(page);
- 
- 	ret = arena_write_bytes(arena, nsoff, mem + off, len, NVDIMM_IO_ATOMIC);
--	kunmap_atomic(mem);
-+	kunmap_local(mem);
- 
- 	return ret;
- }
- 
- static void zero_fill_data(struct page *page, unsigned int off, u32 len)
- {
--	void *mem = kmap_atomic(page);
-+	void *mem = kmap_local_page(page);
- 
- 	memset(mem + off, 0, len);
--	kunmap_atomic(mem);
-+	kunmap_local(mem);
- }
- 
- #ifdef CONFIG_BLK_DEV_INTEGRITY
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 05785ff21a8b..92c67fbbc1c8 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -128,10 +128,10 @@ static void write_pmem(void *pmem_addr, struct page *page,
- 	void *mem;
- 
- 	while (len) {
--		mem = kmap_atomic(page);
-+		mem = kmap_local_page(page);
- 		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
- 		memcpy_flushcache(pmem_addr, mem + off, chunk);
--		kunmap_atomic(mem);
-+		kunmap_local(mem);
- 		len -= chunk;
- 		off = 0;
- 		page++;
-@@ -147,10 +147,10 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
- 	void *mem;
- 
- 	while (len) {
--		mem = kmap_atomic(page);
-+		mem = kmap_local_page(page);
- 		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
- 		rem = copy_mc_to_kernel(mem + off, pmem_addr, chunk);
--		kunmap_atomic(mem);
-+		kunmap_local(mem);
- 		if (rem)
- 			return BLK_STS_IOERR;
- 		len -= chunk;
--- 
-2.39.5
-
+>                 sector +=3D sg->length >> 9;
+> --
+> 2.34.1
+>
