@@ -1,35 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 749471E5B71;
-	Mon,  1 Dec 2025 06:14:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CD1B1A9FB0;
+	Mon,  1 Dec 2025 06:15:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764569698; cv=none; b=eqp0Xd+gNC0/jX2uUmnhBSRO69vLk7QCxNa8zEgq5bzlNzYRsK20xX5UZxklsvr+S5DokK1usQb0yqPW9DKSqqpdURk42nRwoPNcf7edsyXRu6vEN54EU/gdPYo2hVRMz3oi2QpT9MXBmqXNzXhSuK9EuKvyB731gIx3DRjw6FQ=
+	t=1764569747; cv=none; b=IdI1NZMISiHTq1A/iBKjZsY48Ahnp//10F7nSwGreJj5DFXmJli81b0hH3HSZ3ZRSkgycvp/WX3JavvBvw/Mry+sd5uaNWYespdidFVMEDNS/s0PHzNMjXwvxwgSVhlo64Hv24RkzhLMrWxdyJ2/v3JlEpj8Ogn6J9sMe9MIZuQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764569698; c=relaxed/simple;
-	bh=+hPPHyw2cLZaADymlqxOQxbAyjo2VNJCCLK+P+9NHRU=;
+	s=arc-20240116; t=1764569747; c=relaxed/simple;
+	bh=8BeP7dCRLUpJbdAnQWZOc328WL4PHqtN2z6xx/aoD+o=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dZs9Ajz++g7UFeO9qRQoVx9bqanMf9VQv3VcqGiZ+GOnFGgvUSKGQOENolodlVsjeyiK8nadaLcBDCLtvL3ktKSWk92hABOzqUKHvZoU5DqzR+QzG4K0tXK1RxhYwM0rj0B9BdkZQun/T7PcV7aq0ZCIyx8PczyXXzsSQg5AitA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=GRuurmJF; arc=none smtp.client-ip=198.137.202.133
+	 Content-Type:Content-Disposition:In-Reply-To; b=mEDspUNIkwj3nK3st5QshkD8wCEyoOcqsBwEGcBxxCmxSaoOwGTIbef9HmDvlGG2P+wGiRxDGMzV5rBasvTaG2DMP6TWSmAXMy3Ehs45bc4UEsx7MvKjh0CLhKKGjanAyLjy1WR7TmeTLWhpESXz9zEZVt1Kj2KGk4xPfhfnA9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=WGktu9Av; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="GRuurmJF"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WGktu9Av"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
 	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
 	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=CVygV0hXzKvEjJ6QyLzL7WMdSuvnf20ataf/lIM2xEs=; b=GRuurmJFPyu6KIAZp8rsZh0MaX
-	epX0lni6C1o7Qj3FIbTdxc7o2K5RegtpAvUrogotYl5ZtoGB+qQYpTBO/MVktzQYwbtRGefluiQ6m
-	jK9yGFRCCx82SxHAxgZ21nz4W9tuFQ3qSSaQA9e5187ifi3Wb3EY5MXdH3/mIKqZzvbPo8AVBomul
-	ItQh9LvaLcUM6i/J+tWuJocgBrwnVc2DmMDSn4JH308NQGc7tn0yFoG4DAe3cRjqEJkHNJnHEzPJZ
-	7nPTYZyOwK9/9xhjhC6cxi2frTW5CXHMgt36vmidU2ScjzDdNMXGIkZ2vHP5/XvtqhI5j9qw7bxmA
-	vNDUmR/g==;
+	bh=8BeP7dCRLUpJbdAnQWZOc328WL4PHqtN2z6xx/aoD+o=; b=WGktu9Av2hQifd3jzigEM1xiJF
+	vkDhkAaEJYFMCVm+Btx07+CTpEG4PBlomAxEU2vsRpVcC0lWiSZqoB/RF4TwhbQ+gdo5j/C6vddEX
+	1B+E1kC7/YCZ/DsvpteDJlyFI0yWKQAwiuzQfgUAuihKzuveYrLTIZKGAH4Z0Xg95Kt5SzPI3RwNR
+	tU6Q2wKCmYpEWpCig0iXSDuXGy5xpWaYYATs+AmsLgm7wZydA65aZNoIc8zbRISPOeZE3C7G/8EhK
+	U9j7gTAqv3iNgjaRZNu+XrlgW0KeNMEEuHhJd1PDGkjOTzhQUkUKxvq5mI+9fpnOMc6xB2zEup61F
+	tDrg9YoA==;
 Received: from hch by bombadil.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vPxBV-00000002xde-2r9G;
-	Mon, 01 Dec 2025 06:14:53 +0000
-Date: Sun, 30 Nov 2025 22:14:53 -0800
+	id 1vPxCF-00000002xgA-0chY;
+	Mon, 01 Dec 2025 06:15:39 +0000
+Date: Sun, 30 Nov 2025 22:15:39 -0800
 From: Christoph Hellwig <hch@infradead.org>
 To: zhangshida <starzhangzsd@gmail.com>
 Cc: Johannes.Thumshirn@wdc.com, hch@infradead.org, agruenba@redhat.com,
@@ -39,11 +39,10 @@ Cc: Johannes.Thumshirn@wdc.com, hch@infradead.org, agruenba@redhat.com,
 	virtualization@lists.linux.dev, ntfs3@lists.linux.dev,
 	linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org,
 	zhangshida@kylinos.cn
-Subject: Re: [PATCH v3 3/9] block: prevent race condition on bi_status in
- __bio_chain_endio
-Message-ID: <aS0yXeoUFybWlTxc@infradead.org>
+Subject: Re: [PATCH v3 4/9] block: export bio_chain_and_submit
+Message-ID: <aS0yizTv8hTzXPAQ@infradead.org>
 References: <20251129090122.2457896-1-zhangshida@kylinos.cn>
- <20251129090122.2457896-4-zhangshida@kylinos.cn>
+ <20251129090122.2457896-5-zhangshida@kylinos.cn>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,21 +51,9 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251129090122.2457896-4-zhangshida@kylinos.cn>
+In-Reply-To: <20251129090122.2457896-5-zhangshida@kylinos.cn>
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Sat, Nov 29, 2025 at 05:01:16PM +0800, zhangshida wrote:
-> From: Shida Zhang <zhangshida@kylinos.cn>
-> 
-> Andreas point out that multiple completions can race setting
-> bi_status.
-> 
-> The check (parent->bi_status) and the subsequent write are not an
-> atomic operation. The value of parent->bi_status could have changed
-> between the time you read it for the if check and the time you write
-> to it. So we use cmpxchg to fix the race, as suggested by Christoph.
-
-Looks good:
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Please split this and the remainder into a separate series, to be
+resubmitted after -rc1.
 
