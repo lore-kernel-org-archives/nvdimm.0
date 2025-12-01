@@ -1,119 +1,137 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225FB2FABF9
-	for <nvdimm@lists.linux.dev>; Mon,  1 Dec 2025 08:30:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFFEA30214A
+	for <nvdimm@lists.linux.dev>; Mon,  1 Dec 2025 10:31:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764577823; cv=none; b=pRrSIWAY84caJ9Uos9zPiPWJ1UQ51JnUqya9J2GxZKfxdl++l8nzc1X4mhqetfGhZvzXD11Dr+JPjdr0AogxVogTv4nQfZAZqPsHOPHmAfSzVPFeJlA/SnsTUe0PrVecmv+2YXfa7UAN9dbWkPrXOHacK8NZs8r05lLB6W8Vq6s=
+	t=1764585094; cv=none; b=D5VFCkv0EJGkmIrHuRF4xKjR1g/TXUazQ5Z1fZKT4V5zlWAP9gySro7Z2e4TgtR/Tu9izv7Qt9+3Vf31mPSXitrjf87d/F9lhqu2zI3ITin2AvAiZy8OrJRCPm+BilGy/e36UPDdOdntwDMN0UIds+p8oN8jVO6wsWtfvIW80yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764577823; c=relaxed/simple;
-	bh=SwVqI6MJM5Lrg97Ok9vpLMdiyd5GgCZUgGLi9eNg6mQ=;
+	s=arc-20240116; t=1764585094; c=relaxed/simple;
+	bh=oAKELPmBA2BqrK0o9QFtBWPRSKg+tCcCo1sXueOdRDE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rxruwpuDPuWaPMutyprwxxoqoEyrBudPmr86YlHfxMVLZw/LcwpbISBVGnVu9bBNg/DrFyCtMkqUfD1xvwTTWmDwxPAXpAzIRPAQe1yZvBEdibgBTLseedSbWvBqAPjhLBFFvz/zvDJqqMcpJ6c7p21I0/ZLsJMGoS2uIhLhUa4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CMIXHQAi; arc=none smtp.client-ip=209.85.219.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=eooNaMUb2A3/zP/JToKAEHi+VVjyZEFeEY/alHeqmGO+yGI2u53xSnTwdShaMOYAw3jJOTv78WL/olrhuH1VRTfGnsdYUQiP1DPLN5YmtDsCDMrYkadG+sq4+uNIStkbHkFO6GHG/Rus3UqYipq7KyjkH3CnwyTzsbqiIM1aObo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=DKwBQ+kx; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CMIXHQAi"
-Received: by mail-qv1-f53.google.com with SMTP id 6a1803df08f44-88242fc32c9so46687506d6.1
-        for <nvdimm@lists.linux.dev>; Mon, 01 Dec 2025 00:30:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1764577816; x=1765182616; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2eJc3g3YpMCQbgaI10ZHeYIFEHAk4BHGKD03PpLocf4=;
-        b=CMIXHQAi/VWS4qNr3uivFtCNqKrSEZgvZnulQCMn4u/3MQ+oolAbZco4GGLSyFQqaM
-         MEbgtJmXWksrTwTUIkAF5Mi+TMP7/B3gAMegIh/UISK/oHUM+l48+czn5es1lKeZPYqL
-         nU69So8nBCasMeSPLZreN35tkoQBMu2EZbXBUTDO9h6R2pVA71CTmX6AHUwhJfnvicEP
-         h68MXu48+RGdJinfBRB1OgCHgwKEtN556+qTIQYIwpvVQsZdDjJX7emEyDIPTQrEF8h/
-         p6jePebc5jreiPxejC0xI5xhEspUXebm18bKZllGqhSJxUbPMWP5AZUY4TCRKmW0OTp/
-         2aOA==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DKwBQ+kx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1764585090;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XepCzKXSZv6JjslqxB2za4xngOadSy78tcQeBtMRexk=;
+	b=DKwBQ+kxeZbiHRbCMiLmH1/AsEZKyLuCzzWwfc+PkGVIunWLEIWTCTNOTzn3vp+PM2Zf5o
+	Fly9NEuBqYiJ/Be4lPNam2lPcT4dQWx6K5eY+sBsBagCCtxYmwAFqTEHehyFY3U1v+YsEo
+	tH18tzg0CNwbuq9Rx42aZInd1xWlqa0=
+Received: from mail-yw1-f198.google.com (mail-yw1-f198.google.com
+ [209.85.128.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-616-3MyemLa5PzuzO1exbc2Guw-1; Mon, 01 Dec 2025 05:31:28 -0500
+X-MC-Unique: 3MyemLa5PzuzO1exbc2Guw-1
+X-Mimecast-MFC-AGG-ID: 3MyemLa5PzuzO1exbc2Guw_1764585088
+Received: by mail-yw1-f198.google.com with SMTP id 00721157ae682-78aa57a8157so53158947b3.0
+        for <nvdimm@lists.linux.dev>; Mon, 01 Dec 2025 02:31:28 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764577816; x=1765182616;
+        d=1e100.net; s=20230601; t=1764585088; x=1765189888;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=2eJc3g3YpMCQbgaI10ZHeYIFEHAk4BHGKD03PpLocf4=;
-        b=Q4gjXdLdhOSgj1E+MsMm2cdGIgcHbtoJjiD6ANjSHVGtO701iyKgrBsIaoE2NC7+v/
-         2uTcjD9RdkdZuAYMxaQ+zmc0LdGO9ZTIfk6MD5Y7CsAEl9I5HCO1QHEXYUBrRin6l+A9
-         9FsBdEJYehTorvHbtY+iQQDcfIEPOFD697gEoVP0MJilJlm5kl9pmYtIsoZqiVUTKf9z
-         D7f+rZpqOqkHt8dW1MH1hj1Th/RW7/n9Q74/TH8P2C4Elpidifbzm2bBsIkYdym/vp2R
-         pZyblqC/HigGePR5TSXyEsgF5iXr3AgZxvPq0kmMeWFzR+8Czwgc5SNtk1gyOjgw/0Ci
-         2PhQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVZVfwDP4a2QMhBikf+gL+MLrPI68Nx8pHxBEJMBTmoE9XKAbvjvHL08hIaCF2WZGzhhr50NsA=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzpqsU5g2Q+NCSADQjeKflx3Lyipzeaotokurnyx3krqpE+rDuv
-	HHEnpfkdeIaqnkF43/jaWninUKXqIHjJ34zFZ+leOWa/J9if/wYYep8u1SX3bQPYHIOzJBovCr6
-	czYnRR7TE/lThkkoFzXzhG0CghXJ7R8E=
-X-Gm-Gg: ASbGncu2laxgOOCfAkD0iFQxoV7vOVwfeLcxQ0OUhjq5/ZZ8qPwRErqXI8Jo8m6nliL
-	3M1wTZuW157LSEFdfnf1WgV6jlBGbq+We7k3Qg3Oj2U2NFk6266evb/P98h5qq9DacWH74zSrpS
-	jkEKiM3ovRPJKQxeAE+XpF5Wrk9h0DrmTSr3CCZ1a8ckiVaEJ0cFRFHNHubljy6TTi0MsBIg/xP
-	mox+BhahDA/UQciARnI+U8CWQsg79QdNPBkNhF7BClL8uoMe4W1NW5p+dBnEgGlDfLsMs0=
-X-Google-Smtp-Source: AGHT+IHsCmYuVPkQVfU+yWs4legJ9LdKct4F60FxyJiLbura9Wp1LF6O9gYr9xGvWJ06vP7t0LTxtkuDR8IlXcjYyW0=
-X-Received: by 2002:a05:622a:392:b0:4ee:2bfb:1658 with SMTP id
- d75a77b69052e-4ee588e099cmr550604311cf.45.1764577816018; Mon, 01 Dec 2025
- 00:30:16 -0800 (PST)
+        bh=XepCzKXSZv6JjslqxB2za4xngOadSy78tcQeBtMRexk=;
+        b=ZxWLRWk1N37Huktm2DPHK5uSI6jgmrx4u3cgwncol8YsYdwKzfakZgEsdjv03/jr+E
+         BAnpM7vZ239Lntgb1/fwIIBA/CLFGi4aGRQU0RRact4RSP2ihMWUhuesIfMpC+U4y5Ci
+         Vm8nQjbn4jn61IHrENLUqDvORyH2Miw/bVUXt23V32trxQLRmBYfIg4Lhg6fqhlJl6uU
+         kwd8Q51EaFUorPJfdtlz0/apBNvwEZkgbKfgftgc/ZA0zj2OTXMEzxpM9uypIxDrR3sL
+         WyaILG/iMtXQYaGqgafJVshkV8fWDpIz8K4qqAUXZD/zxAAeTsGmZQ/zm10iixOZVCto
+         ZweQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXKfLNpjKZobwVRDSClr962HUwza/R2qxgt4gsM7EOqqq4gvoLVw3tQczbItdhogCfckU6K+/U=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy2ii39mbJPIMmwqpn1rEmxGtGJCb6QJXd6qFZ/WPofWBsGpB4i
+	9K19PdtmEeW/tg6jyUx0jBjICNeIW9YzXhamccV9WtCN0Zjg6e1qv1xtb82qZjj4sZj1tfY/K+3
+	MiaIYKQF4+TBX/xfx8Fv0ME7Oc//YnxFP4QwY/07UvlU13hFzu1MlcpbgpqTJzRHEG6ysuifDsh
+	OZVZjFEg+wznjc+S2ZNhSxWmlhfFbUnSV+
+X-Gm-Gg: ASbGncsH/PwLDRohBd0dQgDonbwXFxaQERM3iA5gLH2MPDC70ydCXLskZWl4EnhOTAL
+	onqkLNZJdlaxmV3xxXgZhvjGdAh+MajJVlVuHyIggq9/xFrGAmFHW6secjiwHAtl5sSIBTY0/D8
+	iWG/IBWFOG0t1KHW3jdj7F8+d1Tf7Tf6652biXMo+6iMGjtTvxa1/nf6Qyw7OS8oVb
+X-Received: by 2002:a05:690c:6f8e:b0:77f:a301:4634 with SMTP id 00721157ae682-78ab6f19dbemr204012287b3.45.1764585088407;
+        Mon, 01 Dec 2025 02:31:28 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHv5zzmMokroNvK6hxRqePUK2sUy1kyOakdwZXoQ77gSpCZtxQfALMHCo45aGmJsVIK/6txSFE4cjS1pCWEh08=
+X-Received: by 2002:a05:690c:6f8e:b0:77f:a301:4634 with SMTP id
+ 00721157ae682-78ab6f19dbemr204012007b3.45.1764585088053; Mon, 01 Dec 2025
+ 02:31:28 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20251129090122.2457896-1-zhangshida@kylinos.cn>
- <20251129090122.2457896-2-zhangshida@kylinos.cn> <DFAC6F10-B224-4524-9D8F-506B5312A2E8@coly.li>
-In-Reply-To: <DFAC6F10-B224-4524-9D8F-506B5312A2E8@coly.li>
-From: Stephen Zhang <starzhangzsd@gmail.com>
-Date: Mon, 1 Dec 2025 16:29:40 +0800
-X-Gm-Features: AWmQ_bnNbz0I6L6p96dlX3gePB04hX8D_DO2J9xuy2-homPgSXL859tuVJ_3RFk
-Message-ID: <CANubcdWbKoC3RgPz1Eb=auxfnq-4_tMoqWiRaZiPcZUxNHYwVQ@mail.gmail.com>
-Subject: Re: [PATCH v3 1/9] md: bcache: fix improper use of bi_end_io
-To: Coly Li <colyli@fnnas.com>
-Cc: Johannes.Thumshirn@wdc.com, hch@infradead.org, agruenba@redhat.com, 
-	ming.lei@redhat.com, hsiangkao@linux.alibaba.com, csander@purestorage.com, 
+References: <20251128083219.2332407-1-zhangshida@kylinos.cn>
+ <20251128083219.2332407-7-zhangshida@kylinos.cn> <CANubcdUtncH7OxYg0+4ax0v9OmbuV337AM5DQHOpsBVa-A1cbA@mail.gmail.com>
+In-Reply-To: <CANubcdUtncH7OxYg0+4ax0v9OmbuV337AM5DQHOpsBVa-A1cbA@mail.gmail.com>
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Date: Mon, 1 Dec 2025 11:31:17 +0100
+X-Gm-Features: AWmQ_bnf2BodBLtXxgPiuMZc2dFAC9eikQedB20yLRtD3dfyefefH-ZDvfFzYn8
+Message-ID: <CAHc6FU5DAhrRKyYjuZ+qF84rCsUDiPo3iPoZ67NvN-pbunJH4A@mail.gmail.com>
+Subject: Re: [PATCH v2 06/12] gfs2: Replace the repetitive bio chaining code patterns
+To: Stephen Zhang <starzhangzsd@gmail.com>
+Cc: Johannes.Thumshirn@wdc.com, hch@infradead.org, gruenba@redhat.com, 
+	ming.lei@redhat.com, Gao Xiang <hsiangkao@linux.alibaba.com>, 
 	linux-block@vger.kernel.org, linux-bcache@vger.kernel.org, 
-	nvdimm@lists.linux.dev, virtualization@lists.linux.dev, ntfs3@lists.linux.dev, 
+	nvdimm@lists.linux.dev, virtualization@lists.linux.dev, 
+	linux-nvme@lists.infradead.org, gfs2@lists.linux.dev, ntfs3@lists.linux.dev, 
 	linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	zhangshida@kylinos.cn
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: m7x8MRKfGFHwLx1yoMyNHh0sRWP0kBLbiIyUvFxSwZE_1764585088
+X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Coly Li <colyli@fnnas.com> =E4=BA=8E2025=E5=B9=B412=E6=9C=881=E6=97=A5=E5=
-=91=A8=E4=B8=80 13:45=E5=86=99=E9=81=93=EF=BC=9A
->
-> > 2025=E5=B9=B411=E6=9C=8829=E6=97=A5 17:01=EF=BC=8Czhangshida <starzhang=
-zsd@gmail.com> =E5=86=99=E9=81=93=EF=BC=9A
+On Sat, Nov 29, 2025 at 3:48=E2=80=AFAM Stephen Zhang <starzhangzsd@gmail.c=
+om> wrote:
+> zhangshida <starzhangzsd@gmail.com> =E4=BA=8E2025=E5=B9=B411=E6=9C=8828=
+=E6=97=A5=E5=91=A8=E4=BA=94 16:33=E5=86=99=E9=81=93=EF=BC=9A
 > >
 > > From: Shida Zhang <zhangshida@kylinos.cn>
 > >
-> > Don't call bio->bi_end_io() directly. Use the bio_endio() helper
-> > function instead, which handles completion more safely and uniformly.
+> > Replace duplicate bio chaining logic with the common
+> > bio_chain_and_submit helper function.
 > >
-> > Suggested-by: Christoph Hellwig <hch@infradead.org>
 > > Signed-off-by: Shida Zhang <zhangshida@kylinos.cn>
 > > ---
-> > drivers/md/bcache/request.c | 6 +++---
-> > 1 file changed, 3 insertions(+), 3 deletions(-)
+> >  fs/gfs2/lops.c | 3 +--
+> >  1 file changed, 1 insertion(+), 2 deletions(-)
 > >
-> > diff --git a/drivers/md/bcache/request.c b/drivers/md/bcache/request.c
-> > index af345dc6fde..82fdea7dea7 100644
-> > --- a/drivers/md/bcache/request.c
-> > +++ b/drivers/md/bcache/request.c
+> > diff --git a/fs/gfs2/lops.c b/fs/gfs2/lops.c
+> > index 9c8c305a75c..0073fd7c454 100644
+> > --- a/fs/gfs2/lops.c
+> > +++ b/fs/gfs2/lops.c
+> > @@ -487,8 +487,7 @@ static struct bio *gfs2_chain_bio(struct bio *prev,=
+ unsigned int nr_iovecs)
+> >         new =3D bio_alloc(prev->bi_bdev, nr_iovecs, prev->bi_opf, GFP_N=
+OIO);
+> >         bio_clone_blkg_association(new, prev);
+> >         new->bi_iter.bi_sector =3D bio_end_sector(prev);
+> > -       bio_chain(new, prev);
+> > -       submit_bio(prev);
+> > +       bio_chain_and_submit(prev, new);
 >
-> [snipped]
+> This one should also be dropped because the 'prev' and 'new' are in
+> the wrong order.
+
+Ouch. Thanks for pointing this out.
+
+> Thanks,
+> Shida
 >
-> The patch is good. Please modify the patch subject to:  bcache: fix impro=
-per use of bi_end_io
->
-> You may directly send the refined version to linux-bcache mailing list, I=
- will take it.
+> >         return new;
+> >  }
+> >
+> > --
+> > 2.34.1
+> >
 >
 
-Thank you. This has now been taken care of.
+Andreas
 
-Thanks,
-Shida
-
-> Thanks.
->
-> Coly Li
