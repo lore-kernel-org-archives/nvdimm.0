@@ -1,169 +1,548 @@
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail1.bemta41.messagelabs.com (mail1.bemta41.messagelabs.com [195.245.230.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9972C274B44
-	for <nvdimm@lists.linux.dev>; Wed,  3 Dec 2025 05:25:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CF3A2D7D59
+	for <nvdimm@lists.linux.dev>; Wed,  3 Dec 2025 13:35:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.245.230.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764739539; cv=none; b=BK66nDGSi6z5qL3qzCLqvupXefQ5p271IAblR+d9n2ipGTnmtBYe+DT5wXZ34/nQt0omDcETdO1aPkLyHbWRMxEd3C6wEGJ96cnv/FD895Eid2KHy3meb2eZ6yQ12CNFv+9+G3J9NnMztKWXSc9pcdk7ZaK+Vl+ktw9WARO/SGo=
+	t=1764768929; cv=none; b=LJgeBzs/5elLLsPUeiDagB8iwVZDb9mzgFlUFXAprtHbR6VoGPfEqRHmNHEWKs9tH40K456gd6w/hA89YxZHS/IqWphr/8FAwLZtNSZQizI8NL8RIsisV6CbQ56ViZsYeHwwIZ24F4g7G/omsDneGO9SKTPX7gcHFyJ8Cq6UzBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764739539; c=relaxed/simple;
-	bh=gMokQjiGrbq73yboSU7DsWLyJxjEVtxLOnIljku9jO4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=W0jVEik0ZoVuXGKkBrSK+IoVC9ynSHScOz9PGfMyUwtQzWF0WquBvWpd4vZ+eD8xcBL1hOMnqtgoT+KOhgdRWnM5SR3i1MVIQL32BXlj4o9t0xJ9iZgyPTPtHI2Js4j2LqQKFjEmzIGo9gm7j8PZR1KfTZ9rQLui398s9tBDdf4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=rM0hx/7+; arc=none smtp.client-ip=209.85.222.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1764768929; c=relaxed/simple;
+	bh=itNqXyXZyRD/uRko831szl/Y8eTbLSH/xkxJb2+FKZ8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SgoeffdmTeBANUB3DJFvBjoymMjhY/3m9ODvUXWTwoKEbcW8koRiodWYn3/1tb2Vn0hPPYOqX5S/H4UQMZZpIjWLPTP+TbXdlGWk/ag2a3HtXcTm5Y+0B33aN4zpudRBlOms9DO2wRSs+2OTh7qfg2H7mX3WXayjqBHXtHzr/nY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=xKINicsR; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=ARhgGre0; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=ARhgGre0; arc=none smtp.client-ip=195.245.230.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="rM0hx/7+"
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-8b29ff9d18cso569942485a.3
-        for <nvdimm@lists.linux.dev>; Tue, 02 Dec 2025 21:25:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1764739536; x=1765344336; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=JQd4Pt3H9b8tI3sXslpzNlT4s0PF8/OKfUrI48cqcy0=;
-        b=rM0hx/7+z7bIumHk48aWHQcqfv08gPBmP2M8UR2VzKfPtaVC0PuyxSWMonacDEoN6L
-         PJk+mB2Pcq89XCV8+T0hY1bUoLnWTR6RmxWvjmyBr+IWgCxiRYySTTZteWgCMrtd2HiM
-         KnFp1JLaIFhZYEirhJhjRLIQMdwnh31t1MxCNigMnfDfyg5FifU4uSheeXc19lMC0qzO
-         szsABoBB6uUtAqnQj+DGVmBiNyGCfoedt/om1rQF34QN7jn15iTdKUQabnjDqEzA7Q4D
-         FEU4mMfwLlfvAs43oWJ5NT6aSxyES0qVipmR+5LXBHYOjDHOWfFfndto9h+OR+74jNnZ
-         I5cw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764739536; x=1765344336;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=JQd4Pt3H9b8tI3sXslpzNlT4s0PF8/OKfUrI48cqcy0=;
-        b=elVBVOdbCge8XRad08AtFg99qRZ+VUU+dC9BbE7Pgf8adLx3Xlru1AWrHDyHYzfTiP
-         2Oz2ovKAV9zSRdj7Tk9Uss0Tofhcvt+8tYhyXUM+us80ZSgBljBrusHNCUYhh8gW3PGL
-         LtN7h6HA/e5oqMFy5t5RXQyQ9V4AvN27p0f96Gm/5R9gsBFkAgaeJHjEG8QmPoleIkBY
-         cwN8iad0B0dRDs5auQfVLRwQ3BQC+0gMbmhz6Y739iisOZLckiaz44cQ1tlmTkRZ+ngc
-         p83+bHv76Kn91QHKI8Vv/fP+WAb9FveuUR6nuQ4Vk72ReZh0URzJWtc5snSJCgApytHr
-         ywXQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW9ZthblWlJK/FbGGL1Mw0EBl3KP7v6Jaivl4IySvS3resHc90OJySCn3PgifAV0for9KS5ITU=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx/t35zQON8fGcJubYbpgNW5H/EPsQOi3nzFFggwvAwj4dGWvrL
-	drCDaVJcFyLoUXDCXlUkOZ2twCw2HgmxdTGvWWryqTqxxFg71M9kdwlH7tRCKZK9o8c=
-X-Gm-Gg: ASbGncvHGbJFawK3Im1upCYXnsOk01T9rVYIHGbzrEyrmpJCPWOMeCXF7WOmksFMKvZ
-	gps7WPg1gc1mTlE5ECSYcVmnlOhSD2kEHZOvYYU+gC9Q7gRLAl41H79IQJvvK6id5mZQ0UbY1PE
-	QUj/GHIcwsqPHTuJ5lgjQS2ySavemGktWM5j3o4Gqnl+z98g4nu64Z1D8fSRqGY8sDW9u54zEfQ
-	CVyCh1+wNJTynd+Pyjmp5mnmrx+hMbPOPz3bHI1bdT0O8ttHM75buuLIdFIAcXVYvJt2Bhg+Fb7
-	Q1M67ieLKEfkVC1cqT9sHYHLbyWeA/eYbfdUPwOyE6uvsxCAit692S9aesJBDKfsaQkoIX3JQyn
-	lgITI4FSSUcgIXpWZJIJjjVk+x0LbGUK7NjiaL3MiWOy1zSjRdlC8xEBzyG1GZhN19XBnKADWc2
-	g/WXrJBiLEaecRir457qvpNBD6uDBs+ztWARa0gbhr5GdtkmhO/WnFuXrEytHUtwTgMavBLzPfF
-	xEi0ALT
-X-Google-Smtp-Source: AGHT+IEtBXE0acM3lcuYUfkevwa5ntm2r18hgzk7j9m68t378myjOMm9OzJsbsysg70BSpP5Mhf/2A==
-X-Received: by 2002:a05:620a:4629:b0:8b2:dccd:7315 with SMTP id af79cd13be357-8b5e7453f0amr159953685a.88.1764739536329;
-        Tue, 02 Dec 2025 21:25:36 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8b52a1b65bbsm1227681985a.33.2025.12.02.21.25.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 02 Dec 2025 21:25:35 -0800 (PST)
-Date: Wed, 3 Dec 2025 00:25:33 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Balbir Singh <balbirs@nvidia.com>
-Cc: linux-mm@kvack.org, kernel-team@meta.com, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
-	dave@stgolabs.net, jonathan.cameron@huawei.com,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	vishal.l.verma@intel.com, ira.weiny@intel.com,
-	dan.j.williams@intel.com, longman@redhat.com,
-	akpm@linux-foundation.org, david@redhat.com,
-	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
-	osalvador@suse.de, ziy@nvidia.com, matthew.brost@intel.com,
-	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
-	ying.huang@linux.alibaba.com, apopple@nvidia.com, mingo@redhat.com,
-	peterz@infradead.org, juri.lelli@redhat.com,
-	vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
-	rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
-	vschneid@redhat.com, tj@kernel.org, hannes@cmpxchg.org,
-	mkoutny@suse.com, kees@kernel.org, muchun.song@linux.dev,
-	roman.gushchin@linux.dev, shakeel.butt@linux.dev,
-	rientjes@google.com, jackmanb@google.com, cl@gentwo.org,
-	harry.yoo@oracle.com, axelrasmussen@google.com, yuanchu@google.com,
-	weixugc@google.com, zhengqi.arch@bytedance.com,
-	yosry.ahmed@linux.dev, nphamcs@gmail.com, chengming.zhou@linux.dev,
-	fabio.m.de.francesco@linux.intel.com, rrichter@amd.com,
-	ming.li@zohomail.com, usamaarif642@gmail.com, brauner@kernel.org,
-	oleg@redhat.com, namcao@linutronix.de, escape@linux.alibaba.com,
-	dongjoo.seo1@samsung.com
-Subject: Re: [RFC LPC2026 PATCH v2 00/11] Specific Purpose Memory NUMA Nodes
-Message-ID: <aS_JzWHHn8hBHSCe@gourry-fedora-PF4VCD3F>
-References: <20251112192936.2574429-1-gourry@gourry.net>
- <48078454-f441-4699-9c50-db93783f00fd@nvidia.com>
- <aSa6Wik2lZiULBsg@gourry-fedora-PF4VCD3F>
- <36edd166-7e11-4d43-9839-42467d4399d1@nvidia.com>
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="xKINicsR";
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="ARhgGre0";
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="ARhgGre0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1764768924; i=@fujitsu.com;
+	bh=ZAY1Gic2CWJjMxsl6KNRnnhhP7nUp7yTIvX8ENPeKww=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	b=xKINicsRj3NLcQWoQmuiTC0IIR/D08n3ynPu0ZFxg/BYJBW5AnLsoulUD2LCnNM2Q
+	 CL81B+8jwGab9KaJsWRvtUe65zxnIBVDJLBnkmk4K/fwRst40KZ8iV2U52IaLIYZX1
+	 ZFkXfCZbtNLIcQL9q7tdOJG/TFoa+SxBEK7fPOC3obvf+vK9WIvF4M1d/NXLLYJDd8
+	 UUgRgDjNEfiTO2RwAh331YRJMWT9qZfzTRKP1XSqXqlPeNt3Wcpf1TrtAqR4dkYDVS
+	 i8ilIopJaa1bnVCSieuTsM4J4WvGaxVAtd3FvZp+Ktgmcs4vbXn+/97JQyGNnwAEvD
+	 xXqbfdvcmQDUA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA22Se0xTdxzF+7v39nIFLru2PO7YxNlkC2FQqK/
+  8zJS5zIybbEajCVO3yApc+wDaprdMkDhA6BQ2DDLLo1UeM9nkpYUiUiaDQcMomlEhKEyc2xQG
+  dYxV6sTw2FoIziX77+R3Puf7O38cAhVcx0MJNkPHalXSVBHui8VuJ6RR5dtjFDHmkk3w7n0HD
+  p+6ZwA8U/kXAmfNSzgsMzgA7BvNxWH9aAOAeRcu43DAsoDDzvHfMGgqy0NgSdswCutqbuHQeL
+  YDgQPGfgxe67BjcKj9HA5ni2wA6iunATw1bkBg7dwCH56ayUHh90VdCDzvNqBwrPQrABvcLhT
+  e6Rvgwx+LexE4P+fJfmu7h+0MY57oT2OMfnARZ6zGuz5Mvm2az1guRjAXrk0hTHNdAc50nm/w
+  YSYtFYDpci4CxmDKZm5U23yY2eYwZt7UC/YGHOIrVInqjI/48oWxUqAZzAUZLXMpOWBKWQh8C
+  QHVAmir1YoXgjUERu2hR5vagdfAqFaM7sm7hK1QJxF66KEJWaWqxj9H/4cqB7S9ppbvpXAqmh
+  754hzw6kAqjL59+TO+F0KpfJzub21cPiWkDtONphH+ytlX6YWW1uV3koql621FPl5NU+tp51n
+  LMrOG2khbrn6zrAWUhK43X0VX+LW0veIB5tWoh8+7YkJXsq/Rwz80o8VAaHwOMz6HVQOkDkCO
+  1X7MaqM2ixO1CplclyZVpIqlx6KSxGy6Vq1ho46ynE4iliVpxCzHibnMtKTUZLGK1TUDz5Z8/
+  3wlvg247+dHd4MXCUQURC76xCgEAYnq5Ey5lJMnaNNTWa4bvEwQIppMfsPjrdWyMjbjiCLVs8
+  hVmyb8RYHk7+Eem+Q00jROIVux+sE2oumnrg6UKOgs7EIJ15ThO1SAqdQqNjSEzNzmCVDegDx
+  d9ezc6sYHwbpQIQl4PJ7AX8Nq0xS6//pOEEIAkZD81NvKX6HSPfvV6SmEeAqpS8TeQjrpv1Zo
+  DiIih/YHF/l/sjmwYLzKWi7Zu18ZfCB7/N4TSXRt9jvHRy7Nn0kXTUh38CZKrQXHJvf49YSbb
+  kw/AuqEaGVZWVzWCDiEJD7u3rfR/nX77YNv/XzCMbrkmmksitwqU77nejcgy97kSqE73OGNNs
+  eXWS8kN3RuOul+u68FiobXRVRmaA9jRyt6N3wINFd2HWE6fSeP8/5YX+Y4yDMeeLMn6HXQ3Vs
+  dudvPtjtB2aZ5+Gt/Zf5LF+0zJ4rfnwi6XhxbkxswFqLcsDP+F/1N5xZhcIng70f5eXq9OXKf
+  02AY2RHIZTo/IP3ukOExVa1Pt8S5zacfFMct3erelfK4J36rRnJTMybCOLlUEoFqOek/XqRwL
+  F4EAAA=
+X-Env-Sender: tomasz.wolski@fujitsu.com
+X-Msg-Ref: server-11.tower-858.messagelabs.com!1764768920!570346!1
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.120.0; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 32111 invoked from network); 3 Dec 2025 13:35:20 -0000
+Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
+  by server-11.tower-858.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 3 Dec 2025 13:35:20 -0000
+Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id 25159101FAB;
+	Wed,  3 Dec 2025 13:35:20 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 n03ukasimr01.n03.fujitsu.local 25159101FAB
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=dspueurope; t=1764768920;
+	bh=ZAY1Gic2CWJjMxsl6KNRnnhhP7nUp7yTIvX8ENPeKww=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ARhgGre0d5VN7pdKvqJWm/TGHKWQQCyWXbvKrwcrhe0VrzwDj3VXOTY/Qzq8zlPGm
+	 GApwKXtoPbq6pcDowhnb9LC6a17soYpcylOSNeLhSVYJEmyfUdixxNNpr4sUUwjGBC
+	 16yb7fwdIXC1p3y9liaMIseUYgLDWLsbT9ypl3g8WsRaxXhQ/rZEEJT+2HLbgDIzx2
+	 djs4wRKHYjURAGL64H8QzM/iPSJAJ7pDciivlW1SYC7t9nd2AidWUIr4kxqFH3KnFN
+	 7gHIyTzVpx9aTcHPQWuTDG2/Lq4eMp+k0DWdAwXAnbGDiAEhfbLHRPYEHEwYAf80YN
+	 ei/XG6wzKZdQA==
+Received: from ubuntudhcp (unknown [10.172.107.4])
+	(using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id EBE2E100ED8;
+	Wed,  3 Dec 2025 13:35:19 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 n03ukasimr01.n03.fujitsu.local EBE2E100ED8
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=dspueurope; t=1764768920;
+	bh=ZAY1Gic2CWJjMxsl6KNRnnhhP7nUp7yTIvX8ENPeKww=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ARhgGre0d5VN7pdKvqJWm/TGHKWQQCyWXbvKrwcrhe0VrzwDj3VXOTY/Qzq8zlPGm
+	 GApwKXtoPbq6pcDowhnb9LC6a17soYpcylOSNeLhSVYJEmyfUdixxNNpr4sUUwjGBC
+	 16yb7fwdIXC1p3y9liaMIseUYgLDWLsbT9ypl3g8WsRaxXhQ/rZEEJT+2HLbgDIzx2
+	 djs4wRKHYjURAGL64H8QzM/iPSJAJ7pDciivlW1SYC7t9nd2AidWUIr4kxqFH3KnFN
+	 7gHIyTzVpx9aTcHPQWuTDG2/Lq4eMp+k0DWdAwXAnbGDiAEhfbLHRPYEHEwYAf80YN
+	 ei/XG6wzKZdQA==
+Received: from localhost.BIOS.GDCv6 (unknown [10.172.196.36])
+	by ubuntudhcp (Postfix) with ESMTP id 8B90D2203AF;
+	Wed,  3 Dec 2025 13:35:19 +0000 (UTC)
+From: Tomasz Wolski <tomasz.wolski@fujitsu.com>
+To: alison.schofield@intel.com
+Cc: Smita.KoralahalliChannabasappa@amd.com,
+	ardb@kernel.org,
+	benjamin.cheatham@amd.com,
+	bp@alien8.de,
+	dan.j.williams@intel.com,
+	dave.jiang@intel.com,
+	dave@stgolabs.net,
+	gregkh@linuxfoundation.org,
+	huang.ying.caritas@gmail.com,
+	ira.weiny@intel.com,
+	jack@suse.cz,
+	jeff.johnson@oss.qualcomm.com,
+	jonathan.cameron@huawei.com,
+	len.brown@intel.com,
+	linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	lizhijian@fujitsu.com,
+	ming.li@zohomail.com,
+	nathan.fontenot@amd.com,
+	nvdimm@lists.linux.dev,
+	pavel@kernel.org,
+	peterz@infradead.org,
+	rafael@kernel.org,
+	rrichter@amd.com,
+	terry.bowman@amd.com,
+	vishal.l.verma@intel.com,
+	willy@infradead.org,
+	yaoxt.fnst@fujitsu.com,
+	yazen.ghannam@amd.com
+Subject: Re: [PATCH v4 0/9] dax/hmem, cxl: Coordinate Soft Reserved handling with CXL and HMEM
+Date: Wed,  3 Dec 2025 14:35:38 +0100
+Message-ID: <20251203133552.15468-1-tomasz.wolski@fujitsu.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <aS3y0j96t1ygwJsR@aschofie-mobl2.lan>
+References: <aS3y0j96t1ygwJsR@aschofie-mobl2.lan>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <36edd166-7e11-4d43-9839-42467d4399d1@nvidia.com>
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On Wed, Dec 03, 2025 at 03:36:33PM +1100, Balbir Singh wrote:
-> >    - I discussed in my note to David that this is probably the right
-> >      way to go about doing it. I think N_MEMORY can still be set, if
-> >      a new global-default-node policy is created.
-> > 
-> 
-> I still think N_MEMORY as a flag should mean something different from
-> N_SPM_NODE_MEMORY because their characteristics are different
-> 
-... snip ...  (I agree, see later)
-
-> >    - Instead, I can see either per-component policies (reclaim->nodes)
-> >      or a global policy that covers all of those components (similar to
-> >      my sysram_nodes).  Drivers would then be responsible to register
-> >      their hotplugged memory nodes with those components accordingly.
-> > 
-> 
-> To me node zonelists provide the right abstraction of where to allocate from
-> and how to fallback as needed. I'll read your patches to figure out how your
-> approach is different. I wanted the isolation at allocation time
+>> This series aims to address long-standing conflicts between HMEM and
+>> CXL when handling Soft Reserved memory ranges.
+>> 
+>> Reworked from Dan's patch:
+>> https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/patch/?id=ab70c6227ee6165a562c215d9dcb4a1c55620d5d
+>> 
+>> Previous work:
+>> https://lore.kernel.org/all/20250715180407.47426-1-Smita.KoralahalliChannabasappa@amd.com/
+>> 
+>> Link to v3:
+>> https://lore.kernel.org/all/20250930044757.214798-1-Smita.KoralahalliChannabasappa@amd.com
+>> 
+>> This series should be applied on top of:
+>> "214291cbaace: acpi/hmat: Fix lockdep warning for hmem_register_resource()"
+>> and is based on:
+>> base-commit: 211ddde0823f1442e4ad052a2f30f050145ccada
+>> 
+>> I initially tried picking up the three probe ordering patches from v20/v21
+>> of Type 2 support, but I hit a NULL pointer dereference in
+>> devm_cxl_add_memdev() and cycle dependency with all patches so I left
+>> them out for now. With my current series rebased on 6.18-rc2 plus
+>> 214291cbaace, probe ordering behaves correctly on AMD systems and I have
+>> verified the scenarios mentioned below. I can pull those three patches
+>> back in for a future revision once the failures are sorted out.
 >
-... snip ... (I agree, see later)
+>Hi Smita,
+>
+>This is a regression from the v3 version for my hotplug test case.
+>I believe at least partially due to the ommitted probe order patches.
+>I'm not clear why that 'dax18.0' still exists after region teardown.
+>
+>Upon booting:
+>- Do not expect to see that Soft Reserved resource
+>
+>68e80000000-8d37fffffff : CXL Window 9
+>  68e80000000-70e7fffffff : region9
+>    68e80000000-70e7fffffff : Soft Reserved
+>      68e80000000-70e7fffffff : dax18.0
+>        68e80000000-70e7fffffff : System RAM (kmem)
+>
+>After region teardown:
+>- Do not expect to see that Soft Reserved resource
+>- Do not expect to see that DAX or kmem
+>
+>68e80000000-8d37fffffff : CXL Window 9
+>  68e80000000-70e7fffffff : Soft Reserved
+>    68e80000000-70e7fffffff : dax18.0
+>      68e80000000-70e7fffffff : System RAM (kmem)
+>
+>Create the region anew:
+>- Here we see a new region and dax devices created in the
+>available space after the Soft Reserved. We don't want
+>that. We want to be able to recreate in that original
+>space of 68e80000000-70e7fffffff.
+>
+>68e80000000-8d37fffffff : CXL Window 9
+>  68e80000000-70e7fffffff : Soft Reserved
+>    68e80000000-70e7fffffff : dax18.0
+>      68e80000000-70e7fffffff : System RAM (kmem)
+>  70e80000000-78e7fffffff : region9
+>    70e80000000-78e7fffffff : dax9.0
+>      70e80000000-78e7fffffff : System RAM (kmem)
+>
+>
+>-- Alison
 
-> 
-> Yes, we should look at the pros and cons. To be honest, I'd wouldn't be 
-> opposed to having kswapd and reclaim look different for these nodes, it
-> would also mean that we'd need pagecache hooks if we want page cache on
-> these nodes. Everything else, including move_pages() should just work.
-> 
+Hello Smita, Alison
 
-Basically my series does (roughly) the same as yours, but adds the
-cpusets controls and a GFP flag.  The MHP extention should ultimately
-be converted to N_SPM_NODE_MEMORY (or whatever we decide to name it).
+I did some testing and came across issues with probe order so I applied the 
+three patches mentioned by Smita + fix for the NULL dereference.
+I noticed issues in scenario 3.1 and 4 below but maybe they are related to
+the test setup:
 
-After some more time to think, I think we want all of it.
+[1] QEMU: 1 CFMWS + Host-bridge + 1 CXL device
+Soft reserve in not seen in the iomem:
 
-- N_SPM_NODE_MEMORY (or whatever we call it) handles filtering out
-  SPM at allocation time by default and protects all current users
-  of N_MEMORY from exposure to SPM.
+a90000000-b8fffffff : CXL Window 0
+  a90000000-b8fffffff : region0
+    a90000000-b8fffffff : dax0.0
+      a90000000-b8fffffff : System RAM (kmem)
+	  
+kernel: [    0.000000][    T0] BIOS-e820: [mem 0x0000000a90000000-0x0000000b8fffffff] soft reserved
 
-- cpusets controls allow userland isolation control and a default sysram
-  mask (I think cpusets.sysram_nodes doesn't even need to be exposed via
-  sysfs to be honest).  cpusets fix is needed due to task->mems_allowed
-  being used as a default nodemask on systems using cgroups/cpusets.
+== region teardown
+a90000000-b8fffffff : CXL Window 0
+ // no dax devices
+ 
+== region recreate
+a90000000-b8fffffff : CXL Window 0
+  a90000000-b8fffffff : region0
+    a90000000-b8fffffff : dax0.0
+      a90000000-b8fffffff : System RAM (kmem)
+	  
+== booted with no PCI attached
+a90000000-b8fffffff : Soft Reserved
+  a90000000-b8fffffff : CXL Window 0
+    a90000000-b8fffffff : dax1.0
+      a90000000-b8fffffff : System RAM (kmem)
+	  
+== ..and hot plug via QEMU terminal => is the following iomem tree expected?
+a90000000-b8fffffff : Soft Reserved
+  a90000000-b8fffffff : CXL Window 0
+    a90000000-b8fffffff : region0
+      a90000000-b8fffffff : dax1.0
+        a90000000-b8fffffff : System RAM (kmem)
 
-- GFP_SP_NODE protects against someone doing something like:
-      get_page_from_freelist(..., node_states[N_POSSIBLE])
-      or
-      numactl --interleave --all ./my_program
+kernel: [  129.820136][   T65] cxl_acpi ACPI0017:00: decoder0.0: created region0
+..
+kernel: [  129.827126][   T65] cxl_region region0: [mem 0xa90000000-0xb8fffffff flags 0x200] has System RAM: [mem 0xa90000000-0xb8fffffff flags 0x83000200]
 
-  While providing a way to punch an explicit hole in the isolation
-  (GFP_SP_NODE means "Use N_SPM_NODE_MEMORY instead of N_MEMORY")
+[1.1] QEMU: 1 CFMWS + Host-bridge + 1 CXL device
+      Region is smaller than SR - hmem claims the space
 
-  This could be argued against so long as we restrict mempolicy.c
-  to N_MEMORY nodes (to avoid `--interleave --all` issues), but this
-  limitation may not be preferable.
+a90000000-bcfffffff : Soft Reserved
+  a90000000-bcfffffff : CXL Window 0
+    a90000000-bcfffffff : dax1.0
+      a90000000-bcfffffff : System RAM (kmem)
 
-  My concern is for breaking existing userland software that happens
-  to run on a system with SPM - but you can probably imagine many more
-  bad scenarios.
+[2] QEMU: 1 CFMWS + Host-bridge + 2 CXL devices
 
-~Gregory
+kernel: [    0.000000][    T0] BIOS-e820: [mem 0x0000000a90000000-0x0000000c8fffffff] soft reserved
+
+a90000000-c8fffffff : CXL Window 0
+  a90000000-b8fffffff : region1
+    a90000000-b8fffffff : dax1.0
+      a90000000-b8fffffff : System RAM (kmem)
+  b90000000-c8fffffff : region0
+    b90000000-c8fffffff : dax0.0
+      b90000000-c8fffffff : System RAM (kmem)
+
+== region1 teardown
+a90000000-c8fffffff : CXL Window 0
+  a90000000-b8fffffff : region0
+    a90000000-b8fffffff : dax0.0
+      a90000000-b8fffffff : System RAM (kmem)
+
+== recreate region1 - created in correct address range
+
+a90000000-c8fffffff : CXL Window 0
+  a90000000-b8fffffff : region0
+    a90000000-b8fffffff : dax0.0
+      a90000000-b8fffffff : System RAM (kmem)
+  b90000000-c8fffffff : region1
+    b90000000-c8fffffff : dax1.0
+      b90000000-c8fffffff : System RAM (kmem)
+
+[2.1] QEMU: 1 CFMWS + Host-bridge + 2 CXL devices
+      Region is smaller than SR - hmem claims the whole space
+
+kernel: [    0.000000][    T0] BIOS-e820: [mem 0x0000000a90000000-0x0000000ccfffffff] soft reserved
+
+a90000000-ccfffffff : Soft Reserved
+  a90000000-ccfffffff : CXL Window 0
+    a90000000-ccfffffff : dax1.0
+      a90000000-ccfffffff : System RAM (kmem)
+
+[3] QEMU: 2 CFMWS + Host-bridge + 2 CXL devices
+
+a90000000-b8fffffff : CXL Window 0
+  a90000000-b8fffffff : region0
+    a90000000-b8fffffff : dax0.0
+      a90000000-b8fffffff : System RAM (kmem)
+b90000000-c8fffffff : CXL Window 1
+  b90000000-c8fffffff : region1
+    b90000000-c8fffffff : dax1.0
+      b90000000-c8fffffff : System RAM (kmem)
+
+== Tearing down region 1
+
+a90000000-b8fffffff : CXL Window 0
+  a90000000-b8fffffff : region0
+    a90000000-b8fffffff : dax0.0
+      a90000000-b8fffffff : System RAM (kmem)
+b90000000-c8fffffff : CXL Window 1
+
+== Recreate region 1 
+a90000000-b8fffffff : CXL Window 0
+  a90000000-b8fffffff : region0
+    a90000000-b8fffffff : dax0.0
+      a90000000-b8fffffff : System RAM (kmem)
+b90000000-c8fffffff : CXL Window 1
+  b90000000-c8fffffff : region1
+    b90000000-c8fffffff : dax1.0
+      b90000000-c8fffffff : System RAM (kmem)
+
+[3.1] QEMU: 2 CFMWS + Host-bridge + 2 CXL devices
+      Region does not span whole CXL Window - hmem should claim the whole space, but kmem failed with EBUSY
+
+a90000000-ccfffffff : Soft Reserved
+  a90000000-bcfffffff : CXL Window 0
+  bd0000000-ccfffffff : CXL Window 1
+  
+kernel: [   24.598310][  T543] cxl_acpi ACPI0017:00: decoder0.0 added to root0
+kernel: [   24.598645][  T543] cxl_acpi ACPI0017:00: decode range: node: 1 range [0xa90000000 - 0xbcfffffff]
+kernel: [   24.599673][  T543] cxl_acpi ACPI0017:00: decoder0.1 added to root0
+kernel: [   24.599939][  T543] cxl_acpi ACPI0017:00: decode range: node: 2 range [0xbd0000000 - 0xccfffffff]
+kernel: [   24.630549][  T543] cxl_acpi ACPI0017:00: root0: add: nvdimm-bridge0
+kernel: [   24.692068][   T70] cxl_pci 0000:0e:00.0: mem0:decoder2.0 no CXL window for range 0xb90000000:0xc8fffffff
+kernel: [   24.722976][   T69] cxl_region region0: config state: 0
+kernel: [   24.724446][   T69] cxl_acpi ACPI0017:00: decoder0.0: created region0
+kernel: [   24.725023][   T69] cxl_pci 0000:0d:00.0: mem1:decoder3.0: __construct_region region0 res: [mem 0xa90000000-0xb8fffffff flags 0x200] iw: 1 ig: 256
+kernel: [   24.727230][   T69] cxl_mem mem1: decoder:decoder3.0 parent:0000:0d:00.0 port:endpoint3 range:0xa90000000-0xb8fffffff pos:0
+kernel: [   24.728660][   T69] cxl region0: region sort successful
+kernel: [   24.729627][   T69] cxl region0: mem1:endpoint3 decoder3.0 add: mem1:decoder3.0 @ 0 next: none nr_eps:1 nr_targets: 1
+kernel: [   24.730566][   T69] cxl region0: pci0000:0c:port1 decoder1.0 add: mem1:decoder3.0 @ 0 next: mem1 nr_eps: 1 nr_targets: 1
+kernel: [   24.731445][   T69] cxl region0: pci0000:0c:port1 iw: 1 ig: 256
+kernel: [   24.731791][   T69] cxl region0: pci0000:0c:port1 target[0] = 0000:0c:00.0 for mem1:decoder3.0 @ 0
+kernel: [   24.807234][  T519] hmem_platform hmem_platform.0: deferring range to CXL: [mem 0xa90000000-0xccfffffff flags 0x80000200]
+kernel: [   24.903542][   T99] hmem_platform hmem_platform.0: registering CXL range: [mem 0xa90000000-0xccfffffff flags 0x80000200]
+kernel: [   25.043776][  T530] kmem dax2.0: mapping0: 0xa90000000-0xccfffffff could not reserve region
+kernel: [   25.044553][  T530] kmem dax2.0: probe with driver kmem failed with error -16
+
+[4] Physical machine: 2 CFMWS + Host-bridge + 2 CXL devices
+
+kernel: BIOS-e820: [mem 0x0000002070000000-0x000000a06fffffff] soft reserved
+
+2070000000-606fffffff : CXL Window 0
+  2070000000-606fffffff : region0
+    2070000000-606fffffff : dax0.0
+      2070000000-606fffffff : System RAM (kmem)
+6070000000-a06fffffff : CXL Window 1
+  6070000000-a06fffffff : region1
+    6070000000-a06fffffff : dax1.0
+      6070000000-a06fffffff : System RAM (kmem)
+
+kernel: BIOS-e820: [mem 0x0000002070000000-0x000000a06fffffff] soft reserved
+
+== region 1 teardown and unplug (the unplug was done via ubind/remove in /sys/bus/pci/devices)
+
+2070000000-606fffffff : CXL Window 0
+  2070000000-606fffffff : region0
+    2070000000-606fffffff : dax0.0
+      2070000000-606fffffff : System RAM (kmem)
+6070000000-a06fffffff : CXL Window 1
+
+== plug - after PCI rescan cannot create hmem 
+6070000000-a06fffffff : CXL Window 1
+  6070000000-a06fffffff : region1
+
+kernel: cxl_region region1: config state: 0
+kernel: cxl_acpi ACPI0017:00: decoder0.1: created region1
+kernel: cxl_pci 0000:04:00.0: mem1:decoder10.0: __construct_region region1 res: [mem 0x6070000000-0xa06fffffff flags 0x200] iw: 1 ig: 4096
+kernel: cxl_mem mem1: decoder:decoder10.0 parent:0000:04:00.0 port:endpoint10 range:0x6070000000-0xa06fffffff pos:0
+kernel: cxl region1: region sort successful
+kernel: cxl region1: mem1:endpoint10 decoder10.0 add: mem1:decoder10.0 @ 0 next: none nr_eps: 1 nr_targets: 1
+kernel: cxl region1: pci0000:00:port2 decoder2.1 add: mem1:decoder10.0 @ 0 next: mem1 nr_eps: 1 nr_targets: 1
+kernel: cxl region1: pci0000:00:port2 cxl_port_setup_targets expected iw: 1 ig: 4096 [mem 0x6070000000-0xa06fffffff flags 0x200]
+kernel: cxl region1: pci0000:00:port2 cxl_port_setup_targets got iw: 1 ig: 256 state: disabled 0x6070000000:0xa06fffffff
+kernel: cxl_port endpoint10: failed to attach decoder10.0 to region1: -6
+
+Thanks,
+Tomasz
+
+>> 
+>> Probe order patches of interest:
+>> cxl/mem: refactor memdev allocation
+>> cxl/mem: Arrange for always-synchronous memdev attach
+>> cxl/port: Arrange for always synchronous endpoint attach
+>> 
+>> [1] Hotplug looks okay. After offlining the memory I can tear down the
+>> regions and recreate it back if CXL owns entire SR range as Soft Reserved
+>> is gone. dax_cxl creates dax devices and onlines memory.
+>> 850000000-284fffffff : CXL Window 0
+>>   850000000-284fffffff : region0
+>>     850000000-284fffffff : dax0.0
+>>       850000000-284fffffff : System RAM (kmem)
+>> 
+>> [2] With CONFIG_CXL_REGION disabled, all the resources are handled by
+>> HMEM. Soft Reserved range shows up in /proc/iomem, no regions come up
+>> and dax devices are created from HMEM.
+>> 850000000-284fffffff : CXL Window 0
+>>   850000000-284fffffff : Soft Reserved
+>>     850000000-284fffffff : dax0.0
+>>       850000000-284fffffff : System RAM (kmem)
+>> 
+>> [3] Region assembly failures also behave okay and work same as [2].
+>> 
+>> Before:
+>> 2850000000-484fffffff : Soft Reserved
+>>   2850000000-484fffffff : CXL Window 1
+>>     2850000000-484fffffff : dax4.0
+>>       2850000000-484fffffff : System RAM (kmem)
+>> 
+>> After tearing down dax4.0 and creating it back:
+>> 
+>> Logs:
+>> [  547.847764] unregister_dax_mapping:  mapping0: unregister_dax_mapping
+>> [  547.855000] trim_dev_dax_range: dax dax4.0: delete range[0]: 0x2850000000:0x484fffffff
+>> [  622.474580] alloc_dev_dax_range: dax dax4.1: alloc range[0]: 0x0000002850000000:0x000000484fffffff
+>> [  752.766194] Fallback order for Node 0: 0 1
+>> [  752.766199] Fallback order for Node 1: 1 0
+>> [  752.766200] Built 2 zonelists, mobility grouping on.  Total pages: 8096220
+>> [  752.783234] Policy zone: Normal
+>> [  752.808604] Demotion targets for Node 0: preferred: 1, fallback: 1
+>> [  752.815509] Demotion targets for Node 1: null
+>> 
+>> After:
+>> 2850000000-484fffffff : Soft Reserved
+>>   2850000000-484fffffff : CXL Window 1
+>>     2850000000-484fffffff : dax4.1
+>>       2850000000-484fffffff : System RAM (kmem)
+>> 
+>> [4] A small hack to tear down the fully assembled and probed region
+>> (i.e region in committed state) for range 850000000-284fffffff.
+>> This is to test the region teardown path for regions which don't
+>> fully cover the Soft Reserved range.
+>> 
+>> 850000000-284fffffff : Soft Reserved
+>>   850000000-284fffffff : CXL Window 0
+>>     850000000-284fffffff : dax5.0
+>>       850000000-284fffffff : System RAM (kmem)
+>> 2850000000-484fffffff : CXL Window 1
+>>   2850000000-484fffffff : region1
+>>     2850000000-484fffffff : dax1.0
+>>       2850000000-484fffffff : System RAM (kmem)
+>> .4850000000-684fffffff : CXL Window 2
+>>   4850000000-684fffffff : region2
+>>     4850000000-684fffffff : dax2.0
+>>       4850000000-684fffffff : System RAM (kmem)
+>> 
+>> daxctl list -R -u
+>> [
+>>   {
+>>     "path":"\/platform\/ACPI0017:00\/root0\/decoder0.1\/region1\/dax_region1",
+>>     "id":1,
+>>     "size":"128.00 GiB (137.44 GB)",
+>>     "align":2097152
+>>   },
+>>   {
+>>     "path":"\/platform\/hmem.5",
+>>     "id":5,
+>>     "size":"128.00 GiB (137.44 GB)",
+>>     "align":2097152
+>>   },
+>>   {
+>>     "path":"\/platform\/ACPI0017:00\/root0\/decoder0.2\/region2\/dax_region2",
+>>     "id":2,
+>>     "size":"128.00 GiB (137.44 GB)",
+>>     "align":2097152
+>>   }
+>> ]
+>> 
+>> I couldn't test multiple regions under same Soft Reserved range
+>> with/without contiguous mapping due to limiting BIOS support. Hopefully
+>> that works.
+>> 
+>> v4 updates:
+>> - No changes patches 1-3.
+>> - New patches 4-7.
+>> - handle_deferred_cxl() has been enhanced to handle case where CXL
+>> regions do not contiguously and fully cover Soft Reserved ranges.
+>> - Support added to defer cxl_dax registration.
+>> - Support added to teardown cxl regions.
+>> 
+>> v3 updates:
+>>  - Fixed two "From".
+>> 
+>> v2 updates:
+>>  - Removed conditional check on CONFIG_EFI_SOFT_RESERVE as dax_hmem
+>>    depends on CONFIG_EFI_SOFT_RESERVE. (Zhijian)
+>>  - Added TODO note. (Zhijian)
+>>  - Included region_intersects_soft_reserve() inside CONFIG_EFI_SOFT_RESERVE
+>>    conditional check. (Zhijian)
+>>  - insert_resource_late() -> insert_resource_expand_to_fit() and
+>>    __insert_resource_expand_to_fit() replacement. (Boris)
+>>  - Fixed Co-developed and Signed-off by. (Dan)
+>>  - Combined 2/6 and 3/6 into a single patch. (Zhijian).
+>>  - Skip local variable in remove_soft_reserved. (Jonathan)
+>>  - Drop kfree with __free(). (Jonathan)
+>>  - return 0 -> return dev_add_action_or_reset(host...) (Jonathan)
+>>  - Dropped 6/6.
+>>  - Reviewed-by tags (Dave, Jonathan)
+>> 
+>> Dan Williams (4):
+>>   dax/hmem, e820, resource: Defer Soft Reserved insertion until hmem is
+>>     ready
+>>   dax/hmem: Request cxl_acpi and cxl_pci before walking Soft Reserved
+>>     ranges
+>>   dax/hmem: Gate Soft Reserved deferral on DEV_DAX_CXL
+>>   dax/hmem: Defer handling of Soft Reserved ranges that overlap CXL
+>>     windows
+>> 
+>> Smita Koralahalli (5):
+>>   cxl/region, dax/hmem: Arbitrate Soft Reserved ownership with
+>>     cxl_regions_fully_map()
+>>   cxl/region: Add register_dax flag to control probe-time devdax setup
+>>   cxl/region, dax/hmem: Register devdax only when CXL owns Soft Reserved
+>>     span
+>>   cxl/region, dax/hmem: Tear down CXL regions when HMEM reclaims Soft
+>>     Reserved
+>>   dax/hmem: Reintroduce Soft Reserved ranges back into the iomem tree
+>> 
+>>  arch/x86/kernel/e820.c    |   2 +-
+>>  drivers/cxl/acpi.c        |   2 +-
+>>  drivers/cxl/core/region.c | 181 ++++++++++++++++++++++++++++++++++++--
+>>  drivers/cxl/cxl.h         |  17 ++++
+>>  drivers/dax/Kconfig       |   2 +
+>>  drivers/dax/hmem/device.c |   4 +-
+>>  drivers/dax/hmem/hmem.c   | 137 ++++++++++++++++++++++++++---
+>>  include/linux/ioport.h    |  13 ++-
+>>  kernel/resource.c         |  92 ++++++++++++++++---
+>>  9 files changed, 415 insertions(+), 35 deletions(-)
+>> 
+>> base-commit: 211ddde0823f1442e4ad052a2f30f050145ccada
+>> -- 
+>> 2.17.1
+>> 
