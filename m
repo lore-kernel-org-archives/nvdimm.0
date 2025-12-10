@@ -1,50 +1,50 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A362329384
-	for <nvdimm@lists.linux.dev>; Wed, 10 Dec 2025 20:06:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AA1026299
+	for <nvdimm@lists.linux.dev>; Wed, 10 Dec 2025 20:09:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765397183; cv=none; b=kEVYYBgois/x94gFIWVhvE8Ir4ZOhriOzIZyHLAPUn6LEoQf4KfFcb3lrmQYsdhUWNPQJjAiqpmvytE0T9JMtG8LNl/Vn3hlQP24ED5SikeutDdaEAgA6vK1bd/gMI5N3egCdmUoZ8OxxXEHes+pd9Y5qmrK8oDfw7gJ/x8XyQo=
+	t=1765397384; cv=none; b=r/R9OBotgrGbowYeTeI46+RyH7r1B16oqPSsfwaWVgv1ysfvsw94mm/ffRk4Z7ydaREKLWlSVfJfYquui32Q+hHT1Ohfx/vlTWIqDwR6U5wkZbOQHNQJvgTYN3ycy/VTV+1sp+4Xy0GWOkASehqzJ+WmRKxnB42w2wyF59Lik3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765397183; c=relaxed/simple;
+	s=arc-20240116; t=1765397384; c=relaxed/simple;
 	bh=HigPWnh9EhLBgeP0UEr9WQyqbVe0ar8AgAQ0GsNh2vc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=r1oE+6NJyNL3gCQ8tFCZ44pwkif+nFe5fm1TtUZb5R2gvoxKip9Wl9H76Zq5hcYJmw7KxmP0VXsbzqHffQ0i0zrjh51jzajGk3D8D6gMVsSCUwGcQsd4d/JAUfiFdeFOEF4sIcfsrjmNM9nZJ//R31I4daKBKReEA1ikUuWler4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fwzp3sjm; arc=none smtp.client-ip=192.198.163.17
+	 In-Reply-To:Content-Type; b=eOnsnH8brV/HzZcYnrU7CiMlwxmsq8GzUUbMVKjXKDGgejtc+eqTN0YyL4fi8XL9SOVG6nonVN6aT5P1xUSt9fbYfJKM5l8YOjCLZvLHmUBEM5PySFvYykFUFyT/2s0BAO6XW+UtpP/h0GDDF/1bcmAGTco3QJRcbFif9t5dneg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dpzqp4dd; arc=none smtp.client-ip=192.198.163.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fwzp3sjm"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dpzqp4dd"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1765397180; x=1796933180;
+  t=1765397383; x=1796933383;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
   bh=HigPWnh9EhLBgeP0UEr9WQyqbVe0ar8AgAQ0GsNh2vc=;
-  b=fwzp3sjmNjGL9W9E2ZAQ8+RAad3fRXQhWjj/Wcnu0/7fvwfFn30C2+wO
-   oJPTrvIziIoVB12tItzBtHwmExjPtuV9E5Yobn8jyjUNiI6rkixbmsRZk
-   M9q6ik+68BsIDcGMzmj/ChWWoLbV8Ne7LoZ31rUmOZqMCmOHc+52882cy
-   hwvYjN/eeh961hYpBXS/0RU7rCEeZlIvefvSfBjX53sMp8c+ml6/rwWIe
-   9j0H75hOfPfxxJPBgq72SRg5ILbA2XNmE5LqLXwZHVqbrTkKKJsSz1vrQ
-   AewuGoHwVF+SSy+gxlAu3v/DagF++xqUVHBhW1n+6s3kb5Jmog4rT3mC6
+  b=dpzqp4ddlkdxeJPvsdYxdrryE6tXrM3WCqoGFttBAqXXw+MJX3LbRJUu
+   ppyVi933nX291L1BCF9liwLnv1BSDfzmQ26gU30yLQ5LCTV2itpjOkScD
+   aPUchpd8iubAZItRVYz6waU+NvXN+bNEqdquQ3KmIS+P+dNwhJ31zj6Se
+   m7za4GO7OPGHwQN/tQs2WRAs1Gz8gt0msBI6Ov1d56ehK78GU2Nk9R1y7
+   LpDZap3Ol2QqYbhZZePUzPQr3FoBZ818D7TaRk8Hs50pS7SwkChiR0uPm
+   PgoqTRTaec0qaBD0NQhGpH/t8wqvKmzKjvTZhLJ+/AEpRlUhy7VQRN10i
    A==;
-X-CSE-ConnectionGUID: zlALoB4/Rsy1Hwz8U54yXQ==
-X-CSE-MsgGUID: /euJ/DwbSOiqsAlZSM8AMw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11638"; a="67264203"
+X-CSE-ConnectionGUID: VDXy/zmpRH+t80i9lyM5iQ==
+X-CSE-MsgGUID: C4h88f11QU2wmXSrnVKCVA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11638"; a="67264491"
 X-IronPort-AV: E=Sophos;i="6.20,264,1758610800"; 
-   d="scan'208";a="67264203"
+   d="scan'208";a="67264491"
 Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2025 12:06:19 -0800
-X-CSE-ConnectionGUID: RsuxlDXfRCKwXJSMxSTxzQ==
-X-CSE-MsgGUID: at96td/HRWuYzSg61fhmrw==
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2025 12:09:43 -0800
+X-CSE-ConnectionGUID: ZP/loH3pSn6L1NAX5lKL8A==
+X-CSE-MsgGUID: IwW5+/eKRwOZuZfpM68kWQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.20,264,1758610800"; 
-   d="scan'208";a="196364645"
+   d="scan'208";a="196365681"
 Received: from cmdeoliv-mobl4.amr.corp.intel.com (HELO [10.125.109.138]) ([10.125.109.138])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2025 12:06:19 -0800
-Message-ID: <02b8feda-8307-41c1-8554-57d70c783a66@intel.com>
-Date: Wed, 10 Dec 2025 13:06:18 -0700
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2025 12:09:43 -0800
+Message-ID: <607c74fa-90f4-4ff6-b7c9-c3be7b0b65d6@intel.com>
+Date: Wed, 10 Dec 2025 13:09:41 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
