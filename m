@@ -1,110 +1,96 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056622749CB
-	for <nvdimm@lists.linux.dev>; Wed, 17 Dec 2025 03:14:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0D8226ED4A
+	for <nvdimm@lists.linux.dev>; Wed, 17 Dec 2025 04:26:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.12
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765941294; cv=fail; b=ok4peWVw0OMM9+h+dsbma/0xWkGjjF7jI3aAXyXI18d0auOQTQNDHq87KmOXxF1tHmrnuWqQgs8JjpDp0c26VtNjcyW9nKf4ZJasDl2u4FQrMAWoFkOVfR8sGZzlg2ZlsNwFIOim0Ik9apSemjXiQ5HdyVYYauFpYTrDQnkwrwc=
+	t=1765945588; cv=fail; b=V384jdGp2vFlBkQG1jkhHjvlxDDT7UUbe/0h96HgJQZGkxaLlaG/eqnLOG0WZPVfH96e+1Ku2HDPISFlqgdpGEk4cK6jpJoIzdRXJWfca85Nskz+6mxJzuvJYAXfHZDc1wfB5ORtufFLUpGSd+hZ+sj+uyOkZxLRaP5OpBR2urg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765941294; c=relaxed/simple;
-	bh=NlQZ2YgFZJ4/CG5tIZu6dbTlOvsfQ+okal9hHKCVelE=;
-	h=From:Date:To:CC:Message-ID:In-Reply-To:References:Subject:
-	 Content-Type:MIME-Version; b=tW7Pii317qNBr0Z8TcyHIuQYdZdzWQvd84pg3NN/lLG7Z26T6mu3F8MLiGu6L95sIQ3sL/nEufUhMKdaRtVQb0aEiXreWmMfHx/gdd+3R+WGFDCgoHYfIwVKUaFVBHCkOX7OVrOnddBZbgzqKATdodKcFpf86tXtPBm0nQRS13o=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QT5X/otg; arc=fail smtp.client-ip=198.175.65.18
+	s=arc-20240116; t=1765945588; c=relaxed/simple;
+	bh=Ui3pV0DLCkqR/sYOVnO6hsE3UNs+FvAUgJdKetDKKCQ=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=CZ8vV3VGDnCPFqPjVBKMbMb9QKDFBYICLqtzzNA9h8CCCYnevpkkJIXL8+KUkSglHiNqEjdRoxxuvbgKlKqnS7AuOqFFp87+/k7TNXhnyy0TYtODe/7uGbq0nz0SGminmBYwLJOCpmQkRLtBHfs+3LOy33CkcE2eFC9jPIyDSoM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NMQs0hjy; arc=fail smtp.client-ip=198.175.65.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QT5X/otg"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NMQs0hjy"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1765941294; x=1797477294;
-  h=from:date:to:cc:message-id:in-reply-to:references:
-   subject:content-transfer-encoding:mime-version;
-  bh=NlQZ2YgFZJ4/CG5tIZu6dbTlOvsfQ+okal9hHKCVelE=;
-  b=QT5X/otgbncycHe/T0x2Fr0Q4AjP1ZFJP1QYEkATm3YuDh04sV07MgIs
-   4VBQX/uF5nW+Xo7gq5ii+E/Ka9nvY9Qoqy3nzDWJAxbQAhWjhBChPi+xr
-   yuzzmDw0um7xkY/SwwUGdvYfnfsXrSXRhXTnetFT16boqhakCv/UMXhGH
-   BZxgNA+yAqdlmq6gvvWy1oxpZQk0nRO3ebTIIZNYGjxEpCy1mV2YISkli
-   RAMRBtTGAZPcT+j71IKna/9mVncmdiQxTnczH7aU223XJ0Hkdlr0x0+/+
-   EffVqumttAISSTJLDl/fPCtPiwcvhBBnV/PDblKq0R/CtHh3TLTUEZ6Du
-   A==;
-X-CSE-ConnectionGUID: dvYsEILJSfWqjigXR97ulg==
-X-CSE-MsgGUID: ujA3YeIJTTeuRhrVtX1MBg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11644"; a="67913460"
+  t=1765945587; x=1797481587;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=Ui3pV0DLCkqR/sYOVnO6hsE3UNs+FvAUgJdKetDKKCQ=;
+  b=NMQs0hjyTNNuxKVCHXJBzGF+oJ/9yBtMPXGvSQiDjxr7NJCUloMypThV
+   toWwoINYprBisKrLnQDoibJFWFoJF9t12ahtJ9FuRsWP7EXkfT0Fd7kGu
+   YL39ZtZSjERYm9LMjll6v3MB2KMbIUJv55bmb7fZ9V0p5fahSycYPTnKS
+   0BwZ85gQMJRS/k6tua8CI7Cij20rJFZuhGCzRYHhZ39MXYR2Ty1nqX21J
+   WrEbRQJ1Zl8N6Dpw5lVmiWnn/BE4ZECA9YWnY2tQN/edKtwwlCBEouMZp
+   Uy1DljvVIbw9LeKnNRblttaw785kIDBBhjAKmQ8TyFfl2CARrqGFB0a+7
+   w==;
+X-CSE-ConnectionGUID: l8k4Jc/sTx6O94yFzA5acQ==
+X-CSE-MsgGUID: k7NzAu6JTPumO7tskyCcMA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11644"; a="79329310"
 X-IronPort-AV: E=Sophos;i="6.21,154,1763452800"; 
-   d="scan'208";a="67913460"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Dec 2025 19:14:53 -0800
-X-CSE-ConnectionGUID: /FKlmCMNScKFPrWYlkJ2yg==
-X-CSE-MsgGUID: FQv/+02SRJqPkX/k2Tbytw==
+   d="scan'208";a="79329310"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Dec 2025 20:26:26 -0800
+X-CSE-ConnectionGUID: q07RWQQUQ6mQu5E9+yQq1A==
+X-CSE-MsgGUID: wjOB8shFRnGyRFLR/ELYBQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,154,1763452800"; 
-   d="scan'208";a="198246904"
+   d="scan'208";a="221581117"
 Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
-  by orviesa008.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Dec 2025 19:14:46 -0800
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
+  by fmviesa002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Dec 2025 20:26:26 -0800
+Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
  fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.29; Tue, 16 Dec 2025 19:14:41 -0800
-Received: from fmsedg902.ED.cps.intel.com (10.1.192.144) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ 15.2.2562.29; Tue, 16 Dec 2025 20:26:25 -0800
+Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
+ FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.29 via Frontend Transport; Tue, 16 Dec 2025 19:14:41 -0800
-Received: from CO1PR03CU002.outbound.protection.outlook.com (52.101.46.56) by
- edgegateway.intel.com (192.55.55.82) with Microsoft SMTP Server
+ 15.2.2562.29 via Frontend Transport; Tue, 16 Dec 2025 20:26:25 -0800
+Received: from CH5PR02CU005.outbound.protection.outlook.com (40.107.200.16) by
+ edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.29; Tue, 16 Dec 2025 19:14:40 -0800
+ 15.2.2562.29; Tue, 16 Dec 2025 20:26:25 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=UiC/nsfync4zav4D4a8v3xoW6A+Se+dfV9zxWO5pHz60WrubXhX+aODkTSTA3wOEjjA79pUEc4WQ/JuqwZvgM91D+jffNLY8g/EUtzbzgImOqVkhOSeBqGc1zer86XHaRoQ7xO3r2oFSTw9AJ+3I7cPAmYgRFc3dyS4A4y0y2L0aqOpwA5lC0N0xW6/xZjy4s6C5JvyohW6B2/Qz37sO+QFcuhGkEKKjV8NXgr+0hZOgvuZZ0dGWcah0kj5CxpWA06Qe0dYeeq2pwR6T5/5SMGnb/20eGOyuFDdw7D3p8oYrw3w1SCUo8VDV9JHbKlUApl7XmOgGOx2RuDyQB1qTBA==
+ b=epr8NQvcJfcDuc91NDQaLBUza+RdyPBEAMdkZi+XUeus58Kl9jxi28qDYUG6V0xMshsBx7/U459j9HbJ2u8658EniSbH4Vg7Wv9HUJezqkuDdg+7Mu/UFaz7V8YEum0ZzvSVKpGi97YMc3lHUfDXe8FpW8bIJvX8mA7rdg3bUBgFPvkbvfTNhoaSRqBcFCF2YmFZcV4Nc6P0PqaukL9P615vno4861b8m8mlJAfDyhKxewUl/Fi38ne8kqaKxsbph4fIn61Hrb+4NkH4rnFnRMa/5myDmiVX5q2kFJH58UsamsS1In1DnXN1rcdeQOeUDKNKmvBp5sRksO3y3nMPWA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=LCoKve/oHpztjpvmVgnCQVeH64WX0de7kcPdDGPf/1E=;
- b=agIhlKh9ugularQxnwjtLeNCU6ReE4/fzM82aOISpkEkRmBZvCdO5PYY1gEY9SUXUHSgDJPmbbNGQjowqR7r/E7V/IL5BrmuVv7Pg+Bv/7KILwivt2dO8znjyoBbp0Uj23GVvNDfPDk2DqCjrtl5eNrkl96FPhyuqATaYG6ZYSu4wStB46EPPJSTDmjPqAfc6dIl+rXos5Hf/UKjo5+JJnF6s4jDjaFC0iGPBSJo/Rq9JbVcU21npHc5unbHSkHWVt2CkpoDMQRAmzoz7uF5z01VLbWHooW6onKoxtJWB1P3IvKAJDjnSo2yr3BACtdhRvHVC91x4yZHwNZ6xCR3mg==
+ bh=DNZbd8oZgcsLhk3VluGxVZtngco/6fesVLKAMJ4TGto=;
+ b=DYuAYPxBikBJw0b+W756LAUgp8pTKlxVSqplLPmiIASC4a0/Svl1qg35dZNjd+wd/s0G+rsnD9ucUmd/AaXOPHgWlWEiB/ikq5w63zSMv38bpsqvujfzopvEFFzl6S6kKP674e1XM974RCeaAsK/y0gD7m9a+LM87r7fOY8hBxoeOikN8gFPTjl+JRj6S0Dc/80OidFbqsuwd2wAHS08G+EH8JRKBnZNf0TU1mC+46MQ3SjPGuPbAsXdQ/NbOE2P68wMGUK16sWnNzpp39lv8PxbMXjYxQZap5rNCrxZgUh3MII5cUZE2qXBFdpFWwiC0Ba/rYVin91ZWagpFSacKA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by SN7PR11MB7140.namprd11.prod.outlook.com (2603:10b6:806:2a3::22) with
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by PH0PR11MB5048.namprd11.prod.outlook.com (2603:10b6:510:3d::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9412.13; Wed, 17 Dec
- 2025 03:14:34 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::1ff:1e09:994b:21ff]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::1ff:1e09:994b:21ff%4]) with mapi id 15.20.9412.011; Wed, 17 Dec 2025
- 03:14:33 +0000
-From: <dan.j.williams@intel.com>
-Date: Tue, 16 Dec 2025 19:14:32 -0800
-To: =?UTF-8?B?TWljaGHFgiBDxYJhcGnFhHNraQ==?= <mclapinski@google.com>,
-	<dan.j.williams@intel.com>
-CC: Mike Rapoport <rppt@kernel.org>, Ira Weiny <ira.weiny@intel.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<jane.chu@oracle.com>, Pasha Tatashin <pasha.tatashin@soleen.com>, "Tyler
- Hicks" <code@tyhicks.com>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>
-Message-ID: <6942201839852_1cee10044@dwillia2-mobl4.notmuch>
-In-Reply-To: <CAAi7L5cpkYrf5KjKdX0tsRS2Q=3B_6NZ4urNG6EfjNYADqhYSA@mail.gmail.com>
-References: <20250826080430.1952982-1-rppt@kernel.org>
- <20250826080430.1952982-2-rppt@kernel.org>
- <68b0f8a31a2b8_293b3294ae@iweiny-mobl.notmuch>
- <aLFdVX4eXrDnDD25@kernel.org>
- <CAAi7L5eWB33dKTuNQ26Dtna9fq2ihiVCP_4NoTFjmFFrJzWtGQ@mail.gmail.com>
- <68d3465541f82_105201005@dwillia2-mobl4.notmuch>
- <CAAi7L5esz-vxbbP-4ay-cCfc1osXLkvGDx5thijuBXFBQNwiug@mail.gmail.com>
- <68d6df3f410de_1052010059@dwillia2-mobl4.notmuch>
- <CAAi7L5dWpzfodg3J4QqGP564qDnLmqPCKHJ-1BTmzwMUhz6rLg@mail.gmail.com>
- <68ddab118dcd4_1fa21007f@dwillia2-mobl4.notmuch>
- <CAAi7L5cpkYrf5KjKdX0tsRS2Q=3B_6NZ4urNG6EfjNYADqhYSA@mail.gmail.com>
-Subject: Re: [PATCH 1/1] nvdimm: allow exposing RAM carveouts as NVDIMM DIMM
- devices
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: SJ0P220CA0023.NAMP220.PROD.OUTLOOK.COM
- (2603:10b6:a03:41b::21) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9434.6; Wed, 17 Dec
+ 2025 04:26:17 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::46c9:7f71:993d:8aee]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::46c9:7f71:993d:8aee%8]) with mapi id 15.20.9434.001; Wed, 17 Dec 2025
+ 04:26:17 +0000
+Date: Tue, 16 Dec 2025 20:26:14 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Ben Cheatham <Benjamin.Cheatham@amd.com>
+CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<dave.jiang@intel.com>
+Subject: Re: [PATCH v5 1/7] libcxl: Add debugfs path to CXL context
+Message-ID: <aUIw5jxb0JHNubOD@aschofie-mobl2.lan>
+References: <20251215213630.8983-1-Benjamin.Cheatham@amd.com>
+ <20251215213630.8983-2-Benjamin.Cheatham@amd.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20251215213630.8983-2-Benjamin.Cheatham@amd.com>
+X-ClientProxiedBy: SJ0PR13CA0084.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c4::29) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -112,324 +98,153 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SN7PR11MB7140:EE_
-X-MS-Office365-Filtering-Correlation-Id: 95bb3f19-8e2f-42e5-23c8-08de3d1a6694
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|PH0PR11MB5048:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1d0e3380-dde1-4fc1-ab81-08de3d246bf9
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?NG5PZEpjQVdLdkNkZHJZYnY4SG1BRnJrcEphMzBhKzVRaUdxY2FmUDRYRUsw?=
- =?utf-8?B?Rk13bXJodUVaMjVrenVMQmc4cU5tQ1VxblczNGtIS1JGa1lKYnF5bEZUOGJQ?=
- =?utf-8?B?YmVkYU05dzhJZ0pTZFZndjcrcHl3LzZZb0ljWkZiY29yamgxNGRjZkxsckJM?=
- =?utf-8?B?aEp5ZVF2SFlUMkt6R1hBTVZ4ZlNRcG5kZnE2MXZMYXVwdThDQ05TWFMwV2Jo?=
- =?utf-8?B?WE1MWjhsYUVIbnZWa2lGMkhCakJ2UXdad3NLY1NyZjNXY3ZZM21kL1lnZWNL?=
- =?utf-8?B?SHl5KzlqSytMYUxqUXV5c1ZrV29NTm9SSnkzRjJNdkwrOXhKcU9PTStjSmNq?=
- =?utf-8?B?Um5nR3pjNDZkZDRIMEdUYzVhUGlUd3c4M2JoL2lrSWh1dzlGRmkySnVOM2h3?=
- =?utf-8?B?aFNabm5tWlNvem04c0tIR1NLd2dGT0JUR1hWd21ZZHF2d3dFeml4QWROWHhi?=
- =?utf-8?B?cUNGdU1TcHphVnNjelJvbjYwaWVLbGhnU1BLWEJBMEhIMmpxeWdmUWdsaWRu?=
- =?utf-8?B?c2tla2ZGbW9rM0UvU05sdHQ1bGh5bkdRVER0VjY5VXNSUVU0R2RXVkpjeWZP?=
- =?utf-8?B?aXcwSnBFeTdyMlJDTHFJbU9zK3BzYVh0S05KY2t6YzFSV05pdG1DUjVKaVcv?=
- =?utf-8?B?Q1Zacm16T25EbUJvK20yOWFaczhzcnFMbHU2Q2FISWdJTlpzbk9KNkZjRWVt?=
- =?utf-8?B?Qzl3dytsY2FMcGliOWpUa1J4MFl3KzhvUXRKbXQzYmNPU3ZFa2d1dFhld2x0?=
- =?utf-8?B?czJ3OFF6NWVMbzRsR0Qra1B2THFCUVl6N2d0V0dWS21Hcm13ZytvUUVLb1Y3?=
- =?utf-8?B?YUh0ZHk0aDBpelhqbHpxQUVkRFpPcUF6eFpvaVUwUmlUN0V1MDF5U05ON2Nj?=
- =?utf-8?B?VnhuRlRvWG5RZzMxK2N2YXo3SmdKb2Q0UUlTQmd2NzZOK3pSVjZLL3Y3c3ZL?=
- =?utf-8?B?RDdJaElEd055NDN3T1hoMFFWWGdmdEdFWTBsajVaVE1vSjcrM0tvTEZHYUxk?=
- =?utf-8?B?WFdnMVl2N3ArQi9Zamt2TDlndmxMMDJ1NW1lWUFHNXZyZDlOM2dYQStwK0NM?=
- =?utf-8?B?NE5Xai80djJDS2I1Kzc5c3ZXcE1qd0ZYL05BSEJTTitKYy9pZFFjanJ2S1p5?=
- =?utf-8?B?M0hNcGIvTFBTd28reUNaOWxiUkpJQmdZZ1RMN1Jhc1BVbTVOeFhtQ2pmL2FS?=
- =?utf-8?B?bTJqejNjN1U1eGFSeEc4bjF5ZGdFQzVkWk85aTJIMWdNZkhHSWxMem5BN0hW?=
- =?utf-8?B?eEM1QjYxTHcxRHk5R0Y0cnJvdzZ5di9YZHlOdWcwMFI1MitkTzMwcitHVkVB?=
- =?utf-8?B?UFMzYkNmcUdvQUZBT21WWmhaVFF4S3ZSd1A1MSthQ0pGczFyajN4dUlyV3ow?=
- =?utf-8?B?aFVMbGR6dVVWcHU0dklTem1DdTVGQ2M0Wm9RSHhxbkNkV2pIMjdjNS9FUlQ4?=
- =?utf-8?B?UVRGZDFYZFZjWkxvYkVXT0hNcUwvVmF3d1BBNzZ1MlJZL0tCVlJCZloydW5E?=
- =?utf-8?B?V2N6QVcyMTNHR2doWG1pcGFBeHVKNE9oL2xYeGdDUHhZdURKNTE3MEFHT0FU?=
- =?utf-8?B?MTRRb3VDSnJ6RVA1T0diSkdvdTVMSTdEMWszZkY2R0tKeEdZWmlnUkJ2ZVl1?=
- =?utf-8?B?dlRoNzE5MW0zdkhQbjI3S25NZGpoNmk5YkIyUWdrUjJzUTY4NUVkT3Q4U29W?=
- =?utf-8?B?WEkwTm9uZzdmL1haamhsbWVEZmFWRnY0d3dWdkd6TVZBVTBrL2p3MXFlNUNh?=
- =?utf-8?B?Q3lmUVNQUm5hQStmZkxTTlk5aU51NUUxOVg0YzlSOFZONis3ZGJlRVNSaEcy?=
- =?utf-8?B?WE02eWJPUmZiQU1GUWw2VnQrTTJuQmtPZGFvK282T1NyVjExWGFMVVk1MUEy?=
- =?utf-8?B?MERsNnFQL1h4OGViWkxxQjRXdGduUWZlcGl3SUtpdXc0M1A1T0ZLRjhwYzUv?=
- =?utf-8?Q?AOzEVRAeUqPCzYnKHM8kScITgeUWKAJt?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?HIGXiNw4bODcNxXL2wWaFGNSY1hv/jTHEFrI7bMJoPzbUtYG9DsIJfU2IVJ+?=
+ =?us-ascii?Q?O41SrD12kCUkQE6hJR3+h9ky6AJ4whqE5/6DF+abcfZBWbjVYDRM1q85yyAQ?=
+ =?us-ascii?Q?qdeRZfUTXY8OC38uf8+fnnhQuIQQU5dGwV7DWQdUQsFDluCvUiXdXiDddHaL?=
+ =?us-ascii?Q?wlvqQrlUt5cN5kgWJ+29TgynaGqDCVB8EkafbRugIoncmjZMKFwUFKB4CUYV?=
+ =?us-ascii?Q?4Exk1JFOl8+tfbOiGGNtZ4T1GB4CsyRwvIo8xYo9yMgQNU+3C6xLUgkNnkm7?=
+ =?us-ascii?Q?vPryo1HB5EIJR7/99xQthBzHPLnJUOSxHyd4TxZULvAnamTwIZM6ptLP6E6f?=
+ =?us-ascii?Q?I3UxztZn+EEnVTMbZ5e5krqcsmWeoWg+6yS3cO/V4qwHXvVMmoSbV0jeumgH?=
+ =?us-ascii?Q?ftiuH6s9ztZ8nNaG/7zJvHYEyPKjuSZoziWtr0fXpU2wTSupYiIAU0MTYLMz?=
+ =?us-ascii?Q?Tl5cAH90JFX/eUi9mvkqhTHmDK2Biq1aqV6RQNAbaSOapsfj07TjYNvWt5L7?=
+ =?us-ascii?Q?xYC8WAWZgwqDTlrqJ9oetwHvuaovpJfd+liBN8nsF6nOOK+Gbuz0RsD2uAiu?=
+ =?us-ascii?Q?ROTFe/TgRQPtjOcnuJWFVkoILByoxXdYD1s6/oS9txAWjaENNmO8YoCEqhGQ?=
+ =?us-ascii?Q?jZGSky1ZeapQ5C6qgsPumbh9/RAEqEUtXi8b2GlFJIuNmaATjhxRsRtP6q/T?=
+ =?us-ascii?Q?Na/34GrXaEmZEYWlOfPzyn+TQtvwM8uIfbVrvyF/vb8Ea60ux84RL/9HI0VH?=
+ =?us-ascii?Q?1/iQPZqJgC9cn95igXZfXez3d/7Gh0fad9E4SStDiPKr7y0cZWgf9SdO/ONr?=
+ =?us-ascii?Q?Q56s1+NzLLWukXsbDAXdPWb44prwB9FnMqsXyl2pH/+tJ28h3+YDd8nd+F0E?=
+ =?us-ascii?Q?gst+4hTQqwSTFkyXuKtgiMJVX2miksFfqbQaoLb8tiUawRBSL5XJz1IBrrQW?=
+ =?us-ascii?Q?Od1GKuqD50TS9H3MQdcw66lDjzLIZp880OPWbCvSE7tJUHndP6cLjfGhOXqj?=
+ =?us-ascii?Q?oG94MSswqcexmM8M8NtVZp3ESqRI8XEZW9q0EgmxFATvF+pLyynoHj/f5FZu?=
+ =?us-ascii?Q?XI0fbXw6+BDP3GFgusX5yHGahT+cz5nb3CJmNFUn+TC8I2tM3lcKFfeIF4+/?=
+ =?us-ascii?Q?FBONH0o6TrCfjkostCsu1zcCb+bGo4ETycRljdsp8vYZZuIcgTmDtO14L9Lg?=
+ =?us-ascii?Q?cDTEaDI2WOGVKyJqOJ9TT6/HmFbXMD8D0sS2rDVv4ZZ3H3t79pcSQDvonT+I?=
+ =?us-ascii?Q?ER80kOLOgR3D7BqzFpfABZcEapoaEzexO6gJeMCd4XNNY+uQUP7zynJ5ASoD?=
+ =?us-ascii?Q?Aarp7svGYuBTwAGPu/aq6nTFoNWhTb6IODHJIyZmoFzo92627DXROQ+/NYFT?=
+ =?us-ascii?Q?ANu0Kg+ttu8BE38xc211w94nbCK7l170fQbykkKH7dKQzRNlT9vu1DdMeM+5?=
+ =?us-ascii?Q?wvgJIDwCNyIQSorCx+AgoWrKwjbBrYRk?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(7053199007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?d2tIQlJEZ0hwemtacGF5c2VmRXVoVUV6WEpGcHBORWpScS9rT0tFTjllRGZJ?=
- =?utf-8?B?YkYyUFVuVjBYZW9YQlJ1YjJjM0RXYmZtZVgxS01saHNqMXArV1dJRjA4alJQ?=
- =?utf-8?B?VW53Ti9GZ0NYT2tyT05LSDZxcm9RSjNpeXYvT2toZnovbVAySnRzbytoc3ky?=
- =?utf-8?B?bXBwZnkxbzNKYlNHREtjcHVlbGpOS1BuMVdVSGRVNjBlc1NHemNjMVJ6MlMz?=
- =?utf-8?B?RW5vZ0pjNmh5cmlKQ0ttMEwvNkFpdzBXdVVNdXkxeTA4OVdxZ0ZIQ2Q0UG1H?=
- =?utf-8?B?SWVycmdncUlQTjVqUHdCRFpqWjVDOVl1dWVpRzJvWmdoeTA2OFROOXk0NU9z?=
- =?utf-8?B?TEswWXVEOVJGMHhkbGhZaitsSzBwWVRBNVZPekVCWnhqcDhOYUpSWDhDcTEx?=
- =?utf-8?B?YnM3Y2pkczJ3Q2RVWEYvUW1iOUQ4akRxMzNOYzhIdW1QTU5aWWFmdG1TVGQx?=
- =?utf-8?B?d3hUenlJNXJWbGFyTExFR216TG81NmoyclZGN0xpcnRJa1d2UjVVTU53Wmkx?=
- =?utf-8?B?bTE1Qk5LR3lXc0xQRU5FSlpWNEJUVXNjU2dkNGhMUHZhajd0TXNwRHRIOG9r?=
- =?utf-8?B?VXIydWNsMXBDOENWc3ppS3lZdUs4b3JpY01YSEM1c09aWU1ZOG9FeXBnTzZ0?=
- =?utf-8?B?b2xWKzR1MzF6bGtEd25lN3dWTmJHODEvSXZlZWl2dzVkbFNYMVg2S2d2U3VP?=
- =?utf-8?B?Uzc1Rml6bENYeHhVdTZJVjRtanM4aTlPbDJaRzQ1S3d4bXJva09xc0dhZTM3?=
- =?utf-8?B?TFQwRDRDeFVzMmJNcDhNYkNZd01oR0ZOTGdqd3ROcUZpY2tMUTc1Z0tJUW9C?=
- =?utf-8?B?WFFPWHd5dlpiZFJSSkw0T1NTSUZ0Sk04b2Y1WDhrU29wOThPbWNkS2lPSkdL?=
- =?utf-8?B?Y1d6VEZLWExoK2swa21EUVVEVzY2VWIwWGR5cmE4dUh1Sng2elQ5SC80cFpH?=
- =?utf-8?B?MkhucWxtTWlJQmZhZnNsTHlxSHlacUZLVVRrTU0zSnhUQTdtQkNDUHd1NG5T?=
- =?utf-8?B?bmFLNWZnVEpSTTJ2MVRyRWNoY3pTMWFCcDFCdG1YSlduQi8vayt5a21wYmQx?=
- =?utf-8?B?eXpBS1JYNFQ3TWFpbERkTHpuekQwL3FWVGZjUFg1YUJpbVk1eTBDdjE3M3Z4?=
- =?utf-8?B?d0RsZkpyRE9haS9BbUhlbXRCbnpGbFA1Wmh2QXlpU05ncU1jTWgwNGxJbFZj?=
- =?utf-8?B?RW9NUlQrMjlXbHRsQmRkV2VuR21PWWp5WTFBWW55N1JXWnQ4TkhkSnJ4R0FF?=
- =?utf-8?B?QUFKZms4SktnVDR6SkJmQzBnckViRnFJeEhQYjhDVXE3U3RKTTJ3RS82OTZE?=
- =?utf-8?B?Y0xlaDFLZXY0T1kremVCc3l6MXBTSCtQaXpGMmIrN1UwV1liVmNocVJHUVlw?=
- =?utf-8?B?SEM4bXhKTnJTMW80bTBoN1dGM1djYU81RjZDUTVVZG5udmhEaEZiV2pCbVpv?=
- =?utf-8?B?dC8vYlduYWRXQjJnYTFVRkRZUjdZZE1VWnhXQUM5S3NjOWFnVzF4dFJuditP?=
- =?utf-8?B?ZlArSDhwVlJpVHpmUzhsa28vYnVVbFJibndITFcyNnBhNFNhMXMrT3BFa3hu?=
- =?utf-8?B?VFMzWkRObEtKY3gyMDc2Mno2VXBEckJGRWFtN2ladkc3OE5BWGU1UGZiR0tU?=
- =?utf-8?B?MFgxSkFDSlkraGpMT0JtRWxPUXRkV3VzMUdRZ3pTZ3ZQU2RBcXRXd3EyUXZj?=
- =?utf-8?B?VFRtb2JadElXc09STVE1d3BaelE5MGltYUp5WkI1aEtCR3RXTDY4Nmp1SENz?=
- =?utf-8?B?TjZIeDlvTDdDNVJtWGNxLzgwYVJJQTAzQ2JWUjNDaDNITkErbzViK3BhNjhB?=
- =?utf-8?B?MUNRV2haVTg2eTRZdDdrRjFIUDMvWUI1dXJKUnRJeXpad3ExL0wyeEw1Vk9t?=
- =?utf-8?B?WTdtVUZSZVVDd0pja0pnSlNTODBKSHVvUVIrc3RaQkVzME1LMzUySGxmbjBC?=
- =?utf-8?B?VXZON2dCSzUwWUpSbWxNT0xldjRvaEtPUEtVcno2TE12RElpY1dMWGt4UUo0?=
- =?utf-8?B?NFFOTmk0WEFFRXREbXFjdUg3VXNWdXZyNTRXMXlmVVd5blY0d3pqYjlQMVB3?=
- =?utf-8?B?R0FRVWhyK3liaE9XRWd3dDl3Sk9yaHNzS3BvVzQ3STU2K2huOXY1S1ZnWHJR?=
- =?utf-8?B?ektXZVk1MEU2cEI4amp0dXkzazlyczEzUitKY0lHR2l0eGZMWENsWEZEcVRm?=
- =?utf-8?B?NEE9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 95bb3f19-8e2f-42e5-23c8-08de3d1a6694
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?CyH+HbmZw2gz/n02MUODz5LMgrSY5YVqA8CSN6Km0B4fLzC4u5qhjFRv7Cd4?=
+ =?us-ascii?Q?PSmu0+YEtrzOEaDY5Rza04EykxQRHk4MY9Zcbo1Wx8rnJF/cp/3+xHlf7B6l?=
+ =?us-ascii?Q?66f4Uvkdm/hcwYlcIxaAfIH4yUI5LaO/6B5yQxqPANcI1TkzvlLXzQMgz1Xr?=
+ =?us-ascii?Q?5x+WfiFtJbaYCc0uirUF1VUd0HppC2ZeVM/Gp5MvSNoLY9aOMTI5MIz7iL57?=
+ =?us-ascii?Q?9I8RQ2JYBM1zOC7LvN/FZGJx8qG5rGyCPYDyZvYg+5mCNwFxOSR+QLrf2IiS?=
+ =?us-ascii?Q?GMEToTChEfRXnmR1ckIeH0govfaMXlimEoqZWBUIj78CEkhiwUgIomsGCPH/?=
+ =?us-ascii?Q?6E94WZ4UWinzCRQ7JJgU3RXilCRHbWcYYVXjYTTi9ZXkoXYUPJyX/EMMSlIR?=
+ =?us-ascii?Q?SyN7oxhR1r1G3YrOzb/9OncXKOxUrQRxkf2cvH6jA/5Fhvwz8tyK1q+xLSAf?=
+ =?us-ascii?Q?WRkkghCf0bcsaxRrEBnjmfp4qDPg5zLJuqp3Oml1PDHWlZrkTsv8mfc3xoJO?=
+ =?us-ascii?Q?2J7eBzgZyApzzsdqtV50lNz5IFs7JoxcOC2TNW77flF4c5jNcwmxuYJJ9lrQ?=
+ =?us-ascii?Q?25SXE877IwXbZrQR0nawB3Fex/a7noVuCitcKr9oKjl3mOwvk/zYTiQp0Bhg?=
+ =?us-ascii?Q?9O7sAYsWsNkMTuL8OabqSHKGMPu4ai2tKBTGAOpzi0NW3WAdLf77K2gK/wVo?=
+ =?us-ascii?Q?u6EyicWQnok/UGputsG0DzTg/xP6I0C1k8T/3OgzxnDz/DysRiehCd7NkSC1?=
+ =?us-ascii?Q?z2omxzWkOr1JI0NQedzYIZVr6Y38XJiDXBD6KJwJ5G71QGepvUn5mGmJBUx0?=
+ =?us-ascii?Q?m1toW4OJrY3i4PYJ9B+guRq+bKeeQN/NjJxZXoP9/a6FA+UmpKMWO0T/VFee?=
+ =?us-ascii?Q?BXcAdOwyDGoQXGnn8+VeWYRzh4cLsCOT3acZt+wD+wzDV582BPZaPDZna7Cj?=
+ =?us-ascii?Q?nU16lbgRdZCIjE9VlmXBSXDFbIw7QtrbdecCO+C/gWGdxZN5AVYg1s+U5iOG?=
+ =?us-ascii?Q?9p+cywMBCZU5r8LpeLbMktOqjOo2LpOnzMu6JosUEYKaAhiawrenslHn3wPV?=
+ =?us-ascii?Q?ROb8L+0oD65TWZq7shC2rWiB+WrinunSv0G2zCdho8VgHF+RWOFPh0EyOCE2?=
+ =?us-ascii?Q?OMj7ZeAFchj9OMCcHaPHhTM98hsfiyMuDi7biErIm4SmK9/zzKbpOliubhnd?=
+ =?us-ascii?Q?8PVoWEiITtTHaQETQmG+6Eir1pLQxKaOqqL9NmCluNmuQdOclbdEJsyS3WkZ?=
+ =?us-ascii?Q?NmlCrrEwGbAClAs6kRviW9AjcjQY5NtDCKwHsInLITdYBRP8z8xBuL3/xuvM?=
+ =?us-ascii?Q?Oo/rvZMkP0cbjZc1DSfuSEf+Ksw5YjoBVGoLc9dolBSJUWh2ARyvBX09AWDC?=
+ =?us-ascii?Q?2wB5W3HHmgTOF4RE5tnnuoN+Sfw7VinkSkqMpsHGgzVaugu4dQ7Sd8wqGfq5?=
+ =?us-ascii?Q?hVmcaTVrGJs+Ra8EAz73Cl04rQMrqLIc2nylAHj5DB4x2hFRexhaySlX2pFW?=
+ =?us-ascii?Q?ImMc/nR8YxAL2OojBqMuyvF2NqmRs6D0YvKNuLZt6xqGemA3DcuOuopuUUXP?=
+ =?us-ascii?Q?rRpTsUSyzzwzbtjE9QhZgeVZu1PN+9A5jzGzfGkRjUBJTMPv0ogui+hZEobt?=
+ =?us-ascii?Q?JA=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1d0e3380-dde1-4fc1-ab81-08de3d246bf9
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Dec 2025 03:14:33.5768
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Dec 2025 04:26:17.5167
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: NdOtfXdjFnmkohm/po86WAVn/LSc74v9li4duDru+dThR+1NcbYIdWUw0mVHYWBPHAvNjSJOYjvTHYIBWgQ/ZiL5jKQiLS/vSTgMaK/tu6s=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR11MB7140
+X-MS-Exchange-CrossTenant-UserPrincipalName: nusgpb6vbF0zTHPk1HnUtJj/VjPIARkH5Jd+ReFMcpo9U0BlF9WIBvRdzhDaB+gNnIlQFZRrR7BqrKmvj9Iawr0yu5++UPPNw5q/KgX9CZk=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR11MB5048
 X-OriginatorOrg: intel.com
 
-Micha=C5=82 C=C5=82api=C5=84ski wrote:
-[..]
-> > Sure, then make it 1280K of label space. There's no practical limit in
-> > the implementation.
->=20
-> Hi Dan,
-> I just had the time to try this out. So I modified the code to
-> increase the label space to 2M and I was able to create the
-> namespaces. It put the metadata in volatile memory.
->=20
-> But the infoblocks are still within the namespaces, right? If I try to
-> create a 3G namespace with alignment set to 1G, its actual usable size
-> is 2G. So I can't divide the whole pmem into 1G devices with 1G
-> alignment.
+On Mon, Dec 15, 2025 at 03:36:24PM -0600, Ben Cheatham wrote:
+> Find the CXL debugfs mount point and add it to the CXL library context.
+> This will be used by poison and procotol error library functions to
+> access the information presented by the filesystem.
+> 
+> Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
+> ---
+>  cxl/lib/libcxl.c | 26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+> 
+> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> index cafde1c..71eff6d 100644
+> --- a/cxl/lib/libcxl.c
+> +++ b/cxl/lib/libcxl.c
+> @@ -8,6 +8,7 @@
+>  #include <stdlib.h>
+>  #include <dirent.h>
+>  #include <unistd.h>
+> +#include <mntent.h>
+>  #include <sys/mman.h>
+>  #include <sys/stat.h>
+>  #include <sys/types.h>
+> @@ -54,6 +55,7 @@ struct cxl_ctx {
+>  	struct kmod_ctx *kmod_ctx;
+>  	struct daxctl_ctx *daxctl_ctx;
+>  	void *private_data;
+> +	const char *debugfs;
 
-Ugh, yes, I failed to predict that outcome.
+Do you want this const?  Later we alloc and eventually free it.
 
-> If I modify the code to remove the infoblocks, the namespace mode
-> won't be persistent, right? In my solution I get that information from
-> the kernel command line, so I don't need the infoblocks.
 
-So, I dislike the command line option ABI expansion proposal enough to
-invest some time to find an alternative. One observation is that the
-label is able to indicate the namespace mode independent of an
-info-block. The info-block is only really needed when deciding whether
-and how much space to reserve to allocate 'struct page' metadata.
+>  };
+>  
+>  static void free_pmem(struct cxl_pmem *pmem)
+> @@ -240,6 +242,28 @@ CXL_EXPORT void *cxl_get_private_data(struct cxl_ctx *ctx)
+>  	return ctx->private_data;
+>  }
+>  
+> +static const char* get_debugfs_dir(void)
 
--- 8< --
-From 4f44cbb6e3bd4cac9481bdd4caf28975a4f1e471 Mon Sep 17 00:00:00 2001
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 15 Dec 2025 17:10:04 -0800
-Subject: [PATCH] nvdimm: Allow fsdax and devdax namespace modes without
- info-blocks
-MIME-Version: 1.0
-Content-Type: text/plain; charset=3DUTF-8
-Content-Transfer-Encoding: 8bit
+drop const above?
 
-Micha=C5=82 reports that the new ramdax facility does not meet his needs wh=
-ich
-is to carve large reservations of memory into multiple 1GB aligned
-namespaces/volumes. While ramdax solves the problem of in-memory
-description of the volume layout, the nvdimm "infoblocks" eat capacity and
-destroy alignment properties.
 
-The infoblock serves 2 purposes, it indicates whether the namespace should
-operate in fsdax or devdax mode, Micha=C5=82 needs this, and it optionally
-reserves namespace capacity for storing 'struct page' metadata, Micha=C5=82=
- does
-not need this. It turns out the mode information is already recorded in the
-namespace label, and if no reservation is needed for 'struct page' metadata
-then infoblock settings can just be hard coded.
 
-Introduce a new ND_REGION_VIRT_INFOBLOCK flag for ramdax to indicate that
-all infoblocks be synthesized and not consume any capacity from the
-namespace.
+> +{
+> +	char *debugfs_dir = NULL;
+> +	struct mntent *ent;
+> +	FILE *mntf;
+> +
+> +	mntf = setmntent("/proc/mounts", "r");
+> +	if (!mntf)
+> +		return NULL;
+> +
+> +	while ((ent = getmntent(mntf)) != NULL) {
+> +		if (!strcmp(ent->mnt_type, "debugfs")) {
 
-With that ramdax can create a full sized namespace:
+include <string.h>
 
-$ ndctl create-namespace -r region0 -s 1G -a 1G -M mem
-{
-  "dev":"namespace0.0",
-  "mode":"fsdax",
-  "map":"mem",
-  "size":"1024.00 MiB (1073.74 MB)",
-  "uuid":"c48c4991-86af-4de1-8c7c-8919358df1f9",
-  "sector_size":512,
-  "align":1073741824,
-  "blockdev":"pmem0"
-}
 
-Note that the uuid is not persisted so the "raw_uuid" in the label will be
-the method to identify the namespace:
+> +			debugfs_dir = calloc(strlen(ent->mnt_dir) + 1, 1);
+> +			strcpy(debugfs_dir, ent->mnt_dir);
 
-<after disable/enable region>
-$ ndctl list -vu
-{
-  "dev":"namespace0.0",
-  "mode":"fsdax",
-  "map":"mem",
-  "size":"1024.00 MiB (1073.74 MB)",
-  "uuid":"00000000-0000-0000-0000-000000000000",
-  "raw_uuid":"1526a1df-d1ec-40e3-91e8-547f1ad9949d",
-  "sector_size":512,
-  "align":1073741824,
-  "blockdev":"pmem0",
-  "numa_node":0,
-  "target_node":0
-}
+perhaps -
+        debugfs_dir = strdup(ent->mnt_dir);
 
-Also note that the align is hard coded to (PUD) 1G. That is probably fine
-for now unless and until someone comes up with a case for making that
-setting configurable.
 
-Lastly, the kernel will complain if "-a 1G -M mem" are not specified to
-"ndctl create-namespace" as the kernel still enforces that that live
-settings specified at configuration time match the "virtual" infoblock.
 
-Cc: Micha=C5=82 C=C5=82api=C5=84ski" <mclapinski@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/libnvdimm.h |  3 ++
- drivers/nvdimm/pfn_devs.c | 58 +++++++++++++++++++++++++++++++++++++--
- drivers/nvdimm/ramdax.c   |  1 +
- 3 files changed, 60 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 28f086c4a187..c79efc49dd24 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -70,6 +70,9 @@ enum {
- 	/* Region was created by CXL subsystem */
- 	ND_REGION_CXL =3D 4,
-=20
-+	/* Virtual info-block mode (no writeback / storage reservation) */
-+	ND_REGION_VIRT_INFOBLOCK =3D 5,
-+
- 	/* mark newly adjusted resources as requiring a label update */
- 	DPA_RESOURCE_ADJUSTED =3D 1 << 0,
- };
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 42b172fc5576..68a998fe20a7 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -428,6 +428,50 @@ static bool nd_supported_alignment(unsigned long align=
-)
- 	return false;
- }
-=20
-+static int nd_pfn_virt_init(struct nd_pfn *nd_pfn, const char *sig)
-+{
-+	struct nd_pfn_sb *pfn_sb =3D nd_pfn->pfn_sb;
-+	struct nd_namespace_common *ndns =3D nd_pfn->ndns;
-+
-+	switch (ndns->claim_class) {
-+	case NVDIMM_CCLASS_PFN:
-+		if (memcmp(sig, PFN_SIG, PFN_SIG_LEN) !=3D 0)
-+			return -ENODEV;
-+		break;
-+	case NVDIMM_CCLASS_DAX:
-+		if (memcmp(sig, DAX_SIG, PFN_SIG_LEN) !=3D 0)
-+			return -ENODEV;
-+		break;
-+	default:
-+		return -ENODEV;
-+	}
-+
-+	*pfn_sb =3D (struct nd_pfn_sb) {
-+		.version_major =3D cpu_to_le16(1),
-+		.version_minor =3D cpu_to_le16(4),
-+		.mode =3D cpu_to_le32(PFN_MODE_RAM),
-+		.align =3D cpu_to_le32(HPAGE_PUD_SIZE),
-+		.page_size =3D cpu_to_le32(PAGE_SIZE),
-+		.page_struct_size =3D cpu_to_le16(sizeof(struct page)),
-+	};
-+	memcpy(pfn_sb->signature, sig, PFN_SIG_LEN);
-+
-+	/*
-+	 * Virtual infoblock uuids do not persist, but match the live setting in
-+	 * the validation case. The @align and @mode settings are fixed for the
-+	 * virtual case, validation will enforce that they match.
-+	 */
-+	if (nd_pfn->uuid)
-+		memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
-+	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
-+	pfn_sb->checksum =3D cpu_to_le64(nd_sb_checksum((struct nd_gen_sb *) pfn_=
-sb));
-+
-+	dev_dbg(&nd_pfn->dev, "virtual %s infoblock for %s\n", sig,
-+		dev_name(&ndns->dev));
-+
-+	return 0;
-+}
-+
- /**
-  * nd_pfn_validate - read and validate info-block
-  * @nd_pfn: fsdax namespace runtime state / properties
-@@ -448,6 +492,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *=
-sig)
- 	struct nd_pfn_sb *pfn_sb =3D nd_pfn->pfn_sb;
- 	struct nd_namespace_common *ndns =3D nd_pfn->ndns;
- 	const uuid_t *parent_uuid =3D nd_dev_to_uuid(&ndns->dev);
-+	struct nd_region *nd_region =3D to_nd_region(ndns->dev.parent);
-=20
- 	if (!pfn_sb || !ndns)
- 		return -ENODEV;
-@@ -455,8 +500,14 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char =
-*sig)
- 	if (!is_memory(nd_pfn->dev.parent))
- 		return -ENODEV;
-=20
--	if (nvdimm_read_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb), 0))
-+	if (test_bit(ND_REGION_VIRT_INFOBLOCK, &nd_region->flags)) {
-+		int rc =3D nd_pfn_virt_init(nd_pfn, sig);
-+
-+		if (rc)
-+			return rc;
-+	} else if (nvdimm_read_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb), 0)) {
- 		return -ENXIO;
-+	}
-=20
- 	if (memcmp(pfn_sb->signature, sig, PFN_SIG_LEN) !=3D 0)
- 		return -ENODEV;
-@@ -694,7 +745,10 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, s=
-truct dev_pagemap *pgmap)
- 	};
- 	pgmap->nr_range =3D 1;
- 	if (nd_pfn->mode =3D=3D PFN_MODE_RAM) {
--		if (offset < reserve)
-+		struct nd_region *nd_region =3D to_nd_region(ndns->dev.parent);
-+
-+		if (!test_bit(ND_REGION_VIRT_INFOBLOCK, &nd_region->flags) &&
-+		    offset < reserve)
- 			return -EINVAL;
- 		nd_pfn->npfns =3D le64_to_cpu(pfn_sb->npfns);
- 	} else if (nd_pfn->mode =3D=3D PFN_MODE_PMEM) {
-diff --git a/drivers/nvdimm/ramdax.c b/drivers/nvdimm/ramdax.c
-index 954cb7919807..992346390086 100644
---- a/drivers/nvdimm/ramdax.c
-+++ b/drivers/nvdimm/ramdax.c
-@@ -60,6 +60,7 @@ static int ramdax_register_region(struct resource *res,
- 	ndr_desc.num_mappings =3D 1;
- 	ndr_desc.mapping =3D &mapping;
- 	ndr_desc.nd_set =3D nd_set;
-+	set_bit(ND_REGION_VIRT_INFOBLOCK, &ndr_desc.flags);
-=20
- 	if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
- 		goto err_free_nd_set;
---=20
-2.51.1
+> +			break;
+> +		}
+> +	}
+> +
+> +	endmntent(mntf);
+> +	return debugfs_dir;
+> +}
+
+snip
+
