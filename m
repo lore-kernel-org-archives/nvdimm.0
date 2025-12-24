@@ -1,95 +1,103 @@
-Received: from sender4-pp-f112.zoho.com (sender4-pp-f112.zoho.com [136.143.188.112])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FEC62F745D;
-	Sat, 20 Dec 2025 08:35:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.112
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766219719; cv=pass; b=F7DPc2kdVRm1c3VZgsbC4WhV2pLAuaOlULeut8v0zKD/L/ilR2ljYT9R9obqVAJxbSzvxVbCYHIa8wXhxaLnQ+xKJ6p1FsR9nTibqOLHgLvnfEYp6z/Uelj7W55j3kIWbJkoU0cYFgERZWIPmFMEHn3+XwpZp07XIEvkG4cRF1w=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766219719; c=relaxed/simple;
-	bh=xgICL+AROYOEauYrDUTbYngxQO2C4HrLy6Y3+XbcN0s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pxEtpHW576SwGfolN72nnqfoUEUYAgmn/5IAEIx7T9bx2ztlfgxD1VMU9Ejszo81GD5jgTFslSEa8iev2O7+RECZGKxO9eFJwrxcNQW4K9uU86bDdBcfhc2k5pzLubJ/nj7dytD1qd6NzRBPbD7DkAJTWa9c6Rb46HkSDWXVkgU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=MYUmmMhE; arc=pass smtp.client-ip=136.143.188.112
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.beauty
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.beauty
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2412C1465B4;
+	Wed, 24 Dec 2025 17:58:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1766599083; cv=none; b=BNHjxH2atIu6n+blwkR3eaCPhbCMgzAxMSwwWfXsshNtkwTCIRhb7STYOyvWfKSr+OVKNrcxhkgz7PZlcMNheuXXuLBsk5EyWsr4SBknBaudk1em4jSOZ1LBMH4yHaV58lTQ78Nn7CZorGfc3Lc3xmqxB/RUhgzBt7Pg+zb9wo0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1766599083; c=relaxed/simple;
+	bh=4+xJeNnVymAr63OgA+YKBzjBejm6dJnPFS7AwzRSHCY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RcJgZgDQQlm+136B0DcZww1O1A1xAeXVCBzdjg1A2PK/dWVoga/cODDQm05sjORscOboHbEmftNzO9W2aN42VtB1JWDEL6lXYgj5RprXaJ9pRihniLaIGZDrLKXQfsx7H80AlHWYut6nxGs2+5omMD50N76shUGVE0NKcZT/KaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HPY6zD89; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="MYUmmMhE"
-ARC-Seal: i=1; a=rsa-sha256; t=1766219704; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=buA3kA8hIoTqkpgvAurMNsLpy6SFVAD+/z/qjmDAlEQ8MQuDPC8DZtkZnmCKxGtwcJnL7rGnfK2Vi77L9F7i8Zxt14Et6bbIesqVV5Bx8mxzH573D7Jl5NZ3ccnmntx6TYaaf5XiizpRW56zyDU0WFC6w1wnNJglb6GtNBr1cJM=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1766219704; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=eYfBRITWUnnz0wYgbPwxrDTSwaVRo1CFJZSXwe3HQ70=; 
-	b=nKCt6ePpmhRKO3i4kLl0/POcdQjTVaEbg6oA4aSUhvCAw28LYl3zHZoxmu82LrcHy6786mEJENnzxr+tNHjXUCIPxMokRWKeYrHarxnM5dVESo7VZSoPD4MJx3Gh4aHZwQtu26oElhnodKnpLoGMYnFTcCii2zZBqkL1s8lVMyE=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=linux.beauty;
-	spf=pass  smtp.mailfrom=me@linux.beauty;
-	dmarc=pass header.from=<me@linux.beauty>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1766219704;
-	s=zmail; d=linux.beauty; i=me@linux.beauty;
-	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=eYfBRITWUnnz0wYgbPwxrDTSwaVRo1CFJZSXwe3HQ70=;
-	b=MYUmmMhEk1Zp+nVRueRvpy7XjgtHT0aJQSG06UG8iKv3P/YvyIRJIdXfeeH4J7iv
-	BWPwjvJANpdr8CH3XI8ADW4rFr1Z2vKgZyb4I2WsDAyfyO66yVqR/JJeV3zz6gstPsg
-	UMCoa11zL6y27vSuJhJpCE2ihyiLmRjaSqQs4TvA=
-Received: by mx.zohomail.com with SMTPS id 17662197034231022.1025851067282;
-	Sat, 20 Dec 2025 00:35:03 -0800 (PST)
-From: Li Chen <me@linux.beauty>
-To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HPY6zD89"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1766599081; x=1798135081;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=4+xJeNnVymAr63OgA+YKBzjBejm6dJnPFS7AwzRSHCY=;
+  b=HPY6zD89U0YIuBiRp3iTRHH+UmbVEhq6T9bxVeXVDr0+pi/R92y0bT6t
+   nKaGCj39PVa1TJEUSoxZVptJD7qVNTQIcu15IWUPYr9zu9i+5Few+WHaH
+   KypobF0d19SQquDFIrIl2hKU9pGBK+1+WJNzV4U1p5cTPE3FWRmygnYu+
+   3z4U/zxUE8nt6SyrVUM5mlkhLm7+3z32f0jOjdKw6rVLgJ6AZXrik7gDz
+   a5dBmNtnWIC9wfeoOkg13BLO6A0bdP2gqA8aByJNOz5LvA0w5WutyO0T8
+   sQWMJK6F0+haSWjUk5Fv22WCWyJ0Ux6K3KqaSIHLKeKYPmrCubB5TXX+x
+   g==;
+X-CSE-ConnectionGUID: lKyJeIpBR0Kf9axpcY2FiA==
+X-CSE-MsgGUID: lQBmIhrPSgyusy/EgavdDg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11652"; a="79065466"
+X-IronPort-AV: E=Sophos;i="6.21,174,1763452800"; 
+   d="scan'208";a="79065466"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Dec 2025 09:58:00 -0800
+X-CSE-ConnectionGUID: Csd9QY/IRL6VXbIG+NIGBQ==
+X-CSE-MsgGUID: gjbVb2w/R32WKJsWKPJzZA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,174,1763452800"; 
+   d="scan'208";a="204978080"
+Received: from lkp-server02.sh.intel.com (HELO dd3453e2b682) ([10.239.97.151])
+  by fmviesa004.fm.intel.com with ESMTP; 24 Dec 2025 09:57:58 -0800
+Received: from kbuild by dd3453e2b682 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1vYT7U-000000003L3-0YSE;
+	Wed, 24 Dec 2025 17:57:56 +0000
+Date: Thu, 25 Dec 2025 01:57:09 +0800
+From: kernel test robot <lkp@intel.com>
+To: Li Chen <me@linux.beauty>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	virtualization@lists.linux.dev,
-	nvdimm@lists.linux.dev,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	virtualization@lists.linux.dev, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Cc: Li Chen <me@linux.beauty>
-Subject: [PATCH 4/4] nvdimm: virtio_pmem: drain requests in freeze
-Date: Sat, 20 Dec 2025 16:34:40 +0800
-Message-ID: <20251220083441.313737-5-me@linux.beauty>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251220083441.313737-1-me@linux.beauty>
-References: <20251220083441.313737-1-me@linux.beauty>
+Cc: oe-kbuild-all@lists.linux.dev, Li Chen <me@linux.beauty>
+Subject: Re: [PATCH 3/4] nvdimm: virtio_pmem: converge broken virtqueue to
+ -EIO
+Message-ID: <202512250116.ewtzlD0g-lkp@intel.com>
+References: <20251220083441.313737-4-me@linux.beauty>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-ZohoMailClient: External
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251220083441.313737-4-me@linux.beauty>
 
-virtio_pmem_freeze() deletes virtqueues and resets the device without
-waking threads waiting for a virtqueue descriptor or a host completion.
+Hi Li,
 
-Mark the request virtqueue broken and drain outstanding requests under
-pmem_lock before teardown so waiters can make progress and return -EIO.
+kernel test robot noticed the following build errors:
 
-Signed-off-by: Li Chen <me@linux.beauty>
----
- drivers/nvdimm/virtio_pmem.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+[auto build test ERROR on nvdimm/libnvdimm-for-next]
+[also build test ERROR on linus/master v6.19-rc2]
+[cannot apply to nvdimm/dax-misc]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-index aa07328e3ff9..5c60a7b459d4 100644
---- a/drivers/nvdimm/virtio_pmem.c
-+++ b/drivers/nvdimm/virtio_pmem.c
-@@ -152,6 +152,13 @@ static void virtio_pmem_remove(struct virtio_device *vdev)
- 
- static int virtio_pmem_freeze(struct virtio_device *vdev)
- {
-+	struct virtio_pmem *vpmem = vdev->priv;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	virtio_pmem_mark_broken_and_drain(vpmem);
-+	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+
- 	vdev->config->del_vqs(vdev);
- 	virtio_reset_device(vdev);
- 
+url:    https://github.com/intel-lab-lkp/linux/commits/Li-Chen/nvdimm-virtio_pmem-always-wake-ENOSPC-waiters/20251220-163909
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
+patch link:    https://lore.kernel.org/r/20251220083441.313737-4-me%40linux.beauty
+patch subject: [PATCH 3/4] nvdimm: virtio_pmem: converge broken virtqueue to -EIO
+config: riscv-randconfig-r052-20251224 (https://download.01.org/0day-ci/archive/20251225/202512250116.ewtzlD0g-lkp@intel.com/config)
+compiler: riscv64-linux-gcc (GCC) 13.4.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20251225/202512250116.ewtzlD0g-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202512250116.ewtzlD0g-lkp@intel.com/
+
+All errors (new ones prefixed by >>, old ones prefixed by <<):
+
+>> ERROR: modpost: "virtio_pmem_mark_broken_and_drain" [drivers/nvdimm/virtio_pmem.ko] undefined!
+
 -- 
-2.51.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
