@@ -1,192 +1,244 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011061.outbound.protection.outlook.com [40.93.194.61])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19B2D30FF08
-	for <nvdimm@lists.linux.dev>; Fri,  2 Jan 2026 12:30:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767357012; cv=none; b=RHrqUc1QwUS8ILgejdI6X754T4DJkAWUeV0Ft+eIE7s/G3c9ekba6fDSyoAn5sUMcjvhPAfie7M79MN8COtbtRJrlazB+dIT17Wo3ERznQGY5s8RhI+dS+dNrXvJkNE20Dliefj73xWP75/+0RvOQY01PpFpC4rcBUkDWa08CCY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767357012; c=relaxed/simple;
-	bh=AmaWQ5CXbUg3ciml/z9VJ5JFV4qJeUFdMIaYJrDMXlg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=o+e4KCUjWKBl/Fz1eF9Rs4wfUUJmJwJ6fHEqV03js7RnWlvBMxwP7O2vqFvNWjOTKLfKmFCRHPbQOP7xe2w9znzXjGLsF7eq+WibdPB4/6s3pPIpU7ZJfZrGHsTkcdVIsp43ICnetnW1dZsLD6H9gD3gwf8aII7ViFsVOvR5ErQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Yld8HJ4m; arc=none smtp.client-ip=209.85.214.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EFF6246335
+	for <nvdimm@lists.linux.dev>; Mon,  5 Jan 2026 21:00:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.61
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1767646815; cv=fail; b=l/j7KjBINuqt2LXHB2QdwFzR3EG3onIv8GQxjeUpbaxob2qqRJXeSJHRxEDc3lpqJCRdw4yw4OSDAJSHj1YewN5Ma59r5F3BBpYFhqQYuxpFv00cMnMEtzSxpvABQ9ryiT4s6gonl/WQS04c84mtGP1lxpZk1bj9pmJnMLz5EZE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1767646815; c=relaxed/simple;
+	bh=KY3ojYkBA22sLvR2ccvdotBohrlsLl2P7CWJBvCVp/k=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=q4k/zCIhXeIl5qFqfZ6BsKXfufy45Yk5gp80yH/PHMCBvRtrfGOEi7R+64wBlp11WRH+u7Y/jdCssnkcx8dJKJOB210vi9SWrB7yy8Kp3yj1v+2cWelY7oNV3GcjM3+uo6+MkIxDhOSXtYQsf9kBNRgk92tyVAMGsnzVZjgzSQ8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=UEDMIi4T; arc=fail smtp.client-ip=40.93.194.61
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Yld8HJ4m"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2a0d0788adaso108646505ad.3
-        for <nvdimm@lists.linux.dev>; Fri, 02 Jan 2026 04:30:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767357010; x=1767961810; darn=lists.linux.dev;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=8BoW0bcmK/sCMsuQ6Inc10VNOGnxhb+hS2Ao4sv1iKQ=;
-        b=Yld8HJ4mrofVH7SeUM+HdUc8pEzO1TM/0xOvNf0Nj8GI7mvXuPm+3W/6HGjFTjXNlK
-         AXEmN+L5w19qbj7CtwiWI6Gb1uQzQfCG+1XfbT1czpjpXxGHQ/GcfPIcOVCJ+MFbkNl9
-         Yn1g6adILhqEgB6TzbaCKLyi0LoybLWdsG9Dh0Iz+dIPQFANY0ljPcnRXtgSX5LqB9n1
-         D2PIGPa2C4e7v3HoT6yO5Dulg6J88ZGiileAjnAnFxOFxCjYTa7ceT+P3rzdiTawT62j
-         uS2+pnn9cItFX7bOS3PNZF+TF3FF7VUjRxAfzntT0Sgi790t6MK9F0uxe1fgY6MbuYcA
-         4Rqw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767357010; x=1767961810;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8BoW0bcmK/sCMsuQ6Inc10VNOGnxhb+hS2Ao4sv1iKQ=;
-        b=cI2iImpnaX8zrUwouQlEGdS2jPF4uOXRer24NuxKZAOGrzbYQuzadCv1hhpDajlXHH
-         p/wFNIwymzfi8b/ibIF6revEIqPM0K6T/1sFuG3tHmX3krYJf+JoCKAz9v5106dZsf6k
-         1LOrlVfOLv593RfSmBCrML+STay4iCVmOCR1IjgQwNJHsDn2TJaTRSoYyEvLSL1cEox9
-         2Kl2CHZRbQY3gqKq9GFGcMcR46O2ccqpwlcuC6zJkkQiemrDQrDAWDxT2JUl5us8rF96
-         YyEOQhnL8sLCGSrJJ4bZy9E36Zybgf4pgoICuSlc9li8LYPScIzEDtK025k7ZK6TAKW0
-         8ONQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVwlfkAZ+md3oBZdwzzXYX9LVdLiwYArWuZ4It/oOSJuOElN1eoshAPj2pdbFZcndKK7CmKcxw=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yzr4Xnha5JN14ZmJ7TE4ympqAgGBtkB86cjWkYrL0y76ZtE+Abg
-	S/q9PCqZHOZKddiMGuzeJ2vr+yeDC7ElzG9WU9OJ2d9hNM+e3aZcJfNFYstp2ktarh94BajUoRk
-	HRQUfQSP8f59D2WQs9B/YeZ5MdiKlqPY=
-X-Gm-Gg: AY/fxX7CrcSrW8hXrLg5AvKtRA3tTX4mojYV0zAVrvBJEO2QQS/KyALTaSv/gDC2x3S
-	H4ga2IkoQcyJ87rMTEbiTKk8Q2JAH/QNrjq8Ihf6VzPkDvpB2GKEjwtiZ6U7dzqaVq2rqwvit3A
-	Ii7Vq9UYlfFqmLrnh/oedEknrrPM4rGAsPOy7c9i1XgoFqKNa91vav7CjLp+e+0tUBWsEezPC+U
-	8wPHOZZX8DXKHzJ39dkcbhbaBJLgo2Fy+cYTfraGspJPitkEwg46CDvkYp/4qpOtWdlZkno
-X-Google-Smtp-Source: AGHT+IGx+INPR/R4gVPyo42+4do1Mx5vMHRBzkq/BpyzBu528TDuEHQ9iOd5kFbLBxSrkiHob0RQ7Fq1B4FWfMYB/Ro=
-X-Received: by 2002:a17:903:2b0f:b0:2a0:b02b:210a with SMTP id
- d9443c01a7336-2a2f28368c1mr434803905ad.37.1767357010333; Fri, 02 Jan 2026
- 04:30:10 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="UEDMIi4T"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=kAbehbKSFYU094JjBdCxYqz4Nhb78k3E6uFeEyExk/J2uzgH/mMFLWA+VRGn6L25GGtNtw7ypE9UhCZQOf2IHPsQqBiNNqwIingTrGZvnofnhLH10kr77AuW4UBiTLO909BXAolYrTeF2YZURiRNpP4uk3I9IXWJz/oA8B1RlsT/epFnTv9Md2fYri60RW5t5pcbpk7GAUbJVLh8O8ehr82T1Juknh0zOdJFKrFjeYIgduMlWunKqKlb+wVkn0kDoXxp1pjROpF0YbzMGv5w7hwmwOHBVRofHtb45s7knM5WHEea5AigT/WDvw7SR39l4Y3Sdyv/ERabBCXOK3Q1yw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=m5aO7uxzSs2A2gncWXqXlICPPPYfrZ3ecnwTDCISS+8=;
+ b=kpBSmNScUGzPgi9zIvr6ijgNZY1HevLZTkYKIn7hvF6ys2mXJS08zhy6xKdqZBialpEcDXdR7Et89tVeAN4ulKCdXbicYPUyv9urnb/+CN8s+m/ioTDUCGda3aaxFNR1cvcIyRQAoDkdPEw7jWnWFVC4rVpyaOsm3G4UekEpzxvAI11SPbndjc+ywPnVe1phzPOhaG0GCF4c7vNY9ppb0qd0R/eVsReXZmCNjAnoVZOwRPHn43eXTXekiWoCOVSjm+sBXig4JS9v7cLSctwEsS8KXKBPxo5zVELsndhjnhWbaETJLv0d0SfbjxrGihyaLF6+loW8YH4ueLmsAKWh8Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=m5aO7uxzSs2A2gncWXqXlICPPPYfrZ3ecnwTDCISS+8=;
+ b=UEDMIi4Td2MKjUpvoLwuoJyJ/q8f2/y7x0gyovrA3AmvcqDjEzl4KkjcrdVrHfw5QVlqB69RnqU1tBY4Yk1DJ/yEShcQPTSVfp4eyeWuHSVcOfSa17THb18zhcq/+jwtjyikv09Rv480xVgU5Lg5Se0fNzFnAf8XQhMR85Ddr4I=
+Received: from PH7PR17CA0069.namprd17.prod.outlook.com (2603:10b6:510:325::29)
+ by CH3PR12MB8186.namprd12.prod.outlook.com (2603:10b6:610:129::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9478.4; Mon, 5 Jan
+ 2026 21:00:11 +0000
+Received: from CY4PEPF0000EE36.namprd05.prod.outlook.com
+ (2603:10b6:510:325:cafe::1) by PH7PR17CA0069.outlook.office365.com
+ (2603:10b6:510:325::29) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9478.4 via Frontend Transport; Mon, 5
+ Jan 2026 21:00:10 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ CY4PEPF0000EE36.mail.protection.outlook.com (10.167.242.42) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9499.1 via Frontend Transport; Mon, 5 Jan 2026 21:00:10 +0000
+Received: from [172.31.132.101] (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Mon, 5 Jan
+ 2026 15:00:07 -0600
+Message-ID: <c4962282-d9d7-4aa4-8527-f7e42ae8963b@amd.com>
+Date: Mon, 5 Jan 2026 15:00:06 -0600
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20251225042915.334117-1-me@linux.beauty> <20251225042915.334117-2-me@linux.beauty>
-In-Reply-To: <20251225042915.334117-2-me@linux.beauty>
-From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Fri, 2 Jan 2026 13:29:59 +0100
-X-Gm-Features: AQt7F2pkDTCumQCutZu713NbzDLbaUdN-VN1zrM4hEgQJfHH3moax5fk1W1gX08
-Message-ID: <CAM9Jb+jvbEQ48=abnQDKwtTEBtuJ0im8SVP+BwTQz-OLh9g6mQ@mail.gmail.com>
-Subject: Re: [PATCH V2 1/5] nvdimm: virtio_pmem: always wake -ENOSPC waiters
-To: Li Chen <me@linux.beauty>
-Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev, 
-	virtualization@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	"Michael S . Tsirkin" <mst@redhat.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 2/7] libcxl: Add CXL protocol errors
+To: Alison Schofield <alison.schofield@intel.com>
+CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<dave.jiang@intel.com>
+References: <20251215213630.8983-1-Benjamin.Cheatham@amd.com>
+ <20251215213630.8983-3-Benjamin.Cheatham@amd.com>
+ <aUTW1pvDvKMRqWPh@aschofie-mobl2.lan>
+Content-Language: en-US
+From: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>
+In-Reply-To: <aUTW1pvDvKMRqWPh@aschofie-mobl2.lan>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000EE36:EE_|CH3PR12MB8186:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2bd9f55b-42eb-4281-503e-08de4c9d69dc
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700013|376014|82310400026|1800799024;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?d29DYzhLOTZ4OUM2UXRFVzhlUVphcVlTOC82V0U0Mmp0MUpsNnlsbUgrQzlq?=
+ =?utf-8?B?b1gyUlB2dVlHVTNBS3RmZTBIZjlHUEVYaE4yM2FNa3kzWDI1TFpQTUdPWXlr?=
+ =?utf-8?B?ZVYyU2lLQmVDcHNvUzIwZjRmczl6a1NQL2lwRHl6aDBsbENTNGJnZktld3ZR?=
+ =?utf-8?B?RmtLa1VrYk1LU2c5cHRyY3RCR3RiRHVjOGlPbkUrZnpHVjA3aFV0Yml4SEN6?=
+ =?utf-8?B?NmtTUmU4WWpGNnZkUm1vS0o1dDYyODVpaTRqTGRUK2VPLy9vYzhYSTlGbTF3?=
+ =?utf-8?B?R2dkb3o4VDlmYzI3R1JLbjZGNGhaZlY1NTFJSllGd2NUNGQwVjRId3NvU1Ar?=
+ =?utf-8?B?L0JSZVJTRnA2RDNTdWFnYUV6aS9UeC9STEQ5ME55NmcraDhCWkhvS1B6L2Ev?=
+ =?utf-8?B?MUtlTFNsTDZBOGtUanNQbWlvOGJiTjZ3ZmtSaFVKeG84bkg2MnJ2QkpHZkhj?=
+ =?utf-8?B?azU5aXdqQlFCRzBmOWE3N2pkZXYvM1V3RFkyb2d2RVo4WjhNbGIvbHRySmNO?=
+ =?utf-8?B?L29hTTNtMkxXS3g2bUFUVi8vSXRqc3dGVkRHRi9tOG14SjRVVWJpOGFlQy8v?=
+ =?utf-8?B?bkpNUWt0aURPZkxKMDZ2N09Pd1hCSlNERGdmZWpGQVZIcSs2RlgzZk5EalVx?=
+ =?utf-8?B?WGpIci8zNVVuT3AvbWc4a3RiSGpNR1JkWnRyc1FkdDY5bmp2Ykt6ZHZoc01y?=
+ =?utf-8?B?RGFKUXh1OEVmVVg2OER1TEI3UnQzQ2NkYUdpejA3aWxLTFJvNEtCZW9CNlAr?=
+ =?utf-8?B?ZzlyTlpkRThVVmt3SDcwTitJRFVuY1FFeW8zWmQ2a1ROcmQ5d0lIUHM4OEJv?=
+ =?utf-8?B?YjZRbmNTZk94MjFjRUovYjErMUROa3RaNTR2MUMwcjgwUHBtQWoyMWpFQzcv?=
+ =?utf-8?B?TG53N0RBOHJOOFR1NTRuZ2FMK2NKWTQ4d0pGOVJadzFucUxHd3RqOTl4d2p3?=
+ =?utf-8?B?N1R2TjgvQUhET215MHpZRzZCU3lIVFhzQzdGYSsyZS9ZNzFvS0tFeTR3WkNV?=
+ =?utf-8?B?V25lM3pYSE1JY3BOOTEvamloQU1WWmsxZ1ZkQXdCNzVESzJMNDBzMTV5RG1a?=
+ =?utf-8?B?VURtMXFXalF0cDJJWTNzbmFPczdvdXZiMjJ2S1hpS3hNZURYK1hzWTRZTHh4?=
+ =?utf-8?B?TUhmZ3REZGJNVmU3L3VHallneDBIRFlBRVY4TDhaNzJlTUFkU09jajVCS3dK?=
+ =?utf-8?B?VkRqcWoxaVlJbVVCcUNFdkVBcVNRR0Jvd2lFbnFwb3ZSN2pVYlgvYzNNWTV2?=
+ =?utf-8?B?c2tkaU1wQnU4WlNPT0wxZWZ0dm0rS2dUOVlwNHYxM3lVUlRyRVFJREptZ0tw?=
+ =?utf-8?B?SEVuTjhwNGVZK2FpZE9UUy8wRTVoSHR3RnBoSGl6Y1lBSHAwZTk3NlhicnFN?=
+ =?utf-8?B?VGx5N1MzOEtkWUo2WnVjMUFjSGY1R1lsNUVtWi92eUJxZ3hhQnFCY1FFLzZ4?=
+ =?utf-8?B?SzhqaENYUm1IQjAyYXN4UlRibFQwZy9sR0cwdFZEQ3RFRFV2enhtUVYvZjk1?=
+ =?utf-8?B?SGNkaFU0QkhmdTZ2MjYrenlwV2F0bThPL0dkU1ZFbHBaVDdBUmZWc0ttdy82?=
+ =?utf-8?B?bFU1RS9TRnFFam1vR2M3Rk1PbHFwWXlLNk9jMjlLbEEwR0hvQlovSmxUT0RZ?=
+ =?utf-8?B?Yndac0FjQlhla1dNSmlUdTczYVViQk9zeGkzeFcyMDJPWkZ1aW5tRjNGd1JB?=
+ =?utf-8?B?dnJaQWZYczFHazhLYzVUN2RLb3Z2cmpsYTVXRU53Y1BYNXRSb0lFVU5MTzk4?=
+ =?utf-8?B?WGNwTUFTZWlYdU4vZTNTUG9HY2l6R3c4UzcrcE1aaU5pVzlIaDdtRHRrNVBt?=
+ =?utf-8?B?Zi9vclFkcTNoZ1NQSitMTmY2MGoyNmh0NnZSdmlKaGVXTDlWbnFlaVNvUEha?=
+ =?utf-8?B?UWxCL2ZhZ3F3QWZFWkM4ZE9qdW1EK1daYmhIeXZNTlBrVmU2YkFOcy9kUDlL?=
+ =?utf-8?B?RS9nV25aYTJjbWhLZUJuTnRHT2VXWlVIUjMreWVaTnpSaDBUeHhrRnZYcmJI?=
+ =?utf-8?B?REk4dWhVaXpIc3lGb1kwZ25aVFdGeEdRck0wSEFnNDJzTHNJdXRHSEJibzJB?=
+ =?utf-8?B?Y1lUK2FnMm1pZWJBbTcxUHBWNkhxVWt1TWxHZUN4THpxUVp6YjhMS3RkSExw?=
+ =?utf-8?Q?+MfE=3D?=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(376014)(82310400026)(1800799024);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Jan 2026 21:00:10.1939
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2bd9f55b-42eb-4281-503e-08de4c9d69dc
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CY4PEPF0000EE36.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8186
 
-+CC MST
-> virtio_pmem_host_ack() reclaims virtqueue descriptors with
-> virtqueue_get_buf(). The -ENOSPC waiter wakeup is tied to completing the
-> returned token.
->
-> If token completion is skipped for any reason, reclaimed descriptors may
-> not wake a waiter and the submitter may sleep forever waiting for a free
-> slot.
->
-> Always wake one -ENOSPC waiter for each virtqueue completion before
-> touching the returned token.
->
-> Use READ_ONCE()/WRITE_ONCE() for the wait_event() flags (done and
-> wq_buf_avail). They are observed by waiters without pmem_lock, so make
-> the accesses explicit single loads/stores and avoid compiler
-> reordering/caching across the wait/wake paths.
->
-> Signed-off-by: Li Chen <me@linux.beauty>
-> ---
->  drivers/nvdimm/nd_virtio.c | 35 +++++++++++++++++++++--------------
->  1 file changed, 21 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-> index c3f07be4aa22..6f9890361d0b 100644
-> --- a/drivers/nvdimm/nd_virtio.c
-> +++ b/drivers/nvdimm/nd_virtio.c
-> @@ -9,26 +9,33 @@
->  #include "virtio_pmem.h"
->  #include "nd.h"
->
-> +static void virtio_pmem_wake_one_waiter(struct virtio_pmem *vpmem)
-> +{
-> +       struct virtio_pmem_request *req_buf;
-> +
-> +       if (list_empty(&vpmem->req_list))
-> +               return;
-> +
-> +       req_buf = list_first_entry(&vpmem->req_list,
-> +                                 struct virtio_pmem_request, list);
+On 12/18/2025 10:38 PM, Alison Schofield wrote:
+> On Mon, Dec 15, 2025 at 03:36:25PM -0600, Ben Cheatham wrote:
+> 
+> snip
+> 
+>>  
+>> +const struct cxl_protocol_error cxl_protocol_errors[] = {
+>> +	CXL_PROTOCOL_ERROR(12, "cache-correctable"),
+>> +	CXL_PROTOCOL_ERROR(13, "cache-uncorrectable"),
+>> +	CXL_PROTOCOL_ERROR(14, "cache-fatal"),
+>> +	CXL_PROTOCOL_ERROR(15, "mem-correctable"),
+>> +	CXL_PROTOCOL_ERROR(16, "mem-uncorrectable"),
+>> +	CXL_PROTOCOL_ERROR(17, "mem-fatal")
+>> +};
+> 
+> Can the above 'num' fields be the same nums as sysfs emits?
+> ie. s/12/0x00001000
 
-[...]
-> +       list_del_init(&req_buf->list);
-> +       WRITE_ONCE(req_buf->wq_buf_avail, true);
-> +       wake_up(&req_buf->wq_buf);
+Sure! I'll change it.
 
-Seems with the above change (3 line fix), you are allowing to wakeup a waiter
-before accessing the token. Maybe simplify the patch by just
-keeping this change in the single patch & other changes (READ_ONCE/WRITE_ONCE)
-onto separate patch with corresponding commit log.
+> 
+> Then no BIT(X) needed in the look ups and reads as more obvious
+> mapping from sysfs, where it looks like this:
+> 
+> 0x00001000	CXL.cache Protocol Correctable
+> 0x00002000	CXL.cache Protocol Uncorrectable non-fatal
+> 0x00004000	CXL.cache Protocol Uncorrectable fatal
+> 0x00008000	CXL.mem Protocol Correctable
+> 0x00010000	CXL.mem Protocol Uncorrectable non-fatal
+> 0x00020000	CXL.mem Protocol Uncorrectable fatal
+> 
+> A spec reference for those would be useful too.
+
+Will add.
+
+> 
+> I notice that the cxl list emit of einj_types reverses the order that
+> is presented in sysfs. Would be nice to match.
+> 
+
+Yeah, I'll update it.
+
+> 
+> snip
+>> +
+>> +CXL_EXPORT int cxl_dport_protocol_error_inject(struct cxl_dport *dport,
+>> +					       unsigned int error)
+>> +{
+>> +	struct cxl_ctx *ctx = dport->port->ctx;
+>> +	char buf[32] = { 0 };
+>> +	size_t path_len, len;
+>> +	char *path;
+>> +	int rc;
+>> +
+>> +	if (!ctx->debugfs)
+>> +		return -ENOENT;
+>> +
+>> +	path_len = strlen(ctx->debugfs) + 100;
+>> +	path = calloc(path_len, sizeof(char));
+>> +	if (!path)
+>> +		return -ENOMEM;
+>> +
+>> +	len = snprintf(path, path_len, "%s/cxl/%s/einj_inject", ctx->debugfs,
+>> +		      cxl_dport_get_devname(dport));
+>> +	if (len >= path_len) {
+>> +		err(ctx, "%s: buffer too small\n", cxl_dport_get_devname(dport));
+>> +		free(path);
+>> +		return -ENOMEM;
+>> +	}
+>> +
+>> +	rc = access(path, F_OK);
+>> +	if (rc) {
+>> +		err(ctx, "failed to access %s: %s\n", path, strerror(errno));
+>> +		free(path);
+>> +		return -errno;
+>> +	}
+>> +
+>> +	len = snprintf(buf, sizeof(buf), "0x%lx\n", BIT(error));
+>> +	if (len >= sizeof(buf)) {
+>> +		err(ctx, "%s: buffer too small\n", cxl_dport_get_devname(dport));
+>> +		free(path);
+>> +		return -ENOMEM;
+>> +	}
+>> +
+>> +	rc = sysfs_write_attr(ctx, path, buf);
+>> +	if (rc) {
+>> +		err(ctx, "failed to write %s: %s\n", path, strerror(-rc));
+>> +		free(path);
+>> +		return -errno;
+>> +	}
+> 
+> Coverity scan reports missing free(path) before return.
+
+Yep, forgot the success case :/.
 
 Thanks,
-Pankaj
+Ben
 
-> +}
-> +
->   /* The interrupt handler */
->  void virtio_pmem_host_ack(struct virtqueue *vq)
->  {
->         struct virtio_pmem *vpmem = vq->vdev->priv;
-> -       struct virtio_pmem_request *req_data, *req_buf;
-> +       struct virtio_pmem_request *req_data;
->         unsigned long flags;
->         unsigned int len;
->
->         spin_lock_irqsave(&vpmem->pmem_lock, flags);
->         while ((req_data = virtqueue_get_buf(vq, &len)) != NULL) {
-> -               req_data->done = true;
-> +               virtio_pmem_wake_one_waiter(vpmem);
-> +               WRITE_ONCE(req_data->done, true);
->                 wake_up(&req_data->host_acked);
-> -
-> -               if (!list_empty(&vpmem->req_list)) {
-> -                       req_buf = list_first_entry(&vpmem->req_list,
-> -                                       struct virtio_pmem_request, list);
-> -                       req_buf->wq_buf_avail = true;
-> -                       wake_up(&req_buf->wq_buf);
-> -                       list_del(&req_buf->list);
-> -               }
->         }
->         spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
->  }
-> @@ -58,7 +65,7 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
->         if (!req_data)
->                 return -ENOMEM;
->
-> -       req_data->done = false;
-> +       WRITE_ONCE(req_data->done, false);
->         init_waitqueue_head(&req_data->host_acked);
->         init_waitqueue_head(&req_data->wq_buf);
->         INIT_LIST_HEAD(&req_data->list);
-> @@ -79,12 +86,12 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
->                                         GFP_ATOMIC)) == -ENOSPC) {
->
->                 dev_info(&vdev->dev, "failed to send command to virtio pmem device, no free slots in the virtqueue\n");
-> -               req_data->wq_buf_avail = false;
-> +               WRITE_ONCE(req_data->wq_buf_avail, false);
->                 list_add_tail(&req_data->list, &vpmem->req_list);
->                 spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
->
->                 /* A host response results in "host_ack" getting called */
-> -               wait_event(req_data->wq_buf, req_data->wq_buf_avail);
-> +               wait_event(req_data->wq_buf, READ_ONCE(req_data->wq_buf_avail));
->                 spin_lock_irqsave(&vpmem->pmem_lock, flags);
->         }
->         err1 = virtqueue_kick(vpmem->req_vq);
-> @@ -98,7 +105,7 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
->                 err = -EIO;
->         } else {
->                 /* A host response results in "host_ack" getting called */
-> -               wait_event(req_data->host_acked, req_data->done);
-> +               wait_event(req_data->host_acked, READ_ONCE(req_data->done));
->                 err = le32_to_cpu(req_data->resp.ret);
->         }
->
-> --
-> 2.52.0
->
+> 
+> 
+>> +
+>> +	return 0;
+>> +}
+>> +
+
