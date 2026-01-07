@@ -1,64 +1,64 @@
 Received: from mail-oi1-f178.google.com (mail-oi1-f178.google.com [209.85.167.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C76D139340A
-	for <nvdimm@lists.linux.dev>; Wed,  7 Jan 2026 15:34:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD47D39447A
+	for <nvdimm@lists.linux.dev>; Wed,  7 Jan 2026 15:34:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767800058; cv=none; b=k++4cdGgCpCrIzPkh6FlvdHvTCMMPC4KrArQzi0XvvSS2NSN4Hq/A1u6cM+eRhPJPenLauZXe0u4TvQ3lrNRUqCCQhAPC9kAs5/Njvy/O+tER9f5ZO5VABsjDEtw/HxlrzM97SNjB5t6tBoCROW4T04Ulfx6WqnwpLKI/l05bG8=
+	t=1767800061; cv=none; b=BENcLF/HSMWXsWoYxZ5a1a9dASdwFVhIedyLTZsTfvYQRcJdG5gAKKhy6/D4RqUQS2q/aYy5pVSxa0sNXjTRO9HP7sSFWYwa+m+ilzyGCKNPXzQ4IQ2bNYqQtFrXfJyx17tyQpuDXdCqUWTmjxZy+iYQG0hbzA7pW02+hf9Si/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767800058; c=relaxed/simple;
-	bh=duMgT7bdepQi0N/0JRMDje1jrbfU026HoAJQ/LhmjsY=;
+	s=arc-20240116; t=1767800061; c=relaxed/simple;
+	bh=eVZvTKoGzS9QT9AZIVcrZZeY/VZ69Zoen8NpofDAoxQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=W4Na9lAdN5v4jni8Mk2zTeLtKafv4kh1jop0LvFEKgQX6UuVCv58O5G0etqcX4awp8V6m2JKyCHkDwqEGfNIGBEdxYEZNqQrybhmAWSnq6OJfCXdYxKFuc4uXVOPPaj/RH1qocgocSoHBsqheZcO35sQw4kv0z16GcY3MZhucHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kXdiDqO5; arc=none smtp.client-ip=209.85.167.178
+	 MIME-Version; b=Btdcu3zhSsptCd7AmnkQYgygdM3IauQ5BsDOCLGjwxJIYjjsZ1F8PP3lo8Ishh90XgYBKMpE2iszY4daLfNxopvgrEpljQEbdLXhGQRv83BLYDfHNB3YaVzWZELk2HxvR/L/PTxpYwXfB1lRM6pkJg3qTaNGp9mVcBVO0edHrSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HDja4cRV; arc=none smtp.client-ip=209.85.167.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kXdiDqO5"
-Received: by mail-oi1-f178.google.com with SMTP id 5614622812f47-455a461ab6eso929812b6e.2
-        for <nvdimm@lists.linux.dev>; Wed, 07 Jan 2026 07:34:16 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HDja4cRV"
+Received: by mail-oi1-f178.google.com with SMTP id 5614622812f47-44ffed84cccso586869b6e.0
+        for <nvdimm@lists.linux.dev>; Wed, 07 Jan 2026 07:34:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767800056; x=1768404856; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1767800058; x=1768404858; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=DvpvNKjuheK6bNSoVUbkdsgMg3JblqnFA9UfzPx8aEA=;
-        b=kXdiDqO5YQZfUegyQGZJ4KZP/85TUBTCYrDF4yRxWTStfBNHiv3+iMe0XDBlmMk4f/
-         F7jQPe0cs9TefNBu1hn4gz/1csAT0Q0LFxokUUuL5G3Z+Q8sCPsnV8HL64FtDy7C+5H6
-         2/MaN9cyNKCMExuk95NsoMbk+bHPPBHhqlidslzWehmwq/GpUNcWD6GZ2Hik5QuCiiuk
-         QrhJkfU5LRVKhaIdCsyw3/P/qtJq7aYc/+mKkEEolzbP1JKtTFxV3BDsZkTe2UrET14Z
-         L9ZWtmcEFZfxBIgnTHwBVNDkg+kmPJLx+Nwivb2sIX0OkWXGa7vE7YKw1xE/goCgTdZl
-         46eQ==
+        bh=ioRMhdbsJjC8v5pL1MPtuv/dIU5BMDQOIZe20AJ80PY=;
+        b=HDja4cRVsEFo4J5abWTF5QKSAtsPHKk7xtfvfcoo9e+ANRRG2jndgOkC57Zfop608h
+         dJ1U1a9Ceyzk2uvFHIKLf5Wh/RhgACimtHKXuyQA3AasoXDQG5dOtdenisvDyVm3QoH3
+         tpufLEHF4VxgLUAGBsM9KMYZogb2QVam50pCKCWDBMlM0NJTYsBFlOjKIxegT3JsSmdz
+         NqhoR9li/4wfHMN8Kwmg/70GFQrThrBpdJruTt/m25WxgjuiCpuXcH9AFj/qo6Hk7WpP
+         t7ZAhIF9CA1LYfEpu7msBIRMlF2zP2h9JuqJ+YzccJML/GsUypLt6jDkNnqFy2YDoQ6y
+         ithg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767800056; x=1768404856;
+        d=1e100.net; s=20230601; t=1767800058; x=1768404858;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=DvpvNKjuheK6bNSoVUbkdsgMg3JblqnFA9UfzPx8aEA=;
-        b=iCQ0LO6Y9oxeL7GsZzGhCnRjrq3No8hSv0aRhJg9Kul4TGRQnViqaSSVtI8cRotklv
-         Bg33pOUGoFCaGwKZepOXEBhinbjEo0m0Z7pGEk59JrJ96KyiqeMGHRGj8BrvMx5AJJkj
-         WBUARvqJRA5e2lyhrGNYPtiIqb9H13mf9u2CVef9ar0Jfe24uOk0RNGT3q888hJybekL
-         fPCcNqWOMBEpcXPmiWVrvMQNoIHO/4hvCFaUrkF1R026NlP/U5D6T9W6dn9koU/GBNLb
-         77rOPbKgfRFprcdBcVzMyHm9HZOO/v5lsrCndoJjZtpttaugNHGFAb6fq3+N35K6711Y
-         CKMQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW50/vmhVg+rq1HDvHeBf6SHVtt/FDRfdvyUpz7mj1ADuRhg2T56HBDNzx7FD0mI0H3XekkQ5o=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyEBD0m/niSJwl2z3xVmRfv5pYszshyKSAABXpElyfKi8zbFOJE
-	1ybEeMexdQS+DlCwoJu1jaz35UM6ol8jB9JiSmhM//+Br6HIvDuj9gOx
-X-Gm-Gg: AY/fxX7OlgCKO94OOhHuoOe+PO/P7lsFj1IctjMPjbInRhC3RhuWDm/kebe4I3sDCyw
-	1RUXJqx7taIYph7+h9P8u5Z7TyjAZxxGjl5YRI2WjsA0gqTOfziOjNJqdF2dJUEfrJf8eO7vIXT
-	RsXQRC4V6owMoWp0mgmh9RoPD3M8u+6W3j0yHqx2zJEnHQaLalUZcV04QfUzXb/TYT/iB+nxITw
-	KqsMtFf7b/Sd4DOYDeQpTmXsoYRwRTIPK7dwnK28s/Z+mg6Uw4Mfbdz47QfkK34JKwm8vEeZ+uF
-	FPDxOiXxwJgiWrObD3M9X+rRkC2xLP/vU50belZ7gvDIgCi8a2jGkMXhVae0K7YZ8D/sOq0IjAG
-	0UlrpVq7oA0fzb4/jw+HVkTOf2Q8gbSJjr+I7uUQCmCbAdLoXWcelOU3PE5Pklc5m67s9MqPCyJ
-	rAgQlNv/soBwNqspMejfUcClcbnQ0dwmkfVcuATLbzXlsP
-X-Google-Smtp-Source: AGHT+IH/ERiPsB3hUWVBd46Q+0Jhbm8DG3SRCThraKFEJm6cv2tmGnQM3WnzxXsB8duHZXMQqQd33g==
-X-Received: by 2002:a05:6808:c1f2:b0:44f:e49e:8e42 with SMTP id 5614622812f47-45a6bef202emr1051295b6e.48.1767800055714;
-        Wed, 07 Jan 2026 07:34:15 -0800 (PST)
+        bh=ioRMhdbsJjC8v5pL1MPtuv/dIU5BMDQOIZe20AJ80PY=;
+        b=oqEu9y+5dbloPAgri37NUk6PI8HVUM7vD10kuPAJltYpISSiwfxkVi6Vpz9IVEYrrz
+         kO6wYQXaD8NnHtaZEqN5aJ6A/wBRi4+WuxL/9tIx+Tz5/r0Fk3/PxNx67+XDxi92wv9o
+         Zv5EDcFKhZhZ644JdAfOl14JIRri+dYifn6L/VPfJZW4pQ3D2+fe2liFky2OPCMhQsY/
+         J4m5d4CCcnu4G6qF+V3w7V46nRvexINNwlbMI21FtMz6cwncEIB2WHW4WHCgQJwAQufR
+         K2G2KfUh9ZeibDiIvsfVJ0+U9ZgY9GkQJBgGT2ehBtgHAnMWRKaYoYRVe3XlzTarE+rH
+         3Rag==
+X-Forwarded-Encrypted: i=1; AJvYcCVPajuEvyTgN5RnouGHn2sIfjEDgW//vPkkyeNHWsr62rV7J7M+9bwOugheA7duOi1L+2LHb54=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzBPJe9YpVIXqvcs5F4dQ8tbH0SrvHOuOILvYZRFq8Ylh83bClY
+	BQiSyviiXM5hbztd1QybfcjsZu8AVheB8J3EL9UtQP2OTw2+J4sitw3z
+X-Gm-Gg: AY/fxX5Yca1ifYQSCTa6bInJEP4gx9NPVzHVP390uvDKLfc93E5EUmHV69QWDAEkBbe
+	6eddGLFz0dEwHszKwsic/wnGLEhHz9WRTqdx6ICeoBTL5NH+/o3Zl2WGE/D9BI/NrBYofry4j5t
+	EzC4UQbXMya9mPsIEfjvKh6A3BbwXpHXqPgxgn6uNFhaJ8LV19aw/wIelIJsFqK4/D5ClGAcFTw
+	Rcg1Tc1MKKPfZ0XZHGwRfrE5mOfLUcB3LGiSOjuhfm3E3a7e6yopymla8Ea87T04wQXw8N16tyR
+	frCyxzq+8YNooQAdm9ipvy9TBtqslGtUAubWMtAUrYnitIj0ihgDDJ8JLkCgeJiPa10wYA+VJ3U
+	g/nT+j/y71xENzpoPfnq8Y/25QCFR90jU4e4lTDWCzXc4ro119ygdnDW9iZukU20R82RQKYZH/v
+	VwqDlMP5P/tPAQ6SIQGqfwvesMmjj/siYNv+M2xK7HZGhh
+X-Google-Smtp-Source: AGHT+IG/OP1ZeA8RVwGBd2hiwLTF8z2bJWxQ5Kax1EN4BvyeAQ3tR8TZf8cyaewyY/AtJiZ/nDb6hw==
+X-Received: by 2002:a05:6808:3442:b0:453:f62:dddc with SMTP id 5614622812f47-45a6bccd815mr1304391b6e.7.1767800058505;
+        Wed, 07 Jan 2026 07:34:18 -0800 (PST)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:a917:5124:7300:7cef])
-        by smtp.gmail.com with ESMTPSA id 5614622812f47-45a5e2f1de5sm2398106b6e.22.2026.01.07.07.34.13
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-45a5e2f1de5sm2398106b6e.22.2026.01.07.07.34.16
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 07 Jan 2026 07:34:15 -0800 (PST)
+        Wed, 07 Jan 2026 07:34:18 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -101,9 +101,9 @@ Cc: John Groves <jgroves@micron.com>,
 	linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org,
 	John Groves <john@groves.net>
-Subject: [PATCH V3 12/21] famfs_fuse: Basic fuse kernel ABI enablement for famfs
-Date: Wed,  7 Jan 2026 09:33:21 -0600
-Message-ID: <20260107153332.64727-13-john@groves.net>
+Subject: [PATCH V3 13/21] famfs_fuse: Famfs mount opt: -o shadow=<shadowpath>
+Date: Wed,  7 Jan 2026 09:33:22 -0600
+Message-ID: <20260107153332.64727-14-john@groves.net>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20260107153332.64727-1-john@groves.net>
 References: <20260107153244.64703-1-john@groves.net>
@@ -116,86 +116,151 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-* FUSE_DAX_FMAP flag in INIT request/reply
-
-* fuse_conn->famfs_iomap (enable famfs-mapped files) to denote a
-  famfs-enabled connection
+The shadow path is a (usually in tmpfs) file system area used by the
+famfs user space to communicate with the famfs fuse server. There is a
+minor dilemma that the user space tools must be able to resolve from a
+mount point path to a shadow path. Passing in the 'shadow=<path>'
+argument at mount time causes the shadow path to be exposed via
+/proc/mounts, Solving this dilemma. The shadow path is not otherwise
+used in the kernel.
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- fs/fuse/fuse_i.h          | 3 +++
- fs/fuse/inode.c           | 6 ++++++
- include/uapi/linux/fuse.h | 5 +++++
- 3 files changed, 14 insertions(+)
+ fs/fuse/fuse_i.h | 25 ++++++++++++++++++++++++-
+ fs/fuse/inode.c  | 28 +++++++++++++++++++++++++++-
+ 2 files changed, 51 insertions(+), 2 deletions(-)
 
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 17736c0a6d2f..ec2446099010 100644
+index ec2446099010..84d0ee2a501d 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
-@@ -921,6 +921,9 @@ struct fuse_conn {
- 	/* Is synchronous FUSE_INIT allowed? */
- 	unsigned int sync_init:1;
+@@ -620,9 +620,11 @@ struct fuse_fs_context {
+ 	unsigned int blksize;
+ 	const char *subtype;
  
-+	/* dev_dax_iomap support for famfs */
-+	unsigned int famfs_iomap:1;
+-	/* DAX device, may be NULL */
++	/* DAX device for virtiofs, may be NULL */
+ 	struct dax_device *dax_dev;
+ 
++	const char *shadow; /* famfs - null if not famfs */
 +
- 	/* Use io_uring for communication */
- 	unsigned int io_uring;
+ 	/* fuse_dev pointer to fill in, should contain NULL on entry */
+ 	void **fudptr;
+ };
+@@ -998,6 +1000,18 @@ struct fuse_conn {
+ 		/* Request timeout (in jiffies). 0 = no timeout */
+ 		unsigned int req_timeout;
+ 	} timeout;
++
++	/*
++	 * This is a workaround until fuse uses iomap for reads.
++	 * For fuseblk servers, this represents the blocksize passed in at
++	 * mount time and for regular fuse servers, this is equivalent to
++	 * inode->i_blkbits.
++	 */
++	u8 blkbits;
++
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	char *shadow;
++#endif
+ };
  
+ /*
+@@ -1631,4 +1645,13 @@ extern void fuse_sysctl_unregister(void);
+ #define fuse_sysctl_unregister()	do { } while (0)
+ #endif /* CONFIG_SYSCTL */
+ 
++/* famfs.c */
++
++static inline void famfs_teardown(struct fuse_conn *fc)
++{
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	kfree(fc->shadow);
++#endif
++}
++
+ #endif /* _FS_FUSE_I_H */
 diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index ed667920997f..acabf92a11f8 100644
+index acabf92a11f8..2e0844aabbae 100644
 --- a/fs/fuse/inode.c
 +++ b/fs/fuse/inode.c
-@@ -1456,6 +1456,10 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
+@@ -783,6 +783,9 @@ enum {
+ 	OPT_ALLOW_OTHER,
+ 	OPT_MAX_READ,
+ 	OPT_BLKSIZE,
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	OPT_SHADOW,
++#endif
+ 	OPT_ERR
+ };
  
- 			if (flags & FUSE_REQUEST_TIMEOUT)
- 				timeout = arg->request_timeout;
+@@ -797,6 +800,9 @@ static const struct fs_parameter_spec fuse_fs_parameters[] = {
+ 	fsparam_u32	("max_read",		OPT_MAX_READ),
+ 	fsparam_u32	("blksize",		OPT_BLKSIZE),
+ 	fsparam_string	("subtype",		OPT_SUBTYPE),
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	fsparam_string("shadow",		OPT_SHADOW),
++#endif
+ 	{}
+ };
+ 
+@@ -892,6 +898,15 @@ static int fuse_parse_param(struct fs_context *fsc, struct fs_parameter *param)
+ 		ctx->blksize = result.uint_32;
+ 		break;
+ 
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	case OPT_SHADOW:
++		if (ctx->shadow)
++			return invalfc(fsc, "Multiple shadows specified");
++		ctx->shadow = param->string;
++		param->string = NULL;
++		break;
++#endif
 +
-+			if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&
-+			    flags & FUSE_DAX_FMAP)
-+				fc->famfs_iomap = 1;
- 		} else {
- 			ra_pages = fc->max_read / PAGE_SIZE;
- 			fc->no_lock = 1;
-@@ -1517,6 +1521,8 @@ static struct fuse_init_args *fuse_new_init(struct fuse_mount *fm)
- 		flags |= FUSE_SUBMOUNTS;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -905,6 +920,7 @@ static void fuse_free_fsc(struct fs_context *fsc)
+ 
+ 	if (ctx) {
+ 		kfree(ctx->subtype);
++		kfree(ctx->shadow);
+ 		kfree(ctx);
+ 	}
+ }
+@@ -936,7 +952,10 @@ static int fuse_show_options(struct seq_file *m, struct dentry *root)
+ 	else if (fc->dax_mode == FUSE_DAX_INODE_USER)
+ 		seq_puts(m, ",dax=inode");
+ #endif
+-
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	if (fc->shadow)
++		seq_printf(m, ",shadow=%s", fc->shadow);
++#endif
+ 	return 0;
+ }
+ 
+@@ -1041,6 +1060,8 @@ void fuse_conn_put(struct fuse_conn *fc)
+ 		WARN_ON(atomic_read(&bucket->count) != 1);
+ 		kfree(bucket);
+ 	}
++	famfs_teardown(fc);
++
  	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
- 		flags |= FUSE_PASSTHROUGH;
-+	if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-+		flags |= FUSE_DAX_FMAP;
+ 		fuse_backing_files_free(fc);
+ 	call_rcu(&fc->rcu, delayed_release);
+@@ -1916,6 +1937,11 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
+ 		*ctx->fudptr = fud;
+ 		wake_up_all(&fuse_dev_waitq);
+ 	}
++
++#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)
++	fc->shadow = kstrdup(ctx->shadow, GFP_KERNEL);
++#endif
++
+ 	mutex_unlock(&fuse_mutex);
+ 	return 0;
  
- 	/*
- 	 * This is just an information flag for fuse server. No need to check
-diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index c13e1f9a2f12..5e2c93433823 100644
---- a/include/uapi/linux/fuse.h
-+++ b/include/uapi/linux/fuse.h
-@@ -240,6 +240,9 @@
-  *  - add FUSE_COPY_FILE_RANGE_64
-  *  - add struct fuse_copy_file_range_out
-  *  - add FUSE_NOTIFY_PRUNE
-+ *
-+ *  7.46
-+ *    - Add FUSE_DAX_FMAP capability - ability to handle in-kernel fsdax maps
-  */
- 
- #ifndef _LINUX_FUSE_H
-@@ -448,6 +451,7 @@ struct fuse_file_lock {
-  * FUSE_OVER_IO_URING: Indicate that client supports io-uring
-  * FUSE_REQUEST_TIMEOUT: kernel supports timing out requests.
-  *			 init_out.request_timeout contains the timeout (in secs)
-+ * FUSE_DAX_FMAP: kernel supports dev_dax_iomap (aka famfs) fmaps
-  */
- #define FUSE_ASYNC_READ		(1 << 0)
- #define FUSE_POSIX_LOCKS	(1 << 1)
-@@ -495,6 +499,7 @@ struct fuse_file_lock {
- #define FUSE_ALLOW_IDMAP	(1ULL << 40)
- #define FUSE_OVER_IO_URING	(1ULL << 41)
- #define FUSE_REQUEST_TIMEOUT	(1ULL << 42)
-+#define FUSE_DAX_FMAP		(1ULL << 43)
- 
- /**
-  * CUSE INIT request/reply flags
 -- 
 2.49.0
 
