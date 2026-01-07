@@ -1,64 +1,64 @@
-Received: from mail-oi1-f173.google.com (mail-oi1-f173.google.com [209.85.167.173])
+Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99CD739A7F8
-	for <nvdimm@lists.linux.dev>; Wed,  7 Jan 2026 15:35:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F4AC25BEE5
+	for <nvdimm@lists.linux.dev>; Wed,  7 Jan 2026 17:13:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767800114; cv=none; b=pVELvlOnA55Le8SwyW+QiWKuBCaltoYWNHGxHQC0jqO4WGq4Pjp7Ag0P9paI2KiSeksg2jBiApw7NlCiocLdm40gXCVAKuzvJuDuA9M65OLnolaxnSKbidR7JLHhdnO0lONubL2lkECxhmc2+jH5QpesyEZtQvM+3xzZN3P5cbo=
+	t=1767806025; cv=none; b=m5CBwJTmvdfxxrsYKC13AmP0dfYPwHpa9MU4lu0vUSfoin2BOxceFLw8uDDlArlg1FEWKgsVZjAxnvsqFz8TW4uf6OW9fMm6uE3jkO75lfAmOXEXqBWM68KdXyP5iRbBsrzFfREbN6En35I0UXwaXrfTNxusKo2f40AKx4ruWug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767800114; c=relaxed/simple;
-	bh=UH7UVmm/ifZMz2a7ctzEVAj9QL1YqJfv9TEsJAmqvl0=;
+	s=arc-20240116; t=1767806025; c=relaxed/simple;
+	bh=yhcCIEmN2Tfyzu+dnQNfiM+iCJS7UZECUB107ub4/UI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=R9DIA036fU+/EJONMx/0EixYvJlHM/T37zx0wsnKSjY9OSBl2EjGUe7Z4MAr1X0IFJTcDvvGDIPWmP7UO95DNyNhIaI6Cvq8SFpnoK8ydZ/kf+HJtYWJWHPhgQpZebDPkg1Ir09TGV+sG8KzGRIibzHwUuA0qR8JSFo/VXPg3r0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ASWbio2i; arc=none smtp.client-ip=209.85.167.173
+	 MIME-Version; b=ThT652v/ejbV32u/JGmuZTrolYo4gv/IL9K43EnpTIJieK/mcNHuJrmx8GCOyzK3Kwf+BAzTxuSPWJ0fbv+aF54vtBtuGUMkTirBU7dbTy5FfCsxuAkjQ/Ovl8hbG3zAum8+lXhfF9Gt23KJLEXHT8e5UHg0GJp2vWEqjEUdGe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XGsSQDND; arc=none smtp.client-ip=209.85.160.176
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ASWbio2i"
-Received: by mail-oi1-f173.google.com with SMTP id 5614622812f47-459fa8b6044so1429170b6e.2
-        for <nvdimm@lists.linux.dev>; Wed, 07 Jan 2026 07:35:11 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XGsSQDND"
+Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-4eddfb8c7f5so22616531cf.1
+        for <nvdimm@lists.linux.dev>; Wed, 07 Jan 2026 09:13:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767800110; x=1768404910; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1767806022; x=1768410822; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ezmCIUYTCpc47N9MRFviC1UdzpKfkRUPsUPtXb573Uk=;
-        b=ASWbio2i3CtGWVqbnjzj45TdISGu8MTRg/KKVTrR6KRrHhaT+OWowd5qYz+vEyqErU
-         Oreya12j6wB/4MYbW/p+oKm1DaKy2nj95ELZl9/DFPXP1UYKSnUeJfPIFAJWs60np3l5
-         5hRyY2gAaCpoeqexeYC7XU/Ffz3rnfwmiF8zBROtPlFyxxTyJcWYxom6TeINnBix4KrN
-         3SOUnJSGolecOIDlB4ugD5sRAqRBAkkXsuJKQj7eJSoe0PZBoaEjvgWrCRrjQ+k6C9UQ
-         ouvEo/aSOLEAxDpvt9M0gILSacUzo9jWooK8f4EzTgfU0AjpD4fyWgEX4brUKnWN/Rzt
-         uhtw==
+        bh=NYCO0eJoVbD3YH1FLiCAgqRrwn5PztgMRBzzUwt58w0=;
+        b=XGsSQDNDXorN80gXthO+gYgSfFvruowAuxWa3pV93ellb1mGs3iQGoShe7MM8SLY2S
+         pMH85Nz3aXahGWdLb9zflBClKUb25NPZmOkx3VwpVNN+3Wa14i2CVyzNqmsAU2DmjCvY
+         tUyTfuxAIOjWqAk4Gctuh+fo0MDbKNrDRxj5mDtftYeRRHZkHfe623vj8VzMP/SfxjgO
+         EVFxCZfQzj+vSRq/66GB5vuB38qwczBI0YrIHJAu98lTd/uKNv0sC9qj7poB2asydErU
+         h/p7TkKIpV837PHyfpQFgJMXwkSNm0XqotMyCsnxXS6jonrBT46iT8S2DYlAm+CZOLiT
+         0xwQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767800110; x=1768404910;
+        d=1e100.net; s=20230601; t=1767806022; x=1768410822;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ezmCIUYTCpc47N9MRFviC1UdzpKfkRUPsUPtXb573Uk=;
-        b=gbp1/PQk1srffuNKqYLNlu8lRKqRyogDXaEIGKQ5P4yS9hFFYm/zxGIJIG0pnESAM2
-         HWYMCpME3to6uk3QX5rRCUv2/dc2IThE5x2bZshb7qMl3f9bmP2nbnnbsLHdacsOgitl
-         40MJMdUYsEv7kNnfXD1kUUz9wX2mddnFx8ttJ7ssszjgrRY3mG6q9T3Fhj+8t7SkAVEL
-         V6hUMDn0GZXu1vABeYmlLTcqTc9g4t7iD/kf+OspZNCNLGCkIZMZ69A/+lXH/RO6Pueh
-         S1vfTHQDieaIbsS5OLHanBggsvX5mpWZyySsq6HeFGkOyevhF4ggHu7IvaHf6ot75dJf
-         PMlw==
-X-Forwarded-Encrypted: i=1; AJvYcCWopNXG9IWtkT2lWdyNN28URSuHQeNnyNvHaXQqW9ruC7gFVLyPw9CZaVlMnfVPMWt+LioYdjk=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yylj4FxgtpFPNea/MARsYz2XX8CCE61nJtzgC4EP55UZw6JXNqm
-	FH68Rfy2ZjPIqKqqnsavyOcOVtP0W4Dutum6yroWAIL+MQGD8YjpRFXo
-X-Gm-Gg: AY/fxX53BGHWt2lMvvy16D7nDr2zEKWXMf5e1WB9fh/g3CTzEvvYoEF8daJNlIT1Rhv
-	rc42TwCHjcMnGK2mMSVaFAzp3c6u5YItLAlIwqvU1LVWJVvq/hRrLlkhi9TRXQB2UxzpLxc9rx/
-	dZiK1YROKs/ugU7ZSEsBKgrEJQaDTKACnCnRw8kMJ2kKzEZxtg0bWXf15d5o71/ezmQcJaYyCJU
-	a1CHxZ/D4EEF1gbr5v68if22yYq29bxvFy/He4RoAIAnlk3XFy+TzwPmrfkMEBPauUUOdo3sy2c
-	kWA0i34aRKKO5kkuRKzSTkrrtsHXoFyYBCszv21JV7PVmWAEa6LEyN39N0B1vAXVpbzJE8xqOhn
-	v3tVMvhDnGTMpiXAkLI/m9EuA900odBW9etRLge+PW9rSFM86IJ32NUrTQb1+2oaSO26+F3PgVR
-	KRMFFJVmicsv93SWZH6T3UUu2GH1mHsAX/MHBMSn+9+DpS
-X-Google-Smtp-Source: AGHT+IHvJerAp0F2qVu0ANwUQaq5jdMW03NUN3RN1p6cxOBwInFyFNG7vh1+02TkB75u28LmDWlVDQ==
-X-Received: by 2002:a05:6808:2208:b0:459:bcff:a9ff with SMTP id 5614622812f47-45a6be8b053mr1272252b6e.34.1767800109996;
-        Wed, 07 Jan 2026 07:35:09 -0800 (PST)
+        bh=NYCO0eJoVbD3YH1FLiCAgqRrwn5PztgMRBzzUwt58w0=;
+        b=FNyp9CXXwRiwT4R47/HK4Hf7hZkFgbOgHl3lChSTYesTwTk+UDiA9Oqia378/+a+hz
+         /xtVT2kiBuoaw/OirRLJ2tmr0bZexib0F3OA4RMkBboWMConMgNqS5FGqqLb1y1WV8dY
+         uc8srjAHgPL9iGl6dHfOde4YYMI9PgRoSMQsUD8t0wG2GheTwHnKOeOAyefeLmEXSJnX
+         8NTNQAFF53y7+ABlMsore3P+brfy7JJ5JWYlPL9eWIcuSOLvKvGXln0TapTa57hUduH0
+         /cV4WzPr0LRDmqBRdKCzNdhGYEgp03Anc8++VJRWmAKAafQeBnvgkQF0SN7y9PZGf4dg
+         /FbQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVK2LQu6EAC2qBMsksTAkapsFlutr1vYr3FpoIi6GNIHwOSRx/eAm+7ecvn/HtvHayCQWV+kYU=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzHhaPNimTnCU8w7AqtTThXcPNN2FsQ7OxGWM9yi/0SoIGYsn/d
+	rihfsufXR/a/X55wOt6z/MAYi+Y5xifOff1TfMV0PcC1sZNOGzx9Mlq6
+X-Gm-Gg: AY/fxX4iR+nHDAGVUB3I2lOHUEDOC560Qev7Uo53kkjtjgnbV/hoyTDDu0liIGB84Hc
+	P7ymEjX0juxGujKN/bCrBXl+z4UrsY/+9on3Npg8DnDeEhSRW6x2vd8csgNDXcHUCDwRavQEdym
+	h2quQ6/zdBACGG6j3xmBxSAd7YiNZowt5UUt0UzAQU/b89j+Nk4VFVIYdUiYxF/uMawDYc8MWt8
+	LwCuuL1627jmL3cg5vWySahNPTzfDyPEBKUFBgZN3UWvyClF7Ct/447X2ptDAaYNpr4Z2852PIR
+	sEtn6ezKBB9OYAR9Dn6eD5EZY6eRJtEiamVRMrSid/4ZLF5XO/rx0ZBl1AZtmwQDUpxe23IlFUR
+	cekrU/7aMDaQkJw1beSR7jcsue94XiNGGd/j+0BaiygS2KDyrDU7OKDBn7diaAnNTGUhBmTDrVd
+	XWSrfbgv8O5NednrRiH8ykQrsz2HAKrAdVJYRRmkPVLRbp
+X-Google-Smtp-Source: AGHT+IEPMMHpJFcXOVxAHzXczejwJhd7WQ4l4nnWAUOyK/R1wfgiMJ/DrHHz3pBb4aiMtOJFewrIOQ==
+X-Received: by 2002:a05:6808:8955:b0:450:7f09:69a9 with SMTP id 5614622812f47-45a6bf1a2demr1496887b6e.49.1767800022026;
+        Wed, 07 Jan 2026 07:33:42 -0800 (PST)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:a917:5124:7300:7cef])
-        by smtp.gmail.com with ESMTPSA id 5614622812f47-45a5e183cd4sm2415499b6e.1.2026.01.07.07.35.07
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-45a5e2f1de5sm2398106b6e.22.2026.01.07.07.33.39
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 07 Jan 2026 07:35:09 -0800 (PST)
+        Wed, 07 Jan 2026 07:33:41 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -101,13 +101,12 @@ Cc: John Groves <jgroves@micron.com>,
 	linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org,
 	John Groves <john@groves.net>
-Subject: [PATCH 2/2] Add test/daxctl-famfs.sh to test famfs mode transitions:
-Date: Wed,  7 Jan 2026 09:34:59 -0600
-Message-ID: <20260107153459.64821-3-john@groves.net>
+Subject: [PATCH V3 00/21] famfs: port into fuse
+Date: Wed,  7 Jan 2026 09:33:09 -0600
+Message-ID: <20260107153332.64727-1-john@groves.net>
 X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260107153459.64821-1-john@groves.net>
+In-Reply-To: <20260107153244.64703-1-john@groves.net>
 References: <20260107153244.64703-1-john@groves.net>
- <20260107153459.64821-1-john@groves.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -116,302 +115,214 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: John Groves <John@Groves.net>
+This patch series is available as a git tag at [0].
 
-- devdax <-> famfs mode switches
-- Verify famfs -> system-ram is rejected (must go via devdax)
-- Test JSON output shows correct mode
-- Test error handling for invalid modes
+Description:
 
-The test is added to the destructive test suite since it
-modifies device modes.
+This patch series introduces famfs into the fuse file system framework.
+This is really two patch series concatenated.
 
-Signed-off-by: John Groves <john@groves.net>
----
- test/daxctl-famfs.sh | 253 +++++++++++++++++++++++++++++++++++++++++++
- test/meson.build     |   2 +
- 2 files changed, 255 insertions(+)
- create mode 100755 test/daxctl-famfs.sh
+- The patches with the 'dax:' prefix introduce necessary dax
+  functionality.
+- The patches with 'famfs_fuse:' introduce the famfs functionality into
+  fuse. The famfs_fuse patches depend on the dax patches.
 
-diff --git a/test/daxctl-famfs.sh b/test/daxctl-famfs.sh
-new file mode 100755
-index 0000000..12fbfef
---- /dev/null
-+++ b/test/daxctl-famfs.sh
-@@ -0,0 +1,253 @@
-+#!/bin/bash -Ex
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2025 Micron Technology, Inc. All rights reserved.
-+#
-+# Test daxctl famfs mode transitions and mode detection
-+
-+rc=77
-+. $(dirname $0)/common
-+
-+trap 'cleanup $LINENO' ERR
-+
-+daxdev=""
-+original_mode=""
-+
-+cleanup()
-+{
-+	printf "Error at line %d\n" "$1"
-+	# Try to restore to original mode if we know it
-+	if [[ $daxdev && $original_mode ]]; then
-+		"$DAXCTL" reconfigure-device -f -m "$original_mode" "$daxdev" 2>/dev/null || true
-+	fi
-+	exit $rc
-+}
-+
-+# Check if fsdev_dax module is available
-+check_fsdev_dax()
-+{
-+	if modinfo fsdev_dax &>/dev/null; then
-+		return 0
-+	fi
-+	if grep -qF "fsdev_dax" "/lib/modules/$(uname -r)/modules.builtin" 2>/dev/null; then
-+		return 0
-+	fi
-+	printf "fsdev_dax module not available, skipping\n"
-+	exit 77
-+}
-+
-+# Check if kmem module is available (needed for system-ram mode tests)
-+check_kmem()
-+{
-+	if modinfo kmem &>/dev/null; then
-+		return 0
-+	fi
-+	if grep -qF "kmem" "/lib/modules/$(uname -r)/modules.builtin" 2>/dev/null; then
-+		return 0
-+	fi
-+	printf "kmem module not available, skipping system-ram tests\n"
-+	return 1
-+}
-+
-+# Find an existing dax device to test with
-+find_daxdev()
-+{
-+	# Look for any available dax device
-+	daxdev=$("$DAXCTL" list | jq -er '.[0].chardev // empty' 2>/dev/null) || true
-+
-+	if [[ ! $daxdev ]]; then
-+		printf "No dax device found, skipping\n"
-+		exit 77
-+	fi
-+
-+	# Save the original mode so we can restore it
-+	original_mode=$("$DAXCTL" list -d "$daxdev" | jq -er '.[].mode')
-+
-+	printf "Found dax device: %s (current mode: %s)\n" "$daxdev" "$original_mode"
-+}
-+
-+daxctl_get_mode()
-+{
-+	"$DAXCTL" list -d "$1" | jq -er '.[].mode'
-+}
-+
-+# Ensure device is in devdax mode for testing
-+ensure_devdax_mode()
-+{
-+	local mode
-+	mode=$(daxctl_get_mode "$daxdev")
-+
-+	if [[ "$mode" == "devdax" ]]; then
-+		return 0
-+	fi
-+
-+	if [[ "$mode" == "system-ram" ]]; then
-+		printf "Device is in system-ram mode, attempting to convert to devdax...\n"
-+		"$DAXCTL" reconfigure-device -f -m devdax "$daxdev"
-+	elif [[ "$mode" == "famfs" ]]; then
-+		printf "Device is in famfs mode, converting to devdax...\n"
-+		"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+	else
-+		printf "Device is in unknown mode: %s\n" "$mode"
-+		return 1
-+	fi
-+
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+}
-+
-+#
-+# Test basic mode transitions involving famfs
-+#
-+test_famfs_mode_transitions()
-+{
-+	printf "\n=== Testing famfs mode transitions ===\n"
-+
-+	# Ensure starting in devdax mode
-+	ensure_devdax_mode
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+	printf "Initial mode: devdax - OK\n"
-+
-+	# Test: devdax -> famfs
-+	printf "Testing devdax -> famfs... "
-+	"$DAXCTL" reconfigure-device -m famfs "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
-+	printf "OK\n"
-+
-+	# Test: famfs -> famfs (re-enable in same mode)
-+	printf "Testing famfs -> famfs (re-enable)... "
-+	"$DAXCTL" reconfigure-device -m famfs "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
-+	printf "OK\n"
-+
-+	# Test: famfs -> devdax
-+	printf "Testing famfs -> devdax... "
-+	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+	printf "OK\n"
-+
-+	# Test: devdax -> devdax (re-enable in same mode)
-+	printf "Testing devdax -> devdax (re-enable)... "
-+	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+	printf "OK\n"
-+}
-+
-+#
-+# Test mode transitions with system-ram (requires kmem)
-+#
-+test_system_ram_transitions()
-+{
-+	printf "\n=== Testing system-ram transitions with famfs ===\n"
-+
-+	# Ensure we start in devdax mode
-+	ensure_devdax_mode
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+
-+	# Test: devdax -> system-ram
-+	printf "Testing devdax -> system-ram... "
-+	"$DAXCTL" reconfigure-device -N -m system-ram "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
-+	printf "OK\n"
-+
-+	# Test: system-ram -> famfs should fail
-+	printf "Testing system-ram -> famfs (should fail)... "
-+	if "$DAXCTL" reconfigure-device -m famfs "$daxdev" 2>/dev/null; then
-+		printf "FAILED - should have been rejected\n"
-+		return 1
-+	fi
-+	printf "OK (correctly rejected)\n"
-+
-+	# Test: system-ram -> devdax -> famfs (proper path)
-+	printf "Testing system-ram -> devdax -> famfs... "
-+	"$DAXCTL" reconfigure-device -f -m devdax "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+	"$DAXCTL" reconfigure-device -m famfs "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
-+	printf "OK\n"
-+
-+	# Restore to devdax for subsequent tests
-+	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+}
-+
-+#
-+# Test JSON output shows correct mode
-+#
-+test_json_output()
-+{
-+	printf "\n=== Testing JSON output for mode field ===\n"
-+
-+	# Test devdax mode in JSON
-+	ensure_devdax_mode
-+	printf "Testing JSON output for devdax mode... "
-+	mode=$("$DAXCTL" list -d "$daxdev" | jq -er '.[].mode')
-+	[[ "$mode" == "devdax" ]]
-+	printf "OK\n"
-+
-+	# Test famfs mode in JSON
-+	"$DAXCTL" reconfigure-device -m famfs "$daxdev"
-+	printf "Testing JSON output for famfs mode... "
-+	mode=$("$DAXCTL" list -d "$daxdev" | jq -er '.[].mode')
-+	[[ "$mode" == "famfs" ]]
-+	printf "OK\n"
-+
-+	# Restore to devdax
-+	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+}
-+
-+#
-+# Test error messages for invalid transitions
-+#
-+test_error_handling()
-+{
-+	printf "\n=== Testing error handling ===\n"
-+
-+	# Ensure we're in famfs mode
-+	"$DAXCTL" reconfigure-device -m famfs "$daxdev"
-+
-+	# Test that invalid mode is rejected
-+	printf "Testing invalid mode rejection... "
-+	if "$DAXCTL" reconfigure-device -m invalidmode "$daxdev" 2>/dev/null; then
-+		printf "FAILED - invalid mode should be rejected\n"
-+		return 1
-+	fi
-+	printf "OK (correctly rejected)\n"
-+
-+	# Restore to devdax
-+	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+}
-+
-+#
-+# Main test sequence
-+#
-+main()
-+{
-+	check_fsdev_dax
-+	find_daxdev
-+
-+	rc=1  # From here on, failures are real failures
-+
-+	test_famfs_mode_transitions
-+	test_json_output
-+	test_error_handling
-+
-+	# System-ram tests require kmem module
-+	if check_kmem; then
-+		# Save and disable online policy for system-ram tests
-+		saved_policy="$(cat /sys/devices/system/memory/auto_online_blocks)"
-+		echo "offline" > /sys/devices/system/memory/auto_online_blocks
-+
-+		test_system_ram_transitions
-+
-+		# Restore online policy
-+		echo "$saved_policy" > /sys/devices/system/memory/auto_online_blocks
-+	fi
-+
-+	# Restore original mode
-+	printf "\nRestoring device to original mode: %s\n" "$original_mode"
-+	"$DAXCTL" reconfigure-device -f -m "$original_mode" "$daxdev"
-+
-+	printf "\n=== All famfs tests passed ===\n"
-+
-+	exit 0
-+}
-+
-+main
-diff --git a/test/meson.build b/test/meson.build
-index 615376e..ad1d393 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -209,6 +209,7 @@ if get_option('destructive').enabled()
-   device_dax_fio = find_program('device-dax-fio.sh')
-   daxctl_devices = find_program('daxctl-devices.sh')
-   daxctl_create = find_program('daxctl-create.sh')
-+  daxctl_famfs = find_program('daxctl-famfs.sh')
-   dm = find_program('dm.sh')
-   mmap_test = find_program('mmap.sh')
- 
-@@ -226,6 +227,7 @@ if get_option('destructive').enabled()
-     [ 'device-dax-fio.sh', device_dax_fio, 'dax'   ],
-     [ 'daxctl-devices.sh', daxctl_devices, 'dax'   ],
-     [ 'daxctl-create.sh',  daxctl_create,  'dax'   ],
-+    [ 'daxctl-famfs.sh',   daxctl_famfs,   'dax'   ],
-     [ 'dm.sh',             dm,		   'dax'   ],
-     [ 'mmap.sh',           mmap_test,	   'dax'   ],
-   ]
+In addition, there are related patch sets for libfuse and ndctl(daxctl).
+
+Related patches and code
+
+- Related patch to libfuse - posted under the same cover
+- Related patch to ndctl/daxctl - posted under the same cover
+- The famfs user space code can be found at [1]
+
+Dax Overview:
+
+This series introduces a new "famfs mode" of devdax, whose driver is
+drivers/dax/fsdev.c. This driver supports dax_iomap_rw() and
+dax_iomap_fault() calls against a character dax instance. A dax device
+now can be converted among three modes: 'system-ram', 'devdax' and
+'famfs' via daxctl or sysfs (e.g. unbind devdax and bind famfs instead).
+
+In famfs mode, a dax device initializes its pages consistent with the
+fsdaxmode of pmem. Raw read/write/mmap are not supported in this mode,
+but famfs is happy in this mode - using dax_iomap_rw() for read/write and
+dax_iomap_fault() for mmap faults.
+
+Fuse Overview:
+
+Famfs started as a standalone file system, but this series is intended to
+permanently supersede that implementation. At a high level, famfs adds
+two new fuse server messages:
+
+GET_FMAP   - Retrieves a famfs fmap (the file-to-dax map for a famfs
+	     file)
+GET_DAXDEV - Retrieves the details of a particular daxdev that was
+	     referenced by an fmap
+
+Famfs Overview
+
+Famfs exposes shared memory as a file system. Famfs consumes shared
+memory from dax devices, and provides memory-mappable files that map
+directly to the memory - no page cache involvement. Famfs differs from
+conventional file systems in fs-dax mode, in that it handles in-memory
+metadata in a sharable way (which begins with never caching dirty shared
+metadata).
+
+Famfs started as a standalone file system [2,3], but the consensus at
+LSFMM was that it should be ported into fuse [4,5].
+
+The key performance requirement is that famfs must resolve mapping faults
+without upcalls. This is achieved by fully caching the file-to-devdax
+metadata for all active files. This is done via two fuse client/server
+message/response pairs: GET_FMAP and GET_DAXDEV.
+
+Famfs remains the first fs-dax file system that is backed by devdax
+rather than pmem in fs-dax mode (hence the need for the new dax mode).
+
+Notes
+
+- When a file is opened in a famfs mount, the OPEN is followed by a
+  GET_FMAP message and response. The "fmap" is the full file-to-dax
+  mapping, allowing the fuse/famfs kernel code to handle
+  read/write/fault without any upcalls.
+
+- After each GET_FMAP, the fmap is checked for extents that reference
+  previously-unknown daxdevs. Each such occurrence is handled with a
+  GET_DAXDEV message and response.
+
+- Daxdevs are stored in a table (which might become an xarray at some
+  point). When entries are added to the table, we acquire exclusive
+  access to the daxdev via the fs_dax_get() call (modeled after how
+  fs-dax handles this with pmem devices). Famfs provides
+  holder_operations to devdax, providing a notification path in the
+  event of memory errors or forced reconfiguration.
+
+- If devdax notifies famfs of memory errors on a dax device, famfs
+  currently blocks all subsequent accesses to data on that device. The
+  recovery is to re-initialize the memory and file system. Famfs is
+  memory, not storage...
+
+- Because famfs uses backing (devdax) devices, only privileged mounts are
+  supported (i.e. the fuse server requires CAP_SYS_RAWIO).
+
+- The famfs kernel code never accesses the memory directly - it only
+  facilitates read, write and mmap on behalf of user processes, using
+  fmap metadata provided by its privileged fuse server. As such, the
+  RAS of the shared memory affects applications, but not the kernel.
+
+- Famfs has backing device(s), but they are devdax (char) rather than
+  block. Right now there is no way to tell the vfs layer that famfs has a
+  char backing device (unless we say it's block, but it's not). Currently
+  we use the standard anonymous fuse fs_type - but I'm not sure that's
+  ultimately optimal (thoughts?)
+
+
+Changes v2 [7] -> v3
+- Dax: Completely new fsdev driver (drivers/dax/fsdev.c) replaces the
+  dev_dax_iomap modifications to bus.c/device.c. Devdax devices can now
+  be switched among 'devdax', 'famfs' and 'system-ram' modes via daxctl
+  or sysfs.
+- Dax: fsdev uses MEMORY_DEVICE_FS_DAX type and leaves folios at order-0
+  (no vmemmap_shift), allowing fs-dax to manage folio lifecycles
+  dynamically like pmem does.
+- Dax: The "poisoned page" problem is properly fixed via
+  fsdev_clear_folio_state(), which clears stale mapping/compound state
+  when fsdev binds. The temporary WARN_ON_ONCE workaround in fs/dax.c
+  has been removed.
+- Dax: Added dax_set_ops() so fsdev can set dax_operations at bind time
+  (and clear them on unbind), since the dax_device is created before we
+  know which driver will bind.
+- Dax: Added custom bind/unbind sysfs handlers; unbind return -EBUSY if a
+  filesystem holds the device, preventing unbind while famfs is mounted.
+- Fuse: Famfs mounts now require that the fuse server/daemon has
+  CAP_SYS_RAWIO because they expose raw memory devices.
+- Fuse: Added DAX address_space_operations with noop_dirty_folio since
+  famfs is memory-backed with no writeback required.
+- Rebased to latest kernels, fully compatible with Alistair Popple
+  et. al's recent dax refactoring.
+- Ran this series through Chris Mason's code review AI prompts to check
+  for issues - several subtle problems found and fixed.
+- Dropped RFC status - this version is intended to be mergeable.
+
+Changes v1 [8] -> v2:
+
+- The GET_FMAP message/response has been moved from LOOKUP to OPEN, as
+  was the pretty much unanimous consensus.
+- Made the response payload to GET_FMAP variable sized (patch 12)
+- Dodgy kerneldoc comments cleaned up or removed.
+- Fixed memory leak of fc->shadow in patch 11 (thanks Joanne)
+- Dropped many pr_debug and pr_notice calls
+
+
+References
+
+[0] - https://github.com/jagalactic/linux/tree/famfs-v3 (this patch set)
+[1] - https://famfs.org (famfs user space)
+[2] - https://lore.kernel.org/linux-cxl/cover.1708709155.git.john@groves.net/
+[3] - https://lore.kernel.org/linux-cxl/cover.1714409084.git.john@groves.net/
+[4] - https://lwn.net/Articles/983105/ (lsfmm 2024)
+[5] - https://lwn.net/Articles/1020170/ (lsfmm 2025)
+[6] - https://lore.kernel.org/linux-cxl/cover.8068ad144a7eea4a813670301f4d2a86a8e68ec4.1740713401.git-series.apopple@nvidia.com/
+[7] - https://lore.kernel.org/linux-fsdevel/20250703185032.46568-1-john@groves.net/ (famfs fuse v2)
+[8] - https://lore.kernel.org/linux-fsdevel/20250421013346.32530-1-john@groves.net/ (famfs fuse v1)
+
+
+
+John Groves (21):
+  dax: move dax_pgoff_to_phys from [drivers/dax/] device.c to bus.c
+  dax: add fsdev.c driver for fs-dax on character dax
+  dax: Save the kva from memremap
+  dax: Add dax_operations for use by fs-dax on fsdev dax
+  dax: Add dax_set_ops() for setting dax_operations at bind time
+  dax: Add fs_dax_get() func to prepare dax for fs-dax usage
+  dax: prevent driver unbind while filesystem holds device
+  dax: export dax_dev_get()
+  famfs_fuse: magic.h: Add famfs magic numbers
+  famfs_fuse: Kconfig
+  famfs_fuse: Update macro s/FUSE_IS_DAX/FUSE_IS_VIRTIO_DAX/
+  famfs_fuse: Basic fuse kernel ABI enablement for famfs
+  famfs_fuse: Famfs mount opt: -o shadow=<shadowpath>
+  famfs_fuse: Plumb the GET_FMAP message/response
+  famfs_fuse: Create files with famfs fmaps
+  famfs_fuse: GET_DAXDEV message and daxdev_table
+  famfs_fuse: Plumb dax iomap and fuse read/write/mmap
+  famfs_fuse: Add holder_operations for dax notify_failure()
+  famfs_fuse: Add DAX address_space_operations with noop_dirty_folio
+  famfs_fuse: Add famfs fmap metadata documentation
+  famfs_fuse: Add documentation
+
+ Documentation/filesystems/famfs.rst |  142 ++++
+ Documentation/filesystems/index.rst |    1 +
+ MAINTAINERS                         |   18 +
+ drivers/dax/Kconfig                 |   17 +
+ drivers/dax/Makefile                |    2 +
+ drivers/dax/bus.c                   |   86 +-
+ drivers/dax/bus.h                   |    3 +
+ drivers/dax/dax-private.h           |    5 +
+ drivers/dax/device.c                |   23 -
+ drivers/dax/fsdev.c                 |  369 ++++++++
+ drivers/dax/super.c                 |   95 ++-
+ fs/fuse/Kconfig                     |   14 +
+ fs/fuse/Makefile                    |    1 +
+ fs/fuse/dir.c                       |    2 +-
+ fs/fuse/famfs.c                     | 1221 +++++++++++++++++++++++++++
+ fs/fuse/famfs_kfmap.h               |  167 ++++
+ fs/fuse/file.c                      |   45 +-
+ fs/fuse/fuse_i.h                    |  126 ++-
+ fs/fuse/inode.c                     |   59 +-
+ fs/fuse/iomode.c                    |    2 +-
+ fs/namei.c                          |    1 +
+ include/linux/dax.h                 |    7 +
+ include/uapi/linux/fuse.h           |   88 ++
+ include/uapi/linux/magic.h          |    2 +
+ 24 files changed, 2454 insertions(+), 42 deletions(-)
+ create mode 100644 Documentation/filesystems/famfs.rst
+ create mode 100644 drivers/dax/fsdev.c
+ create mode 100644 fs/fuse/famfs.c
+ create mode 100644 fs/fuse/famfs_kfmap.h
+
+
+base-commit: 9ace4753a5202b02191d54e9fdf7f9e3d02b85eb
 -- 
 2.49.0
 
