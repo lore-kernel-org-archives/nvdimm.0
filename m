@@ -1,173 +1,183 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60BF72E173B
-	for <nvdimm@lists.linux.dev>; Thu,  8 Jan 2026 05:26:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60A734BD5B8
+	for <nvdimm@lists.linux.dev>; Thu,  8 Jan 2026 10:44:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767849974; cv=none; b=i41MIDkwvgBMUEXK2cPDpG8IABr96P8/0JnmT5AMYvyZv+2MYyVR0K4Q5IIAC7xBK4O45T26TiFOW26EM6jxWkwvTbdMH1OSTkcYEuBX3cnLuG3URhR6F/aZOlm88sVGw3SSoXj4VXZY6T5K6NAzkcOOGhzyNwiTdg4yEjV/mjI=
+	t=1767869053; cv=none; b=Ab6GAOoYBvZ1HifsJ3FqxJabI7pkcpvBcxDaNoHOyiC+5SW8rJU92AyYtAeZneZfUGhspUyFzjdnyz414+qwzRa+Z/WPIlXAg8Z6f0MsdSwjGYuPFyLzqFjB+0c7lN62zdvRgM9uUHR+cZtNh6VcDISt2V4FdF8Yhwzj2JB/KUA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767849974; c=relaxed/simple;
-	bh=iMAfquDAsWNysHIibZRWcVXdUCtue/Fes0XTKgCjE5c=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SLDeG3vQm4x3vERBxd580y8ARnpu4fqKPFMDFoDuP2mBPj60wC5G4bq8mo4EJbbMEPjann3t+nBqYJV09RCgZl+0/yQj3DMJUmWjhnfFpummVngxZgj0ZStlftPWX4p6eOE27WvYvuXxDFap41k/N4/O5S+2eWrX6YrbFLjHpqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PD7S0XvV; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PD7S0XvV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1767849964; x=1799385964;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=iMAfquDAsWNysHIibZRWcVXdUCtue/Fes0XTKgCjE5c=;
-  b=PD7S0XvV8IVJ3MJePQdH1LA/SMw6LyDPVw+epKSrJYfpnECS4qrtRREo
-   XwwMZzUYX4Vn9Hk2N8uIsKSVSzPEXIQyCtyt7QuizphL6ti8AJUUkr0Su
-   xBr/a1E1zEXDTJyR0/kCJRbimoLfyPYMQlQimwsz12z+PwsAJENxo91Au
-   nnYheoR3y4/f6XMsYUHHW4K6imvYk7uXeTcZlS63oM9mvlJwfyKjn7pwK
-   5jPE+v2lp37SFU7N6b8LhFz5VUEY3/VgL8KXPjzzfpGntSp+NP86UfFMP
-   mzZ3kVZ5T2m8lJYZoADxvuELrbeq92woTd1INyaJmSxPMSGqH0P2+7LOO
-   g==;
-X-CSE-ConnectionGUID: pqs3ofLtSgCgtBE3QnJQXg==
-X-CSE-MsgGUID: VCnO8/GsSFWjej3jspuWZQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11664"; a="86812415"
-X-IronPort-AV: E=Sophos;i="6.21,209,1763452800"; 
-   d="scan'208";a="86812415"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2026 21:25:58 -0800
-X-CSE-ConnectionGUID: bUA527e2R/eNtgOpsBaIUQ==
-X-CSE-MsgGUID: Nvr6DJbdRvWPIfj/gfJ1OQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.21,209,1763452800"; 
-   d="scan'208";a="202894044"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.222.193])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2026 21:25:59 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH] test/cxl-topology.sh: test switch port target
-Date: Wed,  7 Jan 2026 21:25:48 -0800
-Message-ID: <20260108052552.395896-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	s=arc-20240116; t=1767869053; c=relaxed/simple;
+	bh=Ny4RaHcpG7jXWvMNB3ojt451TJHh0rJcIQA3Waucmps=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=nc0I+wwCRDGgqhkeSJ1cE8ozJpFWbAcVT89IAz86oQMRVYi7dsiRbzmIJMpQyWLl8KyDXinxjD1nWhVytZ20R9nM4pOVLhQ27KGBrqVuyRfLD5u4cNsfN2zRXlGP5oQm0fw+EmR/8Ku1lhBFcOdRCb4f//Y8wLFwuU8P2EhYZjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.83])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dn1jL4yF8zJ4685;
+	Thu,  8 Jan 2026 18:43:50 +0800 (CST)
+Received: from dubpeml100005.china.huawei.com (unknown [7.214.146.113])
+	by mail.maildlp.com (Postfix) with ESMTPS id 63A5240086;
+	Thu,  8 Jan 2026 18:43:55 +0800 (CST)
+Received: from localhost (10.203.177.15) by dubpeml100005.china.huawei.com
+ (7.214.146.113) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Thu, 8 Jan
+ 2026 10:43:53 +0000
+Date: Thu, 8 Jan 2026 10:43:52 +0000
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: John Groves <John@Groves.net>
+CC: Miklos Szeredi <miklos@szeredi.hu>, Dan Williams
+	<dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, "Alison
+ Schofield" <alison.schofield@intel.com>, John Groves <jgroves@micron.com>,
+	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan
+ Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, "David
+ Hildenbrand" <david@kernel.org>, Christian Brauner <brauner@kernel.org>,
+	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, Stefan
+ Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, Josef
+ Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, Chen
+ Linxuan <chenlinxuan@uniontech.com>, "James Morse" <james.morse@arm.com>,
+	Fuad Tabba <tabba@google.com>, "Sean Christopherson" <seanjc@google.com>,
+	Shivank Garg <shivankg@amd.com>, Ackerley Tng <ackerleytng@google.com>,
+	Gregory Price <gourry@gourry.net>, Aravind Ramesh <arramesh@micron.com>, Ajay
+ Joshi <ajayjoshi@micron.com>, <venkataravis@micron.com>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH V3 01/21] dax: move dax_pgoff_to_phys from
+ [drivers/dax/] device.c to bus.c
+Message-ID: <20260108104352.000079c3@huawei.com>
+In-Reply-To: <20260107153332.64727-2-john@groves.net>
+References: <20260107153244.64703-1-john@groves.net>
+	<20260107153332.64727-1-john@groves.net>
+	<20260107153332.64727-2-john@groves.net>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100009.china.huawei.com (7.191.174.83) To
+ dubpeml100005.china.huawei.com (7.214.146.113)
 
-Add a test case to validate that all switch port decoders sharing
-downstream ports, dports, have target lists properly enumerated.
+On Wed,  7 Jan 2026 09:33:10 -0600
+John Groves <John@Groves.net> wrote:
 
-This test catches the regression fixed by a recent kernel patch[1]
-where only one decoder per switch port has targets populated while
-others have nr_targets=0, even when dports are available.
+> This function will be used by both device.c and fsdev.c, but both are
+> loadable modules. Moving to bus.c puts it in core and makes it available
+> to both.
+> 
+> No code changes - just relocated.
+> 
+> Signed-off-by: John Groves <john@groves.net>
+Hi John,
 
-This test is based on the current cxl_test topology which provides
-multiple switch ports with 8 decoders each. Like other testcases in
-cxl-topology.sh, if the cxl_test topology changes (number of switches,
-decoders per port, or hierarchy), this test will need corresponding
-updates.
+I don't know the code well enough to offer an opinion on whether this
+move causes any issues or if this is the best location, so review is superficial
+stuff only.
 
-This new case is quietly skipped with kernel version 6.18 where it
-is known broken.
+Jonathan
 
-[1] https://lore.kernel.org/linux-cxl/20260107100356.389490-1-rrichter@amd.com/
+> ---
+>  drivers/dax/bus.c    | 27 +++++++++++++++++++++++++++
+>  drivers/dax/device.c | 23 -----------------------
+>  2 files changed, 27 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index fde29e0ad68b..a2f9a3cc30a5 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -7,6 +7,9 @@
+>  #include <linux/slab.h>
+>  #include <linux/dax.h>
+>  #include <linux/io.h>
+> +#include <linux/backing-dev.h>
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
+I'm not immediately spotting why this one.  Maybe should be in a different
+patch?
 
- test/common          | 12 +++++++++++
- test/cxl-topology.sh | 51 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+)
+> +#include <linux/range.h>
+> +#include <linux/uio.h>
 
-diff --git a/test/common b/test/common
-index 2d076402ef7c..2eb11b7396d0 100644
---- a/test/common
-+++ b/test/common
-@@ -101,6 +101,18 @@ check_min_kver()
- 	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
- }
- 
-+# check_eq_kver
-+# $1: Kernel version to match. format: X.Y
-+#
-+check_eq_kver()
-+{
-+        local ver="$1"
-+        : "${KVER:=$(uname -r)}"
-+
-+        [ -n "$ver" ] || return 1
-+        [[ "$KVER" == "$ver"* ]]
-+}
-+
- # do_skip
- # $1: Skip message
- #
-diff --git a/test/cxl-topology.sh b/test/cxl-topology.sh
-index b68cb8b262b6..d9475b1bae9c 100644
---- a/test/cxl-topology.sh
-+++ b/test/cxl-topology.sh
-@@ -151,6 +151,57 @@ count=$(jq "map(select(.pmem_size == $pmem_size)) | length" <<< $json)
- ((bridges == 2 && count == 8 || bridges == 3 && count == 10 ||
-   bridges == 4 && count == 11)) || err "$LINENO"
- 
-+# Test that switch port decoders have complete target list enumeration
-+# Validates a fix for multiple decoders sharing the same dport.
-+# Based on the cxl_test topology expectation of switch ports at depth 2
-+# with 8 decoders each. Adjust if that expectation changes.
-+test_switch_decoder_target_enumeration() {
-+
-+	# Get verbose output to see targets arrays
-+	json=$($CXL list -b cxl_test -vvv)
-+
-+	switch_port_issues=$(jq '
-+	# Find all switch ports (depth 2)
-+	[.. | objects | select(.depth == 2 and has("decoders:" + .port))] |
-+
-+	# For each switch port, analyze its decoder target pattern
-+	map({
-+		port: .port,
-+		nr_dports: .nr_dports,
-+
-+		# Count non-endpoint decoders (no "mode" field)
-+		total: ([to_entries[] | select(.key | startswith("decoders:"))
-+			| .value[] | select(has("mode") == false)] |
-+			length),
-+
-+		# Count how many have targets
-+		with_targets: ([to_entries[] | select(.key |
-+			startswith("decoders:")) | .value[] |
-+			select(has("mode") == false and .nr_targets > 0)] |
-+			length),
-+
-+		# Count how many explicitly have no targets
-+		without_targets: ([to_entries[] | select(.key |
-+			startswith("decoders:")) | .value[] |
-+			select(has("mode") == false and .nr_targets == 0)] |
-+			length)
-+		}) |
-+
-+		# Filter for the expected pattern and count them
-+		map(select(.nr_dports > 0 and
-+			   .with_targets == 1 and
-+			   .without_targets >= 7)) |
-+			   length
-+	' <<<"$json")
-+
-+	((switch_port_issues == 0)) || {
-+		echo "Found $switch_port_issues switch ports with incomplete target enumeration"
-+		echo "Only 1 decoder has targets while 7+ have nr_targets=0"
-+		err "$LINENO"
-+	}
-+}
-+# Skip the target enumeration test where known broken
-+check_eq_kver 6.18 || test_switch_decoder_target_enumeration
- 
- # check that switch ports disappear after all of their memdevs have been
- # disabled, and return when the memdevs are enabled.
--- 
-2.37.3
+Why this one?
+
+Style wise, dax seems to use reverse xmas tree for includes, so
+this should keep to that.
+
+>  #include "dax-private.h"
+>  #include "bus.h"
+>  
+> @@ -1417,6 +1420,30 @@ static const struct device_type dev_dax_type = {
+>  	.groups = dax_attribute_groups,
+>  };
+>  
+> +/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c  */
+Bonus space before that */
+Curiously that wasn't there in the original.
+
+> +__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+> +			      unsigned long size)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < dev_dax->nr_range; i++) {
+> +		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+> +		struct range *range = &dax_range->range;
+> +		unsigned long long pgoff_end;
+> +		phys_addr_t phys;
+> +
+> +		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
+> +		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
+> +			continue;
+> +		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+> +		if (phys + size - 1 <= range->end)
+> +			return phys;
+> +		break;
+> +	}
+> +	return -1;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
+> +
+>  static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  {
+>  	struct dax_region *dax_region = data->dax_region;
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index 22999a402e02..132c1d03fd07 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -57,29 +57,6 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+>  			   vma->vm_file, func);
+>  }
+>  
+> -/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+> -__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+> -		unsigned long size)
+> -{
+> -	int i;
+> -
+> -	for (i = 0; i < dev_dax->nr_range; i++) {
+> -		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+> -		struct range *range = &dax_range->range;
+> -		unsigned long long pgoff_end;
+> -		phys_addr_t phys;
+> -
+> -		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
+> -		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
+> -			continue;
+> -		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+> -		if (phys + size - 1 <= range->end)
+> -			return phys;
+> -		break;
+> -	}
+> -	return -1;
+> -}
+> -
+>  static void dax_set_mapping(struct vm_fault *vmf, unsigned long pfn,
+>  			      unsigned long fault_size)
+>  {
 
