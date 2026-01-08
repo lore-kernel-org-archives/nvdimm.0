@@ -1,236 +1,183 @@
-Received: from mail-ot1-f53.google.com (mail-ot1-f53.google.com [209.85.210.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D0E2DA769
-	for <nvdimm@lists.linux.dev>; Thu,  8 Jan 2026 16:45:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CCC029B20D
+	for <nvdimm@lists.linux.dev>; Thu,  8 Jan 2026 17:03:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767890746; cv=none; b=q10lyWAZ5Ni8rrmJl+Jdzzhtjs9W0DNnlsnhIW/iKgihSeSQWmm0s/v170p1h7vV+6aDpMoCt6aP6hsM4kJfyYPytewYug6FzYzPvQZKb0lbBu0tZnkV6zfz+YLl6OQ+E03LZk5G5MWCf3enJqTM1F7Fj0Fj1wYo1Uu+OKYmaGc=
+	t=1767891783; cv=none; b=GxNrx7XpEVpdFdoml5pTOIQRccXMkI/avs/SInHQJA0aSHQFb67irZEjFQoMfeJRfyW0OyORSMoz7Vn8uB3pHlg2i/DsH8GB/cJJRohZUX22RODzOjtNxtjoGcG18RBsP/I3FWTEXbcFk6Ddjh+ZWT7B9aSvN3kFZvwtOY8nrjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767890746; c=relaxed/simple;
-	bh=2IJIu49nVqGBoQe42aNWJnOAR4vdbhAJ7Wrm1X/fPT8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Zr6ONCi8W64S+V6a0saAuRzSJmEnI/h0NRPIWvBbqzGTXVU3VAUOm/JXOqQlUWHK3k7ftNnFF2QpFg7y2mmzVYx+zP9/zKcO7fitVjeGna0hwXQk1uHIO2fnm/vWzuo1ga0A4M8p7qCMC6FGwe4KflDpo3vk3CHZt6qNdoFkbno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZdYIU5YQ; arc=none smtp.client-ip=209.85.210.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1767891783; c=relaxed/simple;
+	bh=WHPBXYeZlq5Q/Kk8b3l++WpMMMrIXIZ3JlbIyb3U9jQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=fb68QPV/CbhhnPz1gRsrAlWiO2gQSeWsoKMYl8FbNE9NRY9LClY8I3PkWnBJm97ChoQytJIAicKuIUknqdML9hHOOtiWAQxr/fCVGjYVQjRyLdd9QIAuQEtGr+TXEtSTtFYh3joWi9I5GtAJ1GLhbQXdvQFTMbNEEmQtXgnGwmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MeBtvh1e; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZdYIU5YQ"
-Received: by mail-ot1-f53.google.com with SMTP id 46e09a7af769-7c75a5cb752so2468528a34.2
-        for <nvdimm@lists.linux.dev>; Thu, 08 Jan 2026 08:45:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767890740; x=1768495540; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=YcX6Nsb5jsPLQqNF+fUqFlMwldCLm2ep3AodwpvYvao=;
-        b=ZdYIU5YQp+3lGZYK3+dUFsNpZbpdDY/IBBmuaoYIkP+E1qo7BSau2PDEDiCKYCVUxq
-         sdJmGL2vmSa5fvG9fEIun/b2VJm4HpeyWYetpoYwPERRwZC/7BptudUMe6Wctrtnj7sD
-         cMcoLM7IdZaMBeyUsNEhM28rqMbgMQdDz99VR46bJPFqeEGR4DS6Tz4Re9J7CKvd92Q2
-         7jo+wYnIPEXlVjcfrLqDSICBrFBn+ICU6cTbDjlF76ngNTlTQ4vUC0ySNqbhe/16VGiM
-         ZLJ1mmzkO8gJCcyb1HOQwyVFXd+jKJ5Ilz9GekRU+ympeodF+2HPYYJiSlLzNpzfTgA4
-         UeMQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767890740; x=1768495540;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=YcX6Nsb5jsPLQqNF+fUqFlMwldCLm2ep3AodwpvYvao=;
-        b=nPQC+TaORbdjHno99U8P3Y3G/uAB22weTl3oFFYnic+m0xxGczhpKeizQNhqdy5aIO
-         wh7nr350gEwx9tetvujfADVa2zVCTQqFYDjTtH3ThFFb/3S5tHl/oIJHfURlTHYDHXgB
-         kEQdcmv3WGed+UZh4txYwo1TRNx7StnYOcUHfESadZ9GjukXLhU5SuFBlpbpUCEKxCq9
-         Gmsym9iZwYUeqcGVaKpagPSSH+Udz8s6NhG/ycq4WwiYw45bFIKRmIqLMfb0B+yG5Nlj
-         XQfc0pQ8CpLtON/OSQOVRXlvdFyIiSfn1hkANpIwpPv0X5YfDE2qnA4CNRjZkdbGSOfZ
-         L6wA==
-X-Forwarded-Encrypted: i=1; AJvYcCUFbIis5L2PYLIBpnAGvNhhZLkJHkK4VkJf+sVXuMKf3ThUYhIx2boNLDZq+jrBx4n70e2pvjI=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxmaJQKzGUgrxtXIZ/mfevz5mkkdFJn7hEzpxfNU6aFEMYDDwhu
-	frCki5y4VOVznMlF2skmMpVz6ozePxzVaTzL8poUi0qdEEU551ll8A2S
-X-Gm-Gg: AY/fxX6+qh4ZELWOcbAU7pWgpeyukjd45ZJ6RhNs0Vs1+oc1xNvj6gshw5wfFc1vtHY
-	c6kFHPonaO4kr9SSO+hoeO3RdB2E3MmHTKBhgZVo6K/nvE7xw/YDD854zh/ZxVbdprRv4+Jjaih
-	tfKsyC/xq7+y4ws1zrAdSlI8A4LIsWBDqcng1S45xAbehFqfxYadeJ5/TwlpUClle7ty88TA7nD
-	KXU0RHV9ndGB1YiL4hr8j+WN9hKZcW+eqiURLEZ9rQ1+mtTxHWi9a8+cLXtsNC+DG6qc5DgWSAC
-	BXI9LIQG0QIZL72AxaViyeb5GcJCK2hjdPesWjXeEMEs0wACyLPiOA32g8ErZq71nefByKBWbtI
-	uDKSIOAYZF/P4wSYYLAUM+JICoO9FTIVu9XrieRLqj43MgVvJI+7FhfxK/NKcdchRre07fTlftp
-	OmmJmcXIk7aaXY72hRaV2stVi4VPh7Mw==
-X-Google-Smtp-Source: AGHT+IGTUMnCiBC6iUnPHjbRq87vRaF81pdxH2sKruM8zWd2J2yHLKrwGBkVk06TI+Ws/ufWC2Ll+A==
-X-Received: by 2002:a05:6830:230c:b0:7ca:ea23:f851 with SMTP id 46e09a7af769-7ce508ceb6cmr4713986a34.13.1767890739689;
-        Thu, 08 Jan 2026 08:45:39 -0800 (PST)
-Received: from groves.net ([2603:8080:1500:3d89:902b:954a:a912:b0f5])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7ce478029a6sm5683506a34.3.2026.01.08.08.45.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Jan 2026 08:45:39 -0800 (PST)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Thu, 8 Jan 2026 10:45:37 -0600
-From: John Groves <John@groves.net>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH V3 06/21] dax: Add fs_dax_get() func to prepare dax for
- fs-dax usage
-Message-ID: <d7blicnyehixccalrrmw4wschyngqkjt5jdleesjqcjtwcav4a@wblo3f53shkh>
-References: <20260107153244.64703-1-john@groves.net>
- <20260107153332.64727-1-john@groves.net>
- <20260107153332.64727-7-john@groves.net>
- <20260108122713.00007e54@huawei.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MeBtvh1e"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1767891781; x=1799427781;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=WHPBXYeZlq5Q/Kk8b3l++WpMMMrIXIZ3JlbIyb3U9jQ=;
+  b=MeBtvh1ehlTePHw5SjejU9CJpdaeUIds4VLdxmi/0qhyCcoOnWiR94Tf
+   K74vEW1UGAtOjebO1VF7EMJ4Rf03/nhmuvJP/to5qD9w6mAfyjlhxLD0M
+   w8ba/OXXTlKEPK6aW6VNFvKEZ3TbsA0WHK2o5MW7gdQGo/a2WfZhvJ9zM
+   iKxMuCaExvh+gmp5HRsB+FPLMhzi7WiGBaTfP7BucBsVImEpntqqWJjXC
+   n/o/XHL53UHX9YRD3EH9ejqzrmvVCWKyoEtx5ZSeH95khqt5m0B4iqqau
+   dNYNivt2fLblBUFm5PZTv5uURMjrk4G3eeGtuDJTVMmRr/6cotoN6TdlA
+   w==;
+X-CSE-ConnectionGUID: OsW8tNGTTDytm+09/1rMgg==
+X-CSE-MsgGUID: bzzT2afKTsiC7hTdeIurcQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11665"; a="69348111"
+X-IronPort-AV: E=Sophos;i="6.21,211,1763452800"; 
+   d="scan'208";a="69348111"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jan 2026 09:03:00 -0800
+X-CSE-ConnectionGUID: NoVBh6fSTsCbitvW98NIlw==
+X-CSE-MsgGUID: WNvN9D+VSHStJfxDQSgcHA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,211,1763452800"; 
+   d="scan'208";a="203269005"
+Received: from rchatre-mobl4.amr.corp.intel.com (HELO [10.125.109.207]) ([10.125.109.207])
+  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jan 2026 09:02:59 -0800
+Message-ID: <e2608021-a3bc-4598-bb98-2a8a885b9f8d@intel.com>
+Date: Thu, 8 Jan 2026 10:02:58 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260108122713.00007e54@huawei.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [ndctl PATCH] test/cxl-topology.sh: test switch port target
+To: Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev
+Cc: linux-cxl@vger.kernel.org
+References: <20260108052552.395896-1-alison.schofield@intel.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260108052552.395896-1-alison.schofield@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On 26/01/08 12:27PM, Jonathan Cameron wrote:
-> On Wed,  7 Jan 2026 09:33:15 -0600
-> John Groves <John@Groves.net> wrote:
-> 
-> > The fs_dax_get() function should be called by fs-dax file systems after
-> > opening a fsdev dax device. This adds holder_operations, which provides
-> > a memory failure callback path and effects exclusivity between callers
-> > of fs_dax_get().
-> > 
-> > fs_dax_get() is specific to fsdev_dax, so it checks the driver type
-> > (which required touching bus.[ch]). fs_dax_get() fails if fsdev_dax is
-> > not bound to the memory.
-> > 
-> > This function serves the same role as fs_dax_get_by_bdev(), which dax
-> > file systems call after opening the pmem block device.
-> > 
-> > This can't be located in fsdev.c because struct dax_device is opaque
-> > there.
-> > 
-> > This will be called by fs/fuse/famfs.c in a subsequent commit.
-> > 
-> > Signed-off-by: John Groves <john@groves.net>
-> Hi John,
-> 
-> A few passing comments on this one.
-> 
-> Jonathan
-> 
-> > ---
-> 
-> >  #define dax_driver_register(driver) \
-> > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> > index ba0b4cd18a77..68c45b918cff 100644
-> > --- a/drivers/dax/super.c
-> > +++ b/drivers/dax/super.c
-> > @@ -14,6 +14,7 @@
-> >  #include <linux/fs.h>
-> >  #include <linux/cacheinfo.h>
-> >  #include "dax-private.h"
-> > +#include "bus.h"
-> >  
-> >  /**
-> >   * struct dax_device - anchor object for dax services
-> > @@ -121,6 +122,59 @@ void fs_put_dax(struct dax_device *dax_dev, void *holder)
-> >  EXPORT_SYMBOL_GPL(fs_put_dax);
-> >  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
-> >  
-> > +#if IS_ENABLED(CONFIG_DEV_DAX_FS)
-> > +/**
-> > + * fs_dax_get() - get ownership of a devdax via holder/holder_ops
-> > + *
-> > + * fs-dax file systems call this function to prepare to use a devdax device for
-> > + * fsdax. This is like fs_dax_get_by_bdev(), but the caller already has struct
-> > + * dev_dax (and there is no bdev). The holder makes this exclusive.
-> > + *
-> > + * @dax_dev: dev to be prepared for fs-dax usage
-> > + * @holder: filesystem or mapped device inside the dax_device
-> > + * @hops: operations for the inner holder
-> > + *
-> > + * Returns: 0 on success, <0 on failure
-> > + */
-> > +int fs_dax_get(struct dax_device *dax_dev, void *holder,
-> > +	const struct dax_holder_operations *hops)
-> > +{
-> > +	struct dev_dax *dev_dax;
-> > +	struct dax_device_driver *dax_drv;
-> > +	int id;
-> > +
-> > +	id = dax_read_lock();
-> 
-> Given this is an srcu_read_lock under the hood you could do similar
-> to the DEFINE_LOCK_GUARD_1 for the srcu (srcu.h) (though here it's a
-> DEFINE_LOCK_GUARD_0 given the lock itself isn't a parameter and then
-> use scoped_guard() here.  Might not be worth the hassle and would need
-> a wrapper macro to poke &dax_srcu in which means exposing that at least
-> a little in a header.
-> 
-> DEFINE_LOCK_GUARD_0(_T->idx = dax_read_lock, dax_read_lock(_T->idx), idx);
-> Based loosely on the irqflags.h irqsave one. 
 
-I'm getting more comfortable with scoped_guard(), but this feels like
-a good leanup patch addressing all call sites of dax_read_lock() - after
-the famfs dust settles.
 
-If feelings are strong about this I'm open...
-
+On 1/7/26 10:25 PM, Alison Schofield wrote:
+> Add a test case to validate that all switch port decoders sharing
+> downstream ports, dports, have target lists properly enumerated.
 > 
-> > +	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode)) {
-> > +		dax_read_unlock(id);
-> > +		return -ENODEV;
-> > +	}
-> > +	dax_read_unlock(id);
-> > +
-> > +	/* Verify the device is bound to fsdev_dax driver */
-> > +	dev_dax = dax_get_private(dax_dev);
-> > +	if (!dev_dax || !dev_dax->dev.driver) {
-> > +		iput(&dax_dev->inode);
-> > +		return -ENODEV;
-> > +	}
-> > +
-> > +	dax_drv = to_dax_drv(dev_dax->dev.driver);
-> > +	if (dax_drv->type != DAXDRV_FSDEV_TYPE) {
-> > +		iput(&dax_dev->inode);
-> > +		return -EOPNOTSUPP;
-> > +	}
-> > +
-> > +	if (cmpxchg(&dax_dev->holder_data, NULL, holder)) {
-> > +		iput(&dax_dev->inode);
-> > +		return -EBUSY;
-> > +	}
-> > +
-> > +	dax_dev->holder_ops = hops;
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(fs_dax_get);
-> > +#endif /* DEV_DAX_FS */
-> > +
-> >  enum dax_device_flags {
-> >  	/* !alive + rcu grace period == no new operations / mappings */
-> >  	DAXDEV_ALIVE,
-> > diff --git a/include/linux/dax.h b/include/linux/dax.h
-> > index 3fcd8562b72b..76f2a75f3144 100644
-> > --- a/include/linux/dax.h
-> > +++ b/include/linux/dax.h
-> > @@ -53,6 +53,7 @@ struct dax_holder_operations {
-> >  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
-> >  
-> >  #if IS_ENABLED(CONFIG_DEV_DAX_FS)
-> > +int fs_dax_get(struct dax_device *dax_dev, void *holder, const struct dax_holder_operations *hops);
-> I'd wrap this.  It's rather long and there isn't a huge readability benefit in keeping
-> it on one line.
+> This test catches the regression fixed by a recent kernel patch[1]
+> where only one decoder per switch port has targets populated while
+> others have nr_targets=0, even when dports are available.
+> 
+> This test is based on the current cxl_test topology which provides
+> multiple switch ports with 8 decoders each. Like other testcases in
+> cxl-topology.sh, if the cxl_test topology changes (number of switches,
+> decoders per port, or hierarchy), this test will need corresponding
+> updates.
+> 
+> This new case is quietly skipped with kernel version 6.18 where it
+> is known broken.
+> 
+> [1] https://lore.kernel.org/linux-cxl/20260107100356.389490-1-rrichter@amd.com/
+> 
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> ---
+> 
+>  test/common          | 12 +++++++++++
+>  test/cxl-topology.sh | 51 ++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 63 insertions(+)
+> 
+> diff --git a/test/common b/test/common
+> index 2d076402ef7c..2eb11b7396d0 100644
+> --- a/test/common
+> +++ b/test/common
+> @@ -101,6 +101,18 @@ check_min_kver()
+>  	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
+>  }
+>  
+> +# check_eq_kver
+> +# $1: Kernel version to match. format: X.Y
+> +#
+> +check_eq_kver()
+> +{
+> +        local ver="$1"
+> +        : "${KVER:=$(uname -r)}"
+> +
+> +        [ -n "$ver" ] || return 1
+> +        [[ "$KVER" == "$ver"* ]]
+> +}
+> +
+>  # do_skip
+>  # $1: Skip message
+>  #
+> diff --git a/test/cxl-topology.sh b/test/cxl-topology.sh
+> index b68cb8b262b6..d9475b1bae9c 100644
+> --- a/test/cxl-topology.sh
+> +++ b/test/cxl-topology.sh
+> @@ -151,6 +151,57 @@ count=$(jq "map(select(.pmem_size == $pmem_size)) | length" <<< $json)
+>  ((bridges == 2 && count == 8 || bridges == 3 && count == 10 ||
+>    bridges == 4 && count == 11)) || err "$LINENO"
+>  
+> +# Test that switch port decoders have complete target list enumeration
+> +# Validates a fix for multiple decoders sharing the same dport.
+> +# Based on the cxl_test topology expectation of switch ports at depth 2
+> +# with 8 decoders each. Adjust if that expectation changes.
+> +test_switch_decoder_target_enumeration() {
+> +
+> +	# Get verbose output to see targets arrays
+> +	json=$($CXL list -b cxl_test -vvv)
+> +
+> +	switch_port_issues=$(jq '
+> +	# Find all switch ports (depth 2)
+> +	[.. | objects | select(.depth == 2 and has("decoders:" + .port))] |
+> +
+> +	# For each switch port, analyze its decoder target pattern
+> +	map({
+> +		port: .port,
+> +		nr_dports: .nr_dports,
+> +
+> +		# Count non-endpoint decoders (no "mode" field)
+> +		total: ([to_entries[] | select(.key | startswith("decoders:"))
+> +			| .value[] | select(has("mode") == false)] |
+> +			length),
+> +
+> +		# Count how many have targets
+> +		with_targets: ([to_entries[] | select(.key |
+> +			startswith("decoders:")) | .value[] |
+> +			select(has("mode") == false and .nr_targets > 0)] |
+> +			length),
+> +
+> +		# Count how many explicitly have no targets
+> +		without_targets: ([to_entries[] | select(.key |
+> +			startswith("decoders:")) | .value[] |
+> +			select(has("mode") == false and .nr_targets == 0)] |
+> +			length)
+> +		}) |
+> +
+> +		# Filter for the expected pattern and count them
+> +		map(select(.nr_dports > 0 and
+> +			   .with_targets == 1 and
+> +			   .without_targets >= 7)) |
+> +			   length
+> +	' <<<"$json")
+> +
+> +	((switch_port_issues == 0)) || {
+> +		echo "Found $switch_port_issues switch ports with incomplete target enumeration"
+> +		echo "Only 1 decoder has targets while 7+ have nr_targets=0"
+> +		err "$LINENO"
+> +	}
+> +}
+> +# Skip the target enumeration test where known broken
+> +check_eq_kver 6.18 || test_switch_decoder_target_enumeration
 
-Done, thanks!
+6.19 I believe?
 
-John
+DJ
+
+>  
+>  # check that switch ports disappear after all of their memdevs have been
+>  # disabled, and return when the memdevs are enabled.
 
