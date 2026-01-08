@@ -1,32 +1,32 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA40C33374B
-	for <nvdimm@lists.linux.dev>; Thu,  8 Jan 2026 15:20:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DAAC22127B
+	for <nvdimm@lists.linux.dev>; Thu,  8 Jan 2026 15:27:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767885619; cv=none; b=mlBHhYEvLLed1PAXWAdBnpN2P7SECnmfWPRBbZG/kATEHt3gX4OuzibmD1FlhVRoS71MosOD3xdx4iVI728acr/9S28pVM/aCyS0m88i2c15BDc0vt37Maq+eOZFdlBq5my7fg0SOwjjoeLnDuW1QvPlHZ/75VkvQsQ1PUAgP1c=
+	t=1767886042; cv=none; b=T3N5kwi+X/EunYfkOtx9YCkUniGfA+GBaEI/7qiz5nxG2oi0feJxnNzFwqx/hmTeDTKfbj9/2q0FCY0DUcHExZCzARuiUVg2wrY94DieCLoWihR0eLyZd4I4z/voXuZDVVgV9UgrK3qvk4Qitv9m/N/zXl0sQDimSCy5VCYKvH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767885619; c=relaxed/simple;
-	bh=NpUv25TlkIkzmuTKGn5h5KirEBQRahvysXG/JgpQMGY=;
+	s=arc-20240116; t=1767886042; c=relaxed/simple;
+	bh=jKUcZrfjjXtmON/mcBgSGHdkM8Yw6PvAIJrOv31+CnY=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aaa+d8DUWbnCycrRY0o98zxRIDgRT3md9nECBz+lNOgRYwOLkZSDkJQww0sXMBEfVuP0H+nY3PRFGzL2eHlPi9leG4+WphVpTS14aiNdDqScxsUXSNxOaVGk7pnWQWFXs3tga2aFATutn42gj/Y4Mf1gyZID4Vpw9xxr7vnDbR0=
+	 MIME-Version:Content-Type; b=Nr+AJLC1RH81aVT51t3/U0I2wn9/b7NuL2V2UZUqhxGXE5mCt9DIoJ7NQeC9e5eVCz7qIwMD4grmSUP88izlckD2GPXvIAb7pyaWsij9tSyYMv0Ryey67K2dudhlpPd7jv5REJ6Ehx0WT9VOLzD4ouWW8lPeSU7qMRtqPV/TG+U=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.83])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dn7r84ZjSzJ467y;
-	Thu,  8 Jan 2026 23:20:08 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.224.150])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dn80D4YQnzHnGg3;
+	Thu,  8 Jan 2026 23:27:08 +0800 (CST)
 Received: from dubpeml100005.china.huawei.com (unknown [7.214.146.113])
-	by mail.maildlp.com (Postfix) with ESMTPS id 9C48540569;
-	Thu,  8 Jan 2026 23:20:13 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id EE2BE4056B;
+	Thu,  8 Jan 2026 23:27:16 +0800 (CST)
 Received: from localhost (10.203.177.15) by dubpeml100005.china.huawei.com
  (7.214.146.113) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Thu, 8 Jan
- 2026 15:20:12 +0000
-Date: Thu, 8 Jan 2026 15:20:10 +0000
+ 2026 15:27:15 +0000
+Date: Thu, 8 Jan 2026 15:27:13 +0000
 From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: John Groves <John@groves.net>
+To: John Groves <John@Groves.net>
 CC: Miklos Szeredi <miklos@szeredi.hu>, Dan Williams
 	<dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, "Alison
  Schofield" <alison.schofield@intel.com>, John Groves <jgroves@micron.com>,
@@ -46,15 +46,12 @@ CC: Miklos Szeredi <miklos@szeredi.hu>, Dan Williams
 	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
 	<linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V3 01/21] dax: move dax_pgoff_to_phys from
- [drivers/dax/] device.c to bus.c
-Message-ID: <20260108152010.00003829@huawei.com>
-In-Reply-To: <3kylgjwvrdrfe5hcgqka2x2jsgicnnjssdpjrqe32p6cdbw33x@vpm5gpcb5utm>
+Subject: Re: [PATCH V3 21/21] famfs_fuse: Add documentation
+Message-ID: <20260108152713.00001b42@huawei.com>
+In-Reply-To: <20260107153332.64727-22-john@groves.net>
 References: <20260107153244.64703-1-john@groves.net>
 	<20260107153332.64727-1-john@groves.net>
-	<20260107153332.64727-2-john@groves.net>
-	<20260108104352.000079c3@huawei.com>
-	<3kylgjwvrdrfe5hcgqka2x2jsgicnnjssdpjrqe32p6cdbw33x@vpm5gpcb5utm>
+	<20260107153332.64727-22-john@groves.net>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -64,81 +61,45 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
+X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
  dubpeml100005.china.huawei.com (7.214.146.113)
 
-On Thu, 8 Jan 2026 07:25:47 -0600
-John Groves <John@groves.net> wrote:
+On Wed,  7 Jan 2026 09:33:30 -0600
+John Groves <John@Groves.net> wrote:
 
-> On 26/01/08 10:43AM, Jonathan Cameron wrote:
-> > On Wed,  7 Jan 2026 09:33:10 -0600
-> > John Groves <John@Groves.net> wrote:
-> >   
-> > > This function will be used by both device.c and fsdev.c, but both are
-> > > loadable modules. Moving to bus.c puts it in core and makes it available
-> > > to both.
-> > > 
-> > > No code changes - just relocated.
-> > > 
-> > > Signed-off-by: John Groves <john@groves.net>  
-> > Hi John,
-> > 
-> > I don't know the code well enough to offer an opinion on whether this
-> > move causes any issues or if this is the best location, so review is superficial
-> > stuff only.
-> > 
-> > Jonathan
-> >   
-> > > ---
-> > >  drivers/dax/bus.c    | 27 +++++++++++++++++++++++++++
-> > >  drivers/dax/device.c | 23 -----------------------
-> > >  2 files changed, 27 insertions(+), 23 deletions(-)
-> > > 
-> > > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> > > index fde29e0ad68b..a2f9a3cc30a5 100644
-> > > --- a/drivers/dax/bus.c
-> > > +++ b/drivers/dax/bus.c
-> > > @@ -7,6 +7,9 @@
-> > >  #include <linux/slab.h>
-> > >  #include <linux/dax.h>
-> > >  #include <linux/io.h>
-> > > +#include <linux/backing-dev.h>  
-> > 
-> > I'm not immediately spotting why this one.  Maybe should be in a different
-> > patch?
-> >   
-> > > +#include <linux/range.h>
-> > > +#include <linux/uio.h>  
-> > 
-> > Why this one?  
+> Add Documentation/filesystems/famfs.rst and update MAINTAINERS
 > 
-> Good eye, thanks. These must have leaked from some of the many dead ends
-> that I tried before coming up with this approach.
+> Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+> Tested-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: John Groves <john@groves.net>
+> ---
+>  Documentation/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++
+>  Documentation/filesystems/index.rst |   1 +
+>  MAINTAINERS                         |   1 +
+>  3 files changed, 144 insertions(+)
+>  create mode 100644 Documentation/filesystems/famfs.rst
 > 
-> I've dropped all new includes and it still builds :D
+> diff --git a/Documentation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst
+> new file mode 100644
+> index 000000000000..0d3c9ba9b7a8
+> --- /dev/null
+> +++ b/Documentation/filesystems/famfs.rst
 
-Range one should be there... 
+> +Principles of Operation
+> +=======================
+....
+> +When an app accesses a data object in a famfs file, there is no page cache
+> +involvement. The CPU cache is loaded directly from the shared memory. In
+> +some use cases, this is an enormous reduction read amplification compared
+> +to loading an entire page into the page cache.
+> +
+Trivial but this double blank line seems inconsistent.
+I don't mind if it's one or two, but do the same everywhere.
 
-> 
-> > 
-> > Style wise, dax seems to use reverse xmas tree for includes, so
-> > this should keep to that.
-> >   
-> > >  #include "dax-private.h"
-> > >  #include "bus.h"
-> > >  
-> > > @@ -1417,6 +1420,30 @@ static const struct device_type dev_dax_type = {
-> > >  	.groups = dax_attribute_groups,
-> > >  };
-> > >  
-> > > +/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c  */  
-> > Bonus space before that */
-> > Curiously that wasn't there in the original.  
-> 
-> Removed.
-> 
-> [ ... ]
-> 
-> Thanks,
-> John
+> +
+> +Famfs is Not a Conventional File System
+> +---------------------------------------
 
+Nice doc.
+
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
