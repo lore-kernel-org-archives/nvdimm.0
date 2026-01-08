@@ -1,131 +1,151 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E598835B120
-	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 12:29:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D36A535B133
+	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 12:30:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767961799; cv=none; b=PZW8ST3LZOyWUIUkecM4+kMaYW81tsHajUmwOYQeuB+ccCuxQLsLbagq0p749AHCsBlX7/lOB3aq/gQqKwV/bVY5VempM2eg0Pi+IuTgEzfkKrKLX2yILkiQTMq5E8TKeP7Ku/LutUuo5+rohcKYAOGE21a227VmCK8pDOEWKqA=
+	t=1767961837; cv=none; b=AZeaxwdyWKr8hPymKbYONZ3oAnXdRu++YbaN70IUWspAA5c+rYuDod252fwiSKpzMayU5K7NWUWkZliPOdh/w7oyttNFkW/TXNV7ltQ8cbI0u2j8Cmj8cuXKGGTrOVQlLuKyH0xrsZizaj9OwkHiVEEFHHjuha1402Z6dw1waYo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767961799; c=relaxed/simple;
-	bh=atJDgOF48BVIJuPb+gibdhLArrYx4W81Dv7cSLBybes=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=a7CbgEjdIAK0x9PjvWEFKfGu+dosAPsoXtpHKIHeP1pQJMxI5JCKXFbfxoAyMS8lCaKk0jw1KnbrB2p9KsJ+IFdVnhiOM4QgjJSblj5LuJYmRe11LDAGj87QD85tvFn+EihdTCZNFkSEI13NeskF/iXbTWlf9WKqjl5+XFCglF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=TsfLyrCC; arc=none smtp.client-ip=203.254.224.24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="TsfLyrCC"
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20260109122954epoutp01455876ea2b20570cf461a30898bb4b19~JD_Kr3JXp2780827808epoutp01m
-	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 12:29:54 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20260109122954epoutp01455876ea2b20570cf461a30898bb4b19~JD_Kr3JXp2780827808epoutp01m
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1767961794;
-	bh=CDZrUdXczNEhAyd+6zBNSavkfuZuvV0KueIWowIAQjI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=TsfLyrCC42qYDLeieaFi4JZMk0qiF+mXIp4wl8jtoIlDtdG7Xa9567X7kw+tZEc4V
-	 OVLgY9qUqKgdCK6WW49E4PtZhp7WYuo0OHTXxdmxqlkDXBxSl18iaU6jkvmh5gLEo3
-	 XO+yuaArrHSkaJOYAhKkSoZJE1PcHtA6lpSCQSGs=
-Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
-	20260109122954epcas5p31bed7ca62a3f71889b5a64ffe20521fa~JD_KYqa0T1104511045epcas5p3H;
-	Fri,  9 Jan 2026 12:29:54 +0000 (GMT)
-Received: from epcas5p1.samsung.com (unknown [182.195.38.91]) by
-	epsnrtp02.localdomain (Postfix) with ESMTP id 4dnh1F4x4sz2SSKX; Fri,  9 Jan
-	2026 12:29:53 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
-	20260109122953epcas5p2106600bcba874ea07971dd97fdb9eb2d~JD_JA5l1f0870708707epcas5p2z;
-	Fri,  9 Jan 2026 12:29:53 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260109122948epsmtip1791dfe25a485d0e96846c0594184bdae~JD_E8tjwv3245632456epsmtip1B;
-	Fri,  9 Jan 2026 12:29:48 +0000 (GMT)
-Date: Fri, 9 Jan 2026 17:59:41 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
-	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
-	cpgs@samsung.com
-Subject: Re: [PATCH V4 14/17] cxl/pmem_region: Introduce
- CONFIG_CXL_PMEM_REGION for core/pmem_region.c
-Message-ID: <20260109122941.rjbs3in6mxipbfpt@test-PowerEdge-R740xd>
+	s=arc-20240116; t=1767961837; c=relaxed/simple;
+	bh=in5JvqRmDAdB6dX8FGI0EEgnQhCtsywKD5TDJBxjJjU=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=THk3uiH6nZbwfNkiT+RwBAQgWgCyRsTt36w9hbtFVupkiOuwILAsyNH3264mJP9dsTi8xK3fZv0cBgiHYuLlIZRZNRTX8lTVobtU3PMx6yFUtdExCPMg3kSycubDl3JDox8GmD2zxpIsjTUZlvm4Aop0yO7vqdfN9913bdq0/kI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.83])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dnh1h1cXTzHnH7w;
+	Fri,  9 Jan 2026 20:30:16 +0800 (CST)
+Received: from dubpeml100005.china.huawei.com (unknown [7.214.146.113])
+	by mail.maildlp.com (Postfix) with ESMTPS id 48D4440572;
+	Fri,  9 Jan 2026 20:30:26 +0800 (CST)
+Received: from localhost (10.203.177.15) by dubpeml100005.china.huawei.com
+ (7.214.146.113) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Fri, 9 Jan
+ 2026 12:30:24 +0000
+Date: Thu, 8 Jan 2026 16:10:13 +0000
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: John Groves <John@groves.net>
+CC: Miklos Szeredi <miklos@szeredi.hu>, Dan Williams
+	<dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, "Alison
+ Schofield" <alison.schofield@intel.com>, John Groves <jgroves@micron.com>,
+	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan
+ Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, "David
+ Hildenbrand" <david@kernel.org>, Christian Brauner <brauner@kernel.org>,
+	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, Stefan
+ Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, Josef
+ Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, Chen
+ Linxuan <chenlinxuan@uniontech.com>, "James Morse" <james.morse@arm.com>,
+	Fuad Tabba <tabba@google.com>, "Sean Christopherson" <seanjc@google.com>,
+	Shivank Garg <shivankg@amd.com>, Ackerley Tng <ackerleytng@google.com>,
+	Gregory Price <gourry@gourry.net>, Aravind Ramesh <arramesh@micron.com>, Ajay
+ Joshi <ajayjoshi@micron.com>, <venkataravis@micron.com>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH V3 04/21] dax: Add dax_operations for use by fs-dax on
+ fsdev dax
+Message-ID: <20260108161013.00001916@huawei.com>
+In-Reply-To: <gqwlb6ept22edcuiwwzxkboeioin6l4afemn3lenbduuwbb357@tnkceo5764vf>
+References: <20260107153244.64703-1-john@groves.net>
+	<20260107153332.64727-1-john@groves.net>
+	<20260107153332.64727-5-john@groves.net>
+	<20260108115037.00003295@huawei.com>
+	<gqwlb6ept22edcuiwwzxkboeioin6l4afemn3lenbduuwbb357@tnkceo5764vf>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20251217153847.00001e63@huawei.com>
-X-CMS-MailID: 20260109122953epcas5p2106600bcba874ea07971dd97fdb9eb2d
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_e5a08_"
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-cpgsPolicy: CPGSC10-542,Y
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20251119075335epcas5p3a8fdc68301233f899d9041a300309fa2
-References: <20251119075255.2637388-1-s.neeraj@samsung.com>
-	<CGME20251119075335epcas5p3a8fdc68301233f899d9041a300309fa2@epcas5p3.samsung.com>
-	<20251119075255.2637388-15-s.neeraj@samsung.com>
-	<20251217153847.00001e63@huawei.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
+ dubpeml100005.china.huawei.com (7.214.146.113)
 
-------bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_e5a08_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Disposition: inline
+On Thu, 8 Jan 2026 09:59:08 -0600
+John Groves <John@groves.net> wrote:
 
-On 17/12/25 03:38PM, Jonathan Cameron wrote:
->On Wed, 19 Nov 2025 13:22:52 +0530
->Neeraj Kumar <s.neeraj@samsung.com> wrote:
->
->> As pmem region label update/delete has hard dependency on libnvdimm.
->> It is therefore put core/pmem_region.c under CONFIG_CXL_PMEM_REGION
->> control. It handles the dependency by selecting CONFIG_LIBNVDIMM
->> if not enabled.
->>
->> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
->
->
->> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
->> index 5ebbc3d3dde5..beeb9b7527b8 100644
->> --- a/drivers/cxl/core/core.h
->> +++ b/drivers/cxl/core/core.h
->> @@ -89,17 +88,23 @@ static inline struct cxl_region *to_cxl_region(struct device *dev)
->>  {
->>  	return NULL;
->>  }
->> -static inline int devm_cxl_add_pmem_region(struct cxl_region *cxlr)
->> -{
->> -	return 0;
->> -}
->> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
->> index 9798120b208e..408e139718f1 100644
->> --- a/drivers/cxl/core/region.c
->> +++ b/drivers/cxl/core/region.c
->> @@ -3918,6 +3918,8 @@ static int cxl_region_probe(struct device *dev)
->>  			dev_dbg(&cxlr->dev, "CXL EDAC registration for region_id=%d failed\n",
->>  				cxlr->id);
->>
->> +		if (!IS_ENABLED(CONFIG_CXL_PMEM_REGION))
->> +			return -EINVAL;
->>  		return devm_cxl_add_pmem_region(cxlr);
->
->Why not have the stub return -EINVAL if it never makes sense to call without
->the CONFIG being enabled?
+> On 26/01/08 11:50AM, Jonathan Cameron wrote:
+> > On Wed,  7 Jan 2026 09:33:13 -0600
+> > John Groves <John@Groves.net> wrote:
+> >   
+> > > From: John Groves <John@Groves.net>
+> > >   
+> > Hi John
+> > 
+> > The description should generally make sense without the title.
+> > Sometimes that means more or less repeating the title.
+> > 
+> > A few other things inline.  
+> 
+> Will do
+> 
+> >   
+> > > * These methods are based on pmem_dax_ops from drivers/nvdimm/pmem.c
+> > > * fsdev_dax_direct_access() returns the hpa, pfn and kva. The kva was
+> > >   newly stored as dev_dax->virt_addr by dev_dax_probe().
+> > > * The hpa/pfn are used for mmap (dax_iomap_fault()), and the kva is used
+> > >   for read/write (dax_iomap_rw())
+> > > * fsdev_dax_recovery_write() and dev_dax_zero_page_range() have not been
+> > >   tested yet. I'm looking for suggestions as to how to test those.
+> > > * dax-private.h: add dev_dax->cached_size, which fsdev needs to
+> > >   remember. The dev_dax size cannot change while a driver is bound
+> > >   (dev_dax_resize returns -EBUSY if dev->driver is set). Caching the size
+> > >   at probe time allows fsdev's direct_access path can use it without
+> > >   acquiring dax_dev_rwsem (which isn't exported anyway).
+> > > 
+> > > Signed-off-by: John Groves <john@groves.net>  
+> >   
+> > > diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
+> > > index c5c660b193e5..9e2f83aa2584 100644
+> > > --- a/drivers/dax/fsdev.c
+> > > +++ b/drivers/dax/fsdev.c
+> > > @@ -27,6 +27,81 @@
+> > >   * - No mmap support - all access is through fs-dax/iomap
+> > >   */
+> > >  
+> > > +static void fsdev_write_dax(void *pmem_addr, struct page *page,
+> > > +		unsigned int off, unsigned int len)
+> > > +{
+> > > +	while (len) {
+> > > +		void *mem = kmap_local_page(page);  
+> > 
+> > I guess it's pretty simple, but do we care about HIGHMEM for this
+> > new feature?  Maybe it's just easier to support it than argue about it however ;)  
+> 
+> I think this compiles to zero overhead, and is an established pattern -
+> but I'm ok following a consensus elsewhere...
 
-I have removed this config check and handled it in
-devm_cxl_add_pmem_region() itself.
+That's fair, probably just keep it.
 
+> > > +static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
+> > > +			long nr_pages, enum dax_access_mode mode, void **kaddr,
+> > > +			unsigned long *pfn)
+> > > +{
+> > > +	struct dev_dax *dev_dax = dax_get_private(dax_dev);
+> > > +	size_t size = nr_pages << PAGE_SHIFT;
+> > > +	size_t offset = pgoff << PAGE_SHIFT;
+> > > +	void *virt_addr = dev_dax->virt_addr + offset;
+> > > +	phys_addr_t phys;
+> > > +	unsigned long local_pfn;
+> > > +
+> > > +	WARN_ON(!dev_dax->virt_addr);
+> > > +
+> > > +	phys = dax_pgoff_to_phys(dev_dax, pgoff, nr_pages << PAGE_SHIFT);  
+> > 
+> > Use size given you already computed it.  
+> 
+> Not sure I follow. nr_pages is the size of the access or fault, not the size
+> of the device. 
 
+Just above:
 
-Regards,
-Neeraj
+size_t size = nr_pages << PAGE_SHIFT;
 
-------bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_e5a08_
-Content-Type: text/plain; charset="utf-8"
+Jonathan
 
-
-------bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_e5a08_--
