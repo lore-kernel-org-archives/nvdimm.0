@@ -1,48 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A079778F2B
-	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 17:54:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49E4A364EB1
+	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 18:03:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767981294; cv=none; b=ZGYe4tyQ9t+UB6/ZpxGOlvbUGw1ODQul720H1X3NZbb4cJoKPUES+w7vCKZwmPP/7DeJfYdGf2bR4rTIoJJPki18ASpQzowTifGkR60amz2aU5XEM1m57FO605Iky3i6bOSIu9KK/IAanPf7qLcN1AGOk7PDzThuv0SnP4SFXH8=
+	t=1767981802; cv=none; b=XNLgpJ1riJKzc+aDodgTLpqxU5lTSs7KNscHH7PUS6vpgT/K+bIJ7gpJ9W9ofHqjDfCCz6odhIdyBV1qpScYrF9+NEzbn3PIBAVqZq7RRYJxTVlM1scg8DYZQL53KUcH2OV6wPFVqpLXcfDHrosw4kTwe7gmXKK84LH5Ag6sNN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767981294; c=relaxed/simple;
-	bh=1CtmTXVe2fbpcir7mByF6JiYHYQtpB1b1dFfaqmwA/s=;
+	s=arc-20240116; t=1767981802; c=relaxed/simple;
+	bh=H+zYgfV1e7pI/il6aZSz7Mc+SUDJzM0dqMlgXcODIHc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=N0pika6p4Pkoo132kgzoz0zWMiSEtrVHZx4OsHmabXCnlBs5nf1GNOh618uAG7Y91U6+0zTw54JkRTTaAcs0NJaPKErHQOJNqjWIJbj7G9ay7JuPp3eP/lVeICV5QpPqMhIjXBg0me2fjx8TJ0mt1UaE4HgY4xtNlltMyHZpDUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M0m5wGaL; arc=none smtp.client-ip=198.175.65.9
+	 In-Reply-To:Content-Type; b=MorIPYcdw09ukrBG4QSL9NEN8zxrxrcurvv8WyMKxgv/RslrVf0xnVjuna6UKvjiKvNbEXIgcJW2kf6TmRH3gVKTaQYunZouGbtvVUC5SWIZXraG+cWuK/QShY4R6bIkWo+5Wx6XCpJiwCiTnT0U3tNcCgGhHFAwjOQJX6FnIxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=g5CU+rYa; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M0m5wGaL"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="g5CU+rYa"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1767981292; x=1799517292;
+  t=1767981801; x=1799517801;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=1CtmTXVe2fbpcir7mByF6JiYHYQtpB1b1dFfaqmwA/s=;
-  b=M0m5wGaLarJyCf0cAVu8GJ2TpLWyc7jbbusp15DO679EDaZg9Kj2a20h
-   2o6oSzYD5fg8NH22rhBGSPS8wzNgozFPHceH+1J/wQVNhv+34DM9sBd+J
-   joQ71ACm4VVw7QqmFCx33UA8TYVDNpqhMmkYzX9gL8ewMq+yGJBzdYIeh
-   NdaXeme6pGdrRGw+9u+ZUX/ERh+tcv/ERW7lisx8aF0aT4B+jx3Mxg8Um
-   1cWKsYcm+Fcg4eA9rRTkUI247RC92HmyWHlpEZ9K7DinYPcPwCOJsVGEd
-   22FJq91yYO+BakuJAnyoQqr56KMghE+MecAbLryUvV9IDOeo36u/gRif5
-   A==;
-X-CSE-ConnectionGUID: W4sRZXovTSmDvOH1vPARFg==
-X-CSE-MsgGUID: CdPY/SV5TpihKs2vXZdSKw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11666"; a="92027739"
+  bh=H+zYgfV1e7pI/il6aZSz7Mc+SUDJzM0dqMlgXcODIHc=;
+  b=g5CU+rYaczw8axXBc3UVOjHIbTbTd0I1AMVOmljx9rgFtZT3cL9Q5M8V
+   5zAM5Vue7SlWa0HfBfKSS/Pddc7qVbUDQkmRZ8UZ+cA9z04GNmHRLn1hH
+   6Scz3fLS19VfmDw0dYJlYzV0Zb41BKb/OpIFiTmdBcWUIyygJme6icFK6
+   GvzYzSaMQo3CXIi1esScEJjlTSxisIGG/n33fYC3+P+qMTqSt6I6iAPGs
+   LVr2RZYZ7mg5sjOGmhrGmL54oft1KOP5GTkJ3/7atF3J2TxeZxQqXlTLy
+   r+SXVAzthk9krsdXaiz4xq0mK932fdGVfQ0ZbcZu/PzDcxTPSGgvWdc1V
+   Q==;
+X-CSE-ConnectionGUID: hO7pa1qjTeS03uxRw2A4IQ==
+X-CSE-MsgGUID: h5BWX///QlqctJghdJYM1A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11666"; a="92028614"
 X-IronPort-AV: E=Sophos;i="6.21,214,1763452800"; 
-   d="scan'208";a="92027739"
+   d="scan'208";a="92028614"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2026 09:54:52 -0800
-X-CSE-ConnectionGUID: dN4hZ0aIRNKb6YZ4bkrEUA==
-X-CSE-MsgGUID: oebWsVAjRgil8LebSo8Wbw==
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2026 10:03:21 -0800
+X-CSE-ConnectionGUID: mY3CuwDaRk+rnZ/5+97G7A==
+X-CSE-MsgGUID: EW0VFq65RfWhAoDAaePhyg==
 X-ExtLoop1: 1
 Received: from agladkov-desk.ger.corp.intel.com (HELO [10.125.110.37]) ([10.125.110.37])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2026 09:54:52 -0800
-Message-ID: <c6f4f05b-b1b8-4b2b-b9d8-27be52b3e549@intel.com>
-Date: Fri, 9 Jan 2026 10:54:50 -0700
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2026 10:03:20 -0800
+Message-ID: <187c3ad1-4fa0-4573-9848-484629d06217@intel.com>
+Date: Fri, 9 Jan 2026 11:03:19 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,249 +50,88 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/7] libcxl: Add CXL protocol errors
+Subject: Re: [PATCH 3/7] libcxl: Add poison injection support
 To: Ben Cheatham <Benjamin.Cheatham@amd.com>, nvdimm@lists.linux.dev,
  alison.schofield@intel.com
 Cc: linux-cxl@vger.kernel.org
 References: <20260109160720.1823-1-Benjamin.Cheatham@amd.com>
- <20260109160720.1823-3-Benjamin.Cheatham@amd.com>
+ <20260109160720.1823-4-Benjamin.Cheatham@amd.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260109160720.1823-3-Benjamin.Cheatham@amd.com>
+In-Reply-To: <20260109160720.1823-4-Benjamin.Cheatham@amd.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
 On 1/9/26 9:07 AM, Ben Cheatham wrote:
-> The v6.11 Linux kernel adds CXL protocl (CXL.cache & CXL.mem) error
-> injection for platforms that implement the error types as according to
-> the v6.5+ ACPI specification. The interface for injecting these errors
-> are provided by the kernel under the CXL debugfs. The relevant files in
-> the interface are the einj_types file, which provides the available CXL
-> error types for injection, and the einj_inject file, which injects the
-> error into a CXL VH root port or CXL RCH downstream port.
+> Add a library API for clearing and injecting poison into a CXL memory
+> device through the CXL debugfs.
 > 
-> Add a library API to retrieve the CXL error types and inject them. This
-> API will be used in a later commit by the 'cxl-inject-error' and
-> 'cxl-list' commands.
+> This API will be used by the 'cxl-inject-error' and 'cxl-clear-error'
+> commands in later commits.
 > 
 > Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
-
-Just a nit below. otherwise
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
 > ---
->  cxl/lib/libcxl.c   | 194 +++++++++++++++++++++++++++++++++++++++++++++
->  cxl/lib/libcxl.sym |   5 ++
->  cxl/lib/private.h  |  14 ++++
->  cxl/libcxl.h       |  13 +++
->  4 files changed, 226 insertions(+)
+>  cxl/lib/libcxl.c   | 83 ++++++++++++++++++++++++++++++++++++++++++++++
+>  cxl/lib/libcxl.sym |  3 ++
+>  cxl/libcxl.h       |  3 ++
+>  3 files changed, 89 insertions(+)
 > 
 > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 6b7e92c..27ff037 100644
+> index 27ff037..deebf7f 100644
 > --- a/cxl/lib/libcxl.c
 > +++ b/cxl/lib/libcxl.c
-> @@ -48,11 +48,13 @@ struct cxl_ctx {
->  	void *userdata;
->  	int memdevs_init;
->  	int buses_init;
-> +	int perrors_init;
->  	unsigned long timeout;
->  	struct udev *udev;
->  	struct udev_queue *udev_queue;
->  	struct list_head memdevs;
->  	struct list_head buses;
-> +	struct list_head perrors;
->  	struct kmod_ctx *kmod_ctx;
->  	struct daxctl_ctx *daxctl_ctx;
->  	void *private_data;
-> @@ -207,6 +209,14 @@ static void free_bus(struct cxl_bus *bus, struct list_head *head)
->  	free(bus);
->  }
->  
-> +static void free_protocol_error(struct cxl_protocol_error *perror,
-> +				struct list_head *head)
-> +{
-> +	if (head)
-> +		list_del_from(head, &perror->list);
-> +	free(perror);
-> +}
-> +
->  /**
->   * cxl_get_userdata - retrieve stored data pointer from library context
->   * @ctx: cxl library context
-> @@ -325,6 +335,7 @@ CXL_EXPORT int cxl_new(struct cxl_ctx **ctx)
->  	*ctx = c;
->  	list_head_init(&c->memdevs);
->  	list_head_init(&c->buses);
-> +	list_head_init(&c->perrors);
->  	c->kmod_ctx = kmod_ctx;
->  	c->daxctl_ctx = daxctl_ctx;
->  	c->udev = udev;
-> @@ -366,6 +377,7 @@ CXL_EXPORT struct cxl_ctx *cxl_ref(struct cxl_ctx *ctx)
->   */
->  CXL_EXPORT void cxl_unref(struct cxl_ctx *ctx)
+> @@ -5046,3 +5046,86 @@ CXL_EXPORT struct cxl_cmd *cxl_cmd_new_set_alert_config(struct cxl_memdev *memde
 >  {
-> +	struct cxl_protocol_error *perror, *_p;
->  	struct cxl_memdev *memdev, *_d;
->  	struct cxl_bus *bus, *_b;
->  
-> @@ -381,6 +393,9 @@ CXL_EXPORT void cxl_unref(struct cxl_ctx *ctx)
->  	list_for_each_safe(&ctx->buses, bus, _b, port.list)
->  		free_bus(bus, &ctx->buses);
->  
-> +	list_for_each_safe(&ctx->perrors, perror, _p, list)
-> +		free_protocol_error(perror, &ctx->perrors);
-> +
->  	udev_queue_unref(ctx->udev_queue);
->  	udev_unref(ctx->udev);
->  	kmod_unref(ctx->kmod_ctx);
-> @@ -3423,6 +3438,185 @@ CXL_EXPORT int cxl_port_decoders_committed(struct cxl_port *port)
->  	return port->decoders_committed;
+>  	return cxl_cmd_new_generic(memdev, CXL_MEM_COMMAND_ID_SET_ALERT_CONFIG);
 >  }
->  
-> +const struct cxl_protocol_error cxl_protocol_errors[] = {
-> +	CXL_PROTOCOL_ERROR(0x1000, "cache-correctable"),
-> +	CXL_PROTOCOL_ERROR(0x2000, "cache-uncorrectable"),
-> +	CXL_PROTOCOL_ERROR(0x4000, "cache-fatal"),
-> +	CXL_PROTOCOL_ERROR(0x8000, "mem-correctable"),
-> +	CXL_PROTOCOL_ERROR(0x10000, "mem-uncorrectable"),
-> +	CXL_PROTOCOL_ERROR(0x20000, "mem-fatal")
-> +};
 > +
-> +static struct cxl_protocol_error *create_cxl_protocol_error(struct cxl_ctx *ctx,
-> +							    unsigned int n)
+> +CXL_EXPORT bool cxl_memdev_has_poison_injection(struct cxl_memdev *memdev)
 > +{
-> +	struct cxl_protocol_error *perror;
-> +
-> +	for (unsigned long i = 0; i < ARRAY_SIZE(cxl_protocol_errors); i++) {
-> +		if (n != cxl_protocol_errors[i].num)
-> +			continue;
-> +
-> +		perror = calloc(1, sizeof(*perror));
-> +		if (!perror)
-> +			return NULL;
-> +
-> +		*perror = cxl_protocol_errors[i];
-> +		perror->ctx = ctx;
-> +		return perror;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
-> +static void cxl_add_protocol_errors(struct cxl_ctx *ctx)
-> +{
-> +	struct cxl_protocol_error *perror;
-> +	char buf[SYSFS_ATTR_SIZE];
-> +	char *path, *num, *save;
+> +	struct cxl_ctx *ctx = memdev->ctx;
 > +	size_t path_len, len;
-> +	unsigned long n;
-> +	int rc = 0;
+> +	bool exists = true;
+> +	char *path;
+> +	int rc;
 > +
 > +	if (!ctx->cxl_debugfs)
-> +		return;
+> +		return false;
 > +
 > +	path_len = strlen(ctx->cxl_debugfs) + 100;
-> +	path = calloc(1, path_len);
 
-Maybe just use PATH_MAX from <linux/limits.h>.
+Same comment about PATH_MAX.
 
-DJ
-
+> +	path = calloc(path_len, sizeof(char));
 > +	if (!path)
-> +		return;
+> +		return false;
 > +
-> +	len = snprintf(path, path_len, "%s/einj_types", ctx->cxl_debugfs);
+> +	len = snprintf(path, path_len, "%s/%s/inject_poison", ctx->cxl_debugfs,
+> +		       cxl_memdev_get_devname(memdev));
 > +	if (len >= path_len) {
-> +		err(ctx, "Buffer too small\n");
-> +		goto err;
+> +		err(ctx, "%s: buffer too small\n",
+> +		    cxl_memdev_get_devname(memdev));
+> +		free(path);
+> +		return false;
+
+I think I saw in an earlier patch that you were using goto to filter error exit point. So may as well make it consistent and do it here as well.
+
 > +	}
 > +
 > +	rc = access(path, F_OK);
-> +	if (rc) {
-> +		err(ctx, "failed to access %s: %s\n", path, strerror(errno));
-> +		goto err;
-> +	}
+> +	if (rc)
+> +		exists = false;
 > +
-> +	rc = sysfs_read_attr(ctx, path, buf);
-> +	if (rc) {
-> +		err(ctx, "failed to read %s: %s\n", path, strerror(-rc));
-> +		goto err;
-> +	}
-> +
-> +	/*
-> +	 * The format of the output of the einj_types attr is:
-> +	 * <Error number in hex 1> <Error name 1>
-> +	 * <Error number in hex 2> <Error name 2>
-> +	 * ...
-> +	 *
-> +	 * We only need the number, so parse that and skip the rest of
-> +	 * the line.
-> +	 */
-> +	num = strtok_r(buf, " \n", &save);
-> +	while (num) {
-> +		n = strtoul(num, NULL, 16);
-> +		perror = create_cxl_protocol_error(ctx, n);
-> +		if (perror)
-> +			list_add_tail(&ctx->perrors, &perror->list);
-> +
-> +		num = strtok_r(NULL, "\n", &save);
-> +		if (!num)
-> +			break;
-> +
-> +		num = strtok_r(NULL, " \n", &save);
-> +	}
-> +
-> +err:
 > +	free(path);
+> +	return exists;
 > +}
 > +
-> +static void cxl_protocol_errors_init(struct cxl_ctx *ctx)
+> +static int cxl_memdev_poison_action(struct cxl_memdev *memdev, size_t dpa,
+> +				    bool clear)
 > +{
-> +	if (ctx->perrors_init)
-> +		return;
-> +
-> +	ctx->perrors_init = 1;
-> +	cxl_add_protocol_errors(ctx);
-> +}
-> +
-> +CXL_EXPORT struct cxl_protocol_error *
-> +cxl_protocol_error_get_first(struct cxl_ctx *ctx)
-> +{
-> +	cxl_protocol_errors_init(ctx);
-> +
-> +	return list_top(&ctx->perrors, struct cxl_protocol_error, list);
-> +}
-> +
-> +CXL_EXPORT struct cxl_protocol_error *
-> +cxl_protocol_error_get_next(struct cxl_protocol_error *perror)
-> +{
-> +	struct cxl_ctx *ctx = perror->ctx;
-> +
-> +	return list_next(&ctx->perrors, perror, list);
-> +}
-> +
-> +CXL_EXPORT unsigned int
-> +cxl_protocol_error_get_num(struct cxl_protocol_error *perror)
-> +{
-> +	return perror->num;
-> +}
-> +
-> +CXL_EXPORT const char *
-> +cxl_protocol_error_get_str(struct cxl_protocol_error *perror)
-> +{
-> +	return perror->string;
-> +}
-> +
-> +CXL_EXPORT int cxl_dport_protocol_error_inject(struct cxl_dport *dport,
-> +					       unsigned int error)
-> +{
-> +	struct cxl_ctx *ctx = dport->port->ctx;
-> +	char buf[32] = { 0 };
+> +	struct cxl_ctx *ctx = memdev->ctx;
 > +	size_t path_len, len;
+> +	char addr[32];
 > +	char *path;
 > +	int rc;
 > +
@@ -300,107 +139,74 @@ DJ
 > +		return -ENOENT;
 > +
 > +	path_len = strlen(ctx->cxl_debugfs) + 100;
+
+same comment about path len
+
 > +	path = calloc(path_len, sizeof(char));
 > +	if (!path)
 > +		return -ENOMEM;
 > +
-> +	len = snprintf(path, path_len, "%s/%s/einj_inject", ctx->cxl_debugfs,
-> +		      cxl_dport_get_devname(dport));
+> +	len = snprintf(path, path_len, "%s/%s/%s", ctx->cxl_debugfs,
+> +		       cxl_memdev_get_devname(memdev),
+> +		       clear ? "clear_poison" : "inject_poison");
 > +	if (len >= path_len) {
-> +		err(ctx, "%s: buffer too small\n", cxl_dport_get_devname(dport));
+> +		err(ctx, "%s: buffer too small\n",
+> +		    cxl_memdev_get_devname(memdev));
+> +		free(path);
+> +		return -ENOMEM;
+
+same comment about error paths
+
+DJ
+
+> +	}
+> +
+> +	len = snprintf(addr, sizeof(addr), "0x%lx\n", dpa);
+> +	if (len >= sizeof(addr)) {
+> +		err(ctx, "%s: buffer too small\n",
+> +		    cxl_memdev_get_devname(memdev));
 > +		free(path);
 > +		return -ENOMEM;
 > +	}
 > +
-> +	rc = access(path, F_OK);
-> +	if (rc) {
-> +		err(ctx, "failed to access %s: %s\n", path, strerror(errno));
-> +		free(path);
-> +		return -errno;
-> +	}
-> +
-> +	len = snprintf(buf, sizeof(buf), "0x%x\n", error);
-> +	if (len >= sizeof(buf)) {
-> +		err(ctx, "%s: buffer too small\n", cxl_dport_get_devname(dport));
-> +		free(path);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	rc = sysfs_write_attr(ctx, path, buf);
-> +	if (rc) {
-> +		err(ctx, "failed to write %s: %s\n", path, strerror(-rc));
-> +		free(path);
-> +		return -errno;
-> +	}
-> +
+> +	rc = sysfs_write_attr(ctx, path, addr);
 > +	free(path);
-> +	return 0;
+> +	return rc;
 > +}
 > +
->  static void *add_cxl_bus(void *parent, int id, const char *cxlbus_base)
->  {
->  	const char *devname = devpath_to_devname(cxlbus_base);
+> +CXL_EXPORT int cxl_memdev_inject_poison(struct cxl_memdev *memdev, size_t addr)
+> +{
+> +	return cxl_memdev_poison_action(memdev, addr, false);
+> +}
+> +
+> +CXL_EXPORT int cxl_memdev_clear_poison(struct cxl_memdev *memdev, size_t addr)
+> +{
+> +	return cxl_memdev_poison_action(memdev, addr, true);
+> +}
 > diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-> index 36a93c3..c683b83 100644
+> index c683b83..c636edb 100644
 > --- a/cxl/lib/libcxl.sym
 > +++ b/cxl/lib/libcxl.sym
-> @@ -304,4 +304,9 @@ global:
->  LIBCXL_11 {
->  global:
->  	cxl_region_get_extended_linear_cache_size;
-> +	cxl_protocol_error_get_first;
-> +	cxl_protocol_error_get_next;
-> +	cxl_protocol_error_get_num;
-> +	cxl_protocol_error_get_str;
-> +	cxl_dport_protocol_error_inject;
+> @@ -309,4 +309,7 @@ global:
+>  	cxl_protocol_error_get_num;
+>  	cxl_protocol_error_get_str;
+>  	cxl_dport_protocol_error_inject;
+> +	cxl_memdev_has_poison_injection;
+> +	cxl_memdev_inject_poison;
+> +	cxl_memdev_clear_poison;
 >  } LIBCXL_10;
-> diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-> index 542cdb7..582eebf 100644
-> --- a/cxl/lib/private.h
-> +++ b/cxl/lib/private.h
-> @@ -108,6 +108,20 @@ struct cxl_port {
->  	struct list_head dports;
->  };
->  
-> +struct cxl_protocol_error {
-> +	unsigned int num;
-> +	const char *string;
-> +	struct cxl_ctx *ctx;
-> +	struct list_node list;
-> +};
-> +
-> +#define CXL_PROTOCOL_ERROR(n, str)	\
-> +	((struct cxl_protocol_error){	\
-> +		.num = (n),		\
-> +		.string = (str),	\
-> +		.ctx = NULL,		\
-> +	})
-> +
->  struct cxl_bus {
->  	struct cxl_port port;
->  };
 > diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-> index 9371aac..faef62e 100644
+> index faef62e..4d035f0 100644
 > --- a/cxl/libcxl.h
 > +++ b/cxl/libcxl.h
-> @@ -498,6 +498,19 @@ int cxl_cmd_alert_config_set_enable_alert_actions(struct cxl_cmd *cmd,
->  						  int enable);
->  struct cxl_cmd *cxl_cmd_new_set_alert_config(struct cxl_memdev *memdev);
->  
-> +struct cxl_protocol_error;
-> +struct cxl_protocol_error *cxl_protocol_error_get_first(struct cxl_ctx *ctx);
-> +struct cxl_protocol_error *
-> +cxl_protocol_error_get_next(struct cxl_protocol_error *perror);
-> +unsigned int cxl_protocol_error_get_num(struct cxl_protocol_error *perror);
-> +const char *cxl_protocol_error_get_str(struct cxl_protocol_error *perror);
-> +int cxl_dport_protocol_error_inject(struct cxl_dport *dport,
-> +				    unsigned int error);
-> +
-> +#define cxl_protocol_error_foreach(ctx, perror)				       \
-> +	for (perror = cxl_protocol_error_get_first(ctx); perror != NULL;       \
-> +	     perror = cxl_protocol_error_get_next(perror))
-> +
->  #ifdef __cplusplus
->  } /* extern "C" */
->  #endif
+> @@ -105,6 +105,9 @@ int cxl_memdev_read_label(struct cxl_memdev *memdev, void *buf, size_t length,
+>  		size_t offset);
+>  int cxl_memdev_write_label(struct cxl_memdev *memdev, void *buf, size_t length,
+>  		size_t offset);
+> +bool cxl_memdev_has_poison_injection(struct cxl_memdev *memdev);
+> +int cxl_memdev_inject_poison(struct cxl_memdev *memdev, size_t dpa);
+> +int cxl_memdev_clear_poison(struct cxl_memdev *memdev, size_t dpa);
+>  struct cxl_cmd *cxl_cmd_new_get_fw_info(struct cxl_memdev *memdev);
+>  unsigned int cxl_cmd_fw_info_get_num_slots(struct cxl_cmd *cmd);
+>  unsigned int cxl_cmd_fw_info_get_active_slot(struct cxl_cmd *cmd);
 
