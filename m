@@ -1,56 +1,56 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09C6C35BDBC
-	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 12:45:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDDBD35CB86
+	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 12:45:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767962721; cv=none; b=RIXHsZIYlMs7cw8Uq8cKWRQytTl0gtAbY9ufCxCbcfRke5/0jHbgzxmkP1YHv8fuQofCZqthi2zwPBUY36AkDg3yjgjtAuemwdbqZwyeHnXpLgqjYpeLjkal0Ycg08fgSyakaTu8D/rPHxbmwyQC0F8iW3ZJQnKf4xQrp1v6wmQ=
+	t=1767962723; cv=none; b=d3mbYVOnzTTBD1aPwHrOJwL7G2BV7wdp0ITmTKkRFG3USIdHM+uMcEpFkvCWrVzIcDrmLV+Gyg2Qje6XC2NeeU1RJOobNeG6K5sJPUvZnbXtcpCil6QSonYxVtBHy7rtoQKylSAoIPZEEsCEbqVelmmXKoDUDyhiL+3a+dCZYks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767962721; c=relaxed/simple;
-	bh=7wS8SF5L1SMjyiUjc9IW0gH8hSECl7p9MepOxkO2ydE=;
+	s=arc-20240116; t=1767962723; c=relaxed/simple;
+	bh=Vl6QRqBDVWeDPdvPoeu6lPZ41lV+RQ4xt5L2bqTpzrs=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:MIME-Version:
-	 Content-Type:References; b=bqqyW0xt32TjL+Lqzy4jPDbDv/GxbmBJkZXAKaZHh36LwT8YuQFmFL4CbpeNeMdwergx2HQ0HWhFWXA4GyuYBw2fCHudN1iHB2U45cr/aBeFAXDTDCH3qS/mANrIkprq8rMOIslPKpmpkW0kb9emtA5ze4vGHXNgkI7c7vTBlUQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=Rq6cst+r; arc=none smtp.client-ip=203.254.224.24
+	 Content-Type:References; b=GIJigtV6dE6l0xJ4RoFW+FfPU0l4FElb0vm/t1Ov25+WXqPxyu8ZX8UWxqWrxPTmlOnpDFE7gOVLWUb8J1mH1QMGnYWvYx4MCabyKral/B9If8BUjts2Q5G6oGljirj5gjVkWiuQg9pplIgv+B/4ethUNf0jZiDm04btYFB4lpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=OPlbjTXk; arc=none smtp.client-ip=203.254.224.33
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="Rq6cst+r"
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="OPlbjTXk"
 Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20260109124518epoutp0190ac661036c2fdedfd625ecff28ab183~JELm0epiG0815508155epoutp01e
-	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 12:45:18 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20260109124518epoutp0190ac661036c2fdedfd625ecff28ab183~JELm0epiG0815508155epoutp01e
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20260109124520epoutp0362e0712830415ea5cb2591dfab2d20b7~JELodQL1N0570105701epoutp03a
+	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 12:45:20 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20260109124520epoutp0362e0712830415ea5cb2591dfab2d20b7~JELodQL1N0570105701epoutp03a
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1767962718;
-	bh=NbPWNi0pzEvD5YwskenIcUOkOu9snU3PvuKwTqmm89o=;
+	s=mail20170921; t=1767962720;
+	bh=c7T6ZJ4KXocop9UUK8AuZEyn63B7t7oAxoInpDQTVkc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Rq6cst+rKFHMwiGDdL27HIWw60e2sOi1khkcMICpgUOFbiTKzE0d9jLco8U4B/icl
-	 gj6PsaHrO/c1vEf2UpLwBkLyNNtOdCzvOhN0uU45vDRftVQH3y9bxq+coyyVHEKXKO
-	 o7vHjFnhtSUmiz8OBhDE8kkH3EVQb4CsADcvLAts=
-Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20260109124518epcas5p2ddd891883a94dd91d0232011f23ce8c5~JELmlkLCX2134121341epcas5p2T;
-	Fri,  9 Jan 2026 12:45:18 +0000 (GMT)
-Received: from epcas5p4.samsung.com (unknown [182.195.38.92]) by
-	epsnrtp01.localdomain (Postfix) with ESMTP id 4dnhM149vFz6B9m4; Fri,  9 Jan
-	2026 12:45:17 +0000 (GMT)
+	b=OPlbjTXktLc/wSdAnMvrJcYcPFwUsunYhy9N5+7H81c/S1o19b8KaRce7iY0zAQy6
+	 zCFsEJaoU3z24Jpau0kAj9wy4HW4v0/UIq9xTdOmfe5gVtawFG4E2pGadGK989xGyv
+	 tISvhY1EyUmlRF4/Cf7Kk2Cj6cY5L+NXFOZ3Y+cU=
+Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
+	20260109124519epcas5p309bfdb17e5d9533261b40c7991c631c8~JELn09XOe2029020290epcas5p3q;
+	Fri,  9 Jan 2026 12:45:19 +0000 (GMT)
+Received: from epcas5p4.samsung.com (unknown [182.195.38.93]) by
+	epsnrtp03.localdomain (Postfix) with ESMTP id 4dnhM26510z3hhT4; Fri,  9 Jan
+	2026 12:45:18 +0000 (GMT)
 Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
-	20260109124517epcas5p3d11e7d0941bcf34c74a789917c8aa0d0~JELlgdbO52082420824epcas5p3W;
-	Fri,  9 Jan 2026 12:45:17 +0000 (GMT)
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
+	20260109124518epcas5p26832d0b4ae4017cb3afbd613bf58eabd~JELmzoVZa2073820738epcas5p2W;
+	Fri,  9 Jan 2026 12:45:18 +0000 (GMT)
 Received: from test-PowerEdge-R740xd.samsungds.net (unknown [107.99.41.79])
 	by epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260109124513epsmtip187a144b008f6dc82eb6ca676db476585~JELilYP910977109771epsmtip1l;
-	Fri,  9 Jan 2026 12:45:13 +0000 (GMT)
+	20260109124517epsmtip14cf401a10c2622402698c0de1eb6b24d~JELlvXoOr0972509725epsmtip1Y;
+	Fri,  9 Jan 2026 12:45:17 +0000 (GMT)
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com
 Cc: a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	Neeraj Kumar <s.neeraj@samsung.com>
-Subject: [PATCH V5 05/17] nvdimm/label: Skip region label during ns label
- DPA reservation
-Date: Fri,  9 Jan 2026 18:14:25 +0530
-Message-Id: <20260109124437.4025893-6-s.neeraj@samsung.com>
+Subject: [PATCH V5 06/17] nvdimm/label: Preserve region label during
+ namespace creation
+Date: Fri,  9 Jan 2026 18:14:26 +0530
+Message-Id: <20260109124437.4025893-7-s.neeraj@samsung.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260109124437.4025893-1-s.neeraj@samsung.com>
 Precedence: bulk
@@ -60,47 +60,103 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CMS-MailID: 20260109124517epcas5p3d11e7d0941bcf34c74a789917c8aa0d0
+X-CMS-MailID: 20260109124518epcas5p26832d0b4ae4017cb3afbd613bf58eabd
 X-Msg-Generator: CA
 Content-Type: text/plain; charset="utf-8"
 CMS-TYPE: 105P
 cpgsPolicy: CPGSC10-542,Y
 X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20260109124517epcas5p3d11e7d0941bcf34c74a789917c8aa0d0
+X-CMS-RootMailID: 20260109124518epcas5p26832d0b4ae4017cb3afbd613bf58eabd
 References: <20260109124437.4025893-1-s.neeraj@samsung.com>
-	<CGME20260109124517epcas5p3d11e7d0941bcf34c74a789917c8aa0d0@epcas5p3.samsung.com>
+	<CGME20260109124518epcas5p26832d0b4ae4017cb3afbd613bf58eabd@epcas5p2.samsung.com>
 
-CXL 3.2 Spec mentions CXL LSA 2.1 Namespace Labels at section
-9.13.2.5. If Namespace label is present in LSA during
-nvdimm_probe() then dimm-physical-address(DPA) reservation is
-required. But this reservation is not required by cxl region
-label. Therefore if LSA scanning finds any region label, skip it.
+During namespace creation we scan labels present in LSA using
+scan_labels(). Currently scan_labels() is only preserving
+namespace labels into label_ent list.
+
+In this patch we also preserve region label into label_ent list
 
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
 ---
- drivers/nvdimm/label.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/nvdimm/namespace_devs.c | 47 +++++++++++++++++++++++++++++----
+ 1 file changed, 42 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 9854cb45fb62..169692dfa12c 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -469,6 +469,14 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
- 		lsa_label = to_lsa_label(ndd, slot);
- 		nd_label = &lsa_label->ns_label;
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 657004021c95..8411f4152319 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1994,9 +1994,32 @@ static struct device **scan_labels(struct nd_region *nd_region)
  
-+		/*
-+		 * Skip region label. If LSA label is region label
-+		 * then it don't require dimm-physical-address(DPA)
-+		 * reservation. Whereas its required for namespace label
-+		 */
-+		if (is_region_label(ndd, lsa_label))
-+			continue;
+ 	if (count == 0) {
+ 		struct nd_namespace_pmem *nspm;
++		for (i = 0; i < nd_region->ndr_mappings; i++) {
++			struct cxl_region_label *region_label;
++			struct nd_label_ent *le, *e;
++			LIST_HEAD(list);
+ 
+-		/* Publish a zero-sized namespace for userspace to configure. */
+-		nd_mapping_free_labels(nd_mapping);
++			nd_mapping = &nd_region->mapping[i];
++			if (list_empty(&nd_mapping->labels))
++				continue;
 +
- 		if (!slot_valid(ndd, lsa_label, slot))
- 			continue;
++			list_for_each_entry_safe(le, e, &nd_mapping->labels,
++						 list) {
++				region_label = le->region_label;
++				if (!region_label)
++					continue;
++
++				/* Preserve region labels if present */
++				list_move_tail(&le->list, &list);
++			}
++
++			/*
++			 * Publish a zero-sized namespace for userspace
++			 * to configure.
++			 */
++			nd_mapping_free_labels(nd_mapping);
++			list_splice_init(&list, &nd_mapping->labels);
++		}
+ 		nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
+ 		if (!nspm)
+ 			goto err;
+@@ -2008,7 +2031,7 @@ static struct device **scan_labels(struct nd_region *nd_region)
+ 	} else if (is_memory(&nd_region->dev)) {
+ 		/* clean unselected labels */
+ 		for (i = 0; i < nd_region->ndr_mappings; i++) {
+-			struct list_head *l, *e;
++			struct nd_label_ent *le, *e;
+ 			LIST_HEAD(list);
+ 			int j;
  
+@@ -2019,10 +2042,24 @@ static struct device **scan_labels(struct nd_region *nd_region)
+ 			}
+ 
+ 			j = count;
+-			list_for_each_safe(l, e, &nd_mapping->labels) {
++			list_for_each_entry_safe(le, e, &nd_mapping->labels,
++						 list) {
++				/* Preserve region labels */
++				if (uuid_equal(&le->label_uuid,
++					       &cxl_region_uuid)) {
++					list_move_tail(&le->list, &list);
++					continue;
++				}
++
++				/*
++				 * Once preserving selected ns label done
++				 * break out of loop
++				 */
+ 				if (!j--)
+ 					break;
+-				list_move_tail(l, &list);
++
++				/* Preserve selected ns label */
++				list_move_tail(&le->list, &list);
+ 			}
+ 			nd_mapping_free_labels(nd_mapping);
+ 			list_splice_init(&list, &nd_mapping->labels);
 -- 
 2.34.1
 
