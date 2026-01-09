@@ -1,134 +1,130 @@
-Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D368C34BA3B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CF4434BA28
 	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 15:28:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.34
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768145287; cv=none; b=ptGRVOi8nNO8gC0XTykBS9Rygql7StIThhBuYmxih/P5XLs0iV4PQbv0OIsvUT9CTveS9bfgzz6O4gEV+96OWB5uKKc8RvuWD+Xf4DEa1hSmkfubLqWkTxI9scnFQ84UKycnlK81LULuoKyhng62p3NZsTrm34daSo3LeaB+zIQ=
+	t=1768145291; cv=none; b=h2Dh7tgbaUXR4Nzksyh2ABCGmMj3ZPy9fcEkpQFMlAEVPIhoMrEjkxpNukstV397hye3gbW/PXca+gtISQdjn1G4Oy8WHIJdc9ZGtdQMfov/f2+qxZGyChR7HyDeUODd1h56XAG1O6YfIqcT9FdsEO+OXKerfYT+n4etbM1aEsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768145287; c=relaxed/simple;
-	bh=ItBUyj9JRcjcqb72kaMat0ZM8AVwVmueUeogq6n0OGE=;
+	s=arc-20240116; t=1768145291; c=relaxed/simple;
+	bh=ywr0R2qffe7MOQbTCOqlWcYh3MdiGv8ZQwzuvzAbo08=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=Wvhfod6dioNJnmD3Sw1e3xRd3EsAVZc1iMG3McMHxe1sh5wz1f1pAzvV4wiXeULBmKxQ7NutzpFNCUTMH3XBCuTekUaVieHH95rQi1e4gtOaGSSft79gN7b/22YAJ4v+eEQePy2x3NaosHfOqDHyRpwZijXm67ZjIWBQOBSnY5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=QXbGvBUA; arc=none smtp.client-ip=203.254.224.34
+	 Content-Type:References; b=k2AtSvZEv0/1T2w0k1XUa2+wtdQ7CoCvigXptxqusPqrd6JlUcLp7k5Pqio6v+LR63URbpoZw0tUT/MBby5U9nzheV3yqTjPyniuoFvC04Ocwxu9iWDihdW/86HNxCnxV1s5gJLinPd9/Lj5OCbRrFIjGwtQcmbX4z2qO7b1Jrc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=I0Bql2Hr; arc=none smtp.client-ip=203.254.224.33
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="QXbGvBUA"
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20260111152804epoutp0473189ad89a4f09b96007262d42c22eda~JtsSUHD9n2564525645epoutp043
-	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 15:28:04 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20260111152804epoutp0473189ad89a4f09b96007262d42c22eda~JtsSUHD9n2564525645epoutp043
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="I0Bql2Hr"
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20260111152803epoutp034c7f67ef05a03b77e90908e0293e238c~JtsRhphFO3062930629epoutp03g
+	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 15:28:03 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20260111152803epoutp034c7f67ef05a03b77e90908e0293e238c~JtsRhphFO3062930629epoutp03g
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1768145284;
-	bh=LdQgQqWIKzc0yAudDbs+7yaVjSNIi/OFl+0w6Q2a2M8=;
+	s=mail20170921; t=1768145283;
+	bh=25S7bre1YtXjpMLZW3rLUrQvK/iPOgzJaV/AOb+jD2I=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=QXbGvBUA4ANZMmSxeNuZIyj+2mqCldovICjpnaQ0xYUW5ePVh7zuW1niUznvRgEBb
-	 8Yj/3U960Hp9ws23fA2XUPq3zx7Kof0RCqhCga1IcvBA0H+lrZvSAUdlXGLrhMWaLg
-	 T0ZJZ7c8N/zZVx5G8KQdCs4SUWhRj71tG21ZjCxA=
-Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
+	b=I0Bql2HrhcJ3ywNBQyyw6zcvLVbYwXBcqO7terrslwqt0OVGZvhIZZP/qtzpXH49o
+	 Fose956fyJbxh6DG0EPbQneQYIsnXNb7eHAafHgFLUrqaFVvYitsRJbvEZ1p5ooeBN
+	 hTGKm1z4ctybw4aSMy51LD4CnudJD3Y84EPUKKLE=
+Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
 	epcas5p1.samsung.com (KnoxPortal) with ESMTPS id
-	20260111152803epcas5p1c2ac77fe958f1590341edf333fb4479b~JtsRwQcsL1125111251epcas5p10;
-	Sun, 11 Jan 2026 15:28:03 +0000 (GMT)
+	20260111152802epcas5p11a6b3575d15f22da52f68a7d0464f435~JtsRLUe5O1125111251epcas5p1y;
+	Sun, 11 Jan 2026 15:28:02 +0000 (GMT)
 Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp03.localdomain (Postfix) with ESMTP id 4dpzsv3Yv6z3hhT3; Sun, 11 Jan
-	2026 15:28:03 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPA id
-	20260109123139epcas5p129230abf5bed2e490cd275e1a4276e87~JD-rpw1fW0058100581epcas5p1Y;
-	Fri,  9 Jan 2026 12:31:39 +0000 (GMT)
+	epsnrtp01.localdomain (Postfix) with ESMTP id 4dpzst6Fx6z6B9m4; Sun, 11 Jan
+	2026 15:28:02 +0000 (GMT)
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
+	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
+	20260109121103epcas5p419e2e4f7c39aeefd6ceedc280d6280ad~JDts4mz6C1954919549epcas5p4y;
+	Fri,  9 Jan 2026 12:11:03 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260109123137epsmtip1c0e6fd03fd96bd3ed658efd8f25c7089~JD-qeRKin3245632456epsmtip1i;
-	Fri,  9 Jan 2026 12:31:37 +0000 (GMT)
-Date: Fri, 9 Jan 2026 18:01:29 +0530
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20260109121101epsmtip2e3638b46f72b28bf7ad15a3b84e99909~JDtrZb_On2956029560epsmtip2a;
+	Fri,  9 Jan 2026 12:11:01 +0000 (GMT)
+Date: Fri, 9 Jan 2026 17:40:55 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V4 15/17] cxl/pmem_region: Add sysfs attribute cxl
- region label updation/deletion
-Message-ID: <158453976.61768145283486.JavaMail.epsvc@epcpadp2new>
+Subject: Re: [PATCH V4 10/17] cxl/mem: Refactor cxl pmem region
+ auto-assembling
+Message-ID: <1296674576.21768145282877.JavaMail.epsvc@epcpadp2new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <ba6d7e3e-493c-43f4-9ae6-373dbe7f4f0f@intel.com>
-X-CMS-MailID: 20260109123139epcas5p129230abf5bed2e490cd275e1a4276e87
+In-Reply-To: <48855612-3643-4d91-84aa-784cbc3fd593@intel.com>
+X-CMS-MailID: 20260109121103epcas5p419e2e4f7c39aeefd6ceedc280d6280ad
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----IrfruICR4kMULzJWPGPqiSt5VhS9eUGYkVmPB-DHhmy0YhYM=_e5d9f_"
+	boundary="----Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_e580c_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
 X-Hop-Count: 3
-X-CMS-RootMailID: 20251119075337epcas5p2cb576137ca33d6304add4e1ba0b2bdc1
+X-CMS-RootMailID: 20251119075324epcas5p1b0a7149ede962491e6be2d72d33f77eb
 References: <20251119075255.2637388-1-s.neeraj@samsung.com>
-	<CGME20251119075337epcas5p2cb576137ca33d6304add4e1ba0b2bdc1@epcas5p2.samsung.com>
-	<20251119075255.2637388-16-s.neeraj@samsung.com>
-	<ba6d7e3e-493c-43f4-9ae6-373dbe7f4f0f@intel.com>
+	<CGME20251119075324epcas5p1b0a7149ede962491e6be2d72d33f77eb@epcas5p1.samsung.com>
+	<20251119075255.2637388-11-s.neeraj@samsung.com>
+	<48855612-3643-4d91-84aa-784cbc3fd593@intel.com>
 
-------IrfruICR4kMULzJWPGPqiSt5VhS9eUGYkVmPB-DHhmy0YhYM=_e5d9f_
+------Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_e580c_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 19/11/25 04:10PM, Dave Jiang wrote:
+On 19/11/25 01:44PM, Dave Jiang wrote:
 >
 >
 >On 11/19/25 12:52 AM, Neeraj Kumar wrote:
->> Using these attributes region label is added/deleted into LSA. These
->> attributes are called from userspace (ndctl) after region creation.
+>> In 84ec985944ef3, devm_cxl_add_nvdimm() sequence was changed and called
+>> before devm_cxl_add_endpoint(). It's because cxl pmem region auto-assembly
+>> used to get called at last in cxl_endpoint_port_probe(), which requires
+>> cxl_nvd presence.
 >>
->> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
->> ---
->>  Documentation/ABI/testing/sysfs-bus-cxl | 22 ++++++
->>  drivers/cxl/core/pmem_region.c          | 93 ++++++++++++++++++++++++-
->>  drivers/cxl/cxl.h                       |  7 ++
->>  3 files changed, 121 insertions(+), 1 deletion(-)
+>> For cxl region persistency, region creation happens during nvdimm_probe
+>> which need the completion of endpoint probe.
 >>
->> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
->> index c80a1b5a03db..76d79c03dde4 100644
->> --- a/Documentation/ABI/testing/sysfs-bus-cxl
->> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
->> @@ -624,3 +624,25 @@ Description:
->>  		The count is persistent across power loss and wraps back to 0
->>  		upon overflow. If this file is not present, the device does not
->>  		have the necessary support for dirty tracking.
->> +
->> +
->> +What:		/sys/bus/cxl/devices/regionZ/pmem_regionZ/region_label_update
->> +Date:		Nov, 2025
->> +KernelVersion:	v6.19
->> +Contact:	linux-cxl@vger.kernel.org
->> +Description:
->> +		(RW) Write a boolean 'true' string value to this attribute to
->> +		update cxl region information into LSA as region label. It
->> +		uses nvdimm nd_region_label_update() to update cxl region
->> +		information saved during cxl region creation into LSA. This
->> +		attribute must be called at last during cxl region creation.
+>> In order to accommodate both cxl pmem region auto-assembly and cxl region
+>> persistency, refactored following
+>>
+>> 1. Re-Sequence devm_cxl_add_nvdimm() after devm_cxl_add_endpoint(). This
+>>    will be called only after successful completion of endpoint probe.
+>>
+>> 2. Create cxl_region_discovery() which performs pmem region
+>>    auto-assembly and remove cxl pmem region auto-assembly from
+>>    cxl_endpoint_port_probe()
+>>
+>> 3. Register cxl_region_discovery() with devm_cxl_add_memdev() which gets
+>>    called during cxl_pci_probe() in context of cxl_mem_probe()
+>>
+>> 4. As cxlmd->ops->probe() calls registered cxl_region_discovery(), so
+>>    move devm_cxl_add_nvdimm() before cxlmd->ops->probe(). It gurantees
 >
->Please consider:
->attribute must be written last during cxl region creation.
->
->No need to mention kernel specifics like function names. Just give general description of what the attribute does. Same for the next attribute below.
->
->Also, does this attribute needs to be readable? The documentation above does not explain the read attribute if so.
->
->DJ
+>s/gurantees/guarantees/
 
 Fixed it in V5
+
+>
+>>    both the completion of endpoint probe and cxl_nvd presence before
+>>    calling cxlmd->ops->probe().
+>>
+>> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+>
+>Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+Thanks Dave for RB tag
 
 
 Regards,
 Neeraj
 
-------IrfruICR4kMULzJWPGPqiSt5VhS9eUGYkVmPB-DHhmy0YhYM=_e5d9f_
+------Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_e580c_
 Content-Type: text/plain; charset="utf-8"
 
 
-------IrfruICR4kMULzJWPGPqiSt5VhS9eUGYkVmPB-DHhmy0YhYM=_e5d9f_--
+------Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_e580c_--
 
