@@ -1,342 +1,140 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f46.google.com (mail-oa1-f46.google.com [209.85.160.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A007331B131
-	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 22:25:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC41A500940
+	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 22:58:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767997511; cv=none; b=TDgkDH16H4d8nOPKDKBfL23otaO/WG6SaHDMafWHhyoMm6bmMfNlKtWWcurOnkGjK11OJalhfPnk8MA4ZGDKSP6mo/luvLJNj/qtmfNNMbDjwEr3BvjDcQXLsORe7UMeHNudZJo0dFcChwerCswTETaa9C2EoAGrKq+OrK3s+3g=
+	t=1767999505; cv=none; b=F6cBYDwY3TmdJ9A1b0tLPYIRZmu/h4H2ULd8IoVpXO+4BmzjaDG1rmPIqVR/PO4ztLWBRTlmUDJyeHvMXQnMSH2fVuQ0TPdHJmqKeLbSRxq6i1kjqb+Y6ddWfOLtRj58IQWYe7ZT3SurKcQ/nZMOqd9+1KCrwY4qo9QRpeDh+c0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767997511; c=relaxed/simple;
-	bh=R4VAJ4IpEZzBcYToQnMWMEpwx4O6SED6+TU61CqI/Cw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=LgoUxIcp79hyIvRUInkqnBMtXRe4emmO6uUTkF9rWfVnU3+yb1FSNTba+uKH4nLzZQz+bKd41tXS4pwFDfkA2IQ8w9sF3pXxChd6ttJuGTsd0dbbUjKb3BcC80QpOkknQXjmRFEBgaPjCiIMQkQgw7JxRmsMTmtvVngN3i1s3N8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AYhttv2b; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1767999505; c=relaxed/simple;
+	bh=bfOlHfz2d97lpJdcssjhFC6DH34X+brsAi4ooodTEnE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rvM0tsa8BwJcTyWGCH+LmbByJCnvYGWYwGh+Sk+N5v/ic/u0oe9wKQBYb9SSgSmlMUgkkef24Aj2DLEqvdBu/ZJvigBhASTHuKS7+ZKgmhT0jpRnBg2z63u9NKYQngFn+OthY98Bz9SB5ctrGO8VK6GgFSvQw2ScYqjGDy5gGKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zq1CxqsO; arc=none smtp.client-ip=209.85.160.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AYhttv2b"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1767997509; x=1799533509;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=R4VAJ4IpEZzBcYToQnMWMEpwx4O6SED6+TU61CqI/Cw=;
-  b=AYhttv2byv78RH2zIRfm+/cgD6kaSg2CTPe8jb7+xEZnE9pT9eTQceyQ
-   5c2/nSVUGPQXs7jDgE3jTVVdZauZeY/3thNK8+gIsSSi6dKpmdad3PFhP
-   TrTLrwzQwhZxCEJjV5Wo4alWr/QfxzkuYBCcwZPOQYBPBn5J4Az5feqaE
-   ktFXP1sc/AeFostbKOwhGOCMOjvd3/GKZirZ+6Rr3sWDqSyArQg/2vr1s
-   60kk0Z0YgiqbbfR5LHagbYk0r6XEaDOaJkf+hBx6EfEcAhPXppASAOb1c
-   yojRmVi3+Cw26UCEhAFUmJKb2LZZKC/BWpD5m+LrR1AzcV8uPRUdOhkmW
-   w==;
-X-CSE-ConnectionGUID: 0dOgXryDTJSBq/gmDgGA3Q==
-X-CSE-MsgGUID: k9qnUUdrRGex7KnS1X2vBQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11666"; a="69294036"
-X-IronPort-AV: E=Sophos;i="6.21,215,1763452800"; 
-   d="scan'208";a="69294036"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2026 14:25:09 -0800
-X-CSE-ConnectionGUID: IodM1rCdQwixJTVf1/T5Zg==
-X-CSE-MsgGUID: K6SDBmE8QHONRn7sEBfYHQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.21,215,1763452800"; 
-   d="scan'208";a="208057508"
-Received: from agladkov-desk.ger.corp.intel.com (HELO [10.125.110.37]) ([10.125.110.37])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2026 14:25:08 -0800
-Message-ID: <6a618827-7763-44ba-a4df-b38afacccfab@intel.com>
-Date: Fri, 9 Jan 2026 15:25:07 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zq1CxqsO"
+Received: by mail-oa1-f46.google.com with SMTP id 586e51a60fabf-3f0d1a39cabso3285583fac.3
+        for <nvdimm@lists.linux.dev>; Fri, 09 Jan 2026 14:58:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1767999502; x=1768604302; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=jl0CYGdZkEy3SnbyPzW+uVfkekcUJUWsyBrwQPbpYso=;
+        b=Zq1CxqsOwFNPF7mrKDoQxtN/Uv8rfoHdzPla0lq8NQl31TEUu858PTGtp7TbE++J2B
+         OXM2jBbzZ21sAJ09YvhiA78kW6WyeThzrserEahUn6TZfugrCGVGstKkEbJAM0nQ85Rb
+         6a4dvglX6Cc2uEL7+GuGl4+aQSKJa49hHSA0XqgxEZ2s1b/Fqjag4nd/CG9kTNFu0Gil
+         mucwS4NF2uLgBxqCYlJDFqxi0AmczhS3Aw390wC9CWgdH4CVcR2TtMgqzCDi+C205D64
+         kmwXo4ObAKNnVHd4tJGW+jrPD4hCYK8mlD1bXy9GuCHQmHIrwczFrZJihFS9K84KUO5U
+         IscQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767999502; x=1768604302;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=jl0CYGdZkEy3SnbyPzW+uVfkekcUJUWsyBrwQPbpYso=;
+        b=RU46ecvmRqWd5HMOUIGKkOeeZk0tsgveKkiGC17RPecua6VEz6d4Bm2KLqBQZg7Xi6
+         Fvb+XgrqC4uNG6wjBGnZ/lAU0BAf3L1Bp+GBzT48Hya8gSx6p9mNX+VTMc/0jA0SsPBr
+         s4cH/zzBkOD5O+ASzP0rEWxJkYjPLMyofrnBIqovoP9Cs6kHGRfZ8KWq0ptFOGcxBJF/
+         UPolulkuuvmPHTlnzwBpXuFPLmIRZWSYbZUH7JARFhen5uIG9qf5JcGpnnZiiAWjGKPY
+         4FmtAoEjxLtsE0z9vRtaONQVSGlKp9jRjkP9EoJhEQ0J5neR+szFn16Jvaxo9Rd4qLX4
+         jUaA==
+X-Forwarded-Encrypted: i=1; AJvYcCWg5rPMHdzM5hZizXxo4O3NwTKMxYY45pxJ55eBiX12+7L/3UOcvY6CRO5nT6Au27267lcxG7Q=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwjhxzrXhIKNdoO6/AY/OOLDLXHd6jhhqVmRByP/pmdnx95ycr2
+	/e6EN/GtiKQJITdNMFWXGi6HsIDKvcj0lCdIv9M0hBkzXFVf2654jtGh
+X-Gm-Gg: AY/fxX6lXuBsgfCMlEE8yzP6BYM5TAXTWOHoKhl6bNm8qr7c/vdE4BzHUG+S7G/WlEv
+	RjGtHpZj2kmo2d12zIo9dIUdwaMgbB6l84Ntd09NFvI06V2+hkY8BKGuYM2WWLKp5bLMwCgm9uD
+	RC6iQt+xDmh3G3HvLEDYqnTbSuDtzD1chaE9fBQg+0+Mh2qtpv1SwN5HkGercIGHjE1QQQTTJ3S
+	laulpiblktv+COs/aCIoSQxWVI/E4mQu0f70iRzRu1fAg/AtjO723jWX8G/Gxv+hPjHd9VbCVuL
+	jR5WZYyKnqzIhawS5JqQ79tcYDfxKbu38u0YTRa8xA+7utv592K6FUOJ2I+ukDtuWRa9UskYliz
+	XEla7bjvhrDy29qirJ39GhgsjJrjASLqxExzuWBbVQwooskupC3RkuQc/PRs1hDQjfuIMeAO8/+
+	6oSth/QNCdgckqMsUGAnuLDqaHwVj0OA==
+X-Google-Smtp-Source: AGHT+IGcrXJh4xfE4lkfSVHPI8XEPFwP3dHD2B/pDcAOyuoAiez1IjT5czUxIie9qoy4hzIPDogU5Q==
+X-Received: by 2002:a05:6820:3013:b0:65f:564f:34b1 with SMTP id 006d021491bc7-65f564f373dmr4235710eaf.16.1767999501751;
+        Fri, 09 Jan 2026 14:58:21 -0800 (PST)
+Received: from groves.net ([2603:8080:1500:3d89:184d:823f:1f40:e229])
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-65f48ccff66sm4496483eaf.16.2026.01.09.14.58.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 09 Jan 2026 14:58:21 -0800 (PST)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Fri, 9 Jan 2026 16:58:18 -0600
+From: John Groves <John@groves.net>
+To: Joanne Koong <joannelkoong@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH V3 12/21] famfs_fuse: Basic fuse kernel ABI enablement
+ for famfs
+Message-ID: <hhqgn4n5mnr2onutmn4pri7gaaavl56op6amsdsqwlaggsi63f@pombhppmc2l2>
+References: <20260107153244.64703-1-john@groves.net>
+ <20260107153332.64727-1-john@groves.net>
+ <20260107153332.64727-13-john@groves.net>
+ <CAJnrk1ZcY3R-iL2jNU3CYsrWBDY4phHM3ujtZybpYH2hZGpxCA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 7/7] Documentation: Add docs for inject/clear-error
- commands
-To: Ben Cheatham <Benjamin.Cheatham@amd.com>, nvdimm@lists.linux.dev,
- alison.schofield@intel.com
-Cc: linux-cxl@vger.kernel.org
-References: <20260109160720.1823-1-Benjamin.Cheatham@amd.com>
- <20260109160720.1823-8-Benjamin.Cheatham@amd.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260109160720.1823-8-Benjamin.Cheatham@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJnrk1ZcY3R-iL2jNU3CYsrWBDY4phHM3ujtZybpYH2hZGpxCA@mail.gmail.com>
 
-
-
-On 1/9/26 9:07 AM, Ben Cheatham wrote:
-> Add man pages for the 'cxl-inject-error' and 'cxl-clear-error' commands.
-> These man pages show usage and examples for each of their use cases.
+On 26/01/09 10:29AM, Joanne Koong wrote:
+> On Wed, Jan 7, 2026 at 7:34 AM John Groves <John@groves.net> wrote:
+> >
+> > * FUSE_DAX_FMAP flag in INIT request/reply
+> >
+> > * fuse_conn->famfs_iomap (enable famfs-mapped files) to denote a
+> >   famfs-enabled connection
+> >
+> > Signed-off-by: John Groves <john@groves.net>
+> > ---
+> >  fs/fuse/fuse_i.h          | 3 +++
+> >  fs/fuse/inode.c           | 6 ++++++
+> >  include/uapi/linux/fuse.h | 5 +++++
+> >  3 files changed, 14 insertions(+)
+> >
+> > diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+> > index c13e1f9a2f12..5e2c93433823 100644
+> > --- a/include/uapi/linux/fuse.h
+> > +++ b/include/uapi/linux/fuse.h
+> > @@ -240,6 +240,9 @@
+> >   *  - add FUSE_COPY_FILE_RANGE_64
+> >   *  - add struct fuse_copy_file_range_out
+> >   *  - add FUSE_NOTIFY_PRUNE
+> > + *
+> > + *  7.46
+> > + *    - Add FUSE_DAX_FMAP capability - ability to handle in-kernel fsdax maps
 > 
-> Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
-
-> ---
->  Documentation/cxl/cxl-clear-error.txt  |  69 +++++++++++
->  Documentation/cxl/cxl-inject-error.txt | 161 +++++++++++++++++++++++++
->  Documentation/cxl/meson.build          |   2 +
->  3 files changed, 232 insertions(+)
->  create mode 100644 Documentation/cxl/cxl-clear-error.txt
->  create mode 100644 Documentation/cxl/cxl-inject-error.txt
+> very minor nit: the extra spacing before this line (and subsequent
+> lines in later patches) should be removed
 > 
-> diff --git a/Documentation/cxl/cxl-clear-error.txt b/Documentation/cxl/cxl-clear-error.txt
-> new file mode 100644
-> index 0000000..9d77855
-> --- /dev/null
-> +++ b/Documentation/cxl/cxl-clear-error.txt
-> @@ -0,0 +1,69 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +cxl-clear-error(1)
-> +==================
-> +
-> +NAME
-> +----
-> +cxl-clear-error - Clear CXL errors from CXL devices
-> +
-> +SYNOPSIS
-> +--------
-> +[verse]
-> +'cxl clear-error' <device name> [<options>]
-> +
-> +Clear an error from a CXL device. The types of devices supported are:
-> +
-> +"memdevs":: A CXL memory device. Memory devices are specified by device
-> +name ("mem0"), device id ("0") and/or host device name ("0000:35:00.0").
-> +
-> +Only device poison (viewable using the '-L'/'--media-errors' option of
-> +'cxl-list') can be cleared from a device using this command. For example:
-> +
-> +----
-> +
-> +# cxl list -m mem0 -L -u
-> +{
-> +  "memdev":"mem0",
-> +  "ram_size":"1024.00 MiB (1073.74 MB)",
-> +  "ram_qos_class":42,
-> +  "serial":"0x0",
-> +  "numa_node:1,
-> +  "host":"0000:35:00.0",
-> +  "media_errors":[
-> +    {
-> +	  "offset":"0x1000",
-> +	  "length":64,
-> +	  "source":"Injected"
-> +	}
-> +  ]
-> +}
-> +
-> +# cxl clear-error mem0 -a 0x1000
-> +poison cleared at mem0:0x1000
-> +
-> +# cxl list -m mem0 -L -u
-> +{
-> +  "memdev":"mem0",
-> +  "ram_size":"1024.00 MiB (1073.74 MB)",
-> +  "ram_qos_class":42,
-> +  "serial":"0x0",
-> +  "numa_node:1,
-> +  "host":"0000:35:00.0",
-> +  "media_errors":[
-> +  ]
-> +}
-> +
-> +----
-> +
-> +This command depends on the kernel debug filesystem (debugfs) to clear device poison.
-> +
-> +OPTIONS
-> +-------
-> +-a::
-> +--address::
-> +	Device physical address (DPA) to clear poison from. Address can be specified
-> +	in hex or decimal. Required for clearing poison.
-> +
-> +--debug::
-> +	Enable debug output
-> diff --git a/Documentation/cxl/cxl-inject-error.txt b/Documentation/cxl/cxl-inject-error.txt
-> new file mode 100644
-> index 0000000..80d03be
-> --- /dev/null
-> +++ b/Documentation/cxl/cxl-inject-error.txt
-> @@ -0,0 +1,161 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +cxl-inject-error(1)
-> +===================
-> +
-> +NAME
-> +----
-> +cxl-inject-error - Inject CXL errors into CXL devices
-> +
-> +SYNOPSIS
-> +--------
-> +[verse]
-> +'cxl inject-error' <device name> [<options>]
-> +
-> +WARNING: Error injection can cause system instability and should only be used
-> +for debugging hardware and software error recovery flows. Use at your own risk!
-> +
-> +Inject an error into a CXL device. The type of errors supported depend on the
-> +device specified. The types of devices supported are:
-> +
-> +"Downstream Ports":: A CXL RCH downstream port (dport) or a CXL VH root port.
-> +Eligible ports will have their 'protocol_injectable' attribute in 'cxl-list'
-> +set to true. Dports are specified by host name ("0000:0e:01.1").
-> +"memdevs":: A CXL memory device. Memory devices are specified by device name
-> +("mem0"), device id ("0"), and/or host device name ("0000:35:00.0").
-> +
-> +There are two types of errors which can be injected: CXL protocol errors
-> +and device poison.
-> +
-> +CXL protocol errors can only be used with downstream ports (as defined above).
-> +Protocol errors follow the format of "<protocol>-<severity>". For example,
-> +a "mem-fatal" error is a CXL.mem fatal protocol error. Protocol errors can be
-> +found in the "injectable_protocol_errors" list under a CXL bus object. This
-> +list is only available when the CXL debugfs is accessible (normally mounted
-> +at "/sys/kernel/debug/cxl"). For example:
-> +
-> +----
-> +
-> +# cxl list -B
-> +[
-> +  {
-> +	"bus":"root0",
-> +	"provider":"ACPI.CXL",
-> +	"injectable_protocol_errors":[
-> +	  "mem-correctable",
-> +	  "mem-fatal",
-> +	]
-> +  }
-> +]
-> +
-> +----
-> +
-> +CXL protocol (CXL.cache/mem) error injection requires the platform to support
-> +ACPI v6.5+ error injection (EINJ). In addition to platform support, the
-> +CONFIG_ACPI_APEI_EINJ and CONFIG_ACPI_APEI_EINJ_CXL kernel configuration options
-> +will need to be enabled. For more information, view the Linux kernel documentation
-> +on EINJ. Example using the bus output above:
-> +
-> +----
-> +
-> +# cxl list -TP
-> + [
-> +  {
-> +    "port":"port1",
-> +    "host":"pci0000:e0",
-> +    "depth":1,
-> +    "decoders_committed":1,
-> +    "nr_dports":1,
-> +    "dports":[
-> +      {
-> +        "dport":"0000:e0:01.1",
-> +        "alias":"device:02",
-> +        "id":0,
-> +        "protocol_injectable":true
-> +      }
-> +    ]
-> +  }
-> +]
-> +
-> +# cxl inject-error "0000:e0:01.1" -t mem-correctable
-> +cxl inject-error: inject_proto_err: injected mem-correctable protocol error.
-> +
-> +----
-> +
-> +Device poison can only by used with CXL memory devices. A device physical address
-> +(DPA) is required to do poison injection. DPAs range from 0 to the size of
-> +device's memory, which can be found using 'cxl-list'. An example injection:
-> +
-> +----
-> +
-> +# cxl inject-error mem0 -t poison -a 0x1000
-> +poison injected at mem0:0x1000
-> +# cxl list -m mem0 -u --media-errors
-> +{
-> +  "memdev":"mem0",
-> +  "ram_size":"256.00 MiB (268.44 MB)",
-> +  "serial":"0",
-> +  "host":"0000:0d:00.0",
-> +  "firmware_version":"BWFW VERSION 00",
-> +  "media_errors":[
-> +    {
-> +      "offset":"0x1000",
-> +      "length":64,
-> +      "source":"Injected"
-> +    }
-> +  ]
-> +}
-> +
-> +----
-> +
-> +Not all memory devices support poison injection. To see if a device supports
-> +poison injection through debugfs, use 'cxl-list' look for the "poison-injectable"
-> +attribute under the device. This attribute is only available when the CXL debugfs
-> +is accessible. Example:
-> +
-> +----
-> +
-> +# cxl list -u -m mem0
-> +{
-> +  "memdev":"mem0",
-> +  "ram_size":"256.00 MiB (268.44 MB)",
-> +  "serial":"0",
-> +  "host":"0000:0d:00.0",
-> +  "firmware_version":"BWFW VERSION 00",
-> +  "poison_injectable":true
-> +}
-> +
-> +----
-> +
-> +This command depends on the kernel debug filesystem (debugfs) to do CXL protocol
-> +error and device poison injection.
-> +
-> +OPTIONS
-> +-------
-> +-a::
-> +--address::
-> +	Device physical address (DPA) to use for poison injection. Address can
-> +	be specified in hex or decimal. Required for poison injection.
-> +
-> +-t::
-> +--type::
-> +	Type of error to inject into <device name>. The type of error is restricted
-> +	by device type. The following shows the possible types under their associated
-> +	device type(s):
-> +----
-> +
-> +Downstream Ports: ::
-> +	cache-correctable, cache-uncorrectable, cache-fatal, mem-correctable,
-> +	mem-uncorrectable, mem-fatal
-> +
-> +Memdevs: ::
-> +	poison
-> +
-> +----
-> +
-> +--debug::
-> +	Enable debug output
-> +
-> +SEE ALSO
-> +--------
-> +linkcxl:cxl-list[1]
-> diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
-> index 8085c1c..0b75eed 100644
-> --- a/Documentation/cxl/meson.build
-> +++ b/Documentation/cxl/meson.build
-> @@ -50,6 +50,8 @@ cxl_manpages = [
->    'cxl-update-firmware.txt',
->    'cxl-set-alert-config.txt',
->    'cxl-wait-sanitize.txt',
-> +  'cxl-inject-error.txt',
-> +  'cxl-clear-error.txt',
->  ]
->  
->  foreach man : cxl_manpages
+> >   */
+> >
+> 
+> Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
+
+Thanks Joanne - fixed!
+
+John
 
