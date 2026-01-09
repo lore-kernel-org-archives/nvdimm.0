@@ -1,531 +1,215 @@
-Received: from mail-oa1-f45.google.com (mail-oa1-f45.google.com [209.85.160.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011038.outbound.protection.outlook.com [40.93.194.38])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3F137A13A
-	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 14:30:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.45
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767969047; cv=none; b=X9i2DUidv/SULbpu3a3H57atihTuMyd2GDMyc34XhIst3g7gHYfvFD4mkFg9SdO3K/2WhmhrBOzxQxTJJgF7fEEJMg9QoF9i3bC/BKIKDMbolFwyoHu20Y30o2m+OQGjsWFPGzHoXeyt0eWW6EHAYaJmHBQCcABmFfUxd28r5Yw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767969047; c=relaxed/simple;
-	bh=vSmoqaySVsgpjPHJZa4uQCQy1ps6mpAk+kz/vE/rfQk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=N6hWzFweAQIff7YlgNZEezHubPRbPZoZlfMi9mqbJueDo55tcAVj4/ixia6iwi4aLel52TLvJq1oATLNJnL3Vr5KCOVFsTEoPxEUOFPnwZYmrY4Sqv0JhZEOUKJgPn1RfLWkV+ehGvUCKiqP8zJK0X159zCdROVzfenuauXsXSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l+D5mx2A; arc=none smtp.client-ip=209.85.160.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F7E029DB61
+	for <nvdimm@lists.linux.dev>; Fri,  9 Jan 2026 16:07:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.38
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1767974854; cv=fail; b=UWlHbyKprnDkAkTlhg5l0yIJ9GpaGDtjHDtdMLgUE37aBgdFPmOY6pWD0X9faWoej7uLEuHHEhownHccwHuwIgHfYCsuCahMnqP2UhS8TN0aVVMTp3Pvye37aN7kkeQ3CWtDO3hZxBdfxTSbMCVtRAQX0Jk+uJfKafb2IdzdQ0M=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1767974854; c=relaxed/simple;
+	bh=hf+Rc/FZOMZFnUSHojfYQJMiKYUu6TANm4R/GXG+MpU=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=f6e7NRxg86VgFbRmrzW2zjWPb6rBr+hlV1d3yFJw8/JeubgK+mxuFg+ioGaH/aDBV2fXoQAAXCvfrwQPW4BHAVNYOfW2mSL73IjlXQZoJAViiLW8aS1BkywlU0f45hawvpT0OSgIO1TZZiZzcDk+gJ/23i9sKMX98zWX6dzBNFU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=zFahfmUB; arc=fail smtp.client-ip=40.93.194.38
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l+D5mx2A"
-Received: by mail-oa1-f45.google.com with SMTP id 586e51a60fabf-3e7f68df436so2215108fac.1
-        for <nvdimm@lists.linux.dev>; Fri, 09 Jan 2026 06:30:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767969044; x=1768573844; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=/+b/pbin5O15LPdeXGYj8QlsRQG4OrGA/20XlRHryOQ=;
-        b=l+D5mx2AcmcjRwqmVwxQnIHDUdCkc5Baf05pnw4uo1VJXsnxFToX68TsKTWRHybeOu
-         7nlT6zw5JfXXyUYtjRb3e5L9LIWG0Qug7yfc+SJ/M3Jqyas5C9eqptaBwO49GzT/s6kl
-         pclkwlNIuVVI0KHqMZwDkr6E3E3LlAEb3449NtNArS4Yx9dqVO6u35noNrtarfr0E72u
-         4oeGkrgsI43UKBOMALh+WUtzbKPmo3dvgf0IVFJE/8QMKKJseyNGC15n1fJhnSY+B33d
-         q0Fpd/DbgmNMlvZq6H3Xj3/syKf0+AVzGyU5aDFLxL0Q/bsyaUl15eQRjHZiC8m0WvFk
-         s2WQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767969044; x=1768573844;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=/+b/pbin5O15LPdeXGYj8QlsRQG4OrGA/20XlRHryOQ=;
-        b=ipBTQkG/GoPVrU9sP8FiAHQPzEznXBg6wubM475Wti5Xner4/XKl1JOlhtcIfwCJBj
-         +D4V/as27fkU0HtOzzjP6CYBTmSU6LgV5hY+HFYjTfTJR9kmX1Q+x5TEjV91IMRZfW7f
-         41Z+4j/RlctNQMZ0gfBRuMoJlLCRRclEMXzUjiky8NyDu4IMEgoNXu+FXkG4F/aTfYDl
-         tMgYsc82zVUswP2ej5wFg9cscrTmDOZAmWyaowgQvm2AQQ3m5Uk+OPbtzdGCJcwCtF32
-         F6yd1Fi1fUJagwC2sMsfocRXZGJ4oNBSdotirX2C81YRG9f6xrHO50u5/QvjdXyemTH2
-         stEg==
-X-Forwarded-Encrypted: i=1; AJvYcCUMsZuuMtLx8JsoA71CcH4BT7tq5Gbx4oE3zz2igoEQLmnf+n08yipbkxuH+8bRJEwu+3htxy0=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxF+FRT445HqND1dO01rZSdtmaT5YVsZykX1Rj/aZ4VYa4XP54q
-	gPmeVsjv8Rh5pj0IrMFgldsqFnCkbGNctkyvwDfQkwT2AeulVHpuHBau
-X-Gm-Gg: AY/fxX7AwlOAVO2uqeJVtxChp4aBsOe8J6UrsqtVpNicU0X+ZkhdxTRdxk7/BqnwngI
-	nCa9Gz02cHETay3wgYyP7e6DdvhB83it+HnuUpzVWVmsN39s8Q8sBRua6AcYPgUenY08gtfGrL8
-	gdPd8uIk4c1dtrq8NnNY9wMfa87RuuFw9Yrc6ZaDMZvSh4XplcWe3OPceTL32qGs2MG6Xpw+m2E
-	OR3G3jyi0tc+3s+9j9W/lkTAoIrWqgN2HVb8d18eem9WicC0+q0mtecBl0iEUg/SlQmAtvXaSFg
-	OcUpwo78WqSgsL8gnAn3Qeg/7sIeX6g5Bhvis1IDosc+/MxmsW0l0Gp0/mFHLKmVPNb7EkiZCaf
-	ZjlD1wP2nhFQzlApsU86ZbWDGci8wXNdrVYLC0pJzZYoGzdCfVM31QtPoAXupZwZ1vw4oRmVli5
-	+KkN8ymtSaa3zvyWt1wKwdcnHvkADJ/w==
-X-Google-Smtp-Source: AGHT+IElG0AH+R/nz4iIoI5x/T09BXi9JWxi51uu3GRk0Q9RVWgdDkzftBBm8jsoFHiLP76eqmw9mw==
-X-Received: by 2002:a05:6870:1753:b0:3e0:c368:e1cb with SMTP id 586e51a60fabf-3ffbf035077mr6307624fac.14.1767969043388;
-        Fri, 09 Jan 2026 06:30:43 -0800 (PST)
-Received: from groves.net ([2603:8080:1500:3d89:184d:823f:1f40:e229])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-3ffa4e3e844sm7223039fac.9.2026.01.09.06.30.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 09 Jan 2026 06:30:42 -0800 (PST)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Fri, 9 Jan 2026 08:30:39 -0600
-From: John Groves <John@groves.net>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH V3 15/21] famfs_fuse: Create files with famfs fmaps
-Message-ID: <7jcdlgo7nddrm7phuhj37q2cwgmdal2es6qgswu4fu5sgpgc7v@dt7ltedbjhkq>
-References: <20260107153244.64703-1-john@groves.net>
- <20260107153332.64727-1-john@groves.net>
- <20260107153332.64727-16-john@groves.net>
- <20260108131400.000017f5@huawei.com>
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="zFahfmUB"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=NtWdwpFgBJu2Rd7lzvMcqPKYHCH9xyyhiepSZu1MwuVELIyxFN4zaX6vGigJvjfxMZxNpLmXMf3t0hy3lFXK5K3I2nfMg8M8QuEFOET8Iz+9tjMO+OTcC3J0L+phA5T/fHqdblSrWEyNlFikXMsr7XzrK9btv0u2QgwYY0iKdwIxtL7dIf8lMp7PwmicEHX1JHVVNIAFGUy8bBUoUGqhnPJ/iQFaqgJZPwv1lnuMI9MP9EMvgiDhZhV6R+TweORQyEZwkTrUSV6lTu1EkJPyeeyB5DxmUDdPCqT0zT1Q9zjBzQolp1g/Mw//oDcRTbq9Txmj6atm9/ZCIO8BHmXivg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=R8A7bxmign/Uz5nOFEji6TzKTYYleDfX+KnLS7ZfHPI=;
+ b=ygp3EAw4ImfI2XzwJRxMk1WrQjhJVInlx7V0C8GE7EfmqLP9gkNQSPEOnXzRhrdnwfJGdwHCY215ts7ErXVmAdd1/oOgqq53kH7QWfcAJ/ud1Z7gt1Np/LvGzuco58rZY5DfX5ml5k+eZe6RSWfprd6viG6kJpMJJoc2dzlT2Whhoka/r4HLSiCq2t0ruuxnyf/T66yS4A0IYVC/nal2UowD5oFsQ5mcM8pZXeabLEDj/iKhAlK5t8DKYx2zhKI59bI4KDB6oRwSDaUt1qV5QFjSzvQdSkxhZzrsbLqqPGjljwtJ/oA2dCjHIrVlP4GUB7P44DLK9vfT+1s51d5YCA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=lists.linux.dev smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=R8A7bxmign/Uz5nOFEji6TzKTYYleDfX+KnLS7ZfHPI=;
+ b=zFahfmUBIioc1+1z1/jevbQoB1ElK9nIHPTMw64w8pGudy2rfDvi5dLkKYchjbCw9t1/Rl7JEC9W4apDvmswaThY5x/gFAyfrtJnIfJN2O9+WRnvP60I6JFYVDnpRv8gXbTCc48zqrem9BBBYMHnHXrIZjQiGC7q7f62hu2pBUs=
+Received: from MN2PR13CA0002.namprd13.prod.outlook.com (2603:10b6:208:160::15)
+ by DS0PR12MB9400.namprd12.prod.outlook.com (2603:10b6:8:1b6::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9499.2; Fri, 9 Jan
+ 2026 16:07:27 +0000
+Received: from BL6PEPF0002256F.namprd02.prod.outlook.com
+ (2603:10b6:208:160:cafe::1) by MN2PR13CA0002.outlook.office365.com
+ (2603:10b6:208:160::15) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9520.1 via Frontend Transport; Fri, 9
+ Jan 2026 16:07:27 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ BL6PEPF0002256F.mail.protection.outlook.com (10.167.249.37) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9520.1 via Frontend Transport; Fri, 9 Jan 2026 16:07:27 +0000
+Received: from ausbcheatha02.amd.com (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Fri, 9 Jan
+ 2026 10:07:25 -0600
+From: Ben Cheatham <Benjamin.Cheatham@amd.com>
+To: <nvdimm@lists.linux.dev>, <alison.schofield@intel.com>,
+	<dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <benjamin.cheatham@amd.com>
+Subject: [ndctl PATCH v6 0/7] Add error injection support
+Date: Fri, 9 Jan 2026 10:07:13 -0600
+Message-ID: <20260109160720.1823-1-Benjamin.Cheatham@amd.com>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260108131400.000017f5@huawei.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL6PEPF0002256F:EE_|DS0PR12MB9400:EE_
+X-MS-Office365-Filtering-Correlation-Id: a9ed58ca-25d0-4e5e-881a-08de4f992f17
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700013|376014|82310400026|1800799024;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?Xz3tEL/bErgTeWUWZjHxIRFe2SuVkr9ZrJ1wpF72KjmP2+BGE+TSIlENpI//?=
+ =?us-ascii?Q?9Gi6rvlt9bC3G25RTthBQIbcZHVbV/T/TLf847RE6kSy6+dunIktGKO47ziS?=
+ =?us-ascii?Q?P6OFmLG4mVWjbPBhzHjBnnPIZ9tJ1jZv9+/nwM6UVGDdFdH0/oIUszvHILFI?=
+ =?us-ascii?Q?KAqU6i7LQMtgJ8hh7KFCoVsE/HxA6VDMu05JV2H72Slxcwnl4DnhGJuGDfgm?=
+ =?us-ascii?Q?lLXVwypooeV6xwiHRnnHky4paAeYULK74dfKTVFZYdRpVWiOT+HBS5aidbiN?=
+ =?us-ascii?Q?beZaO0g+GHw//KRJdG7DhRZ8qDJV/CjvakBiLtCeo0xg3YRco/0w7qryB+iZ?=
+ =?us-ascii?Q?uB8kJaND/M2aQl8W5M7B/4Q+ntZnl16DDOOPi4Z9qFVWFAuN/KBpYFEHj1QL?=
+ =?us-ascii?Q?ho19mclzYtrAMeS+F3wddTI5q9+8CSD8bybI07xR+RF7HfNtR6WnvMNa4yGI?=
+ =?us-ascii?Q?AWnjhYt8VQCtLP/A6togzAqRTiasLKi6PGIzXIXMD8F3UCH9qovxRT69hYqV?=
+ =?us-ascii?Q?9pkmJ9A93xX9XevG9tMWseGa+pBZnOkEt3RMZsT2D2VkKXaKj7BIh7REE+Yw?=
+ =?us-ascii?Q?7gEzW7nmIZIL/tKa/zzkFXwyIVMGsyu+mBQw53ZKB3RTtldR3VSJ8QoqhrST?=
+ =?us-ascii?Q?0h/yCzxGDIPgIjV8fD7btzkGtOY/xi/6HI6/mMB7Uo8qm3UZUuSmFE/XlYf5?=
+ =?us-ascii?Q?bkK6UbLd0nJmH0U+NXCi7pe97N5ZWKKK4h4jZ1uQZta3yGfpg8Xj86x9Wv1x?=
+ =?us-ascii?Q?0Po7oWSsojH5AKlGinWGtKDPGDYv3vTB18wZUAO7dHsqamxlIyE3JMU8o2bk?=
+ =?us-ascii?Q?s3CAx7f1K46+Fyii01H1x+ALmo/YJciOKjAcNUNUflSDAV7ttFG+S/7ThlCw?=
+ =?us-ascii?Q?7R00FCVGFmaDpWtC+FTa/BK39vYu6IqriQEilH4mIxlzP0e7ZCs2bSP6bk/A?=
+ =?us-ascii?Q?hAPD58zSULj8aCjirMRYl8EQodQLoIYOS3fx7+2tVX+KwzxbJvarIriAEKZ9?=
+ =?us-ascii?Q?NM4X3V76IIlLyrrYcMO42ehsE3NICQhZhF9EnJcNPYMzSl38YOreS07gzDUe?=
+ =?us-ascii?Q?TnfNgQTFP5Xak4a0YfYO0sH3M0MK5+zTSttKJNAm+HUiu/eBlDbMsP5Bm6rd?=
+ =?us-ascii?Q?28zA4Ouzy8i19xvw6FtQkxiohLBEgmmHdCA7AlAngjj0hPafIYrGQDFXf90V?=
+ =?us-ascii?Q?xLreF9dMPk4qoQu07SOxE7ZxqA9S4p/Vy7+7Y4W0xnMtqBq+/bwKJRUf6SSt?=
+ =?us-ascii?Q?1xpjz3UeVq1lR0m7B1ltk9KAX/+E4MAnpK6Hk/WNqK+3FoyqGer7e4545oh9?=
+ =?us-ascii?Q?wdFcSwFskNSfAuDlxKE+HneOCYKlEM5rpU3U5hbnOCb11SqQqKDhqhic2L8i?=
+ =?us-ascii?Q?+pcEwL4Otvy15smpWwcnwA4eaSvgNHIP7jkiS8v1Bp3hb/tA8VuAQhphNQrq?=
+ =?us-ascii?Q?g4iBUBzNhQyZQRQwjjaFyIXtNRRbuVTcmf7FWhdSG9GAyzO0dJNE/ho6Chsv?=
+ =?us-ascii?Q?yLDyo8PQMfNxzPaGAq34VEUxKiZX0lZ3/xDJ?=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(376014)(82310400026)(1800799024);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jan 2026 16:07:27.1412
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a9ed58ca-25d0-4e5e-881a-08de4f992f17
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL6PEPF0002256F.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB9400
 
-On 26/01/08 01:14PM, Jonathan Cameron wrote:
-> On Wed,  7 Jan 2026 09:33:24 -0600
-> John Groves <John@Groves.net> wrote:
-> 
-> > On completion of GET_FMAP message/response, setup the full famfs
-> > metadata such that it's possible to handle read/write/mmap directly to
-> > dax. Note that the devdax_iomap plumbing is not in yet...
-> > 
-> > * Add famfs_kfmap.h: in-memory structures for resolving famfs file maps
-> >   (fmaps) to dax.
-> > * famfs.c: allocate, initialize and free fmaps
-> > * inode.c: only allow famfs mode if the fuse server has CAP_SYS_RAWIO
-> > * Update MAINTAINERS for the new files.
-> > 
-> > Signed-off-by: John Groves <john@groves.net>
-> 
-> > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
-> > index 0f7e3f00e1e7..2aabd1d589fd 100644
-> > --- a/fs/fuse/famfs.c
-> > +++ b/fs/fuse/famfs.c
-> > @@ -17,9 +17,355 @@
-> >  #include <linux/namei.h>
-> >  #include <linux/string.h>
-> >  
-> > +#include "famfs_kfmap.h"
-> >  #include "fuse_i.h"
-> >  
-> >  
-> > +/***************************************************************************/
-> Who doesn't like stars?  Why have them here?
-> 
-> > +
-> > +void
-> > +__famfs_meta_free(void *famfs_meta)
-> 
-> Maybe a local convention, but if not one line.
-> Same for other cases.
+v6 Changes:
+	- Rebase to pending branch (Alison)
+	- Drop const for ctx->debugfs (Alison)
+	- Rename get_debugfs_dir() to get_cxl_debugfs_dir() and return cxl directory in debugfs
+	(i.e. "/sys/kernel/debug" -> "/sys/kernel/debug/cxl")
+	- Rename ctx->debugfs to ctx->cxl_debugfs
+	- Fix missing free of einj path (Alison)
+	- Add protocol errors in order to perrors list (Alison)
+	- Use hex constants instead of BIT() for protocol errors (Alison)
+	- Add symbols to LIBCXL_11 instead of LIBCXL_10 (Alison)
+	- Update commit message to reflect util_cxl_dport_filter() behavior (Alison)
+	- Remove EINJ_TYPES_BUF_SIZE #ifdef (Alison)
+	- Fix type mismatch of addr in poison_action() (Alison)
+	- Fix inject_action() to catch missing 'type' option (Alison)
+	- Remove '-N' option and show the information behind that option by default when
+	CXL debugfs is present (Alison)
+	- Add 'protocol_injectable' attribute for dports (Alison)
+	- Update inject-error man page with port injection example (Alison)
+	- Add warning to inject-error man page (Alison)
 
-Done
+v5 Changes:
+	- Use setmntent()/getmntent() instead of open-coding getting the
+	  debugfs path (Dave)
+	- Use correct return code for sysfs_read_attr() (Dave)
 
-> 
-> > +{
-> > +	struct famfs_file_meta *fmap = famfs_meta;
-> > +
-> > +	if (!fmap)
-> > +		return;
-> > +
-> > +	if (fmap) {
-> 
-> Well that's never going to fail given 2 lines above.
+v4 Changes:
+	- Variable renames for clarity (Dave)
+	- Use errno instead of rc for access() calls (Dave)
+	- Check returns for snprintf() (Dave)
+	- Add util_cxl_dport_filter() (Dave)
+	- Replace printf() calls with log_info() (Dave)
+	- Write correct value to debugfs during protocol error injection
+	(BIT(error) vs. error)
 
-Good eye. Thanks.
+v3 Changes:
+	- Rebase on v83 release
+	- Fix whitespace errors (Alison)
 
-> 
-> 
-> > +		switch (fmap->fm_extent_type) {
-> > +		case SIMPLE_DAX_EXTENT:
-> > +			kfree(fmap->se);
-> > +			break;
-> > +		case INTERLEAVED_EXTENT:
-> > +			if (fmap->ie)
-> > +				kfree(fmap->ie->ie_strips);
-> > +
-> > +			kfree(fmap->ie);
-> > +			break;
-> > +		default:
-> > +			pr_err("%s: invalid fmap type\n", __func__);
-> > +			break;
-> > +		}
-> > +	}
-> > +	kfree(fmap);
-> > +}
-> 
-> > +/**
-> > + * famfs_fuse_meta_alloc() - Allocate famfs file metadata
-> > + * @metap:       Pointer to an mcache_map_meta pointer
-> > + * @ext_count:  The number of extents needed
-> 
-> run kernel-doc over the file as that's not the parameters...
+v2 Changes:
+	- Make the --clear option of 'inject-error' its own command (Alison)
+	- Debugfs is now found using the /proc/mount entry instead of
+	providing the path using a --debugfs option
+	- Man page added for 'clear-error'
+	- Reword commit descriptions for clarity
 
-Not sure how I managed that; Fixed, thanks!
+This series adds support for injecting CXL protocol (CXL.cache/mem)
+errors[1] into CXL RCH Downstream ports and VH root ports[2] and
+poison into CXL memory devices through the CXL debugfs. Errors are
+injected using a new 'inject-error' command. Device poison can be
+cleared using the 'clear-error' command. The 'inject-error' and
+'clear-error' commands require access to the CXL driver's debugfs.
 
-> 
-> > + *
-> > + * Returns: 0=success
-> > + *          -errno=failure
-> > + */
-> > +static int
-> > +famfs_fuse_meta_alloc(
-> > +	void *fmap_buf,
-> > +	size_t fmap_buf_size,
-> > +	struct famfs_file_meta **metap)
-> > +{
-> > +	struct famfs_file_meta *meta = NULL;
-> > +	struct fuse_famfs_fmap_header *fmh;
-> > +	size_t extent_total = 0;
-> > +	size_t next_offset = 0;
-> > +	int errs = 0;
-> > +	int i, j;
-> > +	int rc;
-> > +
-> > +	fmh = (struct fuse_famfs_fmap_header *)fmap_buf;
-> 
-> void * so cast not needed and hence just assign it at the
-> declaration.
+The documentation for the new cxl-inject-error command shows both usage
+and the possible device/error types, as well as how to retrieve them
+using cxl-list. cxl-list has been updated to include the possible error
+types for protocol error injection (under the "bus" object) and which CXL
+dports and memory devices support injection.
 
-Indeed, thanks.
+[1]: ACPI v6.5 spec, section 18.6.4
+[2]: ACPI v6.5 spec, table 18.31
 
-> 
-> > +
-> > +	/* Move past fmh in fmap_buf */
-> > +	next_offset += sizeof(*fmh);
-> > +	if (next_offset > fmap_buf_size) {
-> > +		pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
-> > +		       __func__, __LINE__, next_offset, fmap_buf_size);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (fmh->nextents < 1) {
-> > +		pr_err("%s: nextents %d < 1\n", __func__, fmh->nextents);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (fmh->nextents > FUSE_FAMFS_MAX_EXTENTS) {
-> > +		pr_err("%s: nextents %d > max (%d) 1\n",
-> > +		       __func__, fmh->nextents, FUSE_FAMFS_MAX_EXTENTS);
-> > +		return -E2BIG;
-> > +	}
-> > +
-> > +	meta = kzalloc(sizeof(*meta), GFP_KERNEL);
-> 
-> Maybe sprinkle some __free magic on this then you can return in
-> all the goto error_out places which to me makes this more readable.
+Ben Cheatham (7):
+  libcxl: Add debugfs path to CXL context
+  libcxl: Add CXL protocol errors
+  libcxl: Add poison injection support
+  cxl: Add inject-error command
+  cxl: Add clear-error command
+  cxl/list: Add injectable errors in output
+  Documentation: Add docs for inject/clear-error commands
 
+ Documentation/cxl/cxl-clear-error.txt  |  69 ++++++
+ Documentation/cxl/cxl-inject-error.txt | 161 ++++++++++++
+ Documentation/cxl/meson.build          |   2 +
+ cxl/builtin.h                          |   2 +
+ cxl/cxl.c                              |   2 +
+ cxl/filter.c                           |  26 ++
+ cxl/filter.h                           |   2 +
+ cxl/inject-error.c                     | 248 +++++++++++++++++++
+ cxl/json.c                             |  38 +++
+ cxl/lib/libcxl.c                       | 330 +++++++++++++++++++++++++
+ cxl/lib/libcxl.sym                     |  10 +
+ cxl/lib/private.h                      |  14 ++
+ cxl/libcxl.h                           |  18 ++
+ cxl/meson.build                        |   1 +
+ 14 files changed, 923 insertions(+)
+ create mode 100644 Documentation/cxl/cxl-clear-error.txt
+ create mode 100644 Documentation/cxl/cxl-inject-error.txt
+ create mode 100644 cxl/inject-error.c
 
-I like it, and I learned how to make __famfs_meta_free() into a
-__free() handler.
+-- 
+2.52.0
 
-Done
-
-> 
-> > +	if (!meta)
-> > +		return -ENOMEM;
-> > +
-> > +	meta->error = false;
-> > +	meta->file_type = fmh->file_type;
-> > +	meta->file_size = fmh->file_size;
-> > +	meta->fm_extent_type = fmh->ext_type;
-> > +
-> > +	switch (fmh->ext_type) {
-> > +	case FUSE_FAMFS_EXT_SIMPLE: {
-> > +		struct fuse_famfs_simple_ext *se_in;
-> > +
-> > +		se_in = (struct fuse_famfs_simple_ext *)(fmap_buf + next_offset);
-> 
-> void * so no need for cast. Though you could keep the cast but apply it to
-> fmh + 1 to take advantage of that type.
-
-done, thanks
-
-> 
-> 
-> > +
-> > +		/* Move past simple extents */
-> > +		next_offset += fmh->nextents * sizeof(*se_in);
-> > +		if (next_offset > fmap_buf_size) {
-> > +			pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
-> > +			       __func__, __LINE__, next_offset, fmap_buf_size);
-> > +			rc = -EINVAL;
-> > +			goto errout;
-> > +		}
-> > +
-> > +		meta->fm_nextents = fmh->nextents;
-> > +
-> > +		meta->se = kcalloc(meta->fm_nextents, sizeof(*(meta->se)),
-> > +				   GFP_KERNEL);
-> > +		if (!meta->se) {
-> > +			rc = -ENOMEM;
-> > +			goto errout;
-> > +		}
-> > +
-> > +		if ((meta->fm_nextents > FUSE_FAMFS_MAX_EXTENTS) ||
-> > +		    (meta->fm_nextents < 1)) {
-> > +			rc = -EINVAL;
-> > +			goto errout;
-> > +		}
-> > +
-> > +		for (i = 0; i < fmh->nextents; i++) {
-> > +			meta->se[i].dev_index  = se_in[i].se_devindex;
-> > +			meta->se[i].ext_offset = se_in[i].se_offset;
-> > +			meta->se[i].ext_len    = se_in[i].se_len;
-> > +
-> > +			/* Record bitmap of referenced daxdev indices */
-> > +			meta->dev_bitmap |= (1 << meta->se[i].dev_index);
-> > +
-> > +			errs += famfs_check_ext_alignment(&meta->se[i]);
-> > +
-> > +			extent_total += meta->se[i].ext_len;
-> > +		}
-> > +		break;
-> > +	}
-> > +
-> > +	case FUSE_FAMFS_EXT_INTERLEAVE: {
-> > +		s64 size_remainder = meta->file_size;
-> > +		struct fuse_famfs_iext *ie_in;
-> > +		int niext = fmh->nextents;
-> > +
-> > +		meta->fm_niext = niext;
-> > +
-> > +		/* Allocate interleaved extent */
-> > +		meta->ie = kcalloc(niext, sizeof(*(meta->ie)), GFP_KERNEL);
-> > +		if (!meta->ie) {
-> > +			rc = -ENOMEM;
-> > +			goto errout;
-> > +		}
-> > +
-> > +		/*
-> > +		 * Each interleaved extent has a simple extent list of strips.
-> > +		 * Outer loop is over separate interleaved extents
-> > +		 */
-> > +		for (i = 0; i < niext; i++) {
-> > +			u64 nstrips;
-> > +			struct fuse_famfs_simple_ext *sie_in;
-> > +
-> > +			/* ie_in = one interleaved extent in fmap_buf */
-> > +			ie_in = (struct fuse_famfs_iext *)
-> > +				(fmap_buf + next_offset);
-> 
-> void * so no cast needed.
-
-Right, thanks
-
-> 
-> > +
-> > +			/* Move past one interleaved extent header in fmap_buf */
-> > +			next_offset += sizeof(*ie_in);
-> > +			if (next_offset > fmap_buf_size) {
-> > +				pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
-> > +				       __func__, __LINE__, next_offset,
-> > +				       fmap_buf_size);
-> > +				rc = -EINVAL;
-> > +				goto errout;
-> > +			}
-> > +
-> > +			nstrips = ie_in->ie_nstrips;
-> > +			meta->ie[i].fie_chunk_size = ie_in->ie_chunk_size;
-> > +			meta->ie[i].fie_nstrips    = ie_in->ie_nstrips;
-> > +			meta->ie[i].fie_nbytes     = ie_in->ie_nbytes;
-> > +
-> > +			if (!meta->ie[i].fie_nbytes) {
-> > +				pr_err("%s: zero-length interleave!\n",
-> > +				       __func__);
-> > +				rc = -EINVAL;
-> > +				goto errout;
-> > +			}
-> > +
-> > +			/* sie_in = the strip extents in fmap_buf */
-> > +			sie_in = (struct fuse_famfs_simple_ext *)
-> > +				(fmap_buf + next_offset);
-> no cast needed.
-
-Done, thanks
-
-> 
-> > +
-> > +			/* Move past strip extents in fmap_buf */
-> > +			next_offset += nstrips * sizeof(*sie_in);
-> > +			if (next_offset > fmap_buf_size) {
-> > +				pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
-> > +				       __func__, __LINE__, next_offset,
-> > +				       fmap_buf_size);
-> > +				rc = -EINVAL;
-> > +				goto errout;
-> > +			}
-> > +
-> > +			if ((nstrips > FUSE_FAMFS_MAX_STRIPS) || (nstrips < 1)) {
-> > +				pr_err("%s: invalid nstrips=%lld (max=%d)\n",
-> > +				       __func__, nstrips,
-> > +				       FUSE_FAMFS_MAX_STRIPS);
-> > +				errs++;
-> > +			}
-> > +
-> > +			/* Allocate strip extent array */
-> > +			meta->ie[i].ie_strips = kcalloc(ie_in->ie_nstrips,
-> > +					sizeof(meta->ie[i].ie_strips[0]),
-> > +							GFP_KERNEL);
-> 
-> Align all lines after 1st one to same point.
-
-Yeah
-
-> 
-> ...
-> 
-> > +
-> > +/**
-> > + * famfs_file_init_dax() - init famfs dax file metadata
-> > + *
-> > + * @fm:        fuse_mount
-> > + * @inode:     the inode
-> > + * @fmap_buf:  fmap response message
-> > + * @fmap_size: Size of the fmap message
-> > + *
-> > + * Initialize famfs metadata for a file, based on the contents of the GET_FMAP
-> > + * response
-> > + *
-> > + * Return: 0=success
-> > + *          -errno=failure
-> > + */
-> > +int
-> > +famfs_file_init_dax(
-> > +	struct fuse_mount *fm,
-> > +	struct inode *inode,
-> > +	void *fmap_buf,
-> > +	size_t fmap_size)
-> > +{
-> > +	struct fuse_inode *fi = get_fuse_inode(inode);
-> > +	struct famfs_file_meta *meta = NULL;
-> > +	int rc = 0;
-> 
-> Always set before use.
-
-Roger that - and it went away with the __free thingy anyway
-
-> 
-> > +
-> > +	if (fi->famfs_meta) {
-> > +		pr_notice("%s: i_no=%ld fmap_size=%ld ALREADY INITIALIZED\n",
-> > +			  __func__,
-> > +			  inode->i_ino, fmap_size);
-> > +		return 0;
-> > +	}
-> > +
-> > +	rc = famfs_fuse_meta_alloc(fmap_buf, fmap_size, &meta);
-> > +	if (rc)
-> > +		goto errout;
-> > +
-> > +	/* Publish the famfs metadata on fi->famfs_meta */
-> > +	inode_lock(inode);
-> > +	if (fi->famfs_meta) {
-> > +		rc = -EEXIST; /* file already has famfs metadata */
-> > +	} else {
-> > +		if (famfs_meta_set(fi, meta) != NULL) {
-> > +			pr_debug("%s: file already had metadata\n", __func__);
-> > +			__famfs_meta_free(meta);
-> > +			/* rc is 0 - the file is valid */
-> > +			goto unlock_out;
-> > +		}
-> > +		i_size_write(inode, meta->file_size);
-> > +		inode->i_flags |= S_DAX;
-> > +	}
-> > + unlock_out:
-> > +	inode_unlock(inode);
-> > +
-> > +errout:
-> > +	if (rc)
-> > +		__famfs_meta_free(meta);
-> 
-> For readability I'd split he good and bad exit paths even it unlock
-> needs to happen in two places.
-
-Done
-
-> 
-> 
-> > +
-> > +	return rc;
-> > +}
-> > +
-> 
-> > diff --git a/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h
-> > new file mode 100644
-> > index 000000000000..058645cb10a1
-> > --- /dev/null
-> > +++ b/fs/fuse/famfs_kfmap.h
-> > @@ -0,0 +1,67 @@
-> > +/* SPDX-License-Identifier: GPL-2.0 */
-> > +/*
-> > + * famfs - dax file system for shared fabric-attached memory
-> > + *
-> > + * Copyright 2023-2025 Micron Technology, Inc.
-> > + */
-> > +#ifndef FAMFS_KFMAP_H
-> > +#define FAMFS_KFMAP_H
-> > +
-> > +/*
-> > + * The structures below are the in-memory metadata format for famfs files.
-> > + * Metadata retrieved via the GET_FMAP response is converted to this format
-> > + * for use in  resolving file mapping faults.
-> 
-> bonus space after in
-
-Removed
-
-> 
-> > + *
-> > + * The GET_FMAP response contains the same information, but in a more
-> > + * message-and-versioning-friendly format. Those structs can be found in the
-> > + * famfs section of include/uapi/linux/fuse.h (aka fuse_kernel.h in libfuse)
-> > + */
-> 
-> > +/*
-> > + * Each famfs dax file has this hanging from its fuse_inode->famfs_meta
-> > + */
-> > +struct famfs_file_meta {
-> > +	bool                   error;
-> > +	enum famfs_file_type   file_type;
-> > +	size_t                 file_size;
-> > +	enum famfs_extent_type fm_extent_type;
-> > +	u64 dev_bitmap; /* bitmap of referenced daxdevs by index */
-> > +	union { /* This will make code a bit more readable */
-> 
-> Not sure what the comment is for. I'd drop it.
-
-I'm sure it made sense to me at some point but not now. Gone.
-
-> 
-> 
-> > +		struct {
-> > +			size_t         fm_nextents;
-> > +			struct famfs_meta_simple_ext  *se;
-> > +		};
-> > +		struct {
-> > +			size_t         fm_niext;
-> > +			struct famfs_meta_interleaved_ext *ie;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +#endif /* FAMFS_KFMAP_H */
-
-Thanks!
-John
