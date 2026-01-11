@@ -1,166 +1,190 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com [209.85.210.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3002234C155
-	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 15:28:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D80FB33D6EA
+	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 18:20:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768145298; cv=none; b=T+4glh3IHpMZE1vrpRkYPIhBlXXGHMbbtzn5LWS00k5RGbZ/OuQ4gBtelT9K2x5WLC0kZuIir2eYfj42YOUNnufxHKVlTBlOOZbb+kUG7oe6vpXBvZpwDWnHxtEbH6hcaa5e+PQ7RF1Q/SGAn/jEzG03PtTEz+wicYtp0ZE/I/0=
+	t=1768155658; cv=none; b=BawsePJpppV7sj6+dZHKvX64+OfmSOxMB2JrfYkiVhu5SK0rtDPSBrxLZlbFudeio9HZnQCFHB5eBPY0BQi7Xm9Fyeo1A/6sx0dq6tqXPvAQ6f0epKyruz5fnLt/W40WY+yHL9aI7BpmLY1jwpoOzB4lpmzcO6eQyblLYMEmSPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768145298; c=relaxed/simple;
-	bh=WnrqtBtYnkGtzkuQTjvkFq/gdHW+fRRLySaWvXNugsA=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=HEgS3xyHFw3ELoo3mPcfMta6vBGqS3zaS8emqHrYmVtFZLSdEuKVQ/gvwb6K98yjQN5nGnDNz9k2KZCWBNi5LazRqcpED7b3dwwHndVFPDkdd/IE8YtTqppz016DMXEWw9LLBJhP3QInBoCTtfI3pM/Wyx1VmI7J24oTtpIxNz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=pF/4Kc0/; arc=none smtp.client-ip=203.254.224.24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1768155658; c=relaxed/simple;
+	bh=SfJrpqITJBqj4x70TkdEEHD+PTaX3wfXpnudD6F/P+c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=A2mVKZNd5IUBgzPi26aoKtmMOdySxoVaOMQBDivhjFI2kilXO3kBnRijon8kMAfJV2yfzdvZ3Iu5s9bljdTeXpeU0hnUrLdEDOsP6S/ELIyKUElcEVMqD/EIOd3hbcH7Fd1HIWjvJyTzJuEVqG6gGmQUOEApvDXMpJKu+Se8jzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mQjEcdT3; arc=none smtp.client-ip=209.85.210.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="pF/4Kc0/"
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20260111152804epoutp01d9431212177371cb2f45601184a8fc01~JtsSfbf9I0553105531epoutp01Q
-	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 15:28:04 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20260111152804epoutp01d9431212177371cb2f45601184a8fc01~JtsSfbf9I0553105531epoutp01Q
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1768145284;
-	bh=vfQjmGXD9Gk2pii3GBrMd/hZGqYhy8zh/drwh9K9kYw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=pF/4Kc0//rVH576b/zSriDDwFY4H9khxXDDG97ECtcQo4cUbBu3PSwD68k/sR5ZMd
-	 tj0jol2HphXUhgUMfU1o8nk1jJx+iN9WxAn6PH5iROYx5H+O7dOXHIHLz7ehblnr06
-	 PwMz0FPQI2rGnhAkIVib3HgrPpVbNYPFHL1AI/1w=
-Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
-	20260111152803epcas5p3c51191cd69f853f46e323a5a5fc50b9f~JtsR3ii6f2540325403epcas5p3z;
-	Sun, 11 Jan 2026 15:28:03 +0000 (GMT)
-Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp03.localdomain (Postfix) with ESMTP id 4dpzsv4Qtvz3hhT3; Sun, 11 Jan
-	2026 15:28:03 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
-	20260109123728epcas5p27dc15044f14f2f7767eaa34f6ec74c4b~JEEwwHnaX2779527795epcas5p2C;
-	Fri,  9 Jan 2026 12:37:28 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260109123725epsmtip10fe8d5faa403181de62e34739cb9fe6d~JEEuU4hxc0458704587epsmtip1U;
-	Fri,  9 Jan 2026 12:37:25 +0000 (GMT)
-Date: Fri, 9 Jan 2026 18:07:18 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
-	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
-	cpgs@samsung.com
-Subject: Re: [PATCH V4 16/17] cxl/pmem_region: Create pmem region using
- information parsed from LSA
-Message-ID: <700072760.81768145283611.JavaMail.epsvc@epcpadp2new>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mQjEcdT3"
+Received: by mail-ot1-f54.google.com with SMTP id 46e09a7af769-7cdd651c884so3445489a34.1
+        for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 10:20:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1768155656; x=1768760456; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=aG932MlLjzhGpofJfS2a1eVc1D6C7IY/5zvR3Bf/EEg=;
+        b=mQjEcdT3VUfhFZIbvKDnnE99V3YOiFkrvC1H5MC3G3sP4z0rkXLy81LRbKt9N/3fpg
+         hKh/y2MPU2O+FuwX9cMI0zYjDer9j5g8mayqyVRhWnnRyoqzIy1aH0wgtlYNXzRM8Nli
+         2HpQhy7ZT4MpTO038ELICdvyD05KW0ItqgnNQ4hvBSKx/Fl+sCCyN5tWQ2TfOXlblYBC
+         rDdNp265PfWmq/dHgoep8dDwV6jbsnJ/f0miT8fXztcffNeyaGvOEA+EBCKiOZ2juDRj
+         E8Zs3RIx6r2hg2fgxsUvKw7CLw2nnoILWAtRbXV38rHo+zHtv5XJ8AFZrdk+ERPbRLP2
+         3LCw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768155656; x=1768760456;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=aG932MlLjzhGpofJfS2a1eVc1D6C7IY/5zvR3Bf/EEg=;
+        b=CF2EowxY4bg44/eW/GMlnpdr0kpjGaoMJZpFvScHZSUMOApSLPpcfnxa4G6scheh/c
+         k0jkVGzGpdl4+D4Nu+YiuZjKG6bPbmzJJ4O73np6RIbBbZUKSFMI6zDrsgeWQs94bUqg
+         lxENa+9h/q8CbVJoFHFgpUT+IF2dqs8vhWqowxmPvgVpzu3xNjjiA3Zyw3m80kaEIdlN
+         kiMQuCqgOSrn/WnTVSi0q/HuJBvll2xyIIw7PDaOx9yBTBZQrveKxAMVsvNIFV3WiVnA
+         0J9Gzy+itXPtbj/BdX9BQI6+LpZuMsML1A7za/cwbD9HQ+ZP6GSQq+0cZBhPw3yfzOiC
+         KTEg==
+X-Forwarded-Encrypted: i=1; AJvYcCUIZAWVajli7YOioOuqJjDOXB1uAEJVETt/5pRwb/rmxOzhqFueJW444MMwdSF1qVZSPjhwsiY=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzGO61/YojicdXHMD3oGigrkbTqcTlrxyKAIKjzxBMVWWeJjFsJ
+	An/J/qmgVaKtAr2Bv6ICkQ07xXtpoDBtk7cczwvOTrCMvuOTxBszY9nH
+X-Gm-Gg: AY/fxX4lBWNLXEekkunNCvL84hyRgOao08fXC7BDJMScu63BUSaHOWofT1cWuVByNrY
+	T/5vXmPKhxO/Y5TohBNHS9MmOZg3jTafOZ5ASlX/Q3AUcllT2NidjxZeFGMHYQsDoyovw0hbXoW
+	eq9azwJ5jRHklHKFe/qjmp2y2w59+YKw4RdZa+i/Cx5dfDFE/7/a7XGLS8CKZYiqjK7u2H6ApYi
+	O68K3DMoJtIKP+ThnLXx1W/NpeionNhi9OwI+fke5VQS2RyTzagqL7utBXeYQOeSYfV3gdyoyM6
+	REMUfzALPUWRqFasNEFnV8u8nRRRLNyVx2uMi0VSG86DYzBRQmQAx8QWP1uUwHtvEAD4mQ8iLW9
+	lR330skceBu1kLjYe1V0uqK9/5LNQfPjzjPkeL0CRQeP0w4TpyU5llaOEGzCmjp9YDgfaL+RzGK
+	v+MonWqIFGLJ3UVu7BfP+XA519Z/zUtA==
+X-Google-Smtp-Source: AGHT+IHYPDXG5/NvykQQZIk8AUunBR9mK2nY0iKcaE8B6ptLkOnehZCDGmGQeG3pX/n8s5ukcPG3LA==
+X-Received: by 2002:a9d:538d:0:b0:7c7:e3b:4860 with SMTP id 46e09a7af769-7ce50b7a52cmr6541341a34.10.1768155655722;
+        Sun, 11 Jan 2026 10:20:55 -0800 (PST)
+Received: from groves.net ([2603:8080:1500:3d89:cc0c:a1b0:fd82:1d57])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7cfb21a150asm911499a34.31.2026.01.11.10.20.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 11 Jan 2026 10:20:55 -0800 (PST)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Sun, 11 Jan 2026 12:20:52 -0600
+From: John Groves <John@groves.net>
+To: Joanne Koong <joannelkoong@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH V3 13/21] famfs_fuse: Famfs mount opt: -o
+ shadow=<shadowpath>
+Message-ID: <fcwsytw5kd44veyzfel3uxwk2xsi4ywcy354s7rwaj7v4okwf7@ou4nmbo6eixo>
+References: <20260107153244.64703-1-john@groves.net>
+ <20260107153332.64727-1-john@groves.net>
+ <20260107153332.64727-14-john@groves.net>
+ <CAJnrk1bJ3VbZCYJet1eDPy0V=_3cPxz6kDbgcxwtirk2yA9P0w@mail.gmail.com>
+ <zcnuiwujbnme46nwhvlwk7bosvd4r7wzkxcf6zsxoyo6edolf7@ufqfutxq4fcp>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <13001a14-4b13-4405-afe1-c0e68dc57406@intel.com>
-X-CMS-MailID: 20260109123728epcas5p27dc15044f14f2f7767eaa34f6ec74c4b
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_e630b_"
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-X-Hop-Count: 3
-X-CMS-RootMailID: 20251119075339epcas5p3160bfa74362cc974e917fcc9b83ee112
-References: <20251119075255.2637388-1-s.neeraj@samsung.com>
-	<CGME20251119075339epcas5p3160bfa74362cc974e917fcc9b83ee112@epcas5p3.samsung.com>
-	<20251119075255.2637388-17-s.neeraj@samsung.com>
-	<13001a14-4b13-4405-afe1-c0e68dc57406@intel.com>
-
-------HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_e630b_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <zcnuiwujbnme46nwhvlwk7bosvd4r7wzkxcf6zsxoyo6edolf7@ufqfutxq4fcp>
 
-On 19/11/25 04:37PM, Dave Jiang wrote:
->
->
->On 11/19/25 12:52 AM, Neeraj Kumar wrote:
->> create_pmem_region() creates cxl region based on region information
->> parsed from LSA. This routine required cxl root decoder and endpoint
->> decoder. Therefore added cxl_find_root_decoder_by_port() and
->> cxl_find_free_ep_decoder(). These routines find cxl root decoder and
->> free endpoint decoder on cxl bus using cxl port
->
->Please consider:
->create_pmem_region() creates CXL region based on region information
->parsed from the Label Storage Area (LSA). This routine requires cxl root
->decoder and endpoint decoder. Add cxl_find_root_decoder_by_port()
->and cxl_find_free_ep_decoder() to find the root decoder and a free
->endpoint decoder respectively.
->
+On 26/01/09 06:38PM, John Groves wrote:
+> On 26/01/09 11:22AM, Joanne Koong wrote:
+> > On Wed, Jan 7, 2026 at 7:34 AM John Groves <John@groves.net> wrote:
+> > >
+> > > The shadow path is a (usually in tmpfs) file system area used by the
+> > > famfs user space to communicate with the famfs fuse server. There is a
+> > > minor dilemma that the user space tools must be able to resolve from a
+> > > mount point path to a shadow path. Passing in the 'shadow=<path>'
+> > > argument at mount time causes the shadow path to be exposed via
+> > > /proc/mounts, Solving this dilemma. The shadow path is not otherwise
+> > > used in the kernel.
+> > 
+> > Instead of using mount options to pass the userspace metadata, could
+> > /sys/fs be used instead? The client is able to get the connection id
+> > by stat-ing the famfs mount path. There could be a
+> > /sys/fs/fuse/connections/{id}/metadata file that the server fills out
+> > with whatever metadata needs to be read by the client. Having
+> > something like this would be useful to non-famfs servers as well.
+> 
+> The shadow option isn't the only possible way to get what famfs needs,
+> but I do like it - I find it to be an elegant solution to the problem.
+> 
+> What's the problem? Well, for that you need to know some implementation 
+> details of the famfs userspace. For the *structure* of a mounted file 
+> system, famfs is very passthrough-like. The structure that is being 
+> passed through is the shadow file system, which is an actual file system 
+> (usually tmpfs).  Directories are just directories, but shadow files 
+> contain yaml that describes the file-to-dax map of the *actual* file. 
+> On lookup, the famfs fuse server (famfs_fused), rather than stat the 
+> file like passthrough, reads the yaml and decodes the stat and fmap info 
+> from that.
+> 
+> One other detail. The shadow path must be known or created (usually
+> as a tmpdir, to guarantee it starts empty) at mount time. The kernel
+> knows about it through "-o shadow=<path>", but otherwise doesn't use
+> it. The famfs fuse server receives the path as an input from 
+> 'famfs mount'. The problem is that pretty much every famfs-related
+> user space command needs the shadow path.
+> 
+> In fact the the structure of the mounted file system is at 
+> <shadow_path>/root.  Also located in <shadow path> (above ./root) is a 
+> unix domain socket for REST communication with famfs_fused. We have 
+> plans for other files at <shadow path> and above ./root (mount-specific 
+> config options, for example).
+> 
+> Playing the famfs metadata log requires finding the shadow path,
+> parsing the log, and creating (or potentially modifying) shadow files
+> in the shadow path for the mount.
+> 
+> So to communicate with the fuse server we parse the shadow path from
+> /proc/mounts and that finds the <shadow_path>/socket that can be used
+> to communicate with famfs_fused. And we can play the metadata log
+> (accessed via MPT/.meta/.log) to <shadow_path>/root/...
+> 
+> Having something in sysfs would be fine, but unless we pass it into
+> the kernel somehow (hey, like -o shadow=<shadow path>), the kernel
+> won't know it and can't reveal it.
+> 
+> A big no-go, I think, is trying to parse the shadow path from the
+> famfs fuse server via 'ps -ef' or 'ps -ax'. The famfs cli etc. might
+> be running in a container that doesn't have access to that.
+> 
+> Happy to discuss further...
 
-Fixed it accordingly in V5
+After all that blather (from me), I've been thinking about resolving
+mount points to shadow paths, and I came to the realization that it's
+actually easy to enable retrieving the shadow path from the fuse
+server as an extended attribute.
 
->>
->> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
->> ---
->>  drivers/cxl/core/core.h        |  4 ++
->>  drivers/cxl/core/pmem_region.c | 97 ++++++++++++++++++++++++++++++++++
->>  drivers/cxl/core/region.c      | 13 +++--
->>  drivers/cxl/cxl.h              |  5 ++
->>  4 files changed, 115 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
->> index beeb9b7527b8..dd2efd3deb5e 100644
->> --- a/drivers/cxl/core/core.h
->> +++ b/drivers/cxl/core/core.h
->> @@ -35,6 +35,7 @@ int cxl_decoder_detach(struct cxl_region *cxlr,
->>  #define CXL_REGION_TYPE(x) (&cxl_region_type)
->>  #define SET_CXL_REGION_ATTR(x) (&dev_attr_##x.attr),
->>  #define CXL_DAX_REGION_TYPE(x) (&cxl_dax_region_type)
->> +int verify_free_decoder(struct device *dev);
->>  int cxl_region_init(void);
->>  void cxl_region_exit(void);
->>  int cxl_get_poison_by_endpoint(struct cxl_port *port);
->> @@ -88,6 +89,9 @@ static inline struct cxl_region *to_cxl_region(struct device *dev)
->>  {
->>  	return NULL;
->>  }
->> +static inline int verify_free_decoder(struct device *dev)
->> +{
->
->this function needs to return something
+I implemented that this morning, and it appears to be passing all tests.
+So I anticipate that I'll be able to drop this patch from the series
+when I send V4 - which should be in the next few days unless discussion
+heats up in the mean time.
 
-Thanks for catching this. Fixed it in V5
+Thinking back... when I implemented the '-o shadow=<path>' thingy
+more than a year ago, I still had a *lot* of unsolved problems to 
+tackle. Once I had "a solution" I moved on - but the xattr idea looks
+solid to me (though if anybody can point out flaws, I'd appreciate it).
 
->
->> +}
->>  #define CXL_REGION_ATTR(x) NULL
->>  #define CXL_REGION_TYPE(x) NULL
->>  #define SET_CXL_REGION_ATTR(x)
->> diff --git a/drivers/cxl/core/pmem_region.c b/drivers/cxl/core/pmem_region.c
->> index be4feb73aafc..06665937c180 100644
->> --- a/drivers/cxl/core/pmem_region.c
->> +++ b/drivers/cxl/core/pmem_region.c
->> @@ -291,3 +291,100 @@ int devm_cxl_add_pmem_region(struct cxl_region *cxlr)
->>  	cxlr->cxl_nvb = NULL;
->>  	return rc;
->>  }
->> +
->> +static int match_root_decoder(struct device *dev, const void *data)
->> +{
->> +	return is_root_decoder(dev);
->
->Is it suppose to just grab the first root decoder? If so the function should be match_first_root_decoder(). However, should the root decoder cover the region it's trying to match to? Should there be some checks to see if the region fits under the root decoder range? Also, should it not check the root decoder flags to see if it has CXL_DECODER_F_PMEM set so the CFMWS can cover PMEM?
->
-
-Yes Dave, Here we should check as you suggested. Also currently its only
-considering only first decoder but it should return the root decoder
-associated with particular endpoint decoder. I have fixed this in V5.
-
-
+(there's an Alice's Restaurant joke in there somewhere if you squint,
+about not having to take out the garbage for a long time, but probably 
+only for old people like me...)
 
 Regards,
-Neeraj
+John
 
-------HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_e630b_
-Content-Type: text/plain; charset="utf-8"
-
-
-------HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_e630b_--
+[ ... ]
 
