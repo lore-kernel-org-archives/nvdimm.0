@@ -1,69 +1,68 @@
-Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com [209.85.210.54])
+Received: from mail-oa1-f44.google.com (mail-oa1-f44.google.com [209.85.160.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D80FB33D6EA
-	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 18:20:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C14DB225415
+	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 18:24:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768155658; cv=none; b=BawsePJpppV7sj6+dZHKvX64+OfmSOxMB2JrfYkiVhu5SK0rtDPSBrxLZlbFudeio9HZnQCFHB5eBPY0BQi7Xm9Fyeo1A/6sx0dq6tqXPvAQ6f0epKyruz5fnLt/W40WY+yHL9aI7BpmLY1jwpoOzB4lpmzcO6eQyblLYMEmSPc=
+	t=1768155877; cv=none; b=YC0+Mmj0EMID9QmGC4tQ16VZ11Kdjr/93vno8Zn5o/Jt7Ow5THE1ts3F4SM6EdzWcPhqVFkLgMMeWcNcaxIpx+cDfFo20BhBQPQp8FgkHN1j5HO7FiqK08WTlKltnCI8ZR+VNh6HRFoM6Md2A61J3CvM3PmdFWbmV5AP2ZbvmBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768155658; c=relaxed/simple;
-	bh=SfJrpqITJBqj4x70TkdEEHD+PTaX3wfXpnudD6F/P+c=;
+	s=arc-20240116; t=1768155877; c=relaxed/simple;
+	bh=wuZGY6SRlUzNFhhRYK2DoKN94QfIw6eNulOP0xDDvY0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=A2mVKZNd5IUBgzPi26aoKtmMOdySxoVaOMQBDivhjFI2kilXO3kBnRijon8kMAfJV2yfzdvZ3Iu5s9bljdTeXpeU0hnUrLdEDOsP6S/ELIyKUElcEVMqD/EIOd3hbcH7Fd1HIWjvJyTzJuEVqG6gGmQUOEApvDXMpJKu+Se8jzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mQjEcdT3; arc=none smtp.client-ip=209.85.210.54
+	 Content-Type:Content-Disposition:In-Reply-To; b=IPrGRM/XL0Muw7FqNiYhUm5IMv/3jtFFVi6vPLbKBhVgKZITcDIxdGmtcqEHlgzmp03As1Dvnic+VqO8JuK3Ot4kkFGTsHS8jvbFsmwRf8Ur8rjvnL4BKI1zvT7pwJjRoOzMZLTmiJTe8DnlL+JIQ4XjrT09jF226DJCUZqSSJo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OESnCjP3; arc=none smtp.client-ip=209.85.160.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mQjEcdT3"
-Received: by mail-ot1-f54.google.com with SMTP id 46e09a7af769-7cdd651c884so3445489a34.1
-        for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 10:20:56 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OESnCjP3"
+Received: by mail-oa1-f44.google.com with SMTP id 586e51a60fabf-3fff664b610so984548fac.1
+        for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 10:24:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768155656; x=1768760456; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=aG932MlLjzhGpofJfS2a1eVc1D6C7IY/5zvR3Bf/EEg=;
-        b=mQjEcdT3VUfhFZIbvKDnnE99V3YOiFkrvC1H5MC3G3sP4z0rkXLy81LRbKt9N/3fpg
-         hKh/y2MPU2O+FuwX9cMI0zYjDer9j5g8mayqyVRhWnnRyoqzIy1aH0wgtlYNXzRM8Nli
-         2HpQhy7ZT4MpTO038ELICdvyD05KW0ItqgnNQ4hvBSKx/Fl+sCCyN5tWQ2TfOXlblYBC
-         rDdNp265PfWmq/dHgoep8dDwV6jbsnJ/f0miT8fXztcffNeyaGvOEA+EBCKiOZ2juDRj
-         E8Zs3RIx6r2hg2fgxsUvKw7CLw2nnoILWAtRbXV38rHo+zHtv5XJ8AFZrdk+ERPbRLP2
-         3LCw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768155656; x=1768760456;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=gmail.com; s=20230601; t=1768155872; x=1768760672; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=aG932MlLjzhGpofJfS2a1eVc1D6C7IY/5zvR3Bf/EEg=;
-        b=CF2EowxY4bg44/eW/GMlnpdr0kpjGaoMJZpFvScHZSUMOApSLPpcfnxa4G6scheh/c
-         k0jkVGzGpdl4+D4Nu+YiuZjKG6bPbmzJJ4O73np6RIbBbZUKSFMI6zDrsgeWQs94bUqg
-         lxENa+9h/q8CbVJoFHFgpUT+IF2dqs8vhWqowxmPvgVpzu3xNjjiA3Zyw3m80kaEIdlN
-         kiMQuCqgOSrn/WnTVSi0q/HuJBvll2xyIIw7PDaOx9yBTBZQrveKxAMVsvNIFV3WiVnA
-         0J9Gzy+itXPtbj/BdX9BQI6+LpZuMsML1A7za/cwbD9HQ+ZP6GSQq+0cZBhPw3yfzOiC
-         KTEg==
-X-Forwarded-Encrypted: i=1; AJvYcCUIZAWVajli7YOioOuqJjDOXB1uAEJVETt/5pRwb/rmxOzhqFueJW444MMwdSF1qVZSPjhwsiY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzGO61/YojicdXHMD3oGigrkbTqcTlrxyKAIKjzxBMVWWeJjFsJ
-	An/J/qmgVaKtAr2Bv6ICkQ07xXtpoDBtk7cczwvOTrCMvuOTxBszY9nH
-X-Gm-Gg: AY/fxX4lBWNLXEekkunNCvL84hyRgOao08fXC7BDJMScu63BUSaHOWofT1cWuVByNrY
-	T/5vXmPKhxO/Y5TohBNHS9MmOZg3jTafOZ5ASlX/Q3AUcllT2NidjxZeFGMHYQsDoyovw0hbXoW
-	eq9azwJ5jRHklHKFe/qjmp2y2w59+YKw4RdZa+i/Cx5dfDFE/7/a7XGLS8CKZYiqjK7u2H6ApYi
-	O68K3DMoJtIKP+ThnLXx1W/NpeionNhi9OwI+fke5VQS2RyTzagqL7utBXeYQOeSYfV3gdyoyM6
-	REMUfzALPUWRqFasNEFnV8u8nRRRLNyVx2uMi0VSG86DYzBRQmQAx8QWP1uUwHtvEAD4mQ8iLW9
-	lR330skceBu1kLjYe1V0uqK9/5LNQfPjzjPkeL0CRQeP0w4TpyU5llaOEGzCmjp9YDgfaL+RzGK
-	v+MonWqIFGLJ3UVu7BfP+XA519Z/zUtA==
-X-Google-Smtp-Source: AGHT+IHYPDXG5/NvykQQZIk8AUunBR9mK2nY0iKcaE8B6ptLkOnehZCDGmGQeG3pX/n8s5ukcPG3LA==
-X-Received: by 2002:a9d:538d:0:b0:7c7:e3b:4860 with SMTP id 46e09a7af769-7ce50b7a52cmr6541341a34.10.1768155655722;
-        Sun, 11 Jan 2026 10:20:55 -0800 (PST)
+        bh=R+GSc2GBWlyyKLR953NpzcUC6v/+T5KZ51y3NFrwZfA=;
+        b=OESnCjP3TWNhw+uRc464WEOYmkJNJYwIyC3Mtt5O6394YZOiNjRSJsqVyDl8+dYpgc
+         T694jxSg2tyhPeqOIKx80RYb3Qu6No3Qa7BUzrBzhF01Q3m+U3px7J2Jk3dz+tOHjZJ2
+         IjSMM6r2STCXqdsRw1tEH9q0fSj1Qt0ud1xUQOUIiLnaQU/pZNvKWehMhfbLSggasfGy
+         MR1TYEKYohVPkYtZHNVi6craA111mQsklPKEZdND/T7juiUZJJrlB8He+7c3rZDkokoY
+         6V76u0CVlIwyx5kc+v6PBP8meP49e8T+UDuRyENy0LhNF3lrJsBk0Zi38wbxlrXO9/QD
+         pe5A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768155872; x=1768760672;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=R+GSc2GBWlyyKLR953NpzcUC6v/+T5KZ51y3NFrwZfA=;
+        b=vyyMPD4g0lqn9mtMtzcvbDRd5ELjpyNnCTOHNw3Xd0ep1RObmMMFQve0YkJ0O0Ispn
+         YUtFwkGHPW4a4y97b7QElS1tZQ96ser/1soOQJ5YcXz0NZsGq7vlwHKi8jdIXBu0dLrY
+         OQg1DXgg9koO1y6+Ohi4MYBJfF8VWOXlgWXgbaZAasFy55TAvoUYaktEvpYVemZ3cYt4
+         odXe2kiiPWQJ2mO4T65aqoQaTasP9y5vH3fET7YToY8TH/fx81oRZrCZP9tV1zlnIniv
+         orX8GuCsLhjwFFudtYyrm21/J7RR1DpYUsTW0RKqHyHRvOn+dc3zzUej+THDWKAKVHxV
+         7B3A==
+X-Forwarded-Encrypted: i=1; AJvYcCVLyMLDFYrYQVAV/AAkcBZA1iDPGFWSiv5wj0wgbLjuZLw8fuohrujaNWtH09OL20uYJh4mmek=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzAsQt/Nk10I2mQrEXcab01imTyO7dHgzP8VbEtx3DYP0jYqzOZ
+	wbNJAtBX2S1ZkDg4gUhiJWfEn7oq72vSZ281Awn4gAyLsBZ0/FKTithh
+X-Gm-Gg: AY/fxX7ts4g05Pi8Buz10O6kXQXRWqweXeMPB5gnNK1chgQvtceB8jXb8Np+F4OxeRC
+	gKRIbUnJ6FRdUOs0QmS5EMPjQNaqEfiRNp+xObskp2iLO5XrcX4jq3RBiTMK3XXZTVU3Qh7h/T0
+	YZeo6tyGZDWOa4SQ+pFrAAqMgKPJSNmFaYLxCJFSM4u0nudI3izinXGM8dcTQ2zi4ltgNiFKbdl
+	d4YxnfH9L5ZzqGPnIJoDbwWFSVZROUfcyMS2gkdrJw+ytkvo5e1JLyRVKq31XQpQFWc1axxZas5
+	p37r9zI/I9HS2sk33HuTQIK5K5A/OP25AdjBHURzQUHDZL+ARYyU7v5a7SVTRRqr+1Bq22MncXP
+	0mF55UXrb8m63IokPKsMUmlENje8yo0oEb1A5pV6uWJsr+9TIFGxMp2SxwgkHdYEiIpWlSzPFNk
+	/3tcVlSr53P6No9HNWeKIUHWZQn0BCew==
+X-Google-Smtp-Source: AGHT+IEvvggI2mJmOtqFQTAS39y6eV7fvRie7hl/ldDRYe8R5GovPjr7x7SyKxaIKesqgZD+L7TFNA==
+X-Received: by 2002:a05:6820:1694:b0:65f:6601:b342 with SMTP id 006d021491bc7-65f6601cbd8mr5456330eaf.7.1768155872287;
+        Sun, 11 Jan 2026 10:24:32 -0800 (PST)
 Received: from groves.net ([2603:8080:1500:3d89:cc0c:a1b0:fd82:1d57])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7cfb21a150asm911499a34.31.2026.01.11.10.20.53
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-65f48bbc0desm6567999eaf.2.2026.01.11.10.24.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 11 Jan 2026 10:20:55 -0800 (PST)
+        Sun, 11 Jan 2026 10:24:31 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
-Date: Sun, 11 Jan 2026 12:20:52 -0600
+Date: Sun, 11 Jan 2026 12:24:29 -0600
 From: John Groves <John@groves.net>
-To: Joanne Koong <joannelkoong@gmail.com>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, 
 	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
 	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
@@ -72,8 +71,8 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
 	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
 	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
 	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
 	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
 	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
@@ -81,110 +80,70 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
 	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
 	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH V3 13/21] famfs_fuse: Famfs mount opt: -o
- shadow=<shadowpath>
-Message-ID: <fcwsytw5kd44veyzfel3uxwk2xsi4ywcy354s7rwaj7v4okwf7@ou4nmbo6eixo>
+Subject: Re: [PATCH V3 4/4] fuse: add famfs DAX fmap support
+Message-ID: <2mr7vou7zeauqypqq3xay6wdmc6g2havk2e33cfphwylu7dnit@qk32hbe7zgy3>
 References: <20260107153244.64703-1-john@groves.net>
- <20260107153332.64727-1-john@groves.net>
- <20260107153332.64727-14-john@groves.net>
- <CAJnrk1bJ3VbZCYJet1eDPy0V=_3cPxz6kDbgcxwtirk2yA9P0w@mail.gmail.com>
- <zcnuiwujbnme46nwhvlwk7bosvd4r7wzkxcf6zsxoyo6edolf7@ufqfutxq4fcp>
+ <20260107153443.64794-1-john@groves.net>
+ <20260107153443.64794-5-john@groves.net>
+ <20260108153148.00001e63@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <zcnuiwujbnme46nwhvlwk7bosvd4r7wzkxcf6zsxoyo6edolf7@ufqfutxq4fcp>
+In-Reply-To: <20260108153148.00001e63@huawei.com>
 
-On 26/01/09 06:38PM, John Groves wrote:
-> On 26/01/09 11:22AM, Joanne Koong wrote:
-> > On Wed, Jan 7, 2026 at 7:34 AM John Groves <John@groves.net> wrote:
-> > >
-> > > The shadow path is a (usually in tmpfs) file system area used by the
-> > > famfs user space to communicate with the famfs fuse server. There is a
-> > > minor dilemma that the user space tools must be able to resolve from a
-> > > mount point path to a shadow path. Passing in the 'shadow=<path>'
-> > > argument at mount time causes the shadow path to be exposed via
-> > > /proc/mounts, Solving this dilemma. The shadow path is not otherwise
-> > > used in the kernel.
+On 26/01/08 03:31PM, Jonathan Cameron wrote:
+> On Wed,  7 Jan 2026 09:34:43 -0600
+> John Groves <John@Groves.net> wrote:
+> 
+> > Add new FUSE operations and capability for famfs DAX file mapping:
 > > 
-> > Instead of using mount options to pass the userspace metadata, could
-> > /sys/fs be used instead? The client is able to get the connection id
-> > by stat-ing the famfs mount path. There could be a
-> > /sys/fs/fuse/connections/{id}/metadata file that the server fills out
-> > with whatever metadata needs to be read by the client. Having
-> > something like this would be useful to non-famfs servers as well.
+> > - FUSE_CAP_DAX_FMAP: New capability flag at bit 32 (using want_ext/capable_ext
+> >   fields) to indicate kernel and userspace support for DAX fmaps
+> > 
+> > - GET_FMAP: New operation to retrieve a file map for DAX-mapped files.
+> >   Returns a fuse_famfs_fmap_header followed by simple or interleaved
+> >   extent descriptors. The kernel passes the file size as an argument.
+> > 
+> > - GET_DAXDEV: New operation to retrieve DAX device info by index.
+> >   Called when GET_FMAP returns an fmap referencing a previously
+> >   unknown DAX device.
+> > 
+> > These operations enable FUSE filesystems to provide direct access
+> > mappings to persistent memory, allowing the kernel to map files
+> > directly to DAX devices without page cache intermediation.
+> > 
+> > Signed-off-by: John Groves <john@groves.net>
 > 
-> The shadow option isn't the only possible way to get what famfs needs,
-> but I do like it - I find it to be an elegant solution to the problem.
 > 
-> What's the problem? Well, for that you need to know some implementation 
-> details of the famfs userspace. For the *structure* of a mounted file 
-> system, famfs is very passthrough-like. The structure that is being 
-> passed through is the shadow file system, which is an actual file system 
-> (usually tmpfs).  Directories are just directories, but shadow files 
-> contain yaml that describes the file-to-dax map of the *actual* file. 
-> On lookup, the famfs fuse server (famfs_fused), rather than stat the 
-> file like passthrough, reads the yaml and decodes the stat and fmap info 
-> from that.
+> > ---
+> >  include/fuse_common.h   |  5 +++++
+> >  include/fuse_lowlevel.h | 37 +++++++++++++++++++++++++++++++++++++
+> >  lib/fuse_lowlevel.c     | 31 ++++++++++++++++++++++++++++++-
+> >  3 files changed, 72 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/include/fuse_common.h b/include/fuse_common.h
+> > index 041188e..e428ddb 100644
+> > --- a/include/fuse_common.h
+> > +++ b/include/fuse_common.h
+> > @@ -512,6 +512,11 @@ struct fuse_loop_config_v1 {
+> >   */
+> >  #define FUSE_CAP_OVER_IO_URING (1UL << 31)
+> >  
+> > +/**
+> > + * handle files that use famfs dax fmaps
+> > + */
+> > +#define FUSE_CAP_DAX_FMAP (1UL<<32)
 > 
-> One other detail. The shadow path must be known or created (usually
-> as a tmpdir, to guarantee it starts empty) at mount time. The kernel
-> knows about it through "-o shadow=<path>", but otherwise doesn't use
-> it. The famfs fuse server receives the path as an input from 
-> 'famfs mount'. The problem is that pretty much every famfs-related
-> user space command needs the shadow path.
-> 
-> In fact the the structure of the mounted file system is at 
-> <shadow_path>/root.  Also located in <shadow path> (above ./root) is a 
-> unix domain socket for REST communication with famfs_fused. We have 
-> plans for other files at <shadow path> and above ./root (mount-specific 
-> config options, for example).
-> 
-> Playing the famfs metadata log requires finding the shadow path,
-> parsing the log, and creating (or potentially modifying) shadow files
-> in the shadow path for the mount.
-> 
-> So to communicate with the fuse server we parse the shadow path from
-> /proc/mounts and that finds the <shadow_path>/socket that can be used
-> to communicate with famfs_fused. And we can play the metadata log
-> (accessed via MPT/.meta/.log) to <shadow_path>/root/...
-> 
-> Having something in sysfs would be fine, but unless we pass it into
-> the kernel somehow (hey, like -o shadow=<shadow path>), the kernel
-> won't know it and can't reveal it.
-> 
-> A big no-go, I think, is trying to parse the shadow path from the
-> famfs fuse server via 'ps -ef' or 'ps -ax'. The famfs cli etc. might
-> be running in a container that doesn't have access to that.
-> 
-> Happy to discuss further...
+> From the context above, looks like local style is spaces around <<
 
-After all that blather (from me), I've been thinking about resolving
-mount points to shadow paths, and I came to the realization that it's
-actually easy to enable retrieving the shadow path from the fuse
-server as an extended attribute.
-
-I implemented that this morning, and it appears to be passing all tests.
-So I anticipate that I'll be able to drop this patch from the series
-when I send V4 - which should be in the next few days unless discussion
-heats up in the mean time.
-
-Thinking back... when I implemented the '-o shadow=<path>' thingy
-more than a year ago, I still had a *lot* of unsolved problems to 
-tackle. Once I had "a solution" I moved on - but the xattr idea looks
-solid to me (though if anybody can point out flaws, I'd appreciate it).
-
-(there's an Alice's Restaurant joke in there somewhere if you squint,
-about not having to take out the garbage for a long time, but probably 
-only for old people like me...)
-
-Regards,
-John
+Fixed, thanks!
 
 [ ... ]
+
+John
 
