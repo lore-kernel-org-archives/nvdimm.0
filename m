@@ -1,148 +1,207 @@
-Received: from mail-oa1-f68.google.com (mail-oa1-f68.google.com [209.85.160.68])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 201D429AAF8
-	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 18:53:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.68
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5207324886E
+	for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 20:59:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768157606; cv=none; b=GWTIF8q5Ov380ABEMKeSPOTnHs7ZRYn/ePkir9Hgvp41IggaImU2Ce5WqSx/2havEwwCnJTVtVWBmTt8aqbd7V0dyENsmcCUzh61wtnudSxImivcdWIagYKKBokCrVywUDNRDJVV4L3cO3mDYy0c8Y2pd9by3PDHKvbq5h2IyBY=
+	t=1768165147; cv=none; b=qyZWQ8OEo/HOzC31BGy3snKKsCSQ3jHjECvGSxh+d69ogUw+tkV+AeDwT7iLIx/D6nZ12FuOpgfKiINVfgyrdPSL1T+VWuGUHnxyuXrVPHQr3S3XLWePX8xZ9twu8Hp6iPZq3P6EFdBs4NM+aHz6fYMIKjprUs3Ipfhor0C0dck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768157606; c=relaxed/simple;
-	bh=bjkXAEN8Y+D7IMRxZaq/hvH2dXf/omJq+KCOtFcy/ws=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GpUDQ17rQqEMjrN+QbzZduIg39yiGZP7nXVhNB9q8U2RcAaa+4M9KtTYNrL2qiar8urhrcNPBMI2scYKBvUloDJfZRMyGPIaDnR1kMYrj/U2RYkUD1iK0TwosWIle6xcfFPDk7dDH/IrDjAHzr2ZOfsY7N8Dv8HZaRfBhzqgy24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=J3LlAqrs; arc=none smtp.client-ip=209.85.160.68
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1768165147; c=relaxed/simple;
+	bh=JowSG+4tQQyTE47Rbtpcgaez8ldKvXlCh+DCDwat3uA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=B8LgiwVIM5sDjqAQPcK3Tl+x5XG9AkbRhowN/2eybVS+cYXiubo9fYD2YXlSA+rRKbbU+O4NeThAR+6kIAejN8ErUSdaKPLpwDf81PU2dr7gSVaTvz9J1S/b/f9eNEh/Qm23PGlzrGWgIjpsOa90t+dZYzl0QlGfpW5QZyJNT3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=KCr9Phyf; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J3LlAqrs"
-Received: by mail-oa1-f68.google.com with SMTP id 586e51a60fabf-3ec47e4c20eso3603667fac.1
-        for <nvdimm@lists.linux.dev>; Sun, 11 Jan 2026 10:53:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768157604; x=1768762404; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vTBNax6FoYZ8tcOGsMgyI0isYvrnMxJ74iIpUsR2X1Q=;
-        b=J3LlAqrsr1QxgUQXyXqo04VTsoXCxXmE6oZXf5TM5Cp1JNrT1GGJwCsIZ+uTzPktSv
-         5jeGVDCVFrT3ZZSljqrl280Pd/E+e2cthgJSjUQdmIVpz++I5mAwu+5m8vVZlhKgkqFk
-         /V9qxU0gMQ/D3pzV36ZM4WeiJ3FzIOlCFqMVO9Vox1dFJ5mTxi3J4v7FtlT4FCHUa5Ws
-         UPpMaNa1GoHkLlbVilMXTPjuDG5OwP9GnGmdEVHjaOfjEixoha2YtQezZzE7c6/5XsZz
-         MHvyxmLCciUrzBrvU52Pr/2u7tAC60J0rG4J+0iyJ4U7Rp8+RTcuCng1q0PvQoQV1J94
-         KSmQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768157604; x=1768762404;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=vTBNax6FoYZ8tcOGsMgyI0isYvrnMxJ74iIpUsR2X1Q=;
-        b=xMegaTTsWIBmJfRMmOyYayyVMDTUdbhWr8MTep40y/qf/ITM1lSRy38QRmWeBZMgM2
-         Qznhu4gcJdWmKS4m+CWbvLfttcH3pIKdSkmAUUqUSyU+NQOLncfME1D+BBKAUCJ94xW6
-         JM+M/X9ZC7qhfdclaI9jTgVeUlvORtI7XBSY4Z9KmrATGLaoMe6mKY5PU+lONK+MAWYs
-         aOaKE/25omKLYuofgL4shdW+PwRITvD6s7CyBW8eG08+tXP+9VNH3ws3Qjiax9GAOX8W
-         HEH3gv5Sjd/3dkGHIkeVWrcwkk5a82VIgB2QKKjwpQR/KoPu9NiY4C0IfUhMmEiglnEX
-         QA2A==
-X-Forwarded-Encrypted: i=1; AJvYcCV5jmLikdnbZv/DdqtLpBe0EVn1aEWbD3VTLxaa+fcG5mEuUQB2eGU9O8JG/yKSPusPsQXttiY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YycQ2IqcRlxNI2joXLUr+r0BRsz0Am8DiONPy+HNIu9Sq8fnzSF
-	j+acFV4FcqoJ/1nAGFlA4bplPcHlndSb9uCFaSE3uZdihGY01Ui8oQPZ
-X-Gm-Gg: AY/fxX6HVTFCLD3OsthTH6r5hVVAiTY1dz5IflvYfNQMyr2BeFICRBZ9ls0Oy3NfZcV
-	cZpKGzSbwLOdPbbtEEK+l94rY0oqvrs1iZt9rgXsZIKQTkE7uE6B7hJqme8Kk2PotUF5Zfo2efK
-	u4gl1mCws3blnB7O74vmGcZN3k9zTraWYCa3eIjCeHnSoz6Tkg3uh+0kqQn6aPk3UsWsaw6HQ1+
-	05Z/W0+ejNasxmBvq8tTCXxOEz1ANPEE7nPhTh4udI2MncKGQFwJPe00MJubX50vOdM8bN3ob49
-	+zxoFwWESktoekK2AA/l5Tt4iX0MMJkRHJsvfVMqTfhmFXgyRH1kDsKD2boYKxvNByBC9pzauEJ
-	gSwJfLFvK+CV7sVHP2c/yNHflNqGDjzkz48cJYkofZfW7V3FNWixAilCT6PNQhZVuSb4dBOR5dG
-	XtFaxOf+2qzPPLcO9qrqWVzTyAT089npWYiPx6W0WV
-X-Google-Smtp-Source: AGHT+IFCDAYjOU7Tv/QzCofEX4QjQQf7VTkE0/1bWiSzEnwsQJCLaG0COOECS73BVhT6La3jE2HlAQ==
-X-Received: by 2002:a05:6870:b525:b0:3d3:5ea0:5dd3 with SMTP id 586e51a60fabf-3ffc08f67c1mr8587303fac.10.1768157603977;
-        Sun, 11 Jan 2026 10:53:23 -0800 (PST)
-Received: from groves.net ([2603:8080:1500:3d89:cc0c:a1b0:fd82:1d57])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-3ffa516150fsm10835406fac.20.2026.01.11.10.53.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 11 Jan 2026 10:53:23 -0800 (PST)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Sun, 11 Jan 2026 12:53:20 -0600
-From: John Groves <John@groves.net>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH V3 21/21] famfs_fuse: Add documentation
-Message-ID: <2v2f3kfrbjolx3gaeo3273beah4msor6vpojusrf5ekd4rg7rf@tgnvcuxh3sgo>
-References: <20260107153244.64703-1-john@groves.net>
- <20260107153332.64727-1-john@groves.net>
- <20260107153332.64727-22-john@groves.net>
- <20260108152713.00001b42@huawei.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KCr9Phyf"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1768165146; x=1799701146;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=JowSG+4tQQyTE47Rbtpcgaez8ldKvXlCh+DCDwat3uA=;
+  b=KCr9PhyfERHVC0FFL5f0bUnE3VBF21GzZpnAjMAEHSHGUNj4X7Jm2EGl
+   VFilqUcSVnIwPkpWjd7hqBrKVMahXaa9YJbdJILBKrGQLJmjnOpG2eOPw
+   ikQgRZStF+jT3w5YWGcPtxb4T9hVTXL2Bd0T+HNhYp/+L1aQFbgJgrCiZ
+   2ceIyJ/X907T9eoDxrv4WDdvTw1Vd+Oe7J6QNQ8b9//uMD9CRPWv6ty4L
+   AmvClJoQCX74BlkxIVUB1P5fxuSriiV/lJThwnBbrmrm3qvdFdeekJwls
+   8N1kYtUAvDP5IhtYmGWSTk177GpTV5OyWfR+2zmM/NRixi/nXE5ob2x+P
+   A==;
+X-CSE-ConnectionGUID: 46zzzc2eQUicfShZJazSrA==
+X-CSE-MsgGUID: rWF59KegSq2fC+sqOjRWpw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11668"; a="80904653"
+X-IronPort-AV: E=Sophos;i="6.21,219,1763452800"; 
+   d="scan'208";a="80904653"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2026 12:59:05 -0800
+X-CSE-ConnectionGUID: D5xpyBpvRRC3zs7F9qTySg==
+X-CSE-MsgGUID: /4GjZEskTMOj7ia6RpYfqg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,219,1763452800"; 
+   d="scan'208";a="208419944"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO fdugast-desk.home) ([10.245.245.11])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2026 12:58:55 -0800
+From: Francois Dugast <francois.dugast@intel.com>
+To: intel-xe@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org,
+	Francois Dugast <francois.dugast@intel.com>,
+	Zi Yan <ziy@nvidia.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Alistair Popple <apopple@nvidia.com>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	Mike Rapoport <rppt@kernel.org>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	Felix Kuehling <Felix.Kuehling@amd.com>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	=?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+	David Airlie <airlied@gmail.com>,
+	Simona Vetter <simona@ffwll.ch>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Lyude Paul <lyude@redhat.com>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	David Hildenbrand <david@kernel.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Balbir Singh <balbirs@nvidia.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	linuxppc-dev@lists.ozlabs.org,
+	kvm@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	amd-gfx@lists.freedesktop.org,
+	nouveau@lists.freedesktop.org,
+	linux-pci@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH v4 0/7] Enable THP support in drm_pagemap
+Date: Sun, 11 Jan 2026 21:55:39 +0100
+Message-ID: <20260111205820.830410-1-francois.dugast@intel.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260108152713.00001b42@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 26/01/08 03:27PM, Jonathan Cameron wrote:
-> On Wed,  7 Jan 2026 09:33:30 -0600
-> John Groves <John@Groves.net> wrote:
-> 
-> > Add Documentation/filesystems/famfs.rst and update MAINTAINERS
-> > 
-> > Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-> > Tested-by: Randy Dunlap <rdunlap@infradead.org>
-> > Signed-off-by: John Groves <john@groves.net>
-> > ---
-> >  Documentation/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++
-> >  Documentation/filesystems/index.rst |   1 +
-> >  MAINTAINERS                         |   1 +
-> >  3 files changed, 144 insertions(+)
-> >  create mode 100644 Documentation/filesystems/famfs.rst
-> > 
-> > diff --git a/Documentation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst
-> > new file mode 100644
-> > index 000000000000..0d3c9ba9b7a8
-> > --- /dev/null
-> > +++ b/Documentation/filesystems/famfs.rst
-> 
-> > +Principles of Operation
-> > +=======================
-> ....
-> > +When an app accesses a data object in a famfs file, there is no page cache
-> > +involvement. The CPU cache is loaded directly from the shared memory. In
-> > +some use cases, this is an enormous reduction read amplification compared
-> > +to loading an entire page into the page cache.
-> > +
-> Trivial but this double blank line seems inconsistent.
-> I don't mind if it's one or two, but do the same everywhere.
+Use Balbir Singh's series for device-private THP support [1] and
+previous preparation work in drm_pagemap [2] to add 2MB/THP support
+in xe. This leads to significant performance improvements when using
+SVM with 2MB pages.
 
-This doc is identical to the the previous series, becuase I kept the Reviewed-by
-and Tested-by tags from Randy. I'm happy to remove the extra blank line if he
-or somebody from the doc team thinks I should.
+[1] https://lore.kernel.org/linux-mm/20251001065707.920170-1-balbirs@nvidia.com/
+[2] https://patchwork.freedesktop.org/series/151754/
 
-> 
-> > +
-> > +Famfs is Not a Conventional File System
-> > +---------------------------------------
-> 
-> Nice doc.
-> 
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+v2:
+- rebase on top of multi-device SVM
+- add drm_pagemap_cpages() with temporary patch
+- address other feedback from Matt Brost on v1
 
-Thanks Jonathan!
+v3:
+The major change is to remove the dependency to the mm/huge_memory
+helper migrate_device_split_page() that was called explicitely when
+a 2M buddy allocation backed by a large folio would be later reused
+for a smaller allocation (4K or 64K). Instead, the first 3 patches
+provided by Matthew Brost ensure large folios are split at the time
+of freeing.
 
-John
+v4:
+- add order argument to folio_free callback
+- send complete series to linux-mm and MM folks as requested (Zi Yan
+  and Andrew Morton) and cover letter to anyone receiving at least
+  one of the patches (Liam R. Howlett)
+
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Christian König" <christian.koenig@amd.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: kvm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: amd-gfx@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: nouveau@lists.freedesktop.org
+Cc: linux-pci@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-cxl@vger.kernel.org
+Cc: nvdimm@lists.linux.dev
+Cc: linux-fsdevel@vger.kernel.org
+
+Francois Dugast (3):
+  drm/pagemap: Unlock and put folios when possible
+  drm/pagemap: Add helper to access zone_device_data
+  drm/pagemap: Enable THP support for GPU memory migration
+
+Matthew Brost (4):
+  mm/zone_device: Add order argument to folio_free callback
+  mm/zone_device: Add free_zone_device_folio_prepare() helper
+  fs/dax: Use free_zone_device_folio_prepare() helper
+  drm/pagemap: Correct cpages calculation for migrate_vma_setup
+
+ arch/powerpc/kvm/book3s_hv_uvmem.c       |   2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |   2 +-
+ drivers/gpu/drm/drm_gpusvm.c             |   7 +-
+ drivers/gpu/drm/drm_pagemap.c            | 165 ++++++++++++++++++-----
+ drivers/gpu/drm/nouveau/nouveau_dmem.c   |   4 +-
+ drivers/pci/p2pdma.c                     |   2 +-
+ fs/dax.c                                 |  24 +---
+ include/drm/drm_pagemap.h                |  15 +++
+ include/linux/memremap.h                 |   8 +-
+ lib/test_hmm.c                           |   4 +-
+ mm/memremap.c                            |  60 ++++++++-
+ 11 files changed, 227 insertions(+), 66 deletions(-)
+
+-- 
+2.43.0
 
