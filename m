@@ -1,63 +1,63 @@
-Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
+Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 563012E06EA
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 17:33:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 470AC3002A6
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 17:36:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768411991; cv=none; b=lc19eMcVeWM0c0Y8VPM7bN/8Cxe4+N2g3K6PiUkCPv9Gpw1+/xJKFJb7nyTcPzPyzFK6bybb7bpnTMhNp2f3NLPpISqOv8HyRDxRzU88itKJ3sk88P7czkwWqI6llbYE79HcR0NVDVKQl3bfPMUNh9128nGtBmb3y6Q97BGnu5g=
+	t=1768412197; cv=none; b=OOIjDCQXWMcvRVkHRnupwJEGHlylzg1JxviFzDcXUfld/Ft9qgUzz6LpV6Ewl7p3k5HHB4v01h6Jy6tA868uXXkzPBbizdScXw7CPzOmdsHVcA3BNY+rpdPMUBgVonXhzSLMfoM6agxEZXbUdBXrT52h8TJA/jtGlI7km67Slow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768411991; c=relaxed/simple;
-	bh=8O9PPhw4HJ1ghVcptQLNcB4UFjagJSyTGDFo/SN9nX8=;
+	s=arc-20240116; t=1768412197; c=relaxed/simple;
+	bh=kiL1vI/3XAUWl4aE2fDFyGqz7AzrKtHTl9V5sXFpytI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fyIObixvY/0qkr+JHb25i0bltYoRmz2gAcIdvDvaWv+v3oXZ87y2CFJYgif7widNcxyDZMn0bySBeMgTmbgxMeA0FmXjsOCIJXEEaRMD7ZmJa/KkzX9Y9K9Ne/z6TTSNRAMAzp87GUNQirz7Q5f2VRukSX9PvI3PfG608zBqA9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=QNcIv3cU; arc=none smtp.client-ip=209.85.222.171
+	 Content-Type:Content-Disposition:In-Reply-To; b=V8TA/5ICnuV1v7Nx37xaMihG/5hdFWGWZP626dSz6AfTMkOKoXI9vVrPLRDs/45WlFPzf5hiIPMpmfL8TY0/ZgtbelJjQpuwyxrExfIFID6spyR+3XhegjcPwbBDVMFPazeDJ08NxLz2VVGhPYUxIZGpwNmuX8i29A5nfq63zow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=CoS0c92R; arc=none smtp.client-ip=209.85.222.176
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="QNcIv3cU"
-Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-8c531473fdcso6467485a.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 09:33:10 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="CoS0c92R"
+Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-8b2ec756de0so6313485a.3
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 09:36:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1768411989; x=1769016789; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1768412195; x=1769016995; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=bCjYai9Len2QQEYBKyLKOlFSVdw2VqJPxFxPg7dhnMU=;
-        b=QNcIv3cUeE+0QLsWEfGEwsWa4dVTYsM4X+PZUfYg65Q4yTIDZAHtqRCRY6Bvd/bdRk
-         6Ew7U/8JrQgPuXXcgFWu9UOEsrCK9qVzbs3SgW2/LnyWEi2d0HGvXUtJE35o14/3qmuq
-         J24wJOVveWNkAcxnpmhqduX7RvwC45k9enDvxNTpI+7DC0px7LSE6WitclAFjxK5LuVc
-         tGdcdy8DGsMTmsRGpvbc6HQ7HQS6YYYrLlgUXZDlRWlbgEiUaxg/xtBnfiGj5m4kRRAF
-         Ac98JUZZ3BfWXLg/x8wP5dIsT8Tqzc0698Icu/H86q8Qgz3BC9YZbR0NiqFoHJ4KL1wj
-         gT8g==
+        bh=figB8dzHwd2D0XvRaWeBpTz4+U95P61NoReY1arrqU0=;
+        b=CoS0c92RhVEy5LcyyHwGY3z01b3R+Vb8a+FqD2xL4cUm6RecBIvGi0avq05EX2c618
+         YPoyrmNfw7A9Ws0CoF6U9p/mV93Ne07Hm4IiXPLMziZrHN3AvmMliLGWlAibXV8eD5xp
+         a+LM97cxsnh/bzjdecGCW67KwyCa8QKSSc3npRdLhCLFfxcSkRiIT77XYbdjVc/SHdrj
+         GqMAisK5N4Es39iMZ3w8MCNK8n5hBUul0twoV11gwqCtIBFMRypB6d7rAnISOSPtzUj/
+         /KIvWiZJunO/Rh0D5FVYaV587G+Vi36n4mJfsW9SAc+nrCDtsgrae5BGKrbWxR5fNnQy
+         rHdg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768411989; x=1769016789;
+        d=1e100.net; s=20230601; t=1768412195; x=1769016995;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=bCjYai9Len2QQEYBKyLKOlFSVdw2VqJPxFxPg7dhnMU=;
-        b=jd18iORjBHQmx510Xa275VfrAaDNfKF4Ac0srtommd4s1sG9l9lcOpJ6i4Zud5z+uR
-         SfpfA2wVMfiyUOSC7WgkONKTK8XFiHNUUfzPct/ow1E65QfP7pPwZ3oLtoiVYg9dXulS
-         RNyyAPaaSvskJe0EbqYqdDBSisaAO50yEMRal27KuakSZcLbvrh1IQhTwnwtXassKQCx
-         d01Apc5S4G+30JvN5Kj9ChoQLcNG1IHyceOKqbHEWAgr/YpP0Ii+YhrbvKREyaZuCGVp
-         Zc1Vao8VdgpSDim5af/xphYzY3nLB1Y87Asyc7pB/owdC4F9nVUbFdUoiKnYfl/dIUfj
-         0Ddw==
-X-Forwarded-Encrypted: i=1; AJvYcCXk46NcZC7DB/vT5W8DqBTo7VWnBaCQezWrxlKj8h7lw44KbXHCrgD6ZXhHaRambGJ53AUZNqQ=@lists.linux.dev
-X-Gm-Message-State: AOJu0YznANY8CErM5zRHoI1UHX0E9w+pn9GBPR3GFlvaPFpglk8JlvUr
-	yv5uNCwJLNlvZRrj+ECEZ5p0QELPHKX9QP4Uj/TzZEaudWKaaY4PTM0WZetuTbRkyiw=
-X-Gm-Gg: AY/fxX6fDc5sAunvs4lyxLsWhcgjB5cqHOjb+/cSj20PCayflA7WDBT9yDs5j0z8azK
-	GzPhQdrKW3cf+c3pQ3aRjeq1f1TQ8W0rWMhLxehb8JO0DjSEjWOsM7zRsAXO1UMKqo9uf+SZNqz
-	khTeBzj4z0PtM9PmeJdk447iszeA4fyOd/YiOZqYCYnISd7T2TQ9gBUvXdblfAwnBPqeNzE3tq2
-	UZqPtKNHiCqk2PfcIwL0n3AcgeP1qgPgpPmWQh8llk7n3iJgIRlv9AjUSQJ53ia1mv+ExDt6QFK
-	3XWgkO+J9mUPp94Ffo27s5Z1VqAuCvTh+oz/uTEl0oCM/GVsR4bw1TSCW4WdZvkhjWXLUILU9yk
-	ifnGwE1bCfeEa52dQgRVU/rFtEwO6B6b3iQTmSlqHLiov4urN0J00u/E4QkEh7uLt6fUTJVCT/v
-	QW+eEv0atnuIl8HHIabolZRijw8vDMl2un8x4mTAeEBlrtv0lq7UIB/Z62+qHjpkpvYHTWpg==
-X-Received: by 2002:a05:620a:458b:b0:8b2:7290:27da with SMTP id af79cd13be357-8c52fafd245mr470291685a.12.1768411989233;
-        Wed, 14 Jan 2026 09:33:09 -0800 (PST)
+        bh=figB8dzHwd2D0XvRaWeBpTz4+U95P61NoReY1arrqU0=;
+        b=Ojx85MbE2ZyN2jjW0FPJ2VbhuPl3AxdTtrmn5Q4Y6DGZjpP4/6uMPb7Qzil7q89ZhB
+         75mgaEthtFCN10ZpahlIsy5IFflnk+loIpEvQEii4+pjPbw3AN9OTpEyQI/q4iTSdn6F
+         BU+tH2R54MpBtaPyx7qIV98lt7zbfY1FqBn7xkUPelXKgvlUCNmHke6BfeOrsZ9zB29M
+         QHRc4Ro64TIwbIU5pyWpzJtnpiNQf1KwAqV61XNISmze2eLk/DoBso3Jx4TgPAogk7ny
+         abx8byYZOCKWHcgZQtDQ5AYj5RNsm6KP8ZfkNouzWU9V6zyZ2V310ee5lTg7U4e3LUh6
+         rnKw==
+X-Forwarded-Encrypted: i=1; AJvYcCWELm4MocucWtxM5xjjdfZKkDbwlxacM1s6OsQpiBcjSZgCrLaVVuSrytuBhFatFzkh9Quf0t0=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy72miDs9z0c81LfVA2L1vQDzN1NKGrEj+baXkJM7/3xpuqp21Z
+	8dZS4Ccv+94XUy2r/UsvdutLHUeM283obzoQ0RE/9rJLfMBaeSf7iWKDk1kDrEcHLjI=
+X-Gm-Gg: AY/fxX71hPEqVWa0o0MIZbiPEkFQRmINUu1VBSJbF/Cz4xA9uewWpdXGhmGIt/PJFGh
+	KZXZ+oW7mPC2oSkLsQpNd+mXisfeBJoGyG3ATYylZBSKcR3ozuJG/2amsQM6ZItXqpl5O29Fniu
+	4EqpXRzrXu9sHICIcP4Rfdn6rkMlCdfREGcapB8Acq1eN5RKXhsQmtoosc2nFaEAeed3bSqbpcq
+	AKr54LQuRJ+98hGOB1ME3vvE1ZNnab/hOta2MN7UAgK9Ca/f9/THAaRTv16wx+SXmA2OTV0uK41
+	qoMwCYJjp7x17dqzZF+4Gl8LVzpJ7WANMptc5E/8g1K2aNgAD3A0i96cFp18kLL0SnnQIdhozif
+	+ohEG/oAlhkrC7ohxh6PF2UEjjjsfrH2W4De+c/uWm7YPrAK//896F0BlqR7VMG9w5NdX89Zp+u
+	X9UtV+XjmHhDnvcVh1Af3RNvsU2lq98yACB2CtSpcUEA2SzCpz4ebVfReS9nek6uBBoXWa4Q==
+X-Received: by 2002:a05:620a:4502:b0:8b9:7a1a:8c73 with SMTP id af79cd13be357-8c52fb90a04mr537400485a.46.1768412195222;
+        Wed, 14 Jan 2026 09:36:35 -0800 (PST)
 Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c530b6e7d4sm198764985a.28.2026.01.14.09.33.08
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c530a6bdbdsm200764785a.10.2026.01.14.09.36.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Jan 2026 09:33:08 -0800 (PST)
-Date: Wed, 14 Jan 2026 12:32:36 -0500
+        Wed, 14 Jan 2026 09:36:34 -0800 (PST)
+Date: Wed, 14 Jan 2026 12:36:02 -0500
 From: Gregory Price <gourry@gourry.net>
 To: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
@@ -65,13 +65,14 @@ Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	kernel-team@meta.com, dan.j.williams@intel.com,
 	vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com,
 	jasowang@redhat.com, xuanzhuo@linux.alibaba.com,
-	eperezma@redhat.com, osalvador@suse.de, akpm@linux-foundation.org
-Subject: Re: [PATCH 7/8] dax/kmem: add sysfs interface for runtime hotplug
- state control
-Message-ID: <aWfTNGMqn7S3b9z9@gourry-fedora-PF4VCD3F>
+	eperezma@redhat.com, osalvador@suse.de, akpm@linux-foundation.org,
+	Hannes Reinecke <hare@suse.de>
+Subject: Re: [PATCH 8/8] dax/kmem: add memory notifier to block external
+ state changes
+Message-ID: <aWfUAiag6khaLJpq@gourry-fedora-PF4VCD3F>
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-8-gourry@gourry.net>
- <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
+ <20260114085201.3222597-9-gourry@gourry.net>
+ <d1938a63-839b-44a5-a68f-34ad290fef21@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,70 +81,54 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
+In-Reply-To: <d1938a63-839b-44a5-a68f-34ad290fef21@kernel.org>
 
-On Wed, Jan 14, 2026 at 11:55:21AM +0100, David Hildenbrand (Red Hat) wrote:
-> On 1/14/26 09:51, Gregory Price wrote:
-> > The dax kmem driver currently onlines memory automatically during
-> > probe using the system's default online policy but provides no way
-> > to control or query the memory state at runtime. Users cannot change
-> > the online type after probe, and there's no atomic way to offline and
-> > remove memory blocks together.
+On Wed, Jan 14, 2026 at 10:44:08AM +0100, David Hildenbrand (Red Hat) wrote:
+> On 1/14/26 09:52, Gregory Price wrote:
+> > Add a memory notifier to prevent external operations from changing the
+> > online/offline state of memory blocks managed by dax_kmem. This ensures
+> > state changes only occur through the driver's hotplug sysfs interface,
+> > providing consistent state tracking and preventing races with auto-online
+> > policies or direct memory block sysfs manipulation.
 > > 
-> > Add a new 'hotplug' sysfs attribute that allows userspace to control
-> > and query the memory state. The interface supports the following states:
+> > The notifier uses a transition protocol with memory barriers:
+> >    - Before initiating a state change, set target_state then in_transition
+> >    - Use a barrier to ensure target_state is visible before in_transition
+> >    - The notifier checks in_transition, then uses barrier before reading
+> >      target_state to ensure proper ordering on weakly-ordered architectures
 > > 
-> >    - "offline": memory is added but not online
-> >    - "online": memory is online as normal system RAM
-> >    - "online_movable": memory is online in ZONE_MOVABLE
-> >    - "unplug": memory is offlined and removed
+> > The notifier callback:
+> >    - Returns NOTIFY_DONE for non-overlapping memory (not our concern)
+> >    - Returns NOTIFY_BAD if in_transition is false (block external ops)
+> >    - Validates the memory event matches target_state (MEM_GOING_ONLINE
+> >      for online operations, MEM_GOING_OFFLINE for offline/unplug)
+> >    - Returns NOTIFY_OK only for driver-initiated operations with matching
+> >      target_state
 > > 
-> > The initial state after probe uses MMOP_SYSTEM_DEFAULT to preserve
-> > backwards compatibility - existing systems with auto-online policies
-> > will continue to work as before.
-> > 
-> > The state machine enforces valid transitions:
-> >    - From offline: can transition to online, online_movable, or unplug
-> >    - From online/online_movable: can transition to offline or unplug
-> >    - Cannot switch directly between online and online_movable
+> > This prevents scenarios where:
+> >    - Auto-online policies re-online memory the driver is trying to offline
 > 
-> Do we have to support these transitions right from the start?
-> 
-> What are the use cases for adding memory as offline and then onlining it,
-> and why do we have to support that through this interface?
->
-
-the default build config does this, so anyone using the SYSTEM_DEFAULT
-will have to at least support this unless we want to change peoples
-existing systems.  They'll expect to use the existing pattern.
-
-That is:
-
-add_memory_driver_managed(, SYSTEM_DEFAULT) -> offline
-echo online[_*] -> memory*/state
-
-If we disallow "offline", then we essentially leave it "unplugged" and
-the second line (existing user policy) breaks.
-
-I thought this would be considered "breaking userland".
-
-I could see disallow "offline" if the memory is "online", and just force
-"unplug".
-
-> It would be a lot simpler if we would only allow
-> 
-> >    - "offline": memory is added but not online
-> >    - "online": memory is online as normal system RAM
-> >    - "online_movable": memory is online in ZONE_MOVABLE
-> >    - "unplug": memory is offlined and removed
-> 
-> That is, transitioning from offline to online or vice versa fails with
-> -ENOSUPP. User space can do that itself through sysfs and if there is ever a
-> good use case we can extend this interface here to allow it.
-> 
-> Or is there a good use case that really requires this?
+> Is this still a problem when using offline_and_remove_memory() ?
 > 
 
-There's no good use case, just existing users and expected behavior.
+I just remembered another reason I did this:  
+
+echo offline > memoryN/state
+
+This leaves the dax/hotplug state in an inconsistent state.
+
+if you do the above for every block in a dax region, `daxN.M/hotplug`
+still shows up as online.
+
+This just hard-locks the state to consistent (unless an online/offline
+fails along with its rollback).
+
+The additional complexity seemed warranted for that, but if you're happy
+to leave users to their footguns I'm not going to argue it.
+
+---
+
+I just realized this breaks the current ndctl pattern and would force
+ndctl to convert to `hotplug` since memory block onlining will fail.
 
 ~Gregory
