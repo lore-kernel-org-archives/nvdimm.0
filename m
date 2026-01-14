@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31BD3355058;
-	Wed, 14 Jan 2026 09:46:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FEED3815DB;
+	Wed, 14 Jan 2026 10:14:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768383969; cv=none; b=ZZQmjPTrh2Dk+155VFxdURb/DmSjdR+Kc7feddao9OGAPFo0vi2AvAx8xMrHEoKQjeobBciGE5WLkpz7vRAtguU71nE+ZzZXS+QQAMctVTdmZu41Y4tMFcwO4HCkA+60Qf4jxvOmd8ODMfH8P2SCVGOajK3b516B9/UxB6z05zo=
+	t=1768385667; cv=none; b=SkLr9UnyRcBric+I3alYyFoPLlr8oQV+9KRwOlf2/vsGMZtlqjdshmR+C5/zUGCpoAyNR2XgTJXRlRA3ZlXFH1aYviSKj6kCwNsOifauj6EmdyMqrGPGm9MoiWT87MqzfwRj1EQ6JOMD2ebx8OE0WNazDBXzRUZhy2IwiGzz9ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768383969; c=relaxed/simple;
-	bh=18qz/N7rP2+o1CwTclwkrkeekmMdR6OglwjJ1t5rog8=;
+	s=arc-20240116; t=1768385667; c=relaxed/simple;
+	bh=jRidKOsmBV2qAukpkzJ1Z7JnB+sebWyAj38kbIeO6OY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=QNzl2KW9ZoIYSCYWyFGlRcCaszqZAs0C3CNqk7d34u89zRBkwwHL2qLZ0+VoTTfJ8Quh+ttDlCN/RktzInz3iQwBr+Hj0ekyisFC1WTd/AgIwU2tEuhKmQXmg4B++Rcslo4QBX5QCoNlwaFFYgVDsT3mlOD6X1DolB8/c2QL9wg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Emln45Zb; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=THUS+YGBAcafTLbHvxfiP6EQ0Ajle+ibyqSjKbeioaWx6Ahw7xodJzoPK5aS+SanTGfVRartMv9NErbzbCgc6iLb67VpcYqnwPfaJZVBWSUVyo4EgwyZ3pBaBv32jj2FUhM7v3SbqhYYVbeoIoa35F1wKm8dVn6AqLSaBVZWVA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RZ4zbdQd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Emln45Zb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06ECDC4CEF7;
-	Wed, 14 Jan 2026 09:46:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RZ4zbdQd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55ABFC4CEF7;
+	Wed, 14 Jan 2026 10:14:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768383968;
-	bh=18qz/N7rP2+o1CwTclwkrkeekmMdR6OglwjJ1t5rog8=;
+	s=k20201202; t=1768385666;
+	bh=jRidKOsmBV2qAukpkzJ1Z7JnB+sebWyAj38kbIeO6OY=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=Emln45ZbWCM7QQvnvlsfZ43WqX5pz05VeteZ/MTBRtyNPqZb+hLN+LffuwucTSzby
-	 ujMVmDLTG1sZOX4xFO54vrWhTnyhCFm8Dy42nhBLFEzbWLm5Aa2FqVc6HIC2+dJ+5B
-	 yJJhWBS3nPXXYDIOYv7k0lTEoj398Sr4KNjZazgMUFGx5H7HHx0hXMNzIOEX1U/PEM
-	 hy0VzPmD7+5XSE45HtWcpuzru0jmLKC1I6rViFSw5cPamii+2+5m+CFoPkcuAc4StC
-	 pVAL2HP0AYlACXFzMfMDWckJMmqJbzEaunEVMpLgcx0mSbG49zXsoXmaGd2JyJ0kYn
-	 5UYO7bmk/XXkA==
-Message-ID: <a69de6b6-bec4-40ff-8b17-f24f7155dd57@kernel.org>
-Date: Wed, 14 Jan 2026 10:46:02 +0100
+	b=RZ4zbdQd5Y9j899jDtFhUSkFbbgJE06nr6NyLRWaAR2A79x1gC88cDHXW2q4S3wPq
+	 MS34HZSb4I/tbInqH7V+S6NjODGXeRVgPEhLVfR/YU5K5g50qUA+kG1+OQXvw348lC
+	 z+ZOTbDLTh/xSYMHwc7XOOgdBChFu/CgB9wzgvAg/PkbeMHdDArjRX6R3DhH7bb4rz
+	 6MO54LTUuVqxATcfedHnBndnq+n6hRQ89WDH5rZy3wGQE0Xo25KvItgAjftg9V6Ajy
+	 k+oc3ucRRa/qieJJdt03HMDmM1Ro8yvGQTOV7RBnzHyL0XowmUthP4d6iSRwxotf7f
+	 XeFj+QU1pNCRA==
+Message-ID: <c4ed9675-269c-4764-86d5-87f4f83fc74d@kernel.org>
+Date: Wed, 14 Jan 2026 11:14:21 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/8] mm/memory_hotplug: pass online_type to
- online_memory_block() via arg
+Subject: Re: [PATCH 2/8] mm/memory_hotplug: extract __add_memory_resource()
+ and __offline_memory()
 To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
@@ -45,7 +45,7 @@ Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
  akpm@linux-foundation.org
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-2-gourry@gourry.net>
+ <20260114085201.3222597-3-gourry@gourry.net>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -91,54 +91,66 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <20260114085201.3222597-2-gourry@gourry.net>
+In-Reply-To: <20260114085201.3222597-3-gourry@gourry.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 1/14/26 09:51, Gregory Price wrote:
-> Modify online_memory_block() to accept the online type through its arg
-> parameter rather than calling mhp_get_default_online_type() internally.
-> This prepares for allowing callers to specify explicit online types.
+> Extract internal helper functions with explicit parameters to prepare
+> for adding new APIs that allow explicit online type control:
 > 
-> Update the caller in add_memory_resource() to pass the default online
-> type via a local variable. No functional change.
+>    - __add_memory_resource(): accepts an explicit online_type parameter.
+>      Add MMOP_SYSTEM_DEFAULT as a new value that instructs the function
+>      to use mhp_get_default_online_type() for the actual online type.
+>      The existing add_memory_resource() becomes a thin wrapper that
+>      passes MMOP_SYSTEM_DEFAULT to preserve existing behavior.
+> 
+>    - __offline_memory(): extracted from offline_and_remove_memory() to
+>      handle the offline operation with rollback support. The caller
+>      now handles locking and the remove step separately.
+
+
+I don't understand why this change is even part of this patch, can you 
+elaborate? You don't add any "explicit parameters to prepare for adding 
+new APIs that allow explicit online type control" there.
+
+So likely you squeezed two independent things into a single patch? :)
+
+Likely you should pair the __add_memory_resource() change with the 
+add_memory_driver_managed() changed and vice versa.
+
+> 
+> This refactoring enables future callers to specify explicit online
+> types (MMOP_OFFLINE, MMOP_ONLINE, MMOP_ONLINE_MOVABLE) or use
+> MMOP_SYSTEM_DEFAULT for the system default policy. The offline logic
+> can also be used independently of the remove step.
+> 
+> Mild functional change: if try_remove_memory() failed after successfully
+> offlining, we would re-online the memory.  We no longer do this, and in
+> practice removal doesn't fail if offline succeeds.
 > 
 > Signed-off-by: Gregory Price <gourry@gourry.net>
 > ---
->   mm/memory_hotplug.c | 12 +++++++++---
->   1 file changed, 9 insertions(+), 3 deletions(-)
+>   include/linux/memory_hotplug.h |  2 +
+>   mm/memory_hotplug.c            | 69 ++++++++++++++++++++++------------
+>   2 files changed, 48 insertions(+), 23 deletions(-)
 > 
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 389989a28abe..5718556121f0 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1337,7 +1337,9 @@ static int check_hotplug_memory_range(u64 start, u64 size)
->   
->   static int online_memory_block(struct memory_block *mem, void *arg)
->   {
-> -	mem->online_type = mhp_get_default_online_type();
-> +	int *online_type = arg;
-> +
-> +	mem->online_type = *online_type;
->   	return device_online(&mem->dev);
->   }
->   
-> @@ -1578,8 +1580,12 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->   		merge_system_ram_resource(res);
->   
->   	/* online pages if requested */
-> -	if (mhp_get_default_online_type() != MMOP_OFFLINE)
-> -		walk_memory_blocks(start, size, NULL, online_memory_block);
-> +	if (mhp_get_default_online_type() != MMOP_OFFLINE) {
-> +		int online_type = mhp_get_default_online_type();
-> +
-> +		walk_memory_blocks(start, size, &online_type,
-> +				   online_memory_block);
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index f2f16cdd73ee..d5407264d72a 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -29,6 +29,8 @@ enum {
+>   	MMOP_ONLINE_KERNEL,
+>   	/* Online the memory to ZONE_MOVABLE. */
+>   	MMOP_ONLINE_MOVABLE,
+> +	/* Use system default online type from mhp_get_default_online_type(). */
+> +	MMOP_SYSTEM_DEFAULT,
 
-I think you could just pass the value by casting to uintptr_t and back. 
-Doesn't make a big difference here, though.
+I don't like having fake options as part of this interface.
 
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Why can't we let selected users use mhp_get_default_online_type() 
+instead? Like add_memory_resource(). We can export that function.
+
 
 -- 
 Cheers
