@@ -1,33 +1,50 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F48739525E;
-	Wed, 14 Jan 2026 10:55:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 863B827A916
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 17:00:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768388127; cv=none; b=VftiQ9YPL6LKF7suIIy+J1xOhA5JvI/PUyD1vdessk5AkxbyMOlApmNv3Y+XaSJXCcp/bx431nBrk2h1QOk6hSO0rx3mHGvsLZIy2AEHZSSBcJlPj7nELxTnSTw6j2pY2RhAoRpOF51wSGxqBL15yxY3z9dO1fChQ3B7uAqMVvo=
+	t=1768410022; cv=none; b=sVHaF7hnCvlbZZXfRO0G+FMmECDJtKaOPLxRZ7epMBI3YBIYmRhW0CzpRTLBwr114T5vk265rKXkpNmnnoc0uqnBVjW4HWbmVWFZkt5+ql1Jt7YRZLe8mRCKsyE8QKXQJT6DDbW4qFCthffmAbs7z4Mnc885635CfEgwCDjhQ6c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768388127; c=relaxed/simple;
-	bh=hIuzYS6a+N3lbpi7hIrLjsDBa5QpNFERvUevfsOEfh4=;
+	s=arc-20240116; t=1768410022; c=relaxed/simple;
+	bh=vTR2WjDJvhe+7h1j1hjb/aW0zWgYQj2nYJiAwGoxxJQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=pr/44fsGD/WcDJM0xVFKaDRmcinsZD+xGjAE7Odyi6pxPlJef/RculwCNY2BY+al1XyN8WZ9tLXQuu4ps6i3avq/dHtUON4zQmlIehPata9bpGjE523DndpvaTz7E+Y6p2GULIo//F4SW7hB89v8yoY5ukfu1UDSJV4lArd6Ecw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UFqFErqz; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=Z4MJtFBqmyYt9JyHniKdrQmCoNm9rnluyN+tX1T0WzJFU9YCTCqlbrK149lr6ffLvhPCdBPzUGjiGrXZL3tCPPyNmxNDLONIyduR09M70CD0kPfuD5iUyPsIGbyc0Xg3vpKKhuY5UjeLOfNz829Y8nyOzoU41XhmHaaY2AbU+9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=X4M4L6VQ; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UFqFErqz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9F41C4CEF7;
-	Wed, 14 Jan 2026 10:55:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768388127;
-	bh=hIuzYS6a+N3lbpi7hIrLjsDBa5QpNFERvUevfsOEfh4=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=UFqFErqzPJ9xHsMZc9dlgwx8hnhxKPXXPYUA7gEGkj+uw1ZDtSkdXfwehvBaAUol6
-	 /waiG99gkQrkadIv8oSCIckIZblqs4CzJfSq1HCXsQYuoX/lPqgirgy1JXbyvF2jMp
-	 yls+m+cGqpmVjJ1+5oLRmxDTJx4caD6F6XcJxGkgXJZqBk4sKs0U/zCZW+nlvJD3dc
-	 2TmzI4xtK2riCIBJCO7FIdzuy5ipOvxHnUH3EiP66tjgWs7KYS2vxMt0pNJ2EbXS5q
-	 CC2/9ogYjJtlFKGXCK6PAXDRVwgYd8IjzO3GXNqhfcRjF0tZ/1NnTW+EtjPa22nxTZ
-	 Z0gLImtzc6lZA==
-Message-ID: <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
-Date: Wed, 14 Jan 2026 11:55:21 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="X4M4L6VQ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1768410020; x=1799946020;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=vTR2WjDJvhe+7h1j1hjb/aW0zWgYQj2nYJiAwGoxxJQ=;
+  b=X4M4L6VQ7e8FmPHZtqZxJX1NzkDGaP2HHJutpMzdRhTHR+j5iRpHH8o/
+   h9FOJlu2i2sQt0HU7xBmzzlrNd0dL6aoXeaFxniO/R2bcaEcpHJHoJWn9
+   xolsB/OcI6fYQ5pcAAh3WKegiyrlx/pXsdeVSmxSwQeuBUdgpqm4A7wWF
+   OJ9CJD0OOPJTG59X70LOO7zphuZrwIDSlFzgnmEmj9pJqGWP5CQdZJOve
+   UkEUoRtEQ66bcSj9NCwDRWtsvdmM+eqfZSsE5mkeYq+A7052qUDUloemk
+   r4HOgF8bT5eJWNitOa31EGpQ2dcsMwK6T2TCioYUuGziZ5iB7YEV39WY1
+   Q==;
+X-CSE-ConnectionGUID: 5qNxo92UTQWdWZ80CsuSgg==
+X-CSE-MsgGUID: yFGJ819ORkaNtlGZfTrZGQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11671"; a="73565605"
+X-IronPort-AV: E=Sophos;i="6.21,225,1763452800"; 
+   d="scan'208";a="73565605"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 09:00:20 -0800
+X-CSE-ConnectionGUID: PgOX7idHTDWwc7ZojVrV9g==
+X-CSE-MsgGUID: VgOf81JcSxW9vnd9u7YQew==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,225,1763452800"; 
+   d="scan'208";a="205000287"
+Received: from dwoodwor-mobl2.amr.corp.intel.com (HELO [10.125.111.5]) ([10.125.111.5])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 09:00:19 -0800
+Message-ID: <c47b0eda-b3fe-442d-be11-f9fa02400915@intel.com>
+Date: Wed, 14 Jan 2026 10:00:18 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,109 +52,195 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 7/8] dax/kmem: add sysfs interface for runtime hotplug
- state control
-To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
- kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
- dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com,
- xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
- akpm@linux-foundation.org
-References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-8-gourry@gourry.net>
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: Re: [PATCH V5 15/17] cxl/pmem_region: Add sysfs attribute cxl region
+ label updation/deletion
+To: Neeraj Kumar <s.neeraj@samsung.com>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, gost.dev@samsung.com
+Cc: a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com
+References: <20260109124437.4025893-1-s.neeraj@samsung.com>
+ <CGME20260109124531epcas5p118e7306860bcd57a0106948375df5c9c@epcas5p1.samsung.com>
+ <20260109124437.4025893-16-s.neeraj@samsung.com>
 Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
-In-Reply-To: <20260114085201.3222597-8-gourry@gourry.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260109124437.4025893-16-s.neeraj@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 1/14/26 09:51, Gregory Price wrote:
-> The dax kmem driver currently onlines memory automatically during
-> probe using the system's default online policy but provides no way
-> to control or query the memory state at runtime. Users cannot change
-> the online type after probe, and there's no atomic way to offline and
-> remove memory blocks together.
+
+
+On 1/9/26 5:44 AM, Neeraj Kumar wrote:
+> Using these attributes region label is added/deleted into LSA. These
+> attributes are called from userspace (ndctl) after region creation.
 > 
-> Add a new 'hotplug' sysfs attribute that allows userspace to control
-> and query the memory state. The interface supports the following states:
+> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+You'll need to update the KernelVersion to v7.0.
+
+> ---
+>  Documentation/ABI/testing/sysfs-bus-cxl | 22 +++++++
+>  drivers/cxl/core/pmem_region.c          | 88 +++++++++++++++++++++++++
+>  drivers/cxl/cxl.h                       |  7 ++
+>  3 files changed, 117 insertions(+)
 > 
->    - "offline": memory is added but not online
->    - "online": memory is online as normal system RAM
->    - "online_movable": memory is online in ZONE_MOVABLE
->    - "unplug": memory is offlined and removed
-> 
-> The initial state after probe uses MMOP_SYSTEM_DEFAULT to preserve
-> backwards compatibility - existing systems with auto-online policies
-> will continue to work as before.
-> 
-> The state machine enforces valid transitions:
->    - From offline: can transition to online, online_movable, or unplug
->    - From online/online_movable: can transition to offline or unplug
->    - Cannot switch directly between online and online_movable
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> index c80a1b5a03db..011a5e8d354f 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -624,3 +624,25 @@ Description:
+>  		The count is persistent across power loss and wraps back to 0
+>  		upon overflow. If this file is not present, the device does not
+>  		have the necessary support for dirty tracking.
+> +
+> +
+> +What:		/sys/bus/cxl/devices/regionZ/pmem_regionZ/region_label_update
+> +Date:		Jan, 2026
+> +KernelVersion:	v6.19
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RW) Write a boolean 'true' string value to this attribute to
+> +		update cxl region information into LSA as region label. It is
+> +		used to update cxl region information saved during cxl region
+> +		creation into LSA. This attribute must be written last during
+> +		cxl region creation. Reading this attribute indicates whether
+> +		the region label is active or not.
+> +
+> +
+> +What:		/sys/bus/cxl/devices/regionZ/pmem_regionZ/region_label_delete
+> +Date:		Jan, 2026
+> +KernelVersion:	v6.19
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(WO) When a boolean 'true' is written to this attribute then
+> +		pmem_region driver deletes cxl region label from LSA.
+> diff --git a/drivers/cxl/core/pmem_region.c b/drivers/cxl/core/pmem_region.c
+> index dcaab59108fd..53d3d81e9676 100644
+> --- a/drivers/cxl/core/pmem_region.c
+> +++ b/drivers/cxl/core/pmem_region.c
+> @@ -29,8 +29,96 @@ static void cxl_pmem_region_release(struct device *dev)
+>  	kfree(cxlr_pmem);
+>  }
+>  
+> +static ssize_t region_label_update_store(struct device *dev,
+> +					 struct device_attribute *attr,
+> +					 const char *buf, size_t len)
+> +{
+> +	struct cxl_pmem_region *cxlr_pmem = to_cxl_pmem_region(dev);
+> +	struct cxl_region *cxlr = cxlr_pmem->cxlr;
+> +	ssize_t rc;
+> +	bool update;
+> +
+> +	rc = kstrtobool(buf, &update);
+> +	if (rc)
+> +		return rc;
+> +
+> +	ACQUIRE(rwsem_write_kill, rwsem)(&cxl_rwsem.region);
+> +	if ((rc = ACQUIRE_ERR(rwsem_write_kill, &rwsem)))
+> +		return rc;
+> +
+> +	/* Region not yet committed */
+> +	if (update && cxlr && cxlr->params.state != CXL_CONFIG_COMMIT) {
+> +		dev_dbg(dev, "region not committed, can't update into LSA\n");
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (!cxlr || !cxlr->cxlr_pmem || !cxlr->cxlr_pmem->nd_region)
+> +		return 0;
+> +
+> +	rc = nd_region_label_update(cxlr->cxlr_pmem->nd_region);
+> +	if (rc)
+> +		return rc;
+> +
+> +	cxlr->params.state_region_label = CXL_REGION_LABEL_ACTIVE;
+> +
+> +	return len;
+> +}
+> +
+> +static ssize_t region_label_update_show(struct device *dev,
+> +					struct device_attribute *attr,
+> +					char *buf)
+> +{
+> +	struct cxl_pmem_region *cxlr_pmem = to_cxl_pmem_region(dev);
+> +	struct cxl_region *cxlr = cxlr_pmem->cxlr;
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	ssize_t rc;
+> +
+> +	ACQUIRE(rwsem_read_intr, rwsem)(&cxl_rwsem.region);
+> +	if ((rc = ACQUIRE_ERR(rwsem_read_intr, &rwsem)))
+> +		return rc;
+> +
+> +	return sysfs_emit(buf, "%d\n", p->state_region_label);
+> +}
+> +static DEVICE_ATTR_RW(region_label_update);
+> +
+> +static ssize_t region_label_delete_store(struct device *dev,
+> +					 struct device_attribute *attr,
+> +					 const char *buf, size_t len)
+> +{
+> +	struct cxl_pmem_region *cxlr_pmem = to_cxl_pmem_region(dev);
+> +	struct cxl_region *cxlr = cxlr_pmem->cxlr;
+> +	ssize_t rc;
+> +
+> +	ACQUIRE(rwsem_write_kill, rwsem)(&cxl_rwsem.region);
+> +	if ((rc = ACQUIRE_ERR(rwsem_write_kill, &rwsem)))
+> +		return rc;
+> +
+> +	if (!cxlr && !cxlr->cxlr_pmem && !cxlr->cxlr_pmem->nd_region)
+> +		return 0;
+> +
+> +	rc = nd_region_label_delete(cxlr->cxlr_pmem->nd_region);
+> +	if (rc)
+> +		return rc;
+> +
+> +	cxlr->params.state_region_label = CXL_REGION_LABEL_INACTIVE;
+> +
+> +	return len;
+> +}
+> +static DEVICE_ATTR_WO(region_label_delete);
+> +
+> +static struct attribute *cxl_pmem_region_attrs[] = {
+> +	&dev_attr_region_label_update.attr,
+> +	&dev_attr_region_label_delete.attr,
+> +	NULL
+> +};
+> +
+> +static struct attribute_group cxl_pmem_region_group = {
+> +	.attrs = cxl_pmem_region_attrs,
+> +};
+> +
+>  static const struct attribute_group *cxl_pmem_region_attribute_groups[] = {
+>  	&cxl_base_attribute_group,
+> +	&cxl_pmem_region_group,
+>  	NULL
+>  };
+>  
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 6ac3b40cb5ff..8c76c4a981bf 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -473,9 +473,15 @@ enum cxl_config_state {
+>  	CXL_CONFIG_COMMIT,
+>  };
+>  
+> +enum region_label_state {
+> +	CXL_REGION_LABEL_INACTIVE,
+> +	CXL_REGION_LABEL_ACTIVE,
+> +};
+> +
+>  /**
+>   * struct cxl_region_params - region settings
+>   * @state: allow the driver to lockdown further parameter changes
+> + * @state: region label state
+>   * @uuid: unique id for persistent regions
+>   * @interleave_ways: number of endpoints in the region
+>   * @interleave_granularity: capacity each endpoint contributes to a stripe
+> @@ -488,6 +494,7 @@ enum cxl_config_state {
+>   */
+>  struct cxl_region_params {
+>  	enum cxl_config_state state;
+> +	enum region_label_state state_region_label;
+>  	uuid_t uuid;
+>  	int interleave_ways;
+>  	int interleave_granularity;
 
-Do we have to support these transitions right from the start?
-
-What are the use cases for adding memory as offline and then onlining 
-it, and why do we have to support that through this interface?
-
-It would be a lot simpler if we would only allow
-
- >    - "offline": memory is added but not online
- >    - "online": memory is online as normal system RAM
- >    - "online_movable": memory is online in ZONE_MOVABLE
- >    - "unplug": memory is offlined and removed
-
-That is, transitioning from offline to online or vice versa fails with 
--ENOSUPP. User space can do that itself through sysfs and if there is 
-ever a good use case we can extend this interface here to allow it.
-
-Or is there a good use case that really requires this?
-
--- 
-Cheers
-
-David
