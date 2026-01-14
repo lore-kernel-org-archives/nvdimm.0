@@ -1,64 +1,64 @@
-Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
+Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F1273803FC
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 08:52:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB3E425A640
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 08:52:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768380771; cv=none; b=bZ4LIHWg71ii2EVgVHS+Jat86UkPd+oOKg+rP9TfEqz3LBWC/9OigMhQb8QhSlnw8ZQ1GF3lHRnohc/Zu/eYZCSxuXueKNLlsEmcnAsA7DdlKx5iWwqEuQd1jqcytP2ZyiVap7ng+ooT93AIbVsZOs9Avjl09e2csddEFfzVFPs=
+	t=1768380770; cv=none; b=ZluZdEOnRmDOwQM398GzTfWxLbW9a3lcit+4Xn2yT61fo1q1lyarfuTxHJTDDgVNWuSxhErPy2p7hD6O9rXbFmvDt4NPDQdo2knWRM0MEOnN7VmPqHcEydO2Z5rjp73/Uc+hcLHqts/8RG9MYKcU10o5cQCkM+iz7W13qxKXY6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768380771; c=relaxed/simple;
-	bh=WuxU623lbbMTdGzzm+5bCzIY7yeXdH6a4+PbwDkCxIQ=;
+	s=arc-20240116; t=1768380770; c=relaxed/simple;
+	bh=O3e7cGKk0H8FcpihdwgdFuRgPI92sucbbxtSDb5wt50=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MjmBgCgsATm6cwmx2P7WGJgk31GD9/6GLSN1Hd8Q7FpgxyYy+FvyWIxiD8k4qt5U4+gjxoHxgPhNs6SoYloJfaoCbN5XUUn6oGmMPEXMB6IwRsJlibWtieDoAceMq3sFAGSqRA7hGKp43hL1h5sY9DXmIQgdgbC1h9st9MP5bnE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=OoCXDXdd; arc=none smtp.client-ip=209.85.160.180
+	 MIME-Version; b=TEH6KFOeUuLbXY1xCc7N1ALwBkZO/I+TxY6rW6qyHI9iqRaYQSZNLOoaTrBPGvdudZrm5MyFaCed9RqTXrlIIqYB/DRYKNRp+31ZkLmHStsLEwStygbSnQ15ago//DrPXred9zyvIgkqAskBVQYvHat/BwEkZ03NL3vHrL0Hb1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=bjDkkXVt; arc=none smtp.client-ip=209.85.160.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="OoCXDXdd"
-Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-4ee158187aaso91211801cf.0
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 00:52:44 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="bjDkkXVt"
+Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-4f822b2df7aso114291601cf.2
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 00:52:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1768380761; x=1768985561; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1768380758; x=1768985558; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=AHib3jWzP7kVcnP0SE1eJQabXI1WWwo6ABSGI/iwYvU=;
-        b=OoCXDXddnOY+AncYAVGNCyTqgbOq1RMKt9HEgKaII5Z6c2JSOmWr7cfcFt0gXUZVxb
-         SkYckvZ1yzOI/NHY8WVghcAxrnMVdJxXae1SyvkZ3+usDJTTqNrtK28D1aIvqOyp5QIM
-         u4lkKd4eDHqADWn0mqay5vc2xtWnxQsTulWsAMn4Zp2CB7ktGFmDAHcPG0EQfHfDlFOi
-         MVcbb5m9HSORP5rHa4u7wgeagMNDHzgbEMSONqGZpZZTvNi5J5p5FCaaEslyfYLTxWA4
-         RwlhzR2nOSEo0R56VN7rqeSFV6sbHuCc63aqolJ5Gz1EMvaBpCHHw8L26oNczBd616Xb
-         MsgA==
+        bh=lttic/N6u5GXxgBUHet1PhNEmYleRIF6n16Y0kYNwPY=;
+        b=bjDkkXVtf/xHsLawC0z5bsWxoJuk8uc6e5rJVlDj1EsdMz3zBbKgWcc1dizQJ2YqRz
+         LgcLAcJc2sKdvnT0USRW9F1/i3NovgyJ4U2XTJniHRvfkdPiSMGUm1H3HMMoMtLoozi0
+         0T1h4l+pU6qdz3z+dnjRv2pva1gWx983sE5inYC2R/DsuP2w7tzh6g5DOKG2rPiAjxvE
+         8c85L5tFpGY/2Vsj9XoUVKJWlKjjTNXyFxFwCnIouL4m6hxZLCy8FeZtx+zWXUxO4zrM
+         48UhzWkVEr5QgsW9awKhG9RXNRk9BKfK54KEHPAADkDxzvZJov2WWWkCL1uOuOYBHfhy
+         m11g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768380761; x=1768985561;
+        d=1e100.net; s=20230601; t=1768380758; x=1768985558;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=AHib3jWzP7kVcnP0SE1eJQabXI1WWwo6ABSGI/iwYvU=;
-        b=DF0xGqAD3MkFKMfsefL5WO4ZaITK+nVjDBJeOmazj6DPyuy9aKP4Mk2xBlsjtcry9E
-         itSsNBoXFSwXWdAcYE5Y2KIILR0ahvi+eJhay2ikv1fczasFW55MELtpamN/spbBSYTm
-         kYY01NiOPmU/p2qY39HrkIu73xjwrZ2x6Qkk5Nm6F+6XSPPovJ9HYwoaW1Wm7d2whB3H
-         ocY0+HvSzRDTBSD1Qo0yajejohO/VmpMHPx1NGh6Kc3Kra6yChf546dT254V3kQzyXOq
-         a3JJ+pQZWYnlOeOV9byq07ajr3pswdl9eaHZxbiqNYTf+lKLOfF1gfNkuxhbRNqVWE5x
-         BkDw==
-X-Forwarded-Encrypted: i=1; AJvYcCUgT9n0oSoIUYkh2lsQ47DYfmvMvE4YPYm9eZczZUttCa7eFU/1gRr2VlLNGPQTf7ONqRIRG7w=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzeN4zcG//vvSSEvpJc6ZSTI2l1R1/WFdViVGLkxIEH5oSgbZUU
-	61Oh7ibLXpTuKhdf+HYsmXJA4GNNw86Uzb/9yZXj0MMnMfn5GNMfgBEh8gJm4cN6B8w=
-X-Gm-Gg: AY/fxX6v9An6cewVqD/SZLxx4OabAJnQX/SxaCDuPj2+VslWuL8sRxRFBjS1QAgm8rL
-	BKmx90B/Bj0d+B63231YXoB8ArthRRRNPRIf1zwHVdAU5DvYi96c1PbiUX1KjsNI9x9cNVVS34f
-	4WVj+WdMIdw2BFF8njbFc+sOC1D33kRVen/y8Px+4QB/933btpVcSOlbLYvmHFBP0cXZOAAc+PO
-	aj4OwlPiuVznZIWkwVWhKErEBChHqSsEHQsWlLxFGkQEik77BA1KOMMDkJ171zCh2nN7kMjAFF+
-	2l+t9li2XFNCH2PSL8F8Dl5jxsHb53lDsaJzCzZb4iPdSwdWELxPaerucz0jr0heoeKqrW7bZXu
-	QMFdZhTjssubJfZ1ASLAOszpRDp9+RYaXQloNuDgQB2Yf0Uo0AbByiBoDkIlSR9ikFyNOjn1go/
-	cwkWPaG4VraEe1oryE25/XmUUoZcHyN6coPH6GN3s06FUB3oNSUQyosOHUk7PxDPJ8rkRK/PSJl
-	/w=
-X-Received: by 2002:ac8:7f0a:0:b0:4ee:228d:d6b8 with SMTP id d75a77b69052e-50148482933mr21948301cf.70.1768380761194;
-        Wed, 14 Jan 2026 00:52:41 -0800 (PST)
+        bh=lttic/N6u5GXxgBUHet1PhNEmYleRIF6n16Y0kYNwPY=;
+        b=IDmxcPY6vIgp6cz9xnoE+s4alhE8zaxnDbdFj1Y6sMJRwXPXlFHTkeBIMtff8BYCVn
+         lfHLtwA/lyMvG0NxnfR7r0tZDznv0qT3dhzsTD3LwVGCa/JZFEDDcEReJiIf7DXqo3Ey
+         SwDsAYLVfR98/HUb529FqM4fl3eq8/158t+9UNrLNuFZtYngcJyVlV7N3SN1S8R7rHnw
+         Z6xvvOSYn9wQd5pxJsYeFnFpedOZ9rxuY/FEVluS/GznrmVNnOD1uh7GihmNgQ1dThqc
+         ms7PBuRF+Ib1n7VDQRlFh0W30Xfh2+6hfQfJfDnaXyAaR/RRMz8V/h8VtZ8vs+NUYdwk
+         CpsQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVpnFIkTOA8g3MFxeFqgnBbt5vZJy/xrkuO8ntugML8kU+V0x7xGjVKp9AGYYNV/ZNATR6jeTQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwknacTYIiPYgvd0phoWtbLtP/M/ybBy6e65QzLNHO+9AIEnThv
+	Xmy+FT/4D4cTiSmvHnSi4aumfpYLgfw1gWPzXnAOqgSpOrlDRXEzlPjr4SkKcmM4DhQ=
+X-Gm-Gg: AY/fxX5XueMiaeAsHsy2GfV/IBqwiDCDPaS5Gsf63/tjniJ2tY7tlWpX4rhtGyDytZ/
+	cYzX3mTFL3g9OQZcNUdYHMybnXED0gw/FsSVHis9iypK9ijlknTPeLzY20huqAw6UaO1rxEcS7T
+	Dm4oC6tV0jj5paebnQHMKGiTfJWtw7i37OdG3NoFb+I+SXqK12bZRT7fmdwUs8pOHj8cKNwy527
+	D/XZzdKYkiAZnv+y263cKKpOD56eUnBZKQsITFWkZfbdhpR3V9fyIIpBGttvgzYO4Rfhei6P2km
+	EeF4xBSDP++D4iQD3t8f8mDV3GW+VTZVzT7y3zjfBUhsxU/ycWpXUoF4nB3fga3PYHRdQcASp8F
+	zX80K1/tNcHzPpBYPCEVsMkSKqRx/2GH8tASjzyhrZB6eMX1Xm7ed4FeeJsBE6pfbNZ+P5ZtgsJ
+	cZDFLG+quyCXLY+zAoD/OLnGeXJe5SAWFdiNPWh8J//XrIpWx5cLBS/52UCmsveRi6vrzfcZfFH
+	ss=
+X-Received: by 2002:ac8:5701:0:b0:4ee:1727:10bd with SMTP id d75a77b69052e-501484c531emr22881881cf.66.1768380757853;
+        Wed, 14 Jan 2026 00:52:37 -0800 (PST)
 Received: from gourry-fedora-PF4VCD3F.lan (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50148df8759sm10131931cf.10.2026.01.14.00.52.40
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50148df8759sm10131931cf.10.2026.01.14.00.52.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Jan 2026 00:52:40 -0800 (PST)
+        Wed, 14 Jan 2026 00:52:37 -0800 (PST)
 From: Gregory Price <gourry@gourry.net>
 To: linux-mm@kvack.org
 Cc: linux-cxl@vger.kernel.org,
@@ -76,9 +76,9 @@ Cc: linux-cxl@vger.kernel.org,
 	eperezma@redhat.com,
 	osalvador@suse.de,
 	akpm@linux-foundation.org
-Subject: [PATCH 4/8] mm/memory_hotplug: return online type from add_memory_driver_managed()
-Date: Wed, 14 Jan 2026 03:51:56 -0500
-Message-ID: <20260114085201.3222597-5-gourry@gourry.net>
+Subject: [PATCH 2/8] mm/memory_hotplug: extract __add_memory_resource() and __offline_memory()
+Date: Wed, 14 Jan 2026 03:51:54 -0500
+Message-ID: <20260114085201.3222597-3-gourry@gourry.net>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260114085201.3222597-1-gourry@gourry.net>
 References: <20260114085201.3222597-1-gourry@gourry.net>
@@ -90,80 +90,177 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Change add_memory_driver_managed() to return the online type (MMOP_*)
-on success instead of 0. This allows callers to determine the actual
-online state of the memory after addition, which is important when
-MMOP_SYSTEM_DEFAULT is used and the actual online type depends on the
-system default policy.
+Extract internal helper functions with explicit parameters to prepare
+for adding new APIs that allow explicit online type control:
 
-Update virtio_mem to handle the new return value semantics by checking
-for rc < 0 to detect errors.
+  - __add_memory_resource(): accepts an explicit online_type parameter.
+    Add MMOP_SYSTEM_DEFAULT as a new value that instructs the function
+    to use mhp_get_default_online_type() for the actual online type.
+    The existing add_memory_resource() becomes a thin wrapper that
+    passes MMOP_SYSTEM_DEFAULT to preserve existing behavior.
+
+  - __offline_memory(): extracted from offline_and_remove_memory() to
+    handle the offline operation with rollback support. The caller
+    now handles locking and the remove step separately.
+
+This refactoring enables future callers to specify explicit online
+types (MMOP_OFFLINE, MMOP_ONLINE, MMOP_ONLINE_MOVABLE) or use
+MMOP_SYSTEM_DEFAULT for the system default policy. The offline logic
+can also be used independently of the remove step.
+
+Mild functional change: if try_remove_memory() failed after successfully
+offlining, we would re-online the memory.  We no longer do this, and in
+practice removal doesn't fail if offline succeeds.
 
 Signed-off-by: Gregory Price <gourry@gourry.net>
 ---
- drivers/dax/kmem.c          | 2 +-
- drivers/virtio/virtio_mem.c | 5 +++--
- mm/memory_hotplug.c         | 4 +++-
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ include/linux/memory_hotplug.h |  2 +
+ mm/memory_hotplug.c            | 69 ++++++++++++++++++++++------------
+ 2 files changed, 48 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 5e0cf94a9620..d0dd36c536a0 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -178,7 +178,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 				range_len(&range), kmem_name, mhp_flags,
- 				MMOP_SYSTEM_DEFAULT);
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index f2f16cdd73ee..d5407264d72a 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -29,6 +29,8 @@ enum {
+ 	MMOP_ONLINE_KERNEL,
+ 	/* Online the memory to ZONE_MOVABLE. */
+ 	MMOP_ONLINE_MOVABLE,
++	/* Use system default online type from mhp_get_default_online_type(). */
++	MMOP_SYSTEM_DEFAULT,
+ };
  
--		if (rc) {
-+		if (rc < 0) {
- 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
- 					i, range.start, range.end);
- 			remove_resource(res);
-diff --git a/drivers/virtio/virtio_mem.c b/drivers/virtio/virtio_mem.c
-index b1ec8f2b9e31..4decb44f5a43 100644
---- a/drivers/virtio/virtio_mem.c
-+++ b/drivers/virtio/virtio_mem.c
-@@ -656,15 +656,16 @@ static int virtio_mem_add_memory(struct virtio_mem *vm, uint64_t addr,
- 	rc = add_memory_driver_managed(vm->mgid, addr, size, vm->resource_name,
- 				       MHP_MERGE_RESOURCE | MHP_NID_IS_MGID,
- 				       MMOP_SYSTEM_DEFAULT);
--	if (rc) {
-+	if (rc < 0) {
- 		atomic64_sub(size, &vm->offline_size);
- 		dev_warn(&vm->vdev->dev, "adding memory failed: %d\n", rc);
- 		/*
- 		 * TODO: Linux MM does not properly clean up yet in all cases
- 		 * where adding of memory failed - especially on -ENOMEM.
- 		 */
-+		return rc;
- 	}
--	return rc;
-+	return 0;
+ /* Flags for add_memory() and friends to specify memory hotplug details. */
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 5718556121f0..ab73c8fcc0f1 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1490,7 +1490,8 @@ static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
+  *
+  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
+  */
+-int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
++static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
++				 int online_type)
+ {
+ 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+ 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+@@ -1499,6 +1500,10 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ 	bool new_node = false;
+ 	int ret;
+ 
++	/* Convert system default to actual online type */
++	if (online_type == MMOP_SYSTEM_DEFAULT)
++		online_type = mhp_get_default_online_type();
++
+ 	start = res->start;
+ 	size = resource_size(res);
+ 
+@@ -1580,12 +1585,9 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ 		merge_system_ram_resource(res);
+ 
+ 	/* online pages if requested */
+-	if (mhp_get_default_online_type() != MMOP_OFFLINE) {
+-		int online_type = mhp_get_default_online_type();
+-
++	if (online_type != MMOP_OFFLINE)
+ 		walk_memory_blocks(start, size, &online_type,
+ 				   online_memory_block);
+-	}
+ 
+ 	return ret;
+ error:
+@@ -1601,7 +1603,12 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ 	return ret;
+ }
+ 
+-/* requires device_hotplug_lock, see add_memory_resource() */
++int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
++{
++	return __add_memory_resource(nid, res, mhp_flags, MMOP_SYSTEM_DEFAULT);
++}
++
++/* requires device_hotplug_lock, see __add_memory_resource() */
+ int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
+ {
+ 	struct resource *res;
+@@ -2357,12 +2364,12 @@ static int try_reonline_memory_block(struct memory_block *mem, void *arg)
  }
  
  /*
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 515ff9d18039..41974a1ccb91 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1689,7 +1689,7 @@ EXPORT_SYMBOL_GPL(add_memory);
-  * MMOP_ONLINE_MOVABLE to online with that type, MMOP_OFFLINE to leave offline,
-  * or MMOP_SYSTEM_DEFAULT to use the system default policy.
-  *
-- * Returns 0 on success, negative error code on failure.
-+ * Returns the online type (MMOP_*) on success, negative error code on failure.
+- * Try to offline and remove memory. Might take a long time to finish in case
+- * memory is still in use. Primarily useful for memory devices that logically
+- * unplugged all memory (so it's no longer in use) and want to offline + remove
+- * that memory.
++ * Offline a memory range. In case of failure, already offlined memory blocks
++ * will be re-onlined.
++ *
++ * Caller must hold device hotplug lock.
   */
- int add_memory_driver_managed(int nid, u64 start, u64 size,
- 			      const char *resource_name, mhp_t mhp_flags,
-@@ -1721,6 +1721,8 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
- 	rc = __add_memory_resource(nid, res, mhp_flags, online_type);
- 	if (rc < 0)
- 		release_memory_resource(res);
-+	else
-+		rc = online_type;
+-int offline_and_remove_memory(u64 start, u64 size)
++static int __offline_memory(u64 start, u64 size)
+ {
+ 	const unsigned long mb_count = size / memory_block_size_bytes();
+ 	uint8_t *online_types, *tmp;
+@@ -2388,11 +2395,37 @@ int offline_and_remove_memory(u64 start, u64 size)
+ 	 */
+ 	memset(online_types, MMOP_OFFLINE, mb_count);
  
- out_unlock:
+-	lock_device_hotplug();
+-
+ 	tmp = online_types;
+ 	rc = walk_memory_blocks(start, size, &tmp, try_offline_memory_block);
+ 
++	/*
++	 * Rollback what we did. While memory onlining might theoretically fail
++	 * (nacked by a notifier), it barely ever happens.
++	 */
++	if (rc) {
++		tmp = online_types;
++		walk_memory_blocks(start, size, &tmp,
++				   try_reonline_memory_block);
++	}
++
++	kfree(online_types);
++	return rc;
++}
++
++/*
++ * Try to offline and remove memory. Might take a long time to finish in case
++ * memory is still in use. Primarily useful for memory devices that logically
++ * unplugged all memory (so it's no longer in use) and want to offline + remove
++ * that memory.
++ */
++int offline_and_remove_memory(u64 start, u64 size)
++{
++	int rc;
++
++	lock_device_hotplug();
++
++	rc = __offline_memory(start, size);
++
+ 	/*
+ 	 * In case we succeeded to offline all memory, remove it.
+ 	 * This cannot fail as it cannot get onlined in the meantime.
+@@ -2403,18 +2436,8 @@ int offline_and_remove_memory(u64 start, u64 size)
+ 			pr_err("%s: Failed to remove memory: %d", __func__, rc);
+ 	}
+ 
+-	/*
+-	 * Rollback what we did. While memory onlining might theoretically fail
+-	 * (nacked by a notifier), it barely ever happens.
+-	 */
+-	if (rc) {
+-		tmp = online_types;
+-		walk_memory_blocks(start, size, &tmp,
+-				   try_reonline_memory_block);
+-	}
  	unlock_device_hotplug();
+ 
+-	kfree(online_types);
+ 	return rc;
+ }
+ EXPORT_SYMBOL_GPL(offline_and_remove_memory);
 -- 
 2.52.0
 
