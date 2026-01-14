@@ -1,63 +1,63 @@
-Received: from mail-ot1-f44.google.com (mail-ot1-f44.google.com [209.85.210.44])
+Received: from mail-ot1-f53.google.com (mail-ot1-f53.google.com [209.85.210.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EA7536BCCF
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 21:36:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63950374162
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 21:37:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768426600; cv=none; b=mcoYcMCIFMtUy0mY+DwCsZMBF1VyRdIf4acmERT/VXGpM2QghQvauSwD6ArpYOumqdehaP84H2MCtHrXwFsUumBccZdErI1zmd2HqvEnlzVajod2tDOoPWnzT3XHpOBuHSCq3JP0USuY0ttIoDShcM6fopQhulo3Zk8sakSdaTc=
+	t=1768426671; cv=none; b=pyBh9Oa2K+7yiYpzcj+Cd40S5aHfk6gQNuTh1syiMQXf4F1jPjBLZBjCzvHKWb4KwwuT4Hxv8hH5oJNqarJCqMywnrXLYcOCIFDwdjv1tK46YOjN1i6TnFhY6SrdTeokE4fb+BYaUS+xrcDl979YlH0eHvO/Tzu/VzoWLbpaY8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768426600; c=relaxed/simple;
-	bh=Ps/bSVqx4OehI5EayA5JYJNwyYnTQ9jqZuLjt15n6pw=;
+	s=arc-20240116; t=1768426671; c=relaxed/simple;
+	bh=qOSHTOI3Xwy3DZlyVIqnpnTOax8Iqhr9i1N4wEWNc+w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dYZaskoBryrRcdF5SroXfEPOeh+vr1t8SPfg/N1gZDDvd/ETjCewcVXRzfn+NsJwNWqZSsBzL7efOoHp1QnHcJqvMvGSmJglDdy10lx1ikYuDThknqFD1vcyVvhQ+a0BOUdJMmK5E1mZNo/azCKzJ5volQnXFbTUu4ZxmueFQso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZhYNH4MV; arc=none smtp.client-ip=209.85.210.44
+	 MIME-Version; b=Xnwbx899Ge3UksOxLcOFHjwDxdI2Hnbdr+oKHY4ZSMFhtX32G6zjLxgTZwXKyKdeuvMMuNxMcFsnpqUPL8NLbpxHr6EJa1pN8/clG3ONaPB0eWXdJi+ODTFM824MbpH2L2lZayxbsYkQsovHDReaFFBSpIaeSxqjy5ZKkbrmCrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KmMKNr3v; arc=none smtp.client-ip=209.85.210.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZhYNH4MV"
-Received: by mail-ot1-f44.google.com with SMTP id 46e09a7af769-7ce229972f1so202935a34.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 13:36:36 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KmMKNr3v"
+Received: by mail-ot1-f53.google.com with SMTP id 46e09a7af769-7c76d855ddbso104504a34.3
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 13:37:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768426595; x=1769031395; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1768426628; x=1769031428; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=04R2Ca8mGblkvXlxAEPOlC0zVWkPjjtROdHv+tYqk9o=;
-        b=ZhYNH4MVhuEK5mPd8DGHGJF6mNneXN7lBBUVkedvnaLmuL4vB/6xVG2glAzBNs5tcT
-         f2nmJ3omvli3/9i+ASiWA7kekd7hjDvvKYuusyH6zXCCqFqqktHKNZ16ZcFZpZlPFuRf
-         UJrvC4EqiqPfEA7fj1QZuBUvArwbr+NjGRK94Ixc2QIpauOx1KRndwzg4rwnK4+E/2JN
-         mAv3rskIzYbVbYR1Qmjk32R2e2DRGqcBHpUTTajqprd1mkge926RC1RGf/uYHRegaVzk
-         o69XWdzKgjY0cVlqseSHlj3/BGb/c/SUKRbmbvBRoK3Ti+/QM1ybXuOeFMKFakF6fDRr
-         U3Sg==
+        bh=Cc2/Dnt7ZvDFJtfoDY9fKj1STHSnh2OdvJ7mPvvodA0=;
+        b=KmMKNr3vxHQiO7KczcHEgl2Xc702ZgGbfAZlwiKidyaXl9+2bXULeuiYyXs2MuodhR
+         dVQ9Az62pVUYuXDj8k8c0S09dm+F0R1KEnvMvUsEj9YhMfiXtXduYnzkDtq8RwkZKZJR
+         pjLtQ/4gDIYuDU04VoU1t3J+HogOYU7Blv3CHYuy0fXVReuwAOi6dTQhXB7EvDfnu6Ih
+         4nUX+iienb6JuLb4k75VXP4uDOTjXuPXUgnBz+CkEzXHJIDUkylRACb9lAOLPTWWQcml
+         6jVYmanBjqFPMoN6lrKxYsTdfY4C7Bq6xb51Nqo+vv7izPrehH4ecEZbdv24ZWK5ccaX
+         KeOQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768426595; x=1769031395;
+        d=1e100.net; s=20230601; t=1768426628; x=1769031428;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=04R2Ca8mGblkvXlxAEPOlC0zVWkPjjtROdHv+tYqk9o=;
-        b=DVHrANvWdCTmfGsXxhUJJNHfYG7a3GX/wdUIJ+5i80jZ4N9U7x+wPpW8ilwboZr/tG
-         tE+WrYsw8T0TciBkCJby4lneJ+8X4oOwjwn9ptBimZr4iASXmFG84R4oiMyO76/gIb4G
-         U86BrwOB7K5l9ySWYhKd/CULFmQOZypXSkPFYXLb1j75080SV+xfjQ8aXn2tViH9gcyb
-         Xdp4Q5+4clcmvxinUyVwJOPeXVse+5n+1ZyZ3dWivlkis41pOd5D6BMhXEW/2BmtWYFy
-         YM/uJ2yVYBhC/amTRDrXygNvE2nh6FK5v2C/0UdsodRb1XWinuqldyXp5Ynp/89Xk20O
-         Fw+w==
-X-Forwarded-Encrypted: i=1; AJvYcCXLjC/6RAPaSab8t10tp2iqSVmUX9KrXUSB+40XxPDVPoE02+t96yMxbxrJcdThA1JC75mRagw=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwMTxy9rwppVO+x6T1l3ie0coUWl1fi6aGp3jWQ2+9+YzHddcOl
-	IPj27Mltaqcutbc/Og/kcu7R/idRn61PVAnTNxeRBaHT5GUQ7fyz7WR0
-X-Gm-Gg: AY/fxX7aGIcaOmdswx8zUbfjCcAZbg4etFxVtLH9GBGYZT1W4tXh/S6gLrp+E/auqaG
-	LQ351BAoIiLdPlZswYs2GQzozA/y7qEHdSMVGyeKB9QPJcf98p+BApTsQxeDveCJ/ON5rntL+oY
-	S6dNo6FZghjSXvXUSI1FHAGTEaYo/F+n6bXw9PIuTKoHSlHP5EHo/q8FE9wNqRr5pmcgA+CgzKo
-	VgyC9XoFROtqlDC5YqqYt6CZsxJtMlUOzdMz+DZNXgjQtxg3MDT/Fj5vxxNBrDwx38Bia+c1vTN
-	ZWZ8rKIuKGLsjFy/o5Vzm+/C0EIcRoQnx3C3OqknbyMqyW0Z3RixVFEWki/H22a9z3G+FxzHZdj
-	R0+1GdDDS0LZv5np6dk/lGyyYJgF2qEgEL9Wn/nI+tIjM2mVVdGk3DadQGNK74qv9mCryUZ35mC
-	DR+wdyrPQ7YZf9mJv2Oz2PFQj8PftjCfGizh0e6fkzvmbu
-X-Received: by 2002:a05:6808:4f1f:b0:45a:5584:9c58 with SMTP id 5614622812f47-45c73d67fd3mr2620000b6e.21.1768426595172;
-        Wed, 14 Jan 2026 13:36:35 -0800 (PST)
+        bh=Cc2/Dnt7ZvDFJtfoDY9fKj1STHSnh2OdvJ7mPvvodA0=;
+        b=vNadoakCR1AxgeIGs9OxOrK7mR/t99dalb5d+Mz+SB6LxTIpZTGwbq+MMQK4wCOBDP
+         Qs0w/MZc6vQtDjjs2XuaGQmG1YDLBMHpFPmpnN5czz9DlVfxcuLzW72lP5bt/FnjC+/d
+         ijpFmfMp27y+EAbpcvOZVpYUTMZFIIF7ecZsaag9wzbCdxhly9uW9VXtP033FSIEakQN
+         gsvoOxqKzCDvRAK2j1mCuSLUBTHgRLMl4gpN6tkiGSA9ITIymDmVxGTYKV3cwHlgr30M
+         jhBsqY9FKh013lEuulKQ8jk9A+zkMBuZi8walWL0Hc7qKHOWoMk5pOiEBPX2NTkU330y
+         sYIQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVtNXfM0KKYUH9o7QMRmPXyaeBgy9QuVUKLHVj89lrivbSHkED4xSR0uLc7jDAAQ6gLXew7KxI=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx5OLDAsgr1RadiQ3vhgOEM3ceWOEfDwQ6tjaCnSxIQ4RWDduK5
+	AIj0CPwQ0fDPPh7gXysnRFw4QA4Yx60Ykv3175I+c8z4Q89OlipLQvEN
+X-Gm-Gg: AY/fxX5K72F+hlqQ4KLJoZoG0xOWyBY+QWr870muEj+l3r9DlPuj3W9e1mtlcFJnqlj
+	YDFhlh+ViejkxhEaY2swn3dTJqXT5ukg5GHH4o2TwRM4ogp5ma5Xl1VRrk9vUDZMNluz1YjMr23
+	1wZ2VkoO/plebfcmMejYbS/S6rsH67lEmeglFR5BMj1hoEjUyC69V2/Wm2wUuQgK3fzZ9moPcfY
+	96/1XPtmnHe3Kqu9TMriqcpHqhFy5U8OJNVTVcXlXina1JNSqwusIkFAFDDdWwgaDkmbOfZbC3U
+	KF/4Jq5K04EQMrRT6PWg2k5e3HanE5o2kfUeqAEU+u1W5RrDp9c3xG8bCUw4abDmr1o/sl1D0bV
+	D3YKb/rNAWQ5vF38DC5+TtJpvzc5Gswp6iVGLkh9B6DWJrl+DDks7NC3H2QpsMLq7F0qCa3vShN
+	RfD2K4Duot8InGnaOXxA4c2slHyl2ZO6/atKFkV7TBIJwAmCr1AFAYFhQ=
+X-Received: by 2002:a05:6830:8412:b0:7cb:125d:2a43 with SMTP id 46e09a7af769-7cfc8b6a6b0mr1787867a34.28.1768426628343;
+        Wed, 14 Jan 2026 13:37:08 -0800 (PST)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:4c85:2962:e438:72c4])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-4040cba2d2asm2418156fac.5.2026.01.14.13.36.33
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7ce478ee883sm19811078a34.28.2026.01.14.13.37.06
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 14 Jan 2026 13:36:34 -0800 (PST)
+        Wed, 14 Jan 2026 13:37:08 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -98,9 +98,9 @@ Cc: John Groves <jgroves@micron.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH V4 08/19] dax: export dax_dev_get()
-Date: Wed, 14 Jan 2026 15:31:55 -0600
-Message-ID: <20260114213209.29453-9-john@groves.net>
+Subject: [PATCH V4 09/19] famfs_fuse: magic.h: Add famfs magic numbers
+Date: Wed, 14 Jan 2026 15:31:56 -0600
+Message-ID: <20260114213209.29453-10-john@groves.net>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260114213209.29453-1-john@groves.net>
 References: <20260114153133.29420.compound@groves.net>
@@ -113,48 +113,28 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-famfs needs to look up a dax_device by dev_t when resolving fmap
-entries that reference character dax devices.
+Famfs distinguishes between its on-media and in-memory superblocks. This
+reserves the numbers, but they are only used by the user space
+components of famfs.
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- drivers/dax/super.c | 3 ++-
- include/linux/dax.h | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/uapi/linux/magic.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 00c330ef437c..d097561d78db 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -513,7 +513,7 @@ static int dax_set(struct inode *inode, void *data)
- 	return 0;
- }
+diff --git a/include/uapi/linux/magic.h b/include/uapi/linux/magic.h
+index 638ca21b7a90..712b097bf2a5 100644
+--- a/include/uapi/linux/magic.h
++++ b/include/uapi/linux/magic.h
+@@ -38,6 +38,8 @@
+ #define OVERLAYFS_SUPER_MAGIC	0x794c7630
+ #define FUSE_SUPER_MAGIC	0x65735546
+ #define BCACHEFS_SUPER_MAGIC	0xca451a4e
++#define FAMFS_SUPER_MAGIC	0x87b282ff
++#define FAMFS_STATFS_MAGIC      0x87b282fd
  
--static struct dax_device *dax_dev_get(dev_t devt)
-+struct dax_device *dax_dev_get(dev_t devt)
- {
- 	struct dax_device *dax_dev;
- 	struct inode *inode;
-@@ -536,6 +536,7 @@ static struct dax_device *dax_dev_get(dev_t devt)
- 
- 	return dax_dev;
- }
-+EXPORT_SYMBOL_GPL(dax_dev_get);
- 
- struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
- {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 6897c5736543..1ef9b03f9671 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -55,6 +55,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
- void *dax_holder(struct dax_device *dax_dev);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
-+struct dax_device *dax_dev_get(dev_t devt);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
- bool dax_synchronous(struct dax_device *dax_dev);
+ #define MINIX_SUPER_MAGIC	0x137F		/* minix v1 fs, 14 char names */
+ #define MINIX_SUPER_MAGIC2	0x138F		/* minix v1 fs, 30 char names */
 -- 
 2.52.0
 
