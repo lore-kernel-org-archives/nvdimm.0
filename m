@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FEED3815DB;
-	Wed, 14 Jan 2026 10:14:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6751A38A280;
+	Wed, 14 Jan 2026 10:21:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768385667; cv=none; b=SkLr9UnyRcBric+I3alYyFoPLlr8oQV+9KRwOlf2/vsGMZtlqjdshmR+C5/zUGCpoAyNR2XgTJXRlRA3ZlXFH1aYviSKj6kCwNsOifauj6EmdyMqrGPGm9MoiWT87MqzfwRj1EQ6JOMD2ebx8OE0WNazDBXzRUZhy2IwiGzz9ck=
+	t=1768386100; cv=none; b=qtLlIH+mlq83afE+emJzgC+PD/vQnWT1FhlBq/mMdIf4Aw3oOE5kjhtR9i2Se9tdWh7ocFS78fUyZoEgAcPlGm7vJsn5/uzP4GVqPfiWPxQwmIBFfhKUownXCNzHEBXWLVR3c5YpmAyTuGAHzwIUp3/hvcXNPYCognAUVlyRUjo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768385667; c=relaxed/simple;
-	bh=jRidKOsmBV2qAukpkzJ1Z7JnB+sebWyAj38kbIeO6OY=;
+	s=arc-20240116; t=1768386100; c=relaxed/simple;
+	bh=dR3qY5H03vmCPmwiWE/Ol6xHu9f+QHLOlM/lwC6MVSw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=THUS+YGBAcafTLbHvxfiP6EQ0Ajle+ibyqSjKbeioaWx6Ahw7xodJzoPK5aS+SanTGfVRartMv9NErbzbCgc6iLb67VpcYqnwPfaJZVBWSUVyo4EgwyZ3pBaBv32jj2FUhM7v3SbqhYYVbeoIoa35F1wKm8dVn6AqLSaBVZWVA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RZ4zbdQd; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=Z3g1PVgE2nMRmDKXfGTZaJbNeQCHDsW/buhmtP55VJvQDjkF53mcCMLuhklyPcosiNMDkbUJ9pV2553MusRiXnfYxbzgGJMq9nQxe2QxCRHgvSFkcV/SbabUapmzFxVrROwSJiR/1qCozPBm/TY3f4oQlaUCRUvFnLJXo1Amu1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lBWjGqhc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RZ4zbdQd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55ABFC4CEF7;
-	Wed, 14 Jan 2026 10:14:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lBWjGqhc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AAE5C4CEF7;
+	Wed, 14 Jan 2026 10:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768385666;
-	bh=jRidKOsmBV2qAukpkzJ1Z7JnB+sebWyAj38kbIeO6OY=;
+	s=k20201202; t=1768386099;
+	bh=dR3qY5H03vmCPmwiWE/Ol6xHu9f+QHLOlM/lwC6MVSw=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=RZ4zbdQd5Y9j899jDtFhUSkFbbgJE06nr6NyLRWaAR2A79x1gC88cDHXW2q4S3wPq
-	 MS34HZSb4I/tbInqH7V+S6NjODGXeRVgPEhLVfR/YU5K5g50qUA+kG1+OQXvw348lC
-	 z+ZOTbDLTh/xSYMHwc7XOOgdBChFu/CgB9wzgvAg/PkbeMHdDArjRX6R3DhH7bb4rz
-	 6MO54LTUuVqxATcfedHnBndnq+n6hRQ89WDH5rZy3wGQE0Xo25KvItgAjftg9V6Ajy
-	 k+oc3ucRRa/qieJJdt03HMDmM1Ro8yvGQTOV7RBnzHyL0XowmUthP4d6iSRwxotf7f
-	 XeFj+QU1pNCRA==
-Message-ID: <c4ed9675-269c-4764-86d5-87f4f83fc74d@kernel.org>
-Date: Wed, 14 Jan 2026 11:14:21 +0100
+	b=lBWjGqhcI2v+Rn3qGOPRNBALX+51iuz8W8YJNFc90uM3aPZshbIie02KuJWSA2oGB
+	 Is0zvPkwo2J3M7UYLFRXNe4q0G58tZfXYe0L9rX7bUl7bLSqmznfN56M1Tmrk+Yetv
+	 Z3lE8U/OoDJTx00QFYbUn0vMO5nDJdztPSUu2zeoX/Fsx8OMPvbk5myKZBg3ceZ/+b
+	 rlrwUI+PcC5qrHrmS9NhshWtDwYWL1OZR0WvNLqxB/rCUmN/+dhYkkFazWGxSoXmFE
+	 iS09g6BTh78dc9qKzDLmnHs+EATo5eHtifNt2SWKYkSyIH33Dtpg0w/TAOLXBdTxk9
+	 Pj0H9dWO4SnCQ==
+Message-ID: <b3d435d2-643f-4dad-9928-bc7fb5080181@kernel.org>
+Date: Wed, 14 Jan 2026 11:21:34 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/8] mm/memory_hotplug: extract __add_memory_resource()
- and __offline_memory()
+Subject: Re: [PATCH 3/8] mm/memory_hotplug: add APIs for explicit online type
+ control
 To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
@@ -45,7 +45,7 @@ Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
  akpm@linux-foundation.org
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-3-gourry@gourry.net>
+ <20260114085201.3222597-4-gourry@gourry.net>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -91,65 +91,234 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <20260114085201.3222597-3-gourry@gourry.net>
+In-Reply-To: <20260114085201.3222597-4-gourry@gourry.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 1/14/26 09:51, Gregory Price wrote:
-> Extract internal helper functions with explicit parameters to prepare
-> for adding new APIs that allow explicit online type control:
+> Add new memory hotplug APIs that allow callers to explicitly control
+> the online type when adding or managing memory:
 > 
->    - __add_memory_resource(): accepts an explicit online_type parameter.
->      Add MMOP_SYSTEM_DEFAULT as a new value that instructs the function
->      to use mhp_get_default_online_type() for the actual online type.
->      The existing add_memory_resource() becomes a thin wrapper that
->      passes MMOP_SYSTEM_DEFAULT to preserve existing behavior.
-> 
->    - __offline_memory(): extracted from offline_and_remove_memory() to
->      handle the offline operation with rollback support. The caller
->      now handles locking and the remove step separately.
+>    - Extend add_memory_driver_managed() with an online_type parameter:
+>      Callers can now specify MMOP_ONLINE, MMOP_ONLINE_KERNEL, or
+>      MMOP_ONLINE_MOVABLE to online with that type, MMOP_OFFLINE to leave
+>      memory offline, or MMOP_SYSTEM_DEFAULT to use the system default
+>      policy. Update virtio_mem to pass MMOP_SYSTEM_DEFAULT to maintain
+>      existing behavior.
 
+I wonder if we rather want to add a new interface 
+(add_and_online_memory_driver_managed()) where we can restrict it to 
+known kernel modules that do not violate user-space onlining policies.
 
-I don't understand why this change is even part of this patch, can you 
-elaborate? You don't add any "explicit parameters to prepare for adding 
-new APIs that allow explicit online type control" there.
-
-So likely you squeezed two independent things into a single patch? :)
-
-Likely you should pair the __add_memory_resource() change with the 
-add_memory_driver_managed() changed and vice versa.
+For dax we know that user space will define the policy.
 
 > 
-> This refactoring enables future callers to specify explicit online
-> types (MMOP_OFFLINE, MMOP_ONLINE, MMOP_ONLINE_MOVABLE) or use
-> MMOP_SYSTEM_DEFAULT for the system default policy. The offline logic
-> can also be used independently of the remove step.
+>    - online_memory_range(): online a previously-added memory range with
+>      a specified online type (MMOP_ONLINE, MMOP_ONLINE_KERNEL, or
+>      MMOP_ONLINE_MOVABLE). Validates that the type is valid for onlining.
+
+Why not simply online_memory() and offline_memory() ?
+
 > 
-> Mild functional change: if try_remove_memory() failed after successfully
-> offlining, we would re-online the memory.  We no longer do this, and in
-> practice removal doesn't fail if offline succeeds.
+>    - offline_memory(): offline a memory range without removing it. This
+>      is a wrapper around the internal __offline_memory() that handles
+>      locking. Useful for drivers that want to offline memory blocks
+>      before performing other operations.
+> 
+
+These two should be not exported to arbitrary kernel modules. Use 
+EXPORT_SYMBOL_FOR_MODULES() if required, or do not export them at all.
+
+> These APIs enable drivers like dax_kmem to implement sophisticated
+> memory management policies, such as adding memory offline and deferring
+> the online decision to userspace.
 > 
 > Signed-off-by: Gregory Price <gourry@gourry.net>
 > ---
->   include/linux/memory_hotplug.h |  2 +
->   mm/memory_hotplug.c            | 69 ++++++++++++++++++++++------------
->   2 files changed, 48 insertions(+), 23 deletions(-)
+>   drivers/dax/kmem.c             |  3 +-
+>   drivers/virtio/virtio_mem.c    |  3 +-
+>   include/linux/memory_hotplug.h |  4 ++-
+>   mm/memory_hotplug.c            | 63 ++++++++++++++++++++++++++++++++--
+>   4 files changed, 68 insertions(+), 5 deletions(-)
 > 
+> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> index c036e4d0b610..5e0cf94a9620 100644
+> --- a/drivers/dax/kmem.c
+> +++ b/drivers/dax/kmem.c
+> @@ -175,7 +175,8 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>   		 * this as RAM automatically.
+>   		 */
+>   		rc = add_memory_driver_managed(data->mgid, range.start,
+> -				range_len(&range), kmem_name, mhp_flags);
+> +				range_len(&range), kmem_name, mhp_flags,
+> +				MMOP_SYSTEM_DEFAULT);
+>   
+>   		if (rc) {
+>   			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
+> diff --git a/drivers/virtio/virtio_mem.c b/drivers/virtio/virtio_mem.c
+> index 1688ecd69a04..b1ec8f2b9e31 100644
+> --- a/drivers/virtio/virtio_mem.c
+> +++ b/drivers/virtio/virtio_mem.c
+> @@ -654,7 +654,8 @@ static int virtio_mem_add_memory(struct virtio_mem *vm, uint64_t addr,
+>   	/* Memory might get onlined immediately. */
+>   	atomic64_add(size, &vm->offline_size);
+>   	rc = add_memory_driver_managed(vm->mgid, addr, size, vm->resource_name,
+> -				       MHP_MERGE_RESOURCE | MHP_NID_IS_MGID);
+> +				       MHP_MERGE_RESOURCE | MHP_NID_IS_MGID,
+> +				       MMOP_SYSTEM_DEFAULT);
+>   	if (rc) {
+>   		atomic64_sub(size, &vm->offline_size);
+>   		dev_warn(&vm->vdev->dev, "adding memory failed: %d\n", rc);
 > diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> index f2f16cdd73ee..d5407264d72a 100644
+> index d5407264d72a..0f98bea6da65 100644
 > --- a/include/linux/memory_hotplug.h
 > +++ b/include/linux/memory_hotplug.h
-> @@ -29,6 +29,8 @@ enum {
->   	MMOP_ONLINE_KERNEL,
->   	/* Online the memory to ZONE_MOVABLE. */
->   	MMOP_ONLINE_MOVABLE,
-> +	/* Use system default online type from mhp_get_default_online_type(). */
-> +	MMOP_SYSTEM_DEFAULT,
+> @@ -265,6 +265,7 @@ static inline void pgdat_resize_init(struct pglist_data *pgdat) {}
+>   extern void try_offline_node(int nid);
+>   extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages,
+>   			 struct zone *zone, struct memory_group *group);
+> +extern int offline_memory(u64 start, u64 size);
 
-I don't like having fake options as part of this interface.
+No new "extern" for functions.
 
-Why can't we let selected users use mhp_get_default_online_type() 
-instead? Like add_memory_resource(). We can export that function.
+>   extern int remove_memory(u64 start, u64 size);
+>   extern void __remove_memory(u64 start, u64 size);
+>   extern int offline_and_remove_memory(u64 start, u64 size);
+> @@ -297,7 +298,8 @@ extern int add_memory_resource(int nid, struct resource *resource,
+>   			       mhp_t mhp_flags);
+>   extern int add_memory_driver_managed(int nid, u64 start, u64 size,
+>   				     const char *resource_name,
+> -				     mhp_t mhp_flags);
+> +				     mhp_t mhp_flags, int online_type);
+> +extern int online_memory_range(u64 start, u64 size, int online_type);
+>   extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+>   				   unsigned long nr_pages,
+>   				   struct vmem_altmap *altmap, int migratetype,
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index ab73c8fcc0f1..515ff9d18039 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1343,6 +1343,34 @@ static int online_memory_block(struct memory_block *mem, void *arg)
+>   	return device_online(&mem->dev);
+>   }
+>   
+> +/**
+> + * online_memory_range - online memory blocks in a range
+> + * @start: physical start address of memory region
+> + * @size: size of memory region
+> + * @online_type: MMOP_ONLINE, MMOP_ONLINE_KERNEL, or MMOP_ONLINE_MOVABLE
+
+I wonder if we instead want something that consumes all parameters like
+
+int online_or_offline_memory(int online_type)
+
+Then it's easier to use and we don't really have to document the 
+"online_type" that much to hand-select some values.
+
+(I'm sure there are better nameing suggestions :) )
+
+
+Should we document what happens if the memory is already online, but was 
+onlined to a different zone?
+
+> + *
+> + * Online all memory blocks in the specified range with the given online type.
+> + * The memory must have already been added to the system.
+> + *
+> + * Returns 0 on success, negative error code on failure.
+> + */
+> +int online_memory_range(u64 start, u64 size, int online_type)
+> +{
+> +	int rc;
+> +
+> +	if (online_type == MMOP_OFFLINE ||
+> +	    online_type > MMOP_ONLINE_MOVABLE)
+> +		return -EINVAL;
+> +
+> +	lock_device_hotplug();
+> +	rc = walk_memory_blocks(start, size, &online_type,
+> +				online_memory_block);
+> +	unlock_device_hotplug();
+> +
+> +	return rc;
+> +}
+> +EXPORT_SYMBOL_GPL(online_memory_range);
+> +
+>   #ifndef arch_supports_memmap_on_memory
+>   static inline bool arch_supports_memmap_on_memory(unsigned long vmemmap_size)
+>   {
+> @@ -1656,9 +1684,16 @@ EXPORT_SYMBOL_GPL(add_memory);
+>    *
+>    * The resource_name (visible via /proc/iomem) has to have the format
+>    * "System RAM ($DRIVER)".
+> + *
+> + * @online_type specifies the online behavior: MMOP_ONLINE, MMOP_ONLINE_KERNEL,
+> + * MMOP_ONLINE_MOVABLE to online with that type, MMOP_OFFLINE to leave offline,
+> + * or MMOP_SYSTEM_DEFAULT to use the system default policy.
+> + *
+
+I think we can simplify this documentation. Especially, one 
+MMOP_SYSTEM_DEFAULT is gone.
+
+> + * Returns 0 on success, negative error code on failure.
+>    */
+>   int add_memory_driver_managed(int nid, u64 start, u64 size,
+> -			      const char *resource_name, mhp_t mhp_flags)
+> +			      const char *resource_name, mhp_t mhp_flags,
+> +			      int online_type)
+>   {
+>   	struct resource *res;
+>   	int rc;
+> @@ -1668,6 +1703,13 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
+>   	    resource_name[strlen(resource_name) - 1] != ')')
+>   		return -EINVAL;
+>   
+> +	/* Convert system default to actual online type */
+> +	if (online_type == MMOP_SYSTEM_DEFAULT)
+> +		online_type = mhp_get_default_online_type();
+> +
+> +	if (online_type < 0 || online_type > MMOP_ONLINE_MOVABLE)
+> +		return -EINVAL;
+> +
+>   	lock_device_hotplug();
+>   
+>   	res = register_memory_resource(start, size, resource_name);
+> @@ -1676,7 +1718,7 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
+>   		goto out_unlock;
+>   	}
+>   
+> -	rc = add_memory_resource(nid, res, mhp_flags);
+> +	rc = __add_memory_resource(nid, res, mhp_flags, online_type);
+>   	if (rc < 0)
+>   		release_memory_resource(res);
+>   
+> @@ -2412,6 +2454,23 @@ static int __offline_memory(u64 start, u64 size)
+>   	return rc;
+>   }
+>   
+> +/*
+> + * Try to offline a memory range. Might take a long time to finish in case
+> + * memory is still in use. In case of failure, already offlined memory blocks
+> + * will be re-onlined.
+> + */
+
+Proper kerneldoc? :)
+
+> +int offline_memory(u64 start, u64 size)
+> +{
+> +	int rc;
+> +
+> +	lock_device_hotplug();
+> +	rc = __offline_memory(start, size);
+> +	unlock_device_hotplug();
+> +
+> +	return rc;
+> +}
+> +EXPORT_SYMBOL_GPL(offline_memory);
+> +
+>   /*
+>    * Try to offline and remove memory. Might take a long time to finish in case
+>    * memory is still in use. Primarily useful for memory devices that logically
 
 
 -- 
