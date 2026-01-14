@@ -1,63 +1,63 @@
-Received: from mail-ot1-f44.google.com (mail-ot1-f44.google.com [209.85.210.44])
+Received: from mail-oa1-f53.google.com (mail-oa1-f53.google.com [209.85.160.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5F2E36D4F8
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 21:37:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2467B36CDE5
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 21:38:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768426684; cv=none; b=Heo8nLkX2B+X8PR2ijsm/m8aHc5AKTzorSlCpl4FYMwgOVgp12wsNhQrTX7PIBu4/uXJi9789kO1iUmlnp3nsJtGmToYbv6v7V6ob5fLxcSwu4La68yxdqcbvhtCxCi0BpNf2N9znu7g9mt512xvqGAZeUKCMSFn+by9b1y87Tc=
+	t=1768426715; cv=none; b=KrIYFlqnzQ4ZRwN1LHkSomr1RWt1Zn4jI14lBIPP1eebQTcBgTdf6d/idwUbCQ1Q+TjI6pFRhl+7/7Nw3oK0IqhRlimEJnQimSw5Sj8OM2KyjLi5m6e3oULZog24GHgclu2AMARjSYTOg63cjcAhN0Uh//Dwd4xq7RoI2doCpU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768426684; c=relaxed/simple;
-	bh=R7GTFFfXsW/hexMTH2rCgun0nMW8P9e1Nnjtsj10A/c=;
+	s=arc-20240116; t=1768426715; c=relaxed/simple;
+	bh=Myxyb2rDcBHr+xqknzGDwrg3ZSxy55A1mHw+gpZxb+w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iyHNAa3kBkjxcouVu+m0wyRvjvh+yehQoktoAGfV4uxjW5h/ykHnb24ocPN3yjuEOFsN0ONbV2ZmqZhsZWmWZkqwNgJrrPa1ZOWISSgmogykDxlOYYCUS+lBvO18GyYPG3tqSEk7LcSaLyAT9K+mnr5hV+6OjOXDv+HcgOFmL6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hUH5QMpO; arc=none smtp.client-ip=209.85.210.44
+	 MIME-Version; b=ixzg8eY/XQfDYTLUK6FZ8T4ux1VnHsJYJjCTCw1XTThkOtOWLN54IgnygTLm3eatPthn1PMhmGeJ54wT+9ro4RlZiWIfUinxmKmPUG+bY5QQg1MuclU9AqlRt2uu3fBHe6aotqv4yhTqc8RBB9rJfu7/c9TZxpO4Pazh7yWJaOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aVLq6ShB; arc=none smtp.client-ip=209.85.160.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hUH5QMpO"
-Received: by mail-ot1-f44.google.com with SMTP id 46e09a7af769-7cfd57f0bf7so98218a34.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 13:37:44 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aVLq6ShB"
+Received: by mail-oa1-f53.google.com with SMTP id 586e51a60fabf-40429b1d8baso100547fac.0
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 13:38:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768426661; x=1769031461; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1768426694; x=1769031494; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=s0It4v+QKYzMVVAEFprn518ODvuGudSilDEyQY60PAU=;
-        b=hUH5QMpOkwHWqFtS4qK8uHVNgHsOKORekr4JUDIGYIB8b52n+Ar7EJmR8+4N1Ot+B2
-         XAOaR8dCps29WIfHz3wWAwXvdoFHxitSGlp550oVDx9yUZat7ILA+NGJTSLT7051ZgE9
-         5jNZLp2amBaCXYqdY3wXHk5+9/9Hft7Hs7HpqRkI5aYORpWbDOKvJ/QeVMNAwNwrl9ma
-         BV+G4vgMX59d1Q9GgXv7wAZXBvU+yO0g/UAeKG9VErAMIEbBwCB6WoqtTZA/am0uDitm
-         jPOVGMP2zqR2M5613oCb3zCDgD4yhz02fekh8X6NWGxecCrdGhHscvIBxRlv78dlseI0
-         kviA==
+        bh=KtiQrLd8slGpp7/JWfnN4t75EcUXAx+gZvq0QNgV39M=;
+        b=aVLq6ShB0J17jLQZKXdS63kEvKayepg8folsD40Wm+wbDdSdfcedn5q1fbeir3wID9
+         1SHwfPM8YtdQrac+2KRkDyKfCnGvyTcnEia1+n4W15ewYMyyU269aTk0ZLF3X+qNHY3h
+         Xcvh9QYx+sEVIjbta775wj5pzzPL5uVqeXvy9i2NBMnNljUV0f0ve9oLBpy7Tz9887nW
+         tLtPmLP3o0ucp2qORxKeeSjVF5F0eOSFcXZAEgo+rC9Qcd0yrt00G6yCqH8VXz1zyuPw
+         VI/qu7pBDBdzEfcngL0jq4lCIWt6Y4Jy6QnI2rw8FfC5hsJdUBY2BnR91KisJLlXRO2G
+         W48A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768426661; x=1769031461;
+        d=1e100.net; s=20230601; t=1768426694; x=1769031494;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=s0It4v+QKYzMVVAEFprn518ODvuGudSilDEyQY60PAU=;
-        b=K6/AAuqtjvpE9QiOnT5YNWo91hsLxUXxzdPp/yZ5u351sYLX4yBxwPy+ZPiJwm8Nmk
-         RCP1Pl1yEsfPg/P/v4W/GPNYmJ0F9aUUqdSWskBkozkEKAlSAfm8iVsieBVR9EN0R9rw
-         iDfYhfG/UQCcdYm537XoJlmRpQfdXEPvLUS3VgHYQGuO00OcUt0lUtnUjmtX9LaqHzgV
-         PhwPEaZu40BBhonEjlNZVnXTmuqrb7iUtyH3uCXNpdBZ+WAFp+GrE7oT3ApywudpUJ0k
-         aq8G4rhTNLCXtHQIFPTg+rryPVFtXr5/HQ+Jt36eQQvdIw9HY31hYZg6D9dXHvw2bbjF
-         8MPA==
-X-Forwarded-Encrypted: i=1; AJvYcCXLgq5txw5lF6lPwlrqlBkLpLcuwDiD1hC64deb29ixUhbMK6qpOqqeVTR9MZS2Y9afDxTPoms=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzhNvXvd6el6DZMDK3KE8tanAYdC0BbQ2YuFSDYMiKa3ZzbbNLl
-	i4/IA6eRR0enph3yq7K7SMRXo5qwvJEJNKdZb9UC1Diqmkf6o7keG6LX
-X-Gm-Gg: AY/fxX6N6Yqje+1fYH4Y2StuoKWCJU1u8MBQzKl1nNCPQfJ7xW3Z6cLvtBoSiHU2XuE
-	qqB3skw4rmXkl11NebjIWdklRGZD+sI/8rd9/Qal1e2gBaUZTzMQsOWg8QKqRnCRpeXCTOE8HV4
-	HC4yMNrvEMXZFXOM1SuL7qbAwvu+erJH9sy8uk5oaijAfhXTcPCfcKtN/AngaVc1TBuRl5+bDe3
-	h8NLFRMdjVTjX0zMkOKP9k8yOGeHeXT+ZrfcyZXlNVoDdYCSbzMMGaFO9laSCZbldeomEkfadgV
-	SHH4GYhFwd/MduvBwpt8/DP46N2ZLCxibYYLQ2cUeR3Ne25boI2oqs1TPO23d4cMDValO9ezI/n
-	PThA/LYgWIN+A+k67C7WpdDF+ctG6OIH57GE1kF33hnskcq8lYAzxhw/16U5rs8slrdqaLf0KHf
-	HCMhXwkUfkocmRZFqsZR+okyjNs1sofcb1QT8kMQ35LWUw
-X-Received: by 2002:a05:6830:8118:b0:7c7:61e0:a4ee with SMTP id 46e09a7af769-7cfc8aa04cfmr2494300a34.11.1768426661010;
-        Wed, 14 Jan 2026 13:37:41 -0800 (PST)
+        bh=KtiQrLd8slGpp7/JWfnN4t75EcUXAx+gZvq0QNgV39M=;
+        b=EJPfOAL5yHduJ03suqMHVfalhDsTht63bvdr0oACQv7Lmrts2VSxchuW6aARic0/kJ
+         r86m/aS6DDixnX3V+tStQcDKTmnKZq8sXdhHHtvC8ClXMbMvjlkCyUDT2YNuLscMV69X
+         cYC68WRTDTnXpgMeiE9G7Y1vyfd7Pv51RGqUvzZvrbjdTfuueMhoitmvUjH2jcigaqNF
+         BbAioqKSb+nLkNuYBs8zbrdJEolHzAf/MG7eX9nsIJZx5aij5qc5qB2GoATWOn4sl5Ra
+         bMNvqjKfOJhOVQa8YMrhh4ED5psbANCuF2vOKwSylNdjoYCVBxbcufWf0uda/bOSabWe
+         oGEA==
+X-Forwarded-Encrypted: i=1; AJvYcCUr8fESS27g7jLqhiPHDQYQ5R+eLx0HWoJVnJhgpmTlKl0ce7yBmcNv/m0YnFJ5M3dGQ7bsZvQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwCM7obq54VCtSCYrHGXmUtTVo2ocuM0DFNONusEeNIsvlcR4ux
+	MlW5tSyS89cgXuDlTZV6JPrrNn2uE/BnuN1gjaLqeJfREgcqF0XoC6zd
+X-Gm-Gg: AY/fxX4G968za6WzNffWIxt++LDQxQTFtd1g9wihKJk6azLMfNmtsW0Qr3tv140pKh0
+	tewXtbIy4qIfx4BFbpDVLNsMsVZRuFHL29ko1cN2Dww1haWQoy66gSgmwhSvJIeqSZoMnX1jI0t
+	CZItvNw5Fa1CJgvUW9wL9VAhRMzpIdgr/CGvSBtXxx9HV/2DhUtnjOELI57MQ9pwnzqAUD4ydR3
+	jY86sUIgTC0aCK1F4p3zwKktNyGT7NQrgn1At46N+BqMn4Z8Q+pNwZ66ZgN9RGA5ygLUtgrpg4v
+	gb3JQCXGufW6NqfD3IBdYlLpAb93eQd5pPR60WqzILaR4XCNtv9YhZNORGniN8tLRZxQ/gd/ygI
+	p/m9kIPC7JKFu345MYCQsWqcx16jCSfuwFlFAr4+Cm3E1NTNMxiPVJqKRxIzQfVKZaKQKmViEcB
+	DHXYlXssYfvXrUfZO09N9GIdYIOmvQ7IESBnXXxBOy+VFd
+X-Received: by 2002:a05:6871:3a2c:b0:3d3:7288:fe44 with SMTP id 586e51a60fabf-4040ba24643mr2524454fac.11.1768426694295;
+        Wed, 14 Jan 2026 13:38:14 -0800 (PST)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:4c85:2962:e438:72c4])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7ce478d9f54sm19757067a34.23.2026.01.14.13.37.39
+        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-3ffa50721a6sm17711247fac.10.2026.01.14.13.38.11
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 14 Jan 2026 13:37:40 -0800 (PST)
+        Wed, 14 Jan 2026 13:38:13 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -98,9 +98,9 @@ Cc: John Groves <jgroves@micron.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH V4 10/19] famfs_fuse: Update macro s/FUSE_IS_DAX/FUSE_IS_VIRTIO_DAX/
-Date: Wed, 14 Jan 2026 15:31:57 -0600
-Message-ID: <20260114213209.29453-11-john@groves.net>
+Subject: [PATCH V4 11/19] famfs_fuse: Basic fuse kernel ABI enablement for famfs
+Date: Wed, 14 Jan 2026 15:31:58 -0600
+Message-ID: <20260114213209.29453-12-john@groves.net>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260114213209.29453-1-john@groves.net>
 References: <20260114153133.29420.compound@groves.net>
@@ -113,153 +113,113 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Virtio_fs now needs to determine if an inode is DAX && not famfs.
-This relaces the FUSE_IS_DAX() macro with FUSE_IS_VIRTIO_DAX(),
-in preparation for famfs in later commits. The dummy
-fuse_file_famfs() macro will be replaced with a working
-function.
+This patch starts the kernel ABI enablement of famfs in fuse.
+
+- Kconfig: Add FUSE_FAMFS_DAX config parameter, to control
+  compilation of famfs within fuse.
+- FUSE_DAX_FMAP flag in INIT request/reply
+- fuse_conn->famfs_iomap (enable famfs-mapped files) to denote a
+  famfs-enabled connection
 
 Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
 Signed-off-by: John Groves <john@groves.net>
 ---
- fs/fuse/dir.c    |  2 +-
- fs/fuse/file.c   | 13 ++++++++-----
- fs/fuse/fuse_i.h |  9 ++++++++-
- fs/fuse/inode.c  |  4 ++--
- fs/fuse/iomode.c |  2 +-
- 5 files changed, 20 insertions(+), 10 deletions(-)
+ fs/fuse/Kconfig           | 14 ++++++++++++++
+ fs/fuse/fuse_i.h          |  3 +++
+ fs/fuse/inode.c           |  6 ++++++
+ include/uapi/linux/fuse.h |  5 +++++
+ 4 files changed, 28 insertions(+)
 
-diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index 4b6b3d2758ff..1400c9d733ba 100644
---- a/fs/fuse/dir.c
-+++ b/fs/fuse/dir.c
-@@ -2153,7 +2153,7 @@ int fuse_do_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 		is_truncate = true;
- 	}
+diff --git a/fs/fuse/Kconfig b/fs/fuse/Kconfig
+index 3a4ae632c94a..5ca9fae62c7b 100644
+--- a/fs/fuse/Kconfig
++++ b/fs/fuse/Kconfig
+@@ -76,3 +76,17 @@ config FUSE_IO_URING
  
--	if (FUSE_IS_DAX(inode) && is_truncate) {
-+	if (FUSE_IS_VIRTIO_DAX(fi) && is_truncate) {
- 		filemap_invalidate_lock(mapping);
- 		fault_blocked = true;
- 		err = fuse_dax_break_layouts(inode, 0, -1);
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 01bc894e9c2b..093569033ed1 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -252,7 +252,7 @@ static int fuse_open(struct inode *inode, struct file *file)
- 	int err;
- 	bool is_truncate = (file->f_flags & O_TRUNC) && fc->atomic_o_trunc;
- 	bool is_wb_truncate = is_truncate && fc->writeback_cache;
--	bool dax_truncate = is_truncate && FUSE_IS_DAX(inode);
-+	bool dax_truncate = is_truncate && FUSE_IS_VIRTIO_DAX(fi);
- 
- 	if (fuse_is_bad(inode))
- 		return -EIO;
-@@ -1812,11 +1812,12 @@ static ssize_t fuse_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
- 	struct file *file = iocb->ki_filp;
- 	struct fuse_file *ff = file->private_data;
- 	struct inode *inode = file_inode(file);
-+	struct fuse_inode *fi = get_fuse_inode(inode);
- 
- 	if (fuse_is_bad(inode))
- 		return -EIO;
- 
--	if (FUSE_IS_DAX(inode))
-+	if (FUSE_IS_VIRTIO_DAX(fi))
- 		return fuse_dax_read_iter(iocb, to);
- 
- 	/* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
-@@ -1833,11 +1834,12 @@ static ssize_t fuse_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
- 	struct file *file = iocb->ki_filp;
- 	struct fuse_file *ff = file->private_data;
- 	struct inode *inode = file_inode(file);
-+	struct fuse_inode *fi = get_fuse_inode(inode);
- 
- 	if (fuse_is_bad(inode))
- 		return -EIO;
- 
--	if (FUSE_IS_DAX(inode))
-+	if (FUSE_IS_VIRTIO_DAX(fi))
- 		return fuse_dax_write_iter(iocb, from);
- 
- 	/* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
-@@ -2370,10 +2372,11 @@ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
- 	struct fuse_file *ff = file->private_data;
- 	struct fuse_conn *fc = ff->fm->fc;
- 	struct inode *inode = file_inode(file);
-+	struct fuse_inode *fi = get_fuse_inode(inode);
- 	int rc;
- 
- 	/* DAX mmap is superior to direct_io mmap */
--	if (FUSE_IS_DAX(inode))
-+	if (FUSE_IS_VIRTIO_DAX(fi))
- 		return fuse_dax_mmap(file, vma);
- 
- 	/*
-@@ -2934,7 +2937,7 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
- 		.mode = mode
- 	};
- 	int err;
--	bool block_faults = FUSE_IS_DAX(inode) &&
-+	bool block_faults = FUSE_IS_VIRTIO_DAX(fi) &&
- 		(!(mode & FALLOC_FL_KEEP_SIZE) ||
- 		 (mode & (FALLOC_FL_PUNCH_HOLE | FALLOC_FL_ZERO_RANGE)));
- 
+ 	  If you want to allow fuse server/client communication through io-uring,
+ 	  answer Y
++
++config FUSE_FAMFS_DAX
++	bool "FUSE support for fs-dax filesystems backed by devdax"
++	depends on FUSE_FS
++	depends on DEV_DAX
++	depends on FS_DAX
++	default FUSE_FS
++	help
++	  This enables the fabric-attached memory file system (famfs),
++	  which enables formatting devdax memory as a file system. Famfs
++	  is primarily intended for scale-out shared access to
++	  disaggregated memory.
++
++	  To enable famfs or other fuse/fs-dax file systems, answer Y
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 7f16049387d1..45e108dec771 100644
+index 45e108dec771..2839efb219a9 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
-@@ -1508,7 +1508,14 @@ void fuse_free_conn(struct fuse_conn *fc);
+@@ -921,6 +921,9 @@ struct fuse_conn {
+ 	/* Is synchronous FUSE_INIT allowed? */
+ 	unsigned int sync_init:1;
  
- /* dax.c */
++	/* dev_dax_iomap support for famfs */
++	unsigned int famfs_iomap:1;
++
+ 	/* Use io_uring for communication */
+ 	unsigned int io_uring;
  
--#define FUSE_IS_DAX(inode) (IS_ENABLED(CONFIG_FUSE_DAX) && IS_DAX(inode))
-+static inline bool fuse_file_famfs(struct fuse_inode *fuse_inode) /* Will be superseded */
-+{
-+	(void)fuse_inode;
-+	return false;
-+}
-+#define FUSE_IS_VIRTIO_DAX(fuse_inode) (IS_ENABLED(CONFIG_FUSE_DAX)	\
-+					&& IS_DAX(&fuse_inode->inode)  \
-+					&& !fuse_file_famfs(fuse_inode))
- 
- ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to);
- ssize_t fuse_dax_write_iter(struct kiocb *iocb, struct iov_iter *from);
 diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 819e50d66622..ed667920997f 100644
+index ed667920997f..acabf92a11f8 100644
 --- a/fs/fuse/inode.c
 +++ b/fs/fuse/inode.c
-@@ -162,7 +162,7 @@ static void fuse_evict_inode(struct inode *inode)
- 	/* Will write inode on close/munmap and in all other dirtiers */
- 	WARN_ON(inode_state_read_once(inode) & I_DIRTY_INODE);
+@@ -1456,6 +1456,10 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
  
--	if (FUSE_IS_DAX(inode))
-+	if (FUSE_IS_VIRTIO_DAX(fi))
- 		dax_break_layout_final(inode);
- 
- 	truncate_inode_pages_final(&inode->i_data);
-@@ -170,7 +170,7 @@ static void fuse_evict_inode(struct inode *inode)
- 	if (inode->i_sb->s_flags & SB_ACTIVE) {
- 		struct fuse_conn *fc = get_fuse_conn(inode);
- 
--		if (FUSE_IS_DAX(inode))
-+		if (FUSE_IS_VIRTIO_DAX(fi))
- 			fuse_dax_inode_cleanup(inode);
- 		if (fi->nlookup) {
- 			fuse_queue_forget(fc, fi->forget, fi->nodeid,
-diff --git a/fs/fuse/iomode.c b/fs/fuse/iomode.c
-index 3728933188f3..31ee7f3304c6 100644
---- a/fs/fuse/iomode.c
-+++ b/fs/fuse/iomode.c
-@@ -203,7 +203,7 @@ int fuse_file_io_open(struct file *file, struct inode *inode)
- 	 * io modes are not relevant with DAX and with server that does not
- 	 * implement open.
- 	 */
--	if (FUSE_IS_DAX(inode) || !ff->args)
-+	if (FUSE_IS_VIRTIO_DAX(fi) || !ff->args)
- 		return 0;
+ 			if (flags & FUSE_REQUEST_TIMEOUT)
+ 				timeout = arg->request_timeout;
++
++			if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&
++			    flags & FUSE_DAX_FMAP)
++				fc->famfs_iomap = 1;
+ 		} else {
+ 			ra_pages = fc->max_read / PAGE_SIZE;
+ 			fc->no_lock = 1;
+@@ -1517,6 +1521,8 @@ static struct fuse_init_args *fuse_new_init(struct fuse_mount *fm)
+ 		flags |= FUSE_SUBMOUNTS;
+ 	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
+ 		flags |= FUSE_PASSTHROUGH;
++	if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
++		flags |= FUSE_DAX_FMAP;
  
  	/*
+ 	 * This is just an information flag for fuse server. No need to check
+diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+index c13e1f9a2f12..25686f088e6a 100644
+--- a/include/uapi/linux/fuse.h
++++ b/include/uapi/linux/fuse.h
+@@ -240,6 +240,9 @@
+  *  - add FUSE_COPY_FILE_RANGE_64
+  *  - add struct fuse_copy_file_range_out
+  *  - add FUSE_NOTIFY_PRUNE
++ *
++ *  7.46
++ *  - Add FUSE_DAX_FMAP capability - ability to handle in-kernel fsdax maps
+  */
+ 
+ #ifndef _LINUX_FUSE_H
+@@ -448,6 +451,7 @@ struct fuse_file_lock {
+  * FUSE_OVER_IO_URING: Indicate that client supports io-uring
+  * FUSE_REQUEST_TIMEOUT: kernel supports timing out requests.
+  *			 init_out.request_timeout contains the timeout (in secs)
++ * FUSE_DAX_FMAP: kernel supports dev_dax_iomap (aka famfs) fmaps
+  */
+ #define FUSE_ASYNC_READ		(1 << 0)
+ #define FUSE_POSIX_LOCKS	(1 << 1)
+@@ -495,6 +499,7 @@ struct fuse_file_lock {
+ #define FUSE_ALLOW_IDMAP	(1ULL << 40)
+ #define FUSE_OVER_IO_URING	(1ULL << 41)
+ #define FUSE_REQUEST_TIMEOUT	(1ULL << 42)
++#define FUSE_DAX_FMAP		(1ULL << 43)
+ 
+ /**
+  * CUSE INIT request/reply flags
 -- 
 2.52.0
 
