@@ -1,172 +1,128 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BCE6D2FFDD5
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 17:49:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225FA43AA4
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 18:12:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768413001; cv=none; b=mYidLRrJZn5ooS7h+lyKLsbA8/GKL/ZqDOCHo66hKab86eV5cgpwbWPeudpYGPiMp/QhczPxwDzq1J9qP57FU8xy5AmIFwF6cAn6FPN0BzBWxBQUeT/pxDwfOkvh33RigAd/HACiTa+9waLWNn94H1tPpUOn1SUKYcC2anb/EMA=
+	t=1768414342; cv=none; b=SHZFBoiy9slv4t2sa9Gpg5bc4kO7Oh+WHAWRSk9Qrsud3Kdb+o4ejHAHsBhM/BP/cwoa87qZvW4BLUdO/5oRjLy7C4DaiutuEUejF3/GTDVJkXNAfZBdcTDirYO8qOo0SHQN58eJThaPjwOkf5S0RpEjZ56LoBVcfgV17/gdo6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768413001; c=relaxed/simple;
-	bh=/AHMpb4+3MfzIhYBPESp8KGt8HTeUy14LUGKGDaY7Jc=;
-	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=nYCvtwNmfNPRI2kMt6FzMOpG8Xv2GrytpiVJh3K4jRBpJFo3NO0icdYoGz0yjvq1G4vQvh/VrhrLhOVAEHdNkuGQz1yL6qHm/9KniwafY98ihbvaadCAZtdiNtjhZ646/irNi48nnwxquGqUkiPk2n9PqYSVLR9VYf60nr/nAOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4F3F21515;
-	Wed, 14 Jan 2026 09:49:52 -0800 (PST)
-Received: from [10.1.37.132] (unknown [10.1.37.132])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0CA253F59E;
-	Wed, 14 Jan 2026 09:49:57 -0800 (PST)
-Message-ID: <18af3213-6c46-4611-ba75-da5be5a1c9b0@arm.com>
-Date: Wed, 14 Jan 2026 17:49:30 +0000
+	s=arc-20240116; t=1768414342; c=relaxed/simple;
+	bh=Ludne4UyCmokfcKLruO0U5b344CQHhAN/3PEM1PYEik=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=e0nOz1mNUNbIOEzRflz3vlEg9K+dnWQt3UakaMrRtAlpIVo3Fb9OKGSNDLMgfhCLK/YkeDA/VgCE1g/nRo4TelSSm4kpkrdKecGeBdb8X/vB0aH3CDAcMLkpc5hWP/J0EbPVoZO2OeEo305CLSxbafG5AHt/qk0DaTKMd85c3YE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=qjTSAqbE; arc=none smtp.client-ip=209.85.219.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="qjTSAqbE"
+Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-88a3b9ddd40so232076d6.1
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 10:12:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1768414340; x=1769019140; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=MfgGnc8yYPLi9t7dHOsu001XcSCAHL7N89lmWN6W/2k=;
+        b=qjTSAqbEmlU3OGHqjvZEqAZPUipd+VEjYtq8UoP+tbKupfm0U4aDzHM50iuwqZBgaH
+         Cx8+8H0+CztoILYyozuIQiL0yme/ZsytvfDMJnetjydCYUt8fdY7z8FgoERvVlUKKEGp
+         KnYaPZ7rI3lEoB8tj8hKez7Nw445/QkHkD5NX+D3U6A0tvMOG3tbzFyIyyoTsbLnEI2l
+         6i5rBWGqzITASFbCcKNQ8et23cLd2csUQY4B1+Pp+ScIKFPUkfxwfZgeR2XdW8bdE8Pi
+         IPZpTqLUBcVd3eG0dAa7rDGVlJum+0usCyM4+Xvp7S2RiAFvYRCFpAhzmPlMEsN+Tk7r
+         4tBA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768414340; x=1769019140;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=MfgGnc8yYPLi9t7dHOsu001XcSCAHL7N89lmWN6W/2k=;
+        b=Wy0XJL2yvupNf4TTFOfqdgv9+7EJllrZeXhgwLyjFi58S2XL+Tn5em24Up5qOEAstO
+         736iUvxE0Oza5WdiLTmbp9/HRuQPZkri5BSa3lRYFv923TFc9PAT7U2xP56xzOKgV/rY
+         hfNAJR8SRfFHHIP8xIACxcEG8WlY9QoIUkcxHMt/wH2i1t+AFSHCRgpBudIuHt7LPALJ
+         ivjWMRLuPHpD5wiEtpNt8Hgjcs/V5gEIqH/6nYUQW35k5oA6nUd+bZdniPdx3kgWNAHy
+         2aDGh+3lI1LTF1Eq0vr45NTXcT35OCX5sBbvjFwhFIChNKKi7BC5qD+0Rvsfyvmn63gw
+         7/2A==
+X-Forwarded-Encrypted: i=1; AJvYcCV8gHPWjkpQm4PMnYQ1FCifEP7qHRuY/lxYfy0ajxlLsAP3xbQDZe+6SE3Vq49/2jaAP8r0Li0=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy8S0evNmOSsYwHes3JrWehSCM7Ebt8Q/A006+N4xd6myz1sEvw
+	eJI589jUUk5c/uwIuyIS4UrNdWavSgLXOkJ1I8l4+9+S9h/QOGnMWXU01CHUzL3dwRI=
+X-Gm-Gg: AY/fxX5dZbgAZGbxFm6Txog/9rT+3nXw3lbPEExYKXiDd9xvJZuVgwnbjDyNnnk3o0e
+	Pv5Uw/wemu+/fUd5jfxZ701rOJibIUAqAZdy3N33ByWi4ti+j7BhO1VlLkQSJ7HxQ4enGjOuXts
+	t09ENkjp4Ivc7v8XygaUy1zCXEplUKgPlQqSL3JId39Nibs2CGeGqvzA1ifdeO/Dit9YAwBO/34
+	W0uL7iBHO/xZWqkBYlSIKCYaj21Lr4/4rgdhfe/IRrHv/vYVJYbXzX8klDVeqBIhizdVT4X5MK8
+	jfySb3NkMGvqUyL44TtFcsqpRJV35iB31HS3oLFHee9GvDF5+fXkKMsgWNsrtMmRZwgPCNrM3W9
+	6/J6N7mscLuy0IrsmndBkzDP1rnSuy+ggFjDN2zX9isA9nYIt9r/3oTiSRMRkkTV0X3gbgoBVG2
+	r1sCTP9M5ErBIKff2oXYi8fSdX/MQ+6XdKkVcNuiESqrO164LIybJEqttWqz1I2Bf5S5JIlA==
+X-Received: by 2002:a05:6214:10c2:b0:785:aa57:b5bb with SMTP id 6a1803df08f44-892743cfe92mr35226416d6.43.1768414339907;
+        Wed, 14 Jan 2026 10:12:19 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-890770d17a3sm181634186d6.9.2026.01.14.10.12.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 14 Jan 2026 10:12:19 -0800 (PST)
+Date: Wed, 14 Jan 2026 13:11:46 -0500
+From: Gregory Price <gourry@gourry.net>
+To: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
+	kernel-team@meta.com, dan.j.williams@intel.com,
+	vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com,
+	jasowang@redhat.com, xuanzhuo@linux.alibaba.com,
+	eperezma@redhat.com, osalvador@suse.de, akpm@linux-foundation.org
+Subject: Re: [PATCH 7/8] dax/kmem: add sysfs interface for runtime hotplug
+ state control
+Message-ID: <aWfcYjZVrROHfGyh@gourry-fedora-PF4VCD3F>
+References: <20260114085201.3222597-1-gourry@gourry.net>
+ <20260114085201.3222597-8-gourry@gourry.net>
+ <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To: linux-kernel@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
- Nick.Connolly@arm.com, ffidencio@nvidia.com
-From: Seunguk Shin <seunguk.shin@arm.com>
-Subject: [PATCH] fs/dax: check zero or empty entry before converting xarray
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
 
-Trying to convert zero or empty xarray entry causes kernel panic.
+On Wed, Jan 14, 2026 at 11:55:21AM +0100, David Hildenbrand (Red Hat) wrote:
+> On 1/14/26 09:51, Gregory Price wrote:
+> > The dax kmem driver currently onlines memory automatically during
+> > probe using the system's default online policy but provides no way
+> > to control or query the memory state at runtime. Users cannot change
+> > the online type after probe, and there's no atomic way to offline and
+> > remove memory blocks together.
+> > 
+> > Add a new 'hotplug' sysfs attribute that allows userspace to control
+> > and query the memory state. The interface supports the following states:
+> > 
+> >    - "offline": memory is added but not online
+> >    - "online": memory is online as normal system RAM
+> >    - "online_movable": memory is online in ZONE_MOVABLE
+> >    - "unplug": memory is offlined and removed
+> > 
+> > The initial state after probe uses MMOP_SYSTEM_DEFAULT to preserve
+> > backwards compatibility - existing systems with auto-online policies
+> > will continue to work as before.
+> > 
+> > The state machine enforces valid transitions:
+> >    - From offline: can transition to online, online_movable, or unplug
+> >    - From online/online_movable: can transition to offline or unplug
+> >    - Cannot switch directly between online and online_movable
+> 
+> Do we have to support these transitions right from the start?
+> 
+> What are the use cases for adding memory as offline and then onlining it,
+> and why do we have to support that through this interface?
+> 
 
-[    0.737679] EXT4-fs (pmem0p1): mounted filesystem 
-79676804-7c8b-491a-b2a6-9bae3c72af70 ro with ordered data mode. Quota 
-mode: disabled.
-[    0.737891] VFS: Mounted root (ext4 filesystem) readonly on device 259:1.
-[    0.739119] devtmpfs: mounted
-[    0.739476] Freeing unused kernel memory: 1920K
-[    0.740156] Run /sbin/init as init process
-[    0.740229]   with arguments:
-[    0.740286]     /sbin/init
-[    0.740321]   with environment:
-[    0.740369]     HOME=/
-[    0.740400]     TERM=linux
-[    0.743162] Unable to handle kernel paging request at virtual address 
-fffffdffbf000008
-[    0.743285] Mem abort info:
-[    0.743316]   ESR = 0x0000000096000006
-[    0.743371]   EC = 0x25: DABT (current EL), IL = 32 bits
-[    0.743444]   SET = 0, FnV = 0
-[    0.743489]   EA = 0, S1PTW = 0
-[    0.743545]   FSC = 0x06: level 2 translation fault
-[    0.743610] Data abort info:
-[    0.743656]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
-[    0.743720]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-[    0.743785]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[    0.743848] swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000000b9d17000
-[    0.743931] [fffffdffbf000008] pgd=10000000bfa3d403, 
-p4d=10000000bfa3d403, pud=1000000040bfe403, pmd=0000000000000000
-[    0.744070] Internal error: Oops: 0000000096000006 [#1]  SMP
-[    0.748888] CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 6.18.4 #1 NONE
-[    0.749421] pstate: 004000c5 (nzcv daIF +PAN -UAO -TCO -DIT -SSBS 
-BTYPE=--)
-[    0.749969] pc : dax_disassociate_entry.constprop.0+0x20/0x50
-[    0.750444] lr : dax_insert_entry+0xcc/0x408
-[    0.750802] sp : ffff80008000b9e0
-[    0.751083] x29: ffff80008000b9e0 x28: 0000000000000000 x27: 
-0000000000000000
-[    0.751682] x26: 0000000001963d01 x25: ffff0000004f7d90 x24: 
-0000000000000000
-[    0.752264] x23: 0000000000000000 x22: ffff80008000bcc8 x21: 
-0000000000000011
-[    0.752836] x20: ffff80008000ba90 x19: 0000000001963d01 x18: 
-0000000000000000
-[    0.753407] x17: 0000000000000000 x16: 0000000000000000 x15: 
-0000000000000000
-[    0.753970] x14: ffffbf3154b9ae70 x13: 0000000000000000 x12: 
-ffffbf3154b9ae70
-[    0.754548] x11: ffffffffffffffff x10: 0000000000000000 x9 : 
-0000000000000000
-[    0.755122] x8 : 000000000000000d x7 : 000000000000001f x6 : 
-0000000000000000
-[    0.755707] x5 : 0000000000000000 x4 : 0000000000000000 x3 : 
-fffffdffc0000000
-[    0.756287] x2 : 0000000000000008 x1 : 0000000040000000 x0 : 
-fffffdffbf000000
-[    0.756871] Call trace:
-[    0.757107]  dax_disassociate_entry.constprop.0+0x20/0x50 (P)
-[    0.757592]  dax_iomap_pte_fault+0x4fc/0x808
-[    0.757951]  dax_iomap_fault+0x28/0x30
-[    0.758258]  ext4_dax_huge_fault+0x80/0x2dc
-[    0.758594]  ext4_dax_fault+0x10/0x3c
-[    0.758892]  __do_fault+0x38/0x12c
-[    0.759175]  __handle_mm_fault+0x530/0xcf0
-[    0.759518]  handle_mm_fault+0xe4/0x230
-[    0.759833]  do_page_fault+0x17c/0x4dc
-[    0.760144]  do_translation_fault+0x30/0x38
-[    0.760483]  do_mem_abort+0x40/0x8c
-[    0.760771]  el0_ia+0x4c/0x170
-[    0.761032]  el0t_64_sync_handler+0xd8/0xdc
-[    0.761371]  el0t_64_sync+0x168/0x16c
-[    0.761677] Code: f9453021 f2dfbfe3 cb813080 8b001860 (f9400401)
-[    0.762168] ---[ end trace 0000000000000000 ]---
-[    0.762550] note: init[1] exited with irqs disabled
-[    0.762631] Kernel panic - not syncing: Attempted to kill init! 
-exitcode=0x0000000b
+After a re-read of the feedback - are you suggested to basically kill the
+entire offline state of blocks entirely? (e.g. if a driver calls to
+offline a block, instead fully unplug it)
 
-This patch just reorders checking and converting.
+I took a look at the acpi and ppc code you suggested, and I think they
+also have "expect offline then online" as a default expectation.  I
+can't speak to those users requirements.
 
-Signed-off-by: Seunguk Shin <seunguk.shin@arm.com>
----
-  fs/dax.c | 9 ++++++---
-  1 file changed, 6 insertions(+), 3 deletions(-)
+This would definitely break things like daxctl/ndctl, but maybe that's
+preferable?  I pointed out that patch 8 does this anyway - and I'd like
+input from ndctl folks as to whether that should end in a NACK.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 289e6254aa30..de316be2cc4e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -443,11 +443,12 @@ static void dax_associate_entry(void *entry, 
-struct address_space *mapping,
-                                 unsigned long address, bool shared)
-  {
-         unsigned long size = dax_entry_size(entry), index;
--       struct folio *folio = dax_to_folio(entry);
-+       struct folio *folio;
-
-         if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
-                 return;
-
-+       folio = dax_to_folio(entry);
-         index = linear_page_index(vma, address & ~(size - 1));
-         if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
-                 if (folio->mapping)
-@@ -468,21 +469,23 @@ static void dax_associate_entry(void *entry, 
-struct address_space *mapping,
-  static void dax_disassociate_entry(void *entry, struct address_space 
-*mapping,
-                                 bool trunc)
-  {
--       struct folio *folio = dax_to_folio(entry);
-+       struct folio *folio;
-
-         if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
-                 return;
-
-+       folio = dax_to_folio(entry);
-         dax_folio_put(folio);
-  }
-
-  static struct page *dax_busy_page(void *entry)
-  {
--       struct folio *folio = dax_to_folio(entry);
-+       struct folio *folio;
-
-         if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
-                 return NULL;
-
-+       folio = dax_to_folio(entry);
-         if (folio_ref_count(folio) - folio_mapcount(folio))
-                 return &folio->page;
-         else
---
-2.34.1
-
+~Gregory
