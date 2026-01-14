@@ -1,63 +1,63 @@
-Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
+Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com [209.85.210.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 664AA35EDC1
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 21:34:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C6793624A8
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 21:35:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768426468; cv=none; b=C5pVUswA7B8eOoJWggBboljjvdzsJEewd66tgS/a65Rqtd3FJCgPCjD1XlR1M2MtJipx1FBKd/68W/OXlNsB2AtIIg+JIHkJRFi4QlQxAmr3rDm4VMmvJYylRNNTXwvo5uouebtePtQ9peFXFDYQQa7HqfS7UvxBmtRtY9ifZos=
+	t=1768426506; cv=none; b=WX7iEhrsbY1pQvaYS7g6SktRPOd6lhrQzLcJ/HSnoWDSGBDAB6fS8X7EuuKpSuT2JQfW7eQ9Vxj7+ty9BxDyoU0Ow8YqJ/WvUE0/RvkkyUDJsFjLYAfw727ZYz5AGOqYkblUFCpNZgart4ovw3Iw9CHPK7sXoDkTFtkbvcXnDSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768426468; c=relaxed/simple;
-	bh=9in78rjKHXFfg7w69sXqer35Ki4r88+O4RkMgHiDMEE=;
+	s=arc-20240116; t=1768426506; c=relaxed/simple;
+	bh=VJhZh7W86znk6T4YU4zDAnr6xplKZCmyhBUSPOyJHg8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Cn+oXJ2rictlJ8kHuYIQeppeDehbHaIwWex403nGNbrliGMITkEXbpgNQSHuwo1/TkB+9brI8Amvs0TR1cPuWOvlzfjnOGfIBwBn5X/8zgFK+AthC6rSwhRX234jQxrPuiQQYJh+ot0BfgSUD+Ea9T0Ij2AxMDldzeeE9hNoxYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BF/OP0B1; arc=none smtp.client-ip=209.85.210.46
+	 MIME-Version; b=Dct/VkFabZgpXy7p9E4DaYjbY+gyvZ2S3iEXgw2t5z+lfwdJG9ICQyr+OhVj/Vf+0n6LQbVXZJJNyJhmcSCt0gg+sw/Su6IWxFSjElhias150ZHgYqzFkGm5gComgzASthoQLykRomtqa0Jq2GxAuzNlFFeloHAXTw39yGUCArQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AF1LGbNn; arc=none smtp.client-ip=209.85.210.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BF/OP0B1"
-Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-7cfcb5b1e2fso182995a34.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 13:34:25 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AF1LGbNn"
+Received: by mail-ot1-f54.google.com with SMTP id 46e09a7af769-7c78d30649aso187535a34.2
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 13:35:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768426464; x=1769031264; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1768426497; x=1769031297; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=U7XgQVWhUwcysFnko8qRq5dHQ4c7d0Rm3BbWfFJ4FJk=;
-        b=BF/OP0B1pFMV53Ri4R/ckR6GwEjI4ljqD3bINNInPK7tEjSgBuvhkHlHvI1u5stUQB
-         V7zCHOagEmqe/kZiGBQ480Q87MYNTWtVsaBj6wa5+VpVLx6zaDCyd6cn3m5nouKnPRue
-         puyOAp0GM1M4bjOk5UGiKA9mVyYT362eq1096o8k9m7fub6tLHascmYr2j6o6BYTFY5V
-         9OK1Nl56nXQ0vvhGkMLh2yiBj7QlUb4LybNy64t74BiW7DziOLzibU32lwevFq0JBk6a
-         CnIxC6v1ziqMtPaZgXuGeS7yPE4V7O7sgomemig+BT3kF4oPQpprSxkFoJxQIRTVWgNH
-         9Efw==
+        bh=vZsKBgwQfRTYfl5tr8Q6BwcIVeayQIJR9+JPKX7ldDM=;
+        b=AF1LGbNnYee0WkACDTJbMQsOGSZL1wfeAn5VBG/2Siorqv2jtSOJTmy+HBJ7zsLCV4
+         8CwvTUYQYG5pQci3edl5anSsp4gLxQ1OuR/PJDK41Rf/wib11iAL7oYxJ9rzvSRnopMP
+         egd+iP+hxjRC2NS84FFZzFqC4QOrBTlXjsdn1wD0MYFn1OKqwJL29oNRkQaAjbUbYHy0
+         PQ+UgaBLrUw7DrX+2CT5VABr5LklRN52oQz7XcDL1R4/2/ewDt8QzmDumKeGQbcJykpA
+         IXwdzy9SWGSS/sqhbckbXDVxpGcNP8t53yIrnKw7NPBMPerXDbn2J1c2a32qJRgmOs07
+         eqFg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768426464; x=1769031264;
+        d=1e100.net; s=20230601; t=1768426497; x=1769031297;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=U7XgQVWhUwcysFnko8qRq5dHQ4c7d0Rm3BbWfFJ4FJk=;
-        b=SUe77xSF7vuNo3Ygy2yLEF4nLEdOpvoHFGUVmczT81yZcDtlR6XANWc4r8BYadCgS4
-         SL4yp0njH8MwxhE9Fmwt8kfEKLMy1JzDemLaaX+7a77A6EGqbWYbCQto0WlRO0dQxAEb
-         w8NYmuL/Aq6jC4YG3UoQ1lpLwlPRbtnZhZmWzw0ssUe+fqYDpwGBVlQlprF0/diBL76r
-         ZY+v/b9W9dsxsxpLoNLpdqqVW48cvUEVJ8LnF4V9saxWoRS+hnu7s7IkOcuPngyp2XxP
-         cX60uPPGuttDvuV4APsGJVfNKlitpSn5OI17/cU7DoSR0sbi0LVcT1g3ppcyeGlm+y3K
-         uq0Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVbnlImnzJIybjvUReTGsmRr14cMxmpMLO4ANGAQUgBt3AfwyvouuywxnfkE6qM2HPqen4aOwE=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxYQ7YYQHL+tPAMugYauNwoCZMC7g5VQWOLX+j8SicrcEeoxpY2
-	3M6A+6D7aOXli02VIZczsMTSAi0oIqiR3SrSHS/E3VmdqfLeOM/AEBvx
-X-Gm-Gg: AY/fxX42yhB/FUjnamW/XqburNT850G2lkvvpir9vzCkLrqFPhsbQO4dv6PDE4Wi6AF
-	mYZ8qHUtbsUmibD77VFM6OZJTxdqZOLSqa+RHw5FOTi1J3UX7u0B9tpXKPdgftwHO8AEzLszdVx
-	v2N5/yxFQzxKVJLXGrewVh9zJaSpV7ebPaEgFAYg+SVy6ACgfBIHFgQdxbiKFG3tqkhuOR90qHi
-	gcNVOsGkATebnw8j2N2mVrVUQO7hGcoeSqKO1/B9pfty67rtCK/6s2aR47Xec5VxRF7tNdIF2nV
-	3PSvFY3k4GBYJNOkDZ2B/OXS5ImSPqUvKTLmr18pI3bnEwejzxE964UxEECOmRj9YUe8SK82lxN
-	3nyOlt+pZupw85wb6q7ftLFUlSyW4v0gGOhhzhWSun8gt0QSLAkN3FNjyJJF39a1jJEPvrbdzHb
-	DkVuUe/tnbeQ4F2v2QFMt8KQ5WJdt80M0d66f9GDK/UThm
-X-Received: by 2002:a05:6830:1cc2:b0:79d:eccc:96eb with SMTP id 46e09a7af769-7cfc8b3a75amr2512388a34.26.1768426464258;
-        Wed, 14 Jan 2026 13:34:24 -0800 (PST)
+        bh=vZsKBgwQfRTYfl5tr8Q6BwcIVeayQIJR9+JPKX7ldDM=;
+        b=aSaIJK9hdwlrygLjOOKcuZyptbjq/NVH7GGz5CO/VwUH1znU/6VI8iTPRTYF/oJ7+X
+         /WQitaA/FIl4mIokLDppn7I6/OOI02Qf3NRa3/Xn6KjlEKGSHaOfWQTxJ+coyO5Z/DdT
+         x4qreT3hw2QayocbvAUEFnEY3ZA0tUc5CgIxMlP8Y6T0QCWdbL1+hgq9wUOSp87NiA1y
+         C3UHpEcS/AzYB/tZqzM0aBlBVp9BaE4ckdQ0+FyXHZJ28v1Gsn94jXWnRqo8vcRoUwYa
+         zIhSKOn2u4LyeAq1Ayh/iUOatjpn/XMzmGH1Kns3rkI+x7sBNgYEp+8kURw5XRYkfaT2
+         ayoQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUjksOaJHRznMrSU9X2vpumQur/YuL9BvMDvLF+gEO2lhXsVysN/oO7Xsjq0cD4ukCVKaB6624=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxfWOdWtNNdhGJ5DCxqUNczy39MzdMZHVyfVyQHU3//VEwN3qj0
+	ep7dZWK7O8SnCWSN0QHB1lfg4HuEkI/9VaALmXwYFZSpdV5puSx7HIDN
+X-Gm-Gg: AY/fxX7s+MmIygnZv+O7R7JvwbI8NPk++Pb4OO3Az8IDzzJDOTkPNIdijy611kVyM6k
+	lrgWx5uJL16njCMA0gKCouwHQvbxfhcE6mOam84z6hqbu3G7i/Y3lsN3yifmPbmoYyOrRPuKaGx
+	1JCYYc6gcB4NyBI35nOnUDcizjuDi/xCFoHtv/c3A68PPISn42Tuuk/f6YlZyZX0P84Bi6OZKD+
+	PsWmChs0XJS8agfjCsh/DjBfpq9p+qE34b06tk+CxNuuvwchil3qa9f05QDmtIT86YyQrAETDAJ
+	Z5kX7ORISXzkBoHswIa9CAxtFqekNCoWyd7klVCTyBbuDPrb7z79zc8GtDX1DpN1RfXxKQvizSD
+	t1ghc+KRKFrvM2M4Uc42h6iBA4Sy+bx5vOCRqRm8WxNqwx/FLxCSq9ATVfgQ+lsFpVnDG5VJN15
+	Fr/PdszyFno0L49TYcrxXLWstyM90dgVHRS2QFJVPC9U4iO9m/1ht7fy8=
+X-Received: by 2002:a05:6830:4124:b0:7cf:d18e:706e with SMTP id 46e09a7af769-7cfd18e7074mr1365370a34.5.1768426497284;
+        Wed, 14 Jan 2026 13:34:57 -0800 (PST)
 Received: from localhost.localdomain ([2603:8080:1500:3d89:4c85:2962:e438:72c4])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7ce478d9c2esm19771776a34.21.2026.01.14.13.34.21
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7cfd447151csm542661a34.14.2026.01.14.13.34.55
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 14 Jan 2026 13:34:23 -0800 (PST)
+        Wed, 14 Jan 2026 13:34:56 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -98,9 +98,9 @@ Cc: John Groves <jgroves@micron.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH V4 04/19] dax: Save the kva from memremap
-Date: Wed, 14 Jan 2026 15:31:51 -0600
-Message-ID: <20260114213209.29453-5-john@groves.net>
+Subject: [PATCH V4 05/19] dax: Add dax_operations for use by fs-dax on fsdev dax
+Date: Wed, 14 Jan 2026 15:31:52 -0600
+Message-ID: <20260114213209.29453-6-john@groves.net>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260114213209.29453-1-john@groves.net>
 References: <20260114153133.29420.compound@groves.net>
@@ -113,56 +113,139 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Save the kva from memremap because we need it for iomap rw support.
+From: John Groves <John@Groves.net>
 
-Prior to famfs, there were no iomap users of /dev/dax - so the virtual
-address from memremap was not needed.
+fsdev: Add dax_operations for use by famfs
+
+- These methods are based on pmem_dax_ops from drivers/nvdimm/pmem.c
+- fsdev_dax_direct_access() returns the hpa, pfn and kva. The kva was
+  newly stored as dev_dax->virt_addr by dev_dax_probe().
+- The hpa/pfn are used for mmap (dax_iomap_fault()), and the kva is used
+  for read/write (dax_iomap_rw())
+- fsdev_dax_recovery_write() and dev_dax_zero_page_range() have not been
+  tested yet. I'm looking for suggestions as to how to test those.
+- dax-private.h: add dev_dax->cached_size, which fsdev needs to
+  remember. The dev_dax size cannot change while a driver is bound
+  (dev_dax_resize returns -EBUSY if dev->driver is set). Caching the size
+  at probe time allows fsdev's direct_access path can use it without
+  acquiring dax_dev_rwsem (which isn't exported anyway).
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- drivers/dax/dax-private.h | 9 +++++++--
- drivers/dax/fsdev.c       | 1 +
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/dax/dax-private.h |  1 +
+ drivers/dax/fsdev.c       | 80 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+)
 
 diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index 0867115aeef2..f3cf0a664f1b 100644
+index f3cf0a664f1b..164dd5b9d933 100644
 --- a/drivers/dax/dax-private.h
 +++ b/drivers/dax/dax-private.h
-@@ -67,8 +67,12 @@ struct dev_dax_range {
- /**
-  * struct dev_dax - instance data for a subdivision of a dax region, and
-  * data while the device is activated in the driver.
-- * @region - parent region
-- * @dax_dev - core dax functionality
-+<<<<<<< Conflict 1 of 1
-++++++++ Contents of side #1
-+ * @region: parent region
-+ * @dax_dev: core dax functionality
-+ * @virt_addr: kva from memremap; used by fsdev_dax
-+ * @align: alignment of this instance
-  * @target_node: effective numa node if dev_dax memory range is onlined
-  * @dyn_id: is this a dynamic or statically created instance
-  * @id: ida allocated id when the dax_region is not static
-@@ -81,6 +85,7 @@ struct dev_dax_range {
- struct dev_dax {
+@@ -86,6 +86,7 @@ struct dev_dax {
  	struct dax_region *region;
  	struct dax_device *dax_dev;
-+	void *virt_addr;
+ 	void *virt_addr;
++	u64 cached_size;
  	unsigned int align;
  	int target_node;
  	bool dyn_id;
 diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-index 29b7345f65b1..72f78f606e06 100644
+index 72f78f606e06..f58c88de7a4d 100644
 --- a/drivers/dax/fsdev.c
 +++ b/drivers/dax/fsdev.c
-@@ -201,6 +201,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
- 		       __func__, phys, pgmap_phys, data_offset);
- 	}
-+	dev_dax->virt_addr = addr + data_offset;
+@@ -28,6 +28,81 @@
+  * - No mmap support - all access is through fs-dax/iomap
+  */
  
- 	inode = dax_inode(dax_dev);
- 	cdev = inode->i_cdev;
++static void fsdev_write_dax(void *pmem_addr, struct page *page,
++		unsigned int off, unsigned int len)
++{
++	while (len) {
++		void *mem = kmap_local_page(page);
++		unsigned int chunk = min_t(unsigned int, len, PAGE_SIZE - off);
++
++		memcpy_flushcache(pmem_addr, mem + off, chunk);
++		kunmap_local(mem);
++		len -= chunk;
++		off = 0;
++		page++;
++		pmem_addr += chunk;
++	}
++}
++
++static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
++			long nr_pages, enum dax_access_mode mode, void **kaddr,
++			unsigned long *pfn)
++{
++	struct dev_dax *dev_dax = dax_get_private(dax_dev);
++	size_t size = nr_pages << PAGE_SHIFT;
++	size_t offset = pgoff << PAGE_SHIFT;
++	void *virt_addr = dev_dax->virt_addr + offset;
++	phys_addr_t phys;
++	unsigned long local_pfn;
++
++	WARN_ON(!dev_dax->virt_addr);
++
++	phys = dax_pgoff_to_phys(dev_dax, pgoff, nr_pages << PAGE_SHIFT);
++
++	if (kaddr)
++		*kaddr = virt_addr;
++
++	local_pfn = PHYS_PFN(phys);
++	if (pfn)
++		*pfn = local_pfn;
++
++	/*
++	 * Use cached_size which was computed at probe time. The size cannot
++	 * change while the driver is bound (resize returns -EBUSY).
++	 */
++	return PHYS_PFN(min(size, dev_dax->cached_size - offset));
++}
++
++static int fsdev_dax_zero_page_range(struct dax_device *dax_dev,
++			pgoff_t pgoff, size_t nr_pages)
++{
++	void *kaddr;
++
++	WARN_ONCE(nr_pages > 1, "%s: nr_pages > 1\n", __func__);
++	__fsdev_dax_direct_access(dax_dev, pgoff, 1, DAX_ACCESS, &kaddr, NULL);
++	fsdev_write_dax(kaddr, ZERO_PAGE(0), 0, PAGE_SIZE);
++	return 0;
++}
++
++static long fsdev_dax_direct_access(struct dax_device *dax_dev,
++		  pgoff_t pgoff, long nr_pages, enum dax_access_mode mode,
++		  void **kaddr, unsigned long *pfn)
++{
++	return __fsdev_dax_direct_access(dax_dev, pgoff, nr_pages, mode,
++					 kaddr, pfn);
++}
++
++static size_t fsdev_dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	return _copy_from_iter_flushcache(addr, bytes, i);
++}
++
++static const struct dax_operations dev_dax_ops = {
++	.direct_access = fsdev_dax_direct_access,
++	.zero_page_range = fsdev_dax_zero_page_range,
++	.recovery_write = fsdev_dax_recovery_write,
++};
+ 
+ static void fsdev_cdev_del(void *cdev)
+ {
+@@ -163,6 +238,11 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+ 		}
+ 	}
+ 
++	/* Cache size now; it cannot change while driver is bound */
++	dev_dax->cached_size = 0;
++	for (i = 0; i < dev_dax->nr_range; i++)
++		dev_dax->cached_size += range_len(&dev_dax->ranges[i].range);
++
+ 	/*
+ 	 * FS-DAX compatible mode: Use MEMORY_DEVICE_FS_DAX type and
+ 	 * do NOT set vmemmap_shift. This leaves folios at order-0,
 -- 
 2.52.0
 
