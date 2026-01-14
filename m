@@ -1,63 +1,64 @@
-Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33C202FDC53
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 17:27:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECEEF2FFDD8
+	for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 17:28:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768411671; cv=none; b=TWTdJ+SL28EokGx+r1ZdJD8avamxm9XNPN9y15krC4v+o8zoSUeSWbaydpQV7B4MW/qlWFJozdT9ThTHT5Heu87C0EE0dyej1XSLz9TIL3Hg/BnetfBTidXrBujsWoyw/LCo5wq8N8AoL+/bbT/Pu4piXAu5XaIgfmX7ify0Ptw=
+	t=1768411719; cv=none; b=hspZ4BgFfLNkSejCJG3DgkweZd4u3WgNb2v1JkfCOVuyerl/L26hDZ8LkjrqwJlBLAXFdVRK+7U8WC7rVBKqMblwitaKg1AuuRdOwPQ+PPdtx2Qwit3SZ4cYNcCb+IpoXxs/DEpUshivcR0+vfeVY+ZaMzqT3bFhDxf33DNbNpQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768411671; c=relaxed/simple;
-	bh=BqCvlqSVSE09C2/snd3R+i7XS2A8CrQ1CJT3b7m8rA8=;
+	s=arc-20240116; t=1768411719; c=relaxed/simple;
+	bh=pn2FMj69xGy0y/5Gx9Y/UeewmmSegh4/cOxhPfcbyl0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=e1qjy+au1eLVzrUrAxhZ3ftGFBTM7jUZu8OI0aGn2/yzScIhLt7mzmSZNu0h94ZLCH9+KW4Bx8VfTeoi/LbehInHChJex5MDL358G4lQgaJ8SKB72A+Kg2DNnHV81tUBxJWZp+5TjWPF/u/gy5isaq/rlmcUrHcd5kGpnli6eHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=cz2iWRN2; arc=none smtp.client-ip=209.85.160.172
+	 Content-Type:Content-Disposition:In-Reply-To; b=utvppCcLWvtHEosse2D609v1AHeiqBUo2JJ4JVPf9ym18UURZtemZJzb9oEupAWC/2tAQhOkbb+lV6+u/TXT+cwLIjmsyhb1TnH3VWlJ638eFJ+9nRMeM83Q+o+2cUaswl3rpdKPnfqfKqpM+W3b3+oRwMkYONEGhb88xzAeT1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=eemakQNB; arc=none smtp.client-ip=209.85.219.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="cz2iWRN2"
-Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-501469b598fso81651cf.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 09:27:49 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="eemakQNB"
+Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-88ffcb14e11so66626d6.0
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 09:28:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1768411669; x=1769016469; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1768411715; x=1769016515; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=U4FdywhLVayjs/og8ka5nlrVNCvxPIqbw9riK1WrSno=;
-        b=cz2iWRN2Cgftt1m4UShmW/new87Q9pJzsHAsCh9b5LpX06uJhVYrlx7MeKTxBDBK07
-         C9Mv7GlwvmpfMIu9SoFr2XMDRExhXVBPtxQgQzg4hhccHzInyq5PGOszWY11v8ZU4HuF
-         w7qoIeCW/oEVczlc4DkCJsGBOUKiXzMkTHPQwZ2/EYboHc1PdSdGqUOm2Tup7iWG4rYc
-         vVrHnPokMkwhAAVF5ZFpxbEeh4m6llYIQYMxUH8imhtvQ+NaUrKz1eQ51zCc6tceDXfq
-         l7Kl+lV6Ad8PFbOpbdM5xYS3nftfDPEpql1THgBAyPgZgTaDp3QQS8JurzJ9Rgdqf1Yj
-         bXBw==
+        bh=M8gk61w9S/yjYbnW7IJJtdpbyzDzV71vvh8bvL1b1DI=;
+        b=eemakQNBt9UrcG/hDW7JI2pfJ9CnuUdl/Ahor71Mp8/PamVJ3WdsW4jPZXfBGRB4Te
+         cnbAoJj6e+z0ENTvqcqNQhInlxGanRo1y19pS5oVgQhNLZQ/jPHD15o5QtIXN4TAll8M
+         gG53SycpOmESoQzIhAscxoDupB3dty6uI4ra+y6PCdcNGnX3KbpTJaHPXsptiagJqk2Q
+         hK1wlUiObtFlZajffRpY8z7eexQrf8FL2aC13S3CBw/p4wMIJYQWmFgw4CboaH79M87r
+         fKFZdJlSYjaHLqscS+fx156gi1UJJ0qVEmJhCqbu4iwxbn46tHkqeQEjHJLPIENY9ezX
+         sDLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768411669; x=1769016469;
+        d=1e100.net; s=20230601; t=1768411715; x=1769016515;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=U4FdywhLVayjs/og8ka5nlrVNCvxPIqbw9riK1WrSno=;
-        b=mRQrleXGSUh9LBQQJXanBd2TyH0b9EJDMZwZFcMryQQu5g77pC8xb44rAtid/DZ2nC
-         rP/vhRgum0jlkbZH6f8xzaeTYLN8e0aLAxjNmviHDjipjfA2f30z8RQjbk1UYTfgvWBk
-         yev/sNFuH0VtALMZvYr8lv9Ki26XJQ7nK+e+JINrmCovSTAC5PJ54UNKtSxymZi9vfBd
-         GCv/O+E9J3kKymYQG5syQuTi0QFGnEV8fgNtx83a0Rl0ar1LrXd5+Hvr2bZv4MTJ7oDC
-         +WdWjwLmGvzDJ8Da1Lo/ddeyurNqnIc4hfbO9ESOo2yU+cZl33g7jeL/jx7a5im8SJjy
-         r9NA==
-X-Forwarded-Encrypted: i=1; AJvYcCVhx/1Pi/otLrHeNIz9p8G+JhjpbHzuSzluh5A2bhsrqcIwg4ZvR59A/hdf6DL6LlizOcegRqI=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yy4e34ljVhPNYoARbSZ8mtCJMAdL0C66f5gwbnawH1KUAec2xtl
-	0vEX+k2Exk257cncxJoVEZ3ns/mgAhC7JGkhCxW6TsInzTv9EtNg1YrLyb3B7imP7/E=
-X-Gm-Gg: AY/fxX6g9XOTPIMwt+ov4njYrFw9tXzX8LfQncXlYA64zLgQmwsS23uEFZbrgz360NF
-	MluW1/3iNQ+jtvWaCL1aXdMi6EdhcMFdRbDnvX4wfCsawXKmLl9taYuGNu16IgVTov3tgTa2d//
-	GFeiOtvCGQ8GBotxZY2sMKGurjJw3CC0rwXf35sbqJN8vYGXZMt2OyHjXtJbKNdIaTy0zdFPmgp
-	vSZa3yGntFeWfp6xoABRsv1UW6MdN0LqJqp0mK6mkXyhAE6iKR15p9ZDaHv6Uve1L1wfYue6XWB
-	9av2/v0BjJjamgfviACYC1bwJalerhmOPL0G3Vrz9QrhTu6RijSF+Fk1EnTh3kTFFjl+D34RXac
-	9fWayq9yKnn7BOMoLV1MSqaQT+se+DPY6Jg3lR+wlr+dwm/EW6zRKUwmGTOrVWoNs7SvWxL5P2W
-	80PzLDq+utTXwkuPUk9LFhiQ9SSwsiGQ6Zs2aHKlnLYUWjBp3TPw9lHAj0/05fqu3K21RVOw==
-X-Received: by 2002:a05:622a:14cb:b0:4ee:1f22:3615 with SMTP id d75a77b69052e-5014827ba2dmr51922171cf.51.1768411668907;
-        Wed, 14 Jan 2026 09:27:48 -0800 (PST)
+        bh=M8gk61w9S/yjYbnW7IJJtdpbyzDzV71vvh8bvL1b1DI=;
+        b=mEO5Q+m7LODSPfOHd8kcL5X7cvq7Ka2Rquxzjb9TB4gp8d88kYiHFBDqp6mcx8+J+l
+         YkQDZHIn6XalP+7Gw0WBy9RGhA58oHWj1HTZ8IWWg280VoOH+cXmbBsGM3ct4TWVIrGn
+         kVHmXzVtmDQzS0qPoKpj7A8mu9ZPWdGm22XmEUpwfzAOFJ0Z9g9dUPRpejV/mir5XsRr
+         KwxNMmkA9Sya4Rq5CwBsxWjkbUEy/KOlrW7PCcQjCmDeE/PFr28lWWeCr6f+JQMpzfLe
+         BsR8NLVfiYCUFdhxM2wl34vdpDvqH/cw6NwrPDt3v2XonqZxnfMtrbX6ihanQkiKRit7
+         Txug==
+X-Forwarded-Encrypted: i=1; AJvYcCW6irR3ZAb3rAZHAVs5r74bj8ESgxCdO3e5z2U+OBovm11IwyTKBTLiaQCkJSS2yslluByTYLk=@lists.linux.dev
+X-Gm-Message-State: AOJu0YztgaMBANfy5ZVCMC3HYG1h2fAdRknYPYeQPMdIGX5gJm6/CxF9
+	BtxpL3mKjnS2nV5lw1XN9h1OkcOJp9TeL1EhG3znJCAcOaCSDW5qZiaNwWv5K8Ng8BscjCPEkSF
+	hO7SMn0g=
+X-Gm-Gg: AY/fxX7i10nC/d/rUtWSUCQihql7iILSy2QQwnI9UhJRFW1OallBdYuhrEbPPwfVmsb
+	suUBDzTIOEhoSwUA2mjnio7ClKWpKqUSz/rQhf/krLyhwesSgco39pB2JTBuqgrXEUeVx3uBx3e
+	M5Do7qCy21ro4j+iV1oRqEZ5fvH7CXiRxhjaH6h9ga6P614miFHlEQ+JO7FBpBy+59TNpusE8bn
+	uvWbw0iqDVSGCSVil5BBRmz6LDZJ1Iyxi68DybNMSSnV8wIilPBcF4iiPHBsjnsSn/X6Dlo5vxo
+	NSaQwrNFf1NaWMoQ269Kllo4mbooT69ZM7AdCUrQoiZDITGoJlSCnT0NojtX2nidYa/MSXu4cBQ
+	U7+6DcBuXKbGkp5gkZezDc1Nvq1NrHFRyM7ktHhVhz21r9UOuqhqMUDAmEWTPC0IRvjdqhPy/RY
+	fzvHQ78BsPP2/xguzR7ygpIjO279/xahjiunp8Y6ImKOpfFtr0nIXDLlz5X2OgzbLWPXRrDg==
+X-Received: by 2002:a05:6214:f6c:b0:87d:e2b:cdf7 with SMTP id 6a1803df08f44-8927445388dmr42459046d6.66.1768411714702;
+        Wed, 14 Jan 2026 09:28:34 -0800 (PST)
 Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50148dd75d4sm18287131cf.2.2026.01.14.09.27.47
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8927a07c731sm10671566d6.34.2026.01.14.09.28.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Jan 2026 09:27:48 -0800 (PST)
-Date: Wed, 14 Jan 2026 12:27:15 -0500
+        Wed, 14 Jan 2026 09:28:34 -0800 (PST)
+Date: Wed, 14 Jan 2026 12:28:01 -0500
 From: Gregory Price <gourry@gourry.net>
 To: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
@@ -66,12 +67,12 @@ Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com,
 	jasowang@redhat.com, xuanzhuo@linux.alibaba.com,
 	eperezma@redhat.com, osalvador@suse.de, akpm@linux-foundation.org
-Subject: Re: [PATCH 3/8] mm/memory_hotplug: add APIs for explicit online type
- control
-Message-ID: <aWfR86RIKEvyZsh6@gourry-fedora-PF4VCD3F>
+Subject: Re: [PATCH 4/8] mm/memory_hotplug: return online type from
+ add_memory_driver_managed()
+Message-ID: <aWfSIX5lRqb35yUf@gourry-fedora-PF4VCD3F>
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-4-gourry@gourry.net>
- <b3d435d2-643f-4dad-9928-bc7fb5080181@kernel.org>
+ <20260114085201.3222597-5-gourry@gourry.net>
+ <6a9db6ff-2fe8-4be6-baba-7db7913898f2@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,146 +81,21 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <b3d435d2-643f-4dad-9928-bc7fb5080181@kernel.org>
+In-Reply-To: <6a9db6ff-2fe8-4be6-baba-7db7913898f2@kernel.org>
 
-On Wed, Jan 14, 2026 at 11:21:34AM +0100, David Hildenbrand (Red Hat) wrote:
+On Wed, Jan 14, 2026 at 11:49:19AM +0100, David Hildenbrand (Red Hat) wrote:
 > On 1/14/26 09:51, Gregory Price wrote:
-> > Add new memory hotplug APIs that allow callers to explicitly control
-> > the online type when adding or managing memory:
-> > 
-> >    - Extend add_memory_driver_managed() with an online_type parameter:
-> >      Callers can now specify MMOP_ONLINE, MMOP_ONLINE_KERNEL, or
-> >      MMOP_ONLINE_MOVABLE to online with that type, MMOP_OFFLINE to leave
-> >      memory offline, or MMOP_SYSTEM_DEFAULT to use the system default
-> >      policy. Update virtio_mem to pass MMOP_SYSTEM_DEFAULT to maintain
-> >      existing behavior.
+> > Change add_memory_driver_managed() to return the online type (MMOP_*)
+> > on success instead of 0. This allows callers to determine the actual
+> > online state of the memory after addition, which is important when
+> > MMOP_SYSTEM_DEFAULT is used and the actual online type depends on the
+> > system default policy.
 > 
-> I wonder if we rather want to add a new interface
-> (add_and_online_memory_driver_managed()) where we can restrict it to known
-> kernel modules that do not violate user-space onlining policies.
-> 
-
-I originally did this, but then add_memory_driver_managed is just
-
-__add_memory_driver_managed(..., MMOP_SYSTEM_DEFAULT)
-
-at that point, just update all the existing callers of
-add_memory_driver_managed(..., mhp_default_etc) and make it explicit in
-those call spaces that this is what's happening.
-
-> For dax we know that user space will define the policy.
-> 
-
-Actually this may not always be true.  A driver spawning a dax on probe
-might also end up selecting the policy... eventually... maybe... I might
-be planning to add that glue between CXL and DAX so I can add some
-config similar to the system-default policy to avoid systems with
-multiple memory-devices being forced into the same policy
-
-(e.g. CXL memory device can online auto in ZONE_MOVABLE, but the other
- device can have its own policy).
-
-There's a weird corner case for CXL auto-regions (BIOS configured
-everything but left the memory EFI_MEMORY_SP - so comes up as DAX).
-I'm trying to keep those systems working the same as they have been
-while the userland policy stuff catches up.  Early CXL patterns are :[
-
-> > 
-> >    - online_memory_range(): online a previously-added memory range with
-> >      a specified online type (MMOP_ONLINE, MMOP_ONLINE_KERNEL, or
-> >      MMOP_ONLINE_MOVABLE). Validates that the type is valid for onlining.
-> 
-> Why not simply online_memory() and offline_memory() ?
-> 
-
-stupidly: I thought online_memory existed lol, ack.
-
-> > 
-> >    - offline_memory(): offline a memory range without removing it. This
-> >      is a wrapper around the internal __offline_memory() that handles
-> >      locking. Useful for drivers that want to offline memory blocks
-> >      before performing other operations.
-> > 
-> 
-> These two should be not exported to arbitrary kernel modules. Use
-> EXPORT_SYMBOL_FOR_MODULES() if required, or do not export them at all.
-> 
-
-hm, not sure i understand this.  Maybe you address their usage later in
-dax_kmem_do_online and dax_kmem_do_offline, i'll come back around on
-this.
-
-I did see you were asking about why we need the offline state.  I'll
-come back to it there.
-
-> > diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> > index d5407264d72a..0f98bea6da65 100644
-> > --- a/include/linux/memory_hotplug.h
-> > +++ b/include/linux/memory_hotplug.h
-> > @@ -265,6 +265,7 @@ static inline void pgdat_resize_init(struct pglist_data *pgdat) {}
-> >   extern void try_offline_node(int nid);
-> >   extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages,
-> >   			 struct zone *zone, struct memory_group *group);
-> > +extern int offline_memory(u64 start, u64 size);
-> 
-> No new "extern" for functions.
-> 
-
-doh, habit matching surrounding code
-
-> > index ab73c8fcc0f1..515ff9d18039 100644
-> > --- a/mm/memory_hotplug.c
-> > +++ b/mm/memory_hotplug.c
-> > @@ -1343,6 +1343,34 @@ static int online_memory_block(struct memory_block *mem, void *arg)
-> >   	return device_online(&mem->dev);
-> >   }
-> > +/**
-> > + * online_memory_range - online memory blocks in a range
-> > + * @start: physical start address of memory region
-> > + * @size: size of memory region
-> > + * @online_type: MMOP_ONLINE, MMOP_ONLINE_KERNEL, or MMOP_ONLINE_MOVABLE
-> 
-> I wonder if we instead want something that consumes all parameters like
-> 
-> int online_or_offline_memory(int online_type)
-> 
-> Then it's easier to use and we don't really have to document the
-> "online_type" that much to hand-select some values.
-> 
-> (I'm sure there are better nameing suggestions :) )
-> 
-
-mhp_do_the_thing(int online_type) :P
-
-I can think about this.
-
-> Should we document what happens if the memory is already online, but was
-> onlined to a different zone?
-> 
-
-Yeah i'll do that, it should just refuse, since that's what dax does.
-
-> > + *
-> > + * @online_type specifies the online behavior: MMOP_ONLINE, MMOP_ONLINE_KERNEL,
-> > + * MMOP_ONLINE_MOVABLE to online with that type, MMOP_OFFLINE to leave offline,
-> > + * or MMOP_SYSTEM_DEFAULT to use the system default policy.
-> > + *
-> 
-> I think we can simplify this documentation. Especially, one
-> MMOP_SYSTEM_DEFAULT is gone.
+> Another reason to just let the caller handle MMOP_SYSTEM_DEFAULT itself by
+> calling mhp_get_default_online_type() :)
 >
 
-ack
-
-> > +/*
-> > + * Try to offline a memory range. Might take a long time to finish in case
-> > + * memory is still in use. In case of failure, already offlined memory blocks
-> > + * will be re-onlined.
-> > + */
-> 
-> Proper kerneldoc? :)
->
-
-ack
+Yeah i don't even end up using it, this is just cruft from early
+iterations.  I'll clean it up.
 
 ~Gregory
