@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E70C9395258;
-	Wed, 14 Jan 2026 10:49:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F48739525E;
+	Wed, 14 Jan 2026 10:55:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768387765; cv=none; b=M5B7IeIn5zUZvlSItkA3bEinLAUlxrJgPLxx4GfkLTnz4YZz8zpPjKGlpmsu14j+wBomCME111UKua/ae0dt6N3vWdmdYyFpCe4r0Nc2qmgy801pis1qu13bnE/Xn6glGe/CFOjAIfpjczLvY2YVQ5D/11/sQpN/+zNrOX6BRIk=
+	t=1768388127; cv=none; b=VftiQ9YPL6LKF7suIIy+J1xOhA5JvI/PUyD1vdessk5AkxbyMOlApmNv3Y+XaSJXCcp/bx431nBrk2h1QOk6hSO0rx3mHGvsLZIy2AEHZSSBcJlPj7nELxTnSTw6j2pY2RhAoRpOF51wSGxqBL15yxY3z9dO1fChQ3B7uAqMVvo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768387765; c=relaxed/simple;
-	bh=79/0LC4XFZkQa9FcixVBMSelu5diVWBx5HiiyCfVe6U=;
+	s=arc-20240116; t=1768388127; c=relaxed/simple;
+	bh=hIuzYS6a+N3lbpi7hIrLjsDBa5QpNFERvUevfsOEfh4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=eP7N36P6al43IWJpohJyejZhubbu5/0A9LJsnpq0D52D18lRLL3pm+Unu3+apHx+F6zhQunhHtymNMnl3/+mz1Idqq+5u7C3ws9WgbwD12dvc/Lb/GAlWhsuNph1BtzoNreMOnaGSGzufMmbzDIVmRIQCL/HhpP0NBvlfaCFU+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZalrBIh+; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=pr/44fsGD/WcDJM0xVFKaDRmcinsZD+xGjAE7Odyi6pxPlJef/RculwCNY2BY+al1XyN8WZ9tLXQuu4ps6i3avq/dHtUON4zQmlIehPata9bpGjE523DndpvaTz7E+Y6p2GULIo//F4SW7hB89v8yoY5ukfu1UDSJV4lArd6Ecw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UFqFErqz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZalrBIh+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E45EFC4CEF7;
-	Wed, 14 Jan 2026 10:49:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UFqFErqz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9F41C4CEF7;
+	Wed, 14 Jan 2026 10:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768387764;
-	bh=79/0LC4XFZkQa9FcixVBMSelu5diVWBx5HiiyCfVe6U=;
+	s=k20201202; t=1768388127;
+	bh=hIuzYS6a+N3lbpi7hIrLjsDBa5QpNFERvUevfsOEfh4=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=ZalrBIh+6TpqN7ymyXJCpyYRdW7dF3W8SHHJm8rtm4xILFsYOGZ1dYTT0+5OJuITx
-	 FAF+b88uA8O4ghuRa0FYLpUH2HMkIDWp1zQ/wH4dWLTzXl/f52M53Weh7lUAJIUtYd
-	 QIMO8H4LcGaYyDDipdBsn+13+EA9Yo594MvVJ4PkMk9/i8hwn1re6TZKqRuFLDLieF
-	 b5CbUtqCpzlGAVDLThfdkLSY9Q0nU18U6jHNb6C2aeg2fMgX5W6xEy+xTduL1NPwVv
-	 /xYDwlwS6XmoV8fvratJYauAscLKY/ixlIzEJjty50BxwlgRFyRxAkk0hmF4Hk/F5m
-	 n36k2s8+S77vw==
-Message-ID: <6a9db6ff-2fe8-4be6-baba-7db7913898f2@kernel.org>
-Date: Wed, 14 Jan 2026 11:49:19 +0100
+	b=UFqFErqzPJ9xHsMZc9dlgwx8hnhxKPXXPYUA7gEGkj+uw1ZDtSkdXfwehvBaAUol6
+	 /waiG99gkQrkadIv8oSCIckIZblqs4CzJfSq1HCXsQYuoX/lPqgirgy1JXbyvF2jMp
+	 yls+m+cGqpmVjJ1+5oLRmxDTJx4caD6F6XcJxGkgXJZqBk4sKs0U/zCZW+nlvJD3dc
+	 2TmzI4xtK2riCIBJCO7FIdzuy5ipOvxHnUH3EiP66tjgWs7KYS2vxMt0pNJ2EbXS5q
+	 CC2/9ogYjJtlFKGXCK6PAXDRVwgYd8IjzO3GXNqhfcRjF0tZ/1NnTW+EtjPa22nxTZ
+	 Z0gLImtzc6lZA==
+Message-ID: <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
+Date: Wed, 14 Jan 2026 11:55:21 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 4/8] mm/memory_hotplug: return online type from
- add_memory_driver_managed()
+Subject: Re: [PATCH 7/8] dax/kmem: add sysfs interface for runtime hotplug
+ state control
 To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
@@ -45,7 +45,7 @@ Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
  akpm@linux-foundation.org
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-5-gourry@gourry.net>
+ <20260114085201.3222597-8-gourry@gourry.net>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -91,19 +91,51 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <20260114085201.3222597-5-gourry@gourry.net>
+In-Reply-To: <20260114085201.3222597-8-gourry@gourry.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 1/14/26 09:51, Gregory Price wrote:
-> Change add_memory_driver_managed() to return the online type (MMOP_*)
-> on success instead of 0. This allows callers to determine the actual
-> online state of the memory after addition, which is important when
-> MMOP_SYSTEM_DEFAULT is used and the actual online type depends on the
-> system default policy.
+> The dax kmem driver currently onlines memory automatically during
+> probe using the system's default online policy but provides no way
+> to control or query the memory state at runtime. Users cannot change
+> the online type after probe, and there's no atomic way to offline and
+> remove memory blocks together.
+> 
+> Add a new 'hotplug' sysfs attribute that allows userspace to control
+> and query the memory state. The interface supports the following states:
+> 
+>    - "offline": memory is added but not online
+>    - "online": memory is online as normal system RAM
+>    - "online_movable": memory is online in ZONE_MOVABLE
+>    - "unplug": memory is offlined and removed
+> 
+> The initial state after probe uses MMOP_SYSTEM_DEFAULT to preserve
+> backwards compatibility - existing systems with auto-online policies
+> will continue to work as before.
+> 
+> The state machine enforces valid transitions:
+>    - From offline: can transition to online, online_movable, or unplug
+>    - From online/online_movable: can transition to offline or unplug
+>    - Cannot switch directly between online and online_movable
 
-Another reason to just let the caller handle MMOP_SYSTEM_DEFAULT itself 
-by calling mhp_get_default_online_type() :)
+Do we have to support these transitions right from the start?
+
+What are the use cases for adding memory as offline and then onlining 
+it, and why do we have to support that through this interface?
+
+It would be a lot simpler if we would only allow
+
+ >    - "offline": memory is added but not online
+ >    - "online": memory is online as normal system RAM
+ >    - "online_movable": memory is online in ZONE_MOVABLE
+ >    - "unplug": memory is offlined and removed
+
+That is, transitioning from offline to online or vice versa fails with 
+-ENOSUPP. User space can do that itself through sysfs and if there is 
+ever a good use case we can extend this interface here to allow it.
+
+Or is there a good use case that really requires this?
 
 -- 
 Cheers
