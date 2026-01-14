@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BA342D5923;
-	Wed, 14 Jan 2026 09:44:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31BD3355058;
+	Wed, 14 Jan 2026 09:46:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768383856; cv=none; b=ndqkjxgAtA1jDVh9jsjUssj12j8+N3RKGjN8lh6V3ijmoe4jLWssdJU4p7iSc/b5Ia41JLoBEbWRxgpdcfUcQbhBE/hCiv3bGVmX408jxb2zhRjzaHMHSGmW/mnHCGvZnVdQmJNKeCQ2GL+py1ITmIuog7LTrbW3cWDUEls/Bpk=
+	t=1768383969; cv=none; b=ZZQmjPTrh2Dk+155VFxdURb/DmSjdR+Kc7feddao9OGAPFo0vi2AvAx8xMrHEoKQjeobBciGE5WLkpz7vRAtguU71nE+ZzZXS+QQAMctVTdmZu41Y4tMFcwO4HCkA+60Qf4jxvOmd8ODMfH8P2SCVGOajK3b516B9/UxB6z05zo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768383856; c=relaxed/simple;
-	bh=iFG9jtDkQciBd3kw8laIsCgUzSrLhIKKl8rol2z2xpc=;
+	s=arc-20240116; t=1768383969; c=relaxed/simple;
+	bh=18qz/N7rP2+o1CwTclwkrkeekmMdR6OglwjJ1t5rog8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=G26/CQ8AKEin4ZeSF63O2KhKAA4KKg/+LnkhjAH98FU0a+vcqJ4FLJz4H98OyR4aD7tB4j7mPOfqOxeyYffbbiC9pG6G3qR/kzXCQQQbOMzaHjCjzjcJvcP1druLRAbnjrFO6y+skvcw/f31vxzmGLdZpjQiGXAP1OEcRY5Je3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lb8DXlDB; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=QNzl2KW9ZoIYSCYWyFGlRcCaszqZAs0C3CNqk7d34u89zRBkwwHL2qLZ0+VoTTfJ8Quh+ttDlCN/RktzInz3iQwBr+Hj0ekyisFC1WTd/AgIwU2tEuhKmQXmg4B++Rcslo4QBX5QCoNlwaFFYgVDsT3mlOD6X1DolB8/c2QL9wg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Emln45Zb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lb8DXlDB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEF00C4CEF7;
-	Wed, 14 Jan 2026 09:44:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Emln45Zb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06ECDC4CEF7;
+	Wed, 14 Jan 2026 09:46:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768383855;
-	bh=iFG9jtDkQciBd3kw8laIsCgUzSrLhIKKl8rol2z2xpc=;
+	s=k20201202; t=1768383968;
+	bh=18qz/N7rP2+o1CwTclwkrkeekmMdR6OglwjJ1t5rog8=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=Lb8DXlDBnFqO+NW+Rh1u7EkBWHwkcRnCeq9olTQtKhAQ4m1b7rQKQulcGGmLgmiPg
-	 ANOxubQa8Qj1Lx4Uiq3ffkh9H+SgEQfPayen0wffEOzIOaFwOOPklamyu5uf9OZp2C
-	 mFsWPAryCARv4exsUjU8yE835fhhhvWyKBDOY1QGLxZvbTOUQM8ANwAroIonltUXJY
-	 FR1odw7cvxgh6UZZLFbiKglS4F778naUMuAQEPlENj8KARHm2sTb2cDh3QtKtrm22x
-	 Wo5WKPX5XSgVvnyLY9eHw1iI5yjfhv9A0JhupiXtYl1H6cqt+nhL0OXG1f7lScO91A
-	 oNlrXauO3pPsQ==
-Message-ID: <d1938a63-839b-44a5-a68f-34ad290fef21@kernel.org>
-Date: Wed, 14 Jan 2026 10:44:08 +0100
+	b=Emln45ZbWCM7QQvnvlsfZ43WqX5pz05VeteZ/MTBRtyNPqZb+hLN+LffuwucTSzby
+	 ujMVmDLTG1sZOX4xFO54vrWhTnyhCFm8Dy42nhBLFEzbWLm5Aa2FqVc6HIC2+dJ+5B
+	 yJJhWBS3nPXXYDIOYv7k0lTEoj398Sr4KNjZazgMUFGx5H7HHx0hXMNzIOEX1U/PEM
+	 hy0VzPmD7+5XSE45HtWcpuzru0jmLKC1I6rViFSw5cPamii+2+5m+CFoPkcuAc4StC
+	 pVAL2HP0AYlACXFzMfMDWckJMmqJbzEaunEVMpLgcx0mSbG49zXsoXmaGd2JyJ0kYn
+	 5UYO7bmk/XXkA==
+Message-ID: <a69de6b6-bec4-40ff-8b17-f24f7155dd57@kernel.org>
+Date: Wed, 14 Jan 2026 10:46:02 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,17 +35,17 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 8/8] dax/kmem: add memory notifier to block external state
- changes
+Subject: Re: [PATCH 1/8] mm/memory_hotplug: pass online_type to
+ online_memory_block() via arg
 To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
  kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
  dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com,
  xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
- akpm@linux-foundation.org, Hannes Reinecke <hare@suse.de>
+ akpm@linux-foundation.org
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-9-gourry@gourry.net>
+ <20260114085201.3222597-2-gourry@gourry.net>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -91,46 +91,54 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <20260114085201.3222597-9-gourry@gourry.net>
+In-Reply-To: <20260114085201.3222597-2-gourry@gourry.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 1/14/26 09:52, Gregory Price wrote:
-> Add a memory notifier to prevent external operations from changing the
-> online/offline state of memory blocks managed by dax_kmem. This ensures
-> state changes only occur through the driver's hotplug sysfs interface,
-> providing consistent state tracking and preventing races with auto-online
-> policies or direct memory block sysfs manipulation.
+On 1/14/26 09:51, Gregory Price wrote:
+> Modify online_memory_block() to accept the online type through its arg
+> parameter rather than calling mhp_get_default_online_type() internally.
+> This prepares for allowing callers to specify explicit online types.
 > 
-> The notifier uses a transition protocol with memory barriers:
->    - Before initiating a state change, set target_state then in_transition
->    - Use a barrier to ensure target_state is visible before in_transition
->    - The notifier checks in_transition, then uses barrier before reading
->      target_state to ensure proper ordering on weakly-ordered architectures
+> Update the caller in add_memory_resource() to pass the default online
+> type via a local variable. No functional change.
 > 
-> The notifier callback:
->    - Returns NOTIFY_DONE for non-overlapping memory (not our concern)
->    - Returns NOTIFY_BAD if in_transition is false (block external ops)
->    - Validates the memory event matches target_state (MEM_GOING_ONLINE
->      for online operations, MEM_GOING_OFFLINE for offline/unplug)
->    - Returns NOTIFY_OK only for driver-initiated operations with matching
->      target_state
+> Signed-off-by: Gregory Price <gourry@gourry.net>
+> ---
+>   mm/memory_hotplug.c | 12 +++++++++---
+>   1 file changed, 9 insertions(+), 3 deletions(-)
 > 
-> This prevents scenarios where:
->    - Auto-online policies re-online memory the driver is trying to offline
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 389989a28abe..5718556121f0 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1337,7 +1337,9 @@ static int check_hotplug_memory_range(u64 start, u64 size)
+>   
+>   static int online_memory_block(struct memory_block *mem, void *arg)
+>   {
+> -	mem->online_type = mhp_get_default_online_type();
+> +	int *online_type = arg;
+> +
+> +	mem->online_type = *online_type;
+>   	return device_online(&mem->dev);
+>   }
+>   
+> @@ -1578,8 +1580,12 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+>   		merge_system_ram_resource(res);
+>   
+>   	/* online pages if requested */
+> -	if (mhp_get_default_online_type() != MMOP_OFFLINE)
+> -		walk_memory_blocks(start, size, NULL, online_memory_block);
+> +	if (mhp_get_default_online_type() != MMOP_OFFLINE) {
+> +		int online_type = mhp_get_default_online_type();
+> +
+> +		walk_memory_blocks(start, size, &online_type,
+> +				   online_memory_block);
 
-Is this still a problem when using offline_and_remove_memory() ?
+I think you could just pass the value by casting to uintptr_t and back. 
+Doesn't make a big difference here, though.
 
->    - Users manually change memory state via /sys/devices/system/memory/
-
-I don't see why we would want to care about that :)
-
->    - Other kernel subsystems interfere with driver-managed memory state
-What do you have in mind?
-
-Not sure if this functionality here is really needed when the driver 
-does add+online and offline+remove in a single operation. So please 
-elaborate :)
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 
 -- 
 Cheers
