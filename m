@@ -1,87 +1,55 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBA7423D2A1
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jan 2026 02:43:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1EF317DE36
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jan 2026 05:36:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768444983; cv=none; b=o3Z3oKTkC47xX9y2SU5uQY1ihmcKmzynrvtLbg5K4FSzDpfo0lqBWFpl2R824eCdbO49y2twr2WkbIoPj9RE2TIF1s5tcN67UJY15kf0eZMLEtF7wQf3uA5GYXpcg542rKmSyayQYBg9zWQOyAayLM4zudtmFgGdR79RO2p0fQY=
+	t=1768455409; cv=none; b=MCLKKqwgjU3VlN89UuABJfu+E2kimNKWqNGCRS4RRfjjuyt1VRZRQFXDETqo1hu7fMkwamT0qfpeA1POLbylqUz6uVkp9ET5OTOZrMop7wHcZLSmsGTU/N8DxVwICpgOuqHeML8dg7ukun8FW/HXQ16O6NsNZM9dhluPvZsvVq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768444983; c=relaxed/simple;
-	bh=fDcOEzdBe5xRENpKlXhSuHOhCSlbP++yhs6h6KsFKQU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ADbrPE9OctEJK52hrp3n8bt3ai6B8eny1lMzEWjGnSiZgLCMjPWwOpcx0f5Ec5vR1FtXUOXhlWOfy/M5+oF9y+jq0Sr5Vqz/rNgdALgs/y6T56+eY700nu3rLh1kD1YDEgvO2LNNCn+kbNtqq0nizyt+U4woL9SYud699gE8MuU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=CtW8vpQ/; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1768455409; c=relaxed/simple;
+	bh=t3Rfc0scyiLcZrTVt1GR9/2HhhPXJpRRagG35W8u840=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BT3A5aD+UPGZmNSTyiscPj0QYSyA3mX9i5b9pKXzVFi2rvjGgvjVQRr/UE/HjHbAT4qMpoekb3c8TbG3086czyMruhv3gKp/t0oR5d41R3ANtQy6S+8ccwtyoO5DS52jcD+AF01HbqpqaLJcNO0wpYc6k6rn1Qo1MToDvhPPXt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jd+BDdB5; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="CtW8vpQ/"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-5013c1850bdso4203611cf.0
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jan 2026 18:43:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1768444980; x=1769049780; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qcW/hY6JWQg4aPWEmrNXUmJDtQucQInwfAPavQZW27U=;
-        b=CtW8vpQ/6PTYJfu0rCGPuakez84OF3jyjpbaN9iOyv/RapC1r8+eW1lR6yGLgpjUvs
-         UIdpHRvEVQ1V/zBebqPuK/pCD5KTEmd46gkhnKgzcRsY6NyCUaVR74RaqkdUeC5WkyCR
-         pXbQvejeelMWPZrTTKdqeVIcXw0147AShxNqf58vQ1R77aK8Qk3XMUkAobQVTpaMP1Cg
-         OMkRG54jYiwppCNvlKuHpDrTGm3rwjnn92XQ3Th7omm1jZw2TDw/AkJaLV8thE9j8NBs
-         MGEOxchXHkVBsNkSFwru9orWIme3BaFk9OYfraELb0eGg6UbKzzdCPd5OIXg/syoZIEW
-         ANsQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768444980; x=1769049780;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=qcW/hY6JWQg4aPWEmrNXUmJDtQucQInwfAPavQZW27U=;
-        b=P561MO/OG9TkgAyLQ19Uc1OaRFqYn0knG2TFO4TBNo/tD58gkDYX/13Lfi2atGZE0c
-         zTWonSum1ug7ahXtoEe9+bfGgpLdLtlNvhPI2WVuOXFyov51NW53ezbPfApOEiPPYwOC
-         8AJt8IFx9LkjlfCGDcmTgkCY1O7Z5YWOfSlZhVUrFuZHluOm88B5W9DtNoQe5L9rk/wY
-         j2fr6rWW5YsNHu2hr9vi4CpxayxPbDU7OEcEpefGbtfqn3vAg6jdV4wt15DkAedLgh9A
-         s7t9129Ofd2DAS+FNNQjyOUXHm5T1VhuX9vG+XZRsz7ncpmzZLinqTHSKBi1HaA6v5Lp
-         PPuw==
-X-Forwarded-Encrypted: i=1; AJvYcCXzlKcZtTD84N7+B9XoH0SPa9v6NrqykRU4TDDhqGzDR97F14Z+2Kn4Y+FTmi2E99BUImsEE20=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwhuNmpXWpP9xvPuSGaEsUd15/vuvch25JGy/8GllcXc3iZjTVi
-	1kFK147B+IAIDS2V0MIEGAY2ifJk5a4IK/VVRhgMyp318rqUig1iTeidUGupdMMWdcw=
-X-Gm-Gg: AY/fxX78iBR9Yh7HHWOJTwdsH08eTktdlJ/uvLihDbA11kov3pfIS3jHc3k4f7+1Pr7
-	nMMob/b/TpLMkbc7NxRxxerZv1/crT+pTsxxltL0VXx6GaHtYrYfTboD6VpRC+0KWsnrFhITwi9
-	PTaFktvqzYsX1cTLeUYBCdEQTNUh9kaHEyZGeQ6WdebIesnl+ui7IfY5wG9gKXhhAqoizPccqS0
-	cgDMAKGdLesnzLvUXEnHa0VEc7m9FlkwyIMqOpEZSY9ZvPjcw4oCfBVEPn3wzZgHFzAZrsttguA
-	2acLIl5iicBPTTrh/BXhWBHlj4oPZ4K9sYkt4lk5wXDIKi+hVizSb2lfoHPfExrwo/+Wto2c85F
-	81E5eKdo/tY8lzVUAgDhdhaxcpD1ke3WBE7bAom8eYGUW+CcwYhVZ1x8mcEcWWC/3+fnzUtwCcD
-	565G2IsAIKRpt9YoBtNBISFnXvCu9p8oq56Eonjy8+3wGUINMmf53EPlTV1XwQ71sWk9nEje52Q
-	eQ=
-X-Received: by 2002:a05:622a:1f11:b0:4ee:4a3a:bd05 with SMTP id d75a77b69052e-5014849d291mr69984841cf.74.1768444979611;
-        Wed, 14 Jan 2026 18:42:59 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F.lan (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50148ee050esm26853761cf.30.2026.01.14.18.42.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Jan 2026 18:42:59 -0800 (PST)
-From: Gregory Price <gourry@gourry.net>
-To: linux-mm@kvack.org
-Cc: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	virtualization@lists.linux.dev,
-	kernel-team@meta.com,
-	dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	david@kernel.org,
-	mst@redhat.com,
-	jasowang@redhat.com,
-	xuanzhuo@linux.alibaba.com,
-	eperezma@redhat.com,
-	osalvador@suse.de,
-	akpm@linux-foundation.org
-Subject: [PATCH] dax/kmem: add build config for protected dax memory blocks
-Date: Wed, 14 Jan 2026 21:42:22 -0500
-Message-ID: <20260115024222.3486455-1-gourry@gourry.net>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260114235022.3437787-6-gourry@gourry.net>
-References: <20260114235022.3437787-6-gourry@gourry.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jd+BDdB5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1768455408; x=1799991408;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=t3Rfc0scyiLcZrTVt1GR9/2HhhPXJpRRagG35W8u840=;
+  b=jd+BDdB5khhCuUxSckQnuIPmEHfOxs+9Rtmir1B2X7R7W5ZvW9f1muzI
+   ApNZ0DkNMCtWO8wvQVJuLMBfu1wdDS7SCJer0W6v9DTsc6ZyCNfojAMIg
+   Dqdn/NDCFZiJzjEv923NT2yCOWSJoRKhWvj0eEdaohm1caHrYzJR1+YuO
+   Sv97/cPZws7Yl0Urt/geaHD7pPH1WMiKfFuX87eZlzmog6YB/1AKnWV9a
+   bnD/JKrbV9zaAr5E8WUYyXttw+v5ICTRdPGW9+8tTt82rES8a3OuUho3L
+   prMASK5tEoA396vszjge8WFRPR1b7iluOdSDXycEamxST+Vqyhv/mSh3P
+   g==;
+X-CSE-ConnectionGUID: N1sVvLXsRIGnVe61ozuZLQ==
+X-CSE-MsgGUID: VKINlMcuT7q99C86bEuLwQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11671"; a="73611493"
+X-IronPort-AV: E=Sophos;i="6.21,226,1763452800"; 
+   d="scan'208";a="73611493"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 21:36:47 -0800
+X-CSE-ConnectionGUID: YNTUAWbbReu6d+zrs//V+w==
+X-CSE-MsgGUID: s2en41xfRm+ahLzMomw5gw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,226,1763452800"; 
+   d="scan'208";a="204491460"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.220.188])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 21:36:47 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	linux-cxl@vger.kernel.org
+Subject: [ndctl PATCH] cxl/test: test unaligned address translations in cxl_poison events
+Date: Wed, 14 Jan 2026 21:36:39 -0800
+Message-ID: <20260115053641.512420-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -90,113 +58,207 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Since this protection may break userspace tools, it should
-be an opt-in until those tools have time to update to the
-new daxN.M/hotplug interface instead of memory blocks.
+Existing cxl-poison.sh test cases only exercise regions whose base
+addresses are aligned to host-bridge interleave ways (HBIW) * 256MB,
+and so do not validate unaligned address translations.
 
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Gregory Price <gourry@gourry.net>
+Add a test case that exercises unaligned address translation by
+creating a 3-way HBIW region, which in the cxl_test environment
+results in an unaligned region base address.
+
+The test validates bidirectional address translation like this:
+- Clear poison by memdev/DPA to generate a cxl_poison trace event
+- Extract the region offset from the HPA field in that trace
+- Clear poison by region offset to generate a second trace event
+- Verify the second trace event maps back to the original memdev/DPA
+
+Expand check_trace_entry() to optionally verify memdev and DPA fields
+to support this new case.
+
+This test case is added last in cxl-poison.sh and will result in a
+SKIP result when run on pre-7.0 kernels that do not support unaligned
+address translation.
+
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- drivers/dax/Kconfig | 18 ++++++++++++++++++
- drivers/dax/kmem.c  | 29 ++++++++++++++++++++---------
- 2 files changed, 38 insertions(+), 9 deletions(-)
+ test/cxl-poison.sh | 145 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 126 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-index d656e4c0eb84..cc13c22eb8f8 100644
---- a/drivers/dax/Kconfig
-+++ b/drivers/dax/Kconfig
-@@ -78,4 +78,22 @@ config DEV_DAX_KMEM
+diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
+index 59e807ece932..7b23460fd352 100644
+--- a/test/cxl-poison.sh
++++ b/test/cxl-poison.sh
+@@ -72,30 +72,28 @@ clear_poison_sysfs()
+ check_trace_entry()
+ {
+ 	local expected_region="$1"
+-	local expected_hpa="$2"
++	local expected_hpa="$2"		# decimal
++	local expected_memdev="$3"	# optional
++	local expected_dpa="$4"		# optional, decimal
++	local trace_line trace_region trace_memdev trace_hpa trace_dpa
  
- 	  Say N if unsure.
+-	local trace_line
+-	trace_line=$(grep "cxl_poison" /sys/kernel/tracing/trace | tail -n 1)
+-	if [[ -z "$trace_line" ]]; then
+-		echo "No cxl_poison trace event found"
+-		err "$LINENO"
+-	fi
++	trace_line=$(tail -n 1 /sys/kernel/tracing/trace | grep "cxl_poison")
++	 [[ -n "$trace_line" ]] || err "$LINENO"
  
-+config DEV_DAX_KMEM_PROTECTED
-+	bool "Protect DAX_KMEM memory blocks being changed"
-+	depends on DEV_DAX_KMEM
-+	default n
-+	help
-+	  Prevents actions from outside the KMEM DAX driver from changing
-+	  DAX KMEM memory block states. For example, the memory block
-+	  sysfs functions (online, state) will return -EBUSY, and normal
-+	  calls to memory_hotplug functions from other drivers and kernel
-+	  sources will fail.
+-	local trace_region trace_hpa
+ 	trace_region=$(echo "$trace_line" | grep -o 'region=[^ ]*' | cut -d= -f2)
+-	trace_hpa=$(echo "$trace_line" | grep -o 'hpa=0x[0-9a-fA-F]\+' | cut -d= -f2)
++	trace_memdev=$(echo "$trace_line" | grep -o 'memdev=[^ ]*' | cut -d= -f2)
+ 
+-	if [[ "$trace_region" != "$expected_region" ]]; then
+-		echo "Expected region $expected_region not found in trace"
+-		echo "$trace_line"
+-		err "$LINENO"
+-	fi
++	# Convert HPA and DPA from hex to decimal
++        trace_hpa=$(($(echo "$trace_line" | grep -o 'hpa=0x[0-9a-fA-F]\+' | cut -d= -f2)))
++        trace_dpa=$(($(echo "$trace_line" | grep -o 'dpa=0x[0-9a-fA-F]\+' | cut -d= -f2)))
+ 
+-	if [[ "$trace_hpa" != "$expected_hpa" ]]; then
+-		echo "Expected HPA $expected_hpa not found in trace"
+-		echo "$trace_line"
+-		err "$LINENO"
+-	fi
++	# Required checks
++	[[ "$trace_region" == "$expected_region" ]] || err "$LINENO"
++	[[ "$trace_hpa" == "$expected_hpa" ]] || err "$LINENO"
 +
-+	  This may break existing memory block management patterns that
-+	  depend on offlining DAX KMEM blocks from userland before unbinding
-+	  the driver.  Use this only if your tools have been updated to use
-+	  the daxN.M/hotplug interface.
-+
-+	  Say N if unsure.
-+
- endif
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index f3562f65376c..094b8a51099e 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -184,6 +184,21 @@ static int dax_kmem_memory_notifier_cb(struct notifier_block *nb,
- 	return NOTIFY_BAD;
++	# Optional checks only enforced if expected value is provided
++	[[ -z "$expected_memdev" || "$trace_memdev" == "$expected_memdev" ]] || err "$LINENO"
++	[[ -z "$expected_dpa" || "$trace_dpa" == "$expected_dpa" ]] || err "$LINENO"
  }
  
-+static int dax_kmem_register_notifier(struct dax_kmem_data *data)
-+{
-+	if (!IS_ENABLED(DEV_DAX_KMEM_PROTECTED))
-+		return 0;
-+	data->mem_nb.notifier_call = dax_kmem_memory_notifier_cb;
-+	return register_memory_notifier(&data->mem_nb);
+ validate_poison_found()
+@@ -211,6 +209,105 @@ test_poison_by_region_offset_negative()
+ 	clear_poison_sysfs "$region" "$large_offset" true
+ }
+ 
++is_unaligned() {
++	local region=$1
++	local hbiw=$2
++	local align addr
++	local unit=$((256 * 1024 * 1024))	# 256MB
++
++	# Unaligned regions resources start at addresses that are
++	# not aligned to Host Bridge Interleave Ways * 256MB.
++
++	[[ -n "$region" && -n "$hbiw" ]] || err "$LINENO"
++	addr="$($CXL list -r "$region" | jq -r '.[0].resource')"
++	[[ -n "$addr" && "$addr" != "null" ]] || err "$LINENO"
++
++	align=$((hbiw * unit))
++	((addr % align != 0))
 +}
 +
-+static void dax_kmem_unregister_notifier(struct dax_kmem_data *data)
++create_3way_interleave_region()
 +{
-+	if (!IS_ENABLED(DEV_DAX_KMEM_PROTECTED))
-+		return;
-+	unregister_memory_notifier(&data->mem_nb);
++	# find an x3 decoder
++	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
++		select(.pmem_capable == true) |
++		select(.nr_targets == 3) |
++		.decoder")
++	[[ $decoder ]] || err "$LINENO"
++
++	# Find a memdev for each host-bridge interleave position
++	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
++		.targets | .[] | select(.position == 0) | .target")
++	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
++		.targets | .[] | select(.position == 1) | .target")
++	port_dev2=$($CXL list -T -d "$decoder" | jq -r ".[] |
++		.targets | .[] | select(.position == 2) | .target")
++	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
++	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
++	mem2=$($CXL list -M -p "$port_dev2" | jq -r ".[0].memdev")
++	memdevs="$mem0 $mem1 $mem2"
++
++	region=$($CXL create-region -d "$decoder" -m "$memdevs" |
++		jq -r ".region")
++	[[ $region ]] || err "$LINENO"
 +}
 +
- /**
-  * dax_kmem_do_hotplug - hotplug memory for dax kmem device
-  * @dev_dax: the dev_dax instance
-@@ -563,13 +578,9 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 	if (rc < 0)
- 		goto err_resources;
++verify_offset_translation()
++{
++    local region="$1"
++    local region_resource="$2"
++
++	# Verify that clearing by region offset maps to the same memdev/DPA
++	# as a previous clear by memdev/DPA
++
++	# Extract HPA, DPA, and memdev from the previous clear trace event
++	local trace_line memdev hpa dpa
++	trace_line=$(tail -n 1 /sys/kernel/tracing/trace | grep "cxl_poison")
++	[[ -n "$trace_line" ]] || err "$LINENO"
++
++	memdev=$(echo "$trace_line" | grep -o 'memdev=[^ ]*' | cut -d= -f2)
++	# Convert HPA and DPA to decimal
++	hpa=$(($(echo "$trace_line" | grep -o 'hpa=0x[0-9a-fA-F]\+' |cut -d= -f2)))
++	dpa=$(($(echo "$trace_line" | grep -o 'dpa=0x[0-9a-fA-F]\+' | cut -d= -f2)))
++	[[ -n "$memdev" && -n "$hpa" && -n "$dpa" ]] || err "$LINENO"
++
++	# Issue a clear poison using the found region offset
++	local region_offset=$((hpa - region_resource))
++	clear_poison_sysfs "$region" "$region_offset"
++
++	# Verify the trace event produces the same memdev/DPA for region HPA
++	check_trace_entry "$region" "$hpa" "$memdev" "$dpa"
++}
++
++run_unaligned_poison_test()
++{
++	create_3way_interleave_region
++	is_unaligned "$region" 3 ||
++		do_skip "unaligned region not available for testing"
++
++	# Get region start address and interleave granularity
++	read -r region_resource region_gran <<< "$($CXL list -r "$region" |
++		jq -r '.[0] | "\(.resource) \(.interleave_granularity)"')"
++
++	# Loop over the 3 memdevs in the region
++	for pos in 0 1 2; do
++		# Get memdev and decoder
++		memdev=$($CXL list -r "$region" --targets |
++			jq -r ".[0].mappings[$pos].memdev")
++		decoder=$($CXL list -r "$region" --targets |
++			jq -r ".[0].mappings[$pos].decoder")
++
++		# Get decoder DPA start
++		base_dpa=$($CXL list -d "$decoder" | jq -r '.[0].dpa_resource')
++
++		# Two samples: base and base + interleave granularity
++		for offset in 0 "$region_gran"; do
++			clear_poison_sysfs "$memdev" $((base_dpa + offset))
++			verify_offset_translation "$region" "$region_resource"
++		done
++	done
++}
++
+ run_poison_test()
+ {
+ 	# Clear old trace events, enable cxl_poison, enable global tracing
+@@ -244,6 +341,16 @@ if check_min_kver "6.19"; then
+ 	run_poison_test
+ fi
  
--	/* Register memory notifier to block external operations */
--	data->mem_nb.notifier_call = dax_kmem_memory_notifier_cb;
--	rc = register_memory_notifier(&data->mem_nb);
--	if (rc) {
--		dev_warn(dev, "failed to register memory notifier\n");
-+	rc = dax_kmem_register_notifier(data);
-+	if (rc)
- 		goto err_notifier;
--	}
++# Unaligned address translation first appears in the CXL driver in 7.0
++if check_min_kver "7.0"; then
++	modprobe -r cxl_test
++	# HBIW of 3 happens to only be available w XOR at the moment
++	modprobe cxl_test interleave_arithmetic=1
++
++	rc=1
++	run_unaligned_poison_test
++fi
++
+ check_dmesg "$LINENO"
  
- 	/*
- 	 * Hotplug using the system default policy - this preserves backwards
-@@ -595,7 +606,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 	return 0;
- 
- err_hotplug:
--	unregister_memory_notifier(&data->mem_nb);
-+	dax_kmem_unregister_notifier(data);
- err_notifier:
- 	dax_kmem_cleanup_resources(dev_dax, data);
- err_resources:
-@@ -619,7 +630,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
- 
- 	device_remove_file(dev, &dev_attr_hotplug);
- 	dax_kmem_cleanup_resources(dev_dax, data);
--	unregister_memory_notifier(&data->mem_nb);
-+	dax_kmem_unregister_notifier(data);
- 	memory_group_unregister(data->mgid);
- 	kfree(data->res_name);
- 	kfree(data);
-@@ -640,7 +651,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
- 	struct dax_kmem_data *data = dev_get_drvdata(dev);
- 
- 	device_remove_file(dev, &dev_attr_hotplug);
--	unregister_memory_notifier(&data->mem_nb);
-+	dax_kmem_unregister_notifier(data);
- 
- 	/*
- 	 * Without hotremove purposely leak the request_mem_region() for the
+ modprobe -r cxl_test
 -- 
-2.52.0
+2.37.3
 
