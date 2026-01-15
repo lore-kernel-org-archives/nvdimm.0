@@ -1,136 +1,102 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5084212B94
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jan 2026 22:16:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7F933242AD
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jan 2026 23:55:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768515395; cv=none; b=sT98IOrruHBM4v837Pd7y5HPuTVuH5upvZVldLP0n2CayBAif3LCUhImz5YUz840jqY/WeRSoWaYGpTgm1AHNQQF//r/WTu+TwIzRjuYNCLHnJTf0Luvx9/48D4OsDJ9FVsjpmbLudnoEt+vDm3bD1ZiAMVIDr+vUkiQxoZ8e8U=
+	t=1768521308; cv=none; b=WkWhyr81Hr7oz+vwvoyzCOYo9G8z9jaenPDanQpR9uM6jUOyH7dbNCkBd7cZ3/68wG5Gtt0ra40uszASJK//gPxTmxk84+//0RFGHz+34OCCYw7bA/csBZXF3C8hUmrVN7ipyhJhg+biM3SlMUUhXOKgA64qrlNn2k4IRWZM0Ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768515395; c=relaxed/simple;
-	bh=z0cjYHnusEWc6hxVX+G4eCKI2UheF6cml3XKiWjqxMs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RTGamzzYhWOZ1lYU42DLxziHTBlXczBkbnN5vKJDogau1G7viLp5oiw1imzN8HLwM7mRDtXQP5pHPBUf81AK/OESiXk3aV2U7VfI/NNLd1aKJfIbEWEHJDhKS1uqRiX5hQomSdRhiijTGgcMhq92u8mOw/BosLuIAGBJxd08Mqk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JrcRd0j8; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1768521308; c=relaxed/simple;
+	bh=eTvubCr1gBMWIBW+1QFNInrVxxoKYmZ2cW03K6L3bAs=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=KrfJBwpWxy4Q+X/UPmD+1uuuV1sc6AjPGKCS1KzCv8Q7N8oWexWTS2wUeZtWTMBAj2xRicHggbfByvtUue1hrjrGv5ZnZjxt7bg9d4iEQ69cmx/5OFJCCzFBOjajbeBfO1p14GuN2sCaL/39+57656qMvwsAh8ApZ9aX+Kcp0TI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fIyRlefv; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JrcRd0j8"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fIyRlefv"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1768515394; x=1800051394;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=z0cjYHnusEWc6hxVX+G4eCKI2UheF6cml3XKiWjqxMs=;
-  b=JrcRd0j8ASazflCf7WU4EWMF4XG9QhtMOVqe56zZcxRYUSzqWPdfef9I
-   GjyjN7cQNxbqefrZRHuLKnUWfLQb1Udm5hyGuyVpdYs647g6a5ev5Jogy
-   nKeor4i18w2JcZ30puhkZFaFanpz38hSrJGNBUlnVQvH/BJHsH+Saarqm
-   nOB8jIXNZKnQUnoMmbOHg1qZaqRUOzPCALxA4m4j3bk6bHAgXhuVlC7jy
-   DJ4fQhOZuKXtJdB/ALX2u9HAsXaIhwLuEiGyL3eURxdcoc8hP50BxfadO
-   Y62VLaCz6VfNRwAzjnUruBsz+kIe6xSquBaDSCF3DFj4ZnA4WrmrBPuPw
-   A==;
-X-CSE-ConnectionGUID: mDpGEeY6RLW2KCwwGApgVQ==
-X-CSE-MsgGUID: rGJ7sytxSpyidvztNhM04g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11672"; a="69737802"
+  t=1768521307; x=1800057307;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=eTvubCr1gBMWIBW+1QFNInrVxxoKYmZ2cW03K6L3bAs=;
+  b=fIyRlefvWn2/49SwcVnp3dR5wq5gVmdL0fOrh6QpVIxbnYFfeYMHgkkm
+   pRqLw8vT+0HG9NgR42loxzxT4GijYxlLvo2kCqJ/WPcMrtdWrka32xJnf
+   yKkdLGK1iwGjPJ8u7wYG6iscVmSvb+Iam9XEmy7n6Nw3STmZkZeavXew8
+   7dYSSfAPunzyfgQQ19lniZyCa4Zf6v3HwfrHN4eltBXE+WWsZ2oJEv+Tn
+   Y6azcr4ot80sgL/PYsOwL9Hz6qGaHDJbdgwGCbNYsDuwKXqq++84zslnn
+   skJ31l3oqAFqxltR7BJgtwz38J/n/zxexUr4XTZJZWkoU4JhSYokEXNge
+   Q==;
+X-CSE-ConnectionGUID: anUh2HEdTqyaOqAnVhVfTQ==
+X-CSE-MsgGUID: 715SpqFlRZqO2uaPnBuLbg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11672"; a="81285724"
 X-IronPort-AV: E=Sophos;i="6.21,229,1763452800"; 
-   d="scan'208";a="69737802"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2026 14:16:33 -0800
-X-CSE-ConnectionGUID: 1OAsvVoaT/qE7tkeWCMXyg==
-X-CSE-MsgGUID: btKEBsTeT0Ol+m5ufPEsWQ==
+   d="scan'208";a="81285724"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2026 15:55:06 -0800
+X-CSE-ConnectionGUID: OGD7UST1SMOr1RrAP8gJAQ==
+X-CSE-MsgGUID: z5WPPNwRQPCQHEcqEV49Xw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,229,1763452800"; 
-   d="scan'208";a="205478908"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.9])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2026 14:16:32 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH] daxctl: Replace basename() usage with strrchr()
-Date: Thu, 15 Jan 2026 14:16:28 -0800
-Message-ID: <20260115221630.528423-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+   d="scan'208";a="209227892"
+Received: from c02x38vbjhd2mac.jf.intel.com ([10.88.27.175])
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2026 15:55:06 -0800
+From: Marc Herbert <marc.herbert@linux.intel.com>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: nvdimm@lists.linux.dev
+Subject: Re: [ndctl PATCH] daxctl: Replace basename() usage with strrchr()
+In-Reply-To: <20260115221630.528423-1-alison.schofield@intel.com> (Alison
+	Schofield's message of "Thu, 15 Jan 2026 14:16:28 -0800")
+References: <20260115221630.528423-1-alison.schofield@intel.com>
+Date: Thu, 15 Jan 2026 15:54:54 -0800
+Message-ID: <m2a4yee8j5.fsf@C02X38VBJHD2mac.jf.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-A user reports that ndctl fails to compile on MUSL systems:
+Hi Alison,
 
-daxctl/device.c: In function 'parse_device_options':
-daxctl/device.c:377:26: error: implicit declaration of function 'basename' [-Wimplicit-function-declaration]
-  377 |                 device = basename(argv[0]);
-      |                          ^~~~~~~~
+Alison Schofield <alison.schofield@intel.com> writes:
+>  	argc = parse_options(argc, argv, options, u, 0);
+> -	if (argc > 0)
+> -		device = basename(argv[0]);
+> +	if (argc > 0) {
+> +		device = strrchr(argv[0], '/');
+> +		device = device ? device + 1 : argv[0];
+> +	}
+>  
 
-There are two versions of basename() with different behaviors:
-	GNU basename() from <string.h>: doesn't modify its argument
-	POSIX basename() from <libgen.h>: may modify its argument
-glibc provides both versions, while MUSL libc only provides the POSIX
-version.
 
-In daxctl/device.c, basename() is called without any header, relying
-on the GNU extension being implicitly available. And in daxctl/lib/
-libdaxctl.c, libgen.h is included and the POSIX basename() used,
-which works but is needlessly complex as POSIX basename() can modify
-its argument.
+1. I would add a one-line comment in both places, something like "This
+is like basename but without the bugs and portability issues" because:
 
-Rather than conditionally including headers or dealing with platform
-differences, replace both basename() usages with a new implementation
-using strrchar to find the last '/' in the path and return everything
-after it, or the whole string if no '/' is found.
+  1.a) It's much faster to read such a comment than understanding the code.
+  1.b) Not everyone knows how much of GNU/POSIX disaster is "basename".
+       You summarized it well in the commit message but it's unlikely
+       anyone will fetch the commit message from git without such a comment.
 
-Closes: https://github.com/pmem/ndctl/issues/283
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- daxctl/device.c        | 8 +++++---
- daxctl/lib/libdaxctl.c | 4 ++--
- 2 files changed, 7 insertions(+), 5 deletions(-)
+  To avoid duplicating the comment, a small "my_basename()" inline
+  function would not hurt while at it.
 
-diff --git a/daxctl/device.c b/daxctl/device.c
-index e3993b17c260..44a0a0ddb1d4 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -362,11 +362,13 @@ static const char *parse_device_options(int argc, const char **argv,
- 	};
- 	unsigned long long units = 1;
- 	int i, rc = 0;
--	char *device = NULL;
-+	const char *device = NULL;
- 
- 	argc = parse_options(argc, argv, options, u, 0);
--	if (argc > 0)
--		device = basename(argv[0]);
-+	if (argc > 0) {
-+		device = strrchr(argv[0], '/');
-+		device = device ? device + 1 : argv[0];
-+	}
- 
- 	/* Handle action-agnostic non-option arguments */
- 	if (argc == 0 &&
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index b7fa0de0b73d..eee1d02c3714 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -3,7 +3,6 @@
- #include <stdio.h>
- #include <errno.h>
- #include <limits.h>
--#include <libgen.h>
- #include <stdlib.h>
- #include <dirent.h>
- #include <unistd.h>
-@@ -408,7 +407,8 @@ DAXCTL_EXPORT int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev)
- 	if (!mod_path)
- 		return false;
- 
--	mod_base = basename(mod_path);
-+	mod_base = strrchr(mod_path, '/');
-+	mod_base = mod_base ? mod_base + 1 : mod_path;
- 	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0) {
- 		free(mod_path);
- 		return true;
--- 
-2.37.3
 
+2. I believe this (unlike basename) returns an empty string when the
+   argument has a trailing slash. Now, an argument with a trailing slash
+   would probably be garbage and I'm OK with the "Garbage IN, garbage
+   OUT" principle. BUT I also believe in the "Proportionate Response"
+   principle, which means a small amount of garbage IN should IMHO not
+   be punished by some utterly baffling error message or (much worse) a
+   crash. Did you/could you test what happens with a trailing slash? If
+   the resulting failure makes some kind of sense then don't change
+   anything.
+
+Note even when rare in interactive use, "Garbage IN" becomes more
+frequent in automation. Then good luck making sense of a cryptic error
+when you can't even reproduce the elaborate test configuration and test
+bugs that trigger it.
