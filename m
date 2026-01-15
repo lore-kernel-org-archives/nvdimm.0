@@ -1,264 +1,124 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1EF317DE36
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jan 2026 05:36:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E11BD399011;
+	Thu, 15 Jan 2026 17:26:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768455409; cv=none; b=MCLKKqwgjU3VlN89UuABJfu+E2kimNKWqNGCRS4RRfjjuyt1VRZRQFXDETqo1hu7fMkwamT0qfpeA1POLbylqUz6uVkp9ET5OTOZrMop7wHcZLSmsGTU/N8DxVwICpgOuqHeML8dg7ukun8FW/HXQ16O6NsNZM9dhluPvZsvVq0=
+	t=1768497988; cv=none; b=lonCgsxUW+9KlXdongPC7wqbmuBEWyL2mEQQrMYGtg6EukU++Ein8zKuBIgIjbbIMKieYL2ZwrSyMV5x00gvXMGLRoSaXWIk+p4gfQ/kpehAvJSSIMPHAm5CibEAyMooFK896SACxljJGZXLtt7AASpBqAwdjkwdoLfsFIsDF4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768455409; c=relaxed/simple;
-	bh=t3Rfc0scyiLcZrTVt1GR9/2HhhPXJpRRagG35W8u840=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BT3A5aD+UPGZmNSTyiscPj0QYSyA3mX9i5b9pKXzVFi2rvjGgvjVQRr/UE/HjHbAT4qMpoekb3c8TbG3086czyMruhv3gKp/t0oR5d41R3ANtQy6S+8ccwtyoO5DS52jcD+AF01HbqpqaLJcNO0wpYc6k6rn1Qo1MToDvhPPXt0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jd+BDdB5; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1768497988; c=relaxed/simple;
+	bh=3kMg3+tU6CStGaP/2jSc6EBS4YSAzWA1eqL/7/QkxAU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=M5RngiJAjS905/kM+kFp13idASOikjgVjfOiN47PkAoCHOVWIRNoPe2V+pEBVOktxNIysP/olYBMZuOY2NGNbqI5P2P9YIPjDhL5M++apU/SUXymmIi4qHTqR3DlVObNBhXKx+VmtY+ST3kujie8AA+xB+ttKHUTF7N1Kdhygk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ERo6pPRP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jd+BDdB5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1768455408; x=1799991408;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=t3Rfc0scyiLcZrTVt1GR9/2HhhPXJpRRagG35W8u840=;
-  b=jd+BDdB5khhCuUxSckQnuIPmEHfOxs+9Rtmir1B2X7R7W5ZvW9f1muzI
-   ApNZ0DkNMCtWO8wvQVJuLMBfu1wdDS7SCJer0W6v9DTsc6ZyCNfojAMIg
-   Dqdn/NDCFZiJzjEv923NT2yCOWSJoRKhWvj0eEdaohm1caHrYzJR1+YuO
-   Sv97/cPZws7Yl0Urt/geaHD7pPH1WMiKfFuX87eZlzmog6YB/1AKnWV9a
-   bnD/JKrbV9zaAr5E8WUYyXttw+v5ICTRdPGW9+8tTt82rES8a3OuUho3L
-   prMASK5tEoA396vszjge8WFRPR1b7iluOdSDXycEamxST+Vqyhv/mSh3P
-   g==;
-X-CSE-ConnectionGUID: N1sVvLXsRIGnVe61ozuZLQ==
-X-CSE-MsgGUID: VKINlMcuT7q99C86bEuLwQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11671"; a="73611493"
-X-IronPort-AV: E=Sophos;i="6.21,226,1763452800"; 
-   d="scan'208";a="73611493"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 21:36:47 -0800
-X-CSE-ConnectionGUID: YNTUAWbbReu6d+zrs//V+w==
-X-CSE-MsgGUID: s2en41xfRm+ahLzMomw5gw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.21,226,1763452800"; 
-   d="scan'208";a="204491460"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.220.188])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 21:36:47 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH] cxl/test: test unaligned address translations in cxl_poison events
-Date: Wed, 14 Jan 2026 21:36:39 -0800
-Message-ID: <20260115053641.512420-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ERo6pPRP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33C4EC19422;
+	Thu, 15 Jan 2026 17:26:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768497987;
+	bh=3kMg3+tU6CStGaP/2jSc6EBS4YSAzWA1eqL/7/QkxAU=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=ERo6pPRPc9N7MiF0CC5Ky920nNhr7uR3t/RZtcVc8WK7Ihzyq0keU29lB42a7yKlw
+	 HtTmJBYUpV15tthGIpOjiWPn438FBi1t2CXbnnOgKAoQmnpyqrpMikuWnkhtbNKxIc
+	 swl78vFHVCxCLJC62JT153qN6bFQi8nGdaA5ymtRwnVkCeH7B5lpErjGNvFcegPAyj
+	 +oI/PiEvMAnam5dgCyFJ483ZCQtF0O1ODBfz2qaoYa/Pe/KauGBc0oNK9XrWbBAKr6
+	 RpB9m9+bLwQ+tuHAZRACbND4oN4AA0PFYgAZLY569VsXsMyt/8+YPmpPS1RzerggB0
+	 MtDke8z/QK6wg==
+Message-ID: <eb3e6ae9-d296-465f-a5a9-963da4d8ce6a@kernel.org>
+Date: Thu, 15 Jan 2026 18:26:21 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 0/5] add runtime hotplug state control
+To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
+ kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+ dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com,
+ xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
+ akpm@linux-foundation.org
+References: <20260114235022.3437787-1-gourry@gourry.net>
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+In-Reply-To: <20260114235022.3437787-1-gourry@gourry.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Existing cxl-poison.sh test cases only exercise regions whose base
-addresses are aligned to host-bridge interleave ways (HBIW) * 256MB,
-and so do not validate unaligned address translations.
+On 1/15/26 00:50, Gregory Price wrote:
+> The dax kmem driver currently onlines memory automatically during
+> probe using the system's default online policy but provides no way
+> to control or query the entire region state at runtime.
+> 
+> This series adds a sysfs interface to control DAX kmem memory
+> hotplug state, and refactors the memory_hotplug paths to make it
+> possible for drivers to request an online type at hotplug time.
 
-Add a test case that exercises unaligned address translation by
-creating a 3-way HBIW region, which in the cxl_test environment
-results in an unaligned region base address.
+Gregory, slow down a bit please. I haven't even had the chance to go 
+through your replies on v1.
 
-The test validates bidirectional address translation like this:
-- Clear poison by memdev/DPA to generate a cxl_poison trace event
-- Extract the region offset from the HPA field in that trace
-- Clear poison by region offset to generate a second trace event
-- Verify the second trace event maps back to the original memdev/DPA
+I'm currently on PTO and don't have the full day to review stuff :) And 
+boy oh boy, do I have a lot of stuff in my inbox.
 
-Expand check_trace_entry() to optionally verify memdev and DPA fields
-to support this new case.
+Maybe given this is the second time the patch subject is suboptimal is 
+another sign to slow down a bit? :P
 
-This test case is added last in cxl-poison.sh and will result in a
-SKIP result when run on pre-7.0 kernels that do not support unaligned
-address translation.
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- test/cxl-poison.sh | 145 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 126 insertions(+), 19 deletions(-)
+* Subject: [PATCH 0/8] dax/kmem: add runtime hotplug state control
+* [PATCH v2 0/5] add runtime hotplug state control
 
-diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
-index 59e807ece932..7b23460fd352 100644
---- a/test/cxl-poison.sh
-+++ b/test/cxl-poison.sh
-@@ -72,30 +72,28 @@ clear_poison_sysfs()
- check_trace_entry()
- {
- 	local expected_region="$1"
--	local expected_hpa="$2"
-+	local expected_hpa="$2"		# decimal
-+	local expected_memdev="$3"	# optional
-+	local expected_dpa="$4"		# optional, decimal
-+	local trace_line trace_region trace_memdev trace_hpa trace_dpa
- 
--	local trace_line
--	trace_line=$(grep "cxl_poison" /sys/kernel/tracing/trace | tail -n 1)
--	if [[ -z "$trace_line" ]]; then
--		echo "No cxl_poison trace event found"
--		err "$LINENO"
--	fi
-+	trace_line=$(tail -n 1 /sys/kernel/tracing/trace | grep "cxl_poison")
-+	 [[ -n "$trace_line" ]] || err "$LINENO"
- 
--	local trace_region trace_hpa
- 	trace_region=$(echo "$trace_line" | grep -o 'region=[^ ]*' | cut -d= -f2)
--	trace_hpa=$(echo "$trace_line" | grep -o 'hpa=0x[0-9a-fA-F]\+' | cut -d= -f2)
-+	trace_memdev=$(echo "$trace_line" | grep -o 'memdev=[^ ]*' | cut -d= -f2)
- 
--	if [[ "$trace_region" != "$expected_region" ]]; then
--		echo "Expected region $expected_region not found in trace"
--		echo "$trace_line"
--		err "$LINENO"
--	fi
-+	# Convert HPA and DPA from hex to decimal
-+        trace_hpa=$(($(echo "$trace_line" | grep -o 'hpa=0x[0-9a-fA-F]\+' | cut -d= -f2)))
-+        trace_dpa=$(($(echo "$trace_line" | grep -o 'dpa=0x[0-9a-fA-F]\+' | cut -d= -f2)))
- 
--	if [[ "$trace_hpa" != "$expected_hpa" ]]; then
--		echo "Expected HPA $expected_hpa not found in trace"
--		echo "$trace_line"
--		err "$LINENO"
--	fi
-+	# Required checks
-+	[[ "$trace_region" == "$expected_region" ]] || err "$LINENO"
-+	[[ "$trace_hpa" == "$expected_hpa" ]] || err "$LINENO"
-+
-+	# Optional checks only enforced if expected value is provided
-+	[[ -z "$expected_memdev" || "$trace_memdev" == "$expected_memdev" ]] || err "$LINENO"
-+	[[ -z "$expected_dpa" || "$trace_dpa" == "$expected_dpa" ]] || err "$LINENO"
- }
- 
- validate_poison_found()
-@@ -211,6 +209,105 @@ test_poison_by_region_offset_negative()
- 	clear_poison_sysfs "$region" "$large_offset" true
- }
- 
-+is_unaligned() {
-+	local region=$1
-+	local hbiw=$2
-+	local align addr
-+	local unit=$((256 * 1024 * 1024))	# 256MB
-+
-+	# Unaligned regions resources start at addresses that are
-+	# not aligned to Host Bridge Interleave Ways * 256MB.
-+
-+	[[ -n "$region" && -n "$hbiw" ]] || err "$LINENO"
-+	addr="$($CXL list -r "$region" | jq -r '.[0].resource')"
-+	[[ -n "$addr" && "$addr" != "null" ]] || err "$LINENO"
-+
-+	align=$((hbiw * unit))
-+	((addr % align != 0))
-+}
-+
-+create_3way_interleave_region()
-+{
-+	# find an x3 decoder
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 3) |
-+		.decoder")
-+	[[ $decoder ]] || err "$LINENO"
-+
-+	# Find a memdev for each host-bridge interleave position
-+	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 0) | .target")
-+	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 1) | .target")
-+	port_dev2=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 2) | .target")
-+	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
-+	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
-+	mem2=$($CXL list -M -p "$port_dev2" | jq -r ".[0].memdev")
-+	memdevs="$mem0 $mem1 $mem2"
-+
-+	region=$($CXL create-region -d "$decoder" -m "$memdevs" |
-+		jq -r ".region")
-+	[[ $region ]] || err "$LINENO"
-+}
-+
-+verify_offset_translation()
-+{
-+    local region="$1"
-+    local region_resource="$2"
-+
-+	# Verify that clearing by region offset maps to the same memdev/DPA
-+	# as a previous clear by memdev/DPA
-+
-+	# Extract HPA, DPA, and memdev from the previous clear trace event
-+	local trace_line memdev hpa dpa
-+	trace_line=$(tail -n 1 /sys/kernel/tracing/trace | grep "cxl_poison")
-+	[[ -n "$trace_line" ]] || err "$LINENO"
-+
-+	memdev=$(echo "$trace_line" | grep -o 'memdev=[^ ]*' | cut -d= -f2)
-+	# Convert HPA and DPA to decimal
-+	hpa=$(($(echo "$trace_line" | grep -o 'hpa=0x[0-9a-fA-F]\+' |cut -d= -f2)))
-+	dpa=$(($(echo "$trace_line" | grep -o 'dpa=0x[0-9a-fA-F]\+' | cut -d= -f2)))
-+	[[ -n "$memdev" && -n "$hpa" && -n "$dpa" ]] || err "$LINENO"
-+
-+	# Issue a clear poison using the found region offset
-+	local region_offset=$((hpa - region_resource))
-+	clear_poison_sysfs "$region" "$region_offset"
-+
-+	# Verify the trace event produces the same memdev/DPA for region HPA
-+	check_trace_entry "$region" "$hpa" "$memdev" "$dpa"
-+}
-+
-+run_unaligned_poison_test()
-+{
-+	create_3way_interleave_region
-+	is_unaligned "$region" 3 ||
-+		do_skip "unaligned region not available for testing"
-+
-+	# Get region start address and interleave granularity
-+	read -r region_resource region_gran <<< "$($CXL list -r "$region" |
-+		jq -r '.[0] | "\(.resource) \(.interleave_granularity)"')"
-+
-+	# Loop over the 3 memdevs in the region
-+	for pos in 0 1 2; do
-+		# Get memdev and decoder
-+		memdev=$($CXL list -r "$region" --targets |
-+			jq -r ".[0].mappings[$pos].memdev")
-+		decoder=$($CXL list -r "$region" --targets |
-+			jq -r ".[0].mappings[$pos].decoder")
-+
-+		# Get decoder DPA start
-+		base_dpa=$($CXL list -d "$decoder" | jq -r '.[0].dpa_resource')
-+
-+		# Two samples: base and base + interleave granularity
-+		for offset in 0 "$region_gran"; do
-+			clear_poison_sysfs "$memdev" $((base_dpa + offset))
-+			verify_offset_translation "$region" "$region_resource"
-+		done
-+	done
-+}
-+
- run_poison_test()
- {
- 	# Clear old trace events, enable cxl_poison, enable global tracing
-@@ -244,6 +341,16 @@ if check_min_kver "6.19"; then
- 	run_poison_test
- fi
- 
-+# Unaligned address translation first appears in the CXL driver in 7.0
-+if check_min_kver "7.0"; then
-+	modprobe -r cxl_test
-+	# HBIW of 3 happens to only be available w XOR at the moment
-+	modprobe cxl_test interleave_arithmetic=1
-+
-+	rc=1
-+	run_unaligned_poison_test
-+fi
-+
- check_dmesg "$LINENO"
- 
- modprobe -r cxl_test
+I guess it should be "[PATCH v2 0/5] dax/kmem:add runtime hotplug state 
+control"
+
 -- 
-2.37.3
+Cheers
 
+David
