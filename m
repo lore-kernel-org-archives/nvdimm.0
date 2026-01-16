@@ -1,38 +1,38 @@
-Received: from a10-27.smtp-out.amazonses.com (a10-27.smtp-out.amazonses.com [54.240.10.27])
+Received: from a48-181.smtp-out.amazonses.com (a48-181.smtp-out.amazonses.com [54.240.48.181])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 465E425EF9C
-	for <nvdimm@lists.linux.dev>; Fri, 16 Jan 2026 19:08:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.10.27
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DE9D33B6C4
+	for <nvdimm@lists.linux.dev>; Fri, 16 Jan 2026 19:08:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.48.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768590506; cv=none; b=jzCLQQxLhE4z9UZAU3nJwvyFLd+/9shwHjNZOyfTLB6ls4FfCT1ehhAj7m0qjvc75sZdg8Ca6zEGZ0UEgBWirguBCAOB7TTFWYdZkSOmPliyhOhAsR9dWxzlftXn6uILxkSm+bXhhL4xUuIsdHYk42uCKo7MV0Rcju2+OaZducs=
+	t=1768590541; cv=none; b=ctzyHWO9UY8XgcKXVozJQP1wBt+zDoLJ8iqYEuAjfsDoY7nyPtwScdd8fiJ49O2qWtTDYINjqOKdT51uIzwt3gQvaV5I25X8lzdZKnh7tmcAVmSNj6X1yVdkT0oUzm3mg9+NzZKPtvZuSmimAZoGq7KqEQ29/7ig87Pnisk92nQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768590506; c=relaxed/simple;
-	bh=HM58FM1bLvPI+YxR+6oOEZGiKc7o2DZYq1NWb78LvGc=;
+	s=arc-20240116; t=1768590541; c=relaxed/simple;
+	bh=3btkgLOiD4Z3UmOAEca8Kmka5701UXn2uWsse5/Uqw4=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=s+ufVQMLrZxPNZfHay7qBsJnNQfbfVGFBYjPAkGwFlrwRrkzKuLRjkp+/Yt8id9NGRXAFX3fNLDL62Akb5rZaC+W6zZAYLTIK5ITAC4u7FenJtRIrsC1DUB5r6c/Vi3oPietWKWVdVxDVbIqKX+JsTkBxZo3oX1jVD+TLINrV/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=n9TyfT9L; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=PsC3DXt9; arc=none smtp.client-ip=54.240.10.27
+	 References:Message-ID; b=JBX5rYoXCYhyqpAFumOYgRilDxKgt2Pfupn0aXRg4URFnap6p0jwpCbNyTj4xF+5yJsXJxHw47dOoKsuCtfPdQ+XdLxXEmTZ3kG5Tj6X5Gpap8M7vaHJF6KBHCVF1t/km7GOAwgQbqYmDtimHSFS3hBb/v14cv6po0XxO/lut8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=Zp/cMApc; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=oQtwxDwl; arc=none smtp.client-ip=54.240.48.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="n9TyfT9L";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="PsC3DXt9"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="Zp/cMApc";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="oQtwxDwl"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1768590504;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1768590538;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=HM58FM1bLvPI+YxR+6oOEZGiKc7o2DZYq1NWb78LvGc=;
-	b=n9TyfT9LyUN4QbnJ6orvmh2wxF+UKPWemSkDLNDv8MepmHPeGMND1aVSpiwC5S4b
-	cV5T0qHuV+RGAMXrOtwWqAxzwG2nX4k79R0EIiNjBqr6HLW8/IK4nuadIJjkhVfKFgL
-	/hh59ZmfTUMp5T+ndKkhnYBk3zP8Ns8ybyPVZeWg=
+	bh=3btkgLOiD4Z3UmOAEca8Kmka5701UXn2uWsse5/Uqw4=;
+	b=Zp/cMApcGuj39NaFlLD9v/w81oImbrobj8MlroUaymBRETZa9TnFu6qM213dkMVt
+	GYOCn/rQoztFYRTZDqS4ZKprC5kxNZHkYL8j414fJui0/eOfMeIrcb8q7yptVfSKbRK
+	zKN+Epj4bpcYuRIMwv0oFPpYl6y2Q/+wr8utuTgk=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1768590504;
+	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1768590538;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=HM58FM1bLvPI+YxR+6oOEZGiKc7o2DZYq1NWb78LvGc=;
-	b=PsC3DXt9uqTXfClFqI2M81YSBcr+wuddGimwY48TAIU04zCKiT8F0yBf8vizFm57
-	aQTYGPOJ6f/vAGra5MPpSTpkBm9HkVjriTL1wyVbByJ6kbdOFCai+7pz4ijiC7yXQeB
-	Wtzu4W715GJTBOmQjlvBZi3xuG7DBvSa2xvTKck0=
-Subject: [PATCH V5 16/19] famfs_fuse: Add holder_operations for dax
- notify_failure()
+	bh=3btkgLOiD4Z3UmOAEca8Kmka5701UXn2uWsse5/Uqw4=;
+	b=oQtwxDwlczBV0EZIULf6eln5hOiF5Fj7mb1KL+z9JJPBqdgDEYAJIg+gpa2SMy0o
+	9jfnVktxtmpLkhQSZ4WByGkUE2jwQEAGILAgd6fLBcVmUhF1KIN+eXwqwYCe+5TxRUO
+	cfyolGZBeyH8yjACYZLqwv6ZppZCyevP/cdwqbRE=
+Subject: [PATCH V5 17/19] famfs_fuse: Add DAX address_space_operations with
+ noop_dirty_folio
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -72,7 +72,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?nvdimm=40lists=2Elinux=2Edev?= <nvdimm@lists.linux.dev>, 
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>
-Date: Fri, 16 Jan 2026 19:08:24 +0000
+Date: Fri, 16 Jan 2026 19:08:58 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -84,132 +84,36 @@ Content-Transfer-Encoding: quoted-printable
 In-Reply-To: <20260116185911.1005-1-john@jagalactic.com>
 References: <20260116125831.953.compound@groves.net> 
  <20260116185911.1005-1-john@jagalactic.com> 
- <20260116185911.1005-17-john@jagalactic.com>
+ <20260116185911.1005-18-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHchxoe1VAe00deR0Sw2d725QhurgAABexrAABXaoo=
-Thread-Topic: [PATCH V5 16/19] famfs_fuse: Add holder_operations for dax
- notify_failure()
-X-Wm-Sent-Timestamp: 1768590502
+Thread-Index: AQHchxoe1VAe00deR0Sw2d725QhurgAABexrAABcg8c=
+Thread-Topic: [PATCH V5 17/19] famfs_fuse: Add DAX address_space_operations
+ with noop_dirty_folio
+X-Wm-Sent-Timestamp: 1768590537
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019bc835703c-109f7e16-c589-4b9a-9851-fc36e5dc07bb-000000@email.amazonses.com>
+Message-ID: <0100019bc835f5e2-fd75b329-1210-4649-be51-8031bf9ecf07-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.01.16-54.240.10.27
+X-SES-Outgoing: 2026.01.16-54.240.48.181
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AMemory errors are at least=
- somewhat more likely on disaggregated memory=0D=0Athan on-board memory. =
-This commit registers to be notified by fsdev_dax=0D=0Ain the event that =
-a memory failure is detected.=0D=0A=0D=0AWhen a file access resolves to a=
- daxdev with memory errors, it will fail=0D=0Awith an appropriate error.=0D=
-=0A=0D=0AIf a daxdev failed fs_dax_get(), we set dd->dax_err. If a daxdev=
- called=0D=0Aour notify_failure(), set dd->error. When any of the above h=
-appens, set=0D=0A(file)->error and stop allowing access.=0D=0A=0D=0AIn ge=
-neral, the recovery from memory errors is to unmount the file=0D=0Asystem=
- and re-initialize the memory, but there may be usable degraded=0D=0Amode=
-s of operation - particularly in the future when famfs supports=0D=0Afile=
- systems backed by more than one daxdev. In those cases,=0D=0Aaccessing d=
-ata that is on a working daxdev can still work.=0D=0A=0D=0AFor now, retur=
-n errors for any file that has encountered a memory or dax=0D=0Aerror.=0D=
-=0A=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A fs/f=
-use/famfs.c       | 110 +++++++++++++++++++++++++++++++++++++++---=0D=0A =
-fs/fuse/famfs_kfmap.h |   3 +-=0D=0A 2 files changed, 105 insertions(+), =
-8 deletions(-)=0D=0A=0D=0Adiff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c=0D=
-=0Aindex 2de70aef1df8..ee3526175b6b 100644=0D=0A--- a/fs/fuse/famfs.c=0D=0A=
-+++ b/fs/fuse/famfs.c=0D=0A@@ -21,6 +21,26 @@=0D=0A #include "famfs_kfmap=
-=2Eh"=0D=0A #include "fuse_i.h"=0D=0A=20=0D=0A+static void famfs_set_daxd=
-ev_err(=0D=0A+=09struct fuse_conn *fc, struct dax_device *dax_devp);=0D=0A=
-+=0D=0A+static int=0D=0A+famfs_dax_notify_failure(struct dax_device *dax_=
-devp, u64 offset,=0D=0A+=09=09=09u64 len, int mf_flags)=0D=0A+{=0D=0A+=09=
-struct fuse_conn *fc =3D dax_holder(dax_devp);=0D=0A+=0D=0A+=09famfs_set_=
-daxdev_err(fc, dax_devp);=0D=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+=
-static const struct dax_holder_operations famfs_fuse_dax_holder_ops =3D {=
-=0D=0A+=09.notify_failure=09=09=3D famfs_dax_notify_failure,=0D=0A+};=0D=0A=
-+=0D=0A+/****************************************************************=
-*************/=0D=0A+=0D=0A /*=0D=0A  * famfs_teardown()=0D=0A  *=0D=0A@@=
- -47,9 +67,12 @@ famfs_teardown(struct fuse_conn *fc)=0D=0A =09=09if (!dd=
-->valid)=0D=0A =09=09=09continue;=0D=0A=20=0D=0A-=09=09/* Release referen=
-ce from dax_dev_get() */=0D=0A-=09=09if (dd->devp)=0D=0A+=09=09/* Only ca=
-ll fs_put_dax if fs_dax_get succeeded */=0D=0A+=09=09if (dd->devp) {=0D=0A=
-+=09=09=09if (!dd->dax_err)=0D=0A+=09=09=09=09fs_put_dax(dd->devp, fc);=0D=
-=0A =09=09=09put_dax(dd->devp);=0D=0A+=09=09}=0D=0A=20=0D=0A =09=09kfree(=
-dd->name);=0D=0A =09}=0D=0A@@ -170,6 +193,17 @@ famfs_fuse_get_daxdev(str=
-uct fuse_mount *fm, const u64 index)=0D=0A =09=09if (!daxdev->name)=0D=0A=
- =09=09=09return -ENOMEM;=0D=0A=20=0D=0A+=09=09rc =3D fs_dax_get(daxdev->=
-devp, fc, &famfs_fuse_dax_holder_ops);=0D=0A+=09=09if (rc) {=0D=0A+=09=09=
-=09/* If fs_dax_get() fails, we don't attempt recovery;=0D=0A+=09=09=09 *=
- We mark the daxdev valid with dax_err=0D=0A+=09=09=09 */=0D=0A+=09=09=09=
-daxdev->dax_err =3D 1;=0D=0A+=09=09=09pr_err("%s: fs_dax_get(%lld) failed=
-\n",=0D=0A+=09=09=09       __func__, (u64)daxdev->devno);=0D=0A+=09=09=09=
-return -EBUSY;=0D=0A+=09=09}=0D=0A+=0D=0A =09=09wmb(); /* All other field=
-s must be visible before valid */=0D=0A =09=09daxdev->valid =3D 1;=0D=0A =
-=09}=0D=0A@@ -245,6 +279,36 @@ famfs_update_daxdev_table(=0D=0A =09return=
- 0;=0D=0A }=0D=0A=20=0D=0A+static void=0D=0A+famfs_set_daxdev_err(=0D=0A+=
-=09struct fuse_conn *fc,=0D=0A+=09struct dax_device *dax_devp)=0D=0A+{=0D=
-=0A+=09int i;=0D=0A+=0D=0A+=09/* Gotta search the list by dax_devp;=0D=0A=
-+=09 * read lock because we're not adding or removing daxdev entries=0D=0A=
-+=09 */=0D=0A+=09scoped_guard(rwsem_write, &fc->famfs_devlist_sem) {=0D=0A=
-+=09=09for (i =3D 0; i < fc->dax_devlist->nslots; i++) {=0D=0A+=09=09=09i=
-f (fc->dax_devlist->devlist[i].valid) {=0D=0A+=09=09=09=09struct famfs_da=
-xdev *dd;=0D=0A+=0D=0A+=09=09=09=09dd =3D &fc->dax_devlist->devlist[i];=0D=
-=0A+=09=09=09=09if (dd->devp !=3D dax_devp)=0D=0A+=09=09=09=09=09continue=
-;=0D=0A+=0D=0A+=09=09=09=09dd->error =3D true;=0D=0A+=0D=0A+=09=09=09=09p=
-r_err("%s: memory error on daxdev %s (%d)\n",=0D=0A+=09=09=09=09       __=
-func__, dd->name, i);=0D=0A+=09=09=09=09return;=0D=0A+=09=09=09}=0D=0A+=09=
-=09}=0D=0A+=09}=0D=0A+=09pr_err("%s: memory err on unrecognized daxdev\n"=
-, __func__);=0D=0A+}=0D=0A+=0D=0A /**************************************=
-*************************************/=0D=0A=20=0D=0A void __famfs_meta_f=
-ree(void *famfs_meta)=0D=0A@@ -583,6 +647,26 @@ famfs_file_init_dax(=0D=0A=
-=20=0D=0A static int famfs_file_bad(struct inode *inode);=0D=0A=20=0D=0A+=
-static int famfs_dax_err(struct famfs_daxdev *dd)=0D=0A+{=0D=0A+=09if (!d=
-d->valid) {=0D=0A+=09=09pr_err("%s: daxdev=3D%s invalid\n",=0D=0A+=09=09 =
-      __func__, dd->name);=0D=0A+=09=09return -EIO;=0D=0A+=09}=0D=0A+=09i=
-f (dd->dax_err) {=0D=0A+=09=09pr_err("%s: daxdev=3D%s dax_err\n",=0D=0A+=09=
-=09       __func__, dd->name);=0D=0A+=09=09return -EIO;=0D=0A+=09}=0D=0A+=
-=09if (dd->error) {=0D=0A+=09=09pr_err("%s: daxdev=3D%s memory error\n",=0D=
-=0A+=09=09       __func__, dd->name);=0D=0A+=09=09return -EHWPOISON;=0D=0A=
-+=09}=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A static int=0D=0A famfs_inte=
-rleave_fileofs_to_daxofs(struct inode *inode, struct iomap *iomap,=0D=0A =
-=09=09=09 loff_t file_offset, off_t len, unsigned int flags)=0D=0A@@ -617=
-,6 +701,7 @@ famfs_interleave_fileofs_to_daxofs(struct inode *inode, stru=
-ct iomap *iomap,=0D=0A=20=0D=0A =09=09/* Is the data is in this striped e=
-xtent=3F */=0D=0A =09=09if (local_offset < ext_size) {=0D=0A+=09=09=09str=
-uct famfs_daxdev *dd;=0D=0A =09=09=09u64 chunk_num       =3D local_offset=
- / chunk_size;=0D=0A =09=09=09u64 chunk_offset    =3D local_offset % chun=
-k_size;=0D=0A =09=09=09u64 chunk_remainder =3D chunk_size - chunk_offset;=
-=0D=0A@@ -625,6 +710,7 @@ famfs_interleave_fileofs_to_daxofs(struct inode=
- *inode, struct iomap *iomap,=0D=0A =09=09=09u64 strip_offset    =3D chun=
-k_offset + (stripe_num * chunk_size);=0D=0A =09=09=09u64 strip_dax_ofs =3D=
- fei->ie_strips[strip_num].ext_offset;=0D=0A =09=09=09u64 strip_devidx =3D=
- fei->ie_strips[strip_num].dev_index;=0D=0A+=09=09=09int rc;=0D=0A=20=0D=0A=
- =09=09=09if (strip_devidx >=3D fc->dax_devlist->nslots) {=0D=0A =09=09=09=
-=09pr_err("%s: strip_devidx %llu >=3D nslots %d\n",=0D=0A@@ -639,6 +725,1=
-5 @@ famfs_interleave_fileofs_to_daxofs(struct inode *inode, struct iomap=
- *iomap,=0D=0A =09=09=09=09goto err_out;=0D=0A =09=09=09}=0D=0A=20=0D=0A+=
-=09=09=09dd =3D &fc->dax_devlist->devlist[strip_devidx];=0D=0A+=0D=0A+=09=
-=09=09rc =3D famfs_dax_err(dd);=0D=0A+=09=09=09if (rc) {=0D=0A+=09=09=09=09=
-/* Shut down access to this file */=0D=0A+=09=09=09=09meta->error =3D tru=
-e;=0D=0A+=09=09=09=09return rc;=0D=0A+=09=09=09}=0D=0A+=0D=0A =09=09=09io=
-map->addr    =3D strip_dax_ofs + strip_offset;=0D=0A =09=09=09iomap->offs=
-et  =3D file_offset;=0D=0A =09=09=09iomap->length  =3D min_t(loff_t, len,=
- chunk_remainder);=0D=0A@@ -736,6 +831,7 @@ famfs_fileofs_to_daxofs(struc=
-t inode *inode, struct iomap *iomap,=0D=0A =09=09if (local_offset < dax_e=
-xt_len) {=0D=0A =09=09=09loff_t ext_len_remainder =3D dax_ext_len - local=
-_offset;=0D=0A =09=09=09struct famfs_daxdev *dd;=0D=0A+=09=09=09int rc;=0D=
-=0A=20=0D=0A =09=09=09if (daxdev_idx >=3D fc->dax_devlist->nslots) {=0D=0A=
- =09=09=09=09pr_err("%s: daxdev_idx %llu >=3D nslots %d\n",=0D=0A@@ -746,=
-11 +842,11 @@ famfs_fileofs_to_daxofs(struct inode *inode, struct iomap *=
-iomap,=0D=0A=20=0D=0A =09=09=09dd =3D &fc->dax_devlist->devlist[daxdev_id=
-x];=0D=0A=20=0D=0A-=09=09=09if (!dd->valid || dd->error) {=0D=0A-=09=09=09=
-=09pr_err("%s: daxdev=3D%lld %s\n", __func__,=0D=0A-=09=09=09=09       da=
-xdev_idx,=0D=0A-=09=09=09=09       dd->valid =3F "error" : "invalid");=0D=
-=0A-=09=09=09=09goto err_out;=0D=0A+=09=09=09rc =3D famfs_dax_err(dd);=0D=
-=0A+=09=09=09if (rc) {=0D=0A+=09=09=09=09/* Shut down access to this file=
- */=0D=0A+=09=09=09=09meta->error =3D true;=0D=0A+=09=09=09=09return rc;=0D=
-=0A =09=09=09}=0D=0A=20=0D=0A =09=09=09/*=0D=0Adiff --git a/fs/fuse/famfs=
-_kfmap.h b/fs/fuse/famfs_kfmap.h=0D=0Aindex eb9f70b5cb81..0fff841f5a9e 10=
-0644=0D=0A--- a/fs/fuse/famfs_kfmap.h=0D=0A+++ b/fs/fuse/famfs_kfmap.h=0D=
-=0A@@ -73,7 +73,8 @@ struct famfs_file_meta {=0D=0A struct famfs_daxdev {=
-=0D=0A =09/* Include dev uuid=3F */=0D=0A =09bool valid;=0D=0A-=09bool er=
-ror;=0D=0A+=09bool error; /* Dax has reported a memory error (probably po=
-ison) */=0D=0A+=09bool dax_err; /* fs_dax_get() failed */=0D=0A =09dev_t =
-devno;=0D=0A =09struct dax_device *devp;=0D=0A =09char *name;=0D=0A--=20=0D=
-=0A2.52.0=0D=0A=0D=0A
+From: John Groves <John@Groves.net>=0D=0A=0D=0AFamfs is memory-backed; th=
+ere is no place to write back to, and no=0D=0Areason to mark pages dirty =
+at all.=0D=0A=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=0D=
+=0A fs/fuse/famfs.c | 11 +++++++++++=0D=0A 1 file changed, 11 insertions(=
++)=0D=0A=0D=0Adiff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c=0D=0Aindex e=
+e3526175b6b..f98e358ea489 100644=0D=0A--- a/fs/fuse/famfs.c=0D=0A+++ b/fs=
+/fuse/famfs.c=0D=0A@@ -14,6 +14,7 @@=0D=0A #include <linux/mm.h>=0D=0A #i=
+nclude <linux/dax.h>=0D=0A #include <linux/iomap.h>=0D=0A+#include <linux=
+/pagemap.h>=0D=0A #include <linux/path.h>=0D=0A #include <linux/namei.h>=0D=
+=0A #include <linux/string.h>=0D=0A@@ -39,6 +40,15 @@ static const struct=
+ dax_holder_operations famfs_fuse_dax_holder_ops =3D {=0D=0A =09.notify_f=
+ailure=09=09=3D famfs_dax_notify_failure,=0D=0A };=0D=0A=20=0D=0A+/*=0D=0A=
++ * DAX address_space_operations for famfs.=0D=0A+ * famfs doesn't need d=
+irty tracking - writes go directly to=0D=0A+ * memory with no writeback r=
+equired.=0D=0A+ */=0D=0A+static const struct address_space_operations fam=
+fs_dax_aops =3D {=0D=0A+=09.dirty_folio=09=3D noop_dirty_folio,=0D=0A+};=0D=
+=0A+=0D=0A /*************************************************************=
+****************/=0D=0A=20=0D=0A /*=0D=0A@@ -625,6 +635,7 @@ famfs_file_i=
+nit_dax(=0D=0A =09=09}=0D=0A =09=09i_size_write(inode, meta->file_size);=0D=
+=0A =09=09inode->i_flags |=3D S_DAX;=0D=0A+=09=09inode->i_data.a_ops =3D =
+&famfs_dax_aops;=0D=0A =09}=0D=0A  unlock_out:=0D=0A =09inode_unlock(inod=
+e);=0D=0A--=20=0D=0A2.52.0=0D=0A=0D=0A
