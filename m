@@ -1,108 +1,144 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from a8-208.smtp-out.amazonses.com (a8-208.smtp-out.amazonses.com [54.240.8.208])
+	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB0EA207A0B
-	for <nvdimm@lists.linux.dev>; Fri, 16 Jan 2026 19:41:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C0BF30E0F8
+	for <nvdimm@lists.linux.dev>; Sun, 18 Jan 2026 22:29:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.8.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768592513; cv=none; b=dxdQ9d3OoIHpHD0tMiHM/YFkluFqEY2+Cg6fte8Cz6VpZaHw7EpthATc4jsVlMQkNJ0WJkz9xG89Ml0g9+sKrdG6neXGW7DjvgBv7MnNfty3Qk+jQOQ9wRa3TKE1Q0pyiQQgYdy53mv9Vcv66ipluZD5jaPdVjHQq23wWOl3F40=
+	t=1768775360; cv=none; b=HzT87VyrZnGjVw+bhdBumgT1nQRRQ4sWn0RDpRvllTtVtlAPo5NduwoHbRKF3iX+h9MQAdDxpj4pI57G9T3GLbKEycBozzMICwcLwM5QUQ3c/9MbMCUtpotfCrqXc1SfCErQ4B2Gs0Ngv1mA+c0gKSNUbnFC/ZXQe+Sz2D63YVA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768592513; c=relaxed/simple;
-	bh=Jj1av06DXS5IbKWYei1Oke8WIGcxVvXo7NAK6tkNz2U=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=lUywJJp/HWbOsYygSvqG006aH2nbuqVvxOV9jsx5IPFOsm/sYsUD8a+YukBR7Vko+yqYXdnjLHuJSVNH4xtB5UUgYA3pPJkG4+FFLlXBB/OvIC7Vg6mqhKZePa+o8lq1ioBg0IViOJ6A1fkOxzdYjwylFgtKycTipevjBnL5cHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GRHtFSp2; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1768775360; c=relaxed/simple;
+	bh=yKHfUeZ7rs6sbyWVsDWPsIJqM94R8Uy96Q9wQ2otEC8=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:References:
+	 Message-ID; b=kkzRm3FB9zkBf+kQBSCgJ+mOfBQC4aqKrq/UVFtBJ55P7OkjIY/o04s0/v4E2JuG6Za9zI3szT6uMofPOjhb/20Nyvymq2tRdbliXSObs1JuPSPwcH7+vPDaijH6nEwrRdM4Snvw+imr8UdhaaCsmooFcfpD5HkJ6tk3bZ1TRBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=qZcO2pTb; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=N51dnn1M; arc=none smtp.client-ip=54.240.8.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GRHtFSp2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1768592510; x=1800128510;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=Jj1av06DXS5IbKWYei1Oke8WIGcxVvXo7NAK6tkNz2U=;
-  b=GRHtFSp2qQ/XATN4RBkqfwChPSw53Ga2s01pllAtpCAP39ZO0JAmjLBR
-   /TV97UK1KnphZy/JyzMTbPhz+U81C3+B1aOupLPU8JxjvYboiW9shfOWQ
-   674EsDi0HBzXr92dfHITmxdzOpewU6arI50n3xMsfNvf697lTOjuwmo/X
-   uJW9gJQWjXXuIIUiBZyiLRcMO7fkJ9GTejOmRevFMttonuSU+f4zMNJKp
-   xbhZn5kvtsZla92Yw5a8ngdz0Efbbg8TpcudOhKvqmvyL1IUpD//hJhL5
-   M/5d8PNrP+BPoMH1tlzRDGN1IaohyHk5ndg+qX3z0IhOTcekFw35t4u/r
-   A==;
-X-CSE-ConnectionGUID: VByrHSwBRumAlFPUxXeAqw==
-X-CSE-MsgGUID: bs32QTz8R5OLKcXlVV4CSg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11673"; a="92576462"
-X-IronPort-AV: E=Sophos;i="6.21,232,1763452800"; 
-   d="scan'208";a="92576462"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jan 2026 11:41:50 -0800
-X-CSE-ConnectionGUID: ybub8z3/Swi8KcMVDxTJZQ==
-X-CSE-MsgGUID: Ij4zP7qLQX+lxRDJThuuKA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.21,232,1763452800"; 
-   d="scan'208";a="205593930"
-Received: from unknown (HELO C02X38VBJHD2mac.local) ([10.241.241.24])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jan 2026 11:41:36 -0800
-From: Marc Herbert <marc.herbert@linux.intel.com>
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH v2] daxctl: replace basename() usage with new
- path_basename()
-In-Reply-To: <20260116043056.542346-1-alison.schofield@intel.com> (Alison
-	Schofield's message of "Thu, 15 Jan 2026 20:30:53 -0800")
-References: <20260116043056.542346-1-alison.schofield@intel.com>
-Date: Fri, 16 Jan 2026 11:41:35 -0800
-Message-ID: <m2qzrpe45s.fsf@linux.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="qZcO2pTb";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="N51dnn1M"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1768775358;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id;
+	bh=yKHfUeZ7rs6sbyWVsDWPsIJqM94R8Uy96Q9wQ2otEC8=;
+	b=qZcO2pTbh4f8Hn1yFa/hBEyNCIJxfD+rueU3mXfqeg09GtALjuvRC/Nki7ntcXEi
+	Zpy92SY0gtvIJpdA/sfMYfiq8yXn598c2FD5AKE87gCH8rT+r/YJXEN1LlKQOlRTPfs
+	GNcf9UnrnrGg17i6ojcpX+A3QpdHP5y7VGmK7JDI=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1768775358;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id:Feedback-ID;
+	bh=yKHfUeZ7rs6sbyWVsDWPsIJqM94R8Uy96Q9wQ2otEC8=;
+	b=N51dnn1MjvuHmJPh6t5XDRX8jsBPW7oq/2qpJB4eKvqSRQLNctWCssTYzCWuKw/z
+	HAs55cTwiM25Bjw2xGoCB4n+LA83KzyWyhZ+J21D9xZ7YZY6LU5ywXP5Af7JGP6/wbR
+	ouN8FYifrvVD0lNGC165tnpQAdTLUuBxAKqMm9t0=
+Subject: [PATCH BUNDLE v7] famfs: Fabric-Attached Memory File System
+From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
+To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
+	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
+	=?UTF-8?Q?Dan_Williams?= <dan.j.williams@intel.com>, 
+	=?UTF-8?Q?Bernd_Schubert?= <bschubert@ddn.com>, 
+	=?UTF-8?Q?Alison_Schofiel?= =?UTF-8?Q?d?= <alison.schofield@intel.com>
+Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>, 
+	=?UTF-8?Q?John_Groves?= <jgroves@fastmail.com>, 
+	=?UTF-8?Q?Jonathan_Corbet?= <corbet@lwn.net>, 
+	=?UTF-8?Q?Vishal_Verma?= <vishal.l.verma@intel.com>, 
+	=?UTF-8?Q?Dave_Jiang?= <dave.jiang@intel.com>, 
+	=?UTF-8?Q?Matthew_Wilcox?= <willy@infradead.org>, 
+	=?UTF-8?Q?Jan_Kara?= <jack@suse.cz>, 
+	=?UTF-8?Q?Alexander_Viro?= <viro@zeniv.linux.org.uk>, 
+	=?UTF-8?Q?David_Hildenbrand?= <david@kernel.org>, 
+	=?UTF-8?Q?Christian_Bra?= =?UTF-8?Q?uner?= <brauner@kernel.org>, 
+	=?UTF-8?Q?Darrick_J_=2E_Wong?= <djwong@kernel.org>, 
+	=?UTF-8?Q?Randy_Dunlap?= <rdunlap@infradead.org>, 
+	=?UTF-8?Q?Jeff_Layton?= <jlayton@kernel.org>, 
+	=?UTF-8?Q?Amir_Goldstein?= <amir73il@gmail.com>, 
+	=?UTF-8?Q?Jonathan_Cameron?= <Jonathan.Cameron@huawei.com>, 
+	=?UTF-8?Q?Stefan_Hajnoczi?= <shajnocz@redhat.com>, 
+	=?UTF-8?Q?Joanne_Koong?= <joannelkoong@gmail.com>, 
+	=?UTF-8?Q?Josef_Bacik?= <josef@toxicpanda.com>, 
+	=?UTF-8?Q?Bagas_Sanjaya?= <bagasdotme@gmail.com>, 
+	=?UTF-8?Q?James_Morse?= <james.morse@arm.com>, 
+	=?UTF-8?Q?Fuad_Tabba?= <tabba@google.com>, 
+	=?UTF-8?Q?Sean_Christopherson?= <seanjc@google.com>, 
+	=?UTF-8?Q?Shivank_Garg?= <shivankg@amd.com>, 
+	=?UTF-8?Q?Ackerley_Tng?= <ackerleytng@google.com>, 
+	=?UTF-8?Q?Gregory_Pric?= =?UTF-8?Q?e?= <gourry@gourry.net>, 
+	=?UTF-8?Q?Aravind_Ramesh?= <arramesh@micron.com>, 
+	=?UTF-8?Q?Ajay_Joshi?= <ajayjoshi@micron.com>, 
+	=?UTF-8?Q?venkataravis=40micron=2Ecom?= <venkataravis@micron.com>, 
+	=?UTF-8?Q?linux-doc=40vger=2Ekernel=2Eorg?= <linux-doc@vger.kernel.org>, 
+	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
+	=?UTF-8?Q?nvdimm=40lists=2Elinux=2Edev?= <nvdimm@lists.linux.dev>, 
+	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
+	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>
+Date: Sun, 18 Jan 2026 22:29:18 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+References: <20260118222911.92214-1-john@jagalactic.com>
+X-Mailer: Amazon WorkMail
+Thread-Index: AQHciMnhcFkpAz6WTSKstYDfyF/cJQ==
+Thread-Topic: [PATCH BUNDLE v7] famfs: Fabric-Attached Memory File System
+X-Wm-Sent-Timestamp: 1768775357
+X-Original-Mailer: git-send-email 2.52.0
+Message-ID: <0100019bd33a16b4-6da11a99-d883-4cfc-b561-97973253bc4a-000000@email.amazonses.com>
+Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
+X-SES-Outgoing: 2026.01.18-54.240.8.208
 
-
-Hearing the punishment for inputs with a trailing slash is not too
-harsh:
-
-Reviewed-by: Marc Herbert <marc.herbert@linux.intel.com>
-
-
-Alison Schofield <alison.schofield@intel.com> writes:
-
-> A user reports that ndctl fails to compile on MUSL systems:
->
-> daxctl/device.c: In function 'parse_device_options':
-> daxctl/device.c:377:26: error: implicit declaration of function 'basename' [-Wimplicit-function-declaration]
->   377 |                 device = basename(argv[0]);
->       |                          ^~~~~~~~
->
-> There are two versions of basename() with different behaviors:
-> 	GNU basename() from <string.h>: doesn't modify its argument
-> 	POSIX basename() from <libgen.h>: may modify its argument
->
-> glibc provides both versions, while MUSL libc only provides the POSIX
-> version. Previous code relied on the GNU extension without a header
-> or used the POSIX version inconsistently.
->
-> Introduce a new helper path_basename() that returns the portion of a
-> path after the last '/', the full string if no '/' is present, and a
-> trailing '/' returns an empty string. This avoids libc-specific
-> basename() behavior and is safe for argv style and arbitrary paths.
->
-> Closes: https://github.com/pmem/ndctl/issues/283
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> ---
->
-> Changes in v2: 
-> - Replace open coded strrchr() logic with new helper (Marc, Dan)
-> - Comment that new helper (Marc)
-> - Update commit msg
->
->
->  daxctl/device.c        |  4 ++--
->  daxctl/lib/libdaxctl.c |  7 ++++---
->  util/util.h            | 15 +++++++++++++++
->  3 files changed, 21 insertions(+), 5 deletions(-)
->
+This is a coordinated patch submission for famfs (Fabric-Attached Memory=0D=
+=0AFile System) across three repositories:=0D=0A=0D=0A  1. Linux kernel (=
+cover + 19 patches) - dax fsdev driver + fuse/famfs=20=0D=0A     integrat=
+ion=0D=0A  2. libfuse (cover + 3 patches) - famfs protocol support for fu=
+se servers=0D=0A  3. ndctl/daxctl (cover + 2 patches) - support for the n=
+ew "famfs" devdax=0D=0A     mode=0D=0A=0D=0AEach series is posted as a re=
+ply to this cover message, with individual=0D=0Apatches replying to their=
+ respective series cover.=0D=0A=0D=0AOverview=0D=0A--------=0D=0AFamfs ex=
+poses shared memory as a file system. It consumes shared memory=0D=0Afrom=
+ dax devices and provides memory-mappable files that map directly to=0D=0A=
+the memory with no page cache involvement. Famfs differs from conventiona=
+l=0D=0Afile systems in fs-dax mode in that it handles in-memory metadata =
+in a=0D=0Asharable way (which begins with never caching dirty shared meta=
+data).=0D=0A=0D=0AFamfs started as a standalone file system [1,2], but th=
+e consensus at=0D=0ALSFMM 2024 and 2025 [3,4] was that it should be porte=
+d into fuse.=0D=0A=0D=0AThe key performance requirement is that famfs mus=
+t resolve mapping faults=0D=0Awithout upcalls. This is achieved by fully =
+caching the file-to-devdax=0D=0Ametadata for all active files via two fus=
+e client/server message/response=0D=0Apairs: GET_FMAP and GET_DAXDEV.=0D=0A=
+=0D=0APatch Series Summary=0D=0A--------------------=0D=0A=0D=0ALinux Ker=
+nel (V7, 19 patches):=0D=0A  - dax: New fsdev driver (drivers/dax/fsdev.c=
+) providing a devdax mode=0D=0A    compatible with fs-dax. Devices can be=
+ switched among 'devdax', 'fsdev'=0D=0A    and 'system-ram' modes via dax=
+ctl or sysfs.=0D=0A  - fuse: Famfs integration adding GET_FMAP and GET_DA=
+XDEV messages for=0D=0A    caching file-to-dax mappings in the kernel.=0D=
+=0A=0D=0Alibfuse (V7, 3 patches):=0D=0A  - Updates fuse_kernel.h to kerne=
+l 6.19 baseline=0D=0A  - Adds famfs DAX fmap protocol definitions=0D=0A  =
+- Implements famfs DAX fmap support for fuse servers=0D=0A=0D=0Andctl/dax=
+ctl (V4, 2 patches):=0D=0A  - Adds daxctl support for the new "famfs" mod=
+e of devdax=0D=0A  - Adds test/daxctl-famfs.sh for testing mode transitio=
+ns=0D=0A=0D=0AChanges Since V2 (kernel)=0D=0A-------------------------=0D=
+=0A- Dax: Completely new fsdev driver replaces the dev_dax_iomap modifica=
+tions.=0D=0A  Uses MEMORY_DEVICE_FS_DAX type with order-0 folios for fs-d=
+ax compatibility.=0D=0A- Dax: The "poisoned page" problem is properly fix=
+ed via fsdev_clear_folio_state()=0D=0A  which clears stale mapping/compou=
+nd state when fsdev binds.=0D=0A- Dax: Added dax_set_ops() and driver unb=
+ind protection while filesystem mounted.=0D=0A- Fuse: Famfs mounts requir=
+e CAP_SYS_RAWIO (exposing raw memory devices).=0D=0A- Fuse: Added DAX add=
+ress_space_operations with noop_dirty_folio.=0D=0A- Rebased to latest ker=
+nels, compatible with recent dax refactoring.=0D=0A=0D=0ATesting=0D=0A---=
+----=0D=0AThe famfs user space [5] includes comprehensive smoke and unit =
+tests that=0D=0Aexercise all three components together. The ndctl series =
+includes a=0D=0Adedicated test for famfs mode transitions.=0D=0A=0D=0ARef=
+erences=0D=0A----------=0D=0A[1] https://lore.kernel.org/linux-cxl/cover.=
+1708709155.git.john@groves.net/=0D=0A[2] https://lore.kernel.org/linux-cx=
+l/cover.1714409084.git.john@groves.net/=0D=0A[3] https://lwn.net/Articles=
+/983105/ (LSFMM 2024)=0D=0A[4] https://lwn.net/Articles/1020170/ (LSFMM 2=
+025)=0D=0A[5] https://famfs.org (famfs user space)=0D=0A[6] https://lore.=
+kernel.org/linux-cxl/20250703185032.46568-1-john@groves.net/ (V2)=0D=0A[7=
+] https://lore.kernel.org/linux-fsdevel/20260107153244.64703-1-john@grove=
+s.net/T/#m0000d8c00290f48c086b8b176c7525e410f8508c (related ndctl series)=
+=0D=0A--=0D=0AJohn Groves=0D=0A
