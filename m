@@ -1,37 +1,37 @@
-Received: from a11-79.smtp-out.amazonses.com (a11-79.smtp-out.amazonses.com [54.240.11.79])
+Received: from a11-32.smtp-out.amazonses.com (a11-32.smtp-out.amazonses.com [54.240.11.32])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C36C2C21FC
-	for <nvdimm@lists.linux.dev>; Sun, 18 Jan 2026 22:32:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.79
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFD6F27F4E7
+	for <nvdimm@lists.linux.dev>; Sun, 18 Jan 2026 22:32:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768775544; cv=none; b=ldFCw+wWQRB9XNTYe+qM0h5xaYxrOLxU5qPyEqxPKiiHfkQUUM9jlpmvQq1qY4wO5Z3qaG7ce7ugMqxRACR5Ze1tTapcgHFvL5oK4r4kmGfVSXy0tNIlWXhgdAlxsd8KNRAzrMjKXgEl51L2KkO9kx+eyOoyN7qxADXNvrv9yTY=
+	t=1768775554; cv=none; b=mFyK+hd8stIBZ7jELAbGnpyaDHICnQ3Et4+qReGmMywGCyagdewcrsfWH/2eRloZt3a37Z0iAY2q5f6lBRnoQiemRszr0OHvLi6CHHXEQC6ojWgSAYdcAHWTuqoGAdJLeWqQUVLAL0J+qlnU1lMMkg0vqh1fjOWNSfmbnsBYrlE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768775544; c=relaxed/simple;
-	bh=g29XoRu1KtFXVlm54ZglPWVGBdayg5rwEE7d/Ie6Hl0=;
+	s=arc-20240116; t=1768775554; c=relaxed/simple;
+	bh=ATl+sn+w8krnV+PUf8aB0KMnl1nZkb6LxA4UkIrR3Ng=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=tOJO/398dD2DtVQAhfKyyCd5VcmJCRtPi/WRUA9JbC2x5aBbdpsdvGwVCk6C8QcstmhmH/7twMhHO3AIKTVs8GpBG83inluhjx2l4ygwJwAkmHF7W60I0upedYs1kn6f84n6oiQTXSt9dowtVdhpyZsmsTv7zVUEgEoKLPBeyjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=LI7d2CMy; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=D5gfs1xi; arc=none smtp.client-ip=54.240.11.79
+	 References:Message-ID; b=MG9MSvSDKCQe3Ig1a50BRCNIcbgHJ1Tfry3KTFgFCQ3aHKsc7SQOazQMcFAIghU4isf7m4dYGGInPmcpjx/0tuSK5SHFIvodJLqQ+cKKMAIDWN61cDNPoSMFNuIbVLVyTPwdc+VXSh7SZqH8L+aCRCU7VhEEASuuARtsiTbGrDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=SyKcsLHZ; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=sVx5v3dx; arc=none smtp.client-ip=54.240.11.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="LI7d2CMy";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="D5gfs1xi"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="SyKcsLHZ";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="sVx5v3dx"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1768775542;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1768775552;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=g29XoRu1KtFXVlm54ZglPWVGBdayg5rwEE7d/Ie6Hl0=;
-	b=LI7d2CMytCuYJvTbulgi+Kumo+Ek7aAmKj3Kefy0t8MnVMTEWZiKLZLLWHcxh+2o
-	NckUr9HHUufTk8nfw2eMtaFk9kotnHW5PgcyqytzBtLs9N4hDF+pSHi7GxQOSIctbOF
-	/JMWi/J5fM6QBJTpW8znW3mVHFRtLBJirQ9oh/o8=
+	bh=ATl+sn+w8krnV+PUf8aB0KMnl1nZkb6LxA4UkIrR3Ng=;
+	b=SyKcsLHZvEduBpxyNGRrQLUlAFswQITyV4NbjLhNnTjeJme8oprBQcqUD8c3atCl
+	DnDVdcJ1EHCZdPEZDcaaTNLpGdqOtjN2m0RSoHWOUci5ilIk+IZwrFDeaL33uINe6sz
+	zyu/v20+k/guYIjinxCUyooqi5/bTDLS/jFgBgTY=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1768775542;
+	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1768775552;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=g29XoRu1KtFXVlm54ZglPWVGBdayg5rwEE7d/Ie6Hl0=;
-	b=D5gfs1xipCIgbkiJRNvSNg1e9b45H7/foxvwge9r3BF//FCyiMzZqcRn0n6LyvO0
-	KfqBA1QFhRgB/48HcXRjcYdA+pM/PVBndBWi7qd/gM5oa2aOiyflH940jV1BK5k6exo
-	qti52fYsEV9vHvw7Lq4J54pop7t/LagQBclGogew=
-Subject: [PATCH V7 08/19] dax: export dax_dev_get()
+	bh=ATl+sn+w8krnV+PUf8aB0KMnl1nZkb6LxA4UkIrR3Ng=;
+	b=sVx5v3dxsbPiqPAZ/KKtwyf1TNFH1rHl1KyvK4Iv2OezciBgk7SbiXNW864K/2t+
+	yBmgPCUalK3BzZ8JDoKtiYFE8a6YyCmHQ7V4IME/egAYfRwZKT4ltVQMMpwhGwgMiRW
+	BoI1PV+E7QcDplOYczjIzhxX9jJoeiHbLZSKLN/4=
+Subject: [PATCH V7 09/19] famfs_fuse: magic.h: Add famfs magic numbers
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -72,7 +72,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sun, 18 Jan 2026 22:32:22 +0000
+Date: Sun, 18 Jan 2026 22:32:32 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,42 +80,45 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 In-Reply-To: 
  <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
 References: 
  <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com> 
- <20260118223215.92448-1-john@jagalactic.com>
+ <20260118223224.92472-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHciMnhcFkpAz6WTSKstYDfyF/cJQAACiwlAAAbgsg=
-Thread-Topic: [PATCH V7 08/19] dax: export dax_dev_get()
-X-Wm-Sent-Timestamp: 1768775541
+Thread-Index: AQHciMnhcFkpAz6WTSKstYDfyF/cJQAACiwlAAAdB7Q=
+Thread-Topic: [PATCH V7 09/19] famfs_fuse: magic.h: Add famfs magic numbers
+X-Wm-Sent-Timestamp: 1768775551
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019bd33ce5b3-da53cf2e-141d-4bc2-94a8-aa5487eadfb5-000000@email.amazonses.com>
+Message-ID: <0100019bd33d0dd3-81bc3562-6f64-4689-9312-6b6cec095540-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.01.18-54.240.11.79
+X-SES-Outgoing: 2026.01.18-54.240.11.32
 
-From: John Groves <john@groves.net>=0D=0A=0D=0Afamfs needs to look up a d=
-ax_device by dev_t when resolving fmap=0D=0Aentries that reference charac=
-ter dax devices.=0D=0A=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=
-=0A---=0D=0A drivers/dax/super.c | 3 ++-=0D=0A include/linux/dax.h | 1 +=0D=
-=0A 2 files changed, 3 insertions(+), 1 deletion(-)=0D=0A=0D=0Adiff --git=
- a/drivers/dax/super.c b/drivers/dax/super.c=0D=0Aindex 00c330ef437c..d09=
-7561d78db 100644=0D=0A--- a/drivers/dax/super.c=0D=0A+++ b/drivers/dax/su=
-per.c=0D=0A@@ -513,7 +513,7 @@ static int dax_set(struct inode *inode, vo=
-id *data)=0D=0A =09return 0;=0D=0A }=0D=0A=20=0D=0A-static struct dax_dev=
-ice *dax_dev_get(dev_t devt)=0D=0A+struct dax_device *dax_dev_get(dev_t d=
-evt)=0D=0A {=0D=0A =09struct dax_device *dax_dev;=0D=0A =09struct inode *=
-inode;=0D=0A@@ -536,6 +536,7 @@ static struct dax_device *dax_dev_get(dev=
-_t devt)=0D=0A=20=0D=0A =09return dax_dev;=0D=0A }=0D=0A+EXPORT_SYMBOL_GP=
-L(dax_dev_get);=0D=0A=20=0D=0A struct dax_device *alloc_dax(void *private=
-, const struct dax_operations *ops)=0D=0A {=0D=0Adiff --git a/include/lin=
-ux/dax.h b/include/linux/dax.h=0D=0Aindex 6897c5736543..1ef9b03f9671 1006=
-44=0D=0A--- a/include/linux/dax.h=0D=0A+++ b/include/linux/dax.h=0D=0A@@ =
--55,6 +55,7 @@ struct dax_device *alloc_dax(void *private, const struct d=
-ax_operations *ops);=0D=0A void *dax_holder(struct dax_device *dax_dev);=0D=
-=0A void put_dax(struct dax_device *dax_dev);=0D=0A void kill_dax(struct =
-dax_device *dax_dev);=0D=0A+struct dax_device *dax_dev_get(dev_t devt);=0D=
-=0A void dax_write_cache(struct dax_device *dax_dev, bool wc);=0D=0A bool=
- dax_write_cache_enabled(struct dax_device *dax_dev);=0D=0A bool dax_sync=
-hronous(struct dax_device *dax_dev);=0D=0A--=20=0D=0A2.52.0=0D=0A=0D=0A
+From: John Groves <john@groves.net>
+
+Famfs distinguishes between its on-media and in-memory superblocks. This
+reserves the numbers, but they are only used by the user space
+components of famfs.
+
+Signed-off-by: John Groves <john@groves.net>
+---
+ include/uapi/linux/magic.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/uapi/linux/magic.h b/include/uapi/linux/magic.h
+index 638ca21b7a90..712b097bf2a5 100644
+--- a/include/uapi/linux/magic.h
++++ b/include/uapi/linux/magic.h
+@@ -38,6 +38,8 @@
+ #define OVERLAYFS_SUPER_MAGIC	0x794c7630
+ #define FUSE_SUPER_MAGIC	0x65735546
+ #define BCACHEFS_SUPER_MAGIC	0xca451a4e
++#define FAMFS_SUPER_MAGIC	0x87b282ff
++#define FAMFS_STATFS_MAGIC      0x87b282fd
+ 
+ #define MINIX_SUPER_MAGIC	0x137F		/* minix v1 fs, 14 char names */
+ #define MINIX_SUPER_MAGIC2	0x138F		/* minix v1 fs, 30 char names */
+-- 
+2.52.0
+
