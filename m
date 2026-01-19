@@ -1,61 +1,61 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD3FD29D280
-	for <nvdimm@lists.linux.dev>; Mon, 19 Jan 2026 18:17:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB3F82C1590
+	for <nvdimm@lists.linux.dev>; Mon, 19 Jan 2026 18:43:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768846665; cv=none; b=niaDM477y8L1zFeUQitCQifA68T5R0+0wiW/Sc9bRfhciS6j7G2dY9VF4haLPyTDbVVjyv5od7xm94MNxm7HA4deFFvXSDR3Awt3y1GGr+MQPIGaqOIVoX/UHMcpHAGpHNgduN7NxSf208HvpkfucYjednG6GNr7S1MDyc8rswk=
+	t=1768848236; cv=none; b=V7DwT99C2Ng7nrjdlnowtERZ7sab2b9W6OT/KMjAud6wQ4caLY2C0fqt0FaWaP14OymTeIzH9zQlkZzzgPi2rY8QIbYGSr9yREuc1I7M1zZDdQwOBl7R7YoBnxHXqU6kCZpHfL//wjgZF95ZL35vHKeRtv32sg6LEY0ujAPXpZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768846665; c=relaxed/simple;
-	bh=/jm4Mas2zraHDvT9PHW0pLh2gbG8Dc3XSEFgWHhsUK4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OdxZg6ttClEsyElX5jNWawtTMvnXFMa4FhphwZFgdmNLCcmwSRdCiA/5GKf/IWGBZNAUuVSbXHyQq0ZEMs1RVdosJamvOXDn5WS2YaAvfYsKwXKuhVRywSkX4y4LPshfat05DUAAwlTx9UCT2tBfnCMpUpDjXC6KjtA93mgpguA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hFLlHSFG; arc=none smtp.client-ip=209.85.214.180
+	s=arc-20240116; t=1768848236; c=relaxed/simple;
+	bh=EORSyWTZBwNF1raDitypZ1JbYxUbDPTZfmSxwsWftPk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Rf+UlXXUBmwhv6PU3+cJP8VxFtz57Y3oiWZNNZhA6EnHfcTXtBV/TincMKCpe/615DELWqieh3EgQp1ASlDX/bulsXClt94078EPwsGngxuailRvTXIssNaSzk7AK4Cq+U8/4r1edIeJRZA30Qvr/2tvFjEZtW8JfIfXNiR9eHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mLUsGkra; arc=none smtp.client-ip=209.85.214.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hFLlHSFG"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-29f08b909aeso10379695ad.2
-        for <nvdimm@lists.linux.dev>; Mon, 19 Jan 2026 10:17:42 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mLUsGkra"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-29f3018dfc3so9707155ad.0
+        for <nvdimm@lists.linux.dev>; Mon, 19 Jan 2026 10:43:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768846662; x=1769451462; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1768848234; x=1769453034; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=X2A95NLnAAenZYeB6sIfMlTKuGidxofuewRgFBA/sdo=;
-        b=hFLlHSFGZTnXw3+bq+hje9boMTh/Ufg4OdKFVtaZZhTfEbUXnRkDOiUomr+SfoGI8v
-         +vVMySjSUF1QYWEg7V9/+pLjLpUiOeB37ccZM1ts1SsMQrptuZbmVTCmsSDisxx/0Mfk
-         b9tzHUDPPEb7CA3PgxcO/pgR+tAEOTXHKZQRn6S1M6JSPLn8+j6Fn3l1a1WYZzQnd/zl
-         o/w5gCLpLHdbZBnuBBAdKDKuqJbUYwchlLJAfXm8d7OWoWjHClItxXiytNccHCYpXYcM
-         SGCeMsZ4Zs5LXDTLW7LqdxIZ4rSISk4pe1Tz7NpYGukt+Jr4FN5nem02dzhwvtiS6nq1
-         +YKQ==
+        bh=5rQM+3IbfMPNIay1Twh0Q12FnCMhsPC2tkfESLTSnl0=;
+        b=mLUsGkra4LG9VoGF5fGj0xI1zqx6Fq3mbuo9UZoALaTdIYAsLSw4ifrP4qI4TM2ZcK
+         ffZ8wTM0SM+DD7daB5CRjOcuor/xgwB17rMdzRGj95lysfTD3cPM9/5q7C0cmIK3yG6B
+         oz/wn/QeYI8v+Zugj0YJfNvjIX8Nh4UBO81Rv4/TIFaDq/mr6QA/qzHVuQSRWAY2Mijf
+         H16Eu4meNhazg7HCqwQqtq9jEyCHvXY20e7iXdXPSiXXIaktjP5Sa2OyEM+381qLeB7n
+         RTPjTqosThJWsW7IKlSYUUfK5zMgdk6I/8rUoFiExCCK0ZQ1qu9Ie43WAgpkFlMAmrLg
+         HIsw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768846662; x=1769451462;
+        d=1e100.net; s=20230601; t=1768848234; x=1769453034;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=X2A95NLnAAenZYeB6sIfMlTKuGidxofuewRgFBA/sdo=;
-        b=Z0jK4S1EHQZiWkJUeY+lwacJQaIXkp9hIdyDJDP9OLs1L0rQnx51uLIaE7E5Y45kWf
-         ZjJGkNYf9ChCvwtCUNTK7OXTciPRxaLEnAr9/vtGsdzF5FR92EWmkTNWRKnsxZ3+gnue
-         cKmJAbjxAALRUGm8T4qzl8JFjBVtmMsgUZkHgoojrKH+TZYVuziBBlVnDtuLf7al6QQK
-         T3yNEjwH0IxWbrXUDFgSBAm+vby8hT8MhA/v8IfjteMSBVU+FTShY8dS4urb0fIooC5V
-         vFi0MYGFREvAPLntSPxUZlCYZFY2f9Iwl//IqeGTzoxEMBU53exyQLHK2oUrGNDlJbIQ
-         sRUQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW+/5mfOrGMRwBgGDiHcNe6Ldiity8YC/KDTdzqxbtSShDhal7QWIJ1uvE7RmyO9WagW5WfT+w=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxlYEpaT5c61vX6GZB1J73eccclIhH1Daw77blLgmW/WzRg6Phi
-	Qu+K2atnDAoXmEQuYKWRpqD6G14PkfBNSXA32NQ30RjYjx5thcJTjbEr
-X-Gm-Gg: AZuq6aIY9nxdlLlyyl6pAwMxAtIn1A4Cp9uVQN09D5xZSKr3iKg5sOrSoYrpzqBCvar
-	/B3KR6fjyhz1Qw18B91mR7ETNspn6EskToqZGvHU/kS/g5TX9ffdSS8hWoyWLksw6iI/zSZa6H+
-	lAEpdzzcdwyqjn9F6C6ncpt4Uj2hEI3I+ygJKfhsGOvFVgdH4vHFniozcdiaiMTrUxXXtqAyW4F
-	AtzF8PDLteijePSG2LHzznuB33mtmZkrSqzxK60ebwdJVyfg1m6UkrhIiwBhoUZm8HyoL4JJhGD
-	MMBL4wst26EPpD51f6j+Wj+ckzdeRTmuTKaP6Q3nsDvnx3WEpK4oKXzqYduilEvRObSfMaGIdrf
-	wDumq3NF+OGS+3s6H1L6AZKoczMgdV7mA/GnTkssrtgcgQLOi5YgjtggLwS58VIpz1z+MTmypfK
-	7ndctRJ4sYNE4xAEAbcgM69NPHaOjgz7NQxit1
-X-Received: by 2002:a17:903:1a2c:b0:2a0:d07a:bb2f with SMTP id d9443c01a7336-2a7175283d3mr88983575ad.3.1768846661950;
-        Mon, 19 Jan 2026 10:17:41 -0800 (PST)
+        bh=5rQM+3IbfMPNIay1Twh0Q12FnCMhsPC2tkfESLTSnl0=;
+        b=mAtfn/NRcQ3TUk3OXDKrhzf8a8QH4L2Wk8od6O8iYF9Ko5dQHPvbT9bIFAP4cPUQaw
+         SQLq9jCrb0ivUysyjE2hYYY+gaNarm9xHSNT5CJDoohQgbqZWMW+j/KBx8UlVIfbzZdr
+         3Jx+Mb1TzRspej+j0QpLKvke7SMmzFlU+zt4qdvh75w+nxgdZrIMU6clIcXg4ebyl81V
+         uW3Y0mmkaoMGEAss1/ChGli7M/+addgy1TNx8gBzoFWAIWGfGjN1T1XCpe610uSMuHJW
+         kbJdZQugKrOn8i3woJ5TZgClxX0tblkfeYbBkHZxbDChOnRJq9cy2iH0BJXcvtciYi92
+         k7iQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUJsafodLWUnagx4hz2O5tXOFBwO+5OQMzcYfDLAHNY1YYrD4XB9G3BrOYfkiY78ZzLE+1VOCI=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzSqxAIhlFbZEZqTwPmlb8kq4Wy+DCUeXAU6bcFJuiua5oimJ61
+	zVHXzWn9eM85T2/D6rV9tkvIuY7iPXEvREgph/iRX3WLzo8c+9XsVpIZ
+X-Gm-Gg: AZuq6aLS0f6iRwLY8Y7qKu1V/HTrBNBqunw0LBL2Ifs3wxgieoQd39wn0HX6nzVtpJ4
+	dgzmSflICZg9CdcHDGCENe8th0KF1fs5phe5PqxPJnQgzwvbRsoMinx9biHPPNnztR5/wpgDU/G
+	D8tmYdWbuUS4k7dt55QcD6WJDrEGnfqhDt9IdUVpRqZzQKgIPxKROwJhHr8+OQzdG3oj3em1RbY
+	5mlCfZI8IZmTsPEcU9KJvtq1THcPnJ+XFzzD6Rh2Q/2O0osUeCX+yVP4OxiYrj+eH60F7O6QyPp
+	L9AruhwKhInwx/wo3qjx8Lwp6kYpxLZJRraEnQF8TZB1YPwovBLyfgprXL7VwS8r8hXPQ6OgY3T
+	3VmD3veEbi8OqfYk50+Ewhf1UpqaDXc4MiYcK/lfWVVi9333m6LaQyBDBUZSyMiiekuMnS4//g4
+	TFmj9E6dGYQB0YGj8Y/s79thxzRKdBdBJZFg14whmY3TKdsws=
+X-Received: by 2002:a17:903:2304:b0:2a0:9424:7dc7 with SMTP id d9443c01a7336-2a7504df561mr3155255ad.4.1768848233978;
+        Mon, 19 Jan 2026 10:43:53 -0800 (PST)
 Received: from localhost.localdomain ([132.237.156.254])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a7193dbebasm102334145ad.55.2026.01.19.10.17.38
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a7190eee39sm99854165ad.45.2026.01.19.10.43.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Jan 2026 10:17:41 -0800 (PST)
+        Mon, 19 Jan 2026 10:43:53 -0800 (PST)
 From: Shubhakar Gowda <shubakargowdaps@gmail.com>
 X-Google-Original-From: Shubhakar Gowda <Shubhakar_gowda.P_s@dell.com>
 To: dan.j.williams@intel.com
@@ -68,9 +68,9 @@ Cc: vishal.l.verma@intel.com,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Shubhakar Gowda <Shubhakar_gowda.P_s@dell.com>
-Subject: [PATCH] ACPI: NFIT: Advertise DSM function 0xA (ARS error inject capabilities)
-Date: Mon, 19 Jan 2026 23:48:22 +0530
-Message-ID: <20260119181824.15408-1-Shubhakar_gowda.P_s@dell.com>
+Subject: [PATCH] ACPI: NFIT:Advertise DSM function 0xA (Query ARS error inject capabilities)
+Date: Tue, 20 Jan 2026 00:14:36 +0530
+Message-ID: <20260119184438.19942-1-Shubhakar_gowda.P_s@dell.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -81,12 +81,14 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-ACPI 6.6 defines DSM function index 0xA to query ARS error injection
-capabilities. Advertise support for this function in the NFIT DSM mask
-so that userspace can detect platform support.
+ACPI 6.6 defines DSM function index 0xA to Query Address Range Scrub
+(ARS) error injection capabilities. This patch adds support for this
+DSM function in the NFIT DSM mask so that userspace and ndctl tool can
+detect platform support for Query ARS error injection capabilities features.
 
-No kernel ABI changes are introduced; this uses the existing DSM
-infrastructure.
+The patch updates NFIT initialization to include DSM 0xA, logs
+supported DSMs for debugging, and uses the existing DSM infrastructure.
+No kernel ABI changes are introduced.
 
 Signed-off-by: Shubhakar Gowda <Shubhakar_gowda.P_s@dell.com>
 ---
@@ -94,14 +96,14 @@ Signed-off-by: Shubhakar Gowda <Shubhakar_gowda.P_s@dell.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 5a1ced5..8dcd159 100644
+index 5a1ced5..6cc863e 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
 @@ -2113,6 +2113,8 @@ enum nfit_aux_cmds {
  	NFIT_CMD_ARS_INJECT_SET = 7,
  	NFIT_CMD_ARS_INJECT_CLEAR = 8,
  	NFIT_CMD_ARS_INJECT_GET = 9,
-+	/* ACPI 6.5: DSM function 0xA — Query ARS Error Inject Capabilities */
++	/* ACPI 6.6: DSM function 0xA — Query ARS Error Inject Capabilities */
 +	NFIT_CMD_ARS_QUERY_CAP = 10,
  };
  
