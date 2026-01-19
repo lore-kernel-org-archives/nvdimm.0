@@ -1,128 +1,106 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB3F82C1590
-	for <nvdimm@lists.linux.dev>; Mon, 19 Jan 2026 18:43:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F272C2475E3;
+	Mon, 19 Jan 2026 19:33:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768848236; cv=none; b=V7DwT99C2Ng7nrjdlnowtERZ7sab2b9W6OT/KMjAud6wQ4caLY2C0fqt0FaWaP14OymTeIzH9zQlkZzzgPi2rY8QIbYGSr9yREuc1I7M1zZDdQwOBl7R7YoBnxHXqU6kCZpHfL//wjgZF95ZL35vHKeRtv32sg6LEY0ujAPXpZM=
+	t=1768851187; cv=none; b=GMGb3ic04hv9Q4xWWO1Pf6patpTKzp8K+5UH4I2PGuzbWORXpxRaXMabf+3LnGz7iABHkpN3yNQkuXrW47AZnw3M7WmUo6/lQ7wGcyhiUyVB/YgpOCq1K7Vb8GxBAqe/CZtnJ3HaJTloykzwRniIu2FKE8V79LRzYSroL2ATKrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768848236; c=relaxed/simple;
-	bh=EORSyWTZBwNF1raDitypZ1JbYxUbDPTZfmSxwsWftPk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Rf+UlXXUBmwhv6PU3+cJP8VxFtz57Y3oiWZNNZhA6EnHfcTXtBV/TincMKCpe/615DELWqieh3EgQp1ASlDX/bulsXClt94078EPwsGngxuailRvTXIssNaSzk7AK4Cq+U8/4r1edIeJRZA30Qvr/2tvFjEZtW8JfIfXNiR9eHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mLUsGkra; arc=none smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1768851187; c=relaxed/simple;
+	bh=PRVJ16ccr6KBA8Uf9ujjZQyURMiuVIb1RLBxOuAUaAc=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=Bg3k/HJohQU0Ui43Tui59Z3QrdFRYQpxiXO47J9y+HPZKZwxkKN6+Rol9qrbFpL3P5welYY7eKuWg6ZSFbfatLAAAhq9e0myB3Kpa+S7uz4pcEuwWw0FJ+9s7HwnupOEDQp3Z1V9YBqTZEmD0FVa9wZZQzdt7paJARsgB5y9aJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jwiw8ZqX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mLUsGkra"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-29f3018dfc3so9707155ad.0
-        for <nvdimm@lists.linux.dev>; Mon, 19 Jan 2026 10:43:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768848234; x=1769453034; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=5rQM+3IbfMPNIay1Twh0Q12FnCMhsPC2tkfESLTSnl0=;
-        b=mLUsGkra4LG9VoGF5fGj0xI1zqx6Fq3mbuo9UZoALaTdIYAsLSw4ifrP4qI4TM2ZcK
-         ffZ8wTM0SM+DD7daB5CRjOcuor/xgwB17rMdzRGj95lysfTD3cPM9/5q7C0cmIK3yG6B
-         oz/wn/QeYI8v+Zugj0YJfNvjIX8Nh4UBO81Rv4/TIFaDq/mr6QA/qzHVuQSRWAY2Mijf
-         H16Eu4meNhazg7HCqwQqtq9jEyCHvXY20e7iXdXPSiXXIaktjP5Sa2OyEM+381qLeB7n
-         RTPjTqosThJWsW7IKlSYUUfK5zMgdk6I/8rUoFiExCCK0ZQ1qu9Ie43WAgpkFlMAmrLg
-         HIsw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768848234; x=1769453034;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5rQM+3IbfMPNIay1Twh0Q12FnCMhsPC2tkfESLTSnl0=;
-        b=mAtfn/NRcQ3TUk3OXDKrhzf8a8QH4L2Wk8od6O8iYF9Ko5dQHPvbT9bIFAP4cPUQaw
-         SQLq9jCrb0ivUysyjE2hYYY+gaNarm9xHSNT5CJDoohQgbqZWMW+j/KBx8UlVIfbzZdr
-         3Jx+Mb1TzRspej+j0QpLKvke7SMmzFlU+zt4qdvh75w+nxgdZrIMU6clIcXg4ebyl81V
-         uW3Y0mmkaoMGEAss1/ChGli7M/+addgy1TNx8gBzoFWAIWGfGjN1T1XCpe610uSMuHJW
-         kbJdZQugKrOn8i3woJ5TZgClxX0tblkfeYbBkHZxbDChOnRJq9cy2iH0BJXcvtciYi92
-         k7iQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUJsafodLWUnagx4hz2O5tXOFBwO+5OQMzcYfDLAHNY1YYrD4XB9G3BrOYfkiY78ZzLE+1VOCI=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzSqxAIhlFbZEZqTwPmlb8kq4Wy+DCUeXAU6bcFJuiua5oimJ61
-	zVHXzWn9eM85T2/D6rV9tkvIuY7iPXEvREgph/iRX3WLzo8c+9XsVpIZ
-X-Gm-Gg: AZuq6aLS0f6iRwLY8Y7qKu1V/HTrBNBqunw0LBL2Ifs3wxgieoQd39wn0HX6nzVtpJ4
-	dgzmSflICZg9CdcHDGCENe8th0KF1fs5phe5PqxPJnQgzwvbRsoMinx9biHPPNnztR5/wpgDU/G
-	D8tmYdWbuUS4k7dt55QcD6WJDrEGnfqhDt9IdUVpRqZzQKgIPxKROwJhHr8+OQzdG3oj3em1RbY
-	5mlCfZI8IZmTsPEcU9KJvtq1THcPnJ+XFzzD6Rh2Q/2O0osUeCX+yVP4OxiYrj+eH60F7O6QyPp
-	L9AruhwKhInwx/wo3qjx8Lwp6kYpxLZJRraEnQF8TZB1YPwovBLyfgprXL7VwS8r8hXPQ6OgY3T
-	3VmD3veEbi8OqfYk50+Ewhf1UpqaDXc4MiYcK/lfWVVi9333m6LaQyBDBUZSyMiiekuMnS4//g4
-	TFmj9E6dGYQB0YGj8Y/s79thxzRKdBdBJZFg14whmY3TKdsws=
-X-Received: by 2002:a17:903:2304:b0:2a0:9424:7dc7 with SMTP id d9443c01a7336-2a7504df561mr3155255ad.4.1768848233978;
-        Mon, 19 Jan 2026 10:43:53 -0800 (PST)
-Received: from localhost.localdomain ([132.237.156.254])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a7190eee39sm99854165ad.45.2026.01.19.10.43.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Jan 2026 10:43:53 -0800 (PST)
-From: Shubhakar Gowda <shubakargowdaps@gmail.com>
-X-Google-Original-From: Shubhakar Gowda <Shubhakar_gowda.P_s@dell.com>
-To: dan.j.williams@intel.com
-Cc: vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Shubhakar Gowda <Shubhakar_gowda.P_s@dell.com>
-Subject: [PATCH] ACPI: NFIT:Advertise DSM function 0xA (Query ARS error inject capabilities)
-Date: Tue, 20 Jan 2026 00:14:36 +0530
-Message-ID: <20260119184438.19942-1-Shubhakar_gowda.P_s@dell.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jwiw8ZqX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CD0EC116C6;
+	Mon, 19 Jan 2026 19:33:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1768851186;
+	bh=PRVJ16ccr6KBA8Uf9ujjZQyURMiuVIb1RLBxOuAUaAc=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Jwiw8ZqXymRq+wiALadlAbpDLsKCve1hI4wsWYVAZMJ9n7yGkAWX7+yzeWf1ds/2Z
+	 npx4R/EHTL5QWpEUX5ULuLD87ON54PXj60lr7sfRkY+Nea7RWwEvR00fj1d8bhjzWn
+	 nMJ+Jzcn2nBqy0YkA+hgqmk+zw4e9UPb0gVqDV24=
+Date: Mon, 19 Jan 2026 11:33:02 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>, Dave Hansen
+ <dave.hansen@linux.intel.com>, Thomas Gleixner <tglx@kernel.org>, Ingo
+ Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+ "H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams
+ <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave
+ Jiang <dave.jiang@intel.com>, Maarten Lankhorst
+ <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>,
+ Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>,
+ Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>,
+ Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi
+ <rodrigo.vivi@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>, Christian
+ Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>, Matthew
+ Auld <matthew.auld@intel.com>, Matthew Brost <matthew.brost@intel.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner
+ <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Benjamin LaHaise
+ <bcrl@kvack.org>, Gao Xiang <xiang@kernel.org>, Chao Yu <chao@kernel.org>,
+ Yue Hu <zbestahu@gmail.com>, Jeffle Xu <jefflexu@linux.alibaba.com>,
+ Sandeep Dhavale <dhavale@google.com>, Hongbo Li <lihongbo22@huawei.com>,
+ Chunhai Guo <guochunhai@vivo.com>, Theodore Ts'o <tytso@mit.edu>, Andreas
+ Dilger <adilger.kernel@dilger.ca>, Muchun Song <muchun.song@linux.dev>,
+ Oscar Salvador <osalvador@suse.de>, David Hildenbrand <david@kernel.org>,
+ Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Mike
+ Marshall <hubcap@omnibond.com>, Martin Brandenburg <martin@omnibond.com>,
+ Tony Luck <tony.luck@intel.com>, Reinette Chatre
+ <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, James Morse
+ <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, Carlos Maiolino
+ <cem@kernel.org>, Damien Le Moal <dlemoal@kernel.org>, Naohiro Aota
+ <naohiro.aota@wdc.com>, Johannes Thumshirn <jth@kernel.org>, Matthew Wilcox
+ <willy@infradead.org>, "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, Suren
+ Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Hugh
+ Dickins <hughd@google.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, Zi
+ Yan <ziy@nvidia.com>, Nico Pache <npache@redhat.com>, Ryan Roberts
+ <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song
+ <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, Jann Horn
+ <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, David Howells
+ <dhowells@redhat.com>, Paul Moore <paul@paul-moore.com>, James Morris
+ <jmorris@namei.org>, "Serge E . Hallyn" <serge@hallyn.com>, Yury Norov
+ <yury.norov@gmail.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+ linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+ linux-fsdevel@vger.kernel.org, linux-aio@kvack.org,
+ linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+ linux-mm@kvack.org, ntfs3@lists.linux.dev, devel@lists.orangefs.org,
+ linux-xfs@vger.kernel.org, keyrings@vger.kernel.org,
+ linux-security-module@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH 00/12] mm: add bitmap VMA flag helpers and convert all
+ mmap_prepare to use them
+Message-Id: <20260119113302.76b21eb8be2f9d0bb076446d@linux-foundation.org>
+In-Reply-To: <cover.1768834061.git.lorenzo.stoakes@oracle.com>
+References: <cover.1768834061.git.lorenzo.stoakes@oracle.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-ACPI 6.6 defines DSM function index 0xA to Query Address Range Scrub
-(ARS) error injection capabilities. This patch adds support for this
-DSM function in the NFIT DSM mask so that userspace and ndctl tool can
-detect platform support for Query ARS error injection capabilities features.
+On Mon, 19 Jan 2026 14:48:51 +0000 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
 
-The patch updates NFIT initialization to include DSM 0xA, logs
-supported DSMs for debugging, and uses the existing DSM infrastructure.
-No kernel ABI changes are introduced.
+> We introduced the bitmap VMA type vma_flags_t in the aptly named commit
+> 9ea35a25d51b ("mm: introduce VMA flags bitmap type") in order to permit
+> future growth in VMA flags and to prevent the asinine requirement that VMA
+> flags be available to 64-bit kernels only if they happened to use a bit
+> number about 32-bits.
+> 
+> This is a long-term project as there are very many users of VMA flags
+> within the kernel that need to be updated in order to utilise this new
+> type.
 
-Signed-off-by: Shubhakar Gowda <Shubhakar_gowda.P_s@dell.com>
----
- drivers/acpi/nfit/core.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 5a1ced5..6cc863e 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2113,6 +2113,8 @@ enum nfit_aux_cmds {
- 	NFIT_CMD_ARS_INJECT_SET = 7,
- 	NFIT_CMD_ARS_INJECT_CLEAR = 8,
- 	NFIT_CMD_ARS_INJECT_GET = 9,
-+	/* ACPI 6.6: DSM function 0xA — Query ARS Error Inject Capabilities */
-+	NFIT_CMD_ARS_QUERY_CAP = 10,
- };
- 
- static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
-@@ -2152,10 +2154,13 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 		(1 << NFIT_CMD_TRANSLATE_SPA) |
- 		(1 << NFIT_CMD_ARS_INJECT_SET) |
- 		(1 << NFIT_CMD_ARS_INJECT_CLEAR) |
--		(1 << NFIT_CMD_ARS_INJECT_GET);
-+		(1 << NFIT_CMD_ARS_INJECT_GET)	|
-+		(1 << NFIT_CMD_ARS_QUERY_CAP);
- 	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
- 		if (acpi_check_dsm(adev->handle, guid, 1, 1ULL << i))
- 			set_bit(i, &acpi_desc->bus_dsm_mask);
-+	dev_dbg(acpi_desc->dev, "NFIT DSM mask detected: %#lx\n",
-+	acpi_desc->bus_dsm_mask);
- 
- 	/* Enumerate allowed NVDIMM_BUS_FAMILY_INTEL commands */
- 	dsm_mask = NVDIMM_BUS_INTEL_FW_ACTIVATE_CMDMASK;
--- 
-2.43.0
-
+Thanks, let's give this a run in mm-new for a few days, see if that
+helps shake anything out.  I didn't add [11/12] due to a significant
+merge clash, but it compiles!
