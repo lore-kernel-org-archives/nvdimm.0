@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 654A13563D9;
-	Thu, 22 Jan 2026 22:41:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A303D5F28;
+	Thu, 22 Jan 2026 22:44:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769121692; cv=none; b=dzYujC4XDjqyHbAiN2i59B9jJiiONWbQnRHhVzrwnWgxZTijsxJrVWsWQcb0Hx8kN7x7qGySMZWl+CccGZNJGKHkvmFUeicWtGUZMZFQoZ2a2dTeJf8VTqLOiaWgbhxNYHWHPa8R+i6NX54J4HIb2k2kpbQA9XAy2Uiv/9QHCBI=
+	t=1769121851; cv=none; b=N/EVTtmib3Jm7/f0N+4P6Uun/k1Kv0+3aW2psP/wJBoG+PDf9djScwvJ/Efx/HjdpSXdcBP+276gYIDo6yFOzcbvJa/RGv6YlNoDmyjGRjIzR/8vpwgVjD85vSmF6C2YXM/VFvtWdOdL4i0Ake4dPNnG7fYhr9E4lCrJxysZRsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769121692; c=relaxed/simple;
-	bh=ltunTCCxLClZAqNMOmXb49EoyZfyf/+7jYjno2nXdHY=;
+	s=arc-20240116; t=1769121851; c=relaxed/simple;
+	bh=tgc8g7sbE+TVJMNvbrnWDkXF0NeF0UTwcMLazAtdYZg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kg4RuOqj2Mv15U3M8jz6+yMBQn5ZAh507tVIhLYBQh3MrqPQgyskzlvh6jrB3lTkiIgOa89DsqxMqTGajLm1Jf51SiZIFGTaRFrqJIDCG893gu3/8i1sgf4TZmuV3+Pr2Eap3maolfvTspZ6t1Idf+KIvBbToD9pmnuw0SaZmaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JV+htoEF; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=HCoiAjxpghUw8dPpQ5hzSFEyvMFBejYo+BW660qgyTxd0+q40mCmHZhjZ3bw9u0lG97qXU+DZrJ9YD4dQIxNWn9DWgPIIUYMlyYvkVAIrJdnApD43YyQyjQgKd1GbISXAxq4vnK1872ehalN6MgL33ytel5yl72ZtLYwbN8CGtQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I8aPqN9g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JV+htoEF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F92C116C6;
-	Thu, 22 Jan 2026 22:41:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I8aPqN9g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E002C116C6;
+	Thu, 22 Jan 2026 22:44:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769121691;
-	bh=ltunTCCxLClZAqNMOmXb49EoyZfyf/+7jYjno2nXdHY=;
+	s=k20201202; t=1769121849;
+	bh=tgc8g7sbE+TVJMNvbrnWDkXF0NeF0UTwcMLazAtdYZg=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=JV+htoEFB0wO2aziMKYdhq0dvY+C5OmmZw5YpFsknRRVCpqmW6JvCjDnS0gz6zY6P
-	 5jDdjxYGB8V53GIu/3zWtFjDab+zbJlKJqlz5i/SvnKwVlkf8JgSx3In4EhCND6ZAT
-	 c4fwD8NFjUU9GSl8yL+3w4mCYGD3ACM0+L2CP2Yp1VU1eXg/w74xV6tEn6mRJK5EB1
-	 0dZvMnKaKQxwYrMzV4yt7tVJ8TYXOk94DCBbHmF6KJalI2T7VYiL2OQzF/3RLMnayW
-	 5k8sy46SJ2opItsi+qX9h+imOmMqpPVf3plrJBwb/Mx/OHG0gk/xJd0C5epIwvl5Wl
-	 rDC/A/c+btr1w==
-Message-ID: <4520e7b0-8218-404d-8ede-e62d95c50825@kernel.org>
-Date: Thu, 22 Jan 2026 23:41:24 +0100
+	b=I8aPqN9gmtoB1klij8GwGiQ0xbOGZbdk2ZU++3mgy8iMUXnSlNrdQbsaIqrX40GSl
+	 bqNDMqFt+HSYIEtFPC1ev5xnH6MidZj+2+bCbTMZTYKkVZ3byvd/zaZ2AkXa+4hcaZ
+	 DP+pS0jOQ6CAgye/x31X8y7SRnd9UlaJfPR9BljUoVnevSaXa29OenElcHpDspumzi
+	 wV8wtS5ZS+PE+jqA8gGVsCrbCjtTRZ28I6wmC4w+D4NExM6BWyhfC/N2JD04+Q8aB9
+	 fdCkFOecl1p27j4gNwIwYS3TJCcYC+dpun6Sg6/JlA+PKWTRzAcS9Q1kNb/YRP+vxt
+	 /sXWGg2E8iHFg==
+Message-ID: <b0d4db87-1d58-4877-8a64-55a71f1960d1@kernel.org>
+Date: Thu, 22 Jan 2026 23:44:02 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,19 +35,19 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/8] mm/memory_hotplug: add APIs for explicit online type
- control
+Subject: Re: [PATCH 8/8] dax/kmem: add memory notifier to block external state
+ changes
 To: Gregory Price <gourry@gourry.net>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
  kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
  dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com,
  xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
- akpm@linux-foundation.org
+ akpm@linux-foundation.org, Hannes Reinecke <hare@suse.de>
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-4-gourry@gourry.net>
- <b3d435d2-643f-4dad-9928-bc7fb5080181@kernel.org>
- <aWfR86RIKEvyZsh6@gourry-fedora-PF4VCD3F>
+ <20260114085201.3222597-9-gourry@gourry.net>
+ <d1938a63-839b-44a5-a68f-34ad290fef21@kernel.org>
+ <aWfNN-hy64bGw6p2@gourry-fedora-PF4VCD3F>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -93,36 +93,57 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <aWfR86RIKEvyZsh6@gourry-fedora-PF4VCD3F>
+In-Reply-To: <aWfNN-hy64bGw6p2@gourry-fedora-PF4VCD3F>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
->> For dax we know that user space will define the policy.
+On 1/14/26 18:07, Gregory Price wrote:
+> On Wed, Jan 14, 2026 at 10:44:08AM +0100, David Hildenbrand (Red Hat) wrote:
+>> On 1/14/26 09:52, Gregory Price wrote:
+>>> Add a memory notifier to prevent external operations from changing the
+>>> online/offline state of memory blocks managed by dax_kmem. This ensures
+>>> state changes only occur through the driver's hotplug sysfs interface,
+>>> providing consistent state tracking and preventing races with auto-online
+>>> policies or direct memory block sysfs manipulation.
+>>>
+>>> The notifier uses a transition protocol with memory barriers:
+>>>     - Before initiating a state change, set target_state then in_transition
+>>>     - Use a barrier to ensure target_state is visible before in_transition
+>>>     - The notifier checks in_transition, then uses barrier before reading
+>>>       target_state to ensure proper ordering on weakly-ordered architectures
+>>>
+>>> The notifier callback:
+>>>     - Returns NOTIFY_DONE for non-overlapping memory (not our concern)
+>>>     - Returns NOTIFY_BAD if in_transition is false (block external ops)
+>>>     - Validates the memory event matches target_state (MEM_GOING_ONLINE
+>>>       for online operations, MEM_GOING_OFFLINE for offline/unplug)
+>>>     - Returns NOTIFY_OK only for driver-initiated operations with matching
+>>>       target_state
+>>>
+>>> This prevents scenarios where:
+>>>     - Auto-online policies re-online memory the driver is trying to offline
+>>
+>> Is this still a problem when using offline_and_remove_memory() ?
 >>
 > 
-> Actually this may not always be true.  A driver spawning a dax on probe
-> might also end up selecting the policy... eventually... maybe... I might
-> be planning to add that glue between CXL and DAX so I can add some
-> config similar to the system-default policy to avoid systems with
-> multiple memory-devices being forced into the same policy
+> I suppose this commit more than the others is actually an RFC.
 > 
-> (e.g. CXL memory device can online auto in ZONE_MOVABLE, but the other
->   device can have its own policy).
+> DAX might not want it.  Other drivers might.  Now at least I have the
+> code to do that.
 > 
-> There's a weird corner case for CXL auto-regions (BIOS configured
-> everything but left the memory EFI_MEMORY_SP - so comes up as DAX).
-> I'm trying to keep those systems working the same as they have been
-> while the userland policy stuff catches up.  Early CXL patterns are :[
+>>>     - Users manually change memory state via /sys/devices/system/memory/
+>>
+>> I don't see why we would want to care about that :)
+>>
+> 
+> Absolutely critical if we have something like a CXL DCD region that
+> wants to try to protect hot-unplug.  But that is probably an argument
+> for implementing this in a cxl region driver than DAX.
 
-Right, but I don't want any other OOT kernel module to be able to make 
-use of add_memory_driver_managed() to do arbitrary things, because we 
-don't know if it's really user space setting the policy for that memory 
-then.
+I asked further questions about that in reply to the other longer mail.
 
-So either restrict add_memory_driver_managed() to kmem+virtio_mem 
-completely, or add another variant that will be kmem-only (or however 
-that dax/cxl module is called).
-
+Don't try to make the whole CXL DCD more special than anything else we 
+already have, otherwise you'll end up creating a mess for user space.
 
 -- 
 Cheers
