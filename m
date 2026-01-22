@@ -1,175 +1,176 @@
-Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011017.outbound.protection.outlook.com [40.93.194.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9A4D25A33F
-	for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 02:44:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3186F3A9DB6
+	for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 04:56:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.17
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769049871; cv=pass; b=OP/1XwCP2e/niNXL6PbkD3Y0bqFx1Bm08yLbCCiu57UCM9q1iCfb87lMhP4XTRc7wnBBm54c8qhy9dHuIxx8UAdd2ZxbzPGkJ/OBLzBrRd4h8AKlIpQTNEFQueDnf6rZgHOnGPMJLPsI5myXdNAz5+6ROoWwFABZAXahjwjuUgM=
+	t=1769057765; cv=fail; b=ai6zlgMhE3jw38JmuIaHF1IX7bCYslxV13veuv2VRnIyRSLYtssws1qC6qe+Z/vn7ldohbIj0NuLYWFwNxy0H94cV7UIVaZx55yHVNjf+bONmT4dXs1xaiFXRu8pPj6TIp6dwjKiuAXyQc+ubWUJnPzIliKgu0ikpLkh1c8v01c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769049871; c=relaxed/simple;
-	bh=UR97j5oS5KW66h4wusIQPc7uR0tPcNE6widZpyUVWkQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jm3zGfgp40UBPuYu3iHLiWD2SQjUVkyuAzBdF8paCiYm1UmVrgXjWvF0U+lIn9k5NlcT+5p+ebylaCD8KueREdFj2eZMoXxX7JM6LcJb+C+MY1DBczE0XLUznS5C2pYLOc0t//NxWkZgOd2+h+6AbT/w3gTbLpwqeqkzLua6xRs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GsWhMlgU; arc=pass smtp.client-ip=209.85.160.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1769057765; c=relaxed/simple;
+	bh=zGczhesOvr1/AIzez2p1VtnQ6LI3XxAemAUp1T2J+4M=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=SDZ37+0HtYyOkCS/vjxurADLovQhhTHyYZylJEZQCDzXupdjkYTZqiMCFXO6JN4zdl1kV9TebXeBG3jldKyVPvqwgclvFMaEAHEFzYt7eG8W0sRYyU8MCmOuEi22OC+rnqXA+eAqJ/Xlm8Q9vpZA9auDKbwIcVmTHuRm8jOULp0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=LqmfsadO; arc=fail smtp.client-ip=40.93.194.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GsWhMlgU"
-Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-5029aa94f28so4282911cf.1
-        for <nvdimm@lists.linux.dev>; Wed, 21 Jan 2026 18:44:26 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1769049863; cv=none;
-        d=google.com; s=arc-20240605;
-        b=WmGYZzGLDp/xTOPjJWjX11ND3LehRpxAIm6VvlZxONH1PYZV1S8+PRIvkF51f9qip4
-         vpphuaU+uu2oGTAls+dU4vVvKl8JhnBvTJj8dnWpKklX527W1NjEFvFKk7TAFu4ghme7
-         Rjp5yFzHayfTnJONIUFEHKJ8o6s7aEB8z59CkY2+ATfWuXhhYjZMlVqlZK6DWE/r9wP2
-         7wiV+MQTfMJMpC8z5iGwAyK71w47GPFyr7c/G0uXscMwg1Nx/NxF+zb2OeKard6XVpeZ
-         lL8MgrTFVD6z6/lT3ePvH8Ii1yJOzLfx1jgkQrrjncaO1SuO/ktJYJE20fsmXmAepLgF
-         LZdA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=eAtbLcPlbXwcqSlVRBCKJrrca7k4pIWb0vsbKliyQro=;
-        fh=xDr3La4n4DBMu1zMxqMP+nbV9gKEgUkHYJ2ZAPVvqkk=;
-        b=AsN5BeAgLpp0Gy44d8n88vzEpZSavfK3qzCVErO/oF/AGjfbr9soi0pQ5czKE85k9W
-         T2GTeXZIrr0GHEiWV4wFFOf5jIfn/wYk3UseDj67+XaMb94iDaE9myHSLmNaw+GRhBSF
-         Ygc+VRS4emm9uDN+3kw+Rew+/7BxK/YbV/RSxesEVqYTnaB/p0hUqzRM90yD0KKo0o20
-         +S/QetUODiVeC8J890kJABHQIJnjSePzrCF2Zb0lgsh5lbwODwkN/P2CSzRQUPEUVgkO
-         6ImyjnzNBAPkUyVjsAhrziukS9hOsQs0MbJFQClBNfUDXlO/nGq1oUdSh1zS5r+vwlvd
-         U1Ug==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769049863; x=1769654663; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=eAtbLcPlbXwcqSlVRBCKJrrca7k4pIWb0vsbKliyQro=;
-        b=GsWhMlgUGil4jl2kRa0NSmsRMfi0dDoAj/Bir3gxFuSFH2C592hQ+xZXmZDMLk0CjK
-         jJt4DrStxQE8LrnZCr/d8l4QErKaU0LXPBqDtHEhCc0iuoGNzGXH/CLWUvN9TZkSAlBl
-         j0l01yqWP57sKINvMd8NBmnGYV3nXUzr+cYjmONoLh0YnSsnHM4kaXrIAkO1lOb+pDeU
-         M2AyT+itOVVCi5BCUsrbkWvDGrCWuggRZWBlFQhQMvHgbSpPRqqGLEhXmwme7W5fS7IG
-         8CJItrEak1WVFlOLB/fJCMjuHfxBPvsuGLbnbNkO5F6SeuDXEXE5JUHR7ZPgJ70Bm+6r
-         CwnQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769049863; x=1769654663;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=eAtbLcPlbXwcqSlVRBCKJrrca7k4pIWb0vsbKliyQro=;
-        b=opKVIx4eUpw85WMBA1vQuxxfc2dELrU3bT2c2Qz5ks+y8QDOQqfgfxdvhr6sPcOqA8
-         7rQCG4vc+G81RXqNj1YREJraxz2PFwWIsQt+q6+WEOSkvasHj44xBB3/K0yGW057ADpg
-         eGPgrOKC0ngFDNkFPfxcAfrsi7EwQ3K5RMMdexrxcsBDWeJcBpKovSihMgIe0tOXspzH
-         kmyhUSGV68AaXN3R52k3HndCqIds2yd22xa/+8AeB8xs8qYfT72qfEyX8vy6xlVzAfnk
-         NCIPNBxMWbP5/cd5WDRM7n0ZqrO4mT+Y4+bFb+A6afpeU06Kdw0E0TaLCw71LTMTI9ss
-         4v9g==
-X-Forwarded-Encrypted: i=1; AJvYcCUl+mtJY601Z+HoI5BUMKFmSwI9Smn6QiNACVrc/kkazqq8DEHTIp6BWhZA09c9glzebIMzDZc=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyNdyIJ7Nx56opgw8VPlc91OcHO59lrmvbUoQ8LyK+G+ptf+QaP
-	PG4+c43YZ0Wq35Qmz1UQJ+Mae56JQufevcRy6sayPoo2RdFNcXcJBxKAzaCIY3FS1/tHgrglAaD
-	WA0BQUgKvkdv8jO82mi1UN2O1x+M7vvo=
-X-Gm-Gg: AZuq6aK91MVwjW3FHUFVbZh+LdE69XRutVGRf1tKr5Bway5f814I9kQ/ew91XVP7Pbx
-	GHv5dMndxTL47d+E0nOCsaSKcy6vgO/CaoD8Q7LwFnOEQNk53yTkJM6nb4VreCF2sau/PiHWv5B
-	exrYRqhwSkQc0M6J9sqjKqyO13oDXUKiwBMfzTkRrbweIw9rnA4BBJR2U0X/jFwilJmieWzX6Uc
-	4Exp4dnFxwYqmLXBgwPPj9xr9ZjXOAs9xR2ay04lef0u1lW1fUUGtMT0iR3cneb6LwL6Q==
-X-Received: by 2002:ac8:7c43:0:b0:4ed:bc0a:88c3 with SMTP id
- d75a77b69052e-502eb5b14b5mr24575241cf.33.1769049863440; Wed, 21 Jan 2026
- 18:44:23 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="LqmfsadO"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=XS/Dnuvdz3IkvM3tTsaosDSiO3HUBUsriizcyOcgTskGZwNlydnrUyhui9+PU9Q1Q7iXFLZE3EhtVnypRZoA5iNY7WRupFxd7vsD0c6+QAkzL4uw+AAAHQWWOBs2E34p79/9Iod+qCnQPO3SYFrHcEVQI6hNLEGNYECqrDw21jDsZ/uZqFoztfXAEAgwNHVScdjsmN7f10A4+JIPOSnVTIEhtSI6bV8SPCuPwkw6exLuq2hfLTRLINxgjkjU8XwuudkhsScGgEZk4gjR0bpF+qmcyQs2fDTqt0/3kGjo+UaCjekGBs/JDZ5M8IsPRSD/n6YlZwKdp7Ztr/6QJu1TCQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=9TKyXume6br4WMD2WLcu5o3+ZC/akJoHgsg+ksExBco=;
+ b=uuC4kofdR6+GNjwEYtpMzP9bbwsZgqacdCOyaOyBCt4KoqpaO3vMTGl0EkanrxR8r8Z+SjQPj/buj52N4THlu+9127bKfN6dHF1DSW+f+m74AxB7GV8m/JOFo1U2OHPKyhQRNVt5jtft6WwEmCBgjJVDGQyOwIbFH+6JRGX7xcnFIRsdVRoh1JRV4U2VnxNUS55uwVxVGBUK6joteZm1daPXLZLpsXK20WduK8KL/LlxGlu2aAQCgM9y1kyNy0KWBhuVqtwuu16vNsvd5OgeqCJNyaPlDprD8qqB4ZeMguEGOkxMghgMTgwiOJBXottSuRmaidnAlh153ta18CQZ2w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9TKyXume6br4WMD2WLcu5o3+ZC/akJoHgsg+ksExBco=;
+ b=LqmfsadOpRVCl9DyjYT/xWPcPrqXRk9PEo6PGRcwpKj12RDezTGwAsBFWnKfQIfNMSHEkD4ruwrW160k+MPP7d7arY8WW67d3GCtmrMv8kcDdGYT2ZJUO+mAv5T30NxPlRjY0bQWJ7qfXaccTPTISUFjXYSi1f7iFwg6zB1WZ4A=
+Received: from DS7PR05CA0106.namprd05.prod.outlook.com (2603:10b6:8:56::24) by
+ CH1PPF0316D269B.namprd12.prod.outlook.com (2603:10b6:61f:fc00::604) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9542.9; Thu, 22 Jan
+ 2026 04:55:57 +0000
+Received: from DS3PEPF000099E2.namprd04.prod.outlook.com
+ (2603:10b6:8:56:cafe::ac) by DS7PR05CA0106.outlook.office365.com
+ (2603:10b6:8:56::24) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9564.3 via Frontend Transport; Thu,
+ 22 Jan 2026 04:55:57 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ DS3PEPF000099E2.mail.protection.outlook.com (10.167.17.201) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9542.4 via Frontend Transport; Thu, 22 Jan 2026 04:55:57 +0000
+Received: from ethanolx50f7host.amd.com (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Wed, 21 Jan
+ 2026 22:55:55 -0600
+From: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+To: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>
+CC: Ard Biesheuvel <ardb@kernel.org>, Alison Schofield
+	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Ira
+ Weiny" <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>, Yazen Ghannam
+	<yazen.ghannam@amd.com>, Dave Jiang <dave.jiang@intel.com>, Davidlohr Bueso
+	<dave@stgolabs.net>, Matthew Wilcox <willy@infradead.org>, Jan Kara
+	<jack@suse.cz>, "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown
+	<len.brown@intel.com>, Pavel Machek <pavel@kernel.org>, Li Ming
+	<ming.li@zohomail.com>, Jeff Johnson <jeff.johnson@oss.qualcomm.com>, "Ying
+ Huang" <huang.ying.caritas@gmail.com>, Yao Xingtao <yaoxt.fnst@fujitsu.com>,
+	Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman
+	<gregkh@linuxfoundation.org>, Nathan Fontenot <nathan.fontenot@amd.com>,
+	Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+	Benjamin Cheatham <benjamin.cheatham@amd.com>, Zhijian Li
+	<lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>, Smita Koralahalli
+	<Smita.KoralahalliChannabasappa@amd.com>, Tomasz Wolski
+	<tomasz.wolski@fujitsu.com>
+Subject: [PATCH v5 2/7] dax/hmem: Gate Soft Reserved deferral on DEV_DAX_CXL
+Date: Thu, 22 Jan 2026 04:55:38 +0000
+Message-ID: <20260122045543.218194-3-Smita.KoralahalliChannabasappa@amd.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20260122045543.218194-1-Smita.KoralahalliChannabasappa@amd.com>
+References: <20260122045543.218194-1-Smita.KoralahalliChannabasappa@amd.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260121064339.206019-1-hch@lst.de> <20260121064339.206019-11-hch@lst.de>
- <20260122004451.GN5945@frogsfrogsfrogs>
-In-Reply-To: <20260122004451.GN5945@frogsfrogsfrogs>
-From: Joanne Koong <joannelkoong@gmail.com>
-Date: Wed, 21 Jan 2026 18:44:12 -0800
-X-Gm-Features: AZwV_Qg4LxBvht9EBcr0hoT1-gc5FWfx00BC6aQnC2V2vC-gMfVpk6AU_v2RXiM
-Message-ID: <CAJnrk1YAbcODi8pkG9XawciDpaHqdbZE+ucji73D_F=Jv1kQXg@mail.gmail.com>
-Subject: Re: [PATCH 10/15] iomap: only call into ->submit_read when there is a read_ctx
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>, 
-	Carlos Maiolino <cem@kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, 
-	Anuj Gupta <anuj20.g@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>, linux-block@vger.kernel.org, 
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
-	linux-xfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS3PEPF000099E2:EE_|CH1PPF0316D269B:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8266bab0-5247-4fc0-92a8-08de597287c7
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|82310400026|36860700013|376014|7416014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?KXuRQM+16S7NoMfQqNl2sbNGzet7ka/TErrakekc33Hr+kBIIoANGmvtBQFV?=
+ =?us-ascii?Q?EouQRoQC8prLg9NFYQTtfqP63RYdCkQZ7IwFE4JMwEBa9wF+KaxipbxnTe0J?=
+ =?us-ascii?Q?qKHgbR3TiawRFAcmt6icdhC89Lcz0kqbGUEvl1NtTPk4dfHvrKEJBLy5NUhZ?=
+ =?us-ascii?Q?ylDpBysDgJINlybuKDxFRg0DyHjAqjU3+MlVxQ9CRO3V6C8zun/U9P7EdzdZ?=
+ =?us-ascii?Q?3+8yvVDb/uV4gfBR2I7KJqbYO0mfEe9gnv9ZGbWLIPEYxTbnCQdDqOnjHGaT?=
+ =?us-ascii?Q?bLB1gXjQoR/O5YwHifdRy/Vv0XTBTH6BNSJChe2x6Rb/S4/a3PnmrrwLU3Z+?=
+ =?us-ascii?Q?HF22ewHZWr4FE6IBpc77n10hnlzdp1MIpTJuOdK47KEUbKprp+hEaB8lTr3L?=
+ =?us-ascii?Q?Hzb19dwipCBj5VDV3DibxO2mBm4unt0wOlt5PL3Zo6bC1I2sITHQ0bkYaIzX?=
+ =?us-ascii?Q?z63+nb5SniYKW6HfFNqQZx+JRGOP1XNP/Gn8MAqi0JgnBkqCeei5p9neEg6Q?=
+ =?us-ascii?Q?P2RMgA0Q1P/8aQvyqlF5zf0TGav0UiN5JQCdMx0U2y+S4tumfxUO95fIP/Oh?=
+ =?us-ascii?Q?QlFEznB3lZjbZSjrEZio1dr78p7K1CsOp5E+aVdm677lEfbelA26HB1SVplP?=
+ =?us-ascii?Q?1GK3HchrGgbfJKg84M0SJ7z659RogAgA6mnXG/85zJafYEGclJRfByoHrL90?=
+ =?us-ascii?Q?X4cQrTYJW696ykedqjecp017N365GOHUmVLFM6ftYtgW70YsdThO3h2i41vh?=
+ =?us-ascii?Q?cPe2YTW2YbukYorUJL/wk4MsJDGoLCybpBpcsqmolmUnPMLj8k9R/ctOEDwP?=
+ =?us-ascii?Q?NZk9vHbV2nUss36ebmPAK5W/Pes5RarbarGikyKnEi7PY13g8sbY5oiQAhUs?=
+ =?us-ascii?Q?bbT/NMdN+/kG72kEQl9UmCibdPrtKEVHR59nldNYDHuKCVNZldUnhQmOp+w0?=
+ =?us-ascii?Q?zwuniRfsXYsjQXz03gX5CqYEOa3IxsnBF1Frk1H0rBkdkLsakrJHO6j0pm0q?=
+ =?us-ascii?Q?NpVbC1zEIJGgR91uN7fmnHsO/UOF8iBMYyKSoBhjajcxFeso6fj8KQLKL8RD?=
+ =?us-ascii?Q?PdiXsuSBsHymJSgDBMzlQJt+UTK16bwBIUMg4/GM7QtLEmm2LG1n48LAGvwD?=
+ =?us-ascii?Q?hnBzFsSeatLO3Fg2NbtxSwZwPmxVpBNU4bgawNu7O7BzgSDRJNjLL6YJfYSE?=
+ =?us-ascii?Q?jXy4shSWfGLm7C68huQ7d3/+WV5ngHLjsp25d9+5CXkIOzaw/gQoOPWeKJPw?=
+ =?us-ascii?Q?rohfmiqpi126Jg92B7kaydvWqBwtcmhfxd6ZWhQQ02kN7lwP8SWE0SK/up1V?=
+ =?us-ascii?Q?W1B77ql5q8/m9VT38ZcW5yOlthRUDOboHO+c1dnZulzV3Rf1Tmu3RTJ2/kg7?=
+ =?us-ascii?Q?d5HRJ+4reTnJ3SgVmFmejzd2cAAwyPmP87g8nmmpB3qUhdqI0JFl3ndTVh19?=
+ =?us-ascii?Q?NtaSqliK5U+AoTdf4yh498H6Cm9Ex7tOBgAr2nMtcM08r9PY47hjLSGMXiSu?=
+ =?us-ascii?Q?olwCECLfSwwio84SGYmWKZYc1ljM76jlLg5rXEFLwJyti/qmtwHfHwTWXdnf?=
+ =?us-ascii?Q?ZdWl6LndwzzZWnFiony51JNsri8cJ4NZM46du3yVCCJOgPlnVPY1pHxPDi2M?=
+ =?us-ascii?Q?6fjUSHuA7lWRarIPaHiuKWkDPYVsi9sMG5LrQtElFxlyALPZ1kVglE87fnNG?=
+ =?us-ascii?Q?OQC0BA=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(36860700013)(376014)(7416014);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jan 2026 04:55:57.1539
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8266bab0-5247-4fc0-92a8-08de597287c7
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DS3PEPF000099E2.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PPF0316D269B
 
-On Wed, Jan 21, 2026 at 4:44=E2=80=AFPM Darrick J. Wong <djwong@kernel.org>=
- wrote:
->
-> On Wed, Jan 21, 2026 at 07:43:18AM +0100, Christoph Hellwig wrote:
-> > Move the NULL check into the callers to simplify the callees.  Not sure
-> > how fuse worked before, given that it was missing the NULL check.
+From: Dan Williams <dan.j.williams@intel.com>
 
-In fuse, ctx->read_ctx is always valid. It gets initialized to point
-to a local struct before it calls into
-iomap_read_folio()/iomap_readahead()
+Replace IS_ENABLED(CONFIG_CXL_REGION) with IS_ENABLED(CONFIG_DEV_DAX_CXL)
+so that HMEM only defers Soft Reserved ranges when CXL DAX support is
+enabled. This makes the coordination between HMEM and the CXL stack more
+precise and prevents deferral in unrelated CXL configurations.
 
->
-> Let's cc Joanne to find out then...? [done]
->
-> --D
->
-> > Signed-off-by: Christoph Hellwig <hch@lst.de>
-> > ---
-> >  fs/iomap/bio.c         | 5 +----
-> >  fs/iomap/buffered-io.c | 4 ++--
-> >  2 files changed, 3 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/fs/iomap/bio.c b/fs/iomap/bio.c
-> > index cb60d1facb5a..80bbd328bd3c 100644
-> > --- a/fs/iomap/bio.c
-> > +++ b/fs/iomap/bio.c
-> > @@ -21,10 +21,7 @@ static void iomap_read_end_io(struct bio *bio)
-> >  static void iomap_bio_submit_read(const struct iomap_iter *iter,
-> >               struct iomap_read_folio_ctx *ctx)
-> >  {
-> > -     struct bio *bio =3D ctx->read_ctx;
-> > -
-> > -     if (bio)
-> > -             submit_bio(bio);
-> > +     submit_bio(ctx->read_ctx);
-> >  }
-> >
-> >  static void iomap_read_alloc_bio(const struct iomap_iter *iter,
-> > diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
-> > index 4a15c6c153c4..6367f7f38f0c 100644
-> > --- a/fs/iomap/buffered-io.c
-> > +++ b/fs/iomap/buffered-io.c
-> > @@ -572,7 +572,7 @@ void iomap_read_folio(const struct iomap_ops *ops,
-> >               iter.status =3D iomap_read_folio_iter(&iter, ctx,
-> >                               &bytes_submitted);
-> >
-> > -     if (ctx->ops->submit_read)
-> > +     if (ctx->read_ctx && ctx->ops->submit_read)
-> >               ctx->ops->submit_read(&iter, ctx);
-> >
-> >       iomap_read_end(folio, bytes_submitted);
-> > @@ -636,7 +636,7 @@ void iomap_readahead(const struct iomap_ops *ops,
-> >               iter.status =3D iomap_readahead_iter(&iter, ctx,
-> >                                       &cur_bytes_submitted);
-> >
-> > -     if (ctx->ops->submit_read)
-> > +     if (ctx->read_ctx && ctx->ops->submit_read)
-> >               ctx->ops->submit_read(&iter, ctx);
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+---
+ drivers/dax/hmem/hmem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I wonder if it makes sense to just have submit_read() take in the void
-*read_ctx directly instead of it taking in the entire struct
-iomap_read_folio_ctx. afaict, the other fields aren't used/necessary.
+diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+index 008172fc3607..1e3424358490 100644
+--- a/drivers/dax/hmem/hmem.c
++++ b/drivers/dax/hmem/hmem.c
+@@ -66,7 +66,7 @@ static int hmem_register_device(struct device *host, int target_nid,
+ 	long id;
+ 	int rc;
+ 
+-	if (IS_ENABLED(CONFIG_CXL_REGION) &&
++	if (IS_ENABLED(CONFIG_DEV_DAX_CXL) &&
+ 	    region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
+ 			      IORES_DESC_CXL) != REGION_DISJOINT) {
+ 		dev_dbg(host, "deferring range to CXL: %pr\n", res);
+-- 
+2.17.1
 
-This patch as-is makes sense to me though.
-
-Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
-
-Thanks,
-Joanne
-
-> >
-> >       if (ctx->cur_folio)
-> > --
-> > 2.47.3
-> >
-> >
