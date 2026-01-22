@@ -1,155 +1,114 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB2BD35D5FC
-	for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 16:39:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D871436073C;
+	Thu, 22 Jan 2026 16:56:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769100003; cv=none; b=IkHPBYbONmUOPV0AYcR1HkWnMekhGcrIi9gN0PcHJKAibLNUD6t2oJbjYD1UEHRE9LfzN+fkkxlTOj0EdbIoVD/RR286mJGpxpcMUqxY189yXHRO1+Uk56Nch7pc4tCgyssn9j8tSQczVhzefT1nCLhgdxBrbwtGrW1z156AE+A=
+	t=1769100966; cv=none; b=Hjqrm83FR62NlVnhmnf4StemeeqodUFEzJ16Sc5siy+bUf6+ye1kTB6FkpOPelBjr3xJ4n36VkR+BveN+PAekaWfD2AGN5z1de5AFSwBplPornlOlfiZG7YGiBlf/rnK+NtCB1IIyKqBRPcHgr328ku3s3UkcgkVAFi3nLJy8/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769100003; c=relaxed/simple;
-	bh=Y/GejnuGHd0FcnD1vOPIOyknHojP1QImfAW2WsEPUx8=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=AqsWtyzSYW/+E71+xRrlkJW/5BRSDRVuJxsGtosKPW78+jLT69XaCXZZzBIjyQOVUe4+on4XxAWAFmiTABMysNL1Xh0/QS5H5eVzyahi7OAMHq39KIXHcwCyIoLudSUC/KdPhdsJ1ogcM266r+9zWMPq7DVjTn4HF90hEmmN3pU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.107])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dxmwz4d18zHnGdq;
-	Fri, 23 Jan 2026 00:39:15 +0800 (CST)
-Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id A1D8940584;
-	Fri, 23 Jan 2026 00:39:51 +0800 (CST)
-Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
- (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 22 Jan
- 2026 16:39:50 +0000
-Date: Thu, 22 Jan 2026 16:39:48 +0000
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, Ard Biesheuvel <ardb@kernel.org>, "Alison
- Schofield" <alison.schofield@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, "Matthew
- Wilcox" <willy@infradead.org>, Jan Kara <jack@suse.cz>, "Rafael J . Wysocki"
-	<rafael@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek
-	<pavel@kernel.org>, Li Ming <ming.li@zohomail.com>, Jeff Johnson
-	<jeff.johnson@oss.qualcomm.com>, Ying Huang <huang.ying.caritas@gmail.com>,
-	Yao Xingtao <yaoxt.fnst@fujitsu.com>, "Peter Zijlstra"
-	<peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Nathan Fontenot <nathan.fontenot@amd.com>, Terry Bowman
-	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, Zhijian Li <lizhijian@fujitsu.com>, Borislav
- Petkov <bp@alien8.de>, Tomasz Wolski <tomasz.wolski@fujitsu.com>
-Subject: Re: [PATCH v5 7/7] dax/hmem: Reintroduce Soft Reserved ranges back
- into the iomem tree
-Message-ID: <20260122163948.00007ff6@huawei.com>
-In-Reply-To: <20260122045543.218194-8-Smita.KoralahalliChannabasappa@amd.com>
-References: <20260122045543.218194-1-Smita.KoralahalliChannabasappa@amd.com>
-	<20260122045543.218194-8-Smita.KoralahalliChannabasappa@amd.com>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1769100966; c=relaxed/simple;
+	bh=jrjPF0WwvPZPRM6P6o/2VJJe4697MQWP7qZdUYFxSHY=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=FfzVpXMoC1VYD/UNUbYAS6OqiLIDmX2LDiqZ0fsF03BsaZfj4t6gidVSSOWQCaGMjucs4bvtbuSI2bj9cysB/eWfHaOByX5f5l+cxW186bh3a/fNgej54N1LBh0bZjRFmpfNB1weuUUOuUhSAVDcaiWQs8xfQArP5ddXJo0HE7Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UTEaHcdr; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UTEaHcdr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C451BC116C6;
+	Thu, 22 Jan 2026 16:56:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1769100964;
+	bh=jrjPF0WwvPZPRM6P6o/2VJJe4697MQWP7qZdUYFxSHY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=UTEaHcdr42aH4+na9j15KfpiqbAYafbC0X2iMUD6k4y/YtdzCCZ1DycwTLHJx0PPt
+	 +CS99+ai15VAAJyTlXJod09HI5BHg9DqD+81D8WgglFvTzCgDavAE+Qd9mUxEIoEfe
+	 6FnS53cyUDclSITvSvJ4wllykWndkBImnZdCxvZI=
+Date: Thu, 22 Jan 2026 08:56:01 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>, Dave Hansen
+ <dave.hansen@linux.intel.com>, Thomas Gleixner <tglx@kernel.org>, Ingo
+ Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+ "H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams
+ <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave
+ Jiang <dave.jiang@intel.com>, Maarten Lankhorst
+ <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>,
+ Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>,
+ Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>,
+ Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi
+ <rodrigo.vivi@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>, Christian
+ Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>, Matthew
+ Auld <matthew.auld@intel.com>, Matthew Brost <matthew.brost@intel.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner
+ <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Benjamin LaHaise
+ <bcrl@kvack.org>, Gao Xiang <xiang@kernel.org>, Chao Yu <chao@kernel.org>,
+ Yue Hu <zbestahu@gmail.com>, Jeffle Xu <jefflexu@linux.alibaba.com>,
+ Sandeep Dhavale <dhavale@google.com>, Hongbo Li <lihongbo22@huawei.com>,
+ Chunhai Guo <guochunhai@vivo.com>, Theodore Ts'o <tytso@mit.edu>, Andreas
+ Dilger <adilger.kernel@dilger.ca>, Muchun Song <muchun.song@linux.dev>,
+ Oscar Salvador <osalvador@suse.de>, David Hildenbrand <david@kernel.org>,
+ Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Mike
+ Marshall <hubcap@omnibond.com>, Martin Brandenburg <martin@omnibond.com>,
+ Tony Luck <tony.luck@intel.com>, Reinette Chatre
+ <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, James Morse
+ <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, Carlos Maiolino
+ <cem@kernel.org>, Damien Le Moal <dlemoal@kernel.org>, Naohiro Aota
+ <naohiro.aota@wdc.com>, Johannes Thumshirn <jth@kernel.org>, Matthew Wilcox
+ <willy@infradead.org>, "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+ Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, Suren
+ Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Hugh
+ Dickins <hughd@google.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, Zi
+ Yan <ziy@nvidia.com>, Nico Pache <npache@redhat.com>, Ryan Roberts
+ <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song
+ <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, Jann Horn
+ <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, David Howells
+ <dhowells@redhat.com>, Paul Moore <paul@paul-moore.com>, James Morris
+ <jmorris@namei.org>, "Serge E . Hallyn" <serge@hallyn.com>, Yury Norov
+ <yury.norov@gmail.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+ linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+ linux-fsdevel@vger.kernel.org, linux-aio@kvack.org,
+ linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+ linux-mm@kvack.org, ntfs3@lists.linux.dev, devel@lists.orangefs.org,
+ linux-xfs@vger.kernel.org, keyrings@vger.kernel.org,
+ linux-security-module@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH v2 00/13] mm: add bitmap VMA flag helpers and convert
+ all mmap_prepare to use them
+Message-Id: <20260122085601.4d40447ca2f9a060d3140212@linux-foundation.org>
+In-Reply-To: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100011.china.huawei.com (7.191.174.247) To
- dubpeml500005.china.huawei.com (7.214.145.207)
 
-On Thu, 22 Jan 2026 04:55:43 +0000
-Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> wrote:
+On Thu, 22 Jan 2026 16:06:09 +0000 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
 
-> Reworked from a patch by Alison Schofield <alison.schofield@intel.com>
+> We introduced the bitmap VMA type vma_flags_t in the aptly named commit
+> 9ea35a25d51b ("mm: introduce VMA flags bitmap type") in order to permit
+> future growth in VMA flags and to prevent the asinine requirement that VMA
+> flags be available to 64-bit kernels only if they happened to use a bit
+> number about 32-bits.
 > 
-> Reintroduce Soft Reserved range into the iomem_resource tree for HMEM
-> to consume.
+> This is a long-term project as there are very many users of VMA flags
+> within the kernel that need to be updated in order to utilise this new
+> type.
 > 
-> This restores visibility in /proc/iomem for ranges actively in use, while
-> avoiding the early-boot conflicts that occurred when Soft Reserved was
-> published into iomem before CXL window and region discovery.
-> 
-> Link: https://lore.kernel.org/linux-cxl/29312c0765224ae76862d59a17748c8188fb95f1.1692638817.git.alison.schofield@intel.com/
-> Co-developed-by: Alison Schofield <alison.schofield@intel.com>
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> Co-developed-by: Zhijian Li <lizhijian@fujitsu.com>
-> Signed-off-by: Zhijian Li <lizhijian@fujitsu.com>
-> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-A few minor things from a fresh read.
-> ---
->  drivers/dax/hmem/hmem.c | 32 +++++++++++++++++++++++++++++++-
->  1 file changed, 31 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-> index bcb57d8678d7..f3ef4faf158f 100644
-> --- a/drivers/dax/hmem/hmem.c
-> +++ b/drivers/dax/hmem/hmem.c
-> @@ -64,6 +64,34 @@ struct dax_defer_work {
->  	struct work_struct work;
->  };
->  
-> +static void remove_soft_reserved(void *r)
-> +{
-> +	remove_resource(r);
-> +	kfree(r);
-> +}
-> +
-> +static int add_soft_reserve_into_iomem(struct device *host,
-> +				       const struct resource *res)
-> +{
-> +	struct resource *soft __free(kfree) =
-> +		kzalloc(sizeof(*soft), GFP_KERNEL);
+> In order to further this aim, this series adds a number of helper functions
+> to enable ordinary interactions with VMA flags - that is testing, setting
+> and clearing them.
 
-On one line. I think it's exactly 80 chars.
+Thanks, I updated mm.git to this version.
 
-> +	int rc;
-> +
-The declaration and check should be together. For __free stuff inline declarations
-are preferred.
+I dropped the memfd_luo.c hunk due to today's inclusion of
+https://lkml.kernel.org/r/20260122151842.4069702-3-pratyush@kernel.org
 
-You fully assign it so kmalloc is all that's needed.
-	
-	
-	struct resource *soft __free(kfree) = kzalloc(sizeof(*soft), GFP_KERNEL);
-	if (!soft)
-
-If not, just switch the two declarations.
-
-> +	if (!soft)
-> +		return -ENOMEM;
-> +
-> +	*soft = DEFINE_RES_NAMED_DESC(res->start, (res->end - res->start + 1),
-> +				      "Soft Reserved", IORESOURCE_MEM,
-> +				      IORES_DESC_SOFT_RESERVED);
-> +
-> +	rc = insert_resource(&iomem_resource, soft);
-> +	if (rc)
-> +		return rc;
-> +
-> +	return devm_add_action_or_reset(host, remove_soft_reserved,
-> +					no_free_ptr(soft));
-> +}
-> +
->  static int hmem_register_device(struct device *host, int target_nid,
->  				const struct resource *res)
->  {
-> @@ -94,7 +122,9 @@ static int hmem_register_device(struct device *host, int target_nid,
->  	if (rc != REGION_INTERSECTS)
->  		return 0;
->  
-> -	/* TODO: Add Soft-Reserved memory back to iomem */
-> +	rc = add_soft_reserve_into_iomem(host, res);
-> +	if (rc)
-> +		return rc;
->  
->  	id = memregion_alloc(GFP_KERNEL);
->  	if (id < 0) {
-
+`get_maintainer --nogit' wants me to cc 72 people on this patchset.  I
+didn't ;)
