@@ -1,153 +1,175 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA37D3271F9;
-	Thu, 22 Jan 2026 01:04:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769043881; cv=none; b=J4gqe9eF9hlR+1+gtY0TBxD1DRvmogNVavllx+a/oSsOuGk/aPqasiEsYeKPMRg1EkG2ELrxB1WKkOhV7P4NKS1otJJzNxAuj0CPoouC3dQieiDAJo10H83ybzzjmQb7zgsbv2qrjeyaz7ocJpeaHHLPRvaLpBe7iqRXqTrpv7A=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769043881; c=relaxed/simple;
-	bh=1M92osCLOAcqjlx4r3JdGnpfGhqcLTqReWA2nBg/AIM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IkmDjOdUBOtPfLn2DSm1S3TPk/iqdyRTjbBqkHodP7WQM2qwIaODmOpEt76I+op+3fvUEvJLDCEucpSrGVDlmN8Pa2R74c2U8Q2K0TZYE3Fm/xIgBPExi7SS2mW7NorogIAAlNInqlelxeKVGlNW55A1jmwP/6AeOX9xVh1x24Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X0YLdRka; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9A4D25A33F
+	for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 02:44:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.170
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769049871; cv=pass; b=OP/1XwCP2e/niNXL6PbkD3Y0bqFx1Bm08yLbCCiu57UCM9q1iCfb87lMhP4XTRc7wnBBm54c8qhy9dHuIxx8UAdd2ZxbzPGkJ/OBLzBrRd4h8AKlIpQTNEFQueDnf6rZgHOnGPMJLPsI5myXdNAz5+6ROoWwFABZAXahjwjuUgM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769049871; c=relaxed/simple;
+	bh=UR97j5oS5KW66h4wusIQPc7uR0tPcNE6widZpyUVWkQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=jm3zGfgp40UBPuYu3iHLiWD2SQjUVkyuAzBdF8paCiYm1UmVrgXjWvF0U+lIn9k5NlcT+5p+ebylaCD8KueREdFj2eZMoXxX7JM6LcJb+C+MY1DBczE0XLUznS5C2pYLOc0t//NxWkZgOd2+h+6AbT/w3gTbLpwqeqkzLua6xRs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GsWhMlgU; arc=pass smtp.client-ip=209.85.160.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X0YLdRka"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B7DDC4CEF1;
-	Thu, 22 Jan 2026 01:04:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769043881;
-	bh=1M92osCLOAcqjlx4r3JdGnpfGhqcLTqReWA2nBg/AIM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=X0YLdRkaNfuxT7wUTVLHlkztvm6FQZD3l7TDCZkD3zxGGQpW07Pwo90piIw5zs68C
-	 3MJAtfNMs4DQ+AjUI+V7O1xF4iAM5peyQvKaUI/+FkK10XlR73HvVNlS+HF0Jz44Mf
-	 alLcAN852JSV8gm7b6dK5jys6sq/GmDEx4X1yXG4e0FIv676QyNXwCn7GqUSO0LLeX
-	 RbV01AfSBdEt86TjrgK+rApqYF74UGBgiur21KQgUWcGwNdsejwjeYv4OSYB/6uDZG
-	 MGCkNjhyU6LxxGDAeacc7H8kQ6GOztELwXsFm7ll1CLz21zmF3gyM1O/gA7UmnKq30
-	 zItthxwTb/13g==
-Date: Wed, 21 Jan 2026 17:04:40 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>,
-	Carlos Maiolino <cem@kernel.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Anuj Gupta <anuj20.g@samsung.com>,
-	Kanchan Joshi <joshi.k@samsung.com>, linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-xfs@vger.kernel.org
-Subject: Re: [PATCH 07/15] block: pass a maxlen argument to
- bio_iov_iter_bounce
-Message-ID: <20260122010440.GT5945@frogsfrogsfrogs>
-References: <20260121064339.206019-1-hch@lst.de>
- <20260121064339.206019-8-hch@lst.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GsWhMlgU"
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-5029aa94f28so4282911cf.1
+        for <nvdimm@lists.linux.dev>; Wed, 21 Jan 2026 18:44:26 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769049863; cv=none;
+        d=google.com; s=arc-20240605;
+        b=WmGYZzGLDp/xTOPjJWjX11ND3LehRpxAIm6VvlZxONH1PYZV1S8+PRIvkF51f9qip4
+         vpphuaU+uu2oGTAls+dU4vVvKl8JhnBvTJj8dnWpKklX527W1NjEFvFKk7TAFu4ghme7
+         Rjp5yFzHayfTnJONIUFEHKJ8o6s7aEB8z59CkY2+ATfWuXhhYjZMlVqlZK6DWE/r9wP2
+         7wiV+MQTfMJMpC8z5iGwAyK71w47GPFyr7c/G0uXscMwg1Nx/NxF+zb2OeKard6XVpeZ
+         lL8MgrTFVD6z6/lT3ePvH8Ii1yJOzLfx1jgkQrrjncaO1SuO/ktJYJE20fsmXmAepLgF
+         LZdA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=eAtbLcPlbXwcqSlVRBCKJrrca7k4pIWb0vsbKliyQro=;
+        fh=xDr3La4n4DBMu1zMxqMP+nbV9gKEgUkHYJ2ZAPVvqkk=;
+        b=AsN5BeAgLpp0Gy44d8n88vzEpZSavfK3qzCVErO/oF/AGjfbr9soi0pQ5czKE85k9W
+         T2GTeXZIrr0GHEiWV4wFFOf5jIfn/wYk3UseDj67+XaMb94iDaE9myHSLmNaw+GRhBSF
+         Ygc+VRS4emm9uDN+3kw+Rew+/7BxK/YbV/RSxesEVqYTnaB/p0hUqzRM90yD0KKo0o20
+         +S/QetUODiVeC8J890kJABHQIJnjSePzrCF2Zb0lgsh5lbwODwkN/P2CSzRQUPEUVgkO
+         6ImyjnzNBAPkUyVjsAhrziukS9hOsQs0MbJFQClBNfUDXlO/nGq1oUdSh1zS5r+vwlvd
+         U1Ug==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769049863; x=1769654663; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=eAtbLcPlbXwcqSlVRBCKJrrca7k4pIWb0vsbKliyQro=;
+        b=GsWhMlgUGil4jl2kRa0NSmsRMfi0dDoAj/Bir3gxFuSFH2C592hQ+xZXmZDMLk0CjK
+         jJt4DrStxQE8LrnZCr/d8l4QErKaU0LXPBqDtHEhCc0iuoGNzGXH/CLWUvN9TZkSAlBl
+         j0l01yqWP57sKINvMd8NBmnGYV3nXUzr+cYjmONoLh0YnSsnHM4kaXrIAkO1lOb+pDeU
+         M2AyT+itOVVCi5BCUsrbkWvDGrCWuggRZWBlFQhQMvHgbSpPRqqGLEhXmwme7W5fS7IG
+         8CJItrEak1WVFlOLB/fJCMjuHfxBPvsuGLbnbNkO5F6SeuDXEXE5JUHR7ZPgJ70Bm+6r
+         CwnQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769049863; x=1769654663;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=eAtbLcPlbXwcqSlVRBCKJrrca7k4pIWb0vsbKliyQro=;
+        b=opKVIx4eUpw85WMBA1vQuxxfc2dELrU3bT2c2Qz5ks+y8QDOQqfgfxdvhr6sPcOqA8
+         7rQCG4vc+G81RXqNj1YREJraxz2PFwWIsQt+q6+WEOSkvasHj44xBB3/K0yGW057ADpg
+         eGPgrOKC0ngFDNkFPfxcAfrsi7EwQ3K5RMMdexrxcsBDWeJcBpKovSihMgIe0tOXspzH
+         kmyhUSGV68AaXN3R52k3HndCqIds2yd22xa/+8AeB8xs8qYfT72qfEyX8vy6xlVzAfnk
+         NCIPNBxMWbP5/cd5WDRM7n0ZqrO4mT+Y4+bFb+A6afpeU06Kdw0E0TaLCw71LTMTI9ss
+         4v9g==
+X-Forwarded-Encrypted: i=1; AJvYcCUl+mtJY601Z+HoI5BUMKFmSwI9Smn6QiNACVrc/kkazqq8DEHTIp6BWhZA09c9glzebIMzDZc=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyNdyIJ7Nx56opgw8VPlc91OcHO59lrmvbUoQ8LyK+G+ptf+QaP
+	PG4+c43YZ0Wq35Qmz1UQJ+Mae56JQufevcRy6sayPoo2RdFNcXcJBxKAzaCIY3FS1/tHgrglAaD
+	WA0BQUgKvkdv8jO82mi1UN2O1x+M7vvo=
+X-Gm-Gg: AZuq6aK91MVwjW3FHUFVbZh+LdE69XRutVGRf1tKr5Bway5f814I9kQ/ew91XVP7Pbx
+	GHv5dMndxTL47d+E0nOCsaSKcy6vgO/CaoD8Q7LwFnOEQNk53yTkJM6nb4VreCF2sau/PiHWv5B
+	exrYRqhwSkQc0M6J9sqjKqyO13oDXUKiwBMfzTkRrbweIw9rnA4BBJR2U0X/jFwilJmieWzX6Uc
+	4Exp4dnFxwYqmLXBgwPPj9xr9ZjXOAs9xR2ay04lef0u1lW1fUUGtMT0iR3cneb6LwL6Q==
+X-Received: by 2002:ac8:7c43:0:b0:4ed:bc0a:88c3 with SMTP id
+ d75a77b69052e-502eb5b14b5mr24575241cf.33.1769049863440; Wed, 21 Jan 2026
+ 18:44:23 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260121064339.206019-8-hch@lst.de>
+References: <20260121064339.206019-1-hch@lst.de> <20260121064339.206019-11-hch@lst.de>
+ <20260122004451.GN5945@frogsfrogsfrogs>
+In-Reply-To: <20260122004451.GN5945@frogsfrogsfrogs>
+From: Joanne Koong <joannelkoong@gmail.com>
+Date: Wed, 21 Jan 2026 18:44:12 -0800
+X-Gm-Features: AZwV_Qg4LxBvht9EBcr0hoT1-gc5FWfx00BC6aQnC2V2vC-gMfVpk6AU_v2RXiM
+Message-ID: <CAJnrk1YAbcODi8pkG9XawciDpaHqdbZE+ucji73D_F=Jv1kQXg@mail.gmail.com>
+Subject: Re: [PATCH 10/15] iomap: only call into ->submit_read when there is a read_ctx
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>, 
+	Carlos Maiolino <cem@kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, 
+	Anuj Gupta <anuj20.g@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>, linux-block@vger.kernel.org, 
+	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
+	linux-xfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 21, 2026 at 07:43:15AM +0100, Christoph Hellwig wrote:
-> Allow the file system to limit the size processed in a single
-> bounce operation.  This is needed when generating integrity data
-> so that the size of a single integrity segment can't overflow.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  block/bio.c          | 17 ++++++++++-------
->  fs/iomap/direct-io.c |  2 +-
->  include/linux/bio.h  |  2 +-
->  3 files changed, 12 insertions(+), 9 deletions(-)
-> 
-> diff --git a/block/bio.c b/block/bio.c
-> index da795b1df52a..e89b24dc0283 100644
-> --- a/block/bio.c
-> +++ b/block/bio.c
-> @@ -1293,9 +1293,10 @@ static void bio_free_folios(struct bio *bio)
->  	}
->  }
->  
-> -static int bio_iov_iter_bounce_write(struct bio *bio, struct iov_iter *iter)
-> +static int bio_iov_iter_bounce_write(struct bio *bio, struct iov_iter *iter,
-> +		size_t maxlen)
->  {
-> -	size_t total_len = iov_iter_count(iter);
-> +	size_t total_len = min(maxlen, iov_iter_count(iter));
->  
->  	if (WARN_ON_ONCE(bio_flagged(bio, BIO_CLONED)))
->  		return -EINVAL;
-> @@ -1333,9 +1334,10 @@ static int bio_iov_iter_bounce_write(struct bio *bio, struct iov_iter *iter)
->  	return 0;
->  }
->  
-> -static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter)
-> +static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter,
-> +		size_t maxlen)
->  {
-> -	size_t len = min(iov_iter_count(iter), SZ_1M);
-> +	size_t len = min3(iov_iter_count(iter), maxlen, SZ_1M);
->  	struct folio *folio;
->  
->  	folio = folio_alloc_greedy(GFP_KERNEL, &len);
-> @@ -1372,6 +1374,7 @@ static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter)
->   * bio_iov_iter_bounce - bounce buffer data from an iter into a bio
->   * @bio:	bio to send
->   * @iter:	iter to read from / write into
-> + * @maxlen:	maximum size to bounce
->   *
->   * Helper for direct I/O implementations that need to bounce buffer because
->   * we need to checksum the data or perform other operations that require
-> @@ -1379,11 +1382,11 @@ static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter)
->   * copies the data into it.  Needs to be paired with bio_iov_iter_unbounce()
->   * called on completion.
->   */
-> -int bio_iov_iter_bounce(struct bio *bio, struct iov_iter *iter)
-> +int bio_iov_iter_bounce(struct bio *bio, struct iov_iter *iter, size_t maxlen)
->  {
->  	if (op_is_write(bio_op(bio)))
-> -		return bio_iov_iter_bounce_write(bio, iter);
-> -	return bio_iov_iter_bounce_read(bio, iter);
-> +		return bio_iov_iter_bounce_write(bio, iter, maxlen);
-> +	return bio_iov_iter_bounce_read(bio, iter, maxlen);
->  }
->  
->  static void bvec_unpin(struct bio_vec *bv, bool mark_dirty)
-> diff --git a/fs/iomap/direct-io.c b/fs/iomap/direct-io.c
-> index 9c572de0d596..842fc7fecb2d 100644
-> --- a/fs/iomap/direct-io.c
-> +++ b/fs/iomap/direct-io.c
-> @@ -326,7 +326,7 @@ static ssize_t iomap_dio_bio_iter_one(struct iomap_iter *iter,
->  	bio->bi_end_io = iomap_dio_bio_end_io;
->  
->  	if (dio->flags & IOMAP_DIO_BOUNCE)
-> -		ret = bio_iov_iter_bounce(bio, dio->submit.iter);
-> +		ret = bio_iov_iter_bounce(bio, dio->submit.iter, UINT_MAX);
+On Wed, Jan 21, 2026 at 4:44=E2=80=AFPM Darrick J. Wong <djwong@kernel.org>=
+ wrote:
+>
+> On Wed, Jan 21, 2026 at 07:43:18AM +0100, Christoph Hellwig wrote:
+> > Move the NULL check into the callers to simplify the callees.  Not sure
+> > how fuse worked before, given that it was missing the NULL check.
 
-Nitpicking here, but shouldn't this be SIZE_MAX?
+In fuse, ctx->read_ctx is always valid. It gets initialized to point
+to a local struct before it calls into
+iomap_read_folio()/iomap_readahead()
 
---D
+>
+> Let's cc Joanne to find out then...? [done]
+>
+> --D
+>
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > ---
+> >  fs/iomap/bio.c         | 5 +----
+> >  fs/iomap/buffered-io.c | 4 ++--
+> >  2 files changed, 3 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/fs/iomap/bio.c b/fs/iomap/bio.c
+> > index cb60d1facb5a..80bbd328bd3c 100644
+> > --- a/fs/iomap/bio.c
+> > +++ b/fs/iomap/bio.c
+> > @@ -21,10 +21,7 @@ static void iomap_read_end_io(struct bio *bio)
+> >  static void iomap_bio_submit_read(const struct iomap_iter *iter,
+> >               struct iomap_read_folio_ctx *ctx)
+> >  {
+> > -     struct bio *bio =3D ctx->read_ctx;
+> > -
+> > -     if (bio)
+> > -             submit_bio(bio);
+> > +     submit_bio(ctx->read_ctx);
+> >  }
+> >
+> >  static void iomap_read_alloc_bio(const struct iomap_iter *iter,
+> > diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
+> > index 4a15c6c153c4..6367f7f38f0c 100644
+> > --- a/fs/iomap/buffered-io.c
+> > +++ b/fs/iomap/buffered-io.c
+> > @@ -572,7 +572,7 @@ void iomap_read_folio(const struct iomap_ops *ops,
+> >               iter.status =3D iomap_read_folio_iter(&iter, ctx,
+> >                               &bytes_submitted);
+> >
+> > -     if (ctx->ops->submit_read)
+> > +     if (ctx->read_ctx && ctx->ops->submit_read)
+> >               ctx->ops->submit_read(&iter, ctx);
+> >
+> >       iomap_read_end(folio, bytes_submitted);
+> > @@ -636,7 +636,7 @@ void iomap_readahead(const struct iomap_ops *ops,
+> >               iter.status =3D iomap_readahead_iter(&iter, ctx,
+> >                                       &cur_bytes_submitted);
+> >
+> > -     if (ctx->ops->submit_read)
+> > +     if (ctx->read_ctx && ctx->ops->submit_read)
+> >               ctx->ops->submit_read(&iter, ctx);
 
->  	else
->  		ret = bio_iov_iter_get_pages(bio, dio->submit.iter,
->  					     alignment - 1);
-> diff --git a/include/linux/bio.h b/include/linux/bio.h
-> index 95cfc79b88b8..df0d7e71372a 100644
-> --- a/include/linux/bio.h
-> +++ b/include/linux/bio.h
-> @@ -479,7 +479,7 @@ void __bio_release_pages(struct bio *bio, bool mark_dirty);
->  extern void bio_set_pages_dirty(struct bio *bio);
->  extern void bio_check_pages_dirty(struct bio *bio);
->  
-> -int bio_iov_iter_bounce(struct bio *bio, struct iov_iter *iter);
-> +int bio_iov_iter_bounce(struct bio *bio, struct iov_iter *iter, size_t maxlen);
->  void bio_iov_iter_unbounce(struct bio *bio, bool is_error, bool mark_dirty);
->  
->  extern void bio_copy_data_iter(struct bio *dst, struct bvec_iter *dst_iter,
-> -- 
-> 2.47.3
-> 
-> 
+I wonder if it makes sense to just have submit_read() take in the void
+*read_ctx directly instead of it taking in the entire struct
+iomap_read_folio_ctx. afaict, the other fields aren't used/necessary.
+
+This patch as-is makes sense to me though.
+
+Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
+
+Thanks,
+Joanne
+
+> >
+> >       if (ctx->cur_folio)
+> > --
+> > 2.47.3
+> >
+> >
