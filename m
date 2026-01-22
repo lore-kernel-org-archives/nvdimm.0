@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D1FC37649C
-	for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 16:33:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB2BD35D5FC
+	for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 16:39:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769099605; cv=none; b=KaO6V5b4gZxVldpEIIwMvYEvZFf2ucsB2S7pzcksBvsodlI4EJsXQpmi9xPm1cfAsHKO3sJEg3hLfJdQe/yEh4IEqeceuIuFcVap4XKRvfdv3iUJeaxG4nAUIwvx3omwQNPo0MlvIRRjiHtYk2LRSc4GJVhWvEPaRD3mPZ4oMdw=
+	t=1769100003; cv=none; b=IkHPBYbONmUOPV0AYcR1HkWnMekhGcrIi9gN0PcHJKAibLNUD6t2oJbjYD1UEHRE9LfzN+fkkxlTOj0EdbIoVD/RR286mJGpxpcMUqxY189yXHRO1+Uk56Nch7pc4tCgyssn9j8tSQczVhzefT1nCLhgdxBrbwtGrW1z156AE+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769099605; c=relaxed/simple;
-	bh=wn1urjTtvfUYYMyYs8VAtdp6iF2y3WhCtxkayhL+ioU=;
+	s=arc-20240116; t=1769100003; c=relaxed/simple;
+	bh=Y/GejnuGHd0FcnD1vOPIOyknHojP1QImfAW2WsEPUx8=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=c3Vgvm3AvRGr5Jhd0efFuoPqloejYlv0epc5yNLbJ4fME8aJJCtYtu7oqWozo7eDVOhiOxbqYnoxXDSpaCwHeeayvXU3wDFfiKGqmbN3hPlZcJXI1kGkOpZ8mQqw/L81dX1eZD1a4wwYe+YbkLl1UzPmKnsG5pNLJl1HHY9KghI=
+	 MIME-Version:Content-Type; b=AqsWtyzSYW/+E71+xRrlkJW/5BRSDRVuJxsGtosKPW78+jLT69XaCXZZzBIjyQOVUe4+on4XxAWAFmiTABMysNL1Xh0/QS5H5eVzyahi7OAMHq39KIXHcwCyIoLudSUC/KdPhdsJ1ogcM266r+9zWMPq7DVjTn4HF90hEmmN3pU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.150])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dxmnM5ltlzHnGf4;
-	Fri, 23 Jan 2026 00:32:39 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.224.107])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dxmwz4d18zHnGdq;
+	Fri, 23 Jan 2026 00:39:15 +0800 (CST)
 Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id C56264056A;
-	Fri, 23 Jan 2026 00:33:15 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id A1D8940584;
+	Fri, 23 Jan 2026 00:39:51 +0800 (CST)
 Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
  (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 22 Jan
- 2026 16:33:14 +0000
-Date: Thu, 22 Jan 2026 16:33:13 +0000
+ 2026 16:39:50 +0000
+Date: Thu, 22 Jan 2026 16:39:48 +0000
 From: Jonathan Cameron <jonathan.cameron@huawei.com>
 To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
@@ -44,11 +44,12 @@ CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
 	<benjamin.cheatham@amd.com>, Zhijian Li <lizhijian@fujitsu.com>, Borislav
  Petkov <bp@alien8.de>, Tomasz Wolski <tomasz.wolski@fujitsu.com>
-Subject: Re: [PATCH v5 5/7] dax: Introduce dax_cxl_mode for CXL coordination
-Message-ID: <20260122163313.00003e22@huawei.com>
-In-Reply-To: <20260122045543.218194-6-Smita.KoralahalliChannabasappa@amd.com>
+Subject: Re: [PATCH v5 7/7] dax/hmem: Reintroduce Soft Reserved ranges back
+ into the iomem tree
+Message-ID: <20260122163948.00007ff6@huawei.com>
+In-Reply-To: <20260122045543.218194-8-Smita.KoralahalliChannabasappa@amd.com>
 References: <20260122045543.218194-1-Smita.KoralahalliChannabasappa@amd.com>
-	<20260122045543.218194-6-Smita.KoralahalliChannabasappa@amd.com>
+	<20260122045543.218194-8-Smita.KoralahalliChannabasappa@amd.com>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -58,62 +59,97 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500009.china.huawei.com (7.191.174.84) To
+X-ClientProxiedBy: lhrpeml100011.china.huawei.com (7.191.174.247) To
  dubpeml500005.china.huawei.com (7.214.145.207)
 
-On Thu, 22 Jan 2026 04:55:41 +0000
+On Thu, 22 Jan 2026 04:55:43 +0000
 Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> wrote:
 
-> Introduce dax_cxl_mode to coordinate between dax_cxl and dax_hmem when
-> handling CXL tagged memory ranges.
+> Reworked from a patch by Alison Schofield <alison.schofield@intel.com>
 > 
-> This patch defines the dax_cxl_mode enum and establishes a default policy.
-> Subsequent patches will wire this into dax_cxl and dax_hmem to decide
-> whether CXL tagged memory ranges should be deferred, registered or
-> dropped.
+> Reintroduce Soft Reserved range into the iomem_resource tree for HMEM
+> to consume.
 > 
-> No functional changes.
+> This restores visibility in /proc/iomem for ranges actively in use, while
+> avoiding the early-boot conflicts that occurred when Soft Reserved was
+> published into iomem before CXL window and region discovery.
 > 
+> Link: https://lore.kernel.org/linux-cxl/29312c0765224ae76862d59a17748c8188fb95f1.1692638817.git.alison.schofield@intel.com/
+> Co-developed-by: Alison Schofield <alison.schofield@intel.com>
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> Co-developed-by: Zhijian Li <lizhijian@fujitsu.com>
+> Signed-off-by: Zhijian Li <lizhijian@fujitsu.com>
 > Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+A few minor things from a fresh read.
 > ---
->  drivers/dax/bus.c | 3 +++
->  drivers/dax/bus.h | 8 ++++++++
->  2 files changed, 11 insertions(+)
+>  drivers/dax/hmem/hmem.c | 32 +++++++++++++++++++++++++++++++-
+>  1 file changed, 31 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index fde29e0ad68b..72bc5b76f061 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -24,6 +24,9 @@ DECLARE_RWSEM(dax_region_rwsem);
->   */
->  DECLARE_RWSEM(dax_dev_rwsem);
->  
-> +enum dax_cxl_mode dax_cxl_mode = DAX_CXL_MODE_DEFER;
-> +EXPORT_SYMBOL_GPL(dax_cxl_mode);
-> +
->  #define DAX_NAME_LEN 30
->  struct dax_id {
->  	struct list_head list;
-> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-> index cbbf64443098..a40cbbf1e26b 100644
-> --- a/drivers/dax/bus.h
-> +++ b/drivers/dax/bus.h
-> @@ -41,6 +41,14 @@ struct dax_device_driver {
->  	void (*remove)(struct dev_dax *dev);
+> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+> index bcb57d8678d7..f3ef4faf158f 100644
+> --- a/drivers/dax/hmem/hmem.c
+> +++ b/drivers/dax/hmem/hmem.c
+> @@ -64,6 +64,34 @@ struct dax_defer_work {
+>  	struct work_struct work;
 >  };
 >  
-> +enum dax_cxl_mode {
-I'd suggest kernel-doc for these. Their meaning isn't entirely obvious
-from the names.
+> +static void remove_soft_reserved(void *r)
+> +{
+> +	remove_resource(r);
+> +	kfree(r);
+> +}
+> +
+> +static int add_soft_reserve_into_iomem(struct device *host,
+> +				       const struct resource *res)
+> +{
+> +	struct resource *soft __free(kfree) =
+> +		kzalloc(sizeof(*soft), GFP_KERNEL);
 
-> +	DAX_CXL_MODE_DEFER,
-> +	DAX_CXL_MODE_REGISTER,
-> +	DAX_CXL_MODE_DROP,
-> +};
+On one line. I think it's exactly 80 chars.
+
+> +	int rc;
 > +
-> +extern enum dax_cxl_mode dax_cxl_mode;
+The declaration and check should be together. For __free stuff inline declarations
+are preferred.
+
+You fully assign it so kmalloc is all that's needed.
+	
+	
+	struct resource *soft __free(kfree) = kzalloc(sizeof(*soft), GFP_KERNEL);
+	if (!soft)
+
+If not, just switch the two declarations.
+
+> +	if (!soft)
+> +		return -ENOMEM;
 > +
->  int __dax_driver_register(struct dax_device_driver *dax_drv,
->  		struct module *module, const char *mod_name);
->  #define dax_driver_register(driver) \
+> +	*soft = DEFINE_RES_NAMED_DESC(res->start, (res->end - res->start + 1),
+> +				      "Soft Reserved", IORESOURCE_MEM,
+> +				      IORES_DESC_SOFT_RESERVED);
+> +
+> +	rc = insert_resource(&iomem_resource, soft);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return devm_add_action_or_reset(host, remove_soft_reserved,
+> +					no_free_ptr(soft));
+> +}
+> +
+>  static int hmem_register_device(struct device *host, int target_nid,
+>  				const struct resource *res)
+>  {
+> @@ -94,7 +122,9 @@ static int hmem_register_device(struct device *host, int target_nid,
+>  	if (rc != REGION_INTERSECTS)
+>  		return 0;
+>  
+> -	/* TODO: Add Soft-Reserved memory back to iomem */
+> +	rc = add_soft_reserve_into_iomem(host, res);
+> +	if (rc)
+> +		return rc;
+>  
+>  	id = memregion_alloc(GFP_KERNEL);
+>  	if (id < 0) {
 
