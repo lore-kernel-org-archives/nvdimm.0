@@ -1,283 +1,130 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012012.outbound.protection.outlook.com [40.107.209.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08FBB24503F
-	for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 22:14:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769120081; cv=fail; b=BGQI+5dCBLco2Wu162TrVOiSl51yX1CaFygmQDilwf8gatNPFOLcM4nZFm40Nc/neH4bboCpWgq88IdmrUMBhPn6+ynNOtYlLuOmHNy2Pn9IryDbEfR13YT3rDOPVmtjaJXvvsCXLLnBOO2k/UeoRCuJ2m2gCXQDVa0I6rNJTws=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769120081; c=relaxed/simple;
-	bh=IIDwwEOac05Ogkwm/3oIN7KZnCfzjump9c3rTssj6p8=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aQn2l26zLo0g7hS3Lj/u2FWqCCBhSJOqkB4pSUd/GFwVxX0SEprtQwsUaI532J9DUHTZRwaGQcc0d7Opfil8rzxD6Hl4P5KtrpkQ4wUC14WiqOv0QOyS/j1EDTzLlNRX1/Bp74NciS8sGOA+rPHrF4PNMZwDn2eFmSWau8esA/4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=hc1S+lHI; arc=fail smtp.client-ip=40.107.209.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 654A13563D9;
+	Thu, 22 Jan 2026 22:41:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769121692; cv=none; b=dzYujC4XDjqyHbAiN2i59B9jJiiONWbQnRHhVzrwnWgxZTijsxJrVWsWQcb0Hx8kN7x7qGySMZWl+CccGZNJGKHkvmFUeicWtGUZMZFQoZ2a2dTeJf8VTqLOiaWgbhxNYHWHPa8R+i6NX54J4HIb2k2kpbQA9XAy2Uiv/9QHCBI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769121692; c=relaxed/simple;
+	bh=ltunTCCxLClZAqNMOmXb49EoyZfyf/+7jYjno2nXdHY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=kg4RuOqj2Mv15U3M8jz6+yMBQn5ZAh507tVIhLYBQh3MrqPQgyskzlvh6jrB3lTkiIgOa89DsqxMqTGajLm1Jf51SiZIFGTaRFrqJIDCG893gu3/8i1sgf4TZmuV3+Pr2Eap3maolfvTspZ6t1Idf+KIvBbToD9pmnuw0SaZmaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JV+htoEF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="hc1S+lHI"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sHMJUbyni+Y0oWEc8LIaDWxrkhQBFsvzUK4+dO0Q8/HP8ShCBAKNpSXhXUY44pX6bOGB15lVTeVDdUNMgIU2BInnKZG3xvaDi+qLnA37PRDIZR607cVsUo63pM05KTjKSEj637eBuE0Z3WvRVraC76lcVbfKmfwy9+M9tbR1YHW8dVkn7Ex2u6tkf4VJRBmQQKRGZIrcaReUV+T/W4G0oCwSjJgBpaqyLJ4N+iBQ/gYH4m7XT9mmLp40sLt/m06YAcWKWf1JD6JuE0gKlp2xP2f3rbaZDD7/yPIErwh06nj7PsRxC08c+lAkxuXkS3Mc/MxVgfltVdEvRixfKM1EOQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=cj4hWY7XKTtdHnKbGaMu57lxL0a4kACDUJEt4/Gf2GQ=;
- b=OSZ2ShbcctmbW2yl1cLQjNr0l6qIl5OTpUdSRexjx1N5WrFqRLB3aqg6KjAHXdUa1JweoLqueFVRJPE/+pjsR6Pq8VHj2uF2bhn7mfb6vz8s6AH8eF2ySF3QeOvBgcFNOWjpyQxI5tzwGTFbaVdCLdtCCiIWhhIl+QzACgikU7nR9R+AOHFQ77D6j3OXCFU32jGeOdkZjJLN5rhTseuhDW48Wg7KDY6nM7lu/HB3IZQ5+TjEIanzLweZ2+WJEgsfUf4N4VhvqzHlYrVdIIvzGW9Uf+a9Lzr69sTsZb8flK6kKiGjoDnrm/jJqflRJndKbOobpKo8JYHYoXWfGuB+QQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=lists.linux.dev smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=cj4hWY7XKTtdHnKbGaMu57lxL0a4kACDUJEt4/Gf2GQ=;
- b=hc1S+lHIDYL7sqXEjSH13AwoQoqQUWEePu5lBiX5Zj2Tp16iIxSLPkJdwg+3G1r7nSFz0ahSoMWQ6+Ca/hORP7os++J+wVAwbPXZINAxOYOmqGl/DtMJu8sLDm4jbMgfWh0SG/OcB0cxBHvKISGI7wudyvHDNqXPwCKFpHe34K0=
-Received: from SJ0PR05CA0012.namprd05.prod.outlook.com (2603:10b6:a03:33b::17)
- by BY5PR12MB4067.namprd12.prod.outlook.com (2603:10b6:a03:212::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9542.11; Thu, 22 Jan
- 2026 22:14:27 +0000
-Received: from CO1PEPF000066E8.namprd05.prod.outlook.com
- (2603:10b6:a03:33b:cafe::f3) by SJ0PR05CA0012.outlook.office365.com
- (2603:10b6:a03:33b::17) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9564.3 via Frontend Transport; Thu,
- 22 Jan 2026 22:14:23 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- CO1PEPF000066E8.mail.protection.outlook.com (10.167.249.6) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9564.3 via Frontend Transport; Thu, 22 Jan 2026 22:14:26 +0000
-Received: from ausbcheatha02.amd.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Thu, 22 Jan
- 2026 14:37:37 -0600
-From: Ben Cheatham <Benjamin.Cheatham@amd.com>
-To: <nvdimm@lists.linux.dev>, <alison.schofield@intel.com>,
-	<dave.jiang@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <benjamin.cheatham@amd.com>
-Subject: [PATCH 5/7] cxl: Add clear-error command
-Date: Thu, 22 Jan 2026 14:37:26 -0600
-Message-ID: <20260122203728.622-6-Benjamin.Cheatham@amd.com>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260122203728.622-1-Benjamin.Cheatham@amd.com>
-References: <20260122203728.622-1-Benjamin.Cheatham@amd.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JV+htoEF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F92C116C6;
+	Thu, 22 Jan 2026 22:41:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769121691;
+	bh=ltunTCCxLClZAqNMOmXb49EoyZfyf/+7jYjno2nXdHY=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=JV+htoEFB0wO2aziMKYdhq0dvY+C5OmmZw5YpFsknRRVCpqmW6JvCjDnS0gz6zY6P
+	 5jDdjxYGB8V53GIu/3zWtFjDab+zbJlKJqlz5i/SvnKwVlkf8JgSx3In4EhCND6ZAT
+	 c4fwD8NFjUU9GSl8yL+3w4mCYGD3ACM0+L2CP2Yp1VU1eXg/w74xV6tEn6mRJK5EB1
+	 0dZvMnKaKQxwYrMzV4yt7tVJ8TYXOk94DCBbHmF6KJalI2T7VYiL2OQzF/3RLMnayW
+	 5k8sy46SJ2opItsi+qX9h+imOmMqpPVf3plrJBwb/Mx/OHG0gk/xJd0C5epIwvl5Wl
+	 rDC/A/c+btr1w==
+Message-ID: <4520e7b0-8218-404d-8ede-e62d95c50825@kernel.org>
+Date: Thu, 22 Jan 2026 23:41:24 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF000066E8:EE_|BY5PR12MB4067:EE_
-X-MS-Office365-Filtering-Correlation-Id: bd112cd0-c0e2-4f18-0b02-08de5a039aff
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700013|376014|1800799024;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?5GHs2lAMoNYqib7fbv+B/Dti7G9RirfROIc+x5eMnwdvFZCbrIEkWdCHIUr4?=
- =?us-ascii?Q?doMf4cw79Rr3HDhh+DKScBG03qjOaUAIP+5s4wEAvMJEZLXhim31ThidAY8M?=
- =?us-ascii?Q?DzylXtL896nHdjrDTzvIFSE3mHQVv4Q3ZjknEgEBZB9pdGHCAk30XmBZkxYG?=
- =?us-ascii?Q?ia5lY7F7Lfsb58aJ8wNIDHif4qTdD28TXNG/Q+rUBJ3c/or8hNEONDK/A3yh?=
- =?us-ascii?Q?yBzxmNN+zeVVa0MpoJgERkZgBLI4WqAjeTa8uXTzZkLVNWl3RatrVJuts+/T?=
- =?us-ascii?Q?mqVHxY64+1QaCz58PaImbhxEOq8YMnyiKGab1GkfHJ2Tnq8Vavyzqi69bDdf?=
- =?us-ascii?Q?7A1fHnwx+xCIlw3xR8BqjOcowQrV/b58RZiDaw/eX64um1qzNa8X2T6YFaFj?=
- =?us-ascii?Q?bWMcXGiwvMevcugwyBwh9VYmX1mG4Li9BDDTL7ys9/hatiDBvgEIymEaqi89?=
- =?us-ascii?Q?6KmoQXR7RhvO+oSXkZ1/zzw9XE6REIUqt/hg0IYIeg8AKn9rZM790PcsfLgT?=
- =?us-ascii?Q?zBokqLHe635lGMfVu94WrIkSwrDAqKMpZuOxVbIYNd4j8CpAMx1eo5/glLt1?=
- =?us-ascii?Q?RfR9hD+KAN3vjT7Zk6eIQJSwAFmU6OauD+/OmF42sEk82BIBOXrkqYrWsIhH?=
- =?us-ascii?Q?n/2Zu3jOAxXb+82IaVx4dN3UhV2oh2J6FNrLQ30XRxK5zJ4XcKj6NnexMjhn?=
- =?us-ascii?Q?3hpulodXInXFNAXqNybvWVbXYFzuVSkiV2yhc5Cin/Rof5qHHiYuVRn26sLL?=
- =?us-ascii?Q?HZfoPPPnrkZ4kRqBULj0MrXxeODa+CcalN7uJEoRsX4CQd4G49GNYeznPJgT?=
- =?us-ascii?Q?jRvBCeiluHhQ/yDmPvBF5XNrem9gAP42qGwlPlGYNCHHrDCOvcVl2Ae6qFtF?=
- =?us-ascii?Q?pgvmWMVWTW+srvagERZO0BfeJrgPXjf9PQv+cxW8EYmleyGa4Ij5j378abFY?=
- =?us-ascii?Q?bzA04F0kRns7YvTLgwYAEbhInlkwKGWSiNIdpdBHFUarr2ojbuOp9oUmyAs3?=
- =?us-ascii?Q?b5pMh5Q7YGUKZX9rhM0VtuLIE1oobJDyd2SOvdZqzrDnH8K90iEMFaN1vJT/?=
- =?us-ascii?Q?AwM/yfTAebNHQSUKIHkMV2FSyZr+cUuNUpOiAJGndaGw//GB1KqlWYEbV8nC?=
- =?us-ascii?Q?LMcSEvmriVjIIo0uUOmisdMbAKkGVHjN3ShVXjT/pXxFScCoaLedVEtP02Wl?=
- =?us-ascii?Q?miaqWTtBrSLKh6BXv9aZ2n9esoVHEkjdY/VQn2+M+lEfjroB8jUyVAlkjere?=
- =?us-ascii?Q?JKpZqrZPgX1JIfttuzkw+Vvgw7+e4WU2kY6uSG7LDKD/ZBpzCW0laPGfMc0q?=
- =?us-ascii?Q?0vaV5Iy5G03cRjdG3oQM2X+1Y05vAs9bRWEtSwGLuCTnk+NbZ1bJrQJg2J2U?=
- =?us-ascii?Q?MPFFO6VdfvkU1pyPmb0Z138bThX+s6rdTCVlP3LQYN5l19GK1Wephin1v4NF?=
- =?us-ascii?Q?LurmV63NWmw4PqecepTv090uI9U6CBKLGufgGNn0zc3cndo5ybRjQZQSHSSu?=
- =?us-ascii?Q?OWqjXSNS3hL0m3e1y9RkdwX0pUw4WlYFbPfkSAsfz1RDhj8/hcWhMceYo0kH?=
- =?us-ascii?Q?iVcBJOOm3QZtJIR8fNFNjgzyMvUORY2ZFYAlIHXkPgNwnbGoKWXa+B3ANYHd?=
- =?us-ascii?Q?w/DPEiGVWkFeUioq7jZjnOcnp4KH2bKQpyv6+l+z3r73gfsoqZYXb77uKMYs?=
- =?us-ascii?Q?giVTOw=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700013)(376014)(1800799024);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jan 2026 22:14:26.3651
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: bd112cd0-c0e2-4f18-0b02-08de5a039aff
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF000066E8.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR12MB4067
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/8] mm/memory_hotplug: add APIs for explicit online type
+ control
+To: Gregory Price <gourry@gourry.net>
+Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
+ kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+ dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com,
+ xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
+ akpm@linux-foundation.org
+References: <20260114085201.3222597-1-gourry@gourry.net>
+ <20260114085201.3222597-4-gourry@gourry.net>
+ <b3d435d2-643f-4dad-9928-bc7fb5080181@kernel.org>
+ <aWfR86RIKEvyZsh6@gourry-fedora-PF4VCD3F>
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+In-Reply-To: <aWfR86RIKEvyZsh6@gourry-fedora-PF4VCD3F>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Add the 'cxl-clear-error' command. This command allows the user to clear
-device poison from CXL memory devices.
+>> For dax we know that user space will define the policy.
+>>
+> 
+> Actually this may not always be true.  A driver spawning a dax on probe
+> might also end up selecting the policy... eventually... maybe... I might
+> be planning to add that glue between CXL and DAX so I can add some
+> config similar to the system-default policy to avoid systems with
+> multiple memory-devices being forced into the same policy
+> 
+> (e.g. CXL memory device can online auto in ZONE_MOVABLE, but the other
+>   device can have its own policy).
+> 
+> There's a weird corner case for CXL auto-regions (BIOS configured
+> everything but left the memory EFI_MEMORY_SP - so comes up as DAX).
+> I'm trying to keep those systems working the same as they have been
+> while the userland policy stuff catches up.  Early CXL patterns are :[
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
----
- cxl/builtin.h      |  1 +
- cxl/cxl.c          |  1 +
- cxl/inject-error.c | 70 ++++++++++++++++++++++++++++++++++++++++++----
- 3 files changed, 67 insertions(+), 5 deletions(-)
+Right, but I don't want any other OOT kernel module to be able to make 
+use of add_memory_driver_managed() to do arbitrary things, because we 
+don't know if it's really user space setting the policy for that memory 
+then.
 
-diff --git a/cxl/builtin.h b/cxl/builtin.h
-index e82fcb5..68ed1de 100644
---- a/cxl/builtin.h
-+++ b/cxl/builtin.h
-@@ -26,6 +26,7 @@ int cmd_enable_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_disable_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_destroy_region(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_inject_error(int argc, const char **argv, struct cxl_ctx *ctx);
-+int cmd_clear_error(int argc, const char **argv, struct cxl_ctx *ctx);
- #ifdef ENABLE_LIBTRACEFS
- int cmd_monitor(int argc, const char **argv, struct cxl_ctx *ctx);
- #else
-diff --git a/cxl/cxl.c b/cxl/cxl.c
-index a98bd6b..e1740b5 100644
---- a/cxl/cxl.c
-+++ b/cxl/cxl.c
-@@ -81,6 +81,7 @@ static struct cmd_struct commands[] = {
- 	{ "destroy-region", .c_fn = cmd_destroy_region },
- 	{ "monitor", .c_fn = cmd_monitor },
- 	{ "inject-error", .c_fn = cmd_inject_error },
-+	{ "clear-error", .c_fn = cmd_clear_error },
- };
- 
- int main(int argc, const char **argv)
-diff --git a/cxl/inject-error.c b/cxl/inject-error.c
-index 0ca2e6b..76f9fa9 100644
---- a/cxl/inject-error.c
-+++ b/cxl/inject-error.c
-@@ -17,6 +17,10 @@ static struct inject_params {
- 	const char *address;
- } inj_param;
- 
-+static struct clear_params {
-+	const char *address;
-+} clear_param;
-+
- static const struct option inject_options[] = {
- 	OPT_STRING('t', "type", &inj_param.type, "Error type",
- 		   "Error type to inject into <device>"),
-@@ -28,6 +32,15 @@ static const struct option inject_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option clear_options[] = {
-+	OPT_STRING('a', "address", &clear_param.address, "Address for poison clearing",
-+		   "Device physical address to clear poison from in hex or decimal"),
-+#ifdef ENABLE_DEBUG
-+	OPT_BOOLEAN(0, "debug", &debug, "turn on debug output"),
-+#endif
-+	OPT_END(),
-+};
-+
- static struct log_ctx iel;
- 
- static struct cxl_protocol_error *find_cxl_proto_err(struct cxl_ctx *ctx,
-@@ -100,7 +113,7 @@ static int inject_proto_err(struct cxl_ctx *ctx, const char *devname,
- }
- 
- static int poison_action(struct cxl_ctx *ctx, const char *filter,
--			 const char *addr_str)
-+			 const char *addr_str, bool clear)
- {
- 	struct cxl_memdev *memdev;
- 	unsigned long long addr;
-@@ -128,12 +141,18 @@ static int poison_action(struct cxl_ctx *ctx, const char *filter,
- 		return -EINVAL;
- 	}
- 
--	rc = cxl_memdev_inject_poison(memdev, addr);
-+	if (clear)
-+		rc = cxl_memdev_clear_poison(memdev, addr);
-+	else
-+		rc = cxl_memdev_inject_poison(memdev, addr);
-+
- 	if (rc)
--		log_err(&iel, "failed to inject poison at %s:%s: %s\n",
-+		log_err(&iel, "failed to %s %s:%s: %s\n",
-+			clear ? "clear poison at" : "inject poison at",
- 			cxl_memdev_get_devname(memdev), addr_str, strerror(-rc));
- 	else
--		log_info(&iel, "poison injected at %s:%s\n",
-+		log_info(&iel,
-+			 "poison %s at %s:%s\n", clear ? "cleared" : "injected",
- 			 cxl_memdev_get_devname(memdev), addr_str);
- 
- 	return rc;
-@@ -165,7 +184,7 @@ static int inject_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 	}
- 
- 	if (strcmp(inj_param.type, "poison") == 0) {
--		rc = poison_action(ctx, argv[0], inj_param.address);
-+		rc = poison_action(ctx, argv[0], inj_param.address, false);
- 		return rc;
- 	}
- 
-@@ -186,3 +205,44 @@ int cmd_inject_error(int argc, const char **argv, struct cxl_ctx *ctx)
- 
- 	return rc ? EXIT_FAILURE : EXIT_SUCCESS;
- }
-+
-+static int clear_action(int argc, const char **argv, struct cxl_ctx *ctx,
-+			const struct option *options, const char *usage)
-+{
-+	const char * const u[] = {
-+		usage,
-+		NULL
-+	};
-+	int rc = -EINVAL;
-+
-+	log_init(&iel, "cxl clear-error", "CXL_CLEAR_LOG");
-+	argc = parse_options(argc, argv, options, u, 0);
-+
-+	if (debug) {
-+		cxl_set_log_priority(ctx, LOG_DEBUG);
-+		iel.log_priority = LOG_DEBUG;
-+	} else {
-+		iel.log_priority = LOG_INFO;
-+	}
-+
-+	if (argc != 1) {
-+		usage_with_options(u, options);
-+		return rc;
-+	}
-+
-+	rc = poison_action(ctx, argv[0], clear_param.address, true);
-+	if (rc) {
-+		log_err(&iel, "Failed to clear poison on %s at: %s\n",
-+			argv[0], strerror(-rc));
-+		return rc;
-+	}
-+
-+	return rc;
-+}
-+
-+int cmd_clear_error(int argc, const char **argv, struct cxl_ctx *ctx)
-+{
-+	int rc = clear_action(argc, argv, ctx, clear_options,
-+			      "clear-error <device> [<options>]");
-+	return rc ? EXIT_FAILURE : EXIT_SUCCESS;
-+}
+So either restrict add_memory_driver_managed() to kmem+virtio_mem 
+completely, or add another variant that will be kmem-only (or however 
+that dax/cxl module is called).
+
+
 -- 
-2.52.0
+Cheers
 
+David
