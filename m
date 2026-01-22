@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A303D5F28;
-	Thu, 22 Jan 2026 22:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60AEF3C23AF;
+	Thu, 22 Jan 2026 22:49:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769121851; cv=none; b=N/EVTtmib3Jm7/f0N+4P6Uun/k1Kv0+3aW2psP/wJBoG+PDf9djScwvJ/Efx/HjdpSXdcBP+276gYIDo6yFOzcbvJa/RGv6YlNoDmyjGRjIzR/8vpwgVjD85vSmF6C2YXM/VFvtWdOdL4i0Ake4dPNnG7fYhr9E4lCrJxysZRsM=
+	t=1769122197; cv=none; b=oN+SMl86XTt5WI22YO5/yZ0l8B4kHFvOy22W3tzbCbyY++RKz7MbXUSrBkMUlyxK5nqioxIMOetz1CgQOa3NeyyQbhB9N3gnChDZIIpx1WeB2YCIjANMlTbStZQw+YdzLeov8RpWDnGVsSl/qmtNXYdHN2xUerLYwEFbAW+YFqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769121851; c=relaxed/simple;
-	bh=tgc8g7sbE+TVJMNvbrnWDkXF0NeF0UTwcMLazAtdYZg=;
+	s=arc-20240116; t=1769122197; c=relaxed/simple;
+	bh=eWzfvBBJVfH3cs7Ugnr5IAe0m04aC03BbCpeh0poZTg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HCoiAjxpghUw8dPpQ5hzSFEyvMFBejYo+BW660qgyTxd0+q40mCmHZhjZ3bw9u0lG97qXU+DZrJ9YD4dQIxNWn9DWgPIIUYMlyYvkVAIrJdnApD43YyQyjQgKd1GbISXAxq4vnK1872ehalN6MgL33ytel5yl72ZtLYwbN8CGtQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I8aPqN9g; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=aIC9M8bbr3KMiz4dFzvubGxUKoIwIVgnWKOQwrd98Ml4dEpMMiWCuGxbBTeWk66UI28MhRJJXZZKmCCBJt0h0KNERR3r7becMvtfOywav6l/9f+ZeLfMnbGjWVAWbu5Cr8Z1qVhDoCS4c29rIGcZ8qFVVWjG0MVgiznqhki741o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=suv9xQxJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I8aPqN9g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E002C116C6;
-	Thu, 22 Jan 2026 22:44:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="suv9xQxJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1FE3C116C6;
+	Thu, 22 Jan 2026 22:49:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769121849;
-	bh=tgc8g7sbE+TVJMNvbrnWDkXF0NeF0UTwcMLazAtdYZg=;
+	s=k20201202; t=1769122195;
+	bh=eWzfvBBJVfH3cs7Ugnr5IAe0m04aC03BbCpeh0poZTg=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=I8aPqN9gmtoB1klij8GwGiQ0xbOGZbdk2ZU++3mgy8iMUXnSlNrdQbsaIqrX40GSl
-	 bqNDMqFt+HSYIEtFPC1ev5xnH6MidZj+2+bCbTMZTYKkVZ3byvd/zaZ2AkXa+4hcaZ
-	 DP+pS0jOQ6CAgye/x31X8y7SRnd9UlaJfPR9BljUoVnevSaXa29OenElcHpDspumzi
-	 wV8wtS5ZS+PE+jqA8gGVsCrbCjtTRZ28I6wmC4w+D4NExM6BWyhfC/N2JD04+Q8aB9
-	 fdCkFOecl1p27j4gNwIwYS3TJCcYC+dpun6Sg6/JlA+PKWTRzAcS9Q1kNb/YRP+vxt
-	 /sXWGg2E8iHFg==
-Message-ID: <b0d4db87-1d58-4877-8a64-55a71f1960d1@kernel.org>
-Date: Thu, 22 Jan 2026 23:44:02 +0100
+	b=suv9xQxJ/OmsZ2P8dFYa94e6zxbPnmiJ8c4Kih4qUGg8/Kg23CZNqKuShF8Vjn+5e
+	 IajYFVdMGTxzAo+o3q519CqQcmjnjMQUPUj6gKVctafcwRnYCUpKkrrP2WCSHyXu/e
+	 s0ybylPA2yN6Tl/B+pJsHt/eRo0fY/W0Cb4X+opdsYqn/6FGm42hsBuhmDgj7+/6Hn
+	 I2rnalAP7r7wD3p4cuBp7np1bXBKVmNu/yakcfPmnLMbm8JZQcvr5F0CrlNDSoVZ2y
+	 TsLHPowYb66DRZhr2IfUW1cfAGuJPgy1tkLnaKcN2AWbhZWOFYupXXhRiV9gWBhUro
+	 8Y4Q5ZR+GQU+g==
+Message-ID: <57c5f44f-3921-478b-843b-877fae536591@kernel.org>
+Date: Thu, 22 Jan 2026 23:49:48 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,19 +35,19 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 8/8] dax/kmem: add memory notifier to block external state
- changes
+Subject: Re: [PATCH 7/8] dax/kmem: add sysfs interface for runtime hotplug
+ state control
 To: Gregory Price <gourry@gourry.net>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
  kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
  dave.jiang@intel.com, mst@redhat.com, jasowang@redhat.com,
  xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
- akpm@linux-foundation.org, Hannes Reinecke <hare@suse.de>
+ akpm@linux-foundation.org
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-9-gourry@gourry.net>
- <d1938a63-839b-44a5-a68f-34ad290fef21@kernel.org>
- <aWfNN-hy64bGw6p2@gourry-fedora-PF4VCD3F>
+ <20260114085201.3222597-8-gourry@gourry.net>
+ <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
+ <aWfcYjZVrROHfGyh@gourry-fedora-PF4VCD3F>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -93,57 +93,79 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <aWfNN-hy64bGw6p2@gourry-fedora-PF4VCD3F>
+In-Reply-To: <aWfcYjZVrROHfGyh@gourry-fedora-PF4VCD3F>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 1/14/26 18:07, Gregory Price wrote:
-> On Wed, Jan 14, 2026 at 10:44:08AM +0100, David Hildenbrand (Red Hat) wrote:
->> On 1/14/26 09:52, Gregory Price wrote:
->>> Add a memory notifier to prevent external operations from changing the
->>> online/offline state of memory blocks managed by dax_kmem. This ensures
->>> state changes only occur through the driver's hotplug sysfs interface,
->>> providing consistent state tracking and preventing races with auto-online
->>> policies or direct memory block sysfs manipulation.
+On 1/14/26 19:11, Gregory Price wrote:
+> On Wed, Jan 14, 2026 at 11:55:21AM +0100, David Hildenbrand (Red Hat) wrote:
+>> On 1/14/26 09:51, Gregory Price wrote:
+>>> The dax kmem driver currently onlines memory automatically during
+>>> probe using the system's default online policy but provides no way
+>>> to control or query the memory state at runtime. Users cannot change
+>>> the online type after probe, and there's no atomic way to offline and
+>>> remove memory blocks together.
 >>>
->>> The notifier uses a transition protocol with memory barriers:
->>>     - Before initiating a state change, set target_state then in_transition
->>>     - Use a barrier to ensure target_state is visible before in_transition
->>>     - The notifier checks in_transition, then uses barrier before reading
->>>       target_state to ensure proper ordering on weakly-ordered architectures
+>>> Add a new 'hotplug' sysfs attribute that allows userspace to control
+>>> and query the memory state. The interface supports the following states:
 >>>
->>> The notifier callback:
->>>     - Returns NOTIFY_DONE for non-overlapping memory (not our concern)
->>>     - Returns NOTIFY_BAD if in_transition is false (block external ops)
->>>     - Validates the memory event matches target_state (MEM_GOING_ONLINE
->>>       for online operations, MEM_GOING_OFFLINE for offline/unplug)
->>>     - Returns NOTIFY_OK only for driver-initiated operations with matching
->>>       target_state
+>>>     - "offline": memory is added but not online
+>>>     - "online": memory is online as normal system RAM
+>>>     - "online_movable": memory is online in ZONE_MOVABLE
+>>>     - "unplug": memory is offlined and removed
 >>>
->>> This prevents scenarios where:
->>>     - Auto-online policies re-online memory the driver is trying to offline
+>>> The initial state after probe uses MMOP_SYSTEM_DEFAULT to preserve
+>>> backwards compatibility - existing systems with auto-online policies
+>>> will continue to work as before.
+>>>
+>>> The state machine enforces valid transitions:
+>>>     - From offline: can transition to online, online_movable, or unplug
+>>>     - From online/online_movable: can transition to offline or unplug
+>>>     - Cannot switch directly between online and online_movable
 >>
->> Is this still a problem when using offline_and_remove_memory() ?
+>> Do we have to support these transitions right from the start?
+>>
+>> What are the use cases for adding memory as offline and then onlining it,
+>> and why do we have to support that through this interface?
 >>
 > 
-> I suppose this commit more than the others is actually an RFC.
-> 
-> DAX might not want it.  Other drivers might.  Now at least I have the
-> code to do that.
-> 
->>>     - Users manually change memory state via /sys/devices/system/memory/
->>
->> I don't see why we would want to care about that :)
->>
-> 
-> Absolutely critical if we have something like a CXL DCD region that
-> wants to try to protect hot-unplug.  But that is probably an argument
-> for implementing this in a cxl region driver than DAX.
+> After a re-read of the feedback - are you suggested to basically kill the
+> entire offline state of blocks entirely? (e.g. if a driver calls to
+> offline a block, instead fully unplug it)
 
-I asked further questions about that in reply to the other longer mail.
+I'm merely wondering why, in the new world, you would even want the 
+offline state.
 
-Don't try to make the whole CXL DCD more special than anything else we 
-already have, otherwise you'll end up creating a mess for user space.
+So what are the use cases for that?
+
+
+Sure, memory onlining can (in debug configs) fail, so you can maneuver 
+yourself into a position where some memory is online and other is offline.
+
+But "unfortunately having some memory blocks offline" is something 
+different then user space explicitly asking to "keep all of it offline".
+
+Why would user space possibly want that?
+
+> 
+> I took a look at the acpi and ppc code you suggested, and I think they
+> also have "expect offline then online" as a default expectation.  I
+> can't speak to those users requirements.
+
+That's because the policy is defined by user space, and in contrast to 
+CXL, hotplug of APPI is *not* triggered by user space, but by hardware / 
+hypervisor.
+
+> 
+> This would definitely break things like daxctl/ndctl, but maybe that's
+> preferable?  I pointed out that patch 8 does this anyway - and I'd like
+> input from ndctl folks as to whether that should end in a NACK.
+
+You mean that it would break the ndctl option to keep memory offline?
+
+Can't ndctl just use the old (existing) interface if such an operation 
+is requested, and the new one (you want to add) when we want to do 
+something reasonable (actually use system ram? :) ).
 
 -- 
 Cheers
