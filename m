@@ -1,45 +1,79 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D7D2F25F5;
-	Fri, 23 Jan 2026 00:11:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E58772F25F0
+	for <nvdimm@lists.linux.dev>; Fri, 23 Jan 2026 00:34:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769127113; cv=none; b=LD6drRrXcMPO9a1XKLnHKaDg70NaqD50KQFUXbQg0+I0manjznRPJe8Mpu2F5XDCGwyk4fq5lwU026vCMUill009wvM3Ho3fcNWhily+kQvcKP/kDPt8fXT8ymqMnRRnhZFiYxzB7uVXeROSJhR6DzDER0GgehtdR1kL4W8u12s=
+	t=1769128461; cv=none; b=WLdLxW/vBXW9P7pjyBawF98qkSIPOwKKAgexH5g+GaXaejL7j/bO2x1qvZHUCKAk29zjup69iFfnV/uWRwfbjCufI4d+eF2p63L+RnqMldFz0lhXEutkLmiNYTjOeUR5JCdj8S63RpcV0WCGD/plLLPmZlNkDfaD2r6Ldv5G3OE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769127113; c=relaxed/simple;
-	bh=W0l8rkdl/NphprkLF/MG7YFKFxORfE9biiB9GZtSY2Q=;
+	s=arc-20240116; t=1769128461; c=relaxed/simple;
+	bh=ksTMqewe9wJeVkWUQ6teggTVZqK1udNl0Tl8ePWbE3E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YeYcslNjFA/FfFHrbAWqulX+7VTyxdQwerE1HfTAw5CkeXjQv3b/lSgcX3n4B/aO7r7lRQC/JkQUQkwpSEYsxTE4rmXeFBBpvI8fDi7tQKt8R1BlvmoEOj+0+z0K6OLNDkB1zJzVMv43Mk935yo+u3HPcoBWX09eP8B8w8bTswM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dIiFnBTo; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=a0toL6TPDqgbqCCSLZ3St+GgDrlP/WS9txEn7YfUu93d87veazJsOzpfRQieQ7OMYGivz3UtlLGUtPMbN0+8/6cZWKNRQ9EZMxsfRol/r6CRYJEL3SS0cr8F7ZMmUf4UW3FkNAmNkjYyPJ7IaBqh8PTZprG1fnt91Zj3bIz/SMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=GzUmHT3z; arc=none smtp.client-ip=209.85.219.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dIiFnBTo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 576F7C116C6;
-	Fri, 23 Jan 2026 00:11:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769127111;
-	bh=W0l8rkdl/NphprkLF/MG7YFKFxORfE9biiB9GZtSY2Q=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=dIiFnBToxYE01ZXyMMjqfJy+5cYgiK8Xq2CVVUeoOPMSjn602pBJ75WRufgeQmmWq
-	 VO/A5qmTBPV5fHj0tS75TgiQBxdI3/vNJmx3X89C40BfxVcGvzhNLQ6K6905qRkZqd
-	 Zcb2u4YR/ZJDdWFFoMcJvmkh+JdxJifCGYFQTAk/Xp1x8YbP/vBpn/ARZG1jIWK31H
-	 YT4U1y3QM3cgXqxzbO2E5BNOG9yTb3vbVl3hKSBg25FiYvHi/0VR9NXHxQBT8BPim1
-	 dtc3GWbAAy0vf+4QFj3hv1DhE14gPq/IhQbIamSsjpsMvKPDClJWsye4MDUmyh8avV
-	 wE7a+nylyQJjQ==
-Date: Thu, 22 Jan 2026 16:11:50 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>,
-	Carlos Maiolino <cem@kernel.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Anuj Gupta <anuj20.g@samsung.com>,
-	Kanchan Joshi <joshi.k@samsung.com>, linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-xfs@vger.kernel.org
-Subject: Re: [PATCH 06/15] block: add fs_bio_integrity helpers
-Message-ID: <20260123001150.GK5945@frogsfrogsfrogs>
-References: <20260121064339.206019-1-hch@lst.de>
- <20260121064339.206019-7-hch@lst.de>
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="GzUmHT3z"
+Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-89473f15ed8so19001936d6.2
+        for <nvdimm@lists.linux.dev>; Thu, 22 Jan 2026 16:34:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1769128453; x=1769733253; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=asBGl1upDPy9EBtcWnpVXAcR6hW540Iv+SjDFfHMW0w=;
+        b=GzUmHT3zhW+SYZYH5QBf10O+epbfrU8tYgJGSDIJ7BhCmewl6GJy7AjXI1t/3ANXzf
+         Gc89/+s7KnihF76dSEN1scgb2h2Zdk1dkteqNeC5vgyo+MRsyQZ5O231An1lwVGC7b+f
+         OHxbi/q+PGs4erB2QEhEOZ6akwexDiuzZ7tM5U0wseWytULAoRtf7akhUhm6nTgw/xj9
+         yKSUmPRXaamW3YOwGynHZlILw/uPBhTiuqngtjI7eyaFiDUmxj8NhkFFiPOJ0nybbA8Y
+         BpU8UM0Mtr5YY/Q1NS+khdyU1FIGLeSzLkFBxRNlcLbK109ge58kg5dLppzCX+w6U95i
+         h9kQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769128453; x=1769733253;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=asBGl1upDPy9EBtcWnpVXAcR6hW540Iv+SjDFfHMW0w=;
+        b=HJKrhMj/PBp5svVBBKtA4mItLuGQfsaPO/RmPAxOqs3Apb0oCEZTTEO2u+9U75wXBM
+         a+MM30O+K+knIZqqTTswj8D+ztOdhIOVGPrZ2kEgANdimcg4YLghjfYkWAuMYW7v2Zt4
+         hf8m0n+t5lUiUfgtyWNAyLsWLA7GXx2trohRpOcZkrsN+Vm17qgvgr9jeXVgzxo2iKEj
+         pH8NKlGEYFLiHZn2qbOWVnw75zCFyj0FhiLt5lvq4vIqtwf8mh7eYCetb8voM5mwIOc0
+         IpOeDV8I8+Cd8A1b6gURCWsZyQsRyyBP/Lo+OWpIb0vSTLlTvIv3kP+ZHHejnZGmoOCr
+         vRDg==
+X-Forwarded-Encrypted: i=1; AJvYcCUUlwBav/E6Dh5Y2s3jrigVmV6zPPhQQmSmFlNeWU7IEGZCTah4ijLMFV196ayvZ2CDZC230IQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwGn3TSsv4d/yBw7v4NhoSlPLnSigB+Qog12O1pR+k6/lmTJvsQ
+	FXB6BR6isFEpEFVWP5uLPjBpKPM6jT7uR8NOHskM3Yar4INJyyATsAGjRJKFeqOLNAM=
+X-Gm-Gg: AZuq6aJJuqOHFtxw/e71Q4xa9ra1i4QavpQ7GzBIL/0liqGzEUeJSJxW02JV/FlAg3S
+	KZ3RrpvtaGSQEoFfvAlH3BR5LwK3xYPimxCVSPoNtxpXjAXuMirCRVqQgttstJeXI3TgmEm5FRd
+	UdaxGoVVHvKPGej93ZiU0201PLLTasIBo98OkMVImfowlCHhek3BQUJ0laPHltYWkBYHR2Td6Ty
+	ZN8ZHlxLkuutyfIzFKSmP9NuWxJthR5F9ZSzOr6X36LloxatNjbGxGJBC9gQ4arA6JdzaoODIGn
+	kAi+B9sBGdZpOSAfC1SN6aEglXSU9AAERb8ULPEo4dgLmCANDuwqtg4+Fqac5eW/PWZBECAyfkh
+	V41BDrdqmpp15Pj2O9ulXINc9awvPNRiBWhcAflaWZWrliqvzx5hjx2p2W/UXL4QdL/Kp5aFJQD
+	iFIPnf7hRBUkrBUrYTu7FsOAWCSMUM1ygOMyNE0tfsvFk6o47xMKau0QE3YBLzGxrHX57ArQ==
+X-Received: by 2002:a05:620a:29c7:b0:8a1:b5ab:bbd6 with SMTP id af79cd13be357-8c6e2e369f0mr170716185a.71.1769128453428;
+        Thu, 22 Jan 2026 16:34:13 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c6e37c71f8sm54022985a.5.2026.01.22.16.34.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Jan 2026 16:34:12 -0800 (PST)
+Date: Thu, 22 Jan 2026 19:34:10 -0500
+From: Gregory Price <gourry@gourry.net>
+To: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
+	kernel-team@meta.com, dan.j.williams@intel.com,
+	vishal.l.verma@intel.com, dave.jiang@intel.com, mst@redhat.com,
+	jasowang@redhat.com, xuanzhuo@linux.alibaba.com,
+	eperezma@redhat.com, osalvador@suse.de, akpm@linux-foundation.org
+Subject: Re: [PATCH 3/8] mm/memory_hotplug: add APIs for explicit online type
+ control
+Message-ID: <aXLCAtwMkSMH3DNj@gourry-fedora-PF4VCD3F>
+References: <20260114085201.3222597-1-gourry@gourry.net>
+ <20260114085201.3222597-4-gourry@gourry.net>
+ <b3d435d2-643f-4dad-9928-bc7fb5080181@kernel.org>
+ <aWfR86RIKEvyZsh6@gourry-fedora-PF4VCD3F>
+ <4520e7b0-8218-404d-8ede-e62d95c50825@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -48,146 +82,32 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260121064339.206019-7-hch@lst.de>
+In-Reply-To: <4520e7b0-8218-404d-8ede-e62d95c50825@kernel.org>
 
-On Wed, Jan 21, 2026 at 07:43:14AM +0100, Christoph Hellwig wrote:
-> Add a set of helpers for file system initiated integrity information.
-> These include mempool backed allocations and verifying based on a passed
-> in sector and size which is often available from file system completion
-> routines.
+On Thu, Jan 22, 2026 at 11:41:24PM +0100, David Hildenbrand (Red Hat) wrote:
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  block/Makefile                |  2 +-
->  block/bio-integrity-fs.c      | 81 +++++++++++++++++++++++++++++++++++
->  include/linux/bio-integrity.h |  6 +++
->  3 files changed, 88 insertions(+), 1 deletion(-)
->  create mode 100644 block/bio-integrity-fs.c
+> Right, but I don't want any other OOT kernel module to be able to make use
+> of add_memory_driver_managed() to do arbitrary things, because we don't know
+> if it's really user space setting the policy for that memory then.
 > 
-> diff --git a/block/Makefile b/block/Makefile
-> index c65f4da93702..7dce2e44276c 100644
-> --- a/block/Makefile
-> +++ b/block/Makefile
-> @@ -26,7 +26,7 @@ bfq-y				:= bfq-iosched.o bfq-wf2q.o bfq-cgroup.o
->  obj-$(CONFIG_IOSCHED_BFQ)	+= bfq.o
->  
->  obj-$(CONFIG_BLK_DEV_INTEGRITY) += bio-integrity.o blk-integrity.o t10-pi.o \
-> -				   bio-integrity-auto.o
-> +				   bio-integrity-auto.o bio-integrity-fs.o
->  obj-$(CONFIG_BLK_DEV_ZONED)	+= blk-zoned.o
->  obj-$(CONFIG_BLK_WBT)		+= blk-wbt.o
->  obj-$(CONFIG_BLK_DEBUG_FS)	+= blk-mq-debugfs.o
-> diff --git a/block/bio-integrity-fs.c b/block/bio-integrity-fs.c
-> new file mode 100644
-> index 000000000000..c8b3c753965d
-> --- /dev/null
-> +++ b/block/bio-integrity-fs.c
-> @@ -0,0 +1,81 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright (c) 2025 Christoph Hellwig.
-> + */
-> +#include <linux/blk-integrity.h>
-> +#include <linux/bio-integrity.h>
-> +#include "blk.h"
-> +
-> +struct fs_bio_integrity_buf {
-> +	struct bio_integrity_payload	bip;
-> +	struct bio_vec			bvec;
-> +};
-> +
-> +static struct kmem_cache *fs_bio_integrity_cache;
-> +static mempool_t fs_bio_integrity_pool;
-> +
-> +void fs_bio_integrity_alloc(struct bio *bio)
-> +{
-> +	struct fs_bio_integrity_buf *iib;
-> +	unsigned int action;
-> +
-> +	action = bio_integrity_action(bio);
-> +	if (!action)
-> +		return;
-> +
-> +	iib = mempool_alloc(&fs_bio_integrity_pool, GFP_NOIO);
-> +	bio_integrity_init(bio, &iib->bip, &iib->bvec, 1);
-> +
-> +	bio_integrity_alloc_buf(bio, action & BI_ACT_ZERO);
-> +	if (action & BI_ACT_CHECK)
-> +		bio_integrity_setup_default(bio);
-> +}
-> +
-> +void fs_bio_integrity_free(struct bio *bio)
-> +{
-> +	struct bio_integrity_payload *bip = bio_integrity(bio);
-> +
-> +	bio_integrity_free_buf(bip);
-> +	mempool_free(container_of(bip, struct fs_bio_integrity_buf, bip),
-> +			&fs_bio_integrity_pool);
-> +
-> +	bio->bi_integrity = NULL;
-> +	bio->bi_opf &= ~REQ_INTEGRITY;
-> +}
-> +
-> +void fs_bio_integrity_generate(struct bio *bio)
-> +{
-> +	fs_bio_integrity_alloc(bio);
-> +	bio_integrity_generate(bio);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_bio_integrity_generate);
-> +
-> +int fs_bio_integrity_verify(struct bio *bio, sector_t sector, unsigned int size)
-> +{
-> +	struct blk_integrity *bi = blk_get_integrity(bio->bi_bdev->bd_disk);
-> +	struct bio_integrity_payload *bip = bio_integrity(bio);
-> +
-> +	/*
-> +	 * Reinitialize bip->bit_iter.
 
-s/bit_iter/bip_iter/ ?
+Ah, this was lost on me.
 
-With that fixed, this looks fine to me;
-Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
+> So either restrict add_memory_driver_managed() to kmem+virtio_mem
+> completely, or add another variant that will be kmem-only (or however that
+> dax/cxl module is called).
 
---D
+unclear to me how to restrict a function to specific drivers, but i can
+add add_and_online_memory_driver_managed() trivially so no big issue.
 
-> +	 *
-> +	 * This is for use in the submitter after the driver is done with the
-> +	 * bio. Requires the submitter to remember the sector and the size.
-> +	 */
-> +
-> +	memset(&bip->bip_iter, 0, sizeof(bip->bip_iter));
-> +	bip->bip_iter.bi_sector = sector;
-> +	bip->bip_iter.bi_size = bio_integrity_bytes(bi, size >> SECTOR_SHIFT);
-> +	return blk_status_to_errno(bio_integrity_verify(bio, &bip->bip_iter));
-> +}
-> +
-> +static int __init fs_bio_integrity_init(void)
-> +{
-> +	fs_bio_integrity_cache = kmem_cache_create("fs_bio_integrity",
-> +			sizeof(struct fs_bio_integrity_buf), 0,
-> +			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
-> +	if (mempool_init_slab_pool(&fs_bio_integrity_pool, BIO_POOL_SIZE,
-> +			fs_bio_integrity_cache))
-> +		panic("fs_bio_integrity: can't create pool\n");
-> +	return 0;
-> +}
-> +fs_initcall(fs_bio_integrity_init);
-> diff --git a/include/linux/bio-integrity.h b/include/linux/bio-integrity.h
-> index 232b86b9bbcb..503dc9bc655d 100644
-> --- a/include/linux/bio-integrity.h
-> +++ b/include/linux/bio-integrity.h
-> @@ -145,4 +145,10 @@ void bio_integrity_alloc_buf(struct bio *bio, bool zero_buffer);
->  void bio_integrity_free_buf(struct bio_integrity_payload *bip);
->  void bio_integrity_setup_default(struct bio *bio);
->  
-> +void fs_bio_integrity_alloc(struct bio *bio);
-> +void fs_bio_integrity_free(struct bio *bio);
-> +void fs_bio_integrity_generate(struct bio *bio);
-> +int fs_bio_integrity_verify(struct bio *bio, sector_t sector,
-> +		unsigned int size);
-> +
->  #endif /* _LINUX_BIO_INTEGRITY_H */
-> -- 
-> 2.47.3
-> 
-> 
+You'd be ok with with this?
+
+add_and_online_memory_driver_managed(..., online_type) {
+   ... existing add_memory_driver_managed() code ...
+}
+
+add_memory_driver_managed(...) {
+   add_and_online_memory_driver_managed(..., mhp_get_default_policy());
+}
+
+~Gregory
