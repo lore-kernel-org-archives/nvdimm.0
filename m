@@ -1,162 +1,174 @@
 Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8217D2EC55C
-	for <nvdimm@lists.linux.dev>; Fri, 23 Jan 2026 11:17:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AC37212548
+	for <nvdimm@lists.linux.dev>; Fri, 23 Jan 2026 11:18:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769167040; cv=none; b=di5Ta4vrGRINsKGTRHKoyCF+01KsceyALVvRRLeTOQM/PH+Eszoiuhsd8wYOYaI9pCU6HyCceBkrt++wV98uUOKDpzfp0dAKTR3k2jY/8WjBm2fpRk4Hy5j0YbTChweoiKJE7yWG0DiP9l2L98JgegVIOpC/MGzsaJcEvn6gSIw=
+	t=1769167085; cv=none; b=dPiz9jO8WJKOkMKWdkriQQkIPqEMVBX2Grl/KbsWhmgshM189aBJpXIhUmGYWwBNJmVkS93PyWrti5UGroz8xNMo0NXYqdZoUtJXnA3TYbPf/VcFa3AcIVnNP3h51b/rb0Wn5R764y9uxMFdgPUQipeZBHH0ln6N+sAXkMAnxeE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769167040; c=relaxed/simple;
-	bh=0tTOL4Rm+hlf+D36kRRGbK5zCtL4G+aXuZLmryoCRG0=;
+	s=arc-20240116; t=1769167085; c=relaxed/simple;
+	bh=r7qscFluQgZeFGXHdkjbcjtanaiyAew8r8We96L6/Ic=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=uTse9LhYtU3F/FCCy5HQkr4uHMC7KX9++D+gRoDNwqwVZ9hTx2mHfQE9pqdSmaOiN0ynWj5cIq6FGclmspTx0R625qM4sJdnAZouz3Ei1GB3DaL0k+18gtfmsA/jWs07SB7jWvIqhc+eEq2GZm8/G3DBV5cwW8j1gcJh8hKIoqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=OyC2MMQF; arc=none smtp.client-ip=203.254.224.25
+	 Content-Type:References; b=mcNX7LcLL3yZBzHv4IyBdNNs9dco7i0NrHeD+d1DLdwT76ETJgO0IPDYl01q4vaSHJWHGBi/RwiXTdZGyEHCdK4HNfSJsxC69EsFkry83G5MYku3x36LIYPJiR9fLzqdoDSfE0fuJbrnhQ22HDDFnL/F473k9ws18X4JILJh7aQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=gQ/9lSdh; arc=none smtp.client-ip=203.254.224.25
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="OyC2MMQF"
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="gQ/9lSdh"
 Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20260123111715epoutp02aca2f06f9cc87fd128970064062084a8~NWAu0EFmc1864018640epoutp02z
-	for <nvdimm@lists.linux.dev>; Fri, 23 Jan 2026 11:17:15 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20260123111715epoutp02aca2f06f9cc87fd128970064062084a8~NWAu0EFmc1864018640epoutp02z
+	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20260123111802epoutp024fa951821ebf50751d6288a46cba4cdd~NWBaRA0Tw1850418504epoutp02_
+	for <nvdimm@lists.linux.dev>; Fri, 23 Jan 2026 11:18:02 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20260123111802epoutp024fa951821ebf50751d6288a46cba4cdd~NWBaRA0Tw1850418504epoutp02_
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1769167035;
-	bh=4qIEoAXoqDJAq7+ErHUZLKGeYMXjvPV01ZGw7jiaEu4=;
+	s=mail20170921; t=1769167082;
+	bh=go2+U4RP90DRFbF5Az++z8+CrgRRu6tsJZzCEyVb/1U=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=OyC2MMQFmnDFOFEicoOaXit62yCOc8/BeCd3+ZwUA3zFPDcClibPl9STTJdVTIRmw
-	 5/cuP2oqNxQi4gXEFFz/64Qm3QsnWy/U5DS90fUqasTdhB9IjwnYeteDD+5HdyrDpy
-	 CT6HdUw9L9C3WnXzjY+qTUuzxkjNxK/RDlOKy3mo=
-Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	b=gQ/9lSdh03YKnnVD5trrg65rotuQUTWUixo/uiDAyAgUCVDfVtYelTPEOHFefD8rZ
+	 iqOZGKt48U4rxBtNQ+GaBKRTNj+g1LE/AoAuK3ddQn5IVpTNN3m3B11H2yud5mRyEM
+	 +MJ7iOVgP3sqcVDhthFRI/Xt5AuN/+gqzM8m7XWk=
+Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
 	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
-	20260123111715epcas5p457e8e204d696218038a7b6a14885ddce~NWAucv0Z30751607516epcas5p4a;
-	Fri, 23 Jan 2026 11:17:15 +0000 (GMT)
-Received: from epcas5p2.samsung.com (unknown [182.195.38.95]) by
-	epsnrtp02.localdomain (Postfix) with ESMTP id 4dyFky5p3nz2SSKX; Fri, 23 Jan
-	2026 11:17:14 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
-	20260123111714epcas5p48cbb684922a981cb9639d6c7a0cb99c9~NWAtZxyTQ0751707517epcas5p4T;
-	Fri, 23 Jan 2026 11:17:14 +0000 (GMT)
+	20260123111802epcas5p4b4400a849d18ec6b8c9653bce5598773~NWBaArAUl0751607516epcas5p41;
+	Fri, 23 Jan 2026 11:18:02 +0000 (GMT)
+Received: from epcpadp2new (unknown [182.195.40.142]) by
+	epsnrtp03.localdomain (Postfix) with ESMTP id 4dyFlt1Pr2z3hhT7; Fri, 23 Jan
+	2026 11:18:02 +0000 (GMT)
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
+	20260123110237epcas5p32d224ce4c78d0e4922584601ce4b959a~NVz8gCNQD0749807498epcas5p3R;
+	Fri, 23 Jan 2026 11:02:37 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260123111712epsmtip12c96b64aabaa2cffe32eaee4bf46b5d7~NWAr6O8x80833808338epsmtip1L;
-	Fri, 23 Jan 2026 11:17:12 +0000 (GMT)
-Date: Fri, 23 Jan 2026 16:47:08 +0530
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20260123110234epsmtip24f3a8b3bbadf6cfa420368d088a2879d~NVz6WOaxv0825308253epsmtip2f;
+	Fri, 23 Jan 2026 11:02:34 +0000 (GMT)
+Date: Fri, 23 Jan 2026 16:32:26 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: Ira Weiny <ira.weiny@intel.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V5 11/17] cxl/region: Add devm_cxl_pmem_add_region() for
- pmem region creation
-Message-ID: <20260123111638.6fv2ixs5e7rhomeg@test-PowerEdge-R740xd>
+Subject: Re: [PATCH V5 04/17] nvdimm/label: Include region label in slot
+ validation
+Message-ID: <1983025922.01769167082186.JavaMail.epsvc@epcpadp2new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20260115181721.00002668@huawei.com>
-X-CMS-MailID: 20260123111714epcas5p48cbb684922a981cb9639d6c7a0cb99c9
+In-Reply-To: <69680889b4a78_1183cf100e@iweiny-mobl.notmuch>
+X-CMS-MailID: 20260123110237epcas5p32d224ce4c78d0e4922584601ce4b959a
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_11f87d_"
+	boundary="----Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_11f213_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
-cpgsPolicy: CPGSC10-542,Y
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20260109124525epcas5p103e2d6f32643e6cb07b7037155ef16e9
+X-Hop-Count: 3
+X-CMS-RootMailID: 20260109124512epcas5p4a6d8c2b9c6cf7cf794d1a477eaee7865
 References: <20260109124437.4025893-1-s.neeraj@samsung.com>
-	<CGME20260109124525epcas5p103e2d6f32643e6cb07b7037155ef16e9@epcas5p1.samsung.com>
-	<20260109124437.4025893-12-s.neeraj@samsung.com>
-	<20260115181721.00002668@huawei.com>
+	<CGME20260109124512epcas5p4a6d8c2b9c6cf7cf794d1a477eaee7865@epcas5p4.samsung.com>
+	<20260109124437.4025893-5-s.neeraj@samsung.com>
+	<69680889b4a78_1183cf100e@iweiny-mobl.notmuch>
 
-------HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_11f87d_
+------Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_11f213_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
 Content-Disposition: inline
 
-On 15/01/26 06:17PM, Jonathan Cameron wrote:
->On Fri,  9 Jan 2026 18:14:31 +0530
->Neeraj Kumar <s.neeraj@samsung.com> wrote:
+On 14/01/26 03:20PM, Ira Weiny wrote:
+>Neeraj Kumar wrote:
+>> Prior to LSA 2.1 Support, label in slot means only namespace
+>> label. But with LSA 2.1 a label can be either namespace or
+>> region label.
+>>
+>> Slot validation routine validates label slot by calculating
+>> label checksum. It was only validating namespace label.
+>> This changeset also validates region label if present.
+>>
+>> In previous patch to_lsa_label() was introduced along with
+>> to_label(). to_label() returns only namespace label whereas
+>> to_lsa_label() returns union nd_lsa_label*
+>>
+>> In this patch We have converted all usage of to_label()
 >
->> devm_cxl_pmem_add_region() is used to create cxl region based on region
->> information scanned from LSA.
->>
->> devm_cxl_add_region() is used to just allocate cxlr and its fields are
->> filled later by userspace tool using device attributes (*_store()).
->>
->> Inspiration for devm_cxl_pmem_add_region() is taken from these device
->> attributes (_store*) calls. It allocates cxlr and fills information
->> parsed from LSA and calls device_add(&cxlr->dev) to initiate further
->> region creation porbes
->>
->> Rename __create_region() to cxl_create_region(), which will be used
->> in later patch to create cxl region after fetching region information
->> from LSA.
->You also add a couple of parameters. At very least say why here.
+>NIT: don't use 'We'
 
-Not required now, I have created a separate patch for this.
+Fixed it in V6
 
 >
+>> to to_lsa_label()
 >>
+>> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 >> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 >> Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+>> ---
+>>  drivers/nvdimm/label.c | 94 ++++++++++++++++++++++++++++--------------
+>>  1 file changed, 64 insertions(+), 30 deletions(-)
+>>
+>> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+>> index 17e2a1f5a6da..9854cb45fb62 100644
+>> --- a/drivers/nvdimm/label.c
+>> +++ b/drivers/nvdimm/label.c
+>> @@ -312,16 +312,6 @@ static union nd_lsa_label *to_lsa_label(struct nvdimm_drvdata *ndd, int slot)
+>>  	return (union nd_lsa_label *) label;
+>>  }
+>>
+>> -static struct nd_namespace_label *to_label(struct nvdimm_drvdata *ndd, int slot)
+>> -{
+>> -	unsigned long label, base;
+>> -
+>> -	base = (unsigned long) nd_label_base(ndd);
+>> -	label = base + sizeof_namespace_label(ndd) * slot;
+>> -
+>> -	return (struct nd_namespace_label *) label;
+>> -}
+>> -
+>>  #define for_each_clear_bit_le(bit, addr, size) \
+>>  	for ((bit) = find_next_zero_bit_le((addr), (size), 0);  \
+>>  	     (bit) < (size);                                    \
+>> @@ -382,7 +372,7 @@ static bool nsl_validate_checksum(struct nvdimm_drvdata *ndd,
+>>  {
+>>  	u64 sum, sum_save;
+>>
+>> -	if (!ndd->cxl && !efi_namespace_label_has(ndd, checksum))
+>> +	if (!efi_namespace_label_has(ndd, checksum))
 >
->A few things inline.
+>What does this change have to do with region label validation during slot
+>validation?
 >
->> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
->> index 26238fb5e8cf..13779aeacd8e 100644
->> --- a/drivers/cxl/core/region.c
->> +++ b/drivers/cxl/core/region.c
+>>  		return true;
+>>
+>>  	sum_save = nsl_get_checksum(ndd, nd_label);
+>> @@ -397,13 +387,25 @@ static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
+>>  {
+>>  	u64 sum;
+>>
+>> -	if (!ndd->cxl && !efi_namespace_label_has(ndd, checksum))
+>> +	if (!efi_namespace_label_has(ndd, checksum))
 >
->
->> +static ssize_t alloc_region_dpa(struct cxl_endpoint_decoder *cxled, u64 size)
->> +{
->> +	int rc;
->> +
->> +	if (!size)
->> +		return -EINVAL;
->> +
->> +	if (!IS_ALIGNED(size, SZ_256M))
->> +		return -EINVAL;
->> +
->> +	rc = cxl_dpa_free(cxled);
->
->Add a comment on why this make sense.  What already allocated dpa that we need
->to clean up?
+>This and the above seem like cleanups because efi_namespace_label_has()
+>already checks !ndd->cxl?  Was that the intent?  Perhaps as a separate
+>cleanup?
 
-Inspiration of alloc_region_dpa() is taken from size_store(). But yes here its not
-required. I have removed it accordingly in V6
+Hi Ira,
 
->
->> +	if (rc)
->> +		return rc;
->> +
->> +	return cxl_dpa_alloc(cxled, size);
->> +}
->
->
->> -static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
->> -					  enum cxl_partition_mode mode, int id)
->> +struct cxl_region *cxl_create_region(struct cxl_root_decoder *cxlrd,
->> +				     enum cxl_partition_mode mode, int id,
->> +				     struct cxl_pmem_region_params *pmem_params,
->> +				     struct cxl_endpoint_decoder *cxled)
->
->I'm a little dubious that the extra parameters are buried in this patch rather than
->where we first need them or a separate patch that makes it clear what they are for.
+Actually above is required changes and not the cleanup. 
+Earlier condition (!ndd->cxl && !efi_namespace_label_has(ndd, checksum))
+was getting true (no further processing) in first case only if its a
+region label which we don't want in current case.
 
-Yes I have separated it out in V6.
+And this condition (!efi_namespace_label_has(ndd, checksum)) returns false
+(means proceed further) in case if its a region label (!!ndd->cxl).
 
 
 
 Regards,
 Neeraj
 
-------HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_11f87d_
+------Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_11f213_
 Content-Type: text/plain; charset="utf-8"
 
 
-------HKC0oM6l2X7jDELFNxUL3gr1rNZobpnU9ZVzK0VPY15yFScq=_11f87d_--
+------Rvty6Ov.E7w8fqTiecbGSIlWaDZOz3Joz9WFZpHBwcJNCC2Q=_11f213_--
+
