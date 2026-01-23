@@ -1,48 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A71C2DFF3F;
-	Fri, 23 Jan 2026 07:14:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922632BDC1B;
+	Fri, 23 Jan 2026 07:46:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769152451; cv=none; b=KPjkvlQgrebMwCOw9mQeGHHCrA+w3e8IeVqiySP768/X8P/VtZOKsGHdQqfuSN3bwRUY4qpkYqnvR7w1aW1axqkKz1eKuY0J2MV4dOAd92M8TE0qQcJtVJYgQrVa2lLyR9ey1XAVrryH5kFe1Q7W5BfXg19MiUK68wEK1Sr+tdY=
+	t=1769154413; cv=none; b=gMq6OAX/FzGAJORcDzj2ejiZm7srzpD9h6CbhZBBtPqRUa10L8i9Wha8ZPu8Qk2rVtsZkRx7u/wXGTqx/grvBoCkN1IEb1t5V4YtComWr+xnrV1Cg+ytks4dhknjrhk48gWBvxiYgU/xWuFcZSw7fQ7c0C1gTSMjwzSZrH8bcBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769152451; c=relaxed/simple;
-	bh=XAvD73ipZ1/1hQE+6xfcqQmqd06hJQpToKp6ONC1H3c=;
+	s=arc-20240116; t=1769154413; c=relaxed/simple;
+	bh=OAD/ygUEOD88K+ggqyDG4ngV41XfzkifYu+rUan4UmY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BM3PqU56o84lpOeqE8/mXF6/GoZsTR+OwvpnNhzsvnm1HNpxMLHwSUhDKOKk5cZfvUpWKXgpuQrZL6bW8mk9Hai2hAuFPO3GY5/fv0XThj8bDrLheFIamedxw9ekjCDr2z+2enGc4yNzIL8D9HqaUN25xudz5cWWmNgyFfDV83o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lZRBw9BB; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=f7fe9qBPwBmgdGKDSdPzs6ixdsvDG4ucH3Z2IHUI7V0c+1EzrgoDsD0HN6RGm7YpkufLXsV6iOcxHZOOFimZduM6RkFuytE/mBGBahTJs+Xhgy8izVlPnWjXCquia1M7/yEv9yC5B/DtThqYmVJGC8BisqRfPBs2KxnP2U6rDIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gKjzE7cq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lZRBw9BB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED6FCC4CEF1;
-	Fri, 23 Jan 2026 07:14:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gKjzE7cq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD45C4CEF1;
+	Fri, 23 Jan 2026 07:46:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769152451;
-	bh=XAvD73ipZ1/1hQE+6xfcqQmqd06hJQpToKp6ONC1H3c=;
+	s=k20201202; t=1769154413;
+	bh=OAD/ygUEOD88K+ggqyDG4ngV41XfzkifYu+rUan4UmY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lZRBw9BBNYAP3Jj71Q5j/KoqRrhZWDNjnVmb/CTeTCPVW6JPxkXpKXprAB8gyk6ap
-	 kjcrcFznRqsAQfT0uypsvg4sJI9aOplOBN8cvcidIsDtoZWj82kUMFa7IkVZ7TmEsO
-	 dmlnuxL4PyX5qKfmVXuVi5z93lhSmbDV8jnXc8QZcDi0aGbRUVSuVtMIeMklRbniYN
-	 vorIi0WTrM9eZDXJcftwI3R7/+exBzvBpbiyYXmECZZYuYVd5TjaHgnK3R1t4+pZlj
-	 4BMWpDsUw4vu/pNNM9bCJ9dN+UcOTzlSbzRKlZFH1fzLm9OWMPfYY0kGblmbtq4+Py
-	 8xF5D0brcDl9w==
-Date: Thu, 22 Jan 2026 23:14:10 -0800
+	b=gKjzE7cqDXZweQuGHrMLnfOMSZf3lh7HGxajgtU/lt8kCe+JBtiVTH7cLgHlNYZDq
+	 /xkI+t4I2UXrUC62zmbj0vZUsBgJVNWHf2u/IB5rVWQ0M92qWVFNAn+aHpwjmatIJJ
+	 42HGEvas39c7oPcKIUvmKiwxdWG6F7op09dvqSnaEPXJxDYV8uNaZg5zuYpCGbPOV2
+	 uECZnk5jJ2EcGxljpENkS6fEZ1z6XTrmkHHGu/DMNaJHL0zQj3FpdgRCKBYhPwGr8Q
+	 PcpeqEt3bPSuwM7nEePid0sJHAvbYps2rpINdGvyHw/B3l0OhLkXuPNse9MoBWxRVu
+	 vChCTt8SYWz8g==
+Date: Thu, 22 Jan 2026 23:46:52 -0800
 From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>,
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+	"H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Tvrtko Ursulin <tursulin@ursulin.net>,
+	Christian Koenig <christian.koenig@amd.com>,
+	Huang Rui <ray.huang@amd.com>,
+	Matthew Auld <matthew.auld@intel.com>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Benjamin LaHaise <bcrl@kvack.org>, Gao Xiang <xiang@kernel.org>,
+	Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>,
+	Jeffle Xu <jefflexu@linux.alibaba.com>,
+	Sandeep Dhavale <dhavale@google.com>,
+	Hongbo Li <lihongbo22@huawei.com>,
+	Chunhai Guo <guochunhai@vivo.com>, Theodore Ts'o <tytso@mit.edu>,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>,
+	David Hildenbrand <david@kernel.org>,
+	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+	Mike Marshall <hubcap@omnibond.com>,
+	Martin Brandenburg <martin@omnibond.com>,
+	Tony Luck <tony.luck@intel.com>,
+	Reinette Chatre <reinette.chatre@intel.com>,
+	Dave Martin <Dave.Martin@arm.com>,
+	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>,
 	Carlos Maiolino <cem@kernel.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Anuj Gupta <anuj20.g@samsung.com>,
-	Kanchan Joshi <joshi.k@samsung.com>, linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-xfs@vger.kernel.org
-Subject: Re: [PATCH 02/15] block: factor out a bio_integrity_setup_default
- helper
-Message-ID: <20260123071410.GV5945@frogsfrogsfrogs>
-References: <20260121064339.206019-1-hch@lst.de>
- <20260121064339.206019-3-hch@lst.de>
- <20260123000537.GG5945@frogsfrogsfrogs>
- <20260123060833.GA25528@lst.de>
+	Damien Le Moal <dlemoal@kernel.org>,
+	Naohiro Aota <naohiro.aota@wdc.com>,
+	Johannes Thumshirn <jth@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Zi Yan <ziy@nvidia.com>, Nico Pache <npache@redhat.com>,
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>,
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+	David Howells <dhowells@redhat.com>,
+	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
+	"Serge E . Hallyn" <serge@hallyn.com>,
+	Yury Norov <yury.norov@gmail.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+	linux-fsdevel@vger.kernel.org, linux-aio@kvack.org,
+	linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+	linux-mm@kvack.org, ntfs3@lists.linux.dev, devel@lists.orangefs.org,
+	linux-xfs@vger.kernel.org, keyrings@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH v2 08/13] mm: update shmem_[kernel]_file_*() functions to
+ use vma_flags_t
+Message-ID: <20260123074652.GW5945@frogsfrogsfrogs>
+References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+ <736febd280eb484d79cef5cf55b8a6f79ad832d2.1769097829.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -51,51 +111,73 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260123060833.GA25528@lst.de>
+In-Reply-To: <736febd280eb484d79cef5cf55b8a6f79ad832d2.1769097829.git.lorenzo.stoakes@oracle.com>
 
-On Fri, Jan 23, 2026 at 07:08:33AM +0100, Christoph Hellwig wrote:
-> On Thu, Jan 22, 2026 at 04:05:37PM -0800, Darrick J. Wong wrote:
-> > On Wed, Jan 21, 2026 at 07:43:10AM +0100, Christoph Hellwig wrote:
-> > > Add a helper to set the seed and check flag based on useful defaults
-> > > from the profile.
-> > > 
-> > > Note that this includes a small behavior change, as we ow only sets the
-> > 
-> > "...as we only set the seed if..." ?
+On Thu, Jan 22, 2026 at 04:06:17PM +0000, Lorenzo Stoakes wrote:
+> In order to be able to use only vma_flags_t in vm_area_desc we must adjust
+> shmem file setup functions to operate in terms of vma_flags_t rather than
+> vm_flags_t.
 > 
-> Yes.
+> This patch makes this change and updates all callers to use the new
+> functions.
 > 
-> > > +void bio_integrity_setup_default(struct bio *bio)
-> > > +{
-> > > +	struct blk_integrity *bi = blk_get_integrity(bio->bi_bdev->bd_disk);
-> > > +	struct bio_integrity_payload *bip = bio_integrity(bio);
-> > > +
-> > > +	bip_set_seed(bip, bio->bi_iter.bi_sector);
-> > > +
-> > > +	if (bi->csum_type) {
-> > > +		bip->bip_flags |= BIP_CHECK_GUARD;
-> > > +		if (bi->csum_type == BLK_INTEGRITY_CSUM_IP)
-> > 
-> > /me wonders if this should be a switch, but it'd be a pretty lame one.
-> > 
-> > 	switch (bi->csum_type) {
-> > 	case BLK_INTEGRITY_CSUM_NONE:
-> > 		break;
-> > 	case BLK_INTEGRITY_CSUM_IP:
-> > 		bip->bip_flags |= BIP_IP_CHECKSUM;
-> > 		fallthrough;
-> > 	case BLK_INTEGRITY_CSUM_CRC:
-> > 	case BLK_INTEGRITY_CSUM_CRC64:
-> > 		bip->bip_flags |= BIP_CHECK_GUARD;
-> > 		break;
-> > 	}
+> No functional changes intended.
 > 
-> I don't really think that's a good idea here.  BIP_IP_CHECKSUM is a
-> really a special snowflake for SCSI HBA (and not even actual device)
-> usage, so it should be treated like a special snowflake with the if.
-> I sincerely hope no new special snowflakes will show up for the checksums
-> in the future.
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> ---
+>  arch/x86/kernel/cpu/sgx/ioctl.c           |  2 +-
+>  drivers/gpu/drm/drm_gem.c                 |  5 +-
+>  drivers/gpu/drm/i915/gem/i915_gem_shmem.c |  2 +-
+>  drivers/gpu/drm/i915/gem/i915_gem_ttm.c   |  3 +-
+>  drivers/gpu/drm/i915/gt/shmem_utils.c     |  3 +-
+>  drivers/gpu/drm/ttm/tests/ttm_tt_test.c   |  2 +-
+>  drivers/gpu/drm/ttm/ttm_backup.c          |  3 +-
+>  drivers/gpu/drm/ttm/ttm_tt.c              |  2 +-
+>  fs/xfs/scrub/xfile.c                      |  3 +-
+>  fs/xfs/xfs_buf_mem.c                      |  2 +-
+>  include/linux/shmem_fs.h                  |  8 ++-
+>  ipc/shm.c                                 |  6 +--
+>  mm/memfd.c                                |  2 +-
+>  mm/memfd_luo.c                            |  2 +-
+>  mm/shmem.c                                | 59 +++++++++++++----------
+>  security/keys/big_key.c                   |  2 +-
+>  16 files changed, 57 insertions(+), 49 deletions(-)
+> 
 
-Fair enough.  The BIP_* flags encoding is ... odd. :)
+<snip to xfs>
+
+> diff --git a/fs/xfs/scrub/xfile.c b/fs/xfs/scrub/xfile.c
+> index c753c79df203..fe0584a39f16 100644
+> --- a/fs/xfs/scrub/xfile.c
+> +++ b/fs/xfs/scrub/xfile.c
+> @@ -61,7 +61,8 @@ xfile_create(
+>  	if (!xf)
+>  		return -ENOMEM;
+>  
+> -	xf->file = shmem_kernel_file_setup(description, isize, VM_NORESERVE);
+> +	xf->file = shmem_kernel_file_setup(description, isize,
+> +					   mk_vma_flags(VMA_NORESERVE_BIT));
+
+Seems fine, macro sorcery aside...
+
+>  	if (IS_ERR(xf->file)) {
+>  		error = PTR_ERR(xf->file);
+>  		goto out_xfile;
+> diff --git a/fs/xfs/xfs_buf_mem.c b/fs/xfs/xfs_buf_mem.c
+> index dcbfa274e06d..fd6f0a5bc0ea 100644
+> --- a/fs/xfs/xfs_buf_mem.c
+> +++ b/fs/xfs/xfs_buf_mem.c
+> @@ -62,7 +62,7 @@ xmbuf_alloc(
+>  	if (!btp)
+>  		return -ENOMEM;
+>  
+> -	file = shmem_kernel_file_setup(descr, 0, 0);
+> +	file = shmem_kernel_file_setup(descr, 0, EMPTY_VMA_FLAGS);
+
+...but does mk_vma_flags() produce the same result?
 
 --D
+
+>  	if (IS_ERR(file)) {
+>  		error = PTR_ERR(file);
+>  		goto out_free_btp;
