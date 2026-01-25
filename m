@@ -1,289 +1,587 @@
-Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012055.outbound.protection.outlook.com [40.107.200.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DCF32940D
-	for <nvdimm@lists.linux.dev>; Sun, 25 Jan 2026 03:30:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.55
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769311822; cv=fail; b=YI4HUFXaQZL+yCkbv7NdXUqodfxBMEwCVmf0PDt5sFH9gwF+9ZAMw73MwgkKcBD29HhNfaFnjNz8vzJ+GjgKsXfadupV6SCWVnufns0TIvSIH+Cg90T1djxeHEBePwpVJUexYDN6+qVlwa+AUeglACFiRpUmSniIA1/cJ6fqXWQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769311822; c=relaxed/simple;
-	bh=ise6kZhSnUv1/r/Imx7yvX0Qgs311YD2yT55DeR1N4g=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=Q2RGtWgHP2eFhhOEl/kOwSFYHF/yIeA0qRtm9ARjhF5XrLUW1sdl6is/BbvFy0EmAP7/TIdX8Fql/H1DGZcS1+HbqAqWW3esX4NYCO6Qhr1uMP1SpESBt+nYT0OkwNYx5YJ9Uyw3lWm1DuRNO4AOx+BisdRd2jmpB0rKuA2Z8yo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=0KLwi89Q; arc=fail smtp.client-ip=40.107.200.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D664114BF92;
+	Sun, 25 Jan 2026 14:50:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769352606; cv=none; b=XiAIDceuvFsjlHQkj1vg5qWwo4koDsiPrBSnRS9VmVNZdYdnOu5Tycfgg6m0lwPOAaeBMUAuI+2mJavr3uJa00esKqLQlB4MOfcEghad/JIiduF3WeU1Loc1vnxY7J5daoJ33geXIHO3/W2LibkIg+ZakwXLcLcPi9+J7WpDj6M=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769352606; c=relaxed/simple;
+	bh=Qb77RiWgyHm5SU1GmS1LMhqiQbtCFBFXaWxM/S1HaDo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XIVjqD3CMdXhJnGzUOii0EmiKVuTHws+JSQqshY5geS656QD/iaqtsvdcWtQ8qzyYbKjajdWRwnjM5rs4Qg9byA0ecICR2AxMnIPU+bWcHspEL44+Q1kgkuzYJM3o+Yv3zTocORwcDqRQe4FY5ilcllT9Nl8vGjPmmMztitwNwA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M89xD5TT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="0KLwi89Q"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mmlM42IWXJgIvtrnQMIVnyKsoFJqFgnqI0ZX6fSgO7aDzct0p9sDoj2ppMx0JQwjcb+tc3MUjB/qWAxBkcbySTYhvHW2J5iXXYcw1AxWepLbFJ8N/grQrXCEKHoQYmUoM4bH2Zxupsz9ijPtFnua98V4LUF6bwuBi9xtCyCXBH6H/VxZ7GTkBSty4HpgDVlaGswUu9KcSEIJFPGsXvrzSw0XF0Kcenfx8PEh4fTByNsLVVla/gS8yNVaYMPa9TZW3BghoYOduH1K/kBBI8nncy+LCTFIrK/Jb+/j3FMPwkHeHRdglS9710nY+KQAvx0eqbnXWlaJKHqJ1SXEIJSubQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=PC5MgIjg3mGn0V5mun4Rj2170qliBST9+JTVi7s0Pyg=;
- b=Z9jz6iO9mvckH7/Vx3rxBb/shktI/L23TyOwaZigBcrXaBItYJdfi9Uv3Pl/hCVtR17m2nuY8zSo4Qed56DSLgalJVuT3PsHPd6sbNX6fTxmK/mKlfYxvECvRTode96WFeYQgJPZ1U2LoUQBy0B2Fj2gFtF8POKKkbIlvf3H1TSFmzlsxQuoPqPwFP7DY7YXrC6yCB3XEptn8gIZimWq3dKvPslj5bA4oy4LbVjYZBPd2c1zghXBGN4FomAlvAtvE8I8nP5ZWgICoG3lxqkmSwWjsBJoB/0MaFRgDvfwE6vrTvHYBnqEJ0ziU0uowApgZAzGw49TT7LrlH7oZAV+qA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=PC5MgIjg3mGn0V5mun4Rj2170qliBST9+JTVi7s0Pyg=;
- b=0KLwi89QBDcsZk/JxUG9nuWzhQ1QHtucqe/9xXvwex3UrGay4IbN2/+asHfAhSuQQlIPW1plZ4zMX38RiIFuUDIrqnvCTunPxCEpwDW9PcnamI8MiQx9pTPGRLmDuwRYmL74g3Bs6ICFIPUEcXljkS7zUpHd/5i+OgvaQ+EXI7I=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from LV8PR12MB9714.namprd12.prod.outlook.com (2603:10b6:408:2a0::5)
- by SJ2PR12MB9088.namprd12.prod.outlook.com (2603:10b6:a03:565::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9542.14; Sun, 25 Jan
- 2026 03:30:15 +0000
-Received: from LV8PR12MB9714.namprd12.prod.outlook.com
- ([fe80::8c9f:3a5b:974b:99c6]) by LV8PR12MB9714.namprd12.prod.outlook.com
- ([fe80::8c9f:3a5b:974b:99c6%6]) with mapi id 15.20.9542.010; Sun, 25 Jan 2026
- 03:30:14 +0000
-Message-ID: <65c9679c-6e9e-4a31-a4dc-ae3c416bfd13@amd.com>
-Date: Sat, 24 Jan 2026 19:30:10 -0800
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 4/7] cxl/region: Add helper to check Soft Reserved
- containment by CXL regions
-To: Dave Jiang <dave.jiang@intel.com>,
- Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
- linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
- linux-pm@vger.kernel.org, Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Dan Williams <dan.j.williams@intel.com>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Yazen Ghannam <yazen.ghannam@amd.com>, Davidlohr Bueso <dave@stgolabs.net>,
- Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
- Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
- Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
- Ying Huang <huang.ying.caritas@gmail.com>,
- Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Nathan Fontenot <nathan.fontenot@amd.com>,
- Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
- Benjamin Cheatham <benjamin.cheatham@amd.com>,
- Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
- Tomasz Wolski <tomasz.wolski@fujitsu.com>
-References: <20260122045543.218194-1-Smita.KoralahalliChannabasappa@amd.com>
- <20260122045543.218194-5-Smita.KoralahalliChannabasappa@amd.com>
- <ee064449-d0a3-41df-a83e-d83ca17b61dd@intel.com>
-Content-Language: en-US
-From: "Koralahalli Channabasappa, Smita" <skoralah@amd.com>
-In-Reply-To: <ee064449-d0a3-41df-a83e-d83ca17b61dd@intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BY3PR05CA0035.namprd05.prod.outlook.com
- (2603:10b6:a03:39b::10) To LV8PR12MB9714.namprd12.prod.outlook.com
- (2603:10b6:408:2a0::5)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M89xD5TT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70185C19421;
+	Sun, 25 Jan 2026 14:50:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769352606;
+	bh=Qb77RiWgyHm5SU1GmS1LMhqiQbtCFBFXaWxM/S1HaDo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=M89xD5TT4e8L24TFAy59ViAy3loqol6G07UhfkgnivqN0T1QHIeXLK6KufoCrmnXv
+	 kekwqOI8IRA4bMgS3j6olFfRKZTjyIBt4fMtWD+6LFJ0ZGBnPwkx1Vvk3JrvMW2Ll4
+	 zC5Vge1F4V9gjzvpVRyB4bOSiYG1Efwk0TeU8NIXylAL1tIZq8vI4gcuC9uXB2RLeh
+	 JBN9Hl+6DYuHM7nuJ5FN1dElHztg8/NLO1X1HlWuX25qrluftOw7nVx6DrXppnlOtZ
+	 MyTpao/Eq+4i/v4tPdubm9C3tLQzM8HcEkPI3lCw90Wg6LIyuqGLw6gE9EaZT2Y1at
+	 1DQ8tqzm59ruQ==
+Date: Sun, 25 Jan 2026 16:50:01 +0200
+From: Jarkko Sakkinen <jarkko@kernel.org>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+	"H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Tvrtko Ursulin <tursulin@ursulin.net>,
+	Christian Koenig <christian.koenig@amd.com>,
+	Huang Rui <ray.huang@amd.com>,
+	Matthew Auld <matthew.auld@intel.com>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Benjamin LaHaise <bcrl@kvack.org>, Gao Xiang <xiang@kernel.org>,
+	Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>,
+	Jeffle Xu <jefflexu@linux.alibaba.com>,
+	Sandeep Dhavale <dhavale@google.com>,
+	Hongbo Li <lihongbo22@huawei.com>,
+	Chunhai Guo <guochunhai@vivo.com>, Theodore Ts'o <tytso@mit.edu>,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>,
+	David Hildenbrand <david@kernel.org>,
+	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+	Mike Marshall <hubcap@omnibond.com>,
+	Martin Brandenburg <martin@omnibond.com>,
+	Tony Luck <tony.luck@intel.com>,
+	Reinette Chatre <reinette.chatre@intel.com>,
+	Dave Martin <Dave.Martin@arm.com>,
+	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>,
+	Carlos Maiolino <cem@kernel.org>,
+	Damien Le Moal <dlemoal@kernel.org>,
+	Naohiro Aota <naohiro.aota@wdc.com>,
+	Johannes Thumshirn <jth@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Zi Yan <ziy@nvidia.com>, Nico Pache <npache@redhat.com>,
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>,
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+	David Howells <dhowells@redhat.com>,
+	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
+	"Serge E . Hallyn" <serge@hallyn.com>,
+	Yury Norov <yury.norov@gmail.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+	linux-fsdevel@vger.kernel.org, linux-aio@kvack.org,
+	linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+	linux-mm@kvack.org, ntfs3@lists.linux.dev, devel@lists.orangefs.org,
+	linux-xfs@vger.kernel.org, keyrings@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH v2 08/13] mm: update shmem_[kernel]_file_*() functions to
+ use vma_flags_t
+Message-ID: <aXYtmbL40r5wLgk2@kernel.org>
+References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+ <736febd280eb484d79cef5cf55b8a6f79ad832d2.1769097829.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9714:EE_|SJ2PR12MB9088:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2ec9dc5e-b97b-4c2d-8617-08de5bc20dad
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|7416014|376014|7053199007;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?UmNCZnBEWVZoR2prZmpWYXlkc2hvU0ZWOExaekdwcU5COUtnRjZDMFhhdDRN?=
- =?utf-8?B?cHBnNTlFUit4RXJXckVBRnZIS3FmbjMvNTloUENaSW1NNThmR1BLSEdEMmdv?=
- =?utf-8?B?WmhiVi9vdnFKVlJiUWFQVFN6Z0xpQm1keW13bFRJUDdEcmxRSDl5TEVpZzBl?=
- =?utf-8?B?ZEFqUHE5QXBPZ0tvWmhHL2Zta3pxNVV0ejlNeng0UWJvek1JZGRBUjNFMjll?=
- =?utf-8?B?OGUyY0tjaFFoamFWUHg0c2kvRHpDSmlMYkxuMlJZc3NtUlZWZUZ3UnFabDZo?=
- =?utf-8?B?U3RNWE94QzBwNll0VUFBMlJFTFZ3dmJRL1lmWE1rLzUyN05LS25PeXhRYlRK?=
- =?utf-8?B?VUFQcXpRT2w5YjczajFtOXNTYlM0MHBoMUZNS1NFbkp5V1NWNURMSDVDbjh1?=
- =?utf-8?B?R1I2YzUzbkVsaEdxL0FXMnlqaHhEMGlYeW9vSUZJcjlCQ0puTUU4b1ZXckpk?=
- =?utf-8?B?NTRNVWJNQk1zaHBwRjhRcVRaTldLM2V3RGtxTXFTZVN1VHNaVFFyNXNURnp0?=
- =?utf-8?B?VExZNlRSbll6UEdnampQaXdXM1BlWWYwdkF4ek9JbDlxbXFHVHVCbXpTb0FC?=
- =?utf-8?B?K21XaXFiSXh4ZTNVWk1EUE13Nkw0aHNTTXd6b1JyYkx4N0EyMlNXZG42ODJl?=
- =?utf-8?B?dmFoV2s3NVVwdWc4TUVnK1RzMVB6cUtBejFWUFppdnlMQTVmVC9yd285WGFr?=
- =?utf-8?B?dy94RmtVYmptM2l2NEZabllWV1E2M09WNFVETnJMaG1wOGVTSnJkQ3VRWlpT?=
- =?utf-8?B?QUZsS25RZitrcVNhdDVQWkZ1dUtLWTZCMnFLQUZ2S3JHRTd0TUNtYVpyUlZW?=
- =?utf-8?B?eFlQVkljSElCR3g0SHlZRFZaRFd1R2gyVmExZ21vL0Y0SjJvVUFPdVJBclFm?=
- =?utf-8?B?RFRBalBmRi9Ed1RKcE91OWZxYVpJK1ZTM0t6RG8rQUZudFJEWGdJdHc3MlVr?=
- =?utf-8?B?NXRUbjBadCtjT2Jqck5rQ3V2WFZMNFFQRUJoNG1GUVNISHRwRmFwcEZjek1E?=
- =?utf-8?B?TnpKbUkyQVNtc0pJUnMrdEhDNW0vVTd4cVFjTjRwWEpORWl2WVNvMDduK2hl?=
- =?utf-8?B?OHJ2TTN4bkxIRE9Udm90QkZxbjEwV2o4ZjdzY3pibXVRSjR1TUNlWDIxcDlN?=
- =?utf-8?B?NHZqOEpMbnVmT3U0WExaRFY0UnBqcm5ROERwdktnelBlM2pMeklCUzh2dE5C?=
- =?utf-8?B?OHh5OG9Wd09IajhCMmNMd3JZQ29acDZBNTB6L2FHbm1Eb2VsV09EODFyZ3JL?=
- =?utf-8?B?b09vRzNQbFdxUXBlcEpITlpHbWVrTCtKbHM1cUlUbUhxSmpwVmRnUDVMWGkx?=
- =?utf-8?B?dlM5SzdyLzRhUHFTczgzc1B4WjJod2oyM3FEa2pMWU9GR0RLc1hVMzFOemNB?=
- =?utf-8?B?c1NZT1VNODdYY3dsQWcvSU9vbkZ3bUNHV0VUNU56eWszZUVrR2ppNTM0TjdS?=
- =?utf-8?B?cXptWUp2azdZcWlIeVBUM3RacThJejJCcW1TYU5USlpTUUprbk1HeitVMmpE?=
- =?utf-8?B?NWlRQ2NrL1BXNG5JMVRBcGR1eGZHWjJmZ0NSM0RCS1FZaGMrbWp6QStGWnBz?=
- =?utf-8?B?TnhtejBvM1RhaDlGbHVJaWFpT1JlYzZ2SStaMkdzYjE3aU40TENvVXEzb1FZ?=
- =?utf-8?B?TEF2dFRyb2F6T2UySk9UU3dBQ2ZXL21zNThkY3piOVh1WE5ha3JGK1BvS2Zv?=
- =?utf-8?B?UVVRenY2SmkrNDBWdnJLT0VtQWdDUmFsUFZCbXJLeldjL1ZTS2NGNG1lVGxa?=
- =?utf-8?B?T2RRNFhVVnJIUVBUME91eUtuQ1FGQ3hPTjVhZWI2OW8wMWU5dDhoVVQxL05s?=
- =?utf-8?B?d1dleGQ5azc4Q0VLa1pZZFcvNmlaUUZKSWVZTHFvSEdnV1pHakpxQkJESmIy?=
- =?utf-8?B?aDM0SVQzdnZSOVVKM1pOcWpFeTV5QVlzVXRySDNjQVBNOHJPMFBreFFmTUpQ?=
- =?utf-8?B?U3phRmJOaDNHNW85cXdHWWZ1YUc3NU9YeVpSTXUwNXBpb25MWDE1anFJS1FK?=
- =?utf-8?B?cTRLNUFHQzVKaHI4ZmVLbE01d0ZhYVlhQ1RRK2FVak9XV0V4NFBOZEVDU1BF?=
- =?utf-8?B?aGN6UDNmUnhNV0E3bUhMNTVNS3pac2FPU25GZTkyN2p4RWdjZDJIbmZDTVpD?=
- =?utf-8?Q?yCIc=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9714.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(7053199007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?ZjAvNEttQ1JJL1Nya2MxTzlCWVdCTzZ0M2xCZ1ZOTHBiOXhZbUE3MFdEU0Rr?=
- =?utf-8?B?N0t6eFVVZmlaSzkyZlhQenhCQ1gzVUVDWXBJdm9Ba216aFk5eEdnR0dZRHQv?=
- =?utf-8?B?Mmgrb0l5UnZ4amtiZkFkeWhENjU2aXhjcmJnb3dvUDdnelg4SFpVMysyUTNI?=
- =?utf-8?B?MXErNFFqd1pOajY3WXA0a3JRT0xlNUM5Tm9aYi8wMWdUd3Z5UE9nQXM0MFB2?=
- =?utf-8?B?SXlPNGJuYzdCTDFITGZ5alYwQklmbTFYcE5UbXR0OFFGdWJFSnNIa0lrNVlN?=
- =?utf-8?B?cTZra2lVNEh4TWdtNXduSWhTL0NBd3NqcG1oajdxYzJTRDNFTzlpdFBxaHFP?=
- =?utf-8?B?MUxYb2VOaFhxcXd6bEpGVzhFVk9Yd012MXQ3YXRqb2hUdHc4WGdxZzZuclNE?=
- =?utf-8?B?VHFUVFcxdXVyNHYzekc2WU1tY0FiRWlFakE1and2bDZidUtwdTlJWHMvYUwz?=
- =?utf-8?B?RGpCL1l3c3ZhVE00SHJmWGM1TWJpTUhua2xwZnRUcEp4b0VhWFVGTEVnWHZS?=
- =?utf-8?B?S1RFUU5rbnJIeE9aRk1rSE1VQm8zUW4rQzhOVi8rQVAxWUV6VHBxTHBoMnRs?=
- =?utf-8?B?STVrUEcyYzdXU2NhcEdUWlhjRjJsb3hoa1hXTTJJdEtORmx5SHpJZTk3cHQ5?=
- =?utf-8?B?bXcvdUxwUkpJZjJlbTA4MFJpejkzYkVCV3ErY2NvSWlCTTdZOUY4OE9PWDI2?=
- =?utf-8?B?c2dwaFN0by8zM2Nra0dYMGtJcWNRWmtMSEtUaS9nY1lZaFpmRjdva3JXWlk4?=
- =?utf-8?B?c2M1V3dnR3N2V1JZKzhPVXdzWE9Ob05Fcmp6ZFNsY2YzbGFxazVWYkhMSnVt?=
- =?utf-8?B?eTNMb2ZQZ29YWExZeVc0QW5BNk5OQ1p2clFnMEUrdmNYbkhkNEtkdm8wZlpV?=
- =?utf-8?B?OC9Tdm44RnIzNEJ2dUpkMk9jVnFDdVlvWTZ3b21FdTZvUnNuUVhUdXNHc09O?=
- =?utf-8?B?UWdtdzdVSzBTM0xMY1ZOUWFxbEhUbit4OGY2Mm9UTGZnMFEyK29Gakh2N1Vv?=
- =?utf-8?B?b2dtRDJEdFFveE9CWklRYk9xbXhqcFVSNHI3TWVHZDN0YzRJMW5qc2F0cTJF?=
- =?utf-8?B?eXZVaHJ4MFVQbWZrZ09vYS9BTTgwWGFUK0lld1FwWUU4aEE3SEdtY1RHcjR4?=
- =?utf-8?B?T3hhcExZeFowSmtQenMzVmxHd0x6Y3BrVTNOR1pzSS9LT2dyZm9JVnY0ZWhv?=
- =?utf-8?B?UmttNTExRlh5QVZIVG03RUhvK1NLeUlYOVp5d01GRm0zSk5ENklyU1h2dWN5?=
- =?utf-8?B?TDR4SnpwTkJyQkc1TlI5dGtKUXczSkpFVnNLMVJydFlzM25xSkJFRW9uTTJO?=
- =?utf-8?B?VU1hNjhlVDN4ZDdTc1VJcXB2SWErcmlhK1BzaWg3T0xNelJBMHBIWDF0L2Vu?=
- =?utf-8?B?eE50U09WZEJPOVlWdG1XY25mUlh6ZFowRDZvaW5tK2pFelNPa2lBQTZzUlNQ?=
- =?utf-8?B?MElIcDFIWDlsL09BeTkrSXFHREVkQ2NHNEdvdlFqNzUwTWd6UU1EZkNMcW1v?=
- =?utf-8?B?c0RxTmNkVnNmWkwyM0VLNGJOYkhxc1pXRXYvUTdTaFNzSUgxMWdXdVIxcGN4?=
- =?utf-8?B?RHZaaGUwSC9sQ1dpWXA3MFc5VFdFSkcxZHdQeFkxelo0RGdOaFlMaFIvQU8v?=
- =?utf-8?B?UlJhWUF0STB6SFFsUU5LazZUdklJUm05Q1FYVkxKSkhmNDA2eEprSi9xNTYy?=
- =?utf-8?B?RmdQaFB3dVNMbmt1SVI4UDlkbVJUR25vbGlzTDE5WGNURWZRdGRSajdQcjYz?=
- =?utf-8?B?cnZqYjlONDNqZzMrZDJ0ZmdPYjhwS3paMlByclc5c3dVTVRibDQ1TGZwNERX?=
- =?utf-8?B?b3h5VlR1ZTd2L0VYQkhtZFMzTzRKYXQ3dXNFT3hkUDJ0Z3ZGZ0xwY1hla01F?=
- =?utf-8?B?Nmd4WlBrTHk2WG5BOUQ5Z0tGMmtOdTJndjJkSXJpOVhoSW1IUndkeXFZTEJW?=
- =?utf-8?B?WEgvdHU4dkJrYm0vWmt1cTM4OS9TRWVqWUN5ZWwzWlFJNnVmNXJjMmxqSURD?=
- =?utf-8?B?aE40Mlp3RDd2ejRabDFuTzA3dHlpZWZQOWxnM0FVd0c2NG43Zi94KzMzUU1K?=
- =?utf-8?B?dkc1UGJZem1JU2tqZGxNNTJCd0VZZDA0cVN5RE01cHN0ZnFhTk5RSkdVT00w?=
- =?utf-8?B?c0dnbnVOckora3g2Z0p5TCsvQWw1T25qczhRbnM4WWFaZ3g4TjRWR2R1c2hQ?=
- =?utf-8?B?NDU0OCtQVVhsSVN5U1liTENnbzIwQjhoYVc3SkYyVjFFMkVGVnc0NGdoMHdp?=
- =?utf-8?B?UUpEVFg5R2hmM0JUd25YWkJFZ2ZBSjN6Rk0rZThqenVFb1VqVmNHQnkxVld3?=
- =?utf-8?B?TnF5VWhvbm5wRC9JcDRhRkF3aGs0ZnpvejZtdDNyeGIrR2VmTmpBUT09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2ec9dc5e-b97b-4c2d-8617-08de5bc20dad
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9714.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jan 2026 03:30:14.5346
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: z3b45DpocEv5VbYdCWWWewBMLhLygQ2ct5gmC8gc3N/WDu/pIq8DERpGNzRf15fgfl2Y/KVypxz5sZacZ++0Fw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB9088
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <736febd280eb484d79cef5cf55b8a6f79ad832d2.1769097829.git.lorenzo.stoakes@oracle.com>
 
-On 1/23/2026 2:19 PM, Dave Jiang wrote:
+On Thu, Jan 22, 2026 at 04:06:17PM +0000, Lorenzo Stoakes wrote:
+> In order to be able to use only vma_flags_t in vm_area_desc we must adjust
+> shmem file setup functions to operate in terms of vma_flags_t rather than
+> vm_flags_t.
 > 
+> This patch makes this change and updates all callers to use the new
+> functions.
 > 
-> On 1/21/26 9:55 PM, Smita Koralahalli wrote:
->> Add a helper to determine whether a given Soft Reserved memory range is
->> fully contained within the committed CXL region.
->>
->> This helper provides a primitive for policy decisions in subsequent
->> patches such as co-ordination with dax_hmem to determine whether CXL has
->> fully claimed ownership of Soft Reserved memory ranges.
->>
->> No functional changes are introduced by this patch.
->>
->> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+> No functional changes intended.
 > 
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> ---
+>  arch/x86/kernel/cpu/sgx/ioctl.c           |  2 +-
+>  drivers/gpu/drm/drm_gem.c                 |  5 +-
+>  drivers/gpu/drm/i915/gem/i915_gem_shmem.c |  2 +-
+>  drivers/gpu/drm/i915/gem/i915_gem_ttm.c   |  3 +-
+>  drivers/gpu/drm/i915/gt/shmem_utils.c     |  3 +-
+>  drivers/gpu/drm/ttm/tests/ttm_tt_test.c   |  2 +-
+>  drivers/gpu/drm/ttm/ttm_backup.c          |  3 +-
+>  drivers/gpu/drm/ttm/ttm_tt.c              |  2 +-
+>  fs/xfs/scrub/xfile.c                      |  3 +-
+>  fs/xfs/xfs_buf_mem.c                      |  2 +-
+>  include/linux/shmem_fs.h                  |  8 ++-
+>  ipc/shm.c                                 |  6 +--
+>  mm/memfd.c                                |  2 +-
+>  mm/memfd_luo.c                            |  2 +-
+>  mm/shmem.c                                | 59 +++++++++++++----------
+>  security/keys/big_key.c                   |  2 +-
+>  16 files changed, 57 insertions(+), 49 deletions(-)
 > 
-> Just a nit below.
+> diff --git a/arch/x86/kernel/cpu/sgx/ioctl.c b/arch/x86/kernel/cpu/sgx/ioctl.c
+> index 9322a9287dc7..0bc36957979d 100644
+> --- a/arch/x86/kernel/cpu/sgx/ioctl.c
+> +++ b/arch/x86/kernel/cpu/sgx/ioctl.c
+> @@ -83,7 +83,7 @@ static int sgx_encl_create(struct sgx_encl *encl, struct sgx_secs *secs)
+>  	encl_size = secs->size + PAGE_SIZE;
+>  
+>  	backing = shmem_file_setup("SGX backing", encl_size + (encl_size >> 5),
+> -				   VM_NORESERVE);
+> +				   mk_vma_flags(VMA_NORESERVE_BIT));
+>  	if (IS_ERR(backing)) {
+>  		ret = PTR_ERR(backing);
+>  		goto err_out_shrink;
 
-Thank you Jonathan and Dave for the review.
+As per this diff:
 
-> 
->> ---
->>   drivers/cxl/core/region.c | 29 +++++++++++++++++++++++++++++
->>   drivers/cxl/cxl.h         |  5 +++++
->>   2 files changed, 34 insertions(+)
->>
->> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
->> index 45ee598daf95..9827a6dd3187 100644
->> --- a/drivers/cxl/core/region.c
->> +++ b/drivers/cxl/core/region.c
->> @@ -3875,6 +3875,35 @@ static int cxl_region_debugfs_poison_clear(void *data, u64 offset)
->>   DEFINE_DEBUGFS_ATTRIBUTE(cxl_poison_clear_fops, NULL,
->>   			 cxl_region_debugfs_poison_clear, "%llx\n");
->>   
->> +static int cxl_region_contains_sr_cb(struct device *dev, void *data)
-> 
-> Since it's a local helper, maybe just call it region_contains_soft_reserve()?
+Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
 
-Okay I will rename in next revision.
+> diff --git a/drivers/gpu/drm/drm_gem.c b/drivers/gpu/drm/drm_gem.c
+> index e4df43427394..be4dca2bc34e 100644
+> --- a/drivers/gpu/drm/drm_gem.c
+> +++ b/drivers/gpu/drm/drm_gem.c
+> @@ -130,14 +130,15 @@ int drm_gem_object_init_with_mnt(struct drm_device *dev,
+>  				 struct vfsmount *gemfs)
+>  {
+>  	struct file *filp;
+> +	const vma_flags_t flags = mk_vma_flags(VMA_NORESERVE_BIT);
+>  
+>  	drm_gem_private_object_init(dev, obj, size);
+>  
+>  	if (gemfs)
+>  		filp = shmem_file_setup_with_mnt(gemfs, "drm mm object", size,
+> -						 VM_NORESERVE);
+> +						 flags);
+>  	else
+> -		filp = shmem_file_setup("drm mm object", size, VM_NORESERVE);
+> +		filp = shmem_file_setup("drm mm object", size, flags);
+>  
+>  	if (IS_ERR(filp))
+>  		return PTR_ERR(filp);
+> diff --git a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c b/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+> index 26dda55a07ff..fe1843497b27 100644
+> --- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+> +++ b/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+> @@ -496,7 +496,7 @@ static int __create_shmem(struct drm_i915_private *i915,
+>  			  struct drm_gem_object *obj,
+>  			  resource_size_t size)
+>  {
+> -	unsigned long flags = VM_NORESERVE;
+> +	const vma_flags_t flags = mk_vma_flags(VMA_NORESERVE_BIT);
+>  	struct file *filp;
+>  
+>  	drm_gem_private_object_init(&i915->drm, obj, size);
+> diff --git a/drivers/gpu/drm/i915/gem/i915_gem_ttm.c b/drivers/gpu/drm/i915/gem/i915_gem_ttm.c
+> index f65fe86c02b5..7b1a7d01db2b 100644
+> --- a/drivers/gpu/drm/i915/gem/i915_gem_ttm.c
+> +++ b/drivers/gpu/drm/i915/gem/i915_gem_ttm.c
+> @@ -200,7 +200,8 @@ static int i915_ttm_tt_shmem_populate(struct ttm_device *bdev,
+>  		struct address_space *mapping;
+>  		gfp_t mask;
+>  
+> -		filp = shmem_file_setup("i915-shmem-tt", size, VM_NORESERVE);
+> +		filp = shmem_file_setup("i915-shmem-tt", size,
+> +					mk_vma_flags(VMA_NORESERVE_BIT));
+>  		if (IS_ERR(filp))
+>  			return PTR_ERR(filp);
+>  
+> diff --git a/drivers/gpu/drm/i915/gt/shmem_utils.c b/drivers/gpu/drm/i915/gt/shmem_utils.c
+> index 365c4b8b04f4..5f37c699a320 100644
+> --- a/drivers/gpu/drm/i915/gt/shmem_utils.c
+> +++ b/drivers/gpu/drm/i915/gt/shmem_utils.c
+> @@ -19,7 +19,8 @@ struct file *shmem_create_from_data(const char *name, void *data, size_t len)
+>  	struct file *file;
+>  	int err;
+>  
+> -	file = shmem_file_setup(name, PAGE_ALIGN(len), VM_NORESERVE);
+> +	file = shmem_file_setup(name, PAGE_ALIGN(len),
+> +				mk_vma_flags(VMA_NORESERVE_BIT));
+>  	if (IS_ERR(file))
+>  		return file;
+>  
+> diff --git a/drivers/gpu/drm/ttm/tests/ttm_tt_test.c b/drivers/gpu/drm/ttm/tests/ttm_tt_test.c
+> index 61ec6f580b62..bd5f7d0b9b62 100644
+> --- a/drivers/gpu/drm/ttm/tests/ttm_tt_test.c
+> +++ b/drivers/gpu/drm/ttm/tests/ttm_tt_test.c
+> @@ -143,7 +143,7 @@ static void ttm_tt_fini_shmem(struct kunit *test)
+>  	err = ttm_tt_init(tt, bo, 0, caching, 0);
+>  	KUNIT_ASSERT_EQ(test, err, 0);
+>  
+> -	shmem = shmem_file_setup("ttm swap", BO_SIZE, 0);
+> +	shmem = shmem_file_setup("ttm swap", BO_SIZE, EMPTY_VMA_FLAGS);
+>  	tt->swap_storage = shmem;
+>  
+>  	ttm_tt_fini(tt);
+> diff --git a/drivers/gpu/drm/ttm/ttm_backup.c b/drivers/gpu/drm/ttm/ttm_backup.c
+> index 32530c75f038..6bd4c123d94c 100644
+> --- a/drivers/gpu/drm/ttm/ttm_backup.c
+> +++ b/drivers/gpu/drm/ttm/ttm_backup.c
+> @@ -178,5 +178,6 @@ EXPORT_SYMBOL_GPL(ttm_backup_bytes_avail);
+>   */
+>  struct file *ttm_backup_shmem_create(loff_t size)
+>  {
+> -	return shmem_file_setup("ttm shmem backup", size, 0);
+> +	return shmem_file_setup("ttm shmem backup", size,
+> +				EMPTY_VMA_FLAGS);
+>  }
+> diff --git a/drivers/gpu/drm/ttm/ttm_tt.c b/drivers/gpu/drm/ttm/ttm_tt.c
+> index 611d20ab966d..f73a5ce87645 100644
+> --- a/drivers/gpu/drm/ttm/ttm_tt.c
+> +++ b/drivers/gpu/drm/ttm/ttm_tt.c
+> @@ -330,7 +330,7 @@ int ttm_tt_swapout(struct ttm_device *bdev, struct ttm_tt *ttm,
+>  	struct page *to_page;
+>  	int i, ret;
+>  
+> -	swap_storage = shmem_file_setup("ttm swap", size, 0);
+> +	swap_storage = shmem_file_setup("ttm swap", size, EMPTY_VMA_FLAGS);
+>  	if (IS_ERR(swap_storage)) {
+>  		pr_err("Failed allocating swap storage\n");
+>  		return PTR_ERR(swap_storage);
+> diff --git a/fs/xfs/scrub/xfile.c b/fs/xfs/scrub/xfile.c
+> index c753c79df203..fe0584a39f16 100644
+> --- a/fs/xfs/scrub/xfile.c
+> +++ b/fs/xfs/scrub/xfile.c
+> @@ -61,7 +61,8 @@ xfile_create(
+>  	if (!xf)
+>  		return -ENOMEM;
+>  
+> -	xf->file = shmem_kernel_file_setup(description, isize, VM_NORESERVE);
+> +	xf->file = shmem_kernel_file_setup(description, isize,
+> +					   mk_vma_flags(VMA_NORESERVE_BIT));
+>  	if (IS_ERR(xf->file)) {
+>  		error = PTR_ERR(xf->file);
+>  		goto out_xfile;
+> diff --git a/fs/xfs/xfs_buf_mem.c b/fs/xfs/xfs_buf_mem.c
+> index dcbfa274e06d..fd6f0a5bc0ea 100644
+> --- a/fs/xfs/xfs_buf_mem.c
+> +++ b/fs/xfs/xfs_buf_mem.c
+> @@ -62,7 +62,7 @@ xmbuf_alloc(
+>  	if (!btp)
+>  		return -ENOMEM;
+>  
+> -	file = shmem_kernel_file_setup(descr, 0, 0);
+> +	file = shmem_kernel_file_setup(descr, 0, EMPTY_VMA_FLAGS);
+>  	if (IS_ERR(file)) {
+>  		error = PTR_ERR(file);
+>  		goto out_free_btp;
+> diff --git a/include/linux/shmem_fs.h b/include/linux/shmem_fs.h
+> index e2069b3179c4..a8273b32e041 100644
+> --- a/include/linux/shmem_fs.h
+> +++ b/include/linux/shmem_fs.h
+> @@ -102,12 +102,10 @@ static inline struct shmem_inode_info *SHMEM_I(struct inode *inode)
+>  extern const struct fs_parameter_spec shmem_fs_parameters[];
+>  extern void shmem_init(void);
+>  extern int shmem_init_fs_context(struct fs_context *fc);
+> -extern struct file *shmem_file_setup(const char *name,
+> -					loff_t size, unsigned long flags);
+> -extern struct file *shmem_kernel_file_setup(const char *name, loff_t size,
+> -					    unsigned long flags);
+> +struct file *shmem_file_setup(const char *name, loff_t size, vma_flags_t flags);
+> +struct file *shmem_kernel_file_setup(const char *name, loff_t size, vma_flags_t vma_flags);
+>  extern struct file *shmem_file_setup_with_mnt(struct vfsmount *mnt,
+> -		const char *name, loff_t size, unsigned long flags);
+> +		const char *name, loff_t size, vma_flags_t flags);
+>  int shmem_zero_setup(struct vm_area_struct *vma);
+>  int shmem_zero_setup_desc(struct vm_area_desc *desc);
+>  extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
+> diff --git a/ipc/shm.c b/ipc/shm.c
+> index 2c7379c4c647..e8c7d1924c50 100644
+> --- a/ipc/shm.c
+> +++ b/ipc/shm.c
+> @@ -708,6 +708,7 @@ static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
+>  	struct shmid_kernel *shp;
+>  	size_t numpages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>  	const bool has_no_reserve = shmflg & SHM_NORESERVE;
+> +	vma_flags_t acctflag = EMPTY_VMA_FLAGS;
+>  	struct file *file;
+>  	char name[13];
+>  
+> @@ -738,7 +739,6 @@ static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
+>  
+>  	sprintf(name, "SYSV%08x", key);
+>  	if (shmflg & SHM_HUGETLB) {
+> -		vma_flags_t acctflag = EMPTY_VMA_FLAGS;
+>  		struct hstate *hs;
+>  		size_t hugesize;
+>  
+> @@ -755,14 +755,12 @@ static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
+>  		file = hugetlb_file_setup(name, hugesize, acctflag,
+>  				HUGETLB_SHMFS_INODE, (shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
+>  	} else {
+> -		vm_flags_t acctflag = 0;
+> -
+>  		/*
+>  		 * Do not allow no accounting for OVERCOMMIT_NEVER, even
+>  		 * if it's asked for.
+>  		 */
+>  		if  (has_no_reserve && sysctl_overcommit_memory != OVERCOMMIT_NEVER)
+> -			acctflag = VM_NORESERVE;
+> +			vma_flags_set(&acctflag, VMA_NORESERVE_BIT);
+>  		file = shmem_kernel_file_setup(name, size, acctflag);
+>  	}
+>  	error = PTR_ERR(file);
+> diff --git a/mm/memfd.c b/mm/memfd.c
+> index 5f95f639550c..f3a8950850a2 100644
+> --- a/mm/memfd.c
+> +++ b/mm/memfd.c
+> @@ -469,7 +469,7 @@ static struct file *alloc_file(const char *name, unsigned int flags)
+>  					(flags >> MFD_HUGE_SHIFT) &
+>  					MFD_HUGE_MASK);
+>  	} else {
+> -		file = shmem_file_setup(name, 0, VM_NORESERVE);
+> +		file = shmem_file_setup(name, 0, mk_vma_flags(VMA_NORESERVE_BIT));
+>  	}
+>  	if (IS_ERR(file))
+>  		return file;
+> diff --git a/mm/memfd_luo.c b/mm/memfd_luo.c
+> index 4f6ba63b4310..a2629dcfd0f1 100644
+> --- a/mm/memfd_luo.c
+> +++ b/mm/memfd_luo.c
+> @@ -443,7 +443,7 @@ static int memfd_luo_retrieve(struct liveupdate_file_op_args *args)
+>  	if (!ser)
+>  		return -EINVAL;
+>  
+> -	file = shmem_file_setup("", 0, VM_NORESERVE);
+> +	file = shmem_file_setup("", 0, mk_vma_flags(VMA_NORESERVE_BIT));
+>  
+>  	if (IS_ERR(file)) {
+>  		pr_err("failed to setup file: %pe\n", file);
+> diff --git a/mm/shmem.c b/mm/shmem.c
+> index 0adde3f4df27..97a8f55c7296 100644
+> --- a/mm/shmem.c
+> +++ b/mm/shmem.c
+> @@ -3057,9 +3057,9 @@ static struct offset_ctx *shmem_get_offset_ctx(struct inode *inode)
+>  }
+>  
+>  static struct inode *__shmem_get_inode(struct mnt_idmap *idmap,
+> -					     struct super_block *sb,
+> -					     struct inode *dir, umode_t mode,
+> -					     dev_t dev, unsigned long flags)
+> +				       struct super_block *sb,
+> +				       struct inode *dir, umode_t mode,
+> +				       dev_t dev, vma_flags_t flags)
+>  {
+>  	struct inode *inode;
+>  	struct shmem_inode_info *info;
+> @@ -3087,7 +3087,8 @@ static struct inode *__shmem_get_inode(struct mnt_idmap *idmap,
+>  	spin_lock_init(&info->lock);
+>  	atomic_set(&info->stop_eviction, 0);
+>  	info->seals = F_SEAL_SEAL;
+> -	info->flags = (flags & VM_NORESERVE) ? SHMEM_F_NORESERVE : 0;
+> +	info->flags = vma_flags_test(&flags, VMA_NORESERVE_BIT)
+> +		? SHMEM_F_NORESERVE : 0;
+>  	info->i_crtime = inode_get_mtime(inode);
+>  	info->fsflags = (dir == NULL) ? 0 :
+>  		SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
+> @@ -3140,7 +3141,7 @@ static struct inode *__shmem_get_inode(struct mnt_idmap *idmap,
+>  #ifdef CONFIG_TMPFS_QUOTA
+>  static struct inode *shmem_get_inode(struct mnt_idmap *idmap,
+>  				     struct super_block *sb, struct inode *dir,
+> -				     umode_t mode, dev_t dev, unsigned long flags)
+> +				     umode_t mode, dev_t dev, vma_flags_t flags)
+>  {
+>  	int err;
+>  	struct inode *inode;
+> @@ -3166,9 +3167,9 @@ static struct inode *shmem_get_inode(struct mnt_idmap *idmap,
+>  	return ERR_PTR(err);
+>  }
+>  #else
+> -static inline struct inode *shmem_get_inode(struct mnt_idmap *idmap,
+> +static struct inode *shmem_get_inode(struct mnt_idmap *idmap,
+>  				     struct super_block *sb, struct inode *dir,
+> -				     umode_t mode, dev_t dev, unsigned long flags)
+> +				     umode_t mode, dev_t dev, vma_flags_t flags)
+>  {
+>  	return __shmem_get_inode(idmap, sb, dir, mode, dev, flags);
+>  }
+> @@ -3875,7 +3876,8 @@ shmem_mknod(struct mnt_idmap *idmap, struct inode *dir,
+>  	if (!generic_ci_validate_strict_name(dir, &dentry->d_name))
+>  		return -EINVAL;
+>  
+> -	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, dev, VM_NORESERVE);
+> +	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, dev,
+> +				mk_vma_flags(VMA_NORESERVE_BIT));
+>  	if (IS_ERR(inode))
+>  		return PTR_ERR(inode);
+>  
+> @@ -3910,7 +3912,8 @@ shmem_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
+>  	struct inode *inode;
+>  	int error;
+>  
+> -	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, 0, VM_NORESERVE);
+> +	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, 0,
+> +				mk_vma_flags(VMA_NORESERVE_BIT));
+>  	if (IS_ERR(inode)) {
+>  		error = PTR_ERR(inode);
+>  		goto err_out;
+> @@ -4107,7 +4110,7 @@ static int shmem_symlink(struct mnt_idmap *idmap, struct inode *dir,
+>  		return -ENAMETOOLONG;
+>  
+>  	inode = shmem_get_inode(idmap, dir->i_sb, dir, S_IFLNK | 0777, 0,
+> -				VM_NORESERVE);
+> +				mk_vma_flags(VMA_NORESERVE_BIT));
+>  	if (IS_ERR(inode))
+>  		return PTR_ERR(inode);
+>  
+> @@ -5108,7 +5111,8 @@ static int shmem_fill_super(struct super_block *sb, struct fs_context *fc)
+>  #endif /* CONFIG_TMPFS_QUOTA */
+>  
+>  	inode = shmem_get_inode(&nop_mnt_idmap, sb, NULL,
+> -				S_IFDIR | sbinfo->mode, 0, VM_NORESERVE);
+> +				S_IFDIR | sbinfo->mode, 0,
+> +				mk_vma_flags(VMA_NORESERVE_BIT));
+>  	if (IS_ERR(inode)) {
+>  		error = PTR_ERR(inode);
+>  		goto failed;
+> @@ -5808,7 +5812,7 @@ static inline void shmem_unacct_size(unsigned long flags, loff_t size)
+>  
+>  static inline struct inode *shmem_get_inode(struct mnt_idmap *idmap,
+>  				struct super_block *sb, struct inode *dir,
+> -				umode_t mode, dev_t dev, unsigned long flags)
+> +				umode_t mode, dev_t dev, vma_flags_t flags)
+>  {
+>  	struct inode *inode = ramfs_get_inode(sb, dir, mode, dev);
+>  	return inode ? inode : ERR_PTR(-ENOSPC);
+> @@ -5819,10 +5823,11 @@ static inline struct inode *shmem_get_inode(struct mnt_idmap *idmap,
+>  /* common code */
+>  
+>  static struct file *__shmem_file_setup(struct vfsmount *mnt, const char *name,
+> -				       loff_t size, unsigned long vm_flags,
+> +				       loff_t size, vma_flags_t flags,
+>  				       unsigned int i_flags)
+>  {
+> -	unsigned long flags = (vm_flags & VM_NORESERVE) ? SHMEM_F_NORESERVE : 0;
+> +	const unsigned long shmem_flags =
+> +		vma_flags_test(&flags, VMA_NORESERVE_BIT) ? SHMEM_F_NORESERVE : 0;
+>  	struct inode *inode;
+>  	struct file *res;
+>  
+> @@ -5835,13 +5840,13 @@ static struct file *__shmem_file_setup(struct vfsmount *mnt, const char *name,
+>  	if (is_idmapped_mnt(mnt))
+>  		return ERR_PTR(-EINVAL);
+>  
+> -	if (shmem_acct_size(flags, size))
+> +	if (shmem_acct_size(shmem_flags, size))
+>  		return ERR_PTR(-ENOMEM);
+>  
+>  	inode = shmem_get_inode(&nop_mnt_idmap, mnt->mnt_sb, NULL,
+> -				S_IFREG | S_IRWXUGO, 0, vm_flags);
+> +				S_IFREG | S_IRWXUGO, 0, flags);
+>  	if (IS_ERR(inode)) {
+> -		shmem_unacct_size(flags, size);
+> +		shmem_unacct_size(shmem_flags, size);
+>  		return ERR_CAST(inode);
+>  	}
+>  	inode->i_flags |= i_flags;
+> @@ -5864,9 +5869,10 @@ static struct file *__shmem_file_setup(struct vfsmount *mnt, const char *name,
+>   *	checks are provided at the key or shm level rather than the inode.
+>   * @name: name for dentry (to be seen in /proc/<pid>/maps)
+>   * @size: size to be set for the file
+> - * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
+> + * @vma_flags: VMA_NORESERVE_BIT suppresses pre-accounting of the entire object size
+>   */
+> -struct file *shmem_kernel_file_setup(const char *name, loff_t size, unsigned long flags)
+> +struct file *shmem_kernel_file_setup(const char *name, loff_t size,
+> +				     vma_flags_t flags)
+>  {
+>  	return __shmem_file_setup(shm_mnt, name, size, flags, S_PRIVATE);
+>  }
+> @@ -5878,7 +5884,7 @@ EXPORT_SYMBOL_GPL(shmem_kernel_file_setup);
+>   * @size: size to be set for the file
+>   * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
+>   */
+> -struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags)
+> +struct file *shmem_file_setup(const char *name, loff_t size, vma_flags_t flags)
+>  {
+>  	return __shmem_file_setup(shm_mnt, name, size, flags, 0);
+>  }
+> @@ -5889,16 +5895,17 @@ EXPORT_SYMBOL_GPL(shmem_file_setup);
+>   * @mnt: the tmpfs mount where the file will be created
+>   * @name: name for dentry (to be seen in /proc/<pid>/maps)
+>   * @size: size to be set for the file
+> - * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
+> + * @flags: VMA_NORESERVE_BIT suppresses pre-accounting of the entire object size
+>   */
+>  struct file *shmem_file_setup_with_mnt(struct vfsmount *mnt, const char *name,
+> -				       loff_t size, unsigned long flags)
+> +				       loff_t size, vma_flags_t flags)
+>  {
+>  	return __shmem_file_setup(mnt, name, size, flags, 0);
+>  }
+>  EXPORT_SYMBOL_GPL(shmem_file_setup_with_mnt);
+>  
+> -static struct file *__shmem_zero_setup(unsigned long start, unsigned long end, vm_flags_t vm_flags)
+> +static struct file *__shmem_zero_setup(unsigned long start, unsigned long end,
+> +		vma_flags_t flags)
+>  {
+>  	loff_t size = end - start;
+>  
+> @@ -5908,7 +5915,7 @@ static struct file *__shmem_zero_setup(unsigned long start, unsigned long end, v
+>  	 * accessible to the user through its mapping, use S_PRIVATE flag to
+>  	 * bypass file security, in the same way as shmem_kernel_file_setup().
+>  	 */
+> -	return shmem_kernel_file_setup("dev/zero", size, vm_flags);
+> +	return shmem_kernel_file_setup("dev/zero", size, flags);
+>  }
+>  
+>  /**
+> @@ -5918,7 +5925,7 @@ static struct file *__shmem_zero_setup(unsigned long start, unsigned long end, v
+>   */
+>  int shmem_zero_setup(struct vm_area_struct *vma)
+>  {
+> -	struct file *file = __shmem_zero_setup(vma->vm_start, vma->vm_end, vma->vm_flags);
+> +	struct file *file = __shmem_zero_setup(vma->vm_start, vma->vm_end, vma->flags);
+>  
+>  	if (IS_ERR(file))
+>  		return PTR_ERR(file);
+> @@ -5939,7 +5946,7 @@ int shmem_zero_setup(struct vm_area_struct *vma)
+>   */
+>  int shmem_zero_setup_desc(struct vm_area_desc *desc)
+>  {
+> -	struct file *file = __shmem_zero_setup(desc->start, desc->end, desc->vm_flags);
+> +	struct file *file = __shmem_zero_setup(desc->start, desc->end, desc->vma_flags);
+>  
+>  	if (IS_ERR(file))
+>  		return PTR_ERR(file);
+> diff --git a/security/keys/big_key.c b/security/keys/big_key.c
+> index d46862ab90d6..268f702df380 100644
+> --- a/security/keys/big_key.c
+> +++ b/security/keys/big_key.c
+> @@ -103,7 +103,7 @@ int big_key_preparse(struct key_preparsed_payload *prep)
+>  					 0, enckey);
+>  
+>  		/* save aligned data to file */
+> -		file = shmem_kernel_file_setup("", enclen, 0);
+> +		file = shmem_kernel_file_setup("", enclen, EMPTY_VMA_FLAGS);
+>  		if (IS_ERR(file)) {
+>  			ret = PTR_ERR(file);
+>  			goto err_enckey;
+> -- 
+> 2.52.0
+> 
 
-Thanks
-Smita
-> 
-> DJ
-> 
->> +{
->> +	struct resource *res = data;
->> +	struct cxl_region *cxlr;
->> +	struct cxl_region_params *p;
->> +
->> +	if (!is_cxl_region(dev))
->> +		return 0;
->> +
->> +	cxlr = to_cxl_region(dev);
->> +	p = &cxlr->params;
->> +
->> +	if (p->state != CXL_CONFIG_COMMIT)
->> +		return 0;
->> +
->> +	if (!p->res)
->> +		return 0;
->> +
->> +	return resource_contains(p->res, res) ? 1 : 0;
->> +}
->> +
->> +bool cxl_region_contains_soft_reserve(const struct resource *res)
->> +{
->> +	guard(rwsem_read)(&cxl_rwsem.region);
->> +	return bus_for_each_dev(&cxl_bus_type, NULL, (void *)res,
->> +				cxl_region_contains_sr_cb) != 0;
->> +}
->> +EXPORT_SYMBOL_GPL(cxl_region_contains_soft_reserve);
->> +
->>   static int cxl_region_can_probe(struct cxl_region *cxlr)
->>   {
->>   	struct cxl_region_params *p = &cxlr->params;
->> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
->> index c796c3db36e0..b0ff6b65ea0b 100644
->> --- a/drivers/cxl/cxl.h
->> +++ b/drivers/cxl/cxl.h
->> @@ -906,6 +906,7 @@ struct cxl_pmem_region *to_cxl_pmem_region(struct device *dev);
->>   int cxl_add_to_region(struct cxl_endpoint_decoder *cxled);
->>   struct cxl_dax_region *to_cxl_dax_region(struct device *dev);
->>   u64 cxl_port_get_spa_cache_alias(struct cxl_port *endpoint, u64 spa);
->> +bool cxl_region_contains_soft_reserve(const struct resource *res);
->>   #else
->>   static inline bool is_cxl_pmem_region(struct device *dev)
->>   {
->> @@ -928,6 +929,10 @@ static inline u64 cxl_port_get_spa_cache_alias(struct cxl_port *endpoint,
->>   {
->>   	return 0;
->>   }
->> +static inline bool cxl_region_contains_soft_reserve(const struct resource *res)
->> +{
->> +	return false;
->> +}
->>   #endif
->>   
->>   void cxl_endpoint_parse_cdat(struct cxl_port *port);
-> 
-
+BR, Jarkko
