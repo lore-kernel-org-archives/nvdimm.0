@@ -1,87 +1,129 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010058.outbound.protection.outlook.com [52.101.201.58])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010062.outbound.protection.outlook.com [52.101.201.62])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC84283FF5
-	for <nvdimm@lists.linux.dev>; Tue, 27 Jan 2026 12:16:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 027D42D8393;
+	Tue, 27 Jan 2026 13:53:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.62
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769516216; cv=fail; b=IifotHH/tqMwVZeMVQZvLB+gpugSIcdOVL5/eIIBHgdtqRoKhKloD9LvXrCef1ljt810brEVpO9VFFGBu+dqZrEVGSBMK7PDjXpuWx/OZNdi4IvsEYaZT5cpLGwPldWDFwYH8uzFk6CWWUpF6eUWkwsStHcHFl4NAcYvDILPOAU=
+	t=1769522036; cv=fail; b=t/4kPc27myN5zNesg3eYGcwqXIVGTEMxqM+JgX6TL8Zr1wfdbwnWQv2RuJB+Vhe5jLxnTZhdylNBYb8WvVG6q9lM7xtAU9KvHiBDy7VX1g4pPHdYJKjm69tgwtuGcIwVI2BPHyMfFmqlJxsphyi5c8f4PoblSPs3BH+V+JcJJJU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769516216; c=relaxed/simple;
-	bh=bkFtRjzUtd1tYmpJ+HFxYCgcPUb7T4GtCjn2kdqxptw=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=bPWFn8dm/B73cyDxcmsDQc3pXYSXIkaHVkNyhIXmEbAM2sOiKZ6Az6I3ZD5v0RPOiKbqZFWqs1nTzkYwiAeL29VU9YVPVJ3Z1Qenu/e6l7+xWcN0jmpKgUqsBc1iZuOOgJYVW8IvyqVyDokhevZI26ET9mapYOaNX1Y69k1qmw0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=W9E6Rzd6; arc=fail smtp.client-ip=52.101.201.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	s=arc-20240116; t=1769522036; c=relaxed/simple;
+	bh=MhrfkX3dTksT6K9xm/iT3CPlegeUFhmrjzurclDVAn4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=o6ycGIcsjq6jTz6nFK4tuxUAMyyKnvPeJbmRZ+5HipqRPdy7SK/A4vJaG1D/MANxHPMthpplaQXWzZLUJQN6sJZcnc+3+AZU49G4r8A/HrA/OIiiw1MbgubwizU721NJ7MQp0MxBbE/42LQQmg6xUHUaA6fjBVCRbEMgXFvJ5dY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=rEQuxTfL; arc=fail smtp.client-ip=52.101.201.62
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="W9E6Rzd6"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="rEQuxTfL"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=QheM1hoA96PzQmmCo7Q6/Y3rBWb+asSiaPcCNAlEFKK6MXihTh9+iO1e3KbKmgYmvQDyoLy9G8thzvuqORltVQLRSCwh4HKoKRvfva506IaLE2biHEIfUXzrqri7KZNr2mASA8vHys6zZjiPw9CDHU01+cHNvifSZq9WFrLBAm7e0gEXuqpXZWwECISvsavQtIU2JYVcIFCvQ63LQScXI49Dd9EAnvMZ/KLOBI34t/8kJ3EwWgShYhVMZu4BZgLKbE1lrER2C0d8Vh0OVo8jgJ/fn+nbjbDjmPVaO8Qz6eSSHuAWwiIwyxH7EFkUw2meswSmhHZYnHBZdd0NxAqpxg==
+ b=LoJSBm+KCKFpH+/YERTFRm9qpvrSgblyoWTqR5N4ypYrMyxGsNPuKhw28ga/dQSWFHivndYkGabEyocTpxWeJnDQFpU+UrCUEo3X+1UiXO4wbfKju7caDqEBjEiFfHO2lR7lNMXA7Z7KOaealXoSGh6gt4Idrrh7aoV7tD5LPdeRheuDurTrP0Xb0bZ+otpu/vZ4PvvIpLqVAAqzKWIukUiMTKZHolkbsN1YgXNtTlBIbxvEZW+9wZ4jn1F7+CZU/bmPCkpQZ/8loUJhLBBqNJOWCk368gu1Id6fqXY4H9bmlEgNyWJOMIb+7rNofNhFsj/IE/4uGXydchgBnpWm/g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TUl11C/SrWeKQrogk43H82phU/k0LwKhqhyuFQ9yDAY=;
- b=mxtw0uJOIzSXWuMEOC9Tk1U/uUZNxWqvY34Fk85p3TobKzpDc1UHojcX1TC3mREU51/7L0Xa5VjJ9m/P71SMxWbAUK3p18Hj+PzlVMjycE63Mg77IHSnvQUIhlMSL9Y8pTgUKJMgKc9wq5LCT7nXRfv1TSKx6vxBMjzoXQzh0nyBCLiUaIF+zydS47exyLaCUhF3HSwT3bV1D7MCOPS1BaGUyURjyie6VJ5xj/1WUZvklJKb7XVMq4hPZehN0L2FB0YXYmA7oXdtRTVhxz9NvQ0+dK8gmm+zUOCSa+Clfls3VPDRoHmCEzZUuYBTwLBguCdiAlLITHqigsYL8r9o1A==
+ bh=zp7r66ObLQb0uIcsfYchKUCHoARYZLzJSdw5YZym29E=;
+ b=yc/McpkpE40/U1EIDkQhwuSazZVcfjtylRVRT67RNC8pxe6WMp4jsDWsqqpGDIdfrB46X5IpEyO9rg5ms0fSxvX4Gc+xMrs64bTiFVOfDX32VTmkGE6mfTXoui4y7vV2G/s7nJnqkg0egXRboYiuOkLsV37tVJudX6jZljihbFtnUPIQ5Nh1QqdMzH1OUnFURBVHlTr/rDzpgjJIlOWBV5aAgpatxKzZ02+nReE23ut9lryj/8nn9m5KpxsYTUcgNvzZ9F1L57NYlqGrVssLQdzYfgb6pQrGXrZsMSe85msXglRgqwbduBlQkg9QsS1k3lN1FyBR6TAeJYfUjI9nfQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TUl11C/SrWeKQrogk43H82phU/k0LwKhqhyuFQ9yDAY=;
- b=W9E6Rzd6zAGsA3uFilCo4GzrCrBAskiGZuqfte4ZKQs366eiSi+i10+Ek9EbugdUCDrPnhnCA9B0GoyLb5HVquElthfHSeZqHIQHbSJh4Fm7g9KvGFMFT3IyCP6LHWWzW1RDM/gLHM+AyRvM/rpos9s518cwrJATT8F3/uD7aLo=
+ bh=zp7r66ObLQb0uIcsfYchKUCHoARYZLzJSdw5YZym29E=;
+ b=rEQuxTfLSa3ej3dyz/LwMaY8zCZWuS/7Uj5hrA2fGjIx24GDHRHTaYGKIidmhfn2dnnZ6sOO86SPFxv/wVDMaVhVu+pZT6BxcpZm/aNMffFFeaoMVZqQCawL6sZvQVeBGDaOPTxlnN9p1bpXb1B0eksF6vacn+fC2CkHOWm5iVtAQrDLFmtD0OnOsgFrOBKBic/YTgPEGcdB34nZ+C/DlHDDM/OOSdThSQVToHuU9hQwswOjC70q36PoAKZuvF+XRp4HrtrdjBxVFBG8JX97hOq+3y9Gny7S9vd+FdOxfkiyiZw3wo6tEzHEsARh5NrL/B1txQWbB5mzVvOydnINKw==
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DM6PR12MB4202.namprd12.prod.outlook.com (2603:10b6:5:219::22)
- by SN7PR12MB8771.namprd12.prod.outlook.com (2603:10b6:806:32a::20) with
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from PH0PR12MB8800.namprd12.prod.outlook.com (2603:10b6:510:26f::12)
+ by PH8PR12MB6698.namprd12.prod.outlook.com (2603:10b6:510:1cd::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9542.15; Tue, 27 Jan
- 2026 12:16:50 +0000
-Received: from DM6PR12MB4202.namprd12.prod.outlook.com
- ([fe80::9e55:f616:6a93:7a3d]) by DM6PR12MB4202.namprd12.prod.outlook.com
- ([fe80::9e55:f616:6a93:7a3d%4]) with mapi id 15.20.9542.010; Tue, 27 Jan 2026
- 12:16:49 +0000
-Message-ID: <f4bdf04d-7481-4282-b9da-ce5fcf911af9@amd.com>
-Date: Tue, 27 Jan 2026 12:16:41 +0000
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 6/7] dax/hmem, cxl: Defer and resolve ownership of Soft
- Reserved memory ranges
-Content-Language: en-US
-To: dan.j.williams@intel.com,
- "Koralahalli Channabasappa, Smita" <skoralah@amd.com>,
- Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
- linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
- linux-pm@vger.kernel.org
-Cc: Ard Biesheuvel <ardb@kernel.org>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Yazen Ghannam <yazen.ghannam@amd.com>, Dave Jiang <dave.jiang@intel.com>,
- Davidlohr Bueso <dave@stgolabs.net>, Matthew Wilcox <willy@infradead.org>,
- Jan Kara <jack@suse.cz>, "Rafael J . Wysocki" <rafael@kernel.org>,
- Len Brown <len.brown@intel.com>, Pavel Machek <pavel@kernel.org>,
- Li Ming <ming.li@zohomail.com>, Jeff Johnson
- <jeff.johnson@oss.qualcomm.com>, Ying Huang <huang.ying.caritas@gmail.com>,
- Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Nathan Fontenot <nathan.fontenot@amd.com>,
- Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
- Benjamin Cheatham <benjamin.cheatham@amd.com>,
- Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
- Tomasz Wolski <tomasz.wolski@fujitsu.com>
-References: <20260122045543.218194-1-Smita.KoralahalliChannabasappa@amd.com>
- <20260122045543.218194-7-Smita.KoralahalliChannabasappa@amd.com>
- <e38625c5-16fd-4fa2-bec0-6773d91fd2b4@amd.com>
- <84d0ede7-b39d-4a41-b2b6-8183d9ccbb9e@amd.com>
- <6977fe94d8ee_309510033@dwillia2-mobl4.notmuch>
-From: Alejandro Lucero Palau <alucerop@amd.com>
-In-Reply-To: <6977fe94d8ee_309510033@dwillia2-mobl4.notmuch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: LO4P265CA0186.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:311::13) To DM6PR12MB4202.namprd12.prod.outlook.com
- (2603:10b6:5:219::22)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9542.11; Tue, 27 Jan
+ 2026 13:53:47 +0000
+Received: from PH0PR12MB8800.namprd12.prod.outlook.com
+ ([fe80::f79d:ddc5:2ad7:762d]) by PH0PR12MB8800.namprd12.prod.outlook.com
+ ([fe80::f79d:ddc5:2ad7:762d%4]) with mapi id 15.20.9542.010; Tue, 27 Jan 2026
+ 13:53:47 +0000
+Date: Tue, 27 Jan 2026 08:53:44 -0500
+From: Yury Norov <ynorov@nvidia.com>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+	"H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Tvrtko Ursulin <tursulin@ursulin.net>,
+	Christian Koenig <christian.koenig@amd.com>,
+	Huang Rui <ray.huang@amd.com>,
+	Matthew Auld <matthew.auld@intel.com>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Benjamin LaHaise <bcrl@kvack.org>, Gao Xiang <xiang@kernel.org>,
+	Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>,
+	Jeffle Xu <jefflexu@linux.alibaba.com>,
+	Sandeep Dhavale <dhavale@google.com>,
+	Hongbo Li <lihongbo22@huawei.com>,
+	Chunhai Guo <guochunhai@vivo.com>, Theodore Ts'o <tytso@mit.edu>,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>,
+	David Hildenbrand <david@kernel.org>,
+	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+	Mike Marshall <hubcap@omnibond.com>,
+	Martin Brandenburg <martin@omnibond.com>,
+	Tony Luck <tony.luck@intel.com>,
+	Reinette Chatre <reinette.chatre@intel.com>,
+	Dave Martin <Dave.Martin@arm.com>,
+	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>,
+	Carlos Maiolino <cem@kernel.org>,
+	Damien Le Moal <dlemoal@kernel.org>,
+	Naohiro Aota <naohiro.aota@wdc.com>,
+	Johannes Thumshirn <jth@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	"Liam R . Howlett" <Liam.Howlett@oracle.com>,
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Zi Yan <ziy@nvidia.com>, Nico Pache <npache@redhat.com>,
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>,
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+	David Howells <dhowells@redhat.com>,
+	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
+	"Serge E . Hallyn" <serge@hallyn.com>,
+	Yury Norov <yury.norov@gmail.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+	linux-fsdevel@vger.kernel.org, linux-aio@kvack.org,
+	linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+	linux-mm@kvack.org, ntfs3@lists.linux.dev, devel@lists.orangefs.org,
+	linux-xfs@vger.kernel.org, keyrings@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH v2 00/13] mm: add bitmap VMA flag helpers and convert all
+ mmap_prepare to use them
+Message-ID: <aXjDaN4pwEyyBy-I@yury>
+References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+X-ClientProxiedBy: BN0PR10CA0003.namprd10.prod.outlook.com
+ (2603:10b6:408:143::35) To PH0PR12MB8800.namprd12.prod.outlook.com
+ (2603:10b6:510:26f::12)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -89,282 +131,232 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6PR12MB4202:EE_|SN7PR12MB8771:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4a72509c-01c4-4a93-381d-08de5d9df29e
+X-MS-TrafficTypeDiagnostic: PH0PR12MB8800:EE_|PH8PR12MB6698:EE_
+X-MS-Office365-Filtering-Correlation-Id: 54efb381-a22a-4dcb-5551-08de5dab7da7
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|7416014|376014|7053199007;
+	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|10070799003;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?ZDJ4YTc2eTR4Rnc5bmkyYUc0RTBReDkxNmxPNTBCQUUzQjk3TDNteGd1anVa?=
- =?utf-8?B?a0xML2NFcEtWa1lLMEZZaGk1ODY0eUZKNnAyUk10R1NxdUNiRE95a2dLNW85?=
- =?utf-8?B?UWJGV0VtVnJjWGtQbE14b29iWVBmbVdicHZqZ0x2YndmcURueE4wYjJtRElD?=
- =?utf-8?B?S3lrZ2hESkVjdjlSSjNiY1ZNazl3UmF3NU5pMnM5OVRxSFBkdFRyR0EzU2tj?=
- =?utf-8?B?ZWVFUnQvNzZhbmpWaDJyamIwa2R1cHY0eTNKYWwyUWhzR0pOUmFsbENHR2FQ?=
- =?utf-8?B?cmxUeng4Sk9SVDNFTnE5N2dkSmZvcVhwWHFXdmFPL3Rza3Y0VDltMVNlK2pF?=
- =?utf-8?B?OW91SExmNnBjdkY1YVhKaXdkakZPN204Nm5wMDBEeE9FVGc3S3F4TEE2Y0oy?=
- =?utf-8?B?SmU0Q09BQkxPTGpoUlRLbHg3dzYxM3ZQZjUrekVmMFNXU29SSWRCV3BsbUo3?=
- =?utf-8?B?Vm8rL0dGeHhzVVQydWFkYmJqTG1VTzdzc2ViaXB0UVB2cy92RVlPR2p1YXNt?=
- =?utf-8?B?YmJPaytFdGtiNWkwUU9LaUwyUDZIZUVFVXZqd2RBQm9XWjFPcG9EOE95KytJ?=
- =?utf-8?B?UHhlU0VPNmlSV3R4aTE3UUdBa0xjZld0anNTaEtqc2g3OVdJdGF6VlBjRDI3?=
- =?utf-8?B?eWdlTnNpTmh2OFFYcWRwem13LzVTTXZuSHBpcTdjL3B3eVhURWhuUWNheEZj?=
- =?utf-8?B?K29jUldWWlhYN2VJcTgwRlJiSEtHN21hSE5IckJWQTFHS3p0VUZ0N05yaWZZ?=
- =?utf-8?B?UWtMdlB6UWJsYjZFUUV1SjRkMFFQeVVya2xkNkxLVk1tSE5IOWpkQTRqOWkv?=
- =?utf-8?B?TDhKTHhDNUt2TE5mcGZFR1FyVzdOZGE0eGdtYkhBd3AyenRaT2o5RzQ4MTli?=
- =?utf-8?B?WXF0cDErU2cvNGpQT01HWGhSajZRK25EZkFRbWRGN2p0SGp2NlVNbzdrZGc5?=
- =?utf-8?B?ZFdQSzZQSVh6UmI0RGUwSGgxbERvTTZqOHNES0ZCZ3hDb245alR3a2Zoc0FW?=
- =?utf-8?B?TUhCNGxjMFgzZS9Sc0o4dFNzdzN0NjNaVjE1eFVoanpDRHVMa2ZFWi9pY0Q5?=
- =?utf-8?B?N1BzdkphUlZpZFNXcEprUGRySmFib2xtaCtkeFhPSEpuWDRvNy9TTVZoYVZO?=
- =?utf-8?B?RU1FeXFRSndDODhxSEhGc3pOODJFcURhN1QyRmROd1N4WjdGaGYvK3VoZGxU?=
- =?utf-8?B?RXZQaVhsRlJITWNHaThSVDFCaFo2MmF1QU9GcTh5RzNtN1JRc3VmK0N3MmlP?=
- =?utf-8?B?SEZJOXErMVpvc0ZMdUtwbitLaFdSenFCM29RZ3FSdi83bnhHVHlQMGd3Skkx?=
- =?utf-8?B?NGVLQS9TazZyMmFNVmhiQ0N2WVhwRzQyM0FnaGd1NWpqSDYrdFhWSlo5SjRi?=
- =?utf-8?B?Q01md3V4SVg2eVBraC8wZmRRV3VBYjJOUWlTWUJieE9YVWlFRXhTVitGUFp6?=
- =?utf-8?B?bTVicUlIQ201emdWRDdGZU80eHJkbmwxK3Z4Y2IwZ0tSeU1PQmNpL1VtaU1Z?=
- =?utf-8?B?T3RLNTVJV2pkMGVyZ0drZTRWTmNKRVlhc0dWbnlrYmYyL3pkc1gvd3B2SjdR?=
- =?utf-8?B?VHZRTk8rV0wzaWZaQ1VHNVk2RWg1RTFxNHNwcUtzUWRNOEN0TmhZTkVadkU5?=
- =?utf-8?B?TXBLYTZBSUtRclZjakZVMkN1M216bjdTQUQzb25rMVJJWHRqdHBZbUtDUTNH?=
- =?utf-8?B?endlbk5saDcrR1I0Um1hMHZ3TDVwdkpQaENXakNuQVp6SGtDRGFDQXEvUUFM?=
- =?utf-8?B?RUxiZVVLTm9IUm0wTldPWWVVMlVoT00xZ0diNDNvbnh5NEh1NUUwRGFMQ3hK?=
- =?utf-8?B?cm9wOXhhaUpRcmZKc1czeHI4dVlZcXJLWWl4NUpoaitta212azI5WDNaME02?=
- =?utf-8?B?QTZBSUdudHhNbklHeklVLzlsekhwTkZod25YNWRHY0FWQmNETDY0dmRRZVN1?=
- =?utf-8?B?Y0VXVmUvSGVQZjIyRkl5aWE2d0VGbTExQW1Ha2dPNzB5eVVEUVRya2VSMmY4?=
- =?utf-8?B?eGhZN0g2WUw1c0RDMlM5a1NZWXExNDYyNHYrTE45SlpoZkozWHZEOWtnMmR6?=
- =?utf-8?Q?2J5YLk?=
+	=?us-ascii?Q?K1Z3sdgypy98NySAh7VUz1YFlwyjsRQpJrTrqge9OT4LxBhFw1ZHWhwA0kn1?=
+ =?us-ascii?Q?EdWdIv9zU1js6p6Pp2iGl4JWRZcrxuwSPLiz1pysjXk0XhR8x6+ODtUcNvUO?=
+ =?us-ascii?Q?QYqkeVk5EuibIcjCueohuHzciywhjCpUuSLFtSiAQth0S2QFfqLVk8epQxlB?=
+ =?us-ascii?Q?P+uNJBRyQKfuPsrOlAnC1mJQKgyWEcbL1omRs9OmRxPB/empTErC2+XMQjf9?=
+ =?us-ascii?Q?viZpoyBhoh8SYLsH39TVxkZ1dlA/8uKvCH3lH96OkFkpnucXxvgfrDrGK93p?=
+ =?us-ascii?Q?QoVbm9hoD3zO0s+FPgcMi2vyeFYoIQL6TepBk2fW45ghkNYjJvm03IZyZd+U?=
+ =?us-ascii?Q?hsaTkus/O2xO5rstKBjQ/VG9fJMPS48nLM8xbitOB2JT3XGUcVIb1Ov48zqN?=
+ =?us-ascii?Q?+YiX9vKbWRibPsF7ypn6cCDkRK+i4PvZWQ9XO0Pk6KqE4rlgiC5XjPWu4TMI?=
+ =?us-ascii?Q?QlkQs4+9PBRMJNhTtpdcLchatsugmyu1I+a5QDijQ/BeO6Xcpx95K8vbTNdL?=
+ =?us-ascii?Q?EUg123AXJNKh/swYOE87Yk06VOX+cUI07BZXOo41ZYXGB9fwQ9Yz8mRheoGW?=
+ =?us-ascii?Q?YLThRouxAjfTrOFJnwYOQu4myR6liFhUEjsBUrCZxp9rbbyDfSb++LNoNeu+?=
+ =?us-ascii?Q?7SA48RlXXBP3ZaGQr1/xYMdob/lyY1k5K7IQOM36vvi4QJpYsm8ZYuZsyXfR?=
+ =?us-ascii?Q?RWF5CyQ5QFHheivpot7YAX5p/FbqiCuTxJU2e/1apVu/c2BwaU7qHds+2GV2?=
+ =?us-ascii?Q?E8Fg4AAre46CRr0YBycL1GnSMfBtakl59DhxM3ObThuJbSqg/NjOUN7uAF9E?=
+ =?us-ascii?Q?2rQnTqF1/Y7h+GhiA20369Mv++0epzdq2y5yF0P9rO9ORWuC/bgSSInm3a5E?=
+ =?us-ascii?Q?aKv5AEgVySzB4jdHnHDmojAoGKQ2FwFM46k5tvEwXRvQNVQNmc7/J7aqbUrT?=
+ =?us-ascii?Q?QBlEr52LXZPjpvUEy7F4rKhqI8fKIa85f2FjYqL31TKyy2Y0l5lKbJGdW+rO?=
+ =?us-ascii?Q?qxMfeLzb6RRN2WA+2JiD/XqQCL+plCFdhn815t/N78+bhkY5qnLaOa5/4ItZ?=
+ =?us-ascii?Q?IjNbQQKguRED7KlFOpVfiYz1Frk47rernMsI3jrLIHqIl4ZXecypKlR5vmXD?=
+ =?us-ascii?Q?ey+2Ru3PPYbxN0KMY7p7KDJQTxFZ03FSG8yluYGtyhDFowL1rl+Bl0RtHS3u?=
+ =?us-ascii?Q?KG7zi+/txZ+JtWsnhOP56mLkt3lY2wLTYQu9ER5jn/9cimUIxjBzIQ7t0ua8?=
+ =?us-ascii?Q?SvUpyozlDeNlSjlKH1u1jp3s/y7iu96fMLEETvrIqAcDUEXuU5MAa695DUU6?=
+ =?us-ascii?Q?w80zgF0Mm8PHW2ScKrgKVY1lJ3N+Kx7W4RUjOjGRxPtKMuS/IBIH07tk0kg9?=
+ =?us-ascii?Q?AwJcx1VEtkd5T4HiypcslGYET99M32oON/n09O0XH/5+5k/CQvuCme7IsvHV?=
+ =?us-ascii?Q?7QfLpwHxYRGXqMK+P+f9pulFKt7Km3ymMz7kQu9M5Jz0FUGFOGy/JSwToDPg?=
+ =?us-ascii?Q?53OQPSw6aYdIrsciIVNmuYaUlVaoW9nOQ8OS72obrDfIyPcpQ7E6Nb57R+4B?=
+ =?us-ascii?Q?H016jP3M7mGMnVfDajw=3D?=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB4202.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(7053199007);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR12MB8800.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(10070799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?VFBqVXcyU3cvZWFUS00xQWJoWDJld0hjZVZFMXRDdUVteERQdVNPZmk5Mnh0?=
- =?utf-8?B?SGJoa1ZsbHVVNDQ1WDhGd0U4TVdpM3hBL2JGYW5xYWk2QkpQSXIzV245YU13?=
- =?utf-8?B?amZlenpVanNiYlBhdGliZTRiUy8wNEFtRWJhaklvQlEzVkFXWFZ4TW1KRnNJ?=
- =?utf-8?B?QVV2TEJPMHdpOHJ3c3pwVUJxbm9KZlhVUk1hZmw1RnIvbE9JZHB2QWc4Zk9R?=
- =?utf-8?B?OU5haFA1VzhzRkNwWmdYQ1NJT0haUmtYd2h3T3ZUTnNOZ0ZUSnRqZUI4L2Yr?=
- =?utf-8?B?eU1jZHNRVzFSZmYveDc0WHFVQ08xMGVxQytmR1N3UmVBbDA5M2QrYXlUc3NX?=
- =?utf-8?B?UjVaS1V1cVdjTThma0htZ0UwKzJTNDh1S2NKeitiWC9ldkNES0dHNXZVWUgw?=
- =?utf-8?B?RHNhaGxic09WZENkMVFPdHlsWGs3citYaVZseXV3WFBRTFRXVnlzRVNPeS9q?=
- =?utf-8?B?ZklJTzQ4NU9HNGtkTjBDWGd6TU5abVRJYlZaQW5Cc2Vvd0hBZS9IcjJDK3R1?=
- =?utf-8?B?TFJ0ZjF5YnhKRDJVd0VlajVXNXE3QjFaSXVtUXlrK1l5UnJJdXgwZ3BCNjY1?=
- =?utf-8?B?Q0plVWZTY0R0K3VUTENEbTU0MkRZSCtSZmdnZXllZSt2OFFjeXI4SHJNZFor?=
- =?utf-8?B?dDlocmlRcUlKN2M4SktoRC9TSEtiRVdndEo3ci9yMG1VRTRIcHNuMVJGZHM1?=
- =?utf-8?B?a2hucGhOaDl3a3JaREhjdXhYd1BrQ2VTMjRwTmd0cGUzNHozeWE5eGd1YTlI?=
- =?utf-8?B?R0ZGbzUvd2Q3Ulk1TFhiOXAvS0F0aTZsbVU2TjUzcHJveTdCanl4L1ZEenJr?=
- =?utf-8?B?SlNMZHU5RTdlZGo5VVk0aHFwVGRtVlR0MzUrNVNub1UzdkFtcVJWZ2V4WEk5?=
- =?utf-8?B?eDJlMlViS0lkak5keVBPOVBDQ3N1aEpQdktySzNpeHR0UjhQWjlKbzgvUXJW?=
- =?utf-8?B?dUZDQW5mam1NczhSU002Z0RCL0tJMHlFUTg1aFBWc0JMUUJYN3JUcTdtUnNE?=
- =?utf-8?B?OE13RnBNR2JMbnd5eG1EOUhSOWtxZzN6SGJvNXM5emlIb2Y3NjBnK0JnVm5w?=
- =?utf-8?B?algrQU5hNkJjNUYyWXhiTWpqWSs2QTh4MzVablRaN2tDWjZGQkZUeS9MbVJN?=
- =?utf-8?B?SzBROUthUmZEL0ZPdlcwMFlGdXBuRVJjdlhoZUZTYWVNK0VrVHY3N25hWFRI?=
- =?utf-8?B?ZDBhclo5TGxWRG9OMDJvSGhTU28vaVBKbXpZRGtIeStHUDdFcmdWUlEyeW1r?=
- =?utf-8?B?eE41WVFnNHVXM1U2RkZsOGRQOWxKQW1KaUtXY3crQXJGS21XUXF4WURnQ2Iz?=
- =?utf-8?B?dzZIeDdScDhKcXdUcmtUWnJHZ3Nsc1pmVkpnazF3N1ZvcEVKZmhUNzZGdmhz?=
- =?utf-8?B?Y2pubGRjQ2FNdGozWkFRa29oR1doSEhMYXgzU20rZ1c3N0VMQUgwV0JFU1Vk?=
- =?utf-8?B?NEU5UHFOV1l3TXhGOWpiRklJRnZNWjhGRmk1eWEwZ0ZXZ3NoU21OSERUUkNO?=
- =?utf-8?B?Nm9hOTVsYW8wblhSb3VxYkxMSzAzK01tZmxQMXRjc2pEMkxBZWxKVzdLbXRX?=
- =?utf-8?B?aEdiNElMTHVIN0w1V0drOEgrNGM5RDJHS3RaWmFpQ2NVWE1OUWNyN1hlMmgz?=
- =?utf-8?B?S3ZpbzFIUzVvYUptUThjaTY1Rk5kaDMxUDYrZTJDak5nejQwanUyUnNVeHZJ?=
- =?utf-8?B?cnptcmNCcjlHWVVpU0RVMjE0cE11dW5tRGpjalE5WWZ1c0MzWE45VVpWZzhP?=
- =?utf-8?B?MUduZG03bHZqY1p3SG9CMXpkbWRTb2VsZURvTUxVZjJRd3Ntcmc4VytsbEly?=
- =?utf-8?B?MWVQK0QyMldkQUNab0dVQzNNNUZPR2liaFUzdWlOejlkWFV0b2x3Ym0xTERp?=
- =?utf-8?B?cFhsWVpZWjlTcGpuVDRIM3YwT3JjZ1VVRmprRzUzWVBrYVVIZnA2SEVEQkI2?=
- =?utf-8?B?MjVuYk90L3d2WFh6dW1kK0E5QkZHZEVZS3lQUDJjYmVaYXFuOW1uV2J0aTB0?=
- =?utf-8?B?S1ZwN21hNnUvOW4xYlFIME1qUVJURGpUNDM1azlpbVBYN1F4VUJHcDRQQ0lZ?=
- =?utf-8?B?dzZTai82OCt6bVNGeWtCMEdNTHVNaHlMSlQvYnZkNnVRWlNlMTcyOElpM1Vm?=
- =?utf-8?B?TEFoTEhYK1JLRHprd2xGTXpMcDZkYXhKMHVwa2dvbm1ZWG1UZC9qUlVUcVV1?=
- =?utf-8?B?aW9FK3lqb0VPdHB3bzBJbFpPWGRtUkg4Z1N1RUZ0dGpZUEM1dzFod0ZuQTIx?=
- =?utf-8?B?VUVRa0oxL2psdUk2QlF6djNQRndtRS9HV2ZFOHpHSFdRVDVDV3poZ1FDZWF2?=
- =?utf-8?B?UHAyYlNiMGNHcnlGUHFxMzMzUk1DZTlFWVFkbEJnTGx6TjVqWk80UT09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4a72509c-01c4-4a93-381d-08de5d9df29e
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB4202.namprd12.prod.outlook.com
+	=?us-ascii?Q?o9+6Fz9IQu1u9yFAziFzK3yyroCvzjZUZ91LbxNzlY9aItC4HbHrRA5L/GrL?=
+ =?us-ascii?Q?eBXzf1q15dhNY6aIaeaYq9K1lMkNk4RcSeyDF6C00Z/SSGsMQJlsK6UklzzB?=
+ =?us-ascii?Q?r8FwlqMBcIpKe7YOQ4sF40N3QhOmQRcBo/ayDPJDZwSZL4ZoPSV1Ah4MS9oc?=
+ =?us-ascii?Q?7itM1LSW0lYVeCH/wguHMJu0l3Xf3NDGkY33I4MknGd4Iwod6QzON971rSZQ?=
+ =?us-ascii?Q?aY8p4Bd63rhKwZbOCfEy1spWInuJyRpdNyArgd8lWZ3KzmcXwkwnABQc4Iiw?=
+ =?us-ascii?Q?SaLXhoFwMfJre7B2oOfgtwxbgOnhYeOr/c7oXIJhgbTJK9idx+eEJkmY5F9O?=
+ =?us-ascii?Q?ikuQe6OAvIwQt5A/gdFePo4rEHXbjI4yRCeSSJNVOfSotsYm6/8wjKon3kso?=
+ =?us-ascii?Q?5wdnldELIATp//HBQhwEM+21WESDrUUgREr+xoTRFPn1eDRzyFn/eoEA4+xF?=
+ =?us-ascii?Q?ZveILnVv2YYlB6yqZw6EqM60+VdrhFfEqKWcdUaaoo0gN+KRnkKjAueqBb5l?=
+ =?us-ascii?Q?g9qQhqoAPj9lF9XmhuJJgdUdoRpzMT1JK4Qc1YeiaHo6dgkye1kTsiOPjtEx?=
+ =?us-ascii?Q?KAuJj1iBPcO1PIdYVSKD8SeWs1mDfDmP5GsoWrjaHY2HO6YdgwrVqKFIyzbt?=
+ =?us-ascii?Q?TXrZpvYLzeFlD/tzOlb9B6US/3n3S5hLtkKTWa1b0zV9vV/f/T66eJq8+10Y?=
+ =?us-ascii?Q?/9vjrgu4GmmVul9BW/m8/vC3UD1azefKU4zkHb3tUjp3y73/cbxSjNIFtufz?=
+ =?us-ascii?Q?+nPo8O2PsJ/aXLlkURmNljGfhUL3Ko9T3Q/+By8RcwLat2a/NgbV3BgsCRI/?=
+ =?us-ascii?Q?f5uSBvN7zeMROhDy6Sc92KUfk7rR4GFvFxGXAAs277jXTLPtlss3kJFyZlvK?=
+ =?us-ascii?Q?MahHhH51uz/MEm2hMcpzhfwwtfd+aPcOVItP25UdKBkTP4FBoumS+aGt7Umy?=
+ =?us-ascii?Q?INFGi8JQgYTfEfQnLRQDFH07YEtMMUeqNyjsh0+W5UPWH9ygIHMRHogCCKTv?=
+ =?us-ascii?Q?Ws8i06glyPrB7CzfB9i4iAcnuFreOu8iRusgo3kpPTZrZK90c3odwlHhns6N?=
+ =?us-ascii?Q?vsR3fbHB8tGWmaTYtmPtgI/BMbaamPCAynCGFhzbxzNVt8tAzIt36f1zgvr/?=
+ =?us-ascii?Q?5VjnybLjtoX4bFBDU5uKqyl8BnQzgUWN/UMDqZYEuJY+5XLlKyr7qFEhWzoy?=
+ =?us-ascii?Q?/opH+kNjzMN/pZ9Q1VAcp7+mR6Xoe4GulNm2ID47CbWhe54WDqdgRuJ01xY5?=
+ =?us-ascii?Q?aS7S7MtoMWYzlJfodvUofJjmweshr+HPFB2yJ26YwIAWiE58VnQ6XHo8pumL?=
+ =?us-ascii?Q?Pm1AQQsp76yYfYitM6mpAV1Q5ou/2OfzzmHPLNXcWC/xX4SiGqvjt4VVeYWg?=
+ =?us-ascii?Q?SgL8Tg/u55/hoajnKbRBWURVhmUY1JEO+DlC9TyE7U4qSLlQxKXHW6Hf5+KO?=
+ =?us-ascii?Q?DaFSptzO9A0utOKzeCXepfigOp985wD1jjKV3hJf6Jo4zQ947nn2WzTzitqI?=
+ =?us-ascii?Q?X9iQ2F/ykOC4YSTExqY2YrCQwz8K8NylmwA6WnUBLI5YteIJKxSLlB3SZVm5?=
+ =?us-ascii?Q?tje/gLefKg+VWoqsqXqQdelfw+WHwhUNyXavSNzq/CGd7oMDuN3XQogbljzQ?=
+ =?us-ascii?Q?0XB56sMEwv1NTGayQGu9ibQNXfmQtYLoyds8T9dXzpkTk54Ruhu77zFydOZZ?=
+ =?us-ascii?Q?cj+/e8NwwBpAo0oXEFd2P8xArwe3MDGMsymtbVNFkHbBCBCYiVxkiCudGzmT?=
+ =?us-ascii?Q?UbtUphY1zlA1geR8FyDDB2YyadDjTxZl8qRF2nrqPmv/ueujTMlz?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 54efb381-a22a-4dcb-5551-08de5dab7da7
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR12MB8800.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Jan 2026 12:16:49.7480
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Jan 2026 13:53:46.7166
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: mIX34zaatQqwgXIeVzsdzNjQxDB0i/r/2nqQJvpIg8jNzrlt2CU9aBclxCI1ZjwExGmy+MolMyoyluccDgVyDQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB8771
+X-MS-Exchange-CrossTenant-UserPrincipalName: 7NnDDl3DNBs283dtEngBrphLoIRRxNKNUyR7drzZ0Sm+AZ0f3G/bwfnAnW+UP+fBRdsrWGUZY2LUBFZmPZqp6A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB6698
 
+On Thu, Jan 22, 2026 at 04:06:09PM +0000, Lorenzo Stoakes wrote:
+> We introduced the bitmap VMA type vma_flags_t in the aptly named commit
+> 9ea35a25d51b ("mm: introduce VMA flags bitmap type") in order to permit
+> future growth in VMA flags and to prevent the asinine requirement that VMA
+> flags be available to 64-bit kernels only if they happened to use a bit
+> number about 32-bits.
+> 
+> This is a long-term project as there are very many users of VMA flags
+> within the kernel that need to be updated in order to utilise this new
+> type.
+> 
+> In order to further this aim, this series adds a number of helper functions
+> to enable ordinary interactions with VMA flags - that is testing, setting
+> and clearing them.
+> 
+> In order to make working with VMA bit numbers less cumbersome this series
+> introduces the mk_vma_flags() helper macro which generates a vma_flags_t
+> from a variadic parameter list, e.g.:
+> 
+> 	vma_flags_t flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
+> 					 VMA_EXEC_BIT);
 
-On 1/26/26 23:53, dan.j.williams@intel.com wrote:
-> [responding to the questions raised here before reviewing the patch...]
->
-> Koralahalli Channabasappa, Smita wrote:
->> Hi Alejandro,
->>
->> On 1/23/2026 3:59 AM, Alejandro Lucero Palau wrote:
->>> On 1/22/26 04:55, Smita Koralahalli wrote:
->>>> The current probe time ownership check for Soft Reserved memory based
->>>> solely on CXL window intersection is insufficient. dax_hmem probing is
->>>> not
->>>> always guaranteed to run after CXL enumeration and region assembly, which
->>>> can lead to incorrect ownership decisions before the CXL stack has
->>>> finished publishing windows and assembling committed regions.
->>>>
->>>> Introduce deferred ownership handling for Soft Reserved ranges that
->>>> intersect CXL windows at probe time by scheduling deferred work from
->>>> dax_hmem and waiting for the CXL stack to complete enumeration and region
->>>> assembly before deciding ownership.
->>>>
->>>> Evaluate ownership of Soft Reserved ranges based on CXL region
->>>> containment.
->>>>
->>>>      - If all Soft Reserved ranges are fully contained within committed
->>>> CXL
->>>>        regions, DROP handling Soft Reserved ranges from dax_hmem and allow
->>>>        dax_cxl to bind.
->>>>
->>>>      - If any Soft Reserved range is not fully claimed by committed CXL
->>>>        region, tear down all CXL regions and REGISTER the Soft Reserved
->>>>        ranges with dax_hmem instead.
->>>
->>> I was not sure if I was understanding this properly, but after looking
->>> at the code I think I do ... but then I do not understand the reason
->>> behind. If I'm right, there could be two devices and therefore different
->>> soft reserved ranges, with one getting an automatic cxl region for all
->>> the range and the other without that, and the outcome would be the first
->>> one getting its region removed and added to hmem. Maybe I'm missing
->>> something obvious but, why? If there is a good reason, I think it should
->>> be documented in the commit and somewhere else.
->> Yeah, if I understood Dan correctly, that's exactly the intended behavior.
->>
->> I'm trying to restate the "why" behind this based on Dan's earlier
->> guidance. Please correct me if I'm misrepresenting it Dan.
->>
->> The policy is meant to be coarse: If all SR ranges that intersect CXL
->> windows are fully contained by committed CXL regions, then we have high
->> confidence that the platform descriptions line up and CXL owns the memory.
->>
->> If any SR range that intersects a CXL window is not fully covered by
->> committed regions then we treat that as unexpected platform shenanigans.
->> In that situation the intent is to give up on CXL entirely for those SR
->> ranges because partial ownership becomes ambiguous.
->>
->> This is why the fallback is global and not per range. The goal is to
->> leave no room for mixed some SR to CXL, some SR to HMEM configurations.
->> Any mismatch should push the platform issue back to the vendor to fix
->> the description (ideally preserving the simplifying assumption of a 1:1
->> correlation between CXL Regions and SR).
->>
->> Thanks for pointing this out. I will update the why in the next revision.
-> You have it right. This is mostly a policy to save debug sanity and
-> share the compatibility pain. You either always get everything the BIOS
-> put into the memory map, or you get the fully enlightened CXL world.
->
-> When accelerator memory enters the mix it does require an opt-in/out of
-> this scheme. Either the device completely opts out of this HMEM fallback
-> mechanism by marking the memory as Reserved (the dominant preference),
-> or it arranges for CXL accelerator drivers to be present at boot if they
-> want to interoperate with this fallback. Some folks want the fallback:
-> https://lpc.events/event/19/contributions/2064/
+This should go on the bitmaps level. There's at least one another
+possible client for this function - mm_flags_t. Maybe another generic
+header bitmap_flags.h?
 
+> It turns out that the compiler optimises this very well to the point that
+> this is just as efficient as using VM_xxx pre-computed bitmap values.
 
-I will take a look at this presentation, but I think there could be 
-another option where accelerators information is obtained during pci 
-enumeration by the kernel and using this information by this 
-functionality skipping those ranges allocated to them. Forcing them to 
-be compiled with the kernel would go against what distributions 
-currently and widely do with initramfs. Not sure if some current "early" 
-stubs could be used for this though but the information needs to be 
-recollected before this code does the checks.
+It turns out, it's not a compiler - it's people writing code well. :)
+Can you please mention the test_bitmap_const_eval() here and also
+discuss configurations that break compile-time evaluation, like
+KASAN+GCOV?
 
+> This series then introduces the following functions:
+> 
+> 	bool vma_flags_test_mask(vma_flags_t flags, vma_flags_t to_test);
+> 	bool vma_flags_test_all_mask(vma_flags_t flags, vma_flags_t to_test);
+> 	void vma_flags_set_mask(vma_flags_t *flags, vma_flags_t to_set);
+> 	void vma_flags_clear_mask(vma_flags_t *flags, vma_flags_t to_clear);
+> 
+> Providing means of testing any flag, testing all flags, setting, and clearing a
+> specific vma_flags_t mask.
+> 
+> For convenience, helper macros are provided - vma_flags_test(),
+> vma_flags_set() and vma_flags_clear(), each of which utilise mk_vma_flags()
+> to make these operations easier, as well as an EMPTY_VMA_FLAGS macro to
+> make initialisation of an empty vma_flags_t value easier, e.g.:
+> 
+> 	vma_flags_t flags = EMPTY_VMA_FLAGS;
+> 
+> 	vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
+> 	...
+> 	if (vma_flags_test(flags, VMA_READ_BIT)) {
+> 		...
+> 	}
+> 	...
+> 	if (vma_flags_test_all_mask(flags, VMA_REMAP_FLAGS)) {
+> 		...
+> 	}
+> 	...
+> 	vma_flags_clear(&flags, VMA_READ_BIT);
+> 
+> Since callers are often dealing with a vm_area_struct (VMA) or vm_area_desc
+> (VMA descriptor as used in .mmap_prepare) object, this series further
+> provides helpers for these - firstly vma_set_flags_mask() and vma_set_flags() for a
+> VMA:
+> 
+> 	vma_flags_t flags = EMPTY_VMA_FLAGS:
+> 
+> 	vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
+> 	...
+> 	vma_set_flags_mask(&vma, flags);
+> 	...
+> 	vma_set_flags(&vma, VMA_DONTDUMP_BIT);
 
->>> I have also problems understanding the concurrency when handling the
->>> global dax_cxl_mode variable. It is modified inside process_defer_work()
->>> which I think can have different instances for different devices
->>> executed concurrently in different cores/workers (the system_wq used is
->>> not ordered). If I'm right race conditions are likely.
-> It only works as a single queue of regions. One sync point to say "all
-> collected regions are routed into the dax_hmem or dax_cxl bucket".
+Having both vma_set_flags() and vma_flags_set() looks confusing...
 
+> Note that these do NOT ensure appropriate locks are taken and assume the
+> callers takes care of this.
+> 
+> For VMA descriptors this series adds vma_desc_[test, set,
+> clear]_flags_mask() and vma_desc_[test, set, clear]_flags() for a VMA
+> descriptor, e.g.:
+> 
+> 	static int foo_mmap_prepare(struct vm_area_desc *desc)
+> 	{
+> 		...
+> 		vma_desc_set_flags(desc, VMA_SEQ_READ_BIT);
+> 		vma_desc_clear_flags(desc, VMA_RAND_READ_BIT);
+> 		...
+> 		if (vma_desc_test_flags(desc, VMA_SHARED_BIT) {
+> 			...
+> 		}
+> 		...
+> 	}
+> 
+> With these helpers introduced, this series then updates all mmap_prepare
+> users to make use of the vma_flags_t vm_area_desc->vma_flags field rather
+> than the legacy vm_flags_t vm_area_desc->vm_flags field.
+> 
+> In order to do so, several other related functions need to be updated, with
+> separate patches for larger changes in hugetlbfs, secretmem and shmem
+> before finally removing vm_area_desc->vm_flags altogether.
+> 
+> This lays the foundations for future elimination of vm_flags_t and
+> associated defines and functionality altogether in the long run, and
+> elimination of the use of vm_flags_t in f_op->mmap() hooks in the near term
+> as mmap_prepare replaces these.
+> 
+> There is a useful synergy between the VMA flags and mmap_prepare work here
+> as with this change in place, converting f_op->mmap() to f_op->mmap_prepare
+> naturally also converts use of vm_flags_t to vma_flags_t in all drivers
+> which declare mmap handlers.
+> 
+> This accounts for the majority of the users of the legacy vm_flags_*()
+> helpers and thus a large number of drivers which need to interact with VMA
+> flags in general.
+> 
+> This series also updates the userland VMA tests to account for the change,
+> and adds unit tests for these helper functions to assert that they behave
+> as expected.
+> 
+> In order to faciliate this change in a sensible way, the series also
+> separates out the VMA unit tests into - code that is duplicated from the
+> kernel that should be kept in sync, code that is customised for test
+> purposes and code that is stubbed out.
+> 
+> We also separate out the VMA userland tests into separate files to make it
+> easier to manage and to provide a sensible baseline for adding the userland
+> tests for these helpers.
+> 
+> 
+> REVIEWS NOTE: I rebased this on
+> https://lore.kernel.org/linux-mm/cover.1769086312.git.lorenzo.stoakes@oracle.com/
+> in order to make life easier with conflict resolutions.
 
-That is how I think it should work, handling all the soft reserved 
-ranges vs regions by one code execution. But that is not the case. More 
-later.
+Before I deep into implementation details, can you share more background?
 
+It seems you're implementing an arbitrary-length flags for VMAs, but the
+length that you actually set is unconditionally 64. So why just not use
+u64 for this?
 
->> Yeah, this is something I spent sometime thinking on. My rationale
->> behind not having it and where I'm still unsure:
->>
->> My assumption was that after wait_for_device_probe(), CXL topology
->> discovery and region commit are complete and stable.
-> ...or more specifically, any CXL region discovery after that point is a
-> typical runtime dynamic discovery event that is not subject to any
-> deferral.
->
->> And each deferred worker should observe the same CXL state and
->> therefore compute the same final policy (either DROP or REGISTER).
-> The expectation is one queue, one event that takes the rwsem and
-> dispositions all present regions relative to initial soft-reserve memory
-> map.
->
->> Also, I was assuming that even if multiple process_defer_work()
->> instances run, the operations they perform are effectively safe to
->> repeat.. though I'm not sure on this.
-> I think something is wrong if the workqueue runs more than once. It is
-> just a place to wait for initial device probe to complete and then fixup
-> all the regions (allow dax_region registration to proceed) that were
-> waiting for that.
->
->> cxl_region_teardown_all(): this ultimately triggers the
->> devm_release_action(... unregister_region ...) path. My expectation was
->> that these devm actions are single shot per device lifecycle, so
->> repeated teardown attempts should become noops.
-> Not noops, right? The definition of a devm_action is that they always
-> fire at device_del(). There is no facility to device_del() a device
-> twice.
->
->> cxl_region_teardown_all() ultimately leads to cxl_decoder_detach(),
->> which takes "cxl_rwsem.region". That should serialize decoder detach and
->> region teardown.
->>
->> bus_rescan_devices(&cxl_bus_type): I assumed repeated rescans during
->> boot are fine as the rescan path will simply rediscover already present
->> devices..
-> The rescan path likely needs some logic to give up on CXL region
-> autodiscovery for devices that failed their memmap compatibility check.
->
->> walk_hmem_resources(.., hmem_register_device): in the DROP case,I
->> thought running the walk multiple times is safe because devm managed
->> platform devices and memregion allocations should prevent duplicate
->> lifetime issues.
->>
->> So, even if multiple process_defer_work() instances execute
->> concurrently, the CXL operations involved in containment evaluation
->> (cxl_region_contains_soft_reserve()) and teardown are already guarded.
->>
->> But I'm still trying to understand if bus_rescan_devices(&cxl_bus_type)
->> is not safe when invoked concurrently?
-> It already races today between natural bus enumeration and the
-> cxl_bus_rescan() call from cxl_acpi. So it needs to be ok, it is
-> naturally synchronized by the region's device_lock and regions' rwsem.
->
->> Or is the primary issue that dax_cxl_mode is a global updated from one
->> context and read from others, and should be synchronized even if the
->> computed final value will always be the same?
-> There is only one global hmem_platform device, so only one potential
-> item in this workqueue.
+Even if you expect adding more flags, u128 would double your capacity,
+and people will still be able to use language-supported operation on
+the bits in flag. Which looks simpler to me...
 
-
-Well, I do not think so.
-
-
-hmem_init() in drivers/dax/device.c walks IORESOURCE_MEM looking for 
-IORES_DESC_SOFT_RESERVED descriptors and calling hmem_register_one for 
-each of them. That leads to create an hmem_platform platform device (no 
-typo, just emphasizing this is a platform device with name 
-hmem_platform) so there will be as many hmem_platform devices as 
-descriptors found.
-
-
-Then each hmem_platform probe() will create an hmem platform device, 
-where a work will be schedule passing this specific hmem platform device 
-as argument. So, each work will check for the specific ranges of its own 
-pdev and not all of them. The check can result in a different value 
-assigned to dax_cxl_mode leading to potential race conditions with 
-concurrent workers and also potentially leaving soft reserved ranges 
-without both, a dax or an hmem device.
-
-
-
+Thanks,
+Yury
