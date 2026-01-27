@@ -1,129 +1,68 @@
-Received: from out162-62-58-216.mail.qq.com (out162-62-58-216.mail.qq.com [162.62.58.216])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F220315D51
-	for <nvdimm@lists.linux.dev>; Tue, 27 Jan 2026 03:57:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.58.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60B991C862E
+	for <nvdimm@lists.linux.dev>; Tue, 27 Jan 2026 05:15:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486282; cv=none; b=LsnuDAwLV0xjROSnbpyf8atT2zdnsP7gQuLAT8qBjL8UZp8FY01yV7El6IKrejNTRZCDn2j6T768HoEZKSREe5cuhh4+t2z4H4N6sRGDV3ePHn++SymKJkbGLVVWZWYF+7dSHspWUo5lhMMUJBG0UyyTYTIvNtZQSIXWXQJKxYc=
+	t=1769490931; cv=none; b=uhx0+Bt6Qf9AerPRsOn3IJnCc5pjMwwqP+zpdwKjX+31p7GxKxnrYRzqp35f8mZER6Xfu3CWLubKS4unE73BavMx5SSlp8QiPh4vGoaVbSMMoG4bam2Vjq9pzDB/jbuGLCxLV4Ev7ZoT0tV/FjkP9wdnb+zu5t7O6V5109vZiv8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486282; c=relaxed/simple;
-	bh=0CVrdldLibnveozNK1ySoJ0Rk7T2iv8LqkYwp+cIrDc=;
-	h=From:To:Cc:Subject:Mime-Version:Content-Type:Date:Message-ID:
-	 References:In-Reply-To; b=ZdDneGOA6W4wNnx8sJ7rsK6CpGUP1XmyGyYpoz0UnBNIywkX6KTmVtaIAbY61lMDmCfdgvUQLjQbHJVRbjOQqFSGe4asd5D5UNiaVfmjfw21aoqz7Ulk+fb+6aQeF2BO/M2bs7tuFbXnTTLQflH+kaRudRhheLueVVd4vA2za/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=D5k2Pg2Y; arc=none smtp.client-ip=162.62.58.216
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="D5k2Pg2Y"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1769486268; bh=0CVrdldLibnveozNK1ySoJ0Rk7T2iv8LqkYwp+cIrDc=;
-	h=From:To:Cc:Subject:Date:References:In-Reply-To;
-	b=D5k2Pg2YlOCbKllyMQ4YDzLFuVP9Fz7IRbGnoMvFDmeQVj/3PAWumV2+DCyPpaG3J
-	 Cdlza2EemUsxAmQrsi8TPiGvGxHGy9cps6yX4H9Rio8rbN6fOP5fMKC8zg5qUf6qwA
-	 LAZ/gipJv1mvwnJ4aOeveFU5LR9fNDR7iYhi5D+I=
-X-QQ-XMRINFO: NyFYKkN4Ny6FXsP9mcN2OIpS18Tduz5s3g==
-X-QQ-XMAILINFO: OYPw5v5I6lYzqDw6uncbD0qme4crLJkB4OFZU81mZFRB1zgT68XN6J2BcODT/y
-	 ClyG1UE5wCpYFEs1TG5SweuzIjv2gflaI4bKaGSvfhiXIDtsLUPo3Al2Vm+gkqR/ueiy9U6ntqMlu
-	 695TGGjuxZcg8t1uRu0wvuEGYo4AEa0PvqGCGDEnvYJ7tDXVAVCTICHyrap91okmwKLbN4HImQgnT
-	 1koQnuZLpJw8R1nmsxEzUxg8IgtcZhuZX32tmTTiCK+V9d//FHTMdhjTS52xexaHo/1NHK4QSl+K2
-	 EUn4qNdyTJA3ICIQJBkiekMQJFW+6VU3DS0ZUzpnGEkd1HDYwIlgVw/rZTMrJo+/w+HiGYOMfr80i
-	 5trbpUdVbp6s2xJw0lN9PccpIAPT3zGScEbq/Z+wQmC0f9g3GzFf7Xpl30X1739YgsZi4XcLhBs5C
-	 +Z6LJB4wgn2UmfvMGr1e6C/A4j/SphByiOLWRcICIONBIua7Rp7V7J1PcXuHLm4b2n3ui0x4Kk3b9
-	 TnqXqMohJQgbz+KpoehisFyifHr36obPf4zqj7OuGRLKzPhX8aauPRQVsEw5dWmQHlAd5cVGfXY3j
-	 i5M4Xr0y2BeSXtjwkE9ZtLDiD3TZwq5aPmThrUyUKdoGlruD6RaQpONmclNG7aPfDC06OSUCb1BE6
-	 hNwmE2O8QWZXqBrl2KiJnDbk84Zaruy+vdUtnur5rpUV4vPKe8q784zbTSwXqCTC1Y+Umup2yX1y5
-	 MM2y1E/v/sp8D9qxV71ZvM1OTewfn3aqiBft2RuUjUPX4sW7u7HaNXhM/rIhnUgGJXRj2anmRp1Oe
-	 ALKKVPgx92fMcDd6WbNIgNOLYIBTr6HkMUnEJOzOfChlFRh9zDCcvtbvVhHhfTZLzJfpjisv18qYE
-	 QosxUE/iPv7rNLIR1xJ5Bq1G5dRbgoTFzBdyocpiSjxg6dlDQyBFeZAXfXM3Upr/2oEmN0LL9TtBa
-	 zytNWSpP9Ygeu2eL7dq+VhBR+PsedKd7AdL+Tbw+0K+26+gdrRlctxucdtf7YylnXQWYuvcottQZe
-	 zpw+A
-From: "=?utf-8?B?5L+e5pyd6Ziz?=" <2426767509@qq.com>
-To: "=?utf-8?B?SXJhIFdlaW55?=" <ira.weiny@intel.com>, "=?utf-8?B?ZGFuLmoud2lsbGlhbXM=?=" <dan.j.williams@intel.com>
-Cc: "=?utf-8?B?dmlzaGFsLmwudmVybWE=?=" <vishal.l.verma@intel.com>, "=?utf-8?B?ZGF2ZS5qaWFuZw==?=" <dave.jiang@intel.com>, "=?utf-8?B?aXJhLndlaW55?=" <ira.weiny@intel.com>, "=?utf-8?B?bnZkaW1t?=" <nvdimm@lists.linux.dev>, "=?utf-8?B?bGludXgta2VybmVs?=" <linux-kernel@vger.kernel.org>, "=?utf-8?B?Z3N6aGFp?=" <gszhai@bjtu.edu.cn>
-Subject: Re: [PATCH] nvdimm: Add check for devm_kmalloc() and fix NULLpointer dereference in nd_pfn_probe() and nd_dax_probe()
+	s=arc-20240116; t=1769490931; c=relaxed/simple;
+	bh=99BYu56z6D3LCwKbPFsn/k9SNWDkPoPd7iHuyxFdNnM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YDA4Z1CG5mwf0LzYL3gAoqdZz9alKRw+0eAPKEP/VOS5TptA15ICiXy+ryZKSqtzGPkRkNpEI5lOUgdHevy8ozkzTRwTo2QjZllPMpXwzSUyZ/kO56/58aArYUlJxgjn0q0v7yxu7SS7+5Iy/CzDOZbdZO8a7yetb/FiyDyqb2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id 5D908227AAE; Tue, 27 Jan 2026 06:15:28 +0100 (CET)
+Date: Tue, 27 Jan 2026 06:15:27 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Kanchan Joshi <joshi.k@samsung.com>
+Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
+	Christian Brauner <brauner@kernel.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Carlos Maiolino <cem@kernel.org>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Anuj Gupta <anuj20.g@samsung.com>, linux-block@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+	linux-xfs@vger.kernel.org
+Subject: Re: [PATCH 06/15] block: add fs_bio_integrity helpers
+Message-ID: <20260127051527.GA24364@lst.de>
+References: <20260121064339.206019-1-hch@lst.de> <CGME20260121064416epcas5p3aa66a19640d8d7411016e34a1fee0592@epcas5p3.samsung.com> <20260121064339.206019-7-hch@lst.de> <95af59e3-fe94-4d62-8931-5b8a9c7f8429@samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Date: Tue, 27 Jan 2026 11:57:47 +0800
-X-Priority: 3
-Message-ID: <tencent_B769DF0A53DCBEB75A15B1DF5124D6AEFB09@qq.com>
-X-QQ-MIME: TCMime 1.0 by Tencent
-X-Mailer: QQMail 2.x
-X-QQ-Mailer: QQMail 2.x
-References: <tencent_A06C2B14D0B5B3FEF2379914F5EF8AD61D07@qq.com>
-	<6977ce32695df_2c39100a7@iweiny-mobl.notmuch>
-In-Reply-To: <6977ce32695df_2c39100a7@iweiny-mobl.notmuch>
-X-QQ-mid: xmsezb18-0t1769486267ts8z2nzq5
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <95af59e3-fe94-4d62-8931-5b8a9c7f8429@samsung.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-SGkgSXJhLA0KDQpUaGFua3MgZm9yIHRoZSBkZXRhaWxlZCBleHBsYW5hdGlvbi4NCg0KSSBz
-ZWUgbm93IHRoYXQgbmRfcGZuX3ZhbGlkYXRlKCkgYWxyZWFkeSBoYW5kbGVzIHRoZSBOVUxM
-IHBmbl9zYiBjYXNlLCBhbmQgdGhlIGVycm9yIHBhdGggY29ycmVjdGx5IHJlbGVhc2VzIHRo
-ZSBkZXZpY2UuIFlvdSBhcmUgcmlnaHQgdGhhdCB0aGUgcGF0Y2ggaXMgdW5uZWNlc3Nhcnku
-DQoNCkkgd2lsbCBkcm9wIHRoaXMgcGF0Y2guIFRoYW5rcyBmb3IgeW91ciB0aW1lIHJldmll
-d2luZyBpdC4NCg0KQmVzdCByZWdhcmRzLA0KWmhhb3lhbmcNCg0KDQoNCuWOn+Wni+mCruS7
-tg0K5Y+R5Lu25Lq677yaSXJhIFdlaW55IDxpcmEud2VpbnlAaW50ZWwuY29tPg0K5Y+R5Lu2
-5pe26Ze077yaMjAyNuW5tDHmnIgyN+aXpSAwNDoyNw0K5pS25Lu25Lq677yaWmhhb3lhbmcg
-WXUgPDI0MjY3Njc1MDlAcXEuY29tPiwgZGFuLmoud2lsbGlhbXMgPGRhbi5qLndpbGxpYW1z
-QGludGVsLmNvbT4NCuaKhOmAge+8mnZpc2hhbC5sLnZlcm1hIDx2aXNoYWwubC52ZXJtYUBp
-bnRlbC5jb20+LCBkYXZlLmppYW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4sIGlyYS53ZWlu
-eSA8aXJhLndlaW55QGludGVsLmNvbT4sIG52ZGltbSA8bnZkaW1tQGxpc3RzLmxpbnV4LmRl
-dj4sIGxpbnV4LWtlcm5lbCA8bGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZz4sIGdzemhh
-aSA8Z3N6aGFpQGJqdHUuZWR1LmNuPiwgWmhhb3lhbmcgWXUgPDI0MjY3Njc1MDlAcXEuY29t
-Pg0K5Li76aKY77yaUmU6IFtQQVRDSF0gbnZkaW1tOiBBZGQgY2hlY2sgZm9yIGRldm1fa21h
-bGxvYygpIGFuZCBmaXggTlVMTHBvaW50ZXIgZGVyZWZlcmVuY2UgaW4gbmRfcGZuX3Byb2Jl
-KCkgYW5kIG5kX2RheF9wcm9iZSgpDQoNCg0KWmhhb3lhbmfCoFl1wqB3cm90ZToNCj7CoFRo
-ZcKgZGV2bV9rbWFsbG9jKCnCoGZ1bmN0aW9uwqBtYXnCoHJldHVybsKgTlVMTMKgd2hlbsKg
-bWVtb3J5wqBhbGxvY2F0aW9uwqBmYWlscy4NCj7CoEluwqBuZF9wZm5fcHJvYmUoKcKgYW5k
-wqBuZF9kYXhfcHJvYmUoKSzCoHRoZcKgcmV0dXJuwqB2YWx1ZXPCoG9mwqBkZXZtX2ttYWxs
-b2MoKQ0KPsKgYXJlwqBub3TCoGNoZWNrZWQuwqBJZsKgcGZuX3NiwqBpc8KgTlVMTCzCoGl0
-wqB3aWxswqBjYXVzZcKgYcKgTlVMTMKgcG9pbnRlcg0KPsKgZGVyZWZlcmVuY2XCoGluwqB0
-aGXCoHN1YnNlcXVlbnTCoGNhbGxzwqB0b8KgbmRfcGZuX3ZhbGlkYXRlKCkuDQo+wqANCj7C
-oEFkZGl0aW9uYWxseSzCoGlmwqB0aGXCoGFsbG9jYXRpb27CoGZhaWxzLMKgdGhlwqBkZXZp
-Y2VzwqBpbml0aWFsaXplZMKgYnkNCj7CoG5kX3Bmbl9kZXZpbml0KCnCoG9ywqBuZF9kYXhf
-ZGV2aW5pdCgpwqBhcmXCoG5vdMKgcHJvcGVybHnCoHJlbGVhc2VkLMKgbGVhZGluZw0KPsKg
-dG/CoG1lbW9yecKgbGVha3MuDQo+wqANCj7CoEZpeMKgdGhpc8KgYnnCoGNoZWNraW5nwqB0
-aGXCoHJldHVybsKgdmFsdWXCoG9mwqBkZXZtX2ttYWxsb2MoKcKgaW7CoGJvdGjCoGZ1bmN0
-aW9ucy4NCj7CoElmwqB0aGXCoGFsbG9jYXRpb27CoGZhaWxzLMKgdXNlwqBwdXRfZGV2aWNl
-KCnCoHRvwqByZWxlYXNlwqB0aGXCoGluaXRpYWxpemVkwqBkZXZpY2UNCj7CoGFuZMKgcmV0
-dXJuwqAtRU5PTUVNLg0KPsKgDQo+wqBTaWduZWQtb2ZmLWJ5OsKgWmhhb3lhbmfCoFl1wqA8
-MjQyNjc2NzUwOUBxcS5jb20+DQo+wqAtLS0NCj7CoMKgZHJpdmVycy9udmRpbW0vZGF4X2Rl
-dnMuY8KgfMKgNMKgKysrKw0KPsKgwqBkcml2ZXJzL252ZGltbS9wZm5fZGV2cy5jwqB8wqA0
-wqArKysrDQo+wqDCoDLCoGZpbGVzwqBjaGFuZ2VkLMKgOMKgaW5zZXJ0aW9ucygrKQ0KPsKg
-DQo+wqBkaWZmwqAtLWdpdMKgYS9kcml2ZXJzL252ZGltbS9kYXhfZGV2cy5jwqBiL2RyaXZl
-cnMvbnZkaW1tL2RheF9kZXZzLmMNCj7CoGluZGV4wqBiYTRjNDA5ZWRlNjUuLmFhNTFhOTAy
-MmQxMsKgMTAwNjQ0DQo+wqAtLS3CoGEvZHJpdmVycy9udmRpbW0vZGF4X2RldnMuYw0KPsKg
-KysrwqBiL2RyaXZlcnMvbnZkaW1tL2RheF9kZXZzLmMNCj7CoEBAwqAtMTExLDbCoCsxMTEs
-MTDCoEBAwqBpbnTCoG5kX2RheF9wcm9iZShzdHJ1Y3TCoGRldmljZcKgKmRldizCoHN0cnVj
-dMKgbmRfbmFtZXNwYWNlX2NvbW1vbsKgKm5kbnMpDQo+wqDCoCByZXR1cm7CoC1FTk9NRU07
-DQo+wqDCoCB9DQo+wqDCoCBwZm5fc2LCoD3CoGRldm1fa21hbGxvYyhkZXYswqBzaXplb2Yo
-KnBmbl9zYikswqBHRlBfS0VSTkVMKTsNCj7CoCsgaWbCoCghcGZuX3NiKcKgew0KPsKgKyBw
-dXRfZGV2aWNlKGRheF9kZXYpOw0KPsKgKyByZXR1cm7CoC1FTk9NRU07DQo+wqArIH0NCg0K
-U29ycnnCoHRoaXPCoGlzwqBhwqBOQUsuDQoNCldoaWxlwqBJwqBkb24ndMKgbGlrZcKgdGhl
-wqBpbXBsaWNpdMKgbmF0dXJlwqBvZsKgdGhlwqBjaGVjay4uLsKgwqBUaGlzwqBpc8Kgbm90
-DQpuZWVkZWQuDQoNClRoZcKgdmFsaWRpdHnCoG9mwqBwZm5fc2LCoGlzwqBjaGVja2VkwqBp
-bsKgbmRfcGZuX3ZhbGlkYXRlKCkNCg0KSXTCoGlzwqB1bmZvcnR1bmF0ZcKgdGhhdMKgdGhl
-wqBlcnJub8KgcmVwb3J0ZWTCoGluwqB0aGF0wqBjYXNlwqBpc8KgRU5PREVWwqByYXRoZXIN
-CnRoYW7CoEVOT01FTS4uLsKgwqBCdXTCoEnCoHdvdWxkwqBub3TCoGNoYW5nZcKgdGhhdMKg
-bm93Lg0KDQo+wqDCoCBuZF9wZm7CoD3CoCZuZF9kYXgtPm5kX3BmbjsNCj7CoMKgIG5kX3Bm
-bi0+cGZuX3NiwqA9wqBwZm5fc2I7DQo+wqDCoCByY8KgPcKgbmRfcGZuX3ZhbGlkYXRlKG5k
-X3BmbizCoERBWF9TSUcpOw0KPsKgZGlmZsKgLS1naXTCoGEvZHJpdmVycy9udmRpbW0vcGZu
-X2RldnMuY8KgYi9kcml2ZXJzL252ZGltbS9wZm5fZGV2cy5jDQo+wqBpbmRleMKgNDJiMTcy
-ZmM1NTc2Li42YTY5ZDhiZmViN2PCoDEwMDY0NA0KPsKgLS0twqBhL2RyaXZlcnMvbnZkaW1t
-L3Bmbl9kZXZzLmMNCj7CoCsrK8KgYi9kcml2ZXJzL252ZGltbS9wZm5fZGV2cy5jDQo+wqBA
-QMKgLTYzNSw2wqArNjM1LDEwwqBAQMKgaW50wqBuZF9wZm5fcHJvYmUoc3RydWN0wqBkZXZp
-Y2XCoCpkZXYswqBzdHJ1Y3TCoG5kX25hbWVzcGFjZV9jb21tb27CoCpuZG5zKQ0KPsKgwqAg
-aWbCoCghcGZuX2RldikNCj7CoMKgIHJldHVybsKgLUVOT01FTTsNCj7CoMKgIHBmbl9zYsKg
-PcKgZGV2bV9rbWFsbG9jKGRldizCoHNpemVvZigqcGZuX3NiKSzCoEdGUF9LRVJORUwpOw0K
-PsKgKyBpZsKgKCFwZm5fc2IpwqB7DQo+wqArIHB1dF9kZXZpY2UocGZuX2Rldik7DQo+wqAr
-IHJldHVybsKgLUVOT01FTTsNCj7CoCsgfQ0KPsKgwqAgbmRfcGZuwqA9wqB0b19uZF9wZm4o
-cGZuX2Rldik7DQo+wqDCoCBuZF9wZm4tPnBmbl9zYsKgPcKgcGZuX3NiOw0KPsKgwqAgcmPC
-oD3CoG5kX3Bmbl92YWxpZGF0ZShuZF9wZm4swqBQRk5fU0lHKTsNCg0KU2FtZcKgaXNzdWXC
-oGhlcmUuDQoNCklyYQ0KDQo=
+On Mon, Jan 26, 2026 at 11:42:10PM +0530, Kanchan Joshi wrote:
+> On 1/21/2026 12:13 PM, Christoph Hellwig wrote:
+> > +void fs_bio_integrity_alloc(struct bio *bio)
+> > +{
+> > +	struct fs_bio_integrity_buf *iib;
+> > +	unsigned int action;
+> > +
+> > +	action = bio_integrity_action(bio);
+> > +	if (!action)
+> > +		return;
+> 
+> So this may return from here, but <below>
 
+> > +void fs_bio_integrity_generate(struct bio *bio)
+> > +{
+> > +	fs_bio_integrity_alloc(bio);
+> 
+> no check here. A potential null pointer deference in the next line as 
+> bio has no bip?
+> > +	bio_integrity_generate(bio);
+> > +}
+
+fs_bio_integrity_alloc is only called when the device has PI metadata
+with checksums.  So this case can't really happen.  That being said,
+handling it in one case and not the other seems suboptimal and confusing.
