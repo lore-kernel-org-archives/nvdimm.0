@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3848B19CD1D;
-	Tue, 27 Jan 2026 23:06:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8E462E9EC7;
+	Tue, 27 Jan 2026 23:07:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769555168; cv=none; b=Hi9E6/xnkdMSvbnI0vMic9T7t/Rzwt/zm7aBN/xmaRZu54yIWmgZpLmDIE0KQ40mRDQvotMYcc6OVy4aVS76Eb5qrvqUwxuAMW3eugwgM97ew+dLkmo7raESj6232ZePygc9RWsLhjAC+hIMBem8P7GaUmZ3pTvItWPLFkUlaRQ=
+	t=1769555223; cv=none; b=B5BaFXBZegHKpZ13Q4tl7MPKTWLoBiwbT5oy1kcddmHq/A6jHBREWcJ7O0MO59D0LJZkRw/UogfKJs9918ES0ALVoOEz60ik/k4Dz9g6neTYw0va7AKsYRi1lYMICWfu7x8zYGD3e6B3CzHAIEsskWS/Tjf1R7cwgSpsrD2a35U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769555168; c=relaxed/simple;
-	bh=GZx2go61irl/yrU3n13wEmtTxxomni09R+ySI530Rio=;
+	s=arc-20240116; t=1769555223; c=relaxed/simple;
+	bh=JySjp5riAZLd6mmNMgHnUjqyKf0qlSv7WXkRBVPO1CI=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=tlEw7toCcWFDyvU0G7EcdIVP5jXbX1DrYld7TwlLiapg2euD5w3Um55iW0wlgK+6EGAdvkor2r4iBcFsTh2+3GRGggFmFLWmf42OsVMwq7r73L/RUSUQ+TYRrQBFG0R0Atr5j6360CULtmLvfFt2Kcdh2zLse4IK9BBfLm5h/1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lbORS222; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=CffSeS/NyjgePlyoC7RdUhk6UgGLiHH22lo/hrp/aRhUKzF4SA5rcBlWb8HCWppFjfzhey7xMjoM/G9FAQitgxG5mjs4J+xPidDdZT5dlIpq79Qb75cdtu1GXX9b2VTaum0mwuGimijWr0sEPndlMud/IdGwBpTqW/BZA8c2eU4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Vr9Fpvs6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lbORS222"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B3E1C116C6;
-	Tue, 27 Jan 2026 23:06:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Vr9Fpvs6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96402C116C6;
+	Tue, 27 Jan 2026 23:06:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769555168;
-	bh=GZx2go61irl/yrU3n13wEmtTxxomni09R+ySI530Rio=;
+	s=k20201202; t=1769555223;
+	bh=JySjp5riAZLd6mmNMgHnUjqyKf0qlSv7WXkRBVPO1CI=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=lbORS2221mW4UB7Lc78M075DHdbfBzuAOnIJOGnqtOVAb1UBVbld5xFTahgT2k+4y
-	 xyOEhvem8/S2x+iQxNzPgoRodqPGLzza1t781oLP2BVOdW8so6NHogSdOSZp4nOL9V
-	 aIzFDiQ8s0swPdHCwrDK9jiCJrAm7jeoXWKv42pOcvPGRACH1HX4BLqyro+ASH+LL8
-	 mo9mDnsMMorr9I86BPO77e4aMCdK6YPxhZttnWgwTL8ETXBSzs5KCqFtVq9hFZp3XP
-	 d9+/vnbUvZWv91I7tfhhBFSKcihw4RepYQXh/3Aex++BEDr4q2uNSi5JLiMwybcI5n
-	 RzEMzYINQ/Fkw==
-Message-ID: <793fb531-1fda-4de4-b73f-fb46444ca613@kernel.org>
-Date: Wed, 28 Jan 2026 00:06:01 +0100
+	b=Vr9Fpvs6d0EEFlm4bRch6d4FLbnrB3uR9XUZB+6kxeIh5Gyst9s6dSw4NXLPzopYt
+	 XqwJV7Wnspg5pXLZXLnpM8u4tvMBkIHTJQ0Aa3TC6l4+NEAAe1TuLq2A/SZ5fW4hAk
+	 WOU1kcDPd8jgY+iJMdpEDFzhp/MyYRYBHKb4IRwaBLT+kDwRFKonaMqzzJQKkF9bnJ
+	 APJREuhAfnpqpBlGU+Rkz97qWBM2pG6xxczmOQoPtRgLSjvvmt5sCjqKuowoH188gw
+	 rNcWsvHbSVi1cMu6+i1La2I3jhMb8sceN1rhUwVuotOIbsT7MpMCO0oKxYQesQrl6P
+	 qIrKq5h/E13Ag==
+Message-ID: <684f11a3-1958-4562-880c-7e0afd3ae3b5@kernel.org>
+Date: Wed, 28 Jan 2026 00:06:56 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,10 +35,9 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/8] mm/memory_hotplug: add APIs for explicit online type
- control
-To: Gregory Price <gourry@gourry.net>,
- Jonathan Cameron <jonathan.cameron@huawei.com>
+Subject: Re: [PATCH 7/8] dax/kmem: add sysfs interface for runtime hotplug
+ state control
+To: Gregory Price <gourry@gourry.net>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
  kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
@@ -46,13 +45,11 @@ Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  xuanzhuo@linux.alibaba.com, eperezma@redhat.com, osalvador@suse.de,
  akpm@linux-foundation.org
 References: <20260114085201.3222597-1-gourry@gourry.net>
- <20260114085201.3222597-4-gourry@gourry.net>
- <b3d435d2-643f-4dad-9928-bc7fb5080181@kernel.org>
- <aWfR86RIKEvyZsh6@gourry-fedora-PF4VCD3F>
- <4520e7b0-8218-404d-8ede-e62d95c50825@kernel.org>
- <aXLCAtwMkSMH3DNj@gourry-fedora-PF4VCD3F>
- <20260123182526.00005ee8@huawei.com>
- <aXPIGMVAvVEBgFhJ@gourry-fedora-PF4VCD3F>
+ <20260114085201.3222597-8-gourry@gourry.net>
+ <3555385d-23de-492c-8192-a991f91d4343@kernel.org>
+ <aWfcYjZVrROHfGyh@gourry-fedora-PF4VCD3F>
+ <57c5f44f-3921-478b-843b-877fae536591@kernel.org>
+ <aXLEOjgVyGYAU_zk@gourry-fedora-PF4VCD3F>
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -98,55 +95,52 @@ Autocrypt: addr=david@kernel.org; keydata=
  cFAM8nBWrEmNU2vvIGJzjJ/NVYYIY0TgOc5bS9wh6jKHL2+chrfDW5neLJjY2x3snF8q7U9G
  EIbBfNHDlOV8SyhEjtX0DyKxQKioTYPOHcW9gdV5fhSz5tEv+ipqt4kIgWqBgzK8ePtDTqRM
  qZq457g1/SXSoSQi4jN+gsneqvlTJdzaEu1bJP0iv6ViVf15+qHuY5iojCz8fa0=
-In-Reply-To: <aXPIGMVAvVEBgFhJ@gourry-fedora-PF4VCD3F>
+In-Reply-To: <aXLEOjgVyGYAU_zk@gourry-fedora-PF4VCD3F>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 1/23/26 20:12, Gregory Price wrote:
-> On Fri, Jan 23, 2026 at 06:25:26PM +0000, Jonathan Cameron wrote:
->> On Thu, 22 Jan 2026 19:34:10 -0500
->> Gregory Price <gourry@gourry.net> wrote:
+On 1/23/26 01:43, Gregory Price wrote:
+> On Thu, Jan 22, 2026 at 11:49:48PM +0100, David Hildenbrand (Red Hat) wrote:
 >>
->>>
->>> Ah, this was lost on me.
->>>
->>>
->>> unclear to me how to restrict a function to specific drivers, but i can
->>> add add_and_online_memory_driver_managed() trivially so no big issue.
+>> I'm merely wondering why, in the new world, you would even want the offline
+>> state.
 >>
->> Is EXPORT_SYMBOL_GPL_FOR_MODULE() enough?
-
-It's also fine for me to just limit add_memory_driver_managed() to 
-in-tree driver by using EXPORT_SYMBOL_FOR_MODULES.
-
-But it might make nvidia unhappy :)
-
-So maybe just adding a __add_memory_driver_managed() that gives us more 
-control and using EXPORT_SYMBOL_FOR_MODULES is being a bit nicer for OOT 
-modules.
-
-
-(I guess __add_memory_driver_managed is a better name than 
-add_and_online_memory_driver_managed, thinking about it)
-
+>> So what are the use cases for that?
 >>
 > 
-> Is the issue just that add_memory_driver_manage is `extern`?  
-
-Heh, the "extern" is simply not necessary and can be dropped from all 
-such functions. Not related to this. It's all about EXPORT_SYMBOL_GPL 
-allowing anything that claims to be a GPL module to use this functionality.
-
-> If so
-> yeah, i can just do the EXPORT_*_GPL path.
+> I don't have one, and in the 5-patch series I killed it.  You are right,
+> it makes no sense.
 > 
-> If you prefer FOR_MODULE, then yes I can do this.
+> However:
+> 
+>> Why would user space possibly want that? [plugged-in offline blocks]
+>>
+> 
+> I don't think anyone does.
+> 
+> This is baggage.
+> 
+> The CXL driver auto-creates dax_kmem w/ offline memory blocks
+> 
+> Changing this behavior breaks existing systems :[
+> 
+>> Can't ndctl just use the old (existing) interface if such an operation is
+>> requested, and the new one (you want to add) when we want to do something
+>> reasonable (actually use system ram? :) ).
+> 
+> I think we're in agreement, I think I'm doing a poor job of explaining
+> the interconnected issues.
+> 
+> summarizing the long email:
+> 
+>     cxl/region + dax/cxl.c + dax/bus.c auto-probe baggage for
+>     BIOS-configured regions prevents any userland policy from
+>     from being plumbed from cxl to dax.  There's no interposition step.
+> 
+> So yes - new interfaces would resolve this and the old interfaces
+> could be left for compat.
 
-I'd go for
-
-	EXPORT_SYMBOL_FOR_MODULES(__add_memory_driver_managed, "dax")
-
-(or would it be the kmem module?)
+Great!
 
 -- 
 Cheers
