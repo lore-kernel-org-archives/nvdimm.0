@@ -1,29 +1,29 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 577DA22129B;
-	Tue, 27 Jan 2026 21:31:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 125641DE887;
+	Tue, 27 Jan 2026 21:34:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769549503; cv=none; b=UKWH9Ex8ik6S22C2BM8lA/cGWHYZhm9c5p59cgeNSrW+5seOLypC0rp0WMmwnp8jet8cn903Fx+LbNGzt5EwWAwm/OAfW4MWCmFjAoJ+FD/RvWseTsOUGkZLtMrfycSeti7Vd50O8y1pJ9omWtgvWxtTIJHEAUT/OkAyAPggWVE=
+	t=1769549673; cv=none; b=BejiWvRdA3EGolrRt0qD1ijIP6u1O0mtb9XIwTB+Nyism7YKKE38B2OWhbgX3WMfJloZuqF6yYhV6/jlp8GpA1bt1fxBgRxqTWBj79DKBMVuf6ofyThvT0s0aU/xLZR9eOvoenFyT2Eo01RyMyQTXT4v3bb5Wkxe+SJlzcryBb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769549503; c=relaxed/simple;
-	bh=lAGlrUrQZRj2Ye7WvWgIO3rlnqhph8gyR5+gVz8PIAg=;
+	s=arc-20240116; t=1769549673; c=relaxed/simple;
+	bh=bR9qRQiDPotvAWn2QIuk3A3vxmknksey0H/5pA0EgaU=;
 	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=at78dUbQb1OgRd+kz2Yf0i3wmWjFsXoyK0kIsDSB5kPddzqGiTpF/tGPLaCEBzArWSbrOT70Ul1BwG+516Cxv8UoZBT8ES6gZH6n6iSCTjNnc7CpNMysPQCzQSBQTN7Qa30A7XLeyeQ3Du1HyGnoBB7tUpQG1Gc794lp7UkfdCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fMX008b9; arc=none smtp.client-ip=10.30.226.201
+	 Mime-Version:Content-Type; b=bXpJh1ZTUVcelMli4IpSPVPCaPZ9uOofxPooLUbSb6nUhdQ1SVjiWnQpyPZYTBPkbMozLiUa7I6aosOTshdZGq9XCu5BkOFawqiSrJ5L4czbXVyBH6b/pE1VMDMLigxsRhg7R3vWlR76dU4RpH6La/FPjM+Juhrv8jOI11WyVAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DjTBNLHT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fMX008b9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BB09C116C6;
-	Tue, 27 Jan 2026 21:31:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DjTBNLHT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41A5FC116C6;
+	Tue, 27 Jan 2026 21:34:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769549502;
-	bh=lAGlrUrQZRj2Ye7WvWgIO3rlnqhph8gyR5+gVz8PIAg=;
+	s=korg; t=1769549672;
+	bh=bR9qRQiDPotvAWn2QIuk3A3vxmknksey0H/5pA0EgaU=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=fMX008b9lw+lbMqmbQE4akntt0GM/CYCqEfsQlRN5xZOuTFbgIuiPOZ7SpC5nWCII
-	 4e6HQxyvFYex00qHzi1FBCgLioZLzus1wJM2kZ7Bxmhz80iHDXUb0USzNGgfcQHLDD
-	 BuJ1VJ2BqPH7YpsXYabWuD+/1/XKE6evKQK0+X6Y=
-Date: Tue, 27 Jan 2026 13:31:41 -0800
+	b=DjTBNLHTNOC+jXRWsQ6HIWju6jaCg17tDZSayr8cblHACDU+z7Syip8Gie1ClWfDk
+	 YXi9aqZvE3iKKO+oV1rWm4swd+zSyWuVq6ApEnjlVtei99TwkJr9wfiAoy1CLgEKvE
+	 lAlqYtdgL6tUK0UDATd8mL/cp6frej8XW69FO5PU=
+Date: Tue, 27 Jan 2026 13:34:31 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
 To: Gregory Price <gourry@gourry.net>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
@@ -31,13 +31,13 @@ Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  kernel-team@meta.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
  dave.jiang@intel.com, david@kernel.org, mst@redhat.com,
  jasowang@redhat.com, xuanzhuo@linux.alibaba.com, eperezma@redhat.com,
- osalvador@suse.de, Hannes Reinecke <hare@suse.de>
-Subject: Re: [PATCH v2 4/5] dax/kmem: add sysfs interface for runtime
- hotplug state control
-Message-Id: <20260127133141.5f7aa3cd01f4eee4055f075f@linux-foundation.org>
-In-Reply-To: <20260114235022.3437787-5-gourry@gourry.net>
-References: <20260114235022.3437787-1-gourry@gourry.net>
-	<20260114235022.3437787-5-gourry@gourry.net>
+ osalvador@suse.de
+Subject: Re: [PATCH] dax/kmem: add build config for protected dax memory
+ blocks
+Message-Id: <20260127133431.671e4605eee807abe84f92f4@linux-foundation.org>
+In-Reply-To: <20260115024222.3486455-1-gourry@gourry.net>
+References: <20260114235022.3437787-6-gourry@gourry.net>
+	<20260115024222.3486455-1-gourry@gourry.net>
 X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -48,77 +48,23 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Wed, 14 Jan 2026 18:50:20 -0500 Gregory Price <gourry@gourry.net> wrote:
+On Wed, 14 Jan 2026 21:42:22 -0500 Gregory Price <gourry@gourry.net> wrote:
 
-> The dax kmem driver currently onlines memory automatically during
-> probe using the system's default online policy but provides no way
-> to control or query the entire region state at runtime.
+> Since this protection may break userspace tools, it should
+> be an opt-in until those tools have time to update to the
+> new daxN.M/hotplug interface instead of memory blocks.
 > 
-> There is no atomic to offline and remove memory blocks together.
-> 
-> Add a new 'hotplug' sysfs attribute that allows userspace to control
-> and query the entire memory region state.
-> 
-> The interface supports the following states:
->   - "unplug": memory is offline and blocks are not present
->   - "online": memory is online as normal system RAM
->   - "online_movable": memory is online in ZONE_MOVABLE
-> 
-> Valid transitions:
->   - unplugged -> online
->   - unplugged -> online_movable
->   - online    -> unplugged
->   - online_movable -> unplugged
-> 
-> "offline" (memory blocks exist but are offline by default) is not
-> supported because it's functionally equivalent to "unplugged" and
-> entices races between offlining and unplugging.
-> 
-> The initial state after probe uses mhp_get_default_online_type() to
-> preserve backwards compatibility - existing systems with auto-online
-> policies will continue to work as before.
-> 
-> As with any hot-remove mechanism, the removal can fail and if rollback
-> fails the system can be left in an inconsistent state.
-> 
-> Unbind Note:
->   We used to call remove_memory() during unbind, which would fire a
->   BUG() if any of the memory blocks were online at that time.  We lift
->   this into a WARN in the cleanup routine and don't attempt hotremove
->   if ->state is not DAX_KMEM_UNPLUGGED.
-> 
->   The resources are still leaked but this prevents deadlock on unbind
->   if a memory region happens to be impossible to hotremove.
-> 
-> ...
->
-> --- a/Documentation/ABI/testing/sysfs-bus-dax
-> +++ b/Documentation/ABI/testing/sysfs-bus-dax
-> @@ -151,3 +151,20 @@ Description:
->  		memmap_on_memory parameter for memory_hotplug. This is
->  		typically set on the kernel command line -
->  		memory_hotplug.memmap_on_memory set to 'true' or 'force'."
-> +
-> +What:		/sys/bus/dax/devices/daxX.Y/hotplug
-> +Date:		January, 2026
-> +KernelVersion:	v6.21
-> +Contact:	nvdimm@lists.linux.dev
-> +Description:
-> +		(RW) Controls what hotplug state of the memory region.
+> --- a/drivers/dax/Kconfig
+> +++ b/drivers/dax/Kconfig
+> @@ -78,4 +78,22 @@ config DEV_DAX_KMEM
+>  
+>  	  Say N if unsure.
+>  
+> +config DEV_DAX_KMEM_PROTECTED
 
-s/what// ?
+Users must rebuild and redeploy kernels after having updated a
+userspace tool.  They won't thank us for this ;)
 
-Maybe "Controls hotplug state of a dax memory region".
+Isn't there something we can do to make this feature
+backward-compatible?
 
-> +		Applies to all memory blocks associated with the device.
-> +		Only applies to dax_kmem devices.
-> +
-> +                States: [unplugged, online, online_movable]
-> +                Arguments:
-> +		  "unplug": memory is offline and blocks are not present
-> +		  "online": memory is online as normal system RAM
-> +		  "online_movable": memory is online in ZONE_MOVABLE
-> +
-
-This is perhaps a little brief?  Is there more we can tell users about
-what this is and how it behaves and why they might want to use it?
