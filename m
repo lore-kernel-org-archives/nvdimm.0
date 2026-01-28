@@ -1,239 +1,134 @@
-Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from a11-131.smtp-out.amazonses.com (a11-131.smtp-out.amazonses.com [54.240.11.131])
+	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 666F617BCA;
-	Wed, 28 Jan 2026 12:12:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.145.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 376E2352F90
+	for <nvdimm@lists.linux.dev>; Wed, 28 Jan 2026 14:33:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769602347; cv=none; b=cEx1/aQ7GhhVq9NECGxBtmh3cy6Q1qNHWB/25mG5XSp4Aky3uxWbaC1OUyRnW7f7ogu9d1ovMuL7kOjREQUgEsAaMr/mRMkGGC1kUvGWorwxea2s4cOx9ZEn+Huae5o9ch0ns5AtihLg3jUYLBb2XWulUqTqelNCeciSqqRnnlM=
+	t=1769610839; cv=none; b=uIsnOsnBgdRtcqFenZQrQutSRJKsOLkMp6NITaTmyT/43XaQEpOuCKiy6nMy4hOyC0i8PI0s3SM8irJV1WO/yD2xf7RmWZpe44Mu3oTCAIjCKPeBWcRz0yKn9Jw5OFEH3laO1pjIpyEww/NRnbH9T0z3kkzFMBXafwsWif2FGB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769602347; c=relaxed/simple;
-	bh=brJyfqTrpOAwu9gN1Gk9OR3qAejoMh9naiSI6qk19dE=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QQBlpry/qBlb1/qBGAbkWh1qt6NzglGKu0keRH1fQr6TF5jm7vOWu5w+Holhj6sqY0QkpTsWnojVQdX4MDP8x31d/x/5c9G6ogK9tYu31h2gMu2s7EdAPUGLKxujMrmTay3GQYWlVWIVzcpSUcZIhFk4IgPwJv5nqw/aC9a1FJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=gTRY/WK5; arc=none smtp.client-ip=67.231.145.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	s=arc-20240116; t=1769610839; c=relaxed/simple;
+	bh=xRGPaAr54jDjRFgrc+J/GGo+pj1c4nxJ5YePrHIqqEU=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
+	 References:Message-ID; b=ESp+D6hqLU7UzP7NBH/Zm0R3NITBQPmn5o6Xz65Pff4PVNNXWpWDJv7pQqlva2Xrafb555o0OYuIuHWVl1rCwnXPXh37Qqqm+df6ICfDBXOHZBZ97+sj2S7dmCD+hKTrwp0hwIb1iM20sGVgwuR84WpslQjSprH1KsjqEd6QVSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=ObAwkIE6; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=MhyHtP2u; arc=none smtp.client-ip=54.240.11.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="gTRY/WK5"
-Received: from pps.filterd (m0044010.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 60SB138M1478460;
-	Wed, 28 Jan 2026 04:12:23 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=s2048-2025-q2;
-	 bh=Sd3tTNC9Qi1NraZ3FKZVjxKypYrlKrXHxdzsRn97YZE=; b=gTRY/WK5dlMJ
-	+w33bnXlRn1cCiq77T2CcMcXQkZLDeCgVL96iSn62FmkkrRxzBM9MIvA0/cb+Yqp
-	7K2voFCBRv+61xwztZqJKWxwspJ55PsOpC1EDOp9KTPbF6BIJWuk9ijNdT5ye3hN
-	2qFlu8Baf7zOiO2sS+AFcRFjCj8EIQBI+FWjL8w8MnzADaoEJNxQSdivlV6UW3he
-	/wb0Y/R32ZcnznUNp/NThA2xnL9bV+ILuQu5yUUX8YQKP21FSmcApEMpZ5O3AuC3
-	/zWNiD+9HEYCHz+k7PzzpBd2lBlTxy8vvfv8sVuLDoGyHUQax4GHXHh1oNeRoIln
-	Y1F/zIHK8w==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4bycg226fm-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Wed, 28 Jan 2026 04:12:23 -0800 (PST)
-Received: from devbig003.atn7.facebook.com (2620:10d:c085:108::150d) by
- mail.thefacebook.com (2620:10d:c08b:78::c78f) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.2.2562.35; Wed, 28 Jan 2026 12:12:18 +0000
-From: Chris Mason <clm@meta.com>
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-        Jarkko Sakkinen
-	<jarkko@kernel.org>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Thomas
- Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-        Borislav Petkov
-	<bp@alien8.de>, <x86@kernel.org>,
-        "H . Peter Anvin" <hpa@zytor.com>, Arnd
- Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma
-	<vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Maarten
- Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Maxime Ripard
-	<mripard@kernel.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        David Airlie
-	<airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-        Jani Nikula
-	<jani.nikula@linux.intel.com>,
-        Joonas Lahtinen
-	<joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Tvrtko Ursulin <tursulin@ursulin.net>,
-        Christian Koenig
-	<christian.koenig@amd.com>,
-        Huang Rui <ray.huang@amd.com>, Matthew Auld
-	<matthew.auld@intel.com>,
-        Matthew Brost <matthew.brost@intel.com>,
-        Alexander
- Viro <viro@zeniv.linux.org.uk>,
-        Christian Brauner <brauner@kernel.org>, Jan
- Kara <jack@suse.cz>,
-        Benjamin LaHaise <bcrl@kvack.org>, Gao Xiang
-	<xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Sandeep Dhavale <dhavale@google.com>,
-        Hongbo Li <lihongbo22@huawei.com>, Chunhai Guo <guochunhai@vivo.com>,
-        Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Muchun Song <muchun.song@linux.dev>,
-        Oscar Salvador <osalvador@suse.de>,
-        David Hildenbrand <david@kernel.org>,
-        Konstantin Komarov
-	<almaz.alexandrovich@paragon-software.com>,
-        Mike Marshall
-	<hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Tony Luck
-	<tony.luck@intel.com>,
-        Reinette Chatre <reinette.chatre@intel.com>,
-        Dave
- Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
-        Babu Moger
-	<babu.moger@amd.com>, Carlos Maiolino <cem@kernel.org>,
-        Damien Le Moal
-	<dlemoal@kernel.org>,
-        Naohiro Aota <naohiro.aota@wdc.com>,
-        Johannes Thumshirn
-	<jth@kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        "Liam R . Howlett"
-	<Liam.Howlett@oracle.com>,
-        Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport
-	<rppt@kernel.org>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Michal Hocko
-	<mhocko@suse.com>, Hugh Dickins <hughd@google.com>,
-        Baolin Wang
-	<baolin.wang@linux.alibaba.com>, Zi Yan <ziy@nvidia.com>,
-        Nico Pache
-	<npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-        Dev Jain
-	<dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
-        Lance Yang
-	<lance.yang@linux.dev>, Jann Horn <jannh@google.com>,
-        Pedro Falcato
-	<pfalcato@suse.de>, David Howells <dhowells@redhat.com>,
-        Paul Moore
-	<paul@paul-moore.com>, James Morris <jmorris@namei.org>,
-        "Serge E . Hallyn"
-	<serge@hallyn.com>,
-        Yury Norov <yury.norov@gmail.com>,
-        Rasmus Villemoes
-	<linux@rasmusvillemoes.dk>,
-        <linux-sgx@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, <intel-gfx@lists.freedesktop.org>,
-        <linux-fsdevel@vger.kernel.org>, <linux-aio@kvack.org>,
-        <linux-erofs@lists.ozlabs.org>, <linux-ext4@vger.kernel.org>,
-        <linux-mm@kvack.org>, <ntfs3@lists.linux.dev>,
-        <devel@lists.orangefs.org>, <linux-xfs@vger.kernel.org>,
-        <keyrings@vger.kernel.org>, <linux-security-module@vger.kernel.org>,
-        Jason
- Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2 07/13] mm: update secretmem to use VMA flags on mmap_prepare
-Date: Wed, 28 Jan 2026 04:08:36 -0800
-Message-ID: <20260128121200.283932-1-clm@meta.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <a243a09b0a5d0581e963d696de1735f61f5b2075.1769097829.git.lorenzo.stoakes@oracle.com>
-References: <cover.1769097829.git.lorenzo.stoakes@oracle.com> <a243a09b0a5d0581e963d696de1735f61f5b2075.1769097829.git.lorenzo.stoakes@oracle.com>
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="ObAwkIE6";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="MhyHtP2u"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1769610837;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Reply-To:Message-Id;
+	bh=xRGPaAr54jDjRFgrc+J/GGo+pj1c4nxJ5YePrHIqqEU=;
+	b=ObAwkIE6Mww77yndX3Isk+jVf8Zw8d/lNL3XlFbM/kX1daDCD5R+X3fVL1akxhvv
+	ylSC3qzp0dSFiWc/wknzZvTPO2iqm4+niOQ859gbL0+tnQ3NuL/sgW19kRV4ImjbtkZ
+	fEADtQqvzYUfXc/gDBswLlQEoJKpBEdWdSu1hrqk=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1769610837;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Reply-To:Message-Id:Feedback-ID;
+	bh=xRGPaAr54jDjRFgrc+J/GGo+pj1c4nxJ5YePrHIqqEU=;
+	b=MhyHtP2uPPf4OS+NYQeFWUKO2Fi1KGom+CLgkGjJ9MupyMMQR+NML8iLo64wwPGH
+	zx7P5Xote5NNWpGcnTvnDzV9UheSfePgFa6HJlEMcWa7ihgovfbzXU7DKxZM7+zlrPM
+	55PniaSsRX5CRwdpj/1l8Fkicv9mt6b6UWIgQDTU=
+Subject: Re: [PATCH V5 09/19] famfs_fuse: magic.h: Add famfs magic numbers
+From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
+To: =?UTF-8?Q?Joanne_Koong?= <joannelkoong@gmail.com>
+Cc: =?UTF-8?Q?John_Groves?= <John@groves.net>, 
+	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
+	=?UTF-8?Q?Dan_Williams?= <dan.j.williams@intel.com>, 
+	=?UTF-8?Q?Bernd_Schubert?= <bschubert@ddn.com>, 
+	=?UTF-8?Q?Alison_Schofiel?= =?UTF-8?Q?d?= <alison.schofield@intel.com>, 
+	=?UTF-8?Q?John_Groves?= <jgroves@micron.com>, 
+	=?UTF-8?Q?John_Groves?= <jgroves@fastmail.com>, 
+	=?UTF-8?Q?Jonathan_Corbet?= <corbet@lwn.net>, 
+	=?UTF-8?Q?Vishal_Verma?= <vishal.l.verma@intel.com>, 
+	=?UTF-8?Q?Dave_Jiang?= <dave.jiang@intel.com>, 
+	=?UTF-8?Q?Matthew_Wilcox?= <willy@infradead.org>, 
+	=?UTF-8?Q?Jan_Kara?= <jack@suse.cz>, 
+	=?UTF-8?Q?Alexander_Viro?= <viro@zeniv.linux.org.uk>, 
+	=?UTF-8?Q?David_Hildenbrand?= <david@kernel.org>, 
+	=?UTF-8?Q?Christian_Bra?= =?UTF-8?Q?uner?= <brauner@kernel.org>, 
+	=?UTF-8?Q?Darrick_J_=2E_Wong?= <djwong@kernel.org>, 
+	=?UTF-8?Q?Randy_Dunlap?= <rdunlap@infradead.org>, 
+	=?UTF-8?Q?Jeff_Layton?= <jlayton@kernel.org>, 
+	=?UTF-8?Q?Amir_Goldstein?= <amir73il@gmail.com>, 
+	=?UTF-8?Q?Jonathan_Cameron?= <Jonathan.Cameron@huawei.com>, 
+	=?UTF-8?Q?Stefan_Hajnoczi?= <shajnocz@redhat.com>, 
+	=?UTF-8?Q?Josef_Bacik?= <josef@toxicpanda.com>, 
+	=?UTF-8?Q?Bagas_Sanjaya?= <bagasdotme@gmail.com>, 
+	=?UTF-8?Q?James_Morse?= <james.morse@arm.com>, 
+	=?UTF-8?Q?Fuad_Tabba?= <tabba@google.com>, 
+	=?UTF-8?Q?Sean_Christopherson?= <seanjc@google.com>, 
+	=?UTF-8?Q?Shivank_Garg?= <shivankg@amd.com>, 
+	=?UTF-8?Q?Ackerley_Tng?= <ackerleytng@google.com>, 
+	=?UTF-8?Q?Gregory_Price?= <gourry@gourry.net>, 
+	=?UTF-8?Q?Aravind_Ramesh?= <arramesh@micron.com>, 
+	=?UTF-8?Q?Ajay_Joshi?= <ajayjoshi@micron.com>, 
+	=?UTF-8?Q?venkataravis=40micron=2Ecom?= <venkataravis@micron.com>, 
+	=?UTF-8?Q?linux-doc=40vger=2Ekernel=2Eorg?= <linux-doc@vger.kernel.org>, 
+	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2E?= =?UTF-8?Q?org?= <linux-kernel@vger.kernel.org>, 
+	=?UTF-8?Q?nvdimm=40lists=2E?= =?UTF-8?Q?linux=2Edev?= <nvdimm@lists.linux.dev>, 
+	=?UTF-8?Q?linux-cxl=40v?= =?UTF-8?Q?ger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
+	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>
+Date: Wed, 28 Jan 2026 14:33:56 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMTI4MDA5OCBTYWx0ZWRfX/YMdvd0IEW+M
- mfJ/bYR9k4eRvDbs9QGzO+ygu2VSotJCKMMxUusrpYkrvYdQaFJRWVvBv2EkD12mCpCYEvw+XB/
- DwyN2M8BBbTeyqqZ9/i9fDyEPE0MOIwU1pNj8r3a1/SGXN38+xZGlcMtDVhwJA1iofmGT+NTjsa
- 3wJFzmew6yuj81cYLEWiubhhxDZMBD6hVVMuqCOVg+bB7Gz9bEYCH56KvIcfJ13/7NnDlwWy1ay
- rut+pW91VzKqtLFjeZDFQXQuymj3+pWlazUmuuQXtfS+yB5rh8eIrZb/ZGDSDilJLhwKOSnwEsm
- tXIPQzyp+XE21UBIWU7JysVYMwhm9BUIbA4gV+4NNGJrteyEtklAhziLQl5fV0j0MzIV6sri7hz
- h9QDQw7JEBl4y5dfKeMuesm0LqUNBE+g04KLVmq1Y9FiJcFdRQVCoCh0B4S6SthUPRAGT0RWyAc
- Vh/HaT4eUcQ+KnB1bbQ==
-X-Proofpoint-GUID: 6cECoo2vZpz-_Y4sX-WfJbWu0BG9k_53
-X-Authority-Analysis: v=2.4 cv=Q63fIo2a c=1 sm=1 tr=0 ts=6979fd27 cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
- a=vUbySO9Y5rIA:10 a=VkNPw1HP01LnGYTKEx00:22 a=yPCof4ZbAAAA:8
- a=VZ3cX_PGfQEInpbj4y4A:9
-X-Proofpoint-ORIG-GUID: 6cECoo2vZpz-_Y4sX-WfJbWu0BG9k_53
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-01-28_02,2026-01-28_01,2025-10-01_01
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: 
+ <CAJnrk1bvomN7_MZOO8hwf85qLztZys4LfCjfcs_ZUq8+YBk5Wg@mail.gmail.com>
+References: <20260116125831.953.compound@groves.net> 
+ <20260116185911.1005-10-john@jagalactic.com> 
+ <20260116185911.1005-1-john@jagalactic.com> 
+ <0100019bc831c807-bc90f4c0-d112-4c14-be08-d16839a7bcb6-000000@email.amazonses.com> 
+ <CAJnrk1bvomN7_MZOO8hwf85qLztZys4LfCjfcs_ZUq8+YBk5Wg@mail.gmail.com> 
+ <aXoarMgfbL6rh6xi@groves.net>
+X-Mailer: Amazon WorkMail
+Thread-Index: AQHchxoe1VAe00deR0Sw2d725QhurgAABexrAAAzqQgCL2dWIgJSQNF2
+Thread-Topic: [PATCH V5 09/19] famfs_fuse: magic.h: Add famfs magic numbers
+Reply-To: john@groves.net
+X-Wm-Sent-Timestamp: 1769610835
+Message-ID: <0100019c05067b3b-b9ab2963-ace5-481f-8969-c11f80a74423-000000@email.amazonses.com>
+Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
+X-SES-Outgoing: 2026.01.28-54.240.11.131
 
-Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
-> This patch updates secretmem to use the new vma_flags_t type which will
-> soon supersede vm_flags_t altogether.
-> 
-> In order to make this change we also have to update mlock_future_ok(), we
-> replace the vm_flags_t parameter with a simple boolean is_vma_locked one,
-> which also simplifies the invocation here.
-> 
-> This is laying the groundwork for eliminating the vm_flags_t in
-> vm_area_desc and more broadly throughout the kernel.
-> 
-
-Hi everyone,
-
-Running mm-new through AI review flagged this one:
-
-> diff --git a/mm/mmap.c b/mm/mmap.c
-> --- a/mm/mmap.c
-> +++ b/mm/mmap.c
-> @@ -225,12 +225,12 @@ static inline unsigned long round_hint_to_min(unsigned long hint)
->  	return hint;
->  }
->
-> -bool mlock_future_ok(const struct mm_struct *mm, vm_flags_t vm_flags,
-> -			unsigned long bytes)
-> +bool mlock_future_ok(const struct mm_struct *mm, bool is_vma_locked,
-> +		     unsigned long bytes)
->  {
->  	unsigned long locked_pages, limit_pages;
->
-> -	if (!(vm_flags & VM_LOCKED) || capable(CAP_IPC_LOCK))
-> +	if (!is_vma_locked || capable(CAP_IPC_LOCK))
->  		return true;
-
-[ ... ]
-
-> @@ -416,7 +416,7 @@
->  		if (!can_do_mlock())
->  			return -EPERM;
->
-> -	if (!mlock_future_ok(mm, vm_flags, len))
-> +	if (!mlock_future_ok(mm, vm_flags & VM_LOCKED, len))
->  		return -EAGAIN;
-
-This looks correct - do_mmap() now extracts the VM_LOCKED bit from
-vm_flags and passes that to mlock_future_ok().
-
-However, it appears check_brk_limits() was not updated when
-mlock_future_ok() changed its signature. The function at mm/mmap.c:111
-still passes the raw def_flags value:
-
-    return mlock_future_ok(current->mm, current->mm->def_flags, len)
-        ? 0 : -EAGAIN;
-
-When def_flags has any bit set, this converts to true, incorrectly
-triggering mlock limit checks even when VM_LOCKED is not set. Should
-this be passing (current->mm->def_flags & VM_LOCKED) instead?
-
-[ ... ]
-
-Additionally, the test stub at tools/testing/vma/vma_internal.h:1627
-still has the old signature (mm, vm_flags_t vm_flags, bytes) while the
-production code now uses (mm, bool is_vma_locked, bytes). This could
-cause compilation issues or mask bugs in the test suite.
-
-
+On 26/01/27 01:55PM, Joanne Koong wrote:=0D=0A> On Fri, Jan 16, 2026 at 1=
+1:52=E2=80=AFAM John Groves <john@jagalactic.com> wrote:=0D=0A> >=0D=0A> =
+> From: John Groves <john@groves.net>=0D=0A> >=0D=0A> > Famfs distinguish=
+es between its on-media and in-memory superblocks. This=0D=0A> > reserves=
+ the numbers, but they are only used by the user space=0D=0A> > component=
+s of famfs.=0D=0A> >=0D=0A> > Signed-off-by: John Groves <john@groves.net=
+>=0D=0A> > ---=0D=0A> >  include/uapi/linux/magic.h | 2 ++=0D=0A> >  1 fi=
+le changed, 2 insertions(+)=0D=0A> >=0D=0A> > diff --git a/include/uapi/l=
+inux/magic.h b/include/uapi/linux/magic.h=0D=0A> > index 638ca21b7a90..71=
+2b097bf2a5 100644=0D=0A> > --- a/include/uapi/linux/magic.h=0D=0A> > +++ =
+b/include/uapi/linux/magic.h=0D=0A> > @@ -38,6 +38,8 @@=0D=0A> >  #define=
+ OVERLAYFS_SUPER_MAGIC  0x794c7630=0D=0A> >  #define FUSE_SUPER_MAGIC    =
+   0x65735546=0D=0A> >  #define BCACHEFS_SUPER_MAGIC   0xca451a4e=0D=0A> =
+> +#define FAMFS_SUPER_MAGIC      0x87b282ff=0D=0A> > +#define FAMFS_STAT=
+FS_MAGIC      0x87b282fd=0D=0A>=20=0D=0A> Could you explain why this need=
+s to be added to uapi=3F If they are used=0D=0A> only by userspace, does =
+it make more sense for these constants to live=0D=0A> in the userspace co=
+de instead=3F=0D=0A>=20=0D=0A> Thanks,=0D=0A> Joanne=0D=0A=0D=0AHi Joanne=
+,=0D=0A=0D=0AI think this is where it belongs; one function of uapi/linux=
+/magic.h is as=0D=0Aa "registry" of magic numbers, which do need to be un=
+ique because they're=0D=0Athe first step of recognizing what is on a devi=
+ce.=0D=0A=0D=0AThis is a well-established ecosystem with block devices. B=
+lkid / libblkid=0D=0Ascan block devices and keep a database of what devic=
+es exist and what=0D=0Aappears to be on them. When one adds a magic numbe=
+r that applies to block=0D=0Adevices, one sends a patch to util-linux (wh=
+ere blkid lives) to add ability=0D=0Ato recognize your media format (whic=
+h IIRC includes the second recognition=0D=0Astep - if the magic # matches=
+, verify the superblock checksum).=0D=0A=0D=0AFor character dax devices t=
+he ecosystem isn't really there yet, but the=20=0D=0Apattern is the same =
+- and still makes sense.=0D=0A=0D=0AAlso, 2 years ago in the very first p=
+ublic famfs patch set (pre-fuse),=0D=0AChristian Brauner told me they bel=
+ong here [1].=0D=0A=0D=0ABut if the consensus happens to have moved since=
+ then, NP...=0D=0A=0D=0ARegards,=0D=0AJohn=0D=0A=0D=0A[1] https://lore.ke=
+rnel.org/linux-fsdevel/20240227-kiesgrube-couch-77ee2f6917c7@brauner/=0D=0A=
+=0D=0A
