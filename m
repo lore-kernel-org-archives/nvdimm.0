@@ -1,62 +1,64 @@
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
+Received: from mail-qk1-f169.google.com (mail-qk1-f169.google.com [209.85.222.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F7EA3382C6
-	for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 21:04:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CF5A35C193
+	for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 21:04:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769720692; cv=none; b=nPUC4Bq01djfMgwWryR9m6a0P9ulR7099QAavAoNXaCEup0hfvPkLVDQi/SkILMfFd/32Jl87UrRVjAwe4tm6cm5pjCkmCX58sHCwYf2tYWqMffcDNST5YuNjYSWuqufXyQm6zPGfrNmXgUHweMyjChhz+kVyEcMLC1A+o90Dko=
+	t=1769720696; cv=none; b=fX1oTTBru1+Ipq8o9/0hUWqK4Q3/Mk2ozdHZsoT2m4Gv/4ygQmM6NhgJJ91wlTAImLfnYmjc6bwDIb9zGQCcrLK8o3cBUs1tvEodnjSs/v6hIRJj1Jmm7BtaIXjChh+G7S1BGX1lsYaLC4h3Wa2D1wahy5f3f6eWpc2g9heF4g8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769720692; c=relaxed/simple;
-	bh=akrBn4JPwvLBEstJQ9HeJN9q5u1vwp5xfi2e9tVFX44=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Mk58wa1Dy/6YS2b5EWDqjkCKhuQfSEgdSfndkUeXYWe4qUBOZu3YRcJk+hoT5tp8ZGVsW/dqWtkS12ZXypwvYLh0VZRVJoT1ikwO3wWZB4VelcwmZ6VeuD8HNmiGTdc1LRGm7KXAioEQXwYUihHGzEPScs+5tI9hVevvYXbjazw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=qoxYRG01; arc=none smtp.client-ip=209.85.222.176
+	s=arc-20240116; t=1769720696; c=relaxed/simple;
+	bh=VOKzczjoSR9IzZunD6EwkPNtZXVw3ooO/qAH8uc28p8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=cpqIjfL5IF8Jaz/HVqw9lGn/ulHY+jk/kI2+GkBr/75bTkMikAV2mGfU/xNRaba/IafTorrOXDcHFyJ/Xy7CLvY1fNfnmQ6dl0H5ah7ZZyUPWlvmjpCFBwUc6HvjwEuGoK2XIayWDFGzo+xQoZOKheJOV6iOVtqwziJiBx2nfiM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=OBh1zSJa; arc=none smtp.client-ip=209.85.222.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="qoxYRG01"
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-8c7199e7f79so222038685a.0
-        for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 13:04:49 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="OBh1zSJa"
+Received: by mail-qk1-f169.google.com with SMTP id af79cd13be357-8c7146b0854so155239885a.2
+        for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 13:04:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1769720688; x=1770325488; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=p7dwhjhUx8amshGTbVFKhqWt51EOp/YvCZDul2or7c8=;
-        b=qoxYRG01/BKCXUa3qWU7cyg6dHniyoUyG7iGd09ESLWxUCSXj3kkTukD95Hjz6mlnx
-         82iGNAOJZv8LitgvIboNvNLJfClM5tYcKiRlkqP3rADmmKGT6ChGwaVMIo6wkBY512xJ
-         1irzKqs4EhVRkklw5GhiPjF7/w6iiplPXaEDRbuX5LrnbDs3daLZX1+kvU6kGWwl9lTf
-         KMJ0XLSxGnQWgnRtgsUEI+9pJ3lf+XNPHr09RGf0dH56jiMxs4EDQ/BkH9y3vboGopCb
-         HvLQ5BRvOfbe3Cw582NK0efvYZzJBV/UoRNuJ5bCXEQGZi1mzKktT/anPN5cWWkz5RL5
-         55iw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769720688; x=1770325488;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gourry.net; s=google; t=1769720693; x=1770325493; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=p7dwhjhUx8amshGTbVFKhqWt51EOp/YvCZDul2or7c8=;
-        b=GMdaCdkztd9BplhvVhF32EXgvx2nXcwh3fVUCNZzrQfqpKsEiwTWw+D5yEbRYgnhoN
-         s0j1d2h+Qgc535XE39uvajwe+gRqYr4Dg6RNaP7OxwgEfdQr52k4HepNmQT1h1SCujUD
-         qg87dl4GMMbOiE1cXyxX/sOLDwcXcJoOcgokjE55WSy0RbvMbh4lemOMbbq8q9nltPjT
-         csoxnQLE29Z/tRgCKyMRGZqWhst2DQLOIGyC6t1TFD2wqLqDIYUKc98tK+U4ttvSBoa1
-         uVe2Id4kTr18IqCw6R4gGCyPdksq/sfNYN9QxBwDa26B8OWgga6aH3t/uLt5UlFAz1qo
-         oL+g==
-X-Forwarded-Encrypted: i=1; AJvYcCVJAlejWJ+/rPZqjks+AEFEhY8y31ne0jv8gWrdePw8+ed7H8zfLuvZxf9o2t0mvG+gsXr3gDs=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyFgxhb5VBESXUl2UzXYn93aR+wI7uNIMHb5mHgtHw1zLAf93QA
-	M2G7D3HAWM3fQ6CWZ3WrKHgo2FDbkw7jFX+EZFX0+KLf8e76083R7jjQYb2Rv99Cc0s=
-X-Gm-Gg: AZuq6aIw1Ml4EFzfINFtuiL+c3boCbzQ486THWVUWzdHqBsqjzEH6WlbiAGcw43dXwh
-	PuL3LPIirWmswvA2LyqOudnd4CyW7rQQmT0RCB7RR0crE8VUdaBb4Py73Ba/tf527hquKJ9Xm6a
-	MX9LmGWYVU9h3RJAFlaziyROH6G/F28X0NBLwbsBDgaoFmeCG9qo2NOFyIrbpUoS3J+7m6C8dgl
-	VHAQ7B98kWqUysoNRhD3+f/kS7ZzvsNyb89Li+Ppqfzf5H/lkBN8XDQb6mfPohZ8qxX+1n/FKlr
-	80+uSxOSXSLKXGbj/0lHgFgIu5CawbLQYrT14djxSLp7dl+5R1/6tCmIefP6LRMxGQ6K4Y8QmBT
-	xeo+kZ5JdHSX1rSWmJ/dhM+4VuBgQ2xuQEhA4hNcRG19dPT1rkPnR2JlqmFkNIPQ8VftviHuhwU
-	6HGdXxlK6N4ZEBkdSgASwMXxIOpbav2cVisjfdYl9r8iv6x6eP2kza8ZdPSQ18PwZk+fc2eYeZq
-	dQlUVUCfqjtPw==
-X-Received: by 2002:a05:620a:4801:b0:8c5:2d4c:4f0e with SMTP id af79cd13be357-8c9eb26aabbmr143736485a.25.1769720688060;
-        Thu, 29 Jan 2026 13:04:48 -0800 (PST)
+        bh=Szb3YY2E1e7FJPUVmrsEdEEkJjq+khES1iOhgbFItPA=;
+        b=OBh1zSJagOm7wZfoV6ze3qzoniITW6vxnpG+F5QRqTur1DYiD2YGDvxo9b9gdXRxPy
+         D4t7L1f49Tk2Vw+ApYAL7+oHYoIpBw+C6nXdhAk0IfrbafwgFpteeGecm8aKxI9hUXrc
+         as+HmScNYgXhTYFI9qFj8j5qb3BX6EgeH37dwt0Wdzbmk/lz729pg0NRwnHcy+9laQZc
+         7Jj6pL0ZI1tetVHO8tBgN6y0t7siB3v3Yiov0oJ0l15h7C1ghkv8sC+bFZvrE+BpRimu
+         aKUiJFMJNh/XRlu9DWM1xnzduSjsa6n3RyDnK1SDV/dJreGpS8nmrAy3sxVjoFgv1V09
+         z4Tw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769720693; x=1770325493;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Szb3YY2E1e7FJPUVmrsEdEEkJjq+khES1iOhgbFItPA=;
+        b=i9+D56iLd4mmDJEqxhbBLW3MzNrb5dNjAlbLucxhLG++RG/l510MB/9Mr3LOIgP+Sg
+         esVo9m/0uNCM56qtNTMw80fq0OXa8v2EOoP9TOUyYCbf4JErIwLh04kLjs//3OHmtvXn
+         kQrt45oOs9hKzrMZltAAcYBdpgPC340VWaVfwEmKvC2SMTfHt5a1gZI4XUVQmUlLoj6T
+         8v/Dj7lmO30uxmqKt3gmLiZ+wbkKYJAir54QjQ2VhB1326DxFA92/V4nVKyPzQcziVqj
+         ozUYsnD8w2SvuV7JedV826DoQks0Dc5by9bTvFFoLz40NQS3vADpjpdBhgmFy1zD96a5
+         niPQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXa1TqSQuECCWszzQEAfYi6x6NCq/BVkrWJCdG6kCygq3McLEwcZ8+3r6tPF0No0eDB1c8p24s=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxeLAkFX3RjDwRlUCz85e0SAaw7EJeVXNH1EXOkOEGMIaMOKvG8
+	IqLsZUr7tO3ULQMtrWQrKNSSoScKshk5dkjmnwfWo/3X9E+Y/Hb82YckzU5pCc9pKzs=
+X-Gm-Gg: AZuq6aImbZrILzFtdsOtu0k5jZzibOvhSvuu4PGHyqWhNR3X8ho5tdGv2g/EG3BCfFS
+	2CM03qVVcnkD878Fh6RDHE1KtlW/P2wy6C2yu8COO6m2xvEu6FLoIF4t9LW1mT/u/8AiUV20u7a
+	DV1A1hrlXnILXfkcimHITZ00qMDgI/76QZ75tr0/mW/tRgVvja+bFCaiIFzMLCY8rA/H6wVtM29
+	OyJlHunbhacCvZgSZ8lDJb1Pe595K9MnUnJXrOvw3CFlETM0LitPNz9HTKk7YrspuBMZz+uqcAw
+	X2CAoF1XvgwQk0Zx3k4g1hmKpjwVIkHTo0maUktgrddVYNp6gfX4XH+hRCCKlhnO9CSif/69Wkm
+	hm38hil/k0PL9mvPfD+6o0lOcM9vJprWvljM1KRY2V0I+aP1rc5tMQS4YjQV0qTzCIPuFNUsRys
+	zyVhg5ddYJKDZHTsrGDLZIUFt5qtzQlL4Ob9WqFXQtj0nV0wgXrzA790kFSSzTpV3VbWDvzBYlw
+	xsxrGUxa1SVRA==
+X-Received: by 2002:a05:620a:690d:b0:8c9:ea1c:f21c with SMTP id af79cd13be357-8c9eb2fd583mr157489485a.63.1769720693221;
+        Thu, 29 Jan 2026 13:04:53 -0800 (PST)
 Received: from gourry-fedora-PF4VCD3F.lan (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c71b859eaesm282041685a.46.2026.01.29.13.04.47
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c71b859eaesm282041685a.46.2026.01.29.13.04.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jan 2026 13:04:47 -0800 (PST)
+        Thu, 29 Jan 2026 13:04:52 -0800 (PST)
 From: Gregory Price <gourry@gourry.net>
 To: linux-mm@kvack.org
 Cc: linux-cxl@vger.kernel.org,
@@ -75,11 +77,16 @@ Cc: linux-cxl@vger.kernel.org,
 	willy@infradead.org,
 	jack@suse.cz,
 	terry.bowman@amd.com,
-	john@jagalactic.com
-Subject: [PATCH 0/9] cxl: explicit DAX driver selection and hotplug
-Date: Thu, 29 Jan 2026 16:04:33 -0500
-Message-ID: <20260129210442.3951412-1-gourry@gourry.net>
+	john@jagalactic.com,
+	David Hildenbrand <david@kernel.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH 2/9] mm/memory_hotplug: add __add_memory_driver_managed() with online_type arg
+Date: Thu, 29 Jan 2026 16:04:35 -0500
+Message-ID: <20260129210442.3951412-3-gourry@gourry.net>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260129210442.3951412-1-gourry@gourry.net>
+References: <20260129210442.3951412-1-gourry@gourry.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -88,86 +95,200 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Currently, CXL regions that create DAX devices have no mechanism to
-control select the hotplug online policy for kmem regions at region
-creation time. Users must either rely on a build-time default or
-manually configure each memory block after hotplug occurs.
+Enable dax kmem driver to select how to online the memory rather than
+implicitly depending on the system default.  This will allow users of
+dax to plumb through a preferred auto-online policy for their region.
 
-Additionally, there is no explicit way to choose between device_dax
-and dax_kmem modes at region creation time - regions default to kmem.
+Refactor and new interface:
+Add __add_memory_driver_managed() which accepts an explicit online_type
+and export mhp_get_default_online_type() so callers can pass it when
+they want the default behavior.
 
-This series addresses both issues by:
+Refactor:
+Extract __add_memory_resource() to take an explicit online_type parameter,
+and update add_memory_resource() to pass the system default.
 
-1. Plumbing an online_type parameter through the memory hotplug path,
-   from mm/memory_hotplug through the DAX layer, enabling drivers to
-   specify the desired policy (offline, online, online_movable).
+No functional change for existing users.
 
-2. Adding infrastructure for explicit dax driver selection (kmem vs
-   device) when creating CXL DAX regions.
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Gregory Price <gourry@gourry.net>
+---
+ include/linux/memory_hotplug.h |  3 ++
+ mm/memory_hotplug.c            | 91 ++++++++++++++++++++++++----------
+ 2 files changed, 67 insertions(+), 27 deletions(-)
 
-3. Introducing new CXL region drivers that provide a two-stage binding
-   process with user-configurable policy between region creation and
-   memory hotplug.
-
-The new drivers are:
-- cxl_devdax_region: Creates dax_regions that bind to device_dax driver
-- cxl_sysram_region: Creates sysram_region devices with hotplug policy
-- cxl_dax_kmem_region: Probes sysram_regions to create kmem dax_regions
-
-The sysram_region device exposes an 'online_type' sysfs attribute
-allowing users to configure the memory online type before hotplug:
-
-    echo region0 > cxl_sysram_region/bind
-    echo online_movable > sysram_region0/online_type
-    echo sysram_region0 > cxl_dax_kmem_region/bind
-
-This enables explicit control over both the dax driver mode and the
-memory hotplug policy for CXL memory regions.
-
-In the future, with DCD regions, this will also provide a policy step
-which dictates how extents will be surfaces and managed (e.g. if the
-dc region is bound to the sysram driver, it will surface as system
-memory, while the devdax driver will surface extents as new devdax).
-
-Gregory Price (9):
-  mm/memory_hotplug: pass online_type to online_memory_block() via arg
-  mm/memory_hotplug: add __add_memory_driver_managed() with online_type
-    arg
-  dax: plumb online_type from dax_kmem creators to hotplug
-  drivers/cxl,dax: add dax driver mode selection for dax regions
-  cxl/core/region: move pmem region driver logic into pmem_region
-  cxl/core/region: move dax region device logic into dax_region.c
-  cxl/core: add cxl_devdax_region driver for explicit userland region
-    binding
-  cxl/core: Add dax_kmem_region and sysram_region drivers
-  Documentation/driver-api/cxl: add dax and sysram driver documentation
-
- Documentation/ABI/testing/sysfs-bus-cxl       |  21 ++
- .../driver-api/cxl/linux/cxl-driver.rst       |  43 +++
- .../driver-api/cxl/linux/dax-driver.rst       |  29 ++
- drivers/cxl/core/Makefile                     |   3 +
- drivers/cxl/core/core.h                       |  11 +
- drivers/cxl/core/dax_region.c                 | 179 ++++++++++
- drivers/cxl/core/pmem_region.c                | 191 +++++++++++
- drivers/cxl/core/port.c                       |   2 +
- drivers/cxl/core/region.c                     | 321 ++----------------
- drivers/cxl/core/sysram_region.c              | 180 ++++++++++
- drivers/cxl/cxl.h                             |  29 ++
- drivers/dax/bus.c                             |   3 +
- drivers/dax/bus.h                             |   7 +-
- drivers/dax/cxl.c                             |   7 +-
- drivers/dax/dax-private.h                     |   2 +
- drivers/dax/hmem/hmem.c                       |   2 +
- drivers/dax/kmem.c                            |  13 +-
- drivers/dax/pmem.c                            |   2 +
- include/linux/dax.h                           |   5 +
- include/linux/memory_hotplug.h                |   3 +
- mm/memory_hotplug.c                           |  95 ++++--
- 21 files changed, 826 insertions(+), 322 deletions(-)
- create mode 100644 drivers/cxl/core/dax_region.c
- create mode 100644 drivers/cxl/core/pmem_region.c
- create mode 100644 drivers/cxl/core/sysram_region.c
-
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index f2f16cdd73ee..1eb63d1a247d 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -293,6 +293,9 @@ extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
+ extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
+ extern int add_memory_resource(int nid, struct resource *resource,
+ 			       mhp_t mhp_flags);
++int __add_memory_driver_managed(int nid, u64 start, u64 size,
++				const char *resource_name, mhp_t mhp_flags,
++				int online_type);
+ extern int add_memory_driver_managed(int nid, u64 start, u64 size,
+ 				     const char *resource_name,
+ 				     mhp_t mhp_flags);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 87796b617d9e..d3ca95b872bd 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -239,6 +239,7 @@ int mhp_get_default_online_type(void)
+ 
+ 	return mhp_default_online_type;
+ }
++EXPORT_SYMBOL_GPL(mhp_get_default_online_type);
+ 
+ void mhp_set_default_online_type(int online_type)
+ {
+@@ -1490,7 +1491,8 @@ static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
+  *
+  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
+  */
+-int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
++static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
++				 int online_type)
+ {
+ 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+ 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+@@ -1580,12 +1582,9 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ 		merge_system_ram_resource(res);
+ 
+ 	/* online pages if requested */
+-	if (mhp_get_default_online_type() != MMOP_OFFLINE) {
+-		int online_type = mhp_get_default_online_type();
+-
++	if (online_type != MMOP_OFFLINE)
+ 		walk_memory_blocks(start, size, &online_type,
+ 				   online_memory_block);
+-	}
+ 
+ 	return ret;
+ error:
+@@ -1601,7 +1600,13 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ 	return ret;
+ }
+ 
+-/* requires device_hotplug_lock, see add_memory_resource() */
++int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
++{
++	return __add_memory_resource(nid, res, mhp_flags,
++				     mhp_get_default_online_type());
++}
++
++/* requires device_hotplug_lock, see __add_memory_resource() */
+ int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
+ {
+ 	struct resource *res;
+@@ -1629,29 +1634,24 @@ int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
+ }
+ EXPORT_SYMBOL_GPL(add_memory);
+ 
+-/*
+- * Add special, driver-managed memory to the system as system RAM. Such
+- * memory is not exposed via the raw firmware-provided memmap as system
+- * RAM, instead, it is detected and added by a driver - during cold boot,
+- * after a reboot, and after kexec.
+- *
+- * Reasons why this memory should not be used for the initial memmap of a
+- * kexec kernel or for placing kexec images:
+- * - The booting kernel is in charge of determining how this memory will be
+- *   used (e.g., use persistent memory as system RAM)
+- * - Coordination with a hypervisor is required before this memory
+- *   can be used (e.g., inaccessible parts).
++/**
++ * __add_memory_driver_managed - add driver-managed memory with explicit online_type
++ * @nid: NUMA node ID where the memory will be added
++ * @start: Start physical address of the memory range
++ * @size: Size of the memory range in bytes
++ * @resource_name: Resource name in format "System RAM ($DRIVER)"
++ * @mhp_flags: Memory hotplug flags
++ * @online_type: Online behavior (MMOP_ONLINE, MMOP_ONLINE_KERNEL,
++ *               MMOP_ONLINE_MOVABLE, or MMOP_OFFLINE)
+  *
+- * For this memory, no entries in /sys/firmware/memmap ("raw firmware-provided
+- * memory map") are created. Also, the created memory resource is flagged
+- * with IORESOURCE_SYSRAM_DRIVER_MANAGED, so in-kernel users can special-case
+- * this memory as well (esp., not place kexec images onto it).
++ * Add driver-managed memory with explicit online_type specification.
++ * The resource_name must have the format "System RAM ($DRIVER)".
+  *
+- * The resource_name (visible via /proc/iomem) has to have the format
+- * "System RAM ($DRIVER)".
++ * Return: 0 on success, negative error code on failure.
+  */
+-int add_memory_driver_managed(int nid, u64 start, u64 size,
+-			      const char *resource_name, mhp_t mhp_flags)
++int __add_memory_driver_managed(int nid, u64 start, u64 size,
++				const char *resource_name, mhp_t mhp_flags,
++				int online_type)
+ {
+ 	struct resource *res;
+ 	int rc;
+@@ -1661,6 +1661,9 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
+ 	    resource_name[strlen(resource_name) - 1] != ')')
+ 		return -EINVAL;
+ 
++	if (online_type < 0 || online_type > MMOP_ONLINE_MOVABLE)
++		return -EINVAL;
++
+ 	lock_device_hotplug();
+ 
+ 	res = register_memory_resource(start, size, resource_name);
+@@ -1669,7 +1672,7 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
+ 		goto out_unlock;
+ 	}
+ 
+-	rc = add_memory_resource(nid, res, mhp_flags);
++	rc = __add_memory_resource(nid, res, mhp_flags, online_type);
+ 	if (rc < 0)
+ 		release_memory_resource(res);
+ 
+@@ -1677,6 +1680,40 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
+ 	unlock_device_hotplug();
+ 	return rc;
+ }
++EXPORT_SYMBOL_FOR_MODULES(__add_memory_driver_managed, "kmem");
++
++/*
++ * Add special, driver-managed memory to the system as system RAM. Such
++ * memory is not exposed via the raw firmware-provided memmap as system
++ * RAM, instead, it is detected and added by a driver - during cold boot,
++ * after a reboot, and after kexec.
++ *
++ * Reasons why this memory should not be used for the initial memmap of a
++ * kexec kernel or for placing kexec images:
++ * - The booting kernel is in charge of determining how this memory will be
++ *   used (e.g., use persistent memory as system RAM)
++ * - Coordination with a hypervisor is required before this memory
++ *   can be used (e.g., inaccessible parts).
++ *
++ * For this memory, no entries in /sys/firmware/memmap ("raw firmware-provided
++ * memory map") are created. Also, the created memory resource is flagged
++ * with IORESOURCE_SYSRAM_DRIVER_MANAGED, so in-kernel users can special-case
++ * this memory as well (esp., not place kexec images onto it).
++ *
++ * The resource_name (visible via /proc/iomem) has to have the format
++ * "System RAM ($DRIVER)".
++ *
++ * Memory will be onlined using the system default online type.
++ *
++ * Returns 0 on success, negative error code on failure.
++ */
++int add_memory_driver_managed(int nid, u64 start, u64 size,
++			      const char *resource_name, mhp_t mhp_flags)
++{
++	return __add_memory_driver_managed(nid, start, size, resource_name,
++					   mhp_flags,
++					   mhp_get_default_online_type());
++}
+ EXPORT_SYMBOL_GPL(add_memory_driver_managed);
+ 
+ /*
 -- 
 2.52.0
 
