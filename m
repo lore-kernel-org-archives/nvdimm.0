@@ -1,112 +1,127 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44FA037F116
-	for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 09:27:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85A3720E023
+	for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 14:52:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769678848; cv=none; b=EYyZq6438lPLHfi5sGChnVI/j41cSjonCQyb1YHSwmUGzulZuQ/eBjFNveIC3Vp/I6xZb5rNjhetdWbAMKuV0xNvCQ1s02qmC6CQfkVwqP1h74ERYA42ZJrcCJ+UneUJYrDKLf9JXoi9LHtGaEdbHG8U9PC2Bw7SiBNcUUEokbQ=
+	t=1769698325; cv=none; b=TFqsCl46C8Wb708RXi0i2WCNfa8R7I2YB1v+E6YXWbBWVLyis0GxD4mTHQl6ZrfbrsE59+SorgOaQzawi7yVtxa0Jd9G22p46pMVOr4VKDUbTPjMs3S3lZkAAKXAPlAEQmOShIXmqxPTlQCwNApghkOuPwZXWlfqiq7Keo4//BY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769678848; c=relaxed/simple;
-	bh=4bRaTgrCKseoLnMwWid7iSb2X5Y0CMnCnaMIQDLYSAw=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=upTt91g2+86Wg9uLXz4UbzQ6eDzX+EeLGfYPs2KQoqf28xyEV+sYUKux3Yivi+TmIINEeHs9ErbomwILyvXqpNPLePVn4RU5cNMHKxq91z9WreQjSXf3mXh46zHhNwlazXdvQYEaNxHpg2Ri9xJI/Iy2XQAxrW06eVUN+0RdQnI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=GzzAzzTV; arc=none smtp.client-ip=203.254.224.24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1769698325; c=relaxed/simple;
+	bh=whQFO0imdqg5QUuh6ridbMtxCHkQa/EwXHMd6X70r/o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 In-Reply-To:Content-Type:Content-Disposition; b=ZzfgQQVb38rBjR41keecdhnDjjMD/J+GvhTPOImM8/XbD3l6ht9egUb5OIx1PLIaIYZ+ulZ/H/CZCPFSKR035Bk9AST0q9EdPfL58nZywzyTauWLH7DS9xyMS3v5xiGMs1Hlymyoxq2Au9U6bmhfUAjhK2huNU7Ev6h1dqpT8Io=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=LE/vJbin; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="GzzAzzTV"
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20260129092724epoutp016e1d6700ec827e2ac9a9702885a55b11~PKYhgCaSS1968019680epoutp01Z
-	for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 09:27:24 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20260129092724epoutp016e1d6700ec827e2ac9a9702885a55b11~PKYhgCaSS1968019680epoutp01Z
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1769678844;
-	bh=HTJkzz/t9Yvine6k3rYUCcimE1lwu9jEJYFkbVE5xQA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=GzzAzzTVXzlBQLcffAa6J4diAS2/dcKB9/cCFco2XOO6/hCKRPCrjmuuLQsRxD/ZM
-	 lP73gbJdsDnsgnXQcfO6VHflm4/8wNP9Chs+Vvk4C0kWqEw/158wqIDR7IhE/8ylsf
-	 4tlt6ECACReaM66Pu2bEbcpp31HCX+4Er5ZCKhKQ=
-Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPS id
-	20260129092723epcas5p17ea68069b8cddc520c61ea4540435011~PKYhIRM8v2500625006epcas5p1j;
-	Thu, 29 Jan 2026 09:27:23 +0000 (GMT)
-Received: from epcas5p4.samsung.com (unknown [182.195.38.90]) by
-	epsnrtp04.localdomain (Postfix) with ESMTP id 4f1v1Q6K97z6B9mC; Thu, 29 Jan
-	2026 09:27:22 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
-	20260129092722epcas5p262db49c6db5e12931dc0433090b20e57~PKYfn3rZJ2444824448epcas5p2R;
-	Thu, 29 Jan 2026 09:27:22 +0000 (GMT)
-Received: from green245.gost (unknown [107.99.41.245]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260129092720epsmtip186b0b3daa7cec921ec0d647610f08fd1~PKYeDuLvH0871908719epsmtip1L;
-	Thu, 29 Jan 2026 09:27:20 +0000 (GMT)
-Date: Thu, 29 Jan 2026 14:53:06 +0530
-From: Anuj Gupta <anuj20.g@samsung.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LE/vJbin"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1769698323;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=m31pY/sxRUdVfac4+BuGSMMKkDrCtKZLQDSOVfYYwBg=;
+	b=LE/vJbin+vML3GMH8ozEbd+Ymh4W+biVwpOENBcAlkwfaXUZ5No4RrpGMt0sDJzqNKJzu6
+	/p2nXMiGdRHLsqsEINhB343v2bYgCiWR38eFf6ROFA3Qe3pIyAtEASRfbfz1o/Ph1MES4p
+	Sl2y19jl0MBrZEoDlQ+bT4MVzXFz5yU=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-434-MeTwMWQvM5-ZcqKuao3mkw-1; Thu, 29 Jan 2026 09:52:02 -0500
+X-MC-Unique: MeTwMWQvM5-ZcqKuao3mkw-1
+X-Mimecast-MFC-AGG-ID: MeTwMWQvM5-ZcqKuao3mkw_1769698321
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-48057c39931so12653415e9.0
+        for <nvdimm@lists.linux.dev>; Thu, 29 Jan 2026 06:52:02 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769698321; x=1770303121;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=m31pY/sxRUdVfac4+BuGSMMKkDrCtKZLQDSOVfYYwBg=;
+        b=OL09dXS7dQicnVrmfz8MxqDcDEjLCsc2G03ocIBqNQUMsh+fju5UN3QuotI9FT67Xu
+         WnnpKV4eI61VOuFL7mffbiIH5357/NG4u/z5bW5WoZ0JLAssyrD0LgkV2+Kd+4bIloqE
+         x6XDkiPrZVhWc73k/JDZ/PyQ3jWsYMz8joC5DfZsHiEVIvlOYDPy/4Wbs9yJl4tR14wH
+         pYQ28ANiRTdoUp4BIJqbVQ4xFerKC8rxN+yERbUTPzalfO1vglNRKg0IdFHaQZQiy3wp
+         1niftDsB1ZCXIlCat7dydB2szxxt94XbWJwPs+hfeboiJqyAYTfZp0b5gFI7ZA2e91P0
+         DZKQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUc0ABRZ+cA+QVQf4Cb29pIlTGpQbhHyUJEaglYLvE+8VnnNbzhvMI6zdxfBkEqXlaXZ3uMb6Q=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxxEeexialklSbjAg8f2WPgIXeK8ElpWQ6GJ5QIgwNfFxFbHv1B
+	pScoZDI2NfvCld/SW0Tjb7cllrKkC9244LErA+Gu9hHg0Yoo88Q6wb0hUilHoNIUhdqLJlhTCpL
+	SspbwLXrTEIaLbgbwW+cfqgf0gQQiHcsKd1Rl5hoNAPbs4TJBLzSzBNOh
+X-Gm-Gg: AZuq6aIertzg9w7QPFblcHmfoJcX1Wc0KRTo3Io3QdVV2nDiXdmLHHV6TyUe3Nb0TCU
+	aLtTVwpo1SGEvoIG/DVPeTqawWWB2sTXoO/+iej76bmJPdPmeEutC4kxlOhZNKMJKg+wGiZNQPE
+	XKU/zE2Z3FagQZhss2DykmZA6IykFgiV005SxvEye3v34wEEpv/HIGMkAov8Hy62TANrR88uxw5
+	vQPov7W5P4oLe1z8ZtjbUfwHMguUzc+0QpiPHYv/b+5wjncGBobfcG9LVbQOHsub2E+u1NGoUhU
+	9sZpnRCRyU5OVwElWDwjAWDObWT1RqU9+jROfb6lWO9b7+WHwR3Opbt9IQAndNIXdZMFscuVE68
+	=
+X-Received: by 2002:a05:600c:4f4f:b0:47e:e48b:506d with SMTP id 5b1f17b1804b1-4806c7cc86dmr120529935e9.16.1769698320797;
+        Thu, 29 Jan 2026 06:52:00 -0800 (PST)
+X-Received: by 2002:a05:600c:4f4f:b0:47e:e48b:506d with SMTP id 5b1f17b1804b1-4806c7cc86dmr120529435e9.16.1769698320273;
+        Thu, 29 Jan 2026 06:52:00 -0800 (PST)
+Received: from thinky ([217.30.74.39])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-481a5d31651sm5851205e9.4.2026.01.29.06.51.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Jan 2026 06:51:59 -0800 (PST)
+Date: Thu, 29 Jan 2026 15:51:58 +0100
+From: Andrey Albershteyn <aalbersh@redhat.com>
 To: Christoph Hellwig <hch@lst.de>
-Cc: Anuj gupta <anuj1072538@gmail.com>, Jens Axboe <axboe@kernel.dk>,
-	Christian Brauner <brauner@kernel.org>, "Darrick J. Wong"
-	<djwong@kernel.org>, Carlos Maiolino <cem@kernel.org>, "Martin K. Petersen"
-	<martin.petersen@oracle.com>, Kanchan Joshi <joshi.k@samsung.com>,
-	linux-block@vger.kernel.org, nvdimm@lists.linux.dev,
+Cc: Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>, 
+	"Darrick J. Wong" <djwong@kernel.org>, Carlos Maiolino <cem@kernel.org>, 
+	"Martin K. Petersen" <martin.petersen@oracle.com>, Anuj Gupta <anuj20.g@samsung.com>, 
+	Kanchan Joshi <joshi.k@samsung.com>, linux-block@vger.kernel.org, nvdimm@lists.linux.dev, 
 	linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Subject: Re: support file system generated / verified integrity information
-Message-ID: <20260129092306.7kxrizlwwk2ee756@green245.gost>
+Subject: Re: [PATCH 15/15] xfs: support T10 protection information
+Message-ID: <5xaomhu2q2jf3w2hbtkh22dytfiqc6wqyslcfoiqdcwgsud5wk@4ykdof27ntxb>
+References: <20260128161517.666412-1-hch@lst.de>
+ <20260128161517.666412-16-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20260127151609.GA1883@lst.de>
-X-CMS-MailID: 20260129092722epcas5p262db49c6db5e12931dc0433090b20e57
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_136471_"
-CMS-TYPE: 105P
-cpgsPolicy: CPGSC10-542,Y
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20260129092722epcas5p262db49c6db5e12931dc0433090b20e57
-References: <20260121064339.206019-1-hch@lst.de>
-	<CACzX3AuDkwEw3v0bNmYLk8updk1ghVJa-T9o=EHXor9FA7badw@mail.gmail.com>
-	<20260127151609.GA1883@lst.de>
-	<CGME20260129092722epcas5p262db49c6db5e12931dc0433090b20e57@epcas5p2.samsung.com>
-
-------bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_136471_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
+In-Reply-To: <20260128161517.666412-16-hch@lst.de>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: lrS-B8n1fbFPbMZLW82JvX7tulyz7WPfX7NHBuFbjPk_1769698321
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On 27/01/26 04:16PM, Christoph Hellwig wrote:
->On Tue, Jan 27, 2026 at 08:24:28PM +0530, Anuj gupta wrote:
->> Hi Christoph,
->>
->> Here are the QD1 latency numbers (in usec)
->
->Thanks a lot!
->
->Adding in the baseline numbers, as I wanted to compare those:
->
->> Intel Optane:
->>
->> Sequential read
->>   | size | baseline | xfs-bounce |  xfs-pi  |
->>   +------+----------+-----------+-----------+
->>   |   4k |    7.18  |    13.62   |     7.20 |
->>   |  64K |   36.40  |    99.66   |    34.16 |
->>   |   1M |  206.38  |   258.88   |   306.23 |
->>   +------+----------+------------+----------+
->
->So for 4k and 64k reads we basically get back to the baseline.
->The 1M numbers are puzzling, though.  I wonder if we need to
->add WQ_CPU_INTENSIVE or do some other tweaks to the XFS I/O
->completion workqueue so that we don't overload the scheduler.
+On 2026-01-28 17:15:10, Christoph Hellwig wrote:
+> +static inline const struct iomap_read_ops *
+> +xfs_bio_read_ops(
+> +	const struct xfs_inode		*ip)
+> +{
+> +	if (bdev_has_integrity_csum(xfs_inode_buftarg(ip)->bt_bdev))
+> +		return &xfs_bio_read_integrity_ops;
+> +	return &iomap_bio_read_ops;
+> +}
+> +
+>  STATIC int
+>  xfs_vm_read_folio(
+> -	struct file		*unused,
+> -	struct folio		*folio)
+> +	struct file			*file,
+> +	struct folio			*folio)
+>  {
+> -	iomap_bio_read_folio(folio, &xfs_read_iomap_ops);
+> +	struct iomap_read_folio_ctx	ctx = {
+> +		.cur_folio	= folio,
+> +		.ops		= xfs_bio_read_ops(XFS_I(file->f_mapping->host)),
 
-Tried adding WQ_CPU_INTENSIVE[1] but didn't see any change in the 1M
-latency. Looks like this needs something beyond just workqueue tuning.
+Hmm, can we use folio->mapping->host here instead? Adding fsverity,
+read_mapping_folio() will be called without file reference in
+generic_read_merkle_tree_page() (from your patchset). This in turn
+is called from fsverity_verify_bio() in the ioend callback, which
+only has bio reference. 
 
-------bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_136471_
-Content-Type: text/plain; charset="utf-8"
+> +	};
+> +
+> +	iomap_read_folio(&xfs_read_iomap_ops, &ctx);
+>  	return 0;
+>  }
 
+-- 
+- Andrey
 
-------bVwHse4Nykw-L2c5iRRXKf-G.8k0lxUwrpcTFjGaDb9lfltx=_136471_--
