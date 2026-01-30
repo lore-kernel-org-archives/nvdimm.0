@@ -1,76 +1,96 @@
-Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A5D325C809
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 16:09:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 872EF3644CA
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 17:34:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769789348; cv=none; b=JKOA/azOPiGZhicg80+o7IXxFynvH9cdiWcuT2On3Vh9MO4SwbVdUSSrJJTjy050Q7ot0t42U59n3sYkV8V3ccPmMQZK39Yetrry1urUvbjhvrrDq9eRszv4vinw435ciqQytQUSsG/n28ICAsMqkoz6245dwEj7xND18uYfD/w=
+	t=1769794480; cv=none; b=OcYr6GindDIpAJSoKoBWsc7G05qxKHFOrttgd/jy3s1GBdAiUtbhXEdeQ8/tvWW4lZ3TobK/Di/nZgwSseXoahqEk++WswBtpfOc6DYDNUOujFtWDLSaKDcJzbBt7m5O2623nFl5SWfkM/Bp55aTzrLJo5iWW6mvO2R0ZKXRUPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769789348; c=relaxed/simple;
-	bh=MPy2dmqKlCsrw5okIZFwkiGzwVi0bWXg1j0NfWvMFRQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
-	 Content-Type:References; b=o5viwKIs1ZG4QgCpuG/2aUMdZWDrjpuQ8EojOtAnUHNbf1GrPDfPReYLyfkk7+YdaFOQYlEWNIF/FGnnLYgERXelutqguMgHxZ4XUC1ILNrVg3jel3q6hl0DFDZ45IQ7nVJHgmjE2NcqF8XHQdzAbfDx6gBSIXVzDAQWSkktUzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=KY4UiRjJ; arc=none smtp.client-ip=203.254.224.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1769794480; c=relaxed/simple;
+	bh=po7edBQiBk8FP/oPhiDSEZOovfiZ88dORRyTLqEoIfI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UqsYBH/VQdjjsS/ANmykI24SYhBRBfXn6g3+x6FLwPVmacGNtHNHqoAkI8rt23AuXok0vT28UtVwCo50S11ihOyl/an+t3M+2sntcNZ70fR7NPFNDMbOkhRkwCJLzdxHQxD+U6gu+d3USSmAMD5zapJzMZ7JEYL83eClNHey0pM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=qrpTrGD4; arc=none smtp.client-ip=209.85.160.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="KY4UiRjJ"
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20260130160904epoutp02062724dad4b87dee665178035ac83482~PjggiC9TN1737517375epoutp02B
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 16:09:04 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20260130160904epoutp02062724dad4b87dee665178035ac83482~PjggiC9TN1737517375epoutp02B
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1769789344;
-	bh=MPy2dmqKlCsrw5okIZFwkiGzwVi0bWXg1j0NfWvMFRQ=;
-	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
-	b=KY4UiRjJGS2lCsrOGQdD93kUWvTwdyrnyLE/BUSQ8RBHEQGND4J0+Qy+8qLUdbfTp
-	 NYHNuhHMKV7FVOUnpPF9dGIRjzL4MYApDqHx7wgluHHNnlSPBnf2yA5yZmGMrgZrpv
-	 YWvHAqysKnNCFguPOz5O4ginKOckKkz84xBX8rs8=
-Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
-	20260130160903epcas5p312a66a400bf438157c5285f2f9076dd5~PjggFPk7l2594425944epcas5p3R;
-	Fri, 30 Jan 2026 16:09:03 +0000 (GMT)
-Received: from epcas5p4.samsung.com (unknown [182.195.38.91]) by
-	epsnrtp02.localdomain (Postfix) with ESMTP id 4f2gtQ74s2z2SSKX; Fri, 30 Jan
-	2026 16:09:02 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
-	20260130160902epcas5p4f47396b260179d83b338be44cb4b886e~Pjge3l3yq1410114101epcas5p4r;
-	Fri, 30 Jan 2026 16:09:02 +0000 (GMT)
-Received: from [107.122.11.51] (unknown [107.122.11.51]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260130160900epsmtip10421ddfc9116cd83f323b3bf56c455af~PjgdWa7fj1856918569epsmtip1p;
-	Fri, 30 Jan 2026 16:09:00 +0000 (GMT)
-Message-ID: <7cee5c9a-756f-43d2-92b7-5d8a5fb4fd2b@samsung.com>
-Date: Fri, 30 Jan 2026 21:38:59 +0530
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="qrpTrGD4"
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-5029aa94f28so19469221cf.1
+        for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 09:34:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1769794477; x=1770399277; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Lr0ACEC4r9sTM7XeNDuo4Q3LP3+bjrKF/ES76GEt9Qc=;
+        b=qrpTrGD48fBzpR2FZJFiF2NESwYVTu411vxUJufQFNsrxsuvd801QzTOYCeAF5wZ64
+         De1SJzkbmqPO2AN4cNlZqT/AwI5dIftHeMRrO0XhcrMjOgwteOWgzmPneX5dPfF6pnsf
+         q6PcToX5YkHfRYyV1yvA+bzm0IUrstdpMZn+XqEm890rEsEh2agf4RJdX9SLJug0l/q1
+         PeAWE6y9u1ZBd6v8E6MwxtWWtSVXIwnwXFO4nXe3HK0utv6Y9MVfgJL6woKzMdZd95KC
+         TzQesIJT+NVbrCRiDy/ovHwuEvk2jGGwzTt0Vk/MVm1O4nDXI7XYbSqKbkz9hFjN+JTP
+         ooBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769794477; x=1770399277;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Lr0ACEC4r9sTM7XeNDuo4Q3LP3+bjrKF/ES76GEt9Qc=;
+        b=lONME9c+ENOUqgIU6xMuSorYSEQDF1ts2NnCXceeqw8LFrNQHC3KwHfEec6Pu1s/Cn
+         S2QNHJFtMzz+4ZkDHzcLhR/LV8uSmDdSnPzpOZWbC8js83LIsR/uSARmZkvw2sWX4yuQ
+         QmX3ZdTMqZrL33T3Gu3c6lBkhrWbL1wbXwemLdQh+Op7So82WbyYGXCdvefVwHjcP0ls
+         ZWa/dcK6BpsQm5z1alXu3qGJoKMMD6/PMqi3i6ltbmGaRvyar1ppbRMtKL191SQJ7MTV
+         1wC9jbPJl5AvGmirjj1IrMRPPkXh/trpjAm+Oxi8fpO0ZTgsfpeOcQZ1/nHRoAjFqnQZ
+         Jpbw==
+X-Forwarded-Encrypted: i=1; AJvYcCX2tw3+p/R+18MOaNuNkq3oyRn4NJsLuPlE+nStMeRYgPcKQqrirgOGn7IVyetIaiWbD1jCONE=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyw5dKk4Z4T7X3o9Xn4ApRaeG/gkRdIs2m0Y5W0R7X/U3n6R3Jo
+	VrmD81OF0+8TAw9A4zXdM50fL6KX4t4qWD4LzHKNnEfxEmoTVckSi/yoJJrbCXTo5oQ=
+X-Gm-Gg: AZuq6aIjSkOCkjmnxRZwaek5v3daHQUo7xv/EWwwP+BGT8ueqNRtT4DF5NQaCjXNIPy
+	FOmyPTMjS6Zp7vz3VYyofrCLI/ycpjvEFBRZ985siOaGjkfzAufRMu/dMIv1PBVPoxfZKuwZ0R7
+	czc5h+bnhwGv61mBpE0o2K1kaJvZcWXWdJlvexcFRK16DiRhQxv2bGGqjZf6fbd6oz6CTYigny+
+	BYrdaTh/Xrf/zwD4Aspoi6IB9a79TUf+mt5r7H4d4p/iJ/7GvPUMG5s+L8AGkgEf71in4JfUb4a
+	rnctSYy/7sYgHLhfRd/46A/qCRxplN/l1bh1JJ1Sr9+kmeLtsUgivD9NHkrZhdWBM0DoKMki8+5
+	nVOxadn42IxhEaq8aTG0b64De0CQFFjAlMws6Ux/W4Q/1ttLEnHzf+OEv9/rdi+7c0U4QfT5Bpp
+	+MlAeWlcykL/sfLo5FJAPypkuPMNfz1dDPzgsFvKCzBPw5potbwt3y6Rzatyi40qoPqLjDBg==
+X-Received: by 2002:a05:622a:20c:b0:502:a1c6:3487 with SMTP id d75a77b69052e-505d289da0emr31891651cf.1.1769794475777;
+        Fri, 30 Jan 2026 09:34:35 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5033746eec5sm60844171cf.9.2026.01.30.09.34.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Jan 2026 09:34:35 -0800 (PST)
+Date: Fri, 30 Jan 2026 12:34:33 -0500
+From: Gregory Price <gourry@gourry.net>
+To: linux-mm@kvack.org
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, kernel-team@meta.com, dave@stgolabs.net,
+	jonathan.cameron@huawei.com, dave.jiang@intel.com,
+	alison.schofield@intel.com, vishal.l.verma@intel.com,
+	ira.weiny@intel.com, dan.j.williams@intel.com, willy@infradead.org,
+	jack@suse.cz, terry.bowman@amd.com, john@jagalactic.com
+Subject: Re: [PATCH 0/9] cxl: explicit DAX driver selection and hotplug
+Message-ID: <aXzrqYOmgo15NZ7s@gourry-fedora-PF4VCD3F>
+References: <20260129210442.3951412-1-gourry@gourry.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 06/15] block: add fs_bio_integrity helpers
-To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Christian
-	Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, Carlos Maiolino <cem@kernel.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>, Anuj Gupta
-	<anuj20.g@samsung.com>, linux-block@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Content-Language: en-US
-From: Kanchan Joshi <joshi.k@samsung.com>
-In-Reply-To: <20260128161517.666412-7-hch@lst.de>
-Content-Transfer-Encoding: 7bit
-X-CMS-MailID: 20260130160902epcas5p4f47396b260179d83b338be44cb4b886e
-X-Msg-Generator: CA
-Content-Type: text/plain; charset="utf-8"
-CMS-TYPE: 105P
-cpgsPolicy: CPGSC10-542,Y
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20260128165050epcas5p190f1dd0d8f5a3f51c74e8f3155e190ee
-References: <20260128161517.666412-1-hch@lst.de>
-	<CGME20260128165050epcas5p190f1dd0d8f5a3f51c74e8f3155e190ee@epcas5p1.samsung.com>
-	<20260128161517.666412-7-hch@lst.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260129210442.3951412-1-gourry@gourry.net>
 
-Reviewed-by: Kanchan Joshi <joshi.k@samsung.com>
+On Thu, Jan 29, 2026 at 04:04:33PM -0500, Gregory Price wrote:
+> Currently, CXL regions that create DAX devices have no mechanism to
+> control select the hotplug online policy for kmem regions at region
+> creation time. Users must either rely on a build-time default or
+> manually configure each memory block after hotplug occurs.
+> 
+
+Looks like build regression on configs without hotplug
+
+MMOP_ defines and mhp_get_default_online_type() undefined
+
+Will let this version sit for a bit before spinning a v2
+
+~Gregory
