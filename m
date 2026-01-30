@@ -1,93 +1,94 @@
 Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B661359FA4
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 22:53:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C665536655C
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 23:13:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.177
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769813607; cv=pass; b=EZe0o2wwHzz2ntfApQUVljpqbdSWhPh6FeaqD0xVe5NWS0e0nVimy69zsR5qtAemBZKJYMkUTd+TXLvtIPzOyhmKMPdfy5GJrN+3FG5aCHLkPiXIYQb6ALPxU/Is1bsC0m7vLBOAJL5dP1phzPIKlcAakhXFI/JAR//xhEADpqM=
+	t=1769814815; cv=pass; b=pJ1+22kt4v2b946bNRgNKB0f9SZ56LYBfv7T7Hw0KyExxYe9fu1iYwmP40J3WYGQS7dyXR9jxetvgoSCVVMUOzLCsLXXxFRgx54qDN/PWCGsxkPx10h3UCaZLh7RHIX29lU9/E+FPZOTRS6x7sEWPaYgQPeTmJZ8u+LdtgbXzro=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769813607; c=relaxed/simple;
-	bh=I6AA9LJQkjtH8pRVXBRtk0eb0kKxzR2imNiewT90hbk=;
+	s=arc-20240116; t=1769814815; c=relaxed/simple;
+	bh=c34Quq+eQsW819C0KqCK2tzNAvjf7UPjPYiue9c5K38=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sEMYNdwW7OiRJTGTqkO50zy5AKsII+DyiyWnndxvWj3bfWMevL+CQus/himdx+FZQvFh/4woMYtctewxT/0UZ2eATM/Q5rbjAuM2lwLyZc4hJPwAFe+1sVRD7wJ3fXZryQIHrZL9Wf0NE0/eOdJndInhfbli62YSla1s1gasP/8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jF7WQUZA; arc=pass smtp.client-ip=209.85.160.177
+	 To:Cc:Content-Type; b=Gs9o0JKyaAoNJhuFn8h+hJzhlAJInRmVaB9OsRPyzu1RYaeWfxBhGXmXQRMzSf8z7tx5M2cvnhoxYkIOf3N7yzYe8GPYZlfwss4FAjZP7P6oVEl39hgs+ooHB8aThIl68R0MdvNC9/P+E2Yne5otYC1j0JiOAl/L/lj2e8H6aAI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fc3/wik0; arc=pass smtp.client-ip=209.85.160.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jF7WQUZA"
-Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-50145d27b4cso28366051cf.2
-        for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 14:53:25 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1769813604; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fc3/wik0"
+Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-503347dea84so30647941cf.3
+        for <nvdimm@lists.linux.dev>; Fri, 30 Jan 2026 15:13:32 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769814812; cv=none;
         d=google.com; s=arc-20240605;
-        b=O5f61OW4JKgE3teWQwRUzcqdThNhnUoX4mqirl9KgAuRS9rJ3b2wLJrJPdNWzc/S7o
-         0WSeQBOartY0vfAW/gWtCZn2x98AU30KbuZHORNAbeKedXpl4GicUF7lz9jqmEoW84+B
-         eRD5jMHs6NQ/Cnsz4UuqIOA/RrsZ1YIjXfOHhKmO/qOXQOkBzZjdkZRq701L+aG1fXwq
-         mMWksvUYvpMENYkHaENkWQSXrkf6uadO/XF8GZZ9k5xdzmHCKYeR6YQHXDfJ+PpmVkK4
-         bPqTUjWI5s65gvplKACV0p6Od0UGI65JIW35f3hEY9whMttlsynHfe/oXqaK0NSn4Bcj
-         +kGg==
+        b=jp82ti8RfgrzMn+SquWIAAh/ZWvsRIPSb4prhsnwmOUBip2vS/zRoDtIaR7FiSv2rf
+         E/b0dpEfLabI9VaFfiF4dsR10ajmNUbsBX3ZjVZYKDui8eDYOBTDlYwGxl5dfUwo85Ww
+         UPhTIPlBLLSZUaWIHx3ZY1yBW9Z2kVmT1LUTAetDZrqLJwKlLC5b0y6oRxEWC2LHReaQ
+         UkLv2YuCKqS/Fgq6rp3c5udp595UC1hIgpx0EyLgA6Hxbiy7M3roLF3IiPmqG8E2JSQl
+         l/db+zS0OciNZyt32eE3TLe2vEcY+m3MQYJcPLoM1wnU2U/3fVajJdHin2beE/yREPE7
+         MW8Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=RvpDJGr4SwO80ntJbbklM7U7D7aCaEah0HNbCRkVHSs=;
-        fh=hkuZXjnuUViqi2tFdDvXaECVyHRpUnssnZNP7+xsZuI=;
-        b=aOVVokTxiAjRXvNKbgwHDKQF9xx6iq7CdIBAdtwpSxr093qupVi36rDo5JFQJBA8tc
-         PRyFpMfkm+c+KLP8XDc08Rz8trFi3yTZ910MFbAAgGKh6XT5AZ22c1IkMx3KNbDHfA+O
-         2m+qEanGvwPbuVo+CR3abkuQEnAc/4RiJNiJO1joMnOrcA+Av6+RM2cyzWOPMWK00/xn
-         LumeckF362AQsAnu4hmftUXnuX0Nsr2Qbm+N+eEFzc2bl/ftvqo4FEnxqujF8vEQk43P
-         MDskv/tUCW4T/kczNWloVffHdYtrj+rz/xohzyVEuPafmxSwb1EkolrLrbj9R8NcqaiG
-         Z96Q==;
+        bh=mCpt40N6zxEp6+nDSQMAaK5Vngq+apunb1ikLDPBcPI=;
+        fh=qBtsQntZkSG3BLeXCADigByAg9Y+266DlIdJhzbBOFA=;
+        b=c3oo77+PnCYUps3YQHkEMArcFcz4g3S5UAYm5AyCFVoumxjl3P+lhK2+RKg2rNNbY2
+         q+C3hGudWSRSWzZHklrQYGIKWbY23sMcgTXGAdnoTjyaBSbtnnGdDBPluY9n8Yrb9uKZ
+         TlXFFPrL1s2tPvaeUgR796ilUV4vVP19+hLyr1insdVd0IJDFgF5U1r3XnK0WCvr4dsW
+         ofuaPjRslCCVnbSON7jgYlci4+YDoSH2K94uyBPW2Lx4L9FlLRZ0WYeXj9vZ6w+2zVjk
+         WkoNfqVJ64VJr2SLH9hA1EIx7HSNLh5VPrGfY+3CeFVDSSPM+fGXr5Bg6Lc6LVy3AmsQ
+         JaLQ==;
         darn=lists.linux.dev
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769813604; x=1770418404; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1769814812; x=1770419612; darn=lists.linux.dev;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RvpDJGr4SwO80ntJbbklM7U7D7aCaEah0HNbCRkVHSs=;
-        b=jF7WQUZA3677lubZ40UisdjOv7thRoCgzakPipOsg91ojr4p88ww41DfFcqBDlhKLO
-         11cp4SfvIIhVO5TCW4mGIPRMV/VcELdXYmIPV7qrg51EWrCF4qf4D84cwroNxNegopUj
-         zd5CbH6emEf8GNyhHXZK6ACRUalp87jT/tVv5bOQk/aUNA0Eq8mbZ1eZNMo5OzHGgtdT
-         yBqbxd8IOinveuH7MhD7p9VuuMhTAKUuJC+yzNtKSP5YIlwzt+/tH62wiXlNF/R4HmE3
-         M9wZz79TsMODRG9rj0yX80IB84yjdSLurh7ROkAximSUjoAPt0l5CaHNEaOIlri0vQDF
-         jvoA==
+        bh=mCpt40N6zxEp6+nDSQMAaK5Vngq+apunb1ikLDPBcPI=;
+        b=fc3/wik0lY9S7+pQ1Z1h+h17rYtPbja8HgmPK5vfKR2FHNUMKGufXT0t0ShWYP2n48
+         tIaYWj+9bmGrINqfh3zDc3wp6kPqfsArrizzTXp/Fm6rHMhJH4BH7WBXUDWgO5+Q0mUS
+         H2J0b1OWaZHeBTLUNn2aUQt24uujWMV7EWZ0bs5QZuSiLdDgHqchLW4zjP4051AXhnum
+         wL3eSMYDC7JN2AM/g2YLSp/kBXqrkekz/tV7edxIC15hiTh8QWs3xgL0VxMdva3IQ/p5
+         0RpqVwNT+Wmx0Sg/bcmAPSv+Caiom8qmreGoOrl2TS3dqMviYr0laxtSMRTDTUAalUJi
+         5mIA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769813604; x=1770418404;
+        d=1e100.net; s=20230601; t=1769814812; x=1770419612;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=RvpDJGr4SwO80ntJbbklM7U7D7aCaEah0HNbCRkVHSs=;
-        b=v6r+XHICocFhmoeYyhRfkkv6Y1cLF+gqBvqelDsQ2QQHDqThmKsV7+orBqfgzRCqdo
-         dUfRndxfxhTDKG90hA+0eHqVUOgZ5tV4sOBz67R3BNMQ0TUwPuw9ClvVB6WE2CyHG0Xi
-         7PSA5m7CW0LiXNjuMghCr11HMexeBYaDZMQvVFbQeOxGBPTGXYrSLW7CDilG4j2ftW+L
-         ZbnWl5lGpI2h5CbP8YOuw8kzwovKsrtRwFM7rlqG6Of08TKzFAP8VEwxTHjil6Z/aIwS
-         xqWokZ33xjit2v9XO4yKIGltXaW/tn6/AgsfMw6zHtWN0VCFP2zENmRqMoKR8o//QZom
-         PoDw==
-X-Forwarded-Encrypted: i=1; AJvYcCWIog0V+0UJmoIzyRy17kuYC8kSszv+YKOegL3XSnSEVttatpHXDLxciAaXQ+rf+JhAGQq1XWw=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyFEWvHkbbjkJTEbh6hz/mXWzOitcxkzY0l9ekwW6k4Td3onGF3
-	Lt0xKjidSoM2u+yYvH2dk8YWq9x/tfLUWNdWA4m/7TZek8oi72qF4g9sH6UZ6N0MfLnLBzGK4zJ
-	VDmVEM+aRPecMYEq0ycMdCvLb6wllgaQ=
-X-Gm-Gg: AZuq6aK+v344wyE7Gs8przd1JUO40ht9pwhD2X4zyaqvEeqFAxQ8xcQLCHD4yonxa9v
-	h3xl8CV+KiMKLfQjJftJqJXJqORb1+p0l7LO46yvjs0I2DElGPIoPrzXMPzSwOEST15Fkm+9GCR
-	oo7ciXZNimqUB6Y7ZKtsax2jnpUAua8YfXFMCYerKr7qOU7oAWahW4EQ11C+RPJdP6fXVAd69n/
-	JckCf67hPusg5f6SKuQivwxTtaSzZJh9iDMwcOC1895H2JbAEPG1/vLHfDb/JliTzgPnQ==
-X-Received: by 2002:ac8:5ac1:0:b0:502:9f71:6458 with SMTP id
- d75a77b69052e-505d223e5afmr53898871cf.44.1769813604047; Fri, 30 Jan 2026
- 14:53:24 -0800 (PST)
+        bh=mCpt40N6zxEp6+nDSQMAaK5Vngq+apunb1ikLDPBcPI=;
+        b=PMwFCoodSpkP7cGiEZYiDMN8ftk0I4tn1t89Sv0Ito109QjtBkXnwUKo0KRYr21ZqL
+         g+oVDZ22n9AaF9lOSbdETmQeFrMIeVF1Qfps95OQkYv1cr3K8GB61k8g64E0BHE7hP3X
+         eLPR/t7I6lO3LYPTJdURdFruvnAdZgLkMR9YCHvbI2SaO6lxTggIdL7kZ269+w7j3f2J
+         oheMHmwUVF/YVSCe6fRUc+cnM0Gxz1B5KDDvj9sjVnSYpvbhyWc1AACB8NVZenwWweSQ
+         tq+9l7ZlR8gNnjrOWyT4QZhl4ZVkV2Nyv/9ShO22j0qdU8bz0Nr9XFx1/JLmGHMtw55/
+         ziZA==
+X-Forwarded-Encrypted: i=1; AJvYcCWjSKy1HiVrciW3Ruyoz9KKtB2P1Mr967jClaTQ0cZ1ersl9RaxUMl4y9P9Blda0ItTMIbZQgo=@lists.linux.dev
+X-Gm-Message-State: AOJu0YydvfDsyUizVQ5PEEdopt1RKH4d5rHYgfy8at7NXua+6bpgl2EU
+	OoG53VLpqzEw0jkZNy0HvjQ30VKYKwwzfucHYMXY8IJjGfb+lGTIvahmwghkSEKLRpwkIYiZ+YR
+	2Y7+xA0s1dLwWj+SpIW9Cy2YlQHNwZHs=
+X-Gm-Gg: AZuq6aJZVC/9h0dNChqNDC6G/mL8MiTbllwMZX7TVqOvgCxk285dIbUyl0yKHtV96YZ
+	RV2+D99VoNRicwJpjEF7W5knDyXGgZQPpS6Mf4p83Eeej8j6hKFyw8rw5iWAXJWU18PMep9f4sb
+	6xnt45nD9phFcOVsj6rHPmnfMzoP4767QxXkxr0hcAERCT8EEp55xyI/inUtOkoh26MtDKL7zdD
+	GxKV5HlhzBm0m8cITSU1j9YObg5bGnBKkTZ1EDSfuTl3JcUhc2nVcTN0Oyk9W3HJGPw/w==
+X-Received: by 2002:a05:622a:c8:b0:501:502b:8c6b with SMTP id
+ d75a77b69052e-505d217b5a5mr58752171cf.9.1769814811697; Fri, 30 Jan 2026
+ 15:13:31 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260118223516.92753-1-john@jagalactic.com> <0100019bd33f2761-af1fb233-73d0-4b99-a0c0-d239266aec91-000000@email.amazonses.com>
- <0100019bd33fb644-94215a33-24d2-4474-b9eb-ddae39b29bd8-000000@email.amazonses.com>
-In-Reply-To: <0100019bd33fb644-94215a33-24d2-4474-b9eb-ddae39b29bd8-000000@email.amazonses.com>
+References: <20260118223344.92651-1-john@jagalactic.com> <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
+ <0100019bd33e43bf-bb49e98f-284c-475b-a027-13c7271f67bf-000000@email.amazonses.com>
+In-Reply-To: <0100019bd33e43bf-bb49e98f-284c-475b-a027-13c7271f67bf-000000@email.amazonses.com>
 From: Joanne Koong <joannelkoong@gmail.com>
-Date: Fri, 30 Jan 2026 14:53:13 -0800
-X-Gm-Features: AZwV_QgH1KMH2vlFTNGo85feW4dv-AHS4Ad-yDU5HTglx7x3SJ0Y27UEufrkPHc
-Message-ID: <CAJnrk1Z9BuCLZv576Ro9iYUPRDpW=1euG0rQ2wC_19sBcR18pw@mail.gmail.com>
-Subject: Re: [PATCH V7 1/3] fuse_kernel.h: bring up to baseline 6.19
+Date: Fri, 30 Jan 2026 15:13:20 -0800
+X-Gm-Features: AZwV_QhZcPdEqRRUkE10n-Q1UjWagCWtvDsztQQ9CRVvisVS-xKBB72jFQNvlFU
+Message-ID: <CAJnrk1YNRNRrXVydX6=5NAic3fu6QggbA5xV2fwywP27yZu2ZA@mail.gmail.com>
+Subject: Re: [PATCH V7 17/19] famfs_fuse: Add DAX address_space_operations
+ with noop_dirty_folio
 To: John Groves <john@jagalactic.com>
 Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>, 
 	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
@@ -113,67 +114,60 @@ Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 18, 2026 at 2:35=E2=80=AFPM John Groves <john@jagalactic.com> w=
+On Sun, Jan 18, 2026 at 2:33=E2=80=AFPM John Groves <john@jagalactic.com> w=
 rote:
 >
-> From: John Groves <john@groves.net>
+> From: John Groves <John@Groves.net>
 >
-> This is copied from include/uapi/linux/fuse.h in 6.19 with no changes.
+> Famfs is memory-backed; there is no place to write back to, and no
+> reason to mark pages dirty at all.
 >
 > Signed-off-by: John Groves <john@groves.net>
 
-This LGTM. We could probably just merge this in already.
-
 Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
-
 > ---
->  include/fuse_kernel.h | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
+>  fs/fuse/famfs.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 >
-> diff --git a/include/fuse_kernel.h b/include/fuse_kernel.h
-> index 94621f6..c13e1f9 100644
-> --- a/include/fuse_kernel.h
-> +++ b/include/fuse_kernel.h
-> @@ -239,6 +239,7 @@
->   *  7.45
->   *  - add FUSE_COPY_FILE_RANGE_64
->   *  - add struct fuse_copy_file_range_out
-> + *  - add FUSE_NOTIFY_PRUNE
->   */
->
->  #ifndef _LINUX_FUSE_H
-> @@ -680,7 +681,7 @@ enum fuse_notify_code {
->         FUSE_NOTIFY_DELETE =3D 6,
->         FUSE_NOTIFY_RESEND =3D 7,
->         FUSE_NOTIFY_INC_EPOCH =3D 8,
-> -       FUSE_NOTIFY_CODE_MAX,
-> +       FUSE_NOTIFY_PRUNE =3D 9,
+> diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
+> index b38e92d8f381..90325bd14354 100644
+> --- a/fs/fuse/famfs.c
+> +++ b/fs/fuse/famfs.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/mm.h>
+>  #include <linux/dax.h>
+>  #include <linux/iomap.h>
+> +#include <linux/pagemap.h>
+>  #include <linux/path.h>
+>  #include <linux/namei.h>
+>  #include <linux/string.h>
+> @@ -39,6 +40,15 @@ static const struct dax_holder_operations famfs_fuse_d=
+ax_holder_ops =3D {
+>         .notify_failure         =3D famfs_dax_notify_failure,
 >  };
 >
->  /* The read buffer is required to be at least 8k, but may be much larger=
- */
-> @@ -1119,6 +1120,12 @@ struct fuse_notify_retrieve_in {
->         uint64_t        dummy4;
->  };
->
-> +struct fuse_notify_prune_out {
-> +       uint32_t        count;
-> +       uint32_t        padding;
-> +       uint64_t        spare;
+> +/*
+> + * DAX address_space_operations for famfs.
+> + * famfs doesn't need dirty tracking - writes go directly to
+> + * memory with no writeback required.
+> + */
+> +static const struct address_space_operations famfs_dax_aops =3D {
+> +       .dirty_folio    =3D noop_dirty_folio,
 > +};
 > +
->  struct fuse_backing_map {
->         int32_t         fd;
->         uint32_t        flags;
-> @@ -1131,6 +1138,7 @@ struct fuse_backing_map {
->  #define FUSE_DEV_IOC_BACKING_OPEN      _IOW(FUSE_DEV_IOC_MAGIC, 1, \
->                                              struct fuse_backing_map)
->  #define FUSE_DEV_IOC_BACKING_CLOSE     _IOW(FUSE_DEV_IOC_MAGIC, 2, uint3=
-2_t)
-> +#define FUSE_DEV_IOC_SYNC_INIT         _IO(FUSE_DEV_IOC_MAGIC, 3)
+>  /***********************************************************************=
+******/
 >
->  struct fuse_lseek_in {
->         uint64_t        fh;
+>  /*
+> @@ -627,6 +637,7 @@ famfs_file_init_dax(
+>         if (famfs_meta_set(fi, meta) =3D=3D NULL) {
+>                 i_size_write(inode, meta->file_size);
+>                 inode->i_flags |=3D S_DAX;
+> +               inode->i_data.a_ops =3D &famfs_dax_aops;
+>         } else {
+>                 pr_debug("%s: file already had metadata\n", __func__);
+>                 __famfs_meta_free(meta);
 > --
 > 2.52.0
+>
 >
