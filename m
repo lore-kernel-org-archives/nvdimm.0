@@ -1,60 +1,60 @@
 Received: from sender4-pp-f112.zoho.com (sender4-pp-f112.zoho.com [136.143.188.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51AE71E9B3A;
-	Sun,  1 Feb 2026 04:22:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AA7D748F;
+	Sun,  1 Feb 2026 04:40:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.112
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769919741; cv=pass; b=KjefT/TqQvStrtmHkWMzdxhB5lPtyw1yqOj3LbMGMuhBxhqXKEU8XHKIQy67cMzXvRWNJdgSblyMHVCJzDfYwNP3Uj30J6EQI76tnzJLQVd9HjVuAQ7MT4Cg/auGjMxzutALTmoFoxJ3uMofRvwCFVnEKbDwhpmymiu9LBMW+a4=
+	t=1769920840; cv=pass; b=eEkKIht6H/Vg/f14mjXGcRdI+zKncE3f9ZHii0wSc17PbuOUYUj5TOndeVwtx3Pxc4wb0oVtAAVGVWwH6AK2HtyVFxy6rXqhdlkKnrzW+Q/oWvjzOi76rJcy08ocy7/oXS6ea1M6VvM3bqKJghABCvgpwUEwAuOTMcPfySbAnTY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769919741; c=relaxed/simple;
-	bh=olkTrYBMYem0rX/rHnRWof6if/mHTZJa4L5ebYJzIxg=;
+	s=arc-20240116; t=1769920840; c=relaxed/simple;
+	bh=zx3uK6OUyhKOc8SgSfvJ1t/xjxISwq/GyLbRzxjb8fM=;
 	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=eb3ZpXBbyUTVXAN+r1zC+k5zW1EkzKpF6OHnPyeXdQkk6qFWL4cY/xwGX2nQ+Q0zZ6HJAaljmM3B4hpp+sgcm2o+A+344PSgXAQVV27LTQREU/kquZW7cor6yWoxmbsreccnxEqKVEV28GW4xa5NF/sGmSbJNKYtXllCsMI1nRc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=mQHqkKkQ; arc=pass smtp.client-ip=136.143.188.112
+	 MIME-Version:Content-Type; b=ii9AXcQI25dyq4fs7cWkdfZlCFndGkey+ZaKxsEkObnD++nnmAzPCRwQ6c4bxsrBr0/0Jhhrmz+8+dPqmggx/V3Xg+LkTG+OfsqYb8iPz0eSafOOUwlHzvuZOpIAET2sMfXbDP4oO/uurLeqK+Schu8iLXJMLriRE4zQMa5xFZU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=J7MGQwVO; arc=pass smtp.client-ip=136.143.188.112
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="mQHqkKkQ"
-ARC-Seal: i=1; a=rsa-sha256; t=1769919731; cv=none; 
+	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="J7MGQwVO"
+ARC-Seal: i=1; a=rsa-sha256; t=1769920830; cv=none; 
 	d=zohomail.com; s=zohoarc; 
-	b=eIFd4jIEVFIhQreMRbhXHvakX7U/IdwZw3qHyAEV5cKxhquy1ChnY5g2yr/dllfnlDki3Lo3JHgymOPYeH0mD9qQoB2buNVVdAX2w38weSRvyiKtBIvN8/OMUPWOtsEtlbZOWmf1k2pqmVF3DnsjkpPvwurSjSsxFI87HkK1W30=
+	b=OCH0Bjxk+SCfTxm05bjBFgq9f4ZE/N9hSg5558ja2++fFUBUJVddhSJVFMopSXsyz36NCv8nDboU6ZYev+V9zt/0a3ipmEkipRi8sQOkx+Jk65FemvM7rIcenhKn4dAMmQ7zixo6PSvwBcN3Cu/JrTNNPoMk/aazJ1GBO/b9B5I=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1769919731; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=6W3rvFmobWfkSj0nzHOc/WAZuUo4cDO1pU8oIl/2UuI=; 
-	b=FJ8FVqCTt0shMA9c0PDp0HOoHKT+ghmdp+9Vo2mHeEA+a9hzXM73zlnxvYj85OjNj6zmT6X0/1CZdXbFKYN39OUNtIXqYMtksRay2kufpuQ3rBQi5V3R3OxLjAGpuinhDeA11AX9Af7OFGbxi+biR8BR+PPf0gQHjJ/oFWDds2I=
+	t=1769920830; h=Content-Type:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=Mg0/vv+N2TY3Mun8A569+YtuS6aKPFTWr3H+LYPY9rA=; 
+	b=hKRbiSy8FhZRqq9u0R4HLDG7GR+Vw+Dp7a4GsFnO3w3Kl/k36QlPTVgbh7cXpMaaqhm3cPi9R4io6obN+zVzWVkiFOPutHf1xqKzZkmK/1pRCeoUrbbilLUD2v2jhmd8wzN6SQAzLkuxcrOZ+wwSj+mbUH4NxmCGsqAlNCeHSF8=
 ARC-Authentication-Results: i=1; mx.zohomail.com;
 	dkim=pass  header.i=linux.beauty;
 	spf=pass  smtp.mailfrom=me@linux.beauty;
 	dmarc=pass header.from=<me@linux.beauty>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1769919731;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1769920830;
 	s=zmail; d=linux.beauty; i=me@linux.beauty;
-	h=Date:Date:Message-ID:From:From:To:To:Cc:Cc:Subject:Subject:In-Reply-To:References:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=6W3rvFmobWfkSj0nzHOc/WAZuUo4cDO1pU8oIl/2UuI=;
-	b=mQHqkKkQlE0AuDptph3qYMOb2M2DnHSkydubk5d+WwtY50iACTvo0Ks8BOW1LfiT
-	KcZQraW+5c3RRliLhOvHjL3Hpq5CvNM6qnsOv/irlu6uy4GTFDdwiqXzq1XFflQInPv
-	3M4FTwkXZ5EVHMpoILLe+fNE57yL36bsHCjqnK6U=
-Received: by mx.zohomail.com with SMTPS id 1769919727866976.9152410728299;
-	Sat, 31 Jan 2026 20:22:07 -0800 (PST)
-Date: Sun, 01 Feb 2026 12:21:42 +0800
-Message-ID: <87a4xtozzd.wl-me@linux.beauty>
+	h=Date:Date:Message-ID:From:From:To:To:Cc:Cc:Subject:Subject:In-Reply-To:References:MIME-Version:Content-Type:Message-Id:Reply-To;
+	bh=Mg0/vv+N2TY3Mun8A569+YtuS6aKPFTWr3H+LYPY9rA=;
+	b=J7MGQwVOA5DBFqc9nmvyy3MYqMbV+CoXlv2LnLe6vejfbudQTIYQ2Ao3r615K5zV
+	r3Zim2UkXrKk2wWEJ5phFZPA85Iphyo6HTOTZnCS+bRIv0xZndDuE00820g63WiTSQE
+	Kec0u5krxFiTAHzQauA3oO+Ad26XuIoGlU5YEPwA=
+Received: by mx.zohomail.com with SMTPS id 1769920828747568.2122837823392;
+	Sat, 31 Jan 2026 20:40:28 -0800 (PST)
+Date: Sun, 01 Feb 2026 12:40:15 +0800
+Message-ID: <877bsxoz4g.wl-me@linux.beauty>
 From: Li Chen <me@linux.beauty>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	"Vishal Verma" <vishal.l.verma@intel.com>,
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
-	Pankaj Gupta
-	<pankaj.gupta.linux@gmail.com>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
+	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
 	Cornelia Huck <cohuck@redhat.com>,
 	Jakub Staron <jstaron@google.com>,
-	<nvdimm@lists.linux.dev>,
-	<virtualization@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
+	nvdimm@lists.linux.dev,
+	virtualization@lists.linux.dev,
+	linux-kernel@vger.kernel.org
 Subject: Re: [PATCH] nvdimm: virtio_pmem: serialize flush requests
-In-Reply-To: <697d19fc772ad_f6311008@iweiny-mobl.notmuch>
+In-Reply-To: <20260131124554-mutt-send-email-mst@kernel.org>
 References: <20260113034552.62805-1-me@linux.beauty>
 	<697d19fc772ad_f6311008@iweiny-mobl.notmuch>
+	<20260131124554-mutt-send-email-mst@kernel.org>
 User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
  FLIM-LB/1.14.9 (=?ISO-8859-4?Q?Goj=F2?=) APEL-LB/10.8 EasyPG/1.0.0
  Emacs/30.2 (x86_64-pc-linux-gnu) MULE/6.0 (HANACHIRUSATO)
@@ -64,159 +64,88 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 X-ZohoMailClient: External
 
+Hi Michael,
 
-Hi Ira,
+On Sun, 01 Feb 2026 01:46:19 +0800,
+Michael S. Tsirkin wrote:
+> 
+> On Fri, Jan 30, 2026 at 02:52:12PM -0600, Ira Weiny wrote:
+> > Li Chen wrote:
+> > > Under heavy concurrent flush traffic, virtio-pmem can overflow its request
+> > > virtqueue (req_vq): virtqueue_add_sgs() starts returning -ENOSPC and the
+> > > driver logs "no free slots in the virtqueue". Shortly after that the
+> > > device enters VIRTIO_CONFIG_S_NEEDS_RESET and flush requests fail with
+> > > "virtio pmem device needs a reset".
+> > > 
+> > > Serialize virtio_pmem_flush() with a per-device mutex so only one flush
+> > > request is in-flight at a time. This prevents req_vq descriptor overflow
+> > > under high concurrency.
+> > > 
+> > > Reproducer (guest with virtio-pmem):
+> > >   - mkfs.ext4 -F /dev/pmem0
+> > >   - mount -t ext4 -o dax,noatime /dev/pmem0 /mnt/bench
+> > >   - fio: ioengine=io_uring rw=randwrite bs=4k iodepth=64 numjobs=64
+> > >         direct=1 fsync=1 runtime=30s time_based=1
+> > 
+> > I don't see this error.
+> > 
+> > <file>
+> > 13:28:50 > cat foo.fio 
+> > # test http://lore.kernel.org/20260113034552.62805-1-me@linux.beauty
+> > 
+> > [global]
+> > filename=/mnt/bench/foo
+> > ioengine=io_uring
+> > size=1G
+> > bs=4K
+> > iodepth=64
+> > numjobs=64
+> > direct=1
+> > fsync=1
+> > runtime=30s
+> > time_based=1
+> > 
+> > [rand-write]
+> > rw=randwrite
+> > </file>
+> > 
+> > It's possible I'm doing something wrong.  Can you share your qemu cmdline
+> > or more details on the bug yall see.
+> > 
+> > >   - dmesg: "no free slots in the virtqueue"
+> > >            "virtio pmem device needs a reset"
+> > > 
+> > > Fixes: 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
+> > > Signed-off-by: Li Chen <me@linux.beauty>
+> > > ---
+> > >  drivers/nvdimm/nd_virtio.c   | 15 +++++++++++----
+> > >  drivers/nvdimm/virtio_pmem.c |  1 +
+> > >  drivers/nvdimm/virtio_pmem.h |  4 ++++
+> > >  3 files changed, 16 insertions(+), 4 deletions(-)
+> > > 
+> > > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> > > index c3f07be4aa22..827a17fe7c71 100644
+> > > --- a/drivers/nvdimm/nd_virtio.c
+> > > +++ b/drivers/nvdimm/nd_virtio.c
+> > > @@ -44,19 +44,24 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+> > >  	unsigned long flags;
+> > >  	int err, err1;
+> > >  
+> > > +	might_sleep();
+> 
+> 
+> for that matter might_sleep not really needed near mutex_lock.
+> 
+> 
+> > > +	mutex_lock(&vpmem->flush_lock);
 
-On Sat, 31 Jan 2026 04:52:12 +0800,
-Ira Weiny wrote:
->=20
-> Li Chen wrote:
-> > Under heavy concurrent flush traffic, virtio-pmem can overflow its requ=
-est
-> > virtqueue (req_vq): virtqueue_add_sgs() starts returning -ENOSPC and the
-> > driver logs "no free slots in the virtqueue". Shortly after that the
-> > device enters VIRTIO_CONFIG_S_NEEDS_RESET and flush requests fail with
-> > "virtio pmem device needs a reset".
-> >=20
-> > Serialize virtio_pmem_flush() with a per-device mutex so only one flush
-> > request is in-flight at a time. This prevents req_vq descriptor overflow
-> > under high concurrency.
-> >=20
-> > Reproducer (guest with virtio-pmem):
-> >   - mkfs.ext4 -F /dev/pmem0
-> >   - mount -t ext4 -o dax,noatime /dev/pmem0 /mnt/bench
-> >   - fio: ioengine=3Dio_uring rw=3Drandwrite bs=3D4k iodepth=3D64 numjob=
-s=3D64
-> >         direct=3D1 fsync=3D1 runtime=3D30s time_based=3D1
->=20
-> I don't see this error.
->=20
-> <file>
-> 13:28:50 > cat foo.fio=20
-> # test http://lore.kernel.org/20260113034552.62805-1-me@linux.beauty
->=20
-> [global]
-> filename=3D/mnt/bench/foo
-> ioengine=3Dio_uring
-> size=3D1G
-> bs=3D4K
-> iodepth=3D64
-> numjobs=3D64
-> direct=3D1
-> fsync=3D1
-> runtime=3D30s
-> time_based=3D1
->=20
-> [rand-write]
-> rw=3Drandwrite
-> </file>
->=20
-> It's possible I'm doing something wrong.  Can you share your qemu cmdline
-> or more details on the bug yall see.
+Good point. mutex_lock() already does might_sleep(), so the explicit
+might_sleep() next to the lock is redundant.
 
-Thanks for taking a look.
-
-I can reproduce the issue here, but it is timing dependent. A single fio run
-does not always hit it, so I suspect that's why you're not seeing the dmesg
-messages.
-
-Environment:
-QEMU: 10.1.2
-virtio-pmem backend: memory-backend-ram (shared)
-
-The virtio-pmem relevant QEMU bits:
-  -object memory-backend-ram,id=3Dpmem0,size=3D10G,share=3Don
-  -device virtio-pmem-pci,id=3Dvirtio-pmem0,memdev=3Dpmem0
-
-For completeness, this is the full QEMU command line I used (paths replaced
-with placeholders):
-  qemu-system-x86_64 -enable-kvm -cpu host -smp 16 -m 10G,maxmem=3D20G \\
-    -netdev user,id=3Dnet0,hostfwd=3Dtcp::<ssh_port>-:22 \\
-    -device virtio-net,netdev=3Dnet0 \\
-    -drive file=3D<guest.qcow2>,if=3Dnone,id=3Dboot0,format=3Dqcow2 \\
-    -device virtio-blk-pci,drive=3Dboot0,num-queues=3D4 \\
-    -object memory-backend-ram,id=3Dpmem0,size=3D10G,share=3Don \\
-    -device virtio-pmem-pci,id=3Dvirtio-pmem0,memdev=3Dpmem0 \\
-    -nographic -kernel <bzImage> -append "<cmdline>"
-
-Kernel under test (baseline, no patch):
-  v6.18-764-g7aa104c7e8e9
-
-I used the same fio parameters from the cover letter. The only difference is
-that I run it in a loop so it has multiple chances to trigger. Each iterati=
-on
-does a fresh mkfs + mount and clears dmesg before running fio:
-This should be equivalent to the foo.fio you posted.
-
-  for i in $(seq 1 10); do
-    umount -l /mnt/bench 2>/dev/null || true
-    mkfs.ext4 -F /dev/pmem0
-    mkdir -p /mnt/bench
-    dmesg -C
-    mount -t ext4 -o dax,noatime /dev/pmem0 /mnt/bench
-    fio --name=3Drandwrite_fsync --filename=3D/mnt/bench/foo --size=3D1G \\
-      --ioengine=3Dio_uring --rw=3Drandwrite --bs=3D4k --iodepth=3D64 --num=
-jobs=3D64 \\
-      --direct=3D1 --fsync=3D1 --runtime=3D30 --time_based=3D1
-    dmesg | egrep -i \\
-      -e "no free slots in the virtqueue" \\
-      -e "virtio pmem device needs a reset" && break
-  done
-
-If it does not trigger in 10 iterations, reboot the guest and repeat.
-
-On the baseline kernel, I see:
-"failed to send command to virtio pmem device, no free slots in the virtque=
-ue"
-and "virtio pmem device needs a reset"
-Typically within a few iterations (often on the first one).
-
-With the fix applied, I ran 10 iterations back-to-back and did not see the
-above messages.
-=20
-> >   - dmesg: "no free slots in the virtqueue"
-> >            "virtio pmem device needs a reset"
-> >=20
-> > Fixes: 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
-> > Signed-off-by: Li Chen <me@linux.beauty>
-> > ---
-> >  drivers/nvdimm/nd_virtio.c   | 15 +++++++++++----
-> >  drivers/nvdimm/virtio_pmem.c |  1 +
-> >  drivers/nvdimm/virtio_pmem.h |  4 ++++
-> >  3 files changed, 16 insertions(+), 4 deletions(-)
-> >=20
-> > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-> > index c3f07be4aa22..827a17fe7c71 100644
-> > --- a/drivers/nvdimm/nd_virtio.c
-> > +++ b/drivers/nvdimm/nd_virtio.c
-> > @@ -44,19 +44,24 @@ static int virtio_pmem_flush(struct nd_region *nd_r=
-egion)
-> >  	unsigned long flags;
-> >  	int err, err1;
-> > =20
-> > +	might_sleep();
-> > +	mutex_lock(&vpmem->flush_lock);
->=20
-> Assuming this does fix a bug I'd rather use guard here.
->=20
-> 	guard(mutex)(&vpmem->flush_lock);
->=20
-> Then skip all the gotos and out_unlock stuff.
-
-Agreed. I'll use guard in v2.
-=20
-> Also, does this affect performance at all?
-
-I did a quick sanity check. With a smaller numjobs value (numjobs=3D16,
-iodepth=3D64, fsync=3D1, bs=3D4k, runtime=3D30s), I did not see a regressio=
-n on this
-setup. At numjobs=3D64 the baseline frequently hits NEEDS_RESET, so correct=
-ness
-is the primary motivation here.
+I'll drop it in v2 (which also switches to guard(mutex) as Ira suggested).
 
 Regards,
-Li=E2=80=8B
+Li
