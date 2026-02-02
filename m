@@ -1,105 +1,152 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EAD02E7F07
-	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 18:23:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99C3E2DCBE6
+	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 18:46:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770056622; cv=none; b=eq6NFHbPSkRLkXPJ0ruax8sJER8a0tG/oQODtTYu0SGZkeu4EEkIEHU+HlapOP6RHRTIANa0RUq91BmzeYTi634otrMUa4F1RZqXH7Qhf70e8n+HGd5qFyEPH9w9pzVcxwJziDFm8Ul0hAe29/LJ3Svw7u03E/5M6JY3HHKeDCM=
+	t=1770057977; cv=none; b=aLMuRsHmyRRFwoOkSxYTRiTsQMGPXBdHA8WKTGMextu0iPIUJZ4I+2TbKxqdix7XbU4R3Fu7Pn9D8VLJDUXcIiSOjBnovDzqe8TUon8hK02OsU5ILV1sHkmq0lpBwbmMKrg8kc4caohmnG+dMmt7yf4uJs9+w/nO+bTlWYtOFlc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770056622; c=relaxed/simple;
-	bh=ADF7ZKoCipxDP6UUmIGW/IPztV2DncS/DM4/x+XvBnQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hNFAhCc5FmRZqFBUgpXAUvhZ61BiOvSPflAO5fSw7BjY8w9AMWSlHJ4LlicY1ty9ODigcqKaZo5Og/6PNk1vEuEmF7/MkIJ+uIGa9+fdAvtSzC7D0sfOBvMbPuVJ5GgKLf7vjrtIs7Xm13JeKgJik1Va/OfcW7nXOOHjI/HiPow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=s9gGLQBP; arc=none smtp.client-ip=209.85.219.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="s9gGLQBP"
-Received: by mail-qv1-f53.google.com with SMTP id 6a1803df08f44-8947e17968eso54373286d6.0
-        for <nvdimm@lists.linux.dev>; Mon, 02 Feb 2026 10:23:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1770056619; x=1770661419; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=MqsmEA1l4K6M349TDpqaFt5arK8yfZiMH/3re7GUwy0=;
-        b=s9gGLQBPRK0J5qBeca0uSPdBSyhNh8fygeoc1/+drajIYrrY9yE/PVn4sJSr0sLcVy
-         g0vqIwN/NqGq7Sw7QafPceJiP498H6Iy3lFy/pRHwuv00AgoDsdkFmaWGj5ydEDX5jA8
-         8b7X02eb0hrjFvSesv1wxDV5vPphrPDKJRtfkXMr8VZvlOaFuvFPGQrDx+0C1qJ9rpxz
-         hgju+70H4ivhGlDiYPrILe+/QVeD/lP1IsE35OGB5QSJ6o/uvnbMPV6w/DFuaRf2XHq0
-         TdKTi+6XrJ2dBBrm34mZOyuFeIxTxsgGpPDaSfmxeyvfEp/50rNEzcnGdlO7RwcQ4enw
-         5+Ww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770056619; x=1770661419;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=MqsmEA1l4K6M349TDpqaFt5arK8yfZiMH/3re7GUwy0=;
-        b=srYw5xEIhPGM8UqxsvqhbUFgzf82FsrO1MGwhWr0mMM6AfK0H5nD+wNPfsgvs9y5Al
-         ctxvf+V6NPQf/6yKwUPE2LeHhxtmGR5Uq/VYzq9kgWTCyhlFZfv0jXhRxQ7+GhAUHIP1
-         bYU5zIRvHFb9C68sOBaDYv3iOPnLiWMbQr0el3+1TAYy6ZgdoJRRuQlcv5AA9+QutA3g
-         ykmXoNN7fJ0quYS1TZf4zEEFlpF70NLaDc7OOI4gJnWBAD4E5sLP/MwmAoJ05iiMp7W/
-         EYTZU+N7Sgk9HQXiJqYc/GYh9C0276H/fB1NhtMpB6g//KEEo7/5GCXCrYFAGY2EoZcC
-         eAjw==
-X-Forwarded-Encrypted: i=1; AJvYcCWNl01sqyYlSHch/mUcbDkrGmNx80gehBC74tiWLDeNtkxflWGEnwVYUMALSYkYnLwh7MdJF1M=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yy5djCuy2FqXwSab4RMVWwhh7dac655jj92aYuOOIqgDbIEBfCE
-	dJB4EzkRoHrXH77I6PTbDGP4BNMdSXJQCp6wMpEhnRJjVpfIILwn8VNWw8aaeS3TuPc=
-X-Gm-Gg: AZuq6aIlRWSIOdODpiaY/VEZSrw6y3r4OkgX+uJl51fSiTqnbIClN+U6+Bevyy5aDZz
-	xWqt87bdPhGudZE2KIMYnSMflb+OJrLpii4U5HydWvcw3twzw/XO7RPB9irYGYLd9VCw3zpKkaR
-	JUFBqNVCuIrAcVLm1Dxwx3qXzRkOSAKkbyb9JIB1cn0Ijq8Apool9jm3YlZVrQE5vx8NfeaA8eQ
-	YWgfZ/Xi4kJnibbQGT+m+rbU8hXRwaIhRcvQxjBvjDvvArHVeRkKVoFhjnFWjsIfYDAs6UQTLGF
-	wfwuasrsFy6zdmUyQQMbtMApFoTLWvVMqbq5gfXPI3Qv9X2qxtiyDs0ka8h7UNKNIlsyhNAnuTY
-	PP6BeBtg8MERvaXE8X886grxlSeF4nPvxv/ZU5NbsPDxujL6MyhvyepaHPnNAWIK/+DQmZdE+NG
-	q/6cOPGNTUV64SULnnoNQhCgMrX0qhdGG6UZYjoYOjCRHErD1gJuuPvshZy+UZNLBIfyVwqw==
-X-Received: by 2002:a05:6214:e87:b0:894:6558:58f7 with SMTP id 6a1803df08f44-894ea167cbbmr166333016d6.63.1770056619523;
-        Mon, 02 Feb 2026 10:23:39 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c71b859eaesm1089477985a.46.2026.02.02.10.23.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Feb 2026 10:23:39 -0800 (PST)
-Date: Mon, 2 Feb 2026 13:23:37 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, kernel-team@meta.com, dave@stgolabs.net,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	vishal.l.verma@intel.com, ira.weiny@intel.com,
-	dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
-	terry.bowman@amd.com, john@jagalactic.com
-Subject: Re: [PATCH 8/9] cxl/core: Add dax_kmem_region and sysram_region
- drivers
-Message-ID: <aYDrqVEOwkGfv2JG@gourry-fedora-PF4VCD3F>
+	s=arc-20240116; t=1770057977; c=relaxed/simple;
+	bh=3Bb3GA58D7DLWusn0/jAKceagn2uKDar4xbNlnWV1tE=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=d/f2Mt9n905YjPRSHDS7ZaG+ZY/HldPPA5KO3F3fpytX0EnZDoXLWln2GudQiKL7Vqg9a3SGkFbQRnv/Ah9l+Ku6DI54JbjC1UxZ9DrgPOnB3lljRAAGQHYPVLCebyUpd0XFrU4ecg4YLwM2qS8Q/P8AV0iX/yo/2/eg3oBxwIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.150])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4f4bCV0H9xzJ467X;
+	Tue,  3 Feb 2026 02:45:26 +0800 (CST)
+Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
+	by mail.maildlp.com (Postfix) with ESMTPS id 30AC040565;
+	Tue,  3 Feb 2026 02:46:12 +0800 (CST)
+Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
+ (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 2 Feb
+ 2026 18:46:11 +0000
+Date: Mon, 2 Feb 2026 18:46:09 +0000
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: Gregory Price <gourry@gourry.net>
+CC: <linux-mm@kvack.org>, <linux-cxl@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<kernel-team@meta.com>, <dave@stgolabs.net>, <dave.jiang@intel.com>,
+	<alison.schofield@intel.com>, <vishal.l.verma@intel.com>,
+	<ira.weiny@intel.com>, <dan.j.williams@intel.com>, <willy@infradead.org>,
+	<jack@suse.cz>, <terry.bowman@amd.com>, <john@jagalactic.com>, David
+ Hildenbrand <david@kernel.org>, Oscar Salvador <osalvador@suse.de>, Andrew
+ Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/9] mm/memory_hotplug: add
+ __add_memory_driver_managed() with online_type arg
+Message-ID: <20260202184609.00004a02@huawei.com>
+In-Reply-To: <aYDmor_ruasxaZ-7@gourry-fedora-PF4VCD3F>
 References: <20260129210442.3951412-1-gourry@gourry.net>
- <20260129210442.3951412-9-gourry@gourry.net>
- <20260202182015.0000325b@huawei.com>
+	<20260129210442.3951412-3-gourry@gourry.net>
+	<20260202172524.00000c6d@huawei.com>
+	<aYDmor_ruasxaZ-7@gourry-fedora-PF4VCD3F>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260202182015.0000325b@huawei.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
+ dubpeml500005.china.huawei.com (7.214.145.207)
 
-On Mon, Feb 02, 2026 at 06:20:15PM +0000, Jonathan Cameron wrote:
+On Mon, 2 Feb 2026 13:02:10 -0500
+Gregory Price <gourry@gourry.net> wrote:
+
+> On Mon, Feb 02, 2026 at 05:25:24PM +0000, Jonathan Cameron wrote:
+> > On Thu, 29 Jan 2026 16:04:35 -0500
+> > Gregory Price <gourry@gourry.net> wrote:
+> >   
+> > > Enable dax kmem driver to select how to online the memory rather than
+> > > implicitly depending on the system default.  This will allow users of
+> > > dax to plumb through a preferred auto-online policy for their region.
+> > > 
+> > > Refactor and new interface:
+> > > Add __add_memory_driver_managed() which accepts an explicit online_type
+> > > and export mhp_get_default_online_type() so callers can pass it when
+> > > they want the default behavior.  
+> > 
+> > Hi Gregory,
+> > 
+> > I think maybe I'd have left the export for the first user outside of
+> > memory_hotplug.c. Not particularly important however.
+> > 
+> > Maybe talk about why a caller of __add_memory_driver_managed() might want
+> > the default?  Feels like that's for the people who don't...
 > >  
-> > +/**
-> > + * struct cxl_sysram_region - CXL RAM region for system memory hotplug
-> > + * @dev: device for this sysram_region
-> > + * @cxlr: parent cxl_region
-> > + * @hpa_range: Host physical address range for the region
-> > + * @online_type: Memory online type (MMOP_* 0-3, or -1 if not configured)
 > 
-> Ah. An there's our reason for an int.   Can we just add a MMOP enum value
-> for not configured yet and so let us use it as an enum?
-> Or have a separate bool for that and ignore the online_type until it's set.
+> Less about why they want the default, more about maintaining backward
+> compatibility.
+> 
+> In the cxl driver, Ben pointed out something that made me realize we can
+> change `region/bind()` to actually use the new `sysram/bind` path by
+> just adding a one line `sysram_regionN->online_type = default()`
+> 
+> I can add this detail to the changelog.
+> 
+> > 
+> > Other comments are mostly about using a named enum. I'm not sure
+> > if there is some existing reason why that doesn't work?  -Errno pushed through
+> > this variable or anything like that?
+> >   
+> 
+> I can add a cleanup-patch prior to use the enum, but i don't think this
+> actually enables the compiler to do anything new at the moment?
+
+Good point. More coffee needed (or sleep)
+
+It lets sparse do some checking, but sadly only for wrong enum assignment.
+(Gcc has -Wenum-conversion as well which I think is effectively the same)
+I.e. you can't assign a value from a different enum without casting.
+
+It can't do anything if people just pass in an out of range int.
+
+> 
+> An enum just resolves to an int, and setting `enum thing val = -1` when
+> the enum definition doesn't include -1 doesn't actually fire any errors
+> (at least IIRC - maybe i'm just wrong). Same with
+> 
+>    function(enum) -> function(-1) wouldn't fire a compilation error
+> 
+> It might actually be worth adding `MMOP_NOT_CONFIGURED = -1` so that the
+> cxl-sysram driver can set this explicitly rather than just setting -1
+> as an implicit version of this - but then why would memory_hotplug.c
+> ever want to expose a NOT_CONFIGURED option lol.
+> 
+> So, yeah, the enum looks nicer, but not sure how much it buys us beyond
+> that.
+> 
+> > It's a little odd to add nice kernel-doc formatted documentation
+> > when the non __ variant has free form docs.  Maybe tidy that up first
+> > if we want to go kernel-doc in this file?  (I'm in favor, but no idea
+> > on general feelings...)
+> >  
+> 
+> ack.  Can add some more cleanups early in the series.
+> 
+> > > +	if (online_type < 0 || online_type > MMOP_ONLINE_MOVABLE)  
+> > 
+> > This is where using an enum would help compiler know what is going on
+> > and maybe warn if anyone writes something that isn't defined.
+> >  
+> 
+> I think you still have to sanity check this, but maybe the code looks
+> cleaner, so will do. 
+
+I'm in two minds about this. If it's an enum and someone writes an int
+I take take the view it's not our problem that they shot themselves in
+the foot.  Maybe we should be paranoid...
+
+J
+
+
+> 
+> ~Gregory
 > 
 
-I think the latter is more reasonably, MMOP_UNCONFIGURED doesn't much
-make sense for memory_hotplug.c
-
-ack.
-
-~Gregory
