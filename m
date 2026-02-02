@@ -1,151 +1,258 @@
-Received: from sender4-pp-f112.zoho.com (sender4-pp-f112.zoho.com [136.143.188.112])
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011059.outbound.protection.outlook.com [40.107.208.59])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AA7D748F;
-	Sun,  1 Feb 2026 04:40:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.112
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E64033816F8
+	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 17:02:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.59
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769920840; cv=pass; b=eEkKIht6H/Vg/f14mjXGcRdI+zKncE3f9ZHii0wSc17PbuOUYUj5TOndeVwtx3Pxc4wb0oVtAAVGVWwH6AK2HtyVFxy6rXqhdlkKnrzW+Q/oWvjzOi76rJcy08ocy7/oXS6ea1M6VvM3bqKJghABCvgpwUEwAuOTMcPfySbAnTY=
+	t=1770051769; cv=fail; b=tqWSLfXgKTFYryK36Jmcc0iOg67M0o68jcPpnh9PU5vSgXvsK1diSDo7nDZgEqFZqAT68c84e1aB+G8Z9YQ3qVovl1jnL6LGgTZUbzUxp/0/gcxfvBr7SyuWlk4vqruBwaMjaSLvlL8jRkzRwgb9mPnOhJkW+E1t9otF3f1lUFU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769920840; c=relaxed/simple;
-	bh=zx3uK6OUyhKOc8SgSfvJ1t/xjxISwq/GyLbRzxjb8fM=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ii9AXcQI25dyq4fs7cWkdfZlCFndGkey+ZaKxsEkObnD++nnmAzPCRwQ6c4bxsrBr0/0Jhhrmz+8+dPqmggx/V3Xg+LkTG+OfsqYb8iPz0eSafOOUwlHzvuZOpIAET2sMfXbDP4oO/uurLeqK+Schu8iLXJMLriRE4zQMa5xFZU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=J7MGQwVO; arc=pass smtp.client-ip=136.143.188.112
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.beauty
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.beauty
+	s=arc-20240116; t=1770051769; c=relaxed/simple;
+	bh=XGUjRo2jojA1AFM1b9X8DUD21Bh0bb8nywNqsEjKYAg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=C6Z5+hYYtndG/Tslkm+JUw2bXvBZuJ//kFas4gSNp2SGgEbLvhTQfQJ3OKkR2jGV3XOCaqTmDjJ+ge795W3u3HPewUy1FQ2fG+E6JCWUXomr9KAMKnwXNd5dCoM4KtrbW34EbXItksXbtZvSFzy8v+Dw0urul1KiwCWJfIWnqoM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=QxygLPEf; arc=fail smtp.client-ip=40.107.208.59
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="J7MGQwVO"
-ARC-Seal: i=1; a=rsa-sha256; t=1769920830; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=OCH0Bjxk+SCfTxm05bjBFgq9f4ZE/N9hSg5558ja2++fFUBUJVddhSJVFMopSXsyz36NCv8nDboU6ZYev+V9zt/0a3ipmEkipRi8sQOkx+Jk65FemvM7rIcenhKn4dAMmQ7zixo6PSvwBcN3Cu/JrTNNPoMk/aazJ1GBO/b9B5I=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1769920830; h=Content-Type:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=Mg0/vv+N2TY3Mun8A569+YtuS6aKPFTWr3H+LYPY9rA=; 
-	b=hKRbiSy8FhZRqq9u0R4HLDG7GR+Vw+Dp7a4GsFnO3w3Kl/k36QlPTVgbh7cXpMaaqhm3cPi9R4io6obN+zVzWVkiFOPutHf1xqKzZkmK/1pRCeoUrbbilLUD2v2jhmd8wzN6SQAzLkuxcrOZ+wwSj+mbUH4NxmCGsqAlNCeHSF8=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=linux.beauty;
-	spf=pass  smtp.mailfrom=me@linux.beauty;
-	dmarc=pass header.from=<me@linux.beauty>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1769920830;
-	s=zmail; d=linux.beauty; i=me@linux.beauty;
-	h=Date:Date:Message-ID:From:From:To:To:Cc:Cc:Subject:Subject:In-Reply-To:References:MIME-Version:Content-Type:Message-Id:Reply-To;
-	bh=Mg0/vv+N2TY3Mun8A569+YtuS6aKPFTWr3H+LYPY9rA=;
-	b=J7MGQwVOA5DBFqc9nmvyy3MYqMbV+CoXlv2LnLe6vejfbudQTIYQ2Ao3r615K5zV
-	r3Zim2UkXrKk2wWEJ5phFZPA85Iphyo6HTOTZnCS+bRIv0xZndDuE00820g63WiTSQE
-	Kec0u5krxFiTAHzQauA3oO+Ad26XuIoGlU5YEPwA=
-Received: by mx.zohomail.com with SMTPS id 1769920828747568.2122837823392;
-	Sat, 31 Jan 2026 20:40:28 -0800 (PST)
-Date: Sun, 01 Feb 2026 12:40:15 +0800
-Message-ID: <877bsxoz4g.wl-me@linux.beauty>
-From: Li Chen <me@linux.beauty>
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Cornelia Huck <cohuck@redhat.com>,
-	Jakub Staron <jstaron@google.com>,
-	nvdimm@lists.linux.dev,
-	virtualization@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] nvdimm: virtio_pmem: serialize flush requests
-In-Reply-To: <20260131124554-mutt-send-email-mst@kernel.org>
-References: <20260113034552.62805-1-me@linux.beauty>
-	<697d19fc772ad_f6311008@iweiny-mobl.notmuch>
-	<20260131124554-mutt-send-email-mst@kernel.org>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
- FLIM-LB/1.14.9 (=?ISO-8859-4?Q?Goj=F2?=) APEL-LB/10.8 EasyPG/1.0.0
- Emacs/30.2 (x86_64-pc-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="QxygLPEf"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Cq/iM1g1wg1rqiMoKEGEjB6AzrwG+n2ZanMSLHEu5D+XkouikfH6Aht3jULJoRbcKT5g5gpx70w1JdzJXUtKRktsEsSWlINzuBBHzAudrgWIuGmtbERbh9fv71YhAseq2URrKWpHd+8pKeWpP+Bf1xYbwORMhiyOCUispi84MUHwDLTZEJr7u8hA2+3N54cwkbodBvXFYXlDttSKay9e+RYj1K2iSVJcJv+eEOEkYGddX2yLwMP/tUJVxyeC1ab6UBzz30Wb6y2dzux0xpK7kNu8noyjZd0I7hmsHZYDSEazdBH0Gx+NcZBJCVknjH2mJjIuJ8sg7/F5ZfzTF4qDzA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZS3wNG1ZQrNPgkiWVP7CWSgc1UurS5y2H0Vo1LQEZrs=;
+ b=BFThIP9CFOapv28LrmNaYl7MD6AsMRcYgPH4wJ+Ip5zPMVeladse92JzyaRPG54xbePDygB0FztkaTVnzeZ7VV/nr53rOn3rg0ldDhaYJWWC7gYAKz4BHh2f0YZTvkVgNFci+ZyfmBkqGkvO92TitKRyxIhntcpGKD4hdWhyXyQsFL+h3RQuiy888bR2nNLmqUAlnmtQ2zTWgg4g2aok1ghly/yY9Em/h3zun3M+L7Bkio4EUuk0TXFU7776IWKP5tZKlBNgLfm9ayWtUtm1RG3c8KtUGZzlQhZP9ZbO2KcLH/9u3JWMyq/TlrhtTiH4MGocoivgyX6Zo443q5mBSA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=gourry.net smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZS3wNG1ZQrNPgkiWVP7CWSgc1UurS5y2H0Vo1LQEZrs=;
+ b=QxygLPEf+Y6DOQ9bKI39D0hhwnpU6zm9aAZ+wrSxImddBHB5jP3lAi4sqk69CTdsC6qk/I4rPu6zfRtb1pkFD/DLcZsyWvTIPsoC72ou7RB9tHFz9A9Crmxqcwi7MQa4gdOOcd8tNzq6Mo06F2S/qzN20NSntR5vUZiGh0F8JqE=
+Received: from BN0PR04CA0173.namprd04.prod.outlook.com (2603:10b6:408:eb::28)
+ by PH7PR12MB8123.namprd12.prod.outlook.com (2603:10b6:510:2bb::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9564.16; Mon, 2 Feb
+ 2026 17:02:42 +0000
+Received: from BN1PEPF00006000.namprd05.prod.outlook.com
+ (2603:10b6:408:eb:cafe::c0) by BN0PR04CA0173.outlook.office365.com
+ (2603:10b6:408:eb::28) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9564.16 via Frontend Transport; Mon,
+ 2 Feb 2026 17:02:05 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb08.amd.com; pr=C
+Received: from satlexmb08.amd.com (165.204.84.17) by
+ BN1PEPF00006000.mail.protection.outlook.com (10.167.243.232) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9587.10 via Frontend Transport; Mon, 2 Feb 2026 17:02:41 +0000
+Received: from [10.254.59.95] (10.180.168.240) by satlexmb08.amd.com
+ (10.181.42.217) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Mon, 2 Feb
+ 2026 11:02:39 -0600
+Message-ID: <9652a424-6eb1-462f-8cbd-181af880f98b@amd.com>
+Date: Mon, 2 Feb 2026 11:02:37 -0600
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-ZohoMailClient: External
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 8/9] cxl/core: Add dax_kmem_region and sysram_region
+ drivers
+To: Gregory Price <gourry@gourry.net>
+CC: <linux-mm@kvack.org>, <linux-cxl@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<kernel-team@meta.com>, <dave@stgolabs.net>, <jonathan.cameron@huawei.com>,
+	<dave.jiang@intel.com>, <alison.schofield@intel.com>,
+	<vishal.l.verma@intel.com>, <ira.weiny@intel.com>,
+	<dan.j.williams@intel.com>, <willy@infradead.org>, <jack@suse.cz>,
+	<terry.bowman@amd.com>, <john@jagalactic.com>
+References: <20260129210442.3951412-1-gourry@gourry.net>
+ <20260129210442.3951412-9-gourry@gourry.net>
+ <c1d7d137-b7c2-4713-8ca4-33b6bc2bea2b@amd.com>
+ <aX0s4i5OqFhHkEUp@gourry-fedora-PF4VCD3F>
+Content-Language: en-US
+From: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>
+In-Reply-To: <aX0s4i5OqFhHkEUp@gourry-fedora-PF4VCD3F>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb08.amd.com
+ (10.181.42.217)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN1PEPF00006000:EE_|PH7PR12MB8123:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0da34349-4baa-4f6a-27a6-08de627ce0ac
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|82310400026|7416014|36860700013|1800799024|7053199007;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?OHVQcGM1blNWWEl0dFJuVW5PVGtyVDViRHNSTzNyK0RacCt1bUVHcjBtUEtz?=
+ =?utf-8?B?d0RBNVlRWFNTcVg3cU5qTVQzV29BelY3c1Rsd3BoTjdSNFRRbWYyUHVhK0xY?=
+ =?utf-8?B?S3RIRzduZ2Q4aWlaTWdaTnRLVDc3SkRsTGJYM1NQVmtTbi9yakdwS3NmU0J0?=
+ =?utf-8?B?RnArMlJVcHpMU0FXMHhLTC9ZK1VkNXVLanVkZyt5VG9zdFltZ0JDaUJTV3oz?=
+ =?utf-8?B?S0FFKzA2U1dMdjFqU2YzMk96Wi84VGQydFdaU2ZmcUVtL0RTWnBXeHlFV2Z2?=
+ =?utf-8?B?RTQzWkY3ZHVNZlZ2SWJ5V2o5dzMwYlMzQ09JTW1INTFYbGt3WGZyM1F3aXAx?=
+ =?utf-8?B?d0ZUU0FaNHNPaGN6bDdpWXNtNC9RRDZnbmRBZTRISzBPZTducnVYMWM4N1ZE?=
+ =?utf-8?B?a0d3QU90VzRHMjNXT2hJREh1M0tHQjRleHZZYlUxTSs2V3ZyVVZCSGxOQjJx?=
+ =?utf-8?B?aU1zVFBxUSttNlNzV0NHS202MTJqMUoxdVl0d3o5eDVNTU4xRGFCc3VsVEJJ?=
+ =?utf-8?B?ZFhaeHFVcHg1ZUg0em9jTm4yUzVvZ2tSMzZCV3ErU2dtZzhndzA0MUZPWmt6?=
+ =?utf-8?B?N2RUNDA2bHhWd3hZWTJnK0YyZ2NDcmdCQTl5b29JVzB2UmZ5eUdJcDJmT2wr?=
+ =?utf-8?B?QUpOdDRnbjVkTHg5UnVEbllDeEJLaVZyTFR3YXNxZ1dvdytPckNXdnlCUi9x?=
+ =?utf-8?B?dVdDSmdXU2gyWTV0dGJKdFkybUZlUlpKajllTUtiMktiRWl3OGRnaXVEUDFM?=
+ =?utf-8?B?aUVCNGZWbzFISVNKVEd5aDRyL0pBS3dqREo2dDVLZk5xSDlETTQxaWFWSlNM?=
+ =?utf-8?B?VmJsYi9CR2FmRVVtbEZmbU1zQ1I4MDJ6YytoNmpxeHpMb3VxTWtUZWJFYTZa?=
+ =?utf-8?B?S1hZS0FPRzh6V0UyYkZkVU12QzZFN21POWZ4L3E1cnVVQXZ5K1hMdlVTWWJa?=
+ =?utf-8?B?dnNDZFdoZmoyQXNlTjM5a01IQnVkM1d6akw3emQwMm9qMFFlRzQrWFlTNFdk?=
+ =?utf-8?B?d0lkM3lzdFJYa2dWREx3a3doTDhtNmo0dUdhdHl4aDFZdjRrVmlMQlZ2cndF?=
+ =?utf-8?B?SzlVMEVHekZwVDI3akRhN25SMVl2SStrR2RJOU92clFTZjNWc0JmdmFoaEpm?=
+ =?utf-8?B?dW55RkJxMnZOMUNVUWQzKzhuMnhyUHVDMUdmbWdzZHpyL2hjRFdFd0U3ek1F?=
+ =?utf-8?B?RTEzWEMyU0dkOFRYYWMvUDh5SlRrK1U1b24wRUU0bG1rNDBxV2FudUpmOTJn?=
+ =?utf-8?B?YkdCSmxaR1FSOFRkcGFMdm5xeGxXejVIZDVHSk5zb3pjTkNVcU9IcGw4cmVt?=
+ =?utf-8?B?YTBFSHRHSnFMWDhncEZDaTVyWXpCUzhBNTdEeG04M3hqYXlqc0dmSzVIMk5F?=
+ =?utf-8?B?bXlObkY1alZJbk15enl2eHRvWW9RSkREQUZGQW9rd2J4bWNkR2J5WExpa01t?=
+ =?utf-8?B?YlJrSzg3T3Q5T3dSY0RCaHN3M1Z6cW5waHYzK05qZ2xxbGFQN2d1YnhKbU94?=
+ =?utf-8?B?VzlpSktCd2VGTFkybVlLNEFFVVlYU3EvREY3ZjUycFJQdXVaWlBydU00QnVE?=
+ =?utf-8?B?c3J3aENTVkFYdzhGRVRzVGcremoybEFKWmo2cWhPWEpPdUVVK0poRm9XSkI2?=
+ =?utf-8?B?dlRHRUF3TGFjdXAyK2pZTVIyYTljaXB6bWRlenN4SnhvM1M3dGx5U3pMMCt5?=
+ =?utf-8?B?WURoZkxCTzlYdy9SNC9VUS90OWFucE1kWWhYY3NaSFgrSVoyUVdlWHFKYWk4?=
+ =?utf-8?B?ZTdVdmF0K2t2dFg2ZWZueEN6Vm1GR0pndDBkVk1qRWJHZUpwQmlyNXptaGk4?=
+ =?utf-8?B?ZjRWU2pZeFhrN2JqaERJeGJzR0crK3I5ME1oRWNPKys4dEhQR0Y3WEJLVEdO?=
+ =?utf-8?B?NGJucDBzMWtEbFVPZll5NnlJYVRwakREVnIxdFlPY1JIbHRIU0dqY3ZTRVpt?=
+ =?utf-8?B?aEdQd1pkWXRoRUJub1ZLUFUxYzhIMGFURjk2MjFxZHlEOVU3dFJQT2haSVZz?=
+ =?utf-8?B?elBCVk5nVzgzSlZtMGtXelFXZEdlVjFCa1VGMEZBWU5ubG5tUi9BTjlTK3ZP?=
+ =?utf-8?B?R3ZzMzYydnNMdmNLaGMwUTYwQTBZTGxpMGNnMzBHbjBUcXN0M2puc0JGenNG?=
+ =?utf-8?B?U0ZPZWMxTUtTZVY4QStXU3Y1YmoxZ1krMFNraTNFdVg2a0ZWVFcydXhBTjha?=
+ =?utf-8?B?clYyYXZLZlNybFQ1anBtdXRWaDVlVklsRHRpRDJpZmVUT1M3dExmclc3dm1N?=
+ =?utf-8?B?MGVmeVpFRlgrVDBtSGM4SkUxbFZBPT0=?=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb08.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(82310400026)(7416014)(36860700013)(1800799024)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	HChHCTy9IZFNnyPpZ3/DN8VKjfsgI+ZECtRztZIIvo0RLrCC4WImtgCzPsQI2nXbrqTJRgbyVtQmx1cmWWe/4monJPMnDnKIPbiWriHMwQRPkbvVD+18cLrqVU4cpwrg+EKOS3hWPDF6BPbLCb3nuwIv4ZhN6qPdPkJ8flyG8mk4tlimwqOhQjydR+4sjXU2kaUv/49cXKVR9WZyjYJUZbyRlGGUuR0drxHj0qqXnbEI4ysYiTRy/OIz8S5JeNkTUSGLJbkwG64D1FAU22xTnlO25cPFrCzMdJnKJEWnfq9KhuuXYTHr93A1wkOZQyI+Jvt7LMo6syS/ChQQmTih4AYGAzuai9LS73/Wl+CkFg1CvCCAQGFNS+bUwis8tRNCyJ2qebZUGdRQ2nQUTmYVGvUHWnBZw9CDGEwMhXps0al5PJZmiuxo9ft0huwk+Jbd
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Feb 2026 17:02:41.7586
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0da34349-4baa-4f6a-27a6-08de627ce0ac
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb08.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN1PEPF00006000.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB8123
 
-Hi Michael,
+On 1/30/2026 4:12 PM, Gregory Price wrote:
+> On Fri, Jan 30, 2026 at 03:27:12PM -0600, Cheatham, Benjamin wrote:
+>> On 1/29/2026 3:04 PM, Gregory Price wrote:
+>>> In the current kmem driver binding process, the only way for users
+>>> to define hotplug policy is via a build-time option, or by not
+>>> onlining memory by default and setting each individual memory block
+>>> online after hotplug occurs.  We can solve this with a configuration
+>>> step between region-probe and dax-probe.
+>>>
+>>> Add the infrastructure for a two-stage driver binding for kmem-mode
+>>> dax regions. The cxl_dax_kmem_region driver probes cxl_sysram_region
+>>> devices and creates cxl_dax_region with dax_driver=kmem.
+>>>
+>>> This creates an interposition step where users can configure policy.
+>>>
+>>> Device hierarchy:
+>>>   region0 -> sysram_region0 -> dax_region0 -> dax0.0
+>>
+>> This technically comes up in the devdax_region driver patch first, but I noticed it here
+>> so this is where I'm putting it:
+>>
+>> I like the idea here, but the implementation is all off. Firstly, devm_cxl_add_sysram_region()
+>> is never called outside of sysram_region_driver::probe(), so I'm not sure how they ever get
+>> added to the system (same with devdax regions).
+>>
+>> Second, there's this weird pattern of adding sub-region (sysram, devdax, etc.) devices being added
+>> inside of the sub-region driver probe. I would expect the devices are added then the probe function
+>> is called. 
+> 
+> I originally tried doing with region0/region_driver, but that design
+> pattern is also confusing - and it creates differently bad patterns.
+> 
+>     echo region0 > decoder0.0/create_ram_region   -> creates region0
+> 
+>     # Current pattern
+>     echo region > driver/region/probe  /* auto-region behavior */
+> 
+>     # region_driver attribute pattern
+>     echo "sysram" > region0/region_driver
+>     echo region0 > driver/region/probe   /* uses sysram region driver */
+> 
+> https://lore.kernel.org/linux-cxl/20260113202138.3021093-1-gourry@gourry.net/
+> 
+> Ira pointed out that this design makes the "implicit" design of the
+> driver worse.  The user doesn't actually know what driver is being used
+> under the hood - it just knows something is being used.
+> 
+> This at least makes it explicit which driver is being used - and splits
+> the uses-case logic up into discrete drivers (dax users don't have to
+> worry about sysram users breaking their stuff).
+> 
+> If it makes more sense, you could swap the ordering of the names
+> 
+>     echo region0 > region/bind
+>     echo region0 > region_sysram/bind
+>     echo region0 > region_daxdev/bind
+>     echo region0 > region_dax_kmem/bind
+>     echo region0 > region_pony/bind
+> 
+> --- 
+> 
+> The  underlying issue is that region::probe() is trying to be a
+> god-function for every possible use case, and hiding the use case
+> behind an attribute vs a driver is not good.
+> 
+> (also the default behavior for region::probe() in an otherwise
+>  unconfigured region is required for backwards compatibility)
 
-On Sun, 01 Feb 2026 01:46:19 +0800,
-Michael S. Tsirkin wrote:
+Ok, that makes sense. I think I just got lost in the sauce while looking at this last
+week and this explanation helped a lot.> 
+>> What I think should be going on here (and correct me if I'm wrong) is:
+>> 	1. a cxl_region device is added to the system
+>> 	2. cxl_region::probe() is called on said device (one in cxl/core/region.c)
+>> 	3. Said probe function figures out the device is a dax_region or whatever else and creates that type of region device
+>> 	(i.e. cxl_region::probe() -> device_add(&cxl_sysram_device))
+>> 	4. if the device's dax driver type is DAXDRV_DEVICE_TYPE it gets sent to the daxdev_region driver
+>> 	5a. if the device's dax driver type is DAXDRV_KMEM_TYPE it gets sent to the sysram_region driver which holds it until
+>> 	the online_type is set
+>> 	5b. Once the online_type is set, the device is forwarded to the dax_kmem_region driver? Not sure on this part
+>>
+>> What seems to be happening is that the cxl_region is added, all of these region drivers try
+>> to bind to it since they all use the same device id (CXL_DEVICE_REGION) and the correct one is
+>> figured out by magic? I'm somewhat confused at this point :/.
+>>
 > 
-> On Fri, Jan 30, 2026 at 02:52:12PM -0600, Ira Weiny wrote:
-> > Li Chen wrote:
-> > > Under heavy concurrent flush traffic, virtio-pmem can overflow its request
-> > > virtqueue (req_vq): virtqueue_add_sgs() starts returning -ENOSPC and the
-> > > driver logs "no free slots in the virtqueue". Shortly after that the
-> > > device enters VIRTIO_CONFIG_S_NEEDS_RESET and flush requests fail with
-> > > "virtio pmem device needs a reset".
-> > > 
-> > > Serialize virtio_pmem_flush() with a per-device mutex so only one flush
-> > > request is in-flight at a time. This prevents req_vq descriptor overflow
-> > > under high concurrency.
-> > > 
-> > > Reproducer (guest with virtio-pmem):
-> > >   - mkfs.ext4 -F /dev/pmem0
-> > >   - mount -t ext4 -o dax,noatime /dev/pmem0 /mnt/bench
-> > >   - fio: ioengine=io_uring rw=randwrite bs=4k iodepth=64 numjobs=64
-> > >         direct=1 fsync=1 runtime=30s time_based=1
-> > 
-> > I don't see this error.
-> > 
-> > <file>
-> > 13:28:50 > cat foo.fio 
-> > # test http://lore.kernel.org/20260113034552.62805-1-me@linux.beauty
-> > 
-> > [global]
-> > filename=/mnt/bench/foo
-> > ioengine=io_uring
-> > size=1G
-> > bs=4K
-> > iodepth=64
-> > numjobs=64
-> > direct=1
-> > fsync=1
-> > runtime=30s
-> > time_based=1
-> > 
-> > [rand-write]
-> > rw=randwrite
-> > </file>
-> > 
-> > It's possible I'm doing something wrong.  Can you share your qemu cmdline
-> > or more details on the bug yall see.
-> > 
-> > >   - dmesg: "no free slots in the virtqueue"
-> > >            "virtio pmem device needs a reset"
-> > > 
-> > > Fixes: 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
-> > > Signed-off-by: Li Chen <me@linux.beauty>
-> > > ---
-> > >  drivers/nvdimm/nd_virtio.c   | 15 +++++++++++----
-> > >  drivers/nvdimm/virtio_pmem.c |  1 +
-> > >  drivers/nvdimm/virtio_pmem.h |  4 ++++
-> > >  3 files changed, 16 insertions(+), 4 deletions(-)
-> > > 
-> > > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-> > > index c3f07be4aa22..827a17fe7c71 100644
-> > > --- a/drivers/nvdimm/nd_virtio.c
-> > > +++ b/drivers/nvdimm/nd_virtio.c
-> > > @@ -44,19 +44,24 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
-> > >  	unsigned long flags;
-> > >  	int err, err1;
-> > >  
-> > > +	might_sleep();
+> For auto-regions:
+>    region_probe() eats it and you get the default behavior.
 > 
-> 
-> for that matter might_sleep not really needed near mutex_lock.
-> 
-> 
-> > > +	mutex_lock(&vpmem->flush_lock);
+> For non-auto regions:
+>    create_x_region generates an un-configured region and fails to probe
+>    until the user commits it and probes it.
 
-Good point. mutex_lock() already does might_sleep(), so the explicit
-might_sleep() next to the lock is redundant.
+I think this was the source of my misunderstanding. I was trying to understand how it
+works for auto regions when it's never meant to apply to them.
 
-I'll drop it in v2 (which also switches to guard(mutex) as Ira suggested).
+Sorry if this is a stupid question, but what stops auto regions from binding to the
+sysram/dax region drivers? They all bind to region devices, so I assume there's something
+keeping them from binding before the core region driver gets a chance.
 
-Regards,
-Li
+Thanks,
+Ben
+> 
+> auto-regions are evil and should be discouraged.
+> 
+> ~Gregory
+
