@@ -1,160 +1,220 @@
-Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 416E7387357
-	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 18:02:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D754C2DE71B
+	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 18:20:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770055335; cv=none; b=WZewBq1Dr0aOZWLsiH7+bxQshRadR3AQwNlQwQ5l5pY7KdNaCS/306v52RHxHDqaL9MY/fURT0bkfRiYvGM3pD3TnPvyv6I/f1mUrkLHllMsQV9C3u0hZ9SZHELyVWF6TqccaICUCp5v+X39/9CShOCO8E0QScq664O19WuvZ6s=
+	t=1770056425; cv=none; b=Ooqrs88h/SY/6fng0BFR09BdgZa0/pZclnOn4LCs6JWgOYNt1/D1No9LpjftfpVdBeXpJwcZTlir1mKpJzc9vj16TrfFT9deOnlW/ZcQdCArsvaGD1zUmXWFUKAs1oQyaDqHFF9Dmp+l1tFuiRsID2k1PP3CxKLs4rj+bpi66Qg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770055335; c=relaxed/simple;
-	bh=MbAgTX+hDTfHzpvyoNvAv/VH86Gp5D8IWac2rvKmaY0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YXTtgzx8czA7WHDyqrlx0GM0LaA52nJojQSVLRyDhI47mT/99CIIkp8jWmGimiaNZ5T1xAwkFTajxAhtHi3xFi1CYmZA28oJL45eZXzLIWA0qP3z6W5X13zHxkreZmcr8+wl909bdmrgINNlb/9urLwyfO6RDwuBO1WlAAbjl9k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=YAa33V6Y; arc=none smtp.client-ip=209.85.160.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="YAa33V6Y"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-502a4e3e611so73371cf.0
-        for <nvdimm@lists.linux.dev>; Mon, 02 Feb 2026 10:02:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1770055333; x=1770660133; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=NMO26NJqLzUacsptvD643N0i+a1yKYqxDegqXwZutbI=;
-        b=YAa33V6YaI4MYexf+CZul0xIqf58+7JUzYEkKj9IxPl12cGCcA3MOETpAuq5SA2eGu
-         k70JsHHuqvVO+Q0cXIt+Z9/EZCraZ+QEAsgafh/DCOED4V9HLgaMjSWUvwZKN/y1EEa2
-         L+/d85/HAsEdhF9QQkTFDQlPyDQQmSwLnfoK2eUC8WaNkN6DZQAMNabj6pms/TJk5tgv
-         QX0OUeyTz4X69B9BqlaD+YiWOG6i0AEdZC2vcRgBFnkSfynNyWQf/XpCIClbxhsoqBLi
-         9MhEtpjmu9zUCSNxxm2KkX73GGxhL47b+48jTP7mWPYSuK0X7hjbPHm7D32fYYZYvTCC
-         ZRHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770055333; x=1770660133;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=NMO26NJqLzUacsptvD643N0i+a1yKYqxDegqXwZutbI=;
-        b=sWxaTPgEvs1htQN3UtmLVDf+oJknzoFuPjF/P4rGCaX9t1NkQN28nvRuQTieLJvBmV
-         uF8ZDD9gPz3CJdqsbquRShzr7ZrF6nM8dmowMUf/TTIslexhSF6qM9Zc3C339SBzxd1d
-         i2MUHTHPOz9BSGR0cXbgDG5x319kYH8uZ8t+6/9LFyjDMbas9QN4fEn1vFVN0Y2qh6E9
-         Z9H4hGljUU8wZHAl8q8ByHh/Ka/0IAzqfVHz8NE/XzWqaYHhPsRoepAD/IOdgXPMZ3IM
-         DFcnurC+Y8aDNkIh1yaOiL/WWIDUqEaT2+FcrgoI/hySklcErJjlJRSjHa6nP//GtuME
-         OE5A==
-X-Forwarded-Encrypted: i=1; AJvYcCXpWShDsFheEqo67aCb8LuR4EVRrZflgU40pXv5NpbpHeJZG5WF/oBbSNRzV4PBAMBQXUrFNII=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxNhJKugM5OjiVQiX9bulKYjyYVvJzsglk3Uz4FXCZQjVhQ6uFW
-	EDy50QsqueoES7akQEhWL/XWW5yiDJv6lDg2hUEuO/Wih7qtGVhiFiqvLrD2cdIXxyc=
-X-Gm-Gg: AZuq6aJuctQcx9U0ioYg91KEsFFyrq+L6H0QsVrCackIuEBXnblNUJlB+3fp/BUvDj6
-	twKEopTcqyFzKaFaku3vfFACa76tZIOjWPsyQHp3TeFcHn5ZE5hsnvIK4uvcvOR08PXx38fclNa
-	7I5IIqS9qeDxR2oUp2cPVhc8055MuZMA+2Drgolei3+zhdWkJqpahbi3X0WwgpoVxCE2+g2oHhz
-	PvjeKW14mW7zbxTAt4uLdjPkJAG9vukGt31Fi0b8fCQLz/LKO/ZTrU/445XrrV4XI/pchUKu63e
-	5eI8nNjvz0mSULptuDnapZOoBvycbpMHLdisdP+QT1oFnr9Cf/2qnJom2XySmpR6JTo5nb6NMfe
-	c+IC1n6tTziQZ7TzO5/xX9uUro8WlZWgnEiwh6mLEKBV8G25bDjnZ8FlmlWjb/VW4yc25nfqHXm
-	jG28kO3kximDar7QutKzkSCC0RfSuX4/7vLmBLv+GZNdbuZolLmZYVur9npHPsrjqIvUZ1Pg==
-X-Received: by 2002:ac8:5a54:0:b0:501:45d7:10cd with SMTP id d75a77b69052e-506092c7f24mr3163751cf.20.1770055332821;
-        Mon, 02 Feb 2026 10:02:12 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-894d36c5430sm119862196d6.22.2026.02.02.10.02.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Feb 2026 10:02:12 -0800 (PST)
-Date: Mon, 2 Feb 2026 13:02:10 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, kernel-team@meta.com, dave@stgolabs.net,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	vishal.l.verma@intel.com, ira.weiny@intel.com,
-	dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
-	terry.bowman@amd.com, john@jagalactic.com,
-	David Hildenbrand <david@kernel.org>,
-	Oscar Salvador <osalvador@suse.de>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 2/9] mm/memory_hotplug: add __add_memory_driver_managed()
- with online_type arg
-Message-ID: <aYDmor_ruasxaZ-7@gourry-fedora-PF4VCD3F>
+	s=arc-20240116; t=1770056425; c=relaxed/simple;
+	bh=9evVPU/6Hj3hlrvPS13EoLvahvYf5Gmr1Wxrz+0ErGo=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=lR7aOe1xY33gDwgqX3mxJp23H1+MxU6ZNqruzL8orgo6IIcHavIY3s+2VH2YZWKDkZWDAMcmrYADFY6RWmXK2GyK2j6pMCQz1EHm5NEv6uBuBQ2BJDeRu0ZiS/FtoPtNqlqoBjsTfWo2mFQvfgqTkV7laqP5m1nSWmWis5WY2ys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.150])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4f4Zdb2s8dzJ46BB;
+	Tue,  3 Feb 2026 02:19:31 +0800 (CST)
+Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
+	by mail.maildlp.com (Postfix) with ESMTPS id 80A7140565;
+	Tue,  3 Feb 2026 02:20:17 +0800 (CST)
+Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
+ (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 2 Feb
+ 2026 18:20:16 +0000
+Date: Mon, 2 Feb 2026 18:20:15 +0000
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: Gregory Price <gourry@gourry.net>
+CC: <linux-mm@kvack.org>, <linux-cxl@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<kernel-team@meta.com>, <dave@stgolabs.net>, <dave.jiang@intel.com>,
+	<alison.schofield@intel.com>, <vishal.l.verma@intel.com>,
+	<ira.weiny@intel.com>, <dan.j.williams@intel.com>, <willy@infradead.org>,
+	<jack@suse.cz>, <terry.bowman@amd.com>, <john@jagalactic.com>
+Subject: Re: [PATCH 8/9] cxl/core: Add dax_kmem_region and sysram_region
+ drivers
+Message-ID: <20260202182015.0000325b@huawei.com>
+In-Reply-To: <20260129210442.3951412-9-gourry@gourry.net>
 References: <20260129210442.3951412-1-gourry@gourry.net>
- <20260129210442.3951412-3-gourry@gourry.net>
- <20260202172524.00000c6d@huawei.com>
+	<20260129210442.3951412-9-gourry@gourry.net>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260202172524.00000c6d@huawei.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500009.china.huawei.com (7.191.174.84) To
+ dubpeml500005.china.huawei.com (7.214.145.207)
 
-On Mon, Feb 02, 2026 at 05:25:24PM +0000, Jonathan Cameron wrote:
-> On Thu, 29 Jan 2026 16:04:35 -0500
-> Gregory Price <gourry@gourry.net> wrote:
+On Thu, 29 Jan 2026 16:04:41 -0500
+Gregory Price <gourry@gourry.net> wrote:
+
+> In the current kmem driver binding process, the only way for users
+> to define hotplug policy is via a build-time option, or by not
+> onlining memory by default and setting each individual memory block
+> online after hotplug occurs.  We can solve this with a configuration
+> step between region-probe and dax-probe.
 > 
-> > Enable dax kmem driver to select how to online the memory rather than
-> > implicitly depending on the system default.  This will allow users of
-> > dax to plumb through a preferred auto-online policy for their region.
-> > 
-> > Refactor and new interface:
-> > Add __add_memory_driver_managed() which accepts an explicit online_type
-> > and export mhp_get_default_online_type() so callers can pass it when
-> > they want the default behavior.
+> Add the infrastructure for a two-stage driver binding for kmem-mode
+> dax regions. The cxl_dax_kmem_region driver probes cxl_sysram_region
+> devices and creates cxl_dax_region with dax_driver=kmem.
 > 
-> Hi Gregory,
+> This creates an interposition step where users can configure policy.
 > 
-> I think maybe I'd have left the export for the first user outside of
-> memory_hotplug.c. Not particularly important however.
+> Device hierarchy:
+>   region0 -> sysram_region0 -> dax_region0 -> dax0.0
 > 
-> Maybe talk about why a caller of __add_memory_driver_managed() might want
-> the default?  Feels like that's for the people who don't...
->
+> The sysram_region device exposes a sysfs 'online_type' attribute
+> that allows users to configure the memory online type before the
+> underlying dax_region is created and memory is hotplugged.
+> 
+>   sysram_region0/online_type:
+>       invalid:        not configured, blocks probe
+>       offline:        memory will not be onlined automatically
+>       online:         memory will be onlined in ZONE_NORMAL
+>       online_movable: memory will be onlined in ZONE_MMOVABLE
 
-Less about why they want the default, more about maintaining backward
-compatibility.
-
-In the cxl driver, Ben pointed out something that made me realize we can
-change `region/bind()` to actually use the new `sysram/bind` path by
-just adding a one line `sysram_regionN->online_type = default()`
-
-I can add this detail to the changelog.
+ZONE_MOVABLE
 
 > 
-> Other comments are mostly about using a named enum. I'm not sure
-> if there is some existing reason why that doesn't work?  -Errno pushed through
-> this variable or anything like that?
+> The device initializes with online_type=invalid which prevents the
+> cxl_dax_kmem_region driver from binding until the user explicitly
+> configures a valid online_type.
 > 
-
-I can add a cleanup-patch prior to use the enum, but i don't think this
-actually enables the compiler to do anything new at the moment?
-
-An enum just resolves to an int, and setting `enum thing val = -1` when
-the enum definition doesn't include -1 doesn't actually fire any errors
-(at least IIRC - maybe i'm just wrong). Same with
-
-   function(enum) -> function(-1) wouldn't fire a compilation error
-
-It might actually be worth adding `MMOP_NOT_CONFIGURED = -1` so that the
-cxl-sysram driver can set this explicitly rather than just setting -1
-as an implicit version of this - but then why would memory_hotplug.c
-ever want to expose a NOT_CONFIGURED option lol.
-
-So, yeah, the enum looks nicer, but not sure how much it buys us beyond
-that.
-
-> It's a little odd to add nice kernel-doc formatted documentation
-> when the non __ variant has free form docs.  Maybe tidy that up first
-> if we want to go kernel-doc in this file?  (I'm in favor, but no idea
-> on general feelings...)
->
-
-ack.  Can add some more cleanups early in the series.
-
-> > +	if (online_type < 0 || online_type > MMOP_ONLINE_MOVABLE)
+> This enables a two-step binding process:
+>   echo region0 > cxl_sysram_region/bind
+>   echo online_movable > sysram_region0/online_type
+>   echo sysram_region0 > cxl_dax_kmem_region/bind
 > 
-> This is where using an enum would help compiler know what is going on
-> and maybe warn if anyone writes something that isn't defined.
->
+> Signed-off-by: Gregory Price <gourry@gourry.net>
+Trivial stuff. Will mull over this series as a whole...
+My first instinctive reaction is positive - I'm just wondering
+where additional drivers fit into this and whether it has the
+right degree of flexibility.
 
-I think you still have to sanity check this, but maybe the code looks
-cleaner, so will do. 
 
-~Gregory
+
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index 6200ca1cc2dd..8bef91dc726c 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -3734,8 +3734,20 @@ int cxl_region_init(void)
+>  	if (rc)
+>  		goto err_dax;
+>  
+> +	rc = cxl_driver_register(&cxl_sysram_region_driver);
+
+This smells like a loop over an array of drivers is becoming sensible.
+
+> +	if (rc)
+> +		goto err_sysram;
+> +
+> +	rc = cxl_driver_register(&cxl_dax_kmem_region_driver);
+> +	if (rc)
+> +		goto err_dax_kmem;
+> +
+>  	return 0;
+>  
+> +err_dax_kmem:
+> +	cxl_driver_unregister(&cxl_sysram_region_driver);
+> +err_sysram:
+> +	cxl_driver_unregister(&cxl_devdax_region_driver);
+>  err_dax:
+>  	cxl_driver_unregister(&cxl_region_driver);
+>  	return rc;
+> @@ -3743,6 +3755,8 @@ int cxl_region_init(void)
+>  
+>  void cxl_region_exit(void)
+>  {
+> +	cxl_driver_unregister(&cxl_dax_kmem_region_driver);
+> +	cxl_driver_unregister(&cxl_sysram_region_driver);
+>  	cxl_driver_unregister(&cxl_devdax_region_driver);
+>  	cxl_driver_unregister(&cxl_region_driver);
+>  }
+> diff --git a/drivers/cxl/core/sysram_region.c b/drivers/cxl/core/sysram_region.c
+> new file mode 100644
+> index 000000000000..5665db238d0f
+> --- /dev/null
+> +++ b/drivers/cxl/core/sysram_region.c
+> @@ -0,0 +1,180 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +/* Copyright(c) 2026 Meta Platforms, Inc. All rights reserved. */
+> +/*
+> + * CXL Sysram Region - Intermediate device for kmem hotplug configuration
+> + *
+> + * This provides an intermediate device between cxl_region and cxl_dax_region
+> + * that allows users to configure memory hotplug parameters (like online_type)
+> + * before the underlying dax_region is created and memory is hotplugged.
+> + */
+> +
+> +#include <linux/memory_hotplug.h>
+> +#include <linux/device.h>
+> +#include <linux/slab.h>
+> +#include <cxlmem.h>
+> +#include <cxl.h>
+> +#include "core.h"
+
+> +
+> +static DEVICE_ATTR_RW(online_type);
+> +
+> +static struct attribute *cxl_sysram_region_attrs[] = {
+> +	&dev_attr_online_type.attr,
+> +	NULL,
+
+As below.
+
+> +};
+> +
+> +static const struct attribute_group cxl_sysram_region_attribute_group = {
+> +	.attrs = cxl_sysram_region_attrs,
+> +};
+> +
+> +static const struct attribute_group *cxl_sysram_region_attribute_groups[] = {
+> +	&cxl_base_attribute_group,
+> +	&cxl_sysram_region_attribute_group,
+> +	NULL,
+
+Trivial, but don't want a comma on that NULL.
+
+> +};
+
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 674d5f870c70..1544c27e9c89 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -596,6 +596,25 @@ struct cxl_dax_region {
+>  	enum dax_driver_type dax_driver;
+>  };
+>  
+> +/**
+> + * struct cxl_sysram_region - CXL RAM region for system memory hotplug
+> + * @dev: device for this sysram_region
+> + * @cxlr: parent cxl_region
+> + * @hpa_range: Host physical address range for the region
+> + * @online_type: Memory online type (MMOP_* 0-3, or -1 if not configured)
+
+Ah. An there's our reason for an int.   Can we just add a MMOP enum value
+for not configured yet and so let us use it as an enum?
+Or have a separate bool for that and ignore the online_type until it's set.
+
+
+> + *
+> + * Intermediate device that allows configuration of memory hotplug
+> + * parameters before the underlying dax_region is created. The device
+> + * starts with online_type=-1 which prevents the cxl_dax_kmem_region
+> + * driver from binding until the user explicitly sets online_type.
+> + */
+> +struct cxl_sysram_region {
+> +	struct device dev;
+> +	struct cxl_region *cxlr;
+> +	struct range hpa_range;
+> +	int online_type;
+> +};
+
+
