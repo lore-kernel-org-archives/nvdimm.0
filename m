@@ -1,154 +1,134 @@
-Received: from tiger.tulip.relay.mailchannels.net (tiger.tulip.relay.mailchannels.net [23.83.218.248])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A3AE309F09
-	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 20:43:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.248
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770065038; cv=pass; b=HSPlGUIHmNvLgXoXQRptU2IXx8h1lGP4DdFDThcos9rCamB8yKbRZbXhapWUvdFJl7Jaf0NR54VonI0adfnHvZfZMm0n6zQxUBX73ZufVr9BT/xhTQUgCbN4GRgocv9GUQcmdb2WDCfoAEETcFrDWi6ky3+cmmbhMNMNgXE4V6c=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770065038; c=relaxed/simple;
-	bh=lwXrTCEx1szCdIt8hXNJEHNBNImULcDwFuLV7vI4p5E=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8E102EC0A6
+	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 21:37:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770068231; cv=none; b=Ch+fsYrPWMUFwmri6+STmZuA+ozpWaeRLvpaBM6aPGqv/NyC0UIPG+1iGtxYQRN+pBE8RmfAz6Fs0KdTd160e2y1+sCxjlnODH8pOSbZ6v3yeJkRYqe1l9Zrv6FPuykMC1Bkwpedlznbfy9xG10hlFftszHS4FkuNa0eMeSTpAo=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770068231; c=relaxed/simple;
+	bh=kWEypPVGwJEMybutYPQAIuFoGDfenpYyYtSso4g6JH4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ne90D+MxuphyQHdER59RSjGshOCWxdE/BmXfnbwgcmA6CP4fwxfTg81/G5y8ZVyMLmIJbITAUxEQy4CMqUd/WTQ1kfc6uKDGmttox1yPLTkUmCekkXlAvODMBIH6IIInVm5aepZKhQ1lHMRoj43HnOVqJsAfVZaJUP+l41jgj4A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=fail smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=WCO4JCRW; arc=pass smtp.client-ip=23.83.218.248
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=stgolabs.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=INzTPW3BsD/iia7p2ZhNntHLfxVVC2d0quxm2kVWK9D+fuVI1UIwh5OaqM9jTQEua0WNu8smjllTy+PXJElJlo8IyHcqSTC7eepUuskHCZLdZj+6QQcFXkoZz4sJWuaJXwq+fc/oJxdYA3Jhto3IDJhq2GbSllLc3gJQg9WpJTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=seLRk54F; arc=none smtp.client-ip=209.85.222.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="WCO4JCRW"
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id A4678722065;
-	Mon, 02 Feb 2026 19:25:49 +0000 (UTC)
-Received: from pdx1-sub0-mail-a252.dreamhost.com (100-97-34-107.trex-nlb.outbound.svc.cluster.local [100.97.34.107])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id E3FB4722597;
-	Mon, 02 Feb 2026 19:25:48 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; d=mailchannels.net; s=arc-2022; cv=none;
-	t=1770060349;
-	b=BCqI3JHFkEQmzYm/OJv8dbksvoaFLeCYtqg8LVo3mgey1JGkPGjZONNAyC5UOWuKKChGWy
-	6IopRUzXxOZZfeTDM0yUy8eoU/7ZnyUMur7GLSvqGvpIqQcMXFUxuaWCpUnVNI3hxm5M6B
-	XH/2oskXMz5BzBfk0BOtUMBB7zG7NALv6OSU80EPlCH1a1mnd/59sjpqFQktLKinifoj6W
-	LKfDV42nmOuiqbYVOBpOjk4ESqSI1N14y0jgowC7sFTkAqNooX0aqvvNtzTPoR+cny97yA
-	MeeqhAsvcWi7MOXxjYTxb6ZtmvD0wz525bFIseXqnrAyKPvhlZZRUOQpazUGSA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1770060349;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=6efM5ioHVxaPcmDXBceIc6/l9+DmGPStmA0f8wvROMw=;
-	b=C+jbJvey5GOHlk9QArAcGHVmzokl95LTFr4aaR48WVEFmrlA/Gc/ZtV3KJToYmMckl8ave
-	KqZoZ7fvR8MhAFd17J5uPIcvriqMUVujqWJMw7qadX4x2hNLqgwv+7CvBVGg4AzVM7yjEY
-	waHh9En6JH4iwjCH0r37o2659zlmSINUd9hFqgeKgBhOlETsYOfWhvNn5ovw1Gs0gI9hHR
-	kDFmr7Rz03y88iwzU18tM86Z+fAFmGdhXWBb9HXzu2hHxrRX83hJ7yMotBZKclY671Eeep
-	BTWwZZxaLnc1pZOzyUkAensUiI5tdu5r6IAs5XJ+7wSINcRkA/mqHopSDOrBuw==
-ARC-Authentication-Results: i=1;
-	rspamd-c758cdf4d-snh2h;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Unite-Duck: 530efc1923798ccb_1770060349388_4224958092
-X-MC-Loop-Signature: 1770060349388:1589015351
-X-MC-Ingress-Time: 1770060349388
-Received: from pdx1-sub0-mail-a252.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.97.34.107 (trex/7.1.3);
-	Mon, 02 Feb 2026 19:25:49 +0000
-Received: from offworld (unknown [76.167.199.67])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a252.dreamhost.com (Postfix) with ESMTPSA id 4f4c641pgXz105C;
-	Mon,  2 Feb 2026 11:25:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1770060348;
-	bh=6efM5ioHVxaPcmDXBceIc6/l9+DmGPStmA0f8wvROMw=;
-	h=Date:From:To:Cc:Subject:Content-Type;
-	b=WCO4JCRWjfsi22lnrM050ugqbUu1iYENQpgZRXeskDTYroGdPe/45byqPFIeEDvCL
-	 Uw4/UtlU31wu0EAlnjQ4Y0rK7aozlm3blsDK6IaNMOfDdq/OhCa5lLODGce9OuneSj
-	 WWMqXdJaGVS3GLQECvvYufwaOEUHtzU4GeKyf27zvETMvHdfzqszJC6egFpv1wIV08
-	 ukpwigRGh2B2X2wAdNWhA9CVIfB83PpCraT6GGc+car46tDPOWho1tHMZW0xmoxiK7
-	 Qa1oPGgKhPvqHMsYSgDFMsHw13u0DNt+UrPqFVNX3I0KQ2bbjoy0ijZzWqSg8hToLX
-	 jEZjacqFfgR+w==
-Date: Mon, 2 Feb 2026 11:25:45 -0800
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 04/19] cxl/core: Enforce partition order/simplify
- partition calls
-Message-ID: <20260202192545.3ld5nmk5jou4lnpx@offworld>
-References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
- <20250413-dcd-type2-upstream-v9-4-1d4911a0b365@intel.com>
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="seLRk54F"
+Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-8c9eedc2363so338531985a.1
+        for <nvdimm@lists.linux.dev>; Mon, 02 Feb 2026 13:37:09 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1770068228; x=1770673028; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=8laAOVGcrjt3grREBpdlanB8iPI5gP36V5MB+/CpDTw=;
+        b=seLRk54FlPTXZInsZliXMdmOFHtwfRgiGcy0a3+ioz8olQoynGH4i/19fzk8gYn+fo
+         92stCSElPAdvT2QI/9qHWkc/FzWQK9651lZZAW2DaI0UqqcmKhprLC/9PtK/H22kieF9
+         92S2USo9DDxtguHbqjPKFOxBckbXPvawU2wZzy79eILhgeFjCGpwFBD9SYTpKHX7dUHy
+         wpRtsRfpy6VX03A99Vl+vv4MoB9dEmuVpQNhAoSkDcX9fAiQ86XtdZ8ZN4ilF/k/wq6D
+         z7e3NYYbpy5+9kc15BjLHTR7ARdIGz3PzwBmTLRSxgxa2fR6XP2QlxApEV/sRDcraeVF
+         4WlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770068228; x=1770673028;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=8laAOVGcrjt3grREBpdlanB8iPI5gP36V5MB+/CpDTw=;
+        b=Dc5EN3mh2TnNp9/fUShVZN/eH4TdOo56P0ESJQHEA9AHUiVb9vioUNu/9byx1QQ746
+         kjkX+8DiZNhFrVBxwH+jTqC2kIxesLE5QDo+2JQgYgxBlZMc9CgKcxMIQpc7BwF9vNKb
+         REa/8kFdbRh6p3qz+Rfx+bvDH3gv8bIlGvuUk5LtLeTaSgEt4FSlzjxNUVHxGADADuQa
+         5pZbw3dE8yKDVxO5aJA0CU++oyBAl9RuXimeANSMcCGnvoYSOxpgObYeM3Ptcsly4S2N
+         2G/5cs3KMow/IDi5+vsMzmlT9g9+DGRYyJiUd286M7tQQFDnYoRdj1YRTDhNPsAPX6ZV
+         PQ+w==
+X-Forwarded-Encrypted: i=1; AJvYcCUTAULjA9AxoF/L9SmHtTfnuqVyVkOsxkzIZUPBG6wK9PMFa0K37ICn23BL5Nqr5lfBhq79t0o=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yxlg3bXjiDus3d3If/7krGgfADlVGvKsQ1NmTyNzgKVAebEEnEb
+	agHi3b06/ocVc2uS57CyBaV8LjH2KridxZFZmd47JaWP1Blb7BnAdlGHnulNPvTAakA=
+X-Gm-Gg: AZuq6aJy/H/9KgV6jEzcBQiXeReXEDhEnSYKkokM8IH9bmrywPtpek/LdEdjawGlIcd
+	5vIJBCXHd0rbAZ/BHl0+NwUxsc7Lv9YZ6H1gu/EIIHmpkalRL6HkthaweSUMId8YN+r7hr3IvDB
+	/AgODc/LmDTPhkUrJcAQHMEk3l6/oPj21p5BLoodyTeAMf7zBjiwXLpBRYsJRnZTwwqtuHXo8qh
+	YzKK4ZhzRSmhWKBWgLB8H7P1zzD/YCKdgFE/mkoDaU8ozD7EKDQFeDpD/T2RgApxQ+bbUuWcPRV
+	D8/h5zrzMu/oPtcCu4t2pOYpAQk1fwG147LxT8ZW+zww5KGi3Di9b2zgoyJh+RCE33ZO8fY/BJ0
+	LKRD3tpeqnMvrmZ7RRj0xRTnfDqVI4fODiXNqwk2ZN53S2AQi3PWx4z+aBH1msFbJzObsXMuZJ4
+	Kq5eU3n/VUGQuljeIGngA4MhQdQGOakpBa55dfRjonoCoBzl5y87Fd0yNofd3Awf/Ai/dhdQ==
+X-Received: by 2002:a05:620a:46a6:b0:8c6:e22b:25f7 with SMTP id af79cd13be357-8c9eb1fc204mr1562950785a.18.1770068228565;
+        Mon, 02 Feb 2026 13:37:08 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c711d61c6fsm1317392985a.47.2026.02.02.13.37.07
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 02 Feb 2026 13:37:08 -0800 (PST)
+Date: Mon, 2 Feb 2026 16:37:05 -0500
+From: Gregory Price <gourry@gourry.net>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, kernel-team@meta.com, dave@stgolabs.net,
+	dave.jiang@intel.com, alison.schofield@intel.com,
+	vishal.l.verma@intel.com, ira.weiny@intel.com,
+	dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
+	terry.bowman@amd.com, john@jagalactic.com,
+	David Hildenbrand <david@kernel.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/9] mm/memory_hotplug: add __add_memory_driver_managed()
+ with online_type arg
+Message-ID: <aYEZAUJMLWvaug50@gourry-fedora-PF4VCD3F>
+References: <20260129210442.3951412-1-gourry@gourry.net>
+ <20260129210442.3951412-3-gourry@gourry.net>
+ <20260202172524.00000c6d@huawei.com>
+ <aYDmor_ruasxaZ-7@gourry-fedora-PF4VCD3F>
+ <20260202184609.00004a02@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250413-dcd-type2-upstream-v9-4-1d4911a0b365@intel.com>
-User-Agent: NeoMutt/20220429
+In-Reply-To: <20260202184609.00004a02@huawei.com>
 
-On Sun, 13 Apr 2025, Ira Weiny wrote:
+On Mon, Feb 02, 2026 at 06:46:09PM +0000, Jonathan Cameron wrote:
+> > 
+> > I can add a cleanup-patch prior to use the enum, but i don't think this
+> > actually enables the compiler to do anything new at the moment?
+> 
+> Good point. More coffee needed (or sleep)
+> 
+> It lets sparse do some checking, but sadly only for wrong enum assignment.
+> (Gcc has -Wenum-conversion as well which I think is effectively the same)
+> I.e. you can't assign a value from a different enum without casting.
+> 
+> It can't do anything if people just pass in an out of range int.
+> 
 
->Device partitions have an implied order which is made more complex by
->the addition of a dynamic partition.
->
->Remove the ram special case information calls in favor of generic calls
->with a check ahead of time to ensure the preservation of the implied
->partition order.
->
->Signed-off-by: Ira Weiny <ira.weiny@intel.com>
->---
-> drivers/cxl/core/hdm.c    | 11 ++++++++++-
-> drivers/cxl/core/memdev.c | 32 +++++++++-----------------------
-> drivers/cxl/cxl.h         |  1 +
-> drivers/cxl/cxlmem.h      |  9 +++------
-> drivers/cxl/mem.c         |  2 +-
-> 5 files changed, 24 insertions(+), 31 deletions(-)
->
->diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
->index c5f8a17d00f1..92e1a24e2109 100644
->--- a/drivers/cxl/core/hdm.c
->+++ b/drivers/cxl/core/hdm.c
->@@ -470,6 +470,7 @@ static const char *cxl_mode_name(enum cxl_partition_mode mode)
-> int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
-> {
-> 	struct device *dev = cxlds->dev;
->+	int i;
->
-> 	guard(rwsem_write)(&cxl_dpa_rwsem);
->
->@@ -482,9 +483,17 @@ int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
-> 		return 0;
-> 	}
->
->+	/* Verify partitions are in expected order. */
->+	for (i = 1; i < info->nr_partitions; i++) {
->+		if (cxlds->part[i].mode < cxlds->part[i-1].mode) {
->+			dev_err(dev, "Partition order mismatch\n");
->+			return 0;
+Which, after looking a bit... mm/memory_hotplug.c does this quite a bit
+internally - except it uses a uint8_t
 
-return -EINVAL?
+Example:
 
->+		}
->+	}
->+
-> 	cxlds->dpa_res = DEFINE_RES_MEM(0, info->size);
->
->-	for (int i = 0; i < info->nr_partitions; i++) {
->+	for (i = 0; i < info->nr_partitions; i++) {
-> 		const struct cxl_dpa_part_info *part = &info->part[i];
-> 		int rc;
->
+static int try_offline_memory_block(struct memory_block *mem, void *arg)
+{
+        uint8_t online_type = MMOP_ONLINE_KERNEL;
+        uint8_t **online_types = arg;
+	... snip ...
+}
+
+int offline_and_remove_memory(u64 start, u64 size)
+{
+        uint8_t *online_types, *tmp;
+	... snip ...
+        online_types = kmalloc_array(mb_count, sizeof(*online_types),
+                                     GFP_KERNEL);
+}
+
+So that's fun.
+
+I'm not sure it's worth the churn here, but happy to do it if there are
+strong opinions.
+
+---
+
+David do you have thoughts here?
+
+~Gregory
