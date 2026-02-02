@@ -1,81 +1,81 @@
-Received: from poodle.tulip.relay.mailchannels.net (poodle.tulip.relay.mailchannels.net [23.83.218.249])
+Received: from tiger.tulip.relay.mailchannels.net (tiger.tulip.relay.mailchannels.net [23.83.218.248])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 870832C21EA
-	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 20:23:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.249
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A3AE309F09
+	for <nvdimm@lists.linux.dev>; Mon,  2 Feb 2026 20:43:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.248
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770063836; cv=pass; b=HsDLTq9LjS2IUNrx7L5fz3Ho8DLErzZQiTJK1O+CqwRB5elb6dR8QY/BmEOQl+0A0a/SA612I6CZIfNA0/AroFY8r913oO/6AM+xIB59q6ey9jh1LXASuqqS7N0LmoYOFjEqrj8bbUYPgaLOjTyGZrVQFT5dOVK71pj1UPu8N2k=
+	t=1770065038; cv=pass; b=HSPlGUIHmNvLgXoXQRptU2IXx8h1lGP4DdFDThcos9rCamB8yKbRZbXhapWUvdFJl7Jaf0NR54VonI0adfnHvZfZMm0n6zQxUBX73ZufVr9BT/xhTQUgCbN4GRgocv9GUQcmdb2WDCfoAEETcFrDWi6ky3+cmmbhMNMNgXE4V6c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770063836; c=relaxed/simple;
-	bh=YHKtglFHDamBYDDFQ0jDQUBbPnWpJcD/jGIdZvIcccU=;
+	s=arc-20240116; t=1770065038; c=relaxed/simple;
+	bh=lwXrTCEx1szCdIt8hXNJEHNBNImULcDwFuLV7vI4p5E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OZVJO8p4+qVYyuzO3bWMGJP0fEIa1ddLjFkC7tjNMCE+AqJUexqLmY1lY6WEOsj9ZB/zNdKouL98mjULsxddOxmSSU7RzsEnHDjyMCRSylN0blsdIK1QxROlaqv+8L71r1kPUDYdmWD58+nHGD86IYBprGCD+BOdSGGapqmkNXs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=fail smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=YkQYVUvO; arc=pass smtp.client-ip=23.83.218.249
+	 Content-Type:Content-Disposition:In-Reply-To; b=ne90D+MxuphyQHdER59RSjGshOCWxdE/BmXfnbwgcmA6CP4fwxfTg81/G5y8ZVyMLmIJbITAUxEQy4CMqUd/WTQ1kfc6uKDGmttox1yPLTkUmCekkXlAvODMBIH6IIInVm5aepZKhQ1lHMRoj43HnOVqJsAfVZaJUP+l41jgj4A=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=fail smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=WCO4JCRW; arc=pass smtp.client-ip=23.83.218.248
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="YkQYVUvO"
+	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="WCO4JCRW"
 X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 782A3721B84;
-	Mon, 02 Feb 2026 19:29:04 +0000 (UTC)
-Received: from pdx1-sub0-mail-a252.dreamhost.com (trex-green-9.trex.outbound.svc.cluster.local [100.97.7.16])
+	by relay.mailchannels.net (Postfix) with ESMTP id A4678722065;
+	Mon, 02 Feb 2026 19:25:49 +0000 (UTC)
+Received: from pdx1-sub0-mail-a252.dreamhost.com (100-97-34-107.trex-nlb.outbound.svc.cluster.local [100.97.34.107])
 	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id B0D3A721997;
-	Mon, 02 Feb 2026 19:29:02 +0000 (UTC)
+	by relay.mailchannels.net (Postfix) with ESMTPA id E3FB4722597;
+	Mon, 02 Feb 2026 19:25:48 +0000 (UTC)
 ARC-Seal: i=1; a=rsa-sha256; d=mailchannels.net; s=arc-2022; cv=none;
-	t=1770060542;
-	b=xMIOFNBmsiQMHIvE21EM6aMVTrM6xVJl4cgPo7E1xmeMD10LQiJidLeoTl9KAUlM9PgIVk
-	mfhi9jW4Guo987k5Mcy2qcIzsIkFj5VCkYYsNwCctPclib7oRjGe1zKjmQ2HHrtopdKPJX
-	22qxTkn+SWP/AshPdkFgbfUZguVtuXbC9nL7rl4AP5soboBxud+PPuxyQctJpC/e8ArKkE
-	Iw0aJ5EFjGV/oyNnvSAXapah2w06Lbk6jVXn+Fqem70KiCSPhIrS4VIdwqMqqq/JiyVT4q
-	2kwmpXvUQIYYe+hJ5hqIEe2TdIQyPGWOYxjrABihcoRGgagAbkGGPIWsNKnAIA==
+	t=1770060349;
+	b=BCqI3JHFkEQmzYm/OJv8dbksvoaFLeCYtqg8LVo3mgey1JGkPGjZONNAyC5UOWuKKChGWy
+	6IopRUzXxOZZfeTDM0yUy8eoU/7ZnyUMur7GLSvqGvpIqQcMXFUxuaWCpUnVNI3hxm5M6B
+	XH/2oskXMz5BzBfk0BOtUMBB7zG7NALv6OSU80EPlCH1a1mnd/59sjpqFQktLKinifoj6W
+	LKfDV42nmOuiqbYVOBpOjk4ESqSI1N14y0jgowC7sFTkAqNooX0aqvvNtzTPoR+cny97yA
+	MeeqhAsvcWi7MOXxjYTxb6ZtmvD0wz525bFIseXqnrAyKPvhlZZRUOQpazUGSA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1770060542;
+	s=arc-2022; t=1770060349;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=ASnVhIsRwWOBQxGZ3Q5oBKC1xxHnmRG4tjDjPykve94=;
-	b=WE390HXXKLmEj64dxKMR4kY8kh+o/L+ujM0o6smPZbGt+oYqEk7AAp5a5zkjbtia9+n2JX
-	kjLg5dXo7jO/Awq45gtDh2Vdbhej0axU1SVIa8NV680jSElnAELu+2k4nDUNr5xX1x9Ud+
-	pYnYPW39UnGi5Fh548vlQdwbTEnxuN3Mgc4l4l9pSTIr111df5gKit/jYtIZbS8N3wlcYr
-	erSwMkM4bww2fSLOJIIk4ZRZbqXhwwBVkmOsrRmaICzvVD7bUkELmU7/nRB0ODX/Wveu+I
-	stSeI2lJHOA0lI3ybdw9I3MAWzo/hWA46xqc85l2oHiQR70ee1S3SNQyWg4ofA==
+	bh=6efM5ioHVxaPcmDXBceIc6/l9+DmGPStmA0f8wvROMw=;
+	b=C+jbJvey5GOHlk9QArAcGHVmzokl95LTFr4aaR48WVEFmrlA/Gc/ZtV3KJToYmMckl8ave
+	KqZoZ7fvR8MhAFd17J5uPIcvriqMUVujqWJMw7qadX4x2hNLqgwv+7CvBVGg4AzVM7yjEY
+	waHh9En6JH4iwjCH0r37o2659zlmSINUd9hFqgeKgBhOlETsYOfWhvNn5ovw1Gs0gI9hHR
+	kDFmr7Rz03y88iwzU18tM86Z+fAFmGdhXWBb9HXzu2hHxrRX83hJ7yMotBZKclY671Eeep
+	BTWwZZxaLnc1pZOzyUkAensUiI5tdu5r6IAs5XJ+7wSINcRkA/mqHopSDOrBuw==
 ARC-Authentication-Results: i=1;
-	rspamd-c758cdf4d-7vvhm;
+	rspamd-c758cdf4d-snh2h;
 	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
 X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 X-MC-Relay: Neutral
 X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
 X-MailChannels-Auth-Id: dreamhost
-X-Stretch-Gusty: 0d8465a10bf6f2ff_1770060543010_238767819
-X-MC-Loop-Signature: 1770060543010:235294649
-X-MC-Ingress-Time: 1770060543009
+X-Unite-Duck: 530efc1923798ccb_1770060349388_4224958092
+X-MC-Loop-Signature: 1770060349388:1589015351
+X-MC-Ingress-Time: 1770060349388
 Received: from pdx1-sub0-mail-a252.dreamhost.com (pop.dreamhost.com
  [64.90.62.162])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.97.7.16 (trex/7.1.3);
-	Mon, 02 Feb 2026 19:29:03 +0000
+	by 100.97.34.107 (trex/7.1.3);
+	Mon, 02 Feb 2026 19:25:49 +0000
 Received: from offworld (unknown [76.167.199.67])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a252.dreamhost.com (Postfix) with ESMTPSA id 4f4c9p0SwXz105C;
-	Mon,  2 Feb 2026 11:29:02 -0800 (PST)
+	by pdx1-sub0-mail-a252.dreamhost.com (Postfix) with ESMTPSA id 4f4c641pgXz105C;
+	Mon,  2 Feb 2026 11:25:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1770060542;
-	bh=ASnVhIsRwWOBQxGZ3Q5oBKC1xxHnmRG4tjDjPykve94=;
+	s=dreamhost; t=1770060348;
+	bh=6efM5ioHVxaPcmDXBceIc6/l9+DmGPStmA0f8wvROMw=;
 	h=Date:From:To:Cc:Subject:Content-Type;
-	b=YkQYVUvO18tn8j6sr2zIPOpZtzIpBRw/OHjUFHT6n874wePAQZndjZJlSqJ4lZZ7i
-	 jY+rujN1wDzzaGqyqI2F03IW/SpQVVgsuvOIXYft+IkGuJ8+MEEBXrgspknulDSUg3
-	 fxxkyqhIiFm0WYma0a1PXODaPYGLY0pkgdhcdVbkn59NPgI1BgqtYXnJL7bR486Ncm
-	 f/33E1RrIV2sLXpEInvNSw2fi4npM3qlr1SYHGV6V8usych3WJOmMDWqYMflkZj0Mh
-	 uIW9SekA08sD7E1TIDPWpq0oKVLE0wUSgFa0wdFPFEmyG11oaGZ/ggO4T/CoYeOm4X
-	 mA1TM7Hes6bTg==
-Date: Mon, 2 Feb 2026 11:28:59 -0800
+	b=WCO4JCRWjfsi22lnrM050ugqbUu1iYENQpgZRXeskDTYroGdPe/45byqPFIeEDvCL
+	 Uw4/UtlU31wu0EAlnjQ4Y0rK7aozlm3blsDK6IaNMOfDdq/OhCa5lLODGce9OuneSj
+	 WWMqXdJaGVS3GLQECvvYufwaOEUHtzU4GeKyf27zvETMvHdfzqszJC6egFpv1wIV08
+	 ukpwigRGh2B2X2wAdNWhA9CVIfB83PpCraT6GGc+car46tDPOWho1tHMZW0xmoxiK7
+	 Qa1oPGgKhPvqHMsYSgDFMsHw13u0DNt+UrPqFVNX3I0KQ2bbjoy0ijZzWqSg8hToLX
+	 jEZjacqFfgR+w==
+Date: Mon, 2 Feb 2026 11:25:45 -0800
 From: Davidlohr Bueso <dave@stgolabs.net>
 To: Ira Weiny <ira.weiny@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
@@ -84,10 +84,11 @@ Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 05/19] cxl/mem: Expose dynamic ram A partition in sysfs
-Message-ID: <20260202192826.otyhqkhqskcgvzui@offworld>
+Subject: Re: [PATCH v9 04/19] cxl/core: Enforce partition order/simplify
+ partition calls
+Message-ID: <20260202192545.3ld5nmk5jou4lnpx@offworld>
 References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
- <20250413-dcd-type2-upstream-v9-5-1d4911a0b365@intel.com>
+ <20250413-dcd-type2-upstream-v9-4-1d4911a0b365@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -96,57 +97,58 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <20250413-dcd-type2-upstream-v9-5-1d4911a0b365@intel.com>
+In-Reply-To: <20250413-dcd-type2-upstream-v9-4-1d4911a0b365@intel.com>
 User-Agent: NeoMutt/20220429
 
 On Sun, 13 Apr 2025, Ira Weiny wrote:
 
->To properly configure CXL regions user space will need to know the
->details of the dynamic ram partition.
+>Device partitions have an implied order which is made more complex by
+>the addition of a dynamic partition.
 >
->Expose the first dynamic ram partition through sysfs.
+>Remove the ram special case information calls in favor of generic calls
+>with a check ahead of time to ensure the preservation of the implied
+>partition order.
 >
 >Signed-off-by: Ira Weiny <ira.weiny@intel.com>
->
 >---
->Changes:
->[iweiny: Complete rewrite of the old patch.]
->---
-> Documentation/ABI/testing/sysfs-bus-cxl | 24 ++++++++++++++
-> drivers/cxl/core/memdev.c               | 57 +++++++++++++++++++++++++++++++++
-> 2 files changed, 81 insertions(+)
+> drivers/cxl/core/hdm.c    | 11 ++++++++++-
+> drivers/cxl/core/memdev.c | 32 +++++++++-----------------------
+> drivers/cxl/cxl.h         |  1 +
+> drivers/cxl/cxlmem.h      |  9 +++------
+> drivers/cxl/mem.c         |  2 +-
+> 5 files changed, 24 insertions(+), 31 deletions(-)
 >
->diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
->index 99bb3faf7a0e..2b59041bb410 100644
->--- a/Documentation/ABI/testing/sysfs-bus-cxl
->+++ b/Documentation/ABI/testing/sysfs-bus-cxl
->@@ -89,6 +89,30 @@ Description:
->		and there are platform specific performance related
->		side-effects that may result. First class-id is displayed.
+>diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+>index c5f8a17d00f1..92e1a24e2109 100644
+>--- a/drivers/cxl/core/hdm.c
+>+++ b/drivers/cxl/core/hdm.c
+>@@ -470,6 +470,7 @@ static const char *cxl_mode_name(enum cxl_partition_mode mode)
+> int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
+> {
+> 	struct device *dev = cxlds->dev;
+>+	int i;
 >
->+What:		/sys/bus/cxl/devices/memX/dynamic_ram_a/size
->+Date:		May, 2025
->+KernelVersion:	v6.16
->+Contact:	linux-cxl@vger.kernel.org
->+Description:
->+		(RO) The first Dynamic RAM partition capacity as bytes.
->+
->+
->+What:		/sys/bus/cxl/devices/memX/dynamic_ram_a/qos_class
->+Date:		May, 2025
->+KernelVersion:	v6.16
->+Contact:	linux-cxl@vger.kernel.org
->+Description:
->+		(RO) For CXL host platforms that support "QoS Telemmetry"
->+		this attribute conveys a comma delimited list of platform
->+		specific cookies that identifies a QoS performance class
->+		for the persistent partition of the CXL mem device. These
-			^^ 'persistent' should be dropped
+> 	guard(rwsem_write)(&cxl_dpa_rwsem);
+>
+>@@ -482,9 +483,17 @@ int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
+> 		return 0;
+> 	}
+>
+>+	/* Verify partitions are in expected order. */
+>+	for (i = 1; i < info->nr_partitions; i++) {
+>+		if (cxlds->part[i].mode < cxlds->part[i-1].mode) {
+>+			dev_err(dev, "Partition order mismatch\n");
+>+			return 0;
 
->+		class-ids can be compared against a similar "qos_class"
->+		published for a root decoder. While it is not required
->+		that the endpoints map their local memory-class to a
->+		matching platform class, mismatches are not recommended
->+		and there are platform specific performance related
->+		side-effects that may result. First class-id is displayed.
+return -EINVAL?
+
+>+		}
+>+	}
 >+
+> 	cxlds->dpa_res = DEFINE_RES_MEM(0, info->size);
+>
+>-	for (int i = 0; i < info->nr_partitions; i++) {
+>+	for (i = 0; i < info->nr_partitions; i++) {
+> 		const struct cxl_dpa_part_info *part = &info->part[i];
+> 		int rc;
+>
