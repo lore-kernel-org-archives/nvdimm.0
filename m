@@ -1,186 +1,218 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CEE8313E3E
-	for <nvdimm@lists.linux.dev>; Tue,  3 Feb 2026 10:43:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10BA212FF69;
+	Tue,  3 Feb 2026 20:38:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.9
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770115437; cv=pass; b=oWFsIX8TF4IkO6Els02eAbzf/N13nmQLxejO4fdD83KnCS1dztImPjTFeu1TLlqxRo4TXAOjnZcQFcUmm2L4IuBUzQBevb7o6PVJCpIeR34k+qBTSPhZ3+6VQ3o2mgl/yIrK5TVVQEpigglWcJ6nRHwok0gJwU46q6rCLVkSY4w=
+	t=1770151107; cv=fail; b=KFYFhHsb9WCyb5TtepGS4SXDNN0cSaeVMmb49iDiSRs24nBv9+JGLyOsvktD2ZZvAKYurq0kwGQFZ3RhPNdVwqjFeaRLpQsXZbzp2/UuaGaJwssIp/dqmKUUY6jOmbZYkkZpVc0V7cs9FDaNS6og5PKtqauqNVz5jwOySL1lsPA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770115437; c=relaxed/simple;
-	bh=RRuGMaiDDxW6j0slJ2xiz4MP+wBJAw4O1epEZRkk8qA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=eXZ4QA/tsjhe7NLbbofWDemIFnk6tJ+p7LciWvmlQuevw9aPX64WBV6yUFyp8FjhAFL2cYlBa7JD/ht+LEN2KsN/CCr3psP7xI7y+Jury0bGjFU2RBIKem9FWwPfDcqT498WpOgylMTEUyHMcorM1FIbLaPaDauC0UyGHqm8a28=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WtChIcxu; arc=pass smtp.client-ip=209.85.214.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1770151107; c=relaxed/simple;
+	bh=S0eFk4G9JuiNAy7WV5BdRsSeJZQ5x8lCJAzsA92hjAo=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=IsFsrq/bdtlDc6dkKvS1QNzMYB/+ccpKVMjdvxHL+CXAhdrXVpO/4av93pShxlEcnR/KG2/bzBM57AQeD5HplI2fgVgjeLg1PTE8+Yu7HuxoFc48eoXoMRb6LnEhKb/qmd+ACfn4CA668oPv6sQODHC/Y/H4tzCas8tsjzfhR6k=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dqUh+avh; arc=fail smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WtChIcxu"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2a7bced39cfso57910905ad.1
-        for <nvdimm@lists.linux.dev>; Tue, 03 Feb 2026 02:43:56 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770115436; cv=none;
-        d=google.com; s=arc-20240605;
-        b=O9/vBpRGjHnpObBOgehr160oMncezFTOQ7JhhMLriWZR9IxHesGeEg3udgIDapKiAr
-         3G5JwVsrD6j0UEMCeC3H+Qwe4i5S1BEWw/8uAL4dS9NbtP2tIuU5b6xVIcPrLj2baUhb
-         QBSn7JDN4s4Cx13wzZjoNQxzxkJIBcXXYlgYfqpW0iqFiMO0/+fFiS/ho3tSn6Fca1BQ
-         x5PQD24xyXBR7IroEATEN9GPT43Ei9uYC1Qw3poVXuwTFh/DNAyoGzQoTae1Uznef937
-         UU2UHv4KTvMVD2a1yPsk+nQPJfgcfWsS2bQRcNdXQPgEfS/lCWQ93hdpIC5wdKjh401m
-         wwmQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=1STIRAxHKajbWHjuKHeCah+NmqTOtV3nZHAJmzsLz5w=;
-        fh=rOYN6Cc2ziPl/GhBeMq1eaRwzzzgCDCuXZG3C/Ms/Fw=;
-        b=TUEKGf0bRmKd1ui9/N6a8u5Br5AXRWi+W+uq3woK2odYYPgxFqL445yiA8TTz2NpCy
-         79C4yP+G8RB/14sdDYxQLNvGsMRDeCOFuWGZcRPbGUJFADsu56kCB95Ya5NQu4InXyh6
-         JmsdxBj7+qaTvpb2PWOWb6bDYyfS8VUWzWr8ugLMHcOW2eU4SnsTjT9BxzbqAYr2pM/z
-         V3IRxiDUIK/8WCuw97/7rUTi1JxDIEfsAJTj99Ai5YKbUmgcl05x+2pXeJYxnHWK8u00
-         SKAoTt0Jd5ny2Vx4xdDuhQvrglTCfNt6HiIiWEz/1XUiHg37letFv80vg3QxhMMdYkxx
-         FlGA==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770115436; x=1770720236; darn=lists.linux.dev;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=1STIRAxHKajbWHjuKHeCah+NmqTOtV3nZHAJmzsLz5w=;
-        b=WtChIcxuzyVKy9Htpb5AQJpL3t5E9aQP8BJZv93ewMe5siIWaaBkTdPdpV58rebXGk
-         Nndqc/TUiOYysV4M3lw3ObQDy6bQKxIlIMnWPU1sPYkfXwtI6OhgEl5dbT/FhUItbex9
-         1RVwsAbDSMig8gt6bsnQ3O378f/k72qNiovjH9e+9gzfJU9kO5Tj5BEFz1uSuVjCs9LI
-         Z8mBZyXpKc62lGTdNJ/UkchOXTX0NyrCQSRafz0pATpYEEeURACAusDBGc2k4VR8GU4z
-         /BUy5NGrALWpCPGWSip+8HU7VEwLbn7xpHVM9BFYbuaBDJfi6LUsGHlLCiTU6ig62Nxd
-         8ciA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770115436; x=1770720236;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1STIRAxHKajbWHjuKHeCah+NmqTOtV3nZHAJmzsLz5w=;
-        b=iJPegVgQ+LDIvKVHEf9aYsaembEpQY0g+bGoq0TMUjZYsU+pRV/fqJnVXOpBNXpMwI
-         eOaOBntOIWTxi1VhZX5klketUlWll74iRls70YI6E5Z5zTD7e7W/sIMcT2rxHzN4j4p0
-         /PeTBM5Xj2IcWwJlATuQr9Em8mo6GPhWUew1NUmSKvvoO6GpWVJ2MtoJsMczwQ1qryGK
-         U4eOJ7+o46UGZxJgebKjm22EIzml8Rov58J9Yb8/ItmXzKhMmaDMau7HXrLQ5f1wX7Yo
-         7dMapg+qM5B1GSjUjvV0cNpf1kzDqdlupmmhb44Qwcq8CG+qnZB1YKvyGXi5fF5DnuxR
-         fh6g==
-X-Forwarded-Encrypted: i=1; AJvYcCWSgjS0ARoCWO6Fzkc4MLHiRLdn3IX9dqjcoog1fO2RXskCb2jFO+bOreKAnBlwFL53GxOyEYA=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxDVshxZOHIvZJLTlqssZ71CIuscn5RQ3smEaxxGc/Gj+VRLuzY
-	JyOtJXuOK7s2YgvUu6PCwYmH5sajtwKeIwb+TOIwEQZSSrHHFJThfv7UOjHyQ8uPKyR5QkUrNma
-	cT3GswYBvZ4sZpTaWU6VNHr0KcslG5bA=
-X-Gm-Gg: AZuq6aIjLHLQe3SnwmO8i90E42lUhJGQ09ExKgtBfB45j0F4L9mZ8CUBV8GLn3PQ6oc
-	GctIK56VsjeOU/QlpohDiiYxIDGCpEOgosqro/cz7xSl/+kk2IK4DAgmjdngS6oma08ChNAAh3Q
-	Eq7EbqJ1YroQXNlKTLUEa0/p3QoMhejbHC8L+qtqoH6GPrzF7a6jHYt7utlHkiDJqSPG1Rr7qTK
-	w4Ls/sQNyXQhZ3R+bSowEU21wFkGQ1Ass1+9WLJjs1sd8sLXe1EbObL5VOIgYdKHiV0ydYE
-X-Received: by 2002:a17:903:244f:b0:2a5:8c95:d823 with SMTP id
- d9443c01a7336-2a8d96a6a6bmr160580425ad.10.1770115435853; Tue, 03 Feb 2026
- 02:43:55 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dqUh+avh"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1770151107; x=1801687107;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=S0eFk4G9JuiNAy7WV5BdRsSeJZQ5x8lCJAzsA92hjAo=;
+  b=dqUh+avhbMOOUJXuxIyyoAJvKC3iO2WWx+8rG9LRk+RcapEHr0q0k7JR
+   V5v65+cuUtc1eqss3+tUlVO2UkcBv5iX2QTKhm6lbHWZVN2WEIT7+Gog1
+   6jTAG8IAzjHQkqviqmL70f49Lf6dYEZmiPg6ggfwNvpYRhOuRP3/7TZjb
+   dI6zunEwH9KGByzUcq45F7XSSq5Y4eM1EugxdSJyt3MgIj7baQswU+vvw
+   naLAxYMRTCI4VZhqyP1jzF4/1m0kUt6vwUc0a7/6ZdHToGJ5xIuJBReYJ
+   EqhuBvqOW4o8O14BaXw2/rVRWbggKXxaWapfnL8zmq0mjYS4J8oUhC8Gb
+   g==;
+X-CSE-ConnectionGUID: fU/6278GQ5GR2r5ayAhLrw==
+X-CSE-MsgGUID: KobhqOzpRwWE0Nqxb1NUWg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11691"; a="93984922"
+X-IronPort-AV: E=Sophos;i="6.21,271,1763452800"; 
+   d="scan'208";a="93984922"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Feb 2026 12:38:26 -0800
+X-CSE-ConnectionGUID: 3L9c4DSlTsej6Cys78GD4g==
+X-CSE-MsgGUID: ezyYkcuvRiyqscJGEd7wEQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,271,1763452800"; 
+   d="scan'208";a="240638336"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by orviesa002.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Feb 2026 12:38:25 -0800
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.35; Tue, 3 Feb 2026 12:38:25 -0800
+Received: from ORSEDG902.ED.cps.intel.com (10.7.248.12) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.35 via Frontend Transport; Tue, 3 Feb 2026 12:38:25 -0800
+Received: from BL0PR03CU003.outbound.protection.outlook.com (52.101.53.65) by
+ edgegateway.intel.com (134.134.137.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.35; Tue, 3 Feb 2026 12:38:24 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=cCXmdXEDi3MhdvMDiUlVK1n8mxtDkBh+trcktdEJsaB+Y8PXolbeLaWQe9EgswdUaSDmiREDcapkt8aayCxmPi3yHsv0QpauyeTQmG/lyt2SrBSJB81mK5+Eb9TqmBN6r5BzM2CjNw/K0XPZhrx9UX6CjaMbr/CWsYZ9jAWJ8AVVNGPji7VXCttEDy57krrOxEq3m8nErIF9H091TxynPyj4UiK/41Edio1b6PeM1LT+CxyPHaChwvfUJHijLCttqgYkXskPhUT6A3hO58sK5090KYgyPuEF/IdQfreBwNvLjsnDKVu6xLMkqTtOZwa6073tWTXsNsOtwcf1zJcHMA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=nmZAh8OD0v3HckgVj8O9YlAfatzaOxDzk46ibJiTVWA=;
+ b=hl6KltALb9Qp2qPInQSVzpOQSeOMMy89KfdpZTxJ51u/5DZoO/JCgNjTqGcZuATLdloMvIVtzKU55NXtnNZ6Za/zc45ZN66WUxabrXev6ZszCBZsGIvio/zd84YaYmJP0yOiyAUAFXtNm2VF665LDptezpXmQOjwebWW14d+Y/f1O5/KejPa2tSVVr2UXp/fFOHkfglHEYnS0zJ3FzYaqs1OLNJjNufpzcRyVEXYu3/m5Ma5y95R+CIJQ3rDG+cPFJ36O4Figj5zzwRbwyrCbd4pWew7+2wQPzIyuLkvr/V3v+BI/db/HDq8Gbsp0rtZiUj3vajzbjCqfco6LmF5TQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c) by SJ2PR11MB7456.namprd11.prod.outlook.com
+ (2603:10b6:a03:4cd::17) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9564.16; Tue, 3 Feb
+ 2026 20:38:22 +0000
+Received: from PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::1340:c8fe:cf51:9aa2]) by PH3PPF9E162731D.namprd11.prod.outlook.com
+ ([fe80::1340:c8fe:cf51:9aa2%2]) with mapi id 15.20.9587.010; Tue, 3 Feb 2026
+ 20:38:21 +0000
+Date: Tue, 3 Feb 2026 14:41:42 -0600
+From: Ira Weiny <ira.weiny@intel.com>
+To: "Michael S. Tsirkin" <mst@redhat.com>, Li Chen <me@linux.beauty>
+CC: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Dan Williams
+	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
+ Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Cornelia Huck
+	<cohuck@redhat.com>, Yuval Shaia <yuval.shaia@oracle.com>,
+	<virtualization@lists.linux.dev>, <nvdimm@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2] nvdimm: virtio_pmem: serialize flush requests
+Message-ID: <69825d866edd7_44a2210014@iweiny-mobl.notmuch>
+References: <20260203021353.121091-1-me@linux.beauty>
+ <20260203052616-mutt-send-email-mst@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260203052616-mutt-send-email-mst@kernel.org>
+X-ClientProxiedBy: BYAPR02CA0007.namprd02.prod.outlook.com
+ (2603:10b6:a02:ee::20) To PH3PPF9E162731D.namprd11.prod.outlook.com
+ (2603:10b6:518:1::d3c)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260203021353.121091-1-me@linux.beauty>
-In-Reply-To: <20260203021353.121091-1-me@linux.beauty>
-From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Tue, 3 Feb 2026 11:43:44 +0100
-X-Gm-Features: AZwV_Qj95cNa-ZOZ966OO3GhsyHmrO-vIC4T1fGio9b5sYjdGjXuYPVPwCDZoWc
-Message-ID: <CAM9Jb+iBD1=BgPjN6Jku7=G8qSoavCfB9ZB+rmb_aqgmhQdctA@mail.gmail.com>
-Subject: Re: [PATCH v2] nvdimm: virtio_pmem: serialize flush requests
-To: Li Chen <me@linux.beauty>
-Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	Cornelia Huck <cohuck@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Yuval Shaia <yuval.shaia@oracle.com>, 
-	virtualization@lists.linux.dev, nvdimm@lists.linux.dev, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH3PPF9E162731D:EE_|SJ2PR11MB7456:EE_
+X-MS-Office365-Filtering-Correlation-Id: 04c43345-d79a-481e-ea27-08de63642be1
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|366016|7053199007;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?y4L4NqOesMP0yiillOBm9GCOCHaK6n4L3q3xbBk/I5g19A1Y+tRtXS0S6bqZ?=
+ =?us-ascii?Q?I/EkCfDUleMGO5IcQYk6h0szwl/lDjzQBYzPCS0R+eoKDYhk7/qYH76VRMrh?=
+ =?us-ascii?Q?hSpUGUQjE0szpBMNK1Mc0bAGtC+5j0mBVpfo1lJVMfSGs0m2qt/D4B0sRO+J?=
+ =?us-ascii?Q?Wj/Qp9oTm39rdcD76mtI/rf7CR1//H8KdbFRoYKznXgQCIaD/o6Wj4FaJDlj?=
+ =?us-ascii?Q?B7dgc8vV1bwal4orKBVJAK8CtQZbJUMKcG3cHw7VUi5gGUvzY/+/IAcxJ781?=
+ =?us-ascii?Q?gYF/x9oB0qXu1xuVW0uePbvZS3voMRyC5X2Vp+7OQzKEBD7mY63vMQY/J+K/?=
+ =?us-ascii?Q?ONSsXi0nTc1QlGNgLsfb+ykYggi0pBBZUsFeszRy/jr8M4ClEa8kLg31kvzN?=
+ =?us-ascii?Q?RIRCKgYVLeuuzd/sp4Zkg8q2UIif4IejcWDkk8FFAYyW2SU8jzgL8BgNQX3C?=
+ =?us-ascii?Q?CAmfEkXfOU897FQhmAi3bD4/lsIIWQUQdMiJfvpJ/+4oZEcVf5h5SEb2xCwI?=
+ =?us-ascii?Q?+WGNGW215zGwjZJqGRrpaaHgQ7NeUzT1Z8/1S3wTGmGazuYV+bl3VYq1ATDC?=
+ =?us-ascii?Q?C4tjIr8t2x0YxJEcsdcOMycOouE7Qtt5hC4u3HiShhvIjIP4Ngamk+d6FFNZ?=
+ =?us-ascii?Q?TL2PRroel2/xLBuit3gHhx33Fit4SjydMoyxyPD7lZ/fVaXm8KXG7sPnEhjZ?=
+ =?us-ascii?Q?3jI0rsoYqFcaqElxynuB/yLzfteqRuhbKpeGWHx05+cJMFwRqcoYBTDKtTYc?=
+ =?us-ascii?Q?X7PAN2fLQjUM+INRvfzW/S067vC9hYHc2gLAVtAzlmw+tHnOGWSNrhQwUMsn?=
+ =?us-ascii?Q?ar6gvMJ+4pU7pQT+Tx49VIMHgAYqu79OzF4zdzX4VCt0kI/vdgivSTjcC5jR?=
+ =?us-ascii?Q?4RoDGrei/K5xitO57CwdQ7On0gX4PD6YOodIBS7CvoWwyN2e3dGlJP8h2A1O?=
+ =?us-ascii?Q?xH+jHS6MmwBZ3EMyLMBxl8CUyL9gJzqw+LPbifheQ0rXRKAoKmBrviltHeSE?=
+ =?us-ascii?Q?iYoQ5lLmoqqzKiKiIIJ4gKF/xNK+TGUMoXqcxS1tiSVEEVZmLr5TOVHfMVkv?=
+ =?us-ascii?Q?4oLzPZ0oG5QptIM4TZI2XO02jARcxbKUDEUM+b+jMGZhKr1oNPw39Qa3cUD4?=
+ =?us-ascii?Q?l95VxVSCxLt8Xh5Qhx+QmQarZMMUytWBsRubMucUz8ICY/05oZqnh+UY7B2W?=
+ =?us-ascii?Q?z45Vkd+imp+pfBHN4m5T974765CpsZimS3cQDAju7xL5G4OCzzjUdnQIAsZ7?=
+ =?us-ascii?Q?ZCyyDe6yQqXwM5WT0tUt6vsIVssIGijFogcXll07Bqjen3BOrS/+9/pYjbo2?=
+ =?us-ascii?Q?Hn++2KA++K6DuDuzBdq3iGclqTCvrr5w83AYBcbK97fIPxH5zMuOQamXqG89?=
+ =?us-ascii?Q?sr2ubefCxErZ26fEFApQsQESNhLnlj9iqCNSmtkEv99KQwWZKDxWa9ZWbQNV?=
+ =?us-ascii?Q?p++iNIG+QncneifSLp9Dvi50jfk10D+Gf2CjIbmQ70OxIlhZREscorugqopR?=
+ =?us-ascii?Q?Jn2X0YTWfeh2OdJRDsm0B+jXsxVOqBryOMFvZyBVg5aXLpUyB6vTcpk0cbbQ?=
+ =?us-ascii?Q?VoJeg1VE9BNJ+lnKYUU=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH3PPF9E162731D.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(7053199007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?h5lgejW7L0FqcikdRp07f8PSNZQeEqf9KfGVjrJf4d6qCr05M3v2S4u1yOjr?=
+ =?us-ascii?Q?MNKNUVyGuSLsb5RWwZLwAZehM2xWhZMgu3+1wrh2CDMKB+/tuniIOXPQD2kv?=
+ =?us-ascii?Q?zCHhLinWBXZMjK1TTPfS3jFFb5MTRrE3jIJSfwE4xlFyhQNEPE5aak8n5uWZ?=
+ =?us-ascii?Q?PbUI2hjSsJuONwwKHw6oHMC4Td1gtG3o8lECqqQwqhr+HZhgv7+4Yh8+/9tq?=
+ =?us-ascii?Q?0zd0swHD1L4qzW29DdY/uezw324OTz4qMDW0apmprp8YJcxgICp1NYXiWAkF?=
+ =?us-ascii?Q?oWViYtT3OPA93fiZHFnerQxl64x0OhxFyJESKOc8wYIHbWcGsZkZBBe0wsxs?=
+ =?us-ascii?Q?jy0SvgQJt8YfGNQHiabKpVWX6LCEhGpUGG3Oe9YsB0cKhNoeVnwl2MZVuhFU?=
+ =?us-ascii?Q?qWisF1MzKeQcqH9OvFswnE6U1CUypf8vz1YanZP5g2JiWOaLxmpb9D4bsuci?=
+ =?us-ascii?Q?nzFQ8veMSPc0bROy5bTP7JA7l8ew6h5CGDHZQzqDPRsEgQLTL7Z80ipvScCn?=
+ =?us-ascii?Q?5GDk80DvlEJL54vWTBxBly2v4kmwKsX8y55alBaHLK9BLAYFoY9FAqKdR1CG?=
+ =?us-ascii?Q?PzBALzLvdqJZxOTYk6r2xP4i7xJvWjpkPCY7EFR4PofitZMT/xYxqgoogjAP?=
+ =?us-ascii?Q?eFbQTKfOVX7FH1S0MhM56YTrgCBsQncZYnBIjMcKSRhXoUZyXfnznxKHKSYv?=
+ =?us-ascii?Q?4aI8URa0JVxQ1jrqP8xIVCCci5uCVFXGm2mkIS3s1Zy8y1u1di+I26VSiK6s?=
+ =?us-ascii?Q?n7lZvRFwDIWIAqsUEEKz7/Lttzkmo6nIImRTG/Cg6fKz4aARWpKuLI4cklDH?=
+ =?us-ascii?Q?2GWSvNgpIlcnJJFrq4QREecZiIq7jNjGM8Dk4TU1k7o1X7UzvkvqdtBWreFa?=
+ =?us-ascii?Q?KCHdgdyNj411EtppYiT7LyYhIq4OPXkXAQRW913suQ+mTuFC8+MpfOzDndlB?=
+ =?us-ascii?Q?dbn9thiBoWz5cgJiUjaCdyGk2vIZCAJVK9OU07+ZI+/gJWsDAZvOQ/tPy6yM?=
+ =?us-ascii?Q?DogoQAliWqj39TtGs+Yfr1UgtD4M2dHRZf6ta3DtyoM8QP45ybIqtEU7LCXz?=
+ =?us-ascii?Q?d+tD3k1hfxgo3fCiAt8U+a0cPpkWRtVtHlTc4tyao6lWFk4gAA/vnLJ9ElUT?=
+ =?us-ascii?Q?zog+KWlRpiNAnvwpPisM02POylPTi0Ou2MDO1MzGOl79SX2/HgeC7GmxJNfJ?=
+ =?us-ascii?Q?othAuPlnUfRkJMSSCL29azaoYhhMSCkly+xFUYz9Q7rZJqw+GRPWhAzfpA7P?=
+ =?us-ascii?Q?E9CCWAJubf/y8xwqpr1kOS4ifS80QoDFlMTweGQasAL+Qfr4NEV+HtNE3qon?=
+ =?us-ascii?Q?xxTkfclCsQW6OfRpzkWOxDPEOOhWXNe1r1OztUWVliJ1bz2nd+kDsl4Tv+eq?=
+ =?us-ascii?Q?o0zibWaH9xwURu3dJSyDBYmBPFmakelkoIeovhbSX45AxIA9AHSHL93ME3cX?=
+ =?us-ascii?Q?YZ7bshV2vWkPZ7E+niTkCNa8iZh9fGJsBS1wg93xQE7VTgXNy9TlNjtcghot?=
+ =?us-ascii?Q?4/XC8QPjh+LR9KzFYipsWrP3wujySDt3GnaSAaFRxSsuT4Wvnd8fgAj9IWug?=
+ =?us-ascii?Q?o2e7gYyGCAltaKUvOEaR/+jE1SHswZ2muDTVwQMjVHkoZ45r+nrmV3hl02TK?=
+ =?us-ascii?Q?HEfBm6ucCpNSgRsUYRyCvbYMjMAjS4omXk3kjccvDN9YWqzrHOa2d//MCH2F?=
+ =?us-ascii?Q?9Ly2tXGXdftIUSPpS913EMYqW15YDX4WJMZqdklGKdkEtmI9w+w+wpyMB9Pn?=
+ =?us-ascii?Q?I2L9icmQYg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 04c43345-d79a-481e-ea27-08de63642be1
+X-MS-Exchange-CrossTenant-AuthSource: PH3PPF9E162731D.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Feb 2026 20:38:21.8505
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: D5m6mjglFOWX6q+l51YxZ7vItB9XqX8oK8TS/Wi+5kNcGUNsAjbzDqpi4t9hWjgGHcGW3fWrJX6+kuEG3jAMag==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7456
+X-OriginatorOrg: intel.com
 
-> Under heavy concurrent flush traffic, virtio-pmem can overflow its request
-> virtqueue (req_vq): virtqueue_add_sgs() starts returning -ENOSPC and the
-> driver logs "no free slots in the virtqueue". Shortly after that the
-> device enters VIRTIO_CONFIG_S_NEEDS_RESET and flush requests fail with
-> "virtio pmem device needs a reset".
->
-> Serialize virtio_pmem_flush() with a per-device mutex so only one flush
-> request is in-flight at a time. This prevents req_vq descriptor overflow
-> under high concurrency.
->
-> Reproducer (guest with virtio-pmem):
->   - mkfs.ext4 -F /dev/pmem0
->   - mount -t ext4 -o dax,noatime /dev/pmem0 /mnt/bench
->   - fio: ioengine=io_uring rw=randwrite bs=4k iodepth=64 numjobs=64
->         direct=1 fsync=1 runtime=30s time_based=1
->   - dmesg: "no free slots in the virtqueue"
->            "virtio pmem device needs a reset"
->
-> Fixes: 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
-> Signed-off-by: Li Chen <me@linux.beauty>
+Michael S. Tsirkin wrote:
+> On Tue, Feb 03, 2026 at 10:13:51AM +0800, Li Chen wrote:
+> > Under heavy concurrent flush traffic, virtio-pmem can overflow its request
+> > virtqueue (req_vq): virtqueue_add_sgs() starts returning -ENOSPC and the
+> > driver logs "no free slots in the virtqueue". Shortly after that the
+> > device enters VIRTIO_CONFIG_S_NEEDS_RESET and flush requests fail with
+> > "virtio pmem device needs a reset".
+> > 
+> > Serialize virtio_pmem_flush() with a per-device mutex so only one flush
+> > request is in-flight at a time. This prevents req_vq descriptor overflow
+> > under high concurrency.
+> > 
+> > Reproducer (guest with virtio-pmem):
+> >   - mkfs.ext4 -F /dev/pmem0
+> >   - mount -t ext4 -o dax,noatime /dev/pmem0 /mnt/bench
+> >   - fio: ioengine=io_uring rw=randwrite bs=4k iodepth=64 numjobs=64
+> >         direct=1 fsync=1 runtime=30s time_based=1
+> >   - dmesg: "no free slots in the virtqueue"
+> >            "virtio pmem device needs a reset"
+> > 
+> > Fixes: 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
+> > Signed-off-by: Li Chen <me@linux.beauty>
+> 
+> 
+> Thanks!
+> And the commit message looks good now and includes the
+> reproducer.
+> 
+> Acked-by: Michael S. Tsirkin <mst@redhat.com>
+> 
+> Ira are you picking this up?
+> 
 
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com
+Yes queued for 7.0
 
-> ---
-> v2:
-> - Use guard(mutex)() for flush_lock (as suggested by Ira Weiny).
-> - Drop redundant might_sleep() next to guard(mutex)() (as suggested by Michael S. Tsirkin).
->
->  drivers/nvdimm/nd_virtio.c   | 3 ++-
->  drivers/nvdimm/virtio_pmem.c | 1 +
->  drivers/nvdimm/virtio_pmem.h | 4 ++++
->  3 files changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-> index c3f07be4aa22..af82385be7c6 100644
-> --- a/drivers/nvdimm/nd_virtio.c
-> +++ b/drivers/nvdimm/nd_virtio.c
-> @@ -44,6 +44,8 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
->         unsigned long flags;
->         int err, err1;
->
-> +       guard(mutex)(&vpmem->flush_lock);
-> +
->         /*
->          * Don't bother to submit the request to the device if the device is
->          * not activated.
-> @@ -53,7 +55,6 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
->                 return -EIO;
->         }
->
-> -       might_sleep();
->         req_data = kmalloc(sizeof(*req_data), GFP_KERNEL);
->         if (!req_data)
->                 return -ENOMEM;
-> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> index 2396d19ce549..77b196661905 100644
-> --- a/drivers/nvdimm/virtio_pmem.c
-> +++ b/drivers/nvdimm/virtio_pmem.c
-> @@ -64,6 +64,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
->                 goto out_err;
->         }
->
-> +       mutex_init(&vpmem->flush_lock);
->         vpmem->vdev = vdev;
->         vdev->priv = vpmem;
->         err = init_vq(vpmem);
-> diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
-> index 0dddefe594c4..f72cf17f9518 100644
-> --- a/drivers/nvdimm/virtio_pmem.h
-> +++ b/drivers/nvdimm/virtio_pmem.h
-> @@ -13,6 +13,7 @@
->  #include <linux/module.h>
->  #include <uapi/linux/virtio_pmem.h>
->  #include <linux/libnvdimm.h>
-> +#include <linux/mutex.h>
->  #include <linux/spinlock.h>
->
->  struct virtio_pmem_request {
-> @@ -35,6 +36,9 @@ struct virtio_pmem {
->         /* Virtio pmem request queue */
->         struct virtqueue *req_vq;
->
-> +       /* Serialize flush requests to the device. */
-> +       struct mutex flush_lock;
-> +
->         /* nvdimm bus registers virtio pmem device */
->         struct nvdimm_bus *nvdimm_bus;
->         struct nvdimm_bus_descriptor nd_desc;
-> --
-> 2.52.0
+Ira
+
+[snip]
