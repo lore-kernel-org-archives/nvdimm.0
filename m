@@ -1,194 +1,159 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13EEA3A784D
-	for <nvdimm@lists.linux.dev>; Wed,  4 Feb 2026 18:53:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 895DF27464F;
+	Wed,  4 Feb 2026 21:08:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770231199; cv=none; b=gSd/4WP1t5vZGIR6rgagTCGlvzvlMquyUjaVa9/IWb1xtnUMuJcm7wrjEgtTUlypulXhgDBwJyXc+q8ntHJzVshQQkjSeqIUChl55BU7P56Hk04pbBeZ4LCw/+Q7LAwgfgpfEjog0K7k5tSqadtxkzPVM0ZMx4lxuOEUTIv2d4U=
+	t=1770239333; cv=none; b=g/DiqB3gK8N5EH8j+e46LWPDeDVltOZ7fFM79jb51Kd0Io7AmbftUtK4zH3c+gVClyflPDftXqZjBWbkmRvUesRHxIrD/F9AAYYCXbAau95zU0YEmkxCnrG3BQ/EAXgVhkkiMIu4iKCOUhb1srOTi3LG2M/1rFEhrpOAXW5XQrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770231199; c=relaxed/simple;
-	bh=8NZrnCyGxgIyFgBhQIH24fDsIVh/tj3zfFyvb43nBZY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J13MnJJQNDyi5UZKAa14EeAPcRdWYd/ss25kWE1fi5sPTQFje2pPzW+B7qzdgBq/cLp59E8OHYfsYEKcLYhR8jfBCGacMyAjorbHw4W7LAhLMpUGU3a4RgegxPy6nWaL97sS4AwDn3gXFbvpoSXk4KYCLH6MvJc7uBSqFC+w+8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=bJufydoP; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1770239333; c=relaxed/simple;
+	bh=L0yw/ZVXlFtoQTEti0lXJnZOK9g6qlS6ZDzawp2mTxk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=NYqdjK/xsxiQ4wXquE9reg4lRrTSGlVM0olORVpIkGHZzwJYLfPjuwr2pAv/LCLCm34m+XlnK5C3JcH6WeAabRGlqllEcEUh8p91FFG1HGn9endGa5m07WTp0G9X/uMiW5W6WJxoP8jDa2rBBCcdttu+G6450hpHQZBeQ0s0XK0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mj8+82Ig; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="bJufydoP"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-50145d27b4cso1702451cf.2
-        for <nvdimm@lists.linux.dev>; Wed, 04 Feb 2026 10:53:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1770231198; x=1770835998; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=uzI0FVTkG9+TFoyxK3GOdlcG286KX76a4+kWovvefOY=;
-        b=bJufydoPXMsWlatb0aPNW4vVng+oYpVUVtwzXixHKYM7j7uR9J4S6HAy5SlLlGUH/F
-         9cD3Rpp3U/Fm0FPxaj5VeWW9klrsN9sTlywRoPwMa8hSAHs2NALK3ZsiStRU4qhXfLm/
-         EeDsoSTfFmO5ylPYWcRknlyNLeQvZSpcrFmv2wCM/VY1vbAD03rsrDAwqrx8L0xuwJdO
-         6dLIoazOjQURlg/MuMEBpxHB+WRKWm/gLqgIPluIIOPZ1PSHop9OWC5NthQQnewxiOO+
-         +J+vDBYqULD6iZVYG1/Z/+meyvif145mvqGaEkoGpFPHw4blS1yZt3P91JGzMF3C2X7v
-         uDlA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770231198; x=1770835998;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=uzI0FVTkG9+TFoyxK3GOdlcG286KX76a4+kWovvefOY=;
-        b=QzXzndQlTjsBygZuc8vVv6BMJ04kpZkSkqfTffrDXt4kz1FiRMPei8BJDT7/wyjdTH
-         yB8p+rF4cZGl7Hy5Gh8pZRX9H1zHoSBL6HelBMlByUzEYpuQMWZ6RBrrggy42MchrmYT
-         cX79Q64BmedR4VqiGbc+ujTkeNhHjiBE7LtHmgNkS35LLGUh8kkez6j0CWkpX6ebMkj1
-         CEOmj5Y6lsFa6Pf34D3tZt2gIMJgmjgPgdLOHziFyadBuaQQ2wAAxGG5emQKfSzz75W9
-         Q7Jvez5EqHU3U3nmtIqj0rsT4JG1sgIJl+j1ZhU+16CpvZpmr/Ia5c9HRyzXprEzRKx1
-         dtdg==
-X-Forwarded-Encrypted: i=1; AJvYcCXJfHvgoE5LQ0OZ0HD1TyQjasVzyTTGJSCZjWY+i9q4UMjn57Rkh/S8VN9I4rTfYP6RV192TOc=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx5pdy1YMXX2t5Mp9z/udFMn1Ym172J0HWESEKJHexd7D0VRNui
-	ANbbEqV52HPyZoYdr0lhzXAmQqRKYykFRo+Lzx9SFvUE76ajZ6hdbdE7D9UIRsht26I=
-X-Gm-Gg: AZuq6aKnWGJKzHYgado/BKSpvHmky2Hp5eyxhFLgmm4D8t5MbMMwyibQbhyNYQ09Ai4
-	3p2qaB8zNC7m39p6oVbZVGvv1N4cZYyYUJpw3B8O00T2V3LIsxmHIf0JqUEE1aB86esPViN6Dgw
-	FNSGn0fkc55KBLHMvebCShL1fi3NFECcRzEvqRlYSiu0a3g+hSz+3lGRq8LDBD4IEHSJcCBml4T
-	KxV+gKwWUlT76m+uA29j5YcVKOkiObXOEyGROQTj6dIy35fg5s4tGGG8Mv4jsSn7oVGmDPzgdcJ
-	HRqtrzUlxmEPT8rytsqZX3qu0uaXDrPRzIZM+MAvl/Mu09/kfPnvPaez48Fdg3yr6vG8L7o3Y2c
-	7KARKTgMpLlDWgFHdCbxMoNNJ3ASKx0UFkkvlZ3Yoz/b+6lkHQ1rEjDGK8Jz1ZXjwuX+aY7VDFW
-	zNpyl3vo5Fhkr61JM9fR3GhfjnIUiBOuA/tCaLLeQ17WbqO397R2a3KBLkfFsgLcXgOwbXYPwpL
-	H2XLIoe
-X-Received: by 2002:a05:622a:30a:b0:4ed:df82:ca30 with SMTP id d75a77b69052e-5061c0c6e77mr51937561cf.13.1770231197960;
-        Wed, 04 Feb 2026 10:53:17 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8ca2fa87841sm244327485a.16.2026.02.04.10.53.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Feb 2026 10:53:17 -0800 (PST)
-Date: Wed, 4 Feb 2026 13:53:15 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	Li Ming <ming.li@zohomail.com>
-Subject: Re: [PATCH v9 00/19] DCD: Add support for Dynamic Capacity Devices
- (DCD)
-Message-ID: <aYOVm6PVfmQdZvlI@gourry-fedora-PF4VCD3F>
-References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
- <aYEHmjmv-Z_WyrqV@gourry-fedora-PF4VCD3F>
- <698270e76775_44a22100c4@iweiny-mobl.notmuch>
- <aYNh-m8BEiOHKr9h@gourry-fedora-PF4VCD3F>
- <6983888e76bcc_58e211005e@iweiny-mobl.notmuch>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mj8+82Ig"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2F8BC4CEF7;
+	Wed,  4 Feb 2026 21:08:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770239333;
+	bh=L0yw/ZVXlFtoQTEti0lXJnZOK9g6qlS6ZDzawp2mTxk=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=mj8+82IgGzyI6MJVVLBy57BfvzFo3eflS+GZ+P1hZLQt56+SpuW1qDVqN8T/4ok0o
+	 Bo/rnJCkRFxA2hHtsudRKnNMpNYNBdWsAmqfrIlIfhZc6vHsQIb+ZAhvYwZS2jZXLM
+	 wWtnZJhzQS+BE7Rdsf9bzz9zjQkPcsWgu2dBs6CjaDd/qr8NqBAXklQ8EJcKKwXa9n
+	 eeu5Nk2sTeurjCq3HR22POQH3xW9KiCL/0feoY5DwVCs5gR6vM3oY8Mf+mfvpsaFmN
+	 PhQ4IDgGm70galBMIGm9sKMnra1XxFhBP8QX6JfIgJE+Pfho5g5dqLokt2mrFwSNH4
+	 PBc5rPqWtN5pw==
+Message-ID: <3424eba7-523b-4351-abd0-3a888a3e5e61@kernel.org>
+Date: Wed, 4 Feb 2026 22:08:45 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6983888e76bcc_58e211005e@iweiny-mobl.notmuch>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/9] mm/memory_hotplug: add __add_memory_driver_managed()
+ with online_type arg
+To: Gregory Price <gourry@gourry.net>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, kernel-team@meta.com, dave@stgolabs.net,
+ dave.jiang@intel.com, alison.schofield@intel.com, vishal.l.verma@intel.com,
+ ira.weiny@intel.com, dan.j.williams@intel.com, willy@infradead.org,
+ jack@suse.cz, terry.bowman@amd.com, john@jagalactic.com,
+ Oscar Salvador <osalvador@suse.de>, Andrew Morton <akpm@linux-foundation.org>
+References: <20260129210442.3951412-1-gourry@gourry.net>
+ <20260129210442.3951412-3-gourry@gourry.net>
+ <20260202172524.00000c6d@huawei.com>
+ <aYDmor_ruasxaZ-7@gourry-fedora-PF4VCD3F>
+ <20260202184609.00004a02@huawei.com>
+ <aYEZAUJMLWvaug50@gourry-fedora-PF4VCD3F>
+From: "David Hildenbrand (arm)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <aYEZAUJMLWvaug50@gourry-fedora-PF4VCD3F>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 04, 2026 at 11:57:34AM -0600, Ira Weiny wrote:
-> Gregory Price wrote:
+On 2/2/26 22:37, Gregory Price wrote:
+> On Mon, Feb 02, 2026 at 06:46:09PM +0000, Jonathan Cameron wrote:
+>>>
+>>> I can add a cleanup-patch prior to use the enum, but i don't think this
+>>> actually enables the compiler to do anything new at the moment?
+>>
+>> Good point. More coffee needed (or sleep)
+>>
+>> It lets sparse do some checking, but sadly only for wrong enum assignment.
+>> (Gcc has -Wenum-conversion as well which I think is effectively the same)
+>> I.e. you can't assign a value from a different enum without casting.
+>>
+>> It can't do anything if people just pass in an out of range int.
+>>
 > 
-> TLDR; I just don't want to see an explosion of 'drivers' for various
-> 'policies'.  I think your use of the word 'policy' triggered me.
+> Which, after looking a bit... mm/memory_hotplug.c does this quite a bit
+> internally - except it uses a uint8_t
 > 
-
-Gotcha.  Yeah words are hard.  I'm not sure what to call the difference
-between the dax pattern and the sysram pattern... workflow?
-
-You're *kind of* encoding "a policy", but more like defining a workflow
-i guess.  I suppose i'll update to that terminology unless someone has
-something better.
-
-> > - sysram : preferably doing direct hotplug - not via dax
-> >            private-ram may re-use this cleanly with some config bits
+> Example:
 > 
-> Pre-reading this entire email I think what I was thinking was bundling a
-> lot of this in here.  Put knobs here to control 'policy' not add to this
-> list for more policies.
+> static int try_offline_memory_block(struct memory_block *mem, void *arg)
+> {
+>          uint8_t online_type = MMOP_ONLINE_KERNEL;
+>          uint8_t **online_types = arg;
+> 	... snip ...
+> }
 > 
-
-yup, so you have some sysram_region/ specific knobs
-	sysram_region0/online_type
-	sysram_region0/extents/[A,B,C]
-
-
-> >
-> >
-... snipping out virtio stuff until the end ...
+> int offline_and_remove_memory(u64 start, u64 size)
+> {
+>          uint8_t *online_types, *tmp;
+> 	... snip ...
+>          online_types = kmalloc_array(mb_count, sizeof(*online_types),
+>                                       GFP_KERNEL);
+> }
 > 
-> But for sysram.  No.  It is easy enough to assign a tag to the region and
-> any extent which shows up without that tag (be it NULL tag or tag A) gets
-> rejected.  All valid tagged extents get hot plugged.
+> So that's fun.
 > 
-> Simple.  Easy policy for user space to control.
+> I'm not sure it's worth the churn here, but happy to do it if there are
+> strong opinions.
 > 
-
-Of what use is a tag for a sysram region?
-
-The HPA is effectively a tag in this case.
-
-An HPA can only belong to one region.
-
-> > 
-> > I would need to think this over a bit more, I'm not quite seeing how
-> > what you are suggesting would work.
+> ---
 > 
-> I think you set it out above.  I thought the sysram driver would have a
-> control for N_MEMORY_PRIVATE vs N_MEMORY which could control that policy
-> during hotplug.  Maybe I'm hallucinating.
-> 
+> David do you have thoughts here?
 
-I imagine a device driver setting up a sysram_region with a private bit
-before it goes to hotplug.
+I guess we should clean that all up where easily possible, but I don't 
+expect you to do that.
 
-this would dictate whether it called
-   add_memory_driver_managed() or
-   add_private_memory_driver_managed()
+For online_types I used it, obviously, to save memory. So I'd expect it 
+to stay at least there, but cast it to the proper type once we take it 
+out the array.
 
-so like
+-- 
+Cheers,
 
-my_driver_code:
-   sysram = create_sysram_region(...);
-   sysram.private_callbacks = my_driver_callbacks;
-   ... continue with the rest of configuration ...
-   probe(sysram); /* sysram does the registration */
-
-Since private-memory users actually have *device-defined* POLICY (yes,
-policy) of some kind, I can imagine those devices needing to provide
-drivers that set up that policy.
-
-example: compressed memory devices may want to be on a demote-only node
-         and control page-table mappings to enforce Read-Only.
-
-(note: don't get hung-up on callbacks, design here is not set, just
-       things floating around)
-
-But in the short term, we should try to design it such that additional
-drivers are not needed where reasonable.
-
-I can imagine this showing up as needing mm/cram.c and registering a
-compressed-node with mm/cram.c rather than enabling driver callbacks
-(i'm learning callbacks are a mess, and going to try to avoid it).
-
-> Summary, it is fine to add new knobs to the sysram driver for new policy
-> controls.  It is _not_ ok to have to put in a new driver.
->
-
-Well, we don't have a sysram driver at the moment :P
-
-We have a region driver :]
-
-We should have a sysram driver and split up the workflows between dax
-and sysram.
-
-> I'm not clear if sysram could be used for virtio, or even needed.  I'm
-> still figuring out how virtio of simple memory devices is a gain.
-> 
-
-Jonathan mentioned that he thinks it would be possible to just bring it
-online as a private-node and inform the consumer of this.  I think
-that's probably reasonable.
-
-~Gregory
+David
