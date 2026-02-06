@@ -1,85 +1,122 @@
-Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E1A3A7853
-	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 13:26:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5E99360743
+	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 17:02:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770384378; cv=none; b=nJOl+BFWpU1BzPO5gD6fecy6epww29qokeeZTB0+onP/fSqVFDBUUE4dqxduS2frSeOr0B+eknauhXXrTRQ480Si/dl5Oa1WwrjZQyMewl9GOicl8nO6T/Yraen7uEgHIh4/AkPRJNHnUDcAopcuDpDGXDYcS1BKLub5exwiIg0=
+	t=1770397379; cv=none; b=pBvxYTVFP/xHm5bRle7IivLRXMCjvBQP85DmuhnBK4ayCTroqdNPrKdzSBpn6/TxgAMPpUKehPm0MzlwFpGuYL13bl7IQUHEBF39i/6Y33moTM/DuD4YM549Cm2OcTI3Gv2iYVGuxyXDqzSHoBgzvZWUe8VY+Asi1/KDrsUJ78w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770384378; c=relaxed/simple;
-	bh=QOyk0cfOiJKWpzq43+ntxyiecyFc7tSymZehLwBs/7U=;
+	s=arc-20240116; t=1770397379; c=relaxed/simple;
+	bh=GUyoVBXr3Q1xsOquqRPXnYNTv4HpgxlmloxWIZh6WO8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TMPoC6iwDmeWYgYr1qee7poYl46Pvx0T+0WwttbvaDXo+MpmoYn+2mKMnOvM5DTruZY8QIdDwduLFOZnnhIHb3jeG/88kYVOlk/CVdVPaPyYfWQI49K8FCe1+q5ddXaL3+hymGN4ppEsQTM+J2xm9R5YgrTY2spbiA/qC7CGTEY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=VLbuun8n; arc=none smtp.client-ip=209.85.222.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=l2vce8UFhMntg4xr80Nni6MoGSF1sO19VcrcXw2sbinXowhg0aVtqJA642USESnmnE3KOocr8t1/6ttkbuG7U/dQuviCuAdTN2P5QnGIeMYPW/9gfL6mj5QbEZnBJgVvckEMfc7QrrRAkgFdfEVq+FGkERIDJL8LBI2sJL4JuOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=orkqlvE9; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=EE5crKCo; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=P0Te8zeS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=rMULjRcu; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="VLbuun8n"
-Received: by mail-qk1-f178.google.com with SMTP id af79cd13be357-8c710439535so136006485a.1
-        for <nvdimm@lists.linux.dev>; Fri, 06 Feb 2026 05:26:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1770384377; x=1770989177; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=bcoHR9we9sqx3MppgWDXe17DIO+ggzqTTd2+g0R34PI=;
-        b=VLbuun8nAz3AhsjL7hUsixtBaTYZAWtHtZnO7Iss27v24Pp+f2PPG+lcvHRwJIqvxF
-         hbHbollUCT7KFkqSpat3S6VCx7jtqwfHYx1auk+mB1Lk2eQeLRV32+ID9zjDGe2nDin4
-         blVUwoxXjRtTRIkvXjdyhffbXWql/FooLr19mqaUTU1jtwIgjH56E4tXWRQ8WM1lZBfN
-         QXla9g37XiFWIcPPKCzh+9PpDzVKFsyg8Xc43eTTK5I2P06354Lf8rHNBifdiiJpZzKL
-         n1j5xhMXJJFhEnhVG/YVaXGKxpQaHHvjpRXsCIXDUHp+qGmIB5bnkn9XM+sy6yXI3rgt
-         9aXQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770384377; x=1770989177;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=bcoHR9we9sqx3MppgWDXe17DIO+ggzqTTd2+g0R34PI=;
-        b=AXhFQq/dUhj6rhNhHqxzyuxGNuA4sOFWmXLL91GUJp8D+ftMOZiRnBS8/zDjemykur
-         ffmAOWwaLO3FuUB0cEcqdfA231LvRfTwXA9phi6EPZagSopCsu1ZPJSZPSYXltU6lzcg
-         rtnRw+NRuedSKQth+C6tSt6cpIO5PuBJlduJFMRhMN6nyzXwb/p7XbBOx2FLT0rQkCmW
-         Y9VGkuDVeQxXPeTcFWFYS5D2MjQMnqeFXqHRE9m/VU3T6EwK+Ctzhjz5jSHOqurLJtJl
-         iIN6coCIRMKAmd2+WFfSad5/cRmpjD7/8aqgEN4IUp9yC/wV8SHIGGesLWKDhnVncZZZ
-         hqvw==
-X-Forwarded-Encrypted: i=1; AJvYcCU7wrsDQKab0OIPaq/RV6iVp9Z0KN252EjFBHzCLkiXw/XICxhXG640K3LKi3iy7FyfAH0QnQU=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx4bOOqdxTPeh/D/ObmsDhVuQir1pNWVmjE8UFmIVDBCs72cGaz
-	KYEaFGxEYzykVCwBCCEW2vPafBUUCvF/+rKr7qnytjtt+RwuMKiippqrN+5i2Ow9/+k=
-X-Gm-Gg: AZuq6aL4O5EB9CQaH6Cipc14dTZWVd6qAeZEsz50Q/A0cy9L0Rixk8p3otwr2jcI52q
-	914JT+IWfJyMt/zevIKSiM7JZKw/yWE8hjy1eEbFNGevGY+vLUkZQSuRVeNb1xcxXUU7ECTs233
-	tDTIBEwwf+k/ihLB+2c4j9o3HrJR5cKrBtE690GGxeEqxxJYQv0KpvzMAds9ldiOOj8jvCZM5Ew
-	WF8CvsLHCGgxsIm0zLAtBBIWfdu2sHITzzfM6+fc0gqM0IQSPwIJi0DaBzPbGpwUnEVdemVs5di
-	M9D0pHm2eNdrQulfamRUgKpwNQLQgfiLGh5kJhY8PAPrIEap49f0tlDAbnFvr1THdVdc2xCYl8U
-	VI2MbtLsvBsvda71ZBkvXi9cgmc7uDSCv2jBqGCaMRqsgH2aLEwlZDox6ZuDIJ2DQ2HgOz0VZbh
-	0d1fr+8YsxcYBpR4v8TQPm3gUHbkIzhZi5IOFpBI14DsBB2Th8PvGq3oXXF+bYtGoeflumpQ==
-X-Received: by 2002:a05:620a:46a9:b0:8c6:b315:1452 with SMTP id af79cd13be357-8caeeb510c0mr350205685a.7.1770384376891;
-        Fri, 06 Feb 2026 05:26:16 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8caf81c118csm157292285a.24.2026.02.06.05.26.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Feb 2026 05:26:16 -0800 (PST)
-Date: Fri, 6 Feb 2026 08:26:14 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Alireza Sanaee <alireza.sanaee@huawei.com>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	Fan Ni <fan.ni@samsung.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	Li Ming <ming.li@zohomail.com>
-Subject: Re: [PATCH v9 00/19] DCD: Add support for Dynamic Capacity Devices
- (DCD)
-Message-ID: <aYXr9u1Y50MBtEP6@gourry-fedora-PF4VCD3F>
-References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
- <aYEHmjmv-Z_WyrqV@gourry-fedora-PF4VCD3F>
- <698270e76775_44a22100c4@iweiny-mobl.notmuch>
- <aYNh-m8BEiOHKr9h@gourry-fedora-PF4VCD3F>
- <6983888e76bcc_58e211005e@iweiny-mobl.notmuch>
- <aYOVm6PVfmQdZvlI@gourry-fedora-PF4VCD3F>
- <20260205174847.000065a4@huawei.com>
- <20260206110130.00005fc2.alireza.sanaee@huawei.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="orkqlvE9";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="EE5crKCo";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="P0Te8zeS";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="rMULjRcu"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id E4EAF5BCE3;
+	Fri,  6 Feb 2026 17:02:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1770397377; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
+	b=orkqlvE9SwTuzg1vUY/b9kRBRSLpHcoYbkm9JOzNPXV3xUCu71jskW4VC6PYgISH5dAKeQ
+	GnxkepJWMc9d5s492frW0onGpnHzB+rf+OT0PoaQHLS9zG/MfhCdsTS6jTxddG2endGtrJ
+	1XF6Cbi3kAHbaCBgf/9/TTJmGw1Khg4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1770397377;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
+	b=EE5crKCoft9WjyIsphFaJSVj0dj3WisFlTa44mrS3a0w9C5UIZO139v5AfnUvd8wFoAV/1
+	ijvnduHOW12+fhAw==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1770397373; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
+	b=P0Te8zeSLjKAlYkAT+2RbICPhrTFBetL7skyodk5FaxxibOH9vtxvMRNfPFjuWF/D3BvCO
+	Twi7tlKa2WiGRW6KQFw0PMJvt9zlPkCAmXE9SqS2hBuQwUn90qdevnQOf1MeWIHxKS8xjC
+	uYOazmxOURU4PzyXqg1pSF2T4sjAbr4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1770397373;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
+	b=rMULjRculEo3SDhtOcqpmQ/l0s6TQHipK7lfBzjVqqjjFBs2ZAH89Z4OkmL0BIHHr2y7hh
+	+YBebsQbhnf9GdDA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B86A13EA63;
+	Fri,  6 Feb 2026 17:02:48 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id dUHUKbgehmmudQAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Fri, 06 Feb 2026 17:02:48 +0000
+Date: Fri, 6 Feb 2026 17:02:47 +0000
+From: Pedro Falcato <pfalcato@suse.de>
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	Jarkko Sakkinen <jarkko@kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, 
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	x86@kernel.org, "H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
+	Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, 
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	Tvrtko Ursulin <tursulin@ursulin.net>, Christian Koenig <christian.koenig@amd.com>, 
+	Huang Rui <ray.huang@amd.com>, Matthew Auld <matthew.auld@intel.com>, 
+	Matthew Brost <matthew.brost@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Benjamin LaHaise <bcrl@kvack.org>, 
+	Gao Xiang <xiang@kernel.org>, Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>, 
+	Jeffle Xu <jefflexu@linux.alibaba.com>, Sandeep Dhavale <dhavale@google.com>, 
+	Hongbo Li <lihongbo22@huawei.com>, Chunhai Guo <guochunhai@vivo.com>, Theodore Ts'o <tytso@mit.edu>, 
+	Andreas Dilger <adilger.kernel@dilger.ca>, Muchun Song <muchun.song@linux.dev>, 
+	Oscar Salvador <osalvador@suse.de>, David Hildenbrand <david@kernel.org>, 
+	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Mike Marshall <hubcap@omnibond.com>, 
+	Martin Brandenburg <martin@omnibond.com>, Tony Luck <tony.luck@intel.com>, 
+	Reinette Chatre <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, 
+	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, 
+	Carlos Maiolino <cem@kernel.org>, Damien Le Moal <dlemoal@kernel.org>, 
+	Naohiro Aota <naohiro.aota@wdc.com>, Johannes Thumshirn <jth@kernel.org>, 
+	Matthew Wilcox <willy@infradead.org>, "Liam R . Howlett" <Liam.Howlett@oracle.com>, 
+	Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Zi Yan <ziy@nvidia.com>, Nico Pache <npache@redhat.com>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Jann Horn <jannh@google.com>, 
+	David Howells <dhowells@redhat.com>, Paul Moore <paul@paul-moore.com>, 
+	James Morris <jmorris@namei.org>, "Serge E . Hallyn" <serge@hallyn.com>, 
+	Yury Norov <yury.norov@gmail.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, 
+	linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, 
+	linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, linux-erofs@lists.ozlabs.org, 
+	linux-ext4@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev, 
+	devel@lists.orangefs.org, linux-xfs@vger.kernel.org, keyrings@vger.kernel.org, 
+	linux-security-module@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH v2 01/13] mm/vma: remove __private sparse decoration from
+ vma_flags_t
+Message-ID: <e3qrulshyfrqkpihfb7prx2xyp5sn37aobccihw6r7vwwj2zm2@fh56mijhhk3c>
+References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+ <64fa89f416f22a60ae74cfff8fd565e7677be192.1769097829.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -88,28 +125,44 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260206110130.00005fc2.alireza.sanaee@huawei.com>
+In-Reply-To: <64fa89f416f22a60ae74cfff8fd565e7677be192.1769097829.git.lorenzo.stoakes@oracle.com>
+X-Spam-Score: -2.30
+X-Spamd-Result: default: False [-2.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MISSING_XM_UA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TAGGED_RCPT(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[linux-foundation.org,kernel.org,linux.intel.com,redhat.com,alien8.de,zytor.com,arndb.de,linuxfoundation.org,intel.com,suse.de,gmail.com,ffwll.ch,ursulin.net,amd.com,zeniv.linux.org.uk,suse.cz,kvack.org,linux.alibaba.com,google.com,huawei.com,vivo.com,mit.edu,dilger.ca,linux.dev,paragon-software.com,omnibond.com,arm.com,wdc.com,infradead.org,oracle.com,suse.com,nvidia.com,paul-moore.com,namei.org,hallyn.com,rasmusvillemoes.dk,vger.kernel.org,lists.linux.dev,lists.freedesktop.org,lists.ozlabs.org,lists.orangefs.org];
+	R_RATELIMIT(0.00)[to_ip_from(RLkbg1q7eokc4zfw9e5dipwr46)];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[93];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email]
+X-Spam-Level: 
+X-Spam-Flag: NO
 
-On Fri, Feb 06, 2026 at 11:01:30AM +0000, Alireza Sanaee wrote:
-> On Thu, 5 Feb 2026 17:48:47 +0000
-> Jonathan Cameron <jonathan.cameron@huawei.com> wrote:
+On Thu, Jan 22, 2026 at 04:06:10PM +0000, Lorenzo Stoakes wrote:
+> We need to pass around these values and access them in a way that sparse
+> does not allow, as __private implies noderef, i.e. disallowing dereference
+> of the value, which manifests as sparse warnings even when passed around
+> benignly.
 > 
-> I think both of these approaches are OK, but looking from developers
-> perspective, if someone wants a specific memory for their workload, they
-> should rather get a fd and play with it in whichever way they want. NUMA may
-> not give that much flexibility. As a developer it would prefer 2. Though you
-> may say oh dax then? not sure!
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-DAX or numa-aware memfd
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 
-If you want *specific* memory (a particular HPA/DPA range), tagged dax is
-probably appropriate.
-
-If you just want any old page from a particular chunk of HPA, then
-probably some kind of numa-aware memfd would be simplest (though this
-may require new interfaces, since memfd is not currently numa-aware).
-
-We might be able to make private node work specifically with membind
-policy on a VMA (not on a task).  That would probably be sufficient.
-
-~Gregory
+-- 
+Pedro
