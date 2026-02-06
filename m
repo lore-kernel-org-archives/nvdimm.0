@@ -1,75 +1,76 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1279532D0D0
-	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 17:04:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F4A8396B72
+	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 17:14:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770397497; cv=none; b=pdm4jVnANtvAn3SXA2MSu36nDTfSatSVqH2d2FH2seAnBralhWYtd9+Yd9kpZnefdrz+XhOMrrcLtCUzfxErn6+2a7z8OMDFQWTyBYoMuauCe7e1MoaDS0eyxeiv2zICKTJ6ngPgnS5Cz7mvYR7FAhEGUmHP+3NOpL5oVFcIrw8=
+	t=1770398059; cv=none; b=mGXb40CCeJM3tgGtvvhFXPNzzWDTVJzhOjuYNkkdz8Wlq/SaVHvRX0pO+z6s7go80xJn5/GCOMzQUSVfVVROMtfdIClo9z9RT+p0c27nOPPyR6R0jo+/AHg58FguVzi5i93n3hYLm+PLINbfTfehHvtQ6wa22NSpNLoJ8WP5gPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770397497; c=relaxed/simple;
-	bh=rGv3R4ik0QtN7lo8rc8uoQkrpbC9RXM4IWgcVNb3sUg=;
+	s=arc-20240116; t=1770398059; c=relaxed/simple;
+	bh=ZaPA4IVGv1P2f7H8LUzd/o2aHJRlJB3S1X08XBrb4Dc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tod4MR77WaXtD9b/MZmiUugEX97ZsereOApE6wGliGXcgQcq9AHeEj7h/3KVBG1udz5jVeshTpTAACVyw14f9hevIr0OcNR7NdGsoMGsj5uPT0fb3Lw27VTMcA7Bpv/Ri0/vZ/aA3wbi4+DTWqYmVQTTbWaR4AHO2zpPi7sMSxA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=c0m+A8Cb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9dogZ3on; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=c0m+A8Cb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9dogZ3on; arc=none smtp.client-ip=195.135.223.131
+	 Content-Type:Content-Disposition:In-Reply-To; b=qA2OI7/V/AX3DiawphiApwBCtX5fQuQDoj58o0NcWX52oDP06EZqXu3GOzFqq9R/Ku8D9eA6jBAcP/W4NVEYn6uygc0vRuPN6V2I9x0IGo2CrkK0Zf0xjkuYhaeAC5HsBEJtpkTx/uxObDQafazhZ1NkotVH09VUvyvPo052Tb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=j6+Jb2DU; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=+WIS4NGb; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=j6+Jb2DU; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=+WIS4NGb; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="c0m+A8Cb";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9dogZ3on";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="c0m+A8Cb";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9dogZ3on"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="j6+Jb2DU";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="+WIS4NGb";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="j6+Jb2DU";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="+WIS4NGb"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 8F01B5BCC5;
-	Fri,  6 Feb 2026 17:04:55 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 150CF3E6C2;
+	Fri,  6 Feb 2026 17:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1770397495; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1770398057; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
-	b=c0m+A8Cbf+rLZ3szeGwqR0keK2N4x1OkUaeOPTkf3sMJNCpTeUBur5IDP+DKAQ2eQgejrS
-	zIEXRT0ObUT+WOhQz/vocMcAjoOtK+Zb3qEnwu8Gthjmkgjq2Xsl8B20qlBNlf2GpU40xr
-	mQI9AS7BtgLrI9P4+fMTgCEFkGS9Q6I=
+	bh=Z73YqVi28uxxhcm78/EYnmwbNwCl8FOdS0dwqPt0f7Y=;
+	b=j6+Jb2DUNuDTgyLkT8P3dkpO+CJ+tX2ecLNPiO/pp8qkcSVNK3jHeQUyaXVLnlnuRI5B8n
+	0Va0mO+M0DejOC8cpnGzBuSoJ1/HWdb+y9LnG5gNjyig2YXtshRMvCrzsFY6HvX87PYZvf
+	RmxhKvO5BrRs04UEmzHFp1pv1EJEWV8=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1770397495;
+	s=susede2_ed25519; t=1770398057;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
-	b=9dogZ3on7nsX+Y0Jpn32RxODAdydoZXUQ8/EzP5Y+0myTaTkASY5FCgVI2NW4EsJx7Wp53
-	E9r9FSnoaQE1aJBA==
-Authentication-Results: smtp-out2.suse.de;
-	none
+	bh=Z73YqVi28uxxhcm78/EYnmwbNwCl8FOdS0dwqPt0f7Y=;
+	b=+WIS4NGbvV7/KSSc7+n9BNQHqhpKwo39WaYXAKAf/VXJOO7yQy2+H2qFwF+pyT/DpmqW4z
+	KMiDKgBB2zApEGDA==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=j6+Jb2DU;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=+WIS4NGb
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1770397495; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1770398057; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
-	b=c0m+A8Cbf+rLZ3szeGwqR0keK2N4x1OkUaeOPTkf3sMJNCpTeUBur5IDP+DKAQ2eQgejrS
-	zIEXRT0ObUT+WOhQz/vocMcAjoOtK+Zb3qEnwu8Gthjmkgjq2Xsl8B20qlBNlf2GpU40xr
-	mQI9AS7BtgLrI9P4+fMTgCEFkGS9Q6I=
+	bh=Z73YqVi28uxxhcm78/EYnmwbNwCl8FOdS0dwqPt0f7Y=;
+	b=j6+Jb2DUNuDTgyLkT8P3dkpO+CJ+tX2ecLNPiO/pp8qkcSVNK3jHeQUyaXVLnlnuRI5B8n
+	0Va0mO+M0DejOC8cpnGzBuSoJ1/HWdb+y9LnG5gNjyig2YXtshRMvCrzsFY6HvX87PYZvf
+	RmxhKvO5BrRs04UEmzHFp1pv1EJEWV8=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1770397495;
+	s=susede2_ed25519; t=1770398057;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
-	b=9dogZ3on7nsX+Y0Jpn32RxODAdydoZXUQ8/EzP5Y+0myTaTkASY5FCgVI2NW4EsJx7Wp53
-	E9r9FSnoaQE1aJBA==
+	bh=Z73YqVi28uxxhcm78/EYnmwbNwCl8FOdS0dwqPt0f7Y=;
+	b=+WIS4NGbvV7/KSSc7+n9BNQHqhpKwo39WaYXAKAf/VXJOO7yQy2+H2qFwF+pyT/DpmqW4z
+	KMiDKgBB2zApEGDA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 517453EA63;
-	Fri,  6 Feb 2026 17:04:50 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id CFB943EA63;
+	Fri,  6 Feb 2026 17:14:11 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id cV+8EDIfhml0FwAAD6G6ig
-	(envelope-from <pfalcato@suse.de>); Fri, 06 Feb 2026 17:04:50 +0000
-Date: Fri, 6 Feb 2026 17:04:44 +0000
+	id ztnsLmMhhmm+LAAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Fri, 06 Feb 2026 17:14:11 +0000
+Date: Fri, 6 Feb 2026 17:14:10 +0000
 From: Pedro Falcato <pfalcato@suse.de>
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -112,11 +113,10 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-ext4@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev, 
 	devel@lists.orangefs.org, linux-xfs@vger.kernel.org, keyrings@vger.kernel.org, 
 	linux-security-module@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2 02/13] mm: rename vma_flag_test/set_atomic() to
- vma_test/set_atomic_flag()
-Message-ID: <5pqsv3quguk6mwxywdqpvkcxhmqjoupqq44pserucrlelnyvnc@tkwpixdhcw5i>
+Subject: Re: [PATCH v2 03/13] mm: add mk_vma_flags() bitmap flag macro helper
+Message-ID: <mflwgdnyipdf4reufmbx7qarjcgouct5coe2bllticrabcu6rt@vf3bvmpunimw>
 References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
- <033dcf12e819dee5064582bced9b12ea346d1607.1769097829.git.lorenzo.stoakes@oracle.com>
+ <fde00df6ff7fb8c4b42cc0defa5a4924c7a1943a.1769097829.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -125,44 +125,110 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <033dcf12e819dee5064582bced9b12ea346d1607.1769097829.git.lorenzo.stoakes@oracle.com>
-X-Spamd-Result: default: False [-2.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
+In-Reply-To: <fde00df6ff7fb8c4b42cc0defa5a4924c7a1943a.1769097829.git.lorenzo.stoakes@oracle.com>
+X-Spam-Score: -2.51
+X-Spamd-Result: default: False [-2.51 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
 	SUSPICIOUS_RECIPS(1.50)[];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
 	MID_RHS_NOT_FQDN(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	FROM_HAS_DN(0.00)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
 	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MISSING_XM_UA(0.00)[];
 	TO_DN_SOME(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TAGGED_RCPT(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	MIME_TRACE(0.00)[0:+];
 	ARC_NA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
 	FREEMAIL_CC(0.00)[linux-foundation.org,kernel.org,linux.intel.com,redhat.com,alien8.de,zytor.com,arndb.de,linuxfoundation.org,intel.com,suse.de,gmail.com,ffwll.ch,ursulin.net,amd.com,zeniv.linux.org.uk,suse.cz,kvack.org,linux.alibaba.com,google.com,huawei.com,vivo.com,mit.edu,dilger.ca,linux.dev,paragon-software.com,omnibond.com,arm.com,wdc.com,infradead.org,oracle.com,suse.com,nvidia.com,paul-moore.com,namei.org,hallyn.com,rasmusvillemoes.dk,vger.kernel.org,lists.linux.dev,lists.freedesktop.org,lists.ozlabs.org,lists.orangefs.org];
-	R_RATELIMIT(0.00)[to_ip_from(RLkbg1q7eokc4zfw9e5dipwr46)];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
 	TO_MATCH_ENVRCPT_SOME(0.00)[];
 	RCPT_COUNT_GT_50(0.00)[93];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -2.30
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TAGGED_RCPT(0.00)[];
+	R_RATELIMIT(0.00)[to_ip_from(RLwxok9gz6e6xb7dgp4tusfohw)];
+	MISSING_XM_UA(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[oracle.com:email,suse.de:dkim,suse.de:email,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo]
 X-Spam-Level: 
+X-Rspamd-Action: no action
+X-Rspamd-Queue-Id: 150CF3E6C2
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Flag: NO
 
-On Thu, Jan 22, 2026 at 04:06:11PM +0000, Lorenzo Stoakes wrote:
-> In order to stay consistent between functions which manipulate a vm_flags_t
-> argument of the form of vma_flags_...() and those which manipulate a
-> VMA (in this case the flags field of a VMA), rename
-> vma_flag_[test/set]_atomic() to vma_[test/set]_atomic_flag().
+On Thu, Jan 22, 2026 at 04:06:12PM +0000, Lorenzo Stoakes wrote:
+> This patch introduces the mk_vma_flags() macro helper to allow easy
+> manipulation of VMA flags utilising the new bitmap representation
+> implemented of VMA flags defined by the vma_flags_t type.
 > 
-> This lays the groundwork for adding VMA flag manipulation functions in a
-> subsequent commit.
+> It is a variadic macro which provides a bitwise-or'd representation of all
+> of each individual VMA flag specified.
 > 
+> Note that, while we maintain VM_xxx flags for backwards compatibility until
+> the conversion is complete, we define VMA flags of type vma_flag_t using
+> VMA_xxx_BIT to avoid confusing the two.
+> 
+> This helper macro therefore can be used thusly:
+> 
+> vma_flags_t flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT);
+> 
+> We allow for up to 5 flags to specified at a time which should accommodate
+> all current kernel uses of combined VMA flags.
+>
+
+How do you allow up to 5 flags? I don't see any such limitation in the code?
+ 
+> Testing has demonstrated that the compiler optimises this code such that it
+> generates the same assembly utilising this macro as it does if the flags
+> were specified manually, for instance:
+> 
+> vma_flags_t get_flags(void)
+> {
+> 	return mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
+> }
+> 
+> Generates the same code as:
+> 
+> vma_flags_t get_flags(void)
+> {
+> 	vma_flags_t flags;
+> 
+> 	vma_flags_clear_all(&flags);
+> 	vma_flag_set(&flags, VMA_READ_BIT);
+> 	vma_flag_set(&flags, VMA_WRITE_BIT);
+> 	vma_flag_set(&flags, VMA_EXEC_BIT);
+> 
+> 	return flags;
+> }
+> 
+> And:
+> 
+> vma_flags_t get_flags(void)
+> {
+> 	vma_flags_t flags;
+> 	unsigned long *bitmap = ACCESS_PRIVATE(&flags, __vma_flags);
+> 
+> 	*bitmap = 1UL << (__force int)VMA_READ_BIT;
+> 	*bitmap |= 1UL << (__force int)VMA_WRITE_BIT;
+> 	*bitmap |= 1UL << (__force int)VMA_EXEC_BIT;
+> 
+> 	return flags;
+> }
+> 
+> That is:
+> 
+> get_flags:
+>         movl    $7, %eax
+>         ret
+> 
+> Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
