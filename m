@@ -1,75 +1,75 @@
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5E99360743
-	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 17:02:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1279532D0D0
+	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 17:04:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770397379; cv=none; b=pBvxYTVFP/xHm5bRle7IivLRXMCjvBQP85DmuhnBK4ayCTroqdNPrKdzSBpn6/TxgAMPpUKehPm0MzlwFpGuYL13bl7IQUHEBF39i/6Y33moTM/DuD4YM549Cm2OcTI3Gv2iYVGuxyXDqzSHoBgzvZWUe8VY+Asi1/KDrsUJ78w=
+	t=1770397497; cv=none; b=pdm4jVnANtvAn3SXA2MSu36nDTfSatSVqH2d2FH2seAnBralhWYtd9+Yd9kpZnefdrz+XhOMrrcLtCUzfxErn6+2a7z8OMDFQWTyBYoMuauCe7e1MoaDS0eyxeiv2zICKTJ6ngPgnS5Cz7mvYR7FAhEGUmHP+3NOpL5oVFcIrw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770397379; c=relaxed/simple;
-	bh=GUyoVBXr3Q1xsOquqRPXnYNTv4HpgxlmloxWIZh6WO8=;
+	s=arc-20240116; t=1770397497; c=relaxed/simple;
+	bh=rGv3R4ik0QtN7lo8rc8uoQkrpbC9RXM4IWgcVNb3sUg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l2vce8UFhMntg4xr80Nni6MoGSF1sO19VcrcXw2sbinXowhg0aVtqJA642USESnmnE3KOocr8t1/6ttkbuG7U/dQuviCuAdTN2P5QnGIeMYPW/9gfL6mj5QbEZnBJgVvckEMfc7QrrRAkgFdfEVq+FGkERIDJL8LBI2sJL4JuOU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=orkqlvE9; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=EE5crKCo; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=P0Te8zeS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=rMULjRcu; arc=none smtp.client-ip=195.135.223.131
+	 Content-Type:Content-Disposition:In-Reply-To; b=tod4MR77WaXtD9b/MZmiUugEX97ZsereOApE6wGliGXcgQcq9AHeEj7h/3KVBG1udz5jVeshTpTAACVyw14f9hevIr0OcNR7NdGsoMGsj5uPT0fb3Lw27VTMcA7Bpv/Ri0/vZ/aA3wbi4+DTWqYmVQTTbWaR4AHO2zpPi7sMSxA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=c0m+A8Cb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9dogZ3on; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=c0m+A8Cb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9dogZ3on; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="orkqlvE9";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="EE5crKCo";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="P0Te8zeS";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="rMULjRcu"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="c0m+A8Cb";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9dogZ3on";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="c0m+A8Cb";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9dogZ3on"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id E4EAF5BCE3;
-	Fri,  6 Feb 2026 17:02:53 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 8F01B5BCC5;
+	Fri,  6 Feb 2026 17:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1770397377; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1770397495; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
-	b=orkqlvE9SwTuzg1vUY/b9kRBRSLpHcoYbkm9JOzNPXV3xUCu71jskW4VC6PYgISH5dAKeQ
-	GnxkepJWMc9d5s492frW0onGpnHzB+rf+OT0PoaQHLS9zG/MfhCdsTS6jTxddG2endGtrJ
-	1XF6Cbi3kAHbaCBgf/9/TTJmGw1Khg4=
+	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
+	b=c0m+A8Cbf+rLZ3szeGwqR0keK2N4x1OkUaeOPTkf3sMJNCpTeUBur5IDP+DKAQ2eQgejrS
+	zIEXRT0ObUT+WOhQz/vocMcAjoOtK+Zb3qEnwu8Gthjmkgjq2Xsl8B20qlBNlf2GpU40xr
+	mQI9AS7BtgLrI9P4+fMTgCEFkGS9Q6I=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1770397377;
+	s=susede2_ed25519; t=1770397495;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
-	b=EE5crKCoft9WjyIsphFaJSVj0dj3WisFlTa44mrS3a0w9C5UIZO139v5AfnUvd8wFoAV/1
-	ijvnduHOW12+fhAw==
+	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
+	b=9dogZ3on7nsX+Y0Jpn32RxODAdydoZXUQ8/EzP5Y+0myTaTkASY5FCgVI2NW4EsJx7Wp53
+	E9r9FSnoaQE1aJBA==
 Authentication-Results: smtp-out2.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1770397373; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1770397495; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
-	b=P0Te8zeSLjKAlYkAT+2RbICPhrTFBetL7skyodk5FaxxibOH9vtxvMRNfPFjuWF/D3BvCO
-	Twi7tlKa2WiGRW6KQFw0PMJvt9zlPkCAmXE9SqS2hBuQwUn90qdevnQOf1MeWIHxKS8xjC
-	uYOazmxOURU4PzyXqg1pSF2T4sjAbr4=
+	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
+	b=c0m+A8Cbf+rLZ3szeGwqR0keK2N4x1OkUaeOPTkf3sMJNCpTeUBur5IDP+DKAQ2eQgejrS
+	zIEXRT0ObUT+WOhQz/vocMcAjoOtK+Zb3qEnwu8Gthjmkgjq2Xsl8B20qlBNlf2GpU40xr
+	mQI9AS7BtgLrI9P4+fMTgCEFkGS9Q6I=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1770397373;
+	s=susede2_ed25519; t=1770397495;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=CUYqtP7ZgHQdQC5vBnzVZXDXwlg+QpNEKhaQm5ovGbg=;
-	b=rMULjRculEo3SDhtOcqpmQ/l0s6TQHipK7lfBzjVqqjjFBs2ZAH89Z4OkmL0BIHHr2y7hh
-	+YBebsQbhnf9GdDA==
+	bh=3g+CeqAHKY80QYlzK7Q90kGJJbcwGzuOMv3DI6coiUI=;
+	b=9dogZ3on7nsX+Y0Jpn32RxODAdydoZXUQ8/EzP5Y+0myTaTkASY5FCgVI2NW4EsJx7Wp53
+	E9r9FSnoaQE1aJBA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B86A13EA63;
-	Fri,  6 Feb 2026 17:02:48 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 517453EA63;
+	Fri,  6 Feb 2026 17:04:50 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id dUHUKbgehmmudQAAD6G6ig
-	(envelope-from <pfalcato@suse.de>); Fri, 06 Feb 2026 17:02:48 +0000
-Date: Fri, 6 Feb 2026 17:02:47 +0000
+	id cV+8EDIfhml0FwAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Fri, 06 Feb 2026 17:04:50 +0000
+Date: Fri, 6 Feb 2026 17:04:44 +0000
 From: Pedro Falcato <pfalcato@suse.de>
 To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -112,11 +112,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-ext4@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev, 
 	devel@lists.orangefs.org, linux-xfs@vger.kernel.org, keyrings@vger.kernel.org, 
 	linux-security-module@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2 01/13] mm/vma: remove __private sparse decoration from
- vma_flags_t
-Message-ID: <e3qrulshyfrqkpihfb7prx2xyp5sn37aobccihw6r7vwwj2zm2@fh56mijhhk3c>
+Subject: Re: [PATCH v2 02/13] mm: rename vma_flag_test/set_atomic() to
+ vma_test/set_atomic_flag()
+Message-ID: <5pqsv3quguk6mwxywdqpvkcxhmqjoupqq44pserucrlelnyvnc@tkwpixdhcw5i>
 References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
- <64fa89f416f22a60ae74cfff8fd565e7677be192.1769097829.git.lorenzo.stoakes@oracle.com>
+ <033dcf12e819dee5064582bced9b12ea346d1607.1769097829.git.lorenzo.stoakes@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -125,8 +125,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <64fa89f416f22a60ae74cfff8fd565e7677be192.1769097829.git.lorenzo.stoakes@oracle.com>
-X-Spam-Score: -2.30
+In-Reply-To: <033dcf12e819dee5064582bced9b12ea346d1607.1769097829.git.lorenzo.stoakes@oracle.com>
 X-Spamd-Result: default: False [-2.30 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	SUSPICIOUS_RECIPS(1.50)[];
@@ -150,15 +149,19 @@ X-Spamd-Result: default: False [-2.30 / 50.00];
 	RCVD_COUNT_TWO(0.00)[2];
 	TO_MATCH_ENVRCPT_SOME(0.00)[];
 	RCPT_COUNT_GT_50(0.00)[93];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email]
-X-Spam-Level: 
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,imap1.dmz-prg2.suse.org:helo]
 X-Spam-Flag: NO
+X-Spam-Score: -2.30
+X-Spam-Level: 
 
-On Thu, Jan 22, 2026 at 04:06:10PM +0000, Lorenzo Stoakes wrote:
-> We need to pass around these values and access them in a way that sparse
-> does not allow, as __private implies noderef, i.e. disallowing dereference
-> of the value, which manifests as sparse warnings even when passed around
-> benignly.
+On Thu, Jan 22, 2026 at 04:06:11PM +0000, Lorenzo Stoakes wrote:
+> In order to stay consistent between functions which manipulate a vm_flags_t
+> argument of the form of vma_flags_...() and those which manipulate a
+> VMA (in this case the flags field of a VMA), rename
+> vma_flag_[test/set]_atomic() to vma_[test/set]_atomic_flag().
+> 
+> This lays the groundwork for adding VMA flag manipulation functions in a
+> subsequent commit.
 > 
 > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
