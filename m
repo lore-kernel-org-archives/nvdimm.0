@@ -1,144 +1,115 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 771A232AAA0
-	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 11:01:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E1A3A7853
+	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 13:26:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770375702; cv=none; b=jUicjzH5rpYl93yFT+G3jEi0CUOz8rV5mxlUS65/XvGbpPKp2Ztjs2idJIyA/ktbs09O/UW1H57tLY6skpQlpad+kpPcAIy67Yuz7hOxJSB9Yo6Ey+VxRroHoltIInV8cEyJ/uQ7VcemzG9PNAlWgCPG7g9EeIf9EB3kTuPh8TI=
+	t=1770384378; cv=none; b=nJOl+BFWpU1BzPO5gD6fecy6epww29qokeeZTB0+onP/fSqVFDBUUE4dqxduS2frSeOr0B+eknauhXXrTRQ480Si/dl5Oa1WwrjZQyMewl9GOicl8nO6T/Yraen7uEgHIh4/AkPRJNHnUDcAopcuDpDGXDYcS1BKLub5exwiIg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770375702; c=relaxed/simple;
-	bh=vQHDCHR79QOm8eSGZ/66eecyUpRaGnAyjLWS5Z+MS0o=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ADWnEV7e9WO2wh8zwnUkK0V2sFak6bhTDy0Mj3uGFrtVDZzAWlpcTbvIoNbUIK9iwQDN0+yd2Dv8v9sIG5SiokgmdJpz56buave4KX9aCrZF8KE1P78M/P9r1vsJDps1pZwzr9OjFeZay7c/E/+apuinQY/yO5RsjfZhCXpgKtQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.107])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4f6rjV3drJzJ46CH;
-	Fri,  6 Feb 2026 19:00:46 +0800 (CST)
-Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id ACA5540584;
-	Fri,  6 Feb 2026 19:01:38 +0800 (CST)
-Received: from localhost (10.47.70.160) by dubpeml500005.china.huawei.com
- (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Fri, 6 Feb
- 2026 11:01:37 +0000
-Date: Fri, 6 Feb 2026 11:01:30 +0000
-From: Alireza Sanaee <alireza.sanaee@huawei.com>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-CC: Gregory Price <gourry@gourry.net>, Ira Weiny <ira.weiny@intel.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, Dan Williams
-	<dan.j.williams@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, "Alison
- Schofield" <alison.schofield@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, <linux-cxl@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>, Li Ming
-	<ming.li@zohomail.com>
+	s=arc-20240116; t=1770384378; c=relaxed/simple;
+	bh=QOyk0cfOiJKWpzq43+ntxyiecyFc7tSymZehLwBs/7U=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TMPoC6iwDmeWYgYr1qee7poYl46Pvx0T+0WwttbvaDXo+MpmoYn+2mKMnOvM5DTruZY8QIdDwduLFOZnnhIHb3jeG/88kYVOlk/CVdVPaPyYfWQI49K8FCe1+q5ddXaL3+hymGN4ppEsQTM+J2xm9R5YgrTY2spbiA/qC7CGTEY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=VLbuun8n; arc=none smtp.client-ip=209.85.222.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="VLbuun8n"
+Received: by mail-qk1-f178.google.com with SMTP id af79cd13be357-8c710439535so136006485a.1
+        for <nvdimm@lists.linux.dev>; Fri, 06 Feb 2026 05:26:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1770384377; x=1770989177; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=bcoHR9we9sqx3MppgWDXe17DIO+ggzqTTd2+g0R34PI=;
+        b=VLbuun8nAz3AhsjL7hUsixtBaTYZAWtHtZnO7Iss27v24Pp+f2PPG+lcvHRwJIqvxF
+         hbHbollUCT7KFkqSpat3S6VCx7jtqwfHYx1auk+mB1Lk2eQeLRV32+ID9zjDGe2nDin4
+         blVUwoxXjRtTRIkvXjdyhffbXWql/FooLr19mqaUTU1jtwIgjH56E4tXWRQ8WM1lZBfN
+         QXla9g37XiFWIcPPKCzh+9PpDzVKFsyg8Xc43eTTK5I2P06354Lf8rHNBifdiiJpZzKL
+         n1j5xhMXJJFhEnhVG/YVaXGKxpQaHHvjpRXsCIXDUHp+qGmIB5bnkn9XM+sy6yXI3rgt
+         9aXQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770384377; x=1770989177;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=bcoHR9we9sqx3MppgWDXe17DIO+ggzqTTd2+g0R34PI=;
+        b=AXhFQq/dUhj6rhNhHqxzyuxGNuA4sOFWmXLL91GUJp8D+ftMOZiRnBS8/zDjemykur
+         ffmAOWwaLO3FuUB0cEcqdfA231LvRfTwXA9phi6EPZagSopCsu1ZPJSZPSYXltU6lzcg
+         rtnRw+NRuedSKQth+C6tSt6cpIO5PuBJlduJFMRhMN6nyzXwb/p7XbBOx2FLT0rQkCmW
+         Y9VGkuDVeQxXPeTcFWFYS5D2MjQMnqeFXqHRE9m/VU3T6EwK+Ctzhjz5jSHOqurLJtJl
+         iIN6coCIRMKAmd2+WFfSad5/cRmpjD7/8aqgEN4IUp9yC/wV8SHIGGesLWKDhnVncZZZ
+         hqvw==
+X-Forwarded-Encrypted: i=1; AJvYcCU7wrsDQKab0OIPaq/RV6iVp9Z0KN252EjFBHzCLkiXw/XICxhXG640K3LKi3iy7FyfAH0QnQU=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx4bOOqdxTPeh/D/ObmsDhVuQir1pNWVmjE8UFmIVDBCs72cGaz
+	KYEaFGxEYzykVCwBCCEW2vPafBUUCvF/+rKr7qnytjtt+RwuMKiippqrN+5i2Ow9/+k=
+X-Gm-Gg: AZuq6aL4O5EB9CQaH6Cipc14dTZWVd6qAeZEsz50Q/A0cy9L0Rixk8p3otwr2jcI52q
+	914JT+IWfJyMt/zevIKSiM7JZKw/yWE8hjy1eEbFNGevGY+vLUkZQSuRVeNb1xcxXUU7ECTs233
+	tDTIBEwwf+k/ihLB+2c4j9o3HrJR5cKrBtE690GGxeEqxxJYQv0KpvzMAds9ldiOOj8jvCZM5Ew
+	WF8CvsLHCGgxsIm0zLAtBBIWfdu2sHITzzfM6+fc0gqM0IQSPwIJi0DaBzPbGpwUnEVdemVs5di
+	M9D0pHm2eNdrQulfamRUgKpwNQLQgfiLGh5kJhY8PAPrIEap49f0tlDAbnFvr1THdVdc2xCYl8U
+	VI2MbtLsvBsvda71ZBkvXi9cgmc7uDSCv2jBqGCaMRqsgH2aLEwlZDox6ZuDIJ2DQ2HgOz0VZbh
+	0d1fr+8YsxcYBpR4v8TQPm3gUHbkIzhZi5IOFpBI14DsBB2Th8PvGq3oXXF+bYtGoeflumpQ==
+X-Received: by 2002:a05:620a:46a9:b0:8c6:b315:1452 with SMTP id af79cd13be357-8caeeb510c0mr350205685a.7.1770384376891;
+        Fri, 06 Feb 2026 05:26:16 -0800 (PST)
+Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8caf81c118csm157292285a.24.2026.02.06.05.26.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 06 Feb 2026 05:26:16 -0800 (PST)
+Date: Fri, 6 Feb 2026 08:26:14 -0500
+From: Gregory Price <gourry@gourry.net>
+To: Alireza Sanaee <alireza.sanaee@huawei.com>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+	Fan Ni <fan.ni@samsung.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	Li Ming <ming.li@zohomail.com>
 Subject: Re: [PATCH v9 00/19] DCD: Add support for Dynamic Capacity Devices
  (DCD)
-Message-ID: <20260206110130.00005fc2.alireza.sanaee@huawei.com>
-In-Reply-To: <20260205174847.000065a4@huawei.com>
+Message-ID: <aYXr9u1Y50MBtEP6@gourry-fedora-PF4VCD3F>
 References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
-	<aYEHmjmv-Z_WyrqV@gourry-fedora-PF4VCD3F>
-	<698270e76775_44a22100c4@iweiny-mobl.notmuch>
-	<aYNh-m8BEiOHKr9h@gourry-fedora-PF4VCD3F>
-	<6983888e76bcc_58e211005e@iweiny-mobl.notmuch>
-	<aYOVm6PVfmQdZvlI@gourry-fedora-PF4VCD3F>
-	<20260205174847.000065a4@huawei.com>
-Organization: Huawei
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+ <aYEHmjmv-Z_WyrqV@gourry-fedora-PF4VCD3F>
+ <698270e76775_44a22100c4@iweiny-mobl.notmuch>
+ <aYNh-m8BEiOHKr9h@gourry-fedora-PF4VCD3F>
+ <6983888e76bcc_58e211005e@iweiny-mobl.notmuch>
+ <aYOVm6PVfmQdZvlI@gourry-fedora-PF4VCD3F>
+ <20260205174847.000065a4@huawei.com>
+ <20260206110130.00005fc2.alireza.sanaee@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500012.china.huawei.com (7.191.174.4) To
- dubpeml500005.china.huawei.com (7.214.145.207)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260206110130.00005fc2.alireza.sanaee@huawei.com>
 
-On Thu, 5 Feb 2026 17:48:47 +0000
-Jonathan Cameron <jonathan.cameron@huawei.com> wrote:
+On Fri, Feb 06, 2026 at 11:01:30AM +0000, Alireza Sanaee wrote:
+> On Thu, 5 Feb 2026 17:48:47 +0000
+> Jonathan Cameron <jonathan.cameron@huawei.com> wrote:
+> 
+> I think both of these approaches are OK, but looking from developers
+> perspective, if someone wants a specific memory for their workload, they
+> should rather get a fd and play with it in whichever way they want. NUMA may
+> not give that much flexibility. As a developer it would prefer 2. Though you
+> may say oh dax then? not sure!
 
-Hi Jonathan,
+DAX or numa-aware memfd
 
-Thanks for the clarifications.
+If you want *specific* memory (a particular HPA/DPA range), tagged dax is
+probably appropriate.
 
-Quick thought inline.
+If you just want any old page from a particular chunk of HPA, then
+probably some kind of numa-aware memfd would be simplest (though this
+may require new interfaces, since memfd is not currently numa-aware).
 
-> > > I'm not clear if sysram could be used for virtio, or even needed.  I'm
-> > > still figuring out how virtio of simple memory devices is a gain.
-> > >     
-> > 
-> > Jonathan mentioned that he thinks it would be possible to just bring it
-> > online as a private-node and inform the consumer of this.  I think
-> > that's probably reasonable.  
-> 
-> Firstly VM == Application.  If we have say a DB that wants to do everything
-> itself, it would use same interface as a VM to get the whole memory
-> on offer. (I'm still trying to get that Application Specific Memory term
-> adopted ;) 
-> 
-> This would be better if we didn't assume anything to do with virtio
-> - that's just one option (and right now for CXL mem probably not the
-> sensible one as it's missing too many things we get for free by just
-> emulating CXL devices - e.g. all the stuff you are describing here
-> for the host is just as valid in the guest.) We have a path to
-> get that emulation and should have the big missing piece posted shortly
-> (DCD backed by 'things - this discussion' that turn up after VM boot).
-> 
-> The real topic is memory for a VM and we need a way to tie a memory
-> backend in qemu to, so that whatever the fabric manager provided for
-> that VM is given to the VM and not used for anything else.
-> 
-> If it's for a specific VM, then it's tagged as otherwise how else
-> do we know the intent? (lets ignore random other out of band paths).
-> 
-> Layering wise we can surface as many backing sources as we like at
-> runtime via 1+ emulated DCD devices (to give perf information etc).
-> They each show up in the guest as contiguous (maybe tagged) single
-> extent and then we apply what ever comes out of the rest of this
-> discussion on top of that.
-> 
-> So all we care about is how the host presents it.
-> 
-> Bunch of things might work for this.
-> 
-> 1. Just put it in a numa node that requires specific selection to allocate
->    from.  This is nice because it just looks like normal memory and we
->    can apply any type of front end on top of that.  Not good if we have a lot
->    of these coming and going.
-> 
-> 2. Provide it as something with an fd we can memmap. I was fine with Dax for
->    this but if it's normal ram just for a VM anything that gives me a handle
->    that I can memmap is fine. Just need a way to know which one (so tag).
+We might be able to make private node work specifically with membind
+policy on a VMA (not on a task).  That would probably be sufficient.
 
-I think both of these approaches are OK, but looking from developers
-perspective, if someone wants a specific memory for their workload, they
-should rather get a fd and play with it in whichever way they want. NUMA may
-not give that much flexibility. As a developer it would prefer 2. Though you
-may say oh dax then? not sure!
-> 
-> It's pretty similar for shared cases. Just need a handle to memmap.
-> In that case, tag goes straight up to guest OS (we've just unwound the
-> extent ordering in the host and presented it as a contiguous single
-> extent).
-> 
-> Assumption here is we always provide all that capacity that was tagged
-> for the VM to use to the VM.   Things may get more entertaining if we have
-> a bunch of capacity that was tagged to provide extra space for a set of
-> VMs (e.g. we overcommit on top of the DCD extents) - to me that's a
-> job for another day.
-> 
-> So I'm not really envisioning anything special for the VM case, it's
-> just a dedicate allocation of memory for a user who knows how to get it.
-> We will want a way to get perf info though so we can provide that
-> in the VM.  Maybe can figure that out from the CXL HW backing it without
-> needing anything special in what is being discussed here.
-> 
-> Jonathan
-> 
-> > 
-> > ~Gregory  
-> 
+~Gregory
