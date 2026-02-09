@@ -1,189 +1,118 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB8D08462;
-	Mon,  9 Feb 2026 20:24:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.165.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBD4B326939
+	for <nvdimm@lists.linux.dev>; Mon,  9 Feb 2026 23:13:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.17
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770668653; cv=fail; b=S4kIkDUqbcIlP6JBTnrs5YJnRboyj40k7UXvRgKw5sP+0vVCdl3223052JP78HfQVvStej2tCstrfH6v2pgQSSJpk9AChmiJcdEmFAm6z5I//uqF2+RooNfwCxhVAf5181iF7NpcrEiB5ImM6w7pGZfrWSrBIc6gSnz4db8hLjw=
+	t=1770678800; cv=fail; b=QtupfQouSVK83pNpoLzIDGXH1bfWiYCLwoer8GHUTR/AzCE7YjpabWBsdgmWs02OT+/QOhmo9VC13zS1aqM24Mz0oDArf5VfRe7CDRCu5UrLgzv5OOJGXW19cBMHh13uOgvJXL7nTAibH2bs8apTNiltk6kzdEqKnVswg6ZB80c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770668653; c=relaxed/simple;
-	bh=0lwYQHwUkEkifQR/eh8voNTUnO9ddurbR5YyPby7v2I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=ftvzjSlKoaF3qwtZvvXWC00HPfKrsrW5Bq6/lxeiwRA9drtQsCBE17ktS9o1lPyzLm+Uvr9FqEDnXdPWiH9dOJaagOZ71k1IQKoIEk2c0oVXvic59UWXtF55+1CD3dfeZcVT4TrakmTyGyO85lZ3RVWftaWLC9A94j7cY+/aFYo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=juaLs9vk; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=ZNxaTlBU; arc=fail smtp.client-ip=205.220.165.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	s=arc-20240116; t=1770678800; c=relaxed/simple;
+	bh=3HLxH5JcDDOGxJ39ZH949NzIsJoat7jKO8u2QDtfTSA=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=qqNygCQJLSBFTWZRxMbMX0VtmCGXuTOojU9bSI1cMIpH3s5wHuDiJbTh2wGh0Rr/IqEP7kSJRXrz8prp2t/Fj2OJ0xkOWBpXdjHkxc8yoqV4yztS5JDS3Klb4/V/6YVaAwKGqV7NEjxDr6V65vdynZT+u67koH7tlpD5dAw59mg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SEj/bhHF; arc=fail smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="juaLs9vk";
-	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="ZNxaTlBU"
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 619ECtTv1229245;
-	Mon, 9 Feb 2026 20:23:29 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=corp-2025-04-25; bh=Z8pYPBpZESFJnn6cw8
-	YUsAC4m98ycBJB8g0kciC7mxE=; b=juaLs9vkyP0kTE7QoTDz2Qv4KSCHRX4evP
-	mdTEzr8g7EoCAfYREQp74ALH8M1zo3PZt+my8sgBhOIHg/Ao3hsKNj9XfK5IMrM2
-	rPxR1iVWdmi2UpsSgYnTVZ1XZWZcxsoYP2c8CNKkR0yRSKBTUCafFpmdOzbBFJgA
-	trCx9EK8HodhaLvLIeD058RQqEjt6JDQePl6uJ77KTffWDW0s+ZT/WL9sUcbSkqY
-	ZJNshQStpsQA8W8WFaECby6LmyTLZcjhTTm62sSyC0TPaItWEtEass200IhaFhrz
-	EmOtsOW+S9KmRkCeBIcqh9Cm7P4IVzBt7IJgKSFYS4YHbXwTinCQ==
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4c5xes2qty-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 09 Feb 2026 20:23:28 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 619JbAlR033811;
-	Mon, 9 Feb 2026 20:23:28 GMT
-Received: from bn1pr04cu002.outbound.protection.outlook.com (mail-eastus2azon11010008.outbound.protection.outlook.com [52.101.56.8])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 4c7ctxxxvk-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 09 Feb 2026 20:23:28 +0000
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SEj/bhHF"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1770678799; x=1802214799;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=3HLxH5JcDDOGxJ39ZH949NzIsJoat7jKO8u2QDtfTSA=;
+  b=SEj/bhHFeM6fMMa7yT2105p7OBw5Nf6eTkh/LBK5ecWc2/Dh13SZpKgR
+   GzFeMazBpJ58JLqpCE8ltXGAeUMEaVOlrvUv1K8z0H6PTBg5cXRijTG81
+   J1ANgpzpiC6+GEadlXMUEBMHwxb3K5/7s0g1tym/hhqu/9Hx1DQrCp2Tq
+   DHmV/tUJGDIZMp+bGINL/EUD2jFP8hH2fd/ZVVe/K6klVDXb7oR9sys0c
+   pPkU5hP9CVxR3H2x113JNIaIQbZQpK3MAXzTZT0YYMo+M9YzTwd7XXFY3
+   8CiYF1RSQiScV7gb0aQ4MQB9MwsIYEFG/sZDYjyy0qWxd1n3hsCzdUBvw
+   A==;
+X-CSE-ConnectionGUID: z8OXhK6WQNyTmIjaBaY0Lw==
+X-CSE-MsgGUID: YuG+s5HATFSuFC2fFMu4uA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11696"; a="71786589"
+X-IronPort-AV: E=Sophos;i="6.21,283,1763452800"; 
+   d="scan'208";a="71786589"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2026 15:13:18 -0800
+X-CSE-ConnectionGUID: s+IbdMmnSTa19kJPoBH/eg==
+X-CSE-MsgGUID: tIQTMp40QPKseneOlDNIDg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,283,1763452800"; 
+   d="scan'208";a="211419608"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa008.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2026 15:13:17 -0800
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.35; Mon, 9 Feb 2026 15:13:16 -0800
+Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.35 via Frontend Transport; Mon, 9 Feb 2026 15:13:16 -0800
+Received: from MW6PR02CU001.outbound.protection.outlook.com (52.101.48.46) by
+ edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.35; Mon, 9 Feb 2026 15:13:16 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=SL4JDSVq+uCgpORqojAcFd0ouMuHnAvD/Czm5Yyq6ow4dqjqOmdqDTX0o+Q2hMkYrGoKW1k58Mi0nt+k2brz0V7bPAfldDxzB4Nu7Y+UebChFxQ8mPrLVAcALhV130EBjYaG3Q7fqBNjhyO4Ta4rd5ln4PzhEWHTId1KKehGEDwFns9Rag3yoDc6Zo/2nFnrcBWkC7qI88Qb72DLMorGui3Suh9079zDxq1IEvQ9BZZb6WhJXXeIiXsUhTxI+QZOfwgreHaaw52zCeJ7XBdMeHMUV/IE51yhUEjGU67duSzQJl1GhgeUe4ALOgdK8dl5CVnObUNPa8DH99fZ30SaVw==
+ b=ASYrxsgKQe96yffLpbbdGcc6AjHUfZo6B33O85hqY2ATuqGmgxhuy2mrQmsoumnQMukOjVKJG66sdt//NHuN82ItQCOFZAGjps8BlDOO89VNawqzcwLHwG1VuBb2/l2Jxa5YoMVv3T/qqLIufpO65g35x49Z2qI2Uf85Nc5ktZk1719svRccBCDgvDzMaEZXVmqhf/wzr2MGXbMCgUN/32K3vd18OFUWP9mg+bTKIbOnuZyD2vwNOfkt46tfyH/2dDbUH9Mii974t4lDRQiV9v9grUz9UkIAta80u6LDe5PtJcrqpziRpz3c1LwiRnc1uBff99au/NC6+zAo/iOqVg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Z8pYPBpZESFJnn6cw8YUsAC4m98ycBJB8g0kciC7mxE=;
- b=cWU+Ax5VO7Cgzp+6d7dh0O+BrZv1r/9HLCC2GJv2TE7+XnBB68Pavc5otXiLr8LoMrvEy0HhP9luIHzLAqtsR9Oix5xRHgs1Dw4FggVYLeYE29qjq/ZE6sEsZDbRztpGiAW0ulY0fdn7+tUPS2F4gtAaS41g4QW9STkjK3wMm+2B0p893ANfLEt3ctrxf3n9u+UiNIJ6BL2lkSYNhSwyG8vvTZuy0jYe0shMem4b/UxnGHq1OaYPACNoHA+wLQnnJ2hIY8WavbRyCkXrVRskZ9I/DDbKcWqlCvd+OtbiHrF4GxV4AlbpzltOlElZ3GHfl1evI3dJFgD5k6VzPuwkXw==
+ bh=4HEWPtLyaRih5mTivedAmmS7Zk2CBGx/CsMNqHAx4AE=;
+ b=VlLq3mwH2x7kG9ugtoPkrsR1ETVtMtB0q43pMxl6N5s7Io7vxUOKRDXDRSlGRuuN5wJgWL5g+402zzdt/7A8c7exBF2kVdnbc/o7wjaHFnKIxPt/ufzhZEDEkM6W2XEsLNABuRW5yMupQwpaDec5FSaem7lPjwfd/C2vPNhvYkm3x2qe0xQG0uhcM9SwFOC+QS0kC44Y1hgdEjBCgaacT1uobsMEpkuYavkSAesyiizrLdYPVm95IPkB3X6z3+UXYEA006uMvvxZCUK/aLxh06j0aED9mGvQ2wnsEJmgTa3XcTFpNBs4y2X6akQQEdT8+A6eUUVeGXSMNCCRP2ulgg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Z8pYPBpZESFJnn6cw8YUsAC4m98ycBJB8g0kciC7mxE=;
- b=ZNxaTlBUT8ws1RKlRWmUgewLf3AX5aIcL7gJufcbeEYV0k19lE4j84ibGnnZ3sqF7Q49SXrQQd31w8IIHyQOntmGZfW1IPjnwnyXxX8czVl1mvlw+K+XwtDPPMQ8fbJHIM1iHpsYV6oyh8L6n+gdf8g/x1ZT2lgFXKFe6VJD+CM=
-Received: from PH0PR10MB5777.namprd10.prod.outlook.com (2603:10b6:510:128::16)
- by CH3PR10MB7960.namprd10.prod.outlook.com (2603:10b6:610:1c2::15) with
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by IA0PR11MB8397.namprd11.prod.outlook.com (2603:10b6:208:48b::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.19; Mon, 9 Feb
- 2026 20:23:18 +0000
-Received: from PH0PR10MB5777.namprd10.prod.outlook.com
- ([fe80::4b84:e58d:c708:c8ce]) by PH0PR10MB5777.namprd10.prod.outlook.com
- ([fe80::4b84:e58d:c708:c8ce%4]) with mapi id 15.20.9587.017; Mon, 9 Feb 2026
- 20:23:17 +0000
-Date: Mon, 9 Feb 2026 20:23:04 +0000
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-        Borislav Petkov <bp@alien8.de>, x86@kernel.org,
-        "H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Maxime Ripard <mripard@kernel.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Tvrtko Ursulin <tursulin@ursulin.net>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Huang Rui <ray.huang@amd.com>, Matthew Auld <matthew.auld@intel.com>,
-        Matthew Brost <matthew.brost@intel.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-        Benjamin LaHaise <bcrl@kvack.org>, Gao Xiang <xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Sandeep Dhavale <dhavale@google.com>,
-        Hongbo Li <lihongbo22@huawei.com>, Chunhai Guo <guochunhai@vivo.com>,
-        Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Muchun Song <muchun.song@linux.dev>,
-        Oscar Salvador <osalvador@suse.de>,
-        David Hildenbrand <david@kernel.org>,
-        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Reinette Chatre <reinette.chatre@intel.com>,
-        Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
-        Babu Moger <babu.moger@amd.com>, Carlos Maiolino <cem@kernel.org>,
-        Damien Le Moal <dlemoal@kernel.org>,
-        Naohiro Aota <naohiro.aota@wdc.com>,
-        Johannes Thumshirn <jth@kernel.org>,
-        Matthew Wilcox <willy@infradead.org>, Vlastimil Babka <vbabka@suse.cz>,
-        Mike Rapoport <rppt@kernel.org>,
-        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
-        Hugh Dickins <hughd@google.com>,
-        Baolin Wang <baolin.wang@linux.alibaba.com>, Zi Yan <ziy@nvidia.com>,
-        Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-        Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
-        Lance Yang <lance.yang@linux.dev>, Jann Horn <jannh@google.com>,
-        Pedro Falcato <pfalcato@suse.de>, David Howells <dhowells@redhat.com>,
-        Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
-        "Serge E . Hallyn" <serge@hallyn.com>,
-        Yury Norov <yury.norov@gmail.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-sgx@vger.kernel.org,
-        linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-        linux-cxl@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, linux-fsdevel@vger.kernel.org,
-        linux-aio@kvack.org, linux-erofs@lists.ozlabs.org,
-        linux-ext4@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev,
-        devel@lists.orangefs.org, linux-xfs@vger.kernel.org,
-        keyrings@vger.kernel.org, linux-security-module@vger.kernel.org,
-        Jason Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2 13/13] tools/testing/vma: add VMA userland tests for
- VMA flag functions
-Message-ID: <gcnaaaub4elpm2iauij3pejsb6dlnyij3qmbwha6vp2k5rsm53@yatvcjchxhbi>
-Mail-Followup-To: "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
-	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Jarkko Sakkinen <jarkko@kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	x86@kernel.org, "H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
-	Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, 
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
-	Tvrtko Ursulin <tursulin@ursulin.net>, Christian Koenig <christian.koenig@amd.com>, 
-	Huang Rui <ray.huang@amd.com>, Matthew Auld <matthew.auld@intel.com>, 
-	Matthew Brost <matthew.brost@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Benjamin LaHaise <bcrl@kvack.org>, 
-	Gao Xiang <xiang@kernel.org>, Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>, 
-	Jeffle Xu <jefflexu@linux.alibaba.com>, Sandeep Dhavale <dhavale@google.com>, 
-	Hongbo Li <lihongbo22@huawei.com>, Chunhai Guo <guochunhai@vivo.com>, Theodore Ts'o <tytso@mit.edu>, 
-	Andreas Dilger <adilger.kernel@dilger.ca>, Muchun Song <muchun.song@linux.dev>, 
-	Oscar Salvador <osalvador@suse.de>, David Hildenbrand <david@kernel.org>, 
-	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Mike Marshall <hubcap@omnibond.com>, 
-	Martin Brandenburg <martin@omnibond.com>, Tony Luck <tony.luck@intel.com>, 
-	Reinette Chatre <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, 
-	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, 
-	Carlos Maiolino <cem@kernel.org>, Damien Le Moal <dlemoal@kernel.org>, 
-	Naohiro Aota <naohiro.aota@wdc.com>, Johannes Thumshirn <jth@kernel.org>, 
-	Matthew Wilcox <willy@infradead.org>, Vlastimil Babka <vbabka@suse.cz>, 
-	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Zi Yan <ziy@nvidia.com>, Nico Pache <npache@redhat.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Howells <dhowells@redhat.com>, Paul Moore <paul@paul-moore.com>, 
-	James Morris <jmorris@namei.org>, "Serge E . Hallyn" <serge@hallyn.com>, 
-	Yury Norov <yury.norov@gmail.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, 
-	linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, 
-	linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, linux-erofs@lists.ozlabs.org, 
-	linux-ext4@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev, 
-	devel@lists.orangefs.org, linux-xfs@vger.kernel.org, keyrings@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>
-References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
- <7fe6afe9c8c61e4d3cfc9a2d50a5d24da8528e68.1769097829.git.lorenzo.stoakes@oracle.com>
-Content-Type: text/plain; charset=us-ascii
+ 2026 23:13:13 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::b437:3b5f:e6c1:3d13]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::b437:3b5f:e6c1:3d13%6]) with mapi id 15.20.9587.017; Mon, 9 Feb 2026
+ 23:13:13 +0000
+Date: Mon, 9 Feb 2026 15:13:01 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: John Groves <john@jagalactic.com>
+CC: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>, "Dan
+ Williams" <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>,
+	"John Groves" <jgroves@micron.com>, John Groves <jgroves@fastmail.com>,
+	"Jonathan Corbet" <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan
+ Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, David
+ Hildenbrand <david@kernel.org>, Christian Brauner <brauner@kernel.org>,
+	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi
+	<shajnocz@redhat.com>, "Joanne Koong" <joannelkoong@gmail.com>, Josef Bacik
+	<josef@toxicpanda.com>, "Bagas Sanjaya" <bagasdotme@gmail.com>, James Morse
+	<james.morse@arm.com>, Fuad Tabba <tabba@google.com>, Sean Christopherson
+	<seanjc@google.com>, Shivank Garg <shivankg@amd.com>, Ackerley Tng
+	<ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, Aravind Ramesh
+	<arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>,
+	"venkataravis@micron.com" <venkataravis@micron.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH V4 0/2] ndctl: Add daxctl support for the new "famfs"
+ mode of devdax
+Message-ID: <aYpp_ShERlNvt4T_@aschofie-mobl2.lan>
+References: <0100019bd33a16b4-6da11a99-d883-4cfc-b561-97973253bc4a-000000@email.amazonses.com>
+ <20260118223548.92823-1-john@jagalactic.com>
+ <0100019bd34040d9-0b6e9e4c-ecd4-464d-ab9d-88a251215442-000000@email.amazonses.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <7fe6afe9c8c61e4d3cfc9a2d50a5d24da8528e68.1769097829.git.lorenzo.stoakes@oracle.com>
-User-Agent: NeoMutt/20250510
-X-ClientProxiedBy: YT4PR01CA0115.CANPRD01.PROD.OUTLOOK.COM
- (2603:10b6:b01:d7::24) To PH0PR10MB5777.namprd10.prod.outlook.com
- (2603:10b6:510:128::16)
+In-Reply-To: <0100019bd34040d9-0b6e9e4c-ecd4-464d-ab9d-88a251215442-000000@email.amazonses.com>
+X-ClientProxiedBy: SJ0PR13CA0227.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c1::22) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -191,540 +120,551 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH0PR10MB5777:EE_|CH3PR10MB7960:EE_
-X-MS-Office365-Filtering-Correlation-Id: c3201b20-37a7-49af-9653-08de68190ea0
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|IA0PR11MB8397:EE_
+X-MS-Office365-Filtering-Correlation-Id: bc2df817-29b9-421d-1d7b-08de6830cca1
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|366016|27256017;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?pPz2pM/ME0/rmxFncv9Wgh8JmWR/vbt5gRYX0gMilpgjeZhrxlV5diTFmPR2?=
- =?us-ascii?Q?+gFI3VdTLc/Tq11yB14Sqxk+6I4oloq3Q1FcZq0ds77B2D3PXrm4A2C7JgMT?=
- =?us-ascii?Q?Y6gWgwrNUa0vwifemzkkSmKPBWW0yUTz4tE3TYprUh/rM5ylGh4L3vK6Dl2k?=
- =?us-ascii?Q?3TBvENzEL/d60E4e6X24sNiLcxIC4flafLHWFIoCSRWEmS8Xwx2waoL6OJD6?=
- =?us-ascii?Q?HO/6RxlLalTjx4eUPTPDg2PpOl3mdr3SA3I4Sml1hZ6vjjT+TGvC/iJIeYDJ?=
- =?us-ascii?Q?PiBOClIB2XmH/gCWSNHBs5piIYn6S+yGvB4EEaWHs53j7b7DAj+fC36Jyqvy?=
- =?us-ascii?Q?BBfryEWWL9GRKxkwSPWWcugU7kv0tw0087X3kFN30bWdpQrMP3oN6dkEfvlD?=
- =?us-ascii?Q?disIjrn2HWwO1NfrG4NrF9iIM+aY6GkLgHLCjpbQcgX6zREkNXBveCFu5t+T?=
- =?us-ascii?Q?Sgk80V9jmP+6AGOGDW24Kna5lVFSDWL9HYbY49SA3AkKEzrS38z3CD7WMp8I?=
- =?us-ascii?Q?G+ju74036wx5tYyAdsoCp/h9OMPAgTFx0BnYfPVMVnLkYtsUoNOUrvPrMAgS?=
- =?us-ascii?Q?cgvZdw6G37RzrqtO5RPMcn1q9355znrtx1uqpzSZS7E9DHd5p/E/3WP8LpHR?=
- =?us-ascii?Q?ykP/2aZp6lN2tTQH8heZ0qDAYv1DzdyVfcUovPwdCLvnYkEabXuIkWCNClAm?=
- =?us-ascii?Q?pAj5s7pStQRAciK7bBBJfeMbMQJvjr8Gjchj2Rfg6hqnKaL9N0K6QhNYSVnu?=
- =?us-ascii?Q?x09nfE+iEs7t5vIWrdvIUCdoy9B+32SOZe1tt1o+2g9Z/Kxcz1TQSthPTYwT?=
- =?us-ascii?Q?KAMhUCJFqMXImVdRHnBpSU5vJzR9ebiwe7+iNi56QgyFlsjGdoJWRbgANSYa?=
- =?us-ascii?Q?a1Op0PctTrXQPad+44HIEZjj2JvBqiwGMvECKKkdWSvru3dScY5DE5jZDpl+?=
- =?us-ascii?Q?d16IjVOkMpA3EREzg5D9W38z2ErTxSQ9r/PGRVtSvfehtnZMAbFYF/vZadge?=
- =?us-ascii?Q?Zh+kp6hJOQakrVHa1L6vCfq2C35tnYE4mac7QNCWH8JoQQd5Pp6UWF8hRKBy?=
- =?us-ascii?Q?YtxcmKgN3D85LqqIi/EAyMUQKgG/Hcs2wvvsGn+QMRpAK0TTgv3uMjZahl3f?=
- =?us-ascii?Q?FWVRGpCwkFnJjZsnbOMclMfFlVLqiWJZicywYRVBoiqzWbICFO1Zy1DqeN+g?=
- =?us-ascii?Q?DU0bT93Apm1dsIlaCajg07wWklQhhNC4B0TZOFw/BfZ3Um1FxNIy5uXGxUyt?=
- =?us-ascii?Q?/C7pTurjtm/J6l9TITzgwKNAaFOUzaZaJDuinClSr2+Sc/E/PKuebJ23CeBk?=
- =?us-ascii?Q?gQ+BqlXmip7RnCPUBuSIWDxFswXxPNZVILukiS2biVdUYQPRLZ1wqpZKMl4n?=
- =?us-ascii?Q?dbEJ8chAy6cnwDDsc5tvE0mM5vEbyg8YReruIhqL9Qld7zj7SSU+Hij97K6l?=
- =?us-ascii?Q?xYgwwVqRrga/eIFdBZDSZcpNliO44Zy8Ul7/YZvq9zkB3LhFRIp3yOKoMDim?=
- =?us-ascii?Q?Rk0TwXi+/h00Wq75rl1sjzzc/JJabNm2jH/7QIWPU991LqGtGMVnUjn/EQfI?=
- =?us-ascii?Q?Ne9I+ezz0WvdYo9zUuWzHPcguyZuyCQq1fgBhqMYV1zLxgaLNfNGOaSyqifB?=
- =?us-ascii?Q?eVLkGJeOYMAVtlNXVJi6tvY=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR10MB5777.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(366016)(27256017);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|366016;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?+Bh2vjPol98U20WFb/43HaJKWW308Uzl6nKYp8xjFQhvEvRL/Kwol/9qoE/n?=
+ =?us-ascii?Q?1lSHgwp7golIKf8cPOs3pHNc2/tYyRCIcPrPY7I/e82KX2M19qBqChkMn4F/?=
+ =?us-ascii?Q?qyBL7vyWtJ6MDz4v6v1W/LpcPBsC/3fif6aaT8L/JVply6RLjU1o9S2JwoZN?=
+ =?us-ascii?Q?OYH7G5J0KfRPBEXs854WH6wQJWVwGMFqmBJij1+irOtQlYuI1uhjyh/J6cMU?=
+ =?us-ascii?Q?8xtESKgv9aqtmcYd1esNUV8DaOaQC31RtZX6a9pMLSAHiC6aqXG51Z5wmLVM?=
+ =?us-ascii?Q?9o/i4YWiKRim1YQPjXcfFN7PkUp5iQQblXOWvzJViO6WOHgoEYBlf7gTwdph?=
+ =?us-ascii?Q?TFHhMSSLkKGT8Pj5rk+vtmw5KIa7uUTJWbFuhGcFj1ecgqP0ZjT8iS1J5ldK?=
+ =?us-ascii?Q?iOlf+WNaGOCa1ZVmCroBcvrUFxDCMqEzuu1RBcTx13aERAnTpXdAMZbf+4V5?=
+ =?us-ascii?Q?qNHt0NbHeMlVHNWGjuPLLTB3X4dmsalVHPKVkm+hTBSfB5SppOAkJ8UTNSdD?=
+ =?us-ascii?Q?oqqNoZaTpCr1hcRfsyngK/MR8VWWk/+AAuoDxufXA6/e+m4D8zLykPbCi6gY?=
+ =?us-ascii?Q?9nAZ2z7JlI5uJYyvO5hBuaw2vvMyfhCsfVna0BmHqGGoULzOFFQsvaz8zeZX?=
+ =?us-ascii?Q?JY2z85nCRXmZOiQYVYspEbhDLEJk0XOZ9kE13Jmu17GkunSdYhNzTtR85+dl?=
+ =?us-ascii?Q?8ffc3K6bIXpazkji1GbQvFh+N9dYejZiUMooBTyYvwsO8p5mAwKiZcXgYjb5?=
+ =?us-ascii?Q?eNpjtOWy/Kk3f0tKXWcMAHa2KMBMQteArb89FNZyWpk1E004u6rcKlqWa4rL?=
+ =?us-ascii?Q?sPljWZrDACu7UyUqlZ4rpKgB2H2XqRaMTgQyk1u9dwB3x1IcVsPka1LTpb+K?=
+ =?us-ascii?Q?ID0FRHaXvXTvLCxwvomHThnd93DLrCZLEgl9Dm+S9eNIj0DogkNEhmoH2J/N?=
+ =?us-ascii?Q?oxWSOA1L5xYWrJufCnC5bHpb7QAmayIUYiEn/qrNOkur7NsBrzZoBjQhS4f7?=
+ =?us-ascii?Q?C0AMEaKnDNFpYw1Ha4Ofzw/SBCAX8dB2paAJxgE3NgWgvleUd+YY0lRxSPIE?=
+ =?us-ascii?Q?a7P6pQMcODlGusI/MjZ1go4yfnKx959WUYUnh8ednAjO7TtHmG0wc1RIG+QZ?=
+ =?us-ascii?Q?Gq6C8VVLcpqPg5U0yOKZfp1+PKQK1psclNCQDvcLepr111jq4IICCehscHop?=
+ =?us-ascii?Q?U2Fi8iM+tTgupWthh9q6CaOBjpxpJLjmdZDEncICLlohbbRutlTygCBWhBaD?=
+ =?us-ascii?Q?s3BKBSpJ691ZPfrhy/gzb8QORPY7wlcvI6rsxlHdf8yg/Afbb/L17hDcWt8n?=
+ =?us-ascii?Q?UKwBBaFJ72TPxbX4YMPWLURexLIR6jhS1GwbX9XKcOg6ElZsqIZzK1kLCznv?=
+ =?us-ascii?Q?oRHfTwWEVJINAu0gG3Zle8epQ3HHwi4vtNug2hPoqKUtiiml3cC1hR9xeUxc?=
+ =?us-ascii?Q?mzMT8zcKGQIHDumKZK39QwhkUk09jqSohxvmBRHb89sTYTYWY90/xix/aZLO?=
+ =?us-ascii?Q?GtCO2Floe/GRJW7h45a7ZYWiwVVnPNDnT6YT9v1WB0fNqB3Br6J3loK2lG8n?=
+ =?us-ascii?Q?scEP8nEvHV3gF3fnZIo=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?BeqbMu0yUF0fwxbKabUk9AfXUot/63QsvMe8RwJIjX33KbCwp6zamqtz0TEW?=
- =?us-ascii?Q?ih/P05vcyJsu7Hw52DMK6XAG7dalLWhkuC6Q4+fmtTG737SF5MeRrrRNJXXs?=
- =?us-ascii?Q?0aWrN5+I7ReVxEVo5honqM7UPOTV1mydW0gvcBpvtzT/M/6N0b9C98vZy6/M?=
- =?us-ascii?Q?8SKO95lFkmXAA4EQWIyf/RzKmZxzC7uQ6ZlKrGdVxTJObtbBPks/oz55u/54?=
- =?us-ascii?Q?PiALg2Hbuas4URNU4dORhSoQjCdU6Yv1iATA6iq+05s7O33GJrdseAsyIa8+?=
- =?us-ascii?Q?HXyCtSQYg9QyHinsrfQS1s8Qw2cvXv8C3I6ToEXDLgunbspP2VjLVEyFUGVB?=
- =?us-ascii?Q?sRgKxhcVCHNqpKJhDMp9Gyg6IMTjgsURDCaj1R1enE5q3ZoVu5EYC+Hae9QM?=
- =?us-ascii?Q?RF0X1293J1h86KEj2wqpmT7rCcY0aozMMZUs41FFnng7IaXf8GrDiil3m5/4?=
- =?us-ascii?Q?9YNwj6iCJBBDuD3C+iVAt2LvNWjc6XBOcBxkS4zXI/IT6dbk5+PMwSDXyJhp?=
- =?us-ascii?Q?/wp3I+jhA/O9VtnsZdkkSPu7l+DLHUOLfZemiTqjEtpObNZ0Gcx08dJAJtxp?=
- =?us-ascii?Q?kApzdOMiimn69WixunwClFOTHcGYQfwOkfFMVX5GKASXDdwc2ShcgQXTetu7?=
- =?us-ascii?Q?AV1RK2wjVEvkmvvrrTiSLI2k6IO91eHDmTcHsT7EJw/dsjl8gyvi45J06DeX?=
- =?us-ascii?Q?iQxOF4wvq2cZRx6PlCpmnqxbMqlq5G8HBF2jN5b4RDy2QV1vwrTSrbP/1OZc?=
- =?us-ascii?Q?c8i2xk8dEikdxiiapuxZJtptb/U9wv42FmE1I2Tt1znvW2bN1x7SaUPgNDrT?=
- =?us-ascii?Q?hnhBBOlrWmSpkEmMo7d0XY0AMsNEwJtb/H+VK8w3NdqVYLf6zd46Hq/MRxEn?=
- =?us-ascii?Q?rA4Q4+rAJNfsBEXfbG7X606I1dmwCEBGV0YxWNkmL1k0mWlg3nsxSMzuu2xZ?=
- =?us-ascii?Q?ad6cYOwMdP+4z3Qlb76kvarZchdbZ5MeHKWa6eJmut03N7OEV+9OoIc61cja?=
- =?us-ascii?Q?mPUBeRfJ9bSN2NZBpceiflN34yZmJuIX4ifmqLAJqdPZUXISqAeU2eIAS0Lm?=
- =?us-ascii?Q?CjH4t/OZ/k3BM4WLYLcDm86qb7DhYZCXLbffnDyV4R6vjh0MO6TqknqzgAb+?=
- =?us-ascii?Q?tnByFrpZG9cAqKmCVlWSsxITyuUCDSsJH7dMx+Tmr2LXKEfYP/My4aubXsFN?=
- =?us-ascii?Q?IJzBsrSYrhfCAkmE0WDnOdvGCJGaK57hI/wXRNRQEpi06Kn2ecf4YDdu/yzx?=
- =?us-ascii?Q?6fHBUA3qGLP7ZhxMv5usMPVtddy8Y1k99U78WbVL+Uaa95Ue/5qXzxAFQwcr?=
- =?us-ascii?Q?/dOLNwJ6OY/7Ig4LvgUQeS4RwZk2MKPzJ4BW2krVcLXCNhMjbl73lQ7DRXIx?=
- =?us-ascii?Q?fFnv0rh1b+XpZcE1pbx9mlGoLK2E7tlLXJvKcc/MaidzcM/Y79oLdyhwvP/f?=
- =?us-ascii?Q?c8mURCe7Sd9LU2cZPuN7ZERutwqzbYXCdqRZcwHuEfORcxl1l70qURWbR6Xx?=
- =?us-ascii?Q?5odW7iyDJc19KrDhllnYoB8tgPAK3RShmwEQ6dCwDoGXV7x2S1vrX91iT/pk?=
- =?us-ascii?Q?Ds+v3Iz5/l5b3pxxsGVAWvm6apBm5ctTpmnnxp9TBmghHCQwdoxoHMPETRj0?=
- =?us-ascii?Q?jWLUrb+WeTAzbL+G9CY4x05Hynv3sHHQGcUg7tJK5mgs3m/7adDd54cY2cj8?=
- =?us-ascii?Q?QOLgWkpMpIpoYKNJ+v/ZOu+S/mB7w7wFW8mFjYCOhDoFEXQJJCaXr7k9aYTc?=
- =?us-ascii?Q?1Q/9YjgWeg=3D=3D?=
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	+7tdtc6eLENrK90nZXZFqUH3WXUosGFpmzsKGiq/bUyzVvbbq6dd7uPIUox4bbJe6/itnmTTVQ8apiloA+vXxaBc8Kc/MAcuMJPimoLNj900tQx3ed3Rks7GyaZyvZnkVjNtusNtCaUCKSfe5J+rQ4nJzOe1qBthY4yM8Cl/SnY7Qt/ukvuwTWZH8B6g3VRxBNUXrl70hk5TvO+1VBl1bayly8Q6uc11qtNC2lI/6r+heLKJbOU5vWiVlzoru9vi8pxPtMmhyrKSmLbOVmIrQQSEjcTvT1CxTJ65Qj9TD3QW8JU2yqbfi/3iv7SLUkH/WJcF6czNo9ryE8DDmEuKWqYpshhwU3m37cGxt/dD0iUj0RBMFG35mcUxrC9bsKE1TwYUhz+pyDXe/MKazfFLX1U3KvFZU2dksS7/MYxC+iC/aXeTH8ru3e01EE0BYPXpY4mhKSB/mwXhbNKP1EV/uGhQFkd0ZDSzDrGgh+3r3hGTSrulcOjLFLhRU4NaWZpG5K6i2ytCVeaHiVqPNrHlryS/PtUHnJ+36WTOmQGjlYFJRcGKse8FC+QN8EFE7JnB86p9gSI04MOYPj7Zx7nzIfAWIWq04MvN3z08cx7ge2Q=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c3201b20-37a7-49af-9653-08de68190ea0
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR10MB5777.namprd10.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?sdnA9lXr4aLn50PMkHVpJnZjjWl1VvBDxFWIRrMfJLx1D1/i1XtFj3+mxACT?=
+ =?us-ascii?Q?honbyz/VdeoC1PGdLj6RmDQQoLHU7/lenFQYLG5Vr32wKCqWBJxn3RTEjBd4?=
+ =?us-ascii?Q?3VjMxD5IQs29q/tU7w3t9MY7EO0/ibdf9OCdfRqoe0XfoPGTAhKAzRDqkUmU?=
+ =?us-ascii?Q?+HeAuucMS18HvOBXYcunkcTT1KOT/ZRaEMHTjAkDJIbI0RQvzqkF8Ts3ZFSm?=
+ =?us-ascii?Q?PJbdZaqcBudCVMkeP6uaVSXzSCqmigEfB44TkhSEHBqfauJrqaO0HTHk9pBK?=
+ =?us-ascii?Q?aRCOME9pBFjxm8DKOgM7qBoWH2xIaGqCf42tYw/dj0w2iIf2lVzbzntRkTKY?=
+ =?us-ascii?Q?q8ol5NpUnbKpulpykobBspkfXfEGwl+8v5K0/ooID3kBHb6GFYDb33vLr/2/?=
+ =?us-ascii?Q?0dElU8OT00Fi2inWxl3sb0yST+mtar2BmDjJMfUTS6TPmUynAznqun0LrO/5?=
+ =?us-ascii?Q?3z0rpUJaUndEjY93miow0fqNrL42qn3P08/AIwpveut/2/zYrLcAi1kvjWej?=
+ =?us-ascii?Q?GQrio35kGed4lcTF/NtJ9G7HIrNoxLyXlKZQW304y/4J4qG2gux6OYrwKqzd?=
+ =?us-ascii?Q?wVTRA88hGobG/1NgOQB+2mfAWnqvy/aRh5o9bWPtg+8Zd4pQ+oyE+pj3a6Zv?=
+ =?us-ascii?Q?TIHMUPpwkvNF1A3AUmm0qKLma5HzuTt7lUwu9gYwytWsHBFyLJObp03eBXTF?=
+ =?us-ascii?Q?0lZgXclWdrzZz7cpXrjCbU6cN9XZPaCoF+ySu7Z7skPPs84ZmmCsnws8g0uK?=
+ =?us-ascii?Q?Sxu8FyFcP9Bt47rhZZBoDlJ11WheByYX1ZSwgvMZeiKqw5SOWDeXWKIsf01R?=
+ =?us-ascii?Q?8h0dPjzr/HaeWyGzzVhwDLjCnXQeQjz7/PODmHLVQCOAAZNgne0beDEqD9Gp?=
+ =?us-ascii?Q?e2UE6b1bT3Vo8dp8xGeRjvTD2kowmXBsag8JirYxclkDveulNT4/AnsDV6Ht?=
+ =?us-ascii?Q?tYamDSggWa5gBTH2ABABnQXP8fsF7mQSNxKiQEvdVJOdX5QyT7+RbA+9WbZt?=
+ =?us-ascii?Q?TcskjKiTuYiX/6kKPBMPk525QJwDVvx0lQ4h79pA/UZCMKY6EA3tPRRiuyXj?=
+ =?us-ascii?Q?PkjQGQ98Giu397tL5B4Mwf6tONEqIywV3zQv7tnj6ZbdNVgMZJc+3XNYtWbp?=
+ =?us-ascii?Q?uoFt75iSCZAjEeloB6zs8sM/n1QAavItKVsZUhppan/GolHx+0SjOhSZwRbx?=
+ =?us-ascii?Q?wdzBfeBQiYDTdAXr83TPLozJxnV5S3CqgxP3G9UiEUuxpOtipv1iQS1jbK6Z?=
+ =?us-ascii?Q?H8gOUkQgmR8+QU/niRDFuZ0LE1z2qht7FNbRQ35BX2rxXYt2GtsPPuK18iXG?=
+ =?us-ascii?Q?74VgDL7xS8jUab1VIpezpf3pGfzSDm6CWs9lfWmqzy2g0zwOSA15mNvhb4pM?=
+ =?us-ascii?Q?2ng49oJEHPTxvOeHnEfzgNMOVcrJGhjPH7fulwZ0ksj7V0BJzC2V5ssgonIP?=
+ =?us-ascii?Q?zoaz2cCB3t3E2nHhLdQfBv2Zc9QlkXjvkKGOYVZzSrhq2uiIvLuD7JuaKK5x?=
+ =?us-ascii?Q?F0o69cnIcoQHpep9Iv4rE4Zx0jRmNETeF87pnmKkJ6xDYMEzM5tL9ZldBf+L?=
+ =?us-ascii?Q?tsoxld8EMhbUZWorTM7+PZwyRlzAainhU6Y2S1QIaQeskS5PfJ/5NoOkaz3q?=
+ =?us-ascii?Q?1EuNz2K7NNuCZ8c06Ti19dS1kAW4sQzYKHKCMpcXEyfodzAmlzUfnvvNZkF5?=
+ =?us-ascii?Q?lpQ7Ek96241++ocUkc6GAKr4K/bRP/eubWLbXZ7+kmpg6O2VUWuHVNYTYw9N?=
+ =?us-ascii?Q?2j7qPrVwn/sQV/Qgzzqw5C925C0sbHc=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: bc2df817-29b9-421d-1d7b-08de6830cca1
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Feb 2026 20:23:17.0890
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Feb 2026 23:13:13.6192
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: OkbWUbMNC4ep1gMcu9iCtoiHRGVioU+FuzWfHlZN2Esb4eXVzNvq9C9WAs6iO39SwSUFqeXOIhto+x9IcU9C4g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR10MB7960
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-02-09_01,2026-02-09_04,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0 malwarescore=0
- mlxlogscore=999 suspectscore=0 phishscore=0 mlxscore=0 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2601150000
- definitions=main-2602090172
-X-Authority-Analysis: v=2.4 cv=KaTfcAYD c=1 sm=1 tr=0 ts=698a4240 cx=c_pps
- a=XiAAW1AwiKB2Y8Wsi+sD2Q==:117 a=XiAAW1AwiKB2Y8Wsi+sD2Q==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
- a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=kj9zAlcOel0A:10
- a=HzLeVaNsDn8A:10 a=GoEa3M9JfhUA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=Mpw57Om8IfrbqaoTuvik:22 a=GgsMoib0sEa3-_RKJdDe:22 a=yPCof4ZbAAAA:8
- a=F0Ts5zb_S4Wt9otMmD4A:9 a=CjuIK1q_8ugA:10
-X-Proofpoint-GUID: xouLzNzgvJBBiBHnXiSz7bP054H3qAFs
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjA5MDE3MSBTYWx0ZWRfX96e5AEC48e95
- vaE/1bW5F2NbweFg/ZtrPp1xIKYGTY0p6RZV2I4h9vQXUGrOi7cTGHTCeAfDUv5rkjrPZ4znmMt
- nEHYYp8ett+6hGd3aBOt++m79dh4VPxytxnF1TTLvwMPqVywgPOlF8wVR1MhIiKwrfB5MmMr+fH
- 54DLHlCIvIcOcDzSrdk1UOi2i7zOY44olqPdaiPt0qGHtDlzO6XYK2yvZjeWxfLCzIWLWWKy2oW
- A7RyktjkhvYpJmD+gg/DB2oGpkA0oAIDRYo3zpz90aXPQwJyzt8kBXJ9SXaGpRmG/6JasN8RPiF
- an7TBpUUQPniFjnygzjSDj9m3PXMV1yoqVMs1N+sF09YpBpy+BxQTshz9I/dwZVGbcZ8ixKMa69
- CJMEGuMP8cPCiPKjMJO8KIMBPkhuwmvMlM3Oaasfimw4pr2LFcv0+9WKhbihktfgezGD9swcyqB
- XuiKl30Mw3jJynVRW5Q==
-X-Proofpoint-ORIG-GUID: xouLzNzgvJBBiBHnXiSz7bP054H3qAFs
+X-MS-Exchange-CrossTenant-UserPrincipalName: bos/maR/kKf77j4LX/CuyFEAh2p/XKVuAt1tcJlGzs7SbEgvBF1/yZZ6Nb3UIhgKJyg8d7kjQsyeIP0L7SW/8MCKpe6XTZmMSMzUwlrftpQ=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR11MB8397
+X-OriginatorOrg: intel.com
 
-* Lorenzo Stoakes <lorenzo.stoakes@oracle.com> [260122 16:06]:
-> Now we have the capability to test the new helpers for the bitmap VMA flags
-> in userland, do so.
+On Sun, Jan 18, 2026 at 10:36:02PM +0000, John Groves wrote:
+> From: John Groves <john@groves.net>
 > 
-> We also update the Makefile such that both VMA (and while we're here)
-> mm_struct flag sizes can be customised on build. We default to 128-bit to
-> enable testing of flags above word size even on 64-bit systems.
+> No change since V2 - re-sending due to technical challenges.
 > 
-> We add userland tests to ensure that we do not regress VMA flag behaviour
-> with the introduction when using bitmap VMA flags, nor accidentally
-> introduce unexpected results due to for instance higher bit values not
-> being correctly cleared/set.
+> No change since V1 - reposting as V2 to keep this with the related
+> kernel (dax and fuse) patches and libfuse patches.
 > 
-> As part of this change, make __mk_vma_flags() a custom function so we can
-> handle specifying invalid VMA bits. This is purposeful so we can have the
-> VMA tests work at lower and higher number of VMA flags without having to
-> duplicate code too much.
+> This short series adds support and tests to daxctl for famfs[1]. The
+> famfs kernel patch series, under the same "compound cover" as this
+> series, adds a new 'fsdev_dax' driver for devdax. When that driver
+> is bound (instead of device_dax), the device is in 'famfs' mode rather
+> than 'devdax' mode.
 > 
-> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Hi John, 
 
-> ---
->  tools/testing/vma/Makefile         |   3 +
->  tools/testing/vma/include/custom.h |  16 ++
->  tools/testing/vma/include/dup.h    |  11 +-
->  tools/testing/vma/tests/vma.c      | 300 +++++++++++++++++++++++++++++
->  tools/testing/vma/vma_internal.h   |   4 +-
->  5 files changed, 322 insertions(+), 12 deletions(-)
-> 
-> diff --git a/tools/testing/vma/Makefile b/tools/testing/vma/Makefile
-> index 50aa4301b3a6..e72b45dedda5 100644
-> --- a/tools/testing/vma/Makefile
-> +++ b/tools/testing/vma/Makefile
-> @@ -9,6 +9,9 @@ include ../shared/shared.mk
->  OFILES = $(SHARED_OFILES) main.o shared.o maple-shim.o
->  TARGETS = vma
->  
-> +# These can be varied to test different sizes.
-> +CFLAGS += -DNUM_VMA_FLAG_BITS=128 -DNUM_MM_FLAG_BITS=128
-> +
->  main.o: main.c shared.c shared.h vma_internal.h tests/merge.c tests/mmap.c tests/vma.c ../../../mm/vma.c ../../../mm/vma_init.c ../../../mm/vma_exec.c ../../../mm/vma.h include/custom.h include/dup.h include/stubs.h
->  
->  vma:	$(OFILES)
-> diff --git a/tools/testing/vma/include/custom.h b/tools/testing/vma/include/custom.h
-> index f567127efba9..802a76317245 100644
-> --- a/tools/testing/vma/include/custom.h
-> +++ b/tools/testing/vma/include/custom.h
-> @@ -101,3 +101,19 @@ static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt)
->  	if (reset_refcnt)
->  		refcount_set(&vma->vm_refcnt, 0);
->  }
-> +
-> +static inline vma_flags_t __mk_vma_flags(size_t count, const vma_flag_t *bits)
-> +{
-> +	vma_flags_t flags;
-> +	int i;
-> +
-> +	/*
-> +	 * For testing purposes: allow invalid bit specification so we can
-> +	 * easily test.
-> +	 */
-> +	vma_flags_clear_all(&flags);
-> +	for (i = 0; i < count; i++)
-> +		if (bits[i] < NUM_VMA_FLAG_BITS)
-> +			vma_flag_set(&flags, bits[i]);
-> +	return flags;
-> +}
-> diff --git a/tools/testing/vma/include/dup.h b/tools/testing/vma/include/dup.h
-> index ed8708afb7af..31ee02f709b2 100644
-> --- a/tools/testing/vma/include/dup.h
-> +++ b/tools/testing/vma/include/dup.h
-> @@ -838,16 +838,7 @@ static inline void vm_flags_clear(struct vm_area_struct *vma,
->  	vma_flags_clear_word(&vma->flags, flags);
->  }
->  
-> -static inline vma_flags_t __mk_vma_flags(size_t count, const vma_flag_t *bits)
-> -{
-> -	vma_flags_t flags;
-> -	int i;
-> -
-> -	vma_flags_clear_all(&flags);
-> -	for (i = 0; i < count; i++)
-> -		vma_flag_set(&flags, bits[i]);
-> -	return flags;
-> -}
-> +static inline vma_flags_t __mk_vma_flags(size_t count, const vma_flag_t *bits);
->  
->  #define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__), \
->  					 (const vma_flag_t []){__VA_ARGS__})
-> diff --git a/tools/testing/vma/tests/vma.c b/tools/testing/vma/tests/vma.c
-> index 6d9775aee243..c54ffc954f11 100644
-> --- a/tools/testing/vma/tests/vma.c
-> +++ b/tools/testing/vma/tests/vma.c
-> @@ -1,5 +1,25 @@
->  // SPDX-License-Identifier: GPL-2.0-or-later
->  
-> +static bool compare_legacy_flags(vm_flags_t legacy_flags, vma_flags_t flags)
-> +{
-> +	const unsigned long legacy_val = legacy_flags;
-> +	/* The lower word should contain the precise same value. */
-> +	const unsigned long flags_lower = flags.__vma_flags[0];
-> +#if NUM_VMA_FLAGS > BITS_PER_LONG
-> +	int i;
-> +
-> +	/* All bits in higher flag values should be zero. */
-> +	for (i = 1; i < NUM_VMA_FLAGS / BITS_PER_LONG; i++) {
-> +		if (flags.__vma_flags[i] != 0)
-> +			return false;
-> +	}
-> +#endif
-> +
-> +	static_assert(sizeof(legacy_flags) == sizeof(unsigned long));
-> +
-> +	return legacy_val == flags_lower;
-> +}
-> +
->  static bool test_copy_vma(void)
->  {
->  	vm_flags_t vm_flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
-> @@ -33,7 +53,287 @@ static bool test_copy_vma(void)
->  	return true;
->  }
->  
-> +static bool test_vma_flags_unchanged(void)
-> +{
-> +	vma_flags_t flags = EMPTY_VMA_FLAGS;
-> +	vm_flags_t legacy_flags = 0;
-> +	int bit;
-> +	struct vm_area_struct vma;
-> +	struct vm_area_desc desc;
-> +
-> +
-> +	vma.flags = EMPTY_VMA_FLAGS;
-> +	desc.vma_flags = EMPTY_VMA_FLAGS;
-> +
-> +	for (bit = 0; bit < BITS_PER_LONG; bit++) {
-> +		vma_flags_t mask = mk_vma_flags(bit);
-> +
-> +		legacy_flags |= (1UL << bit);
-> +
-> +		/* Individual flags. */
-> +		vma_flags_set(&flags, bit);
-> +		ASSERT_TRUE(compare_legacy_flags(legacy_flags, flags));
-> +
-> +		/* Via mask. */
-> +		vma_flags_set_mask(&flags, mask);
-> +		ASSERT_TRUE(compare_legacy_flags(legacy_flags, flags));
-> +
-> +		/* Same for VMA. */
-> +		vma_set_flags(&vma, bit);
-> +		ASSERT_TRUE(compare_legacy_flags(legacy_flags, vma.flags));
-> +		vma_set_flags_mask(&vma, mask);
-> +		ASSERT_TRUE(compare_legacy_flags(legacy_flags, vma.flags));
-> +
-> +		/* Same for VMA descriptor. */
-> +		vma_desc_set_flags(&desc, bit);
-> +		ASSERT_TRUE(compare_legacy_flags(legacy_flags, desc.vma_flags));
-> +		vma_desc_set_flags_mask(&desc, mask);
-> +		ASSERT_TRUE(compare_legacy_flags(legacy_flags, desc.vma_flags));
-> +	}
-> +
-> +	return true;
-> +}
-> +
-> +static bool test_vma_flags_cleared(void)
-> +{
-> +	const vma_flags_t empty = EMPTY_VMA_FLAGS;
-> +	vma_flags_t flags;
-> +	int i;
-> +
-> +	/* Set all bits high. */
-> +	memset(&flags, 1, sizeof(flags));
-> +	/* Try to clear. */
-> +	vma_flags_clear_all(&flags);
-> +	/* Equal to EMPTY_VMA_FLAGS? */
-> +	ASSERT_EQ(memcmp(&empty, &flags, sizeof(flags)), 0);
-> +	/* Make sure every unsigned long entry in bitmap array zero. */
-> +	for (i = 0; i < sizeof(flags) / BITS_PER_LONG; i++) {
-> +		const unsigned long val = flags.__vma_flags[i];
-> +
-> +		ASSERT_EQ(val, 0);
-> +	}
-> +
-> +	return true;
-> +}
-> +
-> +/*
-> + * Assert that VMA flag functions that operate at the system word level function
-> + * correctly.
-> + */
-> +static bool test_vma_flags_word(void)
-> +{
-> +	vma_flags_t flags = EMPTY_VMA_FLAGS;
-> +	const vma_flags_t comparison =
-> +		mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, 64, 65);
-> +
-> +	/* Set some custom high flags. */
-> +	vma_flags_set(&flags, 64, 65);
-> +	/* Now overwrite the first word. */
-> +	vma_flags_overwrite_word(&flags, VM_READ | VM_WRITE);
-> +	/* Ensure they are equal. */
-> +	ASSERT_EQ(memcmp(&flags, &comparison, sizeof(flags)), 0);
-> +
-> +	flags = EMPTY_VMA_FLAGS;
-> +	vma_flags_set(&flags, 64, 65);
-> +
-> +	/* Do the same with the _once() equivalent. */
-> +	vma_flags_overwrite_word_once(&flags, VM_READ | VM_WRITE);
-> +	ASSERT_EQ(memcmp(&flags, &comparison, sizeof(flags)), 0);
-> +
-> +	flags = EMPTY_VMA_FLAGS;
-> +	vma_flags_set(&flags, 64, 65);
-> +
-> +	/* Make sure we can set a word without disturbing other bits. */
-> +	vma_flags_set(&flags, VMA_WRITE_BIT);
-> +	vma_flags_set_word(&flags, VM_READ);
-> +	ASSERT_EQ(memcmp(&flags, &comparison, sizeof(flags)), 0);
-> +
-> +	flags = EMPTY_VMA_FLAGS;
-> +	vma_flags_set(&flags, 64, 65);
-> +
-> +	/* Make sure we can clear a word without disturbing other bits. */
-> +	vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
-> +	vma_flags_clear_word(&flags, VM_EXEC);
-> +	ASSERT_EQ(memcmp(&flags, &comparison, sizeof(flags)), 0);
-> +
-> +	return true;
-> +}
-> +
-> +/* Ensure that vma_flags_test() and friends works correctly. */
-> +static bool test_vma_flags_test(void)
-> +{
-> +	const vma_flags_t flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
-> +					       VMA_EXEC_BIT, 64, 65);
-> +	struct vm_area_struct vma;
-> +	struct vm_area_desc desc;
-> +
-> +	vma.flags = flags;
-> +	desc.vma_flags = flags;
-> +
-> +#define do_test(...)						\
-> +	ASSERT_TRUE(vma_flags_test(&flags, __VA_ARGS__));	\
-> +	ASSERT_TRUE(vma_desc_test_flags(&desc, __VA_ARGS__))
-> +
-> +#define do_test_all_true(...)					\
-> +	ASSERT_TRUE(vma_flags_test_all(&flags, __VA_ARGS__));	\
-> +	ASSERT_TRUE(vma_test_all_flags(&vma, __VA_ARGS__))
-> +
-> +#define do_test_all_false(...)					\
-> +	ASSERT_FALSE(vma_flags_test_all(&flags, __VA_ARGS__));	\
-> +	ASSERT_FALSE(vma_test_all_flags(&vma, __VA_ARGS__))
-> +
-> +	/*
-> +	 * Testing for some flags that are present, some that are not - should
-> +	 * pass. ANY flags matching should work.
-> +	 */
-> +	do_test(VMA_READ_BIT, VMA_MAYREAD_BIT, VMA_SEQ_READ_BIT);
-> +	/* However, the ...test_all() variant should NOT pass. */
-> +	do_test_all_false(VMA_READ_BIT, VMA_MAYREAD_BIT, VMA_SEQ_READ_BIT);
-> +	/* But should pass for flags present. */
-> +	do_test_all_true(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT, 64, 65);
-> +	/* Also subsets... */
-> +	do_test_all_true(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT, 64);
-> +	do_test_all_true(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
-> +	do_test_all_true(VMA_READ_BIT, VMA_WRITE_BIT);
-> +	do_test_all_true(VMA_READ_BIT);
-> +	/*
-> +	 * Check _mask variant. We don't need to test extensively as macro
-> +	 * helper is the equivalent.
-> +	 */
-> +	ASSERT_TRUE(vma_flags_test_mask(&flags, flags));
-> +	ASSERT_TRUE(vma_flags_test_all_mask(&flags, flags));
-> +
-> +	/* Single bits. */
-> +	do_test(VMA_READ_BIT);
-> +	do_test(VMA_WRITE_BIT);
-> +	do_test(VMA_EXEC_BIT);
-> +#if NUM_VMA_FLAG_BITS > 64
-> +	do_test(64);
-> +	do_test(65);
-> +#endif
-> +
-> +	/* Two bits. */
-> +	do_test(VMA_READ_BIT, VMA_WRITE_BIT);
-> +	do_test(VMA_READ_BIT, VMA_EXEC_BIT);
-> +	do_test(VMA_WRITE_BIT, VMA_EXEC_BIT);
-> +	/* Ordering shouldn't matter. */
-> +	do_test(VMA_WRITE_BIT, VMA_READ_BIT);
-> +	do_test(VMA_EXEC_BIT, VMA_READ_BIT);
-> +	do_test(VMA_EXEC_BIT, VMA_WRITE_BIT);
-> +#if NUM_VMA_FLAG_BITS > 64
-> +	do_test(VMA_READ_BIT, 64);
-> +	do_test(VMA_WRITE_BIT, 64);
-> +	do_test(64, VMA_READ_BIT);
-> +	do_test(64, VMA_WRITE_BIT);
-> +	do_test(VMA_READ_BIT, 65);
-> +	do_test(VMA_WRITE_BIT, 65);
-> +	do_test(65, VMA_READ_BIT);
-> +	do_test(65, VMA_WRITE_BIT);
-> +#endif
-> +	/* Three bits. */
-> +	do_test(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
-> +#if NUM_VMA_FLAG_BITS > 64
-> +	/* No need to consider every single permutation. */
-> +	do_test(VMA_READ_BIT, VMA_WRITE_BIT, 64);
-> +	do_test(VMA_READ_BIT, VMA_WRITE_BIT, 65);
-> +
-> +	/* Four bits. */
-> +	do_test(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT, 64);
-> +	do_test(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT, 65);
-> +
-> +	/* Five bits. */
-> +	do_test(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT, 64, 65);
-> +#endif
-> +
-> +#undef do_test
-> +#undef do_test_all_true
-> +#undef do_test_all_false
-> +
-> +	return true;
-> +}
-> +
-> +/* Ensure that vma_flags_clear() and friends works correctly. */
-> +static bool test_vma_flags_clear(void)
-> +{
-> +	vma_flags_t flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
-> +					 VMA_EXEC_BIT, 64, 65);
-> +	vma_flags_t mask = mk_vma_flags(VMA_EXEC_BIT, 64);
-> +	struct vm_area_struct vma;
-> +	struct vm_area_desc desc;
-> +
-> +	vma.flags = flags;
-> +	desc.vma_flags = flags;
-> +
-> +	/* Cursory check of _mask() variant, as the helper macros imply. */
-> +	vma_flags_clear_mask(&flags, mask);
-> +	vma_flags_clear_mask(&vma.flags, mask);
-> +	vma_desc_clear_flags_mask(&desc, mask);
-> +	ASSERT_FALSE(vma_flags_test(&flags, VMA_EXEC_BIT, 64));
-> +	ASSERT_FALSE(vma_flags_test(&vma.flags, VMA_EXEC_BIT, 64));
-> +	ASSERT_FALSE(vma_desc_test_flags(&desc, VMA_EXEC_BIT, 64));
-> +	/* Reset. */
-> +	vma_flags_set(&flags, VMA_EXEC_BIT, 64);
-> +	vma_set_flags(&vma, VMA_EXEC_BIT, 64);
-> +	vma_desc_set_flags(&desc, VMA_EXEC_BIT, 64);
-> +
-> +	/*
-> +	 * Clear the flags and assert clear worked, then reset flags back to
-> +	 * include specified flags.
-> +	 */
-> +#define do_test_and_reset(...)					\
-> +	vma_flags_clear(&flags, __VA_ARGS__);			\
-> +	vma_flags_clear(&vma.flags, __VA_ARGS__);		\
-> +	vma_desc_clear_flags(&desc, __VA_ARGS__);		\
-> +	ASSERT_FALSE(vma_flags_test(&flags, __VA_ARGS__));	\
-> +	ASSERT_FALSE(vma_flags_test(&vma.flags, __VA_ARGS__));	\
-> +	ASSERT_FALSE(vma_desc_test_flags(&desc, __VA_ARGS__));	\
-> +	vma_flags_set(&flags, __VA_ARGS__);			\
-> +	vma_set_flags(&vma, __VA_ARGS__);			\
-> +	vma_desc_set_flags(&desc, __VA_ARGS__)
-> +
-> +	/* Single flags. */
-> +	do_test_and_reset(VMA_READ_BIT);
-> +	do_test_and_reset(VMA_WRITE_BIT);
-> +	do_test_and_reset(VMA_EXEC_BIT);
-> +	do_test_and_reset(64);
-> +	do_test_and_reset(65);
-> +
-> +	/* Two flags, in different orders. */
-> +	do_test_and_reset(VMA_READ_BIT, VMA_WRITE_BIT);
-> +	do_test_and_reset(VMA_READ_BIT, VMA_EXEC_BIT);
-> +	do_test_and_reset(VMA_READ_BIT, 64);
-> +	do_test_and_reset(VMA_READ_BIT, 65);
-> +	do_test_and_reset(VMA_WRITE_BIT, VMA_READ_BIT);
-> +	do_test_and_reset(VMA_WRITE_BIT, VMA_EXEC_BIT);
-> +	do_test_and_reset(VMA_WRITE_BIT, 64);
-> +	do_test_and_reset(VMA_WRITE_BIT, 65);
-> +	do_test_and_reset(VMA_EXEC_BIT, VMA_READ_BIT);
-> +	do_test_and_reset(VMA_EXEC_BIT, VMA_WRITE_BIT);
-> +	do_test_and_reset(VMA_EXEC_BIT, 64);
-> +	do_test_and_reset(VMA_EXEC_BIT, 65);
-> +	do_test_and_reset(64, VMA_READ_BIT);
-> +	do_test_and_reset(64, VMA_WRITE_BIT);
-> +	do_test_and_reset(64, VMA_EXEC_BIT);
-> +	do_test_and_reset(64, 65);
-> +	do_test_and_reset(65, VMA_READ_BIT);
-> +	do_test_and_reset(65, VMA_WRITE_BIT);
-> +	do_test_and_reset(65, VMA_EXEC_BIT);
-> +	do_test_and_reset(65, 64);
-> +
-> +	/* Three flags. */
-> +
-> +#undef do_test_some_missing
-> +#undef do_test_and_reset
-> +
-> +	return true;
-> +}
-> +
->  static void run_vma_tests(int *num_tests, int *num_fail)
->  {
->  	TEST(copy_vma);
-> +	TEST(vma_flags_unchanged);
-> +	TEST(vma_flags_cleared);
-> +	TEST(vma_flags_word);
-> +	TEST(vma_flags_test);
-> +	TEST(vma_flags_clear);
->  }
-> diff --git a/tools/testing/vma/vma_internal.h b/tools/testing/vma/vma_internal.h
-> index e3ed05b57819..0e1121e2ef23 100644
-> --- a/tools/testing/vma/vma_internal.h
-> +++ b/tools/testing/vma/vma_internal.h
-> @@ -36,11 +36,11 @@
->   * ahead of all other headers.
->   */
->  #define __private
-> -#define NUM_MM_FLAG_BITS (64)
-> +/* NUM_MM_FLAG_BITS defined by test code. */
->  typedef struct {
->  	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
->  } mm_flags_t;
-> -#define NUM_VMA_FLAG_BITS BITS_PER_LONG
-> +/* NUM_VMA_FLAG_BITS defined by test code. */
->  typedef struct {
->  	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
->  } __private vma_flags_t;
-> -- 
-> 2.52.0
-> 
+I fired this all up and ran it. It got through all but it's last test
+case before failing.
+
+Three things appended:
+1) the diff I applied to daxctl-famfs.sh to run the test
+2) testlog.txt output of the test
+3) RIP: 0010:is_free_buddy_page+0x39/0x60 kernel log
+
+
+1) Diff I applied to execute the test:
+
+diff --git a/test/daxctl-famfs.sh b/test/daxctl-famfs.sh
+index 12fbfefa3144..a4e8d87b9762 100755
+--- a/test/daxctl-famfs.sh
++++ b/test/daxctl-famfs.sh
+@@ -9,6 +9,17 @@ rc=77
+ 
+ trap 'cleanup $LINENO' ERR
+ 
++# Use cxl-test module to get the DAX device of the CXL auto region,
++# which also makes this test NON destructive.
++#
++# The $CXL list below is a delay because find_daxdev() was not
++# finding the DAX region without it.
++#
++modprobe -r cxl-test
++modprobe cxl-test
++$CXL list
++
++
+ daxdev=""
+ original_mode=""
+
+2) Log of Meson test suite run on 2026-02-09T14:52:40.498801
+
+1/1 ndctl:dax / daxctl-famfs.sh INTERRUPT      230.60s   killed by signal 15 SIGTERM
+22:52:40 MALLOC_PERTURB_=233 LC_ALL=C TEST_PATH=/root/ndctl/build/test NDCTL=/root/ndctl/build/ndctl/ndctl DAXCTL=/root/ndctl/build/daxctl/daxctl DATA_PATH=/root/ndctl/test CXL=/root/ndctl/build/cxl/cxl /root/ndctl/test/daxctl-famfs.sh
+----------------------------------- output -----------------------------------
+stdout:
+
+Found dax device: dax6.0 (current mode: system-ram)
+
+=== Testing famfs mode transitions ===
+Device is in system-ram mode, attempting to convert to devdax...
+[
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+Initial mode: devdax - OK
+Testing devdax -> famfs... [
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"famfs"
+  }
+]
+OK
+Testing famfs -> famfs (re-enable)... [
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"famfs"
+  }
+]
+OK
+Testing famfs -> devdax... [
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+OK
+Testing devdax -> devdax (re-enable)... [
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+OK
+
+=== Testing JSON output for mode field ===
+Testing JSON output for devdax mode... OK
+[
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"famfs"
+  }
+]
+Testing JSON output for famfs mode... OK
+[
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+
+=== Testing error handling ===
+[
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"famfs"
+  }
+]
+Testing invalid mode rejection... OK (correctly rejected)
+[
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+
+=== Testing system-ram transitions with famfs ===
+Testing devdax -> system-ram... [
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"system-ram",
+    "online_memblocks":0,
+    "total_memblocks":4
+  }
+]
+OK
+Testing system-ram -> famfs (should fail)... OK (correctly rejected)
+Testing system-ram -> devdax -> famfs... [
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+[
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"famfs"
+  }
+]
+OK
+[
+  {
+    "chardev":"dax6.0",
+    "size":536870912,
+    "target_node":0,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+
+Restoring device to original mode: system-ram
+Error at line 255
+stderr:
++ rc=77
+++ dirname /root/ndctl/test/daxctl-famfs.sh
++ . /root/ndctl/test/common
++++ basename /root/ndctl/test/daxctl-famfs.sh
+++ test_basename=daxctl-famfs.sh
+++ '[' -z /root/ndctl/build/ndctl/ndctl ']'
+++ '[' -z /root/ndctl/build/daxctl/daxctl ']'
+++ '[' -z /root/ndctl/build/cxl/cxl ']'
+++ '[' -z /root/ndctl/build/test ']'
+++ NFIT_TEST_BUS0=nfit_test.0
+++ NFIT_TEST_BUS1=nfit_test.1
+++ CXL_TEST_BUS=cxl_test
+++ ACPI_BUS=ACPI.NFIT
+++ E820_BUS=e820
+++ CXL_TEST_QOS_CLASS=42
++ trap 'cleanup $LINENO' ERR
++ modprobe -r cxl-test
++ modprobe cxl-test
++ /root/ndctl/build/cxl/cxl list
++ daxdev=
++ original_mode=
++ main
++ check_fsdev_dax
++ modinfo fsdev_dax
++ return 0
++ find_daxdev
+++ /root/ndctl/build/daxctl/daxctl list
+++ jq -er '.[0].chardev // empty'
++ daxdev=dax6.0
++ [[ ! -n dax6.0 ]]
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ original_mode=system-ram
++ printf 'Found dax device: %s (current mode: %s)\n' dax6.0 system-ram
++ rc=1
++ test_famfs_mode_transitions
++ printf '\n=== Testing famfs mode transitions ===\n'
++ ensure_devdax_mode
++ local mode
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ mode=system-ram
++ [[ system-ram == \d\e\v\d\a\x ]]
++ [[ system-ram == \s\y\s\t\e\m\-\r\a\m ]]
++ printf 'Device is in system-ram mode, attempting to convert to devdax...\n'
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -f -m devdax dax6.0
+dax6.0: all memory sections (4) already offline
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ devdax == \d\e\v\d\a\x ]]
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ devdax == \d\e\v\d\a\x ]]
++ printf 'Initial mode: devdax - OK\n'
++ printf 'Testing devdax -> famfs... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m famfs dax6.0
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ famfs == \f\a\m\f\s ]]
++ printf 'OK\n'
++ printf 'Testing famfs -> famfs (re-enable)... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m famfs dax6.0
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ famfs == \f\a\m\f\s ]]
++ printf 'OK\n'
++ printf 'Testing famfs -> devdax... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m devdax dax6.0
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ devdax == \d\e\v\d\a\x ]]
++ printf 'OK\n'
++ printf 'Testing devdax -> devdax (re-enable)... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m devdax dax6.0
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ devdax == \d\e\v\d\a\x ]]
++ printf 'OK\n'
++ test_json_output
++ printf '\n=== Testing JSON output for mode field ===\n'
++ ensure_devdax_mode
++ local mode
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ mode=devdax
++ [[ devdax == \d\e\v\d\a\x ]]
++ return 0
++ printf 'Testing JSON output for devdax mode... '
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ mode=devdax
++ [[ devdax == \d\e\v\d\a\x ]]
++ printf 'OK\n'
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m famfs dax6.0
+reconfigured 1 device
++ printf 'Testing JSON output for famfs mode... '
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ mode=famfs
++ [[ famfs == \f\a\m\f\s ]]
++ printf 'OK\n'
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m devdax dax6.0
+reconfigured 1 device
++ test_error_handling
++ printf '\n=== Testing error handling ===\n'
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m famfs dax6.0
+reconfigured 1 device
++ printf 'Testing invalid mode rejection... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m invalidmode dax6.0
++ printf 'OK (correctly rejected)\n'
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m devdax dax6.0
+reconfigured 1 device
++ check_kmem
++ modinfo kmem
++ return 0
+++ cat /sys/devices/system/memory/auto_online_blocks
++ saved_policy=offline
++ echo offline
++ test_system_ram_transitions
++ printf '\n=== Testing system-ram transitions with famfs ===\n'
++ ensure_devdax_mode
++ local mode
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ mode=devdax
++ [[ devdax == \d\e\v\d\a\x ]]
++ return 0
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ devdax == \d\e\v\d\a\x ]]
++ printf 'Testing devdax -> system-ram... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -N -m system-ram dax6.0
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ system-ram == \s\y\s\t\e\m\-\r\a\m ]]
++ printf 'OK\n'
++ printf 'Testing system-ram -> famfs (should fail)... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m famfs dax6.0
++ printf 'OK (correctly rejected)\n'
++ printf 'Testing system-ram -> devdax -> famfs... '
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -f -m devdax dax6.0
+dax6.0: all memory sections (4) already offline
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ devdax == \d\e\v\d\a\x ]]
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m famfs dax6.0
+reconfigured 1 device
+++ daxctl_get_mode dax6.0
+++ /root/ndctl/build/daxctl/daxctl list -d dax6.0
+++ jq -er '.[].mode'
++ [[ famfs == \f\a\m\f\s ]]
++ printf 'OK\n'
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -m devdax dax6.0
+reconfigured 1 device
++ echo offline
++ printf '\nRestoring device to original mode: %s\n' system-ram
++ /root/ndctl/build/daxctl/daxctl reconfigure-device -f -m system-ram dax6.0
+/root/ndctl/test/daxctl-famfs.sh: line 231:  1266 Killed                  "$DAXCTL" reconfigure-device -f -m "$original_mode" "$daxdev"
+++ cleanup 255
+++ printf 'Error at line %d\n' 255
+++ [[ -n dax6.0 ]]
+++ [[ -n system-ram ]]
+++ /root/ndctl/build/daxctl/daxctl reconfigure-device -f -m system-ram dax6.0
+------------------------------------------------------------------------------
+
+Summary of Failures:
+
+1/1 ndctl:dax / daxctl-famfs.sh INTERRUPT      230.60s   killed by signal 15 SIGTERM
+
+Ok:                 0   
+Expected Fail:      0   
+Fail:               1   
+Unexpected Pass:    0   
+Skipped:            0   
+Timeout:            0   
+
+3) BUG: unable to handle page fault for address: ffffc9000f508033
+[  343.806681] #PF: supervisor read access in kernel mode
+[  343.808158] #PF: error_code(0x0000) - not-present page
+[  343.809635] PGD 80a067 P4D 80a067 PUD 1936067 PMD 12eeb9067 PTE 0
+[  343.811357] Oops: Oops: 0000 [#1] SMP NOPTI
+[  343.812634] CPU: 4 UID: 0 PID: 1266 Comm: daxctl Tainted: G           O        6.19.0-rc5+ #106 PREEMPT(voluntary) 
+[  343.815263] Tainted: [O]=OOT_MODULE
+[  343.816423] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/2015
+[  343.818507] RIP: 0010:is_free_buddy_page+0x39/0x60
+[  343.819466] Code: 00 00 00 48 c1 fe 06 eb 0a 48 83 c1 01 48 83 f9 0b 74 30 44 89 c0 48 89 fa d3 e0 83 e8 01 48 98 48 21 f0 48 c1 e0 06 48 29 c2 <80> 7a 33 f0 75 d9 48 8b 42 28 48 39 c8 72 d0 b8 01 00 00 00 c3 cc
+[  343.822668] RSP: 0018:ffffc9000f50f828 EFLAGS: 00010286
+[  343.823719] RAX: 0000000000007a80 RBX: ffffc9000f50f8a0 RCX: 0000000000000009
+[  343.825021] RDX: ffffc9000f508000 RSI: ffffff7c003d43ea RDI: ffffc9000f50fa80
+[  343.826343] RBP: ffffc9000f50f838 R08: 0000000000000001 R09: 00000000ffefffff
+[  343.827651] R10: ffffc9000f50fa38 R11: ffff888376ffe000 R12: ffffc9000f50fa80
+[  343.828834] R13: ffffc9000f50f9a0 R14: 0000000000000006 R15: 0000000000000001
+[  343.829725] FS:  00007f0f83e087c0(0000) GS:ffff8881fa8f8000(0000) knlGS:0000000000000000
+[  343.830765] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  343.831581] CR2: ffffc9000f508033 CR3: 000000012dec6003 CR4: 0000000000370ef0
+[  343.832517] Call Trace:
+[  343.832964]  <TASK>
+[  343.833385]  ? set_ps_flags.constprop.0+0x3c/0x70
+[  343.834099]  snapshot_page+0x2ca/0x330
+[  343.834679]  __dump_page+0x2e/0x380
+[  343.835260]  ? up+0x5a/0x90
+[  343.835757]  dump_page+0x16/0x50
+[  343.836324]  ? dump_page+0x16/0x50
+[  343.836861]  __get_pfnblock_flags_mask+0x6f/0xd0
+[  343.837520]  get_pfnblock_migratetype+0xe/0x30
+[  343.838192]  __dump_page+0x15b/0x380
+[  343.838692]  dump_page+0x16/0x50
+[  343.839111]  ? dump_page+0x16/0x50
+[  343.839504]  __set_pfnblock_flags_mask.constprop.0+0x6f/0xf0
+[  343.840093]  init_pageblock_migratetype+0x39/0x60
+[  343.840589]  memmap_init_range+0x165/0x290
+[  343.841069]  move_pfn_range_to_zone+0xed/0x200
+[  343.841548]  mhp_init_memmap_on_memory+0x23/0xb0
+[  343.842062]  memory_subsys_online+0x127/0x1a0
+[  343.842542]  device_online+0x4d/0x90
+[  343.842986]  state_store+0x96/0xa0
+[  343.843393]  dev_attr_store+0x12/0x30
+[  343.843809]  sysfs_kf_write+0x48/0x70
+[  343.844231]  kernfs_fop_write_iter+0x160/0x210
+[  343.844714]  vfs_write+0x261/0x500
+[  343.845185]  ksys_write+0x5c/0xf0
+[  343.845584]  __x64_sys_write+0x14/0x20
+[  343.846040]  x64_sys_call+0x1fbc/0x1ff0
+[  343.846480]  do_syscall_64+0x67/0x370
+[  343.846905]  entry_SYSCALL_64_after_hwframe+0x71/0x79
+[  343.847432] RIP: 0033:0x7f0f83d01c37
+[  343.847838] Code: 0f 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 f3 0f 1e fa 64 8b 04 25 18 00 00 00 85 c0 75 10 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 51 c3 48 83 ec 28 48 89 54 24 18 48 89 74 24
+[  343.849536] RSP: 002b:00007ffe63e1f148 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+[  343.850282] RAX: ffffffffffffffda RBX: 00007ffe63e1f708 RCX: 00007f0f83d01c37
+[  343.850997] RDX: 000000000000000f RSI: 00007f0f83ef543e RDI: 0000000000000004
+[  343.851692] RBP: 00007ffe63e1f180 R08: 0000000000000000 R09: 0000000000000073
+[  343.852405] R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+[  343.853112] R13: 00007ffe63e1f740 R14: 0000000000414da0 R15: 00007f0f83f3b000
+[  343.853789]  </TASK>
+[  343.854109] Modules linked in: cxl_test(O) cxl_mem(O) cxl_pmem(O) cxl_acpi(O) cxl_port(O) cxl_mock(O) device_dax(O) fsdev_dax kmem dax_cxl cxl_mock_mem(O) cxl_core(O) dax_pmem(O) nd_pmem(O) nd_btt(O) nfit(O) nd_e820(O) libnvdimm(O) nfit_test_iomap(O) [last unloaded: cxl_mock(O)]
+[  343.856252] CR2: ffffc9000f508033
+[  343.856656] ---[ end trace 0000000000000000 ]---
+[  343.857172] RIP: 0010:is_free_buddy_page+0x39/0x60
+[  343.857678] Code: 00 00 00 48 c1 fe 06 eb 0a 48 83 c1 01 48 83 f9 0b 74 30 44 89 c0 48 89 fa d3 e0 83 e8 01 48 98 48 21 f0 48 c1 e0 06 48 29 c2 <80> 7a 33 f0 75 d9 48 8b 42 28 48 39 c8 72 d0 b8 01 00 00 00 c3 cc
+[  343.859395] RSP: 0018:ffffc9000f50f828 EFLAGS: 00010286
+[  343.859929] RAX: 0000000000007a80 RBX: ffffc9000f50f8a0 RCX: 0000000000000009
+[  343.860614] RDX: ffffc9000f508000 RSI: ffffff7c003d43ea RDI: ffffc9000f50fa80
+[  343.861333] RBP: ffffc9000f50f838 R08: 0000000000000001 R09: 00000000ffefffff
+[  343.862076] R10: ffffc9000f50fa38 R11: ffff888376ffe000 R12: ffffc9000f50fa80
+[  343.862753] R13: ffffc9000f50f9a0 R14: 0000000000000006 R15: 0000000000000001
+[  343.863477] FS:  00007f0f83e087c0(0000) GS:ffff8881fa8f8000(0000) knlGS:0000000000000000
+[  343.864268] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  343.864855] CR2: ffffc9000f508033 CR3: 000000012dec6003 CR4: 0000000000370ef0
+[  343.865542] note: daxctl[1266] exited with irqs disabled
+
+
