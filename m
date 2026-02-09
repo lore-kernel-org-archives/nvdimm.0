@@ -1,455 +1,342 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012071.outbound.protection.outlook.com [52.101.48.71])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 999E93126D4
-	for <nvdimm@lists.linux.dev>; Fri,  6 Feb 2026 21:50:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.71
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDBA61BC2A;
+	Mon,  9 Feb 2026 14:03:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770414640; cv=fail; b=OEVivsM7WCTLGAL+hD6ettxk3ie3+rbtbfaYtVT6zgg6v56yEbA/urpKgSJTfm1jdxT16IvcjF/2xPzSD6JPgfqTYgeJ+v7+KApYXQmnJKbVY7Ky4QC7oVoA63hkNojVWhbxJ2kQeNmFNwFeul1iJFhNEiHKsO4z72/tTjEDCdo=
+	t=1770645834; cv=fail; b=ikja7BcO1H2oZMkAdwno+BO3qgWc2rGEM53acCKmbMaaDBi+O5Va9E/zbAW/XK3fPp0vEAe5mP38QX9Zv0IEfWRqfI4qM07ab/wvBNK6NGB2QKcZKnWpdijPlhzYYWsf7zYaY6g60DMoV6ruyaBVkWvbuPKSCZSrOeJrY2A7rok=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770414640; c=relaxed/simple;
-	bh=wfS+wQnq2IKI4qWNSNU43Q+9a6s/E1fXDOShD6g13G0=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GAzdYx5WCytJwGwvcRxvYfcn//Apuve8zXcEEds6sIlXZW0k+GZ0mGY5qYsiYLBCh8G3KU5UnxhCZUtPCDS22RWmQWUgZYfWVQt73sHrBkHI0doTF6YM4jnANNPeB0WK48WREBKcN9Lj9swI15hHWJEoNi0LIL7A+PYD9LL/PPw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=J3bBe/NF; arc=fail smtp.client-ip=52.101.48.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	s=arc-20240116; t=1770645834; c=relaxed/simple;
+	bh=5GHJ2Yv9dl38HtwSxd3KwuAA2un+fe+0KhFukS7D/IE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=HMU27ZtRUMz+eBrbf2YitCXwGksI0jh1JOlbxE73Z2O1FExthP/RfqDNgqcq9I/l8trwJdVUWVEx4jmKKhcHjUzMWNIFU3VgQzkpwJLw3wzoUi2idgSmxQz3mLDDpB6qVDNwGaB3GU5Q0dvgJysjg9xpVPLFyoH3Pq8m7mFK4uI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=o1DQZhys; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=KQd3tGRj; arc=fail smtp.client-ip=205.220.177.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="J3bBe/NF"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="o1DQZhys";
+	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="KQd3tGRj"
+Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 619BusYo1719735;
+	Mon, 9 Feb 2026 14:02:51 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=corp-2025-04-25; bh=ZMxs8SGnkNeJ3RfLiR
+	e87AGdCf9pK1OS7nrJH859g/g=; b=o1DQZhysJBZcu4BXTY1eHS/HklKPYZG+qQ
+	pON1oGi7wu24IxG2sPJp0NWhPXLJNYGS6PjiyJA1PyqwdMBlDP5lz549VWuy3e1W
+	AwNlViz/vS4RCF3JPCad345vvs4FWGVlNttWyfqssIL+BiynCbuGoK6fOTp9JdIa
+	4+GZxDXik3sicF+P0vkD51pvWEJQjwUzdpSf13x1kVWiGLrkgJsO8iRKpxmUuqKL
+	rF3ZNPw/POQzTwr96yWyyZmNKO02+NbCoekMV51RFYcckhWeWYINNkds1OoDC+Zl
+	vK2CwBQplTUFnssvRxEqyPB7xcqBWQoiSSJ1Tct5f3rcs+4JDTBA==
+Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4c5xj4hy50-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 09 Feb 2026 14:02:50 +0000 (GMT)
+Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 619CubqJ030924;
+	Mon, 9 Feb 2026 14:02:50 GMT
+Received: from sn4pr0501cu005.outbound.protection.outlook.com (mail-southcentralusazon11011035.outbound.protection.outlook.com [40.93.194.35])
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 4c5uukjej4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 09 Feb 2026 14:02:49 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=CG/p3IQmihfth4uuZIfgBF4rFWEpwCcaimjgZrb52FqJKN0tTup5bTLoNINICnOxHWqCJYaX8Lz6rfkJwHWhRctCqhUvxt3a2v0Kp2GeTVVSnyRWLg5OCUMETHnyyHbEKOEcYbHecqRai4tC4kkT/gYNzAFpo1c05nw/+uX6AmEQd0iWzykd/F1N3NClhxd0YBgvqpi1yKUjxXd4dXDe3kn5acI9UEIVbWDSmqVcopB3hodkSE6JldxpVGQTP+fXNcXLfrqBkx5CFWCiObND0daBBSwy/gmg3o4/B88nZaKLTS37LLnf8adzuuVnentdH8HQLT9SJi4DPCt10hXDJQ==
+ b=izVEvw4AX5MEeIxrQn/mYWd5dUAZKFUBv9FWOjwLMq9tKmKaPMAVErXKBf4kA49jl03j0X4auDk2M/BcIsVqPsEaKsbf8AFsyUsCmHlc0WOxUhtip1er3vZ911EmWpsCUA0YSEqz11wOOjCqd5arSz4OqZ1ipBvehga9EFBfIFcPU5WizInWzIVHyNyMepCFPDL88YP6Af8AS6UsknavuA40QrLKqwSimxxro8qnwmp/ie+w6MosarwX8Rncm45YP5tfxaGB59FuWLGTzgDjZeryTmiyQXV92R5xoCSejG1+ednMdwajNnPIVZCL61x4mau9+oNKDDCzn4O+rf3Qqw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0kzOb21PXaDcvwCQC6YtCubd+bjrn6ZN97eqWJqabEE=;
- b=PBW4wmHcy+vUjccjZtT5u7DcaOvopJF2ECQiH0oio91skAsgfcV92YProQJ+2UT0l80obUTn7c0gkjcpUmBCgP9WIJkIc0uKbnuhLojMexQ5NrrmnTVKzFoIutJ5IuE8/t3wos9oPbwHnPMz/B79enlGGwxFdfREAXIYMc1tr0sFJZMyLzzQ8Npl5l/ezL1Rl31REWuy9RfADbX2FkMAgwe/T23QVjcVjCQjBhrfiEztOg9X3cA0WScn6ukQV7U3e0HMTpfxv/KpYgo4R2r9x3Wyb7CYFrqHT0OAPhmaZqi41fpdHyL/i+FtpMGWZUQU8PzCxHsrek7/ho3pfEsefw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=lists.linux.dev smtp.mailfrom=amd.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=amd.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ bh=ZMxs8SGnkNeJ3RfLiRe87AGdCf9pK1OS7nrJH859g/g=;
+ b=DUsanv8oQC8/ftWWE+MGKJGy24z0bskhXnGd68hijkIiJqVKwsAuB+6Mt0b1PDTOl1zgPDKoU+mbDPjZAwZx/VR6mAdzwjjyx8vi7OuxLKSeTu3OcqJwiVBooEwPSEHvAS+7Yj8wmLjpUyANbme/KHvlH5zJSfrQtGKzTTCGNR6690LAUKYUXXew64Hz7sEYPoFAGcABW9yt2fTEDJLIJoSmSsy9PJKxriT3Wgdi++qtiE4kuDDM/+yQnDYQ7HRuJpkjXF75HEaEIbfErhGEl6XsfpgaNJhqZ1CP+H2E1YBXbDLlZx4Waa8z4yTdhP65ECkzdJlbRbAi8ZNooaiGHw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0kzOb21PXaDcvwCQC6YtCubd+bjrn6ZN97eqWJqabEE=;
- b=J3bBe/NFIuK8zHvWq4OwP8rjNSMuUeu6fY3JqePgc/pn/95VUOMXkzxefYWXRjmljQP2AhQkKQu5mgUtUxA97NOymL0/lJOLumN8XZfvS9Jni5YB1RbTVoRb/R+7TdLnbl1zRCj6HBc4knnzb5MBWr2EMN5fyDk4Vlq0kjvIxN4=
-Received: from BLAPR03CA0164.namprd03.prod.outlook.com (2603:10b6:208:32f::20)
- by DS7PR12MB8251.namprd12.prod.outlook.com (2603:10b6:8:e3::6) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9587.14; Fri, 6 Feb 2026 21:50:31 +0000
-Received: from BL02EPF0002992D.namprd02.prod.outlook.com
- (2603:10b6:208:32f:cafe::88) by BLAPR03CA0164.outlook.office365.com
- (2603:10b6:208:32f::20) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9587.16 via Frontend Transport; Fri,
- 6 Feb 2026 21:50:13 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- BL02EPF0002992D.mail.protection.outlook.com (10.167.249.58) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9587.10 via Frontend Transport; Fri, 6 Feb 2026 21:50:31 +0000
-Received: from ausbcheatha02.xilinx.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Fri, 6 Feb
- 2026 15:50:26 -0600
-From: Ben Cheatham <Benjamin.Cheatham@amd.com>
-To: <nvdimm@lists.linux.dev>, <alison.schofield@intel.com>,
-	<dave.jiang@intel.com>, <vishal.l.verma@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <benjamin.cheatham@amd.com>
-Subject: [PATCH v8 7/7] Documentation: Add docs for protocol and poison injection commands
-Date: Fri, 6 Feb 2026 15:50:08 -0600
-Message-ID: <20260206215008.8810-8-Benjamin.Cheatham@amd.com>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260206215008.8810-1-Benjamin.Cheatham@amd.com>
-References: <20260206215008.8810-1-Benjamin.Cheatham@amd.com>
+ bh=ZMxs8SGnkNeJ3RfLiRe87AGdCf9pK1OS7nrJH859g/g=;
+ b=KQd3tGRj3VGJ32kiOu3oYr8R2LIERg783ADacmqUhqujFX22ocCbnQLTlmeq1tm8/w1QlQRJ41jm4GYIEAo2CmGyytIwf/NSc7bkal1kVwaCDARnjH/cVxf5prSogWVT24gmlcE+XREpRQeTiYcD9xhOPPjEdwW7W8u2j5zn7C4=
+Received: from DM4PR10MB8218.namprd10.prod.outlook.com (2603:10b6:8:1cc::16)
+ by PH8PR10MB997765.namprd10.prod.outlook.com (2603:10b6:510:39f::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.19; Mon, 9 Feb
+ 2026 14:02:43 +0000
+Received: from DM4PR10MB8218.namprd10.prod.outlook.com
+ ([fe80::f3ea:674e:7f2e:b711]) by DM4PR10MB8218.namprd10.prod.outlook.com
+ ([fe80::f3ea:674e:7f2e:b711%4]) with mapi id 15.20.9587.017; Mon, 9 Feb 2026
+ 14:02:43 +0000
+Date: Mon, 9 Feb 2026 14:02:40 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+To: Pedro Falcato <pfalcato@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Jarkko Sakkinen <jarkko@kernel.org>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+        Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+        "H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Maxime Ripard <mripard@kernel.org>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Tvrtko Ursulin <tursulin@ursulin.net>,
+        Christian Koenig <christian.koenig@amd.com>,
+        Huang Rui <ray.huang@amd.com>, Matthew Auld <matthew.auld@intel.com>,
+        Matthew Brost <matthew.brost@intel.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+        Benjamin LaHaise <bcrl@kvack.org>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Sandeep Dhavale <dhavale@google.com>,
+        Hongbo Li <lihongbo22@huawei.com>, Chunhai Guo <guochunhai@vivo.com>,
+        Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Muchun Song <muchun.song@linux.dev>,
+        Oscar Salvador <osalvador@suse.de>,
+        David Hildenbrand <david@kernel.org>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Tony Luck <tony.luck@intel.com>,
+        Reinette Chatre <reinette.chatre@intel.com>,
+        Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
+        Babu Moger <babu.moger@amd.com>, Carlos Maiolino <cem@kernel.org>,
+        Damien Le Moal <dlemoal@kernel.org>,
+        Naohiro Aota <naohiro.aota@wdc.com>,
+        Johannes Thumshirn <jth@kernel.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        "Liam R . Howlett" <Liam.Howlett@oracle.com>,
+        Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@kernel.org>,
+        Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+        Hugh Dickins <hughd@google.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>, Zi Yan <ziy@nvidia.com>,
+        Nico Pache <npache@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+        Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+        Lance Yang <lance.yang@linux.dev>, Jann Horn <jannh@google.com>,
+        David Howells <dhowells@redhat.com>, Paul Moore <paul@paul-moore.com>,
+        James Morris <jmorris@namei.org>,
+        "Serge E . Hallyn" <serge@hallyn.com>,
+        Yury Norov <yury.norov@gmail.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-sgx@vger.kernel.org,
+        linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+        linux-cxl@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, linux-fsdevel@vger.kernel.org,
+        linux-aio@kvack.org, linux-erofs@lists.ozlabs.org,
+        linux-ext4@vger.kernel.org, linux-mm@kvack.org, ntfs3@lists.linux.dev,
+        devel@lists.orangefs.org, linux-xfs@vger.kernel.org,
+        keyrings@vger.kernel.org, linux-security-module@vger.kernel.org,
+        Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH v2 03/13] mm: add mk_vma_flags() bitmap flag macro helper
+Message-ID: <1790de6e-f45f-4852-a0ab-5eeaf14e4ad8@lucifer.local>
+References: <cover.1769097829.git.lorenzo.stoakes@oracle.com>
+ <fde00df6ff7fb8c4b42cc0defa5a4924c7a1943a.1769097829.git.lorenzo.stoakes@oracle.com>
+ <mflwgdnyipdf4reufmbx7qarjcgouct5coe2bllticrabcu6rt@vf3bvmpunimw>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <mflwgdnyipdf4reufmbx7qarjcgouct5coe2bllticrabcu6rt@vf3bvmpunimw>
+X-ClientProxiedBy: LO4P123CA0474.GBRP123.PROD.OUTLOOK.COM
+ (2603:10a6:600:1a8::11) To DM4PR10MB8218.namprd10.prod.outlook.com
+ (2603:10b6:8:1cc::16)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0002992D:EE_|DS7PR12MB8251:EE_
-X-MS-Office365-Filtering-Correlation-Id: 29b65c7b-1771-48be-1f1f-08de65c9bfc6
+X-MS-TrafficTypeDiagnostic: DM4PR10MB8218:EE_|PH8PR10MB997765:EE_
+X-MS-Office365-Filtering-Correlation-Id: c548ba4b-6e75-47da-604a-08de67e3e53d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700013|82310400026|376014|13003099007;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|376014|366016|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?cczzSw1Qiq6fvt9uEeFLW3VYgTTYRvc9pj+tWxq35zDseAmnrczEwwDr4aOk?=
- =?us-ascii?Q?T74DhdHE7rB0A/fNoiiiMoDWrHGe/Xe4XvaUWL7bghRg22wvdisHNkvY5EOM?=
- =?us-ascii?Q?9JVf+8812GYty6hIuDyIUgLWG2g4xcqwRgEcjaQ9/AvzWN6jlEr/d1KFvj47?=
- =?us-ascii?Q?wm7QBK/7KHKeskoVMO5OuzTmglzbRC/Vn2xscAaVuCbbTzEcTRr2DHwQxnYr?=
- =?us-ascii?Q?y6WEandRa0FfV6Au0bMs7JeOiHsTrV/cDPLkSAMQTNkwPn4fOiwdIj4VKTEl?=
- =?us-ascii?Q?XQ8CYdPNQVnLR6U8gMv4Wc3WkWriLvTleH8TtJK2fcptTbQn42mTKGn0JnHx?=
- =?us-ascii?Q?6GDNIrGrG2HJJMA1m1V9orhIzf2KuTN5REhaNgXrNlxEDKbN+yOG6gETHq/U?=
- =?us-ascii?Q?L77CUf3gIYoZeSnpyqcMlAGCBkp1BsYu4ttBxsy3Ae24tti290S2jZ33EsXc?=
- =?us-ascii?Q?H6WaXec+nWysw+khr5GztDzQdNQ9kcG4m5q+h+n+K/2pFt7O8xCY+DYzzasa?=
- =?us-ascii?Q?aP1IhFzGGLo9LfCzzrIo+ESylL0cuxww+Y0LC4f9RNTXYAlesy9ApACbX/hW?=
- =?us-ascii?Q?XUGbvel+jEL8LJT0HHhrSsxYQ1dCa+r2HvmHZ80aN0Q82InRWJybCxOozNoI?=
- =?us-ascii?Q?/N0HEb9jy/XMKrwYM9t9UZOIoeZla5m+TEr/AYrWo4e8H5mosLrWXHqVJtst?=
- =?us-ascii?Q?sZyLhMk8QERxY6TlJUHLpBeU0WInUZDBVTorVJAKLddn8IJy6KMM+ekuftnh?=
- =?us-ascii?Q?p17kTTR8mwTIOn1uvTVox5w08nwCDjsu5N7RlKBbquQo5nbVx94iwvdhqNbD?=
- =?us-ascii?Q?9DebhnjAk7ruyhikKAXF2rykct6i2+TrehjljKunOYy5QqQ03sFgBGwxaYm3?=
- =?us-ascii?Q?Dm9rl3FXzpafFv39bQkBYYKHyQdfq6XPCzv+8i02ybqFXFs/NvbYUyp9tqn5?=
- =?us-ascii?Q?NbNJx2JneHkVFj9nXDlUZxJtc7zrWHz77qGLvOIEZLFeTKxUi5fB+ITBQr5+?=
- =?us-ascii?Q?moD2XyG4ivC0RssD1CSuP3uyu3UMc0aSX0JPTeViZleJ53cib1k1uobLtr/1?=
- =?us-ascii?Q?8WlCCP8TsGkcVqMco5nO/nczONdD3ryHeR38fO0jvjF8xDmXrZnPIkVA5x7k?=
- =?us-ascii?Q?O/4yZqkM4ZkOBarp3/3GUdKa2LHTCQ5DJShFgN5NGx8jQyBAJHr1XA5BkWf7?=
- =?us-ascii?Q?ZoNhwO4WDOdVLBIDHHpblDMpCjhnQzrkus8umcR0rLJ9gFimjsUETtKBGD5j?=
- =?us-ascii?Q?SkV4Bf5tL3KtHI1AQae3i9dJeoilAiMtRutn/GPTMIzFwou88FCdybwt5Eey?=
- =?us-ascii?Q?NsT7z00I512vglKKUB0ALcz1j+L4cC23xwdYvJLcJE+AMCISzS8/vMSa3msh?=
- =?us-ascii?Q?AGu9lq+LhoGm34V2NgZoM+Xcwr3sIS0At36WB3LaKT69q22WaYW1AKACs1Yh?=
- =?us-ascii?Q?vHlC0ZPxJZTKJg1EAHvAOmADMiKo0vzNUecIa7jpMUfXXw74NvOQQzAbU7Ab?=
- =?us-ascii?Q?+KyG1UM8R9pDDhV0MklJNa7exCKOExPLm+6OxZv8/lSERfmZ8MmuZi6yPd0K?=
- =?us-ascii?Q?1dlPkfQ9kVgcLVaUZEjy57Q+dE4UdkfI58OehLhViNKU7cWxpOQTr+5tOKxd?=
- =?us-ascii?Q?TEVBc6O4A90MK1tElIzsXTM=3D?=
+	=?us-ascii?Q?1NCUfVdqYcPxuaDHPZi4VZGuIfv2F60XFKZ3Bt8E+7TxcONAnP8RBqd1Rg1L?=
+ =?us-ascii?Q?uEUSZntWB4SoT+qremCXIJOq9zHyNsgMAZmcqxDfQxs+l4cptQf4TQCFC2Ro?=
+ =?us-ascii?Q?BDVBT/tjH6rxjn6xe6FquMZz6oVdSam7Lis2TDiRyT5oCyzb5MB/fl81LiA2?=
+ =?us-ascii?Q?3Wzkx8zAhEri5luEdjlBMocSxDzPilVB1vuJ+DI61Dcmnsysr9X2Vf3CoW1F?=
+ =?us-ascii?Q?0Ub/pyqaXL6ZwLx4SaowGTfJouf1ViIPQnC8iTp12iKzOORpnj5IrmFqOKvA?=
+ =?us-ascii?Q?/jQcl2KE/iBileb5hqUHW7gWBiJSYqDtD6nkUDHG/0CUT+lR2CP0KAalClFU?=
+ =?us-ascii?Q?FtBm3hoYxT/YpPoZamPDnmboUOQfCsNMK/nkW5k9sEpLpRsMFApRJfu5mDoQ?=
+ =?us-ascii?Q?094rBNNUX1sip5Q7BppU+PrFTumwht/E8NlDfZi0INmP1VeAWYF/kdsGmN2o?=
+ =?us-ascii?Q?9hH30DaircOrqeO8+GKYvLsrxeM1gsWDkCMWl0eRahCcx3zSxNGhSmSkVuut?=
+ =?us-ascii?Q?MuoCq90UQUi98362RYKeDJ7VkgX35V47RTF9eWzlxU4oOf3ablV6Vi1D0uUE?=
+ =?us-ascii?Q?Bn67uFeouDDk2B78+Vdnupv9u6MxN5t4NQ/kJkF13Q4+70mRLFI8Ys79o9JM?=
+ =?us-ascii?Q?fBpsGV5NxdB5/99el7Jv5MI7TIQPydoyc+IEARPqJ//kj8Y7ZCMuovIRQBWr?=
+ =?us-ascii?Q?rVgsssxBmxpN/4+RctlhdlZkN2Fwo8shATSmxZohhL1t1d628mGntbboZHI1?=
+ =?us-ascii?Q?Gt5ZddhW3Yczaj0tZeprD4MNeZkG/Ef/u2GHtMNqovgZ6OicLjQ9hEBY7NNE?=
+ =?us-ascii?Q?jsX+wov3oGQkF7imZFTDm8Oov/tBth6AGP9I5R1Glaomyq2wXIemBUy3/xkZ?=
+ =?us-ascii?Q?JjjBwHjEFq5EHHUGOe4GK2tyfqiETJ7H92lDYnsXE1ViJNg9tISNDoncuxTu?=
+ =?us-ascii?Q?wsrRrSW/j2wCn0opRqAIjLoj6n0bK5eakht2qlqBDx6RfYKQJWfdGYNBGIxd?=
+ =?us-ascii?Q?KSEEy/YBwJSS4FhHop9idQeLhxTvZCcY229vgozMj2VJCRFlGzUJXhKt6bWJ?=
+ =?us-ascii?Q?JDaSqdazesrEaGVJKLhZErr/iKQWRn+Op5xA3L4WlooOJCW0Y8JG+XKEUN1f?=
+ =?us-ascii?Q?YaPdt5mpItEmOjLyVwzk8kGpEaqhhL01/PyGJ0q8mRRITCPggW+ZO2AEaaD9?=
+ =?us-ascii?Q?W0U0xqN7RUO/lVNAZdnhNGCS5PR6EKYOZaQxSc1doQQHSRSWoYoK1mSq6bDs?=
+ =?us-ascii?Q?4zUtUmpxSljqtRUvwt/qanpXkjANXZH8i6zCDZbyd8OlkNoTU8sSyVBoR75N?=
+ =?us-ascii?Q?m4a+Kt+i7z9kXoBlC3t4KYipbdsk3wOCf14nyVyKac5vIGDmrloz2X6IfPUW?=
+ =?us-ascii?Q?X4DdTpriyKkYVrIXeNtGVPgKM49sr9cuA/BCN1uElWhZTmMBf50Uvf/yzpie?=
+ =?us-ascii?Q?NGfXTwXh4LE3Uh5GM2eDt89TYLxl3PLkLLALG69Lon6pWNCPDwCYRP9Xc5Z+?=
+ =?us-ascii?Q?WWL5mA1QWHGwMCz4ivNyX5R/miecCcV+YbZj8jdwgIZYrkpYiYLrPP7jrOeV?=
+ =?us-ascii?Q?URDX0aEmMzTSZ/GOlFw=3D?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(36860700013)(82310400026)(376014)(13003099007);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR10MB8218.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(1800799024);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	Em/Ivc2PqITw+8oCkTub1m/shSGZuSR5puohUvChCrATV/VaJsbO23tQ/kGDousbqpZdXhD9erO4WyhTjQYuIHTl1OT07lIyanpjME46v4n37g7xDZcPrvSilfpelerVVuJFsvUQJOFwS3hJ/h6hLf6ARXrd+xOCD3mb7A3UW+O1JusLF8gi9EIvhI5P9xp4jIno9LG+ZpjBHySzz5VtLeagKh/ywBeTmitTs61jQTOWVShOWQBb5ZD+DJBo6fdx3p9KHjxeYs+yP3cX67D1iz4IYt48W8x127x1DdDRum9F/qD81ZebipN/OcPFAjl4avO12wthtA+eUd1rQuWtyKwH6WIl6139NL24TRiIPhvrd+TZcwaGgrXHv/T6FV9hEM+wtvb+08hTVzWpz8KGjJXMZh2B8f+EgW1qKVVEC1LaPJJ/y+5bL1q07fO/lo2W
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Feb 2026 21:50:31.3023
+	=?us-ascii?Q?y7HsoJ08kygkghmCFBOy4+ys0thUoA7G7GcBT6gbDbWcLTF73ofQxsjBr/eS?=
+ =?us-ascii?Q?8mYMTfCDI2LkGrnmMVXnhWnvC+bV/R7suE64Ox/TOiFQRKUYHUdXwyBhPBZ6?=
+ =?us-ascii?Q?7tU656G4jWz6Ax2QqXYV85QKmrSLF2d2YzOR4pjDEcCD8wwjAAnLQK9khVqR?=
+ =?us-ascii?Q?Z06sA3JySjJ1QxT7rmyMCtb1qRAXfoxvcoOKrUnPvkZJ2arxWNVxO3xbm9Ph?=
+ =?us-ascii?Q?4PbwdMFU6yC4eZOdHC+5wBEOaX9A1+cKXqldxeE9u1XDTMPf2cB9/mi0AS+N?=
+ =?us-ascii?Q?1Vz/fAmqaJjLC5Yn6UavdaS/ln9QLYSQaK5VK5TWcoBznSX5uli76mU/om/1?=
+ =?us-ascii?Q?osM/HKs2n8z+gsrHORVmBbAOFNEWUjyIyWGmOqeK1i5iHT6BOw7oLVupOGae?=
+ =?us-ascii?Q?aKwnTbTw+Jac74AOczxTtecAPBvNQd5dhMr1QaH2x5rMuvdmQUaA/F34bvLm?=
+ =?us-ascii?Q?sT2soqYpUYm51eLGcQKXhN8SAnyltuzi9L9foYshitZ2txc5Py/lfgzYV8e5?=
+ =?us-ascii?Q?IMYMJLj9jrY7YHCp+/UuYu9QQDYuSgKmtkCq0x0xdNJ48+YRs34Awt7lulzi?=
+ =?us-ascii?Q?7ZsEjfTC1zGUMPOKQ15QunPyUnIkEY9AvE2t6h+5SGOGoTmJvj1r9kaS2dtO?=
+ =?us-ascii?Q?6cWn9p41nOC5yN79AD9IJzYp3aGTF4e/Tr9/iw/NsUuJDU9hfOF8a9f/yp+g?=
+ =?us-ascii?Q?KWwzdT9+tkX6DQmmwRcRPICDZnfwwGWHlGaxilFcJPUrZd7LOPDbTB69F7zb?=
+ =?us-ascii?Q?q0TccWWtofNJbf58+AR30GdZXETDY5EWWb9/l0KqFCOJGzZuCdF9Yb0mDDi1?=
+ =?us-ascii?Q?Z9R2dmX33ATeCwOa0jOWZqEmBUj5kPzOK5xWFpc8UZZXMjEWhfHSm/3Zyumv?=
+ =?us-ascii?Q?AXsWXGOkCFugmiH6uSoiDMeP7GAhlRQjHdmwWWhMrX7ycdb/IUHVNUybGAMA?=
+ =?us-ascii?Q?PhjDAHgLOejTikMfHsaObbAM/7oWahv/hXeUmcX9BeGEFWzfozx+SGawqzFW?=
+ =?us-ascii?Q?9VQ2vxwFEFcrsWF/ervnX1I1CjjOwE8KKCqx6AjyKECdXdQ7uZP7DypfUTN5?=
+ =?us-ascii?Q?bxb2Vm/1fbDk54M0mo4QPZwArXbKzcy12wmZFx3uewgodWUnpYut+NhG3VWB?=
+ =?us-ascii?Q?C3+5pUK5CGQE8hIbZ2yWvICJRPmJ9VXX9zF9+WtnjI5l7LmfLkvXW/Pi2ihy?=
+ =?us-ascii?Q?BRWwuFRh1ZPQtQhpuxtC8Mgw5/kBkzFBj28xnQGQFuDb3a/NnbG/5jGvG5mt?=
+ =?us-ascii?Q?egX59zpzpUMp45KE2NzxpmVKLYU6IwJ3+YGd2N2dJn+m92ZZBHmbih5Cl1Fu?=
+ =?us-ascii?Q?2ub1DOU7wN6ej/cpfkhYYS6S1F1VsSttPVXbKzTZ3orSNfc5V2LQX/B6sou0?=
+ =?us-ascii?Q?qYppkNz8cI0CeItF5UEx8lywGgu5RcVdNJa61NhX9LTKIRX5NdbAA4V+XG2l?=
+ =?us-ascii?Q?iHh7z4kVJObNOeTN2bbYkcc9OEp9aV21oe2je01AGyQFsOfr+wWeqQMblXQK?=
+ =?us-ascii?Q?XnaoTgQj8aJWrddTJZ45K8Yh+DBRI5+Ye/Qto0G6RlT6DRm1iH5t3zrNftev?=
+ =?us-ascii?Q?Yshyi3uybjEe8ylcUDA5qQuX/evPHH5TMce5A7w7/TJ9ZuZ6NkzAo4SsPwcI?=
+ =?us-ascii?Q?KpOD+Z+sZ5M9jj1HP7Tg8B2OFzU7VXb+VZeb7GZcb2xTFt+pwjn2sp1h2lkH?=
+ =?us-ascii?Q?nKyEJyHa9zftV53+AmU75GzRASKVqhJfDMZNT4SEtPEak3Q41lfYdkUwtUKH?=
+ =?us-ascii?Q?T/E56jSXRw=3D=3D?=
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+	+bvxpuXODKyi5dm/VgBdQQ2sBnzigbDOIbUy8LG/8EBVSVcAJVIi5nVHHk0isFy/p6f8Hk7bvyL8ZDCJ+LMwxsvGGSkL0tPoeSo2NvkQy7x05iDbcf+nmkf4Gf32uFtws/Na6zd2RYfkC0YpsY23COPsvNEwgNjnCMHMLGQ7rYM4Pxvgt27ion3nIaJG/VXonGPEgEnU4d+o1b75bpvvMqBJ8+7aj4xIizY7kdodlYCwhlZVbFkElQ3xJe2Z2ItWiXCUOIf/JemqLCoqwxjkp6DAezpJDLlKkdSTbszE4tGLHQCbBZCXazn7kh3oEs8RUaB3qFtUeilh9CzyneQx+gIZoED8xMaHWcSQ2RpYOTstyhGmOuEFNh4vKp8fMpX0P1YQzpTusJBJHGi57cgp9oJf0PlrUaHF88urKdPERlgvuC9sDb0YyeGiOQoUIasGVds9o64KZm11Ls/AEY79rMa/0jbGtQ3wotUuDV0gFN8kabTzM9lI1pVdCYw8HWpemU14uImUemIhk4jkkb7pe+Dib4lUviryF5N3XBP5KJBNTI6zkdoVqCxA9ii1S8Frydaeh/IfdO3rLdOy2qBAWkUugLssl/5FdXI7f5dKmps=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c548ba4b-6e75-47da-604a-08de67e3e53d
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR10MB8218.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Feb 2026 14:02:43.7873
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 29b65c7b-1771-48be-1f1f-08de65c9bfc6
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0002992D.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8251
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: elBZfzWogI6uA24lviSRlIannytIYXvTZhEiGg/fiz1bLTNluNDDq2QM1lywPJGXrBvIMd8lhk7gL6WNNv/3Mt+ppq3jPGfMi6O01jLWkb4=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR10MB997765
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-02-08_05,2026-02-09_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 phishscore=0
+ mlxlogscore=999 mlxscore=0 adultscore=0 bulkscore=0 malwarescore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2601150000 definitions=main-2602090117
+X-Authority-Analysis: v=2.4 cv=Adi83nXG c=1 sm=1 tr=0 ts=6989e90a b=1 cx=c_pps
+ a=e1sVV491RgrpLwSTMOnk8w==:117 a=e1sVV491RgrpLwSTMOnk8w==:17
+ a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
+ a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=kj9zAlcOel0A:10
+ a=HzLeVaNsDn8A:10 a=GoEa3M9JfhUA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=Mpw57Om8IfrbqaoTuvik:22 a=GgsMoib0sEa3-_RKJdDe:22 a=Ikd4Dj_1AAAA:8
+ a=yPCof4ZbAAAA:8 a=570kXksOqZftmgpdgrsA:9 a=CjuIK1q_8ugA:10 cc=ntf
+ awl=host:13697
+X-Proofpoint-ORIG-GUID: mp4V2xVU2-9kYTuwkrGfxtRsX0X20riC
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjA5MDExOCBTYWx0ZWRfX5izsjw2jfO+3
+ iUdWvlpGanML+5ucbFIPSoxa0HeIGzWDNpQ5Q5qqj2JHNCyyBkQR5HEPd3BbFqvgQb1ml/WZvTx
+ ZXVTImSSkAWt/jgCJlgxP9Hw0GmYLy3DPFwXx7oWDbmoLKtkEatbcgsHwE3MDfmgXmxlUdDhdHi
+ WcYfedQpJ9W9au5DEB5A1yIX0uM7EYNG0GOKY46OURNCYC9i/oUH3mYTs1jI/1E2+HjIDoDY7+R
+ mkIJ4rdE1gdZmblQPQM9P9aN11/Xy/NqVe3UiVNcfjTJDS+SYJyWq0oLKB+OyeDz1Y/PJoxGlOg
+ +oxQhrAsue/vWEYysDeAj/1KSjWCQrlpcA3pSEsChqNCGfZjuzQhK04MItDKqV+I+o7iJi5OgE7
+ jpFVoec5ScRw79hW5a0YI62UQ/VKQ9gNc6hPVLPONWPKsmFpjkAIgpPp5f0dG0LrU2VKLsIefOK
+ rQn2b5e5M5AAadZSNVqNJuFeGnurbf965RyPocfQ=
+X-Proofpoint-GUID: mp4V2xVU2-9kYTuwkrGfxtRsX0X20riC
 
-Add man pages for the 'cxl-inject-protocol-error', 'cxl-inject-media-poison',
-and 'cxl-clear-media-poison' commands. These man pages show usage and examples
-for each of their use cases.
+On Fri, Feb 06, 2026 at 05:14:10PM +0000, Pedro Falcato wrote:
+> On Thu, Jan 22, 2026 at 04:06:12PM +0000, Lorenzo Stoakes wrote:
+> > This patch introduces the mk_vma_flags() macro helper to allow easy
+> > manipulation of VMA flags utilising the new bitmap representation
+> > implemented of VMA flags defined by the vma_flags_t type.
+> >
+> > It is a variadic macro which provides a bitwise-or'd representation of all
+> > of each individual VMA flag specified.
+> >
+> > Note that, while we maintain VM_xxx flags for backwards compatibility until
+> > the conversion is complete, we define VMA flags of type vma_flag_t using
+> > VMA_xxx_BIT to avoid confusing the two.
+> >
+> > This helper macro therefore can be used thusly:
+> >
+> > vma_flags_t flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT);
+> >
+> > We allow for up to 5 flags to specified at a time which should accommodate
+> > all current kernel uses of combined VMA flags.
+> >
+>
+> How do you allow up to 5 flags? I don't see any such limitation in the code?
 
-Signed-off-by: Ben Cheatham <Benjamin.Cheatham@amd.com>
----
- Documentation/cxl/cxl-clear-media-poison.txt  |  85 ++++++++++++++
- Documentation/cxl/cxl-inject-media-poison.txt |  85 ++++++++++++++
- .../cxl/cxl-inject-protocol-error.txt         | 105 ++++++++++++++++++
- Documentation/cxl/meson.build                 |   3 +
- 4 files changed, 278 insertions(+)
- create mode 100644 Documentation/cxl/cxl-clear-media-poison.txt
- create mode 100644 Documentation/cxl/cxl-inject-media-poison.txt
- create mode 100644 Documentation/cxl/cxl-inject-protocol-error.txt
+Yeah oops :) This is from a previous implementation.
 
-diff --git a/Documentation/cxl/cxl-clear-media-poison.txt b/Documentation/cxl/cxl-clear-media-poison.txt
-new file mode 100644
-index 0000000..3c997b5
---- /dev/null
-+++ b/Documentation/cxl/cxl-clear-media-poison.txt
-@@ -0,0 +1,85 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+cxl-clear-media-poison(1)
-+=========================
-+
-+NAME
-+----
-+cxl-clear-media-poison - Clear poison from CXL memory
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'cxl clear-media-poison' <memdev> [<options>]
-+
-+Clear poison from a CXL memory device's memory. CXL memdevs can be specified
-+by device name (e.g. "mem0"), device id ("X" in "memX"), or host device name
-+("0000:35:00.0").
-+
-+To see if a device has poison that can be cleared use the 'cxl-list' command
-+with the '-L'/'--media-errors' option. An example of a device that has had
-+poison injected at device physical address (a.k.a. "offset") 0x1000:
-+
-+----
-+# cxl list -m mem0 -L -u
-+{
-+  "memdev":"mem0",
-+  "ram_size":"1024.00 MiB (1073.74 MB)",
-+  "ram_qos_class":42,
-+  "serial":"0x0",
-+  "numa_node:1,
-+  "host":"0000:35:00.0",
-+  "media_errors":[
-+    {
-+	  "offset":"0x1000",
-+	  "length":64,
-+	  "source":"Injected"
-+	}
-+  ]
-+}
-+
-+----
-+
-+A device physical address is required to clear poison from a CXL memdev. The
-+'-a'/'--address' option is used to specify the address to clear poison at.
-+The address can be given in either decimal or hexadecimal. An example using
-+the example device above:
-+
-+----
-+# cxl clear-media-poison mem0 -a 0x1000
-+poison cleared at mem0:0x1000
-+
-+# cxl list -m mem0 -L -u
-+{
-+  "memdev":"mem0",
-+  "ram_size":"1024.00 MiB (1073.74 MB)",
-+  "ram_qos_class":42,
-+  "serial":"0x0",
-+  "numa_node:1,
-+  "host":"0000:35:00.0",
-+  "media_errors":[
-+  ]
-+}
-+
-+----
-+
-+See the 'inject-media-poison' command for how to inject poison into a CXL
-+memory device.
-+
-+This command depends on the CXL debug filesystem (normally mounted at
-+"/sys/kernel/debug/cxl") to clear device poison.
-+
-+OPTIONS
-+-------
-+-a::
-+--address::
-+	Device physical address (DPA) to clear poison at. Address can
-+	be specified in hex or decimal.
-+
-+--debug::
-+	Enable debug output
-+
-+SEE ALSO
-+--------
-+linkcxl:cxl-list[1]
-+linkcxl:cxl-clear-media-poison[1]
-diff --git a/Documentation/cxl/cxl-inject-media-poison.txt b/Documentation/cxl/cxl-inject-media-poison.txt
-new file mode 100644
-index 0000000..d35f1dc
---- /dev/null
-+++ b/Documentation/cxl/cxl-inject-media-poison.txt
-@@ -0,0 +1,85 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+cxl-inject-media-poison(1)
-+==========================
-+
-+NAME
-+----
-+cxl-inject-media-poison - Inject poison into CXL memory
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'cxl inject-media-poison' <memdev> [<options>]
-+
-+WARNING: Poison injection can cause system instability and should only be used
-+for debugging hardware and software error recovery flows. Use at your own risk!
-+
-+Inject poison into a CXL memory device's memory. CXL memdevs can be specified
-+by device name (e.g. "mem0"), device id ("X" in "memX"), or host device name
-+("0000:35:00.0").
-+
-+Poison can only be used with CXL memory devices with poison injection support.
-+To see which CXL devices support poison injection, see the "poison_injectable"
-+attribute under the device in 'cxl-list'. An example of a device that
-+supports poison injection:
-+
-+----
-+# cxl list -u -m mem0
-+{
-+	"memdev":"mem0",
-+	"ram_size":"256.00 MiB (268.44 MB)",
-+	"serial":"0",
-+	"host":"0000:0d:00.0",
-+	"firmware_version":"BWFW VERSION 00",
-+	"poison_injectable":true
-+}
-+
-+----
-+
-+A device physical address is required for poison injection. The '-a'/'--address'
-+option is used to specify the device physical address to inject poison to. The
-+address can be given in either decimal or hexadecimal. For example:
-+
-+----
-+# cxl inject-media-poison mem0 -a 0x1000
-+poison inject at mem0:0x1000
-+# cxl list -m mem0 -u --media-errors
-+{
-+  "memdev":"mem0",
-+  "ram_size":"256.00 MiB (268.44 MB)",
-+  "serial":"0",
-+  "host":"0000:0d:00.0",
-+  "firmware_version":"BWFW VERSION 00",
-+  "media_errors":[
-+    {
-+      "offset":"0x1000",
-+      "length":64,
-+      "source":"Injected"
-+    }
-+  ]
-+}
-+
-+----
-+
-+See the 'clear-media-poison' command for how to clear poison from a CXL
-+memory device.
-+
-+This command relies on the CXL debugfs to inject poison (normally mounted
-+at "/sys/kernel/debug/cxl"). If the CXL debugfs is inaccesible, the
-+"poison_injectable" attribute will always be set to "false".
-+
-+OPTIONS
-+-------
-+-a::
-+--address::
-+	Device physical address (DPA) to use for poison injection. Address can
-+	be specified in hex or decimal. Required for poison injection.
-+
-+--debug::
-+	Enable debug output
-+
-+SEE ALSO
-+--------
-+linkcxl:cxl-list[1]
-+linkcxl:cxl-clear-media-poison[1]
-diff --git a/Documentation/cxl/cxl-inject-protocol-error.txt b/Documentation/cxl/cxl-inject-protocol-error.txt
-new file mode 100644
-index 0000000..196b6f6
---- /dev/null
-+++ b/Documentation/cxl/cxl-inject-protocol-error.txt
-@@ -0,0 +1,105 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+cxl-inject-protocol-error(1)
-+============================
-+
-+NAME
-+----
-+cxl-inject-protocol-error - Inject CXL protocol errors into CXL downstream ports
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'cxl inject-protocol-error' <dport> [<options>]
-+
-+WARNING: Error injection can cause system instability and should only be used
-+for debugging hardware and software error recovery flows. Use at your own risk!
-+
-+Inject a CXL protocol error into a CXL downstream port (dport). Donwstream ports
-+that support error injection will have their 'protocol_injectable' attribute
-+in 'cxl-list' set to true.
-+
-+The '-p'/'--protocol' and '-s'/'--severity' options are required for error injection.
-+The '-p' option is used to specify the CXL protocol to inject an error on; either
-+"mem" (CXL.mem) or "cache" (CXL.cache). The '-s' option specifies the severity
-+of the error and can be one of: "correctable", "uncorrectable", or "fatal".
-+
-+The types of errors (and severities) available depends on the platform. To find
-+the available error types for injection, see the "injectable_protocol_errors"
-+attribute under the applicable CXL bus object in the output of 'cxl-list'.
-+For example:
-+
-+----
-+
-+# cxl list -B
-+[
-+  {
-+	"bus":"root0",
-+	"provider":"ACPI.CXL",
-+	"injectable_protocol_errors":[
-+	  "mem-correctable",
-+	  "mem-fatal",
-+	]
-+  }
-+]
-+
-+----
-+
-+The dport to inject an error into is specified by host name (e.g. "0000:0e:01.1").
-+Here's an example injection using the example bus listing above:
-+
-+----
-+
-+# cxl list -TP
-+ [
-+  {
-+    "port":"port1",
-+    "host":"pci0000:e0",
-+    "depth":1,
-+    "decoders_committed":1,
-+    "nr_dports":1,
-+    "dports":[
-+      {
-+        "dport":"0000:e0:01.1",
-+        "alias":"device:02",
-+        "id":0,
-+        "protocol_injectable":true
-+      }
-+    ]
-+  }
-+]
-+
-+# cxl inject-protocol-error "0000:e0:01.1" -p mem -s correctable
-+cxl inject-protocol-error: inject_proto_err: injected mem-correctable protocol error.
-+
-+----
-+
-+CXL protocol (CXL.cache/mem) error injection requires the platform to support
-+ACPI v6.5+ error injection (EINJ). In addition to platform support, the
-+CONFIG_ACPI_APEI_EINJ and CONFIG_ACPI_APEI_EINJ_CXL kernel configuration options
-+must be enabled. For more information, view the Linux kernel documentation on EINJ.
-+
-+This command depends on the CXL debug filesystem (normally mounted at
-+"/sys/kernel/debug/cxl") to inject protocol errors. If the CXL debugfs is not
-+accessible the "protocol_injectable" attribute of dports will always be
-+set to false, and the "injectable_protocol_errors" attribute of CXL busses
-+will always be empty.
-+
-+OPTIONS
-+-------
-+-p::
-+--protocol::
-+	Which CXL protocol to inject an error on. Can be either "mem" (CXL.mem)
-+	or "cache (CXL.cache).
-+
-+-s::
-+--severity::
-+	Severity level of error to be injected. Can be one of the following:
-+	"correctable", "uncorrectable", or "fatal".
-+
-+--debug::
-+	Enable debug output
-+
-+SEE ALSO
-+--------
-+linkcxl:cxl-list[1]
-diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
-index 8085c1c..c4b22ab 100644
---- a/Documentation/cxl/meson.build
-+++ b/Documentation/cxl/meson.build
-@@ -50,6 +50,9 @@ cxl_manpages = [
-   'cxl-update-firmware.txt',
-   'cxl-set-alert-config.txt',
-   'cxl-wait-sanitize.txt',
-+  'cxl-inject-protocol-error.txt',
-+  'cxl-inject-media-poison.txt',
-+  'cxl-clear-media-poison.txt',
- ]
- 
- foreach man : cxl_manpages
--- 
-2.52.0
+Andrew could you drop this paragraph? Thanks!
 
+>
+> > Testing has demonstrated that the compiler optimises this code such that it
+> > generates the same assembly utilising this macro as it does if the flags
+> > were specified manually, for instance:
+> >
+> > vma_flags_t get_flags(void)
+> > {
+> > 	return mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
+> > }
+> >
+> > Generates the same code as:
+> >
+> > vma_flags_t get_flags(void)
+> > {
+> > 	vma_flags_t flags;
+> >
+> > 	vma_flags_clear_all(&flags);
+> > 	vma_flag_set(&flags, VMA_READ_BIT);
+> > 	vma_flag_set(&flags, VMA_WRITE_BIT);
+> > 	vma_flag_set(&flags, VMA_EXEC_BIT);
+> >
+> > 	return flags;
+> > }
+> >
+> > And:
+> >
+> > vma_flags_t get_flags(void)
+> > {
+> > 	vma_flags_t flags;
+> > 	unsigned long *bitmap = ACCESS_PRIVATE(&flags, __vma_flags);
+> >
+> > 	*bitmap = 1UL << (__force int)VMA_READ_BIT;
+> > 	*bitmap |= 1UL << (__force int)VMA_WRITE_BIT;
+> > 	*bitmap |= 1UL << (__force int)VMA_EXEC_BIT;
+> >
+> > 	return flags;
+> > }
+> >
+> > That is:
+> >
+> > get_flags:
+> >         movl    $7, %eax
+> >         ret
+> >
+> > Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+> > Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+>
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+
+Thanks!
+
+>
+> --
+> Pedro
+
+Cheers, Lorenzo
