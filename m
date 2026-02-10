@@ -1,46 +1,46 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011029.outbound.protection.outlook.com [52.101.62.29])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010063.outbound.protection.outlook.com [52.101.201.63])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 027B932E72F
-	for <nvdimm@lists.linux.dev>; Tue, 10 Feb 2026 06:45:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.29
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299D1330669
+	for <nvdimm@lists.linux.dev>; Tue, 10 Feb 2026 06:45:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.63
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770705925; cv=fail; b=SZDtn22kFuCgccfLPIo1zTAczVmDqA7ZPTe+uhERpm8phU0Fz0WIMDi9WW6d+mBUXwpMy9/EynNuSmh7wjxx0xVpqGJepluF2nWRtiKJpOd/ggzdQz64Xg1xoUzZHR5sgZibZj5+TNQ2KrwhmB8YsNOJN8hX5EcvhGRRiojiyBk=
+	t=1770705926; cv=fail; b=MM5KcQ13IYNAwn6Lcq68FqhmoWm36mocparvfo9GPvbwbPMGp6iauwSEgThyIW4bXe5pgY5Wtnbum83FldnT41J8QcccenShtNnBavXN+jBCQ4ADlAJ0n16Zq6VcxK8fF+Ri+f0nJp9nlxVe7ar+GZLAQNKgXgVRKkMCT8mAYfs=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770705925; c=relaxed/simple;
-	bh=8g5Gx999PXIPj9OmtrqxdsnpOpEIQKvxtpJaTp83EeY=;
+	s=arc-20240116; t=1770705926; c=relaxed/simple;
+	bh=QnwMkmmEXHNX8DR67HM7LkjGbfajuRdVCarEQ/IahAA=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rrBXB1Ho5+ZWmTvy6V7aOjweGJi1SydoheefNLbIJlgy4oq8xZjrgFvsZ/x6RmBn3IftkvNZbAVUuNMvPCNWxB3o8inefMMI0f/DXD8/h5Cz3cpwZiaIbGVbO5w/csgJGomZeaOc3YBITDJtRXX6T4DUBwIfU8bkAu/1BCyOZQQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=RBHzIT/s; arc=fail smtp.client-ip=52.101.62.29
+	 MIME-Version:Content-Type; b=XfyucYu1z13UzDcOTVrOr0MwdjIRt8p+uwYftKO5ALM74I9oUkksYSEy+DcAz3GgFCP2sqHaueTk1AZmJyMn5xVIxkz8igibuXxs5ZYkgYRGQu1HWgNWpvpWJ0JOGsZw+lOZpjB2pKvxhoUrcXTdjWynlAOn+tM8ZRydV6X+4x8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=FOsUh5K4; arc=fail smtp.client-ip=52.101.201.63
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="RBHzIT/s"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="FOsUh5K4"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=GvAL5PW3WO66+LU0yg5oF/fPzV9LH/rjdeBNt1eIPn1mY+JmWQvBCc/pIp/E/0kzEXbWX4k2j9Z1DH3jt8tcvPXL7yO54n9847sOxLViyB0TQ1ZU+p+HiuIrng9bSAFRfCVzur085n3Nx1BddDovWG4k47mmeeZz8xRkVXXoaxcZqULcowP2bC0UMKrwoVZgfi/NwnMMfC+raxMfgKNuGnADhyxufZ11wu4FlJTyUQeQapzuzrA+oRUfW0CCQfyJTVN+dn2hXBiZqHmVnefhcTfzTFOGFmuC6vMjq70Zz+Kao3vQwrPcYPSIXwZkjSXiUUfLq0ZgM5ehqLYnShmhng==
+ b=lDg7FDNmXTqksMYYwHnn52Uyiho23xr3TIeJgpVIJoLG9jDT7WclXFcd5w7wn6hVNeW/mpfZI/XqtnR5SAU0ahpx67l77KD/XZKwsaJp8Gymt0uNM412oWZysFQw/25LAfPAl+/BEI+SKQYmjlPZXLxEIG/GD617ITpOIVhfkd6EMObLrjaBhjWzXgnUOHZmHQEVxYZ6rTMplPEkqyrVX+f+Hllddr+g6qmFthSyETYTKzwZfgfG+M1QkitpEb7TM6ThOoR2eMjwxRo4wJVv4P4ww/rtdKEDYyN95M0WRI0Jdex12+3e3Q6iaFi/jsvscs0ZnMz6NkTKOjI0e9daTA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aAEd6VmrtKi4O5rc1S+RYxyvFriIm79YBxdxqvQP81M=;
- b=lWUE4vb0pXnsVP7YfqiZfCmtQ3im0ykMBJsyzScQiOWz9/Z28zIWPz9gYHNcQmLRW+3UXTIGIrg3rSofBaUdKwqlW90lrP4reHBApN6NPtJGmiFuoVgHziGxqvVEqqVfGBYf0gTwLvDIjWh58u22sWqvgb/NYRTtKanV+A5l7Gr5IjfNCA8DcdnJJKF6o1u+0ea7ai4UCX7ABDeae/R2Oa100q+6Ozmb8SAfr1yv5Xye9apyQc3MOW1Z2QuxGfipaYLhRfVcrApdH5aCKGITBj5GjxIlotBTdQkfY1GGranW1ldXGBF5I2o/21ykh6+uBK7vMKv7dKVD81OrXxV+Pw==
+ bh=uTQhBryCe4qIgl/Dqcvh3j+QwprY3KNo/DMYG/kWB28=;
+ b=QvAf8J8OY7uhjleG557ppE8PKWN0ZB9/jNJu7epctO6TrrIQn/ry2FHadK57cfkGsXMpIb3WG1JzfySfytLg2eEC9n92R7a9TNvmuxofGLXmzSGnXK486FSyacgooBy8ezjXD3vO/h7cSNsHEhQ7n5/t4N1YG93d1YmxtlbkzeITzd9BG/7S+6y3CHJU8hVWk+Jgemy/IBAB2NGD+amfxX7IKgyObFMqsdoJRLwzjRFbJ+Zhp7wialDl8gx5WXiwwnEXiVhq+pgodWHLOxHjsgZNRuO8jvY5vzfVDaXJuWW/t7wcQPwJXtuJhx5w+4GqDsJ/PXOBR2LtwYD36l9W0A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aAEd6VmrtKi4O5rc1S+RYxyvFriIm79YBxdxqvQP81M=;
- b=RBHzIT/s+6CCmIsB0KbP/jVyzMQF4wLezEe5k2o3ut49nnsutN8cbrGFtjbAIwY3nfw0H5/jgsUsPmFppP6dsbFoXMCZf/C2L2I6bJhc4/C1YHRx9eQJ3mzbeINjbmKwpi0MxJD0AlQ9HfMS48q4q7HOKxpw8ygNm2fUDt7xBh0=
-Received: from SJ0PR03CA0009.namprd03.prod.outlook.com (2603:10b6:a03:33a::14)
- by SN7PR12MB7201.namprd12.prod.outlook.com (2603:10b6:806:2a8::22) with
+ bh=uTQhBryCe4qIgl/Dqcvh3j+QwprY3KNo/DMYG/kWB28=;
+ b=FOsUh5K47ZDGmaA1MdIxdqomyU5NX7d3Qs/tVDKnV4yoWGtVHO47SYujX6tHZHe2/XxP6qSdmoLh5eFxzgpRRlku2aHarxLS0DfnpUAizTQHhTjjCZ3qlgixNbyRH1qv1eCFwnfRB8QNawshGj6r+N/WVEgbKWPdI/NnmTLAbBM=
+Received: from SJ0PR03CA0030.namprd03.prod.outlook.com (2603:10b6:a03:33a::35)
+ by LV2PR12MB5800.namprd12.prod.outlook.com (2603:10b6:408:178::12) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.19; Tue, 10 Feb
- 2026 06:45:18 +0000
+ 2026 06:45:21 +0000
 Received: from SJ1PEPF000026C5.namprd04.prod.outlook.com
- (2603:10b6:a03:33a:cafe::85) by SJ0PR03CA0009.outlook.office365.com
- (2603:10b6:a03:33a::14) with Microsoft SMTP Server (version=TLS1_3,
+ (2603:10b6:a03:33a:cafe::d6) by SJ0PR03CA0030.outlook.office365.com
+ (2603:10b6:a03:33a::35) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9587.18 via Frontend Transport; Tue,
- 10 Feb 2026 06:45:18 +0000
+ 10 Feb 2026 06:45:20 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -50,11 +50,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from satlexmb07.amd.com (165.204.84.17) by
  SJ1PEPF000026C5.mail.protection.outlook.com (10.167.244.102) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9611.8 via Frontend Transport; Tue, 10 Feb 2026 06:45:18 +0000
+ 15.20.9611.8 via Frontend Transport; Tue, 10 Feb 2026 06:45:20 +0000
 Received: from ethanolx50f7host.amd.com (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Tue, 10 Feb
- 2026 00:45:17 -0600
+ 2026 00:45:18 -0600
 From: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 To: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
@@ -76,9 +76,9 @@ CC: Ard Biesheuvel <ardb@kernel.org>, Alison Schofield
 	<lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>, Smita Koralahalli
 	<Smita.KoralahalliChannabasappa@amd.com>, Tomasz Wolski
 	<tomasz.wolski@fujitsu.com>
-Subject: [PATCH v6 3/9] cxl/region: Skip decoder reset on detach for autodiscovered regions
-Date: Tue, 10 Feb 2026 06:44:55 +0000
-Message-ID: <20260210064501.157591-4-Smita.KoralahalliChannabasappa@amd.com>
+Subject: [PATCH v6 5/9] dax: Track all dax_region allocations under a global resource tree
+Date: Tue, 10 Feb 2026 06:44:57 +0000
+Message-ID: <20260210064501.157591-6-Smita.KoralahalliChannabasappa@amd.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
 References: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
@@ -93,90 +93,133 @@ X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF000026C5:EE_|SN7PR12MB7201:EE_
-X-MS-Office365-Filtering-Correlation-Id: f1be60fa-bdb3-4e6d-4a5d-08de686ff46b
+X-MS-TrafficTypeDiagnostic: SJ1PEPF000026C5:EE_|LV2PR12MB5800:EE_
+X-MS-Office365-Filtering-Correlation-Id: c608dbf9-0d45-4b16-b38d-08de686ff596
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|7416014|376014|82310400026|1800799024;
+	BCL:0;ARA:13230040|1800799024|36860700013|7416014|376014|82310400026;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?STXUz3PokPvwAmvkyWQQQ1HpRsJkZgm3u/r2+UNpUHqgEqG5AL76ZF7pWdMd?=
- =?us-ascii?Q?M4zHNJUo6YfQBCCMmdmVLCCjNlgQHJ7pQScRDLc5oRq8NoXndXqCgozL/B7M?=
- =?us-ascii?Q?C9ziZc3UDZmUXg4PHo063IdguJS5aPYOp6Pxdv2AOHaknNxomVlgVxDmxMLa?=
- =?us-ascii?Q?9qgZ+Zjd7vwbiz+0EQCH8fxJ7wC0FA06THTN1aNgP9MS9/qB0KrTPsl/H+pR?=
- =?us-ascii?Q?WfdPzi/sPtWutARZye9Is5p+0rgkPkIm9qys89+789q4F0nUs3YE9qfNIxGm?=
- =?us-ascii?Q?gMWdwG9HotgenkiPh/o2cnE26fqlfYbq1Cn5uh9nEUupjGVr2QYNiD/e87W8?=
- =?us-ascii?Q?53ys2mnKa5RvD2wapwRnSjbE+PEpbf7/XKEW5B+ABeiY/npuCXx7JwinVfnF?=
- =?us-ascii?Q?1l8eysyBEp2QMA49l/U24d7lcIpITiTJYC4M2uXuj6yLdGCcaepDXeoicZN+?=
- =?us-ascii?Q?HPlY4nmhjS4r7oMDnB3jFSdpiLuSdUTV1KXW6nRQ76aFVLuJii14G+UzAwuE?=
- =?us-ascii?Q?Hp1OvNGcS4+G22kkicRxUAWoMWOYB4MsFIrvZqnvx/AZYKqXCgT7xP0N+UKx?=
- =?us-ascii?Q?FQkMhYn5evgFStPEr7qCib67dDxiseWtR4QGOhVR1nIbBOVo03oEUFXiwwGD?=
- =?us-ascii?Q?fFukYB6aSIbCxIzX0gF99Id7xx5KOHmAByfwI93h1J0wFzzgru2S+eaqEF/i?=
- =?us-ascii?Q?COwlztaQShCBVbucHllMVZzzPON9+at78UKMIUE+Lp7sXY8hTpnMi1G8EL43?=
- =?us-ascii?Q?E/8EUz70Dzwa0xPSmhhIvH8fUkzZBTAjWM23jUHS5y9mEdHuMLOm9Xy3aa2B?=
- =?us-ascii?Q?XeFTWP0woRgHD/aUWDYHh1SOHMcwwYJu5ybxTJxb0OjB9yW3c+WxPTWG2mpS?=
- =?us-ascii?Q?LTCQB/5wjasE7kxqC4eG/URWXsJmX4jQAj8i6tJ2btRV/qqSJq16pBaVfK4H?=
- =?us-ascii?Q?6+FghZfJbBRVC8aDe2zMBIXQDGXlxkunY/TkhpF80c5hIzG5mxHgQd1HxkMh?=
- =?us-ascii?Q?RwxprdihYGgjJXff6apDaPeJfWhLNh6MeklSN1hECgebDJo2saSvoSP18yF9?=
- =?us-ascii?Q?PrhuiGOxH+YqZEwlIy/SFEoDaylgXaEF9HsGQiyj/3nyl6pf2f6s3tx/RQqz?=
- =?us-ascii?Q?1wODBKnuMWG4sAVi1Q1+FF1RsH6YRz3+CoyPQeftxo/jpzvD3C/OE0ZqFCQV?=
- =?us-ascii?Q?VQ7M4vcQHDpKVptTioD03GEl4BmeU0Hx2OV62vI6qkCysl6emqIbpE1Eyw3z?=
- =?us-ascii?Q?oATgqkHnrsIaiyQxfe5iF20tHJkrxs3fBZEls1Wl/aBsSMbWJUpbz5ezeRKX?=
- =?us-ascii?Q?CV0FD7O6LDoNAFYp6opCeykwGFwERbpCqXlKa7CUwCChTrkcyWxoPKlmy0Pk?=
- =?us-ascii?Q?lnLyDERB67VP/26+PKqMbfbOQOAjvGiXh7sf+r1wXHh4w9EG9oYayA3a9hHa?=
- =?us-ascii?Q?ocBhsWWTQU7hWHshAYC3D+aBFn1qv3SEtqu6MBkbOj4RYrkHfiknb7WFoagN?=
- =?us-ascii?Q?3hEJPikMhMJJz1John33H96du1XhRIs6oTBSPfUA3+hglRMqpGZ80LWm8GQN?=
- =?us-ascii?Q?vuB5eBx7/qgzmU4+qDymMFKFmuLwrPRAOVIwOQ/ZDEMF3RP2It7y1F/4JdbG?=
- =?us-ascii?Q?lgDpCJ1tgSdX9m0giCH749rf1fVWNBvGEWSLi9Zj3BgNlvTncx4ToSmAf4Cw?=
- =?us-ascii?Q?qn0IbA=3D=3D?=
+	=?us-ascii?Q?q8nBumf7gvm3Cla0mgKePLZHkCxi2YI3TAkqbyiOEEQr4BhgZPJfrQfxbOTC?=
+ =?us-ascii?Q?KE36IrxWWyRaZkteSywW9aNEZqmfhCYeEC3AG+fH50t1B++BiXQzb+pqv6FA?=
+ =?us-ascii?Q?edwfSApVcsTzEw0ILhAYgmx0mIAMm6ORuDvhChsZb8Zt1Yrr7fAzNY0elZJQ?=
+ =?us-ascii?Q?D/f3qyCitqAziPS1w4VvFtc0wdW+lUO4SZlv144/qMrMaLQOxkN7rEfbKuAo?=
+ =?us-ascii?Q?4wveTpUc5C3Obq5IBKl14rY7VDBGGi346FFPdw99Eb2TLUY/zWgnD7XiUuhW?=
+ =?us-ascii?Q?Vpi91SVXQmBsqhdpi+a6eHlTFTT7iiyLLBQoIM56siFGxd6A+qNiM/mj1kxM?=
+ =?us-ascii?Q?AJBVrMs2uGZdd8GvjJHNSaPU47e+ETA9qdnZHzcdQ2DQFRbzUkvlj5MacqKP?=
+ =?us-ascii?Q?yNeyji67kQT3Ql1OCQ9d+IUtM8Dsyl4X925RPfFhKcy++0fj9RgqfOl9arau?=
+ =?us-ascii?Q?ASzotBQT4vOHESwtNHqILPHm2E99pfbrNOdjnUeu5WRDngscCn/44u6y/tdC?=
+ =?us-ascii?Q?d6MkdMAVvPWmlyOKw+on1mbXjz+40X7eSv1eAkDp3jmgdU1KtG+xeX+7+3IT?=
+ =?us-ascii?Q?Ra2pObf3Z10DmG1qpTUl7xDBjZR4Soe1epxYrhWWSQvJc7UYZtySrTsggq1I?=
+ =?us-ascii?Q?0DUOE4fj5KEUTtpfOcWVNsWCJhoyoM8ROpJx/lnQbaGXs++Ca/CsCsxjJZxg?=
+ =?us-ascii?Q?4K7ZBfIU05F22ocXwsckYiQe/hqAWz2fRfgyrZixTjyT/459lVIraHoeHlag?=
+ =?us-ascii?Q?RqHYgEbZeEWZX88N6behPRlM73PuBR5uJB9QWf8IYjx/JXb+yPZ76BxtU0T2?=
+ =?us-ascii?Q?9UuDJMV+AJwHc29Jhmpkb2ZrszrSHWwI7As40+L10VxiXINallbVazVyViPA?=
+ =?us-ascii?Q?1RbCQMi2ENjuopl9WW7Q/VMzJH8g7Ee+FQZhYFvwXFsBt1gZ8wfLJOLURGkC?=
+ =?us-ascii?Q?vO8Od6ifhQ7ZfAenid6fXJrpl+eUAEvSurvLVcZFIfOoIK4FJ5cPoRwjnIf3?=
+ =?us-ascii?Q?nbCV0P4kfbAnR9XQjkpHnXzvJXsh+8bw6AOGCdG1iJJB1YkpOIEm7Q4Sd11F?=
+ =?us-ascii?Q?dZpguFPRIwUWZw6IkS8MV5QWfPxtWvTa1GE9n3Y6ep8H1zRJee+8sVIrGJRY?=
+ =?us-ascii?Q?zcEW3ZhGFoy76cAvsqGfNAEXZqPxGxsqECJye07KpwWauFiIu0NeUx9P3m5G?=
+ =?us-ascii?Q?zcTzyh/WSrMcZqhYQljXhpthS4OMtjmIrETWr+QQjmDGlPcro7dJMmEaVsM/?=
+ =?us-ascii?Q?mM8o5L7VSflUj5/wcHU+5moF7nxoee2Yn/ov1ZR35iMhIyqNcpjVSEyzc5xt?=
+ =?us-ascii?Q?UIY8WrTYbkv4CAoLwj/ar1sCdtgKb8YnNEt/x1G4wgT2Cgx2yCiUp3kRfta8?=
+ =?us-ascii?Q?9wDdQ+fZLWNmOITgvfkGiV414ypuyUdZf7OIQ0MdvnWVNpktVVDo53gVhwAU?=
+ =?us-ascii?Q?dCY4GC60t0JHDDdGC93jS/uMI1Au/N+67rQkDNqSQeAL4T4s89Uc/dbjVz6R?=
+ =?us-ascii?Q?lfvze+iv/C6CixvEyFIqek2ZDF5Zg1aGI368ha7HHi8YI3DTZpeI0CE03hsN?=
+ =?us-ascii?Q?pS+o+cA/Bxx7FZVQ79jPzE2Onrn7fKQYq8gnHQXTpYdC+9W5peROqejb+24p?=
+ =?us-ascii?Q?vz/WYQMk2M8UDaokIbR6QNEnGrpJL2swWLNcrOCOerS8X7oI4CpZVA6j8+bd?=
+ =?us-ascii?Q?BdVLjA=3D=3D?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(7416014)(376014)(82310400026)(1800799024);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(36860700013)(7416014)(376014)(82310400026);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	07tAYcUN4h1Lllp+Ye4PF2TL8PqoIQSxL/Jg0KofmfGo/QMbSB0VkLVmZWmFiHp6+nKxvyL6LZ4PyiWfSMwHynBd5uhyS2mX1DJYFF+xEDG9UG53uNw8Dz0y5hihM5zE64T3w5JU1TngO6zD+WB/3dvd0ovQPWGZ8QUxlec60uBZZPoW30twpi4uhyF+usBsvVC3zn+AflEUxjBh+TKV3RSiriBk1EhFhzVOjmozsRgXzxDPZPmogvgDvsfAPoutAAONNBtu96MBrooUOdya2GlLHqx+QzkmEsZUfc3+fbA5eFNgO6s2Xupz4pT0lwbdoZjGiWhHJNQvI7jLcLSCWaZv96Gd3+x31i/lUguQiUMjoi+7tqJ83HcdODuPFhKH3quePuJkfOT0px5DZ5hUJj3TePBn+oQDZzNXvnWaB/BJR1lzWPkJjXeHuvIJ/Qxe
+	4QzJUuYWjMB2oHo6u2IUCTvsPA+WusDg8BRWZxE7IaRiEbw4fSbxxYLPJI0mwFFayItfxMXDvDcc4YgK8+ZrIibOimVvhDEK5Y7uYAGe8p855Xg2S1yKq3dRH8r5ypZH+9GyQenzAGlnWxXWYMd0G9SfEK9X2cUVm2AIoS1LXoAs+CfE/9AqMTpYE8ARndrb3A+ILWU+oNJwI2MKyS9pOeIqggG+V8BIOm3CKCv3DRU2MQc92aPfNP+NvPGKRzMOlswLHZ/OLpSz4adKOtYdNMKaWjGrONL9iFV3B3csogddp+vIFY4289skAvVIrShnuAsvd59jy538rAWvDtTjo+EMarYMOE7DZjwnD1oBq8JV/iJZt2Kr7ExDXA9A40kQ8aZweSt6AzCzm3hAXuJBAEv3sDPMrac8vAOToTjAu8t/syZ0xkIb1oK26geH5HB0
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Feb 2026 06:45:18.3269
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Feb 2026 06:45:20.2884
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f1be60fa-bdb3-4e6d-4a5d-08de686ff46b
+X-MS-Exchange-CrossTenant-Network-Message-Id: c608dbf9-0d45-4b16-b38d-08de686ff596
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	SJ1PEPF000026C5.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7201
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR12MB5800
 
-__cxl_decoder_detach() currently resets decoder programming whenever a
-region is detached if cxl_config_state is beyond CXL_CONFIG_ACTIVE. For
-autodiscovered regions, this can incorrectly tear down decoder state
-that may be relied upon by other consumers or by subsequent ownership
-decisions.
+Introduce a global "DAX Regions" resource root and register each
+dax_region->res under it via request_resource(). Release the resource on
+dax_region teardown.
 
-Skip cxl_region_decode_reset() during detach when CXL_REGION_F_AUTO is
-set.
+By enforcing a single global namespace for dax_region allocations, this
+ensures only one of dax_hmem or dax_cxl can successfully register a
+dax_region for a given range.
 
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Alejandro Lucero <alucerop@amd.com>
 ---
- drivers/cxl/core/region.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/dax/bus.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index ae899f68551f..45ee598daf95 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -2178,7 +2178,9 @@ __cxl_decoder_detach(struct cxl_region *cxlr,
- 		cxled->part = -1;
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index fde29e0ad68b..5f387feb95f0 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -10,6 +10,7 @@
+ #include "dax-private.h"
+ #include "bus.h"
  
- 	if (p->state > CXL_CONFIG_ACTIVE) {
--		cxl_region_decode_reset(cxlr, p->interleave_ways);
-+		if (!test_bit(CXL_REGION_F_AUTO, &cxlr->flags))
-+			cxl_region_decode_reset(cxlr, p->interleave_ways);
-+
- 		p->state = CXL_CONFIG_ACTIVE;
++static struct resource dax_regions = DEFINE_RES_MEM_NAMED(0, -1, "DAX Regions");
+ static DEFINE_MUTEX(dax_bus_lock);
+ 
+ /*
+@@ -625,6 +626,8 @@ static void dax_region_unregister(void *region)
+ {
+ 	struct dax_region *dax_region = region;
+ 
++	scoped_guard(rwsem_write, &dax_region_rwsem)
++		release_resource(&dax_region->res);
+ 	sysfs_remove_groups(&dax_region->dev->kobj,
+ 			dax_region_attribute_groups);
+ 	dax_region_put(dax_region);
+@@ -635,6 +638,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 		unsigned long flags)
+ {
+ 	struct dax_region *dax_region;
++	int rc;
+ 
+ 	/*
+ 	 * The DAX core assumes that it can store its private data in
+@@ -667,14 +671,27 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 		.flags = IORESOURCE_MEM | flags,
+ 	};
+ 
+-	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
+-		kfree(dax_region);
+-		return NULL;
++	scoped_guard(rwsem_write, &dax_region_rwsem)
++		rc = request_resource(&dax_regions, &dax_region->res);
++	if (rc) {
++		dev_dbg(parent, "dax_region resource conflict for %pR\n",
++			&dax_region->res);
++		goto err_res;
  	}
+ 
++	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups))
++		goto err_sysfs;
++
+ 	if (devm_add_action_or_reset(parent, dax_region_unregister, dax_region))
+ 		return NULL;
+ 	return dax_region;
++
++err_sysfs:
++	scoped_guard(rwsem_write, &dax_region_rwsem)
++		release_resource(&dax_region->res);
++err_res:
++	kfree(dax_region);
++	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(alloc_dax_region);
  
 -- 
 2.17.1
