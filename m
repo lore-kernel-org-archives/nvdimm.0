@@ -1,46 +1,46 @@
-Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011013.outbound.protection.outlook.com [52.101.52.13])
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012068.outbound.protection.outlook.com [52.101.43.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6E0A32FA19
-	for <nvdimm@lists.linux.dev>; Tue, 10 Feb 2026 06:45:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8194332FA2F
+	for <nvdimm@lists.linux.dev>; Tue, 10 Feb 2026 06:45:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.68
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770705936; cv=fail; b=CLS+0UoH+BSeUIW3crHAu6ogSFeNWGNln/L1m1C57x2zlfgPtQNohilRiUAzjpoR00XaK9R6PzFLVN+KBHNdm7J6u7htGGXctO80DINLhqFTVfalLs1kC6MCNGOoJY/BzIWTy1N9jwRBQg+nwHT6P7ejhbw1t1KFk6+pk4iJXOI=
+	t=1770705936; cv=fail; b=RkdIaZSVrWlhJdX8VqrDoOPgF59vErdv7h6vThW6nfYo6SRZXN+2z6PnaVtXmfbfi0p7KVxrJ9cNCQ+OeqLvtJP6QP8KVwOnMz+5NUd5N7mjLRLGvlPzVp9JPhqP0GOJ8e+KQ2ymKVrdGyO8qfKFlIQfWCzyQu42wevMXFaIozA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1770705936; c=relaxed/simple;
-	bh=7YOrqw7I1cylY95mSS0834bCRaFAO5kLaZkyojeo3LU=;
+	bh=SJ1jSJCnlgfeuPYnwV5eZsxa6Y2f78GlQvpg8+hspSw=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=FNIML+FzHohYsCxLZ5jHLvRrp3aYwD2KxD/T10jduo3ZyMX9Mh5o7R24uZ8/QZhy8ATyECglgFpbjNdM1YLkzNckRo23lsWGwdBk62H8AN9DzoTGD8h0lNcPWIgw105VFxAOtiOcBMYzoUaNIdN4gP7XwIkuLaqdISE3NljRZfk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=FJFEADn0; arc=fail smtp.client-ip=52.101.52.13
+	 MIME-Version:Content-Type; b=i/4YPdLuf2ji40RCEFwjYOS9ZMMXoFTAa/RCUVrgxKoJBTWZYZkVkfQR9HX8CPnR4pKZ/6FfJw9gQ33elt1rW/n9gnPRJLy78CdEkmtrj2po64CbTipUz7t4HwpEArDcVvthom5h1xDQnvybXDstTyfphMkPKsdtB+fvNtRJTdA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Zr2k4KaZ; arc=fail smtp.client-ip=52.101.43.68
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="FJFEADn0"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Zr2k4KaZ"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=LlDyNVIxoWdz+yQZlra5Xw6RtANw5glD/9Gxldm/ofqLE9hfYFWn8ZLUlUg8aad3u76nGCOHtykBeuJDap5YUZ/EbI1J3r3sf4OxZoE0z0W1p6sq7f4FnZDkEuGYb11cFy0njgoHmsfJ7SgOJOk8d5hD8lnVp1IXOcAG7bvIGsBteb0fdRPbwVLeplFvIQn65BCeW7XicAZn21/8kQQHEK+05BDCi+iyORpw8iLzzaFGJqUZi41yGWm00PQseIPepX4qYQ4Nautoi1tUuQduSQpUSC6FGQkvf4F+KXCB1TLOvbbMQRITWFtmLQtP+4+/F0M1lh9MN/QKsL/ZkJ5piA==
+ b=rzCwRU4iyqFBi8QZTw7Nmt3alKM9vGRjpenrHRVIp5xLpJWbZXmQhqU+yzShjrvyNRr6nLE7TcXbr0/uhFDX+jshVEC58V2lilAxphvfA/utzMpbzmsubu+6/BlD1iKT3bDUEyukOLv98kzqn2eev9i/vJEjf7ox7FPHw+PAX23tnrPmVqU3We0p7i3dFf9TfCsgdwaqZbvEJyD/IXGFhk4B3u9wqJHfRGkrNEUHpKriZVp7747bLRYKOefIFKYK+REzClUcLPEEQd/HN3usVyNtx8g1qnlDFSIoQgx3cU+lENjPYY36/BJFFHeemu/ih+ekpKASvUpOQYfW9BeXxQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yY2dbDNPGER4lsFX4jtUJJvRXS/jya/EQoG2E4hljJw=;
- b=gdM5xL3wtmJY0pgMN36sX72tRKZHYQwXzMalX1USXaBDgA9yhD3y/xuY/zors/k0e8/ROycT1Kj2+PJEOxyT9HEiiJV3bRKbtYkTfp6Bky/zRiiCZXgGqKAzHtA+CY2gyVjjQqe7h0hH77DXJcs9JCmifFYwOhKPf+l7CfTrZw9coTmXFxGfSAYq4abhowhYrX2X/+um0RYagSk5E2L6hTucWdiZAexpMus80WWu+yeShVArbKm0aFn/ZjTvNxPH2NnRsMs3cJ7Iuswr5bwYKlsoUJw+yHVajaF7gLoy25hLmWCoGlI729l8xCMOVxX70+XWdfqchFZAPMA8bYXw8Q==
+ bh=VVzxHXcbR89bTpoQN49HpyrhE+9QKCmWqOlXqrpDosU=;
+ b=U+Qv3ixOorqNSh7BSHOK6gqzT/MdpBXD+2j86qWH0k4+VcXUrMuImK3OCx/+G++f67oP8h4XLbi8F0ryblVEDOU1mdQB0mrPqu2nJ2F/ee+Mvmt+KcUMcITZb6Or45EpzWIrhOwy7i6S5ie98Y70psRS6HVlvoVtVhwZWkUxWVEn66meUhLOZYLiTu2AFpLOaZFUxNSB0O0DRhpByVfrhY5uO6hc2adgWQ7cMi3eu7AktcfV+duLBrOZbBiS4ZYlagS6pgCkdGZit13cgcWmKDz7fgu8MIE3ohw61kkDHkzayv5A2D3oEXsuRXBKIAAoKbi8ahvUfy2jTZQg1TBQeA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yY2dbDNPGER4lsFX4jtUJJvRXS/jya/EQoG2E4hljJw=;
- b=FJFEADn0BAk2kZuJ5VVvQ+Ru2pZDzU5tW1DmRW7aeGbBENegyTFlV0308DHikxf/1UF/S7Oy80InlyLNSyUQ35XS+eZ+pR+wShsxfSb06Gpho0fdCmUArgJ6mSmyuEpH46bmslNaekQiHqGqWjgDdgoEVmRKwFsgIlkZGiNOG8A=
-Received: from BYAPR06CA0036.namprd06.prod.outlook.com (2603:10b6:a03:d4::49)
- by DM4PR12MB7648.namprd12.prod.outlook.com (2603:10b6:8:104::15) with
+ bh=VVzxHXcbR89bTpoQN49HpyrhE+9QKCmWqOlXqrpDosU=;
+ b=Zr2k4KaZ8lIU2L6dEAdEGtgDrTy84IXkwaWDf/O9wcFOTUsQA3umwyyyBm7Eb7IUn1bRcqd5CFRn6QddvIJDOTn6imK+FZ23zre20Jo4QAWlQcL9bfAdSb4sop/22bEQtrRbDEJvlYfix20yhJxokSpuvpsl9ZMKUbpOYbdEr2g=
+Received: from BYAPR06CA0003.namprd06.prod.outlook.com (2603:10b6:a03:d4::16)
+ by DM6PR12MB4217.namprd12.prod.outlook.com (2603:10b6:5:219::24) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.19; Tue, 10 Feb
- 2026 06:45:24 +0000
+ 2026 06:45:26 +0000
 Received: from SJ1PEPF000026C3.namprd04.prod.outlook.com
- (2603:10b6:a03:d4:cafe::1b) by BYAPR06CA0036.outlook.office365.com
- (2603:10b6:a03:d4::49) with Microsoft SMTP Server (version=TLS1_3,
+ (2603:10b6:a03:d4:cafe::2b) by BYAPR06CA0003.outlook.office365.com
+ (2603:10b6:a03:d4::16) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9587.19 via Frontend Transport; Tue,
- 10 Feb 2026 06:45:24 +0000
+ 10 Feb 2026 06:45:27 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -50,11 +50,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from satlexmb07.amd.com (165.204.84.17) by
  SJ1PEPF000026C3.mail.protection.outlook.com (10.167.244.100) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9611.8 via Frontend Transport; Tue, 10 Feb 2026 06:45:24 +0000
+ 15.20.9611.8 via Frontend Transport; Tue, 10 Feb 2026 06:45:26 +0000
 Received: from ethanolx50f7host.amd.com (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Tue, 10 Feb
- 2026 00:45:20 -0600
+ 2026 00:45:22 -0600
 From: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 To: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
@@ -76,9 +76,9 @@ CC: Ard Biesheuvel <ardb@kernel.org>, Alison Schofield
 	<lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>, Smita Koralahalli
 	<Smita.KoralahalliChannabasappa@amd.com>, Tomasz Wolski
 	<tomasz.wolski@fujitsu.com>
-Subject: [PATCH v6 7/9] dax: Add deferred-work helpers for dax_hmem and dax_cxl coordination
-Date: Tue, 10 Feb 2026 06:44:59 +0000
-Message-ID: <20260210064501.157591-8-Smita.KoralahalliChannabasappa@amd.com>
+Subject: [PATCH v6 9/9] dax/hmem: Reintroduce Soft Reserved ranges back into the iomem tree
+Date: Tue, 10 Feb 2026 06:45:01 +0000
+Message-ID: <20260210064501.157591-10-Smita.KoralahalliChannabasappa@amd.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
 References: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
@@ -93,157 +93,131 @@ X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF000026C3:EE_|DM4PR12MB7648:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6f7c7693-0071-4212-59f6-08de686ff829
+X-MS-TrafficTypeDiagnostic: SJ1PEPF000026C3:EE_|DM6PR12MB4217:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7bbb49bc-3781-4676-2bac-08de686ff953
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|7416014|82310400026|376014;
+	BCL:0;ARA:13230040|7416014|376014|82310400026|1800799024|36860700013|13003099007;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?XnoMVdYGxJOKrHfEN6gvFyeSpUVYhU+x8Us/2D93iHkuTT0NED0ME/HiAc19?=
- =?us-ascii?Q?5YP2rfRW/DTLuGe10fh11YmGKv9K6NIhWiMZWLgxQ47JMQguT9Yp32BjgWO6?=
- =?us-ascii?Q?G4cD1/UI6qpIQmA3sf+RukxRPaWxqN3ctjuiknmTpAZDjurWLLpWUP4SLvCa?=
- =?us-ascii?Q?/XKbkkjyDyuGQq8a3kKe8T4+1T/19xs1BqQBFIo8rsGryp2/QoJTGly0vrWq?=
- =?us-ascii?Q?S2bFeHgR1dSWiLFGcLmJMKkWs/WNIpOymvvcUU0sQDS9X9O1bQIRbv/a+Ns7?=
- =?us-ascii?Q?9fLQQzVguM6XaplB4t6OzqTsc4KpJQbxDh53vN6m0IaswEzBFKNVzHhQXyP2?=
- =?us-ascii?Q?yBQaWJydl8L1atzY4EBTF5auDq7medsq39/M3mQbzJnnkzd6weHZJQCMBUiC?=
- =?us-ascii?Q?QIBbDq40WQb4H72SlSDJ49KdPPDASQkFoCYVgVLtVk4J9svjhbU7MrUKcljz?=
- =?us-ascii?Q?cs2ULfQQ2445ysfymm2jzkPAl9kqC2eJQ/XXQp3Isdf7f1OXX6s3HZvecvMw?=
- =?us-ascii?Q?8puu/v1skXTDxCVrRuj/N2azVxsGeornsrLrvULl9b/pxHu4Uxf9LesDZunb?=
- =?us-ascii?Q?cnvi5chQZGRxuoxVMIyV8g2xVXriQUS//a1VuKx0xJmSLn4X7O+HwdaN3iyv?=
- =?us-ascii?Q?/Htw/YNuJsXQhSwhEmIyNbH2sjkZsQ8RT+/EnMGQYNHWum8jh4JPBlXs6cVl?=
- =?us-ascii?Q?iXTO2xlYw32jbdo4bKMc07MO7+EX/M7FM0Ky1ndaUV1tS8rKG0psW08/IXQL?=
- =?us-ascii?Q?XPR4vTXZnYyQNliJrY0Xa0gRhe1KPdQOKAFFzF8q9OEhVlJERc/4tWZyDttE?=
- =?us-ascii?Q?M5EMW30EMrJw9db5EDwTZXCFwR+YHGGeALEUUpDknLnmnhzJEqMQxMDUsZom?=
- =?us-ascii?Q?4rz07DXWZoUjXprKkOSq4aoDKvAl2gUY9v0Ed3xJ1IccMNHdR5hnlUZGLKWE?=
- =?us-ascii?Q?bXaiZYLniV4X8RIQXYRqr+YXC+Zl4thYb/6pSrSaibPhrz3+vRRzJ2IH30DJ?=
- =?us-ascii?Q?CzwUo8Ay3TolFQgl/90fq3LL83R5eD9TCD1VFRgMo9ZFOT9H8sz9xh/Fe++7?=
- =?us-ascii?Q?N+axgCi0w3og7vtA1zJu3pZZPNBWLQw+214tWgYhSwsCSGx9Kp+BD05pVhGJ?=
- =?us-ascii?Q?2uUVy9OKd+aFuu5jT32/3KffNOgFkkNrH57AM0/vU0KX3jsCzWOStHip/dpt?=
- =?us-ascii?Q?TCNuVbM2ZgtDaBt7tnX8/22MPZBa/6iCIvrQ/gl0Q0Ucz/zpwRRbDbRAn2xY?=
- =?us-ascii?Q?n/l/MHao2VkueVqntJHU7cCbdm1f6Cu/c7ibqkDEKMyAFtGpKNn5yuW3XZSD?=
- =?us-ascii?Q?NRAusoT7mQlYPoFhpwobop+1GknOMCw01ZuZK4N6nE6sAScxQA/P4/WRJ2gO?=
- =?us-ascii?Q?OfwdPKnbFv7Zn28dev+vtEP5UoDSlSSs06ydlkxx3BhfydkyUTZxZrGWkXfx?=
- =?us-ascii?Q?AI1GOjsZC/DUBUT5JG2fNX3WuTiLA+dVnwtpssJpaFrNLUrKPkW4Q8RuyPtk?=
- =?us-ascii?Q?eU6JF7Y0V9RESJEmotoNZ9ELGiGige5FZHfy6xFdLWl+BV7Z7W8nMIemqWM9?=
- =?us-ascii?Q?na5iufVJF+OiJ8aGu8ICOlwl0IcYYMR+B9dE9umXFWeLssezyzMBB/oKJauh?=
- =?us-ascii?Q?bvTdex7+c4buvHhN48g8x8jCQvmuvTZFqUQ8jiSqKFYXkWK6mUCwGIxE+upU?=
- =?us-ascii?Q?unPVHg=3D=3D?=
+	=?us-ascii?Q?NmcD/ItVf04GiP5LNfDpfy9S8NQ4QBLhbsQEbdUPw5Xmu6db7PmTZrUn6oWq?=
+ =?us-ascii?Q?GgvvaqRx3aL1CImPIdYvsSlGLxNzEibELv55EpkGxtLqfMqzxoclfYU3YWsE?=
+ =?us-ascii?Q?1g8KecZ2dIplGwLV6OCZntFDqtqft5xH8Utd4YQufoz1OdLM6/r004cuSM02?=
+ =?us-ascii?Q?FHRpA5kVhC+CY0HibdqN9Hymj/wy5y+IzcxJovbJ0s0gCGWu3Trl1JYsi2j5?=
+ =?us-ascii?Q?+tZeGYohmw4F1O18ZeXSGHbNZhY/kceSbmm+nQKrXpE0v5biYCO9Ps285dX4?=
+ =?us-ascii?Q?rAMJSc82knpsNpUU/KUYRLnSzfaHYMrRMjkDqORNJmHjgM+w/g5SnkbfV9Jp?=
+ =?us-ascii?Q?qeyMWU8fOas0viAlasHYpdBnwHcn2NcnOZ/lXx486gqZEWhOP3NlZKOmSB/I?=
+ =?us-ascii?Q?BnDdYihDQCdGvPAnBS0nCJqw/+++4UDkFhq+g8a0g4gw1kX0u+1uFEWGj9Y7?=
+ =?us-ascii?Q?WNMQQ3CRfKQbIBjTxF87Sgk+FJFe0FxWFJ6ZFCU2ZAhqA0JAp/PcHbg//f7K?=
+ =?us-ascii?Q?rIMJvi058xkWLqjTRgUgmdWO6YmCxWYj3axeV9Y5q5CJ035abyIgRDVPwwh7?=
+ =?us-ascii?Q?BsmhSw+Iht1yfSXd89kyi4PE+YkviYHWK3y/0iqDv0d4rZmkbfIrhvcYGv29?=
+ =?us-ascii?Q?LAMnjvJzehxAJQRfMiE7teVpSU1xMpGjuoxp9LVmWaFlJHOd/yS7rVxu6XLj?=
+ =?us-ascii?Q?UyxNuCA1cSuDFDDbUgzKZgCFz3/63cz3hDEBNkpeFHNTo8aeD7EW2xqO7XxC?=
+ =?us-ascii?Q?Ytkugh+KIu0nDsjdh42NYLoypJCDxVHUL+uCZZm9KUlrYEJk74CxT1kOnley?=
+ =?us-ascii?Q?K9borgjpFlp13YxB7RxW1prYY4OsMu6MuJeAqWUXdEl1B0G36VLCInA12Zqx?=
+ =?us-ascii?Q?gzUpvEO0It1bK+4g/yvJdPUvN67+9dDdEPoCr89vwnFBTx9pefkN3AXVeQN2?=
+ =?us-ascii?Q?+/4apsnk2IXOZDF5JX7IbfX4yCgn7sK5SoH8qODcgE1OL0jg/ByBzgTebA/P?=
+ =?us-ascii?Q?fDXReuJfRMCszXkexpTh6XvELXIbfBiDm0mgEzR/21fYikzuOyPwj+/BfvB5?=
+ =?us-ascii?Q?SfOQi4UBpn6uhq1HfGnwD7ebHgPLUMJxHuepZvov1Ee3OfhgGQCTtJU7Bcwc?=
+ =?us-ascii?Q?1/Wy4qNgyztXxsRs8nZQph7zEOMDKQys/Zxomw6pyByknJ3QZJuPLDkaQdtD?=
+ =?us-ascii?Q?tC811Ltr6m+scEgxonjZB3z5Aj/yWgt5sMMsuv/eQJ4V93RpEyXhnO5yd+D0?=
+ =?us-ascii?Q?y0pPAaNplRupgxbTgW0U5CaH/meQ5GM2RdwP7dhAWKeDC/STqYXaZLIVpU4+?=
+ =?us-ascii?Q?p2JQ2ZEAcUz3E6iKdwxvzKjauaPf3wK7QbTyo5FKEOmcgQ/GvUXlRbcWhajg?=
+ =?us-ascii?Q?+qdHnANCzfd1Qc6Nb5SJv5gJIgGNVylvGMyBrV3uQWiQx85jK0DwjPSRqUG3?=
+ =?us-ascii?Q?YD+dd+c/fAdcG9JqHjMZNEs2FSQMgLczcmhv0gL6xVrBlEfhH0i0YA/eYqc1?=
+ =?us-ascii?Q?p0EeMOd76wc0uZpEWbAapw1LfCSgruUTeQGZlPlLI2s+gk78hPEMHjVtXrsi?=
+ =?us-ascii?Q?TNKOxPPAcOShjX+nlTi1N7OdczGeKaQLgAOia0Z4G3o6bktlJBBIjNFvdCiV?=
+ =?us-ascii?Q?KoIODzH8suw0cwPMwj0jRKmTBbB7Eas1l7YdBJYd6yYaPyxIfwvTAnmXYriy?=
+ =?us-ascii?Q?JfW6hw=3D=3D?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(7416014)(82310400026)(376014);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(376014)(82310400026)(1800799024)(36860700013)(13003099007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	y4bggumPU2Nmx/0ADo/4t5L3LkEQcp4CXwCGdLt9JQn1E/0kAfSmqCIuR87G1ZZY7ogRiyrYFCLa/euleVF0bXg6s8DW/JDA9yLQ1ZOa54jU9eKlwrfuRPYw2xmly5DpMUF7X6B8PZcFLxr46eIt8d/fCpr9kz2om9VVqWDQegRPVVX2JDR8Zhh453FaCUzQJPHSzW2htziiSXqYUS4Mig1Ex9DvlNYGTqm8LtEM64zGZkF60f+MikgBTDa+qRF+zNGuXfFIHN6tugmnIG39Sx8KYfgvAyOr6/spooZFK1Anlqb9Fw+YuquCam/GqFGXfigBNEHLWnKio+0RlCieOusm6RxPBO6wwisIs9AAmFn3nGKe2RIo60fM6bFGomiEhdWXTslcfU2dJ+sBP90unK7ej8GUOk1XjIzLYRik5s312B2CvlYMrgKA16CZEnjY
+	SMOtxojWwKycEeVOEOhdbFwMTvb7Yvr4F4NiFxOYn0yJRxt+dsYDdpcV+jtJ2RGs/LnFNp2C2j2BsE5MqGksCC/a+2jcKAnd6dNuuDRKITdz0Cuw16lQzME0tBpWK0kn7Jz6RJ1QJP85ij8q+xsDtxshHuxXB9JewC/tV7uWNmE/4+wq8QGdwsHXBxZdvVagY0VyECfeeGCoWdbzkk9l4e/mCs6dxvNeV0s80CWg/5mRMOyBV90fzgs+J2xdNK9hUZ7NV0OhB/63L9vVKZGGpJMtvQ7npQRGE/jUeiej6t/MOB4zL7dL40EftacAaonDQPgu8ANmUqf5VmyAdYAvUfkLwoBcONlCVRUwYwFp3yuKoDxhlsPdOlc4wn/vmnEiuy5G2DpapEIMOEvrclfe+vSdwZMSfeUzyfOb7nJLcM0gL0OsBrlUYOTcTzyRtNy0
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Feb 2026 06:45:24.6218
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Feb 2026 06:45:26.5483
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6f7c7693-0071-4212-59f6-08de686ff829
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7bbb49bc-3781-4676-2bac-08de686ff953
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	SJ1PEPF000026C3.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB7648
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4217
 
-Add helpers to register, queue and flush the deferred work.
+Reworked from a patch by Alison Schofield <alison.schofield@intel.com>
 
-These helpers allow dax_hmem to execute ownership resolution outside the
-probe context before dax_cxl binds.
+Reintroduce Soft Reserved range into the iomem_resource tree for HMEM
+to consume.
 
+This restores visibility in /proc/iomem for ranges actively in use, while
+avoiding the early-boot conflicts that occurred when Soft Reserved was
+published into iomem before CXL window and region discovery.
+
+Link: https://lore.kernel.org/linux-cxl/29312c0765224ae76862d59a17748c8188fb95f1.1692638817.git.alison.schofield@intel.com/
+Co-developed-by: Alison Schofield <alison.schofield@intel.com>
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Co-developed-by: Zhijian Li <lizhijian@fujitsu.com>
+Signed-off-by: Zhijian Li <lizhijian@fujitsu.com>
 Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/bus.c | 58 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/dax/bus.h |  7 ++++++
- 2 files changed, 65 insertions(+)
+ drivers/dax/hmem/hmem.c | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 5f387feb95f0..92b88952ede1 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -25,6 +25,64 @@ DECLARE_RWSEM(dax_region_rwsem);
-  */
- DECLARE_RWSEM(dax_dev_rwsem);
+diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+index 85854e25254b..c07bf5fe833d 100644
+--- a/drivers/dax/hmem/hmem.c
++++ b/drivers/dax/hmem/hmem.c
+@@ -59,6 +59,34 @@ static void release_hmem(void *pdev)
+ 	platform_device_unregister(pdev);
+ }
  
-+static DEFINE_MUTEX(dax_hmem_lock);
-+static dax_hmem_deferred_fn hmem_deferred_fn;
-+static void *dax_hmem_data;
-+
-+static void hmem_deferred_work(struct work_struct *work)
++static void remove_soft_reserved(void *r)
 +{
-+	dax_hmem_deferred_fn fn;
-+	void *data;
-+
-+	scoped_guard(mutex, &dax_hmem_lock) {
-+		fn = hmem_deferred_fn;
-+		data = dax_hmem_data;
-+	}
-+
-+	if (fn)
-+		fn(data);
++	remove_resource(r);
++	kfree(r);
 +}
 +
-+static DECLARE_WORK(dax_hmem_work, hmem_deferred_work);
-+
-+int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data)
++static int add_soft_reserve_into_iomem(struct device *host,
++				       const struct resource *res)
 +{
-+	guard(mutex)(&dax_hmem_lock);
++	int rc;
 +
-+	if (hmem_deferred_fn)
-+		return -EINVAL;
++	struct resource *soft __free(kfree) =
++		kmalloc(sizeof(*res), GFP_KERNEL);
++	if (!soft)
++		return -ENOMEM;
 +
-+	hmem_deferred_fn = fn;
-+	dax_hmem_data = data;
-+	return 0;
++	*soft = DEFINE_RES_NAMED_DESC(res->start, (res->end - res->start + 1),
++				      "Soft Reserved", IORESOURCE_MEM,
++				      IORES_DESC_SOFT_RESERVED);
++
++	rc = insert_resource(&iomem_resource, soft);
++	if (rc)
++		return rc;
++
++	return devm_add_action_or_reset(host, remove_soft_reserved,
++					no_free_ptr(soft));
 +}
-+EXPORT_SYMBOL_GPL(dax_hmem_register_work);
 +
-+int dax_hmem_unregister_work(dax_hmem_deferred_fn fn, void *data)
-+{
-+	guard(mutex)(&dax_hmem_lock);
-+
-+	if (hmem_deferred_fn != fn || dax_hmem_data != data)
-+		return -EINVAL;
-+
-+	hmem_deferred_fn = NULL;
-+	dax_hmem_data = NULL;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dax_hmem_unregister_work);
-+
-+void dax_hmem_queue_work(void)
-+{
-+	queue_work(system_long_wq, &dax_hmem_work);
-+}
-+EXPORT_SYMBOL_GPL(dax_hmem_queue_work);
-+
-+void dax_hmem_flush_work(void)
-+{
-+	flush_work(&dax_hmem_work);
-+}
-+EXPORT_SYMBOL_GPL(dax_hmem_flush_work);
-+
- #define DAX_NAME_LEN 30
- struct dax_id {
- 	struct list_head list;
-diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-index cbbf64443098..b58a88e8089c 100644
---- a/drivers/dax/bus.h
-+++ b/drivers/dax/bus.h
-@@ -41,6 +41,13 @@ struct dax_device_driver {
- 	void (*remove)(struct dev_dax *dev);
- };
+ static int hmem_register_device(struct device *host, int target_nid,
+ 				const struct resource *res)
+ {
+@@ -88,7 +116,9 @@ static int hmem_register_device(struct device *host, int target_nid,
+ 	if (rc != REGION_INTERSECTS)
+ 		return 0;
  
-+typedef void (*dax_hmem_deferred_fn)(void *data);
-+
-+int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data);
-+int dax_hmem_unregister_work(dax_hmem_deferred_fn fn, void *data);
-+void dax_hmem_queue_work(void);
-+void dax_hmem_flush_work(void);
-+
- int __dax_driver_register(struct dax_device_driver *dax_drv,
- 		struct module *module, const char *mod_name);
- #define dax_driver_register(driver) \
+-	/* TODO: Add Soft-Reserved memory back to iomem */
++	rc = add_soft_reserve_into_iomem(host, res);
++	if (rc)
++		return rc;
+ 
+ 	id = memregion_alloc(GFP_KERNEL);
+ 	if (id < 0) {
 -- 
 2.17.1
 
