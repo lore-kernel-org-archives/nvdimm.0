@@ -1,162 +1,159 @@
-Received: from mail1.bemta41.messagelabs.com (mail1.bemta41.messagelabs.com [195.245.230.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD3635CBA5
-	for <nvdimm@lists.linux.dev>; Thu, 12 Feb 2026 14:44:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.245.230.66
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A38171A23B1
+	for <nvdimm@lists.linux.dev>; Thu, 12 Feb 2026 16:18:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770907475; cv=none; b=pHcEVEEK7rbfjkU9B6T2SjSPos+m+lvUoS5OHq0Wrj7NNw3NSPwQDeGt8veYlLOJx4pmcl2tdaC0jGBbmA4ty5xSZXZtMLrjEI1C8pO1eiW2jPB+F9HKcCRtsxnTMFt2b1S/mIkxuj6Km7dw07IQ1qniGZbGlDnU4qWvLjLEzLQ=
+	t=1770913127; cv=none; b=sYVaCCjoGsl9b8Q4U3HYVifFDFCaHKjRXXH+hidIuRGoogDLXpcmkDUD4Vi7cDXqk8c1it0Z/Li7jm5nmanXCyoAKsTI7lsGneWiyCMo14/NBSPWdWGNmlS2vEpNhS3q9maXro6V7Ah6z45aSMWKSgDOJ+Bvl3EtjrQPHVP4uAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770907475; c=relaxed/simple;
-	bh=0qI2wDlRiVDjHJSxny5kDsk2/uU/zB905Nc28yYvU60=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=dGjgT4QRGQPJPrElNuV8b3WXK6nHXlDOgDfPw84prx9vu8gkfqojiGrjG2MTt9PN3U8K/UwHw9Zhylue2gf1NXcrapw7S76nmQtcPgdwem9RshBkFYXcMKxvdG/pk166++o/tEHVh49zjtn0a/NLqkt3FJGlEug7wijExO99Jjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=gapSrQNC; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=O0FA7yBS; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=O0FA7yBS; arc=none smtp.client-ip=195.245.230.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="gapSrQNC";
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="O0FA7yBS";
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="O0FA7yBS"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1770907472; i=@fujitsu.com;
-	bh=0qI2wDlRiVDjHJSxny5kDsk2/uU/zB905Nc28yYvU60=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	b=gapSrQNCYUSJp3fqFiQCE86ujRDUD+6ty1OGTYVW33ERCA30BA8E3AcT2XN+21dW2
-	 Pgw7grWZMs9OVS/hxSPCxJBICgkvGjx5OROZDb5zyltAjdfCiGWRvtIjnt8rBD1oqG
-	 GRfNq3l9ehcyIfQZX8FPrJpaXIf95fkUEDfG5ojpuDsfCS4BtdpB1vobaucQYksBkz
-	 h7YkciNjSmx+ub99jchz0zT8tYuMSK/2Hg7IWa70CWvBNbuYDeeMGmwreUgROzsx92
-	 0XmsZ8QMtzh+sHvhrn5D4cx7bMgmqVlt551X8sD3kvmM9rLARcKJv5weVkAElkuGLv
-	 JaWAethgQnJgQ==
-X-Brightmail-Tracker: H4sIAAAAAAAAA22Sf0wTZxjHee+u14O05CggJypzVUkkoYCL7s3
-  CHNmW5eI0gEZgRrcVuNFm/bVe2crGYlltBGYHY1ZCocDGhlDYmGWIMJSCjYMGgaHoQFCDdmoJ
-  Q0JXIYhbC8O5ZP89yefz/T7PHw+BCi7ikQSj1TBqhVgmxIOw3YmEOHbvPaM0vmcwHk7eGcbho
-  mcWwC+rvQic//EJDstNwwD2jRXgsGmsGUB9XQsOh1of47DbdQ+DleV6BJadG0Wh9etrODSfPI
-  /AIbMTg13n+zF4pbMKh/NGB4CG6hkAC10mBDYuPObAwlkdCn8x2hFo8ZhQOHGqHsBmzxwKb/Q
-  NceB46SUELi34shcct7CkKPqR4QuMNows43SHeZJLH3PMcOjWhhi6rusBQtusRTjdbWnm0vdb
-  KwBtdy8D2lR5lB6odXDpeVsUvVR5CaQEH+JIFZlK7bscybHOE1yVjqPt9NzCdaAIKwZBhID8C
-  VBnRu+DYhBIYGQyVTzSjPsBRp7FqJLTVzl+ICCPI5RhOmhNWvpjEPyPZAGUe+xl/4yTcdRvX1
-  WttIaRUdT1ls85/gBK1uKUa+Ih1w9Cybcpx+kC7mrrNupReRnun/nkbqrNMLYSpsjnqBpT/8q
-  CQHIHtWSZ+WdZAjXuPMtZ9UOo/oq7mH9Gfb6+rRJdzUZTo4M2tBSEmp/RzM9otQCxAsgy6g8Z
-  dWyCKFMtzZFo5GKpTCT+ODZLxOSqlSom9iOG1SSIcrJUIoZlRWyePEuWLVIwGhvwfVLQw+cTz
-  4HZZUNcL1hPIMJw/pVSo1QQnKnMzpOIWck76lwZw/aCjQQhpPh/3vWxEDWTw2jfk8p8/7iGKY
-  InDOPHu3yYz6rEclaas4qc4AWiqLvYjhJzD0w9qABTKBVMZAT/rymfSvpVSa7iadHab4+ATZG
-  hfBAQECDgqRi1XKr5L3eDCAIIQ/lJv/taeFKF5uk+t+8UxHfKDf3KKRrxvyhShxyKOxz3Zkth
-  Rpvx03WLaXvn57ae2vnSZuHt7dqFbciRxtDjWebwkxHXgwWaAxElgQGaqhJr9WdJNdMZU1PD9
-  gGloD91IX3/Yurt6e6fX6tP59zMy5an7ch835F/rfhyyoXDPWmD31pq+sJ3cS39Hm8u74eB9m
-  SMF5NSvjlleN9Fwrvu1dj2phcLwuwfyAOebJFtuik50pA/1BXSqJtJfqtFW3EgcahOMrlrZ8N
-  3Tds7dNY3+M6Bb7JfAQdTpftESu/rd9wJZ1zmObelnrIdvRzdfrWsabahI2ND2Ce/IlEbvg/U
-  Ne4HiVbRxEba4Dyxhxhn0reY9uSvj/bq3XUjRQ62lyfEWIk4IQZVs+K/AS4+BA9WBAAA
-X-Env-Sender: tomasz.wolski@fujitsu.com
-X-Msg-Ref: server-5.tower-859.messagelabs.com!1770907468!228754!1
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.121.0; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 29395 invoked from network); 12 Feb 2026 14:44:28 -0000
-Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
-  by server-5.tower-859.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 12 Feb 2026 14:44:28 -0000
-Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id 177F5100351;
-	Thu, 12 Feb 2026 14:44:28 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 n03ukasimr01.n03.fujitsu.local 177F5100351
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=dspueurope; t=1770907468;
-	bh=0qI2wDlRiVDjHJSxny5kDsk2/uU/zB905Nc28yYvU60=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=O0FA7yBSbJnF/0bttTalPSo7FkQmYeyYXpsypiDQ8dpNYAx3BiPML7oFM4TAhXY42
-	 xnoGWcayNAp2rDsU0Kljoz/tax5vOML7hSw8GNlkWHdc70MUUGT4gZpEerqEia4mnB
-	 N9LGD6B6tLXbgUXFtlVY/KOp1qXtDmTO4myN+NLh5QkOShRQhTYm6M+kITs9zaN0J0
-	 GrdDiNpaMn8E8U6GN5htZwjbzcHZjuGG/b++Btj/PZFmNrNQiQYah2+pjh9NNMfS6F
-	 AWFWM65KN/AmdmYXc04oEriVWJIddzd721JtfkqzpVRWETITjT2SpHhl3Fgpup1kNS
-	 3jc9uJPoKVNbQ==
-Received: from ubuntudhcp (unknown [10.172.107.4])
-	(using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id E89BC10034D;
-	Thu, 12 Feb 2026 14:44:27 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 n03ukasimr01.n03.fujitsu.local E89BC10034D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=dspueurope; t=1770907468;
-	bh=0qI2wDlRiVDjHJSxny5kDsk2/uU/zB905Nc28yYvU60=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=O0FA7yBSbJnF/0bttTalPSo7FkQmYeyYXpsypiDQ8dpNYAx3BiPML7oFM4TAhXY42
-	 xnoGWcayNAp2rDsU0Kljoz/tax5vOML7hSw8GNlkWHdc70MUUGT4gZpEerqEia4mnB
-	 N9LGD6B6tLXbgUXFtlVY/KOp1qXtDmTO4myN+NLh5QkOShRQhTYm6M+kITs9zaN0J0
-	 GrdDiNpaMn8E8U6GN5htZwjbzcHZjuGG/b++Btj/PZFmNrNQiQYah2+pjh9NNMfS6F
-	 AWFWM65KN/AmdmYXc04oEriVWJIddzd721JtfkqzpVRWETITjT2SpHhl3Fgpup1kNS
-	 3jc9uJPoKVNbQ==
-Received: from isar2.ecs00.fujitsu.local (unknown [10.172.183.27])
-	by ubuntudhcp (Postfix) with ESMTP id 8338C2204EA;
-	Thu, 12 Feb 2026 14:44:27 +0000 (UTC)
-From: Tomasz Wolski <tomasz.wolski@fujitsu.com>
-To: alison.schofield@intel.com
-Cc: Smita.KoralahalliChannabasappa@amd.com,
-	ardb@kernel.org,
-	benjamin.cheatham@amd.com,
-	bp@alien8.de,
-	dan.j.williams@intel.com,
-	dave.jiang@intel.com,
-	dave@stgolabs.net,
-	gregkh@linuxfoundation.org,
-	huang.ying.caritas@gmail.com,
-	ira.weiny@intel.com,
-	jack@suse.cz,
-	jeff.johnson@oss.qualcomm.com,
-	jonathan.cameron@huawei.com,
-	len.brown@intel.com,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	lizhijian@fujitsu.com,
-	ming.li@zohomail.com,
-	nathan.fontenot@amd.com,
-	nvdimm@lists.linux.dev,
-	pavel@kernel.org,
-	peterz@infradead.org,
-	rafael@kernel.org,
-	rrichter@amd.com,
-	terry.bowman@amd.com,
-	tomasz.wolski@fujitsu.com,
-	vishal.l.verma@intel.com,
-	willy@infradead.org,
-	yaoxt.fnst@fujitsu.com,
-	yazen.ghannam@amd.com
-Subject: Re: [PATCH v6 0/9] dax/hmem, cxl: Coordinate Soft Reserved handling with CXL and HMEM
-Date: Thu, 12 Feb 2026 15:44:15 +0100
-Message-Id: <20260212144415.10418-1-tomasz.wolski@fujitsu.com>
-X-Mailer: git-send-email 2.35.3
-In-Reply-To: <aYuEIRabA954iSfR@aschofie-mobl2.lan>
-References: <aYuEIRabA954iSfR@aschofie-mobl2.lan>
+	s=arc-20240116; t=1770913127; c=relaxed/simple;
+	bh=m3MppjwD0lziKrRCb4QXyYxGwpqTA2YX+2nAh2ew2LI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=uYwb6rkktqJagYRgxYdsj6n8n+uRVEg9YKS3l2PijbZrN6bG1zKA//SSoXIbigKWIWmycajj1oIxpgtE32QN28A2KACwa7jEufhV5xMpGAM2g1VyaYu4N4gFvcqEJQMVs2e7YTaA0nxrKmiTHTJZxgwBubnJNb6uD0TRtmQ3eQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 73033339;
+	Thu, 12 Feb 2026 08:18:38 -0800 (PST)
+Received: from GX9GF4H4XN (unknown [10.1.30.53])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3F2B03F63F;
+	Thu, 12 Feb 2026 08:18:43 -0800 (PST)
+From: Seunguk Shin <seunguk.shin@arm.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, jack@suse.cz,
+ willy@infradead.org, dan.j.williams@intel.com, Nick.Connolly@arm.com,
+ ffidencio@nvidia.com, seunguk.shin@arm.com
+Subject: [PATCH v2] fs/dax: check zero or empty entry before converting
+ xarray entry
+Date: Thu, 12 Feb 2026 16:18:33 +0000
+Message-ID: <m2tsvmue92.fsf@arm.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain
 
->
->FYI - I am able to confirm the dax regions are back for no-soft-reserved
->case, and my basic hotplug flow works with v6.
->
->-- Alison
+Trying to convert zero or empty xarray entry causes kernel panic.
 
-Hello Alison,
+[    0.737679] EXT4-fs (pmem0p1): mounted filesystem 79676804-7c8b-491a-b2a6-9bae3c72af70 ro with ordered data mode. Quota mode: disabled.
+[    0.737891] VFS: Mounted root (ext4 filesystem) readonly on device 259:1.
+[    0.739119] devtmpfs: mounted
+[    0.739476] Freeing unused kernel memory: 1920K
+[    0.740156] Run /sbin/init as init process
+[    0.740229]   with arguments:
+[    0.740286]     /sbin/init
+[    0.740321]   with environment:
+[    0.740369]     HOME=/
+[    0.740400]     TERM=linux
+[    0.743162] Unable to handle kernel paging request at virtual address fffffdffbf000008
+[    0.743285] Mem abort info:
+[    0.743316]   ESR = 0x0000000096000006
+[    0.743371]   EC = 0x25: DABT (current EL), IL = 32 bits
+[    0.743444]   SET = 0, FnV = 0
+[    0.743489]   EA = 0, S1PTW = 0
+[    0.743545]   FSC = 0x06: level 2 translation fault
+[    0.743610] Data abort info:
+[    0.743656]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+[    0.743720]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[    0.743785]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[    0.743848] swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000000b9d17000
+[    0.743931] [fffffdffbf000008] pgd=10000000bfa3d403, p4d=10000000bfa3d403, pud=1000000040bfe403, pmd=0000000000000000
+[    0.744070] Internal error: Oops: 0000000096000006 [#1]  SMP
+[    0.748888] CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 6.18.4 #1 NONE
+[    0.749421] pstate: 004000c5 (nzcv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[    0.749969] pc : dax_disassociate_entry.constprop.0+0x20/0x50
+[    0.750444] lr : dax_insert_entry+0xcc/0x408
+[    0.750802] sp : ffff80008000b9e0
+[    0.751083] x29: ffff80008000b9e0 x28: 0000000000000000 x27: 0000000000000000
+[    0.751682] x26: 0000000001963d01 x25: ffff0000004f7d90 x24: 0000000000000000
+[    0.752264] x23: 0000000000000000 x22: ffff80008000bcc8 x21: 0000000000000011
+[    0.752836] x20: ffff80008000ba90 x19: 0000000001963d01 x18: 0000000000000000
+[    0.753407] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+[    0.753970] x14: ffffbf3154b9ae70 x13: 0000000000000000 x12: ffffbf3154b9ae70
+[    0.754548] x11: ffffffffffffffff x10: 0000000000000000 x9 : 0000000000000000
+[    0.755122] x8 : 000000000000000d x7 : 000000000000001f x6 : 0000000000000000
+[    0.755707] x5 : 0000000000000000 x4 : 0000000000000000 x3 : fffffdffc0000000
+[    0.756287] x2 : 0000000000000008 x1 : 0000000040000000 x0 : fffffdffbf000000
+[    0.756871] Call trace:
+[    0.757107]  dax_disassociate_entry.constprop.0+0x20/0x50 (P)
+[    0.757592]  dax_iomap_pte_fault+0x4fc/0x808
+[    0.757951]  dax_iomap_fault+0x28/0x30
+[    0.758258]  ext4_dax_huge_fault+0x80/0x2dc
+[    0.758594]  ext4_dax_fault+0x10/0x3c
+[    0.758892]  __do_fault+0x38/0x12c
+[    0.759175]  __handle_mm_fault+0x530/0xcf0
+[    0.759518]  handle_mm_fault+0xe4/0x230
+[    0.759833]  do_page_fault+0x17c/0x4dc
+[    0.760144]  do_translation_fault+0x30/0x38
+[    0.760483]  do_mem_abort+0x40/0x8c
+[    0.760771]  el0_ia+0x4c/0x170
+[    0.761032]  el0t_64_sync_handler+0xd8/0xdc
+[    0.761371]  el0t_64_sync+0x168/0x16c
+[    0.761677] Code: f9453021 f2dfbfe3 cb813080 8b001860 (f9400401)
+[    0.762168] ---[ end trace 0000000000000000 ]---
+[    0.762550] note: init[1] exited with irqs disabled
+[    0.762631] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
 
-I wanted to ask about this scenario.
-Is my understanding correct that this fix is needed for cases without Soft Reserve and:
-1) CXL memory is installed in the server (no hotplug) and OS is started
-2) CXL memory is hot-plugged after the OS starts
-3) Tests with cxl-test driver
+This patch just reorders checking and converting.
 
-In such case either the admin fails to manually create region via cxl cli (if there
-was no auto-regions) or regions fails to be created automatically during driver probe
+Fixes: 38607c62b34b ("fs/dax: properly refcount fs dax pages")
+Signed-off-by: Seunguk Shin <seunguk.shin@arm.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+---
+Changes in v2:
+- Add Fixes and Reviewed-by tags.
+- Rebase on the latest.
+- Link to v1: https://lore.kernel.org/lkml/18af3213-6c46-4611-ba75-da5be5a1c9b0@arm.com/T/#r7160ab8ce8b04db157ea73a7c203b2c69626bfc6
+---
+ fs/dax.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Is this correct?
+diff --git a/fs/dax.c b/fs/dax.c
+index 289e6254aa30..de316be2cc4e 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -443,11 +443,12 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+                                unsigned long address, bool shared)
+ {
+        unsigned long size = dax_entry_size(entry), index;
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
 
-Best regards,
-Tomasz
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return;
+
++       folio = dax_to_folio(entry);
+        index = linear_page_index(vma, address & ~(size - 1));
+        if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
+                if (folio->mapping)
+@@ -468,21 +469,23 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+                                bool trunc)
+ {
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
+
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return;
+
++       folio = dax_to_folio(entry);
+        dax_folio_put(folio);
+ }
+
+ static struct page *dax_busy_page(void *entry)
+ {
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
+
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return NULL;
+
++       folio = dax_to_folio(entry);
+        if (folio_ref_count(folio) - folio_mapcount(folio))
+                return &folio->page;
+        else
+--
+2.34.1
