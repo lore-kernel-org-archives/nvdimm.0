@@ -1,50 +1,48 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEE4234A76E
-	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 21:15:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E890D2773E4
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 23:01:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771449303; cv=none; b=nZzNG9W19hY2ziFT9txDTUNlOloRYixls0v+gw0fqUVqr0jPcuPTtIB3DB2I2NcGbVX5EWQ1Ctxh8S/h0aB1J9wMFGlHfC8d3aoJsEzz1B9AIxeQxo5cc8eLSslJoNWSLTHGW6Z8210Lh3LXNWzHG3UO/9/4ALqivoZJZXLtxw0=
+	t=1771455663; cv=none; b=NhQOQZjNN1+kR8wOPUrcRj/N95es+BN4WOB7Sb38vooodeNbCSIWeu8OULkismRsljCMbknWiovvNB9+3y7bWRQjIW0pUo3gjJCK6BpVdJ4ZlH8lV0Wo+zNhBXgyN7scml8//dvHw4Jgex39htxoi0jbqpaYcwscFKXsX+eqs8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771449303; c=relaxed/simple;
-	bh=qsXhhT9BId6yhrWp4Rpzz7my5feP1D5dD5zJOeCYP8g=;
+	s=arc-20240116; t=1771455663; c=relaxed/simple;
+	bh=Ka3shS3eNTr96+8Nt7+Mh2dJ1uTBTo6+XEd9mbl4GFA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=saOrrcPdQVyHYShhEpbSb9Cj655r5/Nb57Lih7v0DrGUwlUPka8+YKFPBeOK47zfEcUjc+rprv6k+6nZBcq/7cwHH4SnfE4xEMIXYqvHOU4YKu6qckybAZTspQji0NeGCIgihlfcm/KwDPHBRj0Dt2fA1R+mSagQ/6iCQHsu3ko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OESQTwkn; arc=none smtp.client-ip=192.198.163.19
+	 In-Reply-To:Content-Type; b=ArPNHWHaEvKeoZxNvDq4H/NaMfGu/81aKGuS4L4r6FY+xWqTX05uXatooc3kS2JFMbkD2pxq2X4EtgZYaMR3PSxHBF0T04FT4KZ2I3AD7TbLUtmo1bBC0FK4Zo+/9gmN/XfnFXnQ/rUcmfEft2BkvBn5K1wVKZKpAiD2n5mDwFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fnn4Gy+Z; arc=none smtp.client-ip=198.175.65.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OESQTwkn"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fnn4Gy+Z"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771449302; x=1802985302;
+  t=1771455662; x=1802991662;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=qsXhhT9BId6yhrWp4Rpzz7my5feP1D5dD5zJOeCYP8g=;
-  b=OESQTwknW4KC124JSyNSvLkVGzvwcCgHysA8rOmwHGLhtqXq7v4gvMLz
-   YFVyzaT9UMSS3jMCMP9OpN/AR/Vk+bY9CZ+42ao8lrOwMPXRRor4kp0QV
-   OM4kbH0//Leww75/0UqL7iwmK2wyJefqm7/APU0oauRYwIGEtN6qQ8TDx
-   ZnvCccHnm2MmbHc7+nHRrk86WHa4klWb2ULOiBwE3RLOUFnD4VE+sVBdP
-   VUJnLt+AjkLNDUT7TTJonLJYIUKMSlJ1gJEvZrKJbVU/nQ+PQjbBWDQeU
-   6wDyuFtYKSu9/DA+Z49uHtXZ72Gsr+qwB124jTTYOzEYIbBHzfDztXDWs
-   g==;
-X-CSE-ConnectionGUID: BPas2kWfQ++gjnVaiRol4w==
-X-CSE-MsgGUID: pD9BgpMcStyRJgdJM3kjPg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="71557491"
+  bh=Ka3shS3eNTr96+8Nt7+Mh2dJ1uTBTo6+XEd9mbl4GFA=;
+  b=fnn4Gy+Z5C4TBGEJL2dPFtc8KOHlaqSIZNW/6cBLrenEs95skmlAPHkP
+   FwGjji2m9WM5jW5qYArS7KTKEa7/+V39ydnV63u4G8NTNFY5mHa4CWeZn
+   X3AcKtynm7RLDLjHe0z64dHbyDdm2YqQXkSyxjqtCyYL+gKvGXnar2gHy
+   gKHwxsDMUP0YQxN8UQs0059U0BR1NshfrBkUNYA7cw6djPeB1WmxlPoBr
+   qbvNqTeEPXyt9k4GbMI7etDOmfuAqDNCVbMwLZ+DJ4lXV+13a0CGnjVg9
+   j3e6oM6Ak/KhyjqEpOLw+zjAlSSY39ZKdfLcfMgQ+RX7yF8TmRV0OC2y2
+   w==;
+X-CSE-ConnectionGUID: 5pWVyk/1Ri6pARMI08emdA==
+X-CSE-MsgGUID: 6m1aYodaTVmRZSOsSadxtQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="89952574"
 X-IronPort-AV: E=Sophos;i="6.21,299,1763452800"; 
-   d="scan'208";a="71557491"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 13:15:01 -0800
-X-CSE-ConnectionGUID: RDfgAn4DSf6gypsJkEZ+jQ==
-X-CSE-MsgGUID: MGMguon1QSCGshk4mxFxpA==
+   d="scan'208";a="89952574"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 15:01:01 -0800
+X-CSE-ConnectionGUID: lu4mzYO2Qx2UJSEQGwEIKg==
+X-CSE-MsgGUID: UY/jyFuQQHq6b78u0N1xWg==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.21,299,1763452800"; 
-   d="scan'208";a="214424658"
 Received: from aduenasd-mobl5.amr.corp.intel.com (HELO [10.125.109.212]) ([10.125.109.212])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 13:15:01 -0800
-Message-ID: <a54522e6-0351-4aa9-a049-7473b1994544@intel.com>
-Date: Wed, 18 Feb 2026 14:15:00 -0700
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 15:00:58 -0800
+Message-ID: <066c48be-032c-4d27-8b71-de6ba55a7349@intel.com>
+Date: Wed, 18 Feb 2026 16:00:57 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,202 +50,130 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH v3] test/cxl-poison.sh: replace sysfs usage with
- cxl-cli cmds
-To: Alison Schofield <alison.schofield@intel.com>,
- Ben Cheatham <Benjamin.Cheatham@amd.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-References: <20260218191108.1471718-1-alison.schofield@intel.com>
+Subject: Re: [PATCH V7 01/19] dax: move dax_pgoff_to_phys from [drivers/dax/]
+ device.c to bus.c
+To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
+ Miklos Szeredi <miklos@szeredi.hu>, Dan Williams <dan.j.williams@intel.com>,
+ Bernd Schubert <bschubert@ddn.com>,
+ Alison Schofield <alison.schofield@intel.com>
+Cc: John Groves <jgroves@micron.com>, John Groves <jgroves@fastmail.com>,
+ Jonathan Corbet <corbet@lwn.net>, Vishal Verma <vishal.l.verma@intel.com>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ David Hildenbrand <david@kernel.org>, Christian Brauner
+ <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>,
+ Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>,
+ Amir Goldstein <amir73il@gmail.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong
+ <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>,
+ Bagas Sanjaya <bagasdotme@gmail.com>, James Morse <james.morse@arm.com>,
+ Fuad Tabba <tabba@google.com>, Sean Christopherson <seanjc@google.com>,
+ Shivank Garg <shivankg@amd.com>, Ackerley Tng <ackerleytng@google.com>,
+ Gregory Price <gourry@gourry.net>, Aravind Ramesh <arramesh@micron.com>,
+ Ajay Joshi <ajayjoshi@micron.com>,
+ "venkataravis@micron.com" <venkataravis@micron.com>,
+ "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
+ <20260118223100.92299-1-john@jagalactic.com>
+ <0100019bd33bc40a-12130f8b-289d-4a38-ab4b-7dfedf614d34-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260218191108.1471718-1-alison.schofield@intel.com>
+In-Reply-To: <0100019bd33bc40a-12130f8b-289d-4a38-ab4b-7dfedf614d34-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 2/18/26 12:11 PM, Alison Schofield wrote:
-> cxl-cli commands were recently added for poison inject and clear
-> operations by memdev. Replace the writes to sysfs with the new
-> commands in the cxl-poison unit test.
+On 1/18/26 3:31 PM, John Groves wrote:
+> From: John Groves <john@groves.net>
 > 
-> All cxl-test memdevs are created as poison_injectable, so just
-> confirm that the new poison_injectable field is indeed 'true'.
+> This function will be used by both device.c and fsdev.c, but both are
+> loadable modules. Moving to bus.c puts it in core and makes it available
+> to both.
 > 
-> Continue to use the sysfs writes for inject and clear poison
-> by region offset until that support arrives in cxl-cli.
+> No code changes - just relocated.
 > 
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> Signed-off-by: John Groves <john@groves.net>
 
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
 > ---
+>  drivers/dax/bus.c    | 24 ++++++++++++++++++++++++
+>  drivers/dax/device.c | 23 -----------------------
+>  2 files changed, 24 insertions(+), 23 deletions(-)
 > 
-> Change in v3:
-> Use new field 'poison_injectable' in memdev selection (BenC)
-> Update commit log to include poison_injectable check.
-> 
-> Change in v2:
-> Use final format of new cxl-cli cmds:
-> 	inject-media-poison and clear-media-poison
-> 
-> 
->  test/cxl-poison.sh | 82 +++++++++++++++++++++++++---------------------
->  1 file changed, 44 insertions(+), 38 deletions(-)
-> 
-> diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
-> index 58cf132b613b..bbd147c85a77 100644
-> --- a/test/cxl-poison.sh
-> +++ b/test/cxl-poison.sh
-> @@ -20,7 +20,8 @@ find_memdev()
->  {
->  	readarray -t capable_mems < <("$CXL" list -b "$CXL_TEST_BUS" -M |
->  		jq -r ".[] | select(.pmem_size != null) |
-> -		select(.ram_size != null) | .memdev")
-> +		select(.ram_size != null) |
-> +		select(.poison_injectable == true) | .memdev")
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index fde29e0ad68b..a73f54eac567 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -1417,6 +1417,30 @@ static const struct device_type dev_dax_type = {
+>  	.groups = dax_attribute_groups,
+>  };
 >  
->  	if [ ${#capable_mems[@]} == 0 ]; then
->  		echo "no memdevs found for test"
-> @@ -41,32 +42,37 @@ find_auto_region()
->  	echo "$region"
+> +/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+> +__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+> +			      unsigned long size)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < dev_dax->nr_range; i++) {
+> +		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+> +		struct range *range = &dax_range->range;
+> +		unsigned long long pgoff_end;
+> +		phys_addr_t phys;
+> +
+> +		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
+> +		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
+> +			continue;
+> +		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+> +		if (phys + size - 1 <= range->end)
+> +			return phys;
+> +		break;
+> +	}
+> +	return -1;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
+> +
+>  static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  {
+>  	struct dax_region *dax_region = data->dax_region;
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index 22999a402e02..132c1d03fd07 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -57,29 +57,6 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+>  			   vma->vm_file, func);
 >  }
 >  
-> -# When cxl-cli support for inject and clear arrives, replace
-> -# the writes to /sys/kernel/debug with the new cxl commands.
+> -/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+> -__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+> -		unsigned long size)
+> -{
+> -	int i;
 > -
-> -_do_poison_sysfs()
-> +_do_poison()
+> -	for (i = 0; i < dev_dax->nr_range; i++) {
+> -		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+> -		struct range *range = &dax_range->range;
+> -		unsigned long long pgoff_end;
+> -		phys_addr_t phys;
+> -
+> -		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
+> -		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
+> -			continue;
+> -		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+> -		if (phys + size - 1 <= range->end)
+> -			return phys;
+> -		break;
+> -	}
+> -	return -1;
+> -}
+> -
+>  static void dax_set_mapping(struct vm_fault *vmf, unsigned long pfn,
+>  			      unsigned long fault_size)
 >  {
->  	local action="$1" dev="$2" addr="$3"
->  	local expect_fail=${4:-false}
->  
-> -	if "$expect_fail"; then
-> -		if echo "$addr" > "/sys/kernel/debug/cxl/$dev/${action}_poison"; then
-> -			echo "Expected ${action}_poison to fail for $addr"
-> -			err "$LINENO"
-> -		fi
-> -	else
-> -		echo "$addr" > "/sys/kernel/debug/cxl/$dev/${action}_poison"
-> +	# Regions use sysfs, memdevs use cxl-cli commands
-> +	if [[ "$dev" =~ ^region ]]; then
-> +		local sysfs_path="/sys/kernel/debug/cxl/$dev/${action}_poison"
-> +		"$expect_fail" && echo "$addr" > "$sysfs_path" && err "$LINENO"
-> +		"$expect_fail" || echo "$addr" > "$sysfs_path"
-> +		return
->  	fi
-> +
-> +	case "$action" in
-> +	inject) local cmd=("$CXL" inject-media-poison "$dev" -a "$addr") ;;
-> +	clear)	local cmd=("$CXL" clear-media-poison "$dev" -a "$addr") ;;
-> +	*)	err "$LINENO" ;;
-> +	esac
-> +
-> +	"$expect_fail" && "${cmd[@]}" && err "$LINENO"
-> +	"$expect_fail" || "${cmd[@]}"
->  }
->  
-> -inject_poison_sysfs()
-> +inject_poison()
->  {
-> -	_do_poison_sysfs 'inject' "$@"
-> +	_do_poison 'inject' "$@"
->  }
->  
-> -clear_poison_sysfs()
-> +clear_poison()
->  {
-> -	_do_poison_sysfs 'clear' "$@"
-> +	_do_poison 'clear' "$@"
->  }
->  
->  check_trace_entry()
-> @@ -121,27 +127,27 @@ validate_poison_found()
->  test_poison_by_memdev_by_dpa()
->  {
->  	find_memdev
-> -	inject_poison_sysfs "$memdev" "0x40000000"
-> -	inject_poison_sysfs "$memdev" "0x40001000"
-> -	inject_poison_sysfs "$memdev" "0x600"
-> -	inject_poison_sysfs "$memdev" "0x0"
-> +	inject_poison "$memdev" "0x40000000"
-> +	inject_poison "$memdev" "0x40001000"
-> +	inject_poison "$memdev" "0x600"
-> +	inject_poison "$memdev" "0x0"
->  	validate_poison_found "-m $memdev" 4
->  
-> -	clear_poison_sysfs "$memdev" "0x40000000"
-> -	clear_poison_sysfs "$memdev" "0x40001000"
-> -	clear_poison_sysfs "$memdev" "0x600"
-> -	clear_poison_sysfs "$memdev" "0x0"
-> +	clear_poison "$memdev" "0x40000000"
-> +	clear_poison "$memdev" "0x40001000"
-> +	clear_poison "$memdev" "0x600"
-> +	clear_poison "$memdev" "0x0"
->  	validate_poison_found "-m $memdev" 0
->  }
->  
->  test_poison_by_region_by_dpa()
->  {
-> -	inject_poison_sysfs "$mem0" "0"
-> -	inject_poison_sysfs "$mem1" "0"
-> +	inject_poison "$mem0" "0"
-> +	inject_poison "$mem1" "0"
->  	validate_poison_found "-r $region" 2
->  
-> -	clear_poison_sysfs "$mem0" "0"
-> -	clear_poison_sysfs "$mem1" "0"
-> +	clear_poison "$mem0" "0"
-> +	clear_poison "$mem1" "0"
->  	validate_poison_found "-r $region" 0
->  }
->  
-> @@ -168,15 +174,15 @@ test_poison_by_region_offset()
->  	# Inject at the offset and check result using the hpa
->  	# ABI takes an offset, but recall the hpa to check trace event
->  
-> -	inject_poison_sysfs "$region" "$cache_size"
-> +	inject_poison "$region" "$cache_size"
->  	check_trace_entry "$region" "$hpa1"
-> -	inject_poison_sysfs "$region" "$((gran + cache_size))"
-> +	inject_poison "$region" "$((gran + cache_size))"
->  	check_trace_entry "$region" "$hpa2"
->  	validate_poison_found "-r $region" 2
->  
-> -	clear_poison_sysfs "$region" "$cache_size"
-> +	clear_poison "$region" "$cache_size"
->  	check_trace_entry "$region" "$hpa1"
-> -	clear_poison_sysfs "$region" "$((gran + cache_size))"
-> +	clear_poison "$region" "$((gran + cache_size))"
->  	check_trace_entry "$region" "$hpa2"
->  	validate_poison_found "-r $region" 0
->  }
-> @@ -196,21 +202,21 @@ test_poison_by_region_offset_negative()
->  	if [[ $cache_size -gt 0 ]]; then
->  		cache_offset=$((cache_size - 1))
->  		echo "Testing offset within cache: $cache_offset (cache_size: $cache_size)"
-> -		inject_poison_sysfs "$region" "$cache_offset" true
-> -		clear_poison_sysfs "$region" "$cache_offset" true
-> +		inject_poison "$region" "$cache_offset" true
-> +		clear_poison "$region" "$cache_offset" true
->  	else
->  		echo "Skipping cache test - cache_size is 0"
->  	fi
->  
->  	# Offset exceeds region size
->  	exceed_offset=$((region_size))
-> -	inject_poison_sysfs "$region" "$exceed_offset" true
-> -	clear_poison_sysfs "$region" "$exceed_offset" true
-> +	inject_poison "$region" "$exceed_offset" true
-> +	clear_poison "$region" "$exceed_offset" true
->  
->  	# Offset exceeds region size by a lot
->  	large_offset=$((region_size * 2))
-> -	inject_poison_sysfs "$region" "$large_offset" true
-> -	clear_poison_sysfs "$region" "$large_offset" true
-> +	inject_poison "$region" "$large_offset" true
-> +	clear_poison "$region" "$large_offset" true
->  }
->  
->  is_unaligned() {
 
