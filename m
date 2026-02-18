@@ -1,298 +1,244 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474C9330B34
-	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 18:05:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB1B2BE7DB
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 19:11:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771437921; cv=none; b=oPOnEGoNyOOmHEGXKKd1qPBTA1eOexAnXVAGXec711QQ/WVWBfraupGi8OT3XlW0tRCmPfa0E1BlwMwrzCDFp3Ne3M9ILuheu/v5R5XZyRHUdzTKRgupQCN1/cTDBCfvVgl4xyzef5/E1J34Hei9DQLkMPFwque/hsPq+03t32o=
+	t=1771441874; cv=none; b=jCDQNf/Zf9BFLz5fdxtvZ4DYbWK/bzsCnWWHlwg0V8zCXBnYLn97B/LNJHLqTPDRe6mEnXcibDucbC7GcRrAg+UoeAEVlHxp2PCAXVzK0YVJtHCwHJSmnIVjvHlx3GaLiat07ciwBDObOaMS2YUg7/W5LTL+6erq9SYOtMjo8Lk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771437921; c=relaxed/simple;
-	bh=KV/otW9VcwuBIhFD84QOZEGe81GPw4QAdk7QYnmFgcc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CbsMHXlCAEoyNHGPnbANHFnbeTv0u9dr6qHcyLc7qHDZ5THTPcd8truB54R07avQlbtFlkO/LCzkMZ2XRtV7sEYDC8ET4qHMGo0I/pjCHtKP1I3JX9PQPBfTt45pna1FRRn1I1EJzihy1grpo+QQP14BbfxDalKHPJCA3rRPnsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MsgwiOgR; arc=none smtp.client-ip=198.175.65.12
+	s=arc-20240116; t=1771441874; c=relaxed/simple;
+	bh=Blj+oEHu1O9G0n1XXDQSv1gKyDmiDFUXf4UxdRhVs8k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fQiP02lUxd3AS+y2m7M8KS5ljsFhZAg6hZ6Lxgr+i3j5Ryl+K6ppDl25Aoo2m9d53vsUH8tn4k3NJJNoGqxDiIWWZy+1hBhIVIhsBVu1or7ineNujXwcuoRB7vWKJeHRle6GjJlB4W7qt+4g39zK9yv/ZaGGGMKw0HoTzChnv9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=a6G6LU5H; arc=none smtp.client-ip=192.198.163.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MsgwiOgR"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="a6G6LU5H"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771437920; x=1802973920;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=KV/otW9VcwuBIhFD84QOZEGe81GPw4QAdk7QYnmFgcc=;
-  b=MsgwiOgR9czX4iElVO4a/Fx81HitonZQa/+EQWQDxKJj2B+xVQDsm5Ip
-   Fv8kXFJPiKTVA3nUiFflb9I9lDu7icsydYduxO5bKPwXqS4EHD8SeNuea
-   nAFDiuj2LRJPFQJFPUu9nVj9NE+eoSnN2Dac8jmaPU9o9Ha4Lo406auGq
-   LajHuDjENueUtsqkx3naINQ9LhWF/P9+NCCsuw1gXiiTCrH6gtDau350b
-   KZKf1IX6YDfaudPbONB7KZJca22HL12gJy/3Dqb178hxUcmMGHumVWB0T
-   VuO5Z8gFRcUvoduRD5RHugk59l9sz8pUtZCI8Rq0T0DiQCRP+cTw91avI
-   A==;
-X-CSE-ConnectionGUID: Mqlg3ng9Q66yx8kuyyF3Tg==
-X-CSE-MsgGUID: 4MxhcknFQ/WUtVyM26AXjQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="83970819"
+  t=1771441872; x=1802977872;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Blj+oEHu1O9G0n1XXDQSv1gKyDmiDFUXf4UxdRhVs8k=;
+  b=a6G6LU5HtZtpJaUlz5K/K0Ir+pj269jK6b3GokYKdNqNWo0ERVAfTxim
+   9K7h2apNn1CiexsuV++gpgXU6T9RjUOXtvO0a2XUz2roVu+BGux7h5xha
+   1J3D6mmjcSGR3WU7XZcQNPuIq7tJ+OSsj6+XZ3rzzXLiW0VyZ/dMvp5ux
+   IiRxiUZl0jm9FMJJeq0+BFzsKkhx8PgnrrYl5iwUkCh9C5QAop9BYcTWr
+   8KpnJaAF+8wqswgo1Zl/3qh5yjGh6FtSpR9uk+zqH/Uwm6qGVcUytgo61
+   B3BbMSrJRt58M2YSgP/KWWhg9UDUN3n9BtvNOptzRQuwbWuIKI9WRcRzf
+   Q==;
+X-CSE-ConnectionGUID: lRx1yTouTy2UGsjNdnzoJQ==
+X-CSE-MsgGUID: +hrErnxnRjuOPTqs75zcFQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="72593648"
 X-IronPort-AV: E=Sophos;i="6.21,298,1763452800"; 
-   d="scan'208";a="83970819"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 10:05:19 -0800
-X-CSE-ConnectionGUID: WI90ckUVQdGPqWxPjppRbg==
-X-CSE-MsgGUID: RZK+wqc4TRq9kqmdsrSZ3A==
+   d="scan'208";a="72593648"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 11:11:12 -0800
+X-CSE-ConnectionGUID: Sbjd6AwcQAyPnWdyabXAEw==
+X-CSE-MsgGUID: AfB4rciJT8OrcTgVFTb3zg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,298,1763452800"; 
-   d="scan'208";a="212590915"
-Received: from aduenasd-mobl5.amr.corp.intel.com (HELO [10.125.109.212]) ([10.125.109.212])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 10:05:16 -0800
-Message-ID: <9c1994f1-7387-4d63-a678-8fd46a0310d1@intel.com>
-Date: Wed, 18 Feb 2026 11:05:15 -0700
+   d="scan'208";a="237266432"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.94])
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 11:11:12 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Ben Cheatham <Benjamin.Cheatham@amd.com>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: [ndctl PATCH v3] test/cxl-poison.sh: replace sysfs usage with cxl-cli cmds
+Date: Wed, 18 Feb 2026 11:11:06 -0800
+Message-ID: <20260218191108.1471718-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 8/9] dax/hmem, cxl: Defer and resolve ownership of Soft
- Reserved memory ranges
-To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
- linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
- linux-pm@vger.kernel.org
-Cc: Ard Biesheuvel <ardb@kernel.org>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Dan Williams <dan.j.williams@intel.com>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Yazen Ghannam <yazen.ghannam@amd.com>, Davidlohr Bueso <dave@stgolabs.net>,
- Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
- Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
- Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
- Ying Huang <huang.ying.caritas@gmail.com>,
- Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Nathan Fontenot <nathan.fontenot@amd.com>,
- Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
- Benjamin Cheatham <benjamin.cheatham@amd.com>,
- Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
- Tomasz Wolski <tomasz.wolski@fujitsu.com>
-References: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
- <20260210064501.157591-9-Smita.KoralahalliChannabasappa@amd.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260210064501.157591-9-Smita.KoralahalliChannabasappa@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+
+cxl-cli commands were recently added for poison inject and clear
+operations by memdev. Replace the writes to sysfs with the new
+commands in the cxl-poison unit test.
+
+All cxl-test memdevs are created as poison_injectable, so just
+confirm that the new poison_injectable field is indeed 'true'.
+
+Continue to use the sysfs writes for inject and clear poison
+by region offset until that support arrives in cxl-cli.
+
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+
+Change in v3:
+Use new field 'poison_injectable' in memdev selection (BenC)
+Update commit log to include poison_injectable check.
+
+Change in v2:
+Use final format of new cxl-cli cmds:
+	inject-media-poison and clear-media-poison
 
 
+ test/cxl-poison.sh | 82 +++++++++++++++++++++++++---------------------
+ 1 file changed, 44 insertions(+), 38 deletions(-)
 
-On 2/9/26 11:45 PM, Smita Koralahalli wrote:
-> The current probe time ownership check for Soft Reserved memory based
-> solely on CXL window intersection is insufficient. dax_hmem probing is not
-> always guaranteed to run after CXL enumeration and region assembly, which
-> can lead to incorrect ownership decisions before the CXL stack has
-> finished publishing windows and assembling committed regions.
-> 
-> Introduce deferred ownership handling for Soft Reserved ranges that
-> intersect CXL windows. When such a range is encountered during dax_hmem
-> probe, schedule deferred work and wait for the CXL stack to complete
-> enumeration and region assembly before deciding ownership.
-> 
-> Evaluate ownership of Soft Reserved ranges based on CXL region
-> containment.
-> 
->    - If all Soft Reserved ranges are fully contained within committed CXL
->      regions, DROP handling Soft Reserved ranges from dax_hmem and allow
->      dax_cxl to bind.
-> 
->    - If any Soft Reserved range is not fully claimed by committed CXL
->      region, REGISTER the Soft Reserved ranges with dax_hmem.
-> 
-> Use dax_cxl_mode to coordinate ownership decisions for Soft Reserved
-> ranges. Once, ownership resolution is complete, flush the deferred work
-> from dax_cxl before allowing dax_cxl to bind.
-> 
-> This enforces a strict ownership. Either CXL fully claims the Soft
-> reserved ranges or it relinquishes it entirely.
-> 
-> Co-developed-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-> ---
->  drivers/dax/bus.c       |  3 ++
->  drivers/dax/bus.h       | 19 ++++++++++
->  drivers/dax/cxl.c       |  1 +
->  drivers/dax/hmem/hmem.c | 78 +++++++++++++++++++++++++++++++++++++++--
->  4 files changed, 99 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 92b88952ede1..81985bcc70f9 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -25,6 +25,9 @@ DECLARE_RWSEM(dax_region_rwsem);
->   */
->  DECLARE_RWSEM(dax_dev_rwsem);
->  
-> +enum dax_cxl_mode dax_cxl_mode = DAX_CXL_MODE_DEFER;
-> +EXPORT_SYMBOL_NS_GPL(dax_cxl_mode, "CXL");
-> +
->  static DEFINE_MUTEX(dax_hmem_lock);
->  static dax_hmem_deferred_fn hmem_deferred_fn;
->  static void *dax_hmem_data;
-> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-> index b58a88e8089c..82616ff52fd1 100644
-> --- a/drivers/dax/bus.h
-> +++ b/drivers/dax/bus.h
-> @@ -41,6 +41,25 @@ struct dax_device_driver {
->  	void (*remove)(struct dev_dax *dev);
->  };
->  
-> +/*
-> + * enum dax_cxl_mode - State machine to determine ownership for CXL
-> + * tagged Soft Reserved memory ranges.
-> + * @DAX_CXL_MODE_DEFER: Ownership resolution pending. Set while waiting
-> + * for CXL enumeration and region assembly to complete.
-> + * @DAX_CXL_MODE_REGISTER: CXL regions do not fully cover Soft Reserved
-> + * ranges. Fall back to registering those ranges via dax_hmem.
-> + * @DAX_CXL_MODE_DROP: All Soft Reserved ranges intersecting CXL windows
-> + * are fully contained within committed CXL regions. Drop HMEM handling
-> + * and allow dax_cxl to bind.
-> + */
-> +enum dax_cxl_mode {
-> +	DAX_CXL_MODE_DEFER,
-> +	DAX_CXL_MODE_REGISTER,
-> +	DAX_CXL_MODE_DROP,
-> +};
-> +
-> +extern enum dax_cxl_mode dax_cxl_mode;
-> +
->  typedef void (*dax_hmem_deferred_fn)(void *data);
->  
->  int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data);
-> diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-> index a2136adfa186..3ab39b77843d 100644
-> --- a/drivers/dax/cxl.c
-> +++ b/drivers/dax/cxl.c
-> @@ -44,6 +44,7 @@ static struct cxl_driver cxl_dax_region_driver = {
->  
->  static void cxl_dax_region_driver_register(struct work_struct *work)
->  {
-> +	dax_hmem_flush_work();
->  	cxl_driver_register(&cxl_dax_region_driver);
->  }
->  
-> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-> index 1e3424358490..85854e25254b 100644
-> --- a/drivers/dax/hmem/hmem.c
-> +++ b/drivers/dax/hmem/hmem.c
-> @@ -3,6 +3,7 @@
->  #include <linux/memregion.h>
->  #include <linux/module.h>
->  #include <linux/dax.h>
-> +#include <cxl/cxl.h>
->  #include "../bus.h"
->  
->  static bool region_idle;
-> @@ -69,8 +70,18 @@ static int hmem_register_device(struct device *host, int target_nid,
->  	if (IS_ENABLED(CONFIG_DEV_DAX_CXL) &&
->  	    region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
->  			      IORES_DESC_CXL) != REGION_DISJOINT) {
-> -		dev_dbg(host, "deferring range to CXL: %pr\n", res);
-> -		return 0;
-> +		switch (dax_cxl_mode) {
-> +		case DAX_CXL_MODE_DEFER:
-> +			dev_dbg(host, "deferring range to CXL: %pr\n", res);
-> +			dax_hmem_queue_work();
-> +			return 0;
-> +		case DAX_CXL_MODE_REGISTER:
-> +			dev_dbg(host, "registering CXL range: %pr\n", res);
-> +			break;
-> +		case DAX_CXL_MODE_DROP:
-> +			dev_dbg(host, "dropping CXL range: %pr\n", res);
-> +			return 0;
-> +		}
->  	}
->  
->  	rc = region_intersects_soft_reserve(res->start, resource_size(res));
-> @@ -123,8 +134,70 @@ static int hmem_register_device(struct device *host, int target_nid,
->  	return rc;
->  }
->  
-> +static int hmem_register_cxl_device(struct device *host, int target_nid,
-> +				    const struct resource *res)
-> +{
-> +	if (region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
-> +			      IORES_DESC_CXL) != REGION_DISJOINT)
-> +		return hmem_register_device(host, target_nid, res);
-> +
-> +	return 0;
-> +}
-> +
-> +static int soft_reserve_has_cxl_match(struct device *host, int target_nid,
-> +				      const struct resource *res)
-> +{
-> +	if (region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
-> +			      IORES_DESC_CXL) != REGION_DISJOINT) {
-> +		if (!cxl_region_contains_soft_reserve((struct resource *)res))
-> +			return 1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void process_defer_work(void *data)
-> +{
-> +	struct platform_device *pdev = data;
-> +	int rc;
-> +
-> +	/* relies on cxl_acpi and cxl_pci having had a chance to load */
-> +	wait_for_device_probe();
-> +
-> +	rc = walk_hmem_resources(&pdev->dev, soft_reserve_has_cxl_match);
-> +
-> +	if (!rc) {
-> +		dax_cxl_mode = DAX_CXL_MODE_DROP;
-> +		dev_dbg(&pdev->dev, "All Soft Reserved ranges claimed by CXL\n");
-> +	} else {
-> +		dax_cxl_mode = DAX_CXL_MODE_REGISTER;
-> +		dev_warn(&pdev->dev,
-> +			 "Soft Reserved not fully contained in CXL; using HMEM\n");
-> +	}
-> +
-> +	walk_hmem_resources(&pdev->dev, hmem_register_cxl_device);
-> +}
-> +
-> +static void kill_defer_work(void *data)
-> +{
-> +	struct platform_device *pdev = data;
-> +
-> +	dax_hmem_flush_work();
-> +	dax_hmem_unregister_work(process_defer_work, pdev);
-> +}
-> +
->  static int dax_hmem_platform_probe(struct platform_device *pdev)
->  {
-> +	int rc;
-> +
-> +	rc = dax_hmem_register_work(process_defer_work, pdev);
-
-Do we need to take a reference on pdev when we queue the work?
-
-DJ
-
-> +	if (rc)
-> +		return rc;
-> +
-> +	rc = devm_add_action_or_reset(&pdev->dev, kill_defer_work, pdev);
-> +	if (rc)
-> +		return rc;
-> +
->  	return walk_hmem_resources(&pdev->dev, hmem_register_device);
->  }
->  
-> @@ -174,3 +247,4 @@ MODULE_ALIAS("platform:hmem_platform*");
->  MODULE_DESCRIPTION("HMEM DAX: direct access to 'specific purpose' memory");
->  MODULE_LICENSE("GPL v2");
->  MODULE_AUTHOR("Intel Corporation");
-> +MODULE_IMPORT_NS("CXL");
+diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
+index 58cf132b613b..bbd147c85a77 100644
+--- a/test/cxl-poison.sh
++++ b/test/cxl-poison.sh
+@@ -20,7 +20,8 @@ find_memdev()
+ {
+ 	readarray -t capable_mems < <("$CXL" list -b "$CXL_TEST_BUS" -M |
+ 		jq -r ".[] | select(.pmem_size != null) |
+-		select(.ram_size != null) | .memdev")
++		select(.ram_size != null) |
++		select(.poison_injectable == true) | .memdev")
+ 
+ 	if [ ${#capable_mems[@]} == 0 ]; then
+ 		echo "no memdevs found for test"
+@@ -41,32 +42,37 @@ find_auto_region()
+ 	echo "$region"
+ }
+ 
+-# When cxl-cli support for inject and clear arrives, replace
+-# the writes to /sys/kernel/debug with the new cxl commands.
+-
+-_do_poison_sysfs()
++_do_poison()
+ {
+ 	local action="$1" dev="$2" addr="$3"
+ 	local expect_fail=${4:-false}
+ 
+-	if "$expect_fail"; then
+-		if echo "$addr" > "/sys/kernel/debug/cxl/$dev/${action}_poison"; then
+-			echo "Expected ${action}_poison to fail for $addr"
+-			err "$LINENO"
+-		fi
+-	else
+-		echo "$addr" > "/sys/kernel/debug/cxl/$dev/${action}_poison"
++	# Regions use sysfs, memdevs use cxl-cli commands
++	if [[ "$dev" =~ ^region ]]; then
++		local sysfs_path="/sys/kernel/debug/cxl/$dev/${action}_poison"
++		"$expect_fail" && echo "$addr" > "$sysfs_path" && err "$LINENO"
++		"$expect_fail" || echo "$addr" > "$sysfs_path"
++		return
+ 	fi
++
++	case "$action" in
++	inject) local cmd=("$CXL" inject-media-poison "$dev" -a "$addr") ;;
++	clear)	local cmd=("$CXL" clear-media-poison "$dev" -a "$addr") ;;
++	*)	err "$LINENO" ;;
++	esac
++
++	"$expect_fail" && "${cmd[@]}" && err "$LINENO"
++	"$expect_fail" || "${cmd[@]}"
+ }
+ 
+-inject_poison_sysfs()
++inject_poison()
+ {
+-	_do_poison_sysfs 'inject' "$@"
++	_do_poison 'inject' "$@"
+ }
+ 
+-clear_poison_sysfs()
++clear_poison()
+ {
+-	_do_poison_sysfs 'clear' "$@"
++	_do_poison 'clear' "$@"
+ }
+ 
+ check_trace_entry()
+@@ -121,27 +127,27 @@ validate_poison_found()
+ test_poison_by_memdev_by_dpa()
+ {
+ 	find_memdev
+-	inject_poison_sysfs "$memdev" "0x40000000"
+-	inject_poison_sysfs "$memdev" "0x40001000"
+-	inject_poison_sysfs "$memdev" "0x600"
+-	inject_poison_sysfs "$memdev" "0x0"
++	inject_poison "$memdev" "0x40000000"
++	inject_poison "$memdev" "0x40001000"
++	inject_poison "$memdev" "0x600"
++	inject_poison "$memdev" "0x0"
+ 	validate_poison_found "-m $memdev" 4
+ 
+-	clear_poison_sysfs "$memdev" "0x40000000"
+-	clear_poison_sysfs "$memdev" "0x40001000"
+-	clear_poison_sysfs "$memdev" "0x600"
+-	clear_poison_sysfs "$memdev" "0x0"
++	clear_poison "$memdev" "0x40000000"
++	clear_poison "$memdev" "0x40001000"
++	clear_poison "$memdev" "0x600"
++	clear_poison "$memdev" "0x0"
+ 	validate_poison_found "-m $memdev" 0
+ }
+ 
+ test_poison_by_region_by_dpa()
+ {
+-	inject_poison_sysfs "$mem0" "0"
+-	inject_poison_sysfs "$mem1" "0"
++	inject_poison "$mem0" "0"
++	inject_poison "$mem1" "0"
+ 	validate_poison_found "-r $region" 2
+ 
+-	clear_poison_sysfs "$mem0" "0"
+-	clear_poison_sysfs "$mem1" "0"
++	clear_poison "$mem0" "0"
++	clear_poison "$mem1" "0"
+ 	validate_poison_found "-r $region" 0
+ }
+ 
+@@ -168,15 +174,15 @@ test_poison_by_region_offset()
+ 	# Inject at the offset and check result using the hpa
+ 	# ABI takes an offset, but recall the hpa to check trace event
+ 
+-	inject_poison_sysfs "$region" "$cache_size"
++	inject_poison "$region" "$cache_size"
+ 	check_trace_entry "$region" "$hpa1"
+-	inject_poison_sysfs "$region" "$((gran + cache_size))"
++	inject_poison "$region" "$((gran + cache_size))"
+ 	check_trace_entry "$region" "$hpa2"
+ 	validate_poison_found "-r $region" 2
+ 
+-	clear_poison_sysfs "$region" "$cache_size"
++	clear_poison "$region" "$cache_size"
+ 	check_trace_entry "$region" "$hpa1"
+-	clear_poison_sysfs "$region" "$((gran + cache_size))"
++	clear_poison "$region" "$((gran + cache_size))"
+ 	check_trace_entry "$region" "$hpa2"
+ 	validate_poison_found "-r $region" 0
+ }
+@@ -196,21 +202,21 @@ test_poison_by_region_offset_negative()
+ 	if [[ $cache_size -gt 0 ]]; then
+ 		cache_offset=$((cache_size - 1))
+ 		echo "Testing offset within cache: $cache_offset (cache_size: $cache_size)"
+-		inject_poison_sysfs "$region" "$cache_offset" true
+-		clear_poison_sysfs "$region" "$cache_offset" true
++		inject_poison "$region" "$cache_offset" true
++		clear_poison "$region" "$cache_offset" true
+ 	else
+ 		echo "Skipping cache test - cache_size is 0"
+ 	fi
+ 
+ 	# Offset exceeds region size
+ 	exceed_offset=$((region_size))
+-	inject_poison_sysfs "$region" "$exceed_offset" true
+-	clear_poison_sysfs "$region" "$exceed_offset" true
++	inject_poison "$region" "$exceed_offset" true
++	clear_poison "$region" "$exceed_offset" true
+ 
+ 	# Offset exceeds region size by a lot
+ 	large_offset=$((region_size * 2))
+-	inject_poison_sysfs "$region" "$large_offset" true
+-	clear_poison_sysfs "$region" "$large_offset" true
++	inject_poison "$region" "$large_offset" true
++	clear_poison "$region" "$large_offset" true
+ }
+ 
+ is_unaligned() {
+-- 
+2.37.3
 
