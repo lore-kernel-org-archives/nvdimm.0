@@ -1,120 +1,145 @@
-Received: from relay.hostedemail.com (smtprelay0010.hostedemail.com [216.40.44.10])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D36EEB3
-	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 00:50:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 832BB2DC323;
+	Wed, 18 Feb 2026 06:12:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771375816; cv=none; b=mhNSgQP9yTy2ob/boy5CEk26JbbMggUjHxQ+xv8V1fOdxszNIAEGCYij3xArmrCT43IrJ6j59Tjq85S1j/wLBnMPKtNGPExsHBFnM16BIDojzytrHTUNyOes123DgHyZs1L/Di69S2eGA8LZ/obEY28JGakKPVCNVVULuNMLq8s=
+	t=1771395170; cv=none; b=XhxNfgT6gPvptn8e5mNhFOAWWFHWh9OFL1UzJ9VFF9+w7tcwNBbhT7/oOFshVNaRj54L1hMFJOHN18Luclpbir+L15FDemBPXnoyXEvqdfES0+T+XfiLVRKveFvxCDqctbldIXu8FwLVhmWJFGvkHMJQIztLpF+3v1qMQQM+wxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771375816; c=relaxed/simple;
-	bh=DPJV+yIoux+yBES5JCJGLJyQUYuiyjvimN+nUyA7QPg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pgXvcg5/3IGMSJoZ8CQjTKJrWtQQAizPlXPTEewRvMsg/KOIFhfT3IT8RVg0sQgLuec8dZGc2/4mHkho0W6tRN8QYlal5DupntIznORJApoE1LMudh3cZ32ZhB68yTpG6Kl5WbYn4DgpKDDJQtudu8D/bMthHbiim0QNlyNj8pE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf19.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay01.hostedemail.com (Postfix) with ESMTP id 196B51C238;
-	Wed, 18 Feb 2026 00:50:11 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf19.hostedemail.com (Postfix) with ESMTPA id 147B020025;
-	Wed, 18 Feb 2026 00:50:00 +0000 (UTC)
-Date: Tue, 17 Feb 2026 18:49:59 -0600
-From: John Groves <John@groves.net>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	John Groves <jgroves@fastmail.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V7 05/19] dax: Add dax_operations for use by fs-dax on
- fsdev dax
-Message-ID: <aZUK8aApUbWXVEYN@groves.net>
-References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
- <20260118223147.92389-1-john@jagalactic.com>
- <0100019bd33c798b-b40d52e8-b393-4a54-9cc2-f30ee62b566f-000000@email.amazonses.com>
- <69909e6740f2c_14e0b410047@iweiny-mobl.notmuch>
+	s=arc-20240116; t=1771395170; c=relaxed/simple;
+	bh=+LadFnZ9NzE9/ORVXV2p9fIMqakoFw+uxktvky1wkEs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OMakc6PYzEZiOcZilAdXTsitcGZivHG4W4dz0pDbPn+iYqc7A2ky29ZbkwR9H9YbKgvPzmzSVJh1gp/lXssjxO5eHH+NuSejg1GtW1lIxeLVOP5DjxZzp+Pi6mQ3sNFeavw+2o+xx4Fs4nwfYD0zC7oUjzWQWlMdyAokqMr9uYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=3VAN2Ous; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="3VAN2Ous"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=x6vdRvVr5hW7aCcnkmfas7FUDnmcrZTtnfxpcRuHPdg=; b=3VAN2OuspAyPdWeJ+MpSrO/899
+	2t6HabGKLomYkTBxhA2C+SX1aAvCQ1fxPiWBSEXgZyziWYhuM81NFaLCO2tRGpKOGTtvwYNMV65Sj
+	4D0WBnGUe6/CTmDIEgVfvrPdLPC9j42/9V6qJxiKr7ehLXky1nc0w/lwSaiSd2c+9RD0gzPA7OHpx
+	kT2srGCG5+s5actnkSKR1PiqDEMB3nnPXrvqH+PhZy1H+4qMo37ce+cJXz4sFi5zxurCDWVKCgybP
+	L1VFXTU4Sa/5r4/gdtJu/tQsFOksYn7edsUi01TQZ7K0NcCJLCtq9cTYtaCSs5CiF6+iFJLECKOXl
+	bcn5ykYQ==;
+Received: from [2001:4bb8:2dc:9863:1842:9381:9c0f:de32] (helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vsanj-00000009LQ1-3mRc;
+	Wed, 18 Feb 2026 06:12:44 +0000
+From: Christoph Hellwig <hch@lst.de>
+To: Jens Axboe <axboe@kernel.dk>,
+	Christian Brauner <brauner@kernel.org>
+Cc: "Darrick J. Wong" <djwong@kernel.org>,
+	Carlos Maiolino <cem@kernel.org>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Anuj Gupta <anuj20.g@samsung.com>,
+	Kanchan Joshi <joshi.k@samsung.com>,
+	linux-block@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org,
+	linux-xfs@vger.kernel.org
+Subject: support file system generated / verified integrity information v3
+Date: Wed, 18 Feb 2026 07:11:54 +0100
+Message-ID: <20260218061238.3317841-1-hch@lst.de>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <69909e6740f2c_14e0b410047@iweiny-mobl.notmuch>
-X-Stat-Signature: c5h1g3x1zjmid5yndwjqw6bzczpzaezy
-X-Rspamd-Server: rspamout04
-X-Rspamd-Queue-Id: 147B020025
-X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX18Ip8vNKlTim4y5G5AKKvZzagwXyDAy10I=
-X-HE-Tag: 1771375800-902739
-X-HE-Meta: U2FsdGVkX1/d3n5cPzJjIGRnfE8lIzvjZgmZD7T28WO2Jbg72oWddKbaM+oaBPN9EnwXNS3JZgCgFuVXNYAkmRiZrQ362238Wz6XUHhXRgGF3oKju8t4K1By8iqddpXhlrc6SDJmBoHVkBi4aYhiQZau1KJVcGLM1WSbIiyiSOFh1QVOEHxjBebN5w8UpztH40Y1ahDD3iNB93AtO/4uhgpXVroLbTCaXMCvoNcwYYtzAgdmYkIfHyyd9Z/jNxdcSKN2Av+CtjUTlxPCF7/q8slolpCUHoA3SbZuX0LpzBp7lnJlFP7iXX5WEx+Upfip8eel+vS59TIL9Pfe7/IQkJn9284nOG/Z0ftzelYN+XagIsyXBNZGQ2vTGTPV2nVq
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On 26/02/14 10:10AM, Ira Weiny wrote:
-> John Groves wrote:
-> > From: John Groves <John@Groves.net>
-> > 
-> > fsdev: Add dax_operations for use by famfs
-> > 
-> > - These methods are based on pmem_dax_ops from drivers/nvdimm/pmem.c
-> > - fsdev_dax_direct_access() returns the hpa, pfn and kva. The kva was
-> >   newly stored as dev_dax->virt_addr by dev_dax_probe().
-> > - The hpa/pfn are used for mmap (dax_iomap_fault()), and the kva is used
-> >   for read/write (dax_iomap_rw())
-> 
-> I thought this driver did not support mmap?
+Hi all,
 
-If a daxdev /dev/dax0.0 is in 'famfs' mode (bound to drivers/dax/fsdev.c),
-and you open it and try to mmap - you can't - that's true.
+this series adds support to generate and verify integrity information
+(aka T10 PI) in the file system, instead of the automatic below the
+covers support that is currently used.
 
-This stuff is necessary to support mmap/read/write on famfs files.
+There two reasons for this:
 
-> 
-> > - fsdev_dax_recovery_write() and dev_dax_zero_page_range() have not been
-> >   tested yet. I'm looking for suggestions as to how to test those.
-> > - dax-private.h: add dev_dax->cached_size, which fsdev needs to
-> >   remember. The dev_dax size cannot change while a driver is bound
-> >   (dev_dax_resize returns -EBUSY if dev->driver is set). Caching the size
-> >   at probe time allows fsdev's direct_access path can use it without
-> >   acquiring dax_dev_rwsem (which isn't exported anyway).
-> > 
-> 
-> None of the above explains exactly why this code is needed.  Rather it
-> just explains what it does.
-> 
-> I'm not 100% clear on why this is needed in the driver and why this is not
-> a layering violation which is going to bite us later?
+  a) to increase the protection enveloped.  Right now this is just a
+     minor step from the bottom of the block layer to the file system,
+     but it is required to support io_uring integrity data passthrough in
+     the file system similar to the currently existing support for block
+     devices, which will follow next.  It also allows the file system to
+     directly see the integrity error and act upon in, e.g. when using
+     RAID either integrated (as in btrfs) or by supporting reading
+     redundant copies through the block layer.
+  b) to make the PI processing more efficient.  This is primarily a
+     concern for reads, where the block layer auto PI has to schedule a
+     work item for each bio, and the file system them has to do it again
+     for bounce buffering.  Additionally the current iomap post-I/O
+     workqueue handling is a lot more efficient by supporting merging and
+     avoiding workqueue scheduling storms.
 
-I'll update the description to make it clear.
+The implementation is based on refactoring the existing block layer PI
+code to be reusable for this use case, and then adding relatively small
+wrappers for the file system use case.  These are then used in iomap
+to implement the semantics, and wired up in XFS with a small amount of
+glue code.
 
-But basically: this is the stuff that xfs uses in /dev/pmem when it's in
-fs-dax mode, to to resolve read/write to a memcpy variant, and to handle
-faults via dax_iomap_fault() (which lets famfs resolve (file, offset) to
-(daxdev, offset), and then dax finishes the job by resolving to PFN (or HPA -
-whatever).
+Compared to the baseline (iomap-bounce branch), this does not change
+performance for writes, but increases read performance up to 15% for 4k
+I/O, with the benefit decreasing with larger I/O sizes as even the
+baseline maxes out the device quickly on my older enterprise SSD.
 
-So for famfs to support file read/write/mmap on a devdax backing device,
-this is the necessary glue.
+Anuj Gupta also measured a large decrease in QD1 latency on an Intel
+Optane device for small I/O sizes, but also an increase for very large
+ones.
 
-Next patch version (v8) will make this more clear.
+Note that the upcoming XFS fsverity support also depends on some
+infrastructure in this series.
 
-Thanks Ira!
-John
+Git tree:
 
-[snip]
+    git://git.infradead.org/users/hch/misc.git iomap-pi
 
+Gitweb:
+
+    https://git.infradead.org/?p=users/hch/misc.git;a=shortlog;h=refs/heads/iomap-pi
+
+Changes since v2:
+ - rebased to current linus tree
+ - use folio->mapping instead of file->f_mapping to support the upcoming
+   fsverity use case
+ - rename and slightly refactor the xfs iomap read ops to better addres
+   that this will be used by fsverity as well.
+
+Changes since v1:
+ - document usage of BI_ACT_*
+ - return the action from fs_bio_integrity_alloc and use it in
+   fs_bio_integrity_generation to be safe from misuse
+ - use the newly added BIO_MAX_SIZE
+ - rename bio_read_ops to xfs_bio_read_ops
+ - fix commit message and comment typos
+
+Diffstat:
+ block/Makefile                |    2 
+ block/bio-integrity-auto.c    |   80 +++---------------------
+ block/bio-integrity-fs.c      |   81 +++++++++++++++++++++++++
+ block/bio-integrity.c         |   64 +++++++++++++++++++
+ block/bio.c                   |   17 +++--
+ block/blk-mq.c                |    6 +
+ block/blk-settings.c          |   13 ----
+ block/blk.h                   |    6 +
+ block/t10-pi.c                |   12 +--
+ drivers/nvdimm/btt.c          |    6 +
+ fs/fuse/file.c                |    5 -
+ fs/iomap/bio.c                |  135 ++++++++++++++++++++++++++++--------------
+ fs/iomap/buffered-io.c        |    8 +-
+ fs/iomap/direct-io.c          |   15 ++++
+ fs/iomap/internal.h           |   14 ++++
+ fs/iomap/ioend.c              |   28 +++++++-
+ fs/xfs/xfs_aops.c             |   47 +++++++++++++-
+ fs/xfs/xfs_iomap.c            |    9 +-
+ include/linux/bio-integrity.h |   12 ++-
+ include/linux/bio.h           |    2 
+ include/linux/blk-integrity.h |   28 +++++++-
+ include/linux/blkdev.h        |   34 ++++++++--
+ include/linux/iomap.h         |   20 +++++-
+ 23 files changed, 463 insertions(+), 181 deletions(-)
