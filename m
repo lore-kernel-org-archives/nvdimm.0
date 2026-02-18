@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9848C258ED4
-	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 17:52:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474C9330B34
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 18:05:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771437141; cv=none; b=HCPYjc+CcU3g4D099k7bqDtphX9axcNF/K33onKch1OGIgaePlEEcOrtNeHvZEwt13JcpWYBtpsaMnFxYvc9qLhJ/kuc0Bk4TloBxv0yuJ43fPeLDvMH0tvlIGEpUCblMvCeGeoBOT2EUk2Wdq6NYju1aMjNToVn+c9RrYRo1DM=
+	t=1771437921; cv=none; b=oPOnEGoNyOOmHEGXKKd1qPBTA1eOexAnXVAGXec711QQ/WVWBfraupGi8OT3XlW0tRCmPfa0E1BlwMwrzCDFp3Ne3M9ILuheu/v5R5XZyRHUdzTKRgupQCN1/cTDBCfvVgl4xyzef5/E1J34Hei9DQLkMPFwque/hsPq+03t32o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771437141; c=relaxed/simple;
-	bh=jkbcKySE2q3+0d2eltPFSdGhKmAGT605iAc5M4pcycM=;
+	s=arc-20240116; t=1771437921; c=relaxed/simple;
+	bh=KV/otW9VcwuBIhFD84QOZEGe81GPw4QAdk7QYnmFgcc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=eBRqdCAHA5rAskxoIaoXDX1AcaymhqUmCeNAQY2k2AJP4MzLsGrjp5cWFVYoiIJpGhSd3/TWfqSWWoIZ3vjHdTAzTop1KgHRYg94YrN/kANzDYXTuxrKEeSoxJhoWdFe1tUv86VdN5BK7OC1zQZuo3QFXR/g1YZPXsqzPavNhe8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dR7+gJAU; arc=none smtp.client-ip=198.175.65.10
+	 In-Reply-To:Content-Type; b=CbsMHXlCAEoyNHGPnbANHFnbeTv0u9dr6qHcyLc7qHDZ5THTPcd8truB54R07avQlbtFlkO/LCzkMZ2XRtV7sEYDC8ET4qHMGo0I/pjCHtKP1I3JX9PQPBfTt45pna1FRRn1I1EJzihy1grpo+QQP14BbfxDalKHPJCA3rRPnsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MsgwiOgR; arc=none smtp.client-ip=198.175.65.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dR7+gJAU"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MsgwiOgR"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771437139; x=1802973139;
+  t=1771437920; x=1802973920;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=jkbcKySE2q3+0d2eltPFSdGhKmAGT605iAc5M4pcycM=;
-  b=dR7+gJAUV47+1f0466303UcxFqShOrEK/R8m4uzePGj53vmL1OPZcEcf
-   RzSQTD1UxupeSHWsMwIRsno4c/pARkD3TUw+G4sco/30nIJH+rA3r8ZIq
-   pr/9gSnc7IiU1Ve8T/g203wJBVrSLSrmhG6kheVOP1Rnyf4JQ9k8RnHjo
-   8EF1mJdA5/60D1z1wvE4/VYr20C0KOC0tt4vwf9xt43y2FVKJ7woIQOcQ
-   O5dGMLw9uR0jXpCRmLGMyetW4NrbpTNaQ59oBkM41q6WL+50pZQpcOsRa
-   9KrOCBE4GKB+kzUGqBe5kAtSzuZKZR4OGwmDd0cadDC66ksJWbuQGIJ4/
-   Q==;
-X-CSE-ConnectionGUID: 3+N51YR9Sn+jh2spZAVsFQ==
-X-CSE-MsgGUID: CeLXx/FBT/6pvw4eRstUlg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="89929874"
+  bh=KV/otW9VcwuBIhFD84QOZEGe81GPw4QAdk7QYnmFgcc=;
+  b=MsgwiOgR9czX4iElVO4a/Fx81HitonZQa/+EQWQDxKJj2B+xVQDsm5Ip
+   Fv8kXFJPiKTVA3nUiFflb9I9lDu7icsydYduxO5bKPwXqS4EHD8SeNuea
+   nAFDiuj2LRJPFQJFPUu9nVj9NE+eoSnN2Dac8jmaPU9o9Ha4Lo406auGq
+   LajHuDjENueUtsqkx3naINQ9LhWF/P9+NCCsuw1gXiiTCrH6gtDau350b
+   KZKf1IX6YDfaudPbONB7KZJca22HL12gJy/3Dqb178hxUcmMGHumVWB0T
+   VuO5Z8gFRcUvoduRD5RHugk59l9sz8pUtZCI8Rq0T0DiQCRP+cTw91avI
+   A==;
+X-CSE-ConnectionGUID: Mqlg3ng9Q66yx8kuyyF3Tg==
+X-CSE-MsgGUID: 4MxhcknFQ/WUtVyM26AXjQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="83970819"
 X-IronPort-AV: E=Sophos;i="6.21,298,1763452800"; 
-   d="scan'208";a="89929874"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 09:52:18 -0800
-X-CSE-ConnectionGUID: HzoCbuYnQ8+MIIwJFgzx7A==
-X-CSE-MsgGUID: 4bh8jUgXQXu+7QS562yTFQ==
+   d="scan'208";a="83970819"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 10:05:19 -0800
+X-CSE-ConnectionGUID: WI90ckUVQdGPqWxPjppRbg==
+X-CSE-MsgGUID: RZK+wqc4TRq9kqmdsrSZ3A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,298,1763452800"; 
-   d="scan'208";a="212329200"
+   d="scan'208";a="212590915"
 Received: from aduenasd-mobl5.amr.corp.intel.com (HELO [10.125.109.212]) ([10.125.109.212])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 09:52:15 -0800
-Message-ID: <0c464a2c-3722-45e5-9023-5a2fce8aa096@intel.com>
-Date: Wed, 18 Feb 2026 10:52:14 -0700
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 10:05:16 -0800
+Message-ID: <9c1994f1-7387-4d63-a678-8fd46a0310d1@intel.com>
+Date: Wed, 18 Feb 2026 11:05:15 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,8 +52,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 7/9] dax: Add deferred-work helpers for dax_hmem and
- dax_cxl coordination
+Subject: Re: [PATCH v6 8/9] dax/hmem, cxl: Defer and resolve ownership of Soft
+ Reserved memory ranges
 To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
  linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
  nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
@@ -77,117 +77,222 @@ Cc: Ard Biesheuvel <ardb@kernel.org>,
  Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
  Tomasz Wolski <tomasz.wolski@fujitsu.com>
 References: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
- <20260210064501.157591-8-Smita.KoralahalliChannabasappa@amd.com>
+ <20260210064501.157591-9-Smita.KoralahalliChannabasappa@amd.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260210064501.157591-8-Smita.KoralahalliChannabasappa@amd.com>
+In-Reply-To: <20260210064501.157591-9-Smita.KoralahalliChannabasappa@amd.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 2/9/26 11:44 PM, Smita Koralahalli wrote:
-> Add helpers to register, queue and flush the deferred work.
+On 2/9/26 11:45 PM, Smita Koralahalli wrote:
+> The current probe time ownership check for Soft Reserved memory based
+> solely on CXL window intersection is insufficient. dax_hmem probing is not
+> always guaranteed to run after CXL enumeration and region assembly, which
+> can lead to incorrect ownership decisions before the CXL stack has
+> finished publishing windows and assembling committed regions.
 > 
-> These helpers allow dax_hmem to execute ownership resolution outside the
-> probe context before dax_cxl binds.
+> Introduce deferred ownership handling for Soft Reserved ranges that
+> intersect CXL windows. When such a range is encountered during dax_hmem
+> probe, schedule deferred work and wait for the CXL stack to complete
+> enumeration and region assembly before deciding ownership.
 > 
+> Evaluate ownership of Soft Reserved ranges based on CXL region
+> containment.
+> 
+>    - If all Soft Reserved ranges are fully contained within committed CXL
+>      regions, DROP handling Soft Reserved ranges from dax_hmem and allow
+>      dax_cxl to bind.
+> 
+>    - If any Soft Reserved range is not fully claimed by committed CXL
+>      region, REGISTER the Soft Reserved ranges with dax_hmem.
+> 
+> Use dax_cxl_mode to coordinate ownership decisions for Soft Reserved
+> ranges. Once, ownership resolution is complete, flush the deferred work
+> from dax_cxl before allowing dax_cxl to bind.
+> 
+> This enforces a strict ownership. Either CXL fully claims the Soft
+> reserved ranges or it relinquishes it entirely.
+> 
+> Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 > ---
->  drivers/dax/bus.c | 58 +++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/dax/bus.h |  7 ++++++
->  2 files changed, 65 insertions(+)
+>  drivers/dax/bus.c       |  3 ++
+>  drivers/dax/bus.h       | 19 ++++++++++
+>  drivers/dax/cxl.c       |  1 +
+>  drivers/dax/hmem/hmem.c | 78 +++++++++++++++++++++++++++++++++++++++--
+>  4 files changed, 99 insertions(+), 2 deletions(-)
 > 
 > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 5f387feb95f0..92b88952ede1 100644
+> index 92b88952ede1..81985bcc70f9 100644
 > --- a/drivers/dax/bus.c
 > +++ b/drivers/dax/bus.c
-> @@ -25,6 +25,64 @@ DECLARE_RWSEM(dax_region_rwsem);
+> @@ -25,6 +25,9 @@ DECLARE_RWSEM(dax_region_rwsem);
 >   */
 >  DECLARE_RWSEM(dax_dev_rwsem);
 >  
-> +static DEFINE_MUTEX(dax_hmem_lock);
-> +static dax_hmem_deferred_fn hmem_deferred_fn;
-> +static void *dax_hmem_data;
+> +enum dax_cxl_mode dax_cxl_mode = DAX_CXL_MODE_DEFER;
+> +EXPORT_SYMBOL_NS_GPL(dax_cxl_mode, "CXL");
 > +
-> +static void hmem_deferred_work(struct work_struct *work)
-> +{
-> +	dax_hmem_deferred_fn fn;
-> +	void *data;
-> +
-> +	scoped_guard(mutex, &dax_hmem_lock) {
-> +		fn = hmem_deferred_fn;
-> +		data = dax_hmem_data;
-> +	}
-> +
-> +	if (fn)
-> +		fn(data);
-> +}
-
-Instead of having a global lock and dealing with all the global variables, why not just do this with the typical work_struct usage pattern and allocate a work item when queuing work?
-
-DJ
-
-> +
-> +static DECLARE_WORK(dax_hmem_work, hmem_deferred_work);
-> +
-> +int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data)
-> +{
-> +	guard(mutex)(&dax_hmem_lock);
-> +
-> +	if (hmem_deferred_fn)
-> +		return -EINVAL;
-> +
-> +	hmem_deferred_fn = fn;
-> +	dax_hmem_data = data;
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dax_hmem_register_work);
-> +
-> +int dax_hmem_unregister_work(dax_hmem_deferred_fn fn, void *data)
-> +{
-> +	guard(mutex)(&dax_hmem_lock);
-> +
-> +	if (hmem_deferred_fn != fn || dax_hmem_data != data)
-> +		return -EINVAL;
-> +
-> +	hmem_deferred_fn = NULL;
-> +	dax_hmem_data = NULL;
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dax_hmem_unregister_work);
-> +
-> +void dax_hmem_queue_work(void)
-> +{
-> +	queue_work(system_long_wq, &dax_hmem_work);
-> +}
-> +EXPORT_SYMBOL_GPL(dax_hmem_queue_work);
-> +
-> +void dax_hmem_flush_work(void)
-> +{
-> +	flush_work(&dax_hmem_work);
-> +}
-> +EXPORT_SYMBOL_GPL(dax_hmem_flush_work);
-> +
->  #define DAX_NAME_LEN 30
->  struct dax_id {
->  	struct list_head list;
+>  static DEFINE_MUTEX(dax_hmem_lock);
+>  static dax_hmem_deferred_fn hmem_deferred_fn;
+>  static void *dax_hmem_data;
 > diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-> index cbbf64443098..b58a88e8089c 100644
+> index b58a88e8089c..82616ff52fd1 100644
 > --- a/drivers/dax/bus.h
 > +++ b/drivers/dax/bus.h
-> @@ -41,6 +41,13 @@ struct dax_device_driver {
+> @@ -41,6 +41,25 @@ struct dax_device_driver {
 >  	void (*remove)(struct dev_dax *dev);
 >  };
 >  
-> +typedef void (*dax_hmem_deferred_fn)(void *data);
+> +/*
+> + * enum dax_cxl_mode - State machine to determine ownership for CXL
+> + * tagged Soft Reserved memory ranges.
+> + * @DAX_CXL_MODE_DEFER: Ownership resolution pending. Set while waiting
+> + * for CXL enumeration and region assembly to complete.
+> + * @DAX_CXL_MODE_REGISTER: CXL regions do not fully cover Soft Reserved
+> + * ranges. Fall back to registering those ranges via dax_hmem.
+> + * @DAX_CXL_MODE_DROP: All Soft Reserved ranges intersecting CXL windows
+> + * are fully contained within committed CXL regions. Drop HMEM handling
+> + * and allow dax_cxl to bind.
+> + */
+> +enum dax_cxl_mode {
+> +	DAX_CXL_MODE_DEFER,
+> +	DAX_CXL_MODE_REGISTER,
+> +	DAX_CXL_MODE_DROP,
+> +};
 > +
-> +int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data);
-> +int dax_hmem_unregister_work(dax_hmem_deferred_fn fn, void *data);
-> +void dax_hmem_queue_work(void);
-> +void dax_hmem_flush_work(void);
+> +extern enum dax_cxl_mode dax_cxl_mode;
 > +
->  int __dax_driver_register(struct dax_device_driver *dax_drv,
->  		struct module *module, const char *mod_name);
->  #define dax_driver_register(driver) \
+>  typedef void (*dax_hmem_deferred_fn)(void *data);
+>  
+>  int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data);
+> diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
+> index a2136adfa186..3ab39b77843d 100644
+> --- a/drivers/dax/cxl.c
+> +++ b/drivers/dax/cxl.c
+> @@ -44,6 +44,7 @@ static struct cxl_driver cxl_dax_region_driver = {
+>  
+>  static void cxl_dax_region_driver_register(struct work_struct *work)
+>  {
+> +	dax_hmem_flush_work();
+>  	cxl_driver_register(&cxl_dax_region_driver);
+>  }
+>  
+> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+> index 1e3424358490..85854e25254b 100644
+> --- a/drivers/dax/hmem/hmem.c
+> +++ b/drivers/dax/hmem/hmem.c
+> @@ -3,6 +3,7 @@
+>  #include <linux/memregion.h>
+>  #include <linux/module.h>
+>  #include <linux/dax.h>
+> +#include <cxl/cxl.h>
+>  #include "../bus.h"
+>  
+>  static bool region_idle;
+> @@ -69,8 +70,18 @@ static int hmem_register_device(struct device *host, int target_nid,
+>  	if (IS_ENABLED(CONFIG_DEV_DAX_CXL) &&
+>  	    region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
+>  			      IORES_DESC_CXL) != REGION_DISJOINT) {
+> -		dev_dbg(host, "deferring range to CXL: %pr\n", res);
+> -		return 0;
+> +		switch (dax_cxl_mode) {
+> +		case DAX_CXL_MODE_DEFER:
+> +			dev_dbg(host, "deferring range to CXL: %pr\n", res);
+> +			dax_hmem_queue_work();
+> +			return 0;
+> +		case DAX_CXL_MODE_REGISTER:
+> +			dev_dbg(host, "registering CXL range: %pr\n", res);
+> +			break;
+> +		case DAX_CXL_MODE_DROP:
+> +			dev_dbg(host, "dropping CXL range: %pr\n", res);
+> +			return 0;
+> +		}
+>  	}
+>  
+>  	rc = region_intersects_soft_reserve(res->start, resource_size(res));
+> @@ -123,8 +134,70 @@ static int hmem_register_device(struct device *host, int target_nid,
+>  	return rc;
+>  }
+>  
+> +static int hmem_register_cxl_device(struct device *host, int target_nid,
+> +				    const struct resource *res)
+> +{
+> +	if (region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
+> +			      IORES_DESC_CXL) != REGION_DISJOINT)
+> +		return hmem_register_device(host, target_nid, res);
+> +
+> +	return 0;
+> +}
+> +
+> +static int soft_reserve_has_cxl_match(struct device *host, int target_nid,
+> +				      const struct resource *res)
+> +{
+> +	if (region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
+> +			      IORES_DESC_CXL) != REGION_DISJOINT) {
+> +		if (!cxl_region_contains_soft_reserve((struct resource *)res))
+> +			return 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void process_defer_work(void *data)
+> +{
+> +	struct platform_device *pdev = data;
+> +	int rc;
+> +
+> +	/* relies on cxl_acpi and cxl_pci having had a chance to load */
+> +	wait_for_device_probe();
+> +
+> +	rc = walk_hmem_resources(&pdev->dev, soft_reserve_has_cxl_match);
+> +
+> +	if (!rc) {
+> +		dax_cxl_mode = DAX_CXL_MODE_DROP;
+> +		dev_dbg(&pdev->dev, "All Soft Reserved ranges claimed by CXL\n");
+> +	} else {
+> +		dax_cxl_mode = DAX_CXL_MODE_REGISTER;
+> +		dev_warn(&pdev->dev,
+> +			 "Soft Reserved not fully contained in CXL; using HMEM\n");
+> +	}
+> +
+> +	walk_hmem_resources(&pdev->dev, hmem_register_cxl_device);
+> +}
+> +
+> +static void kill_defer_work(void *data)
+> +{
+> +	struct platform_device *pdev = data;
+> +
+> +	dax_hmem_flush_work();
+> +	dax_hmem_unregister_work(process_defer_work, pdev);
+> +}
+> +
+>  static int dax_hmem_platform_probe(struct platform_device *pdev)
+>  {
+> +	int rc;
+> +
+> +	rc = dax_hmem_register_work(process_defer_work, pdev);
+
+Do we need to take a reference on pdev when we queue the work?
+
+DJ
+
+> +	if (rc)
+> +		return rc;
+> +
+> +	rc = devm_add_action_or_reset(&pdev->dev, kill_defer_work, pdev);
+> +	if (rc)
+> +		return rc;
+> +
+>  	return walk_hmem_resources(&pdev->dev, hmem_register_device);
+>  }
+>  
+> @@ -174,3 +247,4 @@ MODULE_ALIAS("platform:hmem_platform*");
+>  MODULE_DESCRIPTION("HMEM DAX: direct access to 'specific purpose' memory");
+>  MODULE_LICENSE("GPL v2");
+>  MODULE_AUTHOR("Intel Corporation");
+> +MODULE_IMPORT_NS("CXL");
 
