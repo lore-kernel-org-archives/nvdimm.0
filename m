@@ -1,35 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A22D2DC323;
-	Wed, 18 Feb 2026 06:12:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1820D2DC323;
+	Wed, 18 Feb 2026 06:12:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771395176; cv=none; b=jIQRjxRF3kYJmKVehXBrtDiseY0sfPH2ZiYkHmb0GmRdS3em6OT6cDQT4WFWibxso5QBtTswxwLECfu1fcXxWzI9b126QSUmsgGx9BUbEir1TvbxmjQ7HcuyL4p5UbDeDfZcJdN6BBpYufWXC4toZbslSFv3cVicDjyTaFspPCw=
+	t=1771395181; cv=none; b=VKxGkVNnN/s6VvO1cDRaxa4JxhQnC//0ZToZ1zQu1f+lYm0akHWN6YBOSIsTogJQO84Pv8sUMpflXdlv4YyU3zD1DWAmDsDyB85tqlGuhxM8jeXW9r5ECDJ7/faRWIccp49Mch//c8U0bGV9CQfo6e9pBwky6aQRZLZR/ErbJrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771395176; c=relaxed/simple;
-	bh=VhDHLzvjR3dRX1RgabBzA0yf+T3RznpBt3ZgxTkiffc=;
+	s=arc-20240116; t=1771395181; c=relaxed/simple;
+	bh=eQ7TulQemW8Au/QxyNVvoLzYZ0oqVwiqnFZtorAr7NM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kLD4VXoORVNw0Pjzbk72auReebt3DN0BNhvze9lv1mQNz7kwnETJhZcQTA1rnu+scblRTcRhSqJlejUhWaz46xa+uee07zMy6BKEoEv3YsOfDIKnRPvGwGG3IcxHVVBtt4VRLaDL8ouHWZWUbmZzDQYeGvmeZ71X4gqLwlZzapc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=3iuVNsoy; arc=none smtp.client-ip=198.137.202.133
+	 MIME-Version; b=l4myVAnMTWdVvfqUnYLkIzCvmBVEMpYPMwKUopUvL3CxMRPITpA3bzXisICQuGO7XQWho1ocp7kLAXJZhnemc/ttvxMHhrQxdDx8TBr0sTe9pwBypoTfyFH3vqa3w0jawqCi+RRK9zMIPBhzhFGUoYh98oOSmAFv8T2gmZdkhBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=qnjY6Zxr; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="3iuVNsoy"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="qnjY6Zxr"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=4UqmimBgC4T4VOBTAGjhdnWrrZqSlubemuVex5yTg5w=; b=3iuVNsoyaIlsDsmbQOS64xrAmf
-	j2X9noamJLv1WFiTjn9riB0vKN/xGR88Ek0/BJA8UAE2/u2Mbj+002kVg0sWjPCj3c0NrY+vtDMHD
-	WXez/pfuyKpWtAp7dztPQVGEK5Tv7RelGL7W/P7HN18t0q0JB+ZJOUSgsfr50Z86SzYCQS+MTWimY
-	Emh0ApTabAdQQ4jLVr7nMQLlBB7/1hNwK0agjhx+BHZeQ0B00Gneyh5OsfDvAjxp47n38ydFH+h45
-	LdzY6zJAcDbc16IOLxWRVjHP2aPL5brQ8h9EdJ+dNjbEjeFTd1lhO8qUZwcdkDpNamRW4y53+X0YL
-	HN7FN9zw==;
+	bh=cz1hAACT1iUdH/Kl5mAXeH4ICd5ZL7RNbUo9wOP+CWQ=; b=qnjY6ZxrXMO1dIZS2vFOQMcqGX
+	QdeQNVnnWjEzcXu8Q2/Ns/2Npd+ynqoISBFVB60IW6hWPP+8e7LLqwuDnkR8/dpj3d8KHxdj9oe/R
+	+9riCNsBitbg0hMPYAxrNGkkEf52Q8YszAx2VmkuLhFsVK9lFNMEJI4w9fTuw0uyGTaNgEibpmIon
+	UhBXN3QYtJpGdnCpxAVNz9L9Vnl/xzu6xbFT5GimkyzdsGdixfc/PCuZgskRnl8vdlmOIUIooFwnn
+	JPhnOssGOIQpn9UPfNm3s6V3oOs/0EGDtSbc4aKCI2pTAXY/ER4djv5qMVClhF4NSyfBmqwwOnDQU
+	YMsUeGvg==;
 Received: from [2001:4bb8:2dc:9863:1842:9381:9c0f:de32] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vsant-00000009LQo-3Mx3;
-	Wed, 18 Feb 2026 06:12:54 +0000
+	id 1vsany-00000009LQz-3fd1;
+	Wed, 18 Feb 2026 06:12:59 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	Christian Brauner <brauner@kernel.org>
@@ -42,9 +42,9 @@ Cc: "Darrick J. Wong" <djwong@kernel.org>,
 	nvdimm@lists.linux.dev,
 	linux-fsdevel@vger.kernel.org,
 	linux-xfs@vger.kernel.org
-Subject: [PATCH 02/15] block: factor out a bio_integrity_setup_default helper
-Date: Wed, 18 Feb 2026 07:11:56 +0100
-Message-ID: <20260218061238.3317841-3-hch@lst.de>
+Subject: [PATCH 03/15] block: add a bdev_has_integrity_csum helper
+Date: Wed, 18 Feb 2026 07:11:57 +0100
+Message-ID: <20260218061238.3317841-4-hch@lst.de>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260218061238.3317841-1-hch@lst.de>
 References: <20260218061238.3317841-1-hch@lst.de>
@@ -57,12 +57,8 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Add a helper to set the seed and check flag based on useful defaults
-from the profile.
-
-Note that this includes a small behavior change, as we now only set the
-seed if any action is set, which is fine as nothing will look at it
-otherwise.
+Factor out a helper to see if the block device has an integrity checksum
+from bdev_stable_writes so that it can be reused for other checks.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Anuj Gupta <anuj20.g@samsung.com>
@@ -71,81 +67,38 @@ Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
 Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
 Tested-by: Anuj Gupta <anuj20.g@samsung.com>
 ---
- block/bio-integrity-auto.c    | 14 ++------------
- block/bio-integrity.c         | 16 ++++++++++++++++
- include/linux/bio-integrity.h |  1 +
- 3 files changed, 19 insertions(+), 12 deletions(-)
+ include/linux/blkdev.h | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/block/bio-integrity-auto.c b/block/bio-integrity-auto.c
-index e16f669dbf1e..b64c71a7fc82 100644
---- a/block/bio-integrity-auto.c
-+++ b/block/bio-integrity-auto.c
-@@ -88,7 +88,6 @@ bool __bio_integrity_endio(struct bio *bio)
-  */
- void bio_integrity_prep(struct bio *bio, unsigned int action)
- {
--	struct blk_integrity *bi = blk_get_integrity(bio->bi_bdev->bd_disk);
- 	struct bio_integrity_data *bid;
- 
- 	bid = mempool_alloc(&bid_pool, GFP_NOIO);
-@@ -96,17 +95,8 @@ void bio_integrity_prep(struct bio *bio, unsigned int action)
- 	bid->bio = bio;
- 	bid->bip.bip_flags |= BIP_BLOCK_INTEGRITY;
- 	bio_integrity_alloc_buf(bio, action & BI_ACT_ZERO);
--
--	bip_set_seed(&bid->bip, bio->bi_iter.bi_sector);
--
--	if (action & BI_ACT_CHECK) {
--		if (bi->csum_type == BLK_INTEGRITY_CSUM_IP)
--			bid->bip.bip_flags |= BIP_IP_CHECKSUM;
--		if (bi->csum_type)
--			bid->bip.bip_flags |= BIP_CHECK_GUARD;
--		if (bi->flags & BLK_INTEGRITY_REF_TAG)
--			bid->bip.bip_flags |= BIP_CHECK_REFTAG;
--	}
-+	if (action & BI_ACT_CHECK)
-+		bio_integrity_setup_default(bio);
- 
- 	/* Auto-generate integrity metadata if this is a write */
- 	if (bio_data_dir(bio) == WRITE && bip_should_check(&bid->bip))
-diff --git a/block/bio-integrity.c b/block/bio-integrity.c
-index 6bdbb4ed2d1a..0e8ebe84846e 100644
---- a/block/bio-integrity.c
-+++ b/block/bio-integrity.c
-@@ -101,6 +101,22 @@ void bio_integrity_free_buf(struct bio_integrity_payload *bip)
- 		kfree(bvec_virt(bv));
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index d463b9b5a0a5..dec0acaed6e6 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1477,14 +1477,18 @@ static inline bool bdev_synchronous(struct block_device *bdev)
+ 	return bdev->bd_disk->queue->limits.features & BLK_FEAT_SYNCHRONOUS;
  }
  
-+void bio_integrity_setup_default(struct bio *bio)
-+{
-+	struct blk_integrity *bi = blk_get_integrity(bio->bi_bdev->bd_disk);
-+	struct bio_integrity_payload *bip = bio_integrity(bio);
-+
-+	bip_set_seed(bip, bio->bi_iter.bi_sector);
-+
-+	if (bi->csum_type) {
-+		bip->bip_flags |= BIP_CHECK_GUARD;
-+		if (bi->csum_type == BLK_INTEGRITY_CSUM_IP)
-+			bip->bip_flags |= BIP_IP_CHECKSUM;
-+	}
-+	if (bi->flags & BLK_INTEGRITY_REF_TAG)
-+		bip->bip_flags |= BIP_CHECK_REFTAG;
+-static inline bool bdev_stable_writes(struct block_device *bdev)
++static inline bool bdev_has_integrity_csum(struct block_device *bdev)
+ {
+-	struct request_queue *q = bdev_get_queue(bdev);
++	struct queue_limits *lim = bdev_limits(bdev);
+ 
+-	if (IS_ENABLED(CONFIG_BLK_DEV_INTEGRITY) &&
+-	    q->limits.integrity.csum_type != BLK_INTEGRITY_CSUM_NONE)
+-		return true;
+-	return q->limits.features & BLK_FEAT_STABLE_WRITES;
++	return IS_ENABLED(CONFIG_BLK_DEV_INTEGRITY) &&
++		lim->integrity.csum_type != BLK_INTEGRITY_CSUM_NONE;
 +}
 +
- /**
-  * bio_integrity_free - Free bio integrity payload
-  * @bio:	bio containing bip to be freed
-diff --git a/include/linux/bio-integrity.h b/include/linux/bio-integrity.h
-index 276cbbdd2c9d..232b86b9bbcb 100644
---- a/include/linux/bio-integrity.h
-+++ b/include/linux/bio-integrity.h
-@@ -143,5 +143,6 @@ static inline int bio_integrity_add_page(struct bio *bio, struct page *page,
++static inline bool bdev_stable_writes(struct block_device *bdev)
++{
++	return bdev_has_integrity_csum(bdev) ||
++		(bdev_limits(bdev)->features & BLK_FEAT_STABLE_WRITES);
+ }
  
- void bio_integrity_alloc_buf(struct bio *bio, bool zero_buffer);
- void bio_integrity_free_buf(struct bio_integrity_payload *bip);
-+void bio_integrity_setup_default(struct bio *bio);
- 
- #endif /* _LINUX_BIO_INTEGRITY_H */
+ static inline bool blk_queue_write_cache(struct request_queue *q)
 -- 
 2.47.3
 
