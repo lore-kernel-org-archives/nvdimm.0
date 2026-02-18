@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0011.hostedemail.com [216.40.44.11])
+Received: from relay.hostedemail.com (smtprelay0010.hostedemail.com [216.40.44.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2CFF3EBF22
-	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 00:39:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D36EEB3
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 00:50:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771375161; cv=none; b=Iz18xoJEX+995/ccj2lDtI//POc25XydIgq0fQPEViWFyn8/MLac/Cm3PycOX0gXqahn56ZeUGMzAnGQHQRBpaFLy/sEE1GdFd+JH2zIVj9jpsV3tswtzjjyvnWH4jUDWDbi0XZlK1Uefl1T8CrHuUEVBmwluM6T+NdSkDckpHI=
+	t=1771375816; cv=none; b=mhNSgQP9yTy2ob/boy5CEk26JbbMggUjHxQ+xv8V1fOdxszNIAEGCYij3xArmrCT43IrJ6j59Tjq85S1j/wLBnMPKtNGPExsHBFnM16BIDojzytrHTUNyOes123DgHyZs1L/Di69S2eGA8LZ/obEY28JGakKPVCNVVULuNMLq8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771375161; c=relaxed/simple;
-	bh=N7Kt1rlSYfggHAi5kZ/FbucKlFPKkRRUWnHc7hvpR7U=;
+	s=arc-20240116; t=1771375816; c=relaxed/simple;
+	bh=DPJV+yIoux+yBES5JCJGLJyQUYuiyjvimN+nUyA7QPg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eF0uupYbUibMVWhsoAaUWykZ2oXbHnTIPPXALxVUYjsjSYQ688uiVGgJC8R/7uBl37UZ0ks5UpxLldg6H9m+xsFdV//XdXs2gTtkpeqAnHM24jaBBT/DEAjqoPHaH7o+wY1FMynlGHHWGsdOU/liCvMy+FJn3ofkd3iOAzXwsXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.11
+	 Content-Type:Content-Disposition:In-Reply-To; b=pgXvcg5/3IGMSJoZ8CQjTKJrWtQQAizPlXPTEewRvMsg/KOIFhfT3IT8RVg0sQgLuec8dZGc2/4mHkho0W6tRN8QYlal5DupntIznORJApoE1LMudh3cZ32ZhB68yTpG6Kl5WbYn4DgpKDDJQtudu8D/bMthHbiim0QNlyNj8pE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf16.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay02.hostedemail.com (Postfix) with ESMTP id A315813AB5F;
-	Wed, 18 Feb 2026 00:39:10 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf16.hostedemail.com (Postfix) with ESMTPA id A77DA2000D;
-	Wed, 18 Feb 2026 00:39:00 +0000 (UTC)
-Date: Tue, 17 Feb 2026 18:38:59 -0600
+Received: from omf19.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay01.hostedemail.com (Postfix) with ESMTP id 196B51C238;
+	Wed, 18 Feb 2026 00:50:11 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf19.hostedemail.com (Postfix) with ESMTPA id 147B020025;
+	Wed, 18 Feb 2026 00:50:00 +0000 (UTC)
+Date: Tue, 17 Feb 2026 18:49:59 -0600
 From: John Groves <John@groves.net>
 To: Ira Weiny <ira.weiny@intel.com>
 Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
@@ -43,11 +43,11 @@ Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 Subject: Re: [PATCH V7 05/19] dax: Add dax_operations for use by fs-dax on
  fsdev dax
-Message-ID: <aZUJxi5mzEd1Tojw@groves.net>
+Message-ID: <aZUK8aApUbWXVEYN@groves.net>
 References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
  <20260118223147.92389-1-john@jagalactic.com>
  <0100019bd33c798b-b40d52e8-b393-4a54-9cc2-f30ee62b566f-000000@email.amazonses.com>
- <698f96436c715_bcb89100ea@iweiny-mobl.notmuch>
+ <69909e6740f2c_14e0b410047@iweiny-mobl.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -56,16 +56,16 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <698f96436c715_bcb89100ea@iweiny-mobl.notmuch>
-X-Stat-Signature: f4jo787zpakzf3y9zwtrhjdk1ybczeo8
+In-Reply-To: <69909e6740f2c_14e0b410047@iweiny-mobl.notmuch>
+X-Stat-Signature: c5h1g3x1zjmid5yndwjqw6bzczpzaezy
 X-Rspamd-Server: rspamout04
-X-Rspamd-Queue-Id: A77DA2000D
+X-Rspamd-Queue-Id: 147B020025
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1/8h3J39DJgkhqm4GBq3iPbDEOPKnf5irY=
-X-HE-Tag: 1771375140-854600
-X-HE-Meta: U2FsdGVkX19555SNH4TgDw+0D/5WySkCoz344yjmE1drTBd2BDahmB/atoWRuzxIEAC786D/K4NiAhiqTbKLSAqDxQvxqPxT8Od/9C2v//mKOXN/CHgE3gYP2dxH+37rDlBlriOFxFuYWE3Ixmv7MVw+ts4ERsZLsncB/MTDX+6GmAqyW9+I8vwwpCLRAFWZodzJv5dmnhx6GVCeysC4Rx0cTag39mxqDJgl1GAta2IIMiyqx+EkhhMqh6FHkiWZ5hGK7kh6kl3ykgfnBzG0q69IQsVtBVXUbV43PLJ2shR5M8nh1TYjRpc4YsugtX6/3g4uA71iG6zYeYfY7h/XIxfIX8k5d8j2uKXCIwiZ/nuHIqiavmkj+OlsWj4Vxfjb
+X-Session-ID: U2FsdGVkX18Ip8vNKlTim4y5G5AKKvZzagwXyDAy10I=
+X-HE-Tag: 1771375800-902739
+X-HE-Meta: U2FsdGVkX1/d3n5cPzJjIGRnfE8lIzvjZgmZD7T28WO2Jbg72oWddKbaM+oaBPN9EnwXNS3JZgCgFuVXNYAkmRiZrQ362238Wz6XUHhXRgGF3oKju8t4K1By8iqddpXhlrc6SDJmBoHVkBi4aYhiQZau1KJVcGLM1WSbIiyiSOFh1QVOEHxjBebN5w8UpztH40Y1ahDD3iNB93AtO/4uhgpXVroLbTCaXMCvoNcwYYtzAgdmYkIfHyyd9Z/jNxdcSKN2Av+CtjUTlxPCF7/q8slolpCUHoA3SbZuX0LpzBp7lnJlFP7iXX5WEx+Upfip8eel+vS59TIL9Pfe7/IQkJn9284nOG/Z0ftzelYN+XagIsyXBNZGQ2vTGTPV2nVq
 
-On 26/02/13 03:23PM, Ira Weiny wrote:
+On 26/02/14 10:10AM, Ira Weiny wrote:
 > John Groves wrote:
 > > From: John Groves <John@Groves.net>
 > > 
@@ -76,6 +76,15 @@ On 26/02/13 03:23PM, Ira Weiny wrote:
 > >   newly stored as dev_dax->virt_addr by dev_dax_probe().
 > > - The hpa/pfn are used for mmap (dax_iomap_fault()), and the kva is used
 > >   for read/write (dax_iomap_rw())
+> 
+> I thought this driver did not support mmap?
+
+If a daxdev /dev/dax0.0 is in 'famfs' mode (bound to drivers/dax/fsdev.c),
+and you open it and try to mmap - you can't - that's true.
+
+This stuff is necessary to support mmap/read/write on famfs files.
+
+> 
 > > - fsdev_dax_recovery_write() and dev_dax_zero_page_range() have not been
 > >   tested yet. I'm looking for suggestions as to how to test those.
 > > - dax-private.h: add dev_dax->cached_size, which fsdev needs to
@@ -84,48 +93,28 @@ On 26/02/13 03:23PM, Ira Weiny wrote:
 > >   at probe time allows fsdev's direct_access path can use it without
 > >   acquiring dax_dev_rwsem (which isn't exported anyway).
 > > 
-> > Signed-off-by: John Groves <john@groves.net>
 > 
-> [snip]
+> None of the above explains exactly why this code is needed.  Rather it
+> just explains what it does.
 > 
-> > +
-> > +static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
-> > +			long nr_pages, enum dax_access_mode mode, void **kaddr,
-> > +			unsigned long *pfn)
-> > +{
-> > +	struct dev_dax *dev_dax = dax_get_private(dax_dev);
-> > +	size_t size = nr_pages << PAGE_SHIFT;
-> > +	size_t offset = pgoff << PAGE_SHIFT;
-> > +	void *virt_addr = dev_dax->virt_addr + offset;
-> > +	phys_addr_t phys;
-> > +	unsigned long local_pfn;
-> > +
-> > +	WARN_ON(!dev_dax->virt_addr);
-> 
-> WARN_ON_ONCE.  But frankly I'm pretty sure this is impossible to hit given
-> the probe call, so best remove it.  Also yall already used dev_dax->virt_addr
-> above.  And will hand back a bad address to the caller.  So...
+> I'm not 100% clear on why this is needed in the driver and why this is not
+> a layering violation which is going to bite us later?
 
-Good point - dropped it.
+I'll update the description to make it clear.
 
-> 
-> > +
-> > +	phys = dax_pgoff_to_phys(dev_dax, pgoff, nr_pages << PAGE_SHIFT);
-> > +	if (phys == -1) {
-> > +		dev_dbg(&dev_dax->dev,
-> > +			"pgoff (%#lx) out of range\n", pgoff);
-> > +		return -ERANGE;
-> 
-> EFAULT?
+But basically: this is the stuff that xfs uses in /dev/pmem when it's in
+fs-dax mode, to to resolve read/write to a memcpy variant, and to handle
+faults via dax_iomap_fault() (which lets famfs resolve (file, offset) to
+(daxdev, offset), and then dax finishes the job by resolving to PFN (or HPA -
+whatever).
 
-This feels like a judgment call, but I'm fine with it.
-Changed to -EFAULT
+So for famfs to support file read/write/mmap on a devdax backing device,
+this is the necessary glue.
 
-> 
-> Ira
-> 
-> [snip]
+Next patch version (v8) will make this more clear.
 
 Thanks Ira!
 John
+
+[snip]
 
