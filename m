@@ -1,48 +1,48 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E890D2773E4
-	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 23:01:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 185EC2773E4
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 23:04:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771455663; cv=none; b=NhQOQZjNN1+kR8wOPUrcRj/N95es+BN4WOB7Sb38vooodeNbCSIWeu8OULkismRsljCMbknWiovvNB9+3y7bWRQjIW0pUo3gjJCK6BpVdJ4ZlH8lV0Wo+zNhBXgyN7scml8//dvHw4Jgex39htxoi0jbqpaYcwscFKXsX+eqs8E=
+	t=1771455851; cv=none; b=UR/1hOizEVXvCwxrqW9hDSfT1pmzJam4uv7/NuUTeOE6bXK5RtDp45+UkvntqhhYYrQJN4vIVVZrP3xPQuPxAVFDr8XKnejTVQON/WiEeSoDnt57N1Xq++0gdti2urGlT29EXPlHTrSiINjzZmgRukZhhLaqkWnTT1givYj+l/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771455663; c=relaxed/simple;
-	bh=Ka3shS3eNTr96+8Nt7+Mh2dJ1uTBTo6+XEd9mbl4GFA=;
+	s=arc-20240116; t=1771455851; c=relaxed/simple;
+	bh=A4KpUH5qdtKiwpwNNT4LeI8gpC2In9JPJXbVJxd4NxM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ArPNHWHaEvKeoZxNvDq4H/NaMfGu/81aKGuS4L4r6FY+xWqTX05uXatooc3kS2JFMbkD2pxq2X4EtgZYaMR3PSxHBF0T04FT4KZ2I3AD7TbLUtmo1bBC0FK4Zo+/9gmN/XfnFXnQ/rUcmfEft2BkvBn5K1wVKZKpAiD2n5mDwFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fnn4Gy+Z; arc=none smtp.client-ip=198.175.65.10
+	 In-Reply-To:Content-Type; b=EJ9hGEhbPXObwo9bkk3M11nkSRHy+D4TzpKl1g+tmZx+Mhsg7pwXG7aL1bMCkcMxt5yCSS0kEGZZnGKdoBOsg+99PsZWgP1Nk5Dut/Au9MZQbmKOySa8I5yqBAS7Y5wM0bnWhoECf7jEgMKxIIkc3OaegFZ9LSCoUhfr5PI/sXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MtQldDVZ; arc=none smtp.client-ip=198.175.65.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fnn4Gy+Z"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MtQldDVZ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771455662; x=1802991662;
+  t=1771455850; x=1802991850;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=Ka3shS3eNTr96+8Nt7+Mh2dJ1uTBTo6+XEd9mbl4GFA=;
-  b=fnn4Gy+Z5C4TBGEJL2dPFtc8KOHlaqSIZNW/6cBLrenEs95skmlAPHkP
-   FwGjji2m9WM5jW5qYArS7KTKEa7/+V39ydnV63u4G8NTNFY5mHa4CWeZn
-   X3AcKtynm7RLDLjHe0z64dHbyDdm2YqQXkSyxjqtCyYL+gKvGXnar2gHy
-   gKHwxsDMUP0YQxN8UQs0059U0BR1NshfrBkUNYA7cw6djPeB1WmxlPoBr
-   qbvNqTeEPXyt9k4GbMI7etDOmfuAqDNCVbMwLZ+DJ4lXV+13a0CGnjVg9
-   j3e6oM6Ak/KhyjqEpOLw+zjAlSSY39ZKdfLcfMgQ+RX7yF8TmRV0OC2y2
+  bh=A4KpUH5qdtKiwpwNNT4LeI8gpC2In9JPJXbVJxd4NxM=;
+  b=MtQldDVZG9rMWGiTPkETJAFEz9w2xuTTNDgWswwnPfJisbqLGorM83u/
+   WIM3QBi0TmXRLdhdz8RPBG16Csps86D1ceDJkeWs8N26QnvM1bLlg9Q6b
+   Ya0e2wLO9ChGlExC2OXbV6DKNmNl/XFoh1igbd2oH1cEuzRHg/5VEtnEH
+   m8oK16iuWkunlbrGqQXOY7zVK4dXhcYODU+qudgbIrBKmh0Oa6erE7LH1
+   Wv1ROf5OPkImXO5m+XrC5nx4HyUXQQSZQED47qidZJfxbQUL2FF2TVa9f
+   0BOGt7MbMkuM0+BUzUhkypxQzwAvB67Q5FIK9TnhO+J4irnErWjQrxSiO
    w==;
-X-CSE-ConnectionGUID: 5pWVyk/1Ri6pARMI08emdA==
-X-CSE-MsgGUID: 6m1aYodaTVmRZSOsSadxtQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="89952574"
+X-CSE-ConnectionGUID: vCcuiO4pRLiOO56znUYUUw==
+X-CSE-MsgGUID: iEIFdKq8QAu8A97B2q7SiQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="72444519"
 X-IronPort-AV: E=Sophos;i="6.21,299,1763452800"; 
-   d="scan'208";a="89952574"
+   d="scan'208";a="72444519"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 15:01:01 -0800
-X-CSE-ConnectionGUID: lu4mzYO2Qx2UJSEQGwEIKg==
-X-CSE-MsgGUID: UY/jyFuQQHq6b78u0N1xWg==
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 15:04:10 -0800
+X-CSE-ConnectionGUID: RMYH7IUsQuuIdijNW4dt0w==
+X-CSE-MsgGUID: j73tmhmcSbmAKux9ulhJMw==
 X-ExtLoop1: 1
 Received: from aduenasd-mobl5.amr.corp.intel.com (HELO [10.125.109.212]) ([10.125.109.212])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 15:00:58 -0800
-Message-ID: <066c48be-032c-4d27-8b71-de6ba55a7349@intel.com>
-Date: Wed, 18 Feb 2026 16:00:57 -0700
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 15:04:07 -0800
+Message-ID: <27ba8b1f-5674-4ccd-877a-a47b7e815cf6@intel.com>
+Date: Wed, 18 Feb 2026 16:04:05 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,8 +50,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V7 01/19] dax: move dax_pgoff_to_phys from [drivers/dax/]
- device.c to bus.c
+Subject: Re: [PATCH V7 02/19] dax: Factor out dax_folio_reset_order() helper
 To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
  Miklos Szeredi <miklos@szeredi.hu>, Dan Williams <dan.j.williams@intel.com>,
  Bernd Schubert <bschubert@ddn.com>,
@@ -79,101 +78,124 @@ Cc: John Groves <jgroves@micron.com>, John Groves <jgroves@fastmail.com>,
  "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
- <20260118223100.92299-1-john@jagalactic.com>
- <0100019bd33bc40a-12130f8b-289d-4a38-ab4b-7dfedf614d34-000000@email.amazonses.com>
+ <20260118223110.92320-1-john@jagalactic.com>
+ <0100019bd33bf5cc-3ab17b9e-cd67-4f0b-885e-55658a1207f0-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019bd33bc40a-12130f8b-289d-4a38-ab4b-7dfedf614d34-000000@email.amazonses.com>
+In-Reply-To: <0100019bd33bf5cc-3ab17b9e-cd67-4f0b-885e-55658a1207f0-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
 On 1/18/26 3:31 PM, John Groves wrote:
-> From: John Groves <john@groves.net>
+> From: John Groves <John@Groves.net>
 > 
-> This function will be used by both device.c and fsdev.c, but both are
-> loadable modules. Moving to bus.c puts it in core and makes it available
-> to both.
+> Both fs/dax.c:dax_folio_put() and drivers/dax/fsdev.c:
+> fsdev_clear_folio_state() (the latter coming in the next commit after this
+> one) contain nearly identical code to reset a compound DAX folio back to
+> order-0 pages. Factor this out into a shared helper function.
 > 
-> No code changes - just relocated.
+> The new dax_folio_reset_order() function:
+> - Clears the folio's mapping and share count
+> - Resets compound folio state via folio_reset_order()
+> - Clears PageHead and compound_head for each sub-page
+> - Restores the pgmap pointer for each resulting order-0 folio
+> - Returns the original folio order (for callers that need to advance by
+>   that many pages)
 > 
+> This simplifies fsdev_clear_folio_state() from ~50 lines to ~15 lines while
+> maintaining the same functionality in both call sites.
+> 
+> Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 > Signed-off-by: John Groves <john@groves.net>
 
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
 > ---
->  drivers/dax/bus.c    | 24 ++++++++++++++++++++++++
->  drivers/dax/device.c | 23 -----------------------
->  2 files changed, 24 insertions(+), 23 deletions(-)
+>  fs/dax.c | 60 +++++++++++++++++++++++++++++++++++++++-----------------
+>  1 file changed, 42 insertions(+), 18 deletions(-)
 > 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index fde29e0ad68b..a73f54eac567 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -1417,6 +1417,30 @@ static const struct device_type dev_dax_type = {
->  	.groups = dax_attribute_groups,
->  };
->  
-> +/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
-> +__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
-> +			      unsigned long size)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < dev_dax->nr_range; i++) {
-> +		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
-> +		struct range *range = &dax_range->range;
-> +		unsigned long long pgoff_end;
-> +		phys_addr_t phys;
-> +
-> +		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
-> +		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
-> +			continue;
-> +		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
-> +		if (phys + size - 1 <= range->end)
-> +			return phys;
-> +		break;
-> +	}
-> +	return -1;
-> +}
-> +EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
-> +
->  static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
->  {
->  	struct dax_region *dax_region = data->dax_region;
-> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-> index 22999a402e02..132c1d03fd07 100644
-> --- a/drivers/dax/device.c
-> +++ b/drivers/dax/device.c
-> @@ -57,29 +57,6 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
->  			   vma->vm_file, func);
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 289e6254aa30..7d7bbfb32c41 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -378,6 +378,45 @@ static void dax_folio_make_shared(struct folio *folio)
+>  	folio->share = 1;
 >  }
 >  
-> -/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
-> -__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
-> -		unsigned long size)
-> -{
-> -	int i;
-> -
-> -	for (i = 0; i < dev_dax->nr_range; i++) {
-> -		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
-> -		struct range *range = &dax_range->range;
-> -		unsigned long long pgoff_end;
-> -		phys_addr_t phys;
-> -
-> -		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
-> -		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
-> -			continue;
-> -		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
-> -		if (phys + size - 1 <= range->end)
-> -			return phys;
-> -		break;
-> -	}
-> -	return -1;
-> -}
-> -
->  static void dax_set_mapping(struct vm_fault *vmf, unsigned long pfn,
->  			      unsigned long fault_size)
+> +/**
+> + * dax_folio_reset_order - Reset a compound DAX folio to order-0 pages
+> + * @folio: The folio to reset
+> + *
+> + * Splits a compound folio back into individual order-0 pages,
+> + * clearing compound state and restoring pgmap pointers.
+> + *
+> + * Returns: the original folio order (0 if already order-0)
+> + */
+> +int dax_folio_reset_order(struct folio *folio)
+> +{
+> +	struct dev_pagemap *pgmap = page_pgmap(&folio->page);
+> +	int order = folio_order(folio);
+> +	int i;
+> +
+> +	folio->mapping = NULL;
+> +	folio->share = 0;
+> +
+> +	if (!order) {
+> +		folio->pgmap = pgmap;
+> +		return 0;
+> +	}
+> +
+> +	folio_reset_order(folio);
+> +
+> +	for (i = 0; i < (1UL << order); i++) {
+> +		struct page *page = folio_page(folio, i);
+> +		struct folio *f = (struct folio *)page;
+> +
+> +		ClearPageHead(page);
+> +		clear_compound_head(page);
+> +		f->mapping = NULL;
+> +		f->share = 0;
+> +		f->pgmap = pgmap;
+> +	}
+> +
+> +	return order;
+> +}
+> +
+>  static inline unsigned long dax_folio_put(struct folio *folio)
 >  {
+>  	unsigned long ref;
+> @@ -391,28 +430,13 @@ static inline unsigned long dax_folio_put(struct folio *folio)
+>  	if (ref)
+>  		return ref;
+>  
+> -	folio->mapping = NULL;
+> -	order = folio_order(folio);
+> -	if (!order)
+> -		return 0;
+> -	folio_reset_order(folio);
+> +	order = dax_folio_reset_order(folio);
+>  
+> +	/* Debug check: verify refcounts are zero for all sub-folios */
+>  	for (i = 0; i < (1UL << order); i++) {
+> -		struct dev_pagemap *pgmap = page_pgmap(&folio->page);
+>  		struct page *page = folio_page(folio, i);
+> -		struct folio *new_folio = (struct folio *)page;
+>  
+> -		ClearPageHead(page);
+> -		clear_compound_head(page);
+> -
+> -		new_folio->mapping = NULL;
+> -		/*
+> -		 * Reset pgmap which was over-written by
+> -		 * prep_compound_page().
+> -		 */
+> -		new_folio->pgmap = pgmap;
+> -		new_folio->share = 0;
+> -		WARN_ON_ONCE(folio_ref_count(new_folio));
+> +		WARN_ON_ONCE(folio_ref_count((struct folio *)page));
+>  	}
+>  
+>  	return ref;
 
