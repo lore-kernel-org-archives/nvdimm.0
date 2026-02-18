@@ -1,483 +1,193 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7FE2248F73
-	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 17:46:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9848C258ED4
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 17:52:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771436765; cv=none; b=JitQTjK9Za8U2p0vbQnQxtwJ1hSFpA9FsZdgIS+rgin0AutIZx/Y6v7m8eq1zcUApohR6yakgL/qnCPcBMGwOelANmVKPzM+wXDyQa/oy4Hx6/jRS/kfnhZguexzJd2fL0Fp+Exs/RUdsu9l5MYlc6dR+/L0wSDwJo0Yq4o3kiQ=
+	t=1771437141; cv=none; b=HCPYjc+CcU3g4D099k7bqDtphX9axcNF/K33onKch1OGIgaePlEEcOrtNeHvZEwt13JcpWYBtpsaMnFxYvc9qLhJ/kuc0Bk4TloBxv0yuJ43fPeLDvMH0tvlIGEpUCblMvCeGeoBOT2EUk2Wdq6NYju1aMjNToVn+c9RrYRo1DM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771436765; c=relaxed/simple;
-	bh=kHuWVKCuWsry+iLcys5ZOy/PxfXYflOvNDHnP7my69U=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rzyWXKzJBzjqNkD5UpHzg0gZfgimgWjyNJZQKpNxjIV2h4XvTDjXfxSjQFpG/TjW0ao2+3HYsIFmSRHiWKAXfBB2o2sk5m1pHo1nRpJNOcHP0llVr1Bev76NYwAqwMFkOh2NHa9p15hV5JCtWHa345qLESr932eZu/Vi1hjfX08=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EFxeCYeq; arc=none smtp.client-ip=192.198.163.17
+	s=arc-20240116; t=1771437141; c=relaxed/simple;
+	bh=jkbcKySE2q3+0d2eltPFSdGhKmAGT605iAc5M4pcycM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=eBRqdCAHA5rAskxoIaoXDX1AcaymhqUmCeNAQY2k2AJP4MzLsGrjp5cWFVYoiIJpGhSd3/TWfqSWWoIZ3vjHdTAzTop1KgHRYg94YrN/kANzDYXTuxrKEeSoxJhoWdFe1tUv86VdN5BK7OC1zQZuo3QFXR/g1YZPXsqzPavNhe8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dR7+gJAU; arc=none smtp.client-ip=198.175.65.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EFxeCYeq"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dR7+gJAU"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771436764; x=1802972764;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=kHuWVKCuWsry+iLcys5ZOy/PxfXYflOvNDHnP7my69U=;
-  b=EFxeCYeqz6vUzDRi/hIW+vIfTicbDtws7VsiT3x5p38OP8yd1qH8itrm
-   D10/r7twxbbyptS8b6deDGMdGvU5fwhyqO2uVitg/e/3/zNwzdti9Aqlr
-   P2q9VNo7pTpssZMT0TkiqtDK+cR7/SYXOSMKvsvpoa2CJ7WQxzNAvvmXx
-   Wqdn1GHk6X3/OI7zfe4Y4LbVTnYNOrrFH77urOB+QOviyXXCzrZO33po6
-   HjM93j9Z1Ewtx09okx7CYvR5tGUfJ39iA6/owrzQBbHwzE+zJpbHbk3mW
-   gFYRaWOmVaUV5teIMQXsJHNmf23T2tPT2PyQmZp8I89TI6gqWp5gqvLd/
-   A==;
-X-CSE-ConnectionGUID: 4kuB1hUzQa6FeO5SW5PMZA==
-X-CSE-MsgGUID: Gxiw+XIIQ6mSMcp5VNLx+Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="72431308"
+  t=1771437139; x=1802973139;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=jkbcKySE2q3+0d2eltPFSdGhKmAGT605iAc5M4pcycM=;
+  b=dR7+gJAUV47+1f0466303UcxFqShOrEK/R8m4uzePGj53vmL1OPZcEcf
+   RzSQTD1UxupeSHWsMwIRsno4c/pARkD3TUw+G4sco/30nIJH+rA3r8ZIq
+   pr/9gSnc7IiU1Ve8T/g203wJBVrSLSrmhG6kheVOP1Rnyf4JQ9k8RnHjo
+   8EF1mJdA5/60D1z1wvE4/VYr20C0KOC0tt4vwf9xt43y2FVKJ7woIQOcQ
+   O5dGMLw9uR0jXpCRmLGMyetW4NrbpTNaQ59oBkM41q6WL+50pZQpcOsRa
+   9KrOCBE4GKB+kzUGqBe5kAtSzuZKZR4OGwmDd0cadDC66ksJWbuQGIJ4/
+   Q==;
+X-CSE-ConnectionGUID: 3+N51YR9Sn+jh2spZAVsFQ==
+X-CSE-MsgGUID: CeLXx/FBT/6pvw4eRstUlg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11705"; a="89929874"
 X-IronPort-AV: E=Sophos;i="6.21,298,1763452800"; 
-   d="scan'208";a="72431308"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 09:46:03 -0800
-X-CSE-ConnectionGUID: aK0CN4wESy6Ed7ipCdCCjA==
-X-CSE-MsgGUID: 4eQV7N12T9qIC/kDDZN+Rg==
+   d="scan'208";a="89929874"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 09:52:18 -0800
+X-CSE-ConnectionGUID: HzoCbuYnQ8+MIIwJFgzx7A==
+X-CSE-MsgGUID: 4bh8jUgXQXu+7QS562yTFQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,298,1763452800"; 
-   d="scan'208";a="218775895"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.94])
-  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 09:46:03 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Marc Herbert <marc.herbert@intel.com>
-Subject: [ndctl PATCH v5] test/cxl-translate.sh: add new cxl-translate.sh unit test
-Date: Wed, 18 Feb 2026 09:45:58 -0800
-Message-ID: <20260218174600.1467077-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+   d="scan'208";a="212329200"
+Received: from aduenasd-mobl5.amr.corp.intel.com (HELO [10.125.109.212]) ([10.125.109.212])
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2026 09:52:15 -0800
+Message-ID: <0c464a2c-3722-45e5-9023-5a2fce8aa096@intel.com>
+Date: Wed, 18 Feb 2026 10:52:14 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-
-cxl-translate.sh performs 2 types of testing of the CXL Driver's
-address translation capabilities:
-
-1. Parameterized test vectors:
-The cxl-translate.sh unit test feeds trusted data sets to a kernel
-test module: cxl_translate. That module accesses the CXL region
-driver's address translation functions. The trusted samples are either
-from the CXL Driver Writers Guide[1] or from another verified source
-ie a spreadsheet reviewed by CXL developers.
-
-2. Internal validation testing:
-The unit test also kicks off internal tests of the cxl_translate
-module that validate parameters and exercise address translation
-with randomly generated valid parameters.
-
-[1] https://www.intel.com/content/www/us/en/content-details/643805/cxl-memory-device-sw-guide.html
-
-Tested-by: Dave Jiang <dave.jiang@intel.com>
-[ marc: reviewed scripting only, not the test logic ]
-Reviewed-by: Marc Herbert <marc.herbert@intel.com>
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
-
-Changes in v5:
-Use rmmod in per test teardown (was modprobe -r) to avoid repeated
-dependency unload and reload
-s/cxl-translate/cxl_translate to match local naming convention
-Update commit message prefix 
-
-Changes in v4:
-SKIP don't FAIL when cxl-translate module is not available (DaveJ)
-Disable shellcheck SC2034 per instance, not per file (MarcH)
-Disable shellcheck SC2034 per instance, not per file (MarcH)
-Don't mask journalctl exit status. (MarcH)
-Apply all format suggestions of shfmt
-Whitespace cleanup (MarcH)
-Kernel support for this test is now on the "next" branch here:
-https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/
-
-Changes in v3: 
-Add test_internal() that that kicks off newly added tests in v3 of
-the cxl_translate test module, in review here:
-https://lore.kernel.org/linux-cxl/a2c74fa976862fe6472537eb438ec061278fb099.1758150087.git.alison.schofield@intel.com/
-
-Changes in v2:
-Use shell builtins true|false rather than string compares (Marc)
-Further explain the disable of SC2034 for nameref's  (Marc)
-Use long format journalctl options, ie. --reverse (Marc)
-Correct module name as cxl_translate in commit log
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 7/9] dax: Add deferred-work helpers for dax_hmem and
+ dax_cxl coordination
+To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+ linux-pm@vger.kernel.org
+Cc: Ard Biesheuvel <ardb@kernel.org>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Yazen Ghannam <yazen.ghannam@amd.com>, Davidlohr Bueso <dave@stgolabs.net>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
+ Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
+ Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
+ Ying Huang <huang.ying.caritas@gmail.com>,
+ Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Nathan Fontenot <nathan.fontenot@amd.com>,
+ Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>,
+ Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
+ Tomasz Wolski <tomasz.wolski@fujitsu.com>
+References: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
+ <20260210064501.157591-8-Smita.KoralahalliChannabasappa@amd.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260210064501.157591-8-Smita.KoralahalliChannabasappa@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
- test/cxl-translate.sh | 336 ++++++++++++++++++++++++++++++++++++++++++
- test/meson.build      |   2 +
- 2 files changed, 338 insertions(+)
- create mode 100755 test/cxl-translate.sh
 
-diff --git a/test/cxl-translate.sh b/test/cxl-translate.sh
-new file mode 100755
-index 000000000000..10261c6d685f
---- /dev/null
-+++ b/test/cxl-translate.sh
-@@ -0,0 +1,336 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2025 Intel Corporation. All rights reserved.
-+
-+# Note about ShellCheck disables in this script:
-+#
-+# Arrays in this script are passed by name into helper functions using Bash's
-+# nameref feature `declare -n`. This pattern supports writing generic test
-+# harnesses that can iterate over many different test vector arrays simply by
-+# passing the array name. ShellCheck doesn't track nameref indirection, so it
-+# incorrectly reports these arrays as unused (SC2034). At runtime they are
-+# fully used through the nameref, so these warnings are safe to ignore.
-+
-+# source common to get the err() only
-+. "$(dirname "$0")"/common
-+
-+modinfo cxl_translate &>/dev/null || modinfo cxl_translate &>/dev/null ||
-+	do_skip "test requires cxl_translate kernel module"
-+
-+trap 'err $LINENO' ERR
-+set -ex
-+rc=1
-+
-+MODULO=0
-+XOR=1
-+
-+# Test against 'Sample Sets' and 'XOR Tables'
-+#
-+# Sample Set's have a pattern and the expected HPAs have been verified
-+# although maybe not published. They verify Modulo and XOR translations.
-+#
-+# XOR Table's are extracted from the CXL Driver Writers Guide [1].
-+# Although the XOR Tables do not include an explicit check of the Modulo
-+# translation result, a Modulo calculation is always the first step in
-+# any XOR calculation. ie. if Modulo fails so does XOR.
-+#
-+# [1] https://www.intel.com/content/www/us/en/content-details/643805/cxl-memory-device-sw-guide.html
-+
-+# Start time for kernel log checking at millisecond granularity
-+set_log_start_time() {
-+	log_start_time=$(date '+%Y-%m-%d %H:%M:%S.%3N')
-+}
-+
-+check_dmesg_results() {
-+	local nr_entries=$1
-+	local expect_failures=${2:-false} # Optional param, builtin true|false
-+	local log nr_pass nr_fail
-+
-+	log=$(journalctl --reverse --dmesg --since "$log_start_time")
-+
-+	nr_pass=$(echo "$log" | grep -c "CXL Translate Test.*PASS") || nr_pass=0
-+	nr_fail=$(echo "$log" | grep -c "CXL Translate Test.*FAIL") || nr_fail=0
-+
-+	if $expect_failures; then
-+		# Expect no PASS and all FAIL
-+		[ "$nr_pass" -eq 0 ] || err "$LINENO"
-+		[ "$nr_fail" -eq "$nr_entries" ] || err "$LINENO"
-+	else
-+		# Expect all PASS and no FAIL
-+		[ "$nr_pass" -eq "$nr_entries" ] || err "$LINENO"
-+		[ "$nr_fail" -eq 0 ] || err "$LINENO"
-+	fi
-+}
-+
-+# Sample Sets
-+#
-+# params_#: dpa, region eiw, region eig, host bridge ways
-+# expect_[modulo|xor]_#: expected spa for each position in the region
-+# 	interleave set for the modulo|xor math.
-+#
-+# Feeds the parameters with an expected SPA for each position in the region
-+# interleave to the test module. Returns success if the calculation matches
-+# the expected SPA and the reverse calculation returns the original DPA and
-+# position.
-+
-+# 4 way region interleave using 4 host bridges
-+# Notation: 1+1+1+1
-+
-+# shellcheck disable=SC2034
-+declare -A Sample_4R_4H=(
-+	["params_0"]="0 2 0 4"
-+	["expect_modulo_0"]="0 256 512 768"
-+	["expect_xor_0"]="0 256 512 768"
-+	["params_1"]="256 2 0 4"
-+	["expect_modulo_1"]="1024 1280 1536 1792"
-+	["expect_xor_1"]="1024 1280 1536 1792"
-+	["params_2"]="2048 2 0 4"
-+	["expect_modulo_2"]="8192 8448 8704 8960"
-+	["expect_xor_2"]="8192 8448 8704 8960"
-+)
-+
-+# 12 way region interleave using 12 host bridges
-+# Notation: 1+1+1+1+1+1+1+1+1+1+1+1
-+
-+# shellcheck disable=SC2034
-+declare -A Sample_12R_12H=(
-+	["params_0"]="0 10 0 12"
-+	["expect_modulo_0"]="0 256 512 768 1024 1280 1536 1792 2048 2304 2560 2816"
-+	["expect_xor_0"]="0 256 512 768 1024 1280 1536 1792 2304 2048 2816 2560"
-+	["params_1"]="512 10 0 12"
-+	["expect_modulo_1"]="6144 6400 6656 6912 7168 7424 7680 7936 8192 8448 8704 8960"
-+	["expect_xor_1"]="6912 6656 6400 6144 7936 7680 7424 7168 8192 8448 8704 8960"
-+)
-+
-+decode_r_eiw() {
-+	case $1 in
-+	0) echo 1 ;;
-+	1) echo 2 ;;
-+	2) echo 4 ;;
-+	3) echo 8 ;;
-+	4) echo 16 ;;
-+	8) echo 3 ;;
-+	9) echo 6 ;;
-+	10) echo 12 ;;
-+	*)
-+		echo "Invalid r_eiw value: $1"
-+		err "$LINENO"
-+		;;
-+	esac
-+}
-+
-+generate_sample_tests() {
-+	local -n input_sample_set=$1
-+	local -n output_array=$2
-+
-+	# Find all params_* keys and extract the index
-+	local indices=()
-+	for key in "${!input_sample_set[@]}"; do
-+		if [[ $key =~ ^params_([0-9]+)$ ]]; then
-+			indices+=("${BASH_REMATCH[1]}")
-+		fi
-+	done
-+
-+	# Sort indices to process in order
-+	mapfile -t indices < <(printf '%s\n' "${indices[@]}" | sort -n)
-+
-+	for i in "${indices[@]}"; do
-+		# Split the parameters and expected spa values
-+		IFS=' ' read -r dpa r_eiw r_eig hb_ways <<<"${input_sample_set["params_$i"]}"
-+		IFS=' ' read -r -a expect_modulo_values <<<"${input_sample_set["expect_modulo_$i"]}"
-+		IFS=' ' read -r -a expect_xor_values <<<"${input_sample_set["expect_xor_$i"]}"
-+
-+		ways=$(decode_r_eiw "$r_eiw")
-+		for ((pos = 0; pos < ways; pos++)); do
-+			expect_spa_modulo=${expect_modulo_values[$pos]}
-+			expect_spa_xor=${expect_xor_values[$pos]}
-+
-+			# Add the MODULO test case, then the XOR test case
-+			output_array+=("$dpa $pos $r_eiw $r_eig $hb_ways $MODULO $expect_spa_modulo")
-+			output_array+=("$dpa $pos $r_eiw $r_eig $hb_ways $XOR $expect_spa_xor")
-+		done
-+	done
-+}
-+
-+test_sample_sets() {
-+	local sample_name=$1
-+	# shellcheck disable=SC2034
-+	local -n sample_set=$1
-+	local generated_tests=()
-+
-+	generate_sample_tests sample_set generated_tests
-+
-+	IFS=','
-+	table_string="${generated_tests[*]}"
-+	IFS=' '
-+
-+	echo "Testing $sample_name with ${#generated_tests[@]} test entries"
-+	set_log_start_time
-+	rmmod cxl-translate 2>/dev/null || true
-+	modprobe cxl_translate "table=$table_string"
-+	check_dmesg_results "${#generated_tests[@]}"
-+}
-+
-+# XOR Tables
-+#
-+# The tables that follow are the XOR translation examples in the
-+# CXL Driver Writers Guide Sections 2.13.24.1 and 25.1
-+# Note that the Guide uses the device number in its table notation.
-+# Here the 'position' of that device number is used, not the
-+# device number itself, which is meaningless in this context.
-+#
-+# Format: "dpa pos r_eiw r_eig hb_ways xor_math(0|1) xor_spa:
-+
-+# 4 way region interleave using 4 host bridges
-+# Notation: 1+1+1+1
-+
-+# shellcheck disable=SC2034
-+XOR_Table_4R_4H=(
-+	"248   0 2 0 4 1 248"
-+	"16    1 2 0 4 1 272"
-+	"16    2 2 0 4 1 528"
-+	"32    3 2 0 4 1 800"
-+	"288   0 2 0 4 1 1056"
-+	"288   1 2 0 4 1 1312"
-+	"288   2 2 0 4 1 1568"
-+	"288   3 2 0 4 1 1824"
-+	"544   1 2 0 4 1 2080"
-+	"544   0 2 0 4 1 2336"
-+	"544   3 2 0 4 1 2592"
-+	"1040  2 2 0 4 1 4112"
-+	"1568  3 2 0 4 1 6176"
-+	"32784 1 2 0 4 1 131088"
-+	"65552 2 2 0 4 1 262160"
-+	"98336 3 2 0 4 1 393248"
-+	"98328 2 2 0 4 1 393496"
-+	"98352 2 2 0 4 1 393520"
-+	"443953523 0 2 0 4 1 1775813747"
-+)
-+
-+# shellcheck disable=SC2034
-+XOR_Table_8R_4H=(
-+	"248       0 3 0 4 1 248"
-+	"16        1 3 0 4 1 272"
-+	"16        2 3 0 4 1 528"
-+	"32        3 3 0 4 1 800"
-+	"272       1 3 0 4 1 2064"
-+	"528       2 3 0 4 1 4112"
-+	"800       3 3 0 4 1 6176"
-+	"16400     1 3 0 4 1 131088"
-+	"32784     2 3 0 4 1 262160"
-+	"49184     3 3 0 4 1 393248"
-+	"49176     2 3 0 4 1 393496"
-+	"49200     2 3 0 4 1 393520"
-+	"116520373 3 3 0 4 1 932162229"
-+	"244690459 5 3 0 4 1 1957525275"
-+	"292862215 5 3 0 4 1 2342899463"
-+	"30721158  4 3 0 4 1 245769350"
-+	"246386959 4 3 0 4 1 1971096847"
-+	"72701249  5 3 0 4 1 581610561"
-+	"529382429 5 3 0 4 1 4235060509"
-+	"191132300 2 3 0 4 1 1529057420"
-+	"18589081  1 3 0 4 1 148712089"
-+	"344295715 7 3 0 4 1 2754367011"
-+)
-+
-+# shellcheck disable=SC2034
-+XOR_Table_12R_12H=(
-+	"224 0 10 0 12 1 224"
-+	"16  1 10 0 12 1 272"
-+	"16  2 10 0 12 1 528"
-+	"32  3 10 0 12 1 800"
-+	"32  4 10 0 12 1 1056"
-+	"32  5 10 0 12 1 1312"
-+	"32  6 10 0 12 1 1568"
-+	"32  7 10 0 12 1 1824"
-+	"32  9 10 0 12 1 2080"
-+	"32  8 10 0 12 1 2336"
-+	"32 11 10 0 12 1 2592"
-+	"32 10 10 0 12 1 2848"
-+	"288 0 10 0 12 1 3360"
-+	"299017087 7 10 0 12 1 3588205439"
-+	"329210435 0 10 0 12 1 3950524995"
-+	"151050637 11 10 0 12 1 1812608653"
-+	"145169214  2 10 0 12 1 1742030654"
-+	"328998732 10 10 0 12 1 3947985996"
-+	"159252439  3 10 0 12 1 1911027415"
-+	"342098916  5 10 0 12 1 4105186020"
-+	"97970344   8 10 0 12 1 1175645096"
-+	"214995572  8 10 0 12 1 2579948404"
-+	"101289661  7 10 0 12 1 1215475645"
-+	"40424079   7 10 0 12 1 485088911"
-+	"231458716  7 10 0 12 1 2777503900"
-+)
-+
-+# A fail table entry is expected to fail the DPA->SPA calculation.
-+# Intent is to show that the test module can tell good from bad.
-+# If one of these cases passes, don't trust other pass results.
-+# This is not a test of module parsing, so don't send garbage.
-+
-+# shellcheck disable=SC2034
-+Expect_Fail_Table=(
-+	"544   3 2 0 4 1 2080" # Change position
-+	"544   2 2 0 4 1 2336"
-+	"544   1 2 0 4 1 2592"
-+	"272   1 2 0 4 1 2064" # Change r_eiw
-+	"528   2 1 0 4 1 4112"
-+	"800   3 10 0 4 1 6176"
-+	"32  4 10 0 12 1 1156" # Change expected spa
-+	"32  5 10 0 12 1 1112"
-+	"32  6 10 0 12 1 1168"
-+	"32  7 10 0 12 1 1124"
-+)
-+
-+test_tables() {
-+	local table_name=$1
-+	local -n table_ref=$1
-+	local expect_failures=${2:-false} # Optional param, builtin true|false
-+	local IFS
-+
-+	IFS=','
-+	table_string="${table_ref[*]}"
-+	IFS=' '
-+
-+	if $expect_failures; then
-+		echo "Testing $table_name with ${#table_ref[@]} entries (expecting FAIL results)"
-+	else
-+		echo "Testing $table_name with ${#table_ref[@]} test entries"
-+	fi
-+
-+	set_log_start_time
-+	rmmod cxl-translate 2>/dev/null || true
-+	modprobe cxl_translate "table=$table_string"
-+	check_dmesg_results "${#table_ref[@]}" "$expect_failures"
-+}
-+
-+test_internal() {
-+	echo "Running internal validation..."
-+	set_log_start_time
-+	rmmod cxl-translate 2>/dev/null || true
-+	modprobe cxl_translate
-+
-+	local log
-+	log=$(journalctl --reverse --dmesg --since "$log_start_time")
-+
-+	if echo "$log" | grep -q "Internal validation test completed successfully"; then
-+		echo "Internal validation test: PASS"
-+	else
-+		echo "Internal validation test: FAIL"
-+		err "$LINENO"
-+	fi
-+}
-+
-+# Each test function rmmods cxl_translate before modprobe so new test
-+# parameters take effect. Full teardown is deferred until the end of
-+# all test runs to avoid repeated reprobes of non CXL-test devices.
-+
-+test_internal
-+test_tables Expect_Fail_Table true
-+test_sample_sets Sample_4R_4H
-+test_sample_sets Sample_12R_12H
-+test_tables XOR_Table_4R_4H
-+test_tables XOR_Table_8R_4H
-+test_tables XOR_Table_12R_12H
-+
-+modprobe -r cxl_translate
-+echo "Translate unit test completed with no failures"
-diff --git a/test/meson.build b/test/meson.build
-index 615376ea635a..663d31cd333e 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -167,6 +167,7 @@ cxl_events = find_program('cxl-events.sh')
- cxl_sanitize = find_program('cxl-sanitize.sh')
- cxl_destroy_region = find_program('cxl-destroy-region.sh')
- cxl_qos_class = find_program('cxl-qos-class.sh')
-+cxl_translate = find_program('cxl-translate.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -199,6 +200,7 @@ tests = [
-   [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-   [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
-+  [ 'cxl-translate.sh',       cxl_translate,      'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.37.3
+On 2/9/26 11:44 PM, Smita Koralahalli wrote:
+> Add helpers to register, queue and flush the deferred work.
+> 
+> These helpers allow dax_hmem to execute ownership resolution outside the
+> probe context before dax_cxl binds.
+> 
+> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+> ---
+>  drivers/dax/bus.c | 58 +++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/dax/bus.h |  7 ++++++
+>  2 files changed, 65 insertions(+)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 5f387feb95f0..92b88952ede1 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -25,6 +25,64 @@ DECLARE_RWSEM(dax_region_rwsem);
+>   */
+>  DECLARE_RWSEM(dax_dev_rwsem);
+>  
+> +static DEFINE_MUTEX(dax_hmem_lock);
+> +static dax_hmem_deferred_fn hmem_deferred_fn;
+> +static void *dax_hmem_data;
+> +
+> +static void hmem_deferred_work(struct work_struct *work)
+> +{
+> +	dax_hmem_deferred_fn fn;
+> +	void *data;
+> +
+> +	scoped_guard(mutex, &dax_hmem_lock) {
+> +		fn = hmem_deferred_fn;
+> +		data = dax_hmem_data;
+> +	}
+> +
+> +	if (fn)
+> +		fn(data);
+> +}
+
+Instead of having a global lock and dealing with all the global variables, why not just do this with the typical work_struct usage pattern and allocate a work item when queuing work?
+
+DJ
+
+> +
+> +static DECLARE_WORK(dax_hmem_work, hmem_deferred_work);
+> +
+> +int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data)
+> +{
+> +	guard(mutex)(&dax_hmem_lock);
+> +
+> +	if (hmem_deferred_fn)
+> +		return -EINVAL;
+> +
+> +	hmem_deferred_fn = fn;
+> +	dax_hmem_data = data;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_hmem_register_work);
+> +
+> +int dax_hmem_unregister_work(dax_hmem_deferred_fn fn, void *data)
+> +{
+> +	guard(mutex)(&dax_hmem_lock);
+> +
+> +	if (hmem_deferred_fn != fn || dax_hmem_data != data)
+> +		return -EINVAL;
+> +
+> +	hmem_deferred_fn = NULL;
+> +	dax_hmem_data = NULL;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_hmem_unregister_work);
+> +
+> +void dax_hmem_queue_work(void)
+> +{
+> +	queue_work(system_long_wq, &dax_hmem_work);
+> +}
+> +EXPORT_SYMBOL_GPL(dax_hmem_queue_work);
+> +
+> +void dax_hmem_flush_work(void)
+> +{
+> +	flush_work(&dax_hmem_work);
+> +}
+> +EXPORT_SYMBOL_GPL(dax_hmem_flush_work);
+> +
+>  #define DAX_NAME_LEN 30
+>  struct dax_id {
+>  	struct list_head list;
+> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+> index cbbf64443098..b58a88e8089c 100644
+> --- a/drivers/dax/bus.h
+> +++ b/drivers/dax/bus.h
+> @@ -41,6 +41,13 @@ struct dax_device_driver {
+>  	void (*remove)(struct dev_dax *dev);
+>  };
+>  
+> +typedef void (*dax_hmem_deferred_fn)(void *data);
+> +
+> +int dax_hmem_register_work(dax_hmem_deferred_fn fn, void *data);
+> +int dax_hmem_unregister_work(dax_hmem_deferred_fn fn, void *data);
+> +void dax_hmem_queue_work(void);
+> +void dax_hmem_flush_work(void);
+> +
+>  int __dax_driver_register(struct dax_device_driver *dax_drv,
+>  		struct module *module, const char *mod_name);
+>  #define dax_driver_register(driver) \
 
