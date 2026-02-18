@@ -1,183 +1,77 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F3C43016F5;
-	Wed, 18 Feb 2026 06:14:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C449A19E992
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 10:52:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771395241; cv=none; b=JXpZocIqqynKVFIAyXIvgaS8ZUSujZU5QERt/b/Lpsemp1+zBUOLTerGxJMojRl+JZ2FKpMFYx7OfM9EOfe3qpHQrxn7+WrAuV+zxzfU43RxkmdYRwpupz5brU2BKeunx+uRalMJ8ppTjsrJRHLBxvc9XlazbF831tm1n3NMTwY=
+	t=1771411976; cv=none; b=rUzIQQcmshg5xm4aLs5vnhw80Cv/VoOReYD3AEFGTPy3FDvnV3wOsv8oEOBaVjIDA6/Um7hQthj38iYnCOrT7sXU00mVwbtzigipdJn04g3GFn3eu0UmrXOUqRWz345nC65g520gGxNTJ/S0kgcIZdhSLWiC7Hd1/Py1O0KtiPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771395241; c=relaxed/simple;
-	bh=Ia12ckmAsSk8ITdVjaMQMn80Tn4ldTZUd+PU9+DPfks=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=j6QxpKA5YU35ZDAv37fIdtPgc3uDcqBn77zBgkLJ2MgZ/8sfn04ylfGQB9H/lIqNEkqfPA/PonecBMWz+ZaZCtD8bxbRvnDn7+h7wFZRXS1W5mAZNpVeqAu/64B7nht/BbeOYfj7zwIyNy2ZpKgS3nYzgRkwkS9fv8907W+iUyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=SRfSSglg; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1771411976; c=relaxed/simple;
+	bh=MPy2dmqKlCsrw5okIZFwkiGzwVi0bWXg1j0NfWvMFRQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
+	 Content-Type:References; b=oa1SCYLkUOW7TfWXL+Ct7wEgCo3SFXb4T/Iwb6uXRfN1xOq7r0oaR6e2sygMc0vGH6SKIaA6RzioOJ7FHWqxPHWBv/1ag2sFyPS3cfX3W3byjUbrEkBKWmuPDz8Vdgy2f4ddHF8OC3wwwX22Jzyu7Mghh44BtjOKD4/1wlsN5AA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=MYGC1Pxj; arc=none smtp.client-ip=203.254.224.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="SRfSSglg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=UXAA0RQj1ZeglDCy6cgGpo+e4MRe1hdQoQbU6s7Exhg=; b=SRfSSglgAz0RhmF7IGqGfugcgt
-	QAt5coaHHWMIFdPsAg6r++afBuEMy54+IjdIwGa1MBof54AaJdOdyoX99XGTjH0dkCuvYKvX6OkaZ
-	FXkg70I83IfzuKSFSYkSg2cPCbb+8o7JsdR5htq4MbXyZvZPeTrLPETapISGHOpsTHa205x3pEohV
-	oSh8GjoRiEZobnea4FU6+84uD7uYyQcj+nJGSwpCtTPMZMlYq2gk34kwfCRTnIGq3A9D+DKN02fMr
-	/UtBA997Ba+3RqHHZE5vTQBzuIAODVOQeUO3mdEWSo6SjBGVsaILznu84Mg2FpmRIEkrCOA/6n3SS
-	q4I5DO9A==;
-Received: from [2001:4bb8:2dc:9863:1842:9381:9c0f:de32] (helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vsaox-00000009LW0-1pSH;
-	Wed, 18 Feb 2026 06:13:59 +0000
-From: Christoph Hellwig <hch@lst.de>
-To: Jens Axboe <axboe@kernel.dk>,
-	Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>,
-	Carlos Maiolino <cem@kernel.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Anuj Gupta <anuj20.g@samsung.com>,
-	Kanchan Joshi <joshi.k@samsung.com>,
-	linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org,
-	linux-xfs@vger.kernel.org
-Subject: [PATCH 15/15] xfs: support T10 protection information
-Date: Wed, 18 Feb 2026 07:12:09 +0100
-Message-ID: <20260218061238.3317841-16-hch@lst.de>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260218061238.3317841-1-hch@lst.de>
-References: <20260218061238.3317841-1-hch@lst.de>
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="MYGC1Pxj"
+Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20260218105252epoutp0357695451803203d7c698f85b5e0a5b8b~VUc3FAXAg2906629066epoutp03c
+	for <nvdimm@lists.linux.dev>; Wed, 18 Feb 2026 10:52:52 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20260218105252epoutp0357695451803203d7c698f85b5e0a5b8b~VUc3FAXAg2906629066epoutp03c
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1771411972;
+	bh=MPy2dmqKlCsrw5okIZFwkiGzwVi0bWXg1j0NfWvMFRQ=;
+	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
+	b=MYGC1PxjznuhiOWZu70tL4bYSlPmvjJ5fGp7ptC6gLYqdx1l7RKpNU69WhRXkh0TH
+	 6WydTKrvq7cj3KUxBMpVB59u+9t+tR0lSgd+qBYUyXcHNwMV/rHBSlyIjlImotWKPP
+	 9oRd7nDLpBMKXQNg6acGUvjn0o7zDuNfhzpWnyVg=
+Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
+	20260218105252epcas5p2a1cd5fd4a4fa3e5a71cbbe99421ef9b6~VUc2nkLM00982209822epcas5p2x;
+	Wed, 18 Feb 2026 10:52:52 +0000 (GMT)
+Received: from epcas5p1.samsung.com (unknown [182.195.38.91]) by
+	epsnrtp04.localdomain (Postfix) with ESMTP id 4fGCyq3G6Xz6B9m6; Wed, 18 Feb
+	2026 10:52:51 +0000 (GMT)
+Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
+	20260218105250epcas5p3d63a86bf5f61784ccd0f02bbaf2cd280~VUc1PEMui1692816928epcas5p3V;
+	Wed, 18 Feb 2026 10:52:50 +0000 (GMT)
+Received: from [107.122.11.51] (unknown [107.122.11.51]) by
+	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20260218105249epsmtip10a20eda6b4f4ae6e5d841b750a3e92d2~VUczwmyvL1133211332epsmtip11;
+	Wed, 18 Feb 2026 10:52:48 +0000 (GMT)
+Message-ID: <e40e6a2f-a03a-4133-b863-a88df0b967cf@samsung.com>
+Date: Wed, 18 Feb 2026 16:22:48 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 07/15] block: pass a maxlen argument to
+ bio_iov_iter_bounce
+To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Christian
+	Brauner <brauner@kernel.org>
+Cc: "Darrick J. Wong" <djwong@kernel.org>, Carlos Maiolino <cem@kernel.org>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>, Anuj Gupta
+	<anuj20.g@samsung.com>, linux-block@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
+Content-Language: en-US
+From: Kanchan Joshi <joshi.k@samsung.com>
+In-Reply-To: <20260218061238.3317841-8-hch@lst.de>
+Content-Transfer-Encoding: 7bit
+X-CMS-MailID: 20260218105250epcas5p3d63a86bf5f61784ccd0f02bbaf2cd280
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+CMS-TYPE: 105P
+cpgsPolicy: CPGSC10-542,Y
+X-CFilter-Loop: Reflected
+X-CMS-RootMailID: 20260218061322epcas5p2ad69ece4b346b48d47f90a52a120801e
+References: <20260218061238.3317841-1-hch@lst.de>
+	<CGME20260218061322epcas5p2ad69ece4b346b48d47f90a52a120801e@epcas5p2.samsung.com>
+	<20260218061238.3317841-8-hch@lst.de>
 
-Add support for generating / verifying protection information in the file
-system.  This is largely done by simply setting the IOMAP_F_INTEGRITY
-flag and letting iomap do all of the work.  XFS just has to ensure that
-the data read completions for integrity data are run from user context.
-
-For zoned writeback, XFS also has to generate the integrity data itself
-as the zoned writeback path is not using the generic writeback_submit
-implementation.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
-Tested-by: Anuj Gupta <anuj20.g@samsung.com>
----
- fs/xfs/xfs_aops.c  | 47 ++++++++++++++++++++++++++++++++++++++++++----
- fs/xfs/xfs_iomap.c |  9 ++++++---
- 2 files changed, 49 insertions(+), 7 deletions(-)
-
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 76678814f46f..f279055fcea0 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -22,6 +22,7 @@
- #include "xfs_icache.h"
- #include "xfs_zone_alloc.h"
- #include "xfs_rtgroup.h"
-+#include <linux/bio-integrity.h>
- 
- struct xfs_writepage_ctx {
- 	struct iomap_writepage_ctx ctx;
-@@ -661,6 +662,8 @@ xfs_zoned_writeback_submit(
- 		bio_endio(&ioend->io_bio);
- 		return error;
- 	}
-+	if (wpc->iomap.flags & IOMAP_F_INTEGRITY)
-+		fs_bio_integrity_generate(&ioend->io_bio);
- 	xfs_zone_alloc_and_submit(ioend, &XFS_ZWPC(wpc)->open_zone);
- 	return 0;
- }
-@@ -741,12 +744,45 @@ xfs_vm_bmap(
- 	return iomap_bmap(mapping, block, &xfs_read_iomap_ops);
- }
- 
-+static void
-+xfs_bio_submit_read(
-+	const struct iomap_iter		*iter,
-+	struct iomap_read_folio_ctx	*ctx)
-+{
-+	struct bio			*bio = ctx->read_ctx;
-+
-+	/* defer read completions to the ioend workqueue */
-+	iomap_init_ioend(iter->inode, bio, ctx->read_ctx_file_offset, 0);
-+	bio->bi_end_io = xfs_end_bio;
-+	submit_bio(bio);
-+}
-+
-+static const struct iomap_read_ops xfs_iomap_read_ops = {
-+	.read_folio_range	= iomap_bio_read_folio_range,
-+	.submit_read		= xfs_bio_submit_read,
-+	.bio_set		= &iomap_ioend_bioset,
-+};
-+
-+static inline const struct iomap_read_ops *
-+xfs_get_iomap_read_ops(
-+	const struct address_space	*mapping)
-+{
-+	struct xfs_inode		*ip = XFS_I(mapping->host);
-+
-+	if (bdev_has_integrity_csum(xfs_inode_buftarg(ip)->bt_bdev))
-+		return &xfs_iomap_read_ops;
-+	return &iomap_bio_read_ops;
-+}
-+
- STATIC int
- xfs_vm_read_folio(
--	struct file		*unused,
--	struct folio		*folio)
-+	struct file			*file,
-+	struct folio			*folio)
- {
--	iomap_bio_read_folio(folio, &xfs_read_iomap_ops);
-+	struct iomap_read_folio_ctx	ctx = { .cur_folio = folio };
-+
-+	ctx.ops = xfs_get_iomap_read_ops(folio->mapping);
-+	iomap_read_folio(&xfs_read_iomap_ops, &ctx, NULL);
- 	return 0;
- }
- 
-@@ -754,7 +790,10 @@ STATIC void
- xfs_vm_readahead(
- 	struct readahead_control	*rac)
- {
--	iomap_bio_readahead(rac, &xfs_read_iomap_ops);
-+	struct iomap_read_folio_ctx	ctx = { .rac = rac };
-+
-+	ctx.ops = xfs_get_iomap_read_ops(rac->mapping),
-+	iomap_readahead(&xfs_read_iomap_ops, &ctx, NULL);
- }
- 
- static int
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index be86d43044df..9c2f12d5fec9 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -143,11 +143,14 @@ xfs_bmbt_to_iomap(
- 	}
- 	iomap->offset = XFS_FSB_TO_B(mp, imap->br_startoff);
- 	iomap->length = XFS_FSB_TO_B(mp, imap->br_blockcount);
--	if (mapping_flags & IOMAP_DAX)
-+	iomap->flags = iomap_flags;
-+	if (mapping_flags & IOMAP_DAX) {
- 		iomap->dax_dev = target->bt_daxdev;
--	else
-+	} else {
- 		iomap->bdev = target->bt_bdev;
--	iomap->flags = iomap_flags;
-+		if (bdev_has_integrity_csum(iomap->bdev))
-+			iomap->flags |= IOMAP_F_INTEGRITY;
-+	}
- 
- 	/*
- 	 * If the inode is dirty for datasync purposes, let iomap know so it
--- 
-2.47.3
-
+Reviewed-by: Kanchan Joshi <joshi.k@samsung.com>
