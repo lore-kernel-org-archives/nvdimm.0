@@ -1,50 +1,50 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B9BE2C0F8E
-	for <nvdimm@lists.linux.dev>; Thu, 19 Feb 2026 20:22:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DDBC2E9730
+	for <nvdimm@lists.linux.dev>; Thu, 19 Feb 2026 21:39:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771532563; cv=none; b=sZF5EUcggz4IwCFZWG7xvK1l9eIK/NMk7UZC9klJ95WSY1OATGa99oKE/Q1WLybcM96awX5oQyo2sEK0VKwswqb8OfYniRkglTQf9AdTNFkhAqiAHx4wDDQw8ZuSo/VThrGbEHau+TyfXKQ7ohv9yLsQTz2TggsOkVt95Z5tMEc=
+	t=1771537178; cv=none; b=a3vBr/mUk57va+06s43d3Mt7ujKNuVahkoG0l7bXA3t3j/vdk5tVK2YnLy9jOj1imGbfJ8MK6oNh4aRmmT7P8YNrQHxuV5rTuGuDwWE/mqnQ6Dlv1H41x6XiuKYq0el3KJwwjbJw9GDAU1NwVVmNQfDgThRnGgQQ2mGfjTArRHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771532563; c=relaxed/simple;
-	bh=mISTdwX34M5liOVlJkRN3K1BQaKXoJekf1yDkjF03CU=;
+	s=arc-20240116; t=1771537178; c=relaxed/simple;
+	bh=x0fDg/mrvPWFdEqBiqFoNbiZbpHQldatRPd85b83IZw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=RE9V9pbGS2mmekWxiVJj9X8sFFY/qLHCoSInELjMGS/KMcpNyforeI+4+Lkxlsywx5m/5b9UXtAK91ckgBPoxN69vCEDhV8+mZYvb+H+iPVvKpSHAf5ylodp4VHh/dJuoZko2TmVBxTfjf4aPShQgXyA79ydCj+w4SueoX/7ADw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RDzks09n; arc=none smtp.client-ip=198.175.65.15
+	 In-Reply-To:Content-Type; b=FMxobd5J9KcaIgLH2fZWDziIwpHrHlq94+1Drb20KG6jJ6/4+B1SA03OJCXVQw3hD3RDF4asVqDcseLXZZg0u7o5uwoMcHUMuK4sbuZ5+RJoI6S2xOgwlULkBEeZBP0B9x9/WvAIxNA0MWRA066hS6WH1ps2Ddif5l2uwWgqlX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FCzXJhdp; arc=none smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RDzks09n"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FCzXJhdp"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771532562; x=1803068562;
+  t=1771537177; x=1803073177;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=mISTdwX34M5liOVlJkRN3K1BQaKXoJekf1yDkjF03CU=;
-  b=RDzks09n7xy5dHoqEAm2rrO7YvS+yg8klr2Qga1G1k6N2WDR5bsTFsyS
-   s9uDjWOvVcde8hl7Qv6dSi9f7XGH7LBXrTh6Fd9pboclpYK8m+98L8Zso
-   h+fnfyNn/TeLcFx3NENLfWbB74SYRdnRyiUlYOrjWw0zfCNb7AzybIRvf
-   5zYouZDltcUguN+CSV7LufaewF+uUiKyMopbkwda4nXpetzfcP93RYrLh
-   jJGT7/2YegqjfGKxaH/ZKN7TCHrbhGi4NOLMcul7Vzfr13y6VAK2nqck4
-   Jgw+Yx1MV9MW5U1cjovIm9KL2fJSV0haVwU+8pTiZtKX77yDIwX0HhGzE
+  bh=x0fDg/mrvPWFdEqBiqFoNbiZbpHQldatRPd85b83IZw=;
+  b=FCzXJhdp2QimJIV3qmv5m1C+WkmetSV/R5DqKbn+ryDGjxKmTPuXhoNd
+   Va9pF52n/OwKR8wGtNujnSRmh0fxmaylXf/IRSZ1pQKl/35bskaV5lvH6
+   F5Ho+0INA7PV3nm7TwmNB7LJOMK0mXok4VovnvpZ8ifB2dUBODi7MR1OU
+   dNDa9vVBu4l9W5zLRlVB/UjCFeAw309kZpHNBNx3oZGSqqJqE8g2VSUe0
+   sQ+uECsH8VQy0LQltq01lXchIVcxkAWSSHcGCd6oiOtTeCQX4CQCBaylI
+   Xk22NErM0Vo3LeAMEFgKx9nyuVEXINTrQAJSc3hknjnnzDOevdfBTP7Pr
    Q==;
-X-CSE-ConnectionGUID: ivSIzZ+NTJmi6I4tYROzyg==
-X-CSE-MsgGUID: djDp8gxMRHOMeE5PnYtsFg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11706"; a="76245804"
+X-CSE-ConnectionGUID: i9MlNVhGQb68nLE0FCQ2jQ==
+X-CSE-MsgGUID: hpTo0nJqTveWQni5HseEEw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11706"; a="76250620"
 X-IronPort-AV: E=Sophos;i="6.21,300,1763452800"; 
-   d="scan'208";a="76245804"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 12:22:41 -0800
-X-CSE-ConnectionGUID: k5Z28KJaRVGutfNK18nHww==
-X-CSE-MsgGUID: ZDWx20A/SIamqCpS7y+4xQ==
+   d="scan'208";a="76250620"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 13:39:36 -0800
+X-CSE-ConnectionGUID: 5KF9G3n8SaCmnR2mMQDBjw==
+X-CSE-MsgGUID: +GBsdtR/SRGkofsen4P8Zw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,300,1763452800"; 
-   d="scan'208";a="212836081"
+   d="scan'208";a="219667309"
 Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.110.20]) ([10.125.110.20])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 12:22:38 -0800
-Message-ID: <124bdd0a-c7d8-40e3-9d1d-481d73fd9186@intel.com>
-Date: Thu, 19 Feb 2026 13:22:36 -0700
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 13:39:33 -0800
+Message-ID: <7facce73-688a-408a-bcf9-f16d5ff36349@intel.com>
+Date: Thu, 19 Feb 2026 14:39:32 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,8 +52,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V7 18/19] famfs_fuse: Add famfs fmap metadata
- documentation
+Subject: Re: [PATCH V7 19/19] famfs_fuse: Add documentation
 To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
  Miklos Szeredi <miklos@szeredi.hu>, Dan Williams <dan.j.williams@intel.com>,
  Bernd Schubert <bschubert@ddn.com>,
@@ -81,111 +80,213 @@ Cc: John Groves <jgroves@micron.com>, John Groves <jgroves@fastmail.com>,
  "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
- <20260118223409.92668-1-john@jagalactic.com>
- <0100019bd33eab0d-e982dfea-fdc0-4f02-b60f-9d4897fdcb7d-000000@email.amazonses.com>
+ <20260118223420.92690-1-john@jagalactic.com>
+ <0100019bd33ed831-615df3db-7b06-4137-9877-97c0d0fc0a05-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019bd33eab0d-e982dfea-fdc0-4f02-b60f-9d4897fdcb7d-000000@email.amazonses.com>
+In-Reply-To: <0100019bd33ed831-615df3db-7b06-4137-9877-97c0d0fc0a05-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
 
 
 On 1/18/26 3:34 PM, John Groves wrote:
-> From: John Groves <John@Groves.net>
+> From: John Groves <john@groves.net>
 > 
-> This describes the fmap metadata - both simple and interleaved
+> Add Documentation/filesystems/famfs.rst and update MAINTAINERS
 > 
+> Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+> Tested-by: Randy Dunlap <rdunlap@infradead.org>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 > Signed-off-by: John Groves <john@groves.net>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
 > ---
->  fs/fuse/famfs_kfmap.h | 73 +++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 73 insertions(+)
+>  Documentation/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++
+>  Documentation/filesystems/index.rst |   1 +
+>  MAINTAINERS                         |   1 +
+>  3 files changed, 144 insertions(+)
+>  create mode 100644 Documentation/filesystems/famfs.rst
 > 
-> diff --git a/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h
-> index 0fff841f5a9e..970ad802b492 100644
-> --- a/fs/fuse/famfs_kfmap.h
-> +++ b/fs/fuse/famfs_kfmap.h
-> @@ -7,6 +7,79 @@
->  #ifndef FAMFS_KFMAP_H
->  #define FAMFS_KFMAP_H
->  
-> +/* KABI version 43 (aka v2) fmap structures
-> + *
-> + * The location of the memory backing for a famfs file is described by
-> + * the response to the GET_FMAP fuse message (defined in
-> + * include/uapi/linux/fuse.h
-> + *
-> + * There are currently two extent formats: Simple and Interleaved.
-> + *
-> + * Simple extents are just (devindex, offset, length) tuples, where devindex
-> + * references a devdax device that must be retrievable via the GET_DAXDEV
-> + * message/response.
-> + *
-> + * The extent list size must be >= file_size.
-> + *
-> + * Interleaved extents merit some additional explanation. Interleaved
-> + * extents stripe data across a collection of strips. Each strip is a
-> + * contiguous allocation from a single devdax device - and is described by
-> + * a simple_extent structure.
-> + *
-> + * Interleaved_extent example:
-> + *   ie_nstrips = 4
-> + *   ie_chunk_size = 2MiB
-> + *   ie_nbytes = 24MiB
-> + *
-> + * ┌────────────┐────────────┐────────────┐────────────┐
-> + * │Chunk = 0   │Chunk = 1   │Chunk = 2   │Chunk = 3   │
-> + * │Strip = 0   │Strip = 1   │Strip = 2   │Strip = 3   │
-> + * │Stripe = 0  │Stripe = 0  │Stripe = 0  │Stripe = 0  │
-> + * │            │            │            │            │
-> + * └────────────┘────────────┘────────────┘────────────┘
-> + * │Chunk = 4   │Chunk = 5   │Chunk = 6   │Chunk = 7   │
-> + * │Strip = 0   │Strip = 1   │Strip = 2   │Strip = 3   │
-> + * │Stripe = 1  │Stripe = 1  │Stripe = 1  │Stripe = 1  │
-> + * │            │            │            │            │
-> + * └────────────┘────────────┘────────────┘────────────┘
-> + * │Chunk = 8   │Chunk = 9   │Chunk = 10  │Chunk = 11  │
-> + * │Strip = 0   │Strip = 1   │Strip = 2   │Strip = 3   │
-> + * │Stripe = 2  │Stripe = 2  │Stripe = 2  │Stripe = 2  │
-> + * │            │            │            │            │
-> + * └────────────┘────────────┘────────────┘────────────┘
-> + *
-> + * * Data is laid out across chunks in chunk # order
-> + * * Columns are strips
-> + * * Strips are contiguous devdax extents, normally each coming from a
-> + *   different memory device
-> + * * Rows are stripes
-> + * * The number of chunks is (int)((file_size + chunk_size - 1) / chunk_size)
-> + *   (and obviously the last chunk could be partial)
-> + * * The stripe_size = (nstrips * chunk_size)
-> + * * chunk_num(offset) = offset / chunk_size    //integer division
-> + * * strip_num(offset) = chunk_num(offset) % nchunks
-> + * * stripe_num(offset) = offset / stripe_size  //integer division
-> + * * ...You get the idea - see the code for more details...
-> + *
-> + * Some concrete examples from the layout above:
-> + * * Offset 0 in the file is offset 0 in chunk 0, which is offset 0 in
-> + *   strip 0
-> + * * Offset 4MiB in the file is offset 0 in chunk 2, which is offset 0 in
-> + *   strip 2
-> + * * Offset 15MiB in the file is offset 1MiB in chunk 7, which is offset
-> + *   3MiB in strip 3
-> + *
-> + * Notes about this metadata format:
-> + *
-> + * * For various reasons, chunk_size must be a multiple of the applicable
-> + *   PAGE_SIZE
-> + * * Since chunk_size and nstrips are constant within an interleaved_extent,
-> + *   resolving a file offset to a strip offset within a single
-> + *   interleaved_ext is order 1.
-> + * * If nstrips==1, a list of interleaved_ext structures degenerates to a
-> + *   regular extent list (albeit with some wasted struct space).
-> + */
+> diff --git a/Documentation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst
+> new file mode 100644
+> index 000000000000..bf0c0e6574bb
+> --- /dev/null
+> +++ b/Documentation/filesystems/famfs.rst
+> @@ -0,0 +1,142 @@
+> +.. SPDX-License-Identifier: GPL-2.0
 > +
->  /*
->   * The structures below are the in-memory metadata format for famfs files.
->   * Metadata retrieved via the GET_FMAP response is converted to this format
+> +.. _famfs_index:
+> +
+> +==================================================================
+> +famfs: The fabric-attached memory file system
+> +==================================================================
+> +
+> +- Copyright (C) 2024-2026 Micron Technology, Inc.
+> +
+> +Introduction
+> +============
+> +Compute Express Link (CXL) provides a mechanism for disaggregated or
+> +fabric-attached memory (FAM). This creates opportunities for data sharing;
+> +clustered apps that would otherwise have to shard or replicate data can
+
+s/shard/share/?
+
+> +share one copy in disaggregated memory.
+> +
+> +Famfs, which is not CXL-specific in any way, provides a mechanism for
+> +multiple hosts to concurrently access data in shared memory, by giving it
+> +a file system interface. With famfs, any app that understands files can
+> +access data sets in shared memory. Although famfs supports read and write,
+> +the real point is to support mmap, which provides direct (dax) access to
+> +the memory - either writable or read-only.
+> +
+> +Shared memory can pose complex coherency and synchronization issues, but
+> +there are also simple cases. Two simple and eminently useful patterns that
+> +occur frequently in data analytics and AI are:
+> +
+> +* Serial Sharing - Only one host or process at a time has access to a file
+> +* Read-only Sharing - Multiple hosts or processes share read-only access
+> +  to a file
+> +
+> +The famfs fuse file system is part of the famfs framework; user space
+> +components [1] handle metadata allocation and distribution, and provide a
+> +low-level fuse server to expose files that map directly to [presumably
+> +shared] memory.
+> +
+> +The famfs framework manages coherency of its own metadata and structures,
+> +but does not attempt to manage coherency for applications.
+> +
+> +Famfs also provides data isolation between files. That is, even though
+> +the host has access to an entire memory "device" (as a devdax device), apps
+> +cannot write to memory for which the file is read-only, and mapping one
+> +file provides isolation from the memory of all other files. This is pretty
+> +basic, but some experimental shared memory usage patterns provide no such
+> +isolation.
+> +
+> +Principles of Operation
+> +=======================
+> +
+> +Famfs is a file system with one or more devdax devices as a first-class
+> +backing device(s). Metadata maintenance and query operations happen
+> +entirely in user space.
+> +
+> +The famfs low-level fuse server daemon provides file maps (fmaps) and
+> +devdax device info to the fuse/famfs kernel component so that
+> +read/write/mapping faults can be handled without up-calls for all active
+> +files.
+> +
+> +The famfs user space is responsible for maintaining and distributing
+> +consistent metadata. This is currently handled via an append-only
+> +metadata log within the memory, but this is orthogonal to the fuse/famfs
+> +kernel code.
+> +
+> +Once instantiated, "the same file" on each host points to the same shared
+> +memory, but in-memory metadata (inodes, etc.) is ephemeral on each host
+> +that has a famfs instance mounted. Use cases are free to allow or not
+> +allow mutations to data on a file-by-file basis.
+> +
+> +When an app accesses a data object in a famfs file, there is no page cache
+> +involvement. The CPU cache is loaded directly from the shared memory. In
+> +some use cases, this is an enormous reduction read amplification compared
+
+"reduction in read amplification"?
+
+> +to loading an entire page into the page cache.
+> +
+> +
+> +Famfs is Not a Conventional File System
+> +---------------------------------------
+> +
+> +Famfs files can be accessed by conventional means, but there are
+> +limitations. The kernel component of fuse/famfs is not involved in the
+> +allocation of backing memory for files at all; the famfs user space
+> +creates files and responds as a low-level fuse server with fmaps and
+> +devdax device info upon request.
+> +
+> +Famfs differs in some important ways from conventional file systems:
+> +
+> +* Files must be pre-allocated by the famfs framework; allocation is never
+> +  performed on (or after) write.
+> +* Any operation that changes a file's size is considered to put the file
+> +  in an invalid state, disabling access to the data. It may be possible to
+> +  revisit this in the future. (Typically the famfs user space can restore
+> +  files to a valid state by replaying the famfs metadata log.)
+> +
+> +Famfs exists to apply the existing file system abstractions to shared
+> +memory so applications and workflows can more easily adapt to an
+> +environment with disaggregated shared memory.
+> +
+> +Memory Error Handling
+> +=====================
+> +
+> +Possible memory errors include timeouts, poison and unexpected
+
+s/poison and/poison, and/
+
+DJ
+
+> +reconfiguration of an underlying dax device. In all of these cases, famfs
+> +receives a call from the devdax layer via its iomap_ops->notify_failure()
+> +function. If any memory errors have been detected, access to the affected
+> +daxdev is disabled to avoid further errors or corruption.
+> +
+> +In all known cases, famfs can be unmounted cleanly. In most cases errors
+> +can be cleared by re-initializing the memory - at which point a new famfs
+> +file system can be created.
+> +
+> +Key Requirements
+> +================
+> +
+> +The primary requirements for famfs are:
+> +
+> +1. Must support a file system abstraction backed by sharable devdax memory
+> +2. Files must efficiently handle VMA faults
+> +3. Must support metadata distribution in a sharable way
+> +4. Must handle clients with a stale copy of metadata
+> +
+> +The famfs kernel component takes care of 1-2 above by caching each file's
+> +mapping metadata in the kernel.
+> +
+> +Requirements 3 and 4 are handled by the user space components, and are
+> +largely orthogonal to the functionality of the famfs kernel module.
+> +
+> +Requirements 3 and 4 cannot be met by conventional fs-dax file systems
+> +(e.g. xfs) because they use write-back metadata; it is not valid to mount
+> +such a file system on two hosts from the same in-memory image.
+> +
+> +
+> +Famfs Usage
+> +===========
+> +
+> +Famfs usage is documented at [1].
+> +
+> +
+> +References
+> +==========
+> +
+> +- [1] Famfs user space repository and documentation
+> +      https://github.com/cxl-micron-reskit/famfs
+> diff --git a/Documentation/filesystems/index.rst b/Documentation/filesystems/index.rst
+> index f4873197587d..e6fb467c1680 100644
+> --- a/Documentation/filesystems/index.rst
+> +++ b/Documentation/filesystems/index.rst
+> @@ -89,6 +89,7 @@ Documentation for filesystem implementations.
+>     ext3
+>     ext4/index
+>     f2fs
+> +   famfs
+>     gfs2/index
+>     hfs
+>     hfsplus
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 6f8a7c813c2f..43141ee4fd4e 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -10385,6 +10385,7 @@ M:	John Groves <John@Groves.net>
+>  L:	linux-cxl@vger.kernel.org
+>  L:	linux-fsdevel@vger.kernel.org
+>  S:	Supported
+> +F:	Documentation/filesystems/famfs.rst
+>  F:	fs/fuse/famfs.c
+>  F:	fs/fuse/famfs_kfmap.h
+>  
 
