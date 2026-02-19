@@ -1,50 +1,50 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DDBC2E9730
-	for <nvdimm@lists.linux.dev>; Thu, 19 Feb 2026 21:39:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D113732AABC
+	for <nvdimm@lists.linux.dev>; Thu, 19 Feb 2026 21:47:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771537178; cv=none; b=a3vBr/mUk57va+06s43d3Mt7ujKNuVahkoG0l7bXA3t3j/vdk5tVK2YnLy9jOj1imGbfJ8MK6oNh4aRmmT7P8YNrQHxuV5rTuGuDwWE/mqnQ6Dlv1H41x6XiuKYq0el3KJwwjbJw9GDAU1NwVVmNQfDgThRnGgQQ2mGfjTArRHg=
+	t=1771537667; cv=none; b=MIqdVfPg57W5WfZrKIbRUi45W8SuxBkA5ZI3OpN14BFYl22rmoqvBCjJBmtrF4XGVuUEW+GNFP7GYE/4l6438qyv6RA9t+NEw2J29tPTsXWbUfF6fF6IwrmNt1xinbRpkTX81b3YIy9+UZo5ATbIrusXyIPvNb6V4g5Q3jOTkpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771537178; c=relaxed/simple;
-	bh=x0fDg/mrvPWFdEqBiqFoNbiZbpHQldatRPd85b83IZw=;
+	s=arc-20240116; t=1771537667; c=relaxed/simple;
+	bh=VhveE971Wol08NHrou9PFE3GW2B0Q08SyEFuYI0D+ec=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=FMxobd5J9KcaIgLH2fZWDziIwpHrHlq94+1Drb20KG6jJ6/4+B1SA03OJCXVQw3hD3RDF4asVqDcseLXZZg0u7o5uwoMcHUMuK4sbuZ5+RJoI6S2xOgwlULkBEeZBP0B9x9/WvAIxNA0MWRA066hS6WH1ps2Ddif5l2uwWgqlX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FCzXJhdp; arc=none smtp.client-ip=198.175.65.15
+	 In-Reply-To:Content-Type; b=koypskj43tesxgf09XFr2S7sNzl6lq8rzF4OYvs96Fjwi5lTDIDGjFZtVM6Yb23xEjAAZwk9r97TTaXlytS1ZX7OBpl5yddCo1GH5WG784qobW9vCQ8mGOSqSV8B/pzsEv3K8i45hliV4q8KWRJf3H55MbYxCSWzWtFbyyDSXZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ZJvm/R/F; arc=none smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FCzXJhdp"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZJvm/R/F"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771537177; x=1803073177;
+  t=1771537666; x=1803073666;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=x0fDg/mrvPWFdEqBiqFoNbiZbpHQldatRPd85b83IZw=;
-  b=FCzXJhdp2QimJIV3qmv5m1C+WkmetSV/R5DqKbn+ryDGjxKmTPuXhoNd
-   Va9pF52n/OwKR8wGtNujnSRmh0fxmaylXf/IRSZ1pQKl/35bskaV5lvH6
-   F5Ho+0INA7PV3nm7TwmNB7LJOMK0mXok4VovnvpZ8ifB2dUBODi7MR1OU
-   dNDa9vVBu4l9W5zLRlVB/UjCFeAw309kZpHNBNx3oZGSqqJqE8g2VSUe0
-   sQ+uECsH8VQy0LQltq01lXchIVcxkAWSSHcGCd6oiOtTeCQX4CQCBaylI
-   Xk22NErM0Vo3LeAMEFgKx9nyuVEXINTrQAJSc3hknjnnzDOevdfBTP7Pr
-   Q==;
-X-CSE-ConnectionGUID: i9MlNVhGQb68nLE0FCQ2jQ==
-X-CSE-MsgGUID: hpTo0nJqTveWQni5HseEEw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11706"; a="76250620"
+  bh=VhveE971Wol08NHrou9PFE3GW2B0Q08SyEFuYI0D+ec=;
+  b=ZJvm/R/FotSJ5KZxfioql5mmw6jjuFAbjSf38JH5nL848WfVllWJ4pu+
+   Cayuys4FPqT1qoIo+ZsLbnOZCEsRqo948t3mSqrY/LbrlNI52ASy0DRxJ
+   pFTi2ORhiHhvrx9A9j8awvFOZMX5Rxz3a5Q4aBhmtahbRrDckvnm+Ujc4
+   YrVHND/yp6JvxpGYJ/6ja8h/PGZrcAVsspEvSE7nAqQVpX5WFaCH52aQn
+   N/VDO9HP5SbC7/14OJ3/bpjYpnNsiYJ0B4PgMIFpcdh6lm9eVyQsaPw6K
+   aZ0wD0l4XHMk7b0XbykjlVFoPq70xg9nlLS6i4xuJznRTOxm6OV0H7ZhR
+   A==;
+X-CSE-ConnectionGUID: 3w0Jsb0+T7qulMAdKhW2pQ==
+X-CSE-MsgGUID: M+dBkIJZQkWBm6AJ1EruXQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11706"; a="76251311"
 X-IronPort-AV: E=Sophos;i="6.21,300,1763452800"; 
-   d="scan'208";a="76250620"
+   d="scan'208";a="76251311"
 Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 13:39:36 -0800
-X-CSE-ConnectionGUID: 5KF9G3n8SaCmnR2mMQDBjw==
-X-CSE-MsgGUID: +GBsdtR/SRGkofsen4P8Zw==
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 13:47:45 -0800
+X-CSE-ConnectionGUID: y/tUrnZ9TZ+cEs+cK5kDrQ==
+X-CSE-MsgGUID: 8znDFJuQTzScyR2OV9OTjA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,300,1763452800"; 
-   d="scan'208";a="219667309"
+   d="scan'208";a="219670182"
 Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.110.20]) ([10.125.110.20])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 13:39:33 -0800
-Message-ID: <7facce73-688a-408a-bcf9-f16d5ff36349@intel.com>
-Date: Thu, 19 Feb 2026 14:39:32 -0700
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 13:47:43 -0800
+Message-ID: <2de8faba-2157-44b3-8983-c239776f1c98@intel.com>
+Date: Thu, 19 Feb 2026 14:47:41 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,7 +52,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V7 19/19] famfs_fuse: Add documentation
+Subject: Re: [PATCH V4 1/2] daxctl: Add support for famfs mode
 To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
  Miklos Szeredi <miklos@szeredi.hu>, Dan Williams <dan.j.williams@intel.com>,
  Bernd Schubert <bschubert@ddn.com>,
@@ -79,214 +79,422 @@ Cc: John Groves <jgroves@micron.com>, John Groves <jgroves@fastmail.com>,
  "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
  "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
- <20260118223420.92690-1-john@jagalactic.com>
- <0100019bd33ed831-615df3db-7b06-4137-9877-97c0d0fc0a05-000000@email.amazonses.com>
+References: <0100019bd34040d9-0b6e9e4c-ecd4-464d-ab9d-88a251215442-000000@email.amazonses.com>
+ <20260118223629.92852-1-john@jagalactic.com>
+ <0100019bd340cdd5-89036a70-3ef5-4c34-abf8-07a3ea4d9f92-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019bd33ed831-615df3db-7b06-4137-9877-97c0d0fc0a05-000000@email.amazonses.com>
+In-Reply-To: <0100019bd340cdd5-89036a70-3ef5-4c34-abf8-07a3ea4d9f92-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 1/18/26 3:34 PM, John Groves wrote:
-> From: John Groves <john@groves.net>
+On 1/18/26 3:36 PM, John Groves wrote:
+> From: John Groves <John@Groves.net>
 > 
-> Add Documentation/filesystems/famfs.rst and update MAINTAINERS
+> Putting a daxdev in famfs mode means binding it to fsdev_dax.ko
+> (drivers/dax/fsdev.c). Finding a daxdev bound to fsdev_dax means
+> it is in famfs mode.
 > 
-> Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-> Tested-by: Randy Dunlap <rdunlap@infradead.org>
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> The test is added to the destructive test suite since it
+> modifies device modes.
+> 
+> With devdax, famfs, and system-ram modes, the previous logic that assumed
+> 'not in mode X means in mode Y' needed to get slightly more complicated
+> 
+> Add explicit mode detection functions:
+> - daxctl_dev_is_famfs_mode(): check if bound to fsdev_dax driver
+> - daxctl_dev_is_devdax_mode(): check if bound to device_dax driver
+> 
+> Fix mode transition logic in device.c:
+> - disable_devdax_device(): verify device is actually in devdax mode
+> - disable_famfs_device(): verify device is actually in famfs mode
+> - All reconfig_mode_*() functions now explicitly check each mode
+> - Handle unknown mode with error instead of wrong assumption
+> 
+> Modify json.c to show 'unknown' if device is not in a recognized mode.
+> 
 > Signed-off-by: John Groves <john@groves.net>
 > ---
->  Documentation/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++
->  Documentation/filesystems/index.rst |   1 +
->  MAINTAINERS                         |   1 +
->  3 files changed, 144 insertions(+)
->  create mode 100644 Documentation/filesystems/famfs.rst
+>  daxctl/device.c                | 126 ++++++++++++++++++++++++++++++---
+>  daxctl/json.c                  |   6 +-
+>  daxctl/lib/libdaxctl-private.h |   2 +
+>  daxctl/lib/libdaxctl.c         |  77 ++++++++++++++++++++
+>  daxctl/lib/libdaxctl.sym       |   7 ++
+>  daxctl/libdaxctl.h             |   3 +
+>  6 files changed, 210 insertions(+), 11 deletions(-)
 > 
-> diff --git a/Documentation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst
-> new file mode 100644
-> index 000000000000..bf0c0e6574bb
-> --- /dev/null
-> +++ b/Documentation/filesystems/famfs.rst
-> @@ -0,0 +1,142 @@
-> +.. SPDX-License-Identifier: GPL-2.0
+> diff --git a/daxctl/device.c b/daxctl/device.c
+> index e3993b1..14e1796 100644
+> --- a/daxctl/device.c
+> +++ b/daxctl/device.c
+> @@ -42,6 +42,7 @@ enum dev_mode {
+>  	DAXCTL_DEV_MODE_UNKNOWN,
+>  	DAXCTL_DEV_MODE_DEVDAX,
+>  	DAXCTL_DEV_MODE_RAM,
+> +	DAXCTL_DEV_MODE_FAMFS,
+>  };
+>  
+>  struct mapping {
+> @@ -471,6 +472,13 @@ static const char *parse_device_options(int argc, const char **argv,
+>  					"--no-online is incompatible with --mode=devdax\n");
+>  				rc =  -EINVAL;
+>  			}
+> +		} else if (strcmp(param.mode, "famfs") == 0) {
+> +			reconfig_mode = DAXCTL_DEV_MODE_FAMFS;
+> +			if (param.no_online) {
+> +				fprintf(stderr,
+> +					"--no-online is incompatible with --mode=famfs\n");
+> +				rc =  -EINVAL;
+> +			}
+>  		}
+>  		break;
+>  	case ACTION_CREATE:
+> @@ -696,8 +704,42 @@ static int disable_devdax_device(struct daxctl_dev *dev)
+>  	int rc;
+>  
+>  	if (mem) {
+> -		fprintf(stderr, "%s was already in system-ram mode\n",
+> -			devname);
+> +		fprintf(stderr, "%s is in system-ram mode\n", devname);
+> +		return 1;
+> +	}
+> +	if (daxctl_dev_is_famfs_mode(dev)) {
+> +		fprintf(stderr, "%s is in famfs mode\n", devname);
+> +		return 1;
+> +	}
+> +	if (!daxctl_dev_is_devdax_mode(dev)) {
+> +		fprintf(stderr, "%s is not in devdax mode\n", devname);
+> +		return 1;
+> +	}
+> +	rc = daxctl_dev_disable(dev);
+> +	if (rc) {
+> +		fprintf(stderr, "%s: disable failed: %s\n",
+> +			daxctl_dev_get_devname(dev), strerror(-rc));
+> +		return rc;
+> +	}
+> +	return 0;
+> +}
 > +
-> +.. _famfs_index:
+> +static int disable_famfs_device(struct daxctl_dev *dev)
+> +{
+> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+> +	const char *devname = daxctl_dev_get_devname(dev);
+> +	int rc;
 > +
-> +==================================================================
-> +famfs: The fabric-attached memory file system
-> +==================================================================
+> +	if (mem) {
+> +		fprintf(stderr, "%s is in system-ram mode\n", devname);
+> +		return 1;
+> +	}
+> +	if (daxctl_dev_is_devdax_mode(dev)) {
+> +		fprintf(stderr, "%s is in devdax mode\n", devname);
+> +		return 1;
+> +	}
+> +	if (!daxctl_dev_is_famfs_mode(dev)) {
+> +		fprintf(stderr, "%s is not in famfs mode\n", devname);
+>  		return 1;
+>  	}
+>  	rc = daxctl_dev_disable(dev);
+> @@ -711,6 +753,7 @@ static int disable_devdax_device(struct daxctl_dev *dev)
+>  
+>  static int reconfig_mode_system_ram(struct daxctl_dev *dev)
+>  {
+> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+>  	const char *devname = daxctl_dev_get_devname(dev);
+>  	int rc, skip_enable = 0;
+>  
+> @@ -724,11 +767,21 @@ static int reconfig_mode_system_ram(struct daxctl_dev *dev)
+>  	}
+>  
+>  	if (daxctl_dev_is_enabled(dev)) {
+> -		rc = disable_devdax_device(dev);
+> -		if (rc < 0)
+> -			return rc;
+> -		if (rc > 0)
+> +		if (mem) {
+> +			/* already in system-ram mode */
+>  			skip_enable = 1;
+> +		} else if (daxctl_dev_is_famfs_mode(dev)) {
+> +			rc = disable_famfs_device(dev);
+> +			if (rc)
+> +				return rc;
+> +		} else if (daxctl_dev_is_devdax_mode(dev)) {
+> +			rc = disable_devdax_device(dev);
+> +			if (rc)
+> +				return rc;
+> +		} else {
+> +			fprintf(stderr, "%s: unknown mode\n", devname);
+> +			return -EINVAL;
+> +		}
+>  	}
+>  
+>  	if (!skip_enable) {
+> @@ -750,7 +803,7 @@ static int disable_system_ram_device(struct daxctl_dev *dev)
+>  	int rc;
+>  
+>  	if (!mem) {
+> -		fprintf(stderr, "%s was already in devdax mode\n", devname);
+> +		fprintf(stderr, "%s is not in system-ram mode\n", devname);
+>  		return 1;
+>  	}
+>  
+> @@ -786,12 +839,28 @@ static int disable_system_ram_device(struct daxctl_dev *dev)
+>  
+>  static int reconfig_mode_devdax(struct daxctl_dev *dev)
+>  {
+> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+> +	const char *devname = daxctl_dev_get_devname(dev);
+>  	int rc;
+>  
+>  	if (daxctl_dev_is_enabled(dev)) {
+> -		rc = disable_system_ram_device(dev);
+> -		if (rc)
+> -			return rc;
+> +		if (mem) {
+> +			rc = disable_system_ram_device(dev);
+> +			if (rc)
+> +				return rc;
+> +		} else if (daxctl_dev_is_famfs_mode(dev)) {
+> +			rc = disable_famfs_device(dev);
+> +			if (rc)
+> +				return rc;
+> +		} else if (daxctl_dev_is_devdax_mode(dev)) {
+> +			/* already in devdax mode, just re-enable */
+> +			rc = daxctl_dev_disable(dev);
+> +			if (rc)
+> +				return rc;
+> +		} else {
+> +			fprintf(stderr, "%s: unknown mode\n", devname);
+> +			return -EINVAL;
+> +		}
+>  	}
+>  
+>  	rc = daxctl_dev_enable_devdax(dev);
+> @@ -801,6 +870,40 @@ static int reconfig_mode_devdax(struct daxctl_dev *dev)
+>  	return 0;
+>  }
+>  
+> +static int reconfig_mode_famfs(struct daxctl_dev *dev)
+> +{
+> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+> +	const char *devname = daxctl_dev_get_devname(dev);
+> +	int rc;
 > +
-> +- Copyright (C) 2024-2026 Micron Technology, Inc.
+> +	if (daxctl_dev_is_enabled(dev)) {
+> +		if (mem) {
+> +			fprintf(stderr,
+> +				"%s is in system-ram mode, must be in devdax mode to convert to famfs\n",
+> +				devname);
+> +			return -EINVAL;
+> +		} else if (daxctl_dev_is_famfs_mode(dev)) {
+> +			/* already in famfs mode, just re-enable */
+> +			rc = daxctl_dev_disable(dev);
+> +			if (rc)
+> +				return rc;
+> +		} else if (daxctl_dev_is_devdax_mode(dev)) {
+> +			rc = disable_devdax_device(dev);
+> +			if (rc)
+> +				return rc;
+> +		} else {
+> +			fprintf(stderr, "%s: unknown mode\n", devname);
+> +			return -EINVAL;
+> +		}
+> +	}
 > +
-> +Introduction
-> +============
-> +Compute Express Link (CXL) provides a mechanism for disaggregated or
-> +fabric-attached memory (FAM). This creates opportunities for data sharing;
-> +clustered apps that would otherwise have to shard or replicate data can
+> +	rc = daxctl_dev_enable_famfs(dev);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return 0;
+> +}
+> +
+>  static int do_create(struct daxctl_region *region, long long val,
+>  		     struct json_object **jdevs)
+>  {
+> @@ -887,6 +990,9 @@ static int do_reconfig(struct daxctl_dev *dev, enum dev_mode mode,
+>  	case DAXCTL_DEV_MODE_DEVDAX:
+>  		rc = reconfig_mode_devdax(dev);
+>  		break;
+> +	case DAXCTL_DEV_MODE_FAMFS:
+> +		rc = reconfig_mode_famfs(dev);
+> +		break;
+>  	default:
+>  		fprintf(stderr, "%s: unknown mode requested: %d\n",
+>  			devname, mode);
+> diff --git a/daxctl/json.c b/daxctl/json.c
+> index 3cbce9d..01f139b 100644
+> --- a/daxctl/json.c
+> +++ b/daxctl/json.c
+> @@ -48,8 +48,12 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+>  
+>  	if (mem)
+>  		jobj = json_object_new_string("system-ram");
+> -	else
+> +	else if (daxctl_dev_is_famfs_mode(dev))
+> +		jobj = json_object_new_string("famfs");
+> +	else if (daxctl_dev_is_devdax_mode(dev))
+>  		jobj = json_object_new_string("devdax");
+> +	else
+> +		jobj = json_object_new_string("unknown");
+>  	if (jobj)
+>  		json_object_object_add(jdev, "mode", jobj);
+>  
+> diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+> index ae45311..0bb73e8 100644
+> --- a/daxctl/lib/libdaxctl-private.h
+> +++ b/daxctl/lib/libdaxctl-private.h
+> @@ -21,12 +21,14 @@ static const char *dax_subsystems[] = {
+>  enum daxctl_dev_mode {
+>  	DAXCTL_DEV_MODE_DEVDAX = 0,
+>  	DAXCTL_DEV_MODE_RAM,
+> +	DAXCTL_DEV_MODE_FAMFS,
+>  	DAXCTL_DEV_MODE_END,
+>  };
+>  
+>  static const char *dax_modules[] = {
+>  	[DAXCTL_DEV_MODE_DEVDAX] = "device_dax",
+>  	[DAXCTL_DEV_MODE_RAM] = "kmem",
+> +	[DAXCTL_DEV_MODE_FAMFS] = "fsdev_dax",
+>  };
+>  
+>  enum memory_op {
+> diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+> index b7fa0de..0a6cbfe 100644
+> --- a/daxctl/lib/libdaxctl.c
+> +++ b/daxctl/lib/libdaxctl.c
+> @@ -418,6 +418,78 @@ DAXCTL_EXPORT int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev)
+>  	return false;
+>  }
+>  
+> +/*
+> + * Check if device is currently in famfs mode (bound to fsdev_dax driver)
+> + */
+> +DAXCTL_EXPORT int daxctl_dev_is_famfs_mode(struct daxctl_dev *dev)
 
-s/shard/share/?
+Should this return bool?
 
-> +share one copy in disaggregated memory.
+> +{
+> +	const char *devname = daxctl_dev_get_devname(dev);
+> +	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
+> +	char *mod_path, *mod_base;
+> +	char path[200];
+> +	const int len = sizeof(path);
 > +
-> +Famfs, which is not CXL-specific in any way, provides a mechanism for
-> +multiple hosts to concurrently access data in shared memory, by giving it
-> +a file system interface. With famfs, any app that understands files can
-> +access data sets in shared memory. Although famfs supports read and write,
-> +the real point is to support mmap, which provides direct (dax) access to
-> +the memory - either writable or read-only.
+> +	if (!device_model_is_dax_bus(dev))
+> +		return false;
 > +
-> +Shared memory can pose complex coherency and synchronization issues, but
-> +there are also simple cases. Two simple and eminently useful patterns that
-> +occur frequently in data analytics and AI are:
+> +	if (!daxctl_dev_is_enabled(dev))
+> +		return false;
 > +
-> +* Serial Sharing - Only one host or process at a time has access to a file
-> +* Read-only Sharing - Multiple hosts or processes share read-only access
-> +  to a file
+> +	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
+> +		err(ctx, "%s: buffer too small!\n", devname);
+> +		return false;
+> +	}
 > +
-> +The famfs fuse file system is part of the famfs framework; user space
-> +components [1] handle metadata allocation and distribution, and provide a
-> +low-level fuse server to expose files that map directly to [presumably
-> +shared] memory.
+> +	mod_path = realpath(path, NULL);
+> +	if (!mod_path)
+> +		return false;
 > +
-> +The famfs framework manages coherency of its own metadata and structures,
-> +but does not attempt to manage coherency for applications.
+> +	mod_base = basename(mod_path);
+> +	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_FAMFS]) == 0) {
+> +		free(mod_path);
+> +		return true;
+> +	}
 > +
-> +Famfs also provides data isolation between files. That is, even though
-> +the host has access to an entire memory "device" (as a devdax device), apps
-> +cannot write to memory for which the file is read-only, and mapping one
-> +file provides isolation from the memory of all other files. This is pretty
-> +basic, but some experimental shared memory usage patterns provide no such
-> +isolation.
+> +	free(mod_path);
+> +	return false;
+> +}
 > +
-> +Principles of Operation
-> +=======================
-> +
-> +Famfs is a file system with one or more devdax devices as a first-class
-> +backing device(s). Metadata maintenance and query operations happen
-> +entirely in user space.
-> +
-> +The famfs low-level fuse server daemon provides file maps (fmaps) and
-> +devdax device info to the fuse/famfs kernel component so that
-> +read/write/mapping faults can be handled without up-calls for all active
-> +files.
-> +
-> +The famfs user space is responsible for maintaining and distributing
-> +consistent metadata. This is currently handled via an append-only
-> +metadata log within the memory, but this is orthogonal to the fuse/famfs
-> +kernel code.
-> +
-> +Once instantiated, "the same file" on each host points to the same shared
-> +memory, but in-memory metadata (inodes, etc.) is ephemeral on each host
-> +that has a famfs instance mounted. Use cases are free to allow or not
-> +allow mutations to data on a file-by-file basis.
-> +
-> +When an app accesses a data object in a famfs file, there is no page cache
-> +involvement. The CPU cache is loaded directly from the shared memory. In
-> +some use cases, this is an enormous reduction read amplification compared
+> +/*
+> + * Check if device is currently in devdax mode (bound to device_dax driver)
+> + */
+> +DAXCTL_EXPORT int daxctl_dev_is_devdax_mode(struct daxctl_dev *dev)
 
-"reduction in read amplification"?
-
-> +to loading an entire page into the page cache.
-> +
-> +
-> +Famfs is Not a Conventional File System
-> +---------------------------------------
-> +
-> +Famfs files can be accessed by conventional means, but there are
-> +limitations. The kernel component of fuse/famfs is not involved in the
-> +allocation of backing memory for files at all; the famfs user space
-> +creates files and responds as a low-level fuse server with fmaps and
-> +devdax device info upon request.
-> +
-> +Famfs differs in some important ways from conventional file systems:
-> +
-> +* Files must be pre-allocated by the famfs framework; allocation is never
-> +  performed on (or after) write.
-> +* Any operation that changes a file's size is considered to put the file
-> +  in an invalid state, disabling access to the data. It may be possible to
-> +  revisit this in the future. (Typically the famfs user space can restore
-> +  files to a valid state by replaying the famfs metadata log.)
-> +
-> +Famfs exists to apply the existing file system abstractions to shared
-> +memory so applications and workflows can more easily adapt to an
-> +environment with disaggregated shared memory.
-> +
-> +Memory Error Handling
-> +=====================
-> +
-> +Possible memory errors include timeouts, poison and unexpected
-
-s/poison and/poison, and/
+return bool?
 
 DJ
 
-> +reconfiguration of an underlying dax device. In all of these cases, famfs
-> +receives a call from the devdax layer via its iomap_ops->notify_failure()
-> +function. If any memory errors have been detected, access to the affected
-> +daxdev is disabled to avoid further errors or corruption.
+> +{
+> +	const char *devname = daxctl_dev_get_devname(dev);
+> +	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
+> +	char *mod_path, *mod_base;
+> +	char path[200];
+> +	const int len = sizeof(path);
 > +
-> +In all known cases, famfs can be unmounted cleanly. In most cases errors
-> +can be cleared by re-initializing the memory - at which point a new famfs
-> +file system can be created.
+> +	if (!device_model_is_dax_bus(dev))
+> +		return false;
 > +
-> +Key Requirements
-> +================
+> +	if (!daxctl_dev_is_enabled(dev))
+> +		return false;
 > +
-> +The primary requirements for famfs are:
+> +	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
+> +		err(ctx, "%s: buffer too small!\n", devname);
+> +		return false;
+> +	}
 > +
-> +1. Must support a file system abstraction backed by sharable devdax memory
-> +2. Files must efficiently handle VMA faults
-> +3. Must support metadata distribution in a sharable way
-> +4. Must handle clients with a stale copy of metadata
+> +	mod_path = realpath(path, NULL);
+> +	if (!mod_path)
+> +		return false;
 > +
-> +The famfs kernel component takes care of 1-2 above by caching each file's
-> +mapping metadata in the kernel.
+> +	mod_base = basename(mod_path);
+> +	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_DEVDAX]) == 0) {
+> +		free(mod_path);
+> +		return true;
+> +	}
 > +
-> +Requirements 3 and 4 are handled by the user space components, and are
-> +largely orthogonal to the functionality of the famfs kernel module.
+> +	free(mod_path);
+> +	return false;
+> +}
 > +
-> +Requirements 3 and 4 cannot be met by conventional fs-dax file systems
-> +(e.g. xfs) because they use write-back metadata; it is not valid to mount
-> +such a file system on two hosts from the same in-memory image.
-> +
-> +
-> +Famfs Usage
-> +===========
-> +
-> +Famfs usage is documented at [1].
-> +
-> +
-> +References
-> +==========
-> +
-> +- [1] Famfs user space repository and documentation
-> +      https://github.com/cxl-micron-reskit/famfs
-> diff --git a/Documentation/filesystems/index.rst b/Documentation/filesystems/index.rst
-> index f4873197587d..e6fb467c1680 100644
-> --- a/Documentation/filesystems/index.rst
-> +++ b/Documentation/filesystems/index.rst
-> @@ -89,6 +89,7 @@ Documentation for filesystem implementations.
->     ext3
->     ext4/index
->     f2fs
-> +   famfs
->     gfs2/index
->     hfs
->     hfsplus
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 6f8a7c813c2f..43141ee4fd4e 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -10385,6 +10385,7 @@ M:	John Groves <John@Groves.net>
->  L:	linux-cxl@vger.kernel.org
->  L:	linux-fsdevel@vger.kernel.org
->  S:	Supported
-> +F:	Documentation/filesystems/famfs.rst
->  F:	fs/fuse/famfs.c
->  F:	fs/fuse/famfs_kfmap.h
+>  /*
+>   * This checks for the device to be in system-ram mode, so calling
+>   * daxctl_dev_get_memory() on a devdax mode device will always return NULL.
+> @@ -982,6 +1054,11 @@ DAXCTL_EXPORT int daxctl_dev_enable_ram(struct daxctl_dev *dev)
+>  	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_RAM);
+>  }
 >  
+> +DAXCTL_EXPORT int daxctl_dev_enable_famfs(struct daxctl_dev *dev)
+> +{
+> +	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_FAMFS);
+> +}
+> +
+>  DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
+>  {
+>  	const char *devname = daxctl_dev_get_devname(dev);
+> diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+> index 3098811..2a812c6 100644
+> --- a/daxctl/lib/libdaxctl.sym
+> +++ b/daxctl/lib/libdaxctl.sym
+> @@ -104,3 +104,10 @@ LIBDAXCTL_10 {
+>  global:
+>  	daxctl_dev_is_system_ram_capable;
+>  } LIBDAXCTL_9;
+> +
+> +LIBDAXCTL_11 {
+> +global:
+> +	daxctl_dev_enable_famfs;
+> +	daxctl_dev_is_famfs_mode;
+> +	daxctl_dev_is_devdax_mode;
+> +} LIBDAXCTL_10;
+> diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+> index 53c6bbd..84fcdb4 100644
+> --- a/daxctl/libdaxctl.h
+> +++ b/daxctl/libdaxctl.h
+> @@ -72,12 +72,15 @@ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+>  int daxctl_dev_disable(struct daxctl_dev *dev);
+>  int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
+>  int daxctl_dev_enable_ram(struct daxctl_dev *dev);
+> +int daxctl_dev_enable_famfs(struct daxctl_dev *dev);
+>  int daxctl_dev_get_target_node(struct daxctl_dev *dev);
+>  int daxctl_dev_will_auto_online_memory(struct daxctl_dev *dev);
+>  int daxctl_dev_has_online_memory(struct daxctl_dev *dev);
+>  
+>  struct daxctl_memory;
+>  int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev);
+> +int daxctl_dev_is_famfs_mode(struct daxctl_dev *dev);
+> +int daxctl_dev_is_devdax_mode(struct daxctl_dev *dev);
+>  struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev);
+>  struct daxctl_dev *daxctl_memory_get_dev(struct daxctl_memory *mem);
+>  const char *daxctl_memory_get_node_path(struct daxctl_memory *mem);
 
