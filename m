@@ -1,48 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3060B34A771
-	for <nvdimm@lists.linux.dev>; Thu, 19 Feb 2026 15:45:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770E733EB17
+	for <nvdimm@lists.linux.dev>; Thu, 19 Feb 2026 16:07:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771515931; cv=none; b=YpZQWQ0699m+/ePZwu1YFKxMW3sXDLZ0tMfcYGMQDPE8LEDIzFDo0qhgWBD6ld8ZbQug9LlCUA8PRJ7z4QxlBFlPNsxK94ZKqF0roNpbyu9hTnI06W4Cf+lRGQVdkhzaiOwRIU3p/NC/7mv0vBEuG4UzsqOeQloD0hjVsezIn4M=
+	t=1771517280; cv=none; b=lgGz85G+xG6l2SU/EBQjR255kEJRrFcY5qyE6bUq4S9cpQv4SAfquUAf/taF8WMIjRi7KaGQWI45K0rIIsnCG0Pp3WmQZxeJ3Il+k3v15yazv2/Cm/KXODxV0OKt4857PFkM+SjR6bP1Pg65YjZUP/Lh0aBFcQo5sB8g6nNB/sw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771515931; c=relaxed/simple;
-	bh=2tel+xr7GLPTXAeWWTV0pNMbxcro+AF4/Zk3M5cR9sc=;
+	s=arc-20240116; t=1771517280; c=relaxed/simple;
+	bh=zlPqV4I0bErDRfP8a/M2jtQm4fY10/MZ0I7ZNyxtfzg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=vCU2FONYBtTBRwTbgHLm4t3ThPvltLEPhQEkPp2984NvWuLSP3mSsePg/Y8dH56jgaVZaU98/8USDhkHjNAXERZqE3J5QZJIJWzPaAdjB+e/uJOSwPtuOImpQrE+p46ZboXiW+KPzvkMmdKq7Y3EAf6z1iDQI5A73WsAtsoNtGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=KBb7ndUW; arc=none smtp.client-ip=198.175.65.10
+	 In-Reply-To:Content-Type; b=uo1GKCW+l9P8ur+GVxxCDLl2DAEdDgB7tVHsfmMx39p9PhAsmi0OBb3p6puQqMrkTfe64CuD0KVcJ2gaTumlf644wGobuuWColowpZ3qLhivLRyc7vjpK4odNpbfKCipaG+8FBppDknrGnU+jAjshyq6qXa1AhzSxnML+SK1CYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=b0UhgStd; arc=none smtp.client-ip=192.198.163.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KBb7ndUW"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="b0UhgStd"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771515928; x=1803051928;
+  t=1771517278; x=1803053278;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=2tel+xr7GLPTXAeWWTV0pNMbxcro+AF4/Zk3M5cR9sc=;
-  b=KBb7ndUWvK8jmmjRYAN/U3nkUUcJ56ZZoyo3jyEtSAf7PcSXxpQPfXCb
-   NgQTE7ly+5uQsm3xzc9TZdv6irXkzFGfEogyv9hjbukT9uKPcAbffTMM5
-   n+DdPTOFVx71NmaEpZcuS76dt58dtOtv689f05VWNdT1DK3I0jvwLddW5
-   p16s5+3hTRUhsw64WJGVRrllKjFcu+8dkQUVKkgqLS3HnF/ovDLrgjKLD
-   L1yrestfM4E5cJ/22HnigKGtl2ZRUCk1W6MfNoE50ZgrCrwRuIUNVLDop
-   8EpnRs49vHrd7LzGtlCddW1tMhVcakI0yjmg2Jvk0XrPYru0S1U/ECFh8
-   A==;
-X-CSE-ConnectionGUID: P4VXWKD5TuSZzzEdcgmWIw==
-X-CSE-MsgGUID: Ik/W8tcCS3yEu3bWNnwgUg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11706"; a="90011829"
+  bh=zlPqV4I0bErDRfP8a/M2jtQm4fY10/MZ0I7ZNyxtfzg=;
+  b=b0UhgStdinbLr+68Fa9ktWEZNy33u9hrnFavFlelZBDP27Hm7qQlX4VQ
+   VVWLjiEh5XsLh+hi92Kxm0RSiYkosSPCNyem2jL7e0D3a+YWrXj7UhRbW
+   MhlQl8mVxblEGtLpmDpFnYEt0LBA+1jMri9g6VtacVWLFkK6p7G0Pzk5k
+   vQyXk5UYRoSQfsq1Ea1wyGVAth390OD8MYkT3wqjxeCIj7fLpH2+plnn+
+   9N60WIdrnxl8E3g1xc23uy1bYhj7o6NbTVC5EtJgGmPqgqap49/SCzxdc
+   yumiCS55aSlZnrKp5AmG+Tvz/fs/eREGMWfh09+MUdHk3LNoktZlPf2bV
+   w==;
+X-CSE-ConnectionGUID: Pgpv5glWRq+ETORYNsV5Ug==
+X-CSE-MsgGUID: gfbExeNCRzK3kMLBx5rwsg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11706"; a="98069430"
 X-IronPort-AV: E=Sophos;i="6.21,300,1763452800"; 
-   d="scan'208";a="90011829"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 07:41:48 -0800
-X-CSE-ConnectionGUID: 2UNbJJT1QwWcglV/ZWOzMQ==
-X-CSE-MsgGUID: 2+Zeibn4Samq6kR6s/gMAQ==
+   d="scan'208";a="98069430"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 08:07:57 -0800
+X-CSE-ConnectionGUID: 6d2q8Js5Qcm5WNvx9MFPSg==
+X-CSE-MsgGUID: oDWZHOUoQUONBagjlmy7rw==
 X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,300,1763452800"; 
+   d="scan'208";a="219095070"
 Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.110.20]) ([10.125.110.20])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 07:41:45 -0800
-Message-ID: <3d4f6d14-4b5e-42e4-bab6-2d055088de7b@intel.com>
-Date: Thu, 19 Feb 2026 08:41:44 -0700
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Feb 2026 08:07:55 -0800
+Message-ID: <47780ff4-27ff-4e14-98cc-a10064d7fe13@intel.com>
+Date: Thu, 19 Feb 2026 09:07:53 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,8 +52,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V7 06/19] dax: Add dax_set_ops() for setting
- dax_operations at bind time
+Subject: Re: [PATCH V7 07/19] dax: Add fs_dax_get() func to prepare dax for
+ fs-dax usage
 To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
  Miklos Szeredi <miklos@szeredi.hu>, Dan Williams <dan.j.williams@intel.com>,
  Bernd Schubert <bschubert@ddn.com>,
@@ -79,153 +81,211 @@ Cc: John Groves <jgroves@micron.com>, John Groves <jgroves@fastmail.com>,
  "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
- <20260118223157.92407-1-john@jagalactic.com>
- <0100019bd33c9e30-6de962ed-6feb-4481-a68a-c225ee8808ff-000000@email.amazonses.com>
+ <20260118223206.92430-1-john@jagalactic.com>
+ <0100019bd33cc18d-83012e03-8214-45a4-91cf-c8b598cd4535-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019bd33c9e30-6de962ed-6feb-4481-a68a-c225ee8808ff-000000@email.amazonses.com>
+In-Reply-To: <0100019bd33cc18d-83012e03-8214-45a4-91cf-c8b598cd4535-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
 On 1/18/26 3:32 PM, John Groves wrote:
-> From: John Groves <John@Groves.net>
+> From: John Groves <john@groves.net>
 > 
-> Add a new dax_set_ops() function that allows drivers to set the
-> dax_operations after the dax_device has been allocated. This is needed
-> for fsdev_dax where the operations need to be set during probe and
-> cleared during unbind.
+> The fs_dax_get() function should be called by fs-dax file systems after
+> opening a fsdev dax device. This adds holder_operations, which provides
+> a memory failure callback path and effects exclusivity between callers
+> of fs_dax_get().
 > 
-> The fsdev driver uses devm_add_action_or_reset() for cleanup consistency,
-> avoiding the complexity of mixing devm-managed resources with manual
-> cleanup in a remove() callback. This ensures cleanup happens automatically
-> in the correct reverse order when the device is unbound.
+> fs_dax_get() is specific to fsdev_dax, so it checks the driver type
+> (which required touching bus.[ch]). fs_dax_get() fails if fsdev_dax is
+> not bound to the memory.
+> 
+> This function serves the same role as fs_dax_get_by_bdev(), which dax
+> file systems call after opening the pmem block device.
+> 
+> This can't be located in fsdev.c because struct dax_device is opaque
+> there.
+> 
+> This will be called by fs/fuse/famfs.c in a subsequent commit.
 > 
 > Signed-off-by: John Groves <john@groves.net>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
 > ---
->  drivers/dax/fsdev.c | 16 ++++++++++++++++
->  drivers/dax/super.c | 38 +++++++++++++++++++++++++++++++++++++-
->  include/linux/dax.h |  1 +
->  3 files changed, 54 insertions(+), 1 deletion(-)
+>  drivers/dax/bus.c   |  2 --
+>  drivers/dax/bus.h   |  2 ++
+>  drivers/dax/super.c | 58 ++++++++++++++++++++++++++++++++++++++++++++-
+>  include/linux/dax.h | 20 ++++++++++------
+>  4 files changed, 72 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> index 5d17ad39227f..4949aa41dcf4 100644
-> --- a/drivers/dax/fsdev.c
-> +++ b/drivers/dax/fsdev.c
-> @@ -119,6 +119,13 @@ static void fsdev_kill(void *dev_dax)
->  	kill_dev_dax(dev_dax);
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index e79daf825b52..01402d5103ef 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -39,8 +39,6 @@ static int dax_bus_uevent(const struct device *dev, struct kobj_uevent_env *env)
+>  	return add_uevent_var(env, "MODALIAS=" DAX_DEVICE_MODALIAS_FMT, 0);
 >  }
 >  
-> +static void fsdev_clear_ops(void *data)
-> +{
-> +	struct dev_dax *dev_dax = data;
-> +
-> +	dax_set_ops(dev_dax->dax_dev, NULL);
-> +}
-> +
->  /*
->   * Page map operations for FS-DAX mode
->   * Similar to fsdax_pagemap_ops in drivers/nvdimm/pmem.c
-> @@ -301,6 +308,15 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  	if (rc)
->  		return rc;
+> -#define to_dax_drv(__drv)	container_of_const(__drv, struct dax_device_driver, drv)
+> -
+>  static struct dax_id *__dax_match_id(const struct dax_device_driver *dax_drv,
+>  		const char *dev_name)
+>  {
+> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+> index 880bdf7e72d7..dc6f112ac4a4 100644
+> --- a/drivers/dax/bus.h
+> +++ b/drivers/dax/bus.h
+> @@ -42,6 +42,8 @@ struct dax_device_driver {
+>  	void (*remove)(struct dev_dax *dev);
+>  };
 >  
-> +	/* Set the dax operations for fs-dax access path */
-> +	rc = dax_set_ops(dax_dev, &dev_dax_ops);
-> +	if (rc)
-> +		return rc;
+> +#define to_dax_drv(__drv) container_of_const(__drv, struct dax_device_driver, drv)
 > +
-> +	rc = devm_add_action_or_reset(dev, fsdev_clear_ops, dev_dax);
-> +	if (rc)
-> +		return rc;
-> +
->  	run_dax(dax_dev);
->  	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
->  }
+>  int __dax_driver_register(struct dax_device_driver *dax_drv,
+>  		struct module *module, const char *mod_name);
+>  #define dax_driver_register(driver) \
 > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index c00b9dff4a06..ba0b4cd18a77 100644
+> index ba0b4cd18a77..00c330ef437c 100644
 > --- a/drivers/dax/super.c
 > +++ b/drivers/dax/super.c
-> @@ -157,6 +157,9 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
->  	if (!dax_alive(dax_dev))
->  		return -ENXIO;
+> @@ -14,6 +14,7 @@
+>  #include <linux/fs.h>
+>  #include <linux/cacheinfo.h>
+>  #include "dax-private.h"
+> +#include "bus.h"
 >  
-> +	if (!dax_dev->ops)
-> +		return -EOPNOTSUPP;
-> +
->  	if (nr_pages < 0)
->  		return -EINVAL;
+>  /**
+>   * struct dax_device - anchor object for dax services
+> @@ -111,6 +112,10 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off,
+>  }
+>  EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
 >  
-> @@ -207,6 +210,10 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
->  
->  	if (!dax_alive(dax_dev))
->  		return -ENXIO;
+> +#endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
 > +
-> +	if (!dax_dev->ops)
-> +		return -EOPNOTSUPP;
+> +#if IS_ENABLED(CONFIG_FS_DAX)
 > +
->  	/*
->  	 * There are no callers that want to zero more than one page as of now.
->  	 * Once users are there, this check can be removed after the
-> @@ -223,7 +230,7 @@ EXPORT_SYMBOL_GPL(dax_zero_page_range);
->  size_t dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
->  		void *addr, size_t bytes, struct iov_iter *iter)
+>  void fs_put_dax(struct dax_device *dax_dev, void *holder)
 >  {
-> -	if (!dax_dev->ops->recovery_write)
-> +	if (!dax_dev->ops || !dax_dev->ops->recovery_write)
->  		return 0;
->  	return dax_dev->ops->recovery_write(dax_dev, pgoff, addr, bytes, iter);
+>  	if (dax_dev && holder &&
+> @@ -119,7 +124,58 @@ void fs_put_dax(struct dax_device *dax_dev, void *holder)
+>  	put_dax(dax_dev);
 >  }
-> @@ -307,6 +314,35 @@ void set_dax_nomc(struct dax_device *dax_dev)
->  }
->  EXPORT_SYMBOL_GPL(set_dax_nomc);
->  
+>  EXPORT_SYMBOL_GPL(fs_put_dax);
+> -#endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
+> +
 > +/**
-> + * dax_set_ops - set the dax_operations for a dax_device
-> + * @dax_dev: the dax_device to configure
-> + * @ops: the operations to set (may be NULL to clear)
+> + * fs_dax_get() - get ownership of a devdax via holder/holder_ops
 > + *
-> + * This allows drivers to set the dax_operations after the dax_device
-> + * has been allocated. This is needed when the device is created before
-> + * the driver that needs specific ops is bound (e.g., fsdev_dax binding
-> + * to a dev_dax created by hmem).
+> + * fs-dax file systems call this function to prepare to use a devdax device for
+> + * fsdax. This is like fs_dax_get_by_bdev(), but the caller already has struct
+> + * dev_dax (and there is no bdev). The holder makes this exclusive.
 > + *
-> + * When setting non-NULL ops, fails if ops are already set (returns -EBUSY).
-> + * When clearing ops (NULL), always succeeds.
+> + * @dax_dev: dev to be prepared for fs-dax usage
+> + * @holder: filesystem or mapped device inside the dax_device
+> + * @hops: operations for the inner holder
 > + *
-> + * Return: 0 on success, -EBUSY if ops already set
+> + * Returns: 0 on success, <0 on failure
 > + */
-> +int dax_set_ops(struct dax_device *dax_dev, const struct dax_operations *ops)
+> +int fs_dax_get(struct dax_device *dax_dev, void *holder,
+> +	const struct dax_holder_operations *hops)
 > +{
-> +	if (ops) {
-> +		/* Setting ops: fail if already set */
-> +		if (cmpxchg(&dax_dev->ops, NULL, ops) != NULL)
-> +			return -EBUSY;
-> +	} else {
-> +		/* Clearing ops: always allowed */
-> +		dax_dev->ops = NULL;
+> +	struct dev_dax *dev_dax;
+> +	struct dax_device_driver *dax_drv;
+> +	int id;
+> +
+> +	id = dax_read_lock();
+> +	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode)) {
+> +		dax_read_unlock(id);
+> +		return -ENODEV;
 > +	}
+> +	dax_read_unlock(id);
+> +
+> +	/* Verify the device is bound to fsdev_dax driver */
+> +	dev_dax = dax_get_private(dax_dev);
+> +	if (!dev_dax || !dev_dax->dev.driver) {
+
+Don't you need to hold the dev_dax->dev device lock in order to check the driver?
+
+DJ
+
+> +		iput(&dax_dev->inode);
+> +		return -ENODEV;
+> +	}
+> +
+> +	dax_drv = to_dax_drv(dev_dax->dev.driver);
+> +	if (dax_drv->type != DAXDRV_FSDEV_TYPE) {
+> +		iput(&dax_dev->inode);
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	if (cmpxchg(&dax_dev->holder_data, NULL, holder)) {
+> +		iput(&dax_dev->inode);
+> +		return -EBUSY;
+> +	}
+> +
+> +	dax_dev->holder_ops = hops;
+> +
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL_GPL(dax_set_ops);
-> +
->  bool dax_alive(struct dax_device *dax_dev)
->  {
->  	lockdep_assert_held(&dax_srcu);
+> +EXPORT_SYMBOL_GPL(fs_dax_get);
+> +#endif /* CONFIG_FS_DAX */
+>  
+>  enum dax_device_flags {
+>  	/* !alive + rcu grace period == no new operations / mappings */
 > diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index fe1315135fdd..5aaaca135737 100644
+> index 5aaaca135737..6897c5736543 100644
 > --- a/include/linux/dax.h
 > +++ b/include/linux/dax.h
-> @@ -247,6 +247,7 @@ static inline void dax_break_layout_final(struct inode *inode)
+> @@ -52,9 +52,6 @@ struct dax_holder_operations {
+>  #if IS_ENABLED(CONFIG_DAX)
+>  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
 >  
->  bool dax_alive(struct dax_device *dax_dev);
->  void *dax_get_private(struct dax_device *dax_dev);
-> +int dax_set_ops(struct dax_device *dax_dev, const struct dax_operations *ops);
->  long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
->  		enum dax_access_mode mode, void **kaddr, unsigned long *pfn);
->  size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+> -#if IS_ENABLED(CONFIG_DEV_DAX_FS)
+> -struct dax_device *inode_dax(struct inode *inode);
+> -#endif
+>  void *dax_holder(struct dax_device *dax_dev);
+>  void put_dax(struct dax_device *dax_dev);
+>  void kill_dax(struct dax_device *dax_dev);
+> @@ -134,7 +131,6 @@ int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk);
+>  void dax_remove_host(struct gendisk *disk);
+>  struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off,
+>  		void *holder, const struct dax_holder_operations *ops);
+> -void fs_put_dax(struct dax_device *dax_dev, void *holder);
+>  #else
+>  static inline int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk)
+>  {
+> @@ -149,12 +145,13 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev,
+>  {
+>  	return NULL;
+>  }
+> -static inline void fs_put_dax(struct dax_device *dax_dev, void *holder)
+> -{
+> -}
+>  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
+>  
+>  #if IS_ENABLED(CONFIG_FS_DAX)
+> +void fs_put_dax(struct dax_device *dax_dev, void *holder);
+> +int fs_dax_get(struct dax_device *dax_dev, void *holder,
+> +	       const struct dax_holder_operations *hops);
+> +struct dax_device *inode_dax(struct inode *inode);
+>  int dax_writeback_mapping_range(struct address_space *mapping,
+>  		struct dax_device *dax_dev, struct writeback_control *wbc);
+>  int dax_folio_reset_order(struct folio *folio);
+> @@ -168,6 +165,15 @@ dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
+>  void dax_unlock_mapping_entry(struct address_space *mapping,
+>  		unsigned long index, dax_entry_t cookie);
+>  #else
+> +static inline void fs_put_dax(struct dax_device *dax_dev, void *holder)
+> +{
+> +}
+> +
+> +static inline int fs_dax_get(struct dax_device *dax_dev, void *holder,
+> +			     const struct dax_holder_operations *hops)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+>  static inline struct page *dax_layout_busy_page(struct address_space *mapping)
+>  {
+>  	return NULL;
 
