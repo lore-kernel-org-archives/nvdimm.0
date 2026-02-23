@@ -1,35 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3FA33A1D2;
-	Mon, 23 Feb 2026 13:22:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6948A883F;
+	Mon, 23 Feb 2026 13:22:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771852947; cv=none; b=s53WKrxU803N656jehH9EUCLzBnZt5bvFwGhL8tl9bouey2ADB1F4jsZPk0+Qs38wXpKernHyzLqr3Ja5R8sElwQlg4OjmgTVYI6kEdpzqaxAjOSOYD8iAQv6iwMDCnoOE0Q7WsOJ3AgmxhkYueP/qdJnjGWJPnW/umNxs8AdWE=
+	t=1771852960; cv=none; b=TR2TAeJzIL8D1Top7GBt5rlyNekI4fMw74tYA7lydvuO+GICcDGoi2rlCIPP1Q/qSDFoGYBZATABHT2eoO/b3V/fDkNC0dA0ZCOH3zZvPOa02wAhtRoUH4QlAetARzrgUa7qPLIQN2cGkA0aRqWr27HFZ+vdqzHdwx5GUlPiJn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771852947; c=relaxed/simple;
-	bh=TgAzADZp942m/mNiT4xiZi4r6ouZ08ZoS6D5f8QsyUQ=;
+	s=arc-20240116; t=1771852960; c=relaxed/simple;
+	bh=SRiJxTF0KXB8zVoMjCae0WvBTPOf1DI3M1av5zDpoaM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QFiiPgMXFBdLltqm1e6Tg2CaQ+5Rq/TWM3FjPrS5E9BYJwXZts8vkS7i/O6aQt90VPH4Xo1QFNTq6DXVfGt/x6tl1BaTRn4wFxTKIMrEeOrtXSHORFtKG5zhuTNWK7dzuEuHIwN/RiN7ZCRd6XabiARmHqc9KXYfsBjdyKiuSk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=NV5h+gPr; arc=none smtp.client-ip=198.137.202.133
+	 MIME-Version; b=hPebJgjoFebEctesLdgKdo3C7dgo0R4Vd9YJYawFXRx7U2IcO5T1v75sxciFxflIuBU5KH2IM7J+gaym5EWhzAY6DnlOIkJf4WuCp+FfvZIpJnEhrhPOD7cI47clO+Pb6BaP+ddIGGkfxP+ospWNWHGWCxTy0ef/Cy/csfLte9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=ETDS4Y0+; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="NV5h+gPr"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ETDS4Y0+"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=DydYmsKAy3ZaEmi3TYqqUoWHFPE3MKeudE4M0b4BKkA=; b=NV5h+gPrmQ4RkWmVm/4t3Q+4LL
-	pkPuUwJCSLRYTe17OFd5YenZ5LAdYKs/AVN3DMWFxEQdXnj4mD25W4iiZnvyxLFid66pBcVVGIRox
-	cQet/0IEXDNVPGBrgSYx8LtuJyCMvXeR+6/f9wAtEcahYVe0vCUHBBczxBYRg+KlrGDc/K9oFSvRZ
-	bhnvKzTDg3AK+PdEimca+2gokDYkQng1shCVUXe1II82e8OUEor5BDMRE2ndw0oZ9sXFIo+XWTnlJ
-	xAy5qLhFZ6mbTam5pHRs8lIuPrO1NVbyaAUV/JCLHF4OP+sG2j0EhDhJHhz8stdGPWUKoU21rLPou
-	Q7AgO+Ww==;
+	bh=FTU0G7ZtH6mtQ9DmUHbUKxiawQvJFfGUKyNJ+G3aGNQ=; b=ETDS4Y0+iw5zKqTgR2P4vne282
+	0/oSCMiN0JLzhY+ZpXGkNx1OXbXmH/w3uky/zK7mAnhQY4NSicChlPVPl4ei5mbTebRc6Sm7xf3uI
+	Qt5ly6iD+Ybu9/w4IsD9/yMRzkFf3JBF7l/DQmO7lbuobxjGoVlFdD4HJ5LdLjjCQrXRlT2v44dGk
+	Aem+qL+LNyvurvyr4CJ0vCxkhH1hMhS+SaKHLNBrtVmfcu6ht2ocoW0p1KJgvNLBU66FibiSItkYu
+	7Bc56rRLGMhhKIdutm8VPXHhrw8XgXUwabFLWldxN/saVNX3uSfey5HPvf2vtgwnKvASLSOYwt/6+
+	RhkQsz3A==;
 Received: from [94.156.175.41] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuVtI-00000000M0P-2hEq;
-	Mon, 23 Feb 2026 13:22:25 +0000
+	id 1vuVtU-00000000M1X-44j0;
+	Mon, 23 Feb 2026 13:22:37 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	Christian Brauner <brauner@kernel.org>
@@ -44,9 +44,9 @@ Cc: "Darrick J. Wong" <djwong@kernel.org>,
 	nvdimm@lists.linux.dev,
 	linux-fsdevel@vger.kernel.org,
 	linux-xfs@vger.kernel.org
-Subject: [PATCH 09/16] iomap: pass the iomap_iter to ->submit_read
-Date: Mon, 23 Feb 2026 05:20:09 -0800
-Message-ID: <20260223132021.292832-10-hch@lst.de>
+Subject: [PATCH 10/16] iomap: only call into ->submit_read when there is a read_ctx
+Date: Mon, 23 Feb 2026 05:20:10 -0800
+Message-ID: <20260223132021.292832-11-hch@lst.de>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260223132021.292832-1-hch@lst.de>
 References: <20260223132021.292832-1-hch@lst.de>
@@ -59,108 +59,72 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-This provides additional context for file systems.
+Move the NULL check into the callers to simplify the callees.
 
-Rename the fuse instance to match the method name while we're at it.
+Fuse was missing this before, but has a constant read_ctx that is
+never NULL or changed, so no change here either.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
 Tested-by: Anuj Gupta <anuj20.g@samsung.com>
 ---
- fs/fuse/file.c         | 5 +++--
- fs/iomap/bio.c         | 3 ++-
+ fs/iomap/bio.c         | 5 +----
  fs/iomap/buffered-io.c | 4 ++--
- fs/ntfs3/inode.c       | 3 ++-
- include/linux/iomap.h  | 3 ++-
- 5 files changed, 11 insertions(+), 7 deletions(-)
+ fs/ntfs3/inode.c       | 3 +--
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index b1bb7153cb78..a9c836d7f586 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -947,7 +947,8 @@ static int fuse_iomap_read_folio_range_async(const struct iomap_iter *iter,
- 	return ret;
- }
- 
--static void fuse_iomap_read_submit(struct iomap_read_folio_ctx *ctx)
-+static void fuse_iomap_submit_read(const struct iomap_iter *iter,
-+		struct iomap_read_folio_ctx *ctx)
- {
- 	struct fuse_fill_read_data *data = ctx->read_ctx;
- 
-@@ -958,7 +959,7 @@ static void fuse_iomap_read_submit(struct iomap_read_folio_ctx *ctx)
- 
- static const struct iomap_read_ops fuse_iomap_read_ops = {
- 	.read_folio_range = fuse_iomap_read_folio_range_async,
--	.submit_read = fuse_iomap_read_submit,
-+	.submit_read = fuse_iomap_submit_read,
- };
- 
- static int fuse_read_folio(struct file *file, struct folio *folio)
 diff --git a/fs/iomap/bio.c b/fs/iomap/bio.c
-index 578b1202e037..cb60d1facb5a 100644
+index cb60d1facb5a..80bbd328bd3c 100644
 --- a/fs/iomap/bio.c
 +++ b/fs/iomap/bio.c
-@@ -18,7 +18,8 @@ static void iomap_read_end_io(struct bio *bio)
- 	bio_put(bio);
+@@ -21,10 +21,7 @@ static void iomap_read_end_io(struct bio *bio)
+ static void iomap_bio_submit_read(const struct iomap_iter *iter,
+ 		struct iomap_read_folio_ctx *ctx)
+ {
+-	struct bio *bio = ctx->read_ctx;
+-
+-	if (bio)
+-		submit_bio(bio);
++	submit_bio(ctx->read_ctx);
  }
  
--static void iomap_bio_submit_read(struct iomap_read_folio_ctx *ctx)
-+static void iomap_bio_submit_read(const struct iomap_iter *iter,
-+		struct iomap_read_folio_ctx *ctx)
- {
- 	struct bio *bio = ctx->read_ctx;
- 
+ static void iomap_read_alloc_bio(const struct iomap_iter *iter,
 diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
-index a0c46aadb97d..763b266f38c5 100644
+index 763b266f38c5..51a58a0bfe6c 100644
 --- a/fs/iomap/buffered-io.c
 +++ b/fs/iomap/buffered-io.c
-@@ -588,7 +588,7 @@ void iomap_read_folio(const struct iomap_ops *ops,
+@@ -587,7 +587,7 @@ void iomap_read_folio(const struct iomap_ops *ops,
+ 		iter.status = iomap_read_folio_iter(&iter, ctx,
  				&bytes_submitted);
  
- 	if (ctx->ops->submit_read)
--		ctx->ops->submit_read(ctx);
-+		ctx->ops->submit_read(&iter, ctx);
+-	if (ctx->ops->submit_read)
++	if (ctx->read_ctx && ctx->ops->submit_read)
+ 		ctx->ops->submit_read(&iter, ctx);
  
  	if (ctx->cur_folio)
- 		iomap_read_end(ctx->cur_folio, bytes_submitted);
-@@ -654,7 +654,7 @@ void iomap_readahead(const struct iomap_ops *ops,
+@@ -653,7 +653,7 @@ void iomap_readahead(const struct iomap_ops *ops,
+ 		iter.status = iomap_readahead_iter(&iter, ctx,
  					&cur_bytes_submitted);
  
- 	if (ctx->ops->submit_read)
--		ctx->ops->submit_read(ctx);
-+		ctx->ops->submit_read(&iter, ctx);
+-	if (ctx->ops->submit_read)
++	if (ctx->read_ctx && ctx->ops->submit_read)
+ 		ctx->ops->submit_read(&iter, ctx);
  
  	if (ctx->cur_folio)
- 		iomap_read_end(ctx->cur_folio, cur_bytes_submitted);
 diff --git a/fs/ntfs3/inode.c b/fs/ntfs3/inode.c
-index 6e65066ebcc1..511967ef7ec9 100644
+index 511967ef7ec9..7ab4e18f8013 100644
 --- a/fs/ntfs3/inode.c
 +++ b/fs/ntfs3/inode.c
-@@ -651,7 +651,8 @@ static int ntfs_iomap_bio_read_folio_range(const struct iomap_iter *iter,
- 	return 0;
- }
- 
--static void ntfs_iomap_bio_submit_read(struct iomap_read_folio_ctx *ctx)
-+static void ntfs_iomap_bio_submit_read(const struct iomap_iter *iter,
-+		struct iomap_read_folio_ctx *ctx)
+@@ -656,8 +656,7 @@ static void ntfs_iomap_bio_submit_read(const struct iomap_iter *iter,
  {
  	struct bio *bio = ctx->read_ctx;
  
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 99b7209dabd7..6fbe121e2adf 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -512,7 +512,8 @@ struct iomap_read_ops {
- 	 *
- 	 * This is optional.
- 	 */
--	void (*submit_read)(struct iomap_read_folio_ctx *ctx);
-+	void (*submit_read)(const struct iomap_iter *iter,
-+			struct iomap_read_folio_ctx *ctx);
- };
+-	if (bio)
+-		submit_bio(bio);
++	submit_bio(bio);
+ }
  
- /*
+ static const struct iomap_read_ops ntfs_iomap_bio_read_ops = {
 -- 
 2.47.3
 
