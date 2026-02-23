@@ -1,156 +1,143 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from sienna.cherry.relay.mailchannels.net (sienna.cherry.relay.mailchannels.net [23.83.223.165])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5A1C30FC1D;
-	Mon, 23 Feb 2026 16:27:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771864060; cv=none; b=LZFIouZD2SWuOWWzdIgJMvDtIJfQi3DxwtYkZFUk6Wc+YvtBlXtZz6TgOAGy2M7//UkV4SM1FFPWKD38uOamqL0vgGS2/a41hEHm2iozPoibJjUOFaHfSBkJCntd9zP1RuBUv8JfVaUVsqkQSlixYWVbzou5Ufqbz84oLhCSzgk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771864060; c=relaxed/simple;
-	bh=fzmMAPqHr6UY1W4QOVefe5i2Klnyid7y4W4h12ZJ2Lo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TwMW/WX1Lx42fVqraMDhJpwsbkntahoPoXrc8zxcbgzgNc9+pp0I4pKy18NE9bkILaMcUoK8UXbbqD2M1WENro+MVd16b2xYVfWJm0TU6CaWnrvNr1goJHYFd/7/UpBzvoUxI0v9BtHge5Tu0W+ID4DnYmQeKHfyFt1cfmHm43c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZpZHqKCQ; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80D36361641
+	for <nvdimm@lists.linux.dev>; Mon, 23 Feb 2026 20:25:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.165
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1771878339; cv=pass; b=pL14v0GwxhJKjxo+3ISAiMT21VXlH/1HGD8imxeJKGaSPHeaWlg870HEhRoFLUFe7MjfVcgqrvUlwCl+2UUajFqEcZ1S6URPXjfcU83mDQ7RbCpbTJfqBOt+RjXXHuNOzsr5TYo4ZxUZnYV227O4zZZ9nh6euIoAAJ8cyAQPeGk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1771878339; c=relaxed/simple;
+	bh=ekf6e+nPHeTQJMvQ6yWX0/LYM4cZwOTrXiQY1gABwO4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=PuDbSE/e9fOfmz5r5uMUdvEbBH1g8bJu5vA0cGmvXTDPVh6IRIRIZP8J4+BZl/rpPepJJ+MCEOrKkudYvj54qTxC+o+/YhbrrWu5H8QvW9razteyYyipfqqcTtEBQEdVt5FUQW1xz1AkF9LbOjW6afZtydIe+uZTkNX+b2uhvsA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=fail smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=GuCkQUR/; arc=pass smtp.client-ip=23.83.223.165
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZpZHqKCQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B4C0C116C6;
-	Mon, 23 Feb 2026 16:27:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771864060;
-	bh=fzmMAPqHr6UY1W4QOVefe5i2Klnyid7y4W4h12ZJ2Lo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ZpZHqKCQVoqovvBwyXxOJHCiEMZrA6Q/JpYJGnJIIc2oQPs06MEKkI2nY/zfzmSWW
-	 RUMoIBImCulZAFA1eRig7dOUjjvPSv7vrLnjoa5hpGddB6C8VZjV9DU4c5omi5GA3V
-	 kbB0tp1pQ4yEZCNRLtkWc/NrBeyohlbB9FoijXBqBflMlKjQa+/gXYebPitszzgJUv
-	 76a515aLdWGxWI/p9dF+d2BNiOHcnnrwsg1RCAZbpUyI9HB5oyHCU9SRwIoBytvTdg
-	 eBnyigzBpUc4z5n0YMet2oqc1k0UhJU4y9u22UoLfJJqBTVOPfxsZ50XKnQE1Okwbx
-	 2Kc+0pi50pInA==
-Date: Mon, 23 Feb 2026 08:27:39 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>,
-	Carlos Maiolino <cem@kernel.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Anuj Gupta <anuj20.g@samsung.com>,
-	Kanchan Joshi <joshi.k@samsung.com>,
-	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-	ntfs3@lists.linux.dev, linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-xfs@vger.kernel.org
-Subject: Re: [PATCH 12/16] ntfs3: remove copy and pasted iomap code
-Message-ID: <20260223162739.GC2390353@frogsfrogsfrogs>
-References: <20260223132021.292832-1-hch@lst.de>
- <20260223132021.292832-13-hch@lst.de>
+	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="GuCkQUR/"
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id CCCB0822197;
+	Mon, 23 Feb 2026 20:15:23 +0000 (UTC)
+Received: from pdx1-sub0-mail-a223.dreamhost.com (trex-green-1.trex.outbound.svc.cluster.local [100.99.123.233])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 5711A822F70;
+	Mon, 23 Feb 2026 20:15:23 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; d=mailchannels.net; s=arc-2022; cv=none;
+	t=1771877723;
+	b=TnFmY4bmS+0GVz6chJ9QJfUT+4n/IKYCZ9KGq/Pyt4Dx2IviOhv9/RPEMJOwhwMrer1efk
+	xG+QwXm9T155PlHumoKgPZCWtTZ9Kdb3JWVqZITa3N8S3uBxYO9VYiPGz33Z4pgK6Sjj2A
+	galu5GAgGT5ZhP0KYM0RCrfH+9qgvBYL5vlojmBuM/Gz/uMcXdaJEd+kPa5QqMn/QnOiDR
+	1PIboQUFeY8kXcnOuozhmWxmIVS2JZv033RnFYZJ4wqeoUxitqRjyqfuKEIWc4HOPud+l3
+	50gResNPeDj5OOL0FeXHvUw8nvLY+X5OtITRttXisj/y6owe/fRJbNgGoAQ8og==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1771877723;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:dkim-signature;
+	bh=8ihYEdPtitx3DHHP0f7Db/Lmo6pPSrakWF+cfj53YAA=;
+	b=zDehrEnTWgjxq/HWLHoUeYVnM2B7gD7LpbROfO4N/ByQ6kco0s1IpXgjGTk7iktZz3WzJk
+	QSptSV/MvCaECXSOAaxPOP935lVL9NhCRvfHa5eZodyMn6hX2k3d0THLD7Xc3yvEvdmB2y
+	BE/+/cctiS7fRcKX6Ar/vehZQy84mx8NsHFOnfvIJwxjlViWWLbso0qXSgyW01QSz/DSha
+	mjL4tBijU8e9z9MJQGrRp3UOAdHvi+NuMIqChgghikVlYS00NUuZiXLXsbwybu2enF3maq
+	qn5S6dNdNnG3V9T8mTeCcHbZ90DuciOaGKW2ye4BAMoNdwy4uRb+gtUdLK4Yaw==
+ARC-Authentication-Results: i=1;
+	rspamd-7f65b64645-q8gvw;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Whimsical-White: 752be4815a60e312_1771877723645_262619074
+X-MC-Loop-Signature: 1771877723645:1665630446
+X-MC-Ingress-Time: 1771877723644
+Received: from pdx1-sub0-mail-a223.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.99.123.233 (trex/7.1.3);
+	Mon, 23 Feb 2026 20:15:23 +0000
+Received: from offworld.lan (unknown [76.167.199.67])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a223.dreamhost.com (Postfix) with ESMTPSA id 4fKXCZ3stjzSv;
+	Mon, 23 Feb 2026 12:15:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1771877723;
+	bh=8ihYEdPtitx3DHHP0f7Db/Lmo6pPSrakWF+cfj53YAA=;
+	h=From:To:Cc:Subject:Date:Content-Transfer-Encoding;
+	b=GuCkQUR/DsB3BoVm8Q0YzNs8PX62W5r4xJkFIrGRAp4DlRVWh5DDHx4Y+Ww43Q/GV
+	 KxPsdXnYxV+8mowXvVve931Rd/rNdnWTHDJrbWzagzYLMPl9FRC8OuWFuztbd+fbam
+	 mqYsgVyWfmCJEPDeaq5pyXqeDwOaAuD2Bt0TiFVjfthY9VYeRJFwLyfkizkqkQMdPz
+	 rQPzVmUJLMKxMvcSZN0fXW9Et2n0aXOHLXu2jgusseSr8O4nsCeUcKYv20gBmhaV7j
+	 X76GjSApsagWwQ0PDgTdnswV714FvLCpDOklAfndxnVoAOyzdx0YNkMjDLcIwjCFA6
+	 027X/0FR8ErxA==
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: dan.j.williams@intel.com
+Cc: vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	akpm@linux-foundation.org,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Ben Cheatham <benjamin.cheatham@amd.com>
+Subject: [PATCH v2] dax/kmem: account for partial dis-contiguous resource upon removal
+Date: Mon, 23 Feb 2026 12:15:16 -0800
+Message-Id: <20260223201516.1517657-1-dave@stgolabs.net>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260223132021.292832-13-hch@lst.de>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Feb 23, 2026 at 05:20:12AM -0800, Christoph Hellwig wrote:
-> ntfs3 copied the iomap code without attribution or talking to the
-> maintainers, to hook into the bio completion for (unexplained) zeroing.
+When dev_dax_kmem_probe() partially succeeds (at least one range
+is mapped) but a subsequent range fails request_mem_region()
+or add_memory_driver_managed(), the probe silently continues,
+ultimately returning success, but with the corresponding range
+resource NULL'ed out.
 
-Well they /did/ attribute it...
+dev_dax_kmem_remove() iterates over all dax_device ranges regardless
+of if the underlying resource exists. When remove_memory() is
+called later, it returns 0 because the memory was never added which
+causes dev_dax_kmem_remove() to incorrectly assume the (nonexistent)
+resource can be removed and attempts cleanup on a NULL pointer.
 
-> Fix this by just overriding the bio completion handler in the submit
-> handler.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  fs/ntfs3/inode.c | 51 +++---------------------------------------------
->  1 file changed, 3 insertions(+), 48 deletions(-)
-> 
-> diff --git a/fs/ntfs3/inode.c b/fs/ntfs3/inode.c
-> index 7ab4e18f8013..60af9f8e0366 100644
-> --- a/fs/ntfs3/inode.c
-> +++ b/fs/ntfs3/inode.c
-> @@ -605,63 +605,18 @@ static void ntfs_iomap_read_end_io(struct bio *bio)
->  	bio_put(bio);
->  }
->  
-> -/*
-> - * Copied from iomap/bio.c.
+Fix this by skipping these ranges altogether, noting that these
+cases are considered success, such that the cleanup is still
+reached when all actually-added ranges are successfully removed.
 
-...extremely poorly, by not recording their reasons for copy-pasting the
-code.
+Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
+Fixes: 60e93dc097f7 ("device-dax: add dis-contiguous resource support")
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+---
+Changes from v1: reword some of the changelog (Ben)
 
-> - */
-> -static int ntfs_iomap_bio_read_folio_range(const struct iomap_iter *iter,
-> -					   struct iomap_read_folio_ctx *ctx,
-> -					   size_t plen)
-> -{
-> -	struct folio *folio = ctx->cur_folio;
-> -	const struct iomap *iomap = &iter->iomap;
-> -	loff_t pos = iter->pos;
-> -	size_t poff = offset_in_folio(folio, pos);
-> -	loff_t length = iomap_length(iter);
-> -	sector_t sector;
-> -	struct bio *bio = ctx->read_ctx;
-> -
-> -	sector = iomap_sector(iomap, pos);
-> -	if (!bio || bio_end_sector(bio) != sector ||
-> -	    !bio_add_folio(bio, folio, plen, poff)) {
-> -		gfp_t gfp = mapping_gfp_constraint(folio->mapping, GFP_KERNEL);
-> -		gfp_t orig_gfp = gfp;
-> -		unsigned int nr_vecs = DIV_ROUND_UP(length, PAGE_SIZE);
-> -
-> -		if (bio)
-> -			submit_bio(bio);
-> -
-> -		if (ctx->rac) /* same as readahead_gfp_mask */
-> -			gfp |= __GFP_NORETRY | __GFP_NOWARN;
-> -		bio = bio_alloc(iomap->bdev, bio_max_segs(nr_vecs), REQ_OP_READ,
-> -				gfp);
-> -		/*
-> -		 * If the bio_alloc fails, try it again for a single page to
-> -		 * avoid having to deal with partial page reads.  This emulates
-> -		 * what do_mpage_read_folio does.
-> -		 */
-> -		if (!bio)
-> -			bio = bio_alloc(iomap->bdev, 1, REQ_OP_READ, orig_gfp);
-> -		if (ctx->rac)
-> -			bio->bi_opf |= REQ_RAHEAD;
-> -		bio->bi_iter.bi_sector = sector;
-> -		bio->bi_end_io = ntfs_iomap_read_end_io;
-> -		bio_add_folio_nofail(bio, folio, plen, poff);
-> -		ctx->read_ctx = bio;
-> -	}
-> -	return 0;
-> -}
+ drivers/dax/kmem.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Yeah, identical to iomap_bio_read_folio_range except for setting
-bi_end_io.
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index c036e4d0b610..edd62e68ffb7 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -227,6 +227,12 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ 		if (rc)
+ 			continue;
+ 
++		/* range was never added during probe */
++		if (!data->res[i]) {
++			success++;
++			continue;
++		}
++
+ 		rc = remove_memory(range.start, range_len(&range));
+ 		if (rc == 0) {
+ 			remove_resource(data->res[i]);
+-- 
+2.39.5
 
-Don't copy-paste stuff.
-Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
-
---D
-
-> -
->  static void ntfs_iomap_bio_submit_read(const struct iomap_iter *iter,
->  		struct iomap_read_folio_ctx *ctx)
->  {
->  	struct bio *bio = ctx->read_ctx;
->  
-> +	bio->bi_end_io = ntfs_iomap_read_end_io;
->  	submit_bio(bio);
->  }
->  
->  static const struct iomap_read_ops ntfs_iomap_bio_read_ops = {
-> -	.read_folio_range = ntfs_iomap_bio_read_folio_range,
-> -	.submit_read = ntfs_iomap_bio_submit_read,
-> +	.read_folio_range	= iomap_bio_read_folio_range,
-> +	.submit_read		= ntfs_iomap_bio_submit_read,
->  };
->  
->  static int ntfs_read_folio(struct file *file, struct folio *folio)
-> -- 
-> 2.47.3
-> 
-> 
