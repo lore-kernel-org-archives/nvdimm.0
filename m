@@ -1,185 +1,156 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1719B883F;
-	Mon, 23 Feb 2026 13:23:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5A1C30FC1D;
+	Mon, 23 Feb 2026 16:27:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771853040; cv=none; b=Ut6QjxaKp72ytHmX/Rd7NJdv1T0THRELEW9Y5tV+SJjtj8ezWhse7FRY6dLRfWoqNzD4Fc4YrB/WXYS9aLTUwgLpJN3pO39OB4o3d4w1ulDzrvxcKsB70q6F0ssSa8pcku3IGQo/9Wax6HOzkg2jYJoYc47M2XcOPWXsbVXH0EE=
+	t=1771864060; cv=none; b=LZFIouZD2SWuOWWzdIgJMvDtIJfQi3DxwtYkZFUk6Wc+YvtBlXtZz6TgOAGy2M7//UkV4SM1FFPWKD38uOamqL0vgGS2/a41hEHm2iozPoibJjUOFaHfSBkJCntd9zP1RuBUv8JfVaUVsqkQSlixYWVbzou5Ufqbz84oLhCSzgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771853040; c=relaxed/simple;
-	bh=Ia12ckmAsSk8ITdVjaMQMn80Tn4ldTZUd+PU9+DPfks=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qfvU7sCjD6DeVGewa/ylSOuzFzOHpl8/+DQ9wkcZQXK2W40G2cWbAuYJLepwk8Z0wKzaOFZMrPBn0fEgnjfKkjxTJS7j2iAaa084zBVn7sqPk3j2ASi3pI1mw3i4dlXf+N6f6qJrEFj5qQSM2OktHVQ4U0YnMh5WPUkYTxKc/RI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=TDdsHKH1; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1771864060; c=relaxed/simple;
+	bh=fzmMAPqHr6UY1W4QOVefe5i2Klnyid7y4W4h12ZJ2Lo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TwMW/WX1Lx42fVqraMDhJpwsbkntahoPoXrc8zxcbgzgNc9+pp0I4pKy18NE9bkILaMcUoK8UXbbqD2M1WENro+MVd16b2xYVfWJm0TU6CaWnrvNr1goJHYFd/7/UpBzvoUxI0v9BtHge5Tu0W+ID4DnYmQeKHfyFt1cfmHm43c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZpZHqKCQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="TDdsHKH1"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=UXAA0RQj1ZeglDCy6cgGpo+e4MRe1hdQoQbU6s7Exhg=; b=TDdsHKH1dvUXf+koG6MuLWab3n
-	uYHkCudJWJjsd3Jg0IElRn108Ya09Aj45la+bYpovRHz6KwQlnQsCL1656Bd/iIFIl5VGUkzvvidV
-	lZiynYydtG0CXo1DjAslUHZ5etFS2dim1tf57gVHniTyDs1xSRZC3mXeuC3sAytkEP9K3hivhTKzG
-	U88UP/R/aG4A2PWgSV0MOb4qVB4pUeV3Fcr34Q33OT97NlEQVIsEEq8HTnO5S2ON8tq4MiP/zsQKv
-	Ej068v4SSTDYeK0Xw+JpraDhDiRK9SoAZVTwKB7xsRRnTehM26LSI7CdyrKN2YmFQwUltZxbFUjSs
-	T+hiOzIA==;
-Received: from [94.156.175.41] (helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuVum-00000000MBJ-1v2W;
-	Mon, 23 Feb 2026 13:23:57 +0000
-From: Christoph Hellwig <hch@lst.de>
-To: Jens Axboe <axboe@kernel.dk>,
-	Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZpZHqKCQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B4C0C116C6;
+	Mon, 23 Feb 2026 16:27:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771864060;
+	bh=fzmMAPqHr6UY1W4QOVefe5i2Klnyid7y4W4h12ZJ2Lo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ZpZHqKCQVoqovvBwyXxOJHCiEMZrA6Q/JpYJGnJIIc2oQPs06MEKkI2nY/zfzmSWW
+	 RUMoIBImCulZAFA1eRig7dOUjjvPSv7vrLnjoa5hpGddB6C8VZjV9DU4c5omi5GA3V
+	 kbB0tp1pQ4yEZCNRLtkWc/NrBeyohlbB9FoijXBqBflMlKjQa+/gXYebPitszzgJUv
+	 76a515aLdWGxWI/p9dF+d2BNiOHcnnrwsg1RCAZbpUyI9HB5oyHCU9SRwIoBytvTdg
+	 eBnyigzBpUc4z5n0YMet2oqc1k0UhJU4y9u22UoLfJJqBTVOPfxsZ50XKnQE1Okwbx
+	 2Kc+0pi50pInA==
+Date: Mon, 23 Feb 2026 08:27:39 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Christian Brauner <brauner@kernel.org>,
 	Carlos Maiolino <cem@kernel.org>,
 	"Martin K. Petersen" <martin.petersen@oracle.com>,
 	Anuj Gupta <anuj20.g@samsung.com>,
 	Kanchan Joshi <joshi.k@samsung.com>,
 	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-	ntfs3@lists.linux.dev,
-	linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org,
+	ntfs3@lists.linux.dev, linux-block@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
 	linux-xfs@vger.kernel.org
-Subject: [PATCH 16/16] xfs: support T10 protection information
-Date: Mon, 23 Feb 2026 05:20:16 -0800
-Message-ID: <20260223132021.292832-17-hch@lst.de>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260223132021.292832-1-hch@lst.de>
+Subject: Re: [PATCH 12/16] ntfs3: remove copy and pasted iomap code
+Message-ID: <20260223162739.GC2390353@frogsfrogsfrogs>
 References: <20260223132021.292832-1-hch@lst.de>
+ <20260223132021.292832-13-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260223132021.292832-13-hch@lst.de>
 
-Add support for generating / verifying protection information in the file
-system.  This is largely done by simply setting the IOMAP_F_INTEGRITY
-flag and letting iomap do all of the work.  XFS just has to ensure that
-the data read completions for integrity data are run from user context.
+On Mon, Feb 23, 2026 at 05:20:12AM -0800, Christoph Hellwig wrote:
+> ntfs3 copied the iomap code without attribution or talking to the
+> maintainers, to hook into the bio completion for (unexplained) zeroing.
 
-For zoned writeback, XFS also has to generate the integrity data itself
-as the zoned writeback path is not using the generic writeback_submit
-implementation.
+Well they /did/ attribute it...
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Fix this by just overriding the bio completion handler in the submit
+> handler.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  fs/ntfs3/inode.c | 51 +++---------------------------------------------
+>  1 file changed, 3 insertions(+), 48 deletions(-)
+> 
+> diff --git a/fs/ntfs3/inode.c b/fs/ntfs3/inode.c
+> index 7ab4e18f8013..60af9f8e0366 100644
+> --- a/fs/ntfs3/inode.c
+> +++ b/fs/ntfs3/inode.c
+> @@ -605,63 +605,18 @@ static void ntfs_iomap_read_end_io(struct bio *bio)
+>  	bio_put(bio);
+>  }
+>  
+> -/*
+> - * Copied from iomap/bio.c.
+
+...extremely poorly, by not recording their reasons for copy-pasting the
+code.
+
+> - */
+> -static int ntfs_iomap_bio_read_folio_range(const struct iomap_iter *iter,
+> -					   struct iomap_read_folio_ctx *ctx,
+> -					   size_t plen)
+> -{
+> -	struct folio *folio = ctx->cur_folio;
+> -	const struct iomap *iomap = &iter->iomap;
+> -	loff_t pos = iter->pos;
+> -	size_t poff = offset_in_folio(folio, pos);
+> -	loff_t length = iomap_length(iter);
+> -	sector_t sector;
+> -	struct bio *bio = ctx->read_ctx;
+> -
+> -	sector = iomap_sector(iomap, pos);
+> -	if (!bio || bio_end_sector(bio) != sector ||
+> -	    !bio_add_folio(bio, folio, plen, poff)) {
+> -		gfp_t gfp = mapping_gfp_constraint(folio->mapping, GFP_KERNEL);
+> -		gfp_t orig_gfp = gfp;
+> -		unsigned int nr_vecs = DIV_ROUND_UP(length, PAGE_SIZE);
+> -
+> -		if (bio)
+> -			submit_bio(bio);
+> -
+> -		if (ctx->rac) /* same as readahead_gfp_mask */
+> -			gfp |= __GFP_NORETRY | __GFP_NOWARN;
+> -		bio = bio_alloc(iomap->bdev, bio_max_segs(nr_vecs), REQ_OP_READ,
+> -				gfp);
+> -		/*
+> -		 * If the bio_alloc fails, try it again for a single page to
+> -		 * avoid having to deal with partial page reads.  This emulates
+> -		 * what do_mpage_read_folio does.
+> -		 */
+> -		if (!bio)
+> -			bio = bio_alloc(iomap->bdev, 1, REQ_OP_READ, orig_gfp);
+> -		if (ctx->rac)
+> -			bio->bi_opf |= REQ_RAHEAD;
+> -		bio->bi_iter.bi_sector = sector;
+> -		bio->bi_end_io = ntfs_iomap_read_end_io;
+> -		bio_add_folio_nofail(bio, folio, plen, poff);
+> -		ctx->read_ctx = bio;
+> -	}
+> -	return 0;
+> -}
+
+Yeah, identical to iomap_bio_read_folio_range except for setting
+bi_end_io.
+
+Don't copy-paste stuff.
 Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
-Tested-by: Anuj Gupta <anuj20.g@samsung.com>
----
- fs/xfs/xfs_aops.c  | 47 ++++++++++++++++++++++++++++++++++++++++++----
- fs/xfs/xfs_iomap.c |  9 ++++++---
- 2 files changed, 49 insertions(+), 7 deletions(-)
 
-diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
-index 76678814f46f..f279055fcea0 100644
---- a/fs/xfs/xfs_aops.c
-+++ b/fs/xfs/xfs_aops.c
-@@ -22,6 +22,7 @@
- #include "xfs_icache.h"
- #include "xfs_zone_alloc.h"
- #include "xfs_rtgroup.h"
-+#include <linux/bio-integrity.h>
- 
- struct xfs_writepage_ctx {
- 	struct iomap_writepage_ctx ctx;
-@@ -661,6 +662,8 @@ xfs_zoned_writeback_submit(
- 		bio_endio(&ioend->io_bio);
- 		return error;
- 	}
-+	if (wpc->iomap.flags & IOMAP_F_INTEGRITY)
-+		fs_bio_integrity_generate(&ioend->io_bio);
- 	xfs_zone_alloc_and_submit(ioend, &XFS_ZWPC(wpc)->open_zone);
- 	return 0;
- }
-@@ -741,12 +744,45 @@ xfs_vm_bmap(
- 	return iomap_bmap(mapping, block, &xfs_read_iomap_ops);
- }
- 
-+static void
-+xfs_bio_submit_read(
-+	const struct iomap_iter		*iter,
-+	struct iomap_read_folio_ctx	*ctx)
-+{
-+	struct bio			*bio = ctx->read_ctx;
-+
-+	/* defer read completions to the ioend workqueue */
-+	iomap_init_ioend(iter->inode, bio, ctx->read_ctx_file_offset, 0);
-+	bio->bi_end_io = xfs_end_bio;
-+	submit_bio(bio);
-+}
-+
-+static const struct iomap_read_ops xfs_iomap_read_ops = {
-+	.read_folio_range	= iomap_bio_read_folio_range,
-+	.submit_read		= xfs_bio_submit_read,
-+	.bio_set		= &iomap_ioend_bioset,
-+};
-+
-+static inline const struct iomap_read_ops *
-+xfs_get_iomap_read_ops(
-+	const struct address_space	*mapping)
-+{
-+	struct xfs_inode		*ip = XFS_I(mapping->host);
-+
-+	if (bdev_has_integrity_csum(xfs_inode_buftarg(ip)->bt_bdev))
-+		return &xfs_iomap_read_ops;
-+	return &iomap_bio_read_ops;
-+}
-+
- STATIC int
- xfs_vm_read_folio(
--	struct file		*unused,
--	struct folio		*folio)
-+	struct file			*file,
-+	struct folio			*folio)
- {
--	iomap_bio_read_folio(folio, &xfs_read_iomap_ops);
-+	struct iomap_read_folio_ctx	ctx = { .cur_folio = folio };
-+
-+	ctx.ops = xfs_get_iomap_read_ops(folio->mapping);
-+	iomap_read_folio(&xfs_read_iomap_ops, &ctx, NULL);
- 	return 0;
- }
- 
-@@ -754,7 +790,10 @@ STATIC void
- xfs_vm_readahead(
- 	struct readahead_control	*rac)
- {
--	iomap_bio_readahead(rac, &xfs_read_iomap_ops);
-+	struct iomap_read_folio_ctx	ctx = { .rac = rac };
-+
-+	ctx.ops = xfs_get_iomap_read_ops(rac->mapping),
-+	iomap_readahead(&xfs_read_iomap_ops, &ctx, NULL);
- }
- 
- static int
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index be86d43044df..9c2f12d5fec9 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -143,11 +143,14 @@ xfs_bmbt_to_iomap(
- 	}
- 	iomap->offset = XFS_FSB_TO_B(mp, imap->br_startoff);
- 	iomap->length = XFS_FSB_TO_B(mp, imap->br_blockcount);
--	if (mapping_flags & IOMAP_DAX)
-+	iomap->flags = iomap_flags;
-+	if (mapping_flags & IOMAP_DAX) {
- 		iomap->dax_dev = target->bt_daxdev;
--	else
-+	} else {
- 		iomap->bdev = target->bt_bdev;
--	iomap->flags = iomap_flags;
-+		if (bdev_has_integrity_csum(iomap->bdev))
-+			iomap->flags |= IOMAP_F_INTEGRITY;
-+	}
- 
- 	/*
- 	 * If the inode is dirty for datasync purposes, let iomap know so it
--- 
-2.47.3
+--D
 
+> -
+>  static void ntfs_iomap_bio_submit_read(const struct iomap_iter *iter,
+>  		struct iomap_read_folio_ctx *ctx)
+>  {
+>  	struct bio *bio = ctx->read_ctx;
+>  
+> +	bio->bi_end_io = ntfs_iomap_read_end_io;
+>  	submit_bio(bio);
+>  }
+>  
+>  static const struct iomap_read_ops ntfs_iomap_bio_read_ops = {
+> -	.read_folio_range = ntfs_iomap_bio_read_folio_range,
+> -	.submit_read = ntfs_iomap_bio_submit_read,
+> +	.read_folio_range	= iomap_bio_read_folio_range,
+> +	.submit_read		= ntfs_iomap_bio_submit_read,
+>  };
+>  
+>  static int ntfs_read_folio(struct file *file, struct folio *folio)
+> -- 
+> 2.47.3
+> 
+> 
