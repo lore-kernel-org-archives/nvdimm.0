@@ -1,222 +1,255 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f169.google.com (mail-yw1-f169.google.com [209.85.128.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C9E37AA8A
-	for <nvdimm@lists.linux.dev>; Mon, 23 Feb 2026 22:50:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771887060; cv=fail; b=CqqyXj9QuM0YZb0/i3f2B2dihqUYYC8ygPvFiL6WFQjyTuBzXNBNs2gziMuAlrYXmV7ibIPP8W79BeJwdeS3QjPK3Vskx7pSRGDzMy2lCs1szSSyOneYrMvkHJ7vqfSdJ0fYIESiEVcTudcquDWQryZId+KhPMSpDvczmDtQ50U=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771887060; c=relaxed/simple;
-	bh=Fpm7hvtSxGQ5rYY21wXbPu27oZ8FsFqgOcittpDQMeI=;
-	h=From:Date:To:CC:Message-ID:In-Reply-To:References:Subject:
-	 Content-Type:MIME-Version; b=EpQJGwa19UujTbZlvNb9pnHgOwHLJqihNYmNN4fZpSRReEUaHDFbrsjCEfQk0cZBk976SqyYpIjS5CpC3zV8IwWt56FJ4K1aQz8tP6rWao8Q56sv9cdeB0rgdkSLN2MAbO49Opdeb+cGVLgrbqUaa0S+7VC0wk4awgVYcpLg7QY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MU8Pnk2w; arc=fail smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD92622D4C8
+	for <nvdimm@lists.linux.dev>; Tue, 24 Feb 2026 01:24:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.169
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1771896301; cv=none; b=ncALO1fnHFvZQbXQpYfpY7qqOYZOj6A3/yv6IBLpLYq9tHy2Kxmh/Vk3n6facZzFLDzapzTJnknla0/qnvtoBeq0SAMLsNqWisg7XR3NzQtfoDA/y5vBwgvBZStMZn+vdC5cL5Nfq8hu4qEdjFfIeU4ySe7uuXMr0JE8WbZgsvw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1771896301; c=relaxed/simple;
+	bh=0z2rfSg4pMG/AuE2/ek/uTRDR2bwaJaDIuelXJM++V8=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VNxuh0Rr1PVA0J2atfqfOeWDCB1oV/5VejDkwMGyMJbzl17BeCG5/Fxws0TRG7OAXmiiLzroKxu8beOsSkWuRV51FNtlcule3jfZd8HiaCkgXHlKA8ClVzFf+cQO0AYTK1clNz6qSjA6saxGNmJrNPbYHriBeodDAjIU2fR5zgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=APBWJr4a; arc=none smtp.client-ip=209.85.128.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MU8Pnk2w"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771887059; x=1803423059;
-  h=from:date:to:cc:message-id:in-reply-to:references:
-   subject:content-transfer-encoding:mime-version;
-  bh=Fpm7hvtSxGQ5rYY21wXbPu27oZ8FsFqgOcittpDQMeI=;
-  b=MU8Pnk2weBUJYGFmQtSxVFeQXFOQjUaquVFOkfp+YiPYTa+IERS4rqt+
-   4PED4HFXdnXyM/drC8VrEnrgADR8xTFCypept4L84JCZPtY9Ye1/8UdL0
-   kDYiSkEAv5mEYE3R4xbqDqOTPyZATAhyg6tUJBhclAGDu3cRm9SmKlkZY
-   NoSZjrTvqqhnldiZ7KjmqX30L5BuIRUmfVPgwCfByfzIpi7tBixdHMClv
-   RAg8xLLieodBLVg0d3mVepqXVbWQhlvyLWw6sP7C6ZfY5sGxT6piWDotc
-   b/pEoXH66YtHLapm+Ah6/C7sxFEE2E6rWz4pfst1GgwQac9bD+3W6O/9T
-   g==;
-X-CSE-ConnectionGUID: nZZAuZXVRL+hN0li/9aEDg==
-X-CSE-MsgGUID: iqRzEN9PSi6mNiKoG6+Jsg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11710"; a="76506197"
-X-IronPort-AV: E=Sophos;i="6.21,307,1763452800"; 
-   d="scan'208";a="76506197"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 14:50:59 -0800
-X-CSE-ConnectionGUID: 3+oxlcW+RkKtSsnfDao35w==
-X-CSE-MsgGUID: OQntlzGdQ1O1flQWBpV02Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.21,307,1763452800"; 
-   d="scan'208";a="213591852"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by fmviesa006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 14:50:57 -0800
-Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.35; Mon, 23 Feb 2026 14:50:57 -0800
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.35 via Frontend Transport; Mon, 23 Feb 2026 14:50:57 -0800
-Received: from BN1PR04CU002.outbound.protection.outlook.com (52.101.56.59) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.35; Mon, 23 Feb 2026 14:50:56 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qJrV+zNkMXRTtQ24vq37bfDQHM/rV65amwLlNJnqjQqp+J6Pu6JKmQ1r2NdU1fdKdGAKKSHsJbbelgBnnUK65vNvalfLjqI05mizh7+RmCpijEYfuxZrTR68sAD/PMchh1O9KtkvzlP55ka8CPfFf1BoUzq3JVB8xIDV3jOOjoGHI7QTvx595CRgVHkGJuIEjjCOPgZslCAxmgKc30j3DOPZQbE46vjkPcilYLBjlIG3sf8U+FONz0KzVYnZ/r5DWVMODXWWYo/3ewTOc9v9n96VomXZU8XdjPTWaYsIqlneaJFHjG4CLg6loB4FZTasZdXB0m2GOwdhcrs8CSpgLQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=6aATa1wSBdHQ9m9ybnkqNULkA2xOesb1jXrwSg1KsGs=;
- b=DcS/mVM2k7PnQaqF+WV9Dt8t6/hXk41Ikd51goetxXhVTiJJ9MyFGktWEgFo/Bg2sVaLXvS6vnids6QlClUAJ1t/wfUPnAZPVSBvEkibU6z12uk+1Cf0f/smM5R8q3mqZfVh05mlbl9YNXYqKDe/KUXxWNPNufKkdF77Uwxhtcjiltdnp9yPXMmOfZr8ZhUDCjqWRcshmErzh06jarTNptwpcpw3ZcgSyNDkmEWwc1BJ6rHx4aqtJYDeLOkzBpCRWadv2hq6R823Rl93P5fYgm66VieXrdLIMNMI8ZOwgYfVO7RniHlgsj2+6gUdvZr7v9LgFKqCkZe//h7ORbzUSA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by SJ5PPF035FE4CB7.namprd11.prod.outlook.com (2603:10b6:a0f:fc02::805) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9632.16; Mon, 23 Feb
- 2026 22:50:52 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::1ff:1e09:994b:21ff]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::1ff:1e09:994b:21ff%5]) with mapi id 15.20.9632.017; Mon, 23 Feb 2026
- 22:50:52 +0000
-From: <dan.j.williams@intel.com>
-Date: Mon, 23 Feb 2026 14:50:49 -0800
-To: Bart Van Assche <bart.vanassche@linux.dev>, Peter Zijlstra
-	<peterz@infradead.org>
-CC: Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>, Boqun Feng
-	<boqun@kernel.org>, Waiman Long <longman@redhat.com>,
-	<linux-kernel@vger.kernel.org>, Marco Elver <elver@google.com>, "Christoph
- Hellwig" <hch@lst.de>, Steven Rostedt <rostedt@goodmis.org>, Nick Desaulniers
-	<ndesaulniers@google.com>, Nathan Chancellor <nathan@kernel.org>, Kees Cook
-	<kees@kernel.org>, Jann Horn <jannh@google.com>, Bart Van Assche
-	<bvanassche@acm.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Alison
- Schofield" <alison.schofield@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-cxl@vger.kernel.org>
-Message-ID: <699cd9c94943b_2f4a10073@dwillia2-mobl4.notmuch>
-In-Reply-To: <20260223220102.2158611-5-bart.vanassche@linux.dev>
-References: <20260223220102.2158611-1-bart.vanassche@linux.dev>
- <20260223220102.2158611-5-bart.vanassche@linux.dev>
-Subject: Re: [PATCH 04/62] dax/bus.c: Fix a locking bug
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BYAPR08CA0008.namprd08.prod.outlook.com
- (2603:10b6:a03:100::21) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="APBWJr4a"
+Received: by mail-yw1-f169.google.com with SMTP id 00721157ae682-79854193a54so8392837b3.3
+        for <nvdimm@lists.linux.dev>; Mon, 23 Feb 2026 17:24:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1771896299; x=1772501099; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=CQGPzu5YPQ91NVYpBm+9/Kt5TZXA4lsSJTx1at22zpE=;
+        b=APBWJr4aRpISKCM/J4XE7Pc3AWGXNPQwDnnFx8qem9L/LFUI+1IEleC1/8P3YTKBJf
+         voyAcTEVdpQTWR1S2OkXQq/xPWTaKL2ziMjj8sjq6ICNIz+g3qhfB5GM+OimUycdHcSl
+         M1ogSdYBCANPpLuKfp/UKgw2qWUPhrmdavVr/QvQSIBnb1AhwSjqRUqgyoqYdE+2+FDj
+         b8gyW1QkAnkixKEnTnL92ND0Jf9DH3bUfgW8byenAOjzA4JgmmDHg55yAvm6QZGXHoTw
+         X0QGki9+sL1Ynp8cFvPm84UUIi9J+7bGdopdjoVDrt14rx6lcvhipi+y8464z6kUped1
+         u7EA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1771896299; x=1772501099;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=CQGPzu5YPQ91NVYpBm+9/Kt5TZXA4lsSJTx1at22zpE=;
+        b=IBAuaoy2aJbXSsk4FYdt2iIpiNx1/YB4Uq2Hrd1FsYwUB9KxgaQkvKQGoPNfaN9YxT
+         QL2oukBnGW6xlLL3LNlrJUlzhdLOL4MQmu1Gag7uSvKr8SC41nS0s2t2W+BGARsaFg6l
+         lXGPB9NLyA+6iEIWmqKkr4pnzheLFpaPOoqX5kw3WvDYU3UmOJY1iGEAotruOsWQvh/Y
+         N5tnOEe8fa/du7DFv9eVADVe2e+roJPmVwWO72fBXpSAbXdyiet09beX41d1j2UAf9v9
+         HgM7EznNWhg62GHf0GYN46M0kmXd6nXAd0AJAibGd/eYnglVcVWUH5F1egDGE4c6RfTs
+         lpjg==
+X-Forwarded-Encrypted: i=1; AJvYcCW03u0tl5Igo6CsQHIbAVBorgvCeceOjXz4rxl9pCFaogHmDIdQJrwnwK3q6766e2T6SJO6rr4=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwvqaliLaEjJF38FTckQls9nSzQTHAvTdnQ7hhwBro9B1G5dRhu
+	M6wgI0bOy9skRIV7bXNDg+FDYqxHd7oYQvwKwewE5HcC/s51VSkZOtSz
+X-Gm-Gg: ATEYQzysscPwGxLMRT8h2rXiE2Oz9hTSXjp7GedpZtJo9pxfcquzv6aw8bMLChlaVCz
+	tZB1lIl4Uu7Foy0RyQzvSwC3LeDjWZP2cERDS+4nCirQSZcy/ix1JyYD9qSIIqs9HjMqxYll/uo
+	EZxRIgdvf8pbkCp1plX9etz0r2+hn+UnvjTKTJHNtS6Yr7/JmpFu96+wM2xLg1rxz/4lBRoWGMe
+	cDGHrnXG08JKe7QD++aqCi8JWvA5oEEl12MjIub4LScUHdtrypTj9GeCUB6+7z+J3syjFRGP0cz
+	/4qE68JSnxTWb2Oks+7JR4IM4wBTAzXUJVXq3KP1qTRNh1YhMnuSQA+A9fIqJRqp9QcfgPuzDmm
+	RqfVw+SfaAE8j9mIxXApomx6K6g63uAthR65JA6+ObC0Jh4Me+Yocky0fpgu4Cdl45Xv21rthvB
+	ojc5gWuR4mK1ba+RZ82BiUCqli4y1AwhHtt9j72WwDm/oiKOAmlYVn
+X-Received: by 2002:a05:690c:6086:b0:794:a7d:6bc4 with SMTP id 00721157ae682-7982916dec3mr98603277b3.58.1771896298694;
+        Mon, 23 Feb 2026 17:24:58 -0800 (PST)
+Received: from 4470NRD-ASU.ssi.samsung.com ([50.205.20.42])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-7982dd84394sm38813677b3.30.2026.02.23.17.24.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Feb 2026 17:24:58 -0800 (PST)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Mon, 23 Feb 2026 17:24:55 -0800
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	Li Ming <ming.li@zohomail.com>
+Subject: Re: [PATCH v9 12/19] cxl/extent: Process dynamic partition events
+ and realize region extents
+Message-ID: <aZz9qi1b1DsOETa_@4470NRD-ASU.ssi.samsung.com>
+References: <20250413-dcd-type2-upstream-v9-0-1d4911a0b365@intel.com>
+ <20250413-dcd-type2-upstream-v9-12-1d4911a0b365@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SJ5PPF035FE4CB7:EE_
-X-MS-Office365-Filtering-Correlation-Id: 258156c1-2b60-4c31-bba0-08de732dfec8
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|7416014|376014;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?QW9vRExjSCtHOWFSQ29ZR3JOaUdXbTRWNkNZOEl3OWNwck5OcklXYnRDdWRp?=
- =?utf-8?B?Wk1qYWRScDFxMS9OQ3pDUGRUSnBXb25ZcmNiZlE0ZHF5NEtVNFJxRHlwWCtV?=
- =?utf-8?B?UlR4L1VzYVp5Uys0RUZ3OFVqQXlYZ0RneWhrTEt2OUFSUEdKUCtsY2lyWXFB?=
- =?utf-8?B?amxBZ1E1cTY5Rnp2Mzk3dXRnbXQ0RWpOUkkvSVp3b05sdTdrQXBFSFJWRDJG?=
- =?utf-8?B?NW1QV3p2eXYvcG5zcCtrblU4YzdsUGgycmtsV3ZUWTdHQWlZMU1pa1hjemFi?=
- =?utf-8?B?VnhpTkNlN3pzZ3hkS0d3NjFqdVZRNzczQTcrSjhSRGc3TVNodzZrME9JdHJu?=
- =?utf-8?B?b1JqRStpbFpEU1VBSGQ5NHZBd3JJT0xKeFFSWDlMbWlMdkIvQWcwTmhYZWUz?=
- =?utf-8?B?SytmK2FxQk5ITGJ6NUZzRHEzTUcxWVpNVFpqU28yTVVWVHpLTHF2UzhwWkxJ?=
- =?utf-8?B?RjEzR0tXeVBwTngxZXA4TVlKRFM3T0NIWVQvNUxGeHFiK1lnTXB2RWM0VVpv?=
- =?utf-8?B?R09GZWVEYUIvYUJUaEVZVjB6YnJybWJmQ2YzWVh6NllHalpGejU0b0Fqd0M5?=
- =?utf-8?B?NEpWTkFtN3dGaFQ1Ym1nRzA2cTdnZVBLWndsS3YwSG9BamJUMDU4b0ltZ3Az?=
- =?utf-8?B?WVViTnd5U3RXbHpQRVM0TXZMMlFvSzg4N2t1ZTUwd3FvZXB0S1hUYm81Nlpm?=
- =?utf-8?B?UWFSc0ZWY1loMDh0Ukx1OU4xd0VJOHErZFYvWnk2MHRxd0R2NHIxYncrNUhF?=
- =?utf-8?B?RUNkMjRMY213U3dyWWNXTjYzSXVMNzZXV210c2wybDEvS2lrNCtZMlJFNnFt?=
- =?utf-8?B?dmpkRk5oWUhUTkFwZlYxSGZsTElmbFpXNHRyWi9FM3hSdUEyZnpxR0pUUlh4?=
- =?utf-8?B?eUptVjhNek1Ga3JJa0tVOWFVVm9tMzZoZ3JXSzZXWEVVZTQvZlIrSVN4NW5s?=
- =?utf-8?B?QVNKR0xBUExJRVlxcVdpUzRSTGJ5My9saXNmeWFNM20xVjlKbFRUay9zcWFP?=
- =?utf-8?B?aWZxd1VoN1E1Mk5LQzdGYnFKWlY0NkJheVB4cytyVVRlckZNN3JxSHJMMG5C?=
- =?utf-8?B?Z2dKNEN0OEs4K0dVTXJ2TlFQNDFreEVTSU50Q2RYN1N5QklzUWRsYi9tNXBD?=
- =?utf-8?B?YmNidGlOdUxROXlBUmtDMk15V1hFeHA2aUNEazhYMXE0NzdiUlRHTmVvU1B4?=
- =?utf-8?B?d25oQ3RqRzRjL1hVcXYvYi9MVmlURWQrQUlHODAzTFJSRW52TERUcU5NdGEx?=
- =?utf-8?B?SlB4WHk1eGlJZVRxclgvUUVPblhFcEVRTGZRQjlDUFI5cWVEZ1NmY01SZ3Fh?=
- =?utf-8?B?aXdQTCtuTEdPRWwybTJBcUMyVlBSMmNjWkdEY0JXY0g2L3dzWGhFQWFlMGlv?=
- =?utf-8?B?aHlFK3NRWjE4Nm40Z21QUFZkODNFODV3RWF4TC9GcmFkcDdET2lzeFFuS1Bj?=
- =?utf-8?B?K1pqVDlGWG9UbDZyQTh5WVJuZzRnZTFxZnBoMFJDQ1BQMC9HQVNmUzlLYThS?=
- =?utf-8?B?QStJL1NOVWdwQnVSV3c2RzlKeCt2aTFzUjlWM243TjlWNEd4VExJNGxKSGxo?=
- =?utf-8?B?R2VnRXl2bzUvTDFoT2tFMzQyZTZJek9FMGJhVjYwZFZVV3VDdk95YTU2cFdH?=
- =?utf-8?B?WExNV0hWczBLcTlocXJFSHo2Tkc0Q3l3OWdMcDV4UkRqL3dnT0tSSVMzU2d6?=
- =?utf-8?B?cHJkRkw5UjhqaVpUZUhzRjZmUDNFK1ZQU256bTU4MlE5ZEtFUjExVFJuSkFH?=
- =?utf-8?B?RzBCcE53eUt0NXF6YnRnU1Y3WXNNQWxtNkNmZHBFN1QwL20rcjAwVnNONWZX?=
- =?utf-8?B?T1FQZjhsOVVSbFZWazRrL0wyY0R0VXY1Zml1UTVhVnlwZ3VON21hN2l1R3g2?=
- =?utf-8?B?aHF5eE5zZ1NzUXgzMHBLSjFDQ1JJSW0yR0d5TlE1Vnk1VVlVU0IwY1lmaEZi?=
- =?utf-8?B?R080cDNSa1cwalJWS09iKyt0eTVNcUc1Mys2TVpTN2hNZXJ5bXI0dTlyckdL?=
- =?utf-8?B?TE53SDF6bW1oSHN1US9JNUNuYTVFcUtNSXVSRVNmWWtyNU5SeUg4VzBTOUdB?=
- =?utf-8?B?ekFQZEtRNnBBWjF2bDFuNmhVc2dlTzZGbWNFSE14czhRWXNpK1A4cVAyZGUz?=
- =?utf-8?Q?F2wg=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?djcwRmFML1BuVVlmRVN6SEVoTjBQekNnVit5eEhzQ3g3a0NSeFlIbTZiWXhJ?=
- =?utf-8?B?bWZBT0Nza1UwTFQwM3daRVRMbHREZmd1eXkyUUNWWkE4dkNhbTBWTkRJQ1ZD?=
- =?utf-8?B?RURYbktWUGxMWjBEUDVOK1VGTWVKeWJxNVFQem1DMHBMQVhHMmRtTlRYK3Vt?=
- =?utf-8?B?ZFJsVWd6N2dVTC8rczNFc2ZXWmVCYTNQY1QvbFpVNkNmSU9mWmJRckRrbUd1?=
- =?utf-8?B?QnRlT3FpUEJ2NzllZEdXQTU1VHVsMEZrajQwVlJlV24zZkxuSGpXcVQ3U2sy?=
- =?utf-8?B?MWZDV3NvWFF6RG1qUmpLWUQvWEdMeUhpTkhxZXZBQXk0TWVKSW0zNkN2VXB5?=
- =?utf-8?B?VnJYc2xqcG1vRExRRG4zMkxROTJyd1dEemVvcElLalZVZmpSUlpsVEluTWEv?=
- =?utf-8?B?MEgwdUpVRzVNYldDWXJFVHRKV0E0VmZ3cTRHUDF4dDdxS3hDNy84V2tBaEFl?=
- =?utf-8?B?Vi80ckdvTHBqeFdlWHBYS0dKZVlRODFocGt4ZERrczhDVGs4bm5LMTdmY1Zw?=
- =?utf-8?B?bXV5Uk00QXh2ckdKNksyS3dlK3lUMkI2NGpCdkJrR1psUC9zb1luNDNZTTFV?=
- =?utf-8?B?amNaemRzNFlMZWpyVXpzYVFoeU5ZSjQrdFJMb2g4aUJtVk1zYVhZelF3MlF3?=
- =?utf-8?B?UllyK3NLR3B0ek1xbWo1UlV4SUVJcWFoN1pETGkydmRlQTVKcm42U1VXZmRi?=
- =?utf-8?B?NEJDRU9GL082ZVJpQitGZUpKVWgvVmFKYTFMT1FtMWNSMlN1WHlVYlg0eElH?=
- =?utf-8?B?MGh4VHJzRVFtemZJdU1OSzVVNUUwNlhnNndzakRYRlhYZUdnM2svb1dkejBV?=
- =?utf-8?B?QzNRZHhHV044Wk8vayszZktzdUpzUjJpVzBYcHZQSDJJVytFOWhGd0ZlNW5h?=
- =?utf-8?B?M1BpVVk2NjMrQ084cWp2YWxWbGJnMmkxengyRFMvNi91WVpkZkV5QWhZeHhL?=
- =?utf-8?B?MFBscGRJaW9ycWFsa3Jjc1dZejYzaWh6Tzhad2t6RldKdW9zenJCbm9NQXJN?=
- =?utf-8?B?TXQ4eW9UeDJWOEZ6enVLbGRrdlFIbzdrSW1STEtzclNhQzB0Rk96QXoybEtz?=
- =?utf-8?B?ZVJwc09yQnVRYS8zM1gxL2lSV1hxVmJKRjQ0MmFhQzBrSVR5OEsvY0xaTnBi?=
- =?utf-8?B?c1R4S09UN2F6MFRKdWh0L2FWMWVWQjBhSmI2NTFqaFFuaTliRFRIZGtpL3ZE?=
- =?utf-8?B?UlZYYW90ZUoyejM5MUwvMWRsKy9XQjhoMFZEdzJ4cFp1WFkxS2hyUkVwQ3hN?=
- =?utf-8?B?RWo2UHZBTmcyd1IrRmp6ajhPQjdWcEx2UzRaK2l0dXlPLzNRWUpYVERiNEFh?=
- =?utf-8?B?d09ZV3Z2QzhEK2IyVTZDd1cxb09XVVR0cnk5cGNWb3pNUGFBWndkUTd3OTBu?=
- =?utf-8?B?RTluS1c1RmhCOGlqNk5iaVVJT2U4OVAwWFdFYXhsVG8xY2hJbUlrNFhnNU0w?=
- =?utf-8?B?MHdRZ1VEclRLS0NEQkxMM3BMU0d6YU1xSXBIT1FZMGplVzlXbm1kUUZQOUJG?=
- =?utf-8?B?aFhPdmNGenhZeTM5QTJtbmFSZnRYTDVoMGRHZEI0cVVqb29ibEV0TURWcnZy?=
- =?utf-8?B?cE1kNHh1blcyRkhhSFIxZS83WVFETlpnM1ExNkhVQmNBcURoeTdqWkEzNFV2?=
- =?utf-8?B?b2Y0cWFHQmZQR0ZQUmFyKzRrVkVicURrZlc0VzdqMlo4VEJ6SUoySmZ0VU1i?=
- =?utf-8?B?c1YvYVVvM1oyYWUrQmJVQnd2cWxkMWc0cXFta2t4UUNXVEtFNFFnRnhMTHUv?=
- =?utf-8?B?ZDNzSDhrU2JHTXlRMXh6K012NUdTdUQ4VHpLQVhka2dBQllnQldvNUt1SHZz?=
- =?utf-8?B?WVJWdVVRa1ZhRlhmNlRJaGh1dHc0VEgvdXdvOWlubnBYdmQ4K3JUMi92RXJB?=
- =?utf-8?B?T1NxbEhGQ2tHRFRZT2JaRVZSVHAwcDZBR0psaXBFUnZXZmxBWmpqZTdvQ3JV?=
- =?utf-8?B?RW9XcGV2UVJPTmdIUHFhQm5TbkwxUVd2YXFwREpxS2Q3SEEvVEhndncvbmth?=
- =?utf-8?B?WlhrVTRTZ0o3YXVpbTVKZ1BvaW90STBVT2lQVkZtTml1VW1FZEJjdE5rWjJR?=
- =?utf-8?B?dVFCaGpuR0dCN0UyTFNsNjVtcW5GUSt1T25KaE1OamdzbWtxNE1OL1hxWjBW?=
- =?utf-8?B?UndMRzU1SlhCZFNKY1l0TDBKdUZCcmxldCtvMUJnQkJQZHZYaTFKaXlEQTY1?=
- =?utf-8?B?TkdDRUtVZVNHUjJOdWFISFBqTzdMcllJMm5qcjEza2dYU1l6OVpXdEF4dndO?=
- =?utf-8?B?Vk9YYmNURW94NTNFWVg2eWkrQmlEWk52eHhEanExdi9hbjZ3QkRQSnJLOURG?=
- =?utf-8?B?WGJpY1ZkSWh4ZGt6Ym9iY2pxYjZYZzRkRm8vdzJJQXVmVUtWanFodXUxbHZu?=
- =?utf-8?Q?L4Z/UQphJ1RnhILE=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 258156c1-2b60-4c31-bba0-08de732dfec8
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Feb 2026 22:50:52.0612
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: LM40yBHoM6CJrfBZtHdLWJHUyKkOQ+QUqh5cFJBr4X7i3ivYdv6tLpDE2N5ACbz92LwPapAV7IJrRRBwluduSLQPhFA0BVnGaWnnRoZMD9w=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ5PPF035FE4CB7
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250413-dcd-type2-upstream-v9-12-1d4911a0b365@intel.com>
 
-Bart Van Assche wrote:
-> From: Bart Van Assche <bvanassche@acm.org>
+On Sun, Apr 13, 2025 at 05:52:20PM -0500, Ira Weiny wrote:i
+A few notes while going through and removing sparse dax semantics and plumbing
+for fs-dax mode:
+> A dynamic capacity device (DCD) sends events to signal the host for
+> changes in the availability of Dynamic Capacity (DC) memory.  These
+> events contain extents describing a DPA range and meta data for memory
+> to be added or removed.  Events may be sent from the device at any time.
 > 
-> Only unlock dax_dev_rwsem if it has been locked. This locking bug was
-> detected by the Clang thread-safety analyzer.
+> Three types of events can be signaled, Add, Release, and Force Release.
 > 
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Alison Schofield <alison.schofield@intel.com>
-> Cc: nvdimm@lists.linux.dev
-> Cc: linux-cxl@vger.kernel.org
-> Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
-> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+> On add, the host may accept or reject the memory being offered.  If no
+> region exists, or the extent is invalid, the extent should be rejected.
+> Add extent events may be grouped by a 'more' bit which indicates those
+> extents should be processed as a group.
+> 
+> On remove, the host can delay the response until the host is safely not
+> using the memory.  If no region exists the release can be sent
+> immediately.  The host may also release extents (or partial extents) at
+> any time.
+Partial release is no longer valid for tagged release iirc from the calls
 
-Looks good,
+> Thus the 'more' bit grouping of release events is of less
+> value and can be ignored in favor of sending multiple release capacity
+> responses for groups of release events.
+> 
+[snip]
+> +
+> +static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
+> +				struct xarray *extent_array, int cnt)
+> +{
+> +	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> +	struct cxl_mbox_dc_response *p;
+> +	struct cxl_extent *extent;
+> +	unsigned long index;
+> +	u32 pl_index;
+> +
+> +	size_t pl_size = struct_size(p, extent_list, cnt);
+> +	u32 max_extents = cnt;
+> +
+> +	/* May have to use more bit on response. */
+> +	if (pl_size > cxl_mbox->payload_size) {
+> +		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
+> +			      sizeof(struct updated_extent_list);
+> +		pl_size = struct_size(p, extent_list, max_extents);
+> +	}
+> +
+> +	struct cxl_mbox_dc_response *response __free(kfree) =
+> +						kzalloc(pl_size, GFP_KERNEL);
+> +	if (!response)
+> +		return -ENOMEM;
+> +
+> +	if (cnt == 0)
+> +		return send_one_response(cxl_mbox, response, opcode, 0, 0);
+> +
+> +	pl_index = 0;
+I was wondering why xarray is used here instead of a list? I didn't see anywhere
+that we need to look up a specific index to benefit from the log complexity and
+afaict, simply used to iterate over all elements.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> +	xa_for_each(extent_array, index, extent) {
+> +		response->extent_list[pl_index].dpa_start = extent->start_dpa;
+> +		response->extent_list[pl_index].length = extent->length;
+> +		pl_index++;
+> +
+> +		if (pl_index == max_extents) {
+> +			u8 flags = 0;
+> +			int rc;
+> +
+> +			if (pl_index < cnt)
+> +				flags |= CXL_DCD_EVENT_MORE;
+> +			rc = send_one_response(cxl_mbox, response, opcode,
+> +					       pl_index, flags);
+> +			if (rc)
+> +				return rc;
+> +			cnt -= pl_index;
+> +			pl_index = 0;
+> +		}
+> +	}
+> +
+> +	if (!pl_index) /* nothing more to do */
+> +		return 0;
+> +	return send_one_response(cxl_mbox, response, opcode, pl_index, 0);
+> +}
+> +
+> +void memdev_release_extent(struct cxl_memdev_state *mds, struct range *range)
+> +{
+> +	struct device *dev = mds->cxlds.dev;
+> +	struct xarray extent_list;
+> +
+> +	struct cxl_extent extent = {
+> +		.start_dpa = cpu_to_le64(range->start),
+> +		.length = cpu_to_le64(range_len(range)),
+> +	};
+> +
+> +	dev_dbg(dev, "Release response dpa %pra\n", &range);
+> +
+> +	xa_init(&extent_list);
+> +	if (xa_insert(&extent_list, 0, &extent, GFP_KERNEL)) {
+> +		dev_dbg(dev, "Failed to release %pra\n", &range);
+> +		goto destroy;
+> +	}
+> +
+> +	if (cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC, &extent_list, 1))
+> +		dev_dbg(dev, "Failed to release %pra\n", &range);
+> +
+> +destroy:
+> +	xa_destroy(&extent_list);
+> +}
+> +
+> +static int validate_add_extent(struct cxl_memdev_state *mds,
+> +			       struct cxl_extent *extent)
+> +{
+> +	int rc;
+> +
+> +	rc = cxl_validate_extent(mds, extent);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return cxl_add_extent(mds, extent);
+> +}
+> +
+> +static int cxl_add_pending(struct cxl_memdev_state *mds)
+> +{
+> +	struct device *dev = mds->cxlds.dev;
+> +	struct cxl_extent *extent;
+> +	unsigned long cnt = 0;
+> +	unsigned long index;
+> +	int rc;
+> +
+Also according to the spec:
+"In response to an Add Capacity Event Record, or multiple Add Capacity Event 
+records grouped via the More flag (see Table 8-229), the host is expected to 
+respond with exactly one Add Dynamic Capacity Response acknowledgment, 
+corresponding to the order of the Add Capacity Events received. If the order 
+does not match, the device shall return Invalid Input. The Add Dynamic Capacity
+Response acknowledgment must be sent in the same order as the Add Capacity 
+Event Records."
+
+Using xarray does not preserve the order of the extents, which requires a fifo
+queue.
+
+> +	xa_for_each(&mds->pending_extents, index, extent) {
+> +		if (validate_add_extent(mds, extent)) {
+> +			/*
+> +			 * Any extents which are to be rejected are omitted from
+> +			 * the response.  An empty response means all are
+> +			 * rejected.
+> +			 */
+> +			dev_dbg(dev, "unconsumed DC extent DPA:%#llx LEN:%#llx\n",
+> +				le64_to_cpu(extent->start_dpa),
+> +				le64_to_cpu(extent->length));
+> +			xa_erase(&mds->pending_extents, index);
+> +			kfree(extent);
+> +			continue;
+> +		}
+> +		cnt++;
+> +	}
+> +	rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
+> +				  &mds->pending_extents, cnt);
+> +	xa_for_each(&mds->pending_extents, index, extent) {
+> +		xa_erase(&mds->pending_extents, index);
+> +		kfree(extent);
+> +	}
+> +	return rc;
+> +}
+> +
+[snip]  
+Thanks,
+Anisa 
