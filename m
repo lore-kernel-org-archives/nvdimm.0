@@ -1,35 +1,35 @@
 Received: from lithops.sigma-star.at (mailout.nod.at [116.203.167.152])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE25830F951;
-	Thu, 26 Feb 2026 21:06:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1738D39448D;
+	Thu, 26 Feb 2026 21:06:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=116.203.167.152
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772139979; cv=none; b=REhljwRaDuqlRcPbjQzK5YyVwRp4wzaCTCqzTJcDHWChb5urv6wbVdfZ3PIJ4K3mCrZlzt/H45B5t36BVi421Q7utw920ovksOEAYoat8MIFG0KehQsY0HIEG1aq0vJJaDqy97ZSBEiNfIyLoJBuZOiFEXRFIhqHcsYFpWmUtMw=
+	t=1772139999; cv=none; b=puHId4VBaLOdGmb+WlEd7WY2Mvt144csdRJ80M2R5iYnJ36VXtMeWE1MHneP2525Hp/Vc1U/ZEedcPjB8Qihzl/BAlvPhqdkhaDe2sOOEyxWymo2TbKdS6nFUQ0VbmlZlT/mT44eVtcHGlbvsdCjdLu68QPx18zzWGeTkJs3ams=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772139979; c=relaxed/simple;
-	bh=bEoBogC1VzaZVt9sFWvD/EyoNIxugjqj7GsKHA+l8e0=;
+	s=arc-20240116; t=1772139999; c=relaxed/simple;
+	bh=CQG6cerFtYv/0ee9CKn8UQrC/xKUsT6OPLVfmy6FJz8=;
 	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=LZrcLRLCJv1xwFbSn3lb4zeKqmZgQplR5nYc6R69A9dzr7OlNnWnNWBQJQVEVtmO1zuOvk+nU+cXetcrtS9HOMGw1LRGBfvSBaazYog46rgzFMPM+XAs+2dVYEBOxSia2eZjqRIfTbJWWTdc/kctcpZrD/SiDP10N+Ocun1NcJI=
+	 MIME-Version:Content-Type; b=MkRWtJnYSWxGdh/MxwRYIu0quIPl2c3boHqspOVMHMXLVBxuG6wONPhW+XKZUHjwNjmJsQugUKkyMn1o27P8mfmUx2+3hXcdi0Xu+VwEuRr02ioDao999UN9gU1agJySq1nDCS1L4zBK0WxeOfI7+U3PwNvyS2bDqVAu+fZRS10=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nod.at; spf=fail smtp.mailfrom=nod.at; arc=none smtp.client-ip=116.203.167.152
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nod.at
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nod.at
 Received: from localhost (localhost [127.0.0.1])
-	by lithops.sigma-star.at (Postfix) with ESMTP id 8F3C528F9E9;
-	Thu, 26 Feb 2026 22:06:12 +0100 (CET)
+	by lithops.sigma-star.at (Postfix) with ESMTP id 325382A3C71;
+	Thu, 26 Feb 2026 22:06:35 +0100 (CET)
 Received: from lithops.sigma-star.at ([127.0.0.1])
 	by localhost (lithops.sigma-star.at [127.0.0.1]) (amavisd-new, port 10032)
-	with ESMTP id iWyiIX5CRUJd; Thu, 26 Feb 2026 22:06:11 +0100 (CET)
+	with ESMTP id wtNVnsVrigfw; Thu, 26 Feb 2026 22:06:33 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-	by lithops.sigma-star.at (Postfix) with ESMTP id 9FBFB29859D;
-	Thu, 26 Feb 2026 22:06:10 +0100 (CET)
+	by lithops.sigma-star.at (Postfix) with ESMTP id 3D6F329ABD6;
+	Thu, 26 Feb 2026 22:06:33 +0100 (CET)
 Received: from lithops.sigma-star.at ([127.0.0.1])
 	by localhost (lithops.sigma-star.at [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id cwbgIi8mwQ6r; Thu, 26 Feb 2026 22:06:09 +0100 (CET)
+	with ESMTP id TTBOxwOFVdGm; Thu, 26 Feb 2026 22:06:32 +0100 (CET)
 Received: from lithops.sigma-star.at (lithops.sigma-star.at [195.201.40.130])
-	by lithops.sigma-star.at (Postfix) with ESMTP id 1868E298580;
-	Thu, 26 Feb 2026 22:06:08 +0100 (CET)
-Date: Thu, 26 Feb 2026 22:06:07 +0100 (CET)
+	by lithops.sigma-star.at (Postfix) with ESMTP id EFF89298599;
+	Thu, 26 Feb 2026 22:06:31 +0100 (CET)
+Date: Thu, 26 Feb 2026 22:06:31 +0100 (CET)
 From: Richard Weinberger <richard@nod.at>
 To: Jeff Layton <jlayton@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
@@ -144,10 +144,10 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>,
 	linux-fscrypt <linux-fscrypt@vger.kernel.org>, 
 	linux-xfs <linux-xfs@vger.kernel.org>, linux-hams@vger.kernel.org, 
 	linux-x25@vger.kernel.org
-Message-ID: <909001762.1963.1772139967060.JavaMail.zimbra@nod.at>
-In-Reply-To: <20260226-iino-u64-v1-47-ccceff366db9@kernel.org>
-References: <20260226-iino-u64-v1-0-ccceff366db9@kernel.org> <20260226-iino-u64-v1-47-ccceff366db9@kernel.org>
-Subject: Re: [PATCH 47/61] ubifs: update format strings for u64 i_ino
+Message-ID: <1889140340.1973.1772139991688.JavaMail.zimbra@nod.at>
+In-Reply-To: <20260226-iino-u64-v1-37-ccceff366db9@kernel.org>
+References: <20260226-iino-u64-v1-0-ccceff366db9@kernel.org> <20260226-iino-u64-v1-37-ccceff366db9@kernel.org>
+Subject: Re: [PATCH 37/61] jffs2: update format strings for u64 i_ino
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -157,24 +157,20 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 X-Mailer: Zimbra 8.8.12_GA_3807 (ZimbraWebClient - FF147 (Linux)/8.8.12_GA_3809)
-Thread-Topic: ubifs: update format strings for u64 i_ino
-Thread-Index: W1YwJFGUiVxHsVs+FtVDAklXBDhaRQ==
+Thread-Topic: jffs2: update format strings for u64 i_ino
+Thread-Index: xD7TK6/dJ7pUGRHHehUamcKvWNrpNA==
 
 ----- Urspr=C3=BCngliche Mail -----
 > Von: "Jeff Layton" <jlayton@kernel.org>
-> Update format strings and local variable types in ubifs for the
+> Update format strings and local variable types in jffs2 for the
 > i_ino type change from unsigned long to u64.
 >=20
 > Signed-off-by: Jeff Layton <jlayton@kernel.org>
 > ---
-> fs/ubifs/debug.c   |  8 ++++----
-> fs/ubifs/dir.c     | 28 ++++++++++++++--------------
-> fs/ubifs/file.c    | 28 ++++++++++++++--------------
-> fs/ubifs/journal.c |  6 +++---
-> fs/ubifs/super.c   | 16 ++++++++--------
-> fs/ubifs/tnc.c     |  4 ++--
-> fs/ubifs/xattr.c   | 14 +++++++-------
-> 7 files changed, 52 insertions(+), 52 deletions(-)
+> fs/jffs2/dir.c  |  4 ++--
+> fs/jffs2/file.c |  4 ++--
+> fs/jffs2/fs.c   | 18 +++++++++---------
+> 3 files changed, 13 insertions(+), 13 deletions(-)
 
 Acked-by: Richard Weinberger <richard@nod.at>
 
