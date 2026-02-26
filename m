@@ -1,105 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from sender4-op-o15.zoho.com (sender4-op-o15.zoho.com [136.143.188.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379AF46BF;
-	Thu, 26 Feb 2026 00:41:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772066508; cv=none; b=c63QZD2x/u/9VTtnub/rDlbogmHNBcsUIR4KxSw2h7YnheFiwxznTjr/6Hub61y6BigpDorK+PG6TLGLCGnPfZJuIHdTUvZTDerh9jvXT3g5ZO17MFUUNNeL3KkebT49S/TcYbRI+gzKxjSHkks7AmoscaUh6FucL2WQuw9VlmA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772066508; c=relaxed/simple;
-	bh=a5b15Ngqo2bOOdUHSjsT/sSuPPfkZQCQF/naFXI2QkI=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=OXBmFIzsN41mr6vQGiaLP6x/VV9NxPs4jK2A3YZw/QNs2EEJbkrD3YwMF/QuuCJoB5vmV9UnGSWg5sfGwe6+imN8gfJCabZx4KZ7VOtNTHBECSZbybe329HhRTuYd96YVGKg9qEdChrGgPmSbE8KMcRerWepMs/Z1Alu7Tqe9YE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CcOiuO7N; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2680C2C859;
+	Thu, 26 Feb 2026 02:57:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.15
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1772074652; cv=pass; b=NY/dU/GAsmnvVn9fbKppvrIaVgkuUNn0LtoiC0zJMOLpRQhY678ADGVjmp6HMmq643nOczlWPL/YVtjtfPQZjZQQvkrYbTFe5+3DlsVeo3249/4aGL8TLJRsazMXB+twJo9y4YfL2qKhXLIT/JOgxs9qaWpKsCj7QNPEqkDwOoo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1772074652; c=relaxed/simple;
+	bh=Nvl5+BLXE4QSPYNJLZ/LHWq9J3MJbTvwv1njecu/qLM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Xh+sW/VLlb49FevX0YJhu+Bwk2134U3+pWqswFT8zBVKziVdelq/01nmiGIUJ6by6gb2hsZp8ilTJBL/+UDOcLpA2M+hqfqkQ48BjGchWVWcIqDPGRH/wOQZY8BTEz69qmNQ0QWYPStuFpM/0WcboytEnphHYbFwlFEhN0Ru8qc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=DLY+9g6C; arc=pass smtp.client-ip=136.143.188.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CcOiuO7N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03CC4C116D0;
-	Thu, 26 Feb 2026 00:41:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772066507;
-	bh=a5b15Ngqo2bOOdUHSjsT/sSuPPfkZQCQF/naFXI2QkI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=CcOiuO7NEI5etysy42JpjnremhTiWgG4lUGW8vs+Kti8TdTA3xkAw8m9bRPHQw/jW
-	 UtviHmXGTs0EojsHSlFb7e+3Lc6f61/dMS61S/znrah0BD8VlKfWckTXVq5rOTTIiN
-	 OwOPmCyouWxjyK/Ldx7pApiM6o9/4J5sMHRRG9vY=
-Date: Wed, 25 Feb 2026 16:41:44 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Tal Zussman <tz2294@columbia.edu>
-Cc: David Howells <dhowells@redhat.com>, Marc Dionne
- <marc.dionne@auristor.com>, Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu
- <chao@kernel.org>, David Hildenbrand <david@kernel.org>, Lorenzo Stoakes
- <lorenzo.stoakes@oracle.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>,
- Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>, Suren
- Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Chris Li
- <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, Kemeng Shi
- <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He
- <bhe@redhat.com>, Barry Song <baohua@kernel.org>, Matthew Wilcox
- <willy@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara
- <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner
- <brauner@kernel.org>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger
- <adilger.kernel@dilger.ca>, Paulo Alcantara <pc@manguebit.org>, Trond
- Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, Mark
- Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>, Joseph Qi
- <joseph.qi@linux.alibaba.com>, Steve French <sfrench@samba.org>, Ronnie
- Sahlberg <ronniesahlberg@gmail.com>, Shyam Prasad N
- <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>, Bharath SM
- <bharathsm@microsoft.com>, Maarten Lankhorst
- <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>,
- Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>,
- Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>,
- Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi
- <rodrigo.vivi@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>, Chris
- Mason <clm@fb.com>, David Sterba <dsterba@suse.com>, Ilya Dryomov
- <idryomov@gmail.com>, Alex Markuze <amarkuze@redhat.com>, Viacheslav
- Dubeyko <slava@dubeyko.com>, Andreas Gruenbacher <agruenba@redhat.com>,
- Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
- Ryusuke Konishi <konishi.ryusuke@gmail.com>, "Darrick J. Wong"
- <djwong@kernel.org>, Chuck Lever <chuck.lever@oracle.com>, Jeff Layton
- <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Olga Kornievskaia
- <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, Jason Gunthorpe
- <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Peter Xu
- <peterx@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Roman Gushchin
- <roman.gushchin@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, Jann
- Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, Brendan Jackman
- <jackmanb@google.com>, Zi Yan <ziy@nvidia.com>, Hugh Dickins
- <hughd@google.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, Axel
- Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei
- Xu <weixugc@google.com>, Qi Zheng <zhengqi.arch@bytedance.com>,
- linux-afs@lists.infradead.org, linux-kernel@vger.kernel.org,
- linux-f2fs-devel@lists.sourceforge.net, linux-mm@kvack.org,
- linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-ext4@vger.kernel.org, netfs@lists.linux.dev,
- linux-nfs@vger.kernel.org, ocfs2-devel@lists.linux.dev,
- linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
- dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
- linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
- gfs2@lists.linux.dev, linux-nilfs@vger.kernel.org,
- linux-xfs@vger.kernel.org, cgroups@vger.kernel.org
-Subject: Re: [PATCH v2 0/4] mm: Remove stray references to pagevec
-Message-Id: <20260225164144.76e14a362e0d7cae49f20787@linux-foundation.org>
-In-Reply-To: <20260225-pagevec_cleanup-v2-0-716868cc2d11@columbia.edu>
-References: <20260225-pagevec_cleanup-v2-0-716868cc2d11@columbia.edu>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="DLY+9g6C"
+ARC-Seal: i=1; a=rsa-sha256; t=1772074649; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=URIJ3qjHy0E4+WJtOFGDNxsXGn5W85BE+ULnyZkbZW2W6uf2wThua5jzh87inQQJRcG+bki+FNHL55qBvcUykITLXekhqP+T7uisUrY58iFzOMHlnIH/mgffllmb1NTYU0JMI75XqyA9E/KRFJ7hLEsuZB+REnS6r0Up4Qxz64E=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1772074649; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=72Rcpozf+MJlfnig7J0JZAqnOEBawja7Boz8Y+5/j+c=; 
+	b=jt1f4/tb3yMQYORAVFPJd9vMaGlZPa0PRLARNH97VlfEgeDZ1Dih1sZWvDO1B/wKTFcRzMARyg2Kz6hou0aLierFfxsd9haI5i5+Np2Y/p3KlR4I8zB0JsxvlpN/Q2rQ+/8/iJpgUnbyCm/pruNsjQAg9Von5VJhfRlHPTSCAls=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=linux.beauty;
+	spf=pass  smtp.mailfrom=me@linux.beauty;
+	dmarc=pass header.from=<me@linux.beauty>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1772074649;
+	s=zmail; d=linux.beauty; i=me@linux.beauty;
+	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=72Rcpozf+MJlfnig7J0JZAqnOEBawja7Boz8Y+5/j+c=;
+	b=DLY+9g6CRjG6SilqiGw4J+fQI8lDgt4BsIYCzabCprRk52NQjA+/8LsupchKA/7/
+	vZD+Vv7G7EWxsdDCKeBcHlXmBips0cXr82y6LGAB+514yl8cGcx+UJ3JP4SheHS8myY
+	Vs/BpXSGGaKCU/Ai8tBwjgqVXsqSunRyZ1sm+5JE=
+Received: by mx.zohomail.com with SMTPS id 1772074646536524.4555180636507;
+	Wed, 25 Feb 2026 18:57:26 -0800 (PST)
+From: Li Chen <me@linux.beauty>
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	virtualization@lists.linux.dev,
+	nvdimm@lists.linux.dev
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/5] nvdimm: virtio_pmem: fix request lifetime and converge broken queue failures
+Date: Thu, 26 Feb 2026 10:57:05 +0800
+Message-ID: <20260226025712.2236279-1-me@linux.beauty>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 
-On Wed, 25 Feb 2026 18:44:24 -0500 Tal Zussman <tz2294@columbia.edu> wrote:
+Hi,
 
-> struct pagevec was removed in commit 1e0877d58b1e ("mm: remove struct
-> pagevec"). Remove any stray references to it and rename relevant files
-> and macros accordingly.
-> 
-> While at it, remove unnecessary #includes of pagevec.h (now
-> folio_batch.h) in .c files. There are probably more of these that could
-> be removed in .h files, but those are more complex to verify.
+The virtio-pmem flush path uses a virtqueue cookie/token to carry a
+per-request context through completion. Under broken virtqueue / notify
+failure conditions, the submitter can return and free the request object
+while the host/backend may still complete the published request. The IRQ
+completion handler then dereferences freed memory when waking waiters,
+which is reported by KASAN as a slab-use-after-free and may manifest as
+lock corruption (e.g. "BUG: spinlock already unlocked") without KASAN.
 
-Dang that's a lot of cc's ;)
+In addition, the flush path has two wait sites: one for virtqueue
+descriptor availability (-ENOSPC from virtqueue_add_sgs()) and one for
+request completion. If the virtqueue becomes broken, forward progress is
+no longer guaranteed and these waiters may sleep indefinitely unless the
+driver converges the failure and wakes all wait sites.
 
-Thanks, I'll add this series to mm.git's mm-new branch.
+This series addresses both issues:
+
+1/5 nvdimm: virtio_pmem: always wake -ENOSPC waiters
+Wake one -ENOSPC waiter for each reclaimed used buffer, decoupled from
+token completion.
+
+2/5 nvdimm: virtio_pmem: use READ_ONCE()/WRITE_ONCE() for wait flags
+Use READ_ONCE()/WRITE_ONCE() for the wait_event() flags (done and
+wq_buf_avail).
+
+3/5 nvdimm: virtio_pmem: refcount requests for token lifetime
+Refcount request objects so the token lifetime spans the window where it
+is reachable through the virtqueue until completion/drain drops the
+virtqueue reference.
+
+4/5 nvdimm: virtio_pmem: converge broken virtqueue to -EIO
+Track a device-level broken state to converge broken/notify failures to
+-EIO: wake all waiters and drain/detach outstanding requests to complete
+them with an error, and fail-fast new requests.
+
+5/5 nvdimm: virtio_pmem: drain requests in freeze
+Drain outstanding requests in freeze() before tearing down virtqueues so
+waiters do not sleep indefinitely.
+
+Testing was done on QEMU x86_64 with a virtio-pmem device exported as
+/dev/pmem0, formatted with ext4 (-O fast_commit), mounted with DAX, and
+stressed with fsync-heavy workloads.
+
+Thanks,
+Li Chen
+
+Changelog:
+v2->v3:
+- Split patch 1 as suggested by Pankaj Gupta: keep the waiter wakeup
+  ordering change in 1/5 and move READ_ONCE()/WRITE_ONCE() updates to
+  2/5 (no functional change intended).
+- Add log report to commit msg
+- Fold the export fix into 4/5 to keep the series bisectable when
+  CONFIG_VIRTIO_PMEM=m.
+v1->v2: add the export patch to fix compile issue.
+
+Links:
+v2: https://lore.kernel.org/all/20251225042915.334117-1-me@linux.beauty/
+
+Li Chen (5):
+  nvdimm: virtio_pmem: always wake -ENOSPC waiters
+  nvdimm: virtio_pmem: use READ_ONCE()/WRITE_ONCE() for wait flags
+  nvdimm: virtio_pmem: refcount requests for token lifetime
+  nvdimm: virtio_pmem: converge broken virtqueue to -EIO
+  nvdimm: virtio_pmem: drain requests in freeze
+
+ drivers/nvdimm/nd_virtio.c   | 137 +++++++++++++++++++++++++++++------
+ drivers/nvdimm/virtio_pmem.c |  14 ++++
+ drivers/nvdimm/virtio_pmem.h |   6 ++
+ 3 files changed, 136 insertions(+), 21 deletions(-)
+
+-- 
+2.52.0
