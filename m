@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452153242BD;
-	Thu, 26 Feb 2026 13:19:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 833B43242B8;
+	Thu, 26 Feb 2026 13:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772111962; cv=none; b=ifW6hKe+Lshf+dmo51VneLjffaQS9Xzjxvo2sx5G7aX1IMYIxVz2DwBeSIidULFpNf8oUkkSjMaz2WOpGDQ6WvFSelCn669nG+P05VcpJAHBAm+wkK7PDVDTXFImDXL3XnXQZE1lfyi9pGCHuPbZ0VvnZEPpUfCt0qfydnwMoZk=
+	t=1772112048; cv=none; b=CgsAKbDnMrCHSeh2c/Fysfd1YF5YSzuowK4Mbzeapmdxe1HnCHgeCN4Xvlccn5M2yQpuofqnUteE6DhfrF16py9T2hs9hImGlUMRXIHM+BEwOzTMBmzUiv14m6N78n5sLmh7jbsDcSezG6DMb7t6Cq3Zx/FeRDgAdPzjCTBynKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772111962; c=relaxed/simple;
-	bh=Pf04Z7iE3GM1u8EKRphHFGn52yUYGcn6vqYD0z/gPbY=;
+	s=arc-20240116; t=1772112048; c=relaxed/simple;
+	bh=kX30qZnPYCqfXb/76euKMO+o8GK+nW5VkIoRhP2qqC8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=VRcKjefmOBbQGDRI7KFrbuX1hoi5GZ45irAFKLcm/s/1JwGN1H3Wfgp9I6bjVI1Wn5NpnmFD36xQIORqTMJgtZWfmFKzKFaYNOpczDgMbHYRlcUhORySjGo4oZ83dnogMbs9kFsv3vgCv8FLhnDu+TUskHw5tM86dzd6LTcRPOM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jMmZos5d; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=mPN4K46V0PV7iecIax/bYYig7b+rbGQ94485p+71PmOv509ErU0YXjfugOC39Icymf6wD1YRxNV6FTYoFJvxiGHtTY6rxjVJK/r/AhbmM1JmpY8mecrk7UfRz7/60XgmWfGCVFTwDWyWFdd79v3Q51n0J7joCB6Yd9m5/6pmOBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N4DCZVGH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jMmZos5d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC336C116C6;
-	Thu, 26 Feb 2026 13:19:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N4DCZVGH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEDABC19422;
+	Thu, 26 Feb 2026 13:20:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772111961;
-	bh=Pf04Z7iE3GM1u8EKRphHFGn52yUYGcn6vqYD0z/gPbY=;
+	s=k20201202; t=1772112048;
+	bh=kX30qZnPYCqfXb/76euKMO+o8GK+nW5VkIoRhP2qqC8=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=jMmZos5dus2Vdwkn4H474ZgHVP2copjj/B3Awars5H3ImcL7EgOM+GnMA5CvpMRm3
-	 uZjje4pqYf4U/nYL+xRxiEDH//aWM0rBwtjD95CAOoRC2yuXMGbL5XtrrMmgfnS2rW
-	 SKRnp4xNZwZG4CbEKAWHfIsR255vlBA65beKvnqEE9eQWoG97Ra/KUkEcxKju0Wfvo
-	 sjYcPaRs41hJ/9ffBGb+rQMm97rSXg5Yl5sDLfCmjj7fxTZulWhSZ1k9V9zsma5KQh
-	 vO/EnlqBQWN2nRtvXne5k66C0o9AUqoILyum0ho9cOZ5L+B4QwkKlPj3fsUzF/4C8F
-	 ObzEmPlSut8+g==
-Message-ID: <e2b9ef35-48af-4580-86b4-8640d353028c@kernel.org>
-Date: Thu, 26 Feb 2026 14:18:58 +0100
+	b=N4DCZVGHLhr0eBVQJieC3pRRNOvI49z81D2VdJU7sBWh4T/dHMdDAX5hzZ4PpRBNW
+	 BRAq078+anBNSSCiijh5OkpiqIYJfpx4294YGpYpgaRQbbP8SGLtoBU6rh9a1FWmwg
+	 SMHRRRvB40cIlPOpE5aMdYx0zO6bkUuB7JQPjuU0GcV+U39Xp9CP5szIB0aKctpq2g
+	 d+u7N0JiuNZ5PHI+yjzmsfgj+ZfpuRK4a85OFXXDp51NNqss2+suPBeMMB8LBAYrbd
+	 ueLNudkPWiaIkRW48GLkCxgdEUdzQySHZm0VcoWcIPqzcKgaOeXkBDt5p+PnSlggiO
+	 a+Pn9fTs5JkzA==
+Message-ID: <d8d35cd9-464d-46e5-8da6-cb0e45b1e582@kernel.org>
+Date: Thu, 26 Feb 2026 14:20:25 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 3/4] folio_batch: Rename pagevec.h to folio_batch.h
+Subject: Re: [PATCH v2 4/4] folio_batch: Rename PAGEVEC_SIZE to
+ FOLIO_BATCH_SIZE
 To: Tal Zussman <tz2294@columbia.edu>, David Howells <dhowells@redhat.com>,
  Marc Dionne <marc.dionne@auristor.com>, Jaegeuk Kim <jaegeuk@kernel.org>,
  Chao Yu <chao@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
@@ -92,7 +93,7 @@ Cc: Andreas Dilger <adilger.kernel@dilger.ca>,
  gfs2@lists.linux.dev, linux-nilfs@vger.kernel.org,
  linux-xfs@vger.kernel.org, cgroups@vger.kernel.org
 References: <20260225-pagevec_cleanup-v2-0-716868cc2d11@columbia.edu>
- <20260225-pagevec_cleanup-v2-3-716868cc2d11@columbia.edu>
+ <20260225-pagevec_cleanup-v2-4-716868cc2d11@columbia.edu>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -139,16 +140,12 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260225-pagevec_cleanup-v2-3-716868cc2d11@columbia.edu>
+In-Reply-To: <20260225-pagevec_cleanup-v2-4-716868cc2d11@columbia.edu>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 2/26/26 00:44, Tal Zussman wrote:
-> struct pagevec was removed in commit 1e0877d58b1e ("mm: remove struct
-> pagevec"). Rename include/linux/pagevec.h to reflect reality and update
-> includes tree-wide. Add the new filename to MAINTAINERS explicitly, as
-> it no longer matches the "include/linux/page[-_]*" pattern in MEMORY
-> MANAGEMENT - CORE.
+> struct pagevec no longer exists. Rename the macro appropriately.
 > 
 > Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 > ---
