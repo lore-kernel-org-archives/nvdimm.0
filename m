@@ -1,25 +1,25 @@
 Received: from relay.hostedemail.com (smtprelay0014.hostedemail.com [216.40.44.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C0D6385501
-	for <nvdimm@lists.linux.dev>; Wed, 25 Feb 2026 23:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 640701F7569
+	for <nvdimm@lists.linux.dev>; Thu, 26 Feb 2026 00:24:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772063534; cv=none; b=mS59TqYNNKV65cacIllVSmUkIHgnJyjE1ieDW0n89uAsdrFCbWwPLEJ5kLhRadS+cTiWAdk+Vo8AUqUebOWkuiEIEJz065WP/nHoD8/KZSdF057CuXAlIbTMCzVN0gd443QhW/TO0yqZ60EQ8FU/1BfzbQI7d0OlMhjavpdd1eU=
+	t=1772065477; cv=none; b=mT1xgikAlV36M7A+6BkNKmi+YfeNRr4cSxg/B4ik+D2Sk7RpWCkbHxzHOa9qNIN+1ZuDKvax70Qy/EbQbJbl2Z8UtY7e4vKzPNVzeFxwzartcKs5PmJNsh6M7hlDZa8tyE/Q1fWhFTJcaG2yLlojfOPbzMWfcbpKArlC1TyMHPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772063534; c=relaxed/simple;
-	bh=YcVFYGLFY2wKjuQi7G6zXpmaGF6XkHbsrhyoNWNJjOc=;
+	s=arc-20240116; t=1772065477; c=relaxed/simple;
+	bh=BR4/DDTRCP+PSMlUvbid0ZhJZFXN8n48tGgmbkGikBc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LOQzChEiSHNi8zIxOM4sAhlGzsMJ49Z4D0txujSUUv0gbKmVndjDmDS3sV48DQ9HFKlonbsAoDWrq9EMkb1ATfpOIgDZVnNrHHXjrJI4V/k86QZKmthSd//xMGxHEY8cx/bA5qj5/GplY/iZSnqakfksanQK/dfS8parHx6n4qY=
+	 Content-Type:Content-Disposition:In-Reply-To; b=TOchpnXGq3hsp+cWkKPhwYb3oOqfvztUqwm54OEsVLq8evtMYlYYP3InivH8F2XTwFzB46SF0Yse25S6OukIzMzq9RpP/YM3h86dJ4pATbkCGjBFKODXz1SA8/ik5DXS8QEGB5bdNM+uVaO3rZOGmvl5RvKoVsY13p8J/A08Dtg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf18.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay04.hostedemail.com (Postfix) with ESMTP id A972B1A02C4;
-	Wed, 25 Feb 2026 23:52:02 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf18.hostedemail.com (Postfix) with ESMTPA id 2A0DF2E;
-	Wed, 25 Feb 2026 23:51:53 +0000 (UTC)
-Date: Wed, 25 Feb 2026 17:51:51 -0600
+Received: from omf12.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay08.hostedemail.com (Postfix) with ESMTP id 5EBB41402D5;
+	Thu, 26 Feb 2026 00:24:32 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf12.hostedemail.com (Postfix) with ESMTPA id D85B517;
+	Thu, 26 Feb 2026 00:24:22 +0000 (UTC)
+Date: Wed, 25 Feb 2026 18:24:21 -0600
 From: John Groves <John@groves.net>
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
@@ -40,12 +40,12 @@ Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	"venkataravis@micron.com" <venkataravis@micron.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V7 14/19] famfs_fuse: GET_DAXDEV message and daxdev_table
-Message-ID: <aZ-K_EwN4QR904TX@groves.net>
+Subject: Re: [PATCH V7 12/19] famfs_fuse: Plumb the GET_FMAP message/response
+Message-ID: <aZ-NN0zvgOsVzhAA@groves.net>
 References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
- <20260118223316.92580-1-john@jagalactic.com>
- <0100019bd33dd1f9-3e016d01-fe3b-4be0-a8d0-f566cd5e2c07-000000@email.amazonses.com>
- <80f4b014-207c-4a6d-89f3-9e49831dd691@intel.com>
+ <20260118223257.92539-1-john@jagalactic.com>
+ <0100019bd33d8b0a-05af2fc2-66c2-45e7-9091-42ca2efa6780-000000@email.amazonses.com>
+ <489212dc-7f99-4748-b631-218bf78737a7@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,71 +54,136 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <80f4b014-207c-4a6d-89f3-9e49831dd691@intel.com>
-X-Stat-Signature: wt9h6pmrcegohn1zunzhj4cp9x5zpdh1
-X-Rspamd-Server: rspamout01
-X-Rspamd-Queue-Id: 2A0DF2E
+In-Reply-To: <489212dc-7f99-4748-b631-218bf78737a7@intel.com>
+X-Stat-Signature: a3fsth4cdppkwduyzs3afx844xaw9hyk
+X-Rspamd-Server: rspamout03
+X-Rspamd-Queue-Id: D85B517
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1/iTPeKRbORXYILIHsOhzLG+RbGZ2CU8rM=
-X-HE-Tag: 1772063513-610229
-X-HE-Meta: U2FsdGVkX1+fZxDP2tefbBqPEAkXzXb48jQ2oqLzMLQyrB5Fg8ij44wFvaUKzq+5Y0NRYxWEQwoVUclFUqdynD1u8Ee4M+vIvzvmL7pVIQPbTv8luB7zZ5A9uyqCuoYMYXs+2wuTSNs5ZrGnF/7KenH5YPEtwAhQGzAGHIs95ftKNYUjojemnMHh5VLaK/lFv62GUyJuD06Hot/E6KD5fFVp8+eVjGe3g3YoQh6WLFnrEBoYP+NjcTdzVA0FqPM3pt8vOfsPKJ3a19ECxBfl9BhZXwGxePTvH71jGt64fhHURh+E8M6FIE9SuG6BfoN33nUkQRQGAqoqVwtROS54ewb1F7Z6JYVDl5opegFv1vFQHBWdL9TqH9lD1JtXcug7
+X-Session-ID: U2FsdGVkX1+P0DD/oAQPEeburCePpnhu7YX4ZGy0bqE=
+X-HE-Tag: 1772065462-728122
+X-HE-Meta: U2FsdGVkX18I1zN977EFGyescpmOd0+vzyU4bblYmW9dHdAHtrCunKHxB7H6YpE3dRs0m6rqhYI4fDHnRpQYV2+zhY+fYowpiaX9waVhYvujs+PjM/6SqUslo50iapv4qamcw0BZ7HySUXuuvoPpJ4h3IHM/taOQizcD8/LpRRrWHRcR2+1dkpFQCMcY0+TYrgrz6MAvI6aryaML7RudUkfd8/u2zDqeO4wJ/K5gncS1Yyakp6BX8rM2hBbaXyE5BneuP2y2E1d3wUWObRaiyDFEzOWVD5slXY5Mo5zNr8HGZsnaDrkQSeDONFBCEpATXHto4wWrP+hIVkIEJnk+M69JdF3zg0AOAmKglcoWzaMBw6l+seUnuo0So67Ye/hvkPsHgcGSf1MsZmv+wtcDTDvQWL1j69/EndhSHSsoqNeudmS6CAP/qQYftgckyWZ2yFGftZzcGfNR7HGD43+PfeiaEb9yVt161hOGH2/WGTE=
 
-On 26/02/19 11:51AM, Dave Jiang wrote:
+On 26/02/19 10:12AM, Dave Jiang wrote:
 > 
 > 
 > On 1/18/26 3:33 PM, John Groves wrote:
 > > From: John Groves <john@groves.net>
 > > 
-> > - The new GET_DAXDEV message/response is added
-> > - The famfs.c:famfs_teardown() function is added as a primary teardown
-> >   function for famfs.
-> > - The command it triggered by the update_daxdev_table() call, if there
-> >   are any daxdevs in the subject fmap that are not represented in the
-> >   daxdev_table yet.
-> > - fs/namei.c: export may_open_dev()
+> > Upon completion of an OPEN, if we're in famfs-mode we do a GET_FMAP to
+> > retrieve and cache up the file-to-dax map in the kernel. If this
+> > succeeds, read/write/mmap are resolved direct-to-dax with no upcalls.
 > > 
 > > Signed-off-by: John Groves <john@groves.net>
 > > ---
-> >  fs/fuse/famfs.c           | 230 +++++++++++++++++++++++++++++++++++++-
-> >  fs/fuse/famfs_kfmap.h     |  26 +++++
-> >  fs/fuse/fuse_i.h          |  19 ++++
-> >  fs/fuse/inode.c           |   7 +-
-> >  fs/namei.c                |   1 +
-> >  include/uapi/linux/fuse.h |  20 ++++
-> >  6 files changed, 301 insertions(+), 2 deletions(-)
+> >  MAINTAINERS               |  8 +++++
+> >  fs/fuse/Makefile          |  1 +
+> >  fs/fuse/famfs.c           | 74 +++++++++++++++++++++++++++++++++++++++
+> >  fs/fuse/file.c            | 14 +++++++-
+> >  fs/fuse/fuse_i.h          | 70 +++++++++++++++++++++++++++++++++---
+> >  fs/fuse/inode.c           |  8 ++++-
+> >  fs/fuse/iomode.c          |  2 +-
+> >  include/uapi/linux/fuse.h |  7 ++++
+> >  8 files changed, 176 insertions(+), 8 deletions(-)
+> >  create mode 100644 fs/fuse/famfs.c
 > > 
-> > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
-> > index a9728e11f1dd..7aa2eb2e99bf 100644
-> > --- a/fs/fuse/famfs.c
-> > +++ b/fs/fuse/famfs.c
-> > @@ -21,6 +21,231 @@
-> >  #include "famfs_kfmap.h"
-> >  #include "fuse_i.h"
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 10aa5120d93f..e3d0aa5eb361 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -10379,6 +10379,14 @@ F:	fs/fuse/
+> >  F:	include/uapi/linux/fuse.h
+> >  F:	tools/testing/selftests/filesystems/fuse/
 > >  
+> > +FUSE [FAMFS Fabric-Attached Memory File System]
+> > +M:	John Groves <jgroves@micron.com>
+> > +M:	John Groves <John@Groves.net>
+> > +L:	linux-cxl@vger.kernel.org
+> > +L:	linux-fsdevel@vger.kernel.org
+> > +S:	Supported
+> > +F:	fs/fuse/famfs.c
+> > +
+> >  FUTEX SUBSYSTEM
+> >  M:	Thomas Gleixner <tglx@kernel.org>
+> >  M:	Ingo Molnar <mingo@redhat.com>
+> > diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
+> > index 22ad9538dfc4..3f8dcc8cbbd0 100644
+> > --- a/fs/fuse/Makefile
+> > +++ b/fs/fuse/Makefile
+> > @@ -17,5 +17,6 @@ fuse-$(CONFIG_FUSE_DAX) += dax.o
+> >  fuse-$(CONFIG_FUSE_PASSTHROUGH) += passthrough.o backing.o
+> >  fuse-$(CONFIG_SYSCTL) += sysctl.o
+> >  fuse-$(CONFIG_FUSE_IO_URING) += dev_uring.o
+> > +fuse-$(CONFIG_FUSE_FAMFS_DAX) += famfs.o
+> >  
+> >  virtiofs-y := virtio_fs.o
+> > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
+> > new file mode 100644
+> > index 000000000000..615819cc922d
+> > --- /dev/null
+> > +++ b/fs/fuse/famfs.c
+> > @@ -0,0 +1,74 @@
+> > +// SPDX-License-Identifier: GPL-2.0
 > > +/*
-> > + * famfs_teardown()
+> > + * famfs - dax file system for shared fabric-attached memory
 > > + *
-> > + * Deallocate famfs metadata for a fuse_conn
+> > + * Copyright 2023-2026 Micron Technology, Inc.
+> > + *
+> > + * This file system, originally based on ramfs the dax support from xfs,
+> > + * is intended to allow multiple host systems to mount a common file system
+> > + * view of dax files that map to shared memory.
 > > + */
-> > +void
-> > +famfs_teardown(struct fuse_conn *fc)
-> > +{
-> > +	struct famfs_dax_devlist *devlist = fc->dax_devlist;
-> > +	int i;
 > > +
-> > +	fc->dax_devlist = NULL;
+> > +#include <linux/cleanup.h>
+> > +#include <linux/fs.h>
+> > +#include <linux/mm.h>
+> > +#include <linux/dax.h>
+> > +#include <linux/iomap.h>
+> > +#include <linux/path.h>
+> > +#include <linux/namei.h>
+> > +#include <linux/string.h>
 > > +
-> > +	if (!devlist)
-> > +		return;
+> > +#include "fuse_i.h"
 > > +
-> > +	if (!devlist->devlist)
-> > +		goto out;
+> > +
+> > +#define FMAP_BUFSIZE PAGE_SIZE
+> > +
+> > +int
+> > +fuse_get_fmap(struct fuse_mount *fm, struct inode *inode)
 > 
-> I think if you declare devlist with __free(), you can just return instead of having a goto.
+> keep the return int on the same line?
+
+Done, thanks
+
+> 
+> > +{
+> > +	void *fmap_buf __free(kfree) = NULL;
+> 
+> Should do the variable declaration when you do the kzalloc(). That way you can avoid any potential use before check issues.
+
+Done, thanks
+
+> 
+> > +	struct fuse_inode *fi = get_fuse_inode(inode);
+> > +	size_t fmap_bufsize = FMAP_BUFSIZE;
+> > +	u64 nodeid = get_node_id(inode);
+> > +	ssize_t fmap_size;
+> > +	int rc;
+> > +
+> > +	FUSE_ARGS(args);
+> > +
+> > +	/* Don't retrieve if we already have the famfs metadata */
+> > +	if (fi->famfs_meta)
+> > +		return 0;
+> > +
+> > +	fmap_buf = kzalloc(FMAP_BUFSIZE, GFP_KERNEL);
+> > +	if (!fmap_buf)
+> > +		return -EIO;
+> 
+> -ENOMEM?
 > 
 > DJ
 
-Nice...done.
+Done, thanks!
 
 John
 
