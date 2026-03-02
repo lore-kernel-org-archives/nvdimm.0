@@ -1,131 +1,65 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF5A233A70A;
-	Mon,  2 Mar 2026 10:11:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1B62DC77F;
+	Mon,  2 Mar 2026 13:48:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772446300; cv=none; b=nPu549YXIsK6jgxVochzSARXVEmZcgaDFFKB61XjZou01OB56Vt8t5S4OOFINzPcz7euPTAO0Q4u0i5INZqUZk2gbKThmXRowCa/Q+XO/xaZythWz3n/QsQoSrBxXeE4pAwmK9AwkWtTZtGla0XC5dLIcljEDnJlqS+h4aUtt5I=
+	t=1772459343; cv=none; b=R5s3h32fKKA9K7uV0+9IVYmSoRdS38Isa6Uu+KzKC7sp16VIHk6+4T6Q8QHOALeJj5E0cv0e5Wjy4QQOKygzJ5lCMSBBKUpO8F0177cUbNKR1EZUeq24gDpCd+I6mEAft1MUQYtohB0RjaRdHcDEA/GqZvOFKP62TVHj9EKOpZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772446300; c=relaxed/simple;
-	bh=kUc0farZiGjD/n/ZNvbtXOu1ZJEABLXUI1WRJsXmbXM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=g/rAMOFtQmWwICYCJWX1z8ZmVZi9TQxFlXVYawg1t+UGd2JbYnP9zqIrUxdecPT/LcWTmqizTdl+PdtCVTQeUbCTaKtNZGEkYZz418sP8eNGsRKIkBtZsD8ugTZ8Hsz4oX7WKrx1t/GzO5Xcp60guOyxF9KZ/h7dSDEyLd3TKkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ld0iTfc0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772459343; c=relaxed/simple;
+	bh=3oDPHQ27zjmwg0X53/sNtBZXfVW1DU7wX+SBWTA6mfU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Dc08D5h+XaqRwLNglMBnuZ/dVFcnt0TV7CRNZnFbtojU6Hm56/JYn8SbY11oyKwQkWSVAXaOqfKrC8/WrF0ZzkRJUDSRkqJLZ8ejm/wW5EJI+VY07PTBHDfY3OvlQb9Jbv4JvCmPwKX+pPYO8ypMqK9ncSy9ToBWIik67EZfFo8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=K36bIsbh; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ld0iTfc0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C359C19423;
-	Mon,  2 Mar 2026 10:11:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772446299;
-	bh=kUc0farZiGjD/n/ZNvbtXOu1ZJEABLXUI1WRJsXmbXM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ld0iTfc0cwdtiAlPMEakYAevL8IA888m/oSGOWsZW9Vt/zRCmvQ4Uc2DLU421l8Ep
-	 FeEfp7BAVN3Md4S7xoDs560NSkIPqpAgGZjI8duIgTUDUN4ffC/n9jlqR9mSdh7DOK
-	 i+fwYRegrrDbqO2zS5LTbG0RJJekRLaCqvE4GMYHd2g6AqdC5IbN1o6ybzmA2KYMQj
-	 H8/+Z0X4Lskdq25zp26NlH+MAudrmt8Ze01H0WanxEKFuUQOsSeWHdU+ioNIsSNDJn
-	 l1yOC6qj/LVeXnfey1eygn3X+LetUHp/cr/wpE8fSTUC2ZAQM12IfB/Z06v2wfSFCz
-	 rcqnAPVmF3txA==
-From: Christian Brauner <brauner@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Christian Brauner <brauner@kernel.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="K36bIsbh"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=3oDPHQ27zjmwg0X53/sNtBZXfVW1DU7wX+SBWTA6mfU=; b=K36bIsbh0aow/qmFRvIG1jBmC5
+	Teb6mIsR90WV9dU0FSqLKJrIHkdxGtFhNYrSJ9gSmGo5ZKKc2Zu+Kx3rjO+K/AMSJbnFqSEmbs36a
+	twjPAnuB7W0PXbuN0eJVdLVHT2b+ksaYNJDkG3U6ZIF+NC/SrKQqAnObK/qFs1rE0zpNCb9KBLg0Q
+	43dwz3e9zVH6g1WxHAmzvUWbh9A5M0JmIukRM19oh+rko19YHxKMFO1g/ob0qyUQNhb+GSYnAWxhc
+	H5/bCugSkFqinVzMdIdlUxuvWWzKxLT4pArKU0E92X4b/Q5ynSIbocun3L2OuLBSo44v6Gk2tJ0iA
+	Oug8gfMg==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vx3dj-0000000D9hr-0xfV;
+	Mon, 02 Mar 2026 13:48:51 +0000
+Date: Mon, 2 Mar 2026 05:48:51 -0800
+From: Christoph Hellwig <hch@infradead.org>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, "Darrick J. Wong" <djwong@kernel.org>,
 	Carlos Maiolino <cem@kernel.org>,
 	"Martin K. Petersen" <martin.petersen@oracle.com>,
 	Anuj Gupta <anuj20.g@samsung.com>,
 	Kanchan Joshi <joshi.k@samsung.com>,
 	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-	ntfs3@lists.linux.dev,
-	linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org,
-	linux-xfs@vger.kernel.org,
-	Jens Axboe <axboe@kernel.dk>
+	ntfs3@lists.linux.dev, linux-block@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+	linux-xfs@vger.kernel.org, Jens Axboe <axboe@kernel.dk>
 Subject: Re: support file system generated / verified integrity information v4
-Date: Mon,  2 Mar 2026 11:11:22 +0100
-Message-ID: <20260302-legehennen-musizieren-08d0e3caa674@brauner>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260223132021.292832-1-hch@lst.de>
+Message-ID: <aaWVQ3g6vsDB4GvQ@infradead.org>
 References: <20260223132021.292832-1-hch@lst.de>
+ <20260302-legehennen-musizieren-08d0e3caa674@brauner>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3749; i=brauner@kernel.org; h=from:subject:message-id; bh=kUc0farZiGjD/n/ZNvbtXOu1ZJEABLXUI1WRJsXmbXM=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQuTQr5LTEvM/FaGJOD/CtL7fimM5MvX52/7GFUWNlF5 gnPizyZOkpZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACZyO4zhf+nviJw1/T92tyfF 9+oxcPcx3b+kpPDy0xazm+GSsTvXxDMyTOuLZW/sZO/YaLDhx4U9+x7ZqCtYeCwNmqqhk85+08S cAwA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260302-legehennen-musizieren-08d0e3caa674@brauner>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Mon, 23 Feb 2026 05:20:00 -0800, Christoph Hellwig wrote:
-> this series adds support to generate and verify integrity information
-> (aka T10 PI) in the file system, instead of the automatic below the
-> covers support that is currently used.
-> 
-> There two reasons for this:
-> 
->   a) to increase the protection enveloped.  Right now this is just a
->      minor step from the bottom of the block layer to the file system,
->      but it is required to support io_uring integrity data passthrough in
->      the file system similar to the currently existing support for block
->      devices, which will follow next.  It also allows the file system to
->      directly see the integrity error and act upon in, e.g. when using
->      RAID either integrated (as in btrfs) or by supporting reading
->      redundant copies through the block layer.
->   b) to make the PI processing more efficient.  This is primarily a
->      concern for reads, where the block layer auto PI has to schedule a
->      work item for each bio, and the file system them has to do it again
->      for bounce buffering.  Additionally the current iomap post-I/O
->      workqueue handling is a lot more efficient by supporting merging and
->      avoiding workqueue scheduling storms.
-> 
-> [...]
+On Mon, Mar 02, 2026 at 11:11:22AM +0100, Christian Brauner wrote:
+> Applied to the vfs-7.1.verity branch of the vfs/vfs.git tree.
+> Patches in the vfs-7.1.verity branch should appear in linux-next soon.
 
-Applied to the vfs-7.1.verity branch of the vfs/vfs.git tree.
-Patches in the vfs-7.1.verity branch should appear in linux-next soon.
+Note that the branch name matters much, but this is a different (and
+older) use of integrity compare to fsverity/dm-verity.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
-
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs-7.1.verity
-
-[01/16] block: factor out a bio_integrity_action helper
-        https://git.kernel.org/vfs/vfs/c/08163237c7be
-[02/16] block: factor out a bio_integrity_setup_default helper
-        https://git.kernel.org/vfs/vfs/c/32d5010c428f
-[03/16] block: add a bdev_has_integrity_csum helper
-        https://git.kernel.org/vfs/vfs/c/840b166bef09
-[04/16] block: prepare generation / verification helpers for fs usage
-        https://git.kernel.org/vfs/vfs/c/179c2a24466b
-[05/16] block: make max_integrity_io_size public
-        https://git.kernel.org/vfs/vfs/c/1b9353e52c31
-[06/16] block: add fs_bio_integrity helpers
-        https://git.kernel.org/vfs/vfs/c/e539fc923425
-[07/16] block: pass a maxlen argument to bio_iov_iter_bounce
-        https://git.kernel.org/vfs/vfs/c/fc9fc9482061
-[08/16] iomap: refactor iomap_bio_read_folio_range
-        https://git.kernel.org/vfs/vfs/c/9701407ec63e
-[09/16] iomap: pass the iomap_iter to ->submit_read
-        https://git.kernel.org/vfs/vfs/c/f11d7d3307f4
-[10/16] iomap: only call into ->submit_read when there is a read_ctx
-        https://git.kernel.org/vfs/vfs/c/46441138b832
-[11/16] iomap: allow file systems to hook into buffered read bio submission
-        https://git.kernel.org/vfs/vfs/c/04c2cc5bb77b
-[12/16] ntfs3: remove copy and pasted iomap code
-        https://git.kernel.org/vfs/vfs/c/4c3906772536
-[13/16] iomap: add a bioset pointer to iomap_read_folio_ops
-        https://git.kernel.org/vfs/vfs/c/c1dec831dd53
-[14/16] iomap: support ioends for buffered reads
-        https://git.kernel.org/vfs/vfs/c/9c617c91f801
-[15/16] iomap: support T10 protection information
-        https://git.kernel.org/vfs/vfs/c/fa1758bda166
-[16/16] xfs: support T10 protection information
-        https://git.kernel.org/vfs/vfs/c/330cc116c7a0
