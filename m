@@ -1,129 +1,107 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E6A735E946
-	for <nvdimm@lists.linux.dev>; Fri,  6 Mar 2026 23:07:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79AA426F291
+	for <nvdimm@lists.linux.dev>; Sun,  8 Mar 2026 04:30:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772838436; cv=none; b=PV4oB0o5H2IVl83ttHS1epSWXvnzpR+8oWxsHdb42F2e2Gt3jEC9sUomsfx6RrT4mx8cWjz9f1JPeMAqleF/cT2qNIJd7l8bPqqzKkT03YhFP/VSBd0mqycIrs1X7zlw+J6bF+rvzBxOaEUAjMANMiewcYvlXTMXYkadLualjC4=
+	t=1772944213; cv=none; b=EYKuizwAG002GMrZw8HFMGe98ZqBfDRknGfQ7w5n01QR9G/xBP3BZKxhKNMauJK6oDizzGYFQZX4Dl+NG03ncE3o0Qu/9JP0ycQjl8+uKfNAqwllysOYsgwsJ33QTrOZayIt1LgDIFCQ1FvAfkSPvlJ62oHec3LOiVAiGO949zQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772838436; c=relaxed/simple;
-	bh=PdHCUukFlxrWW/nddVc5tlezV0SBl4aeJn3BRRZeIO8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gi0FLDjifE3I6zbO7FxMHd0V5MASfo0gaavcN2mFGIoOLHrDD8FKsHJ8/NQnPYam+MJktBjcY2i4q4nyQm1cueyFHtj875mGShspDezNu95LPuVGD+qHARKnE+bZPIxDVohQ0WlLJ/TsGhg5sjjlkTkb6O+qLTml8lu9fVCQEHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FFjX5gS0; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1772944213; c=relaxed/simple;
+	bh=/s3d8a7+gjncW1qLGaaofIMKDVUL0/tVG6Pn12FLLgA=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
+	 Content-Type:References; b=Oz2Rvhz/aAjwcxZlbPTcm5MilpW74X8bAnvJf4SHKvK/WRlaUS3l3Nh4Mfz2C9W9pse4XflDQWTxQM851m3BAlTt39HOwoPCD92ZrHQU3VZuKZte2EC0BD3KlTSYqRT3PYjCo/caCQDRtdjAM1cWXhnKgkoMueM52r8iekK7QQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=oVWOlX8g; arc=none smtp.client-ip=203.254.224.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FFjX5gS0"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1772838435; x=1804374435;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=PdHCUukFlxrWW/nddVc5tlezV0SBl4aeJn3BRRZeIO8=;
-  b=FFjX5gS0ImY+t/ym9UvBYPHijnsbKxPbidFWtw5djtuZsEi86fuzAgKJ
-   +q1lbzvt8Yq/qwpfFHgKP6q2UhEsGE1zZXdt2WlLLEj0HXdnq+fYb8kxk
-   EWcRLuRrg9L7MnPCiwc0gYa2cDrwIPQqMaWwWisSaVk/Z2nQjnaErlNor
-   ckFGml8n/0kt9TNEFRHo/BgWrETFFmGvAx5tawPCyrmE4Zi8Gsnz70T8k
-   jdXVrCFQizlizf2Cv9339KBh8GWmL/ljieQLNv7lHxJVsaIORd/1lxdfv
-   Uz27vY+/h10DDI7UuxPPoQ1nEHEB1yEuWpxI7kHVBDx8G2C/OPfyZUbx7
-   A==;
-X-CSE-ConnectionGUID: 7qC4UaaMQsy55PcR8Ra7oA==
-X-CSE-MsgGUID: 1JnSZk2qSyiGT/Uvysjx0A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11721"; a="72978268"
-X-IronPort-AV: E=Sophos;i="6.23,105,1770624000"; 
-   d="scan'208";a="72978268"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2026 15:07:14 -0800
-X-CSE-ConnectionGUID: ZAF4Po+XSGWmH2iE8lpinA==
-X-CSE-MsgGUID: Mrc+AfC2THyIdrmzaO0Brg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,105,1770624000"; 
-   d="scan'208";a="242154765"
-Received: from jdoman-mobl3.amr.corp.intel.com (HELO [10.125.109.87]) ([10.125.109.87])
-  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2026 15:07:13 -0800
-Message-ID: <18b6665b-2964-423c-8ba2-b7df28b95d62@intel.com>
-Date: Fri, 6 Mar 2026 16:07:11 -0700
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="oVWOlX8g"
+Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20260308043002epoutp0312ff08b0edbf89622065b2fb25df03e8~aw1vL0lvK1784317843epoutp03E
+	for <nvdimm@lists.linux.dev>; Sun,  8 Mar 2026 04:30:02 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20260308043002epoutp0312ff08b0edbf89622065b2fb25df03e8~aw1vL0lvK1784317843epoutp03E
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1772944202;
+	bh=/s3d8a7+gjncW1qLGaaofIMKDVUL0/tVG6Pn12FLLgA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=oVWOlX8grc4p+2R/ur66rBxqLV9YyMOesIRehfJvkDYUsBw34h/JbRtzwQS+HLTtb
+	 BnK1c6kwngxreUiL2de2jCVorvnlNYLdrCeYcoSjzT0K7z3jaGoUmUjsxN7KeAZ8ZR
+	 dNyjfCcP+k/p80cncrjGCoI6i3aNSIXvs2zfCqAc=
+Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
+	20260308043001epcas5p3632372647d98ca38a3150abac37a04c4~aw1uy6lCu1848318483epcas5p3O;
+	Sun,  8 Mar 2026 04:30:01 +0000 (GMT)
+Received: from epcpadp1new (unknown [182.195.40.141]) by
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4fT6cn6JRHz2SSKZ; Sun,  8 Mar
+	2026 04:30:01 +0000 (GMT)
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
+	20260306102730epcas5p308774b7b9f51e5a6c963a8b8599ab357~aObRtAise1284812848epcas5p3d;
+	Fri,  6 Mar 2026 10:27:30 +0000 (GMT)
+Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20260306102726epsmtip24a49a52c28cb736735db95b08c67bcf7~aObN6RQTD2983129831epsmtip2A;
+	Fri,  6 Mar 2026 10:27:26 +0000 (GMT)
+Date: Fri, 6 Mar 2026 15:57:19 +0530
+From: Neeraj Kumar <s.neeraj@samsung.com>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
+	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
+	cpgs@samsung.com
+Subject: Re: [PATCH V6 00/18] Add CXL LSA 2.1 format support in nvdimm and
+ cxl pmem
+Message-ID: <1296674576.21772944201878.JavaMail.epsvc@epcpadp1new>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] nvdimm/bus: Fix potential use after free in asynchronous
- initialization
-To: Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev,
- Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>
-Cc: stable@vger.kernel.org, linux-kernel@vger.kernel.org,
- Dingisoul <dingiso.kernel@gmail.com>
-References: <20260306-fix-uaf-async-init-v1-1-a28fd7526723@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260306-fix-uaf-async-init-v1-1-a28fd7526723@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <aXPlGrs12BdwgGkG@aschofie-mobl2.lan>
+X-CMS-MailID: 20260306102730epcas5p308774b7b9f51e5a6c963a8b8599ab357
+X-Msg-Generator: CA
+Content-Type: multipart/mixed;
+	boundary="----3W3K1-v49fY0BJe7N6_WbqFXaoVLme8r7b8baEfkTbmtWBCI=_73c11_"
+CMS-TYPE: 105P
+X-CPGSPASS: Y
+X-Hop-Count: 3
+X-CMS-RootMailID: 20260123113121epcas5p125bc64b4714525d7bbd489cd9be9ba91
+References: <CGME20260123113121epcas5p125bc64b4714525d7bbd489cd9be9ba91@epcas5p1.samsung.com>
+	<20260123113112.3488381-1-s.neeraj@samsung.com>
+	<aXPlGrs12BdwgGkG@aschofie-mobl2.lan>
+
+------3W3K1-v49fY0BJe7N6_WbqFXaoVLme8r7b8baEfkTbmtWBCI=_73c11_
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+
+On 23/01/26 01:16PM, Alison Schofield wrote:
+>On Fri, Jan 23, 2026 at 05:00:54PM +0530, Neeraj Kumar wrote:
+>
+>snip
+>
+>>
+>> Testing:
+>> ========
+>> In order to test this patchset, I also added the support of LSA v2.1 format
+>> in ndctl. ndctl changes are available at [2]. After review, I’ll push in
+>> ndctl repo for community review.
+>
+>Please post the ndctl changes for review. Thanks!
+
+Sure Alison,
+
+I am working on multi interleave support, So it may require some change in ndctl also.
+I will post ndctl changes along with next series.
 
 
+Regards,
+Neeraj
 
-On 3/6/26 11:33 AM, Ira Weiny wrote:
-> Dingisoul with KASAN reports a use after free if device_add() fails in
-> nd_async_device_register().
-> 
-> Commit b6eae0f61db2 ("libnvdimm: Hold reference on parent while
-> scheduling async init") correctly added a reference on the parent device
-> to be held until asynchronous initialization was complete.  However, if
-> device_add() results in an allocation failure the ref count of the
-> device drops to 0 prior to the parent pointer being accessed.  Thus
-> resulting in use after free.
-> 
-> The bug bot AI correctly identified the fix.  Save a reference to the
-> parent pointer to be used to drop the parent reference regardless of the
-> outcome of device_add().
-> 
-> Reported-by: Dingisoul <dingiso.kernel@gmail.com>
-> Closes: http://lore.kernel.org/8855544b-be9e-4153-aa55-0bc328b13733@gmail.com
-> Fixes: b6eae0f61db2 ("libnvdimm: Hold reference on parent while scheduling async init")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+------3W3K1-v49fY0BJe7N6_WbqFXaoVLme8r7b8baEfkTbmtWBCI=_73c11_
+Content-Type: text/plain; charset="utf-8"
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-> ---
->  drivers/nvdimm/bus.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-> index bd9621d3f73c..45b7d756e39a 100644
-> --- a/drivers/nvdimm/bus.c
-> +++ b/drivers/nvdimm/bus.c
-> @@ -486,14 +486,15 @@ EXPORT_SYMBOL_GPL(nd_synchronize);
->  static void nd_async_device_register(void *d, async_cookie_t cookie)
->  {
->  	struct device *dev = d;
-> +	struct device *parent = dev->parent;
->  
->  	if (device_add(dev) != 0) {
->  		dev_err(dev, "%s: failed\n", __func__);
->  		put_device(dev);
->  	}
->  	put_device(dev);
-> -	if (dev->parent)
-> -		put_device(dev->parent);
-> +	if (parent)
-> +		put_device(parent);
->  }
->  
->  static void nd_async_device_unregister(void *d, async_cookie_t cookie)
-> 
-> ---
-> base-commit: c107785c7e8dbabd1c18301a1c362544b5786282
-> change-id: 20260306-fix-uaf-async-init-3697998d8faf
-> 
-> Best regards,
-> --  
-> Ira Weiny <ira.weiny@intel.com>
-> 
+------3W3K1-v49fY0BJe7N6_WbqFXaoVLme8r7b8baEfkTbmtWBCI=_73c11_--
 
