@@ -1,187 +1,210 @@
 Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09CB37BE62
-	for <nvdimm@lists.linux.dev>; Fri,  6 Mar 2026 10:23:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D79E737B3EC
+	for <nvdimm@lists.linux.dev>; Fri,  6 Mar 2026 10:24:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772792589; cv=none; b=cNyKW0RdBkU/2Zcd8T9hAWip7G8n822+ILg7uyPMKqJekccMqWeGAbovkMuxfsJAmq7qf3sHrGtFfGaGEFwSxiYh9X/znQLVCHNgsnsZiyhlYU1Rjlhn1NuaFk7dHF60BF3ihJNPN10J8ze/eb2Nplhw3auF/a0axp0Fsy8NYy8=
+	t=1772792701; cv=none; b=gnHDCPWx9f6tZ6ZvJz7H98z8StW++hwCl7CahP+biwX16U8sZPjKTZbDbpG+A0pFNkNiBC/cYSWN5fZNCU6qNdfdW7g5BMxZkKvzkmi5l7uQui3ZPMRSY4cYHdvRpec56wH8ggCWWVHV5Rp4sU+4fqPYXUC6Js24/iiha61aM7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772792589; c=relaxed/simple;
-	bh=llKCHXdw7HaWtRkgToTXwvibYuBCCnUG18z8l59omFg=;
+	s=arc-20240116; t=1772792701; c=relaxed/simple;
+	bh=VwPDBc52y+ByONznQ17CVbyI/CYVHCtb7xpnbb3VR4U=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=D0p3ZCTkJDQ4OPoHrm3nuqeu4gYLqfcBb9Zngu3oaRoxIN28H8qFP7JDIHj/Ey1mJuaOOw+oJOW71qYUNe/x+MI0vNnHO8wA9Ye/YZbcxZb6Q6UEVpD6VHPGKU9/n54WsuZ3xbM7XvqNY8lNeIo0E0EjAFZc0SC6Vgp2q8EIoTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=ZgsLYEXt; arc=none smtp.client-ip=203.254.224.25
+	 Content-Type:References; b=p+qYcA94bsS0cbAU6GMMb72wjVC0ev95b+4eMDoFIWLl2/sVjXabVG5bVYXSXnQKT+26iiTGf2W+b+kW0JZ6SJ8nChKZFHouWLFbCkHgSMFl0al4q5Nvsl7LRlXoleJwwQhw7tbWHi0rlMzE2Po3ZmoW6BCA3qIGrWNw3FjgC84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=NoUPubwD; arc=none smtp.client-ip=203.254.224.25
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="ZgsLYEXt"
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="NoUPubwD"
 Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20260306102303epoutp02cc11f582554d3239cff8ef28c5e92736~aOXY80-sz0509005090epoutp02F
-	for <nvdimm@lists.linux.dev>; Fri,  6 Mar 2026 10:23:03 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20260306102303epoutp02cc11f582554d3239cff8ef28c5e92736~aOXY80-sz0509005090epoutp02F
+	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20260306102456epoutp02646e37b2299fec83e47f5a7e2a378dff~aOZCg3wAw0871608716epoutp02L
+	for <nvdimm@lists.linux.dev>; Fri,  6 Mar 2026 10:24:56 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20260306102456epoutp02646e37b2299fec83e47f5a7e2a378dff~aOZCg3wAw0871608716epoutp02L
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1772792583;
-	bh=zPFwpblfkVVYchR/5zAU82Z+Hg+HnHJvXX+N+JoETqc=;
+	s=mail20170921; t=1772792696;
+	bh=mkBvaLFfnKnjCBnDHYqAtzkGsBKFeIIQ9usUlK7H3kY=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=ZgsLYEXt9EtMObwF2D9huxVHC1YC/M757e6/DWAD6LRRtbk+47wTiGFeyNtKhu6l7
-	 Pad5ekYrBvuuoP5nK8AoHhDoJxrtjqtY7wgPBsDW/WyXWM3z2vFckdcWK0oCMske9O
-	 PgM6Zhg1b6v7cmC8hBk4v5azNxMKVEfO1UJYl5xE=
-Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20260306102302epcas5p202b4142953e01d7cb9f57fad9e5d208f~aOXYjzMZp1476614766epcas5p2U;
-	Fri,  6 Mar 2026 10:23:02 +0000 (GMT)
-Received: from epcpadp2new (unknown [182.195.40.142]) by
-	epsnrtp04.localdomain (Postfix) with ESMTP id 4fS2Y2671fz6B9m8; Fri,  6 Mar
-	2026 10:23:02 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
-	20260306101951epcas5p29466c309320d35847315faa2b75d1a11~aOUmssgyi1646816468epcas5p2-;
-	Fri,  6 Mar 2026 10:19:51 +0000 (GMT)
+	b=NoUPubwDCgZ59QwtmvHoLFnRNGQfkodocRt57Hqg9mwH1rXxjlbomdYunsGQH206h
+	 e4a1zChy1INCN2vcB3NPRtwDEbzCoX65ZYK5ByNwoir+qtfAtu2gQw8RmiJLfGu1DU
+	 Aj4541yPcK+E1YlnIwdyiyThjZsrLFIARaKD+7M0=
+Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
+	20260306102455epcas5p4790db72dd69e9cdf1ffac2731dd054d9~aOZBw1JUx1250412504epcas5p4u;
+	Fri,  6 Mar 2026 10:24:55 +0000 (GMT)
+Received: from epcas5p4.samsung.com (unknown [182.195.38.95]) by
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4fS2bC1Cykz2SSKY; Fri,  6 Mar
+	2026 10:24:55 +0000 (GMT)
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
+	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
+	20260306102454epcas5p4d2e1b37f366756d71853584d6c8246c7~aOZAdHMuU0525205252epcas5p4K;
+	Fri,  6 Mar 2026 10:24:54 +0000 (GMT)
 Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260306101950epsmtip112cefdff155070621be11d6f488cc520~aOUlTKDpm1549215492epsmtip1r;
-	Fri,  6 Mar 2026 10:19:50 +0000 (GMT)
-Date: Fri, 6 Mar 2026 15:48:55 +0530
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20260306102452epsmtip2518d8ac470e57ec2e1d49cd96838a2d3~aOY_wF1DG2865228652epsmtip2v;
+	Fri,  6 Mar 2026 10:24:52 +0000 (GMT)
+Date: Fri, 6 Mar 2026 15:54:44 +0530
 From: Neeraj Kumar <s.neeraj@samsung.com>
-To: dan.j.williams@intel.com
+To: Alejandro Lucero Palau <alucerop@amd.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
 	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
 	cpgs@samsung.com
-Subject: Re: [PATCH V6 10/18] cxl/mem: Refactor cxl pmem region
- auto-assembling
-Message-ID: <1931444790.41772792582852.JavaMail.epsvc@epcpadp2new>
+Subject: Re: [PATCH V6 12/18] cxl/region: Add devm_cxl_pmem_add_region() for
+ pmem region creation
+Message-ID: <20260306102444.fkoqhyavd7cgorxy@test-PowerEdge-R740xd>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <6979522dc1916_1d331009@dwillia2-mobl4.notmuch>
-X-CMS-MailID: 20260306101951epcas5p29466c309320d35847315faa2b75d1a11
+In-Reply-To: <a560c14c-410c-4ea8-9076-deeb9ba28fee@amd.com>
+X-CMS-MailID: 20260306102454epcas5p4d2e1b37f366756d71853584d6c8246c7
 X-Msg-Generator: CA
 Content-Type: multipart/mixed;
-	boundary="----S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73b96_"
+	boundary="----S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_"
 CMS-TYPE: 105P
 X-CPGSPASS: Y
-X-Hop-Count: 3
-X-CMS-RootMailID: 20260123113138epcas5p4bc54ae41192dbc9c958c43ad8a80b5c6
+cpgsPolicy: CPGSC10-542,Y
+X-CFilter-Loop: Reflected
+X-CMS-RootMailID: 20260123113141epcas5p49a1eebff4401a7fc98381358162fde2b
 References: <20260123113112.3488381-1-s.neeraj@samsung.com>
-	<CGME20260123113138epcas5p4bc54ae41192dbc9c958c43ad8a80b5c6@epcas5p4.samsung.com>
-	<20260123113112.3488381-11-s.neeraj@samsung.com>
-	<6979522dc1916_1d331009@dwillia2-mobl4.notmuch>
+	<CGME20260123113141epcas5p49a1eebff4401a7fc98381358162fde2b@epcas5p4.samsung.com>
+	<20260123113112.3488381-13-s.neeraj@samsung.com>
+	<a560c14c-410c-4ea8-9076-deeb9ba28fee@amd.com>
 
-------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73b96_
+------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_
 Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
 Content-Disposition: inline
 
-On 27/01/26 04:02PM, dan.j.williams@intel.com wrote:
->Neeraj Kumar wrote:
->> In 84ec985944ef3, devm_cxl_add_nvdimm() sequence was changed and called
->> before devm_cxl_add_endpoint(). It's because cxl pmem region auto-assembly
->> used to get called at last in cxl_endpoint_port_probe(), which requires
->> cxl_nvd presence.
+On 24/02/26 06:13PM, Alejandro Lucero Palau wrote:
+>Hi Neeraj,
 >
->What?
+>
+>I could get some free time for reviewing this series. Dan pointed out 
+>to potential conflicts with my Type2 series, so I'm focused on those 
+>patches modifying the cxl region creation and how it is being used.
+>
+>
+>I do not know if you are aware of the Type2 work, although I dare to 
+>say you are not since some of the functionality is duplicated ... and 
+>in your case skipping some steps.
+>
 
-Hi Dan,
+Hi Alejandro,
 
-Auto-region assembly was added by a32320b71f085 [1] and during that time
-devm_cxl_add_nvdimm() was called after devm_cxl_add_endpoint().
-
-Later Li Ming found issue (kernel panic) in pmem region auto-assembly
-and fixed it using 84ec985944ef3 [2]. During this fix devm_cxl_add_nvdimm()
-sequence was changed and called before devm_cxl_add_endpoint()
-
-In this patch-set I have tried to bring back the original sequence in order
-to create pmem region (single interleave) based of parsed information from
-LSA during nvdimm_probe()
-
-[1] https://lore.kernel.org/r/167601999958.1924368.9366954455835735048.stgit@dwillia2-xfh.jf.intel.com
-[2] https://lore.kernel.org/all/20240612064423.2567625-1-ming4.li@intel.com
+Thanks for your review.
+Yes I have not looked at Type2 work in detail. I will have a look
+and specially the conflicting part with my changes.
 
 >
->> For cxl region persistency, region creation happens during nvdimm_probe
->> which need the completion of endpoint probe.
->>
->> In order to accommodate both cxl pmem region auto-assembly and cxl region
->> persistency, refactored following
->>
->> 1. Re-Sequence devm_cxl_add_nvdimm() after devm_cxl_add_endpoint(). This
->>    will be called only after successful completion of endpoint probe.
->>
->> 2. Create cxl_region_discovery() which performs pmem region
->>    auto-assembly and remove cxl pmem region auto-assembly from
->>    cxl_endpoint_port_probe()
->>
->> 3. Register cxl_region_discovery() with devm_cxl_add_memdev() which gets
->>    called during cxl_pci_probe() in context of cxl_mem_probe()
->>
->> 4. As cxlmd->attach->probe() calls registered cxl_region_discovery(), so
->>    move devm_cxl_add_nvdimm() before cxlmd->attach->probe(). It guarantees
->>    both the completion of endpoint probe and cxl_nvd presence before
->>    calling cxlmd->attach->probe().
+>Below my comments.
 >
->This does not make sense. The whole point of having
->devm_cxl_add_nvdimm() before devm_cxl_add_endpoint() is so that the
->typical region discovery path can consider pre-existing decoder settings
->*or* nvdimm labels in its assembly decisions.
 >
->I would be surprised if this passes existing region assembly and
->ordering tests.
-
-Actually using following change (as Dave has also checked) with the
-current patch-set is making existing region assembly ordering test pass.
-But still some other testcase in cxl_test cxl-topology.sh is failing.
-
----
-diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-index cb87e8c0e63c..03af15edd988 100644
---- a/tools/testing/cxl/test/mem.c
-+++ b/tools/testing/cxl/test/mem.c
-@@ -1686,6 +1686,7 @@ static void cxl_mock_test_feat_init(struct cxl_mockmem_data *mdata)
-
-  static int cxl_mock_mem_probe(struct platform_device *pdev)
-  {
-+       struct cxl_memdev_attach memdev_attach = { 0 };
-         struct device *dev = &pdev->dev;
-         struct cxl_memdev *cxlmd;
-         struct cxl_memdev_state *mds;
-@@ -1767,7 +1768,8 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
-
-         cxl_mock_add_event_logs(&mdata->mes);
-
--       cxlmd = devm_cxl_add_memdev(cxlds, NULL);
-+       memdev_attach.probe = cxl_region_discovery;
-+       cxlmd = devm_cxl_add_memdev(cxlds, &memdev_attach);
-         if (IS_ERR(cxlmd))
-                 return PTR_ERR(cxlmd);
-
----
-
+>On 1/23/26 11:31, Neeraj Kumar wrote:
+>>devm_cxl_pmem_add_region() is used to create cxl region based on region
+>>information scanned from LSA.
+>>
+>>devm_cxl_add_region() is used to just allocate cxlr and its fields are
+>>filled later by userspace tool using device attributes (*_store()).
+>>
+>>Inspiration for devm_cxl_pmem_add_region() is taken from these device
+>>attributes (_store*) calls. It allocates cxlr and fills information
+>>parsed from LSA and calls device_add(&cxlr->dev) to initiate further
+>>region creation porbes
+>>
+>>Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+>>Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
+>>---
+>>  drivers/cxl/core/region.c | 118 ++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 118 insertions(+)
+>>
+>>diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+>>index 2e60e5e72551..e384eacc46ae 100644
+>>--- a/drivers/cxl/core/region.c
+>>+++ b/drivers/cxl/core/region.c
+>>@@ -2621,6 +2621,121 @@ static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
+>>  	return ERR_PTR(rc);
+>>  }
+>>+static ssize_t alloc_region_hpa(struct cxl_region *cxlr, u64 size)
+>>+{
+>>+	int rc;
+>>+
+>>+	if (!size)
+>>+		return -EINVAL;
+>>+
+>>+	ACQUIRE(rwsem_write_kill, rwsem)(&cxl_rwsem.region);
+>>+	if ((rc = ACQUIRE_ERR(rwsem_write_kill, &rwsem)))
+>>+		return rc;
+>>+
+>>+	return alloc_hpa(cxlr, size);
+>>+}
 >
->This reads like "do not understand current ordering, change it for thin
->reasons".
+>
+>Type2 has a more elaborated function preceding the final hpa 
+>allocation.  First of all, the root decoder needs to match the 
+>endpoint type or to have support for it. Then interleave ways taken 
+>into account. I know you are only supporting 1 way, what I guess makes 
+>the initial support easier, but although some check for not supporting 
+>> 1 is fine (I guess this takes a lot of work for matching at least 
+>LSA labels and maybe something harder), the core code should support 
+>that, mainly because there is ongoing work adding it. In my case I did 
+>not need interleaving and it is unlikely other Type2 devices will need 
+>it in the near future, but the support is there:
+>
+>https://lore.kernel.org/linux-cxl/20260201155438.2664640-1-alejandro.lucero-palau@amd.com/T/#m56bf70b58bb995082680bf363fd3f6d6f2b074d2
+>
+>
+>>+
+>>+static ssize_t alloc_region_dpa(struct cxl_endpoint_decoder *cxled, u64 size)
+>>+{
+>>+	if (!size)
+>>+		return -EINVAL;
+>>+
+>>+	if (!IS_ALIGNED(size, SZ_256M))
+>>+		return -EINVAL;
+>>+
+>>+	return cxl_dpa_alloc(cxled, size);
+>>+}
+>
+>
+>I'm not sure if the same applies here as you are passing an endpoint 
+>decoder already, but FWIW:
+>
+>
+>https://lore.kernel.org/linux-cxl/20260201155438.2664640-1-alejandro.lucero-palau@amd.com/T/#m38ff266e931fd9c932bc54d000b7ea72186493be
+>
+>
+>I'm sending type2 individual patches for facilitating the integration, 
+>and I'll focus next on these two referenced ones so you could use them 
+>asap.
+>
+>
+>Thank you,
+>
+>Alejandro
 
-Yes I got your concern that we should reuse the existing infra of region auto
-assembly instead of doing this refactoring and creating new infra for region
-creation based on information parsed from LSA.
+Actually I have created alloc_region_hpa() and alloc_region_dpa() taking
+inspiration from device attributes (_store*) calls used to create cxl
+region using cxl userspace tool.
 
-Even the same is discussed in last CXL Collab Sync [1].
+I am adding the support of multi interleave, there these routines will
+not be required as I would be re-using the existing auto region assembly infra.
 
-I will fix this refactoring along with multi interleave support using existing
-auto region assembly infra in next series.
+Even though I will re-check any conflicts with Type2 changes.
 
-[1] https://pmem.io/ndctl/collab/#:~:text=LSA%202.1%20support,with%20first%20merge%3F
 
 
 Regards,
 Neeraj
 
-------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73b96_
+
+
+
+
+------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_
 Content-Type: text/plain; charset="utf-8"
 
 
-------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73b96_--
-
+------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_--
