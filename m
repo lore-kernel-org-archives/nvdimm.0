@@ -1,210 +1,161 @@
-Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D79E737B3EC
-	for <nvdimm@lists.linux.dev>; Fri,  6 Mar 2026 10:24:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0CF02DC35C;
+	Fri,  6 Mar 2026 11:42:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772792701; cv=none; b=gnHDCPWx9f6tZ6ZvJz7H98z8StW++hwCl7CahP+biwX16U8sZPjKTZbDbpG+A0pFNkNiBC/cYSWN5fZNCU6qNdfdW7g5BMxZkKvzkmi5l7uQui3ZPMRSY4cYHdvRpec56wH8ggCWWVHV5Rp4sU+4fqPYXUC6Js24/iiha61aM7U=
+	t=1772797343; cv=none; b=I3C+QrI70rJYxMKwH7PaFThTVEg5Eoy2gJhEq+HMAREqAv/2c3xsucRupL59oco5Q7kw+s9NJZtrwtiswt3rT6KwcI1gzakqnKvJlVQJ+IJleZFtNDiLPy1HeOiErcObz/QWfvMSgKPWSlsK0e7WxgLfJ/CQpqQEKFuk0OqePVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772792701; c=relaxed/simple;
-	bh=VwPDBc52y+ByONznQ17CVbyI/CYVHCtb7xpnbb3VR4U=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=p+qYcA94bsS0cbAU6GMMb72wjVC0ev95b+4eMDoFIWLl2/sVjXabVG5bVYXSXnQKT+26iiTGf2W+b+kW0JZ6SJ8nChKZFHouWLFbCkHgSMFl0al4q5Nvsl7LRlXoleJwwQhw7tbWHi0rlMzE2Po3ZmoW6BCA3qIGrWNw3FjgC84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=NoUPubwD; arc=none smtp.client-ip=203.254.224.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1772797343; c=relaxed/simple;
+	bh=CA2vkPrs+KBRPBb6HWrkcW5f3nw7u13fgvwPYP4Knsw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KqiqSnvVyhN9EyJpzMQTN7IFvE7tX0PKB+e6rGlqNaeN7m5tFfRaHJYcWQkrycOh+hOxUMvRusV4pX4I7647mVKeP45FQSQB4B4+wj9JScX0IFWLiTiN++X+lQeZQD4yBr0WpnN2cayAy59YPnHh+F7+A6mjxBN3YyJRrHSL0eE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VmPUWeBa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="NoUPubwD"
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20260306102456epoutp02646e37b2299fec83e47f5a7e2a378dff~aOZCg3wAw0871608716epoutp02L
-	for <nvdimm@lists.linux.dev>; Fri,  6 Mar 2026 10:24:56 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20260306102456epoutp02646e37b2299fec83e47f5a7e2a378dff~aOZCg3wAw0871608716epoutp02L
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1772792696;
-	bh=mkBvaLFfnKnjCBnDHYqAtzkGsBKFeIIQ9usUlK7H3kY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=NoUPubwDCgZ59QwtmvHoLFnRNGQfkodocRt57Hqg9mwH1rXxjlbomdYunsGQH206h
-	 e4a1zChy1INCN2vcB3NPRtwDEbzCoX65ZYK5ByNwoir+qtfAtu2gQw8RmiJLfGu1DU
-	 Aj4541yPcK+E1YlnIwdyiyThjZsrLFIARaKD+7M0=
-Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
-	20260306102455epcas5p4790db72dd69e9cdf1ffac2731dd054d9~aOZBw1JUx1250412504epcas5p4u;
-	Fri,  6 Mar 2026 10:24:55 +0000 (GMT)
-Received: from epcas5p4.samsung.com (unknown [182.195.38.95]) by
-	epsnrtp02.localdomain (Postfix) with ESMTP id 4fS2bC1Cykz2SSKY; Fri,  6 Mar
-	2026 10:24:55 +0000 (GMT)
-Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
-	20260306102454epcas5p4d2e1b37f366756d71853584d6c8246c7~aOZAdHMuU0525205252epcas5p4K;
-	Fri,  6 Mar 2026 10:24:54 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20260306102452epsmtip2518d8ac470e57ec2e1d49cd96838a2d3~aOY_wF1DG2865228652epsmtip2v;
-	Fri,  6 Mar 2026 10:24:52 +0000 (GMT)
-Date: Fri, 6 Mar 2026 15:54:44 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Alejandro Lucero Palau <alucerop@amd.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
-	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
-	cpgs@samsung.com
-Subject: Re: [PATCH V6 12/18] cxl/region: Add devm_cxl_pmem_add_region() for
- pmem region creation
-Message-ID: <20260306102444.fkoqhyavd7cgorxy@test-PowerEdge-R740xd>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VmPUWeBa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC4FAC4CEF7;
+	Fri,  6 Mar 2026 11:42:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772797342;
+	bh=CA2vkPrs+KBRPBb6HWrkcW5f3nw7u13fgvwPYP4Knsw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VmPUWeBaQkwHyNWrIgE+k6VTvF58sgBu9LcG+6SertLT2ce7KXBFZ0We86Id7A25U
+	 Q+HpvLqR5cHvWiwcCko03D2oM0ZKE14Cr+BxZZDDmzCKdHkCFk9RqTfMemJZDDnloC
+	 Ew767ufZJ7CKXy/CG6eJzT3vDrdM6zE9ZYv22SYiUP3CREBCfUFzOy3pucv0xCVXiW
+	 9MsH74masuCdJlZ8BntBknVUwyKbUCdud5oUJoRnrzrGTDqUqCnck040huUBGNP38a
+	 rVd+D+l7txMQlbfz48dBDZDt3rCVTj4/qKf0/Air3/s23aXm7SQiY2Tv5T9Owh5nxk
+	 DlcAdpF9cammw==
+Date: Fri, 6 Mar 2026 11:42:19 +0000
+From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+To: Tal Zussman <tz2294@columbia.edu>
+Cc: David Howells <dhowells@redhat.com>, 
+	Marc Dionne <marc.dionne@auristor.com>, Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <chao@kernel.org>, 
+	Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@kernel.org>, 
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
+	Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Chris Li <chrisl@kernel.org>, 
+	Kairui Song <kasong@tencent.com>, Kemeng Shi <shikemeng@huaweicloud.com>, 
+	Nhat Pham <nphamcs@gmail.com>, Baoquan He <bhe@redhat.com>, Barry Song <baohua@kernel.org>, 
+	Matthew Wilcox <willy@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger.kernel@dilger.ca>, 
+	Paulo Alcantara <pc@manguebit.org>, Trond Myklebust <trondmy@kernel.org>, 
+	Anna Schumaker <anna@kernel.org>, Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>, 
+	Joseph Qi <joseph.qi@linux.alibaba.com>, Steve French <sfrench@samba.org>, 
+	Ronnie Sahlberg <ronniesahlberg@gmail.com>, Shyam Prasad N <sprasad@microsoft.com>, 
+	Tom Talpey <tom@talpey.com>, Bharath SM <bharathsm@microsoft.com>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
+	Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, 
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	Tvrtko Ursulin <tursulin@ursulin.net>, Chris Mason <clm@fb.com>, David Sterba <dsterba@suse.com>, 
+	Ilya Dryomov <idryomov@gmail.com>, Alex Markuze <amarkuze@redhat.com>, 
+	Viacheslav Dubeyko <slava@dubeyko.com>, Andreas Gruenbacher <agruenba@redhat.com>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	Ryusuke Konishi <konishi.ryusuke@gmail.com>, "Darrick J. Wong" <djwong@kernel.org>, 
+	Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Johannes Weiner <hannes@cmpxchg.org>, Roman Gushchin <roman.gushchin@linux.dev>, 
+	Shakeel Butt <shakeel.butt@linux.dev>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	Brendan Jackman <jackmanb@google.com>, Zi Yan <ziy@nvidia.com>, Hugh Dickins <hughd@google.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Axel Rasmussen <axelrasmussen@google.com>, 
+	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Qi Zheng <zhengqi.arch@bytedance.com>, linux-afs@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	linux-f2fs-devel@lists.sourceforge.net, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, 
+	nvdimm@lists.linux.dev, linux-ext4@vger.kernel.org, netfs@lists.linux.dev, 
+	linux-nfs@vger.kernel.org, ocfs2-devel@lists.linux.dev, linux-cifs@vger.kernel.org, 
+	samba-technical@lists.samba.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, 
+	linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org, gfs2@lists.linux.dev, 
+	linux-nilfs@vger.kernel.org, linux-xfs@vger.kernel.org, cgroups@vger.kernel.org
+Subject: Re: [PATCH v2 1/4] mm: Remove stray references to struct pagevec
+Message-ID: <3f262490-ebed-49b5-99ff-7a8aaa12cada@lucifer.local>
+References: <20260225-pagevec_cleanup-v2-0-716868cc2d11@columbia.edu>
+ <20260225-pagevec_cleanup-v2-1-716868cc2d11@columbia.edu>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <a560c14c-410c-4ea8-9076-deeb9ba28fee@amd.com>
-X-CMS-MailID: 20260306102454epcas5p4d2e1b37f366756d71853584d6c8246c7
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_"
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-cpgsPolicy: CPGSC10-542,Y
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20260123113141epcas5p49a1eebff4401a7fc98381358162fde2b
-References: <20260123113112.3488381-1-s.neeraj@samsung.com>
-	<CGME20260123113141epcas5p49a1eebff4401a7fc98381358162fde2b@epcas5p4.samsung.com>
-	<20260123113112.3488381-13-s.neeraj@samsung.com>
-	<a560c14c-410c-4ea8-9076-deeb9ba28fee@amd.com>
-
-------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20260225-pagevec_cleanup-v2-1-716868cc2d11@columbia.edu>
 
-On 24/02/26 06:13PM, Alejandro Lucero Palau wrote:
->Hi Neeraj,
+On Wed, Feb 25, 2026 at 06:44:25PM -0500, Tal Zussman wrote:
+> struct pagevec was removed in commit 1e0877d58b1e ("mm: remove struct
+> pagevec"). Remove remaining forward declarations and change
+> __folio_batch_release()'s declaration to match its definition.
 >
->
->I could get some free time for reviewing this series. Dan pointed out 
->to potential conflicts with my Type2 series, so I'm focused on those 
->patches modifying the cxl region creation and how it is being used.
->
->
->I do not know if you are aware of the Type2 work, although I dare to 
->say you are not since some of the functionality is duplicated ... and 
->in your case skipping some steps.
->
+> Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+> Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+> Acked-by: Chris Li <chrisl@kernel.org>
+> Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 
-Hi Alejandro,
+LGTM, so:
 
-Thanks for your review.
-Yes I have not looked at Type2 work in detail. I will have a look
-and specially the conflicting part with my changes.
+Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 
+> ---
+>  fs/afs/internal.h       | 1 -
+>  fs/f2fs/f2fs.h          | 2 --
+>  include/linux/pagevec.h | 2 +-
+>  include/linux/swap.h    | 2 --
+>  4 files changed, 1 insertion(+), 6 deletions(-)
 >
->Below my comments.
+> diff --git a/fs/afs/internal.h b/fs/afs/internal.h
+> index 009064b8d661..599353c33337 100644
+> --- a/fs/afs/internal.h
+> +++ b/fs/afs/internal.h
+> @@ -31,7 +31,6 @@
 >
+>  #define AFS_CELL_MAX_ADDRS 15
 >
->On 1/23/26 11:31, Neeraj Kumar wrote:
->>devm_cxl_pmem_add_region() is used to create cxl region based on region
->>information scanned from LSA.
->>
->>devm_cxl_add_region() is used to just allocate cxlr and its fields are
->>filled later by userspace tool using device attributes (*_store()).
->>
->>Inspiration for devm_cxl_pmem_add_region() is taken from these device
->>attributes (_store*) calls. It allocates cxlr and fills information
->>parsed from LSA and calls device_add(&cxlr->dev) to initiate further
->>region creation porbes
->>
->>Reviewed-by: Dave Jiang <dave.jiang@intel.com>
->>Signed-off-by: Neeraj Kumar <s.neeraj@samsung.com>
->>---
->>  drivers/cxl/core/region.c | 118 ++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 118 insertions(+)
->>
->>diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
->>index 2e60e5e72551..e384eacc46ae 100644
->>--- a/drivers/cxl/core/region.c
->>+++ b/drivers/cxl/core/region.c
->>@@ -2621,6 +2621,121 @@ static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
->>  	return ERR_PTR(rc);
->>  }
->>+static ssize_t alloc_region_hpa(struct cxl_region *cxlr, u64 size)
->>+{
->>+	int rc;
->>+
->>+	if (!size)
->>+		return -EINVAL;
->>+
->>+	ACQUIRE(rwsem_write_kill, rwsem)(&cxl_rwsem.region);
->>+	if ((rc = ACQUIRE_ERR(rwsem_write_kill, &rwsem)))
->>+		return rc;
->>+
->>+	return alloc_hpa(cxlr, size);
->>+}
+> -struct pagevec;
+>  struct afs_call;
+>  struct afs_vnode;
+>  struct afs_server_probe;
+> diff --git a/fs/f2fs/f2fs.h b/fs/f2fs/f2fs.h
+> index bb34e864d0ef..d9e8531a5301 100644
+> --- a/fs/f2fs/f2fs.h
+> +++ b/fs/f2fs/f2fs.h
+> @@ -28,8 +28,6 @@
+>  #include <linux/fscrypt.h>
+>  #include <linux/fsverity.h>
 >
+> -struct pagevec;
+> -
+>  #ifdef CONFIG_F2FS_CHECK_FS
+>  #define f2fs_bug_on(sbi, condition)	BUG_ON(condition)
+>  #else
+> diff --git a/include/linux/pagevec.h b/include/linux/pagevec.h
+> index 63be5a451627..007affabf335 100644
+> --- a/include/linux/pagevec.h
+> +++ b/include/linux/pagevec.h
+> @@ -93,7 +93,7 @@ static inline struct folio *folio_batch_next(struct folio_batch *fbatch)
+>  	return fbatch->folios[fbatch->i++];
+>  }
 >
->Type2 has a more elaborated function preceding the final hpa 
->allocation.  First of all, the root decoder needs to match the 
->endpoint type or to have support for it. Then interleave ways taken 
->into account. I know you are only supporting 1 way, what I guess makes 
->the initial support easier, but although some check for not supporting 
->> 1 is fine (I guess this takes a lot of work for matching at least 
->LSA labels and maybe something harder), the core code should support 
->that, mainly because there is ongoing work adding it. In my case I did 
->not need interleaving and it is unlikely other Type2 devices will need 
->it in the near future, but the support is there:
+> -void __folio_batch_release(struct folio_batch *pvec);
+> +void __folio_batch_release(struct folio_batch *fbatch);
 >
->https://lore.kernel.org/linux-cxl/20260201155438.2664640-1-alejandro.lucero-palau@amd.com/T/#m56bf70b58bb995082680bf363fd3f6d6f2b074d2
+>  static inline void folio_batch_release(struct folio_batch *fbatch)
+>  {
+> diff --git a/include/linux/swap.h b/include/linux/swap.h
+> index 0effe3cc50f5..4b1f13b5bbad 100644
+> --- a/include/linux/swap.h
+> +++ b/include/linux/swap.h
+> @@ -20,8 +20,6 @@ struct notifier_block;
 >
+>  struct bio;
 >
->>+
->>+static ssize_t alloc_region_dpa(struct cxl_endpoint_decoder *cxled, u64 size)
->>+{
->>+	if (!size)
->>+		return -EINVAL;
->>+
->>+	if (!IS_ALIGNED(size, SZ_256M))
->>+		return -EINVAL;
->>+
->>+	return cxl_dpa_alloc(cxled, size);
->>+}
+> -struct pagevec;
+> -
+>  #define SWAP_FLAG_PREFER	0x8000	/* set if swap priority specified */
+>  #define SWAP_FLAG_PRIO_MASK	0x7fff
+>  #define SWAP_FLAG_DISCARD	0x10000 /* enable discard for swap */
 >
+> --
+> 2.39.5
 >
->I'm not sure if the same applies here as you are passing an endpoint 
->decoder already, but FWIW:
->
->
->https://lore.kernel.org/linux-cxl/20260201155438.2664640-1-alejandro.lucero-palau@amd.com/T/#m38ff266e931fd9c932bc54d000b7ea72186493be
->
->
->I'm sending type2 individual patches for facilitating the integration, 
->and I'll focus next on these two referenced ones so you could use them 
->asap.
->
->
->Thank you,
->
->Alejandro
-
-Actually I have created alloc_region_hpa() and alloc_region_dpa() taking
-inspiration from device attributes (_store*) calls used to create cxl
-region using cxl userspace tool.
-
-I am adding the support of multi interleave, there these routines will
-not be required as I would be re-using the existing auto region assembly infra.
-
-Even though I will re-check any conflicts with Type2 changes.
-
-
-
-Regards,
-Neeraj
-
-
-
-
-
-------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_
-Content-Type: text/plain; charset="utf-8"
-
-
-------S5vMiqbC9D9faF8YPw-GIekSHdZgzpYrwqcOSnq._zgadq5.=_73bc8_--
