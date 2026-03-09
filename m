@@ -1,127 +1,214 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f47.google.com (mail-vs1-f47.google.com [209.85.217.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A7A3101B6
-	for <nvdimm@lists.linux.dev>; Sun,  8 Mar 2026 04:30:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772944213; cv=none; b=Bm+35UiW17aBqSsTZIsDs4sh7OPhrh6STW+HQHjU3hhwy/Ts5d5WKpu3C3maKhZLDsqSzAAfEvXBt3cWb9jY0awxAlp9RiqkFpjUPsYctPrj6wtcB/h3nPjO29U88a037sGWpaOR5aEFJ7lbZEGwffEGApaUoETKL4VGJGfm658=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772944213; c=relaxed/simple;
-	bh=0qgP1SzBYD+UBYHM7QR056M5D5ActHvOI5e8wnBlFYo=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:In-Reply-To:
-	 Content-Type:References; b=EiWzFg0WEpUGCwO7qdNpSs6Ij/jEt0BNCQkG1fOvL8j9EzTRkGXPT/AvgsLiHUjeONeHbpX57T/qmRBEL57loAcwS3t4RUF6fDtye0YOoRq/EdPHqM3YliV/aNWqlc6k6h0Dp2vSWEkKKiKkC834tjEhvsVhEvQtwObv2r6+AH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=FMXcsjln; arc=none smtp.client-ip=203.254.224.24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 858C8229B38
+	for <nvdimm@lists.linux.dev>; Mon,  9 Mar 2026 06:27:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.217.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773037643; cv=pass; b=K2fvnfOGkEihKWGrPrVSlxBLZLKzbECI8Kmqjg+dJJthkeZp1umlfOgHukKaJgYhrwfhqH4LkGIqHGotao+tIp08Df9wcH8msYTPklLlmyV/4D/b7jy7wT1ztHLSAWxKctextU5iNXxC1idBbwJI1oyIEO7GpnPcrP81ACOmMXc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773037643; c=relaxed/simple;
+	bh=tWJ/fX3Ckxq4WEzhukQr0K7T+NWwaaBTCqm8O0qx06M=;
+	h=From:In-Reply-To:References:MIME-Version:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=a2be9BPEWGSlqPSu58k3JXs+2G8By8V0w2ebcZBhY1JUWcGMTsgPpGK+Mpn7UFve7cXHN7xOKHeg1/mbPpkK+Y/Rr2we1AViQ0Xz7JhXuw9uF4uenERq8s63Q2S/up65RxW1VbgZMdefT6SV0mPgWT380prABE7BdholK5+sMl0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=LYNxQHSM; arc=pass smtp.client-ip=209.85.217.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="FMXcsjln"
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20260308043002epoutp0168d88ab65e71ca3fd92ef9ae131c9314~aw1vA_Rf41195111951epoutp01P
-	for <nvdimm@lists.linux.dev>; Sun,  8 Mar 2026 04:30:02 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20260308043002epoutp0168d88ab65e71ca3fd92ef9ae131c9314~aw1vA_Rf41195111951epoutp01P
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1772944202;
-	bh=N1fuOX8nls70mXuE38bUprfyJ1x0tNIUNCbRv9tyeHs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=FMXcsjlncXWuQULEYskrN23Yx4ZsI/+uatDGJBFH8iyWTKpW3qh2myeVzjkTG6lkM
-	 pj5wLRhA+28g/Oy02lDSMi3CxWoPFduawY8cbZl7FrxmfX1yz40rmrcCzMl5sO4HG6
-	 4WFdTTeR7RfioU4snCeCV1YOwOQNj+69bOHdg22Y=
-Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20260308043001epcas5p254afd7af8b38ab4a9b894d3da24bb460~aw1ujENVN2746927469epcas5p2N;
-	Sun,  8 Mar 2026 04:30:01 +0000 (GMT)
-Received: from epcpadp1new (unknown [182.195.40.141]) by
-	epsnrtp02.localdomain (Postfix) with ESMTP id 4fT6cn4W4kz2SSKZ; Sun,  8 Mar
-	2026 04:30:01 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
-	20260306102615epcas5p3d75eee2880f9c2e52d3a7eb29c1b1e1b~aOaL_LdTd0510005100epcas5p3e;
-	Fri,  6 Mar 2026 10:26:15 +0000 (GMT)
-Received: from test-PowerEdge-R740xd (unknown [107.99.41.79]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260306102614epsmtip1394ce8285158e3a6411ec2f143f759b1~aOaKuVztH1949319493epsmtip1a;
-	Fri,  6 Mar 2026 10:26:14 +0000 (GMT)
-Date: Fri, 6 Mar 2026 15:56:09 +0530
-From: Neeraj Kumar <s.neeraj@samsung.com>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, gost.dev@samsung.com,
-	a.manzanares@samsung.com, vishak.g@samsung.com, neeraj.kernel@gmail.com,
-	cpgs@samsung.com
-Subject: Re: [PATCH V6 00/18] Add CXL LSA 2.1 format support in nvdimm and
- cxl pmem
-Message-ID: <1983025922.01772944201612.JavaMail.epsvc@epcpadp1new>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="LYNxQHSM"
+Received: by mail-vs1-f47.google.com with SMTP id ada2fe7eead31-5ffa0b23a60so1895361137.0
+        for <nvdimm@lists.linux.dev>; Sun, 08 Mar 2026 23:27:20 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773037639; cv=none;
+        d=google.com; s=arc-20240605;
+        b=DcPvZELtWYmybMWDvAFA0GNfvQd3ky55VNRgB3PlyR9K721V7FjUPcusMPTfgvGIkl
+         VuG0EXWjjuPejA1VxSzqB4QEp9Mc0RmpaTWZiTfWSR//pd/7ajKAI/na/ryTW7XMYjiF
+         iWY9OmNWAXHSz70CsfN8ZXVuyOj3xDbyVlpIZXGHCToKlHwiEZuZEvwj+hpDbGMe5XEy
+         PvuHVYnH/vbvAZtcoOuMqnKwDZ9zYoVH5MxB4iFhA/qhPYJ3f8nvFi6oxk3ObM9xiDVG
+         jQHWJ/V4Y2r0HDKEifBR/PV3qOH93glt71zGzYht/1Mg0ntjZ5DE6grbzbnobU8y+9yM
+         YJNw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:mime-version:references:in-reply-to
+         :from:dkim-signature;
+        bh=uthJSqpDGuue4aeWUw9ODMGHbGatL8hg/W+VDtshmKs=;
+        fh=/XQMeSZZ/z07CrViC9OemH/K/1A2L5hZ8VSN2kp3hLA=;
+        b=dxzgS3O/CvIi/sfGIs47Qn7bx4e9JLGlpSdNFzZKatOXZBCKOlWUE0aYaHYbGAdjiK
+         Nv41juPQuFZB4dgNXKZMb3exwIYfPVk3oYOGneHHHGOHRXJD/RfND5mQszS2iHhV14Er
+         nq931D5OHnSQRKgaUnTuU8jp1KL2A4HurLwM7ieWXh3MC7NXPe8yIJf352ubkBNTUpU6
+         RqUCpskuNg3y7NMfwFktyu5jbS7QI87dcc+SiZ7Xdr/KYf2Nrnzs63PkrX77EMxgC3V5
+         A6Vbh5FI9tGCz/Gmx0a+QBhp9Wo2Wn7mdUfyORGYymod1kDdxLKbrdcpNSwBMDSvC/K2
+         N/JA==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1773037639; x=1773642439; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:mime-version:references:in-reply-to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=uthJSqpDGuue4aeWUw9ODMGHbGatL8hg/W+VDtshmKs=;
+        b=LYNxQHSMtDxRc6GfEZoWbEZiPSEfe8yqpaDxhQoVfGcp9Nqa+/AXwIcVLk0x5DdZxq
+         kNoknNBPzS5uEt+8EcxqsfDsKCUcvwz1Z9Ax3fmcORuC8uExkbH8NTRsNVGlhMQ8I/SO
+         rGVgRjfAk2iAAdqwrfgVECrExcUCH+eM+V9IELal2nrYpkngtGqyCCKy9mwiZBz+f1kX
+         XuuaSmXDLBPGqjaVLH9VJnPAzpd7/iJ1ULwTVxYEImii10JoVg3bQP9OJ/aO9YJxsDU/
+         sXDhPbWFMyDIbf7wc2O0+rtqM7uuyRJ7iRo/KdWNqRJkwR8UYBaJSQNlkhfEBsohb3Ci
+         sjSw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1773037639; x=1773642439;
+        h=cc:to:subject:message-id:date:mime-version:references:in-reply-to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=uthJSqpDGuue4aeWUw9ODMGHbGatL8hg/W+VDtshmKs=;
+        b=tS5glL5up7HX94LWaHpDlF6h4ymK4GpQ0IOEfw4igar8vNvgGWg+NEW38CGCLPPAZs
+         7r/5QKL6lqNWKzcrSAOlJuYi2csy7Xy1gJXS+bZv/F5hDNTzxOWxQXSRgTDxpQS7nt8t
+         tOS8YrrKgKtlhGtGWz5Onsih3qs/0tJXehWyxd+lk0103+qMSs56CiBsrw0vGBVJbaqa
+         u/hWb2OvRex84PR9w6Qk0lLPSIN9r8erOK3dpkTZ8LMt6x8mm1/k4y21wC7ZicVNSRsU
+         SfRiB4pwafMIZM6JSMzIUxPxzi2Ypnnb4idpg49ycp9u/wbF48MKoNfcRlhOWbCKW3JD
+         Sr4Q==
+X-Forwarded-Encrypted: i=1; AJvYcCU8GhgmV/YwYTXUqB8EE5XQ34XWPDzQ24CRWHU3Xi+me+JyLsDK5JOCGvFdv/VPXfyd4ULiU14=@lists.linux.dev
+X-Gm-Message-State: AOJu0Ywr2ZFrq+xAXSY+S51s++fMBAzd6zAFfEnWrCQfiw3xLciWGLED
+	8CtP6KMxjxVDuQT7olmDLPLMPetbux9eQbLF+KDh4wFoMhqgLbhFiBkvH3WxGob3N0BYRITkPp1
+	4K6DbSGr1qUnFdfMNK9OfW1B5UtE/eQKAqLly2aNG
+X-Gm-Gg: ATEYQzxpUFhwPwmw1daLTP/3Oc4appLSdPV7+bzlPAn7dlZwavSNQawaHs4QMvGF+0L
+	R9AaZ/RZLUwFwaEcLKQ15/Lp1GQlr1njLkehJmZNAmnS6YK/l8K047bTsB0A5XZiupgszDY7je+
+	ya9rmri1V+indYUwAJsQ5Mp0rfomew1rlTArHyLJQ6I7W0vA3mpasF5gSSs+G5bZLDB4u94+864
+	gNl7US/2UYVEjOLgxDVBlypiUYqo9XGSqJFPeujYZdP+vqjoPjzg4rAfN6Y61XqfZJE2TyFUUW5
+	YPa6rInGH0xzapfh0MOEYpPdWPQYOky88fCy/2SIJ2BpKxoRI9wKgp3GRq8fWt9djudqew==
+X-Received: by 2002:a05:6102:c01:b0:5db:f920:fa9a with SMTP id
+ ada2fe7eead31-5ffe63cdb3fmr2925679137.41.1773037638925; Sun, 08 Mar 2026
+ 23:27:18 -0700 (PDT)
+Received: from 176938342045 named unknown by gmailapi.google.com with
+ HTTPREST; Sun, 8 Mar 2026 23:27:18 -0700
+Received: from 176938342045 named unknown by gmailapi.google.com with
+ HTTPREST; Sun, 8 Mar 2026 23:27:18 -0700
+From: Ackerley Tng <ackerleytng@google.com>
+In-Reply-To: <aaWlxFh-bqUYXgUo@groves.net>
+References: <0100019bd33b1f66-b835e86a-e8ae-443f-a474-02db88f7e6db-000000@email.amazonses.com>
+ <20260118223110.92320-1-john@jagalactic.com> <0100019bd33bf5cc-3ab17b9e-cd67-4f0b-885e-55658a1207f0-000000@email.amazonses.com>
+ <CAEvNRgHmfpx0BXPzt81DenKbyvQ1QwM5rZeJWMnKUO8fB8MeqA@mail.gmail.com> <aaWlxFh-bqUYXgUo@groves.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <46584975-f4c5-4f3a-80b2-2ef5a0e4dd6b@intel.com>
-X-CMS-MailID: 20260306102615epcas5p3d75eee2880f9c2e52d3a7eb29c1b1e1b
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----Z2c.vZYTqadSC4aRsepS5iQJaG.Uxsawwox_nsRND3Ee9O4E=_73e4c_"
-CMS-TYPE: 105P
-X-CPGSPASS: Y
-X-Hop-Count: 3
-X-CMS-RootMailID: 20260123113121epcas5p125bc64b4714525d7bbd489cd9be9ba91
-References: <CGME20260123113121epcas5p125bc64b4714525d7bbd489cd9be9ba91@epcas5p1.samsung.com>
-	<20260123113112.3488381-1-s.neeraj@samsung.com>
-	<46584975-f4c5-4f3a-80b2-2ef5a0e4dd6b@intel.com>
+Date: Sun, 8 Mar 2026 23:27:18 -0700
+X-Gm-Features: AaiRm52XcCdEx1v_REqqEWCzJAbxKWYQSWfQ7emIhDTUFVwrkCx8Utez8oZPcxo
+Message-ID: <CAEvNRgEzb6Ux+iVFT=F6jc_R8V=LTYCigHp+yaHFkdrX82-yvQ@mail.gmail.com>
+Subject: Re: [PATCH V7 02/19] dax: Factor out dax_folio_reset_order() helper
+To: John Groves <John@groves.net>
+Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	John Groves <jgroves@fastmail.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, Gregory Price <gourry@gourry.net>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	"venkataravis@micron.com" <venkataravis@micron.com>, 
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-------Z2c.vZYTqadSC4aRsepS5iQJaG.Uxsawwox_nsRND3Ee9O4E=_73e4c_
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Disposition: inline
+John Groves <John@groves.net> writes:
 
-On 23/01/26 10:52AM, Dave Jiang wrote:
 >
+> [...snip...]
 >
->On 1/23/26 4:30 AM, Neeraj Kumar wrote:
->> Introduction:
->> =============
->> CXL Persistent Memory (Pmem) devices region, namespace and content must be
->> persistent across system reboot. In order to achieve this persistency, it
->> uses Label Storage Area (LSA) to store respective metadata. During system
->> reboot, stored metadata in LSA is used to bring back the region, namespace
->> and content of CXL device in its previous state.
->> CXL specification provides Get_LSA (4102h) and Set_LSA (4103h) mailbox
->> commands to access the LSA area. nvdimm driver is using same commands to
->> get/set LSA data.
+>>
+>> I'm implementing something similar for guest_memfd and was going to
+>> reuse __split_folio_to_order(). Would you consider using the
+>> __split_folio_to_order() function?
+>>
+>> I see that dax_folio_reset_order() needs to set f->share to 0 though,
+>> which is a union with index, and __split_folio_to_order() sets non-0
+>> indices.
+>>
+>> Also, __split_folio_to_order() doesn't handle f->pgmap (or f->lru).
+>>
+>> Could these two steps be added to a separate loop after
+>> __split_folio_to_order()?
+>>
+>> Does dax_folio_reset_order() need to handle any of the folio flags that
+>> __split_folio_to_order() handles?
 >
->Hi Neeraj,
->I'm attempting to vet the series before applying to cxl/next. But it seems to be failing multiple unit regression tests in cxl_test. We need to figure out why before the series can be merged. Most likely the changes in this series also require cxl_test updates. Can you please take a look? I will also take a look and try to help you address the issues. Thanks
+> Sorry to reply slowly; this took some thought.
 >
->Ok:                 10
->Expected Fail:      0
->Fail:               4
->Unexpected Pass:    0
->Skipped:            1
->Timeout:            0
+
+No worries, thanks for your consideration!
+
+> I'm nervous about sharing folio initialization code between the page cache
+> and dax. Might this be something we could unify after the fact - if it
+> passes muster?
 >
->The script below [1] can get you up and running with a qemu environment where you can run cxl_test.
+> Unifying paths like this could be regression-prone (page cache changes
+> breaking dax or vice versa) unless it's really well conceived...
 >
->.../run_qemu/run_qemu.sh --cxl --cxl-test --cxl-debug --hmat -r wipe
+
+guest_memfd's (future) usage of __split_folio_to_order() is probably
+closer in spirit to the original usage of __split_folio_to_order() that
+dax's, feel free go ahead :)
+
+For guest_memfd, I do want to use __split_folio_to_order() since I do
+want to make sure that any updates to page flags are taken into account
+for guest_memfd as well.
+
+>>
+>> >  static inline unsigned long dax_folio_put(struct folio *folio)
+>> >  {
+>> >  	unsigned long ref;
+>> > @@ -391,28 +430,13 @@ static inline unsigned long dax_folio_put(struct folio *folio)
+>> >  	if (ref)
+>> >  		return ref;
+>> >
+>> > -	folio->mapping = NULL;
+>> > -	order = folio_order(folio);
+>> > -	if (!order)
+>> > -		return 0;
+>> > -	folio_reset_order(folio);
+>> > +	order = dax_folio_reset_order(folio);
+>> >
+>> > +	/* Debug check: verify refcounts are zero for all sub-folios */
+>> >  	for (i = 0; i < (1UL << order); i++) {
+>> > -		struct dev_pagemap *pgmap = page_pgmap(&folio->page);
+>> >  		struct page *page = folio_page(folio, i);
+>> > -		struct folio *new_folio = (struct folio *)page;
+>> >
+>> > -		ClearPageHead(page);
+>> > -		clear_compound_head(page);
+>> > -
+>> > -		new_folio->mapping = NULL;
+>> > -		/*
+>> > -		 * Reset pgmap which was over-written by
+>> > -		 * prep_compound_page().
+>> > -		 */
+>>
+>> Actually, where's the call to prep_compound_page()? Was that in
+>> dax_folio_init()? Is this comment still valid and does pgmap have to be
+>> reset?
 >
->cd ndctl
->meson test -C build --suite=cxl
+> Yep, in dax_folio_init()...
 >
->[1] https://github.com/pmem/run_qemu
+
+On another look, prep_compound_tail() in prep_compound_page() is the
+one that overwrites folio->pgmap, by writing to page->compound_head,
+which aliases with pgmap.
+
+No issues here. I was just comparing the before/after of this
+refactoring and saw that the comment was dropped, which led me to look
+more at this part.
+
+Reviewed-by: Ackerley Tng <ackerleytng@google.com>
+
 >
->DJ
-
-Sure Dave,
-
-I am able to reproduce the same, I will analyze and fix them in next patch series.
-
-
-Regards,
-Neeraj
-
-------Z2c.vZYTqadSC4aRsepS5iQJaG.Uxsawwox_nsRND3Ee9O4E=_73e4c_
-Content-Type: text/plain; charset="utf-8"
-
-
-------Z2c.vZYTqadSC4aRsepS5iQJaG.Uxsawwox_nsRND3Ee9O4E=_73e4c_--
-
+> Thanks,
+> John
+>
+> [snip]
