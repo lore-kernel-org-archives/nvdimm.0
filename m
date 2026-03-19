@@ -1,38 +1,38 @@
-Received: from a48-180.smtp-out.amazonses.com (a48-180.smtp-out.amazonses.com [54.240.48.180])
+Received: from a11-77.smtp-out.amazonses.com (a11-77.smtp-out.amazonses.com [54.240.11.77])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3DC836215D
-	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 13:17:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.48.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 419163A1E70
+	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 13:18:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.77
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773926242; cv=none; b=Uql0f63434HQplwCZCxjHaG1lepO+yQVtcM//n6hNVlFWIOqywAKBe3F5qGVnW83k+5CFKXzJjP5vXsXOJHOV9iz7xPPZXKkvmynJnSueJS0L72qKVL9GKLRuevP2EBm5tF+g1V7+5mBMa7gPYSufVtKmjPDsbnEOYsGswZrOk8=
+	t=1773926323; cv=none; b=f0c9ZonRnlme0o9vlpN365wA/FuTy/GspMPJUFK3P3JHH8aE1GVoTvJhJ/M+UigItAfeLPBMIiohwpakgsD6Qx/MKEqWOd0MFciWNmKhIYwoeYqnnGCGQBBw4ssbI+PHEAkLoATWyAzvGkrf9ZxWZQUs43KHMoLImUg8w9uhfVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773926242; c=relaxed/simple;
-	bh=aVOWktn7Be6Ghxm+vuGHaN6h+AiXFLMEER9GbIe1bII=;
+	s=arc-20240116; t=1773926323; c=relaxed/simple;
+	bh=apK14KEnd4MSIdbRs4cAfLy5nVg/tgpi8R8FgWFdru4=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=Y3Fj/kK6v4Vi6Dq/3mNamMaqtqcfxRqE6m9SLCJxLF5Sv23szt60GhrxptWs+kyelskHmY5DvXEc4K41aS0rj/rTMzGbiEnMHR677Ca0/pldSKCowdqzedoaeczpn2cavw4vuGSQC4Do1XJFnJdYcszn3N3XgYOyL2iEUQRQOZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=S6HXL8x6; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=PQweVdUJ; arc=none smtp.client-ip=54.240.48.180
+	 References:Message-ID; b=o5xvstVSyPquTh5f/tTLA5Lljv4JQZOXQZahcKjer0TuE+ZYnApymvHulc83vEwfmmirt7u+toRd6V0dxtH7k08Rgqb+FATP7GVvugCRn1nd+77vnbmeIFvhdWI7F95LaNTGZGNWZxaPlEaJpl5jSNEWCxK8izTZUQjGKcEyi8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=uDRCZMFw; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=gGwqoxuA; arc=none smtp.client-ip=54.240.11.77
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="S6HXL8x6";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="PQweVdUJ"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="uDRCZMFw";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="gGwqoxuA"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1773926239;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1773926321;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=aVOWktn7Be6Ghxm+vuGHaN6h+AiXFLMEER9GbIe1bII=;
-	b=S6HXL8x6VwD6fzoVp/ppiAFZ5MAPtEyh+gMTddjIhbWfjFy78ab9WNNeG/NyWs/4
-	cVECfh8Pav+DeTFwTMmp0Y75dv24FD8iBEyUE8lbMco+J2dHzDaA4SgVrIdRN7Y5Vl2
-	Ui6dkP81BPFyQF09nvZWANNqqykS2JkBxZI9paZ4=
+	bh=apK14KEnd4MSIdbRs4cAfLy5nVg/tgpi8R8FgWFdru4=;
+	b=uDRCZMFwSYpjAAaQwCu2y5e96z4Lvqt6FzLMoKHqL71/4LuucTqEPpY2vz4a7JcB
+	+9rv4TpIvL/Jg9KeedBa13cFZnFZh+stwM7qajIFN1AudfJJEcVt1eQAs7Q2mywr5aB
+	az7nqwoT3ZdP+5RGLA8CzB4nUZZkZ6rIyZPijc+8=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1773926239;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1773926321;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=aVOWktn7Be6Ghxm+vuGHaN6h+AiXFLMEER9GbIe1bII=;
-	b=PQweVdUJm0x0NKZFX1tv/mpnfIyx5Zov+wb6S5Bp8HAUhX7VQvkzXEvpmOpoxXbt
-	uK2hN/UyJ18BsgL8xZ+FHN9FIF6xKdcTL4AaFm0fDQYg7EEc3l4PFSNjuxd8foauwV/
-	2m+AHXJJ2iS8mvH+iFBURs3k0GgtlN/44iJV4myY=
-Subject: [PATCH V8 01/10] famfs_fuse: Update macro
- s/FUSE_IS_DAX/FUSE_IS_VIRTIO_DAX/
+	bh=apK14KEnd4MSIdbRs4cAfLy5nVg/tgpi8R8FgWFdru4=;
+	b=gGwqoxuAYLfJbn9UEMkOl68xFtUkRF6PyuE+7esjaPOr806sqdTJmNJ4t4GOIfrH
+	TYQG1yxBJTEKXiuJngNqLUBSgLn49rGEDbMd9qRS0qKUf5jXvjO4fxxe/73IdrsZlmH
+	NTJ70jM3XScACxjVQgDNG6DEoH9IB+kCkhKm/8VM=
+Subject: [PATCH V8 02/10] famfs_fuse: Basic fuse kernel ABI enablement for
+ famfs
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -74,7 +74,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Thu, 19 Mar 2026 13:17:19 +0000
+Date: Thu, 19 Mar 2026 13:18:40 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -85,100 +85,74 @@ Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 In-Reply-To: <20260318203054.4344.fuse@groves.net>
 References: <20260318203054.4344.fuse@groves.net> 
- <20260319131704.13280-1-john@jagalactic.com>
+ <20260319131724.13311-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHctz+ZMjBZ3RwkQ1uhcQrmTMqILwAAVQgdABjHKME=
-Thread-Topic: [PATCH V8 01/10] famfs_fuse: Update macro
- s/FUSE_IS_DAX/FUSE_IS_VIRTIO_DAX/
-X-Wm-Sent-Timestamp: 1773926238
+Thread-Index: AQHctz+ZMjBZ3RwkQ1uhcQrmTMqILwAAVQgdABjTUPg=
+Thread-Topic: [PATCH V8 02/10] famfs_fuse: Basic fuse kernel ABI enablement
+ for famfs
+X-Wm-Sent-Timestamp: 1773926319
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019d063e4cd5-b06bec1a-ff2c-4eb2-95e2-06223cd483b6-000000@email.amazonses.com>
+Message-ID: <0100019d063f8af6-1c38f4ea-2a79-4220-a646-d6dc650cdf31-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.03.19-54.240.48.180
+X-SES-Outgoing: 2026.03.19-54.240.11.77
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AVirtio_fs now needs to det=
-ermine if an inode is DAX && not famfs.=0D=0AThis relaces the FUSE_IS_DAX=
-() macro with FUSE_IS_VIRTIO_DAX(),=0D=0Ain preparation for famfs in late=
-r commits. The dummy=0D=0Afuse_file_famfs() macro will be replaced with a=
- working=0D=0Afunction.=0D=0A=0D=0AReviewed-by: Joanne Koong <joannelkoon=
-g@gmail.com>=0D=0AReviewed-by: Dave Jiang <dave.jiang@intel.com>=0D=0ASig=
-ned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A fs/fuse/dir.c   =
- |  2 +-=0D=0A fs/fuse/file.c   | 13 ++++++++-----=0D=0A fs/fuse/fuse_i.h=
- |  9 ++++++++-=0D=0A fs/fuse/inode.c  |  4 ++--=0D=0A fs/fuse/iomode.c |=
-  2 +-=0D=0A 5 files changed, 20 insertions(+), 10 deletions(-)=0D=0A=0D=0A=
-diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c=0D=0Aindex 7ac6b232ef12..c63f0=
-97bc697 100644=0D=0A--- a/fs/fuse/dir.c=0D=0A+++ b/fs/fuse/dir.c=0D=0A@@ =
--2161,7 +2161,7 @@ int fuse_do_setattr(struct mnt_idmap *idmap, struct de=
-ntry *dentry,=0D=0A =09=09is_truncate =3D true;=0D=0A =09}=0D=0A=20=0D=0A=
--=09if (FUSE_IS_DAX(inode) && is_truncate) {=0D=0A+=09if (FUSE_IS_VIRTIO_=
-DAX(fi) && is_truncate) {=0D=0A =09=09filemap_invalidate_lock(mapping);=0D=
-=0A =09=09fault_blocked =3D true;=0D=0A =09=09err =3D fuse_dax_break_layo=
-uts(inode, 0, -1);=0D=0Adiff --git a/fs/fuse/file.c b/fs/fuse/file.c=0D=0A=
-index b1bb7153cb78..4ee5065737d8 100644=0D=0A--- a/fs/fuse/file.c=0D=0A++=
-+ b/fs/fuse/file.c=0D=0A@@ -252,7 +252,7 @@ static int fuse_open(struct i=
-node *inode, struct file *file)=0D=0A =09int err;=0D=0A =09bool is_trunca=
-te =3D (file->f_flags & O_TRUNC) && fc->atomic_o_trunc;=0D=0A =09bool is_=
-wb_truncate =3D is_truncate && fc->writeback_cache;=0D=0A-=09bool dax_tru=
-ncate =3D is_truncate && FUSE_IS_DAX(inode);=0D=0A+=09bool dax_truncate =3D=
- is_truncate && FUSE_IS_VIRTIO_DAX(fi);=0D=0A=20=0D=0A =09if (fuse_is_bad=
-(inode))=0D=0A =09=09return -EIO;=0D=0A@@ -1812,11 +1812,12 @@ static ssi=
-ze_t fuse_file_read_iter(struct kiocb *iocb, struct iov_iter *to)=0D=0A =09=
-struct file *file =3D iocb->ki_filp;=0D=0A =09struct fuse_file *ff =3D fi=
-le->private_data;=0D=0A =09struct inode *inode =3D file_inode(file);=0D=0A=
-+=09struct fuse_inode *fi =3D get_fuse_inode(inode);=0D=0A=20=0D=0A =09if=
- (fuse_is_bad(inode))=0D=0A =09=09return -EIO;=0D=0A=20=0D=0A-=09if (FUSE=
-_IS_DAX(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09return f=
-use_dax_read_iter(iocb, to);=0D=0A=20=0D=0A =09/* FOPEN_DIRECT_IO overrid=
-es FOPEN_PASSTHROUGH */=0D=0A@@ -1833,11 +1834,12 @@ static ssize_t fuse_=
-file_write_iter(struct kiocb *iocb, struct iov_iter *from)=0D=0A =09struc=
-t file *file =3D iocb->ki_filp;=0D=0A =09struct fuse_file *ff =3D file->p=
-rivate_data;=0D=0A =09struct inode *inode =3D file_inode(file);=0D=0A+=09=
-struct fuse_inode *fi =3D get_fuse_inode(inode);=0D=0A=20=0D=0A =09if (fu=
-se_is_bad(inode))=0D=0A =09=09return -EIO;=0D=0A=20=0D=0A-=09if (FUSE_IS_=
-DAX(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09return fuse_=
-dax_write_iter(iocb, from);=0D=0A=20=0D=0A =09/* FOPEN_DIRECT_IO override=
-s FOPEN_PASSTHROUGH */=0D=0A@@ -2370,10 +2372,11 @@ static int fuse_file_=
-mmap(struct file *file, struct vm_area_struct *vma)=0D=0A =09struct fuse_=
-file *ff =3D file->private_data;=0D=0A =09struct fuse_conn *fc =3D ff->fm=
-->fc;=0D=0A =09struct inode *inode =3D file_inode(file);=0D=0A+=09struct =
-fuse_inode *fi =3D get_fuse_inode(inode);=0D=0A =09int rc;=0D=0A=20=0D=0A=
- =09/* DAX mmap is superior to direct_io mmap */=0D=0A-=09if (FUSE_IS_DAX=
-(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09return fuse_dax=
-_mmap(file, vma);=0D=0A=20=0D=0A =09/*=0D=0A@@ -2934,7 +2937,7 @@ static =
-long fuse_file_fallocate(struct file *file, int mode, loff_t offset,=0D=0A=
- =09=09.mode =3D mode=0D=0A =09};=0D=0A =09int err;=0D=0A-=09bool block_f=
-aults =3D FUSE_IS_DAX(inode) &&=0D=0A+=09bool block_faults =3D FUSE_IS_VI=
-RTIO_DAX(fi) &&=0D=0A =09=09(!(mode & FALLOC_FL_KEEP_SIZE) ||=0D=0A =09=09=
- (mode & (FALLOC_FL_PUNCH_HOLE | FALLOC_FL_ZERO_RANGE)));=0D=0A=20=0D=0Ad=
-iff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h=0D=0Aindex 7f16049387d1..=
-45e108dec771 100644=0D=0A--- a/fs/fuse/fuse_i.h=0D=0A+++ b/fs/fuse/fuse_i=
-=2Eh=0D=0A@@ -1508,7 +1508,14 @@ void fuse_free_conn(struct fuse_conn *fc=
-);=0D=0A=20=0D=0A /* dax.c */=0D=0A=20=0D=0A-#define FUSE_IS_DAX(inode) (=
-IS_ENABLED(CONFIG_FUSE_DAX) && IS_DAX(inode))=0D=0A+static inline bool fu=
-se_file_famfs(struct fuse_inode *fuse_inode) /* Will be superseded */=0D=0A=
-+{=0D=0A+=09(void)fuse_inode;=0D=0A+=09return false;=0D=0A+}=0D=0A+#defin=
-e FUSE_IS_VIRTIO_DAX(fuse_inode) (IS_ENABLED(CONFIG_FUSE_DAX)=09\=0D=0A+=09=
-=09=09=09=09&& IS_DAX(&fuse_inode->inode)  \=0D=0A+=09=09=09=09=09&& !fus=
-e_file_famfs(fuse_inode))=0D=0A=20=0D=0A ssize_t fuse_dax_read_iter(struc=
-t kiocb *iocb, struct iov_iter *to);=0D=0A ssize_t fuse_dax_write_iter(st=
-ruct kiocb *iocb, struct iov_iter *from);=0D=0Adiff --git a/fs/fuse/inode=
-=2Ec b/fs/fuse/inode.c=0D=0Aindex e57b8af06be9..1333b3ebb18a 100644=0D=0A=
---- a/fs/fuse/inode.c=0D=0A+++ b/fs/fuse/inode.c=0D=0A@@ -162,7 +162,7 @@=
- static void fuse_evict_inode(struct inode *inode)=0D=0A =09/* Will write=
- inode on close/munmap and in all other dirtiers */=0D=0A =09WARN_ON(inod=
-e_state_read_once(inode) & I_DIRTY_INODE);=0D=0A=20=0D=0A-=09if (FUSE_IS_=
-DAX(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09dax_break_la=
-yout_final(inode);=0D=0A=20=0D=0A =09truncate_inode_pages_final(&inode->i=
-_data);=0D=0A@@ -170,7 +170,7 @@ static void fuse_evict_inode(struct inod=
-e *inode)=0D=0A =09if (inode->i_sb->s_flags & SB_ACTIVE) {=0D=0A =09=09st=
-ruct fuse_conn *fc =3D get_fuse_conn(inode);=0D=0A=20=0D=0A-=09=09if (FUS=
-E_IS_DAX(inode))=0D=0A+=09=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09=09f=
-use_dax_inode_cleanup(inode);=0D=0A =09=09if (fi->nlookup) {=0D=0A =09=09=
-=09fuse_queue_forget(fc, fi->forget, fi->nodeid,=0D=0Adiff --git a/fs/fus=
-e/iomode.c b/fs/fuse/iomode.c=0D=0Aindex 3728933188f3..31ee7f3304c6 10064=
-4=0D=0A--- a/fs/fuse/iomode.c=0D=0A+++ b/fs/fuse/iomode.c=0D=0A@@ -203,7 =
-+203,7 @@ int fuse_file_io_open(struct file *file, struct inode *inode)=0D=
-=0A =09 * io modes are not relevant with DAX and with server that does no=
-t=0D=0A =09 * implement open.=0D=0A =09 */=0D=0A-=09if (FUSE_IS_DAX(inode=
-) || !ff->args)=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi) || !ff->args)=0D=0A =09=
-=09return 0;=0D=0A=20=0D=0A =09/*=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
+From: John Groves <john@groves.net>=0D=0A=0D=0AThis patch starts the kern=
+el ABI enablement of famfs in fuse.=0D=0A=0D=0A- Kconfig: Add FUSE_FAMFS_=
+DAX config parameter, to control=0D=0A  compilation of famfs within fuse.=
+=0D=0A- FUSE_DAX_FMAP flag in INIT request/reply=0D=0A- fuse_conn->famfs_=
+iomap (enable famfs-mapped files) to denote a=0D=0A  famfs-enabled connec=
+tion=0D=0A=0D=0AReviewed-by: Joanne Koong <joannelkoong@gmail.com>=0D=0AR=
+eviewed-by: Dave Jiang <dave.jiang@intel.com>=0D=0ASigned-off-by: John Gr=
+oves <john@groves.net>=0D=0A---=0D=0A fs/fuse/Kconfig           | 14 ++++=
+++++++++++=0D=0A fs/fuse/fuse_i.h          |  3 +++=0D=0A fs/fuse/inode.c=
+           |  6 ++++++=0D=0A include/uapi/linux/fuse.h |  5 +++++=0D=0A 4=
+ files changed, 28 insertions(+)=0D=0A=0D=0Adiff --git a/fs/fuse/Kconfig =
+b/fs/fuse/Kconfig=0D=0Aindex 3a4ae632c94a..5ca9fae62c7b 100644=0D=0A--- a=
+/fs/fuse/Kconfig=0D=0A+++ b/fs/fuse/Kconfig=0D=0A@@ -76,3 +76,17 @@ confi=
+g FUSE_IO_URING=0D=0A=20=0D=0A =09  If you want to allow fuse server/clie=
+nt communication through io-uring,=0D=0A =09  answer Y=0D=0A+=0D=0A+confi=
+g FUSE_FAMFS_DAX=0D=0A+=09bool "FUSE support for fs-dax filesystems backe=
+d by devdax"=0D=0A+=09depends on FUSE_FS=0D=0A+=09depends on DEV_DAX=0D=0A=
++=09depends on FS_DAX=0D=0A+=09default FUSE_FS=0D=0A+=09help=0D=0A+=09  T=
+his enables the fabric-attached memory file system (famfs),=0D=0A+=09  wh=
+ich enables formatting devdax memory as a file system. Famfs=0D=0A+=09  i=
+s primarily intended for scale-out shared access to=0D=0A+=09  disaggrega=
+ted memory.=0D=0A+=0D=0A+=09  To enable famfs or other fuse/fs-dax file s=
+ystems, answer Y=0D=0Adiff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h=0D=
+=0Aindex 45e108dec771..2839efb219a9 100644=0D=0A--- a/fs/fuse/fuse_i.h=0D=
+=0A+++ b/fs/fuse/fuse_i.h=0D=0A@@ -921,6 +921,9 @@ struct fuse_conn {=0D=0A=
+ =09/* Is synchronous FUSE_INIT allowed=3F */=0D=0A =09unsigned int sync_=
+init:1;=0D=0A=20=0D=0A+=09/* dev_dax_iomap support for famfs */=0D=0A+=09=
+unsigned int famfs_iomap:1;=0D=0A+=0D=0A =09/* Use io_uring for communica=
+tion */=0D=0A =09unsigned int io_uring;=0D=0A=20=0D=0Adiff --git a/fs/fus=
+e/inode.c b/fs/fuse/inode.c=0D=0Aindex 1333b3ebb18a..fa77add7d9f8 100644=0D=
+=0A--- a/fs/fuse/inode.c=0D=0A+++ b/fs/fuse/inode.c=0D=0A@@ -1456,6 +1456=
+,10 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_=
+args *args,=0D=0A=20=0D=0A =09=09=09if (flags & FUSE_REQUEST_TIMEOUT)=0D=0A=
+ =09=09=09=09timeout =3D arg->request_timeout;=0D=0A+=0D=0A+=09=09=09if (=
+IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&=0D=0A+=09=09=09    flags & FUSE_DAX_=
+FMAP)=0D=0A+=09=09=09=09fc->famfs_iomap =3D 1;=0D=0A =09=09} else {=0D=0A=
+ =09=09=09ra_pages =3D fc->max_read / PAGE_SIZE;=0D=0A =09=09=09fc->no_lo=
+ck =3D 1;=0D=0A@@ -1517,6 +1521,8 @@ static struct fuse_init_args *fuse_n=
+ew_init(struct fuse_mount *fm)=0D=0A =09=09flags |=3D FUSE_SUBMOUNTS;=0D=0A=
+ =09if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))=0D=0A =09=09flags |=3D FUSE_=
+PASSTHROUGH;=0D=0A+=09if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))=0D=0A+=09=09=
+flags |=3D FUSE_DAX_FMAP;=0D=0A=20=0D=0A =09/*=0D=0A =09 * This is just a=
+n information flag for fuse server. No need to check=0D=0Adiff --git a/in=
+clude/uapi/linux/fuse.h b/include/uapi/linux/fuse.h=0D=0Aindex c13e1f9a2f=
+12..25686f088e6a 100644=0D=0A--- a/include/uapi/linux/fuse.h=0D=0A+++ b/i=
+nclude/uapi/linux/fuse.h=0D=0A@@ -240,6 +240,9 @@=0D=0A  *  - add FUSE_CO=
+PY_FILE_RANGE_64=0D=0A  *  - add struct fuse_copy_file_range_out=0D=0A  *=
+  - add FUSE_NOTIFY_PRUNE=0D=0A+ *=0D=0A+ *  7.46=0D=0A+ *  - Add FUSE_DA=
+X_FMAP capability - ability to handle in-kernel fsdax maps=0D=0A  */=0D=0A=
+=20=0D=0A #ifndef _LINUX_FUSE_H=0D=0A@@ -448,6 +451,7 @@ struct fuse_file=
+_lock {=0D=0A  * FUSE_OVER_IO_URING: Indicate that client supports io-uri=
+ng=0D=0A  * FUSE_REQUEST_TIMEOUT: kernel supports timing out requests.=0D=
+=0A  *=09=09=09 init_out.request_timeout contains the timeout (in secs)=0D=
+=0A+ * FUSE_DAX_FMAP: kernel supports dev_dax_iomap (aka famfs) fmaps=0D=0A=
+  */=0D=0A #define FUSE_ASYNC_READ=09=09(1 << 0)=0D=0A #define FUSE_POSIX=
+_LOCKS=09(1 << 1)=0D=0A@@ -495,6 +499,7 @@ struct fuse_file_lock {=0D=0A =
+#define FUSE_ALLOW_IDMAP=09(1ULL << 40)=0D=0A #define FUSE_OVER_IO_URING=09=
+(1ULL << 41)=0D=0A #define FUSE_REQUEST_TIMEOUT=09(1ULL << 42)=0D=0A+#def=
+ine FUSE_DAX_FMAP=09=09(1ULL << 43)=0D=0A=20=0D=0A /**=0D=0A  * CUSE INIT=
+ request/reply flags=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
