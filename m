@@ -1,24 +1,24 @@
-Received: from relay.hostedemail.com (smtprelay0010.hostedemail.com [216.40.44.10])
+Received: from relay.hostedemail.com (smtprelay0016.hostedemail.com [216.40.44.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F117E275AF0
-	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 01:28:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F711274B28
+	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 01:28:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773883701; cv=none; b=BdTZa38fLeEnNq9aXDtesJpYCVl081zGJivTpDGt63jJvbTInDqe2r/livmRPeKS1A4munFWbuhJyEwHG+NIQjlxT5TOAlmm3gJIvbDbnFVhwrflbXNvNfp50q1hxpdZCJgFvTFvVAhzvJvuRDYDpQ99lqwyS1KNcBWIMf2dt3U=
+	t=1773883722; cv=none; b=tx1BiJVF29V79LhX0kHNe0xpJhyq4vhbCLsmM/2+q6ieSIGK9lrs3WPhXywz7LTJauPby3kvDRiuHJOsdJo+Kn5m3pjg+k9M68zWmjxF/Clqwv9by+nEi37eDLzFXP9PQAjkq+tvkQChUgWfyZbbzMopE1GjGmur7jj22htngA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773883701; c=relaxed/simple;
-	bh=naDQZF/BhBY22OO/DTY3ljuqY4kUQGW3ahYP4vle2lY=;
+	s=arc-20240116; t=1773883722; c=relaxed/simple;
+	bh=Ry6ZwT2wcK2EVliZ6GUD3Ky5ZHSkdkjw/auIlV0cCvw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ITMJi4EOaXonWeKbm44VcINysQQA0eHd7w/MmdC8BSYU7JI370uKBJBRZAgFZ5EnQsmrU+Q04P9kFGlAc49GxMNXcV1shdX/bTwwZdrMRqpeBA1s5kOaukE+AoGnCvrpWMfyH2LSxMhrZVuj0h+gDUmD3WZ07yVacbotQXXghSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.10
+	 MIME-Version; b=Wd7TcFsHMPa0/VMdyEBV0WshSARK6NYooh9Ff5XVgz82wpM0DNz5bHDYMOJucTzZOI0iJ9ldFFaI2RLc4mJc1fStgoHZP7dVCYsj5cOZ3n3mE4nG5WvQOp7eKmMDyAuTCantwZnZOBDELITDjCYGRlKAvbwC/uvhCqquZbL2SO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf09.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay01.hostedemail.com (Postfix) with ESMTP id E05701C705;
-	Thu, 19 Mar 2026 01:28:15 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf09.hostedemail.com (Postfix) with ESMTPA id 15DAC2003C;
-	Thu, 19 Mar 2026 01:28:04 +0000 (UTC)
+Received: from omf01.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay10.hostedemail.com (Postfix) with ESMTP id C7051C1473;
+	Thu, 19 Mar 2026 01:28:33 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf01.hostedemail.com (Postfix) with ESMTPA id 124C860011;
+	Thu, 19 Mar 2026 01:28:21 +0000 (UTC)
 From: John Groves <john@groves.net>
 To: John Groves <John@Groves.net>,
 	Miklos Szeredi <miklos@szeredi.hu>,
@@ -59,11 +59,12 @@ Cc: John Groves <jgroves@micron.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org,
-	John Groves <john@groves.net>,
-	Ira Weiny <ira.weiny@intel.com>
-Subject: [PATCH V8 1/8] dax: move dax_pgoff_to_phys from [drivers/dax/] device.c to bus.c
-Date: Wed, 18 Mar 2026 20:28:02 -0500
-Message-ID: <20260319012802.4392-1-john@groves.net>
+	Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	John Groves <john@groves.net>
+Subject: [PATCH V8 2/8] dax: Factor out dax_folio_reset_order() helper
+Date: Wed, 18 Mar 2026 20:28:20 -0500
+Message-ID: <20260319012820.4420-1-john@groves.net>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260318202737.4344.dax@groves.net>
 References: <20260318202737.4344.dax@groves.net>
@@ -74,97 +75,122 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Stat-Signature: 9kst1udehgz4p5csn1um45jijio9qu9q
-X-Rspamd-Server: rspamout08
-X-Rspamd-Queue-Id: 15DAC2003C
+X-Stat-Signature: 7jfuk6j51u3nexgxzqcigmkhm6c3yu93
+X-Rspamd-Server: rspamout02
+X-Rspamd-Queue-Id: 124C860011
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX19+AV2eSSAS6FxlX2z8DKZwJht5Z46gcL8=
-X-HE-Tag: 1773883684-654206
-X-HE-Meta: U2FsdGVkX1/xroKMhqzgTNq9a5qWs4ve+37JzDzIHFltAze2DKrKxr0X0JFvJTkL2ysuLqwtjaS+5eYCKJLbcomFFR3d86N9i8F2tP0UOBbaDDC6P+RcdAXWm9AYjgF2GjTRjthpEaPCvQdtnQCDoiNcyw4KPJHjAp5omh+2QtDUzbulyUQzpyPFDm4ydnRH0gAEPNELNFNmQ9tvkjnrQgS+pK8hZnc8XAeGA+Hb77qaVSgNrr2jb39iMwvl3L8jmlqMSvkg6irnUFABhXRaz45a5jBdWAWWSm5mK+uR0EvjpLjvBdrAZt/G1NS7SXh8I28whhBqWyxXej/CT+pDE1JKmqPnDE1p
+X-Session-ID: U2FsdGVkX193/2KCMcDN1qObYg7IwfiEoGyzE3Mk658=
+X-HE-Tag: 1773883701-112408
+X-HE-Meta: U2FsdGVkX1+1VGfp9NQnPzohqKLhLXTmEFvKc1+zZIX4U7QqCLAY72FbBM/05Vv/nQQ0RDpc8hlaZag9axLqmDhnsYs8jYlc8F9Ptb/jalAyGraq27Wz6TUz347vPnyvVEaSZh0JvbQ02c0irK/1y6X1BGjUPTyrHHt5cyiZD1yiBv4OGsyiKeWck+oIdhbH2zZFNW5lNiXFKCjEKsNjV3ID0dNHIGKxzk3HkeqYjuG+hDl1vAVKW9TfuG4tLhaXA2s7VqGT8ntf+iPDHedLc35wjfAAnrFG0AB+4Ac5o47NGsTe9I5ytxn4u7DhQpVO0SRCcCdeiQYKYJHjPOsrpH09uBWcJQ6ce99XeNKa6FiNWXppkhKVVzZ/axrrvXQZ
 
-This function will be used by both device.c and fsdev.c, but both are
-loadable modules. Moving to bus.c puts it in core and makes it available
-to both.
+From: John Groves <John@Groves.net>
 
-No code changes - just relocated.
+Both fs/dax.c:dax_folio_put() and drivers/dax/fsdev.c:
+fsdev_clear_folio_state() (the latter coming in the next commit after this
+one) contain nearly identical code to reset a compound DAX folio back to
+order-0 pages. Factor this out into a shared helper function.
 
+The new dax_folio_reset_order() function:
+- Clears the folio's mapping and share count
+- Resets compound folio state via folio_reset_order()
+- Clears PageHead and compound_head for each sub-page
+- Restores the pgmap pointer for each resulting order-0 folio
+- Returns the original folio order (for callers that need to advance by
+  that many pages)
+
+This simplifies fsdev_clear_folio_state() from ~50 lines to ~15 lines while
+maintaining the same functionality in both call sites.
+
+Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: John Groves <john@groves.net>
 ---
- drivers/dax/bus.c    | 24 ++++++++++++++++++++++++
- drivers/dax/device.c | 23 -----------------------
- 2 files changed, 24 insertions(+), 23 deletions(-)
+ fs/dax.c | 60 +++++++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 42 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index c94c09622516..e4bd5c9f006c 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -1417,6 +1417,30 @@ static const struct device_type dev_dax_type = {
- 	.groups = dax_attribute_groups,
- };
- 
-+/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
-+__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
-+			      unsigned long size)
-+{
-+	int i;
-+
-+	for (i = 0; i < dev_dax->nr_range; i++) {
-+		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
-+		struct range *range = &dax_range->range;
-+		unsigned long long pgoff_end;
-+		phys_addr_t phys;
-+
-+		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
-+		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
-+			continue;
-+		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
-+		if (phys + size - 1 <= range->end)
-+			return phys;
-+		break;
-+	}
-+	return -1;
-+}
-+EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
-+
- static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- {
- 	struct dax_region *dax_region = data->dax_region;
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 528e81240c4d..2d2dbfd35e94 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -57,29 +57,6 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
- 			   vma->vm_file, func);
+diff --git a/fs/dax.c b/fs/dax.c
+index 289e6254aa30..7d7bbfb32c41 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -378,6 +378,45 @@ static void dax_folio_make_shared(struct folio *folio)
+ 	folio->share = 1;
  }
  
--/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
--__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
--		unsigned long size)
--{
--	int i;
--
--	for (i = 0; i < dev_dax->nr_range; i++) {
--		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
--		struct range *range = &dax_range->range;
--		unsigned long long pgoff_end;
--		phys_addr_t phys;
--
--		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
--		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
--			continue;
--		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
--		if (phys + size - 1 <= range->end)
--			return phys;
--		break;
--	}
--	return -1;
--}
--
- static void dax_set_mapping(struct vm_fault *vmf, unsigned long pfn,
- 			      unsigned long fault_size)
++/**
++ * dax_folio_reset_order - Reset a compound DAX folio to order-0 pages
++ * @folio: The folio to reset
++ *
++ * Splits a compound folio back into individual order-0 pages,
++ * clearing compound state and restoring pgmap pointers.
++ *
++ * Returns: the original folio order (0 if already order-0)
++ */
++int dax_folio_reset_order(struct folio *folio)
++{
++	struct dev_pagemap *pgmap = page_pgmap(&folio->page);
++	int order = folio_order(folio);
++	int i;
++
++	folio->mapping = NULL;
++	folio->share = 0;
++
++	if (!order) {
++		folio->pgmap = pgmap;
++		return 0;
++	}
++
++	folio_reset_order(folio);
++
++	for (i = 0; i < (1UL << order); i++) {
++		struct page *page = folio_page(folio, i);
++		struct folio *f = (struct folio *)page;
++
++		ClearPageHead(page);
++		clear_compound_head(page);
++		f->mapping = NULL;
++		f->share = 0;
++		f->pgmap = pgmap;
++	}
++
++	return order;
++}
++
+ static inline unsigned long dax_folio_put(struct folio *folio)
  {
+ 	unsigned long ref;
+@@ -391,28 +430,13 @@ static inline unsigned long dax_folio_put(struct folio *folio)
+ 	if (ref)
+ 		return ref;
+ 
+-	folio->mapping = NULL;
+-	order = folio_order(folio);
+-	if (!order)
+-		return 0;
+-	folio_reset_order(folio);
++	order = dax_folio_reset_order(folio);
+ 
++	/* Debug check: verify refcounts are zero for all sub-folios */
+ 	for (i = 0; i < (1UL << order); i++) {
+-		struct dev_pagemap *pgmap = page_pgmap(&folio->page);
+ 		struct page *page = folio_page(folio, i);
+-		struct folio *new_folio = (struct folio *)page;
+ 
+-		ClearPageHead(page);
+-		clear_compound_head(page);
+-
+-		new_folio->mapping = NULL;
+-		/*
+-		 * Reset pgmap which was over-written by
+-		 * prep_compound_page().
+-		 */
+-		new_folio->pgmap = pgmap;
+-		new_folio->share = 0;
+-		WARN_ON_ONCE(folio_ref_count(new_folio));
++		WARN_ON_ONCE(folio_ref_count((struct folio *)page));
+ 	}
+ 
+ 	return ref;
 -- 
 2.53.0
 
