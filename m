@@ -1,218 +1,175 @@
-Received: from a11-17.smtp-out.amazonses.com (a11-17.smtp-out.amazonses.com [54.240.11.17])
-	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4C553CCFAB
-	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 13:20:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1D1B3806D1
+	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 13:59:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773926452; cv=none; b=HtdlCkaQaQOK+QpTbYLajFUpSXECPcFU0W8BsA8on/R8mDsc5rDcxftSAL6YwRc5WW9/B/HWVWo0o7yYpqRhv1u3HXy4pFfbS2K0Ce37uCgnEOGwqhXbvajDNkFu23dHkRBnrD2/W9To8yymFTudLHFEA35tA6QC/2iN2Ir38qE=
+	t=1773928774; cv=none; b=nQAGujA/2xEkMMXTvSNzGxi2WwRwYCdI4fJfhVFq2Y+0KgK5zDyIzOP3MAcsS+ETT1PkWVm0STVU+Ha2sgyJa5ckvBbllsm5qDjcGqs426kUlD5OOGUzaPtc8Ath5HuxpXcOYNFjNq6NCm5wHvSFK351riHsNHO/aQntPxzxOdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773926452; c=relaxed/simple;
-	bh=Bx2AgnNluOuEDktyq2phe1DPO65wZi0IqrthJ2pAbOQ=;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=RHqvFanjsA0v20+7wBH5iOLDNINFRmD6PjkBlRRS8arksIP8M5gKeuIgqjTvB3BY7+pEvu4n2Ig8njC1tzQWMz7rnYRVJKdACY+qE5tOUfy8oFCuKTGCaQE/TWtITzYXIyBRHbtuLcqiIHInBFdblRLWH0Ab9G6FWpi0eSxuH2I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=lNyxVBHT; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=mAuBZirm; arc=none smtp.client-ip=54.240.11.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="lNyxVBHT";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="mAuBZirm"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1773926449;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=Bx2AgnNluOuEDktyq2phe1DPO65wZi0IqrthJ2pAbOQ=;
-	b=lNyxVBHTYjy++Jm57+mPc5wDA6KIyVwZ9lPiGfRtu0g+R3NEITu4iEBCTmipLCWv
-	ZAkqvK30a6wd+2s9phk3pH1BKRGx4lOTfdaGAxGPlyt3Cb9Gsc5x9ENYig7vLgQoKIe
-	lYA2Plc4qFJ/9HyNQJw2TIy3L1uVYTh1QMbUlVUE=
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1773926449;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=Bx2AgnNluOuEDktyq2phe1DPO65wZi0IqrthJ2pAbOQ=;
-	b=mAuBZirmQnDbEw3cdV/NbnTHD2C//X/W+UkBc7rDy81cQUoqsVaOg//zNUt0lhuk
-	DcfxcSZFvaHN6JVK2m77zZ8xGAeO+x5ZthnTaPtBLpbXQLwRs4L9AyKqLMkqeVOumD2
-	Z79LBDD8J1NKp9vlovBzbRnf7zGYgSvqNisGoSQ8=
-Subject: [PATCH V8 10/10] famfs_fuse: Add documentation
-From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
-To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
-	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
-	=?UTF-8?Q?Dan_Williams?= <dan.j.williams@intel.com>, 
-	=?UTF-8?Q?Bernd_Schubert?= <bschubert@ddn.com>, 
-	=?UTF-8?Q?Alison_Schofiel?= =?UTF-8?Q?d?= <alison.schofield@intel.com>
-Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>, 
-	=?UTF-8?Q?Jonathan_Corbe?= =?UTF-8?Q?t?= <corbet@lwn.net>, 
-	=?UTF-8?Q?Shuah_Khan?= <skhan@linuxfoundation.org>, 
-	=?UTF-8?Q?Vishal_Verma?= <vishal.l.verma@intel.com>, 
-	=?UTF-8?Q?Dave_Jiang?= <dave.jiang@intel.com>, 
-	=?UTF-8?Q?Matthew_Wilcox?= <willy@infradead.org>, 
-	=?UTF-8?Q?Jan_Kara?= <jack@suse.cz>, 
-	=?UTF-8?Q?Alexander_Viro?= <viro@zeniv.linux.org.uk>, 
-	=?UTF-8?Q?David_Hildenbrand?= <david@kernel.org>, 
-	=?UTF-8?Q?Christian_Bra?= =?UTF-8?Q?uner?= <brauner@kernel.org>, 
-	=?UTF-8?Q?Darrick_J_=2E_Wong?= <djwong@kernel.org>, 
-	=?UTF-8?Q?Randy_Dunlap?= <rdunlap@infradead.org>, 
-	=?UTF-8?Q?Jeff_Layton?= <jlayton@kernel.org>, 
-	=?UTF-8?Q?Amir_Goldstein?= <amir73il@gmail.com>, 
-	=?UTF-8?Q?Jonathan_Cameron?= <Jonathan.Cameron@huawei.com>, 
-	=?UTF-8?Q?Stefan_Hajnoczi?= <shajnocz@redhat.com>, 
-	=?UTF-8?Q?Joanne_Koong?= <joannelkoong@gmail.com>, 
-	=?UTF-8?Q?Josef_Bacik?= <josef@toxicpanda.com>, 
-	=?UTF-8?Q?Bagas_Sanjaya?= <bagasdotme@gmail.com>, 
-	=?UTF-8?Q?Chen_Linxuan?= <chenlinxuan@uniontech.com>, 
-	=?UTF-8?Q?James_Morse?= <james.morse@arm.com>, 
-	=?UTF-8?Q?Fuad_Tabba?= <tabba@google.com>, 
-	=?UTF-8?Q?Sean_Christopherson?= <seanjc@google.com>, 
-	=?UTF-8?Q?Shivank_Garg?= <shivankg@amd.com>, 
-	=?UTF-8?Q?Ackerley_Tng?= <ackerleytng@google.com>, 
-	=?UTF-8?Q?Gregory_Pric?= =?UTF-8?Q?e?= <gourry@gourry.net>, 
-	=?UTF-8?Q?Aravind_Ramesh?= <arramesh@micron.com>, 
-	=?UTF-8?Q?Ajay_Joshi?= <ajayjoshi@micron.com>, 
-	=?UTF-8?Q?venkataravis=40micron=2Ecom?= <venkataravis@micron.com>, 
-	=?UTF-8?Q?linux-doc=40vger=2Ekernel=2Eorg?= <linux-doc@vger.kernel.org>, 
-	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
-	=?UTF-8?Q?nvdimm=40lists=2Elinux=2Edev?= <nvdimm@lists.linux.dev>, 
-	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
-	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
-	=?UTF-8?Q?John_Groves?= <john@groves.net>, 
-	=?UTF-8?Q?Jonathan_Cameron?= <jonathan.cameron@huawei.com>
-Date: Thu, 19 Mar 2026 13:20:49 +0000
+	s=arc-20240116; t=1773928774; c=relaxed/simple;
+	bh=TTNzvb3312bF4OJODOgMQqa+yyQSoFloxeONu4CmNao=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qZuJ7aq7RSxh/7Q3ovXiSn3Rj1GsCgbPnpanf5PlLP/9F+oTl5lEWd/c04ElO1rpnLvOwPGmzVHCPHiWTftm2TBQp+GNXFVdR8uWJF3fz3M9DjnNL5D3i5tqKrbX7oI5htPOnx735ni99nW/E0wwofS6ik4TdvVBOuLviZ7zr+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.83])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fc6jb34hCzJ46BP;
+	Thu, 19 Mar 2026 21:58:27 +0800 (CST)
+Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
+	by mail.maildlp.com (Postfix) with ESMTPS id DD35440572;
+	Thu, 19 Mar 2026 21:59:26 +0800 (CST)
+Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
+ (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 19 Mar
+ 2026 13:59:25 +0000
+Date: Thu, 19 Mar 2026 13:59:24 +0000
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>, Ard Biesheuvel <ardb@kernel.org>, "Alison
+ Schofield" <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan Williams
+	<dan.j.williams@intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, "Dave
+ Jiang" <dave.jiang@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, "Matthew
+ Wilcox" <willy@infradead.org>, Jan Kara <jack@suse.cz>, "Rafael J . Wysocki"
+	<rafael@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek
+	<pavel@kernel.org>, Li Ming <ming.li@zohomail.com>, Jeff Johnson
+	<jeff.johnson@oss.qualcomm.com>, Ying Huang <huang.ying.caritas@gmail.com>,
+	Yao Xingtao <yaoxt.fnst@fujitsu.com>, "Peter Zijlstra"
+	<peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Nathan Fontenot <nathan.fontenot@amd.com>, Terry Bowman
+	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
+	<benjamin.cheatham@amd.com>, Zhijian Li <lizhijian@fujitsu.com>, Borislav
+ Petkov <bp@alien8.de>, Tomasz Wolski <tomasz.wolski@fujitsu.com>
+Subject: Re: [PATCH v7 4/7] dax: Track all dax_region allocations under a
+ global resource tree
+Message-ID: <20260319135924.000060c2@huawei.com>
+In-Reply-To: <20260319011500.241426-5-Smita.KoralahalliChannabasappa@amd.com>
+References: <20260319011500.241426-1-Smita.KoralahalliChannabasappa@amd.com>
+	<20260319011500.241426-5-Smita.KoralahalliChannabasappa@amd.com>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20260318203054.4344.fuse@groves.net>
-References: <20260318203054.4344.fuse@groves.net> 
- <20260319132037.13503-1-john@jagalactic.com>
-X-Mailer: Amazon WorkMail
-Thread-Index: AQHctz+ZMjBZ3RwkQ1uhcQrmTMqILwAAVQgdABjmcj8=
-Thread-Topic: [PATCH V8 10/10] famfs_fuse: Add documentation
-X-Wm-Sent-Timestamp: 1773926448
-X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019d064180d1-efe5d549-c573-4fe2-a0a6-b98185cc06d2-000000@email.amazonses.com>
-Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.03.19-54.240.11.17
+X-ClientProxiedBy: lhrpeml500009.china.huawei.com (7.191.174.84) To
+ dubpeml500005.china.huawei.com (7.214.145.207)
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AAdd Documentation/filesyst=
-ems/famfs.rst and update MAINTAINERS=0D=0A=0D=0AReviewed-by: Randy Dunlap=
- <rdunlap@infradead.org>=0D=0ATested-by: Randy Dunlap <rdunlap@infradead.=
-org>=0D=0AReviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>=0D=0A=
-Signed-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A Documentation=
-/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++=0D=0A Documenta=
-tion/filesystems/index.rst |   1 +=0D=0A MAINTAINERS                     =
-    |   1 +=0D=0A 3 files changed, 144 insertions(+)=0D=0A create mode 10=
-0644 Documentation/filesystems/famfs.rst=0D=0A=0D=0Adiff --git a/Document=
-ation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst=0D=0Ane=
-w file mode 100644=0D=0Aindex 000000000000..d90ce96d6fda=0D=0A--- /dev/nu=
-ll=0D=0A+++ b/Documentation/filesystems/famfs.rst=0D=0A@@ -0,0 +1,142 @@=0D=
-=0A+.. SPDX-License-Identifier: GPL-2.0=0D=0A+=0D=0A+.. _famfs_index:=0D=0A=
-+=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+famfs: Th=
-e fabric-attached memory file system=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+- Copyright (C) 2024-2026 Micron Technolo=
-gy, Inc.=0D=0A+=0D=0A+Introduction=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=0D=0A+Compute Express Link (CXL) provides a mechanism for disaggregat=
-ed or=0D=0A+fabric-attached memory (FAM). This creates opportunities for =
-data sharing;=0D=0A+clustered apps that would otherwise have to shard or =
-replicate data can=0D=0A+share one copy in disaggregated memory.=0D=0A+=0D=
-=0A+Famfs, which is not CXL-specific in any way, provides a mechanism for=
-=0D=0A+multiple hosts to concurrently access data in shared memory, by gi=
-ving it=0D=0A+a file system interface. With famfs, any app that understan=
-ds files can=0D=0A+access data sets in shared memory. Although famfs supp=
-orts read and write,=0D=0A+the real point is to support mmap, which provi=
-des direct (dax) access to=0D=0A+the memory - either writable or read-onl=
-y.=0D=0A+=0D=0A+Shared memory can pose complex coherency and synchronizat=
-ion issues, but=0D=0A+there are also simple cases. Two simple and eminent=
-ly useful patterns that=0D=0A+occur frequently in data analytics and AI a=
-re:=0D=0A+=0D=0A+* Serial Sharing - Only one host or process at a time ha=
-s access to a file=0D=0A+* Read-only Sharing - Multiple hosts or processe=
-s share read-only access=0D=0A+  to a file=0D=0A+=0D=0A+The famfs fuse fi=
-le system is part of the famfs framework; user space=0D=0A+components [1]=
- handle metadata allocation and distribution, and provide a=0D=0A+low-lev=
-el fuse server to expose files that map directly to [presumably=0D=0A+sha=
-red] memory.=0D=0A+=0D=0A+The famfs framework manages coherency of its ow=
-n metadata and structures,=0D=0A+but does not attempt to manage coherency=
- for applications.=0D=0A+=0D=0A+Famfs also provides data isolation betwee=
-n files. That is, even though=0D=0A+the host has access to an entire memo=
-ry "device" (as a devdax device), apps=0D=0A+cannot write to memory for w=
-hich the file is read-only, and mapping one=0D=0A+file provides isolation=
- from the memory of all other files. This is pretty=0D=0A+basic, but some=
- experimental shared memory usage patterns provide no such=0D=0A+isolatio=
-n.=0D=0A+=0D=0A+Principles of Operation=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+Famfs is a file s=
-ystem with one or more devdax devices as a first-class=0D=0A+backing devi=
-ce(s). Metadata maintenance and query operations happen=0D=0A+entirely in=
- user space.=0D=0A+=0D=0A+The famfs low-level fuse server daemon provides=
- file maps (fmaps) and=0D=0A+devdax device info to the fuse/famfs kernel =
-component so that=0D=0A+read/write/mapping faults can be handled without =
-up-calls for all active=0D=0A+files.=0D=0A+=0D=0A+The famfs user space is=
- responsible for maintaining and distributing=0D=0A+consistent metadata. =
-This is currently handled via an append-only=0D=0A+metadata log within th=
-e memory, but this is orthogonal to the fuse/famfs=0D=0A+kernel code.=0D=0A=
-+=0D=0A+Once instantiated, "the same file" on each host points to the sam=
-e shared=0D=0A+memory, but in-memory metadata (inodes, etc.) is ephemeral=
- on each host=0D=0A+that has a famfs instance mounted. Use cases are free=
- to allow or not=0D=0A+allow mutations to data on a file-by-file basis.=0D=
-=0A+=0D=0A+When an app accesses a data object in a famfs file, there is n=
-o page cache=0D=0A+involvement. The CPU cache is loaded directly from the=
- shared memory. In=0D=0A+some use cases, this is an enormous reduction in=
- read amplification=0D=0A+compared to loading an entire page into the pag=
-e cache.=0D=0A+=0D=0A+=0D=0A+Famfs is Not a Conventional File System=0D=0A=
-+---------------------------------------=0D=0A+=0D=0A+Famfs files can be =
-accessed by conventional means, but there are=0D=0A+limitations. The kern=
-el component of fuse/famfs is not involved in the=0D=0A+allocation of bac=
-king memory for files at all; the famfs user space=0D=0A+creates files an=
-d responds as a low-level fuse server with fmaps and=0D=0A+devdax device =
-info upon request.=0D=0A+=0D=0A+Famfs differs in some important ways from=
- conventional file systems:=0D=0A+=0D=0A+* Files must be pre-allocated by=
- the famfs framework; allocation is never=0D=0A+  performed on (or after)=
- write.=0D=0A+* Any operation that changes a file's size is considered to=
- put the file=0D=0A+  in an invalid state, disabling access to the data. =
-It may be possible to=0D=0A+  revisit this in the future. (Typically the =
-famfs user space can restore=0D=0A+  files to a valid state by replaying =
-the famfs metadata log.)=0D=0A+=0D=0A+Famfs exists to apply the existing =
-file system abstractions to shared=0D=0A+memory so applications and workf=
-lows can more easily adapt to an=0D=0A+environment with disaggregated sha=
-red memory.=0D=0A+=0D=0A+Memory Error Handling=0D=0A+=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+Possible memory e=
-rrors include timeouts, poison, and unexpected=0D=0A+reconfiguration of a=
-n underlying dax device. In all of these cases, famfs=0D=0A+receives a ca=
-ll from the devdax layer via its iomap_ops->notify_failure()=0D=0A+functi=
-on. If any memory errors have been detected, access to the affected=0D=0A=
-+daxdev is disabled to avoid further errors or corruption.=0D=0A+=0D=0A+I=
-n all known cases, famfs can be unmounted cleanly. In most cases errors=0D=
-=0A+can be cleared by re-initializing the memory - at which point a new f=
-amfs=0D=0A+file system can be created.=0D=0A+=0D=0A+Key Requirements=0D=0A=
-+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+The primar=
-y requirements for famfs are:=0D=0A+=0D=0A+1. Must support a file system =
-abstraction backed by sharable devdax memory=0D=0A+2. Files must efficien=
-tly handle VMA faults=0D=0A+3. Must support metadata distribution in a sh=
-arable way=0D=0A+4. Must handle clients with a stale copy of metadata=0D=0A=
-+=0D=0A+The famfs kernel component takes care of 1-2 above by caching eac=
-h file's=0D=0A+mapping metadata in the kernel.=0D=0A+=0D=0A+Requirements =
-3 and 4 are handled by the user space components, and are=0D=0A+largely o=
-rthogonal to the functionality of the famfs kernel module.=0D=0A+=0D=0A+R=
-equirements 3 and 4 cannot be met by conventional fs-dax file systems=0D=0A=
-+(e.g. xfs) because they use write-back metadata; it is not valid to moun=
-t=0D=0A+such a file system on two hosts from the same in-memory image.=0D=
-=0A+=0D=0A+=0D=0A+Famfs Usage=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A=
-+=0D=0A+Famfs usage is documented at [1].=0D=0A+=0D=0A+=0D=0A+References=0D=
-=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+- [1] Famfs user space re=
-pository and documentation=0D=0A+      https://github.com/cxl-micron-resk=
-it/famfs=0D=0Adiff --git a/Documentation/filesystems/index.rst b/Document=
-ation/filesystems/index.rst=0D=0Aindex f4873197587d..e6fb467c1680 100644=0D=
-=0A--- a/Documentation/filesystems/index.rst=0D=0A+++ b/Documentation/fil=
-esystems/index.rst=0D=0A@@ -89,6 +89,7 @@ Documentation for filesystem im=
-plementations.=0D=0A    ext3=0D=0A    ext4/index=0D=0A    f2fs=0D=0A+   f=
-amfs=0D=0A    gfs2/index=0D=0A    hfs=0D=0A    hfsplus=0D=0Adiff --git a/=
-MAINTAINERS b/MAINTAINERS=0D=0Aindex 8575e4f8f8df..cf5277cf7ba9 100644=0D=
-=0A--- a/MAINTAINERS=0D=0A+++ b/MAINTAINERS=0D=0A@@ -10516,6 +10516,7 @@ =
-M:=09John Groves <John@Groves.net>=0D=0A L:=09linux-cxl@vger.kernel.org=0D=
-=0A L:=09linux-fsdevel@vger.kernel.org=0D=0A S:=09Supported=0D=0A+F:=09Do=
-cumentation/filesystems/famfs.rst=0D=0A F:=09fs/fuse/famfs.c=0D=0A F:=09f=
-s/fuse/famfs_kfmap.h=0D=0A=20=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
+On Thu, 19 Mar 2026 01:14:57 +0000
+Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> wrote:
+
+> Introduce a global "DAX Regions" resource root and register each
+> dax_region->res under it via request_resource(). Release the resource on
+> dax_region teardown.
+>=20
+> By enforcing a single global namespace for dax_region allocations, this
+> ensures only one of dax_hmem or dax_cxl can successfully register a
+> dax_region for a given range.
+>=20
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+
+The comment below is about the existing code.  If we decide not to tidy that
+up for now and you swap the ordering of release_resource() and sysfs_remove=
+_groups()
+in unregister.
+
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+
+> ---
+>  drivers/dax/bus.c | 20 +++++++++++++++++---
+>  1 file changed, 17 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index c94c09622516..448e2bc285c3 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -10,6 +10,7 @@
+>  #include "dax-private.h"
+>  #include "bus.h"
+> =20
+> +static struct resource dax_regions =3D DEFINE_RES_MEM_NAMED(0, -1, "DAX =
+Regions");
+>  static DEFINE_MUTEX(dax_bus_lock);
+> =20
+>  /*
+> @@ -625,6 +626,7 @@ static void dax_region_unregister(void *region)
+>  {
+>  	struct dax_region *dax_region =3D region;
+> =20
+> +	release_resource(&dax_region->res);
+
+Should reverse the line above and the line below so we unwind in reverse of
+setup.  I doubt it matters in practice today but keeping ordering like that
+makes it much easier to see if a future patch messes things up.
+
+>  	sysfs_remove_groups(&dax_region->dev->kobj,
+>  			dax_region_attribute_groups);
+>  	dax_region_put(dax_region);
+> @@ -635,6 +637,7 @@ struct dax_region *alloc_dax_region(struct device *pa=
+rent, int region_id,
+>  		unsigned long flags)
+>  {
+>  	struct dax_region *dax_region;
+> +	int rc;
+> =20
+>  	/*
+>  	 * The DAX core assumes that it can store its private data in
+> @@ -667,14 +670,25 @@ struct dax_region *alloc_dax_region(struct device *=
+parent, int region_id,
+>  		.flags =3D IORESOURCE_MEM | flags,
+>  	};
+> =20
+> -	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
+> -		kfree(dax_region);
+> -		return NULL;
+> +	rc =3D request_resource(&dax_regions, &dax_region->res);
+> +	if (rc) {
+> +		dev_dbg(parent, "dax_region resource conflict for %pR\n",
+> +			&dax_region->res);
+> +		goto err_res;
+>  	}
+> =20
+> +	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups))
+> +		goto err_sysfs;
+> +
+>  	if (devm_add_action_or_reset(parent, dax_region_unregister, dax_region))
+
+This is curious. The code flips over to a kref_put() based release but we d=
+idn't
+do anything with the kref in the previous call. So whilst not 'buggy' as su=
+ch
+it's definitely inconsistent and we should clean it up.
+
+This should really have been doing the release via dax_region_put() from the
+kref_init().  In practice that means never calling kfree(dax_regions) error=
+ paths
+because the kref_init() is just after the allocation. Instead call dax_regi=
+on_put()
+in all those error paths.
+
+=20
+
+>  		return NULL;
+>  	return dax_region;
+> +
+> +err_sysfs:
+> +	release_resource(&dax_region->res);
+> +err_res:
+> +	kfree(dax_region);
+
+=46rom above I think this should be
+	dax_region_put(dax_region);
+
+> +	return NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(alloc_dax_region);
+> =20
+
