@@ -1,327 +1,184 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from a48-180.smtp-out.amazonses.com (a48-180.smtp-out.amazonses.com [54.240.48.180])
+	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C2323C4568
-	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 12:21:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3DC836215D
+	for <nvdimm@lists.linux.dev>; Thu, 19 Mar 2026 13:17:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.48.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773922866; cv=none; b=ihBORiwCd2qRQM9Sp2E53hbUydGfY6jKO7yx6I4PXzHUJ3ZOvwbn9PjBwMcmDSZgR4+V6+6qaZmPHeOV3Aa5ub8Ej9+LlkNAva6Y5WtbRpPXDEKorTGE9lRQVcXFWIgmFD/Fq6V3CisMBsDAV9ojkCPHnG75blwVrdbuZrlr+Wg=
+	t=1773926242; cv=none; b=Uql0f63434HQplwCZCxjHaG1lepO+yQVtcM//n6hNVlFWIOqywAKBe3F5qGVnW83k+5CFKXzJjP5vXsXOJHOV9iz7xPPZXKkvmynJnSueJS0L72qKVL9GKLRuevP2EBm5tF+g1V7+5mBMa7gPYSufVtKmjPDsbnEOYsGswZrOk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773922866; c=relaxed/simple;
-	bh=51qDref+96vLVVzgxex3Lz/aTp6JsO1HJFiooq62O/k=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jSpt4xxsI8kJdxSy5d+PSmXd0YdVO+SxYEuZtA+urfjrL94PC9A6/x+S1hU1ruSaUC0bkSsLn0yJllGL2AmdCGsKrGhG3EqcdhV/v5b8K4VTZz8WHE4HCwDbFf3WcPD8gutJrxuv3BkqrS76KJ/ie0FUV1Ml64UZzlqselIuHBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.107])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fc4X074MjzJ46Cq;
-	Thu, 19 Mar 2026 20:20:00 +0800 (CST)
-Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id 51D4740584;
-	Thu, 19 Mar 2026 20:21:00 +0800 (CST)
-Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
- (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 19 Mar
- 2026 12:20:58 +0000
-Date: Thu, 19 Mar 2026 12:20:57 +0000
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: John Groves <john@groves.net>
-CC: Miklos Szeredi <miklos@szeredi.hu>, Dan Williams
-	<dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, "Alison
- Schofield" <alison.schofield@intel.com>, John Groves <jgroves@micron.com>,
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, "Alexander
- Viro" <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>,
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong"
-	<djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Jeff Layton
-	<jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi
-	<shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, Josef Bacik
-	<josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan
-	<chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>, Fuad Tabba
-	<tabba@google.com>, Sean Christopherson <seanjc@google.com>, Shivank Garg
-	<shivankg@amd.com>, Ackerley Tng <ackerleytng@google.com>, Gregory Price
-	<gourry@gourry.net>, Aravind Ramesh <arramesh@micron.com>, Ajay Joshi
-	<ajayjoshi@micron.com>, <venkataravis@micron.com>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
-	<linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V8 3/8] dax: add fsdev.c driver for fs-dax on character
- dax
-Message-ID: <20260319122057.00004503@huawei.com>
-In-Reply-To: <20260319012837.4443-1-john@groves.net>
-References: <20260318202737.4344.dax@groves.net>
-	<20260319012837.4443-1-john@groves.net>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1773926242; c=relaxed/simple;
+	bh=aVOWktn7Be6Ghxm+vuGHaN6h+AiXFLMEER9GbIe1bII=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
+	 References:Message-ID; b=Y3Fj/kK6v4Vi6Dq/3mNamMaqtqcfxRqE6m9SLCJxLF5Sv23szt60GhrxptWs+kyelskHmY5DvXEc4K41aS0rj/rTMzGbiEnMHR677Ca0/pldSKCowdqzedoaeczpn2cavw4vuGSQC4Do1XJFnJdYcszn3N3XgYOyL2iEUQRQOZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=S6HXL8x6; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=PQweVdUJ; arc=none smtp.client-ip=54.240.48.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="S6HXL8x6";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="PQweVdUJ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1773926239;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
+	bh=aVOWktn7Be6Ghxm+vuGHaN6h+AiXFLMEER9GbIe1bII=;
+	b=S6HXL8x6VwD6fzoVp/ppiAFZ5MAPtEyh+gMTddjIhbWfjFy78ab9WNNeG/NyWs/4
+	cVECfh8Pav+DeTFwTMmp0Y75dv24FD8iBEyUE8lbMco+J2dHzDaA4SgVrIdRN7Y5Vl2
+	Ui6dkP81BPFyQF09nvZWANNqqykS2JkBxZI9paZ4=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1773926239;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
+	bh=aVOWktn7Be6Ghxm+vuGHaN6h+AiXFLMEER9GbIe1bII=;
+	b=PQweVdUJm0x0NKZFX1tv/mpnfIyx5Zov+wb6S5Bp8HAUhX7VQvkzXEvpmOpoxXbt
+	uK2hN/UyJ18BsgL8xZ+FHN9FIF6xKdcTL4AaFm0fDQYg7EEc3l4PFSNjuxd8foauwV/
+	2m+AHXJJ2iS8mvH+iFBURs3k0GgtlN/44iJV4myY=
+Subject: [PATCH V8 01/10] famfs_fuse: Update macro
+ s/FUSE_IS_DAX/FUSE_IS_VIRTIO_DAX/
+From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
+To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
+	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
+	=?UTF-8?Q?Dan_Williams?= <dan.j.williams@intel.com>, 
+	=?UTF-8?Q?Bernd_Schubert?= <bschubert@ddn.com>, 
+	=?UTF-8?Q?Alison_Schofiel?= =?UTF-8?Q?d?= <alison.schofield@intel.com>
+Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>, 
+	=?UTF-8?Q?Jonathan_Corbe?= =?UTF-8?Q?t?= <corbet@lwn.net>, 
+	=?UTF-8?Q?Shuah_Khan?= <skhan@linuxfoundation.org>, 
+	=?UTF-8?Q?Vishal_Verma?= <vishal.l.verma@intel.com>, 
+	=?UTF-8?Q?Dave_Jiang?= <dave.jiang@intel.com>, 
+	=?UTF-8?Q?Matthew_Wilcox?= <willy@infradead.org>, 
+	=?UTF-8?Q?Jan_Kara?= <jack@suse.cz>, 
+	=?UTF-8?Q?Alexander_Viro?= <viro@zeniv.linux.org.uk>, 
+	=?UTF-8?Q?David_Hildenbrand?= <david@kernel.org>, 
+	=?UTF-8?Q?Christian_Bra?= =?UTF-8?Q?uner?= <brauner@kernel.org>, 
+	=?UTF-8?Q?Darrick_J_=2E_Wong?= <djwong@kernel.org>, 
+	=?UTF-8?Q?Randy_Dunlap?= <rdunlap@infradead.org>, 
+	=?UTF-8?Q?Jeff_Layton?= <jlayton@kernel.org>, 
+	=?UTF-8?Q?Amir_Goldstein?= <amir73il@gmail.com>, 
+	=?UTF-8?Q?Jonathan_Cameron?= <Jonathan.Cameron@huawei.com>, 
+	=?UTF-8?Q?Stefan_Hajnoczi?= <shajnocz@redhat.com>, 
+	=?UTF-8?Q?Joanne_Koong?= <joannelkoong@gmail.com>, 
+	=?UTF-8?Q?Josef_Bacik?= <josef@toxicpanda.com>, 
+	=?UTF-8?Q?Bagas_Sanjaya?= <bagasdotme@gmail.com>, 
+	=?UTF-8?Q?Chen_Linxuan?= <chenlinxuan@uniontech.com>, 
+	=?UTF-8?Q?James_Morse?= <james.morse@arm.com>, 
+	=?UTF-8?Q?Fuad_Tabba?= <tabba@google.com>, 
+	=?UTF-8?Q?Sean_Christopherson?= <seanjc@google.com>, 
+	=?UTF-8?Q?Shivank_Garg?= <shivankg@amd.com>, 
+	=?UTF-8?Q?Ackerley_Tng?= <ackerleytng@google.com>, 
+	=?UTF-8?Q?Gregory_Pric?= =?UTF-8?Q?e?= <gourry@gourry.net>, 
+	=?UTF-8?Q?Aravind_Ramesh?= <arramesh@micron.com>, 
+	=?UTF-8?Q?Ajay_Joshi?= <ajayjoshi@micron.com>, 
+	=?UTF-8?Q?venkataravis=40micron=2Ecom?= <venkataravis@micron.com>, 
+	=?UTF-8?Q?linux-doc=40vger=2Ekernel=2Eorg?= <linux-doc@vger.kernel.org>, 
+	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
+	=?UTF-8?Q?nvdimm=40lists=2Elinux=2Edev?= <nvdimm@lists.linux.dev>, 
+	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
+	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
+	=?UTF-8?Q?John_Groves?= <john@groves.net>
+Date: Thu, 19 Mar 2026 13:17:19 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100009.china.huawei.com (7.191.174.83) To
- dubpeml500005.china.huawei.com (7.214.145.207)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20260318203054.4344.fuse@groves.net>
+References: <20260318203054.4344.fuse@groves.net> 
+ <20260319131704.13280-1-john@jagalactic.com>
+X-Mailer: Amazon WorkMail
+Thread-Index: AQHctz+ZMjBZ3RwkQ1uhcQrmTMqILwAAVQgdABjHKME=
+Thread-Topic: [PATCH V8 01/10] famfs_fuse: Update macro
+ s/FUSE_IS_DAX/FUSE_IS_VIRTIO_DAX/
+X-Wm-Sent-Timestamp: 1773926238
+X-Original-Mailer: git-send-email 2.52.0
+Message-ID: <0100019d063e4cd5-b06bec1a-ff2c-4eb2-95e2-06223cd483b6-000000@email.amazonses.com>
+Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
+X-SES-Outgoing: 2026.03.19-54.240.48.180
 
-On Wed, 18 Mar 2026 20:28:37 -0500
-John Groves <john@groves.net> wrote:
-
-> The new fsdev driver provides pages/folios initialized compatibly with
-> fsdax - normal rather than devdax-style refcounting, and starting out
-> with order-0 folios.
-> 
-> When fsdev binds to a daxdev, it is usually (always?) switching from the
-> devdax mode (device.c), which pre-initializes compound folios according
-> to its alignment. Fsdev uses fsdev_clear_folio_state() to switch the
-> folios into a fsdax-compatible state.
-> 
-> A side effect of this is that raw mmap doesn't (can't?) work on an fsdev
-> dax instance. Accordingly, The fsdev driver does not provide raw mmap -
-> devices must be put in 'devdax' mode (drivers/dax/device.c) to get raw
-> mmap capability.
-> 
-> In this commit is just the framework, which remaps pages/folios compatibly
-> with fsdax.
-> 
-> Enabling dax changes:
-> 
-> - bus.h: add DAXDRV_FSDEV_TYPE driver type
-> - bus.c: allow DAXDRV_FSDEV_TYPE drivers to bind to daxdevs
-> - dax.h: prototype inode_dax(), which fsdev needs
-> 
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Suggested-by: Gregory Price <gourry@gourry.net>
-> Signed-off-by: John Groves <john@groves.net>
-
-A few comments inline.  I think some of the code here could be moved
-to a helper library used by both this and device.c
-
-> ---
->  MAINTAINERS          |   8 ++
->  drivers/dax/Makefile |   6 +
->  drivers/dax/bus.c    |   4 +
->  drivers/dax/bus.h    |   1 +
->  drivers/dax/fsdev.c  | 253 +++++++++++++++++++++++++++++++++++++++++++
->  fs/dax.c             |   1 +
->  include/linux/dax.h  |   3 +
->  7 files changed, 276 insertions(+)
->  create mode 100644 drivers/dax/fsdev.c
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 96ea84948d76..e83cfcf7e932 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7298,6 +7298,14 @@ L:	linux-cxl@vger.kernel.org
->  S:	Supported
->  F:	drivers/dax/
->  
-> +DEVICE DIRECT ACCESS (DAX) [fsdev_dax]
-> +M:	John Groves <jgroves@micron.com>
-> +M:	John Groves <John@Groves.net>
-> +L:	nvdimm@lists.linux.dev
-> +L:	linux-cxl@vger.kernel.org
-> +S:	Supported
-> +F:	drivers/dax/fsdev.c
-> +
->  DEVICE FREQUENCY (DEVFREQ)
->  M:	MyungJoo Ham <myungjoo.ham@samsung.com>
->  M:	Kyungmin Park <kyungmin.park@samsung.com>
-> diff --git a/drivers/dax/Makefile b/drivers/dax/Makefile
-> index 5ed5c39857c8..3bae252fd1bf 100644
-> --- a/drivers/dax/Makefile
-> +++ b/drivers/dax/Makefile
-> @@ -5,10 +5,16 @@ obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
->  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
->  obj-$(CONFIG_DEV_DAX_CXL) += dax_cxl.o
->  
-> +# fsdev_dax: fs-dax compatible devdax driver (needs DEV_DAX and FS_DAX)
-> +ifeq ($(CONFIG_FS_DAX),y)
-> +obj-$(CONFIG_DEV_DAX) += fsdev_dax.o
-> +endif
-
-Why not throw in a new CONFIG_FSDAX_DEV and handle the dependencies
-in Kconfig?  
-
-> +
->  dax-y := super.o
->  dax-y += bus.o
->  device_dax-y := device.o
->  dax_pmem-y := pmem.o
->  dax_cxl-y := cxl.o
-> +fsdev_dax-y := fsdev.o
->  
->  obj-y += hmem/
-
-> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> new file mode 100644
-> index 000000000000..e5b4396ce401
-> --- /dev/null
-> +++ b/drivers/dax/fsdev.c
-
-> +static int fsdev_dax_probe(struct dev_dax *dev_dax)
-> +{
-> +	struct dax_device *dax_dev = dev_dax->dax_dev;
-> +	struct device *dev = &dev_dax->dev;
-> +	struct dev_pagemap *pgmap;
-> +	u64 data_offset = 0;
-
-See below. I think you can useful reduce scope of this one.
-
-> +	struct inode *inode;
-> +	struct cdev *cdev;
-> +	void *addr;
-> +	int rc, i;
-> +
-
-There is a lot of duplication in here with dax/device.c
-Is any of it suitable for shared helpers?
-
-> +	if (static_dev_dax(dev_dax))  {
-> +		if (dev_dax->nr_range > 1) {
-> +			dev_warn(dev, "static pgmap / multi-range device conflict\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		pgmap = dev_dax->pgmap;
-> +	} else {
-> +		size_t pgmap_size;
-> +
-> +		if (dev_dax->pgmap) {
-> +			dev_warn(dev, "dynamic-dax with pre-populated page map\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		pgmap_size = struct_size(pgmap, ranges, dev_dax->nr_range - 1);
-> +		pgmap = devm_kzalloc(dev, pgmap_size,  GFP_KERNEL);
-
-Bonus space before GFP_KERNEL.
-
-
-> +		if (!pgmap)
-> +			return -ENOMEM;
-> +
-> +		pgmap->nr_range = dev_dax->nr_range;
-> +		dev_dax->pgmap = pgmap;
-> +
-> +		for (i = 0; i < dev_dax->nr_range; i++) {
-> +			struct range *range = &dev_dax->ranges[i].range;
-> +
-> +			pgmap->ranges[i] = *range;
-> +		}
-> +	}
-> +
-> +	for (i = 0; i < dev_dax->nr_range; i++) {
-> +		struct range *range = &dev_dax->ranges[i].range;
-> +
-> +		if (!devm_request_mem_region(dev, range->start,
-> +					range_len(range), dev_name(dev))) {
-> +			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve range\n",
-> +				 i, range->start, range->end);
-> +			return -EBUSY;
-> +		}
-> +	}
-
-Everything above here is shared.  Some sort of _init() or similar library function
-seems in order.
-
-> +
-> +	/*
-> +	 * FS-DAX compatible mode: Use MEMORY_DEVICE_FS_DAX type and
-> +	 * do NOT set vmemmap_shift. This leaves folios at order-0,
-> +	 * allowing fs-dax to dynamically create compound folios as needed
-> +	 * (similar to pmem behavior).
-> +	 */
-> +	pgmap->type = MEMORY_DEVICE_FS_DAX;
-> +	pgmap->ops = &fsdev_pagemap_ops;
-> +	pgmap->owner = dev_dax;
-> +
-> +	/*
-> +	 * CRITICAL DIFFERENCE from device.c:
-> +	 * We do NOT set vmemmap_shift here, even if align > PAGE_SIZE.
-> +	 * This ensures folios remain order-0 and are compatible with
-> +	 * fs-dax's folio management.
-> +	 */
-> +
-> +	addr = devm_memremap_pages(dev, pgmap);
-> +	if (IS_ERR(addr))
-> +		return PTR_ERR(addr);
-> +
-> +	/*
-> +	 * Clear any stale compound folio state left over from a previous
-> +	 * driver (e.g., device_dax with vmemmap_shift). Also register this
-> +	 * as a devm action so folio state is cleared on unbind, ensuring
-> +	 * clean pages for subsequent drivers (e.g., kmem for system-ram).
-> +	 */
-> +	fsdev_clear_folio_state(dev_dax);
-> +	rc = devm_add_action_or_reset(dev, fsdev_clear_folio_state_action,
-> +				      dev_dax);
-> +	if (rc)
-> +		return rc;
-> +
-> +	/* Detect whether the data is at a non-zero offset into the memory */
-> +	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
-> +		u64 phys = dev_dax->ranges[0].range.start;
-> +		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
-> +
-> +		if (!WARN_ON(pgmap_phys > phys))
-> +			data_offset = phys - pgmap_phys;
-> +
-> +		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
-> +		       __func__, phys, pgmap_phys, data_offset);
-
-Might change later, but at least at this point you could pull declaration of data_offset
-into this scope.
-
-> +	}
-> +
-> +	inode = dax_inode(dax_dev);
-> +	cdev = inode->i_cdev;
-> +	cdev_init(cdev, &fsdev_fops);
-> +	cdev->owner = dev->driver->owner;
-> +	cdev_set_parent(cdev, &dev->kobj);
-> +	rc = cdev_add(cdev, dev->devt, 1);
-> +	if (rc)
-> +		return rc;
-> +
-> +	rc = devm_add_action_or_reset(dev, fsdev_cdev_del, cdev);
-> +	if (rc)
-> +		return rc;
-> +
-> +	run_dax(dax_dev);
-> +	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-> +}
-
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index bf103f317cac..996493f5c538 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -51,6 +51,7 @@ struct dax_holder_operations {
->  
->  #if IS_ENABLED(CONFIG_DAX)
->  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
-> +
-
-Unrelated change.  Tidy this up for v9.
-
-
->  void *dax_holder(struct dax_device *dax_dev);
->  void put_dax(struct dax_device *dax_dev);
->  void kill_dax(struct dax_device *dax_dev);
-> @@ -151,8 +152,10 @@ static inline void fs_put_dax(struct dax_device *dax_dev, void *holder)
->  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
->  
->  #if IS_ENABLED(CONFIG_FS_DAX)
-> +struct dax_device *inode_dax(struct inode *inode);
-
-Already in dax_private.h so why does it want to be here?
-
-
->  int dax_writeback_mapping_range(struct address_space *mapping,
->  		struct dax_device *dax_dev, struct writeback_control *wbc);
-> +int dax_folio_reset_order(struct folio *folio);
->  
->  struct page *dax_layout_busy_page(struct address_space *mapping);
->  struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
-
+From: John Groves <john@groves.net>=0D=0A=0D=0AVirtio_fs now needs to det=
+ermine if an inode is DAX && not famfs.=0D=0AThis relaces the FUSE_IS_DAX=
+() macro with FUSE_IS_VIRTIO_DAX(),=0D=0Ain preparation for famfs in late=
+r commits. The dummy=0D=0Afuse_file_famfs() macro will be replaced with a=
+ working=0D=0Afunction.=0D=0A=0D=0AReviewed-by: Joanne Koong <joannelkoon=
+g@gmail.com>=0D=0AReviewed-by: Dave Jiang <dave.jiang@intel.com>=0D=0ASig=
+ned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A fs/fuse/dir.c   =
+ |  2 +-=0D=0A fs/fuse/file.c   | 13 ++++++++-----=0D=0A fs/fuse/fuse_i.h=
+ |  9 ++++++++-=0D=0A fs/fuse/inode.c  |  4 ++--=0D=0A fs/fuse/iomode.c |=
+  2 +-=0D=0A 5 files changed, 20 insertions(+), 10 deletions(-)=0D=0A=0D=0A=
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c=0D=0Aindex 7ac6b232ef12..c63f0=
+97bc697 100644=0D=0A--- a/fs/fuse/dir.c=0D=0A+++ b/fs/fuse/dir.c=0D=0A@@ =
+-2161,7 +2161,7 @@ int fuse_do_setattr(struct mnt_idmap *idmap, struct de=
+ntry *dentry,=0D=0A =09=09is_truncate =3D true;=0D=0A =09}=0D=0A=20=0D=0A=
+-=09if (FUSE_IS_DAX(inode) && is_truncate) {=0D=0A+=09if (FUSE_IS_VIRTIO_=
+DAX(fi) && is_truncate) {=0D=0A =09=09filemap_invalidate_lock(mapping);=0D=
+=0A =09=09fault_blocked =3D true;=0D=0A =09=09err =3D fuse_dax_break_layo=
+uts(inode, 0, -1);=0D=0Adiff --git a/fs/fuse/file.c b/fs/fuse/file.c=0D=0A=
+index b1bb7153cb78..4ee5065737d8 100644=0D=0A--- a/fs/fuse/file.c=0D=0A++=
++ b/fs/fuse/file.c=0D=0A@@ -252,7 +252,7 @@ static int fuse_open(struct i=
+node *inode, struct file *file)=0D=0A =09int err;=0D=0A =09bool is_trunca=
+te =3D (file->f_flags & O_TRUNC) && fc->atomic_o_trunc;=0D=0A =09bool is_=
+wb_truncate =3D is_truncate && fc->writeback_cache;=0D=0A-=09bool dax_tru=
+ncate =3D is_truncate && FUSE_IS_DAX(inode);=0D=0A+=09bool dax_truncate =3D=
+ is_truncate && FUSE_IS_VIRTIO_DAX(fi);=0D=0A=20=0D=0A =09if (fuse_is_bad=
+(inode))=0D=0A =09=09return -EIO;=0D=0A@@ -1812,11 +1812,12 @@ static ssi=
+ze_t fuse_file_read_iter(struct kiocb *iocb, struct iov_iter *to)=0D=0A =09=
+struct file *file =3D iocb->ki_filp;=0D=0A =09struct fuse_file *ff =3D fi=
+le->private_data;=0D=0A =09struct inode *inode =3D file_inode(file);=0D=0A=
++=09struct fuse_inode *fi =3D get_fuse_inode(inode);=0D=0A=20=0D=0A =09if=
+ (fuse_is_bad(inode))=0D=0A =09=09return -EIO;=0D=0A=20=0D=0A-=09if (FUSE=
+_IS_DAX(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09return f=
+use_dax_read_iter(iocb, to);=0D=0A=20=0D=0A =09/* FOPEN_DIRECT_IO overrid=
+es FOPEN_PASSTHROUGH */=0D=0A@@ -1833,11 +1834,12 @@ static ssize_t fuse_=
+file_write_iter(struct kiocb *iocb, struct iov_iter *from)=0D=0A =09struc=
+t file *file =3D iocb->ki_filp;=0D=0A =09struct fuse_file *ff =3D file->p=
+rivate_data;=0D=0A =09struct inode *inode =3D file_inode(file);=0D=0A+=09=
+struct fuse_inode *fi =3D get_fuse_inode(inode);=0D=0A=20=0D=0A =09if (fu=
+se_is_bad(inode))=0D=0A =09=09return -EIO;=0D=0A=20=0D=0A-=09if (FUSE_IS_=
+DAX(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09return fuse_=
+dax_write_iter(iocb, from);=0D=0A=20=0D=0A =09/* FOPEN_DIRECT_IO override=
+s FOPEN_PASSTHROUGH */=0D=0A@@ -2370,10 +2372,11 @@ static int fuse_file_=
+mmap(struct file *file, struct vm_area_struct *vma)=0D=0A =09struct fuse_=
+file *ff =3D file->private_data;=0D=0A =09struct fuse_conn *fc =3D ff->fm=
+->fc;=0D=0A =09struct inode *inode =3D file_inode(file);=0D=0A+=09struct =
+fuse_inode *fi =3D get_fuse_inode(inode);=0D=0A =09int rc;=0D=0A=20=0D=0A=
+ =09/* DAX mmap is superior to direct_io mmap */=0D=0A-=09if (FUSE_IS_DAX=
+(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09return fuse_dax=
+_mmap(file, vma);=0D=0A=20=0D=0A =09/*=0D=0A@@ -2934,7 +2937,7 @@ static =
+long fuse_file_fallocate(struct file *file, int mode, loff_t offset,=0D=0A=
+ =09=09.mode =3D mode=0D=0A =09};=0D=0A =09int err;=0D=0A-=09bool block_f=
+aults =3D FUSE_IS_DAX(inode) &&=0D=0A+=09bool block_faults =3D FUSE_IS_VI=
+RTIO_DAX(fi) &&=0D=0A =09=09(!(mode & FALLOC_FL_KEEP_SIZE) ||=0D=0A =09=09=
+ (mode & (FALLOC_FL_PUNCH_HOLE | FALLOC_FL_ZERO_RANGE)));=0D=0A=20=0D=0Ad=
+iff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h=0D=0Aindex 7f16049387d1..=
+45e108dec771 100644=0D=0A--- a/fs/fuse/fuse_i.h=0D=0A+++ b/fs/fuse/fuse_i=
+=2Eh=0D=0A@@ -1508,7 +1508,14 @@ void fuse_free_conn(struct fuse_conn *fc=
+);=0D=0A=20=0D=0A /* dax.c */=0D=0A=20=0D=0A-#define FUSE_IS_DAX(inode) (=
+IS_ENABLED(CONFIG_FUSE_DAX) && IS_DAX(inode))=0D=0A+static inline bool fu=
+se_file_famfs(struct fuse_inode *fuse_inode) /* Will be superseded */=0D=0A=
++{=0D=0A+=09(void)fuse_inode;=0D=0A+=09return false;=0D=0A+}=0D=0A+#defin=
+e FUSE_IS_VIRTIO_DAX(fuse_inode) (IS_ENABLED(CONFIG_FUSE_DAX)=09\=0D=0A+=09=
+=09=09=09=09&& IS_DAX(&fuse_inode->inode)  \=0D=0A+=09=09=09=09=09&& !fus=
+e_file_famfs(fuse_inode))=0D=0A=20=0D=0A ssize_t fuse_dax_read_iter(struc=
+t kiocb *iocb, struct iov_iter *to);=0D=0A ssize_t fuse_dax_write_iter(st=
+ruct kiocb *iocb, struct iov_iter *from);=0D=0Adiff --git a/fs/fuse/inode=
+=2Ec b/fs/fuse/inode.c=0D=0Aindex e57b8af06be9..1333b3ebb18a 100644=0D=0A=
+--- a/fs/fuse/inode.c=0D=0A+++ b/fs/fuse/inode.c=0D=0A@@ -162,7 +162,7 @@=
+ static void fuse_evict_inode(struct inode *inode)=0D=0A =09/* Will write=
+ inode on close/munmap and in all other dirtiers */=0D=0A =09WARN_ON(inod=
+e_state_read_once(inode) & I_DIRTY_INODE);=0D=0A=20=0D=0A-=09if (FUSE_IS_=
+DAX(inode))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09dax_break_la=
+yout_final(inode);=0D=0A=20=0D=0A =09truncate_inode_pages_final(&inode->i=
+_data);=0D=0A@@ -170,7 +170,7 @@ static void fuse_evict_inode(struct inod=
+e *inode)=0D=0A =09if (inode->i_sb->s_flags & SB_ACTIVE) {=0D=0A =09=09st=
+ruct fuse_conn *fc =3D get_fuse_conn(inode);=0D=0A=20=0D=0A-=09=09if (FUS=
+E_IS_DAX(inode))=0D=0A+=09=09if (FUSE_IS_VIRTIO_DAX(fi))=0D=0A =09=09=09f=
+use_dax_inode_cleanup(inode);=0D=0A =09=09if (fi->nlookup) {=0D=0A =09=09=
+=09fuse_queue_forget(fc, fi->forget, fi->nodeid,=0D=0Adiff --git a/fs/fus=
+e/iomode.c b/fs/fuse/iomode.c=0D=0Aindex 3728933188f3..31ee7f3304c6 10064=
+4=0D=0A--- a/fs/fuse/iomode.c=0D=0A+++ b/fs/fuse/iomode.c=0D=0A@@ -203,7 =
++203,7 @@ int fuse_file_io_open(struct file *file, struct inode *inode)=0D=
+=0A =09 * io modes are not relevant with DAX and with server that does no=
+t=0D=0A =09 * implement open.=0D=0A =09 */=0D=0A-=09if (FUSE_IS_DAX(inode=
+) || !ff->args)=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi) || !ff->args)=0D=0A =09=
+=09return 0;=0D=0A=20=0D=0A =09/*=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
