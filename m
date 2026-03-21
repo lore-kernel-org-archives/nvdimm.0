@@ -1,351 +1,181 @@
-Received: from relay.hostedemail.com (smtprelay0016.hostedemail.com [216.40.44.16])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f53.google.com (mail-vs1-f53.google.com [209.85.217.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BBC019046E
-	for <nvdimm@lists.linux.dev>; Sat, 21 Mar 2026 00:45:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 892D82DC332
+	for <nvdimm@lists.linux.dev>; Sat, 21 Mar 2026 15:04:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774053917; cv=none; b=Gr3vceFfAPoOWT+Fo3sK0kRNYOcyZSYvv/YKCe8np2TAG2jYLWhbZvOw9tIUGLFdKUXCoJbSVaqpDK1TylKX9Ki/zuRabwjp25M7gFxL7jrB/ItjErxFt4SEqYbDCgoL7UWv7p0H61tma/IFgMLTlnvKG8TDgz2/oD7hqe01tsw=
+	t=1774105451; cv=none; b=GCAvXvOonkjo5tJQsqNFrXBddM4LeM/q0ih5dyrcUV8b7dIU+bL1/XGueW1SueTInievvO7rWccha2cke+uJ19Dmj7bJ5D2ZT54JlAKXAKbshr2GOsEWK/zy244GIzJMCyq1yLQfE6AEmFFpI0Pw4xpYYnI2pnDJg2Ct4hCJ+RI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774053917; c=relaxed/simple;
-	bh=wRg7rsaeRuAQSS/qCm0lX3GbzJ1kz5rh+jVQ/ORSHdc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NLbOlyv0jsoAasNx7qnivUoxgqv16rwIfnLM91kK5YHaIr+e/yjRTiype22brvCLgM58mNtQba2l40tY1iuZtq3mG9R/VUcsThZ7hhkTh/6QBdkTVWj5lYGOq7Ctp2TrpMponwNuIzh/yLhTu5+aVXBMhtTpFzpR9CrcX9c3ucQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf01.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay03.hostedemail.com (Postfix) with ESMTP id 43630B8D4A;
-	Sat, 21 Mar 2026 00:45:10 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf01.hostedemail.com (Postfix) with ESMTPA id 052D36001F;
-	Sat, 21 Mar 2026 00:44:57 +0000 (UTC)
-Date: Fri, 20 Mar 2026 19:44:56 -0500
-From: John Groves <john@groves.net>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH V8 3/8] dax: add fsdev.c driver for fs-dax on character
- dax
-Message-ID: <ab3nFoKxirEgoS_v@groves.net>
-References: <20260318202737.4344.dax@groves.net>
- <20260319012837.4443-1-john@groves.net>
- <20260319122057.00004503@huawei.com>
+	s=arc-20240116; t=1774105451; c=relaxed/simple;
+	bh=aDELlooxNdwnVkBOav2pG7nLNFo7hMZ9D//B2Ne87+I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tullXGR7mWHVUo+f6bhZowzVZ7gDGQ9TVpbqCIR5CSpTstM2bk3KJbipStJ0whhlZouMxlTUK8nMrNYsxWGbbfj0uC6ZV4rDLIyK+8Vy2HtyIaUJ43KNyMrloJAsO/zJs0RgyUMmoPXpYhrsRyqh975Ebano+yhIvnK8HzL6yCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=DsgMbfAX; arc=none smtp.client-ip=209.85.217.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="DsgMbfAX"
+Received: by mail-vs1-f53.google.com with SMTP id ada2fe7eead31-5fff18d44fbso1750794137.1
+        for <nvdimm@lists.linux.dev>; Sat, 21 Mar 2026 08:04:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1774105448; x=1774710248; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=81HYMZ3vgCAeT6eFRo3fsP2FLDXA0ujBDRYZ8Ob/cJk=;
+        b=DsgMbfAX9r+uLmTNKnBqbnxYYZEEvlzv6fDepuoyNLAd7awWN8ZG+/uL+yIJ8jvVlW
+         FQf4CpLmKunlNC8Ou8tjEbJPO9WikOIJ9TfQ+3cXQo8h2X2XeXqW5OHZmoRRtbUf0WrX
+         gXi6TycNgcc1zJbxDZBVz+NZ4OTUCPRRW1pg3XC5mmuwahvhKrqNs6vRwGqBvv1Pwmpx
+         QrIGRSpFvDoXo0x+nX/CtVRU0YQ1vK+nSSM3q/rEE9RzupbJ90uNsAD8dExJtCKFjajN
+         1bcIJOqOftU0j79gun+e6viJN76RrqWfImsIDX/lhPwfcbwF8xffQaRUwO08uZcoa359
+         Rrfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774105448; x=1774710248;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=81HYMZ3vgCAeT6eFRo3fsP2FLDXA0ujBDRYZ8Ob/cJk=;
+        b=O5QXfLtc3jA3egnqDQ7i1VEVE0810SklMPW9tZJ3R8EHQylExFXjH3J3uwmLohG0hy
+         vdUAR9Dg5v71hoOGsUv1wqB5+A6gKINAxRYpcB57JBToSwvvnVl5spY6h/7XrQza8BSu
+         wN6C9VDg6Mu8/j1+B4YJVd88tXO20lic/+HO7ed2jDTd27Tzh4iPq3MFj9BjzgTrMi3v
+         OV5rj5hQkIUCY1oF8pt+EfAjshFeeEdPex+9Rr80G8M67oSKLkUk9djOkQ/FuUW65RS/
+         3KLJW/J+wXfYl9lgRisaU4fZtxS/xq5dQtL8rylukGNFnj1X5o0cdiNYDsRcs3XeZNn0
+         IXZQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXBQbhVEP6f9yrA3Jnf6LeSlqKQKBPVKZp700CdCq/NrBE+PzxLPPRvcLnAbo0xdDgg1x+ItEU=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yw/C/T1bRj3PXT6lf791K3TjME79B/6d3+gWEYHaLwgQKQm2Oaw
+	Of98Yjh/pFhj6oMfFz1+RxRhDofz4e1YTL12h0LTXjCLg4S/laWasMDaSI5vJvDa5kA=
+X-Gm-Gg: ATEYQzz7voB+8TfSGTvmKXc+mRWZZQeUwNrnp6D/YZtcN/i7Ez1wgOgxMjL8hWEDHZl
+	08qIGlTlKHGH/7/VsQtwxvasBRqn5sW58+cOfqp1/MUok/dLSicg1S9tt25SxunwkZNY+kZuq9N
+	hvg6ET0InRXK+8l58Lr5SiY06o0/0AcAhJkl6xSTa4gf7STK215NdadMcEZJQz9uAThqX9aGFgW
+	Ihz7ODG4aUkDQo1hgqypXbVFOrfStKA7iB86rdSBmjxnMROoDOjPDpDCdvh//uj8WosRVzlEqlU
+	fw/+6efO4iB6R7fIXAdWr6eOf0e9sNleLHLz/NQ4cskrUarg06edHzlf3VD5dt94ART+EF/sgeA
+	pTOhlauirADk5faJjxhXAguKqDex/lpXtjeoFEiAweJIuVWoQN2a20JRxtOkDq8SVnolOOQ9SWF
+	T4EJcn1eGOv5gXSwMk4p6YsuqtyEP9ZxDPOArQKNHDXDOVDNoFUATXdX2EXQxISHmJDR/3JY3E2
+	iWOcR1yMW6vhh9EcUcgpp3XaQ==
+X-Received: by 2002:a05:6102:5989:b0:602:79ed:643c with SMTP id ada2fe7eead31-602aea8cc48mr3376178137.7.1774105448304;
+        Sat, 21 Mar 2026 08:04:08 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F.lan (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cfc90ba89fsm391979885a.40.2026.03.21.08.04.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 21 Mar 2026 08:04:07 -0700 (PDT)
+From: Gregory Price <gourry@gourry.net>
+To: linux-mm@kvack.org,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	akpm@linux-foundation.org,
+	david@kernel.org,
+	osalvador@suse.de
+Cc: dan.j.williams@intel.com,
+	ljs@kernel.org,
+	Liam.Howlett@oracle.com,
+	vbabka@kernel.org,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	kernel-team@meta.com
+Subject: [PATCH 0/8] dax/kmem: atomic whole-device hotplug via sysfs
+Date: Sat, 21 Mar 2026 11:03:56 -0400
+Message-ID: <20260321150404.3288786-1-gourry@gourry.net>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260319122057.00004503@huawei.com>
-X-Stat-Signature: shg1e48hyfycmiemhtwsrtiegqfhpwma
-X-Rspamd-Server: rspamout08
-X-Rspamd-Queue-Id: 052D36001F
-X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1+FqMoIr7feGjW7aclNJbDLBdE0GR9Ig9k=
-X-HE-Tag: 1774053897-27139
-X-HE-Meta: U2FsdGVkX1887YkisgdyGegKjqhVxo4pESgLdaZIC/5VCKoyMRIrSwmRs8Jbqk6QJT7dVIDxA7uLOsfFAaOcIA0PhtbikBH1DvPAK2GJDIrcAzV5BANyv2c8Zhml0bXlVaeKpgrobXDiIlA+/K/Lm4YmGMz9Asj/N0Zgk3U9QwI/osODb056YwaE2ez5vVuaYKLczXTAHcR2KvQZzjzDFvOk1hRy97XMryUfNQ8R22dKJWZD6bOh4i0LueMvAYfE0/WSe9SlkwfwgQQ7wx+F3cYVc/mH6xrsaNxU1XNUGIn7HnpMo/gOGefbh8B+K7Y0oyC47qHrUVzgijvql7pURRuXWfH7X6Mqz8qUJOzCyM3wJS0Nws9C/yaLmkTXZl0l0C865ZXGtz04FMZ8x9hNDGaDPGkZM5J3mmwg4PnyfENbYsmFhJhWTOUKyQL1KPaKD5Tte8q34Kmm8u0dAMpw8yY6Gfd9wgqf0AuZdRD7PMhX+sfYDAFLUg03q9IFC5heNyBl8wpnKpE8GR4Fwq/LVnzs1nBqjRzWt7ij2O8MFg9Ohr4Jbq0sTvhYGrEqYeWs
+Content-Transfer-Encoding: 8bit
 
-On 26/03/19 12:20PM, Jonathan Cameron wrote:
-> On Wed, 18 Mar 2026 20:28:37 -0500
-> John Groves <john@groves.net> wrote:
-> 
-> > The new fsdev driver provides pages/folios initialized compatibly with
-> > fsdax - normal rather than devdax-style refcounting, and starting out
-> > with order-0 folios.
-> > 
-> > When fsdev binds to a daxdev, it is usually (always?) switching from the
-> > devdax mode (device.c), which pre-initializes compound folios according
-> > to its alignment. Fsdev uses fsdev_clear_folio_state() to switch the
-> > folios into a fsdax-compatible state.
-> > 
-> > A side effect of this is that raw mmap doesn't (can't?) work on an fsdev
-> > dax instance. Accordingly, The fsdev driver does not provide raw mmap -
-> > devices must be put in 'devdax' mode (drivers/dax/device.c) to get raw
-> > mmap capability.
-> > 
-> > In this commit is just the framework, which remaps pages/folios compatibly
-> > with fsdax.
-> > 
-> > Enabling dax changes:
-> > 
-> > - bus.h: add DAXDRV_FSDEV_TYPE driver type
-> > - bus.c: allow DAXDRV_FSDEV_TYPE drivers to bind to daxdevs
-> > - dax.h: prototype inode_dax(), which fsdev needs
-> > 
-> > Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> > Suggested-by: Gregory Price <gourry@gourry.net>
-> > Signed-off-by: John Groves <john@groves.net>
-> 
-> A few comments inline.  I think some of the code here could be moved
-> to a helper library used by both this and device.c
-> 
-> > ---
-> >  MAINTAINERS          |   8 ++
-> >  drivers/dax/Makefile |   6 +
-> >  drivers/dax/bus.c    |   4 +
-> >  drivers/dax/bus.h    |   1 +
-> >  drivers/dax/fsdev.c  | 253 +++++++++++++++++++++++++++++++++++++++++++
-> >  fs/dax.c             |   1 +
-> >  include/linux/dax.h  |   3 +
-> >  7 files changed, 276 insertions(+)
-> >  create mode 100644 drivers/dax/fsdev.c
-> > 
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index 96ea84948d76..e83cfcf7e932 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -7298,6 +7298,14 @@ L:	linux-cxl@vger.kernel.org
-> >  S:	Supported
-> >  F:	drivers/dax/
-> >  
-> > +DEVICE DIRECT ACCESS (DAX) [fsdev_dax]
-> > +M:	John Groves <jgroves@micron.com>
-> > +M:	John Groves <John@Groves.net>
-> > +L:	nvdimm@lists.linux.dev
-> > +L:	linux-cxl@vger.kernel.org
-> > +S:	Supported
-> > +F:	drivers/dax/fsdev.c
-> > +
-> >  DEVICE FREQUENCY (DEVFREQ)
-> >  M:	MyungJoo Ham <myungjoo.ham@samsung.com>
-> >  M:	Kyungmin Park <kyungmin.park@samsung.com>
-> > diff --git a/drivers/dax/Makefile b/drivers/dax/Makefile
-> > index 5ed5c39857c8..3bae252fd1bf 100644
-> > --- a/drivers/dax/Makefile
-> > +++ b/drivers/dax/Makefile
-> > @@ -5,10 +5,16 @@ obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
-> >  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
-> >  obj-$(CONFIG_DEV_DAX_CXL) += dax_cxl.o
-> >  
-> > +# fsdev_dax: fs-dax compatible devdax driver (needs DEV_DAX and FS_DAX)
-> > +ifeq ($(CONFIG_FS_DAX),y)
-> > +obj-$(CONFIG_DEV_DAX) += fsdev_dax.o
-> > +endif
-> 
-> Why not throw in a new CONFIG_FSDAX_DEV and handle the dependencies
-> in Kconfig?  
+The dax kmem driver currently onlines memory during probe using the
+system default policy, with no way to control or query the region state
+at runtime - other than by inspecting the state of individual blocks.
 
-At one point I had another config parameter, but I'm trying not to
-gratuitously add them. The fsdev driver is pretty small, and including it
-whenever FS_DAX is enabled felt reasonable to me. I'm willing to change it
-if there's a consensus that way.
+Offlining and removing an entire region requires operating on individual
+memory blocks, creating race conditions where external entities can
+interfere between the offline and remove steps.
 
-> 
-> > +
-> >  dax-y := super.o
-> >  dax-y += bus.o
-> >  device_dax-y := device.o
-> >  dax_pmem-y := pmem.o
-> >  dax_cxl-y := cxl.o
-> > +fsdev_dax-y := fsdev.o
-> >  
-> >  obj-y += hmem/
-> 
-> > diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> > new file mode 100644
-> > index 000000000000..e5b4396ce401
-> > --- /dev/null
-> > +++ b/drivers/dax/fsdev.c
-> 
-> > +static int fsdev_dax_probe(struct dev_dax *dev_dax)
-> > +{
-> > +	struct dax_device *dax_dev = dev_dax->dax_dev;
-> > +	struct device *dev = &dev_dax->dev;
-> > +	struct dev_pagemap *pgmap;
-> > +	u64 data_offset = 0;
-> 
-> See below. I think you can useful reduce scope of this one.
+The problem was discussed specifically in the LPC2025 device memory
+sessions - https://lpc.events/event/19/contributions/2016/ - where
+it was discussed how the non-atomic interface for dax hotplug is causing
+issues in some distributions which have competing userland controllers
+that interfere with each other.
 
-As of now, I've reduced the scope, but in the very next commit it needs to
-move back here. So meh...not sure that's worth it for one commit
+This series adds a sysfs "hotplug" attribute for atomic whole-device
+hotplug control, along with the mm and dax plumbing to support it.
 
-> 
-> > +	struct inode *inode;
-> > +	struct cdev *cdev;
-> > +	void *addr;
-> > +	int rc, i;
-> > +
-> 
-> There is a lot of duplication in here with dax/device.c
-> Is any of it suitable for shared helpers?
+The first five patches prepare the mm and dax layers:
 
-I haven't addressed factoring out more duplicated code yet. Ideally I'd like
-to do that after the initial merge, but I'm paying attention to whether 
-there's pressure to do it.
+  1. Consolidate memory-tier type deduplication into mt_get_memory_type(),
+     removing redundant per-driver infrastructure.
+  2. Add a memory_block_align_range() helper for hotplug range alignment.
+  3-5. Thread an explicit online_type through the memory hotplug and dax
+     paths, allowing drivers to specify a preferred auto-online policy
+     (ZONE_NORMAL vs ZONE_MOVABLE) instead of being forced to the
+     system default.
 
-> 
-> > +	if (static_dev_dax(dev_dax))  {
-> > +		if (dev_dax->nr_range > 1) {
-> > +			dev_warn(dev, "static pgmap / multi-range device conflict\n");
-> > +			return -EINVAL;
-> > +		}
-> > +
-> > +		pgmap = dev_dax->pgmap;
-> > +	} else {
-> > +		size_t pgmap_size;
-> > +
-> > +		if (dev_dax->pgmap) {
-> > +			dev_warn(dev, "dynamic-dax with pre-populated page map\n");
-> > +			return -EINVAL;
-> > +		}
-> > +
-> > +		pgmap_size = struct_size(pgmap, ranges, dev_dax->nr_range - 1);
-> > +		pgmap = devm_kzalloc(dev, pgmap_size,  GFP_KERNEL);
-> 
-> Bonus space before GFP_KERNEL.
+The last three patches build the dax/kmem feature:
 
-Excised, thanks
+  6. Plumb online_type through the dax device creation path.
+  7. Extract hotplug/hotremove into helper functions to separate resource
+     lifecycle from memory onlining.
+  8. Add the "hotplug" sysfs attribute supporting three states:
+     - "unplug": memory blocks removed
+     - "online": online as normal system RAM
+     - "online_movable": online in ZONE_MOVABLE
 
-> 
-> 
-> > +		if (!pgmap)
-> > +			return -ENOMEM;
-> > +
-> > +		pgmap->nr_range = dev_dax->nr_range;
-> > +		dev_dax->pgmap = pgmap;
-> > +
-> > +		for (i = 0; i < dev_dax->nr_range; i++) {
-> > +			struct range *range = &dev_dax->ranges[i].range;
-> > +
-> > +			pgmap->ranges[i] = *range;
-> > +		}
-> > +	}
-> > +
-> > +	for (i = 0; i < dev_dax->nr_range; i++) {
-> > +		struct range *range = &dev_dax->ranges[i].range;
-> > +
-> > +		if (!devm_request_mem_region(dev, range->start,
-> > +					range_len(range), dev_name(dev))) {
-> > +			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve range\n",
-> > +				 i, range->start, range->end);
-> > +			return -EBUSY;
-> > +		}
-> > +	}
-> 
-> Everything above here is shared.  Some sort of _init() or similar library function
-> seems in order.
+Transitions are atomic across all ranges in the device.  Backward
+compatibility is preserved: probe still auto-onlines when the configured
+policy matches the system default.
 
-Taken under advisement. Will look at this soon.
+Specific notes for maintainers:
 
-> 
-> > +
-> > +	/*
-> > +	 * FS-DAX compatible mode: Use MEMORY_DEVICE_FS_DAX type and
-> > +	 * do NOT set vmemmap_shift. This leaves folios at order-0,
-> > +	 * allowing fs-dax to dynamically create compound folios as needed
-> > +	 * (similar to pmem behavior).
-> > +	 */
-> > +	pgmap->type = MEMORY_DEVICE_FS_DAX;
-> > +	pgmap->ops = &fsdev_pagemap_ops;
-> > +	pgmap->owner = dev_dax;
-> > +
-> > +	/*
-> > +	 * CRITICAL DIFFERENCE from device.c:
-> > +	 * We do NOT set vmemmap_shift here, even if align > PAGE_SIZE.
-> > +	 * This ensures folios remain order-0 and are compatible with
-> > +	 * fs-dax's folio management.
-> > +	 */
-> > +
-> > +	addr = devm_memremap_pages(dev, pgmap);
-> > +	if (IS_ERR(addr))
-> > +		return PTR_ERR(addr);
-> > +
-> > +	/*
-> > +	 * Clear any stale compound folio state left over from a previous
-> > +	 * driver (e.g., device_dax with vmemmap_shift). Also register this
-> > +	 * as a devm action so folio state is cleared on unbind, ensuring
-> > +	 * clean pages for subsequent drivers (e.g., kmem for system-ram).
-> > +	 */
-> > +	fsdev_clear_folio_state(dev_dax);
-> > +	rc = devm_add_action_or_reset(dev, fsdev_clear_folio_state_action,
-> > +				      dev_dax);
-> > +	if (rc)
-> > +		return rc;
-> > +
-> > +	/* Detect whether the data is at a non-zero offset into the memory */
-> > +	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
-> > +		u64 phys = dev_dax->ranges[0].range.start;
-> > +		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
-> > +
-> > +		if (!WARN_ON(pgmap_phys > phys))
-> > +			data_offset = phys - pgmap_phys;
-> > +
-> > +		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
-> > +		       __func__, phys, pgmap_phys, data_offset);
-> 
-> Might change later, but at least at this point you could pull declaration of data_offset
-> into this scope.
+I downgraded a BUG() to a WARN() when unbind is called while the dax
+device is not un an UNPLUGGED state.  This is because the old pattern of
+toggling individual memory blocks is still used by userland tools, and
+will disconnect the `hotplug` value from the actual state of the overall
+memory region.
 
-done as of now, but it's used right after the closing brace of this block
-in the very next commit.
+Unless we move to deprecate per-block controls, we should just WARN()
+instead of BUG() as an indicator that userland tools need to be updated
+to use the new pattern (the old pattern is subject to race conditions).
 
-> 
-> > +	}
-> > +
-> > +	inode = dax_inode(dax_dev);
-> > +	cdev = inode->i_cdev;
-> > +	cdev_init(cdev, &fsdev_fops);
-> > +	cdev->owner = dev->driver->owner;
-> > +	cdev_set_parent(cdev, &dev->kobj);
-> > +	rc = cdev_add(cdev, dev->devt, 1);
-> > +	if (rc)
-> > +		return rc;
-> > +
-> > +	rc = devm_add_action_or_reset(dev, fsdev_cdev_del, cdev);
-> > +	if (rc)
-> > +		return rc;
-> > +
-> > +	run_dax(dax_dev);
-> > +	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-> > +}
-> 
-> > diff --git a/include/linux/dax.h b/include/linux/dax.h
-> > index bf103f317cac..996493f5c538 100644
-> > --- a/include/linux/dax.h
-> > +++ b/include/linux/dax.h
-> > @@ -51,6 +51,7 @@ struct dax_holder_operations {
-> >  
-> >  #if IS_ENABLED(CONFIG_DAX)
-> >  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
-> > +
-> 
-> Unrelated change.  Tidy this up for v9.
+The first two commits are semi-unrelated cleanups that conflict with the
+changes made in the refactoring commits. (memory-tier dedup and align_range
+helper). These are intended to be used for future cxl region extensions,
+but if you prefer them to be dropped or submitted separately let me
+know.
 
-Spurious blank line dropped - thanks
+This is technically v3, but the patch line has diverged considerably and
+I've reworked the cover letter, apologies for prior obtuseness
+Link: https://lore.kernel.org/all/20260114235022.3437787-1-gourry@gourry.net/
 
-> 
-> 
-> >  void *dax_holder(struct dax_device *dax_dev);
-> >  void put_dax(struct dax_device *dax_dev);
-> >  void kill_dax(struct dax_device *dax_dev);
-> > @@ -151,8 +152,10 @@ static inline void fs_put_dax(struct dax_device *dax_dev, void *holder)
-> >  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
-> >  
-> >  #if IS_ENABLED(CONFIG_FS_DAX)
-> > +struct dax_device *inode_dax(struct inode *inode);
-> 
-> Already in dax_private.h so why does it want to be here?
+Gregory Price (8):
+  mm/memory-tiers: consolidate memory type dedup into
+    mt_get_memory_type()
+  mm/memory: add memory_block_align_range() helper
+  mm/memory_hotplug: pass online_type to online_memory_block() via arg
+  mm/memory_hotplug: export mhp_get_default_online_type
+  mm/memory_hotplug: add __add_memory_driver_managed() with online_type
+    arg
+  dax: plumb hotplug online_type through dax
+  dax/kmem: extract hotplug/hotremove helper functions
+  dax/kmem: add sysfs interface for atomic whole-device hotplug
 
-Indeed, thanks!
+ Documentation/ABI/testing/sysfs-bus-dax |  17 +
+ drivers/dax/bus.c                       |   3 +
+ drivers/dax/bus.h                       |   2 +
+ drivers/dax/cxl.c                       |   1 +
+ drivers/dax/dax-private.h               |   3 +
+ drivers/dax/hmem/hmem.c                 |   1 +
+ drivers/dax/kmem.c                      | 457 ++++++++++++++++++------
+ include/linux/memory-tiers.h            |  34 +-
+ include/linux/memory.h                  |  22 ++
+ include/linux/memory_hotplug.h          |  32 ++
+ mm/memory-tiers.c                       |  29 +-
+ mm/memory_hotplug.c                     |  67 +++-
+ 12 files changed, 501 insertions(+), 167 deletions(-)
 
-Regards,
-John
+-- 
+2.53.0
 
