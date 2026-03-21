@@ -1,25 +1,25 @@
 Received: from relay.hostedemail.com (smtprelay0016.hostedemail.com [216.40.44.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15AE32F12AF
-	for <nvdimm@lists.linux.dev>; Sat, 21 Mar 2026 00:28:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BBC019046E
+	for <nvdimm@lists.linux.dev>; Sat, 21 Mar 2026 00:45:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774052894; cv=none; b=oTkzFo8z6J3A7ej5qaNtEItX/zLy6rpPazA7q38BuEl9OTnELLvgJaqAFWz5AeL+O/oWtcNiIP6AMORwdp/ngt6oMNiB4ZaNNKH5heNjKSqU9tkF0eCCy5CESPEtop5xiUpOWI9WJg6Z1UunJr5EN9IAYN0emRgFsJmQXOlXB4E=
+	t=1774053917; cv=none; b=Gr3vceFfAPoOWT+Fo3sK0kRNYOcyZSYvv/YKCe8np2TAG2jYLWhbZvOw9tIUGLFdKUXCoJbSVaqpDK1TylKX9Ki/zuRabwjp25M7gFxL7jrB/ItjErxFt4SEqYbDCgoL7UWv7p0H61tma/IFgMLTlnvKG8TDgz2/oD7hqe01tsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774052894; c=relaxed/simple;
-	bh=wC6szQCqJZuY+Q9qJeJKyn6sqxCTs+A2/WskussJ2dY=;
+	s=arc-20240116; t=1774053917; c=relaxed/simple;
+	bh=wRg7rsaeRuAQSS/qCm0lX3GbzJ1kz5rh+jVQ/ORSHdc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HrK23I18WV0xG9iiXF5ipqWlt6Jcr4G6yz9inDWgGxCsQLOq8Qu8u1Dr6V6jQ2GDxDBd4FFprTyTFO8MmnjyXwfv82160HbYLjE8+OdBGcR0q7yy7ICllOg0uGuw2Je6VPTQ2KwqXK8DEvoIXTE6wekckWsEA638OKh6spEGqz0=
+	 Content-Type:Content-Disposition:In-Reply-To; b=NLbOlyv0jsoAasNx7qnivUoxgqv16rwIfnLM91kK5YHaIr+e/yjRTiype22brvCLgM58mNtQba2l40tY1iuZtq3mG9R/VUcsThZ7hhkTh/6QBdkTVWj5lYGOq7Ctp2TrpMponwNuIzh/yLhTu5+aVXBMhtTpFzpR9CrcX9c3ucQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf09.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay08.hostedemail.com (Postfix) with ESMTP id 496E8140472;
-	Sat, 21 Mar 2026 00:28:02 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf09.hostedemail.com (Postfix) with ESMTPA id BFF362002A;
-	Sat, 21 Mar 2026 00:27:49 +0000 (UTC)
-Date: Fri, 20 Mar 2026 19:27:47 -0500
+Received: from omf01.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay03.hostedemail.com (Postfix) with ESMTP id 43630B8D4A;
+	Sat, 21 Mar 2026 00:45:10 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf01.hostedemail.com (Postfix) with ESMTPA id 052D36001F;
+	Sat, 21 Mar 2026 00:44:57 +0000 (UTC)
+Date: Fri, 20 Mar 2026 19:44:56 -0500
 From: John Groves <john@groves.net>
 To: Jonathan Cameron <jonathan.cameron@huawei.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, 
@@ -39,12 +39,13 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
 	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
 	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH V8 2/8] dax: Factor out dax_folio_reset_order() helper
-Message-ID: <ab3lBTsWadqh6Eeu@groves.net>
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH V8 3/8] dax: add fsdev.c driver for fs-dax on character
+ dax
+Message-ID: <ab3nFoKxirEgoS_v@groves.net>
 References: <20260318202737.4344.dax@groves.net>
- <20260319012820.4420-1-john@groves.net>
- <20260319113055.00001182@huawei.com>
+ <20260319012837.4443-1-john@groves.net>
+ <20260319122057.00004503@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -53,165 +54,298 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260319113055.00001182@huawei.com>
-X-Stat-Signature: io611885a3m65o4m8sgw4p1giccihgro
-X-Rspamd-Server: rspamout01
-X-Rspamd-Queue-Id: BFF362002A
+In-Reply-To: <20260319122057.00004503@huawei.com>
+X-Stat-Signature: shg1e48hyfycmiemhtwsrtiegqfhpwma
+X-Rspamd-Server: rspamout08
+X-Rspamd-Queue-Id: 052D36001F
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1/XeKQN2rh6FlNJIEhuaIZ9qtyi7+yXf4A=
-X-HE-Tag: 1774052869-390546
-X-HE-Meta: U2FsdGVkX188nkdXDqauVEIadXau6m45CjW7r70wKOrmsu604ksuKmEIjeaPzFT3x8LmZcyLqlLZJ5j6TFbsbfUTcj69Te9SRiT3vZ1IXIVEpMrmUBDsQgPNfbhnvu91xkaAa0TpkPmmq4eJkuwDGeXrhlp8+xK1BIAwqzv6SBUZSKD/zYl5WeFkmliAroyUhUTSTeltlx+M2D+ltG3r4081ZLvqKUdz3a3UJRzBT/Ae25RpnNzzAwpXsE8/TNuxslEUby5uIZIMGdLNl+ULP7rjgc07Sgj0oltOVymGsX5Z4ViCgOUBoxnFAfYQFfscQ52m4NHGLP5lo8IATwKNe1FFlNN4+KMof0DvLEFNqEqs2/t0ZWnPAewA3480RFb69E22cf7rvcwhM5lx0Zbk3Udy/Uenckvvf2UZ/Epf7X8=
+X-Session-ID: U2FsdGVkX1+FqMoIr7feGjW7aclNJbDLBdE0GR9Ig9k=
+X-HE-Tag: 1774053897-27139
+X-HE-Meta: U2FsdGVkX1887YkisgdyGegKjqhVxo4pESgLdaZIC/5VCKoyMRIrSwmRs8Jbqk6QJT7dVIDxA7uLOsfFAaOcIA0PhtbikBH1DvPAK2GJDIrcAzV5BANyv2c8Zhml0bXlVaeKpgrobXDiIlA+/K/Lm4YmGMz9Asj/N0Zgk3U9QwI/osODb056YwaE2ez5vVuaYKLczXTAHcR2KvQZzjzDFvOk1hRy97XMryUfNQ8R22dKJWZD6bOh4i0LueMvAYfE0/WSe9SlkwfwgQQ7wx+F3cYVc/mH6xrsaNxU1XNUGIn7HnpMo/gOGefbh8B+K7Y0oyC47qHrUVzgijvql7pURRuXWfH7X6Mqz8qUJOzCyM3wJS0Nws9C/yaLmkTXZl0l0C865ZXGtz04FMZ8x9hNDGaDPGkZM5J3mmwg4PnyfENbYsmFhJhWTOUKyQL1KPaKD5Tte8q34Kmm8u0dAMpw8yY6Gfd9wgqf0AuZdRD7PMhX+sfYDAFLUg03q9IFC5heNyBl8wpnKpE8GR4Fwq/LVnzs1nBqjRzWt7ij2O8MFg9Ohr4Jbq0sTvhYGrEqYeWs
 
-On 26/03/19 11:30AM, Jonathan Cameron wrote:
-> On Wed, 18 Mar 2026 20:28:20 -0500
+On 26/03/19 12:20PM, Jonathan Cameron wrote:
+> On Wed, 18 Mar 2026 20:28:37 -0500
 > John Groves <john@groves.net> wrote:
 > 
-> > From: John Groves <John@Groves.net>
+> > The new fsdev driver provides pages/folios initialized compatibly with
+> > fsdax - normal rather than devdax-style refcounting, and starting out
+> > with order-0 folios.
 > > 
-> > Both fs/dax.c:dax_folio_put() and drivers/dax/fsdev.c:
-> > fsdev_clear_folio_state() (the latter coming in the next commit after this
-> > one) contain nearly identical code to reset a compound DAX folio back to
-> > order-0 pages. Factor this out into a shared helper function.
+> > When fsdev binds to a daxdev, it is usually (always?) switching from the
+> > devdax mode (device.c), which pre-initializes compound folios according
+> > to its alignment. Fsdev uses fsdev_clear_folio_state() to switch the
+> > folios into a fsdax-compatible state.
 > > 
-> > The new dax_folio_reset_order() function:
-> > - Clears the folio's mapping and share count
-> > - Resets compound folio state via folio_reset_order()
-> > - Clears PageHead and compound_head for each sub-page
-> > - Restores the pgmap pointer for each resulting order-0 folio
-> > - Returns the original folio order (for callers that need to advance by
-> >   that many pages)
+> > A side effect of this is that raw mmap doesn't (can't?) work on an fsdev
+> > dax instance. Accordingly, The fsdev driver does not provide raw mmap -
+> > devices must be put in 'devdax' mode (drivers/dax/device.c) to get raw
+> > mmap capability.
 > > 
-> > This simplifies fsdev_clear_folio_state() from ~50 lines to ~15 lines while
-> > maintaining the same functionality in both call sites.
+> > In this commit is just the framework, which remaps pages/folios compatibly
+> > with fsdax.
 > > 
-> > Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-> > Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-> > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> > Enabling dax changes:
+> > 
+> > - bus.h: add DAXDRV_FSDEV_TYPE driver type
+> > - bus.c: allow DAXDRV_FSDEV_TYPE drivers to bind to daxdevs
+> > - dax.h: prototype inode_dax(), which fsdev needs
+> > 
+> > Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> > Suggested-by: Gregory Price <gourry@gourry.net>
 > > Signed-off-by: John Groves <john@groves.net>
 > 
-> Comment below. I may well be needing more coffee, or failing wrt
-> to background knowledge as I only occasionally dip into dax.
-
-thanks!
-
-> 
+> A few comments inline.  I think some of the code here could be moved
+> to a helper library used by both this and device.c
 > 
 > > ---
-> >  fs/dax.c | 60 +++++++++++++++++++++++++++++++++++++++-----------------
-> >  1 file changed, 42 insertions(+), 18 deletions(-)
+> >  MAINTAINERS          |   8 ++
+> >  drivers/dax/Makefile |   6 +
+> >  drivers/dax/bus.c    |   4 +
+> >  drivers/dax/bus.h    |   1 +
+> >  drivers/dax/fsdev.c  | 253 +++++++++++++++++++++++++++++++++++++++++++
+> >  fs/dax.c             |   1 +
+> >  include/linux/dax.h  |   3 +
+> >  7 files changed, 276 insertions(+)
+> >  create mode 100644 drivers/dax/fsdev.c
 > > 
-> > diff --git a/fs/dax.c b/fs/dax.c
-> > index 289e6254aa30..7d7bbfb32c41 100644
-> > --- a/fs/dax.c
-> > +++ b/fs/dax.c
-> > @@ -378,6 +378,45 @@ static void dax_folio_make_shared(struct folio *folio)
-> >  	folio->share = 1;
-> >  }
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 96ea84948d76..e83cfcf7e932 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -7298,6 +7298,14 @@ L:	linux-cxl@vger.kernel.org
+> >  S:	Supported
+> >  F:	drivers/dax/
 > >  
-> > +/**
-> > + * dax_folio_reset_order - Reset a compound DAX folio to order-0 pages
-> > + * @folio: The folio to reset
-> > + *
-> > + * Splits a compound folio back into individual order-0 pages,
-> > + * clearing compound state and restoring pgmap pointers.
-> > + *
-> > + * Returns: the original folio order (0 if already order-0)
-> > + */
-> > +int dax_folio_reset_order(struct folio *folio)
+> > +DEVICE DIRECT ACCESS (DAX) [fsdev_dax]
+> > +M:	John Groves <jgroves@micron.com>
+> > +M:	John Groves <John@Groves.net>
+> > +L:	nvdimm@lists.linux.dev
+> > +L:	linux-cxl@vger.kernel.org
+> > +S:	Supported
+> > +F:	drivers/dax/fsdev.c
+> > +
+> >  DEVICE FREQUENCY (DEVFREQ)
+> >  M:	MyungJoo Ham <myungjoo.ham@samsung.com>
+> >  M:	Kyungmin Park <kyungmin.park@samsung.com>
+> > diff --git a/drivers/dax/Makefile b/drivers/dax/Makefile
+> > index 5ed5c39857c8..3bae252fd1bf 100644
+> > --- a/drivers/dax/Makefile
+> > +++ b/drivers/dax/Makefile
+> > @@ -5,10 +5,16 @@ obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
+> >  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+> >  obj-$(CONFIG_DEV_DAX_CXL) += dax_cxl.o
+> >  
+> > +# fsdev_dax: fs-dax compatible devdax driver (needs DEV_DAX and FS_DAX)
+> > +ifeq ($(CONFIG_FS_DAX),y)
+> > +obj-$(CONFIG_DEV_DAX) += fsdev_dax.o
+> > +endif
+> 
+> Why not throw in a new CONFIG_FSDAX_DEV and handle the dependencies
+> in Kconfig?  
+
+At one point I had another config parameter, but I'm trying not to
+gratuitously add them. The fsdev driver is pretty small, and including it
+whenever FS_DAX is enabled felt reasonable to me. I'm willing to change it
+if there's a consensus that way.
+
+> 
+> > +
+> >  dax-y := super.o
+> >  dax-y += bus.o
+> >  device_dax-y := device.o
+> >  dax_pmem-y := pmem.o
+> >  dax_cxl-y := cxl.o
+> > +fsdev_dax-y := fsdev.o
+> >  
+> >  obj-y += hmem/
+> 
+> > diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
+> > new file mode 100644
+> > index 000000000000..e5b4396ce401
+> > --- /dev/null
+> > +++ b/drivers/dax/fsdev.c
+> 
+> > +static int fsdev_dax_probe(struct dev_dax *dev_dax)
 > > +{
-> > +	struct dev_pagemap *pgmap = page_pgmap(&folio->page);
-> > +	int order = folio_order(folio);
-> > +	int i;
+> > +	struct dax_device *dax_dev = dev_dax->dax_dev;
+> > +	struct device *dev = &dev_dax->dev;
+> > +	struct dev_pagemap *pgmap;
+> > +	u64 data_offset = 0;
+> 
+> See below. I think you can useful reduce scope of this one.
+
+As of now, I've reduced the scope, but in the very next commit it needs to
+move back here. So meh...not sure that's worth it for one commit
+
+> 
+> > +	struct inode *inode;
+> > +	struct cdev *cdev;
+> > +	void *addr;
+> > +	int rc, i;
 > > +
-> > +	folio->mapping = NULL;
-> > +	folio->share = 0;
 > 
-> This is different from the code you are replacing..
-> 
-> Just above the call to this in dax_folio_put()
-> 
-> if (!dax_folio_is_shared(folio))
-> // in here is the interesting bit...
-> 	ref = 0;
-> else
-> //this is fine because either it's still > 0 and we return
-> //or it is zero and you are writing that again.
-> 	ref = --folio->share;
-> if (ref)
-> 	return ref;
-> 
-> So the path that bothers me is if 
-> !dax_folio_is_shared() can return false with shared != 0
-> 
-> /*
->  * A DAX folio is considered shared if it has no mapping set and ->share (which
->  * shares the ->index field) is non-zero. Note this may return false even if the
->  * page is shared between multiple files but has not yet actually been mapped
->  * into multiple address spaces.
->  */
-> static inline bool dax_folio_is_shared(struct folio *folio)
-> {
-> 	return !folio->mapping && folio->share;
-> }
-> 
-> So it can if !folio->mapping is false (i.e. folio->mapping is set)
-> 
-> Now I have zero idea of whether this is a real path and have
-> a long review queue so not looking into it for now.
-> However if it's not then I'd expect some commentary in the patch description
-> to say why it's not a problem.  Maybe even a precursor patch adding
-> the folio->share so there is a place to state clearly that it doesn't
-> matter and why.
+> There is a lot of duplication in here with dax/device.c
+> Is any of it suitable for shared helpers?
 
-I believe it is correct, and I'm adding a clarifying comment above as follows:
-
-	/*
-	 * DAX maintains the invariant that folio->share != 0 only when
-	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
-	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
-	 * Callers ensure share has been decremented to zero before calling
-	 * here, so unconditionally clearing both fields is correct.
-	 */
-	folio->mapping = NULL;
-	folio->share = 0;
-	...
+I haven't addressed factoring out more duplicated code yet. Ideally I'd like
+to do that after the initial merge, but I'm paying attention to whether 
+there's pressure to do it.
 
 > 
+> > +	if (static_dev_dax(dev_dax))  {
+> > +		if (dev_dax->nr_range > 1) {
+> > +			dev_warn(dev, "static pgmap / multi-range device conflict\n");
+> > +			return -EINVAL;
+> > +		}
 > > +
-> > +	if (!order) {
-> > +		folio->pgmap = pgmap;
-> This is also different...
+> > +		pgmap = dev_dax->pgmap;
+> > +	} else {
+> > +		size_t pgmap_size;
+> > +
+> > +		if (dev_dax->pgmap) {
+> > +			dev_warn(dev, "dynamic-dax with pre-populated page map\n");
+> > +			return -EINVAL;
+> > +		}
+> > +
+> > +		pgmap_size = struct_size(pgmap, ranges, dev_dax->nr_range - 1);
+> > +		pgmap = devm_kzalloc(dev, pgmap_size,  GFP_KERNEL);
+> 
+> Bonus space before GFP_KERNEL.
 
-Here too, I think it is correct, and I'm adding a comment as follows:
-
-	if (!order) {
-		/*
-		 * Restore pgmap explicitly even for order-0 folios. For the
-		 * dax_folio_put() caller this is a no-op (same value), but
-		 * fsdev_clear_folio_state() may call this on folios that were
-		 * previously compound and need pgmap re-established.
-		 */
-		folio->pgmap = pgmap;
-		return 0;
-	}
-
-...but if I'm missing anything I hope somebody will point it out!
+Excised, thanks
 
 > 
-> > +		return 0;
+> 
+> > +		if (!pgmap)
+> > +			return -ENOMEM;
+> > +
+> > +		pgmap->nr_range = dev_dax->nr_range;
+> > +		dev_dax->pgmap = pgmap;
+> > +
+> > +		for (i = 0; i < dev_dax->nr_range; i++) {
+> > +			struct range *range = &dev_dax->ranges[i].range;
+> > +
+> > +			pgmap->ranges[i] = *range;
+> > +		}
 > > +	}
 > > +
-> > +	folio_reset_order(folio);
+> > +	for (i = 0; i < dev_dax->nr_range; i++) {
+> > +		struct range *range = &dev_dax->ranges[i].range;
 > > +
-> > +	for (i = 0; i < (1UL << order); i++) {
+> > +		if (!devm_request_mem_region(dev, range->start,
+> > +					range_len(range), dev_name(dev))) {
+> > +			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve range\n",
+> > +				 i, range->start, range->end);
+> > +			return -EBUSY;
+> > +		}
+> > +	}
 > 
-> I'd take advantage of evolving conventions and do
+> Everything above here is shared.  Some sort of _init() or similar library function
+> seems in order.
+
+Taken under advisement. Will look at this soon.
+
 > 
-> 	for (int i = 0; i < ...) 
+> > +
+> > +	/*
+> > +	 * FS-DAX compatible mode: Use MEMORY_DEVICE_FS_DAX type and
+> > +	 * do NOT set vmemmap_shift. This leaves folios at order-0,
+> > +	 * allowing fs-dax to dynamically create compound folios as needed
+> > +	 * (similar to pmem behavior).
+> > +	 */
+> > +	pgmap->type = MEMORY_DEVICE_FS_DAX;
+> > +	pgmap->ops = &fsdev_pagemap_ops;
+> > +	pgmap->owner = dev_dax;
+> > +
+> > +	/*
+> > +	 * CRITICAL DIFFERENCE from device.c:
+> > +	 * We do NOT set vmemmap_shift here, even if align > PAGE_SIZE.
+> > +	 * This ensures folios remain order-0 and are compatible with
+> > +	 * fs-dax's folio management.
+> > +	 */
+> > +
+> > +	addr = devm_memremap_pages(dev, pgmap);
+> > +	if (IS_ERR(addr))
+> > +		return PTR_ERR(addr);
+> > +
+> > +	/*
+> > +	 * Clear any stale compound folio state left over from a previous
+> > +	 * driver (e.g., device_dax with vmemmap_shift). Also register this
+> > +	 * as a devm action so folio state is cleared on unbind, ensuring
+> > +	 * clean pages for subsequent drivers (e.g., kmem for system-ram).
+> > +	 */
+> > +	fsdev_clear_folio_state(dev_dax);
+> > +	rc = devm_add_action_or_reset(dev, fsdev_clear_folio_state_action,
+> > +				      dev_dax);
+> > +	if (rc)
+> > +		return rc;
+> > +
+> > +	/* Detect whether the data is at a non-zero offset into the memory */
+> > +	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
+> > +		u64 phys = dev_dax->ranges[0].range.start;
+> > +		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
+> > +
+> > +		if (!WARN_ON(pgmap_phys > phys))
+> > +			data_offset = phys - pgmap_phys;
+> > +
+> > +		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
+> > +		       __func__, phys, pgmap_phys, data_offset);
+> 
+> Might change later, but at least at this point you could pull declaration of data_offset
+> into this scope.
 
-Done, thanks!
+done as of now, but it's used right after the closing brace of this block
+in the very next commit.
 
+> 
+> > +	}
+> > +
+> > +	inode = dax_inode(dax_dev);
+> > +	cdev = inode->i_cdev;
+> > +	cdev_init(cdev, &fsdev_fops);
+> > +	cdev->owner = dev->driver->owner;
+> > +	cdev_set_parent(cdev, &dev->kobj);
+> > +	rc = cdev_add(cdev, dev->devt, 1);
+> > +	if (rc)
+> > +		return rc;
+> > +
+> > +	rc = devm_add_action_or_reset(dev, fsdev_cdev_del, cdev);
+> > +	if (rc)
+> > +		return rc;
+> > +
+> > +	run_dax(dax_dev);
+> > +	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
+> > +}
+> 
+> > diff --git a/include/linux/dax.h b/include/linux/dax.h
+> > index bf103f317cac..996493f5c538 100644
+> > --- a/include/linux/dax.h
+> > +++ b/include/linux/dax.h
+> > @@ -51,6 +51,7 @@ struct dax_holder_operations {
+> >  
+> >  #if IS_ENABLED(CONFIG_DAX)
+> >  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
+> > +
+> 
+> Unrelated change.  Tidy this up for v9.
+
+Spurious blank line dropped - thanks
+
+> 
+> 
+> >  void *dax_holder(struct dax_device *dax_dev);
+> >  void put_dax(struct dax_device *dax_dev);
+> >  void kill_dax(struct dax_device *dax_dev);
+> > @@ -151,8 +152,10 @@ static inline void fs_put_dax(struct dax_device *dax_dev, void *holder)
+> >  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
+> >  
+> >  #if IS_ENABLED(CONFIG_FS_DAX)
+> > +struct dax_device *inode_dax(struct inode *inode);
+> 
+> Already in dax_private.h so why does it want to be here?
+
+Indeed, thanks!
+
+Regards,
 John
-
-<snip>
 
