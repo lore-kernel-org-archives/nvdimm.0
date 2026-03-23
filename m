@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A91D526738B
-	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 17:57:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B8537F000
+	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 17:59:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774288667; cv=none; b=DGPeGE2EreubzKX9fjjD1s+h3TVSYeKJ3uiG6i9isCRceUkkqzpJpBxP8YWN770j76m0RYjKTtGfmIH3cvkuwKQxjbLp18emoNp7lckRyN4Be7HHnXgJ8D/L8zsed8yG7HeNsBp0/OTEc21FqNFXvXnZgi1sv66tooSsfjTUJk4=
+	t=1774288792; cv=none; b=pIu2dM3lsZ/fDV8wqwPQ/OBOTm/SCdICx//VNvDVsQPIreOF4WpHAMOph26+R/LEIcxWLSdlK+iq0w3PJy9/BHrmnRykVPj+B8nzq00plRTva+TgX33PZTDFab6Hp1i+AKbxekXUF9HXOymvBgOLzEtAJ1kclDp5fU573Ve2ylc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774288667; c=relaxed/simple;
-	bh=llAqm9jUFzuOndiDK/Pj1Otig2XXWSZX0s0xdJgEDBU=;
+	s=arc-20240116; t=1774288792; c=relaxed/simple;
+	bh=vaTbYnBe2xnMuVRZWapz+BwF8yO5bWwNu4d6Ld4MDWo=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KwhQ43mS8ltxc3b8Z+0gcXi5a7x7OKGG0jGXZcmySWl55Jrk0ghEoSWpDmK4e5qd4XY/Ty+mQFjS6KXEBxnVDroc2p1t7v1K45q4nV1sMab/YGOBN7UfgrxDFIfFledp8aEf2K6DqXVAKPLc+RDymx6x2Y3eDy8N/376gIKnQ6M=
+	 MIME-Version:Content-Type; b=fFm3Ru1+P0hRAQuwJEwcwC/ElkRzDl/Nv1OJzFmfJ/qCKJxcLuj69WksGzL09X+U75vOTqCFbjQsg5RS6fc/uZlipj+FbStQ9+5b9P9VQ5h+RqkrW7lhbqIYLpBlcfNBSAg5a2Ft46ZnFv/GxGzsfETWXOL9mvMFVWIWvf2kywg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Received: from mail.maildlp.com (unknown [172.18.224.107])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4ffgqC4YhQzHnGcW;
-	Tue, 24 Mar 2026 01:57:11 +0800 (CST)
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4ffgsc5tcxzHnGd2;
+	Tue, 24 Mar 2026 01:59:16 +0800 (CST)
 Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id 712B940584;
-	Tue, 24 Mar 2026 01:57:43 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 9DA7240589;
+	Tue, 24 Mar 2026 01:59:48 +0800 (CST)
 Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
  (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 23 Mar
- 2026 17:57:42 +0000
-Date: Mon, 23 Mar 2026 17:57:40 +0000
+ 2026 17:59:47 +0000
+Date: Mon, 23 Mar 2026 17:59:46 +0000
 From: Jonathan Cameron <jonathan.cameron@huawei.com>
 To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
@@ -44,12 +44,12 @@ CC: <linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>, Benjamin Cheatham
 	<benjamin.cheatham@amd.com>, Zhijian Li <lizhijian@fujitsu.com>, Borislav
  Petkov <bp@alien8.de>, Tomasz Wolski <tomasz.wolski@fujitsu.com>
-Subject: Re: [PATCH v8 1/9] dax/bus: Use dax_region_put() in
- alloc_dax_region() error path
-Message-ID: <20260323175740.000014c1@huawei.com>
-In-Reply-To: <20260322195343.206900-2-Smita.KoralahalliChannabasappa@amd.com>
+Subject: Re: [PATCH v8 2/9] dax/hmem: Factor HMEM registration into
+ __hmem_register_device()
+Message-ID: <20260323175946.00004f1b@huawei.com>
+In-Reply-To: <20260322195343.206900-3-Smita.KoralahalliChannabasappa@amd.com>
 References: <20260322195343.206900-1-Smita.KoralahalliChannabasappa@amd.com>
-	<20260322195343.206900-2-Smita.KoralahalliChannabasappa@amd.com>
+	<20260322195343.206900-3-Smita.KoralahalliChannabasappa@amd.com>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -62,35 +62,17 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
  dubpeml500005.china.huawei.com (7.214.145.207)
 
-On Sun, 22 Mar 2026 19:53:34 +0000
+On Sun, 22 Mar 2026 19:53:35 +0000
 Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> wrote:
 
-> alloc_dax_region() calls kref_init() on the dax_region early in the
-> function, but the error path for sysfs_create_groups() failure uses
-> kfree() directly to free the dax_region. This bypasses the kref lifecycle.
+> Separate the CXL overlap check from the HMEM registration path and keep
+> the platform-device setup in a dedicated __hmem_register_device().
 > 
-> Use dax_region_put() instead to handle kref lifecycle correctly.
+> This makes hmem_register_device() the policy entry point for deciding
+> whether a range should be deferred to CXL, while __hmem_register_device()
+> handles the HMEM registration flow.
 > 
-> Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> No functional changes.
+> 
 > Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
-
 Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-
-> ---
->  drivers/dax/bus.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index c94c09622516..299134c9b294 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -668,7 +668,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
->  	};
->  
->  	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
-> -		kfree(dax_region);
-> +		dax_region_put(dax_region);
->  		return NULL;
->  	}
->  
-
