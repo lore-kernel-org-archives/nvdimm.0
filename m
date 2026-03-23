@@ -1,97 +1,118 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2EA439A047
-	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 12:12:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB8AE3C5523
+	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 17:11:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774267978; cv=none; b=W+KGNh+x+YeiJR96jWUxOpzvOFnIjxf8n//74jzcQkUd5f7iCtlKRNp1kIw15l9DbSkv5VR6A7X2RSE9tyhumJTjD4DlbNCdiXhoTWsF0uRb3cfQDPjhzNCIM9otYRvfNxP3zKA9U/ex4WK27g0hrR8tVc4Pb9G16rv+uVcBYms=
+	t=1774285912; cv=none; b=dHzQsHA+GCJBFjgdSp6BtznM8q4bo1HS6VqI2xgRTVEZLUXNSIQqQjKUAcDj3bqWtHfWHQmzwAGqk7EErDd2lzURVdGaJG+AoTgeoKM3Y3UctKkPEl98WOn9N8fRJQO3qdvP5UcvMIqc3nhY7SN/adLh/xy3hlRfy64bwSJ+ltI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774267978; c=relaxed/simple;
-	bh=ES47tFda23W0wI6tAmTREEyFeD9xE76p1S65kGx/oNQ=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NyEzxd0AsftIxWnW2TKS0M4VfXl3AwVAxzB20GB2n1C1zFqPeGR2tZ+AF9FpaulNhSILfScP6YVluwCBJrrzdGFefyrz/3ndnNnW8/QOKPmzy3D1WF0DRaBgKMYHyfjay/+8a1FqlyzJ4cT5+18XadskiE83NOLVHl8SkwF40Ew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.150])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4ffX9q6X4NzJ468s;
-	Mon, 23 Mar 2026 20:12:47 +0800 (CST)
-Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id 1F4944056B;
-	Mon, 23 Mar 2026 20:12:53 +0800 (CST)
-Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
- (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 23 Mar
- 2026 12:12:51 +0000
-Date: Mon, 23 Mar 2026 12:12:50 +0000
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: John Groves <john@groves.net>
-CC: Miklos Szeredi <miklos@szeredi.hu>, Dan Williams
-	<dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, "Alison
- Schofield" <alison.schofield@intel.com>, John Groves <jgroves@micron.com>,
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, "Alexander
- Viro" <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>,
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong"
-	<djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Jeff Layton
-	<jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, "Stefan Hajnoczi"
-	<shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, Josef Bacik
-	<josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan
-	<chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>, Fuad Tabba
-	<tabba@google.com>, Sean Christopherson <seanjc@google.com>, Shivank Garg
-	<shivankg@amd.com>, Ackerley Tng <ackerleytng@google.com>, Gregory Price
-	<gourry@gourry.net>, Aravind Ramesh <arramesh@micron.com>, Ajay Joshi
-	<ajayjoshi@micron.com>, <venkataravis@micron.com>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
-	<linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V8 3/8] dax: add fsdev.c driver for fs-dax on character
- dax
-Message-ID: <20260323121250.00004402@huawei.com>
-In-Reply-To: <ab3nFoKxirEgoS_v@groves.net>
-References: <20260318202737.4344.dax@groves.net>
-	<20260319012837.4443-1-john@groves.net>
-	<20260319122057.00004503@huawei.com>
-	<ab3nFoKxirEgoS_v@groves.net>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1774285912; c=relaxed/simple;
+	bh=WC5R3R7MjBGZGiXrO/PHhKEP3AXAJXomcLtba1rFets=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=sKrUgmzoVug++d5TYV1EBjh97RuYeDdSbMVEdQZ1/npnZk11VwARoIGdo9NOman2tZS8f2GxS2xK/g4o9/6QGCLfinfYzqTN/sWSDKfEdwfaBHseYOzMLxJlbFFO5UO6Vy5+uwzpl7Ht8zwsL1qnWWX1EH79FWAXoB3IT90WtbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IsuIPKGr; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IsuIPKGr"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774285910; x=1805821910;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=WC5R3R7MjBGZGiXrO/PHhKEP3AXAJXomcLtba1rFets=;
+  b=IsuIPKGrZxVvNN9uHZPTKY+MH9T/VTAjsKRKwekIc5llyM1idTEsTwJk
+   4u7SKWoVoBn+8hPfHDhK1SDgoryrBv2AR90UFqOD+d9mcWJPqdY1cKxDf
+   aUNuxbky7c1Uez24nX44QoTEoI1wHsp6ZZiRanui+BazzevMLDIrsnhZB
+   H2XPcN6IDNX7Glx6zn9HXs21wF/gcMF0JbdrpqWd3ltck2BgtL7wvFMkC
+   Qn1Kv0UVVibKMPCrUyVuLKdeA9UCSIdioc+w3Ns6IOMyaZHJhRsiDdwny
+   bSfApD8tGeaAFDwOgBw4hTFEE9OkR+wsKDw3av1CmkPHIHYza1iFh2QPu
+   g==;
+X-CSE-ConnectionGUID: jbBJ85vSS2GJJ+3nTwYDdw==
+X-CSE-MsgGUID: 4S0AI1BHRZC5kp5gn0FBLA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11738"; a="62849094"
+X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
+   d="scan'208";a="62849094"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 10:11:50 -0700
+X-CSE-ConnectionGUID: oVZ9NSwhQROtpb73j9ALIw==
+X-CSE-MsgGUID: vAbpOXkMSseD0QwR/c7PBA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
+   d="scan'208";a="224097386"
+Received: from jdoman-mobl3.amr.corp.intel.com (HELO [10.125.109.216]) ([10.125.109.216])
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 10:11:48 -0700
+Message-ID: <1f0c192d-1dae-496e-8cdd-4854d685343f@intel.com>
+Date: Mon, 23 Mar 2026 10:11:47 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v8 1/9] dax/bus: Use dax_region_put() in
+ alloc_dax_region() error path
+To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+ linux-pm@vger.kernel.org
+Cc: Ard Biesheuvel <ardb@kernel.org>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Yazen Ghannam <yazen.ghannam@amd.com>, Davidlohr Bueso <dave@stgolabs.net>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
+ Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
+ Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
+ Ying Huang <huang.ying.caritas@gmail.com>,
+ Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Nathan Fontenot <nathan.fontenot@amd.com>,
+ Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>,
+ Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
+ Tomasz Wolski <tomasz.wolski@fujitsu.com>
+References: <20260322195343.206900-1-Smita.KoralahalliChannabasappa@amd.com>
+ <20260322195343.206900-2-Smita.KoralahalliChannabasappa@amd.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260322195343.206900-2-Smita.KoralahalliChannabasappa@amd.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500011.china.huawei.com (7.191.174.215) To
- dubpeml500005.china.huawei.com (7.214.145.207)
 
 
-> > > diff --git a/drivers/dax/Makefile b/drivers/dax/Makefile
-> > > index 5ed5c39857c8..3bae252fd1bf 100644
-> > > --- a/drivers/dax/Makefile
-> > > +++ b/drivers/dax/Makefile
-> > > @@ -5,10 +5,16 @@ obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
-> > >  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
-> > >  obj-$(CONFIG_DEV_DAX_CXL) += dax_cxl.o
-> > >  
-> > > +# fsdev_dax: fs-dax compatible devdax driver (needs DEV_DAX and FS_DAX)
-> > > +ifeq ($(CONFIG_FS_DAX),y)
-> > > +obj-$(CONFIG_DEV_DAX) += fsdev_dax.o
-> > > +endif  
-> > 
-> > Why not throw in a new CONFIG_FSDAX_DEV and handle the dependencies
-> > in Kconfig?    
+
+On 3/22/26 12:53 PM, Smita Koralahalli wrote:
+> alloc_dax_region() calls kref_init() on the dax_region early in the
+> function, but the error path for sysfs_create_groups() failure uses
+> kfree() directly to free the dax_region. This bypasses the kref lifecycle.
 > 
-> At one point I had another config parameter, but I'm trying not to
-> gratuitously add them. The fsdev driver is pretty small, and including it
-> whenever FS_DAX is enabled felt reasonable to me. I'm willing to change it
-> if there's a consensus that way.
+> Use dax_region_put() instead to handle kref lifecycle correctly.
+> 
+> Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
 
-You can make the build do exactly the same thing with a separate Kconfig
-option. Just moves where the dependency tracking is. I'd prefer Kconfig
-because that's generally where I'd look for something like this.
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
+> ---
+>  drivers/dax/bus.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index c94c09622516..299134c9b294 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -668,7 +668,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+>  	};
+>  
+>  	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
+> -		kfree(dax_region);
+> +		dax_region_put(dax_region);
+>  		return NULL;
+>  	}
+>  
 
-Jonathan
