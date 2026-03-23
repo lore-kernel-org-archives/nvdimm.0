@@ -1,155 +1,103 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4830A3BD632
-	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 17:14:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DBD3C1409
+	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 17:21:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774286097; cv=none; b=nX0eAsWoebD6tUDiaxZQhDH487d4qRnLYcYaJjy5EiciskulVrB4CdZPnxw+wgRtyr5jtrCBkgjUQoZ48Cuvm2T2wQZCZZeTXE1SBugfbcnSrl9TxQlijcTUYjhh3b/hZaQNpAjX49OkoDsuq+mbhV6uGPuFzj6EDUgcAIp12xI=
+	t=1774286494; cv=none; b=dbLWyw3UpKyce8l0lc225MTWbwyH4p29eKcGM9NvlcfxP7aLV3v+rWHmWTBCJsOiD8XrR0DhZU8JrL2oxlDNTzSXJ6sFJ3Z5Nt3vFRx14q3wMR/s3o9llSxbxgad8B1obatu9O7qEPnGVv8JNjzXS4kv0HcA2gb79cBdPuBP4yc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774286097; c=relaxed/simple;
-	bh=Pywn2oFcwft0vBnQp/98LvBTMyGYLc+1nw2xhJHXC9c=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=dJk3RRXeN316npkNJ1OGD5YPh7SW93/97/HNhginUmpQmI/g5OJlodWMIjOnEDbqjZTfisudf9rrJOZGZlGN9qsQ+xiOJcBVb6XNURWI37keSbH/CrXN8872R0DJQLk5vaBvieJmMgLdObGRcag5NRFbDoJ+Jo7z53z7ErutFmw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WMOcd9HZ; arc=none smtp.client-ip=192.198.163.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WMOcd9HZ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774286094; x=1805822094;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=Pywn2oFcwft0vBnQp/98LvBTMyGYLc+1nw2xhJHXC9c=;
-  b=WMOcd9HZBHWnxJIDhK8HWmpFO/7QP+121+yyb3Fqp9YjMfV6Xhn/VYEk
-   dCY/bcKoWXDItUJscB1IosCH/PK6GyBvlwLxYZuD3QC19swTawosfrFED
-   fjuYYVg4H6wgMup3dnrBAAxVKU8BwhIDAlHefZiTQsH6dLaSGtiP70hji
-   ALbujjTMsKefcVG+wsknn63Z9BRm6plTEJ1B9ObJsY7zw8TnzpeeWvTHa
-   qaYE9EhCw2UgET04pCTUs9z1ti58UmTzjfAYEDQyCVsH3/mcLaBRXxuoH
-   3vcStq7t+9RA0Z3LJNtCYxA83sDpgoRLyRL/HvkKSl5eG6X23sUilXYTm
-   g==;
-X-CSE-ConnectionGUID: bOzp16jES761yzk3eWsj8g==
-X-CSE-MsgGUID: Tm5JNBkSRIuAJ+iMFVndBQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11738"; a="62849313"
-X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
-   d="scan'208";a="62849313"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 10:14:53 -0700
-X-CSE-ConnectionGUID: RmXqzBsDTN+qkaDGSV7/MA==
-X-CSE-MsgGUID: 02uuQAASRgiHmfogFtiHZQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
-   d="scan'208";a="224097691"
-Received: from jdoman-mobl3.amr.corp.intel.com (HELO [10.125.109.216]) ([10.125.109.216])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 10:14:51 -0700
-Message-ID: <8edb1f80-de1e-4fa7-9eb8-80def1cb111d@intel.com>
-Date: Mon, 23 Mar 2026 10:14:50 -0700
+	s=arc-20240116; t=1774286494; c=relaxed/simple;
+	bh=cK5crSIbq3v6eBqTicknSYTbc2z0ScWMd5hriD/IKUc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pEt2oem6NImUoC8mrzq5aqhscvKfSyQio/mE5fM8PpOxQglFZFSnFWtje8IgiJlmTPEv0afQdf+9rNIpli8qr4xyGgk8okbSBvsnUP6O2GU/zkC5Blv2RsrZtXYQ9zL+FrZ0QvJL2BM21zluSTiFXuC5m6PnFW7dtV6NHIoSlUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
+Received: from omf08.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay07.hostedemail.com (Postfix) with ESMTP id 04404160614;
+	Mon, 23 Mar 2026 17:21:22 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf08.hostedemail.com (Postfix) with ESMTPA id 4B16C20028;
+	Mon, 23 Mar 2026 17:21:11 +0000 (UTC)
+Date: Mon, 23 Mar 2026 12:21:09 -0500
+From: John Groves <john@groves.net>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH V8 3/8] dax: add fsdev.c driver for fs-dax on character
+ dax
+Message-ID: <acF1vWQGB_EoRWVi@groves.net>
+References: <20260318202737.4344.dax@groves.net>
+ <20260319012837.4443-1-john@groves.net>
+ <20260319122057.00004503@huawei.com>
+ <ab3nFoKxirEgoS_v@groves.net>
+ <20260323121250.00004402@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v8 2/9] dax/hmem: Factor HMEM registration into
- __hmem_register_device()
-To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
- linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
- linux-pm@vger.kernel.org
-Cc: Ard Biesheuvel <ardb@kernel.org>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Dan Williams <dan.j.williams@intel.com>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Yazen Ghannam <yazen.ghannam@amd.com>, Davidlohr Bueso <dave@stgolabs.net>,
- Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
- Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
- Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
- Ying Huang <huang.ying.caritas@gmail.com>,
- Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Nathan Fontenot <nathan.fontenot@amd.com>,
- Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
- Benjamin Cheatham <benjamin.cheatham@amd.com>,
- Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
- Tomasz Wolski <tomasz.wolski@fujitsu.com>
-References: <20260322195343.206900-1-Smita.KoralahalliChannabasappa@amd.com>
- <20260322195343.206900-3-Smita.KoralahalliChannabasappa@amd.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260322195343.206900-3-Smita.KoralahalliChannabasappa@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260323121250.00004402@huawei.com>
+X-Rspamd-Queue-Id: 4B16C20028
+X-Stat-Signature: bxdg8a6ie1w9ircu3df6dzukx13pabjz
+X-Rspamd-Server: rspamout03
+X-Session-Marker: 6A6F686E4067726F7665732E6E6574
+X-Session-ID: U2FsdGVkX1809opFCnBO7f651BPCBxwJ49nYJRohtOQ=
+X-HE-Tag: 1774286471-505091
+X-HE-Meta: U2FsdGVkX18TNbiNbjQAlQ4GJFRHGyldIttWpgr1j2rn5VyzyRd0i4qZeR9hoDHZQrdYZOJsFUs7jBmX0NYdmy9tTcx06VRGCaHpJJs4XTh8Jn0HmLGTXgasXh9eeCPDB0C1DZToGpaBktv/5DIvVHzJ98Fw6r20OUNvOn0seum3ZxpleT06MJ5yW2bE4tn/un93ch7n4iWUxOKSd928b+Pmpd6PQzeplKif+4UHE1m0W4VgErxI0jFkID+MJlzoj5u9kg1P6xVcqrmYoM1Fc+Gc7T4/4TxKxsyF1jTZPZAIbFiSEjEXJC9n3l/Ittkb
 
-
-
-On 3/22/26 12:53 PM, Smita Koralahalli wrote:
-> Separate the CXL overlap check from the HMEM registration path and keep
-> the platform-device setup in a dedicated __hmem_register_device().
+On 26/03/23 12:12PM, Jonathan Cameron wrote:
 > 
-> This makes hmem_register_device() the policy entry point for deciding
-> whether a range should be deferred to CXL, while __hmem_register_device()
-> handles the HMEM registration flow.
+> > > > diff --git a/drivers/dax/Makefile b/drivers/dax/Makefile
+> > > > index 5ed5c39857c8..3bae252fd1bf 100644
+> > > > --- a/drivers/dax/Makefile
+> > > > +++ b/drivers/dax/Makefile
+> > > > @@ -5,10 +5,16 @@ obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
+> > > >  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+> > > >  obj-$(CONFIG_DEV_DAX_CXL) += dax_cxl.o
+> > > >  
+> > > > +# fsdev_dax: fs-dax compatible devdax driver (needs DEV_DAX and FS_DAX)
+> > > > +ifeq ($(CONFIG_FS_DAX),y)
+> > > > +obj-$(CONFIG_DEV_DAX) += fsdev_dax.o
+> > > > +endif  
+> > > 
+> > > Why not throw in a new CONFIG_FSDAX_DEV and handle the dependencies
+> > > in Kconfig?    
+> > 
+> > At one point I had another config parameter, but I'm trying not to
+> > gratuitously add them. The fsdev driver is pretty small, and including it
+> > whenever FS_DAX is enabled felt reasonable to me. I'm willing to change it
+> > if there's a consensus that way.
 > 
-> No functional changes.
+> You can make the build do exactly the same thing with a separate Kconfig
+> option. Just moves where the dependency tracking is. I'd prefer Kconfig
+> because that's generally where I'd look for something like this.
 > 
-> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+> 
+> Jonathan
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+OK, will do. It will be CONFIG_DEV_DAX_FSDEV for naming consistency.
 
-> ---
->  drivers/dax/hmem/hmem.c | 24 +++++++++++++++---------
->  1 file changed, 15 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-> index 1cf7c2a0ee1c..a3d45032355c 100644
-> --- a/drivers/dax/hmem/hmem.c
-> +++ b/drivers/dax/hmem/hmem.c
-> @@ -58,21 +58,14 @@ static void release_hmem(void *pdev)
->  	platform_device_unregister(pdev);
->  }
->  
-> -static int hmem_register_device(struct device *host, int target_nid,
-> -				const struct resource *res)
-> +static int __hmem_register_device(struct device *host, int target_nid,
-> +				  const struct resource *res)
->  {
->  	struct platform_device *pdev;
->  	struct memregion_info info;
->  	long id;
->  	int rc;
->  
-> -	if (IS_ENABLED(CONFIG_CXL_REGION) &&
-> -	    region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
-> -			      IORES_DESC_CXL) != REGION_DISJOINT) {
-> -		dev_dbg(host, "deferring range to CXL: %pr\n", res);
-> -		return 0;
-> -	}
-> -
->  	rc = region_intersects_soft_reserve(res->start, resource_size(res));
->  	if (rc != REGION_INTERSECTS)
->  		return 0;
-> @@ -123,6 +116,19 @@ static int hmem_register_device(struct device *host, int target_nid,
->  	return rc;
->  }
->  
-> +static int hmem_register_device(struct device *host, int target_nid,
-> +				const struct resource *res)
-> +{
-> +	if (IS_ENABLED(CONFIG_CXL_REGION) &&
-> +	    region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
-> +			      IORES_DESC_CXL) != REGION_DISJOINT) {
-> +		dev_dbg(host, "deferring range to CXL: %pr\n", res);
-> +		return 0;
-> +	}
-> +
-> +	return __hmem_register_device(host, target_nid, res);
-> +}
-> +
->  static int dax_hmem_platform_probe(struct platform_device *pdev)
->  {
->  	return walk_hmem_resources(&pdev->dev, hmem_register_device);
+V9 coming within 24 hours...
+
+John
 
