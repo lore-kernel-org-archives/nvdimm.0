@@ -1,103 +1,165 @@
-Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DBD3C1409
-	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 17:21:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA99B3C9433
+	for <nvdimm@lists.linux.dev>; Mon, 23 Mar 2026 17:31:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774286494; cv=none; b=dbLWyw3UpKyce8l0lc225MTWbwyH4p29eKcGM9NvlcfxP7aLV3v+rWHmWTBCJsOiD8XrR0DhZU8JrL2oxlDNTzSXJ6sFJ3Z5Nt3vFRx14q3wMR/s3o9llSxbxgad8B1obatu9O7qEPnGVv8JNjzXS4kv0HcA2gb79cBdPuBP4yc=
+	t=1774287107; cv=none; b=DJdnWSVyfElj7J35Vkab9nr5u+2F01lvJ/3ObG4Pp0BZU8JOCmxI3YLy/jcFfJNx+H6aZOz8k7h02mthxrmYpE0zgSCCpc59JpealV8e8wQ3BnVk3/5xjEoaYI+LcQjjpPtfI/mylAGIIwtXa1x85IQOqaizvmkbvbt98vk5vH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774286494; c=relaxed/simple;
-	bh=cK5crSIbq3v6eBqTicknSYTbc2z0ScWMd5hriD/IKUc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pEt2oem6NImUoC8mrzq5aqhscvKfSyQio/mE5fM8PpOxQglFZFSnFWtje8IgiJlmTPEv0afQdf+9rNIpli8qr4xyGgk8okbSBvsnUP6O2GU/zkC5Blv2RsrZtXYQ9zL+FrZ0QvJL2BM21zluSTiFXuC5m6PnFW7dtV6NHIoSlUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf08.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay07.hostedemail.com (Postfix) with ESMTP id 04404160614;
-	Mon, 23 Mar 2026 17:21:22 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf08.hostedemail.com (Postfix) with ESMTPA id 4B16C20028;
-	Mon, 23 Mar 2026 17:21:11 +0000 (UTC)
-Date: Mon, 23 Mar 2026 12:21:09 -0500
-From: John Groves <john@groves.net>
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, venkataravis@micron.com, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH V8 3/8] dax: add fsdev.c driver for fs-dax on character
- dax
-Message-ID: <acF1vWQGB_EoRWVi@groves.net>
-References: <20260318202737.4344.dax@groves.net>
- <20260319012837.4443-1-john@groves.net>
- <20260319122057.00004503@huawei.com>
- <ab3nFoKxirEgoS_v@groves.net>
- <20260323121250.00004402@huawei.com>
+	s=arc-20240116; t=1774287107; c=relaxed/simple;
+	bh=go7NgkHXgfn9/qJxOGRIORTyJcHQqG1yRjvleSKosIo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=AMiXoHVhcLWxk+w3Al8VXFnwwNXGTJ3T/9Qv0WlotodG9gk4hXSmLfwUESSrD8gNTnpDJoGgTZBHZjHckxHssT8dUtspMpi0gSDZzpAG5kXTAvOb74+EFAq3KIW0AsZ5DsCZcNnymGRKVyMw0N/Oidlc8mABd3uobhL7Y1eivSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SDDC3anb; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SDDC3anb"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774287106; x=1805823106;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=go7NgkHXgfn9/qJxOGRIORTyJcHQqG1yRjvleSKosIo=;
+  b=SDDC3anbImPKshdbwGGD5NNkb7Qd4G9x2GtaqAOhz5wXVngN1i4ltBnE
+   VtYmQQbX2u+27pZqatperrcuCVQP8y9YXMDMG3S299nW41v3Wq7RoEALk
+   LP4Ttgquura1UmVeqPDzUxxM9IYljuJeYf4gl4MGB4IkMD2dSZZ/P5XWA
+   f4hfMjPK8YC8UH5yWAFBEQEfdlD2DsGv1Ndl1HiFAkqPFArLyENjIWoTo
+   611JqTV5ozGPU5s74IQYlPs0nmhbk9zwUIuA4aNYiRayasCzpVHQgRZhQ
+   Kd5PcQpM4uqNdz8C0D2I/VWC3cDLQlvCAcdtCwd3043IcMOHJQv9wQTLU
+   g==;
+X-CSE-ConnectionGUID: f4jecf2qQ96lliQRg7IUjg==
+X-CSE-MsgGUID: bTl4ZrAZR7azIvrUqoNiyA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11738"; a="92865793"
+X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
+   d="scan'208";a="92865793"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 10:31:45 -0700
+X-CSE-ConnectionGUID: +feu5u54RyWgIHocjrb6Ew==
+X-CSE-MsgGUID: LV7OoE3hR/294sFk1B+y4g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
+   d="scan'208";a="224064255"
+Received: from jdoman-mobl3.amr.corp.intel.com (HELO [10.125.109.216]) ([10.125.109.216])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 10:31:42 -0700
+Message-ID: <ac469798-0617-4cac-8766-f76302f5f7f7@intel.com>
+Date: Mon, 23 Mar 2026 10:31:41 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260323121250.00004402@huawei.com>
-X-Rspamd-Queue-Id: 4B16C20028
-X-Stat-Signature: bxdg8a6ie1w9ircu3df6dzukx13pabjz
-X-Rspamd-Server: rspamout03
-X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1809opFCnBO7f651BPCBxwJ49nYJRohtOQ=
-X-HE-Tag: 1774286471-505091
-X-HE-Meta: U2FsdGVkX18TNbiNbjQAlQ4GJFRHGyldIttWpgr1j2rn5VyzyRd0i4qZeR9hoDHZQrdYZOJsFUs7jBmX0NYdmy9tTcx06VRGCaHpJJs4XTh8Jn0HmLGTXgasXh9eeCPDB0C1DZToGpaBktv/5DIvVHzJ98Fw6r20OUNvOn0seum3ZxpleT06MJ5yW2bE4tn/un93ch7n4iWUxOKSd928b+Pmpd6PQzeplKif+4UHE1m0W4VgErxI0jFkID+MJlzoj5u9kg1P6xVcqrmYoM1Fc+Gc7T4/4TxKxsyF1jTZPZAIbFiSEjEXJC9n3l/Ittkb
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v8 6/9] dax: Track all dax_region allocations under a
+ global resource tree
+To: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+ linux-pm@vger.kernel.org
+Cc: Ard Biesheuvel <ardb@kernel.org>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Yazen Ghannam <yazen.ghannam@amd.com>, Davidlohr Bueso <dave@stgolabs.net>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <len.brown@intel.com>,
+ Pavel Machek <pavel@kernel.org>, Li Ming <ming.li@zohomail.com>,
+ Jeff Johnson <jeff.johnson@oss.qualcomm.com>,
+ Ying Huang <huang.ying.caritas@gmail.com>,
+ Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Nathan Fontenot <nathan.fontenot@amd.com>,
+ Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>,
+ Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
+ Tomasz Wolski <tomasz.wolski@fujitsu.com>
+References: <20260322195343.206900-1-Smita.KoralahalliChannabasappa@amd.com>
+ <20260322195343.206900-7-Smita.KoralahalliChannabasappa@amd.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260322195343.206900-7-Smita.KoralahalliChannabasappa@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On 26/03/23 12:12PM, Jonathan Cameron wrote:
-> 
-> > > > diff --git a/drivers/dax/Makefile b/drivers/dax/Makefile
-> > > > index 5ed5c39857c8..3bae252fd1bf 100644
-> > > > --- a/drivers/dax/Makefile
-> > > > +++ b/drivers/dax/Makefile
-> > > > @@ -5,10 +5,16 @@ obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
-> > > >  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
-> > > >  obj-$(CONFIG_DEV_DAX_CXL) += dax_cxl.o
-> > > >  
-> > > > +# fsdev_dax: fs-dax compatible devdax driver (needs DEV_DAX and FS_DAX)
-> > > > +ifeq ($(CONFIG_FS_DAX),y)
-> > > > +obj-$(CONFIG_DEV_DAX) += fsdev_dax.o
-> > > > +endif  
-> > > 
-> > > Why not throw in a new CONFIG_FSDAX_DEV and handle the dependencies
-> > > in Kconfig?    
-> > 
-> > At one point I had another config parameter, but I'm trying not to
-> > gratuitously add them. The fsdev driver is pretty small, and including it
-> > whenever FS_DAX is enabled felt reasonable to me. I'm willing to change it
-> > if there's a consensus that way.
-> 
-> You can make the build do exactly the same thing with a separate Kconfig
-> option. Just moves where the dependency tracking is. I'd prefer Kconfig
-> because that's generally where I'd look for something like this.
-> 
-> 
-> Jonathan
 
-OK, will do. It will be CONFIG_DEV_DAX_FSDEV for naming consistency.
 
-V9 coming within 24 hours...
+On 3/22/26 12:53 PM, Smita Koralahalli wrote:
+> Introduce a global "DAX Regions" resource root and register each
+> dax_region->res under it via request_resource(). Release the resource on
+> dax_region teardown.
+> 
+> By enforcing a single global namespace for dax_region allocations, this
+> ensures only one of dax_hmem or dax_cxl can successfully register a
+> dax_region for a given range.
+> 
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 
-John
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+> ---
+>  drivers/dax/bus.c | 20 +++++++++++++++++---
+>  1 file changed, 17 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 299134c9b294..68437c05e21d 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -10,6 +10,7 @@
+>  #include "dax-private.h"
+>  #include "bus.h"
+>  
+> +static struct resource dax_regions = DEFINE_RES_MEM_NAMED(0, -1, "DAX Regions");
+>  static DEFINE_MUTEX(dax_bus_lock);
+>  
+>  /*
+> @@ -627,6 +628,7 @@ static void dax_region_unregister(void *region)
+>  
+>  	sysfs_remove_groups(&dax_region->dev->kobj,
+>  			dax_region_attribute_groups);
+> +	release_resource(&dax_region->res);
+>  	dax_region_put(dax_region);
+>  }
+>  
+> @@ -635,6 +637,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+>  		unsigned long flags)
+>  {
+>  	struct dax_region *dax_region;
+> +	int rc;
+>  
+>  	/*
+>  	 * The DAX core assumes that it can store its private data in
+> @@ -667,14 +670,25 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+>  		.flags = IORESOURCE_MEM | flags,
+>  	};
+>  
+> -	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
+> -		dax_region_put(dax_region);
+> -		return NULL;
+> +	rc = request_resource(&dax_regions, &dax_region->res);
+> +	if (rc) {
+> +		dev_dbg(parent, "dax_region resource conflict for %pR\n",
+> +			&dax_region->res);
+> +		goto err_res;
+>  	}
+>  
+> +	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups))
+> +		goto err_sysfs;
+> +
+>  	if (devm_add_action_or_reset(parent, dax_region_unregister, dax_region))
+>  		return NULL;
+>  	return dax_region;
+> +
+> +err_sysfs:
+> +	release_resource(&dax_region->res);
+> +err_res:
+> +	dax_region_put(dax_region);
+> +	return NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(alloc_dax_region);
+>  
 
