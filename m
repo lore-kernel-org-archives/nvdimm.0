@@ -1,37 +1,37 @@
-Received: from a8-40.smtp-out.amazonses.com (a8-40.smtp-out.amazonses.com [54.240.8.40])
+Received: from a11-73.smtp-out.amazonses.com (a11-73.smtp-out.amazonses.com [54.240.11.73])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4DB330B51D
-	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 00:38:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.8.40
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4AA1FC0FC
+	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 00:39:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774312731; cv=none; b=g665MNWlkCeW1nPlw1ITVQkr1vRqvheotyHvmxnoz+jZG1EgXkjKRNsCnOulhVuVqw4DqMbhn8Chsdam+vJ6jzwTLKZGTiU/kUP0unwKd5wTE5stiV4lRf5QoxHxduN3wDG6FXM4EkygJ4dJQtEzkJKE0G479d1HOUxpiRyAar0=
+	t=1774312746; cv=none; b=D9Va9KmXPMo0a4LpNAKi2lHG7DARS/mlm/Y/vFyWXKXt1+ONyy9VWYOVkiO96nKsyvmOCk2lGlh2L+jG4wX+gIGM4xZbhYRc0UGxXDg4AvL4lf6IKW3kHoksbGBbltmCKIrUrmPfYw71ycsvkdy7SYY/O2JLC2cCukvZ981kJW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774312731; c=relaxed/simple;
-	bh=+ozPvkfHB51tU0Cm/zY8s6uhLjVwAvzitKIS09ao+TM=;
+	s=arc-20240116; t=1774312746; c=relaxed/simple;
+	bh=1ZwqoHpz+HZZyv4ZlRWcph43SDHdf/xj4vCU9/u0Q4I=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=iHdrxvJVZsOGnEuadPb12LdXf77OrnzFoiFT6RKacyOVPqYUpvnUSG5JgJAG2p9U5oTAvHKJ2WdJtmWdWZXb5+LCKaxg5F0/KRWf3iogaZZY28nddzBsOW1MbeHA0N5Hf0vN8w7Uy9ED9RgcZVXpdaeQ54hQz9AyAhI6TXWY6yA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=o0Wl3KSJ; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=m24+E6mc; arc=none smtp.client-ip=54.240.8.40
+	 References:Message-ID; b=sW7Z9IThY5+ywQ4NJyHvVrbbDYpkUySwcnXWaiiSMAw54ole/XoAr4bbhZTVPTBFElONn06ACzhMm7lf0bJd7d7v/VN6CC5xHc3UoE84EL7WOYxDMVUyz5ZrctW3ERra3/nGYxLc6C2xLa6h3h171sox8aC6pEZC42wISNF9PjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=DKdW1qOD; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=dykQ3XGJ; arc=none smtp.client-ip=54.240.11.73
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="o0Wl3KSJ";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="m24+E6mc"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="DKdW1qOD";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="dykQ3XGJ"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774312728;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774312744;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=+ozPvkfHB51tU0Cm/zY8s6uhLjVwAvzitKIS09ao+TM=;
-	b=o0Wl3KSJP1IgjNzxg9cn0P6U8xKA71317YLPLIgXv9DG8qpkjoVAGium55d9jUQu
-	21h7yXKzqk8gx7cyLvYTtjbWc3NnUeuJbXmQD0HIbVJJ0PiFfAa6+dQu2BHguHNdiLB
-	CLJfN8KND52nydcLIXPyLVsx3qtMjQcCdF/jXIFA=
+	bh=1ZwqoHpz+HZZyv4ZlRWcph43SDHdf/xj4vCU9/u0Q4I=;
+	b=DKdW1qODIPcIIWrL+9rlF9N5OsMF2THyy3hh9XMmtQ6xIgglozX6zh3CfcVA52f+
+	gF6JH3L4fvyriFUnw60STB2rDJ+fUBDM1VN5oTDf/R1yJ8yThuyxf7/n6uop0sHUmBx
+	4Bmbvx9qUUNVD3beiNkG2ZFqGmxdANE/rTI727II=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774312728;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774312744;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=+ozPvkfHB51tU0Cm/zY8s6uhLjVwAvzitKIS09ao+TM=;
-	b=m24+E6mceGg2a4fxNrSg6OeuhQ7bihN+RlTxtWzvFuIDjDDuQotfrBL6sSNgWpkC
-	YasAKNk0taG0d7k9mlSGaO1oGroOdqcx+0IP8gt+HiOmN5yuY3nbsACzWLuN7e76cLR
-	IgOxMVXsoyXZ6j7/6fJ6e+9GaEAv6lhmYvLzLkUM=
-Subject: [PATCH V9 4/8] dax: Save the kva from memremap
+	bh=1ZwqoHpz+HZZyv4ZlRWcph43SDHdf/xj4vCU9/u0Q4I=;
+	b=dykQ3XGJ5/ScVIlGLPeoYnLt1rvGk/wD9nReU9G0F+wmAm+ox42ESt3gxWUaoXp5
+	7eKjZU6AwG+MsfTTowgmAyhtnHXKtjFrbLOQE4LjGOi0MbrITKNi7ZxtrSmYmzMWK4r
+	0jrKLhjOF2EZO88P2hHI1BdP76Sa74s1q6oYAeUo=
+Subject: [PATCH V9 5/8] dax: Add dax_operations for use by fs-dax on fsdev dax
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -72,9 +72,8 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?nvdimm=40lists=2Elinux=2Edev?= <nvdimm@lists.linux.dev>, 
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
-	=?UTF-8?Q?John_Groves?= <john@groves.net>, 
-	=?UTF-8?Q?Ira_Weiny?= <ira.weiny@intel.com>
-Date: Tue, 24 Mar 2026 00:38:48 +0000
+	=?UTF-8?Q?John_Groves?= <john@groves.net>
+Date: Tue, 24 Mar 2026 00:39:04 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -82,84 +81,95 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 In-Reply-To: 
  <0100019d1d463523-617e8165-a084-4d91-aa5e-13778264d5d4-000000@email.amazonses.com>
 References: 
  <0100019d1d463523-617e8165-a084-4d91-aa5e-13778264d5d4-000000@email.amazonses.com> 
- <20260324003833.5027-1-john@jagalactic.com>
+ <20260324003851.5045-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHcuyaT6kMwSdwXRx+HFn8jHvAjuA==
-Thread-Topic: [PATCH V9 4/8] dax: Save the kva from memremap
-X-Wm-Sent-Timestamp: 1774312727
+Thread-Index: AQHcuyacoLShcwO6StaeU6Nu4pfQrw==
+Thread-Topic: [PATCH V9 5/8] dax: Add dax_operations for use by fs-dax on
+ fsdev dax
+X-Wm-Sent-Timestamp: 1774312742
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019d1d47a813-6b74d7e9-5171-4382-bfa5-67bf9667c62a-000000@email.amazonses.com>
+Message-ID: <0100019d1d47e459-48f2a4e6-edab-4002-bde3-2ba642deccaf-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.03.24-54.240.8.40
+X-SES-Outgoing: 2026.03.24-54.240.11.73
 
-From: John Groves <john@groves.net>
-
-Save the kva from memremap because we need it for iomap rw support.
-
-Prior to famfs, there were no iomap users of /dev/dax - so the virtual
-address from memremap was not needed.
-
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: John Groves <john@groves.net>
----
- drivers/dax/dax-private.h | 2 ++
- drivers/dax/fsdev.c       | 3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index c6ae27c982f4..7a3727d76a68 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -69,6 +69,7 @@ struct dev_dax_range {
-  * data while the device is activated in the driver.
-  * @region: parent region
-  * @dax_dev: core dax functionality
-+ * @virt_addr: kva from memremap; used by fsdev_dax
-  * @align: alignment of this instance
-  * @target_node: effective numa node if dev_dax memory range is onlined
-  * @dyn_id: is this a dynamic or statically created instance
-@@ -83,6 +84,7 @@ struct dev_dax_range {
- struct dev_dax {
- 	struct dax_region *region;
- 	struct dax_device *dax_dev;
-+	void *virt_addr;
- 	unsigned int align;
- 	int target_node;
- 	bool dyn_id;
-diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-index 8b5c6976ad17..c75478d3d548 100644
---- a/drivers/dax/fsdev.c
-+++ b/drivers/dax/fsdev.c
-@@ -121,6 +121,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 	struct device *dev = &dev_dax->dev;
- 	struct dev_pagemap *pgmap;
- 	struct inode *inode;
-+	u64 data_offset = 0;
- 	struct cdev *cdev;
- 	void *addr;
- 	int rc, i;
-@@ -196,7 +197,6 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
- 		u64 phys = dev_dax->ranges[0].range.start;
- 		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
--		u64 data_offset = 0;
- 
- 		if (!WARN_ON(pgmap_phys > phys))
- 			data_offset = phys - pgmap_phys;
-@@ -204,6 +204,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
- 		       __func__, phys, pgmap_phys, data_offset);
- 	}
-+	dev_dax->virt_addr = addr + data_offset;
- 
- 	inode = dax_inode(dax_dev);
- 	cdev = inode->i_cdev;
--- 
-2.53.0
-
+From: John Groves <John@Groves.net>=0D=0A=0D=0Afsdev: Add dax_operations =
+for use by famfs.=0D=0A=0D=0AThis replicates the functionality from drive=
+rs/nvdimm/pmem.c that=0D=0Aconventional fs-dax file systems (e.g. xfs) us=
+e to support dax=0D=0Aread/write/mmap to a daxdev - without which famfs c=
+an't sit atop a=0D=0Adaxdev.=0D=0A=0D=0A- These methods are based on pmem=
+_dax_ops from drivers/nvdimm/pmem.c=0D=0A- fsdev_dax_direct_access() retu=
+rns the hpa, pfn and kva. The kva was=0D=0A  newly stored as dev_dax->vir=
+t_addr by dev_dax_probe().=0D=0A- The hpa/pfn are used for mmap (dax_ioma=
+p_fault()), and the kva is used=0D=0A  for read/write (dax_iomap_rw())=0D=
+=0A- fsdev_dax_recovery_write() and dev_dax_zero_page_range() have not be=
+en=0D=0A  tested yet. I'm looking for suggestions as to how to test those=
+=2E=0D=0A- dax-private.h: add dev_dax->cached_size, which fsdev needs to=0D=
+=0A  remember. The dev_dax size cannot change while a driver is bound=0D=0A=
+  (dev_dax_resize returns -EBUSY if dev->driver is set). Caching the size=
+=0D=0A  at probe time allows fsdev's direct_access path can use it withou=
+t=0D=0A  acquiring dax_dev_rwsem (which isn't exported anyway).=0D=0A=0D=0A=
+Signed-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A drivers/dax/d=
+ax-private.h |  1 +=0D=0A drivers/dax/fsdev.c       | 84 ++++++++++++++++=
++++++++++++++++++++++++=0D=0A 2 files changed, 85 insertions(+)=0D=0A=0D=0A=
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h=0D=0Ai=
+ndex 7a3727d76a68..ee8f3af8387f 100644=0D=0A--- a/drivers/dax/dax-private=
+=2Eh=0D=0A+++ b/drivers/dax/dax-private.h=0D=0A@@ -85,6 +85,7 @@ struct d=
+ev_dax {=0D=0A =09struct dax_region *region;=0D=0A =09struct dax_device *=
+dax_dev;=0D=0A =09void *virt_addr;=0D=0A+=09u64 cached_size;=0D=0A =09uns=
+igned int align;=0D=0A =09int target_node;=0D=0A =09bool dyn_id;=0D=0Adif=
+f --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c=0D=0Aindex c75478d3d5=
+48..be3d2b0e8418 100644=0D=0A--- a/drivers/dax/fsdev.c=0D=0A+++ b/drivers=
+/dax/fsdev.c=0D=0A@@ -28,6 +28,85 @@=0D=0A  * - No mmap support - all acc=
+ess is through fs-dax/iomap=0D=0A  */=0D=0A=20=0D=0A+static void fsdev_wr=
+ite_dax(void *pmem_addr, struct page *page,=0D=0A+=09=09unsigned int off,=
+ unsigned int len)=0D=0A+{=0D=0A+=09while (len) {=0D=0A+=09=09void *mem =3D=
+ kmap_local_page(page);=0D=0A+=09=09unsigned int chunk =3D min_t(unsigned=
+ int, len, PAGE_SIZE - off);=0D=0A+=0D=0A+=09=09memcpy_flushcache(pmem_ad=
+dr, mem + off, chunk);=0D=0A+=09=09kunmap_local(mem);=0D=0A+=09=09len -=3D=
+ chunk;=0D=0A+=09=09off =3D 0;=0D=0A+=09=09page++;=0D=0A+=09=09pmem_addr =
++=3D chunk;=0D=0A+=09}=0D=0A+}=0D=0A+=0D=0A+static long __fsdev_dax_direc=
+t_access(struct dax_device *dax_dev, pgoff_t pgoff,=0D=0A+=09=09=09long n=
+r_pages, enum dax_access_mode mode, void **kaddr,=0D=0A+=09=09=09unsigned=
+ long *pfn)=0D=0A+{=0D=0A+=09struct dev_dax *dev_dax =3D dax_get_private(=
+dax_dev);=0D=0A+=09size_t size =3D nr_pages << PAGE_SHIFT;=0D=0A+=09size_=
+t offset =3D pgoff << PAGE_SHIFT;=0D=0A+=09void *virt_addr =3D dev_dax->v=
+irt_addr + offset;=0D=0A+=09phys_addr_t phys;=0D=0A+=09unsigned long loca=
+l_pfn;=0D=0A+=0D=0A+=09phys =3D dax_pgoff_to_phys(dev_dax, pgoff, nr_page=
+s << PAGE_SHIFT);=0D=0A+=09if (phys =3D=3D -1) {=0D=0A+=09=09dev_dbg(&dev=
+_dax->dev,=0D=0A+=09=09=09"pgoff (%#lx) out of range\n", pgoff);=0D=0A+=09=
+=09return -EFAULT;=0D=0A+=09}=0D=0A+=0D=0A+=09if (kaddr)=0D=0A+=09=09*kad=
+dr =3D virt_addr;=0D=0A+=0D=0A+=09local_pfn =3D PHYS_PFN(phys);=0D=0A+=09=
+if (pfn)=0D=0A+=09=09*pfn =3D local_pfn;=0D=0A+=0D=0A+=09/*=0D=0A+=09 * U=
+se cached_size which was computed at probe time. The size cannot=0D=0A+=09=
+ * change while the driver is bound (resize returns -EBUSY).=0D=0A+=09 */=
+=0D=0A+=09return PHYS_PFN(min(size, dev_dax->cached_size - offset));=0D=0A=
++}=0D=0A+=0D=0A+static int fsdev_dax_zero_page_range(struct dax_device *d=
+ax_dev,=0D=0A+=09=09=09pgoff_t pgoff, size_t nr_pages)=0D=0A+{=0D=0A+=09v=
+oid *kaddr;=0D=0A+=0D=0A+=09WARN_ONCE(nr_pages > 1, "%s: nr_pages > 1\n",=
+ __func__);=0D=0A+=09__fsdev_dax_direct_access(dax_dev, pgoff, 1, DAX_ACC=
+ESS, &kaddr, NULL);=0D=0A+=09fsdev_write_dax(kaddr, ZERO_PAGE(0), 0, PAGE=
+_SIZE);=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+static long fsdev_dax_dir=
+ect_access(struct dax_device *dax_dev,=0D=0A+=09=09  pgoff_t pgoff, long =
+nr_pages, enum dax_access_mode mode,=0D=0A+=09=09  void **kaddr, unsigned=
+ long *pfn)=0D=0A+{=0D=0A+=09return __fsdev_dax_direct_access(dax_dev, pg=
+off, nr_pages, mode,=0D=0A+=09=09=09=09=09 kaddr, pfn);=0D=0A+}=0D=0A+=0D=
+=0A+static size_t fsdev_dax_recovery_write(struct dax_device *dax_dev, pg=
+off_t pgoff,=0D=0A+=09=09void *addr, size_t bytes, struct iov_iter *i)=0D=
+=0A+{=0D=0A+=09return _copy_from_iter_flushcache(addr, bytes, i);=0D=0A+}=
+=0D=0A+=0D=0A+static const struct dax_operations dev_dax_ops =3D {=0D=0A+=
+=09.direct_access =3D fsdev_dax_direct_access,=0D=0A+=09.zero_page_range =
+=3D fsdev_dax_zero_page_range,=0D=0A+=09.recovery_write =3D fsdev_dax_rec=
+overy_write,=0D=0A+};=0D=0A+=0D=0A static void fsdev_cdev_del(void *cdev)=
+=0D=0A {=0D=0A =09cdev_del(cdev);=0D=0A@@ -167,6 +246,11 @@ static int fs=
+dev_dax_probe(struct dev_dax *dev_dax)=0D=0A =09=09}=0D=0A =09}=0D=0A=20=0D=
+=0A+=09/* Cache size now; it cannot change while driver is bound */=0D=0A=
++=09dev_dax->cached_size =3D 0;=0D=0A+=09for (i =3D 0; i < dev_dax->nr_ra=
+nge; i++)=0D=0A+=09=09dev_dax->cached_size +=3D range_len(&dev_dax->range=
+s[i].range);=0D=0A+=0D=0A =09/*=0D=0A =09 * Use MEMORY_DEVICE_FS_DAX with=
+out setting vmemmap_shift, leaving=0D=0A =09 * folios at order-0. Unlike =
+device.c (MEMORY_DEVICE_GENERIC), this=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A=
