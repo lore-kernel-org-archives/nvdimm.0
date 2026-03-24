@@ -1,159 +1,266 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CDAFA3EC2D7
-	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 11:38:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774352310; cv=none; b=Vfr5mNPcq8d+/0vBmCRBLuPARsqMNH0E3DcYh/dI2vx4ijavW9JmepFV0C2hX4iz9pVSvE+owkyAFWTT2Oy6jD0jRPz0KUhuRrODrjsmTHW/QRgg2ovmPqPYObRZODrBhRefUvP6b5FzOo9kQbeaCsoIihoCXhwqVPtj7XlogKs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774352310; c=relaxed/simple;
-	bh=rCpWQbyQWQXl2Qh/RBMXFXWLIW1YHFJBFGuuebulfL0=;
-	h=From:To:Subject:CC:Date:Message-ID:MIME-Version:Content-Type; b=Nwhofb9wACidcJvBsNkDD7WZpzj0iU+g1XCmMVbLjkP3/Sb3diWdJAI9Sr1AQcVSBZIKTpIIB5+I0NdMpFo/RBI4wAosnzYaWoVtnbsIYpZOLlUNoIlqjeSmdzblkWvzC/6wMZKH7jEYnSr54YubnQEGqmaw5RVsZQbrL2tLelk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3FDE11476;
-	Tue, 24 Mar 2026 04:38:22 -0700 (PDT)
-Received: from GX9GF4H4XN (unknown [10.1.27.171])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 92B223FE14;
-	Tue, 24 Mar 2026 04:38:26 -0700 (PDT)
-From: Seunguk Shin <seunguk.shin@arm.com>
-To: <linux-kernel@vger.kernel.org>, <dan.j.williams@intel.com>
-Subject: [PATCH v2 RESEND] fs/dax: check zero or empty entry before
- converting xarray entry
-CC: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
- <jack@suse.cz>, <willy@infradead.org>, <Nick.Connolly@arm.com>,
- <ffidencio@nvidia.com>, <seunguk.shin@arm.com>
-Date: Tue, 24 Mar 2026 11:38:17 +0000
-Message-ID: <m2jyv11mqe.fsf@arm.com>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012039.outbound.protection.outlook.com [52.101.43.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 593133FE654
+	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 14:06:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.39
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774361206; cv=fail; b=dcZ0eAdOnWwl5pZADpca7jJpLEREGgKATMGG/c3x03ulb1zejsQm7gqQgiwC1k7VUO39pkPL+uJkBMU7g00lQ12nFKJ8C68Z56sjx0Bozz1NMmpUI0ElBqxj87HcE1wTMqWZ2Je9t7lnEyxa8/D+9WU0FealnVTKON5UgUQkAu4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774361206; c=relaxed/simple;
+	bh=wQL9zGa+SnVCnfRRoo2qbaQr3SvWnaI4YlXSUQxgmGc=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=lkbOnHrnj575HezCU/FXH0olaBIv9lm4dW6lQ0arQ8qg5WCy/HegG3bYewdfL4WVQU2fMBFAEyYezUOSXEvAfoMKNTpbmQEPkLevrtddnzvynOsNX3VJnQKzkKcyxTgm9ykwyTTIt2yVsXYHQHDECXIvAKm5oItUf4+gLSQp00w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=DkRGmMUN; arc=fail smtp.client-ip=52.101.43.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="DkRGmMUN"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=nXPV2fTJoJ3F1NP9lUkGGWyvzE0/2tjOYDaI3CYuRr+gbC6LNUTZY2KqfN+GKaKGWsfG2nCZpT4DwRDTa+qDGY+j5MyhboXhJnWUBxXA0UmERlGDjH3ZyU3WC1YFYa2KWsVEgDMag/eQ3Oy6enmE2gNKghxIsgQGL5hmQy4EMuv+d5Ph4LIcfog8dVpiXf47lF1V6D298KWd+YOAq13xJjlbHPR+muwibZILNIprXBLygwavp+PnQ7HQLv2jPztYz0f4H1U6IhIJ6p7hx1dTQxMJBWtoXuN5m96RLRuIT9VeDhmFJ1n7DNqzqPpQwBC22xUj8PYEGRIXkeAmmbgJ+Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=rIZX0sbCCXEAU0rUDTdrcphfsJzoRxVfiiBX9b6aKRk=;
+ b=idLVUNgV3KaHpLK+ptMhPyiPEKnpTkcHZxPpHGLfEYXEI9vRdA6nQOOiZvUFvU79WxqAT4MVk4rlRqc70y/z6Z4o52q5MpvhnjEixX7pQ4qQjguDagVTNKKGDMmYh3BPZVT//UPF1FjRc6/o3Xhs7nV02Q2aQ11ZhS0ul9F7pTG1TRQIW4ZRsVEcG4zu24gad2hrTF7ga5RpCpCkj47N3pgdqUFlm5ywsQ0q6XY7BSPIt8LNjiqO0f5drJuU58LphelkHhOuRSVO9WQPt0FHvD9ABX+n73YCTOPhQ+X9JfmeFVi8fkeVvGTbDrC0KjZuA9AfW/dyvj6BG8vjVtyjIg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rIZX0sbCCXEAU0rUDTdrcphfsJzoRxVfiiBX9b6aKRk=;
+ b=DkRGmMUNQRE5W66jnj1jecJrfgDVDjAbF233bHLShpcgHNDX9vtkxR9zGWj4EZ9l8XxaMYysJcwPZx6gLOO2WZkhAnvTesATKj/aQ1rPmpLpV8Su0BMWtm7bQcpycoWtYBQ9biyarAz3cwHzmXlT7hs7qBIyOsoIMXCy4beGQ1w=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DM6PR12MB4202.namprd12.prod.outlook.com (2603:10b6:5:219::22)
+ by SJ2PR12MB9244.namprd12.prod.outlook.com (2603:10b6:a03:574::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9745.20; Tue, 24 Mar
+ 2026 14:06:39 +0000
+Received: from DM6PR12MB4202.namprd12.prod.outlook.com
+ ([fe80::9e55:f616:6a93:7a3d]) by DM6PR12MB4202.namprd12.prod.outlook.com
+ ([fe80::9e55:f616:6a93:7a3d%6]) with mapi id 15.20.9745.019; Tue, 24 Mar 2026
+ 14:06:38 +0000
+Message-ID: <eecb333f-dd90-42ae-9f3f-cfcff8b7fbea@amd.com>
+Date: Tue, 24 Mar 2026 14:06:29 +0000
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 3/9] cxl/region: Skip decoder reset on detach for
+ autodiscovered regions
+Content-Language: en-US
+To: Alison Schofield <alison.schofield@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>
+Cc: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+ linux-pm@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Yazen Ghannam <yazen.ghannam@amd.com>, Dave Jiang <dave.jiang@intel.com>,
+ Davidlohr Bueso <dave@stgolabs.net>, Matthew Wilcox <willy@infradead.org>,
+ Jan Kara <jack@suse.cz>, "Rafael J . Wysocki" <rafael@kernel.org>,
+ Len Brown <len.brown@intel.com>, Pavel Machek <pavel@kernel.org>,
+ Li Ming <ming.li@zohomail.com>, Jeff Johnson
+ <jeff.johnson@oss.qualcomm.com>, Ying Huang <huang.ying.caritas@gmail.com>,
+ Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Nathan Fontenot <nathan.fontenot@amd.com>,
+ Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>,
+ Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>,
+ Tomasz Wolski <tomasz.wolski@fujitsu.com>
+References: <20260210064501.157591-1-Smita.KoralahalliChannabasappa@amd.com>
+ <20260210064501.157591-4-Smita.KoralahalliChannabasappa@amd.com>
+ <69b1e0aacb9d0_2132100c5@dwillia2-mobl4.notmuch>
+ <absY10LzUqb3vK7A@aschofie-mobl2.lan>
+From: Alejandro Lucero Palau <alucerop@amd.com>
+In-Reply-To: <absY10LzUqb3vK7A@aschofie-mobl2.lan>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: LO4P265CA0299.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:600:391::17) To DM6PR12MB4202.namprd12.prod.outlook.com
+ (2603:10b6:5:219::22)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM6PR12MB4202:EE_|SJ2PR12MB9244:EE_
+X-MS-Office365-Filtering-Correlation-Id: ceeb4e78-d87c-444e-9304-08de89ae9125
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|1800799024|366016|18002099003|56012099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	StTUxwOS+BAK4rNjhwLnf8bAlawqJHwlQR7PyvHty65HWoH/9ACzphZ1qpoFixvOUe2cpUDfenUvZ4aYqTuT/pV1FJbPB8pXG+lNdWw670TFVOWVOvpHlj/Ds2PTkVb25guD8ZD2ZXwVXKsLKfKtuJ4RAO4/T2F1JMw2vF8jAS9QxQKxmNmZynTYZ3kw9lirB/znHGc6XL8s5qVqP8/dRBN7cKv+8eTIHWYNagVIrsY9d0UX9YdKBMqUYRdzrP3ZnnsQQhj89fs5pmt0nKj0l91gq5og2SDnfdaihz9nlqbtjkxvYMK6kCOgm9i35UzE1l/inHTc2KsZmBZH6qjUxZ9HByOptacVRqh6BnHuu1FSfWBlbs44GaOWmgdErXNdQ6u5xain1EHkZjgKdV8haAZ/ksyXbM7v7Ip7/UURuSZQ7woO98bYFFxFy5oYDndo8yfEyZxqUnIcHDoWKEWLpA2EmuPTfns3zxqEWAlUOrkA6/xeDg8v1QZMJVhD/nG4+Y6HlaUV18VP38y90Cd+UCWW/WfNlto/Y1WymEQ/UBqDsgvi6qclSsc3n5f+9gsdM9YlwiDfMqoGCGtalsDZ1IirOZG0s1MoGBT7UUgm015GmSJ+Qaq1aEsWrLPpRmT+8I1L5sy/cUg7Bxa1iZwPbTZd7ZU5Y1KoY6Qp4bmk/osSgaS6TioWDTNTgxUwPx/wP8Qcr0Vmh9eDIJZIQHmHdqzE6U7GHrr61fRr8FLrUtw=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB4202.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(366016)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?YWYyUXVEV1lBb2sxQlg3USt4T0d0QmZxK1JUeE5pdVdvTGlhdVFFSEhvbGw4?=
+ =?utf-8?B?SnZZR01jSi9YRnp4dmNIZFlGWE54b1NqSHlKdWp4b0FEVy9YcjVBMXNyRmtH?=
+ =?utf-8?B?aHcvS3pzVjhCeC9xOVBGSFlBVi83bXlJTU9NYlMxRlpLemFOK3N3U1Vwdjl4?=
+ =?utf-8?B?T3pqeWVyUElvSUVhS3pjdE01MVVxdnpxWGphTmtjdHozZmg4TU0yOHRGTFF5?=
+ =?utf-8?B?dUkvUzBIbC9ZUFFoSktCRFRBTTVNUmF5MmRqR0R6WGNaTmdjcklWUlZSWVlr?=
+ =?utf-8?B?QktTaFlrRkwrV243RjlzRnJOOWRXZGUzNmY1TjZzQy9uZnRjeW4vL2d5b0lN?=
+ =?utf-8?B?VW9WUUozdk93RGhIQmFKMUhNOVdLcXJHYnZWaTEramcyQVZKUnM0Wk81aGlu?=
+ =?utf-8?B?NkxlZVNNNmE2bzlUb0xNbTU5VVNNdGt4NVE3VWpYZEVKTXVleTljZzVuaE1P?=
+ =?utf-8?B?cnBPSWhISmRDSllXekxKVVZjZ1U1YjBEVGJzSTZsUFpOV2crQ0dINmxQYjAr?=
+ =?utf-8?B?Y0dSWWtMZXFDSjFkbVRQb3M3RVZERW5FK3F0Ri96MGF3dENNWUpxNVBUS1B0?=
+ =?utf-8?B?NG4vek1nYXd3ajhhQXZoUHJSOGk3R1NPYnNBenJjYTVyT2F6U3BXUlUwZXVO?=
+ =?utf-8?B?bU5hUnQ3a1p5eFV4KzdHN3NKOGQrcy80d0xETzF5cDJ2L25TeVBuZzRaWC9s?=
+ =?utf-8?B?dmlRd0ZySFo4RDAxMVhBZWVPYVcxU2Q1NHFOOFQxemtyNVBmdm13TjJVQmcr?=
+ =?utf-8?B?UEUrbjJKWHRJeE1XZDNSWE5ZMG5iNnVJZmkzWWVKbkFOeW1vNEtNeE1tY2RF?=
+ =?utf-8?B?d3lIUXJwaXJnaTBaWUQrOGNVMHdyMlJNWHdJT2dZNmpmVnhVL3V4Y04wVU5H?=
+ =?utf-8?B?VVUyM1p4bENQUmxIK0xhRGZUcXpnTkdjR0U0RGVVS3VqRGE1NGtuQ3JBbmd5?=
+ =?utf-8?B?UVNDSTlvU1FndVpaUmNCL1lFNUFwWDhiMldQM29FZlcxb212VVlNZFhtUmpt?=
+ =?utf-8?B?UnRoK0hXYUZ1cnQ0OGdsbGgxbVVna2ZpWTk5cUFJTFdHWndBUmFCSDE5NTJX?=
+ =?utf-8?B?U2NQMEV4dTFxVzlSbCtFenZEWnJCd01HZkRvdjRQM1VBaDVlcE5SclR2czdM?=
+ =?utf-8?B?ckFNc2NOUVdCOGRTeFQxVW8xbXJ0RHc1VHJVb0J0Y2d5ZzZXZlJOeFA4aWRl?=
+ =?utf-8?B?Wkc0VTdXY013dVQ0b3p0NVhhYnF1bVJDRUNBMFdsK1MvLzhvQUpsTkFZMlZp?=
+ =?utf-8?B?VHpCOTIwK2dZT1BZYTRRQyt5SzMzNGdqOFo3OGQvNUViL0Y4d2tTQjhpWFQ5?=
+ =?utf-8?B?QUFqTGpmQytuMlhlTCtaaDVBVG5ob0J5ZTIzMWMvZnliQ3hhRWJRTDg4cHBQ?=
+ =?utf-8?B?QWVJQ0RPeUw2TlJkdlFGTFhjZitoeFJXOVN1cUo0MWd6ZkFjMjk4eDlFUEhR?=
+ =?utf-8?B?VUppRnVNb3h0VVVSTHgrbmkzWW1ZbjRURUZpVjNRN2RxYnhWcEI2eEUzYWFz?=
+ =?utf-8?B?OHVzMjhsVkNRbkplYjltOEt2c09QSFFFa3ZVdW9QQkFScHV1NUJDR0tsZXdo?=
+ =?utf-8?B?amJsdVJVTDhYY21XWVN2TWJ0MzB3L0VoaXlZeDJoNUxKTlJVVzVLL250RHM1?=
+ =?utf-8?B?SGNDN2FTMWd4eW9KWkNBMEc5NitGVzRNK25WMUlHclpYSmFPaUZFSktSbXpI?=
+ =?utf-8?B?TVk0OHlzSGhRblg3ZnUwVlc4U04wM3RBaGtYS0VMZWVwbHp0bjVRNHA5TXNE?=
+ =?utf-8?B?VTg3REg2Y1gzVjlHVU4rUXl3QWtPR211d0ZwSHRqaERvOEhwYzhJeTIxelgy?=
+ =?utf-8?B?ZnpOUWpFK0FwdERKOXpWeDI0Mm5ZY1dwZ2tJOXNwU1lxKzlidE1LOTd1Ylha?=
+ =?utf-8?B?ajI5MUdONVlENmREQTVVdUpabjd6RWI2K1R3ZmRsMjFQQ0djNUdld25ySW9z?=
+ =?utf-8?B?YjJPMXc2VXdMQkpMQjBKeFo2NG1XSVB3bmgrYmFBTklOUXVRRzlBTnJpVHF5?=
+ =?utf-8?B?QzVqQ0h6a25RQ3ZGQVBuSE0ydFA2R1Jjb2FTTHNtSjgyK1JrbTZlaC8xUjkx?=
+ =?utf-8?B?VmZPQjJRZFY1SzZxbHpkK3M4SUd2L2ZwQjM2N1hQQzlYOUc2RG1iMk1hKzE3?=
+ =?utf-8?B?NWpOTW5aNDZwdUNkM2xvcEU3ckpmbUp3Q2VHNDhCMitQUitkUGJJamNGYXhm?=
+ =?utf-8?B?Sy85R21xejhmNjNBSjVCTEI3MUJYTnRIUlU4OVIvN0tQcmlLaVRvUkt0OVNv?=
+ =?utf-8?B?bXgvbTNlblZXY3hsUzQ0MUtYRlFGcVVJbjV6SlIwY3JOWXJJMGVwVDdiY3pq?=
+ =?utf-8?B?cnpzb2RmQ25TRzh2SW5rckxaMmd3cElrY0wvN3BHd1dIUFNWbnowZz09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ceeb4e78-d87c-444e-9304-08de89ae9125
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB4202.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Mar 2026 14:06:38.8597
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: tbxYWrGhtyRQdzB76ljXBC8DpIHEK21FnGinaZ1cTWjYHgEW38PdvEAS4HcNHMOQhZ3luGpgkIPJbT7BPN7adA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB9244
 
-Trying to convert zero or empty xarray entry causes kernel panic.
 
-[    0.737679] EXT4-fs (pmem0p1): mounted filesystem 79676804-7c8b-491a-b2a6-9bae3c72af70 ro with ordered data mode. Quota mode: disabled.
-[    0.737891] VFS: Mounted root (ext4 filesystem) readonly on device 259:1.
-[    0.739119] devtmpfs: mounted
-[    0.739476] Freeing unused kernel memory: 1920K
-[    0.740156] Run /sbin/init as init process
-[    0.740229]   with arguments:
-[    0.740286]     /sbin/init
-[    0.740321]   with environment:
-[    0.740369]     HOME=/
-[    0.740400]     TERM=linux
-[    0.743162] Unable to handle kernel paging request at virtual address fffffdffbf000008
-[    0.743285] Mem abort info:
-[    0.743316]   ESR = 0x0000000096000006
-[    0.743371]   EC = 0x25: DABT (current EL), IL = 32 bits
-[    0.743444]   SET = 0, FnV = 0
-[    0.743489]   EA = 0, S1PTW = 0
-[    0.743545]   FSC = 0x06: level 2 translation fault
-[    0.743610] Data abort info:
-[    0.743656]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
-[    0.743720]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-[    0.743785]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[    0.743848] swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000000b9d17000
-[    0.743931] [fffffdffbf000008] pgd=10000000bfa3d403, p4d=10000000bfa3d403, pud=1000000040bfe403, pmd=0000000000000000
-[    0.744070] Internal error: Oops: 0000000096000006 [#1]  SMP
-[    0.748888] CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 6.18.4 #1 NONE
-[    0.749421] pstate: 004000c5 (nzcv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[    0.749969] pc : dax_disassociate_entry.constprop.0+0x20/0x50
-[    0.750444] lr : dax_insert_entry+0xcc/0x408
-[    0.750802] sp : ffff80008000b9e0
-[    0.751083] x29: ffff80008000b9e0 x28: 0000000000000000 x27: 0000000000000000
-[    0.751682] x26: 0000000001963d01 x25: ffff0000004f7d90 x24: 0000000000000000
-[    0.752264] x23: 0000000000000000 x22: ffff80008000bcc8 x21: 0000000000000011
-[    0.752836] x20: ffff80008000ba90 x19: 0000000001963d01 x18: 0000000000000000
-[    0.753407] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
-[    0.753970] x14: ffffbf3154b9ae70 x13: 0000000000000000 x12: ffffbf3154b9ae70
-[    0.754548] x11: ffffffffffffffff x10: 0000000000000000 x9 : 0000000000000000
-[    0.755122] x8 : 000000000000000d x7 : 000000000000001f x6 : 0000000000000000
-[    0.755707] x5 : 0000000000000000 x4 : 0000000000000000 x3 : fffffdffc0000000
-[    0.756287] x2 : 0000000000000008 x1 : 0000000040000000 x0 : fffffdffbf000000
-[    0.756871] Call trace:
-[    0.757107]  dax_disassociate_entry.constprop.0+0x20/0x50 (P)
-[    0.757592]  dax_iomap_pte_fault+0x4fc/0x808
-[    0.757951]  dax_iomap_fault+0x28/0x30
-[    0.758258]  ext4_dax_huge_fault+0x80/0x2dc
-[    0.758594]  ext4_dax_fault+0x10/0x3c
-[    0.758892]  __do_fault+0x38/0x12c
-[    0.759175]  __handle_mm_fault+0x530/0xcf0
-[    0.759518]  handle_mm_fault+0xe4/0x230
-[    0.759833]  do_page_fault+0x17c/0x4dc
-[    0.760144]  do_translation_fault+0x30/0x38
-[    0.760483]  do_mem_abort+0x40/0x8c
-[    0.760771]  el0_ia+0x4c/0x170
-[    0.761032]  el0t_64_sync_handler+0xd8/0xdc
-[    0.761371]  el0t_64_sync+0x168/0x16c
-[    0.761677] Code: f9453021 f2dfbfe3 cb813080 8b001860 (f9400401)
-[    0.762168] ---[ end trace 0000000000000000 ]---
-[    0.762550] note: init[1] exited with irqs disabled
-[    0.762631] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+On 3/18/26 21:27, Alison Schofield wrote:
 
-This patch just reorders checking and converting.
+<snip>
 
-Fixes: 38607c62b34b ("fs/dax: properly refcount fs dax pages")
-Signed-off-by: Seunguk Shin <seunguk.shin@arm.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
----
-Changes in v2:
-- Add Fixes and Reviewed-by tags.
-- Rebase on the latest.
-- Link to v1: https://lore.kernel.org/all/18af3213-6c46-4611-ba75-da5be5a1c9b0@arm.com/
----
- fs/dax.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+> As a step in the direction you suggest, AND  aiming to address Type2
+> need, here is what I'd like a direction check on:
+>
+> Start separating decode-reset policy rom CXL_REGION_F_AUTO:
+> - keep CXL_REGION_F_AUTO as origin / assembly semantics
+> - introduce CXL_REGION_F_PRESERVE_DECODE as a region-scoped policy
+> - initialize that policy from auto-assembly
+> - clear it on explicit decommit in commit_store()
+> - use it to gate cxl_region_decode_reset() in __cxl_decoder_detach()
+>
+> The decode-reset decision is factored through a small helper,
+> cxl_region_preserve_decode(), so the policy can be extended independent
+> of the detach mechanics. Maybe overkill in this simple case, but I
+> wanted to acknowledge the 'policy' direction.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 289e6254aa30..de316be2cc4e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -443,11 +443,12 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
- 				unsigned long address, bool shared)
- {
- 	unsigned long size = dax_entry_size(entry), index;
--	struct folio *folio = dax_to_folio(entry);
-+	struct folio *folio;
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
- 		return;
- 
-+	folio = dax_to_folio(entry);
- 	index = linear_page_index(vma, address & ~(size - 1));
- 	if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
- 		if (folio->mapping)
-@@ -468,21 +469,23 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
- static void dax_disassociate_entry(void *entry, struct address_space *mapping,
- 				bool trunc)
- {
--	struct folio *folio = dax_to_folio(entry);
-+	struct folio *folio;
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
- 		return;
- 
-+	folio = dax_to_folio(entry);
- 	dax_folio_put(folio);
- }
- 
- static struct page *dax_busy_page(void *entry)
- {
--	struct folio *folio = dax_to_folio(entry);
-+	struct folio *folio;
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
- 		return NULL;
- 
-+	folio = dax_to_folio(entry);
- 	if (folio_ref_count(folio) - folio_mapcount(folio))
- 		return &folio->page;
- 	else
--- 
-2.34.1
+
+I like this approach which separates AUTO flag from this need.
+
+
+>
+> Compiled but not yet tested, pending a direction check:
+
+
+I have tested it using the Type2 v24 and adding some debug lines for 
+seeing the proper flag check works when decoder detach.
+
+
+Maybe there are some other aspects of this approach I can not envision, 
+but I'm happy with this change for current Type2 needs. Hopefully this 
+plus v24 can go through before the next kernel window closes.
+
+
+Thank you,
+
+Alejandro
+
+
+>
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index 42874948b589..f99e4aca72f0 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -432,6 +432,12 @@ static ssize_t commit_store(struct device *dev, struct device_attribute *attr,
+>          if (rc)
+>                  return rc;
+>
+> +       /*
+> +        * Explicit decommit is destructive. Clear preserve bit before
+> +        * unbinding so detach paths do not skip decoder reset.
+> +        */
+> +       clear_bit(CXL_REGION_F_PRESERVE_DECODE, &cxlr->flags);
+> +
+>          /*
+>           * Unmap the region and depend the reset-pending state to ensure
+>           * it does not go active again until post reset
+> @@ -2153,6 +2159,12 @@ static int cxl_region_attach(struct cxl_region *cxlr,
+>          return 0;
+>   }
+>
+> +/* Region-scoped policy for preserving decoder programming across detach */
+> +static bool cxl_region_preserve_decode(struct cxl_region *cxlr)
+> +{
+> +       return test_bit(CXL_REGION_F_PRESERVE_DECODE, &cxlr->flags);
+> +}
+> +
+>   static struct cxl_region *
+>   __cxl_decoder_detach(struct cxl_region *cxlr,
+>                       struct cxl_endpoint_decoder *cxled, int pos,
+> @@ -2185,7 +2197,8 @@ __cxl_decoder_detach(struct cxl_region *cxlr,
+>                  cxled->part = -1;
+>
+>          if (p->state > CXL_CONFIG_ACTIVE) {
+> -               cxl_region_decode_reset(cxlr, p->interleave_ways);
+> +               if (!cxl_region_preserve_decode(cxlr))
+> +                       cxl_region_decode_reset(cxlr, p->interleave_ways);
+>                  p->state = CXL_CONFIG_ACTIVE;
+>          }
+>
+> @@ -3833,6 +3846,7 @@ static int __construct_region(struct cxl_region *cxlr,
+>          }
+>
+>          set_bit(CXL_REGION_F_AUTO, &cxlr->flags);
+> +       set_bit(CXL_REGION_F_PRESERVE_DECODE, &cxlr->flags);
+>          cxlr->hpa_range = *hpa_range;
+>
+>          res = kmalloc_obj(*res);
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 9b947286eb9b..e6fbbee37252 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -532,6 +532,16 @@ enum cxl_partition_mode {
+>    */
+>   #define CXL_REGION_F_NORMALIZED_ADDRESSING 3
+>
+> +/*
+> + * Indicate that decoder programming should be preserved when endpoint
+> + * decoders detach from this region. This allows region decode state to
+> + * survive endpoint removal and be recovered by subsequent enumeration.
+> + * Automatic assembly may set this flag, and future userspace control
+> + * may allow it to be set explicitly. Explicit region decommit should
+> + * clear this flag before destructive cleanup.
+> + */
+> +#define CXL_REGION_F_PRESERVE_DECODE 4
+> +
+>   /**
+>    * struct cxl_region - CXL region
+>    * @dev: This region's device
+>
+>
+>
