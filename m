@@ -1,37 +1,38 @@
-Received: from a11-73.smtp-out.amazonses.com (a11-73.smtp-out.amazonses.com [54.240.11.73])
+Received: from a11-123.smtp-out.amazonses.com (a11-123.smtp-out.amazonses.com [54.240.11.123])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4AA1FC0FC
-	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 00:39:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B17572253A1
+	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 00:39:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.123
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774312746; cv=none; b=D9Va9KmXPMo0a4LpNAKi2lHG7DARS/mlm/Y/vFyWXKXt1+ONyy9VWYOVkiO96nKsyvmOCk2lGlh2L+jG4wX+gIGM4xZbhYRc0UGxXDg4AvL4lf6IKW3kHoksbGBbltmCKIrUrmPfYw71ycsvkdy7SYY/O2JLC2cCukvZ981kJW4=
+	t=1774312759; cv=none; b=nlvXmbj1ApSltT3+8UFqZikUFxY4vk7KNI2Qfpjzr/LKXv/uXxBTjlebffEpWl553ZQJvMRGogYIb+R1yhSkD1DzdEiaZO4kMkxkoc3c/K7ZrI3o1MNoiMvBVpldIuwTEcMqe5CnKFMfIM5367j9yY139XpDwAFyhI4LwQ63JAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774312746; c=relaxed/simple;
-	bh=1ZwqoHpz+HZZyv4ZlRWcph43SDHdf/xj4vCU9/u0Q4I=;
+	s=arc-20240116; t=1774312759; c=relaxed/simple;
+	bh=qC+AQb8J/tV4P4KbMykUYk7O6V65rtOyyfBySJ+Y0F4=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=sW7Z9IThY5+ywQ4NJyHvVrbbDYpkUySwcnXWaiiSMAw54ole/XoAr4bbhZTVPTBFElONn06ACzhMm7lf0bJd7d7v/VN6CC5xHc3UoE84EL7WOYxDMVUyz5ZrctW3ERra3/nGYxLc6C2xLa6h3h171sox8aC6pEZC42wISNF9PjM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=DKdW1qOD; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=dykQ3XGJ; arc=none smtp.client-ip=54.240.11.73
+	 References:Message-ID; b=RXy2zlOjFzyuGaeVE7JN32avDFK5dVuuo5k+5MSJYppBEXxa3QteDr647ZFkCWK3ggmafp5MHMapLkzFrt5u36TXHSe10clI0JAxq04Jnugx3n8yqTafRSPYYr5qVY48g3Lw5h6KJK+RHP7iuf1Y116giZeEToti3s6m0QVQzvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=PsQy+Zie; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=JiKctosk; arc=none smtp.client-ip=54.240.11.123
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="DKdW1qOD";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="dykQ3XGJ"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="PsQy+Zie";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="JiKctosk"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774312744;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774312756;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=1ZwqoHpz+HZZyv4ZlRWcph43SDHdf/xj4vCU9/u0Q4I=;
-	b=DKdW1qODIPcIIWrL+9rlF9N5OsMF2THyy3hh9XMmtQ6xIgglozX6zh3CfcVA52f+
-	gF6JH3L4fvyriFUnw60STB2rDJ+fUBDM1VN5oTDf/R1yJ8yThuyxf7/n6uop0sHUmBx
-	4Bmbvx9qUUNVD3beiNkG2ZFqGmxdANE/rTI727II=
+	bh=qC+AQb8J/tV4P4KbMykUYk7O6V65rtOyyfBySJ+Y0F4=;
+	b=PsQy+Zie/J2BSwjaNIfFRYj/wvYlZC64hHueeUwDO7+cXHdjD0lIL95TuJCGvmXB
+	iKSZqNI1cTB4qjY5VCOsbyMFNEFzvYsC9vxrAuLxCrVtRJD/4nCnvd6s5L3iBob6nr2
+	sUfefERvGYbPZ5RfQeP9Uosmbv5l9Zgl2DqdF+uY=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774312744;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774312756;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=1ZwqoHpz+HZZyv4ZlRWcph43SDHdf/xj4vCU9/u0Q4I=;
-	b=dykQ3XGJ5/ScVIlGLPeoYnLt1rvGk/wD9nReU9G0F+wmAm+ox42ESt3gxWUaoXp5
-	7eKjZU6AwG+MsfTTowgmAyhtnHXKtjFrbLOQE4LjGOi0MbrITKNi7ZxtrSmYmzMWK4r
-	0jrKLhjOF2EZO88P2hHI1BdP76Sa74s1q6oYAeUo=
-Subject: [PATCH V9 5/8] dax: Add dax_operations for use by fs-dax on fsdev dax
+	bh=qC+AQb8J/tV4P4KbMykUYk7O6V65rtOyyfBySJ+Y0F4=;
+	b=JiKctoskEnPgvpBJY5+da6Y502oFFaV/dVK0CnlYetMB363ko2W3PPssREp/bj5r
+	35KA4uakJyIm8vO6twO2wOu9yq0yP3xg98rc38jMyDwl9EmrHhesNrQAr9LMIpz0Bmt
+	q9Ca86ekyMPwa274P4fYS7fhSupJwX99LH7RLzQs=
+Subject: [PATCH V9 6/8] dax: Add dax_set_ops() for setting dax_operations at
+ bind time
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -73,7 +74,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Tue, 24 Mar 2026 00:39:04 +0000
+Date: Tue, 24 Mar 2026 00:39:16 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -86,90 +87,88 @@ In-Reply-To:
  <0100019d1d463523-617e8165-a084-4d91-aa5e-13778264d5d4-000000@email.amazonses.com>
 References: 
  <0100019d1d463523-617e8165-a084-4d91-aa5e-13778264d5d4-000000@email.amazonses.com> 
- <20260324003851.5045-1-john@jagalactic.com>
+ <20260324003906.5083-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHcuyacoLShcwO6StaeU6Nu4pfQrw==
-Thread-Topic: [PATCH V9 5/8] dax: Add dax_operations for use by fs-dax on
- fsdev dax
-X-Wm-Sent-Timestamp: 1774312742
+Thread-Index: AQHcuyaj3/rqL5QwQTunShNvBT7KjQ==
+Thread-Topic: [PATCH V9 6/8] dax: Add dax_set_ops() for setting
+ dax_operations at bind time
+X-Wm-Sent-Timestamp: 1774312755
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019d1d47e459-48f2a4e6-edab-4002-bde3-2ba642deccaf-000000@email.amazonses.com>
+Message-ID: <0100019d1d4814db-1e36cd9c-09c3-4e60-b48f-2b5c3cb9e406-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.03.24-54.240.11.73
+X-SES-Outgoing: 2026.03.24-54.240.11.123
 
-From: John Groves <John@Groves.net>=0D=0A=0D=0Afsdev: Add dax_operations =
-for use by famfs.=0D=0A=0D=0AThis replicates the functionality from drive=
-rs/nvdimm/pmem.c that=0D=0Aconventional fs-dax file systems (e.g. xfs) us=
-e to support dax=0D=0Aread/write/mmap to a daxdev - without which famfs c=
-an't sit atop a=0D=0Adaxdev.=0D=0A=0D=0A- These methods are based on pmem=
-_dax_ops from drivers/nvdimm/pmem.c=0D=0A- fsdev_dax_direct_access() retu=
-rns the hpa, pfn and kva. The kva was=0D=0A  newly stored as dev_dax->vir=
-t_addr by dev_dax_probe().=0D=0A- The hpa/pfn are used for mmap (dax_ioma=
-p_fault()), and the kva is used=0D=0A  for read/write (dax_iomap_rw())=0D=
-=0A- fsdev_dax_recovery_write() and dev_dax_zero_page_range() have not be=
-en=0D=0A  tested yet. I'm looking for suggestions as to how to test those=
-=2E=0D=0A- dax-private.h: add dev_dax->cached_size, which fsdev needs to=0D=
-=0A  remember. The dev_dax size cannot change while a driver is bound=0D=0A=
-  (dev_dax_resize returns -EBUSY if dev->driver is set). Caching the size=
-=0D=0A  at probe time allows fsdev's direct_access path can use it withou=
-t=0D=0A  acquiring dax_dev_rwsem (which isn't exported anyway).=0D=0A=0D=0A=
-Signed-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A drivers/dax/d=
-ax-private.h |  1 +=0D=0A drivers/dax/fsdev.c       | 84 ++++++++++++++++=
-+++++++++++++++++++++++=0D=0A 2 files changed, 85 insertions(+)=0D=0A=0D=0A=
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h=0D=0Ai=
-ndex 7a3727d76a68..ee8f3af8387f 100644=0D=0A--- a/drivers/dax/dax-private=
-=2Eh=0D=0A+++ b/drivers/dax/dax-private.h=0D=0A@@ -85,6 +85,7 @@ struct d=
-ev_dax {=0D=0A =09struct dax_region *region;=0D=0A =09struct dax_device *=
-dax_dev;=0D=0A =09void *virt_addr;=0D=0A+=09u64 cached_size;=0D=0A =09uns=
-igned int align;=0D=0A =09int target_node;=0D=0A =09bool dyn_id;=0D=0Adif=
-f --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c=0D=0Aindex c75478d3d5=
-48..be3d2b0e8418 100644=0D=0A--- a/drivers/dax/fsdev.c=0D=0A+++ b/drivers=
-/dax/fsdev.c=0D=0A@@ -28,6 +28,85 @@=0D=0A  * - No mmap support - all acc=
-ess is through fs-dax/iomap=0D=0A  */=0D=0A=20=0D=0A+static void fsdev_wr=
-ite_dax(void *pmem_addr, struct page *page,=0D=0A+=09=09unsigned int off,=
- unsigned int len)=0D=0A+{=0D=0A+=09while (len) {=0D=0A+=09=09void *mem =3D=
- kmap_local_page(page);=0D=0A+=09=09unsigned int chunk =3D min_t(unsigned=
- int, len, PAGE_SIZE - off);=0D=0A+=0D=0A+=09=09memcpy_flushcache(pmem_ad=
-dr, mem + off, chunk);=0D=0A+=09=09kunmap_local(mem);=0D=0A+=09=09len -=3D=
- chunk;=0D=0A+=09=09off =3D 0;=0D=0A+=09=09page++;=0D=0A+=09=09pmem_addr =
-+=3D chunk;=0D=0A+=09}=0D=0A+}=0D=0A+=0D=0A+static long __fsdev_dax_direc=
-t_access(struct dax_device *dax_dev, pgoff_t pgoff,=0D=0A+=09=09=09long n=
-r_pages, enum dax_access_mode mode, void **kaddr,=0D=0A+=09=09=09unsigned=
- long *pfn)=0D=0A+{=0D=0A+=09struct dev_dax *dev_dax =3D dax_get_private(=
-dax_dev);=0D=0A+=09size_t size =3D nr_pages << PAGE_SHIFT;=0D=0A+=09size_=
-t offset =3D pgoff << PAGE_SHIFT;=0D=0A+=09void *virt_addr =3D dev_dax->v=
-irt_addr + offset;=0D=0A+=09phys_addr_t phys;=0D=0A+=09unsigned long loca=
-l_pfn;=0D=0A+=0D=0A+=09phys =3D dax_pgoff_to_phys(dev_dax, pgoff, nr_page=
-s << PAGE_SHIFT);=0D=0A+=09if (phys =3D=3D -1) {=0D=0A+=09=09dev_dbg(&dev=
-_dax->dev,=0D=0A+=09=09=09"pgoff (%#lx) out of range\n", pgoff);=0D=0A+=09=
-=09return -EFAULT;=0D=0A+=09}=0D=0A+=0D=0A+=09if (kaddr)=0D=0A+=09=09*kad=
-dr =3D virt_addr;=0D=0A+=0D=0A+=09local_pfn =3D PHYS_PFN(phys);=0D=0A+=09=
-if (pfn)=0D=0A+=09=09*pfn =3D local_pfn;=0D=0A+=0D=0A+=09/*=0D=0A+=09 * U=
-se cached_size which was computed at probe time. The size cannot=0D=0A+=09=
- * change while the driver is bound (resize returns -EBUSY).=0D=0A+=09 */=
-=0D=0A+=09return PHYS_PFN(min(size, dev_dax->cached_size - offset));=0D=0A=
-+}=0D=0A+=0D=0A+static int fsdev_dax_zero_page_range(struct dax_device *d=
-ax_dev,=0D=0A+=09=09=09pgoff_t pgoff, size_t nr_pages)=0D=0A+{=0D=0A+=09v=
-oid *kaddr;=0D=0A+=0D=0A+=09WARN_ONCE(nr_pages > 1, "%s: nr_pages > 1\n",=
- __func__);=0D=0A+=09__fsdev_dax_direct_access(dax_dev, pgoff, 1, DAX_ACC=
-ESS, &kaddr, NULL);=0D=0A+=09fsdev_write_dax(kaddr, ZERO_PAGE(0), 0, PAGE=
-_SIZE);=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+static long fsdev_dax_dir=
-ect_access(struct dax_device *dax_dev,=0D=0A+=09=09  pgoff_t pgoff, long =
-nr_pages, enum dax_access_mode mode,=0D=0A+=09=09  void **kaddr, unsigned=
- long *pfn)=0D=0A+{=0D=0A+=09return __fsdev_dax_direct_access(dax_dev, pg=
-off, nr_pages, mode,=0D=0A+=09=09=09=09=09 kaddr, pfn);=0D=0A+}=0D=0A+=0D=
-=0A+static size_t fsdev_dax_recovery_write(struct dax_device *dax_dev, pg=
-off_t pgoff,=0D=0A+=09=09void *addr, size_t bytes, struct iov_iter *i)=0D=
-=0A+{=0D=0A+=09return _copy_from_iter_flushcache(addr, bytes, i);=0D=0A+}=
-=0D=0A+=0D=0A+static const struct dax_operations dev_dax_ops =3D {=0D=0A+=
-=09.direct_access =3D fsdev_dax_direct_access,=0D=0A+=09.zero_page_range =
-=3D fsdev_dax_zero_page_range,=0D=0A+=09.recovery_write =3D fsdev_dax_rec=
-overy_write,=0D=0A+};=0D=0A+=0D=0A static void fsdev_cdev_del(void *cdev)=
-=0D=0A {=0D=0A =09cdev_del(cdev);=0D=0A@@ -167,6 +246,11 @@ static int fs=
-dev_dax_probe(struct dev_dax *dev_dax)=0D=0A =09=09}=0D=0A =09}=0D=0A=20=0D=
-=0A+=09/* Cache size now; it cannot change while driver is bound */=0D=0A=
-+=09dev_dax->cached_size =3D 0;=0D=0A+=09for (i =3D 0; i < dev_dax->nr_ra=
-nge; i++)=0D=0A+=09=09dev_dax->cached_size +=3D range_len(&dev_dax->range=
-s[i].range);=0D=0A+=0D=0A =09/*=0D=0A =09 * Use MEMORY_DEVICE_FS_DAX with=
-out setting vmemmap_shift, leaving=0D=0A =09 * folios at order-0. Unlike =
-device.c (MEMORY_DEVICE_GENERIC), this=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A=
+From: John Groves <John@Groves.net>=0D=0A=0D=0AAdd a new dax_set_ops() fu=
+nction that allows drivers to set the=0D=0Adax_operations after the dax_d=
+evice has been allocated. This is needed=0D=0Afor fsdev_dax where the ope=
+rations need to be set during probe and=0D=0Acleared during unbind.=0D=0A=
+=0D=0AThe fsdev driver uses devm_add_action_or_reset() for cleanup consis=
+tency,=0D=0Aavoiding the complexity of mixing devm-managed resources with=
+ manual=0D=0Acleanup in a remove() callback. This ensures cleanup happens=
+ automatically=0D=0Ain the correct reverse order when the device is unbou=
+nd.=0D=0A=0D=0AReviewed-by: Dave Jiang <dave.jiang@intel.com>=0D=0ASigned=
+-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A drivers/dax/fsdev.c=
+ | 16 ++++++++++++++++=0D=0A drivers/dax/super.c | 38 +++++++++++++++++++=
+++++++++++++++++++-=0D=0A include/linux/dax.h |  1 +=0D=0A 3 files change=
+d, 54 insertions(+), 1 deletion(-)=0D=0A=0D=0Adiff --git a/drivers/dax/fs=
+dev.c b/drivers/dax/fsdev.c=0D=0Aindex be3d2b0e8418..4a5b25515726 100644=0D=
+=0A--- a/drivers/dax/fsdev.c=0D=0A+++ b/drivers/dax/fsdev.c=0D=0A@@ -117,=
+6 +117,13 @@ static void fsdev_kill(void *dev_dax)=0D=0A =09kill_dev_dax(=
+dev_dax);=0D=0A }=0D=0A=20=0D=0A+static void fsdev_clear_ops(void *data)=0D=
+=0A+{=0D=0A+=09struct dev_dax *dev_dax =3D data;=0D=0A+=0D=0A+=09dax_set_=
+ops(dev_dax->dax_dev, NULL);=0D=0A+}=0D=0A+=0D=0A /*=0D=0A  * Page map op=
+erations for FS-DAX mode=0D=0A  * Similar to fsdax_pagemap_ops in drivers=
+/nvdimm/pmem.c=0D=0A@@ -303,6 +310,15 @@ static int fsdev_dax_probe(struc=
+t dev_dax *dev_dax)=0D=0A =09if (rc)=0D=0A =09=09return rc;=0D=0A=20=0D=0A=
++=09/* Set the dax operations for fs-dax access path */=0D=0A+=09rc =3D d=
+ax_set_ops(dax_dev, &dev_dax_ops);=0D=0A+=09if (rc)=0D=0A+=09=09return rc=
+;=0D=0A+=0D=0A+=09rc =3D devm_add_action_or_reset(dev, fsdev_clear_ops, d=
+ev_dax);=0D=0A+=09if (rc)=0D=0A+=09=09return rc;=0D=0A+=0D=0A =09run_dax(=
+dax_dev);=0D=0A =09return devm_add_action_or_reset(dev, fsdev_kill, dev_d=
+ax);=0D=0A }=0D=0Adiff --git a/drivers/dax/super.c b/drivers/dax/super.c=0D=
+=0Aindex c00b9dff4a06..ba0b4cd18a77 100644=0D=0A--- a/drivers/dax/super.c=
+=0D=0A+++ b/drivers/dax/super.c=0D=0A@@ -157,6 +157,9 @@ long dax_direct_=
+access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,=0D=0A =09=
+if (!dax_alive(dax_dev))=0D=0A =09=09return -ENXIO;=0D=0A=20=0D=0A+=09if =
+(!dax_dev->ops)=0D=0A+=09=09return -EOPNOTSUPP;=0D=0A+=0D=0A =09if (nr_pa=
+ges < 0)=0D=0A =09=09return -EINVAL;=0D=0A=20=0D=0A@@ -207,6 +210,10 @@ i=
+nt dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,=0D=0A=20=
+=0D=0A =09if (!dax_alive(dax_dev))=0D=0A =09=09return -ENXIO;=0D=0A+=0D=0A=
++=09if (!dax_dev->ops)=0D=0A+=09=09return -EOPNOTSUPP;=0D=0A+=0D=0A =09/*=
+=0D=0A =09 * There are no callers that want to zero more than one page as=
+ of now.=0D=0A =09 * Once users are there, this check can be removed afte=
+r the=0D=0A@@ -223,7 +230,7 @@ EXPORT_SYMBOL_GPL(dax_zero_page_range);=0D=
+=0A size_t dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,=0D=
+=0A =09=09void *addr, size_t bytes, struct iov_iter *iter)=0D=0A {=0D=0A-=
+=09if (!dax_dev->ops->recovery_write)=0D=0A+=09if (!dax_dev->ops || !dax_=
+dev->ops->recovery_write)=0D=0A =09=09return 0;=0D=0A =09return dax_dev->=
+ops->recovery_write(dax_dev, pgoff, addr, bytes, iter);=0D=0A }=0D=0A@@ -=
+307,6 +314,35 @@ void set_dax_nomc(struct dax_device *dax_dev)=0D=0A }=0D=
+=0A EXPORT_SYMBOL_GPL(set_dax_nomc);=0D=0A=20=0D=0A+/**=0D=0A+ * dax_set_=
+ops - set the dax_operations for a dax_device=0D=0A+ * @dax_dev: the dax_=
+device to configure=0D=0A+ * @ops: the operations to set (may be NULL to =
+clear)=0D=0A+ *=0D=0A+ * This allows drivers to set the dax_operations af=
+ter the dax_device=0D=0A+ * has been allocated. This is needed when the d=
+evice is created before=0D=0A+ * the driver that needs specific ops is bo=
+und (e.g., fsdev_dax binding=0D=0A+ * to a dev_dax created by hmem).=0D=0A=
++ *=0D=0A+ * When setting non-NULL ops, fails if ops are already set (ret=
+urns -EBUSY).=0D=0A+ * When clearing ops (NULL), always succeeds.=0D=0A+ =
+*=0D=0A+ * Return: 0 on success, -EBUSY if ops already set=0D=0A+ */=0D=0A=
++int dax_set_ops(struct dax_device *dax_dev, const struct dax_operations =
+*ops)=0D=0A+{=0D=0A+=09if (ops) {=0D=0A+=09=09/* Setting ops: fail if alr=
+eady set */=0D=0A+=09=09if (cmpxchg(&dax_dev->ops, NULL, ops) !=3D NULL)=0D=
+=0A+=09=09=09return -EBUSY;=0D=0A+=09} else {=0D=0A+=09=09/* Clearing ops=
+: always allowed */=0D=0A+=09=09dax_dev->ops =3D NULL;=0D=0A+=09}=0D=0A+=09=
+return 0;=0D=0A+}=0D=0A+EXPORT_SYMBOL_GPL(dax_set_ops);=0D=0A+=0D=0A bool=
+ dax_alive(struct dax_device *dax_dev)=0D=0A {=0D=0A =09lockdep_assert_he=
+ld(&dax_srcu);=0D=0Adiff --git a/include/linux/dax.h b/include/linux/dax.=
+h=0D=0Aindex 73cfc1a7c8f1..b19bfe0c2fd1 100644=0D=0A--- a/include/linux/d=
+ax.h=0D=0A+++ b/include/linux/dax.h=0D=0A@@ -243,6 +243,7 @@ static inlin=
+e void dax_break_layout_final(struct inode *inode)=0D=0A=20=0D=0A bool da=
+x_alive(struct dax_device *dax_dev);=0D=0A void *dax_get_private(struct d=
+ax_device *dax_dev);=0D=0A+int dax_set_ops(struct dax_device *dax_dev, co=
+nst struct dax_operations *ops);=0D=0A long dax_direct_access(struct dax_=
+device *dax_dev, pgoff_t pgoff, long nr_pages,=0D=0A =09=09enum dax_acces=
+s_mode mode, void **kaddr, unsigned long *pfn);=0D=0A size_t dax_copy_fro=
+m_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,=0D=0A--=20=0D=
+=0A2.53.0=0D=0A=0D=0A
