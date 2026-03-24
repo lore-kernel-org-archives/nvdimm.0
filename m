@@ -1,38 +1,37 @@
-Received: from a11-121.smtp-out.amazonses.com (a11-121.smtp-out.amazonses.com [54.240.11.121])
+Received: from a11-127.smtp-out.amazonses.com (a11-127.smtp-out.amazonses.com [54.240.11.127])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72CD03346B2
-	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 00:42:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.121
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 166D6301486
+	for <nvdimm@lists.linux.dev>; Tue, 24 Mar 2026 00:42:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.127
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774312921; cv=none; b=JLc3TXsyUJSSmcFGklsszRq4VLYPPkiQOekQxzAaYPTnj56tyhXfwUQ+33MmsuO1+lEjLiQ2l8bnqrKa724l+WwWjvHQssw1gJJKpWfSxLvzT9h4OYGH5SDwkv+3Da0QG5IslhK14PTD5RE0zWRkGON6DYeyXcvloZyMpaEaSMU=
+	t=1774312934; cv=none; b=bosmrJ1Zv30fyjekgu2pNvzxQo02qv+VHV2wjcsJ86TuU6xs5uuuJIkCvB1QsFKpyPZ8MhYqgP85egKB0Dzuf1dt+8rH+n/9q1D9YIrsjaNOsJIxMmZs3m7yXoyEslLqEtfAFuTH5SPH8cBFSmC8DEqwVRKLau6v2/1Oyb7WGbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774312921; c=relaxed/simple;
-	bh=3P1DJ3PxyuLI1lMtCqf3yEm20zZ5+pdmyAoAEVyDjtA=;
+	s=arc-20240116; t=1774312934; c=relaxed/simple;
+	bh=D+N7TwRkCMJVOnBlkgJcpZilU8uPVzgv+cd9JtA2Xlk=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=h7SmXqP38KC+yF714JWGXXf7kh+m6t4eJa6/zat1J5pmuMvnlEbqr+5ELGdMhQmdQGsJ+zvaSnkMen8vfIbvRykXe5WY8jfKPEHmIjsOzrOl0O79XbwMb8GFC8+6g5AX7cTC5QY7JC4cfWsfYxdM0FJmzPNXujqo7k4C61Rk+Do=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=GYeWpTOd; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=q4FhPY3s; arc=none smtp.client-ip=54.240.11.121
+	 References:Message-ID; b=Ck57GQPMH9pbwOOOEYIDhJkInbclRTRQCs7A3akGwY/znvznyFOuJBzL6bLs13Lz3damfGJPOlH0ReYM4eBQjS8/79xArejWZRDHEEdu59Vr9J3bU3BDyrfQpkRideQUocXSDHrPSjAl1b8TkzezAVe8NaUSb8OLImuN6sdOIP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=ioA08Au7; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=i8McJweC; arc=none smtp.client-ip=54.240.11.127
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="GYeWpTOd";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="q4FhPY3s"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="ioA08Au7";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="i8McJweC"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774312919;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774312931;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=3P1DJ3PxyuLI1lMtCqf3yEm20zZ5+pdmyAoAEVyDjtA=;
-	b=GYeWpTOd5DGBc/gtok0NdjzfhIBiPO7zvW93vqp6STlt1bXBfb1PO2i06wDzRvjZ
-	wwr+Mlm3YJqi3uJJk4IcwIkePujgtd6hRW9XX9gVce0jcb/MYy1hM0eq2yQfv0n5di7
-	EkRQc9lFJub6vxFdbAJEZec21fCUW/NpHHpN7E6Y=
+	bh=D+N7TwRkCMJVOnBlkgJcpZilU8uPVzgv+cd9JtA2Xlk=;
+	b=ioA08Au7wxslXxwt374gFtmqDw9MN6/0f/aY2pOw4whnIchycrRg2ibJ2QbEgddA
+	CqvhNXM+rtktgJXjXN2VqO7LiPwOTaPEK0s/BAzNWdmcWksP0AAnPGTyo+m0p3vGBw1
+	Kpy1gmbxAHeArzjGoz4MEAPMcTIrx718+8vhXkw8=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774312919;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774312931;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=3P1DJ3PxyuLI1lMtCqf3yEm20zZ5+pdmyAoAEVyDjtA=;
-	b=q4FhPY3sBcgrrHTqRonna/+pR9S4PofXuOiDg+G621Q2dTq32/gdyXcI72cy2/w/
-	HELkPjvVlRCTsXdE3VRwDLUkOFZYyUaDvmD6/3J1dnePqPGkjKbKNZDrlvWl6vQFPRe
-	LLFYJE5nk2E7BSZ6RkVGguWZliZ6ePxpMLtJxZFQ=
-Subject: [PATCH V9 08/10] famfs_fuse: Add DAX address_space_operations with
- noop_dirty_folio
+	bh=D+N7TwRkCMJVOnBlkgJcpZilU8uPVzgv+cd9JtA2Xlk=;
+	b=i8McJweC/eKf6TJDr1Qvq54lcovHt1jaFBaaJg+TaibEnhF//ZMr8nesnGur0QCp
+	mKbzN8Fay3T1BxqS92zdtRcbCr4aJKKB6HaNDyvDd1iWcXVll37nuNuWKIzOB/oYJU5
+	w+Eak4TDYfiUdgLzMB9xcifayfEJM0lBKK8JvgqM=
+Subject: [PATCH V9 09/10] famfs_fuse: Add famfs fmap metadata documentation
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -74,7 +73,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Tue, 24 Mar 2026 00:41:59 +0000
+Date: Tue, 24 Mar 2026 00:42:10 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -87,37 +86,105 @@ In-Reply-To:
  <0100019d1d48b7e8-4468329f-b446-43f1-87db-3c7e1ff6f28b-000000@email.amazonses.com>
 References: 
  <0100019d1d48b7e8-4468329f-b446-43f1-87db-3c7e1ff6f28b-000000@email.amazonses.com> 
- <20260324004148.5320-1-john@jagalactic.com>
+ <20260324004203.5338-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHcuycENL8toohESZaUVLVRXldZAA==
-Thread-Topic: [PATCH V9 08/10] famfs_fuse: Add DAX address_space_operations
- with noop_dirty_folio
-X-Wm-Sent-Timestamp: 1774312917
+Thread-Index: AQHcuycL9CT5RttAT7eNglB2rEPKWg==
+Thread-Topic: [PATCH V9 09/10] famfs_fuse: Add famfs fmap metadata
+ documentation
+X-Wm-Sent-Timestamp: 1774312929
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019d1d4a9094-e5e1ca00-aba3-45cc-825b-a84030e3d3f7-000000@email.amazonses.com>
+Message-ID: <0100019d1d4abe66-c9d5af46-d96d-41c7-a0bb-8aa4c6fbe086-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.03.24-54.240.11.121
+X-SES-Outgoing: 2026.03.24-54.240.11.127
 
-From: John Groves <John@Groves.net>=0D=0A=0D=0AFamfs is memory-backed; th=
-ere is no place to write back to, and no=0D=0Areason to mark pages dirty =
-at all.=0D=0A=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=0D=
-=0A fs/fuse/famfs.c | 11 +++++++++++=0D=0A 1 file changed, 11 insertions(=
-+)=0D=0A=0D=0Adiff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c=0D=0Aindex 8=
-7012df537eb..121ed74e9727 100644=0D=0A--- a/fs/fuse/famfs.c=0D=0A+++ b/fs=
-/fuse/famfs.c=0D=0A@@ -14,6 +14,7 @@=0D=0A #include <linux/mm.h>=0D=0A #i=
-nclude <linux/dax.h>=0D=0A #include <linux/iomap.h>=0D=0A+#include <linux=
-/pagemap.h>=0D=0A #include <linux/path.h>=0D=0A #include <linux/namei.h>=0D=
-=0A #include <linux/string.h>=0D=0A@@ -39,6 +40,15 @@ static const struct=
- dax_holder_operations famfs_fuse_dax_holder_ops =3D {=0D=0A =09.notify_f=
-ailure=09=09=3D famfs_dax_notify_failure,=0D=0A };=0D=0A=20=0D=0A+/*=0D=0A=
-+ * DAX address_space_operations for famfs.=0D=0A+ * famfs doesn't need d=
-irty tracking - writes go directly to=0D=0A+ * memory with no writeback r=
-equired.=0D=0A+ */=0D=0A+static const struct address_space_operations fam=
-fs_dax_aops =3D {=0D=0A+=09.dirty_folio=09=3D noop_dirty_folio,=0D=0A+};=0D=
-=0A+=0D=0A /*************************************************************=
-****************/=0D=0A=20=0D=0A /*=0D=0A@@ -624,6 +634,7 @@ famfs_file_i=
-nit_dax(=0D=0A =09if (famfs_meta_set(fi, meta) =3D=3D NULL) {=0D=0A =09=09=
-i_size_write(inode, meta->file_size);=0D=0A =09=09inode->i_flags |=3D S_D=
-AX;=0D=0A+=09=09inode->i_data.a_ops =3D &famfs_dax_aops;=0D=0A =09} else =
-{=0D=0A =09=09pr_debug("%s: file already had metadata\n", __func__);=0D=0A=
- =09=09__famfs_meta_free(meta);=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
+From: John Groves <John@Groves.net>=0D=0A=0D=0AThis describes the fmap me=
+tadata - both simple and interleaved=0D=0A=0D=0AReviewed-by: Dave Jiang <=
+dave.jiang@intel.com>=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=
+=0A---=0D=0A fs/fuse/famfs_kfmap.h | 73 +++++++++++++++++++++++++++++++++=
+++++++++++=0D=0A 1 file changed, 73 insertions(+)=0D=0A=0D=0Adiff --git a=
+/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h=0D=0Aindex 0fff841f5a9e..9=
+70ad802b492 100644=0D=0A--- a/fs/fuse/famfs_kfmap.h=0D=0A+++ b/fs/fuse/fa=
+mfs_kfmap.h=0D=0A@@ -7,6 +7,79 @@=0D=0A #ifndef FAMFS_KFMAP_H=0D=0A #defi=
+ne FAMFS_KFMAP_H=0D=0A=20=0D=0A+/* KABI version 43 (aka v2) fmap structur=
+es=0D=0A+ *=0D=0A+ * The location of the memory backing for a famfs file =
+is described by=0D=0A+ * the response to the GET_FMAP fuse message (defin=
+ed in=0D=0A+ * include/uapi/linux/fuse.h=0D=0A+ *=0D=0A+ * There are curr=
+ently two extent formats: Simple and Interleaved.=0D=0A+ *=0D=0A+ * Simpl=
+e extents are just (devindex, offset, length) tuples, where devindex=0D=0A=
++ * references a devdax device that must be retrievable via the GET_DAXDE=
+V=0D=0A+ * message/response.=0D=0A+ *=0D=0A+ * The extent list size must =
+be >=3D file_size.=0D=0A+ *=0D=0A+ * Interleaved extents merit some addit=
+ional explanation. Interleaved=0D=0A+ * extents stripe data across a coll=
+ection of strips. Each strip is a=0D=0A+ * contiguous allocation from a s=
+ingle devdax device - and is described by=0D=0A+ * a simple_extent struct=
+ure.=0D=0A+ *=0D=0A+ * Interleaved_extent example:=0D=0A+ *   ie_nstrips =
+=3D 4=0D=0A+ *   ie_chunk_size =3D 2MiB=0D=0A+ *   ie_nbytes =3D 24MiB=0D=
+=0A+ *=0D=0A+ * =E2=94=8C=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=90=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=90=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90=0D=0A+ * =E2=94=82Chunk =3D=
+ 0   =E2=94=82Chunk =3D 1   =E2=94=82Chunk =3D 2   =E2=94=82Chunk =3D 3  =
+ =E2=94=82=0D=0A+ * =E2=94=82Strip =3D 0   =E2=94=82Strip =3D 1   =E2=94=82=
+Strip =3D 2   =E2=94=82Strip =3D 3   =E2=94=82=0D=0A+ * =E2=94=82Stripe =3D=
+ 0  =E2=94=82Stripe =3D 0  =E2=94=82Stripe =3D 0  =E2=94=82Stripe =3D 0  =
+=E2=94=82=0D=0A+ * =E2=94=82            =E2=94=82            =E2=94=82   =
+         =E2=94=82            =E2=94=82=0D=0A+ * =E2=94=94=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=98=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=98=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=98=0D=0A+ * =E2=94=82Chunk =3D 4   =E2=94=82Chunk =3D 5   =E2=94=82Chunk=
+ =3D 6   =E2=94=82Chunk =3D 7   =E2=94=82=0D=0A+ * =E2=94=82Strip =3D 0  =
+ =E2=94=82Strip =3D 1   =E2=94=82Strip =3D 2   =E2=94=82Strip =3D 3   =E2=
+=94=82=0D=0A+ * =E2=94=82Stripe =3D 1  =E2=94=82Stripe =3D 1  =E2=94=82St=
+ripe =3D 1  =E2=94=82Stripe =3D 1  =E2=94=82=0D=0A+ * =E2=94=82          =
+  =E2=94=82            =E2=94=82            =E2=94=82            =E2=94=82=
+=0D=0A+ * =E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=98=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98=0D=0A+ * =E2=94=82Chunk =3D 8   =E2=
+=94=82Chunk =3D 9   =E2=94=82Chunk =3D 10  =E2=94=82Chunk =3D 11  =E2=94=82=
+=0D=0A+ * =E2=94=82Strip =3D 0   =E2=94=82Strip =3D 1   =E2=94=82Strip =3D=
+ 2   =E2=94=82Strip =3D 3   =E2=94=82=0D=0A+ * =E2=94=82Stripe =3D 2  =E2=
+=94=82Stripe =3D 2  =E2=94=82Stripe =3D 2  =E2=94=82Stripe =3D 2  =E2=94=82=
+=0D=0A+ * =E2=94=82            =E2=94=82            =E2=94=82            =
+=E2=94=82            =E2=94=82=0D=0A+ * =E2=94=94=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=98=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=98=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98=0D=0A=
++ *=0D=0A+ * * Data is laid out across chunks in chunk # order=0D=0A+ * *=
+ Columns are strips=0D=0A+ * * Strips are contiguous devdax extents, norm=
+ally each coming from a=0D=0A+ *   different memory device=0D=0A+ * * Row=
+s are stripes=0D=0A+ * * The number of chunks is (int)((file_size + chunk=
+_size - 1) / chunk_size)=0D=0A+ *   (and obviously the last chunk could b=
+e partial)=0D=0A+ * * The stripe_size =3D (nstrips * chunk_size)=0D=0A+ *=
+ * chunk_num(offset) =3D offset / chunk_size    //integer division=0D=0A+=
+ * * strip_num(offset) =3D chunk_num(offset) % nchunks=0D=0A+ * * stripe_=
+num(offset) =3D offset / stripe_size  //integer division=0D=0A+ * * ...Yo=
+u get the idea - see the code for more details...=0D=0A+ *=0D=0A+ * Some =
+concrete examples from the layout above:=0D=0A+ * * Offset 0 in the file =
+is offset 0 in chunk 0, which is offset 0 in=0D=0A+ *   strip 0=0D=0A+ * =
+* Offset 4MiB in the file is offset 0 in chunk 2, which is offset 0 in=0D=
+=0A+ *   strip 2=0D=0A+ * * Offset 15MiB in the file is offset 1MiB in ch=
+unk 7, which is offset=0D=0A+ *   3MiB in strip 3=0D=0A+ *=0D=0A+ * Notes=
+ about this metadata format:=0D=0A+ *=0D=0A+ * * For various reasons, chu=
+nk_size must be a multiple of the applicable=0D=0A+ *   PAGE_SIZE=0D=0A+ =
+* * Since chunk_size and nstrips are constant within an interleaved_exten=
+t,=0D=0A+ *   resolving a file offset to a strip offset within a single=0D=
+=0A+ *   interleaved_ext is order 1.=0D=0A+ * * If nstrips=3D=3D1, a list=
+ of interleaved_ext structures degenerates to a=0D=0A+ *   regular extent=
+ list (albeit with some wasted struct space).=0D=0A+ */=0D=0A+=0D=0A /*=0D=
+=0A  * The structures below are the in-memory metadata format for famfs f=
+iles.=0D=0A  * Metadata retrieved via the GET_FMAP response is converted =
+to this format=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
