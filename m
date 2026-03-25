@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79CA039A05E;
-	Wed, 25 Mar 2026 08:56:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49FEF39282C;
+	Wed, 25 Mar 2026 08:57:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774428966; cv=none; b=twt/UA66Kf8aVOC2mu2oXgzumEpMR7D1ZWEY2R4Vx3bIHe3L0qN44eimuweg0tVEnBzi46DKD3+qUlnEKPtmTHAYulrDLC0hJKMJY/JRocplfjtkCb9JpfLzdGlEkWw/P6no1IiawD+X70SM9aQCjPaPjERm4nrBRdlG1++Gd08=
+	t=1774429030; cv=none; b=mODR8EdjHZKHOyoOiQNRGZR+H+tIhLzhCo+OCejHWDcdkQoufhvGSfmxkKl9DFU0tgKPoew5te/Pgxh8nRNSWOyIijTFgAtBI1n6iIE5ZfSjDOsHI2FkAgpvdTgbNRiFVQqzcR0my9wmoIZE+bq1J/fC2iUUjIpFGfeZpjWjt1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774428966; c=relaxed/simple;
-	bh=tTB7VgoGtVpHZnvihVybYX/BDQRt1nfjM2gXZEcVM0E=;
+	s=arc-20240116; t=1774429030; c=relaxed/simple;
+	bh=7vDxJ8MG7mUqrlnn0Beg2W0f8gpdnvHJFq8srgJ6mTs=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=C/TfgYWaE+7vXdMigbmYdZ3nFwpzK7SH5vUGIXnexQk1DmGy+TlJVJoaqxTrJzxXnAoZpnfslCBLgF0qmqn/yM/w2PwQ4uFbemhxnAb7Ha2LoDWnBIzmEnuiq8qh99oc9EjrIKf1ajob4nj36hyLKjp+UnSkcLb3WBNhecsQk38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jwCjOxlK; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=JQiT1lVDbNrolJjDbJNTObh1jyHk8MMTdrNgUHRH8aIxvKJ4Ubzb2DHH8ZZbvL9FOBCIcn+y3etJ7Zp8Q3pmsp5L805vhPMrYAwOKBF4D0FosqwFoIgl1hLsnlpe4fyodS3giU3mUmGoarhLohHxo4geLBVijqwG635rYXbBgsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KXDyYN3p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jwCjOxlK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE684C4CEF7;
-	Wed, 25 Mar 2026 08:55:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KXDyYN3p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D373C4CEF7;
+	Wed, 25 Mar 2026 08:56:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774428966;
-	bh=tTB7VgoGtVpHZnvihVybYX/BDQRt1nfjM2gXZEcVM0E=;
+	s=k20201202; t=1774429030;
+	bh=7vDxJ8MG7mUqrlnn0Beg2W0f8gpdnvHJFq8srgJ6mTs=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=jwCjOxlK5w+qtI6HGD0P93Z2rHixiQFCP7o/siPfSKcD8BSC1/4d8Mu3VxIXiq5Dg
-	 Xb6M1ysIFJvyWtEModesHBoQ8UpwzeqxTZGGJql1neZr7pmMVG7RcUkt5pQYxg/MYV
-	 u2lYPPWSlNCyfE0zfwa6nqYVtUtZmkurwZXSxZar1DLJZOSn79UFQi9YMzC/WBeQdq
-	 0YaVdXab5ssHjtTgdecM5n12+vOGx7LZxguDTJNHu1ZPxiKgLYRrnrMEVK19pOZAtB
-	 q+JwIoWoMUUxPsJWZBrxBum1OaDiEmvFggftHTJuJOYNV9tVaGsV23RAHyReoTB+Bs
-	 I8x/jbsJ3votQ==
-Message-ID: <7fc10c85-0bab-4004-9a9c-3bac4777d3b3@kernel.org>
-Date: Wed, 25 Mar 2026 09:55:52 +0100
+	b=KXDyYN3p2DdREB/1DGWOaFLPHn+6WbO/NKIUxK1A0Eh8MsKEbNMie38TAewHH6oD7
+	 vgNTEOvm3PKiIS/HzAgTLdIN6fxVZWO9wNPSudoQvSBGt7k5oo4plzZUQcJbvXuwRY
+	 7szNlWWwzu6bwY962dl7YmKrL6AJohpF0AALi657Xox2hy/KN8qVkW+dp9qA57O2x2
+	 7doCFTeYdxBl4e/IsovH9lPR0hsfe/L5Ov5G1wn8ES731smlwRqYtSY1kTbjVKwDts
+	 Ny7agcmMi0gB6+TyNqJDYs+/bXs5me7J/QfIj/ftcqfR9+/4iP+rGl832eOn58KXf1
+	 3h35PsFQLLICw==
+Message-ID: <0367ec37-11a9-4ee2-ab4b-9bde1db122b4@kernel.org>
+Date: Wed, 25 Mar 2026 09:56:56 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/6] mm: rename VMA flag helpers to be more readable
+Subject: Re: [PATCH 2/6] mm: add vma_desc_test_all() and use it
 To: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>
 Cc: Arnd Bergmann <arnd@arndb.de>,
@@ -63,7 +63,7 @@ Cc: Arnd Bergmann <arnd@arndb.de>,
  linux-cxl@vger.kernel.org, linux-erofs@lists.ozlabs.org, linux-mm@kvack.org,
  ntfs3@lists.linux.dev, linux-fsdevel@vger.kernel.org
 References: <cover.1772704455.git.ljs@kernel.org>
- <0f9cb3c511c478344fac0b3b3b0300bb95be95e9.1772704455.git.ljs@kernel.org>
+ <568c8f8d6a84ff64014f997517cba7a629f7eed6.1772704455.git.ljs@kernel.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -110,33 +110,25 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <0f9cb3c511c478344fac0b3b3b0300bb95be95e9.1772704455.git.ljs@kernel.org>
+In-Reply-To: <568c8f8d6a84ff64014f997517cba7a629f7eed6.1772704455.git.ljs@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 3/5/26 11:50, Lorenzo Stoakes (Oracle) wrote:
-> On reflection, it's confusing to have vma_flags_test() and
-> vma_desc_test_flags() test whether any comma-separated VMA flag bit is set,
-> while also having vma_flags_test_all() and vma_test_all_flags() separately
-> test whether all flags are set.
+> erofs and zonefs are using vma_desc_test_any() twice to check whether all
+> of VMA_SHARED_BIT and VMA_MAYWRITE_BIT are set, this is silly, so add
+> vma_desc_test_all() to test all flags and update erofs and zonefs to use
+> it.
 > 
-> Firstly, rename vma_flags_test() to vma_flags_test_any() to eliminate this
-> confusion.
+> While we're here, update the helper function comments to be more
+> consistent.
 > 
-> Secondly, since the VMA descriptor flag functions are becoming rather
-> cumbersome, prefer vma_desc_test*() to vma_desc_test_flags*(), and also
-> rename vma_desc_test_flags() to vma_desc_test_any().
+> Also add the same to the VMA test headers.
 > 
-> Finally, rename vma_test_all_flags() to vma_test_all() to keep the
-> VMA-specific helper consistent with the VMA descriptor naming convention
-> and to help avoid confusion vs. vma_flags_test_all().
-> 
-> While we're here, also update whitespace to be consistent in helper
-> functions.
-> 
-> Suggested-by: Pedro Falcato <pfalcato@suse.de>
 > Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 > ---
+
+Nothing jumped at me
 
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 
