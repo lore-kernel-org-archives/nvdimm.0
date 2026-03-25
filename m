@@ -1,332 +1,151 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3BD23C944C
-	for <nvdimm@lists.linux.dev>; Wed, 25 Mar 2026 12:12:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCED3CFF5F
+	for <nvdimm@lists.linux.dev>; Wed, 25 Mar 2026 12:44:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774440738; cv=none; b=eX0QreiB6N4TOcrjcabJAeTeteRVvFXrNq6vy9RzU7i3dJb7EOLkRIf6WKxz72ZzHLdndx1utWDVUG65a/GsyHd7mDTr8OylvD4vSqvy3bP3LecZeo+dji0TI8RbUIS968DdS05gMLLTFU0dIrbUFhLZH9ocRWKMPswDTx/Q00w=
+	t=1774442653; cv=none; b=l/iSpyKxcOzQ6Ym+OfT6+tcPfleq+kzgLWG/2oahiWFtvD5Q10clUPbzWemMNq6/XNpbJLcq421R5ZRG8GQuVllW78UfsGcikef6Q+gYF9/8SwOZ7Wh+mjz3OlAgku2Dpq+zp1UUAmZDgtKsAHbn+ic6WUs75nbR7gkI76zac4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774440738; c=relaxed/simple;
-	bh=W0amWJTVjAlqw1Y2edFwnNyO89EgiXNsQUWTkzh9Ieo=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VMyJvPlsaR1tA9mZbUNhmSzYS/e0OZhZnYbnT5QmW1/pL2aB5noSV5UqciDZMazb+JLbvePVA08LFmkHTMxkGwtgdy5/JtN4GScaGfUVNkdzV0NKhvVMyB8PyXMdN2B7rPaJJFDn7GpvPqF2EV+BauuQTma9RDazXYL+M/3Nl6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.83])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fgm3Z4J9dzHnGhp;
-	Wed, 25 Mar 2026 20:11:38 +0800 (CST)
-Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id DA20640086;
-	Wed, 25 Mar 2026 20:12:13 +0800 (CST)
-Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
- (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 25 Mar
- 2026 12:12:12 +0000
-Date: Wed, 25 Mar 2026 12:12:11 +0000
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: "Koralahalli Channabasappa, Smita" <skoralah@amd.com>
-CC: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
-	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, Ard Biesheuvel <ardb@kernel.org>, "Alison
- Schofield" <alison.schofield@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, "Matthew
- Wilcox" <willy@infradead.org>, Jan Kara <jack@suse.cz>, "Rafael J . Wysocki"
-	<rafael@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek
-	<pavel@kernel.org>, Li Ming <ming.li@zohomail.com>, Jeff Johnson
-	<jeff.johnson@oss.qualcomm.com>, Ying Huang <huang.ying.caritas@gmail.com>,
-	Yao Xingtao <yaoxt.fnst@fujitsu.com>, Peter Zijlstra <peterz@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nathan Fontenot
-	<nathan.fontenot@amd.com>, Terry Bowman <terry.bowman@amd.com>, Robert
- Richter <rrichter@amd.com>, "Benjamin Cheatham" <benjamin.cheatham@amd.com>,
-	Zhijian Li <lizhijian@fujitsu.com>, Borislav Petkov <bp@alien8.de>, Tomasz
- Wolski <tomasz.wolski@fujitsu.com>
-Subject: Re: [PATCH v8 8/9] dax/hmem, cxl: Defer and resolve Soft Reserved
- ownership
-Message-ID: <20260325121211.00007f7e@huawei.com>
-In-Reply-To: <403241c1-36f7-4fd6-bc99-d7dbf30e58f4@amd.com>
-References: <20260322195343.206900-1-Smita.KoralahalliChannabasappa@amd.com>
-	<20260322195343.206900-9-Smita.KoralahalliChannabasappa@amd.com>
-	<20260323181331.000018f2@huawei.com>
-	<403241c1-36f7-4fd6-bc99-d7dbf30e58f4@amd.com>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1774442653; c=relaxed/simple;
+	bh=bzYdfF1spGMVjwl4NTjaat4YQrXVriJ+IaIcJqcKJlo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EYgCNpePfRD7TKbGPP1UjevXBiSKhzM2wYJ27Jm9xyOSWmc6b89F+S3NB1WPFAOquxZf+JRHifA8lsFOUF2jLBq/mEmaGTsyjidOFyiR9QCfZl49o4Becn2zoJDEQHWek9tKXSkUXRrs0pJeg6GOVE/9T4HWF9uya8qI1qqkJ+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
+Received: from omf12.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay04.hostedemail.com (Postfix) with ESMTP id 0D0DC1A082D;
+	Wed, 25 Mar 2026 12:44:07 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf12.hostedemail.com (Postfix) with ESMTPA id EC85817;
+	Wed, 25 Mar 2026 12:43:54 +0000 (UTC)
+Date: Wed, 25 Mar 2026 07:43:53 -0500
+From: John Groves <John@groves.net>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	"venkataravis@micron.com" <venkataravis@micron.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH V9 3/8] dax: add fsdev.c driver for fs-dax on character
+ dax
+Message-ID: <acPX9T2ZF7xTCHtZ@groves.net>
+References: <0100019d1d463523-617e8165-a084-4d91-aa5e-13778264d5d4-000000@email.amazonses.com>
+ <20260324003818.5009-1-john@jagalactic.com>
+ <0100019d1d476420-6b0bf60e-3b3a-4868-8f5f-484cd55d4709-000000@email.amazonses.com>
+ <20260324143927.000024c3@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500010.china.huawei.com (7.191.174.240) To
- dubpeml500005.china.huawei.com (7.214.145.207)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260324143927.000024c3@huawei.com>
+X-Rspamd-Server: rspamout07
+X-Rspamd-Queue-Id: EC85817
+X-Stat-Signature: 1qn3h5nx7pwds75jfk33psjwun8sh14w
+X-Session-Marker: 6A6F686E4067726F7665732E6E6574
+X-Session-ID: U2FsdGVkX180+af1YWzvaZ59D8sxBuIZxxdYmwQ05wU=
+X-HE-Tag: 1774442634-3402
+X-HE-Meta: U2FsdGVkX1+N9RTW+cU2f//6uhWp/3cA7dyMyvWeDd14EPQJZCrLvO2FgAJa+U+AGXznyUFgoxwG7AiMQ+J/iWcIVhQQqjxL1Z1RBdHi7SMWGXxvholXJsbRJ7vA1tkB3wxhjoXOxImeBTrsGQt9/7Tpp6hu5bpxC8vUZzPCdhLasDGEzMljNdt9S1isvnb85mEOf8EvVD10dWxj0viJRjlot+qh6PxDSWGpwiqSI4Id/V716hBLFkZU2PJKtkMZEvT+NOPFfaUKwAoYWvS8+akdil0Am4UPyiRJV2Beuw1sRneBBtupIg2CLdv3qvibJFNqftrJyNxX2BKVkUCKsJns4hilBfJx4CQoTuzSNGekZWyMLXDjcsyFUruSvcYbRMlzkimElgnyOZSmJF9cIoj/+qluE3dG3Nf34vqLyfe1vFHoQB6CDD7KNpzs5lQuvRnQGs+7W3q8fuDEKMy21SHulDUoAINg0oNWKAEMAr9chD3y6qNx3cS0nujP4+Mm9yiujzZVF/f0QBeo3IX6fKJ3/QdsWCK/Kz56z3DwuO4=
 
-On Tue, 24 Mar 2026 14:50:59 -0700
-"Koralahalli Channabasappa, Smita" <skoralah@amd.com> wrote:
-
-> Hi Jonathan,
+On 26/03/24 02:39PM, Jonathan Cameron wrote:
+> On Tue, 24 Mar 2026 00:38:31 +0000
+> John Groves <john@jagalactic.com> wrote:
 > 
-> On 3/23/2026 11:13 AM, Jonathan Cameron wrote:
-> > On Sun, 22 Mar 2026 19:53:41 +0000
-> > Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com> wrote:
-> >   
-> >> The current probe time ownership check for Soft Reserved memory based
-> >> solely on CXL window intersection is insufficient. dax_hmem probing is not
-> >> always guaranteed to run after CXL enumeration and region assembly, which
-> >> can lead to incorrect ownership decisions before the CXL stack has
-> >> finished publishing windows and assembling committed regions.
-> >>
-> >> Introduce deferred ownership handling for Soft Reserved ranges that
-> >> intersect CXL windows. When such a range is encountered during the
-> >> initial dax_hmem probe, schedule deferred work to wait for the CXL stack
-> >> to complete enumeration and region assembly before deciding ownership.
-> >>
-> >> Once the deferred work runs, evaluate each Soft Reserved range
-> >> individually: if a CXL region fully contains the range, skip it and let
-> >> dax_cxl bind. Otherwise, register it with dax_hmem. This per-range
-> >> ownership model avoids the need for CXL region teardown and
-> >> alloc_dax_region() resource exclusion prevents double claiming.
-> >>
-> >> Introduce a boolean flag dax_hmem_initial_probe to live inside device.c
-> >> so it survives module reload. Ensure dax_cxl defers driver registration
-> >> until dax_hmem has completed ownership resolution. dax_cxl calls
-> >> dax_hmem_flush_work() before cxl_driver_register(), which both waits for
-> >> the deferred work to complete and creates a module symbol dependency that
-> >> forces dax_hmem.ko to load before dax_cxl.
-> >>
-> >> Co-developed-by: Dan Williams <dan.j.williams@intel.com>
-> >> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> >> Signed-off-by: Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>  
+> > From: John Groves <john@groves.net>
 > > 
-> > https://sashiko.dev/#/patchset/20260322195343.206900-1-Smita.KoralahalliChannabasappa%40amd.com
-> > Might be worth a look.  I think the last comment is potentially correct
-> > though unlikely a platform_driver_register() actually fails.
+> > The new fsdev driver provides pages/folios initialized compatibly with
+> > fsdax - normal rather than devdax-style refcounting, and starting out
+> > with order-0 folios.
 > > 
-> > I've not looked too closely at the others. Given this was doing something
-> > unusual I thought I'd see what it found. Looks like some interesting
-> > questions if nothing else.  
+> > When fsdev binds to a daxdev, it is usually (always?) switching from the
+> > devdax mode (device.c), which pre-initializes compound folios according
+> > to its alignment. Fsdev uses fsdev_clear_folio_state() to switch the
+> > folios into a fsdax-compatible state.
+> > 
+> > A side effect of this is that raw mmap doesn't (can't?) work on an fsdev
+> > dax instance. Accordingly, The fsdev driver does not provide raw mmap -
+> > devices must be put in 'devdax' mode (drivers/dax/device.c) to get raw
+> > mmap capability.
+> > 
+> > In this commit is just the framework, which remaps pages/folios compatibly
+> > with fsdax.
+> > 
+> > Enabling dax changes:
+> > 
+> > - bus.h: add DAXDRV_FSDEV_TYPE driver type
+> > - bus.c: allow DAXDRV_FSDEV_TYPE drivers to bind to daxdevs
+> > - dax.h: prototype inode_dax(), which fsdev needs
+> > 
+> > Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> > Suggested-by: Gregory Price <gourry@gourry.net>
+> > Signed-off-by: John Groves <john@groves.net>
 > 
-> Thanks for pointing this out. I went through the findings:
+> I was kind of thinking you'd go with a hidden KCONFIG option with default
+> magic to do the same build condition to you had in the Makefil, but one the
+> user can opt in or out for is also fine.
 > 
-> The init error path one is valid I think, if 
-> platform_driver_register(&dax_hmem_driver) fails after 
-> dax_hmem_platform_driver has already probed and queued work, the error 
-> path doesn't flush the work or release the pdev reference.
+> Comments on that below. Meh, I think this is better anyway :)
 > 
-> I was thinking something like below for v9:
-> 
-> @@ -258,8 +262,13 @@ static __init int dax_hmem_init(void)
-> 		return rc;
-> 
-> 	rc = platform_driver_register(&dax_hmem_driver);
-> -	if (rc)
-> +	if (rc) {
-> +		if (dax_hmem_work.pdev) {
-> +			flush_work(&dax_hmem_work.work);
-> +			put_device(&dax_hmem_work.pdev->dev);
-> +		}
-> 		platform_driver_unregister(&dax_hmem_platform_driver);
-> +	}
-> 
-> 	return rc;
->   }
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 > 
 > 
-> Worth adding considering the unlikeliness?
+> 
+> > diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+> > index d656e4c0eb84..7051b70980d5 100644
+> > --- a/drivers/dax/Kconfig
+> > +++ b/drivers/dax/Kconfig
+> > @@ -61,6 +61,17 @@ config DEV_DAX_HMEM_DEVICES
+> >  	depends on DEV_DAX_HMEM && DAX
+> >  	def_bool y
+> >  
+> > +config DEV_DAX_FSDEV
+> > +	tristate "FSDEV DAX: fs-dax compatible devdax driver"
+> > +	depends on DEV_DAX && FS_DAX
+> > +	help
+> > +	  Support fs-dax access to DAX devices via a character device
+> > +	  interface. Unlike device_dax (which pre-initializes compound folios
+> > +	  based on device alignment), this driver leaves folios at order-0 so
+> > +	  that fs-dax filesystems can manage folio order dynamically.
+> > +
+> > +	  Say M if unsure.
+> Fine like this, but if you wanted to hide it in interests of not
+> confusing users...
+> 
+> config DEV_DAX_FSDEV
+> 	tristate
+> 	depends on DEV_DAX && FS_DAX
+> 	default DEV_DAX
 
-I think so.  Alternative would be a very obvious comment to say we've
-deliberately not handled this corner.  Code seems easier to me and
-lines up with what remove is doing.
+I like this better. I see no reason not to default to including fsdev.
+It does nothing other than frustrating famfs users if it's off - since
+building it still has no effect unless you put a daxdev in famfs mode.
 
+Ira, it's kinda in your hands at the moment. Do you feel like making this
+change?
 
 > 
-> The others I looked at the IS_ENABLED vs IS_REACHABLE question is 
-> something I'm discussing with Dan in 3/9 (there's a Kconfig dependency 
-> and CXL_BUS dependency fix needed I guess), the module reload behavior 
-> is intentional and others are mostly false positives I think..
-
-I was more suspicious of those ones as can never remember exactly what
-the effective rule are.
-
-Thanks,
-
-J
+> > +
+> >  config DEV_DAX_KMEM
+> >  	tristate "KMEM DAX: map dax-devices as System-RAM"
+> >  	default DEV_DAX
 > 
-> Thanks,
-> Smita
+> > +}
 > 
-> >   
-> >> ---
-> >>   drivers/dax/bus.h         |  7 ++++
-> >>   drivers/dax/cxl.c         |  1 +
-> >>   drivers/dax/hmem/device.c |  3 ++
-> >>   drivers/dax/hmem/hmem.c   | 74 +++++++++++++++++++++++++++++++++++++++
-> >>   4 files changed, 85 insertions(+)
-> >>
-> >> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-> >> index cbbf64443098..ebbfe2d6da14 100644
-> >> --- a/drivers/dax/bus.h
-> >> +++ b/drivers/dax/bus.h
-> >> @@ -49,6 +49,13 @@ void dax_driver_unregister(struct dax_device_driver *dax_drv);
-> >>   void kill_dev_dax(struct dev_dax *dev_dax);
-> >>   bool static_dev_dax(struct dev_dax *dev_dax);
-> >>   
-> >> +#if IS_ENABLED(CONFIG_DEV_DAX_HMEM)
-> >> +extern bool dax_hmem_initial_probe;
-> >> +void dax_hmem_flush_work(void);
-> >> +#else
-> >> +static inline void dax_hmem_flush_work(void) { }
-> >> +#endif
-> >> +
-> >>   #define MODULE_ALIAS_DAX_DEVICE(type) \
-> >>   	MODULE_ALIAS("dax:t" __stringify(type) "*")
-> >>   #define DAX_DEVICE_MODALIAS_FMT "dax:t%d"
-> >> diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-> >> index a2136adfa186..3ab39b77843d 100644
-> >> --- a/drivers/dax/cxl.c
-> >> +++ b/drivers/dax/cxl.c
-> >> @@ -44,6 +44,7 @@ static struct cxl_driver cxl_dax_region_driver = {
-> >>   
-> >>   static void cxl_dax_region_driver_register(struct work_struct *work)
-> >>   {
-> >> +	dax_hmem_flush_work();
-> >>   	cxl_driver_register(&cxl_dax_region_driver);
-> >>   }
-> >>   
-> >> diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
-> >> index 56e3cbd181b5..991a4bf7d969 100644
-> >> --- a/drivers/dax/hmem/device.c
-> >> +++ b/drivers/dax/hmem/device.c
-> >> @@ -8,6 +8,9 @@
-> >>   static bool nohmem;
-> >>   module_param_named(disable, nohmem, bool, 0444);
-> >>   
-> >> +bool dax_hmem_initial_probe;
-> >> +EXPORT_SYMBOL_GPL(dax_hmem_initial_probe);
-> >> +
-> >>   static bool platform_initialized;
-> >>   static DEFINE_MUTEX(hmem_resource_lock);
-> >>   static struct resource hmem_active = {
-> >> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-> >> index ca752db03201..9ceda6b5cadf 100644
-> >> --- a/drivers/dax/hmem/hmem.c
-> >> +++ b/drivers/dax/hmem/hmem.c
-> >> @@ -3,6 +3,7 @@
-> >>   #include <linux/memregion.h>
-> >>   #include <linux/module.h>
-> >>   #include <linux/dax.h>
-> >> +#include <cxl/cxl.h>
-> >>   #include "../bus.h"
-> >>   
-> >>   static bool region_idle;
-> >> @@ -58,6 +59,23 @@ static void release_hmem(void *pdev)
-> >>   	platform_device_unregister(pdev);
-> >>   }
-> >>   
-> >> +struct dax_defer_work {
-> >> +	struct platform_device *pdev;
-> >> +	struct work_struct work;
-> >> +};
-> >> +
-> >> +static void process_defer_work(struct work_struct *w);
-> >> +
-> >> +static struct dax_defer_work dax_hmem_work = {
-> >> +	.work = __WORK_INITIALIZER(dax_hmem_work.work, process_defer_work),
-> >> +};
-> >> +
-> >> +void dax_hmem_flush_work(void)
-> >> +{
-> >> +	flush_work(&dax_hmem_work.work);
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(dax_hmem_flush_work);
-> >> +
-> >>   static int __hmem_register_device(struct device *host, int target_nid,
-> >>   				  const struct resource *res)
-> >>   {
-> >> @@ -122,6 +140,11 @@ static int hmem_register_device(struct device *host, int target_nid,
-> >>   	if (IS_ENABLED(CONFIG_DEV_DAX_CXL) &&
-> >>   	    region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
-> >>   			      IORES_DESC_CXL) != REGION_DISJOINT) {
-> >> +		if (!dax_hmem_initial_probe) {
-> >> +			dev_dbg(host, "await CXL initial probe: %pr\n", res);
-> >> +			queue_work(system_long_wq, &dax_hmem_work.work);
-> >> +			return 0;
-> >> +		}
-> >>   		dev_dbg(host, "deferring range to CXL: %pr\n", res);
-> >>   		return 0;
-> >>   	}
-> >> @@ -129,8 +152,54 @@ static int hmem_register_device(struct device *host, int target_nid,
-> >>   	return __hmem_register_device(host, target_nid, res);
-> >>   }
-> >>   
-> >> +static int hmem_register_cxl_device(struct device *host, int target_nid,
-> >> +				    const struct resource *res)
-> >> +{
-> >> +	if (region_intersects(res->start, resource_size(res), IORESOURCE_MEM,
-> >> +			      IORES_DESC_CXL) == REGION_DISJOINT)
-> >> +		return 0;
-> >> +
-> >> +	if (cxl_region_contains_resource((struct resource *)res)) {
-> >> +		dev_dbg(host, "CXL claims resource, dropping: %pr\n", res);
-> >> +		return 0;
-> >> +	}
-> >> +
-> >> +	dev_dbg(host, "CXL did not claim resource, registering: %pr\n", res);
-> >> +	return __hmem_register_device(host, target_nid, res);
-> >> +}
-> >> +
-> >> +static void process_defer_work(struct work_struct *w)
-> >> +{
-> >> +	struct dax_defer_work *work = container_of(w, typeof(*work), work);
-> >> +	struct platform_device *pdev;
-> >> +
-> >> +	if (!work->pdev)
-> >> +		return;
-> >> +
-> >> +	pdev = work->pdev;
-> >> +
-> >> +	/* Relies on cxl_acpi and cxl_pci having had a chance to load */
-> >> +	wait_for_device_probe();
-> >> +
-> >> +	guard(device)(&pdev->dev);
-> >> +	if (!pdev->dev.driver)
-> >> +		return;
-> >> +
-> >> +	if (!dax_hmem_initial_probe) {
-> >> +		dax_hmem_initial_probe = true;
-> >> +		walk_hmem_resources(&pdev->dev, hmem_register_cxl_device);
-> >> +	}
-> >> +}
-> >> +
-> >>   static int dax_hmem_platform_probe(struct platform_device *pdev)
-> >>   {
-> >> +	if (work_pending(&dax_hmem_work.work))
-> >> +		return -EBUSY;
-> >> +
-> >> +	if (!dax_hmem_work.pdev)
-> >> +		dax_hmem_work.pdev =
-> >> +			to_platform_device(get_device(&pdev->dev));
-> >> +
-> >>   	return walk_hmem_resources(&pdev->dev, hmem_register_device);
-> >>   }
-> >>   
-> >> @@ -168,6 +237,11 @@ static __init int dax_hmem_init(void)
-> >>   
-> >>   static __exit void dax_hmem_exit(void)
-> >>   {
-> >> +	if (dax_hmem_work.pdev) {
-> >> +		flush_work(&dax_hmem_work.work);
-> >> +		put_device(&dax_hmem_work.pdev->dev);
-> >> +	}
-> >> +
-> >>   	platform_driver_unregister(&dax_hmem_driver);
-> >>   	platform_driver_unregister(&dax_hmem_platform_driver);
-> >>   }  
-> >   
-> 
-> 
-
