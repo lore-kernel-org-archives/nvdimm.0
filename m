@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B28230EF8F;
-	Wed, 25 Mar 2026 08:57:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15ACE30EF8F;
+	Wed, 25 Mar 2026 08:59:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774429060; cv=none; b=XpBbJSKFCF2nD4Zhd6HwwT3SfOPWWpV6Jrz6SkRHzrL8Pwh4DkglIJTDM+2X1ia1BweIp82k1oauZ/ZTlhJDT1N8sTM4HyIEoJD4dYidN5G6QxezhND3I1WxF3qwcP7IOgi0wMJ1lvxA58YQv7ZYE7JELXh23LiDqH/6Xr4viE8=
+	t=1774429149; cv=none; b=gvYGs8dm4EeuYx8EI7hZ5ZVL5gbUf0mVE0eCkQaQgN/namxsT9tfgNnkkgeCponFCdE8syaz5c2iip0ZVFiUhzQT9e5digAJ9yVQpHiE4HEuBRMWl7+CO7DVgTw9WW1Oul48DRviuo3B6V4dTXCZRLTjin4Y5tha+j+f9xl/4vE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774429060; c=relaxed/simple;
-	bh=yfxv6pHELzGlv2oobJT9AbDKLWNfM0JfoxxEIEleLqA=;
+	s=arc-20240116; t=1774429149; c=relaxed/simple;
+	bh=Pv7urIhMMBL2ocxusGwdyHEj1oFC8nFHlp57cSBJ93M=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bj0HLzzBFpsd0THnN+S85cUak63Sd/+WDvuytw5q9UActw0eW8Rdg0Vb9y0SjtJzWmmPOdXdsYr9At3tRvLsa7qtmjxWtACmNj9z3mVI+smQnyCXJSptVlVezu2n9BOw0UwXav9DeMeyd8Eax2I8/EuTjE10H3J5E8UrSm3zKv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Up7LdXhy; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=g7FskBqnJRlcLURbRy3wA0MdF9CY9lgPNsl6fw+Bo6UYkjbj515R2NdUfoo1gBuyt7guZGeW7scXaUbMxPf0AiT3TeMKHtSSjOTCo2TVQy68ldIhAiIka7e6YBbKVa8rTWr0az5g7Q4mGKn1l7ODjLMVvtZtqC6ZYMCtsUs+Cy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iERiDiLf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Up7LdXhy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96DC5C4CEF7;
-	Wed, 25 Mar 2026 08:57:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iERiDiLf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D434C4CEF7;
+	Wed, 25 Mar 2026 08:58:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774429060;
-	bh=yfxv6pHELzGlv2oobJT9AbDKLWNfM0JfoxxEIEleLqA=;
+	s=k20201202; t=1774429148;
+	bh=Pv7urIhMMBL2ocxusGwdyHEj1oFC8nFHlp57cSBJ93M=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=Up7LdXhyLQj2Uj4oDFLXhdmGHMqOhUL+XCximoI0LCeWAmcG3+n1T/b0ZgRc3kE6q
-	 ArPo1EXE8R48KzNNzdt6yCvT3aHF4RG0z3VvQbnoHiFVXdrgbo9MhBRZhI4FPnsRku
-	 /zg6d1YEF1wixxP/JXLmHLwqxgyAgv0uzitxifSQ3oqC+uwSrLDrw/RyAfC6ZHrGNN
-	 luLMjjt5tY0jRuCvI/ag8QknNU1ijC43qm99tCMQJk5dcuNpU6TjWoR/ivA7ZmC0jZ
-	 ljzRuVTNrLdAiaO4ulQYeyXnhbsFrb5Y62VZv4fNhVIuO0auUors/U5COdlDV8Z+mQ
-	 7wvdDEhmQ57Dw==
-Message-ID: <e5bd51ae-8937-4cca-94bb-b705b1e8aa26@kernel.org>
-Date: Wed, 25 Mar 2026 09:57:26 +0100
+	b=iERiDiLf++5bl/FDoLs/I4SrbVtH64RIeByQPlcqcwrGq9EcOzuexH5tWl1gGtFQj
+	 FC8h5uxpzmBNLtL6bH6tsxJbwuClunaNI0YiMtJkxq9gw3V7fNNnQMKOv+wsvotj+N
+	 45xdhriy71Y9rawAiZZuQQpO6JNmKQIwWeSZ01trFFXQdJG4NdJL0y8w/PXn8CCabi
+	 lc+fVFDMSIdw+6D3b4ukWEiUMlgyyRJGKsiBc5ChcvFYF3RYKOKiMB7LiyMQu6MBu4
+	 dnwNQyOOPhhy+xWI/iyjRaycgJFkZ54yh6GfFODyWneHxdajE+9VBP3pqSd3/yoEqy
+	 FNQdbf9x0yvyQ==
+Message-ID: <9203050e-eda6-49a1-97b6-a134da2da313@kernel.org>
+Date: Wed, 25 Mar 2026 09:58:53 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,10 +35,11 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 6/6] tools/testing/vma: add test for vma_flags_test(),
- vma_desc_test()
-To: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
+Subject: Re: [PATCH 2/6] mm: add vma_desc_test_all() and use it
+To: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>,
+ "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
  Dan Williams <dan.j.williams@intel.com>,
  Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
@@ -54,18 +55,16 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
  Damien Le Moal <dlemoal@kernel.org>, Naohiro Aota <naohiro.aota@wdc.com>,
  Johannes Thumshirn <jth@kernel.org>, Matthew Wilcox <willy@infradead.org>,
  Jan Kara <jack@suse.cz>, "Liam R . Howlett" <Liam.Howlett@oracle.com>,
- Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Hugh Dickins <hughd@google.com>, Baolin Wang
- <baolin.wang@linux.alibaba.com>, Jann Horn <jannh@google.com>,
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>, Jann Horn <jannh@google.com>,
  Pedro Falcato <pfalcato@suse.de>, Jason Gunthorpe <jgg@ziepe.ca>,
  linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-cxl@vger.kernel.org, linux-erofs@lists.ozlabs.org, linux-mm@kvack.org,
  ntfs3@lists.linux.dev, linux-fsdevel@vger.kernel.org
 References: <cover.1772704455.git.ljs@kernel.org>
- <376a39eb9e134d2c8ab10e32720dd292970b080a.1772704455.git.ljs@kernel.org>
- <f11ec383-d688-4512-a9ea-700cc2d42f3a@kernel.org>
- <f6f396d2-1ba2-426f-b756-d8cc5985cc7c@lucifer.local>
+ <568c8f8d6a84ff64014f997517cba7a629f7eed6.1772704455.git.ljs@kernel.org>
+ <d0111a86-7fc9-4e2f-b652-9ecbb894ada5@kernel.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -112,58 +111,31 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <f6f396d2-1ba2-426f-b756-d8cc5985cc7c@lucifer.local>
+In-Reply-To: <d0111a86-7fc9-4e2f-b652-9ecbb894ada5@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 3/5/26 16:01, Lorenzo Stoakes (Oracle) wrote:
-> On Thu, Mar 05, 2026 at 02:52:20PM +0100, David Hildenbrand (Arm) wrote:
->> On 3/5/26 11:50, Lorenzo Stoakes (Oracle) wrote:
->>> Now we have helpers which test singular VMA flags - vma_flags_test() and
->>> vma_desc_test() - add a test to explicitly assert that these behave as
->>> expected.
->>>
->>> Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
->>> ---
->>>  tools/testing/vma/tests/vma.c | 36 +++++++++++++++++++++++++++++++++++
->>>  1 file changed, 36 insertions(+)
->>>
->>> diff --git a/tools/testing/vma/tests/vma.c b/tools/testing/vma/tests/vma.c
->>> index f031e6dfb474..1aa94dd7e74a 100644
->>> --- a/tools/testing/vma/tests/vma.c
->>> +++ b/tools/testing/vma/tests/vma.c
->>> @@ -159,6 +159,41 @@ static bool test_vma_flags_word(void)
->>>  	return true;
->>>  }
->>>
->>> +/* Ensure that vma_flags_test() and friends works correctly. */
->>> +static bool test_vma_flags_test(void)
->>> +{
->>> +	const vma_flags_t flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
->>> +					       VMA_EXEC_BIT, 64, 65);
+On 3/25/26 08:31, Vlastimil Babka (SUSE) wrote:
+> On 3/5/26 11:50, Lorenzo Stoakes (Oracle) wrote:
+>> erofs and zonefs are using vma_desc_test_any() twice to check whether all
+>> of VMA_SHARED_BIT and VMA_MAYWRITE_BIT are set, this is silly, so add
+>> vma_desc_test_all() to test all flags and update erofs and zonefs to use
+>> it.
 >>
->> When already using numbers, I was wondering whether you'd want to stick
->> to numbers only here.
+>> While we're here, update the helper function comments to be more
+>> consistent.
+>>
+>> Also add the same to the VMA test headers.
+>>
+>> Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 > 
-> Numbers are for flags > 64 bits, we currently don't define any, it's to make
-> sure everything works at higher bitmap sizes, the tests currently set the bitmap
-> size to 128 bits.
-> 
->>
->>> +	struct vm_area_desc desc;
->>
->>
->> struct vm_area_desc desc = {
->> 	.vma_flags = flags,
->> };
->>
->> ?
-> 
-> Ack can do, fix-patch for Andrew below :)
+> I thought I saw David review all of the series and so focused on other
+> stuff, didn't notice he skipped this one :)
 
-Not sure if I provided a tag, but here it comes
+I think I skipped it because it looked too mechanical when scanning and
+I was like "ofc I trust Lorenzo on that one blindly". So I missed to reply.
 
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Tag provided now if it helps.
 
 -- 
 Cheers,
