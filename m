@@ -1,90 +1,147 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D5D13C4577;
-	Wed, 25 Mar 2026 11:02:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC6843CFF42
+	for <nvdimm@lists.linux.dev>; Wed, 25 Mar 2026 11:55:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774436554; cv=none; b=rOMAlIKR3sQaIZUhbFRYlffFqOQqKhlFzKb0KDohNy/sa1eHdi0nDYJBRYST5uPZajOqRDMYNoH1LbhK4t3BfM73TkjdxcM6ESIEPyLZ9Xex4kzs+ZPrRnoCEbc3qUm7jG9PUIqXcJ/WoV59fBB4FoGSBHcHVtF5UTougyJx/3w=
+	t=1774439748; cv=none; b=rzV7uPTgyEsjB0yiADeYikzXd532TiIm/vCjvN9bvXU5cRsH9kC1CepNmBH3MY+QYi1b47dVQNA+spH6i/aiJycBbtuwxdjbC9RvxBRYtsx6W2VYIsrj3LPc9StGNVrY36ED+VlYesG1ZLbtHUCCtrOnJWcv5H68TYQrQJHT1cA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774436554; c=relaxed/simple;
-	bh=tHxS02jyuJdc7xck1OGm67X7JRYetEgUpHsHG3XgLZs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PUS9IHSn6w7w9bVCH3TXG8GkvIG3ZIlyTd3Yf+1w0/BwUbCN7+SXQKPcW9z3MqKdIenG8Imbl4MGUu9xDtrDysRBkK1aM/tzNZGcZRV2dYEWdG7vK1hFyF9wsRZg0+o91AgAsv5hoD1sC9Y01phb7bm640XkqPZqvLkP52Tlqhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JKfbEpL+; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JKfbEpL+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3A3EC2BCB0;
-	Wed, 25 Mar 2026 11:02:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774436553;
-	bh=tHxS02jyuJdc7xck1OGm67X7JRYetEgUpHsHG3XgLZs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=JKfbEpL+QwqITDp7zft06nKiR08zsFI8szKsw2URrZAwiwXqMmi0+tBx1TGvpubXE
-	 l1nTkzHyAQbNEBGfQ4nGrX3sKCiFHLJaYrjm5zqZQQQEwtQa6RkpNjHFptlR4PAZ9U
-	 IpJ5JeE+RAZ2E9J1YM6Elt355aSIZj/LzRVBQ1/n1qqoMs/OD0sRpg05BMFqsbhi1S
-	 Shw3TorVIm0rtJXQ5yVWpZX5z65od1QSnOK7gT/YAbbvBwHnt++ki1xhQcLDAMvu/F
-	 g11ayMJaLiBZ/F7XKSiKEpI8doQgK5UkRrJQpjVo/DBAKu4Y4jcyhpVjyAsHbayxPG
-	 UmZoSLixBLjOg==
-Date: Wed, 25 Mar 2026 11:02:21 +0000
-From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Gao Xiang <xiang@kernel.org>, 
-	Chao Yu <chao@kernel.org>, Yue Hu <zbestahu@gmail.com>, 
-	Jeffle Xu <jefflexu@linux.alibaba.com>, Sandeep Dhavale <dhavale@google.com>, 
-	Hongbo Li <lihongbo22@huawei.com>, Chunhai Guo <guochunhai@vivo.com>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>, Tony Luck <tony.luck@intel.com>, 
-	Reinette Chatre <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, 
-	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, 
-	Damien Le Moal <dlemoal@kernel.org>, Naohiro Aota <naohiro.aota@wdc.com>, 
-	Johannes Thumshirn <jth@kernel.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	"Liam R . Howlett" <Liam.Howlett@oracle.com>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Hugh Dickins <hughd@google.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-erofs@lists.ozlabs.org, linux-mm@kvack.org, 
-	ntfs3@lists.linux.dev, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 2/6] mm: add vma_desc_test_all() and use it
-Message-ID: <887da31d-96d0-493f-a248-28ae82925c4d@lucifer.local>
-References: <cover.1772704455.git.ljs@kernel.org>
- <568c8f8d6a84ff64014f997517cba7a629f7eed6.1772704455.git.ljs@kernel.org>
- <d0111a86-7fc9-4e2f-b652-9ecbb894ada5@kernel.org>
- <9203050e-eda6-49a1-97b6-a134da2da313@kernel.org>
+	s=arc-20240116; t=1774439748; c=relaxed/simple;
+	bh=ys6PuOWdFe0qxokKIbVNj5WZJc8jhMK2HslSsFknON8=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=s9692VUkxGTeVjXG8nM7bkueqh3rzuPReDzeBIN7FnDs62aRfXkYslJcKQ7/u6t88b/humJFNtiRdVSMrimmixxHFeb55VI829ftFX0zBLH7OQrVNs7ojYCoqxsa6GMX54Xk8bPknn48Vdcbh3pOcJYDYPRI8gYI556sOLazvyU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.107])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fglhW5P1vzHnGfQ;
+	Wed, 25 Mar 2026 19:55:07 +0800 (CST)
+Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
+	by mail.maildlp.com (Postfix) with ESMTPS id 07E6F40587;
+	Wed, 25 Mar 2026 19:55:43 +0800 (CST)
+Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
+ (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 25 Mar
+ 2026 11:55:41 +0000
+Date: Wed, 25 Mar 2026 11:55:40 +0000
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: Ira Weiny <ira.weiny@intel.com>
+CC: John Groves <john@jagalactic.com>, John Groves <John@groves.net>, "Miklos
+ Szeredi" <miklos@szeredi.hu>, Dan Williams <dan.j.williams@intel.com>, "Bernd
+ Schubert" <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>,
+	John Groves <jgroves@micron.com>, "Jonathan Corbet" <corbet@lwn.net>, Shuah
+ Khan <skhan@linuxfoundation.org>, "Vishal Verma" <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan
+ Kara <jack@suse.cz>, "Alexander Viro" <viro@zeniv.linux.org.uk>, David
+ Hildenbrand <david@kernel.org>, Christian Brauner <brauner@kernel.org>,
+	"Darrick J . Wong" <djwong@kernel.org>, Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, Stefan
+ Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, Josef
+ Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, Chen
+ Linxuan <chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>, Fuad
+ Tabba <tabba@google.com>, Sean Christopherson <seanjc@google.com>, Shivank
+ Garg <shivankg@amd.com>, Ackerley Tng <ackerleytng@google.com>, Gregory Price
+	<gourry@gourry.net>, Aravind Ramesh <arramesh@micron.com>, Ajay Joshi
+	<ajayjoshi@micron.com>, "venkataravis@micron.com" <venkataravis@micron.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH V9 1/8] dax: move dax_pgoff_to_phys from [drivers/dax/]
+ device.c to bus.c
+Message-ID: <20260325115540.000047f2@huawei.com>
+In-Reply-To: <69c321d5e7195_e9d8d10040@iweiny-mobl.notmuch>
+References: <0100019d1d463523-617e8165-a084-4d91-aa5e-13778264d5d4-000000@email.amazonses.com>
+	<20260324003743.4973-1-john@jagalactic.com>
+	<0100019d1d46d094-cc0a4b79-3bd2-43e8-a08d-ab8cd21266a6-000000@email.amazonses.com>
+	<20260324141806.000003f7@huawei.com>
+	<69c321d5e7195_e9d8d10040@iweiny-mobl.notmuch>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9203050e-eda6-49a1-97b6-a134da2da313@kernel.org>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500010.china.huawei.com (7.191.174.240) To
+ dubpeml500005.china.huawei.com (7.214.145.207)
 
-On Wed, Mar 25, 2026 at 09:58:53AM +0100, David Hildenbrand (Arm) wrote:
-> On 3/25/26 08:31, Vlastimil Babka (SUSE) wrote:
-> > On 3/5/26 11:50, Lorenzo Stoakes (Oracle) wrote:
-> >> erofs and zonefs are using vma_desc_test_any() twice to check whether all
-> >> of VMA_SHARED_BIT and VMA_MAYWRITE_BIT are set, this is silly, so add
-> >> vma_desc_test_all() to test all flags and update erofs and zonefs to use
-> >> it.
-> >>
-> >> While we're here, update the helper function comments to be more
-> >> consistent.
-> >>
-> >> Also add the same to the VMA test headers.
-> >>
-> >> Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-> >
-> > I thought I saw David review all of the series and so focused on other
-> > stuff, didn't notice he skipped this one :)
->
-> I think I skipped it because it looked too mechanical when scanning and
-> I was like "ofc I trust Lorenzo on that one blindly". So I missed to reply.
->
-> Tag provided now if it helps.
+On Tue, 24 Mar 2026 18:44:21 -0500
+Ira Weiny <ira.weiny@intel.com> wrote:
 
-Thanks guys! Appreciated.
+> Jonathan Cameron wrote:
+> > On Tue, 24 Mar 2026 00:37:53 +0000
+> > John Groves <john@jagalactic.com> wrote:
+> >   
+> > > From: John Groves <john@groves.net>
+> > > 
+> > > This function will be used by both device.c and fsdev.c, but both are
+> > > loadable modules. Moving to bus.c puts it in core and makes it available
+> > > to both.
+> > > 
+> > > No code changes - just relocated.
+> > > 
+> > > Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> > > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> > > Signed-off-by: John Groves <john@groves.net>  
+> > Obviously this is a straight forward code move... But I can't resist
+> > commenting on what is moving  (feel free to ignore! or maybe a follow
+> > up patch if you agree.
+> > 
+> > Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>  
+> 
+> Added this to the series.  LMK if I missed something.
+LGTM.
+
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+(don't bother adding it unless you are touching the tree for some other reason!)
+
+> 
+> Ira
+> 
+> ---
+> commit ccc1878ab00178e82108bdd1ece497388a24290b (HEAD -> nvdimm-famfs-dax)
+> Author: Ira Weiny <ira.weiny@intel.com>
+> Date:   Tue Mar 24 12:36:19 2026 -0500
+> 
+>     dax: Modernize dax_pgoff_to_phys()
+> 
+>     The patch to move dax_pgoff_to_phys() to bus.c revealed that the
+>     function could be improved with more modern style and the newer
+>     in_range() utility function.
+> 
+>     Update it while we are moving it around.
+> 
+>     Link: https://lore.kernel.org/all/20260324141806.000003f7@huawei.com/
+>     Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+>     Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index e4bd5c9f006c..1b412264bb36 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -1421,16 +1421,12 @@ static const struct device_type dev_dax_type = {
+>  __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+>                               unsigned long size)
+>  {
+> -       int i;
+> -
+> -       for (i = 0; i < dev_dax->nr_range; i++) {
+> +       for (int i = 0; i < dev_dax->nr_range; i++) {
+>                 struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+>                 struct range *range = &dax_range->range;
+> -               unsigned long long pgoff_end;
+>                 phys_addr_t phys;
+> 
+> -               pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
+> -               if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
+> +               if (!in_range(pgoff, dax_range->pgoff, PHYS_PFN(range_len(range))))
+>                         continue;
+>                 phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+>                 if (phys + size - 1 <= range->end)
+> 
+
