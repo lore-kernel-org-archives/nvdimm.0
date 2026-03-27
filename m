@@ -1,38 +1,37 @@
-Received: from a11-127.smtp-out.amazonses.com (a11-127.smtp-out.amazonses.com [54.240.11.127])
+Received: from a48-177.smtp-out.amazonses.com (a48-177.smtp-out.amazonses.com [54.240.48.177])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CCD93803D1
-	for <nvdimm@lists.linux.dev>; Fri, 27 Mar 2026 21:04:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.127
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F197136B04B
+	for <nvdimm@lists.linux.dev>; Fri, 27 Mar 2026 21:04:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.48.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774645451; cv=none; b=GyK4pmlReybxI/SVm8eelrhKIGNH4+su8kKcS+M5PjSq/iY2U9eR2tSoRAunXD9I+swr+UumO+tZfOe6ppedL3L9XAvWSTYz7wpAGRhgZTCIuFD/acbVuvbAAIatEyL0FO5XSVeKOJynpEk6EpWcRJPnLq2wKBVJoxv49g1Yj+M=
+	t=1774645465; cv=none; b=e0T67LrLswWiYCwDbsBqRVQRfGRwSUxsX7xy2rF7fjIVhsRPTXPHVGV12hi0nYHIA0HDAaWr9To0wL4vBBjzkXM+yTEVfgqF/8PJI0NrzcsTMXKBmiVN2Z6eWyaVMEka5uyYErMy7+SaJN9gFFtXvRxYLZf4jb6yLII/3cLGcPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774645451; c=relaxed/simple;
-	bh=4SzJA7zFUk7bTrGAecDeFf/8Y3WBEW174+aL/dgLQJc=;
+	s=arc-20240116; t=1774645465; c=relaxed/simple;
+	bh=zIOWbJGDpwN20+ArJhUy7S2sCSSC0DAg+0qD+/z4SMg=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=Dyh7M0/m1eVZirE/oaqqrCMRgk5UQdHiaUFShgrICjumFTKLolBjdZcOCAtIO8fVXBDEOUo39u7yQwNP3Y+26Kc4Ni/+rmlsrBz7WCyKGhF4wQcVBgYLl2UcuOP9Ej6h/0kFD9FMwPTuaZCy13lrXLzUE5MRrICZ2GHplXVsWRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=V1wMqapB; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=WTjtjPwc; arc=none smtp.client-ip=54.240.11.127
+	 References:Message-ID; b=s40Z87ilG+J4tGeOk8W+VPFz5+Pu0lLUGIBJ12haCB2EV8c46IbQizdgEBPT6A1VF9mod+FJn8OgBM4s/E6SA0h5vvHHAuIzro1GSg8Pt2ekYG7blGjjIyoMMZzxZBxB/8x6twkIk0AiA9PcWadzM3NZfPhnDAN6ifEsHcvPuJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=k/fh1qkk; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=SulBK2Rp; arc=none smtp.client-ip=54.240.48.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="V1wMqapB";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="WTjtjPwc"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="k/fh1qkk";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="SulBK2Rp"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774645449;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774645462;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=4SzJA7zFUk7bTrGAecDeFf/8Y3WBEW174+aL/dgLQJc=;
-	b=V1wMqapBNlzPUm7MA78hJYWVWEWVvRmHX/XUjzpcfpfyt/gtu+Okpr67x1oBEIff
-	Fh4Jr6GZG1GAMB6ULCpQZr4JGcrQz3rEx6tjyMIlsDMfFKn4kiYyMmBqxAsg4jSnBMg
-	Km6ctJJFqcydcf675VwoGrzXUxki1jYbhoAjYSX4=
+	bh=zIOWbJGDpwN20+ArJhUy7S2sCSSC0DAg+0qD+/z4SMg=;
+	b=k/fh1qkkSgAXGGAyMREoe9/0tTH/S0LZo6+q80q9hxWBr5zAqAJ+/UG3Enf5cDB/
+	y4hpfozzAkYMN5Zz16QWR80f6EqZV9Q4Of+vmF8COU/aRkaIgk27uozGz+CtIQRnpOk
+	DrZmguPDqLr9/QWjshngotbWiZNfz+MlDDR+Cgws=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774645449;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774645462;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=4SzJA7zFUk7bTrGAecDeFf/8Y3WBEW174+aL/dgLQJc=;
-	b=WTjtjPwc0QqnLmBlmGqgQP+NE/bzENNcKKSdO3ocwO2LibuKfy29xxvd8+FzWcFl
-	epdfzoZ/idcEQ+FPgUC1oX8J9YfkesqB5m2Fq02bioV7oiIDnb5mjm2DfjBBpbM4iq9
-	CMYj4jEofmbB/fz1TAfLUdXwUU7bTVCTYUzMUb7A=
-Subject: [PATCH V10 1/8] dax: move dax_pgoff_to_phys from [drivers/dax/]
- device.c to bus.c
+	bh=zIOWbJGDpwN20+ArJhUy7S2sCSSC0DAg+0qD+/z4SMg=;
+	b=SulBK2RprH5PN83TeYEGk61nrs3nHCRo6gOaep+pDjAgsEVxXK+sApoMepSwEKhW
+	RO4l3PV7zCmXrJjMvdvvO+rNOFqJrFEiCMuKDKZUNdDYMusdtYDk4Ga27VrksRY9DCU
+	3GnlSTG7R/8w1+cIX62KNP41TDPZKmBmgGfTjEGg=
+Subject: [PATCH V10 2/8] dax: Factor out dax_folio_reset_order() helper
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -73,10 +72,10 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?nvdimm=40lists=2Elinux=2Edev?= <nvdimm@lists.linux.dev>, 
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
-	=?UTF-8?Q?John_Groves?= <john@groves.net>, 
+	=?UTF-8?Q?Jonathan_Cameron?= <jonathan.cameron@huawei.com>, 
 	=?UTF-8?Q?Ira_Weiny?= <ira.weiny@intel.com>, 
-	=?UTF-8?Q?Jonathan_Cameron?= <jonathan.cameron@huawei.com>
-Date: Fri, 27 Mar 2026 21:04:08 +0000
+	=?UTF-8?Q?John_Groves?= <john@groves.net>
+Date: Fri, 27 Mar 2026 21:04:22 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -89,59 +88,97 @@ In-Reply-To:
  <0100019d311bed04-dbb67b48-c55d-4e6a-962a-a0f8b714f2e7-000000@email.amazonses.com>
 References: 
  <0100019d311bed04-dbb67b48-c55d-4e6a-962a-a0f8b714f2e7-000000@email.amazonses.com> 
- <20260327210356.79124-1-john@jagalactic.com>
+ <20260327210411.79146-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHcvi0/npKkGzMxTj2t5BOiiUF5fQ==
-Thread-Topic: [PATCH V10 1/8] dax: move dax_pgoff_to_phys from [drivers/dax/]
- device.c to bus.c
-X-Wm-Sent-Timestamp: 1774645447
+Thread-Index: AQHcvi1Ig13Pv3iFRCOYHU2h1Yt2Vw==
+Thread-Topic: [PATCH V10 2/8] dax: Factor out dax_folio_reset_order() helper
+X-Wm-Sent-Timestamp: 1774645461
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019d311c90eb-a582ff97-93ba-49f3-8140-6c5c4bf8bc62-000000@email.amazonses.com>
+Message-ID: <0100019d311cc6b9-5be7428a-7f16-4774-8f90-a44b88ac5660-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.03.27-54.240.11.127
+X-SES-Outgoing: 2026.03.27-54.240.48.177
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AThis function will be used=
- by both device.c and fsdev.c, but both are=0D=0Aloadable modules. Moving=
- to bus.c puts it in core and makes it available=0D=0Ato both.=0D=0A=0D=0A=
-No code changes - just relocated.=0D=0A=0D=0AReviewed-by: Ira Weiny <ira.=
-weiny@intel.com>=0D=0AReviewed-by: Dave Jiang <dave.jiang@intel.com>=0D=0A=
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>=0D=0ASigned-o=
-ff-by: John Groves <john@groves.net>=0D=0A---=0D=0A drivers/dax/bus.c    =
-| 20 ++++++++++++++++++++=0D=0A drivers/dax/device.c | 23 ---------------=
---------=0D=0A 2 files changed, 20 insertions(+), 23 deletions(-)=0D=0A=0D=
-=0Adiff --git a/drivers/dax/bus.c b/drivers/dax/bus.c=0D=0Aindex c94c0962=
-2516..1b412264bb36 100644=0D=0A--- a/drivers/dax/bus.c=0D=0A+++ b/drivers=
-/dax/bus.c=0D=0A@@ -1417,6 +1417,26 @@ static const struct device_type de=
-v_dax_type =3D {=0D=0A =09.groups =3D dax_attribute_groups,=0D=0A };=0D=0A=
-=20=0D=0A+/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c *=
-/=0D=0A+__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgo=
-ff_t pgoff,=0D=0A+=09=09=09      unsigned long size)=0D=0A+{=0D=0A+=09for=
- (int i =3D 0; i < dev_dax->nr_range; i++) {=0D=0A+=09=09struct dev_dax_r=
-ange *dax_range =3D &dev_dax->ranges[i];=0D=0A+=09=09struct range *range =
-=3D &dax_range->range;=0D=0A+=09=09phys_addr_t phys;=0D=0A+=0D=0A+=09=09i=
-f (!in_range(pgoff, dax_range->pgoff, PHYS_PFN(range_len(range))))=0D=0A+=
-=09=09=09continue;=0D=0A+=09=09phys =3D PFN_PHYS(pgoff - dax_range->pgoff=
-) + range->start;=0D=0A+=09=09if (phys + size - 1 <=3D range->end)=0D=0A+=
-=09=09=09return phys;=0D=0A+=09=09break;=0D=0A+=09}=0D=0A+=09return -1;=0D=
-=0A+}=0D=0A+EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);=0D=0A+=0D=0A static str=
-uct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)=0D=0A {=0D=0A=
- =09struct dax_region *dax_region =3D data->dax_region;=0D=0Adiff --git a=
-/drivers/dax/device.c b/drivers/dax/device.c=0D=0Aindex 528e81240c4d..2d2=
-dbfd35e94 100644=0D=0A--- a/drivers/dax/device.c=0D=0A+++ b/drivers/dax/d=
-evice.c=0D=0A@@ -57,29 +57,6 @@ static int check_vma(struct dev_dax *dev_=
-dax, struct vm_area_struct *vma,=0D=0A =09=09=09   vma->vm_file, func);=0D=
-=0A }=0D=0A=20=0D=0A-/* see "strong" declaration in tools/testing/nvdimm/=
-dax-dev.c */=0D=0A-__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *d=
-ev_dax, pgoff_t pgoff,=0D=0A-=09=09unsigned long size)=0D=0A-{=0D=0A-=09i=
-nt i;=0D=0A-=0D=0A-=09for (i =3D 0; i < dev_dax->nr_range; i++) {=0D=0A-=09=
-=09struct dev_dax_range *dax_range =3D &dev_dax->ranges[i];=0D=0A-=09=09s=
-truct range *range =3D &dax_range->range;=0D=0A-=09=09unsigned long long =
-pgoff_end;=0D=0A-=09=09phys_addr_t phys;=0D=0A-=0D=0A-=09=09pgoff_end =3D=
- dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;=0D=0A-=09=09if (pgoff=
- < dax_range->pgoff || pgoff > pgoff_end)=0D=0A-=09=09=09continue;=0D=0A-=
-=09=09phys =3D PFN_PHYS(pgoff - dax_range->pgoff) + range->start;=0D=0A-=09=
-=09if (phys + size - 1 <=3D range->end)=0D=0A-=09=09=09return phys;=0D=0A=
--=09=09break;=0D=0A-=09}=0D=0A-=09return -1;=0D=0A-}=0D=0A-=0D=0A static =
-void dax_set_mapping(struct vm_fault *vmf, unsigned long pfn,=0D=0A =09=09=
-=09      unsigned long fault_size)=0D=0A {=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=
-=0A
+From: John Groves <John@Groves.net>=0D=0A=0D=0ABoth fs/dax.c:dax_folio_pu=
+t() and drivers/dax/fsdev.c:=0D=0Afsdev_clear_folio_state() (the latter c=
+oming in the next commit after this=0D=0Aone) contain nearly identical co=
+de to reset a compound DAX folio back to=0D=0Aorder-0 pages. Factor this =
+out into a shared helper function.=0D=0A=0D=0AThe new dax_folio_reset_ord=
+er() function:=0D=0A- Clears the folio's mapping and share count=0D=0A- R=
+esets compound folio state via folio_reset_order()=0D=0A- Clears PageHead=
+ and compound_head for each sub-page=0D=0A- Restores the pgmap pointer fo=
+r each resulting order-0 folio=0D=0A- Returns the original folio order (f=
+or callers that need to advance by=0D=0A  that many pages)=0D=0A=0D=0ATwo=
+ intentional differences from the original dax_folio_put() logic:=0D=0A=0D=
+=0A1. folio->share is cleared unconditionally. This is correct because th=
+e DAX=0D=0A   subsystem maintains the invariant that share !=3D 0 only wh=
+en=0D=0A   mapping =3D=3D NULL (enforced by dax_folio_make_shared()). dax=
+_folio_put()=0D=0A   ensures share has reached zero before calling this h=
+elper, so the=0D=0A   unconditional clear is safe.=0D=0A=0D=0A2. folio->p=
+gmap is now explicitly restored for order-0 folios. For the=0D=0A   dax_f=
+olio_put() caller this is a no-op (reads and writes back the same=0D=0A  =
+ field). It is intentional for the upcoming fsdev_clear_folio_state()=0D=0A=
+   caller, which converts previously-compound folios and needs pgmap=0D=0A=
+   re-established for all pages regardless of order.=0D=0A=0D=0AThis simp=
+lifies fsdev_clear_folio_state() from ~50 lines to ~15 lines.=0D=0A=0D=0A=
+Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>=0D=0AReviewe=
+d-by: Ira Weiny <ira.weiny@intel.com>=0D=0AReviewed-by: Dave Jiang <dave.=
+jiang@intel.com>=0D=0AReviewed-by: Jonathan Cameron <jonathan.cameron@hua=
+wei.com>=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A=
+ fs/dax.c            | 73 ++++++++++++++++++++++++++++++++++-----------=0D=
+=0A include/linux/dax.h |  1 +=0D=0A 2 files changed, 56 insertions(+), 1=
+8 deletions(-)=0D=0A=0D=0Adiff --git a/fs/dax.c b/fs/dax.c=0D=0Aindex 289=
+e6254aa30..87bed6de920d 100644=0D=0A--- a/fs/dax.c=0D=0A+++ b/fs/dax.c=0D=
+=0A@@ -378,6 +378,58 @@ static void dax_folio_make_shared(struct folio *f=
+olio)=0D=0A =09folio->share =3D 1;=0D=0A }=0D=0A=20=0D=0A+/**=0D=0A+ * da=
+x_folio_reset_order - Reset a compound DAX folio to order-0 pages=0D=0A+ =
+* @folio: The folio to reset=0D=0A+ *=0D=0A+ * Splits a compound folio ba=
+ck into individual order-0 pages,=0D=0A+ * clearing compound state and re=
+storing pgmap pointers.=0D=0A+ *=0D=0A+ * Returns: the original folio ord=
+er (0 if already order-0)=0D=0A+ */=0D=0A+int dax_folio_reset_order(struc=
+t folio *folio)=0D=0A+{=0D=0A+=09struct dev_pagemap *pgmap =3D page_pgmap=
+(&folio->page);=0D=0A+=09int order =3D folio_order(folio);=0D=0A+=0D=0A+=09=
+/*=0D=0A+=09 * DAX maintains the invariant that folio->share !=3D 0 only =
+when=0D=0A+=09 * folio->mapping =3D=3D NULL (enforced by dax_folio_make_s=
+hared()).=0D=0A+=09 * Equivalently: folio->mapping !=3D NULL implies foli=
+o->share =3D=3D 0.=0D=0A+=09 * Callers ensure share has been decremented =
+to zero before=0D=0A+=09 * calling here, so unconditionally clearing both=
+ fields is=0D=0A+=09 * correct.=0D=0A+=09 */=0D=0A+=09folio->mapping =3D =
+NULL;=0D=0A+=09folio->share =3D 0;=0D=0A+=0D=0A+=09if (!order) {=0D=0A+=09=
+=09/*=0D=0A+=09=09 * Restore pgmap explicitly even for order-0 folios. Fo=
+r the=0D=0A+=09=09 * dax_folio_put() caller this is a no-op (same value),=
+ but=0D=0A+=09=09 * fsdev_clear_folio_state() may call this on folios tha=
+t=0D=0A+=09=09 * were previously compound and need pgmap re-established.=0D=
+=0A+=09=09 */=0D=0A+=09=09folio->pgmap =3D pgmap;=0D=0A+=09=09return 0;=0D=
+=0A+=09}=0D=0A+=0D=0A+=09folio_reset_order(folio);=0D=0A+=0D=0A+=09for (i=
+nt i =3D 0; i < (1UL << order); i++) {=0D=0A+=09=09struct page *page =3D =
+folio_page(folio, i);=0D=0A+=09=09struct folio *f =3D (struct folio *)pag=
+e;=0D=0A+=0D=0A+=09=09ClearPageHead(page);=0D=0A+=09=09clear_compound_hea=
+d(page);=0D=0A+=09=09f->mapping =3D NULL;=0D=0A+=09=09f->share =3D 0;=0D=0A=
++=09=09f->pgmap =3D pgmap;=0D=0A+=09}=0D=0A+=0D=0A+=09return order;=0D=0A=
++}=0D=0A+=0D=0A static inline unsigned long dax_folio_put(struct folio *f=
+olio)=0D=0A {=0D=0A =09unsigned long ref;=0D=0A@@ -391,28 +443,13 @@ stat=
+ic inline unsigned long dax_folio_put(struct folio *folio)=0D=0A =09if (r=
+ef)=0D=0A =09=09return ref;=0D=0A=20=0D=0A-=09folio->mapping =3D NULL;=0D=
+=0A-=09order =3D folio_order(folio);=0D=0A-=09if (!order)=0D=0A-=09=09ret=
+urn 0;=0D=0A-=09folio_reset_order(folio);=0D=0A+=09order =3D dax_folio_re=
+set_order(folio);=0D=0A=20=0D=0A+=09/* Debug check: verify refcounts are =
+zero for all sub-folios */=0D=0A =09for (i =3D 0; i < (1UL << order); i++=
+) {=0D=0A-=09=09struct dev_pagemap *pgmap =3D page_pgmap(&folio->page);=0D=
+=0A =09=09struct page *page =3D folio_page(folio, i);=0D=0A-=09=09struct =
+folio *new_folio =3D (struct folio *)page;=0D=0A-=0D=0A-=09=09ClearPageHe=
+ad(page);=0D=0A-=09=09clear_compound_head(page);=0D=0A=20=0D=0A-=09=09new=
+_folio->mapping =3D NULL;=0D=0A-=09=09/*=0D=0A-=09=09 * Reset pgmap which=
+ was over-written by=0D=0A-=09=09 * prep_compound_page().=0D=0A-=09=09 */=
+=0D=0A-=09=09new_folio->pgmap =3D pgmap;=0D=0A-=09=09new_folio->share =3D=
+ 0;=0D=0A-=09=09WARN_ON_ONCE(folio_ref_count(new_folio));=0D=0A+=09=09WAR=
+N_ON_ONCE(folio_ref_count((struct folio *)page));=0D=0A =09}=0D=0A=20=0D=0A=
+ =09return ref;=0D=0Adiff --git a/include/linux/dax.h b/include/linux/dax=
+=2Eh=0D=0Aindex bf103f317cac..73cfc1a7c8f1 100644=0D=0A--- a/include/linu=
+x/dax.h=0D=0A+++ b/include/linux/dax.h=0D=0A@@ -153,6 +153,7 @@ static in=
+line void fs_put_dax(struct dax_device *dax_dev, void *holder)=0D=0A #if =
+IS_ENABLED(CONFIG_FS_DAX)=0D=0A int dax_writeback_mapping_range(struct ad=
+dress_space *mapping,=0D=0A =09=09struct dax_device *dax_dev, struct writ=
+eback_control *wbc);=0D=0A+int dax_folio_reset_order(struct folio *folio)=
+;=0D=0A=20=0D=0A struct page *dax_layout_busy_page(struct address_space *=
+mapping);=0D=0A struct page *dax_layout_busy_page_range(struct address_sp=
+ace *mapping, loff_t start, loff_t end);=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A=
