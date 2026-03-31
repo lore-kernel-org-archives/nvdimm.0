@@ -1,37 +1,37 @@
-Received: from a11-4.smtp-out.amazonses.com (a11-4.smtp-out.amazonses.com [54.240.11.4])
+Received: from a11-127.smtp-out.amazonses.com (a11-127.smtp-out.amazonses.com [54.240.11.127])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2175B3E274D
-	for <nvdimm@lists.linux.dev>; Tue, 31 Mar 2026 12:38:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CC4D3E122C
+	for <nvdimm@lists.linux.dev>; Tue, 31 Mar 2026 12:38:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.127
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774960715; cv=none; b=YN1RtquD+HeXDTsS1zjeKji+FxccNmw0ExeIHvVvjsu8C1X3/gUbjRGukF5hx+lUBnpkaXIks+w6hf7MjTJvbhOnMbtCP0pokRNALJt6xpIXuswWcZ5wexGjd0ZQ5twvTuPF4+e8K3wEkzhG/x6mvRUYRMElR3yi6m6ub5ezI9Q=
+	t=1774960726; cv=none; b=CcC4hXbaccnFtx3OpO2KC5v/+0/RoGODl27z0SDlYdSTphGOJWX6q3hiZyRNWjimBxSeMNvopBvquBJz65gf8/VxCduKWilY4uIj/tmd/7nVbl6DCwWKhN+994I98T1kriq+B0ZM1965gO2F1WyebAKhzSCf+NsbKScnQHSU0oQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774960715; c=relaxed/simple;
-	bh=tu5UTZcAIwNkMdplanKAfCTszz7V/KeKUEENHbM1J8M=;
+	s=arc-20240116; t=1774960726; c=relaxed/simple;
+	bh=IOcHZpAlYQmnHnzsQY3zzU5HgtL7+fyx0wKm4O2scXM=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=Qje0Sun9IIbPlx+E45lxhY7+2nJIKiGZeSiNyaUWT/DD7ZnsTP3cMMdpEneAg2Hh9gkJqyfahOR5KKWyAOlIwMvdFkKNX06iPglHEK04kZ1Ltj8VOnR7Gvsqfd6Cw3hOachuLcmLVnUE2chC4dGzDPk7D6PsUPINebnrXzB+78g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=g77PERUJ; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=q1Ulo9if; arc=none smtp.client-ip=54.240.11.4
+	 References:Message-ID; b=S5Fnu9HhvBhWcs5V7O7MONcCUERxxY1RgPqPJyI22EqTGEVhD+gvYiUNlh4FruAHZsu4sYju48dOIgwYH06ytenYX+AMF4MBXoJBAHssBX9fvhKkpDKOqrdVa9dO/P3s20Nr/WZDwU92BK1sg/kZLWlDbGI/vhdwbL3zZpmksPQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=E1fPGChC; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=fjq+pKwA; arc=none smtp.client-ip=54.240.11.127
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="g77PERUJ";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="q1Ulo9if"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="E1fPGChC";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="fjq+pKwA"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774960713;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1774960723;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=tu5UTZcAIwNkMdplanKAfCTszz7V/KeKUEENHbM1J8M=;
-	b=g77PERUJooMg5jLK7msqm5vB/tAF/zXbbJdjmZ5wHEzNQ/hNMcvjmoqtJsWQeZbh
-	+5Tlrm2Vrw+iKSynmH2GWgEIMM5qRpdbaXxs3ox54g1VbwaXTmo7zVYbTnb5Clf/vvS
-	pL+CV7/9fyFSaMiHqpU2uYp/pmzYBzvwbHBzrS50=
+	bh=IOcHZpAlYQmnHnzsQY3zzU5HgtL7+fyx0wKm4O2scXM=;
+	b=E1fPGChCNgblGP44rg3GyflAFBCxfvxd7sYR1ix1VwERkP9Ub3eUxqQrobACm9gk
+	D3I+y93RhBKo//pMaV8vXPpY6VLVgEn2wNU+Qmx8xJF6wlil9dtxXK4QCOWByoiDhUm
+	LZnFVLWzwQg2xV6UayZFl5ZzOPArB1sYr3QMmmNQ=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774960713;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1774960723;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=tu5UTZcAIwNkMdplanKAfCTszz7V/KeKUEENHbM1J8M=;
-	b=q1Ulo9ifnctH74UXYZ6DfqcFjgC/Wz7/M2b3lZjJY61IriGnweIImv6QHC0S6L6g
-	N/jULrj074Res33r7Kkeiw+VDVzb90pmfwaMirWRd7+7IOuWMHsnkTYD5s6SbW68v24
-	Hw28a7PpEf1+v/5oqqcCxsafP3b+VVgkQzOSKQaE=
-Subject: [PATCH V10 03/10] famfs_fuse: Plumb the GET_FMAP message/response
+	bh=IOcHZpAlYQmnHnzsQY3zzU5HgtL7+fyx0wKm4O2scXM=;
+	b=fjq+pKwA49Sj0fqiYoiYe89m9ZDx2nbOGH1MVegFyhD86JL0t4bYW6rXY7eDY87J
+	yVfnY+X+VblcpKxfHcNWP2P4AE3XIIPrZvQY0duRfSd7wZu7Hf/GvEGz7lD5id7wrO5
+	+9JGaMwYoAIZK8aKRBXcLJyl36r1iGrSdDzteoTc=
+Subject: [PATCH V10 04/10] famfs_fuse: Create files with famfs fmaps
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -73,7 +73,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Tue, 31 Mar 2026 12:38:32 +0000
+Date: Tue, 31 Mar 2026 12:38:43 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -86,170 +86,303 @@ In-Reply-To:
  <0100019d43e5f632-f5862a3e-361c-4b54-a9a6-96c242a8f17a-000000@email.amazonses.com>
 References: 
  <0100019d43e5f632-f5862a3e-361c-4b54-a9a6-96c242a8f17a-000000@email.amazonses.com> 
- <20260331123820.35135-1-john@jagalactic.com>
+ <20260331123835.35155-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHcwQtH62GSWoN4Tri10F7CFInTfA==
-Thread-Topic: [PATCH V10 03/10] famfs_fuse: Plumb the GET_FMAP
- message/response
-X-Wm-Sent-Timestamp: 1774960711
+Thread-Index: AQHcwQtOHndpAxOuTWKDY5V1K0DHfQ==
+Thread-Topic: [PATCH V10 04/10] famfs_fuse: Create files with famfs fmaps
+X-Wm-Sent-Timestamp: 1774960722
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019d43e71c82-1149976c-8803-4ff0-812b-4cd16c1c9e99-000000@email.amazonses.com>
+Message-ID: <0100019d43e74528-d0ec811e-b3dc-4eaf-b9f3-c9c7c7ffce96-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.03.31-54.240.11.4
+X-SES-Outgoing: 2026.03.31-54.240.11.127
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AUpon completion of an OPEN=
-, if we're in famfs-mode we do a GET_FMAP to=0D=0Aretrieve and cache up t=
-he file-to-dax map in the kernel. If this=0D=0Asucceeds, read/write/mmap =
-are resolved direct-to-dax with no upcalls.=0D=0A=0D=0ASigned-off-by: Joh=
-n Groves <john@groves.net>=0D=0A---=0D=0A MAINTAINERS               |  8 =
-+++++=0D=0A fs/fuse/Makefile          |  1 +=0D=0A fs/fuse/famfs.c       =
-    | 73 +++++++++++++++++++++++++++++++++++++++=0D=0A fs/fuse/file.c    =
-        | 14 +++++++-=0D=0A fs/fuse/fuse_i.h          | 70 ++++++++++++++=
-++++++++++++++++++++---=0D=0A fs/fuse/inode.c           |  8 ++++-=0D=0A =
-fs/fuse/iomode.c          |  2 +-=0D=0A include/uapi/linux/fuse.h |  7 ++=
-++=0D=0A 8 files changed, 175 insertions(+), 8 deletions(-)=0D=0A create =
-mode 100644 fs/fuse/famfs.c=0D=0A=0D=0Adiff --git a/MAINTAINERS b/MAINTAI=
-NERS=0D=0Aindex ac49067c64ee..a789394552a2 100644=0D=0A--- a/MAINTAINERS=0D=
-=0A+++ b/MAINTAINERS=0D=0A@@ -10523,6 +10523,14 @@ F:=09fs/fuse/=0D=0A F:=
-=09include/uapi/linux/fuse.h=0D=0A F:=09tools/testing/selftests/filesyste=
-ms/fuse/=0D=0A=20=0D=0A+FUSE [FAMFS Fabric-Attached Memory File System]=0D=
-=0A+M:=09John Groves <jgroves@micron.com>=0D=0A+M:=09John Groves <John@Gr=
-oves.net>=0D=0A+L:=09linux-cxl@vger.kernel.org=0D=0A+L:=09linux-fsdevel@v=
-ger.kernel.org=0D=0A+S:=09Supported=0D=0A+F:=09fs/fuse/famfs.c=0D=0A+=0D=0A=
- FUTEX SUBSYSTEM=0D=0A M:=09Thomas Gleixner <tglx@kernel.org>=0D=0A M:=09=
-Ingo Molnar <mingo@redhat.com>=0D=0Adiff --git a/fs/fuse/Makefile b/fs/fu=
-se/Makefile=0D=0Aindex 22ad9538dfc4..3f8dcc8cbbd0 100644=0D=0A--- a/fs/fu=
-se/Makefile=0D=0A+++ b/fs/fuse/Makefile=0D=0A@@ -17,5 +17,6 @@ fuse-$(CON=
-FIG_FUSE_DAX) +=3D dax.o=0D=0A fuse-$(CONFIG_FUSE_PASSTHROUGH) +=3D passt=
-hrough.o backing.o=0D=0A fuse-$(CONFIG_SYSCTL) +=3D sysctl.o=0D=0A fuse-$=
-(CONFIG_FUSE_IO_URING) +=3D dev_uring.o=0D=0A+fuse-$(CONFIG_FUSE_FAMFS_DA=
-X) +=3D famfs.o=0D=0A=20=0D=0A virtiofs-y :=3D virtio_fs.o=0D=0Adiff --gi=
-t a/fs/fuse/famfs.c b/fs/fuse/famfs.c=0D=0Anew file mode 100644=0D=0Ainde=
-x 000000000000..d238d853afa8=0D=0A--- /dev/null=0D=0A+++ b/fs/fuse/famfs.=
-c=0D=0A@@ -0,0 +1,73 @@=0D=0A+// SPDX-License-Identifier: GPL-2.0=0D=0A+/=
-*=0D=0A+ * famfs - dax file system for shared fabric-attached memory=0D=0A=
-+ *=0D=0A+ * Copyright 2023-2026 Micron Technology, Inc.=0D=0A+ *=0D=0A+ =
-* This file system, originally based on ramfs the dax support from xfs,=0D=
-=0A+ * is intended to allow multiple host systems to mount a common file =
-system=0D=0A+ * view of dax files that map to shared memory.=0D=0A+ */=0D=
-=0A+=0D=0A+#include <linux/cleanup.h>=0D=0A+#include <linux/fs.h>=0D=0A+#=
-include <linux/mm.h>=0D=0A+#include <linux/dax.h>=0D=0A+#include <linux/i=
-omap.h>=0D=0A+#include <linux/path.h>=0D=0A+#include <linux/namei.h>=0D=0A=
-+#include <linux/string.h>=0D=0A+=0D=0A+#include "fuse_i.h"=0D=0A+=0D=0A+=
-=0D=0A+#define FMAP_BUFSIZE PAGE_SIZE=0D=0A+=0D=0A+int fuse_get_fmap(stru=
-ct fuse_mount *fm, struct inode *inode)=0D=0A+{=0D=0A+=09struct fuse_inod=
-e *fi =3D get_fuse_inode(inode);=0D=0A+=09size_t fmap_bufsize =3D FMAP_BU=
-FSIZE;=0D=0A+=09u64 nodeid =3D get_node_id(inode);=0D=0A+=09ssize_t fmap_=
-size;=0D=0A+=09int rc;=0D=0A+=0D=0A+=09FUSE_ARGS(args);=0D=0A+=0D=0A+=09/=
-* Don't retrieve if we already have the famfs metadata */=0D=0A+=09if (fi=
-->famfs_meta)=0D=0A+=09=09return 0;=0D=0A+=0D=0A+=09void *fmap_buf __free=
-(kfree) =3D kzalloc(FMAP_BUFSIZE, GFP_KERNEL);=0D=0A+=0D=0A+=09if (!fmap_=
-buf)=0D=0A+=09=09return -ENOMEM;=0D=0A+=0D=0A+=09args.opcode =3D FUSE_GET=
-_FMAP;=0D=0A+=09args.nodeid =3D nodeid;=0D=0A+=0D=0A+=09/* Variable-sized=
- output buffer=0D=0A+=09 * this causes fuse_simple_request() to return th=
-e size of the=0D=0A+=09 * output payload=0D=0A+=09 */=0D=0A+=09args.out_a=
-rgvar =3D true;=0D=0A+=09args.out_numargs =3D 1;=0D=0A+=09args.out_args[0=
-].size =3D fmap_bufsize;=0D=0A+=09args.out_args[0].value =3D fmap_buf;=0D=
-=0A+=0D=0A+=09/* Send GET_FMAP command */=0D=0A+=09rc =3D fuse_simple_req=
-uest(fm, &args);=0D=0A+=09if (rc < 0) {=0D=0A+=09=09pr_err("%s: err=3D%d =
-from fuse_simple_request()\n",=0D=0A+=09=09       __func__, rc);=0D=0A+=09=
-=09return rc;=0D=0A+=09}=0D=0A+=09fmap_size =3D rc;=0D=0A+=0D=0A+=09/* We=
- retrieved the "fmap" (the file's map to memory), but=0D=0A+=09 * we have=
-n't used it yet. A call to famfs_file_init_dax() will be added=0D=0A+=09 =
-* here in a subsequent patch, when we add the ability to attach=0D=0A+=09=
- * fmaps to files.=0D=0A+=09 */=0D=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0Adi=
-ff --git a/fs/fuse/file.c b/fs/fuse/file.c=0D=0Aindex 150f2e1d6c2f..605f1=
-c6cc10e 100644=0D=0A--- a/fs/fuse/file.c=0D=0A+++ b/fs/fuse/file.c=0D=0A@=
-@ -277,6 +277,16 @@ static int fuse_open(struct inode *inode, struct file=
- *file)=0D=0A =09err =3D fuse_do_open(fm, get_node_id(inode), file, false=
-);=0D=0A =09if (!err) {=0D=0A =09=09ff =3D file->private_data;=0D=0A+=0D=0A=
-+=09=09if ((fm->fc->famfs_iomap) && (S_ISREG(inode->i_mode))) {=0D=0A+=09=
-=09=09/* Get the famfs fmap - failure is fatal */=0D=0A+=09=09=09err =3D =
-fuse_get_fmap(fm, inode);=0D=0A+=09=09=09if (err) {=0D=0A+=09=09=09=09fus=
-e_sync_release(fi, ff, file->f_flags);=0D=0A+=09=09=09=09goto out_nowrite=
-;=0D=0A+=09=09=09}=0D=0A+=09=09}=0D=0A+=0D=0A =09=09err =3D fuse_finish_o=
-pen(inode, file);=0D=0A =09=09if (err)=0D=0A =09=09=09fuse_sync_release(f=
-i, ff, file->f_flags);=0D=0A@@ -284,12 +294,14 @@ static int fuse_open(st=
-ruct inode *inode, struct file *file)=0D=0A =09=09=09fuse_truncate_update=
-_attr(inode, file);=0D=0A =09}=0D=0A=20=0D=0A+out_nowrite:=0D=0A =09if (i=
-s_wb_truncate || dax_truncate)=0D=0A =09=09fuse_release_nowrite(inode);=0D=
-=0A =09if (!err) {=0D=0A =09=09if (is_truncate)=0D=0A =09=09=09truncate_p=
-agecache(inode, 0);=0D=0A-=09=09else if (!(ff->open_flags & FOPEN_KEEP_CA=
-CHE))=0D=0A+=09=09else if (!(ff->open_flags & FOPEN_KEEP_CACHE) &&=0D=0A+=
-=09=09=09 !fuse_file_famfs(fi))=0D=0A =09=09=09invalidate_inode_pages2(in=
-ode->i_mapping);=0D=0A =09}=0D=0A =09if (dax_truncate)=0D=0Adiff --git a/=
-fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h=0D=0Aindex 712038a554d9..b5466743c13f=
- 100644=0D=0A--- a/fs/fuse/fuse_i.h=0D=0A+++ b/fs/fuse/fuse_i.h=0D=0A@@ -=
-223,6 +223,14 @@ struct fuse_inode {=0D=0A =09 * so preserve the blocksiz=
-e specified by the server.=0D=0A =09 */=0D=0A =09u8 cached_i_blkbits;=0D=0A=
-+=0D=0A+#if IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)=0D=0A+=09/* Pointer to the =
-file's famfs metadata. Primary content is the=0D=0A+=09 * in-memory versi=
-on of the fmap - the map from file's offset range=0D=0A+=09 * to DAX memo=
-ry=0D=0A+=09 */=0D=0A+=09void *famfs_meta;=0D=0A+#endif=0D=0A };=0D=0A=20=
-=0D=0A /** FUSE inode state bits */=0D=0A@@ -1511,11 +1519,8 @@ void fuse=
-_free_conn(struct fuse_conn *fc);=0D=0A=20=0D=0A /* dax.c */=0D=0A=20=0D=0A=
--static inline bool fuse_file_famfs(struct fuse_inode *fuse_inode) /* Wil=
-l be superseded */=0D=0A-{=0D=0A-=09(void)fuse_inode;=0D=0A-=09return fal=
-se;=0D=0A-}=0D=0A+static inline int fuse_file_famfs(struct fuse_inode *fi=
-); /* forward */=0D=0A+=0D=0A #define FUSE_IS_VIRTIO_DAX(fuse_inode) (IS_=
-ENABLED(CONFIG_FUSE_DAX)=09\=0D=0A =09=09=09=09=09&& IS_DAX(&(fuse_inode)=
-->inode)  \=0D=0A =09=09=09=09=09&& !fuse_file_famfs(fuse_inode))=0D=0A@@=
- -1634,4 +1639,59 @@ extern void fuse_sysctl_unregister(void);=0D=0A #def=
-ine fuse_sysctl_unregister()=09do { } while (0)=0D=0A #endif /* CONFIG_SY=
-SCTL */=0D=0A=20=0D=0A+/* famfs.c */=0D=0A+=0D=0A+#if IS_ENABLED(CONFIG_F=
-USE_FAMFS_DAX)=0D=0A+void __famfs_meta_free(void *map);=0D=0A+=0D=0A+/* S=
-et fi->famfs_meta =3D NULL regardless of prior value */=0D=0A+static inli=
-ne void famfs_meta_init(struct fuse_inode *fi)=0D=0A+{=0D=0A+=09fi->famfs=
-_meta =3D NULL;=0D=0A+}=0D=0A+=0D=0A+/* Set fi->famfs_meta iff the curren=
-t value is NULL */=0D=0A+static inline struct fuse_backing *famfs_meta_se=
-t(struct fuse_inode *fi,=0D=0A+=09=09=09=09=09=09  void *meta)=0D=0A+{=0D=
-=0A+=09return cmpxchg(&fi->famfs_meta, NULL, meta);=0D=0A+}=0D=0A+=0D=0A+=
-static inline void famfs_meta_free(struct fuse_inode *fi)=0D=0A+{=0D=0A+=09=
-famfs_meta_set(fi, NULL);=0D=0A+}=0D=0A+=0D=0A+static inline int fuse_fil=
-e_famfs(struct fuse_inode *fi)=0D=0A+{=0D=0A+=09return (READ_ONCE(fi->fam=
-fs_meta) !=3D NULL);=0D=0A+}=0D=0A+=0D=0A+int fuse_get_fmap(struct fuse_m=
-ount *fm, struct inode *inode);=0D=0A+=0D=0A+#else /* !CONFIG_FUSE_FAMFS_=
-DAX */=0D=0A+=0D=0A+static inline struct fuse_backing *famfs_meta_set(str=
-uct fuse_inode *fi,=0D=0A+=09=09=09=09=09=09  void *meta)=0D=0A+{=0D=0A+=09=
-return NULL;=0D=0A+}=0D=0A+=0D=0A+static inline void famfs_meta_free(stru=
-ct fuse_inode *fi)=0D=0A+{=0D=0A+}=0D=0A+=0D=0A+static inline int fuse_fi=
-le_famfs(struct fuse_inode *fi)=0D=0A+{=0D=0A+=09return 0;=0D=0A+}=0D=0A+=
-=0D=0A+static inline int=0D=0A+fuse_get_fmap(struct fuse_mount *fm, struc=
-t inode *inode)=0D=0A+{=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+#endif /*=
- CONFIG_FUSE_FAMFS_DAX */=0D=0A+=0D=0A #endif /* _FS_FUSE_I_H */=0D=0Adif=
-f --git a/fs/fuse/inode.c b/fs/fuse/inode.c=0D=0Aindex f4a265734270..862f=
-4e61a5fb 100644=0D=0A--- a/fs/fuse/inode.c=0D=0A+++ b/fs/fuse/inode.c=0D=0A=
-@@ -120,6 +120,9 @@ static struct inode *fuse_alloc_inode(struct super_bl=
-ock *sb)=0D=0A =09if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))=0D=0A =09=09fu=
-se_inode_backing_set(fi, NULL);=0D=0A=20=0D=0A+=09if (IS_ENABLED(CONFIG_F=
-USE_FAMFS_DAX))=0D=0A+=09=09famfs_meta_set(fi, NULL);=0D=0A+=0D=0A =09ret=
-urn &fi->inode;=0D=0A=20=0D=0A out_free_forget:=0D=0A@@ -141,6 +144,9 @@ =
-static void fuse_free_inode(struct inode *inode)=0D=0A =09if (IS_ENABLED(=
-CONFIG_FUSE_PASSTHROUGH))=0D=0A =09=09fuse_backing_put(fuse_inode_backing=
-(fi));=0D=0A=20=0D=0A+=09if (S_ISREG(inode->i_mode) && fuse_file_famfs(fi=
-))=0D=0A+=09=09famfs_meta_free(fi);=0D=0A+=0D=0A =09kmem_cache_free(fuse_=
-inode_cachep, fi);=0D=0A }=0D=0A=20=0D=0A@@ -162,7 +168,7 @@ static void =
-fuse_evict_inode(struct inode *inode)=0D=0A =09/* Will write inode on clo=
-se/munmap and in all other dirtiers */=0D=0A =09WARN_ON(inode_state_read_=
-once(inode) & I_DIRTY_INODE);=0D=0A=20=0D=0A-=09if (FUSE_IS_VIRTIO_DAX(fi=
-))=0D=0A+=09if (FUSE_IS_VIRTIO_DAX(fi) || fuse_file_famfs(fi))=0D=0A =09=09=
-dax_break_layout_final(inode);=0D=0A=20=0D=0A =09truncate_inode_pages_fin=
-al(&inode->i_data);=0D=0Adiff --git a/fs/fuse/iomode.c b/fs/fuse/iomode.c=
-=0D=0Aindex 31ee7f3304c6..948148316ef0 100644=0D=0A--- a/fs/fuse/iomode.c=
-=0D=0A+++ b/fs/fuse/iomode.c=0D=0A@@ -203,7 +203,7 @@ int fuse_file_io_op=
-en(struct file *file, struct inode *inode)=0D=0A =09 * io modes are not r=
-elevant with DAX and with server that does not=0D=0A =09 * implement open=
-=2E=0D=0A =09 */=0D=0A-=09if (FUSE_IS_VIRTIO_DAX(fi) || !ff->args)=0D=0A+=
-=09if (FUSE_IS_VIRTIO_DAX(fi) || fuse_file_famfs(fi) || !ff->args)=0D=0A =
-=09=09return 0;=0D=0A=20=0D=0A =09/*=0D=0Adiff --git a/include/uapi/linux=
-/fuse.h b/include/uapi/linux/fuse.h=0D=0Aindex 25686f088e6a..9eff9083d3b5=
- 100644=0D=0A--- a/include/uapi/linux/fuse.h=0D=0A+++ b/include/uapi/linu=
-x/fuse.h=0D=0A@@ -669,6 +669,9 @@ enum fuse_opcode {=0D=0A =09FUSE_STATX=09=
-=09=3D 52,=0D=0A =09FUSE_COPY_FILE_RANGE_64=09=3D 53,=0D=0A=20=0D=0A+=09/=
-* Famfs / devdax opcodes */=0D=0A+=09FUSE_GET_FMAP           =3D 54,=0D=0A=
-+=0D=0A =09/* CUSE specific operations */=0D=0A =09CUSE_INIT=09=09=3D 409=
-6,=0D=0A=20=0D=0A@@ -1313,4 +1316,8 @@ struct fuse_uring_cmd_req {=0D=0A =
-=09uint8_t padding[6];=0D=0A };=0D=0A=20=0D=0A+/* Famfs fmap message comp=
-onents */=0D=0A+=0D=0A+#define FAMFS_FMAP_MAX 32768 /* Largest supported =
-fmap message */=0D=0A+=0D=0A #endif /* _LINUX_FUSE_H */=0D=0A--=20=0D=0A2=
-=2E53.0=0D=0A=0D=0A
+From: John Groves <john@groves.net>=0D=0A=0D=0AOn completion of GET_FMAP =
+message/response, setup the full famfs=0D=0Ametadata such that it's possi=
+ble to handle read/write/mmap directly to=0D=0Adax. Note that the devdax_=
+iomap plumbing is not in yet...=0D=0A=0D=0A* Add famfs_kfmap.h: in-memory=
+ structures for resolving famfs file maps=0D=0A  (fmaps) to dax.=0D=0A* f=
+amfs.c: allocate, initialize and free fmaps=0D=0A* inode.c: only allow fa=
+mfs mode if the fuse server has CAP_SYS_RAWIO=0D=0A* Update MAINTAINERS f=
+or the new file.=0D=0A=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=
+=0A---=0D=0A MAINTAINERS               |   1 +=0D=0A fs/fuse/famfs.c     =
+      | 339 +++++++++++++++++++++++++++++++++++++-=0D=0A fs/fuse/famfs_kf=
+map.h     |  67 ++++++++=0D=0A fs/fuse/fuse_i.h          |   8 +-=0D=0A f=
+s/fuse/inode.c           |  20 ++-=0D=0A include/uapi/linux/fuse.h |  56 =
++++++++=0D=0A 6 files changed, 481 insertions(+), 10 deletions(-)=0D=0A c=
+reate mode 100644 fs/fuse/famfs_kfmap.h=0D=0A=0D=0Adiff --git a/MAINTAINE=
+RS b/MAINTAINERS=0D=0Aindex a789394552a2..4edb56afb947 100644=0D=0A--- a/=
+MAINTAINERS=0D=0A+++ b/MAINTAINERS=0D=0A@@ -10530,6 +10530,7 @@ L:=09linu=
+x-cxl@vger.kernel.org=0D=0A L:=09linux-fsdevel@vger.kernel.org=0D=0A S:=09=
+Supported=0D=0A F:=09fs/fuse/famfs.c=0D=0A+F:=09fs/fuse/famfs_kfmap.h=0D=0A=
+=20=0D=0A FUTEX SUBSYSTEM=0D=0A M:=09Thomas Gleixner <tglx@kernel.org>=0D=
+=0Adiff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c=0D=0Aindex d238d853afa8=
+=2E.ac52e54e2cb5 100644=0D=0A--- a/fs/fuse/famfs.c=0D=0A+++ b/fs/fuse/fam=
+fs.c=0D=0A@@ -18,9 +18,339 @@=0D=0A #include <linux/namei.h>=0D=0A #inclu=
+de <linux/string.h>=0D=0A=20=0D=0A+#include "famfs_kfmap.h"=0D=0A #includ=
+e "fuse_i.h"=0D=0A=20=0D=0A=20=0D=0A+/***********************************=
+****************************************/=0D=0A+=0D=0A+void __famfs_meta_=
+free(void *famfs_meta)=0D=0A+{=0D=0A+=09struct famfs_file_meta *fmap =3D =
+famfs_meta;=0D=0A+=0D=0A+=09if (!fmap)=0D=0A+=09=09return;=0D=0A+=0D=0A+=09=
+switch (fmap->fm_extent_type) {=0D=0A+=09case SIMPLE_DAX_EXTENT:=0D=0A+=09=
+=09kfree(fmap->se);=0D=0A+=09=09break;=0D=0A+=09case INTERLEAVED_EXTENT:=0D=
+=0A+=09=09if (fmap->ie) {=0D=0A+=09=09=09for (int i =3D 0; i < fmap->fm_n=
+iext; i++)=0D=0A+=09=09=09=09kfree(fmap->ie[i].ie_strips);=0D=0A+=09=09}=0D=
+=0A+=09=09kfree(fmap->ie);=0D=0A+=09=09break;=0D=0A+=09default:=0D=0A+=09=
+=09pr_err("%s: invalid fmap type\n", __func__);=0D=0A+=09=09break;=0D=0A+=
+=09}=0D=0A+=0D=0A+=09kfree(fmap);=0D=0A+}=0D=0A+DEFINE_FREE(__famfs_meta_=
+free, void *, if (_T) __famfs_meta_free(_T))=0D=0A+=0D=0A+static int=0D=0A=
++famfs_check_ext_alignment(struct famfs_meta_simple_ext *se)=0D=0A+{=0D=0A=
++=09int errs =3D 0;=0D=0A+=0D=0A+=09if (se->dev_index !=3D 0)=0D=0A+=09=09=
+errs++;=0D=0A+=0D=0A+=09/* TODO: pass in alignment so we can support the =
+other page sizes */=0D=0A+=09if (!IS_ALIGNED(se->ext_offset, PMD_SIZE))=0D=
+=0A+=09=09errs++;=0D=0A+=0D=0A+=09if (!IS_ALIGNED(se->ext_len, PMD_SIZE))=
+=0D=0A+=09=09errs++;=0D=0A+=0D=0A+=09return errs;=0D=0A+}=0D=0A+=0D=0A+/*=
+*=0D=0A+ * famfs_fuse_meta_alloc() - Allocate famfs file metadata=0D=0A+ =
+* @fmap_buf:  fmap buffer from fuse server=0D=0A+ * @fmap_buf_size: size =
+of fmap buffer=0D=0A+ * @metap:         pointer where 'struct famfs_file_=
+meta' is returned=0D=0A+ *=0D=0A+ * Returns: 0=3Dsuccess=0D=0A+ *        =
+  -errno=3Dfailure=0D=0A+ */=0D=0A+static int=0D=0A+famfs_fuse_meta_alloc=
+(=0D=0A+=09void *fmap_buf,=0D=0A+=09size_t fmap_buf_size,=0D=0A+=09struct=
+ famfs_file_meta **metap)=0D=0A+{=0D=0A+=09struct fuse_famfs_fmap_header =
+*fmh;=0D=0A+=09size_t extent_total =3D 0;=0D=0A+=09size_t next_offset =3D=
+ 0;=0D=0A+=09int errs =3D 0;=0D=0A+=09int i, j;=0D=0A+=0D=0A+=09fmh =3D f=
+map_buf;=0D=0A+=0D=0A+=09/* Move past fmh in fmap_buf */=0D=0A+=09next_of=
+fset +=3D sizeof(*fmh);=0D=0A+=09if (next_offset > fmap_buf_size) {=0D=0A=
++=09=09pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",=0D=0A+=09=
+=09       __func__, __LINE__, next_offset, fmap_buf_size);=0D=0A+=09=09re=
+turn -EINVAL;=0D=0A+=09}=0D=0A+=0D=0A+=09if (fmh->nextents < 1) {=0D=0A+=09=
+=09pr_err("%s: nextents %d < 1\n", __func__, fmh->nextents);=0D=0A+=09=09=
+return -ERANGE;=0D=0A+=09}=0D=0A+=0D=0A+=09if (fmh->nextents > FUSE_FAMFS=
+_MAX_EXTENTS) {=0D=0A+=09=09pr_err("%s: nextents %d > max (%d) 1\n",=0D=0A=
++=09=09       __func__, fmh->nextents, FUSE_FAMFS_MAX_EXTENTS);=0D=0A+=09=
+=09return -ERANGE;=0D=0A+=09}=0D=0A+=0D=0A+=09struct famfs_file_meta *met=
+a __free(__famfs_meta_free) =3D kzalloc(sizeof(*meta), GFP_KERNEL);=0D=0A=
++=0D=0A+=09if (!meta)=0D=0A+=09=09return -ENOMEM;=0D=0A+=0D=0A+=09meta->e=
+rror =3D false;=0D=0A+=09meta->file_type =3D fmh->file_type;=0D=0A+=09met=
+a->file_size =3D fmh->file_size;=0D=0A+=09meta->fm_extent_type =3D fmh->e=
+xt_type;=0D=0A+=0D=0A+=09switch (fmh->ext_type) {=0D=0A+=09case FUSE_FAMF=
+S_EXT_SIMPLE: {=0D=0A+=09=09struct fuse_famfs_simple_ext *se_in;=0D=0A+=0D=
+=0A+=09=09se_in =3D fmap_buf + next_offset;=0D=0A+=0D=0A+=09=09/* Move pa=
+st simple extents */=0D=0A+=09=09next_offset +=3D fmh->nextents * sizeof(=
+*se_in);=0D=0A+=09=09if (next_offset > fmap_buf_size) {=0D=0A+=09=09=09pr=
+_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",=0D=0A+=09=09=09  =
+     __func__, __LINE__, next_offset, fmap_buf_size);=0D=0A+=09=09=09retu=
+rn -EINVAL;=0D=0A+=09=09}=0D=0A+=0D=0A+=09=09meta->fm_nextents =3D fmh->n=
+extents;=0D=0A+=0D=0A+=09=09meta->se =3D kcalloc(meta->fm_nextents, sizeo=
+f(*(meta->se)),=0D=0A+=09=09=09=09   GFP_KERNEL);=0D=0A+=09=09if (!meta->=
+se)=0D=0A+=09=09=09return -ENOMEM;=0D=0A+=0D=0A+=09=09if ((meta->fm_nexte=
+nts > FUSE_FAMFS_MAX_EXTENTS) ||=0D=0A+=09=09    (meta->fm_nextents < 1))=
+=0D=0A+=09=09=09return -EINVAL;=0D=0A+=0D=0A+=09=09for (i =3D 0; i < fmh-=
+>nextents; i++) {=0D=0A+=09=09=09meta->se[i].dev_index  =3D se_in[i].se_d=
+evindex;=0D=0A+=09=09=09meta->se[i].ext_offset =3D se_in[i].se_offset;=0D=
+=0A+=09=09=09meta->se[i].ext_len    =3D se_in[i].se_len;=0D=0A+=0D=0A+=09=
+=09=09/* Record bitmap of referenced daxdev indices */=0D=0A+=09=09=09met=
+a->dev_bitmap |=3D (1 << meta->se[i].dev_index);=0D=0A+=0D=0A+=09=09=09er=
+rs +=3D famfs_check_ext_alignment(&meta->se[i]);=0D=0A+=0D=0A+=09=09=09ex=
+tent_total +=3D meta->se[i].ext_len;=0D=0A+=09=09}=0D=0A+=09=09break;=0D=0A=
++=09}=0D=0A+=0D=0A+=09case FUSE_FAMFS_EXT_INTERLEAVE: {=0D=0A+=09=09s64 s=
+ize_remainder =3D meta->file_size;=0D=0A+=09=09struct fuse_famfs_iext *ie=
+_in;=0D=0A+=09=09int niext =3D fmh->nextents;=0D=0A+=0D=0A+=09=09meta->fm=
+_niext =3D niext;=0D=0A+=0D=0A+=09=09/* Allocate interleaved extent */=0D=
+=0A+=09=09meta->ie =3D kcalloc(niext, sizeof(*(meta->ie)), GFP_KERNEL);=0D=
+=0A+=09=09if (!meta->ie)=0D=0A+=09=09=09return -ENOMEM;=0D=0A+=0D=0A+=09=09=
+/*=0D=0A+=09=09 * Each interleaved extent has a simple extent list of str=
+ips.=0D=0A+=09=09 * Outer loop is over separate interleaved extents=0D=0A=
++=09=09 */=0D=0A+=09=09for (i =3D 0; i < niext; i++) {=0D=0A+=09=09=09u64=
+ nstrips;=0D=0A+=09=09=09struct fuse_famfs_simple_ext *sie_in;=0D=0A+=0D=0A=
++=09=09=09/* ie_in =3D one interleaved extent in fmap_buf */=0D=0A+=09=09=
+=09ie_in =3D fmap_buf + next_offset;=0D=0A+=0D=0A+=09=09=09/* Move past o=
+ne interleaved extent header in fmap_buf */=0D=0A+=09=09=09next_offset +=3D=
+ sizeof(*ie_in);=0D=0A+=09=09=09if (next_offset > fmap_buf_size) {=0D=0A+=
+=09=09=09=09pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",=0D=0A=
++=09=09=09=09       __func__, __LINE__, next_offset,=0D=0A+=09=09=09=09  =
+     fmap_buf_size);=0D=0A+=09=09=09=09return -EINVAL;=0D=0A+=09=09=09}=0D=
+=0A+=0D=0A+=09=09=09if (!IS_ALIGNED(ie_in->ie_chunk_size, PMD_SIZE)) {=0D=
+=0A+=09=09=09=09pr_err("%s: chunk_size %lld not PMD-aligned\n",=0D=0A+=09=
+=09=09=09       __func__, meta->ie[i].fie_chunk_size);=0D=0A+=09=09=09=09=
+return -EINVAL;=0D=0A+=09=09=09}=0D=0A+=0D=0A+=09=09=09if (ie_in->ie_nbyt=
+es =3D=3D 0) {=0D=0A+=09=09=09=09pr_err("%s: zero-length interleave!\n",=0D=
+=0A+=09=09=09=09       __func__);=0D=0A+=09=09=09=09return -EINVAL;=0D=0A=
++=09=09=09}=0D=0A+=0D=0A+=09=09=09nstrips =3D ie_in->ie_nstrips;=0D=0A+=09=
+=09=09meta->ie[i].fie_chunk_size =3D ie_in->ie_chunk_size;=0D=0A+=09=09=09=
+meta->ie[i].fie_nstrips    =3D ie_in->ie_nstrips;=0D=0A+=09=09=09meta->ie=
+[i].fie_nbytes     =3D ie_in->ie_nbytes;=0D=0A+=0D=0A+=09=09=09/* sie_in =
+=3D the strip extents in fmap_buf */=0D=0A+=09=09=09sie_in =3D fmap_buf +=
+ next_offset;=0D=0A+=0D=0A+=09=09=09/* Move past strip extents in fmap_bu=
+f */=0D=0A+=09=09=09next_offset +=3D nstrips * sizeof(*sie_in);=0D=0A+=09=
+=09=09if (next_offset > fmap_buf_size) {=0D=0A+=09=09=09=09pr_err("%s:%d:=
+ fmap_buf underflow offset/size %ld/%ld\n",=0D=0A+=09=09=09=09       __fu=
+nc__, __LINE__, next_offset,=0D=0A+=09=09=09=09       fmap_buf_size);=0D=0A=
++=09=09=09=09return -EINVAL;=0D=0A+=09=09=09}=0D=0A+=0D=0A+=09=09=09if ((=
+nstrips > FUSE_FAMFS_MAX_STRIPS) || (nstrips < 1)) {=0D=0A+=09=09=09=09pr=
+_err("%s: invalid nstrips=3D%lld (max=3D%d)\n",=0D=0A+=09=09=09=09       =
+__func__, nstrips,=0D=0A+=09=09=09=09       FUSE_FAMFS_MAX_STRIPS);=0D=0A=
++=09=09=09=09errs++;=0D=0A+=09=09=09}=0D=0A+=0D=0A+=09=09=09/* Allocate s=
+trip extent array */=0D=0A+=09=09=09meta->ie[i].ie_strips =3D=0D=0A+=09=09=
+=09=09kcalloc(ie_in->ie_nstrips,=0D=0A+=09=09=09=09=09sizeof(meta->ie[i].=
+ie_strips[0]),=0D=0A+=09=09=09=09=09GFP_KERNEL);=0D=0A+=09=09=09if (!meta=
+->ie[i].ie_strips)=0D=0A+=09=09=09=09return -ENOMEM;=0D=0A+=0D=0A+=09=09=09=
+/* Inner loop is over strips */=0D=0A+=09=09=09for (j =3D 0; j < nstrips;=
+ j++) {=0D=0A+=09=09=09=09struct famfs_meta_simple_ext *strips_out;=0D=0A=
++=09=09=09=09u64 devindex =3D sie_in[j].se_devindex;=0D=0A+=09=09=09=09u6=
+4 offset   =3D sie_in[j].se_offset;=0D=0A+=09=09=09=09u64 len      =3D si=
+e_in[j].se_len;=0D=0A+=0D=0A+=09=09=09=09strips_out =3D meta->ie[i].ie_st=
+rips;=0D=0A+=09=09=09=09strips_out[j].dev_index  =3D devindex;=0D=0A+=09=09=
+=09=09strips_out[j].ext_offset =3D offset;=0D=0A+=09=09=09=09strips_out[j=
+].ext_len    =3D len;=0D=0A+=0D=0A+=09=09=09=09/* Record bitmap of refere=
+nced daxdev indices */=0D=0A+=09=09=09=09meta->dev_bitmap |=3D (1 << devi=
+ndex);=0D=0A+=0D=0A+=09=09=09=09extent_total +=3D len;=0D=0A+=09=09=09=09=
+errs +=3D famfs_check_ext_alignment(&strips_out[j]);=0D=0A+=09=09=09=09si=
+ze_remainder -=3D len;=0D=0A+=09=09=09}=0D=0A+=09=09}=0D=0A+=0D=0A+=09=09=
+if (size_remainder > 0) {=0D=0A+=09=09=09/* Sum of interleaved extent siz=
+es is less than file size! */=0D=0A+=09=09=09pr_err("%s: size_remainder %=
+lld (0x%llx)\n",=0D=0A+=09=09=09       __func__, size_remainder, size_rem=
+ainder);=0D=0A+=09=09=09return -EINVAL;=0D=0A+=09=09}=0D=0A+=09=09break;=0D=
+=0A+=09}=0D=0A+=0D=0A+=09default:=0D=0A+=09=09pr_err("%s: invalid ext_typ=
+e %d\n", __func__, fmh->ext_type);=0D=0A+=09=09return -EINVAL;=0D=0A+=09}=
+=0D=0A+=0D=0A+=09if (errs > 0) {=0D=0A+=09=09pr_err("%s: %d alignment err=
+ors found\n", __func__, errs);=0D=0A+=09=09return -EINVAL;=0D=0A+=09}=0D=0A=
++=0D=0A+=09/* More sanity checks */=0D=0A+=09if (extent_total < meta->fil=
+e_size) {=0D=0A+=09=09pr_err("%s: file size %ld larger than map size %ld\=
+n",=0D=0A+=09=09       __func__, meta->file_size, extent_total);=0D=0A+=09=
+=09return -EINVAL;=0D=0A+=09}=0D=0A+=0D=0A+=09if (cmpxchg(metap, NULL, me=
+ta) !=3D NULL) {=0D=0A+=09=09pr_debug("%s: fmap race detected\n", __func_=
+_);=0D=0A+=09=09return 0; /* fmap already installed */=0D=0A+=09}=0D=0A+=09=
+retain_and_null_ptr(meta);=0D=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A=
++/**=0D=0A+ * famfs_file_init_dax() - init famfs dax file metadata=0D=0A+=
+ *=0D=0A+ * @fm:        fuse_mount=0D=0A+ * @inode:     the inode=0D=0A+ =
+* @fmap_buf:  fmap response message=0D=0A+ * @fmap_size: Size of the fmap=
+ message=0D=0A+ *=0D=0A+ * Initialize famfs metadata for a file, based on=
+ the contents of the GET_FMAP=0D=0A+ * response=0D=0A+ *=0D=0A+ * Return:=
+ 0=3Dsuccess=0D=0A+ *          -errno=3Dfailure=0D=0A+ */=0D=0A+int=0D=0A=
++famfs_file_init_dax(=0D=0A+=09struct fuse_mount *fm,=0D=0A+=09struct ino=
+de *inode,=0D=0A+=09void *fmap_buf,=0D=0A+=09size_t fmap_size)=0D=0A+{=0D=
+=0A+=09struct fuse_inode *fi =3D get_fuse_inode(inode);=0D=0A+=09struct f=
+amfs_file_meta *meta =3D NULL;=0D=0A+=09int rc;=0D=0A+=0D=0A+=09if (fi->f=
+amfs_meta) {=0D=0A+=09=09pr_notice("%s: i_no=3D%ld fmap_size=3D%ld ALREAD=
+Y INITIALIZED\n",=0D=0A+=09=09=09  __func__,=0D=0A+=09=09=09  inode->i_in=
+o, fmap_size);=0D=0A+=09=09return 0;=0D=0A+=09}=0D=0A+=0D=0A+=09rc =3D fa=
+mfs_fuse_meta_alloc(fmap_buf, fmap_size, &meta);=0D=0A+=09if (rc)=0D=0A+=09=
+=09goto errout;=0D=0A+=0D=0A+=09/* Publish the famfs metadata on fi->famf=
+s_meta */=0D=0A+=09inode_lock(inode);=0D=0A+=0D=0A+=09if (famfs_meta_set(=
+fi, meta) =3D=3D NULL) {=0D=0A+=09=09i_size_write(inode, meta->file_size)=
+;=0D=0A+=09=09inode->i_flags |=3D S_DAX;=0D=0A+=09} else {=0D=0A+=09=09pr=
+_debug("%s: file already had metadata\n", __func__);=0D=0A+=09=09__famfs_=
+meta_free(meta);=0D=0A+=09=09/* rc is 0 - the file is valid */=0D=0A+=09}=
+=0D=0A+=0D=0A+=09inode_unlock(inode);=0D=0A+=09return 0;=0D=0A+=0D=0A+err=
+out:=0D=0A+=09if (rc)=0D=0A+=09=09__famfs_meta_free(meta);=0D=0A+=0D=0A+=09=
+return rc;=0D=0A+}=0D=0A+=0D=0A #define FMAP_BUFSIZE PAGE_SIZE=0D=0A=20=0D=
+=0A int fuse_get_fmap(struct fuse_mount *fm, struct inode *inode)=0D=0A@@=
+ -63,11 +393,8 @@ int fuse_get_fmap(struct fuse_mount *fm, struct inode *=
+inode)=0D=0A =09}=0D=0A =09fmap_size =3D rc;=0D=0A=20=0D=0A-=09/* We retr=
+ieved the "fmap" (the file's map to memory), but=0D=0A-=09 * we haven't u=
+sed it yet. A call to famfs_file_init_dax() will be added=0D=0A-=09 * her=
+e in a subsequent patch, when we add the ability to attach=0D=0A-=09 * fm=
+aps to files.=0D=0A-=09 */=0D=0A+=09/* Convert fmap into in-memory format=
+ and hang from inode */=0D=0A+=09rc =3D famfs_file_init_dax(fm, inode, fm=
+ap_buf, fmap_size);=0D=0A=20=0D=0A-=09return 0;=0D=0A+=09return rc;=0D=0A=
+ }=0D=0Adiff --git a/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h=0D=0An=
+ew file mode 100644=0D=0Aindex 000000000000..18ab22bcc5a1=0D=0A--- /dev/n=
+ull=0D=0A+++ b/fs/fuse/famfs_kfmap.h=0D=0A@@ -0,0 +1,67 @@=0D=0A+/* SPDX-=
+License-Identifier: GPL-2.0 */=0D=0A+/*=0D=0A+ * famfs - dax file system =
+for shared fabric-attached memory=0D=0A+ *=0D=0A+ * Copyright 2023-2026 M=
+icron Technology, Inc.=0D=0A+ */=0D=0A+#ifndef FAMFS_KFMAP_H=0D=0A+#defin=
+e FAMFS_KFMAP_H=0D=0A+=0D=0A+/*=0D=0A+ * The structures below are the in-=
+memory metadata format for famfs files.=0D=0A+ * Metadata retrieved via t=
+he GET_FMAP response is converted to this format=0D=0A+ * for use in reso=
+lving file mapping faults.=0D=0A+ *=0D=0A+ * The GET_FMAP response contai=
+ns the same information, but in a more=0D=0A+ * message-and-versioning-fr=
+iendly format. Those structs can be found in the=0D=0A+ * famfs section o=
+f include/uapi/linux/fuse.h (aka fuse_kernel.h in libfuse)=0D=0A+ */=0D=0A=
++=0D=0A+enum famfs_file_type {=0D=0A+=09FAMFS_REG,=0D=0A+=09FAMFS_SUPERBL=
+OCK,=0D=0A+=09FAMFS_LOG,=0D=0A+};=0D=0A+=0D=0A+/* We anticipate the possi=
+bility of supporting additional types of extents */=0D=0A+enum famfs_exte=
+nt_type {=0D=0A+=09SIMPLE_DAX_EXTENT,=0D=0A+=09INTERLEAVED_EXTENT,=0D=0A+=
+=09INVALID_EXTENT_TYPE,=0D=0A+};=0D=0A+=0D=0A+struct famfs_meta_simple_ex=
+t {=0D=0A+=09u64 dev_index;=0D=0A+=09u64 ext_offset;=0D=0A+=09u64 ext_len=
+;=0D=0A+};=0D=0A+=0D=0A+struct famfs_meta_interleaved_ext {=0D=0A+=09u64 =
+fie_nstrips;=0D=0A+=09u64 fie_chunk_size;=0D=0A+=09u64 fie_nbytes;=0D=0A+=
+=09struct famfs_meta_simple_ext *ie_strips;=0D=0A+};=0D=0A+=0D=0A+/*=0D=0A=
++ * Each famfs dax file has this hanging from its fuse_inode->famfs_meta=0D=
+=0A+ */=0D=0A+struct famfs_file_meta {=0D=0A+=09bool                   er=
+ror;=0D=0A+=09enum famfs_file_type   file_type;=0D=0A+=09size_t          =
+       file_size;=0D=0A+=09enum famfs_extent_type fm_extent_type;=0D=0A+=09=
+u64 dev_bitmap; /* bitmap of referenced daxdevs by index */=0D=0A+=09unio=
+n {=0D=0A+=09=09struct {=0D=0A+=09=09=09size_t         fm_nextents;=0D=0A=
++=09=09=09struct famfs_meta_simple_ext  *se;=0D=0A+=09=09};=0D=0A+=09=09s=
+truct {=0D=0A+=09=09=09size_t         fm_niext;=0D=0A+=09=09=09struct fam=
+fs_meta_interleaved_ext *ie;=0D=0A+=09=09};=0D=0A+=09};=0D=0A+};=0D=0A+=0D=
+=0A+#endif /* FAMFS_KFMAP_H */=0D=0Adiff --git a/fs/fuse/fuse_i.h b/fs/fu=
+se/fuse_i.h=0D=0Aindex b5466743c13f..df4e9c9f80bf 100644=0D=0A--- a/fs/fu=
+se/fuse_i.h=0D=0A+++ b/fs/fuse/fuse_i.h=0D=0A@@ -1642,6 +1642,9 @@ extern=
+ void fuse_sysctl_unregister(void);=0D=0A /* famfs.c */=0D=0A=20=0D=0A #i=
+f IS_ENABLED(CONFIG_FUSE_FAMFS_DAX)=0D=0A+int famfs_file_init_dax(struct =
+fuse_mount *fm,=0D=0A+=09=09=09struct inode *inode, void *fmap_buf,=0D=0A=
++=09=09=09size_t fmap_size);=0D=0A void __famfs_meta_free(void *map);=0D=0A=
+=20=0D=0A /* Set fi->famfs_meta =3D NULL regardless of prior value */=0D=0A=
+@@ -1659,7 +1662,10 @@ static inline struct fuse_backing *famfs_meta_set(=
+struct fuse_inode *fi,=0D=0A=20=0D=0A static inline void famfs_meta_free(=
+struct fuse_inode *fi)=0D=0A {=0D=0A-=09famfs_meta_set(fi, NULL);=0D=0A+=09=
+if (fi->famfs_meta !=3D NULL) {=0D=0A+=09=09__famfs_meta_free(fi->famfs_m=
+eta);=0D=0A+=09=09famfs_meta_set(fi, NULL);=0D=0A+=09}=0D=0A }=0D=0A=20=0D=
+=0A static inline int fuse_file_famfs(struct fuse_inode *fi)=0D=0Adiff --=
+git a/fs/fuse/inode.c b/fs/fuse/inode.c=0D=0Aindex 862f4e61a5fb..5e692fc8=
+4297 100644=0D=0A--- a/fs/fuse/inode.c=0D=0A+++ b/fs/fuse/inode.c=0D=0A@@=
+ -10,6 +10,7 @@=0D=0A #include "fuse_dev_i.h"=0D=0A #include "dev_uring_i=
+=2Eh"=0D=0A=20=0D=0A+#include <linux/bitfield.h>=0D=0A #include <linux/da=
+x.h>=0D=0A #include <linux/pagemap.h>=0D=0A #include <linux/slab.h>=0D=0A=
+@@ -1464,8 +1465,21 @@ static void process_init_reply(struct fuse_mount *=
+fm, struct fuse_args *args,=0D=0A =09=09=09=09timeout =3D arg->request_ti=
+meout;=0D=0A=20=0D=0A =09=09=09if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX) &&=0D=
+=0A-=09=09=09    flags & FUSE_DAX_FMAP)=0D=0A-=09=09=09=09fc->famfs_iomap=
+ =3D 1;=0D=0A+=09=09=09    flags & FUSE_DAX_FMAP) {=0D=0A+=09=09=09=09/* =
+famfs_iomap is only allowed if the fuse=0D=0A+=09=09=09=09 * server has C=
+AP_SYS_RAWIO. This was checked=0D=0A+=09=09=09=09 * in fuse_send_init, an=
+d FUSE_DAX_IOMAP was=0D=0A+=09=09=09=09 * set in in_flags if so. Only all=
+ow enablement=0D=0A+=09=09=09=09 * if we find it there. This function is=0D=
+=0A+=09=09=09=09 * normally not running in fuse server context,=0D=0A+=09=
+=09=09=09 * so we can't do the capability check here...=0D=0A+=09=09=09=09=
+ */=0D=0A+=09=09=09=09u64 in_flags =3D FIELD_PREP(GENMASK_ULL(63, 32), ia=
+->in.flags2)=0D=0A+=09=09=09=09=09=09| ia->in.flags;=0D=0A+=0D=0A+=09=09=09=
+=09if (in_flags & FUSE_DAX_FMAP)=0D=0A+=09=09=09=09=09fc->famfs_iomap =3D=
+ 1;=0D=0A+=09=09=09}=0D=0A =09=09} else {=0D=0A =09=09=09ra_pages =3D fc-=
+>max_read / PAGE_SIZE;=0D=0A =09=09=09fc->no_lock =3D 1;=0D=0A@@ -1527,7 =
++1541,7 @@ static struct fuse_init_args *fuse_new_init(struct fuse_mount =
+*fm)=0D=0A =09=09flags |=3D FUSE_SUBMOUNTS;=0D=0A =09if (IS_ENABLED(CONFI=
+G_FUSE_PASSTHROUGH))=0D=0A =09=09flags |=3D FUSE_PASSTHROUGH;=0D=0A-=09if=
+ (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))=0D=0A+=09if (IS_ENABLED(CONFIG_FUSE_=
+FAMFS_DAX) && capable(CAP_SYS_RAWIO))=0D=0A =09=09flags |=3D FUSE_DAX_FMA=
+P;=0D=0A=20=0D=0A =09/*=0D=0Adiff --git a/include/uapi/linux/fuse.h b/inc=
+lude/uapi/linux/fuse.h=0D=0Aindex 9eff9083d3b5..cf678bebbfe0 100644=0D=0A=
+--- a/include/uapi/linux/fuse.h=0D=0A+++ b/include/uapi/linux/fuse.h=0D=0A=
+@@ -243,6 +243,13 @@=0D=0A  *=0D=0A  *  7.46=0D=0A  *  - Add FUSE_DAX_FMA=
+P capability - ability to handle in-kernel fsdax maps=0D=0A+ *  - Add the=
+ following structures for the GET_FMAP message reply components:=0D=0A+ *=
+    - struct fuse_famfs_simple_ext=0D=0A+ *    - struct fuse_famfs_iext=0D=
+=0A+ *    - struct fuse_famfs_fmap_header=0D=0A+ *  - Add the following e=
+numerated types=0D=0A+ *    - enum fuse_famfs_file_type=0D=0A+ *    - enu=
+m famfs_ext_type=0D=0A  */=0D=0A=20=0D=0A #ifndef _LINUX_FUSE_H=0D=0A@@ -=
+1318,6 +1325,55 @@ struct fuse_uring_cmd_req {=0D=0A=20=0D=0A /* Famfs fm=
+ap message components */=0D=0A=20=0D=0A+#define FAMFS_FMAP_VERSION 1=0D=0A=
++=0D=0A #define FAMFS_FMAP_MAX 32768 /* Largest supported fmap message */=
+=0D=0A+#define FUSE_FAMFS_MAX_EXTENTS 32=0D=0A+#define FUSE_FAMFS_MAX_STR=
+IPS 32=0D=0A+=0D=0A+enum fuse_famfs_file_type {=0D=0A+=09FUSE_FAMFS_FILE_=
+REG,=0D=0A+=09FUSE_FAMFS_FILE_SUPERBLOCK,=0D=0A+=09FUSE_FAMFS_FILE_LOG,=0D=
+=0A+};=0D=0A+=0D=0A+enum famfs_ext_type {=0D=0A+=09FUSE_FAMFS_EXT_SIMPLE =
+=3D 0,=0D=0A+=09FUSE_FAMFS_EXT_INTERLEAVE =3D 1,=0D=0A+};=0D=0A+=0D=0A+st=
+ruct fuse_famfs_simple_ext {=0D=0A+=09uint32_t se_devindex;=0D=0A+=09uint=
+32_t reserved;=0D=0A+=09uint64_t se_offset;=0D=0A+=09uint64_t se_len;=0D=0A=
++};=0D=0A+=0D=0A+struct fuse_famfs_iext { /* Interleaved extent */=0D=0A+=
+=09uint32_t ie_nstrips;=0D=0A+=09uint32_t ie_chunk_size;=0D=0A+=09uint64_=
+t ie_nbytes; /* Total bytes for this interleaved_ext;=0D=0A+=09=09=09    =
+ * sum of strips may be more=0D=0A+=09=09=09     */=0D=0A+=09uint64_t res=
+erved;=0D=0A+};=0D=0A+=0D=0A+struct fuse_famfs_fmap_header {=0D=0A+=09uin=
+t8_t file_type; /* enum famfs_file_type */=0D=0A+=09uint8_t reserved;=0D=0A=
++=09uint16_t fmap_version;=0D=0A+=09uint32_t ext_type; /* enum famfs_log_=
+ext_type */=0D=0A+=09uint32_t nextents;=0D=0A+=09uint32_t reserved0;=0D=0A=
++=09uint64_t file_size;=0D=0A+=09uint64_t reserved1;=0D=0A+};=0D=0A+=0D=0A=
++static inline int32_t fmap_msg_min_size(void)=0D=0A+{=0D=0A+=09/* Smalle=
+st fmap message is a header plus one simple extent */=0D=0A+=09return (si=
+zeof(struct fuse_famfs_fmap_header)=0D=0A+=09=09+ sizeof(struct fuse_famf=
+s_simple_ext));=0D=0A+}=0D=0A=20=0D=0A #endif /* _LINUX_FUSE_H */=0D=0A--=
+=20=0D=0A2.53.0=0D=0A=0D=0A
