@@ -1,46 +1,46 @@
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012064.outbound.protection.outlook.com [52.101.43.64])
+Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010014.outbound.protection.outlook.com [52.101.61.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64B8C3DB636
-	for <nvdimm@lists.linux.dev>; Wed,  8 Apr 2026 20:33:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EEEF39EF38
+	for <nvdimm@lists.linux.dev>; Wed,  8 Apr 2026 20:33:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.14
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775680389; cv=fail; b=kmaFSiKRaQfWFerLN/fWbGdAgpkiM0ywVlWkjVUOcWlqNK9/ulM1Tiz1XD3S4jCi7awn43UCITFiXKe8J5UgkXOsbZ6l/fopmn+Mj2OoQ+HyvbvAvS3StEbVh5aNZn2Kk916j0bFGG+qHkV1CZI0djj7sg8bXODMg/xt1bhbuYU=
+	t=1775680406; cv=fail; b=Asc2Orc7LH2Yr8Trd+EUKRuliCI02t70iCLHNzW6Xgh1mj0KAKsdowRKOEucngYs9v+PdJRQ6i6L7eOk3Y3HyD6V6zhQgyIeI3xffMNbcdujCTiXHYB3RUiWre2/1F+wyY45ubWHP207Zy4pWJyiCENc20RmDrnBYzdyODgubNc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775680389; c=relaxed/simple;
-	bh=ddoEZ5c83zO2CXn+lcHDEZt63ZIzWTxJ36UwiICThy0=;
+	s=arc-20240116; t=1775680406; c=relaxed/simple;
+	bh=HpJJr2beVw8w06+tJvWbmRvYpIT8sM4GVtuL6SDyr0Y=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JsDvE+e7EnYzQ4i7d8gEj6dXdFHcwvvCFltlsY6kTKAUMuOy2xwKXwBhkwGLhie7pOqpOoZBb0Bav/an4uRK+e0fUG1PflClaoM2tmN+cU45p4aFyijw3idGxmGHjXlUQFcJNKZX1qvMX7MNar+bxu9Ncp+XWwAogk3bNoo5DoM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=bGhxhZaT; arc=fail smtp.client-ip=52.101.43.64
+	 MIME-Version:Content-Type; b=hv9ZGHa/CzKZXWRA90/SOsIuyMnqJ7+NDv5RxjbefXpZIAkrBMS+9zu0eHUKpX3KvBi+a/QB4jwhdGNOB7I+y45CGdvBjpblZJfaoRJKZ3TYGFsGMC7hgQa+f1rtOJc6oaTaFg6wSnnG1Me3XznmzLp/oFyASm3cRdlU+asZqSI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=YuFGiZDE; arc=fail smtp.client-ip=52.101.61.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="bGhxhZaT"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="YuFGiZDE"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=dduJ8Za+1oUVe1ht1o7pkstYL1hTI7qH/H0gB4S9dBX2PR/X6Qu4oLnTvdSqTCNzNmuVb5MXfcxlfAuk+m/LyfyBNkaAiSvs0gSI/1lHiLxxCsppcUzFIf7nOThl+K9NJ70/SEzvjhj8pnQv8jwBT/BWpOqpfAS1RaPynwt1hIbEbXZKg3DNdDAB06cb32M8pLHKkg4mzgoEc2lcKvs5EekHAxNAqn+IkRKSIGLFhSoe6VfuiDABx1FgM2gQQflCdCX2m3QHtMzeaSr1tKEa5rrVSkGT4C4cFbbJNO2xfH133FtbzpiElwP5aXAPlULn9vYj88wsroHvTCmqbRKskQ==
+ b=VtjPFqJluL+L0OFdR75b/KEgtu/R4Wc4lt42KzLwFSgm8T5lJm18XTZDWlUxlE2dyiQ9CsbazTyeHF55ZldqAUEEdif1ZjwVBAqlCKpEOV8fHTHWGvYzRsy6+CPVkwRILf8VP+CG9SMoVjM5uKBgU7muAMXjhUkbl7hXzKwGDF4eJqQUclbjY2hPCdU1jBgwxLPMCPbU7tmqaemtkmoF3L1Fh3W4UZruPH3Sy7FE24Ol1lNyWA3PchRpd7KMDvNwnZ+Dra5FgXUjY9zxHwUHhlbS89APgFvFZXIiodxWr1ckHM3UC1Locl8IaSaMJYy8ibYINadSZ2nuiJiLoiSGGQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=42XDM+JW3dJhuUviCNSqPWmjxadakKM2+aBSmiMK+U0=;
- b=VYBhBssaUNHntsgMHRiVbIm3oLNEWcCcT3V1Z8X51gn3RJxaNl4bHmBinc6hWiylpQt/uZPx61O6u4kJqtd66ucuirOxNgpWzu2N+hNtHZ5wQ5VCSrOH/0Oc4wW0rznWznq3CqkrkQC3ArXYkxr/WN5vjBlec/A+vKL1PlPf5vnwWGwyBggk36zlAwCMhd4Rd01xECjdHi+g9nHHbIA6DDPLSCAZUD1OSDU2RwAg2MnzlbHCBMEaoyIG4nQtbdFiJowmXf+4AAzC9A0nMtZ3tMzJHz+sujtqiX/iiVg7ki9cF3Nweut2rO7YwiTxlMq7w7FLcI8fLzPLoiKDEYIDCA==
+ bh=mCYpGEYSm6to/IjdqcgFk5GaR2FBqS8Js8jJiVQrYHw=;
+ b=ANATWh9SJqr/cmIPurdjiPWW/NNN55WJS7HfpczqAKqkW+Mcfgu+jdg1SaXfxJ8D8tlG3Sm+zwOaVSeD3ANwjkHl/B8Zi2/ScWrLSwWhWrIndhZi4OQsTFtqruMv5PVLkANLdFIP7h1TuZjG7DQ6399iTh+vyD559ggRh5MlhzQEfsRjgMtlhGMkDkSphguLBN/f9bX5KdwdPUuDsNYU0tq/5437F6q9d0vKhEDLzXkD0aePgxnW4K4z2zT7cZn/mifLEvz6ApPdd006oONuPLxLs0pZdC/tVMUz3iuPmuYDSw0FZfu0cOTgVZ24lNPwomJX+QTzZSHB/NWoi388pA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=stgolabs.net smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=42XDM+JW3dJhuUviCNSqPWmjxadakKM2+aBSmiMK+U0=;
- b=bGhxhZaTyFtBFhiaY0plOts86cNqPa7mgdJqn1znTdQJQDRxYlApKMwLaHyMVzxRG6Y1vE74FcVs2SQjxuf4mxekouIsNist0AiKZbBqvs4qlboJfW2CmrIy2lwQTOzJGn+UBiRIG7RnaolaW1h+pRPLhikggzts0IlsUaIBDJk=
-Received: from MN2PR06CA0003.namprd06.prod.outlook.com (2603:10b6:208:23d::8)
- by BN7PPF5D27497F1.namprd12.prod.outlook.com (2603:10b6:40f:fc02::6d1) with
+ bh=mCYpGEYSm6to/IjdqcgFk5GaR2FBqS8Js8jJiVQrYHw=;
+ b=YuFGiZDEd0LJCrhb/fEPWX7RDzmBlB8MV/dsqHee0/92dEwCIjURlS8HJBz0cclHg0z8CzhcSt6fzF4U9gTm0cWNW/kKd9KUGLnIiavzjpCLEc8/pPAMDxFJ/bqw12bD7M8j/eIPF552189XD6DaOmiv1u45UY+j/tFAzj7DW6o=
+Received: from MN2PR05CA0053.namprd05.prod.outlook.com (2603:10b6:208:236::22)
+ by LV2PR12MB5751.namprd12.prod.outlook.com (2603:10b6:408:17d::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9745.41; Wed, 8 Apr
- 2026 20:33:00 +0000
-Received: from BL6PEPF00020E64.namprd04.prod.outlook.com
- (2603:10b6:208:23d:cafe::48) by MN2PR06CA0003.outlook.office365.com
- (2603:10b6:208:23d::8) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.37 via Frontend Transport; Wed,
- 8 Apr 2026 20:33:00 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.18; Wed, 8 Apr
+ 2026 20:33:16 +0000
+Received: from BL6PEPF00020E63.namprd04.prod.outlook.com
+ (2603:10b6:208:236:cafe::a8) by MN2PR05CA0053.outlook.office365.com
+ (2603:10b6:208:236::22) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.38 via Frontend Transport; Wed,
+ 8 Apr 2026 20:33:16 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,13 +48,13 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
 Received: from satlexmb07.amd.com (165.204.84.17) by
- BL6PEPF00020E64.mail.protection.outlook.com (10.167.249.25) with Microsoft
+ BL6PEPF00020E63.mail.protection.outlook.com (10.167.249.24) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9769.17 via Frontend Transport; Wed, 8 Apr 2026 20:33:00 +0000
+ 15.20.9769.17 via Frontend Transport; Wed, 8 Apr 2026 20:33:16 +0000
 Received: from ethanolx7ea3host.amd.com (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Wed, 8 Apr
- 2026 15:32:59 -0500
+ 2026 15:33:15 -0500
 From: Terry Bowman <terry.bowman@amd.com>
 To: <dave@stgolabs.net>, <jonathan.cameron@huawei.com>,
 	<dave.jiang@intel.com>, <alison.schofield@intel.com>,
@@ -65,9 +65,9 @@ To: <dave@stgolabs.net>, <jonathan.cameron@huawei.com>,
 	<sathyanarayanan.kuppuswamy@linux.intel.com>, <nvdimm@lists.linux.dev>,
 	<alucerop@amd.com>, <ira.weiny@intel.com>
 CC: <linux-cxl@vger.kernel.org>, <terry.bowman@amd.com>
-Subject: [ndctl PATCH 2/3] test/aer-inject: Add aer-inject correctable and uncorrectable interanl error support
-Date: Wed, 8 Apr 2026 15:32:30 -0500
-Message-ID: <20260408203231.962206-3-terry.bowman@amd.com>
+Subject: [ndctl PATCH 3/3] test/cxl: Force RAS status in cxl_handle_cor_ras() and cxl_handle_ras()
+Date: Wed, 8 Apr 2026 15:32:31 -0500
+Message-ID: <20260408203231.962206-4-terry.bowman@amd.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260408203231.962206-1-terry.bowman@amd.com>
 References: <20260408203231.962206-1-terry.bowman@amd.com>
@@ -83,139 +83,98 @@ X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF00020E64:EE_|BN7PPF5D27497F1:EE_
-X-MS-Office365-Filtering-Correlation-Id: 30a24185-2237-49bb-7d55-08de95ae06c2
+X-MS-TrafficTypeDiagnostic: BL6PEPF00020E63:EE_|LV2PR12MB5751:EE_
+X-MS-Office365-Filtering-Correlation-Id: a0d4ea3b-b326-405e-b696-08de95ae1069
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|36860700016|7416014|1800799024|82310400026|22082099003|18002099003|56012099003|921020;
+	BCL:0;ARA:13230040|82310400026|1800799024|7416014|36860700016|376014|921020|22082099003|18002099003|56012099003;
 X-Microsoft-Antispam-Message-Info:
-	INgO+VYM2eRntMcUVYNfXep+B/3VhuM4TjAJGchrXYjc9jidQzwBwjXNOH85zFbtCdOWvLRxzah/r2PcKW+O9m/g91dOSDenb1RW0S9F65/5NhSY5fNWC2r46ScqdLkMW96V84dWv57UTqq0+N5Onlrptg6CrvLX3VpHfEj5IhSNfcg361zj3KyDlkDbMrclzNGVPPFmAw2ywqIbmqBrjSRa4rKBEm6pSPLBQj2RswJ5v8kq6iyR46eGYDpu0N3sShWiEegRb56tR8oCIiKpdMXCpWN5rc44NHi0UR2bGb8SxSFGdXgAKeoAfy0ghAVjhqy7By8xJ2Swr5QNaK0aSrh2bGMHAYhYvWZ2UQqTbYc6NsW/Su+V40FOrHls+eu3NWiLXe9oXwazbbx04IpuJaIHIieS9vZHuEbW/DfkbbLWNXc2+3IwHOV2bPy6yB8pplTjzLiF3GcVvRC8KSKiBmMNIow9OBJulmoVrUI6LyDysfOlu+MecTIG2A0RT00Orfy8JNXUsM7N9OJa43H6S51idvG9fus2yEjXUt3jIh+CgS3qm3rFq1gdJGo/wEe3oOqXRLsx09/szOEcYDPSFMAQXxUo4An6FMVeRaKZB9N9FIZEtkpJv7J9IBGj9WLM4JtGE0BLLPKYbiiTie2IBN6OJmhX4hSA4M3SjMZWeB6qLQzIWHdpAmvX8iq6LzUMtYUn1Y1wRTT1bdNu3ahJGtUK+4WG0v6jU+JD2oYs8D1gYoe0qdBt8WTqNaaY6qcX71vAT8OI2IxPMODo4CVPjpvOYdDRm2hssD1KjctbYiBpurOpy0XeEOLkADrZew+Q
+	BrF6JyOJUI3f8oYdR/Exnr1EFI+3nZD4Z0pePBccoS3lf3c6HUsJAbDltcxY9/JNOcvx14sNi5kzkerrmzL2Q2XAYMmPuLYScm186nnIVSFp2OceoVLkEK2Nmv4HMe/XUP/z1EDpcQ/ezGGNBT0rXHtBT2hyNBHZBd77iNASvsJk08g1ALHUDERJr5fv66VwVYo88CQAuPuk54qGQSSp7iAV3Ov75Zui4z9A9o3YUuiBxvIW8uZ7aISoPq/zJUfb323b2g2fqlkojZJqd/luGfWCuAZ2ZWKr+Rqura2zlGN4ztMQRHyPcDDDHb0HcSVbDUuwOB9GanpS3U1j6lXyBxUku9TLlCJUDmMhfBigrkcolCNzpTDuYUfTfH/0nnnhDoV6zMYkFDMRAMiMqTHIJmgzEq5gfN19UA8bXsuvwvjeob9kcctMbRuBZQeykBFEAdnOUg+pzte8YFpbQViJjriJca5s96gqCrmAwNxXQDnUgQIWI9mD1L0LHy0eUfxMD9kqXoWWbAS4ZTY36MiOECEcO9dK0yjdjT5AudWIS9m07d3pAJiTxH/mwXiTwMhcTR06k0c9aLW1pVWsfWBFOxjwTOcLQx+XqInrPPtYkRmf39FS1ehP3SDxzjcCGr90/DRGQdclTbrGfY0Au1KvpXkWBYHKMrqi//PloWwKEEBKaoyEgMwbA4XcWJhvvnR91dg+qLOQfVlKVfzjH+dvlM1Ry0lD/SvDXxW/L0w+YrY6334Iq/FwdLJPRVn9KA/II8JxRhRteLXvs7ulAyIPA7lWNp4nXSzjGplmKszZ6SPBpAhu6ElVBa7Lk5geRTN0
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(36860700016)(7416014)(1800799024)(82310400026)(22082099003)(18002099003)(56012099003)(921020);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(7416014)(36860700016)(376014)(921020)(22082099003)(18002099003)(56012099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	a7Iy4koflOr9NGxdd2BR+IgXuWNM9BiPfQMb9hvcDilvOlvMNtMDVCBCKe8YSVS8mjwZRgzEuQr3CQJVD5B3lKXhUWX+51PeQ5ZqO4HB7DDCVVBxREvTnym6Ss9nM9GgO/zL5ug2YLTBPv8hK32wlVDnI5OH6mvb6g4/piL/6it6zrpiLEcCdVgRNnNKNKfjDzHr6ICJk6faOvRRBupBK1y9HmF8KVnkQRxRFC1aEv9wVImx+Ol5mWRhoIIdtqpRJrCCwNh3lJPX478h2Dw9iQnYrC0yDfLlGoasCvbHe0fOi9gVri3LN3UFuUJ+Ycc1k/0m071LmTaYoSVEeDUDDHQjTJ8y8OB0r9gDjsSB4yqx0Iy46qCLxOh4Ch3yN9XwRlen9/aQtLvsHOAHRaNrCWWjEbrKtl6nQ+SK/RkdL79j286R7zkoWOs1IVHFBLWf
+	LCRECotU0IyDAkdEE1okGC9j+ubQOEv1TwR3yXqUfJiJ0DIu1PRb2OH3OL/pRuk3iO6R4n/4EsFqNZ7SSqyuxSyf5AJsobg7FM/dRzL+DsE/nLgnsG9d0vS7MOZJTn4REplDbmj1KnjKjTNsCkOytvpGyrbbhXK562dBuyrAjitbGHVaAkl1oRdhK0NsCm/37wyHWaOztKHrp5b06HyOQJ3M3p5oVWIOmzIBmsFjsN9O0Nss84LNm3WR1qvBFidygmom2VuLGFYSVha/kNtVGyElqzVUCOMcousdj6cwRaXB0kj38jPZvvyEUWD5Q/5Io4ISJqXEc1O3Qo4IusH3zVKw9lFCaTTD6NytkFdL+7sUkhU6aQlSlV7zkS2X2JMZU0c4ItSNuCs8EXEBATDd488R29IuZyDvhq93RmmRqqu7+AeJeZ0ZcTncQFmXdxg7
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Apr 2026 20:33:00.3012
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Apr 2026 20:33:16.3493
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 30a24185-2237-49bb-7d55-08de95ae06c2
+X-MS-Exchange-CrossTenant-Network-Message-Id: a0d4ea3b-b326-405e-b696-08de95ae1069
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF00020E64.namprd04.prod.outlook.com
+	BL6PEPF00020E63.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PPF5D27497F1
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR12MB5751
 
-The `aer-inject` tool currently does not support injecting Correctable
-Internal Errors (CIE) or Uncorrectable Internal Errors (UIE). By default,
-internal errors are masked according to the PCI specification and are
-generally not used. However, these internal errors are now leveraged to
-notify the PCI and CXL subsystems of CXL protocol errors. The attached
-patches enable support for CIE and UIE internal errors in `aer-inject`,
-allowing for injected CXL protocol errors to be delivered to the CXL core.
+CXL RAS error injection (EINJ) is present for Root Ports but not for other CXL
+devices. Provide the means to test protocol errors for all CXL devices
+in a testing environment. Use 'aer-inject' userspace tool to deliver AER
+internal error notification which will trigger the CXL driver's RAS
+handling. Hardcode the status for CE and UCE errors in cxl_handle_ras()
+and cxl_handle_cor_ras().
 
 Signed-off-by: Terry Bowman <terry.bowman@amd.com>
 ---
- ...Add-internal-error-injection-support.patch | 91 +++++++++++++++++++
- 1 file changed, 91 insertions(+)
- create mode 100644 test/contrib/cxl-aer-einj/patches/0001-aer-inject-Add-internal-error-injection-support.patch
+ ...AS-status-in-cxl_handle_cor_ras-and-.patch | 51 +++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+ create mode 100644 test/contrib/cxl-aer-einj/patches/0001-test-cxl-Force-RAS-status-in-cxl_handle_cor_ras-and-.patch
 
-diff --git a/test/contrib/cxl-aer-einj/patches/0001-aer-inject-Add-internal-error-injection-support.patch b/test/contrib/cxl-aer-einj/patches/0001-aer-inject-Add-internal-error-injection-support.patch
+diff --git a/test/contrib/cxl-aer-einj/patches/0001-test-cxl-Force-RAS-status-in-cxl_handle_cor_ras-and-.patch b/test/contrib/cxl-aer-einj/patches/0001-test-cxl-Force-RAS-status-in-cxl_handle_cor_ras-and-.patch
 new file mode 100644
-index 0000000..e5675ee
+index 0000000..d8562cc
 --- /dev/null
-+++ b/test/contrib/cxl-aer-einj/patches/0001-aer-inject-Add-internal-error-injection-support.patch
-@@ -0,0 +1,91 @@
-+From 9d273a798950122059e9428a698d1d9d2520362b Mon Sep 17 00:00:00 2001
++++ b/test/contrib/cxl-aer-einj/patches/0001-test-cxl-Force-RAS-status-in-cxl_handle_cor_ras-and-.patch
+@@ -0,0 +1,51 @@
++From 1b4054d82a1834e211ef3f284b9f51926db8f060 Mon Sep 17 00:00:00 2001
 +From: Terry Bowman <terry.bowman@amd.com>
-+Date: Thu, 17 Oct 2024 12:12:58 -0500
-+Subject: [PATCH] aer-inject: Add internal error injection support
++Date: Tue, 7 Apr 2026 16:47:45 -0500
++Subject: [PATCH] test/cxl: Force RAS status in cxl_handle_cor_ras() and
++ cxl_handle_ras()
 +
-+The `aer-inject` tool currently does not support injecting internal errors
-+such as Correctable Errors (CE) and Uncorrectable Errors (UCE). By default,
-+internal errors are masked according to the PCI specification and are
-+generally not used. However, these internal errors are now leveraged to
-+notify the PCI and CXL subsystems of CXL protocol errors. The attached
-+patches enable support for CE and UCE internal errors in `aer-inject`,
-+allowing for injected CXL protocol errors to be delivered to the CXL core.
++CXL RAS error injection is present for Root Ports but not for other CXL
++devices. Provide the means to test protocol errors for all CXL devices
++in a testing environment. Use 'aer-inject' userspace tool to deliver AER
++internal error notification which will trigger the CXL driver's RAS
++handling. Hardcode the status for CE and UCE errors in cxl_handle_ras()
++and cxl_handle_cor_ras().
 +
 +Signed-off-by: Terry Bowman <terry.bowman@amd.com>
 +---
-+ aer.h   | 2 ++
-+ aer.lex | 2 ++
-+ aer.y   | 8 ++++----
-+ 3 files changed, 8 insertions(+), 4 deletions(-)
++ drivers/cxl/core/ras.c | 5 +++++
++ 1 file changed, 5 insertions(+)
 +
-+diff --git a/aer.h b/aer.h
-+index a0ad152..e55a731 100644
-+--- a/aer.h
-++++ b/aer.h
-+@@ -30,11 +30,13 @@ struct aer_error_inj
-+ #define  PCI_ERR_UNC_MALF_TLP	0x00040000	/* Malformed TLP */
-+ #define  PCI_ERR_UNC_ECRC	0x00080000	/* ECRC Error Status */
-+ #define  PCI_ERR_UNC_UNSUP	0x00100000	/* Unsupported Request */
-++#define  PCI_ERR_UNC_INTERNAL   0x00400000      /* Internal error */
-+ #define  PCI_ERR_COR_RCVR	0x00000001	/* Receiver Error Status */
-+ #define  PCI_ERR_COR_BAD_TLP	0x00000040	/* Bad TLP Status */
-+ #define  PCI_ERR_COR_BAD_DLLP	0x00000080	/* Bad DLLP Status */
-+ #define  PCI_ERR_COR_REP_ROLL	0x00000100	/* REPLAY_NUM Rollover */
-+ #define  PCI_ERR_COR_REP_TIMER	0x00001000	/* Replay Timer Timeout */
-++#define  PCI_ERR_COR_CINTERNAL	0x00004000	/* Internal error */
++diff --git a/drivers/cxl/core/ras.c b/drivers/cxl/core/ras.c
++index 006c6ffc2f56..09ff82973c70 100644
++--- a/drivers/cxl/core/ras.c
+++++ b/drivers/cxl/core/ras.c
++@@ -183,6 +183,9 @@ void devm_cxl_port_ras_setup(struct cxl_port *port)
++ }
++ EXPORT_SYMBOL_NS_GPL(devm_cxl_port_ras_setup, "CXL");
 + 
-+ extern void init_aer(struct aer_error_inj *err);
-+ extern void submit_aer(struct aer_error_inj *err);
-+diff --git a/aer.lex b/aer.lex
-+index 6121e4e..4fadd0e 100644
-+--- a/aer.lex
-++++ b/aer.lex
-+@@ -82,11 +82,13 @@ static struct key {
-+ 	KEYVAL(MALF_TLP, PCI_ERR_UNC_MALF_TLP),
-+ 	KEYVAL(ECRC, PCI_ERR_UNC_ECRC),
-+ 	KEYVAL(UNSUP, PCI_ERR_UNC_UNSUP),
-++	KEYVAL(INTERNAL, PCI_ERR_UNC_INTERNAL),
-+ 	KEYVAL(RCVR, PCI_ERR_COR_RCVR),
-+ 	KEYVAL(BAD_TLP, PCI_ERR_COR_BAD_TLP),
-+ 	KEYVAL(BAD_DLLP, PCI_ERR_COR_BAD_DLLP),
-+ 	KEYVAL(REP_ROLL, PCI_ERR_COR_REP_ROLL),
-+ 	KEYVAL(REP_TIMER, PCI_ERR_COR_REP_TIMER),
-++	KEYVAL(CINTERNAL, PCI_ERR_COR_CINTERNAL),
-+ };
+++#define CXL_RAS_UNCORRECTABLE_STATUS_CACHE_ECC 0x1
+++#define CXL_RAS_CORRECTABLE_STATUS_CACHE_ECC 0x1
+++
++ void cxl_handle_cor_ras(struct device *dev, void __iomem *ras_base)
++ {
++ 	void __iomem *addr;
++@@ -193,6 +196,7 @@ void cxl_handle_cor_ras(struct device *dev, void __iomem *ras_base)
 + 
-+ static int cmp_key(const void *av, const void *bv)
-+diff --git a/aer.y b/aer.y
-+index e5ecc7d..500dc97 100644
-+--- a/aer.y
-++++ b/aer.y
-+@@ -34,8 +34,8 @@ static void init(void);
++ 	addr = ras_base + CXL_RAS_CORRECTABLE_STATUS_OFFSET;
++ 	status = readl(addr);
+++	status |= CXL_RAS_CORRECTABLE_STATUS_CACHE_ECC;
++ 	if (status & CXL_RAS_CORRECTABLE_STATUS_MASK) {
++ 		writel(status & CXL_RAS_CORRECTABLE_STATUS_MASK, addr);
++ 		trace_cxl_aer_correctable_error(to_cxl_memdev(dev), status);
++@@ -232,6 +236,7 @@ bool cxl_handle_ras(struct device *dev, void __iomem *ras_base)
 + 
-+ %token AER DOMAIN BUS DEV FN PCI_ID UNCOR_STATUS COR_STATUS HEADER_LOG
-+ %token <num> TRAIN DLP POISON_TLP FCP COMP_TIME COMP_ABORT UNX_COMP RX_OVER
-+-%token <num> MALF_TLP ECRC UNSUP
-+-%token <num> RCVR BAD_TLP BAD_DLLP REP_ROLL REP_TIMER
-++%token <num> MALF_TLP ECRC UNSUP INTERNAL
-++%token <num> RCVR BAD_TLP BAD_DLLP REP_ROLL REP_TIMER CINTERNAL
-+ %token <num> SYMBOL NUMBER
-+ %token <str> PCI_ID_STR
++ 	addr = ras_base + CXL_RAS_UNCORRECTABLE_STATUS_OFFSET;
++ 	status = readl(addr);
+++	status |= CXL_RAS_UNCORRECTABLE_STATUS_CACHE_ECC;
++ 	if (!(status & CXL_RAS_UNCORRECTABLE_STATUS_MASK))
++ 		return false;
 + 
-+@@ -77,14 +77,14 @@ uncor_status_list: /* empty */			{ $$ = 0; }
-+ 	;
-+ 
-+ uncor_status: TRAIN | DLP | POISON_TLP | FCP | COMP_TIME | COMP_ABORT
-+-	| UNX_COMP | RX_OVER | MALF_TLP | ECRC | UNSUP | NUMBER
-++	| UNX_COMP | RX_OVER | MALF_TLP | ECRC | UNSUP | INTERNAL | NUMBER
-+ 	;
-+ 
-+ cor_status_list: /* empty */			{ $$ = 0; }
-+ 	| cor_status_list cor_status		{ $$ = $1 | $2; }
-+ 	;
-+ 
-+-cor_status: RCVR | BAD_TLP | BAD_DLLP | REP_ROLL | REP_TIMER | NUMBER
-++cor_status: RCVR | BAD_TLP | BAD_DLLP | REP_ROLL | REP_TIMER | CINTERNAL | NUMBER
-+ 	;
-+ 
-+ %% 
 +-- 
 +2.34.1
 +
