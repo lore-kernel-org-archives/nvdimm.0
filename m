@@ -1,149 +1,155 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 466A9385510
-	for <nvdimm@lists.linux.dev>; Sat, 11 Apr 2026 14:57:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0518F3BED1B;
+	Sat, 11 Apr 2026 23:29:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775919468; cv=none; b=OmN5zTZMp4bQn/VcI/i0RX/C57nmjPB/5QkkI33Y8KjwrvZHvRL2UaloMtsZNS4SezP84lhFUFMWj0PissjOrA+bVlM/QXCS1wjMlfPJ6mlvP4BwKTwQey4pv1D/Sc0Potbhh9Hm6nuKjnLdYJId9qwey4P8Ab8PU4h9CUu31F4=
+	t=1775950168; cv=none; b=WZqgJLtFQPQC2iLuOccsEooKXYjrGImScWw107XVmzgdLQq0hkBj2x2FL4T+vuldMCZB/TmfvGGjlYeTiyMECpRWe6qJscVtZtVBNx4JHOeU+N6mguiQRmyrVj6I/MSp/dWJeC9cSb9/4gFHZ+BqvNoOBpR4g0FNbOyUDO+nuHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775919468; c=relaxed/simple;
-	bh=KZhRFKvZZu8iovP22IupFjT2Gu6PJku17dMapEr38Pg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=d435z8rziEbj0yYxqGgdda5mW0nKk278n4mDu5QZlg8lBWT+Akv33TA4IUkRD2GX1pawfUJJCM5YjM+tO3D26PWGE/ilwIu4MssljGPb+Wn9veil8hEcR88vYZqPwJ580S0nMt/Ha4RTytBg6ht+8ABgfYnXuFFb373niDF5phg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KoHOqYcH; arc=none smtp.client-ip=209.85.210.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1775950168; c=relaxed/simple;
+	bh=bGYMj1nEU3rTt3DSUk3rq+ORCg6O2I9VqoBBgW/e8ZE=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 Mime-Version:Content-Type; b=eHA8IeEXZ1uMMJg4w/emGR9f2hBLrbExABBtU/D2a1xxbDhYQcW8gVlPye5FCsoqt6wEYfQ42q0Bq0f/GARCclEM+P/fCA7AMa4Qg6DbDVnzaa5yuY+Rfbiwa8ugbJoy4+8f0HPf8a57NyuukLRKVEOYpdIVDZI9enTcDTX5T7c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PTW0H71F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KoHOqYcH"
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-82f206f2b54so141785b3a.0
-        for <nvdimm@lists.linux.dev>; Sat, 11 Apr 2026 07:57:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775919466; x=1776524266; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=scV4iKj0YWAH3OkdMKrFOu3wLw5+cHFeHwRQSwEoBmA=;
-        b=KoHOqYcHjvKAL4HGxsrTilmsvBmhe1CXgwxINxq8ENHWrVuIGozwJlDXKE6tHwFXtZ
-         E/0vDZaEkSdc1XNYsIRXo8eLjcSc9kWf9P5hEuE89BINMhPjigaygSquuCU9BTc3FYOo
-         F/k0TpdUJ0vHMeqFmsXA5e6qCBWzEAR7Ypmk2onLyHMW0mZssdWqrcIh9kpxDfoNabFG
-         KkC3f6e8tU7aExwCIa4J/gKdn/aHui8qdJ7fpUddHpzzwXYesQEtI2/4d+AF0F8A0z7d
-         WauCmx9N6uerrULblmKXHjgmwCMvNn9HzOI4OOyFkNNygdnZEbZKLQ0ZjaGRhJn8da94
-         jSLQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775919466; x=1776524266;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=scV4iKj0YWAH3OkdMKrFOu3wLw5+cHFeHwRQSwEoBmA=;
-        b=QNO8xHtc0k8XmctYSLwiI+eHVfS2Z45AYREwhU5SwzL5RYtNicOM5tX3zqInMWvlf2
-         nBV24iXHYfsjclcnUXjHdU+GZ9M1gbEZ4LGwp06zLFBucj/D34wZXsdlHKqdEmmiNnhX
-         FDY2ovCLSgI0TC+f+WQ83k/QzcjWihGWX8t7yL3K44AnXwPlVfbirz6Sn+cjtZudx+t+
-         KOJ86QmjxAeIGI3NwAYcjcHTI0o/KCNPI1ATOhuhuW/5NtT0r6LO/SgZlQ+/88U2vpL+
-         eH4MrEF7alc9IrXS4PyqwxQEDhqgqh07Hs3DbFGs++0vZIJzRchHuftlSor6KlcHySi6
-         iczA==
-X-Forwarded-Encrypted: i=1; AJvYcCWDYWzgmI+JWwRIAZh9ShHPq5iRQVfaB15KZjjr6E/FMqhqa7qTYVll6UBlQIzVJIp4au8/RKI=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxeLeIrZxtNUYzkSdQkztWC6HhFkZ0w3+6pWNqDkyxw+6BJMfd7
-	7eNEeW+iQLt+v7dLXz+ylmBRGkIvDZmu++z9JPQoBQOE70zm2DWuU4cA
-X-Gm-Gg: AeBDievmwFVjypDnIaIn4RRT3LMFhCJC1E8MIiEI7kxk25akyD86B7BfJGsWjdcXcFr
-	Zv05gxHFT967roRGm2WIot0wBCTHo4BUYs547ySUSVTjLWS0dc/E9nxaC1OPiyNX3WTbHv04igo
-	Ax8cJKZz5MNQJxfOMj4yN22m7/ZlIT8H3Ep5LOSOpkhLaQDTNEe8Q+ZjzWyb9p5C/NwVV2WaFon
-	8SPxRnVkB9YTJsa9I9+o331f1mqqIYsjPZq0/qRSWY/MWDmdNLOx+USQa+j6fxCijxznnfWFt10
-	W8aB86ZKYsB2Qiw7ZxdZw6poKU/Oh37JSoSuxSXZsBVkO+0m0GeTq202jVBtMpDD7808Pa5bSna
-	og3Qtb9lAqRGW7l2P53TzqMMDNWS6iSCfik1rUppm0M1Sdpp84v/oN1clXNVxKHL/DFECeX3EZQ
-	HzweGORkaLvnCm4rs=
-X-Received: by 2002:a05:6a00:6702:b0:82f:1a0b:eb30 with SMTP id d2e1a72fcca58-82f1a0bf063mr3058573b3a.11.1775919466368;
-        Sat, 11 Apr 2026 07:57:46 -0700 (PDT)
-Received: from lgs.. ([199.182.234.55])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82f0c4b17fcsm5949399b3a.33.2026.04.11.07.57.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 11 Apr 2026 07:57:46 -0700 (PDT)
-From: Guangshuo Li <lgs201920130244@gmail.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Guangshuo Li <lgs201920130244@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] device-dax: Fix refcount leak in __devm_create_dev_dax() error path
-Date: Sat, 11 Apr 2026 22:57:26 +0800
-Message-ID: <20260411145726.2299438-1-lgs201920130244@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PTW0H71F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3571CC4AF09;
+	Sat, 11 Apr 2026 23:29:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775950167;
+	bh=bGYMj1nEU3rTt3DSUk3rq+ORCg6O2I9VqoBBgW/e8ZE=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
+	b=PTW0H71FfkjRl1QX4y6k443xaOyYaudhpdTrBQgIp216uINOPXxTscHgzEmi4QvlK
+	 ugROyUVSbyqIn9rlyfxZIgcVL79Tj0uO0LSOxdfzKp5Ln68MJRihJSJXWekVunI9e+
+	 e/Q83YZhS8fCBstXHuWaUeZPi/KtewsaSS39bXW2oUNDgyNPPz4dM7TG0tPJ0w/uxV
+	 O1JdwtTAE3UMJX9jV/fWey2iMkwFszo1yUkUq9vDHComIISede1kiq2HJVHKVS7pdg
+	 +IRZpv8REdXjLhhfiWzTEugsVatT2tp+lODoOAqqKP/U16RDikglsXWf9AUHat6CIf
+	 oVC+0UDnLAI4Q==
+Received: from phl-compute-06.internal (phl-compute-06.internal [10.202.2.46])
+	by mailfauth.phl.internal (Postfix) with ESMTP id 5F449F40068;
+	Sat, 11 Apr 2026 19:29:26 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-06.internal (MEProxy); Sat, 11 Apr 2026 19:29:26 -0400
+X-ME-Sender: <xms:VtnaaQViXEzT_3c_vkp0v9eyDsH95g8wzc0sfEbor4-ItlgcpOVrGQ>
+    <xme:VtnaaRIhzq13-m1HhVomcLPry2aEW13JC-bWpyv2M8PN-JqY9eLnq8TYwFoxI964h
+    U-eVBDQdyakTsjzewMm2sgGGccEl8_oknXJmylJ528mmtW87NOYn7g>
+X-ME-Received: <xmr:VtnaaY15uL4oxRyT6e6uu_fAVkAXZK8dkAQrabzfmCGxucyvUILBG1uZUG0G7X9buCXvbIGmfu4h7Ci5q62uu1zblpxPjtv7fU0>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdeffeejtdcutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
+    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
+    hrpeffhffvvefkjghfufggtgfgsehtjeertddttdejnecuhfhrohhmpeffrghnucghihhl
+    lhhirghmshcuoegujhgsfieskhgvrhhnvghlrdhorhhgqeenucggtffrrghtthgvrhhnpe
+    elhfeiudfgvdeijedtleeltdduueekffejjedvjefhgeevjeefueejledtleetjeenucev
+    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegujhgsfidomh
+    gvshhmthhprghuthhhphgvrhhsohhnrghlihhthidqudejjedvfedtgeehhedqfeeffeel
+    gedtgeejqdgujhgsfieppehkvghrnhgvlhdrohhrghesfhgrshhtmhgrihhlrdgtohhmpd
+    hnsggprhgtphhtthhopeelpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehlghhs
+    vddtudelvddtudeftddvgeegsehgmhgrihhlrdgtohhmpdhrtghpthhtohepvhhishhhrg
+    hlrdhlrdhvvghrmhgrsehinhhtvghlrdgtohhmpdhrtghpthhtohepuggrvhgvrdhjihgr
+    nhhgsehinhhtvghlrdgtohhmpdhrtghpthhtoheprghkphhmsehlihhnuhigqdhfohhunh
+    gurghtihhonhdrohhrghdprhgtphhtthhopehnvhguihhmmheslhhishhtshdrlhhinhhu
+    gidruggvvhdprhgtphhtthhopehlihhnuhigqdgtgihlsehvghgvrhdrkhgvrhhnvghlrd
+    horhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghl
+    rdhorhhgpdhrtghpthhtohepshhtrggslhgvsehvghgvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:VtnaaWJwMXZeycWNjiQNAB0ocSUhbnqqeopV4oCaEH3MWJok6S2Bvw>
+    <xmx:Vtnaabi9erDa7dLzLKn1g_I5gAkfykv5676W2mhlChTaL_Zo7pDiGg>
+    <xmx:VtnaaeCOWLm4KNsynmcuCBdiWmTd794QduiYt3gUd4UJenekD-vPHw>
+    <xmx:VtnaaV5-UgUpwBam6oNLcrgDgy8UVKQZBPdZNeg9toLD-3Pmexh1Xw>
+    <xmx:VtnaabFSwiYaevjut23MZeWtjqznb_G7fOOG8wYBUWmTRk7xw-hwvA8R>
+Feedback-ID: i67ae4b3e:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
+ 11 Apr 2026 19:29:25 -0400 (EDT)
+Date: Sat, 11 Apr 2026 16:29:24 -0700
+From: Dan Williams <djbw@kernel.org>
+To: Guangshuo Li <lgs201920130244@gmail.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, 
+ Dave Jiang <dave.jiang@intel.com>, 
+ Andrew Morton <akpm@linux-foundation.org>, 
+ nvdimm@lists.linux.dev, 
+ linux-cxl@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+Cc: Guangshuo Li <lgs201920130244@gmail.com>, 
+ stable@vger.kernel.org
+Message-ID: <69dad954cbd27_fdcb41005c@djbw-dev.notmuch>
+In-Reply-To: <20260411145726.2299438-1-lgs201920130244@gmail.com>
+References: <20260411145726.2299438-1-lgs201920130244@gmail.com>
+Subject: Re: [PATCH] device-dax: Fix refcount leak in __devm_create_dev_dax()
+ error path
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-After device_initialize(), the lifetime of the embedded struct device is
-expected to be managed through the device core reference counting.
+Guangshuo Li wrote:
+> After device_initialize(), the lifetime of the embedded struct device is
+> expected to be managed through the device core reference counting.
+> 
+> In __devm_create_dev_dax(), several failure paths after
+> device_initialize() free dev_dax directly instead of releasing the
+> device reference with put_device(). This bypasses the normal device
+> lifetime rules and may leave the reference count of the embedded struct
+> device unbalanced, resulting in a refcount leak and potentially leading
+> to a use-after-free.
 
-In __devm_create_dev_dax(), several failure paths after
-device_initialize() free dev_dax directly instead of releasing the
-device reference with put_device(). This bypasses the normal device
-lifetime rules and may leave the reference count of the embedded struct
-device unbalanced, resulting in a refcount leak and potentially leading
-to a use-after-free.
+Please do not list "theoretical" problems as justification. Point to
+real problems.
 
-Fix this by assigning dev->type before device_initialize(), so the
-release callback is available for put_device(), and use put_device() in
-the post-initialization error paths. Keep dev_dax range cleanup explicit
-in the error path.
+> Fix this by assigning dev->type before device_initialize(), so the
+> release callback is available for put_device(), and use put_device() in
+> the post-initialization error paths. Keep dev_dax range cleanup explicit
+> in the error path.
 
-Fixes: c2f3011ee697f ("device-dax: add an allocation interface for device-dax instances")
-Cc: stable@vger.kernel.org
-Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
----
- drivers/dax/bus.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+I see a more straightforward way to address just the practical problem
+that also incorporates the other feedback I have below. Can you spot
+that and fixup the changelog to address the practical impact?
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index fde29e0ad68b..8753115cd371 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -1453,6 +1453,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 	}
- 
- 	dev = &dev_dax->dev;
-+	dev->type = &dev_dax_type;
- 	device_initialize(dev);
- 	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
- 
-@@ -1499,7 +1500,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 	dev->devt = inode->i_rdev;
- 	dev->bus = &dax_bus_type;
- 	dev->parent = parent;
--	dev->type = &dev_dax_type;
- 
- 	rc = device_add(dev);
- 	if (rc) {
-@@ -1523,14 +1523,21 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 
- err_alloc_dax:
- 	kfree(dev_dax->pgmap);
-+	dev_dax->pgmap = NULL;
-+
- err_pgmap:
- 	free_dev_dax_ranges(dev_dax);
-+	put_device(dev);
-+	return ERR_PTR(rc);
-+
- err_range:
--	free_dev_dax_id(dev_dax);
-+	put_device(dev);
-+	return ERR_PTR(rc);
-+
- err_id:
- 	kfree(dev_dax);
--
- 	return ERR_PTR(rc);
-+
- }
- 
- struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
--- 
-2.43.0
+> Fixes: c2f3011ee697f ("device-dax: add an allocation interface for device-dax instances")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
+> ---
+>  drivers/dax/bus.c | 13 ++++++++++---
+>  1 file changed, 10 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index fde29e0ad68b..8753115cd371 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -1453,6 +1453,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  	}
+>  
+>  	dev = &dev_dax->dev;
+> +	dev->type = &dev_dax_type;
+>  	device_initialize(dev);
+>  	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
+>  
+> @@ -1499,7 +1500,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  	dev->devt = inode->i_rdev;
+>  	dev->bus = &dax_bus_type;
+>  	dev->parent = parent;
+> -	dev->type = &dev_dax_type;
+>  
+>  	rc = device_add(dev);
+>  	if (rc) {
+> @@ -1523,14 +1523,21 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  
+>  err_alloc_dax:
+>  	kfree(dev_dax->pgmap);
+> +	dev_dax->pgmap = NULL;
+> +
+>  err_pgmap:
+>  	free_dev_dax_ranges(dev_dax);
+> +	put_device(dev);
+> +	return ERR_PTR(rc);
+> +
+>  err_range:
+> -	free_dev_dax_id(dev_dax);
+> +	put_device(dev);
+> +	return ERR_PTR(rc);
 
+Please no gotos with early returns, that makes a mess.
