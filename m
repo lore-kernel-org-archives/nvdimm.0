@@ -1,56 +1,75 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C94273D6D
-	for <nvdimm@lists.linux.dev>; Sat, 11 Apr 2026 01:14:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 466A9385510
+	for <nvdimm@lists.linux.dev>; Sat, 11 Apr 2026 14:57:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775870043; cv=none; b=fE2eojRKkjqiQXKAyokzd4x1G9TFWN5d0rXI4U0huIZUbZOdIdCR/SerXfQLv9WTsHdAu1cxk2szvviirbp7FgGA+MZT0RKtLEHYqdTLVbCtOIVYx5RWE8EI2aTyM9tBeXhy2gyyVMCw2alww2n0/9FYj3ffHx3c+h7gIx30AZI=
+	t=1775919468; cv=none; b=OmN5zTZMp4bQn/VcI/i0RX/C57nmjPB/5QkkI33Y8KjwrvZHvRL2UaloMtsZNS4SezP84lhFUFMWj0PissjOrA+bVlM/QXCS1wjMlfPJ6mlvP4BwKTwQey4pv1D/Sc0Potbhh9Hm6nuKjnLdYJId9qwey4P8Ab8PU4h9CUu31F4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775870043; c=relaxed/simple;
-	bh=Prt7EBHgmHveLZtcjqu7hk2a++d3Ai0nA1qmLG5r6jw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qqkUAJgwybf2M/T4A8veVr75tZBRrAY8Y6JIuMrB76SsyLJv0S1RqIeHJdQaFbHw6rKDpB3j4ykPOEXZWHOfJFK5UgbwP0K7uXnOS5dpX2pDi9BktoyrDk+h5JgoQtxVSWva7HfnlkxkcHL2+qlJdyfCsVpo9MJKdWy8dssL1Ec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YceEMR2u; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1775919468; c=relaxed/simple;
+	bh=KZhRFKvZZu8iovP22IupFjT2Gu6PJku17dMapEr38Pg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=d435z8rziEbj0yYxqGgdda5mW0nKk278n4mDu5QZlg8lBWT+Akv33TA4IUkRD2GX1pawfUJJCM5YjM+tO3D26PWGE/ilwIu4MssljGPb+Wn9veil8hEcR88vYZqPwJ580S0nMt/Ha4RTytBg6ht+8ABgfYnXuFFb373niDF5phg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KoHOqYcH; arc=none smtp.client-ip=209.85.210.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YceEMR2u"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1775870042; x=1807406042;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=Prt7EBHgmHveLZtcjqu7hk2a++d3Ai0nA1qmLG5r6jw=;
-  b=YceEMR2uG4qtxR4EAqbqd+WdDqIQ3H8D9wsR60sZ0O7wO8i+MoKCK2wA
-   b0xm12N+BwIdHnk0sKYMoSogfRgb0SXBGO7shqdCsvyObqash9ycSMiJh
-   DXHjxMqR+UcbiqCtlNVtXKWjPSa2CjCk0oDXXMGEOXrcjmxs8POrr9aMQ
-   MB3an/8Py+qWUsb2gjS5WnUlu4uSuiIpL+SqPt1kkqNF0B1FH5ucSSx5s
-   wA2zeVNCgKxvbxNGvpSQrt5r+IAOztNQq+RnwKwO8TlqYNJ2JDOiYZS/c
-   djKT2GrZs8KoqxrYZ0/ZJsm3Zbgt6tpEnAnLb+9TzJXVWlVPZffCxQE0q
-   w==;
-X-CSE-ConnectionGUID: AANYREMSSOOfY0AY3nXF2g==
-X-CSE-MsgGUID: Pb2XXTQKQyCsXBWl3ertkg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11755"; a="88337731"
-X-IronPort-AV: E=Sophos;i="6.23,172,1770624000"; 
-   d="scan'208";a="88337731"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Apr 2026 18:14:02 -0700
-X-CSE-ConnectionGUID: E2gegKDuSZq6oBV7fy2E4g==
-X-CSE-MsgGUID: fVjBgSf7Sw+XklDO1cv0Dg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,172,1770624000"; 
-   d="scan'208";a="267226848"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.123])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Apr 2026 18:14:01 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>
-Subject: [ndctl PATCH] cxl/list: apply bus and port filters to anonymous memdevs
-Date: Fri, 10 Apr 2026 18:13:56 -0700
-Message-ID: <20260411011358.3133190-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KoHOqYcH"
+Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-82f206f2b54so141785b3a.0
+        for <nvdimm@lists.linux.dev>; Sat, 11 Apr 2026 07:57:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1775919466; x=1776524266; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=scV4iKj0YWAH3OkdMKrFOu3wLw5+cHFeHwRQSwEoBmA=;
+        b=KoHOqYcHjvKAL4HGxsrTilmsvBmhe1CXgwxINxq8ENHWrVuIGozwJlDXKE6tHwFXtZ
+         E/0vDZaEkSdc1XNYsIRXo8eLjcSc9kWf9P5hEuE89BINMhPjigaygSquuCU9BTc3FYOo
+         F/k0TpdUJ0vHMeqFmsXA5e6qCBWzEAR7Ypmk2onLyHMW0mZssdWqrcIh9kpxDfoNabFG
+         KkC3f6e8tU7aExwCIa4J/gKdn/aHui8qdJ7fpUddHpzzwXYesQEtI2/4d+AF0F8A0z7d
+         WauCmx9N6uerrULblmKXHjgmwCMvNn9HzOI4OOyFkNNygdnZEbZKLQ0ZjaGRhJn8da94
+         jSLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775919466; x=1776524266;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=scV4iKj0YWAH3OkdMKrFOu3wLw5+cHFeHwRQSwEoBmA=;
+        b=QNO8xHtc0k8XmctYSLwiI+eHVfS2Z45AYREwhU5SwzL5RYtNicOM5tX3zqInMWvlf2
+         nBV24iXHYfsjclcnUXjHdU+GZ9M1gbEZ4LGwp06zLFBucj/D34wZXsdlHKqdEmmiNnhX
+         FDY2ovCLSgI0TC+f+WQ83k/QzcjWihGWX8t7yL3K44AnXwPlVfbirz6Sn+cjtZudx+t+
+         KOJ86QmjxAeIGI3NwAYcjcHTI0o/KCNPI1ATOhuhuW/5NtT0r6LO/SgZlQ+/88U2vpL+
+         eH4MrEF7alc9IrXS4PyqwxQEDhqgqh07Hs3DbFGs++0vZIJzRchHuftlSor6KlcHySi6
+         iczA==
+X-Forwarded-Encrypted: i=1; AJvYcCWDYWzgmI+JWwRIAZh9ShHPq5iRQVfaB15KZjjr6E/FMqhqa7qTYVll6UBlQIzVJIp4au8/RKI=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxeLeIrZxtNUYzkSdQkztWC6HhFkZ0w3+6pWNqDkyxw+6BJMfd7
+	7eNEeW+iQLt+v7dLXz+ylmBRGkIvDZmu++z9JPQoBQOE70zm2DWuU4cA
+X-Gm-Gg: AeBDievmwFVjypDnIaIn4RRT3LMFhCJC1E8MIiEI7kxk25akyD86B7BfJGsWjdcXcFr
+	Zv05gxHFT967roRGm2WIot0wBCTHo4BUYs547ySUSVTjLWS0dc/E9nxaC1OPiyNX3WTbHv04igo
+	Ax8cJKZz5MNQJxfOMj4yN22m7/ZlIT8H3Ep5LOSOpkhLaQDTNEe8Q+ZjzWyb9p5C/NwVV2WaFon
+	8SPxRnVkB9YTJsa9I9+o331f1mqqIYsjPZq0/qRSWY/MWDmdNLOx+USQa+j6fxCijxznnfWFt10
+	W8aB86ZKYsB2Qiw7ZxdZw6poKU/Oh37JSoSuxSXZsBVkO+0m0GeTq202jVBtMpDD7808Pa5bSna
+	og3Qtb9lAqRGW7l2P53TzqMMDNWS6iSCfik1rUppm0M1Sdpp84v/oN1clXNVxKHL/DFECeX3EZQ
+	HzweGORkaLvnCm4rs=
+X-Received: by 2002:a05:6a00:6702:b0:82f:1a0b:eb30 with SMTP id d2e1a72fcca58-82f1a0bf063mr3058573b3a.11.1775919466368;
+        Sat, 11 Apr 2026 07:57:46 -0700 (PDT)
+Received: from lgs.. ([199.182.234.55])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82f0c4b17fcsm5949399b3a.33.2026.04.11.07.57.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 11 Apr 2026 07:57:46 -0700 (PDT)
+From: Guangshuo Li <lgs201920130244@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Guangshuo Li <lgs201920130244@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] device-dax: Fix refcount leak in __devm_create_dev_dax() error path
+Date: Sat, 11 Apr 2026 22:57:26 +0800
+Message-ID: <20260411145726.2299438-1-lgs201920130244@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -59,71 +78,72 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Anonymous memdevs are disabled memdevs that do not nest in the
-topology output and are reported separately in the "anon memdevs"
-array.
+After device_initialize(), the lifetime of the embedded struct device is
+expected to be managed through the device core reference counting.
 
-A user reports that cxl list -M -i with a port filter may return
-anonymous memdevs that are not part of the selected port. In this
-case, QEMU-defined disabled memdevs were returned in a query of a
-cxl_test bus port.
+In __devm_create_dev_dax(), several failure paths after
+device_initialize() free dev_dax directly instead of releasing the
+device reference with put_device(). This bypasses the normal device
+lifetime rules and may leave the reference count of the embedded struct
+device unbalanced, resulting in a refcount leak and potentially leading
+to a use-after-free.
 
-The issue has two parts. First, util_cxl_memdev_filter_by_port() does 
-not properly constrain bus-filtered queries. It treats the bus name
-as a port identifier, allowing memdevs from other buses to match.
+Fix this by assigning dev->type before device_initialize(), so the
+release callback is available for put_device(), and use put_device() in
+the post-initialization error paths. Keep dev_dax range cleanup explicit
+in the error path.
 
-Second, cxl_filter_walk() collects anonymous memdevs in a global
-pre-pass without applying decoder, bus, or port filters, so disabled
-memdevs outside the requested scope are included.
-
-Update util_cxl_memdev_filter_by_port() to limit the search to the
-selected bus and match ports only within that bus. Apply decoder and
-bus/port filtering to anonymous memdevs so they follow the same rules
-as other memdev listings.
-
-Found with CXL unit test cxl-topology.sh
-
-Reported-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Fixes: c2f3011ee697f ("device-dax: add an allocation interface for device-dax instances")
+Cc: stable@vger.kernel.org
+Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
 ---
- cxl/filter.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/dax/bus.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/cxl/filter.c b/cxl/filter.c
-index 8c7dc6e31701..5d634d3b2512 100644
---- a/cxl/filter.c
-+++ b/cxl/filter.c
-@@ -615,12 +615,12 @@ util_cxl_memdev_filter_by_port(struct cxl_memdev *memdev, const char *bus_ident,
- 		struct cxl_port *port, *top;
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index fde29e0ad68b..8753115cd371 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -1453,6 +1453,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 	}
  
- 		port = cxl_bus_get_port(bus);
--		if (util_cxl_bus_filter(bus, bus_ident))
--			if (__memdev_filter_by_port(memdev, port,
--						    cxl_bus_get_devname(bus)))
--				return memdev;
+ 	dev = &dev_dax->dev;
++	dev->type = &dev_dax_type;
+ 	device_initialize(dev);
+ 	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
+ 
+@@ -1499,7 +1500,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 	dev->devt = inode->i_rdev;
+ 	dev->bus = &dax_bus_type;
+ 	dev->parent = parent;
+-	dev->type = &dev_dax_type;
+ 
+ 	rc = device_add(dev);
+ 	if (rc) {
+@@ -1523,14 +1523,21 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 
+ err_alloc_dax:
+ 	kfree(dev_dax->pgmap);
++	dev_dax->pgmap = NULL;
 +
-+		if (!util_cxl_bus_filter(bus, bus_ident))
-+			continue;
- 		if (__memdev_filter_by_port(memdev, port, port_ident))
--				return memdev;
-+			return memdev;
+ err_pgmap:
+ 	free_dev_dax_ranges(dev_dax);
++	put_device(dev);
++	return ERR_PTR(rc);
 +
- 		top = port;
- 		cxl_port_foreach_all(top, port)
- 			if (__memdev_filter_by_port(memdev, port, port_ident))
-@@ -1125,6 +1125,12 @@ struct json_object *cxl_filter_walk(struct cxl_ctx *ctx,
- 		if (!util_cxl_memdev_filter(memdev, p->memdev_filter,
- 					    p->serial_filter))
- 			continue;
-+		if (!util_cxl_memdev_filter_by_decoder(memdev,
-+						       p->decoder_filter))
-+			continue;
-+		if (!util_cxl_memdev_filter_by_port(memdev, p->bus_filter,
-+						    p->port_filter))
-+			continue;
- 		if (cxl_memdev_is_enabled(memdev))
- 			continue;
- 		if (!p->idle)
+ err_range:
+-	free_dev_dax_id(dev_dax);
++	put_device(dev);
++	return ERR_PTR(rc);
++
+ err_id:
+ 	kfree(dev_dax);
+-
+ 	return ERR_PTR(rc);
++
+ }
+ 
+ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
 -- 
-2.37.3
+2.43.0
 
