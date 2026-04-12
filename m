@@ -1,148 +1,87 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from a10-72.smtp-out.amazonses.com (a10-72.smtp-out.amazonses.com [54.240.10.72])
+	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117061A681D
-	for <nvdimm@lists.linux.dev>; Sun, 12 Apr 2026 07:00:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A8F2199949
+	for <nvdimm@lists.linux.dev>; Sun, 12 Apr 2026 15:50:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.10.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775977226; cv=none; b=WpIJKQLoES42c2p+OLzPhcp6SUr3c3+3TgBDx9U9SrMfzSEcIK7lu82imyFIvAJZDV+ot8tM6jFHdKV5BgBGYcHpy2FMegQLaOJToa19npPvGGuYgz/gBsIXkwwlWXirdG7HIFRK7UyAE2wBBsFFFIPpq9H6/j2xIcS2AKbUKLM=
+	t=1776009008; cv=none; b=h7LROcgcMGekAlkZUqbVCU6qpIrlLdgtslXovRCoL++vjALTjBOESn0lKw/Ke3TEgzC5tWV94SoY57SJp2u9/YqLev7yRlOe/l5WsANMZ9wG+VyjXJcW2eWxXyDKMPujvzfnuze+KWowcB/jHNvquw0B7MKqiYm1QxFmMbQfyWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775977226; c=relaxed/simple;
-	bh=ad9MM76H3qA9Zm7zGQguyywPJdrDLgkSlTE6M7PNjQo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KosX6CdIn02Fyq3Ob43jH+CTMLz6ju7JYTrYrykZcJ+g2/ukOZ6pfFS36fm5kO7lWDN1a0kbwKyv4hgA5iNc8ayq4S+zXRRAxYYtzAvnoNxcASqgsjxkzcd2QdlgQnVBaKhYmgaZ/xC6t0y1FBvbwywLzS6gahjvpGOJJVIldVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iTbmYLpf; arc=none smtp.client-ip=209.85.214.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776009008; c=relaxed/simple;
+	bh=neAQvvv/hyVTBAB5YwhRWXaPt9x/OTou63RHu59lGTc=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:References:
+	 Message-ID; b=NMduOfHhhWhCWhS+Emr7lT66B7bq6pSfIGRchzuK8tE+vpjkOVNdjJyq4swPf/hf8Ig6EBHZp4hlBWo2W3ihJZMcSs3f8dg6wmVqpTSf5rQkHOjhFmfIg10oCiP5NdE8sTfwbn2aCyZP9n6qIxQpK76iguv8EwXmYOWPgGPq5Mg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=pkDqB8ZA; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=MK2rnbyk; arc=none smtp.client-ip=54.240.10.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iTbmYLpf"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-2adbfab4501so13812995ad.2
-        for <nvdimm@lists.linux.dev>; Sun, 12 Apr 2026 00:00:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775977224; x=1776582024; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=agxSRs+wZOd7cJK+5GqSX8xmNcbffxfyow5lUhwJHXU=;
-        b=iTbmYLpfsUEkpMzr+BN2HMmnHcTweL+WhYWNSprt75IAqHaxdN9fPS8Sz1k4rQwl+V
-         wtTYT4Zz7x5NEjMuqOGLfTKaxOMforXfAouR330jzXUXdx2CFLdAic2bI0AlC10umSq5
-         +sB93QOgt4eOatHxFq9nYdSDzwgYx7aY7kVqGjvVSvLpcgkMm/SEBUxLYUvUqWnTlwd4
-         +TzyZXDURplDLpVheBFuU16CMvm2z5pacQZj0bXxgvQ6aPht5o6IMKcD0Hdfve+7HKSS
-         pGzZpYiQoNL223qDJVbP/hBKifEnUcAhjsErMph0tEveX40z/FvcO3JzWTswKg4b2M3Z
-         7g0g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775977224; x=1776582024;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=agxSRs+wZOd7cJK+5GqSX8xmNcbffxfyow5lUhwJHXU=;
-        b=FPvnaJdR+0wkaa5ofEiEVgaPVxEWqluheqLBkEGUi+ZMTHBr0s8WnfijcSgIXubbZo
-         P1iQDylb9pvS7Cq4JQd8uCpTU7+t1/MpotKGY/k3X2TnX9DlI7M5+TBR0ErOhx8YDQvO
-         J14JuTvjDebHWgSQdih1yKWnrb8lNdqT4m42MpCP6v8QIhklH805Ebn1fa6fWFNuUvHm
-         yW3FxofHwEilGqx+t3sryMh4ikqvFRRJKeg+/N6rifHmD3u47LKdGbCpoJmJmqd0f67h
-         GIDbG8igo91K6pMBjl4OrmB8sUnXT1QlUbjHBDNFAo2ifkn/VfEJoqRF8yUQX8jfZK1Y
-         MJKw==
-X-Forwarded-Encrypted: i=1; AFNElJ+Vj8mu0C8rmspp7urlGShSVzm6jcEDvx3qgkyY6CQtO/PdAhyHUk1/1zJ3KC9tmuyKCBbv3DE=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyjOaW+O85S31m6qBA/flpyKhT28K9Nk64g1D0NE67TWzbj9OT1
-	sTDKF+6mApZ86V9ZobDtTVSq2F9SZB8aMYz2QN4qpaHoVA0NdEtRoy5w
-X-Gm-Gg: AeBDieso+bmb5cpCNXMKuFfQUJztWyxuv3Xo5Z8kxeJ3UbNAx9qmAp8eddfMzz+89QM
-	6NtrvKiSTHaCAUgLxsD+HFb/bEsXuMkLjUERxcVDNPifOPTC9LWqtkb9YYTim/8u1Xp/HGyqPXr
-	fTpyeYwLgODXt1iL45iwqzTsV2DA0XB0FgvnlZX01tSO/Ugq0m6vcfaKinOilMRdok7VpJdIIxt
-	PEh4aTDsilOVgZebtrZ2dwyC0esZj8tN3hF9p7TQDVGhxf3UxfdAivM90GAQlQEHhrgRr2ok7d/
-	Irq/Luaq3ZqUJ21utc+CHClQc7Rmni8aO6raM2IVauDfvz2ZxdCg6rZR8F8nNzpoVkH9Ia/Xnyj
-	0qYrVKKvvXjs3Jpjd6/tJCrjBkm+KHwPykQBEam2nmGD4N9hQ8rPpCLx3mX5BHvxK7Cnb37qvrr
-	xSMtZgqphXa/FJnmnIQbJv
-X-Received: by 2002:a17:903:b8e:b0:2b2:647b:a744 with SMTP id d9443c01a7336-2b2d5a584d8mr101853925ad.24.1775977222380;
-        Sun, 12 Apr 2026 00:00:22 -0700 (PDT)
-Received: from lgs.. ([223.80.110.53])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b45c217ba6sm1798355ad.36.2026.04.12.00.00.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 12 Apr 2026 00:00:22 -0700 (PDT)
-From: Guangshuo Li <lgs201920130244@gmail.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Guangshuo Li <lgs201920130244@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v2] device-dax: Fix refcount leak in __devm_create_dev_dax() error path
-Date: Sun, 12 Apr 2026 15:00:10 +0800
-Message-ID: <20260412070010.2402830-1-lgs201920130244@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="pkDqB8ZA";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="MK2rnbyk"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1776009006;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id;
+	bh=neAQvvv/hyVTBAB5YwhRWXaPt9x/OTou63RHu59lGTc=;
+	b=pkDqB8ZAo2BfGISnZK3OR8lfBdIy9VFgGjrIVT7ry/WpsQD4lYX9qz6/DQzIm35G
+	rgxqL/RRUeJFkfbfhJwGQ5p7fM6EuQVbp4/v8crg/7JsIXti+IjSj4LKLkrYF92ybcd
+	/h5cC/35WDvQcZ1IQdPM7PIu8IL77XwgkC2qOtec=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1776009006;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id:Feedback-ID;
+	bh=neAQvvv/hyVTBAB5YwhRWXaPt9x/OTou63RHu59lGTc=;
+	b=MK2rnbykTn4gsG2kBHLRd3n/AueoSpjR6ZQe7HtPS5blDXZjwNUj4NrUnmYyDIM1
+	VxeGJe8tq+NNfmNz1f8ZWdEMSrjK3Gl1xcmTOKtrBjZ9XFBHxTvFgc6jIJ7RFDrQfMO
+	exoTfXqyODOhIIzqQBO7CWokQcsa2SEzmmMplWPE=
+Subject: [PATCH] dax/fsdev: fix uninitialized kaddr in
+ fsdev_dax_zero_page_range()
+From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
+To: =?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>, 
+	=?UTF-8?Q?Vishal_Verma?= <vishal.l.verma@intel.com>, 
+	=?UTF-8?Q?Dave_Jiang?= <dave.jiang@intel.com>, 
+	=?UTF-8?Q?Ira_Weiny?= <ira.weiny@intel.com>, 
+	=?UTF-8?Q?nvdimm=40lists=2El?= =?UTF-8?Q?inux=2Edev?= <nvdimm@lists.linux.dev>, 
+	=?UTF-8?Q?linux-cxl=40vg?= =?UTF-8?Q?er=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>
+Cc: 
+	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
+	=?UTF-8?Q?Dan_Carpenter?= <dan.carpenter@linaro.org>, 
+	=?UTF-8?Q?John_Groves?= <John@Groves.net>, 
+	=?UTF-8?Q?John_Groves?= <john@groves.net>
+Date: Sun, 12 Apr 2026 15:50:06 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+References: <20260412154944.461748-1-john@jagalactic.com>
+X-Mailer: Amazon WorkMail
+Thread-Index: AQHcypQHpyrYMyPqQm+7F5viUQCFoQ==
+Thread-Topic: [PATCH] dax/fsdev: fix uninitialized kaddr in
+ fsdev_dax_zero_page_range()
+X-Wm-Sent-Timestamp: 1776009005
+X-Original-Mailer: git-send-email 2.53.0
+Message-ID: <0100019d8262cda2-9714d31c-8fc1-4ca5-b32d-4df678240d14-000000@email.amazonses.com>
+Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
+X-SES-Outgoing: 2026.04.12-54.240.10.72
 
-After device_initialize(), the embedded struct device in dev_dax is
-expected to be released through the device core with put_device().
-
-In __devm_create_dev_dax(), several failure paths after
-device_initialize() free dev_dax directly instead of dropping the device
-reference, which bypasses the normal device core lifetime handling and
-leaks the reference held on the embedded struct device.
-
-Fix this by assigning dev->type before device_initialize(), so the
-release callback is available, use put_device() in the
-post-initialization error paths, and keep dev_dax range cleanup explicit
-since it is not handled by dev_dax_release().
-
-Fixes: c2f3011ee697f ("device-dax: add an allocation interface for device-dax instances")
-Cc: stable@vger.kernel.org
-Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
----
-v2:
-  - clarify the commit message around the device reference leak
-  - drop the unsupported use-after-free claim
-  - set dev->type before device_initialize() so put_device() can use the
-    release callback on post-init failures
-  - simplify the post-initialization error paths to use explicit range
-    cleanup plus put_device()
-
- drivers/dax/bus.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index fde29e0ad68b..2d92674d0d6e 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -1453,6 +1453,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 	}
- 
- 	dev = &dev_dax->dev;
-+	dev->type = &dev_dax_type;
- 	device_initialize(dev);
- 	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
- 
-@@ -1499,7 +1500,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 	dev->devt = inode->i_rdev;
- 	dev->bus = &dax_bus_type;
- 	dev->parent = parent;
--	dev->type = &dev_dax_type;
- 
- 	rc = device_add(dev);
- 	if (rc) {
-@@ -1522,14 +1522,13 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 	return dev_dax;
- 
- err_alloc_dax:
--	kfree(dev_dax->pgmap);
- err_pgmap:
- 	free_dev_dax_ranges(dev_dax);
- err_range:
--	free_dev_dax_id(dev_dax);
-+	put_device(dev);
-+	return ERR_PTR(rc);
- err_id:
- 	kfree(dev_dax);
--
- 	return ERR_PTR(rc);
- }
- 
--- 
-2.43.0
-
+From: John Groves <John@Groves.net>=0D=0A=0D=0A__fsdev_dax_direct_access(=
+) returns -EFAULT without setting *kaddr when=0D=0Adax_pgoff_to_phys() re=
+turns -1 (pgoff out of range). The return value=0D=0Awas ignored, leaving=
+ kaddr uninitialized before being passed to=0D=0Afsdev_write_dax().=0D=0A=
+=0D=0ACheck the return value and propagate the error.=0D=0A=0D=0AThanks t=
+o Dan Carpenter and the smatch project for reporting this.=0D=0A=0D=0ASig=
+ned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A drivers/dax/fsde=
+v.c | 5 ++++-=0D=0A 1 file changed, 4 insertions(+), 1 deletion(-)=0D=0A=0D=
+=0Adiff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c=0D=0Aindex 4499=
+d9621f33..188b2526bee4 100644=0D=0A--- a/drivers/dax/fsdev.c=0D=0A+++ b/d=
+rivers/dax/fsdev.c=0D=0A@@ -80,9 +80,12 @@ static int fsdev_dax_zero_page=
+_range(struct dax_device *dax_dev,=0D=0A =09=09=09pgoff_t pgoff, size_t n=
+r_pages)=0D=0A {=0D=0A =09void *kaddr;=0D=0A+=09long rc;=0D=0A=20=0D=0A =09=
+WARN_ONCE(nr_pages > 1, "%s: nr_pages > 1\n", __func__);=0D=0A-=09__fsdev=
+_dax_direct_access(dax_dev, pgoff, 1, DAX_ACCESS, &kaddr, NULL);=0D=0A+=09=
+rc =3D __fsdev_dax_direct_access(dax_dev, pgoff, 1, DAX_ACCESS, &kaddr, N=
+ULL);=0D=0A+=09if (rc < 0)=0D=0A+=09=09return rc;=0D=0A =09fsdev_write_da=
+x(kaddr, ZERO_PAGE(0), 0, PAGE_SIZE);=0D=0A =09return 0;=0D=0A }=0D=0A=0D=
+=0Abase-commit: 2ae624d5a555d47a735fb3f4d850402859a4db77=0D=0A--=20=0D=0A=
+2.53.0=0D=0A=0D=0A
