@@ -1,134 +1,126 @@
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-a8-smtp.messagingengine.com (flow-a8-smtp.messagingengine.com [103.168.172.143])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ABD83CBE69
-	for <nvdimm@lists.linux.dev>; Mon, 13 Apr 2026 15:33:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003053BF68E
+	for <nvdimm@lists.linux.dev>; Mon, 13 Apr 2026 15:37:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.143
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776094416; cv=none; b=d6BASd8ZwtsRVLZobRevMiA3YoAQECtjTR8jS+bOmVkxv/gg/DI3rpyWay3G+DJ/p6cjZdnL/SV48RSdmi8jWxkqKcEvQ4Qxf5kNDwWE7qzG1e2fjgTjF/8CL7dN5tcFiT8KtenF3R9YUjh7le6uGgFcKtxgo4408Gat09lKs1g=
+	t=1776094639; cv=none; b=S0YMqDLP5UFSIhJu5fFfONecKhBne3Z7fOQWj2nT5koMEiT7bSrIUosSI12ZCa57R7ZJQDr2O04QoeykPa8po3LKkoew61kZnP/QaQ5z5y4ph1hRXNtO4wbsZnQ5w/nCTxyAXqM7l9o3PlbweTTluslmND7GVMASls1XDrNvScE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776094416; c=relaxed/simple;
-	bh=iX4hzBFj2m2KZiJVUrG8vp2JMXC1uhBlllLkPM8W0L4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jqckXQuCiMOJVQTbylQ1eKoO3n+yyOpwf23vqLi1Sy8Imup3uh6SWVbzqaoToZd6HNVFTUXYlZhRGo7+/PxR+2ewoZqjwXd/Vz+PKZApxKPDJiG4itYMOtMpOGKk2P8hlfp0BnSCzxNaqVmgOALMaeT4CYx/CyIHA4jNE59I/Cg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jSBrHPB5; arc=none smtp.client-ip=209.85.128.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776094639; c=relaxed/simple;
+	bh=y1ke5gb2xuiN8FFIldU6UiCwJkfDC5LydsNnw3HHWhs=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=Q9kHiWMSWZMIq9DVxQlsU0Jf4OfztQrOb6PC7M+Wk/wdPklIL7SmlLnW+T+cSbrguYrt0AJD5JXpABHsFZWZIONpzYgFkzfLhQFgAzwCMxn/QPMHTJvCm8vZVhjSkoqmcLWama5f6DbmZ1dhRmduqTPlyMmTNkv7/AhoU0g/lJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.com; spf=pass smtp.mailfrom=fastmail.com; dkim=pass (2048-bit key) header.d=fastmail.com header.i=@fastmail.com header.b=mPE3fXBT; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=ZsWBLItC; arc=none smtp.client-ip=103.168.172.143
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jSBrHPB5"
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-4887fd35e60so32363425e9.2
-        for <nvdimm@lists.linux.dev>; Mon, 13 Apr 2026 08:33:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776094414; x=1776699214; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=9ShgF/BpsS7cAVnwA77xlwKbX+t0sp7V8xBcXlbEXIY=;
-        b=jSBrHPB5aB+KtBHxqGW6Fz81tXyRDW5tzFEm4zg3lpe85WPoDagRA6pyE0BzqLEMYa
-         nj/mNhYmyF/tYSIv6A6epkEZ1bVMANx2XSBtlxXWXQhyoB+bAuY9pBx7Awmr21cdKNPv
-         3RuE9P3K0PDwQ3fTgwyh89ZlINjOAOL7wJ54/2EKABVpTFfnwDH3SNNSKJ9gAQ08ePwa
-         p2pDGH4OuhdgqCzcg2NhIm3fkwbkvE6JcIILLVdes6BnWVv991AKrxTPvqziPvGYm9+J
-         1ZmZug1I0lE4Ol6NtcTs0okv7w4aEAo/mkKXT5s0+7g2mBRT8Hnp4X562MbwZERMne6a
-         nIUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776094414; x=1776699214;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=9ShgF/BpsS7cAVnwA77xlwKbX+t0sp7V8xBcXlbEXIY=;
-        b=kTLlxZoM4ucLRdGtzsieieKVQ8be7C77bckYJ1QThcndoBbc8U1sKAg6T+lbosDDYX
-         r4PEtrUYqiq+lprQD6xGmeBys5s4J5Tq8mDJYmydL9xm7d/TNfmoaFOhpTXTHYRSd0h9
-         22ea1FMLlrjrQ42/hEM0pA3m67JhQgePqjd3sMz61W5BJ4ecJuf04Im8Ugu5fpDAKMqE
-         T2/lY7gZgXe2nutNoth3OkV5TGGOG+f1y74Nki/y1WTjHRwsAxMtRl4hj0P7XsS4d3cO
-         Z+TuL/tcHM5W3y0prAKJNZKTat7cPF4E7PVHXKBO1R2JOhzy3QE/52tKR5hwCArw/+D0
-         f18A==
-X-Forwarded-Encrypted: i=1; AFNElJ+cfnjZIybZ+xbyDa9yp9P4EzVEEQd0VxU95LHJzp6nyOTPeloASyFEFgsSw1Z+JLquZv3kvoU=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwTPFlPa1FPt1D9EcjV/WsErgrqyL2PlQVHuX3LUn4467bZ8EeU
-	MG51aa//Xw5w6gjgUe1mzdv4jIx3g/X1PZx/JVFa2GW85BSMss/lq9Rj
-X-Gm-Gg: AeBDietJ2rPZPf9bNtKUCtvKNZKDVNJVqKzRaxlOPLKLhMgEoNCEGpkoS4P0f7Qt46I
-	T1Cb3f9V4w+2MUxMH4vS12FRWGrK2YOMP0LSDqLQW8SVtNfwtkZhY5JG8JI4bcCkbohZAV+caWd
-	VBQ3FV/7EJ37CxxRrMgrS25p+qacNV8M8GLJ2pBT21hyj9MGvNtaGxaBps7I3vE8nZCMx7TUNA/
-	PTUilHSU7WxsfkOblyHwFTkOz2biA/SOJpKNJU00puHhLI2HIUjEkJ1WRq8UK8QBikkQVkSi6wn
-	0S6qiwR4ric86dAlMo1NWHEnSlAhMJe0nbgC/oqMOSHeFHFUkyDfGWhMnbaw7YTHvbxJSi8d+Je
-	CA6L2kKWxzbhedg3fSc5Ab86cOYoXrQ7z9WbZyRbOSgyWjQAKboplj5AE9/4gWY/S6vDW4lX1+6
-	DW8ThMU9n13RrjowyqkWmI+880WtpaT0FnPn7khd+zl6tH2DdBnWPu6FbKNg4ugPtLuftkGu8=
-X-Received: by 2002:a05:600c:314b:b0:488:b241:2c5f with SMTP id 5b1f17b1804b1-488d687c076mr159606435e9.26.1776094413364;
-        Mon, 13 Apr 2026 08:33:33 -0700 (PDT)
-Received: from f (cst-prg-89-171.cust.vodafone.cz. [46.135.89.171])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488d684406bsm94248555e9.24.2026.04.13.08.33.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Apr 2026 08:33:31 -0700 (PDT)
-Date: Mon, 13 Apr 2026 17:33:21 +0200
-From: Mateusz Guzik <mjguzik@gmail.com>
-To: Huang Shijie <huangsj@hygon.cn>
-Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, brauner@kernel.org, 
-	linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, muchun.song@linux.dev, 
-	osalvador@suse.de, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-parisc@vger.kernel.org, nvdimm@lists.linux.dev, 
-	zhongyuan@hygon.cn, fangbaoshun@hygon.cn, yingzhiwei@hygon.cn
-Subject: Re: [PATCH 0/3] mm: split the file's i_mmap tree for NUMA
-Message-ID: <76pfiwabdgsej6q2yxfh3efuqvsyg7mt7rvl5itzzjyhdrto5r@53viaxsackzv>
-References: <20260413062042.804-1-huangsj@hygon.cn>
+	dkim=pass (2048-bit key) header.d=fastmail.com header.i=@fastmail.com header.b="mPE3fXBT";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ZsWBLItC"
+Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
+	by mailflow.phl.internal (Postfix) with ESMTP id 5305613808AC;
+	Mon, 13 Apr 2026 11:37:17 -0400 (EDT)
+Received: from phl-imap-16 ([10.202.2.88])
+  by phl-compute-02.internal (MEProxy); Mon, 13 Apr 2026 11:37:17 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fastmail.com; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1776094637;
+	 x=1776098237; bh=isCljd4BCPG3HJK3zKTboOtcG/nGAMzjBZJjfS3t7zU=; b=
+	mPE3fXBT4Lo63Sk4v63CEqsDKsRcwI97kff+KeB9LQR2tUpKYaCqMvWqTKxEhW8H
+	C9Dx/4A+80ppCBY6lUWY2WpyiMHjSav7gr0oCGk23LRLLF/hdjToXOmGxxh+5DLE
+	lKP/ZI6ZgoAUkR7XFaoDusMM8Y0CmR7Va4+amIoOUhVAbwE40zIirAnud5Q7pE0/
+	BQVkiU5DzXbPNSEkXIplJX+jjsivT+Wq7UJOVVVjbOfRBIUWSZci0U69isIMD3RM
+	qziK3q8NTabAoWsqFoyzQ1OmBP1JMbnoRJxjTCx/rV64d38voDa+8gB1aivmJw0n
+	qFkTZ25b9hUfB7OjVFsf8A==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1776094637; x=
+	1776098237; bh=isCljd4BCPG3HJK3zKTboOtcG/nGAMzjBZJjfS3t7zU=; b=Z
+	sWBLItCgpBLW/X6TabAqj3l3aIiS8a0TYoVYaPSNPRBZ2iKpB1NEV73Ahpp59RKB
+	sftAEHOUKjoyxgIe6nbyIcOGvgjzU29pFQ8resA8yi7Er7hCbUH3aizc64hKQakm
+	qNa0Ot/XMfPL2UXgnkV6MguNDImir/NK+UKmiuB9F1WRdKv1HgSnCZ/iN3Pk22te
+	WvUk2dUjLNhlkQGm4646vqQlkGrl5FBAAM9FNOVYojqXz+F57QGXbvIySKRF9rTv
+	YKKoCxFeDnPC2xB28WHBDAveb7fGXruAH3QgBucNlTxuiIlE9f5euJniyhhGIHjE
+	9EeM4O8eXA5b0EQmVGsfg==
+X-ME-Sender: <xms:rA3dafbKyfHCZFXBnTEPuvC0o_BMQP3cGXb6poi8d54fQp50gNObvw>
+    <xme:rA3daZNCm4mzv_27s33XNPsHhCwXjga_UrYz2JAg2Jvm3Tnueoyusfra5nxrtRTrg
+    OIm_zRCAeqLatSu8cY7-YO3OEg90qE9sFWjL4du_-lWhaqnV-mkq34>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdefkeeitdcutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
+    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
+    hrpefoggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdffrghnucgh
+    ihhllhhirghmshdfuceoughjsgifsehfrghsthhmrghilhdrtghomheqnecuggftrfgrth
+    htvghrnhepvdetgeejgeejvedttdejffelgfeihfeuheejvdeuuedvffefffetudelveeh
+    vdetnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepug
+    hjsgifsehfrghsthhmrghilhdrtghomhdpnhgspghrtghpthhtohepledpmhhouggvpehs
+    mhhtphhouhhtpdhrtghpthhtoheplhhgshdvtdduledvtddufedtvdeggeesghhmrghilh
+    drtghomhdprhgtphhtthhopegurghnrdhjrdifihhllhhirghmshesihhnthgvlhdrtgho
+    mhdprhgtphhtthhopegurghvvgdrjhhirghnghesihhnthgvlhdrtghomhdprhgtphhtth
+    hopehvihhshhgrlhdrlhdrvhgvrhhmrgesihhnthgvlhdrtghomhdprhgtphhtthhopegr
+    khhpmheslhhinhhugidqfhhouhhnuggrthhiohhnrdhorhhgpdhrtghpthhtohepnhhvug
+    himhhmsehlihhsthhsrdhlihhnuhigrdguvghvpdhrtghpthhtoheplhhinhhugidqtgig
+    lhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnh
+    gvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehsthgrsghlvgesvhhg
+    vghrrdhkvghrnhgvlhdrohhrgh
+X-ME-Proxy: <xmx:rA3daa7UgkgnOcKmbpDfbGNVCFL9bKINCRKOsbNa1LCdDu0e-3sm1w>
+    <xmx:rA3daW_jpY9GG4EB6LqBG7YBTEgQ7KPUrYPVdJ4TpZCbuOnVkIOXwg>
+    <xmx:rA3daUFoaXyYeaNx3xekkOxg5ij_9j54m9rMLPjYzZYkkzIhGNxkRg>
+    <xmx:rA3daTVBev91FR0bkoCh0n9dFgH9fw_F_tC3WM7WUJp2wwtqUqBGbA>
+    <xmx:rQ3daa-SZ64h0KPuE4HUUnuGyo2NJaa6KOuu4_-WGpgtNv8vUacWfeQr>
+Feedback-ID: i006e4b2f:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id BD9622CC0083; Mon, 13 Apr 2026 11:37:16 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260413062042.804-1-huangsj@hygon.cn>
+X-ThreadId: AcMtGZTwwEIV
+Date: Mon, 13 Apr 2026 08:36:55 -0700
+From: "Dan Williams" <djbw@fastmail.com>
+To: "Guangshuo Li" <lgs201920130244@gmail.com>,
+ "Dan J Williams" <dan.j.williams@intel.com>,
+ "Vishal Verma" <vishal.l.verma@intel.com>,
+ "Dave Jiang" <dave.jiang@intel.com>,
+ "Andrew Morton" <akpm@linux-foundation.org>, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+Message-Id: <adf2a8bc-ce1c-4b88-957b-5d5643810d19@app.fastmail.com>
+In-Reply-To: <20260413135625.2890908-1-lgs201920130244@gmail.com>
+References: <20260413135625.2890908-1-lgs201920130244@gmail.com>
+Subject: Re: [PATCH v3] device-dax: Fix refcount leak in __devm_create_dev_dax() error
+ path
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Mon, Apr 13, 2026 at 02:20:39PM +0800, Huang Shijie wrote:
->   In NUMA, there are maybe many NUMA nodes and many CPUs.
-> For example, a Hygon's server has 12 NUMA nodes, and 384 CPUs.
-> In the UnixBench tests, there is a test "execl" which tests
-> the execve system call.
-> 
->   When we test our server with "./Run -c 384 execl",
-> the test result is not good enough. The i_mmap locks contended heavily on
-> "libc.so" and "ld.so". For example, the i_mmap tree for "libc.so" can have 
-> over 6000 VMAs, all the VMAs can be in different NUMA mode.
-> The insert/remove operations do not run quickly enough.
-> 
-> patch 1 & patch 2 are try to hide the direct access of i_mmap.
-> patch 3 splits the i_mmap into sibling trees, and we can get better 
-> performance with this patch set:
->     we can get 77% performance improvement(10 times average)
-> 
 
-To my reading you kept the lock as-is and only distributed the protected
-state.
 
-While I don't doubt the improvement, I'm confident should you take a
-look at the profile you are going to find this still does not scale with
-rwsem being one of the problems (there are other global locks, some of
-which have experimental patches for).
+On Mon, Apr 13, 2026, at 6:56 AM, Guangshuo Li wrote:
+> After device_initialize(), the embedded struct device in dev_dax is
+> expected to be released through the device core with put_device().
+>
+> In __devm_create_dev_dax(), several failure paths after
+> device_initialize() free dev_dax directly instead of dropping the device
+> reference, which bypasses the normal device core lifetime handling and
+> leaks the reference held on the embedded struct device.
 
-Apart from that this does nothing to help high core systems which are
-all one node, which imo puts another question mark on this specific
-proposal.
+Like I said before please focus on the practical problem this causes. It is always the case that device setup will have some steps  that are handlded by direct kfree before switching to a put_device() model.
 
-Of course one may question whether a RB tree is the right choice here,
-it may be the lock-protected cost can go way down with merely a better
-data structure.
+In this case the practical problem is that the memory allocation from dev_set_name() is leaked. Also the error return from dev_set_name() is ignored.
 
-Regardless of that, for actual scalability, there will be no way around
-decentralazing locking around this and partitioning per some core count
-(not just by numa awareness).
+> The issue was identified by a static analysis tool I developed and
+> confirmed by manual review.
 
-Decentralizing locking is definitely possible, but I have not looked
-into specifics of how problematic it is. Best case scenario it will
-merely with separate locks. Worst case scenario something needs a fully
-stabilized state for traversal, in that case another rw lock can be
-slapped around this, creating locking order read lock -> per-subset
-write lock -- this will suffer scalability due to the read locking, but
-it will still scale drastically better as apart from that there will be
-no serialization. In this setting the problematic consumer will write
-lock the new thing to stabilize the state.
+If you are going to be doing more of these please make sure not to just rework code just to get all freeing done by put_device() when not strictly necessary.
 
-So my non-maintainer opinion is that the patchset is not worth it as it
-fails to address anything for significantly more common and already
-affected setups.
+One issue to avoid is early returns in the error goto path.
 
-Have you looked into splitting the lock?
+In this case I believe you can address this by moving the device_initialize() later in the function. Make it so that the switch from error unwind to put_device() is the last step of the setup.
+
+It would be nice to fix the dev_set_name() error handling in a follow-on patch as well.
