@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ABA11DFF0;
-	Mon, 13 Apr 2026 14:53:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74677303CAB;
+	Mon, 13 Apr 2026 15:06:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776091998; cv=none; b=B6/+02EftjVLHcuapQD7L6bT+Yy1ReHWDsEdipSGvqb/WP/pocl9jHYiPIx8YfT3zqFsJFQFWbTgEet7/QuFcUR/B39LvCmSxQqM8qUmBVBrYjF8f8nJK296POtks2qw4bbwY4hSSa+2FfeyNl0XlpBgd3OmHN5Uk0z7Ud0ru1c=
+	t=1776092804; cv=none; b=EOKbHXre7Xk4UXhlROmsUjjJPoppu3B/ck9oggJH6tOaibLszcH1DJ0PaIHPJQCuwYbA78KSI224W7OmOWNPPSxTFMqlqRyW6pvaLiQRG5UIz/QiAEeKPbmOniJ3fpUaD3808W17TfTaabuuxmWeR9qXj0znss8YiFb86wlhXk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776091998; c=relaxed/simple;
-	bh=SmlzEupAcTl8dpDl/4W91ji9DI1If1QZKHMeX0jJhQE=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=mGQ2bWxnbNnpJ2xZ7P2XtiHPt7Oj+0C18DBKJIoIbsW1geU1K2mF0bI2eQLeJwaS5L71GTBvxBpfZtp7olpPrxc+kzxAkWy4W7sWGVXZzV5zeqToKElV+0FjPqYbgCC33kUGKDWWoxVMtIAq4dZ77gkFdYSmENwucjoIv143Psk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lyhdxi9+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776092804; c=relaxed/simple;
+	bh=TD6ShOQz4Nkn+ZNt66HT4jCoXRRW5WRA+BumLhrc8fM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=T4AXyCg2n7Bt6wQ0Zc+nMtc0PTK5EJw6UkNW3f+a/esomkhf8eB1t3tK7FgMuM5vEZXz1HYBUF4P87Ryyz/pGC0VlC5Q+iCK8S2j8povjPdRX30G0q2D4jJ1995G31rht0t1EgDhEt3HQTvMyWcGZh1qpWEt9srYkaDhdUaPWs8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ebbqxqc+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lyhdxi9+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B031C2BCAF;
-	Mon, 13 Apr 2026 14:53:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ebbqxqc+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEB59C2BCAF;
+	Mon, 13 Apr 2026 15:06:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776091997;
-	bh=SmlzEupAcTl8dpDl/4W91ji9DI1If1QZKHMeX0jJhQE=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-	b=lyhdxi9+o47SLGVSzeL9CygkaHYOoek0pzdVy7BBu91dQX4084zZ82Wv/hwCilFgh
-	 MGOPAIAfVk6v9hiIYj9WGra1wNEygiJb8BF34YYdTYlMXp8x8F8P5Zdxd0CDAsrgSm
-	 NQviKLgaFxwNCDEPdomHWocsjqctyl1FltdwYiiTYLPHYdzz8gnSL0UzOyrCPxyKdD
-	 jMyRjny+JBeV+/Wd9KzczDO8aEH+9qURUzJCBzjEiir8JtKDh0Gkq4j8itRc6EEOlb
-	 HwI9sucCsSOY7ISuTWPS4vCzlzeLbmhgBj8an1UbxrVXqvWEhW35mDm09diJl2asZC
-	 kaGLCumaCmRww==
-Message-ID: <ac9455ad-21cd-49e9-a6fb-9f25175b5681@kernel.org>
-Date: Mon, 13 Apr 2026 16:53:10 +0200
+	s=k20201202; t=1776092804;
+	bh=TD6ShOQz4Nkn+ZNt66HT4jCoXRRW5WRA+BumLhrc8fM=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=ebbqxqc+R4FIvsVY6sm40MMaHyoodjWD7ZsSW6ZHQqtYugUNdo141vEnDcGjNugPf
+	 Sw5bl1dKACwqFkek6obR6tmWue/gxRiDQ341vVyINQ6PkH+7ARRJFhPHRo7NlERTtQ
+	 6MRhcQ0lvpYCbgO3hlxSGT9rpGZ6EnQjftMhg0i07Heoz9g+OvfTohhOFMU8E1ZaRG
+	 OTjlgEqLz0GPEo9XxCDJ+IoAHbWPlO253CT0hn+1Rdg7rDWk26tnBGzOMt2/EBrAB5
+	 DRLF+wISJ5zC+4Ar/jKZ22o9LiCBmUuWlr6s9fxYPcLkl2hG40/GpqyTx+ZXBg0peX
+	 HIhSalvQ8M4Rw==
+Message-ID: <e0e48659-8ce1-496d-8b5a-f6d4416f2ea0@kernel.org>
+Date: Mon, 13 Apr 2026 17:06:35 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/8] dax/kmem: atomic whole-device hotplug via sysfs
-From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: Re: [PATCH 1/8] mm/memory-tiers: consolidate memory type dedup into
+ mt_get_memory_type()
 To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org,
  vishal.l.verma@intel.com, dave.jiang@intel.com, akpm@linux-foundation.org,
  osalvador@suse.de
@@ -45,7 +45,8 @@ Cc: dan.j.williams@intel.com, ljs@kernel.org, Liam.Howlett@oracle.com,
  linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-cxl@vger.kernel.org, kernel-team@meta.com
 References: <20260321150404.3288786-1-gourry@gourry.net>
- <4c08c0a8-9415-4f30-bfa9-db39318fa7d3@kernel.org>
+ <20260321150404.3288786-2-gourry@gourry.net>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -91,84 +92,72 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <4c08c0a8-9415-4f30-bfa9-db39318fa7d3@kernel.org>
+In-Reply-To: <20260321150404.3288786-2-gourry@gourry.net>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 4/13/26 16:49, David Hildenbrand (Arm) wrote:
-> On 3/21/26 16:03, Gregory Price wrote:
->> The dax kmem driver currently onlines memory during probe using the
->> system default policy, with no way to control or query the region state
->> at runtime - other than by inspecting the state of individual blocks.
->>
->> Offlining and removing an entire region requires operating on individual
->> memory blocks, creating race conditions where external entities can
->> interfere between the offline and remove steps.
->>
->> The problem was discussed specifically in the LPC2025 device memory
->> sessions - https://lpc.events/event/19/contributions/2016/ - where
->> it was discussed how the non-atomic interface for dax hotplug is causing
->> issues in some distributions which have competing userland controllers
->> that interfere with each other.
->>
->> This series adds a sysfs "hotplug" attribute for atomic whole-device
->> hotplug control, along with the mm and dax plumbing to support it.
->>
->> The first five patches prepare the mm and dax layers:
->>
->>   1. Consolidate memory-tier type deduplication into mt_get_memory_type(),
->>      removing redundant per-driver infrastructure.
->>   2. Add a memory_block_align_range() helper for hotplug range alignment.
->>   3-5. Thread an explicit online_type through the memory hotplug and dax
->>      paths, allowing drivers to specify a preferred auto-online policy
->>      (ZONE_NORMAL vs ZONE_MOVABLE) instead of being forced to the
->>      system default.
->>
->> The last three patches build the dax/kmem feature:
->>
->>   6. Plumb online_type through the dax device creation path.
->>   7. Extract hotplug/hotremove into helper functions to separate resource
->>      lifecycle from memory onlining.
->>   8. Add the "hotplug" sysfs attribute supporting three states:
->>      - "unplug": memory blocks removed
->>      - "online": online as normal system RAM
->>      - "online_movable": online in ZONE_MOVABLE
->>
->> Transitions are atomic across all ranges in the device.  Backward
->> compatibility is preserved: probe still auto-onlines when the configured
->> policy matches the system default.
->>
->> Specific notes for maintainers:
->>
->> I downgraded a BUG() to a WARN() when unbind is called while the dax
->> device is not un an UNPLUGGED state.  This is because the old pattern of
->> toggling individual memory blocks is still used by userland tools, and
->> will disconnect the `hotplug` value from the actual state of the overall
->> memory region.
->>
->> Unless we move to deprecate per-block controls, we should just WARN()
->> instead of BUG() as an indicator that userland tools need to be updated
->> to use the new pattern (the old pattern is subject to race conditions).
->>
->> The first two commits are semi-unrelated cleanups that conflict with the
->> changes made in the refactoring commits. (memory-tier dedup and align_range
->> helper). These are intended to be used for future cxl region extensions,
->> but if you prefer them to be dropped or submitted separately let me
->> know.
->>
->> This is technically v3, but the patch line has diverged considerably and
->> I've reworked the cover letter, apologies for prior obtuseness
->> Link: https://lore.kernel.org/all/20260114235022.3437787-1-gourry@gourry.net/
+On 3/21/26 16:03, Gregory Price wrote:
+> Replace per-driver memory type list infrastructure with a single
+> mt_get_memory_type(adist) that deduplicates against the global
+> default_memory_types list under memory_tier_lock.
 > 
+> The per-driver lists (mutex + list_head + find/put wrappers) provided
+> dedup within a single driver, but not across drivers or with the core.
+> Since the number of distinct adist values is bounded and types on
+> default_memory_types are never freed anyway, the per-driver cleanup
+> on module unload was not useful.
 > 
-> Hi Gregory,
-> 
-> against which branch / base commit is this series?
-> 
+> Add MEMTIER_DEFAULT_LOWTIER_ADISTANCE to replace the default DAX
+> adistance, since it was really used as a standin for all kmem hotplugged
+> memory.  This at least makes the default tier relationship clearer to
+> other drivers and they can see where to put their memory in relation to
+> the default lower tier.
 
-b4 am --guess-base
+Very confusing code.
 
-Was helpful :)
+What's the purpose of kref_get/kref_put if "the types on
+default_memory_types are never freed anyway" ?
+
+IIUC, init_node_memory_type() is always called with one of the types
+obtained through mt_get_memory_type(). And that one always gives us one
+from the default_memory_types list, no?
+
+Why does mt_find_alloc_memory_type() now even consume a list, if there
+really only is &default_memory_types?
+
+
+Is there even a need to expose the "struct memory_dev_type" to kmem,
+when all it does is effectively passing a reference to
+init_node_memory_type() / clear_node_memory_type().
+
+IOW, couldn't init_node_memory_type()/clear_node_memory_type() just
+consume the "adist", and lookup the memory type itself?
+
+All you'd need is some way in the driver to verify that there is a
+memory type for the given adist, as some kind of prepare step.
+
+Alternatively, let init_node_memory_type() return an error to get a
+clean interface? :)
+
+[...]
+
+>  		mapped++;
+>  	}
+> +	data->mtype = mtype;
+>  
+>  	dev_set_drvdata(dev, data);
+>  
+> @@ -253,7 +233,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+>  		 * for that. This implies this reference will be around
+>  		 * till next reboot.
+>  		 */
+> -		clear_node_memory_type(node, NULL);
+> +		clear_node_memory_type(node, data->mtype);
+>  	}
+
+Likely clear_node_memory_type() can now be taught to not handle
+"!memtype" anymore?
+
 
 -- 
 Cheers,
