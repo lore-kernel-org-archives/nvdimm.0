@@ -1,141 +1,132 @@
-Received: from mailgw2.hygon.cn (unknown [101.204.27.37])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 963F1330D2A
-	for <nvdimm@lists.linux.dev>; Tue, 14 Apr 2026 09:11:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=101.204.27.37
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776157919; cv=none; b=dRj4Uf+hi8hZRxKDrbTzR4gbZNhnKL95dgTyQnWmhd5/bb/kcB/EUZ1UPsFxSzTZH2eNC2n7ZxDWASrA18St4lvfJzY+bKl2IYxmX7DPFZ8XssmK3WLlbK7f8LvFbZvJClxpWa6kLitW3EP8Ug1kjJNu8bNoFOOYMgLGPxHL+VY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776157919; c=relaxed/simple;
-	bh=dHodftB+OpB9l4u4KD3gPbiUNw83vdZCZYrASb/dXlA=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ldJS3SSJjyUcaFTRCScSdeJ/x26VtKKFR+JEEXwtDCN4ZjrEvnR5gf5D2XU/iTHftCqm7gBViJjxJ+zLz5m5h0pcc3DJCpRgRbgqR/2VZJZSOVApsKdmy8m6zeNeTn+yzbQm4v2CVQIaoGTw+c84svNZPvaW4FlXzcGnHrx9fiE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hygon.cn; spf=pass smtp.mailfrom=hygon.cn; arc=none smtp.client-ip=101.204.27.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hygon.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hygon.cn
-Received: from maildlp2.hygon.cn (unknown [127.0.0.1])
-	by mailgw2.hygon.cn (Postfix) with ESMTP id 4fvz6Y1Vswz1YQpmJ;
-	Tue, 14 Apr 2026 17:11:33 +0800 (CST)
-Received: from maildlp2.hygon.cn (unknown [172.23.18.61])
-	by mailgw2.hygon.cn (Postfix) with ESMTP id 4fvz6V6YZ3z1YQpmJ;
-	Tue, 14 Apr 2026 17:11:30 +0800 (CST)
-Received: from cncheex04.Hygon.cn (unknown [172.23.18.114])
-	by maildlp2.hygon.cn (Postfix) with ESMTPS id 75DAD3005A41;
-	Tue, 14 Apr 2026 17:09:35 +0800 (CST)
-Received: from hsj-2U-Workstation (172.19.20.61) by cncheex04.Hygon.cn
- (172.23.18.114) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Tue, 14 Apr
- 2026 17:11:28 +0800
-Date: Tue, 14 Apr 2026 17:11:26 +0800
-From: Huang Shijie <huangsj@hygon.cn>
-To: Mateusz Guzik <mjguzik@gmail.com>
-CC: <akpm@linux-foundation.org>, <viro@zeniv.linux.org.uk>,
-	<brauner@kernel.org>, <linux-mm@kvack.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-fsdevel@vger.kernel.org>,
-	<muchun.song@linux.dev>, <osalvador@suse.de>,
-	<linux-trace-kernel@vger.kernel.org>, <linux-perf-users@vger.kernel.org>,
-	<linux-parisc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<zhongyuan@hygon.cn>, <fangbaoshun@hygon.cn>, <yingzhiwei@hygon.cn>
-Subject: Re: [PATCH 0/3] mm: split the file's i_mmap tree for NUMA
-Message-ID: <ad4EvoDcAKE2Sl4+@hsj-2U-Workstation>
-References: <20260413062042.804-1-huangsj@hygon.cn>
- <76pfiwabdgsej6q2yxfh3efuqvsyg7mt7rvl5itzzjyhdrto5r@53viaxsackzv>
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C863E638C
+	for <nvdimm@lists.linux.dev>; Tue, 14 Apr 2026 13:19:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.170
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776172792; cv=pass; b=RGXBkKyr34oD9BmD2gvWVOVK9RmZyQ39UJ2GLgOxVQmWdAuQKsLWpiVRJ2PSIokiRPXa1VIOYvykG25o1dEfQUTlmQB+XcqTk9CQDF+E+7KPYb5NFeSEDncf0jQl0m4pHt7AdOHJPF0R06N7sHQrQAHlY/ywwE4JyEh9tYrLrt8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776172792; c=relaxed/simple;
+	bh=ryFgEXHGkmMuSpJJwpuJTVtwXQi8vggb0ychK1MApVo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Y1GtLijgpkFojgneuxou/AWYlkF/Kgtu5sdMUHRgQY0yjglvhFSUjuLjF3W6CKpTHD1DG0o4SIMAwk5PgIlD8tACvaeAW7VW0vGpLcnpALPDctN1X8ki7Twlmerb+OUzMkruZoH275wuKCnNTbd7GiyBwX5CVWCv4NxLGLlFcYY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=p17g0gXy; arc=pass smtp.client-ip=209.85.160.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="p17g0gXy"
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-506a7bbe9d0so44576321cf.0
+        for <nvdimm@lists.linux.dev>; Tue, 14 Apr 2026 06:19:50 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1776172790; cv=none;
+        d=google.com; s=arc-20240605;
+        b=OzJByntQvvvxCcTmTC9flEqnvsol29rNLPUW99Df6n6ANTStcc4pBqUCZiSSp8ONmI
+         JP+CLQ20C9aOf6SpujwK60sElawiMb1lpMgeo/u2KJk8PUQkurOjlCad55sS1KNQemQP
+         6frPp/J6wa121J0N17ezBEJyRbSOFSIwcm7aFHqdrlfgVl8G0bqtzPAK2MCzjDVwkYxx
+         BPQXRo+beoLp4pilTMex+EgRWf5r1xbTz9X3kxw9IgI8knlcaTKk0KTXTL+SyIlL1zss
+         B54EE8Jv4K0Qdv5lzKBHKavpSYYDZFJTTzD9K+kojf9fsIQu6/TSl1fQwmCR1jJVAsO0
+         dUjA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=+CXxVRVcoz/2rqD2Y6nyYCqWM6bYEnwjERb2zuGyero=;
+        fh=E8NPbE9yzqfRJIi9ToWZJnQM+C3SOxM+Bx24NzcPj44=;
+        b=hnRPAyMKvCgyTXT7/FFmu3DTxsphzDqsZTuAVEeCsT9OijfcG4XZzK/JO3UTIf7uC0
+         kH7UIp1VS5jFmYrXYF8SZl/UtkyGn5zsOO/DhrHic5KbEghPxBNeR4CYNb2H3vHM25Bb
+         OA6VbUcEXZ3qFADpWlF4cohwdkk4rZRdAFCHLRWn1H64zYr/dnUrjQlR+p9uav6bWO+H
+         BxeJ9x7Hf6hW48d+I3ViDshZ/6t/qy0ZyNuDbXkqpQz2eysyYgsGUnQ7AnbqY9zazrju
+         tqgiLtyUb0WbjEBcaNwSUf5ga7Mp9MiuSfpdy0lCz54s6xOIVTr4Y/9URz4O7wGzsyau
+         hgYQ==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1776172790; x=1776777590; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=+CXxVRVcoz/2rqD2Y6nyYCqWM6bYEnwjERb2zuGyero=;
+        b=p17g0gXyD2DeFUw/8/maXizM5I01aPjZlrEXY88OuJEB5zlVkTpOFxSTo91k6IEE+P
+         Mzuqn/gJ3MKwm5mvI/EpZiXRJosv8NMZ/EeVrPJ/2bFAu78kww5uQUy9qCLmHxH5jXl6
+         8TB8LzrDrphognV+eGUdZhb8O/bXncF6lYGfQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776172790; x=1776777590;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=+CXxVRVcoz/2rqD2Y6nyYCqWM6bYEnwjERb2zuGyero=;
+        b=OS8PWN6pDbOHo9aQGlsNiupCitkc/DY7jBfYTyn3k2L10FKUU3TOJVV+F/43mp0YNg
+         5zfy/xEg8IbF9mjQ6rQDo3+Ioo9gDiyiW+SqexZ5BBZpf2OnLUTcB3U+IPvKFBLV/Jew
+         tLX7Bb0NSxs7N+OSb6EUbNl9q1zB3LF+NCMJHpjSjE0regl+wnGPgmqbKvouvpxO7u6c
+         llxAtPdOlzo4/SVfRFgI7+kwkGHd+6zRiT3OD2vxObN5djLtd8svOVkNdv5ZjZHe/w9j
+         1iG/0hujaHeCePXWzWAs/RYMPE1AfjDMb4MAEJV/lxB5MO9lqtLf6k+8mTlpNHGi10TW
+         COqw==
+X-Forwarded-Encrypted: i=1; AFNElJ84EC/c8kZHolVPlQSdXrZlS7gbyqFujACFb/gSMoWVuibpVg5Jq0tWWYBThiNBZkXofjTviFY=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwzWlJ7omYu1IUoIQfhHpFxoShcsbtGX6ntzQki61QqaPTBHsLH
+	hzHNbQquF79T9g90i1L5mvhbKL0eslPokumFtp4KSBJKP0cQGSF9WAWulo2hm9oOUPZYDMMxdPt
+	9bsdXmQcX8GvHMopMbU6Gc5bjfFGxHzb5b92I4aAsiQ==
+X-Gm-Gg: AeBDieutuSBdNMV8RpEbhcndRIIhjUj8wTXgtzgjHLNcHasehfNuYWojLKexRv+TVfj
+	rj1ubTnLM0Kdp9VKKTT3dK5iBNkyq6wz0eIJ44IyfeYGUItstxMMeO8IEQFa4y+cb6ZIfPOLUjl
+	OcryMcHn921QK8T/QScf9RbMgRO0HJ5zC3F3pdfnikyGZbKZ5rR5v/ZRthh3MV9h8jzDhSNsk6e
+	uerbTY/2ei7ONpkVPMrOXhYq5BdBbqDoZEUQ7Mij5+pHOcAUsVh9Fivv/fdWEcR10ol00cM17yz
+	K5GSs93W0U2hXHkvihKIKLkjNy2pkoMuI8m6
+X-Received: by 2002:a05:622a:1114:b0:50d:e471:2d1e with SMTP id
+ d75a77b69052e-50de471307cmr196909641cf.35.1776172788501; Tue, 14 Apr 2026
+ 06:19:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <76pfiwabdgsej6q2yxfh3efuqvsyg7mt7rvl5itzzjyhdrto5r@53viaxsackzv>
-X-ClientProxiedBy: cncheex05.Hygon.cn (172.23.18.115) To cncheex04.Hygon.cn
- (172.23.18.114)
+References: <20260331123702.35052-1-john@jagalactic.com> <0100019d43e5f632-f5862a3e-361c-4b54-a9a6-96c242a8f17a-000000@email.amazonses.com>
+ <CAJnrk1ZRTGWjNzkMxS3UkeZMmrpadJDtWKontMx2=d-smXYq=w@mail.gmail.com>
+ <adkDq0m5Wt9YhJ8A@groves.net> <38744253-efa3-41c5-a491-b177a4a4c835@bsbernd.com>
+ <adlBcwJjLOQDAR65@groves.net> <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
+In-Reply-To: <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Tue, 14 Apr 2026 15:19:36 +0200
+X-Gm-Features: AQROBzAjmnDDuarHcsoLUx4J604uFTw3mmrQVyJlb1VBhLQLJU1-3tqIq-XH-a0
+Message-ID: <CAJfpegvVTcV89=q3L326aGQjhduBcv7PVg5QKftGLjNZmCLmaw@mail.gmail.com>
+Subject: Re: [PATCH V10 00/10] famfs: port into fuse
+To: Joanne Koong <joannelkoong@gmail.com>
+Cc: John Groves <John@groves.net>, Bernd Schubert <bernd@bsbernd.com>, 
+	John Groves <john@jagalactic.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Bernd Schubert <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Shuah Khan <skhan@linuxfoundation.org>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	"venkataravis@micron.com" <venkataravis@micron.com>, 
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, djbw@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Apr 13, 2026 at 05:33:21PM +0200, Mateusz Guzik wrote:
-> On Mon, Apr 13, 2026 at 02:20:39PM +0800, Huang Shijie wrote:
-> >   In NUMA, there are maybe many NUMA nodes and many CPUs.
-> > For example, a Hygon's server has 12 NUMA nodes, and 384 CPUs.
-> > In the UnixBench tests, there is a test "execl" which tests
-> > the execve system call.
-> > 
-> >   When we test our server with "./Run -c 384 execl",
-> > the test result is not good enough. The i_mmap locks contended heavily on
-> > "libc.so" and "ld.so". For example, the i_mmap tree for "libc.so" can have 
-> > over 6000 VMAs, all the VMAs can be in different NUMA mode.
-> > The insert/remove operations do not run quickly enough.
-> > 
-> > patch 1 & patch 2 are try to hide the direct access of i_mmap.
-> > patch 3 splits the i_mmap into sibling trees, and we can get better 
-> > performance with this patch set:
-> >     we can get 77% performance improvement(10 times average)
-> > 
-> 
-> To my reading you kept the lock as-is and only distributed the protected
-> state.
-> 
-> While I don't doubt the improvement, I'm confident should you take a
-> look at the profile you are going to find this still does not scale with
-> rwsem being one of the problems (there are other global locks, some of
-> which have experimental patches for).
-IMHO, when the number of VMAs in the i_mmap is very large, only optimise the rwsem
-lock does not help too much for our NUMA case.
+On Fri, 10 Apr 2026 at 21:44, Joanne Koong <joannelkoong@gmail.com> wrote:
 
-In our NUMA server, the remote access could be the major issue.
+> Overall, my intention with bringing this up is just to make sure we're
+> at least aware of this alternative before anything is merged and
+> permanent. If Miklos and you think we should land this series, then
+> I'm on board with that.
 
+TBH, I'd prefer not to add the famfs specific mapping interface if not
+absolutely necessary.  This was the main sticking point originally,
+but there seemed to be no better alternative.
 
-> 
-> Apart from that this does nothing to help high core systems which are
-> all one node, which imo puts another question mark on this specific
-> proposal.
-Yes, this patch set only focus on the NUMA case.
-The one-node case should use the original i_mmap.
+However with the bpf approach this would be gone, which is great.
 
-Maybe I can add a new config, CONFIG_SPILT_I_MMAP. The config is disabled
-by default, and enabled when the NUMA node is not one.
+So let us please at least have a try at this. I'm not into bpf yet,
+but willing to learn.
 
-> 
-> Of course one may question whether a RB tree is the right choice here,
-> it may be the lock-protected cost can go way down with merely a better
-> data structure.
-> 
-> Regardless of that, for actual scalability, there will be no way around
-> decentralazing locking around this and partitioning per some core count
-> (not just by numa awareness).
-> 
-> Decentralizing locking is definitely possible, but I have not looked
-> into specifics of how problematic it is. Best case scenario it will
-> merely with separate locks. Worst case scenario something needs a fully
-> stabilized state for traversal, in that case another rw lock can be
-Yes. 
-
-The traversal may need to hold many locks.
-
-> slapped around this, creating locking order read lock -> per-subset
-> write lock -- this will suffer scalability due to the read locking, but
-> it will still scale drastically better as apart from that there will be
-> no serialization. In this setting the problematic consumer will write
-> lock the new thing to stabilize the state.
-> 
-> So my non-maintainer opinion is that the patchset is not worth it as it
-> fails to address anything for significantly more common and already
-> affected setups.
-This patch set is to reduce the remote access latency for insert/remove VMA
-in NUMA.
-
-> 
-> Have you looked into splitting the lock?
-> 
-I ever tried. 
-
-But there are two disadvantages:
-  1.) The traversal may need to hold many locks which makes the
-      code very horrible.
-
-  2.) Even we split the locks. Each lock protects a tree, when the tree becomes
-      big enough, the VMA insert/remove will also become slow in NUMA.
-      The reason is that the tree has VMAs in different NUMA nodes.
-      
-
-Thanks
-Huang Shijie
-
+Thanks,
+Miklos
