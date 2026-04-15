@@ -1,167 +1,151 @@
 Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1894E3D6CB8
-	for <nvdimm@lists.linux.dev>; Wed, 15 Apr 2026 08:57:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.182
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776243441; cv=pass; b=YfFl2JmwL9El/pagNF6ALaTM/M1UbvYpg5ZyC4oc5vxmlllv7M64F0qEXlOAvkl3BqJZ8oxT35ijDajZB5t8cLi2K1sGgbBYskExmVjRrKQhmAw1qRZ6PiKueJf64mOB/VBIpt/a27JnGliTaO5BVKrYfKu2Lw1eU2LIRfeobME=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776243441; c=relaxed/simple;
-	bh=zZYtyxzFk/f/aBbXqwafBi1lDEMUVHJlRs1FsBDxTcc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NHUzuBAL2kf7X2pZpweduiqGBRYVXEx8zHtbdLmlxpUKqzuSO5qohlB/Y2Be+VndtWdeD/LJg+i2R97FZncd6cfEQVi/tM971wYFpCoo2Tz1vPmThG+R8SJyIOZZXBqzI+kgiBLvPl92ABUpdEbj9x1wVlUF5ASe7CdvgmVW4pM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=obtSbVaM; arc=pass smtp.client-ip=209.85.160.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A266341754
+	for <nvdimm@lists.linux.dev>; Wed, 15 Apr 2026 13:35:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776260103; cv=none; b=G4CazVdvNflLGG42wouJO2TXyoLAKHx1IWv/vsp87Ab7wMNbde11NrysEQa76CX/DPV69xt4ChgXA4PtF3AGSF8eHbTIELfGGAD7DA855nAwSiAsw5Ns1SDJWxbneOgYYBvARaluoj4UMElJC7/GZUwfJZj6xWAVcQD1EIYi4oY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776260103; c=relaxed/simple;
+	bh=t+Xy3C2Mbde6Vr6fstEOcu/315GZEmI8mjVuAP1RX6c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ws77chT79jcHrpUHH+n8j7bvr1XIypPg70VfF4hyY4pD7qu3cEwkgJVNR6QG+Y+ByFx9q7rVp9t/79orM/rw67dhpckJQexeBzPp95iXU/SrF9Ou7zd96ill2swwvzKoYVlYWKVVpoxZxhUBgKU4/CK2yvk+R/FG+sxFbwKIU8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=mDpVsZUb; arc=none smtp.client-ip=209.85.160.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="obtSbVaM"
-Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-50d6144877aso67356561cf.3
-        for <nvdimm@lists.linux.dev>; Wed, 15 Apr 2026 01:57:18 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1776243438; cv=none;
-        d=google.com; s=arc-20240605;
-        b=WC2wxLkFO1Is/LJimuKGTvSl/a4omVQCr81Det8XzSwA5ujK/IQhbCivkoHeNNiTT7
-         gmPqd2pylJ1eLv+kAgK2e9qIUMVUuTp2HWnXKmo+5Y1FHWLDuQwkzLNOy1hjV0T/mTKf
-         b6bhEHKpYaWbri79bcW81m7p1v6YNfWVTLY/QywE3tAfpIuCvTx0z/kt8YZ3g1WWQCsK
-         nWxlcVHdzfkMW1vbtq6Mu4Vn21XKXw9aII+CRta/t0XUcrF3gBhSqM6NtGgYRZNcaT5K
-         SQEo54VATzQloyUmVbTP1KWTY8CUUjgeRW7hoCj9HDnp2TkoEsCd9ZcHanokG1GfKbZr
-         cjVQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=1K50PrXkHzV3G2hBT2az5kpQZDgGSB8kie6wcwLv364=;
-        fh=NRc6iTi0d84Iij3KG6KMm6Adyx4125vpr2p7UrFDw88=;
-        b=EwGymR/QX7p6kTijaAzOdiGgiOyC96R7VPoQwGdGCS5nPh03uc39FoRK/MILjpnquz
-         UTLsGmLr+Bcc59nY2LyP8Q/fhb4sdfGP/kKCC8jX3vC2gxCxlmPzqw+FcCj/J4s9780T
-         78VkUxuctasPzLTq9zs9VTyj1vaAMv3E06U/DFKD7bs4f1Rgq/sXDop3yNa6kBMxNJtV
-         rVWqCKbgviBQNaCLaesDuN5Amc3yXsNZ3rPFitap5Gvu+BkeX0oqbXyvI7+aPJJ0Icwz
-         5/ID2aqf6SLgFI6t75ON+Nh6aTlY7AV4ktbtpVX38kM/0vHBk1CJg6BJeyIHWH4/v2tF
-         JTug==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="mDpVsZUb"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-50bbc41677dso93582161cf.0
+        for <nvdimm@lists.linux.dev>; Wed, 15 Apr 2026 06:35:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1776243438; x=1776848238; darn=lists.linux.dev;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=1K50PrXkHzV3G2hBT2az5kpQZDgGSB8kie6wcwLv364=;
-        b=obtSbVaMuAGR11AYmU0pYX3pDW76fomjVlXPtfefkqptqUdjuTbB7dEpJb0Lb5vpnA
-         dkeBJEa0VuD8GH3SHFF7o15HbkkOQlvzQu/OuSctfmlqKdPqQqYI9K35km8+UroamEWX
-         3akxhUfOixnJ6Aw0MYo7pI+vxLMKVlHmtyPsE=
+        d=gourry.net; s=google; t=1776260101; x=1776864901; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=6GdYNWBfaWYhLIdfOtbeuO4AqRlccwz6nlSiifbQOw0=;
+        b=mDpVsZUbzAPGx63Jpld8CkrQxuZNw5kPiHfVSRbxYIQL9DFhGeverOc0SYerFYMD72
+         LstBdpSuWw0WeWx8kcPZTO79xgcNPf6MBJfnx1nXSv9l7qRbCya6vJ1p3GDgnTAV7Stl
+         jiFjGvfnqrppv36cjtfatuHyhSSey00bUxrEJqmSf9Zu1L1gaQRLhQOtFDdkL1BxxHI0
+         RIEMfhfuMZo6z58NpVJm1t3evURNFRLhtrwSDtk8meslJraomMK9eJxBmobtYQ/4yi7/
+         96AYVvNC6Z/SUsGxBXFETYiZd43+mMXJzThSdHVln878Hll6li2fe1fa3eGgs88D1i0C
+         eUJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776243438; x=1776848238;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1K50PrXkHzV3G2hBT2az5kpQZDgGSB8kie6wcwLv364=;
-        b=VGXXzvkr9bXg5HbpMAPF0d/gt/cGFhDGiKFgagBGTdgQchJbNh0UaaOTJsn5zOlelH
-         lmpOCk2+FnjGeRMmhY2ZdWpNqchSPL1KEPRI1y56rTSdkdmmdtswlef+KwxZ2sNe4nNL
-         zdueiwPMpJrZehzj0VngHGU2W38vPcdoXerJmNSWO47MGA+e/osSsa8j/NW8vE1TbziA
-         AFyse6Ym3MB2kRWYCV4SF+B7igOtoA6cCCZPeVYFhzL9VHyhm/nIeM7A/e/i55OYgJz3
-         y9bb4mVFe0IAL1p42dtaMGDmDYbmVCuhF7/m025AUw+fk7J7S88jgW0KyeMk3va72gsd
-         ZS3g==
-X-Forwarded-Encrypted: i=1; AFNElJ+ZVzrlO2uzFOZc0ieV2C8tTxIGCAE3mkvXPzf9Udr1BT7fhmkDLwiCuQYgz6HLPoBEAFfY610=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwhrcYYstIznuuVh/RRuURxJu7ejZfRT2zjl3/uX+Cc+fJ16GL7
-	pdnhFCSswClSXr/JtMZF4v7t6i630ehw78+/MEL6a4QH8RuQ0C0rDji/qMo6PY+MNXS1EPqXIke
-	dGJ45qjCEw8OO9RLcGWEWRpJnpBWxERqnqtHduY2xNg==
-X-Gm-Gg: AeBDieuLkqvx6x0HAjWFHWWgjkPLdX342/lwgB4zasDInB8+MTfCNEq4cC1NE+UB0gp
-	JMNjY6iu2u50DArsAZM9rmWQuyKy+LAb0WoVVZJmVBIp48ZYfyfHR39UymeMVoUhg7WB6RC0PQs
-	d7B7PeHfUxK6uz7xaEIfP4HVhFJ/P39NmW1SmdnUFTtzEe1AZj178rxxsuxKybpJS/fp2YaAy+n
-	76G6n3fecjs1hjgj12rA44zyRyNaKK7oE8NVSRQTxLvDnZzdrele5Q3oKfvk/i/PKZXokIdUeFM
-	MdYXxfhSkO2i9uY2j7AmIbg7+zcSvIJcv5vqmePbymWZid0=
-X-Received: by 2002:a05:622a:2485:b0:50b:50bf:5bbe with SMTP id
- d75a77b69052e-50dd5adbf6fmr287758411cf.22.1776243437803; Wed, 15 Apr 2026
- 01:57:17 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1776260101; x=1776864901;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=6GdYNWBfaWYhLIdfOtbeuO4AqRlccwz6nlSiifbQOw0=;
+        b=HB2ea1kYiKdXKH1r0d9mmccvwzdoUPnPlovVHD2CfDANhpZzui9c4GsirlRgWxtalA
+         4+UktmYJg829gfGdzsDz8a0FlOppqKTs9xVJgWG+QNCczEv6/dUKdLGDY5XrSNGD/cZJ
+         Ww/9cNxShVJnhV/Blj8sRME0cjzo8s0VRo98Af9zAYITQJ9Kw3tlwORjkwHYLF19OuR4
+         xWbSpfaLBzf0YzNcBku+sFpHdDrvNtJhPGR5YheznPVBx51tf6aIx7X05mBvKNLt0eUC
+         UtMBQ5klloPOjmVJUR2U7m4Ru5d7eY/FefHBsPzxIkTs6eZAza1rWKJ7CuqSCZjjd0R+
+         RHqQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+V8mQ8AmIvcXNs3QQyNFYwymLfOb/fN212ipvbWegYMSXpMLjlS6fG52m6BmflnuYMMseN3Lo=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzyBe9poLgluWnbcqeJ5PmgvB54h9OLuoSv5rk3DwsepOFpd67k
+	tNZ706G0SQwVEtThrEdxSzJ7MG5He7is3XhCeUhAMbe4aMRPOSy/jKmYr6AzpE+JuvI=
+X-Gm-Gg: AeBDietLFlK2Phtgldsr9bEzo2JdLgmOyehlUHFZyfXwQubk7hYu2/MvFxr/Taiz8pt
+	UJqDF3J3NUwaNOjU8QMjr1CTQfZcXfgtQdPEZ0Rihk8LTL6C44U7ff2PaFcqBlyMRNbkx15S1qb
+	0b+v7bUoZTCT7GUpbUzh8osxGKXWnr1i8Zjpqqv9nxkFUg/QA4vviWoBjCz5BO9vQXN6LpKN0AL
+	UnoR6zcQeQW+mKp2f17I6pHFo114G34mOm4k0WPV0KXaEaQrD+juuQOQL452431hXBstez2l5xT
+	O86uuTD41NP9HzKQnOls9/IeQER4VSb2MVCCJ8FFl0mcJUfAryt0OxhrjB5PQ3xNqmlwzpi9RuR
+	XiDKl72g+tstjAoFDLI1QtdlI1hoWjMcjzk27I8qaQzECHUlycWs0K6mWKUv2GbNemGBWDm57+I
+	/jcETiEewFpdjdW+LkDWYf6ayCioYv5rCcUTM+S97pSfd4D2P+DgA/FSsHVj7RL1z/P5p/CveYt
+	ed5IYUxbXls87WcxVbBC94=
+X-Received: by 2002:a05:622a:250a:b0:50b:6b21:2bf7 with SMTP id d75a77b69052e-50dd5a44875mr321999521cf.0.1776260100492;
+        Wed, 15 Apr 2026 06:35:00 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-71-191-243-150.washdc.fios.verizon.net. [71.191.243.150])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8ae6cb9ea1csm13877066d6.28.2026.04.15.06.34.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Apr 2026 06:34:59 -0700 (PDT)
+Date: Wed, 15 Apr 2026 09:34:56 -0400
+From: Gregory Price <gourry@gourry.net>
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: "Darrick J. Wong" <djwong@kernel.org>, John Groves <John@groves.net>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Joanne Koong <joannelkoong@gmail.com>,
+	Bernd Schubert <bernd@bsbernd.com>,
+	John Groves <john@jagalactic.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Bernd Schubert <bschubert@ddn.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Stefan Hajnoczi <shajnocz@redhat.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Bagas Sanjaya <bagasdotme@gmail.com>,
+	Chen Linxuan <chenlinxuan@uniontech.com>,
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Shivank Garg <shivankg@amd.com>,
+	Ackerley Tng <ackerleytng@google.com>,
+	Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>,
+	"venkataravis@micron.com" <venkataravis@micron.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	djbw@kernel.org
+Subject: Re: [PATCH V10 00/10] famfs: port into fuse
+Message-ID: <ad-UAMcALRubBcHk@gourry-fedora-PF4VCD3F>
+References: <CAJnrk1ZRTGWjNzkMxS3UkeZMmrpadJDtWKontMx2=d-smXYq=w@mail.gmail.com>
+ <adkDq0m5Wt9YhJ8A@groves.net>
+ <38744253-efa3-41c5-a491-b177a4a4c835@bsbernd.com>
+ <adlBcwJjLOQDAR65@groves.net>
+ <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
+ <CAJfpegvVTcV89=q3L326aGQjhduBcv7PVg5QKftGLjNZmCLmaw@mail.gmail.com>
+ <ad4_jFsR951c2Mtn@groves.net>
+ <20260414185740.GA604658@frogsfrogsfrogs>
+ <ad69tTnx5YkD4Y9K@gourry-fedora-PF4VCD3F>
+ <f254f6fc-dc06-4612-82d7-35bb10dbd32e@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <0100019d43e5f632-f5862a3e-361c-4b54-a9a6-96c242a8f17a-000000@email.amazonses.com>
- <CAJnrk1ZRTGWjNzkMxS3UkeZMmrpadJDtWKontMx2=d-smXYq=w@mail.gmail.com>
- <adkDq0m5Wt9YhJ8A@groves.net> <38744253-efa3-41c5-a491-b177a4a4c835@bsbernd.com>
- <adlBcwJjLOQDAR65@groves.net> <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
- <CAJfpegvVTcV89=q3L326aGQjhduBcv7PVg5QKftGLjNZmCLmaw@mail.gmail.com>
- <ad4_jFsR951c2Mtn@groves.net> <20260414185740.GA604658@frogsfrogsfrogs>
- <ad7MC5Em4l72nJ6u@groves.net> <20260415001558.GH604658@frogsfrogsfrogs>
-In-Reply-To: <20260415001558.GH604658@frogsfrogsfrogs>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Wed, 15 Apr 2026 10:57:06 +0200
-X-Gm-Features: AQROBzCRCfD21Ej4HAHDpxm8vYkUzgtnq-yub_KzWJ3NjPcdpwmvfwFukwnxXxw
-Message-ID: <CAJfpegsEMQTwLP04L-EftdqNJrz2saBnK0Li6iZ9=5iiNa2arg@mail.gmail.com>
-Subject: Re: [PATCH V10 00/10] famfs: port into fuse
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: John Groves <John@groves.net>, Joanne Koong <joannelkoong@gmail.com>, 
-	Bernd Schubert <bernd@bsbernd.com>, John Groves <john@jagalactic.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
-	Chen Linxuan <chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>, 
-	Fuad Tabba <tabba@google.com>, Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, 
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, djbw@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f254f6fc-dc06-4612-82d7-35bb10dbd32e@kernel.org>
 
-On Wed, 15 Apr 2026 at 02:16, Darrick J. Wong <djwong@kernel.org> wrote:
+On Wed, Apr 15, 2026 at 10:16:38AM +0200, David Hildenbrand (Arm) wrote:
+> On 4/15/26 00:20, Gregory Price wrote:
+> > On Tue, Apr 14, 2026 at 11:57:40AM -0700, Darrick J. Wong wrote:
+> >>>
+> >>> I very strongly object to making this a prerequisite to merging. This
+> >>> is an untested idea that will certainly delay us by at least a couple
+> >>> of merge windows when products are shipping now, and the existing approach
+> >>> has been in circulation for a long time. It is TOO LATE!!!!!!
+> >>
+> > ...
+> >>
+> >> That said, you're clearly pissed at the goalposts changing yet again,
+> >> and that's really not fair that we collectively keep moving them.
+> >>
+> > 
+> > This seems a bit more than moving a goalpost.
+> > 
+> > We're now gating working software, for real working hardware, on a novel,
+> > unproven BPF ops structure that controls page table mappings on page table
+> > faults which would be used by exactly 1 user : FAMFS.
+> 
+> Are MM people on board with even letting BPF do that? Honest question,
+> if someone has a pointer to how that should work, that would be appreciated.
+> 
 
-> Oh believe me, I had much angrier things to say elsewhere in 2023-24
-> about grueling slowass reviews.  That is, indirectly, why I'm now
-> working on /this/ project. :(
+This was my first reaction when I realized the BPF program would be
+controlling iomap return value in the fault path.  Big ol' (!)  popped
+up over my head.
 
-I've been there too.  Which is not an excuse to be an unresponsive
-maintainer, but that's unfortunately exactly what seems to have
-happened.
-
-On the positive side, I really appreciate the energy all of you put
-into improving fuse.
-
-Some of the reasons for the lack of progress:
-
-- Fuse has grown, and I don't have a full understanding of it, even
-some of the core.  Getting older doesn't help, I'm sure I would've
-handled this better 20 years ago.  Currently working on some cleanups,
-progress is slow, will post the next batch shortly.  Cleaning it up
-helps in multiple ways: a) I get to know the code better, b) adding
-new stuff becomes easier.
-
-- The fuse-iomap change is HUGE.  By line count it's some 40% of
-current fuse code.  By comparison, when fuse was merged it was
-3.5kloc.  It doesn't mean I wouldn't like to have it.  On the
-contrary, I think it's a very useful feature and would solve the long
-time issue with having a way to mount untrusted fs images with
-reasonable performance.
-
-- There's no such problem with famfs, it's relatively small and self
-contained and I'd consider it ready (barring any roadblocks on the DAX
-side).  But the famfs specific mapping interface is something that I
-never did like.  Joanne offered to fix this, and I totally agree with
-her that we should not hurriedly add interfaces that will need to be
-kept for ever (yes, sometimes even API's are deprecated and removed,
-but it's much much more painful).
-
-How can this situation be improved?
-
-A dedicated co-maintainer would definitely help, not sure how it would
-work out in the fuse case.  With overlayfs I think it works nicely (at
-least that's my impression, not sure what Amir thinks ;)
-
-My experience is that face to face discussions at LSFMM will also help
-move things forward.
-
-Hope this helps.
-
-Thanks,
-Miklos
+~Gregory
