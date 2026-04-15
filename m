@@ -1,153 +1,167 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2040C14E2F2;
-	Wed, 15 Apr 2026 08:16:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776241014; cv=none; b=m9XwsgDXMJe+XEQH1gIHylXrJnGV8wrD5EdxVN2mZXoifOf4VtKj4Q0mu+FGW4qv51za0F38xPa8DuMXVW5EnBh2b1XdmUFB9RPIbr70DX8nQEfuxVX2NjM+gdJThWEtiGTzsKjhOMo/k35Au2vAwn7mjFn4yhj51Z1upEEtYnQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776241014; c=relaxed/simple;
-	bh=wLkpUw9kqOW1E+1Px6W25y7CBskyxCnxcAtXgRpaFok=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=lb/DH/GODnwiIuId/TmdIDSqw0XxYC9+YSe7GEDs4Rb1kGthGoJ+pABUfu2w5SdwsreGfIe4OXH7HkpooogxtkhMy8WPyBZTpZXoT3GlbbcufVGx+wIv6yYRhUJASdId2fxoKM3QLiVcVyj0P8AIJE4bKyPHbwCc25mhARN+YiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PnJ9OWO/; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1894E3D6CB8
+	for <nvdimm@lists.linux.dev>; Wed, 15 Apr 2026 08:57:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.182
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776243441; cv=pass; b=YfFl2JmwL9El/pagNF6ALaTM/M1UbvYpg5ZyC4oc5vxmlllv7M64F0qEXlOAvkl3BqJZ8oxT35ijDajZB5t8cLi2K1sGgbBYskExmVjRrKQhmAw1qRZ6PiKueJf64mOB/VBIpt/a27JnGliTaO5BVKrYfKu2Lw1eU2LIRfeobME=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776243441; c=relaxed/simple;
+	bh=zZYtyxzFk/f/aBbXqwafBi1lDEMUVHJlRs1FsBDxTcc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=NHUzuBAL2kf7X2pZpweduiqGBRYVXEx8zHtbdLmlxpUKqzuSO5qohlB/Y2Be+VndtWdeD/LJg+i2R97FZncd6cfEQVi/tM971wYFpCoo2Tz1vPmThG+R8SJyIOZZXBqzI+kgiBLvPl92ABUpdEbj9x1wVlUF5ASe7CdvgmVW4pM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=obtSbVaM; arc=pass smtp.client-ip=209.85.160.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PnJ9OWO/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A297C2BCB4;
-	Wed, 15 Apr 2026 08:16:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776241013;
-	bh=wLkpUw9kqOW1E+1Px6W25y7CBskyxCnxcAtXgRpaFok=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=PnJ9OWO//fj4+EanD8IpYEjI0rJDYlBz0SBsOWojD2IuYufoshXp33pTUwnyrt2WV
-	 jGuGn3V1hD5Miy/TBH0QUWDkmilDG6ApXhmmgqpcI/IqW5UfWFMM5bQ2O++QX5Xt65
-	 BJvKUFUpkkg+p8U87+ifkpu6yNGyH4K2Wj+DnLvEhguDz7LKelIU/r6jFPKz2y2P3y
-	 qoHQQoRtMkTS3j3CSJA/L0K7z0uuQCUpFMb2463EA1425hphKyA1Ynzx+zbC7ANvkR
-	 VmF3uiXObXjeb0/mgb6rEy3YIKYkboY+wMwreQOYftETm81t1AzoS5SrGJWbjD7PV7
-	 MY42RBcoFHDtw==
-Message-ID: <f254f6fc-dc06-4612-82d7-35bb10dbd32e@kernel.org>
-Date: Wed, 15 Apr 2026 10:16:38 +0200
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="obtSbVaM"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-50d6144877aso67356561cf.3
+        for <nvdimm@lists.linux.dev>; Wed, 15 Apr 2026 01:57:18 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1776243438; cv=none;
+        d=google.com; s=arc-20240605;
+        b=WC2wxLkFO1Is/LJimuKGTvSl/a4omVQCr81Det8XzSwA5ujK/IQhbCivkoHeNNiTT7
+         gmPqd2pylJ1eLv+kAgK2e9qIUMVUuTp2HWnXKmo+5Y1FHWLDuQwkzLNOy1hjV0T/mTKf
+         b6bhEHKpYaWbri79bcW81m7p1v6YNfWVTLY/QywE3tAfpIuCvTx0z/kt8YZ3g1WWQCsK
+         nWxlcVHdzfkMW1vbtq6Mu4Vn21XKXw9aII+CRta/t0XUcrF3gBhSqM6NtGgYRZNcaT5K
+         SQEo54VATzQloyUmVbTP1KWTY8CUUjgeRW7hoCj9HDnp2TkoEsCd9ZcHanokG1GfKbZr
+         cjVQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=1K50PrXkHzV3G2hBT2az5kpQZDgGSB8kie6wcwLv364=;
+        fh=NRc6iTi0d84Iij3KG6KMm6Adyx4125vpr2p7UrFDw88=;
+        b=EwGymR/QX7p6kTijaAzOdiGgiOyC96R7VPoQwGdGCS5nPh03uc39FoRK/MILjpnquz
+         UTLsGmLr+Bcc59nY2LyP8Q/fhb4sdfGP/kKCC8jX3vC2gxCxlmPzqw+FcCj/J4s9780T
+         78VkUxuctasPzLTq9zs9VTyj1vaAMv3E06U/DFKD7bs4f1Rgq/sXDop3yNa6kBMxNJtV
+         rVWqCKbgviBQNaCLaesDuN5Amc3yXsNZ3rPFitap5Gvu+BkeX0oqbXyvI7+aPJJ0Icwz
+         5/ID2aqf6SLgFI6t75ON+Nh6aTlY7AV4ktbtpVX38kM/0vHBk1CJg6BJeyIHWH4/v2tF
+         JTug==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1776243438; x=1776848238; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=1K50PrXkHzV3G2hBT2az5kpQZDgGSB8kie6wcwLv364=;
+        b=obtSbVaMuAGR11AYmU0pYX3pDW76fomjVlXPtfefkqptqUdjuTbB7dEpJb0Lb5vpnA
+         dkeBJEa0VuD8GH3SHFF7o15HbkkOQlvzQu/OuSctfmlqKdPqQqYI9K35km8+UroamEWX
+         3akxhUfOixnJ6Aw0MYo7pI+vxLMKVlHmtyPsE=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776243438; x=1776848238;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=1K50PrXkHzV3G2hBT2az5kpQZDgGSB8kie6wcwLv364=;
+        b=VGXXzvkr9bXg5HbpMAPF0d/gt/cGFhDGiKFgagBGTdgQchJbNh0UaaOTJsn5zOlelH
+         lmpOCk2+FnjGeRMmhY2ZdWpNqchSPL1KEPRI1y56rTSdkdmmdtswlef+KwxZ2sNe4nNL
+         zdueiwPMpJrZehzj0VngHGU2W38vPcdoXerJmNSWO47MGA+e/osSsa8j/NW8vE1TbziA
+         AFyse6Ym3MB2kRWYCV4SF+B7igOtoA6cCCZPeVYFhzL9VHyhm/nIeM7A/e/i55OYgJz3
+         y9bb4mVFe0IAL1p42dtaMGDmDYbmVCuhF7/m025AUw+fk7J7S88jgW0KyeMk3va72gsd
+         ZS3g==
+X-Forwarded-Encrypted: i=1; AFNElJ+ZVzrlO2uzFOZc0ieV2C8tTxIGCAE3mkvXPzf9Udr1BT7fhmkDLwiCuQYgz6HLPoBEAFfY610=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwhrcYYstIznuuVh/RRuURxJu7ejZfRT2zjl3/uX+Cc+fJ16GL7
+	pdnhFCSswClSXr/JtMZF4v7t6i630ehw78+/MEL6a4QH8RuQ0C0rDji/qMo6PY+MNXS1EPqXIke
+	dGJ45qjCEw8OO9RLcGWEWRpJnpBWxERqnqtHduY2xNg==
+X-Gm-Gg: AeBDieuLkqvx6x0HAjWFHWWgjkPLdX342/lwgB4zasDInB8+MTfCNEq4cC1NE+UB0gp
+	JMNjY6iu2u50DArsAZM9rmWQuyKy+LAb0WoVVZJmVBIp48ZYfyfHR39UymeMVoUhg7WB6RC0PQs
+	d7B7PeHfUxK6uz7xaEIfP4HVhFJ/P39NmW1SmdnUFTtzEe1AZj178rxxsuxKybpJS/fp2YaAy+n
+	76G6n3fecjs1hjgj12rA44zyRyNaKK7oE8NVSRQTxLvDnZzdrele5Q3oKfvk/i/PKZXokIdUeFM
+	MdYXxfhSkO2i9uY2j7AmIbg7+zcSvIJcv5vqmePbymWZid0=
+X-Received: by 2002:a05:622a:2485:b0:50b:50bf:5bbe with SMTP id
+ d75a77b69052e-50dd5adbf6fmr287758411cf.22.1776243437803; Wed, 15 Apr 2026
+ 01:57:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V10 00/10] famfs: port into fuse
-To: Gregory Price <gourry@gourry.net>, "Darrick J. Wong" <djwong@kernel.org>
-Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
- Joanne Koong <joannelkoong@gmail.com>, Bernd Schubert <bernd@bsbernd.com>,
- John Groves <john@jagalactic.com>, Dan Williams <dan.j.williams@intel.com>,
- Bernd Schubert <bschubert@ddn.com>,
- Alison Schofield <alison.schofield@intel.com>,
- John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Randy Dunlap
- <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>,
- Amir Goldstein <amir73il@gmail.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>,
- Bagas Sanjaya <bagasdotme@gmail.com>,
- Chen Linxuan <chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>,
- Fuad Tabba <tabba@google.com>, Sean Christopherson <seanjc@google.com>,
- Shivank Garg <shivankg@amd.com>, Ackerley Tng <ackerleytng@google.com>,
- Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>,
- "venkataravis@micron.com" <venkataravis@micron.com>,
- "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
- djbw@kernel.org
-References: <20260331123702.35052-1-john@jagalactic.com>
- <0100019d43e5f632-f5862a3e-361c-4b54-a9a6-96c242a8f17a-000000@email.amazonses.com>
+References: <0100019d43e5f632-f5862a3e-361c-4b54-a9a6-96c242a8f17a-000000@email.amazonses.com>
  <CAJnrk1ZRTGWjNzkMxS3UkeZMmrpadJDtWKontMx2=d-smXYq=w@mail.gmail.com>
- <adkDq0m5Wt9YhJ8A@groves.net>
- <38744253-efa3-41c5-a491-b177a4a4c835@bsbernd.com>
- <adlBcwJjLOQDAR65@groves.net>
- <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
+ <adkDq0m5Wt9YhJ8A@groves.net> <38744253-efa3-41c5-a491-b177a4a4c835@bsbernd.com>
+ <adlBcwJjLOQDAR65@groves.net> <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
  <CAJfpegvVTcV89=q3L326aGQjhduBcv7PVg5QKftGLjNZmCLmaw@mail.gmail.com>
  <ad4_jFsR951c2Mtn@groves.net> <20260414185740.GA604658@frogsfrogsfrogs>
- <ad69tTnx5YkD4Y9K@gourry-fedora-PF4VCD3F>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
- qIws/H2t
-In-Reply-To: <ad69tTnx5YkD4Y9K@gourry-fedora-PF4VCD3F>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+ <ad7MC5Em4l72nJ6u@groves.net> <20260415001558.GH604658@frogsfrogsfrogs>
+In-Reply-To: <20260415001558.GH604658@frogsfrogsfrogs>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 15 Apr 2026 10:57:06 +0200
+X-Gm-Features: AQROBzCRCfD21Ej4HAHDpxm8vYkUzgtnq-yub_KzWJ3NjPcdpwmvfwFukwnxXxw
+Message-ID: <CAJfpegsEMQTwLP04L-EftdqNJrz2saBnK0Li6iZ9=5iiNa2arg@mail.gmail.com>
+Subject: Re: [PATCH V10 00/10] famfs: port into fuse
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: John Groves <John@groves.net>, Joanne Koong <joannelkoong@gmail.com>, 
+	Bernd Schubert <bernd@bsbernd.com>, John Groves <john@jagalactic.com>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
+	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
+	Chen Linxuan <chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>, 
+	Fuad Tabba <tabba@google.com>, Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	"venkataravis@micron.com" <venkataravis@micron.com>, 
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, djbw@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On 4/15/26 00:20, Gregory Price wrote:
-> On Tue, Apr 14, 2026 at 11:57:40AM -0700, Darrick J. Wong wrote:
->>>
->>> I very strongly object to making this a prerequisite to merging. This
->>> is an untested idea that will certainly delay us by at least a couple
->>> of merge windows when products are shipping now, and the existing approach
->>> has been in circulation for a long time. It is TOO LATE!!!!!!
->>
-> ...
->>
->> That said, you're clearly pissed at the goalposts changing yet again,
->> and that's really not fair that we collectively keep moving them.
->>
-> 
-> This seems a bit more than moving a goalpost.
-> 
-> We're now gating working software, for real working hardware, on a novel,
-> unproven BPF ops structure that controls page table mappings on page table
-> faults which would be used by exactly 1 user : FAMFS.
+On Wed, 15 Apr 2026 at 02:16, Darrick J. Wong <djwong@kernel.org> wrote:
 
-Are MM people on board with even letting BPF do that? Honest question,
-if someone has a pointer to how that should work, that would be appreciated.
+> Oh believe me, I had much angrier things to say elsewhere in 2023-24
+> about grueling slowass reviews.  That is, indirectly, why I'm now
+> working on /this/ project. :(
 
--- 
-Cheers,
+I've been there too.  Which is not an excuse to be an unresponsive
+maintainer, but that's unfortunately exactly what seems to have
+happened.
 
-David
+On the positive side, I really appreciate the energy all of you put
+into improving fuse.
+
+Some of the reasons for the lack of progress:
+
+- Fuse has grown, and I don't have a full understanding of it, even
+some of the core.  Getting older doesn't help, I'm sure I would've
+handled this better 20 years ago.  Currently working on some cleanups,
+progress is slow, will post the next batch shortly.  Cleaning it up
+helps in multiple ways: a) I get to know the code better, b) adding
+new stuff becomes easier.
+
+- The fuse-iomap change is HUGE.  By line count it's some 40% of
+current fuse code.  By comparison, when fuse was merged it was
+3.5kloc.  It doesn't mean I wouldn't like to have it.  On the
+contrary, I think it's a very useful feature and would solve the long
+time issue with having a way to mount untrusted fs images with
+reasonable performance.
+
+- There's no such problem with famfs, it's relatively small and self
+contained and I'd consider it ready (barring any roadblocks on the DAX
+side).  But the famfs specific mapping interface is something that I
+never did like.  Joanne offered to fix this, and I totally agree with
+her that we should not hurriedly add interfaces that will need to be
+kept for ever (yes, sometimes even API's are deprecated and removed,
+but it's much much more painful).
+
+How can this situation be improved?
+
+A dedicated co-maintainer would definitely help, not sure how it would
+work out in the fuse case.  With overlayfs I think it works nicely (at
+least that's my impression, not sure what Amir thinks ;)
+
+My experience is that face to face discussions at LSFMM will also help
+move things forward.
+
+Hope this helps.
+
+Thanks,
+Miklos
