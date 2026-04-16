@@ -1,184 +1,219 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6BC737B03F
-	for <nvdimm@lists.linux.dev>; Thu, 16 Apr 2026 20:53:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF222DECCB
+	for <nvdimm@lists.linux.dev>; Thu, 16 Apr 2026 21:08:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776372827; cv=none; b=JjmIwYLqRgqB32/Yv0F9skYLctJs6L69P3oyq4S6d2QuZ+230rguSl2g79gwrpA3JT9rw80KJLgPgBNgg9IM1zYNiwCUPAEqMPLqvXFgoOemgJN9+heWnEBUWv8zbLq0EP6ytH1LlhmIsywAR7OEvBIdLyi0NRRi5f1I1vfhZME=
+	t=1776373707; cv=none; b=i1+iSQsQrLT/ZzZHIFr4Arng7zc/cYKUTNk9zpDrISp/gvjYXk17vH365mgTtS4z/+Ok8Eu2bToj90V51ChtEZJ7cSqy+KEX+8xY8Gz3RVoqTBmD6JvzMfojrGtV4Y/akdZs97JPIynA2gjdFKLy60u19ZgzO6+PS5yqLAu0mEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776372827; c=relaxed/simple;
-	bh=WrSs9D3ajaYKuB8EpBEH6JutRpPV1nePztytUV2eiHs=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=TL0/xa1I7EqpZ/Ag2sjgfGHL3nazMGHMS1AYSDoC+Kf2IQoGrTCbWiWWIM3A8xibkqwKAR8GVr0Cd1BoJkflCXDCLif9C+43Ps5u3SQ3jeQ+i046J+jWj/ocRUT2YdP0SKTjeS1PzgaPSEOWRbvPW9VBN2n6IMUlYEifD+ioFDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iJnU0Bu9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776373707; c=relaxed/simple;
+	bh=W3p2UhPa+WCf8euWWtADln3YFtCQ4Q18xjJ0cW1mSZ0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=iybbRVzsjdcqO67S5pDC6TvfHikfSMK6R4bmZ/Ez0iAalkXgXt2ToIrmtQdX29ZxJSVWJ/qDxAJR9H+/V53OhuCLaOb9Fl6EkxRhmTMcni8Frh83PyNYteT3TdgQnoKMomjXIAkqykVQxrRGQOhzb8faJfAK/q7dTzcP7ltc1XE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Xjee3u6L; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iJnU0Bu9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6835DC2BCAF;
-	Thu, 16 Apr 2026 20:53:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776372827;
-	bh=WrSs9D3ajaYKuB8EpBEH6JutRpPV1nePztytUV2eiHs=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-	b=iJnU0Bu9Fp2a4IIR6Uvsn5yEJALrEieeyO07X5igdL3nn6qyrINXnKXSa3sj15F62
-	 oA33VKZ2J79rZ5PSVroqNFlwwwfE6HyZ1eQbwxOfexBReNtzIjGYeoLeb8TDckm+35
-	 zwU9rlcRGvlYnzQkYay/xjkeyJMsshTM5etYg3la6zc0dnEmJf0u9xUZa3szmd7sJl
-	 x9oQfxlQ53kEEZRdoANKMaFiJEzGS+bGYBNLgST69LOP0X8CRXtLnE9j+GcVaGQOAT
-	 xZkii60w11Mht5DOBn4/V+ysXrUMpHKn/3BJCGIvP/Y8oLB3TaEf11Dr3J6SIW85c3
-	 G8frIdEoqrH8g==
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 879EAF40068;
-	Thu, 16 Apr 2026 16:53:45 -0400 (EDT)
-Received: from phl-imap-16 ([10.202.2.88])
-  by phl-compute-02.internal (MEProxy); Thu, 16 Apr 2026 16:53:45 -0400
-X-ME-Sender: <xms:WUzhadGIqbMa438SrmTsmjCl787G0xIJFBw-Qfs109qRystEsMhcdQ>
-    <xme:WUzhadLaVQq3x-NOPV0-M4W52GGMuR8O3vGFT06GtzhIa47z5SLO1wMNoh-bMbGy0
-    zJuRd-9hBTXvfPtQV-jAVs_02CvVZxMChloGmRT5Iuk0-kTD-v3rWo>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdegkedtudcutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefoggffhffvvefkjghfufgtgfesthhqredtredtjeenucfhrhhomhepfdffrghnucgh
-    ihhllhhirghmshdfuceoughjsgifsehkvghrnhgvlhdrohhrgheqnecuggftrfgrthhtvg
-    hrnhepuedujeffveegleegkeeiteefuefhfeekvedvgfffgeehgfehleejgeejveffgfff
-    necuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepughjsg
-    ifodhmvghsmhhtphgruhhthhhpvghrshhonhgrlhhithihqddujeejvdeftdegheehqdef
-    feefleegtdegjedqughjsgifpeepkhgvrhhnvghlrdhorhhgsehfrghsthhmrghilhdrtg
-    homhdpnhgspghrtghpthhtohepgedupdhmohguvgepshhmthhpohhuthdprhgtphhtthho
-    pehshhhivhgrnhhkghesrghmugdrtghomhdprhgtphhtthhopehjrghmvghsrdhmohhrsh
-    gvsegrrhhmrdgtohhmpdhrtghpthhtohepsggvrhhnugessghssggvrhhnugdrtghomhdp
-    rhgtphhtthhopegsshgthhhusggvrhhtseguughnrdgtohhmpdhrtghpthhtoheprghmih
-    hrjeefihhlsehgmhgrihhlrdgtohhmpdhrtghpthhtohepsggrghgrshguohhtmhgvsehg
-    mhgrihhlrdgtohhmpdhrtghpthhtohepjhhorghnnhgvlhhkohhonhhgsehgmhgrihhlrd
-    gtohhmpdhrtghpthhtoheprggtkhgvrhhlvgihthhnghesghhoohhglhgvrdgtohhmpdhr
-    tghpthhtohepshgvrghnjhgtsehgohhoghhlvgdrtghomh
-X-ME-Proxy: <xmx:WUzhaUwKZTaAAPCUuJbPycDNZtQTCaP5juc11oOQ_1ue4asARW8VGA>
-    <xmx:WUzhacSa6JiaRRPSepxGapcMKy5oSkaT1H4l4bNDaWe8SKtRLa7SUQ>
-    <xmx:WUzhaW8ydo5n2xptH7g8nlrQTbCn-CaM0Do_ErMzA688EE0yzRjvKQ>
-    <xmx:WUzhaSaB-i6fI32eV4MloL7qa2UnRU28gl_J-sIw6CckXihQQmHOGQ>
-    <xmx:WUzhafq-9M3Zbr2c10ckJ_IZsgALgwKX-sf8gzQ9MiuLBfCJrNbpvG_K>
-Feedback-ID: i67ae4b3e:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 5278B2CC0083; Thu, 16 Apr 2026 16:53:45 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Xjee3u6L"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1776373705; x=1807909705;
+  h=message-id:date:mime-version:subject:to:references:from:
+   in-reply-to:content-transfer-encoding;
+  bh=W3p2UhPa+WCf8euWWtADln3YFtCQ4Q18xjJ0cW1mSZ0=;
+  b=Xjee3u6Loz7gbvXEXxDE5jYTU0ZvZ78jZUe5D7d/H4LPfUWLswCYaArw
+   QEpCaFpifjYVxJ1BkNN29rBbMadMLwvkQTuf1ZzbL7Qhw6PycsDHOTS56
+   GjU8huPz7cAyF2zUnZ+KJzcEy/U5wTsQ6Fy8APpCJpMWw1RcPmFR8dIaC
+   RrkYBVw9OILHCh6Ulyfv+cZsKeEkY3ZnRwBlyHTSDDmY33QxB6rhoHuii
+   zGzXjBJHH3GFSQFaMankgehqwUzRyCnPgpRDrU3xMh6pBEX2C7UzcJWuK
+   zlp7dTStZ3plM2soP2/sgTzVfgwjPrbyagLjiQWBsZaxGHV3CrCktmQHg
+   g==;
+X-CSE-ConnectionGUID: upCPChKHS5iSwGRCJBvyXg==
+X-CSE-MsgGUID: LwH/GJ/gT5mrKt20DiQPbg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11761"; a="77505127"
+X-IronPort-AV: E=Sophos;i="6.23,181,1770624000"; 
+   d="scan'208";a="77505127"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2026 14:08:24 -0700
+X-CSE-ConnectionGUID: 88AGrHILSRSvFdkR4YRSYQ==
+X-CSE-MsgGUID: JRUjHPcZSs+KuoUUaeIhEQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,181,1770624000"; 
+   d="scan'208";a="230723927"
+Received: from gabaabhi-mobl2.amr.corp.intel.com (HELO [10.125.110.139]) ([10.125.110.139])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2026 14:08:24 -0700
+Message-ID: <97a4d9ff-dda7-41e2-81f3-3cf94243e3aa@intel.com>
+Date: Thu, 16 Apr 2026 14:08:23 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Date: Thu, 16 Apr 2026 13:53:27 -0700
-From: "Dan Williams" <djbw@kernel.org>
-To: "Gregory Price" <gourry@gourry.net>,
- "Joanne Koong" <joannelkoong@gmail.com>
-Cc: "John Groves" <John@groves.net>, "Darrick J. Wong" <djwong@kernel.org>,
- "Miklos Szeredi" <miklos@szeredi.hu>,
- "Bernd Schubert" <bernd@bsbernd.com>,
- "John Groves" <john@jagalactic.com>,
- "Dan J Williams" <dan.j.williams@intel.com>,
- "Bernd Schubert" <bschubert@ddn.com>,
- "Alison Schofield" <alison.schofield@intel.com>,
- "John Groves" <jgroves@micron.com>, "Jonathan Corbet" <corbet@lwn.net>,
- "Shuah Khan" <skhan@linuxfoundation.org>,
- "Vishal Verma" <vishal.l.verma@intel.com>,
- "Dave Jiang" <dave.jiang@intel.com>,
- "Matthew Wilcox" <willy@infradead.org>, "Jan Kara" <jack@suse.cz>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "David Hildenbrand" <david@kernel.org>,
- "Christian Brauner" <brauner@kernel.org>,
- "Randy Dunlap" <rdunlap@infradead.org>,
- "Jeff Layton" <jlayton@kernel.org>,
- "Amir Goldstein" <amir73il@gmail.com>,
- "Jonathan Cameron" <Jonathan.Cameron@huawei.com>,
- "Stefan Hajnoczi" <shajnocz@redhat.com>,
- "Josef Bacik" <josef@toxicpanda.com>,
- "Bagas Sanjaya" <bagasdotme@gmail.com>,
- "Chen Linxuan" <chenlinxuan@uniontech.com>,
- "James Morse" <james.morse@arm.com>, "Fuad Tabba" <tabba@google.com>,
- "Sean Christopherson" <seanjc@google.com>,
- "Shivank Garg" <shivankg@amd.com>,
- "Ackerley Tng" <ackerleytng@google.com>,
- "Aravind Ramesh" <arramesh@micron.com>,
- "Ajay Joshi" <ajayjoshi@micron.com>,
- "venkataravis@micron.com" <venkataravis@micron.com>,
- "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Message-Id: <43d36427-4629-4712-a262-391e64006eb5@app.fastmail.com>
-In-Reply-To: <aeFDCeqZDPI3rm3s@gourry-fedora-PF4VCD3F>
-References: <adkDq0m5Wt9YhJ8A@groves.net>
- <38744253-efa3-41c5-a491-b177a4a4c835@bsbernd.com>
- <adlBcwJjLOQDAR65@groves.net>
- <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
- <CAJfpegvVTcV89=q3L326aGQjhduBcv7PVg5QKftGLjNZmCLmaw@mail.gmail.com>
- <ad4_jFsR951c2Mtn@groves.net> <20260414185740.GA604658@frogsfrogsfrogs>
- <CAJnrk1ZgcMuwfMpT1fXvUwBBiq9eWFHWVeOFQFFKiamGGe1RJg@mail.gmail.com>
- <ad7Tps4tkNbndd9Z@groves.net>
- <CAJnrk1ZWVsKW2dhAWdBkCQskoTE+hmOhPFDhyz4EtExn=GdXGA@mail.gmail.com>
- <aeFDCeqZDPI3rm3s@gourry-fedora-PF4VCD3F>
-Subject: Re: [PATCH V10 00/10] famfs: port into fuse
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [ndctl PATCH 1/2] test/common: add helpers for CXL region replay
+ testing
+To: Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org
+References: <8646e0b11697e3adb4fc9a83fa486e68a4b9b5c5.1773466514.git.alison.schofield@intel.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <8646e0b11697e3adb4fc9a83fa486e68a4b9b5c5.1773466514.git.alison.schofield@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
 
-On Thu, Apr 16, 2026, at 1:14 PM, Gregory Price wrote:
-> On Thu, Apr 16, 2026 at 08:56:46AM -0700, Joanne Koong wrote:
->> On Tue, Apr 14, 2026 at 5:10=E2=80=AFPM John Groves <John@groves.net>=
- wrote:
->> >
->> > There is a FUSE_DAX_FMAP capability that the kernel may advertise o=
-r not
->> > at init time; this capability "is" the famfs GET_FMAP AND GET_DAXDEV
->> > commands. In the future, if we find a way to use BPF (or some other
->> > mechanism) to avoid needing those fuse messages, the kernel could b=
-e updated
->> > to NEVER advertise the FUSE_DAX_FMAP capability. All of the famfs-s=
-pecific
->> > code could be taken out of kernels that never advertise that capabi=
-lity.
->>=20
->> I=E2=80=99m not sure the capability bit can be used like that (though=
- I am
->> hoping it can!). As I understand it, once the kernel advertises a
->> capability, it must continue supporting it in future kernels else
->> userspace programs that rely on it will break.
->>=20
->
-> FUSE_DAX_FMAP is already conditional on CONFIG_FUSE_DAX, the kernel is
-> not required to continue advertising FUSE_DAX_FMAP in perpetuity.
->
-> Setting CONFIG_FUSE_DAX=3Dn does not mean userland "is broken", this w=
-ould
-> only be the case if FUSE_DAX_FMAP was advertised but not actually
-> supported.
->
-> If DAX were removed from the kernel (unlikely, but stick with me) this
-> would be equivalent to permanently changing CONFIG_FUSE_DAX to always
-> off, and there would be no squabbles over whether that particular
-> change broke userland (there would be much strife over removing dax).
->
-> While not a deprecation method, this is what capability bits are
-> designed for. Same as cpuid capability bits - just because the bit is
-> there doesn't mean a processor is required to support it in perpetuity.
->
-> They're only required to support it if the bit is turned on.
->
+On 3/13/26 11:21 PM, Alison Schofield wrote:
+> Add replay_regions() and supporting helpers to the CXL test common
+> library. The helpers capture the current region configuration, trigger
+> a region replay by unbinding and rebinding the cxl_acpi driver, and
+> verify that the regions reconstructed during enumeration match the
+> original configuration.
+> 
+> Replay is enabled by instructing the cxl_test module to preserve its
+> decoder registry across the driver unbind/bind cycle. This allows the
+> decoder programming associated with user-created regions to survive
+> topology teardown so that the regions are reconstructed during driver
+> initialization as auto-discovered regions.
+> 
+> Region signatures are derived from region attributes and memdev serial
+> numbers so that the replayed configuration can be compared independent
+> of topology enumeration order and device numbering.
+> 
+> These helpers provide a reusable mechanism for CXL tests that need to
+> exercise region replay behavior. A unit test, cxl-region-replay.sh, is
+> posted in a follow-on patch and demonstrates the workflow.
+> 
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 
-Right, if the protocol on day one is "user space must ask which method i=
-s available", then userspace can not be surprised when one option disapp=
-ears. So to give time for the bpf approach to mature the kernel can do s=
-omething like "famfs and bpf  mapping support are available". In some fu=
-ture kernel the famfs native option disappears after a deprecation perio=
-d.=20
+Not that I'm great at bash and jq but it looks ok to me. 
 
-When folks ask 10 years from now why this ever supported optionality the=
- explanation is "oh because famfs enjoyed first mover advantage to prove=
- out fs semantics layered on dax devices", or "turns out there are some =
-cases where bpf is not fast enough but it still stops the proliferation =
-of more in kernel mapping implementations".
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-Something like FUSE_DAX_FMAP is always available but the backend to that=
- is optionally native vs bpf. ...or some other arrangement to make it cl=
-ear that native might be gone someday.
+
+> ---
+>  test/common | 109 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 109 insertions(+)
+> 
+> diff --git a/test/common b/test/common
+> index 2eb11b7396d0..048f9680f277 100644
+> --- a/test/common
+> +++ b/test/common
+> @@ -168,3 +168,112 @@ check_dmesg()
+>  
+>  # CXL COMMON
+>  CXL_TEST_QOS_CLASS=42
+> +
+> +# CXL region replay helpers
+> +#
+> +# replay_regions() snapshots the current region configuration, performs
+> +# a cxl_acpi driver unbind/bind cycle to trigger region replay, and
+> +# verifies that the regions reconstructed during enumeration match the
+> +# original configuration.
+> +#
+> +# This allows tests to create regions through the user interface and
+> +# then replay them as auto-discovered regions during driver
+> +# initialization.
+> +#
+> +# See example usage in test/cxl-region-replay.sh.
+> +
+> +CXL_EXPECTED_REGION_SIGS=""
+> +
+> +cxl_get_memdev_serial()
+> +{
+> +	local memdev="$1"
+> +
+> +	"$CXL" list -m "$memdev" | jq -r '.[0].serial'
+> +}
+> +
+> +cxl_emit_region_signature()
+> +{
+> +	local region="$1"
+> +	local region_json size type ways gran state
+> +	local entry pos memdev serial sig
+> +
+> +	region_json=$("$CXL" list -R --targets -r "$region")
+> +	[[ -n "$region_json" && "$region_json" != "[]" ]] || return 1
+> +
+> +	size=$(jq -r '.[0].size' <<<"$region_json")
+> +	type=$(jq -r '.[0].type' <<<"$region_json")
+> +	ways=$(jq -r '.[0].interleave_ways' <<<"$region_json")
+> +	gran=$(jq -r '.[0].interleave_granularity' <<<"$region_json")
+> +	state=$(jq -r '.[0].decode_state' <<<"$region_json")
+> +
+> +	sig="size=$size type=$type ways=$ways gran=$gran"
+> +
+> +	while IFS= read -r entry; do
+> +		pos=$(jq -r '.position' <<<"$entry")
+> +		memdev=$(jq -r '.memdev' <<<"$entry")
+> +		serial=$(cxl_get_memdev_serial "$memdev") || return 1
+> +		[[ -n "$serial" && "$serial" != "null" ]] || return 1
+> +		sig="$sig pos=$pos serial=$serial"
+> +	done < <(jq -c '.[0].mappings | sort_by(.position)[]' <<<"$region_json")
+> +
+> +	echo "$sig state=$state"
+> +}
+> +
+> +cxl_collect_region_signatures()
+> +{
+> +	local region
+> +	local -a regions=()
+> +
+> +	mapfile -t regions < <("$CXL" list -Ri | jq -r '.[].region' | sort) || return 1
+> +
+> +	for region in "${regions[@]}"; do
+> +		cxl_emit_region_signature "$region" || return 1
+> +	done | sort
+> +}
+> +
+> +cxl_capture_expected_region_signatures()
+> +{
+> +	CXL_EXPECTED_REGION_SIGS=$(cxl_collect_region_signatures) || return 1
+> +}
+> +
+> +cxl_verify_replayed_regions()
+> +{
+> +	local actual_region_sigs
+> +	local -a expected_lines=()
+> +	local -a actual_lines=()
+> +	local i
+> +	local expected_line actual_line
+> +	local expected_struct actual_struct
+> +	local expected_state actual_state
+> +
+> +	actual_region_sigs=$(cxl_collect_region_signatures) || return 1
+> +
+> +	mapfile -t expected_lines < <(printf '%s\n' "$CXL_EXPECTED_REGION_SIGS" | sed '/^$/d')
+> +	mapfile -t actual_lines < <(printf '%s\n' "$actual_region_sigs" | sed '/^$/d')
+> +
+> +	[ "${#expected_lines[@]}" -eq "${#actual_lines[@]}" ] || return 1
+> +
+> +	for ((i = 0; i < ${#expected_lines[@]}; i++)); do
+> +		expected_line=${expected_lines[i]}
+> +		actual_line=${actual_lines[i]}
+> +
+> +		expected_struct=${expected_line% state=*}
+> +		expected_state=${expected_line##* state=}
+> +		actual_struct=${actual_line% state=*}
+> +		actual_state=${actual_line##* state=}
+> +
+> +		[ "$expected_struct" = "$actual_struct" ] || return 1
+> +		[ "$expected_state" != "commit" ] || [ "$actual_state" = "commit" ] || return 1
+> +	done
+> +}
+> +
+> +replay_regions()
+> +{
+> +	echo "replaying existing regions"
+> +	cxl_capture_expected_region_signatures || return 1
+> +	echo 1 > /sys/bus/platform/devices/cxl_acpi.0/decoder_reset_preserve_registry
+> +	echo cxl_acpi.0 > /sys/bus/platform/drivers/cxl_acpi/unbind
+> +	echo cxl_acpi.0 > /sys/bus/platform/drivers/cxl_acpi/bind
+> +	echo 0 > /sys/bus/platform/devices/cxl_acpi.0/decoder_reset_preserve_registry
+> +	cxl_verify_replayed_regions || return 1
+> +}
+> 
+> base-commit: d6f32b0afba6c36fbde2aae67230b71f9e70cb07
+
