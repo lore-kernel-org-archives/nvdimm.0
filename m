@@ -1,103 +1,103 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52BF21E1C11
-	for <nvdimm@lists.linux.dev>; Fri, 17 Apr 2026 00:44:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D242238171
+	for <nvdimm@lists.linux.dev>; Fri, 17 Apr 2026 01:24:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.41
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776386683; cv=pass; b=pbHvedbCuokGRLx4yd1U0FlTf6qTXdFpxYl5Egt2hTBembDu6h8THUWiJCNjTjVep8hOel05HM47hkI94kNZCzz7rK1r7cWZqoA/QCR+2sMIixucpgSkAdL0k73izPbjsChjExVzu1XaNZkivmbgGePOY588Od3KOrsNL1wWSxs=
+	t=1776389059; cv=pass; b=Y5z5Opyq8XODKKswNl4bb8vlcGB1qDxrN+UpwjPnAhknD6N5ILoLMm9Wq2tOwr7r9YVl8aU1RFJ6a7poCCKkUvlhFTpwNuDEx2xCCZsn8h8C+qwQg5AEcvEA8+pKJKnI1skfLMBDTkJvu2ofHCGs0KcSBHxL+xdrsVohFHvMgHQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776386683; c=relaxed/simple;
-	bh=tCpq6Jo4S69VtWgQOHfdZhHmPAn9f34q/hcA9ixHo38=;
+	s=arc-20240116; t=1776389059; c=relaxed/simple;
+	bh=/Wh0gdvtZWPb7hKtiDidqSqiK65wS9x8xeL5Zs7IDHE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iC7KeuVhllD9Bo2v3/RBm52vpV26a2LEWOl8V3Z0cscb3bCa1zIIi5eihIxu0AZnY5hM6d3GfW4GYA7q1gn8dOLkI2Oen8bARpiNYaAEsNiwoH/CddlQzK2kufvg74CoAbD29UuA67tnYWSBinNiMhRHwpnC/3v5phTOpn7BIsA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=E9NvsMuP; arc=pass smtp.client-ip=209.85.221.42
+	 To:Cc:Content-Type; b=ee7p4CVAMCiEZOxNOycyx81huAHagE4mPnGBR+j+MoZMiIQpj/fPqDXBPL0YHxDCIfyMo/Ph+7/R819Zye2M7ehYs8PHwKU8N2A7G62XEJH8GRqS+oeCYbjKRpHHW8WGB5MzA0Br8ZNJndZULt8WDsxmx0fdyzYAvvn7SfaCK7Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=peWkJlyL; arc=pass smtp.client-ip=209.85.128.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="E9NvsMuP"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-43d72875729so36142f8f.3
-        for <nvdimm@lists.linux.dev>; Thu, 16 Apr 2026 17:44:42 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1776386681; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="peWkJlyL"
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-488c2690057so1217095e9.0
+        for <nvdimm@lists.linux.dev>; Thu, 16 Apr 2026 18:24:17 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1776389056; cv=none;
         d=google.com; s=arc-20240605;
-        b=BqRAsZq23aMjAu0UnXwbZW0L9Kqje7YLY7VY3MecWpCI/yZR6xmlf+ic6ObHzw/Obb
-         7Nl7HNS7ByTBuBHItPuV9+/F5fYyJS4tFDVjMxD62F1Mka0/P6Q/cdsQLk8esGVw9TCy
-         e3WOT0wHXqT9/9R3tlW0+LxyehAcvloxdbwLRmtca/zQlZCjgDkyJotUcXvtSZtMOcuc
-         QH3jmhEPOA5ycJ7S+U5KK2oKkvd/Rl+qY1vrmFWpig2TECSPoFE/wseNL4Di5sgQpq0p
-         kVXLOHPMJtv9DfLwRe80hTtJKTevpGfenpuQZ2LjtZLZ5EUw4W0HTz0i5QBTeGqmuHxk
-         Hj5g==
+        b=BBb91QhFcYQjMaetKVRENdjj/WO0JGhTYypNFJZFL1xLaGmeRETY6kNhdnmGGxEEgl
+         rlD8Hk6l5b+oIg+YFXZBjI+lq0c0mOBRsM6SrxkvTTSaYb35rKQzhs2QnOt5DljJg1/l
+         G2N18L8+JGJvnHZ/tP6k0q0vHP7Bg/Oy1xi7boFl4+hGJ/KQZHUYDSebw9P8CvQU23VH
+         0sq3kvxu0BjGWjSecywN19Za2svTF38WFMCKIe/cakRWHYpp5FfbVe5wuhzCpY6i7zHp
+         F5tfYBuwRJBKk3vkJ9c14p41qZNhmyENOJeYxxV53rJGxh8RzP8UNgFEAZmXHdDjWaC+
+         Y2Zw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=QaHD4Pp5DEt3l7q3lFH627j4dWsMdcfeRieD1J/u6kI=;
-        fh=4V08u6u95E+BUBKlkLMueBLLHLiV+VRaEVBHEQpxjpo=;
-        b=N8oTDjcZkwsbVpw/lmHYrKQ8vMv1XPzLcYg9UNIbxwOD+MQixqUuIgWs659kKop3Qt
-         QDfMXfkGHqumSraFeWuGMAw9XJogUtQnjPUYdfy0S7faAcv5Y9E5EM2OvXKLYttIe4t/
-         xgp0Kjj0ukuGMO8QREvawqnVmt3BWovlrzLHvG/lp+7Zh+PtG6kqcPMOiKvTEVf9dfsn
-         S87R51u/peeJU6ODRVKswnS2sU0eTNKrs6ZnzGeQyUGkEtUOeJChuFQdL3Tf0KakdZ90
-         jkjMMtfT0khigMDaLoikpErlKLyWBvOIXLiuuQjPZte2X16LpqNKrZlT6pZ4lUsuC8l0
-         rMYw==;
+        bh=DF8Fi5Xe81jVgo2Oab2GxqdGUDJSWyloL5oFl/Qyv1A=;
+        fh=sH0oKaufbLl7Bdo2F6cYWnBLCrO100MsrshNICRXiQo=;
+        b=MKoJR4ACWXyk+MjQo4MCWdhND7QqQscP3DUPQQmeR4meJecYiBJM8hl4uVfo8qyVnZ
+         FC93WxSwALNtHEULh5v2+yhdNTvbQG5/Jmf5erXydIKN/mLLAnAVWVOK5Oge47Kx+JKF
+         NubCq0hA3kdNjCymcLbo/vOc1XbmieZ4FtRQbVQMlNaKT7kWsuv6IUmc/TK8uxMGjPvk
+         xTkGvhLRieSt3pvAUtfP2AGojvUEsP4hOyoay9MtH0knTBBC4Cqwc8omxwxKZXu3/Tuc
+         IogGAig8cszTnclkA7ghbakuiK81hLi5PN6yxzMAkv4T0+bLcZ1lgz4GrGM5XOFVbXN4
+         Mv7w==;
         darn=lists.linux.dev
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776386681; x=1776991481; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1776389056; x=1776993856; darn=lists.linux.dev;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=QaHD4Pp5DEt3l7q3lFH627j4dWsMdcfeRieD1J/u6kI=;
-        b=E9NvsMuPOnK8G6kpaRRk0uNR5UWYW2PDWY0NRAUrHkyV4kTtwFAZgiyT7BVJQtZrQl
-         Bw2LO2FTI5MlHooTy4TzFkTGLoY4iIhlRiziszNWbX7QXsZGra/nXngO2pIHBH+kqKvQ
-         LL4QN+/LaWGuhnjhjIAXH+BbNGpuEb60kAXqGGxl+HHAeA18iyPP69WGIHhC/DVkC357
-         6hJTKuNzhkD+kjB8wq4o1CcTvb62hE7Zhl7LJwk0Zpn2CjhywHyln3ULNqzmuKTPNzis
-         uuBt9Kuq4WxRlVM9Qi/XRknA8erk8DxQ9Dxqq1fz3pt8A40JKA7FtO2THYrq7m30lcC0
-         8kZg==
+        bh=DF8Fi5Xe81jVgo2Oab2GxqdGUDJSWyloL5oFl/Qyv1A=;
+        b=peWkJlyL22NAWgejHy9DwLt6HgD2frT8+8axd72zD9PjR3pHsYv+8K2Hp19K0tc3Zd
+         b5gB8TQ4qeZ1o/2Mk0W5cmxixMBM2x04l6GE2XD28rkKOAN5I3i+4eATdQ3S6IQn4J0S
+         6VUSnUDw2fN0Iv+MKtF5wORL+cJ/KjpHTMU5o+/mheK16ylnOJiOWL/+DekMs/4+wX7m
+         ZI91ryqJaaPKcpJh6AftF9V2sKMVxum3eimJcKfVPdwKyl9MKrr9DGCSOqfT0J9Wk1Cw
+         80Lqb874Oulr5tEftvaut6tE/b0uuLpxaHf7F4AvGK3rb8TgJP4eC7ncOwiTyNPDLVT1
+         4jng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776386681; x=1776991481;
+        d=1e100.net; s=20251104; t=1776389056; x=1776993856;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=QaHD4Pp5DEt3l7q3lFH627j4dWsMdcfeRieD1J/u6kI=;
-        b=iGx4Qvb4ZDvLyiFg1MPz0QHnAfXZP5Y7qEUYqzIUuBSC9ihCiZqggJb15911CNv2W5
-         sJ1SbRlBL+SmhremwCXnIuULlVpVKfOP7BfsYi/QDzwfjlsW0pNqA/Lb1qcrNVN3VZdB
-         q9tTDpw9hhoTbyfOj8XF00xFKu1cfQ8zCIthGpnbZPwgHnLjFfeTRx610UVIUNbrMtvR
-         L664P/L9c2MOgCnHKcIYliILDXrbpC0x5Hu4Q780hJ6V2tDTLcCff3nga95/PMkEe2ou
-         QzDzJqzEAYtWBnbA3Cf3etDYs4FbXitpfOtX53RHMrBG+jJth24rCwRYT5pc+9v/uWc+
-         Go7g==
-X-Forwarded-Encrypted: i=1; AFNElJ/sVYWF70mJNWAs0Rf0ZQpQ3OXIjs8+RE67/C+N/UIS5PNm+/e2cLpfIqfygz4eWngZ9+hG8Rs=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxB+XjqWFq+icN5LfRqsIcxv/DVhZO9mPJw+m8XWvGjK/l87iQQ
-	KiQMq/6s+2cn8lPJ+GfGtTQ0O6xcGeLm6BiBJIqUSTbIS8LFVCVeMUxir+w7IANkfZCJ2ADWrIZ
-	RB5UKkUdqTF2o6YV0yqjrusq9Q83q7hw=
-X-Gm-Gg: AeBDievHFblNpNgv1Y07rQ1lLgB/NMJqF55TIbs/XwP/ziarcbsEYBsQKNJNX1BXAYe
-	7cvUk0icguQw2g1aKEpFnPt0Kg6jET0pC6hOKsPaRtkIU+QFJ5XwGiOsGdkjzFUeDtYcNHFylc2
-	Hlb13iwHErx6rZyqZ/xXEJGmLEjo2IVZjN/tzlvPf0z1cU41bcsaUlJu1Xvw+liXJYc+ygvX4D+
-	/IP1moDrwBcnxL80AXhTxB9wphUNwlrhKLsBCzVYxAytWy0ha0lGRhHla50LJhzBTQvyo5wmh4r
-	o9yp3sH/wD/2VL8S
-X-Received: by 2002:a05:6000:18a3:b0:43d:7ba4:6b5a with SMTP id
- ffacd0b85a97d-43fe3df25a7mr841359f8f.22.1776386680466; Thu, 16 Apr 2026
- 17:44:40 -0700 (PDT)
+        bh=DF8Fi5Xe81jVgo2Oab2GxqdGUDJSWyloL5oFl/Qyv1A=;
+        b=Ttsq/2TJfvZb4VkW7UZCVrD96K6ai8nmL9CeD2KYzQHx5DgnQ02qoSM0SxrT4uQgVM
+         tw++FRndxszqpc3+9LLX8UQIiPO0v1T8KGRCWNkj6OZKaxqSn6at2Mu5/sFpqCLdol3V
+         DsoBHTnc+VUKYv6QdMbFGGPlhhJ158eN3/NMkLpBrXua+Ivk6wJb0cFoAkDop6xR0E16
+         wC9Y9vpbzjALH4uSc7+TjM6QXb6vtt1EHDUGRUftmDoblbAUT/i31FsrXkFevg/fd67T
+         KJb/67NFaFTKVt+Bhv1oss9W5zM6IrUGBojaeUqHpw3qDLLzgzPmEHHdO+lLbkRP200k
+         9fqA==
+X-Forwarded-Encrypted: i=1; AFNElJ+u4X1Jj174gqLdmMD67Rv9rPWYivE0643/NutYhDUaKiJosNpbT5PaxGPuZzg9eO/9zubJdSQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyzdQiqeO7XvelzLBN2fFay8noKuqrhF4RDCcmB2QXY/bnNgiv0
+	/ZM3PcwTvqQQvRDukhFXjkoEUC5hvdepNJwhtw5y22iV3GvfEkRKLrBQQeH8FBc+nnbCsvmtQW1
+	A/+xFdZAqIILc9akq3ZLlXxV0cQpLTXU=
+X-Gm-Gg: AeBDieucpGskSixClIwBgAn0iz4KQ6ykVVMdpmtfwNu+89wMKyw1vpwDQ2UtMzwB96M
+	hd8qvM4svQ2APjX3T/gVtEYqnIIGShT7DEmJxMUnRSWIIMdk/JAlHm6tMSROQ/+u4eHqaIV+9nG
+	+BC+vENODZtnVAetTBiOlghqCYULC+xajPATy3DxDxvIg+SQXYOylJUZl8QsIXXWKV4iJ+TeSMa
+	hs3OFphOdk+qOTCdSidxwAFooRtfkhoFfM0f4KYeuNA0jpl4bJnRMg/Psh9gXneR1ZhciAyU4Kd
+	UIHvnefZTV7itbJ2
+X-Received: by 2002:a05:600c:3e05:b0:486:ffa3:594 with SMTP id
+ 5b1f17b1804b1-488fb78049amr10083535e9.23.1776389055659; Thu, 16 Apr 2026
+ 18:24:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <adlBcwJjLOQDAR65@groves.net> <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
+References: <adkDq0m5Wt9YhJ8A@groves.net> <38744253-efa3-41c5-a491-b177a4a4c835@bsbernd.com>
+ <adlBcwJjLOQDAR65@groves.net> <CAJnrk1a06zkUmXW5EFiUmgAoFauwtzsYvnotaPH0ifVtyh7iDQ@mail.gmail.com>
  <CAJfpegvVTcV89=q3L326aGQjhduBcv7PVg5QKftGLjNZmCLmaw@mail.gmail.com>
  <ad4_jFsR951c2Mtn@groves.net> <20260414185740.GA604658@frogsfrogsfrogs>
  <CAJnrk1ZgcMuwfMpT1fXvUwBBiq9eWFHWVeOFQFFKiamGGe1RJg@mail.gmail.com>
  <ad7Tps4tkNbndd9Z@groves.net> <CAJnrk1ZWVsKW2dhAWdBkCQskoTE+hmOhPFDhyz4EtExn=GdXGA@mail.gmail.com>
- <aeFDCeqZDPI3rm3s@gourry-fedora-PF4VCD3F> <43d36427-4629-4712-a262-391e64006eb5@app.fastmail.com>
- <20260416224331.GD114184@frogsfrogsfrogs>
-In-Reply-To: <20260416224331.GD114184@frogsfrogsfrogs>
+ <aeFDCeqZDPI3rm3s@gourry-fedora-PF4VCD3F>
+In-Reply-To: <aeFDCeqZDPI3rm3s@gourry-fedora-PF4VCD3F>
 From: Joanne Koong <joannelkoong@gmail.com>
-Date: Thu, 16 Apr 2026 17:44:28 -0700
-X-Gm-Features: AQROBzA3h7bYhqR2C0MA-hMnz-JkcDiwwSJMMG8OlWk7w-ds2Ru8gPIaaDYL4u4
-Message-ID: <CAJnrk1Y78UGLyAGVjiQ10PERTz1d2qcimok6bqCquy7jQYaXag@mail.gmail.com>
+Date: Thu, 16 Apr 2026 18:24:02 -0700
+X-Gm-Features: AQROBzBg6NgZ5CNmgS4j3SGMK0DxASOwiPBNj6lTHP6QcfR7dRhxSVmDinTDkm8
+Message-ID: <CAJnrk1ad6t6CJV+xnXwhoNHrHYA3htuaVdDq47FeT60cPBzj7g@mail.gmail.com>
 Subject: Re: [PATCH V10 00/10] famfs: port into fuse
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dan Williams <djbw@kernel.org>, Gregory Price <gourry@gourry.net>, John Groves <John@groves.net>, 
+To: Gregory Price <gourry@gourry.net>
+Cc: John Groves <John@groves.net>, "Darrick J. Wong" <djwong@kernel.org>, 
 	Miklos Szeredi <miklos@szeredi.hu>, Bernd Schubert <bernd@bsbernd.com>, John Groves <john@jagalactic.com>, 
-	Dan J Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
+	Dan Williams <dan.j.williams@intel.com>, Bernd Schubert <bschubert@ddn.com>, 
 	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
 	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
 	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
@@ -115,163 +115,139 @@ Cc: Dan Williams <djbw@kernel.org>, Gregory Price <gourry@gourry.net>, John Grov
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
 	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, djbw@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 16, 2026 at 3:43=E2=80=AFPM Darrick J. Wong <djwong@kernel.org>=
- wrote:
+On Thu, Apr 16, 2026 at 1:14=E2=80=AFPM Gregory Price <gourry@gourry.net> w=
+rote:
 >
-> On Thu, Apr 16, 2026 at 01:53:27PM -0700, Dan Williams wrote:
-> >
-> >
-> > On Thu, Apr 16, 2026, at 1:14 PM, Gregory Price wrote:
-> > > On Thu, Apr 16, 2026 at 08:56:46AM -0700, Joanne Koong wrote:
-> > >> On Tue, Apr 14, 2026 at 5:10=E2=80=AFPM John Groves <John@groves.net=
-> wrote:
-> > >> >
-> > >> > There is a FUSE_DAX_FMAP capability that the kernel may advertise =
-or not
-> > >> > at init time; this capability "is" the famfs GET_FMAP AND GET_DAXD=
-EV
-> > >> > commands. In the future, if we find a way to use BPF (or some othe=
-r
-> > >> > mechanism) to avoid needing those fuse messages, the kernel could =
-be updated
-> > >> > to NEVER advertise the FUSE_DAX_FMAP capability. All of the famfs-=
-specific
-> > >> > code could be taken out of kernels that never advertise that capab=
-ility.
-> > >>
-> > >> I=E2=80=99m not sure the capability bit can be used like that (thoug=
-h I am
-> > >> hoping it can!). As I understand it, once the kernel advertises a
-> > >> capability, it must continue supporting it in future kernels else
-> > >> userspace programs that rely on it will break.
->
-> So don't break fuse servers.  If you wanted to (say) get rid of
-> GET_FMAP in favor of IOMAP_BEGIN, you could alter libfuse to translate a
-> fuse server's ->get_fmap implementation into the equivalent
-> ->iomap_begin, and eventually the kernel can stop making GET_FMAP calls
-> to userspace.
-
-I don't think it's this simple. We can't assume libfuse is the only
-way servers talk to the kernel. Some servers use the /dev/fuse
-interface directly. And, as I understand it, this would still break
-users who are on older versions of libfuse if they upgrade to a newer
-kernel.
-
-My reason for pushing back isn't because I don't want this to work; I
-just want to make sure that if we're going to rely on this as a safety
-hatch, then we can actually do it.
-
-Going back to what Dan said about using the capability bits for
-deprecation, "In some future kernel the famfs native option disappears
-after a deprecation period" - what does the deprecation period/process
-look like? Do you have to wait a certain amount of time before it can
-be fully removed or is it pretty immediate?
-
->
-> The trouble here is that I've also seen half a dozen projects vendoring
-> libfuse so that's a nightmare that will have to be dealt with.  But
-> maybe that doesn't even matter, because...
->
-> > > FUSE_DAX_FMAP is already conditional on CONFIG_FUSE_DAX, the kernel i=
-s
-> > > not required to continue advertising FUSE_DAX_FMAP in perpetuity.
+> On Thu, Apr 16, 2026 at 08:56:46AM -0700, Joanne Koong wrote:
+> > On Tue, Apr 14, 2026 at 5:10=E2=80=AFPM John Groves <John@groves.net> w=
+rote:
 > > >
-> > > Setting CONFIG_FUSE_DAX=3Dn does not mean userland "is broken", this =
-would
-> > > only be the case if FUSE_DAX_FMAP was advertised but not actually
-> > > supported.
+> > > There is a FUSE_DAX_FMAP capability that the kernel may advertise or =
+not
+> > > at init time; this capability "is" the famfs GET_FMAP AND GET_DAXDEV
+> > > commands. In the future, if we find a way to use BPF (or some other
+> > > mechanism) to avoid needing those fuse messages, the kernel could be =
+updated
+> > > to NEVER advertise the FUSE_DAX_FMAP capability. All of the famfs-spe=
+cific
+> > > code could be taken out of kernels that never advertise that capabili=
+ty.
+> >
+> > I=E2=80=99m not sure the capability bit can be used like that (though I=
+ am
+> > hoping it can!). As I understand it, once the kernel advertises a
+> > capability, it must continue supporting it in future kernels else
+> > userspace programs that rely on it will break.
+> >
 >
-> ...the memory interleaving is a rather interesting quality of famfs.
-> There's no good way to express a formulaic meta-mapping in traditional
-> iomap parlance, and famfs needs that to interleave across memory
-> controllers/dimm boxen/whatever.  Throwing individual iomaps at the
-> kernel is a very inefficient way to do that.  So I don't think there's a
-> good reason to get rid of GET_FMAP at this time...
+> FUSE_DAX_FMAP is already conditional on CONFIG_FUSE_DAX, the kernel is
+> not required to continue advertising FUSE_DAX_FMAP in perpetuity.
+>
+> Setting CONFIG_FUSE_DAX=3Dn does not mean userland "is broken", this woul=
+d
+> only be the case if FUSE_DAX_FMAP was advertised but not actually
+> supported.
+>
+> If DAX were removed from the kernel (unlikely, but stick with me) this
+> would be equivalent to permanently changing CONFIG_FUSE_DAX to always
+> off, and there would be no squabbles over whether that particular
+> change broke userland (there would be much strife over removing dax).
+>
+> While not a deprecation method, this is what capability bits are
+> designed for. Same as cpuid capability bits - just because the bit is
+> there doesn't mean a processor is required to support it in perpetuity.
+>
+> They're only required to support it if the bit is turned on.
+>
+> ---
+>
+> I think the focus here needs to be on whether this interface ACTUALLY
+> needs to be more generic - and whether that is actually FEASIBLE.
+>
+> It's not like this is a new problem - and there are real design reasons
+> why John chose this route.
+>
+> The additional overhead is not trivial for FAMFS - FAMFS is not doing
+> i/o.  He already has data showing fuse caused a performance hit due to
+> overhead on open - his concern of overhead on fault being catastrophic
+> is grounded in data.
+>
+> For others it's an age old problem of self-describing protocols (parsing
+> vs giant inflexible binary blobs, pick your poison).  It's extremely
+> unlikely we will find a one-size-fits-all solution that doesn't
+> eventually run right back into this same problem.
+>
+> I worry that this discussion is going to turn towards implementing a
+> solution grounded in parsing arbitrary formats and how to store them,
+> and that is completely detached from why FAMFS went this route in the
+> first place.
+>
+> I question whether the actual issue here lies in the interface APPEARING
+> more general purpose than it actually is - and therefore inviting
+> attempts to over-genericize it.
 
-So could we make the interleaving part generic then? Striped /
-interleaved layouts are used elsewhere (eg RAID-0, md-stripe, etc.) -
-could we add a generic interleave descriptor to the uapi and use that
-for what famfs needs?
+Would you mind clarifying this part? Are you saying that the interface
+and logic is *already* generic and usable for other dax-backed
+servers, just that everything is *named* famfs but it's not really
+famfs specific? That's what I was trying to figure out - looking at
+the uapi, it seems pretty generic with defining bytes, strips, chunk
+size, etc which all seem like general concepts but the naming of it is
+so implementation-specific, eg
 
->
-> > > If DAX were removed from the kernel (unlikely, but stick with me) thi=
-s
-> > > would be equivalent to permanently changing CONFIG_FUSE_DAX to always
-> > > off, and there would be no squabbles over whether that particular
-> > > change broke userland (there would be much strife over removing dax).
->
-> ...however the strongest case (IMO) would be if (having merged famfs) we
-> then merge fuse-iomap after famfs.  Then we extend the existing
-> fuse-iomap-bpf prototype to allow per-mount and per-inode iomap bpf ops.
-> That enables us to analyze thoroughly the performance characteristics of:
->
-> a) Using GET_FMAP as-is
->
-> b) Uploading raw iomaps (HA)
->
-> c) Uploading a single bpf program to make iomaps, exchanging fmap-style
-> mapping data into a bpf map, and having the single bpf program walk
-> through the map
->
-> d) Uploading a custom bpf program per famfs file to make iomaps.  No
-> bpfmap required, but the setup and compilation are now much more complex
->
-> Then we'll finally know which approach is the best, having broken the
-> Gordian Knot of how to merge famfs and fuse-iomap.
->
-> If we decide that (c) or (d) are actually better, then guess what?  To
-> get any of the iomap functionality, you have to set an inode flag, and
-> that (FUSE_CAP_FAMFS && FUSE_CAP_IOMAP && FUSE_ATTR_IOMAP) is the signal
-> for "don't call GET_FMAP".  FUSE_CAP_FAMFS && (!FUSE_CAP_IOMAP ||
-> !FUSE_ATTR_IOMAP) means "call GET_FMAP".
->
-> Yes, we burn a couple of fuse command values to find out, but that's all.
->
-> (TBH I still dislike GET_DAXDEV, that really should just be another
-> application of backing files, and the backing file id gets passed to
-> GET_FMAP.)
->
-> What do you all think of doing that?
+enum fuse_famfs_file_type {
+        FUSE_FAMFS_FILE_REG,
+        FUSE_FAMFS_FILE_SUPERBLOCK,
+        FUSE_FAMFS_FILE_LOG,
+};
 
-To be completely honest, this is orthogonal to what I was hoping we
-could discuss on this thread. My main concern is the GET_FMAP part.
-Can we make it more generic to other interleaved/striped layouts?
+enum famfs_ext_type {
+        FUSE_FAMFS_EXT_SIMPLE =3D 0,
+        FUSE_FAMFS_EXT_INTERLEAVE =3D 1,
+};
+
+struct fuse_famfs_simple_ext {
+        uint32_t se_devindex;
+        uint32_t reserved;
+        uint64_t se_offset;
+        uint64_t se_len;
+};
+
+struct fuse_famfs_iext { /* Interleaved extent */
+        uint32_t ie_nstrips;
+        uint32_t ie_chunk_size;
+        uint64_t ie_nbytes; /* Total bytes for this interleaved_ext;
+                             * sum of strips may be more
+                             */
+        uint64_t reserved;
+};
+
+struct fuse_famfs_fmap_header {
+        uint8_t file_type; /* enum famfs_file_type */
+        uint8_t reserved;
+        uint16_t fmap_version;
+        uint32_t ext_type; /* enum famfs_log_ext_type */
+        uint32_t nextents;
+        uint32_t reserved0;
+        uint64_t file_size;
+        uint64_t reserved1;
+};
+
+which made me think this is only famfs-specific. Are all of these
+reusable / generally applicable structs? And just to double-check, the
+computation logic in patch 6 [1] would be generic to other dax-backed
+servers as well or is that part famfs-specific?
 
 Thanks,
 Joanne
 
+[1] https://lore.kernel.org/linux-fsdevel/0100019d43e79794-0eadcf5e-b659-43=
+f7-8fdc-dec9f4ccce14-000000@email.amazonses.com/
 >
-> > > While not a deprecation method, this is what capability bits are
-> > > designed for. Same as cpuid capability bits - just because the bit is
-> > > there doesn't mean a processor is required to support it in perpetuit=
-y.
-> > >
-> > > They're only required to support it if the bit is turned on.
-> > >
-> >
-> > Right, if the protocol on day one is "user space must ask which method
-> > is available", then userspace can not be surprised when one option
-> > disappears. So to give time for the bpf approach to mature the kernel
-> > can do something like "famfs and bpf  mapping support are available".
-> > In some future kernel the famfs native option disappears after a
-> > deprecation period.
-> >
-> > When folks ask 10 years from now why this ever supported optionality
-> > the explanation is "oh because famfs enjoyed first mover advantage to
-> > prove out fs semantics layered on dax devices", or "turns out there
-> > are some cases where bpf is not fast enough but it still stops the
-> > proliferation of more in kernel mapping implementations".
+> Is there a world here where this is solved by a name change and a
+> capability bit?  I think so.
 >
-> Yes.  We're not *capable* of determining the best mechanism unless we
-> can start shipping these things to users to get their feedback.  Only
-> then can we iterate and make real improvements.
->
-> > Something like FUSE_DAX_FMAP is always available but the backend to
-> > that is optionally native vs bpf. ...or some other arrangement to make
-> > it clear that native might be gone someday.
->
-> --D
+> ~Gregory
