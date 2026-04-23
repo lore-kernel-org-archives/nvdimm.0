@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CC503822BB;
-	Thu, 23 Apr 2026 17:02:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E69436DA0B;
+	Thu, 23 Apr 2026 17:02:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776963745; cv=none; b=kP3hj4nTYhE385oXdKDKlTSWpAx+zsstkLPlJeL8z3kl1a8y1Bu6OUDBMRChxEG/hImO36wKku4Qb/nAIZOKm9TXsOdQsU6SlCEzQRxic4Z5W/dzE5QS7i7gtEA5bkIe+HHZvH/CWSNAQYOpxpysLoglAiywrpvuXfS+XxoB4iQ=
+	t=1776963747; cv=none; b=X97cAZ76P4Ru7gGLDmAuJtj+tjW+JHH8z8Oe7W6vDu88VGPsJaRXI0ZDE4wlO8YqDITquyapFXD7bnSr3Th953Z0Y/z73GTMnfNrFy2FaS3HX8c7X34Ttu++MAxUn5gCA8KkXH/hhbTRIb0L89W8qnxqRk8mcjtwif7UymFDaVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776963745; c=relaxed/simple;
-	bh=ocr6fd6xbunNGmuBXWUC4OxvUbjKtOF2u23N2M3zy7M=;
+	s=arc-20240116; t=1776963747; c=relaxed/simple;
+	bh=gdT+U3LHEUd+hnFBrmOOeWvm6nltDQqtuPiBqiE4mV0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gNLUZk7DIHqKgLBy5ywiSlCZPiLPUotNtmpYAl0JNoTGrx3kjAc6Qzcae0hGhs1AX3UZInCVZaxGvx/VXW306I5fc7or8CxHf17OmnYrzH7AUGn0F4TkLOXoLRVfQDNLyPxHGz7hOu/U2rrTUWFdjYH9W0EyxVsEYgLNey8LkI8=
+	 MIME-Version; b=LV3EjrJLhKkIwZQ0xbteMYwufxVKgEYiSCUthAH5KHliYTliLHxVgPl35TzE2RsI+CQvs1i57b98LFt0ihB8eC6hNOFCPIcTFt6OHLP323Zqo03CmltufsRQ5Rnwr5VwKaDiZWLBO9qOumGP9GKSu0rWc9CObx7Z3ekpYwL8KQw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 480E0C2BCAF;
-	Thu, 23 Apr 2026 17:02:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8983C2BCB3;
+	Thu, 23 Apr 2026 17:02:26 +0000 (UTC)
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
@@ -27,9 +27,9 @@ Cc: djbw@kernel.org,
 	gourry@gourry.net,
 	john@groves.net,
 	rick.p.edgecombe@intel.com
-Subject: [RFC PATCH 03/12] dax: Add fallocate support to device dax
-Date: Thu, 23 Apr 2026 10:02:10 -0700
-Message-ID: <20260423170219.281618-4-dave.jiang@intel.com>
+Subject: [RFC PATCH 04/12] dax: Move dax_pgoff_to_phys() to dax bus to be used by dev dax
+Date: Thu, 23 Apr 2026 10:02:11 -0700
+Message-ID: <20260423170219.281618-5-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260423170219.281618-1-dave.jiang@intel.com>
 References: <20260423170219.281618-1-dave.jiang@intel.com>
@@ -41,71 +41,82 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-fallocate() support is needed for the KVM guest_memfd selftest. Add a
-version of fallocate() for device dax. This is a simplistic
-implementation that just zeroes the specified range. It may need to
-be revisited and implement map/unmap to support larger files.
+Move function and export symbol dax_pgoff_to_phys() to dax bus.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/dax/device.c | 30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ drivers/dax/bus.c    | 24 ++++++++++++++++++++++++
+ drivers/dax/device.c | 23 -----------------------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
 
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index fde29e0ad68b..92e79720befd 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -1417,6 +1417,30 @@ static const struct device_type dev_dax_type = {
+ 	.groups = dax_attribute_groups,
+ };
+ 
++/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
++__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
++		unsigned long size)
++{
++	int i;
++
++	for (i = 0; i < dev_dax->nr_range; i++) {
++		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
++		struct range *range = &dax_range->range;
++		unsigned long long pgoff_end;
++		phys_addr_t phys;
++
++		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
++		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
++			continue;
++		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
++		if (phys + size - 1 <= range->end)
++			return phys;
++		break;
++	}
++	return -1;
++}
++EXPORT_SYMBOL_GPL(dax_pgoff_to_phys);
++
+ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ {
+ 	struct dax_region *dax_region = data->dax_region;
 diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 4ffa3ef60a57..705c59f469c2 100644
+index 705c59f469c2..e892fb4ec8e0 100644
 --- a/drivers/dax/device.c
 +++ b/drivers/dax/device.c
-@@ -10,6 +10,8 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/mman.h>
-+#include <linux/range.h>
-+#include <linux/falloc.h>
- #include "dax-private.h"
- #include "bus.h"
- 
-@@ -383,7 +385,31 @@ static int dax_release(struct inode *inode, struct file *filp)
- 	return 0;
+@@ -59,29 +59,6 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 			   vma->vm_file, func);
  }
  
--static const struct file_operations dax_fops = {
-+static long dax_fallocate(struct file *file, int mode, loff_t offset,
-+			  loff_t len)
-+{
-+	struct dev_dax *dev_dax = file->private_data;
-+
-+	if (!IS_ALIGNED(offset, dev_dax->align) ||
-+	    !IS_ALIGNED(len, dev_dax->align))
-+		return -EINVAL;
-+
-+	if (offset + len > dev_dax->cached_size)
-+		return -ERANGE;
-+
-+	/* DAX device does not change size */
-+	if (!(mode & FALLOC_FL_KEEP_SIZE))
-+		return -EOPNOTSUPP;
-+
-+	if ((mode & ~FALLOC_FL_KEEP_SIZE) &&
-+	    ((mode & (FALLOC_FL_PUNCH_HOLE | FALLOC_FL_ZERO_RANGE)) == 0))
-+		return -EOPNOTSUPP;
-+
-+	memset(dev_dax->virt_addr + offset, 0, len);
-+	return 0;
-+}
-+
-+const struct file_operations dax_fops = {
- 	.llseek = noop_llseek,
- 	.owner = THIS_MODULE,
- 	.open = dax_open,
-@@ -391,7 +417,9 @@ static const struct file_operations dax_fops = {
- 	.get_unmapped_area = dax_get_unmapped_area,
- 	.mmap_prepare = dax_mmap_prepare,
- 	.fop_flags = FOP_MMAP_SYNC,
-+	.fallocate = dax_fallocate,
- };
-+EXPORT_SYMBOL_GPL(dax_fops);
- 
- static void dev_dax_cdev_del(void *cdev)
+-/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+-__weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+-		unsigned long size)
+-{
+-	int i;
+-
+-	for (i = 0; i < dev_dax->nr_range; i++) {
+-		struct dev_dax_range *dax_range = &dev_dax->ranges[i];
+-		struct range *range = &dax_range->range;
+-		unsigned long long pgoff_end;
+-		phys_addr_t phys;
+-
+-		pgoff_end = dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
+-		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
+-			continue;
+-		phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+-		if (phys + size - 1 <= range->end)
+-			return phys;
+-		break;
+-	}
+-	return -1;
+-}
+-
+ static void dax_set_mapping(struct vm_fault *vmf, unsigned long pfn,
+ 			      unsigned long fault_size)
  {
 -- 
 2.53.0
