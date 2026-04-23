@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15D9D381B05;
-	Thu, 23 Apr 2026 17:02:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7074A34887E;
+	Thu, 23 Apr 2026 17:02:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776963756; cv=none; b=qzxCgljii4c7B6UJWecZzKAqVmhPaaS2FuwZVNBRlzlwFvO0pa6vhSUxlVAtj8T7uXmvi7HdBS5bqSZJC3KqmQQDkbBA4xTVZ6NkyzPHhmgYfIxBWCzIuWMrqrMeJsqoSmbFx3VGCTGWNBnUvlELBJtjxqeh6tXA+/zxu8h9DnQ=
+	t=1776963757; cv=none; b=TIdtQZA7BpCaIwktNCNvk+/qSpANXldcLzY1VJx1LNVA7CNia8KbwJnbpcjoiKGkM4E+klJSctCyzaWWJjTlWqh8+YpYqazM7mzKyJEnOGHpuJfkr4QWgtS6W2jr8SnLx/k4ogL5T0rudDaQdJTKMARSjzY8FZTsyQk8AVjMYRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776963756; c=relaxed/simple;
-	bh=HYzvVExtWfJfN31F64rwitcl6O/I04M0IktAS+yPO3I=;
+	s=arc-20240116; t=1776963757; c=relaxed/simple;
+	bh=rACiwKMD9EAG7r9aTlbl6V8nLJbbZBmPN5G2PoJzDbE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jvZkZQ8/TApgLiXu+6HOVj92fV9mceYXHOR8D9AdJVspawTTyd0gju178zcCyuQVwXeUTmwormTqBMpTJ0ojExT+EoRTyvzW17ZjBOMufFzdHwTb2Dw7LSWtHbR2ekdqxt1ISdZUH16L5lA0S5Ps/WBtjpnyohFa7falOYuLAOo=
+	 MIME-Version; b=DC2aGHoXJDbY76vqKeKkrQyN/2/QBldcd9kUznBCwZzGMAR8+HrO+RZCk7Oclr/NTz16Q11mEQgxsw6qFSylgNBC7lfKPNsdrGLuU5RIScVt2+YQj7ylo2UfW5h/gejaeC08Y8P+2Jifvh+qGlOwCkhI5rjEg5TpZWRceNr/j3Y=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90961C2BCAF;
-	Thu, 23 Apr 2026 17:02:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19A88C2BCAF;
+	Thu, 23 Apr 2026 17:02:37 +0000 (UTC)
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
@@ -27,9 +27,9 @@ Cc: djbw@kernel.org,
 	gourry@gourry.net,
 	john@groves.net,
 	rick.p.edgecombe@intel.com
-Subject: [RFC PATCH 10/12] kvm: Implement dax support for KVM faulting
-Date: Thu, 23 Apr 2026 10:02:17 -0700
-Message-ID: <20260423170219.281618-11-dave.jiang@intel.com>
+Subject: [RFC PATCH 11/12] kvm: Add daxfd support for supported flags
+Date: Thu, 23 Apr 2026 10:02:18 -0700
+Message-ID: <20260423170219.281618-12-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260423170219.281618-1-dave.jiang@intel.com>
 References: <20260423170219.281618-1-dave.jiang@intel.com>
@@ -41,205 +41,79 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add support for KVM faulting of daxfd through using dax_direct_access().
-The function kvm_dax_get_pfn() is implemented to complete the daxfd
-support for KVM faulting. A reference is taken on the page. There is no
-need to call put_dev_pagemap() when put_page() happens as recent kernel
-changes takes care of that within put_page() path.
+Add supported flags for daxfd similar to what memfd does.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- arch/x86/kvm/mmu/mmu.c   | 48 +++++++++++++++++++++++++++++++++++-----
- drivers/dax/bus.c        |  1 +
- include/linux/dax.h      |  1 +
- include/linux/kvm_host.h |  8 +++++++
- virt/kvm/guest_memfd.c   | 42 +++++++++++++++++++++++++++++++++++
- 5 files changed, 94 insertions(+), 6 deletions(-)
+ include/linux/kvm_host.h | 7 +++++++
+ include/uapi/linux/kvm.h | 4 ++++
+ virt/kvm/kvm_main.c      | 6 ++++++
+ 3 files changed, 17 insertions(+)
 
-diff --git a/arch/x86/kvm/mmu/mmu.c b/arch/x86/kvm/mmu/mmu.c
-index 02c450686b4a..fe787f73b9a8 100644
---- a/arch/x86/kvm/mmu/mmu.c
-+++ b/arch/x86/kvm/mmu/mmu.c
-@@ -4588,16 +4588,52 @@ static int kvm_mmu_faultin_pfn_gmem(struct kvm_vcpu *vcpu,
- 	return RET_PF_CONTINUE;
- }
- 
-+static pgoff_t kvm_gmem_get_index(struct kvm_memory_slot *slot, gfn_t gfn)
-+{
-+	return gfn - slot->base_gfn + slot->gmem.pgoff;
-+}
-+
-+static kvm_pfn_t kvm_faultin_dax_pfn(struct kvm_vcpu *vcpu, struct kvm_page_fault *fault)
-+{
-+	kvm_pfn_t pfn;
-+	pgoff_t index;
-+	int rc;
-+
-+	if (!kvm_memslot_is_dax_only(fault->slot))
-+		return KVM_PFN_ERR_FAULT;
-+
-+	index = kvm_gmem_get_index(fault->slot, fault->gfn);
-+	rc = kvm_dax_get_pfn(fault->slot, index, &pfn, &fault->refcounted_page);
-+	if (rc)
-+		return KVM_PFN_ERR_FAULT;
-+
-+	return pfn;
-+}
-+
- static int __kvm_mmu_faultin_pfn(struct kvm_vcpu *vcpu,
- 				 struct kvm_page_fault *fault)
- {
- 	unsigned int foll = fault->write ? FOLL_WRITE : 0;
-+	gfn_t gfn = fault->gfn;
- 
--	if (fault->is_private || kvm_memslot_is_gmem_only(fault->slot))
-+	if (fault->is_private || (kvm_memslot_is_gmem_only(fault->slot) &&
-+	    !kvm_memslot_is_dax_only(fault->slot)))
- 		return kvm_mmu_faultin_pfn_gmem(vcpu, fault);
- 
-+	if (kvm_memslot_is_dax_only(fault->slot)) {
-+		gfn = kvm_gmem_get_index(fault->slot, fault->gfn);
-+		fault->pfn = kvm_faultin_dax_pfn(vcpu, fault);
-+		if (fault->pfn == KVM_PFN_ERR_FAULT) {
-+			kvm_mmu_prepare_memory_fault_exit(vcpu, fault);
-+			return RET_PF_INVALID;
-+		}
-+		fault->map_writable = !(fault->slot->flags & KVM_MEM_READONLY);
-+
-+		return RET_PF_CONTINUE;
-+	}
-+
- 	foll |= FOLL_NOWAIT;
--	fault->pfn = __kvm_faultin_pfn(fault->slot, fault->gfn, foll,
-+	fault->pfn = __kvm_faultin_pfn(fault->slot, gfn, foll,
- 				       &fault->map_writable, &fault->refcounted_page);
- 
- 	/*
-@@ -4610,9 +4646,9 @@ static int __kvm_mmu_faultin_pfn(struct kvm_vcpu *vcpu,
- 		return RET_PF_CONTINUE;
- 
- 	if (!fault->prefetch && kvm_can_do_async_pf(vcpu)) {
--		trace_kvm_try_async_get_page(fault->addr, fault->gfn);
--		if (kvm_find_async_pf_gfn(vcpu, fault->gfn)) {
--			trace_kvm_async_pf_repeated_fault(fault->addr, fault->gfn);
-+		trace_kvm_try_async_get_page(fault->addr, gfn);
-+		if (kvm_find_async_pf_gfn(vcpu, gfn)) {
-+			trace_kvm_async_pf_repeated_fault(fault->addr, gfn);
- 			kvm_make_request(KVM_REQ_APF_HALT, vcpu);
- 			return RET_PF_RETRY;
- 		} else if (kvm_arch_setup_async_pf(vcpu, fault)) {
-@@ -4627,7 +4663,7 @@ static int __kvm_mmu_faultin_pfn(struct kvm_vcpu *vcpu,
- 	 */
- 	foll |= FOLL_INTERRUPTIBLE;
- 	foll &= ~FOLL_NOWAIT;
--	fault->pfn = __kvm_faultin_pfn(fault->slot, fault->gfn, foll,
-+	fault->pfn = __kvm_faultin_pfn(fault->slot, gfn, foll,
- 				       &fault->map_writable, &fault->refcounted_page);
- 
- 	return RET_PF_CONTINUE;
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index a99db3739e45..2009f34614d8 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -2,6 +2,7 @@
- /* Copyright(c) 2017-2018 Intel Corporation. All rights reserved. */
- #include <linux/memremap.h>
- #include <linux/highmem.h>
-+#include <linux/kvm_host.h>
- #include <linux/device.h>
- #include <linux/mutex.h>
- #include <linux/list.h>
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index da1413c8a21f..41214b6d7897 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -5,6 +5,7 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/radix-tree.h>
-+#include <linux/kvm_host.h>
- 
- typedef unsigned long dax_entry_t;
- 
 diff --git a/include/linux/kvm_host.h b/include/linux/kvm_host.h
-index 9afce6d02d9e..ffd0381ba079 100644
+index ffd0381ba079..1427ff41cfc9 100644
 --- a/include/linux/kvm_host.h
 +++ b/include/linux/kvm_host.h
-@@ -2552,6 +2552,8 @@ static inline bool kvm_mem_is_private(struct kvm *kvm, gfn_t gfn)
- int kvm_gmem_get_pfn(struct kvm *kvm, struct kvm_memory_slot *slot,
- 		     gfn_t gfn, kvm_pfn_t *pfn, struct page **page,
- 		     int *max_order);
-+int kvm_dax_get_pfn(struct kvm_memory_slot *slot, pgoff_t index, kvm_pfn_t *pfn,
-+		    struct page **refcounted_page);
- #else
- static inline int kvm_gmem_get_pfn(struct kvm *kvm,
- 				   struct kvm_memory_slot *slot, gfn_t gfn,
-@@ -2561,6 +2563,12 @@ static inline int kvm_gmem_get_pfn(struct kvm *kvm,
- 	KVM_BUG_ON(1, kvm);
- 	return -EIO;
+@@ -743,6 +743,13 @@ static inline u64 kvm_gmem_get_supported_flags(struct kvm *kvm)
  }
-+static inline int kvm_dax_get_pfn(struct kvm_memory_slot *slot, gfn_t gfn,
-+				  kvm_pfn_t *pfn)
-+{
-+	KVM_BUG_ON(1, kvm);
-+	return -EIO;
-+}
- #endif /* CONFIG_KVM_GUEST_MEMFD */
+ #endif
  
- #ifdef CONFIG_HAVE_KVM_ARCH_GMEM_PREPARE
-diff --git a/virt/kvm/guest_memfd.c b/virt/kvm/guest_memfd.c
-index 959f690c1d1d..4e7141fdb2b8 100644
---- a/virt/kvm/guest_memfd.c
-+++ b/virt/kvm/guest_memfd.c
-@@ -840,6 +840,48 @@ int kvm_gmem_get_pfn(struct kvm *kvm, struct kvm_memory_slot *slot,
- }
- EXPORT_SYMBOL_FOR_KVM_INTERNAL(kvm_gmem_get_pfn);
- 
-+int kvm_dax_get_pfn(struct kvm_memory_slot *slot, pgoff_t index, kvm_pfn_t *pfn,
-+		    struct page **refcounted_page)
++#ifdef CONFIG_KVM_GUEST_DAXFD
++static inline u64 kvm_dax_get_supported_flags(struct kvm *kvm)
 +{
-+	struct dev_pagemap *pgmap;
-+	struct dev_dax *dev_dax;
-+	struct page *page;
-+	void *kaddr;
-+	long rc;
-+	int id;
-+
-+	CLASS(gmem_get_file, file)(slot);
-+	if (!file)
-+		return -EFAULT;
-+
-+	dev_dax = file->private_data;
-+	if (!dev_dax)
-+		return -ENODEV;
-+
-+	id = dax_read_lock();
-+	rc = dax_direct_access(dax_get_dev_dax(dev_dax), index, 1, DAX_ACCESS,
-+			       &kaddr, (unsigned long *)pfn);
-+	dax_read_unlock(id);
-+	if (rc < 0)
-+		return rc;
-+
-+	/* Verify that 'struct page' exists for this PFN */
-+	pgmap = get_dev_pagemap(*pfn);
-+	if (!pgmap)
-+		return -ENODEV;
-+
-+	page = pfn_to_page(*pfn);
-+	if (!try_get_page(page)) {
-+		put_dev_pagemap(pgmap);
-+		return -EFAULT;
-+	}
-+
-+	*refcounted_page = page;
-+
-+	return 0;
++	return GUEST_MEMFD_FLAG_MMAP;
 +}
-+EXPORT_SYMBOL_FOR_KVM_INTERNAL(kvm_dax_get_pfn);
++#endif
 +
- #ifdef CONFIG_HAVE_KVM_ARCH_GMEM_POPULATE
- long kvm_gmem_populate(struct kvm *kvm, gfn_t start_gfn, void __user *src, long npages,
- 		       kvm_gmem_populate_cb post_populate, void *opaque)
+ #ifndef kvm_arch_has_readonly_mem
+ static inline bool kvm_arch_has_readonly_mem(struct kvm *kvm)
+ {
+diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
+index dddb781b0507..2ae3e1cdcee5 100644
+--- a/include/uapi/linux/kvm.h
++++ b/include/uapi/linux/kvm.h
+@@ -51,6 +51,7 @@ struct kvm_userspace_memory_region2 {
+ #define KVM_MEM_LOG_DIRTY_PAGES	(1UL << 0)
+ #define KVM_MEM_READONLY	(1UL << 1)
+ #define KVM_MEM_GUEST_MEMFD	(1UL << 2)
++#define KVM_MEM_GUEST_DAXFD	(1UL << 3)
+ 
+ /* for KVM_IRQ_LINE */
+ struct kvm_irq_level {
+@@ -974,6 +975,8 @@ struct kvm_enable_cap {
+ #define KVM_CAP_GUEST_MEMFD_FLAGS 244
+ #define KVM_CAP_ARM_SEA_TO_USER 245
+ #define KVM_CAP_S390_USER_OPEREXEC 246
++#define KVM_CAP_GUEST_DAXFD 247
++#define KVM_CAP_GUEST_DAXFD_FLAGS 248
+ 
+ struct kvm_irq_routing_irqchip {
+ 	__u32 irqchip;
+@@ -1612,6 +1615,7 @@ struct kvm_memory_attributes {
+ #define KVM_CREATE_GUEST_MEMFD	_IOWR(KVMIO,  0xd4, struct kvm_create_guest_memfd)
+ #define GUEST_MEMFD_FLAG_MMAP		(1ULL << 0)
+ #define GUEST_MEMFD_FLAG_INIT_SHARED	(1ULL << 1)
++#define GUEST_DAXFD_FLAG_MMAP		(1ULL << 2)
+ 
+ struct kvm_create_guest_memfd {
+ 	__u64 size;
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index 5b5b69c97665..82d9fb65e149 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -4952,6 +4952,12 @@ static int kvm_vm_ioctl_check_extension_generic(struct kvm *kvm, long arg)
+ 		return 1;
+ 	case KVM_CAP_GUEST_MEMFD_FLAGS:
+ 		return kvm_gmem_get_supported_flags(kvm);
++#endif
++#ifdef CONFIG_KVM_GUEST_DAXFD
++	case KVM_CAP_GUEST_DAXFD:
++		return 1;
++	case KVM_CAP_GUEST_DAXFD_FLAGS:
++		return kvm_dax_get_supported_flags(kvm);
+ #endif
+ 	default:
+ 		break;
 -- 
 2.53.0
 
