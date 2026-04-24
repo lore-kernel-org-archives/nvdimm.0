@@ -1,53 +1,57 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFAB7194C96
-	for <nvdimm@lists.linux.dev>; Fri, 24 Apr 2026 23:36:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8BE9194C96
+	for <nvdimm@lists.linux.dev>; Fri, 24 Apr 2026 23:44:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777073798; cv=none; b=AXVx8X3deOQjdRSz3y5XZPcs+sWi44Y9B78Vvq1AxpWYJSlFxrQt5dVFNuzZSDNvcyR8NM4LBRmgLA5skKVT4tluqpdnitF4OBKiBsEoQK51aEJ5CMhiUFTFGn7MV2HwNwwv5kmD/Y/8uJNHFQcAFqyNq3TSh/yzhc69IBDRfVo=
+	t=1777074250; cv=none; b=T45Eg2K0UdjJ/LL5bmTCaGuH3pd10F0fJZWvkts0z+IoWP1+zjMgS1vNrMl0Nnp4yOggOooDsRylgg6JGsF273d7stGCErg6L4bygwy9guEYmQC90bpNxmkSsFke86gxyMva9dlJ3ZiOoDZwlB5HHg4Zkd5SYIuQ9L/W5Kv0gpM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777073798; c=relaxed/simple;
-	bh=ZWknLbou99hTlcWH7w1BgXoEaa+OzeYCfx7ZxHjN4ls=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=b4lMxLSoy9fzOTw3tt9w4RZnyAVWmbwCEZxYOayTfuF82NZWS+x1aWOeum4sODznwEvc8fsRVvpvh9l9QTu6Pejzqx1kwtETR+gBRtyhaf5tibT4gMfmptMOBeVRKxguUOQ6pwd48NwpiucWeY4wd7RPTWTN3k5RzoG++384hLE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cMK5YluL; arc=none smtp.client-ip=198.175.65.10
+	s=arc-20240116; t=1777074250; c=relaxed/simple;
+	bh=TyuXjTOqy3M+dUkimhxPphHpXnlZj50N9LwqabfZDsQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nPo80m/PyW8kOJadCv2MiCuRdmb36JoV4Dus8IeL60MDkyyzZdaZAnckWY0oT7VHb4uz13JFkusrKG7j9vw2SyIRc8oAJ8kDnNGMx7VRxUivWCgN9hpXKSegRtP7/k0WcdmfZjw10JrkSoq4QCTPUaBBWidwh9zchsNH/8eUXDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VMl/3Zzo; arc=none smtp.client-ip=198.175.65.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cMK5YluL"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VMl/3Zzo"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777073796; x=1808609796;
+  t=1777074248; x=1808610248;
   h=from:to:cc:subject:date:message-id:mime-version:
    content-transfer-encoding;
-  bh=ZWknLbou99hTlcWH7w1BgXoEaa+OzeYCfx7ZxHjN4ls=;
-  b=cMK5YluL2P5XWKKJZ3Vb05RtC7AhmjfQ7uixpSrR55HNpZgy+fErhHOG
-   BXW+1PeQ4KpgA7nBTyR2p0dETrsm2iSCQLuHrSOSJScTWJtK5ygrQ0gMu
-   VvcxrCE5FKyiS3SGC88u4BHpd4lQJGru88N0DEGZcCFCpxurBkRhmqDF9
-   uvLYnb1rBP/vecmE407ICLz+oaSpz7rtb56q0Qa0FC0v66XDaelQzgaTD
-   kEEcsJtFyH9/O8mAL1DeQ4+lxh4hLzlOzHu6FrpiJntW7PNIrhpzd5Wst
-   Xt5PZlXyqzv/3837vQVF2yXaulJpf+3GIrMDeJw/f+Iyf/XswuHrg65sA
-   A==;
-X-CSE-ConnectionGUID: Xl/6O7WUTge43RALiXsk4A==
-X-CSE-MsgGUID: 0KGzsg7SQ6qGMScWJTnyqw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11766"; a="95473387"
+  bh=TyuXjTOqy3M+dUkimhxPphHpXnlZj50N9LwqabfZDsQ=;
+  b=VMl/3ZzoUIu3XeyzOWKoxHTR5ylUYx9Je1y3M2S2p14eb6tN3HOtbVwD
+   KSWoraTxQ72hY6yqPx59SqKEHDcUZZqHmlm6uRUu57zMyoIVgcZkhM6F2
+   3jBYeGA00GrY2koNS0DQm/1JpTeoEWy0rDChEQdW+WIBOvBC07u65NRHB
+   G9ZZ3Ua3CQ5HEs/avNWb/xddtG63ydb8U0JBUv6g4jSwwLAeX/fTi/0Wl
+   /rTFZ5rcu9dHlk549idt26uvQsbrw5rmRNB4kFnkr7Quplpu27Q00o9Zo
+   NbLA2ZIvlQ/OW0BIYsCQL7QBPv6ClERxvtVvf8N4rEER8ssXMbFld04Ur
+   w==;
+X-CSE-ConnectionGUID: 1KTS6M0SSguRCbwTRz2f2g==
+X-CSE-MsgGUID: dCNuv1qbQoCnC7ikLV6s7g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11766"; a="78045796"
 X-IronPort-AV: E=Sophos;i="6.23,197,1770624000"; 
-   d="scan'208";a="95473387"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 16:36:36 -0700
-X-CSE-ConnectionGUID: MLK44oTpRHisox5K78gDDg==
-X-CSE-MsgGUID: vj4ARa9dTIyerGb7CPSPyw==
+   d="scan'208";a="78045796"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 16:44:08 -0700
+X-CSE-ConnectionGUID: CpyA3JJtQWO7Y1Yeo1i16g==
+X-CSE-MsgGUID: 5sn2jgbpTqKTl/TNN4Fe1g==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,197,1770624000"; 
-   d="scan'208";a="232921995"
+   d="scan'208";a="228768811"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.220.229])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 16:36:35 -0700
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 16:44:08 -0700
 From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH] test/btt-stress.sh: add stress test for BTT lane race
-Date: Fri, 24 Apr 2026 16:36:31 -0700
-Message-ID: <20260424233633.3762217-1-alison.schofield@intel.com>
+To: Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	nvdimm@lists.linux.dev
+Subject: [PATCH] nvdimm/btt: Handle preemption in BTT lane acquisition
+Date: Fri, 24 Apr 2026 16:44:03 -0700
+Message-ID: <20260424234405.3762827-1-alison.schofield@intel.com>
 X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -57,163 +61,130 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The btt-check unit test exposed data mismatches during BTT I/O in a
-CI environment, indicating a race in lane acquisition that can lead
-to silent data corruption. The failure was not reliably reproduced
-under typical test conditions.
+BTT (Block Translation Table) makes persistent memory safe for block
+I/O by guaranteeing atomic sector updates. It uses reserved lanes
+for in-flight BTT operations, which must be used exclusively.
 
-Add a targeted stress test that repeatedly writes, reads, and verifies
-data on a BTT namespace while background readers contend for BTT lanes
-and CPU loops increase preemption pressure.
+The btt-check unit test reports data mismatches during BTT I/O due
+to a race in lane acquisition, leading to silent data corruption.
 
-The test reproduces the race on an unfixed kernel and passes with the
-lane ownership fix applied.
+BTT lane acquisition uses per-CPU recursion tracking with
+migrate_disable(). However, migrate_disable() does not prevent
+preemption, so another task can run on the same CPU and share the
+recursion state. That task can observe a non-zero recursion count,
+bypass locking, and use the same lane at the same time.
 
-Assisted-By: Claude Sonnet 4.5
+Track lane ownership per task and only allow lockless recursion for
+the owning task. Otherwise, serialize access with the lane spinlock.
+
+Found with the NDCTL unit test btt-check.sh
+
+Fixes: 36c75ce3bd29 ("nd_btt: Make BTT lanes preemptible")
+Assisted-by: Claude Sonnet 4.5
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- test/btt-stress.sh | 111 +++++++++++++++++++++++++++++++++++++++++++++
- test/meson.build   |   2 +
- 2 files changed, 113 insertions(+)
- create mode 100755 test/btt-stress.sh
 
-diff --git a/test/btt-stress.sh b/test/btt-stress.sh
-new file mode 100755
-index 000000000000..c1892f536d75
---- /dev/null
-+++ b/test/btt-stress.sh
-@@ -0,0 +1,111 @@
-+#!/bin/bash -E
-+# SPDX-License-Identifier: GPL-2.0
+A new unit test to stress this is under review here:
+https://lore.kernel.org/nvdimm/20260424233633.3762217-1-alison.schofield@intel.com/
+
+ drivers/nvdimm/nd.h          |  1 +
+ drivers/nvdimm/region_devs.c | 48 +++++++++++++++++++++---------------
+ 2 files changed, 29 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index b199eea3260e..424c38ca4960 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -368,6 +368,7 @@ unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd);
+ struct nd_percpu_lane {
+ 	int count;
+ 	spinlock_t lock;
++	struct task_struct *owner;
+ };
+ 
+ enum nd_label_flags {
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index e35c2e18518f..830241b93bf2 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -905,11 +905,10 @@ void nd_region_advance_seeds(struct nd_region *nd_region, struct device *dev)
+  * @nd_region: region id and number of lanes possible
+  *
+  * A lane correlates to a BLK-data-window and/or a log slot in the BTT.
+- * We optimize for the common case where there are 256 lanes, one
+- * per-cpu.  For larger systems we need to lock to share lanes.  For now
+- * this implementation assumes the cost of maintaining an allocator for
+- * free lanes is on the order of the lock hold time, so it implements a
+- * static lane = cpu % num_lanes mapping.
++ * Lanes are shared across CPUs using a static lane = cpu % num_lanes
++ * mapping, with a per-lane spinlock to serialize access when multiple
++ * tasks share a lane (including when preemption causes multiple tasks
++ * to run on the same CPU).
+  *
+  * In the case of a BTT instance on top of a BLK namespace a lane may be
+  * acquired recursively.  We lock on the first instance.
+@@ -920,35 +919,44 @@ void nd_region_advance_seeds(struct nd_region *nd_region, struct device *dev)
+ unsigned int nd_region_acquire_lane(struct nd_region *nd_region)
+ {
+ 	unsigned int cpu, lane;
++	struct nd_percpu_lane *ndl;
+ 
+ 	migrate_disable();
+ 	cpu = smp_processor_id();
+-	if (nd_region->num_lanes < nr_cpu_ids) {
+-		struct nd_percpu_lane *ndl_lock, *ndl_count;
+-
++	if (nd_region->num_lanes < nr_cpu_ids)
+ 		lane = cpu % nd_region->num_lanes;
+-		ndl_count = per_cpu_ptr(nd_region->lane, cpu);
+-		ndl_lock = per_cpu_ptr(nd_region->lane, lane);
+-		if (ndl_count->count++ == 0)
+-			spin_lock(&ndl_lock->lock);
+-	} else
++	else
+ 		lane = cpu;
+ 
++	/*
++	 * migrate_disable() keeps the lane stable, but does not prevent
++	 * preemption. Only the owning task may recurse without taking the
++	 * lock.
++	 */
++	ndl = per_cpu_ptr(nd_region->lane, lane);
++	if (READ_ONCE(ndl->owner) != current) {
++		spin_lock(&ndl->lock);
++		WRITE_ONCE(ndl->owner, current);
++	}
++	ndl->count++;
 +
-+dev=""
-+mode=""
-+size=""
-+sector_size=""
-+blockdev=""
-+rc=77
+ 	return lane;
+ }
+ EXPORT_SYMBOL(nd_region_acquire_lane);
+ 
+ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane)
+ {
+-	if (nd_region->num_lanes < nr_cpu_ids) {
+-		unsigned int cpu = smp_processor_id();
+-		struct nd_percpu_lane *ndl_lock, *ndl_count;
++	struct nd_percpu_lane *ndl = per_cpu_ptr(nd_region->lane, lane);
+ 
+-		ndl_count = per_cpu_ptr(nd_region->lane, cpu);
+-		ndl_lock = per_cpu_ptr(nd_region->lane, lane);
+-		if (--ndl_count->count == 0)
+-			spin_unlock(&ndl_lock->lock);
++	if (WARN_ON_ONCE(READ_ONCE(ndl->owner) != current))
++		goto out;
 +
-+. $(dirname $0)/common
++	if (--ndl->count == 0) {
++		WRITE_ONCE(ndl->owner, NULL);
++		spin_unlock(&ndl->lock);
+ 	}
 +
-+trap 'err $LINENO' ERR
-+
-+check_min_kver "7.1" || do_skip "known BTT lane race before fix"
-+
-+# Stress BTT I/O under contention to exercise lane acquisition races.
-+# Background readers contend for lanes while CPU loops increase
-+# preemption pressure.
-+
-+create() {
-+	json=$($NDCTL create-namespace -b "$NFIT_TEST_BUS0" -t pmem -m sector)
-+	rc=2
-+	eval "$(echo "$json" | json2var)"
-+	[ -n "$dev" ] || err "$LINENO"
-+	[ "$mode" = "sector" ] || err "$LINENO"
-+	[ -n "$size" ] || err "$LINENO"
-+	[ -n "$sector_size" ] || err "$LINENO"
-+	[ -n "$blockdev" ] || err "$LINENO"
-+	[ "$size" -gt 0 ] || err "$LINENO"
-+}
-+
-+# Start background workers:
-+#   - readers contend for lanes
-+#   - CPU loops increase preemption
-+start_bg_workers() {
-+	local ncpus
-+	ncpus=$(nproc)
-+	local nworkers=$((ncpus / 2))
-+
-+	# Ensure at least one worker, cap to limit runtime noise
-+	[ $nworkers -lt 1 ] && nworkers=1
-+	[ $nworkers -gt 8 ] && nworkers=8
-+
-+	BG_PIDS=()
-+	local i
-+	for i in $(seq 1 $nworkers); do
-+		# Reader: contends for lanes (use O_DIRECT to avoid page cache)
-+		(while :; do
-+			dd if=/dev/"$blockdev" of=/dev/null \
-+				bs="$sector_size" count=256 \
-+				iflag=direct >/dev/null 2>&1 || true
-+		done) &
-+		BG_PIDS+=($!)
-+
-+		# CPU hog: increase preemption
-+		(while :; do :; done) &
-+		BG_PIDS+=($!)
-+	done
-+	echo "started $nworkers readers + $nworkers CPU hogs"
-+}
-+
-+stop_bg_workers() {
-+	local pid
-+	for pid in "${BG_PIDS[@]}"; do
-+		kill "$pid" 2>/dev/null || true
-+	done
-+	wait "${BG_PIDS[@]}" 2>/dev/null || true
-+	BG_PIDS=()
-+}
-+
-+# Write, read, and verify data
-+do_io_verify() {
-+	dd if=/dev/urandom of=test-bin \
-+		bs="$sector_size" count=$((size / sector_size)) >/dev/null 2>&1
-+	dd if=test-bin of=/dev/"$blockdev" \
-+		bs="$sector_size" count=$((size / sector_size)) >/dev/null 2>&1
-+	dd if=/dev/"$blockdev" of=test-bin-read \
-+		bs="$sector_size" count=$((size / sector_size)) >/dev/null 2>&1
-+	diff test-bin test-bin-read
-+	rm -f test-bin*
-+}
-+
-+# Run verification under contention
-+test_io_stress() {
-+	local iterations=${1:-20}
-+	echo "=== ${FUNCNAME[0]} ($iterations iterations) ==="
-+
-+	start_bg_workers
-+	trap 'stop_bg_workers; err $LINENO' ERR
-+
-+	local i
-+	for i in $(seq 1 "$iterations"); do
-+		echo "--- iteration $i/$iterations ---"
-+		do_io_verify
-+	done
-+
-+	stop_bg_workers
-+	trap 'err $LINENO' ERR
-+}
-+
-+modprobe nfit_test
-+rc=1
-+reset && create
-+
-+# 30 iterations balances runtime and reproduction probability
-+test_io_stress 30
-+
-+reset
-+_cleanup
-+exit 0
-diff --git a/test/meson.build b/test/meson.build
-index e0e2193bfd51..ee6a18762a17 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -150,6 +150,7 @@ sector_mode = find_program('sector-mode.sh')
- inject_error = find_program('inject-error.sh')
- btt_errors = find_program('btt-errors.sh')
- btt_pad_compat = find_program('btt-pad-compat.sh')
-+btt_stress = find_program('btt-stress.sh')
- firmware_update = find_program('firmware-update.sh')
- rescan_partitions = find_program('rescan-partitions.sh')
- inject_smart = find_program('inject-smart.sh')
-@@ -185,6 +186,7 @@ tests = [
-   [ 'sector-mode.sh',         sector_mode,        'ndctl' ],
-   [ 'inject-error.sh',        inject_error,	  'ndctl' ],
-   [ 'btt-errors.sh',          btt_errors,	  'ndctl' ],
-+  [ 'btt-stress.sh',          btt_stress,	  'ndctl' ],
-   [ 'hugetlb',                hugetlb,		  'ndctl' ],
-   [ 'btt-pad-compat.sh',      btt_pad_compat,	  'ndctl' ],
-   [ 'ack-shutdown-count-set', ack_shutdown_count, 'ndctl' ],
++out:
+ 	migrate_enable();
+ }
+ EXPORT_SYMBOL(nd_region_release_lane);
+
+base-commit: 028ef9c96e96197026887c0f092424679298aae8
 -- 
 2.37.3
 
