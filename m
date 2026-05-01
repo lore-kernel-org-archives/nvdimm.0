@@ -1,203 +1,499 @@
-Received: from fhigh-b5-smtp.messagingengine.com (fhigh-b5-smtp.messagingengine.com [202.12.124.156])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8394341AB8
-	for <nvdimm@lists.linux.dev>; Thu, 30 Apr 2026 16:51:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.156
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677E435F5E1
+	for <nvdimm@lists.linux.dev>; Fri,  1 May 2026 10:57:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777567873; cv=none; b=NHT+0/wY6/yp0e08F7vlcyxXCrYCmpdRUzt9E7dJSzBVfi82/q0RnFBA5cMlls7sNFty9lJ1XVgD+S3cVaWJA4lBplEh+3ebtdzgqV7gus0QdR4pU6u+yBcR0ZTQ1NboPZf6gAnT+D0F4yt0DK9NQFJv65SiXAMzY0zCKAk8keQ=
+	t=1777633054; cv=none; b=JDYnMBDBjq+QrGRs34RB9JneNowvalCpu0152E6vX0EWNKnOCznF1ptga6xOeojzO6O4rrC6LmcRT39JmKPJCQumRcb5t7yySj2clpxLOsSnfPgaOXfQ8Okr5MSA9hJlarJz/wrTFJe87KLN+vYHI4GSvx8YPHLfetCcXb+CZkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777567873; c=relaxed/simple;
-	bh=8heCOqWXg0B0ic/LZEv4/oqrbh10xfSNh9Rzn5gk3LY=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=nHDWczsVVgkYGc8jMev2k8ebScxIXc7slUU9dQacHIui7vkzZYRbupLjesVLEymP271NbWY5h7ywFwcLCelEgbrAmtgN3YI7Zw4tdHjdxmlEL0+OWsT7esUHRosFyUfjeZzrcag5G9GdF9R1Webv5Bt7WecDhupAMGSUNNiFq3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.com; spf=pass smtp.mailfrom=fastmail.com; dkim=pass (2048-bit key) header.d=fastmail.com header.i=@fastmail.com header.b=LzryY13Z; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=pZufQiL4; arc=none smtp.client-ip=202.12.124.156
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastmail.com
+	s=arc-20240116; t=1777633054; c=relaxed/simple;
+	bh=BhO/fUOKoO6j1LeoRTOwn6+773PN3Y9GOfPhH+dQ7ls=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Flyvd1usfCNpPdgJumxF4YrEWYQBQWRZzNQKIlTaZ3ZlsKeQtC1L3qDczRjZJLc/KJ92zagc545d/YXtjK899A3TgaIxbr/Oev5Ml85JjPPxfUgVne0tLRTvL3v2qu6nfDwr2nHvaZVplODQ8HT3Uf3eOVZQhaRvW3HsAvKAoVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=mT3scokL; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fastmail.com header.i=@fastmail.com header.b="LzryY13Z";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="pZufQiL4"
-Received: from phl-compute-09.internal (phl-compute-09.internal [10.202.2.49])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id B05447A00C0;
-	Thu, 30 Apr 2026 12:51:10 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-09.internal (MEProxy); Thu, 30 Apr 2026 12:51:11 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fastmail.com; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1777567870;
-	 x=1777654270; bh=mcF810TAYIZ+eGBrJePl+D8wRSaNJ0xNu7eemO+CWV4=; b=
-	LzryY13ZbaKwACj5iiovHrGvOjcXIlxDtKM6S+0dbTMuxVvmCfDiKQTetSKzadRC
-	1urWtdnniACFynuReBRqB7yRWm/pqEsIDF4YrLOve4DGz9aEPR28hLQnMoiFZs/+
-	jf82SOYt2oHtmMg+xH13wM2VF/p4YKOw+dM22EVxPLik4jWKWWqUr2ECXQNlhVMT
-	QTzea7gvFZ4h9cDYUoyUV/JDKfYce6/2dy2trv3nJ3AEDp/8LtY0Y7Y44qyMZ0/G
-	wzSy503brYLjiZG/EB/mOdqEQl7eQtMd9PRfTmCimhW63Tr6TlkTwduZhgstinK5
-	WGOVjLSNrLooBvwOZjOo8g==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1777567870; x=
-	1777654270; bh=mcF810TAYIZ+eGBrJePl+D8wRSaNJ0xNu7eemO+CWV4=; b=p
-	ZufQiL45KBSn0NlbGiKTccHmf7XVfNinF3eoLzOSXxtywiqlelKGFj8d57SCqOie
-	UVrYNB6ImKMbyReNTFQI+IB3nZI/on2w1dyc2XVCvNfdvNNR7eRRXpg3couLJsbJ
-	BJsjMSa8uPCAITB/biYWaynd+hmLY9ZapxEzwzOdpnOGxw/GSx2pwgu7EyShzMVf
-	FpD/2LrGuRwvEHHQyPsaIStE2QlsHmIVW+0CgFOeROqgFmA51kwfrztnCIlVQWFE
-	RRWN+w49Tg7cz8M8YLLVXG75zDShvTWfYe9C5U60a/TnAVUBU8mXGhyoXyKY8x11
-	HBzMTdewJizjpUezfDN6g==
-X-ME-Sender: <xms:fojzaaOcV4OSD2karapCjAwdICx9nowUaetRIuGYe9lhb4DaasWArg>
-    <xme:fojzaTz32j7o6gVTsZgKH949lTl4DYCGfKT56lMc_dJ1tnv_BVM_u9KWjqG0w98uC
-    3jMgbnjlfYogbcPm08bQ7tQfjWsbp4H0kd2yYYzy0s8vLsLEgvAe-TZ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdekjeekhecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefoggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdflohhhnhcu
-    ifhrohhvvghsfdcuoehjghhrohhvvghssehfrghsthhmrghilhdrtghomheqnecuggftrf
-    grthhtvghrnhepveduieelvedutddvvddvkeeuvefhieefieelfeekiedtkedutdeiteeu
-    tefhteegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomh
-    epjhhgrhhovhgvshesfhgrshhtmhgrihhlrdgtohhmpdhnsggprhgtphhtthhopeduhedp
-    mhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepuggvvhdrshhrihhnihhvrghsuhhluh
-    esghhmrghilhdrtghomhdprhgtphhtthhopehjohhhnhesghhrohhvvghsrdhnvghtpdhr
-    tghpthhtohepjhhonhgrthhhrghnrdgtrghmvghrohhnsehhuhgrfigvihdrtghomhdprh
-    gtphhtthhopegrlhhishhonhdrshgthhhofhhivghlugesihhnthgvlhdrtghomhdprhgt
-    phhtthhopegurghvvgdrjhhirghnghesihhnthgvlhdrtghomhdprhgtphhtthhopehvih
-    hshhgrlhdrlhdrvhgvrhhmrgesihhnthgvlhdrtghomhdprhgtphhtthhopehjohhhnhes
-    jhgrghgrlhgrtghtihgtrdgtohhmpdhrtghpthhtohepughjsgifsehkvghrnhgvlhdroh
-    hrghdprhgtphhtthhopehnvhguihhmmheslhhishhtshdrlhhinhhugidruggvvh
-X-ME-Proxy: <xmx:fojzafynmOC9fJ2ZwplqC8HRhP9TkmfD72IBy1BSnwGQcLEQuJqh3w>
-    <xmx:fojzaXth5l_jKewQgLeezTyXGlTUd3B3W7v3ui6BFwi97emJBY6Thw>
-    <xmx:fojzaZFz87gS6CK4cxoY0aSUlYNa64aXT-9SPOMdPF1UeyDYVCEDrA>
-    <xmx:fojzaV5KuhdotwPrcdW3x0TS_X6E8lbuSzfBkd5Ilsaesm-ipyguJQ>
-    <xmx:fojzaZdsIzxikvC-_C5bQ-jxPdugexsKr_2kh-DaLQZexqPeHbuIDBVV>
-Feedback-ID: if7ae487a:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id F1901700065; Thu, 30 Apr 2026 12:51:09 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="mT3scokL"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6417tDpX2939523;
+	Fri, 1 May 2026 10:57:24 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=NP48qm
+	eSinoGSkMaPXr+ttQWHyxUf5iiJWVC32cfzyA=; b=mT3scokLH4kwmcWM9Ra/2Z
+	Er17LICX4QbBatNGbTV9JMAGy8+xHrT/saBcYl8xs/x+Kqvt22CzWDBx8L0C2ZTj
+	1JK2t9Kqm9zVu1N5qabnbCQVKLo0IPYwlXSVsq1F3nwEY3TXlTmkJeC6hOdMosoS
+	o+ASdL1G4iLdJfyZ3ULsrdgj8OzzFpF5jxV9GuDYlPefC42FKSBuSj7tDKuLVpW3
+	4TsqmDA8DYkx/yMePcVP9z0PtQfxsp5x/FTdwX57k1JJrWvoMo9IhTwHXHvcI2A6
+	NL3VMGeuUh15muMgNa6yftkiflCXwG17+c0metbof57Tcc4kd9R+SsryojxJZSpQ
+	==
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4drnb5m7n5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 01 May 2026 10:57:23 +0000 (GMT)
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 641AujKi020774;
+	Fri, 1 May 2026 10:57:23 GMT
+Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 4dsamypvrj-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 01 May 2026 10:57:22 +0000 (GMT)
+Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
+	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 641AvLNr15729082
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 1 May 2026 10:57:21 GMT
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3EE0420049;
+	Fri,  1 May 2026 10:57:21 +0000 (GMT)
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E50E720040;
+	Fri,  1 May 2026 10:57:17 +0000 (GMT)
+Received: from aboo.ibm.com (unknown [9.124.223.34])
+	by smtpav06.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Fri,  1 May 2026 10:57:17 +0000 (GMT)
+Message-ID: <7081312ccb45b067cd414a92c923f69cf1285097.camel@linux.ibm.com>
+Subject: Re: [PATCH v2] nvdimm/btt: Handle preemption in BTT lane acquisition
+From: Aboorva Devarajan <aboorvad@linux.ibm.com>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
+        Vishal Verma
+	 <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, Ira Weiny
+	 <ira.weiny@intel.com>,
+        aboorvad@linux.ibm.com
+Date: Fri, 01 May 2026 16:27:16 +0530
+In-Reply-To: <20260430024652.3920875-1-alison.schofield@intel.com>
+References: <20260430024652.3920875-1-alison.schofield@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.60.1 (3.60.1-1.fc44) 
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Date: Thu, 30 Apr 2026 11:50:49 -0500
-From: "John Groves" <jgroves@fastmail.com>
-To: "Dave Jiang" <dave.jiang@intel.com>, "John Groves" <john@jagalactic.com>,
- "John Groves" <John@groves.net>, "Dan Williams" <djbw@kernel.org>,
- "Alison Schofield" <alison.schofield@intel.com>
-Cc: "John Groves" <jgroves@micron.com>,
- "Vishal Verma" <vishal.l.verma@intel.com>,
- "Jonathan Cameron" <Jonathan.Cameron@huawei.com>,
- "Aravind Ramesh" <arramesh@micron.com>, "Ajay Joshi" <ajayjoshi@micron.com>,
- "venkataravis@micron.com" <venkataravis@micron.com>,
- "dev.srinivasulu@gmail.com" <dev.srinivasulu@gmail.com>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>
-Message-Id: <d44e26da-f48e-40e2-82ec-b4cf4048454c@app.fastmail.com>
-In-Reply-To: <1e7e9b08-1985-4917-a2f2-f0ef78d8b591@intel.com>
-References: 
- <0100019ddf064477-8322b695-f2d8-481c-9fcd-8b16fc97ad4d-000000@email.amazonses.com>
- <20260430153413.84181-1-john@jagalactic.com>
- <0100019ddf06ce8f-c323d9cd-333b-4076-9717-7c80dbed7620-000000@email.amazonses.com>
- <1e7e9b08-1985-4917-a2f2-f0ef78d8b591@intel.com>
-Subject: Re: [PATCH V5 2/2] Add test/daxctl-famfs.sh to test famfs mode transitions:
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Authority-Analysis: v=2.4 cv=AqDeGu9P c=1 sm=1 tr=0 ts=69f48713 cx=c_pps
+ a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
+ a=IkcTkHD0fZMA:10 a=NGcC8JguVDcA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=U7nrCbtTmkRpXpFmAIza:22 a=VwQbUJbxAAAA:8
+ a=QyXUC8HyAAAA:8 a=SGxpvlsyAAAA:20 a=VnNF1IyMAAAA:8 a=GX_Ns3gP8Oo0xm7IdUoA:9
+ a=QEXdDO2ut3YA:10 a=bA3UWDv6hWIuX7UZL3qL:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTAxMDEwMyBTYWx0ZWRfX/leOcMxpGdBK
+ LO6PFHg3V3jSXyOuqBgla4+ceIgF9gByOkMUDtn6pOi7geX5Hk2v2TdT6/ypT7I4WM2h3grJQE/
+ myL750D8OpDStJS/WK5j3uvArugTizHVjXdy8sqlIVMznI0feMXdkxViscPsC6XJ4RxV19L+yEe
+ v7DFL9b7Ar3G5LOC3i8SeSScDdxl5ZsZjnLAOVnId8wVY2SVAR2rZGLGhfixvDFlyOxk0x5pY7K
+ W3BDiBYg60mtlg+7mhMAWmiwSHAqSeY5OOANV50PDSsAdSivV/kvbqkVxNgVqzTVFbbSGd19glu
+ ZtgcVG98M+lRoyI5/X/1bT0LvbzqATI6T1iegzabJbyhK2EgsU+1wYYy3r2VIQk3iqzhlM88reI
+ dRooKUn43tjRi5JjvnTD7d1X3JTOE8XpwZJSDfuTonCEEWyRqm5EWtb4Ld6RbB/1shLNUeyieQJ
+ aYvmNW3HKB243BchVUw==
+X-Proofpoint-GUID: uon-27ApC-Nyy9JYcyRVfPHVKt6MzbTy
+X-Proofpoint-ORIG-GUID: uon-27ApC-Nyy9JYcyRVfPHVKt6MzbTy
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-05-01_03,2026-04-30_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 priorityscore=1501 phishscore=0 suspectscore=0 clxscore=1011
+ lowpriorityscore=0 spamscore=0 bulkscore=0 impostorscore=0 malwarescore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2604200000 definitions=main-2605010103
+
+On Wed, 2026-04-29 at 19:46 -0700, Alison Schofield wrote:
+
+> BTT (Block Translation Table) makes persistent memory safe for block
+> I/O by guaranteeing atomic sector updates. It uses reserved lanes
+> for in-flight BTT operations, which must be used exclusively.
+>=20
+> The btt-check unit test reports data mismatches during BTT I/O due
+> to a race in lane acquisition, leading to silent data corruption.
+>=20
+> BTT lane acquisition uses per-CPU recursion tracking with
+> migrate_disable(). However, migrate_disable() does not prevent
+> preemption, so another task can run on the same CPU and share the
+> recursion state. That task can observe a non-zero recursion count,
+> bypass locking, and use the same lane at the same time.
+>=20
+> Track lane ownership per task and only allow lockless recursion for
+> the owning task. Otherwise, serialize access with the lane spinlock.
+> Use spin_(un)lock_bh() so softirq re-entry on the same CPU cannot
+> bypass ownership checks or deadlock on the lane lock.
+>=20
+> Found with the NDCTL unit test btt-check.sh
+>=20
+> Fixes: 36c75ce3bd29 ("nd_btt: Make BTT lanes preemptible")
+> Assisted-by: Claude Sonnet 4.5
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> ---
+>=20
+> Changes in v2:
+> Use spin_(un)lock_bh() (Sashiko AI)
+> Update commit log per softirq re-enty and spinlock change
+>=20
+> A new unit test to stress this is under review here:
+> https://lore.kernel.org/nvdimm/20260424233633.3762217-1-alison.schofield@=
+intel.com/
+>=20
+>=20
+> =C2=A0drivers/nvdimm/nd.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0 |=C2=A0 1 +
+> =C2=A0drivers/nvdimm/region_devs.c | 48 +++++++++++++++++++++------------=
+---
+> =C2=A02 files changed, 29 insertions(+), 20 deletions(-)
+>=20
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index b199eea3260e..424c38ca4960 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -368,6 +368,7 @@ unsigned sizeof_namespace_label(struct nvdimm_drvdata=
+ *ndd);
+> =C2=A0struct nd_percpu_lane {
+> =C2=A0	int count;
+> =C2=A0	spinlock_t lock;
+> +	struct task_struct *owner;
+> =C2=A0};
+> =C2=A0
+> =C2=A0enum nd_label_flags {
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index e35c2e18518f..f1c6dcd95b5a 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -905,11 +905,10 @@ void nd_region_advance_seeds(struct nd_region *nd_r=
+egion, struct device *dev)
+> =C2=A0 * @nd_region: region id and number of lanes possible
+> =C2=A0 *
+> =C2=A0 * A lane correlates to a BLK-data-window and/or a log slot in the =
+BTT.
+> - * We optimize for the common case where there are 256 lanes, one
+> - * per-cpu.=C2=A0 For larger systems we need to lock to share lanes.=C2=
+=A0 For now
+> - * this implementation assumes the cost of maintaining an allocator for
+> - * free lanes is on the order of the lock hold time, so it implements a
+> - * static lane =3D cpu % num_lanes mapping.
+> + * Lanes are shared across CPUs using a static lane =3D cpu % num_lanes
+> + * mapping, with a per-lane spinlock to serialize access when multiple
+> + * tasks share a lane (including when preemption causes multiple tasks
+> + * to run on the same CPU).
+> =C2=A0 *
+> =C2=A0 * In the case of a BTT instance on top of a BLK namespace a lane m=
+ay be
+> =C2=A0 * acquired recursively.=C2=A0 We lock on the first instance.
+> @@ -920,35 +919,44 @@ void nd_region_advance_seeds(struct nd_region *nd_r=
+egion, struct device *dev)
+> =C2=A0unsigned int nd_region_acquire_lane(struct nd_region *nd_region)
+> =C2=A0{
+> =C2=A0	unsigned int cpu, lane;
+> +	struct nd_percpu_lane *ndl;
+> =C2=A0
+> =C2=A0	migrate_disable();
+> =C2=A0	cpu =3D smp_processor_id();
+> -	if (nd_region->num_lanes < nr_cpu_ids) {
+> -		struct nd_percpu_lane *ndl_lock, *ndl_count;
+> -
+> +	if (nd_region->num_lanes < nr_cpu_ids)
+> =C2=A0		lane =3D cpu % nd_region->num_lanes;
+> -		ndl_count =3D per_cpu_ptr(nd_region->lane, cpu);
+> -		ndl_lock =3D per_cpu_ptr(nd_region->lane, lane);
+> -		if (ndl_count->count++ =3D=3D 0)
+> -			spin_lock(&ndl_lock->lock);
+> -	} else
+> +	else
+> =C2=A0		lane =3D cpu;
+> =C2=A0
+> +	/*
+> +	 * migrate_disable() keeps the lane stable, but does not prevent
+> +	 * preemption. Only the owning task may recurse without taking the
+> +	 * lock.
+> +	 */
+> +	ndl =3D per_cpu_ptr(nd_region->lane, lane);
+> +	if (READ_ONCE(ndl->owner) !=3D current) {
+> +		spin_lock_bh(&ndl->lock);
+> +		WRITE_ONCE(ndl->owner, current);
+> +	}
+> +	ndl->count++;
+> +
+> =C2=A0	return lane;
+> =C2=A0}
+> =C2=A0EXPORT_SYMBOL(nd_region_acquire_lane);
+> =C2=A0
+> =C2=A0void nd_region_release_lane(struct nd_region *nd_region, unsigned i=
+nt lane)
+> =C2=A0{
+> -	if (nd_region->num_lanes < nr_cpu_ids) {
+> -		unsigned int cpu =3D smp_processor_id();
+> -		struct nd_percpu_lane *ndl_lock, *ndl_count;
+> +	struct nd_percpu_lane *ndl =3D per_cpu_ptr(nd_region->lane, lane);
+> =C2=A0
+> -		ndl_count =3D per_cpu_ptr(nd_region->lane, cpu);
+> -		ndl_lock =3D per_cpu_ptr(nd_region->lane, lane);
+> -		if (--ndl_count->count =3D=3D 0)
+> -			spin_unlock(&ndl_lock->lock);
+> +	if (WARN_ON_ONCE(READ_ONCE(ndl->owner) !=3D current))
+> +		goto out;
+> +
+> +	if (--ndl->count =3D=3D 0) {
+> +		WRITE_ONCE(ndl->owner, NULL);
+> +		spin_unlock_bh(&ndl->lock);
+> =C2=A0	}
+> +
+> +out:
+> =C2=A0	migrate_enable();
+> =C2=A0}
+> =C2=A0EXPORT_SYMBOL(nd_region_release_lane);
+>=20
+> base-commit: 028ef9c96e96197026887c0f092424679298aae8
 
 
+Hi Alison,
 
-On Thu, Apr 30, 2026, at 11:27 AM, Dave Jiang wrote:
-> 
-> 
-> On 4/30/26 8:34 AM, John Groves wrote:
-> > From: John Groves <John@Groves.net>
-> > 
-> > - devdax <-> famfs mode switches
-> > - Verify famfs -> system-ram is rejected (must go via devdax)
-> > - Test JSON output shows correct mode
-> > - Test error handling for invalid modes
-> > 
-> > Signed-off-by: John Groves <john@groves.net>
-> > ---
-> >  test/daxctl-famfs.sh | 253 +++++++++++++++++++++++++++++++++++++++++++
-> >  test/meson.build     |   2 +
-> >  2 files changed, 255 insertions(+)
-> >  create mode 100755 test/daxctl-famfs.sh
-> > 
-> > diff --git a/test/daxctl-famfs.sh b/test/daxctl-famfs.sh
-> > new file mode 100755
-> > index 0000000..12fbfef
-> > --- /dev/null
-> > +++ b/test/daxctl-famfs.sh
-> > @@ -0,0 +1,253 @@
-> > +#!/bin/bash -Ex
-> > +# SPDX-License-Identifier: GPL-2.0
-> > +# Copyright (C) 2025 Micron Technology, Inc. All rights reserved.
-> > +#
-> > +# Test daxctl famfs mode transitions and mode detection
-> > +
-> > +rc=77
-> > +. $(dirname $0)/common
-> > +
-> > +trap 'cleanup $LINENO' ERR
-> > +
-> > +daxdev=""
-> > +original_mode=""
-> > +
-> > +cleanup()
-> > +{
-> > + printf "Error at line %d\n" "$1"
-> > + # Try to restore to original mode if we know it
-> > + if [[ $daxdev && $original_mode ]]; then
-> > + "$DAXCTL" reconfigure-device -f -m "$original_mode" "$daxdev" 2>/dev/null || true
-> > + fi
-> > + exit $rc
-> > +}
-> > +
-> > +# Check if fsdev_dax module is available
-> > +check_fsdev_dax()
-> > +{
-> > + if modinfo fsdev_dax &>/dev/null; then
-> > + return 0
-> > + fi
-> > + if grep -qF "fsdev_dax" "/lib/modules/$(uname -r)/modules.builtin" 2>/dev/null; then
-> > + return 0
-> > + fi
-> > + printf "fsdev_dax module not available, skipping\n"
-> > + exit 77
-> > +}
-> > +
-> > +# Check if kmem module is available (needed for system-ram mode tests)
-> > +check_kmem()
-> > +{
-> > + if modinfo kmem &>/dev/null; then
-> > + return 0
-> > + fi
-> > + if grep -qF "kmem" "/lib/modules/$(uname -r)/modules.builtin" 2>/dev/null; then
-> > + return 0
-> > + fi
-> > + printf "kmem module not available, skipping system-ram tests\n"
-> > + return 1
-> > +}
-> > +
-> > +# Find an existing dax device to test with
-> > +find_daxdev()
-> > +{
-> > + # Look for any available dax device
-> > + daxdev=$("$DAXCTL" list | jq -er '.[0].chardev // empty' 2>/dev/null) || true
-> > +
-> > + if [[ ! $daxdev ]]; then
-> > + printf "No dax device found, skipping\n"
-> > + exit 77
-> 
-> Can you use 'do_skip' here?
-> 
-> DJ
+Thanks for the fix.
 
-Yes! Done in 2 places...
+I noticed a similar race in BTT and wrote a small selftest to
+exercise concurrent lane usage [1].
 
-<snip>
+Without your patch on the almost latest upstream kernel v7.0.0, I see silen=
+t=C2=A0
+data corruption on this workload, most reliably with PREEMPT_DYNAMIC set to
+"lazy" or "full". With your patch applied the test passes across all four p=
+reempt modes.
 
-Thanks,
-John
+ =20
+  # Without the patch
+  echo none      -> pass
+  echo voluntary -> pass
+  echo lazy      -> "not ok 1 BTT lane contention: 6 process(es) saw corrup=
+tion"
+  echo full      -> "not ok 1 BTT lane contention: 8 process(es) saw corrup=
+tion"
+ =20
+
+ =20
+  # With the patch
+  echo none / voluntary / lazy / full -> all pass
+
+(Full output below)
+
+So,
+
+Tested-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+
+
+------------------
+Without Patch:
+------------------
+
+[nvdimm]# echo none > /sys/kernel/debug/sched/preempt
+[nvdimm]# ./run_btt_lane_contention.sh
+Creating sector-mode namespace on region1...
+Namespace: namespace1.4
+Block device: /dev/pmem1.4s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.4s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.4s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+ok 1 BTT lane contention: all data verified
+# Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.4...
+[nvdimm]# echo voluntary > /sys/kernel/debug/sched/preempt
+[nvdimm]# cat /sys/kernel/debug/sched/preempt=20
+none (voluntary) full lazy=20
+[nvdimm]# ./run_btt_lane_contention.sh
+Creating sector-mode namespace on region1...
+Namespace: namespace1.3
+Block device: /dev/pmem1.3s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.3s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.3s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+ok 1 BTT lane contention: all data verified
+# Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.3...
+[nvdimm]# echo lazy > /sys/kernel/debug/sched/preempt
+[nvdimm]# cat /sys/kernel/debug/sched/preempt=20
+none voluntary full (lazy)=20
+[nvdimm]# ./run_btt_lane_contention.sh
+Creating sector-mode namespace on region1...
+Namespace: namespace1.4
+Block device: /dev/pmem1.4s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.4s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.4s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+# [proc 10] MISCOMPARE iter=3D4 block=3D80 off=3D0x47180000
+# [proc 10]   byte 204800: exp 0x4a got 0x42 (4096/262144 bad)
+# [proc 10]   from proc 2 (shared CPU 2)
+# [proc 12] MISCOMPARE iter=3D11 block=3D279 off=3D0x582c0000
+# [proc 12]   byte 102400: exp 0x4c got 0x44 (4096/262144 bad)
+# [proc 12]   from proc 4 (shared CPU 4)
+# [proc 13] MISCOMPARE iter=3D19 block=3D143 off=3D0x5d080000
+# [proc 14] MISCOMPARE iter=3D19 block=3D28 off=3D0x62380000
+# [proc 14]   byte 28672: exp 0x4e got 0x46 (4096/262144 bad)
+# [proc 14]   from proc 6 (shared CPU 6)
+# [proc 13]   byte 249856: exp 0x4d got 0x45 (4096/262144 bad)
+# [proc 13]   from proc 5 (shared CPU 5)
+# [proc 1] MISCOMPARE iter=3D57 block=3D55 off=3D0x7d80000
+# [proc 1]   byte 135168: exp 0x41 got 0x49 (4096/262144 bad)
+# [proc 1]   from proc 9 (shared CPU 1)
+# [proc 8] MISCOMPARE iter=3D71 block=3D392 off=3D0x3e000000
+# [proc 8]   byte 208896: exp 0x48 got 0x40 (4096/262144 bad)
+# [proc 8]   from proc 0 (shared CPU 0)
+not ok 1 BTT lane contention: 6 process(es) saw corruption
+# Totals: pass:0 fail:1 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.4...
+[nvdimm]# echo full > /sys/kernel/debug/sched/preempt
+[nvdimm]# cat /sys/kernel/debug/sched/preempt=20
+none voluntary (full) lazy=20
+[nvdimm]# ./run_btt_lane_contention.sh
+Creating sector-mode namespace on region1...
+Namespace: namespace1.3
+Block device: /dev/pmem1.3s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.3s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.3s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+# [proc 1] MISCOMPARE iter=3D0 block=3D3 off=3D0x7080000
+# [proc 4] MISCOMPARE iter=3D0 block=3D3 off=3D0x1bfc0000
+# [proc 4]   byte 114688: exp 0x44 got 0x4c (4096/262144 bad)
+# [proc 7] MISCOMPARE iter=3D0 block=3D2 off=3D0x30ec0000
+# [proc 7]   byte 212992: exp 0x47 got 0x4f (4096/262144 bad)
+# [proc 1]   byte 159744: exp 0x41 got 0x49 (4096/262144 bad)
+# [proc 1]   from proc 9 (shared CPU 1)
+# [proc 4]   from proc 12 (shared CPU 4)
+# [proc 7]   from proc 15 (shared CPU 7)
+# [proc 10] MISCOMPARE iter=3D0 block=3D2 off=3D0x45e00000
+# [proc 10]   byte 139264: exp 0x4a got 0x42 (1024/262144 bad)
+# [proc 10]   from proc 2 (shared CPU 2)
+# [proc 3] MISCOMPARE iter=3D0 block=3D9 off=3D0x15180000
+# [proc 3]   byte 217088: exp 0x43 got 0x4b (4096/262144 bad)
+# [proc 3]   from proc 11 (shared CPU 3)
+# [proc 0] MISCOMPARE iter=3D0 block=3D9 off=3D0x240000
+# [proc 0]   byte 159744: exp 0x40 got 0x48 (4096/262144 bad)
+# [proc 0]   from proc 8 (shared CPU 0)
+# [proc 5] MISCOMPARE iter=3D0 block=3D9 off=3D0x23100000
+# [proc 5]   byte 122880: exp 0x45 got 0x4d (4096/262144 bad)
+# [proc 5]   from proc 13 (shared CPU 5)
+# [proc 6] MISCOMPARE iter=3D0 block=3D14 off=3D0x2a200000
+# [proc 6]   byte 57344: exp 0x46 got 0x4e (4096/262144 bad)
+# [proc 6]   from proc 14 (shared CPU 6)
+not ok 1 BTT lane contention: 8 process(es) saw corruption
+# Totals: pass:0 fail:1 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.3...
+[nvdimm]#=20
+
+
+------------------
+With Patch:
+------------------
+
+[nvdimm]# cat /sys/kernel/debug/sched/preempt=20
+(none) voluntary full lazy=20
+[nvdimm]# ./run_btt_lane_contention.sh=20
+Creating sector-mode namespace on region1...
+Namespace: namespace1.3
+Block device: /dev/pmem1.3s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.3s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.3s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+ok 1 BTT lane contention: all data verified
+# Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.3...
+[nvdimm]# echo voluntary > /sys/kernel/debug/sched/preempt
+[nvdimm]# cat /sys/kernel/debug/sched/preempt=20
+none (voluntary) full lazy=20
+[nvdimm]# ./run_btt_lane_contention.sh=20
+Creating sector-mode namespace on region1...
+Namespace: namespace1.4
+Block device: /dev/pmem1.4s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.4s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.4s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+ok 1 BTT lane contention: all data verified
+# Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.4...
+[nvdimm]# echo lazy > /sys/kernel/debug/sched/preempt
+[nvdimm]# cat /sys/kernel/debug/sched/preempt=20
+none voluntary full (lazy)=20
+[nvdimm]# ./run_btt_lane_contention.sh=20
+Creating sector-mode namespace on region1...
+Namespace: namespace1.3
+Block device: /dev/pmem1.3s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.3s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.3s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+ok 1 BTT lane contention: all data verified
+# Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.3...
+[nvdimm]# echo full > /sys/kernel/debug/sched/preempt
+[nvdimm]# cat /sys/kernel/debug/sched/preempt=20
+none voluntary (full) lazy=20
+[nvdimm]# ./run_btt_lane_contention.sh=20
+Creating sector-mode namespace on region1...
+Namespace: namespace1.4
+Block device: /dev/pmem1.4s
+Running: /home/abd/linux/tools/testing/selftests/nvdimm/btt_lane_contention=
+ /dev/pmem1.4s 16 100
+---
+TAP version 13
+1..1
+# device: /dev/pmem1.4s (1789 MB)
+# processes: 16 (2 per CPU across 8 CPUs)
+# iterations: 100 per process
+# I/O size: 256 KB
+# logical block size: 4096 bytes
+ok 1 BTT lane contention: all data verified
+# Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+Cleaning up namespace namespace1.4...
+
+[1] https://github.com/AboorvaDevarajan/linux/blob/btt_preempt_test/v1/tool=
+s/testing/selftests/nvdimm/btt_lane_contention.c
+
+
+Regards,
+Aboorva
