@@ -1,98 +1,130 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94D14384CEC;
-	Tue, 12 May 2026 06:48:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 818FD304BDE
+	for <nvdimm@lists.linux.dev>; Tue, 12 May 2026 07:46:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778568533; cv=none; b=cDZxdnxwBQPWgQHzWcsiQpPardl8RHuQhBpIZJKvE5RspqGSoFLtzbn7yiZ68QK+UzyIwH+4QDrAWwPopjJwoNlaw014bDj/byxG0Zw+6VRl1SHepU7Tm0N1rKrbfcI7R1FX1/aA0yxlLnF+GMlVjOErr2B+LJ8OptbakGyUKkQ=
+	t=1778571971; cv=none; b=PRRl6y8KfZYWLmcxfJjb8XVyLpvAa51tzi9kCx1IPtjgqXtTYJAhKdl5XSDuWeSMbFdX0ArOZKEgzzWNozO2p+RaWGztxC6lbRQ/zhKCvqgf0OnpDvA2ySC8sEkxLriP9KlOBOEnEd+RHebn+EScsIInXHUJsSk4zssEiEHyRG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778568533; c=relaxed/simple;
-	bh=znGDfq/bJ1wkLHdJvnjCKiqpvwQQkaqjjb16iDxb1y0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=AWD1z+NEpygVJw2ZuogNmzDMWFeAWdYZ7Mj9Tx+SyxGlfRFiC3ZwLaba5rE/tFJ4X9pesM3renKEK5iY5KlWXx67CGqft9Jvs1L30i2Mm5NHoOXSlSdlFQREPeIBhl7WcJ0GlOBS4P2tBq1q3fTsbuKIsP9LVbS3Fpf6OeOBuaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PXIV3apF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778571971; c=relaxed/simple;
+	bh=KtJQ7GNOjMBTGpf9NA9jxOzLRK7oE3PjlHGi4Ryzkn4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=t+HpGERD1c2QK1NqjjUngYr3hZBmKCW8pzIUnD05e5Bj5780qNXvfFpjlg+1QH5o7Y8GrszJ0K99D42k4uZcXip9O8Plcoj+if6q8JKSPzTccjrrRZpIoE+uSzLmqqUT/JE6jVtx4OdFoKCtJondgSrvPPF2os3VWhR+b3330Mk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=vhCjewmX; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=yAfrDtkA; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=vhCjewmX; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=yAfrDtkA; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PXIV3apF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B61E5C2BCB8;
-	Tue, 12 May 2026 06:48:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778568530;
-	bh=znGDfq/bJ1wkLHdJvnjCKiqpvwQQkaqjjb16iDxb1y0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=PXIV3apFaDjZyXED5iKly1omTUB+j7+uTG8N0AEXXmIG4szMxGvHOGJvhXKMfajMq
-	 wxD6uvJcSMQ1ylrb4bjecX0VUZLBZ0W2/oTL8lbeJiKkENf6XoAUEOyvJVw1IHituK
-	 OrdJGdhe/tUf8fNAnDd6VLaumzn45ZZ70B/aE+mI7Tunu4X2aJKL4whsroD6qa/0FL
-	 bIKBFjf6IroQSs2hPJyuEiSaqJIqXBE33PYQFuu2DDMHmrl3Yui4pjzlHSgJfzi7gx
-	 5kJzv8jAqSLXx2HFuMbGWF0/i6XdtqLk1VZVX439ViJAEpCUYUmUJWgj+tE/rsyBZ8
-	 HXmm1ZulcjYfQ==
-Message-ID: <7a223c95-fcec-4ae4-9c22-f31c75e3fa93@kernel.org>
-Date: Tue, 12 May 2026 08:48:47 +0200
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="vhCjewmX";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="yAfrDtkA";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="vhCjewmX";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="yAfrDtkA"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 6F8CC75987;
+	Tue, 12 May 2026 07:46:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1778571961; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=yHLdHCWpIuvrGHleD2Jqy4bV6mXhHYzDchTWJ+uooJg=;
+	b=vhCjewmXJ14jmPxoyoPljvGVqja25tFl+s2LtOwZBYRHdxqohEUQP9+OmLdjVXs8m0R0IJ
+	+drJoUe94iejebihfZ/mn7KVSfqrfqLxYHevtfXm0ZpXJuybWLi5j6g94obqX/j09ke8Co
+	OC4F9P3U7ejHYNiY0kU7VKyAVCkuHG8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1778571961;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=yHLdHCWpIuvrGHleD2Jqy4bV6mXhHYzDchTWJ+uooJg=;
+	b=yAfrDtkAVLmGnC96QM2rmP/5S8skAObsrOQl7kUXYCPBAV5FakoKumbQ6tnx3xhz4JzGf8
+	t4aWG1a8tk0RPgCA==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=vhCjewmX;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=yAfrDtkA
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1778571961; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=yHLdHCWpIuvrGHleD2Jqy4bV6mXhHYzDchTWJ+uooJg=;
+	b=vhCjewmXJ14jmPxoyoPljvGVqja25tFl+s2LtOwZBYRHdxqohEUQP9+OmLdjVXs8m0R0IJ
+	+drJoUe94iejebihfZ/mn7KVSfqrfqLxYHevtfXm0ZpXJuybWLi5j6g94obqX/j09ke8Co
+	OC4F9P3U7ejHYNiY0kU7VKyAVCkuHG8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1778571961;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=yHLdHCWpIuvrGHleD2Jqy4bV6mXhHYzDchTWJ+uooJg=;
+	b=yAfrDtkAVLmGnC96QM2rmP/5S8skAObsrOQl7kUXYCPBAV5FakoKumbQ6tnx3xhz4JzGf8
+	t4aWG1a8tk0RPgCA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 648F6593A9;
+	Tue, 12 May 2026 07:46:01 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id DbmBGLnaAmpYUQAAD6G6ig
+	(envelope-from <jack@suse.cz>); Tue, 12 May 2026 07:46:01 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 0758CA093D; Tue, 12 May 2026 09:45:52 +0200 (CEST)
+Date: Tue, 12 May 2026 09:45:52 +0200
+From: Jan Kara <jack@suse.cz>
+To: Souvik Banerjee <souvik@amlalabs.com>
+Cc: djbw@kernel.org, david@kernel.org, willy@infradead.org, jack@suse.cz, 
+	apopple@nvidia.com, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v2] fs/dax: check for empty/zero entries before calling
+ pfn_to_page()
+Message-ID: <7hos254p3ta422rfs5bqpvz3p6fmgdagvsxw7nb7vgqew3icq3@77wflvbcdwln>
+References: <20260511214020.208939-1-souvik@amlalabs.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] fs/dax: check for empty/zero entries before calling
- pfn_to_page()
-To: Souvik Banerjee <souvik@amlalabs.com>, djbw@kernel.org
-Cc: willy@infradead.org, jack@suse.cz, apopple@nvidia.com,
- linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-References: <20260511214020.208939-1-souvik@amlalabs.com>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
- qIws/H2t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <20260511214020.208939-1-souvik@amlalabs.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-Spam-Level: 
+X-Rspamd-Action: no action
+X-Spamd-Result: default: False [-4.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	ARC_NA(0.00)[];
+	RCVD_COUNT_THREE(0.00)[3];
+	URIBL_BLOCKED(0.00)[suse.com:email,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,nvidia.com:email,suse.cz:dkim,suse.cz:email,amlalabs.com:email];
+	TO_DN_SOME(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	RCVD_TLS_LAST(0.00)[];
+	RCPT_COUNT_SEVEN(0.00)[11];
+	FROM_EQ_ENVFROM(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	MISSING_XM_UA(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,nvidia.com:email,suse.cz:dkim,suse.cz:email]
+X-Rspamd-Queue-Id: 6F8CC75987
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spam-Flag: NO
+X-Spam-Score: -4.01
 
-On 5/11/26 23:40, Souvik Banerjee wrote:
+On Mon 11-05-26 21:40:20, Souvik Banerjee wrote:
 > Commit 98c183a4fccf ("fs/dax: don't disassociate zero page entries")
 > added zero/empty-entry early returns to dax_associate_entry() and
 > dax_disassociate_entry(), but placed them *after* the
@@ -140,9 +172,77 @@ On 5/11/26 23:40, Souvik Banerjee wrote:
 > Suggested-by: David Hildenbrand <david@kernel.org>
 > Signed-off-by: Souvik Banerjee <souvik@amlalabs.com>
 
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Looks good to me. Feel free to add:
 
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> ---
+> Changes in v2:
+>   - Also fix dax_associate_entry() (Suggested-by: David Hildenbrand,
+>     confirmed by Alistair Popple).  The same anti-pattern existed there:
+>     dax_to_folio(entry) ran before the zero/empty guard.  new_entry on
+>     that path can carry DAX_ZERO_PAGE via dax_load_hole() /
+>     dax_pmd_load_hole(), so the dereference reads a struct page derived
+>     from the zero-page PFN before the early return discards it.
+>   - Audited remaining dax_to_folio() / dax_to_pfn() call sites in fs/dax.c;
+>     no further instances of the pattern.
+>   - Updated the page_folio() expansion in the commit message to refer to
+>     the current field name (page->compound_info via _compound_head()).
+> 
+> v1: https://lore.kernel.org/all/20260501233933.2614302-1-souvik@amlalabs.com/
+> 
+>  fs/dax.c | 9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 6d175cd47a99..4bca6e2bc342 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -480,11 +480,12 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+>  				unsigned long address, bool shared)
+>  {
+>  	unsigned long size = dax_entry_size(entry), index;
+> -	struct folio *folio = dax_to_folio(entry);
+> +	struct folio *folio;
+>  
+>  	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+>  		return;
+>  
+> +	folio = dax_to_folio(entry);
+>  	index = linear_page_index(vma, address & ~(size - 1));
+>  	if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
+>  		if (folio->mapping)
+> @@ -505,21 +506,23 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+>  static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+>  				bool trunc)
+>  {
+> -	struct folio *folio = dax_to_folio(entry);
+> +	struct folio *folio;
+>  
+>  	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+>  		return;
+>  
+> +	folio = dax_to_folio(entry);
+>  	dax_folio_put(folio);
+>  }
+>  
+>  static struct page *dax_busy_page(void *entry)
+>  {
+> -	struct folio *folio = dax_to_folio(entry);
+> +	struct folio *folio;
+>  
+>  	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+>  		return NULL;
+>  
+> +	folio = dax_to_folio(entry);
+>  	if (folio_ref_count(folio) - folio_mapcount(folio))
+>  		return &folio->page;
+>  	else
+> -- 
+> 2.51.1
+> 
 -- 
-Cheers,
-
-David
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
