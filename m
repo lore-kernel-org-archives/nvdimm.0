@@ -1,67 +1,67 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DA733A5E65
-	for <nvdimm@lists.linux.dev>; Wed, 13 May 2026 05:32:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05A863A544F
+	for <nvdimm@lists.linux.dev>; Wed, 13 May 2026 05:35:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778650360; cv=fail; b=tNiNhP1Vy90T4ro43uxRrNzC0INaI30fpIElV6c0fzyxCaHqh4J70izGCOnCfBtaxCwuJY7HWaQhDf4aUEdB5RwxDVXeWSOtGqlFNbF0DBfWdRQIx5C4wVnQFUy+XewYe3bMBj9ruyBObSitmp58EiPT585ibj96JJYDAq4At4M=
+	t=1778650509; cv=fail; b=PvCd2Rwch3e/WmNdsLD418DXtrXDayX+1+iyCAqv7yu59sdPRYEoQnnnJ3BMSEhGPwTfT5/X0xMjmPgJQC6F+Ekhdej7rr8NJ5e4pT0F5w66yImkPD4RsqRwyWhNHcYh2Zclbc/O479FBcNs0JMgLkA3sWXhCaxj2cLalYH0Rn8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778650360; c=relaxed/simple;
-	bh=9ENRS1iHArjSLjL6Sveo9dapYt9DL08z1wl0pZ/H8t0=;
+	s=arc-20240116; t=1778650509; c=relaxed/simple;
+	bh=R0eE4o8/j7oQEz4/1snZLbrlxWD90/ehzTy6tXvNCg4=;
 	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=d9xbCxm5xYWbe3jCGIzTP0Snpe3XVT1z18/qTw5WYqNW1VvzBXkpM4lVqBv5/7cw7l7ZmCH/TdHAmyWR3wRStM4Z6dYiP9VmljTORa31Qt8MinYBgQyXWV60JmYVue/9vGUFrmoGtTDpnJ/GXDcNdfWJWFVbkDOCNcW8r8TA7T8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VYBemj+4; arc=fail smtp.client-ip=192.198.163.8
+	 Content-Disposition:In-Reply-To:MIME-Version; b=cc4VeNUhyr00JRrX2o3F5OK6THFk+xJIsTDpYfyREgzKPp/ky4HApnVWAbKUGpsEZfPp5zBrU+rxiTroWhcbRmk1WlugWPU7O/7T3sHmrGrN2HKflyGXhPqRwTH63grhiWvEaXHeOuCtfajsRHHtsmx2wKlMb79rxdMTSFYIjVs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kzQA+A5N; arc=fail smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VYBemj+4"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kzQA+A5N"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778650358; x=1810186358;
+  t=1778650508; x=1810186508;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=9ENRS1iHArjSLjL6Sveo9dapYt9DL08z1wl0pZ/H8t0=;
-  b=VYBemj+4sVwApRe7CFc8CNdtwFbKbHwTy1+94JYycP8NE5xhkCs7va+G
-   0lY+OLaLH1aC7h09HpHyLoJmCQ1dur9A0peOzqDvCdR3tVtvWz5olmjyL
-   uy1UnHdw2zrZypZvdYjzVwXVjGrXQjZjmNpCnNG1SjbZg407k8wxR7hH3
-   cL1HgUfyXcRmYKkhPfI5Zb4Pj29WQ65RkyJtpxF3KCoh+w16ZcPQx50Kl
-   KoPX93V40smGOm1oz9jn1/DdJy931zUL7SDSOf86qF7pOKhz+CYm4/5rI
-   8e5N44lh62pvludIMrg02ZDpLP9kaMR0Bx8duQJeyHyWhBsak4FxtCiXq
-   A==;
-X-CSE-ConnectionGUID: moevU8MwRWGMoq8Ak6LRew==
-X-CSE-MsgGUID: Q6VPLDWcSw2uBYv/l0jHIg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11784"; a="97136264"
+  bh=R0eE4o8/j7oQEz4/1snZLbrlxWD90/ehzTy6tXvNCg4=;
+  b=kzQA+A5NFY7ZdCJS4shL96T2/ZKZAZGS4W96/KKvvP6q57pQPvafyYuR
+   +xYe7t1FW874SvOlJLYC1nFXlnb3mLlvLGlGOu7UR/ROq3LgfKvNEDGGa
+   JMcMrhfzHC4Fjl2FuB31oC/jcZUneJMTFs7YugYpZFwR8TGlVTmD+x9zh
+   5XOBf0rfMVd6qdXXr4W8PMA34+VyHF2u0lhW4gy3ybEdHbFqLSYuytgXB
+   Fg1lCwPe8pJxaPi2E2k0T4peVWB3Gxbkj2cUxCIX7d06OFb/P0ADXLVc2
+   /RMM40VWR4Sfyodpiuptkp7PMHmPpKMyXek8Kf7eO05BHDWY7oEQkmiKk
+   g==;
+X-CSE-ConnectionGUID: djdJx5c4SB6sXeGwbxtGTw==
+X-CSE-MsgGUID: 7Sd33luVTdGzk74d/0UIbQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11784"; a="83183703"
 X-IronPort-AV: E=Sophos;i="6.23,232,1770624000"; 
-   d="scan'208";a="97136264"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 22:32:38 -0700
-X-CSE-ConnectionGUID: NGyquGxYQpyvwVEP/EuLBw==
-X-CSE-MsgGUID: eB7XBmOOSMuDQH296Z/acw==
+   d="scan'208";a="83183703"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 22:35:07 -0700
+X-CSE-ConnectionGUID: cfVRWrmuQHGakh1qlGu1RA==
+X-CSE-MsgGUID: pxQOeQMSTw6G3ymNMG0liw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,232,1770624000"; 
-   d="scan'208";a="233706498"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by fmviesa010.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 22:32:37 -0700
-Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+   d="scan'208";a="242332884"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by orviesa004.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 22:35:08 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37; Tue, 12 May 2026 22:32:36 -0700
+ 15.2.2562.37; Tue, 12 May 2026 22:35:06 -0700
 Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37 via Frontend Transport; Tue, 12 May 2026 22:32:36 -0700
-Received: from SN4PR0501CU005.outbound.protection.outlook.com (40.93.194.46)
- by edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
+ 15.2.2562.37 via Frontend Transport; Tue, 12 May 2026 22:35:06 -0700
+Received: from BL2PR02CU003.outbound.protection.outlook.com (52.101.52.64) by
+ edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37; Tue, 12 May 2026 22:32:33 -0700
+ 15.2.2562.37; Tue, 12 May 2026 22:35:06 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=FaqV+p/bo+20ddhUpq6J1ideZiXe4m+wwkgbtTGYq8VHFNRX9UcA3ykVgevFPwPexGhG2O1YsKjlQC2TJV8PKtn0z6MbUBTCgcbByJuETWaHTkdxk9I6lPtLbuCqxQ1bjijPVB/3MVyvd2JdLwrqBYLfBKc1hv4I9HJzW5uH93AdXMZgbDrBYv6pTkvVbl+Yu5Z3Fa6g5iTn81yKEpA4EFAywbCaXbE0JShX5pbPIODPZZc0l/g1hF6vqAfQUNrDy3PTODjS6w0++3mrn9UFW5aiP57bhiNa6aKLdEqA+jBtxsJfo7Up1nh7dHdEjDji7aXWsnepWGTg0Mf+t39fFg==
+ b=HJb6hHrE0ogL76s9Nif3gzamgu7ZaKYinGRGqoU1l36M1O8aLFiSa+Jqc4szOzQ8h7R+ZexsCIwN9K0B8BtBt67Td/rLbAx7hwGQDZSZHAEeBziVdg01Rh7rLaD7T2QhhMqGDDYqGieAi4fGYdBGPxP9jljK9HuB2/L9AzOlCTXDH41t5WW7DYTXLUAWey0FZuXIk/9fNURyUb4PJpQOJQxgedC+AQd9GIAAIyRoVRaP9vHX7Ac+LNS/ikHSDkGTk//vDDAaTEGe95HLgxlHTm2UfGUotNPmowU/a57U7JvuEJOy99bH/ls4nm1gea95Rl9cPS3/5L17xH7ivF7cRg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wqQQ5JD6GZbIculwxRu5XFY32FDSRgI7Uc32uPZAqLI=;
- b=KZrojbqc+JOgYBNjsBnuBQ3HvEkIO23Zj3ZdkO2JQT5OI5ERLKih0bMTeK27AJzx6cp9tuOh9ucGBVeeBmZcv+n6PuzYD6iKhh+JlLudx0D82wtHeHdacOLmC5yMQNnU+NvZpddVSgTjta8TOYWab9B+ougcjKWC8Pn4uOYx+r0dZ1bjaVjoZtBsxGLKPItox4KcWm6ukbIvBPaxqlX8RRNM9FMO+yRlK2OgIYq8wP6sAiLzjmdAEhJLc1nXPgBBEYYvT08NO99ec5g7RrmsbrwMO9UiHfniVInib3e66tvCwg4qtncrBObpnERC/Id5Hbq8UXpQmtnUQgukiaWvYA==
+ bh=iAb9F6soX+SV9KuzxyAgvR9NM1BOuxaTYYY4symY4XM=;
+ b=CROeZ1KutvFmVbn9xv+8Db3x1mdSlIkzyURtc6A+T4OCZf2wzDfsqJnDRVBPq9icYVPEPaEtZzrJ9D+SHdUjoekGcnYvUXcLur3avXafohJwAqceMz9MA1WtbZvet+B9nCDZ+SbOjR1DioVmrg3i4s3qvApDjNanL68H2iBSWZbbUztQ12ul3JRLCO1BEFFdU5ajHl/o1GH9GIN2UmTmPV++DDScWSssBoNxktMKK+ipZDTLXNMcniD8OqXe7yddXl49COp3KLe9wlU53XV78QJT3+vNXB6G5f1r3G8wmnSYkHLcgqU4Rc0o5f4fxZYWWATo0AgGRjBkrwQyhHNgFQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
@@ -71,12 +71,12 @@ Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
  by PH0PR11MB5111.namprd11.prod.outlook.com (2603:10b6:510:3c::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9913.11; Wed, 13 May
- 2026 05:32:16 +0000
+ 2026 05:34:44 +0000
 Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
  ([fe80::a195:49d4:38c5:3891]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
  ([fe80::a195:49d4:38c5:3891%8]) with mapi id 15.20.9891.021; Wed, 13 May 2026
- 05:32:16 +0000
-Date: Tue, 12 May 2026 22:32:12 -0700
+ 05:34:44 +0000
+Date: Tue, 12 May 2026 22:34:39 -0700
 From: Alison Schofield <alison.schofield@intel.com>
 To: John Groves <john@jagalactic.com>
 CC: John Groves <John@groves.net>, John Groves <jgroves@fastmail.com>, "Dan
@@ -89,16 +89,17 @@ CC: John Groves <John@groves.net>, John Groves <jgroves@fastmail.com>, "Dan
 	<linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev"
 	<nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org"
 	<linux-cxl@vger.kernel.org>
-Subject: Re: [PATCH V5 1/2] daxctl: Add support for famfs mode
-Message-ID: <agQM3KXNMvtbpb_0@aschofie-mobl2.lan>
+Subject: Re: [PATCH V5 2/2] Add test/daxctl-famfs.sh to test famfs mode
+ transitions:
+Message-ID: <agQNb6f_G2lTL-2b@aschofie-mobl2.lan>
 References: <0100019ddf064477-8322b695-f2d8-481c-9fcd-8b16fc97ad4d-000000@email.amazonses.com>
- <20260430153405.84164-1-john@jagalactic.com>
- <0100019ddf06b207-eaf8cb8a-066e-4642-8947-effdb4848c20-000000@email.amazonses.com>
+ <20260430153413.84181-1-john@jagalactic.com>
+ <0100019ddf06ce8f-c323d9cd-333b-4076-9717-7c80dbed7620-000000@email.amazonses.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <0100019ddf06b207-eaf8cb8a-066e-4642-8947-effdb4848c20-000000@email.amazonses.com>
-X-ClientProxiedBy: BYAPR08CA0016.namprd08.prod.outlook.com
- (2603:10b6:a03:100::29) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+In-Reply-To: <0100019ddf06ce8f-c323d9cd-333b-4076-9717-7c80dbed7620-000000@email.amazonses.com>
+X-ClientProxiedBy: SJ0PR05CA0033.namprd05.prod.outlook.com
+ (2603:10b6:a03:33f::8) To DS4PPF0BAC23327.namprd11.prod.outlook.com
  (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -108,582 +109,573 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|PH0PR11MB5111:EE_
-X-MS-Office365-Filtering-Correlation-Id: f59ef810-8213-4e2d-fa99-08deb0b0fe44
+X-MS-Office365-Filtering-Correlation-Id: 478a8c34-743d-4a28-0076-08deb0b1566d
 X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024|11063799003|22082099003|18002099003|56012099003;
-X-Microsoft-Antispam-Message-Info: aBjUgs/qMSMp4tVg0owT43yyd94/aicfJ+zshvCdXq0v3F5rteOQ4wCwBVnYho3i9EITDxKEft72/79DEOn4nFRoBAobh1NCVv7x95bMWusMApP1pTWeNeYNqCZkVZ88UHfkDQOdmOUnLAVT+IgS4gXAPiHRoZbD597a1TwLsirG2wSeSFIhrWLstlEh9IDhyZl7q3dRHknLW0zxx8zJjVbc0QJrjnKPyOilIRpI7J22veB7JbDCjTuegy5Tn+AVKso9aZV6RSeay1QI0dLj/djzJNlCe4c7xRBPn54dM/q4bdPa9EGBfyqWKJKWoK0d6iSoCpgFwXMzkRhY4+pHdvaHii/V53CcycIzSwNT+Wztf7GYrd0G/AESbld+tdXGeNNJauTCVtk18P/DlJ37diPzQzq4iQSUfU9IjPKWzKb5iEATKnlNNwAXdhao8/wBoACpDtz6HlWA9hvdlt9+SAyDxGyWl44BevWdSgXyrDDe9HfrLX9LapPGQtI1Y301IFzSEEZjldZNIupKG8yOzD2lYPU39Z7+aBRRMGade+OqxuDdGMkTnoqTOP8lVrDAYodCvGrDmkG3UAKQuAjNSoUOmG1NXNOILkPg/UdFky0UXwPUyjt9j+GJ1vPZWlxsxENb9h9/P6f0DlMUPdHZkq0t4ZEUbp+EB6qGT7vX1/6+GenZNrP1r9VqvLddTKVU
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(11063799003)(22082099003)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024|11063799003|22082099003|18002099003|56012099003|3023799003;
+X-Microsoft-Antispam-Message-Info: 2vUzfTvF5b9RMMWpWhyPMkLz5jsO9iVS8hJGTtO620SjaBvEiystR08LHsm6e8Awr+8wcM1z2BmS+iU3txbTdB1xtlhHbTiHbGIhNnizCsFJ8pvqJ16MSjy6olMSoPCGEICxTdcow2O5thgK8JPaqFyHqv2ayZBrbkn+9FVRnTg6ALYrQcFInjqcr9b2s6WZYOoIx2gZVQTrXboZAdVfv6xD9SBVsfrTYb+QEEgdZzImYSUFm7QG8CLi4HF1CXABsGraOIM/cURa03sHRAE1GNxhp82dAJDGkoPhjyh1TWFU04qsxxE/E1J1/TNOcstjBxEKbRn+vStqsnzCZshvucbGjWXlAQ2mFoeQdoAemj+vV1RfGclZ3KHhSU3bPwmCkTsV2YUgzM2BYdFTXRm4d3buSmZxW+GTGKMqrfPhifUEdRiiAqIBDFxrKMlaULx68hkVgANH5dqnUfHbs9QP+i517a0xgVh0mK1tZPRfLfGNnpylMWpqfHBJEpslBXFZqu5QmkxbzUmG87iE9t0v7ySd9rFbl6on1y4Hufy/zhytRdMxHUTesjnOkyIPb4A/3a/a3afbjIZ0b69y/6lZxU4F110jeZPLv28D+B9TAF7Qf+7CE8IRgLpKqTX1+Fn/1zcvoHAKuEMdIQ7MVSImIepImcdVPo1UiYs6563nQ8TsHTVznInBZ7+OxtPjFPom
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(11063799003)(22082099003)(18002099003)(56012099003)(3023799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?rDLyD7B6sxd9433xhdPq0b+X5DQJZdmShWT6pF2lOgfJG4P7tO/B/Yr77SiB?=
- =?us-ascii?Q?nYbAHqb7paKbRd157F5hTsKV60GTfSeenE/VXGSOcJncEh3aRPVD/mylCsYC?=
- =?us-ascii?Q?0nZLHArCK4FRgE6LAiNo34/KnIWqmYbl2Evij6uq3PSdP6qwy32RWR8hLIc3?=
- =?us-ascii?Q?XiE3B8lCu8ZoJSPTIU6eX9/oEaFeyJbyHdmu2KtWgf5yOCFgZu+CB5hWkcZj?=
- =?us-ascii?Q?i35xjYF8ToMRPLURioNRwfy6yfDnF8NrdLBe3RHW89gn/xIrDHIkTj1bapor?=
- =?us-ascii?Q?t7GEHy8R2KsgvUSRnU/Uri3NeizXbVKtYVbEKIzPk3eiEWUR71mURCoxYAeD?=
- =?us-ascii?Q?m0A05weGozjh2Wlb1DOGaTq4z5eRXaY3yhQwQ21m/m+ubzvEk16QNWhjjWHx?=
- =?us-ascii?Q?L5rJnQukJsSDuI5FJlSQmKajzVvDfPxRswGx2OamqzIhM7EavLLJLo9fU3TV?=
- =?us-ascii?Q?H6YO+jl9YauWmMIWJ1BHaTs1j5e4Hemf4lAVxHdMui4ywQHvNn+JdE2fpjr2?=
- =?us-ascii?Q?Cw21617HEWRAvTiyyUsF5TuQ4CmP/bhu1aIJYefwdwd6MxdhJcN46wcZCyiA?=
- =?us-ascii?Q?Q1Exm16qTXpBPoH+zULrAXg0JSLVwmlWUwstIXt2SDal+ZwsGJK9iLmFF+pc?=
- =?us-ascii?Q?Iw/EFfZwlCHAXj2dQzaO4xaiwNIWlOriKpidwCDVCppkK5nBAsz4+AmWVfEa?=
- =?us-ascii?Q?v+HvBIRMn/INPs20EdMMg+/0CX161+awfsKp/Y8kN29HN6mqC4YX35ZuGAHc?=
- =?us-ascii?Q?NZduCsUxkvsUBSGZF1fKEx0kdiCuqk4f8UyUcFuc1GzT3JzG/w3i1S4hS5/a?=
- =?us-ascii?Q?TN6Nyk+zo1SsYfR24aj3X9VQzIn9OhktQF6KquyegSSc5nEUSZwuNfcH/j8/?=
- =?us-ascii?Q?ZCaOn7iuCaljrCQr6K8V7nSnlGCmpQKw/JyybLtbN8flojiUjFr6FAYhto9K?=
- =?us-ascii?Q?exxfQdOVLk6SzJEs76OXvMB2HdR5hyRTJwoxgB9hrLUYtnYs6Y8zO/ql4/sX?=
- =?us-ascii?Q?2oXCbDhEXv7UGyYzNZ0eVkRbGtZ3xu8m3gWhUTnfW+mzyHcArdKd5xI6TP84?=
- =?us-ascii?Q?COEjdoNxj+ZspllOCiliYf+YDfXmmWyFX2tkTJQEobN/GnSpTYuereesZ3d7?=
- =?us-ascii?Q?XdifZqp8akv20QD4EQiAyoLaFLpuq2QOqWmJ4gUCfNjUMtJwwYG9nvppdCV/?=
- =?us-ascii?Q?ugT6hTmjDym3o9/0N8wdjyFFRwLVMeZYX9wb6ADrWsHwLFL7ZXMf+7Y+Y6Bi?=
- =?us-ascii?Q?uJ8WPjaMJx+cqKq1kgHfbPC+51/PHBm4hcvkBPwJNUJC6E+byn1KpGNZD7yu?=
- =?us-ascii?Q?AJL5A/oIlHuFbKO/LvqSYb3h21C9SF39XWmy0WjLJV0RgTU1vdQxMUkFADAc?=
- =?us-ascii?Q?I0CYx7PuSBaFwZswDOQfd48+v+QARIMdFyc/8i3zFV+YKbsw1LbXgj4Ofuuc?=
- =?us-ascii?Q?+VtlaFYfRpZ8Yv0gtznKbAx3f1Aa5F/6rW3uLuXsXluLYjA4BguWGkfZvYQp?=
- =?us-ascii?Q?ejwdUxeMpth9IWf8NHzAjnI4jzRKuH6UxEMpHVC5FJg8SpUcyneLPxh/gtmM?=
- =?us-ascii?Q?kqEuuhCgHFsdYKkLJBlJStiAdIQcxBJNJLy1dwZ55skG7C4dSazH5NErq3Sm?=
- =?us-ascii?Q?KTkff1cUF9lul7N2ATyFabQLJQq15mqtKOWKBADBUpafpgZxGztYWxPF1cQr?=
- =?us-ascii?Q?9VGr1I0pZ/mlsVEE/RFKlkYVTF8TYkMx5tLsJ6nOJK4POXc3wdek1Fq58P8a?=
- =?us-ascii?Q?j12VweJJRDvCRZiZaWzy9JXBCxzKvUY=3D?=
-X-Exchange-RoutingPolicyChecked: jhgBknffUGG/cNqi2GECmYFWhdZd7l9WXSyVUfMrpIdNysgWHJlqYVkvmJvSn1XC89btK+57MyXVYVbn4kk4ZUgASKV1mk0Zid3JZFCQbmxoV3Mdw6/hmn/KSU1e/RgF58QQzKR4H6cyn5K6FDv69yWsRPqb/kSRE4CVd4W+jpqGU9FcAQ6wDE+5X95eVIe2QzmxeATlreDRW/nbGbcJB0v3n04vJ9pH3tMzGMQ1ZoQTvMC7mdXdSULIn5hsMYzlz1WrsCLwUe3peWt8Qz9qaVvgrzqfbuwk272jZChJStyjRMl84hNZLKvOqvW/M8bMuoCYJT2jQZFEHmPff8qBWQ==
-X-MS-Exchange-CrossTenant-Network-Message-Id: f59ef810-8213-4e2d-fa99-08deb0b0fe44
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?7knvpZECUU9yBJukul3vzwczF+aKhy3dSZ9lNtT0p2mDaDSumzwTQ8I9Wnr1?=
+ =?us-ascii?Q?Mln0rz44upNG5MiUXDZ2Fw3oGevZU67BBPV3RO2Oc73nwmX4I/p/LXx/pqji?=
+ =?us-ascii?Q?wEsSbxqbSt78dD6SOER4NNa8WjP86N2imW8NBg2V1onTDtBq7lMLftJWL+A7?=
+ =?us-ascii?Q?/uDUEdjvJL7/Fu5cxyHmTPVnJ4J8x+ilFg9lF1eOg8JSz2menlOd4wENoAmR?=
+ =?us-ascii?Q?c4BRZX46f2ErynT9/qbixDHpFj2L+chQXJEMz6g9VC2BBlow47j3ZD/qK/Bz?=
+ =?us-ascii?Q?Eo86KWZvy97HGhwAoFIkcdHD6Up9yhtcmUajc2tmeDTCoz9YA8nSz3nWRjze?=
+ =?us-ascii?Q?/q7thFH/pf1HnJQe1DkN2Ottp4YqjUP+aQ5JhbbwJHrpihaVWubPQzVPJkqS?=
+ =?us-ascii?Q?WxTguKM/ha9gg8Nk/r5aZcG1iHUW3MZxGJT2cfDBgp11K21csz40qZA8jk4I?=
+ =?us-ascii?Q?HJ2PZu4j4G2oKsk3aLM4g3dr4c3z1sYgAsmUI1N9SuwvHRBJYFpFTSI20yxD?=
+ =?us-ascii?Q?ur7DOiekzx4Q8Qb6+UCXGkz3ZAKdzI+O69IreC5HLlJgAdULPbdN9XgiStyy?=
+ =?us-ascii?Q?Di2v9hnu8Ipcaji+S3KCJwe4cT5B+/oKeK+1isgGVb9qg9Nno8ZiFhDJNBNa?=
+ =?us-ascii?Q?jnzh3ZQAZRj1fh4gCA9pUY2z0uSeQhXa4EkO+rVTymq1S6yY8Q1q/XB+1Nbm?=
+ =?us-ascii?Q?y09bXowAlYb+vtv3oqYpOFMPzkEvdEs3UPY2hadWv5ovVb18L7n6z6QacyQ/?=
+ =?us-ascii?Q?BUa2yjOjVUv9Pf2m7OswkcNxEV+KZ0xPGBSpNBOYF3M3qUsRE2PLiu3rg3uZ?=
+ =?us-ascii?Q?2qrTGUuYYMEhCtB8BOwdDUL7BOLLRSc2xA3W07vSh3Yu9It/sTY4r0uJ7dGA?=
+ =?us-ascii?Q?HM4N9KRTsGeQrBg4VRu8wW0V8IhEYi/Q5CBJHv++PPR0dwbmJUYTMpXHZ6fm?=
+ =?us-ascii?Q?76E3r5vuY9NR/Qx2SVTi1uNNF+3BXbtRcZ2zfPccrZfjep6yO6LnAA36JABe?=
+ =?us-ascii?Q?TKIzPSKOFJCgn3p1XxVXtdTOk2vLNB8KXJQw1B01XWudU9Vs1yWDZklWlPOg?=
+ =?us-ascii?Q?f7tKHDtv7rqZmWOFHO/GO+ksmskfVvuO2HUVqGWctFItv0OJzFyIOV4TEjq0?=
+ =?us-ascii?Q?Uo8MLBmta5OZkBxfRPzC4iTYcN4VSY1QEa9Y+96xCHlpf73XNoJRpHZx2XUU?=
+ =?us-ascii?Q?2TwfqCoOQ6dBz4VVdLycGiTOUMNG1c5lNqqpA3kpLAWsfuc68UUjos4bOoyL?=
+ =?us-ascii?Q?a4TowQxSFgEGnGDBCqidzavqAaipABC0FU6HSXuVVzh7xl8dre64t+aHMn/o?=
+ =?us-ascii?Q?KGoky63CJcLlJ25eieJr7AmQRWMllqMSy8lclvx2q8RClQXfZf87XOVxMfsF?=
+ =?us-ascii?Q?/J1YAPhXuKFJs6DoA/p76wW5ijo/H67DmZYOdHxiKRlP/p6+dsMtvu9ClHvg?=
+ =?us-ascii?Q?BQOZCTCARb4IvarrX4k2Q7mzYpGJcJHgIKL7jTDkJYkcaLQVkwP9mpKMJKnp?=
+ =?us-ascii?Q?LjHGmdsY2WyMkBKP0kjDw9s2NHitdU2Fgbvk/nMidhPqQrVmZF4rP9VJ/M31?=
+ =?us-ascii?Q?xhd12M9pu8vaEm23cMgcDM8gsY+/a24bB8U7WO7eZ0iKLZ7cPAKebdJi6piR?=
+ =?us-ascii?Q?CKLjSSSw5mlglfQLdezsN55IQ/P41HJNdI966Sy/N1G0aVa5FPxPfxDYzrZt?=
+ =?us-ascii?Q?CxMoF7KU7Au+pigIpPOIEoQLBzAutcUSYfFRtI3pHQdNdAY8rKcBd1GXaaVy?=
+ =?us-ascii?Q?nVxNZrN1OvKth+YS5Sim0frO+FuoJpA=3D?=
+X-Exchange-RoutingPolicyChecked: Ri7dHq932fC4JxAGsRjNjWZDyF4csewZQpzxXyNl7jUeCQjDGysDtENmfyQoxXxnKbqBbOiNWfUn0eexAahCOBgddflrA+ezEigDfXRthx/kbFRIkVIFmcE38YVeFjx8Mof3FIiSwiL/KcProKUeBeNQbkaCOHAUT6TBoa/qvgd5QYuY/pcXHCBw95KRe+Js7lCiL6zKswYsO/8X7mVjsj9GrRCkbER6GijbjFM9gal0IplQNWRQP7vXt73+nfe/sRwkKJ3IPUKoPHWFY8hn9SM7RPozQ47h92yFWnvv4F4+DIE5dauNwHVo7kJIiMvL4KJVG/G/YTzIbsGFX1jxXw==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 478a8c34-743d-4a28-0076-08deb0b1566d
 X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 May 2026 05:32:16.3059
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 May 2026 05:34:44.1408
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: EU/+0u/xrM4EfAObuz11W8O6gfgWZ2z0gJBkEVdI+X2nrHZigsmPK128S957hOvrvRyoywszCPvDGYjOegXaDVlNUJsO/lUvAxXq0ZUIJ+c=
+X-MS-Exchange-CrossTenant-UserPrincipalName: TqBn4kL81yfzvFHPJw7G0thgaM5MXX1zXf0SI+LQkxf/LxAJ9BHfSUCHFmg5vWykRPj9P8Tl8Xwx6rdgO9laBhoKRR6cNMKtfq9Kw2dYgfk=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR11MB5111
 X-OriginatorOrg: intel.com
 
-On Thu, Apr 30, 2026 at 03:34:11PM +0000, John Groves wrote:
+On Thu, Apr 30, 2026 at 03:34:18PM +0000, John Groves wrote:
 > From: John Groves <John@Groves.net>
 
 Hi John,
 
-Please add an intro paragraph saying what famfs is, preferably
-with links to reference material.
+Thanks for the famfs mode-transition test. As promised, I took a look
+at how we can make it work as a unit test in an NDCTL test environment.
 
-This patch doesn't update any docs. Please take a look at what is
-needed. I think at least this one:
-Documentation/daxctl/daxctl-reconfigure-device.txt needs to add
-famfs as a 'mode' option.
+The main blocker is the device-selection assumption:
+    region_id="$("$DAXCTL" list -R |
+        jq -r ".[] | select(.path | contains(\"cxl_acpi.0\")) | .id")"
 
-> Putting a daxdev in famfs mode means binding it to fsdev_dax.ko
-> (drivers/dax/fsdev.c). Finding a daxdev bound to fsdev_dax means
-> it is in famfs mode.
->
-> A test for this functionality is added in the next commit.
->
-> With devdax, famfs, and system-ram modes, the previous logic that assumed
-> 'not in mode X means in mode Y' needed to get slightly more complicated.
->
-> Add explicit mode detection functions:
-> - daxctl_dev_is_famfs_mode(): check if bound to fsdev_dax driver
-> - daxctl_dev_is_devdax_mode(): check if bound to device_dax driver
-> Both delegate to a shared static helper daxctl_dev_bound_to_module() to
-> avoid duplicating the driver-symlink lookup, as does the pre-existing
-> daxctl_dev_is_system_ram_capable().
->
-> Update mode transition logic in device.c:
-> - disable_devdax_device(): verify device is actually in devdax mode
-> - disable_famfs_device(): verify device is actually in famfs mode
-> - All reconfig_mode_*() functions explicitly check each mode
-> - Handle unrecognized mode with an error instead of wrong assumption
->
-> Update json.c to report fsdev_dax-bound devices as 'famfs' mode.  An
-> unbound device continues to be reported as 'devdax' (the legacy default
-> when no driver is bound), to preserve existing behavior.
->
-> Signed-off-by: John Groves <john@groves.net>
-> ---
->  daxctl/device.c                | 132 +++++++++++++++++++++++++++++++++++++----
->  daxctl/json.c                  |  13 +++-
->  daxctl/lib/libdaxctl-private.h |   2 +
->  daxctl/lib/libdaxctl.c         |  39 ++++++++++--
->  daxctl/lib/libdaxctl.sym       |   7 +++
->  daxctl/libdaxctl.h             |   3 +
->  6 files changed, 181 insertions(+), 15 deletions(-)
->
-> diff --git a/daxctl/device.c b/daxctl/device.c
-> index a4e36b130a09..003609e4abba 100644
-> --- a/daxctl/device.c
-> +++ b/daxctl/device.c
-> @@ -42,6 +42,7 @@ enum dev_mode {
->  	DAXCTL_DEV_MODE_UNKNOWN,
->  	DAXCTL_DEV_MODE_DEVDAX,
->  	DAXCTL_DEV_MODE_RAM,
-> +	DAXCTL_DEV_MODE_FAMFS,
->  };
+and then the test grabs whatever happens to be the first dax device on
+that region. That works in your QEMU setup but not in the ndctl unit-test
+model. NDCTL tests here are always tied to one of the emulated backends
+(nfit_test or cxl_test) and build their own test device from a known
+starting state. They don't scan for "an existing dax device" because there
+is no such thing in a fresh `meson test` run. Whatever is there may be
+leftover state from something else.
 
+So the test as written will either skip (no dax device found) or get
+tangled up with whatever prior test left the system in. Traditionally
+DAX has used nfit for its emulated backing, but CXL is a reasonable
+choice too. I've prepared both examples and appended to the end of
+this message.
 
-The above enum dev_mode in device.c shares enum names with enum
-daxctl_dev_mode later in this patch (in libdaxctl-private.h) but assigns
-different numeric values. The overlap predates this patch, so not
-something you introduced, but adding FAMFS to both is a good moment to
-fix it before it gets more entrenched.
+test/daxctl-famfs-nfit.sh
+    ACPI.NFIT-backed testdev with full devdax/famfs/system-ram coverage
 
-Two enums with identical member names but different values is confusing
-and risks silent cross-assignment bugs with no compiler warning.
+test/daxctl-famfs-cxltest.sh
+    cxl_test-backed testdev with devdax/famfs only, plus the 
+    system-ram -> famfs rejection via -N
 
-Suggest renaming this local enum to `enum reconfig_mode` with members
-`RECONFIG_MODE_{UNKNOWN,DEVDAX,RAM,FAMFS}`. That confines it to the reconfig
-path. Then the library enum gets unambiguous ownership of `DAXCTL_DEV_MODE_*`.
-After that accidental cross-assignments are obvious type mismatches rather
-than a silent wrong-value bug.
+The cxl_test version cannot exercise kmem onlining because the memory
+has no real DRAM backing.
 
+My preference is the nfit version since it exercises the full transition
+matrix end-to-end, but if FAMFS is primarily a CXL story the cxl_test
+version is the equivalent. And of course, there is no lock-down here,
+ie. we can start with nfit and then when DCD support comes around and
+that is in cxl-test, we can switch completely to CXL or use both nfit
+and CXL. But - you do need to pick a lane to start in.
 
->
->  struct mapping {
->  	unsigned long long start, end, pgoff;
-> @@ -471,6 +472,13 @@ static const char *parse_device_options(int argc, const char **argv,
->  					"--no-online is incompatible with --mode=devdax\n");
->  				rc =  -EINVAL;
->  			}
-> +		} else if (strcmp(param.mode, "famfs") == 0) {
-> +			reconfig_mode = DAXCTL_DEV_MODE_FAMFS;
-> +			if (param.no_online) {
-> +				fprintf(stderr,
-> +					"--no-online is incompatible with --mode=famfs\n");
-> +				rc =  -EINVAL;
+Beyond selecting a backend, both versions were also aligned with the
+existing test style:
+- Drop per-step narration as set -x logs commands
+- Only emit failure path messages
+- Replaced printf with echo 
+- Suppress reconfigure-device JSON output with >/dev/null.
+- Remove restore-to-original-mode cleanup logic; rely on fixture
+  teardown instead.
+- Use err helpers for traps and cleanup
+- Extend ensure_devdax_mode to handle system-ram start state
+- Add check_dmesg "$LINENO" at test completion.
 
+Both versions have been tested, but please verify that the exact
+coverage and transition matrix still match what you want after my
+editing.
 
-rm extra whitespace after =
+Please post the selected version as part of the next revision of
+this series
 
+Patches appended below...
 
-> +			}
->  		}
->  		break;
->  	case ACTION_CREATE:
-> @@ -696,8 +704,42 @@ static int disable_devdax_device(struct daxctl_dev *dev)
->  	int rc;
->
->  	if (mem) {
-> -		fprintf(stderr, "%s was already in system-ram mode\n",
-> -			devname);
-> +		fprintf(stderr, "%s is in system-ram mode\n", devname);
-> +		return 1;
-> +	}
-> +	if (daxctl_dev_is_famfs_mode(dev)) {
-> +		fprintf(stderr, "%s is in famfs mode\n", devname);
-> +		return 1;
-> +	}
-> +	if (!daxctl_dev_is_devdax_mode(dev)) {
-> +		fprintf(stderr, "%s is not in devdax mode\n", devname);
-> +		return 1;
-> +	}
-> +	rc = daxctl_dev_disable(dev);
-> +	if (rc) {
-> +		fprintf(stderr, "%s: disable failed: %s\n",
-> +			daxctl_dev_get_devname(dev), strerror(-rc));
-> +		return rc;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int disable_famfs_device(struct daxctl_dev *dev)
-> +{
-> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-> +	const char *devname = daxctl_dev_get_devname(dev);
-> +	int rc;
-> +
-> +	if (mem) {
-> +		fprintf(stderr, "%s is in system-ram mode\n", devname);
-> +		return 1;
-> +	}
-> +	if (daxctl_dev_is_devdax_mode(dev)) {
-> +		fprintf(stderr, "%s is in devdax mode\n", devname);
-> +		return 1;
-> +	}
-> +	if (!daxctl_dev_is_famfs_mode(dev)) {
-> +		fprintf(stderr, "%s is not in famfs mode\n", devname);
->  		return 1;
->  	}
->  	rc = daxctl_dev_disable(dev);
+-- Alison
 
+======
 
-disable_devdax_device() and disable_famfs_device() differ only in
-which mode they accept vs. reject. With reconfig_mode_* switching on
-daxctl_dev_get_mode() first, the caller already knows the mode, so
-the internal mode-sanity checks are redundant.
+test/daxctl-famfs-nfit.sh: test famfs mode transitions on nfit_test
 
-What's left in each function is daxctl_dev_disable() and an error
-fprintf, the same code in both, so collapse to a single helper:
+Exercise devdax <-> famfs <-> system-ram transitions and JSON mode
+reporting on a dax device backed by the emulated ACPI.NFIT bus.
 
-    static int disable_mode_device(struct daxctl_dev *dev);
+nfit_test was chosen because its pmem ranges have real DRAM backing, so
+kmem onlining of the system-ram mode works normally and the full matrix
+of transitions can be tested end-to-end.
+---
+ test/daxctl-famfs-nfit.sh | 215 ++++++++++++++++++++++++++++++++++++++
+ test/meson.build          |   4 +-
+ 2 files changed, 218 insertions(+), 1 deletion(-)
+ create mode 100755 test/daxctl-famfs-nfit.sh
 
-No mode parameter: the precondition (caller has matched the mode)
-means nothing mode-specific remains.
+diff --git a/test/daxctl-famfs-nfit.sh b/test/daxctl-famfs-nfit.sh
+new file mode 100755
+index 000000000000..57302795c89f
+--- /dev/null
++++ b/test/daxctl-famfs-nfit.sh
+@@ -0,0 +1,215 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2025 Micron Technology, Inc. All rights reserved.
++#
++# Test daxctl famfs mode transitions and mode detection, targeting a
++# nfit_test-backed dax device.
++#
++# nfit_test-backed dax devices have real DRAM backing, so kmem onlining
++# works normally. This test exercises the full matrix of transitions
++# between devdax, famfs, and system-ram.
++
++rc=77
++. $(dirname $0)/common
++
++trap 'cleanup $LINENO' ERR
++
++testbus=""
++testdev=""
++daxdev=""
++
++cleanup()
++{
++	# Best-effort return to devdax so destroy-namespace can succeed.
++	if [[ -n $daxdev ]]; then
++		"$DAXCTL" reconfigure-device -f -m devdax "$daxdev" 2>/dev/null || true
++	fi
++	[[ -n $testdev ]] && reset_dev
++	err "$1"
++}
++
++check_fsdev_dax()
++{
++	modinfo fsdev_dax &>/dev/null && return 0
++	grep -qF "fsdev_dax" "/lib/modules/$(uname -r)/modules.builtin" 2>/dev/null && return 0
++	do_skip "fsdev_dax module not available"
++}
++
++check_kmem()
++{
++	modinfo kmem &>/dev/null && return 0
++	grep -qF "kmem" "/lib/modules/$(uname -r)/modules.builtin" 2>/dev/null && return 0
++	do_skip "kmem module not available"
++}
++
++find_testdev()
++{
++	testbus="$ACPI_BUS"
++
++	# Ensure the bus has labels, like align.sh / daxctl-devices.sh rely on.
++	"$NDCTL" disable-region -b "$testbus" all
++	"$NDCTL" init-labels -f -b "$testbus" all
++	"$NDCTL" enable-region -b "$testbus" all
++
++	testdev=$("$NDCTL" list -b "$testbus" -Ni | jq -er '.[0].dev | .//""')
++	[[ $testdev ]] || do_skip "no victim device on $testbus"
++}
++
++setup_dev()
++{
++	test -n "$testbus"
++	test -n "$testdev"
++
++	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
++	# x86_64 memory hotplug can require up to a 2GiB-aligned chunk of
++	# memory. Create a 4GiB namespace, so enough space is left after
++	# alignment for kmem + online.
++	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 4G | \
++		jq -er '.dev')
++	test -n "$testdev"
++
++	daxdev=$("$NDCTL" list -n "$testdev" -X | jq -er '.[].daxregion.devices[0].chardev')
++	test -n "$daxdev"
++}
++
++reset_dev()
++{
++	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
++}
++
++daxctl_get_mode()
++{
++	"$DAXCTL" list -d "$1" | jq -er '.[].mode'
++}
++
++save_online_policy()
++{
++	saved_policy="$(cat /sys/devices/system/memory/auto_online_blocks)"
++}
++
++restore_online_policy()
++{
++	echo "$saved_policy" > /sys/devices/system/memory/auto_online_blocks
++}
++
++unset_online_policy()
++{
++	echo "offline" > /sys/devices/system/memory/auto_online_blocks
++}
++
++ensure_devdax_mode()
++{
++	local mode
++	mode=$(daxctl_get_mode "$daxdev")
++
++	case "$mode" in
++	devdax)      return 0 ;;
++	famfs)       "$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null ;;
++	system-ram)  "$DAXCTL" reconfigure-device -f -m devdax "$daxdev" >/dev/null ;;
++	*)
++		echo "unexpected starting mode: $mode"
++		return 1
++		;;
++	esac
++
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++}
++
++test_famfs_mode_transitions()
++{
++	ensure_devdax_mode
++
++	# devdax -> famfs
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
++
++	# famfs -> famfs (re-enable in same mode)
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
++
++	# famfs -> devdax
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++
++	# devdax -> devdax (re-enable in same mode)
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++}
++
++test_json_output()
++{
++	ensure_devdax_mode
++	[[ $("$DAXCTL" list -d "$daxdev" | jq -er '.[].mode') == "devdax" ]]
++
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++	[[ $("$DAXCTL" list -d "$daxdev" | jq -er '.[].mode') == "famfs" ]]
++
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++}
++
++test_error_handling()
++{
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++
++	# Invalid mode must be rejected
++	if "$DAXCTL" reconfigure-device -m invalidmode "$daxdev" &>/dev/null; then
++		echo "FAIL: invalid mode should be rejected"
++		return 1
++	fi
++
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++}
++
++# Full system-ram transitions (real backing, so online_pages() works).
++# Turns auto-online off so daxctl drives onlining explicitly.
++test_system_ram_transitions()
++{
++	save_online_policy
++	unset_online_policy
++
++	ensure_devdax_mode
++
++	# devdax -> system-ram (no-online)
++	"$DAXCTL" reconfigure-device -N -m system-ram "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
++
++	# system-ram -> famfs must be rejected
++	if "$DAXCTL" reconfigure-device -m famfs "$daxdev" &>/dev/null; then
++		echo "FAIL: system-ram -> famfs should be rejected"
++		restore_online_policy
++		return 1
++	fi
++
++	# system-ram -> devdax -> famfs
++	"$DAXCTL" reconfigure-device -f -m devdax "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
++
++	# Full online cycle: devdax -> system-ram (with online) -> devdax.
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++	"$DAXCTL" reconfigure-device -m system-ram "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
++	"$DAXCTL" reconfigure-device -f -m devdax "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++
++	restore_online_policy
++}
++
++check_fsdev_dax
++check_kmem
++
++rc=1
++
++find_testdev
++setup_dev
++
++test_famfs_mode_transitions
++test_json_output
++test_error_handling
++test_system_ram_transitions
++
++ensure_devdax_mode
++reset_dev
++
++check_dmesg "$LINENO"
+diff --git a/test/meson.build b/test/meson.build
+index 56aed9cc3c9d..d765fd99a4b1 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -218,6 +218,7 @@ if get_option('destructive').enabled()
+   daxctl_devices = find_program('daxctl-devices.sh')
+   daxctl_create = find_program('daxctl-create.sh')
+   daxctl_famfs = find_program('daxctl-famfs.sh')
++  daxctl_famfs_nfit = find_program('daxctl-famfs-nfit.sh')
+   dm = find_program('dm.sh')
+   mmap_test = find_program('mmap.sh')
+ 
+@@ -235,7 +236,8 @@ if get_option('destructive').enabled()
+     [ 'device-dax-fio.sh', device_dax_fio, 'dax'   ],
+     [ 'daxctl-devices.sh', daxctl_devices, 'dax'   ],
+     [ 'daxctl-create.sh',  daxctl_create,  'dax'   ],
+-    [ 'daxctl-famfs.sh',   daxctl_famfs,   'dax'   ],
++    [ 'daxctl-famfs.sh',        daxctl_famfs,       'dax' ],
++    [ 'daxctl-famfs-nfit.sh',   daxctl_famfs_nfit,  'dax' ],
+     [ 'dm.sh',             dm,		   'dax'   ],
+     [ 'mmap.sh',           mmap_test,	   'dax'   ],
+   ]
+-- 
+2.37.3
 
+=========
 
-> @@ -711,6 +753,7 @@ static int disable_devdax_device(struct daxctl_dev *dev)
->
->  static int reconfig_mode_system_ram(struct daxctl_dev *dev)
->  {
-> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
->  	const char *devname = daxctl_dev_get_devname(dev);
->  	int rc, skip_enable = 0;
->
-> @@ -724,11 +767,21 @@ static int reconfig_mode_system_ram(struct daxctl_dev *dev)
->  	}
->
->  	if (daxctl_dev_is_enabled(dev)) {
-> -		rc = disable_devdax_device(dev);
-> -		if (rc < 0)
-> -			return rc;
-> -		if (rc > 0)
-> +		if (mem) {
-> +			/* already in system-ram mode */
->  			skip_enable = 1;
-> +		} else if (daxctl_dev_is_famfs_mode(dev)) {
-> +			rc = disable_famfs_device(dev);
-> +			if (rc)
-> +				return rc;
-> +		} else if (daxctl_dev_is_devdax_mode(dev)) {
-> +			rc = disable_devdax_device(dev);
-> +			if (rc)
-> +				return rc;
-> +		} else {
-> +			fprintf(stderr, "%s: unknown mode\n", devname);
-> +			return -EINVAL;
-> +		}
->  	}
+test/daxctl-famfs-cxltest.sh: test famfs mode transitions on cxl_test
 
-This if-else chain is repeated in all three reconfig_mode_*() functions below.
-Please add a private helper and switch on the result. Something like:
+Exercise devdax <-> famfs transitions and JSON mode reporting on a dax
+device backed by the emulated cxl_test bus.
 
-    static enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev)
-    {
-            if (daxctl_dev_get_memory(dev))
-                    return DAXCTL_DEV_MODE_RAM;
-            if (daxctl_dev_is_famfs_mode(dev))
-                    return DAXCTL_DEV_MODE_FAMFS;
-            if (daxctl_dev_is_devdax_mode(dev))
-                    return DAXCTL_DEV_MODE_DEVDAX;
-            return DAXCTL_DEV_MODE_UNKNOWN;
-    }
+cxl_test was chosen as an alternative to nfit_test for callers who want
+the famfs unit test to run against a CXL-backed dax device. Note that
+cxl_test emulated memory has no real DRAM backing, so this test avoids
+code paths that online memory through kmem; only the userspace-side
+rejection of system-ram -> famfs is exercised (via -N, which skips
+online_pages()).
+---
+ test/daxctl-famfs-cxltest.sh | 139 +++++++++++++++++++++++++++++++++++
+ test/meson.build             |   4 +-
+ 2 files changed, 142 insertions(+), 1 deletion(-)
+ create mode 100755 test/daxctl-famfs-cxltest.sh
 
-Then each reconfig_mode_* becomes a switch on the current mode. The
-precedence (system-ram first because it's detected via `mem` rather
-than driver binding) lives in one place instead of three.
-
-> @@ -750,7 +803,7 @@ static int disable_system_ram_device(struct daxctl_dev *dev)
->  	int rc;
->
->  	if (!mem) {
-> -		fprintf(stderr, "%s was already in devdax mode\n", devname);
-> +		fprintf(stderr, "%s is not in system-ram mode\n", devname);
->  		return 1;
->  	}
->
-> @@ -786,12 +839,31 @@ static int disable_system_ram_device(struct daxctl_dev *dev)
->
->  static int reconfig_mode_devdax(struct daxctl_dev *dev)
->  {
-> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-> +	const char *devname = daxctl_dev_get_devname(dev);
->  	int rc;
->
->  	if (daxctl_dev_is_enabled(dev)) {
-> -		rc = disable_system_ram_device(dev);
-> -		if (rc)
-> -			return rc;
-> +		if (mem) {
-> +			rc = disable_system_ram_device(dev);
-> +			if (rc)
-> +				return rc;
-> +		} else if (daxctl_dev_is_famfs_mode(dev)) {
-> +			rc = disable_famfs_device(dev);
-> +			if (rc)
-> +				return rc;
-> +		} else if (daxctl_dev_is_devdax_mode(dev)) {
-> +			/* already in devdax mode, just re-enable */
-> +			rc = daxctl_dev_disable(dev);
-> +			if (rc) {
-> +				fprintf(stderr, "%s: disable failed: %s\n",
-> +					devname, strerror(-rc));
-> +				return rc;
-> +			}
-> +		} else {
-> +			fprintf(stderr, "%s: unknown mode\n", devname);
-> +			return -EINVAL;
-> +		}
->  	}
-
-
-Same if-else chain, second copy. See the helper suggestion above.
-
-
->  	rc = daxctl_dev_enable_devdax(dev);
-> @@ -801,6 +873,43 @@ static int reconfig_mode_devdax(struct daxctl_dev *dev)
->  	return 0;
->  }
->
-> +static int reconfig_mode_famfs(struct daxctl_dev *dev)
-> +{
-> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-> +	const char *devname = daxctl_dev_get_devname(dev);
-> +	int rc;
-> +
-> +	if (daxctl_dev_is_enabled(dev)) {
-> +		if (mem) {
-> +			fprintf(stderr,
-> +				"%s is in system-ram mode; must be in devdax mode to convert to famfs\n",
-> +				devname);
-> +			return -EINVAL;
-> +		} else if (daxctl_dev_is_famfs_mode(dev)) {
-> +			/* already in famfs mode, just re-enable */
-> +			rc = daxctl_dev_disable(dev);
-> +			if (rc) {
-> +				fprintf(stderr, "%s: disable failed: %s\n",
-> +					devname, strerror(-rc));
-> +				return rc;
-> +			}
-> +		} else if (daxctl_dev_is_devdax_mode(dev)) {
-> +			rc = disable_devdax_device(dev);
-> +			if (rc)
-> +				return rc;
-> +		} else {
-> +			fprintf(stderr, "%s: unknown mode\n", devname);
-> +			return -EINVAL;
-> +		}
-> +	}
-
-
-Same if-else chain, third copy.
-
-
-> +
-> +	rc = daxctl_dev_enable_famfs(dev);
-> +	if (rc)
-> +		return rc;
-> +
-> +	return 0;
-> +}
-> +
->  static int do_create(struct daxctl_region *region, long long val,
->  		     struct json_object **jdevs)
->  {
-> @@ -887,6 +996,9 @@ static int do_reconfig(struct daxctl_dev *dev, enum dev_mode mode,
->  	case DAXCTL_DEV_MODE_DEVDAX:
->  		rc = reconfig_mode_devdax(dev);
->  		break;
-> +	case DAXCTL_DEV_MODE_FAMFS:
-> +		rc = reconfig_mode_famfs(dev);
-> +		break;
->  	default:
->  		fprintf(stderr, "%s: unknown mode requested: %d\n",
->  			devname, mode);
-> diff --git a/daxctl/json.c b/daxctl/json.c
-> index 3cbce9dcd651..2a4b12c2f925 100644
-> --- a/daxctl/json.c
-> +++ b/daxctl/json.c
-> @@ -48,8 +48,19 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
->
->  	if (mem)
->  		jobj = json_object_new_string("system-ram");
-> -	else
-> +	else if (daxctl_dev_is_famfs_mode(dev))
-> +		jobj = json_object_new_string("famfs");
-> +	else if (daxctl_dev_is_devdax_mode(dev))
->  		jobj = json_object_new_string("devdax");
-
-
-The 'else if' above, and the 'else' below, both assign "devdax",
-so the 'else if' is redundant. And once daxctl_dev_get_mode()
-exists, this becomes a switch on the result with "devdax"
-as the UNKNOWN fallback.
-
-
-> +	else {
-> +		/* Legacy condition; if a daxdev is not in any "mode", that
-> +		 * means no driver is bound. We report that as a disabled
-> +		 * device in devdax mode. (the disabled modifier is added later
-> +		 * in this function if applicable)
-> +		 */
-> +		jobj = json_object_new_string("devdax");
-> +	}
-> +
->  	if (jobj)
->  		json_object_object_add(jdev, "mode", jobj);
->
-> diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-> index ae45311e5d57..0bb73e8c04bf 100644
-> --- a/daxctl/lib/libdaxctl-private.h
-> +++ b/daxctl/lib/libdaxctl-private.h
-> @@ -21,12 +21,14 @@ static const char *dax_subsystems[] = {
->  enum daxctl_dev_mode {
->  	DAXCTL_DEV_MODE_DEVDAX = 0,
->  	DAXCTL_DEV_MODE_RAM,
-> +	DAXCTL_DEV_MODE_FAMFS,
->  	DAXCTL_DEV_MODE_END,
->  };
->
->  static const char *dax_modules[] = {
->  	[DAXCTL_DEV_MODE_DEVDAX] = "device_dax",
->  	[DAXCTL_DEV_MODE_RAM] = "kmem",
-> +	[DAXCTL_DEV_MODE_FAMFS] = "fsdev_dax",
->  };
-
-
-Add a DAXCTL_DEV_MODE_UNKNOWN sentinel here to support the
-daxctl_dev_get_mode() helper cleanly. Doesn't have to be assigned a
-value, can reuse END or add it alongside, your call.
-
-
->  enum memory_op {
-> diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-> index 02ae7e50b123..33121dcb1d1b 100644
-> --- a/daxctl/lib/libdaxctl.c
-> +++ b/daxctl/lib/libdaxctl.c
-> @@ -385,13 +385,13 @@ static bool device_model_is_dax_bus(struct daxctl_dev *dev)
->  	return false;
->  }
->
-> -DAXCTL_EXPORT int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev)
-> +static int daxctl_dev_bound_to_module(struct daxctl_dev *dev, const char *mod_name)
->  {
->  	const char *devname = daxctl_dev_get_devname(dev);
->  	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
->  	const char *mod_base;
->  	char *mod_path;
-> -	char path[200];
-> +	char path[PATH_MAX];
->  	const int len = sizeof(path);
->
->  	if (!device_model_is_dax_bus(dev))
-
-
-Nice!
-
-
-> @@ -406,11 +406,13 @@ DAXCTL_EXPORT int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev)
->  	}
->
->  	mod_path = realpath(path, NULL);
-> -	if (!mod_path)
-> +	if (!mod_path) {
-> +		dbg(ctx, "%s: realpath failed for driver link\n", devname);
->  		return false;
-> +	}
->
->  	mod_base = path_basename(mod_path);
-> -	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0) {
-> +	if (strcmp(mod_base, mod_name) == 0) {
->  		free(mod_path);
->  		return true;
->  	}
-> @@ -419,6 +421,30 @@ DAXCTL_EXPORT int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev)
->  	return false;
->  }
->
-> +DAXCTL_EXPORT int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev)
-> +{
-> +	return daxctl_dev_bound_to_module(dev, dax_modules[DAXCTL_DEV_MODE_RAM]);
-> +}
-
-
-With daxctl_dev_is_famfs_mode() and daxctl_dev_is_devdax_mode() now
-alongside it, the _capable vs _mode naming split looks inconsistent.
-Post-refactor all three delegate to daxctl_dev_bound_to_module(), which
-checks current driver binding.
-
-Either document the semantic distinction more explicitly or consider
-adding daxctl_dev_is_system_ram_mode() as the preferred interface.
-
-
-> +
-> +/*
-> + * Check if device is currently in famfs mode (bound to fsdev_dax driver).
-> + * Returns false for disabled devices: the DAX bus does not retain the previous
-> + * driver binding after unbind, so mode cannot be determined without a driver.
-> + */
-> +DAXCTL_EXPORT int daxctl_dev_is_famfs_mode(struct daxctl_dev *dev)
-> +{
-> +	return daxctl_dev_bound_to_module(dev, dax_modules[DAXCTL_DEV_MODE_FAMFS]);
-> +}
-> +
-> +/*
-> + * Check if device is currently in devdax mode (bound to device_dax driver).
-> + * Returns false for disabled devices; see daxctl_dev_is_famfs_mode().
-> + */
-> +DAXCTL_EXPORT int daxctl_dev_is_devdax_mode(struct daxctl_dev *dev)
-> +{
-> +	return daxctl_dev_bound_to_module(dev, dax_modules[DAXCTL_DEV_MODE_DEVDAX]);
-> +}
-
-These comments claim "Returns false for disabled devices" as if that
-were unique to these two helpers, but it isn't. daxctl_dev_is_system_ram_capable
-returns false for disabled devices too. Either drop the comment or move it to
-to daxctl_dev_bound_to_module().
-
-> +
->  /*
->   * This checks for the device to be in system-ram mode, so calling
->   * daxctl_dev_get_memory() on a devdax mode device will always return NULL.
-> @@ -983,6 +1009,11 @@ DAXCTL_EXPORT int daxctl_dev_enable_ram(struct daxctl_dev *dev)
->  	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_RAM);
->  }
->
-> +DAXCTL_EXPORT int daxctl_dev_enable_famfs(struct daxctl_dev *dev)
-> +{
-> +	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_FAMFS);
-> +}
-
-OK.
-
-> +
->  DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
->  {
->  	const char *devname = daxctl_dev_get_devname(dev);
-> diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-> index 309881196c86..2a812c6ad918 100644
-> --- a/daxctl/lib/libdaxctl.sym
-> +++ b/daxctl/lib/libdaxctl.sym
-> @@ -104,3 +104,10 @@ LIBDAXCTL_10 {
->  global:
->  	daxctl_dev_is_system_ram_capable;
->  } LIBDAXCTL_9;
-> +
-> +LIBDAXCTL_11 {
-> +global:
-> +	daxctl_dev_enable_famfs;
-> +	daxctl_dev_is_famfs_mode;
-> +	daxctl_dev_is_devdax_mode;
-> +} LIBDAXCTL_10;
-
-
-If you resolve the _capable/_mode naming inconsistency by adding
-daxctl_dev_is_system_ram_mode(), please export it here as well.
-
-
-> diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-> index 53c6bbdae5c3..84fcdb40c7a9 100644
-> --- a/daxctl/libdaxctl.h
-> +++ b/daxctl/libdaxctl.h
-> @@ -72,12 +72,15 @@ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
->  int daxctl_dev_disable(struct daxctl_dev *dev);
->  int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
->  int daxctl_dev_enable_ram(struct daxctl_dev *dev);
-> +int daxctl_dev_enable_famfs(struct daxctl_dev *dev);
->  int daxctl_dev_get_target_node(struct daxctl_dev *dev);
->  int daxctl_dev_will_auto_online_memory(struct daxctl_dev *dev);
->  int daxctl_dev_has_online_memory(struct daxctl_dev *dev);
->
->  struct daxctl_memory;
->  int daxctl_dev_is_system_ram_capable(struct daxctl_dev *dev);
-> +int daxctl_dev_is_famfs_mode(struct daxctl_dev *dev);
-> +int daxctl_dev_is_devdax_mode(struct daxctl_dev *dev);
+diff --git a/test/daxctl-famfs-cxltest.sh b/test/daxctl-famfs-cxltest.sh
+new file mode 100755
+index 000000000000..aa85946c42ee
+--- /dev/null
++++ b/test/daxctl-famfs-cxltest.sh
+@@ -0,0 +1,139 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2025 Micron Technology, Inc. All rights reserved.
++#
++# Test daxctl famfs mode transitions and mode detection, targeting a
++# cxl_test-backed dax device.
++#
++# NOTE: cxl_test backs its "memory" with a gen_pool region carved from high
++# iomem space above iomem_resource.end. There is no real DRAM behind those
++# pfns. Therefore this test does NOT exercise any code path that calls
++# online_pages() on cxl_test memory. In particular there is no "-m system-ram"
++# that runs without -N, and no explicit 'daxctl online-memory'.
++#
++# The 'system-ram -> famfs rejection' case below uses -N so that add_memory()
++# runs but online_pages() does not. The rejection itself is a userspace-only
++# check in reconfig_mode_famfs() (refuses when daxctl_memory is present), so
++# it does not depend on the memory being onlined and is safe here.
++
++rc=77
++. $(dirname $0)/common
++
++trap 'err $LINENO' ERR
++
++modprobe -r cxl_test
++modprobe cxl_test
++
++rc=1
++
++daxdev=""
++
++check_fsdev_dax()
++{
++	modinfo fsdev_dax &>/dev/null && return 0
++	grep -qF "fsdev_dax" "/lib/modules/$(uname -r)/modules.builtin" 2>/dev/null && return 0
++	do_skip "fsdev_dax module not available"
++}
++
++find_daxdev()
++{
++	region_id="$("$DAXCTL" list -R |
++		jq -r ".[] | select(.path | contains(\"cxl_acpi.0\")) | .id")"
++	[[ $region_id ]] || do_skip "Unable to find a CXL region"
++
++	daxdev=$("$DAXCTL" list -D -r "$region_id" |
++		jq -er '.[0].chardev | .//""')
++	[[ $daxdev ]] || do_skip "Unable to find a DAX device"
++}
++
++daxctl_get_mode()
++{
++	"$DAXCTL" list -d "$1" | jq -er '.[].mode'
++}
++
++ensure_devdax_mode()
++{
++	local mode
++	mode=$(daxctl_get_mode "$daxdev")
++
++	case "$mode" in
++	devdax)      return 0 ;;
++	famfs)       "$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null ;;
++	system-ram)  "$DAXCTL" reconfigure-device -f -m devdax "$daxdev" >/dev/null ;;
++	*)           err "$LINENO" ;;
++	esac
++
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++}
++
++test_famfs_mode_transitions()
++{
++	ensure_devdax_mode
++
++	# devdax -> famfs
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
++
++	# famfs -> famfs (re-enable in same mode)
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "famfs" ]]
++
++	# famfs -> devdax
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++
++	# devdax -> devdax (re-enable in same mode)
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++}
++
++test_json_output()
++{
++	ensure_devdax_mode
++	[[ $("$DAXCTL" list -d "$daxdev" | jq -er '.[].mode') == "devdax" ]]
++
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++	[[ $("$DAXCTL" list -d "$daxdev" | jq -er '.[].mode') == "famfs" ]]
++
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++}
++
++test_error_handling()
++{
++	"$DAXCTL" reconfigure-device -m famfs "$daxdev" >/dev/null
++
++	# Invalid mode must be rejected
++	if "$DAXCTL" reconfigure-device -m invalidmode "$daxdev" &>/dev/null; then
++		err "$LINENO"
++	fi
++
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev" >/dev/null
++}
++
++test_system_ram_rejects_famfs()
++{
++	ensure_devdax_mode
++
++	# -N: bind kmem without onlining memory
++	"$DAXCTL" reconfigure-device -N -m system-ram "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
++
++	if "$DAXCTL" reconfigure-device -m famfs "$daxdev" &>/dev/null; then
++		err "$LINENO"
++	fi
++
++	"$DAXCTL" reconfigure-device -f -m devdax "$daxdev" >/dev/null
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++}
++
++check_fsdev_dax
++find_daxdev
++
++test_famfs_mode_transitions
++test_json_output
++test_error_handling
++test_system_ram_rejects_famfs
++
++check_dmesg "$LINENO"
++
++modprobe -r cxl_test
+diff --git a/test/meson.build b/test/meson.build
+index d765fd99a4b1..ae5477408617 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -219,6 +219,7 @@ if get_option('destructive').enabled()
+   daxctl_create = find_program('daxctl-create.sh')
+   daxctl_famfs = find_program('daxctl-famfs.sh')
+   daxctl_famfs_nfit = find_program('daxctl-famfs-nfit.sh')
++  daxctl_famfs_cxltest = find_program('daxctl-famfs-cxltest.sh')
+   dm = find_program('dm.sh')
+   mmap_test = find_program('mmap.sh')
+ 
+@@ -237,7 +238,8 @@ if get_option('destructive').enabled()
+     [ 'daxctl-devices.sh', daxctl_devices, 'dax'   ],
+     [ 'daxctl-create.sh',  daxctl_create,  'dax'   ],
+     [ 'daxctl-famfs.sh',        daxctl_famfs,       'dax' ],
+-    [ 'daxctl-famfs-nfit.sh',   daxctl_famfs_nfit,  'dax' ],
++    [ 'daxctl-famfs-nfit.sh',     daxctl_famfs_nfit,     'dax' ],
++    [ 'daxctl-famfs-cxltest.sh',  daxctl_famfs_cxltest,  'dax' ],
+     [ 'dm.sh',             dm,		   'dax'   ],
+     [ 'mmap.sh',           mmap_test,	   'dax'   ],
+   ]
+-- 
+2.37.3
 
 
-Mirror whatever you do about _capable vs _mode here. If you add
-daxctl_dev_get_mode() as a public library function, declare it here
-too.
 
-
->  struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev);
->  struct daxctl_dev *daxctl_memory_get_dev(struct daxctl_memory *mem);
->  const char *daxctl_memory_get_node_path(struct daxctl_memory *mem);
