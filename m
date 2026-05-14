@@ -1,135 +1,118 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from esa3.hc1455-7.c3s2.iphmx.com (esa3.hc1455-7.c3s2.iphmx.com [207.54.90.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1ED03AF657
-	for <nvdimm@lists.linux.dev>; Thu, 14 May 2026 06:32:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41CA42D73BC
+	for <nvdimm@lists.linux.dev>; Thu, 14 May 2026 09:34:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.54.90.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778740374; cv=none; b=qkHqLQ1P1AZMFJzPzg8WD8qy/oKPu/7XBEOWgWbF29cttM4B/jtAiFJcN9hyn0jqUn13MndHEZmK2zgzdmT6iTuEqdGmT+1P8RQmpRUSA8fSZqiYV0L86WDNegvIY4kobsjlW0ljXP+Q6EuLrzKxESnCtgvWmvODx2PQ0QUYbYQ=
+	t=1778751258; cv=none; b=VGrP8Ghnx41y6H+rc5VcVPOcOuApOmJBJvAuonFRbHn/Fe1kLWtqrjuKLGOdLYBHntgImm551l/TIk/J5LI4CBqEmnAZALY6D5Nw8JTK1EYoP5+svYq1FaL+wSnIN8zMfDyW7YDaitHIlpAlrCo7XJdMIyA1+kYutUmAAlL5Ym8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778740374; c=relaxed/simple;
-	bh=oI5IO/JuIxpfhFofjSyTFYBneEIInV4rnJHaccXPSIU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pJIfcVv85lMGLIa/Nc/L/YXrZrysw82DhM6XLK9PUIn1KR0lugl5FTHdI5GrX1r0jGUQCJR8ibganjNyZ0AScpSriadL6PJvKbBlKURBm/zhdmOyp8fNjzWszrGzx6/t4D5Knb+Gz5vMx8bDI3oMigZU1Gye1h16zhBDs3BsVVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=HwYPgNC9; arc=none smtp.client-ip=115.124.30.111
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1778751258; c=relaxed/simple;
+	bh=fDawJLoVbJW9DQMIgEDksrxqneT+9Loc/Ww6UOHOFV8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=EIPKypcxTDUdEFYBE7hekdqDIzgtedKuye0WATaXZAicQCJahFPW4oPuKn4n2azQE5crV1xUmN2IdcY9+tzOkHquduUz6LNzCM9TASLSRJkXWbbMbWILYA9KEEkfERfipHU7TRAjO5FOmfA8/LeXFvAaJGMGqmTH4Th2iYN1Buk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=rt8dhCB6; arc=none smtp.client-ip=207.54.90.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="HwYPgNC9"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1778740364; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=lMFH9YyVY9ENe/P49TfIR1IEA6wDe12nL5kppRzigNI=;
-	b=HwYPgNC9cvM/Lo/QkMExTYk/lUqqk7Ub0Jyd0BXMVvoaN1TPdIq3IwA15oGJE9DHNk9eEXZwoz2/tMnFRzCvwi3xaTyzFWkps/fX16XdMRrLLFdDFh+h1P7GPKU1g5TO7yzWg6v4lRGtFMIjQH5fRbijDKFqHwfc6a/JaS56S+I=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X2vwT8Y_1778740362;
-Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X2vwT8Y_1778740362 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 14 May 2026 14:32:43 +0800
-From: Chen Pei <cp0613@linux.alibaba.com>
-To: alison.schofield@intel.com,
-	nvdimm@lists.linux.dev
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="rt8dhCB6"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
+  t=1778751258; x=1810287258;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=fDawJLoVbJW9DQMIgEDksrxqneT+9Loc/Ww6UOHOFV8=;
+  b=rt8dhCB6YzvqDV29yqBTGnU2Ku1AsbVBk6aKhaoV63c27vVYBe0x+tKV
+   fxPkyeXUfMJa0p+hjbLcG0i/UMX4gi9NicGwA9Etkq+6xPzzHNYueboMP
+   cvrEubyu7feRtAaq8C3I0TDRLE6RRGlyoBVFYmI8x8OgtqEOeRPZ/PbI1
+   kfCO32x6+/kPz/mLnEerArP4FC/H5CX3el6NZ4mYGAJ9tuhrUqp7IRbXw
+   pBJi1UEVvKtL+8tk3DxoA0tC/F9VAnesXTqpHUKxPvQdM4m1WelTHrgt6
+   Qcv0pB1RbnWbLyrPM8SITbLmz4qxKE2OGx5y/C6RKIvq2Zkvb0ne0+8jk
+   A==;
+X-CSE-ConnectionGUID: sXCnE3c7QJGA1NfTidSwKg==
+X-CSE-MsgGUID: Hqx94h0YR9iDlZdILuI3UQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11785"; a="240488982"
+X-IronPort-AV: E=Sophos;i="6.23,234,1770562800"; 
+   d="scan'208";a="240488982"
+Received: from gmgwuk01.global.fujitsu.com ([172.187.114.235])
+  by esa3.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2026 18:33:06 +0900
+Received: from az2uksmgm2.o.css.fujitsu.com (unknown [10.151.22.199])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by gmgwuk01.global.fujitsu.com (Postfix) with ESMTPS id EB12F1C1C735
+	for <nvdimm@lists.linux.dev>; Thu, 14 May 2026 09:33:05 +0000 (UTC)
+Received: from az2uksmom4.o.css.fujitsu.com (az2uksmom4.o.css.fujitsu.com [10.151.22.204])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by az2uksmgm2.o.css.fujitsu.com (Postfix) with ESMTPS id A3747181AA5A
+	for <nvdimm@lists.linux.dev>; Thu, 14 May 2026 09:33:05 +0000 (UTC)
+Received: from dhcp-portal (unknown [10.172.107.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by az2uksmom4.o.css.fujitsu.com (Postfix) with ESMTPS id 42F27406855;
+	Thu, 14 May 2026 09:33:04 +0000 (UTC)
+Received: from isar2.ecs00.fujitsu.local (unknown [10.172.183.27])
+	by dhcp-portal (Postfix) with ESMTP id 50BD3608E9;
+	Thu, 14 May 2026 11:33:03 +0200 (CEST)
+From: Tomasz Wolski <tomasz.wolski@fujitsu.com>
+To: smita.koralahallichannabasappa@amd.com,
+	alison.schofield@intel.com,
+	dan.j.williams@intel.com
 Cc: linux-cxl@vger.kernel.org,
-	guoren@kernel.org,
-	Chen Pei <cp0613@linux.alibaba.com>
-Subject: [ndctl PATCH 2/2] daxctl, util/sysfs: skip module probe-insert when driver is builtin or live
-Date: Thu, 14 May 2026 14:32:34 +0800
-Message-ID: <20260514063234.86439-3-cp0613@linux.alibaba.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260514063234.86439-1-cp0613@linux.alibaba.com>
-References: <20260514063234.86439-1-cp0613@linux.alibaba.com>
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	ardb@kernel.org,
+	benjamin.cheatham@amd.com,
+	dave.jiang@intel.com,
+	jonathan.cameron@huawei.com,
+	Tomasz Wolski <tomasz.wolski@fujitsu.com>
+Subject: [PATCH] dax/bus: Upgrade resource conflict message to dev_err() in alloc_dax_region()
+Date: Thu, 14 May 2026 11:32:08 +0200
+Message-Id: <20260514093208.13110-1-tomasz.wolski@fujitsu.com>
+X-Mailer: git-send-email 2.35.3
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-kmod_module_probe_insert_module() is supposed to return 0 for builtin
-modules, but only when libkmod can locate the modules.builtin index. If
-the index is missing or out of sync, libkmod falls through to the real
-init_module() syscall and returns an error such as -ENOENT, producing a
-spurious "insert failure" even though the driver is already part of the
-running kernel.
+The dax_region resource conflict in alloc_dax_region() indicates a
+serious configuration problem — two subsystems (e.g. dax_hmem and
+dax_cxl) are attempting to register overlapping address ranges. This is
+not a transient or debug-level condition; it represents a genuine
+resource conflict that an administrator needs to be aware of.
 
-Pre-check kmod_module_get_initstate() and short-circuit when the module
-is KMOD_MODULE_BUILTIN or KMOD_MODULE_LIVE, matching the pattern used by
-ndctl's own test/core.c.
+Promote the log level from dev_dbg() to dev_err() so that the conflict
+is visible by default without requiring dynamic debug to be enabled.
 
-For builtin modules the local kmod reference is dropped because builtin
-drivers cannot be unloaded; for live modules the reference is retained
-in dev->module, matching the post-probe-success behavior.
-
-Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Link: https://lore.kernel.org/linux-cxl/69c1a8d1c0fa9_7ee3100a1@dwillia2-mobl4.notmuch/
+Fixes: 34f80bb969cc ("dax: Track all dax_region allocations under a global resource tree")
+Signed-off-by: Tomasz Wolski <tomasz.wolski@fujitsu.com>
 ---
- daxctl/lib/libdaxctl.c | 18 ++++++++++++++++--
- util/sysfs.c           | 17 +++++++++++------
- 2 files changed, 27 insertions(+), 8 deletions(-)
+ drivers/dax/bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index ffc81eb..42bfc39 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -910,7 +910,7 @@ static int daxctl_insert_kmod_for_mode(struct daxctl_dev *dev,
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
- 	struct kmod_module *kmod;
--	int rc;
-+	int state, rc;
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 68437c05e21d..cd963eeeef7b 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -672,7 +672,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
  
- 	rc = kmod_module_new_from_name(ctx->kmod_ctx, mod_name, &kmod);
- 	if (rc < 0) {
-@@ -919,7 +919,21 @@ static int daxctl_insert_kmod_for_mode(struct daxctl_dev *dev,
- 		return rc;
+ 	rc = request_resource(&dax_regions, &dax_region->res);
+ 	if (rc) {
+-		dev_dbg(parent, "dax_region resource conflict for %pR\n",
++		dev_err(parent, "dax_region resource conflict for %pR\n",
+ 			&dax_region->res);
+ 		goto err_res;
  	}
- 
--	/* if the driver is builtin, this Just Works */
-+	/* If the driver is builtin or already live, skip probe-insert. */
-+	state = kmod_module_get_initstate(kmod);
-+	if (state == KMOD_MODULE_BUILTIN) {
-+		dbg(ctx, "%s: module %s is builtin\n", devname,
-+			kmod_module_get_name(kmod));
-+		kmod_module_unref(kmod);
-+		return 0;
-+	}
-+	if (state == KMOD_MODULE_LIVE) {
-+		dbg(ctx, "%s: module %s already loaded\n", devname,
-+			kmod_module_get_name(kmod));
-+		dev->module = kmod;
-+		return 0;
-+	}
-+
- 	dbg(ctx, "%s inserting module: %s\n", devname,
- 		kmod_module_get_name(kmod));
- 	rc = kmod_module_probe_insert_module(kmod,
-diff --git a/util/sysfs.c b/util/sysfs.c
-index e027e38..641b86d 100644
---- a/util/sysfs.c
-+++ b/util/sysfs.c
-@@ -183,12 +183,17 @@ int __util_bind(const char *devname, struct kmod_module *module,
- 	}
- 
- 	if (module) {
--		rc = kmod_module_probe_insert_module(module,
--						     KMOD_PROBE_APPLY_BLACKLIST,
--						     NULL, NULL, NULL, NULL);
--		if (rc < 0) {
--			log_err(ctx, "%s: insert failure: %d\n", __func__, rc);
--			return rc;
-+		/* Skip probe-insert when the module is already builtin or live. */
-+		int state = kmod_module_get_initstate(module);
-+
-+		if (state != KMOD_MODULE_BUILTIN && state != KMOD_MODULE_LIVE) {
-+			rc = kmod_module_probe_insert_module(module,
-+							     KMOD_PROBE_APPLY_BLACKLIST,
-+							     NULL, NULL, NULL, NULL);
-+			if (rc < 0) {
-+				log_err(ctx, "%s: insert failure: %d\n", __func__, rc);
-+				return rc;
-+			}
- 		}
- 	}
- 
 -- 
-2.43.0
+2.47.3
 
