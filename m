@@ -1,26 +1,59 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D6E678F39;
-	Fri, 15 May 2026 00:12:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCCF2882D7
+	for <nvdimm@lists.linux.dev>; Fri, 15 May 2026 01:52:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778803925; cv=none; b=DDVaEdKGESFx1uprV+mMBmRyEWMcXYhp476EXpErGGzCIZbrvk/wiCp4fYV1gkPrF1MRXVCdzaSLBnyiIySiyWblN+Z2wVsTgZsjv6tkjTyTt0bNiaOO9C9Y3N4xJD+QOiQgqHq8vDy10ff7QNYshkwFQa+r4q+G4BZ1a7/+w4A=
+	t=1778809931; cv=none; b=N1kmvoixPPFFsXn8ImTIT9tsarVAq+qouP0o8SbK1sEwZaSATx6w4Iyc1EO9D2eYJYQ1TPsKMPnIBjxfBgXHptECWY4F1ou2rzqBR9hCI3aRKbY/BMID+5zN5R6QlcpOk+S3UY6uNqBw5bO6DZLDfgnFwUNRWVC/vyrV6aGe228=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778803925; c=relaxed/simple;
-	bh=Ty+ceTxq3ZSm3E1EKFYAdJlnXeiUaGgWBIQM3yrL0O0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qSF84GAsvCCmcw1HLP0lXELOX6NiurNkQ103gKTYmNgEMHrTHB+LA05BLvLcK7GueoNXraxRmUNeaXBdikcTIKsSxjo35LgnDcOWQLWaWlNhSCcXLrgeKKHRBzY/ecA4/WsfjsSCAxxHrO6Q9goWJA3PPCr157rqC9UJUpx+Gjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E424C2BCB3;
-	Fri, 15 May 2026 00:12:05 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
+	s=arc-20240116; t=1778809931; c=relaxed/simple;
+	bh=dp2kos4H2BqFgMzwZUwT4g0NTGwMeYmnIkdBYxk/alE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CqE/u+Jc9gFXENWJP6nn875RolY7/sMiwypmHfj7f1+5//bKfruiA9IV6TBO1uXu8SJcTqzx0DzKh1vqdpqwcE65rrD4WAuPjOGMiUylqYqi/1WPCSssJJEtfEZsHtX3STQYtNAJY65r8s3um06Np1JFsHNJzIxzjl8uuiDL0K0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nKrLxQb5; arc=none smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nKrLxQb5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1778809930; x=1810345930;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=dp2kos4H2BqFgMzwZUwT4g0NTGwMeYmnIkdBYxk/alE=;
+  b=nKrLxQb5NtYlyCA7tgCi2DZx8B08e69DwCQL0i5MoVDRJs1XPX+9ft35
+   7pMDbOtJhcea3+mgK+RCWemsljdCAGzfxQqCxcU3CsRe/oW7nSjbXeujI
+   WJKDqi4qCvuVG+TlNuYEhedj6qbw9KoJTq49ZeRjHhGTIm30eLSX9RgPv
+   k8+bjK93D6ikwWOKH+LZ9ZTV0vjh6VkocL7Cs3+rxg6oCxsroS170GE/7
+   E3DICQEdMAbtdUe3j5BF9ZAiNP8Tx1ZG2evQRm4xExUkCr4Gmw5oo3Djs
+   7/EDC9rh9krpa4rZJNzvaYdkUTeov5pKPdqLHOPZvvoX6YEKcZ4nBlm0J
+   g==;
+X-CSE-ConnectionGUID: bRQxMJSXSdeehpPeHPP1+A==
+X-CSE-MsgGUID: 8ByGZivvSFGobq8AYeNmBA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11786"; a="82330758"
+X-IronPort-AV: E=Sophos;i="6.23,235,1770624000"; 
+   d="scan'208";a="82330758"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2026 18:52:09 -0700
+X-CSE-ConnectionGUID: ZDY3yssRRaSPo7czWOnU+Q==
+X-CSE-MsgGUID: 9PBahPqYSyqNDFZ0Tlh6Uw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,235,1770624000"; 
+   d="scan'208";a="243530434"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.208])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2026 18:47:40 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev
-Cc: alison.schofield@intel.com
-Subject: [NDCTL PATCH v2] cxl: Add CXL type2 accelerator unit test
-Date: Thu, 14 May 2026 17:12:03 -0700
-Message-ID: <20260515001203.2628149-1-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.54.0
+Subject: [PATCH v5] nvdimm/btt: Handle preemption in BTT lane acquisition
+Date: Thu, 14 May 2026 18:47:26 -0700
+Message-ID: <20260515014729.107329-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -29,154 +62,215 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-CXL type2 hierachy can be setup via the cxl_test. Add a regression test
-unit to CXL CLI to verify the type2 loading/unloading. Test include
-removing the root port and bringing it back, unbinding the type2 mock
-device driver and bringing it back, and checking to see if a region
-can be destroyed and a memdev can be disabled.
+BTT lanes serialize access to per-lane metadata and workspace state
+during BTT I/O. The btt-check unit test reports data mismatches during
+BTT writes due to a race in lane acquisition that can lead to silent
+data corruption.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+The existing lane model uses a spinlock together with a per-CPU
+recursion count. That recursion model stopped being valid after BTT
+lanes became preemptible: another task can run on the same CPU,
+observe a non-zero recursion count, bypass locking, and use the same
+lane concurrently.
+
+BTT lanes are also held across arena_write_bytes() calls. That path
+reaches nsio_rw_bytes(), which flushes writes with nvdimm_flush().
+Some provider flush callbacks can sleep, making a spinlock the wrong
+primitive for the lane lifetime.
+
+Replace the spinlock-based recursion model with a dynamically
+allocated per-lane mutex array and take the lane lock
+unconditionally.
+
+Add might_sleep() to catch any future atomic-context caller.
+
+Found with the ndctl unit test btt-check.sh.
+
+Fixes: 36c75ce3bd29 ("nd_btt: Make BTT lanes preemptible")
+Assisted-by: Claude Sonnet 4.5
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
-v2:
-- Load/unload module once for test. (Alison)
-- Add additional tests. (Alison)
----
- test/cxl-type2.sh | 103 ++++++++++++++++++++++++++++++++++++++++++++++
- test/meson.build  |   2 +
- 2 files changed, 105 insertions(+)
- create mode 100644 test/cxl-type2.sh
 
-diff --git a/test/cxl-type2.sh b/test/cxl-type2.sh
-new file mode 100644
-index 000000000000..34e22adcc223
---- /dev/null
-+++ b/test/cxl-type2.sh
-@@ -0,0 +1,103 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2026 Intel Corporation. All rights reserved.
-+
-+. "$(dirname "$0")"/common
-+
-+rc=77
-+set -ex
-+trap 'err $LINENO' ERR
-+check_prereq "jq"
-+
-+remove_kmod() {
-+	modprobe -r cxl_test
-+}
-+
-+load_kmod() {
-+	modprobe cxl_test type2_test=1
-+}
-+
-+init_check() {
-+	load_kmod
-+	[ -f /sys/module/cxl_test/parameters/type2_test ] || \
-+		do_skip "cxl_test type2_test module param not available"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region')
-+	[ -n "$region" ] || err "$LINENO"
-+}
-+
-+# Test rootport disable/enable case
-+cycle_root_port() {
-+	echo "Testing root port disable/enable"
-+	memdev=$("$CXL" list -b "$CXL_TEST_BUS" -M | jq -r '.[0].memdev')
-+	[ -n "$memdev" ] || err "$LINENO"
-+	port=$("$CXL" list -b "$CXL_TEST_BUS" -m "$memdev" -P | jq -r '.[0].port')
-+	[ -n "$port" ] || err "$LINENO"
-+
-+	"$CXL" disable-port "$port" -f
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -z "$region" ] || err "$LINENO"
-+
-+	"$CXL" enable-port "$port"
-+	echo cxl_type2_accel.0 > /sys/bus/platform/drivers/cxl_mock_accel/bind
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region')
-+	[ -n "$region" ] || err "$LINENO"
-+}
-+
-+# Test rebind device driver
-+cycle_pdev_driver() {
-+	echo "Testing device driver unbind/bind"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region')
-+	[ -n "$region" ] || err "$LINENO"
-+	echo cxl_type2_accel.0 > /sys/bus/platform/drivers/cxl_mock_accel/unbind
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -z "$region" ] || err "$LINENO"
-+	echo cxl_type2_accel.0 > /sys/bus/platform/drivers/cxl_mock_accel/bind
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region')
-+	[ -n "$region" ] || err "$LINENO"
-+}
-+
-+# Test memdev removal with CXL CLI
-+test_dev_removal() {
-+	echo "Testing device removal with CXL CLI"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region')
-+	[ -n "$region" ] || err "$LINENO"
-+	"$CXL" disable-region "$region"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -z "$region" ] || err "$LINENO"
-+
-+	# type2 region is auto region and cannot be destroyed
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -Ri | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+	"$CXL" destroy-region "$region" || true
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -Ri | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+
-+	# Do it directly via sysfs since CXL CLI has checks that will skip sysfs
-+	echo "0" | tee /sys/bus/cxl/devices/"$region"/commit || true
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -Ri | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+
-+	# Make sure there's no delete_region for a type2 root decoder
-+	rd=$("$CXL" list -b "$CXL_TEST_BUS" -r"$region" -D | jq -r '.[0]."root decoders"[0].decoder')
-+	[ -n "$rd" ] || err "$LINENO"
-+	[ ! -f /sys/bus/cxl/devices/"$rd"/delete_region ] || err "$LINENO"
-+
-+	memdev=$("$CXL" list -b "$CXL_TEST_BUS" -M | jq -r '.[0].memdev')
-+	[ -n "$memdev" ] || err "$LINENO"
-+
-+	# memdev is not expected to be removed because region can't be destroyed
-+	"$CXL" disable-memdev "$memdev" || true
-+	memdev=$("$CXL" list -b "$CXL_TEST_BUS" -M | jq -r '.[0].memdev // empty')
-+	[ -n "$memdev" ] || err "$LINENO"
-+}
-+
-+remove_kmod
-+init_check
-+rc=1
-+
-+cycle_root_port
-+cycle_pdev_driver
-+test_dev_removal
-+
-+check_dmesg "$LINENO"
-+remove_kmod
-diff --git a/test/meson.build b/test/meson.build
-index e0e2193bfd51..567347b655d2 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -171,6 +171,7 @@ cxl_translate = find_program('cxl-translate.sh')
- cxl_elc = find_program('cxl-elc.sh')
- cxl_dax_hmem = find_program('cxl-dax-hmem.sh')
- cxl_region_replay = find_program('cxl-region-replay.sh')
-+cxl_type2 = find_program('cxl-type2.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -207,6 +208,7 @@ tests = [
-   [ 'cxl-elc.sh',             cxl_elc,            'cxl'   ],
-   [ 'cxl-dax-hmem.sh',        cxl_dax_hmem,       'cxl'   ],
-   [ 'cxl-region-replay.sh',   cxl_region_replay,  'cxl'   ],
-+  [ 'cxl-type2.sh',           cxl_type2,          'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
 
-base-commit: 81c7cdd6cbcb4f1f77870ff02d8dd86298036f58
+Changes in v5:
+- Align lane mutex entries to cachelines in SMP builds (Sashiko AI)
+- Add sparse lock annotations for lane mutexes (DaveJ)
+- s/spinlock/mutexes in the driver-api doc btt.rst
+
+Changes in v4:
+- Replace per-CPU lane storage w dynamically allocated mutex array (Sashiko AI)
+- Remove the recursion fast path and take the lane lock unconditionally
+- Update commit log
+
+Changes in v3:
+Replace spinlock with a per-lane mutex (Arboorva)
+
+Changes in v2:
+Use spin_(un)lock_bh() (Sashiko AI)
+Update commit log per softirq re-enty and spinlock change
+
+A new unit test to stress this is under review here:
+https://lore.kernel.org/nvdimm/20260424233633.3762217-1-alison.schofield@intel.com/
+
+
+ Documentation/driver-api/nvdimm/btt.rst |  4 +-
+ drivers/nvdimm/nd.h                     |  7 ++-
+ drivers/nvdimm/region_devs.c            | 64 ++++++++-----------------
+ 3 files changed, 25 insertions(+), 50 deletions(-)
+
+diff --git a/Documentation/driver-api/nvdimm/btt.rst b/Documentation/driver-api/nvdimm/btt.rst
+index 2d8269f834bd..e3218863ec96 100644
+--- a/Documentation/driver-api/nvdimm/btt.rst
++++ b/Documentation/driver-api/nvdimm/btt.rst
+@@ -162,8 +162,8 @@ process::
+ 
+ A lane number is obtained at the start of any IO, and is used for indexing into
+ all the on-disk and in-memory data structures for the duration of the IO. If
+-there are more CPUs than the max number of available lanes, than lanes are
+-protected by spinlocks.
++there are more CPUs than the max number of available lanes, then lanes are
++protected by mutexes.
+ 
+ 
+ d. In-memory data structure: Read Tracking Table (RTT)
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index b199eea3260e..263b7dde0f87 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -366,9 +366,8 @@ unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd);
+ 			res; res = next, next = next ? next->sibling : NULL)
+ 
+ struct nd_percpu_lane {
+-	int count;
+-	spinlock_t lock;
+-};
++	struct mutex lock; /* serialize lane access */
++} ____cacheline_aligned_in_smp;
+ 
+ enum nd_label_flags {
+ 	ND_LABEL_REAP,
+@@ -420,7 +419,7 @@ struct nd_region {
+ 	struct kernfs_node *bb_state;
+ 	struct badblocks bb;
+ 	struct nd_interleave_set *nd_set;
+-	struct nd_percpu_lane __percpu *lane;
++	struct nd_percpu_lane *lane;
+ 	int (*flush)(struct nd_region *nd_region, struct bio *bio);
+ 	struct nd_mapping mapping[] __counted_by(ndr_mappings);
+ };
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index e35c2e18518f..9f5a34181cf5 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -192,7 +192,7 @@ static void nd_region_release(struct device *dev)
+ 
+ 		put_device(&nvdimm->dev);
+ 	}
+-	free_percpu(nd_region->lane);
++	kfree(nd_region->lane);
+ 	if (!test_bit(ND_REGION_CXL, &nd_region->flags))
+ 		memregion_free(nd_region->id);
+ 	kfree(nd_region);
+@@ -904,52 +904,30 @@ void nd_region_advance_seeds(struct nd_region *nd_region, struct device *dev)
+  * nd_region_acquire_lane - allocate and lock a lane
+  * @nd_region: region id and number of lanes possible
+  *
+- * A lane correlates to a BLK-data-window and/or a log slot in the BTT.
+- * We optimize for the common case where there are 256 lanes, one
+- * per-cpu.  For larger systems we need to lock to share lanes.  For now
+- * this implementation assumes the cost of maintaining an allocator for
+- * free lanes is on the order of the lock hold time, so it implements a
+- * static lane = cpu % num_lanes mapping.
++ * A lane correlates to a log slot in the BTT. Lanes are shared across
++ * CPUs using a static lane = cpu % num_lanes mapping, with a per-lane
++ * mutex to serialize access.
+  *
+- * In the case of a BTT instance on top of a BLK namespace a lane may be
+- * acquired recursively.  We lock on the first instance.
+- *
+- * In the case of a BTT instance on top of PMEM, we only acquire a lane
+- * for the BTT metadata updates.
++ * Callers must be in sleepable context. The only in-tree caller is
++ * BTT's ->submit_bio handler (btt_read_pg / btt_write_pg).
+  */
+ unsigned int nd_region_acquire_lane(struct nd_region *nd_region)
++	__acquires(&nd_region->lane[lane].lock)
+ {
+-	unsigned int cpu, lane;
++	unsigned int lane;
+ 
+-	migrate_disable();
+-	cpu = smp_processor_id();
+-	if (nd_region->num_lanes < nr_cpu_ids) {
+-		struct nd_percpu_lane *ndl_lock, *ndl_count;
+-
+-		lane = cpu % nd_region->num_lanes;
+-		ndl_count = per_cpu_ptr(nd_region->lane, cpu);
+-		ndl_lock = per_cpu_ptr(nd_region->lane, lane);
+-		if (ndl_count->count++ == 0)
+-			spin_lock(&ndl_lock->lock);
+-	} else
+-		lane = cpu;
++	might_sleep();
+ 
++	lane = raw_smp_processor_id() % nd_region->num_lanes;
++	mutex_lock(&nd_region->lane[lane].lock);
+ 	return lane;
+ }
+ EXPORT_SYMBOL(nd_region_acquire_lane);
+ 
+ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane)
++	__releases(&nd_region->lane[lane].lock)
+ {
+-	if (nd_region->num_lanes < nr_cpu_ids) {
+-		unsigned int cpu = smp_processor_id();
+-		struct nd_percpu_lane *ndl_lock, *ndl_count;
+-
+-		ndl_count = per_cpu_ptr(nd_region->lane, cpu);
+-		ndl_lock = per_cpu_ptr(nd_region->lane, lane);
+-		if (--ndl_count->count == 0)
+-			spin_unlock(&ndl_lock->lock);
+-	}
+-	migrate_enable();
++	mutex_unlock(&nd_region->lane[lane].lock);
+ }
+ EXPORT_SYMBOL(nd_region_release_lane);
+ 
+@@ -1019,17 +997,16 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 			goto err_id;
+ 	}
+ 
+-	nd_region->lane = alloc_percpu(struct nd_percpu_lane);
++	nd_region->num_lanes = ndr_desc->num_lanes;
++	if (!nd_region->num_lanes)
++		goto err_percpu;
++	nd_region->lane = kcalloc(nd_region->num_lanes,
++				  sizeof(*nd_region->lane), GFP_KERNEL);
+ 	if (!nd_region->lane)
+ 		goto err_percpu;
+ 
+-        for (i = 0; i < nr_cpu_ids; i++) {
+-		struct nd_percpu_lane *ndl;
+-
+-		ndl = per_cpu_ptr(nd_region->lane, i);
+-		spin_lock_init(&ndl->lock);
+-		ndl->count = 0;
+-	}
++	for (i = 0; i < nd_region->num_lanes; i++)
++		mutex_init(&nd_region->lane[i].lock);
+ 
+ 	for (i = 0; i < ndr_desc->num_mappings; i++) {
+ 		struct nd_mapping_desc *mapping = &ndr_desc->mapping[i];
+@@ -1046,7 +1023,6 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	}
+ 	nd_region->provider_data = ndr_desc->provider_data;
+ 	nd_region->nd_set = ndr_desc->nd_set;
+-	nd_region->num_lanes = ndr_desc->num_lanes;
+ 	nd_region->flags = ndr_desc->flags;
+ 	nd_region->ro = ro;
+ 	nd_region->numa_node = ndr_desc->numa_node;
+
+base-commit: 254f49634ee16a731174d2ae34bc50bd5f45e731
 -- 
-2.54.0
+2.37.3
 
