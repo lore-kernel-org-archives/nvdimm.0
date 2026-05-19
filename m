@@ -1,199 +1,193 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010000.outbound.protection.outlook.com [40.93.198.0])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0989409132
-	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 17:00:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 501483537E8
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 23:27:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.0
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779210010; cv=pass; b=idNIM9gmzNrJPNAVbxLtq9nyT8AyNjoLSnWe3sRGPvWxpdmp6aiogfDLNbgLY6UhRUhFh+SzEbf+ljyjG/URUs0rSTk7AR33ipbuCB/hGvOyOu3Ksi02IlmlS9lRROc58KCVs/r/9D5Fv3+Hsyv9crecjYM3TYPXdZv9G8Fe37Q=
+	t=1779233256; cv=fail; b=f0M0FJjEXqmHEaIfkrMLj+S+YkH6SXDc7ci8nMjY8qrOWkS3lDX0xSRcPxLxm47pbeEr4ZwdvS/gkLMCIeag5aTxfqH6YwVeCF8JxT9nJVNgE5BgmOlzndaH2yjSSzzXiqkJ/XxQup8ofRlPo1cHBtbUMMYRA+vsXO3bsQG6D5c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779210010; c=relaxed/simple;
-	bh=CAA/xks5Y5gsSYqPnbDpUtTl6A+TM8EjrXGeuoOa8QY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fRI321/TdSAaDaq2YDE+A5j4tMFHPSgzayeWfvf9EOwVVEDH6bWFTVqMWFJIGISdV/JMS5o+XM3Uq4+At9BDEZ/qf+LPuMMxl3k55/Ako82aOnn1gbZ/d3VHZP9EfFGEQpCL7Z0K+btHTQh7MAcHFJ7xUpNN+4QzHmTHCcC9ud0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kTtIQpzP; arc=pass smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779233256; c=relaxed/simple;
+	bh=FLrA3E9KTFWMyoeVdKxWeQnb2p8JhXmQRT3PAalpKzw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=Qi7FqYUombmDm+7GLzRDp5NNgCy89Z5OZU9dtvwcFQvYZg03YRxG7C7kvqgarD4acA+xR/HUCeYXeaNzygN8PHx+YVyR7zPzeN/R6CQEwgUBu3Ip4iImpNXd5HQWzaSVCDolBuVLkx/Tk0aqt8ToMTuhUy9qW2cSs/MRxqWR7ZQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=PR0it+Yp; arc=fail smtp.client-ip=40.93.198.0
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kTtIQpzP"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-bd8f9889a8cso299055666b.1
-        for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 10:00:04 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779210002; cv=none;
-        d=google.com; s=arc-20240605;
-        b=bDScrhn2IbSeWbtboNVD2XI2d8E6qwHm1C+q+nX2+lW7smXuz4tMPQCVFEfGQfxb9Q
-         bZJvTz7HM5qexkgK8Swxq3FRX0rWrgbYf4DJzF0CRaLIHrweV/eT9xeCJ2q9jFo9/eja
-         grogpQt7Deh6pEeiEE1Gy1tNTkeqy84rnrlsoVU1BiIJENvCANce6Egr/XkqFYL15DsR
-         y6ssC97OHsapx2BUmCIjG+DaG5ruSCCnmKI/yLcRZgE/94N8vInNoK7BgaXqvdZl/OQ0
-         HhnYRtUHHp7BUff8emm7GeSgcC2cnPCIjDHA7iKkjAZa+fgUaDugqwrkDSKjyuNv/o42
-         /RCw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=pyhG4QIZqICKavDwcU8OoLlp4cF7iJkoZFMHnoscP14=;
-        fh=HY0Dre+bCQ+kQF5zxnUr8HKhV/ox3ErWyY7I+sTFdT4=;
-        b=XlZgRmvpdXyWNrrf/9w1g51KUVhCiZ6bRt0UXvtybEXH3nqoCqfxkW1AzyKr32BxoL
-         lxynGo3FR6gDGh1gDzZ5eBtTCeyJl0QZkybdmOll+7UhoWMeZ2137aBQjsXr7DItggkR
-         uSdDuD7jGzHPOMQ14pR68Ld6dxf3SKf5l7ce+IfctlQ+77bqlriqqsYqaDCRDC6Ugfug
-         zsv6k8zlAf1tEJou3ickUZII1pIlbHePhiOQrH6HWSwy4/C8xLV1HGyPXsfcZdkxlKsI
-         TWGBrR+HnMj4u9Xe4FymgdMizm+CnQs7xw8I8VU/v3Blmlpeqtmm05U2OLEhj5T68rwy
-         2RYg==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779210002; x=1779814802; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=pyhG4QIZqICKavDwcU8OoLlp4cF7iJkoZFMHnoscP14=;
-        b=kTtIQpzP5U4xoPjxj67Ys2KbsE3+48kSbpQSk4PNSKsP6diTsL6Dj4W6fbrp956919
-         +gI+i8BnhbJn/EkRgwN4Upd7LflQ+YguzOa+HJqX2Xsgh+gSKvQtov+i4FHkOENX7r3u
-         tIu9xHgcLSDJmAR07H/NvyaE3xsPVkVU8S9hTZ0PUZ+ie8lAHMsvb9JbnncUi1khcYUT
-         wvGhFPkmiVgABiWzeB0p07zOEWfUMlNK/itSluJY4qnVGy89Isy3ORL2KBrH3tSBuLk3
-         QPL0WMcI3HQWFYeqsK6/yTRHus6I76T1gAo45gjoDlTVygnxNQo06abhc7AvXnazqIZv
-         AiWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779210002; x=1779814802;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=pyhG4QIZqICKavDwcU8OoLlp4cF7iJkoZFMHnoscP14=;
-        b=V1cTW5C7uxg3van2Xtjr8WBIYwQt2kG6XHq59P/ETQrUfyKBtrFcFHiNozHfuvmZy9
-         6Wh+MeLccd/187J+f7FC+yklm+Ev9Y4qnfJVTZEtMv4gcpqlnr0jQr2CN4zKE7Bm2yYL
-         8HBifmwxYWw4rAlagIrxxjZ+of6hyfLtktFUcrpp/nyF19a03pK7XSQxGbzJfjP/d77u
-         iCdXAAgtXdgGeTSaeENYdCLwwxZ2v2Bv4oeI6LPOaoEZ/+Gs7PxJwcj/PtVusqPp5/2C
-         LxKqb4yfTHxbGP7YCmDAe6qD7hnq/miocS4/MEqusz5xLXzQxOz22akMB7CIkm9l4fxA
-         z/0w==
-X-Forwarded-Encrypted: i=1; AFNElJ9Hh5b55J2isPuELWLZLdtAuA5okm8iDIU8/M0jFfoJAKqlwatntWF7TWX0SZqmQ2scvsJPLY0=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yz5nUfOVSvf3dYccLDbW9CAgqKPJKedBFwaQY8yjux1pDS2yYtj
-	iITSl4KuA5SYsJgHbdLbiQ22kPnXhgy1Sa2eMNIGOUTEIepEpWbjqoWuClTzn+ZhK3PA+ZFwVGi
-	FZy1WWPaPEWNcpd6+vyBp+hbbveKjMjo=
-X-Gm-Gg: Acq92OGav8/8fs0FKl75eVuzaPe0OoZ4nzzTzqmOh1nxSr5tKTR8EB2dHeEYt/WFNvM
-	bbbdX+2Xnh3RmhYkw/VnrIvDvzYFpwpqhw/pgrI7o9zFyA3XrLlzrmnei2EBWt2oT5dFOwR6qWh
-	DQnCcUbbAa1Lvzegk+Y31tP7/kPVtnpQri973a49Fnm0l0u52QyJfiteCBF1s7r0Z9qvR0Fg/9O
-	Id1OGUT+2zVj92XhM3EpK6RljsgJSbApDOabRwjVk7A5akMO2WVKX1MfeABs00aIoAz2pNhwC9r
-	ORcTYOZRaXeWUvHGJe32SPK2f9hloNZxY4qszj3G6LVtb8W5l60=
-X-Received: by 2002:a17:906:f59b:b0:bd6:4d6d:e02c with SMTP id
- a640c23a62f3a-bd64d6de820mr859954566b.2.1779210001640; Tue, 19 May 2026
- 10:00:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="PR0it+Yp"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=iJ/vfPyQ4HIfEKiWFsacYoAKWaQ9/pKCzuR45qNfhk4fixmHC1aEt/9+Dr0KueXkQYXQhCWYNp2N8cpoGtLf2zv9CcxrwM2IwEf13F98ImSYpVSRXi2Jj8gcy9b0gt5UtK/kQAe5dylsPdwhnk3RA3si2Lfxej2E5+xvPj5jv3hVf9ZL4vQxFuqjhIinh05LRYoc1xkRMm1879yAfg7egAIECtk1HMwF1sWJeUxykB8rPLvHKUBdVdeAOwqleklLdtckc5MiYZtwRd9O6RKEtFKhGyyWWdTUdLDOpy/NtqazKGX7Vr8ZcxeZYW+K+vhuVWwHRqDkDBTgPnddd5EmZg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=LOetwIP4V+9giSsAmCJx/KStgLOfOFf/6Rp4EXrm9qg=;
+ b=RFPHVMjEJ7Htlxc2ldWgBsaywBVoqzLijKgvIxii6WO4+z1aQx9kMRX6jmOsTkAG9HJad28kJPz7vP5d2tEfUztVS3bZ3wva9nneBK2gFUnOqHbBJ7253rNQD2mTYhrSgyYIANUuFxmssDmyDnNtJwNlQ0acoxFHfWXahLM0b61FThnMisydC9dL6ZyplQ4ygLSG8sigznVUOi0GZlFw6mZx4GTeAd6+A5lIf4oZ34/+3jqMSFWOt1GtOjcUIQ6yMwwAyIG+cef+jhpyZY8krDuinNLHdO25Syb3iwusJjweGCPiGOsb28gy2/rL8Nl1l2Fpmqe6GqXLR7fNImybEA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LOetwIP4V+9giSsAmCJx/KStgLOfOFf/6Rp4EXrm9qg=;
+ b=PR0it+YpKqcCDwDxCm+Anmryksm65xLcKfylltFolPRaKFUE2OLl6V9HHaf1s2FnplmHKXWdcY2xZyO7f4yDP3I6F4Bgp33jgbFR3L83st8Ep0oDtSwcFzVNs0lUsypgPSE/2XEcCk7mtYshOd7M3ukNu8Xm2ow0XH5GKchNOvhK+rbm2Q9aaHlbNVrZKMUGC1NicwrDCw+2I7ApvnXuO94wv9VUXZgQgyDeVVacZUqXUujgA6QNcRKPSGLN7FA5TQflQKdN2tHimYPJfO0r4Fx1JxHjiJO8fb31gzwwDGXZoqcQXygKTP2ICj/5T9U5TuypN3putqbjjgcXZogm2w==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
+ by CH2PR12MB4263.namprd12.prod.outlook.com (2603:10b6:610:a6::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.14; Tue, 19 May
+ 2026 23:27:29 +0000
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8]) by BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8%5]) with mapi id 15.21.0048.013; Tue, 19 May 2026
+ 23:27:29 +0000
+Date: Wed, 20 May 2026 07:27:22 +0800
+From: Richard Cheng <icheng@nvidia.com>
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Tomasz Wolski <tomasz.wolski@fujitsu.com>, 
+	smita.koralahallichannabasappa@amd.com, alison.schofield@intel.com, dan.j.williams@intel.com, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-pm@vger.kernel.org, nvdimm@lists.linux.dev, ardb@kernel.org, 
+	benjamin.cheatham@amd.com, dave.jiang@intel.com, jonathan.cameron@huawei.com
+Subject: Re: [PATCH v2] dax/bus: Upgrade resource conflict message to
+ dev_err() in alloc_dax_region()
+Message-ID: <agzxpMOOT0Mv-Eqz@MWDK4CY14F>
+References: <20260519101832.31988-1-tomasz.wolski@fujitsu.com>
+ <20260519123112.5b5d34cd@jic23-huawei>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260519123112.5b5d34cd@jic23-huawei>
+X-ClientProxiedBy: SI2PR06CA0008.apcprd06.prod.outlook.com
+ (2603:1096:4:186::23) To BL0PR12MB2370.namprd12.prod.outlook.com
+ (2603:10b6:207:47::27)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260519151008.1399226-1-qkrwngud825@gmail.com>
- <5d00b63c-1802-450f-8e54-8da6c0aeedc2@intel.com> <CAD14+f2p7D6eco+-O0X6zWwi-XaxGLs0nQKDAC8eVWhQmB1VhA@mail.gmail.com>
- <e38e5fd0-db57-417b-a2d1-0521333ae7cb@intel.com>
-In-Reply-To: <e38e5fd0-db57-417b-a2d1-0521333ae7cb@intel.com>
-From: Juhyung Park <qkrwngud825@gmail.com>
-Date: Wed, 20 May 2026 01:59:49 +0900
-X-Gm-Features: AVHnY4K5SYQOv34TwiBv3zKFQF1M6Tyl-TeVLU2eS0aTWiFY5udiXMkdBY5RsDs
-Message-ID: <CAD14+f3sohXj9SKEkRXGK_Mpbp73R5az-tsiHnHkj0poBHwpvw@mail.gmail.com>
-Subject: Re: [PATCH] x86/mm: fix vmemmap leak on memory hot-remove
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: linux-mm@kvack.org, stable@vger.kernel.org, 
-	Lu Baolu <baolu.lu@linux.intel.com>, Jason Gunthorpe <jgg@nvidia.com>, 
-	David Hildenbrand <david@kernel.org>, "Mike Rapoport (Microsoft)" <rppt@kernel.org>, Oscar Salvador <osalvador@suse.de>, 
-	Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dan Williams <djbw@kernel.org>, Dave Jiang <dave.jiang@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org, 
-	nvdimm@lists.linux.dev, Matthew Wilcox <willy@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|CH2PR12MB4263:EE_
+X-MS-Office365-Filtering-Correlation-Id: ac02d692-e689-4012-8927-08deb5fe319b
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|1800799024|366016|11063799006|56012099003|22082099003|18002099003|4143699003;
+X-Microsoft-Antispam-Message-Info:
+	NVy4iS6O93NkfFQFVnekSGNu0dxPNuaHFgay/NkdZC87N5NnEK4er7Sr3cjfxp3jPLFYc7VHa29pAmNguFz0EjkHqar19s52ehIt+v4hf3hNTqtNM6AZCNhWAulAiFEjz2oVmP3iM7JG6JnCY1CI+yvMwM8e3sj5eZYItqLD/ldR7LFxCZM69PWHxzab0OW9L8+gFkJFthSMKmYQPrArRrN2hH5brfVFjA8tZHwPtdvLq5ljJ0vT7wvSSKSX09w5kt1Vz/bduo0UvKuGBTdu28tXAmNMax0nMv1cWxFSEwH30uUKesgSRYGvvBo2v347+MODvlRILMSAaHpLUglBFWVr4YfQ3HeiTuuD6ONSMt5uPF/nlyKlHh5Xg3ijg0Eoa0Q3WG+2TzJohXaSpPpt6BcD/B0Jt+eZd0fsFm+VR1HLjL+tu3cmR1FsgOf3/Xily7QX+hOmKiwsfoYo7vaQbDwOZu127X0CcxOMubEBgLbLkztbphP7isatsgTbEAJSDJ/z/PgglhMWWbiZ24YzYV6Y2x98qtiDaO/J8fzi9MfG3SwO+KAyOlLc8roIDULJDzcECiuzDB/Ee4/9h2KUZsMG0mxvjqiYfPPZW+3uGJJr4jfJf3TSoYkVlS9mw2oz/ibys4aeb2h6uoLjz2p6qKwsPJvE5y/qenDwqUexMZR2p79Q38uf+16XlOSruX+SO0Xp21tRkOg7Lc+hho1dYw==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016)(11063799006)(56012099003)(22082099003)(18002099003)(4143699003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?eko2TXhwRXhSaXdmb2FWeWJQUmc5eHNjaVkweVdyNWFtWWVNbFZsbUVReXhu?=
+ =?utf-8?B?THhnY292NFNUNUJYZDZsTFZIMlc0dFdBYkxSM25TWjc2U0k0eVgrOHdWUWZD?=
+ =?utf-8?B?VUF0SnhTZ1ZjNyt2QUwxT2JEWkhxOXpLUVZtZk15eTdvMlN3WG9ZVm5FTzlr?=
+ =?utf-8?B?dUJkTVFyT2VtVzdTYm9aSXlPaStiRmNGREtReHErcUQxQitZOFR5TXJ1K3M4?=
+ =?utf-8?B?emZSQ2ovckNqTENXM0ZJMkdNcEJ1TUw3c1c4Q2lXclhlRC9hazlneENQMGpN?=
+ =?utf-8?B?RExFNC9lR0VGdThPWFQ4WEVQS1ZsK1dqTkIxS3JxKzFheG5hVE1XaHNKRFQw?=
+ =?utf-8?B?OGVyTEY4MmkzNmZOL3pWMGxRVitQMDJYSEJHcEcvNXFHcFR1WTBoOFRFUTVv?=
+ =?utf-8?B?emlwSG9RTFpCZWRrYkQwU2VhcmdOY1V3RjZ3Rmp4Y1M3TXhLdWo0ek5XZFhP?=
+ =?utf-8?B?MW9QeWdlTnpUV0xuYmMwajFYV1pkTDMxUm41YmhUdDBoMlA3dTBLclFsNVll?=
+ =?utf-8?B?ZWlnVSt6SFNvNExsUVVxVHdmV1RWeFBNbnMyUUNUVDRMSnBlL2NJWUt2VnhG?=
+ =?utf-8?B?Z09JMHNYekR0MUdUZkNteVFUeGVzbTh1UkpFOThpcDFqcWdHQlM3aDN6Zkx6?=
+ =?utf-8?B?Ums3dTY4d0NsVnZxcjBhMWpHQ3Jycy9LTjlyOVRMeUZwRWx4OFBKL0hETmlx?=
+ =?utf-8?B?TWtRMjM2Q1hHNEIzN0ovcm9meENzc29MSkhNMzRYYkI5VEM2NEpRczR2YitM?=
+ =?utf-8?B?ZUFOSmFaZUVRUlRJR3J5TGhkQnpoNlVsM0NsSVFJYk44aTlMV29HbHU3eTZi?=
+ =?utf-8?B?UTFxSVBpMzMrb1UyN0NxUGYwZ1ZxejY2RUowalVQVGFJZ1RzRHc1WEJaWHFr?=
+ =?utf-8?B?ckd6bXZmOGlKUGNVd1AvdWRXYk9nbHkxWDZNbUphQlZoT3BCRjdsc25ObTJr?=
+ =?utf-8?B?UTJ1OXljYXhQOS9ibUhiaDRFQkZjSEwwZWxjc01jMmpoc2RZRmxuQTNTckN1?=
+ =?utf-8?B?UXhIL250Vnp5bDkvVmsweXNaVjZnZ0tzSDZEY2hVQlkzZzdwa24vQTRPNEdk?=
+ =?utf-8?B?TDNzZkVBMzNpYUZmbU41VjFuYXhYTGZieTlINGtBQ1ZFVzEyZ2pMVlNXeEQ1?=
+ =?utf-8?B?N3pmcnFyTWdIM2JTYjhGY1BtbU1ZTXU3QWJEQWJpaDRpTmFPbEhDOXVNdFRP?=
+ =?utf-8?B?WHN0RWJZMktDM3g0WVpTcThMS1VlSmQyRzl3Mjh6eHF1SlNGaXZVaXB2RUpx?=
+ =?utf-8?B?NjMrdUlzeHkxWGdxcTBObS8rMU96NTczLzRxMFlrYlVKbFJZb1MxUW9CNHhi?=
+ =?utf-8?B?RVBaN3JrK2QzS3cyYmZoVHlJeGpjcGRjcmJqRTdLZVB2bjNMUlIzSkZ4RHNS?=
+ =?utf-8?B?bU9URzdwaXNtZFdIaDM4OWlZNmxUdUh2S3JIZFFHSlhGV2o1cndyZ0lqdmxC?=
+ =?utf-8?B?UDBnS3hmQ1B4RHBmL0hBTHkrSEtCYW1HdENxNVh5LzlQK0R6ZW5qOGhReE52?=
+ =?utf-8?B?TGMycGZqcFNNSmdEUmxSQWdUSHZ5YnFWQ0NMN2JINGwzWVphUUo0bStZSWlX?=
+ =?utf-8?B?dXFWNTBkU2U0MG9ENnlTVWtFcU5udDJXdStSM1JOazYxWVQxQTZaUUwrdUhO?=
+ =?utf-8?B?T25wVkpYSExEK200L3FOM0YxUzZCaysyVWwvQUtIZ0d4dFc1NlE5enJqN2Q4?=
+ =?utf-8?B?UHlqUVlDNmJDU2xObWIrVGtjU2lsdElSdnA1dWZCQWl5Ymk0UVRqalNJTkw0?=
+ =?utf-8?B?SnczNFRvaHNxUlByOVg3a011cDlnbmlqZmlXMnVmZmJBWlRoY2hCT1Ixb0FU?=
+ =?utf-8?B?WERoUjBRRkxvMlNXcUFqYldmMk5jR1M4ckJydVltR2JUN1ViMlRzMjYyTElS?=
+ =?utf-8?B?UE8rWHhLbHB1d2dOQW92a0FjUGg3NVoyTGVTSjU1SGttR252VGwydkpMbFZT?=
+ =?utf-8?B?UDF5SVR3bktFRm1KazlmSm8zaUZ6RDBEbFJFR1h3cXJSRmQxeGxaYnc2TWl6?=
+ =?utf-8?B?QitFd0NuZ1EyUEtaUGo3THJGU2JkdVVnVTg1NHIrbkI3TmVPUURlQ1NHV0hZ?=
+ =?utf-8?B?KzJETkc4cVJ3SkQ0cEs4djJsOUMyeUpUM0twdEw0dDc4QnVsZm9CR0FxZmsw?=
+ =?utf-8?B?Y2RKMUg3S3JTN3N3c3pxSWxZNDlhdjhmbGxZVDNQU0xqYTV1NUd2VHUrcXo3?=
+ =?utf-8?B?aFAra2tZRzcxOTlSQnVzRmZtMXFuaWJ6d3M3TmQ4OHBOeVNUUlo3SEdGTFFi?=
+ =?utf-8?B?L1NkTS84OStSVEN0V3dQaFd2cW9GZ0hvL1g0QS9XcDZpTlk4dUhjT0FWSkd6?=
+ =?utf-8?B?S1k4cmtkNm1rbHhGb2wzUGhlbnJmSjVkRENaODBPa3R0Sm1VSnFadz09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ac02d692-e689-4012-8927-08deb5fe319b
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB2370.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 May 2026 23:27:29.3925
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ilpPnwuSeC+CP4g8FNOwmROSS7rqeM1zYRGZZj2WqazvDo2rH2oTfay3SgDSpSOQ2j1N8Ui7KzZ9iR1wmz92DA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4263
 
-On Wed, May 20, 2026 at 1:41=E2=80=AFAM Dave Hansen <dave.hansen@intel.com>=
- wrote:
->
-> On 5/19/26 09:27, Juhyung Park wrote:
-> > Hi Dave,
-> >
-> > On Wed, May 20, 2026 at 1:02=E2=80=AFAM Dave Hansen <dave.hansen@intel.=
-com> wrote:
-> >>
-> >> On 5/19/26 08:10, Juhyung Park wrote:
-> >>>  #endif
-> >>>       } else {
-> >>> -             pagetable_free(page_ptdesc(page));
-> >>> +             /*
-> >>> +              * Use __free_pages() to honor @order: vmemmap PMD leav=
-es
-> >>> +              * freed here are not compound pages, so pagetable_free=
-()
-> >>> +              * would lose leak 511 of 512 pages per 2 MB chunk.
-> >>> +              */
-> >>> +             __free_pages(page, order);
-> >>>       }
-> >>>  }
-> >>
-> >> I find myself really wondering how much of this came from a human and
-> >> how much from the LLM. Could you share that with us?
-> >
-> > Not my first kernel contribution, just so you know. (first in mm tho)
-> >
-> > I asked Claude to write both the commit body and comment and it was
-> > too verbose. I manually trimmed it down.
-> > Sorry if it still sounds too LLM-ish.
->
-> Yeah, it still sounded really LLM-ish to me. Still rather chatty.
->
-> > This was tested on a VM with virtualized CXL device and toggling it
-> > back and forth was visibly causing leaks. kmemleak was unable to catch
-> > this (rightfully so), so I skeptically asked Claude to see if it can
-> > figure it out while pwd was the kernel source the VM was running.
-> > "Access the VM at "ssh -p2223 root@192.168.0.185". There's a memory
-> > leak whenever CXL memory switches modes via: daxctl reconfigure-device
-> > --mode=3Dsystem-ram dax0.0 --force, daxctl reconfigure-device
-> > --mode=3Ddevdax dax0.0 --force. Figure out why. If you need to reboot
-> > the VM, do not do it yourself and ask me."
-> >
-> > It did in 6 minutes and it basically told me to revert bf9e4e30f353. I
-> > was very skeptical and reviewed manually (with my short knowledge of
-> > mm) why this would be a correct fix.
->
-> Neato.
->
-> >> We're trying to get _away_ from using the 'struct page' APIs on page
-> >> tables. This goes backwards. Worst case, do:
-> >>
-> >>         /* vmemmap PMD leaves are not compound pages */
-> >>         for (i =3D 0; i < 1<<order; i++)
-> >>                 pagetable_free(page_ptdesc(&page[i]));
-> >>
-> >> Right?
-> >
-> > Shouldn't I worry about the loop overhead? With order =3D=3D 9, that's =
-512
-> > iterations. That's compounded to O(N) when the entire memory size is
-> > in consideration.
->
-> Is it optimal? No.
->
-> Will anybody ever notice? Also no.
->
-> Will anybody ever care? No sir.
+On Tue, May 19, 2026 at 12:31:12PM +0800, Jonathan Cameron wrote:
+> On Tue, 19 May 2026 12:18:32 +0200
+> Tomasz Wolski <tomasz.wolski@fujitsu.com> wrote:
+> 
+> > The dax_region resource conflict in alloc_dax_region() indicates a
+> > serious configuration problem — two subsystems (e.g. dax_hmem and
+> > dax_cxl) are attempting to register overlapping address ranges. This is
+> > not a transient or debug-level condition; it represents a genuine
+> > resource conflict that an administrator needs to be aware of.
+> > 
+> > Switch from request_resource() + dev_dbg() to
+> > request_resource_conflict() + dev_err() so that the conflict is visible
+> > by default and the colliding resource is identified in the message.
+> > 
+> > Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> > Link: https://lore.kernel.org/linux-cxl/69c1a8d1c0fa9_7ee3100a1@dwillia2-mobl4.notmuch/
+> > Signed-off-by: Tomasz Wolski <tomasz.wolski@fujitsu.com>
+> Seems reasonable to me
+> Reviewed-by: Jonathan Cameron <jic23@kernel.org>
 
-Just spun a test with that loop. It doesn't fix the leak.
+Reviewed-by: Richard Cheng <icheng@nvidia.com>
 
-I hate to be the guy that copy-pastas LLM but this is outside my
-knowledge of mm. Claude suggests:
-"Each pagetable_free() on the tails is a no-op: When
-alloc_pages_node(node, gfp, order=3D9) returns without __GFP_COMP, the
-buddy allocator only sets _refcount =3D 1 on the head page. The other
-511 pages (page[1] =E2=80=A6 page[511]) have _refcount =3D 0. There's no
-compound metadata, so they aren't "tails" in the folio sense either =E2=80=
-=94
-they're just contiguous pages whose refcounts the allocator never
-touched."
+Best regards,
+Richard Cheng.
 
-Any ideas?
-
-Thanks.
-
->
-> Can you measure the difference? I'd wager a beer: No again.
->
-> Even if someone manages to notice, then you have a clear path to fix it
-> *right*: fix the ptdesc data structure to represent high-order allocation=
-s.
+> > ---
+> >  drivers/dax/bus.c | 11 ++++++-----
+> >  1 file changed, 6 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> > index 68437c05e21d..66413c6c2ba0 100644
+> > --- a/drivers/dax/bus.c
+> > +++ b/drivers/dax/bus.c
+> > @@ -637,7 +637,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+> >  		unsigned long flags)
+> >  {
+> >  	struct dax_region *dax_region;
+> > -	int rc;
+> > +	struct resource *conflict;
+> >  
+> >  	/*
+> >  	 * The DAX core assumes that it can store its private data in
+> > @@ -670,10 +670,11 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+> >  		.flags = IORESOURCE_MEM | flags,
+> >  	};
+> >  
+> > -	rc = request_resource(&dax_regions, &dax_region->res);
+> > -	if (rc) {
+> > -		dev_dbg(parent, "dax_region resource conflict for %pR\n",
+> > -			&dax_region->res);
+> > +	conflict = request_resource_conflict(&dax_regions, &dax_region->res);
+> > +	if (conflict) {
+> > +		dev_err(parent,
+> > +			"dax_region: can't claim %pR: address conflict with %s %pR\n",
+> > +			&dax_region->res, conflict->name, conflict);
+> >  		goto err_res;
+> >  	}
+> >  
+> 
