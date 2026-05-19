@@ -1,42 +1,40 @@
-Received: from relay.hostedemail.com (smtprelay0013.hostedemail.com [216.40.44.13])
+Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DA3A48C8BC
-	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 12:17:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 470504D8D8D
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 12:19:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779193070; cv=none; b=l7jW3EmFBHh6fK1Xef+di2yBtJWQHUEn1bCjk0fWKwxmWeGjwnLpIMc06Dt9nojaLoA3tZB4tsiI0fg+CATHsVoP13249RAyX0U5A3yIfUyQaYnaBmbMpzDyF0JyTatJppzmZcPENep64QSfNbSC1/nGo3QW4MAQV53u2deYGZQ=
+	t=1779193157; cv=none; b=B/3/pxoDBKBiNRxf1aw+yPmeSOxV1FcIyovAKrKCEPiu+E2om2aGW8Cmav7EC/3sXjNQquT5NdBOvYRvuRprBvYoXdxi5GI1Gh9cEljmR/XPwmYISxU0SrLaJ30mqEcjS2EX+JOadggKusBDnLRoiYitE4o+roJuTgKj8h3BrFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779193070; c=relaxed/simple;
-	bh=upXnea/syoigr+IoslHgr69Ts5eXS5P26WmSRRcg5io=;
+	s=arc-20240116; t=1779193157; c=relaxed/simple;
+	bh=FVUAOKxJ4/gQjtoEIOeX2f6c+LaBaXG9nL028JyEamU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u9H4gbCPMTe/vsR4f5vqLHYDaMF29KG82eQ4l2sNvXTHRJkZZeAYFxDR1NUTEqIU9G+iEFpnnaULkfYJYnI71kl8NzSxIkKBcYwRarkS+AHwY/8pGbiyuGY7oKMgvTDMpuHZQRvN10IHfuNwr+GQDd/YdrZfSJpbELDB3vTu4ic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.13
+	 Content-Type:Content-Disposition:In-Reply-To; b=K55+0Wm4GogbHtbdOu3GUOrUJg1zm+xI9Az8dpGvIB+gCCgQFtOZvSA1OhkOqiNh9UT1Hr14IDDMcRjcewItyt9yfs3NBXhID6Z/YpH7/ID6hzQthptKjH6DAPmP2/AJJlq9b47Xyo7NZAaC9DFz29pSeYPPeic9YlpaliyN8MI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf18.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay05.hostedemail.com (Postfix) with ESMTP id 2F959402F1;
-	Tue, 19 May 2026 12:17:41 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf18.hostedemail.com (Postfix) with ESMTPA id 6BF002F;
-	Tue, 19 May 2026 12:17:37 +0000 (UTC)
-Date: Tue, 19 May 2026 07:17:35 -0500
+Received: from omf12.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay01.hostedemail.com (Postfix) with ESMTP id D6DE91C0F18;
+	Tue, 19 May 2026 12:19:13 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf12.hostedemail.com (Postfix) with ESMTPA id E7B9319;
+	Tue, 19 May 2026 12:19:09 +0000 (UTC)
+Date: Tue, 19 May 2026 07:19:08 -0500
 From: John Groves <John@groves.net>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>, 
-	John Groves <jgroves@micron.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+To: John Groves <john@jagalactic.com>
+Cc: Dan Williams <djbw@kernel.org>, John Groves <jgroves@micron.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
 	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
 	Miklos Szeredi <miklos@szeredi.hu>, Alison Schofield <alison.schofield@intel.com>, 
-	Ira Weiny <iweiny@kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH 1/6] dax: fix misleading comment about share/index union
- in dax_folio_reset_order()
-Message-ID: <agxU0XFIqRBc3xF1@groves.net>
-References: <0100019e3d03bba9-d27282f3-5552-4fa0-8326-981e4c13dace-000000@email.amazonses.com>
- <20260518213549.31246-1-john@jagalactic.com>
- <0100019e3d045be0-088bc509-0545-4e5a-b532-507045af78d0-000000@email.amazonses.com>
- <20260519123436.04aa1891@jic23-huawei>
+	Ira Weiny <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH 0/6] Fixes to the previously-merged drivers/dax/fsdev
+ series
+Message-ID: <agxU6hGczRT2DSFD@groves.net>
+References: <20260518213452.31205-1-john@jagalactic.com>
+ <0100019e3d03bba9-d27282f3-5552-4fa0-8326-981e4c13dace-000000@email.amazonses.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -45,71 +43,26 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260519123436.04aa1891@jic23-huawei>
-X-Rspamd-Queue-Id: 6BF002F
-X-Rspamd-Server: rspamout06
-X-Stat-Signature: fwpwxiir9eti5i4k67qxoz3f3mibyrs4
+In-Reply-To: <0100019e3d03bba9-d27282f3-5552-4fa0-8326-981e4c13dace-000000@email.amazonses.com>
+X-Rspamd-Server: rspamout07
+X-Rspamd-Queue-Id: E7B9319
+X-Stat-Signature: 5kxpnegw4c6uyiky9yxy64ydg3r5qgid
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1+Bj53NNfsYNYN4y3Hu23Z5pdDQWApk3TU=
-X-HE-Tag: 1779193057-913965
-X-HE-Meta: U2FsdGVkX1/anuJAk60Qwgc4AL5N9BtnfKb0pG3dFESwJLuzWFfGy6qyXSJQJF7bhQZg17nRGDKLJciEsdq9mU8u9zgvI8obye7qLbU33TMfasHRvOijLoxdXaal+joY7jRoL30vuOLbkEqZlM4xWdn/ukp+kmhG1haLf7CtV97C1QwfBosmuSwe69fzZMhWV3ithS2b/Ap7aneIqwLVKar/OpMMXmZFqYwbbOEF0LAqQHh6Y2DZGYbktgJ1jSmW7WvGV8GK0qBnHMLDM8ASBWwQa5LbCm60ifcKvFquzOZZ1/FrwBHsSqg4QPWu/RdgmNUs2O9s1DrpengQ9R03t0sco5/DQmN8huS0dqbA/wcnIQ2Wsb3IUtgGkHwJw/SGHt1Kq7SWzFl54dkXOmugQRh4Pa8hKZzR6++PEoHOPJVp9EfVr/XXRw6hJ7cr3KebO9JasHZL92oAM03+CCvQrg==
+X-Session-ID: U2FsdGVkX1+OXa13HFXgL+p58q8pzyuxChQey+jLsT8=
+X-HE-Tag: 1779193149-569511
+X-HE-Meta: U2FsdGVkX19yeEv3a442bfJ6Yp0ZhKTvBQTuk/D99eL/Go/uC1nboEHA5QcppkRGqzsIEmQKpTqagUO8+NZ+7SzFa/+CYeuB+5GwMTpYFnhUl/6TscUruVkpXBSmcKKutEwyDQ/d7dz6GZGv4g4KOUKyU2RInuG8GgKsIfOa1Ru+94F6zdxm63bUpufl8C6HwKtmAg9Y9jG7YmBhraaS0f4nRVWlWIEUxIGMMxsmftv2HSHZyCwsBlbqKc8LzaKybRZB630LCxt4sit9lRxS1UPYAkkstO4b2gCaOw3S+YLvxnskYnkc+FH5tESkG1rDKetJ9CztZ83t6DCHn+X1aSwroKod9ogzfX5sXYsr66Xr/MkadHV3gGBG6ix5Fsrq
 
-On 26/05/19 12:34PM, Jonathan Cameron wrote:
-> On Mon, 18 May 2026 21:35:56 +0000
-> John Groves <john@jagalactic.com> wrote:
+On 26/05/18 09:35PM, John Groves wrote:
+> From: John Groves <john@groves.net>
 > 
-> > From: John Groves <John@Groves.net>
-> > 
-> > The comment in dax_folio_reset_order() claims that DAX maintains an
-> > invariant where folio->share != 0 only when folio->mapping == NULL,
-> > implying folio->share is zero whenever mapping is non-NULL. This is
-> > misleading because folio->share and folio->index are a union -- for
-> > non-shared folios with mapping != NULL, reading folio->share returns
-> 
-> Maybe for consistency refer to that as folio->mapping != NULL
+> This series applies bug fixes (mostly found via sashiko) to the dax/fsdev
+> series. This has been soaking in the famfs CI pipeline for 2+ weeks and
+> 1) won't affect anything that doesn't use drivers/dax/fsdev.c, and 2)
+> doesn't affect any known workloads - although the bugs would have
+> manifested when multi-range DCD dax devices are a thing (soon-ish).
 
-Will do, thanks
+Quick note: I just noticed that this series generates a conflict on 
+7.1-rc4. I'll update within a day or so to clean that up.
 
-> 
-> > the file page offset (folio->index), which is typically non-zero.
-> > 
-> > Reword the comment to accurately describe the union aliasing: the
-> > assignment clears whichever interpretation of the union word is active
-> > (index for non-shared folios, share for shared folios), which is correct
-> > because the folio is being released in either case.
-> > 
-> > No functional change -- the code was already correct, only the
-> > justification was wrong.
-> > 
-> > Fixes: 59eb73b98ae0b ("dax: Factor out dax_folio_reset_order() helper")
-> > Signed-off-by: John Groves <john@groves.net>
-> Reviewed-by: Jonathan Cameron <jic23@kernel.org>
-> 
-> > ---
-> >  fs/dax.c | 12 ++++++------
-> >  1 file changed, 6 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/fs/dax.c b/fs/dax.c
-> > index 6d175cd47a99b..df19c9317d10e 100644
-> > --- a/fs/dax.c
-> > +++ b/fs/dax.c
-> > @@ -392,12 +392,12 @@ int dax_folio_reset_order(struct folio *folio)
-> >  	int order = folio_order(folio);
-> >  
-> >  	/*
-> > -	 * DAX maintains the invariant that folio->share != 0 only when
-> > -	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
-> > -	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
-> > -	 * Callers ensure share has been decremented to zero before
-> > -	 * calling here, so unconditionally clearing both fields is
-> > -	 * correct.
-> > +	 * Clear the mapping and the index/share union word. folio->share
-> > +	 * and folio->index occupy the same union in struct folio. For
-> > +	 * non-shared folios (mapping != NULL), the union holds folio->index
-> > +	 * (file page offset); for shared folios (mapping == NULL), it holds
-> > +	 * folio->share (reference count). Either way, we are releasing the
-> > +	 * folio and both fields should be zeroed.
-> >  	 */
-> >  	folio->mapping = NULL;
-> >  	folio->share = 0;
-> 
+John
+
