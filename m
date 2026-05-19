@@ -1,130 +1,115 @@
-Received: from mail.ilvokhin.com (mail.ilvokhin.com [178.62.254.231])
+Received: from relay.hostedemail.com (smtprelay0013.hostedemail.com [216.40.44.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3C5C3328FD
-	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 11:54:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.62.254.231
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DA3A48C8BC
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 12:17:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779191694; cv=none; b=F6SNiI8ayZtgd9TkCyZi2JuIugl8xws8AaO+5diXjgUS00dQUtUjisrBxsiZtjkz9o2VOgjE8Q3f+J0CLc4FFj1X+YgEDLGepVT8NUSiAbFaQhtpRydaBxJyXITB7Aql625/GNhZ8Ku8sIkaw47K6uhhOQK4SdJ4f4rpgjNZ8n8=
+	t=1779193070; cv=none; b=l7jW3EmFBHh6fK1Xef+di2yBtJWQHUEn1bCjk0fWKwxmWeGjwnLpIMc06Dt9nojaLoA3tZB4tsiI0fg+CATHsVoP13249RAyX0U5A3yIfUyQaYnaBmbMpzDyF0JyTatJppzmZcPENep64QSfNbSC1/nGo3QW4MAQV53u2deYGZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779191694; c=relaxed/simple;
-	bh=cKW7IkjJxSkTHJyCv4yQtVqFIKFwmALPt8LBCwWDIIg=;
+	s=arc-20240116; t=1779193070; c=relaxed/simple;
+	bh=upXnea/syoigr+IoslHgr69Ts5eXS5P26WmSRRcg5io=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bGBHXnxh70eiIzGnIF9vDMpHSfs6tf6MD+IsXBD+kRlguRG0p58Wtpx0UOActBZEx2TxwmKvFYbmI+h2/zb5dhLDyoHWs9kTMVp1CImPTqyOZGzhl7CpBHPsOqSPffnMQDZSm/FkxjvUce+q4pJuu7HlWjgnpswjWEszdMXK0Go=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=Q1JzYcRw; arc=none smtp.client-ip=178.62.254.231
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ilvokhin.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="Q1JzYcRw"
-Received: from shell.ilvokhin.com (shell.ilvokhin.com [138.68.190.75])
-	(Authenticated sender: d@ilvokhin.com)
-	by mail.ilvokhin.com (Postfix) with ESMTPSA id 493A7D0805;
-	Tue, 19 May 2026 11:54:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ilvokhin.com;
-	s=mail; t=1779191690;
-	bh=zRsE2vPKgX0eKECBE4DwNFiQcuKvIy6vdkZ9SvFMc0M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Q1JzYcRwX2pTPEtrYf0z7m3PrTSq18eHaWrkis/FXOdB4twrWKYeT4CnSzHXUdawM
-	 S3MbO93VNARrHdUYm5q7cIGGMbRFnzyNJCiHx606X6pk6qBvrg4zBygxdVrafDXzc/
-	 mfp2U7xo5A3eHG/j8q1GVS41p96lDysWkZjkNgp0=
-Date: Tue, 19 May 2026 11:54:49 +0000
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Miguel Ojeda <ojeda@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
-	Christian Brauner <brauner@kernel.org>,
-	Marco Elver <elver@google.com>, "H. Peter Anvin" <hpa@zytor.com>,
-	Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	kernel-team@meta.com
-Subject: Re: [PATCH v3 3/4] cleanup: Annotate guard constructors with
- __nonnull()
-Message-ID: <agxPiQKt2pykEIA4@shell.ilvokhin.com>
-References: <cover.1779116497.git.d@ilvokhin.com>
- <1854fc006c03647a3201a442743a1c22b13b404d.1779116497.git.d@ilvokhin.com>
- <CANiq72mG-EpBWbW_hZYPgtV_R1vyUBsn0ytaz2X2Zw9fr0keOA@mail.gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=u9H4gbCPMTe/vsR4f5vqLHYDaMF29KG82eQ4l2sNvXTHRJkZZeAYFxDR1NUTEqIU9G+iEFpnnaULkfYJYnI71kl8NzSxIkKBcYwRarkS+AHwY/8pGbiyuGY7oKMgvTDMpuHZQRvN10IHfuNwr+GQDd/YdrZfSJpbELDB3vTu4ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
+Received: from omf18.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay05.hostedemail.com (Postfix) with ESMTP id 2F959402F1;
+	Tue, 19 May 2026 12:17:41 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf18.hostedemail.com (Postfix) with ESMTPA id 6BF002F;
+	Tue, 19 May 2026 12:17:37 +0000 (UTC)
+Date: Tue, 19 May 2026 07:17:35 -0500
+From: John Groves <John@groves.net>
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>, 
+	John Groves <jgroves@micron.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Alison Schofield <alison.schofield@intel.com>, 
+	Ira Weiny <iweiny@kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH 1/6] dax: fix misleading comment about share/index union
+ in dax_folio_reset_order()
+Message-ID: <agxU0XFIqRBc3xF1@groves.net>
+References: <0100019e3d03bba9-d27282f3-5552-4fa0-8326-981e4c13dace-000000@email.amazonses.com>
+ <20260518213549.31246-1-john@jagalactic.com>
+ <0100019e3d045be0-088bc509-0545-4e5a-b532-507045af78d0-000000@email.amazonses.com>
+ <20260519123436.04aa1891@jic23-huawei>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANiq72mG-EpBWbW_hZYPgtV_R1vyUBsn0ytaz2X2Zw9fr0keOA@mail.gmail.com>
+In-Reply-To: <20260519123436.04aa1891@jic23-huawei>
+X-Rspamd-Queue-Id: 6BF002F
+X-Rspamd-Server: rspamout06
+X-Stat-Signature: fwpwxiir9eti5i4k67qxoz3f3mibyrs4
+X-Session-Marker: 6A6F686E4067726F7665732E6E6574
+X-Session-ID: U2FsdGVkX1+Bj53NNfsYNYN4y3Hu23Z5pdDQWApk3TU=
+X-HE-Tag: 1779193057-913965
+X-HE-Meta: U2FsdGVkX1/anuJAk60Qwgc4AL5N9BtnfKb0pG3dFESwJLuzWFfGy6qyXSJQJF7bhQZg17nRGDKLJciEsdq9mU8u9zgvI8obye7qLbU33TMfasHRvOijLoxdXaal+joY7jRoL30vuOLbkEqZlM4xWdn/ukp+kmhG1haLf7CtV97C1QwfBosmuSwe69fzZMhWV3ithS2b/Ap7aneIqwLVKar/OpMMXmZFqYwbbOEF0LAqQHh6Y2DZGYbktgJ1jSmW7WvGV8GK0qBnHMLDM8ASBWwQa5LbCm60ifcKvFquzOZZ1/FrwBHsSqg4QPWu/RdgmNUs2O9s1DrpengQ9R03t0sco5/DQmN8huS0dqbA/wcnIQ2Wsb3IUtgGkHwJw/SGHt1Kq7SWzFl54dkXOmugQRh4Pa8hKZzR6++PEoHOPJVp9EfVr/XXRw6hJ7cr3KebO9JasHZL92oAM03+CCvQrg==
 
-On Mon, May 18, 2026 at 08:19:35PM +0200, Miguel Ojeda wrote:
-> On Mon, May 18, 2026 at 5:22 PM Dmitry Ilvokhin <d@ilvokhin.com> wrote:
-> >
-> > Add __nonnull() to unconditional guard constructors so the compiler
-> > verifies at each call site that NULL is never passed:
+On 26/05/19 12:34PM, Jonathan Cameron wrote:
+> On Mon, 18 May 2026 21:35:56 +0000
+> John Groves <john@jagalactic.com> wrote:
 > 
-> > This provides automated, compiler-enforced verification that no
-> > unconditional guard constructor receives NULL.
+> > From: John Groves <John@Groves.net>
+> > 
+> > The comment in dax_folio_reset_order() claims that DAX maintains an
+> > invariant where folio->share != 0 only when folio->mapping == NULL,
+> > implying folio->share is zero whenever mapping is non-NULL. This is
+> > misleading because folio->share and folio->index are a union -- for
+> > non-shared folios with mapping != NULL, reading folio->share returns
 > 
-> I wouldn't say "verify", since the compiler does a best-effort here
-> with the information it has statically.
-> 
-> In other words, the attribute does not prevent NULL pointers to be passed.
+> Maybe for consistency refer to that as folio->mapping != NULL
 
-Fair enough.
-
-I'll re-word this paragraph as "Add __nonnull() to unconditional guard
-constructors so the compiler warns when NULL is statically known to be
-passed" and drop the "compiler-enforced verification" paragraph.
-
-> 
-> > + *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-nonnull-function-attribute
-> 
-> Hmm... It appears GCC has changed the docs in commit 6e3c137f5dbb
-> ("doc: Merge function, variable, type, and statement attribute
-> sections [PR88472]"), dropping the per-kind attribute pages.
-> 
-> So the right link would need to be now:
-> 
->   https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-nonnull
-> 
-> I will need to send a patch to fix the other links.
-
-Fixed locally. Thanks!
+Will do, thanks
 
 > 
-> > + * clang: https://clang.llvm.org/docs/AttributeReference.html#nonnull
+> > the file page offset (folio->index), which is typically non-zero.
+> > 
+> > Reword the comment to accurately describe the union aliasing: the
+> > assignment clears whichever interpretation of the union word is active
+> > (index for non-shared folios, share for shared folios), which is correct
+> > because the folio is being released in either case.
+> > 
+> > No functional change -- the code was already correct, only the
+> > justification was wrong.
+> > 
+> > Fixes: 59eb73b98ae0b ("dax: Factor out dax_folio_reset_order() helper")
+> > Signed-off-by: John Groves <john@groves.net>
+> Reviewed-by: Jonathan Cameron <jic23@kernel.org>
 > 
-> I think this link goes to `_Nonnull` -- the GNU one is instead:
+> > ---
+> >  fs/dax.c | 12 ++++++------
+> >  1 file changed, 6 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index 6d175cd47a99b..df19c9317d10e 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -392,12 +392,12 @@ int dax_folio_reset_order(struct folio *folio)
+> >  	int order = folio_order(folio);
+> >  
+> >  	/*
+> > -	 * DAX maintains the invariant that folio->share != 0 only when
+> > -	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
+> > -	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
+> > -	 * Callers ensure share has been decremented to zero before
+> > -	 * calling here, so unconditionally clearing both fields is
+> > -	 * correct.
+> > +	 * Clear the mapping and the index/share union word. folio->share
+> > +	 * and folio->index occupy the same union in struct folio. For
+> > +	 * non-shared folios (mapping != NULL), the union holds folio->index
+> > +	 * (file page offset); for shared folios (mapping == NULL), it holds
+> > +	 * folio->share (reference count). Either way, we are releasing the
+> > +	 * folio and both fields should be zeroed.
+> >  	 */
+> >  	folio->mapping = NULL;
+> >  	folio->share = 0;
 > 
->   https://clang.llvm.org/docs/AttributeReference.html#id10
-> 
-> (I don't love the numeric IDs, though, since they break, so I think it
-> is fine either way -- the `_Nonnull` is fairly close to the one we
-> want and I hope that one doesn't break)
-
-I don't quite like numeric IDs either. There is only one #id reference
-in include/linux/compiler_attributes.h and link is already dead. I'll
-keep current link since it gives at least some clue what to look for on
-the page.
-
-> 
-> > + */
-> > +#define __nonnull(x...)                        __attribute__((__nonnull__(x)))
-> 
-> This is indeed available for a long time, and we already use it
-> elsewhere in the kernel tree (which would be nice to clean up
-> separately).
-
-> 
-> If you don't mind, please place it before `__nonstring__` (the file is
-> meant to be sorted by the actual attribute name -- there are a few
-> instances where this is not the case anymore, which I will eventually
-> clean up)
-
-Thanks, fixed locally.
-
-> 
-> Thanks!
-> 
-> Cheers,
-> Miguel
