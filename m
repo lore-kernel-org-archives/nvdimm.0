@@ -1,140 +1,101 @@
-Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EC732DF68
-	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 05:50:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DCC83E0731
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 08:15:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.138.37.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779169840; cv=none; b=Jhz6hk9ZfhKYlREavA648wfmioTV6OjwCPvGabYZntk7Rfo2w+QQotRZCYGsmgePQwKQamJ+SNhvwawn32vUW7Y9DPxU894hGHXfuzeLvBufXD6N3NIO7wEePDfXWSGYw1ebbjojH3hWOSFNS5o/+mWgaCr+LysXB+ztAWDGU48=
+	t=1779178521; cv=none; b=ZRVqOjr0b74R/2koi0n3xIhpqIxf37dKsdMZcSHllY04A2MbeLi8+UfeXFjsTLznEGedPHQ0Ahy06w31yTfF0bXRVKDrZGB953i1XlrhT3pT63CuthGmuVLPDjWUmf3uBzw1xJxBEooHCNEs1aaIala8T5wnAkw4JCMRJLlDEB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779169840; c=relaxed/simple;
-	bh=XXynUxQ3LuE8fy+pLQmYNaeVurrreAUhZ7Sxgxz5Isc=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=VzOPXTGTYpVvSZQgAeIpZJwU8TdtGK4GNPD08jGQUGiw8ieMxCZSOs7BZGe6mqzezJeEADebbxEtAwsg9XeTlrKtjKgsGLatBe4JfLfAdmEL4wjmmccNMH7DFaxUJnfbt4GaHz3aKxsjNRwpg9xUsnBODsIBTm+18tLtiLL4+Pk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cse.iitm.ac.in; spf=pass smtp.mailfrom=cse.iitm.ac.in; dkim=pass (2048-bit key) header.d=cse-iitm-ac-in.20251104.gappssmtp.com header.i=@cse-iitm-ac-in.20251104.gappssmtp.com header.b=HBRbgRp0; arc=none smtp.client-ip=209.85.210.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cse.iitm.ac.in
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cse.iitm.ac.in
+	s=arc-20240116; t=1779178521; c=relaxed/simple;
+	bh=TJ8fpz1evDXICM3tkQS1KlJYrX6HFaEpbf6rZUzgB2c=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=jyE6L4Pi0dKNQFR/s3p3poziHzMPD5QzqwWYm3H3F7RrDz6vk0gdq8igDNXXI9fyb8CrfaglFP6ECTRSD6lUCUEdW5ERuU84q4i2CWdY8tZ/TCte4sPYcXyqBfIcaSu6cMXuzlEDVWxvvPod22IpnPjH/5SV5x9fkehto44j4f0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=bOK36c44; arc=none smtp.client-ip=139.138.37.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cse-iitm-ac-in.20251104.gappssmtp.com header.i=@cse-iitm-ac-in.20251104.gappssmtp.com header.b="HBRbgRp0"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-83975e992e1so1190453b3a.2
-        for <nvdimm@lists.linux.dev>; Mon, 18 May 2026 22:50:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cse-iitm-ac-in.20251104.gappssmtp.com; s=20251104; t=1779169838; x=1779774638; darn=lists.linux.dev;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=ucHECs4zlnHCRoQL7hkpDKkM89fT0NiKrOSG8N2ICv4=;
-        b=HBRbgRp0gVokcrSJlmxA+rLVkEi5FsRvXMKV/0RJhBy2Wsf+bwLkj8C1V70GVKrfVu
-         ZldFJ8tCISxEDh8dRdyiBGyE6Mah4igcxwNC4yiklxo0pWMESnYzZYhZn/2R26jjZSd4
-         BLf1lBsu0g1NUAwODMIVK0TbBNIivOTUN0oXJ88Ni6eF3vd5NC/Lsf6TIkTA6o4TfSps
-         oV5GlpEk22RQIOuu4wRm/b3N7FWwmDJM8jceT2Y5rPhYXRMpL8jWpbXjhfYxt/15bohg
-         YlpANfUrFn7cbfc9qJNQ8WJ8LVyAJ1HRVjjpn1Opbe1PO4dOtSf3nfJitwUfPH6CLcQx
-         eqbw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779169838; x=1779774638;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=ucHECs4zlnHCRoQL7hkpDKkM89fT0NiKrOSG8N2ICv4=;
-        b=mBwqdxSdtPd/J//bvkHldwJhsbUmFL9HqlrkCQylyyzhqivuWqWtt4Op0bE8fHizhG
-         lCWwoG4kB0TkLM5U0pqqH2STtgzNcs+R2AWaJ1gj/YSoE+6DsqyWuYPGvrJom91n63Ia
-         9BwhiXxzBbMZcRpnTdoVycZG+Nwg+CtGx3QxSQFuy9spXtwlYo0JRnNKQ3Qa3Wnv498A
-         dK3UgJdvEeU3WRYEe64Cz+DrSoe2Vu5vK67ecn+EOsG6X1J9jFynasw3qZFd1ZNwODNW
-         6OXNuPBhBl5jjVzqAQmuH+AewfwZ1LiDGo9HYd8iCvRZMeaLpDegZ/aPb3CY6BnzqiuG
-         etJA==
-X-Gm-Message-State: AOJu0YzzpwRHKEfwbfVJJhBdJlruLwDru06BQ4jjeoD3xoTrI5jMfHW6
-	34/5/ZMnjlIt9t3odCGYhsyVZxOoFAt6f3AmFwhTAR1kMzC48dzGC+RnYDutahqMLdg=
-X-Gm-Gg: Acq92OEgXYyQDOG9LBXxs5zAWNaigHNhCKTPyvuxjCWQiEXq6K74InKnK8oxeIUmlp3
-	IMPxbgV92AZkgUc4U86ELF/EQBL0vkCRlvdOeP0qZ5wrkfJu5ppysYuwPEfTYm5wiBZ3Cj88tK4
-	EjRHA7U6mOHtDkpbIncjN88XWFsLiRJk7hs/aYAQbIdDlRKeIRNy+ONn1ubejR7WEpv9i4CGm1y
-	elVtFNkAYqCl3WkNFnJCYikrcD6T3B56vK6/BhTETxpZP8gXGinptmsU2gRuASR3EmJnYS2Eu3X
-	/YsrcJM+I+RVE0+BC+VJZ+ntLi2Jn66gDvybdGW/LbHD11qvJ8+V901aWuF8pB5/brUpCKPcxos
-	jqilCsA+wDtZGHiRaEclvZtdLUaI1A0tOIkXvF8iuBplgBSes0naQ/6Omx+HloXBXJrHw+7DGfE
-	NE43QGNuqEc3aNd0JA6rSt680TboYyqSD6RJ/xcHfaP9x9HOceJW6ni9TDZ8w7K019NFzwXRjwT
-	o8jY60SMV1s2VqvX0/IUgXxU1WnwFlAscyEzmAS8vRi
-X-Received: by 2002:a05:6a00:429b:b0:82f:d34c:ccc6 with SMTP id d2e1a72fcca58-83f33ab6689mr17997430b3a.10.1779169837802;
-        Mon, 18 May 2026 22:50:37 -0700 (PDT)
-Received: from [127.0.1.1] ([103.158.43.41])
-        by smtp.googlemail.com with ESMTPSA id d2e1a72fcca58-83f19664a59sm16818807b3a.1.2026.05.18.22.50.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 22:50:37 -0700 (PDT)
-From: Abdun Nihaal <nihaal@cse.iitm.ac.in>
-Date: Tue, 19 May 2026 11:20:13 +0530
-Subject: [PATCH 2/2] nvdimm/btt: fix potential memory leak in btt_init()
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="bOK36c44"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
+  t=1779178519; x=1810714519;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=TJ8fpz1evDXICM3tkQS1KlJYrX6HFaEpbf6rZUzgB2c=;
+  b=bOK36c44Q3XmC1jYNoxmdOZqQU7hOaM03Z8I6Nfws4zy4WiST++8Khf5
+   6RlvJn/vOiRmx0RR18ySmSFk0ZyL6WWmXzoXBBewSQwAIHQU/7XCgtujp
+   WdhjJvnSlZQJUb7ZOh3IbsSkZ859dWSYfDlG59suHNAgy1bAAnLGJ9eE8
+   Nxi7RvNIMOoSIn0Kosgd+BG29KKSb+R5aR60WDqfIfeZApae6x6iCpTZy
+   6vXghYsn6A5zoUXjiJhgYd3QaXBLfQihe6xCRNHSdb0MgRUXRYn+lv9Zh
+   sAdSPs2F82dloIzpZeHJZxqdRhC0ibmhfsvlr+z7lkc1+JhbV1ZEIf4EJ
+   Q==;
+X-CSE-ConnectionGUID: INwyIedsQ+CEYAOuKnbcrA==
+X-CSE-MsgGUID: C+3Ixv15Rsq/8xwCLQ5njg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11790"; a="218782758"
+X-IronPort-AV: E=Sophos;i="6.23,243,1770562800"; 
+   d="scan'208";a="218782758"
+Received: from gmgwnl01.global.fujitsu.com ([52.143.17.124])
+  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 17:15:11 +0900
+Received: from az2nlsmgm1.o.css.fujitsu.com (unknown [10.150.26.203])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by gmgwnl01.global.fujitsu.com (Postfix) with ESMTPS id BB79B1C000A5
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 08:15:11 +0000 (UTC)
+Received: from az2nlsmom4.fujitsu.com (az2nlsmom4.o.css.fujitsu.com [10.150.26.201])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by az2nlsmgm1.o.css.fujitsu.com (Postfix) with ESMTPS id 6A3A8C03707
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 08:15:11 +0000 (UTC)
+Received: from dhcp-portal (unknown [10.172.107.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits))
+	(No client certificate requested)
+	by az2nlsmom4.fujitsu.com (Postfix) with ESMTPS id DF3772000292;
+	Tue, 19 May 2026 08:15:09 +0000 (UTC)
+Received: from isar2.ecs00.fujitsu.local (unknown [10.172.183.27])
+	by dhcp-portal (Postfix) with ESMTP id 15594608BF;
+	Tue, 19 May 2026 10:15:09 +0200 (CEST)
+From: Tomasz Wolski <tomasz.wolski@fujitsu.com>
+To: icheng@nvidia.com
+Cc: alison.schofield@intel.com,
+	ardb@kernel.org,
+	benjamin.cheatham@amd.com,
+	dan.j.williams@intel.com,
+	dave.jiang@intel.com,
+	jonathan.cameron@huawei.com,
+	linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	smita.koralahallichannabasappa@amd.com,
+	tomasz.wolski@fujitsu.com
+Subject: Re: [PATCH] dax/bus: Upgrade resource conflict message to dev_err() in alloc_dax_region()
+Date: Tue, 19 May 2026 10:15:06 +0200
+Message-Id: <20260519081506.17283-1-tomasz.wolski@fujitsu.com>
+X-Mailer: git-send-email 2.35.3
+In-Reply-To: <agWfgLxDeu_duejj@MWDK4CY14F>
+References: <agWfgLxDeu_duejj@MWDK4CY14F>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260519-nvdimmleaks-v1-2-592300fb7a43@cse.iitm.ac.in>
-References: <20260519-nvdimmleaks-v1-0-592300fb7a43@cse.iitm.ac.in>
-In-Reply-To: <20260519-nvdimmleaks-v1-0-592300fb7a43@cse.iitm.ac.in>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>, 
- Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, 
- stable@vger.kernel.org, Abdun Nihaal <nihaal@cse.iitm.ac.in>
-X-Mailer: b4 0.13.0
+Content-Transfer-Encoding: 8bit
 
-The memory allocated by discover_arenas() or create_arenas() is not
-freed in some of the error paths in btt_init(). Fix that by calling
-free_arenas() on the error paths.
+Hello Richard,
 
-Fixes: 5212e11fde4d ("nd_btt: atomic sector updates")
-Cc: stable@vger.kernel.org
-Signed-off-by: Abdun Nihaal <nihaal@cse.iitm.ac.in>
----
- drivers/nvdimm/btt.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+Thanks for your feedback
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index e0b6a85a8124..7e1112960d7f 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1592,7 +1592,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
- 	if (btt->init_state != INIT_READY && nd_region->ro) {
- 		dev_warn(dev, "%s is read-only, unable to init btt metadata\n",
- 				dev_name(&nd_region->dev));
--		return NULL;
-+		goto err;
- 	} else if (btt->init_state != INIT_READY) {
- 		btt->num_arenas = (rawsize / ARENA_MAX_SIZE) +
- 			((rawsize % ARENA_MAX_SIZE) ? 1 : 0);
-@@ -1602,25 +1602,28 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
- 		ret = create_arenas(btt);
- 		if (ret) {
- 			dev_info(dev, "init: create_arenas: %d\n", ret);
--			return NULL;
-+			goto err;
- 		}
- 
- 		ret = btt_meta_init(btt);
- 		if (ret) {
- 			dev_err(dev, "init: error in meta_init: %d\n", ret);
--			return NULL;
-+			goto err;
- 		}
- 	}
- 
- 	ret = btt_blk_init(btt);
- 	if (ret) {
- 		dev_err(dev, "init: error in blk_init: %d\n", ret);
--		return NULL;
-+		goto err;
- 	}
- 
- 	btt_debugfs_init(btt);
- 
- 	return btt;
-+err:
-+	free_arenas(btt);
-+	return NULL;
- }
- 
- /**
+>> Did you run into any kind of error or even machine crashing from this ?
+No, I haven't hit this error path in practice. On systems I've tested, the deferral logic 
+in hmem_register_cxl_device() correctly drops ranges that CXL claims
 
--- 
-2.43.0
+>> btw, though I am not against the change, I don't think this is a fix, maybe you can consider to remove the Fixes tag.
+Agreed, I'll drop the tag in v2.
 
+Best regards,
+Tomasz
