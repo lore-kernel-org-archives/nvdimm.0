@@ -1,45 +1,51 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB273321D4;
-	Tue, 19 May 2026 11:31:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3597A233952;
+	Tue, 19 May 2026 11:34:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779190278; cv=none; b=Z94D5yIaAe6Svm2S2fZQ/Q/FEJDv21eWgVsWqOOoyABNaBx/M5U8Hf/IMwxW04r11Bg3hOB1ZQw26KRpMfMgDY0A0pDr9c6Y//x9VbzwDvmSdh9+rDHX/ZfiYJNlKFjqq6H5aib9yw0m/wpkee9vsQysPUq4gm4H2tDlzJhZrpM=
+	t=1779190487; cv=none; b=ewbFCcyBbghqjbKP3PqnZAOpfV50W6/xwVf9ZJe3v8At0+aCtbEks2J41Y3Q0pUKjakLAy8o+XeA1ZSUd7u/BI5qbHChnvQQR8QI1UH+pb6q6kipIuPXcIhkUjzAabPyJxgZkQLJucbDvpbqFfYWnDeLt+KBZTY/XgZLEtUjYY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779190278; c=relaxed/simple;
-	bh=YNM/fqs9TGWH1hPYSOkKh1B0729fn+GJaHi3vqaVG64=;
+	s=arc-20240116; t=1779190487; c=relaxed/simple;
+	bh=dYBNK9BCQHghU8qmFx2G1DFK6xWsL7Iok1FhcvW19I0=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=deqEqGwHeyyhx7v9DNQHcnnnjez12QeiEGXMmtk+0ZBOvAzIPMgtU5kA2Wph1/DpAiCGni8SxEc1puw+JLFP1LOzW7pEXc5312klqFBxi1qw0FSAfeD/Qad9Yhbm6T/N003gTsHdf15VmnxO/nvgeg6S191tqxYcedMo0VsmP1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hlhI6SV1; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=h1P66NEtZvzKDrtm+h76KAxFkWDb/JlRmXlXeMwu7BBQDWA04fzGZT4DGf50HyP1iuyREYB9V/M9Qzv+fegwZ8+/h3RFhYakgHc2OrG6R8/Qgmfzoo+UgmUxM05cCVMt7eB5KS33iydz60Cw50YUEk6mNM5sAJpnhYyC4Cdmr2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lVK3PoUj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hlhI6SV1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FDC3C2BCB3;
-	Tue, 19 May 2026 11:31:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lVK3PoUj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD529C2BCB3;
+	Tue, 19 May 2026 11:34:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779190278;
-	bh=YNM/fqs9TGWH1hPYSOkKh1B0729fn+GJaHi3vqaVG64=;
+	s=k20201202; t=1779190486;
+	bh=dYBNK9BCQHghU8qmFx2G1DFK6xWsL7Iok1FhcvW19I0=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=hlhI6SV1lH+42oYEQLI4i3vUNxcG67ocr6I0zWlpTD3s8NKuGNHKQ4SQJS3+r5XMc
-	 MAYwQEFXad0qtY0p3ZDGqq1zh0IWiArsQoIFAwKdp82emo5bCUh7aG0cylflNNRujG
-	 2Bu3OLzFQH+n1U14r6btcqaASvvtv5AdojJf3zjCiw4Wq+Gy9ItbZOvvM5KVbfp+bU
-	 WiYSIwUyaW/qqfV4XPYc17Bu84Q/JqSsKLHKFmRXZj2dVtqork2YArwvCTVwvnRPwC
-	 y7MdXCKJHWWSOVI2VDw56jneVinBj9r9xe1BPoJdaPyjYPZSsQa2AamVnhOwNlWcnx
-	 8tr4IJdBx5Ijw==
-Date: Tue, 19 May 2026 12:31:12 +0100
+	b=lVK3PoUjecLuQGRwNciRDGnvHK3OFM9sFfzxfhCh827wo4PFrNFuTUCiyx1tEwZBR
+	 osT4eHCNV+Iwz9oq0HLUG0CoNim7bV1DEcRTHP2W1YDwWaqu8GrGUOKJWDLqKpXWBJ
+	 gTAoG2il0N6+U8YMZ8BrzPzeLfYuO6FylpXVfWwQaRH4jWZf6gSyouQh/atzZdOOTc
+	 joe8pU3HvgW30owFH7D7eJge2Hoq3vWXVq8tj4zIHV0tvlvpnCRHLLoXa6CicWPNU6
+	 4V5OxiI+Jqr0wSfy82jESPbbFR/c3iX5AeC4Lvx94fVS4FLJIttICH/Sr67OtSDWkE
+	 +vuUxu06E9Xrg==
+Date: Tue, 19 May 2026 12:34:36 +0100
 From: Jonathan Cameron <jic23@kernel.org>
-To: Tomasz Wolski <tomasz.wolski@fujitsu.com>
-Cc: smita.koralahallichannabasappa@amd.com, alison.schofield@intel.com,
- dan.j.williams@intel.com, icheng@nvidia.com, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, nvdimm@lists.linux.dev, ardb@kernel.org,
- benjamin.cheatham@amd.com, dave.jiang@intel.com,
- jonathan.cameron@huawei.com
-Subject: Re: [PATCH v2] dax/bus: Upgrade resource conflict message to
- dev_err() in alloc_dax_region()
-Message-ID: <20260519123112.5b5d34cd@jic23-huawei>
-In-Reply-To: <20260519101832.31988-1-tomasz.wolski@fujitsu.com>
-References: <20260519101832.31988-1-tomasz.wolski@fujitsu.com>
+To: John Groves <john@jagalactic.com>
+Cc: John Groves <John@Groves.net>, Dan Williams <djbw@kernel.org>, John
+ Groves <jgroves@micron.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave
+ Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan
+ Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, Christian
+ Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Alison
+ Schofield <alison.schofield@intel.com>, Ira Weiny <iweiny@kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH 1/6] dax: fix misleading comment about share/index union
+ in dax_folio_reset_order()
+Message-ID: <20260519123436.04aa1891@jic23-huawei>
+In-Reply-To: <0100019e3d045be0-088bc509-0545-4e5a-b532-507045af78d0-000000@email.amazonses.com>
+References: <0100019e3d03bba9-d27282f3-5552-4fa0-8326-981e4c13dace-000000@email.amazonses.com>
+	<20260518213549.31246-1-john@jagalactic.com>
+	<0100019e3d045be0-088bc509-0545-4e5a-b532-507045af78d0-000000@email.amazonses.com>
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -47,61 +53,61 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Tue, 19 May 2026 12:18:32 +0200
-Tomasz Wolski <tomasz.wolski@fujitsu.com> wrote:
+On Mon, 18 May 2026 21:35:56 +0000
+John Groves <john@jagalactic.com> wrote:
 
-> The dax_region resource conflict in alloc_dax_region() indicates a
-> serious configuration problem =E2=80=94 two subsystems (e.g. dax_hmem and
-> dax_cxl) are attempting to register overlapping address ranges. This is
-> not a transient or debug-level condition; it represents a genuine
-> resource conflict that an administrator needs to be aware of.
->=20
-> Switch from request_resource() + dev_dbg() to
-> request_resource_conflict() + dev_err() so that the conflict is visible
-> by default and the colliding resource is identified in the message.
->=20
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Link: https://lore.kernel.org/linux-cxl/69c1a8d1c0fa9_7ee3100a1@dwillia2-=
-mobl4.notmuch/
-> Signed-off-by: Tomasz Wolski <tomasz.wolski@fujitsu.com>
-Seems reasonable to me
+> From: John Groves <John@Groves.net>
+> 
+> The comment in dax_folio_reset_order() claims that DAX maintains an
+> invariant where folio->share != 0 only when folio->mapping == NULL,
+> implying folio->share is zero whenever mapping is non-NULL. This is
+> misleading because folio->share and folio->index are a union -- for
+> non-shared folios with mapping != NULL, reading folio->share returns
+
+Maybe for consistency refer to that as folio->mapping != NULL
+
+> the file page offset (folio->index), which is typically non-zero.
+> 
+> Reword the comment to accurately describe the union aliasing: the
+> assignment clears whichever interpretation of the union word is active
+> (index for non-shared folios, share for shared folios), which is correct
+> because the folio is being released in either case.
+> 
+> No functional change -- the code was already correct, only the
+> justification was wrong.
+> 
+> Fixes: 59eb73b98ae0b ("dax: Factor out dax_folio_reset_order() helper")
+> Signed-off-by: John Groves <john@groves.net>
 Reviewed-by: Jonathan Cameron <jic23@kernel.org>
+
 > ---
->  drivers/dax/bus.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 68437c05e21d..66413c6c2ba0 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -637,7 +637,7 @@ struct dax_region *alloc_dax_region(struct device *pa=
-rent, int region_id,
->  		unsigned long flags)
->  {
->  	struct dax_region *dax_region;
-> -	int rc;
-> +	struct resource *conflict;
-> =20
+>  fs/dax.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 6d175cd47a99b..df19c9317d10e 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -392,12 +392,12 @@ int dax_folio_reset_order(struct folio *folio)
+>  	int order = folio_order(folio);
+>  
 >  	/*
->  	 * The DAX core assumes that it can store its private data in
-> @@ -670,10 +670,11 @@ struct dax_region *alloc_dax_region(struct device *=
-parent, int region_id,
->  		.flags =3D IORESOURCE_MEM | flags,
->  	};
-> =20
-> -	rc =3D request_resource(&dax_regions, &dax_region->res);
-> -	if (rc) {
-> -		dev_dbg(parent, "dax_region resource conflict for %pR\n",
-> -			&dax_region->res);
-> +	conflict =3D request_resource_conflict(&dax_regions, &dax_region->res);
-> +	if (conflict) {
-> +		dev_err(parent,
-> +			"dax_region: can't claim %pR: address conflict with %s %pR\n",
-> +			&dax_region->res, conflict->name, conflict);
->  		goto err_res;
->  	}
-> =20
+> -	 * DAX maintains the invariant that folio->share != 0 only when
+> -	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
+> -	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
+> -	 * Callers ensure share has been decremented to zero before
+> -	 * calling here, so unconditionally clearing both fields is
+> -	 * correct.
+> +	 * Clear the mapping and the index/share union word. folio->share
+> +	 * and folio->index occupy the same union in struct folio. For
+> +	 * non-shared folios (mapping != NULL), the union holds folio->index
+> +	 * (file page offset); for shared folios (mapping == NULL), it holds
+> +	 * folio->share (reference count). Either way, we are releasing the
+> +	 * folio and both fields should be zeroed.
+>  	 */
+>  	folio->mapping = NULL;
+>  	folio->share = 0;
 
