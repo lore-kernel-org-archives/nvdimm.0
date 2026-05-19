@@ -1,163 +1,147 @@
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 170A23403E8
-	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 15:10:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FAA8408028
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 16:02:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779203427; cv=none; b=hZ1C+iqy/IL+PRo4Fl8nWPDAYxxRPPXAOCwb1usNXdfFdpFE/1qKiFI2wkTncAcLTJ/I0aG2XdqRS6MLceTX1DyfyIwpcHkcNj0v8Qo6adlJB8/3MCFPHBDiEpJyzCrnKMW/PFdO/8vjMqA4aQsmMWvsz7/LV9KNGKwBMb6YgO0=
+	t=1779206551; cv=none; b=gVDYODV/nJ5v5YpPEgMSwdkpPJck073tUz7j/1T8ISU8bBHK8A/kcl4eUCI3cRoOb++AftjWwPhByI3fEYCE35Xv7OPHN0WSNOt4QRQ+Qvoc8CoF+kOADgbQoZVSsta8vNcccIPpRyXnIKFdijEbiQD+iJ10OkdbbnTpEERTSzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779203427; c=relaxed/simple;
-	bh=XGcc2JVzH99KOlr4mv66ep9fGd0a2+n6kDv1XuMSCDk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VMBipD0fOSgUmPU38qw7ECE8sMyFk7y8alq1B+NCjCq72+r0Zde59Qw11pImSuTEVlA/TAJkV1piTGxPl9oBKezF2cJVjurrpwMaMNRSvewgnRhrcVO44I9Mn3O0QP5Nrt+U8U1wHrgXrn/+lCpqOFlIbr9Kph5RYhI6nz5im5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ly2sZgtm; arc=none smtp.client-ip=209.85.214.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779206551; c=relaxed/simple;
+	bh=sVD9iOMyuDxOPQd6LH1AX+QOLCpwxGAoSPTso0dXrNI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=f/1u4c1knvKIbDtNr4sO0B1TyKM2YEBl8xVwpyj1TQfBwBgmz4zUcEprEGvTQfhCh7ZVcNu99pq7SAieSd1V5HSJx3O57j71RXdaMtvCnnUugLoBmKi1+Qxzbxfa1lcP0MbGIaAwMuz+O/ywJsyy4/m8CWd2KUmxYVaVY7VNKdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QxGXQORl; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ly2sZgtm"
-Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2bd266f6fc0so17845805ad.2
-        for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 08:10:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779203419; x=1779808219; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=dNsRRNdoq/mh7bkgCE6Fn2FhIJG533x7ld3bg4XFCu8=;
-        b=ly2sZgtmS2NRyi51bfFHbf3xuxybzjgOqA+yMTTWqzS0IfTMvsJpcrbzm8vlrKzQng
-         imgPejzMeZpqI/n9CyRk8rycoG2GJd9xX/nCmcV5uWsoYsxb4vqSC++3/EXX0lmLM8Kn
-         CofgF6+ugNwu40Ty4KbYM6vwtwO+eJPtBPSWqEa/Ls6ZhT7/FRDS1huR0wtIxCB0Zb7i
-         ccwgm61JFfrx5VMtKbzaq5UTygBxsk75XIwONl0Cgu3ICMTxrq821m4yQe25wn1Zojji
-         vYN0y24p6pcdCXAwUXhSszP9T9CGogn+Gspcmj+OR+jHsb6qqx6di/wmLvYQG8W0sHML
-         ao0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779203419; x=1779808219;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=dNsRRNdoq/mh7bkgCE6Fn2FhIJG533x7ld3bg4XFCu8=;
-        b=LE9ScK1DTMVMo+/MGKIkYhJ84+g5hjeGjq1TUI3YvP0vnpaQxFMPnMSuRURI3TeC5o
-         PMJP2d8olvfPfdeua6H13+Xdz22yCSz826ls2oiuELbIr5VTut4B9Xi8sK5xJyN8f/3C
-         jin6il57x5c5t2F3Ebet/WZzMAut3oSxlWUCaKrTLR/4QldUB90PU+7O7hRAC2krBFTN
-         FPGHypjLmUVM3mcVNyGWh/eSgkIKcNTTEO1d0T+vQgtUeu4DoGPcA/Aqdmc/WR3Aj6S7
-         hRlmOZpcsL69Bwtim4TpaXv8gCcO4bGKiWjwi3PPzVzDc+sl2jsfV1m1+j3ka2iK3EDf
-         H2yg==
-X-Forwarded-Encrypted: i=1; AFNElJ8PT/LEGQz0rS5F5NIqIxme9NdH7XvAYcekLSjT6/REwH2WGMRMxLKK/Jv/IqyEY6h64Ehdrao=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwlkfLYuCmB33zLdooFQEAmRFcjP7rWpaKfmex6WfaXx4gpeEK9
-	aWboh3ArldGn7o+zsooKGOXOSx/gqbSxKUSd1uYyf8AtKwQjAQ20tHik
-X-Gm-Gg: Acq92OEBwCPbhBlc6NBd/8bi6NWkfT2O4jfZc4N0/bLH4k5pu/+rdxIiqE+pl8xnpWD
-	VVIKyiRPhT90Q6VnkorPf4mvzLdmFrGLmDK1AIiKqjNPUjPGLyoQAJ6pjcg1keIcb+DCniLpElt
-	SHI9kuQ2h7xvLZSUY8SMq1D9r57GFwfpdhj2MJ31moGmzExsWUjGGEbdlw9yXfRTh2cwCk76ltG
-	uPLswXDsL90g1ZhHIl+wxWzXV+qqP10Nf+OonnXNybNFN+uzi4q6PsKIV5CKHTT9wrbQ4wYFa4U
-	K/retXFw2YlncI023k5/of9gaRpSlhE1RaICTSqGo2J2R1j+xUB0MXxEIMrX4jQcE1i4UaWE6Df
-	M88x5asmldxQFlpe/SankSHc7Uw6mGba0yO9iWX+3Nb4eqs+edF+anFj8o7tzCPt6AvKL7q271H
-	DSa+4bGW15g697BEvC9TQZ134PmqnHzSAjGaXImmI+JyTvZig5mV4PJ8b9
-X-Received: by 2002:a17:903:90e:b0:2bd:e452:a484 with SMTP id d9443c01a7336-2bde452a535mr99470535ad.33.1779203419298;
-        Tue, 19 May 2026 08:10:19 -0700 (PDT)
-Received: from arter97-x1 ([58.124.177.116])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2bd5d11ce67sm193784595ad.74.2026.05.19.08.10.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 May 2026 08:10:18 -0700 (PDT)
-From: Juhyung Park <qkrwngud825@gmail.com>
-To: linux-mm@kvack.org
-Cc: Juhyung Park <qkrwngud825@gmail.com>,
-	stable@vger.kernel.org,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Jason Gunthorpe <jgg@nvidia.com>,
-	David Hildenbrand <david@kernel.org>,
-	"Mike Rapoport (Microsoft)" <rppt@kernel.org>,
-	Oscar Salvador <osalvador@suse.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Andy Lutomirski <luto@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dan Williams <djbw@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Subject: [PATCH] x86/mm: fix vmemmap leak on memory hot-remove
-Date: Wed, 20 May 2026 00:10:08 +0900
-Message-ID: <20260519151008.1399226-1-qkrwngud825@gmail.com>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QxGXQORl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779206550; x=1810742550;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=sVD9iOMyuDxOPQd6LH1AX+QOLCpwxGAoSPTso0dXrNI=;
+  b=QxGXQORlahfvm/zEOangKzKKbEkygc4j2AH0zvG/QI1bEVonTTcaZhMJ
+   LSGioVO31uLOAlnl5ho3biEFO/4ERZU1lrndwMfqOrdYmhUyQwCSdGXJi
+   KNuAwZpwy3TbXO/4T/Cd1KZHt+gj4W6q0FNMHJ1e2Fjwi08CUaMYz0zZd
+   H9mqPIrkcwSblOaNM7pI+9xBIzHyZnrPBG0QkxzZCtnl6uYkQeoCGV8u5
+   6gmc3BtAaMg8wEqsWvRXiQzdp6NbL9oHL+fqVRcsrxL0yo3hbE0psI6gP
+   98fXn3g54+olO2f5ufVeKfR+srWuA4qWZh1/xlH0YA9Bktjd3S1gJcv5A
+   Q==;
+X-CSE-ConnectionGUID: PptLUN+vQdezOLgaNJbCSQ==
+X-CSE-MsgGUID: 13njjkJaTWWB7+Zmbw/HPg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11791"; a="67618669"
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="67618669"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 09:02:23 -0700
+X-CSE-ConnectionGUID: ZMQsuowJTlStRdVrTb1PTg==
+X-CSE-MsgGUID: vfSD41RVSgOsJOv4ILrdAw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="233444490"
+Received: from ssimmeri-mobl2.amr.corp.intel.com (HELO [10.125.109.111]) ([10.125.109.111])
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 09:02:22 -0700
+Message-ID: <5d00b63c-1802-450f-8e54-8da6c0aeedc2@intel.com>
+Date: Tue, 19 May 2026 09:02:26 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] x86/mm: fix vmemmap leak on memory hot-remove
+To: Juhyung Park <qkrwngud825@gmail.com>, linux-mm@kvack.org
+Cc: stable@vger.kernel.org, Lu Baolu <baolu.lu@linux.intel.com>,
+ Jason Gunthorpe <jgg@nvidia.com>, David Hildenbrand <david@kernel.org>,
+ "Mike Rapoport (Microsoft)" <rppt@kernel.org>,
+ Oscar Salvador <osalvador@suse.de>, Andrew Morton
+ <akpm@linux-foundation.org>, Dave Hansen <dave.hansen@linux.intel.com>,
+ Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dan Williams <djbw@kernel.org>,
+ Dave Jiang <dave.jiang@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
+ linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ Matthew Wilcox <willy@infradead.org>
+References: <20260519151008.1399226-1-qkrwngud825@gmail.com>
+From: Dave Hansen <dave.hansen@intel.com>
+Content-Language: en-US
+Autocrypt: addr=dave.hansen@intel.com; keydata=
+ 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
+In-Reply-To: <20260519151008.1399226-1-qkrwngud825@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-free_pagetable() is called via free_hugepage_table() with
-get_order(PMD_SIZE) = 9 to free the 2 MB vmemmap PMD leaves that back
-struct page arrays on x86_64. After commit bf9e4e30f353 ("x86/mm: use
-pagetable_free()"), it goes through pagetable_free() instead of
-__free_pages(), and pagetable_free() ultimately calls
-__free_pages(page, compound_order()) which ignores the explicit order
-argument and infers it from the page's compound metadata.
+On 5/19/26 08:10, Juhyung Park wrote:
+>  #endif
+>  	} else {
+> -		pagetable_free(page_ptdesc(page));
+> +		/*
+> +		 * Use __free_pages() to honor @order: vmemmap PMD leaves
+> +		 * freed here are not compound pages, so pagetable_free()
+> +		 * would lose leak 511 of 512 pages per 2 MB chunk.
+> +		 */
+> +		__free_pages(page, order);
+>  	}
+>  }
 
-The vmemmap PMD chunks are allocated by vmemmap_alloc_block() using
-alloc_pages_node() without __GFP_COMP, so PG_head is not set and
-compound_order() returns 0. Only the first of 512 pages of each PMD
-chunk is returned to the buddy allocator on hot-remove; the remaining
-511 pages stay allocated and become unreachable. Generalized: roughly
-16 MB leaked per GB of hot-removed memory per cycle.
+I find myself really wondering how much of this came from a human and
+how much from the LLM. Could you share that with us?
 
-The leak affects every memory hot-remove path on x86_64 when
-memmap_on_memory=N (the default), including dax_kmem, virtio-mem,
-balloon drivers, ACPI memory hotplug, and direct sysfs offline+remove.
-memmap_on_memory=Y avoids it because free_hugepage_table() then takes
-the altmap branch and does not call free_pagetable().
+We're trying to get _away_ from using the 'struct page' APIs on page
+tables. This goes backwards. Worst case, do:
 
-Reproduced with CXL memory toggled through DAX in a loop:
+	/* vmemmap PMD leaves are not compound pages */
+	for (i = 0; i < 1<<order; i++)
+		pagetable_free(page_ptdesc(&page[i]));
 
-  daxctl reconfigure-device --mode=system-ram dax0.0 --force
-  daxctl reconfigure-device --mode=devdax    dax0.0 --force
+Right?
 
-Fixes: bf9e4e30f353 ("x86/mm: use pagetable_free()")
-Cc: stable@vger.kernel.org
-Cc: Lu Baolu <baolu.lu@linux.intel.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dan Williams <djbw@kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev
-Assisted-by: Claude:claude-opus-4-7
-Signed-off-by: Juhyung Park <qkrwngud825@gmail.com>
----
- arch/x86/mm/init_64.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Even better would be to *make* these compound pages.
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index df2261fa4f98..a2301bddb647 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1024,7 +1024,12 @@ static void __meminit free_pagetable(struct page *page, int order)
- 		free_reserved_pages(page, nr_pages);
- #endif
- 	} else {
--		pagetable_free(page_ptdesc(page));
-+		/*
-+		 * Use __free_pages() to honor @order: vmemmap PMD leaves
-+		 * freed here are not compound pages, so pagetable_free()
-+		 * would lose leak 511 of 512 pages per 2 MB chunk.
-+		 */
-+		__free_pages(page, order);
- 	}
- }
- 
--- 
-2.54.0
-
+Even better than that would be to use some 'struct ptdesc' space to
+explicitly store the order, just like compound pages. But that's
+probably not trivial and probably not great for a bug fix.
