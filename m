@@ -1,126 +1,130 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.ilvokhin.com (mail.ilvokhin.com [178.62.254.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17BFB3314DE;
-	Tue, 19 May 2026 11:49:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3C5C3328FD
+	for <nvdimm@lists.linux.dev>; Tue, 19 May 2026 11:54:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.62.254.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779191383; cv=none; b=VNY6hgyMU5u5LwHQj+M2ccbsYhLNkuI/uidieJJ5naob9bD8P1s3xtOlmsbvYjb41DfPlc6eW/KTd5eOptvE0yQE6hkgmwlghC+nVW0+fCsu+lX9nAHTtPtHCNokdOb7cGkZavQJctYwToHLNCtwVrpRCmHglj1a1QDTQ7pwzlI=
+	t=1779191694; cv=none; b=F6SNiI8ayZtgd9TkCyZi2JuIugl8xws8AaO+5diXjgUS00dQUtUjisrBxsiZtjkz9o2VOgjE8Q3f+J0CLc4FFj1X+YgEDLGepVT8NUSiAbFaQhtpRydaBxJyXITB7Aql625/GNhZ8Ku8sIkaw47K6uhhOQK4SdJ4f4rpgjNZ8n8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779191383; c=relaxed/simple;
-	bh=UpRjlMr0kBpQT1Dq9GKlBlF1j95+pLOSWlZJyRaJ1/A=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=DmZdGizhTHem93mFCW4SPOfr3IZB9/dEP6fLlobtYLcT2TB6QubNuoKtustnTPSmy+4D7a4drYeR8mS+3HdyoxSq/Hug+jhkonqdA34dZu1+kgvUtIKZqQDs2O4DKYecWmB5SEYJvyegqBiVxLLZAQvw4X71kuAZXFwHpfBCrrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lj/1iUEl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779191694; c=relaxed/simple;
+	bh=cKW7IkjJxSkTHJyCv4yQtVqFIKFwmALPt8LBCwWDIIg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bGBHXnxh70eiIzGnIF9vDMpHSfs6tf6MD+IsXBD+kRlguRG0p58Wtpx0UOActBZEx2TxwmKvFYbmI+h2/zb5dhLDyoHWs9kTMVp1CImPTqyOZGzhl7CpBHPsOqSPffnMQDZSm/FkxjvUce+q4pJuu7HlWjgnpswjWEszdMXK0Go=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=Q1JzYcRw; arc=none smtp.client-ip=178.62.254.231
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lj/1iUEl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C7A3C2BCC7;
-	Tue, 19 May 2026 11:49:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779191382;
-	bh=UpRjlMr0kBpQT1Dq9GKlBlF1j95+pLOSWlZJyRaJ1/A=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Lj/1iUElD+O+yvVtkw/ZXDNYxv9mNEwtDdW2dbU5kFm5Q9B/MuSlL2pzRqxF9HdMY
-	 w+fPLIXpz8QpmiERprKOEsoom+DiaWO8t8fJoFMKpTBX0ecfeqt5GYCAs6jtyx4P7M
-	 7/c5NPK1SqZf4mP975zl2d6KGCQ6AJOgKfLWZ1HRudL81k9Q098vWI584jklCzOInD
-	 LLQV1KXjK1ukBH032UxgTqtTRLw/j1mNEQE71W56wD6k/8bpLyGZJgAkKnWozTsZSX
-	 wvOaTRdgKLnNqrh39ImoSKhC/g853qklhlWQ65aY/5xatsUri1BOCQNBUut+lFcf8Q
-	 C+P+OvBZlKmbA==
-Date: Tue, 19 May 2026 12:49:34 +0100
-From: Jonathan Cameron <jic23@kernel.org>
-To: Chen Pei <cp0613@linux.alibaba.com>
-Cc: alison.schofield@intel.com, dave.jiang@intel.com, guoren@kernel.org,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, Lucas De Marchi
- <lucas.demarchi@intel.com>
-Subject: Re: [ndctl PATCH 2/2] daxctl, util/sysfs: skip module probe-insert
- when driver is builtin or live
-Message-ID: <20260519124934.6bdda161@jic23-huawei>
-In-Reply-To: <20260519034849.38047-1-cp0613@linux.alibaba.com>
-References: <20260518170141.215d1755@jic23-huawei>
-	<20260519034849.38047-1-cp0613@linux.alibaba.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="Q1JzYcRw"
+Received: from shell.ilvokhin.com (shell.ilvokhin.com [138.68.190.75])
+	(Authenticated sender: d@ilvokhin.com)
+	by mail.ilvokhin.com (Postfix) with ESMTPSA id 493A7D0805;
+	Tue, 19 May 2026 11:54:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ilvokhin.com;
+	s=mail; t=1779191690;
+	bh=zRsE2vPKgX0eKECBE4DwNFiQcuKvIy6vdkZ9SvFMc0M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Q1JzYcRwX2pTPEtrYf0z7m3PrTSq18eHaWrkis/FXOdB4twrWKYeT4CnSzHXUdawM
+	 S3MbO93VNARrHdUYm5q7cIGGMbRFnzyNJCiHx606X6pk6qBvrg4zBygxdVrafDXzc/
+	 mfp2U7xo5A3eHG/j8q1GVS41p96lDysWkZjkNgp0=
+Date: Tue, 19 May 2026 11:54:49 +0000
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Miguel Ojeda <ojeda@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
+	Christian Brauner <brauner@kernel.org>,
+	Marco Elver <elver@google.com>, "H. Peter Anvin" <hpa@zytor.com>,
+	Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	kernel-team@meta.com
+Subject: Re: [PATCH v3 3/4] cleanup: Annotate guard constructors with
+ __nonnull()
+Message-ID: <agxPiQKt2pykEIA4@shell.ilvokhin.com>
+References: <cover.1779116497.git.d@ilvokhin.com>
+ <1854fc006c03647a3201a442743a1c22b13b404d.1779116497.git.d@ilvokhin.com>
+ <CANiq72mG-EpBWbW_hZYPgtV_R1vyUBsn0ytaz2X2Zw9fr0keOA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANiq72mG-EpBWbW_hZYPgtV_R1vyUBsn0ytaz2X2Zw9fr0keOA@mail.gmail.com>
 
-On Tue, 19 May 2026 11:48:47 +0800
-Chen Pei <cp0613@linux.alibaba.com> wrote:
+On Mon, May 18, 2026 at 08:19:35PM +0200, Miguel Ojeda wrote:
+> On Mon, May 18, 2026 at 5:22 PM Dmitry Ilvokhin <d@ilvokhin.com> wrote:
+> >
+> > Add __nonnull() to unconditional guard constructors so the compiler
+> > verifies at each call site that NULL is never passed:
+> 
+> > This provides automated, compiler-enforced verification that no
+> > unconditional guard constructor receives NULL.
+> 
+> I wouldn't say "verify", since the compiler does a best-effort here
+> with the information it has statically.
+> 
+> In other words, the attribute does not prevent NULL pointers to be passed.
 
-> On Mon, 18 May 2026 17:01:41 +0100, Jonathan Cameron wrote:
->=20
-> > > I think this patch is worth you trying. In libmkmod code I'm looking =
-at: =20
-> >=20
-> > It doesn't work - hence the reply!
-> >  =20
-> > >=20
-> > > https://github.com/lucasdemarchi/kmod/blob/master/libkmod/libkmod-mod=
-ule.c
-> > >=20
-> > > the "module directory exists but initstate cannot be opened" case ret=
-urns
-> > > KMOD_MODULE_BUILTIN, not KMOD_MODULE_COMING. =20
->=20
-> Hi Jonathan,
->=20
-> Thanks for testing and the detailed analysis.
->=20
-> I wasn't able to reproduce this on my setup because the modules.builtin
-> index is correctly installed, so kmod_module_get_initstate() returns
-> KMOD_MODULE_BUILTIN at the first step (via kmod_module_is_builtin())
-> without ever falling through to the sysfs path.
->=20
-> That said, I understand the scenario =E2=80=94 developing in a VM with
-> CONFIG_DEV_DAX=3Dy but without running modules_install is a perfectly
-> reasonable workflow, and I agree it's worth addressing.
->=20
-> However, I feel that the suggested workaround (adding a COMING +
-> sysfs-dir-exists-without-initstate check in ndctl) is papering over
-> what is fundamentally a libkmod issue. When a module is builtin and
-> /sys/module/<name>/ exists without an initstate file, libkmod should
-> not return KMOD_MODULE_COMING =E2=80=94 that state implies a module is
-> actively being loaded, which is not the case for a fully initialized
-> builtin driver. The root cause is that kmod_module_is_builtin() fails
-> when modules.builtin is missing, and the sysfs fallback doesn't
-> distinguish "builtin without initstate" from "module in transition".
+Fair enough.
 
-Agreed. I'm curious why it was built that way.  I scraped an email address
-that is hopefully the right Lucas from another thread. +CC
+I'll re-word this paragraph as "Add __nonnull() to unconditional guard
+constructors so the compiler warns when NULL is statically known to be
+passed" and drop the "compiler-enforced verification" paragraph.
 
-Brief summary is that this series was trying to avoid a message when
-module load fails due to it already being loaded, or built in but some
-of the files are missing (as say no modules installed).   If modules.builtin
-isn't there we get return value of KMOD_MODULE_COMING as the extra is it
-loaded heuristic doesn't work because the initstate file isn't there at
-all.
+> 
+> > + *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-nonnull-function-attribute
+> 
+> Hmm... It appears GCC has changed the docs in commit 6e3c137f5dbb
+> ("doc: Merge function, variable, type, and statement attribute
+> sections [PR88472]"), dropping the per-kind attribute pages.
+> 
+> So the right link would need to be now:
+> 
+>   https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-nonnull
+> 
+> I will need to send a patch to fix the other links.
 
-My suspicion is this is papering over a race condition that occurs in
-a normal module load -  it may not be possible to tell the difference
-between COMMING and BUILTIN reliably.
+Fixed locally. Thanks!
 
->=20
-> I think the proper fix belongs in libkmod: the sysfs fallback in
-> kmod_module_get_initstate() should return KMOD_MODULE_BUILTIN (or at
-> least not COMING) when the directory exists but initstate does not.
->=20
-> For now, would it be acceptable to keep this patch as-is (covering the
-> BUILTIN and LIVE cases) and note in the commit message that the
-> modules.builtin index must be properly installed for the builtin
-> detection to work? If there is consensus that ndctl should carry the
-> workaround regardless, I'm happy to send a v2 with the additional
-> COMING handling. CC Alison.
-This is indeed better than current situation and given it's ultimately a
-case of message suppression that seems harmless. So I don't mind this
-if handing the corner case I hit is too complex.
+> 
+> > + * clang: https://clang.llvm.org/docs/AttributeReference.html#nonnull
+> 
+> I think this link goes to `_Nonnull` -- the GNU one is instead:
+> 
+>   https://clang.llvm.org/docs/AttributeReference.html#id10
+> 
+> (I don't love the numeric IDs, though, since they break, so I think it
+> is fine either way -- the `_Nonnull` is fairly close to the one we
+> want and I hope that one doesn't break)
 
-Jonathan
+I don't quite like numeric IDs either. There is only one #id reference
+in include/linux/compiler_attributes.h and link is already dead. I'll
+keep current link since it gives at least some clue what to look for on
+the page.
 
->=20
-> Thanks,
-> Pei
+> 
+> > + */
+> > +#define __nonnull(x...)                        __attribute__((__nonnull__(x)))
+> 
+> This is indeed available for a long time, and we already use it
+> elsewhere in the kernel tree (which would be nice to clean up
+> separately).
 
+> 
+> If you don't mind, please place it before `__nonstring__` (the file is
+> meant to be sorted by the actual attribute name -- there are a few
+> instances where this is not the case anymore, which I will eventually
+> clean up)
+
+Thanks, fixed locally.
+
+> 
+> Thanks!
+> 
+> Cheers,
+> Miguel
