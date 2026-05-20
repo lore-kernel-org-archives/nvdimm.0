@@ -1,143 +1,158 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D602371063
-	for <nvdimm@lists.linux.dev>; Wed, 20 May 2026 03:56:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3743E2C3266;
+	Wed, 20 May 2026 04:49:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779249395; cv=none; b=Ot5vBkY64vhVQlIvC1aTf11r5gBY+Jr2cLqzSx47XKCzaQUJQElHglWG2x6j0ledi/IFPHkGtTX9Fu1diEcupXpZ7go6fDYWS/Kcg3qveJFerNWpJrkVPA0aDYXI6/V4BqGVBJvarHGwcBQrlSEl+zsuT6U7wzpa0pO1fT9sukQ=
+	t=1779252579; cv=none; b=sal/iY9ZHI/v6cvRafKzwaQWAvkoH3oHiXJo1syTj5f9vkT4BZaK3Yk4s5PfAxV67RDWsCBj4lQidLxC5OM6mX3BAySuS/lhYLPpuV+p9cnrcJ0QAp3ulvcx+sa1R7Z9td9GufKGO8uDpWXYtDlkFOAEDCiTc/dOa0mSJ/kEwtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779249395; c=relaxed/simple;
-	bh=OYwWmGW4VJ45HybR3KWpW+Ex8/FpANhlftj9FMzMwWE=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=pHz67XEU3TCGdj2ZW4JdEwGkcdIZrRChOflofogItuPQ5d6SBkAzJZF1PUN25Gqs9kC9fETDPWOiLoSzE8S+huMutEtymgnkyoj/4QBeOmLiT+58kvVwMo57wU46g0rRee/thQPiQblG8VoDIUvFVUfg5Rvd8eJv1qrtwIHDv14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Yi5WmgT9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779252579; c=relaxed/simple;
+	bh=tsG6ru1MSskiNeLeYJb7YmgjFyXpcchBrtO7IX97SW8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DL/OozueO3QolDPy6vqAjCjCQVPX66u/SVBtIlFiGccHMKkKAEYk0fTsaKMNScxX1odDsbSsXftTrT8vD50FzVb9muW3Nh+nUElR/Z3jIw0glzPDWkO0tFDiUqTezB7EbaaCb/BO1jhiPMAQ9wdCUK+ySUrQVmU8+4/SRkefZec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZTGSwtJw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Yi5WmgT9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C7F61F00893;
-	Wed, 20 May 2026 03:56:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZTGSwtJw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DDE41F000E9;
+	Wed, 20 May 2026 04:49:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779249391;
-	bh=Lf4BSX3FaLVLxFUZXG4X89++fzsTeeUiOreKare3NAE=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=Yi5WmgT9qNmzIgl56d/8FR7Zec2qjm/QGuwMJJVK/eiZ+iHrkP+HTlejkd27p2kMs
-	 DgRek713kzBYXkFUfqP7Jel+kY3sGBrncvmxsixNR9U5P/LCYZ3sXQprVSU/Mngp1E
-	 ajBqr+C/NOFBlMlWtjS5VsbgJ+1sCQELS67yBdY+gLcFMx5dONa2l/arBIveDdJyG4
-	 ltUJzugmZROiOzyn8SO0XGE70UjwmnzjoJkR6WAK92GGycDY9b+qRwyhUnxD4c2jIq
-	 IoL5HB0CBtL6ZIK1RjNQXGqX5VItFd4xKyeLgH6ADIXSLXGtTST5sSwBklLZUV1DX8
-	 lWUP2/lYIyb1g==
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfauth.phl.internal (Postfix) with ESMTP id B4533F40088;
-	Tue, 19 May 2026 23:56:30 -0400 (EDT)
-Received: from phl-imap-16 ([10.202.2.88])
-  by phl-compute-02.internal (MEProxy); Tue, 19 May 2026 23:56:30 -0400
-X-ME-Sender: <xms:7jANagnWq9yfpj9HU2UuHzAfR7RJZP1GNX34AMbOM3A4JVdf6PZC7g>
-    <xme:7jANaqoLUVFcEpaXUlGrNV5q5fiZf9Y40Jxh1ROH0D4n0h7yrMiIrsLgeQSfwLUDP
-    CxKJBDizbi0-KYnDIviUwzNKVCIh_hhT6dreG457Gkmj8GTX_G6YLV5>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgddugeefiedtucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdejnecuhfhrohhmpedfffgrnhcu
-    hghilhhlihgrmhhsfdcuoegujhgsfieskhgvrhhnvghlrdhorhhgqeenucggtffrrghtth
-    gvrhhnpeegueekjeehudehheduffekgfehvddtgfeutdeukeeihefhleeuieeuuedtteeh
-    ieenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivgeptd
-    enucfrrghrrghmpehmrghilhhfrhhomhepughjsgifodhmvghsmhhtphgruhhthhhpvghr
-    shhonhgrlhhithihqddujeejvdeftdegheehqdeffeefleegtdegjedqughjsgifpeepkh
-    gvrhhnvghlrdhorhhgsehfrghsthhmrghilhdrtghomhdpnhgspghrtghpthhtohepudeg
-    pdhmohguvgepshhmthhpohhuthdprhgtphhtthhopegsvghnjhgrmhhinhdrtghhvggrth
-    hhrghmsegrmhgurdgtohhmpdhrtghpthhtohepshhmihhtrgdrkhhorhgrlhgrhhgrlhhl
-    ihgthhgrnhhnrggsrghsrghpphgrsegrmhgurdgtohhmpdhrtghpthhtohepthhomhgrsh
-    iirdifohhlshhkihesfhhujhhithhsuhdrtghomhdprhgtphhtthhopehjohhnrghthhgr
-    nhdrtggrmhgvrhhonheshhhurgifvghirdgtohhmpdhrtghpthhtoheprghlihhsohhnrd
-    hstghhohhfihgvlhgusehinhhtvghlrdgtohhmpdhrtghpthhtohepuggrnhdrjhdrfihi
-    lhhlihgrmhhssehinhhtvghlrdgtohhmpdhrtghpthhtohepuggrvhgvrdhjihgrnhhgse
-    hinhhtvghlrdgtohhmpdhrtghpthhtoheprghruggssehkvghrnhgvlhdrohhrghdprhgt
-    phhtthhopehnvhguihhmmheslhhishhtshdrlhhinhhugidruggvvh
-X-ME-Proxy: <xmx:7jANakhaQIct7-HcyDQh8Uys7wpXa4e7QFzi4zl6DeyKCBJ-bmeG2A>
-    <xmx:7jANasdESi0dWC1NCP28lLBSKgUX_GtnbBZAOSfMx-slJWtoeyob7Q>
-    <xmx:7jANatIXCZBblrz8LlnkrOwQ6a-nq_tzhE7gzrH2cBpeXFRjo7a8Nw>
-    <xmx:7jANaplDiMSFS8x-QBz0m3L-tG-9XWYTw3KXvWpQ88susceytl1ibg>
-    <xmx:7jANaleur3pSS5wx0W7GXKSDYWCwv4zBOLV7VZDQlkebo4W8TlDyGTgd>
-Feedback-ID: i67ae4b3e:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 9341A2CC0083; Tue, 19 May 2026 23:56:30 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	s=k20260515; t=1779252577;
+	bh=Tk2ES+Q3aJ0Hik8oCA5uTW4MnCjo5aHhcTtkv4972Ck=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=ZTGSwtJwOo8pDeyMJs2WKS4u/0mO8JTu5XBp2wgVPVK8YtwUxoDHAW1cFpv1T8rcM
+	 hmPKJRUDOpSaG8VQmetvCbeNXtV0w7oqEW5Zh6YE1pt/yUqM7TMkT5gaALgw0blL1P
+	 biDwfFU5xLlGfnVut3my08IajnDqDr/LV51SbgIqGjZBLjLvU97TCzOL9cLVBPMGeu
+	 xy8icAcL7LjpfY8ySeVxmFRBS2QfANLgUFCyjX4rj24rX6UXyP38OL2d4BBP3qK5gk
+	 SVreGzzqfmkk41m43iY6FajidL64ANLCAxa4bSTUWbWX4DFeo+ypJCArXndJCQQokd
+	 lCzkWMDVcCFeA==
+Date: Wed, 20 May 2026 07:49:27 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Juhyung Park <qkrwngud825@gmail.com>,
+	Vishal Moola <vishal.moola@gmail.com>
+Cc: Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org,
+	stable@vger.kernel.org, Lu Baolu <baolu.lu@linux.intel.com>,
+	Jason Gunthorpe <jgg@nvidia.com>,
+	David Hildenbrand <david@kernel.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>, Dan Williams <djbw@kernel.org>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH] x86/mm: fix vmemmap leak on memory hot-remove
+Message-ID: <ag09V3UyN2aWA7Wb@kernel.org>
+References: <20260519151008.1399226-1-qkrwngud825@gmail.com>
+ <5d00b63c-1802-450f-8e54-8da6c0aeedc2@intel.com>
+ <CAD14+f2p7D6eco+-O0X6zWwi-XaxGLs0nQKDAC8eVWhQmB1VhA@mail.gmail.com>
+ <e38e5fd0-db57-417b-a2d1-0521333ae7cb@intel.com>
+ <CAD14+f3sohXj9SKEkRXGK_Mpbp73R5az-tsiHnHkj0poBHwpvw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Date: Tue, 19 May 2026 20:56:11 -0700
-From: "Dan Williams" <djbw@kernel.org>
-To: "Tomasz Wolski" <tomasz.wolski@fujitsu.com>,
- smita.koralahallichannabasappa@amd.com,
- "Alison Schofield" <alison.schofield@intel.com>,
- "Dan J Williams" <dan.j.williams@intel.com>
-Cc: icheng@nvidia.com, linux-cxl@vger.kernel.org,
- "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
- linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
- nvdimm@lists.linux.dev, ardb@kernel.org, benjamin.cheatham@amd.com,
- "Dave Jiang" <dave.jiang@intel.com>,
- "Jonathan Cameron" <jonathan.cameron@huawei.com>
-Message-Id: <ec26d3de-d556-4ab9-a333-d69d1e6cdda7@app.fastmail.com>
-In-Reply-To: <20260519101832.31988-1-tomasz.wolski@fujitsu.com>
-References: <20260519101832.31988-1-tomasz.wolski@fujitsu.com>
-Subject: Re: [PATCH v2] dax/bus: Upgrade resource conflict message to dev_err() in
- alloc_dax_region()
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAD14+f3sohXj9SKEkRXGK_Mpbp73R5az-tsiHnHkj0poBHwpvw@mail.gmail.com>
 
+(adding Vishal)
 
+On Wed, May 20, 2026 at 01:59:49AM +0900, Juhyung Park wrote:
+> On Wed, May 20, 2026 at 1:41 AM Dave Hansen <dave.hansen@intel.com> wrote:
+> >
+> > On 5/19/26 09:27, Juhyung Park wrote:
+> > > Hi Dave,
+> > >
+> > > On Wed, May 20, 2026 at 1:02 AM Dave Hansen <dave.hansen@intel.com> wrote:
+> > >>
+> > >> On 5/19/26 08:10, Juhyung Park wrote:
+> > >>>  #endif
+> > >>>       } else {
+> > >>> -             pagetable_free(page_ptdesc(page));
+> > >>> +             /*
+> > >>> +              * Use __free_pages() to honor @order: vmemmap PMD leaves
+> > >>> +              * freed here are not compound pages, so pagetable_free()
+> > >>> +              * would lose leak 511 of 512 pages per 2 MB chunk.
+> > >>> +              */
+> > >>> +             __free_pages(page, order);
+> > >>>       }
+> > >>>  }
+> > >>
+> > >> I find myself really wondering how much of this came from a human and
+> > >> how much from the LLM. Could you share that with us?
+> > >
+> > > Not my first kernel contribution, just so you know. (first in mm tho)
+> > >
+> > > I asked Claude to write both the commit body and comment and it was
+> > > too verbose. I manually trimmed it down.
+> > > Sorry if it still sounds too LLM-ish.
+> >
+> > Yeah, it still sounded really LLM-ish to me. Still rather chatty.
+> >
+> > > This was tested on a VM with virtualized CXL device and toggling it
+> > > back and forth was visibly causing leaks. kmemleak was unable to catch
+> > > this (rightfully so), so I skeptically asked Claude to see if it can
+> > > figure it out while pwd was the kernel source the VM was running.
+> > > "Access the VM at "ssh -p2223 root@192.168.0.185". There's a memory
+> > > leak whenever CXL memory switches modes via: daxctl reconfigure-device
+> > > --mode=system-ram dax0.0 --force, daxctl reconfigure-device
+> > > --mode=devdax dax0.0 --force. Figure out why. If you need to reboot
+> > > the VM, do not do it yourself and ask me."
+> > >
+> > > It did in 6 minutes and it basically told me to revert bf9e4e30f353. I
+> > > was very skeptical and reviewed manually (with my short knowledge of
+> > > mm) why this would be a correct fix.
+> >
+> > Neato.
+> >
+> > >> We're trying to get _away_ from using the 'struct page' APIs on page
+> > >> tables. This goes backwards. Worst case, do:
+> > >>
+> > >>         /* vmemmap PMD leaves are not compound pages */
+> > >>         for (i = 0; i < 1<<order; i++)
+> > >>                 pagetable_free(page_ptdesc(&page[i]));
+> > >>
+> > >> Right?
+> > >
+> > > Shouldn't I worry about the loop overhead? With order == 9, that's 512
+> > > iterations. That's compounded to O(N) when the entire memory size is
+> > > in consideration.
+> >
+> > Is it optimal? No.
+> >
+> > Will anybody ever notice? Also no.
+> >
+> > Will anybody ever care? No sir.
+> 
+> Just spun a test with that loop. It doesn't fix the leak.
+> 
+> I hate to be the guy that copy-pastas LLM but this is outside my
+> knowledge of mm. Claude suggests:
+> "Each pagetable_free() on the tails is a no-op: When
+> alloc_pages_node(node, gfp, order=9) returns without __GFP_COMP, the
+> buddy allocator only sets _refcount = 1 on the head page. The other
+> 511 pages (page[1] … page[511]) have _refcount = 0. There's no
+> compound metadata, so they aren't "tails" in the folio sense either —
+> they're just contiguous pages whose refcounts the allocator never
+> touched."
+> 
+> Any ideas?
+> 
+> Thanks.
+> 
+> >
+> > Can you measure the difference? I'd wager a beer: No again.
+> >
+> > Even if someone manages to notice, then you have a clear path to fix it
+> > *right*: fix the ptdesc data structure to represent high-order allocations.
 
-On Tue, May 19, 2026, at 3:18 AM, Tomasz Wolski wrote:
-> The dax_region resource conflict in alloc_dax_region() indicates a
-> serious configuration problem =E2=80=94 two subsystems (e.g. dax_hmem =
-and
-> dax_cxl) are attempting to register overlapping address ranges. This is
-> not a transient or debug-level condition; it represents a genuine
-> resource conflict that an administrator needs to be aware of.
->
-> Switch from request_resource() + dev_dbg() to
-> request_resource_conflict() + dev_err() so that the conflict is visible
-> by default and the colliding resource is identified in the message.
->
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Link:=20
-> https://lore.kernel.org/linux-cxl/69c1a8d1c0fa9_7ee3100a1@dwillia2-mob=
-l4.notmuch/
-> Signed-off-by: Tomasz Wolski <tomasz.wolski@fujitsu.com>
-> ---
->  drivers/dax/bus.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 68437c05e21d..66413c6c2ba0 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -637,7 +637,7 @@ struct dax_region *alloc_dax_region(struct device=20
-> *parent, int region_id,
->  		unsigned long flags)
->  {
->  	struct dax_region *dax_region;
-> -	int rc;
-> +	struct resource *conflict;
->=20
->  	/*
->  	 * The DAX core assumes that it can store its private data in
-> @@ -670,10 +670,11 @@ struct dax_region *alloc_dax_region(struct devic=
-e=20
-> *parent, int region_id,
->  		.flags =3D IORESOURCE_MEM | flags,
->  	};
->=20
-> -	rc =3D request_resource(&dax_regions, &dax_region->res);
-> -	if (rc) {
-> -		dev_dbg(parent, "dax_region resource conflict for %pR\n",
-> -			&dax_region->res);
-> +	conflict =3D request_resource_conflict(&dax_regions, &dax_region->re=
-s);
-
-Just report the request_resource() failure. This case does not warrant e=
-xporting request_resource _conflict(). Historically one driver can not m=
-ess with another driver's resource beyond conflict detection.
+-- 
+Sincerely yours,
+Mike.
