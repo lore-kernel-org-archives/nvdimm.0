@@ -1,170 +1,186 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E47A23EA976;
-	Thu, 21 May 2026 14:12:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779372774; cv=none; b=PQIA1N84vYJe40pxh9hy1M8/bKgtEArvsEBzLJavqzoGlw/8z8cUMOmGnOlMJ1XPB3XLR6OXyAqROYM1IwUbxtp/T1lPNSIlXK5oCi+a6LeDVlygCefZJ7k/74Q7mIHt094Ga6PizfDz4lclaj7+G/8nsS8wTs9sVeXYISU3ZU0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779372774; c=relaxed/simple;
-	bh=7wJ/Oj9CcLN3cp1Lt3/QbZFmmeb4J+rxFd/fVdBr7QA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=h2+fmYc/dVT+tBZxVa70aqoIMhoxN6pGghcVzBeKT/CPBYt8avxb4d0B2z67mkDuirA0+oYA03EQx50bWgnA0/WvK/PA7ODURn8NH0bNiUcpGnNnxIymFUr7vwAMJ1SO2ewee1Q5px9RrWeytkYljD6MOQVtUdW3VUvRwdLQTPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XBqiQP9c; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 941C6397321
+	for <nvdimm@lists.linux.dev>; Thu, 21 May 2026 19:30:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.13
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779391846; cv=fail; b=Ff6cHwLVXA4IrVe4w9jCPrYAB6YUWl16JevOP3a8dJQoXo3rKgIYwLd22GB2vhBexGkkpTbSJjl/rdzg/bjyj2eiwMzxzskkvZ6LBp8K2Y2pXDruPA35LhuJRb/6ndaVSbcXRZa0xOxd1Wrw3ticL42TKLvleqSPTm8Njh2Ek+o=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779391846; c=relaxed/simple;
+	bh=UwsVLY3BDhoT9YDi/ivAW9u//rIPalajtbee4AB8Jjs=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=kYawXtf/2P1eEuPky9acWrC9LQgOx15cD+vg07WO9WDvWyv0Hs8V1O93x73r4WpmhPPNp5Fm57QyJYLhGvnqjZDcNqeD2rZ98QesHv6+6llHyENnr22MgoYxU90S4JhlUpflBSpB7miZEfRU8h5H+KogS+I/wd7c0wnatBQDgV8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LHs1EJQG; arc=fail smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XBqiQP9c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 577DB1F000E9;
-	Thu, 21 May 2026 14:12:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779372772;
-	bh=WbDZ86X+l6IZWJWNcLY5koHwC+tgCiPfqrLA8vRC/bE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=XBqiQP9cmpB+zXdv//2yPu8yuAQpljdlj2602oqQA3cQtS0YxH8vvnyaKpThIjzzf
-	 Dc6j7Rg8sf1fIJXcaGpjiZcah+Te5xCAZbp7ku9KTNWUcjczYi/8eMO/Dpu6Hng8UV
-	 T8n5+O8d1rRRg1axxRU2v86O7OJsnwbejtP/AFa/ypcxXQQNKsU6gbLWKzqbZJ1DTN
-	 aPjPInk18fNpztnwzrH4fT0k5Mv3SFNdwxZ1HNeIsGMKuCTjUePMwVhg1n+Dvay97F
-	 Rz7f9uktm5DW70URjYlwoxMLzQ8kzCadhqzWMT4jeEqa8nZ9CWlDOU1Y2mTLZmtyqj
-	 Bf34LMHCi57Uw==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Hans de Goede <hansg@kernel.org>, Armin Wolf <w_armin@gmx.de>,
- Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- nvdimm@lists.linux.dev
-Subject:
- [PATCH v1 01/17] ACPI: bus: Introduce devm_acpi_install_notify_handler()
-Date: Thu, 21 May 2026 15:59:50 +0200
-Message-ID: <2268031.irdbgypaU6@rafael.j.wysocki>
-Organization: Linux Kernel Development
-In-Reply-To: <4739447.LvFx2qVVIh@rafael.j.wysocki>
-References: <4739447.LvFx2qVVIh@rafael.j.wysocki>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LHs1EJQG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779391846; x=1810927846;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=UwsVLY3BDhoT9YDi/ivAW9u//rIPalajtbee4AB8Jjs=;
+  b=LHs1EJQGYUeEvy0XDYUvt6jUrEii8L9uruOADdBRkbC33jr75AP2FRNK
+   S62KT7AsFCgkrx5eLK9Oo/JnFgrFhMxGRVhKaplLnAjFDpjP3p6xuD2wW
+   Y+21F+HXTWZQXm97cvvQfsl7/ryJ0TG2RoboblR0RRnPGqvqRLB+wU1AM
+   q6cAphTh9N2ff3DNh1jeJvOZ5+FQrr1tZp1J3Uuq8Gnaw5iDVdOmSft+Q
+   +g62Th5jxn+wGak3tQ+9A5fliPZIJC2bQk69hVPnUYh1E6mHQ0xKV/Fel
+   Liy34bX1jrVZNWtuAClDM1Qb3EQvxDkwMvl2ufmPTuRoWmOQdjgIrbxec
+   Q==;
+X-CSE-ConnectionGUID: 1JNGW95NQn6T++A0zOR9pA==
+X-CSE-MsgGUID: 7SMbyc/KSuCM63KRLUt1Dw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11793"; a="82897705"
+X-IronPort-AV: E=Sophos;i="6.24,161,1774335600"; 
+   d="scan'208";a="82897705"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2026 12:30:45 -0700
+X-CSE-ConnectionGUID: Ht4RVFvPQ7yxR9cQrStNjg==
+X-CSE-MsgGUID: pjaeTYlNQ5e5GK8oTOsfwg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,161,1774335600"; 
+   d="scan'208";a="245670182"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa005.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2026 12:30:45 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Thu, 21 May 2026 12:30:44 -0700
+Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37 via Frontend Transport; Thu, 21 May 2026 12:30:44 -0700
+Received: from SA9PR02CU001.outbound.protection.outlook.com (40.93.196.21) by
+ edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Thu, 21 May 2026 12:30:44 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=DX21VbY1f+q8qlQwkinHkvcYVBdWUrx1rhsUGYPcinbNjxCE4ywzqrZFpIiDoQVj0WFhgUXd62DvsiGk1Tpx05r2IH7EPkTQn+97yKgJsSwoz1uztMriklBcyPW7JQlH4NCFBJd607U4EmBI0bz+X6SeLDk55SgvM/gE5cmksEWDXlzEepJkwBf9nHBp0JYJGqbU7gfQoLLuR5d4ifWySFz9+ZAZRap03aPjS+Wk+Ljc/Enulby9+biMM+lun63lmXkwOnJrZkEfz/TI+L8dpMkGxdkMrLDHVwYtArwxQEbL/crKcXHOOqKIUmMFWvDHJ6F7GPLlH5tm88evKWSG6A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=WSvu4Wk/zf6WqPTRNo+UqV2vGaE2oIXfxnv3T3FndMI=;
+ b=jgNmawWADQMhpD3AS+eVDWHMME6t9QiS4s48/Fx9qfhZbdNq951EajG17+PmP+OmhcB25hV2cU4WKs01aM5YRoZs6l904laZmBEHMOfTqghm+adPZmkrDa1ETqIRsKm+YkReA9LtUv4DTjBJmN3fk9QnVfLNFCDOfYKY1tdxCq+7eUuRHNXGYI2vlXkyKIOqD1WGy8gDTz9xC4p7kfH4b/SB9sevdam7L3VQhOvWXjeTIXPPWTvW7a7wIUDKC03YU2TaM7eDIDj6Xb93t6ZlxNLkA0D/u4YB8STWGeirwHdGtM3o1IkgDOPWLXqSxFLZre6Txd+5Tg+XwVb846KoLw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by PH0PR11MB4918.namprd11.prod.outlook.com (2603:10b6:510:31::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.17; Thu, 21 May
+ 2026 19:30:42 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::a195:49d4:38c5:3891]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::a195:49d4:38c5:3891%4]) with mapi id 15.21.0048.016; Thu, 21 May 2026
+ 19:30:42 +0000
+Date: Thu, 21 May 2026 12:30:33 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [NDCTL PATCH v2] cxl: Add CXL type2 accelerator unit test
+Message-ID: <ag9dWW0VAjp6-0AL@aschofie-mobl2.lan>
+References: <20260515001203.2628149-1-dave.jiang@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260515001203.2628149-1-dave.jiang@intel.com>
+X-ClientProxiedBy: SJ2PR07CA0017.namprd07.prod.outlook.com
+ (2603:10b6:a03:505::17) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|PH0PR11MB4918:EE_
+X-MS-Office365-Filtering-Correlation-Id: 44a0a5b2-c06c-4e5b-e25e-08deb76f7270
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|18002099003|22082099003|56012099003|3023799007|11063799006;
+X-Microsoft-Antispam-Message-Info: xkFMjKtVCHb9JPsnO2WEo+9j5Na/ymJEuWlDAspfwL1N7WLOe1ncFmqnhXbt4DDy4SnDOFnNhdxnW/6PawpCq/Emnh9O7FUHyY9bUvTGJXVYCCWFqfJLWA6P8KZHUMJFyt/sTuJzP/9TTOdvAKuPr6kg09Wunk0KVt7cCqKdHaT1JFWOl33G6idKt/YojO5N9mCT4KSmrv42DCCXyiVqc7O8ZDf+bo0BG5/XzulwCYpMJokF8+yVd8BD3beMvpTgjzO9QcUuyjrHTRSPVjcFSq2M7gTSkUgyu5PIdk1eAbat8CBh1THyIhIXGFVDa5LLnQrINKvHwcQH3xXEVRKcqZkeu7BvJ1kHtzjTs9aWK1YWJuAOPEQCac5qInrEVqFndFRi4B0oiMh7sA4oepbFpCsTU6ZDf7lyTCOfykLqyu2q4YGl5ORkLy8eyUZ7el5nxDhbRGoKpFRXYTuiUqW8EB32Y+5paYoYQn4xomAGqjpG3E/s5AQRgzkzgBsKs3P1Jptlbh7rA0wFjUFitV6bUdK8wBD+4XStZW+xGUC4rlnlGKP9XVorg0jJ0P9mOb8jVCUKRIV0K970aMMuz6eGQ3D1s9hKUY8071vw58V06sDbI+uhCBEh8otknVWNEXg47k9nnGLei3lfB1LhSouQS6hJJKIie1j4Sy8ybf8LYC7bgTTz9Ex0W1saF7kKUdgN
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(18002099003)(22082099003)(56012099003)(3023799007)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?43N2asBJrKl3Cin7P2tYb3juf2JJ/Z8ZmsfVqGHu+kuGUOXxKZ6pf5vWoBnE?=
+ =?us-ascii?Q?B/6GD+84P/Xgh1mGG7Dp909gYUyjmRyOqraY+r1+f3ln6sOP++dGE6HYjDgp?=
+ =?us-ascii?Q?mXk1ZRjCDpPp3Oz/+G/scCuFPLsfXb83h6R6qDHnhMVtRnmf8p7z/k7DBD9X?=
+ =?us-ascii?Q?4zmIrRyL/P1cZAaIoQ8rWX2seU7frTFEW7b5W85I35Tr2qpFXeYh3S/NF5Gh?=
+ =?us-ascii?Q?XmxZ7tNHNameK88ZNA04WSD9PxWZq8qceP/39SrFMhYfXsuZLC5VCqzfwj5e?=
+ =?us-ascii?Q?xgzeK1srNKB1rn0In2Co52K+h8u6eb95EVkqICWdTkzkUt+9a1szAvx98f7k?=
+ =?us-ascii?Q?gsfW3iV4lUe1/lRauynLp4AgUMhjIdGHisdNskWOn5oEBg5oLJQcT1gEJfPZ?=
+ =?us-ascii?Q?ahsbtM3PtxY9ZIBENt5TrfrX1hpfOJha1GKegnVh1itCrVybKVck5beZ3efc?=
+ =?us-ascii?Q?u1MmBioBGyMyMkyS+ZirvisUijgGRp7+hx+hgUy05K7XuOV+wizw52HgCvlV?=
+ =?us-ascii?Q?qHgA5ohdc4AIUbzgO6vmm1VpDGxJStoXYMnrRVgS7pgtHFbyEh0Y19byktg1?=
+ =?us-ascii?Q?NFAe3zmgTj244Reu8gX81MA6scnxkiG2TzaF2AHHQ58oeQOi3g2HGAKB0eQ1?=
+ =?us-ascii?Q?a6TlD8SiQRrR+QoylPrhbNszl7nV/a61GjU9LI2oitKyAdQgWsveRldQEVdw?=
+ =?us-ascii?Q?LGXQTXPr766+K9PBy1N29YhQrGMEEfC1yvYIcKQcJYB/URaWyBmYUSQ6bW6y?=
+ =?us-ascii?Q?ILCBO9eUl3xxZgwfYDbldjFesLdgFzKgPcnfRt7VM03TdNvuzbzpLYWUmlvx?=
+ =?us-ascii?Q?NxK1XC2eudUbUWogmiZmaleZd/im3uD/MjGDS36483Bp6yKlRQuo4cFKFtkO?=
+ =?us-ascii?Q?ouMMhzVmExYXDqraGtIyfXj/dwoonDcDHQ+7m3w53g6u9zhzlHj54NWi9VQF?=
+ =?us-ascii?Q?/ciHozFRRwiHTz7XlU7bGh5nH30vdQlFJlJup8DxvpJS0a4OzFb2RN7P41ll?=
+ =?us-ascii?Q?5afjDY65zd+vKbBjXJlmiN0kSwfNh/bjel7o88ISleNQJWiytegAoy7eeIk+?=
+ =?us-ascii?Q?ZZla5xOfJ1bP7vy1XgVOaVtKtbXJxIFw/6G674lpm2r1z2zt5zDYoSzdqCdR?=
+ =?us-ascii?Q?V2e2MeNyirNGkGcHpYathN8wYPEMyQEVIuD1HZhhRizmn1Hmeu3TdBjzWijs?=
+ =?us-ascii?Q?uI1GWTQMHTxocwAKD6EO7oTJ+5ncEWIouFdXDF55wovYyIg+zhL9/2lx+7JT?=
+ =?us-ascii?Q?Bvb6wCIfVL3CWaxziYJLLO3zVeZy4a4XUij5ClRBYLGRyq/FrLg8BtydZZbX?=
+ =?us-ascii?Q?MEnPNRziGZt7BJDnT/PkjRabq1Y/Y9OKqkb6Om47gkesXSxC8rFss8qIXQrC?=
+ =?us-ascii?Q?pfJ71NhYTTev835taGULninvmIY7vHrZEAWQD4/d9YNDYX5XSaui3yO5Euu0?=
+ =?us-ascii?Q?d65AdWrQ5xUZEsOpwuD59G82ncpFd4dykuOGqDRZD+Vgs9a5r3zJQ4cIYmsO?=
+ =?us-ascii?Q?HgTwviApboF8fNGA1+FRShYxsrnEO0CrsfPghoj00Tgtd2Zirj5WysDr7KhF?=
+ =?us-ascii?Q?jrSqwKkA68u1u64cfSm7MtdBbamsZkORLJDDfK70kQRL8/MZnFJegHn0gpqt?=
+ =?us-ascii?Q?0lRFy6VyyXwOETKtnpfN4gFEa0DvlsIVWJmUj6BdbVIthM2L3FSjpFM13brs?=
+ =?us-ascii?Q?k1ajzIoVd14fyglPknl4PHglbbyAq0AD0CoYPU1yRLOBAO/xkiaDyCfgcRPU?=
+ =?us-ascii?Q?4bewcWlDFweE6B2bCcWEV5GZFKmnKck=3D?=
+X-Exchange-RoutingPolicyChecked: O65O9oCnq5oeWxkjUiyKcNwAj1iNAwFQAysHHsWKtNlnalVT7wxiqjnIOZYIj15Lg+vTBnOaDaIJO4HVpSREtqvUC68BsiulvxlFL2ROEJ6MzccZLKp0IT3RUTNq0VH/lxutZqzMgVSL4kmJ+4tUvRmNT9ThkdQsuPMIMWTJBvpjaLffliWekoJD137rnvGkHBfgci2QtyOUq99O9Cl3JheJifjZ9DOebY3l/iw/nQuqvBqbY6bTo53WDWMk84najZigWMyOt+9jF73ZUFbQPJmUUzgQXiU/IQGstL3Vu+iLGcqgSclAlwbyfaDSFOpit05d5Ec9wZPYnbkl4E1JcQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 44a0a5b2-c06c-4e5b-e25e-08deb76f7270
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 May 2026 19:30:42.4458
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: l5HThux/xC7aANN0c5sv72wZVy0rFNb2YOVT+4TE8YeyX2euVWJk0dZUnvW5F4wwmsF7BRquIQ1q9Y5fEVmlWAo5hawREPh0lIGtosXKA+s=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR11MB4918
+X-OriginatorOrg: intel.com
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Thu, May 14, 2026 at 05:12:03PM -0700, Dave Jiang wrote:
+> CXL type2 hierachy can be setup via the cxl_test. Add a regression test
+hierarchy
 
-Introduce devm_acpi_install_notify_handler() for installing an ACPI
-notify handler managed by devres that will be removed automatically on
-driver detach.
+> unit to CXL CLI to verify the type2 loading/unloading. Test include
+Tests
 
-It installs the notify handler on the device object in the ACPI
-namespace that corresponds to the owner device's ACPI companion, if
-present (an error is returned if the owner device doesn't have an ACPI
-companion).
+> removing the root port and bringing it back, unbinding the type2 mock
+> device driver and bringing it back, and checking to see if a region
+> can be destroyed and a memdev can be disabled.
+> 
 
-Currently, there is no way to manually remove the notify handler
-installed by it because none of its users brought on subsequently
-will need to do that.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/bus.c      | 67 +++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |  2 ++
- 2 files changed, 69 insertions(+)
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 2ec095e2009e..84f0ab47fd40 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -679,6 +679,73 @@ void acpi_dev_remove_notify_handler(struct acpi_device *adev,
- }
- EXPORT_SYMBOL_GPL(acpi_dev_remove_notify_handler);
- 
-+struct acpi_notify_handler_devres {
-+	acpi_notify_handler handler;
-+	u32 handler_type;
-+};
-+
-+static void devm_acpi_notify_handler_release(struct device *dev, void *res)
-+{
-+	struct acpi_notify_handler_devres *dr = res;
-+
-+	acpi_dev_remove_notify_handler(ACPI_COMPANION(dev), dr->handler_type,
-+				       dr->handler);
-+}
-+
-+/**
-+ * devm_acpi_install_notify_handler - Install an ACPI notify handler for a
-+ * 				      managed device
-+ * @dev: Device to install a notify handler for
-+ * @handler_type: Type of the notify handler
-+ * @handler: Handler function to install
-+ * @context: Data passed back to the handler function
-+ *
-+ * This function performs the same function as acpi_dev_install_notify_handler()
-+ * called for the ACPI companion of @dev with the same @handler_type, @handler,
-+ * and @context arguments, but the ACPI notify handler installed by it will be
-+ * automatically removed on driver detach.
-+ *
-+ * Callers should ensure that all resources used by @handler have been allocated
-+ * prior to invoking this function, in which case those resources should be
-+ * devres-managed so that they won't be released before the notify handler
-+ * removal.  Otherwise, special synchronization between @handler and the
-+ * management of those resources is required.
-+ *
-+ * When the request fails, an error message is printed with contextual
-+ * information (device name, handler function and error code).  Don't add extra
-+ * error messages at the call sites.
-+ *
-+ * Return: 0 on success or a negative error number.
-+ */
-+int devm_acpi_install_notify_handler(struct device *dev, u32 handler_type,
-+				     acpi_notify_handler handler, void *context)
-+{
-+	struct acpi_notify_handler_devres *dr;
-+	struct acpi_device *adev;
-+	int ret;
-+
-+	adev = ACPI_COMPANION(dev);
-+	if (!adev)
-+		return dev_err_probe(dev, -ENODEV, "No ACPI companion in %s()\n", __func__);
-+
-+	dr = devres_alloc(devm_acpi_notify_handler_release, sizeof(*dr), GFP_KERNEL);
-+	if (!dr)
-+		return -ENOMEM;
-+
-+	ret = acpi_dev_install_notify_handler(adev, handler_type, handler, context);
-+	if (ret) {
-+		devres_free(dr);
-+		return dev_err_probe(dev, ret, "Failed to install an ACPI notify handler\n");
-+	}
-+
-+	dr->handler = handler;
-+	dr->handler_type = handler_type;
-+	devres_add(dev, dr);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(devm_acpi_install_notify_handler);
-+
- /* Handle events targeting \_SB device (at present only graceful shutdown) */
- 
- #define ACPI_SB_NOTIFY_SHUTDOWN_REQUEST 0x81
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index c41d9a7565cf..7e57f9698f7c 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -629,6 +629,8 @@ int acpi_dev_install_notify_handler(struct acpi_device *adev,
- void acpi_dev_remove_notify_handler(struct acpi_device *adev,
- 				    u32 handler_type,
- 				    acpi_notify_handler handler);
-+int devm_acpi_install_notify_handler(struct device *dev, u32 handler_type,
-+				     acpi_notify_handler handler, void *context);
- extern int acpi_notifier_call_chain(const char *device_class,
- 				    const char *bus_id, u32 type, u32 data);
- extern int register_acpi_notifier(struct notifier_block *);
--- 
-2.51.0
+Hi Dave,
+FWIW I tested this v2 using v1 of the kernel cxl-test patchset.
+Doubtful, but possible, I may have more comments when I sync
+up with v2 of the kernel set.
 
 
+snip
+> +
+> +init_check() {
+> +	load_kmod
+> +	[ -f /sys/module/cxl_test/parameters/type2_test ] || \
+> +		do_skip "cxl_test type2_test module param not available"
+> +	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region')
+> +	[ -n "$region" ] || err "$LINENO"
 
+This needs the //empty treatment so that if the cxl-test module doesn't
+provide the autoregion upon load, we fail right here.
 
+It looks like //empty is used to verify removal or disappearance
+cases, but not in the positive discovery checks where we depend
+on cxl-test topology to provide a valid object. Everywhere that
+jq result is treated as a shell string testing for existence,
+it needs the check. That keeps the failure messages 'on point'.
+
+snip
