@@ -1,38 +1,38 @@
-Received: from a11-16.smtp-out.amazonses.com (a11-16.smtp-out.amazonses.com [54.240.11.16])
+Received: from a48-184.smtp-out.amazonses.com (a48-184.smtp-out.amazonses.com [54.240.48.184])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B6CE224AF9
-	for <nvdimm@lists.linux.dev>; Fri, 22 May 2026 19:18:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98BAC224AF9
+	for <nvdimm@lists.linux.dev>; Fri, 22 May 2026 19:18:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.48.184
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779477496; cv=none; b=SppsxfIaIRdv121uPueQioAlzTEE9LilOZy6NeJhvXglIFc+XdN/pt2A3F5vi2ABxWI74cZTbCxs16PSgX8/nPJMHGR11vNPsqoNG/XBjXO3sKR9VfDG0f7YSu1oZ74Be37Ls7aTAzJYCIDq7f0Ch+xRaQKgCj99qD7N4nVtVDE=
+	t=1779477531; cv=none; b=hk2DUNUafVfdhF4iBp/DHIc8PRwdBC0/megpW+ChJ04H3djBsHMS0pDrImi0noJ0sPwfl7CC2DlhCjxCuVIREbfeVN6EUpbACf6gQxBKye+orHQiV3CFY0L4DW6T5IrduGBXcfFdXrH52RQ1Vz2yZFyqPkwy2s/WovGEMGa4kLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779477496; c=relaxed/simple;
-	bh=GS8F3/FZCcEbrCU4MmYVe1jnbe/e3t7eS27byBqfua8=;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:References:
-	 Message-ID; b=BKl00dRaxvx/1J3QAzoWZqYh/qpm9euLYC4sfC+w3qBhg8pEdTc1fG+F3otSjo5h7EN9Vld+/HIFYxLFvOgdz8wRmQJDNilV6+fPFLj79prCe8wvjwZUBmPK5tU9VFxgh67LQy6PD38UYaSU1CGGiW265nj+xhJpQb7AoK+yec4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=Y5E0lUH9; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=grLZ9dV0; arc=none smtp.client-ip=54.240.11.16
+	s=arc-20240116; t=1779477531; c=relaxed/simple;
+	bh=ZEr4rH5sFsPpkQSuhtgi45OULySeed0QHY3Iak60oUw=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
+	 References:Message-ID; b=kdyEYcjj4x5MANodL6frJyx8ZieKquarlT9z97kB52/QrpGkr4833hHO65B25Fyqcd7lNTVf4ti96rxyL24ui0avT4+VZaZ3o+rcHI8np5k302loJSUdQzt7Z+tu8ThZRfS/mnx+AyoiDbpP+6fl4A2PzqNCGlbUq3tv9yxISFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=vn/rsM5c; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=ZgS/Zt+U; arc=none smtp.client-ip=54.240.48.184
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="Y5E0lUH9";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="grLZ9dV0"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="vn/rsM5c";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="ZgS/Zt+U"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1779477494;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id;
-	bh=GS8F3/FZCcEbrCU4MmYVe1jnbe/e3t7eS27byBqfua8=;
-	b=Y5E0lUH9wlQ6HkgrT/9ia9uHK82aFgyOC5N/SLa2J/61gJui7zT0JNQZALfuPFlJ
-	OJmxNRBSDafYRxfyHnO0dmFnLXhlVCFl/Bii8KgJe96KcDKHC2g8fek1nBGAO4nabQC
-	iOnbKiQSYr+XjUFnqG2Et+bw6tzDPMGjxyJN03pM=
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1779477529;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
+	bh=ZEr4rH5sFsPpkQSuhtgi45OULySeed0QHY3Iak60oUw=;
+	b=vn/rsM5cgdmpAxt2EtwoNb+7W9cMUKqIo+AK/zazSBc9SzOW3S4xyGGyw2PdemTp
+	RXdJ4xztM/0OMzMOqyzq2ZELxoo2gfAUksMre3xyriaqpNB5TrmwO1QU+21mJBQKzcP
+	DX6hu81OWnB4TGeEP1EmnidZJaOVnrxe76vG42o4=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1779477494;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id:Feedback-ID;
-	bh=GS8F3/FZCcEbrCU4MmYVe1jnbe/e3t7eS27byBqfua8=;
-	b=grLZ9dV0yDA2hRHJ9Lnep6725UaZERgdu4KYIrraZbUs72+sY1VqaIyapoPOxy/m
-	itMrmOuaP05UBpyc7S60qtJsp9Y2+nJ3G6Suf5KLOiTwZDGWAoMnI39e89m5ZRldaOA
-	bi2+DRNTdYIHNdrAu1JjDE0PnQNCPYbizkHra3Y0=
-Subject: [PATCH V2 0/7] Fixes to the previously-merged drivers/dax/fsdev
- series
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1779477529;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
+	bh=ZEr4rH5sFsPpkQSuhtgi45OULySeed0QHY3Iak60oUw=;
+	b=ZgS/Zt+UTA1kvLyER5bGrjKMMmPLJD26zfciucyfxUfb1BSFkPfLyYxslRIPodny
+	pbMFhFRJ3vwxFHyrgPoI4/Kp+AltTXtcACFAhxGJS+/3UWgXm/HBzkRfx0B0A7mqXp9
+	EDQ16VLxdy/4KreRxdDG+JjoA/Ck74LLV4gm+z1E=
+Subject: [PATCH V2 1/7] dax: fix misleading comment about share/index union
+ in dax_folio_reset_order()
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>
@@ -52,7 +52,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Fri, 22 May 2026 19:18:13 +0000
+Date: Fri, 22 May 2026 19:18:49 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -61,52 +61,69 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-References: <20260522191804.79088-1-john@jagalactic.com>
+In-Reply-To: 
+ <0100019e511fb82e-1a444df3-8310-40ed-8380-72e1373d5da9-000000@email.amazonses.com>
+References: 
+ <0100019e511fb82e-1a444df3-8310-40ed-8380-72e1373d5da9-000000@email.amazonses.com> 
+ <20260522191843.79132-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHc6h+7e4zSojcNRQ2wV9eJQr6w4g==
-Thread-Topic: [PATCH V2 0/7] Fixes to the previously-merged drivers/dax/fsdev
- series
-X-Wm-Sent-Timestamp: 1779477492
+Thread-Index: AQHc6h/Qss1/hrKVRpePc6yzczysHQ==
+Thread-Topic: [PATCH V2 1/7] dax: fix misleading comment about share/index
+ union in dax_folio_reset_order()
+X-Wm-Sent-Timestamp: 1779477528
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019e511fb82e-1a444df3-8310-40ed-8380-72e1373d5da9-000000@email.amazonses.com>
+Message-ID: <0100019e512043a6-62e6e881-6d31-48e2-86f0-bb2c32248f0a-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.05.22-54.240.11.16
+X-SES-Outgoing: 2026.05.22-54.240.48.184
 
-From: John Groves <john@groves.net>
+From: John Groves <John@Groves.net>
 
-This series applies bug fixes (mostly found via sashiko) to the dax/fsdev 
-series. This has been soaking in the famfs CI pipeline for 2+ weeks and
-1) won't affect anything that doesn't use drivers/dax/fsdev.c, and 2)
-doesn't affect any known workloads - although the bugs would have 
-manifested when multi-range DCD dax devices are a thing (soon-ish).
+The comment in dax_folio_reset_order() claims that DAX maintains an
+invariant where folio->share != 0 only when folio->mapping == NULL,
+implying folio->share is zero whenever mapping is non-NULL. This is
+misleading because folio->share and folio->index are a union -- for
+non-shared folios with mapping != NULL, reading folio->share returns
+the file page offset (folio->index), which is typically non-zero.
 
-Changes since v1:
-* Dropped modes from patch 6 to fs/fuse/famfs.c and 
-  fs/famfs/famfs_inode.c, which are not upstream so it broke
-  attempts to apply the series. Oops...
-* Added patch 7, which addresses a previously-missed review comment
-  from Jonathan - minor cleanup
+Reword the comment to accurately describe the union aliasing: the
+assignment clears whichever interpretation of the union word is active
+(index for non-shared folios, share for shared folios), which is correct
+because the folio is being released in either case.
 
+No functional change -- the code was already correct, only the
+justification was wrong.
 
-John Groves (7):
-  dax: fix misleading comment about share/index union in
-    dax_folio_reset_order()
-  dax/fsdev: fix multi-range offset, vmemmap_shift leak, and probe error
-    cleanup
-  dax/fsdev: fix kaddr for multi-range and fail probe on invalid pgmap
-    offset
-  dax/fsdev: clamp direct_access return to current physical range
-  dax: fix holder_ops race in fs_put_dax()
-  dax: replace exported dax_dev_get() with non-allocating dax_dev_find()
-  dax: fsdev.c minor formatting cleanup
+Fixes: 59eb73b98ae0b ("dax: Factor out dax_folio_reset_order() helper")
 
- drivers/dax/dax-private.h |   2 -
- drivers/dax/fsdev.c       | 104 ++++++++++++++++++++++++++------------
- drivers/dax/super.c       |  51 +++++++++++++++++--
- fs/dax.c                  |  12 ++---
- include/linux/dax.h       |   6 ++-
- 5 files changed, 129 insertions(+), 46 deletions(-)
+Reviewed-by: Jonathan Cameron <jic23@kernel.org>
+Signed-off-by: John Groves <john@groves.net>
+---
+ fs/dax.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/fs/dax.c b/fs/dax.c
+index 6d175cd47a99b..df19c9317d10e 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -392,12 +392,12 @@ int dax_folio_reset_order(struct folio *folio)
+ 	int order = folio_order(folio);
+ 
+ 	/*
+-	 * DAX maintains the invariant that folio->share != 0 only when
+-	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
+-	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
+-	 * Callers ensure share has been decremented to zero before
+-	 * calling here, so unconditionally clearing both fields is
+-	 * correct.
++	 * Clear the mapping and the index/share union word. folio->share
++	 * and folio->index occupy the same union in struct folio. For
++	 * non-shared folios (mapping != NULL), the union holds folio->index
++	 * (file page offset); for shared folios (mapping == NULL), it holds
++	 * folio->share (reference count). Either way, we are releasing the
++	 * folio and both fields should be zeroed.
+ 	 */
+ 	folio->mapping = NULL;
+ 	folio->share = 0;
 -- 
 2.53.0
 
