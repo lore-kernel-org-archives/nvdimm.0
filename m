@@ -1,63 +1,63 @@
-Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
+Received: from mail-dy1-f179.google.com (mail-dy1-f179.google.com [74.125.82.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26CF73932D5
-	for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 09:44:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DCC53947B0
+	for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 09:44:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779529476; cv=none; b=L7i0W/fRjITYlDjHkIYVd56L5x1qAoYQgcNVdV+VP70RuXFmDp+hsnzZ2foYpMaSSdASP/gCCVObStNPgl/mmxpnxpS4TIMWYhG0Wc1SYSV6tdPx2engTsAGoIbc0RKZkLByBZjka8CoarZCKp211cs0qXXDW1sgd+rTQBVF5W8=
+	t=1779529479; cv=none; b=jOv2oFSc36V4Bzbp9qZpZpwGHKileISkZ235OdyHVG+JJMcNGMXFtOyUc8RduHPgCfo1+SZmGXkJYZPiTY/WHCfmF1eEs4Nio9X4aSYAgaoQHD0KiYbjIMJYP8whMAZgWFO4LXWee3YhRj9YjgZ6+fPGpCjWEnuKoajKIlIU5jQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779529476; c=relaxed/simple;
-	bh=cOFNXdBj4qha6TGxX2ZSw+zwsAD8nUAMxe5/btjr9Co=;
+	s=arc-20240116; t=1779529479; c=relaxed/simple;
+	bh=IE31zLQ8b5City3YceOuiDfyz8n4EFb6nKKOmshO/v0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Xc9dURCmsdtGFXxw0FLB/WQb8YXHRK3uAct7UtCpr4JvLL1Vgu7VCPSL1Peklr0jrEuni3pUpHvAVSCJEl+/Q9E6HCMTddndyqGmrMsUNGYzb81O2sa0LL7VXctBjGOF4plwz5mUkNQ/TcHP8SveJnbq9emARpuUrPB+cj1Q4NY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gGjgzPdo; arc=none smtp.client-ip=74.125.82.176
+	 MIME-Version:Content-Type; b=PofxLvJb03JPLRRXmDEeWq/5tWkx3FyewTukCqPSid902wDHiCCkD6lYJx4hspIfc1j26bSMklgHEtWZgx4cNXBOco1hYcPjf7uSJtn9o7Z8Eg2NODc5JmAHUQMv++2B7IOE+JZDDY+3yXBFAVSN2VyH2Cv8rcVlmu/Sjuj3s5M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TSbGdtIU; arc=none smtp.client-ip=74.125.82.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gGjgzPdo"
-Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-30246cfd41aso1923240eec.1
-        for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 02:44:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TSbGdtIU"
+Received: by mail-dy1-f179.google.com with SMTP id 5a478bee46e88-3042dffd80bso4370198eec.0
+        for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 02:44:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779529473; x=1780134273; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1779529475; x=1780134275; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=jHudOBLt79OQ68nY4yqgXRwcgWLKxKpKlgc/lDj0j6E=;
-        b=gGjgzPdovFPN3Kuw9QfWr71lRIsnoMeylNgml6l20e/U04x+rfG4/3tiPlZCu7FkH4
-         2lSXD3CeoRApMLU4BpMhAcTPWSXTntbYEtOmg5Ucs19KtGrQlzS6ZYRFhZxkm5bzOdSt
-         HC7l2yS7aeNzn0fX/MlI2ZXXpI4sk4F40w5J9syWt4xBoe+1Cbmodi7qOkVhCwU1etrr
-         yrphohU7AePmnjQEr9c3DUh+7vsSjfP2xY5XAWE9NcIuxU2Fx57EG1L676EtnDqSA6nr
-         hiQQ1C3dFCNtOXV8T6y876lJdk3GqXx0g7TIyn7L0q6ZHvP+9mvrskvoQ/bfwDOBrq5B
-         85WA==
+        bh=vRo7Rd9YqShqpiqZKCPk6am0B8cUoLr1eHpVW7X6FPw=;
+        b=TSbGdtIUcYZ/OEBKJZk1FocvnpvAzQLW+bA3my44ihkwds1wnf3k4hUN281igt0/TN
+         LaxSyJDbXRZOGdQyIW1cjsFMoQMtKwq2FpFUg0IgzYgU3zmPkMHUFKabSLTwGv3oR0An
+         Q2SCZ7SGXm8vsI1BvhOWqHrbL93Ygh7sj3Q4f2zjHgkH9VLEoxPMucwe0m01i0RVCDnQ
+         Er3Nn+OnY6Usl2cAuqs/CmUQ8MaoRfCMHvphgRsUpZbQpSgGPb9FAyRpsT1+hGg58Ces
+         JflO3u8TQ/D99V18Dzuo/2UxzGHZbECg8cYXAh9ekQQ6dWBhB6nP9esGLuoxlSsxQbuU
+         Y2oA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779529473; x=1780134273;
+        d=1e100.net; s=20251104; t=1779529475; x=1780134275;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=jHudOBLt79OQ68nY4yqgXRwcgWLKxKpKlgc/lDj0j6E=;
-        b=HlZBaeuMak+hbrWa4wXaYzP7SXFlymeto7AYwX96F2Hm1FQ3p70gnKuL6zMY5TAUoH
-         XqHtOVMXhuyh7DCFSMT08jsYFJtuJB85i3e0SDTJ+E8lEBdMx2zhfyGdUpi0RYlSLXU7
-         t6/sNnGeHpavc/ZGjl02OhDSmUCdKfOcRSVAcJ2Ki1KbyqIBCbNLb73LVeRfo02kd1T8
-         VvGuzzSdZGYS5lF9cew0A3dFAdr+7iP0gXMny1ZKwzHoedSZhBtiBPbbS52/p3xs/nlW
-         P5ergQiOcj2y3eKHaScSza6HScG3m1jSGCEr2mLKLyL5qGsdjzh1sc6WwleMmYo/+0IU
-         e8LA==
-X-Gm-Message-State: AOJu0Yznbbw7FsXxxlrFhGclS9EWLi+0Pmg4TVMUMnzsTTn2IjGVwOns
-	SjBJl1QrJBjA67xjOHLPGRk1DylTU5XNZa2twFa0GMph5z9x7gc793B5
-X-Gm-Gg: Acq92OF7EqmXLWoEqZBiOZAPSo9rs6hh4K03aJANtAu2GTHfDq5PL3X7nUQO5XPg46b
-	+wpFTPkTnHuEdrjX08DJ+r8Brnu+IttTo5qO2eYGsHPiEZ+RwkJtX+AxgrHQS2IEbKz+2Zz+aiu
-	FH+kLTlAkikwN6WeeFbk8eHoPwG1EXxgx09uLmN1EhKfYerVPGTqjiuTOZNQF1z9KqSe1ItLFj8
-	xCs00IFYrhYeP4XDp9s/YBUrd46lZYkmsOhyq+1SwGTwE5wGeqg+V9aNBf1bQ4yMfljFEd7DQMn
-	iEly9betuSm87AXmRNVKOZTZY3ClrV/Vq3R6rvs/yKL/NOrJywneboMw5YS1x6Rpd2LTDhyMmY6
-	LeFeavdlV2AJDwD0NdRhlbRKt+7sDjOxhiqSQfW4NTie+dw/QzyzATLVKLI8iLb8DBGXOQ0Mpjh
-	KC4ygI9T7oM5ZdlXMAR82GVlA41/NA7undaFBzGgDHFlAc6cnCDP//e+/kdUVhCKK7QUHhW7hY1
-	P1/ZbwYAPaVHPY4og==
-X-Received: by 2002:a05:7022:43a9:b0:136:ac69:b100 with SMTP id a92af1059eb24-136ac69b350mr37275c88.13.1779529473202;
-        Sat, 23 May 2026 02:44:33 -0700 (PDT)
+        bh=vRo7Rd9YqShqpiqZKCPk6am0B8cUoLr1eHpVW7X6FPw=;
+        b=Kp+TN8u1yFgckjEPji4y4IQpEXkDtq/TP2A7xkrfXTAIH8CjO1ceqRrTVNbw+j+WRT
+         pNLlaL1wn5Kbi1HgetLT7bV9/gOi0CGh2K2jKTjxsMFrr38f4gxooWB4+FTp/jasbj1g
+         Krn1DsXPNzgIBuP/8+1zKs1tW3Rc5xz686fd0oPYtwLw1Df4omyBXQLLm/OO9PIgzo+R
+         eyNSCOeKk0RBA08y4L3P8dQNPSXIQg3K6W+y1H7P6QEuDSuaJ5thcOUB7ClK7ZiBQWme
+         qTqBPlCa5tnZupXVNvftWaAKpghw4UhzoJCfTd0iAcyOMMXF1zJc3BnD/6UWSn+Hhls8
+         AmIg==
+X-Gm-Message-State: AOJu0Yz1pie3roVtx07XuOmLsIMImEcmSxhvd+XsZ4wkADffBI7CvRmU
+	ISTNpAs3L/u8LBK1jR1yEDYwOjqfDpnF4qT5o2SpwTm005aeNQuk0VXo
+X-Gm-Gg: Acq92OFUoIT9Tl8td+F8P5DXSUaaIRAN/RclQjPJiGZghWyM5lfjjIY99jjVb0kyHI/
+	IWQ6KwfCKXXJfqyxrGxupoJ1mDoo3fR8y6J+baM+Xe7YB/J75Fu8fbm4w4PepnDjXL0/73ZHCRm
+	iFgQZOwENsWoUg1kUsq4hsmZ0bBMFvh0U+RED01gAp4obFHa69hpKZhNkCNOWgKeyqIfuKhIPgP
+	9PEV9FVmkudadIrxTU6RHDboZHkWRZcJUoz5m925pRlJMA4t6Lb41fIXvm7w/3nntBaiA+caKsx
+	jrvOfRfF0B/4lIl0rCbIuVliwJR7MYUN1fEjOwHbzWDIV5niJ+V/Iij0iOxvyAEEJAC2zVEZuob
+	Yf3WQjADSXRYU62Y+sAx7tAbHpNTAl/RhCBxQPq7ouNrYsk1wY+7l/pIBDkKpvRAU8MvQo7qej9
+	E0L2PXJCMZNE4Tos7d0GB9Ujt2UZAmFAbsz3UqqVinxOfP5mJN8AUtM5GGn1GyZ9t3YnihcaIPX
+	fspGGg=
+X-Received: by 2002:a05:7301:129b:b0:2f2:5c68:5074 with SMTP id 5a478bee46e88-3044909063cmr2975304eec.13.1779529474879;
+        Sat, 23 May 2026 02:44:34 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1366a40305csm2376358c88.7.2026.05.23.02.44.32
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1366a40305csm2376358c88.7.2026.05.23.02.44.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 23 May 2026 02:44:32 -0700 (PDT)
+        Sat, 23 May 2026 02:44:34 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org,
@@ -73,10 +73,10 @@ Cc: nvdimm@lists.linux.dev,
 	John Groves <John@Groves.net>,
 	Gregory Price <gourry@gourry.net>,
 	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [PATCH v10 29/31] tools/testing/cxl: Make event logs dynamic
-Date: Sat, 23 May 2026 02:43:23 -0700
-Message-ID: <41c47ec44202b7a2491f89752247d8968758e213.1779528761.git.anisa.su@samsung.com>
+	Anisa Su <anisa.su@samsung.com>
+Subject: [PATCH v10 30/31] tools/testing/cxl: Add DC Regions to mock mem data
+Date: Sat, 23 May 2026 02:43:24 -0700
+Message-ID: <b8aa5ccbb32745a1ec53b81c72b670ed05557691.1779528761.git.anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1779528761.git.anisa.su@samsung.com>
 References: <cover.1779528761.git.anisa.su@samsung.com>
@@ -86,433 +86,1036 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-The event logs test was created as static arrays as an easy way to mock
-events.  Dynamic Capacity Device (DCD) test support requires events be
-generated dynamically when extents are created or destroyed.
+cxl_test provides a good way to ensure quick smoke and regression
+testing.  The complexity of Dynamic Capacity (DC) extent processing as
+well as the complexity of DC-backed DAX regions can mostly be tested
+through cxl_test.  This includes management of DC regions and DAX
+devices on those regions; the management of extent device lifetimes;
+and the processing of DCD events.
 
-The current event log test has specific checks for the number of events
-seen including log overflow.
+The only missing functionality from this test is actual interrupt
+processing.
 
-Modify mock event logs to be dynamically allocated.  Adjust array size
-and mock event entry data to match the output expected by the existing
-event test.
+Mock memory devices can easily mock DC information and manage fake
+extent data.
 
-Use the static event data to create the dynamic events in the new logs
-without inventing complex event injection for the previous tests.
+Define mock_dc_partition information within the mock memory data.  Add
+sysfs entries on the mock device to inject and delete extents.
 
-Simplify log processing by using the event log array index as the
-handle.  Add a lock to manage concurrency required when user space is
-allowed to control DCD extents
+The inject format is <start>:<length>:<tag>:<more>[:<seq>] where <tag>
+is a UUID string (or "" / "0" for the null UUID) and <seq> is an
+optional shared_extn_seq value used for sharable-partition tests
+(defaults to 0).
+The delete format is <start>:<length>:<uuid>
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Directly call the event irq callback to simulate irqs to process the
+test extents.
+
+Add DC mailbox commands to the CEL and implement those commands.
+
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- tools/testing/cxl/test/mem.c | 265 +++++++++++++++++++++--------------
- 1 file changed, 161 insertions(+), 104 deletions(-)
+Signed-off-by: Anisa Su <anisa.su@samsung.com>
 
-diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-index 271c7ad8cc32..fe1dadddd18e 100644
---- a/tools/testing/cxl/test/mem.c
-+++ b/tools/testing/cxl/test/mem.c
-@@ -142,18 +142,26 @@ static struct {
- 
- #define PASS_TRY_LIMIT 3
- 
--#define CXL_TEST_EVENT_CNT_MAX 15
-+#define CXL_TEST_EVENT_CNT_MAX 16
-+/* 1 extra slot to accommodate that handles can't be 0 */
-+#define CXL_TEST_EVENT_ARRAY_SIZE (CXL_TEST_EVENT_CNT_MAX + 1)
- 
- /* Set a number of events to return at a time for simulation.  */
- #define CXL_TEST_EVENT_RET_MAX 4
+---
+Changes:
+[anisa: add uuid + shared_extn_seq, align mock with kernel validators,
+        introduce a sharable-partition test fixture]
+[anisa: replace "sparse" terminology with "DC" / "DC-backed"]
+
+Carry a uuid_t and a u16 shared_extn_seq on each mock extent, parse
+tags via uuid_parse() in the inject path and the pre-extent fixture,
+and propagate both fields through log_dc_event() and
+mock_get_dc_extent_list().  An optional 5th field in the inject
+format supplies the shared_extn_seq for sharable-partition tests.
+The delete format takes the uuid as its third field so release
+events carry tag identity to the host.
+
+Mock fixes required to satisfy the host-side validators:
+
+  - dsmad_handle starts at 0xFA, not 0xFADE.  The Get Dynamic
+    Capacity Configuration response's DSMAD Handle field is 1 byte
+    per the CXL spec; the kernel rejects any handle with the upper
+    24 bits non-zero as a firmware-bug.
+
+  - dc_accept_extent() treats a re-accept of an already-accepted
+    extent as a successful no-op (look up dc_accepted_exts when the
+    sent xa lookup misses).  The host replays accepts for pre-
+    injected extents on region creation; without this the existing-
+    extent ingest aborts with -ENOMEM.
+
+  - __dc_del_extent_store() runs strim() on the trailing uuid field
+    so the '
+' shell write tail doesn't cause parse_tag() to fall
+    through to uuid_parse() and -EINVAL.
+
+  - NUM_MOCK_DC_REGIONS reduced from 2 to 1.  The host's
+    cxl_dev_dc_identify() surfaces partitions[0] only, so extents
+    seeded into a second mock partition land outside the registered
+    DC range; for tagged groups that also trips the partition-
+    equality gate and drops the whole group (including the in-range
+    member).
+
+Sharable-partition test fixture:
+
+  - Stamp MOCK_DC_SHARABLE_SERIAL (0xDCDC) on the cxl_mem instance
+    at pdev->id == 0.  The companion cxl_test driver checks this
+    serial in mock_cxl_endpoint_parse_cdat() and sets the DC
+    partition's perf.shareable on that memdev only — exposing both
+    sharable and non-sharable DC partitions from one cxl_test
+    module load so the userspace suite can exercise both regimes.
+
+  - Skip inject_prev_extents() on that one memdev: the pre-injected
+    extents are untagged / seq=0 and would be rejected as firmware-
+    bug by cxl_validate_extent() on a sharable partition, leaving
+    spurious noise in dmesg at probe.
+---
+ tools/testing/cxl/test/cxl.c |  21 +
+ tools/testing/cxl/test/mem.c | 806 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 826 insertions(+), 1 deletion(-)
+
+diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+index 418669927fb0..ac6060ede061 100644
+--- a/tools/testing/cxl/test/cxl.c
++++ b/tools/testing/cxl/test/cxl.c
+@@ -18,6 +18,15 @@ static int interleave_arithmetic;
+ static bool extended_linear_cache;
+ static bool fail_autoassemble;
  
 +/*
-+ * @last_handle: last handle (index) to have an entry stored
-+ * @current_handle: current handle (index) to be returned to the user on get_event
-+ * @nr_overflow: number of events added past the log size
-+ * @lock: protect these state variables
-+ * @events: array of pending events to be returned.
++ * Mock serial sentinel.  The cxl_mock_mem probe stamps this serial on
++ * exactly one platform device (cxl_mem with id 0); that single memdev's
++ * DC partition is marked sharable below in mock_cxl_endpoint_parse_cdat
++ * so the suite can exercise sharable-extent code paths without losing
++ * the non-sharable coverage on the other mock memdevs.
 + */
- struct mock_event_log {
--	u16 clear_idx;
--	u16 cur_idx;
--	u16 nr_events;
-+	u16 last_handle;
-+	u16 current_handle;
- 	u16 nr_overflow;
--	u16 overflow_reset;
--	struct cxl_event_record_raw *events[CXL_TEST_EVENT_CNT_MAX];
-+	rwlock_t lock;
-+	struct cxl_event_record_raw *events[CXL_TEST_EVENT_ARRAY_SIZE];
++#define MOCK_DC_SHARABLE_SERIAL 0xDCDCULL
++
+ #define FAKE_QTG_ID	42
+ 
+ #define NR_CXL_HOST_BRIDGES 2
+@@ -1432,6 +1441,18 @@ static void mock_cxl_endpoint_parse_cdat(struct cxl_port *port)
+ 		};
+ 
+ 		dpa_perf_setup(port, &range, perf);
++
++		/*
++		 * The mock probe stamps MOCK_DC_SHARABLE_SERIAL onto exactly
++		 * one cxl_mem instance; mark its DC partition sharable so
++		 * cxl_validate_extent() routes shared-seq injects through
++		 * the sharable regime.  Every other memdev keeps its DC
++		 * partition non-sharable so the existing untagged / seq=0
++		 * tests still run on this kernel.
++		 */
++		if (cxlds->part[i].mode == CXL_PARTMODE_DYNAMIC_RAM_A &&
++		    cxlds->serial == MOCK_DC_SHARABLE_SERIAL)
++			perf->shareable = true;
+ 	}
+ 
+ 	cxl_memdev_update_perf(cxlmd);
+diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+index fe1dadddd18e..9cc97b718b5f 100644
+--- a/tools/testing/cxl/test/mem.c
++++ b/tools/testing/cxl/test/mem.c
+@@ -20,6 +20,7 @@
+ #define FW_SLOTS 3
+ #define DEV_SIZE SZ_2G
+ #define EFFECT(x) (1U << x)
++#define BASE_DYNAMIC_CAP_DPA DEV_SIZE
+ 
+ #define MOCK_INJECT_DEV_MAX 8
+ #define MOCK_INJECT_TEST_MAX 128
+@@ -113,6 +114,22 @@ static struct cxl_cel_entry mock_cel[] = {
+ 				      EFFECT(SECURITY_CHANGE_IMMEDIATE) |
+ 				      EFFECT(BACKGROUND_OP)),
+ 	},
++	{
++		.opcode = cpu_to_le16(CXL_MBOX_OP_GET_DC_CONFIG),
++		.effect = CXL_CMD_EFFECT_NONE,
++	},
++	{
++		.opcode = cpu_to_le16(CXL_MBOX_OP_GET_DC_EXTENT_LIST),
++		.effect = CXL_CMD_EFFECT_NONE,
++	},
++	{
++		.opcode = cpu_to_le16(CXL_MBOX_OP_ADD_DC_RESPONSE),
++		.effect = cpu_to_le16(EFFECT(CONF_CHANGE_IMMEDIATE)),
++	},
++	{
++		.opcode = cpu_to_le16(CXL_MBOX_OP_RELEASE_DC),
++		.effect = cpu_to_le16(EFFECT(CONF_CHANGE_IMMEDIATE)),
++	},
  };
  
- struct mock_event_store {
-@@ -194,56 +202,65 @@ static struct mock_event_log *event_find_log(struct device *dev, int log_type)
- 	return &mdata->mes.mock_logs[log_type];
+ /* See CXL 2.0 Table 181 Get Health Info Output Payload */
+@@ -173,6 +190,16 @@ struct vendor_test_feat {
+ 	__le32 data;
+ } __packed;
+ 
++/*
++ * The kernel surfaces only the first DC partition reported by the
++ * device (cxl_dev_dc_identify() takes partitions[0] only), so any
++ * extents we pre-inject into a second mock partition end up rejected
++ * as "not in a valid DC partition" — and for tagged groups they also
++ * trip the partition-equality gate and drop the whole group (including
++ * the in-range member in DC0).  Keep the mock at one DC partition.
++ */
++#define NUM_MOCK_DC_REGIONS 1
++
+ struct cxl_mockmem_data {
+ 	void *lsa;
+ 	void *fw;
+@@ -191,6 +218,20 @@ struct cxl_mockmem_data {
+ 	unsigned long sanitize_timeout;
+ 	struct vendor_test_feat test_feat;
+ 	u8 shutdown_state;
++
++	struct cxl_dc_partition dc_partitions[NUM_MOCK_DC_REGIONS];
++	u32 dc_ext_generation;
++	struct mutex ext_lock;
++
++	/*
++	 * Extents are in 1 of 3 states
++	 * FM (sysfs added but not sent to the host yet)
++	 * sent (sent to the host but not accepted)
++	 * accepted (by the host)
++	 */
++	struct xarray dc_fm_extents;
++	struct xarray dc_sent_extents;
++	struct xarray dc_accepted_exts;
+ };
+ 
+ static struct mock_event_log *event_find_log(struct device *dev, int log_type)
+@@ -607,6 +648,229 @@ static void cxl_mock_event_trigger(struct device *dev)
+ 	cxl_mem_get_event_records(mdata->mds, mes->ev_status);
  }
  
--static struct cxl_event_record_raw *event_get_current(struct mock_event_log *log)
--{
--	return log->events[log->cur_idx];
--}
--
--static void event_reset_log(struct mock_event_log *log)
--{
--	log->cur_idx = 0;
--	log->clear_idx = 0;
--	log->nr_overflow = log->overflow_reset;
--}
--
- /* Handle can never be 0 use 1 based indexing for handle */
--static u16 event_get_clear_handle(struct mock_event_log *log)
-+static u16 event_inc_handle(u16 handle)
- {
--	return log->clear_idx + 1;
-+	handle = (handle + 1) % CXL_TEST_EVENT_ARRAY_SIZE;
-+	if (handle == 0)
-+		handle = 1;
-+	return handle;
- }
- 
--/* Handle can never be 0 use 1 based indexing for handle */
--static __le16 event_get_cur_event_handle(struct mock_event_log *log)
--{
--	u16 cur_handle = log->cur_idx + 1;
--
--	return cpu_to_le16(cur_handle);
--}
--
--static bool event_log_empty(struct mock_event_log *log)
--{
--	return log->cur_idx == log->nr_events;
--}
--
--static void mes_add_event(struct mock_event_store *mes,
-+/* Add the event or free it on overflow */
-+static void mes_add_event(struct cxl_mockmem_data *mdata,
- 			  enum cxl_event_log_type log_type,
- 			  struct cxl_event_record_raw *event)
- {
-+	struct device *dev = mdata->mds->cxlds.dev;
- 	struct mock_event_log *log;
- 
- 	if (WARN_ON(log_type >= CXL_EVENT_TYPE_MAX))
- 		return;
- 
--	log = &mes->mock_logs[log_type];
-+	log = &mdata->mes.mock_logs[log_type];
++struct cxl_extent_data {
++	u64 dpa_start;
++	u64 length;
++	uuid_t uuid;
++	u16 shared_extn_seq;
++	bool shared;
++};
 +
-+	guard(write_lock)(&log->lock);
- 
--	if ((log->nr_events + 1) > CXL_TEST_EVENT_CNT_MAX) {
-+	dev_dbg(dev, "Add log %d cur %d last %d\n",
-+		log_type, log->current_handle, log->last_handle);
-+
-+	/* Check next buffer */
-+	if (event_inc_handle(log->last_handle) == log->current_handle) {
- 		log->nr_overflow++;
--		log->overflow_reset = log->nr_overflow;
-+		dev_dbg(dev, "Overflowing log %d nr %d\n",
-+			log_type, log->nr_overflow);
-+		devm_kfree(dev, event);
- 		return;
- 	}
- 
--	log->events[log->nr_events] = event;
--	log->nr_events++;
-+	dev_dbg(dev, "Log %d; handle %u\n", log_type, log->last_handle);
-+	event->event.generic.hdr.handle = cpu_to_le16(log->last_handle);
-+	log->events[log->last_handle] = event;
-+	log->last_handle = event_inc_handle(log->last_handle);
-+}
-+
-+static void mes_del_event(struct device *dev,
-+			  struct mock_event_log *log,
-+			  u16 handle)
++/*
++ * Parse a tag string into a uuid_t.  Accepts the empty string and "0"
++ * as shorthand for the null UUID; anything else must be a UUID string
++ * uuid_parse() can understand.
++ */
++static int parse_tag(const char *tag, uuid_t *out)
 +{
-+	struct cxl_event_record_raw *record;
-+
-+	lockdep_assert(lockdep_is_held(&log->lock));
-+
-+	dev_dbg(dev, "Clearing event %u; record %u\n",
-+		handle, log->current_handle);
-+	record = log->events[handle];
-+	if (!record)
-+		dev_err(dev, "Mock event index %u empty?\n", handle);
-+
-+	log->events[handle] = NULL;
-+	log->current_handle = event_inc_handle(log->current_handle);
-+	devm_kfree(dev, record);
- }
- 
- /*
-@@ -257,6 +274,7 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
- 	struct cxl_get_event_payload *pl;
- 	struct mock_event_log *log;
- 	int ret_limit;
-+	u16 handle;
- 	u8 log_type;
- 	int i;
- 
-@@ -276,22 +294,31 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
- 	memset(cmd->payload_out, 0, struct_size(pl, records, 0));
- 
- 	log = event_find_log(dev, log_type);
--	if (!log || event_log_empty(log))
-+	if (!log)
- 		return 0;
- 
- 	pl = cmd->payload_out;
- 
--	for (i = 0; i < ret_limit && !event_log_empty(log); i++) {
--		memcpy(&pl->records[i], event_get_current(log),
--		       sizeof(pl->records[i]));
--		pl->records[i].event.generic.hdr.handle =
--				event_get_cur_event_handle(log);
--		log->cur_idx++;
-+	guard(read_lock)(&log->lock);
-+
-+	handle = log->current_handle;
-+	dev_dbg(dev, "Get log %d handle %u last %u\n",
-+		log_type, handle, log->last_handle);
-+	for (i = 0; i < ret_limit && handle != log->last_handle;
-+	     i++, handle = event_inc_handle(handle)) {
-+		struct cxl_event_record_raw *cur;
-+
-+		cur = log->events[handle];
-+		dev_dbg(dev, "Sending event log %d handle %d idx %u\n",
-+			log_type, le16_to_cpu(cur->event.generic.hdr.handle),
-+			handle);
-+		memcpy(&pl->records[i], cur, sizeof(pl->records[i]));
-+		pl->records[i].event.generic.hdr.handle = cpu_to_le16(handle);
- 	}
- 
- 	cmd->size_out = struct_size(pl, records, i);
- 	pl->record_count = cpu_to_le16(i);
--	if (!event_log_empty(log))
-+	if (handle != log->last_handle)
- 		pl->flags |= CXL_GET_EVENT_FLAG_MORE_RECORDS;
- 
- 	if (log->nr_overflow) {
-@@ -313,8 +340,8 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
- static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
- {
- 	struct cxl_mbox_clear_event_payload *pl = cmd->payload_in;
--	struct mock_event_log *log;
- 	u8 log_type = pl->event_log;
-+	struct mock_event_log *log;
- 	u16 handle;
- 	int nr;
- 
-@@ -325,23 +352,20 @@ static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
- 	if (!log)
- 		return 0; /* No mock data in this log */
- 
--	/*
--	 * This check is technically not invalid per the specification AFAICS.
--	 * (The host could 'guess' handles and clear them in order).
--	 * However, this is not good behavior for the host so test it.
--	 */
--	if (log->clear_idx + pl->nr_recs > log->cur_idx) {
--		dev_err(dev,
--			"Attempting to clear more events than returned!\n");
--		return -EINVAL;
--	}
-+	guard(write_lock)(&log->lock);
- 
- 	/* Check handle order prior to clearing events */
--	for (nr = 0, handle = event_get_clear_handle(log);
--	     nr < pl->nr_recs;
--	     nr++, handle++) {
-+	handle = log->current_handle;
-+	for (nr = 0; nr < pl->nr_recs && handle != log->last_handle;
-+	     nr++, handle = event_inc_handle(handle)) {
-+
-+		dev_dbg(dev, "Checking clear of %d handle %u plhandle %u\n",
-+			log_type, handle,
-+			le16_to_cpu(pl->handles[nr]));
-+
- 		if (handle != le16_to_cpu(pl->handles[nr])) {
--			dev_err(dev, "Clearing events out of order\n");
-+			dev_err(dev, "Clearing events out of order %u %u\n",
-+				handle, le16_to_cpu(pl->handles[nr]));
- 			return -EINVAL;
- 		}
- 	}
-@@ -350,25 +374,12 @@ static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
- 		log->nr_overflow = 0;
- 
- 	/* Clear events */
--	log->clear_idx += pl->nr_recs;
--	return 0;
--}
--
--static void cxl_mock_event_trigger(struct device *dev)
--{
--	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
--	struct mock_event_store *mes = &mdata->mes;
--	int i;
--
--	for (i = CXL_EVENT_TYPE_INFO; i < CXL_EVENT_TYPE_MAX; i++) {
--		struct mock_event_log *log;
-+	for (nr = 0; nr < pl->nr_recs; nr++)
-+		mes_del_event(dev, log, le16_to_cpu(pl->handles[nr]));
-+	dev_dbg(dev, "Delete log %d cur %d last %d\n",
-+		log_type, log->current_handle, log->last_handle);
- 
--		log = event_find_log(dev, i);
--		if (log)
--			event_reset_log(log);
--	}
--
--	cxl_mem_get_event_records(mdata->mds, mes->ev_status);
-+	return 0;
- }
- 
- struct cxl_event_record_raw maint_needed = {
-@@ -509,8 +520,27 @@ static int mock_set_timestamp(struct cxl_dev_state *cxlds,
- 	return 0;
- }
- 
--static void cxl_mock_add_event_logs(struct mock_event_store *mes)
-+/* Create a dynamically allocated event out of a statically defined event. */
-+static void add_event_from_static(struct cxl_mockmem_data *mdata,
-+				  enum cxl_event_log_type log_type,
-+				  struct cxl_event_record_raw *raw)
- {
-+	struct device *dev = mdata->mds->cxlds.dev;
-+	struct cxl_event_record_raw *rec;
-+
-+	rec = devm_kmemdup(dev, raw, sizeof(*rec), GFP_KERNEL);
-+	if (!rec) {
-+		dev_err(dev, "Failed to alloc event for log\n");
-+		return;
++	if (!tag || tag[0] == '\0' || strcmp(tag, "0") == 0) {
++		uuid_copy(out, &uuid_null);
++		return 0;
 +	}
-+	mes_add_event(mdata, log_type, rec);
++	return uuid_parse(tag, out);
 +}
 +
-+static void cxl_mock_add_event_logs(struct cxl_mockmem_data *mdata)
++static int __devm_add_extent(struct device *dev, struct xarray *array,
++			     u64 start, u64 length, const char *tag,
++			     u16 shared_extn_seq, bool shared)
 +{
-+	struct mock_event_store *mes = &mdata->mes;
-+	struct device *dev = mdata->mds->cxlds.dev;
++	struct cxl_extent_data *extent;
++	int rc;
 +
- 	put_unaligned_le16(CXL_GMER_VALID_CHANNEL | CXL_GMER_VALID_RANK |
- 			   CXL_GMER_VALID_COMPONENT | CXL_GMER_VALID_COMPONENT_ID_FORMAT,
- 			   &gen_media.rec.media_hdr.validity_flags);
-@@ -523,43 +553,60 @@ static void cxl_mock_add_event_logs(struct mock_event_store *mes)
- 	put_unaligned_le16(CXL_MMER_VALID_COMPONENT | CXL_MMER_VALID_COMPONENT_ID_FORMAT,
- 			   &mem_module.rec.validity_flags);
- 
--	mes_add_event(mes, CXL_EVENT_TYPE_INFO, &maint_needed);
--	mes_add_event(mes, CXL_EVENT_TYPE_INFO,
-+	dev_dbg(dev, "Generating fake event logs %d\n",
-+		CXL_EVENT_TYPE_INFO);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO, &maint_needed);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO,
- 		      (struct cxl_event_record_raw *)&gen_media);
--	mes_add_event(mes, CXL_EVENT_TYPE_INFO,
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO,
- 		      (struct cxl_event_record_raw *)&mem_module);
- 	mes->ev_status |= CXLDEV_EVENT_STATUS_INFO;
- 
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &maint_needed);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
-+	dev_dbg(dev, "Generating fake event logs %d\n",
-+		CXL_EVENT_TYPE_FAIL);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &maint_needed);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
-+		      (struct cxl_event_record_raw *)&mem_module);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
- 		      (struct cxl_event_record_raw *)&dram);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
- 		      (struct cxl_event_record_raw *)&gen_media);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
- 		      (struct cxl_event_record_raw *)&mem_module);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
- 		      (struct cxl_event_record_raw *)&dram);
- 	/* Overflow this log */
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
- 	mes->ev_status |= CXLDEV_EVENT_STATUS_FAIL;
- 
--	mes_add_event(mes, CXL_EVENT_TYPE_FATAL, &hardware_replace);
--	mes_add_event(mes, CXL_EVENT_TYPE_FATAL,
-+	dev_dbg(dev, "Generating fake event logs %d\n",
-+		CXL_EVENT_TYPE_FATAL);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FATAL, &hardware_replace);
-+	add_event_from_static(mdata, CXL_EVENT_TYPE_FATAL,
- 		      (struct cxl_event_record_raw *)&dram);
- 	mes->ev_status |= CXLDEV_EVENT_STATUS_FATAL;
- }
- 
-+static void cxl_mock_event_trigger(struct device *dev)
++	extent = devm_kzalloc(dev, sizeof(*extent), GFP_KERNEL);
++	if (!extent)
++		return -ENOMEM;
++
++	extent->dpa_start = start;
++	extent->length = length;
++	rc = parse_tag(tag, &extent->uuid);
++	if (rc) {
++		dev_err(dev, "Failed to parse tag '%s'\n", tag);
++		devm_kfree(dev, extent);
++		return rc;
++	}
++	extent->shared_extn_seq = shared_extn_seq;
++	extent->shared = shared;
++
++	if (xa_insert(array, start, extent, GFP_KERNEL)) {
++		devm_kfree(dev, extent);
++		dev_err(dev, "Failed xarry insert %#llx\n", start);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int devm_add_fm_extent(struct device *dev, u64 start, u64 length,
++			      const char *tag, u16 shared_extn_seq, bool shared)
 +{
 +	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-+	struct mock_event_store *mes = &mdata->mes;
 +
-+	cxl_mock_add_event_logs(mdata);
-+	cxl_mem_get_event_records(mdata->mds, mes->ev_status);
++	guard(mutex)(&mdata->ext_lock);
++	return __devm_add_extent(dev, &mdata->dc_fm_extents, start, length,
++				 tag, shared_extn_seq, shared);
++}
++
++static int dc_accept_extent(struct device *dev, u64 start, u64 length)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct cxl_extent_data *ext;
++
++	dev_dbg(dev, "Host accepting extent %#llx\n", start);
++	mdata->dc_ext_generation++;
++
++	lockdep_assert_held(&mdata->ext_lock);
++	ext = xa_load(&mdata->dc_sent_extents, start);
++	if (!ext || ext->length != length) {
++		/*
++		 * The host may re-accept extents we already moved into the
++		 * accepted xarray (e.g. pre-injected extents replayed on
++		 * region creation).  Treat that as a successful no-op so
++		 * the existing-extent ingest path doesn't abort.
++		 */
++		ext = xa_load(&mdata->dc_accepted_exts, start);
++		if (ext && ext->length == length)
++			return 0;
++		dev_err(dev, "Extent %#llx-%#llx not found\n",
++			start, start + length);
++		return -ENOMEM;
++	}
++	xa_erase(&mdata->dc_sent_extents, start);
++	return xa_insert(&mdata->dc_accepted_exts, start, ext, GFP_KERNEL);
++}
++
++static void release_dc_ext(void *md)
++{
++	struct cxl_mockmem_data *mdata = md;
++
++	xa_destroy(&mdata->dc_fm_extents);
++	xa_destroy(&mdata->dc_sent_extents);
++	xa_destroy(&mdata->dc_accepted_exts);
++}
++
++/* Pretend to have some previous accepted extents */
++struct pre_ext_info {
++	u64 offset;
++	u64 length;
++	const char *tag;
++} pre_ext_info[] = {
++	{
++		.offset = SZ_128M,
++		.length = SZ_64M,
++		.tag = "",
++	},
++	{
++		.offset = SZ_256M,
++		.length = SZ_64M,
++		.tag = "deadbeef-cafe-baad-f00d-fedcba987654",
++	},
++};
++
++static int devm_add_sent_extent(struct device *dev, u64 start, u64 length,
++				const char *tag, u16 shared_extn_seq, bool shared)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++
++	lockdep_assert_held(&mdata->ext_lock);
++	return __devm_add_extent(dev, &mdata->dc_sent_extents, start, length,
++				 tag, shared_extn_seq, shared);
++}
++
++static int inject_prev_extents(struct device *dev, u64 base_dpa)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	int rc;
++
++	dev_dbg(dev, "Adding %ld pre-extents for testing\n",
++		ARRAY_SIZE(pre_ext_info));
++
++	guard(mutex)(&mdata->ext_lock);
++	for (int i = 0; i < ARRAY_SIZE(pre_ext_info); i++) {
++		u64 ext_dpa = base_dpa + pre_ext_info[i].offset;
++		u64 ext_len = pre_ext_info[i].length;
++
++		dev_dbg(dev, "Adding pre-extent DPA:%#llx LEN:%#llx tag:%s\n",
++			ext_dpa, ext_len, pre_ext_info[i].tag);
++
++		rc = devm_add_sent_extent(dev, ext_dpa, ext_len,
++					  pre_ext_info[i].tag, 0, false);
++		if (rc) {
++			dev_err(dev, "Failed to add pre-extent DPA:%#llx LEN:%#llx; %d\n",
++				ext_dpa, ext_len, rc);
++			return rc;
++		}
++
++		rc = dc_accept_extent(dev, ext_dpa, ext_len);
++		if (rc)
++			return rc;
++	}
++	return 0;
++}
++
++static int cxl_mock_dc_partition_setup(struct device *dev)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	u64 base_dpa = BASE_DYNAMIC_CAP_DPA;
++	u32 dsmad_handle = 0xFA;
++	u64 decode_length = SZ_512M;
++	u64 block_size = SZ_512;
++	u64 length = SZ_512M;
++	int rc;
++
++	mutex_init(&mdata->ext_lock);
++	xa_init(&mdata->dc_fm_extents);
++	xa_init(&mdata->dc_sent_extents);
++	xa_init(&mdata->dc_accepted_exts);
++
++	rc = devm_add_action_or_reset(dev, release_dc_ext, mdata);
++	if (rc)
++		return rc;
++
++	for (int i = 0; i < NUM_MOCK_DC_REGIONS; i++) {
++		struct cxl_dc_partition *part = &mdata->dc_partitions[i];
++
++		dev_dbg(dev, "Creating DC partition DC%d DPA:%#llx LEN:%#llx\n",
++			i, base_dpa, length);
++
++		part->base = cpu_to_le64(base_dpa);
++		part->decode_length = cpu_to_le64(decode_length /
++						  CXL_CAPACITY_MULTIPLIER);
++		part->length = cpu_to_le64(length);
++		part->block_size = cpu_to_le64(block_size);
++		part->dsmad_handle = cpu_to_le32(dsmad_handle);
++		dsmad_handle++;
++
++		/*
++		 * Skip pre-injection on the sharable mock memdev.  The
++		 * pre-injected extents are untagged / seq=0, which a
++		 * sharable partition rejects as firmware-bug; leaving the
++		 * sharable memdev with an empty DC partition is what its
++		 * dedicated tests (test_shared_extent_inject and
++		 * test_seq_integrity_gap in cxl-dcd.sh) expect anyway.
++		 *
++		 * The sharable fixture is the memdev at pdev->id == 0 —
++		 * see the matching MOCK_DC_SHARABLE_SERIAL stamp in
++		 * cxl_mock_mem_probe().  This relies on tools/testing/cxl
++		 * always allocating a "cxl_mem" platform device with id 0
++		 * as the first memdev; if that invariant ever breaks the
++		 * sharable test fixture will land on the wrong device.
++		 */
++		if (to_platform_device(dev)->id != 0) {
++			rc = inject_prev_extents(dev, base_dpa);
++			if (rc) {
++				dev_err(dev,
++					"Failed to add pre-extents for DC%d\n",
++					i);
++				return rc;
++			}
++		}
++
++		base_dpa += decode_length;
++	}
++
++	return 0;
 +}
 +
  static int mock_gsl(struct cxl_mbox_cmd *cmd)
  {
  	if (cmd->size_out < sizeof(mock_gsl_payload))
-@@ -1684,6 +1731,14 @@ static void cxl_mock_test_feat_init(struct cxl_mockmem_data *mdata)
- 	mdata->test_feat.data = cpu_to_le32(0xdeadbeef);
+@@ -1582,6 +1846,193 @@ static int mock_get_supported_features(struct cxl_mockmem_data *mdata,
+ 	return 0;
  }
  
-+static void init_event_log(struct mock_event_log *log)
++static int mock_get_dc_config(struct device *dev,
++			      struct cxl_mbox_cmd *cmd)
 +{
-+	rwlock_init(&log->lock);
-+	/* Handle can never be 0 use 1 based indexing for handle */
-+	log->current_handle = 1;
-+	log->last_handle = 1;
++	struct cxl_mbox_get_dc_config_in *dc_config = cmd->payload_in;
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	u8 partition_requested, partition_start_idx, partition_ret_cnt;
++	struct cxl_mbox_get_dc_config_out *resp;
++	int i;
++
++	partition_requested = min(dc_config->partition_count, NUM_MOCK_DC_REGIONS);
++
++	if (cmd->size_out < struct_size(resp, partition, partition_requested))
++		return -EINVAL;
++
++	memset(cmd->payload_out, 0, cmd->size_out);
++	resp = cmd->payload_out;
++
++	partition_start_idx = dc_config->start_partition_index;
++	partition_ret_cnt = 0;
++	for (i = 0; i < NUM_MOCK_DC_REGIONS; i++) {
++		if (i >= partition_start_idx) {
++			memcpy(&resp->partition[partition_ret_cnt],
++				&mdata->dc_partitions[i],
++				sizeof(resp->partition[partition_ret_cnt]));
++			partition_ret_cnt++;
++		}
++	}
++	resp->avail_partition_count = NUM_MOCK_DC_REGIONS;
++	resp->partitions_returned = i;
++
++	dev_dbg(dev, "Returning %d dc partitions\n", partition_ret_cnt);
++	return 0;
 +}
++
++static int mock_get_dc_extent_list(struct device *dev,
++				   struct cxl_mbox_cmd *cmd)
++{
++	struct cxl_mbox_get_extent_out *resp = cmd->payload_out;
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct cxl_mbox_get_extent_in *get = cmd->payload_in;
++	u32 total_avail = 0, total_ret = 0;
++	struct cxl_extent_data *ext;
++	u32 ext_count, start_idx;
++	unsigned long i;
++
++	ext_count = le32_to_cpu(get->extent_cnt);
++	start_idx = le32_to_cpu(get->start_extent_index);
++
++	memset(resp, 0, sizeof(*resp));
++
++	guard(mutex)(&mdata->ext_lock);
++	/*
++	 * Total available needs to be calculated and returned regardless of
++	 * how many can actually be returned.
++	 */
++	xa_for_each(&mdata->dc_accepted_exts, i, ext)
++		total_avail++;
++
++	if (start_idx > total_avail)
++		return -EINVAL;
++
++	xa_for_each(&mdata->dc_accepted_exts, i, ext) {
++		if (total_ret >= ext_count)
++			break;
++
++		if (total_ret >= start_idx) {
++			resp->extent[total_ret].start_dpa =
++						cpu_to_le64(ext->dpa_start);
++			resp->extent[total_ret].length =
++						cpu_to_le64(ext->length);
++			export_uuid(resp->extent[total_ret].uuid, &ext->uuid);
++			resp->extent[total_ret].shared_extn_seq =
++						cpu_to_le16(ext->shared_extn_seq);
++			total_ret++;
++		}
++	}
++
++	resp->returned_extent_count = cpu_to_le32(total_ret);
++	resp->total_extent_count = cpu_to_le32(total_avail);
++	resp->generation_num = cpu_to_le32(mdata->dc_ext_generation);
++
++	dev_dbg(dev, "Returning %d extents of %d total\n",
++		total_ret, total_avail);
++
++	return 0;
++}
++
++static void dc_clear_sent(struct device *dev)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct cxl_extent_data *ext;
++	unsigned long index;
++
++	lockdep_assert_held(&mdata->ext_lock);
++
++	/* Any extents not accepted must be cleared */
++	xa_for_each(&mdata->dc_sent_extents, index, ext) {
++		dev_dbg(dev, "Host rejected extent %#llx\n", ext->dpa_start);
++		xa_erase(&mdata->dc_sent_extents, ext->dpa_start);
++	}
++}
++
++static int mock_add_dc_response(struct device *dev,
++				struct cxl_mbox_cmd *cmd)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct cxl_mbox_dc_response *req = cmd->payload_in;
++	u32 list_size = le32_to_cpu(req->extent_list_size);
++
++	guard(mutex)(&mdata->ext_lock);
++	for (int i = 0; i < list_size; i++) {
++		u64 start = le64_to_cpu(req->extent_list[i].dpa_start);
++		u64 length = le64_to_cpu(req->extent_list[i].length);
++		int rc;
++
++		rc = dc_accept_extent(dev, start, length);
++		if (rc)
++			return rc;
++	}
++
++	dc_clear_sent(dev);
++	return 0;
++}
++
++static void dc_delete_extent(struct device *dev, unsigned long long start,
++			     unsigned long long length)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	unsigned long long end = start + length;
++	struct cxl_extent_data *ext;
++	unsigned long index;
++
++	dev_dbg(dev, "Deleting extent at %#llx len:%#llx\n", start, length);
++
++	guard(mutex)(&mdata->ext_lock);
++	xa_for_each(&mdata->dc_fm_extents, index, ext) {
++		u64 extent_end = ext->dpa_start + ext->length;
++
++		/*
++		 * Any extent which 'touches' the released delete range will be
++		 * removed.
++		 */
++		if ((start <= ext->dpa_start && ext->dpa_start < end) ||
++		    (start <= extent_end && extent_end < end))
++			xa_erase(&mdata->dc_fm_extents, ext->dpa_start);
++	}
++
++	/*
++	 * If the extent was accepted let it be for the host to drop
++	 * later.
++	 */
++}
++
++static int release_accepted_extent(struct device *dev, u64 start, u64 length)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct cxl_extent_data *ext;
++
++	guard(mutex)(&mdata->ext_lock);
++	ext = xa_load(&mdata->dc_accepted_exts, start);
++	if (!ext || ext->length != length) {
++		dev_err(dev, "Extent %#llx not in accepted state\n", start);
++		return -EINVAL;
++	}
++	xa_erase(&mdata->dc_accepted_exts, start);
++	mdata->dc_ext_generation++;
++
++	return 0;
++}
++
++static int mock_dc_release(struct device *dev,
++			   struct cxl_mbox_cmd *cmd)
++{
++	struct cxl_mbox_dc_response *req = cmd->payload_in;
++	u32 list_size = le32_to_cpu(req->extent_list_size);
++
++	for (int i = 0; i < list_size; i++) {
++		u64 start = le64_to_cpu(req->extent_list[i].dpa_start);
++		u64 length = le64_to_cpu(req->extent_list[i].length);
++
++		dev_dbg(dev, "Extent %#llx released by host\n", start);
++		release_accepted_extent(dev, start, length);
++	}
++
++	return 0;
++}
++
+ static int cxl_mock_mbox_send(struct cxl_mailbox *cxl_mbox,
+ 			      struct cxl_mbox_cmd *cmd)
+ {
+@@ -1673,6 +2124,18 @@ static int cxl_mock_mbox_send(struct cxl_mailbox *cxl_mbox,
+ 	case CXL_MBOX_OP_GET_SUPPORTED_FEATURES:
+ 		rc = mock_get_supported_features(mdata, cmd);
+ 		break;
++	case CXL_MBOX_OP_GET_DC_CONFIG:
++		rc = mock_get_dc_config(dev, cmd);
++		break;
++	case CXL_MBOX_OP_GET_DC_EXTENT_LIST:
++		rc = mock_get_dc_extent_list(dev, cmd);
++		break;
++	case CXL_MBOX_OP_ADD_DC_RESPONSE:
++		rc = mock_add_dc_response(dev, cmd);
++		break;
++	case CXL_MBOX_OP_RELEASE_DC:
++		rc = mock_dc_release(dev, cmd);
++		break;
+ 	case CXL_MBOX_OP_GET_FEATURE:
+ 		rc = mock_get_feature(mdata, cmd);
+ 		break;
+@@ -1739,6 +2202,14 @@ static void init_event_log(struct mock_event_log *log)
+ 	log->last_handle = 1;
+ }
+ 
++/*
++ * Stamp this serial on a single mock cxl_mem instance so the
++ * companion cxl_test driver can find it and mark its DC partition
++ * sharable in mock_cxl_endpoint_parse_cdat().  Must match the value
++ * defined in tools/testing/cxl/test/cxl.c.
++ */
++#define MOCK_DC_SHARABLE_SERIAL 0xDCDCULL
 +
  static int cxl_mock_mem_probe(struct platform_device *pdev)
  {
  	struct device *dev = &pdev->dev;
-@@ -1767,7 +1822,9 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+@@ -1758,6 +2229,10 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	dev_set_drvdata(dev, mdata);
+ 
++	rc = cxl_mock_dc_partition_setup(dev);
++	if (rc)
++		return rc;
++
+ 	mdata->lsa = vmalloc(LSA_SIZE);
+ 	if (!mdata->lsa)
+ 		return -ENOMEM;
+@@ -1774,7 +2249,23 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
  	if (rc)
- 		dev_dbg(dev, "No CXL Features discovered\n");
+ 		return rc;
  
--	cxl_mock_add_event_logs(&mdata->mes);
-+	for (int i = 0; i < CXL_EVENT_TYPE_MAX; i++)
-+		init_event_log(&mdata->mes.mock_logs[i]);
-+	cxl_mock_add_event_logs(mdata);
+-	mds = cxl_memdev_state_create(dev, pdev->id + 1, 0);
++	{
++		u64 serial = pdev->id + 1;
++
++		/*
++		 * Reserve the memdev at pdev->id == 0 as the sharable DC
++		 * partition test fixture.  This relies on tools/testing/cxl
++		 * always allocating a "cxl_mem" platform device with id 0
++		 * as the first memdev — currently true in cxl.c, but if
++		 * the topology ever renumbers, the sharable serial will be
++		 * stamped on the wrong device (or no device).  Matched by
++		 * the skip-pre-inject guard in cxl_mock_dc_partition_setup
++		 * and by mock_cxl_endpoint_parse_cdat in cxl_test.
++		 */
++		if (pdev->id == 0)
++			serial = MOCK_DC_SHARABLE_SERIAL;
++		mds = cxl_memdev_state_create(dev, serial, 0);
++	}
+ 	if (IS_ERR(mds))
+ 		return PTR_ERR(mds);
  
- 	cxlmd = devm_cxl_add_memdev(cxlds, NULL);
- 	if (IS_ERR(cxlmd))
+@@ -1814,6 +2305,9 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+ 	if (rc)
+ 		return rc;
+ 
++	if (cxl_dcd_supported(mds))
++		cxl_configure_dcd(mds, &range_info);
++
+ 	rc = cxl_dpa_setup(cxlds, &range_info);
+ 	if (rc)
+ 		return rc;
+@@ -1921,11 +2415,321 @@ static ssize_t sanitize_timeout_store(struct device *dev,
+ 
+ static DEVICE_ATTR_RW(sanitize_timeout);
+ 
++/* Return if the proposed extent would break the test code */
++static bool new_extent_valid(struct device *dev, size_t new_start,
++			     size_t new_len)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct cxl_extent_data *extent;
++	size_t new_end, i;
++
++	if (!new_len)
++		return false;
++
++	new_end = new_start + new_len;
++
++	dev_dbg(dev, "New extent %zx-%zx\n", new_start, new_end);
++
++	guard(mutex)(&mdata->ext_lock);
++	dev_dbg(dev, "Checking extents starts...\n");
++	xa_for_each(&mdata->dc_fm_extents, i, extent) {
++		if (extent->dpa_start == new_start)
++			return false;
++	}
++
++	dev_dbg(dev, "Checking sent extents starts...\n");
++	xa_for_each(&mdata->dc_sent_extents, i, extent) {
++		if (extent->dpa_start == new_start)
++			return false;
++	}
++
++	dev_dbg(dev, "Checking accepted extents starts...\n");
++	xa_for_each(&mdata->dc_accepted_exts, i, extent) {
++		if (extent->dpa_start == new_start)
++			return false;
++	}
++
++	return true;
++}
++
++struct cxl_test_dcd {
++	uuid_t id;
++	struct cxl_event_dcd rec;
++} __packed;
++
++struct cxl_test_dcd dcd_event_rec_template = {
++	.id = CXL_EVENT_DC_EVENT_UUID,
++	.rec = {
++		.hdr = {
++			.length = sizeof(struct cxl_test_dcd),
++		},
++	},
++};
++
++static int log_dc_event(struct cxl_mockmem_data *mdata, enum dc_event type,
++			u64 start, u64 length, const char *tag_str,
++			u16 shared_extn_seq, bool more)
++{
++	struct device *dev = mdata->mds->cxlds.dev;
++	struct cxl_test_dcd *dcd_event;
++	uuid_t tag;
++	int rc;
++
++	dev_dbg(dev, "mock device log event %d\n", type);
++
++	dcd_event = devm_kmemdup(dev, &dcd_event_rec_template,
++				     sizeof(*dcd_event), GFP_KERNEL);
++	if (!dcd_event)
++		return -ENOMEM;
++
++	dcd_event->rec.flags = 0;
++	if (more)
++		dcd_event->rec.flags |= CXL_DCD_EVENT_MORE;
++	dcd_event->rec.event_type = type;
++	dcd_event->rec.extent.start_dpa = cpu_to_le64(start);
++	dcd_event->rec.extent.length = cpu_to_le64(length);
++	rc = parse_tag(tag_str, &tag);
++	if (rc) {
++		devm_kfree(dev, dcd_event);
++		return rc;
++	}
++	export_uuid(dcd_event->rec.extent.uuid, &tag);
++	dcd_event->rec.extent.shared_extn_seq = cpu_to_le16(shared_extn_seq);
++
++	mes_add_event(mdata, CXL_EVENT_TYPE_DCD,
++		      (struct cxl_event_record_raw *)dcd_event);
++
++	/* Fake the irq */
++	cxl_mem_get_event_records(mdata->mds, CXLDEV_EVENT_STATUS_DCD);
++
++	return 0;
++}
++
++static void mark_extent_sent(struct device *dev, unsigned long long start)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	struct cxl_extent_data *ext;
++
++	guard(mutex)(&mdata->ext_lock);
++	ext = xa_erase(&mdata->dc_fm_extents, start);
++	if (xa_insert(&mdata->dc_sent_extents, ext->dpa_start, ext, GFP_KERNEL))
++		dev_err(dev, "Failed to mark extent %#llx sent\n", ext->dpa_start);
++}
++
++/*
++ * Format <start>:<length>:<tag>:<more_flag>
++ *
++ * start and length must be a multiple of the configured partition block size.
++ * Tag can be any string up to 16 bytes.
++ *
++ * Extents must be exclusive of other extents
++ *
++ * If the more flag is specified it is expected that an additional extent will
++ * be specified without the more flag to complete the test transaction with the
++ * host.
++ */
++static ssize_t __dc_inject_extent_store(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count,
++					bool shared)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	unsigned long long start, length, more;
++	char *len_str, *uuid_str, *more_str, *seq_str;
++	u16 shared_extn_seq = 0;
++	size_t buf_len = count;
++	int rc;
++
++	char *start_str __free(kfree) = kstrdup(buf, GFP_KERNEL);
++	if (!start_str)
++		return -ENOMEM;
++
++	len_str = strnchr(start_str, buf_len, ':');
++	if (!len_str) {
++		dev_err(dev, "Extent failed to find len_str: %s\n", start_str);
++		return -EINVAL;
++	}
++
++	*len_str = '\0';
++	len_str += 1;
++	buf_len -= strlen(start_str);
++
++	uuid_str = strnchr(len_str, buf_len, ':');
++	if (!uuid_str) {
++		dev_err(dev, "Extent failed to find uuid_str: %s\n", len_str);
++		return -EINVAL;
++	}
++	*uuid_str = '\0';
++	uuid_str += 1;
++
++	more_str = strnchr(uuid_str, buf_len, ':');
++	if (!more_str) {
++		dev_err(dev, "Extent failed to find more_str: %s\n", uuid_str);
++		return -EINVAL;
++	}
++	*more_str = '\0';
++	more_str += 1;
++
++	/* Optional 5th field: shared_extn_seq.  Absent -> 0. */
++	seq_str = strnchr(more_str, buf_len, ':');
++	if (seq_str) {
++		unsigned long long seq;
++
++		*seq_str = '\0';
++		seq_str += 1;
++		if (kstrtoull(seq_str, 0, &seq) || seq > U16_MAX) {
++			dev_err(dev, "Extent failed to parse seq: %s\n",
++				seq_str);
++			return -EINVAL;
++		}
++		shared_extn_seq = seq;
++	}
++
++	if (kstrtoull(start_str, 0, &start)) {
++		dev_err(dev, "Extent failed to parse start: %s\n", start_str);
++		return -EINVAL;
++	}
++
++	if (kstrtoull(len_str, 0, &length)) {
++		dev_err(dev, "Extent failed to parse length: %s\n", len_str);
++		return -EINVAL;
++	}
++
++	if (kstrtoull(more_str, 0, &more)) {
++		dev_err(dev, "Extent failed to parse more: %s\n", more_str);
++		return -EINVAL;
++	}
++
++	if (!new_extent_valid(dev, start, length))
++		return -EINVAL;
++
++	rc = devm_add_fm_extent(dev, start, length, uuid_str, shared_extn_seq,
++				shared);
++	if (rc) {
++		dev_err(dev, "Failed to add extent DPA:%#llx LEN:%#llx; %d\n",
++			start, length, rc);
++		return rc;
++	}
++
++	mark_extent_sent(dev, start);
++	rc = log_dc_event(mdata, DCD_ADD_CAPACITY, start, length, uuid_str,
++			  shared_extn_seq, more);
++	if (rc) {
++		dev_err(dev, "Failed to add event %d\n", rc);
++		return rc;
++	}
++
++	return count;
++}
++
++static ssize_t dc_inject_extent_store(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf, size_t count)
++{
++	return __dc_inject_extent_store(dev, attr, buf, count, false);
++}
++static DEVICE_ATTR_WO(dc_inject_extent);
++
++static ssize_t dc_inject_shared_extent_store(struct device *dev,
++					     struct device_attribute *attr,
++					     const char *buf, size_t count)
++{
++	return __dc_inject_extent_store(dev, attr, buf, count, true);
++}
++static DEVICE_ATTR_WO(dc_inject_shared_extent);
++
++static ssize_t __dc_del_extent_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t count,
++				     enum dc_event type)
++{
++	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
++	unsigned long long start, length;
++	char *len_str, *uuid_str;
++	size_t buf_len = count;
++	int rc;
++
++	char *start_str __free(kfree) = kstrdup(buf, GFP_KERNEL);
++	if (!start_str)
++		return -ENOMEM;
++
++	len_str = strnchr(start_str, buf_len, ':');
++	if (!len_str) {
++		dev_err(dev, "Failed to find len_str: %s\n", start_str);
++		return -EINVAL;
++	}
++	*len_str = '\0';
++	len_str += 1;
++	buf_len -= strlen(start_str);
++
++	uuid_str = strnchr(len_str, buf_len, ':');
++	if (!uuid_str) {
++		dev_err(dev, "Failed to find uuid_str: %s\n", len_str);
++		return -EINVAL;
++	}
++	*uuid_str = '\0';
++	uuid_str += 1;
++	/*
++	 * uuid_str is the trailing field; trim shell-added '\n' so
++	 * parse_tag()/uuid_parse() see a clean string.
++	 */
++	uuid_str = strim(uuid_str);
++
++	if (kstrtoull(start_str, 0, &start)) {
++		dev_err(dev, "Failed to parse start: %s\n", start_str);
++		return -EINVAL;
++	}
++
++	if (kstrtoull(len_str, 0, &length)) {
++		dev_err(dev, "Failed to parse length: %s\n", len_str);
++		return -EINVAL;
++	}
++
++	dc_delete_extent(dev, start, length);
++
++	if (type == DCD_FORCED_CAPACITY_RELEASE)
++		dev_dbg(dev, "Forcing delete of extent %#llx len:%#llx\n",
++			start, length);
++
++	rc = log_dc_event(mdata, type, start, length, uuid_str, 0, false);
++	if (rc) {
++		dev_err(dev, "Failed to add event %d\n", rc);
++		return rc;
++	}
++
++	return count;
++}
++
++/*
++ * Format <start>:<length>:<uuid>
++ */
++static ssize_t dc_del_extent_store(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf, size_t count)
++{
++	return __dc_del_extent_store(dev, attr, buf, count,
++				     DCD_RELEASE_CAPACITY);
++}
++static DEVICE_ATTR_WO(dc_del_extent);
++
++static ssize_t dc_force_del_extent_store(struct device *dev,
++					 struct device_attribute *attr,
++					 const char *buf, size_t count)
++{
++	return __dc_del_extent_store(dev, attr, buf, count,
++				     DCD_FORCED_CAPACITY_RELEASE);
++}
++static DEVICE_ATTR_WO(dc_force_del_extent);
++
+ static struct attribute *cxl_mock_mem_attrs[] = {
+ 	&dev_attr_security_lock.attr,
+ 	&dev_attr_event_trigger.attr,
+ 	&dev_attr_fw_buf_checksum.attr,
+ 	&dev_attr_sanitize_timeout.attr,
++	&dev_attr_dc_inject_extent.attr,
++	&dev_attr_dc_inject_shared_extent.attr,
++	&dev_attr_dc_del_extent.attr,
++	&dev_attr_dc_force_del_extent.attr,
+ 	NULL
+ };
+ ATTRIBUTE_GROUPS(cxl_mock_mem);
 -- 
 2.43.0
 
