@@ -1,63 +1,63 @@
-Received: from mail-dl1-f48.google.com (mail-dl1-f48.google.com [74.125.82.48])
+Received: from mail-dl1-f52.google.com (mail-dl1-f52.google.com [74.125.82.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117903876BF
-	for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 09:43:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99BAA38736F
+	for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 09:44:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779529444; cv=none; b=qMFXmpcZORm5WIeaJmL/joHRJZR6UAz8nHdyopCxSXWQJGit7YMejKkMpJNw7LkoA5lWrzbZ3cC6XOcmtnfZAxpJLxpy21+7xYbWJfqJbPUd5pr2X0GTYxgGFtTfoTJd+6bp8ZgcIquHWwnCcn4n+7Ia8csfE6LOlY4A80VHkh8=
+	t=1779529445; cv=none; b=SgDuNoThvz2WGbomcuU7uGOL12+QIiPL0+mBieD78BA3c2dQcCEQIXiYw+DKFyvZ4vyRsxzd5vhGZdm6lM6q6/1uX4i3cQu/oE7kmwz3VH911VHmK95drX3akGXlplf65aoBF2yryTomYcFPk00v4lD/7rHCqkAF3IrV4kx/Pp8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779529444; c=relaxed/simple;
-	bh=z38R1UrW2A3fP0de42veAZZx0/POxEvJRZoYfeRXlVg=;
+	s=arc-20240116; t=1779529445; c=relaxed/simple;
+	bh=n4DApGBlS1c3NISduAouPH4YcExjkm0CRhua22eLWWY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=L+pzZxp3sASZsseoUtj26jQRpvt/3KBOiVOqiVOqjv8SDh/qWTabIbPWAh+94Q5aVirfmjjDx+IbU14ZImZax04W2CC+Z6CnJMq7uKGEL6v7sE/iUknlj5A8IJJ/v5cLgfwQO853EyR2QboNc8KbWuDB2/NXs0t9MsCOKkXgphM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hFZ4xn3F; arc=none smtp.client-ip=74.125.82.48
+	 MIME-Version:Content-Type; b=r+0up2cOtJkAM765N9rUCfvgzy5ayX8TzZb6AjY/PTW3jxFmab9JmKs5rdu7E8HuNIAGfBiU8eMxMe953a5TW7BFO6BPunFLiXKnrQ/Ez0KGkCDk7ndEuZmYj1XmaWhW8WmGoRbtSuMcAUc8DRdn1ND3VdioX2rc28l5z8lE14I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kNczXCPR; arc=none smtp.client-ip=74.125.82.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hFZ4xn3F"
-Received: by mail-dl1-f48.google.com with SMTP id a92af1059eb24-1363e78746eso3080017c88.1
-        for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 02:43:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kNczXCPR"
+Received: by mail-dl1-f52.google.com with SMTP id a92af1059eb24-1334825de43so7175041c88.0
+        for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 02:44:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779529437; x=1780134237; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1779529443; x=1780134243; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=+KYd36Ajui1jTWwp0Hnf0okuHH/+vG5b+1VP/sgdrc0=;
-        b=hFZ4xn3Fq9nuuqyJbIShgGawSSxIqnwi0YG8GXaB6HqgyOxEnNg5l8bvslhRGW1cFi
-         9I5E17z3A9PbmhcU5NDceiYlEHqi/+g7/3NSj3Dh3QfcXohC1e2nsPuSPT3lf1IBNjJH
-         znuG4mkqdCE7Kkni/CxczFNb+uk2Ezb97hJjPp03h3l6eIcIajyoiiFYDjcZq1R1xbnW
-         nzSoH746sXktdzi+joxTi9OFZBppuaWyq1IrLVVgh+EI5tmK4XYFQWPu+ldMdnmeTLYq
-         yhR3FG6IPrPi7Rx8akjWekFR6bMpM+661FNniO7UxSrUDI2yE83Tvqn56Yb4zrcE16Sx
-         KTYg==
+        bh=qsDcrfyiYGHg2D0fltIuIiuRF5pesiJjHjMKkWGxFPI=;
+        b=kNczXCPRRxTiVnbgQvetkr24TBVpeXcZGhkUWU1SLt5sreEePfRHFd20UojoYOQVTK
+         vwF9mGk2CPHCKdJ4d2TUfQSZyWbYIYIRCwZOmCsfBJ/hpI8WUOX6/Cj3q0/LjMqeUt92
+         zbMxEpx+IqaWEI891W4BJNB6/lz/Pg+1jtD9S/4SKb4q48VEJ8aKcCBtkH0cXJObRKWQ
+         SULL4qnFWEiWkOCYFBgiByrmdHfsyICP+h1roNJZJaYGkPCjj2eHB+deDs5oq9rXpnYd
+         E7JAwB7C3WNJN3gNEFRtq7VWzpzqpZZZPsuyAujVp3N1XypSEyTem4viElRm9kT5K6Xm
+         xPNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779529437; x=1780134237;
+        d=1e100.net; s=20251104; t=1779529443; x=1780134243;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=+KYd36Ajui1jTWwp0Hnf0okuHH/+vG5b+1VP/sgdrc0=;
-        b=GNFGH7up+HbABrf57KrhjlakUbYTVc+GARmtLHw7lUdB3RUwjaUMGMz22A94NOdlbI
-         95xu8cvZ231ch+i1Pc9txudNtOjJHi/soDm3eMW/YRX/oeYMgxAmfkauRTjeyz1g8iA7
-         XFZz85d7TBm7waqkBlAyMjgaU3loDxMUSWUzofiIyslj37M3nrZ9KH2Miu4AYGfewSQs
-         E5Vv2eNwJYn6upd3hKGkLXlqNT/Ty90Hf8e9PfQ5/53e9FSf1WrGIRPAw5iUBC/HwDt5
-         HZUGMv++JhbXEIMcXHcVvGjiY1eOcjz89pp2wxoGcdbW0gmcAN0OBppz+yIr50PAvm9G
-         /cYw==
-X-Gm-Message-State: AOJu0YyE/7PY/4n9y8g1o8zNmbuUtm2IFB/tMY3g/UxT23nS4MFhFoz4
-	QXRSkwrVUv1vWz3sJ0KAF4vpL56fXpf/puzpWb5Xhv7hm137WKwGT0LoFh7yUA==
-X-Gm-Gg: Acq92OFg7QfxEGN4Kn2pxlcfnTJRz+u5lrieHu6vporztjMuRG7csxztfdtg/fZuj1h
-	vuKLWwnG2cB+dbKGFi2AByQRPTP/7TabbpDa16BqxXXwajb8MFaN00v43O2AdG6EFLdHfZpUL5m
-	2AjYSG7fErZhxg4W12IZu82D2tSzjcFidQFybKFw+97G7Z7H4EKVt4O3beChZfEx3XGe+6PayxK
-	eIUahScsbBEFRiE2z7aVv46qMQCK/liBsobDV6euUzOw7MMc7rayInDm+abCTMBCtFe62gr7xex
-	4DxSPCf1xPa7cptu+vXk98bRUpPiF3gq6nGANSzdhSZUGkFShNU48K1rF0pwcySiIBcJFWutjJH
-	tjIRTbVrFQLe9NtF1neot3Co8i7R0IV0W0V758axGrk3aTuLu4mET23y2GLD8vS5be8QKgp+oIW
-	THynj1gPgZiBtcU4avkI1URc1H68kVbZRHDiu+xZ1pyoIN5l4l0b2XPPvR4Yzbx/2622Xy/jRVC
-	PDj4XbxmFRMUY/Duw==
-X-Received: by 2002:a05:7022:41aa:b0:12c:2cf8:2f30 with SMTP id a92af1059eb24-1365f811393mr2491801c88.15.1779529437160;
-        Sat, 23 May 2026 02:43:57 -0700 (PDT)
+        bh=qsDcrfyiYGHg2D0fltIuIiuRF5pesiJjHjMKkWGxFPI=;
+        b=hPCGmxjQVL/iYTiH1FnWDrqGwgUpVnozyQWpLxRxjj7B8zZFOWmZ+pWo7kOIFBPVlg
+         kelK2oPDN4602pFZGuRAnywVReriEMCYVXNnmrann1bnBnwqm+JB8wbyZID7qLK6L/69
+         j5Pil8q2FCTbMKoA5NESMzD8LzyclcVcsf1ICdQ1ePhgLoPdchocKYI1cn5/U+5vPTi8
+         T5S8bplU9Q19ObbsP0o02xDgueG+1klHwXbcxEVxGnzssuuxFIXRWBu2xZu0agAH9f5x
+         eKzInzYNcu8uUsOk7sUpYqgV7lyvU3ZV5696dFbaQDeeV/U8YYpMSIdAXa6PqWuokMDp
+         fR3w==
+X-Gm-Message-State: AOJu0YwUjhU4RS/KEIFrT9KeAbqTJaJFyQss79sVIOFBOrF60PbmMv/s
+	w4uilk5YIXFJK73GmwsIrgNBiuE3aIGGdVJTXvXc1vnnhFitk1lC8evz
+X-Gm-Gg: Acq92OHPOBT7H8ALt4wlMG/4M4c4Jm9u8OSOqrGz8T6ItELZwTws8MQp/1lEVjDYS3S
+	lXqIL2fDYSZMFOPK7AslOBxILUy+AC3zz+ESgbksu6GnlcwYjuVvq1sihrWnXaAAjrJ5xEEgPlV
+	+foywCA9lc9Dom2FhEkGqrRFYf3eKRiLRC0FhahT9qtU/FGffV7r90imd+xB4uo7EGK3P76KhF/
+	Q8qRjJRJNmh8RjM3BcsgaRNABkp6YJEdHSE0BxvtLvATzNq/WwYA42FX95RJvzEcCTbLfGvR7kP
+	p0uijHrREnU7enquUbbkCsbk5AmqZlYc0AICmLhTfHErUubUxX6WtsVM9wtNrQAYOhhTcUbKw+2
+	Sqsat+PZ3D3kDJlX8mGVwfSgbKiPQ6lzzr/DsMEFJEXvR8O6I6ceOdEsokha3okJGYjavA0B7Lh
+	a/gcDnHU86LyYqkGlnw/6Zf9t+lMwHWKWRAx+HMI5b3JYgcvLf1+Hgm1L3c4TlVsYfJEu+quJMi
+	+/eyf7c1ZQvMXhhNg==
+X-Received: by 2002:a05:7022:218:b0:12a:6a64:81ee with SMTP id a92af1059eb24-1365f5f2f3amr2607953c88.3.1779529442484;
+        Sat, 23 May 2026 02:44:02 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1366a40305csm2376358c88.7.2026.05.23.02.43.55
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1366a40305csm2376358c88.7.2026.05.23.02.44.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 23 May 2026 02:43:56 -0700 (PDT)
+        Sat, 23 May 2026 02:44:02 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org,
@@ -72,13 +72,10 @@ Cc: nvdimm@lists.linux.dev,
 	Alison Schofield <alison.schofield@intel.com>,
 	John Groves <John@Groves.net>,
 	Gregory Price <gourry@gourry.net>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Fan Ni <fan.ni@samsung.com>,
-	Li Ming <ming.li@zohomail.com>
-Subject: [PATCH v10 11/31] cxl/core: Return endpoint decoder information from region search
-Date: Sat, 23 May 2026 02:43:05 -0700
-Message-ID: <aca91b273921128f9498f1da92c6844c026d07ed.1779528761.git.anisa.su@samsung.com>
+	Anisa Su <anisa.su@samsung.com>
+Subject: [PATCH v10 13/31] cxl/mem: Add 20 second timeout for stalled DC_ADD_CAPACITY chains
+Date: Sat, 23 May 2026 02:43:07 -0700
+Message-ID: <68caa60e758cb8ad5c9d0870cace911829ac965d.1779528761.git.anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1779528761.git.anisa.su@samsung.com>
 References: <cover.1779528761.git.anisa.su@samsung.com>
@@ -88,132 +85,192 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Ira Weiny <ira.weiny@intel.com>
+A DC_ADD_CAPACITY event can span multiple event records grouped together
+by the CXL_DCD_EVENT_MORE flag. Extents are staged in the pending list until
+the last event record ('More'=0) is received, at which point the pending
+list is processed. If the device opens such a chain (More=1) but never
+sends the closing record, the staged list sits indefinitely.
 
-cxl_dpa_to_region() finds the region from a <DPA, device> tuple.
-The search involves finding the device endpoint decoder as well.
+Add a delayed-work watchdog that, on expiry, refuses the chain with an
+empty ADD_DC_RESPONSE and drops the staged list.
 
-Dynamic capacity extent processing uses the endpoint decoder HPA
-information to calculate the HPA offset.  In addition, well behaved
-extents should be contained within an endpoint decoder.
+The 20s timeout is a conservative upper bound and may be tightened
+later. The timeout is purely defensive — the spec does not require it,
+but prevents issues from a lost mailbox response or a crashed fabric manager.
 
-Return the endpoint decoder found to be used in subsequent DCD code.
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: Fan Ni <fan.ni@samsung.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Li Ming <ming.li@zohomail.com>
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
+Signed-off-by: Anisa Su <anisa.su@samsung.com>
 ---
-Changes:
-[anisa: rebase]
----
- drivers/cxl/core/core.h   | 6 ++++--
- drivers/cxl/core/mbox.c   | 2 +-
- drivers/cxl/core/memdev.c | 4 ++--
- drivers/cxl/core/region.c | 8 +++++++-
- 4 files changed, 14 insertions(+), 6 deletions(-)
+ drivers/cxl/core/mbox.c | 73 ++++++++++++++++++++++++++++++++++++++++-
+ drivers/cxl/cxlmem.h    | 23 ++++++++++---
+ 2 files changed, 91 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index 8881cc9323e0..14723cfd05f0 100644
---- a/drivers/cxl/core/core.h
-+++ b/drivers/cxl/core/core.h
-@@ -58,7 +58,8 @@ int cxl_decoder_detach(struct cxl_region *cxlr,
- int cxl_region_init(void);
- void cxl_region_exit(void);
- int cxl_get_poison_by_endpoint(struct cxl_port *port);
--struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa);
-+struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
-+				     struct cxl_endpoint_decoder **cxled);
- u64 cxl_dpa_to_hpa(struct cxl_region *cxlr, const struct cxl_memdev *cxlmd,
- 		   u64 dpa);
- int devm_cxl_add_dax_region(struct cxl_region *cxlr);
-@@ -71,7 +72,8 @@ static inline u64 cxl_dpa_to_hpa(struct cxl_region *cxlr,
- 	return ULLONG_MAX;
- }
- static inline
--struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
-+struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
-+				     struct cxl_endpoint_decoder **cxled)
- {
- 	return NULL;
- }
 diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index f9a5e21f5d09..01b1a318f34f 100644
+index 1b38f34538f3..c376492fa166 100644
 --- a/drivers/cxl/core/mbox.c
 +++ b/drivers/cxl/core/mbox.c
-@@ -968,7 +968,7 @@ void cxl_event_trace_record(struct cxl_memdev *cxlmd,
- 		guard(rwsem_read)(&cxl_rwsem.dpa);
+@@ -1219,6 +1219,48 @@ static void clear_pending_extents(void *_mds)
+ 	mds->add_ctx.group = NULL;
+ }
  
- 		dpa = le64_to_cpu(evt->media_hdr.phys_addr) & CXL_DPA_MASK;
--		cxlr = cxl_dpa_to_region(cxlmd, dpa);
-+		cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
- 		if (cxlr) {
- 			u64 cache_size = cxlr->params.cache_size;
++/*
++ * Bound on how long the host will wait for a device to finish a
++ * multi-record DC_ADD_CAPACITY chain (More=1 ... More=0) before
++ * refusing the chain.
++ * The timeout is not defined in the spec, but added for defensive purposes.
++ * Since there is no spec-defined timeout, 20s is chosen as a generous
++ * upper bound and matches the GPF timeout.
++ */
++#define CXL_DC_ADD_TIMEOUT	(20 * HZ)
++
++static void cxl_dc_add_timeout(struct work_struct *work)
++{
++	struct pending_add_ctx *ctx = container_of(to_delayed_work(work),
++						   struct pending_add_ctx,
++						   timeout_work);
++	struct cxl_memdev_state *mds = container_of(ctx,
++						    struct cxl_memdev_state,
++						    add_ctx);
++	struct device *dev = mds->cxlds.dev;
++
++	guard(mutex)(&ctx->lock);
++
++	if (!ctx->armed)
++		return;
++
++	dev_warn(dev, "DC add chain timed out; refusing staged extents\n");
++
++	if (cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
++				 &ctx->pending_extents, 0))
++		dev_dbg(dev, "Failed to send empty ADD_DC_RESPONSE on timeout\n");
++
++	clear_pending_extents(mds);
++	ctx->armed = false;
++}
++
++static void cxl_cancel_dcd_add_chain_work(void *_mds)
++{
++	struct cxl_memdev_state *mds = _mds;
++
++	cancel_delayed_work_sync(&mds->add_ctx.timeout_work);
++}
++
+ static int add_to_pending_list(struct list_head *pending_list,
+ 			       struct cxl_extent *to_add)
+ {
+@@ -1246,18 +1288,34 @@ static int add_to_pending_list(struct list_head *pending_list,
+ static int handle_add_event(struct cxl_memdev_state *mds,
+ 			    struct cxl_event_dcd *event)
+ {
++	struct pending_add_ctx *ctx = &mds->add_ctx;
+ 	struct device *dev = mds->cxlds.dev;
+ 	int rc;
  
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index 064cfd628577..b8b3489f69e5 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -320,7 +320,7 @@ int cxl_inject_poison_locked(struct cxl_memdev *cxlmd, u64 dpa)
+-	rc = add_to_pending_list(&mds->add_ctx.pending_extents, &event->extent);
++	guard(mutex)(&ctx->lock);
++
++	rc = add_to_pending_list(&ctx->pending_extents, &event->extent);
  	if (rc)
  		return rc;
  
--	cxlr = cxl_dpa_to_region(cxlmd, dpa);
-+	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
- 	if (cxlr)
- 		dev_warn_once(cxl_mbox->host,
- 			      "poison inject dpa:%#llx region: %s\n", dpa,
-@@ -389,7 +389,7 @@ int cxl_clear_poison_locked(struct cxl_memdev *cxlmd, u64 dpa)
- 	if (rc)
- 		return rc;
+ 	if (event->flags & CXL_DCD_EVENT_MORE) {
+ 		dev_dbg(dev, "more bit set; delay the surfacing of extent\n");
++		mod_delayed_work(system_wq, &ctx->timeout_work,
++						 CXL_DC_ADD_TIMEOUT);
++		ctx->armed = true;
+ 		return 0;
+ 	}
  
--	cxlr = cxl_dpa_to_region(cxlmd, dpa);
-+	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
- 	if (cxlr)
- 		dev_warn_once(cxl_mbox->host,
- 			      "poison clear dpa:%#llx region: %s\n", dpa,
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index 7561bf3d8af8..733d77c07493 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -2991,6 +2991,7 @@ int cxl_get_poison_by_endpoint(struct cxl_port *port)
- struct cxl_dpa_to_region_context {
- 	struct cxl_region *cxlr;
- 	u64 dpa;
-+	struct cxl_endpoint_decoder *cxled;
++	/*
++	 * Chain is closing.  Disarm before flushing so a pending watchdog
++	 * (queued but blocked on @ctx->lock) sees !armed and bails out.
++	 * cancel_delayed_work() — not _sync — because handle_add_event()
++	 * itself runs on system_wq and a sync cancel of same-wq work can
++	 * deadlock.
++	 */
++	ctx->armed = false;
++	cancel_delayed_work(&ctx->timeout_work);
++
+ 	rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
+ 				  &mds->add_ctx.pending_extents, 0);
+ 	clear_pending_extents(mds);
+@@ -2009,11 +2067,24 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
+ 
+ 	mutex_init(&mds->event.log_lock);
+ 	INIT_LIST_HEAD(&mds->add_ctx.pending_extents);
++	mutex_init(&mds->add_ctx.lock);
++	INIT_DELAYED_WORK(&mds->add_ctx.timeout_work,
++			  cxl_dc_add_timeout);
++	mds->add_ctx.armed = false;
+ 
+ 	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
+ 	if (rc)
+ 		return ERR_PTR(rc);
+ 
++	/*
++	 * Registered after clear_pending_extents so devm's reverse-order
++	 * unwind cancels (and waits for) the watchdog first, then the list
++	 * cleanup runs with the watchdog guaranteed not to refire.
++	 */
++	rc = devm_add_action_or_reset(dev, cxl_cancel_dcd_add_chain_work, mds);
++	if (rc)
++		return ERR_PTR(rc);
++
+ 	rc = devm_cxl_register_mce_notifier(dev, &mds->mce_notifier);
+ 	if (rc == -EOPNOTSUPP)
+ 		dev_warn(dev, "CXL MCE unsupported\n");
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 592c8e3b611c..d992cc9b7811 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -8,6 +8,8 @@
+ #include <linux/uuid.h>
+ #include <linux/node.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/workqueue.h>
+ #include <cxl/event.h>
+ #include <cxl/mailbox.h>
+ #include "cxl.h"
+@@ -402,19 +404,32 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+ 
+ /**
+  * struct pending_add_ctx - Staging state for an in-progress
+- *			    DCD_ADD_CAPACITY event chain
++ *							DCD_ADD_CAPACITY event chain
+  * @pending_extents: extents received so far in the chain; flushed when
+- *		     the chain closes (More=0)
++ *					 the chain closes (More=0)
+  * @group: tag group being assembled from the chain
++ * @timeout_work: watchdog that fires if a chain is opened with
++ *				  CXL_DCD_EVENT_MORE but the closing record never arrives
++ * @lock: serialises updates to the chain state against the watchdog
++ * @armed: set when a More=1 chain opens; cleared when the chain closes,
++ *		   either by a More=0 event record or by the watchdog firing.
+  *
+  * A DCD_ADD_CAPACITY notification can span multiple event records
+  * stitched together by the CXL_DCD_EVENT_MORE flag.  Records are staged
+- * here until the device clears More, at which point the staged batch is
+- * processed and responded to as a single Add_DC_Response.
++ * here until an event record with 'More'=0 is received, at which point the
++ * staged batch is processed and responded to as a single Add_DC_Response.
++ *
++ * If a chain is opened (More=1) but the device never sends the closing
++ * record, the staged list would otherwise sit indefinitely.  @timeout_work
++ * is a defensive watchdog that refuses such a chain with an empty response
++ * and drops the staged list.
+  */
+ struct pending_add_ctx {
+ 	struct list_head pending_extents;
+ 	struct cxl_dc_tag_group *group;
++	struct delayed_work timeout_work;
++	struct mutex lock;
++	bool armed;
  };
  
- static int __cxl_dpa_to_region(struct device *dev, void *arg)
-@@ -3024,11 +3025,13 @@ static int __cxl_dpa_to_region(struct device *dev, void *arg)
- 			dev_name(dev));
- 
- 	ctx->cxlr = cxlr;
-+	ctx->cxled = cxled;
- 
- 	return 1;
- }
- 
--struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
-+struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
-+				     struct cxl_endpoint_decoder **cxled)
- {
- 	struct cxl_dpa_to_region_context ctx;
- 	struct cxl_port *port = cxlmd->endpoint;
-@@ -3042,6 +3045,9 @@ struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
- 	if (cxl_num_decoders_committed(port))
- 		device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
- 
-+	if (cxled)
-+		*cxled = ctx.cxled;
-+
- 	return ctx.cxlr;
- }
- 
+ /**
 -- 
 2.43.0
 
