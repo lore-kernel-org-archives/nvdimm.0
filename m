@@ -1,63 +1,63 @@
-Received: from mail-dy1-f180.google.com (mail-dy1-f180.google.com [74.125.82.180])
+Received: from mail-dy1-f175.google.com (mail-dy1-f175.google.com [74.125.82.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117FE3859C2
-	for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 09:43:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD74386C2C
+	for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 09:43:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779529426; cv=none; b=DFBI+f86fkPptSFTuOytmEpClNF0NkxXxbZbokunqnuWkyTRCIgwgsIO9dG3snxCnA8pDpzhECHGPYSEWlyWQ9SIn6ehsUyZKeJCzHUloVNeRowqaPg9WVSL3gdc2g2ZBSqiyYYQhr/+ugQ8V0NDKiRqB30V86Vmr9au4Fcf9y8=
+	t=1779529426; cv=none; b=YElfdHFnJF0dKH9GSNWWTG6E1H+4QaUXPoU55lbPH7B5tgVOKvyS31Nubwa5fyCmLsFatC0gsQTNTaIPbTu0f7AOuFVt9NgQ21H/AozPgvvnmy0ecTKg0PSLDlFyphAYPZJnyBxVpCHgJ1qqeLs356tFyKX1XprHpA0hslkPZtM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1779529426; c=relaxed/simple;
-	bh=kE5rNago1b+pyJpsmlKzqPBUNfF637c14Fgd6EpHYHQ=;
+	bh=mimTWYFTaHY+FLSmEscwRLS2qecNH3JETIBfD4afc9g=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ru8lM9pR+Lv0jywl9x5J51NVrzSO5w5ZyfdoDkb89ofd5IgWKpmcpsQ7lnIJZw522X5hihMdTLEFIAHh3JNjOnHbNDDB3rVmNq2Z5sen92J6wff11o2bq6upWpHM0HsPaisbJz8wzHGtdHFvARF7p7ipTIAx2euLuqUxVBMXh84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iMqMX2YI; arc=none smtp.client-ip=74.125.82.180
+	 MIME-Version; b=k+n1thxybUoj6K7tM6+WB/ubs727ag89Rw8ostEKq4HyHMPnLQShM6hrLh2meg7J7X0Q84zRURUq603MwRr8Cg/zkjVpDTr+qve3nzSVmgJRYOBoP/GWDtWH+hsmA2DYJ+9QUjING+XZZiIQnv1du6YBo1OO19Y+YLwIW47IzG4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NpHF65nR; arc=none smtp.client-ip=74.125.82.175
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iMqMX2YI"
-Received: by mail-dy1-f180.google.com with SMTP id 5a478bee46e88-304545e6c7fso1512357eec.0
-        for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 02:43:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NpHF65nR"
+Received: by mail-dy1-f175.google.com with SMTP id 5a478bee46e88-3042a388168so1871294eec.1
+        for <nvdimm@lists.linux.dev>; Sat, 23 May 2026 02:43:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779529422; x=1780134222; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1779529424; x=1780134224; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=OWos/AalbO5utJ9gJ5N4ZBriXQ8AKrI8xdpp7eapkB0=;
-        b=iMqMX2YIrP3pSNNA4fb4hULifS7IGGdYqWk5S8pDzO9X2MNZc0aPui8531n5xXTyFf
-         iTdkQLBXPmeZIu/BGU+/ftJF4PY5Cf56fRsxL3UoYrdkToasxlTGy00xLzn6Cu5gB925
-         NfXpGdhEdV/dz7zxASZU45u+uA81d/dMlTYFlVuEzeu2eE8F56GgM6D4rt13nkmSDWJD
-         LyN7r6jYA/IVxEJE4gXJgkJ/pHl1o1yx9Ht/3236ZJOI8HzRq1Hdo/lK2ICUwqdje6fl
-         auux1dhCPylACKP09OirmX0tnhVRpwQ4pfhy0E99vnjtc5rNTmfL/8l0u8gCsi/9uA6+
-         gySA==
+        bh=snhhVzpNXLnSXNel0j3XIF8QPv37i0IqA2Elwz6NcMg=;
+        b=NpHF65nRHbo4iSJQ25D7FeHNOdsPKf1Y7ac9hmnrznHHEISFMatCuudIFexAxinXuT
+         7FeOzK+MwIEFzrh7BvGUcGPtVs6Oi5sX0z8Daw6nqbmFyuoBqHy3m61mWRxtxV391JvL
+         ilXb97jiYFY9xMU7jS3lr1CS4GWhWUUKL/npk/OyMVXXr/B706pFPwKk8D+AP+XF5Aaf
+         hcSgDSWNE2E6Iz1r6DGrVw/v0Jzplz694zMi1/xb3IHHxm3yTYm9mN+2lJqENNeEbkU9
+         4onBXZtQ5Lc+CAadfJgWunWz0SiAwjAi85Hvd+0PTTvbA51JG6SwwH46b5KeieT0UlvE
+         jygQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779529422; x=1780134222;
+        d=1e100.net; s=20251104; t=1779529424; x=1780134224;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=OWos/AalbO5utJ9gJ5N4ZBriXQ8AKrI8xdpp7eapkB0=;
-        b=G9KodcKn8T16vG3x7qFgL9hkpBFh/vxobRC14i8qpJXdStoLr7/u44fqbK2B7vDUr7
-         /BPNO8/ybaEUJEffp2jMaGxMCzZs9yYg6QBSZNkQbrtw7XidhBPYSMu0WIERQGbYSfg7
-         9X+YXHD1hu5dwlrrgQbrMDHeu+HVMvxlCgXIq2s+tUolpSVYW9M5e8+DqnlHq48uPBOA
-         H7XtsC7PmNytHIEgH4Xclcd7Dp7HX6qhilAs7UMZYM8sv3Hwqga328+7bsHdJBLQkIMX
-         Obpc16fH3HwjVhLlmgrLXjVQgXSgPADIzZmb7ehCKjWzPk0E3dnj1cJEUeFXXTaBQVOE
-         wB6g==
-X-Gm-Message-State: AOJu0YzHg6e0t+Ur8qRo+4fXcXd2OJc6H2U4KyuHCqw4dgRQocl+k/EJ
-	waXazPsD2pRlVIPPOp6sLRki7Xt5nTX29wfONeEdI+6BDL4IN0AUxuBY
-X-Gm-Gg: Acq92OEpmZK3TNWwUPNHbUw9dtb2I6QvaJ8XLndHL25HzoYnvLHHhY7gWAqz4kvzf2f
-	qQ9tI/Tts/tS8p6MsxLRcjALrz8/hzgOhyLNb4bOKd90Fe2yR+FuRYEbgDLJAg1ppB2lbjjEJI0
-	xcNWZNS2tjjplcQoizQY+MKvm14f1RUwNH2UFP+ThFI8lQ7N9/ArHafdYRezr/58X7f1f2Rqt70
-	9xqhMIqC52SFbmCCyobqDo/3sK41gzGvpiJnocEiGAlQ61Uu2zFnmHvN8qZske3aXQDi02rqQRQ
-	szKj5ajKezu3nuEfm07C5EXFYy08tS1YoHjkP03/uV42A4/5kWd4kjCPL2IEZtzsqjuVd6h8DoV
-	rFVscDmNDfC+QMx2vg3tGTzyGrlPgLj8xr1hoaPo7BqbvMlnE4YKVMfwAx5BAB7/Ib4cqW21GI5
-	QlLxw45Z3/f6JwyvOtMw27gUQgx1fRmth5YOYtNXZGJYNlgijEVq6yeBwkIerOolewP+jRuhoXH
-	L1K2xw=
-X-Received: by 2002:a05:701b:290a:b0:12d:de3e:be88 with SMTP id a92af1059eb24-1365fc6d91cmr1288421c88.36.1779529422248;
-        Sat, 23 May 2026 02:43:42 -0700 (PDT)
+        bh=snhhVzpNXLnSXNel0j3XIF8QPv37i0IqA2Elwz6NcMg=;
+        b=mbQ8WnE0KrY/WJDyOfL5YLgFdE0OvvC9WR0H1klLF00XURXMGX5MykSV3Y557IDCg+
+         iQRygC9iY5j7ZSSe1BaE+J9hRw3VEC0AV4R7DNLf7ZeNHxC4v814dnsVm5Dy2w6zdW7M
+         C+ExZceMIAw1dJTwrDaJnuXoTJQsilLkLrq6we/d2sFp0kgQPwvpZ19hJT6yzN0Nn3Tj
+         iI8zGEzwRPhFCw21GnNqNNU4702W/j/gpjcSmZICXh1MdiGCynpI94I4K3zWoZC5w7lM
+         WvwjW+Uih8jzlOMrCAd2BhwDcEYSHUf8K+IvQTzJUNjjwvLc94wTcWJ0fC9IZ16T7a1+
+         NANg==
+X-Gm-Message-State: AOJu0YywpnOESxWkyvGGhcaKo1hG8SEkQw8IfBubUmfMG+OFANIvFh/Y
+	syqrloYFSIcxhHDCwLPaUZjcVGjPEtMCnBh0aonBbFydY2cb8IthfmXS
+X-Gm-Gg: Acq92OFVzmmdoiNoB53GjhiAXoQBBGQlfkTahyS1j1E3gW+t3pvPt2IbPH7jMlLDphB
+	kx0lYh6ZtEm9eJw4lo/hI9ZAZNgECqIGfS4SE4J+gVIHYJOHi0IfFKpmaWV3aRIIgyX+yNqrIzD
+	Rob1lMMnSe2lUY1VngwfSQUg/x/m2woZiqzA9h95tI3pUP0NgW3s8snqZRpVKz95lOoBz88WxQe
+	R4PhHQ1gbCCJ+1SBUxjTKNkelCesd1casXQXB4BgKAbnloaugDkZwJZAds6Rb9IXHb/j/PHfWeJ
+	PNe1AkpSZIWEr5p9DWBc5n1ogN4wGEWVNsU/WeEbe1SV+PMtVHkOEuQS7zY++f6PNsi3M8epYFA
+	NVrb/pVZU5tV4ZLBev5YlO5Q1QoJ1f9UBoROdAKqLucRr1nFvXSr3mk2W99m4XuQQqCYozP6uIG
+	rRjd9ldjlEOG8pVeW8JS0ASXW8neJWKGHOQxPe1H3xSpEAkx1NxvmEbtuiXGOWYRmUQsjK7RNVJ
+	I7m7zI=
+X-Received: by 2002:a05:7022:609c:b0:11a:fb0a:ceca with SMTP id a92af1059eb24-13633eb60b4mr3619709c88.16.1779529424123;
+        Sat, 23 May 2026 02:43:44 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1366a40305csm2376358c88.7.2026.05.23.02.43.40
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1366a40305csm2376358c88.7.2026.05.23.02.43.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 23 May 2026 02:43:41 -0700 (PDT)
+        Sat, 23 May 2026 02:43:43 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org,
@@ -73,9 +73,9 @@ Cc: nvdimm@lists.linux.dev,
 	John Groves <John@Groves.net>,
 	Gregory Price <gourry@gourry.net>,
 	Ira Weiny <ira.weiny@intel.com>
-Subject: [PATCH v10 03/31] cxl/cdat: Gather DSMAS data for DCD partitions
-Date: Sat, 23 May 2026 02:42:57 -0700
-Message-ID: <f7800561164a891513a20381378f2ff052d29288.1779528761.git.anisa.su@samsung.com>
+Subject: [PATCH v10 04/31] cxl/core: Enforce partition order/simplify partition calls
+Date: Sat, 23 May 2026 02:42:58 -0700
+Message-ID: <22ae445b8a99d26299520e2429c5bf4e64b0d9e6.1779528761.git.anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1779528761.git.anisa.su@samsung.com>
 References: <cover.1779528761.git.anisa.su@samsung.com>
@@ -89,158 +89,191 @@ Content-Transfer-Encoding: 8bit
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-Additional DCD partition (AKA region) information is contained in the
-DSMAS CDAT tables, including performance, read only, and shareable
-attributes.
+Device partitions have an implied order which is made more complex by
+the addition of a dynamic partition.
 
-Match DCD partitions with DSMAS tables and store the meta data.
+Remove the ram special case information calls in favor of generic calls
+with a check ahead of time to ensure the preservation of the implied
+partition order.
 
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
 ---
-Changes:
+Changes::
 [anisa: rebase]
-[jonathan: core/mbox.c: error if there are non-zero reserved bits in DSMAD
-handle in cxl_dc_check]
+[davidlohr: core/hdm.c: return -EINVAL instead of 0 in cxl_dpa_setup
+if partitions are out of order]
 ---
- drivers/cxl/core/cdat.c | 11 +++++++++++
- drivers/cxl/core/mbox.c |  7 +++++++
- drivers/cxl/cxlmem.h    |  2 ++
- include/cxl/cxl.h       |  4 ++++
- 4 files changed, 24 insertions(+)
+ drivers/cxl/core/hdm.c    | 11 ++++++++++-
+ drivers/cxl/core/memdev.c | 32 +++++++++-----------------------
+ drivers/cxl/cxlmem.h      |  9 +++------
+ drivers/cxl/mem.c         |  2 +-
+ 4 files changed, 23 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
-index 5c9f07262513..c5f3d2ebea55 100644
---- a/drivers/cxl/core/cdat.c
-+++ b/drivers/cxl/core/cdat.c
-@@ -17,6 +17,7 @@ struct dsmas_entry {
- 	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
- 	int entries;
- 	int qos_class;
-+	bool shareable;
+diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+index 28974adaab75..7a5812971f8f 100644
+--- a/drivers/cxl/core/hdm.c
++++ b/drivers/cxl/core/hdm.c
+@@ -464,6 +464,7 @@ static const char *cxl_mode_name(enum cxl_partition_mode mode)
+ int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
+ {
+ 	struct device *dev = cxlds->dev;
++	int i;
+ 
+ 	guard(rwsem_write)(&cxl_rwsem.dpa);
+ 
+@@ -476,9 +477,17 @@ int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
+ 		return 0;
+ 	}
+ 
++	/* Verify partitions are in expected order. */
++	for (i = 1; i < info->nr_partitions; i++) {
++		if (cxlds->part[i].mode < cxlds->part[i-1].mode) {
++			dev_err(dev, "Partition order mismatch\n");
++			return -EINVAL;
++		}
++	}
++
+ 	cxlds->dpa_res = DEFINE_RES_MEM(0, info->size);
+ 
+-	for (int i = 0; i < info->nr_partitions; i++) {
++	for (i = 0; i < info->nr_partitions; i++) {
+ 		const struct cxl_dpa_part_info *part = &info->part[i];
+ 		int rc;
+ 
+diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+index 80e65690eb77..71602820f896 100644
+--- a/drivers/cxl/core/memdev.c
++++ b/drivers/cxl/core/memdev.c
+@@ -75,20 +75,12 @@ static ssize_t label_storage_size_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(label_storage_size);
+ 
+-static resource_size_t cxl_ram_size(struct cxl_dev_state *cxlds)
+-{
+-	/* Static RAM is only expected at partition 0. */
+-	if (cxlds->part[0].mode != CXL_PARTMODE_RAM)
+-		return 0;
+-	return resource_size(&cxlds->part[0].res);
+-}
+-
+ static ssize_t ram_size_show(struct device *dev, struct device_attribute *attr,
+ 			     char *buf)
+ {
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+-	unsigned long long len = cxl_ram_size(cxlds);
++	unsigned long long len = cxl_part_size(cxlds, CXL_PARTMODE_RAM);
+ 
+ 	return sysfs_emit(buf, "%#llx\n", len);
+ }
+@@ -101,7 +93,7 @@ static ssize_t pmem_size_show(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+-	unsigned long long len = cxl_pmem_size(cxlds);
++	unsigned long long len = cxl_part_size(cxlds, CXL_PARTMODE_PMEM);
+ 
+ 	return sysfs_emit(buf, "%#llx\n", len);
+ }
+@@ -424,10 +416,11 @@ static struct attribute *cxl_memdev_attributes[] = {
+ 	NULL,
  };
  
- static u32 cdat_normalize(u16 entry, u64 base, u8 type)
-@@ -74,6 +75,7 @@ static int cdat_dsmas_handler(union acpi_subtable_headers *header, void *arg,
- 		return -ENOMEM;
- 
- 	dent->handle = dsmas->dsmad_handle;
-+	dent->shareable = dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
- 	dent->dpa_range.start = le64_to_cpu((__force __le64)dsmas->dpa_base_address);
- 	dent->dpa_range.end = le64_to_cpu((__force __le64)dsmas->dpa_base_address) +
- 			      le64_to_cpu((__force __le64)dsmas->dpa_length) - 1;
-@@ -244,6 +246,7 @@ static void update_perf_entry(struct device *dev, struct dsmas_entry *dent,
- 		dpa_perf->coord[i] = dent->coord[i];
- 		dpa_perf->cdat_coord[i] = dent->cdat_coord[i];
- 	}
-+	dpa_perf->shareable = dent->shareable;
- 	dpa_perf->dpa_range = dent->dpa_range;
- 	dpa_perf->qos_class = dent->qos_class;
- 	dev_dbg(dev,
-@@ -266,13 +269,21 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
- 		bool found = false;
- 
- 		for (int i = 0; i < cxlds->nr_partitions; i++) {
-+			enum cxl_partition_mode mode = cxlds->part[i].mode;
- 			struct resource *res = &cxlds->part[i].res;
-+			u8 handle = cxlds->part[i].handle;
- 			struct range range = {
- 				.start = res->start,
- 				.end = res->end,
- 			};
- 
- 			if (range_contains(&range, &dent->dpa_range)) {
-+				if (mode == CXL_PARTMODE_DYNAMIC_RAM_A &&
-+				    dent->handle != handle)
-+					dev_warn(dev,
-+						"Dynamic RAM perf mismatch; %pra (%u) vs %pra (%u)\n",
-+						&range, handle, &dent->dpa_range, dent->handle);
-+
- 				update_perf_entry(dev, dent,
- 						  &cxlds->part[i].perf);
- 				found = true;
-diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index 71b29cd6abfe..f9a5e21f5d09 100644
---- a/drivers/cxl/core/mbox.c
-+++ b/drivers/cxl/core/mbox.c
-@@ -1356,10 +1356,16 @@ static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info *part_a
+-static struct cxl_dpa_perf *to_pmem_perf(struct cxl_dev_state *cxlds)
++static struct cxl_dpa_perf *part_perf(struct cxl_dev_state *cxlds,
++				      enum cxl_partition_mode mode)
  {
- 	size_t blk_size = le64_to_cpu(dev_part->block_size);
- 	size_t len = le64_to_cpu(dev_part->length);
-+	u32 handle = le32_to_cpu(dev_part->dsmad_handle);
+ 	for (int i = 0; i < cxlds->nr_partitions; i++)
+-		if (cxlds->part[i].mode == CXL_PARTMODE_PMEM)
++		if (cxlds->part[i].mode == mode)
+ 			return &cxlds->part[i].perf;
+ 	return NULL;
+ }
+@@ -438,7 +431,7 @@ static ssize_t pmem_qos_class_show(struct device *dev,
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
  
- 	part_array[index].start = le64_to_cpu(dev_part->base);
- 	part_array[index].size = le64_to_cpu(dev_part->decode_length);
- 	part_array[index].size *= CXL_CAPACITY_MULTIPLIER;
-+	if (handle & ~0xFF) {
-+		dev_warn(dev, "DSMAD handle 0x%x has non-zero reserved bits\n", handle);
-+		return -EINVAL;
-+	}
-+	part_array[index].handle = handle;
+-	return sysfs_emit(buf, "%d\n", to_pmem_perf(cxlds)->qos_class);
++	return sysfs_emit(buf, "%d\n", part_perf(cxlds, CXL_PARTMODE_PMEM)->qos_class);
+ }
  
- 	/* Check partitions are in increasing DPA order */
- 	if (index > 0) {
-@@ -1494,6 +1500,7 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
- 	/* Return 1st partition */
- 	dc_info->start = partitions[0].start;
- 	dc_info->size = partitions[0].size;
-+	dc_info->handle = partitions[0].handle;
- 	dev_dbg(dev, "Returning partition 0 %zu size %zu\n",
- 		dc_info->start, dc_info->size);
+ static struct device_attribute dev_attr_pmem_qos_class =
+@@ -450,20 +443,13 @@ static struct attribute *cxl_memdev_pmem_attributes[] = {
+ 	NULL,
+ };
  
+-static struct cxl_dpa_perf *to_ram_perf(struct cxl_dev_state *cxlds)
+-{
+-	if (cxlds->part[0].mode != CXL_PARTMODE_RAM)
+-		return NULL;
+-	return &cxlds->part[0].perf;
+-}
+-
+ static ssize_t ram_qos_class_show(struct device *dev,
+ 				  struct device_attribute *attr, char *buf)
+ {
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+ 
+-	return sysfs_emit(buf, "%d\n", to_ram_perf(cxlds)->qos_class);
++	return sysfs_emit(buf, "%d\n", part_perf(cxlds, CXL_PARTMODE_RAM)->qos_class);
+ }
+ 
+ static struct device_attribute dev_attr_ram_qos_class =
+@@ -499,7 +485,7 @@ static umode_t cxl_ram_visible(struct kobject *kobj, struct attribute *a, int n)
+ {
+ 	struct device *dev = kobj_to_dev(kobj);
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+-	struct cxl_dpa_perf *perf = to_ram_perf(cxlmd->cxlds);
++	struct cxl_dpa_perf *perf = part_perf(cxlmd->cxlds, CXL_PARTMODE_RAM);
+ 
+ 	if (a == &dev_attr_ram_qos_class.attr &&
+ 	    (!perf || perf->qos_class == CXL_QOS_CLASS_INVALID))
+@@ -518,7 +504,7 @@ static umode_t cxl_pmem_visible(struct kobject *kobj, struct attribute *a, int n
+ {
+ 	struct device *dev = kobj_to_dev(kobj);
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+-	struct cxl_dpa_perf *perf = to_pmem_perf(cxlmd->cxlds);
++	struct cxl_dpa_perf *perf = part_perf(cxlmd->cxlds, CXL_PARTMODE_PMEM);
+ 
+ 	if (a == &dev_attr_pmem_qos_class.attr &&
+ 	    (!perf || perf->qos_class == CXL_QOS_CLASS_INVALID))
 diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 87386488ad10..cee936fb3d03 100644
+index cee936fb3d03..10175ca3b7ee 100644
 --- a/drivers/cxl/cxlmem.h
 +++ b/drivers/cxl/cxlmem.h
-@@ -118,6 +118,7 @@ struct cxl_dpa_info {
- 	struct cxl_dpa_part_info {
- 		struct range range;
- 		enum cxl_partition_mode mode;
-+		u8 handle;
- 	} part[CXL_NR_PARTITIONS_MAX];
- 	int nr_partitions;
- };
-@@ -818,6 +819,7 @@ int cxl_dev_state_identify(struct cxl_memdev_state *mds);
- struct cxl_dc_partition_info {
- 	size_t start;
- 	size_t size;
-+	u8 handle;
- };
+@@ -383,14 +383,11 @@ struct cxl_security_state {
  
- int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
-diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
-index bb1df0cef863..51685a01d19c 100644
---- a/include/cxl/cxl.h
-+++ b/include/cxl/cxl.h
-@@ -122,12 +122,14 @@ struct cxl_register_map {
-  * @coord: QoS performance data (i.e. latency, bandwidth)
-  * @cdat_coord: raw QoS performance data from CDAT
-  * @qos_class: QoS Class cookies
-+ * @shareable: Is the range sharable
-  */
- struct cxl_dpa_perf {
- 	struct range dpa_range;
- 	struct access_coordinate coord[ACCESS_COORDINATE_MAX];
- 	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
- 	int qos_class;
-+	bool shareable;
- };
+ #define CXL_MAX_DC_PARTITIONS 8
  
- enum cxl_partition_mode {
-@@ -141,11 +143,13 @@ enum cxl_partition_mode {
-  * @res: shortcut to the partition in the DPA resource tree (cxlds->dpa_res)
-  * @perf: performance attributes of the partition from CDAT
-  * @mode: operation mode for the DPA capacity, e.g. ram, pmem, dynamic...
-+ * @handle: DSMAS handle intended to represent this partition
-  */
- struct cxl_dpa_partition {
- 	struct resource res;
- 	struct cxl_dpa_perf perf;
- 	enum cxl_partition_mode mode;
-+	u8 handle;
- };
+-static inline resource_size_t cxl_pmem_size(struct cxl_dev_state *cxlds)
++static inline resource_size_t cxl_part_size(struct cxl_dev_state *cxlds,
++					    enum cxl_partition_mode mode)
+ {
+-	/*
+-	 * Static PMEM may be at partition index 0 when there is no static RAM
+-	 * capacity.
+-	 */
+ 	for (int i = 0; i < cxlds->nr_partitions; i++)
+-		if (cxlds->part[i].mode == CXL_PARTMODE_PMEM)
++		if (cxlds->part[i].mode == mode)
+ 			return resource_size(&cxlds->part[i].res);
+ 	return 0;
+ }
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index fcffe24dcb42..f19e08279ec7 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -114,7 +114,7 @@ static int cxl_mem_probe(struct device *dev)
+ 		return -ENXIO;
+ 	}
  
- #define CXL_NR_PARTITIONS_MAX 3
+-	if (cxl_pmem_size(cxlds) && IS_ENABLED(CONFIG_CXL_PMEM)) {
++	if (cxl_part_size(cxlds, CXL_PARTMODE_PMEM) && IS_ENABLED(CONFIG_CXL_PMEM)) {
+ 		rc = devm_cxl_add_nvdimm(dev, parent_port, cxlmd);
+ 		if (rc) {
+ 			if (rc == -ENODEV)
 -- 
 2.43.0
 
