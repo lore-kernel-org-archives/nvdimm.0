@@ -1,48 +1,48 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0BD63BD646
-	for <nvdimm@lists.linux.dev>; Tue, 26 May 2026 23:22:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22048358372
+	for <nvdimm@lists.linux.dev>; Tue, 26 May 2026 23:31:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779837727; cv=none; b=FkImIK5/9JRPTsAmJfJ64fojVIAL3CB0TBzIZbD5UM2xbU+u3ak79pi03D5EMqIr2rWG3RbICSo6qGUY323J5eRH27xJXGLBwpASy2DyxjsbRHKB9M+gYulm1Yz1uiJBQeEzdsiyoDA4sjsZ1Vh3ve5jEVacDxgEI+f6t/zf6zg=
+	t=1779838269; cv=none; b=iIPt/eCJCdOJM/fU2eP42i6mfGBTQTMX+4tBt/SPlvlG5nIkLgBMtKlayuhPbHkxss0DSx9ocunnYuToatk7YxFjgtmzgFYlUSoqEO6WnnpnXFgBoGpTB81ei8oARRB3Tfnh3lIYmQ2lx8bqPb2ZC8i7l8YVbaELFUtiEoUKv+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779837727; c=relaxed/simple;
-	bh=SRzFIBtNXr2IZxxyqZvaMrgjGl+IynndLC6+Ry28wLE=;
+	s=arc-20240116; t=1779838269; c=relaxed/simple;
+	bh=Uh1B4LC7Ou4oWh//ZNCWVQ5wMvyjm3M8AdnFd11S5ck=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=t9AAG02FNkTGkClQ0kNwd9bQtyCiBQuh6EVs8O1bCaw6mPzk2sITuWgR2yIrmMfr1jjH4yoU/93BMaxnBx3cmYKTFX0lNTpvQrcLDsGirgL1fgGxhOmCbt0trx6NVAsnVfId6/YurzfppdI18sTrtKSEbeQi+qo+aTMSgKJRS7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hE+o+Arw; arc=none smtp.client-ip=198.175.65.10
+	 In-Reply-To:Content-Type; b=YmqZzPdOlXdDSU0B2WlYIZeSw9VHa8DqtzBzjxtAik3a6VWqzuKEnslmPaKkYiXghUOStRJDBPru+QRuSLREpE6ipxjl/Rj763Ywbv63S3B1HHAXsIH8cYvNWBSJRf0s764bEmwM0dLJ2r7g2zOueqbRO8J5Ot2IwyNtSk9NL3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=F5vFPw+w; arc=none smtp.client-ip=198.175.65.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hE+o+Arw"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="F5vFPw+w"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779837726; x=1811373726;
+  t=1779838268; x=1811374268;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=SRzFIBtNXr2IZxxyqZvaMrgjGl+IynndLC6+Ry28wLE=;
-  b=hE+o+ArwXoJ+ST9U1jDbWRtTqHUYQf/lKFZWq5Hm8xlQ9G9JWRgD53PX
-   7vH4tQt/EqOn8K4KNmmGAk3CQae2ZzFyoUcFqlqFNgS6wKDMH9kfxYNOV
-   qnNGZ1Kc8wJZkxzGu6ZKm8IEEJIE+47VH801tBOhCN7KF8VUjVOJgzGrG
-   GCFBXuD//tcsjSeJTkbSHMPpgVRs/K4/yWjHaBSr0OOenQSqP8hZOc8vK
-   DtJn6nnZsAbPkTBEcSOrwqfYSW8F06CNnuY1ZakRDbn8FfPDaKamGCeXn
-   Omo1MrIggXBl7DA94R2Y3uaMAv4iY0BUaFLuq/QS5jt/K27EnGtSMJbuv
-   w==;
-X-CSE-ConnectionGUID: 1TwrOy7iTgKyw/Wf4BZFkg==
-X-CSE-MsgGUID: FDb0xNMbQD6uz3nMw6CBtA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11798"; a="98089298"
+  bh=Uh1B4LC7Ou4oWh//ZNCWVQ5wMvyjm3M8AdnFd11S5ck=;
+  b=F5vFPw+wMQ+zfUpPqZyapykduBHnNWYkNZPuQCjRusYGXmrVrIML8Dl1
+   roYsaOwW7NDRLJBdJu6SITaNY2DMsVCw1idC21PdIBgtml4RjxIX1giEv
+   XXM8QUUEnAgR20tS0a7qdUwq6NsMq8GbZ9ppNV8jEvEdxXKmFK8IWmidp
+   SRxVmvkm6VFH+CioZvPplTzqrDY+KSwuo3IXLzSKF7OcixjHWWIgponBB
+   QWS+0yLvv9hcgSmYRUht42hhdzcD9cE0seNrzVAlVm4ZHxbpt3ENysrqR
+   coCXxCp0Td2LnNaEql6V8bNGScK0cDbL7v2PYLR+zoDxYEmkRYv69Tgl5
+   Q==;
+X-CSE-ConnectionGUID: 7Niqw1FwReamc6cXVkk/tA==
+X-CSE-MsgGUID: ngIMtBaeRSyBCTk9M2tPPg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11798"; a="84557517"
 X-IronPort-AV: E=Sophos;i="6.24,170,1774335600"; 
-   d="scan'208";a="98089298"
+   d="scan'208";a="84557517"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 16:22:05 -0700
-X-CSE-ConnectionGUID: 4BykZTCJSUifHT7CYZJrZw==
-X-CSE-MsgGUID: eLGrKQxvQpCtnY1cWJ57tw==
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 16:31:08 -0700
+X-CSE-ConnectionGUID: gDndoBbXQzuShIVkjqPc2g==
+X-CSE-MsgGUID: 1b/CbDUQTPSa2hcls/N2qA==
 X-ExtLoop1: 1
 Received: from aduenasd-mobl5.amr.corp.intel.com (HELO [10.125.110.201]) ([10.125.110.201])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 16:22:03 -0700
-Message-ID: <0e68254a-b57a-4210-a2c2-7dce2a3e5256@intel.com>
-Date: Tue, 26 May 2026 16:22:02 -0700
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 16:31:06 -0700
+Message-ID: <1aa37178-4d36-4a4c-8b36-bf2789ce9655@intel.com>
+Date: Tue, 26 May 2026 16:31:05 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,8 +50,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V2 2/7] dax/fsdev: fix multi-range offset, vmemmap_shift
- leak, and probe error cleanup
+Subject: Re: [PATCH V2 3/7] dax/fsdev: fix kaddr for multi-range and fail
+ probe on invalid pgmap offset
 To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
  Dan Williams <djbw@kernel.org>
 Cc: John Groves <jgroves@micron.com>, Vishal Verma
@@ -65,176 +65,89 @@ Cc: John Groves <jgroves@micron.com>, Vishal Verma
  "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 References: <0100019e511fb82e-1a444df3-8310-40ed-8380-72e1373d5da9-000000@email.amazonses.com>
- <20260522191851.79150-1-john@jagalactic.com>
- <0100019e51205fc2-9b729b27-3485-44a0-98b2-ea56189c192e-000000@email.amazonses.com>
+ <20260522191859.79167-1-john@jagalactic.com>
+ <0100019e51208026-d62e0ffa-73d4-4cac-b950-dbbbb13ab38c-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019e51205fc2-9b729b27-3485-44a0-98b2-ea56189c192e-000000@email.amazonses.com>
+In-Reply-To: <0100019e51208026-d62e0ffa-73d4-4cac-b950-dbbbb13ab38c-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 5/22/26 12:18 PM, John Groves wrote:
+On 5/22/26 12:19 PM, John Groves wrote:
 > From: John Groves <John@Groves.net>
 > 
-> Three fixes for fsdev.c:
+> Two fixes for virtual address handling in fsdev:
 > 
-> 1. Fix memory_failure offset calculation for multi-range devices.
->    The old code subtracted ranges[0].range.start from the faulting PFN's
->    physical address, which produces an incorrect (inflated) logical offset
->    when the PFN falls in ranges[1] or beyond due to physical gaps between
->    ranges. Add fsdev_pfn_to_offset() to walk the range list and compute
->    the correct device-linear byte offset.
+> 1. Use __va(phys) instead of virt_addr + linear_offset for the kaddr
+>    return in __fsdev_dax_direct_access(). The previous code added a
+>    device-linear byte offset to virt_addr (which is __va of ranges[0]),
+>    but for multi-range devices with physical gaps between ranges, this
+>    linear arithmetic crosses the gap and produces a wrong kernel virtual
+>    address. Using __va(phys) where phys comes from dax_pgoff_to_phys()
+>    is correct for any range layout because the direct map translates
+>    each physical address independently.
 > 
-> 2. Clear pgmap->vmemmap_shift for static DAX devices. When rebinding a
->    static device from device_dax (which may set vmemmap_shift based on
->    alignment) to fsdev_dax, the stale vmemmap_shift persists on the
->    shared pgmap. Explicitly zero it before devm_memremap_pages() so the
->    vmemmap is built for order-0 folios as fsdev requires.
-> 
-> 3. Clear dev_dax->pgmap on probe failure for dynamic devices. After the
->    dynamic path sets dev_dax->pgmap, if a later probe step fails, devres
->    frees the devm_kzalloc'd pgmap but leaves dev_dax->pgmap dangling.
->    Subsequent probe attempts would hit the "dynamic-dax with pre-populated
->    page map" check and fail permanently. Use a goto cleanup to NULL
->    dev_dax->pgmap on error.
+> 2. Convert the WARN_ON to a fatal error when pgmap_phys > phys. This
+>    condition means the remapped region starts after the device's data
+>    region, which is an impossible state. Previously the probe continued
+>    with data_offset=0, leaving virt_addr silently misaligned. Now probe
+>    returns -EINVAL with a diagnostic message.
 
-3 fixes, 3 separate patches?
+Split to 2 different patches I'd say.
 
 DJ
 
 > 
-> Fixes: d5406bd458b0a ("dax: add fsdev.c driver for fs-dax on character dax")
+> Fixes: 759455848df0b ("dax: Save the kva from memremap")
 > Signed-off-by: John Groves <john@groves.net>
 > ---
->  drivers/dax/fsdev.c | 50 ++++++++++++++++++++++++++++++++++++---------
->  1 file changed, 40 insertions(+), 10 deletions(-)
+>  drivers/dax/fsdev.c | 16 +++++++++-------
+>  1 file changed, 9 insertions(+), 7 deletions(-)
 > 
 > diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> index 188b2526bee45..42aac7e952516 100644
+> index 42aac7e952516..aac0130ab2833 100644
 > --- a/drivers/dax/fsdev.c
 > +++ b/drivers/dax/fsdev.c
-> @@ -135,11 +135,26 @@ static void fsdev_clear_ops(void *data)
->   * The core mm code in free_zone_device_folio() handles the wake_up_var()
->   * directly for this memory type.
->   */
-> +static u64 fsdev_pfn_to_offset(struct dev_dax *dev_dax, unsigned long pfn)
-> +{
-> +	phys_addr_t phys = PFN_PHYS(pfn);
-> +	u64 offset = 0;
-> +
-> +	for (int i = 0; i < dev_dax->nr_range; i++) {
-> +		struct range *range = &dev_dax->ranges[i].range;
-> +
-> +		if (phys >= range->start && phys <= range->end)
-> +			return offset + (phys - range->start);
-> +		offset += range_len(range);
-> +	}
-> +	return -1ULL;
-> +}
-> +
->  static int fsdev_pagemap_memory_failure(struct dev_pagemap *pgmap,
->  		unsigned long pfn, unsigned long nr_pages, int mf_flags)
->  {
->  	struct dev_dax *dev_dax = pgmap->owner;
-> -	u64 offset = PFN_PHYS(pfn) - dev_dax->ranges[0].range.start;
-> +	u64 offset = fsdev_pfn_to_offset(dev_dax, pfn);
->  	u64 len = nr_pages << PAGE_SHIFT;
+> @@ -51,9 +51,7 @@ static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
+>  	struct dev_dax *dev_dax = dax_get_private(dax_dev);
+>  	size_t size = nr_pages << PAGE_SHIFT;
+>  	size_t offset = pgoff << PAGE_SHIFT;
+> -	void *virt_addr = dev_dax->virt_addr + offset;
+>  	phys_addr_t phys;
+> -	unsigned long local_pfn;
 >  
->  	return dax_holder_notify_failure(dev_dax->dax_dev, offset,
-> @@ -208,6 +223,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  {
->  	struct dax_device *dax_dev = dev_dax->dax_dev;
->  	struct device *dev = &dev_dax->dev;
-> +	bool pgmap_allocated = false;
->  	struct dev_pagemap *pgmap;
->  	struct inode *inode;
->  	u64 data_offset = 0;
-> @@ -222,6 +238,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  		}
->  
->  		pgmap = dev_dax->pgmap;
-> +		pgmap->vmemmap_shift = 0;
->  	} else {
->  		size_t pgmap_size;
->  
-> @@ -237,6 +254,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  
->  		pgmap->nr_range = dev_dax->nr_range;
->  		dev_dax->pgmap = pgmap;
-> +		pgmap_allocated = true;
->  
->  		for (i = 0; i < dev_dax->nr_range; i++) {
->  			struct range *range = &dev_dax->ranges[i].range;
-> @@ -252,7 +270,8 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  					range_len(range), dev_name(dev))) {
->  			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve range\n",
->  				 i, range->start, range->end);
-> -			return -EBUSY;
-> +			rc = -EBUSY;
-> +			goto err_pgmap;
->  		}
+>  	phys = dax_pgoff_to_phys(dev_dax, pgoff, size);
+>  	if (phys == -1) {
+> @@ -63,11 +61,10 @@ static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
 >  	}
 >  
-> @@ -272,8 +291,10 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  	pgmap->owner = dev_dax;
+>  	if (kaddr)
+> -		*kaddr = virt_addr;
+> +		*kaddr = __va(phys);
 >  
->  	addr = devm_memremap_pages(dev, pgmap);
-> -	if (IS_ERR(addr))
-> -		return PTR_ERR(addr);
-> +	if (IS_ERR(addr)) {
-> +		rc = PTR_ERR(addr);
-> +		goto err_pgmap;
-> +	}
+> -	local_pfn = PHYS_PFN(phys);
+>  	if (pfn)
+> -		*pfn = local_pfn;
+> +		*pfn = PHYS_PFN(phys);
 >  
 >  	/*
->  	 * Clear any stale compound folio state left over from a previous
-> @@ -285,7 +306,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  	rc = devm_add_action_or_reset(dev, fsdev_clear_folio_state_action,
->  				      dev_dax);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
+>  	 * Use cached_size which was computed at probe time. The size cannot
+> @@ -313,8 +310,13 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+>  		u64 phys = dev_dax->ranges[0].range.start;
+>  		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
 >  
->  	/* Detect whether the data is at a non-zero offset into the memory */
->  	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
-> @@ -307,23 +328,32 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  	cdev_set_parent(cdev, &dev->kobj);
->  	rc = cdev_add(cdev, dev->devt, 1);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
+> -		if (!WARN_ON(pgmap_phys > phys))
+> -			data_offset = phys - pgmap_phys;
+> +		if (pgmap_phys > phys) {
+> +			dev_err(dev, "pgmap start %#llx exceeds data start %#llx\n",
+> +				pgmap_phys, phys);
+> +			rc = -EINVAL;
+> +			goto err_pgmap;
+> +		}
+> +		data_offset = phys - pgmap_phys;
 >  
->  	rc = devm_add_action_or_reset(dev, fsdev_cdev_del, cdev);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	/* Set the dax operations for fs-dax access path */
->  	rc = dax_set_ops(dax_dev, &dev_dax_ops);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	rc = devm_add_action_or_reset(dev, fsdev_clear_ops, dev_dax);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	run_dax(dax_dev);
-> -	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-> +	rc = devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-> +	if (rc)
-> +		goto err_pgmap;
-> +
-> +	return 0;
-> +
-> +err_pgmap:
-> +	if (pgmap_allocated)
-> +		dev_dax->pgmap = NULL;
-> +	return rc;
->  }
->  
->  static struct dax_device_driver fsdev_dax_driver = {
+>  		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
+>  		       __func__, phys, pgmap_phys, data_offset);
 
