@@ -1,122 +1,133 @@
-Received: from mail-dy1-f173.google.com (mail-dy1-f173.google.com [74.125.82.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228B641C319
-	for <nvdimm@lists.linux.dev>; Tue, 26 May 2026 17:54:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.82.173
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779818073; cv=pass; b=A11oeM1m7aRNB4KjQvyF0z9ojNpfDZAxAXc/Im+wrR0KEvS3ksPK/o/ksrXfDeIPfjcMGfZSpeE80mOoLAGwkbPuYvc4hqbiKmd/4kTr3YJV1vl/tTvGOHS/6GDKQjwPx7UuwSyxp+EgAe8s1QCz5g0tSmE1L4Ys8v3Ys+vqPu0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779818073; c=relaxed/simple;
-	bh=puC9SJLHTM2cpEQVaMH58VO+otGA57OyLdV5XOHij4E=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ryJn3/r7xmaGgGDtxJF58UoSKbV5PQdCnX45IiCcE3Nxgg2Rza/pPqEF9JRZH5fgD+9eCtiTemZXJy6qxck6shSg/1bGUKkq8UFKWpGpPkmZD4+YwGeNN5Y6qya7SVPojjQNHzGwy4eKcwk56kTslqcXhcyLTB7z78e6dVuaGXc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EDpxAHzl; arc=pass smtp.client-ip=74.125.82.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F228B3AD524
+	for <nvdimm@lists.linux.dev>; Tue, 26 May 2026 23:07:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779836853; cv=none; b=D6psK7Bru9BFti/QMCyiVejG0MQsVIFM6wchUl5xP2tbqaPgKQLVO+cT7/D+TrkcIeob5Zwia/mRcN248Yz8mp9A8GimRgU0YS3K31ik36K7pVqkKID/UERFlXl2jPygx1tEtDzmi2ZbRha95KSiN9AkeJfx0r7si/qI95U0l/Q=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779836853; c=relaxed/simple;
+	bh=SxOUOxWnasaThRanXaxXY2WB3R8Bb6abXQavsMC9H4I=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Qm7j5xUwzWmKlLU8HlVWxd4elQUHpNinLH3Lb4o10ERAyS1peOJFNTMbB9qJHg16W/zHLgnmzTPRxVATbf6yLHsnd4IlbyBVtJL1FDz0B5ztH73y4s2vi2T6shkadzoB7KU8OibIiC5mccSSBjZQuyNlZGpJrlL7OmmyR28TUgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IR66NLB5; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EDpxAHzl"
-Received: by mail-dy1-f173.google.com with SMTP id 5a478bee46e88-2f13ae64db1so779832eec.3
-        for <nvdimm@lists.linux.dev>; Tue, 26 May 2026 10:54:31 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779818071; cv=none;
-        d=google.com; s=arc-20240605;
-        b=aLm8glHmDY9DEG/NNMRzV3CRhS7+t5m98hoTlmy3cMZig4r4EKfQcCJX6yEycZ4kOk
-         b5LI7fHJyx8VEBAlwFJBkCucD9T9hj3QjRtmLVqNcoQIvbugkoUXo/e3UuPJ4ZD4foeI
-         oD4AFd75bQz7VqAVLicx3bM8rGtHzWT4XgXtTWBOkFTPHEqctXSswjsEpqFXUfIoi1Wj
-         glJrKmJl8KbsSPtF0oEJFADwMPbrXkjNgFElDEldBcvwoXDODoY+zs27qT9A9Aw6is00
-         6slFpxVt7ofrrZDM5tA6tonkphJB1xLAnOyxSVa3ojMawk6bvP4YDppvxu26PO6Uq4xK
-         xO6w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=puC9SJLHTM2cpEQVaMH58VO+otGA57OyLdV5XOHij4E=;
-        fh=BGybpp3MUlhkt3Ll8MWMvqAEs84ZZzQbnwC+pxLqcmk=;
-        b=O8k2H8BQY7/pOouyux8pi9OOiNdHNxkHDtg7MNKE8WKc0Pyz+yxQL4BRKYPYpvsgP9
-         C5mB5k184oB0mOMker2hgYZyNAJE9UQ1DJSS0XmnEXx5eET8T6jz+9utUS8KasIJDuyI
-         vynjRIgw6EFz803MRobtLswkP+/5kYf0AYt2I6Bpe0vOaylP23uFb8PUGQAav2CPd6eU
-         u5CngVp4L2JaSDvBQC9tjEx1JL/rxyIcT6SCKFLNHD+HdtTkBXoJuQ5ldPqGn1sXJayY
-         U8KWBNx2e7K60Oy4OJqKdj6yqo+V2mmRekRyFleMKaxJrVIsCnItmigaJLykfVdAYyUz
-         4WJg==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779818071; x=1780422871; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=puC9SJLHTM2cpEQVaMH58VO+otGA57OyLdV5XOHij4E=;
-        b=EDpxAHzl+pr94YdISM0TlMZJV48p7jJ0Alf5Ov3Y0U46+BW7JAIXz5nXxm4Esabiqz
-         ThfY/ewdAYJjxCQLm4Y1g1y8byFK1RR7j2nu9qOSsfoFCPtMKctsvD3ZmjwtQ3ePqOi5
-         pKDNLg43g73I/If64ylSYvWl2y5rh90kLudFyJVFm1g7AIJxi2b6Aa/3/yfi3ALWTdyt
-         HBZgF746viL79WfAdbiGP2aSbEVwR0xgcrnRMu2XXhJX/6mjAKeleQ8n8QdZ0Rntx5aL
-         AyNx7amf99/48OZCmXkLSGf+sc7Yq72a0C2aKRO6w43eE9OfxFB9m9IVdmoDReUuynRF
-         b7YA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779818071; x=1780422871;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=puC9SJLHTM2cpEQVaMH58VO+otGA57OyLdV5XOHij4E=;
-        b=LmAI0TzODXPM75TqHB0bsekJsZUvUjCnx7MFzT6D9k82o++0cuEhjJgxRct4YmgFYn
-         rbjfXHKA8HFueY5EUa6sf6mLSfsvl46xAtwkk6pSCOYw/vLIBNCIKTGpt/EvZUQ6xYd1
-         rCEXx2THGg7izfFBHuHZnQmEd5riiip3wT1amHIp8EsuCdZKi93GfRJueHBgnmyeHa48
-         i5r+fjBIqClcY5CmMTw4kA7943zR0OCMxE47fXJBUOsjtSFgUSgrIB1TuUeI+BZqICXv
-         T0OnvpFqgayPo5yZWyGr11OnFPx2SqW7DOf7daPOzqj7WIAOLxhf9421SKUn56n8gHSM
-         t8aA==
-X-Forwarded-Encrypted: i=1; AFNElJ8p6yGCEjhAjVbsvYzbJKb77u6yAseTgI9PfzY3QpWK0GwMX9+aBre/rQdbusFGKWETH7y8UX8=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzBxbjcILgnW/Zk2msvP/4V6DO460ODG2YooUiX9QqTP/wFYf8J
-	IkRnWBHU7nxg/73+lBdKcspYiqZleh2HQIGFalDdljtd130evIRUb1Yk6QKw1C/RTfY2t4b+kvJ
-	HRwN2hDMqRI79LleqH/4TrDtAQqO9FEo=
-X-Gm-Gg: Acq92OEWL3nASOkcRwJMWDvzworF0Ofzow09KoVEh1fn/tZrfx2jUM9mXog6QZL4kMF
-	MmDL0n0zOs3lVaiY5cTr/QBhQV5wUnog1gPdpBsyhwevowqagaW/2EO6Zv4DPHdzJtDzPQKHZNv
-	4yUzFqBtxtz94bTWb3WACths8hz215X1EVkkSo7/2c/yJM1K8H2FVFuUq7KpwIXTkYIpr/9xwtp
-	OiQsV5f+QVAA+4WrvrQDSyUPxKpvM6Jhm0hb9qLT7CPnydHkigame4smxMugXMorro4GhzT9vGj
-	ZQc9OKMydpUSW4nKKNs2ondNRGNw3vl6WcA14YP7yHq5kSqAyBDRkrUDqwkc7HE8LTyn0A9JF/E
-	apKZjtyjy6kULYZOEoMFZaCHCrcbYXDkZOQ==
-X-Received: by 2002:a05:7301:2092:b0:304:4f23:4823 with SMTP id
- 5a478bee46e88-3044f23c523mr2709812eec.7.1779818071249; Tue, 26 May 2026
- 10:54:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IR66NLB5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779836851; x=1811372851;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=SxOUOxWnasaThRanXaxXY2WB3R8Bb6abXQavsMC9H4I=;
+  b=IR66NLB5qH7iWd452fMRXn1jBhhA8DCMTMbMvn1xoya79u+rkz2mCah6
+   Xcv7qQIsc1OF+lvOoNstAIQ7RJPhxevpk3NqahL5kiiTcOLQdfGG14O6/
+   hjvUcWkcceaaUTDyVIF9LtKWoU3mPLxFL9bvxSs6xu+Apq2XOxkhKK/Yw
+   6QTvdWgyvxXlZwcEAQfu9cEEVwI/KusQGesWsWWJqj4X405ENmevH4Qjq
+   /ts1k/9fasRLX1HqiClB8bWeZ32sxlVDZIjCw5+DK2nrC4cD6gkuyIasf
+   nJKWRUfI/RBaSz1sRp0WxFlyxnoqIpX6b//ql/Z+XwgQ0erJ8fjiSG4t/
+   A==;
+X-CSE-ConnectionGUID: ud+LAQBCTEKlPxsSgYIeeQ==
+X-CSE-MsgGUID: THVx/dA5QGO/cGaR8onK0g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11798"; a="80775640"
+X-IronPort-AV: E=Sophos;i="6.24,170,1774335600"; 
+   d="scan'208";a="80775640"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 16:07:31 -0700
+X-CSE-ConnectionGUID: 7XP1E8DiSJOTMBH7QV9eNA==
+X-CSE-MsgGUID: Z1AjfBgCT4OEv6eIOeDicg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,170,1774335600"; 
+   d="scan'208";a="241223378"
+Received: from aduenasd-mobl5.amr.corp.intel.com (HELO [10.125.110.201]) ([10.125.110.201])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 16:07:29 -0700
+Message-ID: <53fe6abc-00c4-449f-ab94-2632b2aa2928@intel.com>
+Date: Tue, 26 May 2026 16:07:28 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1779286416.git.d@ilvokhin.com> <0ab092c41e18e6a7db703547d87e6b632d6f79b2.1779286416.git.d@ilvokhin.com>
- <20260523084901.GF3102624@noisy.programming.kicks-ass.net> <ahW4fyZ6j9YvJho9@shell.ilvokhin.com>
-In-Reply-To: <ahW4fyZ6j9YvJho9@shell.ilvokhin.com>
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Tue, 26 May 2026 19:54:16 +0200
-X-Gm-Features: AVHnY4K9vBisDpVZJMVTzCi8T3wy9swOj3IeT-5P4_v-UNE6ALKXLqpstbxL-rg
-Message-ID: <CANiq72mZn7GZ6TbNoSuVUXsprJSrpPWA9oAcUQrYzzCj-dFnew@mail.gmail.com>
-Subject: Re: [PATCH v4 3/4] cleanup: Annotate guard constructors with __nonnull()
-To: Dmitry Ilvokhin <d@ilvokhin.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dan Williams <djbw@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Miguel Ojeda <ojeda@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Christian Brauner <brauner@kernel.org>, Marco Elver <elver@google.com>, 
-	"H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org, kernel-team@meta.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH V2 1/7] dax: fix misleading comment about share/index
+ union in dax_folio_reset_order()
+To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
+ Dan Williams <djbw@kernel.org>
+Cc: John Groves <jgroves@micron.com>, Vishal Verma
+ <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>,
+ Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>,
+ Alison Schofield <alison.schofield@intel.com>, Ira Weiny
+ <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+References: <0100019e511fb82e-1a444df3-8310-40ed-8380-72e1373d5da9-000000@email.amazonses.com>
+ <20260522191843.79132-1-john@jagalactic.com>
+ <0100019e512043a6-62e6e881-6d31-48e2-86f0-bb2c32248f0a-000000@email.amazonses.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <0100019e512043a6-62e6e881-6d31-48e2-86f0-bb2c32248f0a-000000@email.amazonses.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, May 26, 2026 at 5:13=E2=80=AFPM Dmitry Ilvokhin <d@ilvokhin.com> wr=
-ote:
->
-> They usually don't collide, except for User Mode Linux builds, which
-> include both kernel and userspace headers.
 
-:(
 
-What about other similar names? i.e. a variation of your option 2,
-e.g. just `nonnull` (we also have others like that, i.e. no
-underscore, e.g. `noinline`), or `___nonnull` (triple underscore, but
-may be confusing), or a suffix/prefix letter, e.g. `__knonnull` (for
-kernel nonnull)...
+On 5/22/26 12:18 PM, John Groves wrote:
+> From: John Groves <John@Groves.net>
+> 
+> The comment in dax_folio_reset_order() claims that DAX maintains an
+> invariant where folio->share != 0 only when folio->mapping == NULL,
+> implying folio->share is zero whenever mapping is non-NULL. This is
+> misleading because folio->share and folio->index are a union -- for
+> non-shared folios with mapping != NULL, reading folio->share returns
+> the file page offset (folio->index), which is typically non-zero.
+> 
+> Reword the comment to accurately describe the union aliasing: the
+> assignment clears whichever interpretation of the union word is active
+> (index for non-shared folios, share for shared folios), which is correct
+> because the folio is being released in either case.
+> 
+> No functional change -- the code was already correct, only the
+> justification was wrong.
+> 
+> Fixes: 59eb73b98ae0b ("dax: Factor out dax_folio_reset_order() helper")
+> 
+> Reviewed-by: Jonathan Cameron <jic23@kernel.org>
+> Signed-off-by: John Groves <john@groves.net>
+> ---
+>  fs/dax.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 6d175cd47a99b..df19c9317d10e 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -392,12 +392,12 @@ int dax_folio_reset_order(struct folio *folio)
+>  	int order = folio_order(folio);
+>  
+>  	/*
+> -	 * DAX maintains the invariant that folio->share != 0 only when
+> -	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
+> -	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
+> -	 * Callers ensure share has been decremented to zero before
+> -	 * calling here, so unconditionally clearing both fields is
+> -	 * correct.
+> +	 * Clear the mapping and the index/share union word. folio->share
+> +	 * and folio->index occupy the same union in struct folio. For
+> +	 * non-shared folios (mapping != NULL), the union holds folio->index
+> +	 * (file page offset); for shared folios (mapping == NULL), it holds
+> +	 * folio->share (reference count). Either way, we are releasing the
+> +	 * folio and both fields should be zeroed.
 
-i.e. it would be nice to have a "standard" spelling for ourselves, and
-also replace the existing `__attribute__((nonnull))`s we have
-elsewhere in the tree.
+In the old comments, there is the pre-condition that "callers ensure share has been decremented to zero before calling here." Is this precondition remain true? Maybe should leave that comment in if that is the case?
 
-Cheers,
-Miguel
+ 
+>  	 */
+>  	folio->mapping = NULL;
+>  	folio->share = 0;
+
