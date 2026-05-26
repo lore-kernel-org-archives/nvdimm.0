@@ -1,108 +1,147 @@
-Received: from mail.ilvokhin.com (mail.ilvokhin.com [178.62.254.231])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from a8-208.smtp-out.amazonses.com (a8-208.smtp-out.amazonses.com [54.240.8.208])
+	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B49D346795
-	for <nvdimm@lists.linux.dev>; Tue, 26 May 2026 15:13:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.62.254.231
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 540783C4B9F
+	for <nvdimm@lists.linux.dev>; Tue, 26 May 2026 17:02:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.8.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779808393; cv=none; b=ZjYSl2to5tAnwHVc4a9Bl2yOC/qu6KkdYLw7d6K/NhvL19m9jEoUo4iM4egEM7W1/1DZ2Ab9kuU9Z0LRYV+TpMplYlZEfRfIPPrzjGxxz3jh0kVht59mhg7KERhgYRTLATIN1UEoGV/Mx0fcbJl5IvDa0VkVJccykM2kQGSQyMo=
+	t=1779814921; cv=none; b=IEE/ccTW5q95kFLtCdXhaH5wB6ut9cNiQmPTy0Me0ix5T7ti1FyX83JeD8uPQUvTUadReWI3wNoOgAfc/qtgKmoBF8a6vJndMCyvbXQELWnt3dg3u791iAnzwql4Pq+DoBlovQQp6nKz4/2EvKX97NxO2/y6QdTa2egMC/r0nDI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779808393; c=relaxed/simple;
-	bh=AyCjuMi09pCuS611oE9c3ZLXxzVop/+xAKxRR8tSswk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WTD6IWT5MFES1PkZ7BrFB+sRofhGf2pdlmt+/rtBziShiN3BiVKYava2FWfuwu51G+il05w2EHUYvqNv/VvCV7BcsN8T/nkq/TPr+WFPaXbsFNPJPlFlEqoK6TU49Z+NknROgrrCF25yCBjuqzrfz6x61GNtBuQ7MPqu4Eez/YE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=xtHDw9ww; arc=none smtp.client-ip=178.62.254.231
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ilvokhin.com
+	s=arc-20240116; t=1779814921; c=relaxed/simple;
+	bh=hHB5aw0VnqzK81PdB8lJTgAs1hZb4k+F5Y7zUXw+aOM=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:References:
+	 Message-ID; b=r+1zP+drJSVpBy/wOqi1yO/pp1bLMmYVaHeILO0X9nmp6L+9CokCjdWe/uF9vX4hQKzkR64igh4sUsdd40p/17llpLO5vr4vD5v5a8oPWkuw5RA8zrfOb8qPni/+o8FEREV2fFZJHtI6O3Lpi4WANFHsyQZl5P9/tZ+ucLMPUNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=J92hX2GI; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=okKbIcZj; arc=none smtp.client-ip=54.240.8.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="xtHDw9ww"
-Received: from shell.ilvokhin.com (shell.ilvokhin.com [138.68.190.75])
-	(Authenticated sender: d@ilvokhin.com)
-	by mail.ilvokhin.com (Postfix) with ESMTPSA id ABC03D0C4B;
-	Tue, 26 May 2026 15:13:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ilvokhin.com;
-	s=mail; t=1779808384;
-	bh=w7fh/zrSEr4aiiZTWxTruWfZmIvpNK/R/una2H3xjd4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=xtHDw9wwWgqvb9UrbriKSbej9cKBiuXOhXwAhLqOTPYFGTinLcwujcGvPvsxucVMi
-	 f40mdSZNqRod8hk3AUvSpNVBe6EsuwUCVn5aSuGl9ShxLBOaPukHknCQlJs5LfML+L
-	 0kORWOZO3guDaOo/Co0LPMOdQImXXuCIgBPa+Goo=
-Date: Tue, 26 May 2026 15:13:03 +0000
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Miguel Ojeda <ojeda@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
-	Christian Brauner <brauner@kernel.org>,
-	Marco Elver <elver@google.com>, "H. Peter Anvin" <hpa@zytor.com>,
-	Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	kernel-team@meta.com
-Subject: Re: [PATCH v4 3/4] cleanup: Annotate guard constructors with
- __nonnull()
-Message-ID: <ahW4fyZ6j9YvJho9@shell.ilvokhin.com>
-References: <cover.1779286416.git.d@ilvokhin.com>
- <0ab092c41e18e6a7db703547d87e6b632d6f79b2.1779286416.git.d@ilvokhin.com>
- <20260523084901.GF3102624@noisy.programming.kicks-ass.net>
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="J92hX2GI";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="okKbIcZj"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1779814919;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id;
+	bh=hHB5aw0VnqzK81PdB8lJTgAs1hZb4k+F5Y7zUXw+aOM=;
+	b=J92hX2GIJXifVSLp4o7RFRp8m1ynrOm4OTDHgcwQXpk3isXAT1Uv7ao9ynL7oM7s
+	10XY18Ju7ZrmA4QVQfakB08aunCFxHnpUt1ZUvLreucnlnzK5KBnCW42Ta5E/DXk+rl
+	7e2Fr9hXlRVAEd/0V5fTM4pYFThEMycgsQtcZFR0=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1779814919;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id:Feedback-ID;
+	bh=hHB5aw0VnqzK81PdB8lJTgAs1hZb4k+F5Y7zUXw+aOM=;
+	b=okKbIcZjekxyy3ZraRJC99v5LCb5h0TmPoos+MKcQDUGbqePFtA9lZtbkwTnATIH
+	1Zuf/JWlHt+IttMvc7kVBb7t4gcXgu48R3T1bBVcpZc3zqn7GOwsEMbe9xDW34ONtfx
+	JjKtprGIb+cDSTN11TOaHhqGGxE8NH5YTkWUn2G4=
+Subject: [PATCH V6 0/2] daxctl: Add support for famfs mode
+From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
+To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
+	=?UTF-8?Q?John_Groves?= <jgroves@fastmail.com>, 
+	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>, 
+	=?UTF-8?Q?Alison_Schofield?= <alison.schofield@intel.com>
+Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>, 
+	=?UTF-8?Q?Vishal_Verma?= <vishal.l.verma@intel.com>, 
+	=?UTF-8?Q?Dave_Jiang?= <dave.jiang@intel.com>, 
+	=?UTF-8?Q?Jonathan_Cameron?= <Jonathan.Cameron@huawei.com>, 
+	=?UTF-8?Q?Aravind_Ramesh?= <arramesh@micron.com>, 
+	=?UTF-8?Q?Ajay_Joshi?= <ajayjoshi@micron.com>, 
+	=?UTF-8?Q?venkataravis=40micron=2Ecom?= <venkataravis@micron.com>, 
+	=?UTF-8?Q?dev=2Esrinivasulu=40gmail=2Ecom?= <dev.srinivasulu@gmail.com>, 
+	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2E?= =?UTF-8?Q?org?= <linux-kernel@vger.kernel.org>, 
+	=?UTF-8?Q?nvdimm=40lists=2E?= =?UTF-8?Q?linux=2Edev?= <nvdimm@lists.linux.dev>, 
+	=?UTF-8?Q?linux-cxl=40v?= =?UTF-8?Q?ger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
+	=?UTF-8?Q?John_Groves?= <john@groves.net>
+Date: Tue, 26 May 2026 17:01:59 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260523084901.GF3102624@noisy.programming.kicks-ass.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+References: <20260526170148.56398-1-john@jagalactic.com>
+X-Mailer: Amazon WorkMail
+Thread-Index: AQHc7TFcILV7h5r+TK67r8Gpp/8CFw==
+Thread-Topic: [PATCH V6 0/2] daxctl: Add support for famfs mode
+X-Wm-Sent-Timestamp: 1779814917
+X-Original-Mailer: git-send-email 2.52.0
+Message-ID: <0100019e653c6c88-44f88088-8c87-4163-b88b-b3f3fc7aa726-000000@email.amazonses.com>
+Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
+X-SES-Outgoing: 2026.05.26-54.240.8.208
 
-On Sat, May 23, 2026 at 10:49:01AM +0200, Peter Zijlstra wrote:
-> On Thu, May 21, 2026 at 07:18:03AM +0000, Dmitry Ilvokhin wrote:
-> > Add __nonnull() to unconditional guard constructors so the compiler
-> > warns when NULL is statically known to be passed:
-> > 
-> > - DEFINE_GUARD(): re-declare the constructor with __nonnull().
-> > - __DEFINE_LOCK_GUARD_1(): annotate the constructor directly.
-> > 
-> > DEFINE_LOCK_GUARD_0() needs no annotation: its constructor takes no
-> > pointer arguments (.lock is hardcoded to (void *)1).
-> > 
-> > Define the __nonnull() macro in compiler_attributes.h, following the
-> > existing convention for attribute wrappers.
-> > 
-> > Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
-> > Acked-by: Miguel Ojeda <ojeda@kernel.org>
-> 
-> The build robot found something to hate in this one. I think you're on
-> Cc there. It looks to me like clang-23 is confused somehow, but who
-> knows.
+From: John Groves <john@groves.net>
 
-Seems like clang is not confused here, I was able to reproduce the problem
-with GCC 11 as well.
+This series adds famfs mode support to daxctl, alongside the existing
+devdax and system-ram modes.  A daxdev is in famfs mode when it is bound
+to fsdev_dax.ko (drivers/dax/fsdev.c).  famfs is a shared,
+memory-mappable filesystem for disaggregated and CXL memory; see
+https://famfs.org for more information.
 
-There is a conflict with glibc's own __nonnull macro
+Patch 1 adds the library plumbing: mode detection helpers, an enable
+function, and the device.c reconfigure-device wiring.  Patch 2 adds a test
+that exercises mode transitions on the nfit_test emulated backend.
 
-    https://elixir.bootlin.com/glibc/glibc-2.43/source/misc/sys/cdefs.h#L560-L562
+This series depends on the fsdev_dax kernel driver (which provides famfs
+mode) and on the famfs kernel patch series.
 
-which doesn't match the one from include/linux/compiler_attributes.h.
-They usually don't collide, except for User Mode Linux builds, which
-include both kernel and userspace headers.
+Changes since V5 (addressing Alison's review):
 
-Options are:
+Patch 1 (daxctl: Add support for famfs mode):
+- Commit message: add an intro paragraph describing what famfs is, with a
+  link to https://famfs.org.
+- Documentation: document famfs mode in
+  Documentation/daxctl/daxctl-reconfigure-device.txt (DESCRIPTION, the
+  -m/--mode option list, and a reconfigure example).
+- Rename the local 'enum dev_mode' to 'enum reconfig_mode'
+  (RECONFIG_MODE_*) so it no longer shares member names with
+  enum daxctl_dev_mode.
+- Add daxctl_dev_get_mode(), which reports a device's current mode; the
+  three reconfig_mode_*() functions and json.c now switch on it instead
+  of repeating an if-else mode chain.  enum daxctl_dev_mode moves to the
+  public header and gains a DAXCTL_DEV_MODE_UNKNOWN sentinel;
+  daxctl_dev_get_mode() is exported.
+- Collapse disable_devdax_device() and disable_famfs_device() into a
+  single disable_mode_device() (the caller has already matched the mode).
+- Add daxctl_dev_is_system_ram_mode() as the preferred name for the
+  consistency with daxctl_dev_is_{famfs,devdax}_mode();
+  daxctl_dev_is_system_ram_capable() becomes a compatibility wrapper so
+  the existing ABI is preserved.
+- Move the "returns false for a disabled device" note onto the shared
+  daxctl_dev_bound_to_module() helper and drop the redundant per-predicate
+  comments.
+- Fix daxctl_dev_enable() to range-check mode before indexing
+  dax_modules[]; the lookup previously ran before the bounds check.
+- Remove the stray double space in the --mode=famfs parse branch.
+- Drop the Reviewed-by: Dave Jiang tag, given the amount of rework since
+  V5.
 
-1. Drop the __nonnull() macro from include/linux/compiler_attributes.h
-   and use __attribute__((__nonnull__())) directly in
-   include/linux/cleanup.h. This is a bit unfortunate, since __nonnull()
-   seems like a useful shortcut, but seems like the simplest solution.
+Patch 2 (test):
+- Replace the V5 device-scanning test with test/daxctl-famfs-nfit.sh, which
+  builds its own dax device from the emulated ACPI.NFIT bus (nfit_test) so
+  it runs in the ndctl unit-test model.  Real DRAM backing means kmem
+  onlining works and the full devdax/famfs/system-ram matrix runs
+  end-to-end, including the system-ram -> famfs rejection.  Follows the
+  existing test style (set -x logging, err/cleanup traps, check_dmesg,
+  fixture teardown).  Based on a rewrite from Alison Schofield.
+- Per Alison's "pick a lane to start" feedback, only the nfit_test backend
+  is upstreamed here; a cxl_test-backed variant is held for a later
+  revision.
 
-2. Rename __nonnull() to __nonnull_args() to avoid the conflict.
-   A returns_nonnull attribute is supported by compilers, so the name
-   fits, but it diverges from the existing naming convention in
-   include/linux/compiler_attributes.h.
+John Groves (2):
+  daxctl: Add support for famfs mode
+  Add nfit_test famfs mode-transition test
 
-3. #define __nonnull(params) __attribute__((__nonnull__ params)). This
-   keeps the name and is compatible with both kernel and glibc usage.
-   Current call sites use __nonnull() with no arguments, which works
-   identically. Future callers with specific parameter numbers would use
-   __nonnull((1, 2)) with double parens, matching glibc's convention. I
-   don't like this option, listed it here for the sake of completeness.
+ .../daxctl/daxctl-reconfigure-device.txt      |  22 +-
+ daxctl/device.c                               | 113 ++++++---
+ daxctl/json.c                                 |  18 +-
+ daxctl/lib/libdaxctl-private.h                |   9 +-
+ daxctl/lib/libdaxctl.c                        |  73 +++++-
+ daxctl/lib/libdaxctl.sym                      |   9 +
+ daxctl/libdaxctl.h                            |  14 ++
+ test/daxctl-famfs-nfit.sh                     | 215 ++++++++++++++++++
+ test/meson.build                              |   2 +
+ 9 files changed, 432 insertions(+), 43 deletions(-)
+ create mode 100755 test/daxctl-famfs-nfit.sh
 
-I am leaning towards option 1 so far.
+-- 
+2.53.0
+
