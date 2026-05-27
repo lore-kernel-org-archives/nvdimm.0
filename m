@@ -1,325 +1,244 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B60B38AC8B
-	for <nvdimm@lists.linux.dev>; Wed, 27 May 2026 22:51:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779922293; cv=fail; b=Yv8as+b3xjeu1LUqm9UdM5IJmnHk7Xs61UfVkzcowxAFnozggLvs8c3JzvvzzQbrRchgNItHXOx9omwG1LuAynsmE3wcltsOSrpAwmJET5x2OfHbEDCCSGUdzu1DaTH74xLb7QxodmgN0Ol8g0pstxRt9yXkIM3yHzJMs8BqAXg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779922293; c=relaxed/simple;
-	bh=C8xw0wyoXr1E2+4Ifcj8xC8Sxn9ZKO4xo00N7Y/uIi4=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=pOaAsq6OkeJUcEt1VBkzZ+G+ZbGNpTFCqMlB+roWvUukrAdOfdfKy7QBoqqQgvmaPe0ruF24zykSyhrboIhq8vzz9HGk59SnCu3HAvtwbOZGCFR+Q0ZJkWccVclfmnTyGJwALKWmdzqchQdrAwai1hmsGzRhGsjm8A+5Eq7IiAE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DCJrwl5b; arc=fail smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC5C12CDA5
+	for <nvdimm@lists.linux.dev>; Wed, 27 May 2026 23:16:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779923769; cv=none; b=tw56YdmF7ErTR1jss21Ycm0erix6VQUm5aCdSHSNzrszMlc6tGjHkTiOjMbIRJH6idY+Jh3gJ/eSYikREEu6aQeVXf194HlgnhSzlanJOioJxncKBNCxYjZhRuYgQWHIV1p5Kt7Us7dORUs8jLzkRq2at4A7Fo5bPvAsrVWDKqI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779923769; c=relaxed/simple;
+	bh=YZzlYgb6F5RjO3DNnRTXQ1iyjcoPI1SNn6zEOJ9X09M=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=llBSovBTmH9sXukjzOoqHZ0xTkyjpqRBWkdpymA/mj9bKIuEqsX+BFzyPx9aomjvV7rajwhjqyAS3M+fpUNbMqxdjs0ZpeEAh1v/7X7Ann7y69nGnYYupzPLhhBoxTq/uNve1ljTl4e7Okfa+TZLkUHtsWAGHoxxlqBMUI6SOA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mdYPu3gH; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DCJrwl5b"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mdYPu3gH"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779922292; x=1811458292;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=C8xw0wyoXr1E2+4Ifcj8xC8Sxn9ZKO4xo00N7Y/uIi4=;
-  b=DCJrwl5bT+BlNEvKzYNWJRFjUPvtzRya9jmlpiXzJWmbXGE4WnnlgfhC
-   ZKD3PeBR2Q76z0wMBmNnEqulumuMENC/8dlm+0OqBNAOUOVzLqgKf2X2r
-   TKE+Jx1wmn24pZLmDn1Jpx/di/+tycXklg5MmO1TuGGlb3JIBolfR15I7
-   IkolufePGQWRwOJQQ/1PsFVYA2viXXRbZ7SJ2CqMeSj5w9HwKaGxkvKxg
-   zTahXIjKnj+/eAbXlg1Jk3a0Z/jreDO2PQrpXZlSB8n8mYc1QPla2fRee
-   G34OitC2/9asHKJNamwJ//QFOeZmgev+82tPNYw/bcsL44s7TrlUYGm1k
-   w==;
-X-CSE-ConnectionGUID: SCct/0KqRe+w7jPHS115hw==
-X-CSE-MsgGUID: w1zVgM9XScaK4JNyB4mRdQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11799"; a="84625261"
+  t=1779923767; x=1811459767;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=YZzlYgb6F5RjO3DNnRTXQ1iyjcoPI1SNn6zEOJ9X09M=;
+  b=mdYPu3gHIIUlofNGts80ZzHd5IxGy6FkRmkrdOv1o04AHuXsC/jZfQlN
+   xuOzdvNHIg+JFuV+J//j3xHeTuSQvKWa/eTXL4m2K4HevxEzZXkiQbp0N
+   yTmeOPu2ZIbm52rnIWRU27xW+I7K1sIJk+P0hdiGgQ3PUf8VXEsYs/eM6
+   yDqQhw2I+Z4mzj9Vh2uwL/Uki4+H4rwQE12RVDAn9OyRllDDZk5hjMFVj
+   w8nhBtRXHK+xw93ekK7Pz/aBTku4YHPmkeblM42JkDf8Tjw8xGfB3W8Ne
+   HJT4IyIITrzvYgSQJua0mPYVtaR/JC+jYNnqFMs4HZ3zRJYq3C/h/e8g8
+   Q==;
+X-CSE-ConnectionGUID: Uy1RTDwLQNeqb1yFVoSzrA==
+X-CSE-MsgGUID: FlLyQ8jVRCmmQrOHkBGlNA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11799"; a="83344947"
 X-IronPort-AV: E=Sophos;i="6.24,172,1774335600"; 
-   d="scan'208";a="84625261"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 15:51:31 -0700
-X-CSE-ConnectionGUID: Qp01/zDWQMOLYn4ab4xM6w==
-X-CSE-MsgGUID: vUmqUlOeSmi6WOyNGoxZ4Q==
+   d="scan'208";a="83344947"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 16:16:07 -0700
+X-CSE-ConnectionGUID: NRnung/PSVGI9/lOay7krg==
+X-CSE-MsgGUID: SRu8Kl9DShO6kr3GDwj28Q==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,172,1774335600"; 
-   d="scan'208";a="239798668"
-Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
-  by fmviesa008.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 15:51:30 -0700
-Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
- fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37; Wed, 27 May 2026 15:51:30 -0700
-Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
- FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37 via Frontend Transport; Wed, 27 May 2026 15:51:30 -0700
-Received: from PH7PR06CU001.outbound.protection.outlook.com (52.101.201.4) by
- edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37; Wed, 27 May 2026 15:51:28 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=f+pB21cQVOdlxYIcPauKbhv/zz8fn3oo3FKuyw2d+/ubZCgQEtIysvHU/8Dx4JryLiMFTUrBLQTYhT1Kmta25rM3os4QAtgzjzsoCUshaFPMqdHYD1mscDILXjqB4B3IHrHh1GM10pQaYQNOfP8YpEzcb6rm27Xm8YoQwvsvBeUBceEs5BHyjDXsJLR1/PINR2FcIRUk98V0OXoLi55EMNuHzlq8ZGSwrfvVSvpktd7+ZqUv/exxEjRaJwcA9LDwq5wVtFVstPhggiIZMrZlOJm2I3Z6XUa0fK56r2R80ZDjEB9E8eY9zrN2inCCCvYruD/sKbxwce1yaCR+qFRBnw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mDQhGLTBG5XqBFY7W/8jo6+pnNQYZiQRmOH7ZZZttlA=;
- b=ZxcriNK2Ju6+2OcxHX0seChUmjMy0JIzLs/TU2yyR5y1C7VUtm6ct0zbaktakqWnwqVMuscY8DCPh491xIZJK1/YUjbP8bkFQCO5v24BnQ3var7mAQxwpMmzYHVfli92hBGPg2qFn9NoiLI7MVYbu67QOkHU+kKpConuYwplEUVRAJAa0pajB569KT1kKE+Noy50IXXX4k46DPp5ITjeUqOIyAP6/OXlyb8VHSt7Oi3OpcVjuTCX//OrKSnLtW6m+MCBIiz1gaBfJtnv7NFRhCo2IPeFtAIl7mEtws0S2h+46iod1urFlkKvjj1k7WihwIGPLsmKKa2vPYBwZqI21g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by IA0PR11MB7330.namprd11.prod.outlook.com (2603:10b6:208:436::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.71.11; Wed, 27 May
- 2026 22:51:24 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::a195:49d4:38c5:3891]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::a195:49d4:38c5:3891%4]) with mapi id 15.21.0071.010; Wed, 27 May 2026
- 22:51:24 +0000
-Date: Wed, 27 May 2026 15:51:14 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-CC: Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski
-	<luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner
-	<tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
-	<bp@alien8.de>, <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "Mike
- Rapoport (Microsoft)" <rppt@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, "Lu
- Baolu" <baolu.lu@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>,
-	Lance Yang <lance.yang@linux.dev>, <linux-kernel@vger.kernel.org>,
-	<linux-mm@kvack.org>, <stable@vger.kernel.org>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v2] x86/mm: fix freeing of PMD-sized vmemmap pages
-Message-ID: <ahd1YmG_m64SNp0q@aschofie-mobl2.lan>
-References: <20260429-vmemmap-v2-1-8dfcacffd877@kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260429-vmemmap-v2-1-8dfcacffd877@kernel.org>
-X-ClientProxiedBy: SJ0PR05CA0169.namprd05.prod.outlook.com
- (2603:10b6:a03:339::24) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+   d="scan'208";a="244202385"
+Received: from rfrazer-mobl3.amr.corp.intel.com (HELO [10.125.111.23]) ([10.125.111.23])
+  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 16:16:06 -0700
+Message-ID: <700377ba-af02-4a40-b7d1-0b3f28c064c4@intel.com>
+Date: Wed, 27 May 2026 16:16:05 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|IA0PR11MB7330:EE_
-X-MS-Office365-Filtering-Correlation-Id: 35e38b74-a9a5-40b2-e1b4-08debc427a8d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014|7416014|18002099003|22082099003|56012099006|11063799006|6133799003;
-X-Microsoft-Antispam-Message-Info: phqHouqD+nyJoiEsjkYXKljuS/hUqUeoZ4Vt09+6Oc25dksVLc97Dfvp0nRyjcwkeg8WZzwxgEphKsfpgqHtLFGupNPg3Z7y9My+XvZidniL2CYKw61Nmz2qQWF5qCg9Fvz72OmwkF5rdsrbAWDo8rfc+WCXW4HdD8pHj5RzUsHAyOakoxWRQKdVITQuTjBE0L8EU0P5oauBGiw4X/YwZ9FrWiwdpi8QgrHI/K6gWpEWr2M/oJSqgWserG6xu6cGnM8all/z2TUA8HgvqCUmVv9nqfjjKRc/hEPo/1wZ+BO7po7OGAUAK/zv3Wb72pLQzZrXjYNJppnMlEVIbzhXpB6wWXzgbwXi8g8U6QZBOb/dAmgCeQ6dr25GRxhvFP1TpdwfgvUkc3royO08I8mCdz0moP6jYqI04NgqGDUfRTIfujWYQV8o0I+66G/PeLHIwLZ3XKHPtnGdgMVfCp/QZFCoDaCJQPbPzyM56HGz38NCUhwXOPUQeDchCmkS1v5IgqUW/AwkAynLLgAa/cl1TV82W0QaQ4/3l+5wSXxlxWfGkid6R8JjPsjwdpmaPtP/AFRV7NJK+KZVY/IzupYBC8L+9elOfCmUEW3POF7gj7nFhqHSOa4HYARsy9KPyDb5QKwl1BgSCe1fXf9DO5GkiTp0LA8WWUXV8u25IfhSj3Luvi35/YVUfyGSY/CglrX9RJQbkP+d2rbdC9EzYMyzBQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(18002099003)(22082099003)(56012099006)(11063799006)(6133799003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?U5oG3O90jsxUWoMt9EacfxVYA3FKnD80rewXvwxP9J9q5xHQPOHbKLnV/zXY?=
- =?us-ascii?Q?Vk3omBbg5ZtligXLHZreM2qNDIDf3DVbwCUZc4SGYpYBsJ23/SyR1enBDtBu?=
- =?us-ascii?Q?4NWklSJKREQM+IgoqmfhwNGLrT2UUetDU+IOqiAA1BK0TeBX4/jL/UfDJ96m?=
- =?us-ascii?Q?P9MpAUwbXWrQXLbEAWitgJOzMW2v6qdR8eYLOrU4b9G98lmjkvgAniQFoxDi?=
- =?us-ascii?Q?UCLsYrrD+WMykpekkHfdbYo9pa31UblYKsxR4h1/XBNdjrZa88vknrrbar/4?=
- =?us-ascii?Q?4dWGsnsZhZ/ncp1nEk3Sbs4AtlkskNSyrNVQFXs18OQyz+R7JVW2CXHiLk3B?=
- =?us-ascii?Q?jNyCHvEC6DHsDAtaGonan5bOofsCnyHqSr5oF6TSeidvAZEbuLJ3B1my1mBO?=
- =?us-ascii?Q?CWiPaKP4FZfzMop5sTtxeGYKp817s2sjP2k9ovHNaRnhVml8U3DHh3tgBfyI?=
- =?us-ascii?Q?9cSIazQ/B8THf7acuIwDhzANFR9RP44qyZqZLskTpWf7uvNGC8D8xVUz5FJd?=
- =?us-ascii?Q?JDAroy7XGPjXm3DX+Ytzmsg6WzJO/jCLU0OkHFL6YccEumc8EsriBM8vXOjf?=
- =?us-ascii?Q?ZSdfzwdwGlr3JYEmyGALnILdh2bnzl6egRv/ESzezw6mobUWYfEAXJQb4MXn?=
- =?us-ascii?Q?MRIZIEEV4JS5qJmizFXH8TLTmtFbpaEeDdF5d8EbmMWUH/vH/kCFxOMprVqR?=
- =?us-ascii?Q?lKGdwzaL8DwdulUvCW3BhG4K/jbceGvHK92Spl4mNYmo/JS7lh5TufEM5wU7?=
- =?us-ascii?Q?02N4wzbLDWmJzsCwoYvO4q+Rx5gNvZyruHILovWrWqfZN7yF/q5quem4ZfwG?=
- =?us-ascii?Q?WCHlh575/ziWWJ9GeMwLLFNMKGI3ssOF/pRQV0UQAwOgcB8c1yzGLaYEOiUu?=
- =?us-ascii?Q?jf0wWyfLxZu2oMBfpndY8dx20avus4XNEl/OitZOs8Hs9nB+bJeR5VVVtZQV?=
- =?us-ascii?Q?NVogkjiSIjdMIoR6pBxr9O3aIjGXybppa6Eb8fD8jf9z2OHqNtxevAPhSlip?=
- =?us-ascii?Q?xNyCjhkcjDEFcLEQl23qEm1Tp6oyHai2SNJFhNUOLenuPn/RRibRnX66/zIo?=
- =?us-ascii?Q?+RTYJIv9HaFaB85/aRtpxKxJoCE8Qw0zA2RGittvz1VlRNV8a+PC10dPdFcH?=
- =?us-ascii?Q?M4atEX52IwqKxgzc2X0/eCpYPYuAy/5/HGO3xRqGWWeeQZpir5ODsSGXvopK?=
- =?us-ascii?Q?GIhyoIoCw5MvujmGBKkkUJgoFG5eiTl8oeMH87lZmKDkkW4kaz4hkWHKGZU7?=
- =?us-ascii?Q?a6tMLSPDHfm8wShP1fCHRT6Fm1+Lu9CQiPnWN4LjgqAg/JdKFRoCQwOLJ7jv?=
- =?us-ascii?Q?Gr9Vpgq4re/0pyZORGOSxlj/OR2Oz7JioKQm7m3yiNvRJ+3WNp1Avq7FQav4?=
- =?us-ascii?Q?hlQd5zDT0y3Oln1c049dkaItwvSeSnIlP32zEa0m6Gv8ext7yTBw8xWe11vM?=
- =?us-ascii?Q?hDD0Kir1WtQF0Pdhg3DjGF10MW0lrYgG3xg/lDO2gR7PdMpHN8dugJmbgv9C?=
- =?us-ascii?Q?eYJJqNofcqwhBc5J+yu9mt6dpBVD/k0sxFHt8bRJGh+EUXgpftsdhkeMUKSm?=
- =?us-ascii?Q?6Sl7mcJXg/ebIr2LGNmPPPXfQ5+/P/UIg+PxXpHeQSXRLmxR9whDqXBN501E?=
- =?us-ascii?Q?s0N5bJbew/s02wIfFTfxv8ET6tm4zYyiWpyTXW8OUlKCOi0qrQapo6FlrjDB?=
- =?us-ascii?Q?zC1G2jpKwl/xltV9fLVbMSlAufcNdBr1KSWj3XAcV9a+Ixn7pXml51XnJjDn?=
- =?us-ascii?Q?shr3KKo+usY3ZlEsYcOap6axvclgqls=3D?=
-X-Exchange-RoutingPolicyChecked: NKGWnz+VDurA5+L64dn3RuIK2QNUrRlARIyfGHO34Al2L1hDein29y3y88b94ZeH9SczaSQtr9hbcCHINaZ3r5jh407UH3wEE3/JrutluKVRlAhEzhMPuZfP4Dw3rF1qJ7Z0EJXOY3FROk940mVwUYyOuUt9L0duTz3fkf4Dr5r+n/vVMDtWSXILHKXeDQCOUDlJtwHbgLaPuiOuGr6YC83SRUejRtVYhJlhXt4HbL3n/LcQ/e/jKCudpdiVlXfYLnM81mhQ598Yh93UNszB9QKzTHCYGn7BvOxWVGzMjGVCsS9iHyPwlOG4J6Od4Q8M77pmXGmAypoKDPU45WmlTw==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 35e38b74-a9a5-40b2-e1b4-08debc427a8d
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 May 2026 22:51:24.5446
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: FZS+E0MQh5HWU8jBYnhjP30PrAAy8o5NclhomGmcLIvTVEK92yK1DvrCCJLIDYywOQqsXGxZlhbWk0VbhdZhNIYmjj24Rd2poK2T5mKrbwQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR11MB7330
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v10 03/31] cxl/cdat: Gather DSMAS data for DCD partitions
+To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
+ Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>,
+ Alison Schofield <alison.schofield@intel.com>, John Groves
+ <John@Groves.net>, Gregory Price <gourry@gourry.net>,
+ Ira Weiny <ira.weiny@intel.com>
+References: <cover.1779528761.git.anisa.su@samsung.com>
+ <f7800561164a891513a20381378f2ff052d29288.1779528761.git.anisa.su@samsung.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <f7800561164a891513a20381378f2ff052d29288.1779528761.git.anisa.su@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Apr 29, 2026 at 12:49:14PM +0200, David Hildenbrand (Arm) wrote:
-> In commit bf9e4e30f353 ("x86/mm: use pagetable_free()"), we switched
-> from freeing non-boot page tables through __free_pages() to
-> pagetable_free().
+
+
+On 5/23/26 2:42 AM, Anisa Su wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
 > 
-> However, the function is also called to free vmemmap pages.
+> Additional DCD partition (AKA region) information is contained in the
+> DSMAS CDAT tables, including performance, read only, and shareable
+> attributes.
 > 
-> Given that vmemmap pages are not page tables, already the page_ptdesc(page)
-> is wrong. But worse, pagetable_free() calls
-> 
-> 	__free_pages(page, compound_order(page));
-> 
-> As vmemmap pages are not compound pages (see vmemmap_alloc_block()) --
-> except for HVO, which doesn't apply here -- we will only free the first
-> page when freeing a PMD-sized vmemmap page, leaking the other ones.
+> Match DCD partitions with DSMAS tables and store the meta data.
 
-Hi David,
+DCD handle needs to be propogated. 
 
-Sneaking in here to share with nvdimm/dax folks as this affects their
-nfit_test environment usage.
+add_part() needs to copy over the handle
+cxl_dpa_setup() also needs to copy the handle
 
-+ nvdimm@lists.linux.dev
 
-NVDIMM, DAX folks,
+Would be good to get this checked against actual hardware.
 
-This fixes a memory leak present since v6.19 that surfaces during DAX
-and NVDIMM unit testing, as well as ad-hoc nfit_test usage. If you are
-seeing the system gradually run out of memory across repeated test runs
-or namespace reconfiguration cycles, this is likely the cause.
-
-In my setup, a VM with 5.4 GiB MemAvailable and a 4 GiB nfit_test
-namespace lost about 1.1 GiB of MemAvailable per DAX or NVDIMM test suite
-run. The VM OOM's partway through the 4th consecutive run of either. The
-number of survivable runs scales roughly with available VM memory.
-
-Symptoms typically begin with "page allocation failure: order 0" messages
-from unrelated processes. If a test run is active when memory is
-sufficiently depleted, it eventually terminates w OOM.
-
-I've tested both this posted fix and a revert of the Fixes commit and both
-resolve the leak in my setup. If neither is an option, periodic reboot of
-the test environment may be needed for longer test sessions.
-
--- Alison
 
 > 
-> Fix it by properly decoupling pagetable and vmemmap freeing.
-> free_pagetable() no longer has to mess with SECTION_INFO, as only the
-> vmemmap is marked like that in register_page_bootmem_memmap().
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 > 
-> The indentation in remove_pmd_table() is messed up, let's fix that
-> while touching it.
-> 
-> Note that we'll try to get rid of that bootmem info handling soon. For
-> now, we'll handle it similar to free_pagetable(), just avoiding the
-> ifdef.
-> 
-> Tested-by: Lance Yang <lance.yang@linux.dev>
-> Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> Fixes: bf9e4e30f353 ("x86/mm: use pagetable_free()")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 > ---
-> Reproduced and tested with a simple VM with a virtio-mem device,
-> repeatedly adding and removing memory.
-> 
-> Found by code inspection while working on bootmem_info removal.
+> Changes:
+> [anisa: rebase]
+> [jonathan: core/mbox.c: error if there are non-zero reserved bits in DSMAD
+> handle in cxl_dc_check]
 > ---
-> Changes in v2:
-> - Don't mess with the altmap with PTEs and add a comment why.
-> - Simplify "unsigned long nr_pages" handling.
-> - Link to v1: https://lore.kernel.org/r/20260428-vmemmap-v1-1-b2aa1e6db2c0@kernel.org
-> ---
->  arch/x86/mm/init_64.c | 40 ++++++++++++++++++++++++++--------------
->  1 file changed, 26 insertions(+), 14 deletions(-)
+>  drivers/cxl/core/cdat.c | 11 +++++++++++
+>  drivers/cxl/core/mbox.c |  7 +++++++
+>  drivers/cxl/cxlmem.h    |  2 ++
+>  include/cxl/cxl.h       |  4 ++++
+>  4 files changed, 24 insertions(+)
 > 
-> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-> index df2261fa4f98..7e20b22d658b 100644
-> --- a/arch/x86/mm/init_64.c
-> +++ b/arch/x86/mm/init_64.c
-> @@ -1014,7 +1014,7 @@ static void __meminit free_pagetable(struct page *page, int order)
->  #ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
->  		enum bootmem_type type = bootmem_type(page);
+> diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
+> index 5c9f07262513..c5f3d2ebea55 100644
+> --- a/drivers/cxl/core/cdat.c
+> +++ b/drivers/cxl/core/cdat.c
+> @@ -17,6 +17,7 @@ struct dsmas_entry {
+>  	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
+>  	int entries;
+>  	int qos_class;
+> +	bool shareable;
+>  };
 >  
-> -		if (type == SECTION_INFO || type == MIX_SECTION_INFO) {
-> +		if (type == MIX_SECTION_INFO) {
->  			while (nr_pages--)
->  				put_page_bootmem(page++);
->  		} else {
-> @@ -1028,13 +1028,24 @@ static void __meminit free_pagetable(struct page *page, int order)
+>  static u32 cdat_normalize(u16 entry, u64 base, u8 type)
+> @@ -74,6 +75,7 @@ static int cdat_dsmas_handler(union acpi_subtable_headers *header, void *arg,
+>  		return -ENOMEM;
+>  
+>  	dent->handle = dsmas->dsmad_handle;
+> +	dent->shareable = dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
+>  	dent->dpa_range.start = le64_to_cpu((__force __le64)dsmas->dpa_base_address);
+>  	dent->dpa_range.end = le64_to_cpu((__force __le64)dsmas->dpa_base_address) +
+>  			      le64_to_cpu((__force __le64)dsmas->dpa_length) - 1;
+> @@ -244,6 +246,7 @@ static void update_perf_entry(struct device *dev, struct dsmas_entry *dent,
+>  		dpa_perf->coord[i] = dent->coord[i];
+>  		dpa_perf->cdat_coord[i] = dent->cdat_coord[i];
 >  	}
->  }
+> +	dpa_perf->shareable = dent->shareable;
+>  	dpa_perf->dpa_range = dent->dpa_range;
+>  	dpa_perf->qos_class = dent->qos_class;
+>  	dev_dbg(dev,
+> @@ -266,13 +269,21 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
+>  		bool found = false;
 >  
-> -static void __meminit free_hugepage_table(struct page *page,
-> +static void __meminit free_vmemmap_pages(struct page *page, unsigned int order,
->  		struct vmem_altmap *altmap)
->  {
-> -	if (altmap)
-> -		vmem_altmap_free(altmap, PMD_SIZE / PAGE_SIZE);
-> -	else
-> -		free_pagetable(page, get_order(PMD_SIZE));
-> +	unsigned long nr_pages = 1u << order;
+>  		for (int i = 0; i < cxlds->nr_partitions; i++) {
+> +			enum cxl_partition_mode mode = cxlds->part[i].mode;
+>  			struct resource *res = &cxlds->part[i].res;
+> +			u8 handle = cxlds->part[i].handle;
+>  			struct range range = {
+>  				.start = res->start,
+>  				.end = res->end,
+>  			};
+>  
+>  			if (range_contains(&range, &dent->dpa_range)) {
+> +				if (mode == CXL_PARTMODE_DYNAMIC_RAM_A &&
+> +				    dent->handle != handle)
+> +					dev_warn(dev,
+> +						"Dynamic RAM perf mismatch; %pra (%u) vs %pra (%u)\n",
+> +						&range, handle, &dent->dpa_range, dent->handle);
+
+Should it 'continue' here since it mismatches?
+
+DJ
+
 > +
-> +	if (altmap) {
-> +		vmem_altmap_free(altmap, nr_pages);
-> +	} else if (PageReserved(page)) {
-> +		if (IS_ENABLED(CONFIG_HAVE_BOOTMEM_INFO_NODE) &&
-> +		    bootmem_type(page) == SECTION_INFO) {
-> +			while (nr_pages--)
-> +				put_page_bootmem(page++);
-> +		} else {
-> +			free_reserved_pages(page, nr_pages);
-> +		}
-> +	} else {
-> +		__free_pages(page, order);
+>  				update_perf_entry(dev, dent,
+>  						  &cxlds->part[i].perf);
+>  				found = true;
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> index 71b29cd6abfe..f9a5e21f5d09 100644
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
+> @@ -1356,10 +1356,16 @@ static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info *part_a
+>  {
+>  	size_t blk_size = le64_to_cpu(dev_part->block_size);
+>  	size_t len = le64_to_cpu(dev_part->length);
+> +	u32 handle = le32_to_cpu(dev_part->dsmad_handle);
+>  
+>  	part_array[index].start = le64_to_cpu(dev_part->base);
+>  	part_array[index].size = le64_to_cpu(dev_part->decode_length);
+>  	part_array[index].size *= CXL_CAPACITY_MULTIPLIER;
+> +	if (handle & ~0xFF) {
+> +		dev_warn(dev, "DSMAD handle 0x%x has non-zero reserved bits\n", handle);
+> +		return -EINVAL;
 > +	}
->  }
+> +	part_array[index].handle = handle;
 >  
->  static void __meminit free_pte_table(pte_t *pte_start, pmd_t *pmd)
-> @@ -1118,7 +1129,8 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
->  			return;
+>  	/* Check partitions are in increasing DPA order */
+>  	if (index > 0) {
+> @@ -1494,6 +1500,7 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+>  	/* Return 1st partition */
+>  	dc_info->start = partitions[0].start;
+>  	dc_info->size = partitions[0].size;
+> +	dc_info->handle = partitions[0].handle;
+>  	dev_dbg(dev, "Returning partition 0 %zu size %zu\n",
+>  		dc_info->start, dc_info->size);
 >  
->  		if (!direct)
-> -			free_pagetable(pte_page(*pte), 0);
-> +			/* We never populate base pages from the altmap. */
-> +			free_vmemmap_pages(pte_page(*pte), 0, NULL);
+> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> index 87386488ad10..cee936fb3d03 100644
+> --- a/drivers/cxl/cxlmem.h
+> +++ b/drivers/cxl/cxlmem.h
+> @@ -118,6 +118,7 @@ struct cxl_dpa_info {
+>  	struct cxl_dpa_part_info {
+>  		struct range range;
+>  		enum cxl_partition_mode mode;
+> +		u8 handle;
+>  	} part[CXL_NR_PARTITIONS_MAX];
+>  	int nr_partitions;
+>  };
+> @@ -818,6 +819,7 @@ int cxl_dev_state_identify(struct cxl_memdev_state *mds);
+>  struct cxl_dc_partition_info {
+>  	size_t start;
+>  	size_t size;
+> +	u8 handle;
+>  };
 >  
->  		spin_lock(&init_mm.page_table_lock);
->  		pte_clear(&init_mm, addr, pte);
-> @@ -1153,19 +1165,19 @@ remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
->  			if (IS_ALIGNED(addr, PMD_SIZE) &&
->  			    IS_ALIGNED(next, PMD_SIZE)) {
->  				if (!direct)
-> -					free_hugepage_table(pmd_page(*pmd),
-> -							    altmap);
-> +					free_vmemmap_pages(pmd_page(*pmd),
-> +							   PMD_ORDER, altmap);
+>  int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+> diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
+> index bb1df0cef863..51685a01d19c 100644
+> --- a/include/cxl/cxl.h
+> +++ b/include/cxl/cxl.h
+> @@ -122,12 +122,14 @@ struct cxl_register_map {
+>   * @coord: QoS performance data (i.e. latency, bandwidth)
+>   * @cdat_coord: raw QoS performance data from CDAT
+>   * @qos_class: QoS Class cookies
+> + * @shareable: Is the range sharable
+>   */
+>  struct cxl_dpa_perf {
+>  	struct range dpa_range;
+>  	struct access_coordinate coord[ACCESS_COORDINATE_MAX];
+>  	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
+>  	int qos_class;
+> +	bool shareable;
+>  };
 >  
->  				spin_lock(&init_mm.page_table_lock);
->  				pmd_clear(pmd);
->  				spin_unlock(&init_mm.page_table_lock);
->  				pages++;
->  			} else if (vmemmap_pmd_is_unused(addr, next)) {
-> -					free_hugepage_table(pmd_page(*pmd),
-> -							    altmap);
-> -					spin_lock(&init_mm.page_table_lock);
-> -					pmd_clear(pmd);
-> -					spin_unlock(&init_mm.page_table_lock);
-> +				free_vmemmap_pages(pmd_page(*pmd), PMD_ORDER,
-> +						   altmap);
-> +				spin_lock(&init_mm.page_table_lock);
-> +				pmd_clear(pmd);
-> +				spin_unlock(&init_mm.page_table_lock);
->  			}
->  			continue;
->  		}
-> 
-> ---
-> 
-> base-commit: a2ddbfd1af0f54ea84bf17f0400088815d012e8d
-> 
-> change-id: 20260428-vmemmap-ab4b949aa727
-> 
-> --
-> 
-> Cheers,
-> 
-> David
-> 
+>  enum cxl_partition_mode {
+> @@ -141,11 +143,13 @@ enum cxl_partition_mode {
+>   * @res: shortcut to the partition in the DPA resource tree (cxlds->dpa_res)
+>   * @perf: performance attributes of the partition from CDAT
+>   * @mode: operation mode for the DPA capacity, e.g. ram, pmem, dynamic...
+> + * @handle: DSMAS handle intended to represent this partition
+>   */
+>  struct cxl_dpa_partition {
+>  	struct resource res;
+>  	struct cxl_dpa_perf perf;
+>  	enum cxl_partition_mode mode;
+> +	u8 handle;
+>  };
+>  
+>  #define CXL_NR_PARTITIONS_MAX 3
+
