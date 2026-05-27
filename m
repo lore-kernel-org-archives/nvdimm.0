@@ -1,98 +1,98 @@
-Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
+Received: from mail.ilvokhin.com (mail.ilvokhin.com [178.62.254.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BECC2C11F9
-	for <nvdimm@lists.linux.dev>; Wed, 27 May 2026 08:04:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=68.232.139.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFDF238228B
+	for <nvdimm@lists.linux.dev>; Wed, 27 May 2026 12:30:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.62.254.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779869085; cv=none; b=AXJzyC2vT1RSnNQGA+gOeSzm5DNIZvjmG3IRJNYP4nngsZFVmCfKBsOwsBlM7ARonzK8/34A1kGVSTSF940GQOXEZPWiROd88TxQ/8Ji9ScmOv6HjsNfxpiv306zgf/CKVRq47WCTe+jU4nR2Sg47Ln1MLm3Tfe7H0PS4Ubsduw=
+	t=1779885050; cv=none; b=u4+NAr5lRXD8AMH7qucDTyCBtU3DdZeud99ofGiuLeDwG1zs3PTQJgbjiDdZVl0702CvOThkv9PeL30cpjsd4GmiOm8rrg0FZx3yYRuHp6IrQI7K6KOMqlkDuuNNzL2bWFoAJpR1DEC0VTfiQl5sr/wRmmJ/b4ptXO+LWAwbasE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779869085; c=relaxed/simple;
-	bh=HM9hWX6VnUHxs0n4+BlQjLc+c4PovxyWLIbZq+xbheo=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=kFA0a/nXw96XXSTmIeF2/RD9V/IPdImdtaQJGwmeTI/TIsdG+XQdtSAzjBgm4eoWvVZd0TkHk0Fgs55YLa1trvbnxTOqLJK6nJyt9nPhETc4hliDXuIOjPhreEhh+V+JZq/X8ZA9e6h3lidSIiMTrmgci6Hl/2wivlzlXB8CW5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=tIHTozK+; arc=none smtp.client-ip=68.232.139.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	s=arc-20240116; t=1779885050; c=relaxed/simple;
+	bh=OVfBB3C8yIrSAzQvJGEl8Us6CHCtmTWW6EcO3NyhgFU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MCMUJTYoDWEb/uY2pVhcFnX5NFbVZ+m9GxFn/bU3/F8SGe0uho+Ru2c0JUwZANLAbrkCCteLMPkvV/o00qzHBhL1BSLBZwm8064iS65o13j/bN6TDS0Pj6G5cl+A/8NR/xolGbvOMFNBr6VgrtFom98wmXqSRI39pYSOeZCYwIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=xuYR9/c6; arc=none smtp.client-ip=178.62.254.231
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="tIHTozK+"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1779869084; x=1811405084;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=HM9hWX6VnUHxs0n4+BlQjLc+c4PovxyWLIbZq+xbheo=;
-  b=tIHTozK+6q2xDcXmgc9wZXZONp+sfC1V8Y6p0jGFOrUynxTho9S5ZCBw
-   G1mEQ0jJHgnLyhICUxuNvAfOJYt+cI1km70XIPPYvREl0gAwfi6ZmNvC1
-   cs6+rOabyu1NDp6DC0tUPMmk3L4yoZdAY0Ujq3h7hB1hoTGnA8AAOT/E5
-   GAQ9/wLMHrnRGiIkSrr4Kpymr5eiXJe5axaRnaVkQCT7kdO4yhkRdJSDL
-   c3aezHP7F1btaZfScxqOJ+oW0QcBe6rXuQUKd3d/07kx+PKvP/AKqkTXa
-   2kU4PtzJTMi+SOMyhLErWVCvVywfYomDcnqphf4rjsQ2Gv3jO+XwhdD5l
-   w==;
-X-CSE-ConnectionGUID: 3X9LlpeTRCaXiN0KYFVCaw==
-X-CSE-MsgGUID: OaVwWPvcRImM4WOSwFYMkg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11798"; a="245252124"
-X-IronPort-AV: E=Sophos;i="6.24,171,1774278000"; 
-   d="scan'208";a="245252124"
-Received: from gmgwnl01.global.fujitsu.com ([52.143.17.124])
-  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 17:03:34 +0900
-Received: from az2nlsmgm2.o.css.fujitsu.com (unknown [10.150.26.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by gmgwnl01.global.fujitsu.com (Postfix) with ESMTPS id 4E72542A33B
-	for <nvdimm@lists.linux.dev>; Wed, 27 May 2026 08:03:34 +0000 (UTC)
-Received: from az2uksmom1.o.css.fujitsu.com (unknown [10.151.22.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by az2nlsmgm2.o.css.fujitsu.com (Postfix) with ESMTPS id EF6811C4B503
-	for <nvdimm@lists.linux.dev>; Wed, 27 May 2026 08:03:33 +0000 (UTC)
-Received: from dhcp-portal (unknown [10.172.107.4])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by az2uksmom1.o.css.fujitsu.com (Postfix) with ESMTPS id F400D1800A66;
-	Wed, 27 May 2026 08:03:32 +0000 (UTC)
-Received: from isar2.ecs00.fujitsu.local (unknown [10.172.183.27])
-	by dhcp-portal (Postfix) with ESMTP id 51F49606D6;
-	Wed, 27 May 2026 10:03:32 +0200 (CEST)
-From: Tomasz Wolski <tomasz.wolski@fujitsu.com>
-To: djbw@kernel.org
-Cc: alison.schofield@intel.com,
-	ardb@kernel.org,
-	benjamin.cheatham@amd.com,
-	dan.j.williams@intel.com,
-	dave.jiang@intel.com,
-	icheng@nvidia.com,
-	jonathan.cameron@huawei.com,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	smita.koralahallichannabasappa@amd.com,
-	tomasz.wolski@fujitsu.com
-Subject: Re: [PATCH v2] dax/bus: Upgrade resource conflict message to dev_err() in alloc_dax_region()
-Date: Wed, 27 May 2026 10:03:28 +0200
-Message-Id: <20260527080328.12171-1-tomasz.wolski@fujitsu.com>
-X-Mailer: git-send-email 2.35.3
-In-Reply-To: <ec26d3de-d556-4ab9-a333-d69d1e6cdda7@app.fastmail.com>
-References: <ec26d3de-d556-4ab9-a333-d69d1e6cdda7@app.fastmail.com>
+	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="xuYR9/c6"
+Received: from shell.ilvokhin.com (shell.ilvokhin.com [138.68.190.75])
+	(Authenticated sender: d@ilvokhin.com)
+	by mail.ilvokhin.com (Postfix) with ESMTPSA id C17A9D0CF9;
+	Wed, 27 May 2026 12:30:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ilvokhin.com;
+	s=mail; t=1779885047;
+	bh=N/POtajBoUC3mFgumqgLA3FGG1S8oPKBOTiGe1Z230s=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=xuYR9/c6ST25csVo6ZStcfjbm+kUWzldNx2yWwJhOlAki++quTWs40fv4A5uToe5/
+	 sQ+Uxj1uNRRueZcFHjPvRxTZgez4Nb8r1sVWOHrF9XjROTkbJLiNnYYFKdiDTFJS3I
+	 8ElLpfpJtWX8Q6AxaVQUzxJA4rTYThRSdaGHfpqI=
+Date: Wed, 27 May 2026 12:30:43 +0000
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Miguel Ojeda <ojeda@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
+	Christian Brauner <brauner@kernel.org>,
+	Marco Elver <elver@google.com>, "H. Peter Anvin" <hpa@zytor.com>,
+	Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	kernel-team@meta.com
+Subject: Re: [PATCH v4 3/4] cleanup: Annotate guard constructors with
+ __nonnull()
+Message-ID: <ahbj86sKJON-41GF@shell.ilvokhin.com>
+References: <cover.1779286416.git.d@ilvokhin.com>
+ <0ab092c41e18e6a7db703547d87e6b632d6f79b2.1779286416.git.d@ilvokhin.com>
+ <20260523084901.GF3102624@noisy.programming.kicks-ass.net>
+ <ahW4fyZ6j9YvJho9@shell.ilvokhin.com>
+ <CANiq72mZn7GZ6TbNoSuVUXsprJSrpPWA9oAcUQrYzzCj-dFnew@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANiq72mZn7GZ6TbNoSuVUXsprJSrpPWA9oAcUQrYzzCj-dFnew@mail.gmail.com>
 
-Hello Dan & Alison,
+On Tue, May 26, 2026 at 07:54:16PM +0200, Miguel Ojeda wrote:
+> On Tue, May 26, 2026 at 5:13 PM Dmitry Ilvokhin <d@ilvokhin.com> wrote:
+> >
+> > They usually don't collide, except for User Mode Linux builds, which
+> > include both kernel and userspace headers.
+> 
+> :(
+> 
+> What about other similar names? i.e. a variation of your option 2,
+> e.g. just `nonnull` (we also have others like that, i.e. no
+> underscore, e.g. `noinline`), or `___nonnull` (triple underscore, but
+> may be confusing), or a suffix/prefix letter, e.g. `__knonnull` (for
+> kernel nonnull)...
+> 
+> i.e. it would be nice to have a "standard" spelling for ourselves, and
+> also replace the existing `__attribute__((nonnull))`s we have
+> elsewhere in the tree.
 
-Thanks for your remarks
+Yes, a different name might work as well. The main question is which
+name to pick.
 
->> Just report the request_resource() failure. This case does not warrant exporting request_resource _conflict(). Historically one driver can not mess with another driver's resource beyond conflict detection.
-Do you think v1 of the patch is good enough or v3 is needed? (which in fact would be the same as v1)
+Plain nonnull() is a bit dangerous. It might collide with existing
+identifiers (now or in the future) and is not great for a kernel-wide
+macro. I think we got away with plain noinline, because it was there
+forever. There are also at least 24 nonnull attribute usages in the
+kernel that need to be converted atomically. This can be done, but it
+increases the scope of the patchset, which I'd rather avoid.
 
-Best regards,
-Tomasz
+___nonnull() with triple underscore might be a bit confusing, I agree.
+
+__knonnull() might work. I like __nonnull_args() better: it gives the
+reader a hint about the semantics, while __knonnull() is just a
+collision-avoidance trick without conveying any additional meaning. That
+being said, I can totally do __knonnull().
+
+> 
+> Cheers,
+> Miguel
