@@ -1,403 +1,297 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF95753E0B
-	for <nvdimm@lists.linux.dev>; Thu, 28 May 2026 00:16:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 844762DF6E6
+	for <nvdimm@lists.linux.dev>; Thu, 28 May 2026 02:16:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779927409; cv=none; b=N82UD5dbbJRzDOUybgloK9C9GU+Qs7YN0tP2/MDUXrsA03E8mnjfhHJjKTXzavjnnjHKbks05vyUmQcHLB/4eJ3FDso62o2VYGNHRF+QWcgw1MD0180klVtX87hyq+O5Cj9vbMmL5Rj7JM/yGrXv9uJv0JZjOxqAyhheePc2Hq4=
+	t=1779934593; cv=none; b=XDesakVLOpQE/QHkZrENRjv+40mMVMPLnRyn4ip77M7OutdGBV/ctPGLnwLZUFiy4tr/rZ5EhF3h2PzAG2eJXSnhvIlMpo3Imqhhm+cQupeFgixR3O04G/0O7CXXtfBHBpBSZCTdwyQLC1qJ17PxXRA34BDK4Eueim9kcieSFv8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779927409; c=relaxed/simple;
-	bh=J+LjVxnzSxVul7xVtHw+36L152ElbxAsNv2/mNnuLSw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rehjfPhqmNdRhXFa0fHKd9i84jPwZeq1HZaNN1gdD9MmqV4pc9845bceBj72ez4/Jko2uFi37t1rPuUDI6t7tnw1vfgNiSanwKXHvRgh7JMbSTvJ5WvMba+tY8EfPUy/oqQvF8t43ygW8PH+j42NCuRITr245ggeSXKVb7VGYfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VNOiaPGz; arc=none smtp.client-ip=192.198.163.9
+	s=arc-20240116; t=1779934593; c=relaxed/simple;
+	bh=MaYss3l04Y2vm5VU19xpUhh9ybEZGTSuRnJyHDR5nPc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bk9tsBhFadB3lSO81UsEAVwBOcSN3c0R4opHhw7/S30gxS6f51K6dPylvgG1NEkp1z0l1MDrUGIemTxeUkafI+BDryzTSQoxCS4hRYDQtGwBfoPNm8uB1DOhKxKIst8Z66rGEfBRoH3lKoxdfXZ/vpX1JGeAincN5vFJP1Fpnuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DH5f+iUm; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VNOiaPGz"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DH5f+iUm"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779927407; x=1811463407;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=J+LjVxnzSxVul7xVtHw+36L152ElbxAsNv2/mNnuLSw=;
-  b=VNOiaPGzKOjoXoJJCJ9divAxrwWMmryc3Y3FFAHv4TaS5s9Jm/J8cFgF
-   UHVrigh93TpbHM3Nv6qv2xbKr/y6YeO6QLEU7Mkpkr5RsNxy6ggxc7U8b
-   UW4GcwBU2vUKqf+LiPknSmvHhKrpi6zzOMmT7lZBs6aChfK45V4/s1/n8
-   gD4iTsgMglxLF0pzTiMuYM61RdSY8Euk70RbiL9sEY+Pd3PouYQXrXfKd
-   QPc3y5siw/xnlrbpRSoLUu+/IJkAuWObOC5QSWOGZ9COHLaoy404ACF0P
-   cr4tWpyBKwVKSYGhtUnN9SUaYMWc4P5xznEs0KVCXF3MfNqxG7aBChoTk
+  t=1779934591; x=1811470591;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=MaYss3l04Y2vm5VU19xpUhh9ybEZGTSuRnJyHDR5nPc=;
+  b=DH5f+iUmrMvIROeW5tUiWtg5xWwEH/k6U3N0Wd3IeYBiI43qDQQFks28
+   2wo1s/HbKRIXvZNKmrqEvMP3U5SRahjiF8Uza0fswb1sBUTXccAkDaS1x
+   Jhdww16mXQLMjUErE34ghl0V4+bGnO9p3VUM0kO1mDdFA58FjO+xqUFMt
+   qIC7BvoFFKNoYwXX+Nzh0+ReD7SOctQmM3Hn00xMHwffDPnCaP4AIA9z3
+   hBs1VEfJdxuYAHg+q5fEiwn5hmcSTThvDLlRKdJjWl8tJCb50m7ZljkE0
+   mLzBMsNv4jtAetFSqzjgYaAdxVCTN7VSAaArIwv3WBY/q8PQ4o5Woqvdu
    Q==;
-X-CSE-ConnectionGUID: UCSDb+s/RfekIqU24EXDUg==
-X-CSE-MsgGUID: H9j2c6WeRvymtgZyiyfXfw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11799"; a="91457136"
+X-CSE-ConnectionGUID: FuiFdFa6Q+a4sCLV8FlokQ==
+X-CSE-MsgGUID: 2dT/eY58TSSYLoufpAIOZw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11799"; a="103448151"
 X-IronPort-AV: E=Sophos;i="6.24,172,1774335600"; 
-   d="scan'208";a="91457136"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 17:16:46 -0700
-X-CSE-ConnectionGUID: mDWPMm8VSuK4v0lZvkpfJA==
-X-CSE-MsgGUID: sKm5IM6dQbyH0IFD7V/LOg==
+   d="scan'208";a="103448151"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 19:16:30 -0700
+X-CSE-ConnectionGUID: kK36h3bFTXqOg8NhYXAxFQ==
+X-CSE-MsgGUID: pxjNYUQzR+SkZPw5Qh5suw==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,172,1774335600"; 
-   d="scan'208";a="241359486"
-Received: from rfrazer-mobl3.amr.corp.intel.com (HELO [10.125.111.23]) ([10.125.111.23])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 17:16:45 -0700
-Message-ID: <f55e49bb-5032-448f-9550-69282b38b1c0@intel.com>
-Date: Wed, 27 May 2026 17:16:44 -0700
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.220.163])
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2026 19:16:29 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	nvdimm@lists.linux.dev
+Subject: [PATCH v6] nvdimm/btt: Handle preemption in BTT lane acquisition
+Date: Wed, 27 May 2026 19:16:22 -0700
+Message-ID: <20260528021625.618462-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v10 07/31] cxl/region: Add DC DAX region support
-To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
- Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>,
- Alison Schofield <alison.schofield@intel.com>, John Groves
- <John@Groves.net>, Gregory Price <gourry@gourry.net>,
- Ira Weiny <ira.weiny@intel.com>
-References: <cover.1779528761.git.anisa.su@samsung.com>
- <9f0e0b3deeb1825ad113d7aebe7056dcf2bbc5f9.1779528761.git.anisa.su@samsung.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <9f0e0b3deeb1825ad113d7aebe7056dcf2bbc5f9.1779528761.git.anisa.su@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+
+BTT lanes serialize access to per-lane metadata and workspace state
+during BTT I/O. The btt-check unit test reports data mismatches during
+BTT writes due to a race in lane acquisition that can lead to silent
+data corruption.
+
+The existing lane model uses a spinlock together with a per-CPU
+recursion count. That recursion model stopped being valid after BTT
+lanes became preemptible: another task can run on the same CPU,
+observe a non-zero recursion count, bypass locking, and use the same
+lane concurrently.
+
+BTT lanes are also held across arena_write_bytes() calls. That path
+reaches nsio_rw_bytes(), which flushes writes with nvdimm_flush().
+Some provider flush callbacks can sleep, making a spinlock the wrong
+primitive for the lane lifetime.
+
+Replace the spinlock-based recursion model with a dynamically
+allocated per-lane mutex array and take the lane lock
+unconditionally.
+
+Add might_sleep() to catch any future atomic-context caller.
+
+Found with the ndctl unit test btt-check.sh.
+
+Fixes: 36c75ce3bd29 ("nd_btt: Make BTT lanes preemptible")
+Assisted-by: Claude Sonnet 4.5
+Tested-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Reviewed-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+
+A new unit test to stress this is under review here:
+https://lore.kernel.org/nvdimm/20260424233633.3762217-1-alison.schofield@intel.com/
+
+Changes in v6:
+- Add mutex_destroy() to match dynamic allocation (Aboorva)
+- btt.rst drop the stale 'if more CPUs than lanes qualifier (Vishal)
+- Rename struct nd_percpu_lane to struct nd_lane (Vishal)
+- Drop the stale __percpu annotation on nd_region->lane (Vishal)
+- Move struct nd_lane definition to avoid a checkpatch false positive
+
+Changes in v5:
+- Align lane mutex entries to cachelines in SMP builds (Sashiko AI)
+- Add sparse lock annotations for lane mutexes (DaveJ)
+- s/spinlock/mutexes in the driver-api doc btt.rst
+
+Changes in v4:
+- Replace per-CPU lane storage w dynamically allocated mutex array (Sashiko AI)
+- Remove the recursion fast path and take the lane lock unconditionally
+- Update commit log
+
+Changes in v3:
+Replace spinlock with a per-lane mutex (Arboorva)
+
+Changes in v2:
+Use spin_(un)lock_bh() (Sashiko AI)
+Update commit log per softirq re-enty and spinlock change
 
 
+ Documentation/driver-api/nvdimm/btt.rst |  5 +-
+ drivers/nvdimm/nd.h                     | 11 ++---
+ drivers/nvdimm/region_devs.c            | 66 +++++++++----------------
+ 3 files changed, 29 insertions(+), 53 deletions(-)
 
-On 5/23/26 2:43 AM, Anisa Su wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> DC DAX regions must allow memory to be added or removed dynamically.
-> In addition to the quantity of memory available the,
-> location of the memory within a DC partition is dynamic, based on the
-> extents offered by a device.  CXL DAX regions must accommodate the
-> dynamic movement of this memory in the management of DAX regions and devices.
-> 
-> Introduce the concept of a dynamic DAX region. Introduce
-> create_dynamic_ram_a_region() sysfs entry to create such regions.
-> Special case DC-capable regions to create a 0 sized seed DAX device
-> to maintain compatibility which requires a default DAX device to hold a
-> region reference.
-> 
-> Indicate 0 byte available capacity until such time that capacity is
-> added.
-> 
-> Dynamic regions complicate the range mapping of dax devices.  There is no
-> known use case for range mapping on dynamic regions.  Avoid the
-> complication by preventing range mapping of dax devices on dynamic
-> regions.
-> 
-> Interleaving is deferred for now.  Add checks.
-> 
-> Based on an original patch by Navneet Singh.
-> 
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+diff --git a/Documentation/driver-api/nvdimm/btt.rst b/Documentation/driver-api/nvdimm/btt.rst
+index 2d8269f834bd..d29fab95f149 100644
+--- a/Documentation/driver-api/nvdimm/btt.rst
++++ b/Documentation/driver-api/nvdimm/btt.rst
+@@ -161,9 +161,8 @@ process::
+ 	nlanes = min(nfree, num_cpus)
+ 
+ A lane number is obtained at the start of any IO, and is used for indexing into
+-all the on-disk and in-memory data structures for the duration of the IO. If
+-there are more CPUs than the max number of available lanes, than lanes are
+-protected by spinlocks.
++all the on-disk and in-memory data structures for the duration of the IO. Lanes
++are protected by mutexes.
+ 
+ 
+ d. In-memory data structure: Read Tracking Table (RTT)
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index b199eea3260e..197e5368c0a4 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -365,11 +365,6 @@ unsigned sizeof_namespace_label(struct nvdimm_drvdata *ndd);
+ 	for (res = (ndd)->dpa.child, next = res ? res->sibling : NULL; \
+ 			res; res = next, next = next ? next->sibling : NULL)
+ 
+-struct nd_percpu_lane {
+-	int count;
+-	spinlock_t lock;
+-};
+-
+ enum nd_label_flags {
+ 	ND_LABEL_REAP,
+ };
+@@ -400,6 +395,10 @@ struct nd_mapping {
+ 	struct nvdimm_drvdata *ndd;
+ };
+ 
++struct nd_lane {
++	struct mutex lock; /* serialize lane access */
++} ____cacheline_aligned_in_smp;
++
+ struct nd_region {
+ 	struct device dev;
+ 	struct ida ns_ida;
+@@ -420,7 +419,7 @@ struct nd_region {
+ 	struct kernfs_node *bb_state;
+ 	struct badblocks bb;
+ 	struct nd_interleave_set *nd_set;
+-	struct nd_percpu_lane __percpu *lane;
++	struct nd_lane *lane;
+ 	int (*flush)(struct nd_region *nd_region, struct bio *bio);
+ 	struct nd_mapping mapping[] __counted_by(ndr_mappings);
+ };
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index e35c2e18518f..5e079d61cbaa 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -192,7 +192,9 @@ static void nd_region_release(struct device *dev)
+ 
+ 		put_device(&nvdimm->dev);
+ 	}
+-	free_percpu(nd_region->lane);
++	for (i = 0; i < nd_region->num_lanes; i++)
++		mutex_destroy(&nd_region->lane[i].lock);
++	kfree(nd_region->lane);
+ 	if (!test_bit(ND_REGION_CXL, &nd_region->flags))
+ 		memregion_free(nd_region->id);
+ 	kfree(nd_region);
+@@ -904,52 +906,30 @@ void nd_region_advance_seeds(struct nd_region *nd_region, struct device *dev)
+  * nd_region_acquire_lane - allocate and lock a lane
+  * @nd_region: region id and number of lanes possible
+  *
+- * A lane correlates to a BLK-data-window and/or a log slot in the BTT.
+- * We optimize for the common case where there are 256 lanes, one
+- * per-cpu.  For larger systems we need to lock to share lanes.  For now
+- * this implementation assumes the cost of maintaining an allocator for
+- * free lanes is on the order of the lock hold time, so it implements a
+- * static lane = cpu % num_lanes mapping.
++ * A lane correlates to a log slot in the BTT. Lanes are shared across
++ * CPUs using a static lane = cpu % num_lanes mapping, with a per-lane
++ * mutex to serialize access.
+  *
+- * In the case of a BTT instance on top of a BLK namespace a lane may be
+- * acquired recursively.  We lock on the first instance.
+- *
+- * In the case of a BTT instance on top of PMEM, we only acquire a lane
+- * for the BTT metadata updates.
++ * Callers must be in sleepable context. The only in-tree caller is
++ * BTT's ->submit_bio handler (btt_read_pg / btt_write_pg).
+  */
+ unsigned int nd_region_acquire_lane(struct nd_region *nd_region)
++	__acquires(&nd_region->lane[lane].lock)
+ {
+-	unsigned int cpu, lane;
++	unsigned int lane;
+ 
+-	migrate_disable();
+-	cpu = smp_processor_id();
+-	if (nd_region->num_lanes < nr_cpu_ids) {
+-		struct nd_percpu_lane *ndl_lock, *ndl_count;
+-
+-		lane = cpu % nd_region->num_lanes;
+-		ndl_count = per_cpu_ptr(nd_region->lane, cpu);
+-		ndl_lock = per_cpu_ptr(nd_region->lane, lane);
+-		if (ndl_count->count++ == 0)
+-			spin_lock(&ndl_lock->lock);
+-	} else
+-		lane = cpu;
++	might_sleep();
+ 
++	lane = raw_smp_processor_id() % nd_region->num_lanes;
++	mutex_lock(&nd_region->lane[lane].lock);
+ 	return lane;
+ }
+ EXPORT_SYMBOL(nd_region_acquire_lane);
+ 
+ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane)
++	__releases(&nd_region->lane[lane].lock)
+ {
+-	if (nd_region->num_lanes < nr_cpu_ids) {
+-		unsigned int cpu = smp_processor_id();
+-		struct nd_percpu_lane *ndl_lock, *ndl_count;
+-
+-		ndl_count = per_cpu_ptr(nd_region->lane, cpu);
+-		ndl_lock = per_cpu_ptr(nd_region->lane, lane);
+-		if (--ndl_count->count == 0)
+-			spin_unlock(&ndl_lock->lock);
+-	}
+-	migrate_enable();
++	mutex_unlock(&nd_region->lane[lane].lock);
+ }
+ EXPORT_SYMBOL(nd_region_release_lane);
+ 
+@@ -1019,17 +999,16 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 			goto err_id;
+ 	}
+ 
+-	nd_region->lane = alloc_percpu(struct nd_percpu_lane);
++	nd_region->num_lanes = ndr_desc->num_lanes;
++	if (!nd_region->num_lanes)
++		goto err_percpu;
++	nd_region->lane = kcalloc(nd_region->num_lanes,
++				  sizeof(*nd_region->lane), GFP_KERNEL);
+ 	if (!nd_region->lane)
+ 		goto err_percpu;
+ 
+-        for (i = 0; i < nr_cpu_ids; i++) {
+-		struct nd_percpu_lane *ndl;
+-
+-		ndl = per_cpu_ptr(nd_region->lane, i);
+-		spin_lock_init(&ndl->lock);
+-		ndl->count = 0;
+-	}
++	for (i = 0; i < nd_region->num_lanes; i++)
++		mutex_init(&nd_region->lane[i].lock);
+ 
+ 	for (i = 0; i < ndr_desc->num_mappings; i++) {
+ 		struct nd_mapping_desc *mapping = &ndr_desc->mapping[i];
+@@ -1046,7 +1025,6 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	}
+ 	nd_region->provider_data = ndr_desc->provider_data;
+ 	nd_region->nd_set = ndr_desc->nd_set;
+-	nd_region->num_lanes = ndr_desc->num_lanes;
+ 	nd_region->flags = ndr_desc->flags;
+ 	nd_region->ro = ro;
+ 	nd_region->numa_node = ndr_desc->numa_node;
 
-Missing Anisa sign off
-
-
-> 
-> ---
-> Changes:
-> [anisa: rebase]
-> [anisa: change "sparse" naming conventions and to "dynamic"]
-> ---
->  Documentation/ABI/testing/sysfs-bus-cxl | 22 ++++++++---------
->  drivers/cxl/core/core.h                 | 11 +++++++++
->  drivers/cxl/core/port.c                 |  1 +
->  drivers/cxl/core/region.c               | 33 +++++++++++++++++++++++--
->  drivers/cxl/core/region_dax.c           |  6 +++++
->  drivers/dax/bus.c                       | 10 ++++++++
->  drivers/dax/bus.h                       |  1 +
->  drivers/dax/cxl.c                       | 17 +++++++++++--
->  8 files changed, 86 insertions(+), 15 deletions(-)
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-> index c604c7ca6432..3080aef9ad67 100644
-> --- a/Documentation/ABI/testing/sysfs-bus-cxl
-> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
-> @@ -434,20 +434,20 @@ Description:
->  		interleave_granularity).
->  
->  
-> -What:		/sys/bus/cxl/devices/decoderX.Y/create_{pmem,ram}_region
-> -Date:		May, 2022, January, 2023
-> -KernelVersion:	v6.0 (pmem), v6.3 (ram)
-> +What:		/sys/bus/cxl/devices/decoderX.Y/create_{pmem,ram,dynamic_ram_a}_region
-> +Date:		May, 2022, January, 2023, May 2025
-> +KernelVersion:	v6.0 (pmem), v6.3 (ram), v6.16 (dynamic_ram_a)
-
-update
-
->  Contact:	linux-cxl@vger.kernel.org
->  Description:
->  		(RW) Write a string in the form 'regionZ' to start the process
-> -		of defining a new persistent, or volatile memory region
-> -		(interleave-set) within the decode range bounded by root decoder
-> -		'decoderX.Y'. The value written must match the current value
-> -		returned from reading this attribute. An atomic compare exchange
-> -		operation is done on write to assign the requested id to a
-> -		region and allocate the region-id for the next creation attempt.
-> -		EBUSY is returned if the region name written does not match the
-> -		current cached value.
-> +		of defining a new persistent, volatile, or dynamic RAM memory
-> +		region (interleave-set) within the decode range bounded by root
-> +		decoder 'decoderX.Y'. The value written must match the current
-> +		value returned from reading this attribute.  An atomic compare
-> +		exchange operation is done on write to assign the requested id
-> +		to a region and allocate the region-id for the next creation
-> +		attempt.  EBUSY is returned if the region name written does not
-> +		match the current cached value.
->  
->  
->  What:		/sys/bus/cxl/devices/decoderX.Y/delete_region
-> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> index 82ca3a476708..8881cc9323e0 100644
-> --- a/drivers/cxl/core/core.h
-> +++ b/drivers/cxl/core/core.h
-> @@ -6,6 +6,7 @@
->  
->  #include <cxl/mailbox.h>
->  #include <linux/rwsem.h>
-> +#include <cxlmem.h>
->  
->  extern const struct device_type cxl_nvdimm_bridge_type;
->  extern const struct device_type cxl_nvdimm_type;
-> @@ -18,6 +19,15 @@ enum cxl_detach_mode {
->  	DETACH_INVALIDATE,
->  };
->  
-> +static inline struct cxl_memdev_state *
-> +cxled_to_mds(struct cxl_endpoint_decoder *cxled)
-> +{
-> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
-> +	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-> +
-> +	return container_of(cxlds, struct cxl_memdev_state, cxlds);
-
-return to_cxl_memdev_state(cxlmd->cxlds);
-
-> +}
-> +
->  #ifdef CONFIG_CXL_REGION
->  
->  struct cxl_region_context {
-> @@ -29,6 +39,7 @@ struct cxl_region_context {
->  
->  extern struct device_attribute dev_attr_create_pmem_region;
->  extern struct device_attribute dev_attr_create_ram_region;
-> +extern struct device_attribute dev_attr_create_dynamic_ram_a_region;
->  extern struct device_attribute dev_attr_delete_region;
->  extern struct device_attribute dev_attr_region;
->  extern const struct device_type cxl_pmem_region_type;
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index a7f71f36531f..2d33001dac26 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -337,6 +337,7 @@ static struct attribute *cxl_decoder_root_attrs[] = {
->  	&dev_attr_qos_class.attr,
->  	SET_CXL_REGION_ATTR(create_pmem_region)
->  	SET_CXL_REGION_ATTR(create_ram_region)
-> +	SET_CXL_REGION_ATTR(create_dynamic_ram_a_region)
-
-With this add, may need to add checks in cxl_root_decoder_visible() for dynamic_ram for create and also delete. 
-
->  	SET_CXL_REGION_ATTR(delete_region)
->  	NULL,
->  };
-> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> index edc267c6cf77..7561bf3d8af8 100644
-> --- a/drivers/cxl/core/region.c
-> +++ b/drivers/cxl/core/region.c
-> @@ -493,6 +493,11 @@ static int set_interleave_ways(struct cxl_region *cxlr, int val)
->  	int save, rc;
->  	u8 iw;
->  
-> +	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM_A && val != 1) {
-> +		dev_err(&cxlr->dev, "Interleaving and DCD not supported\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	rc = ways_to_eiw(val, &iw);
->  	if (rc)
->  		return rc;
-> @@ -2389,6 +2394,7 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
->  	if (sysfs_streq(buf, "\n"))
->  		rc = detach_target(cxlr, pos);
->  	else {
-> +		struct cxl_endpoint_decoder *cxled;
->  		struct device *dev;
->  
->  		dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
-> @@ -2400,8 +2406,14 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
->  			goto out;
->  		}
->  
-> -		rc = attach_target(cxlr, to_cxl_endpoint_decoder(dev), pos,
-> -				   TASK_INTERRUPTIBLE);
-> +		cxled = to_cxl_endpoint_decoder(dev);
-> +		if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM_A &&
-> +		    !cxl_dcd_supported(cxled_to_mds(cxled))) {
-
-cxled_to_mds() can return NULL with the earlier change suggested. Need to handle that
-
-DJ
-
-
-> +			dev_dbg(dev, "DCD unsupported\n");
-> +			rc = -EINVAL;
-> +			goto out;
-> +		}
-> +		rc = attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
->  out:
->  		put_device(dev);
->  	}
-> @@ -2750,6 +2762,7 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
->  	switch (mode) {
->  	case CXL_PARTMODE_RAM:
->  	case CXL_PARTMODE_PMEM:
-> +	case CXL_PARTMODE_DYNAMIC_RAM_A:
->  		break;
->  	default:
->  		dev_err(&cxlrd->cxlsd.cxld.dev, "unsupported mode %d\n", mode);
-> @@ -2802,6 +2815,21 @@ static ssize_t create_ram_region_store(struct device *dev,
->  }
->  DEVICE_ATTR_RW(create_ram_region);
->  
-> +static ssize_t create_dynamic_ram_a_region_show(struct device *dev,
-> +						struct device_attribute *attr,
-> +						char *buf)
-> +{
-> +	return __create_region_show(to_cxl_root_decoder(dev), buf);
-> +}
-> +
-> +static ssize_t create_dynamic_ram_a_region_store(struct device *dev,
-> +						 struct device_attribute *attr,
-> +						 const char *buf, size_t len)
-> +{
-> +	return create_region_store(dev, buf, len, CXL_PARTMODE_DYNAMIC_RAM_A);
-> +}
-> +DEVICE_ATTR_RW(create_dynamic_ram_a_region);
-> +
->  static ssize_t region_show(struct device *dev, struct device_attribute *attr,
->  			   char *buf)
->  {
-> @@ -4081,6 +4109,7 @@ static int cxl_region_probe(struct device *dev)
->  
->  		return devm_cxl_add_pmem_region(cxlr);
->  	case CXL_PARTMODE_RAM:
-> +	case CXL_PARTMODE_DYNAMIC_RAM_A:
->  		rc = devm_cxl_region_edac_register(cxlr);
->  		if (rc)
->  			dev_dbg(&cxlr->dev, "CXL EDAC registration for region_id=%d failed\n",
-> diff --git a/drivers/cxl/core/region_dax.c b/drivers/cxl/core/region_dax.c
-> index de04f78f6ad8..d6bf69155827 100644
-> --- a/drivers/cxl/core/region_dax.c
-> +++ b/drivers/cxl/core/region_dax.c
-> @@ -84,6 +84,12 @@ int devm_cxl_add_dax_region(struct cxl_region *cxlr)
->  	struct device *dev;
->  	int rc;
->  
-> +	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM_A &&
-> +	    cxlr->params.interleave_ways != 1) {
-> +		dev_err(&cxlr->dev, "Interleaving DC not supported\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	struct cxl_dax_region *cxlr_dax __free(put_cxl_dax_region) =
->  		cxl_dax_region_alloc(cxlr);
->  	if (IS_ERR(cxlr_dax))
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 95aee2a037fb..b0c2162b5e37 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -181,6 +181,11 @@ static bool is_static(struct dax_region *dax_region)
->  	return (dax_region->res.flags & IORESOURCE_DAX_STATIC) != 0;
->  }
->  
-> +static bool is_dynamic(struct dax_region *dax_region)
-> +{
-> +	return (dax_region->res.flags & IORESOURCE_DAX_DCD) != 0;
-> +}
-> +
->  bool static_dev_dax(struct dev_dax *dev_dax)
->  {
->  	return is_static(dev_dax->region);
-> @@ -304,6 +309,9 @@ static unsigned long long dax_region_avail_size(struct dax_region *dax_region)
->  
->  	lockdep_assert_held(&dax_region_rwsem);
->  
-> +	if (is_dynamic(dax_region))
-> +		return 0;
-> +
->  	for_each_dax_region_resource(dax_region, res)
->  		size -= resource_size(res);
->  	return size;
-> @@ -1389,6 +1397,8 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
->  		return 0;
->  	if (a == &dev_attr_mapping.attr && is_static(dax_region))
->  		return 0;
-> +	if (a == &dev_attr_mapping.attr && is_dynamic(dax_region))
-> +		return 0;
->  	if ((a == &dev_attr_align.attr ||
->  	     a == &dev_attr_size.attr) && is_static(dax_region))
->  		return 0444;
-> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-> index 5909171a4428..6e739bfab932 100644
-> --- a/drivers/dax/bus.h
-> +++ b/drivers/dax/bus.h
-> @@ -15,6 +15,7 @@ struct dax_region;
->  /* dax bus specific ioresource flags */
->  #define IORESOURCE_DAX_STATIC BIT(0)
->  #define IORESOURCE_DAX_KMEM BIT(1)
-> +#define IORESOURCE_DAX_DCD BIT(2)
->  
->  struct dax_region *alloc_dax_region(struct device *parent, int region_id,
->  		struct range *range, int target_node, unsigned int align,
-> diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-> index 3ab39b77843d..f58fe992aa8d 100644
-> --- a/drivers/dax/cxl.c
-> +++ b/drivers/dax/cxl.c
-> @@ -13,19 +13,32 @@ static int cxl_dax_region_probe(struct device *dev)
->  	struct cxl_region *cxlr = cxlr_dax->cxlr;
->  	struct dax_region *dax_region;
->  	struct dev_dax_data data;
-> +	resource_size_t dev_size;
-> +	unsigned long flags;
->  
->  	if (nid == NUMA_NO_NODE)
->  		nid = memory_add_physaddr_to_nid(cxlr_dax->hpa_range.start);
->  
-> +	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM_A)
-> +		flags = IORESOURCE_DAX_DCD;
-> +	else
-> +		flags = IORESOURCE_DAX_KMEM;
-> +
->  	dax_region = alloc_dax_region(dev, cxlr->id, &cxlr_dax->hpa_range, nid,
-> -				      PMD_SIZE, IORESOURCE_DAX_KMEM);
-> +				      PMD_SIZE, flags);
->  	if (!dax_region)
->  		return -ENOMEM;
->  
-> +	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM_A)
-> +		/* Add empty seed dax device */
-> +		dev_size = 0;
-> +	else
-> +		dev_size = range_len(&cxlr_dax->hpa_range);
-> +
->  	data = (struct dev_dax_data) {
->  		.dax_region = dax_region,
->  		.id = -1,
-> -		.size = range_len(&cxlr_dax->hpa_range),
-> +		.size = dev_size,
->  		.memmap_on_memory = true,
->  	};
->  
+base-commit: 254f49634ee16a731174d2ae34bc50bd5f45e731
+-- 
+2.37.3
 
