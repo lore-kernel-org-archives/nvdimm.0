@@ -1,33 +1,50 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6A10C3D6CD6;
-	Fri, 29 May 2026 12:24:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41BB37B3F2
+	for <nvdimm@lists.linux.dev>; Fri, 29 May 2026 17:07:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780057468; cv=none; b=qRDTCfSynMZkg4NdHOiqSfG1XEHtDx8GpVwvauPqMnDVHky1gHHEbHzaoEIMaZst3hYBR9xq0RIVt2LVHocWEZWUfy1htgxX3+6/WPRouVH+cr7N08DXtYtzNBZUvvZVUyAHx3Ymxgtgvkyxfp+F76U+F04BrPJ8Bq/Mq8TK0m4=
+	t=1780074452; cv=none; b=ciVRa+0/kP5SFuGkzTqB6uzcX8OCx2rh3iFLGaooEAjARHm5P2dXuIIbU6xXOpm7mYdgcGuHHaamu13MqeqrmnonUjLEDcy8twK3VDoG1fOeL7jdsYWvuFmMCCnezoYXwrnu5GWo+SWFbOH6ByDeCPqpjpulD86QD0phSLqcmJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780057468; c=relaxed/simple;
-	bh=fjbO4t8XdyU8NOb41mG4ChhG+m/bzPP3BywWNtdYqoA=;
+	s=arc-20240116; t=1780074452; c=relaxed/simple;
+	bh=tXNp0g3W9JDleKH3mGUCK15MwBH0BMR204B9RWHLpy4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=btjAgdJXyV/tFlF5kTRjcBnxVl8x2i0VKcfxQZncA2vlEIfD5E53s4OM9OZNzuATqLSHgY9RahokqelZKunFJL8YabHf+a2gW9dmCvoYttxsJAt4FmZtE1w+LLiy4DrY8OCTn4ghCLSwjB0hnO3fuAvZptwOp+kvWzK18bw3CFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=aPrsjUKC; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	 In-Reply-To:Content-Type; b=sKZOHEFloBKWm8FPHIlh6T+M5BBultvY0+3h/GwpDxmXFpGV4zR+3AZFwSukk+FWJbdW9p61epBlK5jztIkWvDNr5USZAiPaWTAZuwlFcVQs+PxjylDyLg1KUx0JH7VAhzDV+B9gf2HxlGcoHeN7DzMElb+DKXKjnW4+fCveC6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SAaCXSHW; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="aPrsjUKC"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 45FEC204C;
-	Fri, 29 May 2026 05:24:20 -0700 (PDT)
-Received: from [10.57.37.50] (unknown [10.57.37.50])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 16BE13F632;
-	Fri, 29 May 2026 05:24:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1780057465; bh=fjbO4t8XdyU8NOb41mG4ChhG+m/bzPP3BywWNtdYqoA=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=aPrsjUKCk50s149VeWZk4F2Llmjdo90qP4DWtdM9ATKguxbUU6gRebVq07f2uJFK0
-	 YVnIN2oOqMRDRFm11YWBgDWM/xTptKipB8Q9REDRnovKPHG2ooZaALp7Zti/C2KUQ+
-	 b4qPfWs6v4eF/TgyfabaRYMbwAxOu8OUsO69761s=
-Message-ID: <3a4e22fe-b8ce-4e62-9139-113e0cd4f16b@arm.com>
-Date: Fri, 29 May 2026 13:24:02 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SAaCXSHW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780074451; x=1811610451;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=tXNp0g3W9JDleKH3mGUCK15MwBH0BMR204B9RWHLpy4=;
+  b=SAaCXSHWMXMPRot+S0qumc0eaXU5axs9Gr2thzrAOHbVVXd2EJuDgZNt
+   sV/uJ7b9va57aV7DU6osklmTD6T0U5NIaabZUVhsj3vy7M1X36CH9ypWW
+   gMO1TXWlJ9yz27+4zVymnQtA5tIvv4CUOP/Zrs98DL8FUAkWjyrDGTOem
+   p2sL1x67I1HT9La3RAk6y09NuMFTVHzZvQnTMC3g1iM0eLwhS6UtlrZJP
+   /KuUCXV4UifhcM/rOzxWyoboh/7mHmwXiQ+Cssx5JV4gmmEOv2tBzfxfZ
+   TPvyj6BQZrsxYxZ6VR1RYqSOtMztUiMY3J5LUdea5gJLbbd/v218FpSV1
+   g==;
+X-CSE-ConnectionGUID: Iq+IHuTxRZOWLzp+70sCAA==
+X-CSE-MsgGUID: SFNtvDrBQmmp9mvVTzkeDw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11801"; a="84818574"
+X-IronPort-AV: E=Sophos;i="6.24,175,1774335600"; 
+   d="scan'208";a="84818574"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 May 2026 10:07:30 -0700
+X-CSE-ConnectionGUID: G5PilY2TRVCbhtb15yLkqg==
+X-CSE-MsgGUID: vzlt7mksQS+P4+at1bzt3Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,175,1774335600"; 
+   d="scan'208";a="236543663"
+Received: from gabaabhi-mobl2.amr.corp.intel.com (HELO [10.125.111.151]) ([10.125.111.151])
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 May 2026 10:07:29 -0700
+Message-ID: <19e89881-0969-4305-859a-f8120198b783@intel.com>
+Date: Fri, 29 May 2026 10:07:27 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,128 +52,107 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 01/16] psci: simplify hotplug_tests()
-To: Yury Norov <ynorov@nvidia.com>, Andrew Morton
- <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Russell King <linux@armlinux.org.uk>, Frank Li <Frank.Li@nxp.com>,
- Sascha Hauer <s.hauer@pengutronix.de>,
- Pengutronix Kernel Team <kernel@pengutronix.de>,
- Fabio Estevam <festevam@gmail.com>, Madhavan Srinivasan
- <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>,
- Nicholas Piggin <npiggin@gmail.com>,
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
- Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>,
- Arnaldo Carvalho de Melo <acme@kernel.org>,
- Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
- Alexander Shishkin <alexander.shishkin@linux.intel.com>,
- Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
- Adrian Hunter <adrian.hunter@intel.com>, James Clark
- <james.clark@linaro.org>, Thomas Gleixner <tglx@kernel.org>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Len Brown <lenb@kernel.org>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, Danilo Krummrich <dakr@kernel.org>,
- Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham
- <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>,
- Heiko Stuebner <heiko@sntech.de>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Xu Yilun <yilun.xu@intel.com>, Tom Rix <trix@redhat.com>,
- Moritz Fischer <mdf@kernel.org>, Yicong Yang <yangyicong@hisilicon.com>,
- Jonathan Cameron <jic23@kernel.org>,
- Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Bjorn Helgaas <bhelgaas@google.com>, Shuai Xue <xueshuai@linux.alibaba.com>,
- Will Deacon <will@kernel.org>, Jiucheng Xu <jiucheng.xu@amlogic.com>,
- Neil Armstrong <neil.armstrong@linaro.org>,
- Kevin Hilman <khilman@baylibre.com>, Jerome Brunet <jbrunet@baylibre.com>,
- Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
- Jing Zhang <renyu.zj@linux.alibaba.com>, Xu Yang <xu.yang_2@nxp.com>,
- Linu Cherian <lcherian@marvell.com>,
- Gowthami Thiagarajan <gthiagarajan@marvell.com>,
- Ji Sheng Teoh <jisheng.teoh@starfivetech.com>,
- Khuong Dinh <khuong@os.amperecomputing.com>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
- Lukasz Luba <lukasz.luba@arm.com>, Yury Norov <yury.norov@gmail.com>,
- Kees Cook <kees@kernel.org>,
- =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
- Aboorva Devarajan <aboorvad@linux.ibm.com>,
- "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
- Ilkka Koskinen <ilkka@os.amperecomputing.com>,
- Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
- Chengwen Feng <fengchengwen@huawei.com>,
- linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev,
- linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-perf-users@vger.kernel.org, linux-acpi@vger.kernel.org,
- driver-core@lists.linux.dev, linux-pm@vger.kernel.org,
- linux-rockchip@lists.infradead.org, linux-fpga@vger.kernel.org,
- linux-rdma@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-pci@vger.kernel.org, linux-amlogic@lists.infradead.org,
- linux-cxl@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <20260528183625.870813-1-ynorov@nvidia.com>
- <20260528183625.870813-2-ynorov@nvidia.com>
-From: Robin Murphy <robin.murphy@arm.com>
-Content-Language: en-GB
-In-Reply-To: <20260528183625.870813-2-ynorov@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v10 24/31] dax/bus: Add uuid sysfs attribute to dax
+ devices
+To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
+ Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>,
+ Alison Schofield <alison.schofield@intel.com>, John Groves
+ <John@Groves.net>, Gregory Price <gourry@gourry.net>,
+ Anisa Su <anisa.su@samsung.com>
+References: <cover.1779528761.git.anisa.su@samsung.com>
+ <00e5da991afc1c96ca1074152ec10d0d8484b673.1779528761.git.anisa.su@samsung.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <00e5da991afc1c96ca1074152ec10d0d8484b673.1779528761.git.anisa.su@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 2026-05-28 7:36 pm, Yury Norov wrote:
-> Switch to pr_info("... %pbl"), and drop the temporary buffer allocation.
 
-I would say this is simply an improvement in its own right, regardless 
-of whether cpumap_print_to_pagebuf() deserves to be removed or not. For 
-the change itself, FWIW,
 
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
-
-> This prepares for removing cpumap_print_to_pagebuf().
+On 5/23/26 2:43 AM, Anisa Su wrote:
+> Introduce a read-write 'uuid' sysfs entry at
+> /sys/bus/dax/devices/daxX.Y/ with stubbed handlers: show returns "0"
+> and store returns -EOPNOTSUPP.  A follow-on patch wires both
+> directions to dax_resource tracking.
 > 
-> Signed-off-by: Yury Norov <ynorov@nvidia.com>
+> Document the attribute in the dax sysfs ABI.
+> 
+> Signed-off-by: Anisa Su <anisa.su@samsung.com>
 > ---
->   drivers/firmware/psci/psci_checker.c | 14 ++------------
->   1 file changed, 2 insertions(+), 12 deletions(-)
+>  Documentation/ABI/testing/sysfs-bus-dax | 18 ++++++++++++++++++
+>  drivers/dax/bus.c                       | 14 ++++++++++++++
+>  2 files changed, 32 insertions(+)
 > 
-> diff --git a/drivers/firmware/psci/psci_checker.c b/drivers/firmware/psci/psci_checker.c
-> index e67ba9891082..ecd745bb90bf 100644
-> --- a/drivers/firmware/psci/psci_checker.c
-> +++ b/drivers/firmware/psci/psci_checker.c
-> @@ -186,7 +186,6 @@ static int hotplug_tests(void)
->   {
->   	int i, nb_cpu_group, err = -ENOMEM;
->   	cpumask_var_t offlined_cpus, *cpu_groups;
-> -	char *page_buf;
->   
->   	if (!alloc_cpumask_var(&offlined_cpus, GFP_KERNEL))
->   		return err;
-> @@ -194,10 +193,6 @@ static int hotplug_tests(void)
->   	nb_cpu_group = alloc_init_cpu_groups(&cpu_groups);
->   	if (nb_cpu_group < 0)
->   		goto out_free_cpus;
-> -	page_buf = (char *)__get_free_page(GFP_KERNEL);
-> -	if (!page_buf)
-> -		goto out_free_cpu_groups;
-> -
->   	/*
->   	 * Of course the last CPU cannot be powered down and cpu_down() should
->   	 * refuse doing that.
-> @@ -210,16 +205,11 @@ static int hotplug_tests(void)
->   	 * off, the cpu group itself should shut down.
->   	 */
->   	for (i = 0; i < nb_cpu_group; ++i) {
-> -		ssize_t len = cpumap_print_to_pagebuf(true, page_buf,
-> -						      cpu_groups[i]);
-> -		/* Remove trailing newline. */
-> -		page_buf[len - 1] = '\0';
-> -		pr_info("Trying to turn off and on again group %d (CPUs %s)\n",
-> -			i, page_buf);
-> +		pr_info("Trying to turn off and on again group %d (CPUs %*pbl)\n",
-> +			i, cpumask_pr_args(cpu_groups[i]));
->   		err += down_and_up_cpus(cpu_groups[i], offlined_cpus);
->   	}
->   
-> -	free_page((unsigned long)page_buf);
->   out_free_cpu_groups:
->   	free_cpu_groups(nb_cpu_group, &cpu_groups);
->   out_free_cpus:
+> diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
+> index b34266bfae49..23400824073b 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-dax
+> +++ b/Documentation/ABI/testing/sysfs-bus-dax
+> @@ -59,6 +59,24 @@ Description:
+>  		backing device for this dax device, emit the CPU node
+>  		affinity for this device.
+>  
+> +What:		/sys/bus/dax/devices/daxX.Y/uuid
+> +Date:		May, 2026
+> +KernelVersion:	v6.16
+
+update
+
+> +Contact:	nvdimm@lists.linux.dev
+> +Description:
+> +		(RW) On read, reports the uuid identifying the capacity
+> +		backing this dax device.  A value of "0" indicates that the
+> +		device has no associated uuid — either it is not backed by
+> +		DCD capacity, or the backing extents are untagged.
+> +
+> +		Writes are accepted only on dax devices in sparse (DCD)
+> +		regions; writes to non-sparse devices return -EOPNOTSUPP.
+> +		Writing a non-null uuid claims every dax_resource in the
+> +		parent region whose tag matches the written uuid, consuming
+> +		any available capacity in each matching resource.  Writing
+> +		"0" is shorthand for the null uuid and claims a single
+> +		untagged dax_resource.
+> +
+>  What:		/sys/bus/dax/devices/daxX.Y/target_node
+>  Date:		February, 2019
+>  KernelVersion:	v5.1
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 5c1b93890d30..1d6f82920be6 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -1526,6 +1526,19 @@ static ssize_t numa_node_show(struct device *dev,
+>  }
+>  static DEVICE_ATTR_RO(numa_node);
+>  
+> +static ssize_t uuid_show(struct device *dev,
+> +		struct device_attribute *attr, char *buf)
+> +{
+> +	return sysfs_emit(buf, "%d\n", 0);
+
+Should it just emit null UUID instead of 0 to not screw up user apps?
+
+return sysfs_emit(buf, "%pUb\n", &uuid_null);
+
+> +}
+> +
+> +static ssize_t uuid_store(struct device *dev, struct device_attribute *attr,
+> +			  const char *buf, size_t len)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+> +static DEVICE_ATTR_RW(uuid);
+> +
+>  static ssize_t memmap_on_memory_show(struct device *dev,
+>  				     struct device_attribute *attr, char *buf)
+>  {
+> @@ -1597,6 +1610,7 @@ static struct attribute *dev_dax_attributes[] = {
+>  	&dev_attr_resource.attr,
+>  	&dev_attr_numa_node.attr,
+>  	&dev_attr_memmap_on_memory.attr,
+> +	&dev_attr_uuid.attr,
+>  	NULL,
+>  };
+>  
 
