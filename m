@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0011.hostedemail.com [216.40.44.11])
+Received: from relay.hostedemail.com (smtprelay0016.hostedemail.com [216.40.44.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 275BA33D6F7
-	for <nvdimm@lists.linux.dev>; Fri, 29 May 2026 23:59:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEA3946B5
+	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 00:04:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780099175; cv=none; b=ZAHRzbSa6QoUcN9hZ2IWOKJZxOr99XCbmkdKst3Es6XxUI7tMVPIf+Ws2LbDvmIjVvvyu4pmLUNA3Ae6cStww6R8jGAuHhjNJRDDhHVT22tP2knCZ70RNTTS9W0Chll6IvDvxkMX+OBVf4Rr9JafoOZx1IaNV70DniuOQlRDQXg=
+	t=1780099479; cv=none; b=i9UeD1URvweue1MNwL3Q5QFhVZrAnMoXv3tRLCLP+LqnoHxb20Cb873bQSaZ5eByeNPCYrHQTAoptDagzEKj/S/NVBuYZBUdD+4+dBs/iNbbbf91F4r2l31upFereeUIab/ExTQRE9uRsu83ea4hX/hKQeqJyyRRg5ggHBqvrkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780099175; c=relaxed/simple;
-	bh=YScupLwqyz7QCOIQyPueQI+phNqaX7MeGyOhFAKpMdw=;
+	s=arc-20240116; t=1780099479; c=relaxed/simple;
+	bh=W+eSIK2s1c9SlFH0SBZ70mCj0LzhyiVL/pvn+0kKIiE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IAG8O5ITzlxTxJ+KQcWSFFKsr8mUNMGQ29zWQvonTSLTsrLmoDT7/DX+tCrQqJCnv5Bqms9NDXoWx//yUXrR7c1IrTmbZ+hJUY+YqcPWWl2XNq1wu02Ly0dWednKH7LAPwThr4WIKu8VGVuVaQWGrb7pv5KcwkCPrtrLZvrvf50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.11
+	 Content-Type:Content-Disposition:In-Reply-To; b=nG+Xf0Y87keMyYihm7t9Osdlws+lRoHYav+yJe+mbPpljKcKcvyT2JPJbow9d2CK6DCOHR9MdAgLtquS1TSQ9KWtTWmlphCFExErATBTKgPHkLlykH24G/n4QSRebKWfXuBhgwVf3J7A7xGqEWec5K+Q82GaoHSgJz+QrSVAvV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf06.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay07.hostedemail.com (Postfix) with ESMTP id 126DF1616CB;
-	Fri, 29 May 2026 23:59:32 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf06.hostedemail.com (Postfix) with ESMTPA id 4B1F72000F;
-	Fri, 29 May 2026 23:59:28 +0000 (UTC)
-Date: Fri, 29 May 2026 18:59:27 -0500
+Received: from omf03.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay10.hostedemail.com (Postfix) with ESMTP id BF018C0680;
+	Sat, 30 May 2026 00:04:35 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf03.hostedemail.com (Postfix) with ESMTPA id DB7D06000B;
+	Sat, 30 May 2026 00:04:31 +0000 (UTC)
+Date: Fri, 29 May 2026 19:04:30 -0500
 From: John Groves <John@groves.net>
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>, 
@@ -30,13 +30,13 @@ Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>,
 	Ira Weiny <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>, 
 	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V2 2/7] dax/fsdev: fix multi-range offset, vmemmap_shift
- leak, and probe error cleanup
-Message-ID: <ahooRHGgIePlaC7-@groves.net>
+Subject: Re: [PATCH V2 3/7] dax/fsdev: fix kaddr for multi-range and fail
+ probe on invalid pgmap offset
+Message-ID: <ahopdHYhO2x9E5-_@groves.net>
 References: <0100019e511fb82e-1a444df3-8310-40ed-8380-72e1373d5da9-000000@email.amazonses.com>
- <20260522191851.79150-1-john@jagalactic.com>
- <0100019e51205fc2-9b729b27-3485-44a0-98b2-ea56189c192e-000000@email.amazonses.com>
- <0e68254a-b57a-4210-a2c2-7dce2a3e5256@intel.com>
+ <20260522191859.79167-1-john@jagalactic.com>
+ <0100019e51208026-d62e0ffa-73d4-4cac-b950-dbbbb13ab38c-000000@email.amazonses.com>
+ <1aa37178-4d36-4a4c-8b36-bf2789ce9655@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -45,48 +45,43 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0e68254a-b57a-4210-a2c2-7dce2a3e5256@intel.com>
-X-Rspamd-Queue-Id: 4B1F72000F
-X-Rspamd-Server: rspamout06
-X-Stat-Signature: oztuwrjpsmobxxtfhkdsxxywqacw46em
+In-Reply-To: <1aa37178-4d36-4a4c-8b36-bf2789ce9655@intel.com>
+X-Stat-Signature: fktne5rgu9jqyndra1htdmubhsxhofiy
+X-Rspamd-Server: rspamout02
+X-Rspamd-Queue-Id: DB7D06000B
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1/Lpfpm5Qu6C/BLudmgUp4Pc0YdtEjl9RM=
-X-HE-Tag: 1780099168-55546
-X-HE-Meta: U2FsdGVkX187JhgciOxCqkeSIW29B9adh6G7nyXuUU/ueR3qo1iA28pREKSnB7Bsg2WJoCzSUAhEAUZEDcrkN3Y7KGpw+VJqcvtZC24aHZ62+hZt6LGWji/fBcHw+9fo4Wvo+FNe/OQLnqGQKyjKJYJ4pPS/sCBCncAwC2142jBd3tTthhCD07iaOcaD2MaSz2egRSKT/pXIWEXjfxlNqLTaqgb9AvY0PFQtS7A8+QAqUmcPDSxT83M5k3ReE3ZUVKZJ5fqGzE4oSr7rygrahzeCwHcGdRrf3HFWRfYg2KzqmFptVoc9adlXMfj3UptyiO8xeA6KLUNhPwWEP4Tqk3bAay4/B0Frvlm4+GcGD2rmHWt5f2tT8Nngjmkz/N9C
+X-Session-ID: U2FsdGVkX18uDUuCppJvPq2aWc5YSXzIQdPFIXrOEYs=
+X-HE-Tag: 1780099471-924468
+X-HE-Meta: U2FsdGVkX19MRAxqPWBREwjd+kVfmw7Ed45/YJU/VxhqGuNHyl7/ejBlhm+GvPp2lJGB3NfLaY9rCV6Vbv1pWXGw9jqZ/z6mwmW8C3bGm1f2QHeyde4wAFOMBZOGEUMWzJUFH0yzVbGRhWLTdNVp9BBtq2A/IAcQr8GadHZNNoeviW7A8lI0Ya81wFA0faLMTvrhD+r1KUWImPgXkODJkYoP8qySnhrZj468Od6wEzqZiOS5ATbdgoeUqlyIUXhCeBwCjmGIzjRQxFyKrlfCWgI0BFqDaaeu/oJRXu6bDn1CAYjKTXvNtVTN45weZjGEJkkXGGCOW1MI9yM2zUyGJAegCKZnAx/2aYj7axLW20I7IVZdxGZPd8uaX/vf4GU9
 
-On 26/05/26 04:22PM, Dave Jiang wrote:
+On 26/05/26 04:31PM, Dave Jiang wrote:
 > 
 > 
-> On 5/22/26 12:18 PM, John Groves wrote:
+> On 5/22/26 12:19 PM, John Groves wrote:
 > > From: John Groves <John@Groves.net>
 > > 
-> > Three fixes for fsdev.c:
+> > Two fixes for virtual address handling in fsdev:
 > > 
-> > 1. Fix memory_failure offset calculation for multi-range devices.
-> >    The old code subtracted ranges[0].range.start from the faulting PFN's
-> >    physical address, which produces an incorrect (inflated) logical offset
-> >    when the PFN falls in ranges[1] or beyond due to physical gaps between
-> >    ranges. Add fsdev_pfn_to_offset() to walk the range list and compute
-> >    the correct device-linear byte offset.
+> > 1. Use __va(phys) instead of virt_addr + linear_offset for the kaddr
+> >    return in __fsdev_dax_direct_access(). The previous code added a
+> >    device-linear byte offset to virt_addr (which is __va of ranges[0]),
+> >    but for multi-range devices with physical gaps between ranges, this
+> >    linear arithmetic crosses the gap and produces a wrong kernel virtual
+> >    address. Using __va(phys) where phys comes from dax_pgoff_to_phys()
+> >    is correct for any range layout because the direct map translates
+> >    each physical address independently.
 > > 
-> > 2. Clear pgmap->vmemmap_shift for static DAX devices. When rebinding a
-> >    static device from device_dax (which may set vmemmap_shift based on
-> >    alignment) to fsdev_dax, the stale vmemmap_shift persists on the
-> >    shared pgmap. Explicitly zero it before devm_memremap_pages() so the
-> >    vmemmap is built for order-0 folios as fsdev requires.
-> > 
-> > 3. Clear dev_dax->pgmap on probe failure for dynamic devices. After the
-> >    dynamic path sets dev_dax->pgmap, if a later probe step fails, devres
-> >    frees the devm_kzalloc'd pgmap but leaves dev_dax->pgmap dangling.
-> >    Subsequent probe attempts would hit the "dynamic-dax with pre-populated
-> >    page map" check and fail permanently. Use a goto cleanup to NULL
-> >    dev_dax->pgmap on error.
+> > 2. Convert the WARN_ON to a fatal error when pgmap_phys > phys. This
+> >    condition means the remapped region starts after the device's data
+> >    region, which is an impossible state. Previously the probe continued
+> >    with data_offset=0, leaving virt_addr silently misaligned. Now probe
+> >    returns -EINVAL with a diagnostic message.
 > 
-> 3 fixes, 3 separate patches?
+> Split to 2 different patches I'd say.
 > 
 > DJ
 
-Yes, thanks. Done.
+Agree - done. Thanks!
 
 John
 
