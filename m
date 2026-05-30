@@ -1,38 +1,38 @@
-Received: from a10-27.smtp-out.amazonses.com (a10-27.smtp-out.amazonses.com [54.240.10.27])
+Received: from a11-173.smtp-out.amazonses.com (a11-173.smtp-out.amazonses.com [54.240.11.173])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B7E733FE15
-	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 16:50:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.10.27
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1E2C331A56
+	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 16:50:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780159837; cv=none; b=KWDZ3GgSfw2PGXy7OJKKWpBLiMgq+VVd0Jn37X6yzTOwvVLrb5ZTlzU3RfCcWElNfS6RMKYZQR86vY55Hx119n2JPDyynAgZzS1+pgDcgmRfkKL9J0G96/VkNJ9BVED1LaQ21z491GWKVzZAc9P+2zQ6k2YQl72ErGqwD9cVk2M=
+	t=1780159844; cv=none; b=mX/gjPs8/fDqbMn4iD7/h8hYQdQnRheLSjD1TMz7nVZ6ZiMwd2yfMRRth+v+MTNLocA+VB5RQZnYRA6rpVT8X8daBSvk6Kg4IGfCUwgpCw46VuZrP1M205Kl5OrRCsbThVu6Ke8ROpFVaqftQ3uU4SgTJJF6ammKtXZ3dK+8T8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780159837; c=relaxed/simple;
-	bh=ZEr4rH5sFsPpkQSuhtgi45OULySeed0QHY3Iak60oUw=;
+	s=arc-20240116; t=1780159844; c=relaxed/simple;
+	bh=XSjPuy1P2iMqKDcloi332EG/hJu8ryswc23bfqxsHeY=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=p/EuWXnwUbi54lKpXUwYNYw/iYrrAA1n/KNzhXybC+l2ALHnngSWJnArdZ0NfpfYIOlyPlfqy5eRvXsBEpNdXTBWcZG0oY+I21yIxWYy0xZZwLM+/vFMhWgIJya9jUrrmQVbKCdrgdQeF5ARh0bzUHkz2f6SCoFqw293/8Z/0WY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=cATWQ9w2; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=OBocTAe+; arc=none smtp.client-ip=54.240.10.27
+	 References:Message-ID; b=dgnTZ9dRl8IewtQ6oKJk684tfu6af8fwYa5JRxOlvgbWH0cQoS/zo0QNuD99Ol+u5ErG+505RMS+sg03tGfowVCANP92d2pjzKcgix/o+uEa76k6WyUzCoarRE/hinYaW3jld6KagB67NpOvtaeyFSv2FxLAOdxieEM41VrwX6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=iOVmuAt0; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=teMyf9am; arc=none smtp.client-ip=54.240.11.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="cATWQ9w2";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="OBocTAe+"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="iOVmuAt0";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="teMyf9am"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780159835;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780159842;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=ZEr4rH5sFsPpkQSuhtgi45OULySeed0QHY3Iak60oUw=;
-	b=cATWQ9w2tGHmi2Rek2i8AiFZTSTCohFYcW8daCBCna8AM4s7Wo4nqEkEMmMDjaD1
-	0hl6x7pcpxBCSKc2ZVxzC0Twf0lhTW6YPcxWD7B3TQK8LnrYc4qbbmIRigRrmKbC3w7
-	uJuDNArISOwCErx7omwSP6U+twlQlHreCc3EnvuQ=
+	bh=XSjPuy1P2iMqKDcloi332EG/hJu8ryswc23bfqxsHeY=;
+	b=iOVmuAt0DhRCLBDuRcjbxE3j0C0X78qcgQtyNENoNh4Fz9A5vXH1CUeuiXqhV5gl
+	z2FncnuEZcwoBFQB+rc1Ml1934olAZoCnROt2DxtlMH/wwkRf2ab824TwrcHfemiTf7
+	UzvMH0n5gD7EVu9z79Fi6rD3UCeuYZMbC+LVI3rE=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780159835;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780159842;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=ZEr4rH5sFsPpkQSuhtgi45OULySeed0QHY3Iak60oUw=;
-	b=OBocTAe+pY2PI0LwfaFAnhccCLyjdW+4kdVsQSDBksdHND+1p2ZLRCjd91F4SXGF
-	Do2rJwc3UdBQ6TQM2fH0duA8tQ8HzjwBkfP5ZNq/jSxBA6eRjmdF+PQhsCDfT0ml5Nz
-	3w7W2rJmQ5xr+CiBu+KRd62dsCDSzw4w8JAQJbP4=
-Subject: [PATCH V3 1/9] dax: fix misleading comment about share/index union
- in dax_folio_reset_order()
+	bh=XSjPuy1P2iMqKDcloi332EG/hJu8ryswc23bfqxsHeY=;
+	b=teMyf9amSC/zKaMP0MtdraS2GRLgur2YIMuQoWGZTGPqSF8cvwehDKghvVacLxpz
+	s96N1diKyKPV52i/y4NoNxRU3B5tcwwQp6VZ9ONROFHyPOuH6MF4AhLitBY/uqH7BNs
+	1wS8JSuuIBVOgghMTwCh3Hxd0EGXCpEJj/fg/jUE=
+Subject: [PATCH V3 2/9] dax/fsdev: fix multi-range offset in memory_failure
+ handler
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>
@@ -52,7 +52,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sat, 30 May 2026 16:50:35 +0000
+Date: Sat, 30 May 2026 16:50:42 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -65,65 +65,64 @@ In-Reply-To:
  <0100019e79caead2-5795328c-af48-4a93-b147-c11df7446e1a-000000@email.amazonses.com>
 References: 
  <0100019e79caead2-5795328c-af48-4a93-b147-c11df7446e1a-000000@email.amazonses.com> 
- <20260530165029.6601-1-john@jagalactic.com>
+ <20260530165037.6619-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHc8FRu/08Q5QSLRQK1MWzkEF1dWQ==
-Thread-Topic: [PATCH V3 1/9] dax: fix misleading comment about share/index
- union in dax_folio_reset_order()
-X-Wm-Sent-Timestamp: 1780159833
+Thread-Index: AQHc8FRa7vroVK8USxmz3hlONeiu3QAABjf9
+Thread-Topic: [PATCH V3 2/9] dax/fsdev: fix multi-range offset in
+ memory_failure handler
+X-Wm-Sent-Timestamp: 1780159841
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019e79cb6bf6-4b48b7f5-c562-4591-aefe-730561f1b8c6-000000@email.amazonses.com>
+Message-ID: <0100019e79cb8953-e505a8dc-63a4-4bc3-a9bd-3b86ec081838-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.05.30-54.240.10.27
+X-SES-Outgoing: 2026.05.30-54.240.11.173
 
 From: John Groves <John@Groves.net>
 
-The comment in dax_folio_reset_order() claims that DAX maintains an
-invariant where folio->share != 0 only when folio->mapping == NULL,
-implying folio->share is zero whenever mapping is non-NULL. This is
-misleading because folio->share and folio->index are a union -- for
-non-shared folios with mapping != NULL, reading folio->share returns
-the file page offset (folio->index), which is typically non-zero.
+Fix memory_failure offset calculation for multi-range devices. The old code
+subtracted ranges[0].range.start from the faulting PFN's physical address,
+which produces an incorrect (inflated) logical offset when the PFN falls in
+ranges[1] or beyond due to physical gaps between ranges. Add
+fsdev_pfn_to_offset() to walk the range list and compute the correct
+device-linear byte offset.
 
-Reword the comment to accurately describe the union aliasing: the
-assignment clears whichever interpretation of the union word is active
-(index for non-shared folios, share for shared folios), which is correct
-because the folio is being released in either case.
-
-No functional change -- the code was already correct, only the
-justification was wrong.
-
-Fixes: 59eb73b98ae0b ("dax: Factor out dax_folio_reset_order() helper")
-
-Reviewed-by: Jonathan Cameron <jic23@kernel.org>
+Fixes: d5406bd458b0a ("dax: add fsdev.c driver for fs-dax on character dax")
 Signed-off-by: John Groves <john@groves.net>
 ---
- fs/dax.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/dax/fsdev.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 6d175cd47a99b..df19c9317d10e 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -392,12 +392,12 @@ int dax_folio_reset_order(struct folio *folio)
- 	int order = folio_order(folio);
+diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
+index 188b2526bee45..f315533b299e9 100644
+--- a/drivers/dax/fsdev.c
++++ b/drivers/dax/fsdev.c
+@@ -135,11 +135,26 @@ static void fsdev_clear_ops(void *data)
+  * The core mm code in free_zone_device_folio() handles the wake_up_var()
+  * directly for this memory type.
+  */
++static u64 fsdev_pfn_to_offset(struct dev_dax *dev_dax, unsigned long pfn)
++{
++	phys_addr_t phys = PFN_PHYS(pfn);
++	u64 offset = 0;
++
++	for (int i = 0; i < dev_dax->nr_range; i++) {
++		struct range *range = &dev_dax->ranges[i].range;
++
++		if (phys >= range->start && phys <= range->end)
++			return offset + (phys - range->start);
++		offset += range_len(range);
++	}
++	return -1ULL;
++}
++
+ static int fsdev_pagemap_memory_failure(struct dev_pagemap *pgmap,
+ 		unsigned long pfn, unsigned long nr_pages, int mf_flags)
+ {
+ 	struct dev_dax *dev_dax = pgmap->owner;
+-	u64 offset = PFN_PHYS(pfn) - dev_dax->ranges[0].range.start;
++	u64 offset = fsdev_pfn_to_offset(dev_dax, pfn);
+ 	u64 len = nr_pages << PAGE_SHIFT;
  
- 	/*
--	 * DAX maintains the invariant that folio->share != 0 only when
--	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
--	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
--	 * Callers ensure share has been decremented to zero before
--	 * calling here, so unconditionally clearing both fields is
--	 * correct.
-+	 * Clear the mapping and the index/share union word. folio->share
-+	 * and folio->index occupy the same union in struct folio. For
-+	 * non-shared folios (mapping != NULL), the union holds folio->index
-+	 * (file page offset); for shared folios (mapping == NULL), it holds
-+	 * folio->share (reference count). Either way, we are releasing the
-+	 * folio and both fields should be zeroed.
- 	 */
- 	folio->mapping = NULL;
- 	folio->share = 0;
+ 	return dax_holder_notify_failure(dev_dax->dax_dev, offset,
 -- 
 2.53.0
 
