@@ -1,37 +1,38 @@
-Received: from a11-121.smtp-out.amazonses.com (a11-121.smtp-out.amazonses.com [54.240.11.121])
+Received: from a11-73.smtp-out.amazonses.com (a11-73.smtp-out.amazonses.com [54.240.11.73])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0ACC332EA7
-	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 16:51:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.121
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2893D33F5A3
+	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 16:51:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780159883; cv=none; b=qQdn5HWR483bvNys7tfMBP+BfRZ7P4G16ldPUXb9SC476LOSnCa6Hmm6ucKSvfT31Jiex9RlhWFiWCNfgmXLVz4jbIwE5IysrEh0OKKsu5WiMkDqCJqZTeN0WQ+kr7SDM/3lCSXZyFceHG+EzGzzoGQFFD+cDkKPVAY+wPNhKgU=
+	t=1780159895; cv=none; b=Beb09K9Z7JOSicMzeVgsd5gVrRVSIv/jG5XutcUO9ozLpDS2W67aKsLIoNpgCzUhoHHPwMldL6wMnW3hFzEPpis/KV4mjY1812ADj/Rx4JQ/kGh58IyMtOaDJCiM0Cy4ZYofUrUFOaDATNn3p9o4y7kMGVAoOxYIP02QSEWuKj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780159883; c=relaxed/simple;
-	bh=oZLQq3x7F225xsGkvTwM0En1CLF8h7BIeRhyUhBbq5A=;
+	s=arc-20240116; t=1780159895; c=relaxed/simple;
+	bh=KvqaUWo58vfTx1jkHlUw8hBpjno8UPB4mb3T0OmHUyA=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=KmpWDV/5CakBXFoNXZHFrNXxXlmd6v9YmWQ6xBliZZloEhYcR3otke6eyOZnTt+D6weUT7jhEJb+rpc8q3cAkNrG9yL8o9VA3MIQxuMxemdcNMHwpxufcXJ7jpBPcqCIYvGJLv2jlLm11RhmYEyEimvh6x1DOZZuMg4IOyWIQnA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=RHNpJRQ+; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=YMiRUOSe; arc=none smtp.client-ip=54.240.11.121
+	 References:Message-ID; b=XrnIlRJAL1plS+IibqNHTzST6klahvWN5cJFpYEtNtoN2MTPVHlSBLVdcM0JSKbMI1QYZvHrCCHS4s8y6JDtVkxqUrGoNuJ/+p24MfEy6CxjD5rkA3oWyRJZOx9UDG5mXq1Nbt3ctz9a1pa5fx3YOg7nyc4H71DB/+mNhkd69ow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=JYo7KbtT; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=T7NEY0oj; arc=none smtp.client-ip=54.240.11.73
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="RHNpJRQ+";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="YMiRUOSe"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="JYo7KbtT";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="T7NEY0oj"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780159880;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780159893;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=oZLQq3x7F225xsGkvTwM0En1CLF8h7BIeRhyUhBbq5A=;
-	b=RHNpJRQ+f8+8dokFjjsgwhK/hIJjxrPYqqHjklSf0bogl58LIXfA+jE1QSIA7aaF
-	6m8+5F0XE1e8acjP0doqtsD92l+6d0FRbDXnJpOgWxkeaI2U/LanaPAaVvnXe5VzGak
-	1mYsPLkwm+Kzd/9YejKBBGiB3CgUbQOnvNAIZAHE=
+	bh=KvqaUWo58vfTx1jkHlUw8hBpjno8UPB4mb3T0OmHUyA=;
+	b=JYo7KbtT89YKBAjQssMMs4NjRJl3mjmmGA3xi8hvMs+2gflwxMEQOmd19enCFjRW
+	KdyHIoKaoybANyQcWdvmVKDNY3h60OZ2atDYqnuHq/8WSkH0tbAkkSVCITB7W+IM23M
+	7UBauYSjcMTHIvjokiqCMTv8I4rWSr8M0yNpw4EE=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780159880;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780159893;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=oZLQq3x7F225xsGkvTwM0En1CLF8h7BIeRhyUhBbq5A=;
-	b=YMiRUOSesI7mM7e/SOGQakShjsw1zeS1E70d4fz+CJYP20VUtjiEizAeMcv5YO9w
-	GS2eWUnSLWq0YEUTKyf8eRhEX/Oftoy8O5y0f3/MxE0EJaJ/1TxwQE3SYZQ6QibjVzD
-	e/Z0vdChzEqA10oGJ5xsLAT7WY0n25r9k5KevKxo=
-Subject: [PATCH V3 7/9] dax: fix holder_ops race in fs_put_dax()
+	bh=KvqaUWo58vfTx1jkHlUw8hBpjno8UPB4mb3T0OmHUyA=;
+	b=T7NEY0ojpVsWInwcaPskWA2N5T34WkxudfS0iegGT+JYQaaoAhr4Siv1Ci5ILgeH
+	9gpJqXEm8MQhHjfsHugIeuQUZ9rkvhVs1W4hMfc5ZueSPN3UAjQ/Q4tIpPDE3cyDDUw
+	+3GVrJAEjUp99+4h6T+/QX8nlnv4hSrsxtZn6B2k=
+Subject: [PATCH V3 8/9] dax: replace exported dax_dev_get() with
+ non-allocating dax_dev_find()
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>
@@ -51,7 +52,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sat, 30 May 2026 16:51:20 +0000
+Date: Sat, 30 May 2026 16:51:33 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -64,61 +65,78 @@ In-Reply-To:
  <0100019e79caead2-5795328c-af48-4a93-b147-c11df7446e1a-000000@email.amazonses.com>
 References: 
  <0100019e79caead2-5795328c-af48-4a93-b147-c11df7446e1a-000000@email.amazonses.com> 
- <20260530165115.6704-1-john@jagalactic.com>
+ <20260530165126.6721-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHc8FRa7vroVK8USxmz3hlONeiu3QAAC+PF
-Thread-Topic: [PATCH V3 7/9] dax: fix holder_ops race in fs_put_dax()
-X-Wm-Sent-Timestamp: 1780159879
+Thread-Index: AQHc8FRa7vroVK8USxmz3hlONeiu3QAADbAn
+Thread-Topic: [PATCH V3 8/9] dax: replace exported dax_dev_get() with
+ non-allocating dax_dev_find()
+X-Wm-Sent-Timestamp: 1780159891
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019e79cc1d9e-d39ff70d-4f1d-4a02-8b8e-e01c70272c0c-000000@email.amazonses.com>
+Message-ID: <0100019e79cc4e0f-26041b0e-3c38-4641-9e36-c8964a7f0e89-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.05.30-54.240.11.121
+X-SES-Outgoing: 2026.05.30-54.240.11.73
 
-From: John Groves <John@Groves.net>=0D=0A=0D=0AClear holder_ops before ho=
-lder_data so that a concurrent fs_dax_get()=0D=0Acannot have its newly in=
-stalled holder_ops overwritten. cmpxchg()=0D=0Aprovides release ordering =
-on weakly-ordered architectures, ensuring the=0D=0AWRITE_ONCE(holder_ops,=
- NULL) store is visible to any CPU that observes=0D=0Athe holder_data rel=
-ease.=0D=0A=0D=0AAdd WARN_ON() on the cmpxchg result to catch two API con=
-tract=0D=0Aviolations: fs_put_dax() called by a non-holder, or called twi=
-ce by=0D=0Athe same holder (double-put). Either way holder_ops has alread=
-y been=0D=0Acleared, so WARN_ON() does not prevent the damage but makes t=
-he bug=0D=0Avisible. (Note: "damage" is only if a non-holder causes holde=
-r_ops=0D=0Ato be cleared)=0D=0A=0D=0AAlso add a kerneldoc comment documen=
-ting that fs_put_dax() must only=0D=0Abe called by the current holder.=0D=
-=0A=0D=0AFixes: eec38f5d86d27 ("dax: Add fs_dax_get() func to prepare dax=
- for fs-dax usage")=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A=
----=0D=0A drivers/dax/super.c | 35 ++++++++++++++++++++++++++++++++---=0D=
-=0A 1 file changed, 32 insertions(+), 3 deletions(-)=0D=0A=0D=0Adiff --gi=
-t a/drivers/dax/super.c b/drivers/dax/super.c=0D=0Aindex 25cf99dd9360b..4=
-c56ac2faacdb 100644=0D=0A--- a/drivers/dax/super.c=0D=0A+++ b/drivers/dax=
-/super.c=0D=0A@@ -116,11 +116,40 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev)=
-;=0D=0A=20=0D=0A #if IS_ENABLED(CONFIG_FS_DAX)=0D=0A=20=0D=0A+/**=0D=0A+ =
-* fs_put_dax() - release holder ownership of a dax_device=0D=0A+ * @dax_d=
-ev: dax device to release (may be NULL)=0D=0A+ * @holder: the holder poin=
-ter previously passed to fs_dax_get() or=0D=0A+ *          fs_dax_get_by_=
-bdev(); must match exactly, as it is used=0D=0A+ *          in a cmpxchg =
-to atomically release ownership=0D=0A+ *=0D=0A+ * Must only be called by =
-the current holder. Clears holder_ops before=0D=0A+ * holder_data to avoi=
-d a race where a concurrent fs_dax_get() could have=0D=0A+ * its newly in=
-stalled holder_ops overwritten.=0D=0A+ */=0D=0A void fs_put_dax(struct da=
-x_device *dax_dev, void *holder)=0D=0A {=0D=0A-=09if (dax_dev && holder &=
-&=0D=0A-=09    cmpxchg(&dax_dev->holder_data, holder, NULL) =3D=3D holder=
-)=0D=0A-=09=09dax_dev->holder_ops =3D NULL;=0D=0A+=09if (dax_dev && holde=
-r) {=0D=0A+=09=09/*=0D=0A+=09=09 * Clear holder_ops before releasing hold=
-er_data. A concurrent=0D=0A+=09=09 * dax_holder_notify_failure() that see=
-s NULL ops returns=0D=0A+=09=09 * -EOPNOTSUPP cleanly. A concurrent fs_da=
-x_get() that acquires=0D=0A+=09=09 * holder_data after the cmpxchg below =
-is guaranteed to observe=0D=0A+=09=09 * holder_ops=3DNULL first (cmpxchg =
-provides release ordering), so=0D=0A+=09=09 * its subsequent store of new=
- ops will not be overwritten.=0D=0A+=09=09 *=0D=0A+=09=09 * Two cases wil=
-l trigger the WARN_ON():=0D=0A+=09=09 * - Caller is not the current holde=
-r; this is an API contract=0D=0A+=09=09 *   violation, and the holder wil=
-l no longer get callbacks=0D=0A+=09=09 * - Holder calls this function twi=
-ce; also a contract violation=0D=0A+=09=09 *=0D=0A+=09=09 * A lock would =
-be necessary to guard against the contract=0D=0A+=09=09 * violations, but=
- we WARN_ON() instead since violating the=0D=0A+=09=09 * contract is a bu=
-g=0D=0A+=09=09 */=0D=0A+=09=09WRITE_ONCE(dax_dev->holder_ops, NULL);=0D=0A=
-+=09=09WARN_ON(cmpxchg(&dax_dev->holder_data, holder, NULL) !=3D holder);=
-=0D=0A+=09}=0D=0A =09put_dax(dax_dev);=0D=0A }=0D=0A EXPORT_SYMBOL_GPL(fs=
-_put_dax);=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
+From: John Groves <John@Groves.net>=0D=0A=0D=0AThis fix is in response to=
+ a Sashiko review, and some subsequent=0D=0Aanalysis.=0D=0A=0D=0Adax_dev_=
+get() uses iget5_locked() which creates a new inode if no=0D=0Amatching o=
+ne exists. This is correct for the internal caller=0D=0A(alloc_dax), but =
+dangerous for external callers that look up devices=0D=0Afrom user-suppli=
+ed or metadata-supplied dev_t values:=0D=0A=0D=0A1. A new inode is create=
+d with DAXDEV_ALIVE set but no backing driver,=0D=0A   no ops, and no IDA=
+-allocated minor number.=0D=0A=0D=0A2. On teardown, dax_destroy_inode() w=
+arns because kill_dax() was never=0D=0A   called, and dax_free_inode() ca=
+lls ida_free() for a minor that was=0D=0A   never ida_alloc'd -- potentia=
+lly freeing the minor of a real device.=0D=0A=0D=0AAdd dax_dev_find() whi=
+ch uses ilookup5() for lookup-only semantics:=0D=0Ait returns an existing=
+ dax_device with an elevated inode reference, or=0D=0ANULL if no device w=
+ith the given dev_t exists. It never creates inodes.=0D=0AA dax_alive() c=
+heck under dax_read_lock() guards against returning a=0D=0Adevice that is=
+ concurrently being torn down by kill_dax().=0D=0A=0D=0AMake dax_dev_get(=
+) static again (internal to super.c for alloc_dax),=0D=0Aexport dax_dev_f=
+ind() instead, and update the two external callers=0D=0A(famfs_inode.c, f=
+amfs.c). Also add the missing CONFIG_DAX=3Dn stub.=0D=0A=0D=0AFixes: 2ae6=
+24d5a555d ("dax: export dax_dev_get()")=0D=0ASigned-off-by: John Groves <=
+john@groves.net>=0D=0A---=0D=0A drivers/dax/super.c | 38 ++++++++++++++++=
+++++++++++++++++++++--=0D=0A include/linux/dax.h |  6 +++++-=0D=0A 2 file=
+s changed, 41 insertions(+), 3 deletions(-)=0D=0A=0D=0Adiff --git a/drive=
+rs/dax/super.c b/drivers/dax/super.c=0D=0Aindex 4c56ac2faacdb..6cb271e034=
+a70 100644=0D=0A--- a/drivers/dax/super.c=0D=0A+++ b/drivers/dax/super.c=0D=
+=0A@@ -550,7 +550,7 @@ static int dax_set(struct inode *inode, void *data=
+)=0D=0A =09return 0;=0D=0A }=0D=0A=20=0D=0A-struct dax_device *dax_dev_ge=
+t(dev_t devt)=0D=0A+static struct dax_device *dax_dev_get(dev_t devt)=0D=0A=
+ {=0D=0A =09struct dax_device *dax_dev;=0D=0A =09struct inode *inode;=0D=0A=
+@@ -573,7 +573,41 @@ struct dax_device *dax_dev_get(dev_t devt)=0D=0A=20=0D=
+=0A =09return dax_dev;=0D=0A }=0D=0A-EXPORT_SYMBOL_GPL(dax_dev_get);=0D=0A=
++=0D=0A+/**=0D=0A+ * dax_dev_find - look up an existing dax_device by dev=
+_t=0D=0A+ * @devt: the device number to find=0D=0A+ *=0D=0A+ * Returns a =
+dax_device with an elevated inode reference, or NULL if no=0D=0A+ * devic=
+e with the given dev_t exists. Unlike dax_dev_get(), this never=0D=0A+ * =
+allocates a new inode =E2=80=94 it is safe for external callers that are =
+looking=0D=0A+ * up devices from user-supplied or metadata-supplied dev_t=
+ values.=0D=0A+ *=0D=0A+ * Caller must put_dax() the returned device when=
+ done.=0D=0A+ */=0D=0A+struct dax_device *dax_dev_find(dev_t devt)=0D=0A+=
+{=0D=0A+=09struct dax_device *dax_dev;=0D=0A+=09struct inode *inode;=0D=0A=
++=09int id;=0D=0A+=0D=0A+=09inode =3D ilookup5(dax_superblock, hash_32(de=
+vt + DAXFS_MAGIC, 31),=0D=0A+=09=09=09 dax_test, &devt);=0D=0A+=09if (!in=
+ode)=0D=0A+=09=09return NULL;=0D=0A+=0D=0A+=09dax_dev =3D to_dax_dev(inod=
+e);=0D=0A+=09id =3D dax_read_lock();=0D=0A+=09if (!dax_alive(dax_dev)) {=0D=
+=0A+=09=09dax_read_unlock(id);=0D=0A+=09=09iput(inode);=0D=0A+=09=09retur=
+n NULL;=0D=0A+=09}=0D=0A+=09dax_read_unlock(id);=0D=0A+=0D=0A+=09return d=
+ax_dev;=0D=0A+}=0D=0A+EXPORT_SYMBOL_GPL(dax_dev_find);=0D=0A=20=0D=0A str=
+uct dax_device *alloc_dax(void *private, const struct dax_operations *ops=
+)=0D=0A {=0D=0Adiff --git a/include/linux/dax.h b/include/linux/dax.h=0D=0A=
+index fe6c3ded1b50f..29113eb95e72d 100644=0D=0A--- a/include/linux/dax.h=0D=
+=0A+++ b/include/linux/dax.h=0D=0A@@ -54,7 +54,7 @@ struct dax_device *al=
+loc_dax(void *private, const struct dax_operations *ops);=0D=0A void *dax=
+_holder(struct dax_device *dax_dev);=0D=0A void put_dax(struct dax_device=
+ *dax_dev);=0D=0A void kill_dax(struct dax_device *dax_dev);=0D=0A-struct=
+ dax_device *dax_dev_get(dev_t devt);=0D=0A+struct dax_device *dax_dev_fi=
+nd(dev_t devt);=0D=0A void dax_write_cache(struct dax_device *dax_dev, bo=
+ol wc);=0D=0A bool dax_write_cache_enabled(struct dax_device *dax_dev);=0D=
+=0A bool dax_synchronous(struct dax_device *dax_dev);=0D=0A@@ -92,6 +92,1=
+0 @@ static inline void put_dax(struct dax_device *dax_dev)=0D=0A static =
+inline void kill_dax(struct dax_device *dax_dev)=0D=0A {=0D=0A }=0D=0A+st=
+atic inline struct dax_device *dax_dev_find(dev_t devt)=0D=0A+{=0D=0A+=09=
+return NULL;=0D=0A+}=0D=0A static inline void dax_write_cache(struct dax_=
+device *dax_dev, bool wc)=0D=0A {=0D=0A }=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=
+=0A
