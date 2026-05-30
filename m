@@ -1,196 +1,150 @@
-Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from relay.hostedemail.com (smtprelay0011.hostedemail.com [216.40.44.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05DF2385D96
-	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 07:07:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CED33225775
+	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 13:06:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780124835; cv=none; b=rYhcf+CGjXcs2nN2mlnpEWm1maP3jNI27zALWCrjI0lXcuH7GF1F8M59QS2MKpO9v+GPjjGxL2XO+TcfC5+7njBzXD+PVCvJUWgOK4HqvGeO+XNfcqr3EZqW6dbBZA8etjFrbarWvH785vwivPaNSEnuOXuPtPkEFABH50cqU5I=
+	t=1780146390; cv=none; b=baMqfi51PqCFN9CHjWlkQtfe3hmUb6df9kCURt9RIpHkwIUw01oty5X4k45DOpToGEZ8uTd1hONfxIQm3RzsXFnCttBoKDWDzIUjF1HB7+K6y7WSIBgiQ8MUAAeHQ+lhImDlvp5Kl1IoA8lxIy+NnZAU6q3oyBOYSMyUg9x4HYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780124835; c=relaxed/simple;
-	bh=F91dfvq8Wah1bzf6BIEHBl3HSgTsKB9AizK2g94hAhc=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NLddr2KP4R3tP6JZZSYA6WVEEkX4sU7jxuIUcI53LXn1qnj/x0HSMbGibVCCuUZnbDi2mJBmdKQ/PuCZoBALk1Kljglskqg2exg2xS9nHqxwAJn/HVns74lupwYt/FFeAHigpsyhPMdCRmA5hDqvXtXxT+nH7+ng6lfhV6bldZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JKejsAX0; arc=none smtp.client-ip=74.125.82.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JKejsAX0"
-Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-3045c195251so8680742eec.1
-        for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 00:07:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780124833; x=1780729633; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Om8vzyQy0h1ms6+E4uwwkVPBBpvGc4QDtMw8QpW1Ahc=;
-        b=JKejsAX0QUjmedC1AOn8TMxno8ye+PuXhWm9EHZLyOmsdTz9Esi+XJUNHObSZAEGPQ
-         uyZoU5kk803YqHstA3B6FkBxMWtcJ/VQjDujU2LRhOX0E0APW7Zzm0I0QqmUO8zonjp3
-         RupWhoz9nWbLsF1lyj+68heNsK87hygvTtTohcajrjmiBzUziKgpUXHUQiYEl3nLzfpT
-         lSMW8iZXjPkEZvU0OyDe2+egqpRh/Jz9cXJhTgbI1Wxna8czu7R0mgWPNJ+uxrs2SEtm
-         YJdDEZuDSGBBAe5s7wTA4cxgaW9EmXWoQqfvFYefeKLK3iPYhTOllhBSOt+oCLI2B4UL
-         3jCg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780124833; x=1780729633;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Om8vzyQy0h1ms6+E4uwwkVPBBpvGc4QDtMw8QpW1Ahc=;
-        b=Wzld427lq4NlDG7nfphyJXARjFEIqHeNPHeFh+0lAMAp1FW31sWgOfUukrA/ATo0ZJ
-         1BK9EnqB42loGnEWwwyQjRZHyurwdpq/t+cmd48BiE1uzlHf8U0sDAntKM/ab2h4afPM
-         m1KsJp2M0A8YRFg5h/OVvaaggudQRkdo2HzDEtvAz1J940Yq4uqvSsuWjoKMGVDZUffT
-         zYG5Nv8Lb716MsG9OSMUI83hiHGaW1ae5/O6joQmNkJGk33sFao+AsrdfcZKKL5Us21L
-         Pbc9dQGk2lm3yxNtliRuLJk/AMGSjXqxRNt3If0E5pTCGXC/aNoR8TU505Xnqe8ScPyL
-         K9/A==
-X-Forwarded-Encrypted: i=1; AFNElJ+nqqzxHYc5Y15L2Qmd5MhFvSLX/K0icR65ryPXmfKli3h18hCqmN1vmtPeCrZeUypYaVmEOME=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwqPIyTiWYNTf2zSPl44g4cXpxvhIinD2dqfY9cldMRh6IPOMeE
-	TvHCU9beVgPWboZQVVGKpNNd1DNTuWmL6OSqFPMsaSBesZ7Bssxd5wfi
-X-Gm-Gg: Acq92OFefBCoLJcBXrevWGaNxQACWlNcUWDxYminM9TXXvgddxzWTWIo8ZbWX3IItgA
-	ix0ZYY61gL2687q5dfoFgaprRO+DOoIR9RTtD+fjIltoFyKjNAU+1ei4+OrOLlx8Q569vJwm/Z9
-	4FaKutRl+xICdtbhr5CR7llBNlCU3LX9KGcmeWhOLfhY+Io6G6y58lIBk8eDpAgnl/VlIVDtQAE
-	bqXvtu3zCQ3cIQjUB5gcTyTp1ckc0ZuUrEuhA9+J8TulMK0Fp/rTosiUWCVErdOLUxQhOIew0be
-	Auh695Hsjp9p8U/PvS6iUJNZhFuUZ95V6Yy6py/d1oZkWjxqXknVEdpX4t2TQ34XA2DgUCEvNlf
-	QZLxZFfDmywBsDkFbrNBunIS3tkAEyJztEO3DQ5S96x3GKjR4849UbaX8DbMAGrc25QzKgXAb+x
-	hme7r2ur9kfZXU1TEAjIImKmDmRfR2KAjMj4/Zb/GpvXH9Zf0y1qIQHJyyreQJdgAD/M3k8TPl+
-	fkKnP4zMn3WDzf/gg==
-X-Received: by 2002:a05:7300:6da3:b0:304:3c33:7ad6 with SMTP id 5a478bee46e88-304fa4c7c30mr1461412eec.11.1780124833070;
-        Sat, 30 May 2026 00:07:13 -0700 (PDT)
-Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-304ed2c3121sm3461204eec.5.2026.05.30.00.07.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 30 May 2026 00:07:12 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Sat, 30 May 2026 00:07:11 -0700
+	s=arc-20240116; t=1780146390; c=relaxed/simple;
+	bh=2ABZHv73MowCHL57OPh+YjN8tPSPSEAHFPnRCGObCEI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=o0oJI3pw2Ltf/Qq2V/3OkiQfzFt3rJey8zVGKaHwAnYIXxA28xDXF5JvZu1/ev2aO4JqT6DW40aZdaDd9G8VoxkArw91xYhxigZcNy/KfQFEq1med6ciljtMKE+KN4jOuibpETfSZdt6/eM72zQGfDZR360Dnm97I2L4pdfsb98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
+Received: from omf19.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay07.hostedemail.com (Postfix) with ESMTP id 5072B1613B1;
+	Sat, 30 May 2026 13:06:26 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf19.hostedemail.com (Postfix) with ESMTPA id 69E8920029;
+	Sat, 30 May 2026 13:06:22 +0000 (UTC)
+Date: Sat, 30 May 2026 08:06:21 -0500
+From: John Groves <John@groves.net>
 To: Dave Jiang <dave.jiang@intel.com>
-Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Alison Schofield <alison.schofield@intel.com>,
-	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
-	Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH v10 06/31] cxl/port: Add 'dynamic_ram_a' to endpoint
- decoder mode
-Message-ID: <ahqMnx5sTWj96-y3@AnisaLaptop.localdomain>
-References: <cover.1779528761.git.anisa.su@samsung.com>
- <58e5e5007cd11e0b8e65016f126144f187badb39.1779528761.git.anisa.su@samsung.com>
- <e504359a-ff13-4ad1-a74c-337ede7f11c6@intel.com>
+Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>, 
+	John Groves <jgroves@micron.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Alison Schofield <alison.schofield@intel.com>, 
+	Ira Weiny <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH V2 4/7] dax/fsdev: clamp direct_access return to current
+ physical range
+Message-ID: <ahrfpRtpeZKKZPyG@groves.net>
+References: <0100019e511fb82e-1a444df3-8310-40ed-8380-72e1373d5da9-000000@email.amazonses.com>
+ <20260522191907.79187-1-john@jagalactic.com>
+ <0100019e51209df4-90c4ba85-6cc5-4f5d-af26-451e7e786535-000000@email.amazonses.com>
+ <16628b9f-a624-46f8-8a7f-3b9e7963963b@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <e504359a-ff13-4ad1-a74c-337ede7f11c6@intel.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <16628b9f-a624-46f8-8a7f-3b9e7963963b@intel.com>
+X-Rspamd-Server: rspamout07
+X-Rspamd-Queue-Id: 69E8920029
+X-Stat-Signature: kc4k66ndgjuifzsaj64b84giuqsi6n1s
+X-Session-Marker: 6A6F686E4067726F7665732E6E6574
+X-Session-ID: U2FsdGVkX198LYxhY3/aOaSmNYak0fUivv4r0QL3LRU=
+X-HE-Tag: 1780146382-404624
+X-HE-Meta: U2FsdGVkX18FsthJhXJNuQ8DcAFt16fMeIwFty4TgNw62RUJS8FxCFa5AChJUtUwEyiF6eEKJ/I3e4NRRHYEDrYaG9hrx5kgS9RpqMfljeaswaq5eZORqs2NNuVYMwbXAHgy+5/CISdlDpnZ9bJhNYwdddew5gKY9EmH6KZWvUBfBTGt3aQ7/4D6dYF2aJ+7Me8ini0uFkMW3DTZRH2KFdozkbDOWsSWtbmE/uHGIfVNkyzXi6BhEjn20Q3dGVYYbFH1KZUN9x3Yb6EYMcMhogYYEauO+QddapNq6QRitZ7QIo1OPOByDPm3PJ5vjVseIu1voZDtKgCBuilcrnOUuoTXicIEFAey6h7SUgsrXVl7eMQr1mRDOKMFpvNGJsmAtkh8zfYGxSQiQSLygRYoPw==
 
-On Wed, May 27, 2026 at 05:01:44PM -0700, Dave Jiang wrote:
+On 26/05/26 05:00PM, Dave Jiang wrote:
 > 
 > 
-> On 5/23/26 2:43 AM, Anisa Su wrote:
-> > From: Ira Weiny <ira.weiny@intel.com>
+> On 5/22/26 12:19 PM, John Groves wrote:
+> > From: John Groves <John@Groves.net>
 > > 
-> > Endpoints can now support a single dynamic ram partition following the
-> > persistent memory partition.
+> > __fsdev_dax_direct_access() returned the number of available pages based
+> > on cached_size (the total size across all ranges). For multi-range
+> > devices with physical gaps between ranges, this over-reports the number
+> > of physically contiguous pages available from the returned kaddr/pfn.
+> > Callers trust this return value to mean contiguous pages, so accessing
+> > beyond the current range boundary would hit unmapped or unrelated memory.
 > > 
-> > Expand the mode to allow a decoder to point to the first dynamic ram
-> > partition.
+> > Fix by finding the range that contains the translated physical address
+> > and clamping the return to the remaining pages within that range.
 > > 
-> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> 
-> Need Anisa sign off
-> 
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> 
-> Just update kver and dates below.
-> 
-Updated!
-
-Thanks,
-Anisa
+> > Also remove the now-unused cached_size field from struct dev_dax, since
+> > it was only consumed by the old return calculation.
 > > 
-> > ---
-> > Changes:
-> > [anisa: rebase]
-> > ---
-> >  Documentation/ABI/testing/sysfs-bus-cxl | 18 +++++++++---------
-> >  drivers/cxl/core/port.c                 |  4 ++++
-> >  2 files changed, 13 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-> > index 3d95c325f6e0..c604c7ca6432 100644
-> > --- a/Documentation/ABI/testing/sysfs-bus-cxl
-> > +++ b/Documentation/ABI/testing/sysfs-bus-cxl
-> > @@ -358,22 +358,22 @@ Description:
-> >  
-> >  
-> >  What:		/sys/bus/cxl/devices/decoderX.Y/mode
-> > -Date:		May, 2022
-> > -KernelVersion:	v6.0
-> > +Date:		May, 2022, May 2025
+> > Fixes: 099c81a1f0ab3 ("dax: Add dax_operations for use by fs-dax on fsdev dax")
+> > Signed-off-by: John Groves <john@groves.net>
 > 
-> A later date
+> I ran this through Claude and this is what it came back with and it looks reasonable to me:
 > 
-> > +KernelVersion:	v6.0, v6.16 (dynamic_ram_a)
+> The claimed bug does not manifest in the current tree. This is a
+>   refactor + dead-field removal dressed as a bugfix. Either the justification is
+>    wrong or there's a missing companion change.
 > 
-> 7.3 maybe?
+>   The claim doesn't hold up
+> 
+>   Commit message:
+> 
+>   ▎ __fsdev_dax_direct_access() returned the number of available pages based on
+>   ▎ cached_size (the total size across all ranges). For multi-range devices with
+>   ▎  physical gaps between ranges, this over-reports the number of physically
+>   ▎ contiguous pages available from the returned kaddr/pfn.
+> 
+>   Walk through it. __fsdev_dax_direct_access does:
+> 
+>   phys = dax_pgoff_to_phys(dev_dax, pgoff, size);
+>   if (phys == -1)
+>       return -EFAULT;
+>   ...
+>   return PHYS_PFN(min(size, dev_dax->cached_size - offset));
+> 
+>   Now look at what dax_pgoff_to_phys (drivers/dax/bus.c:1433) enforces:
+> 
+>   phys = PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+>   if (phys + size - 1 <= range->end)
+>       return phys;
+>   break;        /* falls through to return -1 */
+> 
+>   It returns valid phys only when the entire requested size fits inside a single
+>    range. If the request straddles a gap, it returns -1 and the caller bails
+>   with -EFAULT before ever reaching the clamp.
+> 
+>   So in the only path where the clamp runs, we already know size <= range->end -
+>    phys + 1, which means cached_size - offset >= size, which means min(size,
+>   cached_size - offset) == size. Pre-patch returns nr_pages. Post-patch returns
+>   nr_pages. Same answer.
+> 
+>   I worked it through with concrete numbers on a 2-range device with a physical
+>   gap (range[0]=4 pages at 0x1000_0000, range[1]=4 pages at 0x2000_0000):
+>   - pgoff=2, nr_pages=2: both return 2. ✓
+>   - pgoff=3, nr_pages=2 (straddles gap): both return -EFAULT via the early bail.
+>    ✓
+>   - pgoff=4, nr_pages=2: both return 2. ✓
+> 
+>   I cannot construct a case where pre-patch over-reports.
+> 
+>   What's actually changed
+> 
+>   1. A no-op clamp loop replaces a constant calculation. Same return value in
+>   every reachable case.
+>   2. The trailing return -EFAULT; is dead code. If dax_pgoff_to_phys returned
+>   valid phys, then by construction phys lies inside some range in
+>   dev_dax->ranges[], so the loop will match.
+>   3. O(N) walk replaces O(1) arithmetic. Trivial for small nr_range, but it's a
+>   regression in the wrong direction for a hot path.
+>   4. cached_size field is removed. Good cleanup — I grepped, no other consumers.
+> 
 > 
 > DJ
-> 
-> >  Contact:	linux-cxl@vger.kernel.org
-> >  Description:
-> >  		(RW) When a CXL decoder is of devtype "cxl_decoder_endpoint" it
-> >  		translates from a host physical address range, to a device
-> >  		local address range. Device-local address ranges are further
-> > -		split into a 'ram' (volatile memory) range and 'pmem'
-> > -		(persistent memory) range. The 'mode' attribute emits one of
-> > -		'ram', 'pmem', or 'none'. The 'none' indicates the decoder is
-> > -		not actively decoding, or no DPA allocation policy has been
-> > -		set.
-> > +		split into a 'ram' (volatile memory) range, 'pmem' (persistent
-> > +		memory), and 'dynamic_ram_a' (first Dynamic RAM) range. The
-> > +		'mode' attribute emits one of 'ram', 'pmem', 'dynamic_ram_a' or
-> > +		'none'. The 'none' indicates the decoder is not actively
-> > +		decoding, or no DPA allocation policy has been set.
-> >  
-> >  		'mode' can be written, when the decoder is in the 'disabled'
-> > -		state, with either 'ram' or 'pmem' to set the boundaries for the
-> > -		next allocation.
-> > +		state, with either 'ram', 'pmem', or 'dynamic_ram_a' to set the
-> > +		boundaries for the next allocation.
-> >  
-> >  
-> >  What:		/sys/bus/cxl/devices/decoderX.Y/dpa_resource
-> > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> > index 0c5957d1d329..a7f71f36531f 100644
-> > --- a/drivers/cxl/core/port.c
-> > +++ b/drivers/cxl/core/port.c
-> > @@ -128,6 +128,7 @@ static DEVICE_ATTR_RO(name)
-> >  
-> >  CXL_DECODER_FLAG_ATTR(cap_pmem, CXL_DECODER_F_PMEM);
-> >  CXL_DECODER_FLAG_ATTR(cap_ram, CXL_DECODER_F_RAM);
-> > +CXL_DECODER_FLAG_ATTR(cap_dynamic_ram_a, CXL_DECODER_F_RAM);
-> >  CXL_DECODER_FLAG_ATTR(cap_type2, CXL_DECODER_F_TYPE2);
-> >  CXL_DECODER_FLAG_ATTR(cap_type3, CXL_DECODER_F_TYPE3);
-> >  CXL_DECODER_FLAG_ATTR(locked, CXL_DECODER_F_LOCK);
-> > @@ -222,6 +223,8 @@ static ssize_t mode_store(struct device *dev, struct device_attribute *attr,
-> >  		mode = CXL_PARTMODE_PMEM;
-> >  	else if (sysfs_streq(buf, "ram"))
-> >  		mode = CXL_PARTMODE_RAM;
-> > +	else if (sysfs_streq(buf, "dynamic_ram_a"))
-> > +		mode = CXL_PARTMODE_DYNAMIC_RAM_A;
-> >  	else
-> >  		return -EINVAL;
-> >  
-> > @@ -327,6 +330,7 @@ static struct attribute_group cxl_decoder_base_attribute_group = {
-> >  static struct attribute *cxl_decoder_root_attrs[] = {
-> >  	&dev_attr_cap_pmem.attr,
-> >  	&dev_attr_cap_ram.attr,
-> > +	&dev_attr_cap_dynamic_ram_a.attr,
-> >  	&dev_attr_cap_type2.attr,
-> >  	&dev_attr_cap_type3.attr,
-> >  	&dev_attr_target_list.attr,
-> 
+
+Thanks Dave. Sashiko reviews can be great, but sometimes they make us (me)
+dumber. 
+
+Dropping this patch from the series.
+
+John
+
+<snip>
+
