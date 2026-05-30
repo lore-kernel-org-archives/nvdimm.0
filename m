@@ -1,416 +1,273 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl1-f51.google.com (mail-dl1-f51.google.com [74.125.82.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA66A19B5B1
-	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 00:18:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CD1936A009
+	for <nvdimm@lists.linux.dev>; Sat, 30 May 2026 06:22:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780100337; cv=none; b=DfUx+6KRX5FpoBL5ZpVPqPmc1alP6hm9Ghn5jvAW36H2pqEHQqcBycmpcbO8ufpDPSaQvqEVEE1LQ5MeNPa0pW1Nf8d4aAthL+9jADW/5HP3G+9wH+noHdcwfyAHIo5kqYSKELnepTbxci6DiEWrDLe0HPAGeaauUdI1EZOOzfA=
+	t=1780122171; cv=none; b=GIwJDTUxPMtQ8QxSj3OtpP05ghyWs0tzQ2//wqbQKh0TromeTX5rSEW5fsqnYCNUyZbIsblYwzzPSPveJaRfQfNd0NnJUXZty+o53esXdV+Wb03XY1S+iJcOzpx8DzToBnYbRWLazx1uaybxrO85XuRx9WyZ9gaJ9Pfjdy4hm6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780100337; c=relaxed/simple;
-	bh=ZIhbPLRAHBSR6MzQO2ziLr+PYlcCP3hFw9C3qfXiVis=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mFSY6jBP8n9IRNLDOg/rV1SK6XMfDUoZosU1PBUzmXvYqxhXvCvKi2w1Jw//o+JQoS4lNIP5TT8pfJl3DHDi7HM1XS6+1UFuRfVjBualQ4uPPjHgrlA4ITv6XEgqbipp2ph/WiGDfZXC0kaHgRBCWFsnT68nXKX9Az6pWX3xsy8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Snlz38sI; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1780122171; c=relaxed/simple;
+	bh=uviwLoz4nPYGyIxxe2AXJWU/UrdAQPXLvUIXPBcTwac=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Stph+R7/1hvrIi5iU3/JHRxp0Q9xZm092iG7OzhhqXKd36txLaUcG0JeMmWXOUvrE+4IPp9HfDwDJkxrTOzr0JtQxfSun5iJ/gyf9yYzr4lJ5EQCiBE7KIORFdZmpHnnNQavrOFlAdO/BhUpq6kCc+TcT7BY7J2SK5e7abRQHVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rrQH5UWZ; arc=none smtp.client-ip=74.125.82.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Snlz38sI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780100335; x=1811636335;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=ZIhbPLRAHBSR6MzQO2ziLr+PYlcCP3hFw9C3qfXiVis=;
-  b=Snlz38sIyNCoQRo3qyvZ+q0x4dIZz57J1FscLZnex0PDxR9Q662HDMDQ
-   zzUOeiubKT6GAmaz7XMO0vLoTGis297rH6AozH7id5L63K6doRlRMv8k5
-   Ops5cz+Y/OIBi2lMdkrKDZAi893fPY3YXj3FNH9OE3QbR4VKTlOnN3Peb
-   QjZ1nVc1v4sSdrFyYAsiUq/qNDLVUTzvGIsqpKPIsk/kuVC82+1OA0311
-   zXgD+TcHpGixynZNzR5K1OLrh6sDu7v4/lo/gal42fEo3Dj4uEA4KEtTj
-   hW4J1VsjVOtXiuLzkEmL174JR32kJZE8MhZEH2vQL0WWjfxrR7MC71E1s
-   A==;
-X-CSE-ConnectionGUID: RRp+fe6XQPaESGObepqznQ==
-X-CSE-MsgGUID: oeaM3wJfRdG/MB81w3hBCw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11801"; a="92339075"
-X-IronPort-AV: E=Sophos;i="6.24,176,1774335600"; 
-   d="scan'208";a="92339075"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 May 2026 17:18:53 -0700
-X-CSE-ConnectionGUID: RMh+HU4zSN2o0VA8uFkJuQ==
-X-CSE-MsgGUID: UOZz7+1mSIebW2jeU/Nj7Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,176,1774335600"; 
-   d="scan'208";a="247264556"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.60])
-  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 May 2026 17:18:53 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH 2/2] test/cxl-region-mixed.sh: test mixed-granularity region creation
-Date: Fri, 29 May 2026 17:18:47 -0700
-Message-ID: <7cc5ae46d895bf9e1bdf54b93a10a5c46b0c3488.1780099216.git.alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
-In-Reply-To: <fa5c109f08824180f58341ebd9055545a2ff3142.1780099216.git.alison.schofield@intel.com>
-References: <fa5c109f08824180f58341ebd9055545a2ff3142.1780099216.git.alison.schofield@intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rrQH5UWZ"
+Received: by mail-dl1-f51.google.com with SMTP id a92af1059eb24-137bd9ed2b1so485831c88.1
+        for <nvdimm@lists.linux.dev>; Fri, 29 May 2026 23:22:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1780122167; x=1780726967; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=9Uk2I9j2H79wQveR82ek06LWu1PUS9S4KJpTOZbkwx4=;
+        b=rrQH5UWZORS/qu12CwZQfRcFA+T6FTeDixRxI5We4emNg5GVBjffKNWRSVMeTvUecl
+         lqEAqOSsiQL+yaOLDy84CMyJiUAGwvYKRDbYGwChCbIdNWJW76z5PA79PWcQRuHQ5lDy
+         dIjpjd4vz8GGfmB0pTAaNuBd0K6OGHPeybUacTojgcPzfDTqUToJfkD9ji+Ptk4mJB3a
+         e84/37bj1aXh/D1FEPW9vMy3l4wGrMfo2CLfbiIcf3rCEhShwxXfyTPbcKGlqyPxOTDb
+         C4WfyM9rulTe3xpy9or73CkOJw3Lqm8l6MA2CRdwDdJKs2IbzKarmrfdEskbHjQyZBjU
+         JdIQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780122167; x=1780726967;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9Uk2I9j2H79wQveR82ek06LWu1PUS9S4KJpTOZbkwx4=;
+        b=pJoUr6Yd8h4qmgdn4C3WsyyBTZRRNTh1ceDhnCNKkRSIIZGt2uPzRIVazg9KX4LLO9
+         //hCD+Oh+a84WhVIb9tefldX2/jsXQ12MGBSSVSJtqJwM8GSgz0N0hjcd7evbsY2Kuqb
+         uCWL8ng0iJ6C9VXXa6AjwVwuJeejtlH7V9I/QJ0tjluwbq4/0A6TmV5VkypPoJmFX6bh
+         dcMe03Aqjw/KAsdAlItuJCN20OIXSRbE3AUdwubqHNC4WpoLM+FKMrHoeBUe/QDpyAw8
+         iZ9/gXZPd8WkWPr9e6dsy6NnNJwMwTS/lSTQNh0QPuLTzOIUAEiseRMYlFUm92SUGUoa
+         WoQA==
+X-Forwarded-Encrypted: i=1; AFNElJ+86Ip7lWGtD6P6sFQIbLpWDvqOzLhfsKmVGKKgLygW5Xx7nT8LCyynC7ttdx28CqyiY8Mlh+4=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yzrt8h+5A0HbmSftm9/bn66mwC+jbtr81W751jTdG4d3bp1nAqI
+	BaigB3tD7LfLzkWwARYGIPInpTcK3qYvJLvfq3f469mPnSqnI8co1MiB
+X-Gm-Gg: Acq92OHwAyYoZjK4fuSGHjvwvqJE6b+tsSjLCn7LARSSYix8XQGTnt5BZpcy31u2R83
+	RaiU2NfMJiDzK13NdLT2rfEpwMKWP5Bayji6IN4c3fOXFXXJzAmm+8lWPvAwtsh3z7v7fIGdUrp
+	gB/nwS9DciliP+TJGEs8Z3keRWqCtGGeNu1fX0A31wd45Gqk0zSHXRyEkYFup/Elij5Gbste3zk
+	fi1l3anoIuQcNxpv3VBMrnlq2e9JTfHzscrTgu86hbx2wNPgVh4RoOdeMrQgNoLxpORB7MJvVON
+	iNXaJKaFSjk2+ARuo0BBl/iOFbYAy9t4X73jhvF6ln4eTJNEou407P5h5cXCSIqbCr0M2f6x9/M
+	BIQTR8UCuvV3fN+fIWIQ+YydRJjQDzjZE5C0KNfoZjgcuQWpJJieDQuE8466PbwI7hfMu+gmprU
+	CZXpLQoKWHl/eEGgXC+b/FGiu9/P7hyGg1dOiLX3Sz+lCLE0rWiMqy785IMP1XITECdSPiJ24lk
+	9X95cW6MZfBfI90DQ==
+X-Received: by 2002:a05:7022:e982:b0:12d:de3e:cbfe with SMTP id a92af1059eb24-137d4280b1emr1249507c88.37.1780122167019;
+        Fri, 29 May 2026 23:22:47 -0700 (PDT)
+Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-137b36aef95sm2614444c88.4.2026.05.29.23.22.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 29 May 2026 23:22:46 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Fri, 29 May 2026 23:22:44 -0700
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
+	Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v10 01/31] cxl/mbox: Flag support for Dynamic Capacity
+ Devices (DCD)
+Message-ID: <ahqCNFqlOQQPXa_V@AnisaLaptop.localdomain>
+References: <cover.1779528761.git.anisa.su@samsung.com>
+ <4700826deb086665c9e1c643156864eaecfe1fef.1779528761.git.anisa.su@samsung.com>
+ <dfab67e3-6592-4bb1-bd5b-7a548f6b084f@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <dfab67e3-6592-4bb1-bd5b-7a548f6b084f@intel.com>
 
-Exercise mixed-granularity region configurations against the
-mixed_gran_regions=1 cxl_test topology.
-
-The mixed_gran_regions topology presents two root decoders over a
-12-endpoint pool:
-  - 2-way @ 4KB across 2 host bridges
-  - 3-way @ 512B across 3 host bridges
-
-Positive cases run replay_regions to round-trip through the auto
-create path. The auto path reads decoder values back from the
-topology and runs them through the same selector walk and position
-arithmetic the user-create path uses. A region that creates
-successfully but fails replay usually indicates a position
-arithmetic bug, so replay coverage is the strongest correctness
-check we have at this layer.
-
-The test cases are listed near the top of the script.
-
-Assisted-by: Claude Opus 4.7
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- test/cxl-region-mixed.sh | 297 +++++++++++++++++++++++++++++++++++++++
- test/meson.build         |   2 +
- 2 files changed, 299 insertions(+)
- create mode 100644 test/cxl-region-mixed.sh
-
-diff --git a/test/cxl-region-mixed.sh b/test/cxl-region-mixed.sh
-new file mode 100644
-index 000000000000..ffc3f86919af
---- /dev/null
-+++ b/test/cxl-region-mixed.sh
-@@ -0,0 +1,297 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2026 Intel Corporation. All rights reserved.
-+
-+# shellcheck disable=SC1091,SC2034
-+. "$(dirname "$0")"/common
-+rc=77
-+set -ex
-+trap 'err $LINENO' ERR
-+check_prereq "jq"
-+
-+modinfo cxl_test | grep -q '^parm:.*mixed_gran_regions' ||
-+	do_skip "cxl_test mixed_gran_regions module param not available"
-+
-+modprobe -r cxl_test
-+modprobe cxl_test mixed_gran_regions=1
-+rc=1
-+
-+expect_fail() {
-+	"$@" || true
-+}
-+
-+# Test mixed-granularity region configurations
-+#
-+# Topology: modprobe cxl_test mixed_gran_regions=1
-+#   - 2-way pmem @ 4KB across 2 HBs (cfmws9)
-+#   - 3-way pmem @ 512B across 3 HBs (cfmws10)
-+#   with 12 endpoints total.
-+#
-+# Cases (in execution order). Positive cases also replay through
-+# the auto-create path to round-trip the configuration; a region that
-+# creates but fails replay indicates a position bug. Negative cases
-+# verify rejection.
-+#
-+# Positive:
-+#   1. 3-way same-gran on 3-way root, all switches passthrough
-+#   2. 4-way p2 mixed-gran on 2-way root @ 4KB
-+#   3. 4-way mixed-gran, L2 switches passthrough on 2-way root
-+#   4. 6-way mixed-gran on 3-way root @ 512B
-+#   5. 8-way multi-level mixed-gran on 2-way root @ 4KB
-+# Negative:
-+#   6. 6-way same-gran on 3-way root
-+#   7. 8-way @ 512B on 2-way root @ 4KB
-+#   8. region_gran > root_gran rejected at sysfs write
-+
-+create_region() {
-+	[[ $decoder && $ways && $region_ig && $memdevs ]] || err "$LINENO"
-+	region=$($CXL create-region -d "$decoder" -w "$ways" -g "$region_ig" \
-+		-m "$memdevs" | jq -r ".region")
-+	[[ $region ]] || err "$LINENO"
-+}
-+
-+find_x2_root() {
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 2) |
-+		select(.interleave_granularity == 4096) |
-+		.decoder")
-+	[[ $decoder ]] || err "$LINENO"
-+}
-+
-+find_x3_root() {
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 3) |
-+		select(.interleave_granularity == 512) |
-+		.decoder")
-+	[[ $decoder ]] || err "$LINENO"
-+}
-+
-+# Return the port device that backs the given target position of a root
-+# decoder. Usage: target_port <decoder> <position>
-+target_port() {
-+	"$CXL" list -T -d "$1" |
-+		jq -r ".[] | .targets | .[] | select(.position == $2) | .target"
-+}
-+
-+# Sanity check on the mixed_gran_regions topology.
-+test_mix_gran_topology_sanity() {
-+	local nr_mem
-+	local x2 x3
-+
-+	nr_mem=$($CXL list -b cxl_test -M | jq length)
-+	[[ $nr_mem -eq 12 ]] || {
-+		echo "expected 12 memdevs, got $nr_mem" >&2
-+		err "$LINENO"
-+	}
-+
-+	x2=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 2) |
-+		select(.interleave_granularity == 4096) | .decoder")
-+	[[ $x2 ]] || {
-+		echo "expected x2 @ 4KB pmem root decoder" >&2
-+		err "$LINENO"
-+	}
-+
-+	x3=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 3) |
-+		select(.interleave_granularity == 512) | .decoder")
-+	[[ $x3 ]] || {
-+		echo "expected x3 @ 512B pmem root decoder" >&2
-+		err "$LINENO"
-+	}
-+}
-+
-+# 3-way root setup: discover the 3 ports beneath it and the memdevs
-+# visible under each. Each HB hosts a 3-level switch tree (L1 + L2)
-+# but for the 3-way tests only L1 (or no level) interleaves; tests
-+# select endpoints accordingly.
-+setup_x3_topology() {
-+	find_x3_root
-+
-+	port_dev0=$(target_port "$decoder" 0)
-+	port_dev1=$(target_port "$decoder" 1)
-+	port_dev2=$(target_port "$decoder" 2)
-+
-+	readarray -t hb0 < <("$CXL" list -M -p "$port_dev0" | jq -r '.[].memdev')
-+	readarray -t hb1 < <("$CXL" list -M -p "$port_dev1" | jq -r '.[].memdev')
-+	readarray -t hb2 < <("$CXL" list -M -p "$port_dev2" | jq -r '.[].memdev')
-+}
-+
-+# 2-way root setup: discover the 2 ports beneath the x2 @ 4KB pmem
-+# root and the memdevs visible under each. Used by all 2-way root
-+# tests including multi-level cases.
-+setup_x2_topology() {
-+	find_x2_root
-+
-+	root_ig=$(cat "/sys/bus/cxl/devices/$decoder/interleave_granularity")
-+	port_dev0=$(target_port "$decoder" 0)
-+	port_dev1=$(target_port "$decoder" 1)
-+
-+	readarray -t hb0 < <("$CXL" list -M -p "$port_dev0" | jq -r '.[].memdev')
-+	readarray -t hb1 < <("$CXL" list -M -p "$port_dev1" | jq -r '.[].memdev')
-+}
-+
-+# Positive: 3-way same-gran on 3-way root, all switches passthrough
-+setup_x3_same_gran_passthrough() {
-+	setup_x3_topology
-+
-+	memdevs="${hb0[0]} ${hb1[0]} ${hb2[0]}"
-+	ways=3
-+	region_ig=512
-+}
-+
-+# Positive: 4-way p2 mixed-gran on 2-way root @ 4KB.
-+setup_x4_p2_mixed_gran() {
-+	setup_x2_topology
-+
-+	region_ig=$((root_ig / 2))
-+	[[ $region_ig -ge 256 ]] || err "$LINENO"
-+
-+	memdevs="${hb0[0]} ${hb0[1]} ${hb1[0]} ${hb1[1]}"
-+	ways=4
-+}
-+
-+# Positive: 4-way mixed-gran, L2 switches passthrough on 2-way root.
-+setup_x4_l2_passthrough() {
-+	setup_x2_topology
-+
-+	region_ig=2048
-+
-+	local -a l2_ports_hb0 l2_ports_hb1
-+	readarray -t l2_ports_hb0 < <("$CXL" list -P -p "$port_dev0" |
-+		jq -r '.. | objects | select(.depth == 3) | .host')
-+	readarray -t l2_ports_hb1 < <("$CXL" list -P -p "$port_dev1" |
-+		jq -r '.. | objects | select(.depth == 3) | .host')
-+
-+	local m0 m1 m2 m3
-+	m0=$("$CXL" list -M -p "${l2_ports_hb0[0]}" | jq -r ".[0].memdev")
-+	m1=$("$CXL" list -M -p "${l2_ports_hb0[1]}" | jq -r ".[0].memdev")
-+	m2=$("$CXL" list -M -p "${l2_ports_hb1[0]}" | jq -r ".[0].memdev")
-+	m3=$("$CXL" list -M -p "${l2_ports_hb1[1]}" | jq -r ".[0].memdev")
-+	memdevs="$m0 $m1 $m2 $m3"
-+	ways=4
-+}
-+
-+# Positive: 6-way mixed-gran on 3-way root @ 512B.
-+# Section 9.13.1.1 Table 9-7 row 2: 2-way HB beneath each root target
-+setup_x6_mixed_gran() {
-+	setup_x3_topology
-+
-+	memdevs="${hb0[0]} ${hb0[1]} ${hb1[0]} ${hb1[1]} ${hb2[0]} ${hb2[1]}"
-+	ways=6
-+	region_ig=256
-+}
-+
-+# Positive: 8-way multi-level mixed-gran on 2-way root @ 4KB.
-+# Root @ 4KB, L1 @ 2KB, L2 @ 1KB. Positions 0..3 under HB[0], 4..7
-+# under HB[1]. Memdev order follows position math requirements.
-+setup_x8_multi_level() {
-+	setup_x2_topology
-+
-+	region_ig=$((root_ig / 4))
-+	[[ $region_ig -ge 256 ]] || err "$LINENO"
-+
-+	local -a l2_ports_hb0 l2_ports_hb1
-+	readarray -t l2_ports_hb0 < <("$CXL" list -P -p "$port_dev0" |
-+		jq -r '.. | objects | select(.depth == 3) | .host')
-+	readarray -t l2_ports_hb1 < <("$CXL" list -P -p "$port_dev1" |
-+		jq -r '.. | objects | select(.depth == 3) | .host')
-+
-+	local -a br0 br1 br2 br3
-+	readarray -t br0 < <("$CXL" list -M -p "${l2_ports_hb0[0]}" | jq -r '.[].memdev')
-+	readarray -t br1 < <("$CXL" list -M -p "${l2_ports_hb0[1]}" | jq -r '.[].memdev')
-+	readarray -t br2 < <("$CXL" list -M -p "${l2_ports_hb1[0]}" | jq -r '.[].memdev')
-+	readarray -t br3 < <("$CXL" list -M -p "${l2_ports_hb1[1]}" | jq -r '.[].memdev')
-+
-+	memdevs="${br0[0]} ${br1[0]} ${br0[1]} ${br1[1]} ${br2[0]} ${br3[0]} ${br2[1]} ${br3[1]}"
-+	ways=8
-+}
-+
-+# Negative: 6-way same-gran on 3-way root
-+# 6*512 != 3*512 — span identity violated
-+setup_x6_same_gran_span_violation() {
-+	setup_x3_topology
-+
-+	memdevs="${hb0[0]} ${hb0[1]} ${hb1[0]} ${hb1[1]} ${hb2[0]} ${hb2[1]}"
-+	ways=6
-+	region_ig=512
-+}
-+
-+# Negative: 8-way @ 512B on 2-way root @ 4KB.
-+# Selector walk rejects: root selector bit lands outside the region
-+# selector mask (containment fails).
-+setup_gran_too_small() {
-+	setup_x2_topology
-+
-+	region_ig=512
-+	memdevs="${hb0[*]} ${hb1[*]}"
-+	ways=8
-+}
-+
-+# Negative: region_gran > root_gran rejected at sysfs write.
-+# Bypasses CLI to confirm the kernel gate, not the CLI, is the rejector.
-+test_ig_gt_root_rejected() {
-+	find_x2_root
-+
-+	root_ig=$(cat "/sys/bus/cxl/devices/$decoder/interleave_granularity")
-+	bad_ig=$((root_ig * 2))
-+
-+	region=$(cat "/sys/bus/cxl/devices/$decoder/create_pmem_region")
-+	echo "$region" >"/sys/bus/cxl/devices/$decoder/create_pmem_region"
-+
-+	if echo "$bad_ig" >"/sys/bus/cxl/devices/$region/interleave_granularity" \
-+		2>/dev/null; then
-+		err "$LINENO"
-+	fi
-+
-+	echo "$region" >"/sys/bus/cxl/devices/$decoder/delete_region"
-+}
-+
-+# Execution
-+
-+test_mix_gran_topology_sanity
-+
-+setup_x3_same_gran_passthrough
-+create_region
-+replay_regions || err "$LINENO"
-+$CXL destroy-region -f -b cxl_test "$region"
-+
-+setup_x4_p2_mixed_gran
-+create_region
-+replay_regions || err "$LINENO"
-+$CXL destroy-region -f -b cxl_test "$region"
-+
-+setup_x4_l2_passthrough
-+create_region
-+replay_regions || err "$LINENO"
-+$CXL destroy-region -f -b cxl_test "$region"
-+
-+setup_x6_mixed_gran
-+create_region
-+replay_regions || err "$LINENO"
-+$CXL destroy-region -f -b cxl_test "$region"
-+
-+setup_x8_multi_level
-+create_region
-+replay_regions || err "$LINENO"
-+$CXL destroy-region -f -b cxl_test "$region"
-+
-+setup_x6_same_gran_span_violation
-+region=$(expect_fail "$CXL" create-region -d "$decoder" -w "$ways" \
-+	-g "$region_ig" -m "$memdevs" | jq -r ".region")
-+[[ ! $region ]] || err "$LINENO"
-+
-+setup_gran_too_small
-+region=$(expect_fail "$CXL" create-region -d "$decoder" -w "$ways" \
-+	-g "$region_ig" -m "$memdevs" | jq -r ".region")
-+[[ ! $region ]] || err "$LINENO"
-+
-+test_ig_gt_root_rejected
-+
-+check_dmesg "$LINENO"
-+
-+modprobe -r cxl_test
-diff --git a/test/meson.build b/test/meson.build
-index e0e2193bfd51..67eb815db529 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -171,6 +171,7 @@ cxl_translate = find_program('cxl-translate.sh')
- cxl_elc = find_program('cxl-elc.sh')
- cxl_dax_hmem = find_program('cxl-dax-hmem.sh')
- cxl_region_replay = find_program('cxl-region-replay.sh')
-+cxl_region_mixed = find_program('cxl-region-mixed.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -207,6 +208,7 @@ tests = [
-   [ 'cxl-elc.sh',             cxl_elc,            'cxl'   ],
-   [ 'cxl-dax-hmem.sh',        cxl_dax_hmem,       'cxl'   ],
-   [ 'cxl-region-replay.sh',   cxl_region_replay,  'cxl'   ],
-+  [ 'cxl-region-mixed.sh',    cxl_region_mixed,   'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.37.3
-
+On Wed, May 27, 2026 at 02:34:31PM -0700, Dave Jiang wrote:
+> 
+> 
+> On 5/23/26 2:42 AM, Anisa Su wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > Per the CXL 3.1 specification software must check the Command Effects
+> 
+> May as well update to CXL r4.0
+> 
+Updated!
+> > Log (CEL) for dynamic capacity command support.
+> > 
+> > Detect support for the DCD commands while reading the CEL, including:
+> > 
+> > 	Get DC Config
+> > 	Get DC Extent List
+> > 	Add DC Response
+> > 	Release DC
+> > 
+> > Based on an original patch by Navneet Singh.
+> > 
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+> missing Anisa sign off
+> 
+Added!
+> > 
+> > ---
+> > Changes:
+> > [anisa: rebase]
+> > ---
+> >  drivers/cxl/core/mbox.c | 43 +++++++++++++++++++++++++++++++++++++++++
+> >  drivers/cxl/cxlmem.h    | 15 ++++++++++++++
+> >  2 files changed, 58 insertions(+)
+> > 
+> > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> > index aaa5c6277ebf..7ef5708bf210 100644
+> > --- a/drivers/cxl/core/mbox.c
+> > +++ b/drivers/cxl/core/mbox.c
+> > @@ -165,6 +165,42 @@ static void cxl_set_security_cmd_enabled(struct cxl_security_state *security,
+> >  	}
+> >  }
+> >  
+> > +static bool cxl_is_dcd_command(u16 opcode)
+> > +{
+> > +#define CXL_MBOX_OP_DCD_CMDS 0x48
+> > +
+> > +	return (opcode >> 8) == CXL_MBOX_OP_DCD_CMDS;
+> > +}
+> > +
+> > +static void cxl_set_dcd_cmd_enabled(struct cxl_memdev_state *mds, u16 opcode,
+> > +				    unsigned long *cmd_mask)
+> 
+> mds not used, consider drop
+> 
+dropped
+> > +{
+> > +	switch (opcode) {
+> > +	case CXL_MBOX_OP_GET_DC_CONFIG:
+> > +		set_bit(CXL_DCD_ENABLED_GET_CONFIG, cmd_mask);
+> > +		break;
+> > +	case CXL_MBOX_OP_GET_DC_EXTENT_LIST:
+> > +		set_bit(CXL_DCD_ENABLED_GET_EXTENT_LIST, cmd_mask);
+> > +		break;
+> > +	case CXL_MBOX_OP_ADD_DC_RESPONSE:
+> > +		set_bit(CXL_DCD_ENABLED_ADD_RESPONSE, cmd_mask);
+> > +		break;
+> > +	case CXL_MBOX_OP_RELEASE_DC:
+> > +		set_bit(CXL_DCD_ENABLED_RELEASE, cmd_mask);
+> > +		break;
+> > +	default:
+> > +		break;
+> > +	}
+> > +}
+> > +
+> > +static bool cxl_verify_dcd_cmds(struct cxl_memdev_state *mds, unsigned long *cmds_seen)
+> 
+> mds not used. consider drop
+> 
+also dropped
+> > +{
+> > +	DECLARE_BITMAP(all_cmds, CXL_DCD_ENABLED_MAX);
+> > +
+> > +	bitmap_fill(all_cmds, CXL_DCD_ENABLED_MAX);
+> > +	return bitmap_equal(cmds_seen, all_cmds, CXL_DCD_ENABLED_MAX);
+> 
+> Above lines can be replaced with:
+> return bitmap_full(cmds_seen, CXL_DCD_ENABLED_MAX);
+> 
+replaced
+> > +}
+> > +
+> >  static bool cxl_is_poison_command(u16 opcode)
+> >  {
+> >  #define CXL_MBOX_OP_POISON_CMDS 0x43
+> > @@ -757,6 +793,7 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+> >  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> >  	struct cxl_cel_entry *cel_entry;
+> >  	const int cel_entries = size / sizeof(*cel_entry);
+> > +	DECLARE_BITMAP(dcd_cmds, CXL_DCD_ENABLED_MAX);
+> 
+> Need to zero out the declared bitmap 'dcd_cmds' on stack before using.
+> 
+> 	DECLARE_BITMAP(dcd_cmds, CXL_DCD_ENABLED_MAX) = {};
+> 
+done :)
+> >  	struct device *dev = mds->cxlds.dev;
+> >  	int i, ro_cmds = 0, wr_cmds = 0;
+> >  
+> > @@ -785,11 +822,17 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+> >  			enabled++;
+> >  		}
+> >  
+> > +		if (cxl_is_dcd_command(opcode)) {
+> > +			cxl_set_dcd_cmd_enabled(mds, opcode, dcd_cmds);
+> > +			enabled++;
+> > +		}
+> > +
+> >  		dev_dbg(dev, "Opcode 0x%04x %s\n", opcode,
+> >  			enabled ? "enabled" : "unsupported by driver");
+> >  	}
+> >  
+> >  	set_features_cap(cxl_mbox, ro_cmds, wr_cmds);
+> > +	mds->dcd_supported = cxl_verify_dcd_cmds(mds, dcd_cmds);
+> >  }
+> >  
+> >  static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_memdev_state *mds)
+> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> > index 776c50d1db51..53444af448d7 100644
+> > --- a/drivers/cxl/cxlmem.h
+> > +++ b/drivers/cxl/cxlmem.h
+> > @@ -230,6 +230,15 @@ struct cxl_event_state {
+> >  	struct mutex log_lock;
+> >  };
+> >  
+> > +/* Device enabled DCD commands */
+> > +enum dcd_cmd_enabled_bits {
+> > +	CXL_DCD_ENABLED_GET_CONFIG,
+> > +	CXL_DCD_ENABLED_GET_EXTENT_LIST,
+> > +	CXL_DCD_ENABLED_ADD_RESPONSE,
+> > +	CXL_DCD_ENABLED_RELEASE,
+> > +	CXL_DCD_ENABLED_MAX
+> > +};
+> > +
+> 
+> would be nice to have comment point to where in the spec this is
+> 
+Added
+> DJ
+> 
+Thanks!
+Anisa
+> >  /* Device enabled poison commands */
+> >  enum poison_cmd_enabled_bits {
+> >  	CXL_POISON_ENABLED_LIST,
+> > @@ -405,6 +414,7 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+> >   * @partition_align_bytes: alignment size for partition-able capacity
+> >   * @active_volatile_bytes: sum of hard + soft volatile
+> >   * @active_persistent_bytes: sum of hard + soft persistent
+> > + * @dcd_supported: all DCD commands are supported
+> >   * @event: event log driver state
+> >   * @poison: poison driver state info
+> >   * @security: security driver state info
+> > @@ -424,6 +434,7 @@ struct cxl_memdev_state {
+> >  	u64 partition_align_bytes;
+> >  	u64 active_volatile_bytes;
+> >  	u64 active_persistent_bytes;
+> > +	bool dcd_supported;
+> >  
+> >  	struct cxl_event_state event;
+> >  	struct cxl_poison_state poison;
+> > @@ -485,6 +496,10 @@ enum cxl_opcode {
+> >  	CXL_MBOX_OP_UNLOCK		= 0x4503,
+> >  	CXL_MBOX_OP_FREEZE_SECURITY	= 0x4504,
+> >  	CXL_MBOX_OP_PASSPHRASE_SECURE_ERASE	= 0x4505,
+> > +	CXL_MBOX_OP_GET_DC_CONFIG	= 0x4800,
+> > +	CXL_MBOX_OP_GET_DC_EXTENT_LIST	= 0x4801,
+> > +	CXL_MBOX_OP_ADD_DC_RESPONSE	= 0x4802,
+> > +	CXL_MBOX_OP_RELEASE_DC		= 0x4803,
+> >  	CXL_MBOX_OP_MAX			= 0x10000
+> >  };
+> >  
+> 
