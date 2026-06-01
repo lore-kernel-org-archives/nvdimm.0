@@ -1,48 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7671535E1CE
-	for <nvdimm@lists.linux.dev>; Mon,  1 Jun 2026 23:10:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0734437F724
+	for <nvdimm@lists.linux.dev>; Mon,  1 Jun 2026 23:24:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780355442; cv=none; b=lzetDkMCQzjLD7f1HPSubnqhYbYQYvGmmEvqEDSlf2hyl/3iUdzR+Yv6RJdf3FlIrK5lIlZnb+T1ngLfqenPAYkhece6piG9FZ1cZsDnf26ldLdHxDBAdGDP7GmgHzJrao7358h0/N0+PV1sJv7sxr4ipEFBqEAg+adp9LY8OVc=
+	t=1780356267; cv=none; b=HCUJOy7TuBW8vAkpBwoYRZhrKy7QlCX+9YHBSFrUW//6Z25hOV4xVcTWCQsd1hvZ5nuh9LEKl1TlQtYV4djCdCb9BlVm6f1/CDUeCIZSl7Yswh8H5BejI59LJrOuswMpQOvfFAUif+yfMFEeoWLwdpQY5+NfmLg/QpIctKlNENo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780355442; c=relaxed/simple;
-	bh=QkDDYHL1L9uH/stCYZ+/QN6adgi29Br4Kiq31HwRUV4=;
+	s=arc-20240116; t=1780356267; c=relaxed/simple;
+	bh=DfLQHO9ZEMPWPBpxjYs4hLwQre4GHwtiqeK4Tww/mv0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=JmagB/846W5PdhNkJYUfIyNMXMrILi+LndYUwgbTsk/dPKt/+DK2PoqmiXZDZ+zdsvzxWTuGs9xJyNqEGw8pjDjrVQa4CcV7u/Q/reSHV4JS7AVdSKyMobihNMTdiI20tHIdszfC8Q9X0Y56JtmC94I7NPrbpGAoxU3smXKljBM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iyxi5jgy; arc=none smtp.client-ip=198.175.65.15
+	 In-Reply-To:Content-Type; b=G/Q9kCAxKYAcN/Fdef2fbc7grZlxg/QTgi67LeQCfMlSKXYDFpxTWlBGs67lvnBgToRCU8q5luMCvBKO47lHHONENHUyYf/fhh/EdWYz3w/BJE9IzY2OTWNZ/U8w9BdAY8yjKUDdG46qSyZPKAbEk7fgcbGr16kA3qvikZaauGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PBgE/eqJ; arc=none smtp.client-ip=198.175.65.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iyxi5jgy"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PBgE/eqJ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780355442; x=1811891442;
+  t=1780356265; x=1811892265;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=QkDDYHL1L9uH/stCYZ+/QN6adgi29Br4Kiq31HwRUV4=;
-  b=iyxi5jgyrueXTSzCq2LW2Ase6HvwxE6h206k0i22JpN9gazvHzX0CRt5
-   xjw5Gg90bwQAv4FxIKpuhjeZbJKrSKTP1GhWiPwkJurxZeEdCc/akSymB
-   JnywNtRllQ7R9eBBfOQh7Y0AR65HFbohKqoT+VYpElqlgeZLsMny6ASgc
-   yXcjPRb1cnLbqdmfhFf1VdDKN4IWMZPKeC9C+73ZaCTMnSCu1tYvTVYZR
-   /N8XzseFo5nGwjT6KY07pjBKjX2IP/Ayf8/JGpgUVI6Tvyg+2WLK74cSJ
-   YJiArMF6urD1lxnof0SuFEzrqT2nWgZsgAHrHp23cSwF/nR0c2fqA4t3j
-   g==;
-X-CSE-ConnectionGUID: gqYSHw3nSUSp3otJo+n9wQ==
-X-CSE-MsgGUID: rYOwARa3Qw+eWxmXIkuo6w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="84750068"
+  bh=DfLQHO9ZEMPWPBpxjYs4hLwQre4GHwtiqeK4Tww/mv0=;
+  b=PBgE/eqJgF2ypvE3rRlD9e54Qq41mclGQUl8fA6Zu7GXJmR1fMIS6oI3
+   JgvnJYWMvD1gO45M0Y0qgoBR8t5A7XNuEVzbbnJOiUSkRcMR/KaMOM2+v
+   VjE3G1NcSejXUSMkBTUFonDxatPzqgCnYarYk6qH23rf/RMtrLmd4d+jR
+   P4Nf4FQ7kqaMt/8SI7STiPXqSBExkXc++TKjQG6wMaqtD7LyiK6LRaPUq
+   niGTXWc4SUxvKawIlcYxA2AqW3G+4ryhY581KSiym44p4rpWw/uQdcr9B
+   haGeU3Yl6DY0sPmbhUsm3DtrcdIpgo25Kd+5FOKGUWfcu2EjWrrSjtuUQ
+   Q==;
+X-CSE-ConnectionGUID: FKZ24cdrRzqldOKu2eW6KA==
+X-CSE-MsgGUID: 7w4evfQvRdKz6L2nlKfNZA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="81026237"
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="84750068"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 16:10:42 -0700
-X-CSE-ConnectionGUID: z0Lr6ZjySLGR0UFlVJ1g6g==
-X-CSE-MsgGUID: vEbU0vCUSgOHdbGEdh433A==
+   d="scan'208";a="81026237"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 16:24:24 -0700
+X-CSE-ConnectionGUID: g8uOSbJtTQyK+i2f3tMqwQ==
+X-CSE-MsgGUID: qgmFUOBGQzCuG/+DUJ3SKQ==
 X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
+   d="scan'208";a="242680950"
 Received: from bradocaj-mobl.ger.corp.intel.com (HELO [10.125.108.24]) ([10.125.108.24])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 16:10:38 -0700
-Message-ID: <26189ee7-1fba-49c2-94f5-0902a77772ba@intel.com>
-Date: Mon, 1 Jun 2026 16:10:37 -0700
+  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 16:24:23 -0700
+Message-ID: <39570927-b4f8-41e2-816b-e8a0a30abf2b@intel.com>
+Date: Mon, 1 Jun 2026 16:24:21 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,7 +52,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V3 4/9] dax/fsdev: clear dev_dax->pgmap on probe failure
+Subject: Re: [PATCH V3 5/9] dax/fsdev: use __va(phys) for kaddr in
+ direct_access
 To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
  Dan Williams <djbw@kernel.org>
 Cc: John Groves <jgroves@micron.com>, Vishal Verma
@@ -64,234 +67,70 @@ Cc: John Groves <jgroves@micron.com>, Vishal Verma
  "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 References: <0100019e79caead2-5795328c-af48-4a93-b147-c11df7446e1a-000000@email.amazonses.com>
- <20260530165053.6653-1-john@jagalactic.com>
- <0100019e79cbc3fa-cdb45b69-de84-4cc0-8aeb-71d0673c1a9c-000000@email.amazonses.com>
+ <20260530165100.6670-1-john@jagalactic.com>
+ <0100019e79cbe087-d11f77a7-379f-4355-b65c-52b3090e9ddd-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019e79cbc3fa-cdb45b69-de84-4cc0-8aeb-71d0673c1a9c-000000@email.amazonses.com>
+In-Reply-To: <0100019e79cbe087-d11f77a7-379f-4355-b65c-52b3090e9ddd-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 5/30/26 9:50 AM, John Groves wrote:
+On 5/30/26 9:51 AM, John Groves wrote:
 > From: John Groves <John@Groves.net>
 > 
-> Clear dev_dax->pgmap on probe failure for dynamic devices. After the dynamic
-> path sets dev_dax->pgmap, if a later probe step fails, devres frees the
-> devm_kzalloc'd pgmap but leaves dev_dax->pgmap dangling.  Subsequent probe
-> attempts would hit the "dynamic-dax with pre-populated page map" check and fail
-> permanently. Use a goto cleanup to NULL dev_dax->pgmap on error.
+> Use __va(phys) instead of virt_addr + linear_offset for the kaddr
+> return in __fsdev_dax_direct_access(). The previous code added a
+> device-linear byte offset to virt_addr (which is __va of ranges[0]),
+> but for multi-range devices with physical gaps between ranges, this
+> linear arithmetic crosses the gap and produces a wrong kernel virtual
+> address. Using __va(phys) where phys comes from dax_pgoff_to_phys()
+> is correct for any range layout because the direct map translates
+> each physical address independently.
 > 
-> Fixes: d5406bd458b0a ("dax: add fsdev.c driver for fs-dax on character dax")
+> Fixes: 759455848df0b ("dax: Save the kva from memremap")
 > Signed-off-by: John Groves <john@groves.net>
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+one comment below
+
 > ---
->  drivers/dax/fsdev.c | 32 +++++++++++++++++++++++---------
->  1 file changed, 23 insertions(+), 9 deletions(-)
+>  drivers/dax/fsdev.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
 > 
 > diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> index dbd722ed7ab05..42aac7e952516 100644
+> index 42aac7e952516..a2d2eb20fb4d0 100644
 > --- a/drivers/dax/fsdev.c
 > +++ b/drivers/dax/fsdev.c
-> @@ -223,6 +223,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  {
->  	struct dax_device *dax_dev = dev_dax->dax_dev;
->  	struct device *dev = &dev_dax->dev;
-> +	bool pgmap_allocated = false;
->  	struct dev_pagemap *pgmap;
->  	struct inode *inode;
->  	u64 data_offset = 0;
-> @@ -253,6 +254,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+> @@ -51,9 +51,7 @@ static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
+>  	struct dev_dax *dev_dax = dax_get_private(dax_dev);
+>  	size_t size = nr_pages << PAGE_SHIFT;
+>  	size_t offset = pgoff << PAGE_SHIFT;
+> -	void *virt_addr = dev_dax->virt_addr + offset;
+
+With this change, there's no more dev_dax->virt_addr usage? Should that be removed?
+
+DJ
+
+>  	phys_addr_t phys;
+> -	unsigned long local_pfn;
 >  
->  		pgmap->nr_range = dev_dax->nr_range;
->  		dev_dax->pgmap = pgmap;
-> +		pgmap_allocated = true;
->  
->  		for (i = 0; i < dev_dax->nr_range; i++) {
->  			struct range *range = &dev_dax->ranges[i].range;
-> @@ -268,7 +270,8 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  					range_len(range), dev_name(dev))) {
->  			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve range\n",
->  				 i, range->start, range->end);
-> -			return -EBUSY;
-> +			rc = -EBUSY;
-> +			goto err_pgmap;
->  		}
+>  	phys = dax_pgoff_to_phys(dev_dax, pgoff, size);
+>  	if (phys == -1) {
+> @@ -63,11 +61,10 @@ static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
 >  	}
 >  
-> @@ -288,8 +291,10 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  	pgmap->owner = dev_dax;
+>  	if (kaddr)
+> -		*kaddr = virt_addr;
+> +		*kaddr = __va(phys);
 >  
->  	addr = devm_memremap_pages(dev, pgmap);
-> -	if (IS_ERR(addr))
-> -		return PTR_ERR(addr);
-> +	if (IS_ERR(addr)) {
-> +		rc = PTR_ERR(addr);
-> +		goto err_pgmap;
-> +	}
+> -	local_pfn = PHYS_PFN(phys);
+>  	if (pfn)
+> -		*pfn = local_pfn;
+> +		*pfn = PHYS_PFN(phys);
 >  
 >  	/*
->  	 * Clear any stale compound folio state left over from a previous
-> @@ -301,7 +306,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  	rc = devm_add_action_or_reset(dev, fsdev_clear_folio_state_action,
->  				      dev_dax);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	/* Detect whether the data is at a non-zero offset into the memory */
->  	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
-> @@ -323,23 +328,32 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->  	cdev_set_parent(cdev, &dev->kobj);
->  	rc = cdev_add(cdev, dev->devt, 1);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	rc = devm_add_action_or_reset(dev, fsdev_cdev_del, cdev);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	/* Set the dax operations for fs-dax access path */
->  	rc = dax_set_ops(dax_dev, &dev_dax_ops);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	rc = devm_add_action_or_reset(dev, fsdev_clear_ops, dev_dax);
->  	if (rc)
-> -		return rc;
-> +		goto err_pgmap;
->  
->  	run_dax(dax_dev);
-> -	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-> +	rc = devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-> +	if (rc)
-> +		goto err_pgmap;
-> +
-> +	return 0;
-> +
-> +err_pgmap:
-> +	if (pgmap_allocated)
-> +		dev_dax->pgmap = NULL;
-> +	return rc;
->  }
->  
->  static struct dax_device_driver fsdev_dax_driver = {
-
-
-How about something like this to ditch the gotos?
-
----
-
-diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-index dbd722ed7ab0..cb309847e685 100644
---- a/drivers/dax/fsdev.c
-+++ b/drivers/dax/fsdev.c
-@@ -219,6 +219,41 @@ static const struct file_operations fsdev_fops = {
- 	.release = fsdev_release,
- };
- 
-+static struct dev_pagemap *fsdev_acquire_pgmap(struct dev_dax *dev_dax)
-+{
-+	struct device *dev = &dev_dax->dev;
-+	struct dev_pagemap *pgmap;
-+	size_t pgmap_size;
-+
-+	if (static_dev_dax(dev_dax)) {
-+		if (dev_dax->nr_range > 1) {
-+			dev_warn(dev,
-+				 "static vs multi-range device conflict\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+
-+		pgmap = dev_dax->pgmap;
-+		pgmap->vmemmap_shift = 0;
-+		return pgmap;
-+	}
-+
-+	if (dev_dax->pgmap) {
-+		dev_warn(dev, "dynamic-dax with pre-populated page map\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	pgmap_size = struct_size(pgmap, ranges, dev_dax->nr_range - 1);
-+	pgmap = devm_kzalloc(dev, pgmap_size, GFP_KERNEL);
-+	if (!pgmap)
-+		return ERR_PTR(-ENOMEM);
-+
-+	pgmap->nr_range = dev_dax->nr_range;
-+	for (int i = 0; i < dev_dax->nr_range; i++)
-+		pgmap->ranges[i] = dev_dax->ranges[i].range;
-+
-+	return pgmap;
-+}
-+
- static int fsdev_dax_probe(struct dev_dax *dev_dax)
- {
- 	struct dax_device *dax_dev = dev_dax->dax_dev;
-@@ -230,36 +265,9 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 	void *addr;
- 	int rc, i;
- 
--	if (static_dev_dax(dev_dax)) {
--		if (dev_dax->nr_range > 1) {
--			dev_warn(dev, "static pgmap / multi-range device conflict\n");
--			return -EINVAL;
--		}
--
--		pgmap = dev_dax->pgmap;
--		pgmap->vmemmap_shift = 0;
--	} else {
--		size_t pgmap_size;
--
--		if (dev_dax->pgmap) {
--			dev_warn(dev, "dynamic-dax with pre-populated page map\n");
--			return -EINVAL;
--		}
--
--		pgmap_size = struct_size(pgmap, ranges, dev_dax->nr_range - 1);
--		pgmap = devm_kzalloc(dev, pgmap_size, GFP_KERNEL);
--		if (!pgmap)
--			return -ENOMEM;
--
--		pgmap->nr_range = dev_dax->nr_range;
--		dev_dax->pgmap = pgmap;
--
--		for (i = 0; i < dev_dax->nr_range; i++) {
--			struct range *range = &dev_dax->ranges[i].range;
--
--			pgmap->ranges[i] = *range;
--		}
--	}
-+	pgmap = fsdev_acquire_pgmap(dev_dax);
-+	if (IS_ERR(pgmap))
-+		return PTR_ERR(pgmap);
- 
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		struct range *range = &dev_dax->ranges[i].range;
-@@ -306,7 +314,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 	/* Detect whether the data is at a non-zero offset into the memory */
- 	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
- 		u64 phys = dev_dax->ranges[0].range.start;
--		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
-+		u64 pgmap_phys = pgmap[0].range.start;
- 
- 		if (!WARN_ON(pgmap_phys > phys))
- 			data_offset = phys - pgmap_phys;
-@@ -339,7 +347,12 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 		return rc;
- 
- 	run_dax(dax_dev);
--	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-+	rc = devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
-+	if (rc)
-+		return rc;
-+
-+	dev_dax->pgmap = pgmap;
-+	return 0;
- }
- 
- static struct dax_device_driver fsdev_dax_driver = {
+>  	 * Use cached_size which was computed at probe time. The size cannot
 
