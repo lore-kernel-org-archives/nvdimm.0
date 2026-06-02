@@ -1,32 +1,32 @@
 Received: from mail.ilvokhin.com (mail.ilvokhin.com [178.62.254.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE917357D00
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE8813403F8
 	for <nvdimm@lists.linux.dev>; Tue,  2 Jun 2026 07:21:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.62.254.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780384918; cv=none; b=a8aCIm+XC+MOGzIAQQo8SPpxYV4tqhEumrNZCbfI9Ukl8/xdnV0jJJ4TKrlmQBddF8AxLhvgGMZEggVtdnGWjV9iy69PgeTvZSHkz6WHdJEpmdIZX3GiEdUw4dmRy+0hTtUr3QOK90UCpE3Qi1ta+oGZNSILE0/2cgkNynmAF3A=
+	t=1780384918; cv=none; b=DAICBv0QgrugeMNMK49NdcM7WGzQcvYWS4Fz5nT2/vgg3wLmS5X0PGZgVpsWCk94dQFzzCHktIiQPKhBuHwyro/iKpcl+MJMbF+TSTx1hXA3R4KsfqBMT8OZTWgOqE/SPRdAVDwKiBBMAyL5gg2E6KlQ7Vv71Ew+8c6GvrE/dtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780384918; c=relaxed/simple;
-	bh=6tHY8J5FZLwsZSvp67K8n1Zpn1BPM8ttSTjEaithh3w=;
+	bh=mcvj+8lOeLGrpyvRQQKjTlbXgdUQb58WT2ZOQaIZbvA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uaZrbP5eFIvZoN/MN6YmQqTatJp80gmEDHAuxx4DlgdKKnpkKq4Fkq2oUpJt2CiQU0bkyx/E/FB72tDztNd7CAchTaqISiDWy3PMQzSs/zTPX0EhRB4de9TIxVAsQCkBR1cGKsz0tgXOXBZTPTKsNhr1Z8Jjb5S+Os2Da596S7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=12adhDAQ; arc=none smtp.client-ip=178.62.254.231
+	 MIME-Version; b=KVIhGPa5uuX/LT8B9mkIvYb+s/Ccz9MggHXiHYGicv1C+D2tFzLiD/iWwcyEcCR0w+DfU1YBJ/ijA5ZAuvv4wDYsSg/ipmBWygpKj2KeKHEzu6ZjUvOeg5/lh3GzLCQAlhrDY53RvpF6KYCeNDGQVcoQu8tMzSJ+iSx7NFLnqpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=O5PmzJPQ; arc=none smtp.client-ip=178.62.254.231
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="12adhDAQ"
+	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="O5PmzJPQ"
 Received: from localhost.localdomain (shell.ilvokhin.com [138.68.190.75])
 	(Authenticated sender: d@ilvokhin.com)
-	by mail.ilvokhin.com (Postfix) with ESMTPSA id 3D789D0F60;
-	Tue, 02 Jun 2026 07:13:30 +0000 (UTC)
+	by mail.ilvokhin.com (Postfix) with ESMTPSA id 29631D0F6C;
+	Tue, 02 Jun 2026 07:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ilvokhin.com;
-	s=mail; t=1780384410;
-	bh=q9nFC7Z6g0jTQPCQtPDnRmGJV7FHjg8u5lzjUyjo/pY=;
+	s=mail; t=1780384411;
+	bh=wLXXDlJ/Kxp3Cp2KJoa7FnY+i+nRO7rY9YwMwddxJq8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=12adhDAQBMv06fSZOopwItXmo4Lw/7ockRyACsAaB6poBkYNvma5vTCgI3NHqHYqp
-	 w9lZXhbKznr/Jmm93wlarHH2wV6ETfxx4kcHGyPoR9qy70NeKpuYsWdZLgefIB/urd
-	 QZnTi9X04U9hZ5ji9cB+bqbylG8MPEQ36EXRI3gA=
+	b=O5PmzJPQQm9wQcEZ2Jqis/QLMEQOkkjveUjH0SpE2xGnFIA/WeL8h25Z6fWKhp+Uo
+	 SR2OjmkoIyffFaGReFL1Wzn2jWkgJFvTSJDAcAqfaJ3dOiTOWfKaGcGO+lbK1zDFJR
+	 EqvxDWzR2ygXNycgzNDV3NlplOHbGlc+D0dg6iTs=
 From: Dmitry Ilvokhin <d@ilvokhin.com>
 To: Peter Zijlstra <peterz@infradead.org>,
 	Dan Williams <djbw@kernel.org>,
@@ -44,9 +44,9 @@ Cc: nvdimm@lists.linux.dev,
 	linux-mm@kvack.org,
 	kernel-team@meta.com,
 	Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: [PATCH v5 1/4] nvdimm: Convert nvdimm_bus guard to class
-Date: Tue,  2 Jun 2026 07:12:50 +0000
-Message-ID: <8c0417904d280896ecf2e9923ffa9f20076f59b8.1780064327.git.d@ilvokhin.com>
+Subject: [PATCH v5 4/4] cleanup: Remove NULL check from unconditional guards
+Date: Tue,  2 Jun 2026 07:12:53 +0000
+Message-ID: <0503a089389b2270c478a873e095cf0a4ff26d24.1780064327.git.d@ilvokhin.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <cover.1780064327.git.d@ilvokhin.com>
 References: <cover.1780064327.git.d@ilvokhin.com>
@@ -58,39 +58,72 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The nvdimm_bus guard accepts NULL and skips locking when NULL is passed.
-Convert from DEFINE_GUARD() to DEFINE_CLASS() + DEFINE_CLASS_IS_GUARD().
+The unconditional guard destructors check whether the lock pointer is
+NULL before unlocking. This check is dead code because unconditional
+guards guarantee a non-NULL lock pointer at destructor time.
 
-This is a preparatory change for making DEFINE_GUARD() constructors
-__nonnull_args(). nvdimm_bus legitimately passes NULL, so it must be
-adjusted to avoid a compile error.
+DEFINE_GUARD() runs the lock operation unconditionally in the
+constructor. If the pointer were NULL, the lock operation (e.g.
+mutex_lock(NULL)) would crash before the constructor returns. The
+destructor never runs with a NULL pointer. All DEFINE_GUARD() users
+dereference the pointer in their lock. Verified by auditing every
+instance found by: git grep -n -A 1 'DEFINE_GUARD('. The only exception
+is xe_pm_runtime_release_only, whose constructor is a noop, but it has
+no callers.
 
-No functional change.
+__DEFINE_UNLOCK_GUARD() has only a few usages outside of
+include/linux/cleanup.h: tty_port_tty (NULL-checks in its tty_kref_put()
+call), irqdesc_lock (fixed earlier) and two guards in
+kernel/sched/sched.h (dereference the pointer unconditionally in their
+lock constructors).
+
+DEFINE_LOCK_GUARD_1() sets .lock from its argument and runs the lock
+operation in the constructor. Same reasoning applies. All
+DEFINE_LOCK_GUARD_1() users dereference the pointer in their lock. Also,
+verified by auditing every match of: git grep -n 'DEFINE_LOCK_GUARD_1('.
+
+DEFINE_LOCK_GUARD_0() hardcodes .lock = (void *)1 in the constructor,
+so it is never NULL by construction.
+
+Conditional (_try) variants: DEFINE_GUARD_COND() and
+DEFINE_LOCK_GUARD_1_COND() use EXTEND_CLASS_COND(), whose wrapper
+destructor returns early when the lock was not acquired, before reaching
+the base destructor since commit 2deccd5c862a ("cleanup: Optimize
+guards"):
+
+    if (_cond) return; class_##_name##_destructor(_T);
+
+As compiled by GCC-11 with defconfig on top of the locking/core:
+
+    Total: Before=23889980, After=23834334, chg -0.23%
 
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/nvdimm/nd.h | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/cleanup.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index b199eea3260e..18b64559664b 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -632,8 +632,11 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region,
- u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region);
- void nvdimm_bus_lock(struct device *dev);
- void nvdimm_bus_unlock(struct device *dev);
--DEFINE_GUARD(nvdimm_bus, struct device *,
--	     if (_T) nvdimm_bus_lock(_T), if (_T) nvdimm_bus_unlock(_T));
-+DEFINE_CLASS(nvdimm_bus, struct device *,
-+	     if (_T) nvdimm_bus_unlock(_T),
-+	     ({ if (_T) nvdimm_bus_lock(_T); _T; }),
-+	     struct device *_T);
-+DEFINE_CLASS_IS_GUARD(nvdimm_bus);
+diff --git a/include/linux/cleanup.h b/include/linux/cleanup.h
+index 4e60d519713c..65416938e318 100644
+--- a/include/linux/cleanup.h
++++ b/include/linux/cleanup.h
+@@ -398,7 +398,7 @@ static __maybe_unused const bool class_##_name##_is_conditional = _is_cond
  
- bool is_nvdimm_bus_locked(struct device *dev);
- void nvdimm_check_and_set_ro(struct gendisk *disk);
+ #define DEFINE_GUARD(_name, _type, _lock, _unlock) \
+ 	static __always_inline __nonnull_args() _type class_##_name##_constructor(_type _T); \
+-	DEFINE_CLASS(_name, _type, if (_T) { _unlock; }, ({ _lock; _T; }), _type _T); \
++	DEFINE_CLASS(_name, _type, _unlock, ({ _lock; _T; }), _type _T); \
+ 	DEFINE_CLASS_IS_GUARD(_name)
+ 
+ #define DEFINE_GUARD_COND_4(_name, _ext, _lock, _cond) \
+@@ -492,7 +492,7 @@ typedef struct {							\
+ static __always_inline void class_##_name##_destructor(class_##_name##_t *_T) \
+ 	__no_context_analysis						\
+ {									\
+-	if (_T->lock) { _unlock; }					\
++	_unlock;							\
+ }									\
+ 									\
+ __DEFINE_GUARD_LOCK_PTR(_name, &_T->lock)
 -- 
 2.53.0-Meta
 
