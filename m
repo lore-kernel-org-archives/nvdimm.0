@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0734437F724
-	for <nvdimm@lists.linux.dev>; Mon,  1 Jun 2026 23:24:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34101BA45
+	for <nvdimm@lists.linux.dev>; Tue,  2 Jun 2026 00:03:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780356267; cv=none; b=HCUJOy7TuBW8vAkpBwoYRZhrKy7QlCX+9YHBSFrUW//6Z25hOV4xVcTWCQsd1hvZ5nuh9LEKl1TlQtYV4djCdCb9BlVm6f1/CDUeCIZSl7Yswh8H5BejI59LJrOuswMpQOvfFAUif+yfMFEeoWLwdpQY5+NfmLg/QpIctKlNENo=
+	t=1780358634; cv=none; b=GOcH5/na4QgU5Ln+fiJJo9WLVCmi72NeM+7fcC2qxGhAbmHXSbAnl0WRcfANSscWvSomBljTeRxSJT6NuC4s/ok6WP1dpRguF7fUAxiiLMTKMPKA3FX00iUQjB8XwScF/P2LE5aAAVy/pVn3cCSL8iD8fP3Q/DQKFvivCxIyrAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780356267; c=relaxed/simple;
-	bh=DfLQHO9ZEMPWPBpxjYs4hLwQre4GHwtiqeK4Tww/mv0=;
+	s=arc-20240116; t=1780358634; c=relaxed/simple;
+	bh=to8P1CZX2GbAoTqZA4Mfp4tKhLJ+ZWagu5SoFzW38Qk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=G/Q9kCAxKYAcN/Fdef2fbc7grZlxg/QTgi67LeQCfMlSKXYDFpxTWlBGs67lvnBgToRCU8q5luMCvBKO47lHHONENHUyYf/fhh/EdWYz3w/BJE9IzY2OTWNZ/U8w9BdAY8yjKUDdG46qSyZPKAbEk7fgcbGr16kA3qvikZaauGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PBgE/eqJ; arc=none smtp.client-ip=198.175.65.21
+	 In-Reply-To:Content-Type; b=QJfs46BB9KTph8JPVnQsCbDxxnBPdv+TDME2Y1yWLeOLx4oHCKDq4nbQ/ajtfNpic3T5WTl/wnLsZzlLogGdeggDTMPgu7AY7o3VBJvmUjKSV4H2kpYNBZD5UXulya9vcRhLI0LVaFB7ZkwyHg4m2nnfhOfYcSv8KuwReEp6jT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dOjXnHIf; arc=none smtp.client-ip=198.175.65.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PBgE/eqJ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dOjXnHIf"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780356265; x=1811892265;
+  t=1780358632; x=1811894632;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=DfLQHO9ZEMPWPBpxjYs4hLwQre4GHwtiqeK4Tww/mv0=;
-  b=PBgE/eqJgF2ypvE3rRlD9e54Qq41mclGQUl8fA6Zu7GXJmR1fMIS6oI3
-   JgvnJYWMvD1gO45M0Y0qgoBR8t5A7XNuEVzbbnJOiUSkRcMR/KaMOM2+v
-   VjE3G1NcSejXUSMkBTUFonDxatPzqgCnYarYk6qH23rf/RMtrLmd4d+jR
-   P4Nf4FQ7kqaMt/8SI7STiPXqSBExkXc++TKjQG6wMaqtD7LyiK6LRaPUq
-   niGTXWc4SUxvKawIlcYxA2AqW3G+4ryhY581KSiym44p4rpWw/uQdcr9B
-   haGeU3Yl6DY0sPmbhUsm3DtrcdIpgo25Kd+5FOKGUWfcu2EjWrrSjtuUQ
+  bh=to8P1CZX2GbAoTqZA4Mfp4tKhLJ+ZWagu5SoFzW38Qk=;
+  b=dOjXnHIfcEFPJn4vv0DSbQBYbaZvtvo53HJj60oU13qc8ix9NHsVzpiF
+   DCpKCA0ktCeV88LzYEhkPbtQF9z11wF/kT7G0pmhhJnXqUS0jDXNZiXeo
+   3iO6zUNso4w9/NPTmQ1q14T2BDSItVxys1FU+B4v82a1s1gXO5/wiYN90
+   MClmaCTJogOUq+J7B0mDscI8Ttv3gCsBOQcGzcTWz9pNt6CT5+qHg75tP
+   ewezDYHl2UvK/K02O4vxk0paVU445GrXVylqpUzzYJFVNoJUYHCNWss/b
+   3qNxRFiiqLopFtdLctRHZltJ4hkb+C8liMJRMMavuYsqWU0lBn24swyLq
    Q==;
-X-CSE-ConnectionGUID: FKZ24cdrRzqldOKu2eW6KA==
-X-CSE-MsgGUID: 7w4evfQvRdKz6L2nlKfNZA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="81026237"
+X-CSE-ConnectionGUID: bGYXIoXXTfKYtb3lrRmaGA==
+X-CSE-MsgGUID: DPnev3kIRqS3Kq/409GSEg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="92605284"
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="81026237"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 16:24:24 -0700
-X-CSE-ConnectionGUID: g8uOSbJtTQyK+i2f3tMqwQ==
-X-CSE-MsgGUID: qgmFUOBGQzCuG/+DUJ3SKQ==
+   d="scan'208";a="92605284"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 17:03:51 -0700
+X-CSE-ConnectionGUID: lS4CsBijSQqbwAaC0t9cZg==
+X-CSE-MsgGUID: /MJK9tynTeq52WBeLO8rSg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="242680950"
+   d="scan'208";a="242907572"
 Received: from bradocaj-mobl.ger.corp.intel.com (HELO [10.125.108.24]) ([10.125.108.24])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 16:24:23 -0700
-Message-ID: <39570927-b4f8-41e2-816b-e8a0a30abf2b@intel.com>
-Date: Mon, 1 Jun 2026 16:24:21 -0700
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 17:03:49 -0700
+Message-ID: <2908dc0f-5790-4801-89b8-7f53dff9e320@intel.com>
+Date: Mon, 1 Jun 2026 17:03:48 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,8 +52,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V3 5/9] dax/fsdev: use __va(phys) for kaddr in
- direct_access
+Subject: Re: [PATCH V3 7/9] dax: fix holder_ops race in fs_put_dax()
 To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
  Dan Williams <djbw@kernel.org>
 Cc: John Groves <jgroves@micron.com>, Vishal Verma
@@ -67,70 +66,137 @@ Cc: John Groves <jgroves@micron.com>, Vishal Verma
  "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 References: <0100019e79caead2-5795328c-af48-4a93-b147-c11df7446e1a-000000@email.amazonses.com>
- <20260530165100.6670-1-john@jagalactic.com>
- <0100019e79cbe087-d11f77a7-379f-4355-b65c-52b3090e9ddd-000000@email.amazonses.com>
+ <20260530165115.6704-1-john@jagalactic.com>
+ <0100019e79cc1d9e-d39ff70d-4f1d-4a02-8b8e-e01c70272c0c-000000@email.amazonses.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019e79cbe087-d11f77a7-379f-4355-b65c-52b3090e9ddd-000000@email.amazonses.com>
+In-Reply-To: <0100019e79cc1d9e-d39ff70d-4f1d-4a02-8b8e-e01c70272c0c-000000@email.amazonses.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
 
 
 On 5/30/26 9:51 AM, John Groves wrote:
 > From: John Groves <John@Groves.net>
 > 
-> Use __va(phys) instead of virt_addr + linear_offset for the kaddr
-> return in __fsdev_dax_direct_access(). The previous code added a
-> device-linear byte offset to virt_addr (which is __va of ranges[0]),
-> but for multi-range devices with physical gaps between ranges, this
-> linear arithmetic crosses the gap and produces a wrong kernel virtual
-> address. Using __va(phys) where phys comes from dax_pgoff_to_phys()
-> is correct for any range layout because the direct map translates
-> each physical address independently.
+> Clear holder_ops before holder_data so that a concurrent fs_dax_get()
+> cannot have its newly installed holder_ops overwritten. cmpxchg()
+> provides release ordering on weakly-ordered architectures, ensuring the
+> WRITE_ONCE(holder_ops, NULL) store is visible to any CPU that observes
+> the holder_data release.
 > 
-> Fixes: 759455848df0b ("dax: Save the kva from memremap")
+> Add WARN_ON() on the cmpxchg result to catch two API contract
+> violations: fs_put_dax() called by a non-holder, or called twice by
+> the same holder (double-put). Either way holder_ops has already been
+> cleared, so WARN_ON() does not prevent the damage but makes the bug
+> visible. (Note: "damage" is only if a non-holder causes holder_ops
+> to be cleared)
+> 
+> Also add a kerneldoc comment documenting that fs_put_dax() must only
+> be called by the current holder.
+> 
+> Fixes: eec38f5d86d27 ("dax: Add fs_dax_get() func to prepare dax for fs-dax usage")
 > Signed-off-by: John Groves <john@groves.net>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
-one comment below
-
 > ---
->  drivers/dax/fsdev.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
+>  drivers/dax/super.c | 35 ++++++++++++++++++++++++++++++++---
+>  1 file changed, 32 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> index 42aac7e952516..a2d2eb20fb4d0 100644
-> --- a/drivers/dax/fsdev.c
-> +++ b/drivers/dax/fsdev.c
-> @@ -51,9 +51,7 @@ static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
->  	struct dev_dax *dev_dax = dax_get_private(dax_dev);
->  	size_t size = nr_pages << PAGE_SHIFT;
->  	size_t offset = pgoff << PAGE_SHIFT;
-> -	void *virt_addr = dev_dax->virt_addr + offset;
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 25cf99dd9360b..4c56ac2faacdb 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -116,11 +116,40 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+>  
+>  #if IS_ENABLED(CONFIG_FS_DAX)
+>  
+> +/**
+> + * fs_put_dax() - release holder ownership of a dax_device
+> + * @dax_dev: dax device to release (may be NULL)
+> + * @holder: the holder pointer previously passed to fs_dax_get() or
+> + *          fs_dax_get_by_bdev(); must match exactly, as it is used
+> + *          in a cmpxchg to atomically release ownership
+> + *
+> + * Must only be called by the current holder. Clears holder_ops before
+> + * holder_data to avoid a race where a concurrent fs_dax_get() could have
+> + * its newly installed holder_ops overwritten.
+> + */
+>  void fs_put_dax(struct dax_device *dax_dev, void *holder)
+>  {
+> -	if (dax_dev && holder &&
+> -	    cmpxchg(&dax_dev->holder_data, holder, NULL) == holder)
+> -		dax_dev->holder_ops = NULL;
+> +	if (dax_dev && holder) {
+> +		/*
+> +		 * Clear holder_ops before releasing holder_data. A concurrent
+> +		 * dax_holder_notify_failure() that sees NULL ops returns
+> +		 * -EOPNOTSUPP cleanly. A concurrent fs_dax_get() that acquires
+> +		 * holder_data after the cmpxchg below is guaranteed to observe
+> +		 * holder_ops=NULL first (cmpxchg provides release ordering), so
+> +		 * its subsequent store of new ops will not be overwritten.
+> +		 *
+> +		 * Two cases will trigger the WARN_ON():
+> +		 * - Caller is not the current holder; this is an API contract
+> +		 *   violation, and the holder will no longer get callbacks
+> +		 * - Holder calls this function twice; also a contract violation
+> +		 *
+> +		 * A lock would be necessary to guard against the contract
+> +		 * violations, but we WARN_ON() instead since violating the
+> +		 * contract is a bug
+> +		 */
+> +		WRITE_ONCE(dax_dev->holder_ops, NULL);
+> +		WARN_ON(cmpxchg(&dax_dev->holder_data, holder, NULL) != holder);
+> +	}
+>  	put_dax(dax_dev);
+>  }
+>  EXPORT_SYMBOL_GPL(fs_put_dax);
 
-With this change, there's no more dev_dax->virt_addr usage? Should that be removed?
 
-DJ
+This is what Claude Opus 4.8 said:
 
->  	phys_addr_t phys;
-> -	unsigned long local_pfn;
->  
->  	phys = dax_pgoff_to_phys(dev_dax, pgoff, size);
->  	if (phys == -1) {
-> @@ -63,11 +61,10 @@ static long __fsdev_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
->  	}
->  
->  	if (kaddr)
-> -		*kaddr = virt_addr;
-> +		*kaddr = __va(phys);
->  
-> -	local_pfn = PHYS_PFN(phys);
->  	if (pfn)
-> -		*pfn = local_pfn;
-> +		*pfn = PHYS_PFN(phys);
->  
->  	/*
->  	 * Use cached_size which was computed at probe time. The size cannot
+  The added WARN_ON(cmpxchg(...) != holder) fires on the supported
+  device-removal-while-mounted path. kill_dax() (super.c:457) clears holder_data
+  = NULL while a holder is still attached — it explicitly tests holder_data !=
+  NULL to deliver MF_MEM_PRE_REMOVE first. For xfs on pmem:
+
+  1. pmem_remove() → kill_dax() → MF_MEM_PRE_REMOVE →
+  xfs_force_shutdown(SHUTDOWN_FORCE_UMOUNT); the handler does not call
+  fs_put_dax. kill_dax then clears holder_data.
+  2. Forced unmount → xfs_free_buftarg() → fs_put_dax(bt_daxdev, mp).
+  3. cmpxchg(&holder_data, mp, NULL) returns NULL (already cleared) != mp → WARN
+  fires, despite xfs being the legitimate holder doing a single put.
+
+  The old == holder form skipped silently in this case. On panic_on_warn systems
+  this turns a supported device removal into a panic.
+
+  The commit message's claim that the WARN catches only "non-holder" or
+  "double-put" contract violations is incomplete — it also catches the holder
+  racing with kill_dax(), which is not a contract violation.
+
+This is the suggested fix:
+  void fs_put_dax(struct dax_device *dax_dev, void *holder)
+  {
+        if (dax_dev && holder) {
+                void *prev;
+
+                /*
+                 * Clear holder_ops before releasing holder_data so a
+                 * concurrent fs_dax_get() that wins holder_data observes
+                 * holder_ops == NULL and its store is not overwritten.
+                 */
+                WRITE_ONCE(dax_dev->holder_ops, NULL);
+                prev = cmpxchg(&dax_dev->holder_data, holder, NULL);
+
+                /*
+                 * prev == holder: normal release.
+                 * prev == NULL:   already released by kill_dax() when the
+                 *                 device was removed under a live holder;
+                 *                 not a bug.
+                 * prev != holder (non-NULL): fs_put_dax() called by something
+                 *                 that is not the current holder.
+                 */
+                WARN_ON(prev && prev != holder);
+        }
+        put_dax(dax_dev);
+  }
+
 
