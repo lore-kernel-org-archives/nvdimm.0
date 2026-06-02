@@ -1,198 +1,182 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CA2E2E173D
-	for <nvdimm@lists.linux.dev>; Tue,  2 Jun 2026 20:57:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780433858; cv=none; b=kY2GHdwzXpqQhx+RWqRkPxUTlz/xSXew/bSdObulwqmjxkjWElGiHkOaBascSqDm6ZpmUBZycVJki1cn80yB89Rfv1gCS54EZrH4Wm3gOCRMVlDr5dBvQePcnxXjCZ67+YOn2Sy/NEUEsXlQWY1VGfclktI4kLjTqZbsev7KJmI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780433858; c=relaxed/simple;
-	bh=+1aWWw/VOUkqUbYCvDexioiv825eBfUthhxhUbeH0Gk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aqdJKjysWaTj5+S0RRbQQJTD27WALyqZMnjrBhhaY2D1w00yCCBZzS+ooU7CdGj5jSCPkqsGa9JULRV+oTlSq83qTFsynRPZpK+GwrH0QXgt1YaHzKUJzYxmH2LAY9wYxser+QRP8SU3XebVWIEYFrGtAoBJ1G4/7yrjI8n055g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XiWZZ4rs; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5218314B6A
+	for <nvdimm@lists.linux.dev>; Tue,  2 Jun 2026 21:55:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.8
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780437347; cv=fail; b=T6khmg/9y9LK5NMQ/n3fzPIkpbDduAMFHgpZAD0OdBfLEUo4huvNBWyZsx8siNgxyUymd68IasD0Y0WVbwJ2f3rsCqhbKKIcwAmmOw3AGpoH7PqnQWinl2NiY6nyCbt94jBNoHXDOF3TYvVmzR+AjYY/86uAZ6pvw0rnI8//xV8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780437347; c=relaxed/simple;
+	bh=I6s0LHge9A/tP2BDH/5aBF/s+G6tWBUgvfdNHFeH1Lc=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=krQkT7aTpjRk4NLZ2n28Jth9TNocYqOFlsQJ7726ccT9cPrBuQEp1Fu4XpEb/yWqbVPaULK4M+XZbInjltMA9NWFwpSLlqlxTLaoU9qYQ5a3nKId7GsXUPDFp3lKOEpcEEyt+//m3/Cprrt+uxE6vtBNxAEHIShda+uUSmKiuTU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nis44gFY; arc=fail smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XiWZZ4rs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B0161F0089E
-	for <nvdimm@lists.linux.dev>; Tue,  2 Jun 2026 20:57:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780433857;
-	bh=9UxALlZp/awNelHKd+NuGpitMwLkRFkpst+BtBihDis=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=XiWZZ4rs/2nqPYIObqYnIq5AzztDyRWTcgfkC4OazOBrD0sT6tzZvL3gDTJzFnTh2
-	 uuawj+ykPMEegjPDbVziym3rlgqt8G2J+fFGPfsOIyo9Ht04jqXub014kCxJPeGLEM
-	 YH4R8wMGMcHxUuLxIlq3+TRjYDHWGstorXJm8aRaU8+InxbbiCfoOb1NhD3zmMJf01
-	 u2Whvh59/Egl64a2753XUtsfsdSTzco4G0Pt06RR/K979vXQkKpZabxAyeVNCN8qG6
-	 c25E50yXSL9dH5ZQQXpbIwVBg/21fDqnDPjpYMgY7FhuhEFunEH7Q6uV3SVMlLJkus
-	 6bl2kaiqQ6P9A==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5aa619653e4so3478912e87.1
-        for <nvdimm@lists.linux.dev>; Tue, 02 Jun 2026 13:57:36 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ+y1wAfmBN3CT4cIQvZ3juz00kYdJl5YUjSM697rEvaFnHF5ICe8IbgCNkHxK9ptaZyUBfn9Ek=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yw471nFMJOta9BYlsTfRt9eMCxusSfSd8UH7OXvmQcLT1ULaOtV
-	UnTFDw81nHCEO1IlF1Yzi+mUNAZwxPNccTx6xfqdKNIGBE/kcwSK1leQZSnJRQRYUjMyoDhLnTt
-	33fVGrMCeyNkTdyrHfMfXUu6/x1Z6hH4=
-X-Received: by 2002:a05:6512:b1f:b0:5a7:4912:1a50 with SMTP id
- 2adb3069b0e04-5aa7c7ba65bmr95622e87.20.1780433855543; Tue, 02 Jun 2026
- 13:57:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nis44gFY"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780437346; x=1811973346;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=I6s0LHge9A/tP2BDH/5aBF/s+G6tWBUgvfdNHFeH1Lc=;
+  b=nis44gFYRLJsUpao+h+vFz4Kk/ia54ju9vTXuETMZv8xSI0Dja6VTstE
+   YDlV5tAYKZAuOPJKAwyzaZ7boTxH2UvbfTRkWqXWTABbaLDOzEgaTuhGd
+   px2lTwQIc93ld904yUW4/41EVkI+hLO1Z21jwDkGghUAjnO7RrRRnzXjA
+   ZVjV04bNC/MeBsBWQaSfFygHCkS0SUD+Bw3oRknhfKCSPdOKXR9r3Y+6+
+   8W31/OIzJWgvAvQ0B41sRkMlFEfyU3hkhQyEvSqglQzu4BgdO2bJVuXwE
+   OBFFF2IKthJakBS0xr+TxiI7QbVcASPzWyU8wikcLv6D3P3ZlS1rmhBr2
+   A==;
+X-CSE-ConnectionGUID: icRNiDocREe4hUyxS20SKA==
+X-CSE-MsgGUID: MjJ8pFTKQvu/o6TGHPa6PQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11805"; a="98800483"
+X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
+   d="scan'208";a="98800483"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 14:55:46 -0700
+X-CSE-ConnectionGUID: Ia9YIUCgTSmJjZeVFKBoyg==
+X-CSE-MsgGUID: 8l+3FntWQ+yqHt7HPtnHkw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
+   d="scan'208";a="244116182"
+Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
+  by orviesa009.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 14:55:45 -0700
+Received: from FMSMSX901.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Tue, 2 Jun 2026 14:55:44 -0700
+Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
+ FMSMSX901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37 via Frontend Transport; Tue, 2 Jun 2026 14:55:44 -0700
+Received: from CY3PR05CU001.outbound.protection.outlook.com (40.93.201.32) by
+ edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Tue, 2 Jun 2026 14:55:44 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=epiJCL5VjJxAprrwqo8XSr/i/cvQpHENxzSmMMbnMAWNECS8m0KjW+BWA6e7+3iDXX1JiurTmljmg0RmnceMydoniORS84XXqyDPTra4JOxHNfHigI2yFXp5/mIDNPI73SghYTI2J303qFdhshHbNSl5l5f9jAkCLFtpyx1xFaxMPPiRirobFGJifgkp2gSoBbC4PB6PoXsyL51uAW3yJVwNJxdQ26l+ZIc+M3wJxubXMAxnifK2sYRyB4RXZWn9TIY7zDvjbJ4YAI4Ucn1zeKfAC4vt8cZHJ+4Aji6KGtVHsHUeVYIz2kZ80qjif9MdUyvARDqo7WYpqMC9trPL3w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=uBrnlnzseVv0l/NmePiWxeYZ8+8vtJz6xQkgVHXty7Y=;
+ b=gamG/hj4PZt4wc6Sn8vIn6SAuLzIDh5w/tVKRsBrxxRSZ1wvP20FLn98fVDaf9rHwhEDs7dgFNG+bzNG6MeBQoO9o6SF81dPJTZKjww6xl7ubRLyr4HMd93OaJtN67/0hThfthS5kATJIyPNs1IFuV+JCBQMw08qladU2gHkf3xA8eKBnSVG6TGRgBI0l/DDEhmpakQzf1zVLJdDQaS8+nofLuJaNW+31fF9CI8Ux6PuOv1xkaOXE5K2UsN/SRa6crTiQcsQkrMKxt3huaMaYKncVY1xp4aYXu/PxZ5WCrQaMRoCFNZY47bke1pCM8dTHfNjtJvg+KkgwXFCpqrRxQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ (2603:10b6:a0f:fc02::80b) by DM3PPF4C5964328.namprd11.prod.outlook.com
+ (2603:10b6:f:fc00::f1e) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.7; Tue, 2 Jun 2026
+ 21:55:40 +0000
+Received: from SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ ([fe80::d35b:e3ac:6d53:bb3c]) by SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ ([fe80::d35b:e3ac:6d53:bb3c%8]) with mapi id 15.21.0092.006; Tue, 2 Jun 2026
+ 21:55:37 +0000
+Date: Tue, 2 Jun 2026 14:55:34 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: John Groves <john@jagalactic.com>
+CC: John Groves <John@groves.net>, John Groves <jgroves@fastmail.com>, "Dan
+ Williams" <djbw@kernel.org>, John Groves <jgroves@micron.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Jonathan
+ Cameron" <Jonathan.Cameron@huawei.com>, Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>, "venkataravis@micron.com"
+	<venkataravis@micron.com>, "dev.srinivasulu@gmail.com"
+	<dev.srinivasulu@gmail.com>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org"
+	<linux-cxl@vger.kernel.org>
+Subject: Re: [PATCH V6 0/2] daxctl: Add support for famfs mode
+Message-ID: <ah9RVik9fE4H8Uxx@aschofie-mobl2.lan>
+References: <20260526170148.56398-1-john@jagalactic.com>
+ <0100019e653c6c88-44f88088-8c87-4163-b88b-b3f3fc7aa726-000000@email.amazonses.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <0100019e653c6c88-44f88088-8c87-4163-b88b-b3f3fc7aa726-000000@email.amazonses.com>
+X-ClientProxiedBy: SJ0PR03CA0285.namprd03.prod.outlook.com
+ (2603:10b6:a03:39e::20) To SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+ (2603:10b6:a0f:fc02::80b)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <4739447.LvFx2qVVIh@rafael.j.wysocki> <2268031.irdbgypaU6@rafael.j.wysocki>
- <ah8l-p0Ih9tzu0G1@ashevche-desk.local>
-In-Reply-To: <ah8l-p0Ih9tzu0G1@ashevche-desk.local>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 2 Jun 2026 22:57:23 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i0bKHa28xoVRiy_7i_PgjqYD_TA0yRoofmjH1oHGQuQA@mail.gmail.com>
-X-Gm-Features: AVHnY4LjTtFPU-7gUiC9pe6qbcAK2aht3aLMvvWCkRbTo51arqrwkDeFdk4pDcA
-Message-ID: <CAJZ5v0i0bKHa28xoVRiy_7i_PgjqYD_TA0yRoofmjH1oHGQuQA@mail.gmail.com>
-Subject: Re: [PATCH v1 01/17] ACPI: bus: Introduce devm_acpi_install_notify_handler()
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	Armin Wolf <w_armin@gmx.de>, Dan Williams <djbw@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ5PPF0D43D62C4:EE_|DM3PPF4C5964328:EE_
+X-MS-Office365-Filtering-Correlation-Id: 216b672f-57bb-4d2a-700a-08dec0f1ae49
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|366016|56012099006|4143699003|11063799006|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info: vETLbIudNroJnJUJA7JKO12Ch2xPr6U3rIObSBlUsVx+CGpkb8lfCjLicWNaMapSbrfViggbXhawOLekTXNHq04oXAnkSxhpmEezQc3jDD1/+OfDNFNtWENw9fpllL3xAoAuQsbA49ACWH1eC04xxkOcN6PlO0mINWs8/mtQknRoh4EtvnfJyp1ExF0J3Eub+87OugYJ7vfGL1fgdfFQAl2Qiw8dLz3Px1yCDMq5mOtDqnoeli8PzsXnQxa0AHjD9k4qmQglfdXod86Rb01zX7kwf+aJ972ibOg04ONO+xGMzYU2UFtMuiuEWrVj+BA/ooJkqA6bwTXm5raa5JicbyM3xEBajTh0a13grM9qbYufmrUDr5sG0sXPB7h6knTjHAUp20msjE20ELGh/U4EIKLR230xIteEYFSWmQJFLOarYs838X7nnc6Qbp8spaGPENQHH2oFhUs1LxSofk85V3zhYCKdykUtK+IZyU7k54bZoMwbNqBNbw/cVY6jWEJ1pW9JGq/KUjKIeXMZMgaZ35sVOIzijS8dpFmuVfc2TQCol1fcOzeXhCNQXdHtAxKapCDaoGS1nJtBbosW4bP8sFQ2r8Ujn/BJ6Zg/KmKOxrOc67+eiP7QTP0g3uZzAmsT
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ5PPF0D43D62C4.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(56012099006)(4143699003)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?EeyMpCxBlgeGq6dviZF4f0GkQ8lQNdKS7WERpeCDY5ePX2oi9oWFf3yNvieC?=
+ =?us-ascii?Q?sQjY8rOpLKh4N96bSIRndKCzuT23Xx5mwpqpJQHBuoF1VRsQVf5gCu4ZFsIn?=
+ =?us-ascii?Q?Y6Z3lRohtYqGXnLdjlkYvx4UO48U4IafbeFWgF/ReCbLvWIg9XyzDibi4XSk?=
+ =?us-ascii?Q?q3aJkWND1NcorL5pKI1NpsR0/IXvUdysigvHljcaVNt76LdLhPgZ9dnH+BzJ?=
+ =?us-ascii?Q?E33TKeMvy1DajiKeCBeJHW0JxcAeTxwbDlZAR97qyLqNct7VyONcJ6vSttaN?=
+ =?us-ascii?Q?1GcZ5foPmImdwy1CDIooeGGG20xdMmWtX/5hIu6zfQLyaLcfASEqbsrh/Tae?=
+ =?us-ascii?Q?Fm4vbKyv5sEMXQxpFejIkh8tLemGorBUxv5M79iLTVbjU2OBqVGRvvHxB/dt?=
+ =?us-ascii?Q?HxbvRj0t8NAVBR+LOqQURFyFNPcV+Cy1htcHYXj4bP+tDpidElUa81/pRaG4?=
+ =?us-ascii?Q?MZ/rCxokdqtpd9dm6maNE0i/UwKcv4O9RewSh1lW/RL371z/R/QFvdMSt155?=
+ =?us-ascii?Q?L2mddj+IIRc1TPOUAAxd5NK8sgsW74+T4J3+LXS1tVtZaqizUIQTGmdjZc+w?=
+ =?us-ascii?Q?6EQ94zkD+0VA4uwRKNb15jKZLkBHn6+rzKq+eYXSIlUU+qOaHWirwSCsI+0D?=
+ =?us-ascii?Q?Kh+XsVftdoqN6aK3JZSZqkMFMMqXPfIs+fRCjvVah2BsT82eZuaa6FDgw7vD?=
+ =?us-ascii?Q?sv3o3Gb7BFhRKmHMFuPku6vEiolb04zSHlVDacg++lzGfA+AD+XxVBtAYgjb?=
+ =?us-ascii?Q?6Qa6r/LpcxBPGLk9fsP5u11Y5SQGJVRtonuLpS9s/bu+fe9tS/y4z1tNQGAG?=
+ =?us-ascii?Q?fAmg9kVhf/eXllxZO1wlmIJdwYzLY9dfRNqARr/P0n9MC2wnXjXLdzVCtMKd?=
+ =?us-ascii?Q?zRB+krMwaX9P5aPFURoK//Bd4AlBjgSb0hyX3OkCRKsvgL/iEZaekPjtsWV8?=
+ =?us-ascii?Q?OlKN7S2WXvNhRhjNY585YMcMHgSYhmguTsolHZe1XbpoqqoFHR4sysGqKsL3?=
+ =?us-ascii?Q?UaTfFyxzKTqXWb6AP/iaYbXnlYvUWGNG30/fLQeqvZSIarBlFafmVkV1JfK3?=
+ =?us-ascii?Q?rHhPUGNZq9o1VJPTwqSh7JEtW/BoB40VVDG9ACiMHq9y4vq2/6MjMT3csnQP?=
+ =?us-ascii?Q?L/hywmw4tJN0Ds/gDmIF7sFxinrP2sg4CBveHrF2PXbscO55wLn9PVZvBWo+?=
+ =?us-ascii?Q?sJHGgOqZ1T+GXS3jtXturEtylV7JnfJGUnAQ5A7ynSwiHjwANTDc2jfV/14E?=
+ =?us-ascii?Q?5NwCmtjJgvpzyyVCEw5xSG839gD76rHeMNO7+UMX4iV49z6EIbgRNBzPNXZ/?=
+ =?us-ascii?Q?VnwFHCJCACFAndMpZd/AqxKygefSLyybntgUMK292eZCj9BIWVhLLTD3OXgp?=
+ =?us-ascii?Q?WnBRCr5aPwF2e3BBg9obfddaBTBiXgDj4n3qvub2rR+/AmC5Uqiy00xjAOgU?=
+ =?us-ascii?Q?aFvlM7a224+x/SwvrXFT6ncKtFI/7ZNy+e+BoEvTpcTku2jejfqTthaFK0xL?=
+ =?us-ascii?Q?wIXPSv6YuUhaL13yReHXlI4mqAnbN4hJ/POQxhWlVsKCWtovL8BrGfmVaMKd?=
+ =?us-ascii?Q?hiAvkr4mKDdvxQPVH6nuPBjAqelcmIg9XnoEtlee2LkcSDt/BEEG6056da+j?=
+ =?us-ascii?Q?QXJP2aoGmfTNc1YtbhOOFwXvTuelwcRPH1yUBxOQM9JNiSbmgj1LnhB1nWGc?=
+ =?us-ascii?Q?BJmUDZHJhf+1qJlpW4c7Ut/MznO9ewrFokjiv0fzT9dHNbRybTynhwSqcUo/?=
+ =?us-ascii?Q?oHf9QOAWmgOqfzl/PFZe8hovwKGPZZo=3D?=
+X-Exchange-RoutingPolicyChecked: RNKEZ1pZdtvPi3HTc9hS+WyY2UKEEUj4TNmBEYBwaCNkgYBUusSf6CXYYGCp1BwmP/YcwGpE/T2cVBpEdw1bCCbMptHBmyivc9p/LGnDYTszdo5B+IUe6femV4zixcRHb2EE/RQb8zurCWBZbFmWCHyfPmI/dPd1kr+CvVEJgiN/teAOIZNiUHbXnYidZrLl1XJrnyiUMJ9i09r5vnkuGosIGduPgR1bbJJwJPm9V/o3p/i7QONkKgp934e4jvpWysIxgDk6LGpPg4+zK8ySxTGYW1E2I+Tysd7NCwtmnK8C99Z1x/PDOwGv7EaqXJGmdDmuA6wduxy0bOOtQDuYIg==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 216b672f-57bb-4d2a-700a-08dec0f1ae49
+X-MS-Exchange-CrossTenant-AuthSource: SJ5PPF0D43D62C4.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jun 2026 21:55:37.8119
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: W9RuCqtkb/xu+YiVboY+k6Pm/Jhnhy2yP+gZAKGtXegCvDL2LFe0guf085Vaf1XNDGwUoFAF+bvQHGcP4U+QGjDsIjTUBLpVnfcIH6WTyCg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM3PPF4C5964328
+X-OriginatorOrg: intel.com
 
-On Tue, Jun 2, 2026 at 8:50=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Thu, May 21, 2026 at 03:59:50PM +0200, Rafael J. Wysocki wrote:
->
-> > Introduce devm_acpi_install_notify_handler() for installing an ACPI
-> > notify handler managed by devres that will be removed automatically on
-> > driver detach.
-> >
-> > It installs the notify handler on the device object in the ACPI
-> > namespace that corresponds to the owner device's ACPI companion, if
-> > present (an error is returned if the owner device doesn't have an ACPI
-> > companion).
-> >
-> > Currently, there is no way to manually remove the notify handler
-> > installed by it because none of its users brought on subsequently
-> > will need to do that.
->
-> ...
->
-> > +static void devm_acpi_notify_handler_release(struct device *dev, void =
-*res)
-> > +{
-> > +     struct acpi_notify_handler_devres *dr =3D res;
->
-> 'dr' is usually associated with internal devres structures and might be
-> misleading in here, I would rename to something like handler_devres.
+On Tue, May 26, 2026 at 05:01:59PM +0000, John Groves wrote:
+> From: John Groves <john@groves.net>
+> 
+> This series adds famfs mode support to daxctl, alongside the existing
+> devdax and system-ram modes.  A daxdev is in famfs mode when it is bound
+> to fsdev_dax.ko (drivers/dax/fsdev.c).  famfs is a shared,
+> memory-mappable filesystem for disaggregated and CXL memory; see
+> https://famfs.org for more information.
+> 
+> Patch 1 adds the library plumbing: mode detection helpers, an enable
+> function, and the device.c reconfigure-device wiring.  Patch 2 adds a test
+> that exercises mode transitions on the nfit_test emulated backend.
+> 
+> This series depends on the fsdev_dax kernel driver (which provides famfs
+> mode) and on the famfs kernel patch series.
 
-Well, whatever.
+Thanks!
+Applied to: https://github.com/pmem/ndctl/tree/pending
 
-> > +     acpi_dev_remove_notify_handler(ACPI_COMPANION(dev), dr->handler_t=
-ype,
->
-> acpi_dev might be also part of the same data structure, so you won't need=
- to
-> take dev again and derive adev from it.
+with minor touchup to the unit test patch:
+[ as: drop -nfit suffix on test name, wrap commit lines at 70 columns ]
 
-I'm not sure what you mean.
-
-Put acpi_dev into struct acpi_notify_handler_devres?  That can be done
-in a follow-up patch.
-
-> > +                                    dr->handler);
-> > +}
->
-> ...
->
-> > +/**
-> > + * devm_acpi_install_notify_handler - Install an ACPI notify handler f=
-or a
-> > + *                                 managed device
->
-> There is a stray space just after asterisk.
-
-Which asterisk?
-
-> > + * @dev: Device to install a notify handler for
-> > + * @handler_type: Type of the notify handler
-> > + * @handler: Handler function to install
-> > + * @context: Data passed back to the handler function
-> > + *
-> > + * This function performs the same function as acpi_dev_install_notify=
-_handler()
-> > + * called for the ACPI companion of @dev with the same @handler_type, =
-@handler,
-> > + * and @context arguments, but the ACPI notify handler installed by it=
- will be
-> > + * automatically removed on driver detach.
-> > + *
-> > + * Callers should ensure that all resources used by @handler have been=
- allocated
-> > + * prior to invoking this function, in which case those resources shou=
-ld be
-> > + * devres-managed so that they won't be released before the notify han=
-dler
-> > + * removal.  Otherwise, special synchronization between @handler and t=
-he
-> > + * management of those resources is required.
-> > + *
-> > + * When the request fails, an error message is printed with contextual
-> > + * information (device name, handler function and error code).  Don't =
-add extra
->
-> This "handler function" points to __func__? If so, it seems misleading.
-
-Yes, this sentence should just be "When the request fails, an error
-message is printed" without the "contextual information" part.
-
-> > + * error messages at the call sites.
-> > + *
-> > + * Return: 0 on success or a negative error number.
-> > + */
-> > +int devm_acpi_install_notify_handler(struct device *dev, u32 handler_t=
-ype,
-> > +                                  acpi_notify_handler handler, void *c=
-ontext)
-> > +{
-> > +     struct acpi_notify_handler_devres *dr;
-> > +     struct acpi_device *adev;
-> > +     int ret;
-> > +
-> > +     adev =3D ACPI_COMPANION(dev);
-> > +     if (!adev)
-> > +             return dev_err_probe(dev, -ENODEV, "No ACPI companion in =
-%s()\n", __func__);
->
-> Not sure how __func__ may help here. We will have a device instance to be
-> printed. It's obvious then how to find the culprit call.
-
-But it doesn't hurt either, does it?
-
-> > +     dr =3D devres_alloc(devm_acpi_notify_handler_release, sizeof(*dr)=
-, GFP_KERNEL);
-> > +     if (!dr)
-> > +             return -ENOMEM;
-> > +
-> > +     ret =3D acpi_dev_install_notify_handler(adev, handler_type, handl=
-er, context);
-> > +     if (ret) {
-> > +             devres_free(dr);
-> > +             return dev_err_probe(dev, ret, "Failed to install an ACPI=
- notify handler\n");
-> > +     }
-> > +
-> > +     dr->handler =3D handler;
-> > +     dr->handler_type =3D handler_type;
-> > +     devres_add(dev, dr);
->
-> > +     return 0;
-> > +}
->
-> --
-
-So thanks for the review, but I don't think I want to send a v2 at this poi=
-nt.
-
-I'd rather send a follow-up patch to clean up these things.
