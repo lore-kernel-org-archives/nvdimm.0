@@ -1,31 +1,32 @@
 Received: from mail.ilvokhin.com (mail.ilvokhin.com [178.62.254.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE9A3357D01
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEACB359A6F
 	for <nvdimm@lists.linux.dev>; Tue,  2 Jun 2026 07:21:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.62.254.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780384918; cv=none; b=g0+PzTKMNyT96y2Zu2z/L09cf+cHw/Ih+4kevpXRbi3wRwuEht1IjC0ausBtJ4Bj/d1wdYDl6QtMAqG5niviJ9jvSYwDbtX0G84E7T8AuTt2W21YHWy6ajFpwFr/fblp/KWfX31F4Ud2GuDbqQJbNPnw7ManY6btKRAnWP4gEbU=
+	t=1780384918; cv=none; b=baObH+L2bywYPbwLyRHqdGnBd3eNDuiUsFQFB/lxrhE3Qzy1kSSHvdRTmMPN0FalQyJG/DWwSUEbJw4fTa/FbNnC55MraDfBvMPWAhmFkMJmOJCtCsaP4NowBKDwQOKeKvnHA7GlTAZRf2fTzBHL8bDYwrhKMlLhi/Xmlm03a8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780384918; c=relaxed/simple;
-	bh=w7tP9fKpuSQmCy7NYtaD0k2nekKXSXAf38fh5MMgVr8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=F1le+BhK0ztpYMzwARAa6LwmQ5UoQE5MWiM6uC+RRdhsjTsymV+CrJQIZ+sVnwZQB7Cung3RrHGVKTCR6waLRo2ddtQmJGN2pAhzUIRgHwPVZygM7FAYvqcBp6rDyTAwFQHB/3KTiRMJcPYgKY5t/akMxwJVsdt1sBa0WL1WmeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=U9TXoKy8; arc=none smtp.client-ip=178.62.254.231
+	bh=G+QH8Mv1sXQkYn6Q3gMncHpGBiuFGlEP3qvmnf0X4TA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=dtQLxZzMgfOAN2JpPOcnSCJ8CdtGgKmhDGJZKA3t1BpO2yeSOI/Lh8MFGbcXsb1GNO2FiZElDYA/jx/JKzXeHlOumP5VTDHsisQGph2DHTlrnA3RDp6IFSj6niRQpBYqc7oAeXBCcqSOOC7yklj0Fo8+t4G819NNd2gv3h4qOR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=gGKNYGjE; arc=none smtp.client-ip=178.62.254.231
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="U9TXoKy8"
+	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="gGKNYGjE"
 Received: from localhost.localdomain (shell.ilvokhin.com [138.68.190.75])
 	(Authenticated sender: d@ilvokhin.com)
-	by mail.ilvokhin.com (Postfix) with ESMTPSA id E7874D0F5F;
-	Tue, 02 Jun 2026 07:13:29 +0000 (UTC)
+	by mail.ilvokhin.com (Postfix) with ESMTPSA id D42B8D0F68;
+	Tue, 02 Jun 2026 07:13:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ilvokhin.com;
-	s=mail; t=1780384410;
-	bh=0qtKkckt9JyUfNuorH5TPUvvCM0+T6UIOHmjMyEJuIc=;
-	h=From:To:Cc:Subject:Date;
-	b=U9TXoKy8bydOm/pB7jK9QzuMctLVKJB4ktSSjzPQi+i+j8sTGV0drs4RBpxeE2Sjo
-	 RoMD99yfnZ2kPt9WKe2MfIzhrBeyINbBpFfp6qhjNpRIkmuR2E1R2YBLinHLChGmtf
-	 8daVng1/FTEMqeLDiy1XWycaTB5WQpoaEhRAqq1o=
+	s=mail; t=1780384411;
+	bh=jKADVtROf0vQ43aH1Xe6H1MxCOHUxw7qwH7HL4aVwN8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=gGKNYGjEIbcIJJ8/BH414muQKgbnvibQo1farJStD+pOyV3SS+WJ5obh8FA9JZ2Uo
+	 tTE0N0GsrgOx1gBSMKm2GP6j9ZgCzHDc2JXw8on2mXJ9Wj2cHhX49cGaqJleS2KbHE
+	 dCToWVoqbZtw1amijeqFNXMIWnAuMm9B1Q+k41oE=
 From: Dmitry Ilvokhin <d@ilvokhin.com>
 To: Peter Zijlstra <peterz@infradead.org>,
 	Dan Williams <djbw@kernel.org>,
@@ -43,10 +44,12 @@ Cc: nvdimm@lists.linux.dev,
 	linux-mm@kvack.org,
 	kernel-team@meta.com,
 	Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: [PATCH v5 0/4] cleanup: Remove NULL check from unconditional guards
-Date: Tue,  2 Jun 2026 07:12:49 +0000
-Message-ID: <cover.1780064327.git.d@ilvokhin.com>
+Subject: [PATCH v5 3/4] cleanup: Annotate guard constructors with nonnull
+Date: Tue,  2 Jun 2026 07:12:52 +0000
+Message-ID: <85fee12eec20abfcf711443518e8f0caec982a86.1780064327.git.d@ilvokhin.com>
 X-Mailer: git-send-email 2.54.0
+In-Reply-To: <cover.1780064327.git.d@ilvokhin.com>
+References: <cover.1780064327.git.d@ilvokhin.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -55,69 +58,72 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Unconditional guard destructors have dead NULL checks. The lock operation in
-the constructor would crash before the destructor ever runs with NULL.
+Add __nonnull_args() to unconditional guard constructors so the compiler
+warns when NULL is statically known to be passed:
 
-- Patches 1-2 prepare guards that legitimately handle NULL.
-- Patch 3 adds __nonnull_args() to guard constructors for compile-time
-  enforcement.
-- Patch 4 removes the dead checks.
+- DEFINE_GUARD(): re-declare the constructor with __nonnull_args().
+- __DEFINE_LOCK_GUARD_1(): annotate the constructor directly.
 
-As compiled by GCC-11 with defconfig on top of the locking/core:
+DEFINE_LOCK_GUARD_0() needs no annotation: its constructor takes no
+pointer arguments (.lock is hardcoded to (void *)1).
 
-    Total: Before=23889980, After=23834334, chg -0.23%
+Define the __nonnull_args() macro in compiler_attributes.h, following
+the existing convention for attribute wrappers. Deliberately not named
+'__nonnull', to avoid clashing with glibc's __nonnull() when kernel and
+userspace headers are combined (User Mode Linux for example).
 
-Changes in v5:
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+---
+Miguel, I dropped your Acked-by due to the rename. Went with
+__nonnull_args() (over __knonnull()). Happy to restore your tag if that
+spelling works for you.
 
-- Renamed __nonnull() attribute to __nonnull_args() to fix User Mode Linux
-  build failures (kernel test robot).
-- Dropped Acked-by tag from Miguel, since I renamed the attribute.
-
-Changes in v4:
-
-- Re-worded commit message paragraph about nonnull "compiler-enforced
-  verification" (Miguel Ojeda).
-- Fixed GCC documentation link for nonnull() attribute (Miguel Ojeda).
-- Placed nonnull() before nonstring() in
-  include/linux/compiler_attributes.h (Miguel Ojeda).
-- Picked up tags, where appropriate.
-
-Changes in v3:
-
-- Audited usages of DEFINE_GUARD(), __DEFINE_UNLOCK_GUARD() and
-  DEFINE_LOCK_GUARD_1() to make sure NULL check removal will work correctly
-  (Peter Zijlstra).
-- Moved NULL check into irqdesc_lock unlock expression (Peter Zijlstra).
-- Added compiler-enforced nonnull() check for guard constructors.
-- Converted nvdimm_bus guard to class.
-
-Changes in v2:
-
-- Expand commit message with detailed reasoning, why the proposed
-  change is correct.
-- Rebase on top of locking/core.
-
-v4: https://lore.kernel.org/all/cover.1779286416.git.d@ilvokhin.com/
-v3: https://lore.kernel.org/all/cover.1779116497.git.d@ilvokhin.com/
-v2: https://lore.kernel.org/all/20260512071510.92451-1-d@ilvokhin.com/
-v1: https://lore.kernel.org/all/20260427165037.205337-1-d@ilvokhin.com/
-
-See also [1] for relevant discussion.
-
-[1]: https://lore.kernel.org/all/afCS4d4YccQFtvpi@shell.ilvokhin.com/
-
-Dmitry Ilvokhin (4):
-  nvdimm: Convert nvdimm_bus guard to class
-  genirq: Move NULL check into irqdesc_lock guard unlock expression
-  cleanup: Annotate guard constructors with nonnull
-  cleanup: Remove NULL check from unconditional guards
-
- drivers/nvdimm/nd.h                 | 7 +++++--
- include/linux/cleanup.h             | 8 +++++---
+ include/linux/cleanup.h             | 4 +++-
  include/linux/compiler_attributes.h | 9 +++++++++
- kernel/irq/internals.h              | 2 +-
- 4 files changed, 20 insertions(+), 6 deletions(-)
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
+diff --git a/include/linux/cleanup.h b/include/linux/cleanup.h
+index ea95ca4bc11c..4e60d519713c 100644
+--- a/include/linux/cleanup.h
++++ b/include/linux/cleanup.h
+@@ -397,6 +397,7 @@ static __maybe_unused const bool class_##_name##_is_conditional = _is_cond
+ 	__DEFINE_GUARD_LOCK_PTR(_name, _T)
+ 
+ #define DEFINE_GUARD(_name, _type, _lock, _unlock) \
++	static __always_inline __nonnull_args() _type class_##_name##_constructor(_type _T); \
+ 	DEFINE_CLASS(_name, _type, if (_T) { _unlock; }, ({ _lock; _T; }), _type _T); \
+ 	DEFINE_CLASS_IS_GUARD(_name)
+ 
+@@ -497,7 +498,8 @@ static __always_inline void class_##_name##_destructor(class_##_name##_t *_T) \
+ __DEFINE_GUARD_LOCK_PTR(_name, &_T->lock)
+ 
+ #define __DEFINE_LOCK_GUARD_1(_name, _type, ...)			\
+-static __always_inline class_##_name##_t class_##_name##_constructor(_type *l) \
++static __always_inline __nonnull_args()					\
++class_##_name##_t class_##_name##_constructor(_type *l)			\
+ 	__no_context_analysis						\
+ {									\
+ 	class_##_name##_t _t = { .lock = l }, *_T = &_t;		\
+diff --git a/include/linux/compiler_attributes.h b/include/linux/compiler_attributes.h
+index c16d4199bf92..cffe09387ea6 100644
+--- a/include/linux/compiler_attributes.h
++++ b/include/linux/compiler_attributes.h
+@@ -230,6 +230,15 @@
+  */
+ #define   noinline                      __attribute__((__noinline__))
+ 
++/*
++ * Note: deliberately not named '__nonnull', to avoid clashing with glibc's
++ * __nonnull() when kernel and userspace headers are combined.
++ *
++ *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-nonnull
++ * clang: https://clang.llvm.org/docs/AttributeReference.html#nonnull
++ */
++#define __nonnull_args(x...)		__attribute__((__nonnull__(x)))
++
+ /*
+  * Optional: only supported since gcc >= 8
+  * Optional: not supported by clang
 -- 
 2.53.0-Meta
 
