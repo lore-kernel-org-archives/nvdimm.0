@@ -1,32 +1,31 @@
 Received: from mail.ilvokhin.com (mail.ilvokhin.com [178.62.254.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE8813403F8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE9A3357D01
 	for <nvdimm@lists.linux.dev>; Tue,  2 Jun 2026 07:21:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.62.254.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780384918; cv=none; b=DAICBv0QgrugeMNMK49NdcM7WGzQcvYWS4Fz5nT2/vgg3wLmS5X0PGZgVpsWCk94dQFzzCHktIiQPKhBuHwyro/iKpcl+MJMbF+TSTx1hXA3R4KsfqBMT8OZTWgOqE/SPRdAVDwKiBBMAyL5gg2E6KlQ7Vv71Ew+8c6GvrE/dtY=
+	t=1780384918; cv=none; b=g0+PzTKMNyT96y2Zu2z/L09cf+cHw/Ih+4kevpXRbi3wRwuEht1IjC0ausBtJ4Bj/d1wdYDl6QtMAqG5niviJ9jvSYwDbtX0G84E7T8AuTt2W21YHWy6ajFpwFr/fblp/KWfX31F4Ud2GuDbqQJbNPnw7ManY6btKRAnWP4gEbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780384918; c=relaxed/simple;
-	bh=mcvj+8lOeLGrpyvRQQKjTlbXgdUQb58WT2ZOQaIZbvA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KVIhGPa5uuX/LT8B9mkIvYb+s/Ccz9MggHXiHYGicv1C+D2tFzLiD/iWwcyEcCR0w+DfU1YBJ/ijA5ZAuvv4wDYsSg/ipmBWygpKj2KeKHEzu6ZjUvOeg5/lh3GzLCQAlhrDY53RvpF6KYCeNDGQVcoQu8tMzSJ+iSx7NFLnqpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=O5PmzJPQ; arc=none smtp.client-ip=178.62.254.231
+	bh=w7tP9fKpuSQmCy7NYtaD0k2nekKXSXAf38fh5MMgVr8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=F1le+BhK0ztpYMzwARAa6LwmQ5UoQE5MWiM6uC+RRdhsjTsymV+CrJQIZ+sVnwZQB7Cung3RrHGVKTCR6waLRo2ddtQmJGN2pAhzUIRgHwPVZygM7FAYvqcBp6rDyTAwFQHB/3KTiRMJcPYgKY5t/akMxwJVsdt1sBa0WL1WmeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com; spf=pass smtp.mailfrom=ilvokhin.com; dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b=U9TXoKy8; arc=none smtp.client-ip=178.62.254.231
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ilvokhin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="O5PmzJPQ"
+	dkim=pass (1024-bit key) header.d=ilvokhin.com header.i=@ilvokhin.com header.b="U9TXoKy8"
 Received: from localhost.localdomain (shell.ilvokhin.com [138.68.190.75])
 	(Authenticated sender: d@ilvokhin.com)
-	by mail.ilvokhin.com (Postfix) with ESMTPSA id 29631D0F6C;
-	Tue, 02 Jun 2026 07:13:31 +0000 (UTC)
+	by mail.ilvokhin.com (Postfix) with ESMTPSA id E7874D0F5F;
+	Tue, 02 Jun 2026 07:13:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ilvokhin.com;
-	s=mail; t=1780384411;
-	bh=wLXXDlJ/Kxp3Cp2KJoa7FnY+i+nRO7rY9YwMwddxJq8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=O5PmzJPQQm9wQcEZ2Jqis/QLMEQOkkjveUjH0SpE2xGnFIA/WeL8h25Z6fWKhp+Uo
-	 SR2OjmkoIyffFaGReFL1Wzn2jWkgJFvTSJDAcAqfaJ3dOiTOWfKaGcGO+lbK1zDFJR
-	 EqvxDWzR2ygXNycgzNDV3NlplOHbGlc+D0dg6iTs=
+	s=mail; t=1780384410;
+	bh=0qtKkckt9JyUfNuorH5TPUvvCM0+T6UIOHmjMyEJuIc=;
+	h=From:To:Cc:Subject:Date;
+	b=U9TXoKy8bydOm/pB7jK9QzuMctLVKJB4ktSSjzPQi+i+j8sTGV0drs4RBpxeE2Sjo
+	 RoMD99yfnZ2kPt9WKe2MfIzhrBeyINbBpFfp6qhjNpRIkmuR2E1R2YBLinHLChGmtf
+	 8daVng1/FTEMqeLDiy1XWycaTB5WQpoaEhRAqq1o=
 From: Dmitry Ilvokhin <d@ilvokhin.com>
 To: Peter Zijlstra <peterz@infradead.org>,
 	Dan Williams <djbw@kernel.org>,
@@ -44,12 +43,10 @@ Cc: nvdimm@lists.linux.dev,
 	linux-mm@kvack.org,
 	kernel-team@meta.com,
 	Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: [PATCH v5 4/4] cleanup: Remove NULL check from unconditional guards
-Date: Tue,  2 Jun 2026 07:12:53 +0000
-Message-ID: <0503a089389b2270c478a873e095cf0a4ff26d24.1780064327.git.d@ilvokhin.com>
+Subject: [PATCH v5 0/4] cleanup: Remove NULL check from unconditional guards
+Date: Tue,  2 Jun 2026 07:12:49 +0000
+Message-ID: <cover.1780064327.git.d@ilvokhin.com>
 X-Mailer: git-send-email 2.54.0
-In-Reply-To: <cover.1780064327.git.d@ilvokhin.com>
-References: <cover.1780064327.git.d@ilvokhin.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -58,72 +55,69 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The unconditional guard destructors check whether the lock pointer is
-NULL before unlocking. This check is dead code because unconditional
-guards guarantee a non-NULL lock pointer at destructor time.
+Unconditional guard destructors have dead NULL checks. The lock operation in
+the constructor would crash before the destructor ever runs with NULL.
 
-DEFINE_GUARD() runs the lock operation unconditionally in the
-constructor. If the pointer were NULL, the lock operation (e.g.
-mutex_lock(NULL)) would crash before the constructor returns. The
-destructor never runs with a NULL pointer. All DEFINE_GUARD() users
-dereference the pointer in their lock. Verified by auditing every
-instance found by: git grep -n -A 1 'DEFINE_GUARD('. The only exception
-is xe_pm_runtime_release_only, whose constructor is a noop, but it has
-no callers.
-
-__DEFINE_UNLOCK_GUARD() has only a few usages outside of
-include/linux/cleanup.h: tty_port_tty (NULL-checks in its tty_kref_put()
-call), irqdesc_lock (fixed earlier) and two guards in
-kernel/sched/sched.h (dereference the pointer unconditionally in their
-lock constructors).
-
-DEFINE_LOCK_GUARD_1() sets .lock from its argument and runs the lock
-operation in the constructor. Same reasoning applies. All
-DEFINE_LOCK_GUARD_1() users dereference the pointer in their lock. Also,
-verified by auditing every match of: git grep -n 'DEFINE_LOCK_GUARD_1('.
-
-DEFINE_LOCK_GUARD_0() hardcodes .lock = (void *)1 in the constructor,
-so it is never NULL by construction.
-
-Conditional (_try) variants: DEFINE_GUARD_COND() and
-DEFINE_LOCK_GUARD_1_COND() use EXTEND_CLASS_COND(), whose wrapper
-destructor returns early when the lock was not acquired, before reaching
-the base destructor since commit 2deccd5c862a ("cleanup: Optimize
-guards"):
-
-    if (_cond) return; class_##_name##_destructor(_T);
+- Patches 1-2 prepare guards that legitimately handle NULL.
+- Patch 3 adds __nonnull_args() to guard constructors for compile-time
+  enforcement.
+- Patch 4 removes the dead checks.
 
 As compiled by GCC-11 with defconfig on top of the locking/core:
 
     Total: Before=23889980, After=23834334, chg -0.23%
 
-Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
----
- include/linux/cleanup.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Changes in v5:
 
-diff --git a/include/linux/cleanup.h b/include/linux/cleanup.h
-index 4e60d519713c..65416938e318 100644
---- a/include/linux/cleanup.h
-+++ b/include/linux/cleanup.h
-@@ -398,7 +398,7 @@ static __maybe_unused const bool class_##_name##_is_conditional = _is_cond
- 
- #define DEFINE_GUARD(_name, _type, _lock, _unlock) \
- 	static __always_inline __nonnull_args() _type class_##_name##_constructor(_type _T); \
--	DEFINE_CLASS(_name, _type, if (_T) { _unlock; }, ({ _lock; _T; }), _type _T); \
-+	DEFINE_CLASS(_name, _type, _unlock, ({ _lock; _T; }), _type _T); \
- 	DEFINE_CLASS_IS_GUARD(_name)
- 
- #define DEFINE_GUARD_COND_4(_name, _ext, _lock, _cond) \
-@@ -492,7 +492,7 @@ typedef struct {							\
- static __always_inline void class_##_name##_destructor(class_##_name##_t *_T) \
- 	__no_context_analysis						\
- {									\
--	if (_T->lock) { _unlock; }					\
-+	_unlock;							\
- }									\
- 									\
- __DEFINE_GUARD_LOCK_PTR(_name, &_T->lock)
+- Renamed __nonnull() attribute to __nonnull_args() to fix User Mode Linux
+  build failures (kernel test robot).
+- Dropped Acked-by tag from Miguel, since I renamed the attribute.
+
+Changes in v4:
+
+- Re-worded commit message paragraph about nonnull "compiler-enforced
+  verification" (Miguel Ojeda).
+- Fixed GCC documentation link for nonnull() attribute (Miguel Ojeda).
+- Placed nonnull() before nonstring() in
+  include/linux/compiler_attributes.h (Miguel Ojeda).
+- Picked up tags, where appropriate.
+
+Changes in v3:
+
+- Audited usages of DEFINE_GUARD(), __DEFINE_UNLOCK_GUARD() and
+  DEFINE_LOCK_GUARD_1() to make sure NULL check removal will work correctly
+  (Peter Zijlstra).
+- Moved NULL check into irqdesc_lock unlock expression (Peter Zijlstra).
+- Added compiler-enforced nonnull() check for guard constructors.
+- Converted nvdimm_bus guard to class.
+
+Changes in v2:
+
+- Expand commit message with detailed reasoning, why the proposed
+  change is correct.
+- Rebase on top of locking/core.
+
+v4: https://lore.kernel.org/all/cover.1779286416.git.d@ilvokhin.com/
+v3: https://lore.kernel.org/all/cover.1779116497.git.d@ilvokhin.com/
+v2: https://lore.kernel.org/all/20260512071510.92451-1-d@ilvokhin.com/
+v1: https://lore.kernel.org/all/20260427165037.205337-1-d@ilvokhin.com/
+
+See also [1] for relevant discussion.
+
+[1]: https://lore.kernel.org/all/afCS4d4YccQFtvpi@shell.ilvokhin.com/
+
+Dmitry Ilvokhin (4):
+  nvdimm: Convert nvdimm_bus guard to class
+  genirq: Move NULL check into irqdesc_lock guard unlock expression
+  cleanup: Annotate guard constructors with nonnull
+  cleanup: Remove NULL check from unconditional guards
+
+ drivers/nvdimm/nd.h                 | 7 +++++--
+ include/linux/cleanup.h             | 8 +++++---
+ include/linux/compiler_attributes.h | 9 +++++++++
+ kernel/irq/internals.h              | 2 +-
+ 4 files changed, 20 insertions(+), 6 deletions(-)
+
 -- 
 2.53.0-Meta
 
