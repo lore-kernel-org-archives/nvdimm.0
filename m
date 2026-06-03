@@ -1,131 +1,237 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4F2D2253FC
-	for <nvdimm@lists.linux.dev>; Wed,  3 Jun 2026 00:18:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E067C3557F3;
+	Wed,  3 Jun 2026 17:58:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780445883; cv=none; b=JsAjf/NywuBVqfAFZZd7TOPdvY2QhMclp7l6vhIXWHp9Zh9sV4n0XL1+iCMgDDwkJjGwR7ZL6sKiajF+1ikq2IBlM1ql8ISLfslWHTJulvZWTCqznRnM1Jg7YCtZhVFTGPMqHwK3qEaaTb7+oFMPvalT6IrJ9xL6iGkBwgWbCcA=
+	t=1780509536; cv=none; b=HixAKj+6GLX4/sqpiBFuwGuVppQGSSKw3Ymum0nWTSaOLf208HCftqY151FBLVBShx4u5OAjs6vMvlE8Qmzf+WOomGo9Xu+1qlwgJyOQrJvw4lXlxuazHHes1oyUvhusVfqkhtXK+Pr1YILknt+xJFTqrr4hdbPmv619EtfbgB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780445883; c=relaxed/simple;
-	bh=j5a4EnHiKf7RaWJzPddfZ7I45WAetzuNsDXT5s0Zq/w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NzvoLRmvwnaY/c8meQ6R7p2290aU28RoJQ3q9X09/MqM/LOnDZCa28rPUB9YJNTDrerBMGxJU1tnKdh5m3JnE1DK2thsnI/eLV00DuybwfKPKtoxIISVD3QyOhg1L0SbJVTdc6QvKbob6e5mijDxM2XjTJXaoELxJdjduUh48yM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OdFVx25b; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1780509536; c=relaxed/simple;
+	bh=Zc8fXrb46LEoy8VwpRmWulRnHhMEcM0+RbdVfozF/rA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Ha/9BK3yBh1Jlin/1nOpxbunQM2BHtxV78/UWzPVPebP0k8T2WVSnIAHasYP1TckPxf7UmidvU7yuPP0sIN5phlE8OhpRuWkfwRCoqJsgPCgaKr4k7fenlGCZwCXt/dYQlyDr121y6SwWQf2Uxo3j2TGiHcw1wRYUDbFwqG4PAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LkbONOMe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OdFVx25b"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780445882; x=1811981882;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=j5a4EnHiKf7RaWJzPddfZ7I45WAetzuNsDXT5s0Zq/w=;
-  b=OdFVx25b0T/A6UbjwQ6CAfl1OYxGKurhTvdFDZZeKb8U4MkriV/6zb0k
-   rhoiOk1EIj0T8w8aYvYWSB9riQwpB/j7huSxBCrCd/6WqPl9+uEcbJA07
-   NZAbfBHH+/tAj/auEn3dvI26gP/qOX0eP0ZDnSusKNW4pb8BdHeGWDI6Z
-   9uhB8eRRNLQB02ybydFTYwuqwHc2KEPeBQlh7JMOrT03gJAjlqRNcLQZ6
-   cxoCGQiuws0prNbcSmy7nVwXPNwxbK5vwQtGbPwYkaEjEq+gtq5mhH3OG
-   9Hh5TABClcOhV4zS3KbYC7uhXrgS388pOerij6slJGplDN/hUeKAFJcZw
-   A==;
-X-CSE-ConnectionGUID: rspwaf1RT5uN/le51FsHpQ==
-X-CSE-MsgGUID: Ep5/Ic5xT+GgBMqArGQzQA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11805"; a="81274796"
-X-IronPort-AV: E=Sophos;i="6.24,184,1774335600"; 
-   d="scan'208";a="81274796"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 17:18:02 -0700
-X-CSE-ConnectionGUID: QqOEc7o8QeibjRKTdoq74w==
-X-CSE-MsgGUID: zSlGOjfITn6UgTOfJDjhYg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,184,1774335600"; 
-   d="scan'208";a="244144753"
-Received: from rchatre-mobl4.amr.corp.intel.com (HELO [10.125.108.56]) ([10.125.108.56])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 17:18:00 -0700
-Message-ID: <0079f36f-0605-4ab4-97c6-5223340a2ebd@intel.com>
-Date: Tue, 2 Jun 2026 17:17:58 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LkbONOMe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D87CD1F00893;
+	Wed,  3 Jun 2026 17:58:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780509534;
+	bh=oiP2G/mtXOs9lAy77CtOPTk1mzyarWI2Su/UbBwV4qs=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=LkbONOMerGGob3SND6C/mP2rsMxj+lQ7crJbQL0BGQTjzLkcU8fVkGcmooOAOaUzI
+	 SwGT/b9WBDZSQSqCKQeXYX9F56FDmj5LsFMtOzXARMOHX7LiAom1qUiIDc0s7pSzGm
+	 o25y80U19FDKG54LbAa/v0T0eZqavD1wgCKfoXVJw4Vij5Q+ufyKWIllcS+LOtkzDx
+	 T5zrtLppsRwoT6PpWajY7+NPBvEPpc1E/AONRPdC6mGTQMAkM/Ozq2NSMoOVfw+SJF
+	 pjPltsm9I5Gr3YwuoHFj2trzMi84UU1YA0w88jmbcASp5XZFElYC70JE7CTHNrf2KW
+	 i6YYcRz3/JuCQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Dan Williams <djbw@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>,
+ Xiang Chen <chenxiang66@hisilicon.com>
+Subject:
+ [PATCH v2 4/4] ACPI: NFIT: core: Fix possible deadlock and missing
+ notifications
+Date: Wed, 03 Jun 2026 19:58:23 +0200
+Message-ID: <3420096.aeNJFYEL58@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <5110904.31r3eYUQgx@rafael.j.wysocki>
+References: <5110904.31r3eYUQgx@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V3 2/9] dax/fsdev: fix multi-range offset in
- memory_failure handler
-To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
- Dan Williams <djbw@kernel.org>
-Cc: John Groves <jgroves@micron.com>, Vishal Verma
- <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>,
- Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>,
- Alison Schofield <alison.schofield@intel.com>, Ira Weiny
- <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-References: <0100019e79caead2-5795328c-af48-4a93-b147-c11df7446e1a-000000@email.amazonses.com>
- <20260530165037.6619-1-john@jagalactic.com>
- <0100019e79cb8953-e505a8dc-63a4-4bc3-a9bd-3b86ec081838-000000@email.amazonses.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <0100019e79cb8953-e505a8dc-63a4-4bc3-a9bd-3b86ec081838-000000@email.amazonses.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+
+After commit 9b311b7313d6 ("ACPI: NFIT: Install Notify() handler before
+getting NFIT table"), ACPI NFIT driver removal may deadlock if an ACPI
+notify on the NFIT device is triggered concurrently.  A similar deadlock
+may occur if an ACPI notify on the NFIT device is triggered during a
+failing driver probe.
+
+The deadlock is possible because acpi_dev_remove_notify_handler() calls
+acpi_os_wait_events_complete() after removing the notify handler and the
+driver core invokes it under the NFIT platform device lock which is also
+acquired by acpi_nfit_notify().  Thus acpi_os_wait_events_complete() may
+be waiting for acpi_nfit_notify() to complete, but the latter may not be
+able to acquire the device lock which is being held by the driver core
+while the former is being executed.
+
+Moreover, after commit 03667e146f81 ("ACPI: NFIT: core: Convert the
+driver to a platform one"), there are no sysfs notifications regarding
+NVDIMM devices because __acpi_nvdimm_notify() always bails out after
+checking the driver data pointer of the device's parent.  That parent
+is the ACPI companion of the platform device used for driver binding,
+so its driver data pointer is always NULL after the commit in question
+which was overlooked by it.
+
+A remedy for the deadlock is to use a special separate lock for ACPI
+notify synchronization with driver probe and removal instead of the
+device lock of the NFIT device, while a remedy for the second issue
+is to populate the driver data pointer of the NFIT device's ACPI
+companion when the driver is ready to operate, so do both these things.
+However, since the new lock is not held across the entire teardown and
+acpi_nfit_notify() should do nothing when teardown is in progress, make
+it check the driver data pointer of the NFIT device's ACPI companion, in
+analogy with the existing check in __acpi_nvdimm_notify(), and bail out
+if that pointer is NULL.
+
+Fixes: 9b311b7313d6 ("ACPI: NFIT: Install Notify() handler before getting NFIT table")
+Fixes: 03667e146f81 ("ACPI: NFIT: core: Convert the driver to a platform one")
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: All applicable <stable@vger.kernel.org>
+---
+ drivers/acpi/nfit/core.c | 63 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 51 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index aaa84ae7a20e..cb771d9cadb2 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -56,6 +56,8 @@ MODULE_PARM_DESC(force_labels, "Opt-in to labels despite missing methods");
+ LIST_HEAD(acpi_descs);
+ DEFINE_MUTEX(acpi_desc_lock);
+ 
++DEFINE_MUTEX(acpi_notify_lock);
++
+ static struct workqueue_struct *nfit_wq;
+ 
+ struct nfit_table_prev {
+@@ -1708,9 +1710,15 @@ static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
+ 	struct acpi_device *adev = data;
+ 	struct device *dev = &adev->dev;
+ 
+-	device_lock(dev->parent);
++	/*
++	 * Locking is needed here for synchronization with driver probe and
++	 * removal and the parent's driver data pointer is NULL when teardown
++	 * is in progress (while the parent here is expected to be the ACPI
++	 * companion of the platform device used for driver binding).
++	 */
++	guard(mutex)(&acpi_notify_lock);
++
+ 	__acpi_nvdimm_notify(dev, event);
+-	device_unlock(dev->parent);
+ }
+ 
+ static bool acpi_nvdimm_has_method(struct acpi_device *adev, char *method)
+@@ -3156,11 +3164,10 @@ EXPORT_SYMBOL_GPL(acpi_nfit_init);
+ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+-	struct device *dev = acpi_desc->dev;
+ 
+-	/* Bounce the device lock to flush acpi_nfit_add / acpi_nfit_notify */
+-	device_lock(dev);
+-	device_unlock(dev);
++	/* Bounce the notify lock to flush acpi_nfit_probe / acpi_nfit_notify */
++	mutex_lock(&acpi_notify_lock);
++	mutex_unlock(&acpi_notify_lock);
+ 
+ 	/* Bounce the init_mutex to complete initial registration */
+ 	mutex_lock(&acpi_desc->init_mutex);
+@@ -3292,10 +3299,17 @@ static void acpi_nfit_put_table(void *table)
+ static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct device *dev = data;
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 
+-	device_lock(dev);
+-	__acpi_nfit_notify(dev, handle, event);
+-	device_unlock(dev);
++	/*
++	 * Locking is needed here for synchronization with driver probe and
++	 * removal and the ACPI companion's driver data pointer is NULL when
++	 * teardown is in progress.
++	 */
++	guard(mutex)(&acpi_notify_lock);
++
++	if (dev_get_drvdata(&adev->dev))
++		__acpi_nfit_notify(dev, handle, event);
+ }
+ 
+ void acpi_nfit_shutdown(void *data)
+@@ -3337,11 +3351,18 @@ static int acpi_nfit_probe(struct platform_device *pdev)
+ 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_nfit_desc *acpi_desc;
+ 	struct device *dev = &pdev->dev;
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	struct acpi_table_header *tbl;
+ 	acpi_status status = AE_OK;
+ 	acpi_size sz;
+ 	int rc = 0;
+ 
++	/*
++	 * Prevent acpi_nfit_notify() from progressing until the probe is
++	 * complete in case there is a concurrent event to process.
++	 */
++	guard(mutex)(&acpi_notify_lock);
++
+ 	rc = devm_acpi_install_notify_handler(dev, ACPI_DEVICE_NOTIFY,
+ 					      acpi_nfit_notify, dev);
+ 	if (rc)
+@@ -3357,6 +3378,11 @@ static int acpi_nfit_probe(struct platform_device *pdev)
+ 		 * data in the format of a series of NFIT Structures.
+ 		 */
+ 		dev_dbg(dev, "failed to find NFIT at startup\n");
++		/*
++		 * Let acpi_nfit_update_notify() run in case it will need to
++		 * allocate the acpi_desc object.
++		 */
++		dev_set_drvdata(&adev->dev, dev);
+ 		return 0;
+ 	}
+ 
+@@ -3374,7 +3400,7 @@ static int acpi_nfit_probe(struct platform_device *pdev)
+ 	acpi_desc->acpi_header = *tbl;
+ 
+ 	/* Evaluate _FIT and override with that if present */
+-	status = acpi_evaluate_object(ACPI_HANDLE(dev), "_FIT", NULL, &buf);
++	status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
+ 	if (ACPI_SUCCESS(status) && buf.length > 0) {
+ 		union acpi_object *obj = buf.pointer;
+ 
+@@ -3391,14 +3417,27 @@ static int acpi_nfit_probe(struct platform_device *pdev)
+ 				+ sizeof(struct acpi_table_nfit),
+ 				sz - sizeof(struct acpi_table_nfit));
+ 
+-	if (rc)
++	if (rc) {
+ 		acpi_nfit_shutdown(acpi_desc);
++		return rc;
++	}
+ 
+-	return rc;
++	/*
++	 * Let notify handlers operate (the actual value of the ACPI companion's
++	 * driver data pointer does not matter here so long as it is not NULL).
++	 */
++	dev_set_drvdata(&adev->dev, dev);
++	return 0;
+ }
+ 
+ static void acpi_nfit_remove(struct platform_device *pdev)
+ {
++	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
++
++	guard(mutex)(&acpi_notify_lock);
++
++	/* Make notify handlers bail out early going forward. */
++	dev_set_drvdata(&adev->dev, NULL);
+ 	acpi_nfit_shutdown(platform_get_drvdata(pdev));
+ }
+ 
+-- 
+2.51.0
 
 
 
-On 5/30/26 9:50 AM, John Groves wrote:
-> From: John Groves <John@Groves.net>
-> 
-> Fix memory_failure offset calculation for multi-range devices. The old code
-> subtracted ranges[0].range.start from the faulting PFN's physical address,
-> which produces an incorrect (inflated) logical offset when the PFN falls in
-> ranges[1] or beyond due to physical gaps between ranges. Add
-> fsdev_pfn_to_offset() to walk the range list and compute the correct
-> device-linear byte offset.
-> 
-> Fixes: d5406bd458b0a ("dax: add fsdev.c driver for fs-dax on character dax")
-> Signed-off-by: John Groves <john@groves.net>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
-> ---
->  drivers/dax/fsdev.c | 17 ++++++++++++++++-
->  1 file changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> index 188b2526bee45..f315533b299e9 100644
-> --- a/drivers/dax/fsdev.c
-> +++ b/drivers/dax/fsdev.c
-> @@ -135,11 +135,26 @@ static void fsdev_clear_ops(void *data)
->   * The core mm code in free_zone_device_folio() handles the wake_up_var()
->   * directly for this memory type.
->   */
-> +static u64 fsdev_pfn_to_offset(struct dev_dax *dev_dax, unsigned long pfn)
-> +{
-> +	phys_addr_t phys = PFN_PHYS(pfn);
-> +	u64 offset = 0;
-> +
-> +	for (int i = 0; i < dev_dax->nr_range; i++) {
-> +		struct range *range = &dev_dax->ranges[i].range;
-> +
-> +		if (phys >= range->start && phys <= range->end)
-> +			return offset + (phys - range->start);
-> +		offset += range_len(range);
-> +	}
-> +	return -1ULL;
-> +}
-> +
->  static int fsdev_pagemap_memory_failure(struct dev_pagemap *pgmap,
->  		unsigned long pfn, unsigned long nr_pages, int mf_flags)
->  {
->  	struct dev_dax *dev_dax = pgmap->owner;
-> -	u64 offset = PFN_PHYS(pfn) - dev_dax->ranges[0].range.start;
-> +	u64 offset = fsdev_pfn_to_offset(dev_dax, pfn);
->  	u64 len = nr_pages << PAGE_SHIFT;
->  
->  	return dax_holder_notify_failure(dev_dax->dax_dev, offset,
 
