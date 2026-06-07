@@ -1,38 +1,38 @@
-Received: from a11-131.smtp-out.amazonses.com (a11-131.smtp-out.amazonses.com [54.240.11.131])
+Received: from a11-17.smtp-out.amazonses.com (a11-17.smtp-out.amazonses.com [54.240.11.17])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD8831E826
-	for <nvdimm@lists.linux.dev>; Sun,  7 Jun 2026 19:33:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B64130E82C
+	for <nvdimm@lists.linux.dev>; Sun,  7 Jun 2026 19:33:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780860812; cv=none; b=dXZ8TPkd60Lc7p26qk1+kLZvnTTmOUW8/BeHZWM3TIp0HELSROfabY/Ki17BpEghsmi0IZ5iuA6bqMwb6vdtJz9vyO34RzmCppg83BHhxE/96DNE8y1occCzxn0nmaSwUVZ7td/djLT1acLUKkV/ukaSd4y2a1kXOxjRFG+1o7k=
+	t=1780860822; cv=none; b=YDEWyro1SOMUnuR9oaT6leOpuwyH587cSWhvnQ2i3Z0s+L12c6Aj86gxznsQZs4uAWXhthab0v4a7/leT9unoC3uPdGvPbRCVB9do6CizU15tESMDxMBBPJJC3tDjbO35JpqBhZe0pxFaikCTbYM4AehHvdlmJoMqTmAi4K2PZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780860812; c=relaxed/simple;
-	bh=4tanUO3miWAURhJritZbKxZlEXb0a0H/iJgHp+eqKpA=;
+	s=arc-20240116; t=1780860822; c=relaxed/simple;
+	bh=o9HkjDcwr/AZtPnHQmpVwqIAa+lmqSaFJyxOwTl0bZQ=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=FF4HQS1/nZ8Lc1t2XZdLF+kFaIKE/68nUqVmNQDuGMqQ5+YAWMfZM7P4Zged5LF6oeusz6gvF2cUZP7nQ1/dwlGEFSofwJW+8lQhbr11v8RU1fDbpblbm3nH80uvpi1RCdscoWIi8APF1mxGR9+aRMBQ+4AI0KZ0FD567vci46I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=BKGBF0f/; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=lQZshmQw; arc=none smtp.client-ip=54.240.11.131
+	 References:Message-ID; b=E5LUqxnPnitFxa1FJQCTTQ83tOzBgBswvZY+bQUROSk7OiRKNopTisViDoU3o7r3+3oezIelTEiCE/uWQAMXfJgLARLzS0i98BtSvWJC7UV18xmfa4jDHchPpGtBA8omSp5FIzHkkdMAeMU8KuFuvVoAPX5F1aXoCV3cCUB7maU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=k7FGSIhW; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=Rk5/MX8p; arc=none smtp.client-ip=54.240.11.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="BKGBF0f/";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="lQZshmQw"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="k7FGSIhW";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="Rk5/MX8p"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780860810;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780860820;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=4tanUO3miWAURhJritZbKxZlEXb0a0H/iJgHp+eqKpA=;
-	b=BKGBF0f/zu7Uhv+90Nk65lcPrPGDO1B+cxRMw8ZbHlq0nmvdKU1ze6QQ7ODOPcu8
-	GA9MWs4PoClKN/8q1PsZoHZKKnbFpjBKMbomS7MhyWc50L8EugO2CBWGGGnhdmL0mVm
-	/FYXgvcboN5Nr063A6/JsTiMDcjf6yxXTohx/C7M=
+	bh=o9HkjDcwr/AZtPnHQmpVwqIAa+lmqSaFJyxOwTl0bZQ=;
+	b=k7FGSIhWzJQozmRuHIwYD2to+oxxtIoi9+yrRpu+jGjgVslzHayGBJAusHm6vA0y
+	vfdI6KIB0+uQHzbUm31nRYO0WTHnM7rdjGTCtYLbX/Ic8T7Z4isFojMZGZlz7JADw7E
+	URWzYfxyPcWk1rUndtb6MfUhkIIbarfqeTkywTpE=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780860810;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780860820;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=4tanUO3miWAURhJritZbKxZlEXb0a0H/iJgHp+eqKpA=;
-	b=lQZshmQwfQe1NRbAeYpco5Gxt7XpqEOaOSyd88LzecFGXeoT3hvDaPoxnMNgnWcc
-	Rii0WPI55dbyC0pu3OrN4dSUtu8CHOn549HvRuuzgJI5GY0+0JTw8rHbZm8n0UIu5V9
-	dtBHHY6fu49QB/5PxV7pNjAGdMMlwWBDzY6ThgJU=
-Subject: [PATCH V4 3/9] dax/fsdev: clear vmemmap_shift when binding static
- pgmap
+	bh=o9HkjDcwr/AZtPnHQmpVwqIAa+lmqSaFJyxOwTl0bZQ=;
+	b=Rk5/MX8pir7vLMpJN47Q0pODVlweCRu79x/s4A+Zg4dFEfrtpJmmsTE5uXyB5zMB
+	5YLbLDXPKOmy7hlBkODQBoeyvOZnxPAaGZDF0JDNRsSsSINxO0TSfvrhS2p7Yh3wFB9
+	6VaTvIPxOOu+vdLcXQHX7MFjbVwe+xxkTGb59x+w=
+Subject: [PATCH V4 4/9] dax/fsdev: don't leave a dangling dev_dax->pgmap on
+ probe failure
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>
@@ -52,7 +52,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sun, 7 Jun 2026 19:33:30 +0000
+Date: Sun, 7 Jun 2026 19:33:40 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -65,46 +65,156 @@ In-Reply-To:
  <0100019ea3929225-a0f8e6f7-30ae-4f8e-ae6f-19129666c4c3-000000@email.amazonses.com>
 References: 
  <0100019ea3929225-a0f8e6f7-30ae-4f8e-ae6f-19129666c4c3-000000@email.amazonses.com> 
- <20260607193322.94309-1-john@jagalactic.com>
+ <20260607193333.94326-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHc9rRhSPXw4ZdTQtuvnkZG9OrQIgAACNCS
-Thread-Topic: [PATCH V4 3/9] dax/fsdev: clear vmemmap_shift when binding
- static pgmap
-X-Wm-Sent-Timestamp: 1780860809
+Thread-Index: AQHc9rRhSPXw4ZdTQtuvnkZG9OrQIgAACkYl
+Thread-Topic: [PATCH V4 4/9] dax/fsdev: don't leave a dangling dev_dax->pgmap
+ on probe failure
+X-Wm-Sent-Timestamp: 1780860819
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019ea39374a8-bfa199e6-bd3a-45c6-acf1-9212be962224-000000@email.amazonses.com>
+Message-ID: <0100019ea3939aab-4a2fe020-b29c-4648-ad01-08b091ef9627-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.06.07-54.240.11.131
+X-SES-Outgoing: 2026.06.07-54.240.11.17
 
 From: John Groves <John@Groves.net>
 
-Clear pgmap->vmemmap_shift for static DAX devices. When rebinding a static
-device from device_dax (which may set vmemmap_shift based on alignment) to
-fsdev_dax, the stale vmemmap_shift persists on the shared pgmap. Explicitly
-zero it before devm_memremap_pages() so the vmemmap is built for order-0
-folios as fsdev requires.
+After the dynamic path set dev_dax->pgmap, any later probe failure left
+dev_dax->pgmap dangling: devres frees the devm_kzalloc'd pgmap on probe
+failure, and subsequent probe attempts would hit the "dynamic-dax with
+pre-populated page map" check and fail permanently.
+
+Factor pgmap acquisition out into fsdev_acquire_pgmap(), and defer the
+dev_dax->pgmap assignment until probe can no longer fail. A failed probe
+now never publishes the pointer at all, so there is nothing to unwind.
+This also matches kill_dev_dax(), which already clears the dynamic pgmap
+pointer on unbind: dev_dax->pgmap is now non-NULL only while the pgmap
+is actually valid.
+
+Refactor suggested by Dave Jiang.
 
 Fixes: d5406bd458b0a ("dax: add fsdev.c driver for fs-dax on character dax")
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 Signed-off-by: John Groves <john@groves.net>
 ---
- drivers/dax/fsdev.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/dax/fsdev.c | 77 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 49 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-index f315533b299e9..dbd722ed7ab05 100644
+index dbd722ed7ab05..0fd5e1293d725 100644
 --- a/drivers/dax/fsdev.c
 +++ b/drivers/dax/fsdev.c
-@@ -237,6 +237,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+@@ -219,47 +219,62 @@ static const struct file_operations fsdev_fops = {
+ 	.release = fsdev_release,
+ };
+ 
+-static int fsdev_dax_probe(struct dev_dax *dev_dax)
++/*
++ * Acquire the dev_pagemap for probe: the static (pre-populated) one if
++ * present, or a devm-allocated one for the dynamic case. Note that
++ * dev_dax->pgmap is not set here; fsdev_dax_probe() sets it only once
++ * probe succeeds, so a failed probe never leaves a dangling pointer
++ * to a devres-freed pgmap.
++ */
++static struct dev_pagemap *fsdev_acquire_pgmap(struct dev_dax *dev_dax)
+ {
+-	struct dax_device *dax_dev = dev_dax->dax_dev;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dev_pagemap *pgmap;
+-	struct inode *inode;
+-	u64 data_offset = 0;
+-	struct cdev *cdev;
+-	void *addr;
+-	int rc, i;
++	size_t pgmap_size;
+ 
+ 	if (static_dev_dax(dev_dax)) {
+ 		if (dev_dax->nr_range > 1) {
+-			dev_warn(dev, "static pgmap / multi-range device conflict\n");
+-			return -EINVAL;
++			dev_warn(dev,
++				 "static pgmap / multi-range device conflict\n");
++			return ERR_PTR(-EINVAL);
  		}
  
  		pgmap = dev_dax->pgmap;
-+		pgmap->vmemmap_shift = 0;
- 	} else {
- 		size_t pgmap_size;
+ 		pgmap->vmemmap_shift = 0;
+-	} else {
+-		size_t pgmap_size;
++		return pgmap;
++	}
  
+-		if (dev_dax->pgmap) {
+-			dev_warn(dev, "dynamic-dax with pre-populated page map\n");
+-			return -EINVAL;
+-		}
++	if (dev_dax->pgmap) {
++		dev_warn(dev, "dynamic-dax with pre-populated page map\n");
++		return ERR_PTR(-EINVAL);
++	}
+ 
+-		pgmap_size = struct_size(pgmap, ranges, dev_dax->nr_range - 1);
+-		pgmap = devm_kzalloc(dev, pgmap_size, GFP_KERNEL);
+-		if (!pgmap)
+-			return -ENOMEM;
++	pgmap_size = struct_size(pgmap, ranges, dev_dax->nr_range - 1);
++	pgmap = devm_kzalloc(dev, pgmap_size, GFP_KERNEL);
++	if (!pgmap)
++		return ERR_PTR(-ENOMEM);
+ 
+-		pgmap->nr_range = dev_dax->nr_range;
+-		dev_dax->pgmap = pgmap;
++	pgmap->nr_range = dev_dax->nr_range;
++	for (int i = 0; i < dev_dax->nr_range; i++)
++		pgmap->ranges[i] = dev_dax->ranges[i].range;
+ 
+-		for (i = 0; i < dev_dax->nr_range; i++) {
+-			struct range *range = &dev_dax->ranges[i].range;
++	return pgmap;
++}
+ 
+-			pgmap->ranges[i] = *range;
+-		}
+-	}
++static int fsdev_dax_probe(struct dev_dax *dev_dax)
++{
++	struct dax_device *dax_dev = dev_dax->dax_dev;
++	struct device *dev = &dev_dax->dev;
++	struct dev_pagemap *pgmap;
++	struct inode *inode;
++	u64 data_offset = 0;
++	struct cdev *cdev;
++	void *addr;
++	int rc, i;
++
++	pgmap = fsdev_acquire_pgmap(dev_dax);
++	if (IS_ERR(pgmap))
++		return PTR_ERR(pgmap);
+ 
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct range *range = &dev_dax->ranges[i].range;
+@@ -306,7 +321,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+ 	/* Detect whether the data is at a non-zero offset into the memory */
+ 	if (pgmap->range.start != dev_dax->ranges[0].range.start) {
+ 		u64 phys = dev_dax->ranges[0].range.start;
+-		u64 pgmap_phys = dev_dax->pgmap[0].range.start;
++		u64 pgmap_phys = pgmap[0].range.start;
+ 
+ 		if (!WARN_ON(pgmap_phys > phys))
+ 			data_offset = phys - pgmap_phys;
+@@ -339,7 +354,13 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+ 		return rc;
+ 
+ 	run_dax(dax_dev);
+-	return devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
++	rc = devm_add_action_or_reset(dev, fsdev_kill, dev_dax);
++	if (rc)
++		return rc;
++
++	/* Probe can no longer fail; expose the pgmap via dev_dax */
++	dev_dax->pgmap = pgmap;
++	return 0;
+ }
+ 
+ static struct dax_device_driver fsdev_dax_driver = {
 -- 
 2.53.0
 
