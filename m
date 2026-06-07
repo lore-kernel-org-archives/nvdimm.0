@@ -1,38 +1,38 @@
-Received: from a48-179.smtp-out.amazonses.com (a48-179.smtp-out.amazonses.com [54.240.48.179])
+Received: from a11-70.smtp-out.amazonses.com (a11-70.smtp-out.amazonses.com [54.240.11.70])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89C6C3FFD
-	for <nvdimm@lists.linux.dev>; Sun,  7 Jun 2026 19:32:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.48.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F86A3FFD
+	for <nvdimm@lists.linux.dev>; Sun,  7 Jun 2026 19:33:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780860754; cv=none; b=YJ2i2P1Wk7mEoWL+I8uBJnHCb3dXGOd701gnYl3BrY5D7Eo9Gc4M6hWSzxYeA3vMI01zT3LFqBSo5XURIsYQgqnoVdhkGH1yHJtSN+IAh8vml6Jm9zDUha8Iv3ESzpO4zcHbNNhZzkxzVPv7pWCwDi6oEuw9/8cyb7Hi6V/B3is=
+	t=1780860794; cv=none; b=Z/FXYDYF6KFmMSRcNioTajxuqcrSkibS0MIkLe0LJ/lEzxKs6Vt5MRzivGm9DNWJiyaG6SEww1EpRqI2if5V09xNiUpjy9ha+pOCaFnqeJG8mSvPgw1cJFT7Qu48kznOL1XGblofrKdyJ24ws4TFUkLwBtWxg/hI5KEHrePW3pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780860754; c=relaxed/simple;
-	bh=jt8Aj0XIoUivbpwTIcdaYSD25WtNq6BIuZR1ziWfZe0=;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:References:
-	 Message-ID; b=RDeMoqnVCJ+mmPQM+RIbd+IUaHtY5e1V2eFS95rFll6aTO6RD9r94FgMkPXHUuYRLu7/xe23VdLVwkgatkurFf93oLC38jCwvpVkcRoiR9BnqcUEunDSLuQiQoCzG0jCi7V+vOujoOWY6NpGjRg6k8GZBng548ijZdLFFgRGkcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=CpVLVpKg; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=CNWNqItN; arc=none smtp.client-ip=54.240.48.179
+	s=arc-20240116; t=1780860794; c=relaxed/simple;
+	bh=Obr6K+WtReHjNaqSTV7QO+J9GmsqvqYkwE7r4Q1gGUk=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
+	 References:Message-ID; b=DiOpn1MMg8BjnmvEsNSosaZzgSBFs8uFxft1sFDgkCWfIfNS/X59ocbwcGdr3F3hZ4eQKZuLunMv1xqAUaP2EMXQg+tV1HuAiXxBB3B0b0Lo55Dkkxy0G3fccc9mwWi+P9076Mvc4Ez+gDcO5GzUVp39JiGDX8LQ7Yy+SMNk0Lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=ryfxiKBj; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=T9pG2DrP; arc=none smtp.client-ip=54.240.11.70
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="CpVLVpKg";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="CNWNqItN"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="ryfxiKBj";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="T9pG2DrP"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780860752;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id;
-	bh=jt8Aj0XIoUivbpwTIcdaYSD25WtNq6BIuZR1ziWfZe0=;
-	b=CpVLVpKgWfXsumK32PV+OSPxUipVIHCX/GA8GpkYJUYCrTmid5ud5lP7z8B/INjc
-	SBHGlHb/ear4mecVA30WUxWuqwOdXrkhgPcn4Okc3UzxIVg1UvnQm10fK+hcVpXaBs9
-	vyrQ7L0i3EywErIEZMeymBh9xTq1P2JNsYSQo1UM=
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1780860792;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
+	bh=Obr6K+WtReHjNaqSTV7QO+J9GmsqvqYkwE7r4Q1gGUk=;
+	b=ryfxiKBjqBi1wyxi9nJFc4NHL3MJ96y0F9bTcmPcMdgvMokLDiSN2m9ykEY/zmt2
+	Q/f4Gw88ui0CgmcBAVzkeQJlaSzzxgOhta5ANoZSpmQlO5/ltmNBgVt+wLmPjxipYMF
+	+Zm00hb/pwixGBlh3KBPwEPieabiZJluZSPnYXOg=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780860752;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id:Feedback-ID;
-	bh=jt8Aj0XIoUivbpwTIcdaYSD25WtNq6BIuZR1ziWfZe0=;
-	b=CNWNqItNO5wZEQr4bau0YhELU+mBy8YwTZeLQBKlRmG8qIm6xiyqnqSnheSibC/P
-	WFOETu+bWjdxUq3hkrG3ztzx8QgwOe4BWG4WcxcqwLEGXyn7yc0eZogje8BaM8Ljkhj
-	QAkxWdA01Y2WTLfyWJCfTzS7ka4sNjnWqUEz3kNU=
-Subject: [PATCH V4 0/9] Fixes to the previously-merged drivers/dax/fsdev
- series
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1780860792;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
+	bh=Obr6K+WtReHjNaqSTV7QO+J9GmsqvqYkwE7r4Q1gGUk=;
+	b=T9pG2DrPZ3aiSiAEupPGO2dGnAjecQNe4utLTN5t5lZ5XrgWH0Gun5C5Ii3MqqXt
+	TloZXj7DJIxDFZ7UMSth44EDSy4bfxAcW9CXHJSm2xpWh9WSlCv9EANZ/D4pmYwL6UT
+	F3MJ/0ftKFV6nVPZdC7nz3myK1WEkwQUCqq6ErQ4=
+Subject: [PATCH V4 1/9] dax: fix misleading comment about share/index union
+ in dax_folio_reset_order()
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>
@@ -52,7 +52,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sun, 7 Jun 2026 19:32:32 +0000
+Date: Sun, 7 Jun 2026 19:33:11 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -61,106 +61,71 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-References: <20260607193224.94244-1-john@jagalactic.com>
+In-Reply-To: 
+ <0100019ea3929225-a0f8e6f7-30ae-4f8e-ae6f-19129666c4c3-000000@email.amazonses.com>
+References: 
+ <0100019ea3929225-a0f8e6f7-30ae-4f8e-ae6f-19129666c4c3-000000@email.amazonses.com> 
+ <20260607193305.94271-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHc9rRhSPXw4ZdTQtuvnkZG9OrQIg==
-Thread-Topic: [PATCH V4 0/9] Fixes to the previously-merged drivers/dax/fsdev
- series
-X-Wm-Sent-Timestamp: 1780860751
+Thread-Index: AQHc9rRhSPXw4ZdTQtuvnkZG9OrQIgAABhDR
+Thread-Topic: [PATCH V4 1/9] dax: fix misleading comment about share/index
+ union in dax_folio_reset_order()
+X-Wm-Sent-Timestamp: 1780860790
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019ea3929225-a0f8e6f7-30ae-4f8e-ae6f-19129666c4c3-000000@email.amazonses.com>
+Message-ID: <0100019ea3932c9b-91164474-4e3f-48ee-844a-be310f330793-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.06.07-54.240.48.179
+X-SES-Outgoing: 2026.06.07-54.240.11.70
 
-From: John Groves <john@groves.net>
+From: John Groves <John@Groves.net>
 
-This series applies bug fixes (mostly found via sashiko) to the dax/fsdev 
-series. This has been soaking in the famfs CI pipeline for 2+ weeks and
-1) won't affect anything that doesn't use drivers/dax/fsdev.c, and 2)
-doesn't affect any known workloads - although the bugs would have 
-manifested when multi-range DCD dax devices are a thing (soon-ish).
+The comment in dax_folio_reset_order() claims that DAX maintains an
+invariant where folio->share != 0 only when folio->mapping == NULL,
+implying folio->share is zero whenever mapping is non-NULL. This is
+misleading because folio->share and folio->index are a union -- for
+non-shared folios with mapping != NULL, reading folio->share returns
+the file page offset (folio->index), which is typically non-zero.
 
-Most of the series is confined to drivers/dax/fsdev.c. Two patches
-touch shared DAX core: patch 7 changes fs_put_dax() in 
-drivers/dax/super.c (used by ext2/ext4/erofs/xfs, though only
-holder-passing callers, like XFS in-tree, will see a new warning if
-they misuse fs_put_dax(). 
+Reword the comment to accurately describe the union aliasing: the
+assignment clears whichever interpretation of the union word is active
+(index for non-shared folios, share for shared folios), which is correct
+because the folio is being released in either case.
 
-Although patch 8 adjusts the dax_dev lookup API in super.c / dax.h, this 
-does not affect the above file systems; they use fs_dax_get_by_bdev() 
-instead.
+No functional change -- the code was already correct, only the
+justification was wrong.
 
-Changes since V3:
+Fixes: 59eb73b98ae0b ("dax: Factor out dax_folio_reset_order() helper")
 
-- Patch 4: Adopted Dave's suggested refactor -- factor out
-  fsdev_acquire_pgmap() and defer the dev_dax->pgmap assignment until
-  probe can no longer fail, replacing the goto-based cleanup. Did not
-  carry Alison's V3 Reviewed-by due to the rewrite.
-- Patch 5: Also remove the now write-only dev_dax->virt_addr field,
-  per Dave's review.
-- Patch 7: Fixed the WARN_ON() to tolerate holder_data == NULL, which
-  legitimately occurs when kill_dax() clears it during device removal
-  under a live holder (per Dave's review). Wrong-holder calls still
-  warn.
-- Patch 8: Kept the Fixes tag -- the exported symbol itself is the
-  hazard; stable kernels carrying the export should want this fix.
+Reviewed-by: Jonathan Cameron <jic23@kernel.org>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Signed-off-by: John Groves <john@groves.net>
+---
+ fs/dax.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Changes since V2:
-
-* Patch 1 (comment fix): No change. Responded to Dave's question about
-  the dropped precondition -- the new comment correctly covers both
-  callers; fsdev_clear_folio_state() does not guarantee share==0 before
-  calling, so the old precondition was no longer universally true.
-* V2 patch 2 (three fixes): Split into three separate patches (patches
-  2-4) per Dave's review.
-* V2 patch 3 (two fixes): Split into two separate patches (patches 5-6)
-  per Dave's review.
-* V2 patch 4 (clamp direct_access / remove cached_size): Dropped.
-  Dave's analysis correctly showed the claimed bug does not exist --
-  dax_pgoff_to_phys() already enforces that the full requested size fits
-  within a single range before returning, making the clamp a no-op in
-  every reachable path.
-* V2 patch 5 (holder_ops race): Use WRITE_ONCE() for the holder_ops
-  store; add WARN_ON() on the cmpxchg result to catch wrong-holder and
-  double-put API contract violations; fix the inline comment, which
-  incorrectly claimed dax_holder_notify_failure() consults holder_ops
-  only when holder_data is non-NULL.
-* V2 patch 6 (dax_dev_find): Add dax_alive() check under dax_read_lock()
-  after ilookup5() to prevent returning a device that is concurrently
-  being torn down by kill_dax().
-* V2 patch 7 (formatting cleanup): Drop incorrect Fixes: tag; add
-  Dave's Reviewed-by.
-* The series grows from 7 to 9 patches.
-
-Changes since v1:
-* Dropped modes from patch 6 to fs/fuse/famfs.c and 
-  fs/famfs/famfs_inode.c, which are not upstream so it broke
-  attempts to apply the series. Oops...
-* Added patch 7, which addresses a previously-missed review comment
-  from Jonathan - minor cleanup
-
-
-John Groves (9):
-  dax: fix misleading comment about share/index union in
-    dax_folio_reset_order()
-  dax/fsdev: fix multi-range offset in memory_failure handler
-  dax/fsdev: clear vmemmap_shift when binding static pgmap
-  dax/fsdev: don't leave a dangling dev_dax->pgmap on probe failure
-  dax/fsdev: use __va(phys) for kaddr in direct_access
-  dax/fsdev: fail probe on invalid pgmap offset
-  dax: fix holder_ops race in fs_put_dax()
-  dax: replace exported dax_dev_get() with non-allocating dax_dev_find()
-  dax: fsdev.c minor formatting cleanup
-
- drivers/dax/dax-private.h |   2 -
- drivers/dax/fsdev.c       | 126 +++++++++++++++++++++++++-------------
- drivers/dax/super.c       |  80 ++++++++++++++++++++++--
- fs/dax.c                  |  12 ++--
- include/linux/dax.h       |   6 +-
- 5 files changed, 168 insertions(+), 58 deletions(-)
-
-
-base-commit: e43ffb69e0438cddd72aaa30898b4dc446f664f8
+diff --git a/fs/dax.c b/fs/dax.c
+index 6d175cd47a99b..df19c9317d10e 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -392,12 +392,12 @@ int dax_folio_reset_order(struct folio *folio)
+ 	int order = folio_order(folio);
+ 
+ 	/*
+-	 * DAX maintains the invariant that folio->share != 0 only when
+-	 * folio->mapping == NULL (enforced by dax_folio_make_shared()).
+-	 * Equivalently: folio->mapping != NULL implies folio->share == 0.
+-	 * Callers ensure share has been decremented to zero before
+-	 * calling here, so unconditionally clearing both fields is
+-	 * correct.
++	 * Clear the mapping and the index/share union word. folio->share
++	 * and folio->index occupy the same union in struct folio. For
++	 * non-shared folios (mapping != NULL), the union holds folio->index
++	 * (file page offset); for shared folios (mapping == NULL), it holds
++	 * folio->share (reference count). Either way, we are releasing the
++	 * folio and both fields should be zeroed.
+ 	 */
+ 	folio->mapping = NULL;
+ 	folio->share = 0;
 -- 
 2.53.0
 
