@@ -1,239 +1,306 @@
-Received: from mail-dl1-f44.google.com (mail-dl1-f44.google.com [74.125.82.44])
+Received: from mail-dy1-f172.google.com (mail-dy1-f172.google.com [74.125.82.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BD453988F8
-	for <nvdimm@lists.linux.dev>; Mon,  8 Jun 2026 08:11:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003643A2E08
+	for <nvdimm@lists.linux.dev>; Mon,  8 Jun 2026 08:16:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780906281; cv=none; b=pklqWlgMVuIp0YRG5m+WlJs/Elc/5kOEh7EHOuiwkCr2EAZTYajb8LN4aeDJZQwZ+IS4AQrvQteyfyQrtyivVPYijPtnJXgMUeMOFkzeqkI59g8dc+cI2DyJ4IXjkkgnBVaW7o8uOFjeZZZcAyU4kCXRBvrqX6PzO521/vZR57A=
+	t=1780906579; cv=none; b=JmKHgl8S8L77MC4p+u5IeLiML2M1NEYNVPOnDE9rCmDyZJrmTThO6nXlG6QcepqZbjSX3Vt26/Dvi9d8KvRuNY9nYv46BKzOaH3eImq2MpF+nbpEYAftZGSwsrGXmQu8nsdTZxc7bdagqAO42omElFFXjIScpycZCzPwPZLuqvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780906281; c=relaxed/simple;
-	bh=GGy4wHoXtxb5+rb5vKvXmy7ebBL4n+KBywY4VMfgW+c=;
+	s=arc-20240116; t=1780906579; c=relaxed/simple;
+	bh=2vKaBxTvz9jzeINMZsZsLZHSkx1hCtUNqNqQFAN63mo=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ah4B5afGSYscR6e/PfWlOMSByNGptAZgZtXrlXG3yffk0VOSS+qKaZNmzbRKuvZIYvwKFrTJCluUYYXp4CBWRy5pMbqjgbResY+QEEMWHeTdkflMuKZNR1dpMdhS++sUfn7OhK7IbyVloDHZzkLx1nWiN0wOsSaRVJ7gfaD5kek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CzfjXpFJ; arc=none smtp.client-ip=74.125.82.44
+	 Content-Type:Content-Disposition:In-Reply-To; b=NkDIcz1YaRxQ1AV6lS83FxG/t22PdyEp9+HXTLRPbbRYf/MnOolFoh4nD5SUu+Gflxjuf/SxMDIC4RxCnecY0te5zAdtPtX0wcfZAjiNSS6ItBv10HHqZaGiIgYqvfipSwF1VD5dXnjbLJU6XVPc1igX/bS7bYaXVoKjnDIDiZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Yz5qlz22; arc=none smtp.client-ip=74.125.82.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CzfjXpFJ"
-Received: by mail-dl1-f44.google.com with SMTP id a92af1059eb24-137dd3af345so3589410c88.0
-        for <nvdimm@lists.linux.dev>; Mon, 08 Jun 2026 01:11:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Yz5qlz22"
+Received: by mail-dy1-f172.google.com with SMTP id 5a478bee46e88-30759632453so5432008eec.1
+        for <nvdimm@lists.linux.dev>; Mon, 08 Jun 2026 01:16:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780906279; x=1781511079; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=3Pk4Oho3OAOJy1uGwbTwzFDNpN5USaQybiPA/+hG3XU=;
-        b=CzfjXpFJJi8eLwGDg/jbBGHb9eLCstabVzfjvGthcttBcWXOS5bBxZVFizafMrrPrh
-         euZXmfPkmMHccbw18NwhaatRBYW+sQpynRoyEA06f3enr94yhcD5JFrHXkyBJ7q8PVR/
-         CaHYNKk0BUaLJQyvi0IjsnTKy03tpcnZpOn6D+kRIBAEmjghBdOzPNiWpE8eXgalO/mb
-         GhmFVDECxA7AaNR0a9ZWrKI0cZ4m0Wcrx/i6VgaLqy6Kx/AxOE1bOaED3PgpSHT3cVL4
-         1UjwLK0QKo1N4MNHLj5hjMdieMDuIjjl/gQ105J1W/TpUwdHWK9cgLQ4FeekWBFHJowS
-         MBxg==
+        d=gmail.com; s=20251104; t=1780906575; x=1781511375; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=OsPExAFKo3RFUEYD1/zQ0f2f7dBwpkCxxAcFxkQBUYM=;
+        b=Yz5qlz22ebFOMV9Dbxaw7HnvmuSvk6H3WRyFw8qhVv223VqWsdugSuaKI43yp40bXz
+         TyPRPm0N1n6GeIuoKetwD9fVswIxhSByPoEaeKpQdtmMNahqVBkAPm5XF6prhIhIvvNa
+         EKPp5HAaCDYXfspv5IOWyL4bVjrytMb5lq4BPIp/JicaI0WYi6OY2CaqSCEFnileGI4B
+         ldJMCLwMBAeDVryCrpdoApVOBPKSiwLrszULStTfkJERdwkbRPqt5XmH0hGHY7TatNxM
+         8VvIqzDk9hy0de8IbWNrIx1DX/bYsLAWNQjoHzI31pQvVq5HZhgTJjwgb3RPeEdvzkpq
+         3feQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780906279; x=1781511079;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=3Pk4Oho3OAOJy1uGwbTwzFDNpN5USaQybiPA/+hG3XU=;
-        b=de8g4lkMse7Kz0LDDy+k897qJqhsKJ0iG0F9tG3Uu8lf9c4fDc2fdD7rHc5dvOTElS
-         KQdIF4XjMY0RA5RsgVFyXFkr63QJqwFL7U/a1o7dAU+lx5hE/gugEBR61HEG9zJ2/rEC
-         TcF7YHU8dIDAeFUqUwFdM/C4y6BsKBvTKqh4VBmbxySYOJKSoSDsLFtfeW/BxztztJ+7
-         jvWGhw9RFV1FLH8sa7GYbGDsPiBFKNRkJox2mznOJdEhDjqk9JwNZ3SqaVFDkucVa0ho
-         YdPkEkQLXdjsWu6Jv2u/IjiSLDl0EhP54A3uwO+bEUtaYYmAe6MO+ckcPmi/DXCcFAcw
-         bczA==
-X-Forwarded-Encrypted: i=1; AFNElJ/7a4ZRLrgIGj6Hsxw3aS5mcYibX9fVKiqkm/7AV0nr0HqkCp7PGWtluR3OZHF3B7d+sD4Jh5I=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yy9YH6UJd2k5Gd2YsN9m0kQIjnZoHotl3vD8LkEcztl90V22+9u
-	6TClJG5oDsUB9yJzfcagBzsrcHuJbS6o4nfMzHpV1NRWaD4fNpj85I/F
-X-Gm-Gg: Acq92OHL4G0KKrBXxGW//isB8ulMbuna2TlWWfGXz8T1QvN+W7Js+e/N1h/9/zbsjrr
-	nF/FjqKmcz/Fn1rxobx8Pb4mJFB3xr2dsg3Ty1XDVvMHD+8O3AZFNPnOSrHPX4d+wP9VLc5cKIF
-	l0/EMN14hjxnVa4xpQCg9DM4NEM/dRrRTh/8JqAWjrKNGNU9nhk1ihnYhr2pYR3qzCYVVzGCuMM
-	bp9Zqgi/SpumCJKABHFXaXJaONb52r2KCv3RPVbyGtyUUuXd0Egbrds6M5WNZWI1YveSctUrU5j
-	CNPtENjBLSbc5JjcxTq7MW0gPixHd3werGv6wvNfeCRDth7KCypx4zD0SKlpr41416cESegN1Xb
-	RXcPbPzfowzB9y5tYzoC4Ic5Ww5znR6hZWRJJyLZwrXXr+R0pxUXUgHMJidlogTqlmjoEDrDwjM
-	JzNccY2FOXgXsxHTEplvtMJulYXN5LC3d2uy8DwaoR4ueQIf7dqGHJbBg6iVuxU3JRDFB9bDrHR
-	x/s0vn9G1KS1tfWIQ==
-X-Received: by 2002:a05:7300:7488:b0:304:ed85:5f43 with SMTP id 5a478bee46e88-3077b1e1aeemr7285890eec.24.1780906279075;
-        Mon, 08 Jun 2026 01:11:19 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1780906575; x=1781511375;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OsPExAFKo3RFUEYD1/zQ0f2f7dBwpkCxxAcFxkQBUYM=;
+        b=CbV8Aq2LSQ0wyDB60l2sfbZJ1MZIa6xWP9KvTnIMzegB9yNnNBagkvvsC3e6SC9a1Q
+         Jm6GhDz38y7B68RNZz21lG9bqrij9d3hlbGuH2TT5sSkfOE7EiRtnJaf5j7bjOu2n6If
+         Lgw1fufeXWU2+v9MsCSZOz75c9TOAVoNLi5GV+277k7pChHXEGxffz/eGWhkN8+G7NDT
+         dt3DwUFUZEo+SmCpVF7PCoUbrYxQuNWZBjVdr6Idicg5O3YxIjz9k+PNWZs7GqKOnkAI
+         DHiYWo1Uw6vomdM9TfA001IdP4ZvVR+Q7FKxM7J7nmJb5ExW7kYE9ocTIgaDwncYXy8j
+         q1DQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+EL8ZjlLKkYpkyuYkVbsYQTmb2j02NvoyXBZgkv8gRNILgg5slNihriU2uWoK2qInr+Ax9ajw=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyyt39ZXzJA3VHDuL0Zc6Hirc9u7et/RJQW0NBaVUuu92MgP57A
+	I6wyeQC25JrtGY2lHb5meOGHWIDwT23DkICTUxixVoziaHzSp+BV4tFn
+X-Gm-Gg: Acq92OG4kBPYm29bSNvnGbGGF/RMCd5jnJ7sEpL5r/TgrMpDSWEOko+Jf9zL7BtGqh3
+	X+I+jw8+MBoDBouv3V4U15gAS6qlWnyPkh5WFpX8sUizI1gA4bo0tQhhzpQYtgZ+XRqSLFfvjuA
+	ktUhZwimiAda7dTSkQytk0M7meDJBfVhfmugcpQidap8V4PbsFme303QaCnOjtIKP936kcWPidX
+	mYtX3yaoQYqqgp2HQDx3ZRt+gwGUUp70x7o8XErUBTAwp0JXz7g7jeFCG/CdfpYfPA8lEq/MUXl
+	d02xUCyZwn0sW7ZLWg3wU2jgwJ9IMlcKdwmIOTpCY1eiZ8ehuyt76RoRLHM39LzWWdT+KsvP62U
+	dUfIKC0AwLJ+tJIaqQP0uovBdZISE4YcldkHXFVMUWX1xN/FRv+AUd0lCgSZNIQzMCKc/NbMN+i
+	i19HWRihmQthOSWeTJLLr/F0jZMpqRe1AAtj75mxwTpnqb2jnu66Xic7Wy9Nse3gddaRSpyiOqV
+	Z2vepU3gJ0OSepRzwnrTkwrZAhE
+X-Received: by 2002:a05:7301:9bca:b0:2ee:ade0:e0bf with SMTP id 5a478bee46e88-3077b311132mr6994119eec.30.1780906575005;
+        Mon, 08 Jun 2026 01:16:15 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3074df77a0asm17370469eec.27.2026.06.08.01.11.18
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3074dea8e8csm16061190eec.16.2026.06.08.01.16.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Jun 2026 01:11:18 -0700 (PDT)
+        Mon, 08 Jun 2026 01:16:13 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Mon, 8 Jun 2026 01:11:18 -0700
-To: Alison Schofield <alison.schofield@intel.com>
+Date: Mon, 8 Jun 2026 01:16:12 -0700
+To: Dave Jiang <dave.jiang@intel.com>
 Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
 	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
 	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
 	Davidlohr Bueso <dave@stgolabs.net>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>,
-	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>
-Subject: Re: [PATCH v6 0/7] ndctl: Dynamic Capacity additions for cxl-cli
-Message-ID: <aiZ5JqaW4oWfSxUk@AnisaLaptop.localdomain>
-References: <20260523095043.471098-1-anisa.su@samsung.com>
- <aiJh7vcs2u1fMDX4@aschofie-mobl2.lan>
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
+	Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v10 10/31] cxl/mem: Configure dynamic capacity interrupts
+Message-ID: <aiZ6TLUwI11Yg1jh@AnisaLaptop.localdomain>
+References: <cover.1779528761.git.anisa.su@samsung.com>
+ <7f2e4fe385415e0b77b58f4bd988bc5895557dcf.1779528761.git.anisa.su@samsung.com>
+ <28a8e58d-5bf8-438e-b337-76944d67e297@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <aiJh7vcs2u1fMDX4@aschofie-mobl2.lan>
+In-Reply-To: <28a8e58d-5bf8-438e-b337-76944d67e297@intel.com>
 
-On Thu, Jun 04, 2026 at 10:43:10PM -0700, Alison Schofield wrote:
-> On Sat, May 23, 2026 at 02:50:35AM -0700, Anisa Su wrote:
-> > CXL Dynamic Capacity Device (DCD) support has continued to evolve in the
-> > upstream kernel since Ira's v5 posting [1].  The kernel side has settled
-> > on a uuid-driven claim model for sparse DAX devices: dax_resources carry
-> > the tag delivered with each extent, and userspace selects which ones to
-> > claim by writing a UUID to the dax device's sysfs 'uuid' attribute (or
-> > "0" to claim a single untagged resource).  Size on a sparse region is
-> > determined by the claim, not requested up-front.
-> > 
-> > This series brings cxl-cli and daxctl in line with that model and
-> > extends cxl_test to exercise the new paths end-to-end.
+On Thu, May 28, 2026 at 09:21:59AM -0700, Dave Jiang wrote:
 > 
-> Hi Anisa,
 > 
-> I just now picked this up with the kernel side and took it for a quick
-> test drive. Based on what's been touched, first meaningful finding is
-> all the DAX unit tests pass, and then for CXL unit tests, all but these
-> 2 pass: cxl-security.sh and cxl-dcd.sh
-> 
-> Please let me know if there are known problems with either of those
-> before I explore further.
-
-Oh hmm... I would expect cxl-dcd.sh to pass. Let me know what error you
-saw? But it's totally possible that I mucked something up with some last
-minute change. Let me try it again on my side...
-
-For cxl-security.sh, sorry I was bad and didn't run all of the other CXL
-unit tests. Pin of shame for me ;(◞‸ ◟)
-
-Let me figure out how to get the NDCTL test runner working and it should
-not be an issue moving forward
-> 
-> Question below about dependency....
-> 
+> On 5/23/26 2:43 AM, Anisa Su wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
 > > 
-> > The corresponding kernel patchset is here:
-> > https://lore.kernel.org/linux-cxl/cover.1779528761.git.anisa.su@samsung.com/T/#t
+> > Dynamic Capacity Devices (DCD) support extent change notifications
+> > through the event log mechanism.  The interrupt mailbox commands were
+> > extended in CXL 3.1 to support these notifications.  Firmware can't
+> > configure DCD events to be FW controlled but can retain control of
+> > memory events.
 > > 
-> > Picked up unchanged from v5 (Ira):
+> > Configure DCD event log interrupts on devices supporting dynamic
+> > capacity.  Disable DCD if interrupts are not supported.
 > > 
-> >   libcxl: Add Dynamic RAM A partition mode support
-> >   cxl/region: Add cxl-cli support for dynamic RAM A
-> >   libcxl: Add extent functionality to DC regions
-> >   cxl/region: Add extent output to region query
+> > Care is taken to preserve the interrupt policy set by the FW if FW first
+> > has been selected by the BIOS.
 > > 
-> > New in v6:
+> > Accept the 4-byte CXL 2.0 reply on GET Event Interrupt Policy by setting
+> > min_out to CXL_EVENT_INT_POLICY_BASE_SIZE; pre-CXL 3.1 firmware omits
+> > dcd_settings and would otherwise fail the size check.
 > > 
-> >   daxctl: Add --uuid option to create-device for DC DAX regions
-> >     - Plumbs writes to the new dax 'uuid' sysfs attribute through a new
-> >       daxctl_dev_set_uuid() helper (LIBDAXCTL_11).
-> >     - --uuid is mutually exclusive with --size; pass "0" to claim a
-> >       single untagged dax_resource.  An unmatched UUID surfaces ENOENT
-> >       from the kernel and leaves the device at size 0.
-> >     - Documents the option in the man page.
+> > Based on an original patch by Navneet Singh.
 > > 
-> >   cxl/test: Add Dynamic Capacity tests (rewritten on top of Ira's
-> >   original patch to track the post-redesign kernel)
-> >     - Routes untagged claims via --uuid "0" so daxctl exercises the
-> >       kernel uuid_store path; tagged claims use real UUID strings.
-> >     - Asserts that for DC regions, size-grow returns -EOPNOTSUPP (real grow is
-> >       --uuid only) and that tag reuse across More-chains is rejected
-> >       by the cross-More uniqueness gate.
-> >     - Adds coverage for the new validators: test_uuid_no_match,
-> >       test_uuid_no_match_seed_intact, test_uuid_show,
-> >       test_cross_more_uniqueness, test_alignment_rejection.
-> >     - Sharable-partition coverage (test_shared_extent_inject,
-> >       test_seq_integrity_gap) is routed at runtime to a dedicated mock
-> >       memdev that tools/testing/cxl stamps with serial 0xDCDC, so a
-> >       single cxl_test module load exercises both regimes.
-> >     - Localizes positional-arg assignments in every helper so functions
-> >       no longer clobber caller globals (the previous behavior leaked
-> >       the sharable memdev into later tests).
-> >     - test_reject_overlapping arithmetic now lands an actual overlap
-> >       inside the DC region (the prior math landed past the end).
-> > 
-> > Depends on the kernel DCD/sparse-DAX series; without it the new tests
-> > will skip and 'cxl list -r N -Nu' will simply report no extents.
-> 
-> What is this dependency- DCD/sparse-DAX series ?
-> 
-Sorry, I just meant the kernel support for DCD. Poorly worded here. 'sparse'
-DAX is just the terminology for DAX regions backed by DCD.
-Well, in the kernel patchset, I renamed it to
-"DC DAX" to make the association clearer, but then forgot to reflect it
-on this side (𖦹ᯅ_𖦹)
-
-Thanks for testing!
-Anisa
-> > 
-> > The branch is also available at:
-> > 
-> >   https://github.com/anisa-su993/anisa-ndctl/tree/dcd-2026-05-21
-> > 
-> > Based on pmem/pending commit:
-> > 
-> >   bbd403a test/cxl-sanitize: avoid sanitize submit/wait race
-> > 
-> > [1] https://lore.kernel.org/nvdimm/20250413-dcd-region2-v5-0-fbd753a2e0e8@intel.com/
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
 > > 
 > > ---
-> > Changes in v6:
-> > - anisa: New patch — daxctl --uuid option + daxctl_dev_set_uuid() helper
-> > - anisa: Rewrite cxl/test DCD tests against the post-redesign kernel
-> >          (uuid sysfs claim, tag-group atomic release, cross-More
-> >          uniqueness, alignment rejection, DC size-grow refusal)
-> > - anisa: Rebase onto bbd403a (pmem/pending)
-> > - Link to v5: https://lore.kernel.org/nvdimm/20250413-dcd-region2-v5-0-fbd753a2e0e8@intel.com/
+> > Changes:
+> > [anisa: rebase]
+> > [anisa: accept 4-byte CXL 2.0 GET reply via min_out]
+> > [anisa: drop Reviewed-by tags now that the patch carries new changes]
+> > ---
+> >  drivers/cxl/cxlmem.h |  2 ++
+> >  drivers/cxl/pci.c    | 75 ++++++++++++++++++++++++++++++++++++--------
+> >  2 files changed, 64 insertions(+), 13 deletions(-)
 > > 
-> > Changes in v5:
-> > - iweiny: Adjust all code to view only the dynamic RAM A partition
-> > - Alison: s/tag/uuid/ in region query extent output
-> > - Link to v4: https://patch.msgid.link/20241214-dcd-region2-v4-0-36550a97f8e2@intel.com
-> > 
-> > Anisa Su (1):
-> >   daxctl: Add --uuid option to create-device for DC regions
-> > 
-> > Ira Weiny (6):
-> >   ndctl: Dynamic Capacity additions for cxl-cli
-> >   libcxl: Add Dynamic RAM A partition mode support
-> >   cxl/region: Add cxl-cli support for dynamic RAM A
-> >   libcxl: Add extent functionality to DC regions
-> >   cxl/region: Add extent output to region query
-> >   cxl/test: Add Dynamic Capacity tests
-> > 
-> >  Documentation/cxl/cxl-list.txt                |   29 +
-> >  Documentation/cxl/lib/libcxl.txt              |   33 +-
-> >  Documentation/daxctl/daxctl-create-device.txt |   12 +
-> >  cxl/filter.h                                  |    3 +
-> >  cxl/json.c                                    |   67 +
-> >  cxl/json.h                                    |    3 +
-> >  cxl/lib/libcxl.c                              |  181 +++
-> >  cxl/lib/libcxl.sym                            |    9 +
-> >  cxl/lib/private.h                             |   14 +
-> >  cxl/libcxl.h                                  |   21 +-
-> >  cxl/list.c                                    |    3 +
-> >  cxl/memdev.c                                  |    4 +-
-> >  cxl/region.c                                  |   27 +-
-> >  daxctl/device.c                               |   72 +-
-> >  daxctl/lib/libdaxctl.c                        |   44 +
-> >  daxctl/lib/libdaxctl.sym                      |    5 +
-> >  daxctl/libdaxctl.h                            |    1 +
-> >  test/cxl-dcd.sh                               | 1267 +++++++++++++++++
-> >  test/meson.build                              |    2 +
-> >  util/json.h                                   |    1 +
-> >  20 files changed, 1771 insertions(+), 27 deletions(-)
-> >  create mode 100644 test/cxl-dcd.sh
-> > 
-> > 
-> > base-commit: bbd403a03fa2a1551c1a10bbf78f32027c718758
-> > -- 
-> > 2.43.0
-> > 
+> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> > index 10175ca3b7ee..65c009b02da6 100644
+> > --- a/drivers/cxl/cxlmem.h
+> > +++ b/drivers/cxl/cxlmem.h
+> > @@ -218,7 +218,9 @@ struct cxl_event_interrupt_policy {
+> >  	u8 warn_settings;
+> >  	u8 failure_settings;
+> >  	u8 fatal_settings;
+> > +	u8 dcd_settings;
+> >  } __packed;
+> > +#define CXL_EVENT_INT_POLICY_BASE_SIZE 4 /* info, warn, failure, fatal */
+> >  
+> >  /**
+> >   * struct cxl_event_state - Event log driver state
+> > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+> > index 8d12c684d670..83617439bbd3 100644
+> > --- a/drivers/cxl/pci.c
+> > +++ b/drivers/cxl/pci.c
+> > @@ -557,6 +557,8 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
+> >  		.opcode = CXL_MBOX_OP_GET_EVT_INT_POLICY,
+> >  		.payload_out = policy,
+> >  		.size_out = sizeof(*policy),
+> > +		/* CXL 2.0 firmware omits dcd_settings; accept the shorter reply */
+> > +		.min_out = CXL_EVENT_INT_POLICY_BASE_SIZE,
+> >  	};
+> >  	int rc;
+> >  
+> > @@ -569,23 +571,34 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
+> >  }
+> >  
+> >  static int cxl_event_config_msgnums(struct cxl_memdev_state *mds,
+> > -				    struct cxl_event_interrupt_policy *policy)
+> > +				    struct cxl_event_interrupt_policy *policy,
+> > +				    bool native_cxl)
+> >  {
+> >  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> > +	size_t size_in = CXL_EVENT_INT_POLICY_BASE_SIZE;
+> >  	struct cxl_mbox_cmd mbox_cmd;
+> >  	int rc;
+> >  
+> > -	*policy = (struct cxl_event_interrupt_policy) {
+> > -		.info_settings = CXL_INT_MSI_MSIX,
+> > -		.warn_settings = CXL_INT_MSI_MSIX,
+> > -		.failure_settings = CXL_INT_MSI_MSIX,
+> > -		.fatal_settings = CXL_INT_MSI_MSIX,
+> > -	};
+> > +	/* memory event policy is left if FW has control */
+> > +	if (native_cxl) {
+> > +		*policy = (struct cxl_event_interrupt_policy) {
+> > +			.info_settings = CXL_INT_MSI_MSIX,
+> > +			.warn_settings = CXL_INT_MSI_MSIX,
+> > +			.failure_settings = CXL_INT_MSI_MSIX,
+> > +			.fatal_settings = CXL_INT_MSI_MSIX,
+> > +			.dcd_settings = 0,
+> > +		};
+> > +	}
+> > +
+> > +	if (cxl_dcd_supported(mds)) {
+> > +		policy->dcd_settings = CXL_INT_MSI_MSIX;
+> > +		size_in += sizeof(policy->dcd_settings);
+> > +	}
+> >  
+> >  	mbox_cmd = (struct cxl_mbox_cmd) {
+> >  		.opcode = CXL_MBOX_OP_SET_EVT_INT_POLICY,
+> >  		.payload_in = policy,
+> > -		.size_in = sizeof(*policy),
+> > +		.size_in = size_in,
+> >  	};
+> >  
+> >  	rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
+> > @@ -632,6 +645,30 @@ static int cxl_event_irqsetup(struct cxl_memdev_state *mds,
+> >  	return 0;
+> >  }
+> >  
+> > +static int cxl_irqsetup(struct cxl_memdev_state *mds,
+> > +			struct cxl_event_interrupt_policy *policy,
+> > +			bool native_cxl)
+> > +{
+> > +	struct cxl_dev_state *cxlds = &mds->cxlds;
+> > +	int rc;
+> > +
+> > +	if (native_cxl) {
+> > +		rc = cxl_event_irqsetup(mds, policy);
+> > +		if (rc)
+> > +			return rc;
+> > +	}
+> > +
+> > +	if (cxl_dcd_supported(mds)) {
+> > +		rc = cxl_event_req_irq(cxlds, policy->dcd_settings);
+> > +		if (rc) {
+> > +			dev_err(cxlds->dev, "Failed to get interrupt for DCD event log\n");
+> > +			cxl_disable_dcd(mds);
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static bool cxl_event_int_is_fw(u8 setting)
+> >  {
+> >  	u8 mode = FIELD_GET(CXLDEV_EVENT_INT_MODE_MASK, setting);
+> > @@ -657,18 +694,26 @@ static bool cxl_event_validate_mem_policy(struct cxl_memdev_state *mds,
+> >  static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >  			    struct cxl_memdev_state *mds, bool irq_avail)
+> >  {
+> > -	struct cxl_event_interrupt_policy policy;
+> > +	struct cxl_event_interrupt_policy policy = { 0 };
+> > +	bool native_cxl = host_bridge->native_cxl_error;
+> >  	int rc;
+> >  
+> >  	/*
+> >  	 * When BIOS maintains CXL error reporting control, it will process
+> >  	 * event records.  Only one agent can do so.
+> > +	 *
+> > +	 * If BIOS has control of events and DCD is not supported skip event
+> > +	 * configuration.
+> >  	 */
+> > -	if (!host_bridge->native_cxl_error)
+> > +	if (!native_cxl && !cxl_dcd_supported(mds))
+> >  		return 0;
+> >  
+> >  	if (!irq_avail) {
+> >  		dev_info(mds->cxlds.dev, "No interrupt support, disable event processing.\n");
+> > +		if (cxl_dcd_supported(mds)) {
+> > +			dev_info(mds->cxlds.dev, "DCD requires interrupts, disable DCD\n");
+> > +			cxl_disable_dcd(mds);
+> > +		}
+> >  		return 0;
+> >  	}
+> >  
+> > @@ -676,10 +721,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >  	if (rc)
+> >  		return rc;
+> >  
+> > -	if (!cxl_event_validate_mem_policy(mds, &policy))
+> > +	if (native_cxl && !cxl_event_validate_mem_policy(mds, &policy))
+> >  		return -EBUSY;
+> >  
+> > -	rc = cxl_event_config_msgnums(mds, &policy);
+> > +	rc = cxl_event_config_msgnums(mds, &policy, native_cxl);
+> >  	if (rc)
+> >  		return rc;
+> >  
+> > @@ -687,12 +732,16 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >  	if (rc)
+> >  		return rc;
+> >  
+> > -	rc = cxl_event_irqsetup(mds, &policy);
+> > +	rc = cxl_irqsetup(mds, &policy, native_cxl);
+> >  	if (rc)
+> >  		return rc;
+> >  
+> >  	cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+> 
+> Issue that was always there probably, should this check native_cxl so the BIOS owned events are not retrieved?
+> 
+> 	if (native_cxl)
+> 		cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+> 
+> 
+That makes sense. Would you prefer the fix as a separate patch?
+
+> Also, CXLDEV_EVENT_STATUS_ALL is missing bit 4 (Dynamic Capcity Event Log). CXL r4.0 8.2.9.3.1 Table 8-203.
+> 
+It was added in a later commit, but yeah it makes more sense to have it
+in this one. Moved to this commit.
+> 
+> DJ
+> 
+Thanks,
+Anisa
+> 
+> >  
+> > +	dev_dbg(mds->cxlds.dev, "Event config : %s DCD %s\n",
+> > +		native_cxl ? "OS" : "BIOS",
+> > +		cxl_dcd_supported(mds) ? "supported" : "not supported");
+> > +
+> >  	return 0;
+> >  }
+> >  
+> 
