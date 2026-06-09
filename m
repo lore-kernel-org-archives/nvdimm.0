@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2135368287;
-	Tue,  9 Jun 2026 10:06:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F36B43F1650;
+	Tue,  9 Jun 2026 10:26:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780999606; cv=none; b=TNKzl/fJ8htS+oAR8GG+AspEkzaPqO8OLkJVVUL2WmeXGIMvQ20IOgk5vastaEhpzXZ+WRWz6Hr0rH1Id1arl4l07qii0mMrk5S0shqGQ1Wo1uPBl6kLydWGkdnT2xnXQamVxMJccfdINnzvxRfuc9pZVUYe5F+99AikjkU5n6c=
+	t=1781000776; cv=none; b=g+VkYlQIlt6hh/Hb00y6haLaWGK4WOysZLy/oV1vr7FfCDMI2+A/Ao+WzRpKzi0nOVSOS4V35CP/YhUvd3q+A4aglFhJUtcvkO3mvgee3vL6ShlJsQF/x2yEBXqRndDv3uL1HoOCySeueFF/f6lMX2LDXKztALznVKAQzi4BkZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780999606; c=relaxed/simple;
-	bh=6vaEOQWfHt0+Xy+mj8HE6cKKkv5QTIXPQRFdqMKFba4=;
+	s=arc-20240116; t=1781000776; c=relaxed/simple;
+	bh=jiYvLN8svyHuJqKwo71fxIiMTXTLF3Yc0BJM0glY6Sg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HRmMFWKUhlWrcN/Kcur53Tx57vX41l9W5bgrkaJBoKBlBOC2KAaJ4dBoYHq9cWE2FLCRCkadwyiilt8z7LqWJn9g+j+9dB+jkKauxtTuciEC3aaVnbJ6/LNTz40etpfic7Xf0H0g5J54GR5jSLi5PUj/Qj1fbs/6Y2tqH+v1BNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f/DNTIH/; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=C6Uwo77W+2QNZtSu1fLVjvnpzGYKDTHP6Yq+B8E1/Pm6C8LWeKIAdjH2MrhA/sVxW7N3GDfg9iYwznjFukRAyad4AhADj+LugSxPmmJNDkgLpKQi6MR3PgwDoLyGgsKD8XwJk3e0+SQayDJ5t32tzAesQwDx2Ef4/+LdVBwNUKo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J3jk3COn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f/DNTIH/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AF681F00899;
-	Tue,  9 Jun 2026 10:06:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J3jk3COn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 308C21F0089E;
+	Tue,  9 Jun 2026 10:26:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780999604;
-	bh=1ihPSDA/h0Hov+M03ajn9GoQMpAb1QB0ZzEH18p98fI=;
+	s=k20260515; t=1781000774;
+	bh=Z5PT1RzmSV79eYY4zL3bKgn3v9w+YXzq+ASHx5ToH88=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=f/DNTIH/yx46ZasoAMnEH1+Guyhpk0JvhSaZTirQQds6faAGBzhYHerjrdgUJJXsL
-	 NxG7D2lZanD7LmDxrolbWQwz1dgenNB8N/Sk3ZjzoJtO4qCGocSDl3ka2ajzQwzINO
-	 ufSlpY6Mw0IEcUn5oDqsTUaF8tN4YxQX/omJoDv9avZg2Lj5GgPJLD6hYn4LMbVlWS
-	 qJpz8NsESC8hOvNFqp6R4rjHENMkwgI54a/ADNU+G/qhYgGo93a+0egI/oPX4EKYS2
-	 wQTSOcY/Hqs6YvPvTydGkejXD076sN7iZsS1Aj3OK7xeY3ZHeOFWVwc1J1o3NMWSbe
-	 ZhJct0Cn7Aa9g==
-Message-ID: <b62e071b-9dec-423f-9b4b-e3c34ea0a409@kernel.org>
-Date: Tue, 9 Jun 2026 12:06:38 +0200
+	b=J3jk3COnoJEBzr6R0/A18Y8cFME/QVHZhvy1WGyNQRfxkmDA84cHMG5UrUhfOmsAu
+	 +vL6dlwOBJ5Rd17X6zDeYucKliep/9USLhr8DsgOpK5LIf/B7bUMlhzITIXvYvS4SA
+	 JGT4TNAVSB4Nt8v4hVjCSR8dYA4IekBB5qyAWvSruEOzO5oSgrUREVUXhJSCWXFpU2
+	 V803g9md/aZOzE3DFmJ0IRqsMckdhnGIdYKEv/VLiEKJuuFM4QMiBJPWz3I7G8WfsB
+	 EtC1Eeclwdlj3N0CWsbNMG0MEXcuJQh7C9MuOOqkYCm85cEgoFt9sMlb7Y+S16+nvs
+	 wd0A0dSfucg/A==
+Message-ID: <1cb0514b-c753-411e-8ff8-80fa29837441@kernel.org>
+Date: Tue, 9 Jun 2026 12:26:07 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 5/9] mm/memory_hotplug: add multi-range hotunplug
+Subject: Re: [PATCH v4 8/9] dax/kmem: add sysfs interface for atomic hotplug
 To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org,
  nvdimm@lists.linux.dev
 Cc: linux-kernel@vger.kernel.org, kernel-team@meta.com,
@@ -44,9 +44,9 @@ Cc: linux-kernel@vger.kernel.org, kernel-team@meta.com,
  ljs@kernel.org, liam@infradead.org, vbabka@kernel.org, rppt@kernel.org,
  surenb@google.com, mhocko@suse.com, osalvador@suse.de, shuah@kernel.org,
  alison.schofield@intel.com, Smita.KoralahalliChannabasappa@amd.com,
- ira.weiny@intel.com, apopple@nvidia.com
+ ira.weiny@intel.com, apopple@nvidia.com, Hannes Reinecke <hare@suse.de>
 References: <20260605211911.2160954-1-gourry@gourry.net>
- <20260605211911.2160954-6-gourry@gourry.net>
+ <20260605211911.2160954-9-gourry@gourry.net>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -93,39 +93,135 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260605211911.2160954-6-gourry@gourry.net>
+In-Reply-To: <20260605211911.2160954-9-gourry@gourry.net>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
+On 6/5/26 23:19, Gregory Price wrote:
+> The dax kmem driver currently onlines memory automatically during
+> probe using the system's default online policy but provides no way
+> to control or query the entire region state at runtime.
+> 
+> Additionally, there is no atomic mechanism to offline and remove
+> the entire set of memory blocks together.  Instead, this is presently
+> done in two steps: (offline all, remove all).  This creates a race
+> condition where external entities can operate directly on the blocks
+> and cause hot-unplug to fail.
+> 
+> Add a new 'hotplug' sysfs attribute that allows userspace to control
+> and query the entire memory region state.  The writable states mirror
+> the per-block /sys/devices/system/memory/memoryX/state ABI:
+>   - "unplugged": memory blocks are not present
+>   - "online": memory is online, zone chosen by the kernel
+>   - "online_kernel": memory is online in ZONE_NORMAL
+>   - "online_movable": memory is online in ZONE_MOVABLE
+> 
+> The "unplugged" state is new and only applies to kmem/hotplug.
+> 
+> Valid transitions:
+>   - unplugged                               -> online[_kernel|_movable]
+>   - online | online_kernel | online_movable -> unplugged
+>   - offline                                 -> unplugged
+> 
+> A device can only be onlined from "unplugged", so it must be returned
+> there before being onlined into a different state.
+> 
+> For backwards compatibility the memory blocks are always created at
+> probe: existing tools expect them to be present once the kmem driver
+> binds.  When the configured policy (mhp_get_default_online_type())
+> selects an online state the blocks are onlined into that policy's zone;
+> when the policy is offline the blocks are created but left offline and
+> the device reports the state "offline".
+> 
+> "offline" is therefore a reportable state but is not writable: it only
+> arises from the legacy auto_online_blocks=offline policy. Onlining such
+> a device through this attribute requires unplugging it first.
+> 
+> The "offline" state may be deprecated later if the memory block ABI
+> changes and userland migrates to using the region-wide hotplug.
+> 
+> Unplug is atomic across the whole device: dax_kmem_do_hotremove()
+> collects every added range and offlines/removes them in one operation
+> via offline_and_remove_memory_ranges().  Either all ranges are removed
+> and the device becomes "unplugged", or offlining is rolled back and the
+> device is left fully online, so the reported 'hotplug' state always
+> matches reality.
+> 
+> Unbind Note:
+>   We used to call remove_memory() during unbind, which would fire a
+>   BUG() if any of the memory blocks were online at that time.  We lift
+>   this into a WARN in the cleanup routine and don't attempt hotremove
+>   if ->state is not DAX_KMEM_UNPLUGGED or MMOP_OFFLINE.  Memory that is
+>   merely offline (the legacy "offline" state) is removed on unbind as
+>   before; only online memory is left pinned.
+> 
+>   The resources are still leaked but this prevents deadlock on unbind
+>   if a memory region happens to be impossible to hotremove.
+> 
+> Inconsistency Note:
+> 
+>   Since memory blocks can still be modified individually, the hotplug
+>   attribute can become out of sync with the state of the system if
+>   userland software mixes and matches the use of memory_block ABI and
+>   kmem/hotplug ABI.  It's suggests to use one or the other.
+> 
+> Suggested-by: Hannes Reinecke <hare@suse.de>
+> Suggested-by: David Hildenbrand <david@kernel.org>
+> Signed-off-by: Gregory Price <gourry@gourry.net>
+> ---
 
->  EXPORT_SYMBOL_GPL(offline_and_remove_memory);
-> +
-> +/**
-> + * offline_and_remove_memory_ranges - offline and remove multiple memory ranges
-> + * @ranges: array of physical address ranges to offline and remove
-> + * @nr_ranges: number of entries in @ranges
-> + *
-> + * Offline and remove several memory ranges as one operation, serialized
-> + * against other hotplug operations by a single lock_device_hotplug().
-> + *
-> + * Unlike calling offline_and_remove_memory() in a loop, this offlines *all*
-> + * ranges before removing any of them.  If offlining any range fails, the
-> + * offlining of the ranges processed so far is reverted and nothing is
-> + * removed, leaving every range online as it was before the call.  This gives
-> + * callers all-or-nothing semantics for the offline step, so a failed unplug
-> + * does not leave a device split between online and removed ranges.
-> + *
-> + * Each range must be memory-block aligned in start and size.
-> + *
-> + * Return: 0 on success, negative errno otherwise.  On failure no range has
-> + * been removed.
-> + */
-> +int offline_and_remove_memory_ranges(const struct range *ranges, int nr_ranges)
+[...]
+
+>  
+> +static int dax_kmem_parse_state(const char *buf)
 > +{
+> +	if (sysfs_streq(buf, "unplugged"))
+> +		return DAX_KMEM_UNPLUGGED;
+> +	if (sysfs_streq(buf, "online"))
+> +		return MMOP_ONLINE;
+> +	if (sysfs_streq(buf, "online_kernel"))
+> +		return MMOP_ONLINE_KERNEL;
+> +	if (sysfs_streq(buf, "online_movable"))
+> +		return MMOP_ONLINE_MOVABLE;
+> +	return -EINVAL;
 
-Is there a way to just generalize the logic in offline_and_remove_memory() to
-multiple ranges, making offline_and_remove_memory() then a simple wrapper around
-the new offline_and_remove_memory_ranges(), providing only a single range?
+Should we try making use of mhp_online_type_from_str()/online_type_to_str()
+[possibly a nicer exported function for the latter] to avoid duplicating this ...
+
+> +}
+> +
+> +static ssize_t hotplug_show(struct device *dev,
+> +			    struct device_attribute *attr, char *buf)
+> +{
+> +	struct dax_kmem_data *data = dev_get_drvdata(dev);
+> +	const char *state_str;
+> +
+> +	if (!data)
+> +		return -ENXIO;
+> +
+> +	switch (data->state) {
+> +	case DAX_KMEM_UNPLUGGED:
+> +		state_str = "unplugged";
+> +		break;
+> +	case MMOP_OFFLINE:
+> +		state_str = "offline";
+> +		break;
+> +	case MMOP_ONLINE:
+> +		state_str = "online";
+> +		break;
+> +	case MMOP_ONLINE_KERNEL:
+> +		state_str = "online_kernel";
+> +		break;
+> +	case MMOP_ONLINE_MOVABLE:
+> +		state_str = "online_movable";
+> +		break;
+
+...
+
+and this?
+
+
+[sorry if we already discussed this]
 
 -- 
 Cheers,
