@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3607E3DF012;
-	Tue,  9 Jun 2026 09:50:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DC433E317C;
+	Tue,  9 Jun 2026 09:52:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780998638; cv=none; b=rXvyQKupc8GU0U8gDoJPpR4x0BqNSIOXRTBehDr28RjbsznyrH6D5nThPF795w+TtjmSF+JKXv5SJrlFihJSQUO9fLjJLaXYPDsRORSngp0yXwOtgF9vQRWONCmf37QGf7IXmzaFf8DmknBmS+OA9JIBXLNgKV26UJw1IdMWmDM=
+	t=1780998749; cv=none; b=n3Z/ItWIwM2ntlFfmCiq6hjQiUZwPjFqK7uvfFAWOsYfT721491cYICQiLwoXH2BOzcynnCpsN2WjliQCTH/hjGkrV/nN8FZNeOkCv0hY6byofN9fOPM/V06X9Eelgx9SrhwHPqXQ88swk7CRkO1M49CKCCdhGi0NbiQHrbdMnQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780998638; c=relaxed/simple;
-	bh=NSbo4P60mH7kPCiwN+iFwZhDiEsPjZ90p0+O0wAGCFI=;
+	s=arc-20240116; t=1780998749; c=relaxed/simple;
+	bh=+yIsKG/di6ADpuNhtgHYEq77+GkT9np8TF1SDcDj0ME=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Wr3zqWLrOfPbjgBa1midpUvnd/qvZJ2bAjge5ukhmBkx3k2Yf/PbTGwuwnoC52PRxKF0qLIoRB+7uPlKj/CfGwl0WfMHzH9ck3XyXCPlCq6VcY8siSUVBh5y5c9dIXs430mkoxKpAREquX22Cy7w3LPHeHuypBoGkbiaC/hVFcY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=isVl+sB/; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=busq++H2HjrZ//UapU93js7w4OSqBH28SLvkpHY0jgdkVOSyV2Fpww5QekctKVrW8TXpA8MaLcnZMfkyhqKeHApBJsyOwJ1aTV6K4qIVJHowVvEE8nW3qYeSoZHFPbw1CybakO7AexUQQsKdunaEYUKrZiJ5Vg+MLL5KrQGRpZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EdJ8oAhD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="isVl+sB/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF67B1F00893;
-	Tue,  9 Jun 2026 09:50:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EdJ8oAhD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB2671F00893;
+	Tue,  9 Jun 2026 09:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780998636;
-	bh=npatsvxFpEUExBZprH7y6acM3CECn55+b2n/zGR7Ocs=;
+	s=k20260515; t=1780998748;
+	bh=5so1zQzA3lUehIl+R5tarTFJddQnlpvCs0HLxFL+tjw=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=isVl+sB/Uumf+OqYKOTAI8zicn/UuohcBTKeuFb/0b6hIUMtYcXspbVUAScdcv50U
-	 bFGCilGdEQU0iFaR55wjMHbkQtETqtNBMFuME9TocVTyEXLFqbpNDSPo+7qGHWlPN4
-	 Vo3i9TI1n/e514PM4BEDz6ExnBn4n/Ncc/U6By1RENU5MGOeMXCGduVeH81laDc2xk
-	 BUITZgnj+y5QhtuH+7uQefvkUcxQo43DRBnqosgyxDlRPNCoHeUQ8VM2v8KvMbh2lE
-	 S7x1eXW/wbAASegQ8q0+MBhA8q+z92rG+ZRUkpdntkNuidXUamRJBV1UJzQxQb+nxZ
-	 Te3xK2jlUetMg==
-Message-ID: <835c3fd8-635d-4380-b14e-e468eb0bb136@kernel.org>
-Date: Tue, 9 Jun 2026 11:50:30 +0200
+	b=EdJ8oAhDB4jlPL/ZT5bVbmQ4zOqZLB12oMWuGtKw+P8SplpmGHTGwEO0fcqSLNmfD
+	 yCBR2segffkcKQRFslMscamXUNBoAaa0orR82Hcj5S4BtvPQCy2aLkwO0zR6kbSdim
+	 IMP7XPNy7zmoS39snomGHxew7hNHYaP8KDBx9M03nh73yc/zDlLXfJYt7acD1WB2WD
+	 HpWgrQfhC/t6ajYRTsHB+wvNjNPn9dAoWgBkVCr8Oz59MfHWtZO/GDzppWXdmUoZEE
+	 9YwQkkV0tv3FH7f8+ryiiWrun2Hih6kJ95ueGldYFy/y0nHO7ByioCA8wVnxqUKXE7
+	 7/x9XMEGUDXQg==
+Message-ID: <eaea4aac-fcba-4f83-99dd-f8289e5556c0@kernel.org>
+Date: Tue, 9 Jun 2026 11:52:21 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 1/9] mm/memory: add memory_block_aligned_range() helper
+Subject: Re: [PATCH v4 3/9] mm/memory_hotplug: export
+ mhp_get_default_online_type
 To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org,
  nvdimm@lists.linux.dev
 Cc: linux-kernel@vger.kernel.org, kernel-team@meta.com,
@@ -46,7 +47,7 @@ Cc: linux-kernel@vger.kernel.org, kernel-team@meta.com,
  alison.schofield@intel.com, Smita.KoralahalliChannabasappa@amd.com,
  ira.weiny@intel.com, apopple@nvidia.com
 References: <20260605211911.2160954-1-gourry@gourry.net>
- <20260605211911.2160954-2-gourry@gourry.net>
+ <20260605211911.2160954-4-gourry@gourry.net>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -93,22 +94,28 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260605211911.2160954-2-gourry@gourry.net>
+In-Reply-To: <20260605211911.2160954-4-gourry@gourry.net>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 6/5/26 23:19, Gregory Price wrote:
-> Memory hotplug operations require ranges aligned to memory block
-> boundaries.  This is a generic operation for hotplug.
+> Drivers which may pass hotplug policy down to DAX need MMOP_ symbols
+> and the mhp_get_default_online_type function for hotplug use cases.
 > 
-> Add memory_block_aligned_range() as a common helper in <linux/memory.h>
-> that aligns the start address up and end address down to memory block
-> boundaries.
+> Some drivers (cxl) co-mingle their hotplug and devdax use-cases into
+> the same driver code, and chose the dax_kmem path as the default driver
+> path - making it difficult to require hotplug as a predicate to building
+> the overall driver (it may break other non-hotplug use-cases).
 > 
-> Update dax/kmem to use this helper.
+> Export mhp_get_default_online_type function to allow these drivers to
+> build when hotplug is disabled and still use the DAX use case.
 > 
-> Signed-off-by: Gregory Price <gourry@gourry.net>
-> ---
+> In the built-out case we simply return MMOP_OFFLINE as it's
+
+Ah, you mean without CONFIG_MEMORY_HOTPLUG
+
+> non-destructive.  The internal function can never return -1 either,
+> so we choose this to allow for defining the function with 'enum mmop'.
 
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 
