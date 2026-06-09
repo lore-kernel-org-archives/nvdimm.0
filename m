@@ -1,64 +1,64 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
+Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D866481224
-	for <nvdimm@lists.linux.dev>; Tue,  9 Jun 2026 15:12:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8FBB48AE2E
+	for <nvdimm@lists.linux.dev>; Tue,  9 Jun 2026 15:15:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781017960; cv=none; b=PQrcM0uDQOqJFQAOS6tWCDxopBMLcSeOneUzV4Y7EiVWOnpn7lrgC+s9rDXf1NBY3aSfmZRlQnaAUpyf9uUn5mJOQn/tMjnTImWHruAOJyisk9zzXJkRT/njJvionsfGNwNTZdpkl1OT/K8QRFM73MKCN5cAdW5ylhqrCrne7wI=
+	t=1781018146; cv=none; b=NAnbGLIZBjcWw94/TjBScSCaxf7zINzponxb1+BMUp4yd0HEf0H9hPh5pOHYrPl9qnnmVp8Gt9ZkZp/CBhv7WwJydyx2HgLdwkv99m6ITluy8MbmsnTASXo9PCCfXUGiVkE0BZu1zevbqgAi3QUDNYp1KQXwaX3ptLI4nNsF6Nw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781017960; c=relaxed/simple;
-	bh=0bY3+VnKsZDDkii4NqRrIp5qMNrkGIBYkCIcna1PA6U=;
+	s=arc-20240116; t=1781018146; c=relaxed/simple;
+	bh=4Q3lUCN/K5ogiGNFPWtDLaQVmKDt2aFt3PTUh0S3qXM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=s1e9ZMuEMA+RrWvFUrKRZ66wbXNtGLeXAb/lR6TaYhV2u/xFopoGWVTLv5cgF1J2BZeDTccFiA+tJfRGisNI3hIdA7GxAe8aOh8shj7IddXrJ0vQofNC7/MCMufMC4J3gHy5NcZ5nq1YD8zxVyU/NZISE0+nKn9SEzbnpyUZC+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=cerTw9pg; arc=none smtp.client-ip=209.85.222.173
+	 Content-Type:Content-Disposition:In-Reply-To; b=TYpDxCVlMmocznlGDVDAXRInqzJIksjF6AAIYbywVrf41Ph1wW7v6a/MBDW7skavVbW7laf8JEnd53lTdlRN04GEv5JV+m/OtTumlIz3Dr4uWhKBLzrpYae8xZE16btkSlw42N7ffOLLmfTQdNlUxPgWOR1xmsHYdr+EVa/uBiE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=XtDg+3yi; arc=none smtp.client-ip=209.85.222.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="cerTw9pg"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-915d17e2721so284241685a.3
-        for <nvdimm@lists.linux.dev>; Tue, 09 Jun 2026 08:12:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="XtDg+3yi"
+Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-9159da9bba5so409053685a.1
+        for <nvdimm@lists.linux.dev>; Tue, 09 Jun 2026 08:15:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1781017952; x=1781622752; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1781018142; x=1781622942; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=PSHte4tw4Fe/hwOe0BydbVQDJ1bfJM9PJbtvHiFr8Bw=;
-        b=cerTw9pgD/d7sUpYWHCzd04mDeEZcvRLRbXwIv3FctH0DMDoiThfI+ANviIJx66EKQ
-         zRwAcylN7rH+CXuaH+s4MxpRi0vYHIfjYqPd4EqlqNN9TYZoOrIMd+sQsCARSaZGnrtf
-         4rgKI/4SEHnTce1zFeJFx6Q/cKycdAwceGfO1les/n6+30PVXGtJ1MRBUdubVCTZp4v1
-         +2mHrJ+lVAi5i96ET/oUix9u+sTopGUywjS2yCyI7+bCkMnGO1XFk5psOZiTebT785nu
-         a/NXZNgmvwmr1Eoi/TZn73Z1rUZxvmfVchW8ISw58vbOYr1TqcIJtkqBtQedTXL4KS4G
-         V2NA==
+        bh=01y5Yp7Lv2fsZ0TiFN6M9m/RLD3dl7/dyTYKRdYu1dc=;
+        b=XtDg+3yivQKNeSEgvFeUUCVJ3s48/VXp0dnfpimG2M53aC/aib0l4YgCnATDqBQYGb
+         wJ3SxzJpRpPAmzGc0QwRBcmWSJCZAaqDMaVTZZ9JkaMFnels09M66BXown1kBNHNie18
+         gV8I1nD1ar5oszXYX/lj/z+IJb6QGj7oHQ5oFznGhc8hW/7gLndREYB6yoMO37KKs7pW
+         iZtbySVTJKurtlmYGzWOglrJKYXqTr4d9hUPX0n3AWqb+NdHJ6Zj09am5sLidwn4g6I2
+         zjgeCXVKyAG5uNoBw8HEYEOt3NmqrzeEhzAFcWv0RdYtv+floDNZ5uSo6hvesF8Aq3AR
+         +B7Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781017952; x=1781622752;
+        d=1e100.net; s=20251104; t=1781018142; x=1781622942;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=PSHte4tw4Fe/hwOe0BydbVQDJ1bfJM9PJbtvHiFr8Bw=;
-        b=hXBUVqPhayF00z0dpJmIX4A47SAHXa7R+c+7TqQmRgD1ZybX+fM9aBCKXRSUj5vcm1
-         jHQnffbuoRqXLsxtNCo9+ylf6QXyo1l06yQFBWphi9uXs4SjYnEwavUM/oI5hUoClNEe
-         y3CL4jVu9AH7cHOP6V3vmPTPyJhOr7fn6vd+5K+ufxOGSXoFBdmGzNOCRvUBTLy/bHAP
-         CJOK6nXvbcbewuPp9HrDX4+vRKKpblZ+v63k5nxLhaUQ9vTzopuKoBUfpvDfoPz+mTz3
-         88V78RtLilmjMgp5USPYAHTgd/2NSJ+NGYLQTadCIm2fvhkkiiB8O/kelGS9jubkXz1W
-         Oq2g==
-X-Forwarded-Encrypted: i=1; AFNElJ+uNtE4NBbZEXUdrOuQX/P2L//8Yb4jkfVPsAC9YQIa/1opfvS2q27gvyK0JSkocjtnFuYdr7E=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwuQN52hUNvqNgOcVVYLephmekhkseA5gIRSjVxNZ3k5Q25ANeb
-	VyU5yqvRm6PJ1nU5cZCvZBFo3J9jL0Jax0a4L0Lyyawdz/VCT+zoNCEiKDK98XKrHr0=
-X-Gm-Gg: Acq92OEB/WYSCJwDeberP1IlesJTwZY3AXLCtPCGXHTuWTqsC9CuNP8g8ggz5F8zamo
-	D81+xKAthY8gJbrtWwr9pj2yjGzDRzM2Lr97wFicD5NfxCkuH+j63ZzyyYOS9bqFa29pz5ZcUl3
-	4hFAgweoyVY2/R78mzofmD/Yq8VlW69blh0+gpb7fNwpI094DPjFgAh53OEfrhqNF563InKL2Wl
-	raQcXmuduR5uw6TS9+46+oxYAofQvCUhHfOLwbuoeE3wiH5c1hTi0CfxpC/6CBHIx+S+AxHzNSz
-	9RCk2BWw7DYHWdY7/pHX6VVAw5g6vBdUPYhwZYrFO4hXCcRaj0NMqxZBa5lKPJUqAYDzo6UijuN
-	9GrOKseIpePJSp6g7YAWjl4MkHCBidZacLjlOwHdtiff03O9ZlD5X9l2G6Uo80g3MQzLfXgBaFk
-	byJa53K+pycYexZ41qhLWHKwkToZl+xr/eCBR/ZCh6QAWd8AJHQgcJOGXEqi1WY4D5yFknj3t19
-	zcb8XrKx2xXke5miQ==
-X-Received: by 2002:a05:620a:2587:b0:915:9c4b:fdae with SMTP id af79cd13be357-915a9cb2d33mr3324652285a.21.1781017952150;
-        Tue, 09 Jun 2026 08:12:32 -0700 (PDT)
+        bh=01y5Yp7Lv2fsZ0TiFN6M9m/RLD3dl7/dyTYKRdYu1dc=;
+        b=MnyaVsUZos1TKkNRYQA/uiTD2urnyB90w4M211xBX60LYDv8q0MI8RZwDxJizCeILN
+         SHEqtMWXGqfM6pbTzm9OFfg2IsrgCirXvOc2r335iq7FUjZU/5+YYWqhoV16p0/wrSVW
+         B+aDPX54T3m/0mgmsmWDhHOdcw+2+1BrMt5MaeB94pFzqma/o6csssocf/hNj607X1XR
+         Xph0RovwrcR2mWMPqxPQb/9eaU0ORT62mb6cV8uP5JmlFzn/Anuxu4qSZSWDouz50FGy
+         L4uaSFoqHazSAxR4EltAlk8+R/gdORiR/58obkCgknJfuAn3smzHFCyaJvsUUP2D0Xyl
+         E+Og==
+X-Forwarded-Encrypted: i=1; AFNElJ/z6QDIGs2cso9xEKKH+66KHCZAqCmknU1QfypTbNfXuBe6FUyEzqZ7GuOjlLr93FBpMQU0y0c=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy0dCKwUw2dB32KlMF77hIh3DFyJslNWFY1+490KvdMRlL1RvUm
+	gJUmt+lFz0IM/m2KxmPC3kAehDEEtDkTuiXfMfhNOejk4JFQpN/C6/O/CeqSi5vwzv4=
+X-Gm-Gg: Acq92OHeLyXHwp1Pr8P4F8VWYUWmpzdN0Xb6UH4pUN6ISESp6+8kz1ZyHaegszKYJ8y
+	b/NmIKwZJjszSUp64t7NBWQYlt9+/yKRdxEmMgzuDV78wUMjLKjFzj9nmvQJV6fWGGdIDAaKJUf
+	GjSN97sK9XsdTIY2q9crZ95lCZ7tlycE2MRxBgKcTs7QBoo59lrHMb8P04MvGDeLqkxWr/3ILj3
+	P74XEkaAkqdO2jIqOyPM3Tq5G3XGscnjU2d0bhYDEmsX7OYzkNBx+Ve07tbQ+HdrEEyNJu6dC0T
+	5gY1r0a/M0PnaTw/oFbmHACD+Aq7+V31tLCy9W15UsH6ip6ATPJGgCE9lb7Z9PC4/IJGPjhvOya
+	5ApSVzNQWGsJWFGnuQLtPG68cp6OWwmA2Q0kQv3xyPfjuGuSAg97kPkApGMjMItVqzMN1V3qATa
+	iST5Ks9S3kFjCjk54ob3A3n2qY9kYWGqz2Ak3XaMyRqtNGAkI4S5WI7FtnX8L7sAYoaxlfAL0iv
+	YIaVOaqddFT0ITHEg==
+X-Received: by 2002:a05:620a:2547:b0:915:9972:cfc with SMTP id af79cd13be357-915a9c7bba3mr3335701585a.19.1781018139752;
+        Tue, 09 Jun 2026 08:15:39 -0700 (PDT)
 Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9158a411333sm2261055685a.46.2026.06.09.08.12.31
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-91589ea0bcfsm2153439585a.0.2026.06.09.08.15.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 Jun 2026 08:12:31 -0700 (PDT)
-Date: Tue, 9 Jun 2026 11:12:29 -0400
+        Tue, 09 Jun 2026 08:15:39 -0700 (PDT)
+Date: Tue, 9 Jun 2026 11:15:37 -0400
 From: Gregory Price <gourry@gourry.net>
 To: "David Hildenbrand (Arm)" <david@kernel.org>
 Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev,
@@ -70,12 +70,11 @@ Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev,
 	mhocko@suse.com, osalvador@suse.de, shuah@kernel.org,
 	alison.schofield@intel.com, Smita.KoralahalliChannabasappa@amd.com,
 	ira.weiny@intel.com, apopple@nvidia.com
-Subject: Re: [PATCH v4 4/9] mm/memory_hotplug: add
- __add_memory_driver_managed() with online_type arg
-Message-ID: <aigtXQsFhJ4SB39t@gourry-fedora-PF4VCD3F>
+Subject: Re: [PATCH v4 5/9] mm/memory_hotplug: add multi-range hotunplug
+Message-ID: <aiguGeKKfSOu8haT@gourry-fedora-PF4VCD3F>
 References: <20260605211911.2160954-1-gourry@gourry.net>
- <20260605211911.2160954-5-gourry@gourry.net>
- <9361f783-5af4-4380-a901-8d330370491a@kernel.org>
+ <20260605211911.2160954-6-gourry@gourry.net>
+ <b62e071b-9dec-423f-9b4b-e3c34ea0a409@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -84,35 +83,40 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <9361f783-5af4-4380-a901-8d330370491a@kernel.org>
+In-Reply-To: <b62e071b-9dec-423f-9b4b-e3c34ea0a409@kernel.org>
 
-On Tue, Jun 09, 2026 at 11:55:24AM +0200, David Hildenbrand (Arm) wrote:
-> On 6/5/26 23:19, Gregory Price wrote:
-> > 
-> > diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> > index f059025f8f8b..d3edeb80aadb 100644
-> > --- a/include/linux/memory_hotplug.h
-> > +++ b/include/linux/memory_hotplug.h
-> > @@ -294,6 +294,9 @@ extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
-> >  extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
-> >  extern int add_memory_resource(int nid, struct resource *resource,
-> >  			       mhp_t mhp_flags);
-> > +int __add_memory_driver_managed(int nid, u64 start, u64 size,
-> > +				const char *resource_name, mhp_t mhp_flags,
-> > +				enum mmop online_type);
+On Tue, Jun 09, 2026 at 12:06:38PM +0200, David Hildenbrand (Arm) wrote:
 > 
-> We prefer two-tab indent on second parameter line while touching code / adding
-> new code.
+> >  EXPORT_SYMBOL_GPL(offline_and_remove_memory);
+> > +
+> > +/**
+> > + * offline_and_remove_memory_ranges - offline and remove multiple memory ranges
+> > + * @ranges: array of physical address ranges to offline and remove
+> > + * @nr_ranges: number of entries in @ranges
+> > + *
+> > + * Offline and remove several memory ranges as one operation, serialized
+> > + * against other hotplug operations by a single lock_device_hotplug().
+> > + *
+> > + * Unlike calling offline_and_remove_memory() in a loop, this offlines *all*
+> > + * ranges before removing any of them.  If offlining any range fails, the
+> > + * offlining of the ranges processed so far is reverted and nothing is
+> > + * removed, leaving every range online as it was before the call.  This gives
+> > + * callers all-or-nothing semantics for the offline step, so a failed unplug
+> > + * does not leave a device split between online and removed ranges.
+> > + *
+> > + * Each range must be memory-block aligned in start and size.
+> > + *
+> > + * Return: 0 on success, negative errno otherwise.  On failure no range has
+> > + * been removed.
+> > + */
+> > +int offline_and_remove_memory_ranges(const struct range *ranges, int nr_ranges)
+> > +{
 > 
-> Same applies to the other instances below.
+> Is there a way to just generalize the logic in offline_and_remove_memory() to
+> multiple ranges, making offline_and_remove_memory() then a simple wrapper around
+> the new offline_and_remove_memory_ranges(), providing only a single range?
 > 
 
-Will fix on next spin, thanks!
+Yeah that's reasonable, I'll look at what can be done.
 
-> 
-> Apart from that (still) LGTM.
-> 
-> -- 
-> Cheers,
-> 
-> David
+~Gregory
