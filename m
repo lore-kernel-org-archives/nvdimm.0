@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4626A15E8B
-	for <nvdimm@lists.linux.dev>; Tue,  9 Jun 2026 00:08:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B3B73AC00
+	for <nvdimm@lists.linux.dev>; Tue,  9 Jun 2026 00:13:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780963703; cv=none; b=fNlcYDh0FWXm3fd+sRC8uqBz8I7pL2+Fq43L2I1ow9IOZ54O9qd7GPeEojci3lywIBEqxugjrHegm6JRbrwJCVk0L8SNf2eTRL2/y+dpnQeCjy+QLAbzpe2bFfVWTaMqw7mSkZgAnuQtPGDqLZHESJ93DFJA7SCQst80jyrZEbg=
+	t=1780963983; cv=none; b=S93IwrAb+V0rnqxCjPJAyWOFUSLrPGRw9toCaESPW4grn9sP677v5QEoChf3SflPR+5bGSZbvLeGmZP+PfDzwAPTIGLVvxPn4CrAVM3+I1xkOR8r50EK9Ka3iB6qatylE08wvSc34OZS6oXKmAN6vG5CfCvPE3XzyC7pqrVDhbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780963703; c=relaxed/simple;
-	bh=yyHA3Gxmjm153UN8ZtHkWgLZnMIMW5++QuzDMn6jDmw=;
+	s=arc-20240116; t=1780963983; c=relaxed/simple;
+	bh=gEU91nAT1kE1ELSuDkenOA+7nwztaXOrYivOp0SCGPM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TLIrkQkFKs1LsftsFL/2+rqkbZMBfSk9sNhoV8FuDMTUfbkPjey9qVul2Z9oKZcjpb9ZMo1GHOftb3npky79yWigHZcQDEw5LQWO3ixqrN9gBswmtHxHjZQZYZ9mDmDpzyB24R0KdEcsSvKBMTF989X5bSvOzvhsnG7+H7xbXD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JF0mddCF; arc=none smtp.client-ip=198.175.65.17
+	 In-Reply-To:Content-Type; b=ohZNc5NeGGnLswxOEPLzXMdF2HmuPIMhvtVYcy6YY2vPY308uyly6AjeVJYW627KWZ8xFLsdaF0/e1fDgRyNDlah7y++kFKI1jcc1ZVGYXi7ZyZW8MPOEJwr62ORQ34lysWE8aiYTcMzWDND2kJJSIefyixAN6Kr7kMSpIe+KA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=R+N9qBVE; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JF0mddCF"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="R+N9qBVE"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780963701; x=1812499701;
+  t=1780963982; x=1812499982;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=yyHA3Gxmjm153UN8ZtHkWgLZnMIMW5++QuzDMn6jDmw=;
-  b=JF0mddCFA4F7aEoZWR+YtMhUmZAcHd6cHTWGWP4oQhQQ0NMR9FLbR7O0
-   5LKxI6i2CAlJy6gfz5zi4tu3Z0jolrZVcSdzkKSQZbJRwO4BR+aUQD4Rw
-   StbNBBM+5GMb5ZqptBHLpoTUFHRGVCq1CoVMsqa96yVGjAIVx52atK7iL
-   69njkJlc0Kw2ZWeHLhhI4DdadSP/tjPiG6FSP7LU+lm+yHYd162/dExzK
-   P5SY11xZZ2U//i0dEx8GNEIY6jAcQCTpdAJyZSNmBSQjFO/Z2g+0dTJeh
-   DoLZ6mI7F4N+FTIb22fNL2HiVpSDUQ9K+ierjQFAeLtX2xmglYleeBPTe
-   A==;
-X-CSE-ConnectionGUID: 7hq+B93jR0CMdat3wwWi+A==
-X-CSE-MsgGUID: e18O2gt+Tqe+1MR4TkBSWA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11811"; a="81715898"
+  bh=gEU91nAT1kE1ELSuDkenOA+7nwztaXOrYivOp0SCGPM=;
+  b=R+N9qBVE5wYN1Q7KquASr/U592RaQORFDIk/Y21RpA2mrCspbBSVp/E5
+   5XgIbuC47+QqtcPqgLr5JgIfn1MUM5tqwBc1lVjQSHbo0SgdxHL3erLVd
+   6EQM8swkpdKyUx5eJV++n2qdJwRUkHvFp7l/8odycG0I/Hyb+cD31EhZz
+   a6pT7pjOLNCngDQgX5RamCw8A5Mz3I+fQfPmndfXtZ3xb1GbN+t0KOAu5
+   q0M9xs0Sfjs+HKWdOxQodhZ9Ba12wC6D9IKrqJ8ZCTHVBaBW+aABZMh9u
+   +ohdV1ZZ1LUt/82WcQsH64u38MxBK6GBtWQR1CMKrCEiIlCOPG0WGZ3vn
+   Q==;
+X-CSE-ConnectionGUID: hUbAL1vSRc+mFuKRyJMi3w==
+X-CSE-MsgGUID: lrO096EpQMOdF2l7bgYmGw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11811"; a="84285996"
 X-IronPort-AV: E=Sophos;i="6.24,195,1774335600"; 
-   d="scan'208";a="81715898"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2026 17:08:20 -0700
-X-CSE-ConnectionGUID: Zs2nbYkKT4i987hQufalBQ==
-X-CSE-MsgGUID: vnVbXQp1T7ys8Qm0lihhFQ==
+   d="scan'208";a="84285996"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2026 17:13:01 -0700
+X-CSE-ConnectionGUID: ojGgkG+HTHCcgZ88+wqZIg==
+X-CSE-MsgGUID: CTwzPpJ2RpyuXKAKJpU+hA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,195,1774335600"; 
-   d="scan'208";a="275881636"
+   d="scan'208";a="250621952"
 Received: from bradocaj-mobl.ger.corp.intel.com (HELO [10.125.109.162]) ([10.125.109.162])
-  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2026 17:08:20 -0700
-Message-ID: <ad25c4ad-b967-46c5-a983-a0c0ceb7d825@intel.com>
-Date: Mon, 8 Jun 2026 17:08:19 -0700
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2026 17:13:00 -0700
+Message-ID: <f1bf4df1-7ff2-4e13-8632-0d0c680f3629@intel.com>
+Date: Mon, 8 Jun 2026 17:12:59 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,245 +52,273 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 5/7] cxl/region: Add extent output to region query
+Subject: Re: [PATCH v6 6/7] daxctl: Add --uuid option to create-device for
+ sparse regions
 To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
  linux-kernel@vger.kernel.org
 Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
  Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
  Ira Weiny <iweiny@kernel.org>, Alison Schofield
  <alison.schofield@intel.com>, John Groves <John@Groves.net>,
- Gregory Price <gourry@gourry.net>, Ira Weiny <ira.weiny@intel.com>
+ Gregory Price <gourry@gourry.net>, Anisa Su <anisa.su@samsung.com>
 References: <20260523095043.471098-1-anisa.su@samsung.com>
- <20260523095043.471098-6-anisa.su@samsung.com>
+ <20260523095043.471098-7-anisa.su@samsung.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260523095043.471098-6-anisa.su@samsung.com>
+In-Reply-To: <20260523095043.471098-7-anisa.su@samsung.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
 On 5/23/26 2:50 AM, Anisa Su wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
+> Add a --uuid option to 'daxctl create-device' that writes the given
+> uuid to the new dax device's sysfs 'uuid' attribute.  On sparse (DCD)
+> regions this claims dax_resources whose tag matches and populates the
+> seed device with their capacity; size is determined by the claim, so
+> --uuid is mutually exclusive with --size.
 > 
-> DCD regions have 0 or more extents.  The ability to list those and their
-> properties is useful to end users.
+> Pass "0" to claim a single untagged dax_resource.  A claim that
+> matches no dax_resource leaves the device at size 0; the kernel
+> returns ENOENT.
 > 
-> Add an option for extent output to region queries.  An example of this
-> is:
+> Plumb the write through a new daxctl_dev_set_uuid() libdaxctl helper
+> (LIBDAXCTL_11) and document the option in the man page.
 > 
-> 	$ ./build/cxl/cxl list -r 8 -Nu
-> 	{
-> 	  "region":"region8",
-> 	  ...
-> 	  "type":"dc",
-> 	  ...
-> 	  "extents":[
-> 	    {
-> 	      "offset":"0x10000000",
-> 	      "length":"64.00 MiB (67.11 MB)",
-> 	      "tag":"00000000-0000-0000-0000-000000000000"
-
-I think the code emits "uuid". Update commit log.
-> 	    },
-> 	    {
-> 	      "offset":"0x8000000",
-> 	      "length":"64.00 MiB (67.11 MB)",
-> 	      "tag":"00000000-0000-0000-0000-000000000000"
-
-same here
-
-DJ
-
-> 	    }
-> 	  ]
-> 	}
-> 
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> 
+> Signed-off-by: Anisa Su <anisa.su887@gmail.com>
 > ---
-> Changes:
-> [iweiny: s/tag/uuid/]
-> ---
->  Documentation/cxl/cxl-list.txt | 29 +++++++++++++++++++++
->  cxl/filter.h                   |  3 +++
->  cxl/json.c                     | 47 ++++++++++++++++++++++++++++++++++
->  cxl/json.h                     |  3 +++
->  cxl/list.c                     |  3 +++
->  util/json.h                    |  1 +
->  6 files changed, 86 insertions(+)
+>  Documentation/daxctl/daxctl-create-device.txt | 12 ++++
+>  daxctl/device.c                               | 72 +++++++++++++------
+>  daxctl/lib/libdaxctl.c                        | 44 ++++++++++++
+>  daxctl/lib/libdaxctl.sym                      |  5 ++
+>  daxctl/libdaxctl.h                            |  1 +
+>  5 files changed, 114 insertions(+), 20 deletions(-)
 > 
-> diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
-> index 193860b..7512687 100644
-> --- a/Documentation/cxl/cxl-list.txt
-> +++ b/Documentation/cxl/cxl-list.txt
-> @@ -426,6 +426,35 @@ OPTIONS
->  }
->  ----
+> diff --git a/Documentation/daxctl/daxctl-create-device.txt b/Documentation/daxctl/daxctl-create-device.txt
+> index b774b86..27b87d0 100644
+> --- a/Documentation/daxctl/daxctl-create-device.txt
+> +++ b/Documentation/daxctl/daxctl-create-device.txt
+> @@ -82,6 +82,18 @@ include::region-option.txt[]
 >  
-> +-N::
-> +--extents::
-> +	Append Dynamic Capacity extent information.
-> +----
-> +13:34:28 > ./build/cxl/cxl list -r 8 -Nu
-> +{
-> +  "region":"region8",
-> +  "resource":"0xf030000000",
-> +  "size":"512.00 MiB (536.87 MB)",
-> +  "type":"dc",
-> +  "interleave_ways":1,
-> +  "interleave_granularity":256,
-> +  "decode_state":"commit",
-> +  "extents":[
-> +    {
-> +      "offset":"0x10000000",
-> +      "length":"64.00 MiB (67.11 MB)",
-> +      "uuid":"00000000-0000-0000-0000-000000000000"
-> +    },
-> +    {
-> +      "offset":"0x8000000",
-> +      "length":"64.00 MiB (67.11 MB)",
-> +      "uuid":"00000000-0000-0000-0000-000000000000"
-> +    }
-> +  ]
-> +}
-> +----
-> +
-> +
->  -r::
->  --region::
->  	Specify CXL region device name(s), or device id(s), to filter the listing.
-> diff --git a/cxl/filter.h b/cxl/filter.h
-> index 70463c4..30e7fe2 100644
-> --- a/cxl/filter.h
-> +++ b/cxl/filter.h
-> @@ -31,6 +31,7 @@ struct cxl_filter_params {
->  	bool alert_config;
->  	bool dax;
->  	bool media_errors;
-> +	bool extents;
->  	int verbose;
->  	struct log_ctx ctx;
->  };
-> @@ -93,6 +94,8 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
->  		flags |= UTIL_JSON_DAX | UTIL_JSON_DAX_DEVS;
->  	if (param->media_errors)
->  		flags |= UTIL_JSON_MEDIA_ERRORS;
-> +	if (param->extents)
-> +		flags |= UTIL_JSON_EXTENTS;
->  	return flags;
->  }
+>  	The size must be a multiple of the region alignment.
 >  
-> diff --git a/cxl/json.c b/cxl/json.c
-> index e94c809..7922b32 100644
-> --- a/cxl/json.c
-> +++ b/cxl/json.c
-> @@ -1022,6 +1022,50 @@ void util_cxl_mappings_append_json(struct json_object *jregion,
->  	json_object_object_add(jregion, "mappings", jmappings);
->  }
+> +	Mutually exclusive with --uuid.
+> +
+> +--uuid=::
+> +	For dax devices on sparse (DCD) regions, claim dax_resource(s) whose
+> +	tag matches the given UUID.  The device's size is determined by the
+> +	claimed capacity, so --uuid cannot be combined with --size.
+> +
+> +	A non-null UUID claims every matching dax_resource in the parent
+> +	region.  The value "0" is shorthand for the null UUID and claims a
+> +	single untagged dax_resource.  A write that matches no dax_resource
+> +	fails with ENOENT and the device is left at size 0.
+> +
+>  -a::
+>  --align::
+>  	Applications that want to establish dax memory mappings with
+> diff --git a/daxctl/device.c b/daxctl/device.c
+> index a4e36b1..21a941e 100644
+> --- a/daxctl/device.c
+> +++ b/daxctl/device.c
+> @@ -30,6 +30,7 @@ static struct {
+>  	const char *size;
+>  	const char *align;
+>  	const char *input;
+> +	const char *uuid;
+>  	bool check_config;
+>  	bool no_online;
+>  	bool no_movable;
+> @@ -85,7 +86,9 @@ OPT_BOOLEAN('C', "check-config", &param.check_config, \
+>  #define CREATE_OPTIONS() \
+>  OPT_STRING('s', "size", &param.size, "size", "size to switch the device to"), \
+>  OPT_STRING('a', "align", &param.align, "align", "alignment to switch the device to"), \
+> -OPT_STRING('\0', "input", &param.input, "input", "input device JSON file")
+> +OPT_STRING('\0', "input", &param.input, "input", "input device JSON file"), \
+> +OPT_STRING('\0', "uuid", &param.uuid, "uuid", \
+> +	"claim sparse dax_resource(s) matching this uuid (\"0\" for untagged)")
 >  
-> +void util_cxl_extents_append_json(struct json_object *jregion,
-> +				  struct cxl_region *region,
-> +				  unsigned long flags)
-> +{
-> +	struct json_object *jextents;
-> +	struct cxl_region_extent *extent;
+>  #define DESTROY_OPTIONS() \
+>  OPT_BOOLEAN('f', "force", &param.force, \
+> @@ -808,6 +811,22 @@ static int do_create(struct daxctl_region *region, long long val,
+>  	struct daxctl_dev *dev;
+>  	int i, rc = 0;
+>  	long long alloc = 0;
+> +	uuid_t uuid;
 > +
-> +	jextents = json_object_new_array();
-> +	if (!jextents)
-> +		return;
-> +
-> +	cxl_extent_foreach(region, extent) {
-> +		struct json_object *jextent, *jobj;
-> +		unsigned long long val;
-> +		char uuid_str[40];
-> +		uuid_t uuid;
-> +
-> +		jextent = json_object_new_object();
-> +		if (!jextent)
-> +			continue;
-> +
-> +		val = cxl_extent_get_offset(extent);
-> +		jobj = util_json_object_hex(val, flags);
-> +		if (jobj)
-> +			json_object_object_add(jextent, "offset", jobj);
-> +
-> +		val = cxl_extent_get_length(extent);
-> +		jobj = util_json_object_size(val, flags);
-> +		if (jobj)
-> +			json_object_object_add(jextent, "length", jobj);
-> +
-> +		cxl_extent_get_uuid(extent, uuid);
-> +		uuid_unparse(uuid, uuid_str);
-> +		jobj = json_object_new_string(uuid_str);
-> +		if (jobj)
-> +			json_object_object_add(jextent, "uuid", jobj);
-> +
-> +		json_object_array_add(jextents, jextent);
-> +		json_object_set_userdata(jextent, extent, NULL);
+> +	if (param.uuid) {
+> +		if (param.size) {
+> +			fprintf(stderr,
+> +				"--uuid and --size are mutually exclusive\n");
+> +			return -EINVAL;
+> +		}
+> +		if (strcmp(param.uuid, "0") == 0) {
+> +			uuid_clear(uuid);
+> +		} else if (uuid_parse(param.uuid, uuid) < 0) {
+> +			fprintf(stderr, "failed to parse uuid '%s'\n",
+> +				param.uuid);
+> +			return -EINVAL;
+> +		}
 > +	}
-> +
-> +	json_object_object_add(jregion, "extents", jextents);
-> +}
-> +
->  struct json_object *util_cxl_region_to_json(struct cxl_region *region,
->  					     unsigned long flags)
->  {
-> @@ -1126,6 +1170,9 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
->  		}
+>  
+>  	if (daxctl_region_create_dev(region))
+>  		return -ENOSPC;
+> @@ -816,33 +835,46 @@ static int do_create(struct daxctl_region *region, long long val,
+>  	if (!dev)
+>  		return -ENOSPC;
+>  
+> -	if (val == -1)
+> -		val = daxctl_region_get_available_size(region);
+> -
+> -	if (val <= 0)
+> -		return -ENOSPC;
+> -
+>  	if (align > 0) {
+>  		rc = daxctl_dev_set_align(dev, align);
+>  		if (rc < 0)
+>  			return rc;
 >  	}
 >  
-> +	if (flags & UTIL_JSON_EXTENTS)
-> +		util_cxl_extents_append_json(jregion, region, flags);
+> -	/* @maps is ordered by page_offset */
+> -	for (i = 0; i < nmaps; i++) {
+> -		rc = daxctl_dev_set_mapping(dev, maps[i].start, maps[i].end);
+> -		if (rc < 0)
+> +	if (param.uuid) {
+> +		rc = daxctl_dev_set_uuid(dev, uuid);
+> +		if (rc < 0) {
+> +			fprintf(stderr,
+> +				"%s: failed to claim uuid '%s': %s\n",
+> +				daxctl_dev_get_devname(dev), param.uuid,
+> +				strerror(-rc));
+>  			return rc;
+> -		alloc += (maps[i].end - maps[i].start + 1);
+> -	}
+> -
+> -	if (nmaps > 0 && val > 0 && alloc != val) {
+> -		fprintf(stderr, "%s: allocated %lld but specified size %lld\n",
+> -			daxctl_dev_get_devname(dev), alloc, val);
+> +		}
+>  	} else {
+> -		rc = daxctl_dev_set_size(dev, val);
+> -		if (rc < 0)
+> -			return rc;
+> +		if (val == -1)
+> +			val = daxctl_region_get_available_size(region);
 > +
->  	if (cxl_region_qos_class_mismatch(region)) {
->  		jobj = json_object_new_boolean(true);
->  		if (jobj)
-> diff --git a/cxl/json.h b/cxl/json.h
-> index eb7572b..f9c07ab 100644
-> --- a/cxl/json.h
-> +++ b/cxl/json.h
-> @@ -20,6 +20,9 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
->  void util_cxl_mappings_append_json(struct json_object *jregion,
->  				  struct cxl_region *region,
->  				  unsigned long flags);
-> +void util_cxl_extents_append_json(struct json_object *jregion,
-> +				  struct cxl_region *region,
-> +				  unsigned long flags);
->  void util_cxl_targets_append_json(struct json_object *jdecoder,
->  				  struct cxl_decoder *decoder,
->  				  const char *ident, const char *serial,
-> diff --git a/cxl/list.c b/cxl/list.c
-> index 0b25d78..47d1351 100644
-> --- a/cxl/list.c
-> +++ b/cxl/list.c
-> @@ -59,6 +59,8 @@ static const struct option options[] = {
->  		    "include alert configuration information"),
->  	OPT_BOOLEAN('L', "media-errors", &param.media_errors,
->  		    "include media-error information "),
-> +	OPT_BOOLEAN('N', "extents", &param.extents,
-> +		    "include extent information (Dynamic Capacity regions only)"),
->  	OPT_INCR('v', "verbose", &param.verbose, "increase output detail"),
->  #ifdef ENABLE_DEBUG
->  	OPT_BOOLEAN(0, "debug", &debug, "debug list walk"),
-> @@ -135,6 +137,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
->  		param.decoders = true;
->  		param.targets = true;
->  		param.regions = true;
-> +		param.extents = true;
->  		/*fallthrough*/
->  	case 0:
->  		break;
-> diff --git a/util/json.h b/util/json.h
-> index 560f845..79ae324 100644
-> --- a/util/json.h
-> +++ b/util/json.h
-> @@ -21,6 +21,7 @@ enum util_json_flags {
->  	UTIL_JSON_TARGETS	= (1 << 11),
->  	UTIL_JSON_PARTITION	= (1 << 12),
->  	UTIL_JSON_ALERT_CONFIG	= (1 << 13),
-> +	UTIL_JSON_EXTENTS	= (1 << 14),
->  };
+> +		if (val <= 0)
+> +			return -ENOSPC;
+> +
+> +		/* @maps is ordered by page_offset */
+> +		for (i = 0; i < nmaps; i++) {
+> +			rc = daxctl_dev_set_mapping(dev, maps[i].start,
+> +						    maps[i].end);
+> +			if (rc < 0)
+> +				return rc;
+> +			alloc += (maps[i].end - maps[i].start + 1);
+> +		}
+> +
+> +		if (nmaps > 0 && val > 0 && alloc != val) {
+> +			fprintf(stderr,
+> +				"%s: allocated %lld but specified size %lld\n",
+> +				daxctl_dev_get_devname(dev), alloc, val);
+> +		} else {
+> +			rc = daxctl_dev_set_size(dev, val);
+> +			if (rc < 0)
+> +				return rc;
+> +		}
+>  	}
 >  
->  void util_display_json_array(FILE *f_out, struct json_object *jarray,
+>  	rc = daxctl_dev_enable_devdax(dev);
+> diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+> index 02ae7e5..fe07939 100644
+> --- a/daxctl/lib/libdaxctl.c
+> +++ b/daxctl/lib/libdaxctl.c
+> @@ -1107,6 +1107,50 @@ DAXCTL_EXPORT int daxctl_dev_set_size(struct daxctl_dev *dev, unsigned long long
+>  	return 0;
+>  }
+>  
+> +DAXCTL_EXPORT int daxctl_dev_set_uuid(struct daxctl_dev *dev, uuid_t uuid)
+> +{
+> +	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
+> +	char buf[SYSFS_ATTR_SIZE];
+> +	char *path = dev->dev_buf;
+> +	int len = dev->buf_len;
+> +
+> +	if (snprintf(path, len, "%s/uuid", dev->dev_path) >= len) {
+> +		err(ctx, "%s: buffer too small!\n",
+> +				daxctl_dev_get_devname(dev));
+> +		return -ENXIO;
+
+snprintf() returns negative errno, propogate
+
+> +	}
+> +
+> +	if (uuid_is_null(uuid))
+> +		sprintf(buf, "0\n");
+> +	else
+> +		uuid_unparse(uuid, buf);
+> +
+> +	if (sysfs_write_attr(ctx, path, buf) < 0) {
+> +		err(ctx, "%s: failed to set uuid\n",
+> +				daxctl_dev_get_devname(dev));
+> +		return -ENXIO;
+
+propogate the errno from sysfs_write_attr()
+
+> +	}
+> +
+> +	/*
+> +	 * On a sparse region the kernel populates the device size as a
+> +	 * side effect of claiming the matching dax_resource(s); refresh
+> +	 * the cached size so callers see the post-claim value.
+> +	 */
+> +	if (snprintf(path, len, "%s/size", dev->dev_path) >= len) {
+> +		err(ctx, "%s: buffer too small!\n",
+> +				daxctl_dev_get_devname(dev));
+> +		return -ENXIO;
+
+propogate negative return value from snprintf()
+
+> +	}
+> +	if (sysfs_read_attr(ctx, path, buf) < 0) {
+> +		err(ctx, "%s: failed to read back size\n",
+> +				daxctl_dev_get_devname(dev));
+> +		return -ENXIO;
+
+propgate negative errno from sysfs_read_attr()
+
+> +	}
+> +	dev->size = strtoull(buf, NULL, 0);
+> +
+> +	return 0;
+> +}
+> +
+>  DAXCTL_EXPORT unsigned long daxctl_dev_get_align(struct daxctl_dev *dev)
+>  {
+>  	return dev->align;
+> diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+> index 3098811..16792eb 100644
+> --- a/daxctl/lib/libdaxctl.sym
+> +++ b/daxctl/lib/libdaxctl.sym
+> @@ -104,3 +104,8 @@ LIBDAXCTL_10 {
+>  global:
+>  	daxctl_dev_is_system_ram_capable;
+>  } LIBDAXCTL_9;
+> +
+> +LIBDAXCTL_11 {
+> +global:
+> +	daxctl_dev_set_uuid;
+> +} LIBDAXCTL_10;
+> diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+> index 53c6bbd..cdd5995 100644
+> --- a/daxctl/libdaxctl.h
+> +++ b/daxctl/libdaxctl.h
+> @@ -63,6 +63,7 @@ int daxctl_dev_get_minor(struct daxctl_dev *dev);
+>  unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
+>  unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
+>  int daxctl_dev_set_size(struct daxctl_dev *dev, unsigned long long size);
+> +int daxctl_dev_set_uuid(struct daxctl_dev *dev, uuid_t uuid);
+>  unsigned long daxctl_dev_get_align(struct daxctl_dev *dev);
+>  int daxctl_dev_set_align(struct daxctl_dev *dev, unsigned long align);
+>  int daxctl_dev_set_mapping(struct daxctl_dev *dev, unsigned long long start,
 
