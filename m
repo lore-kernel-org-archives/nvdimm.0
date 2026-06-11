@@ -1,37 +1,38 @@
-Received: from a48-180.smtp-out.amazonses.com (a48-180.smtp-out.amazonses.com [54.240.48.180])
+Received: from a10-27.smtp-out.amazonses.com (a10-27.smtp-out.amazonses.com [54.240.10.27])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78C9C4963D8
-	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 17:32:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.48.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1985648A2D0
+	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 17:32:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.10.27
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781199163; cv=none; b=bH6Ws1fKOK6CEEbSvvFeYmeQEeaNvXP9+zcR4KPsAzM57oUZAWV8i+sjthpyFMY06MwnTEIsu/cOBpFd7laFh/mUFxVDxwSIid4qtr4bWpwIFAr3L0d4o6hjiB4Lwyd5WhhObt0OISur7ioRHjljClcP007AyhSScK0OxuWuS7E=
+	t=1781199170; cv=none; b=Fwr7E9jyG0R90p7l/fZ/gf1zUySJdqZ6/zjnNz8aeYSBhK93XpTE5STwKk7lRUhM6DZ3855m3hd3qIqdKxlVMGe9NXyUo1aXPbhHGiRj2lBpBg5ANqTA85ZxofS7+lpuCRgIaoSnkHET2UdLnlzci0MZbc835APQg/dEhDeNDvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781199163; c=relaxed/simple;
-	bh=xmS/VRyD3DJzB0A9eEPUMDKNlVXDkbLaDU89X6lOSCs=;
+	s=arc-20240116; t=1781199170; c=relaxed/simple;
+	bh=JGEaB23H0mEnrU3LNgJnTu6D3rRBvSNFesI6+AAND80=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=WdnYMfvgK0gej55WxgIZ/8Rz5B22KfVJP4Aa3tihgn4I0igIg45wqfEKeebdro9ecWcRxZzjWj152Q3takIMfULL7HcOW+g+2KDasIDo98dKWAGAtSYBnX5Z4mHDwHV/9lJmp27jaUMjwkpSC7Pu9MLNJkqHfDa9RKj+9NNLwD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=s6Jm/CMg; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=qRjO2O21; arc=none smtp.client-ip=54.240.48.180
+	 References:Message-ID; b=WhMpSdWm+lhTJaZCu2gl3STsb97zp/8NTjNOZ7AYNjR+hpJ3Fk9ozjU2ZQ49F0YREnS3oErhf8Y0IGWhUphqJzrQ2iFO2LIMQsGcXbgIiy2NGyt2A/drMZ67Nc7jwoNTHKxT0lF0/SYqASuRkE4VeEgaeOj5m6aOVWELIke8tbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=pKVp7xc6; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=Ul3MTdnr; arc=none smtp.client-ip=54.240.10.27
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="s6Jm/CMg";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="qRjO2O21"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="pKVp7xc6";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="Ul3MTdnr"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1781199158;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1781199165;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=xmS/VRyD3DJzB0A9eEPUMDKNlVXDkbLaDU89X6lOSCs=;
-	b=s6Jm/CMgKV+R7OK5X4e0dvE/boQT97cZpn64z7Mm15SfUPxNFP/O3uqtG6ZZpMtB
-	UloLvsQgg39CZReCNab0reGrQo+4i565Cyjn76hoTScYduZ8//ilIvi1Jujn7OMYIL1
-	+xb/t4hDObeTGXq6Fak2WXIDGXX6LKnzU82Guk/4=
+	bh=JGEaB23H0mEnrU3LNgJnTu6D3rRBvSNFesI6+AAND80=;
+	b=pKVp7xc6BkvNJbFCL31gIB7CfXwHvz3hw+eeNmCWz8i91skBsC4Yc0xLEPs2LPXL
+	QuXzIW9IJakwyLktAIDjJjx2JUTb+B22q93FUmTarTSxoBkU2M5yL5LRdDD9PZjQuAS
+	EiTHk8zbx1LprQaohkX3VTH3UD39xSLAOBAtDpjE=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1781199158;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1781199165;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=xmS/VRyD3DJzB0A9eEPUMDKNlVXDkbLaDU89X6lOSCs=;
-	b=qRjO2O2178Iscytaw1cUGyLTyO2PE8NED3NkyZeHT4hf70ZsY5l7aKxFl8kW5cZW
-	ThWETvJz1xa08EmvhJ0F8XWmC9tbqlG+Nn2MAOuROvpcI5JNYabhEFtcLb5eO7JSIoe
-	a6wSRWV5w0npmNWkJ7AvW7vx9W8lNT9G4bLQyXxI=
-Subject: [PATCH V5 6/9] dax/fsdev: fail probe on invalid pgmap offset
+	bh=JGEaB23H0mEnrU3LNgJnTu6D3rRBvSNFesI6+AAND80=;
+	b=Ul3MTdnrw7rNQzl0EWz3uNHF4WZZlRsto9Mhq85JH4xGo3t2sYd0IzUwo9Msu82n
+	Tf4OY/DYR4tN/nGp3uUqRV3u8e15uc2zykZePCnDg3hv6Ph1aGtnHeRoV9EnkpLLGLW
+	dnZuFEF+nZBfXD+v650Ila33DYtUpPGZ4m4g90FM=
+Subject: [PATCH V5 7/9] dax: read holder_ops once in
+ dax_holder_notify_failure()
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>
@@ -50,8 +51,9 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
+	=?UTF-8?Q?Richard_Cheng?= <icheng@nvidia.com>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Thu, 11 Jun 2026 17:32:38 +0000
+Date: Thu, 11 Jun 2026 17:32:45 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -59,57 +61,48 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 In-Reply-To: 
  <0100019eb7bcda4b-3f8edae9-d7a4-4bfa-aaea-fcef77fdbbc3-000000@email.amazonses.com>
 References: 
  <0100019eb7bcda4b-3f8edae9-d7a4-4bfa-aaea-fcef77fdbbc3-000000@email.amazonses.com> 
- <20260611173225.66002-1-john@jagalactic.com>
+ <20260611173240.66020-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHc+chLnsTTxCDfT7mYrzYAUg07eQ==
-Thread-Topic: [PATCH V5 6/9] dax/fsdev: fail probe on invalid pgmap offset
-X-Wm-Sent-Timestamp: 1781199157
+Thread-Index: AQHc+chPcdwnZtLKT8WXyri1Y9Lr/w==
+Thread-Topic: [PATCH V5 7/9] dax: read holder_ops once in
+ dax_holder_notify_failure()
+X-Wm-Sent-Timestamp: 1781199164
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019eb7be3bc2-972d848b-bc38-4b24-9ee1-f0dd5610355f-000000@email.amazonses.com>
+Message-ID: <0100019eb7be595f-5045353d-86b9-49fd-b1ca-fbb40c22d06c-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.06.11-54.240.48.180
+X-SES-Outgoing: 2026.06.11-54.240.10.27
 
-From: John Groves <John@Groves.net>
-
-Convert the WARN_ON to a fatal error when pgmap_phys > phys. This
-condition means the remapped region starts after the device's data
-region, which is an impossible state. Previously the probe continued
-with data_offset=0, leaving virt_addr silently misaligned. Now probe
-returns -EINVAL with a diagnostic message.
-
-Fixes: 759455848df0b ("dax: Save the kva from memremap")
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-Signed-off-by: John Groves <john@groves.net>
----
- drivers/dax/fsdev.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-index 07de6bfbbf673..71d2bee1e2805 100644
---- a/drivers/dax/fsdev.c
-+++ b/drivers/dax/fsdev.c
-@@ -320,8 +320,12 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
- 		u64 phys = dev_dax->ranges[0].range.start;
- 		u64 pgmap_phys = pgmap[0].range.start;
- 
--		if (!WARN_ON(pgmap_phys > phys))
--			data_offset = phys - pgmap_phys;
-+		if (pgmap_phys > phys) {
-+			dev_err(dev, "pgmap start %#llx exceeds data start %#llx\n",
-+				pgmap_phys, phys);
-+			return -EINVAL;
-+		}
-+		data_offset = phys - pgmap_phys;
- 
- 		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
- 		       __func__, phys, pgmap_phys, data_offset);
--- 
-2.53.0
-
+From: John Groves <John@Groves.net>=0D=0A=0D=0Adax_holder_notify_failure(=
+) reads dax_dev->holder_ops twice without=0D=0AREAD_ONCE() -- once for th=
+e NULL check and once for the indirect=0D=0Anotify_failure() call. A conc=
+urrent fs_put_dax() or kill_dax() can clear=0D=0Aholder_ops between the t=
+wo reads, so the check can observe a non-NULL=0D=0Apointer while the call=
+ dereferences NULL.=0D=0A=0D=0AFetch holder_ops once into a local with RE=
+AD_ONCE() so the NULL check and=0D=0Athe indirect call observe the same v=
+alue.=0D=0A=0D=0AFixes: 8012b86608552 ("dax: introduce holder for dax_dev=
+ice")=0D=0ASuggested-by: Richard Cheng <icheng@nvidia.com>=0D=0ASigned-of=
+f-by: John Groves <john@groves.net>=0D=0A---=0D=0A drivers/dax/super.c | =
+11 +++++++++--=0D=0A 1 file changed, 9 insertions(+), 2 deletions(-)=0D=0A=
+=0D=0Adiff --git a/drivers/dax/super.c b/drivers/dax/super.c=0D=0Aindex 2=
+5cf99dd9360b..6b5ee6589e39b 100644=0D=0A--- a/drivers/dax/super.c=0D=0A++=
++ b/drivers/dax/super.c=0D=0A@@ -303,6 +303,7 @@ EXPORT_SYMBOL_GPL(dax_re=
+covery_write);=0D=0A int dax_holder_notify_failure(struct dax_device *dax=
+_dev, u64 off,=0D=0A =09=09=09      u64 len, int mf_flags)=0D=0A {=0D=0A+=
+=09const struct dax_holder_operations *ops;=0D=0A =09int rc, id;=0D=0A=20=
+=0D=0A =09id =3D dax_read_lock();=0D=0A@@ -311,12 +312,18 @@ int dax_hold=
+er_notify_failure(struct dax_device *dax_dev, u64 off,=0D=0A =09=09goto o=
+ut;=0D=0A =09}=0D=0A=20=0D=0A-=09if (!dax_dev->holder_ops) {=0D=0A+=09/*=0D=
+=0A+=09 * Read holder_ops once: a concurrent fs_put_dax() or kill_dax() c=
+an=0D=0A+=09 * clear it. Without the single fetch the compiler could relo=
+ad=0D=0A+=09 * between the NULL check and the call and dereference a NULL=
+ ops.=0D=0A+=09 */=0D=0A+=09ops =3D READ_ONCE(dax_dev->holder_ops);=0D=0A=
++=09if (!ops) {=0D=0A =09=09rc =3D -EOPNOTSUPP;=0D=0A =09=09goto out;=0D=0A=
+ =09}=0D=0A=20=0D=0A-=09rc =3D dax_dev->holder_ops->notify_failure(dax_de=
+v, off, len, mf_flags);=0D=0A+=09rc =3D ops->notify_failure(dax_dev, off,=
+ len, mf_flags);=0D=0A out:=0D=0A =09dax_read_unlock(id);=0D=0A =09return=
+ rc;=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
