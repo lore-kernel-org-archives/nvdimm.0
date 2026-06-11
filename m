@@ -1,38 +1,38 @@
-Received: from a11-75.smtp-out.amazonses.com (a11-75.smtp-out.amazonses.com [54.240.11.75])
+Received: from a11-32.smtp-out.amazonses.com (a11-32.smtp-out.amazonses.com [54.240.11.32])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4828279329
-	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 17:32:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.75
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C8F2383313
+	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 17:32:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781199123; cv=none; b=s6LSk5sk2pkM8R/HTHrm03UVRZbx9oKRWI+AUR6uiIt0q6OygvASRAksQsBiQ12TbffuspjNfbWPiEdCRJd3Hl71fi1JyZ9cBe3onC9CGk9ofLsDZNRoOOUvCjvqBm7n26r4ZfiQmN6KSxCWzHL1CA91greSABVSqN4A2uOUUpU=
+	t=1781199131; cv=none; b=uZv7zgcSCiv9jWo6pAD8G4zZwO34lYoLqfNqfQx1iblMjXDrwfv8aTI+/BGoGspGLpNFejd5NFM5ocM39nix9RRrzDGRdrkqlK20YNLDLN8ez3tWFGGreppVtmiiBqJsWCDUZgbZDEmPUh1wuPuW12tkPIQBymtJWvh7yDkrXW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781199123; c=relaxed/simple;
-	bh=UAzWVek3tu6sgywKSqHRfmYJrqIv0Yci0ta0ml0mqCA=;
+	s=arc-20240116; t=1781199131; c=relaxed/simple;
+	bh=BMwqrKu+4RmLp5XRojEJNnltlQ4rxLBM7RWqML5oEb8=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=qgnVUX0sG16GgM2H4lw0VtSBQ4fNh3Yjk3gHHkudSV/+0WfBwRnWKXYymc78/8i+HRNsmpMjfz0MWRZsx2YZMZm19c/g5movQrIWl5+XYzboQEYaedgDQaJPXynMNsdmlZEtQS08YvOD9iaU4EvvJ4srgLXfkd/pu0FLsxlYZvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=BURweK7I; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=paA75gbx; arc=none smtp.client-ip=54.240.11.75
+	 References:Message-ID; b=LIQTV/xhCwjAHt7DDXtQscl1BEVa0jVzvHjxzySYhpWBWUJCvRve0IuT6QviSYB//GJwGAvaLz2lMe+mxaL/AePHmFdel3uJ2Gc1q36GqM4HltV12H3awSjj89vgWdLin6Yiftyo1n4XOxeJbOdAxInm1W5lrTj7pFgGREEB0GI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=qyoyCzn8; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=TZOQjaHr; arc=none smtp.client-ip=54.240.11.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="BURweK7I";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="paA75gbx"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="qyoyCzn8";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="TZOQjaHr"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1781199119;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1781199128;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=UAzWVek3tu6sgywKSqHRfmYJrqIv0Yci0ta0ml0mqCA=;
-	b=BURweK7Ice65J0AtPWxR4ZoaHPQ70nJMAvi3kb3v3wJElctAtEnWaLo2/SLn1OIh
-	jGQQINtWN90EFUnzqFiLFW0Mj869icT3d6HcnnzkIWsljrLISt04jo6ZhVFxlGz2OFY
-	HPyhg2gPgNQt2EYOCA/Q1PRxkBw0D+WKwQgNP6DY=
+	bh=BMwqrKu+4RmLp5XRojEJNnltlQ4rxLBM7RWqML5oEb8=;
+	b=qyoyCzn86fxTmTLaaNi0kPA6xFgJY5ENIq78BIJ98jWRAhHZGwY6Alt1nUyKRN1C
+	gOIWL4Lfadbr3dmA4B+fUizujneq1Rji3BC41lHsfNh8+tLXXnHk/TN0DqPpNSErV1I
+	ugzw4PTSJ7DVKKJLjjbFYity4soSOOg5hbx8Iq6o=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1781199119;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1781199128;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=UAzWVek3tu6sgywKSqHRfmYJrqIv0Yci0ta0ml0mqCA=;
-	b=paA75gbxhcrkGTwxD0+wYEcFx5FjLmLE1KiSBrZmBdED+6ugPV2EGrGwj1skoZGR
-	p/An3fsOOVL0CeUUYpI/bpLan1/1kAdNQZEJX4FaWVuqdrpiBcPez+Dth7/5xJ+PgJb
-	m0NtanJqP6to+fdSmxSCAceiSlt9S9nO5F1N9lNI=
-Subject: [PATCH V5 2/9] dax/fsdev: fix multi-range offset in memory_failure
- handler
+	bh=BMwqrKu+4RmLp5XRojEJNnltlQ4rxLBM7RWqML5oEb8=;
+	b=TZOQjaHry8QNscg1MQLIz/804mE/xL63W2WomNZuoDShAKePk4I5mYriD+3wARam
+	aTPFa8b0c/2SobpIGC1/pT3k5d2PXtePlVZuTXc5YNCrGI4m4Jvtgmp95fSYNvAepJz
+	NSMemLlhl23K6R5lZZZnwvlgfmIQOiCIIRSgcMIY=
+Subject: [PATCH V5 3/9] dax/fsdev: clear vmemmap_shift when binding static
+ pgmap
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Dan_Williams?= <djbw@kernel.org>
@@ -51,9 +51,8 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-kernel=40vger=2Ekernel=2Eorg?= <linux-kernel@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
-	=?UTF-8?Q?Richard_Cheng?= <icheng@nvidia.com>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Thu, 11 Jun 2026 17:31:59 +0000
+Date: Thu, 11 Jun 2026 17:32:07 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -66,76 +65,46 @@ In-Reply-To:
  <0100019eb7bcda4b-3f8edae9-d7a4-4bfa-aaea-fcef77fdbbc3-000000@email.amazonses.com>
 References: 
  <0100019eb7bcda4b-3f8edae9-d7a4-4bfa-aaea-fcef77fdbbc3-000000@email.amazonses.com> 
- <20260611173152.65905-1-john@jagalactic.com>
+ <20260611173202.65935-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHc+cg0yoVG1CemRKmwUY66X4n2EQ==
-Thread-Topic: [PATCH V5 2/9] dax/fsdev: fix multi-range offset in
- memory_failure handler
-X-Wm-Sent-Timestamp: 1781199118
+Thread-Index: AQHc+cg4h5373PkdSYq3qQmQuo26Aw==
+Thread-Topic: [PATCH V5 3/9] dax/fsdev: clear vmemmap_shift when binding
+ static pgmap
+X-Wm-Sent-Timestamp: 1781199126
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019eb7bda506-6ba24207-b1c0-4eeb-9b04-61940cf3f80c-000000@email.amazonses.com>
+Message-ID: <0100019eb7bdc5a7-f15b011c-0aee-411f-8d7c-2996345048e4-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.06.11-54.240.11.75
+X-SES-Outgoing: 2026.06.11-54.240.11.32
 
 From: John Groves <John@Groves.net>
 
-Fix memory_failure offset calculation for multi-range devices. The old code
-subtracted ranges[0].range.start from the faulting PFN's physical address,
-which produces an incorrect (inflated) logical offset when the PFN falls in
-ranges[1] or beyond due to physical gaps between ranges. Add
-fsdev_pfn_to_offset() to walk the range list and compute the correct
-device-linear byte offset.
-
-Walk the pagemap's own range array (pgmap->ranges[]) rather than
-dev_dax->ranges[]. The pgmap copy is the immutable snapshot populated at
-probe and is never mutated afterwards, whereas dev_dax->ranges[] can be
-krealloc()'d by a concurrent sysfs mapping_store() (under dax_region_rwsem,
-which this ->memory_failure callback does not hold). For dynamic devices the
-two arrays are identical, so the reported offset is unchanged for the
-multi-range case this targets.
+Clear pgmap->vmemmap_shift for static DAX devices. When rebinding a static
+device from device_dax (which may set vmemmap_shift based on alignment) to
+fsdev_dax, the stale vmemmap_shift persists on the shared pgmap. Explicitly
+zero it before devm_memremap_pages() so the vmemmap is built for order-0
+folios as fsdev requires.
 
 Fixes: d5406bd458b0a ("dax: add fsdev.c driver for fs-dax on character dax")
 
-Suggested-by: Richard Cheng <icheng@nvidia.com>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 Signed-off-by: John Groves <john@groves.net>
 ---
- drivers/dax/fsdev.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ drivers/dax/fsdev.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-index 188b2526bee45..2c5de3d80a618 100644
+index 2c5de3d80a618..52f46b3e245ea 100644
 --- a/drivers/dax/fsdev.c
 +++ b/drivers/dax/fsdev.c
-@@ -135,11 +135,26 @@ static void fsdev_clear_ops(void *data)
-  * The core mm code in free_zone_device_folio() handles the wake_up_var()
-  * directly for this memory type.
-  */
-+static u64 fsdev_pfn_to_offset(struct dev_pagemap *pgmap, unsigned long pfn)
-+{
-+	phys_addr_t phys = PFN_PHYS(pfn);
-+	u64 offset = 0;
-+
-+	for (int i = 0; i < pgmap->nr_range; i++) {
-+		struct range *range = &pgmap->ranges[i];
-+
-+		if (phys >= range->start && phys <= range->end)
-+			return offset + (phys - range->start);
-+		offset += range_len(range);
-+	}
-+	return -1ULL;
-+}
-+
- static int fsdev_pagemap_memory_failure(struct dev_pagemap *pgmap,
- 		unsigned long pfn, unsigned long nr_pages, int mf_flags)
- {
- 	struct dev_dax *dev_dax = pgmap->owner;
--	u64 offset = PFN_PHYS(pfn) - dev_dax->ranges[0].range.start;
-+	u64 offset = fsdev_pfn_to_offset(pgmap, pfn);
- 	u64 len = nr_pages << PAGE_SHIFT;
+@@ -237,6 +237,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+ 		}
  
- 	return dax_holder_notify_failure(dev_dax->dax_dev, offset,
+ 		pgmap = dev_dax->pgmap;
++		pgmap->vmemmap_shift = 0;
+ 	} else {
+ 		size_t pgmap_size;
+ 
 -- 
 2.53.0
 
