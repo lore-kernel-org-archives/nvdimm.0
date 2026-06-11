@@ -1,206 +1,197 @@
-Received: from mailgw1.hygon.cn (unknown [101.204.27.37])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 27DE62367CF
-	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 06:22:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=101.204.27.37
+Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BD1A353EF7
+	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 06:22:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781158938; cv=none; b=stimCHMvhqFZekk4XITN2Xj8InnFiwwIkYCLVJ+FGZM9jV7P4gGsUu+2TLshNez9MFwb3Z1iBflq477Ztpqdpk0l3uNx1H9iySs+U4MGgnuaMvd0dIebmo0XTmuwt6cnbki8SFa/97ULLMRWsdI3wtdahB6VGpuNTqgHrdSJJMk=
+	t=1781158971; cv=none; b=mSbT5Ntz6BX85wl9kF61j4pHS6Ue65um60T9dLy0zlv/xGl5Zr3bc02DjRW6d05muRY9UZ+qgNLvIaPdNuSobYnoJrpurcPcispISQptwwfuPoE6RRLWgOu52klSiAL1L+1X5EUrKpyTF6KuSGm9u82eotI024XHVWGxvtRUumA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781158938; c=relaxed/simple;
-	bh=HpKx7iNOoNn/W9ykpZyJTUq/2x/av0MA7ffeHEjPGko=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CX51nNRKfe7JLE9p71ni6LwL3xlrtV6gyq8yQoC1LxF7N4diZSb4ciXEi0gLKhjD+AHENvc9bRY4e/oc6+GRY6tj0M633pvsH9z7M2pPhfQtPLfU6MUK8TMF4500jKOaNsFW20mprsl8XDzZf4YyrsiKJiT2OZuUJ20e2/mwWw0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hygon.cn; spf=pass smtp.mailfrom=hygon.cn; arc=none smtp.client-ip=101.204.27.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hygon.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hygon.cn
-Received: from maildlp2.hygon.cn (unknown [127.0.0.1])
-	by mailgw1.hygon.cn (Postfix) with ESMTP id 4gbXc774mMz1dd8x;
-	Thu, 11 Jun 2026 14:21:59 +0800 (CST)
-Received: from maildlp2.hygon.cn (unknown [172.23.18.61])
-	by mailgw1.hygon.cn (Postfix) with ESMTP id 4gbXc66yN9z1dd8p;
-	Thu, 11 Jun 2026 14:21:58 +0800 (CST)
-Received: from cncheex04.Hygon.cn (unknown [172.23.18.114])
-	by maildlp2.hygon.cn (Postfix) with ESMTPS id A4BFA30004DB;
-	Thu, 11 Jun 2026 14:20:33 +0800 (CST)
-Received: from hsj-2U-Workstation.hygon.cn (172.19.20.61) by
- cncheex04.Hygon.cn (172.23.18.114) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Thu, 11 Jun 2026 14:21:53 +0800
-From: Huang Shijie <huangsj@hygon.cn>
-To: <akpm@linux-foundation.org>, <viro@zeniv.linux.org.uk>,
-	<brauner@kernel.org>, <jack@suse.cz>, <muchun.song@linux.dev>,
-	<osalvador@suse.de>, <david@kernel.org>
-CC: <surenb@google.com>, <mjguzik@gmail.com>, <liam@infradead.org>,
-	<ljs@kernel.org>, <vbabka@kernel.org>, <shakeel.butt@linux.dev>,
-	<rppt@kernel.org>, <mhocko@suse.com>, <corbet@lwn.net>,
-	<skhan@linuxfoundation.org>, <linux@armlinux.org.uk>, <dinguyen@kernel.org>,
-	<schuster.simon@siemens-energy.com>, <James.Bottomley@HansenPartnership.com>,
-	<deller@gmx.de>, <djbw@kernel.org>, <willy@infradead.org>,
-	<peterz@infradead.org>, <mingo@redhat.com>, <acme@kernel.org>,
-	<namhyung@kernel.org>, <mark.rutland@arm.com>,
-	<alexander.shishkin@linux.intel.com>, <jolsa@kernel.org>,
-	<irogers@google.com>, <adrian.hunter@intel.com>, <james.clark@linaro.org>,
-	<mhiramat@kernel.org>, <oleg@redhat.com>, <ziy@nvidia.com>,
-	<baolin.wang@linux.alibaba.com>, <npache@redhat.com>, <ryan.roberts@arm.com>,
-	<dev.jain@arm.com>, <baohua@kernel.org>, <lance.yang@linux.dev>,
-	<linmiaohe@huawei.com>, <nao.horiguchi@gmail.com>, <jannh@google.com>,
-	<pfalcato@suse.de>, <riel@surriel.com>, <harry@kernel.org>,
-	<will@kernel.org>, <brian.ruley@gehealthcare.com>,
-	<rmk+kernel@armlinux.org.uk>, <dave.anglin@bell.net>, <linux-mm@kvack.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-parisc@vger.kernel.org>,
-	<linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-perf-users@vger.kernel.org>, <linux-trace-kernel@vger.kernel.org>,
-	<zhongyuan@hygon.cn>, <fangbaoshun@hygon.cn>, <yingzhiwei@hygon.cn>, Huang
- Shijie <huangsj@hygon.cn>
-Subject: [PATCH v2 4/4] docs/mm: update document for split i_mmap tree
-Date: Thu, 11 Jun 2026 14:19:00 +0800
-Message-ID: <20260611061915.2354307-5-huangsj@hygon.cn>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260611061915.2354307-1-huangsj@hygon.cn>
-References: <20260611061915.2354307-1-huangsj@hygon.cn>
+	s=arc-20240116; t=1781158971; c=relaxed/simple;
+	bh=aOEGPw/vtOCxM66iJPQ6H7kLds48Kb65VpUxYO7XjUQ=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rjtf9ho4zGEQgHxaN6iU6rziLznFlKokaTLOloSRLqmCuixHho+qhgnE715gN12y0fuQS77YjlqJwkuOCqRmWGavaeYGa5AlGkygvXzLm7fyPTXi1CUeY9WsRk1nxQhbMDZhjMWIjCYXmNhvleXPUtwbBbjMyb0X5nFCBAgsX6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RSjRrg4e; arc=none smtp.client-ip=74.125.82.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RSjRrg4e"
+Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-307631dbfedso343613eec.0
+        for <nvdimm@lists.linux.dev>; Wed, 10 Jun 2026 23:22:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781158968; x=1781763768; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:date:from:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=Q+r5CsmNZ/qmFA19D/kuAvtdTU1zm5RqRVe0bN9E8Fk=;
+        b=RSjRrg4ejXhg2lbeHqPY+UG/nCtRppxAzZvv9iKuA99ZRCa0+vJsAmgjEirehZGIA0
+         CwZZ+MDkuR2gDp2zWVcUUPCEzT2vAf/PdnDgsQ3vZ5GiMDBOvLtV4ftF1y1VoG/H2c4z
+         WoscAhphk6D0QYOoKuQFsGM+ofJVYMl7GpBP74yToeWVdXxyaCwD1/3WBUJ4h0QBS+ev
+         isjZxmiKo9ek1fcOvwM+uFOhlDr7jHXHDHnjMAoFn9oCLaiPnTppjktHA6dJFdZLp+f0
+         QhcJHlU9Sa8pgxaZKi9/dPD4IrQKG64Q5SM/vyQMj2jy6CdZE4OLB7SLRQSy0Vl9pN4s
+         ObFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781158968; x=1781763768;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Q+r5CsmNZ/qmFA19D/kuAvtdTU1zm5RqRVe0bN9E8Fk=;
+        b=nRFWp/KpLIa9ZsqVz4VljKy8fC6i2LNT2lbskDxXsklovl2geQPpar0hJ58JJTv9WM
+         EXk9DucJQZ+jBSOaAMK4GyGY6QL0qzrzLnKd65cWsShv6JW4IjF45OS83h4p0N+6L/Ni
+         Zg/jrXv/7E1tDlonmQppRkUUILVKxtohBDr3e0q68hI8n9po1fAdUGz6NGf3czYfzePl
+         d0FtxrXoq2IgWnbDVxakfr2iMukrlLnJ5KWiGiUXnK/Q+1Y4VgfrvhXtGCl0Ry+PGlVL
+         UyxORk93J7vlFECT2RQMgMhVCoJ2U7suiQkkYOO+ZV+iyl3TaUkyY7zsBeq9h3cL4BuJ
+         MsxQ==
+X-Forwarded-Encrypted: i=1; AFNElJ91bLppYd+Zb/5Q5IxpIOAzPr2xu3CoVNAI8UBOnfV0N51PtxPbwaGtDawpZWCguD+YQFuQaug=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yzv7auT8Hj7forIjAavQARk4w6vz3E6ZoIgfxxykFzZb+1wS+9c
+	LqVY0LS6VqwJEpuNMQFtoZ/ttRU/JInSPSyrecFxgk5FeZQjHTyVgoZS
+X-Gm-Gg: Acq92OFLV2PZ031sHUpzffkBCNs846It5IfH7PuyUJirD0KLZhhF6+ovV2VYxLR8smZ
+	nKI+dfXg/VQO6XHDs+oYp8H2pq14v+AKCtXWF1K35sdnTv47Wxl3MBF70AxN5ZoKWjKMKq1vFEo
+	DGb6GruXJkgdnsxRjU/piSqjivR96m9JBTfC9YHvQTf6kOHDI0O2cC9KPcZ7PEnGTLVgDsxIo4U
+	Ch2DnqXAEzpiJGxXkdIUr1Ctzng385QhQAFbLaXUyaNmQprt6lx2UDr2of8QRAtFZv8rAxkQQpu
+	oSgF/YSTJE1tUOkeInuycreOLfS1JpaZ0CHMcFvsKIRg0jyHc/Tyu727ZfynSdkKUhlO6S595us
+	0Fkto1EBoVyeAVSBm2FxRlKzY7z5iCOUTySHWeThQOTKEnIKE4gPTu6+wVqobqxO45Hnu82gt55
+	76qeCU98eGeoVW2C6M61wO1/1bhYgwn2m0L7Nuwt3apUN31ywLYfWNCOh/bZ3OHkSDYHAw8om5+
+	03GdQ8kypUYpyz2MQ==
+X-Received: by 2002:a05:7300:7305:b0:304:c520:4e0c with SMTP id 5a478bee46e88-3080479b610mr1200660eec.6.1781158967959;
+        Wed, 10 Jun 2026 23:22:47 -0700 (PDT)
+Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30806c2f3absm917761eec.5.2026.06.10.23.22.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 10 Jun 2026 23:22:47 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Wed, 10 Jun 2026 23:22:45 -0700
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
+	Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v10 15/31] cxl/mem: Drop misaligned DCD extent groups
+Message-ID: <aipUNZIxgAenJjLM@AnisaLaptop.localdomain>
+References: <cover.1779528761.git.anisa.su@samsung.com>
+ <60e23199f7ef7dd3008bb3275c40d242334275c9.1779528761.git.anisa.su@samsung.com>
+ <c09e9ae9-d5b9-48b6-9225-98f53022545d@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: cncheex05.Hygon.cn (172.23.18.115) To cncheex04.Hygon.cn
- (172.23.18.114)
+In-Reply-To: <c09e9ae9-d5b9-48b6-9225-98f53022545d@intel.com>
 
-Document the i_mmap locking changes introduced by the following patches:
-- Use mapping_mapped() to simplify the code
-- Use get_i_mmap_root() to access the file's i_mmap
-- Split the file's i_mmap tree (CONFIG_SPLIT_I_MMAP)
+On Thu, May 28, 2026 at 02:03:12PM -0700, Dave Jiang wrote:
+> 
+> 
+> On 5/23/26 2:43 AM, Anisa Su wrote:
+> > Add an alignment gate to cxl_add_pending(): every extent in a tag group
+> > must have its start_dpa and length aligned to CXL_DCD_EXTENT_ALIGN (SZ_2M,
+> > the minimum device-dax mapping granularity on every architecture that
+> > enables CXL DCD).  A misaligned extent makes the resulting dax device
+> > unusable, so drop the whole group rather than accept a partial allocation
+> > that would surface a broken dax_resource.
+> > 
+> > Based on patches by John Groves.
+> > 
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > Signed-off-by: John Groves <John@Groves.net>
+> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> > 
+> > ---
+> > Changes:
+> > [anisa: split out as a separate validation step]
+> > ---
+> >  drivers/cxl/core/mbox.c | 39 +++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 39 insertions(+)
+> > 
+> > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> > index e5edc3975e8f..421bd716a273 100644
+> > --- a/drivers/cxl/core/mbox.c
+> > +++ b/drivers/cxl/core/mbox.c
+> > @@ -7,6 +7,7 @@
+> >  #include <linux/unaligned.h>
+> >  #include <linux/list.h>
+> >  #include <linux/list_sort.h>
+> > +#include <linux/sizes.h>
+> >  #include <cxlpci.h>
+> >  #include <cxlmem.h>
+> >  #include <cxl.h>
+> > @@ -1280,6 +1281,24 @@ static int add_to_pending_list(struct list_head *pending_list,
+> >  	return 0;
+> >  }
+> >  
+> > +/*
+> > + * Device-dax requires extent boundaries aligned to its mapping granularity.
+> > + * Use SZ_2M as a conservative default; a tighter check that queries the
+> > + * cxl_dax_region / cxl_endpoint_decoder for its actual alignment would be
+> > + * strictly more correct, but SZ_2M is the minimum device-dax supports on
+> > + * every architecture that enables CXL DCD today.
+> > + */
+> > +#define CXL_DCD_EXTENT_ALIGN	SZ_2M
+> 
+> Wonder if this would cause issues in DAX on ARM64 with 64k page size since its PMD size is 512M. 
+> 
+Changed to use PMD_SIZE
 
-Add documentation for:
-- CONFIG_SPLIT_I_MMAP split i_mmap tree architecture with per-tree locks
-- New per-tree lock helpers: i_mmap_tree_lock_write/unlock_write
-- New vm_area_struct.tree_idx field for sibling tree selection
-- Updated i_mmap_lock_read/write semantics acquiring all per-tree locks
-- Updated lock ordering notes for split tree configuration
-- Updated page table freeing section for split tree scenario
+> DJ
+> > +
+> > +static bool cxl_extent_dcd_aligned(const struct cxl_extent *extent)
+> > +{
+> > +	u64 start = le64_to_cpu(extent->start_dpa);
+> > +	u64 len = le64_to_cpu(extent->length);
+> > +
+> > +	return IS_ALIGNED(start, CXL_DCD_EXTENT_ALIGN) &&
+> > +	       IS_ALIGNED(len, CXL_DCD_EXTENT_ALIGN);
+> > +}
+> > +
+> >  /*
+> >   * Compare two extents by shared_extn_seq (ascending).  list_sort is
+> >   * stable so when shared_extn_seq is 0 for every entry (non-sharable
+> > @@ -1352,6 +1371,26 @@ static int cxl_add_pending(struct cxl_memdev_state *mds)
+> >  		extract_tag_group(pending, &tag, &group);
+> >  		list_sort(NULL, &group, extent_seq_compare);
+> >  
+> > +		/* Alignment gate — abort the group if any member fails */
+> > +		bool aligned = true;
+> 
+> declaring var in middle of code
+> 
+Moved up
+> > +		list_for_each_entry(pos, &group, list) {
+> > +			if (!cxl_extent_dcd_aligned(pos->extent)) {
+> > +				dev_warn(dev,
+> > +					 "Tag %pUb: dropping group, extent DPA:%#llx LEN:%#llx not %u-aligned\n",
+> > +					 &tag,
+> > +					 le64_to_cpu(pos->extent->start_dpa),
+> > +					 le64_to_cpu(pos->extent->length),
+> > +					 CXL_DCD_EXTENT_ALIGN);
+> > +				aligned = false;
+> > +				break;
+> > +			}
+> > +		}
+> > +		if (!aligned) {
+> > +			list_for_each_entry_safe(pos, tmp, &group, list)
+> > +				delete_extent_node(pos);
+> > +			continue;
+> > +		}
+> > +
+> >  		u16 logical_seq = 1;
+> 
+> Looks like this one came from a previous patch.
+> 
+Moved up in prev patch
 
-Signed-off-by: Huang Shijie <huangsj@hygon.cn>
----
- Documentation/mm/process_addrs.rst | 63 +++++++++++++++++++++++-------
- 1 file changed, 49 insertions(+), 14 deletions(-)
-
-diff --git a/Documentation/mm/process_addrs.rst b/Documentation/mm/process_addrs.rst
-index 851680ead45f..4aed3100b249 100644
---- a/Documentation/mm/process_addrs.rst
-+++ b/Documentation/mm/process_addrs.rst
-@@ -60,6 +60,15 @@ Terminology
-   :c:func:`!i_mmap_[try]lock_write` for file-backed memory. We refer to these
-   locks as the reverse mapping locks, or 'rmap locks' for brevity.
- 
-+  When :c:macro:`!CONFIG_SPLIT_I_MMAP` is enabled, the file-backed i_mmap tree
-+  is split into multiple sibling trees (one per NUMA node or a number based on
-+  CPU count), each with its own :c:type:`!struct i_mmap_tree` containing a
-+  red/black interval tree and a :c:type:`!struct rw_semaphore`. In this
-+  configuration, :c:func:`!i_mmap_lock_read` and :c:func:`!i_mmap_lock_write`
-+  acquire all per-tree locks, while VMA insert/remove operations use the
-+  per-tree granularity :c:func:`!i_mmap_tree_lock_write` to lock only the
-+  relevant sibling tree, significantly reducing lock contention.
-+
- We discuss page table locks separately in the dedicated section below.
- 
- The first thing **any** of these locks achieve is to **stabilise** the VMA
-@@ -230,12 +239,16 @@ These are the core fields which describe the MM the VMA belongs to and its attri
-                                                            Updated under mmap read lock by
-                                                            :c:func:`!task_numa_work`.
-    :c:member:`!vm_userfaultfd_ctx`   CONFIG_USERFAULTFD    Userfaultfd context wrapper object of    mmap write,
--                                                           type :c:type:`!vm_userfaultfd_ctx`,      VMA write.
--                                                           either of zero size if userfaultfd is
--                                                           disabled, or containing a pointer
--                                                           to an underlying
--                                                           :c:type:`!userfaultfd_ctx` object which
--                                                           describes userfaultfd metadata.
-+                                                            type :c:type:`!vm_userfaultfd_ctx`,      VMA write.
-+                                                            either of zero size if userfaultfd is
-+                                                            disabled, or containing a pointer
-+                                                            to an underlying
-+                                                            :c:type:`!userfaultfd_ctx` object which
-+                                                            describes userfaultfd metadata.
-+   :c:member:`!tree_idx`             CONFIG_SPLIT_I_MMAP   The index of the sibling i_mmap tree     Written once on
-+                                                            that this VMA belongs to, set at         initial map.
-+                                                            VMA creation time based on the NUMA
-+                                                            node or the smallest sibling tree.
-    ================================= ===================== ======================================== ===============
- 
- These fields are present or not depending on whether the relevant kernel
-@@ -247,12 +260,18 @@ configuration option is set.
-    Field                               Description                               Write lock
-    =================================== ========================================= ============================
-    :c:member:`!shared.rb`              A red/black tree node used, if the        mmap write, VMA write,
--                                       mapping is file-backed, to place the VMA  i_mmap write.
--                                       in the
--                                       :c:member:`!struct address_space->i_mmap`
--                                       red/black interval tree.
-+                                        mapping is file-backed, to place the VMA  i_mmap write (or per-tree
-+                                        in the                                    i_mmap write when
-+                                        :c:member:`!struct address_space->i_mmap` :c:macro:`!CONFIG_SPLIT_I_MMAP`
-+                                        red/black interval tree (or one of the    is set).
-+                                        sibling trees when
-+                                        :c:macro:`!CONFIG_SPLIT_I_MMAP`
-+                                        is enabled).
-    :c:member:`!shared.rb_subtree_last` Metadata used for management of the       mmap write, VMA write,
--                                       interval tree if the VMA is file-backed.  i_mmap write.
-+                                        interval tree if the VMA is file-backed.  i_mmap write (or per-tree
-+                                                                                  i_mmap write when
-+                                                                                  :c:macro:`!CONFIG_SPLIT_I_MMAP`
-+                                                                                  is set).
-    :c:member:`!anon_vma_chain`         List of pointers to both forked/CoW’d     mmap read, anon_vma write.
-                                        :c:type:`!anon_vma` objects and
-                                        :c:member:`!vma->anon_vma` if it is
-@@ -490,6 +509,16 @@ There is also a file-system specific lock ordering comment located at the top of
- Please check the current state of these comments which may have changed since
- the time of writing of this document.
- 
-+.. note:: When :c:macro:`!CONFIG_SPLIT_I_MMAP` is enabled, the single
-+   ``mapping->i_mmap_rwsem`` is replaced by an array of per-tree locks
-+   ``mapping->i_mmap[i]->rwsem``. The lock ordering positions of
-+   ``mapping->i_mmap_rwsem`` above apply to each per-tree lock
-+   equivalently. VMA insert/remove operations acquire only the relevant
-+   per-tree lock via :c:func:`!i_mmap_tree_lock_write`, while operations
-+   that require all trees to be locked (such as
-+   :c:func:`!unmap_mapping_range`) acquire all per-tree locks via
-+   :c:func:`!i_mmap_lock_write` or :c:func:`!i_mmap_lock_read`.
-+
- ------------------------------
- Locking Implementation Details
- ------------------------------
-@@ -704,11 +733,15 @@ traversed or referenced by concurrent tasks.
- 
- It is insufficient to simply hold an mmap write lock and VMA lock (which will
- prevent racing faults, and rmap operations), as a file-backed mapping can be
--truncated under the :c:struct:`!struct address_space->i_mmap_rwsem` alone.
-+truncated under the :c:struct:`!struct address_space->i_mmap_rwsem` alone
-+(or, when :c:macro:`!CONFIG_SPLIT_I_MMAP` is enabled, under all per-tree
-+``mapping->i_mmap[i]->rwsem`` locks acquired via
-+:c:func:`!i_mmap_lock_write`).
- 
- As a result, no VMA which can be accessed via the reverse mapping (either
- through the :c:struct:`!struct anon_vma->rb_root` or the :c:member:`!struct
--address_space->i_mmap` interval trees) can have its page tables torn down.
-+address_space->i_mmap` interval trees, or the sibling trees when
-+:c:macro:`!CONFIG_SPLIT_I_MMAP` is enabled) can have its page tables torn down.
- 
- The operation is typically performed via :c:func:`!free_pgtables`, which assumes
- either the mmap write lock has been taken (as specified by its
-@@ -729,7 +762,9 @@ cleared without page table locks (in the :c:func:`!pgd_clear`, :c:func:`!p4d_cle
- .. note:: It is possible for leaf page tables to be torn down independent of
-           the page tables above it as is done by
-           :c:func:`!retract_page_tables`, which is performed under the i_mmap
--          read lock, PMD, and PTE page table locks, without this level of care.
-+          read lock (or all per-tree ``mapping->i_mmap[i]->rwsem`` locks in
-+          read mode when :c:macro:`!CONFIG_SPLIT_I_MMAP` is enabled), PMD, and
-+          PTE page table locks, without this level of care.
- 
- Page table moving
- ^^^^^^^^^^^^^^^^^
--- 
-2.53.0
-
-
+Thanks,
+Anisa
+> 
+> >  		list_for_each_entry_safe(pos, tmp, &group, list) {
+> >  			u16 raw = le16_to_cpu(pos->extent->shared_extn_seq);
+> 
