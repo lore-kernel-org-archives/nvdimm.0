@@ -1,126 +1,270 @@
-Received: from mailgw1.hygon.cn (unknown [101.204.27.37])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5A46E361675
-	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 06:47:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=101.204.27.37
+Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88E6335F60B
+	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 07:35:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781160464; cv=none; b=GVMXnpYLNyQfGruKL4chLfstfPuDl84AihcNiQ5JfG/M8ne12syynL9KXXzjs7gi96t03QADrOHhaIFSAYYUnYorghEsqx85SAnZH+aSOc0zX4VCyRaYHwWZwzO+c+veqWf20SdvSNvEe0/1ZbKqQA5BfBmNYWQm/omiXwBXel4=
+	t=1781163318; cv=none; b=PUQMA/PT/I60nqDACrc2SYfqrdReoWAeaF9KCMqyGDscN7Mtw+CZNcoHOx8CNg+S4RVuq0Hh9b3+3rTWb/TEqPGRbygJ1k6NHN38U4mjTaXB8DyG6YK4TG8egoaEDKGgezBpzkD4E29iZbHOLnIL3cwd4Nhmnu5Kj3zpSg6ioyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781160464; c=relaxed/simple;
-	bh=qQjh1hPpEnkXFa73SRjJ9kqCtdzJ5Kh2Hsa46GK1zZk=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=UlV70iuIBEtnVX5LQnIxVGFG/FqpvxmNLDBly1inhLf4+Ibdllc/JQ2LlBWvKlbMTR9CxwAAjp0GlbXTaRXbZ58m10nAEKw28DtwJ6GIalf00yDtfWTJXy6TB0Qn47T6Hh4FuP7l1QCTICd0y8j2BetKdY3E5T+XOCpN6AsKADE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hygon.cn; spf=pass smtp.mailfrom=hygon.cn; arc=none smtp.client-ip=101.204.27.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hygon.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hygon.cn
-Received: from maildlp2.hygon.cn (unknown [127.0.0.1])
-	by mailgw1.hygon.cn (Postfix) with ESMTP id 4gbXbk745pz1dd8Y;
-	Thu, 11 Jun 2026 14:21:38 +0800 (CST)
-Received: from maildlp2.hygon.cn (unknown [172.23.18.61])
-	by mailgw1.hygon.cn (Postfix) with ESMTP id 4gbXbh5hZnz1dd8Y;
-	Thu, 11 Jun 2026 14:21:36 +0800 (CST)
-Received: from cncheex04.Hygon.cn (unknown [172.23.18.114])
-	by maildlp2.hygon.cn (Postfix) with ESMTPS id 7FE3430004DB;
-	Thu, 11 Jun 2026 14:20:11 +0800 (CST)
-Received: from hsj-2U-Workstation.hygon.cn (172.19.20.61) by
- cncheex04.Hygon.cn (172.23.18.114) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Thu, 11 Jun 2026 14:21:31 +0800
-From: Huang Shijie <huangsj@hygon.cn>
-To: <akpm@linux-foundation.org>, <viro@zeniv.linux.org.uk>,
-	<brauner@kernel.org>, <jack@suse.cz>, <muchun.song@linux.dev>,
-	<osalvador@suse.de>, <david@kernel.org>
-CC: <surenb@google.com>, <mjguzik@gmail.com>, <liam@infradead.org>,
-	<ljs@kernel.org>, <vbabka@kernel.org>, <shakeel.butt@linux.dev>,
-	<rppt@kernel.org>, <mhocko@suse.com>, <corbet@lwn.net>,
-	<skhan@linuxfoundation.org>, <linux@armlinux.org.uk>, <dinguyen@kernel.org>,
-	<schuster.simon@siemens-energy.com>, <James.Bottomley@HansenPartnership.com>,
-	<deller@gmx.de>, <djbw@kernel.org>, <willy@infradead.org>,
-	<peterz@infradead.org>, <mingo@redhat.com>, <acme@kernel.org>,
-	<namhyung@kernel.org>, <mark.rutland@arm.com>,
-	<alexander.shishkin@linux.intel.com>, <jolsa@kernel.org>,
-	<irogers@google.com>, <adrian.hunter@intel.com>, <james.clark@linaro.org>,
-	<mhiramat@kernel.org>, <oleg@redhat.com>, <ziy@nvidia.com>,
-	<baolin.wang@linux.alibaba.com>, <npache@redhat.com>, <ryan.roberts@arm.com>,
-	<dev.jain@arm.com>, <baohua@kernel.org>, <lance.yang@linux.dev>,
-	<linmiaohe@huawei.com>, <nao.horiguchi@gmail.com>, <jannh@google.com>,
-	<pfalcato@suse.de>, <riel@surriel.com>, <harry@kernel.org>,
-	<will@kernel.org>, <brian.ruley@gehealthcare.com>,
-	<rmk+kernel@armlinux.org.uk>, <dave.anglin@bell.net>, <linux-mm@kvack.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-parisc@vger.kernel.org>,
-	<linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-perf-users@vger.kernel.org>, <linux-trace-kernel@vger.kernel.org>,
-	<zhongyuan@hygon.cn>, <fangbaoshun@hygon.cn>, <yingzhiwei@hygon.cn>, Huang
- Shijie <huangsj@hygon.cn>
-Subject: [PATCH v2 0/4] mm: split the file's i_mmap tree for NUMA
-Date: Thu, 11 Jun 2026 14:18:56 +0800
-Message-ID: <20260611061915.2354307-1-huangsj@hygon.cn>
-X-Mailer: git-send-email 2.53.0
+	s=arc-20240116; t=1781163318; c=relaxed/simple;
+	bh=ILpNiLCWDwhEg+xrOtsVZTMCa8TTJKYnqIb1fsBn/to=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i69LJXNfUYFxA18vXD6WSqztfwkQmFCqzZoXN27SjC1MbQ8Ux3OUWx+4IrP4bhN6aplyPy+qkFglMJ5dulQnhQPaqEJxLriSN2uz2+ZbyOtlSz4yO7yJLJvbGYgKR/amORhk2He5bv4xITEUomiLLgAyaNGtA8cuQkeTXio1dIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gm/8TH8u; arc=none smtp.client-ip=74.125.82.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gm/8TH8u"
+Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-3075ce9c05aso2874190eec.1
+        for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 00:35:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781163315; x=1781768115; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:date:from:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=o532ZBa92Bn1kV6y/svVQfZGV2JIbpTmE8EZMxhPVcU=;
+        b=gm/8TH8uEGZWuTEO+KA6mU25xGYipAf0S1ctJY1ItYcaULhjOMKRoMs/eo6T0LCMeG
+         9vluwlu2L2BypErNxADd+uGKHzRvLNeW0k7rmGYW2U0Ntt35CAe3cIxWlGJjD+8/ybTL
+         dpkwQ8OyNT86zFg2u6pxSoCL7J1O1e3acIdX92drep67atupNmTsWuXRU+OecKwthy1K
+         SdDDV8Q8aVHmubMbVtYxfhY6wGoyzarGnh3KUImIlS4prdJoZ2TIi8vdksKLksFND2Wo
+         6NyZbmljiV6tApn52k16aq2/Nh+ZQGL17jtipJAHBrDyXYOufdOAEIUtDbCiv+VxjnK6
+         meHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781163315; x=1781768115;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=o532ZBa92Bn1kV6y/svVQfZGV2JIbpTmE8EZMxhPVcU=;
+        b=BbGcm7R9Fm5CGvRMGSCWI34PLq/Nl5doU2P/4AtI9L7BiRcOXRk+KVU9uK65UiYiRW
+         53utHFLr6Oimyn5KCJVK+64eFXfsH47lPtXmjypxiDgspxWU6JdgyBtizU7cWMUL8Ah0
+         HPDq9Bakc9vsf72m/oo0Ivu8JRQ/R/mw5CkUbMIQHzeBpZAZZ3cd7Fc8+OEVxUoSPAU+
+         mHtTm8lEYC5WVRnpdVxOQmihtrTiFzIrzHN9X3uAF+zFIKoecZlUGUQ2ib6bF+FaA5Bg
+         H1YVuhs07TPabyEjFvQ1LA7jnViSkOZlKbFZPiJZEmAmts4mUcqUGqd4xfBZgW/nYZNA
+         cX/g==
+X-Forwarded-Encrypted: i=1; AFNElJ8/LT0RGUkjptXRN+B/WOETvCfCJH/ka3dY/P9Axi25l8ZHHOJGB/yc6IWmZ3QEFbsDgJNOXP8=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyErtssRo0vC0VGEjN0AmiIpDX0GiLk5n+Ux9H/csV6c49JlQcA
+	Wg3+g8uVZBUxpU/hVFygZhZQ28CUYVIv3VnMl6Jmrj7VUH326fonGrU7
+X-Gm-Gg: Acq92OGQ2Kmju84ALvjjJVlTzSL0NaLFVM05CQwhnMgPaJB7zi/MIXc5qLmjrWtulWu
+	8Xd7CyF6YrVRFBn8yZ86hZ/1R2KZSUee9H2oItzstZcGx50W5Yc/bp6tOBXKTzH2/v67ygAhwCi
+	eKx3l9BYfvVfUbu8DyUszDg9BNq/Uo04eZYYEQ4szeXAf0C7g6Hs3oPTDqos7yyRmGxls54hkqw
+	ucR/SJLmZqdPXcqPkTkXU2YEQA2w3ivB6UHwftPkiMA3GVwCG9hG038Vf0BjYb8qVQ4RTSDA4TT
+	HquRq2Nd2hmQU3oTKBDZJSAUvxR8n09gfLizFo4CYLSCm/GtADZ3/i9gZCu3uZYiHr0v2oGeKS5
+	YAW0aZ+Z3rnYpiIRLD+2ZtLdCkhPQCzMdpubw139KuVJavvAUc5+mabN6GO6wWuMW9LyaYj6RFh
+	KV2umY1B8kRbojZcYzzwMWUtOEFGb1atoMAy6YQ4HfW5GM8E1jpDfQi4ctn/i0KQ33+aNCa6YNv
+	tmM8GTA00nr1hGNxA==
+X-Received: by 2002:a05:7300:4307:b0:2e6:e504:5431 with SMTP id 5a478bee46e88-30804a0f00dmr1450108eec.22.1781163312992;
+        Thu, 11 Jun 2026 00:35:12 -0700 (PDT)
+Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30806ebb105sm989695eec.23.2026.06.11.00.35.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 11 Jun 2026 00:35:12 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Thu, 11 Jun 2026 00:35:11 -0700
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
+	Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v10 16/31] cxl/extent: Validate DC extent partition
+Message-ID: <aiplL-1v0Puf2xut@AnisaLaptop.localdomain>
+References: <cover.1779528761.git.anisa.su@samsung.com>
+ <def526ee51b647e9256c7e777c6b7bd5cd647f89.1779528761.git.anisa.su@samsung.com>
+ <dbcfcbe8-5a4a-4b5d-b1f1-188e33eb2a4b@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: cncheex05.Hygon.cn (172.23.18.115) To cncheex04.Hygon.cn
- (172.23.18.114)
+In-Reply-To: <dbcfcbe8-5a4a-4b5d-b1f1-188e33eb2a4b@intel.com>
 
-  In NUMA, there are maybe many NUMA nodes and many CPUs.
-For example, a Hygon's server has 12 NUMA nodes, and 384 CPUs.
-In the UnixBench tests, there is a test "execl" which tests
-the execve system call.
+On Thu, May 28, 2026 at 02:34:49PM -0700, Dave Jiang wrote:
+> 
+> 
+> On 5/23/26 2:43 AM, Anisa Su wrote:
+> > Extend cxl_validate_extent() — the per-extent check of the add pipeline
+> > to check partition membership.
+> > 
+> > Resolves an extent's DPA to its containing DC partition. Then based on
+> > if the partition is shareable:
+> > 
+> >   - Shareable: tag must be non-null and shared_extn_seq must be non-zero
+> >     — multiple hosts reading the same allocation rely on the device-
+> >     stamped 1..n sequence to assemble extents in agreed order.
+> >   - Non-sharable: shared_extn_seq must be zero — sequencing is
+> >     meaningless when only one host consumes the allocation; tag is
+> >     optional (null UUID permitted).
+> > 
+> > Any cross-mix is a device firmware bug; reject the extent.
+> > 
+> > Based on patches by John Groves.
+> > 
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > Signed-off-by: John Groves <John@Groves.net>
+> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> > 
+> > ---
+> > Changes:
+> > [anisa: split out as a separate validation step]
+> > ---
+> >  drivers/cxl/core/core.h   |  4 ++
+> >  drivers/cxl/core/extent.c | 78 +++++++++++++++++++++++++++++++++++++--
+> >  2 files changed, 79 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+> > index 1bae80dbf991..30b6b05b155b 100644
+> > --- a/drivers/cxl/core/core.h
+> > +++ b/drivers/cxl/core/core.h
+> > @@ -179,6 +179,10 @@ int cxl_pci_get_bandwidth(struct pci_dev *pdev, struct access_coordinate *c);
+> >  int cxl_port_get_switch_dport_bandwidth(struct cxl_port *port,
+> >  					struct access_coordinate *c);
+> >  void memdev_release_extent(struct cxl_memdev_state *mds, struct range *range);
+> > +const struct cxl_dpa_partition *
+> > +cxl_extent_dc_partition(struct cxl_memdev_state *mds,
+> > +			struct cxl_extent *extent,
+> > +			struct range *ext_range);
+> >  
+> >  static inline struct device *port_to_host(struct cxl_port *port)
+> >  {
+> > diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
+> > index 94128d06f4ed..b01507022cff 100644
+> > --- a/drivers/cxl/core/extent.c
+> > +++ b/drivers/cxl/core/extent.c
+> > @@ -63,11 +63,55 @@ alloc_tag_group(struct cxl_dax_region *cxlr_dax, uuid_t *uuid)
+> >  	return no_free_ptr(group);
+> >  }
+> >  
+> > +/*
+> > + * Find the DC (Dynamic Capacity) partition that fully contains @ext_range,
+> > + * or NULL if the extent falls outside every DC partition on this memdev.
+> > + * The returned pointer is owned by mds->cxlds.part[] and lives for the
+> > + * lifetime of the memdev.
+> > + */
+> > +const struct cxl_dpa_partition *
+> > +cxl_extent_dc_partition(struct cxl_memdev_state *mds,
+> > +			struct cxl_extent *extent,
+> > +			struct range *ext_range)
+> 
+> This can be static, given it's only called in extent.c
+> 
+Fixed. Later called in mbox.c so declared non-static in that commit.
 
-  When we test our server with "./Run -c 384 execl",
-the test result is not good enough. The i_mmap locks contended heavily on
-"libc.so" and "ld.so". For example, the i_mmap tree for "libc.so" can have 
-over 6000 VMAs, all the VMAs can be in different NUMA mode.
-The insert/remove operations do not run quickly enough.
+> > +{
+> > +	struct cxl_dev_state *cxlds = &mds->cxlds;
+> > +	struct device *dev = mds->cxlds.dev;
+> > +
+> > +	for (int i = 0; i < cxlds->nr_partitions; i++) {
+> > +		struct cxl_dpa_partition *part = &cxlds->part[i];
+> > +		struct range partition_range = {
+> > +			.start = part->res.start,
+> > +			.end = part->res.end,
+> > +		};
+> > +
+> > +		if (part->mode != CXL_PARTMODE_DYNAMIC_RAM_A)
+> > +			continue;
+> > +
+> > +		if (range_contains(&partition_range, ext_range)) {
+> > +			dev_dbg(dev, "DC extent DPA %pra (DCR:%pra)(%pU)\n",
+> > +				ext_range, &partition_range, extent->uuid);
+> > +			return part;
+> > +		}
+> > +	}
+> > +
+> > +	dev_err_ratelimited(dev,
+> > +			    "DC extent DPA %pra (%pU) is not in a valid DC partition\n",
+> > +			    ext_range, extent->uuid);
+> > +	return NULL;
+> > +}
+> > +
+> >  /*
+> >   * Stage 1 of the add pipeline: pure, no allocation.  Resolve the extent
+> > - * to its region/endpoint decoder and ext_range, and verify the range
+> > - * fits in the resolved endpoint decoder's DPA resource.  Further
+> > - * per-extent invariants layer into this function in subsequent commits.
+> > + * to its region/endpoint decoder and ext_range, and enforce every
+> > + * per-extent invariant the device must satisfy:
+> > + *
+> > + *   - DPA falls inside a Dynamic Capacity partition (cxl_extent_dc_partition).
+> > + *   - CDAT-sharability rules:
+> > + *       sharable:     tag must be non-null AND shared_extn_seq != 0
+> > + *       non-sharable: shared_extn_seq must be 0  (tag is optional)
+> > + *     Any cross-mixing is a device firmware bug.
+> > + *   - DPA resolves to an endpoint decoder attached to a region.
+> > + *   - The extent's range is fully contained in that ED's DPA resource.
+> >   *
+> >   * Caller must hold cxl_rwsem.region for read (cxl_dpa_to_region()).
+> >   * On success, @out_cxled / @out_cxlr_dax / @out_ext_range carry the
+> > @@ -81,6 +125,10 @@ static int cxl_validate_extent(struct cxl_memdev_state *mds,
+> >  {
+> >  	u64 start_dpa = le64_to_cpu(extent->start_dpa);
+> >  	struct cxl_memdev *cxlmd = mds->cxlds.cxlmd;
+> > +	struct device *dev = mds->cxlds.dev;
+> > +	uuid_t *uuid = (uuid_t *)extent->uuid;
+> 
+> Consider using import_uuid() instead of direct cast.
+> 
+Fixed
+> > +	u16 seq = le16_to_cpu(extent->shared_extn_seq);
+> > +	const struct cxl_dpa_partition *part;
+> >  	struct cxl_endpoint_decoder *cxled;
+> >  	struct cxl_region *cxlr;
+> >  	struct range ext_range = (struct range) {
+> > @@ -89,6 +137,30 @@ static int cxl_validate_extent(struct cxl_memdev_state *mds,
+> >  	};
+> >  	struct range ed_range;
+> >  
+> > +	part = cxl_extent_dc_partition(mds, extent, &ext_range);
+> > +	if (!part)
+> > +		return -ENXIO;
+> > +
+> > +	if (part->perf.shareable) {
+> > +		if (uuid_is_null(uuid)) {
+> > +			dev_err_ratelimited(dev,
+> > +				"DC extent DPA %pra: sharable-partition extent has null tag (firmware bug)\n",
+> > +				&ext_range);
+> > +			return -ENXIO;
+> > +		}
+> > +		if (seq == 0) {
+> 
+> I don't think this complies with the spec language. In r4.0 Table 8-230: "For extents describing shareable regions this field shall be within the range of 0 to n-1 where n is the number of extents, with each value appearing only once." So seq == 0 is an acceptable value.
+> 
+> Also, looking at cxl_add_pending() @ line ~1396, does shared seq number '0' holds special meanings? Maybe that needs to change? Also suggest adding comments to point out what's happening there if '0' is special. 
+> 
 
-patch 1 & patch 2 are try to hide the direct access of i_mmap.
-patch 3 splits the i_mmap into sibling trees, each tree has separate lock,
-and we can get better performance with this patch set in our NUMA server:
-    we can get over 400% performance improvement.
+Fixed to enforce 0...n-1 for shared seq num instead of 1...n.
+0 no longer used as sentinel val for unshared extents. 
 
-I did not test the non-NUMA case, since I do not have such server.    
-    
-v1 --> v2:
-	Not only split the immap tree, but also split the lock.
-	v1 : https://lkml.org/lkml/2026/4/13/199
+'Enforce tag-group semantics', which checks seq num have no
+duplicates/gaps, is also fixed
 
-Huang Shijie (4):
-  mm: use mapping_mapped to simplify the code
-  mm: use get_i_mmap_root to access the file's i_mmap
-  mm/fs: split the file's i_mmap tree
-  docs/mm: update document for split i_mmap tree
-
- Documentation/mm/process_addrs.rst |  63 +++++++---
- arch/arm/mm/fault-armv.c           |   3 +-
- arch/arm/mm/flush.c                |   3 +-
- arch/nios2/mm/cacheflush.c         |   3 +-
- arch/parisc/kernel/cache.c         |   4 +-
- fs/Kconfig                         |   8 ++
- fs/dax.c                           |   3 +-
- fs/hugetlbfs/inode.c               |  30 +++--
- fs/inode.c                         |  75 +++++++++++-
- include/linux/fs.h                 | 179 ++++++++++++++++++++++++++++-
- include/linux/mm.h                 |  81 +++++++++++++
- include/linux/mm_types.h           |   3 +
- kernel/events/uprobes.c            |   3 +-
- mm/hugetlb.c                       |   7 +-
- mm/internal.h                      |   3 +-
- mm/khugepaged.c                    |   6 +-
- mm/memory-failure.c                |   8 +-
- mm/memory.c                        |   8 +-
- mm/mmap.c                          |  11 +-
- mm/nommu.c                         |  28 +++--
- mm/pagewalk.c                      |   4 +-
- mm/rmap.c                          |   2 +-
- mm/vma.c                           |  74 +++++++++---
- mm/vma_init.c                      |   3 +
- 24 files changed, 534 insertions(+), 78 deletions(-)
-
--- 
-2.53.0
-
-
+> DJ
+> 
+Thanks,
+Anisa
+> 
+> > +			dev_err_ratelimited(dev,
+> > +				"DC extent DPA %pra (%pU): sharable-partition extent missing shared_extn_seq (firmware bug)\n",
+> > +				&ext_range, uuid);
+> > +			return -ENXIO;
+> > +		}
+> > +	} else if (seq != 0) {
+> > +		dev_err_ratelimited(dev,
+> > +			"DC extent DPA %pra (%pU): non-sharable partition but shared_extn_seq=%u (firmware bug)\n",
+> > +			&ext_range, uuid, seq);
+> > +		return -ENXIO;
+> > +	}
+> > +
+> >  	cxlr = cxl_dpa_to_region(cxlmd, start_dpa, &cxled);
+> >  	if (!cxlr)
+> >  		return -ENXIO;
+> 
