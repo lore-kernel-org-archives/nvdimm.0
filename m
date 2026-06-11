@@ -1,55 +1,55 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F96D156661
-	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 00:19:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6045135A53
+	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 00:19:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781137172; cv=none; b=SVYqPljIY3aFKCSITk5+mQPvDb4Fr5DNftk8Ev1I3nrEK86wRe5FbKDaBldgqad8j/Au45klaZNTPhbYzpOvuUexBXChIe2k7g6NIl1t8DDvNmr6U7Ze4JSCyLlrVrQchKSthDnYShV2DYK/8qiZZhPduNybwtTGSKuk1SXen0A=
+	t=1781137173; cv=none; b=C+lvX/XuL24FIFAOOk40z22utHkmC34Rt7pky3aHk6zqqeHhIET023cQ9Pl5DAzZ78/xCUy+g3Z4LOICOqxm2TY+SymMhVNFaY1PoalPmIdHVAGULiQAeA31OhRQSxmuDvpZ4mCppRthbyI9tIHsYSNEXdjkkgzHL6KeURwno0c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781137172; c=relaxed/simple;
-	bh=U+QvIsaoskCiDortibS2pwP+g2yzLQDNlXoEt21UrsQ=;
+	s=arc-20240116; t=1781137173; c=relaxed/simple;
+	bh=5NfHHB1XexcAuvs06yfjoDisyrtOqg5KcGCXrerRxYQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OvDnOjocKbw4ORY8yCh8cNcnhQLBSte1OlRWVB2hD1xynvUYCmRKRIqPXN35eWoN/qkPO1ul6dvGnEsNT3v3qdgWffXgkuW3Lz3erflOJtdCLj7GJ4LPT/8GAlgq9bpueredG/xrA+jPR0qdLhoOZLjLKgcLMSNYL8Q+3y/N9yw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nAOhmeOj; arc=none smtp.client-ip=192.198.163.15
+	 MIME-Version; b=qM0LdrW5jfxx6eOSabHN7y0R9ltLgutiD0OZUKImoFDEdR43h/s7i9hocWaeyc8X+aZMLs86EN6pNvF5q9cX9wyF9DzFZPlndHXJakcRBbyTeRlruZHObravSUZiHLs2eLC4VIpdkiYdR70L/qTGXt0NGp3tPwUVKsj/Y5t0IXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VFniniox; arc=none smtp.client-ip=192.198.163.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nAOhmeOj"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VFniniox"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781137169; x=1812673169;
+  t=1781137171; x=1812673171;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=U+QvIsaoskCiDortibS2pwP+g2yzLQDNlXoEt21UrsQ=;
-  b=nAOhmeOj1uXBC1to1XMYWfeYsLfKjHUgLjWyN7ykzORHGqBDJu/shUHH
-   cEeKPxTBNdaGvI4FKWTYNWIP+2eBzsGbIjkAuOzX1pa0o9otRXNGw7e15
-   cl1qWGb+NJCv5crS+oYnArpMXyk/Ugv61eZiSIVYqCASl+G0YX35o74bQ
-   /6i6BZtSMz8YydXhMZ2e5IUeT/4AkHDPT6jCrANPiur1qCGhk06jlCGwA
-   5IIRTI9NjSRdblMPULmK6/rr6wexHkpxIfqe6c0NJ9tHJZAp3HTiZ9IU4
-   hxM+UI/ly5eNnqG7MLQJkypSLw8hMvFq5yHUv2VbjxB1CwEwgfFSojmfo
-   w==;
-X-CSE-ConnectionGUID: 2FoRmhhTR26K6S+HvgyhHA==
-X-CSE-MsgGUID: DYHL7p+jRJKwWKBW6CTDzA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11813"; a="82054168"
+  bh=5NfHHB1XexcAuvs06yfjoDisyrtOqg5KcGCXrerRxYQ=;
+  b=VFninioxnhktREByrEF89JaTFYKP110eEw2UJs4DzXIYkLViF7f34HBU
+   AgqcTYc+dAgdRokCEa2eztC2OoYDA+OV+iZ3ZGtfXYJejfy/huJKUwaYd
+   SYErfXUXtbhdkHyz8qXTAEKHINXsGcUFVSwEl6H0PE58AbjL65qKrYgCV
+   4KaiJg9Nf6JRFJWqNJt85Dsvs4e5NSsGMVfgn5mfuybTlO7NN1DV3AeLE
+   LvdSlT9gtyDAQo54+jVOt4VA1DjFTXEPgdxE60Ro98ScaK4GktPdzALLL
+   tyFxAGtETLaQYiednaFs4hOayUDo8NxLLfULYCE9v8nnwhH7i0jKkbrtc
+   Q==;
+X-CSE-ConnectionGUID: XGh3fTy+T7mzPBhPYFW4kQ==
+X-CSE-MsgGUID: Zs0TpRMFTWG/DaIc9gwPTA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11813"; a="82054170"
 X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="82054168"
+   d="scan'208";a="82054170"
 Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 17:19:28 -0700
-X-CSE-ConnectionGUID: 8ELfK7xlRAiR3b5nL89RWg==
-X-CSE-MsgGUID: QGyDsqfiSdGIA+n2OHvlDQ==
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 17:19:29 -0700
+X-CSE-ConnectionGUID: fGIvWrbrRX6+7KvRVHi7OA==
+X-CSE-MsgGUID: u6jQSadmQjWWMNYPINxjMQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="242181818"
+   d="scan'208";a="242181822"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.220.46])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 17:19:28 -0700
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 17:19:29 -0700
 From: Alison Schofield <alison.schofield@intel.com>
 To: nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
 Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH 1/3] test/cxl-create-region.sh: fold in XOR region coverage
-Date: Wed, 10 Jun 2026 17:19:19 -0700
-Message-ID: <79906a8f574e9000472bc472d715a75aa9dda4bb.1781136221.git.alison.schofield@intel.com>
+Subject: [ndctl PATCH 2/3] test/cxl-create-region.sh: deduplicate decoder and memdev lookups
+Date: Wed, 10 Jun 2026 17:19:20 -0700
+Message-ID: <89bdbb621375f9dffb648b455d3d872ea7fc8f98.1781136221.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <cover.1781136221.git.alison.schofield@intel.com>
 References: <cover.1781136221.git.alison.schofield@intel.com>
@@ -61,240 +61,116 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In the CXL Unit Test Suite, region creation coverage is split between
-cxl-create-region.sh and cxl-xor-region.sh.
+Several region setup helpers open-code the same decoder and memdev
+lookups.
 
-Consolidate the XOR coverage into cxl-create-region.sh so region
-creation testing lives in one place. This avoids maintaining parallel
-test infrastructure and makes it easier to add new region creation
-cases.
+Factor the common queries into shared helpers. This reduces duplicate
+logic and simplifies adding new region configuration tests.
 
-Remove the now redundant cxl-xor-region.sh.
-
-Continue to maintain cxl-region-sysfs.sh because it exercises the CXL
-driver ABI directly.
+No functional change.
 
 Assisted-by: Claude:Opus-4-8
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- test/cxl-create-region.sh | 111 ++++++++++++++++++++++++++++++++
- test/cxl-xor-region.sh    | 129 --------------------------------------
- test/meson.build          |   2 -
- 3 files changed, 111 insertions(+), 131 deletions(-)
- delete mode 100644 test/cxl-xor-region.sh
+ test/cxl-create-region.sh | 73 ++++++++++++++++++---------------------
+ 1 file changed, 33 insertions(+), 40 deletions(-)
 
 diff --git a/test/cxl-create-region.sh b/test/cxl-create-region.sh
-index 658b9b8ff58a..d7a6840fed1a 100644
+index d7a6840fed1a..5941e18f338d 100644
 --- a/test/cxl-create-region.sh
 +++ b/test/cxl-create-region.sh
-@@ -133,6 +133,98 @@ create_single()
+@@ -25,17 +25,21 @@ destroy_regions()
+ 	fi
+ }
+ 
++# Find the pmem capable single-target root decoder for a memdev
++find_x1_decoder()
++{
++	$CXL list -b cxl_test -D -d root -m "$1" |
++		  jq -r ".[] |
++		  select(.pmem_capable == true) |
++		  select(.nr_targets == 1) |
++		  .decoder"
++}
++
+ create_x1_region()
+ {
+ 	mem="$1"
+ 
+-	# find a pmem capable root decoder for this mem
+-	decoder=$($CXL list -b cxl_test -D -d root -m "$mem" |
+-		  jq -r ".[] |
+-		  select(.pmem_capable == true) |
+-		  select(.nr_targets == 1) |
+-		  .decoder")
+-
++	decoder=$(find_x1_decoder "$mem")
+ 	if [[ ! $decoder ]]; then
+ 		echo "no suitable decoder found for $mem, skipping"
+ 		return
+@@ -69,13 +73,7 @@ create_subregions()
+ 	slice=$((256 << 20))
+ 	mem="$1"
+ 
+-	# find a pmem capable root decoder for this mem
+-	decoder=$($CXL list -b cxl_test -D -d root -m "$mem" |
+-		  jq -r ".[] |
+-		  select(.pmem_capable == true) |
+-		  select(.nr_targets == 1) |
+-		  .decoder")
+-
++	decoder=$(find_x1_decoder "$mem")
+ 	if [[ ! $decoder ]]; then
+ 		echo "no suitable decoder found for $mem, skipping"
+ 		return
+@@ -133,6 +131,17 @@ create_single()
  	destroy_regions "$region"
  }
  
-+create_and_destroy_region()
++# Find the index'th memdev behind the decoder's target at position
++find_memdev()
 +{
-+	region=$($CXL create-region -d "$decoder" -m "$memdevs" |
-+		jq -r ".region")
++	local decoder="$1" position="$2" index="$3"
++	local port_dev
 +
-+	if [[ ! $region ]]; then
-+		echo "create-region failed for $decoder"
-+		err "$LINENO"
-+	fi
-+
-+	destroy_regions "$region"
++	port_dev=$($CXL list -T -d "$decoder" | jq -r ".[] |
++		.targets | .[] | select(.position == $position) | .target")
++	$CXL list -M -p "$port_dev" | jq -r ".[$index].memdev"
 +}
 +
-+setup_x1()
-+{
-+	# Find an x1 decoder
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 1) |
-+		.decoder")
-+
-+	# Find a memdev for this host-bridge
-+	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 0) | .target")
-+	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
-+	memdevs="$mem0"
-+}
-+
-+setup_x2()
-+{
-+	# Find an x2 decoder
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 2) |
-+		.decoder")
-+
-+	# Find a memdev for each host-bridge interleave position
-+	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 0) | .target")
-+	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 1) | .target")
-+	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
-+	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
-+	memdevs="$mem0 $mem1"
-+}
-+
-+setup_x4()
-+{
-+	# find an x2 decoder
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 2) |
-+		.decoder")
-+
-+	# Find a memdev for each host-bridge interleave position
-+	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 0) | .target")
-+	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 1) | .target")
-+	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
-+	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
-+	mem2=$($CXL list -M -p "$port_dev0" | jq -r ".[1].memdev")
-+	mem3=$($CXL list -M -p "$port_dev1" | jq -r ".[1].memdev")
-+	memdevs="$mem0 $mem1 $mem2 $mem3"
-+}
-+
-+setup_x3()
-+{
-+	# find an x3 decoder
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+		select(.pmem_capable == true) |
-+		select(.nr_targets == 3) |
-+		.decoder")
-+
-+	if [[ ! $decoder ]]; then
-+		echo "no x3 decoder found, skipping xor-x3 test"
-+		return
-+	fi
-+
-+	# Find a memdev for each host-bridge interleave position
-+	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 0) | .target")
-+	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 1) | .target")
-+	port_dev2=$($CXL list -T -d "$decoder" | jq -r ".[] |
-+		.targets | .[] | select(.position == 2) | .target")
-+	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
-+	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
-+	mem2=$($CXL list -M -p "$port_dev2" | jq -r ".[0].memdev")
-+	memdevs="$mem0 $mem1 $mem2"
-+}
-+
- # test region creation on devices behind a single-port host-bridge
- create_single
+ create_and_destroy_region()
+ {
+ 	region=$($CXL create-region -d "$decoder" -m "$memdevs" |
+@@ -155,9 +164,7 @@ setup_x1()
+ 		.decoder")
  
-@@ -149,6 +241,25 @@ for mem in ${mems[@]}; do
- 	create_subregions "$mem"
- done
- 
-+# Reload cxl_test with XOR interleave arithmetic to exercise the XOR math
-+# option of the CXL driver. Create x1,2,3,4 regions across the XOR roots.
-+# As with the modulo tests above, changes to the CXL topology in
-+# tools/testing/cxl/test/cxl.c may require an update here.
-+modprobe -r cxl_test
-+modprobe cxl_test interleave_arithmetic=1
-+
-+setup_x1
-+create_and_destroy_region
-+setup_x2
-+create_and_destroy_region
-+setup_x4
-+create_and_destroy_region
-+# x3 decoder may not be available in cxl/test topo yet
-+setup_x3
-+if [[ $decoder ]]; then
-+	create_and_destroy_region
-+fi
-+
- check_dmesg "$LINENO"
- 
- modprobe -r cxl_test
-diff --git a/test/cxl-xor-region.sh b/test/cxl-xor-region.sh
-deleted file mode 100644
-index fb4f9a0a1515..000000000000
---- a/test/cxl-xor-region.sh
-+++ /dev/null
-@@ -1,129 +0,0 @@
--#!/bin/bash
--# SPDX-License-Identifier: GPL-2.0
--# Copyright (C) 2022 Intel Corporation. All rights reserved.
--
--. $(dirname $0)/common
--
--rc=77
--
--set -ex
--
--trap 'err $LINENO' ERR
--
--check_prereq "jq"
--
--modprobe -r cxl_test
--modprobe cxl_test interleave_arithmetic=1
--rc=1
--
--# THEORY OF OPERATION: Create x1,2,3,4 regions to exercise the XOR math
--# option of the CXL driver. As with other cxl_test tests, changes to the
--# CXL topology in tools/testing/cxl/test/cxl.c may require an update here.
--
--create_and_destroy_region()
--{
--	region=$($CXL create-region -d "$decoder" -m "$memdevs" |
--		jq -r ".region")
--
--	if [[ ! $region ]]; then
--		echo "create-region failed for $decoder"
--		err "$LINENO"
--	fi
--
--	$CXL destroy-region -f -b cxl_test "$region"
--}
--
--setup_x1()
--{
--	# Find an x1 decoder
--	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
--		select(.pmem_capable == true) |
--		select(.nr_targets == 1) |
--		.decoder")
--
--	# Find a memdev for this host-bridge
+ 	# Find a memdev for this host-bridge
 -	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
 -		.targets | .[] | select(.position == 0) | .target")
 -	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
--	memdevs="$mem0"
--}
--
--setup_x2()
--{
--	# Find an x2 decoder
--	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
--		select(.pmem_capable == true) |
--		select(.nr_targets == 2) |
--		.decoder")
--
--	# Find a memdev for each host-bridge interleave position
++	mem0=$(find_memdev "$decoder" 0 0)
+ 	memdevs="$mem0"
+ }
+ 
+@@ -170,12 +177,8 @@ setup_x2()
+ 		.decoder")
+ 
+ 	# Find a memdev for each host-bridge interleave position
 -	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
 -		.targets | .[] | select(.position == 0) | .target")
 -	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
 -		.targets | .[] | select(.position == 1) | .target")
 -	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
 -	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
--	memdevs="$mem0 $mem1"
--}
--
--setup_x4()
--{
--	# find an x2 decoder
--	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
--		select(.pmem_capable == true) |
--		select(.nr_targets == 2) |
--		.decoder")
--
--	# Find a memdev for each host-bridge interleave position
++	mem0=$(find_memdev "$decoder" 0 0)
++	mem1=$(find_memdev "$decoder" 1 0)
+ 	memdevs="$mem0 $mem1"
+ }
+ 
+@@ -188,14 +191,10 @@ setup_x4()
+ 		.decoder")
+ 
+ 	# Find a memdev for each host-bridge interleave position
 -	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
 -		.targets | .[] | select(.position == 0) | .target")
 -	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
@@ -303,23 +179,17 @@ index fb4f9a0a1515..000000000000
 -	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
 -	mem2=$($CXL list -M -p "$port_dev0" | jq -r ".[1].memdev")
 -	mem3=$($CXL list -M -p "$port_dev1" | jq -r ".[1].memdev")
--	memdevs="$mem0 $mem1 $mem2 $mem3"
--}
--
--setup_x3()
--{
--	# find an x3 decoder
--	decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
--		select(.pmem_capable == true) |
--		select(.nr_targets == 3) |
--		.decoder")
--
--	if [[ ! $decoder ]]; then
--		echo "no x3 decoder found, skipping xor-x3 test"
--		return
--	fi
--
--	# Find a memdev for each host-bridge interleave position
++	mem0=$(find_memdev "$decoder" 0 0)
++	mem1=$(find_memdev "$decoder" 1 0)
++	mem2=$(find_memdev "$decoder" 0 1)
++	mem3=$(find_memdev "$decoder" 1 1)
+ 	memdevs="$mem0 $mem1 $mem2 $mem3"
+ }
+ 
+@@ -213,15 +212,9 @@ setup_x3()
+ 	fi
+ 
+ 	# Find a memdev for each host-bridge interleave position
 -	port_dev0=$($CXL list -T -d "$decoder" | jq -r ".[] |
 -		.targets | .[] | select(.position == 0) | .target")
 -	port_dev1=$($CXL list -T -d "$decoder" | jq -r ".[] |
@@ -329,44 +199,12 @@ index fb4f9a0a1515..000000000000
 -	mem0=$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")
 -	mem1=$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")
 -	mem2=$($CXL list -M -p "$port_dev2" | jq -r ".[0].memdev")
--	memdevs="$mem0 $mem1 $mem2"
--}
--
--setup_x1
--create_and_destroy_region
--setup_x2
--create_and_destroy_region
--setup_x4
--create_and_destroy_region
--# x3 decoder may not be available in cxl/test topo yet
--setup_x3
--if [[ $decoder ]]; then
--	create_and_destroy_region
--fi
--
--check_dmesg "$LINENO"
--
--modprobe -r cxl_test
-diff --git a/test/meson.build b/test/meson.build
-index 56aed9cc3c9d..5729d26d2a31 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -161,7 +161,6 @@ cxl_topo = find_program('cxl-topology.sh')
- cxl_sysfs = find_program('cxl-region-sysfs.sh')
- cxl_labels = find_program('cxl-labels.sh')
- cxl_create_region = find_program('cxl-create-region.sh')
--cxl_xor_region = find_program('cxl-xor-region.sh')
- cxl_update_firmware = find_program('cxl-update-firmware.sh')
- cxl_events = find_program('cxl-events.sh')
- cxl_sanitize = find_program('cxl-sanitize.sh')
-@@ -198,7 +197,6 @@ tests = [
-   [ 'cxl-region-sysfs.sh',    cxl_sysfs,	  'cxl'   ],
-   [ 'cxl-labels.sh',          cxl_labels,	  'cxl'   ],
-   [ 'cxl-create-region.sh',   cxl_create_region,  'cxl'   ],
--  [ 'cxl-xor-region.sh',      cxl_xor_region,     'cxl'   ],
-   [ 'cxl-events.sh',          cxl_events,         'cxl'   ],
-   [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
++	mem0=$(find_memdev "$decoder" 0 0)
++	mem1=$(find_memdev "$decoder" 1 0)
++	mem2=$(find_memdev "$decoder" 2 0)
+ 	memdevs="$mem0 $mem1 $mem2"
+ }
+ 
 -- 
 2.37.3
 
