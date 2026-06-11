@@ -1,181 +1,199 @@
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011008.outbound.protection.outlook.com [40.107.208.8])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com [209.85.128.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE976472789
-	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 18:10:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.8
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781201408; cv=fail; b=i1qeoPwF6TKHDX3UxUzQW2LvIXYsXHpOwiRGml93CG8CqzHvi7XS30fFoWFpHj3yJnAjeXU5vkJ/5T8Fq+2tETulffNuM3vmzR43UGppTrL7805UhDzeCNlwMXhu9GKVh/WRoEPq2GgmBTkCu51tLxa+WrwZ616EtHNmzKCbZE4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781201408; c=relaxed/simple;
-	bh=vXSw4vN74Pz9K2JX04EN68s19cXgDmsr1ioDIAnIK7U=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=sbpkW21/9pjLD/OYwGDLM16Ln8j3xgGUR/SMtc2dBQfiw9zQQxzWFfKAHpi2gD2zaorIAcs/TTptwsOxd3FruLzB1ECg9Lx9yZS3AXuqPREfMcYV7IiVGCXv3kwa1ad0aliwXjl2AXqKpV/n9hfehHhHxc3BZVePmKInZPq0fK4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=is6iLTwp; arc=fail smtp.client-ip=40.107.208.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DAFA357CE6
+	for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 18:19:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.182
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781201995; cv=none; b=ZpitwL3mIxfEU/u3qcI/uR6SyiEx726eLTT07pc8s4LeNCd/igkn10Rl50tjIvneuKPWlBd8oslm2XoJSHxrFz4/MAYL0FXY9g6lEhP2xgK2YFQG92sXueCiNRGiyZ3Q93h2DZSaES1ssPAULVIM8BrA4r2gtqlBBYfpk/iAmHc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781201995; c=relaxed/simple;
+	bh=1omX2rC5hpD8TszoQX/iIoOUdNYlcNz3F7LNrVXmo3Y=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tsOpI+nCh2J8x8wsP2c3lFf0132+tAapyw74dSXFkKeOetExI6lOW16dI3hwauR4JITXVM0hWEDDXWjZS1coE5N0xthmShWzZ5VKD6JC0jDJnixMIGtGSNUyCjDhBdUXUfPAWTdB8VPv5FfQ/n/wv1IQTpw/jOQOJwhLZ9tbBmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QFK1Gl/1; arc=none smtp.client-ip=209.85.128.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="is6iLTwp"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=fctoiqi1TJPjWKnW4P2dLF0FyUXJFvmbWuXAYC4pBR35JbEKfH4ChyqhkX+qdQIeH373ds+/Dz/4kM9gzSnUCK/aN/DkpoHiz+c+PyMhvPH4gq3zM2PBVoxVAb4hqkTwz6pteM7x2OC8m56cmt7zFI5hSSEd9IG7CPZBgLoDO0J7wlFnUua0snxCraSqIN0dnD73tBcz1FBNrnQV7qI5kvz8xtO0LdSXmxJwPlfFPyiloA6r4uQ/qjr7+ST0+n49YgGO6iOKCaubzxB+IQY4saw+QhwcQyn844Dqj8hY4x5NgNTz+EJlf/xwBibWbDfxHioxWRqwzBdLVWxf+9sVWQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=MzgwYZ7PA1b2QYIF0PBowaSOi0awopq+xcNQM9IpjEg=;
- b=lXzeRHb7FBeYUJJWj9zxXCzgbvgnbkycTjF7riwV7S7JpYU4FMbzl23g/XIlA1WwAmUusqldurIWU9X07+t93iZ3YPw/nW+GIvgnOiNz5v/ghZdgmh+vLhGTT1h4itQ4ct59oqRpr/WsS6Wbtp9fG71Tv5Y98CQWpHdHYLCHOaWJgvEdwPB9Qk8gAc/w2lDkzD/3E5k4kdzgf+/y6qClHpaM8j7Q0q9KxrGSx6SErhG7yMRn+yO9kEP/J3WBdRKIuMPL0lW3QHwJmjus0UUu7bjQKLyFLPmiX9cQ6+wGJBdLBmv03Ft9kNwoCgdtzqVfaTGnyiLg3Ny6vz3mPVFoGg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=MzgwYZ7PA1b2QYIF0PBowaSOi0awopq+xcNQM9IpjEg=;
- b=is6iLTwp2hDBJmBjj8JSCpNOrieDb5p/lafbTDwwxhxDGP6UQt/DWphoBN4DX7bQ3Sm5nYvjzF7DaON/iVl5GXEKeqtWse+PahSLj1ViBLiEokkvERgp6Rbk/uO71ryLYR4Jwjr5yEdYy466KRRA/DWIVjwFvFgH2FguVCHX5iA=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from CY8PR12MB7433.namprd12.prod.outlook.com (2603:10b6:930:53::22)
- by PH0PR12MB7010.namprd12.prod.outlook.com (2603:10b6:510:21c::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.13; Thu, 11 Jun
- 2026 18:10:02 +0000
-Received: from CY8PR12MB7433.namprd12.prod.outlook.com
- ([fe80::faae:d638:bdc9:4bf6]) by CY8PR12MB7433.namprd12.prod.outlook.com
- ([fe80::faae:d638:bdc9:4bf6%3]) with mapi id 15.21.0092.017; Thu, 11 Jun 2026
- 18:10:02 +0000
-Message-ID: <56fbc3f1-2b26-4d8c-9a1a-42a80f2b6bdf@amd.com>
-Date: Thu, 11 Jun 2026 20:09:54 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V5 6/9] dax/fsdev: fail probe on invalid pgmap offset
-To: John Groves <john@jagalactic.com>, John Groves <John@Groves.net>,
- Dan Williams <djbw@kernel.org>
-Cc: John Groves <jgroves@micron.com>, Vishal Verma
- <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>,
- Alison Schofield <alison.schofield@intel.com>, Ira Weiny
- <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-References: <0100019eb7bcda4b-3f8edae9-d7a4-4bfa-aaea-fcef77fdbbc3-000000@email.amazonses.com>
- <20260611173225.66002-1-john@jagalactic.com>
- <0100019eb7be3bc2-972d848b-bc38-4b24-9ee1-f0dd5610355f-000000@email.amazonses.com>
-Content-Language: en-US
-From: "Gupta, Pankaj" <pankaj.gupta@amd.com>
-In-Reply-To: <0100019eb7be3bc2-972d848b-bc38-4b24-9ee1-f0dd5610355f-000000@email.amazonses.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P302CA0036.GBRP302.PROD.OUTLOOK.COM
- (2603:10a6:600:317::7) To CY8PR12MB7433.namprd12.prod.outlook.com
- (2603:10b6:930:53::22)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QFK1Gl/1"
+Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-7dfceeaf168so2081677b3.0
+        for <nvdimm@lists.linux.dev>; Thu, 11 Jun 2026 11:19:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781201993; x=1781806793; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ddH+eXH24NtmehhRI7L/9GO3TOPMJUuuZMHBikOY13M=;
+        b=QFK1Gl/1b7LGG0EI+VAsdyh1nE2xipLyJ/joeu6va6+63OXYaOzuSAJX6laqQ5QARu
+         msX7HjGWbM7Kbs9qU3qHOSjobhxHbgMhUA95rcZXDKg5HoG+IONup9Ave8CPc0awE+Wa
+         KvqF37LHga/2lhwdLMnd4uE8k4jflfeM4vxCrj2Y5wLFFIzzLe33LzU4xl4ogBUm0XIm
+         Im6JTE/rtEReByImTY2drxWvtANWlBctGe6LnRV4LbUs7uPXFRuZyynk6AZhqVWe8oWn
+         y/b9Z6dvqT/9Y861sAUjcbsL3rWw/L2bjnuOUrhFfso6SYFGDHvx1UorA7UoHdcm2NW0
+         rhnQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781201993; x=1781806793;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ddH+eXH24NtmehhRI7L/9GO3TOPMJUuuZMHBikOY13M=;
+        b=SZ8UJUZggGZnrSvOm26XTyeb+U4U0scQHdlSnJqFfcyIE+0GjewdBuaxqM2/kXmZ4l
+         45w9N9R2afcw7Kn26jT/YZ7H7oe9PHiIFCC63fXp7tdilfgebofMaTrQOS89xj1kcQ4I
+         Xjt+rXFp1hc/JCYJuQRyvNbgpmhfuXurXm+pYQd6GbS7wure6lR6QMn6EpOZNEqNJY6F
+         9ibsR65O8V0GMT6Tk2J2+O4x1AxCR96cVN2RFw4oNuy8Wc/LLaJ7ZdbRU6s9xkxRnwcb
+         DSmvHSkl/Q0kMZphuKqqj+1pCflLD8uMGW46CB0PQHdhmu25SJwgw/5KZrf8YlWKyJQT
+         LGgw==
+X-Forwarded-Encrypted: i=1; AFNElJ+oeS0Ui7H1swpZ1dukLQANA9eOHlcPBkG937FLb7VzcGybUfM9aGmqblADfzxlSP6czGeHXPE=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx5XM09tV5grV+WIOaPKhvC+vj83JjU458WGaceRWmZE8UAC8iE
+	ZFnMOddMpDcG46vt8Y3T0Z4TbgfVQ3J2cMZj0YrCguIAVcpDJeQKUwIG
+X-Gm-Gg: Acq92OGycrK37/apG2sAWiEtWfZBBC+Cmdq2Vf2khvbM4NmJpFhj2dCAY2csyPC6+Oh
+	bZuV27mlfTHuhlUkb4GFpFNYl2g1Tw2+D/LLQT6Btfypnbpymo99uyeB+4nPNXAykvlvpdQUZuC
+	T16XmPf1BQC2vtznxy1VYttw5nhIjzTbKead8kHDb9Dz6y5gjpZYUmfn6T9Ssy0HG7IFRNmdcQX
+	/tMg+kUtN6C8PrxajnjHuFsoIuCCVZd3VUMMfvHI2vURcBlEpkvvo5sMyhV7fwV+bIHERi4Gz9U
+	PztJnw67TS09AyZ70KwNOaI7QK/sc217DJwAAyzdTkJRx/YhI17gBatvsew8Td0YpKXtHBgnZVH
+	dp97hYQFfGPttr4ZZj9i6KSZGVOixd6H8BXsWQxxNPlyeNaHi20MQzZyT91Ut0eVV/Ki5qmuHhp
+	k4VJ9GFydTg5gKD8nSoJOT0Uk2CerV/vTfHAH0Gc6XeA==
+X-Received: by 2002:a05:690c:e3ef:b0:7dc:a5a8:8b8 with SMTP id 00721157ae682-7f6553fa56amr44840507b3.7.1781201992856;
+        Thu, 11 Jun 2026 11:19:52 -0700 (PDT)
+Received: from 4470NRD-ASU.ssi.samsung.com ([50.205.20.42])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-7f76e2b5564sm1275747b3.6.2026.06.11.11.19.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 11 Jun 2026 11:19:52 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Thu, 11 Jun 2026 11:19:50 -0700
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
+	Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v10 10/31] cxl/mem: Configure dynamic capacity interrupts
+Message-ID: <air8RktfkGYm2fHp@4470NRD-ASU.ssi.samsung.com>
+References: <cover.1779528761.git.anisa.su@samsung.com>
+ <7f2e4fe385415e0b77b58f4bd988bc5895557dcf.1779528761.git.anisa.su@samsung.com>
+ <28a8e58d-5bf8-438e-b337-76944d67e297@intel.com>
+ <aiZ6TLUwI11Yg1jh@AnisaLaptop.localdomain>
+ <9c3ab868-27b7-4d33-865b-9308269f764f@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY8PR12MB7433:EE_|PH0PR12MB7010:EE_
-X-MS-Office365-Filtering-Correlation-Id: 011d1019-2cd7-4e10-732b-08dec7e4a81d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|23010399003|18002099003|22082099003|56012099006|4143699003|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	AblhFgLvk6BrW+ARjLAAqPmk6RVYVhiNTeUE/LCl0IH8gI/Vw8sk7T7LfmWsdCBo2VjpOyWZfu1hLGVOaQx58C4UsaLfMQIxFx7LG4b+1GrMhCCFnrNC836U7UKNcSTs6WQsLELCi5iI/+Vn6OTpzfJ2mC3OzooQpvRq/l1vrABaGSveWu9ER+GzIvjJqDauymNGrr1g9BrEtGPmFnv1riOiXTCTn6XZ/Q3XLPiUlwVyLdNNJVvfJx0XNL8m2MB11DdI8KNtIqSMz7qiJ6SMZH5MZ/PokTWUuYYpz2uAlYOV5OMoym2ZRmd1lxCMifXrgZp0EUP36JlRcekysDHPpUWcX4VQubETMckLlfNtO4BRJsxripBZqKuQgj9DWZVBlHQMKA8zV7keAghHDjqfU2GAqL1+wsUtAo/2yonCIKnj5JBcZ7rChiANYK2GlnCdY/HhmLwlH0wRkYO3xhI66O66sz87vRcZjvEi9wZA437sS6KsCBatc+eeSP9IXyOBTux/1cmfp3Of0u2QMHozZ9ENMsflcLAbcxFx/7HfKbiz0MlkcWXm+C8r68UhJdflXZ+MUQhNgckhk80kVg3IEIPPuP+jIrdL5i/k4L8Ll3RsqHvfMlJ6NBMiT4cmmndIIUVshHnS0MAkixd2t6423BrpsyoyiiaoQjhb0Bz/J/r1+5uElUrIO/APkNU/hT1B
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY8PR12MB7433.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(23010399003)(18002099003)(22082099003)(56012099006)(4143699003)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?U2Fqa2dwbEV2a1RoVUVuTHdPblpQRGVvR0JzbVg0bk9zYytaNUtpTEkrcjE2?=
- =?utf-8?B?N0JNbmw4U3p3S05HK01NM0tPR1lKS3UyQWRUdEczd0pqeUJjbjBLQzhNL2V0?=
- =?utf-8?B?RUxwU2NyUjJZa1p0ZGl4Z1RFUDFPeElGOVlNUUhoOWZZSktnRXcycXRJOHVn?=
- =?utf-8?B?YUpEeVg0REhMQll6Z1VINmVFanRqazZLZ2hURCsvRlZvdWFaUmNXMTR2YXZh?=
- =?utf-8?B?SjNpMHFDemZpb3d2M0NIRDBOQWV2QWZrZDBRTDBnSjdvRWVlVXJDNzVnMENB?=
- =?utf-8?B?T08vekxaM0RoT2ZzWnpOUEtEaStUSG5McHR5STlQN0ZvZzlneXkwV0h2Yy9h?=
- =?utf-8?B?MTFBMnNjUFVxckpvOEVvaGU2OFpQOWRoTXJhVGRtSHBlZnFZcmVTRk9pSmdo?=
- =?utf-8?B?LzVOZUJDYm4rK2t4aVhKV0FUajNNTXkwRy9uZlNDVENRcDRoNHB1enlrTll4?=
- =?utf-8?B?WWprTUNHUEdrdXdmdzZtUVNFNWJ6S0F5ZHUyaldUSmxxdTdtOFQrdGdFUEdX?=
- =?utf-8?B?cWlMakF5UkdPcG14cW5EYTRUNmoyZlhiUFZadGRnWU5jajNGS0R4TjZKTFF5?=
- =?utf-8?B?Vy9XM3FhcmpkVHpIOUtkS0d2clE1UjNtd0VUcENISTloYUhmVXpzd0hBNXYr?=
- =?utf-8?B?bU5sWDhGK1I0QWpta0pRMmQ3Z0hvVWRMd2g2Mm1oSFBISHgvTStzdDYveW93?=
- =?utf-8?B?QjI3Nm84eFYyaEpuVE5nTGYxMHNKbUt2by9GWVRWbFZtczBwWnplRExqZTU3?=
- =?utf-8?B?R2pIL2pIQ2hDbjloNCtldzVzMGpLbXhYeVd6aUQ4cEFzdUVOTVJNT2xON3ZJ?=
- =?utf-8?B?WUs0dUttcjVxczlWSGF6aWl6dzFuZUV4N0ZNTnRiNnlaVFR1Lzl0UjNDVGFh?=
- =?utf-8?B?TmRZbEovQ2hqZXg5QTExZ005cDhBUnlaTGJOdmNONXJmRFliTnEvQUk0TitZ?=
- =?utf-8?B?SlVoQWVNdmZLdEgyQ0JSczk4ZkZBYkREZVFad0xuMjlRSWJiNFF4SG9WdlB3?=
- =?utf-8?B?VWh1eFhtTjFIZnQ4T3o4dENYbGtZd29DTGtCeDAwa0FkSlA3ZVBhdjRac29q?=
- =?utf-8?B?RlNJOGNnN0h6eXo5VmdQTHF3NUFqRmJ2ZVZPeWNuK2MxK2V1ellya01GTmlv?=
- =?utf-8?B?dzFhRVk2eEl6Qm9Wd0VBVVk4UXJhS2xBdFBaaWk2anN2am1hZUlEYTdnWDcy?=
- =?utf-8?B?N2NFOGNaUGdZVkhIb04vL0M3eHM3YnJXc0ZSZ3crTGJ5N3d3c2J5OUdLMzNt?=
- =?utf-8?B?eEZpVEtUZkV3UGllM1lEa2phZTNGeTFvUzlIVThvRlNXU3QvY1VRa2tCNTA4?=
- =?utf-8?B?QUxVaXNKLzA0OWMza2xVb2RtRzF0aitWeEN0eG9XZ1B0d3lWSXFRdzdocGtX?=
- =?utf-8?B?cWRETmVDTzVTdVlBMXlTeS9UVlBmK0ZrNlFGcnNKL290dDBCODJHRXZRSmRM?=
- =?utf-8?B?L3duK3p3bmVHaE9JQi9jTXZBOFo1ODI4VEEwSDlNdkY1NElDZ2JkeWZOUDNL?=
- =?utf-8?B?SjUzd1orS242TlR1UUtqYXhUR2JLN3o0enZySGlGR3Q4cVozR3F2OFQyMVJx?=
- =?utf-8?B?QWxWcm0wSTBpYmRwd2MrNzhPVzh3ZnhMVGkvcmdvbjcrUU1sT3NsNDBseUVF?=
- =?utf-8?B?RWlhN1Q5ZU9sakdOdEkxQXlaeGNZNzMrcHFzUW9idlB0ZnNLa29CZVF2WUlI?=
- =?utf-8?B?OGttd1ZQaWY2QUdMTVlKS3FQblBWNzJSZUNSYXZ4Zk9PNXdheDBSODdKeC9u?=
- =?utf-8?B?ZDNJYk5KZVRPZVcrL2JyK01yU2tObUVGeGFWUEpUWGFOenBLKzRGN1B0SWxD?=
- =?utf-8?B?Mm5zeFd5M1FReTU2akh3WkpPTmlkOHZtMTVjRm41QnNRaTNvZy9jaE1yY1ow?=
- =?utf-8?B?VnZJQ3E3c1ljMytLNHBQRTVaVEFsMkFzazdBUU12NDZZZ0Y4bXI1MW9vSUpO?=
- =?utf-8?B?RHNqcXhLcUhjWHZlSGZEeUlxWjMwd1d4NllhaFdHcENwMlJnVDliajM3Yis4?=
- =?utf-8?B?djRkNVNHRW9rMXg0T1M4bU9oUk5JWDJUajRDK2pqS0JBUzJkaXhPeElSTVla?=
- =?utf-8?B?NU1yTWxWL0Y3UGphQzBsZlVlcDJmN2tKbVVsVjNTeWhMOW9DUUxablBvV3VR?=
- =?utf-8?B?Ym4wT0M2NlAyMDltaDBhRHM4YktDYy9XT2Rta0paQ3hsc21iY3RWbTlsMW54?=
- =?utf-8?B?YkpnL1JIY1Z3ZDNMSHV6MVhTMmZqano0ajQ1d2krV0F1VVg1L2NIK2NEaHIy?=
- =?utf-8?B?YUJCT0l4dno0VWJBcnhaUjZqNGhrQ3hyYWlTUjNVeVpzdEVaMHZVZERjMy85?=
- =?utf-8?B?RHNKeFQ4dlhvMVJ2cnVySWU3MXFYTm9vNVlSNllMZ3JXdzRqK29zdz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 011d1019-2cd7-4e10-732b-08dec7e4a81d
-X-MS-Exchange-CrossTenant-AuthSource: CY8PR12MB7433.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jun 2026 18:10:02.2667
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: fgwo2f1dqFxstDsOKkVrsZPcv5C5HJBiX0rEj5n12Vujsx/hB/seb8V4ttmExL8QOBe77qBiT+UJhxoA+saL1Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7010
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9c3ab868-27b7-4d33-865b-9308269f764f@intel.com>
 
+On Wed, Jun 10, 2026 at 09:57:35AM -0700, Dave Jiang wrote:
+> 
+> 
+> On 6/8/26 1:16 AM, Anisa Su wrote:
+> > On Thu, May 28, 2026 at 09:21:59AM -0700, Dave Jiang wrote:
+> >>
+> >>
+> >> On 5/23/26 2:43 AM, Anisa Su wrote:
+> >>> From: Ira Weiny <ira.weiny@intel.com>
+> >>>
+> >>> Dynamic Capacity Devices (DCD) support extent change notifications
+> >>> through the event log mechanism.  The interrupt mailbox commands were
+> >>> extended in CXL 3.1 to support these notifications.  Firmware can't
+> >>> configure DCD events to be FW controlled but can retain control of
+> >>> memory events.
+> >>>
+> >>> Configure DCD event log interrupts on devices supporting dynamic
+> >>> capacity.  Disable DCD if interrupts are not supported.
+> >>>
+> >>> Care is taken to preserve the interrupt policy set by the FW if FW first
+> >>> has been selected by the BIOS.
+> >>>
+> >>> Accept the 4-byte CXL 2.0 reply on GET Event Interrupt Policy by setting
+> >>> min_out to CXL_EVENT_INT_POLICY_BASE_SIZE; pre-CXL 3.1 firmware omits
+> >>> dcd_settings and would otherwise fail the size check.
+> >>>
+> >>> Based on an original patch by Navneet Singh.
+> >>>
+> >>> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> >>> Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> >>>
+> >>> ---
+> >>> Changes:
+> >>> [anisa: rebase]
+> >>> [anisa: accept 4-byte CXL 2.0 GET reply via min_out]
+> >>> [anisa: drop Reviewed-by tags now that the patch carries new changes]
+> >>> ---
+[snip]
+> >>>  static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >>>  			    struct cxl_memdev_state *mds, bool irq_avail)
+> >>>  {
+> >>> -	struct cxl_event_interrupt_policy policy;
+> >>> +	struct cxl_event_interrupt_policy policy = { 0 };
+> >>> +	bool native_cxl = host_bridge->native_cxl_error;
+> >>>  	int rc;
+> >>>  
+> >>>  	/*
+> >>>  	 * When BIOS maintains CXL error reporting control, it will process
+> >>>  	 * event records.  Only one agent can do so.
+> >>> +	 *
+> >>> +	 * If BIOS has control of events and DCD is not supported skip event
+> >>> +	 * configuration.
+> >>>  	 */
+> >>> -	if (!host_bridge->native_cxl_error)
+> >>> +	if (!native_cxl && !cxl_dcd_supported(mds))
+> >>>  		return 0;
+> >>>  
+> >>>  	if (!irq_avail) {
+> >>>  		dev_info(mds->cxlds.dev, "No interrupt support, disable event processing.\n");
+> >>> +		if (cxl_dcd_supported(mds)) {
+> >>> +			dev_info(mds->cxlds.dev, "DCD requires interrupts, disable DCD\n");
+> >>> +			cxl_disable_dcd(mds);
+> >>> +		}
+> >>>  		return 0;
+> >>>  	}
+> >>>  
+> >>> @@ -676,10 +721,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >>>  	if (rc)
+> >>>  		return rc;
+> >>>  
+> >>> -	if (!cxl_event_validate_mem_policy(mds, &policy))
+> >>> +	if (native_cxl && !cxl_event_validate_mem_policy(mds, &policy))
+> >>>  		return -EBUSY;
+> >>>  
+> >>> -	rc = cxl_event_config_msgnums(mds, &policy);
+> >>> +	rc = cxl_event_config_msgnums(mds, &policy, native_cxl);
+> >>>  	if (rc)
+> >>>  		return rc;
+> >>>  
+> >>> @@ -687,12 +732,16 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >>>  	if (rc)
+> >>>  		return rc;
+> >>>  
+> >>> -	rc = cxl_event_irqsetup(mds, &policy);
+> >>> +	rc = cxl_irqsetup(mds, &policy, native_cxl);
+> >>>  	if (rc)
+> >>>  		return rc;
+> >>>  
+> >>>  	cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+> >>
+> >> Issue that was always there probably, should this check native_cxl so the BIOS owned events are not retrieved?
+> >>
+> >> 	if (native_cxl)
+> >> 		cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+> >>
+> >>
+> > That makes sense. Would you prefer the fix as a separate patch?
+> 
+> Yes please.
+> 
+> DJ
+> 
+Oops I was wrong; the issue wasn't there before. This function used to return 0
+if !native_cxl at the top of the function but this patchset added
+&& !cxl_dcd_supported() to the condition.
 
-> From: John Groves <John@Groves.net>
->
-> Convert the WARN_ON to a fatal error when pgmap_phys > phys. This
-> condition means the remapped region starts after the device's data
-> region, which is an impossible state. Previously the probe continued
-> with data_offset=0, leaving virt_addr silently misaligned. Now probe
-> returns -EINVAL with a diagnostic message.
->
-> Fixes: 759455848df0b ("dax: Save the kva from memremap")
->
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-> Signed-off-by: John Groves <john@groves.net>
+Added the fix to this commit.
 
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
-
-> ---
->   drivers/dax/fsdev.c | 8 ++++++--
->   1 file changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> index 07de6bfbbf673..71d2bee1e2805 100644
-> --- a/drivers/dax/fsdev.c
-> +++ b/drivers/dax/fsdev.c
-> @@ -320,8 +320,12 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
->   		u64 phys = dev_dax->ranges[0].range.start;
->   		u64 pgmap_phys = pgmap[0].range.start;
->   
-> -		if (!WARN_ON(pgmap_phys > phys))
-> -			data_offset = phys - pgmap_phys;
-> +		if (pgmap_phys > phys) {
-> +			dev_err(dev, "pgmap start %#llx exceeds data start %#llx\n",
-> +				pgmap_phys, phys);
-> +			return -EINVAL;
-> +		}
-> +		data_offset = phys - pgmap_phys;
->   
->   		pr_debug("%s: offset detected phys=%llx pgmap_phys=%llx offset=%llx\n",
->   		       __func__, phys, pgmap_phys, data_offset);
+Thanks,
+Anisa
