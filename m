@@ -1,27 +1,27 @@
-Received: from relay.hostedemail.com (smtprelay0014.hostedemail.com [216.40.44.14])
+Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5AC33F411B
-	for <nvdimm@lists.linux.dev>; Mon, 15 Jun 2026 13:22:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D47B33E5A0C
+	for <nvdimm@lists.linux.dev>; Mon, 15 Jun 2026 13:30:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781529761; cv=none; b=eC3nBsPAl/JamjDUdVXC5aZ5Cdj3yGpSLNImTXK8e9l706Y6Cb/Ea/5lwDizTrDjQjEnnAGhU9OW9AnLRXsZGCTLX6+9Iivv4WALmxO6q02NhXyNG1gHvYj24Y4ESj3HIOHjtHDaR2+uV6IQNxRh52ExWvFFvXvR6cH2PRgjsyA=
+	t=1781530239; cv=none; b=YJtd5QSRDpvZSI8EpWrmh1yJvYQ83o/X3ruPm89DMsn5w1M0J2RTv1lmtgQPQxYlQnNlX98bSR+Kdiio+TjdZoTmB6fzIbRDnJhkXchbRfIdwu/MbzyfEUALWL95liFY7Aoo5MpDQof1qbe7BEO0rbfJx53mSr49ucZ/n6FBHrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781529761; c=relaxed/simple;
-	bh=e2qlcvauBAi4XtzeZV5u2HFUaH2GDZ6VqDjdYQ/giz8=;
+	s=arc-20240116; t=1781530239; c=relaxed/simple;
+	bh=LGXIGJ4csUc8dv0WB+8wcc6u6scVHT1P3P0HRWfNx4o=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IsVk7iUFuudaK+HANcouVAUZcv74UYH9QtfbuuV7GpPveEXRg2YcVYh4RroqzGHCKoUlv9Qi24qwhscBXcqZ5wLPQhviqDPWAbnI1Y8klHSJvmVOTnbginFP5KJ/7tBpALV0O7rpz9YcjftyKboS/RBtXIbPlsgxyBsH9uT6yUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.14
+	 Content-Type:Content-Disposition:In-Reply-To; b=bADUlQ6ozkutBZPF9R9B2gt7xIzmujQi7OtOD3fW7FMZ53bKOnear2pY6MhBbT2ZJQuQ7wbtcyCyGlqfpr7psBwImS55egfQwEMrDNIR3w4aOQqb3Bk0hhsVpSSxfwmtF61Ng8vzB0U8KIMipfRQA99esGAU3IiFfp+cIsfBJ3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf15.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay08.hostedemail.com (Postfix) with ESMTP id C90E3140A0A;
-	Mon, 15 Jun 2026 13:22:37 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf15.hostedemail.com (Postfix) with ESMTPA id D6C521B;
-	Mon, 15 Jun 2026 13:22:33 +0000 (UTC)
-Date: Mon, 15 Jun 2026 08:22:32 -0500
+Received: from omf18.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay06.hostedemail.com (Postfix) with ESMTP id 47D551C443A;
+	Mon, 15 Jun 2026 13:23:32 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf18.hostedemail.com (Postfix) with ESMTPA id 553C031;
+	Mon, 15 Jun 2026 13:23:28 +0000 (UTC)
+Date: Mon, 15 Jun 2026 08:23:27 -0500
 From: John Groves <John@groves.net>
-To: Richard Cheng <icheng@nvidia.com>
+To: "Gupta, Pankaj" <pankaj.gupta@amd.com>
 Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>, 
 	John Groves <jgroves@micron.com>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
@@ -30,13 +30,12 @@ Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>,
 	Ira Weiny <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>, 
 	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V5 7/9] dax: read holder_ops once in
- dax_holder_notify_failure()
-Message-ID: <ai_70p0O3u3S__gh@groves.net>
+Subject: Re: [PATCH V5 6/9] dax/fsdev: fail probe on invalid pgmap offset
+Message-ID: <ai_8vtqO6FYQfAFH@groves.net>
 References: <0100019eb7bcda4b-3f8edae9-d7a4-4bfa-aaea-fcef77fdbbc3-000000@email.amazonses.com>
- <20260611173240.66020-1-john@jagalactic.com>
- <0100019eb7be595f-5045353d-86b9-49fd-b1ca-fbb40c22d06c-000000@email.amazonses.com>
- <ait2Lymb4y-Wb2ie@MWDK4CY14F>
+ <20260611173225.66002-1-john@jagalactic.com>
+ <0100019eb7be3bc2-972d848b-bc38-4b24-9ee1-f0dd5610355f-000000@email.amazonses.com>
+ <56fbc3f1-2b26-4d8c-9a1a-42a80f2b6bdf@amd.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -45,50 +44,35 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ait2Lymb4y-Wb2ie@MWDK4CY14F>
+In-Reply-To: <56fbc3f1-2b26-4d8c-9a1a-42a80f2b6bdf@amd.com>
 X-Rspamd-Server: rspamout05
-X-Rspamd-Queue-Id: D6C521B
-X-Stat-Signature: wi4m6dat41b8azege1in4ra9iexqebu5
+X-Rspamd-Queue-Id: 553C031
+X-Stat-Signature: w1kyk6ubz3birz9y8rfbk9rpt693jy6u
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX19TFhvmT3BAejXjJoTuyXfYam/BZhUdxSY=
-X-HE-Tag: 1781529753-543104
-X-HE-Meta: U2FsdGVkX183+gFmPlX0UJGoOj4EB+fyIojJtMwSlLOmbwsxRaUn2+UYb73LuIm7J02Hs/CICiWQgz1i5uwrGBiDCBVhulYHYDJAq9eHOiSBzlwvgbKbH40H3CdO+gFd14HN03/Lfv8KDVDBBKmdqYoR3Gp8ASk2ykAb6e9dGht2NfX7+SMS4dm5AlEl+23d2ECTivvL4e8OKFaFafXKQSCy/Q986daBPYfgTt3b4XQRblrsT1K2gc45S2gam2b9hb+JlshQcwWdx5aZN01nQ8GowfViST++oid1PSBrdPyKz1He6AFJJ4TjJ1IfyXWXGiPhMuYYIDXCIeD6dd8cNQrmNedtzPgH24kRRzWA2olRB4CvcLKguvrXjuPtcJwn3yqdFt7a3nC2CMYMtcsIMg==
+X-Session-ID: U2FsdGVkX19QLsiYH2e+TW39m2EZyprxRtIXXUlxX6A=
+X-HE-Tag: 1781529808-14454
+X-HE-Meta: U2FsdGVkX1/8qb6Dcc7pqizPHOtCdYa2fVR8ijoQ0j8EQ70kuTjeQLlO2fZtjjg+mlWFTD5fJgbUbzCOJYJl/Ujjuoxnk2GpwOjyKOEmedqmeuh21MkLlqCodm2gNUosnAoQ9gmougrxSdtBRTQ+lQ3p/C9Qa+2+ygwzAIi9lJk6ViRVV9t3Yo1yBSGKx5RQWmFVtjK+tUq4vAKNJX1olaA5GKsGmaKiWUfpGZEm9rAX+WgJA5gI9UXbMqXvNMzhg2m3BRFbTIfJV0bG3xaflF/r/uzzAS38rSTCsX2WrzoJYFLsJmHTBUmuM7r5nlRF+mONAgOzQ4bl5JGeRcuu342Z0G8d6gO7LN5iBBjLm18I8AonRduKZSSM0cDYQiZayPGG/9mt1KmgEU7k0gLwin3+8ejVOCeGshhE1KHVV7w=
 
-On 26/06/12 11:02AM, Richard Cheng wrote:
-> On Thu, Jun 11, 2026 at 05:32:45PM +0800, John Groves wrote:
+On 26/06/11 08:09PM, Gupta, Pankaj wrote:
+> 
 > > From: John Groves <John@Groves.net>
 > > 
-> > dax_holder_notify_failure() reads dax_dev->holder_ops twice without
-> > READ_ONCE() -- once for the NULL check and once for the indirect
-> > notify_failure() call. A concurrent fs_put_dax() or kill_dax() can clear
-> > holder_ops between the two reads, so the check can observe a non-NULL
-> > pointer while the call dereferences NULL.
+> > Convert the WARN_ON to a fatal error when pgmap_phys > phys. This
+> > condition means the remapped region starts after the device's data
+> > region, which is an impossible state. Previously the probe continued
+> > with data_offset=0, leaving virt_addr silently misaligned. Now probe
+> > returns -EINVAL with a diagnostic message.
 > > 
+> > Fixes: 759455848df0b ("dax: Save the kva from memremap")
+> > 
+> > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> > Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+> > Signed-off-by: John Groves <john@groves.net>
 > 
-> Hello John,
-> 
-> Thanks for this.
-> 
-> Reviewed-by: Richard Cheng <icheng@nvidia.com>
-> 
-> Small message nit, kill_dax() isn't a racing clearer.
+> Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
 
-Right -- kill_dax() clears holder_ops only after synchronize_srcu(), so it
-can't race a reader under dax_read_lock(). Reworded the commit message and
-the code comment for V6 to name only fs_put_dax().
-
-> Plus I think this only fix holder_ops double-fetch, the fs_put_dax()
-> race issue is separate and pre-existing.
-
-Yes, intentionally -- this patch is just the reader-side double-fetch. The
-fs_put_dax() race is the separate, pre-existing one handled by the next
-patch in the series ("dax: fix holder_ops race in fs_put_dax()").
-
-> 
-> Best regards,
-> Richard Cheng.
-
-Thanks,
+Thank you!
 John
 
 <snip>
+
