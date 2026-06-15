@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0014.hostedemail.com [216.40.44.14])
+Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C43323F1669
-	for <nvdimm@lists.linux.dev>; Mon, 15 Jun 2026 13:13:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A274735C183
+	for <nvdimm@lists.linux.dev>; Mon, 15 Jun 2026 13:16:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781529200; cv=none; b=r4jUkcYr61sz68+RETUrwFHptbIJ8TRJKEm0fbWgiBL6+do3vSesFohZXK7ZxKFV+L0kAUFXI4zYegDo4XCz/BM+nJcTqXpjxYHo4X1f9ZaN96iIeKIoOvR+JloNwZVYtTIVZiTraGbmDeWFk2R6gVwivAIZB+7/KNHuiLgZLbI=
+	t=1781529411; cv=none; b=mH4ofOg5P8dgTFTyWF1+r/R34wBTfsdez8eIn3zc2lHeHHGATvD+ZqxAmR7obhZNngHqYqqfCn9uvzGcKCUMqbhLN5TY1AjirJjpFeRW4Oz2y17JMviwwuLEc0o6hnZfulSiSOkeHQbTpI7im4UlXJve6PZwRh/OwZoncQ7I0ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781529200; c=relaxed/simple;
-	bh=JV5pPp6Ka8g+FtRyhYZAk+cFACXv8FmBu4KaMmweoIg=;
+	s=arc-20240116; t=1781529411; c=relaxed/simple;
+	bh=pMREYlYHGc5Tkh4427Y9bIHLMo21yJ3BiQqtR+Ik0DU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JaJWu+yi5ZIYVWXK33YzjMLMWSTl79fJ/nGtefPTF3Aoc/v/RrakitobcVnyDBjcixkAmkCUOJkRJzyn8Am3NwX5bGBZhKd9JNwiXvzRA8v7XSneVEmtZMm/4N4yjdjYTAwkaJSWz4lECuvwsQwFKp8GHSc4cQnEL1wbChdltTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.14
+	 Content-Type:Content-Disposition:In-Reply-To; b=Cd4olszkz3CMGqSoPTkhd30prCji2WgkiUDu3uMYSZ5PGl2sjF+yOTgGsebOwTTEpLRKqXG2tmC7V8RkAMtAJGwpGU9uQT0sOdYVmU2JVfr+VtqCREYfhlI/r80VhMPQuAlOlf7hlFGOjzxPDJzuhzXdMbSY/GzXtaNLkDUeEfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf18.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay08.hostedemail.com (Postfix) with ESMTP id E56F11409A6;
-	Mon, 15 Jun 2026 13:13:09 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf18.hostedemail.com (Postfix) with ESMTPA id DA26F2F;
-	Mon, 15 Jun 2026 13:13:05 +0000 (UTC)
-Date: Mon, 15 Jun 2026 08:13:04 -0500
+Received: from omf20.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay04.hostedemail.com (Postfix) with ESMTP id 7B6301A0A43;
+	Mon, 15 Jun 2026 13:16:39 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf20.hostedemail.com (Postfix) with ESMTPA id 4B67020025;
+	Mon, 15 Jun 2026 13:16:35 +0000 (UTC)
+Date: Mon, 15 Jun 2026 08:16:34 -0500
 From: John Groves <John@groves.net>
 To: Richard Cheng <icheng@nvidia.com>
 Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>, 
@@ -30,13 +30,13 @@ Cc: John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>,
 	Ira Weiny <iweiny@kernel.org>, Jonathan Cameron <jic23@kernel.org>, 
 	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH V5 2/9] dax/fsdev: fix multi-range offset in
- memory_failure handler
-Message-ID: <ai_2FPTYQZGh8wRT@groves.net>
+Subject: Re: [PATCH V5 3/9] dax/fsdev: clear vmemmap_shift when binding
+ static pgmap
+Message-ID: <ai_63hJ1pVP15nbc@groves.net>
 References: <0100019eb7bcda4b-3f8edae9-d7a4-4bfa-aaea-fcef77fdbbc3-000000@email.amazonses.com>
- <20260611173152.65905-1-john@jagalactic.com>
- <0100019eb7bda506-6ba24207-b1c0-4eeb-9b04-61940cf3f80c-000000@email.amazonses.com>
- <ait3Bg68J-NfOKhZ@MWDK4CY14F>
+ <20260611173202.65935-1-john@jagalactic.com>
+ <0100019eb7bdc5a7-f15b011c-0aee-411f-8d7c-2996345048e4-000000@email.amazonses.com>
+ <ait0jiPmYrpwdEBW@MWDK4CY14F>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -45,102 +45,62 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ait3Bg68J-NfOKhZ@MWDK4CY14F>
-X-Rspamd-Queue-Id: DA26F2F
-X-Stat-Signature: br7gpe7ykxc87cnd5zdzixzizgipowo1
-X-Rspamd-Server: rspamout07
+In-Reply-To: <ait0jiPmYrpwdEBW@MWDK4CY14F>
+X-Rspamd-Server: rspamout05
+X-Rspamd-Queue-Id: 4B67020025
+X-Stat-Signature: bceddahxhdzmsy1ywk9uaa1bs1jhxk8y
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX190jmeGDiYtKH58RT+LXLFFeuhh4HjMp70=
-X-HE-Tag: 1781529185-789936
-X-HE-Meta: U2FsdGVkX188rpa2CmzJAY4dvaB8jkWkTYzEWLBg9f+m8UElArWHcq4cODM6EPVa6MnsDXqC+u35sfg4cdMyQnGSxc8VGzvf5lcrSKVHyxKKOj1/aPpjX345lfq3zaNCo2Y1T7m19mMZtzq/NnNHW85t9AWLOFEX894vIoO0uwG3S+KES034SZVA1xMOym5x5biW4FgQePDPJ40eUGKQNf9mQDN8vwKM9+ItHqFOhUL4Fpdvv5NIO2Qo9JGXfHtf3Ry4CHYKC55xrkmh9EN6fvHjcGvgkJl2uMTdnKBo9gzaEQi8SbEfOu55Tiz3PpS+zIhHuEEfSBzH9ty3wvH/PPkFYk8qqqzWXTYcgKKuW4E1sqeYdtRNWT5EKFr+lUr15mhl7HhKON4newnbjcUHflN1kr+MR9RwcTndfLTeJ5k=
+X-Session-ID: U2FsdGVkX180S01DUCi5FDR/O4kT1psh/9MvNKg99Gw=
+X-HE-Tag: 1781529395-294135
+X-HE-Meta: U2FsdGVkX1/yRQ3MVlQ8eTLP5Ts9BmNqPWWY2fNZ+FUtpXs1kVZ6A6CfA1mpsWl53a4KdsjiWoICOlSM6DVZ3IlMvcf5mhBIHVZykPnx/IjqIkM1QLn+iPXwX3NWjU/fmUl7n77sqW23ZS7ig/h+hKcM4uJo9vU1SpmVAhFcNTFch+2MnkwfzhypiMrPcnNAAw/najyhBXV6B6AwwnPSAKLfnqME/E+Y632/KTC9BOVGjH/8IEtXOu2a2IOJWYsaDlTWzMd2c8Q9ba/Q7qI+OVTTpYnhSsNLiw1++6+zFS2XpoGdTBDNZWzXtGNag2gxz5+JLzEGSBuLBPBAcx6przZ4NZIL/bhtIRuvVTivSFHn+zJxr6JNmpuYfj6jpFlP4bxk/2Wbr9zBuMS4X04Onw==
 
-On 26/06/12 11:08AM, Richard Cheng wrote:
-> On Thu, Jun 11, 2026 at 05:31:59PM +0800, John Groves wrote:
+On 26/06/12 10:56AM, Richard Cheng wrote:
+> On Thu, Jun 11, 2026 at 05:32:07PM +0800, John Groves wrote:
 > > From: John Groves <John@Groves.net>
 > > 
-> > Fix memory_failure offset calculation for multi-range devices. The old code
-> > subtracted ranges[0].range.start from the faulting PFN's physical address,
-> > which produces an incorrect (inflated) logical offset when the PFN falls in
-> > ranges[1] or beyond due to physical gaps between ranges. Add
-> > fsdev_pfn_to_offset() to walk the range list and compute the correct
-> > device-linear byte offset.
-> > 
-> > Walk the pagemap's own range array (pgmap->ranges[]) rather than
-> > dev_dax->ranges[]. The pgmap copy is the immutable snapshot populated at
-> > probe and is never mutated afterwards, whereas dev_dax->ranges[] can be
-> > krealloc()'d by a concurrent sysfs mapping_store() (under dax_region_rwsem,
-> > which this ->memory_failure callback does not hold). For dynamic devices the
-> > two arrays are identical, so the reported offset is unchanged for the
-> > multi-range case this targets.
+> > Clear pgmap->vmemmap_shift for static DAX devices. When rebinding a static
+> > device from device_dax (which may set vmemmap_shift based on alignment) to
+> > fsdev_dax, the stale vmemmap_shift persists on the shared pgmap. Explicitly
+> > zero it before devm_memremap_pages() so the vmemmap is built for order-0
+> > folios as fsdev requires.
 > > 
 > > Fixes: d5406bd458b0a ("dax: add fsdev.c driver for fs-dax on character dax")
 > > 
-> > Suggested-by: Richard Cheng <icheng@nvidia.com>
 > > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 > > Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 > > Signed-off-by: John Groves <john@groves.net>
 > > ---
-> >  drivers/dax/fsdev.c | 17 ++++++++++++++++-
-> >  1 file changed, 16 insertions(+), 1 deletion(-)
+> >  drivers/dax/fsdev.c | 1 +
+> >  1 file changed, 1 insertion(+)
 > > 
 > > diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> > index 188b2526bee45..2c5de3d80a618 100644
+> > index 2c5de3d80a618..52f46b3e245ea 100644
 > > --- a/drivers/dax/fsdev.c
 > > +++ b/drivers/dax/fsdev.c
-> > @@ -135,11 +135,26 @@ static void fsdev_clear_ops(void *data)
-> >   * The core mm code in free_zone_device_folio() handles the wake_up_var()
-> >   * directly for this memory type.
-> >   */
-> > +static u64 fsdev_pfn_to_offset(struct dev_pagemap *pgmap, unsigned long pfn)
-> > +{
-> > +	phys_addr_t phys = PFN_PHYS(pfn);
-> > +	u64 offset = 0;
-> > +
-> > +	for (int i = 0; i < pgmap->nr_range; i++) {
-> > +		struct range *range = &pgmap->ranges[i];
-> > +
-> > +		if (phys >= range->start && phys <= range->end)
-> > +			return offset + (phys - range->start);
-> > +		offset += range_len(range);
-> > +	}
-> > +	return -1ULL;
-> > +}
-> > +
-> >  static int fsdev_pagemap_memory_failure(struct dev_pagemap *pgmap,
-> >  		unsigned long pfn, unsigned long nr_pages, int mf_flags)
-> >  {
-> >  	struct dev_dax *dev_dax = pgmap->owner;
-> > -	u64 offset = PFN_PHYS(pfn) - dev_dax->ranges[0].range.start;
-> > +	u64 offset = fsdev_pfn_to_offset(pgmap, pfn);
+> > @@ -237,6 +237,7 @@ static int fsdev_dax_probe(struct dev_dax *dev_dax)
+> >  		}
+> >  
+> >  		pgmap = dev_dax->pgmap;
+> > +		pgmap->vmemmap_shift = 0;
 > 
-> Hi John,
 > 
-> I think this regresses static devices. pgmap->ranges[0].start can sit
-> data_offset below it on a static device, so the new offset = old + data_offset,
-> and XFS poisons the wrong blocks.
+> Hello John,
 > 
-> The gap walk only helps dynamic devices where data_offset ==0 . Maybe walking pgmap->ranges and
-> substract the probe's data_offset.
+> I would suggest also clearing pgmap->ops and pgmap->owner on teardown.
+> fsdev also writes them but never clears them. memuunmap_pages() leaves the
+> descriptor intact and kill_dev_dax() only NULLs dev_dax->pgmap for !static case.
+> After fsdev unbind the stale ops survive.
+> If we do rmmod later a HW failure dispatch pgmap->ops->memory_failure.
 > 
 > --Richard
 
-Ugh, right.
+Good catch, thanks.
 
-Subtracting the data_offset would require newly stashing it somewhere the
-->memory_failure callback could reach.
+Adding a patch for V6 ("dax/fsdev: clear pgmap ops and owner on unbind")
+-- a devm action that NULLs both on unbind, symmetric with setting them
+at probe. It matters for the static case where the pgmap is shared and
+long-lived; otherwise a later rebind or rmmod could dispatch
+memory_failure through the stale handler.
 
-So I'm reverting to walking dev_dax->ranges[] -- the maybe-race there is the
-same one the pre-existing single-range code already had.
-
-I'd like to land this series before going too much farther down the suspected
-pre-existing issues rabbit hole :D
-
-Note: the current version of this patch (switching to pgmap->ranges) might 
-have been a bit much for keeping Dave and Alison's RB tags - but I'm 
-reverting back to what they reviewed for V6.
-
-Thanks,
 John
-
-<snip>
 
