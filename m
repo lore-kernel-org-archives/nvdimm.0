@@ -1,67 +1,66 @@
-Received: from mail-dy1-f180.google.com (mail-dy1-f180.google.com [74.125.82.180])
+Received: from mail-dl1-f45.google.com (mail-dl1-f45.google.com [74.125.82.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9B8A32ED58
-	for <nvdimm@lists.linux.dev>; Tue, 16 Jun 2026 09:01:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35FE242315F
+	for <nvdimm@lists.linux.dev>; Tue, 16 Jun 2026 09:39:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781600472; cv=none; b=nOtp7u3yxTy478O3hpcTae29238AEZA8JMMeNch1fu4y/aSdVLDDCPOpFVcXtELGxjIwVwOPGQvsO9YOKLBmDQQJPBEVCzay3ECoZXVjDB6OSx1Hj2rnDEgzXkqSV9apW27DU9QGxM+xi1sLEw/Cba67qpJv3PG9oc02lHDv33M=
+	t=1781602789; cv=none; b=LENHdMfqfPsXVnhe3xTbXiSBCjF6yzp1dcPy03Zhhmqpy3R8FxrBXZ4KbXqNLUrkjpbEAsYNnQihq1NjMxJyb7DQ4zQsmFa9Q4R0uM41+fNZ2d6O+S0fODjfXGoswv+e8got15NA6UDAjRkxRmWiMZm6DICiWlDKLlDi3MgOqV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781600472; c=relaxed/simple;
-	bh=FRA1KwIFISMQKwypiH6P5YXZCV0SChYLUCjyR5PBoBc=;
+	s=arc-20240116; t=1781602789; c=relaxed/simple;
+	bh=xDVf0parVCBAHtRzqwnSxtffzhQMOJFeP8x5R99Kv+o=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iFFlqAfgE4im/ipJKmQOq9xKmNEU+z8fP4BCCNqw2D40YttDG5f35UMqBcm3tyxAirWWiRe9Bu3MHwlVX/mL/1M3S90sg66EinXr/XUHz76d/fdEYPqS1VhLT2bi/Zbl1NNHYk1scyKZMl1OQfrm/YauKaJJqdRFhq9SviLoraI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pf77Ro9N; arc=none smtp.client-ip=74.125.82.180
+	 Content-Type:Content-Disposition:In-Reply-To; b=AV/oL30fVum4q/FeXFnyqPENYxBwrw7j9Aa5Gb8GMpIltRWgYM07TqGWU1GQ5Yfnkj6/XtDRpZcBnuN9BfVv5X2Dv73Jy8W8ZJq4JGqrJFic/oAVlFQsAEdKsLH/UJTaw8B+w99Ve0kZ1BJhm6kYk5msRAnq7Cz+HB4ILqYi9pc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KfQgBzY7; arc=none smtp.client-ip=74.125.82.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pf77Ro9N"
-Received: by mail-dy1-f180.google.com with SMTP id 5a478bee46e88-30b932e4bf1so2584396eec.0
-        for <nvdimm@lists.linux.dev>; Tue, 16 Jun 2026 02:01:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KfQgBzY7"
+Received: by mail-dl1-f45.google.com with SMTP id a92af1059eb24-1370417c01cso5568549c88.1
+        for <nvdimm@lists.linux.dev>; Tue, 16 Jun 2026 02:39:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1781600470; x=1782205270; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=gTHSWqIDphiu7OnXpJ8UEDiN1fONaHd50Es3Nexm0+E=;
-        b=pf77Ro9N0xqGiAtNY56xA0cuTqTTFcSiUgv/cApyKTUc2ebuPNbhJ8IVjaGUKqCjZE
-         5iTmmqlh8buc4syO633RPh9S+sjx3CvGnl7fbi4rlTMw1Z7QDQaOVpnf7kLE9QNgzTD2
-         7wZ1nfCku7zwRNJRbapANqT/wWGV5bUbe5U6Rtj/IrN6xdXVCTDFDltpGtAVxKd4/qoU
-         NuWjEqmrv1S8Xhtvj7yEwSXbPfF+wqoeQiSyr9uo8CNwm4bH0GrSb+Pnn4ZZeoBxJ1Ne
-         z4ePxSfpDQoYbOYh61SDq41wilPo9UlNasr7c38P0kvSG2hKuQzmEKlRr/YzhepZZ6wt
-         6rYw==
+        d=gmail.com; s=20251104; t=1781602784; x=1782207584; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=c2jH9xgGEpgLUsYUiK9ayDBe3cLTWFuYMoIe7OKXgFs=;
+        b=KfQgBzY7xXQF9XtKSqq74F02aLB1puC02igrJ7ZvJC75FISmqCsgRBRD+ENwOH4nQy
+         6WKe+7KnPOPE4kmFWvbkBctLA1BLBN4P+MNiVAB0+i1OPQzTtJnMW63dy6KP0XBsE5cr
+         Lw/tc2pUm62PrOhvKr34xu8VPvDk1yOOziPohM7U89ZIYN//PoZDyo+g4U4rX2puLdzb
+         QbD1x2HQkKgkmAFclYKDtT5v/qNEG/wv1oMjJwHLyHTq/Ipos/WNdDOevM7kjll8hCit
+         CUm5IVOj0BBMQCqwM+mqT9LEIZu4LlSXjnV/rlm3cdb95A2vaMD7jfmz+l7QGQRcuWXY
+         c6VA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781600470; x=1782205270;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=gTHSWqIDphiu7OnXpJ8UEDiN1fONaHd50Es3Nexm0+E=;
-        b=DAZqE3VJFoifafQghRM5gfJKpBugm/c5PCvv+tnPqF9hbbzxcjJ9HJFaFM+cO13FHq
-         cMRWw1utol93tIADRTLDdmZjmEvaNCqVLUXbWwAOVm+sAMpc5DjfhW89D8K87LNT0xo+
-         UFCM1QCAL11LXXvQ8dRWwtO5mJU4c7AHIn8VZSEc4xx1BgKBZqH26puyCTvlYSKD/ikS
-         6kE3RP7aFWnqRrQDVXDn2/ZvYQxBOu8dgPjvKsL058YpRuixCHnENEOd0QcF9Y/YkiZC
-         H4c3vT9/aGhwucRjVVOmEJkzfF2yF1XO8OIrn/UjkQxXw5bPW34VYjTJX0+YgE4CvBMN
-         zekA==
-X-Forwarded-Encrypted: i=1; AFNElJ/BhF/PNj5oAsdPCJAH47t8Ek4+ey9Crk4F0onn/AnawqBZ9zGGCoSeBeIIgE8toPUXBegcMg4=@lists.linux.dev
-X-Gm-Message-State: AOJu0Ywpog3s3+X6PgJFC5M6Sxl1M+mG+7TmykqeJg62p0m3u9O7RM92
-	frtdX5qL2npgYHLEBU8fqPZNoYCmLl3HxQCxbhAYiPzpeyn5zKeEbezV
-X-Gm-Gg: Acq92OHZXrHCeG3mSdljcZn7XyAfQ7BaaSJUAt8NQXhI4Swuymo8+6igxnvmX8i9NdN
-	Kmudu0vir9dEIcsw9W/0tyIcl/Ma/urk2VB8kfvlhbzaCQliirefiMlMbl+vnghMgXcSPJN+4CG
-	zCAXRqEZ0Miim91On8fVk9Sc3A17Oyv2JNFaRjTlNKgw732XkJkLn7kfvj9+zrSK3IVE9drkD0D
-	2RV8I9xLouW1xvsi3MXIeJYO8HAoO2xeBWBLvTSKhGylbr3ywal3dOALeMBcc20kvPvutDFrDot
-	9kNy+qf2MdsSDcd27DvM9I3SpOpivC1IxVBXzqq25bGwsIjIJBcbSzf6X1na38RGOGdJfCrd/tC
-	tB4I4gwSmwL2BPIqSZHwMjYKrYFQ7O3dHIZSFF7+f/r6mchKvk5Xsz15n1+X9TTKQ1Y9bq7Vsey
-	lc1XsYhCGkI4U5h/Ui7Zi8cVRkfrr4AAJdnCli02Dd74UPGtFjw2wBKV/aeRJo7n9sXH1VQuCN9
-	VU/Zic=
-X-Received: by 2002:a05:7300:640a:b0:2f1:496c:94bf with SMTP id 5a478bee46e88-3093ec3deb0mr7396433eec.16.1781600469774;
-        Tue, 16 Jun 2026 02:01:09 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1781602784; x=1782207584;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=c2jH9xgGEpgLUsYUiK9ayDBe3cLTWFuYMoIe7OKXgFs=;
+        b=XhksZhsIYByCWYHLnfvw7aFcsR1KMewHu2jyVEbPSAyK8A2ZYkm9z0W2GE32WVKvYt
+         lJ3XmWclUftwbacwQLNsJu13WFQw5uqOmN+hCQLwgJyFRHx9hZdBnE5+1/ROEBrYLj4L
+         959rXAde5DSlMLKDGxINWuJT9VPxqJ6kW7pqxfmDHI8pjo58J4+SxI5nK9To0ellNSHs
+         bjALrrop3Ras3WzZaY10sfG5sZF20Qcpqozaicr4aFOqo4pMaE6mpCzj4dgn/2jokEYn
+         IEmlY3cpq9xy26JZ4pFtVdul4+OHI08OAwmxDo3g6ytrLBbE7xsPEpafn1RFGfeN/0Vp
+         YNiQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/G7mGvz+7kc3QNUw9RbTRlsxAIxxpZSAlKrseOi2d9fw44qH1/iSPFgTqWrxWIjWOzy437gCU=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzsMAisstqfmsByGllejrSKhE2756Fy1lH3k4WpWV45LqgMm6Kw
+	qnkgmO//hV+mbXqvExo0VevkIKyheM+a4iHMD3eQbowVB8eDAKvMirNU
+X-Gm-Gg: Acq92OGnuY8Bm/KVeTbX7VvdII8oJbp7SUBer5/qLQf7Zjt2b+I37PwlPC0Djz5Qovr
+	MnRLPSF6e/Eg0cwLMpRUMWFX8zATCkG8FQTXGS78zza/I0khiIoMhS2158Dvv0ZEzdACsyyehNC
+	UROi0bGUT13qkv/x2ebjaWzh1Z5Ber09g/G5YZ7jrjr9fnUKOW+vosdgnQQlt+JpdXg5s54xSiY
+	1Zj37+XO6Vy962Dvc2vIcpTCv3ZROQmBlW8HKR5okZsW7z2Z1EC81Q/E5NS6dddPWWBT3n8ctAH
+	OoTPWMjs558XBUjwsyr/KxLopV6w+v8RSgNRSoEDZwvxfupdseAlJn/eWhI3U32lQTJv1fKuPyL
+	bjaDCaLS4wQU2QoJuMR1JOVXePLIc6JFxzUitaawWqPZdaEwzVn3H4bjGmpDHjWHk0KqyOoZl6D
+	VgAZIto9oAWRxHDkqslb6czznn+mPGUZLGMOc8tbl3n2zqs5CXLW7DnaErZda9PQjipL1suSMp3
+	jk3Yks=
+X-Received: by 2002:a05:7301:1f17:b0:30a:e530:ebc6 with SMTP id 5a478bee46e88-30ba59fe62cmr1737317eec.12.1781602784137;
+        Tue, 16 Jun 2026 02:39:44 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3081eb8d3c9sm18149333eec.26.2026.06.16.02.01.08
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3081e48c3dcsm19177476eec.1.2026.06.16.02.39.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 16 Jun 2026 02:01:09 -0700 (PDT)
+        Tue, 16 Jun 2026 02:39:43 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Tue, 16 Jun 2026 02:01:08 -0700
+Date: Tue, 16 Jun 2026 02:39:41 -0700
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
 	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
@@ -71,399 +70,365 @@ Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
 	Ira Weiny <iweiny@kernel.org>,
 	Alison Schofield <alison.schofield@intel.com>,
 	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
-	Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH v10 26/31] dax/bus: Tag-aware uuid claim and show on DC
- dax devices
-Message-ID: <ajEQ1HiL0rZ0jrCP@AnisaLaptop.localdomain>
+	Ira Weiny <ira.weiny@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Fan Ni <fan.ni@samsung.com>
+Subject: Re: [PATCH v10 27/31] cxl/region: Read existing extents on region
+ creation
+Message-ID: <ajEZ3dp6M2TOIRwf@AnisaLaptop.localdomain>
 References: <cover.1779528761.git.anisa.su@samsung.com>
- <89784b600e4284772c4136b462e948e016129cdf.1779528761.git.anisa.su@samsung.com>
- <7731c0e2-83e7-4502-a722-8d009532d1a9@intel.com>
+ <ec8d257b53053061d70ca0b30408be116d479a03.1779528761.git.anisa.su@samsung.com>
+ <a737d037-1331-46f4-b5c3-cf819690727d@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <7731c0e2-83e7-4502-a722-8d009532d1a9@intel.com>
+In-Reply-To: <a737d037-1331-46f4-b5c3-cf819690727d@intel.com>
 
-On Fri, May 29, 2026 at 10:53:23AM -0700, Dave Jiang wrote:
+On Fri, May 29, 2026 at 02:30:20PM -0700, Dave Jiang wrote:
 > 
 > 
 > On 5/23/26 2:43 AM, Anisa Su wrote:
-> > DC DAX regions are populated with dax_resource children that each carry a
-> > backing tag uuid and a per-allocation sequence number (seq_num).  Add the
-> > userspace claim semantics that resolve those tagged groups into DAX
-> > devices.
+> > From: Ira Weiny <ira.weiny@intel.com>
 > > 
-> > A DC region's seed dax device is created at 0-size on probe; userspace
-> > populates it by writing to its 'uuid' attribute:
+> > Dynamic capacity device extents may be left in an accepted state on a
+> > device due to an unexpected host crash.  In this case it is expected
+> > that the creation of a new region on top of a DC partition can read
+> > those extents and surface them for continued use.
 > > 
-> >   * A non-null UUID claims every dax_resource on this region whose tag
-> >     matches, in seq_num order via uuid_claim_tagged().  The match set
-> >     must form a dense 1..n sequence (no gap, no duplicate); the CXL
-> >     side maintains this invariant for both sharable allocations (where
-> >     the device stamps shared_extn_seq) and non-sharable allocations
-> >     (where cxl_add_pending assigns arrival-order seq).  The resulting
-> >     DAX device's size equals the sum of every member extent's size.
+> > Once all endpoint decoders are part of a region and the region is being
+> > realized, a read of the 'devices extent list' can reveal these
+> > previously accepted extents.
 > > 
-> >   * "0" claims a single untagged dax_resource via
-> >     uuid_claim_untagged().  Untagged extents are independent
-> >     allocations; collapsing several would aggregate unrelated capacity,
-> >     so each uuid="0" write consumes exactly one untagged resource.
+> > CXL r3.1 specifies the mailbox call Get Dynamic Capacity Extent List for
+> > this purpose.  The call returns all the extents for all dynamic capacity
+> > partitions.  If the fabric manager is adding extents to any DCD
+> > partition, the extent list for the recovered region may change.  In this
+> > case the query must retry.  Upon retry the query could encounter extents
+> > which were accepted on a previous list query.  Adding such extents is
+> > ignored without error because they are entirely within a previous
+> > accepted extent.  Instead warn on this case to allow for differentiating
+> > bad devices from this normal condition.
 > > 
-> >   * A write that matches no dax_resource returns -ENOENT; the device
-> >     stays at size 0.
+> > Latch any errors to be bubbled up to ensure notification to the user
+> > even if individual errors are rate limited or otherwise ignored.
 > > 
-> > uuid_show() reads back the backing tag uuid (or the null UUID for an
-> > untagged claim).  The attribute is read-only (0444) on non-DC dax
-> > devices; writes to it on non-DC regions return -EOPNOTSUPP.
-> > 
-> > dev_dax_visible() exposes the uuid attribute only on DC dax devices.
+> > The scan for existing extents races with the dax_cxl driver.  This is
+> > synchronized through the region device lock.  Extents which are found
+> > after the driver has loaded will surface through the normal notification
+> > path while extents seen prior to the driver are read during driver load.
 > > 
 > > Based on an original patch by Navneet Singh.
 > > 
+> > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > Reviewed-by: Fan Ni <fan.ni@samsung.com>
 > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
-> > 
 > > ---
-> > Changes:
-> > [anisa: split out from the original "Surface dc_extents" commit;
-> >  userspace tag-claim semantics only.]
-> > ---
-> >  drivers/dax/bus.c | 260 +++++++++++++++++++++++++++++++++++++++++++++-
-> >  1 file changed, 256 insertions(+), 4 deletions(-)
+> >  drivers/cxl/core/core.h       |   1 +
+> >  drivers/cxl/core/mbox.c       | 116 ++++++++++++++++++++++++++++++++++
+> >  drivers/cxl/core/region_dax.c |  27 ++++++++
+> >  drivers/cxl/cxlmem.h          |  21 ++++++
+> >  4 files changed, 165 insertions(+)
 > > 
-> > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> > index c030eb103ad0..1dccb3e5cd0f 100644
-> > --- a/drivers/dax/bus.c
-> > +++ b/drivers/dax/bus.c
-> > @@ -5,6 +5,7 @@
-> >  #include <linux/mutex.h>
-> >  #include <linux/list.h>
-> >  #include <linux/slab.h>
-> > +#include <linux/sort.h>
-> >  #include <linux/dax.h>
-> >  #include <linux/io.h>
-> >  #include "dax-private.h"
-> > @@ -1316,6 +1317,89 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
-> >  	return 0;
+> > diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+> > index c28e357c5817..f5b05de5ed83 100644
+> > --- a/drivers/cxl/core/core.h
+> > +++ b/drivers/cxl/core/core.h
+> > @@ -28,6 +28,7 @@ cxled_to_mds(struct cxl_endpoint_decoder *cxled)
+> >  	return container_of(cxlds, struct cxl_memdev_state, cxlds);
 > >  }
 > >  
-> > +/* DC extents are all-or-nothing: an extent is either free or fully claimed. */
-> > +static bool dax_resource_in_use(const struct dax_resource *dax_resource)
+> > +int cxl_process_extent_list(struct cxl_endpoint_decoder *cxled);
+> >  int cxl_region_invalidate_memregion(struct cxl_region *cxlr);
+> >  
+> >  #ifdef CONFIG_CXL_REGION
+> > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> > index 8071c1ed1b36..486110e1c03d 100644
+> > --- a/drivers/cxl/core/mbox.c
+> > +++ b/drivers/cxl/core/mbox.c
+> > @@ -2083,6 +2083,122 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+> >  }
+> >  EXPORT_SYMBOL_NS_GPL(cxl_dev_dc_identify, "CXL");
+> >  
+> > +/* Return -EAGAIN if the extent list changes while reading */
+> > +static int __cxl_process_extent_list(struct cxl_endpoint_decoder *cxled)
 > > +{
-> > +	return dax_resource->use_cnt > 0;
+> > +	u32 current_index, total_read, total_expected, initial_gen_num;
+> 
+> initial_gen_num should be initialized to something invalid?
+> 
+Since first is set to true, the if (first) always reads initial_gen_num
+from the first extent, so it should be fine... right?
+
+> > +	struct cxl_memdev_state *mds = cxled_to_mds(cxled);
+> > +	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> > +	struct device *dev = mds->cxlds.dev;
+> > +	struct cxl_mbox_cmd mbox_cmd;
+> > +	u32 max_extent_count;
+> > +	int latched_rc = 0;
+> > +	bool first = true;
+> > +
+> > +	struct cxl_mbox_get_extent_out *extents __free(kvfree) =
+> > +				kvmalloc(cxl_mbox->payload_size, GFP_KERNEL);
+> > +	if (!extents)
+> > +		return -ENOMEM;
+> > +
+> > +	total_read = 0;
+> > +	current_index = 0;
+> > +	total_expected = 0;
+> > +	max_extent_count = (cxl_mbox->payload_size - sizeof(*extents)) /
+> > +				sizeof(struct cxl_extent);
+> > +	do {
+> > +		u32 nr_returned, current_total, current_gen_num;
+> > +		struct cxl_mbox_get_extent_in get_extent;
+> > +		int rc;
+> > +
+> > +		get_extent = (struct cxl_mbox_get_extent_in) {
+> > +			.extent_cnt = cpu_to_le32(max(max_extent_count,
+> > +						  total_expected - current_index)),
+> 
+> Should be min() here right?
+> 
+That looks like it was the original intention, but since total_expected is
+initialized to 0, using min would set extent_cnt to 0.
+
+So I just did
+.extent_cnt = cpu_to_le32(max_extent_count),
+
+to always ask for the max and then the device is free to return < than
+that. Should be ok, right?
+
+> > +			.start_extent_index = cpu_to_le32(current_index),
+> > +		};
+> > +
+> > +		mbox_cmd = (struct cxl_mbox_cmd) {
+> > +			.opcode = CXL_MBOX_OP_GET_DC_EXTENT_LIST,
+> > +			.payload_in = &get_extent,
+> > +			.size_in = sizeof(get_extent),
+> > +			.size_out = cxl_mbox->payload_size,
+> > +			.payload_out = extents,
+> > +			.min_out = 1,
+> > +		};
+> > +
+> > +		rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
+> > +		if (rc < 0)
+> > +			return rc;
+> > +
+> > +		/* Save initial data */
+> > +		if (first) {
+> > +			total_expected = le32_to_cpu(extents->total_extent_count);
+> > +			initial_gen_num = le32_to_cpu(extents->generation_num);
+> > +			first = false;
+> > +		}
+> > +
+> > +		nr_returned = le32_to_cpu(extents->returned_extent_count);
+> > +		total_read += nr_returned;
+> > +		current_total = le32_to_cpu(extents->total_extent_count);
+> > +		current_gen_num = le32_to_cpu(extents->generation_num);
+> > +
+> > +		dev_dbg(dev, "Got extent list %d-%d of %d generation Num:%d\n",
+> > +			current_index, total_read - 1, current_total, current_gen_num);
+> > +
+> > +		if (current_gen_num != initial_gen_num || total_expected != current_total) {
+> > +			dev_warn(dev, "Extent list change detected; gen %u != %u : cnt %u != %u\n",
+> > +				 current_gen_num, initial_gen_num,
+> > +				 total_expected, current_total);
+> > +			return -EAGAIN;
+> > +		}
+> > +
+> > +		for (int i = 0; i < nr_returned ; i++) {
+> > +			struct cxl_extent *extent = &extents->extent[i];
+> > +
+> > +			dev_dbg(dev, "Processing extent %d/%d\n",
+> > +				current_index + i, total_expected);
+> > +
+> 
+> Should probably hold the mds->add_ctx->lock before calling add_to_pending_list()? handle_add_event() holds the lock before calling. Maybe also add a lock assert in add_to_pending_list().
+> 
+Oh yeah... it definitely should. Also lock assert added to
+add_to_pending_list()
+
+> > +			rc = add_to_pending_list(&mds->add_ctx.pending_extents,
+> > +						 extent);
+> > +			if (rc) {
+> > +				latched_rc = rc;
+> 
+> Is the intention here to report the last found error and not the first error?
+> 
+Changed to report first error:
+
+if (rc && !latched_rc)
+	latched_rc = rc;
+
+> > +			}
+> 
+> {} not needed if single line
+> 
+removed
+
+> > +		}
+> > +
+> > +		current_index += nr_returned;
+> > +	} while (total_expected > total_read);
+> > +
+> > +	if (!latched_rc && !list_empty(&mds->add_ctx.pending_extents)) {
+> > +		latched_rc = cxl_add_pending(mds);
+> > +	}
+> > +	clear_pending_extents(mds);
+> > +
+> > +	return latched_rc;
 > > +}
 > > +
-> > +struct dax_uuid_match {
-> > +	const struct dax_region *dax_region;
-> > +	const uuid_t *uuid;
-> > +};
+> > +#define CXL_READ_EXTENT_LIST_RETRY 10
 > > +
-> > +static int find_uuid_extent(struct device *dev, const void *data)
+> > +/**
+> > + * cxl_process_extent_list() - Read existing extents
+> > + * @cxled: Endpoint decoder which is part of a region
+> > + *
+> > + * Issue the Get Dynamic Capacity Extent List command to the device
+> > + * and add existing extents if found.
+> > + *
+> > + * A retry of 10 is somewhat arbitrary, however, extent changes should be
+> > + * relatively rare while bringing up a region.  So 10 should be plenty.
+> > + */
+> > +int cxl_process_extent_list(struct cxl_endpoint_decoder *cxled)
 > > +{
-> > +	const struct dax_uuid_match *match = data;
-> > +	struct dax_resource *dax_resource;
-> > +
-> > +	if (!match->dax_region->dc_ops->is_extent(dev))
-> > +		return 0;
-> > +
-> > +	dax_resource = dev_get_drvdata(dev);
-> > +	if (!dax_resource || dax_resource_in_use(dax_resource))
-> > +		return 0;
-> > +	return uuid_equal(&dax_resource->uuid, match->uuid);
-> > +}
-> > +
-> > +struct dax_tag_collect {
-> > +	const struct dax_region *dax_region;
-> > +	const uuid_t *uuid;
-> > +	struct dax_resource **arr;
-> > +	unsigned int count;
-> > +	unsigned int cap;
-> > +};
-> > +
-> > +static int collect_uuid_extent(struct device *dev, void *data)
-> > +{
-> > +	struct dax_tag_collect *c = data;
-> > +	struct dax_resource *dax_resource;
-> > +
-> > +	if (!c->dax_region->dc_ops->is_extent(dev))
-> > +		return 0;
-> > +
-> > +	dax_resource = dev_get_drvdata(dev);
-> > +	if (!dax_resource || dax_resource_in_use(dax_resource))
-> > +		return 0;
-> > +	if (!uuid_equal(&dax_resource->uuid, c->uuid))
-> > +		return 0;
-> > +
-> > +	if (c->count == c->cap)
-> > +		return -ENOSPC;
-> > +	c->arr[c->count++] = dax_resource;
-> > +	return 0;
-> > +}
-> > +
-> > +static int count_uuid_extent(struct device *dev, void *data)
-> > +{
-> > +	struct dax_tag_collect *c = data;
-> > +	struct dax_resource *dax_resource;
-> > +
-> > +	if (!c->dax_region->dc_ops->is_extent(dev))
-> > +		return 0;
-> > +
-> > +	dax_resource = dev_get_drvdata(dev);
-> > +	if (!dax_resource || dax_resource_in_use(dax_resource))
-> > +		return 0;
-> > +	if (!uuid_equal(&dax_resource->uuid, c->uuid))
-> > +		return 0;
-> > +
-> > +	c->count++;
-> > +	return 0;
-> > +}
-> > +
-> > +static int dax_resource_seq_cmp(const void *a, const void *b)
-> > +{
-> > +	const struct dax_resource * const *pa = a;
-> > +	const struct dax_resource * const *pb = b;
-> > +
-> > +	if ((*pa)->seq_num < (*pb)->seq_num)
-> > +		return -1;
-> > +	if ((*pa)->seq_num > (*pb)->seq_num)
-> > +		return 1;
-> > +	return 0;
-> > +}
-> > +
-> >  static ssize_t size_store(struct device *dev, struct device_attribute *attr,
-> >  		const char *buf, size_t len)
-> >  {
-> > @@ -1548,13 +1632,177 @@ static DEVICE_ATTR_RO(numa_node);
-> >  static ssize_t uuid_show(struct device *dev,
-> >  		struct device_attribute *attr, char *buf)
-> >  {
-> > -	return sysfs_emit(buf, "%d\n", 0);
-> > +	struct dev_dax *dev_dax = to_dev_dax(dev);
+> > +	int retry = CXL_READ_EXTENT_LIST_RETRY;
 > > +	int rc;
 > > +
-> > +	rc = down_read_interruptible(&dax_dev_rwsem);
+> > +	do {
+> > +		rc = __cxl_process_extent_list(cxled);
+> > +	} while (rc == -EAGAIN && retry--);
 > 
-> Since we are here, may as well convert these to ACQUIRE() and be rid of the gotos
+> I think it's retrying 11 times here.
 > 
-> ACQUIRE(rwsem_read_intr, rwsem)(&dax_dev_rwsem);
-> if ((rc = ACQUIRE_ERR(rwsem_read_intr, &rwsem)))
-> 	...
-> 
-Fixed!
-
-> 
-> > +	if (rc)
-> > +		return rc;
+Changed to while (rc == -EAGAIN && --retry);
 > > +
-> > +	for (int i = 0; i < dev_dax->nr_range; i++) {
-> > +		struct dax_resource *r = dev_dax->ranges[i].dax_resource;
-> > +
-> > +		if (r && !uuid_is_null(&r->uuid)) {
-> > +			rc = sysfs_emit(buf, "%pUb\n", &r->uuid);
-> > +			goto out;
-> > +		}
-> > +	}
-> > +	rc = sysfs_emit(buf, "0\n");
-> 
-> As pointed out earlyer, should display null_uuid to be consistent.
-> 
-Yep, fix from prev commit propagated to current.
-
-> > +out:
-> > +	up_read(&dax_dev_rwsem);
 > > +	return rc;
 > > +}
 > > +
-> > +static ssize_t uuid_claim_untagged(struct dax_region *dax_region,
-> > +				   struct dev_dax *dev_dax)
-> > +{
-> > +	struct dax_uuid_match match = {
-> > +		.dax_region = dax_region,
-> > +		.uuid = &uuid_null,
-> > +	};
-> > +	struct dax_resource *dax_resource;
-> > +	resource_size_t to_alloc;
-> > +	struct device *extent_dev;
-> > +	ssize_t alloc;
-> > +
-> > +	extent_dev = device_find_child(dax_region->dev, &match,
-> > +				       find_uuid_extent);
-> > +	if (!extent_dev)
-> > +		return -ENOENT;
-> > +
-> > +	dax_resource = dev_get_drvdata(extent_dev);
-> > +	to_alloc = resource_size(dax_resource->res);
-> > +	alloc = __dev_dax_resize(dax_resource->res, dev_dax, to_alloc,
-> > +				 dax_resource);
-> > +	put_device(extent_dev);
-> > +	if (alloc < 0)
-> > +		return alloc;
-> > +	if (alloc == 0)
-> > +		return -ENOENT;
-> > +	dax_resource->use_cnt++;
-> > +	return 0;
-> > +}
-> > +
-> > +static ssize_t uuid_claim_tagged(struct dax_region *dax_region,
-> > +				 struct dev_dax *dev_dax, const uuid_t *uuid)
-> > +{
-> > +	struct dax_tag_collect c = {
-> > +		.dax_region = dax_region,
-> > +		.uuid = uuid,
-> > +	};
-> > +	unsigned int i;
-> > +	ssize_t rc;
-> > +
-> > +	/* Two-pass: count, then collect into a sized array. */
-> > +	device_for_each_child(dax_region->dev, &c, count_uuid_extent);
-> > +	if (!c.count)
-> > +		return -ENOENT;
-> > +
-> > +	c.arr = kmalloc_array(c.count, sizeof(*c.arr), GFP_KERNEL);
-> > +	if (!c.arr)
-> > +		return -ENOMEM;
-> > +	c.cap = c.count;
-> > +	c.count = 0;
-> > +
-> > +	rc = device_for_each_child(dax_region->dev, &c, collect_uuid_extent);
-> > +	if (rc)
-> > +		goto out;
-> > +
-> > +	sort(c.arr, c.count, sizeof(*c.arr), dax_resource_seq_cmp, NULL);
-> > +
-> > +	/*
-> > +	 * Tagged groups carry a dense 1..n @seq_num regardless of source
-> > +	 * (sharable: device-stamped; non-sharable: host-assigned in
-> > +	 * arrival order — see &struct dax_resource).  A gap or
-> > +	 * out-of-range value here means an extent went missing on the
-> > +	 * cxl side (e.g. a per-extent failure in cxl_add_pending) or a
-> > +	 * cxl-side validation gap; in either case refuse the whole
-> > +	 * group rather than carve a partial allocation.
-> > +	 */
-> > +	for (i = 0; i < c.count; i++) {
-> > +		if (c.arr[i]->seq_num != i + 1) {
-> > +			dev_WARN_ONCE(dax_region->dev, 1,
-> > +				"tag %pUb seq invariant violated at slot %u (got %u)\n",
-> > +				uuid, i, c.arr[i]->seq_num);
-> > +			rc = -EINVAL;
-> > +			goto out;
-> > +		}
-> > +	}
-> > +
-> > +	for (i = 0; i < c.count; i++) {
-> > +		resource_size_t to_alloc = resource_size(c.arr[i]->res);
-> > +		ssize_t alloc;
-> > +
-> > +		alloc = __dev_dax_resize(c.arr[i]->res, dev_dax, to_alloc,
-> > +					 c.arr[i]);
-> > +		if (alloc < 0) {
-> > +			rc = alloc;
-> > +			goto rollback;
-> > +		}
-> > +		if (alloc == 0) {
-> > +			rc = -ENOSPC;
-> > +			goto rollback;
-> > +		}
-> > +		c.arr[i]->use_cnt++;
-> > +	}
-> > +	rc = 0;
-> > +	goto out;
-> > +
-> > +rollback:
-> > +	/*
-> > +	 * Partial failure: trim every range we added in this attempt.
-> > +	 * trim_dev_dax_range pops the most-recently-appended range from
-> > +	 * dev_dax->ranges[] and decrements its dax_resource->use_cnt, so
-> > +	 * looping until we have undone @i additions restores both
-> > +	 * dev_dax->ranges[] and the matched dax_resources' use_cnt.
-> > +	 */
-> > +	while (i-- > 0)
-> > +		trim_dev_dax_range(dev_dax);
-> > +out:
-> > +	kfree(c.arr);
-> > +	return rc;
+> >  static void add_part(struct cxl_dpa_info *info, u64 start, u64 size, enum cxl_partition_mode mode)
+> >  {
+> >  	int i = info->nr_partitions;
+> > diff --git a/drivers/cxl/core/region_dax.c b/drivers/cxl/core/region_dax.c
+> > index 519e203c486a..e7a812e8b2e7 100644
+> > --- a/drivers/cxl/core/region_dax.c
+> > +++ b/drivers/cxl/core/region_dax.c
+> > @@ -82,6 +82,26 @@ static void cxlr_dax_unregister(void *_cxlr_dax)
+> >  	device_unregister(&cxlr_dax->dev);
 > >  }
 > >  
-> >  static ssize_t uuid_store(struct device *dev, struct device_attribute *attr,
-> >  			  const char *buf, size_t len)
+> > +static int cxlr_add_existing_extents(struct cxl_region *cxlr)
+> > +{
+> > +	struct cxl_region_params *p = &cxlr->params;
+> > +	int i, latched_rc = 0;
+> > +
+> > +	for (i = 0; i < p->nr_targets; i++) {
+> > +		struct device *dev = &p->targets[i]->cxld.dev;
+> > +		int rc;
+> > +
+> > +		rc = cxl_process_extent_list(p->targets[i]);
+> > +		if (rc) {
+> > +			dev_err(dev, "Existing extent processing failed %d\n",
+> > +				rc);
+> > +			latched_rc = rc;
+> > +		}
+> > +	}
+> > +
+> > +	return latched_rc;
+> > +}
+> > +
+> >  int devm_cxl_add_dax_region(struct cxl_region *cxlr)
 > >  {
-> > -	return -EOPNOTSUPP;
-> > +	struct dev_dax *dev_dax = to_dev_dax(dev);
-> > +	struct dax_region *dax_region = dev_dax->region;
-> > +	uuid_t uuid;
-> > +	ssize_t rc;
-> > +
-> > +	if (!is_dynamic(dax_region))
-> > +		return -EOPNOTSUPP;
-> > +
-> > +	if (sysfs_streq(buf, "0"))
-> > +		uuid_copy(&uuid, &uuid_null);
-> > +	else {
-> > +		rc = uuid_parse(buf, &uuid);
+> >  	struct device *dev;
+> > @@ -110,6 +130,13 @@ int devm_cxl_add_dax_region(struct cxl_region *cxlr)
+> >  	dev_dbg(&cxlr->dev, "%s: register %s\n", dev_name(dev->parent),
+> >  		dev_name(dev));
+> >  
+> > +	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM_A) {
+> > +		rc = cxlr_add_existing_extents(cxlr);
+> 
+> cxlr_add_existing_extents() -> cxl_process_extent_list() -> __cxl_process_extent_list() -> cxl_add_pending() -> CXL_MBOX_OP_ADD_DC_RESPONSE sent.
+> 
+> CXL r4.0 8.2.10.9.9.3:
+> Device shall report Invalid Physical Address if:
+> One or more extents in the updated extent list specify a DPA range that has already been added with a previous call to the Add Dynamic Capacity Response.
+> 
+> Aren't existing extents already been added previously and responded by ADD_DC_RESPONSE? For add existing extent path it seems like no response is needed to send to the device and can be skipped. Otherwise the software will receive error from the device when sending ADD_DC_RESPONSE.
+> 
+very true
+
+cxl_add_pending() gains the param: bool existing
+
+__cxl_process_extent_list() calls cxl_add_pending(mds, true);
+
+And before cxl_add_pending sends add DC response, check existing
+
+/*
+ * Recovered (already-accepted) extents must not be re-reported in an
+ * Add-DC-Response: the device rejects a DPA range already added by a
+ * previous response (CXL r4.0 8.2.10.9.9.3, Invalid Physical Address).
+ */
+if (existing)
+	return 0;
+
+return cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
+			    pending, total_accepted);
+
+> Would be good to get this tested on hw.
+> 
+> 
 > > +		if (rc)
-> > +			return rc;
-> > +	}
-> > +
-> > +	rc = down_write_killable(&dax_region_rwsem);
-> > +	if (rc)
-> > +		return rc;
-> > +	if (!dax_region->dev->driver) {
-> > +		rc = -ENXIO;
-> > +		goto err_region;
-> > +	}
-> > +	rc = down_write_killable(&dax_dev_rwsem);
+> > +			dev_err(&cxlr->dev,
+> > +				"Existing extent processing failed %d\n", rc);
 > 
-> same comments about ACQUIRE()
+> No return on error?
 > 
-Same applied here
-
-> > +	if (rc)
-> > +		goto err_region;
-> > +
-> 
-> Does it need to check if the device is already claimed before proceeding to claiming? What happens if the uuid is written twice to this sysfs file?
-> 
-yes; new check added:
-
-/* A claimed device already has capacity; do not overwrite its uuid. */
-if (dev_dax_size(dev_dax))
-	return -EBUSY;
+oops, fixed
 
 > DJ
-
+> 
 Thanks,
 Anisa
-> > +	if (uuid_is_null(&uuid))
-> > +		rc = uuid_claim_untagged(dax_region, dev_dax);
-> > +	else
-> > +		rc = uuid_claim_tagged(dax_region, dev_dax, &uuid);
+> > +	}
 > > +
-> > +	up_write(&dax_dev_rwsem);
-> > +err_region:
-> > +	up_write(&dax_region_rwsem);
-> > +
-> > +	return rc < 0 ? rc : len;
+> >  	return devm_add_action_or_reset(&cxlr->dev, cxlr_dax_unregister,
+> >  					no_free_ptr(cxlr_dax));
 > >  }
-> >  static DEVICE_ATTR_RW(uuid);
+> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> > index d992cc9b7811..1ad3dc7e413c 100644
+> > --- a/drivers/cxl/cxlmem.h
+> > +++ b/drivers/cxl/cxlmem.h
+> > @@ -564,6 +564,27 @@ struct cxl_mbox_dc_response {
+> >  	} __packed extent_list[] __counted_by(extent_list_size);
+> >  } __packed;
 > >  
-> > @@ -1614,8 +1862,12 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
-> >  		return 0;
-> >  	if (a == &dev_attr_mapping.attr && is_dynamic(dax_region))
-> >  		return 0;
-> > -	if ((a == &dev_attr_align.attr ||
-> > -	     a == &dev_attr_size.attr) && is_static(dax_region))
-> > +	if (a == &dev_attr_uuid.attr && !is_dynamic(dax_region))
-> > +		return 0444;
-> > +	if (a == &dev_attr_align.attr &&
-> > +	    (is_static(dax_region) || is_dynamic(dax_region)))
-> > +		return 0444;
-> > +	if (a == &dev_attr_size.attr && is_static(dax_region))
-> >  		return 0444;
-> >  	return a->mode;
-> >  }
+> > +/*
+> > + * Get Dynamic Capacity Extent List; Input Payload
+> > + * CXL rev 3.1 section 8.2.9.9.9.2; Table 8-166
+> > + */
+> > +struct cxl_mbox_get_extent_in {
+> > +	__le32 extent_cnt;
+> > +	__le32 start_extent_index;
+> > +} __packed;
+> > +
+> > +/*
+> > + * Get Dynamic Capacity Extent List; Output Payload
+> > + * CXL rev 3.1 section 8.2.9.9.9.2; Table 8-167
+> > + */
+> > +struct cxl_mbox_get_extent_out {
+> > +	__le32 returned_extent_count;
+> > +	__le32 total_extent_count;
+> > +	__le32 generation_num;
+> > +	u8 rsvd[4];
+> > +	struct cxl_extent extent[];
+> > +} __packed;
+> > +
+> >  struct cxl_mbox_get_supported_logs {
+> >  	__le16 entries;
+> >  	u8 rsvd[6];
 > 
