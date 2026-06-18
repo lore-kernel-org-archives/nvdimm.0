@@ -1,116 +1,93 @@
 Received: from sender4-op-o15.zoho.com (sender4-op-o15.zoho.com [136.143.188.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF8574071F8;
-	Wed, 17 Jun 2026 12:26:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6311175A89;
+	Thu, 18 Jun 2026 01:18:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781699188; cv=pass; b=PcEREaLlP1/8p6VcFZRMK8snEf0g0LJnjRt9miHpusT9s1CRu8iB8EjOqMnAajhCYli/tWqjXhO+/T8LSYV6kyLZ6upo3qOUKa8LdSrxNM/j3kEEbYjUAP6bnK1ctHx6oSOCICSHEP+TBLC/BgYCQCQ+4jD8yJLEBW1q9dD8BWc=
+	t=1781745532; cv=pass; b=ITqgkAziNMkjb8eZkMQJc7AAdtC/poVhSkbWZXeq/d2neOSGwjEq30iOTg+SX+t+h3Odgt/lbqlJk+/F+Nrqxi2JItTu2KctdqdvhYKU0g7O0vh9Kte88YSBztmsv0L8AaeNr17KNQyFFvxK78VxBfySjViMO2J2tjKXfyIG714=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781699188; c=relaxed/simple;
-	bh=s/t/3obYASgpKnZE5QF0BBSwV2OFBGibq8mYG+xMHGg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BORPITVVR/fmElEY9ojMPRMsQS1MjGLDvjR2u2PAj5C6BqUaAdJLUSTZ0vnaPMlBJQvnj4KJSAPTCL/FOViNUbEpQEo5jB74iEon2e+v4YhL77xhE2dCtEUQ5NlCIYUREnxw7Nb8iXsLs9g6vVL5kPA7DEWcEPwjuP0jhKISSgA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=C2SLnXPB; arc=pass smtp.client-ip=136.143.188.15
+	s=arc-20240116; t=1781745532; c=relaxed/simple;
+	bh=s8SwkW2TJEtXTUlOSaAhFW9HuWQZ9cgj+K0qH9V0WyU=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 MIME-Version:Content-Type; b=GuvtQLZiNJu5U0j19MHMYzyUbPqkGDEhjpYO9RaALiQD7mgCmjN8bFvKtG4CPEGI9w7VqxUr9DxqBbl4I0esORLSSpHM88vGmt2bEQnhdWY3fKg96MQHcjzjrZAeuu3EkKmln4W2iw6kH+UiinLkYsS039cZVIgQvcl0NQg1XBw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=WahXT65h; arc=pass smtp.client-ip=136.143.188.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="C2SLnXPB"
-ARC-Seal: i=1; a=rsa-sha256; t=1781699134; cv=none; 
+	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="WahXT65h"
+ARC-Seal: i=1; a=rsa-sha256; t=1781745527; cv=none; 
 	d=zohomail.com; s=zohoarc; 
-	b=VDjUf+q3GdSKuA3Yb7KIeg+K2VSo1GXRWf1an4G14LGogbavI0TGTOsD9j0QgMQtE4XK238amuL8tT1FzJT3g3sUeb0Q0bEwYgZLK9GcjKp/nO3R7/0r1S8g1m/f6HVk4vnzqq7H5ZWap4DTm/nqgWyvdF+PTzgU+0pNecd8miU=
+	b=EdpoeX0FZB18FpBrHNsIVPc5zLqwlovG27JC4w4yulGEpVe+a7xZvyTim8GdJWtjqrHTAtnooVST9YpeJUPv22X9iYd3w1I3VFp2qhREFUXPni2pDQr0O+IgwbDErlnOpdrxAnep8ZmWgdX2lT96MYJFg577zJHbnl5EPiAhJ/w=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1781699134; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=kZE5a6xt/jRyIux8T+qErS1o83ikwPQoZPybeq7hjwo=; 
-	b=U63eYboNctKz/QKsSA2HqWHzBEjwP+XbRl5FqZ3cb0w3JJumehdEEhjWtbZ8ixotbnOALH7G95lFqHzXxwxEKO0vjloEwG9JtXf/r/OH5kimZPuxGmed3qSbR/wWjiulzIHDdczKA9aJmgm0Ls3+OL2jvJHYKXgPEk9jB9HRJQ4=
+	t=1781745527; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=gvtmqQu+4izQ+z8vCyEncJGkS/9pjYX+E8AlS+ZmjMw=; 
+	b=XXjgw7jAXBs+D5HoEfn04FzVVUcK8jxMkJk07YeLjyYv8hZhUjgkt3cHBI8mAKM+h5aNEtbBEW+3vFb2BVM31EOjCHFW3opyuIjLz0OzCNcCHpx2L8HUBkDjApu86w9rvT0W7+8Kjgt2mcNB/f8DtgzG4T/FIK15mr3ouVMSj2I=
 ARC-Authentication-Results: i=1; mx.zohomail.com;
 	dkim=pass  header.i=linux.beauty;
 	spf=pass  smtp.mailfrom=me@linux.beauty;
 	dmarc=pass header.from=<me@linux.beauty>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1781699134;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1781745527;
 	s=zmail; d=linux.beauty; i=me@linux.beauty;
-	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=kZE5a6xt/jRyIux8T+qErS1o83ikwPQoZPybeq7hjwo=;
-	b=C2SLnXPBJVxE6Fh4G7s5dGwW49e85ttk7yuxe73CsqzXiwbzWOndaNONFHd0kMGO
-	dw0tVyOClawRR8TFc9s9FQertfTIchzm03Oa4WlQKDcBCzBmEtjiPIx0xeLNfEfpsBe
-	izKH+uAOQn97R+v1r0NOVilVLFTzuoSdtpD7MneM=
-Received: by mx.zohomail.com with SMTPS id 1781699131600843.5815514663028;
-	Wed, 17 Jun 2026 05:25:31 -0700 (PDT)
+	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:References:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=gvtmqQu+4izQ+z8vCyEncJGkS/9pjYX+E8AlS+ZmjMw=;
+	b=WahXT65hFt3l/XSNRy6KdvKlm9CSvwbZFWoQ8xEPZcE/+l8TEiBN9g1TkaKhgaZV
+	IaeWq3LKnGwmBfBbONrJxKnhMvosucg+c1sqDtY92AA/IuQCcsoIBFPnsY5A8F6tuSg
+	S4n92QLeM6Z7CN+qaFk38FIufmiptRPoLmHWRSqM=
+Received: from mail.zoho.com by mx.zohomail.com
+	with SMTP id 1781745523625334.74062508792883; Wed, 17 Jun 2026 18:18:43 -0700 (PDT)
+Date: Thu, 18 Jun 2026 09:18:43 +0800
 From: Li Chen <me@linux.beauty>
-To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	virtualization@lists.linux.dev,
-	nvdimm@lists.linux.dev
-Cc: linux-kernel@vger.kernel.org,
-	Li Chen <me@linux.beauty>
-Subject: [PATCH v5 8/8] nvdimm: virtio_pmem: drain requests in freeze
-Date: Wed, 17 Jun 2026 20:24:40 +0800
-Message-ID: <20260617122442.2118957-9-me@linux.beauty>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260617122442.2118957-1-me@linux.beauty>
-References: <20260617122442.2118957-1-me@linux.beauty>
+To: "Alison Schofield" <alison.schofield@intel.com>
+Cc: "Pankaj Gupta" <pankaj.gupta.linux@gmail.com>,
+	"Dan Williams" <dan.j.williams@intel.com>,
+	"Vishal Verma" <vishal.l.verma@intel.com>,
+	"Dave Jiang" <dave.jiang@intel.com>,
+	"Ira Weiny" <ira.weiny@intel.com>,
+	"virtualization" <virtualization@lists.linux.dev>,
+	"nvdimm" <nvdimm@lists.linux.dev>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>
+Message-ID: <19ed84f1b63.4eb3c0703221791.2736506052608115754@linux.beauty>
+In-Reply-To: <aixTFVGZVDaCxMis@aschofie-mobl2.lan>
+References: <20260609120726.1714780-1-me@linux.beauty> <aixTFVGZVDaCxMis@aschofie-mobl2.lan>
+Subject: Re: [PATCH v4 0/7] nvdimm: virtio_pmem: fix request lifetime and
+ converge broken queue failures
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-ZohoMailClient: External
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: Zoho Mail
+X-Mailer: Zoho Mail
 
-virtio_pmem_freeze() currently deletes virtqueues and resets the device
-without waking threads waiting for a virtqueue descriptor or a host
-completion.
+Hi Alison,
 
-Mark the request virtqueue broken before reset. This makes new submissions
-fail fast and lets -ENOSPC waiters leave the wait list. Reset the device
-before draining used and unused request tokens, then delete the virtqueues.
-This wakes waiters with -EIO. It also keeps the detach call on a quiesced
-device.
 
-Signed-off-by: Li Chen <me@linux.beauty>
----
-Changes in v5:
-- Reset the device before draining used and unused request tokens.
-- Use the split broken-marking and post-reset drain helpers.
-v2->v3:
-- No change.
-v3->v4:
-- Rebased onto v7.1-rc7 and renumbered after the flush error patches.
+ ---- On Sat, 13 Jun 2026 02:42:29 +0800  Alison Schofield <alison.schofiel=
+d@intel.com> wrote ---=20
+ > On Tue, Jun 09, 2026 at 08:07:14PM +0800, Li Chen wrote:
+ > > Hi,
+ >=20
+ > Hi Li Chen,
+ >=20
+ > In case you missed it, a Sashiko AI review of this set has posted
+ > feedback. Please take a look.
+ >=20
+ > https://sashiko.dev/#/patchset/20260609120726.1714780-1-me%40linux.beaut=
+y
+ >=20
+ > -- Alison
 
- drivers/nvdimm/virtio_pmem.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+Thanks for checking and for the reminder.
 
-diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-index 3bcc7b3671d21..9961bc2678d0f 100644
---- a/drivers/nvdimm/virtio_pmem.c
-+++ b/drivers/nvdimm/virtio_pmem.c
-@@ -158,9 +158,21 @@ static void virtio_pmem_remove(struct virtio_device *vdev)
- 
- static int virtio_pmem_freeze(struct virtio_device *vdev)
- {
--	vdev->config->del_vqs(vdev);
-+	struct virtio_pmem *vpmem = vdev->priv;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	virtio_pmem_mark_broken(vpmem);
-+	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+
- 	virtio_reset_device(vdev);
- 
-+	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	virtio_pmem_drain(vpmem);
-+	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+
-+	vdev->config->del_vqs(vdev);
-+
- 	return 0;
- }
- 
--- 
-2.52.0
+I will also keep watching Sashiko's review results for this and future
+rerolls, and will fold in any issues that look valid.
+
+
+Regards,
+Li=E2=80=8B
+
