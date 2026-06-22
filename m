@@ -1,102 +1,90 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail-106119.protonmail.ch (mail-106119.protonmail.ch [79.135.106.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43120131E49
-	for <nvdimm@lists.linux.dev>; Mon, 22 Jun 2026 02:08:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD95B39022B
+	for <nvdimm@lists.linux.dev>; Mon, 22 Jun 2026 08:14:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.135.106.119
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782094097; cv=none; b=TqnOdQIKIkQvLYSAKZBblK4Z2TVtOxR5CjnGFvVNUI5abBDWieDM6r5xfql1zIxWJX7gCT64g0+CbE/zFhT620NfuwFj3sn/fhO7WNHj7rd34am7bLGz11MwVaBOoW0tCpbRCKYSwdBUOC5ZjOHxw30wmgxKqEjCYie4lZuyzQw=
+	t=1782116053; cv=none; b=hCRPKrCpM1mYiBviPy/+iIeFRJx8BaRu3tzmNrkqa2/4KrHz5sbSsT19E8gu/uFcfLA7Lhi2GbDNlSZoMZPxcZ6Q3kxV3p4QvWh6ZLRxuUQlANhPhr7qBLeJOLSu1Mx264R3BiiknVMizAc2TD9V9wnJiZj2K0G/E8QGMIuttQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782094097; c=relaxed/simple;
-	bh=k4vdXfma5+11oG4eQxESIe6je9EkBQNZ4oMNfSBZ8uI=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=Ekl2tahiYJzlCpA+itNgXITsTjjcb4gmZB1Bg4TXJurfXMoXcqEi/EsvmY6ORIbWnQDw+/shk3+YZUBB7XiQXqlLYCm7t3fO2wxC5qbkSRXBB7/GgDyQlcvirx8YDOSst0e3Y/8CSrqUfPq57fbOOXr3NOUibBFhqBGPg4hvubg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XAOcycqs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782116053; c=relaxed/simple;
+	bh=OYVQalUnkD3lEzaWVjkXqi8tj1VuU8wwFGJH1p13e0g=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=sKL9wOSHDmA14TgCh9Do6/ohTcCPXtVfB3AZmp5N90IUs223WKu4noJF/9ZGmyT6ADNSutUbIU5fHHX/gRlOmmAYpK3bpvQi8NFnBj82moYMIsAKZjY58V7mb4CqOTMYrzhN2c1TOyU0ioDsKkISASGeivbUN7fq2MioGH5vo8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=b8ZS3oGP; arc=none smtp.client-ip=79.135.106.119
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XAOcycqs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C52971F00A3D;
-	Mon, 22 Jun 2026 02:08:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782094096;
-	bh=Pbga8je2xu45ed9XQXm2FiYm97CBqkXu6S9kwh45f0Q=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=XAOcycqsQ9b/relw6RpLXuJo+4nRU0LEU9VlDXNZQ/SN61b/R5dET2F24j673HHoM
-	 Lz1T+ZHOXu+3RbOpgncgIYjzVeyzwS0sUrbONgvOupaKwRmXI0J0LTEDZYDWxAGqgT
-	 RxKfSPOkGKI77b7rF77xIE7jxuZLcXpVMGt1gDSlpFS+7+cdmJnEOBARUOGWSQDXUe
-	 VReweq25VrDN8LKD8zj6QyoLb6nyTGpseh/ADaddywCLZmXzUs5xk3lj+iBn+bc/6Q
-	 T3lHFZ/aRxaMG/hXMcdJKj1YcM0X/zJnQchSRcGZ/2P2esABGe/qdymya3LZnhijLr
-	 WHzGf/91FT2BA==
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 17FE1F40068;
-	Sun, 21 Jun 2026 22:08:15 -0400 (EDT)
-Received: from phl-imap-10 ([10.202.2.85])
-  by phl-compute-05.internal (MEProxy); Sun, 21 Jun 2026 22:08:15 -0400
-X-ME-Sender: <xms:D5k4atINjJyl5eG7LW_0FwzB2IhvqBaT3tm3tPebpJRlIeCLsGqscw>
-    <xme:D5k4aj9iMzGXVV88HVkDB2qiW1kFUlTdOXZ7wKIHNT2wRyLpuvChjNRNBPQqALi28
-    PqlF2rW8jYXAETcrT1HjzAMWpQX5Ve2ChFF_BUb9kr93pJzdJmOfq0>
-X-ME-Proxy-Cause: dmFkZTEqp5PbI8W/fg4jA8yEu3z63pwEHW/SfaQUwYpdYeGBuEMteK2EZCPwgDoFkZZySn
-    nptB49FXQNjXCMsEt583pu/bISj9VwWCZnE+F6Q3u4MRcBMOAD4KpwzzF1TvcUOFTVz0jV
-    CsQePa4TiMKvG8GKOLxCEdRFe+pHwI/bLMZypTFozFh2FOa2s1dcmhAoGP+3DUGSC9rTO7
-    u4purM/cL0QSLp3sXMisp9Er0omuMJhAYpNJVtIE/4U3WRUSbIVXYRE60OoglPVmcYwZ+E
-    omQJ4uFCH/5+TmIOeIj3s1D1Rm/WGu+7j/VNE3htaN/Ph/BCPYgb6jPP0lHgTQOaKaSySl
-    m1PS74SvlZEsA6pxrIp/6KIRbMsTcJsDU6ByT24rJp3L5gwoey6jT7D+BzH4/rn0TNI/xc
-    m8AERGZVTtbqpAo6dnmoYwZrh3/w2p/woiMh/sOFlyH/SQOSMx0m3BcC8ILpmk+tG/ChgO
-    hDi9OFSj3mtywogDhCaE5GXHEdJClBnii3GRPrP1cATj6LsJA5vV2uLLkaYz/Aq70qqgpl
-    DsmZGcnSyh8IGz9wzmB2xOUi6pdPH3Sm3Wg6v8IWCuFpHxTe7owdGO5Y2IUC4Da64dBh1v
-    Y4+YT16OR6/x2Ai8jSnkzaiCcNiD5cbxEsqJDl4+K7m002q7i6dtFyLO9g5A
-X-ME-Proxy: <xmx:D5k4agW2y118ywgDZ6F7RpTQsOqbZZYfTI27nVgR6TtnhR-t6JcBLw>
-    <xmx:D5k4asNZu4trwjO1wiEcJfVuFy6dWynQ-SB8zplJGjjz5wXTt0D6Xw>
-    <xmx:D5k4aiBllzmaN6OOxnF1bOEkeBgEAQQY8nDqiNBO-TF-RLFPTCnqrg>
-    <xmx:D5k4apeMXRcjEcsUMxAGLx98E7yELcR9LCbgdLVOATSYZq0jCfAzkA>
-    <xmx:D5k4ahOkQQFs3NjjNWhzBTKfgfU9WB-hj6I6L6T1X7SUiPXe_BeAj4Ao>
-Feedback-ID: i6c764b6b:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id E9B04216008A; Sun, 21 Jun 2026 22:08:14 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="b8ZS3oGP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1782116046; x=1782375246;
+	bh=OYVQalUnkD3lEzaWVjkXqi8tj1VuU8wwFGJH1p13e0g=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=b8ZS3oGPVFIwzXNsxM6bxi1sA7NxsFIb72UsatETjq9HDi384zGi3Kqy/gqiUG27C
+	 TG9yquvhc7ZI5TAh+8FJu2R3U4IpYCHRqCuuCKB0APCiGeD6wY87sI2wRAWBSe1cN0
+	 rXvXUSqGZt546AK4hfwygLpeMMObVq/8SVK7zDLfFnpaunFgP2AUfXehPM0dDBRNcJ
+	 2hA3d/itp8iK0En1+OppgmJfM6af0Bt/6kckq0OssMmR+7Mpy9rPrxdmg31Fb0AjT8
+	 beGj8N2NiZuVMjQb0NbPWW6+4hzdlsJUrzuitxdmc6cIC+uUhFWqdyuqcMiwnpq2T9
+	 FzR+2/UlTo0+g==
+Date: Mon, 22 Jun 2026 08:14:00 +0000
+To: David Laight <david.laight.linux@gmail.com>, Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
+From: Bryam Vargas <hexlabsecurity@proton.me>
+Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] libnvdimm/labels: Prevent integer overflow in __nd_label_validate()
+Message-ID: <20260622081353.57531-1-hexlabsecurity@proton.me>
+In-Reply-To: <20260621112357.56a290bc@pumpkin>
+References: <20260620-b4-disp-7f43b155-v1-1-0cfd8017f7a0@proton.me> <20260621112357.56a290bc@pumpkin>
+Feedback-ID: 199661219:user:proton
+X-Pm-Message-ID: 8ebe181dc80e8fed1ded21af92df171cf348ee05
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-ThreadId: AsMRFVFyfdEo
-Date: Sun, 21 Jun 2026 21:07:54 -0500
-From: "Ira Weiny" <iweiny@kernel.org>
-To: "Linus Torvalds" <torvalds@linux-foundation.org>,
- "Alison Schofield" <alison.schofield@intel.com>
-Cc: "Dan Williams" <djbw@kernel.org>,
- "Vishal Verma" <vishal.l.verma@intel.com>,
- "Dave Jiang" <dave.jiang@intel.com>, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org
-Message-Id: <0c692784-b09d-40cf-ad6b-abf067f72b20@app.fastmail.com>
-In-Reply-To: 
- <CAHk-=whPaVoqWyFEgTYW7LNZOegBmP3YFcrbxCmXTgqVjytdyA@mail.gmail.com>
-References: <ajQnMABCFUbVndvc@aschofie-mobl2.lan>
- <CAHk-=whPaVoqWyFEgTYW7LNZOegBmP3YFcrbxCmXTgqVjytdyA@mail.gmail.com>
-Subject: Re: [GIT PULL] NVDIMM and DAX for 7.2
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 18, 2026, at 6:35 PM, Linus Torvalds wrote:
-> On Thu, 18 Jun 2026 at 10:13, Alison Schofield
-> <alison.schofield@intel.com> wrote:
->>
->> Please pull to receive a small set of NVDIMM and DAX changes. Also
->> included are updates to the MAINTAINER file, one which adds me as
->> I'm picking up the patch wrangling role from Ira Weiny.
->
-> So I've pulled this, but generally I really prefer to have a heads-up
-> ahead of time that I should expect to get pull requests from new
-> maintainers.
->
-> Yes, yes, I see the updates to maintainer files etc, but a "expect the
-> next pull from Xyz" from the previous maintainer just makes me not
-> have to wonder what's going on...
+On 2026-06-21, David Laight wrote:
+> Is this enough and/or a sane way to stop the overflow.
 
-This is totally my fault as the last PR I did I was not ready to announce this change.  I should have just sent an additional note about this.
+For the overflow, yes. In 64-bit the product no longer wraps, so the bound
+rejects exactly the nslot values that don't fit config_size. Minimal change=
+,
+backports cleanly.
 
-Apologies,
-Ira
+> AFAICT label_size is either 128 or 258.
 
->
->             Linus
+128 or 256. nd_label_validate() probes label_size[] =3D { 128, 256 } (v1.1 =
+/ v1.2)
+and sets ndd->nslabel_size from that.
+
+> But I can't see where nsarea.config_size is set.
+
+A u32 filled by nvdimm_init_nsarea() from ND_CMD_GET_CONFIG_SIZE -- reporte=
+d by
+the dimm provider's ->ndctl (firmware/_DSM on NFIT), not a user ioctl. No s=
+anity
+cap today.
+
+> The same could be done for nslot - any value above 64k is pretty much
+> guaranteed to be garbage
+
+Agreed. The largest legitimate nslot is config_size / label_size: a few hun=
+dred
+on a real ~128K area, ~1024 at most. The exact bound already ties nslot to
+config_size; a ceiling still helps for the gap you point at: config_size is
+firmware-reported and uncapped, so a bogus large config_size would otherwis=
+e
+admit a large nslot and kvzalloc.
+
+I'd keep the (u64) cast as the targeted fix here (Fixes:/stable) and add th=
+e
+nslot and config_size bounds as a follow-up hardening patch, or fold them i=
+nto a
+v2 if you'd rather see them together. Either way I'll send it.
+
+Bryam
+
