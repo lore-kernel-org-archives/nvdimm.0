@@ -1,112 +1,133 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F1EE3BED75;
-	Wed, 24 Jun 2026 15:09:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 059223D7D69;
+	Wed, 24 Jun 2026 15:11:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782313791; cv=none; b=kItz+bYOKr8XbtxXfQzAhM95gaGJmnyAcPxZkXQjlrX7dKjs7B6o7+MlJMu5iEZEi7sfqkS92xNeBYNBI+7/YE853xg0GR20w8tlXD+QO99+65l4dVfVjEuTL7/CfdiAJTZsk5vGqG0hwL8RvttCT2TD5ERf3BrgvPQ0mgXVMTs=
+	t=1782313884; cv=none; b=haApCMq5jlJAveJnzUV31Fr8Q9cYNlLNAovC7XzjxY9x8HgAQ9gXspuCbYLb24DQXofYQYHlhl6d6AeUIiAyaRJFl2qJrHxWIf5GSLJtaO9FJD4PCSG8Be1BJxxdQQHSrJVIS6V9IDDqa33bpVdTeNk5nKeulr8PiHYsvBAaglw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782313791; c=relaxed/simple;
-	bh=0WScFHkiuUF1EwQN2UwaqtzS+je2Wt/BeEF5wA2GUXA=;
+	s=arc-20240116; t=1782313884; c=relaxed/simple;
+	bh=gdZxg9oz9WLpakJPOTOQ6HIqAykaWiGAYrwKtCN9pDo=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=nRYC1Ot1UgXfmIwVgbaWSYWrMUABp8NePK/SJgwl+vQjAhKHOfyXAtF6xp2QI1PV3KzQCU80tfh7yGB2QAXkXd+NVziRIsqNoTA1Q7oBJQKrIfBWWQB2gXoOdra4VUMWxSBcxVZWvnKdDRwBOrZwRbRhTZ48te5ErSkULoV7hkA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cRpriO7k; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=jplzG5mgaxkPBf/JHTc0HOjaG2B2pfI70zKVqTeusHNfGvZuvwLZdOw9r/fVaQT79YXoOLerOzUMzTPHQe2Kpw9j03t8rhGfZfwbPyNb3KKq+E3WDgtyhopL7wA2TTOymubKtdBPbIacfHuetBWkNjT8Ri12SPqMi44GkTE4P3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jBXi+ChV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cRpriO7k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 240EF1F00A3D;
-	Wed, 24 Jun 2026 15:09:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jBXi+ChV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFE551F000E9;
+	Wed, 24 Jun 2026 15:11:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782313789;
-	bh=0WScFHkiuUF1EwQN2UwaqtzS+je2Wt/BeEF5wA2GUXA=;
+	s=k20260515; t=1782313882;
+	bh=XD68JWdyXT0rejUkeTo8kBojIyncLoeSQ6lzIaG+40o=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=cRpriO7kN4exQ8S4vujzpAe78OAGRohY3M9oK90aWgf0YWvGK/VjGeL8QKBKjAVNe
-	 VORwXaUcTrkH4k5W4Z2Wg77ma8KXKi6UqwKDWc4O1k+WMhjP5pbehbI4KcJUSnyt5p
-	 i0nFQ+soYX4KREY53AxWn0AvvHyoI1Hg0TITI4ShsNlqiVgWp4VeZTLXiLQgT1jB9O
-	 f7UaDc+clzKMK7s9xAEMYCSasjX1bVFgBd53xJohobvR2Kah7x7Aj6Yb3GLgCJ3hyl
-	 fleOi57DkfxL9f+Bq5nMICAbCHO8iZu78x7fDM7+bDGEdV1GoVuBlt7E3KMPqow8Iu
-	 7yRZKGsOOJIRw==
+	b=jBXi+ChVBp6Cesbv21Wx6PJ/XvJN9wt43RM7xoNP5twJkmVXij+yoF01+60J5zzTY
+	 KDlHjOsjFq2c1JuxOtd8YV/23O0xOyHhaQBE2wXxFgI6dfbEulFjKT9RPkXvTCOV18
+	 jab3m6CSwErAR21EruuqOxIWFX80J/RfCrRinuQmGpjjydK7STOFfg0w/TNPnFruWs
+	 OM6k9en+6gDlCXYZESKhdGmZmBSP8+SrYke7sZO9GIw3+hqt0/qf+QvF7UbHo7p5MH
+	 vY/58A0eJW92dPEgEqu4xbyxgxz4ye4VWzpjKQbOzbE7+piGjYyhhdvVYxQHWW6hRI
+	 /oK7z+Xz0TQRg==
 From: sashiko-bot@kernel.org
-Subject: Re: [ndctl PATCH RESEND] test/cxl-mbox: Regression test for huge
- CXL_MEM_SEND_COMMAND out.size
+Subject: Re: [PATCH v5 8/9] dax/kmem: add sysfs interface for atomic
+ whole-device hotplug
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Richard Cheng" <icheng@nvidia.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <20260624150158.55264-1-icheng@nvidia.com>
-References: <20260624150158.55264-1-icheng@nvidia.com>
+To: "Gregory Price" <gourry@gourry.net>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <20260624145744.3532049-9-gourry@gourry.net>
+References: <20260624145744.3532049-1-gourry@gourry.net>
+ <20260624145744.3532049-9-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 24 Jun 2026 15:09:48 +0000
-Message-Id: <20260624150949.240EF1F00A3D@smtp.kernel.org>
+Date: Wed, 24 Jun 2026 15:11:21 +0000
+Message-Id: <20260624151122.AFE551F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Low] Patch submitted to the wrong repository: adds `ndctl` userspace tes=
-t files to the kernel tree.
+- [High] The protection against deadlocks during driver unbind can be compl=
+etely bypassed if the underlying memory blocks are manually onlined via the=
+ core memory sysfs, causing state desynchronization.
+- [Medium] any_hotremove_failed is irrevocably set on recoverable sysfs hot=
+remove failures, leading to a permanent leak of kmem_name.
 --
 
-commit a640ffeb53f9a730f09dcd04ab6a813beaced234
-Author: Richard Cheng <icheng@nvidia.com>
+commit fa89899811083ada324ea3db8204b1c135005af5
+Author: Gregory Price <gourry@gourry.net>
+Subject: dax/kmem: add sysfs interface for atomic whole-device hotplug
 
-test/cxl-mbox: Regression test for huge CXL_MEM_SEND_COMMAND out.size
+This patch adds a new 'state' sysfs attribute for dax_kmem devices to enable
+atomic whole-device hotplug operations. It also updates the unbind logic to
+prevent deadlocks by omitting memory removal if the memory blocks are
+currently online.
 
-This patch introduces a regression test for an unbounded kvzalloc() in
-cxl_mbox_cmd_ctor(). It creates a raw struct cxl_send_command and issues
-the ioctl directly against the cxl_test mock memdev.
-
-Link: https://lore.kernel.org/all/20260624144147.53997-1-icheng@nvidia.com/
-
-> diff --git a/test/cxl-mbox.c b/test/cxl-mbox.c
-> new file mode 100644
-> index 0000000000000..d81327ba17df4
-> --- /dev/null
-> +++ b/test/cxl-mbox.c
-> @@ -0,0 +1,129 @@
-[ ... ]
-> +#include <string.h>
-> +#include <unistd.h>
-> +#include <sys/ioctl.h>
-> +#include <cxl/libcxl.h>
-
-[Severity: Low]
-Was this patch intended for the ndctl repository instead of the Linux
-kernel tree? This includes an ndctl userspace library header that does
-not exist in the kernel tree.
-
-> +#include <cxl/cxl_mem.h>
-> +
-> +static const char provider[] =3D "cxl_test";
+> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> index a45e50def5371..340486586d82c 100644
+> --- a/drivers/dax/kmem.c
+> +++ b/drivers/dax/kmem.c
 
 [ ... ]
 
-> diff --git a/test/cxl-mbox.sh b/test/cxl-mbox.sh
-> new file mode 100755
-> index 0000000000000..67fecf5a3f46f
-> --- /dev/null
-> +++ b/test/cxl-mbox.sh
-> @@ -0,0 +1,48 @@
-> +#!/bin/bash -Ex
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (C) 2026 Nvidia Corporation. All rights reserved.
-> +
-> +. $(dirname "$0")/common
-
-[Severity: Low]
-Does this code rely on an ndctl test dependency script that is absent from
-the kernel tree? It looks like both this script and the C file above are
-userspace tests belonging to the ndctl project rather than the kernel.
-
-> +
-> +BIN=3D"$TEST_PATH"/cxl-mbox
-> +rc=3D77
+> +static int dax_kmem_do_hotremove(struct dev_dax *dev_dax,
+> +				 struct dax_kmem_data *data)
+> +{
 
 [ ... ]
+
+> +	rc =3D offline_and_remove_memory_ranges(ranges, nr_ranges);
+> +	kfree(ranges);
+> +	if (rc) {
+> +		any_hotremove_failed =3D true;
+> +		dev_err(dev, "hotremove failed, device left online: %d\n", rc);
+> +		return rc;
+> +	}
+
+[Severity: Medium]
+Does this permanently leak kmem_name on recoverable sysfs failures?
+
+If a user attempts to unplug a device via sysfs and the hotremove fails
+transiently (e.g., due to memory being in use), any_hotremove_failed is set
+to true. Even if the user retries and the unplug later succeeds, this global
+flag is never cleared, which will prevent freeing kmem_name during module
+unload.
+
+[ ... ]
+
+> @@ -348,20 +490,26 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_d=
+ax)
+>  #ifdef CONFIG_MEMORY_HOTREMOVE
+>  static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+>  {
+
+[ ... ]
+
+> +	if (dax_kmem_state_is_online(data->state)) {
+> +		dev_warn(dev, "Hotplug regions stuck online until reboot\n");
+> +		any_hotremove_failed =3D true;
+> +		return;
+> +	} else if (data->state =3D=3D MMOP_OFFLINE &&
+> +	    dax_kmem_do_hotremove(dev_dax, data)) {
+> +		dev_warn(dev, "Unplug failed, resources leaked until reboot\n");
+>  		return;
+>  	}
+
+[Severity: High]
+Can this deadlock during unbind if the memory state is desynchronized?
+
+If the device is configured with auto_online_blocks=3Doffline, data->state =
+is
+initially MMOP_OFFLINE. If a user manually onlines the underlying memory
+blocks via the generic /sys/devices/system/memory/memoryX/state sysfs
+interface, data->state remains MMOP_OFFLINE.
+
+During unbind, dev_dax_kmem_remove() will evaluate
+dax_kmem_state_is_online(data->state) as false and proceed to call
+dax_kmem_do_hotremove() instead of safely aborting. This attempts to offline
+the blocks while holding the device unbind lock, bypassing the intended
+deadlock protection.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260624150158.5526=
-4-1-icheng@nvidia.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260624145744.3532=
+049-1-gourry@gourry.net?part=3D8
