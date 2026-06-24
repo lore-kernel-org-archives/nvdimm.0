@@ -1,65 +1,64 @@
-Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C5793D902C
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 14:57:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 420803D812D
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 14:58:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782313080; cv=none; b=sy84uetFW91m2Se+wTWJqjbmlkkycAtpt77vpc+dPEnBtTEvLSf3dtXpzkVQNDjJyJ6honITnH1UL1ZfEDDDTTa4/uoDHGt1XlLWwkm8k1rbgNLOxaAhLFBcivtWEFwBzJC4hDbJ5WL7u6EouJmlxFWw3Qn9xXzePQP4lfyZXVc=
+	t=1782313083; cv=none; b=awkxcw/mzpEYCL26rB9jN+ECPzi7x/82xS4eegPt1jlpal3NkcZKULIfpkI5N5Di+8CgoR3YFNtQa7XLNccVud6gjbc9GVTiOiq2uFgixyA9BSmbSUtQx3Mgw9zvfiAUpaf8vcNxtOKYUBpm7bGPvqC4BpOy7D+FZYPB5NLtIZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782313080; c=relaxed/simple;
-	bh=cz/Kd5Fg1n6RVtyFBzJpN2apXZy9vJ9be28aEaW5jhc=;
+	s=arc-20240116; t=1782313083; c=relaxed/simple;
+	bh=nbCS8knRu9kWXO+MoSid1D8mBkTg92BavF+PIpIJUV8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=I1WrJoGEmQZ5RhziW00GDlqGLo9tiigHa6kL5jGpoLv/MpLhxoJwM9glKk5Z2ulTuR5tAgXXrTYvuqMvIDEPIZfm1ejGOaf0o5RPTvfvj22R08uJrLSyQ1oZhj46gHPoLi7pmX5MoYjqB0+D/en1TYiahJE1Xf2h7wMq6E2uaEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=jbRpIgeQ; arc=none smtp.client-ip=209.85.160.175
+	 MIME-Version; b=elPJdzOCEav8LaET1wy2Z7dJtj4//Sv9n4/6gp88wzZEjfWGTcs48GAWq/4gjn3D6T0kIXPWX/vTRrthm51HXtW5L61ng1qhIBqJkxbF43EeMFqbi+ehChuWsyXc6qYB6p8a+Lc6+yKuQwlIgi0yiO7UdsnA/dpmkwGMryTsckI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=CnbtqbD7; arc=none smtp.client-ip=209.85.160.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="jbRpIgeQ"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-517b1f2c6adso9594391cf.2
-        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 07:57:59 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="CnbtqbD7"
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-519f6a10d9bso7348231cf.3
+        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 07:58:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1782313078; x=1782917878; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1782313081; x=1782917881; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=UQoqst23Sd/uqsFRXXVKz4Ck7yyavMrD/eBg48X+nsY=;
-        b=jbRpIgeQeX5/AM1PM6aHkUyezKeU1wcxLP+1g+N/qMWZceh+8VsoiuEk0ZXEJiYIrC
-         dGnYzlPn821da1skuBzYsXefn+ImK+eD80XbUWspQym1FPYSxHyRccPF5lmeYVhg7DDM
-         gVT3uDug3Cr0g6onxaAp8KZD9vecvRH4ZVNEXQgqCBxWGtVsxTlHssDH+KWqbimJnJ+6
-         a+1i1lnxKj76mvroBlCZmwv2grJ2s4EpG6cGQYF3VytNKi7b/0c8dUkUOSQJ5RkA3QoQ
-         goBezJMMWzUO5QBUFvOXiumh6pccInsznwDBexgdF7uRhg9hp7xCsIEWD3cK4TOdqMzg
-         uHow==
+        bh=Zb2DpzIiqwLq7NyM2oLUvxWd/WuB3n7pHvXvXxwOytE=;
+        b=CnbtqbD7Lux2NhqSJPnWJw26p+I29vBAAWRa0uJsR0RNNvgqB5oGVV5JrpzPHDyFYE
+         B1+eehGIMHO4hdkCPnZhv0X7F1HdrM7sckiaregddol26cOpmtNjl0o0vVW4wIIDgFBZ
+         rtQpArsVTII520U96F3o3CsNT88IhcLAVFNfP+nDT79P0W+jLnaUdKQE6CM6bqxC7c4d
+         goTShxCFP4EtCMGzJuxkyF6D1mZ5DTC2s47PvMmx5VoXHFps6zLzmM00kNXweHSoQJFk
+         HB6vlZIgduE0gIJtpJI8oKtykfT8jzK9RQJJWMTfoYyKQ97a5mKgAQnfGNCoJMfg+sAg
+         41cA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782313078; x=1782917878;
+        d=1e100.net; s=20251104; t=1782313081; x=1782917881;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=UQoqst23Sd/uqsFRXXVKz4Ck7yyavMrD/eBg48X+nsY=;
-        b=bIEKA0YSPcJ+52qylg4JpwkDah6kU19My+XpFWngRd7tKEDOPRKpYU/Iv29s2TciOz
-         8rRq0tDvXuoOKDeT+AnDqGefUH1DhafuvXpf5vGFPTiNIQ77aX5SXXEk9VWIljgjepiR
-         bff5a5XP5gonoBFZMaTxkDQDd4yb0JO2L3QFCIqGqdl92qps2tYtBQHvYVb9IOMAN0OM
-         soyE2DRAew0bd6zUTtMv6KgMP+Tgimn3n0JsTBAwFDrq3kXpbN10RuX8xbKqdk2Bm+RT
-         gT3R+7OKjudpwSPLJL38hf/a4pbxYp5qU8Xobw8mbLyCSuR7ilzDsnqiKrIN5SodvMMY
-         /0Tw==
-X-Forwarded-Encrypted: i=1; AFNElJ/5vbz2jYyVi8OXmLDe6rHHd6VYq1tJHfgH50B0onG8G0X37kJ/lrOCdE54O/6RQFWAoLhEXak=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxYLie1dDh7R41wQndmHTWaopglZJJKUrkjmIHohwwqSvdltJBC
-	RNeCmsBIZBewIj8EwvCqyX7cwo3SowcvPfxrIEjG01HD/ju1JVjz0Kr8WrCpJrShfKRxGaHSiTX
-	lgRvD
-X-Gm-Gg: AfdE7cky4OFl9uLcsXNzebb1ST6XJ3/gum3Qwt3Ehnh6BwsaZRbh4D25YTt+J11SRgf
-	3DASRUEcZTpnQEUBDuzu5S4pISxbXur8n/1RiKgl+HHx4P//T2AwkpInQkT6RQD943iIAGIIiTz
-	c5blCviuhWK0WHkWR6wB/lnMGSx1k9OZmVxnerEYAl3ZIVG1TvrT+/LSjr1BsmfB7Tn8fdis2EL
-	JS1Q28vhkkHoVxPHtmSdc6O7c4qJA5Cvxp/wtuqbLUpSHaSLsC9jsL12yBW1uJqPW6Q40HGQ9fY
-	4LGnq+xh2JMLKYKTXrpOrCi3DNHN9SqcN768aqEfvA57o73yi6MpE3Te/O1d1IqYkGHtJUGtgBL
-	eZMzvHE1TtR8Pw+GFf8sAUQ1gwyVM/DHmR+f89hit4pYhhD7u9Fwn5yrPoti+B+6lY+4gMMcEb6
-	1sPFoK9gIHsrYJ750/9zi7eM7eMUnb/NJ2aBPicLx7C6x4ol9NgIwyUSIpWsuxdiMo9+SkCpa9q
-	Q==
-X-Received: by 2002:ac8:7dce:0:b0:517:7e26:36a9 with SMTP id d75a77b69052e-51a5485b854mr12138801cf.39.1782313078372;
-        Wed, 24 Jun 2026 07:57:58 -0700 (PDT)
+        bh=Zb2DpzIiqwLq7NyM2oLUvxWd/WuB3n7pHvXvXxwOytE=;
+        b=pmG1KmAfNL8huqBPp4MQGAI/bvWvGRH0hfXpIbv6dhcLcz11C2tRgXwG+rBJR8YO9c
+         CQJIEOhyuUi7xSIx4WhTiZbzzE4sCCUNDnT3JUMDfxl1hevRNxWxTAqPlDuf7rM+PZw2
+         OHDTGW2uX3HydfPAOOq/qAWvkruWYLiaQ2kL0DvLqLk7cjgeFldkgiSXjqOCgBU2reM0
+         qHB0J8JcGfJyDdWVXy//R9OUx1gQM5/9cfnCE9l6cacV1Re+znCvlWvqbnhKy+XaNRk2
+         DtnDCZnF8Rgnou7Ye1d/0S6p56i8C+4yEjiZ2Mkt+HiDUm4Zz3HCnrG1qexcCNba85KA
+         4v2A==
+X-Forwarded-Encrypted: i=1; AFNElJ+32+DZ2cQ/MaLmdTHYpl2zHTyzhDCWodRCNc/IJNBhP6yXhPNxEJFDcX5q1ZI7LgaCF6l6I/o=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx8iyJnFKcv8WN3U+nuTmc96PlviHjFGSyYPybpE0gSlMF293Zm
+	ST7LnbDGzmVoccXuXH9ocestLKIg26OAYbP1lOIe4/B1zTtc4rgiNvlm0zJEHVHCmjc=
+X-Gm-Gg: AfdE7cmoOHRWO0xbQkzntIl4RN+2TQIl33Dpd599xYZJ/rhG0MlTSI/DbnF5elfFChR
+	5X8ZY5TAjO/0TppR2/h3GBkyfuBeDwIa/ATVgai4MHL3teMB4Yj0mEEJMEsEunLB+Gazc9fDH8B
+	+GJgtBsiQ1rAx8Y+uRt9D3QL3UYQFf19i8xpR5eB2AhW/RzLDeKPUNzpt9OvekrMeyoNyQR7UOH
+	T13s5rv15SkOCHyWdhkS64bwwj//j5hyh3RNKdvJJKmrSkMwsLMJ/hkCFqV8/Qm4WOafur3KCAV
+	2ny9wpj4rt1zFJkh5RXsuzcH1Cz5WdM2/4LLEjkdHSqms2D+F08CaMK/XAO0CUwXc17PYXW8go+
+	ti6/GExgTz6WobagTITJCzZaWo06gvZ+sF3nsfezLFRpXaPryHz/JEPUO3wYuqNi1myGySE7WFu
+	SHXFpEvEOCNU5O4dxDLrZFxVu7pWJH8SUyNfzUV7JqhDBk+cbK1epqLI9ty1saQqSOSx2e6DPmf
+	w==
+X-Received: by 2002:a05:622a:130f:b0:517:675f:3eff with SMTP id d75a77b69052e-51a61d30f45mr54054471cf.10.1782313081085;
+        Wed, 24 Jun 2026 07:58:01 -0700 (PDT)
 Received: from gourry-fedora-PF4VCD3F.lan (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51a51ae8ee7sm49502301cf.24.2026.06.24.07.57.57
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51a51ae8ee7sm49502301cf.24.2026.06.24.07.57.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Jun 2026 07:57:57 -0700 (PDT)
+        Wed, 24 Jun 2026 07:58:00 -0700 (PDT)
 From: Gregory Price <gourry@gourry.net>
 To: linux-mm@kvack.org,
 	nvdimm@lists.linux.dev
@@ -89,9 +88,9 @@ Cc: linux-kernel@vger.kernel.org,
 	Smita.KoralahalliChannabasappa@amd.com,
 	ira.weiny@intel.com,
 	apopple@nvidia.com
-Subject: [PATCH v5 2/9] mm/memory_hotplug: pass online_type to online_memory_block() via arg
-Date: Wed, 24 Jun 2026 10:57:37 -0400
-Message-ID: <20260624145744.3532049-3-gourry@gourry.net>
+Subject: [PATCH v5 3/9] mm/memory_hotplug: export mhp_get_default_online_type
+Date: Wed, 24 Jun 2026 10:57:38 -0400
+Message-ID: <20260624145744.3532049-4-gourry@gourry.net>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260624145744.3532049-1-gourry@gourry.net>
 References: <20260624145744.3532049-1-gourry@gourry.net>
@@ -103,55 +102,53 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Modify online_memory_block() to accept the online type through its arg
-parameter rather than calling mhp_get_default_online_type() internally.
+Drivers which may pass hotplug policy down to DAX need MMOP_ symbols
+and the mhp_get_default_online_type function for hotplug use cases.
 
-This prepares for allowing callers to specify explicit online types.
+Some drivers (cxl) co-mingle their hotplug and devdax use-cases into
+the same driver code, and chose the dax_kmem path as the default driver
+path - making it difficult to require hotplug as a predicate to building
+the overall driver (it may break other non-hotplug use-cases).
 
-Update the caller in add_memory_resource() to pass the default online
-type via a local variable.
+Export mhp_get_default_online_type function to allow these drivers to
+build when hotplug is disabled and still use the DAX use case.
 
-No functional change.
+In the built-out case we simply return MMOP_OFFLINE as it's
+non-destructive.  The internal function can never return -1 either,
+so we choose this to allow for defining the function with 'enum mmop'.
 
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Gregory Price <gourry@gourry.net>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 ---
- mm/memory_hotplug.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/memory_hotplug.h | 2 ++
+ mm/memory_hotplug.c            | 1 +
+ 2 files changed, 3 insertions(+)
 
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 7c9d66729c60..f059025f8f8b 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -316,6 +316,8 @@ extern struct zone *zone_for_pfn_range(enum mmop online_type,
+ extern int arch_create_linear_mapping(int nid, u64 start, u64 size,
+ 				      struct mhp_params *params);
+ void arch_remove_linear_mapping(u64 start, u64 size);
++#else
++static inline enum mmop mhp_get_default_online_type(void) { return MMOP_OFFLINE; }
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 7ac19fab2263..6833208cc17c 100644
+index 6833208cc17c..494257054095 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -1337,7 +1337,9 @@ static int check_hotplug_memory_range(u64 start, u64 size)
+@@ -239,6 +239,7 @@ enum mmop mhp_get_default_online_type(void)
  
- static int online_memory_block(struct memory_block *mem, void *arg)
- {
--	mem->online_type = mhp_get_default_online_type();
-+	enum mmop *online_type = arg;
-+
-+	mem->online_type = *online_type;
- 	return device_online(&mem->dev);
+ 	return mhp_default_online_type;
  }
++EXPORT_SYMBOL_GPL(mhp_get_default_online_type);
  
-@@ -1494,6 +1496,7 @@ static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
- int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ void mhp_set_default_online_type(enum mmop online_type)
  {
- 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
-+	enum mmop online_type = mhp_get_default_online_type();
- 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
- 	struct memory_group *group = NULL;
- 	u64 start, size;
-@@ -1582,7 +1585,8 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
- 
- 	/* online pages if requested */
- 	if (mhp_get_default_online_type() != MMOP_OFFLINE)
--		walk_memory_blocks(start, size, NULL, online_memory_block);
-+		walk_memory_blocks(start, size, &online_type,
-+				   online_memory_block);
- 
- 	return ret;
- error:
 -- 
 2.54.0
 
