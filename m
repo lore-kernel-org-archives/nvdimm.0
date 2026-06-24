@@ -1,110 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38848386C36;
-	Wed, 24 Jun 2026 06:03:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8075E2EEE66
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 07:50:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782281026; cv=none; b=LTVF27yNs1FZ/CSl/kKTFEKES4ZX5F5e3quq5pJzDKukCYGBFs1hzM1ct++TlUdOvVBdeXKFRtlmdEOxq6UmHY6BpSSTNKCnTh2WXN6KekLVtqwCoF+e4tZojfb7tWVADEHoCFQKcmEg1HWq3s4EGeFyoQBQeYfprRRBHj6yMKM=
+	t=1782287401; cv=none; b=Y/XRfK2k27EjJwTocJVsNTJb0JyWJdkZUSV/zLn7Se+DSaDofqiY/k++q2Vuvm9+4ItGrAzO6g0VCVQ6XeydbCX+MWNfppqyar6Um8j5CEk8rta20DWiyNoVcYfrgQAxBvRk0QUeUNr9+mimJTbCR98bt4dzjweWvittHdVFa4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782281026; c=relaxed/simple;
-	bh=FpQrQoPqPJW3h6WyS+ln+mYHPK2LlUvR/MySMZU1FPI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Ox+NOIJ3/B1aedBr8bQAjwYj0puUlXuOtPjSMtyvlErQCo1ujBf/+hVc+fYOmMuCa9GOF3npzVlQnbTCbZ+Yw0R/mldEiy29FmBRgQnx5QabuBAXZ6UBDgR/476Fv9cqoOpqkojsgX8JT1U8+Puj/hgnMd4tIWG2gDCHzOIH4uQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZXfKe0hR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1782287401; c=relaxed/simple;
+	bh=48CBAiVLI24/iZduWhrvqOuRvaOxBYrMQGx5TphZKVI=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=A+NjpadXiR8InBF1RNVAtnYvjLNZrhrmWiqEGAFlwl8qcF0eGYbpsMloJ325BEFXoKhaX79QNFExKfd9md9vr3qmhJnD+9SVBYsBbsPPp8BSeYQ7U4KkjAkeW5RH81E6OunMMDsVFFHAdSoqEzYmQpKdr6lPkdcpIEgkq/27ghE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TfHCqtur; arc=none smtp.client-ip=74.125.82.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZXfKe0hR"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id B8E74C2BCB4;
-	Wed, 24 Jun 2026 06:03:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1782281025;
-	bh=FpQrQoPqPJW3h6WyS+ln+mYHPK2LlUvR/MySMZU1FPI=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=ZXfKe0hRFu7SpoAVfHNqVxdZAN8YH2xVlPCAMCNLG7XVBC2FjijMadB8bboUpLk2X
-	 VF0kKK7xvb06zzFqhiZRLhbw8DkJ3bpxQYfWtnHFGgy+bIqjMQEI0xsF2jTlXJIjdd
-	 vJTluRTuF6h/2Mv+CCG/7+oOvyXjGP2maEnws3RbHtvm30Ikjd/xwmj53ptydhTQ+o
-	 w7D+y7Yrfd46rRO/oRBMWCjsa+EdB+C8j0YZtdqiNM0K8JUgpjfprTMc+atsn9rHoJ
-	 c5f4kHbhWltFcHGCCTIRwVJXfL0c0tv3B67sPy/gXStD+A7SPvRwcOKr+ZZ36OIf8y
-	 9/ED8BpUB131A==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D675CDB470;
-	Wed, 24 Jun 2026 06:03:45 +0000 (UTC)
-From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Date: Wed, 24 Jun 2026 01:03:45 -0500
-Subject: [PATCH v3 1/2] libnvdimm/labels: Prevent integer overflow in
- __nd_label_validate()
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TfHCqtur"
+Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-30c713f37c2so113666eec.0
+        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 00:50:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782287400; x=1782892200; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=lnkemTVFtevu9LEJarGGlEd0BNgo1KPMK+RxKbsyiwU=;
+        b=TfHCqturUjJzue/LctppwrXQCo7Bk+ORg1SjyjVbaETWhKKD2/KmCCvU3dNVl2ehp7
+         88h066IhVEb/lSJCKEs/o+pRS6Z020ZgHYQl4aZkDzktP1Hb0cr0QLEARu3AhSPMGdF2
+         C0j2K3noa3yBMVXtLhLEbh+wH6f0wjd9T6nxzSFx15uNXTsEjk00Eb+cNGETGRW7cT2E
+         F8w9SzTJGayH73S9XwC4Z2xntwBN8Xb2/DTtpQBiz/X3U6KloXvBw6Al/FLPhBNw5Z/T
+         A/rJz/En0n9eejxnctN4E6GhDCrP6a2y1njIwY37d+Np4ytdhTneQst2DDL0ZvttuN7j
+         Vgcg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782287400; x=1782892200;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=lnkemTVFtevu9LEJarGGlEd0BNgo1KPMK+RxKbsyiwU=;
+        b=Fae6hhVfJXizGCTl5+qXRigFZqEga/dUM26WryGvZctA1ffKArESgSz02+injO99w/
+         AaO+M8WQ2FY8pWQpUDCqVCksr4BCIDBvNMbyDq2V/XP3VfqFeXLapPCFlZ7FiZKTnn31
+         6x77fza9wvetbtLpD29rz30tQKWwiy0U/QxIEyXxYc4EummUPwLNtSVigF0Pg9trfqRE
+         RR9m2zeze3sq4CYeipTMcVqs2gc5jYWFSoJ34P62ealdoY9svMS//b6O6lla/psf808b
+         WiC8l2W88rWOdWdNqvmigs/GpEd46jH5ToHchKQUBTdsyznnxctyb8hWWv8c2CJ6bIf+
+         BBmw==
+X-Forwarded-Encrypted: i=1; AHgh+RpVuozEkgJ8ngAaZbDTPawVrLED0rqPkKqTXeMT3uYvRL2e7+NizEYFdIAUPJ09Hu6+IblmtDo=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwdujzwGaw335bXCpeVOE5SKVvdwVw8fbZNBAlid5HEZx6KDqqP
+	seqDYjUeCR9Oast0qcDwhA+LgaJVRs9dgNowE147afDwPglf8T7mUR3I
+X-Gm-Gg: AfdE7ckA8k2l0PQ9V0y3Xln6R/8cBY763XjP1qI/MpzawHTk2AXi1CyMP6gCEDzP9qo
+	9FFrwOq66LexIlcGxKjdz4NUFiBvBO3MCdFK+SZy8Y1JfGkKhciYBccSoKeNizpAri9zjgR1mbN
+	Yv4nSQWoTN2b/b0JWjF/zV0FrLnjp6Cpdl8vNbI6v3DvEzSp3nu/aKDsurdLyfnsVbdty7z4/CA
+	dbJsJv4u0j1XlouH3XC2aZnaF6TLbAJZLD3Vt6x9tXWjff+yQxo7XuzYwJ6JNx65R4NzaQqbfyX
+	n0ylNAc53p1QOrckeaol/5u1XT/RdRSvzNsWyyIagQsepfsXiiB90e810tIzHkqDxE34VJ5CwdM
+	g4mj+n6067anqo3LPZ/fH/XcG2bPJVDQ9Js6IKKqKg0OUZg95MoIdj0A0euf3Oo87rer0B/othr
+	5uLVsPyuxTUo11czOGYC01zEAke6+DkKrqbXs5zdjbFhkvYyxLwV4Phbh4czndfEgPgndsYd1jM
+	4g3cPo=
+X-Received: by 2002:a05:7300:1801:b0:2ed:a58c:942 with SMTP id 5a478bee46e88-30c5556303cmr6682109eec.8.1782287399572;
+        Wed, 24 Jun 2026 00:49:59 -0700 (PDT)
+Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c1ba57dc4sm21112608eec.9.2026.06.24.00.49.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Jun 2026 00:49:59 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Wed, 24 Jun 2026 00:49:58 -0700
+To: Anisa Su <anisa.su887@gmail.com>
+Cc: linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>
+Subject: Re: [PATCH v10 00/31] DCD: Add support for Dynamic Capacity Devices
+ (DCD)
+Message-ID: <ajuMJi5nTQRB_ZP0@AnisaLaptop.localdomain>
+References: <cover.1779528761.git.anisa.su@samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260624-b4-disp-d8279485-v3-1-cdb6cab28b41@proton.me>
-References: <20260624-b4-disp-d8279485-v3-0-cdb6cab28b41@proton.me>
-In-Reply-To: <20260624-b4-disp-d8279485-v3-0-cdb6cab28b41@proton.me>
-To: Dave Jiang <dave.jiang@intel.com>, Dan Williams <djbw@kernel.org>, 
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>
-Cc: Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, 
- David Laight <david.laight.linux@gmail.com>, linux-kernel@vger.kernel.org
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1782281024; l=1957;
- i=hexlabsecurity@proton.me; s=proton; h=from:subject:message-id;
- bh=iBEqX8HPWjAgcZWGDGjBLr0kG9lZNDGGFL2JmOhPZfY=;
- b=+Upio+vIexII5OXdL3yy4kHq5Xu9Cae/FTXba91+xIIt9Cs9U0Jym4A80Dvys6gWCxLm25aAo
- jl7bUm18jufAmb2Me4rgjbzkEDK5c8BV9hxG9350qjnd1XoyZfQ4Fwf
-X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
- pk=dmppBMZNLLoPzxHi9l8tZDzEZUunPbgsYqIZYXeUrL0=
-X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/proton with
- auth_id=814
-X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
-Reply-To: hexlabsecurity@proton.me
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1779528761.git.anisa.su@samsung.com>
 
-From: Bryam Vargas <hexlabsecurity@proton.me>
-
-The on-media namespace index field nslot is a u32 read from the DIMM
-label storage area.  __nd_label_validate() bounds it against the config
-area size, but sizeof_namespace_label() returns unsigned, so the product
-nslot * label_size is evaluated in 32-bit and wraps modulo 2^32 before
-the comparison.  A crafted nslot passes the bound and is then used as the
-loop trip count in nd_label_data_init(), whose memset() walks off the end
-of the config_size buffer: an out-of-bounds write.
-
-The field is not trusted -- it comes from the medium, or from userspace
-via ND_CMD_SET_CONFIG_DATA.  Evaluate the product in 64-bit so the bound
-check is exact; conforming labels are unaffected.
-
-The check was safe when introduced by commit 4a826c83db4e ("libnvdimm:
-namespace indices: read and validate"): it multiplied by sizeof(struct
-nd_namespace_label), a size_t, so on a 64-bit build the product did not
-wrap.  Commit 564e871aa66f ("libnvdimm, label: add v1.2 nvdimm label
-definitions") narrowed it to 32 bits when the label size became a runtime
-value read via sizeof_namespace_label().
-
-Fixes: 564e871aa66f ("libnvdimm, label: add v1.2 nvdimm label definitions")
-Cc: stable@vger.kernel.org
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
----
- drivers/nvdimm/label.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 4218e3ac4a2a..ec12ce72cfe2 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -202,7 +202,7 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- 		}
+On Sat, May 23, 2026 at 02:42:54AM -0700, Anisa Su wrote:
  
- 		nslot = __le32_to_cpu(nsindex[i]->nslot);
--		if (nslot * sizeof_namespace_label(ndd)
-+		if ((u64)nslot * sizeof_namespace_label(ndd)
- 				+ 2 * sizeof_namespace_index(ndd)
- 				> ndd->nsarea.config_size) {
- 			dev_dbg(dev, "nsindex%d nslot: %u invalid, config_size: %#x\n",
+[snip] 
+> This series:
+> https://github.com/anisa-su993/anisa-linux-kernel/tree/dcd-v10-23-05-2026
+> 
+> The corresponding NDCTL branch:
+> https://github.com/anisa-su993/anisa-ndctl/tree/dcd-2026-05-21
+> 
+Making a note here that we were also able to validate a very basic
+case on real HW of adding a single extent on GNR-AP platform with the
+given kernel branch + NDCTL branch, create a DAX device from it, as well
+as run the FAMFS smoke tests on it.
 
--- 
-2.43.0
+Since I've made a ton of changes based on feedback and plan to send out
+v11 by EOW, I will ask the team helping us with this task to try more
+cases on the next version and report findings as they become
+available :)
 
+Anisa
 
+[snip]
+ -- 
+> 2.43.0
+> 
