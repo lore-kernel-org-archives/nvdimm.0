@@ -1,222 +1,198 @@
-Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010003.outbound.protection.outlook.com [40.93.198.3])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F6D926F29B
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 14:00:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.3
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782309626; cv=fail; b=a+v39KoTi2FAjl8xT3bXCEmrgEtGE7zwKRGDHNuBQiIXSJTjbeUhm4/8zFPLmqHJn/qEQapF6/W1c0hbiO6FsVh+cFx9+Q5OeyDSHmS5uBJ7TYY23JldFgAOR713c9NiJGoaQ41A42R/Ak4ioaNjfRwKA+isjE1QChPDcVhRI4c=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782309626; c=relaxed/simple;
-	bh=2nedhkD36ltOo2RtOADSWljo3UERee7d6Xe+JTFIKlU=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=nqCVC6jeYs/IzspGltJiiDFyk15Jp492JXuiYatEcTCC32UlFT4CLxUVOnhcamQZp9tJmS+YhmqU7Kk5qSl+5EdrhPPZf3sbcmzGIludLUZzbVnLLtcjAwUTOdZE0zlg7FiHdAR2L46RbC7XF1336wJHfRkyO2E4R6ASJT2v2ok=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Zc9EufqJ; arc=fail smtp.client-ip=40.93.198.3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 966D93AD525
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 14:57:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782313078; cv=none; b=Y2KNgxyP0GSZT+yofR3JHWk6kDUeV+zWitvET0gErR5PUBOrMQZQZ59j2oVoUpT1Urtg+477iX0illn2+nZWtkD04CFpgF7VyAjD2i3fi+neOweWUndNz2LRoFlWmoFRrPeF4cqRLBxGcazEnBrMNJZ7O+P4CBDNbgrBqHLXrio=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782313078; c=relaxed/simple;
+	bh=OELpNeuF4o3uKPmDaZimCE09x9LRfZSE6ZhO3qoWDnE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DJAMDjeydpqeRM5U2mUZe6fPCC2pZenojtszWtcWk9OaSfsaOpO65GMgC/l3egAE9QhWzEoooMSLMJFvZT1b/cztINSTz0UEWrhtQnFwhtjk1D49MlBoFlwtt0mxn0ROjikCi73QxNKmIiVILB8W5dWv47xLMYF7lRlBRwcIWOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=O606fYZl; arc=none smtp.client-ip=209.85.160.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Zc9EufqJ"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=DdCNVaI/sGQq8kmSwLIpyVQzfZgBV95fYsgVsC8UrDdDdBqDuF/avBwQdspFTT15ZBcNUP20/6zQ3I3+tN+TZmaWAepfDjJVpPJBTz5zKP6Okq180W7G8+oj0NHbmYQ/K7A/JcYFExEAXg/TNXeAuXMSeqEe4PW5UQ6Cb5FMKAeqeuSmNi9HsWK1siaLfCUtLsvI8OmeU5IlGxSUqr2XmSG9NU4ewSeU2u0tVqKpQyqCj6W0MqAvBlzpLC6WsfgKfF8iTkdCCL9lwr83YPelo9h2GkLTwMd0YJ1JqBl/4FbyrMKA1S0LyTw/iSbCCMri/0NRXJlCSzE57oHcnbewJw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0FrJT+r+6CaZLaJKafdsRfcm+YA3M3XxcAu2LI3UxZE=;
- b=x/Tq080u8ASXhXFaTSaAJ2X1sHRenJk+03E4wBg7m0JTAuXFbImVlAsrWdgeCDYR046hSgoIkUwHEX2+Ok1k2wv2cffkJrCk/K+V+zyS3w8h9WECTnQtwgBI0EtFlk25frXLVXBRWq3As1ajMBd+TL0IKkA7aI1UypxM6iultUdBP9nmvLPhLiLxumxPvpdSaYG5pEiBtgumBKn/8sU1UUaxor6n4k56tfjMuuQo+sjdpVZCIbTBmdR8d1CyXXbvPf4BiwQMJ85gupXMlf0jnG53Ibj8aQLLGZVKzwyzuDZyX5WVCeb9tcAxttTgP+nGCm1B1JxX/H20Q4UDrhRu9Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0FrJT+r+6CaZLaJKafdsRfcm+YA3M3XxcAu2LI3UxZE=;
- b=Zc9EufqJJicSFccLI6L1xJpxVFohjhhFyoEtq+FqgpBBCGSMLPcZ2YTPVetnRI4DjKWIS62jVwiRS3rQOEofsF592Mf8AR6AaItNK0c6Fo5L8LvQgkhKGPBuL9DlYSADbVCtriHXIfPnbH/PRNu6uz8d6pczNUZxn/G83HOJoVYBLsnEN7Pvl1NPfAUaWCFyi0XKqht48/aEloboUJrTuq7RU3Hny524ejBJj0YZzfu6kSRiMr+JqGXUHFrioq4hoHPe7q7h42lSMJikdGrOM07GkPnKB+rtXYYUkdQicTwrUa2LMGjP7HGagFK6jX48jK8tMghsflkL8yREhGwDiQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from MW2PR12MB2380.namprd12.prod.outlook.com (2603:10b6:907:4::32)
- by MW4PR12MB5667.namprd12.prod.outlook.com (2603:10b6:303:18a::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.159.15; Wed, 24 Jun
- 2026 14:00:17 +0000
-Received: from MW2PR12MB2380.namprd12.prod.outlook.com
- ([fe80::90d:c5c:6a5e:94a5]) by MW2PR12MB2380.namprd12.prod.outlook.com
- ([fe80::90d:c5c:6a5e:94a5%6]) with mapi id 15.21.0159.013; Wed, 24 Jun 2026
- 14:00:16 +0000
-From: Richard Cheng <icheng@nvidia.com>
-To: dave@stgolabs.net,
-	jic23@kernel.org,
-	dave.jiang@intel.com,
-	alison.schofield@intel.com,
-	vishal.l.verma@intel.com,
-	djbw@kernel.org,
-	danwilliams@nvidia.com,
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="O606fYZl"
+Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-517de710886so7801971cf.3
+        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 07:57:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1782313075; x=1782917875; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=342v7Y1wIc5Ucn3x8pxabI10RJuF4OR+Mw4ajKzQlTY=;
+        b=O606fYZlHDDozlbBMfyw2rY7qi+gIiLIebSdoTGtgmHYnA+En8hD/78AUIVCsefS1O
+         YFmN17xy2MbwLK0x70MkGxO3zEkRGZfC5+EWzWImEnZdP8P/Oj9X8ZsNP7y4mfh4jwci
+         nsrFJ20+4RCC9I4dE1fI+DKs9H+Cl7P2Ox4LChEvt6d8xek8GNE35GYmU2BPzk1R3zTu
+         TDj4b+7SvgRNgiQSp9nUIKZJBvN1r3hIapkbcrrTOh8ASZHmHhVy1IaiTK6SzRt/b+jz
+         AHl6KmDW4v03chtcwmswXYKZgQuyyq6bXQFh6Ecye0pNHqe11iByl+8pmpZGt5gq3AGy
+         SyCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782313075; x=1782917875;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=342v7Y1wIc5Ucn3x8pxabI10RJuF4OR+Mw4ajKzQlTY=;
+        b=nYjZKFUltxq1JFkoT7AtTXSzguaiellv4R7zJaMG67FPNYHe14QuyC6DQdgkoMsFjg
+         A4gLv056y/yWrpVUur0OVQfScyPhjtYd3s8am3w6AEVCSuHj5wQHjUpZc2qWGm3zKdxJ
+         ssMJh9cRa7x02XiDbtDQwG6Ss1uVkvJaj2oU+6SzLMQnkMxZwlHTyhIMWyWESyJjGN85
+         dqA2Nnxj2+onOgROHB3t7l7wcINXfIGLbUYX+BLE66aFru5dUF7Iht+AM4EPwWaaRzlk
+         NBLp4EBlJ4u5TAtY/5RT/1MpcTsxQpAl/IuwTEegSLAD5HA1IRAsqp2tpR0GXpERWKvL
+         T8fw==
+X-Forwarded-Encrypted: i=1; AFNElJ/BhtjHHjnO4Ix/3GkoVYqm0xP+2Abgbf/k1ozxh48PL/FEMj/HY6tTDoXMtDnLGTqY6kGWTGY=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxjSLokdRi+m/tUmPXJHPMbJ80BMkOAVM4vAFjG4UGJlxWVYcoM
+	G9xUoEefnx3tZVOCR5oBBKnfWW/w+O2i907edNyqhXFbhmeBClut0Hv+oTrgiNaaZxk=
+X-Gm-Gg: AfdE7ckbnJ+4JLb5khdLKdDheZmZOEENh5fDHZuZqou9FxYtW8FdrdN+ZMf8bMVeVB0
+	aqTxm9ABU/bB+/I8Lf3K0aj08cLoVAT3dVKJOR0gIFASbcXBfAjMrZFxYy7NWb5q68fclfNptRm
+	QJXCdBLzgFfxhrVxoIQ2i/bpX27gR1whWc1pdoYwYYiD/fmjQrRn0+VchAhCoZAVcTVumxwNS9H
+	hge9d+iugiMyopeKMdAJgGNvj5cMPnNddtfON8mrXvxqV085ynfHtmeURaHDWUs6QQ8dnxQJJW4
+	Km9hx/oew/znwaNMIwz8ZT+Wy0BVGHd04zhiBQAegMPgHCtkj8Knp9Ic24RqCn52aRfl0rt+hz3
+	me+lzWSvaLkELNnMoEKqEFwghAcu3EZmsU85hW7ng1GOInb6wrtr2Y5Qc7n+QQUAP/zFtyBMNNH
+	dpUVm9Hoa5pVvcouCTahKy/RPN3FK5vWceTcM8iHamnfkJmTwoD4jgFKZvGEXsVwqBNbLNASejY
+	A==
+X-Received: by 2002:a05:622a:191f:b0:517:79f0:ae3d with SMTP id d75a77b69052e-51a5473239fmr101461321cf.21.1782313074271;
+        Wed, 24 Jun 2026 07:57:54 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F.lan (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51a51ae8ee7sm49502301cf.24.2026.06.24.07.57.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Jun 2026 07:57:51 -0700 (PDT)
+From: Gregory Price <gourry@gourry.net>
+To: linux-mm@kvack.org,
 	nvdimm@lists.linux.dev
-Cc: iweiny@kernel.org,
-	ming.li@zohomail.com,
-	kobak@nvidia.com,
-	kaihengf@nvidia.com,
-	kees@kernel.org,
-	newtonl@nvidia.com,
-	kristinc@nvidia.com,
-	mochs@nvidia.com,
+Cc: linux-kernel@vger.kernel.org,
 	linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Richard Cheng <icheng@nvidia.com>
-Subject: [ndctl PATCH] test/fwctl: Add Get Feature OOB rejection regression test
-Date: Wed, 24 Jun 2026 22:00:06 +0800
-Message-ID: <20260624140006.50773-1-icheng@nvidia.com>
-X-Mailer: git-send-email 2.50.1
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SI3PR03CA0013.apcprd03.prod.outlook.com
- (2603:1096:4:297::19) To MW2PR12MB2380.namprd12.prod.outlook.com
- (2603:10b6:907:4::32)
+	driver-core@lists.linux.dev,
+	linux-kselftest@vger.kernel.org,
+	kernel-team@meta.com,
+	david@kernel.org,
+	osalvador@suse.de,
+	gregkh@linuxfoundation.org,
+	rafael@kernel.org,
+	dakr@kernel.org,
+	djbw@kernel.org,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	akpm@linux-foundation.org,
+	ljs@kernel.org,
+	liam@infradead.org,
+	vbabka@kernel.org,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	shuah@kernel.org,
+	gourry@gourry.net,
+	alison.schofield@intel.com,
+	Smita.KoralahalliChannabasappa@amd.com,
+	ira.weiny@intel.com,
+	apopple@nvidia.com
+Subject: [PATCH v5 0/9] dax/kmem: atomic whole-device hotplug via sysfs
+Date: Wed, 24 Jun 2026 10:57:35 -0400
+Message-ID: <20260624145744.3532049-1-gourry@gourry.net>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MW2PR12MB2380:EE_|MW4PR12MB5667:EE_
-X-MS-Office365-Filtering-Correlation-Id: 756d9066-7b2a-4313-a9fa-08ded1f8ea22
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|7416014|56012099006|18002099003|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	Rtj6KV6E2lPAqhkOH4TnIK2Y4u7Sdbb8cLT+V/T/xvxMfQnvtzsEHE8cBuZnE2NtD2fkGIVPxCUKcBlFXEAfcTn03ijeSZ5AKAB08I6DHDaMz9k0q7o3maXpvpj1JBnvlJJMZmjN0LAbn71W+P/z93OZ3Hnnay6t5Uh0Spk7ajIl1E38UG8JtNiG9gw1zJJJfEc3Mj5/WPAc1tc+LoYCEoLDMcfNkTnsPodTiELH8SFTXbrkBSgsYcysQ8jDseB93/WwNq8Y2O8SKoGZxYtfLqf2XpKiO+XQ2c+TWPcWmzY6NXILFGh7XQIjTA0sWwC25F3vvFD8tJVAnAZT/Ld7CpUoEej3aop2t1gYbwSpjMIUrSI53OBxOtpl0inKumDw+EE9p+rdyL3dk49mYdTLkMHzTk+QIyLQk3gsTlS9G5I1OzUjW2VCQGwf/i0nGJ/VOvYD1PuCXzDVig8hp88LmVaFo09c3wxR2zAM5DwfhDhvfrmQnNQkleMTMTn/L98BHhtyLWpvqgKIp8fOxhQeFNXqcgjDxNmwrW1jVaW5WzVYnupGkooh6HT9CpoCB1eQ+dZNdzJGj8mwEbRr/jcKFNhFrG3YA17PWVCYfbRTJcrHjYlLtH6aNPxgjYNXI1CKirP4OYFyd3S+CtHS81wZtSTV6bulmDqXJhdWTdQQPnA=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW2PR12MB2380.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(7416014)(56012099006)(18002099003)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?30rOpAFtYL4FvTfqjrxC2uZtArj7aPCabqCvC7j58JUhUEgONL2JNhA0g6PM?=
- =?us-ascii?Q?gemoL/5FlEZwnuF91+KXeC9OrQqncJggyaqALCO3Rj0i9RiWEmrtaG+ntZa3?=
- =?us-ascii?Q?YulSdHIokpVpCUTVWCihV2rgQqDvKJGcCdE3x1YNSmtMA4mUUwWe5M2NiTG4?=
- =?us-ascii?Q?t9MV345UTck3fdndt/lR//QzQyKSI/LNbf3LyrNcvl0vzh0bXCR+EmBVAG6x?=
- =?us-ascii?Q?6d/2H1X+GRwqNIfC3hno9Hzi29vYOM3yuJve3X2GgmGH003OkqGDU+/lE4kg?=
- =?us-ascii?Q?ii0ycIVoAW102SpjWZ/o2ED+4JldhVBSfG7OnOf4iBaLro3jZxPn7Qb7cK/f?=
- =?us-ascii?Q?0OzBLNnYsUJirH7ODpAGAOAqyBuG0cmrU98P1O8H0XsCGqcmefHzer9GWyN/?=
- =?us-ascii?Q?C29Ei+dstmwWOPY+63pUpsj+zcZ8d5VRIOoI/ELjQAE602lwGCt6LZCs/3TM?=
- =?us-ascii?Q?N0eAwJu1PrKnYX+/JP/QABAf7vi41fTvy3CJRUERmHwRGcVg8wE7wXrgxEB2?=
- =?us-ascii?Q?JtZs9jZS1fFrZEuV/uQHfqJ5Nnf4w+3Buj7mpoOsFdGBMr7J8iajnDDPmwLA?=
- =?us-ascii?Q?I+jxByZEPfwugLUjP6BtAkj3eGh4/3X4XHPathzCbMKJJwj+xY6fQgY5oOkG?=
- =?us-ascii?Q?K9xam987+67OgJSxDk08Z9JaDSjwVuVlKRMtwzjzhKl85uZEgXS1GNCX74O6?=
- =?us-ascii?Q?4XTUOhVH479koUGzqfrroFD0iWMb1a041YQHmLBAy98JR5IzMPJDn3OLbzCs?=
- =?us-ascii?Q?QHQqBWbAq2GIJcdALWyfmc+IXvX4Oomc2urt9pQnPJWP31eoDa/FWixbsI9C?=
- =?us-ascii?Q?H2hcmbj2uYEIqaLQ0wZwrl6nbnT0sDWz4AqkGFPcCE5M/TeaIE05slC2FhjQ?=
- =?us-ascii?Q?X7b04uT8USGPBUg8gkoWU+6pZx2eficvpbDLPVHwzW/CyzPvVn6RZjfn0tSK?=
- =?us-ascii?Q?gtyQXZyj0tdqRfSMvp+sKf/KKAF2O80D93g9Qz3r5HE0F2OUAjlAddqb55RL?=
- =?us-ascii?Q?lAkeEmywUjOMcxqsQu/d7m4Xt+oaXMzwTdC0uUMfN9M/w6rpcEkIp5MeGGeZ?=
- =?us-ascii?Q?hc1HdnO+l4057UWKirU92PvDr3sy+Mq9gXDs8CYcIjwKT5qStwi6CGqMXdHe?=
- =?us-ascii?Q?pR0L69PaKXUFjb5c+IQx3uI7wg26sOcJcqSxwlcRNvk1aZsfZ+Fth6qA1Get?=
- =?us-ascii?Q?PLVNXIlIhHj0NGEVFr5iA5ueraj8BIPXV/bEcQdkeXeP5hiikhDzLdHTojHY?=
- =?us-ascii?Q?Oq/ubSjDVHwj5ocYfLc66wbJDsc1WmxzAXL2oIpoR+nsyGJM9i8PBbA8WUJy?=
- =?us-ascii?Q?YpK8cTse9SvlyvhYzf/jfeiGuKYAiAh/FFhP2fxXolmDF4OQvQ+y1t2Dhybx?=
- =?us-ascii?Q?vwE1sW1e29gV9jL/d9Z1auutSvcyAC/7zd9dNVyYbf+/JSs3Wo9mIFemVyau?=
- =?us-ascii?Q?2avTZpH4G6348vXqo4VfgAMebYekE47hPC8A9DRYotuWLj2mD5kHd4EdDjmB?=
- =?us-ascii?Q?mfxf7O8h5KBdR52Wo1SmLYmdN9ln2AJNsGAXuTxz8L+1GPcBjj09WQBPZunU?=
- =?us-ascii?Q?99XllOM3wR0WayFbp3EQS4JdlrnJCWJdibK2RiBufhWGtU56ooCVxOtwuvYj?=
- =?us-ascii?Q?P/xGqb2RRnfFg5maWLritnjx0g/0BLECS59EVLQ5LXxf2JDn8weOSiPUjEjE?=
- =?us-ascii?Q?1oj/eBOuIxohv3hQq+2XrEzExKLU2yi8bzhhnvE3nlxMNuoRGQi4Pm1sGKK/?=
- =?us-ascii?Q?BwHszuMK0g=3D=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 756d9066-7b2a-4313-a9fa-08ded1f8ea22
-X-MS-Exchange-CrossTenant-AuthSource: MW2PR12MB2380.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jun 2026 14:00:16.0707
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: F80EK8aH250EPqtGPWHUcgsfyk0wWodeheCVMtxcM/BR7HfXbLW/VxNVtIstbiyVIzEgGGbtlZzFz3ee5fs49Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB5667
+Content-Transfer-Encoding: 8bit
 
-Add a negative case to the CXL fwctl test that issues a Get Feature
-FWCTL_RPC with out_len == offset(struct fwctl_rpc_cxl_out, payload) and
-a non-zero count. The kernel must reject this with -EINVAL instead of
-writing the feature payload past the rpc_out buffer.
+The dax kmem driver onlines memory during probe using the system
+default policy, with no atomic control for the state of an entire
+region at runtime - only by toggling individual memory blocks.
 
-This is the userspace regression test for corresponding kernel fix [1].
+Offlining and removing a whole region therefore races with other
+userland controllers that interfere between the offline and remove
+steps. This was discussed in the LPC2025 device memory sessions [1].
 
-[1]: https://lore.kernel.org/all/20260624134737.49166-1-icheng@nvidia.com/
-Signed-off-by: Richard Cheng <icheng@nvidia.com>
----
- test/fwctl.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+This series adds a sysfs "state" attribute for atomic whole-device
+hotplug control, plus the mm and dax plumbing to support it.
 
-diff --git a/test/fwctl.c b/test/fwctl.c
-index 979c1a6..69d0048 100644
---- a/test/fwctl.c
-+++ b/test/fwctl.c
-@@ -5,6 +5,7 @@
- #include <stdio.h>
- #include <endian.h>
- #include <stdint.h>
-+#include <stddef.h>
- #include <stdlib.h>
- #include <syslog.h>
- #include <string.h>
-@@ -207,6 +208,45 @@ out:
- 	return rc;
- }
- 
-+static int cxl_fwctl_rpc_get_feature_oob(int fd, struct test_feature *feat_ctx)
-+{
-+	struct cxl_mbox_get_feat_in *feat_in;
-+	struct fwctl_rpc_cxl_out *out;
-+	size_t out_size, in_size;
-+	struct fwctl_rpc_cxl *in;
-+	struct fwctl_rpc *rpc;
-+	int rc;
-+
-+	in_size = sizeof(*in) + sizeof(*feat_in);
-+	/* header only => zero payload room */
-+	out_size = offsetof(struct fwctl_rpc_cxl_out, payload);
-+
-+	rpc = get_prepped_command(in_size, out_size,
-+				  CXL_MBOX_OPCODE_GET_FEATURE);
-+	if (!rpc)
-+		return -ENXIO;
-+
-+	in = (struct fwctl_rpc_cxl *)rpc->in;
-+	out = (struct fwctl_rpc_cxl_out *)rpc->out;
-+
-+	feat_in = &in->get_feat_in;
-+	uuid_copy(feat_in->uuid, feat_ctx->uuid);
-+	/* non-zero count that exceeds the zero payload room */
-+	feat_in->count = feat_ctx->get_size;
-+
-+	rc = send_command(fd, rpc, out);
-+	free_rpc(rpc);
-+
-+	if (rc == -EINVAL)
-+		return 0;
-+	if (rc == 0) {
-+		fprintf(stderr, "Get Feature with undersized out_len was not rejected\n");
-+		return -ENXIO;
-+	}
-+	fprintf(stderr, "Get Feature OOB rejection test: unexpected rc %d\n", rc);
-+	return rc;
-+}
-+
- static int cxl_fwctl_rpc_set_test_feature(int fd, struct test_feature *feat_ctx)
- {
- 	struct cxl_mbox_set_feat_in *feat_in;
-@@ -393,6 +433,12 @@ static int test_fwctl_features(struct cxl_memdev *memdev)
- 		goto out;
- 	}
- 
-+	rc = cxl_fwctl_rpc_get_feature_oob(fd, &feat_ctx);
-+	if (rc) {
-+		fprintf(stderr, "Failed Get Feature OOB rejection test: %d\n", rc);
-+		goto out;
-+	}
-+
- out:
- 	close(fd);
- 	return rc;
+Transitions are atomic across every range of the device. The state
+names mirror the per-block memoryX/state ABI with one modification:
 
-base-commit: 8ad90e54f0ff4f7291e7f21d44d769d10f24e2b6
+  - "unplugged":      memory blocks are not present
+  - "online":         online as system RAM, zone chosen by the kernel
+  - "online_kernel":  online in ZONE_NORMAL
+  - "online_movable": online in ZONE_MOVABLE
+
+"offline" (blocks present but offline) is reportable for backward
+compatibility but is not writable because it entices the race condition
+we are trying to solve (offlining all the memory blocks in one atomic
+and unplugging them in another atomic).
+
+mm preparation:
+  1. mm/memory: add memory_block_aligned_range() helper.
+  2. mm/memory_hotplug: pass online_type to online_memory_block().
+  3. mm/memory_hotplug: export mhp_get_default_online_type().
+  4. mm/memory_hotplug: add __add_memory_driver_managed() so a driver can
+     select the online policy.  The override is restricted to in-tree
+     modules via EXPORT_SYMBOL_FOR_MODULES().
+  5. mm/memory_hotplug: add offline_and_remove_memory_ranges() for atomic,
+     all-or-nothing offline+remove of several ranges under a single
+     lock_device_hotplug().
+
+dax/kmem feature:
+  6. Plumb online_type through the dax device creation path.
+  7. Extract hotplug/hotremove into helper functions.
+  8. Add the "hotplug" sysfs attribute.
+  9. selftests/dax: regression test for the attribute.
+
+DAX Kmem probe still creates the memory blocks by default, even when
+the default policy is "offline" to preserve backwards compatibility.
+
+Unplug (atomic offline+remove of the whole device) is the new
+capability provided by the attribute.
+
+I downgraded a BUG() to a WARN() when unbind is called while the device
+is not unplugged.  The old per-block toggling pattern is still used by
+userland tools and disconnects the 'hotplug' value from the real region
+state; until per-block control is deprecated or restricted in some way,
+WARN() flags that tools should move to the new atomic pattern.
+
+Changes since v4:
+  - renamed 'dax/hotplug' -> 'dax/state'
+  - refactored the work into a shared offline_and_remove_memory_ranges
+  - reworked MMOP_ helpers to re-use code
+  - fixed cached system default online_type regression
+  - nits
+
+Gregory Price (9):
+  mm/memory: add memory_block_aligned_range() helper
+  mm/memory_hotplug: pass online_type to online_memory_block() via arg
+  mm/memory_hotplug: export mhp_get_default_online_type
+  mm/memory_hotplug: add __add_memory_driver_managed() with online_type
+    arg
+  mm/memory_hotplug: add offline_and_remove_memory_ranges()
+  dax: plumb hotplug online_type through dax
+  dax/kmem: extract hotplug/hotremove helper functions
+  dax/kmem: add sysfs interface for atomic whole-device hotplug
+  selftests/dax: add dax/kmem hotplug sysfs regression test
+
+ Documentation/ABI/testing/sysfs-bus-dax       |  26 +
+ drivers/base/memory.c                         |   9 +
+ drivers/dax/bus.c                             |   3 +
+ drivers/dax/bus.h                             |   9 +
+ drivers/dax/cxl.c                             |   1 +
+ drivers/dax/dax-private.h                     |   4 +
+ drivers/dax/hmem/hmem.c                       |   1 +
+ drivers/dax/kmem.c                            | 475 ++++++++++++++----
+ drivers/dax/pmem.c                            |   1 +
+ include/linux/memory.h                        |  22 +
+ include/linux/memory_hotplug.h                |  13 +
+ mm/memory_hotplug.c                           | 162 ++++--
+ tools/testing/selftests/Makefile              |   1 +
+ tools/testing/selftests/dax/Makefile          |   6 +
+ tools/testing/selftests/dax/config            |   4 +
+ .../testing/selftests/dax/dax-kmem-hotplug.sh | 207 ++++++++
+ tools/testing/selftests/dax/settings          |   1 +
+ 17 files changed, 806 insertions(+), 139 deletions(-)
+ create mode 100644 tools/testing/selftests/dax/Makefile
+ create mode 100644 tools/testing/selftests/dax/config
+ create mode 100755 tools/testing/selftests/dax/dax-kmem-hotplug.sh
+ create mode 100644 tools/testing/selftests/dax/settings
+
 -- 
-2.43.0
+2.54.0
 
