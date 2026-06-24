@@ -1,67 +1,66 @@
-Received: from mail-dy1-f169.google.com (mail-dy1-f169.google.com [74.125.82.169])
+Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAE51388382
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 08:36:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ABF93019AA
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 09:04:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782290192; cv=none; b=bwwekiZFC+p0zdWOcMOrkM0fa+dMSaEROo/ql0X4lj5W8S23QbHzSLtJBdpQ9mwPVKsx9EnlUYnRUqLaYLjWwmv/YRkZfZuvW4LDTkuCd7WesEFRJPV+8i2Hca8ph2kbF3F8jw3UgdVLds+kZmNGgPzM2q9sY50sh5zQvHjF53I=
+	t=1782291888; cv=none; b=nyAx3ca8McVXhTv2Vjys5Ttn5+54thmUFNvABXdQQYMePG6juZ+bsNf+sbQ7MtddsjiReUgC/DOJHHs1x8ZvuhNEN5F3JMdrdxYx//MTQSKXVana50Lu121w4nLkhFZemrGj/4nwNHSb+IjTDe1vfqDjMaR2gu62NTDqiVULTaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782290192; c=relaxed/simple;
-	bh=IC96SJpon10vJpky3Egz7KbIXsoKr7uotQi+Mi3bWy4=;
+	s=arc-20240116; t=1782291888; c=relaxed/simple;
+	bh=wgdmngmQ/G9YBBGIMbPCdpgCFH3fXTQExaX2DEjg4do=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VAZIeuISZT0UDX9Te8E3zaFMaXSEwJhrbkNeJJA7Ixtw7F8UbEJHpy4Wh+n2DPAQGJe7fpxg9usdg4m0l6jbfP7cFlKtzu/nV/yuWpMdYG/ZbMJL2F1UjO/PvFMyVAGMalF9RBW5U/Dc6rQRgs2YlwlG1FFjTJuU7ZshZu3/SPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QS4MS2Kb; arc=none smtp.client-ip=74.125.82.169
+	 Content-Type:Content-Disposition:In-Reply-To; b=PnDv22XZozygTBAvPxo7mlInS/IuqhkyPcDiv12TaTfk36yDDmjW7BBAKVnDmAq8eSUBKTLuw7czrXGjClm3UUhFbC+OyRAEZFGqVenEqs0nrZ2rLWokusrYBwANMmP+ZCg2Ff1PgexmKShtlpDL/4aA/xE5t3oSWHcPfSWsaRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U2siTMRx; arc=none smtp.client-ip=74.125.82.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QS4MS2Kb"
-Received: by mail-dy1-f169.google.com with SMTP id 5a478bee46e88-30c6c8d7503so1227673eec.0
-        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 01:36:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U2siTMRx"
+Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-30c713f37c2so158513eec.0
+        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 02:04:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782290189; x=1782894989; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1782291885; x=1782896685; darn=lists.linux.dev;
         h=in-reply-to:content-transfer-encoding:content-disposition
          :mime-version:references:message-id:subject:cc:to:date:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=i6loG2kbuu3buyD+OMfDQDJAMGaTd6c5fL/hshLRcTg=;
-        b=QS4MS2KbF7OadKu+ssu60kfs2m9eUyyAatLwCGhExDnvTJShmg0VtWHP0zNM88y4iP
-         f+izivF/eAUKe8jETJnM9VcX6CAroNRan6/1TwDTIGhNGWW85Qp1b61E6EuxT8dmyFgg
-         tqIss7yAToAOwplkbEufFUeuwnf1C3YtdLCzWwAlvTF0siwZjFw8gWA3HLCI0I5OPU1e
-         0ujifAWx0OvrDoUEIWzKDoSNGYZn31seBf3jqyZOttxBS07lsy02JcrXfLx6DQo/AjlU
-         3jj8pF/aEPE4b3P0VJsTSfTmfjI2C8A18IhmbrVN7Hy+IiMp4q+wdqj2970IZ8OOatJ1
-         tnDg==
+        bh=PTj+e/CMdSSvzWYs4zs41PqUf9nmBw56F9DD4zOMWcw=;
+        b=U2siTMRxvzWXrLGjXJY/hMCAC2v8YO5o+wFBdqAnSyi4JUwiqHWZo88Etv8T9mIEeW
+         kdzZJRTqUQt7JxEX48jwUOLsU7YQb/05Y4LZ1NrIL5IuLwBajPLSCrG3qoRbuJRvA0vx
+         KiiYavRs31PlO2sqEHtvtG46MJn3qdZ5XHuR6SH9Sp8c4HWC4hTattlPeWnY71RuwiTI
+         jK+5reQfLgM0sOLQjfC78WjH2EzGOY0E32Sd0hHJsR46jVgt19QDgvLdVgNjVGe2+gOZ
+         euyVfalkYMa4kbgxURIenzaMFxnFjeiw98J6GbkglrlezfNZUagewzjNWgUUozanDdjU
+         UkSA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782290189; x=1782894989;
+        d=1e100.net; s=20251104; t=1782291885; x=1782896685;
         h=in-reply-to:content-transfer-encoding:content-disposition
          :mime-version:references:message-id:subject:cc:to:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=i6loG2kbuu3buyD+OMfDQDJAMGaTd6c5fL/hshLRcTg=;
-        b=VaWa4o0hXWq/iKLi1T6datMsmLu7FCRBZgbV67Y/Ods/43HSiRGPGNnS1EqYEiarOD
-         QVR2jCo+/GD30X8qXp6ZIN4+Ql6pONqF50L0z8jBdVloRRDk24u5ISdhD0TwPxMODCGE
-         Iyaf1Y92evQvbvyyvw3+jBVB9ITMVW4M9sQpRykgs/eh6oFVMrJsp2ElMCZbShCCW4CR
-         PnblAoABW6EZbsL7Jo4u6GxcMzCtya/PAOuPeqB52mI70ORdD3qAi3PfKestqrNRIHPN
-         W61iAVUN4LGgiWsunnkqA8D7WoltGXtmOlmByV5M2AaavGai5zg7hV7wrFLkareG/pvm
-         efNg==
-X-Forwarded-Encrypted: i=1; AHgh+RrtkBSs5o9/hLWxxMb6rkXYC/AC1XyQXzJ2jBtLFs9I4YH2mDKi5JTCkyrGKgAcFe73rIBU1OA=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx40T8SRpkrxvuvmO8xijHr03cFcG+ofDPQ912AdnyskGyz1DRk
-	k9yxlBD8ScEkogFsVRrZWHrTequka4vEh7gOyCh1QyBchUv4BYv3PFDq
-X-Gm-Gg: AfdE7ck6Vr2WcKKuBOWZupJPbDaQQJL4is8xpw6PharIViFEXzS8nqJp4PLHK0B7Xxl
-	rKYEW7jGB9EDnr8fkLPlHp2bF/VA1kAMkNulo8LzbYsmQR+UMGCcVY9AUKopcRTO8DpvXTsP5KP
-	+yy3xgTXMU5dzDzuP4dCMVu+1ZC0JJVCwA69YZaOQyXqOgV8YPiDzqNMiOFS9Pb9kStI0QY8MQ+
-	DEAl6nlXs9EiWYg3HwnmVH5VpXLwbvcgAep/wZ8ZulP1fX67qQutn5Ttm90tli3pcjmXeeg3Fj5
-	mWrTArJzOm+9ra1CefeTOj6l3goagBnyE+AG4Z7yVlOZl5xl9LcrgpuBZ4r5ik99e+McI4eKV+M
-	OGIwIasJ1LRkhfp3FF8rvJFtfwjtx2wbOv76p9nDZTUOvNdD4lTiFxf8O2Unem+Tlj/yFNZhsTr
-	+cWTL8SUi8h8p5AO1bw0CwayKS4FkNt6VCprsgiqFI79NM6lk4nt/qyQNhOLC6cx785oYp4buZS
-	8LPyRM=
-X-Received: by 2002:a05:7300:506:b0:30b:c502:23e8 with SMTP id 5a478bee46e88-30c692f8c53mr2440312eec.21.1782290188564;
-        Wed, 24 Jun 2026 01:36:28 -0700 (PDT)
+        bh=PTj+e/CMdSSvzWYs4zs41PqUf9nmBw56F9DD4zOMWcw=;
+        b=mpjc1AXU39HwEltivgKji5FsX8EbLyUfEa5FoyUyQAYawMOCqByO1ytTMDqW5rKE1D
+         59pALRjjpZ1SBVHL2g1bKNZJxmr1eML4pFGzubZCrFi9ZzNsoRTC+UEvUbfDr8h2Snq7
+         eeZbNnA8Y5SZiR4Y1wR9Y/VYWwQDCfLRNnT0aksnpm8ZGDVkl1AzG6lCuw7eBBJr6mhr
+         r8wCqUaXouPvHQ9v4T8fjJ7rsIunjBhNsUCyyWdstMe564pMJCWvyq+LvNIPHUc96O5I
+         OMHQ3Mh2ap6p37GE3comX2tyWgh+6hUbCAdnEb5/qs8jFnM4UmVvuw3ouMc6Ys1yAaZV
+         /RaA==
+X-Forwarded-Encrypted: i=1; AHgh+RoVeYwo11kYrdERUJ8AOq1MD+LLIUhRHx/5o/kYbS4sUTucmqSmNUvvHwUaslBCx8vSjaIYmCA=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy7DP68wqxsPqAZbMVNscQgdW6djGcZmehr5/BmfC5YHHRL07i5
+	zgURhdZJgpp1xyDmQbyVOXiKvCNXwlO58bCSFTktFWiOqc+mBxkUtlZw
+X-Gm-Gg: AfdE7cke7r7Em1FUwOiGY9UOeLiUZiDlx3CoSKfzQd8ufmRGbCx0ph7NdPl5tRK+FSV
+	ZopvU8CF8M+ADdR43SOFgnP3u7e5owUAi1OTp/rF1mQv0BslGT3dyR5Jgo7eDrOzGTZv79tcrm0
+	boYg4ALWzDFJd2irysQ2dWcKVYZIbgnRk7UBfg4UpaxFnqEZiqCu/0M8n5hILHMVkyjz0f8z7k5
+	iSTYydG3rwxdEJwH8GuSqN15Xb4Y88b/mEgcr/8TN9/Pch65QAACjtVOEstgk2AEsY5Oc9ICqIa
+	LS1ai9rpy18rHXylZ+qZIT77ZA5PbEfcZLn6ZV7WIdZEU/BpOMGj/O2yBcD761Szz4nJDSjfq2y
+	EsSUaix8fOFZmM9nM/CIH3yl1uL4uKlFNXWXR8pOla9v9QmmC6xVofKm2zmIfUmwGe4xz0Fkb2d
+	UI6UG4CWLZ1HfM0m8X2M+yYo9CvUL/nFNVtQZo7/tOHfeoIfIINcfW55qA/A8zVjwryDK5
+X-Received: by 2002:a05:7300:7313:b0:304:cd0d:9ea5 with SMTP id 5a478bee46e88-30c555526ecmr6393906eec.7.1782291885030;
+        Wed, 24 Jun 2026 02:04:45 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c6d5717a2sm2764659eec.0.2026.06.24.01.36.27
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c71dbed2fsm1700715eec.10.2026.06.24.02.04.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Jun 2026 01:36:27 -0700 (PDT)
+        Wed, 24 Jun 2026 02:04:44 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Wed, 24 Jun 2026 01:36:26 -0700
+Date: Wed, 24 Jun 2026 02:04:43 -0700
 To: Anisa Su <anisa.su887@gmail.com>
 Cc: linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
@@ -72,12 +71,11 @@ Cc: linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Ira Weiny <iweiny@kernel.org>,
 	Alison Schofield <alison.schofield@intel.com>,
 	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [PATCH v10 23/31] dax/bus: Factor out dev dax resize logic
-Message-ID: <ajuXCluBoji23s8N@AnisaLaptop.localdomain>
+	Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v10 16/31] cxl/extent: Validate DC extent partition
+Message-ID: <ajudq0RENqSrcYmV@AnisaLaptop.localdomain>
 References: <cover.1779528761.git.anisa.su@samsung.com>
- <29393afa419cdffdd5d299cdc323262f5c20c036.1779528761.git.anisa.su@samsung.com>
+ <def526ee51b647e9256c7e777c6b7bd5cd647f89.1779528761.git.anisa.su@samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -87,92 +85,172 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <29393afa419cdffdd5d299cdc323262f5c20c036.1779528761.git.anisa.su@samsung.com>
+In-Reply-To: <def526ee51b647e9256c7e777c6b7bd5cd647f89.1779528761.git.anisa.su@samsung.com>
 
-On Sat, May 23, 2026 at 02:43:17AM -0700, Anisa Su wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
+On Sat, May 23, 2026 at 02:43:10AM -0700, Anisa Su wrote:
+> Extend cxl_validate_extent() — the per-extent check of the add pipeline
+> to check partition membership.
 > 
-> Dynamic Capacity (DC) DAX regions back their dax devices with per-extent
-> resource children of the region, rather than carving from a single
-> contiguous dax_region->res.  Allocating space for a DC dax device — on
-> initial uuid claim of its backing extents and on shrink-to-0 during
-> destroy — needs the same allocator the static case uses, but pointed at
-> a different parent resource.
+> Resolves an extent's DPA to its containing DC partition. Then based on
+> if the partition is shareable:
 > 
-> Factor the body of dev_dax_resize() into __dev_dax_resize(parent, ...)
-> and add a dev_dax_resize_static() wrapper that passes dax_region->res
-> for static (non-DC) regions.  alloc_dev_dax_range() gains the same
-> parent parameter so it can operate under either kind of parent.
+>   - Shareable: tag must be non-null and shared_extn_seq must be non-zero
+>     — multiple hosts reading the same allocation rely on the device-
+>     stamped 1..n sequence to assemble extents in agreed order.
+>   - Non-sharable: shared_extn_seq must be zero — sequencing is
+>     meaningless when only one host consumes the allocation; tag is
+>     optional (null UUID permitted).
 > 
-Stale commit message :( __dev_dax_resize is introduced in a subsequent
-commit. Updated commit message to reflect actual state.
-
-> No functional change.
+> Any cross-mix is a device firmware bug; reject the extent.
 > 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> Based on patches by John Groves.
+> 
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: John Groves <John@Groves.net>
+> Signed-off-by: Anisa Su <anisa.su@samsung.com>
 > 
-[snip]
-> +
-> +static ssize_t dev_dax_resize(struct dax_region *dax_region,
-> +		struct dev_dax *dev_dax, resource_size_t size)
+> ---
+> Changes:
+> [anisa: split out as a separate validation step]
+> ---
+>  drivers/cxl/core/core.h   |  4 ++
+>  drivers/cxl/core/extent.c | 78 +++++++++++++++++++++++++++++++++++++--
+>  2 files changed, 79 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+> index 1bae80dbf991..30b6b05b155b 100644
+> --- a/drivers/cxl/core/core.h
+> +++ b/drivers/cxl/core/core.h
+> @@ -179,6 +179,10 @@ int cxl_pci_get_bandwidth(struct pci_dev *pdev, struct access_coordinate *c);
+>  int cxl_port_get_switch_dport_bandwidth(struct cxl_port *port,
+>  					struct access_coordinate *c);
+>  void memdev_release_extent(struct cxl_memdev_state *mds, struct range *range);
+> +const struct cxl_dpa_partition *
+> +cxl_extent_dc_partition(struct cxl_memdev_state *mds,
+> +			struct cxl_extent *extent,
+> +			struct range *ext_range);
+>  
+>  static inline struct device *port_to_host(struct cxl_port *port)
+>  {
+> diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
+> index 94128d06f4ed..b01507022cff 100644
+> --- a/drivers/cxl/core/extent.c
+> +++ b/drivers/cxl/core/extent.c
+> @@ -63,11 +63,55 @@ alloc_tag_group(struct cxl_dax_region *cxlr_dax, uuid_t *uuid)
+>  	return no_free_ptr(group);
+>  }
+>  
+> +/*
+> + * Find the DC (Dynamic Capacity) partition that fully contains @ext_range,
+> + * or NULL if the extent falls outside every DC partition on this memdev.
+> + * The returned pointer is owned by mds->cxlds.part[] and lives for the
+> + * lifetime of the memdev.
+> + */
+> +const struct cxl_dpa_partition *
+> +cxl_extent_dc_partition(struct cxl_memdev_state *mds,
+> +			struct cxl_extent *extent,
+> +			struct range *ext_range)
 > +{
-> +	resource_size_t avail = dax_region_avail_size(dax_region);
-> +	resource_size_t dev_size = dev_dax_size(dev_dax);
-> +	struct device *dev = &dev_dax->dev;
-> +	resource_size_t to_alloc;
-> +	resource_size_t alloc;
+> +	struct cxl_dev_state *cxlds = &mds->cxlds;
+> +	struct device *dev = mds->cxlds.dev;
 > +
-> +	if (dev->driver)
-> +		return -EBUSY;
-> +	if (size == dev_size)
-> +		return 0;
-> +	if (size > dev_size && size - dev_size > avail)
-> +		return -ENOSPC;
-> +	if (size < dev_size)
-> +		return dev_dax_shrink(dev_dax, size);
+From Sashiko: https://sashiko.dev/#/patchset/cover.1779528761.git.anisa.su%40samsung.com?part=16
+
+Sashiko complains about the possibility of end < start in multiple
+places. Add a check here for that. Should be sufficient to add the check
+here, since every add-able extent passes through here.
+
+if (ext_range->end < ext_range->start) {
+	dev_err_ratelimited(dev,
+			    "DC extent DPA %pra (%pU) has invalid length (firmware bug)\n",
+			    ext_range, extent->uuid);
+	return NULL;
+}
+
+- Anisa
+> +	for (int i = 0; i < cxlds->nr_partitions; i++) {
+> +		struct cxl_dpa_partition *part = &cxlds->part[i];
+> +		struct range partition_range = {
+> +			.start = part->res.start,
+> +			.end = part->res.end,
+> +		};
 > +
-> +	to_alloc = size - dev_size;
-> +	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
-> +			"resize of %pa misaligned\n", &to_alloc))
+> +		if (part->mode != CXL_PARTMODE_DYNAMIC_RAM_A)
+> +			continue;
+> +
+> +		if (range_contains(&partition_range, ext_range)) {
+> +			dev_dbg(dev, "DC extent DPA %pra (DCR:%pra)(%pU)\n",
+> +				ext_range, &partition_range, extent->uuid);
+> +			return part;
+> +		}
+> +	}
+> +
+> +	dev_err_ratelimited(dev,
+> +			    "DC extent DPA %pra (%pU) is not in a valid DC partition\n",
+> +			    ext_range, extent->uuid);
+> +	return NULL;
+> +}
+> +
+>  /*
+>   * Stage 1 of the add pipeline: pure, no allocation.  Resolve the extent
+> - * to its region/endpoint decoder and ext_range, and verify the range
+> - * fits in the resolved endpoint decoder's DPA resource.  Further
+> - * per-extent invariants layer into this function in subsequent commits.
+> + * to its region/endpoint decoder and ext_range, and enforce every
+> + * per-extent invariant the device must satisfy:
+> + *
+> + *   - DPA falls inside a Dynamic Capacity partition (cxl_extent_dc_partition).
+> + *   - CDAT-sharability rules:
+> + *       sharable:     tag must be non-null AND shared_extn_seq != 0
+> + *       non-sharable: shared_extn_seq must be 0  (tag is optional)
+> + *     Any cross-mixing is a device firmware bug.
+> + *   - DPA resolves to an endpoint decoder attached to a region.
+> + *   - The extent's range is fully contained in that ED's DPA resource.
+>   *
+>   * Caller must hold cxl_rwsem.region for read (cxl_dpa_to_region()).
+>   * On success, @out_cxled / @out_cxlr_dax / @out_ext_range carry the
+> @@ -81,6 +125,10 @@ static int cxl_validate_extent(struct cxl_memdev_state *mds,
+>  {
+>  	u64 start_dpa = le64_to_cpu(extent->start_dpa);
+>  	struct cxl_memdev *cxlmd = mds->cxlds.cxlmd;
+> +	struct device *dev = mds->cxlds.dev;
+> +	uuid_t *uuid = (uuid_t *)extent->uuid;
+> +	u16 seq = le16_to_cpu(extent->shared_extn_seq);
+> +	const struct cxl_dpa_partition *part;
+>  	struct cxl_endpoint_decoder *cxled;
+>  	struct cxl_region *cxlr;
+>  	struct range ext_range = (struct range) {
+> @@ -89,6 +137,30 @@ static int cxl_validate_extent(struct cxl_memdev_state *mds,
+>  	};
+>  	struct range ed_range;
+>  
+> +	part = cxl_extent_dc_partition(mds, extent, &ext_range);
+> +	if (!part)
 > +		return -ENXIO;
 > +
-> +retry:
-> +	alloc = dev_dax_resize_static(&dax_region->res, dev_dax, to_alloc);
-From Sashiko: https://sashiko.dev/#/patchset/cover.1779528761.git.anisa.su%40samsung.com?part=23
-
-alloc is declared as unsigned resource_size_t. A negative errno isn't
-returned correctly. Instead, the below line to_alloc -= alloc underflows
-and the goto retry loops forever.
-
-Fix: declare ssize_t alloc.
-
-> +	if (alloc <= 0)
-> +		return alloc;
->  	to_alloc -= alloc;
->  	if (to_alloc)
->  		goto retry;
-> @@ -1367,7 +1396,8 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
->  
->  	to_alloc = range_len(&r);
->  	if (alloc_is_aligned(dev_dax, to_alloc))
-> -		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc, NULL);
-> +		rc = alloc_dev_dax_range(&dax_region->res, dev_dax, r.start,
-> +					 to_alloc, NULL);
->  	up_write(&dax_dev_rwsem);
->  	up_write(&dax_region_rwsem);
->  
-> @@ -1659,7 +1689,8 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
->  	device_initialize(dev);
->  	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
->  
-> -	rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, data->size, NULL);
-> +	rc = alloc_dev_dax_range(&dax_region->res, dev_dax, dax_region->res.start,
-> +				 data->size, NULL);
->  	if (rc)
->  		goto err_range;
->  
+> +	if (part->perf.shareable) {
+> +		if (uuid_is_null(uuid)) {
+> +			dev_err_ratelimited(dev,
+> +				"DC extent DPA %pra: sharable-partition extent has null tag (firmware bug)\n",
+> +				&ext_range);
+> +			return -ENXIO;
+> +		}
+> +		if (seq == 0) {
+> +			dev_err_ratelimited(dev,
+> +				"DC extent DPA %pra (%pU): sharable-partition extent missing shared_extn_seq (firmware bug)\n",
+> +				&ext_range, uuid);
+> +			return -ENXIO;
+> +		}
+> +	} else if (seq != 0) {
+> +		dev_err_ratelimited(dev,
+> +			"DC extent DPA %pra (%pU): non-sharable partition but shared_extn_seq=%u (firmware bug)\n",
+> +			&ext_range, uuid, seq);
+> +		return -ENXIO;
+> +	}
+> +
+>  	cxlr = cxl_dpa_to_region(cxlmd, start_dpa, &cxled);
+>  	if (!cxlr)
+>  		return -ENXIO;
 > -- 
 > 2.43.0
 > 
