@@ -1,328 +1,188 @@
-Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012009.outbound.protection.outlook.com [40.107.200.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f43.google.com (mail-oa1-f43.google.com [209.85.160.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5902D331209;
-	Wed, 24 Jun 2026 16:41:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F7D37106A
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 17:22:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.43
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782319292; cv=fail; b=NQG1fKryvLX8dV5PjlsC8rFc8G1WLin2o2h1SxobVddxrL0pgqQzKCLHw0M3UPHEQiCED7gjngVPYg2gKQepUpKqruS6MeKBXdrDuxMA+J2mPAMoJSijDdC8/cADEZ7JlPAbZa97DL+gti1F/H8gOVbb5c6bqkYpFP7rZFmSwqc=
+	t=1782321747; cv=pass; b=DuyF2ziJLj2kKfVKs3ihHO0CKElTjd6R8o3HdvyiOXnjjlrDmo8t0/k+3JZUk+rdzwOR05hAwmF7i0GQ2N6v5DKLXd0cjV7wa+F8AYAcLeo4+2PqtDdiJlYBuC4n2x4lcS4eZL0kOgdrJqLvsc2OyB3Yj4Ytl3hjmaUWG6Lkl+c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782319292; c=relaxed/simple;
-	bh=/tjg02QZia2H3+AJ7qmmLX6QBcKFB1Cs7HtdyMcwBFY=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=EVOPmhZlqp3LcWgKobugy5ZeZOIkP7AM4eSoVbkQCkSE1DxFwutMPiLJgdsVTXtTm1RM3zeT6gKyfcNOh8fgdSV5zJIb6u1h4nrf2UxzGegswBO+SswjFxhwBGu+TcrkFe/Uv4QmJbL1hywboU5rsWhXnPOsmUt3qdNDUiupHI0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Mgd8T2vf; arc=fail smtp.client-ip=40.107.200.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	s=arc-20240116; t=1782321747; c=relaxed/simple;
+	bh=Oc/eY5jh1sixVZt7TvGpIpQcD6r6ROfPjIuguTla2ts=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=qWaY4BxwlA7SCORVtmmD5ChW57kt9VrIidIK3Abfml7ycviUlH3FPdBFR70HDw3zZJMO2HoHP6HgVmiA8CZv1i5Aou1edpDFMdqcNEpbThvWx+xYF5+RHCvSMRIOo9QqZdDLRs4jPgkpJALVzO1PUOdLkVXEKOAMLfQxWY9K0ZA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=am2p5v/o; arc=pass smtp.client-ip=209.85.160.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Mgd8T2vf"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=o7gUQ3CT6u6eCvDIDUebPekqJOYuuDwwI7Q7gucdVscb+qhgxx6S9U4NHkpnWdO9ThdLP4mROGxYh39ARu1qtzww47kvVzcTm3wxKKbLZSlYz/V8Ihz2FqnT06+hP1XBOxUKK/5BzjdulWjUUBmDNjLAwLF86AcdccGb8UCQuWvoTxbFg8YkMIC3PxvJ6QFb1JAK9FjN2CSzOkoWgz9le3zeSoQ+ko/cLXyrURwJ/KppaNpWCeiSxpLm+yP+TZRRUF5UByZHoFGCrcZ0SkqR45sh1Je8WSUyoHnMQNvutrYNdIrNuNIOGZnD5/OFfZdWHqK6xZepKCgQLsh2MDVpOw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IQC348/jjnpm3YhjFL5l5N3hsD6rHo9Z+kSh6eQelBQ=;
- b=Xrrhfmtccn3rDeSAKiPY2Qo7FCs291NbWWpjT/UCJSY1nbfw6DllJ+VWNw8bD/65TpPaEMJDCrwQld9hulgr3IhpIXuxasbPXraeSHrACslgVmsI+a26ciUcZxVwX3tItp/lJ1mc2VJ1GaI9pQykSrrcSYcTSxMt4EW9o6wA+nUKcu6VHyLFmvYExI1DWCQ3oLtsi4gtocb+8fvSqbReZ9oBhXu6FHoakuvJVjhS/VvT7vQB0C/1Rwg1bID3Pis+Ta4yvVmjIQwGnNidCs0Gy2dOsyIN6JZgMSKbFf1+oxWcel/cYNEQCCY9GltAAYYTFZwvkUFQCpdNrUn3FofcZQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IQC348/jjnpm3YhjFL5l5N3hsD6rHo9Z+kSh6eQelBQ=;
- b=Mgd8T2vfrWwJSQNCOfZ8ZlJ8dcif7jpPMsZRksM9BczmoblF4sM8eY9vucAsRZBKA5oF2A3OP8KjNcG138ibM5QxbTvryiHoPbFuY9fgX9JXu1l32v2fhvqf13A2ZB/rJmZWFD/UXDUsFUWlW1K236oKKmTLYKoLJRVJ7QGjoTg=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from CY8PR12MB7433.namprd12.prod.outlook.com (2603:10b6:930:53::22)
- by SN7PR12MB7854.namprd12.prod.outlook.com (2603:10b6:806:32b::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.139.20; Wed, 24 Jun
- 2026 16:41:23 +0000
-Received: from CY8PR12MB7433.namprd12.prod.outlook.com
- ([fe80::faae:d638:bdc9:4bf6]) by CY8PR12MB7433.namprd12.prod.outlook.com
- ([fe80::faae:d638:bdc9:4bf6%3]) with mapi id 15.21.0159.012; Wed, 24 Jun 2026
- 16:41:23 +0000
-Message-ID: <5d3aa51c-d582-4989-a9f3-e46c95dcacb7@amd.com>
-Date: Wed, 24 Jun 2026 18:41:14 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 4/9] mm/memory_hotplug: add
- __add_memory_driver_managed() with online_type arg
-To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org,
- nvdimm@lists.linux.dev
-Cc: linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
- driver-core@lists.linux.dev, linux-kselftest@vger.kernel.org,
- kernel-team@meta.com, david@kernel.org, osalvador@suse.de,
- gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
- djbw@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
- akpm@linux-foundation.org, ljs@kernel.org, liam@infradead.org,
- vbabka@kernel.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com,
- shuah@kernel.org, alison.schofield@intel.com,
- Smita.KoralahalliChannabasappa@amd.com, ira.weiny@intel.com,
- apopple@nvidia.com
-References: <20260624145744.3532049-1-gourry@gourry.net>
- <20260624145744.3532049-5-gourry@gourry.net>
-Content-Language: en-US
-From: "Gupta, Pankaj" <pankaj.gupta@amd.com>
-In-Reply-To: <20260624145744.3532049-5-gourry@gourry.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P123CA0209.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:1a5::16) To CY8PR12MB7433.namprd12.prod.outlook.com
- (2603:10b6:930:53::22)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="am2p5v/o"
+Received: by mail-oa1-f43.google.com with SMTP id 586e51a60fabf-447a81776e9so642584fac.0
+        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 10:22:26 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1782321745; cv=none;
+        d=google.com; s=arc-20240605;
+        b=TFh9IlI3VbbSYG/W63abgndzcqKgqDDz8qNIWJccmJPcouWpAWx7p4eeB7OMnJZ2jQ
+         esG6NoNa87MX/q9dnYdWzmhP6FZkqNpCbUThsdfs0++HZPplGUPKCDNlWroYRAda/EGf
+         pC458mOnFY3iTBvGqE1QOElLgOHEZQNiW2zSy4BJ0zFAI3c9Wv0p1Z9mrOSpbiJUD0jv
+         Q6Ly+ID82FLhPyWc+NDSrPt6Foyfnk9sx9aUNjna07gUhoJgX6AuDSutp7R66BfCFYWd
+         +5El82BHrTOHxixHvA0bnyGIBGbxGxHDNoaC/hkWXcJ6w8L42LD/IOcVcOIdm/xgaJ9W
+         8bWg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=2RrZQKRnOe4vqE7AGHYXjMuRZiw2LXHf5wiJxvLR544=;
+        fh=cO2gTisNN3UwhSDIImYnZofJb1ep6YtCwaT1cgSL1zw=;
+        b=V9IMLSn+6QEo33kCFg+k2NNiprEiF924mGCoAI9Dm9kWUFdoIFKTICRcOtxpOg8kXu
+         EGwTPE3Qqq2nM2/IiQLz4adVYCPRUoLsGy6IJn2ZLrog8nkLoqLN+jIHEJKK6kt4au2k
+         VP2q6NxxafNpLByDh8JTRn5ABiv/d1N3EoPFd0vNo8JuFqXJHSLtj2T3NM3NiWyxW7e8
+         E/Mt5B2iIXA6aVAQevty314/Vte+HROfuMCayGss+pHX4Dea8e1QsJc6d8Fl6g//lNO1
+         wKkbF9eW3T8gupTosusfrctikaN2UQnJHp5GzQ5y7LkKM6AIVkP/1QUWqe8Tuf3tir63
+         55lw==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782321745; x=1782926545; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=2RrZQKRnOe4vqE7AGHYXjMuRZiw2LXHf5wiJxvLR544=;
+        b=am2p5v/oedK5/vTFkzAqZ9xCxaO0FnxxuDGHbPO1HEiu/F3BDb24KIGueq9dWwgntT
+         nNidVFnjkswA6smV0l5Sed1BLLn7yqrGA8VQyyzxshSJy6Bgu0FAD0ZkQma7dxOdrhT+
+         rXdEizxzPB6vpBf7eMMpwTMyl6fjTlyiYbqSBsccabk/gsxIt7FgoRSAK+FFJYHoIr5T
+         WcNpKFtCNK2xD2HQkUaNQtxoI+16NAUFGG8KN3zPuL4WWFcrTf1vP00bwQipppz9YwJv
+         AnYVt2TUo6XKnHaJ+S7DHHyV22I79HZ7AF1UjWtpcPEHssY9GJ+YQrFFJFYkVHjn7XeV
+         0SiQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782321745; x=1782926545;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2RrZQKRnOe4vqE7AGHYXjMuRZiw2LXHf5wiJxvLR544=;
+        b=qg9MVwIxdxByY6TnKsqVFFdPCa4fasFYhG2XmYrI+mggwxHf4VyHEPqIyejU4TIOvE
+         4xU+nbwl+4/VB+riqWZz3X6LkvNWkRc8FVn9cxXRIG9y2oFBtBm2pB0e/dEtUyjwT/9X
+         7xKteGXyy4lvS73i8i3DFwyYq2NK2THonnXFjkKqv8amgiPg2k+yIgCd9ab3UalKvS14
+         NdCkwfG6aJNeDFLYf9ybcQOnaoFWvTK/vRk4LzegolIsoeeuODq3hoDOMCpNaSFjMAb+
+         2hfG6O7DETVkHLJxML9zFuAmG4p4wlhMxE5vdA1LmrboHi2/Pp8UHnvsLKpx0E7QBjQ9
+         z6KA==
+X-Forwarded-Encrypted: i=1; AFNElJ+uU+pZ4MWQl0TrxAW58LxcjHrzJudqunbQ5UU2QNDR3N4ZcMoPaz+SKD95FQeeJOxATI6CvjQ=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyn+CdDDzG2zPVSQcOnR+6AhM1mZA5XMxtrLCFJDbUYxasr3gio
+	dd0YD25yIqId9w0yARq+048zMzDwPLWmixLTADR0TfFAiLWKBpROR8TPQaHOh4/GHyVxb4JAF7N
+	clmOA30oKqJ8DW/NrpEiGE3+psakibnI=
+X-Gm-Gg: AfdE7cmF0x3Qu791Tirx7Pjh+/tsZqgRqyDrq8hrUvnzPSSqco/Ug6FFfhZ0whwx96r
+	PT8FXx0xEHTKnbh8qA+r5ThnNeyMYTW435/KGnoj8Togljgl9X5z/V6e0/ORBzM3Cnk6Dzrz8VE
+	ALQonyqlLEpK8vhL1QGXcjFUjRCHSgRvjMzprHZu39+0OEpIMrXCCPXOXicUC+1gzk7hev5BolM
+	cdO9kySnkeHzoTlJTp/SSP6rUwdKYOFTtJmXpELMM9ZJA7WdZNbPWR/3rvjcR2alWCz1DUPAQmq
+	bnhiA0wRnQ==
+X-Received: by 2002:a05:6820:1525:b0:69e:89dd:175a with SMTP id
+ 006d021491bc7-6a114b61692mr6128235eaf.20.1782321745533; Wed, 24 Jun 2026
+ 10:22:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY8PR12MB7433:EE_|SN7PR12MB7854:EE_
-X-MS-Office365-Filtering-Correlation-Id: fb6c6b04-6a26-44ac-288e-08ded20f6cad
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|7416014|23010399003|1800799024|366016|6133799003|3023799007|18002099003|22082099003|4143699003|11063799006|56012099006|20046099003;
-X-Microsoft-Antispam-Message-Info:
-	c+X/T02gLuMr3K0hHvzaDK+WYJCWpj6KdDvO8L6keb/m/JXGHGTgsj/kqrfOmT7hKfIIAUMnkqdvtGU8N+JZlGXWZN9M6SYWLCt5/vN886jberfhPrEY2va4QubAe+YKNPjENli9cKndG3N1L5qRsCnvU9vqQRi5qVSHPNA3445DeDEwx6G950ClwIAQM/Ci4TbW1ENKwuNdqDweoMXsO7FtJxx5Vk8vsjia/rJrhHouBEKTrpacPdbXGG+b3C7upC9SOpcFJRUe+b4x+AMXr9h0uxTKkgRQ6EFIjxpdIhD4K24tL/iT3XNRWeab9AVBUFLDLVa6zXU6yWjlRPbEaJGZXhbT77eNpUAqaG+zFDI8x9LPNMvCfebiPxSs40RZEqYLKlQ56VyDmodbRhWMqkUywA91JI6GHnsd48V/vcBpRdPXgAGFKp0wksrqVsAUwN1cGQhPQJCs2wGZVApJMh5BySKKToKTGv1ZQlfyenRLA9CxiTmaq/kZuEtJZwlANGZ0BR+gCZHHdn5zFqnPrn4MA431bzQy/85RCLmRTYwdhBGKfoWESuL1JOJoUiyCvWhYu6W8mgMZq5Z8Pb2yxxd1Lx03gURsSYiRwZQEecP3dFmwIxbpm+r5QyuqJSmvt+YnJfbKjTpvFyLwck6TvlOgPcPeeP5TSB15bii+ktI=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY8PR12MB7433.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(23010399003)(1800799024)(366016)(6133799003)(3023799007)(18002099003)(22082099003)(4143699003)(11063799006)(56012099006)(20046099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?alhQUndhWFJPYkxwaGprRm54eHlqTTRnNVFCajRWQTBxNTVlVUJrS01jdHIr?=
- =?utf-8?B?MWVTbEMxdkhqMUZFZ1ljbldROGdLcjhDZ1dnMVpzT1VvS1NodUd6bFdYemI3?=
- =?utf-8?B?R2l1aW9QQ21Mait3L2pjZU80SHdqUFk5bDZkR0RsakxOSjFxcE9PQ3Q4ZlZO?=
- =?utf-8?B?eXVUWk9DUEc0YXBScGp2Ry8yWmVrNXVOK1E4MWlBOXN6Z1hidVEvUHJQUFFL?=
- =?utf-8?B?L0ZQdGxQU3VhQXhNM3BQSWNDcyt3THRKM0ExajdncVBheUhLYVVUWW9rNEc4?=
- =?utf-8?B?YWEzR2NLay9EZDcra0t2SVE1endFTmdZQWd6TjZXcHUzZmRBNWNkTGRxb09m?=
- =?utf-8?B?dDRReDRTdmxGOWhaZ2VyVXBseFBpNUxGaWRoWXZMZTRUOVR2RVNTc0E0V3ZN?=
- =?utf-8?B?T3ZtK0FVS0p3OVE1UlhGaldBTlZIN0ZWY1ZpN2Q0SDY3NDdSeHMxT0pCYUI3?=
- =?utf-8?B?KzJzWHJFOERnR1NjcVFHYTJMWDUyOW9oMHpYd25QTnNnVGFMbmo3bjBQUTNL?=
- =?utf-8?B?T3lhRE0xeFg1TURMdTlaUSs2T3J2UGxMOEp4a1g0d1lvbVYzcFl4VGl5dE1y?=
- =?utf-8?B?MDd5eFp5SWZzSy95dUhUVTFmTG9XTGhtamlTaWYvTHBab0FKUzNaNTh3ZlIx?=
- =?utf-8?B?WUFkRzlmdkg3VzlRVXgrSHhlRTFVK0hZN1ovQnkxY3JhOUV3c2NGL2tOclQr?=
- =?utf-8?B?blNXd1lYRXg2ZnFMeU9tYzdNOXhTdENRbUZZek93ZVJya01pcjlXeFpWV1hF?=
- =?utf-8?B?RkQyaWQ5MWU5TGRBV1VWY1hmOVJ4a20vTlppZ3IzanZvbTdFM3NqNGtIM1ZU?=
- =?utf-8?B?NUdxVnJHSUtuZFN5RmN1aFlRK0F2WU1yQUVUTnlDc2FReld6UWJ3V256eFc0?=
- =?utf-8?B?Y3Y2RFdVSU9LTU1qeVBnOG1aZlg2UGFSY2pHWGp4aHE2ZFQ2djV5a1hkSW9N?=
- =?utf-8?B?U0pZRG5RMytrNTdXNGZKNExCSVhCVGZhODN5RlNNeTgveEtteVhUQktCTFE4?=
- =?utf-8?B?THU2emNoVHlvR2VJa1BxYXBpYWEwZDlnczlHNnF3UlNUcStJV0RtMHliaUk1?=
- =?utf-8?B?bjRGSEFPc05FalhoeGxXLzFWa3BYZllCcUdVT0NGY2tsbEpqem03WWVvN3k5?=
- =?utf-8?B?RGpKUnJVbStUVjczWk0raE9BS1k3cHBpbEllQ0lCRWtRTFU4eUM2WHhDcjYv?=
- =?utf-8?B?SVdLbDJPdW5pRjl1aURscXp3VmlEZVRpQzIrRCthNnh1WWRCQTUwSjIwVkdU?=
- =?utf-8?B?QnV4Tmtia01ZbXlKR3ZWY1VwaSs4THkzdE1BaUpKam1HTDd4ckJ5Y2JsNjIr?=
- =?utf-8?B?WUcvNnZCWUVJdnYvekV4MmRFa3lxMVppRzV1dkhZTU4zNWtQMlBKZ0xldFJB?=
- =?utf-8?B?dzU5dTdIS3h1ZzdTSW0yeGh3RVI5bUlUN0h1ZDNwVzZjamQwVm9hZkpGeWpH?=
- =?utf-8?B?akVZVXJxclU3VDB2dUdHUGI0MHBWeXFuUGdZT3RUODVNNFUvbG1FNW1QQ2R3?=
- =?utf-8?B?U1NseFBJUm02TVpCWXdjMTFlRWNSVTVXWHgwRnF3WDRoRFlkclNRNHlxSW5J?=
- =?utf-8?B?ZzVvR2JWTHdyeVFQa2QxTkE0QzVkVE1FSlF3VFJRZ1Blek1vWTRDNVFjeERY?=
- =?utf-8?B?b2lSRFdkRm85Vng4VVozQWJycFdIQnhTYWh2Wmhhd2VoNXZHWFZjbFNHczlK?=
- =?utf-8?B?RVdHZUJjMlV6THRLV3BveDRrTXZaTWJ1WU5QckY5VGx1WG1ZU1JrOVJvMnpz?=
- =?utf-8?B?bFNsMTQ1alIrdjExakFOWW9zR3hvdEVYNUpMNEx0OTBZd0pHcWNidGJ1UkRJ?=
- =?utf-8?B?S1hzMEYzNHh0aXNBNkJSc1RkNmRIQW5HdlZEWXFRS0NnWDVJMlNvUi9ndGNQ?=
- =?utf-8?B?RzlXN29MRFgvZE9LbHMxYTdxZVVVUzgrWWdha1lWcXNwQ05pbXpNMnBucCs5?=
- =?utf-8?B?UmxpVDBHRVJuT0JGekpoWVFIOWlQa3lsT3RDVVB5RGdkekdnbStoaGpJSmpl?=
- =?utf-8?B?ZUFXK3BHaEExcW9OZE96aWJtUitHZVhRc1dKQTVFTjhhQ0pOSHNaU3ZRWlZn?=
- =?utf-8?B?a3U5UUFQRjFNWjh2eVBGRDVlaE5PLytwbTJITVZXMEZqVGJiVHV4WG5aY25n?=
- =?utf-8?B?ZlRIckxDd1czZDl4MnlXbnFMeVUyRlFSanZHOERVeXRnZFpLUThDYm1FaDl3?=
- =?utf-8?B?MVJvRWVTTGhUamRpRXZUcnY1RFVqVU9Qd3FQckJWRWJtY0YwbW9EZzQ5bnVo?=
- =?utf-8?B?RVpiQjdMVUZKRjZ2SHl3bkVwdC81WGFqY25TK0pDdzc4Tjh5eVJlSUhPa0Rh?=
- =?utf-8?Q?d/Z6Yerzu1/rmAi1qL?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: fb6c6b04-6a26-44ac-288e-08ded20f6cad
-X-MS-Exchange-CrossTenant-AuthSource: CY8PR12MB7433.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jun 2026 16:41:22.6887
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: OiF1zzel0zrx4RpHLrwN1XRA3wcuh+twNapi2oW8Q3GrRmw5Vuh4TnGEg8ZRWA/kYOXALgmLMCZwVD6BPSjNow==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7854
+References: <20260621130246.2973254-1-me@linux.beauty> <20260621130246.2973254-5-me@linux.beauty>
+In-Reply-To: <20260621130246.2973254-5-me@linux.beauty>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Wed, 24 Jun 2026 19:22:14 +0200
+X-Gm-Features: AVVi8Cf9CFjt8XRurzmaliLJiEImYmVwDzh1HgALE4ORiap4zi56uRvfI8NkH6Q
+Message-ID: <CAM9Jb+gzSrobPgH_nMPs+RsbhVP8jovpAQsC5syQKoLrtqnX=A@mail.gmail.com>
+Subject: Re: [PATCH v6 04/12] nvdimm: virtio_pmem: stop allocating child flush bio
+To: Li Chen <me@linux.beauty>
+Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, virtualization@lists.linux.dev, 
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+> pmem_submit_bio() passes the parent bio to nvdimm_flush() for
+> REQ_FUA. For virtio-pmem this makes async_pmem_flush() allocate
+> and submit a child PREFLUSH bio chained to the parent.
+>
+> That child allocation is in the block submit path. Making it
+> blocking with GFP_NOIO can consume the same global bio mempool that
+> submit_bio() uses, while making it GFP_ATOMIC can fail under
+> pressure. A forced failure of the child allocation produced:
+>
+> virtio_pmem: forcing child bio allocation failure for test
+> Buffer I/O error on dev pmem0, logical block 0, lost sync page write
+> EXT4-fs (pmem0): I/O error while writing superblock
+> EXT4-fs (pmem0): mount failed
+>
+> Avoid the child bio completely. Flush FUA synchronously, like
+> REQ_PREFLUSH, then complete the parent after the flush. Since no
+> child bio can be created, async_pmem_flush() now only issues the
+> virtio flush and preserves negative errno values.
 
-> Existing callers of add_memory_driver_managed cannot select the
-> preferred online type (ZONE_NORMAL vs ZONE_MOVABLE), requiring it to
-> hot-add memory as offline blocks, and then follow up by onlining each
-> memory block individually.
+Child flush is asynchronous (performs async flush to host side and returns).
+Till child bio completes guest userspace waits in pending IO state.
+It seems the current change will affect the behavior?
+
+Prior RFC [1] attempted to coalesce the async FLUSH request between guest &host.
+If there is interest, that approach could be revisited or integrated here?
+
+[1] https://lore.kernel.org/all/20220111161937.56272-1-pankaj.gupta.linux@gmail.com/#t
+
+Thanks,
+Pankaj
+
 >
-> Most drivers prefer the system default, but the CXL driver wants to
-> plumb a preferred policy through the dax kmem driver.
->
-> Refactor APIs to add a new interface which allows the dax kmem module
-> to select a preferred policy.
->
-> Overriding the configured auto-online policy is only safe for known
-> in-tree modules, where we know the override reflects a different,
-> user-requested policy.  We do not want arbitrary out-of-tree drivers
-> silently overriding the system-wide onlining policy, so restrict the
-> new interface to the kmem module using EXPORT_SYMBOL_FOR_MODULES()
-> rather than a plain EXPORT_SYMBOL_GPL().  Other in-tree modules (e.g.
-> cxl_core) can be added to the allowed list as the need arises.
->
-> Refactor add_memory_driver_managed, extract __add_memory_driver_managed
-> - Add proper kernel-doc for add_memory_driver_managed while refactoring
-> - New helper accepts an explicit online_type.
-> - New helper validates online_type is between OFFLINE and ONLINE_MOVABLE
->
-> Refactor: add_memory_resource, extract __add_memory_resource
-> - new helper accepts an explicit online_type
->
-> Original APIs now explicitly pass the system-default to new helpers.
->
-> No functional change for existing users.
->
-> Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-> Signed-off-by: Gregory Price <gourry@gourry.net>
+> Signed-off-by: Li Chen <me@linux.beauty>
 > ---
->   include/linux/memory_hotplug.h |  3 ++
->   mm/memory_hotplug.c            | 61 +++++++++++++++++++++++++++++-----
->   2 files changed, 56 insertions(+), 8 deletions(-)
+> Changes in v6:
+> - Replace the child bio allocation fix with synchronous FUA flushing.
 >
-> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> index f059025f8f8b..d3edeb80aadb 100644
-> --- a/include/linux/memory_hotplug.h
-> +++ b/include/linux/memory_hotplug.h
-> @@ -294,6 +294,9 @@ extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
->   extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
->   extern int add_memory_resource(int nid, struct resource *resource,
->   			       mhp_t mhp_flags);
-> +int __add_memory_driver_managed(int nid, u64 start, u64 size,
-> +				const char *resource_name, mhp_t mhp_flags,
-> +				enum mmop online_type);
->   extern int add_memory_driver_managed(int nid, u64 start, u64 size,
->   				     const char *resource_name,
->   				     mhp_t mhp_flags);
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 494257054095..a66346def504 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1494,10 +1494,10 @@ static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
->    *
->    * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
->    */
-> -int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
-> +static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
-> +				 enum mmop online_type)
->   {
->   	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
-> -	enum mmop online_type = mhp_get_default_online_type();
->   	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
->   	struct memory_group *group = NULL;
->   	u64 start, size;
-> @@ -1585,7 +1585,7 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->   		merge_system_ram_resource(res);
->   
->   	/* online pages if requested */
-> -	if (mhp_get_default_online_type() != MMOP_OFFLINE)
-> +	if (online_type != MMOP_OFFLINE)
->   		walk_memory_blocks(start, size, &online_type,
->   				   online_memory_block);
->   
-> @@ -1603,7 +1603,13 @@ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->   	return ret;
->   }
->   
-> -/* requires device_hotplug_lock, see add_memory_resource() */
-> +int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
-> +{
-> +	return __add_memory_resource(nid, res, mhp_flags,
-> +				     mhp_get_default_online_type());
-> +}
-> +
-> +/* requires device_hotplug_lock, see __add_memory_resource() */
->   int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
->   {
->   	struct resource *res;
-> @@ -1631,7 +1637,15 @@ int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
->   }
->   EXPORT_SYMBOL_GPL(add_memory);
->   
-> -/*
-> +/**
-> + * __add_memory_driver_managed - add driver-managed memory with explicit online_type
-> + * @nid: NUMA node ID where the memory will be added
-> + * @start: Start physical address of the memory range
-> + * @size: Size of the memory range in bytes
-> + * @resource_name: Resource name in format "System RAM ($DRIVER)"
-> + * @mhp_flags: Memory hotplug flags
-> + * @online_type: Auto-Online behavior (offline, online, kernel, movable)
-> + *
->    * Add special, driver-managed memory to the system as system RAM. Such
->    * memory is not exposed via the raw firmware-provided memmap as system
->    * RAM, instead, it is detected and added by a driver - during cold boot,
-> @@ -1639,6 +1653,7 @@ EXPORT_SYMBOL_GPL(add_memory);
->    *
->    * Reasons why this memory should not be used for the initial memmap of a
->    * kexec kernel or for placing kexec images:
-> + *
->    * - The booting kernel is in charge of determining how this memory will be
->    *   used (e.g., use persistent memory as system RAM)
->    * - Coordination with a hypervisor is required before this memory
-> @@ -1651,9 +1666,12 @@ EXPORT_SYMBOL_GPL(add_memory);
->    *
->    * The resource_name (visible via /proc/iomem) has to have the format
->    * "System RAM ($DRIVER)".
-> + *
-> + * Return: 0 on success, negative error code on failure.
->    */
-> -int add_memory_driver_managed(int nid, u64 start, u64 size,
-> -			      const char *resource_name, mhp_t mhp_flags)
-> +int __add_memory_driver_managed(int nid, u64 start, u64 size,
-> +		const char *resource_name, mhp_t mhp_flags,
-> +		enum mmop online_type)
->   {
->   	struct resource *res;
->   	int rc;
-> @@ -1663,6 +1681,9 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
->   	    resource_name[strlen(resource_name) - 1] != ')')
->   		return -EINVAL;
->   
-> +	if (online_type < MMOP_OFFLINE || online_type > MMOP_ONLINE_MOVABLE)
-> +		return -EINVAL;
-> +
->   	lock_device_hotplug();
->   
->   	res = register_memory_resource(start, size, resource_name);
-> @@ -1671,7 +1692,7 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
->   		goto out_unlock;
->   	}
->   
-> -	rc = add_memory_resource(nid, res, mhp_flags);
-> +	rc = __add_memory_resource(nid, res, mhp_flags, online_type);
->   	if (rc < 0)
->   		release_memory_resource(res);
->   
-> @@ -1679,6 +1700,30 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
->   	unlock_device_hotplug();
->   	return rc;
->   }
-> +EXPORT_SYMBOL_FOR_MODULES(__add_memory_driver_managed, "kmem");
-> +
-> +/**
-> + * add_memory_driver_managed - add driver-managed memory
-> + * @nid: NUMA node ID where the memory will be added
-> + * @start: Start physical address of the memory range
-> + * @size: Size of the memory range in bytes
-> + * @resource_name: Resource name in format "System RAM ($DRIVER)"
-> + * @mhp_flags: Memory hotplug flags
-> + *
-> + * Add driver-managed memory with the system default online type set by
-> + * build config or kernel boot parameter.
-> + *
-> + * See __add_memory_driver_managed for more details.
-> + *
-> + * Return: 0 on success, negative error code on failure.
-> + */
-> +int add_memory_driver_managed(int nid, u64 start, u64 size,
-> +			      const char *resource_name, mhp_t mhp_flags)
-> +{
-> +	return __add_memory_driver_managed(nid, start, size, resource_name,
-> +			mhp_flags,
-> +			mhp_get_default_online_type());
-> +}
->   EXPORT_SYMBOL_GPL(add_memory_driver_managed);
->   
->   /*
-
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
-
-
+>  drivers/nvdimm/nd_virtio.c | 22 ++++------------------
+>  drivers/nvdimm/pmem.c      |  2 +-
+>  2 files changed, 5 insertions(+), 19 deletions(-)
+>
+> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> index 4176046627beb..4b2e9c47af0f5 100644
+> --- a/drivers/nvdimm/nd_virtio.c
+> +++ b/drivers/nvdimm/nd_virtio.c
+> @@ -110,27 +110,13 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+>  /* The asynchronous flush callback function */
+>  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+>  {
+> -       /*
+> -        * Create child bio for asynchronous flush and chain with
+> -        * parent bio. Otherwise directly call nd_region flush.
+> -        */
+> -       if (bio && bio->bi_iter.bi_sector != -1) {
+> -               struct bio *child = bio_alloc(bio->bi_bdev, 0,
+> -                                             REQ_OP_WRITE | REQ_PREFLUSH,
+> -                                             GFP_ATOMIC);
+> +       int err;
+>
+> -               if (!child)
+> -                       return -ENOMEM;
+> -               bio_clone_blkg_association(child, bio);
+> -               child->bi_iter.bi_sector = -1;
+> -               bio_chain(child, bio);
+> -               submit_bio(child);
+> -               return 0;
+> -       }
+> -       if (virtio_pmem_flush(nd_region))
+> +       err = virtio_pmem_flush(nd_region);
+> +       if (err > 0)
+>                 return -EIO;
+>
+> -       return 0;
+> +       return err;
+>  };
+>  EXPORT_SYMBOL_GPL(async_pmem_flush);
+>  MODULE_DESCRIPTION("Virtio Persistent Memory Driver");
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 82ee1ddb3a445..058d2739c95a1 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -242,7 +242,7 @@ static void pmem_submit_bio(struct bio *bio)
+>         }
+>
+>         if ((bio->bi_opf & REQ_FUA) && !bio->bi_status)
+> -               ret = nvdimm_flush(nd_region, bio);
+> +               ret = nvdimm_flush(nd_region, NULL);
+>
+>         if (ret)
+>                 bio->bi_status = errno_to_blk_status(ret);
+> --
+> 2.52.0
