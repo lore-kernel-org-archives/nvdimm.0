@@ -1,401 +1,347 @@
-Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010024.outbound.protection.outlook.com [52.101.46.24])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5DDB3DA7F6
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 14:58:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782313098; cv=none; b=AT/jbqy7lRyy4l+eV+xTPlmNalY6UnfFhE3IcI2H24yIo/bDnDmTOLQ9/DNlDz6j/T1F8fTWYHxzehtpxB0X/b64m3tyQYU+o7bghK6HYCQrWNjlPwK5hxl4taRR0HuCZ6Fucy9Y6PFgk5gi+9ExdKxYnypjHEQQ/WE+OPyewIE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782313098; c=relaxed/simple;
-	bh=ii43xFy0tDyBF59C9FOLmKxiCEoKpj3fiU5W0+y+0f4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FIpOx6kgp2OT38Z5rUh0BN1EXROimz8rLFR4LuXtZ2M7X8pU9a+diCjJdt3zDUaSuzvAE357G9NqFPNPtsMIpSjh3LHIdlhV66us/pvsfAjyhDAhQfPV2+HabT4Yu3jFGf+0o3wMSmgN+quk9xknRtpXKqkosdffLNgZ4PrEalc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Bk7miesh; arc=none smtp.client-ip=209.85.160.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8120C3C6A38
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 14:59:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.24
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782313151; cv=fail; b=C1flf8k3fTpH5lEOOSKU4Iksl58rvPcCSOD7BRMdtI266DPJ/k/SN5vMY8xH9TOMEiL1hApIg+HAMUNf6isIWXIXnc5zsLhUN4gjO9QMXIIohQJspcxPhPfHrlmPl8Xa+Q5Hsc3SMunNcQ56UpLa76y2wicX2K3vY1scaIWQDEk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782313151; c=relaxed/simple;
+	bh=0kSi2uR5NKwxTfKWwsIiyPnDPLp7kU0++PQI2/fD9+8=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=eIUQCAW7hZFWJmwC9urkH5g+Ld6paPcB7oCOct6Yx0d9fE0/wS2+9nXXqGvquhTomo/gRrh23P3ng9oXUcArUdtpZu272MlBYygb7KU7H/aEH6tNfligrCPAi4Lb+By3dEb33SzbiNJV28gLuaqIT8bGOTCk8JRCvmGACvHgJaI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=fsmWY5xT; arc=fail smtp.client-ip=52.101.46.24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Bk7miesh"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-517583cb07aso10011051cf.2
-        for <nvdimm@lists.linux.dev>; Wed, 24 Jun 2026 07:58:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1782313095; x=1782917895; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Ccu6+dOqqZdEpVufOt6x4Cg2c1A1kw030+HXK8hkrU0=;
-        b=Bk7mieshAx+9wamrqfeJTZSno6opf91R5YLoSe+azgS9IoVt+tWLMjp1gN5z9JZdjn
-         6XVkzNUambl4PD7iPUALVCAWrFn2mD8bfSOlheLe9Pison4PXETtXm0pm//J/nXl7uMF
-         P7tIQVeHuiLm0jCk9GHDk5dU9/4jZrBv+W3IIGid3U5jqpBiTzUIwfvyFPLFsunJWe5X
-         RPdP1QXAXZOifev+zLO8sKQOwPIzN1xsfKnYMFXrvjl/Rl3pb8pf48F0tOlOvTOAR9oV
-         5sKjLGqD2kzqG1urqnoL5y1BjXRuVpVBumXQSI3SfRmVs6oFgfaIWvZ4ZgSolSNFwTdY
-         rLcg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782313095; x=1782917895;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=Ccu6+dOqqZdEpVufOt6x4Cg2c1A1kw030+HXK8hkrU0=;
-        b=f6ktxTkePZSFVfF1GKyGG81zIeGzv6JZxGAltlUQxBcXcSES29PxExUBF5RxfMfRCd
-         viDCWGRJUPphPDWwh4d6Szn2kbDpfxJdhA4JL1MOSYnjBpFZHAw+nzQRdUjgU3fB6XRV
-         RGfoEOfWh0KGeTzsiMCeyQLIHq0lSWIurtBZEdgqZXlqztCOdmatieWj8zgpnOUjGd0S
-         xbaqgycci0Co4DMBwO7/AFxc4b7Gn+QH/Vk87hv3xAQgRoOJzJ2eNh4Oo1uCaHlITzDh
-         5geAnp195i4Z+NH+1C4w379oBUSMvvAoRAeDYkh5IG+gXxnHZ8Fpkk1Vc7JMJwm3eeqA
-         rJ3w==
-X-Forwarded-Encrypted: i=1; AFNElJ+q6KyhIox1bIrTWM/tJoHvqnS8Owwewo8O6ZN+o/2EW+/dYOaCjTFOhlu8n95htWQPrH9zmxk=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzSHDCnuOAOgCignS/rBYjx1sbsy89h7WZD8qzIDZzxEDCTudcY
-	SVG1XXE8tNy2aPR2f8EQNqN76/Lz30MVHT7k4+g7QU2whd1iN/vH/u6MWyWrtH6xlqw=
-X-Gm-Gg: AfdE7cmhNY1bKkxUeLLWJTFpWDE9p2XZqyrT32TttjtzoSN6sbhLazk8Nc8wHpEMJjE
-	QHEmfGs3CRtSwNKEX4seD7OotX6TQbvRuxFZyW7pdInsjw2gMmY5mDQNqjhh5PYU+8n9s87yERO
-	LGJl9e5OYo+Xb+nnwwujvI+SIr2op5RpQyptkz7Py6RWgF4dkXySHkqCCIEs81TcdbW4ZIeXQMq
-	rqm1/iWxMC0P+2u2UUOCofG/BztX5w9++onqy6zsvfLQnGa05EtJ/9LkSXXOJK+pmcXA05wjXUN
-	rxcxNP9e/3ckxcNk8dWOM4QYK0du6LeSjPtc8U5hd+ZA9rCWqSzplWnVOTfwA6j5wWO+5tgG6aA
-	6XyL/1jjwefK8FPNNHQ0dw/QEkoq7b3Hg0q5Fk0LJpLW0wI3VkIc7l/CmE8J46u5cRvQOi3TJgw
-	+YCVVxM310MPNRH/sSunUpqoCm40uBgauCpNftDzZ4blpPuQI7DeSn8PauwlbW5KpxCwXthVszm
-	w==
-X-Received: by 2002:ac8:5f4d:0:b0:50f:c1d4:d9e1 with SMTP id d75a77b69052e-51a61bf7488mr58332751cf.38.1782313094317;
-        Wed, 24 Jun 2026 07:58:14 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F.lan (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51a51ae8ee7sm49502301cf.24.2026.06.24.07.58.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Jun 2026 07:58:13 -0700 (PDT)
-From: Gregory Price <gourry@gourry.net>
-To: linux-mm@kvack.org,
-	nvdimm@lists.linux.dev
-Cc: linux-kernel@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	linux-kselftest@vger.kernel.org,
-	kernel-team@meta.com,
-	david@kernel.org,
-	osalvador@suse.de,
-	gregkh@linuxfoundation.org,
-	rafael@kernel.org,
-	dakr@kernel.org,
-	djbw@kernel.org,
-	vishal.l.verma@intel.com,
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="fsmWY5xT"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=SQJyPQw3iJw/XVXORryeqb415P8iokkB+36yNPfIj1B4uEBE4ekZNwHc7XZtwh671QhhulKVDKlRuEUcksUNNviLDyJqMWcVg+e+zepIZuM/v9AZpn3FU1I7v2Cw7WWegdi/pzxbvSULKb6WaEgs5SzHDlTDs7Z6mf1Awg0S0BLPU16FarAVwIMQ3bxLYasAtrhuLoVwb0YYU2s1tJ2SR3LXU+TuN+gpSHwkXkrIXdfMldC3z7p+KDAkASTAPatsOxnqy2JNIrhSZPNIF2axLrPBuQSVubeXEsjO/tIFRYgbiO5za721ORqWj/XEezQfOIcPji3ZLD0T9Wqz7XqqGg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=0raGN+rtNL5z/BX5FRPM+DqnT+aIc6t2QejLXBPq4Is=;
+ b=LDLbPZqdCb9v5VGj8ikXPrN+4V/IQpUazbBbgB73MsKG4UgFX/glyTjSiOcSS/SRz8sj8M8wok/rtYbgpLk4XGDMiiQWEcYyel4Wuv96poRH075uXw9ZH7VrlEv1GbvuqdqKemo3TOGrA3oaZ0RGvcBkNzh0sjS0qwdSc6nTuKg4yftQMvkg13/V23yaJObw5qo7tEHIZtLDsJiL7fk18G2uYU6wYs3p+J4VmstJCqnJ90ZkKIinru6R7NVGOECR4NrAEz0xDOOfP8p3Lfh5dn8V3K74G4uny4rDHW93nb96F0+Q4R/4IEUDWOb2t5UQaWrM849wS4YgFY1BBlVlYQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=0raGN+rtNL5z/BX5FRPM+DqnT+aIc6t2QejLXBPq4Is=;
+ b=fsmWY5xTQsoVHj3AniIiW1z7u+xneenKPw0xi8Voee8bREqdQ9DKSEVLdWqnqpdrHioKPWrRki8fxfmHVsHfRV9w4fksEo9fJjLUrC8vbqvkPXtjO9CoNcUNeswEGKvaVOYFfO6uCwkZ05jbiRYQnuxmDrilcoRY2QV0RPrjT2Z/8yAq/GBvqI2FACHsYoHPmd94ERTjBL8AepWiKBOzzxcJtTXKn23YPrVhJRIktomlz3cEBef6rYZDE8FaCB79KtF1WL3/oG8VzwDg7EfkPHHlSqGtiKoawNkQ56T+fUq502FrhmVICVpQ819OTCenwLka1Jy5Jrec9RfRDRg4IQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MW2PR12MB2380.namprd12.prod.outlook.com (2603:10b6:907:4::32)
+ by BL3PR12MB6379.namprd12.prod.outlook.com (2603:10b6:208:3b2::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.159.14; Wed, 24 Jun
+ 2026 14:59:01 +0000
+Received: from MW2PR12MB2380.namprd12.prod.outlook.com
+ ([fe80::90d:c5c:6a5e:94a5]) by MW2PR12MB2380.namprd12.prod.outlook.com
+ ([fe80::90d:c5c:6a5e:94a5%6]) with mapi id 15.21.0159.013; Wed, 24 Jun 2026
+ 14:58:58 +0000
+From: Richard Cheng <icheng@nvidia.com>
+To: dave@stgolabs.net,
+	jic23@kernel.org,
 	dave.jiang@intel.com,
-	akpm@linux-foundation.org,
-	ljs@kernel.org,
-	liam@infradead.org,
-	vbabka@kernel.org,
-	rppt@kernel.org,
-	surenb@google.com,
-	mhocko@suse.com,
-	shuah@kernel.org,
-	gourry@gourry.net,
 	alison.schofield@intel.com,
-	Smita.KoralahalliChannabasappa@amd.com,
-	ira.weiny@intel.com,
-	apopple@nvidia.com
-Subject: [PATCH v5 9/9] selftests/dax: add dax/kmem hotplug sysfs regression test
-Date: Wed, 24 Jun 2026 10:57:44 -0400
-Message-ID: <20260624145744.3532049-10-gourry@gourry.net>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260624145744.3532049-1-gourry@gourry.net>
-References: <20260624145744.3532049-1-gourry@gourry.net>
+	vishal.l.verma@intel.com,
+	djbw@kernel.org,
+	danwilliams@nvidia.com,
+	nvdimm@lists.linux.dev
+Cc: iweiny@kernel.org,
+	ming.li@zohomail.com,
+	kobak@nvidia.com,
+	kaihengf@nvidia.com,
+	kees@kernel.org,
+	newtonl@nvidia.com,
+	kristinc@nvidia.com,
+	mochs@nvidia.com,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Richard Cheng <icheng@nvidia.com>
+Subject: [PATCH] test/cxl-mbox: Regression test for huge CXL_MEM_SEND_COMMAND out.size
+Date: Wed, 24 Jun 2026 22:58:43 +0800
+Message-ID: <20260624145843.55116-1-icheng@nvidia.com>
+X-Mailer: git-send-email 2.50.1
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: KUZPR01CA0022.apcprd01.prod.exchangelabs.com
+ (2603:1096:d10:26::16) To MW2PR12MB2380.namprd12.prod.outlook.com
+ (2603:10b6:907:4::32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MW2PR12MB2380:EE_|BL3PR12MB6379:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8747fb6c-5169-4438-2ef2-08ded2011c1d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|7416014|1800799024|376014|23010399003|3023799007|18002099003|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	Kw2Fb13h1Y2IiVhD1XKnTjEb9PzGS0B8gdyFyJB02BhydnmaD9WNJgl/wcpOir/U1mzwORzwfTjKQvP6ZBVZMymZ41/y/TCpBUBPDZAK1NN5KxjxRqziDBLMolizaHADitTxlFR0lzL3i5iHfKHY1QXz6fyTNFEP988nzyUt0aun/mTRyoaQ2BPeeYokwKxYA1FTtjrAjbgG4nZ+mj7ZBt9+/wOG6TuyV0fZtyOzYV2Slmh722bXBH6OgRe1Ut+iG19j91uLEizoNN/E+HUEGTTEQCARAPmoI0Ib4nFMR5pNUnMBdlUL5OfN850P0Ex+ZBoteI9jPP3uTIsev9IPUQ4IJNPlu8F0lAkRyOUQS0NcqNNLunnDAyPFqYjXeIatjlbOvZblzE1YRBEoqtQnZtdzWbdyn1YfygiHMZc3swDmwiODJg2nvIsvQbsglXiYB5KdPl2n9De8Oz3CVkxVmTvzGW9aFRa1R9216RsXC8S3mclbO5kJbfWjl/AIs4oZ66hbmAypmI4jooWp8TCHAwFDD1UKzPeZzop5+xSICN81nj0nAtYhm/N/YQQPlZZuDeMai0ayoyXUQdDCkqAHNmjVY4V4T6Q3+KdAzcUBiaKIt7X+JsKAybEHrPS3C5AI3WE7P7XNhaMGOHkqRJ/MftDyQ+f8hzXlrdCMYokf+2M=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW2PR12MB2380.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(1800799024)(376014)(23010399003)(3023799007)(18002099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?ELCDllORdbM+4dGLs5uCzrXbTKp+NzVg8sbKFPtAx+PwzuXFgr2symOKjLcc?=
+ =?us-ascii?Q?/Yrd6hWZNItSplDTbrrxW/zvFhiA+S3k0w+rPgLAqT2czc63g/UuXNeo3sC+?=
+ =?us-ascii?Q?9hLV9y0v3eXIF2Xshg59AU60tGlqB9p9g6ykErPuZa9YePn2ldUlWH3gwXFD?=
+ =?us-ascii?Q?Sn9wxdbmz9yo2xNgcRbwJhSz/ss1pbECfgyEiBpBhd6s0GaUw+7Diw1GeSuI?=
+ =?us-ascii?Q?bGN0hO76iJ+RZGmNUydlUlRelvI905OIxlNo9UxXgHIonmfMUtNuUZkOHuAg?=
+ =?us-ascii?Q?ZyUzD4HCrkhEsu8pBwrMte3SHdEtSOOJ+B8NmFcQ2FlxY/CSG4MZnGQPIA0p?=
+ =?us-ascii?Q?fcHn/DxVDgiFKp/Uw7Z5P8tQR/bkbCFyV+huOpOC6vqqUpTL26B0CQ27dhyN?=
+ =?us-ascii?Q?35hh4X7tZp6DwtHDnciPD+wg0qUefGscsnPpLszyUMD6qukuTulxkJHpyeNZ?=
+ =?us-ascii?Q?sqSoJxOZoO7yfkRsg0JpPb5K+AZ+LhsKxLphvbw4/qJN4nEw/PwfcJRuOC76?=
+ =?us-ascii?Q?E2JvUZyrxrYnb+v8hz2oHYc1CaByLPVO5VCVrUWzJt2ZRu6TMMCAiPaiSwRt?=
+ =?us-ascii?Q?09A7xFthuqWoDnlIMAd3T0ZzLKKaVRKXGyrFBa1T1J9O1b7eGrr+VhN5jYRY?=
+ =?us-ascii?Q?zTtmt0nb982SbZpoykc9piQpICGm89cwOWIDNThRd7ldBtUodZvhigqBlSJq?=
+ =?us-ascii?Q?8Ma04sCk//umSGaO6KrMCdm72dyxQcd0OCgiXi6PWwIzCH9UgsRhXjjyr2hL?=
+ =?us-ascii?Q?EQIpwtGzfIAppO6Kc5lUwEfMTuPvhyBsqMc21/dj13g3WtcU0fSpMYKmA7PD?=
+ =?us-ascii?Q?22HWDWqvR1QhnrTBjXM0pk1JPG6G7XmD1zSVt/HI1n9D0UAL2V5LNfD9RTdB?=
+ =?us-ascii?Q?eq40xRC1+ADnuRUxcEJqfYS7BqGnhjbV0MGs+WBs9Ou0d9/89oRMKB8sBgpK?=
+ =?us-ascii?Q?MmP68o2twHmsTnJ7ytt5ps2I02uZE+7Z/z+KuDjDsr+Ak6yEfJZ+SLH81mHe?=
+ =?us-ascii?Q?NzyTBQGNdXxIvM0Fj2NZLrbUEPtz2ka7njeAl6kvXSdNg/lRGd+/MOYF2Kzx?=
+ =?us-ascii?Q?Hrds+3E3oHrJa3ARTMB9OX+x4zFyBmfUUvTGwy9YitVOoa/UoJmJz/w2y6iC?=
+ =?us-ascii?Q?v0XjqlqpEHPOP19PLkkiGqpUqSZJwsWZBOZx7IbYu2/j1nCQWQxgvj4hZHAc?=
+ =?us-ascii?Q?bijF1vD+l0UKCcAlOkeXrps3DFIuLWAIB2ErDn7/sPoPAUC1O0a4O/LQjnLP?=
+ =?us-ascii?Q?IXqZOwa1GK+0Lk5JyWCYneul22Ko+0mlPTMynxnCv40ZzpdImlA3RiRdYAUp?=
+ =?us-ascii?Q?aFerlGnqvkpezWG/FrDhYT7PKngrfRxyPdhwQ2nKcLFvLvGudWxWcMxnjy4A?=
+ =?us-ascii?Q?lAPhF7Nqwwe04mpEjeE/JrklIpFpz1I8ZwvblMy2r37zDdY5jtHRt8aorstl?=
+ =?us-ascii?Q?eenWwlUoUgl811rrDtAANHQIq5JG0LUW8ZecK3z/HHs06V9cPW160lahtOHn?=
+ =?us-ascii?Q?ySkj9LDzK3vDztTvoaGNYzKgQeLo4zXwQYMGKty0x0Dk7/Za0GiHAMGtyeCQ?=
+ =?us-ascii?Q?Uc8Yohy1DcBdR1hJuGR/zsXUvZa0VvK4xk8xobxSnK4KXoo7c3WCVBn4Vw+q?=
+ =?us-ascii?Q?97DxdvwpTekFL0hCIf1uLKdB8YTiWCk/rv7aVOjpBU2xkHg0fN0c9+MN19MT?=
+ =?us-ascii?Q?1FCCslcuiL4WmwtZ519HZHbmPnIqZxESHXVJKe3S3c+YrjJXVaA6sulMZqv8?=
+ =?us-ascii?Q?y1ZGFbCv3g=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8747fb6c-5169-4438-2ef2-08ded2011c1d
+X-MS-Exchange-CrossTenant-AuthSource: MW2PR12MB2380.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jun 2026 14:58:57.6627
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 9M5kY/RZ6AUvCjRYmDd6WUlwRIkw8ys9iW+ruj5i/N+x358jBS3Z5ZZUNVcbrom0t2bXv2EfdcCF9OaNUsd5MA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR12MB6379
 
-Add a kselftest for the dax/kmem whole-device "state" sysfs attribute
-(/sys/bus/dax/devices/daxX.Y/state), which transitions a kmem-backed
-dax device between "unplugged", "online" and "online_movable".
+Implement a regression test for unbounded kvzalloc() in the kernel's
+cxl_mbox_cmd_ctor(), which a CXL_MEM_SEND_COMMAND with an out.size
+greater than INT_MAX could drive into a size > INT_MAX kvmalloc() WARN.
 
-The kselftest also includes a test to demonstrate the force-unbind
-does not deadlock - but this is a destructive test.  The dax device
-can never be rebound after doing this.
+libcxl's cxl_cmd_set_output_payload() rejects an out.size larger than
+the mailbox payload_max, so the test crafts a raw struct
+cxl_send_command and issues the CXL_MEM_SEND_COMMAND ioctl directly
+against the cxl_test mock memdev.
 
-Provisioning a devdax device and binding it to kmem needs daxctl/ndctl
-out of scope for an in-tree selftest, so the test discovers an already
-kmem-bound dax device and SKIPs when none are present or the memory
-cannot be freed to reach a known baseline.
+The test is for a kernel bug fix [1].
 
-When a device is available it validates the interface contract:
-  - online / online_movable actually add memory (MemTotal grows),
-  - online is idempotent,
-  - switching between online types without unplug is rejected,
-  - unplug removes memory and the reported state is "unplugged"
-  - invalid input is rejected.
-
-One specific regression test:
-    online -> unplug -> online_movable -> unplug
-
-Re-online must re-reserve per-range resources so subsequent unplug
-actually offlines and removes instead of silently reporting success
-while the memory stays online.
-
-Signed-off-by: Gregory Price <gourry@gourry.net>
+[1]: https://lore.kernel.org/all/20260624144147.53997-1-icheng@nvidia.com/
+Signed-off-by: Richard Cheng <icheng@nvidia.com>
 ---
- tools/testing/selftests/Makefile              |   1 +
- tools/testing/selftests/dax/Makefile          |   6 +
- tools/testing/selftests/dax/config            |   4 +
- .../testing/selftests/dax/dax-kmem-hotplug.sh | 207 ++++++++++++++++++
- tools/testing/selftests/dax/settings          |   1 +
- 5 files changed, 219 insertions(+)
- create mode 100644 tools/testing/selftests/dax/Makefile
- create mode 100644 tools/testing/selftests/dax/config
- create mode 100755 tools/testing/selftests/dax/dax-kmem-hotplug.sh
- create mode 100644 tools/testing/selftests/dax/settings
+ test/cxl-mbox.c  | 129 +++++++++++++++++++++++++++++++++++++++++++++++
+ test/cxl-mbox.sh |  48 ++++++++++++++++++
+ 2 files changed, 177 insertions(+)
+ create mode 100644 test/cxl-mbox.c
+ create mode 100755 test/cxl-mbox.sh
 
-diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
-index 6e59b8f63e41..8c2b4f97619c 100644
---- a/tools/testing/selftests/Makefile
-+++ b/tools/testing/selftests/Makefile
-@@ -14,6 +14,7 @@ TARGETS += core
- TARGETS += cpufreq
- TARGETS += cpu-hotplug
- TARGETS += damon
-+TARGETS += dax
- TARGETS += devices/error_logs
- TARGETS += devices/probe
- TARGETS += dmabuf-heaps
-diff --git a/tools/testing/selftests/dax/Makefile b/tools/testing/selftests/dax/Makefile
+diff --git a/test/cxl-mbox.c b/test/cxl-mbox.c
 new file mode 100644
-index 000000000000..25a4f3d73a5b
+index 0000000..d81327b
 --- /dev/null
-+++ b/tools/testing/selftests/dax/Makefile
-@@ -0,0 +1,6 @@
-+# SPDX-License-Identifier: GPL-2.0
-+all:
++++ b/test/cxl-mbox.c
+@@ -0,0 +1,129 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2026 Nvidia Corporation. All rights reserved.
++#include <errno.h>
++#include <fcntl.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stddef.h>
++#include <stdlib.h>
++#include <syslog.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/ioctl.h>
++#include <cxl/libcxl.h>
++#include <cxl/cxl_mem.h>
 +
-+TEST_PROGS := dax-kmem-hotplug.sh
++static const char provider[] = "cxl_test";
 +
-+include ../lib.mk
-diff --git a/tools/testing/selftests/dax/config b/tools/testing/selftests/dax/config
-new file mode 100644
-index 000000000000..4c9aaeb6ceb4
---- /dev/null
-+++ b/tools/testing/selftests/dax/config
-@@ -0,0 +1,4 @@
-+CONFIG_DEV_DAX=m
-+CONFIG_DEV_DAX_KMEM=m
-+CONFIG_MEMORY_HOTPLUG=y
-+CONFIG_MEMORY_HOTREMOVE=y
-diff --git a/tools/testing/selftests/dax/dax-kmem-hotplug.sh b/tools/testing/selftests/dax/dax-kmem-hotplug.sh
-new file mode 100755
-index 000000000000..803bbd5a6409
---- /dev/null
-+++ b/tools/testing/selftests/dax/dax-kmem-hotplug.sh
-@@ -0,0 +1,207 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Exercise the dax/kmem "state" sysfs attribute:
-+#   /sys/bus/dax/devices/daxX.Y/state  ->  unplugged | online | online_movable
-+#
-+# The test needs a dax device already bound to the kmem driver.
-+# If no suitable device is found the tests SKIP.
-+#
-+# A dax device can be provisioned with the memmap= boot param, e.g.:
-+#   memmap=2G!4G
-+#
-+# then, in the booted system:
-+#
-+#   ndctl create-namespace -m devdax -e namespace0.0 -f
-+#   daxctl reconfigure-device -N -m system-ram dax0.0   # bind kmem
-+#   ./dax-kmem-hotplug.sh
++/*
++ * The cxl_test mock advertises a 4 KiB (SZ_4K) mailbox payload_size and
++ * IDENTIFY returns a full struct cxl_mbox_identify. Post-fix the kernel
++ * clamps the output allocation to payload_size and copies that many bytes
++ * back into out.payload, so the buffer must be >= payload_size. 64 KiB is
++ * comfortably above the mock's 4 KiB payload.
++ */
++#define OUT_BUF_SIZE	(64 * 1024)
 +
-+# shellcheck disable=SC1091
-+DIR="$(dirname "$(readlink -f "$0")")"
-+. "$DIR"/../kselftest/ktap_helpers.sh
++/*
++ * Regression for the unbounded kvzalloc() in cxl_mbox_cmd_ctor() driven by a
++ * huge CXL_MEM_SEND_COMMAND out.size. The kernel fix CLAMPS the output
++ * allocation to the mailbox payload_size; it does not reject the request.
++ * Assert the ioctl SUCCEEDS (no -ENOMEM) -- do NOT assert -EINVAL.
++ */
++static int test_cxl_mbox_huge_out_size(struct cxl_memdev *memdev)
++{
++	struct cxl_send_command c = { 0 };
++	const char *devname;
++	char path[256];
++	void *buf;
++	int fd, rc;
 +
-+DAX_BASE=/sys/bus/dax/devices
++	devname = cxl_memdev_get_devname(memdev);
++	if (!devname)
++		return -ENODEV;
 +
-+memtotal_kb() { awk '/^MemTotal:/ {print $2}' /proc/meminfo; }
-+get_state() { cat "$HP" 2>/dev/null; }
-+# set_state STATE -- write a state to the state attribute; returns the
-+# write's exit status (0 = accepted by the kernel)
-+set_state() { echo "$1" > "$HP" 2>/dev/null; }
++	snprintf(path, sizeof(path), "/dev/cxl/%s", devname);
 +
-+find_kmem_dax() {
-+	local d drv
-+	for d in "$DAX_BASE"/dax*; do
-+		[ -e "$d/state" ] || continue
-+		drv=$(readlink "$d/driver" 2>/dev/null)
-+		[ "$(basename "${drv:-}")" = kmem ] || continue
-+		basename "$d"
-+		return 0
-+	done
-+	return 1
++	fd = open(path, O_RDWR);
++	if (fd < 0) {
++		if (errno == ENOENT || errno == ENODEV)
++			return -ENODEV;
++		fprintf(stderr, "failed to open %s: %s\n", path,
++			strerror(errno));
++		return -errno;
++	}
++
++	buf = calloc(1, OUT_BUF_SIZE);
++	if (!buf) {
++		rc = -ENOMEM;
++		goto out;
++	}
++
++	c.id = CXL_MEM_COMMAND_ID_IDENTIFY;
++	/*
++	 * 0x80000000 (2^31, > INT_MAX) is the proven reproducer that trips the
++	 * size > INT_MAX kvmalloc() WARN. out.size is __s32 in this vendored
++	 * UAPI; cast to avoid -Woverflow, the kernel reads the same 4 bytes
++	 * (kernel UAPI declares it __u32).
++	 */
++	c.out.size = (typeof(c.out.size))0x80000000U;
++	c.out.payload = (__u64)(uintptr_t)buf;
++
++	rc = ioctl(fd, CXL_MEM_SEND_COMMAND, &c);
++
++	/* Pass iff the kernel clamped (success), not rejected. */
++	if (rc == 0 && c.retval == 0) {
++		rc = 0;
++		goto out;
++	}
++
++	fprintf(stderr,
++		"CXL_MEM_SEND_COMMAND huge out.size mishandled: rc=%d errno=%d retval=%u\n",
++		rc, errno, c.retval);
++	rc = -ENXIO;
++
++out:
++	free(buf);
++	close(fd);
++	return rc;
 +}
 +
-+ktap_print_header
++static int test_cxl_mbox(struct cxl_ctx *ctx, struct cxl_bus *bus)
++{
++	struct cxl_memdev *memdev;
 +
-+if [ "$UID" != 0 ]; then
-+	ktap_skip_all "must be run as root"
-+	exit "$KSFT_SKIP"
-+fi
++	cxl_memdev_foreach(ctx, memdev) {
++		if (cxl_memdev_get_bus(memdev) != bus)
++			continue;
++		return test_cxl_mbox_huge_out_size(memdev);
++	}
 +
-+DAX=$(find_kmem_dax)
-+if [ -z "$DAX" ]; then
-+	ktap_skip_all "no kmem-bound dax device with a state attribute"
-+	exit "$KSFT_SKIP"
-+fi
-+HP=$DAX_BASE/$DAX/state
-+ORIG=$(get_state)
++	return -ENODEV;
++}
 +
-+# A failure to reach the baseline is environmental (memory in use), not an
-+# interface failure, so skip rather than fail.
-+set_state unplugged; rc=$?
-+if [ "$rc" != 0 ] || [ "$(get_state)" != unplugged ]; then
-+	ktap_skip_all "$DAX: cannot reach 'unplugged' baseline (memory in use?)"
-+	[ -n "$ORIG" ] && set_state "$ORIG"
-+	exit "$KSFT_SKIP"
-+fi
-+mt_unplugged=$(memtotal_kb)
++int main(int argc, char *argv[])
++{
++	struct cxl_ctx *ctx;
++	struct cxl_bus *bus;
++	int rc;
 +
-+DRV=/sys/bus/dax/drivers/kmem
-+AOB=/sys/devices/system/memory/auto_online_blocks
++	rc = cxl_new(&ctx);
++	if (rc < 0)
++		return rc;
 +
-+ktap_print_msg "using $DAX (initial state was: $ORIG)"
-+ktap_set_plan 11
++	cxl_set_log_priority(ctx, LOG_DEBUG);
 +
-+set_state online; rc=$?
-+mt_online=$(memtotal_kb)
-+if [ "$rc" = 0 ] && [ "$(get_state)" = online ] && [ "$mt_online" -gt "$mt_unplugged" ]; then
-+	ktap_test_pass "online: state=online, MemTotal $mt_unplugged -> $mt_online kB"
-+else
-+	ktap_test_fail "online: rc=$rc state=$(get_state) MemTotal $mt_unplugged -> $mt_online"
-+fi
++	bus = cxl_bus_get_by_provider(ctx, provider);
++	if (!bus) {
++		fprintf(stderr, "%s: unable to find bus (%s)\n",
++			argv[0], provider);
++		rc = -ENODEV;
++		goto out;
++	}
 +
-+set_state online; rc=$?
-+if [ "$rc" = 0 ] && [ "$(get_state)" = online ]; then
-+	ktap_test_pass "online idempotent"
-+else
-+	ktap_test_fail "online idempotent: rc=$rc state=$(get_state)"
-+fi
++	rc = test_cxl_mbox(ctx, bus);
 +
-+set_state online_movable; rc=$?
-+if [ "$rc" != 0 ] && [ "$(get_state)" = online ]; then
-+	ktap_test_pass "reject online_movable without intervening unplug"
-+else
-+	ktap_test_fail "online->online_movable not rejected: rc=$rc state=$(get_state)"
-+fi
-+
-+set_state unplugged; rc=$?
-+mt=$(memtotal_kb)
-+if [ "$rc" = 0 ] && [ "$(get_state)" = unplugged ] && [ "$mt" -lt "$mt_online" ]; then
-+	ktap_test_pass "unplug from online: MemTotal $mt_online -> $mt kB"
-+else
-+	ktap_test_fail "unplug from online: rc=$rc state=$(get_state) MemTotal $mt_online -> $mt"
-+fi
-+
-+set_state online_movable; rc=$?
-+mt_movable=$(memtotal_kb)
-+if [ "$rc" = 0 ] && [ "$(get_state)" = online_movable ] && [ "$mt_movable" -gt "$mt_unplugged" ]; then
-+	ktap_test_pass "online_movable after unplug: MemTotal $mt_unplugged -> $mt_movable kB"
-+else
-+	ktap_test_fail "online_movable after unplug: rc=$rc state=$(get_state) MemTotal=$mt_movable"
-+fi
-+
-+# The online -> unplug -> online_movable -> unplug cycle once regressed:
-+# a re-online failed to re-reserve the per-range resources, so the final unplug
-+# reported success while leaving the memory online.  Assert it is really freed.
-+set_state unplugged; rc=$?
-+mt=$(memtotal_kb)
-+if [ "$rc" != 0 ]; then
-+	ktap_test_skip "unplug from movable not accepted (memory in use?) rc=$rc"
-+elif [ "$(get_state)" = unplugged ] && [ "$mt" -lt "$mt_movable" ]; then
-+	ktap_test_pass "unplug from online_movable removed memory: $mt_movable -> $mt kB"
-+else
-+	ktap_test_fail "unplug from movable reported success but memory remained: state=$(get_state) MemTotal $mt_movable -> $mt"
-+fi
-+
-+set_state online_kernel; rc=$?
-+mt=$(memtotal_kb)
-+if [ "$rc" = 0 ] && [ "$(get_state)" = online_kernel ] && [ "$mt" -gt "$mt_unplugged" ]; then
-+	ktap_test_pass "online_kernel: MemTotal $mt_unplugged -> $mt kB"
-+else
-+	ktap_test_fail "online_kernel: rc=$rc state=$(get_state) MemTotal=$mt"
-+fi
-+set_state unplugged
-+
-+before=$(get_state)
-+set_state bogus_state; rc=$?
-+if [ "$rc" != 0 ] && [ "$(get_state)" = "$before" ]; then
-+	ktap_test_pass "reject invalid state string"
-+else
-+	ktap_test_fail "invalid state not rejected: rc=$rc state=$(get_state)"
-+fi
-+
-+# Run several online/unplug cycles and require that each one adds/removes memory
-+set_state unplugged
-+cycle_ok=1; fail_i=0
-+for i in 1 2 3; do
-+	if ! set_state online; then cycle_ok=0; fail_i=$i; break; fi
-+	on=$(memtotal_kb)
-+	if ! set_state unplugged; then cycle_ok=0; fail_i=$i; break; fi
-+	off=$(memtotal_kb)
-+	if [ "$on" -le "$mt_unplugged" ] || [ "$off" -ge "$on" ]; then
-+		cycle_ok=0; fail_i=$i; break
-+	fi
-+done
-+if [ "$cycle_ok" = 1 ]; then
-+	ktap_test_pass "online/unplug cycle re-acquires resources (3x: memory added and freed each time)"
-+else
-+	ktap_test_fail "online/unplug cycle regressed at iteration $fail_i (on=$on off=$off baseline=$mt_unplugged)"
-+fi
-+
-+# change system default online policy while the device is unbound, and show
-+# the new system default policy is utilized across bindings.
-+set_state unplugged
-+if [ -w "$AOB" ] && [ -w "$DRV/unbind" ] && [ -w "$DRV/bind" ]; then
-+	orig_aob=$(cat "$AOB")
-+	echo "$DAX" > "$DRV/unbind" 2>/dev/null
-+	echo offline > "$AOB" 2>/dev/null
-+	echo "$DAX" > "$DRV/bind" 2>/dev/null
-+	sleep 1
-+	st=$(get_state)
-+	echo "$orig_aob" > "$AOB" 2>/dev/null		# restore system policy
-+	if [ "$st" = offline ]; then
-+		ktap_test_pass "online policy resolved at bind: auto_online_blocks=offline -> state=offline"
-+	else
-+		ktap_test_fail "bind-time policy not honored: state=$st (expected offline)"
-+	fi
-+	set_state unplugged 2>/dev/null
-+else
-+	ktap_test_skip "auto_online_blocks or driver bind/unbind not writable"
-+fi
-+
-+[ -n "$ORIG" ] && set_state "$ORIG"
-+
-+# DESTRUCTIVE: unbinding the driver while memory is online causes the resources
-+# to leak - but the unbind should not deadlock.  Instead the driver leaks it
-+# with a single "suck online" warning. This leaves the memory online and the
-+# device unbound until reboot, so it runs last.
-+set_state unplugged; set_state online
-+if [ "$(get_state)" = online ] && [ -w "$DRV/unbind" ]; then
-+	mt_on=$(memtotal_kb)
-+	dmesg -C 2>/dev/null
-+	echo "$DAX" > "$DRV/unbind" 2>/dev/null
-+	mt_after=$(memtotal_kb)
-+	# The leaked "System RAM (kmem)" regions stay in the iomem tree; reading
-+	# their names dereferences res_name, which a buggy unbind already freed.
-+	# Walk /proc/iomem to provoke that use-after-free (caught by KASAN).
-+	cat /proc/iomem > /dev/null 2>&1
-+	splat=$(dmesg 2>/dev/null | grep -ciE "KASAN|BUG:|use-after-free|general protection|Oops|refcount_t")
-+	if [ "$splat" = 0 ] && [ "$mt_after" -ge "$mt_on" ]; then
-+		ktap_test_pass "unbind while online: memory left online, no UAF/oops (MemTotal $mt_on -> $mt_after kB)"
-+	else
-+		ktap_test_fail "unbind while online regressed: splat=$splat MemTotal $mt_on -> $mt_after kB"
-+	fi
-+else
-+	ktap_test_skip "could not online device for unbind-while-online test"
-+fi
-+
-+ktap_finished
-diff --git a/tools/testing/selftests/dax/settings b/tools/testing/selftests/dax/settings
-new file mode 100644
-index 000000000000..ba4d85f74cd6
++out:
++	cxl_unref(ctx);
++	return rc;
++}
+diff --git a/test/cxl-mbox.sh b/test/cxl-mbox.sh
+new file mode 100755
+index 0000000..67fecf5
 --- /dev/null
-+++ b/tools/testing/selftests/dax/settings
-@@ -0,0 +1 @@
-+timeout=90
++++ b/test/cxl-mbox.sh
+@@ -0,0 +1,48 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2026 Nvidia Corporation. All rights reserved.
++
++. $(dirname "$0")/common
++
++BIN="$TEST_PATH"/cxl-mbox
++rc=77
++# 237 is -ENODEV
++ERR_NODEV=237
++# TAINT_WARN is bit 9
++TAINT_WARN=512
++
++trap 'err $LINENO' ERR
++
++modprobe -r cxl_test 2>/dev/null
++modprobe cxl_test
++# cxl_test alone does not autoload the mock memdev module on this box
++modprobe cxl_mock_mem
++
++main()
++{
++	test -x "$BIN" || do_skip "no CXL mailbox test"
++
++	t0=$(cat /proc/sys/kernel/tainted)
++
++	rc=0
++	"$BIN" || rc=$?
++
++	t1=$(cat /proc/sys/kernel/tainted)
++
++	echo "status: $rc"
++	if [ "$rc" -eq "$ERR_NODEV" ]; then
++		do_skip "no cxl_test memdev"
++	elif [ "$rc" -ne 0 ]; then
++		echo "fail: $LINENO" && exit 1
++	fi
++
++	if (( (t1 & TAINT_WARN) && !(t0 & TAINT_WARN) )); then
++		echo "fail: $LINENO kernel WARN taint (bit 9) set" && exit 1
++	fi
++
++	_cxl_cleanup
++}
++
++{
++	main "$@"; exit "$?"
++}
+
+base-commit: 8ad90e54f0ff4f7291e7f21d44d769d10f24e2b6
 -- 
-2.54.0
+2.43.0
 
