@@ -1,43 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7BFE31F98E;
-	Thu, 25 Jun 2026 18:29:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0795B316192;
+	Thu, 25 Jun 2026 18:29:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782412174; cv=none; b=WfGOWsP7UY02qoQ3g5Tw6x0AZ8LKOuYQtl+cJaJ+KPg0otJejxnjRCdEl68awwJkyiGoM/PfszrM6cVrM2zUb7ypFD8/qoLyW1oD5i3iuW4ixnErm+rD4/L3ww3cmcC5XIjjnamRipCrh7tIXmnQpeUVLKVAJcd8lk+xqfrK9t8=
+	t=1782412192; cv=none; b=CON2J8jkswG6T6oJ6EyNr1r4BiYNC6I1mUXEnrdkZzVEIt+vcJ9yYIKBx4/7mEkKLDJujlk6uQIVBdm836hiLflPfGtY67YLjrAySkCRslJinNI49KmXe6yZzET1uz+nIYJ0M/B8ajZZU+3DYXRA78QUCRP5/p2SbqWxVFZAqOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782412174; c=relaxed/simple;
-	bh=JvkF40AIIcuoWa+UiK9EW/a9KcmP/IGjnbsnzLQIFsQ=;
+	s=arc-20240116; t=1782412192; c=relaxed/simple;
+	bh=dl0D8O3yGITA8x0kSPOkvNjybm75n3Hvqj7jkMoRiic=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=dYZm8ISMRSCqJZRoCuL/BAmcunLO99F/N7tobeMsTCr0vfC9I/SOzlTarVXgN803ZXbOuf8ASqzW74MJ9B4hyo6C3L/IJG6vhVdorn/OL2/CZUIScgPrBVgTH94CTpvhGMJxayxssIeJfUw/rrYcOBm/iE/Rge9lZHWmB19zdvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XBZGSl5c; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=fFUFWEDDvq081p8pQr+6qMK4gLNY5zxbyL31wcGeqw/wW23p+i/85jWP1HxglvjAq4Ddy/sy9AIkjPzyk0ZExq2+kPwkSd3J+lqRI/G1dv9rilJbgV549fTHBUXCoDO/zjxbQzPRmWly6tSZsamxyqoZWSiCuGgA1STJgYLs6HM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A1E88vlP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XBZGSl5c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08C431F000E9;
-	Thu, 25 Jun 2026 18:29:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A1E88vlP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55E951F000E9;
+	Thu, 25 Jun 2026 18:29:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782412173;
-	bh=WwA+s0fwHHBfJLWTS732y1Tg5XxHb68mv3+xU8MRjp8=;
+	s=k20260515; t=1782412190;
+	bh=yByhOJg/mpsD/Vm6bO5YP+MDCBqOuqHnyjvs7t7avtY=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=XBZGSl5cQIPM/foAFkdUVUPg93LP9yvmTAYA3sriDUCu8+IeTZ5COx2c/bl7UJMpD
-	 PsbFAipoV+7A/o9WH2a1L3mNSoowpGgf/P7EeuH6P1bB1fNkgHSPrvQdEtaGMXPIfC
-	 e2lMIl0fa51tsy8DOYTolSHDhT+xwyUslj4Mys2TF2f5mBECtwgsgqvfn5IYVdmhLP
-	 b2PVIWdAXMvKDPv7Z1MGsvuYAHpC9c4AIzDKLiyhbZKP+EyqCF25q4MxokdEgwkwtI
-	 psZ4FpaKooya3xUbnq/gG6oqU3VA/HqWZmBvFoBtixNFHLNtq9eWGSDut9y9wIkxua
-	 9FBn+LGQ0Mkvw==
+	b=A1E88vlP1XKMdrKCKIpVRmvLs4ImLnErO3gocf9fWxX8xkmHzE92EftwL5tAs40a9
+	 XoQjLo8ZBsL3yWnDDcNFrRah8/lFZiiw5byinnJQj27So/E5GmRQNQFDWS3LBUIMMU
+	 S5lbBwGxYI+jhJrJelG/urgwD7iJzcemYw++ZdhTYeVvN5/gg8Fs+sVx1ZjTW+aMBb
+	 zbXpUXQ/BaK1WbNlQklPn0bAKjT9JUq7fNoobtgIfG38EJXCs6ddM1BFixzXRLtncL
+	 qfYOv71DVGaX9vxMY2eNzmbOwWolMhDUwAZcw60bLu1s58mDzw2E2kZR5ncF36e4YZ
+	 EUcHvl8LW3zOw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v11 28/31] cxl/mem: Trace Dynamic capacity Event Record
+Subject: Re: [PATCH v11 21/31] cxl + dax: Surface dax_resources on DCD Add
+ Capacity events
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Anisa Su" <anisa.su887@gmail.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <20260625112638.550691-29-anisa.su@samsung.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <20260625112638.550691-22-anisa.su@samsung.com>
 References: <20260625112638.550691-1-anisa.su@samsung.com>
- <20260625112638.550691-29-anisa.su@samsung.com>
+ <20260625112638.550691-22-anisa.su@samsung.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 25 Jun 2026 18:29:32 +0000
-Message-Id: <20260625182933.08C431F000E9@smtp.kernel.org>
+Date: Thu, 25 Jun 2026 18:29:49 +0000
+Message-Id: <20260625182950.55E951F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -46,58 +47,82 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Medium] The `cxl_dynamic_capacity` tracepoint omits `validity_flags` and=
- other critical diagnostic fields, leaving userspace unable to validate par=
-sed values.
+- [High] The dax_resource devm cleanup action is tied to the dc_extent devi=
+ce instead of the DAX region, leading to a Use-After-Free of the DAX region=
+ if the DAX driver unbinds.
 --
 
-commit 7da6c652fcb2ca33cefdf89b66affc0318921f70
+commit 20b0e06e09f045b8ed2d61cce6004f2c3647ec5a
 Author: Ira Weiny <iweiny@kernel.org>
 
-cxl/mem: Trace Dynamic capacity Event Record
+cxl + dax: Surface dax_resources on DCD Add Capacity events
 
-This commit adds tracepoints for CXL Dynamic Capacity Event Records defined
-in the CXL specification. It enables user space debugging of DC capacity
-changes by exposing the events through the trace log.
+This commit defines the DAX region .notify callback and registers a
+dax_resource for each extent when the CXL side onlines a tag group during
+a DC Add event.
 
-> diff --git a/drivers/cxl/core/trace.h b/drivers/cxl/core/trace.h
-> index a972e4ef19368..e5b88887d11b5 100644
-> --- a/drivers/cxl/core/trace.h
-> +++ b/drivers/cxl/core/trace.h
-
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 7356aaaffe577..9b5c03616b83d 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
 [ ... ]
+> @@ -182,6 +182,138 @@ static bool is_dynamic(struct dax_region *dax_regio=
+n)
+>  	return (dax_region->res.flags & IORESOURCE_DAX_DCD) !=3D 0;
+>  }
+> =20
+> +static void __dax_release_resource(struct dax_resource *dax_resource)
+> +{
+> +	struct dax_region *dax_region =3D dax_resource->region;
+> +
+> +	lockdep_assert_held_write(&dax_region_rwsem);
+> +	dev_dbg(dax_region->dev, "Extent release resource %pr\n",
+> +		dax_resource->res);
+[ ... ]
+> +static int __dax_region_add_resource(struct dax_region *dax_region,
+> +				     struct device *device,
+> +				     resource_size_t start, resource_size_t length,
+> +				     const uuid_t *tag, u16 seq_num)
+> +{
+> +	struct dax_resource *dax_resource __free(kfree) =3D
+> +				kzalloc(sizeof(*dax_resource), GFP_KERNEL);
+[ ... ]
+> +	/*
+> +	 * open code devm_add_action_or_reset() to avoid recursive write lock
+> +	 * of dax_region_rwsem in the error case.
+> +	 */
+> +	rc =3D devm_add_action(device, dax_release_resource, dax_resource);
 
-> +TRACE_EVENT(cxl_dynamic_capacity,
-> +
-> +	TP_PROTO(const struct cxl_memdev *cxlmd, enum cxl_event_log_type log,
-> +		 struct cxl_event_dcd *rec),
-> +
-> +	TP_ARGS(cxlmd, log, rec),
-> +
-> +	TP_STRUCT__entry(
-> +		CXL_EVT_TP_entry
-> +
-> +		/* Dynamic capacity Event */
-> +		__field(u8, event_type)
-> +		__field(u16, hostid)
-> +		__field(u8, updated_region_index)
-> +		__field(u64, dpa_start)
-> +		__field(u64, length)
-> +		__array(u8, uuid, UUID_SIZE)
-> +		__field(u16, sh_extent_seq)
-> +	),
+[Severity: High]
+Does this tie the cleanup action to the wrong device lifetime?
 
-[Severity: Medium]
-Are we missing some diagnostic fields from struct cxl_event_dcd in
-this tracepoint definition?=20
+In __dax_region_add_resource(), the devm_add_action() registers
+dax_release_resource() to the passed-in device, which is the dc_extent
+device managed by the CXL core.
 
-It appears that validity_flags, flags (which contains the More bit),
-num_avail_extents, and num_avail_tags are omitted here. Without
-validity_flags, user space might be unable to determine if hostid and
-updated_region_index contain valid data or hardware garbage. Additionally,
-dropping the flags field could prevent user space from properly piecing
-together multi-record capacity changes using the More bit.
+However, the dax_region is tied to the DAX driver's lifecycle. If a user
+unbinds the DAX driver, the dax_region is freed. Because the dc_extent
+device is managed externally, it outlives the DAX driver unbind.
+
+Later, when the CXL region is destroyed and the dc_extent is released,
+dax_release_resource() will run and call __dax_release_resource(), which
+dereferences the freed dax_region:
+
+__dax_release_resource()
+    struct dax_region *dax_region =3D dax_resource->region;
+    dev_dbg(dax_region->dev, ...);
+
+Can this lead to a use-after-free on the dax_region?
+
+> +	if (rc) {
+> +		__dax_release_resource(dax_resource);
+> +		return rc;
+> +	}
+> +
+> +	dev_set_drvdata(device, no_free_ptr(dax_resource));
+> +	return 0;
+> +}
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260625112638.5506=
-91-1-anisa.su@samsung.com?part=3D28
+91-1-anisa.su@samsung.com?part=3D21
