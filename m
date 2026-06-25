@@ -1,287 +1,174 @@
-Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9724526ED40
-	for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 18:00:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D16D430FC26;
+	Thu, 25 Jun 2026 18:12:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782410439; cv=none; b=lIL26vbq2b3DYpj9/AZcYmLDiC0TVvf3IvLgoi3Cb1IkUulRfbVFIDssaJAygSqe/6eHXvy54KPG14EvXmEtFJtMhpWPvyww2ORbk1L82TApoq7BbOJ/7w+3VhZhdJyqAUaewFkZKEMmwvquKS9GBb+2OvMUWQ9DugzUdummXW8=
+	t=1782411141; cv=none; b=LFLuZY8PV0TJHLQHyB+x9zC5HbgIcW7llU4TsBO/84uGqbgVN7MZonLdF+snQu3dakac79aaxO+E4fTmXiKhADLaTibHhKkpJEj3aiMgu64WCdGKOld1FeOXaLcmY+W4e87eh+fY0CMVPSIf4fCCFg3uLOobJMc/4TvBx3AivU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782410439; c=relaxed/simple;
-	bh=pXskB7V/BiUpPqw9qe3Kk5Vjo3SgTVD5AFV76qhpkLA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fHuWMZGxAXyRBJZDMqWtOC1Njd2jByh+0+D7RVNar276X6csfdHIOzXP85f87l8ZFyE5oYb3US/RJAaiXYgCzdTUhoEdNQlyexGLctnM46zn5cRXHKWLaaVUEPm8s4jcZJhoB6MALGjkZPBtBuiV8krh026k0Br8od7xZfJ3Wtw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AGXZ8jdU; arc=none smtp.client-ip=209.85.128.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1782411141; c=relaxed/simple;
+	bh=vx1ac3c/GnlZUy9y/e+huMiL3iz/T0lADzE6Ij7fR6U=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=DMSZUZ6BM5CAQ95UEzmXRZGQTQBkeEH3K+DDbttV9B4GBJGUKvQ1Wg51qeg5fOL8Bm75nI73SXgYc/5tDUTv6CfNBjSrvIYVDLfMgy9MjKg1RIzn8OHp9e/NkMg89zxOGTSAra+5uc2/ICge4VHErtySMvOI6Isqj4b8vhMRHXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QFlUhI+i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AGXZ8jdU"
-Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-80814edb536so2748437b3.2
-        for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 11:00:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782410437; x=1783015237; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=WfaXLqKxjt5Wx4fK3p1hZTD/ltdo7YYhn5wzBTFnlbE=;
-        b=AGXZ8jdUo+csVGffAQ8yQDnTmJxhk0Eo6CKIdiyyAyLDvldI/Jvxu1Y2w5hf7eBz8d
-         +i+AG8e+zUgGU2thCTxypNQO1XCf3m527KcOwPtSipNgUv9Skt7rfxZ5nLOV2hxm6H0B
-         h5ijnxFxsk3hoXQ+AkLPrB0nmqlhUAFj1ziMKtMxEmtWEdiuSA4wVbQpX3qmO05XV4Ql
-         QNH7wy/QYvPNvWdCwXqp0gByECziRJwuqPwUaNKn/6rH+T5D77aQLLoLWpW6EER/4b/k
-         FSEqKoyqtof2XoRhX1DBM89Lr+LHs6TG55QJiTHoxbH3ksjO2jiS9J79Kj5MUebW7Wh2
-         SVUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782410437; x=1783015237;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=WfaXLqKxjt5Wx4fK3p1hZTD/ltdo7YYhn5wzBTFnlbE=;
-        b=TUGRkudb8nKG4+C1Np53YEsVdSRecDl7w2w+/0O4/krxTvpwo+/Dwr/5lNo31crHZy
-         UbbhFoyEDDsQY4JD3YDoiSL1XxPof/eeCCLHTAWfWddgqE54G92aekJN/o9kcz2mMzN+
-         zhYFvzTSQkqo99U2M7XsClcykB4ziKQIKKsP7V/l6ClEtcSf1BH/2A0arMBYoTwvyuGA
-         MSG8SIZZStf+JQm0PQ80xfCUH06oh2H5ztg8o6gNU+X5B7kvlrvOU0J7l+8ZZGI+1aGE
-         jOO94pqP5j9x0pIlOOJoHDGPqcfCgzEia5YuNgNbNw9ZGO1Fg1fHO+lUaxT7xBTtAb0z
-         NBsQ==
-X-Gm-Message-State: AOJu0Yy+HFsMHxvphLwVrauoO94NNQqKY6WME87FQzNPq16WjP1BD07f
-	iJalVxrM6zGqIRDZ1JvpjUK349VH8ZNtmk14g2YLdqmm2askyikc4ps5
-X-Gm-Gg: AfdE7cn7+WeqsTrddTU6JCfzElszmvg5x9AoKwyMgE15PjujSRnYTS7CbVQNgXjiFEP
-	JnTnLd+Su7t+lL3SWXXtyMbHk9FJ12i8S0IujM25WV1jQFlkhGK+An2jhaHNnT+uG68PRsNQq/3
-	71TPqPNEziaJ55QkVbBD69ggDUEHqYcfepR91OGKrLijhj+3BmTVlTDpkSQaV3Dv5BzSkPZvegJ
-	8MljI1Tm4/HBMdqs2KSAgp4evEXQdelXuj4rHcCscSxaHVxi5yde2KC44rvd6B/h6ZukE9KDW4Q
-	VxhiDUv73fikJXtDIrcVLlV8AQuNS1nY56MLZjvKl0t4AmNzAVmPqFzAd1GDTXcOmAmHjsVuuag
-	PyY6JQAF/QkIKmVYHhEbRF2qBLAZ+XPiKKzsNYBk0wM/IMbj5c5wiZjMHQLn1QlpMy+6dBMjrkU
-	UdFdOsvyEM5eWzxQDLJI4x4rZ1942uEP4=
-X-Received: by 2002:a05:690c:604:b0:7dc:f7b3:8e08 with SMTP id 00721157ae682-80a6af938c8mr39725327b3.23.1782410436320;
-        Thu, 25 Jun 2026 11:00:36 -0700 (PDT)
-Received: from 4470NRD-ASU.ssi.samsung.com ([50.205.20.42])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-80259d20d84sm74353767b3.0.2026.06.25.11.00.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Jun 2026 11:00:36 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-To: linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: nvdimm@lists.linux.dev,
-	djbw@kernel.org,
-	jic23@kernel.org,
-	dave@stgolabs.net,
-	dave.jiang@intel.com,
-	vishal.l.verma@intel.com,
-	iweiny@kernel.org,
-	alison.schofield@intel.com,
-	gourry@gourry.net,
-	anisa.su@samsung.com
-Subject: [PATCH v11 03/31] cxl/cdat: Gather DSMAS data for DCD partitions
-Date: Thu, 25 Jun 2026 11:00:12 -0700
-Message-ID: <20260625180028.965-1-anisa.su@samsung.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260625112638.550691-1-anisa.su@samsung.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QFlUhI+i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E8B51F000E9;
+	Thu, 25 Jun 2026 18:12:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782411139;
+	bh=61aa1MbJBQ8vPMA1+8V3QhkuAJ6Gke/Ge/GCc0NcJks=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=QFlUhI+iMBmi2YzIP04Gheirm+bQhuIXAXHHYeGV/e13ocDytfDeMmoo9Hq2z7Wwv
+	 Utv77lhC42pGkgFXyvdKsoBJMAqo5+zdOx2PVv+rRnU3MVx9NfgYavAB1ByVu3hO15
+	 Vcot7rKotKuFnY92Pw/+VhozabfWo0yxXYqL7VsVJ3wXdOvVnxlei720yfA9L2wii/
+	 SwUIERJpm4BngPtjiaedL29ecCUx7Gk8ohkCmG3Vi7peJoDKJRAnnxEbo4vJIprQhB
+	 FcYNUE12lG+j6wbgBYQKP32jmRFcqrMfES5YE4TW02oyh3cpeUSdfR5mgCQ7es+qqp
+	 IiWC6zwYjViaQ==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v11 12/31] cxl/mem: Set up framework for handling DC
+ Events
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Anisa Su" <anisa.su887@gmail.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <20260625112638.550691-13-anisa.su@samsung.com>
 References: <20260625112638.550691-1-anisa.su@samsung.com>
+ <20260625112638.550691-13-anisa.su@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 25 Jun 2026 18:12:18 +0000
+Message-Id: <20260625181219.4E8B51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Ira Weiny <iweiny@kernel.org>
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
+s) to consider:
+- [High] Missing DCD response on memory allocation failure leaves the devic=
+e state machine permanently blocked while unconditionally clearing the even=
+t log.
+- [Medium] Stack-allocation optimization in `memdev_release_extent()` is de=
+feated by an internal dynamic allocation in `cxl_send_dc_response()`.
+- [Medium] Invalid `__counted_by` attribute on a little-endian struct membe=
+r breaks bounds checking on big-endian architectures.
+--
 
-Additional DCD partition (AKA region) information is contained in the
-DSMAS CDAT tables, including performance, read only, and shareable
-attributes.
+commit f5333550094fcaacb4e98dbf0c270b32ec17b506
+Author: Ira Weiny <iweiny@kernel.org>
 
-Match DCD partitions with DSMAS tables and store the meta data.
+cxl/mem: Set up framework for handling DC Events
+   =20
+Adds the support for receiving DC event records but defers
+the real add/release logic to subsequent commits. Simply refuse all
+extents for DC_ADD and ack all DC_RELEASE events for now. Forced
+release is currently unsupported.
 
-Signed-off-by: Ira Weiny <iweiny@kernel.org>
-Signed-off-by: Anisa Su <anisa.su@samsung.com>
----
- drivers/cxl/core/cdat.c | 12 ++++++++++++
- drivers/cxl/core/hdm.c  |  1 +
- drivers/cxl/core/mbox.c | 22 ++++++++++++++++------
- drivers/cxl/cxlmem.h    |  2 ++
- include/cxl/cxl.h       |  4 ++++
- 5 files changed, 35 insertions(+), 6 deletions(-)
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
 
-diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
-index 5c9f07262513..a280039e4cd1 100644
---- a/drivers/cxl/core/cdat.c
-+++ b/drivers/cxl/core/cdat.c
-@@ -17,6 +17,7 @@ struct dsmas_entry {
- 	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
- 	int entries;
- 	int qos_class;
-+	bool shareable;
- };
- 
- static u32 cdat_normalize(u16 entry, u64 base, u8 type)
-@@ -74,6 +75,7 @@ static int cdat_dsmas_handler(union acpi_subtable_headers *header, void *arg,
- 		return -ENOMEM;
- 
- 	dent->handle = dsmas->dsmad_handle;
-+	dent->shareable = dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
- 	dent->dpa_range.start = le64_to_cpu((__force __le64)dsmas->dpa_base_address);
- 	dent->dpa_range.end = le64_to_cpu((__force __le64)dsmas->dpa_base_address) +
- 			      le64_to_cpu((__force __le64)dsmas->dpa_length) - 1;
-@@ -266,15 +268,25 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
- 		bool found = false;
- 
- 		for (int i = 0; i < cxlds->nr_partitions; i++) {
-+			enum cxl_partition_mode mode = cxlds->part[i].mode;
- 			struct resource *res = &cxlds->part[i].res;
-+			u8 handle = cxlds->part[i].handle;
- 			struct range range = {
- 				.start = res->start,
- 				.end = res->end,
- 			};
- 
- 			if (range_contains(&range, &dent->dpa_range)) {
-+				if (mode == CXL_PARTMODE_DYNAMIC_RAM_1 &&
-+				    dent->handle != handle) {
-+					dev_warn(dev,
-+						"Dynamic RAM perf mismatch; %pra (%u) vs %pra (%u)\n",
-+						&range, handle, &dent->dpa_range, dent->handle);
-+					continue;
-+				}
- 				update_perf_entry(dev, dent,
- 						  &cxlds->part[i].perf);
-+				cxlds->part[i].shareable = dent->shareable;
- 				found = true;
- 				break;
- 			}
-diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-index 0ef076c08ed2..7f63b86887f4 100644
---- a/drivers/cxl/core/hdm.c
-+++ b/drivers/cxl/core/hdm.c
-@@ -477,6 +477,7 @@ int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
- 
- 		cxlds->part[i].perf.qos_class = CXL_QOS_CLASS_INVALID;
- 		cxlds->part[i].mode = part->mode;
-+		cxlds->part[i].handle = part->handle;
- 
- 		/* Require ordered + contiguous partitions */
- 		if (i) {
-diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index 2932bbd67e55..bdb908c6e7f3 100644
---- a/drivers/cxl/core/mbox.c
-+++ b/drivers/cxl/core/mbox.c
-@@ -1352,10 +1352,16 @@ static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info *part_a
- {
- 	u64 blk_size = le64_to_cpu(dev_part->block_size);
- 	u64 len = le64_to_cpu(dev_part->length);
-+	u32 handle = le32_to_cpu(dev_part->dsmad_handle);
- 
- 	part_array[index].start = le64_to_cpu(dev_part->base);
- 	part_array[index].size = le64_to_cpu(dev_part->decode_length);
- 	part_array[index].size *= CXL_CAPACITY_MULTIPLIER;
-+	if (handle & ~0xFF) {
-+		dev_warn(dev, "DSMAD handle 0x%x has non-zero reserved bits\n", handle);
-+		return -EINVAL;
-+	}
-+	part_array[index].handle = handle;
- 
- 	/* Check partitions are in increasing DPA order */
- 	if (index > 0) {
-@@ -1522,6 +1528,7 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
- 	/* Return 1st partition */
- 	dc_info->start = partitions[0].start;
- 	dc_info->size = partitions[0].size;
-+	dc_info->handle = partitions[0].handle;
- 	dev_dbg(dev, "Returning partition 0 %llu size %llu\n",
- 		dc_info->start, dc_info->size);
- 
-@@ -1529,7 +1536,8 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
- }
- EXPORT_SYMBOL_NS_GPL(cxl_dev_dc_identify, "CXL");
- 
--static void add_part(struct cxl_dpa_info *info, u64 start, u64 size, enum cxl_partition_mode mode)
-+static void add_part(struct cxl_dpa_info *info, u64 start, u64 size,
-+		     enum cxl_partition_mode mode, u8 handle)
- {
- 	int i = info->nr_partitions;
- 
-@@ -1541,6 +1549,7 @@ static void add_part(struct cxl_dpa_info *info, u64 start, u64 size, enum cxl_pa
- 		.end = start + size - 1,
- 	};
- 	info->part[i].mode = mode;
-+	info->part[i].handle = handle;
- 	info->nr_partitions++;
- }
- 
-@@ -1558,9 +1567,9 @@ int cxl_mem_dpa_fetch(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
- 	info->size = mds->total_bytes;
- 
- 	if (mds->partition_align_bytes == 0) {
--		add_part(info, 0, mds->volatile_only_bytes, CXL_PARTMODE_RAM);
-+		add_part(info, 0, mds->volatile_only_bytes, CXL_PARTMODE_RAM, 0);
- 		add_part(info, mds->volatile_only_bytes,
--			 mds->persistent_only_bytes, CXL_PARTMODE_PMEM);
-+			 mds->persistent_only_bytes, CXL_PARTMODE_PMEM, 0);
- 		return 0;
- 	}
- 
-@@ -1570,9 +1579,9 @@ int cxl_mem_dpa_fetch(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
- 		return rc;
- 	}
- 
--	add_part(info, 0, mds->active_volatile_bytes, CXL_PARTMODE_RAM);
-+	add_part(info, 0, mds->active_volatile_bytes, CXL_PARTMODE_RAM, 0);
- 	add_part(info, mds->active_volatile_bytes, mds->active_persistent_bytes,
--		 CXL_PARTMODE_PMEM);
-+		 CXL_PARTMODE_PMEM, 0);
- 
- 	return 0;
- }
-@@ -1624,7 +1633,8 @@ void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
- 	info->size += dc_info.size;
- 	dev_dbg(dev, "Adding dynamic ram partition 1; %llu size %llu\n",
- 		dc_info.start, dc_info.size);
--	add_part(info, dc_info.start, dc_info.size, CXL_PARTMODE_DYNAMIC_RAM_1);
-+	add_part(info, dc_info.start, dc_info.size, CXL_PARTMODE_DYNAMIC_RAM_1,
-+		 dc_info.handle);
- }
- EXPORT_SYMBOL_NS_GPL(cxl_configure_dcd, "CXL");
- 
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 6b548a1ec1e9..b29fb16725b4 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -118,6 +118,7 @@ struct cxl_dpa_info {
- 	struct cxl_dpa_part_info {
- 		struct range range;
- 		enum cxl_partition_mode mode;
-+		u8 handle;
- 	} part[CXL_NR_PARTITIONS_MAX];
- 	int nr_partitions;
- };
-@@ -823,6 +824,7 @@ int cxl_dev_state_identify(struct cxl_memdev_state *mds);
- struct cxl_dc_partition_info {
- 	u64 start;
- 	u64 size;
-+	u8 handle;
- };
- 
- int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
-diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
-index e8a0899960d4..502d8333318b 100644
---- a/include/cxl/cxl.h
-+++ b/include/cxl/cxl.h
-@@ -141,11 +141,15 @@ enum cxl_partition_mode {
-  * @res: shortcut to the partition in the DPA resource tree (cxlds->dpa_res)
-  * @perf: performance attributes of the partition from CDAT
-  * @mode: operation mode for the DPA capacity, e.g. ram, pmem, dynamic...
-+ * @handle: DSMAS handle intended to represent this partition
-+ * @shareable: Is the partition sharable (from its CDAT DSMAS entry)
-  */
- struct cxl_dpa_partition {
- 	struct resource res;
- 	struct cxl_dpa_perf perf;
- 	enum cxl_partition_mode mode;
-+	u8 handle;
-+	bool shareable;
- };
- 
- #define CXL_NR_PARTITIONS_MAX 3
--- 
-2.43.0
+[ ... ]
 
+> +static void memdev_release_extent(struct cxl_memdev_state *mds, struct r=
+ange *range)
+> +{
+> +	struct device *dev =3D mds->cxlds.dev;
+> +	struct cxl_extent extent =3D {
+> +		.start_dpa =3D cpu_to_le64(range->start),
+> +		.length =3D cpu_to_le64(range_len(range)),
+> +	};
+> +	struct cxl_extent_list_node node =3D { .extent =3D &extent };
+> +	LIST_HEAD(extent_list);
+> +
+> +	dev_dbg(dev, "Release response dpa %pra\n", range);
+> +
+> +	/*
+> +	 * Stack-allocated instead of kzalloc'ed to avoid potential -ENOMEM,
+> +	 * which would prevent sending the release DC rsp.
+> +	 */
+> +	list_add_tail(&node.list, &extent_list);
+> +	if (cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC, &extent_list, 1))
+
+[Severity: Medium]
+The comment mentions stack-allocating to avoid -ENOMEM so we can ensure the
+release DC response is sent.
+
+However, cxl_send_dc_response() uses kzalloc() to allocate the
+cxl_mbox_dc_response message:
+
+    struct cxl_mbox_dc_response *response __free(kfree) =3D
+                        kzalloc(pl_size, GFP_KERNEL);
+
+Doesn't this dynamic allocation defeat the optimization, since memory
+pressure could still cause kzalloc() to fail, preventing the release
+response from being sent?
+
+> +		dev_dbg(dev, "Failed to release %pra\n", range);
+> +}
+
+[ ... ]
+
+> +static int handle_add_event(struct cxl_memdev_state *mds,
+> +			    struct cxl_event_dcd *event)
+> +{
+> +	struct device *dev =3D mds->cxlds.dev;
+> +	int rc;
+> +
+> +	rc =3D add_to_pending_list(&mds->add_ctx.pending_extents, &event->exten=
+t);
+> +	if (rc) {
+> +		clear_pending_extents(mds);
+> +		return rc;
+> +	}
+
+[Severity: High]
+If add_to_pending_list() fails and returns -ENOMEM, we return early without
+sending the required CXL_MBOX_OP_ADD_DC_RESPONSE command.
+
+Since cxl_handle_dcd_event_records() drops the error and the event is clear=
+ed
+from the device log, will this leave the device state machine permanently
+blocked waiting for a response that never arrives?
+
+> +
+> +	if (event->flags & CXL_DCD_EVENT_MORE) {
+
+[ ... ]
+
+> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> --- a/drivers/cxl/cxlmem.h
+> +++ b/drivers/cxl/cxlmem.h
+
+[ ... ]
+
+> +/*
+> + * Add Dynamic Capacity Response
+> + * CXL rev 3.1 section 8.2.9.9.9.3; Table 8-168 & Table 8-169
+> + */
+> +struct cxl_mbox_dc_response {
+> +	__le32 extent_list_size;
+> +	u8 flags;
+> +	u8 reserved[3];
+> +	struct updated_extent_list {
+> +		__le64 dpa_start;
+> +		__le64 length;
+> +		u8 reserved[8];
+> +	} __packed extent_list[] __counted_by(extent_list_size);
+
+[Severity: Medium]
+Should this use __counted_by_le() instead of __counted_by()?
+
+Since extent_list_size is explicitly little-endian (__le32), using
+__counted_by() on big-endian architectures will result in the bounds checki=
+ng
+instrumentation reading an inflated integer value, leading to out-of-bounds
+errors or kernel panics.
+
+> +} __packed;
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260625112638.5506=
+91-1-anisa.su@samsung.com?part=3D12
