@@ -1,261 +1,230 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC50E243387;
-	Thu, 25 Jun 2026 18:16:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EFE42D1916;
+	Thu, 25 Jun 2026 18:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782411398; cv=none; b=Q4hRgzAsYVfDNd5zmMTP07rN0kl/Rno4bRIdngCn/oA8KZod96gTHB0NE4PqYFa+fVlzOOaTNfvFp07lrD7E9LQeYjuPmm/RcJ8HEXGsbpGPBRzpVAG9H6/S63hN0lmYMhgu6XgB1lfAyCorP0ZGldTZF1ykX7OsFiCpXrXUfP0=
+	t=1782411398; cv=none; b=OqginbBG1Bl41qlZJ6XFnc4V0deTPzqndYG+CNvcFLpvqlXRvnwRr6uGvZpvQBsvAhyXLP0vVZUZcpqYjb3EP13He/ZNowDuHuevJAPSfxgKWApw59pEPxbxph3TSR8MeAfijpGXku9zmLswwvJQp9Jy5a+p7/+nh0Gng/VEYeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1782411398; c=relaxed/simple;
-	bh=PC5UkhSvQVtAhmE9pz/ZSiLRhGTtIuE2UbAr+ilnsf0=;
+	bh=nKtKH++GDCQ3O0nWan6D7cDvcnXH78ltPp9d5ju0fIQ=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=GPv460PoH+K/bhn9TGsyGMSPbMFX/GjhmpstHEr3xXHa8+5q7vOv2VQlH06y8kCZFB6sOuwP/p+Enz8ub5zNYi22KhlQPfer8E21fITIiJH57UraQ02HWiFEeROkGZ+MACYSHEUz2missZCT0aLazI/Aw/lgY7mx02s/acM3TKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KVAkXtjq; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=aKiu79coaMXQJCMvRo8c80h7+/Cca/O1Ksnq2OCQARAl0Ey1Kh8ezBYvkpHOPmINDlqz4mK8dHC3mHgv348UHc7CLsxLUGEOUY2JJcfR33fSSpDIZWQdTZJsOEkOXcQPBZjBtDX6DIrD+PvPn9LDjeVQdpNt4a49dGXDbfv/e7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HvwRY8qO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KVAkXtjq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 208D41F000E9;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HvwRY8qO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E59BD1F00A3A;
 	Thu, 25 Jun 2026 18:16:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782411396;
-	bh=MB6rPNyNq20kL/qXAS5lrYmNWP+nUS0sweTYrYO8IY8=;
+	s=k20260515; t=1782411397;
+	bh=J134Doi1Icgfnp+jhatvuvWwQ1r5w7UWZ22Dqsal5eE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=KVAkXtjqRm3A0+N19nIIORtWFTVK3N+jqYRFVBMZx+RR84ztRXGX0WBiO0NGBQ73r
-	 BUXbmudkIf6Td52zz4EmmLrHYISD9Aswmq6G7zit+7DrHdTIdEaHlCI7cELDL91X5U
-	 roKboIwkLqz5H7xlPWbcdxJ5g9JYPH8Qpx/bz32lakSKgmfHcusGwKQvlaWKQEqJfw
-	 ENoxBN+Ae0AsVfmD7SjpCxwfscgF5NAIXLqI7pLPsVdE9ENTZFdim7c1eHVYOYVln0
-	 OL+yj3XfY6qa57BiQEcAjGGytSs5ZKZnU2qs7j+eiXEchusP30zScHjq3KZPmIm6jW
-	 qrBuIj1jGInNA==
+	b=HvwRY8qOOxVd6WSLqr1cRRoaV1Mip9A1c4GK+E0DGjQIS8zIbbCgzBgbIZfawzjhp
+	 jQ2TBxT4FdckLclkBHsmv5PNc4Ks7yKl6vngK3QGfb+25eEYS3kBfL3Khy6z2h9Mts
+	 A19yGXBgyC1ePiZnGA6MsrPLzOzRkKVEW2iHUSciKaofDHR8ARqM20poDEvXPU7P6p
+	 9wenPiIz/x2y/Fc9u64PcTNjhR4R41QwQabHsEnNctFFLKyk7CxL/FlrV6ih2PBCu8
+	 cCOUw5b6SUJe0eE/ngvTQ/daiodpQKM4riOtt9AMb+gA5rrVGG81pBJjmcpN84p+1X
+	 OE4aTxVSn+hug==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v11 14/31] cxl/extent: Handle DC Add Capacity events
+Subject: Re: [PATCH v11 02/31] cxl/mem: Read dynamic capacity configuration
+ from the device
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Anisa Su" <anisa.su887@gmail.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <20260625112638.550691-15-anisa.su@samsung.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <20260625112638.550691-3-anisa.su@samsung.com>
 References: <20260625112638.550691-1-anisa.su@samsung.com>
- <20260625112638.550691-15-anisa.su@samsung.com>
+ <20260625112638.550691-3-anisa.su@samsung.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 25 Jun 2026 18:16:35 +0000
-Message-Id: <20260625181636.208D41F000E9@smtp.kernel.org>
+Date: Thu, 25 Jun 2026 18:16:36 +0000
+Message-Id: <20260625181636.E59BD1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 7 potential issue(=
+Thank you for your contribution! Sashiko AI review found 4 potential issue(=
 s) to consider:
-- [High] Use-after-free in `cxlr_dax_classify_extent` due to lockless XArra=
-y iteration.
-- [High] Fully duplicate Add-Capacity groups are erroneously dropped withou=
-t sending an Add-DC-Response.
-- [High] Failed extents unconditionally send Release DC commands on error p=
-aths, violating the skip_device_release protocol.
-- [High] Manual `xa_erase()` before `put_device()` creates a race condition=
- that clobbers re-allocated IDs.
-- [High] Concurrent teardown causes a data race on `group->nr_extents`, lea=
-ding to a permanent resource leak.
-- [High] Recovered extents are permanently leaked to the device if their in=
-dividual tracking allocation fails.
-- [High] Tag groups spanning multiple DAX regions are silently grouped unde=
-r the first region, corrupting HPA ranges.
+- [High] Mailbox payload size statically requests too many partitions, fail=
+ing initialization on devices with small mailboxes.
+- [High] Incorrect unit conversion of DC partition decode_length causes sev=
+ere integer overflow.
+- [High] Logic Error in DPA Skip Check mathematically guarantees failure, b=
+reaking DCD on all devices.
+- [Medium] Valid CXL devices configured with 0 Dynamic Capacity partitions =
+are erroneously treated as having an I/O error.
 --
 
-commit c1287602ad57e47bb90d02808a1f908fcb287a89
+commit cbb0f735b5888cbb19cb493b31cc330ef3afdadf
 Author: Ira Weiny <iweiny@kernel.org>
-Subject: cxl/extent: Handle DC Add Capacity events
 
-Replace the empty-response stub in handle_add_event() with the real
-add pipeline. This commit fills in the logic for processing the pending list
-and adds basic validation for extents before they are added to the
-device model as a child of the cxlr_dax region.
+cxl/mem: Read dynamic capacity configuration from the device
 
-> diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
-> new file mode 100644
-> index 0000000000000..6e67e787d14de
-> --- /dev/null
-> +++ b/drivers/cxl/core/extent.c
-> @@ -0,0 +1,411 @@
-[ ... ]
-> +static void dc_extent_release(struct device *dev)
-> +{
-> +	struct dc_extent *dc_extent =3D to_dc_extent(dev);
-> +	struct cxl_dc_tag_group *group;
-> +
-> +	if (!dc_extent)
-> +		return;
-> +
-> +	group =3D dc_extent->group;
-> +	cxled_release_extent(dc_extent->cxled, dc_extent);
-> +	xa_erase(&group->cxlr_dax->dc_extents, dc_extent->dev.id);
-> +	xa_erase(&group->dc_extents, dc_extent->seq_num);
-> +	group->nr_extents--;
-> +	if (!group->nr_extents)
-> +		free_tag_group(group);
+This commit implements the mailbox commands to read Dynamic Capacity
+partition configurations from CXL devices. It validates the partitions
+and configures the first partition as dynamic RAM.
 
-[Severity: High]
-Is it safe to decrement group->nr_extents without a lock? Since multiple
-extents in the same group can be released concurrently, couldn't this
-non-atomic decrement cause a data race, leading to a permanent memory leak
-of the cxl_dc_tag_group and its pinned cxlr_dax->dev reference?
-
-> +	kfree(dc_extent);
-> +}
-[ ... ]
-> +static enum cxl_extent_class
-> +cxlr_dax_classify_extent(struct cxl_dax_region *cxlr_dax,
-> +			 struct cxl_endpoint_decoder *cxled,
-> +			 const struct range *ext_range)
-> +{
-> +	struct dc_extent *entry;
-> +	unsigned long i;
-> +
-> +	xa_for_each(&cxlr_dax->dc_extents, i, entry) {
-> +		if (entry->cxled !=3D cxled)
-
-[Severity: High]
-Is this iteration safe against concurrent teardown? xa_for_each drops the
-internal RCU read lock between iterations, leaving the returned entry
-unprotected. If online_tag_group fails concurrently or there is a
-parallel release, couldn't accessing entry->cxled trigger a use-after-free?
-
-> +			continue;
-> +		if (range_contains(&entry->dpa_range, ext_range))
-> +			return CXL_EXT_DUPLICATE;
-[ ... ]
-> +static int cxlr_add_extent(struct cxl_memdev_state *mds,
-> +			   struct cxl_dax_region *cxlr_dax,
-> +			   struct dc_extent *dc_extent)
-> +{
-> +	struct cxl_dc_tag_group **group =3D &mds->add_ctx.group;
-> +	int rc;
-> +
-> +	if (*group && !uuid_equal(&(*group)->uuid, &dc_extent->uuid)) {
-> +		kfree(dc_extent);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!*group) {
-> +		dev_dbg(&cxlr_dax->dev, "Alloc new tag group\n");
-> +		*group =3D alloc_tag_group(cxlr_dax, &dc_extent->uuid);
-> +		if (IS_ERR(*group)) {
-> +			rc =3D PTR_ERR(*group);
-> +			*group =3D NULL;
-> +			kfree(dc_extent);
-> +			return rc;
-> +		}
-> +	} else {
-> +		dev_dbg(&cxlr_dax->dev, "Append dc_extent to tag group\n");
-> +	}
-> +
-> +	dc_extent->group =3D *group;
-
-[Severity: High]
-What happens if extents in the same tag group (sharing a UUID) map to
-different endpoint decoders and thus different DAX regions? This logic
-appears to allocate the tag group using the cxlr_dax of the first extent
-and blindly links subsequent extents to it. Could this cause cross-region
-extents to be parented to the wrong region and corrupt their HPA mapping
-offsets?
-
-> +
-> +	/*
-[ ... ]
-> +int online_tag_group(struct cxl_dc_tag_group *group, bool skip_release)
-> +{
-[ ... ]
-> +		rc =3D dev_set_name(dev, "extent%d.%d", cxlr_dax->cxlr->id,
-> +				  dev->id);
-> +		if (rc) {
-> +			xa_erase(&cxlr_dax->dc_extents, dev->id);
-> +			put_device(dev);
-> +			break;
-> +		}
-> +
-> +		rc =3D device_add(dev);
-> +		if (rc) {
-> +			xa_erase(&cxlr_dax->dc_extents, dev->id);
-> +			put_device(dev);
-> +			break;
-> +		}
-
-[Severity: High]
-Does the manual xa_erase() before put_device() create a double-erase race
-condition?
-
-put_device(dev) synchronously calls dc_extent_release(), which performs a
-second xa_erase() for the same ID. If a concurrent thread allocates an ID
-between the first and second erase, wouldn't the second erase silently
-clobber the new valid allocation?
-
-[Severity: High]
-Additionally, does this error path violate the skip_device_release protocol?
-At this point, group->skip_device_release has not been set yet. Because it
-is false, won't dc_extent_release() unconditionally send a Release DC comma=
-nd
-to the hardware for capacity the host never formally accepted?
-
-> +
-> +		dev_dbg(dev, "dc_extent HPA %pra (%pU)\n",
-[ ... ]
 > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index 4e887b5cdc3ed..08f51b8807c06 100644
+> index 07aba6f0b7194..2932bbd67e550 100644
 > --- a/drivers/cxl/core/mbox.c
 > +++ b/drivers/cxl/core/mbox.c
+> @@ -1347,6 +1347,188 @@ int cxl_mem_sanitize(struct cxl_memdev *cxlmd, u1=
+6 cmd)
+
 [ ... ]
-> +static int cxl_realize_group(struct cxl_memdev_state *mds, const uuid_t =
-*tag,
-> +			     struct list_head *group, bool existing)
+
+> +static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info=
+ *part_array,
+> +			u8 index, struct cxl_dc_partition *dev_part)
 > +{
-> +	struct device *dev =3D mds->cxlds.dev;
-> +	struct cxl_extent_list_node *pos, *tmp;
-> +	struct cxl_dc_tag_group *tag_group;
-> +	int group_cnt =3D 0;
-> +	int rc;
+> +	u64 blk_size =3D le64_to_cpu(dev_part->block_size);
+> +	u64 len =3D le64_to_cpu(dev_part->length);
 > +
-> +	list_for_each_entry_safe(pos, tmp, group, list) {
-> +		/*
-> +		 * Pass the device-stamped 0-based shared_extn_seq through
-> +		 * unchanged as the dax-side @seq_num (0..n-1).
-> +		 */
-> +		u16 seq =3D le16_to_cpu(pos->extent->shared_extn_seq);
+> +	part_array[index].start =3D le64_to_cpu(dev_part->base);
+> +	part_array[index].size =3D le64_to_cpu(dev_part->decode_length);
+> +	part_array[index].size *=3D CXL_CAPACITY_MULTIPLIER;
+
+[Severity: High]
+Is it correct to multiply decode_length by CXL_CAPACITY_MULTIPLIER here?
+
+The CXL specification provides the decode length in bytes, similar to the=20
+base and length fields. Multiplying this by 256MB will cause a 64-bit=20
+integer overflow for capacities of 64GB or larger. This overflow can wrap=20
+around to a small value, bypassing the later DPA ordering checks and=20
+registering a corrupted partition size.
+
+[ ... ]
+
+> +/* Returns the number of partitions in dc_resp or -ERRNO */
+> +static int cxl_get_dc_config(struct cxl_mailbox *mbox, u8 start_partitio=
+n,
+> +			     struct cxl_mbox_get_dc_config_out *dc_resp,
+> +			     size_t dc_resp_size)
+> +{
+> +	struct cxl_mbox_get_dc_config_in get_dc =3D (struct cxl_mbox_get_dc_con=
+fig_in) {
+> +		.partition_count =3D CXL_MAX_DC_PARTITIONS,
+> +		.start_partition_index =3D start_partition,
+> +	};
+> +	struct cxl_mbox_cmd mbox_cmd =3D (struct cxl_mbox_cmd) {
+> +		.opcode =3D CXL_MBOX_OP_GET_DC_CONFIG,
+> +		.payload_in =3D &get_dc,
+> +		.size_in =3D sizeof(get_dc),
+> +		.size_out =3D dc_resp_size,
+> +		.payload_out =3D dc_resp,
+> +		.min_out =3D 8,
+> +	};
+
+[ ... ]
+
+> +int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+> +			struct cxl_dc_partition_info *dc_info)
+> +{
+> +	struct cxl_dc_partition_info partitions[CXL_MAX_DC_PARTITIONS];
+> +	struct cxl_mbox_get_dc_config_out *dc_resp __free(kfree);
+> +	struct device *dev =3D mbox->host;
+> +	u8 start_partition;
+> +	u8 num_partitions;
+> +	size_t dc_resp_size =3D struct_size(dc_resp,
+> +					  partition,
+> +					  CXL_MAX_DC_PARTITIONS);
+
+[Severity: High]
+Can this static size calculation cause initialization failures on devices=20
+with small mailboxes?
+
+The code requests CXL_MAX_DC_PARTITIONS (8 partitions), resulting in an=20
+expected response payload size of 328 bytes (an 8-byte header plus 8=20
+40-byte partition entries). However, the CXL specification allows a minimum=
+=20
+mailbox payload size of 256 bytes.=20
+
+If a device has a mailbox smaller than 328 bytes, cxl_internal_send_cmd()=20
+will unconditionally fail with -E2BIG. Should the requested number of=20
+partitions be dynamically bounded by the device's negotiated payload size?
+
+> +	dc_resp =3D kmalloc(dc_resp_size, GFP_KERNEL);
+> +	if (!dc_resp)
+> +		return -ENOMEM;
 > +
-> +		if (cxl_add_extent(mds, pos->extent, seq) < 0) {
-> +			dev_dbg(dev,
-> +				"Tag %pUb: failed to add extent DPA:%#llx LEN:%#llx\n",
-> +				tag,
-> +				le64_to_cpu(pos->extent->start_dpa),
-> +				le64_to_cpu(pos->extent->length));
-> +			delete_extent_node(pos);
-> +			continue;
+> +	/**
+> +	 * Read and check all partition information for validity and potential
+> +	 * debugging; see debug output in cxl_dc_check()
+> +	 */
+> +	start_partition =3D 0;
+> +	num_partitions =3D 0;
+> +	do {
+> +		int rc, i, j;
+> +
+> +		rc =3D cxl_get_dc_config(mbox, start_partition, dc_resp, dc_resp_size);
+> +		if (rc < 0) {
+> +			dev_err(dev, "Failed to get DC config: %d\n", rc);
+> +			return rc;
+> +		}
+> +
+> +		if (rc =3D=3D 0) {
+> +			dev_err(dev,
+> +				"Device reported %u partitions available but returned none at index =
+%u\n",
+> +				dc_resp->avail_partition_count, start_partition);
+> +			return -EIO;
 > +		}
 
-[Severity: High]
-If cxl_add_extent() fails during initialization of existing extents
-(e.g., under memory pressure), we simply delete the node and continue.
-Because the extent is never added to a tag group, the teardown error path
-cannot see it. Does this permanently strand the capacity on the device since
-no Release DC command is sent?
+[Severity: Medium]
+Does this unintentionally fail on valid devices configured with 0 Dynamic=20
+Capacity partitions?
 
-> +		group_cnt++;
+If a device supports DCD but is configured with zero partitions,=20
+avail_partition_count is 0, and cxl_get_dc_config() legitimately returns 0.=
+=20
+This path treats it as a hard error and returns -EIO, logging a confusing=20
+error message instead of cleanly disabling DCD and proceeding.
+
+[ ... ]
+
+> +void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info=
+ *info)
+> +{
+> +	struct cxl_dc_partition_info dc_info =3D { 0 };
+> +	struct device *dev =3D mds->cxlds.dev;
+> +	int rc;
+> +
+> +	rc =3D cxl_dev_dc_identify(&mds->cxlds.cxl_mbox, &dc_info);
+> +	if (rc) {
+> +		dev_warn(dev,
+> +			 "Failed to read Dynamic Capacity config: %d\n", rc);
+> +		cxl_disable_dcd(mds);
+> +		return;
 > +	}
 > +
-> +	tag_group =3D mds->add_ctx.group;
-> +	mds->add_ctx.group =3D NULL;
-> +	if (!tag_group)
-> +		return -ENXIO;
+> +	/* Skips between pmem and the dynamic partition are not supported */
+> +	if (dc_info.start !=3D info->size) {
+> +		dev_warn(dev,
+> +			 "Dynamic Capacity skip from pmem not supported\n");
+> +		cxl_disable_dcd(mds);
+> +		return;
+> +	}
 
 [Severity: High]
-If an Add Capacity event contains only extents that the host has already
-accepted (duplicates), cxl_add_extent() succeeds but returns 0, and
-mds->add_ctx.group is never allocated. Does this erroneously fail the
-entire group with -ENXIO, causing cxl_add_pending() to drop it without
-sending an Add-DC-Response, thereby stalling the device?
+Is it intended to compare dc_info.start against info->size here?
+
+Because cxl_mem_dpa_fetch() initializes info->size to mds->total_bytes,=20
+it already includes the dynamic capacity. This means dc_info.start will=20
+always be strictly less than info->size, causing this skip check to falsely=
+=20
+fail on every valid device with a DC partition and breaking DCD entirely.
 
 > +
-> +	rc =3D online_tag_group(tag_group, !existing);
+> +	info->size +=3D dc_info.size;
+
+[Severity: High]
+Does this inadvertently double-count the dynamic capacity?
+
+Since info->size already includes the total device capacity, adding=20
+dc_info.size here will inflate the total DPA span incorrectly.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260625112638.5506=
-91-1-anisa.su@samsung.com?part=3D14
+91-1-anisa.su@samsung.com?part=3D2
