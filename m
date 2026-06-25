@@ -1,63 +1,62 @@
-Received: from mail-dy1-f174.google.com (mail-dy1-f174.google.com [74.125.82.174])
+Received: from mail-dy1-f177.google.com (mail-dy1-f177.google.com [74.125.82.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F2F3DA7D1
-	for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 11:28:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35F203DA7FF
+	for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 11:28:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782386922; cv=none; b=VjRC7jr1UYyFKpLPBsFqc8GEWjYS1uuyRaAQgViP3MBD4NPhDTf7iz6ACz2rdJAnOgXjhHGFTphAo4P36T+kK39o/pVUVGUANh8JIvzkhBhcArZr53GxBbE9MWNuNPr4y4krFfz91bNU5b2+QQPFM7+VAqUVcihKAnqGt0zEDZk=
+	t=1782386927; cv=none; b=P3A5V1Sl5cN297OWUfNZfkJ4RtII7scmtOrqK9GpA126zz406MsMrXsGIvJf+c5TIt1YRvtGCmb7E93rvvvCnSrxPwjdXqzBcWK2gJvC+c9p+TnjVlWkuPhXO7XiubIOHNtLKHp+u7n+2ZzlZGwp6bny1k4pWO91jmTswRv5XTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782386922; c=relaxed/simple;
-	bh=9E5FkLyzk9V+/ACKBT/VHdJCdTVMUTuKk7oKGTmtmKM=;
+	s=arc-20240116; t=1782386927; c=relaxed/simple;
+	bh=DZ7/p/k+hRPStr/nvrhW7M9r+9W3HBn/PCBJcQ12HTY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MRRTftCg2UVDGBYT2e97ln5axQDd0pdBYyfNhEuUg6W9UdwOTwK3sJCHbf0+mO9he5a4S6JGXWQkP5w2AZT+6dpiTg8wNW7Hl/6yHh90xhI9OZ/HBOp4zkgYL8JzhoD7ZwqNnlRcbrgnFQcVuJWEWoNzls+Ml8YX8rkXO/+OWg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=e2kTBazs; arc=none smtp.client-ip=74.125.82.174
+	 MIME-Version:Content-Type; b=hb49O9aHvcAFR9wbjyyPdh/B6+kWlCPd5rJtVBIYB+cQpvilMOYemqu7bcHciAzuomCtf/0qgK8yVexG+j7T7B+N0mqndx5dyZKYwbzKLi0t0RQY9dtVegtUfezcbvyFHXzPyblCabv1e0arrVr/w/FzRL6sZcuWDF1E1Dz8sbg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XZsQ/x+Q; arc=none smtp.client-ip=74.125.82.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="e2kTBazs"
-Received: by mail-dy1-f174.google.com with SMTP id 5a478bee46e88-30c52f96f60so4046602eec.1
-        for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 04:28:40 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XZsQ/x+Q"
+Received: by mail-dy1-f177.google.com with SMTP id 5a478bee46e88-30c8f2d93baso443625eec.0
+        for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 04:28:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782386919; x=1782991719; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1782386924; x=1782991724; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=px5EgeugJ96+TLyit79Tt48vl836/egeDWRUV2Bckak=;
-        b=e2kTBazsix4Ue7YrbtvLblWfzBhdnrM5jf6MR3H2d4gqvMaTnnpR91xHdIAi1pkI9z
-         HxrwF4dLTXJQutiLXuYL4+dkPpj6YTsO8bswhwttrFDP2o7SiRvRVGRmZi+tRmR5zWEj
-         TdalqVCjsPuhCRV0aJNiDgqZm3h3I2YZOK2C/wHnhPefAYNHqaWmMH1WkboMOdqceacS
-         OJZTmyW/9vK7ZgAQAjHSTbN33jhUuGCXg8fSJ2zNf5MaZyvLzUoMbx3AYXzaMItCMEBN
-         OfvZsBBkCF58+yYVh8/ZZjgn8DbIhR+ntC21YpyAlx7pYJsnLgOjbMBR/W8Ps9wcdoZu
-         ggRQ==
+        bh=X1Q4HoDRflTJ8UoBWS4trvhsixbEL0xrWlQEjrAFDGs=;
+        b=XZsQ/x+QrFW14nCa9KMffUnw6Rm42iL+zrhgZjXO3Lt2A9ERHaMfxTkfRfnv5Hg4Tr
+         HZRVHLWeu4bpGBw3aROyxxq3hgPfGVPoiXRCYpJe8gmzehT6hBSSiUmYQQWH7GthFv4N
+         oGbzuSh1sSaI7HVgd8+7E5uvrSn0nmTuwyf1iA9ZpoO3bGbI4d5scoRI1yzsvrs3Si0X
+         JD2dstxo0MbomFqN+egNVAbisZxUZV41n3eUlb/wGbJSXGWK5JQCbAvG3W3moztqGT+Q
+         vYgan23A3mop2NUJW+BnIgwS85yVNH2E+QVbd0c1bAiP5HmFE34FEp8/PzsGDZ/fckS0
+         Yo+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782386919; x=1782991719;
+        d=1e100.net; s=20251104; t=1782386924; x=1782991724;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=px5EgeugJ96+TLyit79Tt48vl836/egeDWRUV2Bckak=;
-        b=T+CQ64pbyVoENHbwln5ktjxlXVvfy4BrMYEOD7gE7qe26VY7D1BBlXqJMUwd5Hb9fw
-         e7IHllh8GlhPme4UPWjoKrJNFvoHJpxCDh4WATNzNSYUkaHCNCOkM2pj2g4JCq2cB9BS
-         f84Ox40t4p1xXmGCIQp2pEh5zA/T5ENB6Qm7Um3GQHejjISbl1UYpoy+KGOmEnfygQMS
-         YZTVBeZEeVPM8BqWN0SqllPzDt9Jg9DW6P50h9aKNnxzfBpsw1+5eqnzIPOCUml5KK3A
-         cWAw2M575rxIZZn6JWZrpGT88ZAG0Imc1Dkvm+3It8mpB/9jcue7OPREYpgGmnU/fx6W
-         EtgQ==
-X-Gm-Message-State: AOJu0Yx2rk0BOOsil4Dy9C2Z74pzC0iqbF6KOynC03GHUQpbGReT8qD8
-	0aY9zFyp0FRhvwST8gFfDdKvptT+d2262dkFJu62a2JXZ3c+KMHoTpT6
-X-Gm-Gg: AfdE7clHcGoLosKJEFM9y+qwb2z6yocrNecrZBCKxaTbws69X3CwhRmR61Ib+jMhqJ2
-	TvV7PVb12vcsE6gDyJOgnNZnenQp5GsqpF7uUOH4jPovRX2FvaHO0fOVykOcjlK+05+UUaVIZMG
-	zx3M8/rXZnTE5gLHnAqf3Xf8aXKOL7gZVP9TwOSMasGSGoyN+Vi8GC9E591CpIC+eyFm4uFMmm+
-	gd7b0pMVlzosChPbL9wjhFqfWeC692uIt/85MNcb504AnG8mzjelBcxaNMGLaDPL1ciE5Fi7qJw
-	oNGfn7Kd1SHUHpI8/knmfm17vr2jJ5XRfUkl/laNLyJuae2WEb94aYPw14NucZ1NuHO23z2wSpb
-	htOb1q64LgsmovLfA/3vE7aaVlom0GFS3L+HaBu/5IZS/DwBWtdy+ovJ3ZzMu1FEC7Jfjy8L2VN
-	YRQN1l4FiT5uJY5sKL6YUaUF789r+ELt/o9+Poyq+3A5EJlA/SD7RacGAks4+ZeKwayc0BoThwZ
-	ZErGtg=
-X-Received: by 2002:a05:7301:2f8a:b0:304:6d18:3646 with SMTP id 5a478bee46e88-30c8489175amr2710590eec.0.1782386919330;
-        Thu, 25 Jun 2026 04:28:39 -0700 (PDT)
+        bh=X1Q4HoDRflTJ8UoBWS4trvhsixbEL0xrWlQEjrAFDGs=;
+        b=FXK8QCF/s2I/Ozy12QZQaICjvKbrF7EFXZi51cA/cZsagnFnk5RNaO7V764rP6VcYx
+         RGZHsyzCkjPQRqRkAc11J5uzFmai41f9KSLjRloqvBxEnFBsyiLtRTWuSTLr43/NrSkn
+         JhB0JtEq6Tz4C7U48LH8btp84UTfIk1w8O79vencTokXG8iN4b9oYkNEOF8Qlo6rIS6k
+         x1ozcnz2/NEzA97yJDcP82q67focUXRXGIwEJjAmFgDFZwFT6NQ5KW84USXcoYeCr//B
+         htUiDtFkuCLyb7WMaT0aidBb5r/pOZSv6MkioJkVAoTo1AFdRNs1jghI9iC4kjzem+C5
+         JGWg==
+X-Gm-Message-State: AOJu0YwzulPgWVtB0QGq51M8+FxVlmKB80P+IZHBRkzJcwpYneYPTqI8
+	wLEWvKLFEh1Fr4Aw0ar5+0rwSjuojJJIDsaKMy4OLPJzYSv6NubvHwCM
+X-Gm-Gg: AfdE7ckNZy53eaB3o1QEeEqEpYxQT1LzoM6/JWGuC5BvskcEAty3iKT5ua7LEmDR+Ot
+	Ime8d9X9RT82Yn1AntktIhSJODsvi/8xn9hHVo+ZspDwgE9lCBrQNZ8pySBn+OiY4Bdl0bXAiHY
+	YSLoMgAR4/aYtmrXKa0Es7rXyYOon7zjGAt61MvKEEpbfE/DMF6GdVGhrFeA5G+6Xd+NkGIQgME
+	YbXUMExDZMQPzaC4np3mQmGbPXUSI5/jBEKL+JoNfeyT8C9h//4Rz3NgrsqvK/iMsN3vfEh+rYu
+	GQXMaApZ0mtg/DhDW7UEluwf888d0W+ViOHUHcUZUoHxZaGgct3pBWQkXQuTGnaa+OCUqo2DHED
+	bNX3n4uJDJOK1xJL/fL9hDky7hTaey79F/XcTCC+IYd57/6DmATpKfu/Ct+VODm5ZWVvRh4jUXI
+	/8JaZeivpOzNBQGdP33DECdIVl6z7pngaQOMgwmykvnxW96Fg59APvMQvD6k41yw3zeMhR
+X-Received: by 2002:a05:7301:3d0d:b0:304:eaa8:11ea with SMTP id 5a478bee46e88-30c85124ae2mr2395020eec.34.1782386924222;
+        Thu, 25 Jun 2026 04:28:44 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c7cab08c2sm8744614eec.29.2026.06.25.04.28.38
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c7cab08c2sm8744614eec.29.2026.06.25.04.28.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Jun 2026 04:28:39 -0700 (PDT)
+        Thu, 25 Jun 2026 04:28:43 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org,
@@ -73,9 +72,9 @@ Cc: nvdimm@lists.linux.dev,
 	John Groves <John@Groves.net>,
 	Gregory Price <gourry@gourry.net>,
 	Anisa Su <anisa.su@samsung.com>
-Subject: [PATCH v11 12/31] cxl/mem: Set up framework for handling DC Events
-Date: Thu, 25 Jun 2026 04:04:49 -0700
-Message-ID: <20260625112638.550691-13-anisa.su@samsung.com>
+Subject: [PATCH v11 13/31] cxl/mem: Add 20 second timeout for stalled DC_ADD_CAPACITY chains
+Date: Thu, 25 Jun 2026 04:04:50 -0700
+Message-ID: <20260625112638.550691-14-anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260625112638.550691-1-anisa.su@samsung.com>
 References: <20260625112638.550691-1-anisa.su@samsung.com>
@@ -88,611 +87,252 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Ira Weiny <iweiny@kernel.org>
+A DC_ADD_CAPACITY event can span multiple event records grouped together
+by the CXL_DCD_EVENT_MORE flag. Extents are staged in the pending list until
+the last event record ('More'=0) is received, at which point the pending
+list is processed. If the device opens such a chain (More=1) but never
+sends the closing record, the staged list sits indefinitely.
 
-Adds the support for receiving DC event records but defers
-the real add/release logic to subsequent commits. Simply refuse all
-extents for DC_ADD and ack all DC_RELEASE events for now. Forced
-release is currently unsupported.
+Add a delayed-work watchdog that, on expiry, refuses the chain with an
+empty ADD_DC_RESPONSE and drops the staged list.
 
-In order, this commit adds the following:
+The 20s timeout is a conservative upper bound and may be tightened
+later. The timeout is purely defensive — the spec does not require it,
+but prevents issues from a lost mailbox response or a crashed fabric manager.
 
-1. Learn about DC Event Records and how to respond to them
+The watchdog bounds how long a chain may stall, but a device could still
+defeat it by streaming More=1 records faster than the timeout, growing the
+staged list without bound. Also cap a runtime chain at
+CXL_DC_MAX_PENDING_EXTENTS and refuse it once exceeded; existing-extent
+recovery is bounded separately by the device's reported extent count.
 
-* cxl_mem_get_event_records() learns about the DC Event record.
-Records of that type are routed to cxl_handle_dcd_event_records().
-
-* cxl_handle_dcd_event_records() switches on event_type:
-	- DCD_ADD_CAPACITY     -> handle_add_event()
-	- DCD_RELEASE_CAPACITY -> cxl_rm_extent()
-	- DCD_FORCED_CAPACITY_RELEASE is logged and ignored (FM/device-only).
-
-* cxl_send_dc_response() sends the reply mailbox commands
-ADD_DC_RESPONSE / RELEASE_DC
-
-2. Add stubs for DC_ADD and DC_RELEASE logic
-
-* handle_add_event() stages incoming extents onto
-mds->add_ctx.pending_extents and, when More=0 closes the chain,
-replies with an empty ADD_DC_RESPONSE — refusing all extents for now
-
-* cxl_rm_extent() acks the release via memdev_release_extent() so the
-device's view stays consistent; we can ack all releases because
-we currently don't accept/use any extents offered.
-
-3. Structural setup for later commits:
-
-* struct dc_extent, struct cxl_dc_tag_group, and pending_add_ctx
-set up the stage for the real DC_ADD path, which will enforce
-tag/grouping semantics
-
-Based on an original patch by Navneet Singh.
-
-Signed-off-by: Ira Weiny <iweiny@kernel.org>
 Signed-off-by: Anisa Su <anisa.su@samsung.com>
 
 ---
 Changes:
-1. mbox.c: fix leaking var node in add_to_pending_list()
-2. mbox.c: clear previously staged extents in handle_add_event()
-  if add_to_pending_list() returns an error
-3. mbox.c memdev_release_extent(): alloc cxl_extent_list_node
- on stack instead of using kzalloc because if kzalloc fails,
- it would prevent the release DC rsp from being sent. Avoid
- that possibility altogether.
+1. mbox.c: Fix comment in handle_add_event(), before closing the 'More'
+   chain and disabling the watchdog. The comment incorrectly claimed
+   handle_add_event() runs in system_wq.
+2. mbox.c: Drop unnecessary initialization of add_ctx.armed=false in
+   cxl_memdev_state_create(), as allocated memory is already zeroed
+3. mbox.c: assert add_ctx.lock is held in add_to_pending_list(); it
+   serializes access to add_ctx.pending_extents.
+4. mbox.c: cap a runtime More=1 chain at CXL_DC_MAX_PENDING_EXTENTS in
+   handle_add_event() so a buggy device cannot grow the staged list
+   without bound (the watchdog bounds time, not memory).
 ---
- drivers/cxl/core/mbox.c | 245 +++++++++++++++++++++++++++++++++++++++-
- drivers/cxl/cxl.h       |  69 +++++++++++
- drivers/cxl/cxlmem.h    |  45 ++++++++
- include/cxl/event.h     |  38 +++++++
- 4 files changed, 396 insertions(+), 1 deletion(-)
+ drivers/cxl/core/mbox.c | 98 ++++++++++++++++++++++++++++++++++++++++-
+ drivers/cxl/cxlmem.h    | 24 ++++++++--
+ 2 files changed, 117 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index 2ab400788824..7dd40fb8d613 100644
+index 7dd40fb8d613..4e887b5cdc3e 100644
 --- a/drivers/cxl/core/mbox.c
 +++ b/drivers/cxl/core/mbox.c
-@@ -5,6 +5,7 @@
- #include <linux/ktime.h>
- #include <linux/mutex.h>
- #include <linux/unaligned.h>
-+#include <linux/list.h>
- #include <cxlpci.h>
- #include <cxlmem.h>
- #include <cxl.h>
-@@ -1098,6 +1099,237 @@ static int cxl_clear_event_record(struct cxl_memdev_state *mds,
- 	return rc;
+@@ -1208,15 +1208,78 @@ static void clear_pending_extents(void *_mds)
+ 
+ 	list_for_each_entry_safe(pos, tmp, &mds->add_ctx.pending_extents, list)
+ 		delete_extent_node(pos);
++	mds->add_ctx.nr_pending = 0;
+ 	mds->add_ctx.group = NULL;
  }
  
-+static int send_one_response(struct cxl_mailbox *cxl_mbox,
-+			     struct cxl_mbox_dc_response *response,
-+			     int opcode, u32 extent_list_size, u8 flags)
++/*
++ * Defensive cap on extents staged in one runtime More=1 chain: a buggy
++ * device could otherwise grow the list without bound.  Not spec-defined.
++ */
++#define CXL_DC_MAX_PENDING_EXTENTS	100
++
++/*
++ * Bound on how long the host will wait for a device to finish a
++ * multi-record DC_ADD_CAPACITY chain (More=1 ... More=0) before
++ * refusing the chain.
++ * The timeout is not defined in the spec, but added for defensive purposes.
++ * Since there is no spec-defined timeout, 20s is chosen as a generous
++ * upper bound and matches the GPF timeout.
++ */
++#define CXL_DC_ADD_TIMEOUT	(20 * HZ)
++
++static void cxl_dc_add_timeout(struct work_struct *work)
 +{
-+	struct cxl_mbox_cmd mbox_cmd = (struct cxl_mbox_cmd) {
-+		.opcode = opcode,
-+		.size_in = struct_size(response, extent_list, extent_list_size),
-+		.payload_in = response,
-+	};
-+
-+	response->extent_list_size = cpu_to_le32(extent_list_size);
-+	response->flags = flags;
-+	return cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
-+}
-+
-+static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
-+				struct list_head *extent_list, int cnt)
-+{
-+	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-+	struct cxl_mbox_dc_response *p;
-+	struct cxl_extent_list_node *pos, *tmp;
-+	struct cxl_extent *extent;
-+	u32 pl_index;
-+
-+	size_t pl_size = struct_size(p, extent_list, cnt);
-+	u32 max_extents = cnt;
-+
-+	/* May have to use more bit on response. */
-+	if (pl_size > cxl_mbox->payload_size) {
-+		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
-+			      sizeof(struct updated_extent_list);
-+		pl_size = struct_size(p, extent_list, max_extents);
-+	}
-+
-+	struct cxl_mbox_dc_response *response __free(kfree) =
-+						kzalloc(pl_size, GFP_KERNEL);
-+	if (!response)
-+		return -ENOMEM;
-+
-+	/* Set __counted_by to capacity before populating; reset per response. */
-+	response->extent_list_size = cpu_to_le32(max_extents);
-+
-+	if (cnt == 0)
-+		return send_one_response(cxl_mbox, response, opcode, 0, 0);
-+
-+	pl_index = 0;
-+	list_for_each_entry_safe(pos, tmp, extent_list, list) {
-+		extent = pos->extent;
-+		response->extent_list[pl_index].dpa_start = extent->start_dpa;
-+		response->extent_list[pl_index].length = extent->length;
-+		pl_index++;
-+
-+		if (pl_index == max_extents) {
-+			u8 flags = 0;
-+			int rc;
-+
-+			if (pl_index < cnt)
-+				flags |= CXL_DCD_EVENT_MORE;
-+			rc = send_one_response(cxl_mbox, response, opcode,
-+					       pl_index, flags);
-+			if (rc)
-+				return rc;
-+			cnt -= pl_index;
-+			if (cnt < max_extents)
-+				max_extents = cnt;
-+			pl_index = 0;
-+		}
-+	}
-+
-+	if (!pl_index) /* nothing more to do */
-+		return 0;
-+	return send_one_response(cxl_mbox, response, opcode, pl_index, 0);
-+}
-+
-+static void delete_extent_node(struct cxl_extent_list_node *node)
-+{
-+	list_del(&node->list);
-+	kfree(node->extent);
-+	kfree(node);
-+}
-+
-+static void memdev_release_extent(struct cxl_memdev_state *mds, struct range *range)
-+{
++	struct pending_add_ctx *ctx = container_of(to_delayed_work(work),
++						   struct pending_add_ctx,
++						   timeout_work);
++	struct cxl_memdev_state *mds = container_of(ctx,
++						    struct cxl_memdev_state,
++						    add_ctx);
 +	struct device *dev = mds->cxlds.dev;
-+	struct cxl_extent extent = {
-+		.start_dpa = cpu_to_le64(range->start),
-+		.length = cpu_to_le64(range_len(range)),
-+	};
-+	struct cxl_extent_list_node node = { .extent = &extent };
-+	LIST_HEAD(extent_list);
 +
-+	dev_dbg(dev, "Release response dpa %pra\n", range);
++	guard(mutex)(&ctx->lock);
 +
 +	/*
-+	 * Stack-allocated instead of kzalloc'ed to avoid potential -ENOMEM,
-+	 * which would prevent sending the release DC rsp.
++	 * handle_add_event() cancels this work non-synchronously (a sync
++	 * cancel would deadlock on @ctx->lock, which the chain-close path
++	 * holds), so a callback that already started running can reach here
++	 * after its chain has moved on.  Abort only if a chain is still armed
++	 * AND the timer has not been re-armed since this expiry fired: a fresh
++	 * mod_delayed_work() (a later extent in this chain, or a new chain)
++	 * makes delayed_work_pending() true, meaning this expiry belongs to a
++	 * superseded deadline and must not abort the current chain.
 +	 */
-+	list_add_tail(&node.list, &extent_list);
-+	if (cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC, &extent_list, 1))
-+		dev_dbg(dev, "Failed to release %pra\n", range);
-+}
-+
-+static void clear_pending_extents(void *_mds)
-+{
-+	struct cxl_memdev_state *mds = _mds;
-+	struct cxl_extent_list_node *pos, *tmp;
-+
-+	list_for_each_entry_safe(pos, tmp, &mds->add_ctx.pending_extents, list)
-+		delete_extent_node(pos);
-+	mds->add_ctx.group = NULL;
-+}
-+
-+static int add_to_pending_list(struct list_head *pending_list,
-+			       struct cxl_extent *to_add)
-+{
-+	struct cxl_extent_list_node *node = kzalloc(sizeof(*node), GFP_KERNEL);
-+	struct cxl_extent *extent;
-+
-+	if (!node)
-+		return -ENOMEM;
-+	extent = kmemdup(to_add, sizeof(*extent), GFP_KERNEL);
-+	if (!extent) {
-+		kfree(node);
-+		return -ENOMEM;
-+	}
-+
-+	node->extent = extent;
-+	list_add_tail(&node->list, pending_list);
-+	return 0;
-+}
-+
-+/*
-+ * Stub: stage extents on the pending list and reply with an empty
-+ * ADD_DC_RESPONSE on More=0 (refuse all).  A later commit replaces
-+ * the no-op tail with the real Add pipeline that surfaces a dax
-+ * device per accepted extent.
-+ */
-+static int handle_add_event(struct cxl_memdev_state *mds,
-+			    struct cxl_event_dcd *event)
-+{
-+	struct device *dev = mds->cxlds.dev;
-+	int rc;
-+
-+	rc = add_to_pending_list(&mds->add_ctx.pending_extents, &event->extent);
-+	if (rc) {
-+		clear_pending_extents(mds);
-+		return rc;
-+	}
-+
-+	if (event->flags & CXL_DCD_EVENT_MORE) {
-+		dev_dbg(dev, "more bit set; delay the surfacing of extent\n");
-+		return 0;
-+	}
-+
-+	rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-+				  &mds->add_ctx.pending_extents, 0);
-+	clear_pending_extents(mds);
-+	return rc;
-+}
-+
-+/*
-+ * Stub: ack the release back to the device so it knows we are not
-+ * using the range.  A later commit replaces this with the real
-+ * teardown that walks the region's tag group and tears down the
-+ * member dc_extent devices.
-+ */
-+static int cxl_rm_extent(struct cxl_memdev_state *mds,
-+			 struct cxl_extent *extent)
-+{
-+	u64 start_dpa = le64_to_cpu(extent->start_dpa);
-+	struct range dpa_range = {
-+		.start = start_dpa,
-+		.end = start_dpa + le64_to_cpu(extent->length) - 1,
-+	};
-+
-+	memdev_release_extent(mds, &dpa_range);
-+	return 0;
-+}
-+
-+static char *cxl_dcd_evt_type_str(u8 type)
-+{
-+	switch (type) {
-+	case DCD_ADD_CAPACITY:
-+		return "add";
-+	case DCD_RELEASE_CAPACITY:
-+		return "release";
-+	case DCD_FORCED_CAPACITY_RELEASE:
-+		return "force release";
-+	default:
-+		break;
-+	}
-+
-+	return "<unknown>";
-+}
-+
-+static void cxl_handle_dcd_event_records(struct cxl_memdev_state *mds,
-+					 struct cxl_event_record_raw *raw_rec)
-+{
-+	struct cxl_event_dcd *event = &raw_rec->event.dcd;
-+	struct cxl_extent *extent = &event->extent;
-+	struct device *dev = mds->cxlds.dev;
-+	uuid_t *id = &raw_rec->id;
-+	int rc;
-+
-+	if (!uuid_equal(id, &CXL_EVENT_DC_EVENT_UUID))
++	if (!ctx->armed || delayed_work_pending(&ctx->timeout_work))
 +		return;
 +
-+	dev_dbg(dev, "DCD event %s : DPA:%#llx LEN:%#llx\n",
-+		cxl_dcd_evt_type_str(event->event_type),
-+		le64_to_cpu(extent->start_dpa), le64_to_cpu(extent->length));
++	dev_warn(dev, "DC add chain timed out; refusing staged extents\n");
 +
-+	switch (event->event_type) {
-+	case DCD_ADD_CAPACITY:
-+		rc = handle_add_event(mds, event);
-+		break;
-+	case DCD_RELEASE_CAPACITY:
-+		rc = cxl_rm_extent(mds, &event->extent);
-+		break;
-+	case DCD_FORCED_CAPACITY_RELEASE:
-+		dev_err_ratelimited(dev, "Forced release event ignored.\n");
-+		rc = 0;
-+		break;
-+	default:
-+		rc = -EINVAL;
-+		break;
-+	}
++	if (cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
++				 &ctx->pending_extents, 0))
++		dev_dbg(dev, "Failed to send empty ADD_DC_RESPONSE on timeout\n");
 +
-+	if (rc)
-+		dev_err_ratelimited(dev, "dcd event failed: %d\n", rc);
++	clear_pending_extents(mds);
++	ctx->armed = false;
 +}
 +
- static void cxl_mem_get_records_log(struct cxl_memdev_state *mds,
- 				    enum cxl_event_log_type type)
++static void cxl_cancel_dcd_add_chain_work(void *_mds)
++{
++	struct cxl_memdev_state *mds = _mds;
++
++	cancel_delayed_work_sync(&mds->add_ctx.timeout_work);
++}
++
+ static int add_to_pending_list(struct list_head *pending_list,
+ 			       struct cxl_extent *to_add)
  {
-@@ -1134,9 +1366,13 @@ static void cxl_mem_get_records_log(struct cxl_memdev_state *mds,
- 		if (!nr_rec)
- 			break;
++	struct pending_add_ctx *ctx =
++		container_of(pending_list, struct pending_add_ctx, pending_extents);
+ 	struct cxl_extent_list_node *node = kzalloc(sizeof(*node), GFP_KERNEL);
+ 	struct cxl_extent *extent;
  
--		for (i = 0; i < nr_rec; i++)
-+		for (i = 0; i < nr_rec; i++) {
- 			__cxl_event_trace_record(cxlmd, type,
- 						 &payload->records[i]);
-+			if (type == CXL_EVENT_TYPE_DCD)
-+				cxl_handle_dcd_event_records(mds,
-+							&payload->records[i]);
-+		}
++	lockdep_assert_held(&ctx->lock);
++
+ 	if (!node)
+ 		return -ENOMEM;
+ 	extent = kmemdup(to_add, sizeof(*extent), GFP_KERNEL);
+@@ -1227,6 +1290,7 @@ static int add_to_pending_list(struct list_head *pending_list,
  
- 		if (payload->flags & CXL_GET_EVENT_FLAG_OVERFLOW)
- 			trace_cxl_overflow(cxlmd, type, payload);
-@@ -1168,6 +1404,8 @@ void cxl_mem_get_event_records(struct cxl_memdev_state *mds, u32 status)
+ 	node->extent = extent;
+ 	list_add_tail(&node->list, pending_list);
++	ctx->nr_pending++;
+ 	return 0;
+ }
+ 
+@@ -1239,10 +1303,20 @@ static int add_to_pending_list(struct list_head *pending_list,
+ static int handle_add_event(struct cxl_memdev_state *mds,
+ 			    struct cxl_event_dcd *event)
  {
- 	dev_dbg(mds->cxlds.dev, "Reading event logs: %x\n", status);
++	struct pending_add_ctx *ctx = &mds->add_ctx;
+ 	struct device *dev = mds->cxlds.dev;
+ 	int rc;
  
-+	if (cxl_dcd_supported(mds) && (status & CXLDEV_EVENT_STATUS_DCD))
-+		cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_DCD);
- 	if (status & CXLDEV_EVENT_STATUS_FATAL)
- 		cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_FATAL);
- 	if (status & CXLDEV_EVENT_STATUS_FAIL)
-@@ -1797,6 +2035,11 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
+-	rc = add_to_pending_list(&mds->add_ctx.pending_extents, &event->extent);
++	guard(mutex)(&ctx->lock);
++
++	if (ctx->nr_pending >= CXL_DC_MAX_PENDING_EXTENTS) {
++		dev_warn(dev, "DC add chain exceeds %u extents; dropping (firmware bug)\n",
++			 CXL_DC_MAX_PENDING_EXTENTS);
++		clear_pending_extents(mds);
++		return -ENOSPC;
++	}
++
++	rc = add_to_pending_list(&ctx->pending_extents, &event->extent);
+ 	if (rc) {
+ 		clear_pending_extents(mds);
+ 		return rc;
+@@ -1250,9 +1324,19 @@ static int handle_add_event(struct cxl_memdev_state *mds,
+ 
+ 	if (event->flags & CXL_DCD_EVENT_MORE) {
+ 		dev_dbg(dev, "more bit set; delay the surfacing of extent\n");
++		mod_delayed_work(system_wq, &ctx->timeout_work,
++						 CXL_DC_ADD_TIMEOUT);
++		ctx->armed = true;
+ 		return 0;
  	}
  
- 	mutex_init(&mds->event.log_lock);
-+	INIT_LIST_HEAD(&mds->add_ctx.pending_extents);
++	/*
++	 * Chain is closing.  Disarm before flushing so a pending watchdog
++	 * (queued but blocked on @ctx->lock) sees !armed and bails out.
++	 */
++	ctx->armed = false;
++	cancel_delayed_work(&ctx->timeout_work);
 +
-+	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
+ 	rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
+ 				  &mds->add_ctx.pending_extents, 0);
+ 	clear_pending_extents(mds);
+@@ -2036,11 +2120,23 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
+ 
+ 	mutex_init(&mds->event.log_lock);
+ 	INIT_LIST_HEAD(&mds->add_ctx.pending_extents);
++	mutex_init(&mds->add_ctx.lock);
++	INIT_DELAYED_WORK(&mds->add_ctx.timeout_work,
++			  cxl_dc_add_timeout);
+ 
+ 	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
+ 	if (rc)
+ 		return ERR_PTR(rc);
+ 
++	/*
++	 * Registered after clear_pending_extents so devm's reverse-order
++	 * unwind cancels (and waits for) the watchdog first, then the list
++	 * cleanup runs with the watchdog guaranteed not to refire.
++	 */
++	rc = devm_add_action_or_reset(dev, cxl_cancel_dcd_add_chain_work, mds);
 +	if (rc)
 +		return ERR_PTR(rc);
- 
++
  	rc = devm_cxl_register_mce_notifier(dev, &mds->mce_notifier);
  	if (rc == -EOPNOTSUPP)
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 864f6d3c03d4..367c3d9e2147 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -12,6 +12,7 @@
- #include <linux/node.h>
- #include <linux/io.h>
- #include <linux/range.h>
-+#include <linux/xarray.h>
- #include <cxl/cxl.h>
- 
- extern const struct nvdimm_security_ops *cxl_security_ops;
-@@ -308,6 +309,41 @@ enum cxl_decoder_state {
- 	CXL_DECODER_STATE_AUTO_STAGED,
- };
- 
-+struct cxl_dc_tag_group;
-+
-+/**
-+ * struct dc_extent - A single dynamic-capacity extent surfaced to the host.
-+ *
-+ * One per device-stamped extent.  Multiple dc_extents that share a tag
-+ * (see &struct cxl_dc_tag_group) form a single logical allocation, but
-+ * each dc_extent has its own HPA range and is the unit that the DAX
-+ * layer sees as a backing dax_resource.
-+ *
-+ * @dev: device representing this extent; child of cxlr_dax->dev.
-+ * @group: containing tag group (allocation); shared across siblings.
-+ * @cxled: endpoint decoder backing the DPA range.
-+ * @dpa_range: DPA range this extent covers within @cxled.
-+ * @hpa_range: HPA range that @dpa_range decodes to, relative to
-+ *	       cxlr_dax->hpa_range.start.
-+ * @uuid: tag uuid (matches @group->uuid; kept for the release-path log).
-+ * @seq_num: 0..n-1 assembly-order index within the tag group, assigned by the
-+ *	     host in cxl_realize_group().  For a sharable partition the
-+ *	     order follows the device-stamped shared_extn_seq (0..n-1 per
-+ *	     CXL r4.0 Table 8-230); for a non-sharable partition, where
-+ *	     shared_extn_seq is reserved, the order follows event arrival.
-+ *	     Either way @seq_num is a dense 0..n-1 so the dax layer can
-+ *	     assemble ranges in the right order regardless of source.
-+ */
-+struct dc_extent {
-+	struct device dev;
-+	struct cxl_dc_tag_group *group;
-+	struct cxl_endpoint_decoder *cxled;
-+	struct range dpa_range;
-+	struct range hpa_range;
-+	uuid_t uuid;
-+	u16 seq_num;
-+};
-+
- /**
-  * struct cxl_endpoint_decoder - Endpoint  / SPA to DPA decoder
-  * @cxld: base cxl_decoder_object
-@@ -520,12 +556,45 @@ struct cxl_pmem_region {
- 	struct cxl_pmem_region_mapping mapping[];
- };
- 
-+/* See CXL 3.1 8.2.9.2.1.6 */
-+enum dc_event {
-+	DCD_ADD_CAPACITY,
-+	DCD_RELEASE_CAPACITY,
-+	DCD_FORCED_CAPACITY_RELEASE,
-+	DCD_REGION_CONFIGURATION_UPDATED,
-+};
-+
- struct cxl_dax_region {
- 	struct device dev;
- 	struct cxl_region *cxlr;
- 	struct range hpa_range;
- };
- 
-+/**
-+ * struct cxl_dc_tag_group - A tagged dynamic-capacity allocation.
-+ *
-+ * Container for the &struct dc_extent siblings that share a tag.  The
-+ * group has no sysfs identity; userspace sees the individual dc_extents
-+ * directly under the parent dax_region device.  The group exists to
-+ * keep tag-scoped invariants (atomic add, atomic release, ordered carve
-+ * by seq_num) in one place.
-+ *
-+ * @cxlr_dax: back reference to parent region device.
-+ * @uuid: tag identifying this allocation; same across all member dc_extents.
-+ * @dc_extents: xarray of &struct dc_extent in this group, indexed by the
-+ *		dc_extent's @seq_num (0..n-1, dense).  See &struct dc_extent
-+ *		for how seq_num is sourced for sharable vs non-sharable
-+ *		allocations.
-+ * @nr_extents: live count of dc_extents in the group; the group is freed
-+ *		when the last dc_extent device is released.
-+ */
-+struct cxl_dc_tag_group {
-+	struct cxl_dax_region *cxlr_dax;
-+	uuid_t uuid;
-+	struct xarray dc_extents;
-+	unsigned int nr_extents;
-+};
-+
- /**
-  * struct cxl_port - logical collection of upstream port devices and
-  *		     downstream port devices to construct a CXL memory
+ 		dev_warn(dev, "CXL MCE unsupported\n");
 diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index bcf976829c3e..4ffa7bd1e5f1 100644
+index 4ffa7bd1e5f1..81498d47f309 100644
 --- a/drivers/cxl/cxlmem.h
 +++ b/drivers/cxl/cxlmem.h
-@@ -7,6 +7,7 @@
- #include <linux/cdev.h>
+@@ -8,6 +8,8 @@
  #include <linux/uuid.h>
  #include <linux/node.h>
-+#include <linux/list.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/workqueue.h>
  #include <cxl/event.h>
  #include <cxl/mailbox.h>
  #include "cxl.h"
-@@ -404,6 +405,23 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
- 	return dev_get_drvdata(cxl_mbox->host);
- }
+@@ -407,19 +409,33 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
  
-+/**
-+ * struct pending_add_ctx - Staging state for an in-progress
-+ *			    DCD_ADD_CAPACITY event chain
-+ * @pending_extents: extents received so far in the chain; flushed when
-+ *		     the chain closes (More=0)
-+ * @group: tag group being assembled from the chain
-+ *
-+ * A DCD_ADD_CAPACITY notification can span multiple event records
-+ * stitched together by the CXL_DCD_EVENT_MORE flag.  Records are staged
-+ * here until the device clears More, at which point the staged batch is
-+ * processed and responded to as a single Add_DC_Response.
-+ */
-+struct pending_add_ctx {
-+	struct list_head pending_extents;
-+	struct cxl_dc_tag_group *group;
-+};
-+
  /**
-  * struct cxl_memdev_state - Generic Type-3 Memory Device Class driver data
+  * struct pending_add_ctx - Staging state for an in-progress
+- *			    DCD_ADD_CAPACITY event chain
++ *							DCD_ADD_CAPACITY event chain
+  * @pending_extents: extents received so far in the chain; flushed when
+- *		     the chain closes (More=0)
++ *					 the chain closes (More=0)
+  * @group: tag group being assembled from the chain
++ * @timeout_work: watchdog that fires if a chain is opened with
++ *				  CXL_DCD_EVENT_MORE but the closing record never arrives
++ * @lock: serialises updates to the chain state against the watchdog
++ * @armed: set when a More=1 chain opens; cleared when the chain closes,
++ *		   either by a More=0 event record or by the watchdog firing.
   *
-@@ -422,6 +440,8 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
-  * @active_volatile_bytes: sum of hard + soft volatile
-  * @active_persistent_bytes: sum of hard + soft persistent
-  * @dcd_supported: all DCD commands are supported
-+ * @add_ctx: state for an in-progress DCD_ADD_CAPACITY chain
-+ *	     (see &struct pending_add_ctx)
-  * @event: event log driver state
-  * @poison: poison driver state info
-  * @security: security driver state info
-@@ -442,6 +462,7 @@ struct cxl_memdev_state {
- 	u64 active_volatile_bytes;
- 	u64 active_persistent_bytes;
- 	bool dcd_supported;
-+	struct pending_add_ctx add_ctx;
- 
- 	struct cxl_event_state event;
- 	struct cxl_poison_state poison;
-@@ -518,6 +539,21 @@ enum cxl_opcode {
- 	UUID_INIT(0x5e1819d9, 0x11a9, 0x400c, 0x81, 0x1f, 0xd6, 0x07, 0x19,     \
- 		  0x40, 0x3d, 0x86)
- 
-+/*
-+ * Add Dynamic Capacity Response
-+ * CXL rev 3.1 section 8.2.9.9.9.3; Table 8-168 & Table 8-169
-+ */
-+struct cxl_mbox_dc_response {
-+	__le32 extent_list_size;
-+	u8 flags;
-+	u8 reserved[3];
-+	struct updated_extent_list {
-+		__le64 dpa_start;
-+		__le64 length;
-+		u8 reserved[8];
-+	} __packed extent_list[] __counted_by(extent_list_size);
-+} __packed;
-+
- struct cxl_mbox_get_supported_logs {
- 	__le16 entries;
- 	u8 rsvd[6];
-@@ -588,6 +624,14 @@ struct cxl_mbox_identify {
- 	UUID_INIT(0xe71f3a40, 0x2d29, 0x4092, 0x8a, 0x39, 0x4d, 0x1c, 0x96, \
- 		  0x6c, 0x7c, 0x65)
- 
-+/*
-+ * Dynamic Capacity Event Record
-+ * CXL rev 3.1 section 8.2.9.2.1; Table 8-43
-+ */
-+#define CXL_EVENT_DC_EVENT_UUID                                             \
-+	UUID_INIT(0xca95afa7, 0xf183, 0x4018, 0x8c, 0x2f, 0x95, 0x26, 0x8e, \
-+		  0x10, 0x1a, 0x2a)
-+
- /*
-  * Get Event Records output payload
-  * CXL rev 3.0 section 8.2.9.2.2; Table 8-50
-@@ -613,6 +657,7 @@ enum cxl_event_log_type {
- 	CXL_EVENT_TYPE_WARN,
- 	CXL_EVENT_TYPE_FAIL,
- 	CXL_EVENT_TYPE_FATAL,
-+	CXL_EVENT_TYPE_DCD,
- 	CXL_EVENT_TYPE_MAX
+  * A DCD_ADD_CAPACITY notification can span multiple event records
+  * stitched together by the CXL_DCD_EVENT_MORE flag.  Records are staged
+- * here until the device clears More, at which point the staged batch is
+- * processed and responded to as a single Add_DC_Response.
++ * here until an event record with 'More'=0 is received, at which point the
++ * staged batch is processed and responded to as a single Add_DC_Response.
++ *
++ * If a chain is opened (More=1) but the device never sends the closing
++ * record, the staged list would otherwise sit indefinitely.  @timeout_work
++ * is a defensive watchdog that refuses such a chain with an empty response
++ * and drops the staged list.
+  */
+ struct pending_add_ctx {
+ 	struct list_head pending_extents;
+ 	struct cxl_dc_tag_group *group;
++	struct delayed_work timeout_work;
++	struct mutex lock;
++	unsigned int nr_pending;
++	bool armed;
  };
  
-diff --git a/include/cxl/event.h b/include/cxl/event.h
-index ff97fea718d2..fa3cd895f656 100644
---- a/include/cxl/event.h
-+++ b/include/cxl/event.h
-@@ -6,6 +6,7 @@
- #include <linux/types.h>
- #include <linux/uuid.h>
- #include <linux/workqueue_types.h>
-+#include <linux/list.h>
- 
- /*
-  * Common Event Record Format
-@@ -141,12 +142,49 @@ struct cxl_event_mem_sparing {
- 	u8 reserved2[0x25];
- } __packed;
- 
-+/*
-+ * CXL rev 3.1 section 8.2.9.2.1.6; Table 8-51
-+ */
-+struct cxl_extent {
-+	__le64 start_dpa;
-+	__le64 length;
-+	u8 uuid[UUID_SIZE];
-+	__le16 shared_extn_seq;
-+	u8 reserved[0x6];
-+} __packed;
-+
-+struct cxl_extent_list_node {
-+	struct cxl_extent *extent;
-+	struct list_head list;
-+	int rid;
-+};
-+
-+/*
-+ * Dynamic Capacity Event Record
-+ * CXL rev 3.1 section 8.2.9.2.1.6; Table 8-50
-+ */
-+#define CXL_DCD_EVENT_MORE			BIT(0)
-+struct cxl_event_dcd {
-+	struct cxl_event_record_hdr hdr;
-+	u8 event_type;
-+	u8 validity_flags;
-+	__le16 host_id;
-+	u8 partition_index;
-+	u8 flags;
-+	u8 reserved1[0x2];
-+	struct cxl_extent extent;
-+	u8 reserved2[0x18];
-+	__le32 num_avail_extents;
-+	__le32 num_avail_tags;
-+} __packed;
-+
- union cxl_event {
- 	struct cxl_event_generic generic;
- 	struct cxl_event_gen_media gen_media;
- 	struct cxl_event_dram dram;
- 	struct cxl_event_mem_module mem_module;
- 	struct cxl_event_mem_sparing mem_sparing;
-+	struct cxl_event_dcd dcd;
- 	/* dram & gen_media event header */
- 	struct cxl_event_media_hdr media_hdr;
- } __packed;
+ /**
 -- 
 2.43.0
 
