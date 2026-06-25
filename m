@@ -1,43 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC751305693;
-	Thu, 25 Jun 2026 18:16:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEAB02F8E9F;
+	Thu, 25 Jun 2026 18:19:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782411411; cv=none; b=XVrccPQUHqE1c+LBw2dQJh2fG/+c7kXOCtYF3ZrEXMxlbS9TLS/8QOsl/lIKhcqDWa+aV73WeXLaeIniey1yFeTc4brnOmsod0CsXuSFaeB1U86mP3TfKMbhu4OlTnr3NUbh2ShrZfWa8XbXe8YkVazCkBQ7F9YH30wvtH/r3aw=
+	t=1782411586; cv=none; b=XFL9UvbxCAW2m4JGiTK1V0DmUyQlvlqOGO1TIaaURqzfa8RwZSm4aQMY6n4j0cYFFnQLZ0ejVPGErC/6wOmj9o/PjNyQzhNR5TAMPByFi8vkUfINIU+pTuxoBG4bLKOHJWsonzxD/aRKVV2d/jeMofpiOmQVNIjZA+VPwvnPzqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782411411; c=relaxed/simple;
-	bh=bnzrYwl6CFGhy4Y3yBROQXeWnZunzeexVYvZfayIOJA=;
+	s=arc-20240116; t=1782411586; c=relaxed/simple;
+	bh=LFpDp31rWkSWLBFtSvZWEG6R6DdfpeTikPQNTyvpoJc=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=MYp6uxdb1HQ2u6caylCw3l9p6u14ncDrOcsFXlP2bNMONtwT4kzmaUNjwSBuksAbxHzEpf4bWXeUVMpTnP0SCxlQO93c+l5eI2Nsr4O6gNVS8OyrQtlfSSrcubap6IjS7af+opXpgxe9+DwzoAFOBNXz5Pw5a7v4ZuMHm9/P6XI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j4t9dUgq; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=ZoJsoDEedFuoh6CR951+us+MLiWaYoPa2fj23KmUerg/mOwKaNXbQAuuVijoAe7Ghz+HPIaydzY1u0iLV4id4j4tkI0aibGuufWz6GM5BO3gMtU7MvF71xsD2zdsrKu0Nvls4E/4E6E1DTMzmOZy25YbbcRqMZbRdu1n3JQmOrY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oqtQbvnx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j4t9dUgq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52E881F000E9;
-	Thu, 25 Jun 2026 18:16:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oqtQbvnx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41C431F000E9;
+	Thu, 25 Jun 2026 18:19:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782411410;
-	bh=hRL15YfI289gQ89N3mCSMIGUGTYlftYyPanImOGo7JU=;
+	s=k20260515; t=1782411585;
+	bh=jwvxhbn3uBBmJLSWq2Pdqp83rjyhglXlEyp+dQYmeKo=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=j4t9dUgqTiw08ws5kV1MODmLGu5tU53zSXeSbCwuV5nPZaQZglXxXnrKJIRQlIuAo
-	 D30TpEgX0kFw0SbJ7tlu1/dbrToTlblkqZR+BvjFW32LUlPZs7cFzknts97+xinXG3
-	 b9IQvzqhw96mDF2JEMxuFkkVs8+mQ8KIZVBR5jOu4aQBmv+4BTWlxaAZREHQxGXQzz
-	 8ZPizSdV+sHvHYzn0V1f4DgZ7gg12UAXuLgZfJk6+TA4pzoX8C+Z8hO7lLQC6PDVWL
-	 ljQF9MyX1c/GsLs1Ln5xqI5C63jz9IEnY75toODLv3YK+hm99MxwWSMNhovs4WGAsM
-	 SC4tNu8Zx3drQ==
+	b=oqtQbvnxlIodhdTbmHRndruTidEWjy17CujcjcJJa+bNAxv5JBx2O72/b4tqE5D3S
+	 zYvsCEjnhKJno6wQasftl9/KV/7NrniQtE6Xg8AbIBTEOC6u1tSIM/gScAsBsbCx7u
+	 LyMSNbVPgyeknrhH5yq5UbPeMBYuGnRsnKiThjG96DGn5AtsXLKBYhPghEyFHGzwSh
+	 VZT7VYwnSG4NsypFzfUxLqe5vUS1DwaT5T9/6VMknzWpdHUsJqZ5anL9TOLDW7XVMH
+	 zrWsQ7JOPqlzeb89UqScX1Mf2ufVpdybWfWFKlhpC/cizyXo7TTLwqF4TvO/6EQjUo
+	 PKDbGxmPAGj/Q==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v11 07/31] cxl/region: Add DC DAX region support
+Subject: Re: [PATCH v11 15/31] cxl/mem: Drop misaligned DCD extent groups
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Anisa Su" <anisa.su887@gmail.com>
 Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <20260625112638.550691-8-anisa.su@samsung.com>
+In-Reply-To: <20260625112638.550691-16-anisa.su@samsung.com>
 References: <20260625112638.550691-1-anisa.su@samsung.com>
- <20260625112638.550691-8-anisa.su@samsung.com>
+ <20260625112638.550691-16-anisa.su@samsung.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 25 Jun 2026 18:16:49 +0000
-Message-Id: <20260625181650.52E881F000E9@smtp.kernel.org>
+Date: Thu, 25 Jun 2026 18:19:44 +0000
+Message-Id: <20260625181945.41C431F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -46,105 +46,73 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] Lockless access to `cxlmd->cxlds` via the newly introduced `cxled_=
-to_mds()` helper in `store_targetN()` leads to a NULL pointer dereference d=
-uring concurrent device teardown.
+- [Medium] Un-ratelimited `dev_warn` on invalid CXL device input can lead t=
+o log flooding and Denial of Service.
 --
 
-commit 0243c2c435424873e37aafdcb17aee31b0ea07a1
+commit 2eb192d0644cd71e7046e47b82d5b1422081590e
 Author: Ira Weiny <iweiny@kernel.org>
 
-cxl/region: Add DC DAX region support
+cxl/mem: Drop misaligned DCD extent groups
 
-This commit introduces dynamic DAX regions to support CXL DC capabilities.
-It adds a new sysfs attribute for creating dynamic RAM regions and updates
-target attachment logic to handle DCD support.
+This commit adds an alignment check to cxl_add_pending() to ensure that
+extents in a tag group are aligned to the dax region's mapping granularity.
+Misaligned extents now cause the entire group to be dropped.
 
-> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> index 82ca3a4767080..9ed141fa13341 100644
-> --- a/drivers/cxl/core/core.h
-> +++ b/drivers/cxl/core/core.h
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> index 08f51b8807c06..14ba263044f08 100644
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
+
 [ ... ]
-> @@ -18,6 +19,13 @@ enum cxl_detach_mode {
->  	DETACH_INVALIDATE,
->  };
+
+> @@ -1395,11 +1410,38 @@ static int cxl_realize_group(struct cxl_memdev_st=
+ate *mds, const uuid_t *tag,
+>  	return group_cnt;
+>  }
 > =20
-> +static inline struct cxl_memdev_state *
-> +cxled_to_mds(struct cxl_endpoint_decoder *cxled)
+> +/*
+> + * Validate a tag @group before realizing it.  Returns 0 if the group ma=
+y be
+> + * added, or a negative errno if it must be dropped.  Further gates laye=
+r in
+> + * here in later commits.
+> + */
+> +static int cxl_validate_group(struct cxl_memdev_state *mds, const uuid_t=
+ *tag,
+> +			      struct list_head *group)
 > +{
-> +	struct cxl_memdev *cxlmd =3D cxled_to_memdev(cxled);
-> +	return to_cxl_memdev_state(cxlmd->cxlds);
-> +}
-
-[Severity: High]
-Can this result in a NULL pointer dereference during concurrent device
-teardown?
-
-If a user writes to a CXL region's targetX sysfs file, store_targetN()
-calls cxled_to_mds() without holding locks that synchronize with device
-teardown.
-
-Concurrently, if the CXL device is hot-removed or the driver is unbound,
-cxl_memdev_shutdown() nullifies cxlmd->cxlds under cxl_memdev_rwsem.
-
-This would cause cxled_to_mds() to pass a NULL pointer to
-to_cxl_memdev_state(), which unconditionally dereferences it:
-
-drivers/cxl/cxlmem.h:to_cxl_memdev_state() {
-    if (cxlds->type !=3D CXL_DEVTYPE_CLASSMEM)
-        return NULL;
-    ...
-}
-
-Does this path need to hold cxl_memdev_rwsem or otherwise verify
-cxlmd->cxlds is not NULL before using it?
-
+> +	struct device *dev =3D mds->cxlds.dev;
+> +	struct cxl_extent_list_node *pos;
 > +
->  #ifdef CONFIG_CXL_REGION
-> =20
->  struct cxl_region_context {
-[ ... ]
-> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> index e50dc716d4e82..ba03ec5e27c32 100644
-> --- a/drivers/cxl/core/region.c
-> +++ b/drivers/cxl/core/region.c
-[ ... ]
-> @@ -2389,6 +2396,8 @@ static size_t store_targetN(struct cxl_region *cxlr=
-, const char *buf, int pos,
->  	if (sysfs_streq(buf, "\n"))
->  		rc =3D detach_target(cxlr, pos);
->  	else {
-> +		struct cxl_endpoint_decoder *cxled;
-> +		struct cxl_memdev_state *mds;
->  		struct device *dev;
-> =20
->  		dev =3D bus_find_device_by_name(&cxl_bus_type, NULL, buf);
-> @@ -2400,8 +2409,21 @@ static size_t store_targetN(struct cxl_region *cxl=
-r, const char *buf, int pos,
->  			goto out;
->  		}
-> =20
-> -		rc =3D attach_target(cxlr, to_cxl_endpoint_decoder(dev), pos,
-> -				   TASK_INTERRUPTIBLE);
-> +		cxled =3D to_cxl_endpoint_decoder(dev);
-> +		if (cxlr->mode =3D=3D CXL_PARTMODE_DYNAMIC_RAM_1) {
-> +			mds =3D cxled_to_mds(cxled);
-> +			if (!mds) {
-> +				dev_dbg(dev, "No memdev state\n");
-> +				rc =3D -ENODEV;
-> +				goto out;
-> +			}
-> +			if (!cxl_dcd_supported(mds)) {
-> +				dev_dbg(dev, "DCD unsupported\n");
-> +				rc =3D -EINVAL;
-> +				goto out;
-> +			}
+> +	/* Alignment gate =E2=80=94 drop the group if any member fails */
+> +	list_for_each_entry(pos, group, list) {
+> +		if (!cxl_extent_dcd_aligned(pos->extent)) {
+> +			dev_warn(dev,
+> +				 "Tag %pUb: dropping group, extent DPA:%#llx LEN:%#llx not %#llx-ali=
+gned\n",
+> +				 tag,
+> +				 le64_to_cpu(pos->extent->start_dpa),
+> +				 le64_to_cpu(pos->extent->length),
+> +				 (u64)PMD_SIZE);
+
+[Severity: Medium]
+Could this un-ratelimited dev_warn() lead to log flooding?
+
+If a malfunctioning or compromised CXL device rapidly sends DCD_ADD_CAPACITY
+events with misaligned extents, it appears this could spam the kernel log
+and cause high CPU overhead.
+
+Should this use dev_warn_ratelimited() instead, since it is driven by
+untrusted device input?
+
+> +			return -EINVAL;
 > +		}
-> +		rc =3D attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
->  out:
->  		put_device(dev);
->  	}
+> +	}
+> +
+> +	return 0;
+> +}
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260625112638.5506=
-91-1-anisa.su@samsung.com?part=3D7
+91-1-anisa.su@samsung.com?part=3D15
