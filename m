@@ -1,62 +1,62 @@
-Received: from mail-dy1-f173.google.com (mail-dy1-f173.google.com [74.125.82.173])
+Received: from mail-dy1-f182.google.com (mail-dy1-f182.google.com [74.125.82.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 307233D813D
-	for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 11:28:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1A2E3D8907
+	for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 11:28:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782386903; cv=none; b=S/UGCjwUGhqVOayXE8pXtkMutLtEJrzr26LgG8cJLSapJ1BNPicLxL9CvnzoDcdGaXIcenpf0PKXrBfLFuyRHQm9zW+jVndPKqZHA3UR0aeAo7nAONLMJQpNi4OPGw6dCcTLgHhf3XuezoZ32g8hMi9E7a3uhnBLAf0K4lj2fg4=
+	t=1782386909; cv=none; b=O7J/bjWBva413UMMvX6/3McdFS6xMntvGiLWNAzwMdQkGnnywtxAU+DSrubFVFnjuPaqvOmfz5WI+BYGbVaICvmpEw+V5vtRAbfAX+FnuEnEAgJxjM2NyE66hRDBKsQ0O9hGcjeceT04z3X+iwmoiOza3hgsATGXRfTogxFtJRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782386903; c=relaxed/simple;
-	bh=MH96XZs7MF5UV1+fZ2jQQiPTR+7dlAPgtIOhHTm8MGw=;
+	s=arc-20240116; t=1782386909; c=relaxed/simple;
+	bh=b/Rqlb7CRq2lHk7bPAK4VQjGp6d+BXhYLUx1wMMJHzM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KVVo/nms81ofq6qo6TirHA5bRK2GB9/XdLkQbO87pmcoSK4k0qTWL64/CXrt4iAVOgkrKkF8Sj8w2FWL2cmF9rCglv78x5B4TyL8avdH8aj6Mng223XueoRpbKHv6t9sR2vzXX9BMfZ+5eibfvcbxSs3Y0pKKF31RVza//S31FU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cY0EK7Ps; arc=none smtp.client-ip=74.125.82.173
+	 MIME-Version; b=KC9ZST8YgPy4FN9eLKvQpeyWSJqCl1ZuRXhBFbnJwvRCqtSZE3k6MIK/mKV+6RkCkNyUk7rLnz0aMJ29tgDgOlUB2xV9zw/b9BsFqLUPBPsR01ISR1wend3ughy5WPfYGxY0ftXKdoiU4o+weDpumF7EpJTsmF9i+becPAcGKio=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A7uRSuDo; arc=none smtp.client-ip=74.125.82.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cY0EK7Ps"
-Received: by mail-dy1-f173.google.com with SMTP id 5a478bee46e88-304f590dd91so2539166eec.0
-        for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 04:28:22 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A7uRSuDo"
+Received: by mail-dy1-f182.google.com with SMTP id 5a478bee46e88-30bf8b2bd20so4518853eec.0
+        for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 04:28:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782386901; x=1782991701; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1782386905; x=1782991705; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=zWGYp5PimR7iNvegHe/tRkVtZEJJWTBhNsd/pXJaxDQ=;
-        b=cY0EK7PsghAhm4GgbAOYLANIN0Phzy62n+M2zPcVHWdPI25PsDasEfgUnQhBZSsSUc
-         WSYBaRcQH5bJ8LCEETpDjyn+vjij7qZ0E28zxm8oRyAwyCCxFKZgpoJcxFdugWlJRkGr
-         kgdH9hfjtvtYvl+8mvKiO+g+0riiH3cRbOFSTlS3AkOAXGTRK6lshAm8K3P7mCcH77p5
-         RCQUy5+jDMVP+ZlZfPAAeFbLFwZ2vzK5cGtJqfTOz1WP5Vepxh/lIq5jVDgWeI7DxrlY
-         Ng0BoVxCCJUJEtbnxfhmNgkmtWfj0W3bL7CprV3UjUyElpdmolMdUkxrl4paX6DQ1QpU
-         EiKg==
+        bh=2jKp/0nhQptqz/M2+wfNC1AREQXAADTJq6niusW0KQg=;
+        b=A7uRSuDo2KGZr+aL9y1RnfJBJznKkkT/PchJuVvNkLaT3igRwbObi/xgLxlE9l6LX4
+         HsvI/kEM5f6vuRsGxO7Cn8SzSJfgy8qzp10aA1kTQ82wd0N91JW1xpPwULnpNQMvSWeI
+         WzWCjgbMiamZK9QoS+MLEUWmBKCcBBgGAyHVvFQf8LqQX9qyY3Gy41JsxWXNC6A97njt
+         bOBHY/n+Haj5uucmqZOsnE45Pb9DxKs38ksomEtUvz4rpBoQX2w9OPW8hpFFRsxELs/U
+         77gcL9Jk4xqr6cpTP0F13P+vJLquSKN/bVCP0e3F1PgS28uU1NYQZTXDQrQg2Z+oPXNH
+         rHdg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782386901; x=1782991701;
+        d=1e100.net; s=20251104; t=1782386905; x=1782991705;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=zWGYp5PimR7iNvegHe/tRkVtZEJJWTBhNsd/pXJaxDQ=;
-        b=clagQ+zbRvS/YQt34UOBR+BxRJ4jAvJnWgSBc4utuKlNsbZdwttPY8WAzw1Bupk8O1
-         TwX0g7ueOXh0jJjl2MO7R+hxPDie2sYBjrP0/0LNVDT8gXsSU8x2PCGobNnlqcf5MJXN
-         lRiIh9y5Cd4zRMnPRvqajuNA1Op6TgD9kibaNGeM7hel0sb8JIxEdKlfGfZ9kkypBnOC
-         7Zkv1xlberSrHdz9sPee4ZcfIECWAgqLqbWmMnUmzFi4puizrvx7ryCk+jf5w9A/lG0k
-         h5cHAVSf2pn3DswKUbxUgIXb2MdEe9ZUNQ/rB/ro/3VNXvWEM5HvKlq47roPQEfpfNJc
-         YuOg==
-X-Gm-Message-State: AOJu0Yzct/RZS89YaU2u709NOoBmUbAoIEZGIBp9fLKHqpwqd+gDYbuo
-	p6EXn5OHBaTqzJB/j4XBxSTfhTYLAPjrQ+TMrnmINLjsGlZzBxWR3s7r
-X-Gm-Gg: AfdE7cl6ivCyVZp0l2g58gC3O7Jgtq3WfCjmVvz0bq0wB+CyCRsEsB1eTCSWbpYtSEL
-	6a27ibGc+wU0m0ZSvYah4N3lw5BXaOyW0NCrYuGmZezPEQOlFaeZ7M+uXRZF0ZLUvZgH5NzH3fx
-	PTeSYFxYcfNw409EE9XgoMlom2lr0b/fehFP/r3DXXEllJEM5sV4wIS61u9bkHvEgaXnp2v72xW
-	T9EFyondaeA82TN+yJHh83bve10CVwsQrI1U1qFy0bvBcvCoijp9a3vYhq+irlUFA0fwXijrZlE
-	8XYcS/hZ9VD3Be+R/TmTCoeM8T7vyPWT1aasKb6lDiL4cph5DRfHlr3alkHvHt2RQ2GkBKkGgX3
-	iFdIMEr1yLuhzRF01hbvFGlw0xFoj1+SQusuFUZDjtCNE1dXlOcFEjkLbYLJNAJTXSpeg+ff7c5
-	SyuII8j9+bXkP+GipmiNcN2+qkSxh79NlNu1BfdcnTC/a4yQW/x5NZKgN/YOANA0sy+Rq9
-X-Received: by 2002:a05:7300:7246:b0:30c:5a5:df4f with SMTP id 5a478bee46e88-30c84eb9cf8mr2905159eec.16.1782386901207;
-        Thu, 25 Jun 2026 04:28:21 -0700 (PDT)
+        bh=2jKp/0nhQptqz/M2+wfNC1AREQXAADTJq6niusW0KQg=;
+        b=lOnthx1drbMFEZShMVlindQNz9L1qjZZHqQrPc1CBFPZ0COU6EHTXHQlRkjH4pHlpv
+         sEvzegZucVKvZvk0g5s+PU1vL8SMT17+MVeL71rT7oqa+YgfOwXff1vuUhV/MxGG+0M2
+         9jFpg+bv2QOIt2kqGX0rVJz5VDvg/3yfBl0ma64CpZLxZ7UYPi9yARDme7LmwuVpRS0Q
+         xt8PsrV8kLSo/oldud0JW6Gw1YtiGLEvDDCKx+YEhTsRhXJJ5Hh6cGSS2IvByLZpVuG3
+         sAdMMmiZF3lsMrTXiC47JID0jO1+C7t1mur9WCXa/8Z+2EXpD1dG731PtY/fHcWJDFl2
+         E+6Q==
+X-Gm-Message-State: AOJu0Yxtm3/2lVRd/LSf/ouZw/9cqNTmQ8qTBU3BlkLHNR4q6nfFxts4
+	/aZ8xEbGXSN1OUnvT7Ox4T4JhNJRWHyawCWUNYpMX82jK/pD6TI0Cpsr
+X-Gm-Gg: AfdE7cneL0uhoWHXL5tosEZUpfmu186ERuqAa9FKl/SS03xxTW/PDCs0dsXRTvLKB2F
+	xYJQ0qXxsw8zzcAqlxmuu13MA7YXSoFJdQXIiTIffKUKGoZ7OAA2fQDmSH0m/k+9tOmidp85/DE
+	GcDOyq0k4uS2Z3T8xYtUpR0ICrxRAFpyS22MWUACOagw7gyW6wftl+qFIrgovUEyfQBimt87ZKm
+	sTm4lFvaKodSPWhH30nFPVKSg6aXC+MT7rXw1ewOCuqTQb0OtDqk8pMCXPfLHRLyfkLv86xjbbm
+	LcJy9wTnSCpTuwoE2mBP5u/iENJhJValDd2SN7NiN2n2GmOG01GJad1ysfPe1abWUtmPVJyB4+3
+	DPpSxEdQVGKMjJ4+Pce6spXm2AgNofHKaStVrjDPzXIh0cYUhzPOntKvkDPP9KATRQVBFYpHQ7v
+	DrHLrJEplALIJUlriPTeQYdeVBJXVSLPByYXfOo2wgk66TTqff+3czY1VznPTvn3rP112A
+X-Received: by 2002:a05:7300:8184:b0:2ed:e16:6b4a with SMTP id 5a478bee46e88-30c84df4aadmr2221250eec.32.1782386904999;
+        Thu, 25 Jun 2026 04:28:24 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c7cab08c2sm8744614eec.29.2026.06.25.04.28.20
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c7cab08c2sm8744614eec.29.2026.06.25.04.28.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Jun 2026 04:28:20 -0700 (PDT)
+        Thu, 25 Jun 2026 04:28:24 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org,
@@ -74,9 +74,9 @@ Cc: nvdimm@lists.linux.dev,
 	Anisa Su <anisa.su@samsung.com>,
 	Fan Ni <nifan.cxl@gmail.com>,
 	Li Ming <ming.li@zohomail.com>
-Subject: [PATCH v11 08/31] cxl/events: Split event msgnum configuration from irq setup
-Date: Thu, 25 Jun 2026 04:04:45 -0700
-Message-ID: <20260625112638.550691-9-anisa.su@samsung.com>
+Subject: [PATCH v11 09/31] cxl/pci: Factor out interrupt policy check
+Date: Thu, 25 Jun 2026 04:04:46 -0700
+Message-ID: <20260625112638.550691-10-anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260625112638.550691-1-anisa.su@samsung.com>
 References: <20260625112638.550691-1-anisa.su@samsung.com>
@@ -95,82 +95,62 @@ memory addition or removal.  BIOS may have control over non-DCD event
 processing.  DCD interrupt configuration needs to be separate from
 memory event interrupt configuration.
 
-Split cxl_event_config_msgnums() from irq setup in preparation for
-separate DCD interrupts configuration.
+Factor out event interrupt setting validation.
 
+Link: https://lore.kernel.org/all/663922b475e50_d54d72945b@dwillia2-xfh.jf.intel.com.notmuch/ [1]
+Suggested-by: Dan Williams <djbw@kernel.org>
 Signed-off-by: Ira Weiny <iweiny@kernel.org>
 Signed-off-by: Anisa Su <anisa.su@samsung.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Jonathan Cameron <jic23@kernel.org>
 Reviewed-by: Fan Ni <nifan.cxl@gmail.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Li Ming <ming.li@zohomail.com>
 ---
- drivers/cxl/pci.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/cxl/pci.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-index 60f9fa05d9ef..35942b2ace53 100644
+index 35942b2ace53..8d12c684d670 100644
 --- a/drivers/cxl/pci.c
 +++ b/drivers/cxl/pci.c
-@@ -599,35 +599,31 @@ static int cxl_event_config_msgnums(struct cxl_memdev_state *mds,
- 	return cxl_event_get_int_policy(mds, policy);
+@@ -639,6 +639,21 @@ static bool cxl_event_int_is_fw(u8 setting)
+ 	return mode == CXL_INT_FW;
  }
  
--static int cxl_event_irqsetup(struct cxl_memdev_state *mds)
-+static int cxl_event_irqsetup(struct cxl_memdev_state *mds,
-+			      struct cxl_event_interrupt_policy *policy)
- {
- 	struct cxl_dev_state *cxlds = &mds->cxlds;
--	struct cxl_event_interrupt_policy policy;
- 	int rc;
- 
--	rc = cxl_event_config_msgnums(mds, &policy);
--	if (rc)
--		return rc;
--
--	rc = cxl_event_req_irq(cxlds, policy.info_settings);
-+	rc = cxl_event_req_irq(cxlds, policy->info_settings);
- 	if (rc) {
- 		dev_err(cxlds->dev, "Failed to get interrupt for event Info log\n");
- 		return rc;
- 	}
- 
--	rc = cxl_event_req_irq(cxlds, policy.warn_settings);
-+	rc = cxl_event_req_irq(cxlds, policy->warn_settings);
- 	if (rc) {
- 		dev_err(cxlds->dev, "Failed to get interrupt for event Warn log\n");
- 		return rc;
- 	}
- 
--	rc = cxl_event_req_irq(cxlds, policy.failure_settings);
-+	rc = cxl_event_req_irq(cxlds, policy->failure_settings);
- 	if (rc) {
- 		dev_err(cxlds->dev, "Failed to get interrupt for event Failure log\n");
- 		return rc;
- 	}
- 
--	rc = cxl_event_req_irq(cxlds, policy.fatal_settings);
-+	rc = cxl_event_req_irq(cxlds, policy->fatal_settings);
- 	if (rc) {
- 		dev_err(cxlds->dev, "Failed to get interrupt for event Fatal log\n");
- 		return rc;
-@@ -674,11 +670,15 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
- 		return -EBUSY;
- 	}
- 
-+	rc = cxl_event_config_msgnums(mds, &policy);
-+	if (rc)
-+		return rc;
++static bool cxl_event_validate_mem_policy(struct cxl_memdev_state *mds,
++					  struct cxl_event_interrupt_policy *policy)
++{
++	if (cxl_event_int_is_fw(policy->info_settings) ||
++	    cxl_event_int_is_fw(policy->warn_settings) ||
++	    cxl_event_int_is_fw(policy->failure_settings) ||
++	    cxl_event_int_is_fw(policy->fatal_settings)) {
++		dev_err(mds->cxlds.dev,
++			"FW still in control of Event Logs despite _OSC settings\n");
++		return false;
++	}
 +
- 	rc = cxl_mem_alloc_event_buf(mds);
++	return true;
++}
++
+ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 			    struct cxl_memdev_state *mds, bool irq_avail)
+ {
+@@ -661,14 +676,8 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
  	if (rc)
  		return rc;
  
--	rc = cxl_event_irqsetup(mds);
-+	rc = cxl_event_irqsetup(mds, &policy);
- 	if (rc)
- 		return rc;
+-	if (cxl_event_int_is_fw(policy.info_settings) ||
+-	    cxl_event_int_is_fw(policy.warn_settings) ||
+-	    cxl_event_int_is_fw(policy.failure_settings) ||
+-	    cxl_event_int_is_fw(policy.fatal_settings)) {
+-		dev_err(mds->cxlds.dev,
+-			"FW still in control of Event Logs despite _OSC settings\n");
++	if (!cxl_event_validate_mem_policy(mds, &policy))
+ 		return -EBUSY;
+-	}
  
+ 	rc = cxl_event_config_msgnums(mds, &policy);
+ 	if (rc)
 -- 
 2.43.0
 
