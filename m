@@ -1,156 +1,287 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F87C331ECC;
-	Thu, 25 Jun 2026 14:57:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9724526ED40
+	for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 18:00:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782399451; cv=none; b=KD5uDSnfR8734zyc9xXvkKl34oVVtn8W+a5UO/HC5CKOPvK/DEZsEJAbYOY0MpYAoo9hvqPP6qKfx1fLXuFQuMY2Zx24JV+pke8CH3t0GF0veR+RIWWX9RSmTHi6o+Yq3SpjJGapVI1CJVY6pKq8fA/3ibLDBzxknW6r2L5X2Jc=
+	t=1782410439; cv=none; b=lIL26vbq2b3DYpj9/AZcYmLDiC0TVvf3IvLgoi3Cb1IkUulRfbVFIDssaJAygSqe/6eHXvy54KPG14EvXmEtFJtMhpWPvyww2ORbk1L82TApoq7BbOJ/7w+3VhZhdJyqAUaewFkZKEMmwvquKS9GBb+2OvMUWQ9DugzUdummXW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782399451; c=relaxed/simple;
-	bh=30zBPsJzeKdzDn+/lVWB6w0298dmMH2KV5iosn8rXac=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=nmjfYfHuQrrSu4SnrgWZ/AV6wQPQzeKwvQgN4IF24tawdT3f343n4kUkGsP4PmkzZm+fiHXswB5wkgsOGH+suNAvvfKot+ScsiQ89MksFFfUIkMVsAhCYCG32R67XMubDggzJ1hxTuHX3k20mOBgkZnFsoQaV62s8qVd0vi3v34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DL1K+Jv9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782410439; c=relaxed/simple;
+	bh=pXskB7V/BiUpPqw9qe3Kk5Vjo3SgTVD5AFV76qhpkLA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=fHuWMZGxAXyRBJZDMqWtOC1Njd2jByh+0+D7RVNar276X6csfdHIOzXP85f87l8ZFyE5oYb3US/RJAaiXYgCzdTUhoEdNQlyexGLctnM46zn5cRXHKWLaaVUEPm8s4jcZJhoB6MALGjkZPBtBuiV8krh026k0Br8od7xZfJ3Wtw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AGXZ8jdU; arc=none smtp.client-ip=209.85.128.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DL1K+Jv9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D2BF1F00A3A;
-	Thu, 25 Jun 2026 14:57:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782399450;
-	bh=tqUUrJWMlnTxsZAmuCi7Oz0YuD8ibL81XGHYLTsNdR8=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=DL1K+Jv96MT0STD98/+fBEA4SYv29IHhKaFiC+RmpwELEsqKNGQsv/zck1jcHqfcM
-	 oJ97ezN5ImmlSNchaHCpXwWHJ6nx17ovfOWdak1r1eVacHbGY6Keg8yhKxOxWkOmo8
-	 tRan2Dat0DRFm3421OF/ccb7ARrVS4UHX9JS9vKCvpOwLpbbnsPdAtaXp3aEzdgsm0
-	 mQx0LitzsrW/V6CAMqNf8oZzCP4BNDZVWA4m6N/rR7UkMUCxm1aCc2p30p1KVCecR0
-	 jNa23zu3G5AD+mZb2srrlLMfTJAqz3xx9JuNIJ/IVTU2w//K1JmVKXcQA+ZCz0Eyuy
-	 PzUJXnJ/D2q2Q==
-Message-ID: <b5063ea6-b40b-4b02-9cf5-daf07874a257@kernel.org>
-Date: Thu, 25 Jun 2026 16:57:21 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AGXZ8jdU"
+Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-80814edb536so2748437b3.2
+        for <nvdimm@lists.linux.dev>; Thu, 25 Jun 2026 11:00:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782410437; x=1783015237; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WfaXLqKxjt5Wx4fK3p1hZTD/ltdo7YYhn5wzBTFnlbE=;
+        b=AGXZ8jdUo+csVGffAQ8yQDnTmJxhk0Eo6CKIdiyyAyLDvldI/Jvxu1Y2w5hf7eBz8d
+         +i+AG8e+zUgGU2thCTxypNQO1XCf3m527KcOwPtSipNgUv9Skt7rfxZ5nLOV2hxm6H0B
+         h5ijnxFxsk3hoXQ+AkLPrB0nmqlhUAFj1ziMKtMxEmtWEdiuSA4wVbQpX3qmO05XV4Ql
+         QNH7wy/QYvPNvWdCwXqp0gByECziRJwuqPwUaNKn/6rH+T5D77aQLLoLWpW6EER/4b/k
+         FSEqKoyqtof2XoRhX1DBM89Lr+LHs6TG55QJiTHoxbH3ksjO2jiS9J79Kj5MUebW7Wh2
+         SVUw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782410437; x=1783015237;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=WfaXLqKxjt5Wx4fK3p1hZTD/ltdo7YYhn5wzBTFnlbE=;
+        b=TUGRkudb8nKG4+C1Np53YEsVdSRecDl7w2w+/0O4/krxTvpwo+/Dwr/5lNo31crHZy
+         UbbhFoyEDDsQY4JD3YDoiSL1XxPof/eeCCLHTAWfWddgqE54G92aekJN/o9kcz2mMzN+
+         zhYFvzTSQkqo99U2M7XsClcykB4ziKQIKKsP7V/l6ClEtcSf1BH/2A0arMBYoTwvyuGA
+         MSG8SIZZStf+JQm0PQ80xfCUH06oh2H5ztg8o6gNU+X5B7kvlrvOU0J7l+8ZZGI+1aGE
+         jOO94pqP5j9x0pIlOOJoHDGPqcfCgzEia5YuNgNbNw9ZGO1Fg1fHO+lUaxT7xBTtAb0z
+         NBsQ==
+X-Gm-Message-State: AOJu0Yy+HFsMHxvphLwVrauoO94NNQqKY6WME87FQzNPq16WjP1BD07f
+	iJalVxrM6zGqIRDZ1JvpjUK349VH8ZNtmk14g2YLdqmm2askyikc4ps5
+X-Gm-Gg: AfdE7cn7+WeqsTrddTU6JCfzElszmvg5x9AoKwyMgE15PjujSRnYTS7CbVQNgXjiFEP
+	JnTnLd+Su7t+lL3SWXXtyMbHk9FJ12i8S0IujM25WV1jQFlkhGK+An2jhaHNnT+uG68PRsNQq/3
+	71TPqPNEziaJ55QkVbBD69ggDUEHqYcfepR91OGKrLijhj+3BmTVlTDpkSQaV3Dv5BzSkPZvegJ
+	8MljI1Tm4/HBMdqs2KSAgp4evEXQdelXuj4rHcCscSxaHVxi5yde2KC44rvd6B/h6ZukE9KDW4Q
+	VxhiDUv73fikJXtDIrcVLlV8AQuNS1nY56MLZjvKl0t4AmNzAVmPqFzAd1GDTXcOmAmHjsVuuag
+	PyY6JQAF/QkIKmVYHhEbRF2qBLAZ+XPiKKzsNYBk0wM/IMbj5c5wiZjMHQLn1QlpMy+6dBMjrkU
+	UdFdOsvyEM5eWzxQDLJI4x4rZ1942uEP4=
+X-Received: by 2002:a05:690c:604:b0:7dc:f7b3:8e08 with SMTP id 00721157ae682-80a6af938c8mr39725327b3.23.1782410436320;
+        Thu, 25 Jun 2026 11:00:36 -0700 (PDT)
+Received: from 4470NRD-ASU.ssi.samsung.com ([50.205.20.42])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-80259d20d84sm74353767b3.0.2026.06.25.11.00.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 25 Jun 2026 11:00:36 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+To: linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: nvdimm@lists.linux.dev,
+	djbw@kernel.org,
+	jic23@kernel.org,
+	dave@stgolabs.net,
+	dave.jiang@intel.com,
+	vishal.l.verma@intel.com,
+	iweiny@kernel.org,
+	alison.schofield@intel.com,
+	gourry@gourry.net,
+	anisa.su@samsung.com
+Subject: [PATCH v11 03/31] cxl/cdat: Gather DSMAS data for DCD partitions
+Date: Thu, 25 Jun 2026 11:00:12 -0700
+Message-ID: <20260625180028.965-1-anisa.su@samsung.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260625112638.550691-1-anisa.su@samsung.com>
+References: <20260625112638.550691-1-anisa.su@samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 5/9] mm/memory_hotplug:
- offline_and_remove_memory_ranges()
-To: Gregory Price <gourry@gourry.net>
-Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
- linux-cxl@vger.kernel.org, driver-core@lists.linux.dev,
- linux-kselftest@vger.kernel.org, kernel-team@meta.com, osalvador@suse.de,
- gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
- djbw@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
- akpm@linux-foundation.org, ljs@kernel.org, liam@infradead.org,
- vbabka@kernel.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com,
- shuah@kernel.org, alison.schofield@intel.com,
- Smita.KoralahalliChannabasappa@amd.com, ira.weiny@intel.com,
- apopple@nvidia.com
-References: <20260624145744.3532049-1-gourry@gourry.net>
- <20260624145744.3532049-6-gourry@gourry.net>
- <d48feca1-0203-43ff-bd66-6243291a51ba@kernel.org>
- <aj0ybgV7n0pqXF0b@gourry-fedora-PF4VCD3F>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
- qIws/H2t
-In-Reply-To: <aj0ybgV7n0pqXF0b@gourry-fedora-PF4VCD3F>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 6/25/26 15:51, Gregory Price wrote:
-> On Thu, Jun 25, 2026 at 09:22:01AM +0200, David Hildenbrand (Arm) wrote:
->> On 6/24/26 16:57, Gregory Price wrote:
->>>  extern int offline_and_remove_memory(u64 start, u64 size);
->>> +int offline_and_remove_memory_ranges(const struct range *ranges, int nr_ranges);
->>>  
->>>  #else
->>>  static inline void try_offline_node(int nid) {}
->>> @@ -283,6 +284,12 @@ static inline int remove_memory(u64 start, u64 size)
->>>  }
->>>  
->>>  static inline void __remove_memory(u64 start, u64 size) {}
->>> +
->>> +static inline int offline_and_remove_memory_ranges(const struct range *ranges,
->>> +						   int nr_ranges)
->>
->> Best to use "unsigned int" right from the start and use two tabs to indent.
->>
-> 
-> ack, ack.  need to reprogram my brain to two-indent style, i keep doing
-> this reflexively.
-> 
->>> +int offline_and_remove_memory_ranges(const struct range *ranges, int nr_ranges)
->>> +{
->>> +	unsigned long mb_total = 0;
->>>  	uint8_t *online_types, *tmp;
->>> -	int rc;
->>> +	int i, rc = 0;
->>>  
->>> -	if (!IS_ALIGNED(start, memory_block_size_bytes()) ||
->>> -	    !IS_ALIGNED(size, memory_block_size_bytes()) || !size)
->>> +	if (!ranges || nr_ranges <= 0)
->>
->> With "unsigned int" this will be !nr_ranges.
->>
->> Wondering whether we would WARN_ON_ONCE() here.
->>
-> 
-> Seems reasonable.  Do we normally WARN when callers send dumb arguments?
-> Seems like sending -EINVAL is sufficient?
+From: Ira Weiny <iweiny@kernel.org>
 
-We do it when we really expect no sane user to do that and doing it would
-indicate an actual problem.
+Additional DCD partition (AKA region) information is contained in the
+DSMAS CDAT tables, including performance, read only, and shareable
+attributes.
 
-Like passing a nid to add_memory_resource() that doesn't even exist.
+Match DCD partitions with DSMAS tables and store the meta data.
 
-But yeah, no strong opinion here, we can just keep it as is.
+Signed-off-by: Ira Weiny <iweiny@kernel.org>
+Signed-off-by: Anisa Su <anisa.su@samsung.com>
+---
+ drivers/cxl/core/cdat.c | 12 ++++++++++++
+ drivers/cxl/core/hdm.c  |  1 +
+ drivers/cxl/core/mbox.c | 22 ++++++++++++++++------
+ drivers/cxl/cxlmem.h    |  2 ++
+ include/cxl/cxl.h       |  4 ++++
+ 5 files changed, 35 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
+index 5c9f07262513..a280039e4cd1 100644
+--- a/drivers/cxl/core/cdat.c
++++ b/drivers/cxl/core/cdat.c
+@@ -17,6 +17,7 @@ struct dsmas_entry {
+ 	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
+ 	int entries;
+ 	int qos_class;
++	bool shareable;
+ };
+ 
+ static u32 cdat_normalize(u16 entry, u64 base, u8 type)
+@@ -74,6 +75,7 @@ static int cdat_dsmas_handler(union acpi_subtable_headers *header, void *arg,
+ 		return -ENOMEM;
+ 
+ 	dent->handle = dsmas->dsmad_handle;
++	dent->shareable = dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
+ 	dent->dpa_range.start = le64_to_cpu((__force __le64)dsmas->dpa_base_address);
+ 	dent->dpa_range.end = le64_to_cpu((__force __le64)dsmas->dpa_base_address) +
+ 			      le64_to_cpu((__force __le64)dsmas->dpa_length) - 1;
+@@ -266,15 +268,25 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
+ 		bool found = false;
+ 
+ 		for (int i = 0; i < cxlds->nr_partitions; i++) {
++			enum cxl_partition_mode mode = cxlds->part[i].mode;
+ 			struct resource *res = &cxlds->part[i].res;
++			u8 handle = cxlds->part[i].handle;
+ 			struct range range = {
+ 				.start = res->start,
+ 				.end = res->end,
+ 			};
+ 
+ 			if (range_contains(&range, &dent->dpa_range)) {
++				if (mode == CXL_PARTMODE_DYNAMIC_RAM_1 &&
++				    dent->handle != handle) {
++					dev_warn(dev,
++						"Dynamic RAM perf mismatch; %pra (%u) vs %pra (%u)\n",
++						&range, handle, &dent->dpa_range, dent->handle);
++					continue;
++				}
+ 				update_perf_entry(dev, dent,
+ 						  &cxlds->part[i].perf);
++				cxlds->part[i].shareable = dent->shareable;
+ 				found = true;
+ 				break;
+ 			}
+diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+index 0ef076c08ed2..7f63b86887f4 100644
+--- a/drivers/cxl/core/hdm.c
++++ b/drivers/cxl/core/hdm.c
+@@ -477,6 +477,7 @@ int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
+ 
+ 		cxlds->part[i].perf.qos_class = CXL_QOS_CLASS_INVALID;
+ 		cxlds->part[i].mode = part->mode;
++		cxlds->part[i].handle = part->handle;
+ 
+ 		/* Require ordered + contiguous partitions */
+ 		if (i) {
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 2932bbd67e55..bdb908c6e7f3 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -1352,10 +1352,16 @@ static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info *part_a
+ {
+ 	u64 blk_size = le64_to_cpu(dev_part->block_size);
+ 	u64 len = le64_to_cpu(dev_part->length);
++	u32 handle = le32_to_cpu(dev_part->dsmad_handle);
+ 
+ 	part_array[index].start = le64_to_cpu(dev_part->base);
+ 	part_array[index].size = le64_to_cpu(dev_part->decode_length);
+ 	part_array[index].size *= CXL_CAPACITY_MULTIPLIER;
++	if (handle & ~0xFF) {
++		dev_warn(dev, "DSMAD handle 0x%x has non-zero reserved bits\n", handle);
++		return -EINVAL;
++	}
++	part_array[index].handle = handle;
+ 
+ 	/* Check partitions are in increasing DPA order */
+ 	if (index > 0) {
+@@ -1522,6 +1528,7 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+ 	/* Return 1st partition */
+ 	dc_info->start = partitions[0].start;
+ 	dc_info->size = partitions[0].size;
++	dc_info->handle = partitions[0].handle;
+ 	dev_dbg(dev, "Returning partition 0 %llu size %llu\n",
+ 		dc_info->start, dc_info->size);
+ 
+@@ -1529,7 +1536,8 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+ }
+ EXPORT_SYMBOL_NS_GPL(cxl_dev_dc_identify, "CXL");
+ 
+-static void add_part(struct cxl_dpa_info *info, u64 start, u64 size, enum cxl_partition_mode mode)
++static void add_part(struct cxl_dpa_info *info, u64 start, u64 size,
++		     enum cxl_partition_mode mode, u8 handle)
+ {
+ 	int i = info->nr_partitions;
+ 
+@@ -1541,6 +1549,7 @@ static void add_part(struct cxl_dpa_info *info, u64 start, u64 size, enum cxl_pa
+ 		.end = start + size - 1,
+ 	};
+ 	info->part[i].mode = mode;
++	info->part[i].handle = handle;
+ 	info->nr_partitions++;
+ }
+ 
+@@ -1558,9 +1567,9 @@ int cxl_mem_dpa_fetch(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
+ 	info->size = mds->total_bytes;
+ 
+ 	if (mds->partition_align_bytes == 0) {
+-		add_part(info, 0, mds->volatile_only_bytes, CXL_PARTMODE_RAM);
++		add_part(info, 0, mds->volatile_only_bytes, CXL_PARTMODE_RAM, 0);
+ 		add_part(info, mds->volatile_only_bytes,
+-			 mds->persistent_only_bytes, CXL_PARTMODE_PMEM);
++			 mds->persistent_only_bytes, CXL_PARTMODE_PMEM, 0);
+ 		return 0;
+ 	}
+ 
+@@ -1570,9 +1579,9 @@ int cxl_mem_dpa_fetch(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
+ 		return rc;
+ 	}
+ 
+-	add_part(info, 0, mds->active_volatile_bytes, CXL_PARTMODE_RAM);
++	add_part(info, 0, mds->active_volatile_bytes, CXL_PARTMODE_RAM, 0);
+ 	add_part(info, mds->active_volatile_bytes, mds->active_persistent_bytes,
+-		 CXL_PARTMODE_PMEM);
++		 CXL_PARTMODE_PMEM, 0);
+ 
+ 	return 0;
+ }
+@@ -1624,7 +1633,8 @@ void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
+ 	info->size += dc_info.size;
+ 	dev_dbg(dev, "Adding dynamic ram partition 1; %llu size %llu\n",
+ 		dc_info.start, dc_info.size);
+-	add_part(info, dc_info.start, dc_info.size, CXL_PARTMODE_DYNAMIC_RAM_1);
++	add_part(info, dc_info.start, dc_info.size, CXL_PARTMODE_DYNAMIC_RAM_1,
++		 dc_info.handle);
+ }
+ EXPORT_SYMBOL_NS_GPL(cxl_configure_dcd, "CXL");
+ 
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 6b548a1ec1e9..b29fb16725b4 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -118,6 +118,7 @@ struct cxl_dpa_info {
+ 	struct cxl_dpa_part_info {
+ 		struct range range;
+ 		enum cxl_partition_mode mode;
++		u8 handle;
+ 	} part[CXL_NR_PARTITIONS_MAX];
+ 	int nr_partitions;
+ };
+@@ -823,6 +824,7 @@ int cxl_dev_state_identify(struct cxl_memdev_state *mds);
+ struct cxl_dc_partition_info {
+ 	u64 start;
+ 	u64 size;
++	u8 handle;
+ };
+ 
+ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
+index e8a0899960d4..502d8333318b 100644
+--- a/include/cxl/cxl.h
++++ b/include/cxl/cxl.h
+@@ -141,11 +141,15 @@ enum cxl_partition_mode {
+  * @res: shortcut to the partition in the DPA resource tree (cxlds->dpa_res)
+  * @perf: performance attributes of the partition from CDAT
+  * @mode: operation mode for the DPA capacity, e.g. ram, pmem, dynamic...
++ * @handle: DSMAS handle intended to represent this partition
++ * @shareable: Is the partition sharable (from its CDAT DSMAS entry)
+  */
+ struct cxl_dpa_partition {
+ 	struct resource res;
+ 	struct cxl_dpa_perf perf;
+ 	enum cxl_partition_mode mode;
++	u8 handle;
++	bool shareable;
+ };
+ 
+ #define CXL_NR_PARTITIONS_MAX 3
 -- 
-Cheers,
+2.43.0
 
-David
