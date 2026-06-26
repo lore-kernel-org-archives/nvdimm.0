@@ -1,181 +1,252 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1169A37DAAA;
-	Fri, 26 Jun 2026 17:10:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 442373B8D41
+	for <nvdimm@lists.linux.dev>; Fri, 26 Jun 2026 21:43:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782493802; cv=none; b=coecbsh9m24uDr6qonys9eeunwJGboTRn/mWBKv4aNAe1bAWOII9wKd4Rv9g5PNmf22qCksyOx7OEOQqj+LVIN0eM9OKaT15sjfDFCLrSYmIzN5WJFj5uVwv2i0pS99qM/AShLkbNPFTouAhUbETFqm59xLcwAETxuSJdFAEiiE=
+	t=1782510191; cv=none; b=Zo4XzfGxFIl10YuEm031Ez39jcB6CKVxMB+7qfSiqIxv20ZXnYlNm8+S/MyfQkZY9/XGVJudlh9tZ7jmuS4EW86BrY4qUx2lDlyOxrgtlFTyyjADD5D9xRPeTnLEBJxvBNubnpeqhnjvtAJSHRuAwXf8tyyeMQ9SM5YZyoiDVNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782493802; c=relaxed/simple;
-	bh=SoAJgLlEOnUchXjHYkJ+yVUN1P37jkym3o4Ur8qAwY8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FX6jMkQ2NqwIlztlRf/12qfICMjaBYaAhbCKbNZR0UgWf2ECbLdKhv7TubfdmvpRsNE1Azp5SgVWBUwZFoCiGRfj7TVyxyCC2rZdLzOzevfX/IN2J0IGiCWmjOI792r/2+YcvKTQ+j1Ow/+p1OS/5QR5JXmD7umfQMx9DgjN0CY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81A591F000E9;
-	Fri, 26 Jun 2026 17:10:00 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: alison.schofield@intel.com
-Subject: [NDCTL PATCH v3] cxl: Add CXL type2 accelerator unit test
-Date: Fri, 26 Jun 2026 10:09:59 -0700
-Message-ID: <20260626170959.1416017-1-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.54.0
+	s=arc-20240116; t=1782510191; c=relaxed/simple;
+	bh=X3PeWzMgIpm9OjT1QHhICQ3FysVRzAcr3pEV6/pV4Mw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=fGPbj1csffLH7gRU0lMeVFR4XMuZ6xcvi/uhmLgGpqhQ4Q/YFLSxdHnNpgQwJi0xh9aT5U8km12CYDr8SeqQOfuaT/kKMzHAOiryfVb2YNRTtn8iOJP1ASQyT95E+gIEipLis1hJ9nUvMqwPagtgA6uXx+qAiNRTtQIFipSM9fA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BnjZOSRO; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BnjZOSRO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1782510190; x=1814046190;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=X3PeWzMgIpm9OjT1QHhICQ3FysVRzAcr3pEV6/pV4Mw=;
+  b=BnjZOSROchTZPlUYcF70MEmFLVQPXfyeIprq+O+guXJLOz9LY3z7mNEZ
+   JBSZgEgNfVPdQSz87froQp29LtvvvYP+qe9cTx0YESc1W09AfYoAP8OdZ
+   voeedDR24rIN7Xsh3ABXWsGKjpfLVT/Yr8SwCcuSwFdv4PK7G7QkWdPeq
+   EqM5bew4r50UDDr40SIwDMbmvrPM0zhJIbeVp/kuPGEX5S93/p277ZMTb
+   UshOWVmFVjeWV6a+Hk2V9DF88XBlqtp/MF26RLUu3kvsFiaXHdPo9j48c
+   RiUzQJXlWiEbkH5yzTUdi1DL6yPmijdjDToh1iNlvNz08ty8/lkJKDPz2
+   g==;
+X-CSE-ConnectionGUID: PwdwPOgrTkiFvQq3/z1CqA==
+X-CSE-MsgGUID: R+U/JdvsTk2Vrv4GhZSPfA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11829"; a="93659169"
+X-IronPort-AV: E=Sophos;i="6.24,227,1774335600"; 
+   d="scan'208";a="93659169"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jun 2026 14:43:10 -0700
+X-CSE-ConnectionGUID: kgonjLh7QvSX3LLODIMn4A==
+X-CSE-MsgGUID: bVaH5NIHSIWGgueD/JRHnQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,227,1774335600"; 
+   d="scan'208";a="253323785"
+Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.109.96]) ([10.125.109.96])
+  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jun 2026 14:43:08 -0700
+Message-ID: <12c4b5ce-b2b6-4ff8-8a2d-0411d7297fa3@intel.com>
+Date: Fri, 26 Jun 2026 14:43:07 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v11 01/31] cxl/mbox: Flag support for Dynamic Capacity
+ Devices (DCD)
+To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
+ Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>,
+ Alison Schofield <alison.schofield@intel.com>, John Groves
+ <John@Groves.net>, Gregory Price <gourry@gourry.net>,
+ Anisa Su <anisa.su@samsung.com>
+References: <20260625112638.550691-1-anisa.su@samsung.com>
+ <20260625112638.550691-2-anisa.su@samsung.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260625112638.550691-2-anisa.su@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-CXL type2 hierachy can be setup via the cxl_test. Add a regression test
-unit to CXL CLI to verify the type2 loading/unloading. Test include
-removing the root port and bringing it back, unbinding the type2 mock
-device driver and bringing it back, and checking to see if a region
-can be destroyed and a memdev can be disabled.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-v3:
-- Add //empty to all jq quiries (Alison)
----
- test/cxl-type2.sh | 103 ++++++++++++++++++++++++++++++++++++++++++++++
- test/meson.build  |   2 +
- 2 files changed, 105 insertions(+)
- create mode 100644 test/cxl-type2.sh
 
-diff --git a/test/cxl-type2.sh b/test/cxl-type2.sh
-new file mode 100644
-index 000000000000..8c5321e6bf8c
---- /dev/null
-+++ b/test/cxl-type2.sh
-@@ -0,0 +1,103 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2026 Intel Corporation. All rights reserved.
-+
-+. "$(dirname "$0")"/common
-+
-+rc=77
-+set -ex
-+trap 'err $LINENO' ERR
-+check_prereq "jq"
-+
-+remove_kmod() {
-+	modprobe -r cxl_test
-+}
-+
-+load_kmod() {
-+	modprobe cxl_test type2_test=1
-+}
-+
-+init_check() {
-+	load_kmod
-+	[ -f /sys/module/cxl_test/parameters/type2_test ] || \
-+		do_skip "cxl_test type2_test module param not available"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+}
-+
-+# Test rootport disable/enable case
-+cycle_root_port() {
-+	echo "Testing root port disable/enable"
-+	memdev=$("$CXL" list -b "$CXL_TEST_BUS" -M | jq -r '.[0].memdev // empty')
-+	[ -n "$memdev" ] || err "$LINENO"
-+	port=$("$CXL" list -b "$CXL_TEST_BUS" -m "$memdev" -P | jq -r '.[0].port // empty')
-+	[ -n "$port" ] || err "$LINENO"
-+
-+	"$CXL" disable-port "$port" -f
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -z "$region" ] || err "$LINENO"
-+
-+	"$CXL" enable-port "$port"
-+	echo cxl_type2_accel.0 > /sys/bus/platform/drivers/cxl_mock_accel/bind
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+}
-+
-+# Test rebind device driver
-+cycle_pdev_driver() {
-+	echo "Testing device driver unbind/bind"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+	echo cxl_type2_accel.0 > /sys/bus/platform/drivers/cxl_mock_accel/unbind
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -z "$region" ] || err "$LINENO"
-+	echo cxl_type2_accel.0 > /sys/bus/platform/drivers/cxl_mock_accel/bind
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+}
-+
-+# Test memdev removal with CXL CLI
-+test_dev_removal() {
-+	echo "Testing device removal with CXL CLI"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+	"$CXL" disable-region "$region"
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -R | jq -r '.[0].region // empty')
-+	[ -z "$region" ] || err "$LINENO"
-+
-+	# type2 region is auto region and cannot be destroyed
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -Ri | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+	"$CXL" destroy-region "$region" || true
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -Ri | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+
-+	# Do it directly via sysfs since CXL CLI has checks that will skip sysfs
-+	echo "0" | tee /sys/bus/cxl/devices/"$region"/commit || true
-+	region=$("$CXL" list -b "$CXL_TEST_BUS" -Ri | jq -r '.[0].region // empty')
-+	[ -n "$region" ] || err "$LINENO"
-+
-+	# Make sure there's no delete_region for a type2 root decoder
-+	rd=$("$CXL" list -b "$CXL_TEST_BUS" -r"$region" -D | jq -r '.[0]."root decoders"[0].decoder')
-+	[ -n "$rd" ] || err "$LINENO"
-+	[ ! -f /sys/bus/cxl/devices/"$rd"/delete_region ] || err "$LINENO"
-+
-+	memdev=$("$CXL" list -b "$CXL_TEST_BUS" -M | jq -r '.[0].memdev // empty')
-+	[ -n "$memdev" ] || err "$LINENO"
-+
-+	# memdev is not expected to be removed because region can't be destroyed
-+	"$CXL" disable-memdev "$memdev" || true
-+	memdev=$("$CXL" list -b "$CXL_TEST_BUS" -M | jq -r '.[0].memdev // empty')
-+	[ -n "$memdev" ] || err "$LINENO"
-+}
-+
-+remove_kmod
-+init_check
-+rc=1
-+
-+cycle_root_port
-+cycle_pdev_driver
-+test_dev_removal
-+
-+check_dmesg "$LINENO"
-+remove_kmod
-diff --git a/test/meson.build b/test/meson.build
-index 56aed9cc3c9d..7bc972d4943e 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -171,6 +171,7 @@ cxl_translate = find_program('cxl-translate.sh')
- cxl_elc = find_program('cxl-elc.sh')
- cxl_dax_hmem = find_program('cxl-dax-hmem.sh')
- cxl_region_replay = find_program('cxl-region-replay.sh')
-+cxl_type2 = find_program('cxl-type2.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -207,6 +208,7 @@ tests = [
-   [ 'cxl-elc.sh',             cxl_elc,            'cxl'   ],
-   [ 'cxl-dax-hmem.sh',        cxl_dax_hmem,       'cxl'   ],
-   [ 'cxl-region-replay.sh',   cxl_region_replay,  'cxl'   ],
-+  [ 'cxl-type2.sh',           cxl_type2,          'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
+On 6/25/26 4:04 AM, Anisa Su wrote:
+> From: Ira Weiny <iweiny@kernel.org>
+> 
+> Per the CXL 4.0 specification software must check the Command Effects
+> Log (CEL) for dynamic capacity command support.
+> 
+> Detect support for the DCD commands while reading the CEL, including:
+> 
+>         Get DC Config
+>         Get DC Extent List
+>         Add DC Response
+>         Release DC
+> 
+> Based on an original patch by Navneet Singh.
+> 
+> Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> Signed-off-by: Anisa Su <anisa.su@samsung.com>
 
-base-commit: 5fcbbee57319e718bf522436ea6595bd0f71296c
--- 
-2.54.0
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+tiny nit below
+
+> 
+> ---
+> 
+> Changes:
+> - remove unused param struct cxl_memdev_state *mds from
+>   cxl_set_dcd_cmd_enabled()
+> 
+> - remove unused param struct cxl_memdev_state *mds from
+>   cxl_verify_dcd_cmds()
+> 
+> - cxl_verify_dcd_cmds(): originally filled out local
+>   bitmap with all DCD cmd bits and checking if cmds_seen
+>   bitmap is equal to the local bitmap. Replace with
+>   simple call to bitmap_full(cmd_seen)
+> 
+> - cxl_walk_cel(): zero out dcd_cmds bitmap before using
+> 
+> - cxlmem.h: Add comment to enum dcd_cmd_enabled_bits
+>   pointing to where the command set is defined in the
+>   4.0 spec
+> 
+> - original commit message referred to CXL r3.1. Bump to r4.0
+> ---
+>  drivers/cxl/core/mbox.c | 39 +++++++++++++++++++++++++++++++++++++++
+>  drivers/cxl/cxlmem.h    | 20 ++++++++++++++++++++
+>  2 files changed, 59 insertions(+)
+> 
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> index 7c6c5b7450a5..07aba6f0b719 100644
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
+> @@ -165,6 +165,38 @@ static void cxl_set_security_cmd_enabled(struct cxl_security_state *security,
+>  	}
+>  }
+>  
+> +static bool cxl_is_dcd_command(u16 opcode)
+> +{
+> +#define CXL_MBOX_OP_DCD_CMDS 0x48
+> +
+> +	return (opcode >> 8) == CXL_MBOX_OP_DCD_CMDS;
+> +}
+> +
+> +static void cxl_set_dcd_cmd_enabled(u16 opcode, unsigned long *cmd_mask)
+> +{
+> +	switch (opcode) {
+> +	case CXL_MBOX_OP_GET_DC_CONFIG:
+> +		set_bit(CXL_DCD_ENABLED_GET_CONFIG, cmd_mask);
+> +		break;
+> +	case CXL_MBOX_OP_GET_DC_EXTENT_LIST:
+> +		set_bit(CXL_DCD_ENABLED_GET_EXTENT_LIST, cmd_mask);
+> +		break;
+> +	case CXL_MBOX_OP_ADD_DC_RESPONSE:
+> +		set_bit(CXL_DCD_ENABLED_ADD_RESPONSE, cmd_mask);
+> +		break;
+> +	case CXL_MBOX_OP_RELEASE_DC:
+> +		set_bit(CXL_DCD_ENABLED_RELEASE, cmd_mask);
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +}
+> +
+> +static bool cxl_verify_dcd_cmds(unsigned long *cmds_seen)
+> +{
+> +	return bitmap_full(cmds_seen, CXL_DCD_ENABLED_MAX);
+> +}
+> +
+>  static bool cxl_is_poison_command(u16 opcode)
+>  {
+>  #define CXL_MBOX_OP_POISON_CMDS 0x43
+> @@ -757,6 +789,7 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+>  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+>  	struct cxl_cel_entry *cel_entry;
+>  	const int cel_entries = size / sizeof(*cel_entry);
+> +	DECLARE_BITMAP(dcd_cmds, CXL_DCD_ENABLED_MAX) = {};
+>  	struct device *dev = mds->cxlds.dev;
+>  	int i, ro_cmds = 0, wr_cmds = 0;
+>  
+> @@ -785,11 +818,17 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+>  			enabled++;
+>  		}
+>  
+> +		if (cxl_is_dcd_command(opcode)) {
+> +			cxl_set_dcd_cmd_enabled(opcode, dcd_cmds);
+> +			enabled++;
+> +		}
+> +
+>  		dev_dbg(dev, "Opcode 0x%04x %s\n", opcode,
+>  			enabled ? "enabled" : "unsupported by driver");
+>  	}
+>  
+>  	set_features_cap(cxl_mbox, ro_cmds, wr_cmds);
+> +	mds->dcd_supported = cxl_verify_dcd_cmds(dcd_cmds);
+>  }
+>  
+>  static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_memdev_state *mds)
+> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> index 776c50d1db51..60dc3f0006a7 100644
+> --- a/drivers/cxl/cxlmem.h
+> +++ b/drivers/cxl/cxlmem.h
+> @@ -230,6 +230,20 @@ struct cxl_event_state {
+>  	struct mutex log_lock;
+>  };
+>  
+> +/**
+> + * CXL r4.0 Section 8.2.10.9 - Memory Device Command Sets. See Table 8-308.
+> + *
+> + * The 48h Command Set (Opcodes 4800h - 4803h) defines the device-enabled DCD
+> + * commands.
+> + * */
+
+*/
+
+checkpatch flags this
+
+DJ
+
+> +enum dcd_cmd_enabled_bits {
+> +	CXL_DCD_ENABLED_GET_CONFIG,
+> +	CXL_DCD_ENABLED_GET_EXTENT_LIST,
+> +	CXL_DCD_ENABLED_ADD_RESPONSE,
+> +	CXL_DCD_ENABLED_RELEASE,
+> +	CXL_DCD_ENABLED_MAX
+> +};
+> +
+>  /* Device enabled poison commands */
+>  enum poison_cmd_enabled_bits {
+>  	CXL_POISON_ENABLED_LIST,
+> @@ -405,6 +419,7 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+>   * @partition_align_bytes: alignment size for partition-able capacity
+>   * @active_volatile_bytes: sum of hard + soft volatile
+>   * @active_persistent_bytes: sum of hard + soft persistent
+> + * @dcd_supported: all DCD commands are supported
+>   * @event: event log driver state
+>   * @poison: poison driver state info
+>   * @security: security driver state info
+> @@ -424,6 +439,7 @@ struct cxl_memdev_state {
+>  	u64 partition_align_bytes;
+>  	u64 active_volatile_bytes;
+>  	u64 active_persistent_bytes;
+> +	bool dcd_supported;
+>  
+>  	struct cxl_event_state event;
+>  	struct cxl_poison_state poison;
+> @@ -485,6 +501,10 @@ enum cxl_opcode {
+>  	CXL_MBOX_OP_UNLOCK		= 0x4503,
+>  	CXL_MBOX_OP_FREEZE_SECURITY	= 0x4504,
+>  	CXL_MBOX_OP_PASSPHRASE_SECURE_ERASE	= 0x4505,
+> +	CXL_MBOX_OP_GET_DC_CONFIG	= 0x4800,
+> +	CXL_MBOX_OP_GET_DC_EXTENT_LIST	= 0x4801,
+> +	CXL_MBOX_OP_ADD_DC_RESPONSE	= 0x4802,
+> +	CXL_MBOX_OP_RELEASE_DC		= 0x4803,
+>  	CXL_MBOX_OP_MAX			= 0x10000
+>  };
+>  
 
