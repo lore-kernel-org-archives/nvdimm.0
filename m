@@ -1,41 +1,41 @@
 Received: from sender4-op-o15.zoho.com (sender4-op-o15.zoho.com [136.143.188.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAA813EF0A6;
-	Tue, 30 Jun 2026 09:25:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71483EA967;
+	Tue, 30 Jun 2026 09:25:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782811515; cv=pass; b=R5EnukPY4hjKnYmqFnhIfwEbh6H/8qsLoSYORcKKAa3Z8XhbA2hujp6RfQ3z5zHqzRJ8nDSbzMMOPjYz5oml52ok+YOjobEr8mnmSGEF2ZSD/pJDn6rGroTsbsuLG/0LZ778lnzbGLm8NUjlcr9+EOjvjHJavpL5GnG4BgpQG/I=
+	t=1782811521; cv=pass; b=MU1hZFcAqHm1K6HyXY9MfGy5jMQtRretVQhRTgx+ULokhMdK60AKFxkkuGsCsyxbG7DFZoNHOrgZSSC2tG/5uf6UEa9IlwNVLtkn9wkyGR3JBpwXPUbADikDlW95OtAHkmezHax+8QrUvfetHZcZNcdZLDx+yFeJnLDFvwVzy7E=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782811515; c=relaxed/simple;
-	bh=zW1n0PwZrqa3ZVZntkj1yimH6veRSClUewXfymXheVM=;
+	s=arc-20240116; t=1782811521; c=relaxed/simple;
+	bh=v7bA4+F3yI9k/CDGXP1id/Vw0fJvb+BTkRRsfX/PMGY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OZWoLl6mZVBDSe0Ft8q0iMnqrKpKIJbWQMyOgcQwO+MBGHLbG82QGQ+R0Z86l1PumtMFzEAavxMTGuh2TaT3v5PVaA8I6HCpMI3JVaBrlhSY/QcUieUwQhQjsZsIveVEuxh7UT7jgCjfOMa2pC93RC7XDXz5fpC6ELvgTG7oQVc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=o5kM+duH; arc=pass smtp.client-ip=136.143.188.15
+	 MIME-Version; b=cyccWKgM+G+6ktQNILNtReUyXFEeT1Qgg1SGQWmetGy9lgEbv6RXCFpPFlaXRwau3O1eBb05qXt5dAgEmLr11QsDVtlLwZjKN13JezfUMMt6OT6EVks8E6SHy0bpAlewvfi7xGnQinEopm4m63JEXjKRwMFJcDxkfZJNH+75uVI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=P3noz52J; arc=pass smtp.client-ip=136.143.188.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="o5kM+duH"
-ARC-Seal: i=1; a=rsa-sha256; t=1782811476; cv=none; 
+	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="P3noz52J"
+ARC-Seal: i=1; a=rsa-sha256; t=1782811478; cv=none; 
 	d=zohomail.com; s=zohoarc; 
-	b=OrqZoipugj5rqbTQ6g6HXYD6lVxHXOU25Irt42i4QOlAOOqMJiQu66KBcOyWMh3ctpm6wBonNntGXNIOOzdSEx7V6qgGk02I0fquqIZYLa8KlrAhsTS/YEw3Nz5KsZl90ExSd4QkW/I/PFXtUXaLw35tY9BnBptoxtFsC/unGK0=
+	b=CsAsPPhV6TuLnus56jKDIZlo40qEiydQ9xG3I/ZHkS/p740KKIJ+7sti3x9hYdcBzUnNUJaOPp0Of9T9Po+SjPhp9kPmb1DTf4YiLTYqhgZQW1tRrksQMoA6meZBcGMlZrMk4SqKdU9R2Nqd9JLm35Wh2W5VE9cOGT7qOAVdNbY=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1782811476; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=iyzc1NqqOS9YaUbN01fdyzFBilO6j5uPtspY/8mA3zE=; 
-	b=GXWk0+MLOV7w5TYgORD7mP4iX8VwAaj/q8qZhaVFAMXJnGyLAf2N1WezNgtqczNK+pNSEoW8SeVTmG2TZfqeTS+4tdrmTLHkDMytoWhM9909QRbn31fcuJO5smV9dHkkzqThrhNMoXpr2SqxiNnZuIPxXDCeoVuH874Vlm9zpvM=
+	t=1782811478; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=R9WpHO3lpLDOGEBdwEb7NtjWJTyPYL2fJKhNy7s1I24=; 
+	b=Q86K+o4mv240EFxejmwy9h4MaZ/v1352C72Tq99Tz1dHUllPjf3XUxyGIPM1nqQML6TiaCozQmYuFbkw5qKXuCthPD1v5VB/qhnhwZCO4LrNkulwxD4FV7t7u8jch5DMgv7/uXSqV1r0OybZ5E5YQ002IIGY7YSOoVj0Sw76ugI=
 ARC-Authentication-Results: i=1; mx.zohomail.com;
 	dkim=pass  header.i=linux.beauty;
 	spf=pass  smtp.mailfrom=me@linux.beauty;
 	dmarc=pass header.from=<me@linux.beauty>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1782811476;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1782811478;
 	s=zmail; d=linux.beauty; i=me@linux.beauty;
 	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=iyzc1NqqOS9YaUbN01fdyzFBilO6j5uPtspY/8mA3zE=;
-	b=o5kM+duH7zFRyQ4a9oKr1hGqzfiK4g8zIt2Hp+4LWuccxrVBfm5AdvHoRh3Rp8uu
-	BL122AP/Z+asWxQAn+cmRrJkitPxci1kfe1OzLJsAUqdBcXPsprylRJa785Bw2n7c1/
-	cjVlvHWQeJ4n1voFhkky7J7IZpykEmwck4hhr9W4=
-Received: by mx.zohomail.com with SMTPS id 178281147301922.352069794101567;
-	Tue, 30 Jun 2026 02:24:33 -0700 (PDT)
+	bh=R9WpHO3lpLDOGEBdwEb7NtjWJTyPYL2fJKhNy7s1I24=;
+	b=P3noz52JxnVWkwUPK89995yP+qP8mwamqd2K3euO7BKC1iIuDt5oP5nlBjoBN7gS
+	QKM+ne+whElJiXk/06Fgnqvxv3nNL/qMP/Mpzs3Lol+rPyowfODX9btD0SoJ9IFSIVi
+	0mzBSVS/XEPEUA8rHbSl+/Lv+sktJfcnrTQFNz60=
+Received: by mx.zohomail.com with SMTPS id 1782811476259188.37083781721344;
+	Tue, 30 Jun 2026 02:24:36 -0700 (PDT)
 From: Li Chen <me@linux.beauty>
 To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
@@ -45,9 +45,9 @@ To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
 	nvdimm@lists.linux.dev
 Cc: linux-kernel@vger.kernel.org,
 	Li Chen <me@linux.beauty>
-Subject: [PATCH v7 11/12] nvdimm: virtio_pmem: converge broken virtqueue to -EIO
-Date: Tue, 30 Jun 2026 17:23:36 +0800
-Message-ID: <20260630092338.2094628-12-me@linux.beauty>
+Subject: [PATCH v7 12/12] nvdimm: virtio_pmem: drain requests in freeze
+Date: Tue, 30 Jun 2026 17:23:37 +0800
+Message-ID: <20260630092338.2094628-13-me@linux.beauty>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260630092338.2094628-1-me@linux.beauty>
 References: <20260630092338.2094628-1-me@linux.beauty>
@@ -60,291 +60,123 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-ZohoMailClient: External
 
-dmesg reports virtqueue failure and device reset:
-virtio_pmem virtio2: failed to send command to
-virtio pmem device, no free slots in the virtqueue
-virtio_pmem virtio2: virtio pmem device
-needs a reset
+virtio_pmem_freeze() currently deletes virtqueues and resets the device
+without waking threads waiting for a virtqueue descriptor or a host
+completion.
 
-virtio_pmem_flush() can wait for a free virtqueue descriptor (-ENOSPC).
-It can also wait for host completion. If the request virtqueue breaks,
-those waiters may never make progress. One example is notify failure from
-virtqueue_kick().
+Mark the request virtqueue broken before reset. This makes new submissions
+fail fast and lets -ENOSPC waiters leave the wait list. Reset the device
+before draining used and unused request tokens, then delete the virtqueues.
+This wakes waiters with -EIO. It also keeps the detach call on a quiesced
+device.
 
-Track a device-level broken state and converge the failure to -EIO. New
-requests fail fast, -ENOSPC waiters are unlinked and woken, and the
-currently submitted request is woken so its host_acked waiter can return
-without waiting forever for host completion. Completed requests are forced
-to report an error after the queue is marked broken.
+Clear req_vq after del_vqs(). Make drain tolerate a NULL queue so remove
+after freeze does not dereference a stale virtqueue pointer. Also make
+virtio_pmem_flush() stop checking req_vq once the broken state is visible.
+A waiter woken by freeze/remove can resume after del_vqs() has cleared
+req_vq.
 
-Also serialize async parent-bio flush work against the broken state with
-pmem_lock. That way remove and freeze either drain work queued before
-virtio_pmem_mark_broken(), or later callers see nvdimm_flush() complete
-the parent bio synchronously with -EIO instead of queuing work after the
-drain point.
-
-Do not detach unused buffers from an active virtqueue. Runtime
-broken-queue handling only stops new submissions and wakes local waiters.
-Removal resets the device first. It then drains request tokens. After
-that, the device no longer owns the buffers when the virtqueue reference
-is dropped.
-
-Closes: https://lore.kernel.org/r/202512250116.ewtzlD0g-lkp@intel.com/
 Signed-off-by: Li Chen <me@linux.beauty>
 ---
 Changes in v7:
-- Serialize async parent-bio flush work against broken-state publication so
-  remove/freeze cannot drain the workqueue before a racing FUA bio queues new
-  completion work.
+- Stop checking req_vq once the broken state is visible, so a waiter woken
+  by freeze/remove does not dereference req_vq after del_vqs() clears it.
 Changes in v6:
-- Wake the in-flight host-completion waiter when marking the queue broken.
-- Track req_inflight and clear it on completion/drain paths.
-- Return -EIO if the queue breaks before a host response is observed.
+- Clear req_vq after del_vqs() and make drain tolerate a NULL queue.
 Changes in v5:
-- Split broken marking from token draining.
-- Do not call virtqueue_detach_unused_buf() on an active queue.
-- Reset the device before draining tokens in remove().
-- Do not let the host-completion wait return only because the device is
-  marked broken.
+- Reset the device before draining used and unused request tokens.
+- Use the split broken-marking and post-reset drain helpers.
 v2->v3:
-- Add raw dmesg excerpt to the patch description.
-- Drop timestamps from the embedded dmesg.
-- Fold the CONFIG_VIRTIO_PMEM=m export fix into this patch.
+- No change.
 v3->v4:
 - Rebased onto v7.1-rc7 and renumbered after the flush error patches.
-- Use kmalloc_obj(*req_data) at the allocation site to match current nvdimm
-  code.
 
- drivers/nvdimm/nd_virtio.c   | 126 +++++++++++++++++++++++++++++++----
- drivers/nvdimm/virtio_pmem.c |  16 ++++-
- drivers/nvdimm/virtio_pmem.h |   8 +++
- 3 files changed, 136 insertions(+), 14 deletions(-)
+ drivers/nvdimm/nd_virtio.c   |  5 +++++
+ drivers/nvdimm/virtio_pmem.c | 34 +++++++++++++++++++++++++++++-----
+ 2 files changed, 34 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-index e4e4284ae19e5..a6820300cbe8f 100644
+index a6820300cbe8f..3b8be79a20a0f 100644
 --- a/drivers/nvdimm/nd_virtio.c
 +++ b/drivers/nvdimm/nd_virtio.c
-@@ -36,6 +36,12 @@ static bool virtio_pmem_req_done(struct virtio_pmem_request *req)
- 	return smp_load_acquire(&req->done);
- }
+@@ -99,6 +99,9 @@ void virtio_pmem_drain(struct virtio_pmem *vpmem)
+ 	struct virtio_pmem_request *req;
+ 	unsigned int len;
  
-+static void virtio_pmem_complete_err(struct virtio_pmem_request *req)
-+{
-+	req->resp.ret = cpu_to_le32(1);
-+	virtio_pmem_signal_done(req);
-+}
++	if (!vpmem->req_vq)
++		return;
 +
- static void virtio_pmem_wake_one_waiter(struct virtio_pmem *vpmem)
- {
- 	struct virtio_pmem_request *req_buf;
-@@ -50,6 +56,63 @@ static void virtio_pmem_wake_one_waiter(struct virtio_pmem *vpmem)
- 	wake_up(&req_buf->wq_buf);
- }
- 
-+static void virtio_pmem_wake_all_waiters(struct virtio_pmem *vpmem)
-+{
-+	struct virtio_pmem_request *req, *tmp;
-+
-+	list_for_each_entry_safe(req, tmp, &vpmem->req_list, list) {
-+		list_del_init(&req->list);
-+		WRITE_ONCE(req->wq_buf_avail, true);
-+		wake_up(&req->wq_buf);
-+	}
-+}
-+
-+static void virtio_pmem_clear_inflight(struct virtio_pmem *vpmem,
-+				       struct virtio_pmem_request *req)
-+{
-+	if (vpmem->req_inflight == req)
-+		vpmem->req_inflight = NULL;
-+}
-+
-+static void virtio_pmem_wake_inflight(struct virtio_pmem *vpmem)
-+{
-+	struct virtio_pmem_request *req = vpmem->req_inflight;
-+
-+	if (req)
-+		wake_up(&req->host_acked);
-+}
-+
-+void virtio_pmem_mark_broken(struct virtio_pmem *vpmem)
-+{
-+	if (!READ_ONCE(vpmem->broken)) {
-+		WRITE_ONCE(vpmem->broken, true);
-+		dev_err_once(&vpmem->vdev->dev, "virtqueue is broken\n");
-+	}
-+
-+	virtio_pmem_wake_inflight(vpmem);
-+	virtio_pmem_wake_all_waiters(vpmem);
-+}
-+EXPORT_SYMBOL_GPL(virtio_pmem_mark_broken);
-+
-+void virtio_pmem_drain(struct virtio_pmem *vpmem)
-+{
-+	struct virtio_pmem_request *req;
-+	unsigned int len;
-+
-+	while ((req = virtqueue_get_buf(vpmem->req_vq, &len)) != NULL) {
-+		virtio_pmem_clear_inflight(vpmem, req);
-+		virtio_pmem_complete_err(req);
-+		kref_put(&req->kref, virtio_pmem_req_release);
-+	}
-+
-+	while ((req = virtqueue_detach_unused_buf(vpmem->req_vq)) != NULL) {
-+		virtio_pmem_clear_inflight(vpmem, req);
-+		virtio_pmem_complete_err(req);
-+		kref_put(&req->kref, virtio_pmem_req_release);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(virtio_pmem_drain);
-+
-  /* The interrupt handler */
- void virtio_pmem_host_ack(struct virtqueue *vq)
- {
-@@ -60,8 +123,12 @@ void virtio_pmem_host_ack(struct virtqueue *vq)
- 
- 	spin_lock_irqsave(&vpmem->pmem_lock, flags);
- 	while ((req_data = virtqueue_get_buf(vq, &len)) != NULL) {
-+		virtio_pmem_clear_inflight(vpmem, req_data);
- 		virtio_pmem_wake_one_waiter(vpmem);
--		virtio_pmem_signal_done(req_data);
-+		if (READ_ONCE(vpmem->broken))
-+			virtio_pmem_complete_err(req_data);
-+		else
-+			virtio_pmem_signal_done(req_data);
- 		kref_put(&req_data->kref, virtio_pmem_req_release);
- 	}
- 	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-@@ -89,6 +156,9 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
- 		return -EIO;
+ 	while ((req = virtqueue_get_buf(vpmem->req_vq, &len)) != NULL) {
+ 		virtio_pmem_clear_inflight(vpmem, req);
+ 		virtio_pmem_complete_err(req);
+@@ -218,6 +221,8 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+ 			break;
  	}
  
 +	if (READ_ONCE(vpmem->broken))
-+		return -EIO;
-+
- 	req_data = kmalloc_obj(*req_data, GFP_NOIO);
- 	if (!req_data)
- 		return -ENOMEM;
-@@ -105,13 +175,18 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
- 	sgs[1] = &ret;
- 
- 	spin_lock_irqsave(&vpmem->pmem_lock, flags);
--	 /*
--	  * If virtqueue_add_sgs returns -ENOSPC then req_vq virtual
--	  * queue does not have free descriptor. We add the request
--	  * to req_list and wait for host_ack to wake us up when free
--	  * slots are available.
--	  */
-+	/*
-+	 * If virtqueue_add_sgs returns -ENOSPC then req_vq virtual
-+	 * queue does not have free descriptor. We add the request
-+	 * to req_list and wait for host_ack to wake us up when free
-+	 * slots are available.
-+	 */
- 	for (;;) {
-+		if (READ_ONCE(vpmem->broken)) {
-+			err = -EIO;
-+			break;
-+		}
-+
- 		err = virtqueue_add_sgs(vpmem->req_vq, sgs, 1, 1, req_data,
- 					GFP_ATOMIC);
- 		if (!err) {
-@@ -120,6 +195,7 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
- 			 * held so completion cannot run concurrently.
- 			 */
- 			kref_get(&req_data->kref);
-+			vpmem->req_inflight = req_data;
- 			break;
- 		}
- 
-@@ -133,24 +209,41 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
- 		spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
- 
- 		/* A host response results in "host_ack" getting called */
--		wait_event(req_data->wq_buf, READ_ONCE(req_data->wq_buf_avail));
-+		wait_event(req_data->wq_buf,
-+			   READ_ONCE(req_data->wq_buf_avail) ||
-+			   READ_ONCE(vpmem->broken));
- 		spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+
-+		if (READ_ONCE(vpmem->broken))
-+			break;
- 	}
- 
--	err1 = virtqueue_kick(vpmem->req_vq);
-+	if (err == -EIO || virtqueue_is_broken(vpmem->req_vq))
-+		virtio_pmem_mark_broken(vpmem);
-+
-+	err1 = true;
-+	if (!err && !READ_ONCE(vpmem->broken)) {
-+		err1 = virtqueue_kick(vpmem->req_vq);
-+		if (!err1)
-+			virtio_pmem_mark_broken(vpmem);
-+	}
- 	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
- 	/*
- 	 * virtqueue_add_sgs failed with error different than -ENOSPC, we can't
- 	 * do anything about that.
- 	 */
--	if (err || !err1) {
-+	if (READ_ONCE(vpmem->broken) || err || !err1) {
- 		dev_info(&vdev->dev, "failed to send command to virtio pmem device\n");
- 		err = -EIO;
- 	} else {
- 		/* A host response results in "host_ack" getting called */
- 		wait_event(req_data->host_acked,
--			   virtio_pmem_req_done(req_data));
--		err = le32_to_cpu(req_data->resp.ret);
-+			   virtio_pmem_req_done(req_data) ||
-+			   READ_ONCE(vpmem->broken));
-+		if (virtio_pmem_req_done(req_data))
-+			err = le32_to_cpu(req_data->resp.ret);
-+		else
-+			err = -EIO;
- 	}
- 
- 	kref_put(&req_data->kref, virtio_pmem_req_release);
-@@ -178,6 +271,7 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
- 	struct virtio_device *vdev = nd_region->provider_data;
- 	struct virtio_pmem *vpmem = vdev->priv;
- 	struct virtio_pmem_flush_work *flush;
-+	unsigned long flags;
- 	int err;
- 
- 	if (bio && bio->bi_iter.bi_sector != -1) {
-@@ -188,7 +282,15 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
- 		INIT_WORK(&flush->work, virtio_pmem_flush_work);
- 		flush->nd_region = nd_region;
- 		flush->bio = bio;
-+
-+		spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+		if (READ_ONCE(vpmem->broken)) {
-+			spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+			kfree(flush);
-+			return -EIO;
-+		}
- 		queue_work(vpmem->flush_wq, &flush->work);
-+		spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
- 		return NVDIMM_FLUSH_ASYNC;
- 	}
++		err = -EIO;
+ 	if (err == -EIO || virtqueue_is_broken(vpmem->req_vq))
+ 		virtio_pmem_mark_broken(vpmem);
  
 diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-index 9cf822a6c0c38..36664a5ea25e3 100644
+index 36664a5ea25e3..7ee3fb1779f73 100644
 --- a/drivers/nvdimm/virtio_pmem.c
 +++ b/drivers/nvdimm/virtio_pmem.c
-@@ -25,6 +25,8 @@ static int init_vq(struct virtio_pmem *vpmem)
+@@ -17,11 +17,16 @@ static struct virtio_device_id id_table[] = {
+  /* Initialize virt queue */
+ static int init_vq(struct virtio_pmem *vpmem)
+ {
++	int err;
++
+ 	/* single vq */
+ 	vpmem->req_vq = virtio_find_single_vq(vpmem->vdev,
+ 					virtio_pmem_host_ack, "flush_queue");
+-	if (IS_ERR(vpmem->req_vq))
+-		return PTR_ERR(vpmem->req_vq);
++	if (IS_ERR(vpmem->req_vq)) {
++		err = PTR_ERR(vpmem->req_vq);
++		vpmem->req_vq = NULL;
++		return err;
++	}
  
  	spin_lock_init(&vpmem->pmem_lock);
  	INIT_LIST_HEAD(&vpmem->req_list);
-+	vpmem->req_inflight = NULL;
-+	WRITE_ONCE(vpmem->broken, false);
- 
+@@ -31,6 +36,15 @@ static int init_vq(struct virtio_pmem *vpmem)
  	return 0;
  };
-@@ -148,11 +150,21 @@ static void virtio_pmem_remove(struct virtio_device *vdev)
+ 
++static void virtio_pmem_del_vqs(struct virtio_pmem *vpmem)
++{
++	if (!vpmem->req_vq)
++		return;
++
++	vpmem->vdev->config->del_vqs(vpmem->vdev);
++	vpmem->req_vq = NULL;
++}
++
+ static int virtio_pmem_validate(struct virtio_device *vdev)
  {
- 	struct nvdimm_bus *nvdimm_bus = dev_get_drvdata(&vdev->dev);
+ 	struct virtio_shm_region shm_reg;
+@@ -139,7 +153,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+ 	virtio_reset_device(vdev);
+ 	nvdimm_bus_unregister(vpmem->nvdimm_bus);
+ out_vq:
+-	vdev->config->del_vqs(vdev);
++	virtio_pmem_del_vqs(vpmem);
+ out_wq:
+ 	destroy_workqueue(vpmem->flush_wq);
+ out_err:
+@@ -164,18 +178,28 @@ static void virtio_pmem_remove(struct virtio_device *vdev)
+ 	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
+ 
+ 	nvdimm_bus_unregister(nvdimm_bus);
+-	vdev->config->del_vqs(vdev);
++	virtio_pmem_del_vqs(vpmem);
+ 	destroy_workqueue(vpmem->flush_wq);
+ }
+ 
+ static int virtio_pmem_freeze(struct virtio_device *vdev)
+ {
  	struct virtio_pmem *vpmem = vdev->priv;
 +	unsigned long flags;
 +
@@ -352,44 +184,18 @@ index 9cf822a6c0c38..36664a5ea25e3 100644
 +	virtio_pmem_mark_broken(vpmem);
 +	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
  
--	nvdimm_bus_unregister(nvdimm_bus);
  	drain_workqueue(vpmem->flush_wq);
 -	vdev->config->del_vqs(vdev);
  	virtio_reset_device(vdev);
-+
+ 
 +	spin_lock_irqsave(&vpmem->pmem_lock, flags);
 +	virtio_pmem_drain(vpmem);
 +	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
 +
-+	nvdimm_bus_unregister(nvdimm_bus);
-+	vdev->config->del_vqs(vdev);
- 	destroy_workqueue(vpmem->flush_wq);
++	virtio_pmem_del_vqs(vpmem);
++
+ 	return 0;
  }
  
-diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
-index 8843a8b965874..0b90777d7658b 100644
---- a/drivers/nvdimm/virtio_pmem.h
-+++ b/drivers/nvdimm/virtio_pmem.h
-@@ -56,6 +56,12 @@ struct virtio_pmem {
- 	/* List to store deferred work if virtqueue is full */
- 	struct list_head req_list;
- 
-+	/* Request currently owned by the virtqueue. */
-+	struct virtio_pmem_request *req_inflight;
-+
-+	/* Fail fast and wake waiters if the request virtqueue is broken. */
-+	bool broken;
-+
- 	/* Synchronize virtqueue data */
- 	spinlock_t pmem_lock;
- 
-@@ -65,5 +71,7 @@ struct virtio_pmem {
- };
- 
- void virtio_pmem_host_ack(struct virtqueue *vq);
-+void virtio_pmem_mark_broken(struct virtio_pmem *vpmem);
-+void virtio_pmem_drain(struct virtio_pmem *vpmem);
- int async_pmem_flush(struct nd_region *nd_region, struct bio *bio);
- #endif
 -- 
 2.52.0
