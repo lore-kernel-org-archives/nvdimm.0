@@ -1,41 +1,41 @@
 Received: from sender4-op-o15.zoho.com (sender4-op-o15.zoho.com [136.143.188.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEB893EA96A;
-	Tue, 30 Jun 2026 09:25:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4DF33EA970;
+	Tue, 30 Jun 2026 09:25:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782811504; cv=pass; b=m+C3CJ6n59LZl7BIUOfjRanmeE1gbu4l0qxhzgwvzUpK+M8M9B6BcpUxLZ+zdzso3uykC6CTNRWwW42qR+KNZQbqxr8I/o5d0FEtbEkFkcRJf/Ts8J5O+jjTbfa8N012/7D/CRcmplP2bbp6bU8H7KvkjVhqCgkZe2pgBMSJYGU=
+	t=1782811508; cv=pass; b=VidlR8d0U418hwk8RlxVJc/MIcCPAiX8OWo4IN/jRaJ7dH4XDpAPpJh9U85a8KaI7GKzJfAxxMgJuZ2hGfRYqwxwqwS40H7BpoHDone7JnXcEuLIaqhumOxsI0nuAJhj8A6sycsyrtv/fjiPLLMT9/j0HtG4ETB5PC9m31oe8wM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782811504; c=relaxed/simple;
-	bh=jiMBO23GFiWOPc0+flsdR/RSSDEm/BrgbsoC5qh8NFQ=;
+	s=arc-20240116; t=1782811508; c=relaxed/simple;
+	bh=x8epGCr0jUISj3HPejgYCvlQvm+Nk+4/t5kEnbaZSnk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MvOez+ryylycXMqPHeo3B+eAzaL2tAXoebT5rnU/NUc0vpH7BQKOMzXrXu3QA56XPD/rXjGttmQFTX7SGkyRsZsOQ5mof7hSh1XG4SHbkSmU6PnYDtnBNrfMVpW2d6D+GQ2wQoeiZVl/AdJIUEHBaxPjBjAXef+mnCzETmn64l8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=ZsrN4zCc; arc=pass smtp.client-ip=136.143.188.15
+	 MIME-Version; b=NRYZOHcrsxoZB2k6XgyxPOl7zKMf0jk8C4q/oq4PsSVWZxn2KJ86nq5c5LiqIV/1yF2YgcKRkPC3IKEHMfRsTneGEwWYi4nt5Oit6Dh42T7gbP9Wdags/6xVVfOOg2EMdK1qG0k3Ht8+hPyBc76GTT95AI6zMq2UxiJmdzP2Q7s=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty; spf=pass smtp.mailfrom=linux.beauty; dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b=pMv4qJwH; arc=pass smtp.client-ip=136.143.188.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.beauty
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="ZsrN4zCc"
-ARC-Seal: i=1; a=rsa-sha256; t=1782811468; cv=none; 
+	dkim=pass (1024-bit key) header.d=linux.beauty header.i=me@linux.beauty header.b="pMv4qJwH"
+ARC-Seal: i=1; a=rsa-sha256; t=1782811472; cv=none; 
 	d=zohomail.com; s=zohoarc; 
-	b=hVj29vXmSJBIc2LTLm9p050l9b4oxPyHaRsqpL367+OObWGuRn58M1FL0JKaXE324RM3CCoxNzHJUmpjh9IQhUIsDEEkXnmNRFFUAFypZlIh13NljMtenkVx7ZtER2hHUFsni1BpR/flA7fZyu7cyM2LNmPksyKc/xMsPe+k9Ao=
+	b=Lkx9cSHU8rploUAzKk+0S4FwGVnPy6J46m+YPV5f4tusNCAuAtwdAv3tcoLCEAubkZkC7XJFoHBwWWv/MvTeXDmDSFveBuuq0suedX+Ars+B+eUzOarmgrTqSIfW/C165CQiSyZI0C4OFog2oBeE/1nYMdEbaJkb7YOGo7g/ZGs=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1782811468; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=1OttPtyFARlK/uhLzfs0xf1rrAI5BKBV4NzbkT3H4oY=; 
-	b=YNZEMWxF+cCFgzKuZ4kj1iiWRVAquTfyLKNbKPiPpKnG/aiPTAH/sFyDOLBWDVR2+wY8KW5Sa6U289tkPCyE8KsiZYWXy4cVmWz0qFFMOW5zrUF9uz9682QrPVv8ogUR6qNJ7OSnv3ghAbl+D44WvlbThHj1rPXsP8jLqB2op64=
+	t=1782811472; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=aRV82qewGWDKaO/i9Y3FGCk+YS/BH0snTkKftmsKdgE=; 
+	b=H61kWuoM3DGe7yJKlmcPh1M5mZxPXLx98xJn4TCSDqn0W1rjW4+FXLrhOWM61L7fadYflSPgX9P2Psauf2IcASkbNg8+x0r+J/FuHQSjR/TZ0dzBqEwBEHjWQjniFilPR1Pu+jbalFwqeP81F0yt4IRDKj6n3DYSxKHzH6iDlt0=
 ARC-Authentication-Results: i=1; mx.zohomail.com;
 	dkim=pass  header.i=linux.beauty;
 	spf=pass  smtp.mailfrom=me@linux.beauty;
 	dmarc=pass header.from=<me@linux.beauty>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1782811468;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1782811472;
 	s=zmail; d=linux.beauty; i=me@linux.beauty;
 	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=1OttPtyFARlK/uhLzfs0xf1rrAI5BKBV4NzbkT3H4oY=;
-	b=ZsrN4zCcGD6yAcbCh15YVtlXijQ3LPTGWhoRaeuw292VZ6x3gSJe26g5bBDtlpw5
-	SUpwXXmxt+tZVw24mOwtQR64Ag3NjGw3hSc5q/n9vH3Rm4Su7XFZ5ODJwN81L6K7rm+
-	8s1nvqgjaxHEwahrs9qIgyahLXeMjo9V8nqdRJ3A=
-Received: by mx.zohomail.com with SMTPS id 1782811465982313.1890715947351;
-	Tue, 30 Jun 2026 02:24:25 -0700 (PDT)
+	bh=aRV82qewGWDKaO/i9Y3FGCk+YS/BH0snTkKftmsKdgE=;
+	b=pMv4qJwHIj9EEm0b7m6pLdzXruLhLCRh+1JCIiby6QZDs3uqB686BYa9NtQZoBmz
+	W9wNCjv/rSDrfowcyKqvFhqBI9aebPsSlqu9D3WTA4QZKZGVAle12gXt4ZHp1ecjPEy
+	CPD5gziZdi6FSjaqGWjvWFT9D2mEk781SmjXi3Go=
+Received: by mx.zohomail.com with SMTPS id 178281146935498.53515139191438;
+	Tue, 30 Jun 2026 02:24:29 -0700 (PDT)
 From: Li Chen <me@linux.beauty>
 To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
@@ -45,9 +45,9 @@ To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
 	nvdimm@lists.linux.dev
 Cc: linux-kernel@vger.kernel.org,
 	Li Chen <me@linux.beauty>
-Subject: [PATCH v7 09/12] nvdimm: virtio_pmem: publish done with release/acquire
-Date: Tue, 30 Jun 2026 17:23:34 +0800
-Message-ID: <20260630092338.2094628-10-me@linux.beauty>
+Subject: [PATCH v7 10/12] nvdimm: virtio_pmem: isolate DMA request buffers
+Date: Tue, 30 Jun 2026 17:23:35 +0800
+Message-ID: <20260630092338.2094628-11-me@linux.beauty>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260630092338.2094628-1-me@linux.beauty>
 References: <20260630092338.2094628-1-me@linux.beauty>
@@ -60,64 +60,54 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-ZohoMailClient: External
 
-virtio_pmem_host_ack() publishes the device response by setting done and
-waking the submitter. The submitter reads resp.ret after wait_event()
-observes done.
+The virtio-pmem request object stores wait queues, flags, and list
+pointers next to buffers mapped for virtqueue DMA. The response buffer is
+mapped DMA_FROM_DEVICE, so non-coherent DMA invalidation must not share a
+cache line with CPU-owned fields.
 
-Use smp_store_release() on done and smp_load_acquire() in the wait
-condition so the response read is ordered after completion.
+Keep the request buffer outside the DMA-from-device group and wrap only
+the response buffer with __dma_from_device_group_begin/end.
 
 Signed-off-by: Li Chen <me@linux.beauty>
 ---
 Changes in v6:
 - New patch.
 
- drivers/nvdimm/nd_virtio.c | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ drivers/nvdimm/virtio_pmem.h | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-index 1cf53f75b1281..e4e4284ae19e5 100644
---- a/drivers/nvdimm/nd_virtio.c
-+++ b/drivers/nvdimm/nd_virtio.c
-@@ -23,6 +23,19 @@ static void virtio_pmem_req_release(struct kref *kref)
- 	kfree(req);
- }
+diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
+index 3af92588bd9d1..8843a8b965874 100644
+--- a/drivers/nvdimm/virtio_pmem.h
++++ b/drivers/nvdimm/virtio_pmem.h
+@@ -10,6 +10,7 @@
+ #ifndef _LINUX_VIRTIO_PMEM_H
+ #define _LINUX_VIRTIO_PMEM_H
  
-+static void virtio_pmem_signal_done(struct virtio_pmem_request *req)
-+{
-+	/* Pairs with smp_load_acquire() in virtio_pmem_req_done(). */
-+	smp_store_release(&req->done, true);
-+	wake_up(&req->host_acked);
-+}
-+
-+static bool virtio_pmem_req_done(struct virtio_pmem_request *req)
-+{
-+	/* Pairs with smp_store_release() in virtio_pmem_signal_done(). */
-+	return smp_load_acquire(&req->done);
-+}
-+
- static void virtio_pmem_wake_one_waiter(struct virtio_pmem *vpmem)
- {
- 	struct virtio_pmem_request *req_buf;
-@@ -48,8 +61,7 @@ void virtio_pmem_host_ack(struct virtqueue *vq)
- 	spin_lock_irqsave(&vpmem->pmem_lock, flags);
- 	while ((req_data = virtqueue_get_buf(vq, &len)) != NULL) {
- 		virtio_pmem_wake_one_waiter(vpmem);
--		WRITE_ONCE(req_data->done, true);
--		wake_up(&req_data->host_acked);
-+		virtio_pmem_signal_done(req_data);
- 		kref_put(&req_data->kref, virtio_pmem_req_release);
- 	}
- 	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-@@ -136,7 +148,8 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
- 		err = -EIO;
- 	} else {
- 		/* A host response results in "host_ack" getting called */
--		wait_event(req_data->host_acked, READ_ONCE(req_data->done));
-+		wait_event(req_data->host_acked,
-+			   virtio_pmem_req_done(req_data));
- 		err = le32_to_cpu(req_data->resp.ret);
- 	}
++#include <linux/dma-mapping.h>
+ #include <linux/module.h>
+ #include <uapi/linux/virtio_pmem.h>
+ #include <linux/kref.h>
+@@ -20,8 +21,6 @@
  
+ struct virtio_pmem_request {
+ 	struct kref kref;
+-	struct virtio_pmem_req req;
+-	struct virtio_pmem_resp resp;
+ 
+ 	/* Wait queue to process deferred work after ack from host */
+ 	wait_queue_head_t host_acked;
+@@ -31,6 +30,11 @@ struct virtio_pmem_request {
+ 	wait_queue_head_t wq_buf;
+ 	bool wq_buf_avail;
+ 	struct list_head list;
++
++	struct virtio_pmem_req req;
++	__dma_from_device_group_begin(resp);
++	struct virtio_pmem_resp resp;
++	__dma_from_device_group_end(resp);
+ };
+ 
+ struct virtio_pmem {
 -- 
 2.52.0
