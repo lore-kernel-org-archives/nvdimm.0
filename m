@@ -1,328 +1,204 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11BFC2DB7B7
-	for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 21:11:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 162EA2D3ECF
+	for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 21:18:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782853883; cv=none; b=dOFTv04O10UyrLjtJw0fsxxAWzqgugXmvQDCIJD4nsghRTJhPxpjiVLN1UvKNKDh5EsLEWGg/qg+bc2drRxKJOHaebMH9g3Ja4DP551RYHxAAnZhwVEKbN1RDSg1LZM69UEPB86Sa/w7vgAAy6x4qfqVwaBIqPBNSjmlEWdeqNU=
+	t=1782854331; cv=none; b=grZYgqnJfN1svl8XPrmP4QsnayLXwRZxJ1hwlBmtjcpoNtZR/iEWPoC8ZM8+4LrU8p0xP7KAxlubBXUEQc4kRuvyNl4b9amTvJR4hhrOKqhBLmTIwu95aSreNCSTHTY7lAbmLf52wUqiMwOkPj+4vmIkKR426meXnErLGVMjxsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782853883; c=relaxed/simple;
-	bh=XOuUYNkbU08UMzh+2EcGdlVL+RGtCXfW76d5MEiHVaY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NP8a+ze+wxfMRiPNDGkNZQtLpR+kZJonl6ErlvnSMe1dLXXTpsZTBg3qkXAmq9zNBxqBVyjV4CnDOHGV1Y9Z855Y1Je+LCtYSGdsyvMXU9TvX/VFZH7ICE5w9gNnAqKQmUFCpIWOtJHhEgZmUxW0fdlxHoPJDAze1T84gr2tgGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ct8ZXJdG; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1782854331; c=relaxed/simple;
+	bh=ZxDj2bIyTYA2VqEzR9BlPCz00cVKtf/fVVQwM0leMSQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kks1UUIitCFs3tl6YLemWPT0+CQBFpCpwEDk2rwj/CohJInRx6pL5C+LwSBVvbsmgwLT6pzTeBmcWNRJPHd+TcSD9pIc1gLM1wPa743NT0nh6sz59S7h2iZbcMxEDsQV02y4rgwwWzA0nzj7pWzzzOX3XMLRagH+DZz8Vv4PG/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=RoHcimzs; arc=none smtp.client-ip=209.85.222.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ct8ZXJdG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1782853880; x=1814389880;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=XOuUYNkbU08UMzh+2EcGdlVL+RGtCXfW76d5MEiHVaY=;
-  b=Ct8ZXJdG23BkvX14wC4qIl8Od23y/P+79xg2sBiOa/EwJRGoSVOOnp8G
-   oMLomhW6rtL9tW1x9xYNyILX/far8JubaXASiWVW359zn6z4x3m5yLxUh
-   avQ9WMN1MaN4/uSl3qdZxIguEV4O3gWWfm7VDS+6J9cusxHo1gRcrvcko
-   oeT28Ha7zr1Ri5s1RmRQ1+c6hp8R1E2VhABIwUOUbUqXVSAg7M0004uS3
-   VcVmIoscKVy61iihZTL0PuKkvdu2zsbREOgyZNQgmhRvPt2itBiflszZv
-   mjBV70CdZEfUAMnlW53M+aYJj306zizlo2tKC6HwZn73kjUi6CQANA+Y/
-   g==;
-X-CSE-ConnectionGUID: bkjaKS/VQVy6D7D/xe2yHw==
-X-CSE-MsgGUID: z3KK1O42Te2GEwx/fvFFYQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11833"; a="83635545"
-X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
-   d="scan'208";a="83635545"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 14:11:19 -0700
-X-CSE-ConnectionGUID: MtX5GfStT86Jim0XSlmlBg==
-X-CSE-MsgGUID: nzRFazn4QduQKOaNW+4LxQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
-   d="scan'208";a="255954430"
-Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.109.254]) ([10.125.109.254])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 14:11:18 -0700
-Message-ID: <3fb3b2c2-9be6-483b-94bd-d0515d5df9b2@intel.com>
-Date: Tue, 30 Jun 2026 14:11:12 -0700
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="RoHcimzs"
+Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-92e5c92c389so167794185a.3
+        for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 14:18:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1782854328; x=1783459128; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=15soTVn10pZL1HzcUE7vkWAPLmAyPlWsN9L93RXfdBQ=;
+        b=RoHcimzssnQ2zJm7ykmY/xdleLl68KmyS7e9dnjV8oxabDBBDlkUeVMEEslxWrcCAR
+         0NwNbInR6FHC8h7UxwwEbzI5ybrb7mZjdsFgTf16EFVj6smzpVR5uJWe/kyr8H/QqWNc
+         Pa61MCsg4M5eQh7w2KbJ77zP17G8Hjz83U+vpsO6yvzXMrep7aYmrQVGNkPiZz0M4GxO
+         JJVU6lB5QJj1uKI3a5f0+/vl7SUqNBbq/wFpb0hdQ3n2jmRvHH+x89KgcGkOv34bGsFz
+         37FhL9q7HBujfKYXq2A8R2eVo/ebKRpgcoY4w5lykpCQHsL0nZpkA54BA1fqwbxvL+3/
+         VPrg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782854328; x=1783459128;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=15soTVn10pZL1HzcUE7vkWAPLmAyPlWsN9L93RXfdBQ=;
+        b=i7pBXiy1Mh7qs8fYbeSHaQdZqHgHwarJw8AFpaac9RLxlTtf2epeDb19zC2KPL57+w
+         FG1QxIA40zXxDOiHZnewjgdSAzzqreAXWLJpBpMxtPb+XQUKLKu43CsrM/oBHs7msKGF
+         uu9apvaJ8g35suyE4g0UXQsx/wikaEwvB4YfuKhF1f3HIldzdtH4ojA+SNzs/3qvVRSw
+         s16VXhThkxZDI5OLTm7y5W00koQpjOboAJ9BMdauBnb+R/kN1/Rvb2jBAO9d0ToGnKKZ
+         bW4Dvh3AeOAThnvTsN9H3npgF+anqUEOsQIgXlfEI5MQMDXLt/SouPM+rUABkJvQyKi1
+         OpLg==
+X-Gm-Message-State: AOJu0YwRB8jt6rXABUjl7Jtsw5QvqfGtd7Is+eIi5ICRf8ESze6dx7Ya
+	Qq5rtgwvpCg8t9uuBr7d1P51wyIpqRDzIhq4EFBVm+SXV+kfMX63B3t0DEGunj5s6ao=
+X-Gm-Gg: AfdE7cn6wb8POWK7iKXYc54vNTgxW+CLpD31UHXBuUWoQSg+Wp7yD+zEGh6vdCwPduQ
+	UzNbYx34L8etl9b79n2o8lmkdypawlISZqDgblEAw7iRwIh207nlthhkTbD/IvJ/fAVVpjJmrKF
+	N0BD/TOIRM92JtV0g3qReHjVyKyNI8IRVlKaMBrd6uJT9SFsQRDohIOv/jyMe2f7OZuOeMLX116
+	BAULneUzD1igjoG55LCWWgx7au4yhWjEnrjZioFhs+07Q3+5i6BnJzfR+0YKyl5b8LV+fZvoCfI
+	BVij6/cSimE9UNmV53rsaJxx4tNomkieE2zKIvFO9CmVAvVUfSrJ7sLz7X0M1KHDIaiQMBM2Fet
+	2KOpUgVnLTC6bOqnVCdQ4f/SPHjWZHxtyyaW3ZD1KQb+C219g//wHJWQgSaMMviWcMMOOlX+8EN
+	cvU4ilL0QcqJUA/upXWtwl5YtACt0yan2avlQ5cks6//CFcvcjyH2M9vGBGxlQiNxrdr1NfyzmA
+	g==
+X-Received: by 2002:a05:620a:29d5:b0:92b:67e6:8ac0 with SMTP id af79cd13be357-92e6284f33dmr789795885a.74.1782854328078;
+        Tue, 30 Jun 2026 14:18:48 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F.lan (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-92e62366303sm335924285a.40.2026.06.30.14.18.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 30 Jun 2026 14:18:47 -0700 (PDT)
+From: Gregory Price <gourry@gourry.net>
+To: linux-mm@kvack.org
+Cc: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	linux-kselftest@vger.kernel.org,
+	kernel-team@meta.com,
+	david@kernel.org,
+	osalvador@suse.de,
+	gregkh@linuxfoundation.org,
+	rafael@kernel.org,
+	dakr@kernel.org,
+	djbw@kernel.org,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	alison.schofield@intel.com,
+	akpm@linux-foundation.org,
+	ljs@kernel.org,
+	liam@infradead.org,
+	vbabka@kernel.org,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	shuah@kernel.org,
+	gourry@gourry.net,
+	iweiny@kernel.org,
+	Smita.KoralahalliChannabasappa@amd.com,
+	apopple@nvidia.com
+Subject: [PATCH v6 00/10] dax/kmem: atomic whole-device hotplug via sysfs
+Date: Tue, 30 Jun 2026 17:18:32 -0400
+Message-ID: <20260630211842.2252800-1-gourry@gourry.net>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v11 13/31] cxl/mem: Add 20 second timeout for stalled
- DC_ADD_CAPACITY chains
-To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
- Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>,
- Alison Schofield <alison.schofield@intel.com>, John Groves
- <John@Groves.net>, Gregory Price <gourry@gourry.net>,
- Anisa Su <anisa.su@samsung.com>
-References: <20260625112638.550691-1-anisa.su@samsung.com>
- <20260625112638.550691-14-anisa.su@samsung.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260625112638.550691-14-anisa.su@samsung.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
+The dax kmem driver onlines memory during probe using the system
+default policy, with no atomic control for the state of an entire
+region at runtime - only by toggling individual memory blocks.
 
+Offlining and removing a whole region therefore races with other
+userland controllers that interfere between the offline and remove
+steps. This was discussed in the LPC2025 device memory sessions.
 
-On 6/25/26 4:04 AM, Anisa Su wrote:
-> A DC_ADD_CAPACITY event can span multiple event records grouped together
-> by the CXL_DCD_EVENT_MORE flag. Extents are staged in the pending list until
-> the last event record ('More'=0) is received, at which point the pending
-> list is processed. If the device opens such a chain (More=1) but never
-> sends the closing record, the staged list sits indefinitely.
-> 
-> Add a delayed-work watchdog that, on expiry, refuses the chain with an
-> empty ADD_DC_RESPONSE and drops the staged list.
-> 
-> The 20s timeout is a conservative upper bound and may be tightened
-> later. The timeout is purely defensive — the spec does not require it,
-> but prevents issues from a lost mailbox response or a crashed fabric manager.
-> 
-> The watchdog bounds how long a chain may stall, but a device could still
-> defeat it by streaming More=1 records faster than the timeout, growing the
-> staged list without bound. Also cap a runtime chain at
-> CXL_DC_MAX_PENDING_EXTENTS and refuse it once exceeded; existing-extent
-> recovery is bounded separately by the device's reported extent count.
-> 
-> Signed-off-by: Anisa Su <anisa.su@samsung.com>
+This series adds a sysfs "state" attribute for atomic whole-device
+hotplug control, plus the mm and dax plumbing to support it.
 
-Minor comment below in addition to sashiko
+Transitions are atomic across every range of the device. The state
+names mirror the per-block memoryX/state ABI with one modification:
 
-> 
-> ---
-> Changes:
-> 1. mbox.c: Fix comment in handle_add_event(), before closing the 'More'
->    chain and disabling the watchdog. The comment incorrectly claimed
->    handle_add_event() runs in system_wq.
-> 2. mbox.c: Drop unnecessary initialization of add_ctx.armed=false in
->    cxl_memdev_state_create(), as allocated memory is already zeroed
-> 3. mbox.c: assert add_ctx.lock is held in add_to_pending_list(); it
->    serializes access to add_ctx.pending_extents.
-> 4. mbox.c: cap a runtime More=1 chain at CXL_DC_MAX_PENDING_EXTENTS in
->    handle_add_event() so a buggy device cannot grow the staged list
->    without bound (the watchdog bounds time, not memory).
-> ---
->  drivers/cxl/core/mbox.c | 98 ++++++++++++++++++++++++++++++++++++++++-
->  drivers/cxl/cxlmem.h    | 24 ++++++++--
->  2 files changed, 117 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index 7dd40fb8d613..4e887b5cdc3e 100644
-> --- a/drivers/cxl/core/mbox.c
-> +++ b/drivers/cxl/core/mbox.c
-> @@ -1208,15 +1208,78 @@ static void clear_pending_extents(void *_mds)
->  
->  	list_for_each_entry_safe(pos, tmp, &mds->add_ctx.pending_extents, list)
->  		delete_extent_node(pos);
-> +	mds->add_ctx.nr_pending = 0;
->  	mds->add_ctx.group = NULL;
->  }
->  
-> +/*
-> + * Defensive cap on extents staged in one runtime More=1 chain: a buggy
-> + * device could otherwise grow the list without bound.  Not spec-defined.
-> + */
-> +#define CXL_DC_MAX_PENDING_EXTENTS	100
-> +
-> +/*
-> + * Bound on how long the host will wait for a device to finish a
-> + * multi-record DC_ADD_CAPACITY chain (More=1 ... More=0) before
-> + * refusing the chain.
-> + * The timeout is not defined in the spec, but added for defensive purposes.
-> + * Since there is no spec-defined timeout, 20s is chosen as a generous
-> + * upper bound and matches the GPF timeout.
-> + */
-> +#define CXL_DC_ADD_TIMEOUT	(20 * HZ)
-> +
-> +static void cxl_dc_add_timeout(struct work_struct *work)
-> +{
-> +	struct pending_add_ctx *ctx = container_of(to_delayed_work(work),
-> +						   struct pending_add_ctx,
-> +						   timeout_work);
-> +	struct cxl_memdev_state *mds = container_of(ctx,
-> +						    struct cxl_memdev_state,
-> +						    add_ctx);
-> +	struct device *dev = mds->cxlds.dev;
-> +
-> +	guard(mutex)(&ctx->lock);
-> +
-> +	/*
-> +	 * handle_add_event() cancels this work non-synchronously (a sync
-> +	 * cancel would deadlock on @ctx->lock, which the chain-close path
-> +	 * holds), so a callback that already started running can reach here
-> +	 * after its chain has moved on.  Abort only if a chain is still armed
-> +	 * AND the timer has not been re-armed since this expiry fired: a fresh
-> +	 * mod_delayed_work() (a later extent in this chain, or a new chain)
-> +	 * makes delayed_work_pending() true, meaning this expiry belongs to a
-> +	 * superseded deadline and must not abort the current chain.
-> +	 */
-> +	if (!ctx->armed || delayed_work_pending(&ctx->timeout_work))
-> +		return;
-> +
-> +	dev_warn(dev, "DC add chain timed out; refusing staged extents\n");
-> +
-> +	if (cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-> +				 &ctx->pending_extents, 0))
-> +		dev_dbg(dev, "Failed to send empty ADD_DC_RESPONSE on timeout\n");
-> +
-> +	clear_pending_extents(mds);
-> +	ctx->armed = false;
-> +}
-> +
-> +static void cxl_cancel_dcd_add_chain_work(void *_mds)
-> +{
-> +	struct cxl_memdev_state *mds = _mds;
-> +
-> +	cancel_delayed_work_sync(&mds->add_ctx.timeout_work);
-> +}
-> +
->  static int add_to_pending_list(struct list_head *pending_list,
->  			       struct cxl_extent *to_add)
->  {
-> +	struct pending_add_ctx *ctx =
-> +		container_of(pending_list, struct pending_add_ctx, pending_extents);
->  	struct cxl_extent_list_node *node = kzalloc(sizeof(*node), GFP_KERNEL);
->  	struct cxl_extent *extent;
->  
-> +	lockdep_assert_held(&ctx->lock);
-> +
->  	if (!node)
->  		return -ENOMEM;
->  	extent = kmemdup(to_add, sizeof(*extent), GFP_KERNEL);
-> @@ -1227,6 +1290,7 @@ static int add_to_pending_list(struct list_head *pending_list,
->  
->  	node->extent = extent;
->  	list_add_tail(&node->list, pending_list);
-> +	ctx->nr_pending++;
->  	return 0;
->  }
->  
-> @@ -1239,10 +1303,20 @@ static int add_to_pending_list(struct list_head *pending_list,
->  static int handle_add_event(struct cxl_memdev_state *mds,
->  			    struct cxl_event_dcd *event)
->  {
-> +	struct pending_add_ctx *ctx = &mds->add_ctx;
->  	struct device *dev = mds->cxlds.dev;
->  	int rc;
->  
-> -	rc = add_to_pending_list(&mds->add_ctx.pending_extents, &event->extent);
-> +	guard(mutex)(&ctx->lock);
-> +
-> +	if (ctx->nr_pending >= CXL_DC_MAX_PENDING_EXTENTS) {
-> +		dev_warn(dev, "DC add chain exceeds %u extents; dropping (firmware bug)\n",
-> +			 CXL_DC_MAX_PENDING_EXTENTS);
-> +		clear_pending_extents(mds);
-> +		return -ENOSPC;
-> +	}
-> +
-> +	rc = add_to_pending_list(&ctx->pending_extents, &event->extent);
->  	if (rc) {
->  		clear_pending_extents(mds);
->  		return rc;
-> @@ -1250,9 +1324,19 @@ static int handle_add_event(struct cxl_memdev_state *mds,
->  
->  	if (event->flags & CXL_DCD_EVENT_MORE) {
->  		dev_dbg(dev, "more bit set; delay the surfacing of extent\n");
-> +		mod_delayed_work(system_wq, &ctx->timeout_work,
-> +						 CXL_DC_ADD_TIMEOUT);
-> +		ctx->armed = true;
->  		return 0;
->  	}
->  
-> +	/*
-> +	 * Chain is closing.  Disarm before flushing so a pending watchdog
-> +	 * (queued but blocked on @ctx->lock) sees !armed and bails out.
-> +	 */
-> +	ctx->armed = false;
-> +	cancel_delayed_work(&ctx->timeout_work);
-> +
->  	rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
->  				  &mds->add_ctx.pending_extents, 0);
->  	clear_pending_extents(mds);
-> @@ -2036,11 +2120,23 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
->  
->  	mutex_init(&mds->event.log_lock);
->  	INIT_LIST_HEAD(&mds->add_ctx.pending_extents);
-> +	mutex_init(&mds->add_ctx.lock);
-> +	INIT_DELAYED_WORK(&mds->add_ctx.timeout_work,
-> +			  cxl_dc_add_timeout);
->  
->  	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
->  	if (rc)
->  		return ERR_PTR(rc);
->  
-> +	/*
-> +	 * Registered after clear_pending_extents so devm's reverse-order
-> +	 * unwind cancels (and waits for) the watchdog first, then the list
-> +	 * cleanup runs with the watchdog guaranteed not to refire.
-> +	 */
-> +	rc = devm_add_action_or_reset(dev, cxl_cancel_dcd_add_chain_work, mds);
-> +	if (rc)
-> +		return ERR_PTR(rc);
-> +
->  	rc = devm_cxl_register_mce_notifier(dev, &mds->mce_notifier);
->  	if (rc == -EOPNOTSUPP)
->  		dev_warn(dev, "CXL MCE unsupported\n");
-> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index 4ffa7bd1e5f1..81498d47f309 100644
-> --- a/drivers/cxl/cxlmem.h
-> +++ b/drivers/cxl/cxlmem.h
-> @@ -8,6 +8,8 @@
->  #include <linux/uuid.h>
->  #include <linux/node.h>
->  #include <linux/list.h>
-> +#include <linux/mutex.h>
-> +#include <linux/workqueue.h>
->  #include <cxl/event.h>
->  #include <cxl/mailbox.h>
->  #include "cxl.h"
-> @@ -407,19 +409,33 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
->  
->  /**
->   * struct pending_add_ctx - Staging state for an in-progress
-> - *			    DCD_ADD_CAPACITY event chain
-> + *							DCD_ADD_CAPACITY event chain
->   * @pending_extents: extents received so far in the chain; flushed when
-> - *		     the chain closes (More=0)
-> + *					 the chain closes (More=0)
->   * @group: tag group being assembled from the chain
-> + * @timeout_work: watchdog that fires if a chain is opened with
-> + *				  CXL_DCD_EVENT_MORE but the closing record never arrives
-> + * @lock: serialises updates to the chain state against the watchdog
-> + * @armed: set when a More=1 chain opens; cleared when the chain closes,
-> + *		   either by a More=0 event record or by the watchdog firing.
->   *
->   * A DCD_ADD_CAPACITY notification can span multiple event records
->   * stitched together by the CXL_DCD_EVENT_MORE flag.  Records are staged
-> - * here until the device clears More, at which point the staged batch is
-> - * processed and responded to as a single Add_DC_Response.
-> + * here until an event record with 'More'=0 is received, at which point the
-> + * staged batch is processed and responded to as a single Add_DC_Response.
-> + *
-> + * If a chain is opened (More=1) but the device never sends the closing
-> + * record, the staged list would otherwise sit indefinitely.  @timeout_work
-> + * is a defensive watchdog that refuses such a chain with an empty response
-> + * and drops the staged list.
->   */
->  struct pending_add_ctx {
->  	struct list_head pending_extents;
->  	struct cxl_dc_tag_group *group;
-> +	struct delayed_work timeout_work;
-> +	struct mutex lock;
-> +	unsigned int nr_pending;
+  - "unplugged":      memory blocks are not present
+  - "online":         online as system RAM, zone chosen by the kernel
+  - "online_kernel":  online in ZONE_NORMAL
+  - "online_movable": online in ZONE_MOVABLE
 
-Missing kdoc in comment section
+"offline" (blocks present but offline) is reportable for backward
+compatibility but is not writable because it entices the race condition
+we are trying to solve (offlining all the memory blocks in one atomic
+and unplugging them in another atomic).
 
-> +	bool armed;
->  };
->  
->  /**
+mm preparation:
+  1. mm/memory: add memory_block_aligned_range() helper.
+  2. mm/memory_hotplug: add mhp_online_type_to_str() and export the
+     online-type string helpers.
+  3. mm/memory_hotplug: pass online_type to online_memory_block().
+  4. mm/memory_hotplug: export mhp_get_default_online_type().
+  5. mm/memory_hotplug: add __add_memory_driver_managed() so a driver can
+     select the online policy.  The override is restricted to in-tree
+     modules via EXPORT_SYMBOL_FOR_MODULES().
+  6. mm/memory_hotplug: add offline_and_remove_memory_ranges() for atomic,
+     all-or-nothing offline+remove of several ranges under a single
+     lock_device_hotplug().
+
+dax/kmem feature:
+  7. Plumb online_type through the dax device creation path.
+  8. Extract hotplug/hotremove into helper functions.
+  9. Add the "state" sysfs attribute.
+  10. selftests/dax: regression test for the attribute.
+
+DAX Kmem probe still creates the memory blocks by default, even when
+the default policy is "offline" to preserve backwards compatibility.
+
+Unplug (atomic offline+remove of the whole device) is the new
+capability provided by the attribute.
+
+I downgraded a BUG() to a WARN() when unbind is called while the device
+is not unplugged.  The old per-block toggling pattern is still used by
+userland tools and disconnects the 'state' attribute from the real region
+state; until per-block control is deprecated or restricted in some way,
+WARN() flags that tools should move to the new atomic pattern.
+
+Changes since v5:
+  - mm/memory_hotplug helper into own patch (david)
+  - offline_and_remove_memory_ranges - nits (david)
+  - offline_and_remove_memory_ranges - warn and continue (david)
+  - memory_block_aligned_range(): end-address underflow (sashiko)
+  - dax: store the online_type sentinel as int (sashiko)
+  - dax/kmem: skip ranges that failed reservation on hotplug (sashiko)
+  - dax/kmem: on unbind fallback to legacy if still online (sashiko)
+  - selftests/dax: avoid cascading skips, clobbered state (sashiko)
+
+Gregory Price (10):
+  mm/memory: add memory_block_aligned_range() helper
+  mm/memory_hotplug: add mhp_online_type_to_str() and export string
+    helpers
+  mm/memory_hotplug: pass online_type to online_memory_block() via arg
+  mm/memory_hotplug: export mhp_get_default_online_type
+  mm/memory_hotplug: add __add_memory_driver_managed() with online_type
+    arg
+  mm/memory_hotplug: add offline_and_remove_memory_ranges()
+  dax: plumb hotplug online_type through dax
+  dax/kmem: extract hotplug/hotremove helper functions
+  dax/kmem: add sysfs interface for atomic whole-device hotplug
+  selftests/dax: add dax/kmem hotplug sysfs regression test
+
+ Documentation/ABI/testing/sysfs-bus-dax       |  26 +
+ drivers/base/memory.c                         |   9 +
+ drivers/dax/bus.c                             |   3 +
+ drivers/dax/bus.h                             |   9 +
+ drivers/dax/cxl.c                             |   1 +
+ drivers/dax/dax-private.h                     |   4 +
+ drivers/dax/hmem/hmem.c                       |   1 +
+ drivers/dax/kmem.c                            | 516 ++++++++++++++----
+ drivers/dax/pmem.c                            |   1 +
+ include/linux/memory.h                        |  27 +
+ include/linux/memory_hotplug.h                |  14 +
+ mm/memory_hotplug.c                           | 161 ++++--
+ tools/testing/selftests/Makefile              |   1 +
+ tools/testing/selftests/dax/Makefile          |   6 +
+ tools/testing/selftests/dax/config            |   4 +
+ .../testing/selftests/dax/dax-kmem-hotplug.sh | 190 +++++++
+ tools/testing/selftests/dax/settings          |   1 +
+ 17 files changed, 836 insertions(+), 138 deletions(-)
+ create mode 100644 tools/testing/selftests/dax/Makefile
+ create mode 100644 tools/testing/selftests/dax/config
+ create mode 100755 tools/testing/selftests/dax/dax-kmem-hotplug.sh
+ create mode 100644 tools/testing/selftests/dax/settings
+
+-- 
+2.53.0-Meta
 
