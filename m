@@ -1,63 +1,63 @@
-Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
+Received: from mail-qk1-f169.google.com (mail-qk1-f169.google.com [209.85.222.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D4536F8E8
-	for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 15:31:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC64044E052
+	for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 15:42:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782833462; cv=none; b=Cmzr4GAN76/LHMEISwUrO9EOvDTZhUspM/3ify/j/YczdeO+y1mCOqwZ8/LnR2mY38eSmWGBy8fwG7ce/6CAzElG8rFnsstCKSZvEBSxRVlEa18xh30GZwVETVWeOIkVPC0yxpiyVyu9noORb2GYUOnXlBCj3WrCoaxekXnMI+w=
+	t=1782834147; cv=none; b=J4nGWDLm2B7osEDwU7FG99eV9SjVUUVHmCBEeEJW3mfJDAAK9igKYP3UE3jZTq72ca2USAcQx3jfz3bywKUfU2gCl/RIuBB+TNOxlmXcY18YnMX7fdhfaYMaCHZVuBEheo21icQxF7hA418VFBW0ed/bcisjp8YEItVvxdtaCRU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782833462; c=relaxed/simple;
-	bh=dsxaVzZxmHO2gtIU2TvsbwgiexrCHtWtBKWF+qAkz/U=;
+	s=arc-20240116; t=1782834147; c=relaxed/simple;
+	bh=G7yBa9qRXwqvk5O66eyJS/F0IvVRBRnFUCu+8taoCIs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ufv+aV/6D+T6n3OaDSzmpteMN4guO2DkxdxuAhig5qfAmFGieOvWSc/ymuS/5MNO3mKbiblF5jvcmh4smjqzIHpdQK84db2VxRp0bNjtzGGsvGyHx7/RGgdiaBNOr+zZVh2m6+kFSGUdp+fab1yKz07iZBeijyUisDzGaco7FCo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=W5kuzWJD; arc=none smtp.client-ip=209.85.128.176
+	 Content-Type:Content-Disposition:In-Reply-To; b=Gt1SfAc2ZJ1AENM6V3/V9GPENrcXpRkOEWn3xErWyd+xD/UpjCKiYBkqiklZ8lsIXAkwd9uT6aUCS5FOSgVF/Vl5diPw0fIlULw1/5M8km6cO6D5gDWWpjfHZU0cBWfMBwKxmVCItn2h9QLE/pWsKh403aRimZDz1reJ6WNQ8bI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=jf1e0vbX; arc=none smtp.client-ip=209.85.222.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="W5kuzWJD"
-Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-80814edb536so54542637b3.2
-        for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 08:31:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="jf1e0vbX"
+Received: by mail-qk1-f169.google.com with SMTP id af79cd13be357-92e65e18969so87345285a.1
+        for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 08:42:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1782833460; x=1783438260; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1782834144; x=1783438944; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=vvVAmqyImW7TQjYTHR7q/vQBEUZYJ1tMtKhaki/MPes=;
-        b=W5kuzWJDJHjZrEvR7NLhLKr4vR1LjOrm8JaSr1OXUDxsGp1cNbrN+pFh2T90o0sbvF
-         a0JLUdG9JAoEpVNEDtYBaH8TXKHV/YDlYo3IExBn0tA0wDjOs4E1u0LxuLsVKIH+Z0Mh
-         yN8fUrRVOtJPAdn2hrPaiUyGb4JYi6d9Lnbqikb1us0N4g0lfioiq/gbfqrrjNVyPFrI
-         Oj5gy4IvpTHtIIvJsYfkciMYGa9AKFihzCxez6FFv+Vaf3hCEeWQd49PqsI6SfYY6pPp
-         cdKnGMSYTrInZ/QFmPbuaEFPC8eGNvOCEeEYWGKxvsgfX2UY81bhh8QMLjyw4I+s2Hs6
-         i0sQ==
+        bh=QB3LlP562wM9vhAInyZtqjaYedctMNHlJgLHcqpXNiE=;
+        b=jf1e0vbXN9WHA75z7y2uYxs71+5ddmPHth4etxgt04k/1p5i7sLLhabahl3YdJtTvp
+         rpc+uGW61RRmBWNp8kDuAOd2ZljKbGChcSgOr7iTvO5IPCs9yc3HuuwSzuhXSF33M86i
+         DVaxf0P7Cjh4eZbpElqnurfthpg04+ty0kMBt8XAIKCzHcOp0EYu1IlpbwB5CfpW6QwJ
+         Ovp00MLwt4ucDo/iKwAOVSoQnID0L03RYBC/zp2IdG1DJti4RAkjf82k8S9tawFOne8g
+         1/TfBGX9+nniM2SBdZS8qzOMl2OcOjtBriP5OM1eHHukvyotZm7NVjUZuduid54TYmp3
+         Stxg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782833460; x=1783438260;
+        d=1e100.net; s=20251104; t=1782834144; x=1783438944;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vvVAmqyImW7TQjYTHR7q/vQBEUZYJ1tMtKhaki/MPes=;
-        b=Qp6XzTPJOaixhAC7ji/XikkAbi5FBopxR0J6usOeKXZlIRh7u+4pDbukgWpOH1+r3+
-         bKrU+/jF08E00IIsMqHBkD6AQCLcXwZjsNUs4p5S19aXRi7shjiua8b1x/EndRdCngdX
-         nKpzHdDBdNWrs0xCuR5mDK0Afk/ryB5kcvtTdtwCxHdd1IQkwJlMu9CKTrmaK8WNv+Ic
-         5XSWOjTp91j7g1Vmsmaf8+hi/czCcfqIdAPqCLLLZ0CIvP8+D2flS7addognM/rb97AH
-         OGhTW4lAhi3aunoBMAXtsoQGakWFqNiCm///tORidGDwYJFE6gCzeMAgDq2JMyVSjXNs
-         73YQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqHKYQ0xn7DoQjp+U6KRJB5tIRvWuGG5uB/3jOiQs9fFhzsYZmnXb31c7mndzxICGjcD4faWXk=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyU/hK7tsIRGloClm7E497D5s00BYdPDxUFt6VQfBsCvqb9FL1z
-	IOj8fVhPA0sApMAG3p14uoL3mCqD9AsSxqzP0KJ58N+xriCPva4W7dM+yOjF6p9RuLI=
-X-Gm-Gg: AfdE7clrI1EdH4GHb6mgs1v8Pv49m9j1N+DwUq2aDR99oSLS+TGF0bDWhcA/uWnsXmZ
-	t0cZK1+3FnoOE/zSNM2qey+aqmdwqGSRCFiZch0QkxZg+m9TolDVVxdmh2uDaqFsO0o1jETT7iQ
-	x/1HI81d0kvQm+V0YZSY8RCTTHYA7BikqHG2Ds7hrbHMckMK6WozVruhg8XMJqgeENBpfAJm8JD
-	jI9vrPOh3pt89mb/qRzKn/SvLzGtlrUfN/FY0UlcAGBb679MYulIFan+1Uksv6Sy2snd+7PkyDi
-	TkCtDvyfgaCA8svaja8jVMVsGMyU+hLhy0oOuL2iXBeYXmK0NdAedT8VdzHxKoqDraGDa0o1zve
-	ErJG2SBAKe3afn39qYQXl+081iFx71UbOf+Ij1E594i0GmccWcR3aONLe1GQDj5Whmewcn3SL6w
-	FbvsuP9C4p7QCBEm1hstRTi5hjklunGqzX9KadhCnr67QL6R1aU4yJOwXxDWEDx/ZEixF8
-X-Received: by 2002:a05:690c:6112:b0:80e:bd63:1780 with SMTP id 00721157ae682-810d7eb0bd6mr46000317b3.2.1782833460437;
-        Tue, 30 Jun 2026 08:31:00 -0700 (PDT)
+        bh=QB3LlP562wM9vhAInyZtqjaYedctMNHlJgLHcqpXNiE=;
+        b=hQDzya3hWONOoDINZ9V/Y8uT83zCno0Vt6VKu7yN1lfnpaq8gzSAWURPwFLlsZIq7L
+         f/T5LWnt1Nj1kNPrG5TYVsb2rejO9e1Nqa3hl+E1wZ60OYbuQs8N75LWVfhP4d4zUl0V
+         H3vsqEHESaR39JFBlzgIkkqT9A2fNR7TtcBaG/CHi6D5cQnfERx2T+XLYgkppJz3mL15
+         e24zK2HITVPMmbCATiJK1drKWsggmTvmZTjBfxE7M8imu1eDuVfZDGjL+Tw+l2qG+IHm
+         xA63VEA8lxbTe3Roq/DOyRfnC7+DTzXL5iu/vPWWNhHf2DxNtkuZVf2oeGs3ulYtGVnU
+         kMsQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8S/z1y0QGb7oZMukXmAzPeHugyJxKQ22mL5CoJWeAmd9QyPoNIDSCTvRF1keKdYoEIVrU0OCg=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyOoGDNmzxIhrta33P7vvHWU32Xm8+Ojs1jOtT6HHFnL6UcPqTF
+	OhkD23tWkv0UzRQWi71NoDBiHQmpQ01fjcjchZ1nstzMeU0GFyIvpm5RKfXNjh7N0Cc=
+X-Gm-Gg: AfdE7clY2hVvCPnBDL2JzvfXaU93ixMTdo3oixtCZ8CZRGEZncBcjxqaaRatgyDVly6
+	cY0zql759CPMJI9j8Nw+KtXwV6Cx0HXewuAPXqzvUxsoypazhW0MeYXuV2x1nn4MrJBdkhDKr1R
+	7HBwouQyrH3EDV04vDzNM93jxqqkKiDDrlfDA+9e1NErGzZKiW6EtNFqRDk+vPgmZZMS3Pd7/vA
+	Y1wVYtQW+F9PAaCOecHMly/+mt9sWkAGrxdfCgBkQCApkErFvNcClMzj2dWdYTK+GLRKsCufvGx
+	ZoMJIw7UTnlM4cqqQCCfzr3Nk+Ybwra7zDZOWW6o6ZQYnU4HOEHRUtUxs33phgVrDYoywLTusOM
+	adApCAKJUTOg3XRE/YsxTvSQ3vmKJiY6kf7egWqEtBu8wf6zEHY7FZ7EdTwIof2FkBrKptZnQHm
+	aIKZbuDZI4YDbAaxd3miTJWDUITl7r+BzrcNgBij4EttYvu8RXk2Csa3cFf5ybHqc4NkEA
+X-Received: by 2002:a05:620a:271d:b0:91e:712d:f79d with SMTP id af79cd13be357-92e6984d3d1mr270456885a.40.1782834143842;
+        Tue, 30 Jun 2026 08:42:23 -0700 (PDT)
 Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8f1a783d9d7sm25574106d6.41.2026.06.30.08.30.58
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-92e6234dc50sm263249085a.39.2026.06.30.08.42.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 Jun 2026 08:30:59 -0700 (PDT)
-Date: Tue, 30 Jun 2026 11:30:54 -0400
+        Tue, 30 Jun 2026 08:42:23 -0700 (PDT)
+Date: Tue, 30 Jun 2026 11:42:18 -0400
 From: Gregory Price <gourry@gourry.net>
 To: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>,
@@ -115,11 +115,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	damon@lists.linux.dev, Pedro Falcato <pfalcato@suse.de>,
 	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>,
 	Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 07/30] mm/rmap: elide unnecessary static inline's in
- interval_tree.c
-Message-ID: <akPhLlv66ZqQ-jrw@gourry-fedora-PF4VCD3F>
+Subject: Re: [PATCH 08/30] mm/rmap: rename vma_interval_tree_*() to
+ mapping_interval_tree_*()
+Message-ID: <akPj2snngOp5nOYq@gourry-fedora-PF4VCD3F>
 References: <cover.1782735110.git.ljs@kernel.org>
- <ed5fd5358382217a92f0a6afddcfaa030c933055.1782735110.git.ljs@kernel.org>
+ <f95462457025370efd047b9dfb039e76bbddf58b.1782735110.git.ljs@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -128,18 +128,27 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ed5fd5358382217a92f0a6afddcfaa030c933055.1782735110.git.ljs@kernel.org>
+In-Reply-To: <f95462457025370efd047b9dfb039e76bbddf58b.1782735110.git.ljs@kernel.org>
 
-On Mon, Jun 29, 2026 at 01:23:18PM +0100, Lorenzo Stoakes wrote:
-> It's not necessary to declare these functions static inline as they are
-> contained within a single compilation unit.
+On Mon, Jun 29, 2026 at 01:23:19PM +0100, Lorenzo Stoakes wrote:
+> The family of vma_interval_tree_() functions manipulate the
+> address_space (which, of course, is generally referred to as 'mapping')
+> reverse mapping, but are named the 'VMA' interval tree.
 > 
-> This makes the anonymous interval tree code consistent with the newly
-> updated file-backed interval tree code.
+> VMAs may be mapped by an anon_vma, an address_space, or both. Therefore
+> calling the mapping interval tree a 'VMA' interval tree is rather
+> confusing.
+> 
+> This is also inconsistent with the anon_vma_interval_tree_*() functions
+> which explicitly reference the rmap object to which they pertain.
+> 
+> Rename the vma_interval_tree_*() functions to mapping_interval_tree_*() to
+> correct this.
 > 
 > No functional change intended.
 > 
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
-Reviewed-by: Gregory Price <gourry@gourry.net>
+obligatory "naming is hard", this patch helps, thank you.
 
+Reviewed-by: Gregory Price <gourry@gourry.net>
