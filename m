@@ -1,148 +1,225 @@
-Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB131E260C
-	for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 22:14:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB1F733A9FF
+	for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 22:49:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782857685; cv=none; b=G4OQ7QrgBBVzPQYS7uiu+5n3xCLU3aeV2Ae7XkqcT+ap8vm00KLTcwla9ln5NXgHGx30wUYAToF1D8RLWx9o9GHIYSyWlaHNX8BbtIQcd+eGmZavwU+eeFpUG/vmwpIng1GrKpZGHSpik5qaUkoDZhe70PXirASgkHVHxwKVbuk=
+	t=1782859764; cv=none; b=PnqRskMheD4wbw9Cj4bs/7S4E2Dv6xk4PgCs9+NfAzRmonJDeCrGLb8FA1QGrhuJjR0hRy+Po1MBllbJNZYKVK1gt5v+yNkdFKWL2V5/BGMcIbzNTiWfQUUGFGT3GsbB4wbigVaSCr2MKyQpoRFOITOzwd4fwmAHeIIA5SJ+BR8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782857685; c=relaxed/simple;
-	bh=OHho8xisLBkXPsux52lTSAnNEXH9FZ3N849yTj8opFU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=p5yJu9yYbdUHhWrm2NgBDUdicZSuZQzsz9nQuFezdSTkOrD12dY9xYGtOvDy1dDspPgJZQ+UJzRD6o9M1oLz3NxzNU9rhPWcJKgpESfe/nDHjtbowH4HZtSnZQ5vQDpF50oYVKLWksW5itsGkOoxc4WLq9tlr+go4D+XqIJYcb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=LXd5yLrm; arc=none smtp.client-ip=209.85.222.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1782859764; c=relaxed/simple;
+	bh=x+twdIo50q5ruYrtRoxqoi6Wz4inSHPDLfyzNBN+8Bs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FWjHbsPaC38H6LslpTnDDIaykz6apCf/hF6BoPeVbuD+JxK0zkaeaExp0mnnI1UsTfUYB9PbV6A7LoCxfLUZpMt9RN/85U/2JauGnWxPkVVRYfoeeRfbpqoR+v0eEr0AhLZqgHJeRExgsDHRzYdlxuqfYbEIBZCytJ/OYZCavcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gSzqvdth; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="LXd5yLrm"
-Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-92e67555e24so106917685a.3
-        for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 15:14:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1782857681; x=1783462481; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Zvvq7XwN+0vU39EaqWqw5+H08MVeyEUcwD3F1pdYD7Y=;
-        b=LXd5yLrmqWS/QgFsTPqZ6xaUiuThvJ4K+S5LICjIe/VGYZxh4kHo6vL+3Yrrwps08b
-         d9cl5d6x2BjlScbRQgQMfFDAZLTPTF8M6u+17N3ovYuzhHDe+q03NZGaeRRPALMrhfNB
-         xIsex+SOUAWYJ8Yje3yzM0VnBsFvQuSIuGLoIHfMy1YC+cVGEuRQR1AyNgSFuqNnzY5f
-         GZm3EG5L53r/rTum5+fn9om7xjVbCWVmuQtkvgmelkENEuL/2+yxg5PK9mR7Rqgfl7Ny
-         m1OtyG2QOiDeeJnfWqXCy5xM6dOOp0xvLO/7e0ew+L2G0d2orLcodNbnp6nsbZvISyyc
-         rSZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782857681; x=1783462481;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Zvvq7XwN+0vU39EaqWqw5+H08MVeyEUcwD3F1pdYD7Y=;
-        b=busQu/QhTLf01WcLYqod6HoYho3qTALioUF62jYU7oTxoLdVWY08qlULJGeALk10RC
-         PzZROPfpTPe3qkei+uwGaw8cjmAgC7uRzP1fuU1kHSZinILl9Ak5WUsSFwwTPB7o5rSj
-         qWupXxGNnd1M3T2W1JcWKFp8f4hhR+gl17ZnVYxDrLCSUeAVCFCJVlHesOg2GRtQQk9x
-         bgD286DQ+sMJbqZRBFGgaGK7Yjv+eS5Ue9azRXCNX1u2rt+uwOMt2DuTYZWjR3YFRg4S
-         Q7iEsTgTYlpSOvWS2yVyCSM4FDhSv+6kFFZe9O22U+X/FKLdauljyu9biGdGNu+rMm/U
-         AmzQ==
-X-Gm-Message-State: AOJu0YwHFLoipTf6SRNAmloMsPwDZoiErn4nPd6XFjl9gCW+C9hXPxoN
-	L/z/pcrykaJiBOtWo9W3U9g+zLI98+dtZmLou7ndM8ex0zXqdvQ4+7QkMFveucH+0kU=
-X-Gm-Gg: AfdE7ckD50oGdW+RRP6LEE2bJBe10q/L9vXeHFTzENSmSIwW90Hac5WRuHkXBN5Wxxt
-	ONalClIAR2hGXkUR+L1pMMwBrJURhg8Fv21M94rqAsK590UoWDzQXmlExeHb9GI8T5UXirBHAhP
-	2YmD7+GMIA0ih9NrP2vxouRHAif4dO+R8olfyQUlSN8MfF1eqEPDPHuhQ23LiqLL8ZLFrJLvU32
-	4QD+6z/vTcDSHx4KTCH6uiQQCYD7K2bli7i48jhlCElDkIbvYlYfdtXKTjXkLcbbB58reO+7wEM
-	8txSAXs/Z25tuN2GacJ/lqvRVd1ndl0aVH+A/Nlm98Wo+3Xp/ZTddAZgrEWpxIQnNh5BWf7XI49
-	5E/fLYn7vYgNBhepfXyBCad1YoyxE7Itj+YE7hXfirUswu0HHntcklfYQaiNnjDOlALjQsOpL4K
-	1mavWJA9d9MIkttTSTcHneNC3LUmOt41Aq3dTVTt2qax99vR8L0k2O1XIL6+d3MMl9cdQ3ugC+i
-	pk+Qzw=
-X-Received: by 2002:a05:620a:6cc6:b0:915:b852:4361 with SMTP id af79cd13be357-92e624e3088mr975087285a.20.1782857681333;
-        Tue, 30 Jun 2026 15:14:41 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-92e6213b953sm346810685a.2.2026.06.30.15.14.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 Jun 2026 15:14:40 -0700 (PDT)
-Date: Tue, 30 Jun 2026 18:14:30 -0400
-From: Gregory Price <gourry@gourry.net>
-To: linux-mm@kvack.org
-Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-cxl@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-kselftest@vger.kernel.org, kernel-team@meta.com,
-	david@kernel.org, osalvador@suse.de, gregkh@linuxfoundation.org,
-	rafael@kernel.org, dakr@kernel.org, djbw@kernel.org,
-	vishal.l.verma@intel.com, dave.jiang@intel.com,
-	alison.schofield@intel.com, akpm@linux-foundation.org,
-	ljs@kernel.org, liam@infradead.org, vbabka@kernel.org,
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
-	shuah@kernel.org, iweiny@kernel.org,
-	Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com,
-	Hannes Reinecke <hare@suse.de>
-Subject: Re: [PATCH v6 09/10] dax/kmem: add sysfs interface for atomic
- whole-device hotplug
-Message-ID: <akQ_xlJtXNgnGUdf@gourry-fedora-PF4VCD3F>
-References: <20260630211842.2252800-1-gourry@gourry.net>
- <20260630211842.2252800-10-gourry@gourry.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gSzqvdth"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1782859763; x=1814395763;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=x+twdIo50q5ruYrtRoxqoi6Wz4inSHPDLfyzNBN+8Bs=;
+  b=gSzqvdthMe5YXGgWOmv7OL/cRQAx+WRUSNMRENi1m1MH4u8goV0R2Q41
+   1ndoujgCg66qtynza4BUR4+xNdJ9mZuCvTJbkuhefsXC8n5RYjUf5M0jF
+   RcHoEQXXXgqTTOtukcIl8bpayL3AEXx8H5yhrIc+iTsHqW6SsOwdm8xeH
+   1wKIqHYSpS7euKAnhiluVuGLe7nkCjLG0YXEWNh39lihxUrz61oqDQuqM
+   tzrMUClQra3g8qszRL4Iz6JriONRpblgk3HziSbN2rDT+6lI5UwaIhUYF
+   Ts+foT0cIJH3cOWp6pWTX0cxi9XuBcsSt8rK+16Xz9UsD5EmKe09bnYaz
+   g==;
+X-CSE-ConnectionGUID: /faUrMtWTRWlMAlrdzaogw==
+X-CSE-MsgGUID: 6oLG3uH2RAKekCagE5eFEQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11833"; a="101125806"
+X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
+   d="scan'208";a="101125806"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 15:49:19 -0700
+X-CSE-ConnectionGUID: MotLqO2WSKS+BXh8YhYwAA==
+X-CSE-MsgGUID: /N6907OAQLmEPdJ+SFKhXA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
+   d="scan'208";a="255971383"
+Received: from vverma7-desk1.amr.corp.intel.com (HELO [10.125.110.30]) ([10.125.110.30])
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 15:49:18 -0700
+Message-ID: <cac25102-258c-4081-b32f-4f33181f8c65@intel.com>
+Date: Tue, 30 Jun 2026 15:49:16 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="Ha7M+e+kLoFbO4pS"
-Content-Disposition: inline
-In-Reply-To: <20260630211842.2252800-10-gourry@gourry.net>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v11 16/31] cxl/extent: Validate DC extent partition
+To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
+ Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>,
+ Alison Schofield <alison.schofield@intel.com>, John Groves
+ <John@Groves.net>, Gregory Price <gourry@gourry.net>,
+ Anisa Su <anisa.su@samsung.com>
+References: <20260625112638.550691-1-anisa.su@samsung.com>
+ <20260625112638.550691-17-anisa.su@samsung.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260625112638.550691-17-anisa.su@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 
---Ha7M+e+kLoFbO4pS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Tue, Jun 30, 2026 at 05:18:41PM -0400, Gregory Price wrote:
-> There is no atomic mechanism to offline and remove an entire
-> multi-block DAX kmem device.  This is presently done in two steps:
+On 6/25/26 4:04 AM, Anisa Su wrote:
+> From: Ira Weiny <iweiny@kernel.org>
+> 
+> Extend cxl_validate_extent() — the per-extent check of the add pipeline
+> to check partition membership.
+> 
+> Resolves an extent's DPA to its containing DC partition.  Sharability is
+> a property of the partition (part->shareable), taken from its CDAT DSMAS
+> entry.
+> 
+> An extent from a sharable partition must carry a non-null tag, since hosts
+> sharing the allocation key on that tag.  A null tag there is a device
+> firmware bug; reject the extent.
+> 
+> shared_extn_seq validation is checked in cxl_check_group_seq() once the
+> whole tag group is collected.
+> 
+> Based on patches by John Groves.
+> 
+> Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> Signed-off-by: John Groves <John@Groves.net>
+> Signed-off-by: Anisa Su <anisa.su@samsung.com>
 
-... snip snip snip ...
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-Sashiko pointed out a false-positive, but adding a fixup patch
-here that adds additional consistency.
+> 
+> ---
+> Changes:
+> 1. cxl_extent_dc_partition() declared static — it is only called
+>  from extent.c at this point.  A subsequent commit ("cxl/mem: Enforce
+>  tag-group semantics") drops static and adds the declaration to core.h
+>  when mbox.c starts calling it.
+> 2. In cxl_validate_extent(), declare the local uuid as a struct
+>  (uuid_t uuid) and fill it via import_uuid(&uuid, extent->uuid) instead
+>  of casting (uuid_t *)extent->uuid.
+> ---
+>  drivers/cxl/core/extent.c | 85 +++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 82 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
+> index 6e67e787d14d..2e770c5279c2 100644
+> --- a/drivers/cxl/core/extent.c
+> +++ b/drivers/cxl/core/extent.c
+> @@ -76,11 +76,67 @@ alloc_tag_group(struct cxl_dax_region *cxlr_dax, uuid_t *uuid)
+>  	return no_free_ptr(group);
+>  }
+>  
+> +/*
+> + * Find the DC (Dynamic Capacity) partition that fully contains @ext_range,
+> + * or NULL if the extent falls outside every DC partition on this memdev.
+> + * The returned pointer is owned by mds->cxlds.part[] and lives for the
+> + * lifetime of the memdev.
+> + */
+> +static const struct cxl_dpa_partition *
+> +cxl_extent_dc_partition(struct cxl_memdev_state *mds,
+> +			struct cxl_extent *extent,
+> +			struct range *ext_range)
+> +{
+> +	struct cxl_dev_state *cxlds = &mds->cxlds;
+> +	struct device *dev = mds->cxlds.dev;
+> +
+> +	/*
+> +	 * A device-side error could cause end < start, which range_contains()
+> +	 * would treat as contained in any partition.
+> +	 */
+> +	if (ext_range->end < ext_range->start) {
+> +		dev_err_ratelimited(dev,
+> +				    "DC extent DPA %pra (%pU) has invalid length (firmware bug)\n",
+> +				    ext_range, extent->uuid);
+> +		return NULL;
+> +	}
+> +
+> +	for (int i = 0; i < cxlds->nr_partitions; i++) {
+> +		struct cxl_dpa_partition *part = &cxlds->part[i];
+> +		struct range partition_range = {
+> +			.start = part->res.start,
+> +			.end = part->res.end,
+> +		};
+> +
+> +		if (part->mode != CXL_PARTMODE_DYNAMIC_RAM_1)
+> +			continue;
+> +
+> +		if (range_contains(&partition_range, ext_range)) {
+> +			dev_dbg(dev, "DC extent DPA %pra (DCR:%pra)(%pU)\n",
+> +				ext_range, &partition_range, extent->uuid);
+> +			return part;
+> +		}
+> +	}
+> +
+> +	dev_err_ratelimited(dev,
+> +			    "DC extent DPA %pra (%pU) is not in a valid DC partition\n",
+> +			    ext_range, extent->uuid);
+> +	return NULL;
+> +}
+> +
+>  /*
+>   * Stage 1 of the add pipeline: pure, no allocation.  Resolve the extent
+> - * to its region/endpoint decoder and ext_range, and verify the range
+> - * fits in the resolved endpoint decoder's DPA resource.  Further
+> - * per-extent invariants layer into this function in subsequent commits.
+> + * to its region/endpoint decoder and ext_range, and enforce every
+> + * per-extent invariant the device must satisfy:
+> + *
+> + *   - DPA falls inside a Dynamic Capacity partition (cxl_extent_dc_partition).
+> + *   - Sharability is a property of the partition (part->shareable), not of
+> + *     the shared_extn_seq value: a sharable-partition extent must carry a
+> + *     non-null tag, and a non-sharable-partition extent must leave
+> + *     shared_extn_seq reserved (zero).  The dense 0..n-1 numbering within a
+> + *     sharable tag group is validated separately (cxl_check_group_seq()).
+> + *   - DPA resolves to an endpoint decoder attached to a region.
+> + *   - The extent's range is fully contained in that ED's DPA resource.
+>   *
+>   * Caller must hold cxl_rwsem.region for read (cxl_dpa_to_region()).
+>   * On success, @out_cxled / @out_cxlr_dax / @out_ext_range carry the
+> @@ -94,6 +150,8 @@ static int cxl_validate_extent(struct cxl_memdev_state *mds,
+>  {
+>  	u64 start_dpa = le64_to_cpu(extent->start_dpa);
+>  	struct cxl_memdev *cxlmd = mds->cxlds.cxlmd;
+> +	struct device *dev = mds->cxlds.dev;
+> +	const struct cxl_dpa_partition *part;
+>  	struct cxl_endpoint_decoder *cxled;
+>  	struct cxl_region *cxlr;
+>  	struct range ext_range = (struct range) {
+> @@ -101,6 +159,27 @@ static int cxl_validate_extent(struct cxl_memdev_state *mds,
+>  		.end = start_dpa + le64_to_cpu(extent->length) - 1,
+>  	};
+>  	struct range ed_range;
+> +	uuid_t uuid;
+> +
+> +	import_uuid(&uuid, extent->uuid);
+> +
+> +	part = cxl_extent_dc_partition(mds, extent, &ext_range);
+> +	if (!part)
+> +		return -ENXIO;
+> +
+> +	if (part->shareable) {
+> +		if (uuid_is_null(&uuid)) {
+> +			dev_err_ratelimited(dev,
+> +				"DC extent DPA %pra: sharable-partition extent has null tag (firmware bug)\n",
+> +				&ext_range);
+> +			return -ENXIO;
+> +		}
+> +	} else if (le16_to_cpu(extent->shared_extn_seq)) {
+> +		dev_err_ratelimited(dev,
+> +			"DC extent DPA %pra (%pU): non-sharable partition but shared_extn_seq=%u (firmware bug)\n",
+> +			&ext_range, &uuid, le16_to_cpu(extent->shared_extn_seq));
+> +		return -ENXIO;
+> +	}
+>  
+>  	cxlr = cxl_dpa_to_region(cxlmd, start_dpa, &cxled);
+>  	if (!cxlr || !cxlr->cxlr_dax)
 
-On total failure - release all resources.  This makes the sysfs
-interface consistent with the probe failure path.
-
-Just attaching a fixup here, since technically it's not a bug,
-could fold in separately
-
-~Gregory
-
---Ha7M+e+kLoFbO4pS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment;
-	filename=0001-fixup-dax-kmem-add-sysfs-interface-for-atomic-whole-.patch
-
-From e341860c83fd5d5e8549d8adbf71a484c8990c5f Mon Sep 17 00:00:00 2001
-From: Gregory Price <gourry@gourry.net>
-Date: Tue, 30 Jun 2026 14:49:06 -0700
-Subject: [PATCH] fixup! dax/kmem: add sysfs interface for atomic whole-device
- hotplug
-
----
- drivers/dax/kmem.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 19effe0da3dc..f597d8a99c1f 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -380,8 +380,11 @@ static ssize_t state_store(struct device *dev, struct device_attribute *attr,
- 		return rc;
- 
- 	rc = dax_kmem_do_hotplug(dev_dax, data, online_type);
--	if (rc < 0)
-+	if (rc < 0) {
-+		/* Total failure, drop the reservations we took. */
-+		dax_kmem_cleanup_resources(dev_dax, data);
- 		return rc;
-+	}
- 
- 	data->state = online_type;
- 	return len;
--- 
-2.53.0-Meta
-
-
---Ha7M+e+kLoFbO4pS--
