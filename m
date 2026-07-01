@@ -1,166 +1,121 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D88437FF7B
-	for <nvdimm@lists.linux.dev>; Wed,  1 Jul 2026 06:13:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C378F3A5E90
+	for <nvdimm@lists.linux.dev>; Wed,  1 Jul 2026 06:23:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782886412; cv=none; b=Xj8vFJYc1hOGckzp3m6V6bLOAsHNyT6g/ncfKSYyspB2lzPqrpu7THuHxDX2JRv6pN7upy4U+WmZ99f9zp6YMPEtfFalpNFu6dnU0osr7RJedTALypj2MOaNuqREkcMNOA1hKzChbGnMBG6TUTK88HXg+uM56KI4gurn9bTJJzk=
+	t=1782887040; cv=none; b=TC13YvjwPr4HGSmyfflRezzu8MX9F9T9KueNW+9OGwD91HOZ7VEEfQNfvFO1+9SkWouuYrK6dHzmtF8+zosKauNh4NJyTAil28rDLAASrOeWsArOa01mOj/X/HN5m0+KC+FJXCapAYpBX0MADmcEfEhxzs3KsfZsoB21O8nNq4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782886412; c=relaxed/simple;
-	bh=5IugnX6ei1qX95xqi+Dab5Sz2YMHXwt1aK+XcCyrIao=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=aRMWh3OpAYCDaQsKVA3GuZirqidCSWnDy7O77vHKv+e9okv2TaKA+0nkLq9R5/nsbSHZ7S7TS2EXR/YEO1L1yRMjcDM7bTCxqRC2U6ERMK1zEFsKgSfEu19FdXBoBIDmp9EB95pv9Ne3BxVAxqeA3dpxFF77ESYcfpI1sDv0abA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=nVkPquKq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=IgLbW7hT; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=nVkPquKq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=IgLbW7hT; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1782887040; c=relaxed/simple;
+	bh=hP4nlPGIrqeNY9wpwr+srgGK8bvJUTL6djQnXyZwy5c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HOwaof1xwNA6IOEoc8JcIfHOTOULdUpd1dzKNSmMzxP5UgrMp57gddu6hhv+ilHT5Fglzn5dtM6iyJ1wnLcDd+QxPbseEEKGN2Yyi4tNIIVEs6jSKCm1N75fuFZE56C3jR1lk2uo27OQQyQZWwJRIyRsXhykXdc45mU83dPArgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Xy8kEGHj; arc=none smtp.client-ip=209.85.219.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="nVkPquKq";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="IgLbW7hT";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="nVkPquKq";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="IgLbW7hT"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 386CC75FA2;
-	Wed,  1 Jul 2026 06:13:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782886409; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KYQUm/ch17JGjQTwSu+BBLhvek6prevgXa6ce8KlIcw=;
-	b=nVkPquKqfnuglwRA64kO/65FlsWtnZVcUr3tQjW84mZEt5kIK1Id+IAvCnd8COFWAMIdCN
-	A+LLI/gXRqAumQ6m6nZvELRBDLiulChfZexd6Z8RaTTDRKPx8SMbetsUAzw04D6Lu6YrUo
-	3Tt20D3L669qjQts1PWJhNHngCyL2zI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782886409;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KYQUm/ch17JGjQTwSu+BBLhvek6prevgXa6ce8KlIcw=;
-	b=IgLbW7hT3Aoo3CqPjJU1FBDZYQCfBqX2sBw4KqeELLYrzoJwo6zrbQBzA6udP+eNK09Hw4
-	2Irk1zJbX7sxlFAg==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782886409; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KYQUm/ch17JGjQTwSu+BBLhvek6prevgXa6ce8KlIcw=;
-	b=nVkPquKqfnuglwRA64kO/65FlsWtnZVcUr3tQjW84mZEt5kIK1Id+IAvCnd8COFWAMIdCN
-	A+LLI/gXRqAumQ6m6nZvELRBDLiulChfZexd6Z8RaTTDRKPx8SMbetsUAzw04D6Lu6YrUo
-	3Tt20D3L669qjQts1PWJhNHngCyL2zI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782886409;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KYQUm/ch17JGjQTwSu+BBLhvek6prevgXa6ce8KlIcw=;
-	b=IgLbW7hT3Aoo3CqPjJU1FBDZYQCfBqX2sBw4KqeELLYrzoJwo6zrbQBzA6udP+eNK09Hw4
-	2Irk1zJbX7sxlFAg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 88874779AA;
-	Wed,  1 Jul 2026 06:13:28 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 9virHwiwRGoNTQAAD6G6ig
-	(envelope-from <hare@suse.de>); Wed, 01 Jul 2026 06:13:28 +0000
-Message-ID: <abde41f0-7d40-42ba-a232-cc0538cd0e4b@suse.de>
-Date: Wed, 1 Jul 2026 08:13:28 +0200
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Xy8kEGHj"
+Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-8eff5ce3b95so3314286d6.3
+        for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 23:23:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1782887038; x=1783491838; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=5xWJ7lGSS4cy1ExwRI73Ip42ktEi6AnmleUk+CzcRsY=;
+        b=Xy8kEGHjcMQarQz/Ebqn9z5Dcz+OzRRd/bum7H4PK39WBfljLn7O0Jr9aZA+gkVzHO
+         BWBkPl8zFAhJzFeJRNKq7w0VkoSDf6BNLW8iyNE6MiolgnLgXxb+2K2ik+9aABqLx98A
+         ZSa79sncwYYiBes+VrIzcQL6Svmqf8ZGCuW/yVptfNLTiW/usH1YKnEHrLbMI0v6RbeC
+         UB2Z2IauA4mF+/rHAYSsd0jQlDmWZIpygDJ4gDtTMT+pe4gcHsXoSAOvzQxva5TjNkO2
+         xf47l0Ji//mpGVfe3PJmFt/1CtEORb0ITe+DUzv3HOG2S/DAsehd2PexTub6pE28XpO0
+         Hk6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782887038; x=1783491838;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=5xWJ7lGSS4cy1ExwRI73Ip42ktEi6AnmleUk+CzcRsY=;
+        b=sCK7Tu6eRFCAUCMoLQnOTbgnxkufuyIT5QuyZN8GrMkLqYrgrXwhJakBUncijz6BBl
+         EvrfF+icincYITEhnDpo3wnnzte0xR4ZPAxS7lUZY+KV1NnmyzLRHDZx+eot7bwHwVsx
+         gXqUUQ44qpvXQFQ1gs4JqsfwtZYtYQ1VOi9WCMFqHP9czhTymW3ctNqwSGL7LNOv24Cx
+         feqoAFBJBwX3s33AJFFE2C4yxxAQbExQgeoG5tDJG7v349HTmP7o0Y+0j4vgV4iXhYTG
+         ddPPPnu6uyQymfuYGjDVCQAim2P8H6Ct0wFEjB8KD0RtcqZjNS1MoLGXfvvxPAv3bTFj
+         JWzQ==
+X-Forwarded-Encrypted: i=1; AHgh+RrsZ0OSEvHLPIfVyc76Il3jmmYm0SGLwMSDyU3yT9S28HydkD4Ud1Q1yr2/AAUx6TCzKJ+/5CU=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx4+l58LzCS4nM9PRpt8rHsmzr02CvNuKCDPJrYvTl5y1dUeBO/
+	PnArEWlpH30CISLGHewy8x9jnrX7ChXOq27jSpbO985GKtemNEpcmV+8YnZKnYokCGo=
+X-Gm-Gg: AfdE7cnEtUmG6F3Qv3qBfieh+hAUUbxLmR2eK428xDreNGHSohPq/2NmDkgUKrB46g+
+	p0nyuY8RB7dfVEuZtnWVWpGsUT07hPw2jA7XQssonyp1GtnaBHyDO8uzjSHDEOzsPTggJGpbP0I
+	DnItlisZEYVNHUO7mY+ZDeJOdKi+ahmdC6/z4fywM6lmV1UCpglogD7biiTJevefWLwNGSaN6SI
+	jHc4Ff9u20EyiTRo/nc2i9vqKtuyKfpy3huuEGmY6Ws6G2MkQCP6Pqsr7TMk6oltnhdASb0ekXp
+	03QpRA51gmJw78VV7KsIiy0ze7bH4KWSXcUeauzzJKwjZk8BjTugPmTydEO6M0vcsDyHGNASsOy
+	zfABWr1a4B24duRPbUQiNMSEzh2dbsF4rUD5sF9dCDSXbb6pftCp2hOSDpbSimU0XPX1ifLJnd9
+	JFLqzpqwWTFlVN+SI2Lj4zbnTVec1K/yUSZRrfA3QkTrf4WvnDeuo1kcMrS0+EA7wHN2hH
+X-Received: by 2002:a05:6214:2dca:b0:8e4:d2ba:d677 with SMTP id 6a1803df08f44-8f3c7e708demr3649096d6.29.1782887037749;
+        Tue, 30 Jun 2026 23:23:57 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8f361ba3efdsm12323456d6.39.2026.06.30.23.23.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 30 Jun 2026 23:23:57 -0700 (PDT)
+Date: Wed, 1 Jul 2026 02:23:52 -0400
+From: Gregory Price <gourry@gourry.net>
+To: Hannes Reinecke <hare@suse.de>
+Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kselftest@vger.kernel.org,
+	kernel-team@meta.com, david@kernel.org, osalvador@suse.de,
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
+	djbw@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
+	alison.schofield@intel.com, akpm@linux-foundation.org,
+	ljs@kernel.org, liam@infradead.org, vbabka@kernel.org,
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+	shuah@kernel.org, iweiny@kernel.org,
+	Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com
+Subject: Re: [PATCH v6 09/10] dax/kmem: add sysfs interface for atomic
+ whole-device hotplug
+Message-ID: <akSyeHnfcDmxnCSz@gourry-fedora-PF4VCD3F>
+References: <20260630211842.2252800-1-gourry@gourry.net>
+ <20260630211842.2252800-10-gourry@gourry.net>
+ <akQ_xlJtXNgnGUdf@gourry-fedora-PF4VCD3F>
+ <abde41f0-7d40-42ba-a232-cc0538cd0e4b@suse.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 09/10] dax/kmem: add sysfs interface for atomic
- whole-device hotplug
-To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
-Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
- linux-cxl@vger.kernel.org, driver-core@lists.linux.dev,
- linux-kselftest@vger.kernel.org, kernel-team@meta.com, david@kernel.org,
- osalvador@suse.de, gregkh@linuxfoundation.org, rafael@kernel.org,
- dakr@kernel.org, djbw@kernel.org, vishal.l.verma@intel.com,
- dave.jiang@intel.com, alison.schofield@intel.com, akpm@linux-foundation.org,
- ljs@kernel.org, liam@infradead.org, vbabka@kernel.org, rppt@kernel.org,
- surenb@google.com, mhocko@suse.com, shuah@kernel.org, iweiny@kernel.org,
- Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com
-References: <20260630211842.2252800-1-gourry@gourry.net>
- <20260630211842.2252800-10-gourry@gourry.net>
- <akQ_xlJtXNgnGUdf@gourry-fedora-PF4VCD3F>
-Content-Language: en-US
-From: Hannes Reinecke <hare@suse.de>
-In-Reply-To: <akQ_xlJtXNgnGUdf@gourry-fedora-PF4VCD3F>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[28];
-	FROM_HAS_DN(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	R_RATELIMIT(0.00)[to_ip_from(RL7dfuuh4jrqtijtc3c3mfetss)];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid]
-X-Spam-Level: 
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <abde41f0-7d40-42ba-a232-cc0538cd0e4b@suse.de>
 
-On 7/1/26 12:14 AM, Gregory Price wrote:
-> On Tue, Jun 30, 2026 at 05:18:41PM -0400, Gregory Price wrote:
->> There is no atomic mechanism to offline and remove an entire
->> multi-block DAX kmem device.  This is presently done in two steps:
+On Wed, Jul 01, 2026 at 08:13:28AM +0200, Hannes Reinecke wrote:
+> On 7/1/26 12:14 AM, Gregory Price wrote:
+> > On Tue, Jun 30, 2026 at 05:18:41PM -0400, Gregory Price wrote:
+> > > There is no atomic mechanism to offline and remove an entire
+> > > multi-block DAX kmem device.  This is presently done in two steps:
+> > 
+> > ... snip snip snip ...
+> > 
+> > Sashiko pointed out a false-positive, but adding a fixup patch
+> > here that adds additional consistency.
+> > 
+> > On total failure - release all resources.  This makes the sysfs
+> > interface consistent with the probe failure path.
+> > 
 > 
-> ... snip snip snip ...
-> 
-> Sashiko pointed out a false-positive, but adding a fixup patch
-> here that adds additional consistency.
-> 
-> On total failure - release all resources.  This makes the sysfs
-> interface consistent with the probe failure path.
-> 
+> Speaking of which ...
+> With this patch we now have _two_ interfaces to do the same thing.
+> And both will be generating uevents.
+> Which is far from ideal (one could easily envision _conflicting_
+> udev rules, one set doing an 'online' on the old interface,
+> and another set doing an 'offline' on the new interface...)
+> Is there a way to not sending uevents for the old interface
+> or to make it configurable?
 
-Speaking of which ...
-With this patch we now have _two_ interfaces to do the same thing.
-And both will be generating uevents.
-Which is far from ideal (one could easily envision _conflicting_
-udev rules, one set doing an 'online' on the old interface,
-and another set doing an 'offline' on the new interface...)
-Is there a way to not sending uevents for the old interface
-or to make it configurable?
-The old interface had the nasty side effect of generating
-_tons_ of uevents during booting, and on larger machines we
-even had seen udev acting as a fork-bomb during booting,
-taking down the entire machine (we had to restrict udev
-to 512 threads max to avoid that from happening).
-So if we could disable uevents for the old interface
-things would be _so_ much easier ...
+We do not allow "offline" in the new interface.
 
-Cheers,
+That fixes the entire issue - the blocks are gone, nothing to poke.
 
-Hannes
--- 
-Dr. Hannes Reinecke                  Kernel Storage Architect
-hare@suse.de                                +49 911 74053 688
-SUSE Software Solutions GmbH, Frankenstr. 146, 90461 Nürnberg
-HRB 36809 (AG Nürnberg), GF: I. Totev, A. McDonald, W. Knoblich
+~Gregory
