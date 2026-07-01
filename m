@@ -1,121 +1,115 @@
-Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C378F3A5E90
-	for <nvdimm@lists.linux.dev>; Wed,  1 Jul 2026 06:23:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7ACD38656D;
+	Wed,  1 Jul 2026 08:30:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782887040; cv=none; b=TC13YvjwPr4HGSmyfflRezzu8MX9F9T9KueNW+9OGwD91HOZ7VEEfQNfvFO1+9SkWouuYrK6dHzmtF8+zosKauNh4NJyTAil28rDLAASrOeWsArOa01mOj/X/HN5m0+KC+FJXCapAYpBX0MADmcEfEhxzs3KsfZsoB21O8nNq4o=
+	t=1782894642; cv=none; b=m06hJCRStOsodYfkIcM2I+ClbFhlM3EzPkJALnHzVrB7ZyiDMNECkggc77rWFM7tA15p3i7NxEMtNTl1WYzK3gdpemBQKuW/e6Kl9W9ciXOMU6iBGlnKvtVyIML3wJxjoOSVtGG4v5F5/4a4S1LTwp3Ex/juRpU6XahB362tvAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782887040; c=relaxed/simple;
-	bh=hP4nlPGIrqeNY9wpwr+srgGK8bvJUTL6djQnXyZwy5c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HOwaof1xwNA6IOEoc8JcIfHOTOULdUpd1dzKNSmMzxP5UgrMp57gddu6hhv+ilHT5Fglzn5dtM6iyJ1wnLcDd+QxPbseEEKGN2Yyi4tNIIVEs6jSKCm1N75fuFZE56C3jR1lk2uo27OQQyQZWwJRIyRsXhykXdc45mU83dPArgY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Xy8kEGHj; arc=none smtp.client-ip=209.85.219.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1782894642; c=relaxed/simple;
+	bh=fWH1wSgX08TW4O7VsaDF0cxPKrZ5+BCRV5QxNbilXUk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=MwgTaP91nWfsRIRyxxrCbbEX2Rq+8+DDQUXBh/aJatoYipFqB+qraiL9XzsbG9qndJepRwu60IwzSrNdseGFD0J7lZButG/OLumg3K78qPj0tFLIG2VW5CUSr66sUa7ECovm+wdphOVwzqxQZeoj9oglWamV2ULB741fms2HAY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nsi0F+Yg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Xy8kEGHj"
-Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-8eff5ce3b95so3314286d6.3
-        for <nvdimm@lists.linux.dev>; Tue, 30 Jun 2026 23:23:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1782887038; x=1783491838; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=5xWJ7lGSS4cy1ExwRI73Ip42ktEi6AnmleUk+CzcRsY=;
-        b=Xy8kEGHjcMQarQz/Ebqn9z5Dcz+OzRRd/bum7H4PK39WBfljLn7O0Jr9aZA+gkVzHO
-         BWBkPl8zFAhJzFeJRNKq7w0VkoSDf6BNLW8iyNE6MiolgnLgXxb+2K2ik+9aABqLx98A
-         ZSa79sncwYYiBes+VrIzcQL6Svmqf8ZGCuW/yVptfNLTiW/usH1YKnEHrLbMI0v6RbeC
-         UB2Z2IauA4mF+/rHAYSsd0jQlDmWZIpygDJ4gDtTMT+pe4gcHsXoSAOvzQxva5TjNkO2
-         xf47l0Ji//mpGVfe3PJmFt/1CtEORb0ITe+DUzv3HOG2S/DAsehd2PexTub6pE28XpO0
-         Hk6w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782887038; x=1783491838;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5xWJ7lGSS4cy1ExwRI73Ip42ktEi6AnmleUk+CzcRsY=;
-        b=sCK7Tu6eRFCAUCMoLQnOTbgnxkufuyIT5QuyZN8GrMkLqYrgrXwhJakBUncijz6BBl
-         EvrfF+icincYITEhnDpo3wnnzte0xR4ZPAxS7lUZY+KV1NnmyzLRHDZx+eot7bwHwVsx
-         gXqUUQ44qpvXQFQ1gs4JqsfwtZYtYQ1VOi9WCMFqHP9czhTymW3ctNqwSGL7LNOv24Cx
-         feqoAFBJBwX3s33AJFFE2C4yxxAQbExQgeoG5tDJG7v349HTmP7o0Y+0j4vgV4iXhYTG
-         ddPPPnu6uyQymfuYGjDVCQAim2P8H6Ct0wFEjB8KD0RtcqZjNS1MoLGXfvvxPAv3bTFj
-         JWzQ==
-X-Forwarded-Encrypted: i=1; AHgh+RrsZ0OSEvHLPIfVyc76Il3jmmYm0SGLwMSDyU3yT9S28HydkD4Ud1Q1yr2/AAUx6TCzKJ+/5CU=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx4+l58LzCS4nM9PRpt8rHsmzr02CvNuKCDPJrYvTl5y1dUeBO/
-	PnArEWlpH30CISLGHewy8x9jnrX7ChXOq27jSpbO985GKtemNEpcmV+8YnZKnYokCGo=
-X-Gm-Gg: AfdE7cnEtUmG6F3Qv3qBfieh+hAUUbxLmR2eK428xDreNGHSohPq/2NmDkgUKrB46g+
-	p0nyuY8RB7dfVEuZtnWVWpGsUT07hPw2jA7XQssonyp1GtnaBHyDO8uzjSHDEOzsPTggJGpbP0I
-	DnItlisZEYVNHUO7mY+ZDeJOdKi+ahmdC6/z4fywM6lmV1UCpglogD7biiTJevefWLwNGSaN6SI
-	jHc4Ff9u20EyiTRo/nc2i9vqKtuyKfpy3huuEGmY6Ws6G2MkQCP6Pqsr7TMk6oltnhdASb0ekXp
-	03QpRA51gmJw78VV7KsIiy0ze7bH4KWSXcUeauzzJKwjZk8BjTugPmTydEO6M0vcsDyHGNASsOy
-	zfABWr1a4B24duRPbUQiNMSEzh2dbsF4rUD5sF9dCDSXbb6pftCp2hOSDpbSimU0XPX1ifLJnd9
-	JFLqzpqwWTFlVN+SI2Lj4zbnTVec1K/yUSZRrfA3QkTrf4WvnDeuo1kcMrS0+EA7wHN2hH
-X-Received: by 2002:a05:6214:2dca:b0:8e4:d2ba:d677 with SMTP id 6a1803df08f44-8f3c7e708demr3649096d6.29.1782887037749;
-        Tue, 30 Jun 2026 23:23:57 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8f361ba3efdsm12323456d6.39.2026.06.30.23.23.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 Jun 2026 23:23:57 -0700 (PDT)
-Date: Wed, 1 Jul 2026 02:23:52 -0400
-From: Gregory Price <gourry@gourry.net>
-To: Hannes Reinecke <hare@suse.de>
-Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kselftest@vger.kernel.org,
-	kernel-team@meta.com, david@kernel.org, osalvador@suse.de,
-	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
-	djbw@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
-	alison.schofield@intel.com, akpm@linux-foundation.org,
-	ljs@kernel.org, liam@infradead.org, vbabka@kernel.org,
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
-	shuah@kernel.org, iweiny@kernel.org,
-	Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com
-Subject: Re: [PATCH v6 09/10] dax/kmem: add sysfs interface for atomic
- whole-device hotplug
-Message-ID: <akSyeHnfcDmxnCSz@gourry-fedora-PF4VCD3F>
-References: <20260630211842.2252800-1-gourry@gourry.net>
- <20260630211842.2252800-10-gourry@gourry.net>
- <akQ_xlJtXNgnGUdf@gourry-fedora-PF4VCD3F>
- <abde41f0-7d40-42ba-a232-cc0538cd0e4b@suse.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nsi0F+Yg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9B7D1F000E9;
+	Wed,  1 Jul 2026 08:30:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782894641;
+	bh=EitmsFYTKYnE/CMQXtoyKcbW9g8e44qIXAGKtiQio+M=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=Nsi0F+Ygx4oP2aOkquf50Ol5J/VKGlycgqaighAmg0TKSVZ3PKlnCmJ3MBwTCK0Ee
+	 ittaRsMuJbzHBRg9UCOcFaAvAwD/Gc11ZfEl5JM5wpMQz54Nb74/Bmo7RJKX8G9rkb
+	 +ULTndpI7UoV7aKeOWd8GamVyOwzLNgQFACq7gH4rd2AUpOCoZXYyI7uV84iywtoCK
+	 JXAFtNwd9RZ0sezEXaMXBopxgfiGPI1exZOp6hLMBfQqO3PPtLqIQGNABMlHg28Vqo
+	 cuQ9X3V7kFC1+jyIi6qyLoa/chLQdbTKZeWvFZo9cg9nTn4HBctwKqX1beZyEs6tDU
+	 F0DjNs/kuDEjw==
+Message-ID: <cfeb9b58-be6d-417f-8040-5e7e66158a64@kernel.org>
+Date: Wed, 1 Jul 2026 10:30:33 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <abde41f0-7d40-42ba-a232-cc0538cd0e4b@suse.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 02/10] mm/memory_hotplug: add mhp_online_type_to_str()
+ and export string helpers
+To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
+Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+ linux-cxl@vger.kernel.org, driver-core@lists.linux.dev,
+ linux-kselftest@vger.kernel.org, kernel-team@meta.com, osalvador@suse.de,
+ gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
+ djbw@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
+ alison.schofield@intel.com, akpm@linux-foundation.org, ljs@kernel.org,
+ liam@infradead.org, vbabka@kernel.org, rppt@kernel.org, surenb@google.com,
+ mhocko@suse.com, shuah@kernel.org, iweiny@kernel.org,
+ Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com
+References: <20260630211842.2252800-1-gourry@gourry.net>
+ <20260630211842.2252800-3-gourry@gourry.net>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <20260630211842.2252800-3-gourry@gourry.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 01, 2026 at 08:13:28AM +0200, Hannes Reinecke wrote:
-> On 7/1/26 12:14 AM, Gregory Price wrote:
-> > On Tue, Jun 30, 2026 at 05:18:41PM -0400, Gregory Price wrote:
-> > > There is no atomic mechanism to offline and remove an entire
-> > > multi-block DAX kmem device.  This is presently done in two steps:
-> > 
-> > ... snip snip snip ...
-> > 
-> > Sashiko pointed out a false-positive, but adding a fixup patch
-> > here that adds additional consistency.
-> > 
-> > On total failure - release all resources.  This makes the sysfs
-> > interface consistent with the probe failure path.
-> > 
+On 6/30/26 23:18, Gregory Price wrote:
+> Add mhp_online_type_to_str() as the inverse of mhp_online_type_from_str(),
+> and export both so a driver can render and parse the memory online type
+> through its own sysfs interface.
 > 
-> Speaking of which ...
-> With this patch we now have _two_ interfaces to do the same thing.
-> And both will be generating uevents.
-> Which is far from ideal (one could easily envision _conflicting_
-> udev rules, one set doing an 'online' on the old interface,
-> and another set doing an 'offline' on the new interface...)
-> Is there a way to not sending uevents for the old interface
-> or to make it configurable?
+> Signed-off-by: Gregory Price <gourry@gourry.net>
+> ---
 
-We do not allow "offline" in the new interface.
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 
-That fixes the entire issue - the blocks are gone, nothing to poke.
+-- 
+Cheers,
 
-~Gregory
+David
