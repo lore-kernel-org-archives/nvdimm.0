@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1420E3EEAF5;
-	Wed,  1 Jul 2026 10:14:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EA0B40BCAF;
+	Wed,  1 Jul 2026 10:18:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782900875; cv=none; b=lWl1DLnTNQqRcbgC5hSJfA5tEKi5sn3X/D3Vyj0jz1jbiRzDQmsjNDCzL8rM710X3+cpCn483FOR0QAzuK0UGs5M41ftZcyExUm8PrvwfQkrDW3emgtBd6QMnWCV7l2WU49LZeMbRswBCtJwev2C1b+EpTu1rLI8gf9hWQRCYNM=
+	t=1782901127; cv=none; b=bBNuCa/0Wag/34QGTDWy0Exg4426V+Damu/hNuXstD+/EjSFctIkZW/QDuAvBIBBd5yDBW5dYO4lnCKmVf20g3lhQDGkXvgeBAM5a96pu7ZABwDjVcCjvKX9myOMY/ZdmG4/DCkeS4jTfVjWMD6bTOJHC5SBAunCQ5VmVVTllnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782900875; c=relaxed/simple;
-	bh=MxQbnGsZoYEeUUWCNxHFMLWCbhf6XkMB4J/kyZCw7aQ=;
+	s=arc-20240116; t=1782901127; c=relaxed/simple;
+	bh=JM9/CaIlMkjQdFefjm0dVPPjkG/0+O7+5RX4p75h0x0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=E594ttcBJ422EpsAOYTK16HLKBEsyb6YNgoAaxvfIqNXHT2drm5Gd2NWzzpMrsDWifnRu5+hgx+fShRGB7SQU8IUetewhqCcXO0gTplNa5bFqb0utzvNU1SX6uuR3Y5k/WRt8mBnQ34uwLo8w2csU9WzXZFIAGnhi8IMgGKnobI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SsMSUbAA; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=RNMKH0j47gH/EetkyUUbJsN+RKQrrEzjKrZwOGJ2wM4aPZA1enVTpQEPBt4PHWkR1wASPxctip1C2ngOwntRquxiGKkgQLiL2dyS3Et/DT7jxq7vCdEQEM1pPuKMOkq2KgrZWeNF63LE0GKkP4sa+DXfSiBmlSdonwg1kHrPbYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AXQrg9P0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SsMSUbAA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9816A1F000E9;
-	Wed,  1 Jul 2026 10:14:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AXQrg9P0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 783341F000E9;
+	Wed,  1 Jul 2026 10:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782900873;
-	bh=MxQbnGsZoYEeUUWCNxHFMLWCbhf6XkMB4J/kyZCw7aQ=;
+	s=k20260515; t=1782901125;
+	bh=JM9/CaIlMkjQdFefjm0dVPPjkG/0+O7+5RX4p75h0x0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=SsMSUbAAV6xvXQAFUx89uz5IFhN7+Zl1QTMWjM1sfBzD12H9w9GlLytFDAvlfqEtu
-	 zxM1nx/Rw+0etgyNI/MUT6BoXukwf38U1evQ9uAuYcVhPAZon9ACkm+QDkxCLUZGOV
-	 jfEfE5rqcIppLW/a+fFzg/lxdqwkSprEQ5wQzNhAM4QTPk/LKJXoFlzAwqp6zt4Pdo
-	 MZsZG+fVKjkTgAWqt2sNhKdd0V9vHe1rSxqL7N2gbyIy7k6rBJg99uje117D1fIMTs
-	 Ofv+7N0ZI9pM30elRxaNZLThhLB/mgA/4FFYjnJTIBx8Ssa/NQrq/aaGT1eQD2mIsM
-	 MrCyKM8zicfjg==
-Date: Wed, 1 Jul 2026 11:14:11 +0100
+	b=AXQrg9P0AZleFkeFS51+PjUo+B8xcdDVE6tYWDlNGuGdgBpLyKHJD6elc2v/kcqUE
+	 8Pcm+GcqRx1k66nL9Uz+zEQ1FGgN7fgq6+QHDdXkD+Pdz0aJff6p2k0V+rzm+2Z3nu
+	 iSsIViklzABlCCMKzkBXtJrZyVFo2V4IsTINTz9RKasIkvyuDEwuSlPRQaN1JPh1Ph
+	 4s6fRT7pOmRvUznm5PfN3Qg8RbN5uvU10x5Z/rpOw3czvOGlanwtN8QcTVROHG707e
+	 UmVvX7bqHJU1MBVNsmN1D97wgCCjA1bFiUR7kEt/Ogvvig/eVyWKvzrNW1JuZ23oNU
+	 HGzRMycOX4fdw==
+Date: Wed, 1 Jul 2026 11:18:24 +0100
 From: Lorenzo Stoakes <ljs@kernel.org>
 To: Pedro Falcato <pfalcato@suse.de>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -62,12 +62,12 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	iommu@lists.linux.dev, linux-perf-users@vger.kernel.org, 
 	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
 	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 08/30] mm/rmap: rename vma_interval_tree_*() to
- mapping_interval_tree_*()
-Message-ID: <akTketJmWBOSThSf@lucifer>
+Subject: Re: [PATCH 09/30] mm/rmap: parameterise anon_vma_interval_tree_*()
+ by anon_vma
+Message-ID: <akTpXVhj3unHRH8o@lucifer>
 References: <cover.1782735110.git.ljs@kernel.org>
- <f95462457025370efd047b9dfb039e76bbddf58b.1782735110.git.ljs@kernel.org>
- <akPtjuele4I7iqTQ@pedro-suse.lan>
+ <1c1df7b905ef340cbf2effef769a4e770a8e0eb1.1782735110.git.ljs@kernel.org>
+ <akPvI4r1rnxxSbzW@pedro-suse.lan>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -76,68 +76,39 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <akPtjuele4I7iqTQ@pedro-suse.lan>
+In-Reply-To: <akPvI4r1rnxxSbzW@pedro-suse.lan>
 
-On Tue, Jun 30, 2026 at 05:28:20PM +0100, Pedro Falcato wrote:
-> On Mon, Jun 29, 2026 at 01:23:19PM +0100, Lorenzo Stoakes wrote:
-> > The family of vma_interval_tree_() functions manipulate the
-> > address_space (which, of course, is generally referred to as 'mapping')
-> > reverse mapping, but are named the 'VMA' interval tree.
+On Tue, Jun 30, 2026 at 05:32:03PM +0100, Pedro Falcato wrote:
+> On Mon, Jun 29, 2026 at 01:23:20PM +0100, Lorenzo Stoakes wrote:
+> > Similar to what we did with mapping_interval_tree*(), let's declare
+> > anon_vma_interval_tree*() in terms of anon_vma rather than rb_root_cached.
 > >
-> > VMAs may be mapped by an anon_vma, an address_space, or both. Therefore
-> > calling the mapping interval tree a 'VMA' interval tree is rather
-> > confusing.
+> > In each case the rb tree referenced is &anon_vma->rb_root, so just pass
+> > anon_vma and the functions can figure this out themselves.
 > >
-> > This is also inconsistent with the anon_vma_interval_tree_*() functions
-> > which explicitly reference the rmap object to which they pertain.
+> > Additionally, rename 'node' to 'avc', 'index' to 'pgoff_start', and 'last'
+> > to 'pgoff_last' to make clear what is being passed.
 > >
-> > Rename the vma_interval_tree_*() functions to mapping_interval_tree_*() to
-> > correct this.
+> > Finally express page offsets in terms of pgoff_t to be consistent.
 > >
 > > No functional change intended.
 > >
 > > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 >
-> I'll have to nitpick this and say that I prefer [1] file_rmap_tree_, or
-> mapping_rmap_tree. Or possibly even better - mapping_ (so
-> mapping_for_each_vma, mapping_insert_vma, etc).
+> Yay!
+>
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 
-Haha of course.
-
-I don't like mapping_ because that is such an overloaded term and it's confusing
-really.
-
-I'm iffy on mapping_rmap_tree as it feels like that implies 'this is the whole
-of how the rmap lookup works', and it also makes it less obvious what _kind_ of
-tree it is, though I suppose you could look up the types, but the crap macro
-generation makes that more of a pain.
-
-Also, for file 'rmap' you are potentially not actually doing an rmap at all in
-the classical sense of folio -> rmap object -> related VMAs, but rather are
-going from file/inode -> <page cache abstraction> -> related VMAs...
-
-But then again a quick spot check suggests it's usually from a folio... I guess
-only the rmap really needs to find the VMAs.
-
-Also if I renamed it to mapping_rmap_tree I'd have to respin and churn all the
-anon_vma code but I guess that's not impossible... :)
-
-I guess I'm a bit stubborn about doing much with the anon_vma stuff until I get
-rid of it.
-
-But I couldn't live with the stupidity of calling it vma_interval_tree_*()
-anymore here...
-
-OK I'm a bit torn, mapping_rmap_tree*() and anon_rmap_tree*() are the workable
-contenders from your suggestions.
-
-Let me think about that on respin... :)
+Thanks :)
 
 >
-> A bit of bikeshedding never hurts ;)
+> I have a vaguely similar comment as for the file part (names could be
+> simpler, doesn't really matter whether it's an interval tree or possibly
+> even a tree), but I care less strongly about anon rmap :)
+
+And yeah ack, let me agonise over that a bit :P
+
 >
-> [1] locally I was naming things file_rmap, but I never actually got to
-> churn these names away
 > --
 > Pedro
 
