@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D592828CF6F;
-	Wed,  1 Jul 2026 09:56:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B1083A48F4;
+	Wed,  1 Jul 2026 09:56:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782899772; cv=none; b=kceDGGS7/QjytITP4egY5hcrlwbN67FoAmo1O66tDplQ0plZQeFL/XYkSBWipAf6gFATAgAPOua6qDwpG7rlbxgNpgHlH//l0Vqhv945jFsqKTuezd0iFJo6JHkowXRLXA+Ezx4lwDxwWk81I7WgBYtdvZNMig33vQ4YVAIbTKY=
+	t=1782899817; cv=none; b=eUZWCR/gcdY8xLVdmKFV9DL3OcNHAIz0pMH41Uf/ARUS3pk9a0ym5BqXmtaPY68j7Gq+TWImnaRG4DkZQ6vFm6c5OIEzjppeKm4HxzGD6Os6vjYePpe3i7ulovmzCjtig4Hu4OM1DvXkITcTzjtML53cq26QDwks+Pt6To+8YXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782899772; c=relaxed/simple;
-	bh=uFnqjfO2nGnpQRfkiFUM7kAq9hpq2gQ/a+iAbNQdyDY=;
+	s=arc-20240116; t=1782899817; c=relaxed/simple;
+	bh=ce5x8VsOSihGimDX+E2xZ9QKUoBE10Bad77hJiyAQ1E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LL6k1UXjE5Hgp/SbC5GV0H15sXL58BgCl1xFY3MSrSxyVmTNZf4/wXlMoGjuUly4vx/d1xl/uNqdoovM2Tks8EvgHd1vYmyfl6wSVeIHYwE3ZfJukVANhYleT21suTCUfwN4l3msgZyrPlDE8tPf7s36ss5/53gWLRuu71I+Jig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hn05lo+y; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=OOUusOOVqGWGud1hYAOGawQE0KXThOb3pfE20d4gzEppPqRhUvAi1hTwMsw0lOcLX0t+L18ksT6EBGRV0TqZ6fTT8BCTfdodZc/vtdIzXUv0Z5mXPTVdHL6ERsrH1Zcs/8dZ65+T0MNxa7ZnItCsWAzb3668d5VQN0SBrGlPEeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DZVMXwNQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hn05lo+y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEB71F000E9;
-	Wed,  1 Jul 2026 09:55:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DZVMXwNQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3460C1F000E9;
+	Wed,  1 Jul 2026 09:56:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782899768;
-	bh=uFnqjfO2nGnpQRfkiFUM7kAq9hpq2gQ/a+iAbNQdyDY=;
+	s=k20260515; t=1782899816;
+	bh=ce5x8VsOSihGimDX+E2xZ9QKUoBE10Bad77hJiyAQ1E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=hn05lo+yqTo162vzSSvmLgoHkc8sZFXTO73a3zpugE032j41FtZRAcgR5cC/mIsWC
-	 oqb+WxZyigte/GQZKBkZXaiYmAep0fVWbliyTXXxFOHdLIA7ZB+tMSio0XPY3sBbJD
-	 xp1cndGs6No9+YfwSniB6tXQcpWnVEn7s0jLOOyrTHsS3hH1QGk++EdC7x7glsCzx2
-	 ooQPJops5d+rLUK2ebXz4gbnEltEwqB5O9z9G9A+zLJBaWmKUz/FSVMRs5+u0CJBcF
-	 9YJUExToRs6x/TXjrPjHcKoRJgS2PsOr32tKYv6tYSwkl+1flbn88u/WCVI5PjKVif
-	 CCXDS3L8jpcpw==
-Date: Wed, 1 Jul 2026 10:55:46 +0100
+	b=DZVMXwNQ7Qas5su8LVUpZ9nJZzyP2uBxeA7y69zzPN45RtVQlQlUbn6BqoVClF8OQ
+	 cdNO1iGygY8gO12qIOso81h2/ovQrZtecs/m5aFsflX56hjaVdJn1UW1oDVl1Yio6K
+	 KRPnQX2cEF4iykCZPLFviJvZsj0dccJ/OtNrkWrmrDfd+Zc2DCw82CITQK1lp0tyWe
+	 FVO7hLYRhosCJheK7GEd0ZzB4RBxZA6em2G+SdpL6ItiqRo5WAo8LiBboh0bVEWu86
+	 sAwvz0MgMFy71FvJ0/B44EaogV7h2VMnc/A+pYGBJOKud9YpmG/8lNeNdIQphF8zxv
+	 fOupSSuKidQxA==
+Date: Wed, 1 Jul 2026 10:56:34 +0100
 From: Lorenzo Stoakes <ljs@kernel.org>
 To: Pedro Falcato <pfalcato@suse.de>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -62,11 +62,12 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	iommu@lists.linux.dev, linux-perf-users@vger.kernel.org, 
 	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
 	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 05/30] mm/rmap: update mm/interval_tree.c comments
-Message-ID: <akThthi2yrXY1meF@lucifer>
+Subject: Re: [PATCH 06/30] mm/rmap: parameterise vma_interval_tree_*() by
+ address_space
+Message-ID: <akTkRC7gPzdibXhU@lucifer>
 References: <cover.1782735110.git.ljs@kernel.org>
- <80d482a927b2e9862487b812e0ab48ebc1289a70.1782735110.git.ljs@kernel.org>
- <akPrTU96BwQJoygw@pedro-suse.lan>
+ <43050b10b53cdfc3627440e6b14ae2a9730b2a5c.1782735110.git.ljs@kernel.org>
+ <akPsGrmaOd3JMlC2@pedro-suse.lan>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -75,58 +76,43 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <akPrTU96BwQJoygw@pedro-suse.lan>
+In-Reply-To: <akPsGrmaOd3JMlC2@pedro-suse.lan>
 
-On Tue, Jun 30, 2026 at 05:16:51PM +0100, Pedro Falcato wrote:
-> On Mon, Jun 29, 2026 at 01:23:16PM +0100, Lorenzo Stoakes wrote:
-> > Update the file comment to clarify that both file-backed and anonymous
-> > interval trees are provided, referencing the relevant data types for
-> > clarity.
+On Tue, Jun 30, 2026 at 05:19:16PM +0100, Pedro Falcato wrote:
+> On Mon, Jun 29, 2026 at 01:23:17PM +0100, Lorenzo Stoakes wrote:
+> > The file-backed mapping interval tree functions vma_interval_tree_*()
+> > accept a raw rb_root_cached pointer to determine the tree in which they are
+> > operating.
 > >
-> > Also add comments to indicate which parts of the file apply to each.
+> > However, in each case, this is always associated with an address_space data
+> > type.
 > >
-> > While we're here, convert the VM_BUG_ON_VMA() to VM_WARN_ON_ONCE_VMA().
+> > So simply pass a pointer to that instead to simplify the code, and more
+> > clearly differentiate between these operations and those concerning
+> > anonymous mappings.
+> >
+> > While we're here, make the generated interval tree functions static as they
+> > do not need to be used externally (any previously existing external users
+> > have now been removed).
+> >
+> > We also rename VMA parameters from 'node' to 'vma' as calling this a node
+> > is simply confusing, update the input index types to pgoff_t since they
+> > reference page offsets and rename the parameters to pgoff_start and
+> > pgoff_last.
+> >
+> > No functional change intended.
 > >
 > > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 >
+> 1) This is fantastic
+> 2) I need to rebase my local work :)
+>
 > Reviewed-by: Pedro Falcato <pfalcato@suse.de>
->
-> This is fine for now, but I'm wondering if it doesn't make sense to, in the
-> long term, have:
->
-> mm/rmap.c - common rmap mechanisms
-> mm/anon_rmap.c - anon rmap gunk
-> mm/file_rmap.c - file rmap gunk
->
-> or even something like mm/rmap/{core,anon,file,ksm??}.c
->
-> While working on my file rmap patches I noticed there's so much stuff just
-> splurged all over rmap.c - interval_tree.c - fs.h - fs/inode.c.
-> It's a little silly.
-
-Well, Wei had something like this idea a way back, but I'd rather avoid it.
-
-Firstly, with scalable cow coming, I'd rather us not make anon_vma a special
-citizen in any way, and I'm going to be heavily modifying all this anyway.
-
-On the interval tree side, I'm simply going to get rid of the anon side of it
-altogether with scalable CoW also so that can live as it is now for the time
-being.
-
-In general we try to have generalised rmap walk logic for file vs. anon with
-rmap_walk -> rmap_walk_[anon, file]() for one obviously.
-
-But obviously there's separate rmap walker logic for file vs. anon.
-
-I used to harbour a belief that we could make anon like file-backed but now I'm
-kind of thinking that's not possible :)
-
-So I guess the real answer is - yeah, but let's revisit it after scalable CoW
-(and anyway I'm likely to do sensible architectural breakouts as part of that
-work anyway).
-
 >
 > --
 > Pedro
+
+1) thanks :)
+2) sorry :P
 
 Cheers, Lorenzo
