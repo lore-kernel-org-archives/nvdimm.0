@@ -1,77 +1,34 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D858F3905F5
-	for <nvdimm@lists.linux.dev>; Thu,  2 Jul 2026 11:53:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 754183563F0;
+	Thu,  2 Jul 2026 12:17:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782993199; cv=none; b=PxVWj+KumMerktOo6Hy5ujXNXMMUnVV0Fkj7+5qkPlK7b3JrmlkcjtafpuDy/MPwyfcbheXwHCMLs6miCu0coNvsXz3z1W15bUZEPtqhTpXqXn6BaK0/JPMgQR5UY6yhNvDJQMZXXCeI7d4w2BQLdjQ+JnFvngWV0soLnMrL4sI=
+	t=1782994621; cv=none; b=g4d5Szp9beIcBwuLfCCrsLMt1eqsKNgy6Og5esqhT4CGJoGgzb5yF03AzAkMjoLF+Qq/jBlaYHZ+dGebXaUpbKZUb/DAwAC61nxn2USpDxcOEDeuZ5YIhLdSSTsrXkEHw1zczwM7rhtUFLdEro8baufWUOlWBHa0gUL+vQmir4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782993199; c=relaxed/simple;
-	bh=0nzVK4pL1TFIe/BHP21jD7kuyIRs9dRrUj42zYkQjp0=;
+	s=arc-20240116; t=1782994621; c=relaxed/simple;
+	bh=4h/zoa0EO0oEjCowB1soFdJQhwwlc7WmH55lSMsp9ng=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LvzvktKK1YmAk5a4eKz3v3bksmNT4EIco/w9lic6nfy3eZp/F5o4Mzxm7ZF1Aidvsc8g3YnZkKnm7d/THZxhzkLlIEqY7GK9OjMkgbGEfp4Wls2GmawPVFIOzc7syAoaQ/e1gHAA6010IVibaIcHJE908TK3JNmCojF0ftjUcH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xYVfKCYZ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=1CfcEF2X; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ZsoQ8uTQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=KH4HUf0G; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	 Content-Type:Content-Disposition:In-Reply-To; b=SbRPk3fVgANmq8O61HVYKQoMM0+OX1sMfYbyl+f5ebfHx9tx5HrXyEQhkmZpfNDWRtMovdrN2KOAD9fLdlkaKneL+Gs0KlTvlCD9Pa5CCeHptV+kQxZOpdr9iI62R7sgsBaUxR6HTfTsH7zBdD9omNCweJRRJVi2ghYaIEhXMOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YfjRFUXE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xYVfKCYZ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="1CfcEF2X";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ZsoQ8uTQ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="KH4HUf0G"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 2250F741A2;
-	Thu,  2 Jul 2026 11:53:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782993196; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vVyat4DfuJxMczGxKMvPQcf269Ets9cihaExe8YQLuA=;
-	b=xYVfKCYZqsD2UpmKdK9fQagIYcRuil6l2nF+c+r+OdaWXSJ3/rwYjd7a01znBykkCl/Xt3
-	9O4NKD4ShEoEJNxL6hGpG4AaLC9aa6PdJXC9DHJBilYLHQ97wn3GN35NJMqUm9UCDFS88r
-	wicYeO/ITfDsf1NnfuUfNeKKq6hAmCg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782993196;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vVyat4DfuJxMczGxKMvPQcf269Ets9cihaExe8YQLuA=;
-	b=1CfcEF2XREK0S/tUSQtvmsJmKkDvH3H5nu0WdgGnc2E7VNJZR/Zw6wuuz38wcdrZmhtyEi
-	jix7vUFpBgOEGBCg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782993195; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vVyat4DfuJxMczGxKMvPQcf269Ets9cihaExe8YQLuA=;
-	b=ZsoQ8uTQ9HKMle6PfLos3WQbXxWjN5sSXPSkT4+ZanUKBq2lpNP4jJRp6GUkrzXkwHJjvB
-	yWpyhzC0YNGQkPHvBgmFCvrDVYHqifJdwhEcBa2T0tb/TAg1tJpbYwf72U7Ci9qPVJUSvT
-	ORMtcGbh+MGBJHqHakIUbwKXHdphSvU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782993195;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vVyat4DfuJxMczGxKMvPQcf269Ets9cihaExe8YQLuA=;
-	b=KH4HUf0G2xIXtfn7ykyjf+pVZsRa2r7mxNuifMcKR/Sb9aOtVjljEmdJqCSJ/e9IL2sF9Y
-	uM7PBo8soLh0gDAQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A8A84779AA;
-	Thu,  2 Jul 2026 11:53:10 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 6MDvJSZRRmr6DwAAD6G6ig
-	(envelope-from <pfalcato@suse.de>); Thu, 02 Jul 2026 11:53:10 +0000
-Date: Thu, 2 Jul 2026 12:53:09 +0100
-From: Pedro Falcato <pfalcato@suse.de>
-To: Lorenzo Stoakes <ljs@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YfjRFUXE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE691F000E9;
+	Thu,  2 Jul 2026 12:16:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782994620;
+	bh=SmrhXKb/tICfou2fB2Dbzvn0JaPripZ9jvu2bmh8Jik=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=YfjRFUXEBU2dRmuBpB4h+tQRBLbIKpZBr7Vf/wGNH8GIbYIoOZ2+iJacKSoCbpVtS
+	 nLyO5ja5AytCvhqwDq0QenPxKrMKslV49oH6XBSjalGtxG47SJjiMV7MT+tzXio6ce
+	 JdlM4siO5IwFaYVLcm4KaNHxCA6hmUqsbOTyo9nlQqZd4lEWBGt33GCh9LZqRUfBBn
+	 mcQd1A7BvVsZSb2TQuY2xdCzCh+UDajG+SL5GXiJNr7mmSLrWTVjj9rBrdT9z87G/T
+	 Vy7FJvYKgcFqj/cL9xNXF6QvQ5MobsDT2Zofpc5Qxh41lYF1oSGL+QhpzzXdyRSPWv
+	 bIXuhAyMKtIcQ==
+Date: Thu, 2 Jul 2026 13:16:38 +0100
+From: Lorenzo Stoakes <ljs@kernel.org>
+To: Pedro Falcato <pfalcato@suse.de>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
 	Russell King <linux@armlinux.org.uk>, Dinh Nguyen <dinguyen@kernel.org>, 
 	Simon Schuster <schuster.simon@siemens-energy.com>, 
@@ -105,11 +62,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	iommu@lists.linux.dev, linux-perf-users@vger.kernel.org, 
 	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
 	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 30/30] tools/testing/vma: output compared expression on
- ASSERT_[EQ, NE]()
-Message-ID: <akZPXB56I83vkyxd@pedro-suse.lan>
+Subject: Re: [PATCH 20/30] mm/vma: introduce vma_assert_can_modify()
+Message-ID: <akZNWNuyBU4xDDyf@lucifer>
 References: <cover.1782735110.git.ljs@kernel.org>
- <432444fa4c12ae1c4047550e2b205d3e9bab458f.1782735110.git.ljs@kernel.org>
+ <23c7602c58cacc23ef22618a27af9a2d54addf58.1782735110.git.ljs@kernel.org>
+ <akZHWwVgJfqCwA2W@pedro-suse.lan>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -118,106 +75,136 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <432444fa4c12ae1c4047550e2b205d3e9bab458f.1782735110.git.ljs@kernel.org>
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	TAGGED_RCPT(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com,gmx.de];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[linux-foundation.org,armlinux.org.uk,kernel.org,siemens-energy.com,hansenpartnership.com,gmx.de,redhat.com,alien8.de,linux.intel.com,mev.co.uk,visionengravers.com,pengutronix.de,gmail.com,ffwll.ch,suse.de,oss.qualcomm.com,ideasonboard.com,nvidia.com,amd.com,shazbot.org,zeniv.linux.org.uk,linux.dev,google.com,infradead.org,samsung.com,goodmis.org,huawei.com,vger.kernel.org,lists.infradead.org,lists.freedesktop.org,lists.linux.dev,kvack.org,googlegroups.com,surriel.com];
-	R_RATELIMIT(0.00)[to_ip_from(RL3mhzhn45zpqpmgqn4z7synfm)];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_GT_50(0.00)[75];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,pedro-suse.lan:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Level: 
+In-Reply-To: <akZHWwVgJfqCwA2W@pedro-suse.lan>
 
-On Mon, Jun 29, 2026 at 01:23:41PM +0100, Lorenzo Stoakes wrote:
-> Update the macros to output the compared values at hex for easier debugging
-> when test asserts fail.
-> 
-> Also remove unused IS_SET() macro.
-> 
-> Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-> ---
->  tools/testing/vma/shared.h | 31 +++++++++++++++++++------------
->  1 file changed, 19 insertions(+), 12 deletions(-)
-> 
-> diff --git a/tools/testing/vma/shared.h b/tools/testing/vma/shared.h
-> index ca4f1238f1c7..216be4cda369 100644
-> --- a/tools/testing/vma/shared.h
-> +++ b/tools/testing/vma/shared.h
-> @@ -21,19 +21,28 @@
->  		}							\
->  	} while (0)
-> 
-> -#define ASSERT_TRUE(_expr)						\
-> -	do {								\
-> -		if (!(_expr)) {						\
-> -			fprintf(stderr,					\
-> -				"Assert FAILED at %s:%d:%s(): %s is FALSE.\n", \
-> -				__FILE__, __LINE__, __FUNCTION__, #_expr); \
-> -			return false;					\
-> -		}							\
-> +#define __ASSERT_TRUE(_expr, _fmt, ...)					   \
-> +	do {								   \
-> +		if (!(_expr)) {						   \
-> +			fprintf(stderr,					   \
-> +				"Assert FAILED at %s:%d:%s(): %s is FALSE" \
-> +				_fmt ".\n",				   \
-> +				__FILE__, __LINE__, __FUNCTION__, #_expr   \
-> +				__VA_OPT__(,) __VA_ARGS__);		   \
-> +			return false;					   \
-> +		}							   \
->  	} while (0)
-> 
-> +#define __TO_SCALAR(x)	((unsigned long long)(uintptr_t)(x))
+On Thu, Jul 02, 2026 at 12:16:32PM +0100, Pedro Falcato wrote:
+> On Mon, Jun 29, 2026 at 01:23:31PM +0100, Lorenzo Stoakes wrote:
+> > vma_assert_write_locked() and vma_assert_attached() are useful for their
+> > own purposes, however VMA code absolutely does allow the modification of
+> > non-write locked VMAs if they are at that point detached (i.e. unreachable
+> > from anywhere).
+> >
+> > It's therefore useful to be able to assert that a VMA is either
+> > detached (modification doesn't matter) or write locked (you're explicitly
+> > locked for modification).
+>
+> Hmm, I was wondering why detached does not imply write_locked, and then
 
-There's a slight footgun here: this can truncate 64-bit types in 32-bit archs.
-Though it doesn't really matter in our case, I think.
+For one obviously when detaching they are also write locked (see
+vma_mark_detached()) but yeah the point of this is when you have a VMA allocated
+which doesn't hold the appropriate lock.
 
-> +
-> +#define ASSERT_TRUE(_expr) __ASSERT_TRUE(_expr, "")
->  #define ASSERT_FALSE(_expr) ASSERT_TRUE(!(_expr))
-> -#define ASSERT_EQ(_val1, _val2) ASSERT_TRUE((_val1) == (_val2))
-> -#define ASSERT_NE(_val1, _val2) ASSERT_TRUE((_val1) != (_val2))
-> +#define ASSERT_EQ(_val1, _val2)						\
-> +	__ASSERT_TRUE((_val1) == (_val2), " (0x%llx != 0x%llx)",	\
-> +		      __TO_SCALAR(_val1), __TO_SCALAR(_val2))
-> +#define ASSERT_NE(_val1, _val2) \
-> +	__ASSERT_TRUE((_val1) != (_val2), " (0x%llx == 0x%llx)", \
-> +		       __TO_SCALAR(_val1), __TO_SCALAR(_val2))
-> 
->  #define ASSERT_FLAGS_SAME_MASK(_flags, _flags_other) \
->  	ASSERT_TRUE(vma_flags_same_mask((_flags), (_flags_other)))
-> @@ -53,8 +62,6 @@
->  #define ASSERT_FLAGS_NONEMPTY(_flags) \
->  	ASSERT_FALSE(vma_flags_empty(_flags))
-> 
-> -#define IS_SET(_val, _flags) ((_val & _flags) == _flags)
-> -
->  extern bool fail_prealloc;
-> 
->  /* Override vma_iter_prealloc() so we can choose to fail it. */
+> realized that new VMAs aren't write-locked. Could we do it by default?
+> Like a simple:
+>
+> 	vma->vm_lock_seq = __vma_raw_mm_seqnum(vma);
+>
+> might do the trick. I don't see why it wouldn't work? Is there some other
+> case I am not considering?
+
+Firstly, I'd rather not rework the VMA lock logic as part of this series. It's
+subtle and such changes are tricky.
+
+I'm trying to achieve the minimum changes while adding extra validation as I can
+in preparation for the scalable CoW work.
+
+And I'm not sure wanting to alter the fundamentals of VMA locks is a good reason
+not to ack a patch :)
+
+But since you bring it up...
+
+There's subtleties here too.
+
+- At what point do you do this assignment? If it's the VMA allocation logic,
+  it's not obvious then that you even have the mmap write lock necessarily. Now
+  you're making assumptions that might be broken, or broken in future.
+
+  Now everybody who allocates a VMA has to 'just know' that they need to assign
+  an mm and mark it write-locked (but in a special new VMA way) before setting
+  the pgoff.
+
+- Detached means it is not currently in any tree, nor belongs necessarily to any
+  mm. So the concept of it being write locked is meaningless.
+
+- It's broken to perform actions on a new VMA that is not yet linked into any
+  tree that would require the VMA write lock. Currently the code _explicitly_
+  asserts that a detached VMA is not attempted to be write locked.
+
+- So we have a good way of catching people doing stupid or broken stuff to VMAs
+  that are not in the correct state (we currently _don't_ do that for detached
+  VMAs that _were_ in the tree, probably we should change that...!)
+
+- You'd have to create a new function to do this since we explicitly disallow
+  doing this right now, and that's more complexity and then you're then
+  creating a whole new meaning as to what VMA write lock acquisition is,
+  which is even more added complexity.
+
+- create_init_stack_vma() would break, so would hugetlb (lol) and static gate
+  VMAs explicitly do not belong to an mm, so there's simply no concept of them
+  being VMA write locked anyway.
+
+- I'm not sure violating the invariant of seqnum = 0 = no write locked VMAs is
+  safe.
+
+- Things get quite horrendous on fork (prior to us taking tmp's VMA write lock)
+  - you'd have to assign this field after duplicating the VMA midway through
+  attaching it to the new mm, where that mm has a new seqnum. But the new mm has
+  a seqnum of 0... so now you're having to duplicate it but alter what
+  vma_lock_init() does to reset the seqnum to 0 but then what if the
+  'duplication' logic asserts VMA write locked?
+
+It's very chicken and egg - on VMA duplication you want to be able to write the
+very fields that you need to do anything with the VMA prior to it being linked
+in anywhere.
+
+And we probably don't want to bake in the assumption that to change fundamental
+fields requires that you always hold the write lock as a consequence.
+
+>
+> >
+> > Therefore introduce vma_assert_can_modify() for this purpose.
+> >
+> > While we're here, make vma_is_attached() available generally - if
+> > !CONFIG_PER_VMA_LOCKS, then there's no sense in which a VMA is
+> > detached (vma_mark_detached() is a noop), so have this default to true in
+> > this case.
+> >
+> > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+> > ---
+> >  include/linux/mmap_lock.h | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> >
+> > diff --git a/include/linux/mmap_lock.h b/include/linux/mmap_lock.h
+> > index 04b8f61ece5d..d513286d8160 100644
+> > --- a/include/linux/mmap_lock.h
+> > +++ b/include/linux/mmap_lock.h
+> > @@ -506,6 +506,8 @@ static inline __must_check
+> >  int vma_start_write_killable(struct vm_area_struct *vma) { return 0; }
+> >  static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+> >  		{ mmap_assert_write_locked(vma->vm_mm); }
+> > +static inline bool vma_is_attached(struct vm_area_struct *vma)
+> > +		{ return true; }
+> >  static inline void vma_assert_attached(struct vm_area_struct *vma) {}
+> >  static inline void vma_assert_detached(struct vm_area_struct *vma) {}
+> >  static inline void vma_mark_attached(struct vm_area_struct *vma) {}
+> > @@ -530,6 +532,12 @@ static inline void vma_assert_stabilised(struct vm_area_struct *vma)
+> >
+> >  #endif /* CONFIG_PER_VMA_LOCK */
+> >
+> > +static inline void vma_assert_can_modify(struct vm_area_struct *vma)
+> > +{
+> > +	if (vma_is_attached(vma))
+> > +		vma_assert_write_locked(vma);
+> > +}
+> > +
+> >  static inline void mmap_write_lock(struct mm_struct *mm)
+> >  {
+> >  	__mmap_lock_trace_start_locking(mm, true);
+> > --
+> > 2.54.0
+> >
+>
 > --
-> 2.54.0
+> Pedro
 
-Acked-by: Pedro Falcato <pfalcato@suse.de>
-
--- 
-Pedro
+Thanks, Lorenzo
