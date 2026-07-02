@@ -1,76 +1,76 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 954A33D649D
-	for <nvdimm@lists.linux.dev>; Thu,  2 Jul 2026 11:04:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B9473EC2FB
+	for <nvdimm@lists.linux.dev>; Thu,  2 Jul 2026 11:16:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782990281; cv=none; b=Jj1iykUJVlHXUI/+vhLUbeQyNiZrpbVfs/ZsRpg0aW7EPy3kBZNNIoLqZQBy8peR8EEC+Lq6WSeSjG64tb9erbz+8mPs2kSehGSfcGuFoG8vIOLHPfcXYweuym36Frk0sWJ9NTBXbgl1HYnYUsqN8bqsDBrPKy+AIOe9f8Oy9TY=
+	t=1782991001; cv=none; b=bNb6djqc8u38AJfXgrkd2Ink7aTBB0dFnEo7BkeaguGMdAqDqhTCRXULfKLxtsAoAvlleqgpsrI/lHZ1pEU3ywpRR5bYGCFDcfTCB1igOJpInBm05mNIZTmef/5d/6elmIYil97UKsF48Naa9+s3EMpCLtgl7V0nAo6DtmwOb3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782990281; c=relaxed/simple;
-	bh=V5Qh3F0r7UKO4a2pst2HKAruYuCXs0d3M8jSNjL/Iog=;
+	s=arc-20240116; t=1782991001; c=relaxed/simple;
+	bh=egNNIeSTqKDsuUgb2VZ0PZXU/HWv6jJeb1LiC5f7h6I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XcqB9HwqdW9smqagA+r664xlVtnTsrz9YgQ1bU7bcVatWrKL+GSe8znKV26utqZ0pDerVSOeZAZaMG91MQHvPgx5rrpmJGAxDfIbIhU+QqmTYv7ssd2yDVCLnkLdlMwDfwpGEFtK/vN6/jylmISbJ4Je3h5dzwdQ0d5M+sbAu5M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=FetH+lRX; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=5kLIclg2; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=bhSk6d6j; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=DzHL3T70; arc=none smtp.client-ip=195.135.223.130
+	 Content-Type:Content-Disposition:In-Reply-To; b=WRbdaVb9WLv8EEvX6KhHWqxSW1wA3NlhDCgW8yJ5qnevFvSDdZ648+wD53eR+LJos+qBNFB9Ki9T5IbsWZ98z+X6KQDg5DAnRkVfaCRhKC7mjdd2bg78UnUwZRUhD51oRVpFEXzxdiiTlQTKj91fvsp45hQZGPDwpozEJiusqZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=MaQ0JND5; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=3pvLQ4ye; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=MaQ0JND5; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=3pvLQ4ye; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="FetH+lRX";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="5kLIclg2";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="bhSk6d6j";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="DzHL3T70"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="MaQ0JND5";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="3pvLQ4ye";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="MaQ0JND5";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="3pvLQ4ye"
 Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id AE93C74158;
-	Thu,  2 Jul 2026 11:04:36 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7A215758C1;
+	Thu,  2 Jul 2026 11:16:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782990278; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1782990998; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RM0VnXVk8zwqUTKTdqmIyIriscuAiRayUnMD17BOvjs=;
-	b=FetH+lRXOBR5XXV51imu9ljC+T70ZDce7ciLoxqyYuTD6SS6OE/OxwAIMpARPbGdjxFnt5
-	tguAcjKBFFBKfJQqcNxCxiB49art39Z64B/CyT6pni1Hh2MsWhyWhsw9eUMMj+mBJjKdRb
-	GvOBztPz7f29ZyV6W9PxsOTw30HZ3iU=
+	bh=eRBGEURpGsQZvwqVZtDQ4XJM7h1z4ZC8YrrvTCFqxmw=;
+	b=MaQ0JND5KWm4wpsJciLfkQvP3ai3tn4nmxHssSfFpsKDgKPYMo0CCpWKvNCaMeBjXitcJ3
+	ryZQphknx3FCsPabrXjnCA7E61K/L28Q+1mGAIXijYZw0KuJju507sLH6zDd+1GghLs0zF
+	8X9joVhTiON2oevqtL6uIb5F4wnvrBo=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782990278;
+	s=susede2_ed25519; t=1782990998;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RM0VnXVk8zwqUTKTdqmIyIriscuAiRayUnMD17BOvjs=;
-	b=5kLIclg2rijKZ/Embq58dsde1+ak7vUB8mltc6mZF2C3u49t/xRP6KCUxlMLClQBas2jVj
-	ZIzAJ57qJBjPsbDw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=bhSk6d6j;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=DzHL3T70
+	bh=eRBGEURpGsQZvwqVZtDQ4XJM7h1z4ZC8YrrvTCFqxmw=;
+	b=3pvLQ4yedxRGWLa9EIEPJidt5sWRqQteN0D5+X9wN34CbwAqs9zn4kp7F2+pWog96DCFuh
+	7UShynnYN7M9UJCQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=MaQ0JND5;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=3pvLQ4ye
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782990276; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1782990998; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RM0VnXVk8zwqUTKTdqmIyIriscuAiRayUnMD17BOvjs=;
-	b=bhSk6d6jaJukAkLrM+k+465vPBcI9hqzsHCvCLWmQkUQSRCidrLbUQzozfIHUAifnIpyHH
-	F5rme4Pt5efSvrDUUGdxw+NgQtz0lcsoRb82lDT9zQZejRGWVNY2TphmghW1nTrZkSWz4v
-	UWI7ik0P5b1jidgqMj2IuXx2BOkP05k=
+	bh=eRBGEURpGsQZvwqVZtDQ4XJM7h1z4ZC8YrrvTCFqxmw=;
+	b=MaQ0JND5KWm4wpsJciLfkQvP3ai3tn4nmxHssSfFpsKDgKPYMo0CCpWKvNCaMeBjXitcJ3
+	ryZQphknx3FCsPabrXjnCA7E61K/L28Q+1mGAIXijYZw0KuJju507sLH6zDd+1GghLs0zF
+	8X9joVhTiON2oevqtL6uIb5F4wnvrBo=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782990276;
+	s=susede2_ed25519; t=1782990998;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RM0VnXVk8zwqUTKTdqmIyIriscuAiRayUnMD17BOvjs=;
-	b=DzHL3T70nLB6a6RbNb1r7Wrdb/fKTHMnmniCbTOBz/9Pu6d/JCPqV/khBXqqsiR77G0gN7
-	aSrbyy0yzOVqdaDQ==
+	bh=eRBGEURpGsQZvwqVZtDQ4XJM7h1z4ZC8YrrvTCFqxmw=;
+	b=3pvLQ4yedxRGWLa9EIEPJidt5sWRqQteN0D5+X9wN34CbwAqs9zn4kp7F2+pWog96DCFuh
+	7UShynnYN7M9UJCQ==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 516B0779AA;
-	Thu,  2 Jul 2026 11:04:32 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 13EB5779AA;
+	Thu,  2 Jul 2026 11:16:34 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id Q66hEMBFRmpLXQAAD6G6ig
-	(envelope-from <pfalcato@suse.de>); Thu, 02 Jul 2026 11:04:32 +0000
-Date: Thu, 2 Jul 2026 12:04:30 +0100
+	id fWCIAZJIRmp4aQAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Thu, 02 Jul 2026 11:16:34 +0000
+Date: Thu, 2 Jul 2026 12:16:32 +0100
 From: Pedro Falcato <pfalcato@suse.de>
 To: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -106,10 +106,10 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	iommu@lists.linux.dev, linux-perf-users@vger.kernel.org, 
 	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
 	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 19/30] mm: use linear_page_[index, delta]() consistently
-Message-ID: <akZFmt9uAmOBqs2z@pedro-suse.lan>
+Subject: Re: [PATCH 20/30] mm/vma: introduce vma_assert_can_modify()
+Message-ID: <akZHWwVgJfqCwA2W@pedro-suse.lan>
 References: <cover.1782735110.git.ljs@kernel.org>
- <bf56e2e98b512962a2fb88900d535a0e9e6769d8.1782735110.git.ljs@kernel.org>
+ <23c7602c58cacc23ef22618a27af9a2d54addf58.1782735110.git.ljs@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -118,25 +118,25 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <bf56e2e98b512962a2fb88900d535a0e9e6769d8.1782735110.git.ljs@kernel.org>
+In-Reply-To: <23c7602c58cacc23ef22618a27af9a2d54addf58.1782735110.git.ljs@kernel.org>
 X-Spam-Flag: NO
 X-Rspamd-Action: no action
 X-Spam-Level: 
 X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
+	BAYES_HAM(-3.00)[100.00%];
 	SUSPICIOUS_RECIPS(1.50)[];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	MIME_GOOD(-0.10)[text/plain];
 	MX_GOOD(-0.01)[];
 	FREEMAIL_ENVRCPT(0.00)[gmail.com,gmx.de];
 	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
 	TO_DN_SOME(0.00)[];
 	FREEMAIL_CC(0.00)[linux-foundation.org,armlinux.org.uk,kernel.org,siemens-energy.com,hansenpartnership.com,gmx.de,redhat.com,alien8.de,linux.intel.com,mev.co.uk,visionengravers.com,pengutronix.de,gmail.com,ffwll.ch,suse.de,oss.qualcomm.com,ideasonboard.com,nvidia.com,amd.com,shazbot.org,zeniv.linux.org.uk,linux.dev,google.com,infradead.org,samsung.com,goodmis.org,huawei.com,vger.kernel.org,lists.infradead.org,lists.freedesktop.org,lists.linux.dev,kvack.org,googlegroups.com,surriel.com];
 	MIME_TRACE(0.00)[0:+];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
 	ARC_NA(0.00)[];
 	RCVD_TLS_ALL(0.00)[];
 	R_RATELIMIT(0.00)[to_ip_from(RLziudqfrzo6b7hzgpxksh1d9i)];
@@ -152,22 +152,72 @@ X-Spamd-Result: default: False [-3.01 / 50.00];
 	RCPT_COUNT_GT_50(0.00)[75];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
 	TAGGED_RCPT(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[pedro-suse.lan:mid,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:email,suse.de:dkim]
+	DBL_BLOCKED_OPENRESOLVER(0.00)[pedro-suse.lan:mid,suse.de:dkim,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
 X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: AE93C74158
+X-Rspamd-Queue-Id: 7A215758C1
 X-Spam-Score: -3.01
 
-On Mon, Jun 29, 2026 at 01:23:30PM +0100, Lorenzo Stoakes wrote:
-> There are a number of places where we open code what linear_page_index()
-> and linear_page_delta() calculate.
+On Mon, Jun 29, 2026 at 01:23:31PM +0100, Lorenzo Stoakes wrote:
+> vma_assert_write_locked() and vma_assert_attached() are useful for their
+> own purposes, however VMA code absolutely does allow the modification of
+> non-write locked VMAs if they are at that point detached (i.e. unreachable
+> from anywhere).
 > 
-> Replace this code with the appropriate functions for consistency.
+> It's therefore useful to be able to assert that a VMA is either
+> detached (modification doesn't matter) or write locked (you're explicitly
+> locked for modification).
+
+Hmm, I was wondering why detached does not imply write_locked, and then
+realized that new VMAs aren't write-locked. Could we do it by default?
+Like a simple:
+
+	vma->vm_lock_seq = __vma_raw_mm_seqnum(vma);
+
+might do the trick. I don't see why it wouldn't work? Is there some other
+case I am not considering?
+
 > 
-> No functional change intended.
+> Therefore introduce vma_assert_can_modify() for this purpose.
+> 
+> While we're here, make vma_is_attached() available generally - if
+> !CONFIG_PER_VMA_LOCKS, then there's no sense in which a VMA is
+> detached (vma_mark_detached() is a noop), so have this default to true in
+> this case.
 > 
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-
-Reviewed-by: Pedro Falcato <pfalcato@suse.de> # mm
+> ---
+>  include/linux/mmap_lock.h | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/linux/mmap_lock.h b/include/linux/mmap_lock.h
+> index 04b8f61ece5d..d513286d8160 100644
+> --- a/include/linux/mmap_lock.h
+> +++ b/include/linux/mmap_lock.h
+> @@ -506,6 +506,8 @@ static inline __must_check
+>  int vma_start_write_killable(struct vm_area_struct *vma) { return 0; }
+>  static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+>  		{ mmap_assert_write_locked(vma->vm_mm); }
+> +static inline bool vma_is_attached(struct vm_area_struct *vma)
+> +		{ return true; }
+>  static inline void vma_assert_attached(struct vm_area_struct *vma) {}
+>  static inline void vma_assert_detached(struct vm_area_struct *vma) {}
+>  static inline void vma_mark_attached(struct vm_area_struct *vma) {}
+> @@ -530,6 +532,12 @@ static inline void vma_assert_stabilised(struct vm_area_struct *vma)
+>  
+>  #endif /* CONFIG_PER_VMA_LOCK */
+>  
+> +static inline void vma_assert_can_modify(struct vm_area_struct *vma)
+> +{
+> +	if (vma_is_attached(vma))
+> +		vma_assert_write_locked(vma);
+> +}
+> +
+>  static inline void mmap_write_lock(struct mm_struct *mm)
+>  {
+>  	__mmap_lock_trace_start_locking(mm, true);
+> -- 
+> 2.54.0
+> 
 
 -- 
 Pedro
