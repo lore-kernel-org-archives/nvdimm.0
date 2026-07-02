@@ -1,76 +1,75 @@
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36F323C5DDE
-	for <nvdimm@lists.linux.dev>; Thu,  2 Jul 2026 11:34:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 369C5477983
+	for <nvdimm@lists.linux.dev>; Thu,  2 Jul 2026 11:40:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782992085; cv=none; b=SyGgOVK0sSEYVPmzWjTLh6w6jevc2pUwcbt6UZGarm2sdiH053gDso4lKsjRK+9xXxtIfX/yjBiNb4ScqtdsZFdNaICJ6Y9rBTvQmycMb1liQ7IhdsAJnuY3R8BkG+VERr6Wc9cl2JQ74Ea2pOZ50oBn4jivMdbiIygVcB2QNKY=
+	t=1782992441; cv=none; b=pGO/Rn6o3rHo+zZzKnYgFqcIlCj8oXaOmJgB4DgOUK+qlvxhb62sJVeGTxiFh9gHKqnWbHhDzgOfRqZS2hjZtN9HkbZLVRAPt7wI7eI0jsLLfjAU+qH+30ZRWCsz5SfXUCSwGJxaj7+7qQHyLjunJG5rI4aR48blKfV+p3Vkf+8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782992085; c=relaxed/simple;
-	bh=s4c7HGHg10IZgJbaBFoJDE879Q003AvuYe65lbFnYOc=;
+	s=arc-20240116; t=1782992441; c=relaxed/simple;
+	bh=/KU+qwds20JhaSAHS/0qK/0mpH1n/3CgmSllPI3f0zw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Nx+Tn/cBlCg6I/fsYccSBLmOYsU6JsRZzepAI8I7oWwDSASpUxPWxthPfUgJXzZWHGoAwYg+kByV8/P6AkWFSFIHHxfZClsQ1GfrB6TAUcXRfEdccRr9c2LoV0x1l9binRknnYi2weuOB17MUFgtG6mT+qP7yP6Jz0ULUaEyVGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QkixiwcQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=YzyGmFr2; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QkixiwcQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=YzyGmFr2; arc=none smtp.client-ip=195.135.223.130
+	 Content-Type:Content-Disposition:In-Reply-To; b=LTL4fgjb6nxiYJdp21B0C2G8jkJV+OHmNn6x8xYQHtxPZ8BVy6G+nWhh+JrFR1mRDOuGEfvLR6KS1Xf9pw4rIUpGtHwTKhuzw2Y7a2e7mrUY/xJ6PT4PaITIFgwAbBDiP57DJT9x69XVGbhT0Y+NURXfkERcUNwCPvj2wH2FJr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Zh8gMbcs; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vtJW1UBj; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Zh8gMbcs; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vtJW1UBj; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QkixiwcQ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="YzyGmFr2";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QkixiwcQ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="YzyGmFr2"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Zh8gMbcs";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vtJW1UBj";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Zh8gMbcs";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vtJW1UBj"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 23E7F7418C;
-	Thu,  2 Jul 2026 11:34:41 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 8C7767418D;
+	Thu,  2 Jul 2026 11:40:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782992081; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1782992436; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ClNmUuQuIUtV2oYynV1uXLdnvzRwJzjxAH5GjeJA0DQ=;
-	b=QkixiwcQq5XE9BbWXd9CBVkYG5x6MKRARF1gNY9Zwzrz+1rmHtxMbr9wNznUEZgGvRyyjZ
-	Yp+S9mRTnTcGafHNLpwCTGPuCN6KsvU4RLIiia+gJ64lhWBqWAfq4OcHOK6Ke7uOy/vLPW
-	jR4AYPsMXqnB41y8v7Qsh1yXSyj5J9Y=
+	bh=cYFKxI5JULp8gb+ekuRNTWlzvX21cjaKiqCcXlOBcMI=;
+	b=Zh8gMbcsGVZsWYcj7s6NxFpfr5kyL+dCesoL+NYZ+EODYF9IH6Hd/X0L9JWcLlDuAVVzRD
+	lkFU6fooAwjkvyipCSd6pYrI7ul5JbqcH2WSEGXi2kMhtzt1GEarB+i/bLdIQKj10vBGbz
+	EhZtRvw0lzIZvhvJ2rPwW99GAu7sGKs=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782992081;
+	s=susede2_ed25519; t=1782992436;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ClNmUuQuIUtV2oYynV1uXLdnvzRwJzjxAH5GjeJA0DQ=;
-	b=YzyGmFr2XEMVV5bemqks875L+zTFj1gKtAt32vky2XkMchKjR0F2KAMIpWA8SL4R+MSVsf
-	gTeTbjr/BoLvW0AA==
+	bh=cYFKxI5JULp8gb+ekuRNTWlzvX21cjaKiqCcXlOBcMI=;
+	b=vtJW1UBjyxnbfNoeO2SWUq2seB26JDH9poeuyJMl+C0R4u0Xqidess1m7AhGShw5crqNPY
+	FyMzXeg34AXEWFBA==
 Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=QkixiwcQ;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=YzyGmFr2
+	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782992081; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1782992436; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ClNmUuQuIUtV2oYynV1uXLdnvzRwJzjxAH5GjeJA0DQ=;
-	b=QkixiwcQq5XE9BbWXd9CBVkYG5x6MKRARF1gNY9Zwzrz+1rmHtxMbr9wNznUEZgGvRyyjZ
-	Yp+S9mRTnTcGafHNLpwCTGPuCN6KsvU4RLIiia+gJ64lhWBqWAfq4OcHOK6Ke7uOy/vLPW
-	jR4AYPsMXqnB41y8v7Qsh1yXSyj5J9Y=
+	bh=cYFKxI5JULp8gb+ekuRNTWlzvX21cjaKiqCcXlOBcMI=;
+	b=Zh8gMbcsGVZsWYcj7s6NxFpfr5kyL+dCesoL+NYZ+EODYF9IH6Hd/X0L9JWcLlDuAVVzRD
+	lkFU6fooAwjkvyipCSd6pYrI7ul5JbqcH2WSEGXi2kMhtzt1GEarB+i/bLdIQKj10vBGbz
+	EhZtRvw0lzIZvhvJ2rPwW99GAu7sGKs=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782992081;
+	s=susede2_ed25519; t=1782992436;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ClNmUuQuIUtV2oYynV1uXLdnvzRwJzjxAH5GjeJA0DQ=;
-	b=YzyGmFr2XEMVV5bemqks875L+zTFj1gKtAt32vky2XkMchKjR0F2KAMIpWA8SL4R+MSVsf
-	gTeTbjr/BoLvW0AA==
+	bh=cYFKxI5JULp8gb+ekuRNTWlzvX21cjaKiqCcXlOBcMI=;
+	b=vtJW1UBjyxnbfNoeO2SWUq2seB26JDH9poeuyJMl+C0R4u0Xqidess1m7AhGShw5crqNPY
+	FyMzXeg34AXEWFBA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 90CDF779AA;
-	Thu,  2 Jul 2026 11:34:36 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 16BA4779AA;
+	Thu,  2 Jul 2026 11:40:32 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id XGYaIMxMRmquewAAD6G6ig
-	(envelope-from <pfalcato@suse.de>); Thu, 02 Jul 2026 11:34:36 +0000
-Date: Thu, 2 Jul 2026 12:34:34 +0100
+	id 1gA3AjBORmrpAgAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Thu, 02 Jul 2026 11:40:32 +0000
+Date: Thu, 2 Jul 2026 12:40:30 +0100
 From: Pedro Falcato <pfalcato@suse.de>
 To: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -106,10 +105,10 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	iommu@lists.linux.dev, linux-perf-users@vger.kernel.org, 
 	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
 	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 26/30] mm/vma: introduce and use vma_set_pgoff()
-Message-ID: <akZMjKU706p9ulBq@pedro-suse.lan>
+Subject: Re: [PATCH 27/30] mm/vma: correct incorrect vma.h inclusion
+Message-ID: <akZNiN5Y9fPk8bZH@pedro-suse.lan>
 References: <cover.1782735110.git.ljs@kernel.org>
- <37f4d951897641f304dba26f6f91ade03a50eb01.1782735110.git.ljs@kernel.org>
+ <22d0f4e3fe11f6fd1312734e242d008267ad142c.1782735110.git.ljs@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -118,77 +117,193 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <37f4d951897641f304dba26f6f91ade03a50eb01.1782735110.git.ljs@kernel.org>
-X-Rspamd-Action: no action
-X-Rspamd-Queue-Id: 23E7F7418C
+In-Reply-To: <22d0f4e3fe11f6fd1312734e242d008267ad142c.1782735110.git.ljs@kernel.org>
 X-Spam-Flag: NO
-X-Spam-Score: -3.01
-X-Spam-Level: 
-X-Spamd-Result: default: False [-3.01 / 50.00];
+X-Spamd-Result: default: False [-2.80 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	SUSPICIOUS_RECIPS(1.50)[];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com,gmx.de];
+	FREEMAIL_CC(0.00)[linux-foundation.org,armlinux.org.uk,kernel.org,siemens-energy.com,hansenpartnership.com,gmx.de,redhat.com,alien8.de,linux.intel.com,mev.co.uk,visionengravers.com,pengutronix.de,gmail.com,ffwll.ch,suse.de,oss.qualcomm.com,ideasonboard.com,nvidia.com,amd.com,shazbot.org,zeniv.linux.org.uk,linux.dev,google.com,infradead.org,samsung.com,goodmis.org,huawei.com,vger.kernel.org,lists.infradead.org,lists.freedesktop.org,lists.linux.dev,kvack.org,googlegroups.com,surriel.com];
 	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	TO_DN_SOME(0.00)[];
-	FREEMAIL_CC(0.00)[linux-foundation.org,armlinux.org.uk,kernel.org,siemens-energy.com,hansenpartnership.com,gmx.de,redhat.com,alien8.de,linux.intel.com,mev.co.uk,visionengravers.com,pengutronix.de,gmail.com,ffwll.ch,suse.de,oss.qualcomm.com,ideasonboard.com,nvidia.com,amd.com,shazbot.org,zeniv.linux.org.uk,linux.dev,google.com,infradead.org,samsung.com,goodmis.org,huawei.com,vger.kernel.org,lists.infradead.org,lists.freedesktop.org,lists.linux.dev,kvack.org,googlegroups.com,surriel.com];
-	MIME_TRACE(0.00)[0:+];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
 	RCVD_TLS_ALL(0.00)[];
-	R_RATELIMIT(0.00)[to_ip_from(RLziudqfrzo6b7hzgpxksh1d9i)];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	R_RATELIMIT(0.00)[to_ip_from(RL3mhzhn45zpqpmgqn4z7synfm)];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com,gmx.de];
+	MISSING_XM_UA(0.00)[];
 	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
 	FROM_EQ_ENVFROM(0.00)[];
 	FROM_HAS_DN(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received,2a07:de40:b281:104:10:150:64:97:from];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MISSING_XM_UA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	TAGGED_RCPT(0.00)[];
 	RCPT_COUNT_GT_50(0.00)[75];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TAGGED_RCPT(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:dkim,pedro-suse.lan:mid]
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,pedro-suse.lan:mid]
+X-Spam-Level: 
+X-Spam-Score: -2.80
 
-On Mon, Jun 29, 2026 at 01:23:37PM +0100, Lorenzo Stoakes wrote:
-> In order to lay the foundation for work that permits us to track the
-> virtual page offset of MAP_PRIVATE file-backed mappings, we abstract the
-> assignment of vma->vm_pgoff to vma_set_pgoff().
+On Mon, Jun 29, 2026 at 01:23:38PM +0100, Lorenzo Stoakes wrote:
+> The only files which should be including vma.h are the implementation files
+> for the core VMA logic - vma.c, vma_init.c, and vma_exec.c.
 > 
-> We additionally add a lock check here using the newly introduced
-> vma_assert_can_modify(). This asserts the VMA write lock if the VMA is
-> attached.
+> This is in order to allow for userland testing of core VMA logic. In this
+> cases, vma_internal.h and vma.h are included, providing both the
+> dependencies upon which the core VMA logic requires and its declarations.
 > 
-> We also assert that, if this is an anonymous VMA and unfaulted, that its
-> (virtual) page offset is equal to the page offset of the VMA's address.
+> Userland testable VMA logic is achieved by having separate vma_internal.h
+> implementations for userland and kernel.
 > 
-> In order to maintain correctness given this assert, we also update
-> __install_special_mapping() to invoke vma_set_range() after it's set
-> vma->vm_ops (which determine whether the VMA is anonymous or not).
+> Callers other than the core VMA implementation should include internal.h
+> instead. This header does not need to include vma_internal.h as it only
+> contains the vma.h declarations, for which the includes already present
+> suffice.
 > 
-> We do not use vma_set_pgoff() in vm_area_init_from(), as at the point of
-> forking, we don't necessarily have correct locking state.
+> Update code to reflect this, update comments to reflect the fact there are
+> 3 VMA implementation files and document things more clearly.
 > 
-> Updating vma_set_range() covers most cases, but in addition to this we also
-> update insert_vm_struct(), compat_set_vma_from_desc() and nommu callers.
-> 
-> We also update vma_add_pgoff() and vma_sub_pgoff() to use vma_set_pgoff().
-> 
-> While we're here, we drop a BUG_ON() and update insert_vm_struct()'s
-> comment to reflect the fact anonymous mappings can be added here.
+> While we're here, slightly improve the language of the comment describing
+> vma_exec.c.
+
+Two random thoughts:
+1) perhaps vma.h -> vma_private.h
+2) https://lore.kernel.org/all/CAHk-=wghMm2c+AYEcwYY7drSVXB27DYqc-ZXpFiq=XFs-w59wA@mail.gmail.com/
+   mm/vma/whatever.c :) would PROBABLY solve the issue of people snooping vma.h
+
 > 
 > No functional change intended.
 > 
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
-Reviewed-by: Pedro Falcato <pfalcato@suse.de> 
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+
+> ---
+>  mm/mmu_notifier.c | 2 +-
+>  mm/nommu.c        | 1 -
+>  mm/vma.c          | 4 ++++
+>  mm/vma.h          | 9 ++++++++-
+>  mm/vma_exec.c     | 8 ++++++--
+>  mm/vma_init.c     | 4 ++++
+>  mm/vma_internal.h | 4 ++--
+>  7 files changed, 25 insertions(+), 7 deletions(-)
+> 
+> diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
+> index 245b74f39f91..df69ba6e797f 100644
+> --- a/mm/mmu_notifier.c
+> +++ b/mm/mmu_notifier.c
+> @@ -19,7 +19,7 @@
+>  #include <linux/sched/mm.h>
+>  #include <linux/slab.h>
+>  
+> -#include "vma.h"
+> +#include "internal.h"
+>  
+>  /* global SRCU for all MMs */
+>  DEFINE_STATIC_SRCU(srcu);
+> diff --git a/mm/nommu.c b/mm/nommu.c
+> index ba1c923c0942..4fef6fbbd6e9 100644
+> --- a/mm/nommu.c
+> +++ b/mm/nommu.c
+> @@ -41,7 +41,6 @@
+>  #include <asm/tlbflush.h>
+>  #include <asm/mmu_context.h>
+>  #include "internal.h"
+> -#include "vma.h"
+>  
+>  unsigned long highest_memmap_pfn;
+>  int heap_stack_gap = 0;
+> diff --git a/mm/vma.c b/mm/vma.c
+> index d727150e377a..5c3062e0e706 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -4,6 +4,10 @@
+>   * VMA-specific functions.
+>   */
+>  
+> +/*
+> + * To allow for userland testing we place internal dependencies in
+> + * vma_internal.h and external VMA API declarations in vma.h.
+> + */
+>  #include "vma_internal.h"
+>  #include "vma.h"
+>  
+> diff --git a/mm/vma.h b/mm/vma.h
+> index 155eadda47aa..f4f885615a92 100644
+> --- a/mm/vma.h
+> +++ b/mm/vma.h
+> @@ -2,7 +2,14 @@
+>  /*
+>   * vma.h
+>   *
+> - * Core VMA manipulation API implemented in vma.c.
+> + * Core VMA manipulation API implemented in vma.c, vma_init.c and vma_exec.c.
+> + *
+> + * Note that, in order for VMA logic to be userland testable, this header
+> + * intentionally includes no dependencies.
+> + *
+> + * This is specifically scoped to mm-only. Users of this functionality (other
+> + * than the core VMA implementation itself) should not include this header
+> + * directly, but rather include internal.h.
+>   */
+>  #ifndef __MM_VMA_H
+>  #define __MM_VMA_H
+> diff --git a/mm/vma_exec.c b/mm/vma_exec.c
+> index 0107a6e3918c..c0f7ba2cfb27 100644
+> --- a/mm/vma_exec.c
+> +++ b/mm/vma_exec.c
+> @@ -1,10 +1,14 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+>  
+>  /*
+> - * Functions explicitly implemented for exec functionality which however are
+> - * explicitly VMA-only logic.
+> + * Functions provided for exec functionality which however are
+> + * specifically VMA-only logic.
+>   */
+>  
+> +/*
+> + * To allow for userland testing we place internal dependencies in
+> + * vma_internal.h and external VMA API declarations in vma.h.
+> + */
+>  #include "vma_internal.h"
+>  #include "vma.h"
+>  
+> diff --git a/mm/vma_init.c b/mm/vma_init.c
+> index a459669a1654..715feee283f0 100644
+> --- a/mm/vma_init.c
+> +++ b/mm/vma_init.c
+> @@ -5,6 +5,10 @@
+>   * between CONFIG_MMU and non-CONFIG_MMU kernel configurations.
+>   */
+>  
+> +/*
+> + * To allow for userland testing we place internal dependencies in
+> + * vma_internal.h and external VMA API declarations in vma.h.
+> + */
+>  #include "vma_internal.h"
+>  #include "vma.h"
+>  
+> diff --git a/mm/vma_internal.h b/mm/vma_internal.h
+> index 2da6d224c1a8..4d300e7bbaf4 100644
+> --- a/mm/vma_internal.h
+> +++ b/mm/vma_internal.h
+> @@ -2,8 +2,8 @@
+>  /*
+>   * vma_internal.h
+>   *
+> - * Headers required by vma.c, which can be substituted accordingly when testing
+> - * VMA functionality.
+> + * Headers required by vma.c, vma_init.c and vma_exec.c, which can be
+> + * substituted accordingly when testing VMA functionality.
+>   */
+>  
+>  #ifndef __MM_VMA_INTERNAL_H
+> -- 
+> 2.54.0
+> 
 
 -- 
 Pedro
