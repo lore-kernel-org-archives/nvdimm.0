@@ -1,158 +1,238 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E868A533D6
-	for <nvdimm@lists.linux.dev>; Thu,  2 Jul 2026 00:34:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70ACB3A4F5F
+	for <nvdimm@lists.linux.dev>; Thu,  2 Jul 2026 10:37:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782952457; cv=none; b=YrA3IksRJNaNqu9HizXwroFcBNSyTQ2sqwSUwS7EZXuyCqagDQ2GhshTYTJN7W2PII4J7EwD+fYiFYQH0gxa3gZCCz/siqzYhi+WfYB2YNu8oQp0dR9W7KA2gGYed81GtC+4jM27jM4ui2hP/UTx2Zrz9nZE/+Xaest6WnI4UrI=
+	t=1782988645; cv=none; b=hmX0qg9Z7GxEHyYHwfxMVo+fSRFialJ+/SJOYhxlukJY38UWI4Yz9aF4/uALXoW6dudjUiBXZgPNHDQjlQWqN8vYAUI/l4M8qVhzwbM7C7qF1Pi8nALHzm9IifUujomILIkSmSdq2Uj7sV2D+Atx+gaLXt89Og587zUVzDs9QOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782952457; c=relaxed/simple;
-	bh=cQoIuTjVH1rKyL7jeC1wgN4OMYbRAxcrFCdl0o7/q2Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FZWvSNLl9/rwilPbbmYMmhXLpcJtYRIyKwILjpvZadh9/oElf/jgsU7esDmrJl/M9pgwbX7z7q1Di8gYit4zbpWDJJ9+AnuqG6wrWBwBiNSblJF4sEuKUPwhR2+TVchxUFTw9wR/2YoIAhuzkGWH4J/ve0TyBMK3cugATAqrdiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YT5fTBVI; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1782988645; c=relaxed/simple;
+	bh=+KQX16ped1r/1I89bM4qTRjZccy6cVbjtQ6QZbCT7VU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V6tSxo8eq0tjUCvLDfn6iqFkFkYZFvMAuxD/17LDeOncE73dcN7OKw11v+bilDij6OqkgqaUVWoipg2WYzqDBdK5xAIxk1+bU/I1BVmrTasT4u6/kSp1xskUxxoAYkCgkAfwb829x8ahJUsoq/XCbgkIIiMW564glRVxgxCmWEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=kE2mS3r+; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=D+60qnzp; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=oONF3XqM; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=0UKXLPaB; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YT5fTBVI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1782952456; x=1814488456;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=cQoIuTjVH1rKyL7jeC1wgN4OMYbRAxcrFCdl0o7/q2Y=;
-  b=YT5fTBVIlRt8qYJ6SDL402fTa2THsZCBqf2yMoviD2I4VG8AVCj6kq95
-   oPbPwimiQgnzbAsSgjCHU4jIxckY57eGF35AuF4WZN1M84iv7gAqYdECx
-   OqZCCOBRmQRQItp6ndkQf+HzE1NuafEvgZZyYcvOCfEKkCoJ+IAXmEHaE
-   GR+8vPRbku0zI9xDVegn46P5GezIy8f8VCwqin+AgxPZJmr/L1uinVr2Y
-   LYhMDN9am/pA8omFW7dan4J2trPgTGiRzOcKRmWy+6lDNDreeqjQo7JWE
-   E1uCYAmwzit2o3nW4RLz3NNacBBKt6+X9v/LSfpUrnzsuD/Z+h6ERFiCn
-   Q==;
-X-CSE-ConnectionGUID: GY/lMz4KTVO8l0GlDhK7pQ==
-X-CSE-MsgGUID: wnn2rRE4Toi2I2E29bUfuA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11834"; a="82811334"
-X-IronPort-AV: E=Sophos;i="6.25,142,1779174000"; 
-   d="scan'208";a="82811334"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2026 17:34:15 -0700
-X-CSE-ConnectionGUID: KWQjPiGOS6WmEeFkIojHkg==
-X-CSE-MsgGUID: VzbIZQlZTyu/y7aAs+XBqg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,142,1779174000"; 
-   d="scan'208";a="246355529"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.139])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2026 17:34:15 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH] test/cxl-security.sh: test dimm unlock with a large serial number
-Date: Wed,  1 Jul 2026 17:34:03 -0700
-Message-ID: <20260702003407.1611731-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="kE2mS3r+";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="D+60qnzp";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="oONF3XqM";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="0UKXLPaB"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 1F52D74140;
+	Thu,  2 Jul 2026 10:37:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1782988638; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+xpjuJ3xq8ZwM9C98H0+/B2HgccrB/M755Ut4TioEwI=;
+	b=kE2mS3r+s4uFAeeC60ChSDS9r2CTWPRmIt8qJ2SdMFCaSWpD42G4wOSiES4ZIlc4diBJzm
+	vs2deGla5IsTZbrZnzl064PvBzwLFLZhsuJVp4Vmh2C1zjs/3DIiNaZuGvoH/vYMtynx6R
+	mtZl7IZAiX4dJf/QBtjMLi10Se/cJUA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1782988638;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+xpjuJ3xq8ZwM9C98H0+/B2HgccrB/M755Ut4TioEwI=;
+	b=D+60qnzp/BfT9fuN5kcly9Qm0cXvD8ADgrHEOIFBaXQPYPNp5xSr5/SG94H9lHVgKEIKBG
+	SFX6rV9ZUxdbSUCw==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1782988637; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+xpjuJ3xq8ZwM9C98H0+/B2HgccrB/M755Ut4TioEwI=;
+	b=oONF3XqMMWJrykAtsu6pwaL2/kpEuxV9bCWy9bwB7V6/R2x+egjgfTgOLGAINpL/V2WiJS
+	A7tamtfaDyyraOw6tMc1hzICxYOm3EE6OJzs+0kJ0cpcpfXNJcWKrc6mCg5qeCi3ByW7Lk
+	blVKNlpa44SZeQTdHBLszXOFxxxAmfs=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1782988637;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+xpjuJ3xq8ZwM9C98H0+/B2HgccrB/M755Ut4TioEwI=;
+	b=0UKXLPaBvpl4WYpis3D8Wt3jNFduWCDpcaSjWCCuLmFuWe+TD49vvHiAYk97AAjiw7TqoI
+	Ny5pfTmgmhZqSpAQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B9471779AA;
+	Thu,  2 Jul 2026 10:37:12 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id cEPIKVg/RmrfQQAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Thu, 02 Jul 2026 10:37:12 +0000
+Date: Thu, 2 Jul 2026 11:37:11 +0100
+From: Pedro Falcato <pfalcato@suse.de>
+To: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	Russell King <linux@armlinux.org.uk>, Dinh Nguyen <dinguyen@kernel.org>, 
+	Simon Schuster <schuster.simon@siemens-energy.com>, 
+	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Jarkko Sakkinen <jarkko@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Ian Abbott <abbotti@mev.co.uk>, 
+	H Hartley Sweeten <hsweeten@visionengravers.com>, Lucas Stach <l.stach@pengutronix.de>, 
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
+	Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	Rob Clark <robin.clark@oss.qualcomm.com>, Dmitry Baryshkov <lumag@kernel.org>, 
+	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, Thierry Reding <thierry.reding@kernel.org>, 
+	Mikko Perttunen <mperttunen@nvidia.com>, Jonathan Hunter <jonathanh@nvidia.com>, 
+	Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>, Ankit Agrawal <ankita@nvidia.com>, 
+	Alex Williamson <alex@shazbot.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Dan Williams <djbw@kernel.org>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	David Hildenbrand <david@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	"Liam R . Howlett" <liam@infradead.org>, Matthew Wilcox <willy@infradead.org>, 
+	Marek Szyprowski <m.szyprowski@samsung.com>, Peter Zijlstra <peterz@infradead.org>, 
+	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Steven Rostedt <rostedt@goodmis.org>, SeongJae Park <sj@kernel.org>, Miaohe Lin <linmiaohe@huawei.com>, 
+	Hugh Dickins <hughd@google.com>, Mike Rapoport <rppt@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Paolo Bonzini <pbonzini@redhat.com>, linux-kernel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, linux-sgx@vger.kernel.org, 
+	etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, 
+	freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org, kvm@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org, 
+	iommu@lists.linux.dev, linux-perf-users@vger.kernel.org, 
+	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>
+Subject: Re: [PATCH 13/30] mm/vma: refactor vmg_adjust_set_range() for clarity
+Message-ID: <akY-Z1fsp9rHSc70@pedro-suse.lan>
+References: <cover.1782735110.git.ljs@kernel.org>
+ <ada7972f49ea7f1ff1df6d11e4651f270444f8fd.1782735110.git.ljs@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ada7972f49ea7f1ff1df6d11e4651f270444f8fd.1782735110.git.ljs@kernel.org>
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	TAGGED_RCPT(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MISSING_XM_UA(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com,gmx.de];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[linux-foundation.org,armlinux.org.uk,kernel.org,siemens-energy.com,hansenpartnership.com,gmx.de,redhat.com,alien8.de,linux.intel.com,mev.co.uk,visionengravers.com,pengutronix.de,gmail.com,ffwll.ch,suse.de,oss.qualcomm.com,ideasonboard.com,nvidia.com,amd.com,shazbot.org,zeniv.linux.org.uk,linux.dev,google.com,infradead.org,samsung.com,goodmis.org,huawei.com,vger.kernel.org,lists.infradead.org,lists.freedesktop.org,lists.linux.dev,kvack.org,googlegroups.com,surriel.com];
+	R_RATELIMIT(0.00)[to_ip_from(RL3mhzhn45zpqpmgqn4z7synfm)];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_TLS_ALL(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[75];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,pedro-suse.lan:mid,suse.de:email]
+X-Spam-Level: 
+X-Spam-Score: -2.80
 
-The existing CXL unlock test exposed the hexadecimal-vs-decimal key
-description mismatch once cxl_test mock serial numbers were extended
-to 10 and above. Serials with bit 63 set expose a second formatting
-problem in that the kernel formats the decimal serial as signed,
-rendering it as a negative value.
+On Mon, Jun 29, 2026 at 01:23:24PM +0100, Lorenzo Stoakes wrote:
+> Add comments with ASCII diagrams to describe what we're doing, avoid
+> dubious use of PHYS_PFN(), and use vma_start_pgoff().
+> 
+> The most complicated scenario represented here is vmg->__adjust_next_start
+> - when this is set, vmg->[start, end] actually indicate the range to be
+> retained, so take special care to describe this accurately.
+> 
+> No functional change intended.
+> 
+> Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+> ---
+>  mm/vma.c | 51 +++++++++++++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 47 insertions(+), 4 deletions(-)
+> 
+> diff --git a/mm/vma.c b/mm/vma.c
+> index 6296acecf3b7..1e99fe8aa6ef 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -704,11 +704,54 @@ static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+>  	pgoff_t pgoff;
+>  
+>  	if (vmg->__adjust_middle_start) {
+> -		adjust = vmg->middle;
+> -		pgoff = adjust->vm_pgoff + PHYS_PFN(vmg->end - adjust->vm_start);
+> +		/*
+> +		 * vmg->start    vmg->end
+> +		 * |             |
+> +		 * v    merge    v
+> +		 * <------------->
+> +		 *         delta
+> +		 *        <------>
+> +		 * |------|----------------|
+> +		 * | prev |    middle      |
+> +		 * |------|----------------|
+> +		 *        ^
+> +		 *        |
+> +		 *        middle->vm_start
+> +		 */
+> +		struct vm_area_struct *middle = vmg->middle;
 
-Extend the existing "unlock dimm" test to repeat the unlock against a
-mock memdev with a full-width serial that has bit 63 set. Refactor the
-common unlock sequence into an unlock_dimm() helper so the signedness
-case follows the same test flow as the original key lookup case.
+FWIW this can be simplified to
+		adjust = middle;
+		const unsigned long delta = vmg->end - adjust->vm_start;
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- test/cxl-security | 24 ++++++++++++++++++++++++
- test/security.sh  | 16 ++++++++++++++--
- 2 files changed, 38 insertions(+), 2 deletions(-)
+But I guess you're looking for explicitness here?
 
-diff --git a/test/cxl-security b/test/cxl-security
-index 9a28ffd82b0b..39b7e001ce08 100644
---- a/test/cxl-security
-+++ b/test/cxl-security
-@@ -9,6 +9,30 @@ detect()
- 	[ -n "$id" ] || err "$LINENO"
- }
- 
-+# Select the mock memdev whose serial has bit 63 set. Match on the hex
-+# spelling of 'id' because the value exceeds signed 64-bit shell arithmetic.
-+# A 16-digit hex value with a leading nibble of 8-f has bit 63 set.
-+detect_big_serial()
-+{
-+	local d i hex
-+
-+	dev=""
-+	for d in $($NDCTL list -b "$CXL_TEST_BUS" -D | jq -r '.[].dev'); do
-+		i="$($NDCTL list -b "$CXL_TEST_BUS" -D -d "$d" | \
-+			jq -r '.[0].id')"
-+		hex="$(printf '%x' "$i" 2>/dev/null)" || continue
-+		case "${#hex}:${hex:0:1}" in
-+		16:[89a-fA-F])
-+			dev="$d"
-+			id="$i"
-+			break
-+			;;
-+		esac
-+	done
-+
-+	[ -n "$dev" ] || err "$LINENO: no serial with bit 63 set found"
-+}
-+
- lock_dimm()
- {
- 	$NDCTL disable-dimm "$dev"
-diff --git a/test/security.sh b/test/security.sh
-index d3a840c23276..72bb570142ed 100755
---- a/test/security.sh
-+++ b/test/security.sh
-@@ -144,7 +144,7 @@ test_3_security_setup_and_erase()
- 	erase_security
- }
- 
--test_4_security_unlock()
-+unlock_dimm()
- {
- 	setup_passphrase
- 	lock_dimm
-@@ -158,6 +158,18 @@ test_4_security_unlock()
- 	remove_passphrase
- }
- 
-+test_4_security_unlock()
-+{
-+	unlock_dimm
-+
-+	if [ "$1" = "cxl" ] && check_min_kver "7.3"; then
-+		detect_big_serial
-+		unlock_dimm
-+		# Restore the default device selection for later tests.
-+		detect
-+	fi
-+}
-+
- # This should always be the last nvdimm security test.
- # with security frozen, nfit_test must be removed and is no longer usable
- test_5_security_freeze()
-@@ -241,7 +253,7 @@ test_2_security_setup_and_update
- echo "Test 3, security setup and erase"
- test_3_security_setup_and_erase
- echo "Test 4, unlock dimm"
--test_4_security_unlock
-+test_4_security_unlock "$1"
- 
- # Freeze should always be the last nvdimm security test because it locks
- # security state and require nfit_test module unload. However, this does
+> +		const unsigned long delta = vmg->end - middle->vm_start;
+> +
+> +		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
+> +		adjust = middle;
+>  	} else if (vmg->__adjust_next_start) {
+> -		adjust = vmg->next;
+> -		pgoff = adjust->vm_pgoff - PHYS_PFN(adjust->vm_start - vmg->end);
+> +		/*
+> +		 *                Originally:
+> +		 *
+> +		 *            vmg->start   vmg->end
+> +		 *            |            |
+> +		 *            v    merge   v
+> +		 *            <------------>
+> +		 *            .            .
+> +		 * merge_existing_range() updates to:
+> +		 *            .            .
+> +		 * vmg->start vmg->end     .
+> +		 * |          |            .
+> +		 * v  retain  v            .
+> +		 * <---------->            .
+> +		 *             delta       .
+> +		 *            <----->      .
+> +		 * |----------------|------|
+> +		 * |    middle      | next |
+> +		 * |----------------|------|
+> +		 *                  ^
+> +		 *                  |
+> +		 *                  next->vm_start
+> +		 */
+> +		struct vm_area_struct *next = vmg->next;
+> +		const unsigned long delta = next->vm_start - vmg->end;
+> +
+> +		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
+> +		adjust = next;
+>  	} else {
+>  		return;
+>  	}
 
-base-commit: 5fcbbee57319e718bf522436ea6595bd0f71296c
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+
 -- 
-2.37.3
-
+Pedro
