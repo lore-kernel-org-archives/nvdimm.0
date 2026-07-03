@@ -1,107 +1,126 @@
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AE013D093E
-	for <nvdimm@lists.linux.dev>; Fri,  3 Jul 2026 13:55:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E1ED3D25C2
+	for <nvdimm@lists.linux.dev>; Fri,  3 Jul 2026 14:06:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783086955; cv=none; b=F2saRyDOW+8pAI5BP41V4mdEgDkSyzXKIhxOccTxZ1VmwWBbBMvtEOPB/8owEPBWXg9UqXFhdtDI2JSpyulKJXHm1fWxtKhf1sniuXouclrPeCOiBoQxqLqgpQj3qyu9tsTc8YRQu3CTx0Y4EXllf1HjYhN+oWxbUOlRWBrvmvg=
+	t=1783087579; cv=none; b=t3fHznhREZCxdrrV7N3Vt27mQb1Mne7fnhTjCBRwudalQIGqVxjOUhbm03PAwxEdTrWwUKqmUYpv0caCRi2jJS3vU0WKMPRf5ynV9xW7y93n85N5BfJRUuehhNGrGa14dqAr7ucmpMXXtQ7Z17YniB54oCp1HOvW9mYgu/noLhg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783086955; c=relaxed/simple;
-	bh=c7QoemBplk762Mqi9bT4cCZDXxBt2XV+uhwPlOpiVgM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MpKDMYZiuNhAtncM63GQEU8/LD1nAT+dvjlHmDiYyS+JV41JgXUw92oRwZQw1V0U8bk0s7RsCp5/kKrlANVofBBlrP618squweqdt6wM1SpLpjFAmyKCHzrYJJk+rWyMEXlhoZ8ETrpcRRCZmHW1bHf6nXAyLd6NwWE86EoVnCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rTg9HJ+S; arc=none smtp.client-ip=209.85.216.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1783087579; c=relaxed/simple;
+	bh=wyqNjMaqnyGnSB8z7l+zYYA5NUJWruTBqnor+x4r1qU=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=FT+FvT8rq1WFMRTKjzTxb/OAwWg3TWZ0bipYnAm/2rMPoVjRAAfRuWSzFTx51vmeThsuvuQPKqj3q2TT1Lnz/ppMe2Z17x2G+19NTSmAwehx+5ghbdafkM79/hU0nfm8DU8uXWFNYT3oo/rmyUmDbf6M5WxtScMz8EhICJqy/iY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JhNX0kyC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rTg9HJ+S"
-Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-37fdee9276fso702499a91.3
-        for <nvdimm@lists.linux.dev>; Fri, 03 Jul 2026 06:55:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783086953; x=1783691753; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=BJMENLToTUHqriCNJNskYp7DzZMWsbfXaZUpesqSU/U=;
-        b=rTg9HJ+ST5nhu24ODEeMMe7ZdJWih2SklcuIrMBF1AGC9EVpjDnKaOJsAJt7LHKgQc
-         5At3NNc0BlmPZKzCFcMHNp13/P3y1AnDWsyA+ZD1vg5KHTu474x8YGZ1TXwqt5Wl7wO7
-         NmOtdzHxQCAj7LvOqF3JBVZvRytmwofw7QCEUg+Z28rmau7juUwN3W5AjiMu3HaXvi8D
-         JJv323Yvmdi9RDTfNuILNfhncR1/06IT8lx/RJ7nxZZcAzEXp48eNR5Hugkh1kq7VHsm
-         JLbU4KgE7WyED5uFHbFoSC2z2QpIlWJbz5In3zxnUsz2BtrfZA8cwFsIAcWe9AWwScxe
-         Yelg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783086953; x=1783691753;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=BJMENLToTUHqriCNJNskYp7DzZMWsbfXaZUpesqSU/U=;
-        b=ZRxP1gkhzQzUbF3H0CbhxPD7huvUacKq4x+FZBLh6CG4YivyuvJzShw49g4PpngE0D
-         kyW9V/c8gn/DxLgIWNeg6B84JzJyNB/t5Zj/ldo24ZWEI2ycVldh/9i2iQNqiwNl2wj5
-         mRACIJGloPyZMyGwNhLL55AadirdWDkEaxPI+J16Ivsn7M/ao0HQs4kE3mOK+KQaqWPI
-         soE55qT+03ymdzfRpGjZO53lSAoWY2n+PTvRL1PHJoFMmG4IOrG9IcTyGM1vpiQY1MqP
-         rb4HHj3x0FblI+58ZoXuubimlBTUB7KkMpifuZqEsm1AVEYKbWmrgRGqHxYdHlL/tsLX
-         aIBA==
-X-Gm-Message-State: AOJu0YwO6+e8J6bYcaQlwZPXJmJJov3/PXhhE0Ar5/C0e89XbS0ugA37
-	XDtJBeL0Ng7ommrHofsTXXOZdG0erCoG4MAKjkrekLz+1Y16OUiTa9v/
-X-Gm-Gg: AfdE7ckwcFAaQ/CPsHsf2JYZ4etaAZCv+iA34h98EZfZyOkI0sa85j4Cw80PHS0wXnl
-	cGuyweS2VHw8T7aFfShTn+I6Y6k01dWug2jQj3OJzqWJWTIP4jxZzDfo6iJUsiqWmsOmFg4SuDa
-	umL4/L4rZaPla5hlzuPfkFukTK4CkpH7kh0mxphBYh0SFIff+6284zbYTIRxU1MWTqfqV8QWgKg
-	3L8beJiQLFOX69dEYTiAhFCc+sSvDaBRvLgwGt/kYskQwZYjPzd+vvZBULV2kBUjs16Xxx4F1pK
-	3cFlNC2Qzj8/oKaQSHIoWYZTQ755lshrOB+RmUpbRupF/Af13o7D9rlZQkLS/Uhgp3d+0DDJ6sN
-	cnuFc6dWEzqfLmgo9GjsEoGS4IFhzowjLd+Bgfpyx2JXwtN6UT+XdCW86/UXn8CBmUTQh3kjx9J
-	WH1hhd0e3DHw==
-X-Received: by 2002:a17:90a:e7cd:b0:37f:133a:3e02 with SMTP id 98e67ed59e1d1-380ba74883fmr10291045a91.0.1783086953150;
-        Fri, 03 Jul 2026 06:55:53 -0700 (PDT)
-Received: from ubuntu.. ([2405:201:8026:213e:4288:f1d2:acae:80f])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30f0bb80f5csm30995649eec.15.2026.07.03.06.55.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 03 Jul 2026 06:55:52 -0700 (PDT)
-From: mdshahid03@gmail.com
-To: Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <iweiny@kernel.org>
-Cc: nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Mohammad Shahid <mdshahid03@gmail.com>
-Subject: [PATCH] nvdimm: ndtest: remove redundant NULL check before vfree()
-Date: Fri,  3 Jul 2026 19:25:13 +0530
-Message-ID: <20260703135513.75840-1-mdshahid03@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JhNX0kyC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 103981F000E9;
+	Fri,  3 Jul 2026 14:06:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783087578;
+	bh=ArvNEBWKJ0Cgy1PDOVudURuagJpnqBDRwV4a5iaMye0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=JhNX0kyClSo4+we2qEc7Cch6tSogGxKnV6sBBf39W4ybG5ngysLPmzd6rN2Tt5Rph
+	 IVxT6SJGpeJTW5ETYj+MAPapknqXFjZW3fYGwWwEu2XhmeTT+XcZ9SJ6uW8gt8/78Q
+	 1fsa4Kc/eYhoVMsCqQNqnC1T3wzL37RfLXrOXk6PPKlyP1x4ydYqIxssVLyYyj8EnG
+	 O/rM26nqz/RH5W7L76pa/hItnkDm0Qs1G8/mdFgKMYOAO0F9kVGm3FAGuk2nswrFlE
+	 Oh4EtI8h/WvSbJ60A5SlRU+Tvxt/EoUnU0ZTfWy4UfZOHvNsvF0WwFlcm6XF2+8uD0
+	 NA9Ovs1JgfEFg==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] nvdimm: ndtest: remove redundant NULL check before
+ vfree()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: mdshahid03@gmail.com
+Cc: nvdimm@lists.linux.dev
+In-Reply-To: <20260703135513.75840-1-mdshahid03@gmail.com>
+References: <20260703135513.75840-1-mdshahid03@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 03 Jul 2026 14:06:17 +0000
+Message-Id: <20260703140618.103981F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Mohammad Shahid <mdshahid03@gmail.com>
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+
+Pre-existing issues:
+- [High] Use-after-free / list corruption in ndtest_alloc_resource() error =
+path.
+- [High] Missing error check in ndtest_nvdimm_init() leads to NULL pointer =
+dereference.
+--
+
+commit 96f1b7f6e50c7c8c92043b84b02d39517266ebe3
+Author: Mohammad Shahid <mdshahid03@gmail.com>
+
+nvdimm: ndtest: remove redundant NULL check before vfree()
 
 vfree() safely handles NULL pointers, so the explicit NULL check
-before calling vfree() is unnecessary.
+before calling vfree() is unnecessary. This was reported by
+ifnullfree.cocci.
 
-This issue was reported by ifnullfree.cocci.
+> diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/te=
+st/ndtest.c
+> index 8e3b6be53839b..2051ad5d4882d 100644
+> --- a/tools/testing/nvdimm/test/ndtest.c
+> +++ b/tools/testing/nvdimm/test/ndtest.c
+> @@ -376,8 +376,7 @@ static void *ndtest_alloc_resource(struct ndtest_priv=
+ *p, size_t size,
+>  buf_err:
+>  	if (__dma && size >=3D DIMM_SIZE)
+>  		gen_pool_free(ndtest_pool, __dma, size);
+> -	if (buf)
+> -		vfree(buf);
+> +	vfree(buf);
+>  	kfree(res);
 
-Signed-off-by: Mohammad Shahid <mdshahid03@gmail.com>
----
- tools/testing/nvdimm/test/ndtest.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+[Severity: High]
+This isn't a bug introduced by this patch, but could this error path cause
+list corruption or a use-after-free?
 
-diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-index 8e3b6be53839..2051ad5d4882 100644
---- a/tools/testing/nvdimm/test/ndtest.c
-+++ b/tools/testing/nvdimm/test/ndtest.c
-@@ -376,8 +376,7 @@ static void *ndtest_alloc_resource(struct ndtest_priv *p, size_t size,
- buf_err:
- 	if (__dma && size >= DIMM_SIZE)
- 		gen_pool_free(ndtest_pool, __dma, size);
--	if (buf)
--		vfree(buf);
-+	vfree(buf);
- 	kfree(res);
- 
- 	return NULL;
--- 
-2.43.0
+Earlier in ndtest_alloc_resource(), res is added to the p->resources list:
 
+	spin_lock(&ndtest_lock);
+	list_add(&res->list, &p->resources);
+	spin_unlock(&ndtest_lock);
+
+If devm_add_action() fails, execution falls through to buf_err, where
+kfree(res) is called. However, res is not removed from the p->resources
+list before being freed.
+
+When the driver core subsequently invokes devres_release_all() on failure,
+the cleanup function ndtest_release_resource() for any previously
+successful allocations will traverse and modify this corrupted list,
+resulting in a use-after-free.
+
+Would it make sense to call list_del() before freeing res here?
+
+
+[Severity: High]
+This is a pre-existing issue, but while looking at this file, I noticed a
+potential NULL pointer dereference in ndtest_nvdimm_init():
+
+tools/testing/nvdimm/test/ndtest.c:ndtest_nvdimm_init() {
+    ...
+    ndtest_dimm_register(p, d, id);
+    ...
+}
+
+If ndtest_dimm_register() fails, such as due to an allocation failure for
+the dimm device, it returns an error but leaves d->nvdimm as NULL. Because
+ndtest_nvdimm_init() ignores this error, it successfully returns.
+
+Later, ndtest_create_region() passes the NULL nvdimm pointer to
+nvdimm_pmem_region_create(), which dereferences it inside
+nd_region_create(), causing a crash.
+
+Should the return value of ndtest_dimm_register() be checked to prevent
+this?
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260703135513.7584=
+0-1-mdshahid03@gmail.com?part=3D1
