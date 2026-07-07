@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5638382388;
-	Tue,  7 Jul 2026 14:41:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 061061E5702;
+	Tue,  7 Jul 2026 14:46:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783435292; cv=none; b=fnH5Aze3hqWUEJY1HxafQg1JQkH4l5wpMA/fH/H+sJ9wTQzep6cGoIJxi+Sn9SJP20UomCsGlJnk1pufO4VYbgpUL2NgrAP1HT5E0diFs8ao6Jpy0zloWU1HTfGH39bWizUW60n0ITu4n03XFVCGZtrEJraRRZGfcXFjgYSuU6o=
+	t=1783435593; cv=none; b=OwxaYoyoGFy895BCA0feqCEiCzuUO/d125KgRecxPw1wlJ+8M0eqMfrtsHADN/kRnDTcIIGVkeVJYESMj8/uon7qJXeI/G3iRn+JQBG+RKlriXnacbO3r1fs7Mu6FsORs92S9KvAqL/hcvHWAv85IoQwc1n0EE/2UGBE2b9vXL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783435292; c=relaxed/simple;
-	bh=df5keSZHQPRVxVEl8QKisq+bzMuhx10H/8wX3jX5pdI=;
+	s=arc-20240116; t=1783435593; c=relaxed/simple;
+	bh=aoEs8Go9kfMil7L6Q1IcdXt9f90Lwr5rVOHmvPIt1LQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=e3sZsihtE1VB0G1ohBIuIc8QvS6RJwZMFprg0qK9X5PaOmvxFlUsgDZSpxrwqeYUZE6z9bA4EfpSnacjH+QfCcxcjvKpb6IXOx2HJC7avnndHPaTfJUUGhcLY2ILarWRMCRSv/2T4DqXpWp0njYcO90p48lxwg9dgoChyHT9uRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H6S9GekB; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=eUWgjaA0RI64BtJVhQ2ZWdn1Y0rbtITexL4L6niVIzUiTxtx9d6Fz1CMEP/EKetaQQ52bxt4VC5Az+hlLWv8xeH/0WlVVjKdjKlMK4l/eMuYtxDbwaZPghYUCleoydBgEYnVsA2uk4grnVFqsJUY94rY7L3jOAfgZrZNvDapHko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oRGOucgc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H6S9GekB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E62881F000E9;
-	Tue,  7 Jul 2026 14:41:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oRGOucgc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 390961F000E9;
+	Tue,  7 Jul 2026 14:46:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783435291;
-	bh=71V4Q+fhRuX9RNQVEGMko4OqAR8knd22tkZhvdbZbMI=;
+	s=k20260515; t=1783435591;
+	bh=FyJTjmzLXvUvFLzrQN34wu7M/KTk4kD6uDDPgg62Ebo=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=H6S9GekB83Pwow3x4U+RGkMBW6FVgTqC0SvdFufnMoKWlCtG64eGWIdcoIifrbKPl
-	 youmdPGzUebakqVJ6nUDHINdl5i/eKAjQ8dRvXH6TADBdph93e7i30Zx1WuCMbWWay
-	 5OOeInR/PJgYjMji1bzTvQuqWqx9qg+JZfS8PyeGGMG4mSs0eCGSWBeDekl883Yk0R
-	 8mO19JNWyy9BB0as5ZmoOzQbOYyuSob2g2lkJu4u0r3yByO2EXyb6ZQHrcrVkhRjBu
-	 Av9G04braM0zU/FBB2N3aGVHAfKU8KZmjiL9q5mOPtmU8s/CH6MaUr94cwbUD2/HZf
-	 0883rVQ4waFyg==
-Message-ID: <69dfe4ac-3800-4e67-93f1-d21a8a39e23d@kernel.org>
-Date: Tue, 7 Jul 2026 16:41:14 +0200
+	b=oRGOucgcfN2Yes0Extb8h8W7tLIHXjvV+6zuJc++fMaVdFnf1IsJQx3tVT4bew1Ka
+	 34nw4k5PU+suyZGMV/UJ3kr4xAHK/n38Vd7ZBfh3O2WuL+1X5CJzr0C4g5t9SWPRBP
+	 GNLn6Bx1gtPzwOwf49qRGTS6B1blWyWH9GySpfW2+nWTFzf4gJjOpk1PJp75bjFNyo
+	 +H9vyxQjzKLBKM2jALz9WcbY8GshYzUeOj5qP+RsL57vyIQL0HzZVxpHG3jRVUugIs
+	 Sz8bz0HzW6G0Ho1SK0s3w0QOqUtuiDC4V8QsppZD6WMtrbDdXqLYlerFUEnEubiBD4
+	 OqLxGA/LgHBSg==
+Message-ID: <03762de9-c695-4cdd-8c25-4fc31335ea15@kernel.org>
+Date: Tue, 7 Jul 2026 16:46:13 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 01/30] mm: move vma_start_pgoff() into mm.h and clean up
+Subject: Re: [PATCH 02/30] mm: add kdoc comments for vma_start/last_pgoff()
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>
 Cc: Russell King <linux@armlinux.org.uk>, Dinh Nguyen <dinguyen@kernel.org>,
@@ -83,7 +83,7 @@ Cc: Russell King <linux@armlinux.org.uk>, Dinh Nguyen <dinguyen@kernel.org>,
  Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>,
  Jann Horn <jannh@google.com>
 References: <cover.1782735110.git.ljs@kernel.org>
- <b28b698df4c009e85c4728446ca5863d8e633164.1782735110.git.ljs@kernel.org>
+ <8c618dfd7de419e3b797b8bd1cd921d4c5b8878b.1782735110.git.ljs@kernel.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -130,28 +130,49 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <b28b698df4c009e85c4728446ca5863d8e633164.1782735110.git.ljs@kernel.org>
+In-Reply-To: <8c618dfd7de419e3b797b8bd1cd921d4c5b8878b.1782735110.git.ljs@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 6/29/26 14:23, Lorenzo Stoakes wrote:
-> vma_last_pgoff() already lives there, so it's a bit odd to keep
-> vma_start_pgoff() in mm/interval_tree.c. Move them together.
+> Describe what vma_start_pgoff() and vma_last_pgoff() actually provide in
+> detail.
 > 
-> These each return unsigned long, which pgoff_t is typedef'd to. Make this
-> consistent and have these functions return pgoff_t instead.
-> 
-> Additionally, express vma_last_pgoff() in terms of vma_start_pgoff(), since
-> we wrap the vma->vm_pgoff access, we may as well use it here.
-> 
-> Also while we're here, const-ify the VMA and cleanup a bit.
+> This is in order that we can differentiate this between functions that will
+> be added in a subsequent patch which provide a different page offset.
 > 
 > No functional change intended.
 > 
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 > ---
+>  include/linux/mm.h | 26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 059144435729..2f00c75e66bd 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -4278,11 +4278,37 @@ static inline unsigned long vma_pages(const struct vm_area_struct *vma)
+>  	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+>  }
+>  
+> +/**
+> + * vma_start_pgoff() - Get the page offset of the start of @vma
+> + * @vma: The VMA whose page offset is required.
+> + *
+> + * If the VMA is file-backed, this is the page offset into the file.
+> + *
+> + * If the VMA is anonymous, this is the virtual page offset of the start of the
+> + * VMA - if unfaulted, then vma->vm_start >> PAGE_SHIFT, if faulted then the
+> + * virtual page offset at the time of first fault.
+> + *
+> + * Note that if @vma is a MAP_PRIVATE file-backed mapping, then this returns the
+> + * file offset.
 
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+There is the ugly case of @vma being a MAP_PRIVATE PFNMAP mapping, where it
+returns something different.
+
+(remap_pfn_range_prepare_vma() -> vma->vm_pgoff set to PFN)
 
 -- 
 Cheers,
