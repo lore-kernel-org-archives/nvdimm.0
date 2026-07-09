@@ -1,139 +1,106 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4C253C10AE
-	for <nvdimm@lists.linux.dev>; Thu,  9 Jul 2026 21:46:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B225301708
+	for <nvdimm@lists.linux.dev>; Thu,  9 Jul 2026 21:57:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783633604; cv=none; b=WQQwcXpA9yDB7G04NjUOthEA1Pe5SusX+cWzaQAG61zoDzck+LAwH2P/y6Pf1tzAyCW3cHHOEhyqeGl0rdWUmymv6SgcqK7gzQP80245EvhiheNktNMKpuchFUS3z5IaGoUKjJ9AfNsRGnqjNaLPu32PEePyCncnXRKg+Eo2cPI=
+	t=1783634228; cv=none; b=fIDXgJvjbilV3WxsFv5+7cyj6o3U2H7Jk2NPwq4EY8huAD7S8wY0hGnfIodOqZ0jk6LhVlIwl226tI001H7QCh+DAun4AQE31K6RN9Rm9T0BKpk0BpSM3Vqdqz4rRRSeLBTLELIpkQPL16x20SL6kXgGjeWF+VKlJ2rH2tm447A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783633604; c=relaxed/simple;
-	bh=+HUMhj2jNwddM2JyOEMYiYL+KJDhiLET5Lh+METKU8M=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 Mime-Version:Content-Type; b=kwuQmv3T2G6Bsbg11R1mBhXuTgtDbp3Vs2aN7ayVzSWn9/R7Rd/W4SU8BX/pOPsbSst+7IVqir6oLzvqG/gazMRFbA+MXDtYUOm1BuOL2+fbNC5H3mTmIFOXQRnfpWTGmCuQ0l3LNfUHzxcfFtSYxj7JiEv8ZqFt1WW25h0N+F0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iVKnh4K7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783634228; c=relaxed/simple;
+	bh=8UAIjOhvfbKjsQ/HTeZBSW9rJpTCzyIJqdF78M986Ac=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=X6KfKSTftbqXlKXewqwNkweo9AzK4WUB9+Awgf7uvYsdBz6Yi3aGxsZmZALSN0TvRc5uRe7E20g9KVRMvnEzI1I6BrEoFY1aE+7NpzzGtD4VyQQulHAmUU3HW/QAinU3kW/ER2jZpeFjuSeqdlRb0O2QLqSaPNI+BpR2tvITHlY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=NI0Bzrk0; arc=none smtp.client-ip=209.85.219.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iVKnh4K7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A0A1F000E9;
-	Thu,  9 Jul 2026 21:46:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783633602;
-	bh=xvUpE9WcYp8vTdTGEYoEnE1EtejEUIbK/UADepyuNY0=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=iVKnh4K7ybLEzV7Rvctk0w0CuSaR2MOl8/3BZm6M0v7bnOxOMambRqn1EKITgQWFW
-	 7gN8gNVAyYGj33OEgKV/PPPabOSUCb8o0ss0+Zb0JTjZsPHKeFNvRksMG414Uk7K9s
-	 QvUUCEqM4904/do3Y67NO0UxVFZStOFTkvaNIrkh0qSLpd7whmzIF/EGeOW7Fg+C3U
-	 2bGg1fR0VVCOqSrw8UrQQgDWOICdQvgnCyxQXdOSDTvUxKsjfu3rqrUr4nlhrv6mkq
-	 2f5l7HVJ/UpB3iw1O8LMn2HcQZpPtcFOVzw6KQAnzZMN6RSP/dgSFESeZy9RalaJYM
-	 d4sYXgeSH+RWw==
-Received: from phl-compute-09.internal (phl-compute-09.internal [10.202.2.49])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 36203F40074;
-	Thu,  9 Jul 2026 17:46:41 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-09.internal (MEProxy); Thu, 09 Jul 2026 17:46:41 -0400
-X-ME-Sender: <xms:wRZQatvFWtrTwr1EjET3SY_trkFv5ByXFvxwuRdoxp5nZNvdH5owQg>
-    <xme:wRZQamngVETnvwD8NBa-XtvQpVx4724Zay6MVM63n_6ymuey3wfOgySL08LLsooog
-    UX-chX-4R6sELh15ZgWdlWqPRhtWCNR2SS_SccjFUcsJISlBQW0Jg>
-X-ME-Received: <xmr:wRZQaulAZEPtxDDKpaH_YbkptlPFAMbWXlA7EE85RV-Ons1W6zy6jsk9pC4kEn3uk7t8zBNGPLJp6Q5UyrA4U-G2iQ6f_GlG3-g>
-X-ME-Proxy-Cause: dmFkZTE6pGaGaXtiuJOhuGCWlZoBx9j2X3a8VM6fEMYo0GgLn9Toq0lK5LM0v7iRTsbBsV
-    qlrEvEtCLS1HyECWCw3IhgieUQHf/LHM2k0r319GerFiWVnYyf1YK+sX/8GKpHbeEDkqtn
-    HDG3mhPN5PblOtwUozJ//wR1tQjsfmPDOvoxX5Te1glFqzecABmTR2Zh8nu80wxuLaB9Zq
-    2zHMg9W+crhZwO/iasCAkbhbQkiZL/DfjYQadxfklfe3HABtE+ynOGyGbRkgDasbfKe5xO
-    VfWC4UbTVVlwtY8KKGNtYMIYw9XkDx/17fWR9Y/a3y7cL3gnrzhViVaOvAGjNANzJ0ugdZ
-    5PhTVw9Ns0QhhLKD1lQlPKK1qDIBABInureQW4ET1HapHww8srucCfs+rrvwAVPVpc1PfA
-    HYIcCN+U+A5av5qS7mt9cziBggX16xCsoo8ISOQX2m5s/bLHlIFqjSrysZbJ3A8UTjLlcH
-    L3uk/yJObKMM5E62Z1vetG3TPwFWzYElHlH/N7CdygvxX0xaTfR0R+ijFpTgtO+dGDZyAd
-    yJMUKn+V4nGoInZb4lgPPMBhn6Bw9ObzrTWFW1dVXsVErLJiF5Kp789djPKp0Plu417fRL
-    ltx20K8SztGbd39K8VVdFQHFiete1nLG1dIxa8J8RKKm0TJR3JNksl1/9+3w
-X-ME-Proxy: <xmx:wRZQaoc4wjzaNgvryg5NN70-1Vatf2xzep1RWYAbyMMVv1jU6GuGUw>
-    <xmx:wRZQasIJCeYXn13SMsIuUbkJJctlWeYlyIgEnBRLtc4d-vVKYSLz2g>
-    <xmx:wRZQaj5n-_r_R1jtCcxgv8VUDHEvYWm-UIKRMsfxYAmrfmcJ5P0Ibg>
-    <xmx:wRZQarTPZpDwzCgul_GWo1SBKOdkWO7HWCqep__MKJzfdeGX2A3UtA>
-    <xmx:wRZQajsp5WUuI2CXr6WdWNwkXcx1AADWI-zKxT0Fq1uz1hG6ukfLy3xS>
-Feedback-ID: i67ae4b3e:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 9 Jul 2026 17:46:40 -0400 (EDT)
-Date: Thu, 09 Jul 2026 14:46:39 -0700
-From: "Dan Williams (nvidia)" <djbw@kernel.org>
-To: Gregory Price <gourry@gourry.net>, 
- linux-mm@kvack.org
-Cc: nvdimm@lists.linux.dev, 
- linux-kernel@vger.kernel.org, 
- linux-cxl@vger.kernel.org, 
- driver-core@lists.linux.dev, 
- linux-kselftest@vger.kernel.org, 
- kernel-team@meta.com, 
- david@kernel.org, 
- osalvador@suse.de, 
- gregkh@linuxfoundation.org, 
- rafael@kernel.org, 
- dakr@kernel.org, 
- djbw@kernel.org, 
- vishal.l.verma@intel.com, 
- dave.jiang@intel.com, 
- alison.schofield@intel.com, 
- akpm@linux-foundation.org, 
- ljs@kernel.org, 
- liam@infradead.org, 
- vbabka@kernel.org, 
- rppt@kernel.org, 
- surenb@google.com, 
- mhocko@suse.com, 
- shuah@kernel.org, 
- gourry@gourry.net, 
- iweiny@kernel.org, 
- Smita.KoralahalliChannabasappa@amd.com, 
- apopple@nvidia.com
-Message-ID: <6a5016bf71df4_3b7ee5100b3@djbw-dev.notmuch>
-In-Reply-To: <20260630211842.2252800-8-gourry@gourry.net>
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="NI0Bzrk0"
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-8f1e274ccb9so2270796d6.2
+        for <nvdimm@lists.linux.dev>; Thu, 09 Jul 2026 14:57:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1783634226; x=1784239026; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=1AtZcCJL7SSO55KaeQpBRgHzud/kdG6WTG09Vy9G3lc=;
+        b=NI0Bzrk0qnpbllLAG5iWFXZWqTxIoiP+LQZ1AHmUnxAfq/LfzjLSybMP/S2OAaiG1e
+         5cpce1mTM5MfJvNK7ftCVORAq7g2tXOqnHv3PH8ev9q1jY651SkkrQ6e8+Hhurj9LJYF
+         yXCOAoYscT302rowOA96skUvYbGeiM0tS4rc7deOpidIZT1zFrwcIeA0xHdVFJ44h4ce
+         52zdoDKYm2XzRmPqe0IctSUMkb6CM68XplK5a7oxJhp1lX9q5cq/c6G51SsFFUkMsohI
+         pr27a3tr3DESlNoRg4FFUB7cs9fmDsGHr+h7AoVVJ1xebdzAyO+w1vKbMHrIOT2iefBE
+         r9aQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783634226; x=1784239026;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=1AtZcCJL7SSO55KaeQpBRgHzud/kdG6WTG09Vy9G3lc=;
+        b=g/HvAe01G22ah/WkTKo2/Nuc5qNr6ozAFKPBxZa26NWyjwG/jCm9Pqo5W6tDD6njI5
+         2fTprc5/8a0kCI0Z3dYXlgPo3dWK7vD3v/6fSGgDh1FUWWaMZwOxjPajGbqK3MR6RRYP
+         Etxa9FHe3oDoDKodcQsIT5KwA1QtmqxspsAISkwUUziXOK47sikeXEfnxNKbpdPOyS0K
+         iB5nijenO7v0OoJuxqeN9TZK2R8Cih+GY0thxDxIUe7PVuCMNrFHdXmAiphau/BrVysg
+         8F2mp4S53fAJvOnYes7AC/mcR9LdgC9p+FtrqAx0WYopVjqUhttnmASTOVnamiYVP8Sr
+         /6BA==
+X-Forwarded-Encrypted: i=1; AHgh+RpuhjfGZrPBK9gVLiF7TpYGJZy0jY4KtFL4hbzCf4/B4UDkcJl7CtqFZHXBZZUmbhJ/IlcFrBY=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxbabGtzDHpjyFojnjPcdttczzrI6xUdJR3YuaL5F8CBGIRsMth
+	zB+s4WD2HqgRImiHt0DZ4IgSeEKFM4xLf0shWeEynJpIH+PFRVpqQZ2X3u8REVk6LJY=
+X-Gm-Gg: AfdE7cmVRJJAnSAPgQHQrbJfUA/cnmK1kLx/frPd1XtQivKstqX2iNLFkYePT6hkUOU
+	GtD6nkjy9QSbL+esN4QRcj0JPx4+wfe31HpUaOt/R9aQaSZwERz5+iMKyobTaG8H5X96EfRcM29
+	FCA3AS+kj1jkAAPbbvcYtg0bulAN4d4AHHsC3AFUr/OEjgO+Nke8C5chOz8HCKmlYyaW5DcQ+Bc
+	ES00mN0f4HObLw1AEyix2N8nE37OfQn73ih3B+20CBEBE/rWIkl/yeUVOc5Jf4mLTIz/6aTs4X5
+	FYjxo8ypDS1PsfEEZbboBk5ggcn+ZDnqsbCYT6IMPCtkI5Gerq9Oqa1Aed9QJOPl7Q17gxicX+D
+	u5c4f0aYakWQclNo/bHEwMd3QLWBtS7a05VUUb/i4bQOzE9WnbBhX+fPlRtfX8rTmWTj+61eOTk
+	gIfo0v+V9NTEYYIemscTSS6rZnzd/fzr3Qzw7PRwRDFuxZOnwA6ic3b3ZCSPK7sUvC+pfo
+X-Received: by 2002:a05:6214:2b83:b0:8e7:8d53:240f with SMTP id 6a1803df08f44-8fec2a4a020mr91687356d6.43.1783634226132;
+        Thu, 09 Jul 2026 14:57:06 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8ffd80fd82csm26977986d6.35.2026.07.09.14.57.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Jul 2026 14:57:05 -0700 (PDT)
+Date: Thu, 9 Jul 2026 17:57:00 -0400
+From: Gregory Price <gourry@gourry.net>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kselftest@vger.kernel.org,
+	kernel-team@meta.com, david@kernel.org, osalvador@suse.de,
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
+	djbw@kernel.org, vishal.l.verma@intel.com,
+	alison.schofield@intel.com, akpm@linux-foundation.org,
+	ljs@kernel.org, liam@infradead.org, vbabka@kernel.org,
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+	shuah@kernel.org, iweiny@kernel.org,
+	Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com
+Subject: Re: [PATCH v6 02/10] mm/memory_hotplug: add mhp_online_type_to_str()
+ and export string helpers
+Message-ID: <alAZLBqgUEZliwk_@gourry-fedora-PF4VCD3F>
 References: <20260630211842.2252800-1-gourry@gourry.net>
- <20260630211842.2252800-8-gourry@gourry.net>
-Subject: Re: [PATCH v6 07/10] dax: plumb hotplug online_type through dax
+ <20260630211842.2252800-3-gourry@gourry.net>
+ <bdf0ca14-eec4-43b6-93aa-310e77660d95@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bdf0ca14-eec4-43b6-93aa-310e77660d95@intel.com>
 
-Gregory Price wrote:
-> There is no way for drivers leveraging dax_kmem to plumb through a
-> preferred auto-online policy - the system default policy is forced.
+On Thu, Jul 09, 2026 at 02:08:43PM -0700, Dave Jiang wrote:
 > 
-> Add 'enum mmop' field to DAX device creation path to allow drivers
-> to specify an auto-online policy when using the kmem driver.
+> >  extern int mhp_online_type_from_str(const char *str);
+> > +const char *mhp_online_type_to_str(int online_type);
 > 
-> Capturing the system default would otherwise break the ABI, because
-> the system default can change - but we would be statically assigning
-> the value at device creation time.
+> Does this need to also be 'extern'?
 > 
-> To resolve this we add DAX_ONLINE_DEFAULT, which defaults devices to
-> the current behavior, while providing a clean way to override it.
+> DJ
 > 
-> No behavioural change for existing callers (still the system default).
 
-So I know you have some future usage for this ability, but it is not
-present in this set. The only piece that *is* used is that the
-online-type from the new sysfs interface gets plumbed through to
-__add_memory_driver_managed().
+General policy i've understood is: "No new extern"
 
-Are these touches:
+We use the EXPORT_SYMBOL_* family instead now
 
->  drivers/dax/cxl.c         |  1 +
->  drivers/dax/hmem/hmem.c   |  1 +
->  drivers/dax/pmem.c        |  1 +
-
-...premature until the first user arrives that with the background story
-about how it knows to set the policy?
-
-If DAX_ONLINE_DEFAULT is a sentinel for "default" should
-DAX_KMEM_UNPLUGGED be a different sentinel than (-1)?
-
-Feel free to add:
-
-Reviewed-by: Dan Williams <djbw@kernel.org>
-
-...to this and the previous patches when that is fixed up.
+~Gregory
