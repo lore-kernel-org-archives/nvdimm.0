@@ -1,48 +1,48 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010007.outbound.protection.outlook.com [52.101.193.7])
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012065.outbound.protection.outlook.com [52.101.43.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A8F23B4EA1;
-	Thu,  9 Jul 2026 08:20:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAE6C3E0241;
+	Thu,  9 Jul 2026 08:46:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.65
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783585216; cv=fail; b=LNhC5uYaV4O6Q64f5Md1dFTS7WArDHENaiP63xe5YlFGT+SDoZc0kZgPivSN+ei3a65Jt3de6djvqWOTf0UKcVwD4KXaI07kp1nqJeZYLbMiav+7D7jMxiYGxcOnoIXub4VPsFI06ojuvhU84xXb3Wi4+WBKav+1TWYcrfQUyZs=
+	t=1783586766; cv=fail; b=mdPGc5KLS2YY8A5waHZnX+eU804sB7eS3tiMRb3iYJvWfsur6NE7Z3M7f+cbz4778FGKiYEjxXjK5aR8uCxXEn7OELKs814+D+5XL5cf2FmGC5yQNpdz0vRm9kVAVJMPahYh4ZVaGZfEBB4zl893EYIiWRCIP1QuyYhKufO6u2Y=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783585216; c=relaxed/simple;
-	bh=VO3J/wnJDVczUsSnaVTFKW5ndpF0MC36pEDXj/1kRzQ=;
+	s=arc-20240116; t=1783586766; c=relaxed/simple;
+	bh=AuYwDtzHflWOI3fN7ZHzWTV22EcDZGfIWajEXq4KFjc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=Ec8djm6IL6tLYElJypfAI+F5Ndu8V1cl0RORSTnt14hJuQzAZ5C9t65d9jA/QhqAbi1m6TN72K/p+S5kmozinnp89kOFBw8z7v80/8DcvKLfim75/HTu0/HjaKieaED4O09ovJ+eBQ+g9MLfLlfmuEJF4DvjAHgCLTYKSmJbkU4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=oTOBkSF7; arc=fail smtp.client-ip=52.101.193.7
+	 Content-Disposition:In-Reply-To:MIME-Version; b=cncFb2/2WHSlG9maqs47/0NhVdbglruj/K66bG3tjOpBm9sre5WIFr4jGL1Gg8EJeXNgP3wdNxM2NLB8bmCNxQB43o+/pK6WkIIVuQghj9s9lJkKfjTGw1RLSMGMqTN5CmiIfmfHtge/VZMtLuWwCRI63/nh8al3VQp1lp7427w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=aAtkuTkt; arc=fail smtp.client-ip=52.101.43.65
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="oTOBkSF7"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="aAtkuTkt"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wkH2iAsU6PCPvQugDukb4xJRaczbh5e3FHJ4p33kcaHPkXuhuSZP9Sdww/Vw90p7iMg/KU3UJDxZvajVloGa1KkCyG8q3zi/FUP2UU4vYLTcPEdahRj5TRg+g0F1+d82v30H0mKxbVqHxPMN57AuVXXLfbgC0LFytg8EhDXIEaNiHA8Df8B0pQgFVqoAMdXHxkXaIFIaL6Si7+GiUc689fzNX23BIRKHPQDA1X+UfCTUvyLRV0QUQ1SNJW4E1sorcIhZErYyD38Ky5WxXI5JYM0spJiMrGcHY8F9318PlMiNlaS3d4T77SKroZpzw2NYp9WZeHL6sQUjhgeC8J6SkQ==
+ b=tGNANwinMChjdL+m4KX6QvU4MJHfBr14MlWrHxm1QNpjQjdeU3GdnqYegdlDU2U2vvoXTt4wzFsniCR+Vr9pL/61wVA7YzaXJ00VJFqnrGPWLY4To4Sf3/e5kPcJnFB/TsaW1a17lE/pMxlKMHKyITzprgnPeE3mDrplFFXdyQC5pz5HLxEKctbDwyF9OOj/fy1s7RCAlKx4y3d2B0KeRuihMnWdUHo7mE8y3R5icgfOMJtc6rw5UQdc/uabKSAPdo773l3Cqh480r3F2cQ31mpcwOoa3ry1kQEKHNkWb6QejUpRaN6N7O2rK2dJZkZhm7nCS/0lePfZjeY8sqsrVg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=HnpylDDpXFDqb4xraZl9V4l5dCAIomt6pw60LE1Hkpo=;
- b=Vdy0P2ukChrYfDJND06UrjZsFM8Xw5LF+4L4U0pG4ZjCDnG9Lt6M0J0saFA3UAMGOE3vi0aFQnzK34LA3qm+9vR0FbnKmPDEKRQkLboIAgsnWGhWWihtbfIwb51+1HP60HwBBzuYKEkaW5zDGDYbrwqXmagdp6IQ1GDyYEZmj97U5q9ykr6cBMQbttI27LXd0LRRL+E4YOsTio+OqiFjlO36Uk+wa9n9qV/hyrDiFKYatbcjAdyCknQEpf27Q/u7mpqiTP8Q+Gwc+AEomM4Vdf1EH39+hqReV7iLi4dhQVNWBPmAw+l5GMgaW0iCNhPU6ggykodGkRT5KqfWI0na3g==
+ bh=KP5k0OSsJoxqv1YhtRm3nEbrveUJb9u7FSUCwTJfrm4=;
+ b=HJjn8aJSYMcaPSUPvLJmomKw3HBGSKvskiX9xN7JNNDUgYVCKjdmwRxnVjDBzaEsPURP2v4QBPC803L+V62ZRfZJmRbB+bMCimuEaxSy/7s9OnQYGT0CXCGx3wfjYuUdn6U52kh7lQP25ZZ8if7mp+HE7SjnkUQYCH9UMyzsGOrggPutI3qCr5zARTSPs6qiVATXr59O7PCqUyD2wEagCs3JaDM9bKIJEGw/wHKxIvVvWGq/AHz+X8NX10/AVEZ3sN31rZ+EA5lgfV2uP7Q4gU6d5hCD9BtI5jpsoIfNt/cXJe6r56tnSt2ZjYUe5/cIKVUEk8JFqa9MQLA85elomA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=HnpylDDpXFDqb4xraZl9V4l5dCAIomt6pw60LE1Hkpo=;
- b=oTOBkSF7trkJkRHQyfYLugr75LlUN9T98UOPUzbA+x2prRnfduHg5C2N4wfEAuSjORHEYGHvr4V7Of/W4Vi39nVnJsRj1oGPqh5vVdCvI5uCUz2p2f66ZbBDDy82cHgPUIAzuIDpGVPsGu3IrR0IdtczNq2SSCvGI97x6ivrS66oj172Rl262mIXrXwDNA8ShEVpi5dlQek6UYNYiiE1LZLw3REPB55p/TL5+lD0FsS0ovaJpPw6WicWUIXtBDsBCmuarnTyEQjehdX84IHzstDdj4vaC/tyojDVZp96+ZNrAEq6FcPFJPSCC8jv3mZmwBO5LbIknnjNedZGLJ7wWw==
+ bh=KP5k0OSsJoxqv1YhtRm3nEbrveUJb9u7FSUCwTJfrm4=;
+ b=aAtkuTktPAwpTVuWZ1/Ls/3UQg+gwXCkNrhbrtlmjhmQNIvPM4rvY4sLmDjEcbGEhwTZsKuVRukjAxR4bKhvKqCQzDeB6GdJKR1Vy9ZvxRtqwFPzOVpG7tiJanKF4ihlF3ln7DyngLbnyAVd6lkMCwwMsnjwIFxoSsnddcZOf4qMtJi+YAeE3V3vEn/hM97QGTMd2vRv0R7yu2r5Zz8x5VAsJRqYnV2jEOIlI65bNAIbmaEnxeGHJYcX2jOLvy0x1NGp3TlIihc1uBgbTf7nIYUg1KsODYQ4LOSiRs9CnXKZnr7Az1yLXoYjR/vPV+CVVtk7a4GB4MlfSwNSZ/nsDg==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
- by DS0PR12MB7778.namprd12.prod.outlook.com (2603:10b6:8:151::12) with
+ by CY5PR12MB6528.namprd12.prod.outlook.com (2603:10b6:930:43::9) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.15; Thu, 9 Jul
- 2026 08:20:06 +0000
+ 2026 08:45:58 +0000
 Received: from BL0PR12MB2370.namprd12.prod.outlook.com
  ([fe80::86cf:c3ec:2cf5:74c8]) by BL0PR12MB2370.namprd12.prod.outlook.com
  ([fe80::86cf:c3ec:2cf5:74c8%5]) with mapi id 15.21.0181.014; Thu, 9 Jul 2026
- 08:20:06 +0000
-Date: Thu, 9 Jul 2026 16:20:00 +0800
+ 08:45:57 +0000
+Date: Thu, 9 Jul 2026 16:45:51 +0800
 From: Richard Cheng <icheng@nvidia.com>
 To: Gregory Price <gourry@gourry.net>
 Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, 
@@ -53,15 +53,15 @@ Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev,
 	akpm@linux-foundation.org, ljs@kernel.org, liam@infradead.org, vbabka@kernel.org, 
 	rppt@kernel.org, surenb@google.com, mhocko@suse.com, shuah@kernel.org, 
 	iweiny@kernel.org, Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com
-Subject: Re: [PATCH v6 10/10] selftests/dax: add dax/kmem hotplug sysfs
- regression test
-Message-ID: <ak9Y1UTTe3Hl6rVN@MWDK4CY14F>
+Subject: Re: [PATCH v6 06/10] mm/memory_hotplug: add
+ offline_and_remove_memory_ranges()
+Message-ID: <ak9ee95F7pJpCKMo@MWDK4CY14F>
 References: <20260630211842.2252800-1-gourry@gourry.net>
- <20260630211842.2252800-11-gourry@gourry.net>
+ <20260630211842.2252800-7-gourry@gourry.net>
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260630211842.2252800-11-gourry@gourry.net>
-X-ClientProxiedBy: TP0P295CA0044.TWNP295.PROD.OUTLOOK.COM (2603:1096:910:4::6)
+In-Reply-To: <20260630211842.2252800-7-gourry@gourry.net>
+X-ClientProxiedBy: SI2P153CA0018.APCP153.PROD.OUTLOOK.COM (2603:1096:4:140::9)
  To BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -70,348 +70,268 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|DS0PR12MB7778:EE_
-X-MS-Office365-Filtering-Correlation-Id: 299f9348-af33-474f-4a46-08dedd92e1e5
+X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|CY5PR12MB6528:EE_
+X-MS-Office365-Filtering-Correlation-Id: 06cae3fa-30fd-4811-5bf1-08dedd967e72
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|23010399003|376014|7416014|1800799024|18002099003|22082099003|56012099006|11063799006|4143699003|6133799003;
+	BCL:0;ARA:13230040|7416014|376014|23010399003|366016|1800799024|18002099003|22082099003|56012099006|11063799006|5023799004|4143699003;
 X-Microsoft-Antispam-Message-Info:
-	BrsxZ8JDybGzRVmgM5z+JHZ2YbjJmO7seJZ07FlRNOkAtDWpAd5a+A2jPEGo3V2O7CbNOjGBWhjemTzwNV561r17xXfhamrEAfYWBtgRE+EysWtDHcNhN0XfUhkriXhhx1E2zat/Hv+gCtvbLa3ovXMmQbFjsJhcTnA+OAe0tHCPgpIrQDgVuczF7VAIkYqqP1F71QVZR/PpzrDUxa8mKcC0JGTO+JtpXIWAIPV//cp1fK4lkeVLfNYyU7WLtMRkVcDBSO96DEpc8wGMux9lMR1quDvMzsjNuUiXUE+6BUC3v3SKWo4ncGlo47bkn2cmMENfwSwv4uv5f/sPU1TXo9QtZZGl2lcsY4ED0tIZYZkQTHbS1XQFzDd4WyNSp2w7E7c3IcE8x3ZL5bqKXjk2ckCk4HXBhOSzZhhC0WErbyVgbCAMDBbsT7iCfwrXYQtleZnmGp7ATr5ZV86s/3yHc+TCLmZ5QysgyeNru5oxotJJoQ6UyU3P9ey1vxdaHFPDt/MDgsRCLL3f1UQuoSIJDxDPrTHeXq51wh2sDrpWbwvxaYDkiPomBS06IbkdlXoIleLj2S/t1woFU231sO/buQjdqNjBNvSkUMJJ89CuQRjXThwhW5A5mEwrF1z4T/sBSeOSYdlBbR4238Ovhe3uWqbZd7kTj/JOExVBXIxPGdA=
+	foqebd9PYE7c9NRrsNCJginSuTSgN00831602Dce5dnflo3Bz1Rl3xDqqHoZFhlgWJ3Nkxn0kzf8WVo9wK6zRjxl1lEPmaYSuS9Haa0Ems7/YyEBFypwJJ7LTw8wuJyJHO58npU8Ak/AeaXU/jwGH16nMi6knyjRljQJcdl+HhdGhM2Y6piRFXA9IzAxo6mF7asLlcTXlEJ0w8iIHOdhGMVPa4Ee71TkCO8xinXoOUQdJ1fxxt7HNH8lwldzpSIz6mUrumixKwyGZeurievimXW8lDT9ZKmKX83IDDO/Cg2bv0nMCJa9PmvDr3J50hwqwozGv/OS4aP1n1aqRIrJKoTGGII7eno15qW5TSFPqDQSt6s234kGrpZxPg//BxD26sP3EQXRnY+gfssmYCqYDYfktGE08A2U/HS8Kdc+lPezTyglzjQGs6Yntl1lqBRpwmzzU0n+sjDfzRZwVF7VBtCb0LS3WBur2bgZiCElUXs2cuybKakqfPX3zyWDVw3t4kmKgJ7RgZ/XSdZWra/c54/RAm0BslqIcY3ZFWYWVesJrlEYxdJ2UrAvy56L532oI0OLAcjvHHy74lSWlikLNTqOYMQLYrG3MeoVqOd1lpTTFeGtv9wAlucZf5rS/QNsDQxBOOCyPI9jbeWKH2VcIttjZQQdMmZtrdRfIXNs0sE=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(376014)(7416014)(1800799024)(18002099003)(22082099003)(56012099006)(11063799006)(4143699003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(23010399003)(366016)(1800799024)(18002099003)(22082099003)(56012099006)(11063799006)(5023799004)(4143699003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?qhJ+MdSq5uIc3lLCDrFjdkL6Kn+YzGEiYz1hMiL/MQMXZWkhJQByTE2CSDu7?=
- =?us-ascii?Q?hLNZ/K1d89LnOGgFEe+YRb2JrHQyJ4JO7ABpozCi3KJIXLKBAd46czHlXnNV?=
- =?us-ascii?Q?ceOQEiM59M6WaqhpfkV6NAFeDZVrPiLI6l4cu3tlw2QVg4+wzEO20PHsL7M9?=
- =?us-ascii?Q?dBGnvLdMuCxA2hiQncCIcjsriHY3rP2km7Fd8tBNNO2NZFNyEUDO3VuqfsqA?=
- =?us-ascii?Q?9cU6JCRykPQqzqhSgZ4edp7LimCvn3KwdM4oUh46BOdZ1zvD11G4K68uyRji?=
- =?us-ascii?Q?YHz/GAyx0auttbvSDYjKWZv/hQecty5POcwHdC0EveMnq9cWs7rQpZIqomcz?=
- =?us-ascii?Q?7BWEVs/g3UYmNN8W14gM01DSY4hvZnl0q5qE1uIMd3jKmwRK184hcs8i1mGs?=
- =?us-ascii?Q?c7P4WHfkva19ViQqdG0hjD9nY61Jb7guXUKysC9/fYZ+vhPOAlyTe626+tdE?=
- =?us-ascii?Q?g/ZV8UIp6FL0RsRRK/YMHF1Db6HsE8bh+E6YBcLqlOWxtK39cA2kBYdU+1ji?=
- =?us-ascii?Q?BpO7tR8ABXmZ8vs14LzGqN7i0Z/SwUCWPcnRsHGGmtlpuw1UHb67n5/l/tAh?=
- =?us-ascii?Q?eZ/JHe+vzaZEpHe7TLC0Xv7EqzbokloH9k3Da1y1NXbv0jmM/OzTgyOcYGRs?=
- =?us-ascii?Q?M8jHl1nDBkhr1JPQj0eIjFPTkphjilk0Ono+Z7Ci2Wh65DtRgmJNH7dPAdy7?=
- =?us-ascii?Q?2iu6KhB4yJMe+AU5EAqXbLc3XeGf2OM5PxOYD49C1avsxpkt4JR/eFXNRwSI?=
- =?us-ascii?Q?NAMNVtA9WjiCnIWZ5qv7YbU0jgVFl5NfURb+uq60a5WK5zC5jIgRk33zd7D3?=
- =?us-ascii?Q?SOeXtXAQ1qlZUDW8WuvEF37KGOb+9EVdkBPTQc2w5uh6V01eSlLLD+FiR0Ny?=
- =?us-ascii?Q?Wa/I0ZLLEERYGGo7fBW19FVvUXx7YbOjaX/jpv+6A84+YRJgHZTtnwOBU7++?=
- =?us-ascii?Q?fMP1xAMIULZ/SSLUMtE/TfaaKUaZpUNHUSHf0pKJVBvP7Q3/0T0XAjx09eNs?=
- =?us-ascii?Q?nyDeWlaifVgrIn4qCvaPfZZX+AvTzrhv4pG6vQ0nECLH+APmW57bK7xAnYbm?=
- =?us-ascii?Q?CJIZXq/Ly6KyiT6Kn08pxbiT5EI7dmbnsAb8C28fXqBzLajSA4pTEMHcOSQk?=
- =?us-ascii?Q?NGYY7DhhQR0mSuBMawZCjIqa+ZGM0mIw3Atpf6PoJ5LHPbXzT8zH0Ozk5o9E?=
- =?us-ascii?Q?f7ktzHa4y6NBWBqEmFWZfURiPIRrx9BW5b2/rU3Lp5E4qExiEXyig5uiFAqq?=
- =?us-ascii?Q?YWlzKo4WhoRdo4WUesws8rkzNqlIVh9CeWdektnPoMtg3abefAbj3+Ul4rpa?=
- =?us-ascii?Q?4ZVvRDIJ/VFI++pCdarKWiEfV8e9H+ZmJIX0dnJueQ19x53jDWbTnMHu8h8O?=
- =?us-ascii?Q?frVKhXaJZGNVPA/oedsTITrycSC9hetWevsnaaSz8XGK1SXhSjdg0zOvOhQt?=
- =?us-ascii?Q?qmY8w8JNIkTN1ms2mFMzXyiJ4Y8Ku66/wim2jcQw5ftrENy2/xnbQ+2ENU0h?=
- =?us-ascii?Q?aoyt0DgQQWqEsz4mSH+fwQGcRXmWtUdNzbq1ngE0uXnX8NgHMO1rw1BlabMN?=
- =?us-ascii?Q?+gxhZtZPU728YhJ9hxDYx3h93YIHO8nxIvzo+lEFt7ZuIn4EBf7/TUlw+uiG?=
- =?us-ascii?Q?63vMRhA/SyY3RLN8kwJryXbUtwArns3inW1sq0MF5/cYn0bnosCgMN1xYtxn?=
- =?us-ascii?Q?MXlQD9DTlitDi/WS9aGYB8kqj34fUNEDU93XxeQtCBnLRYK+?=
+	=?us-ascii?Q?gIBUeMRhPKC9BsAvS47tAMb5Nmz4xmyaQn1WnbgElofGtwf2Tu6YKIKNcoFs?=
+ =?us-ascii?Q?346j2kWSpFvnh36fdBf34JLg9gcD4GXTfi36pBGwTLCiZx/7lTGeA0VKmSb5?=
+ =?us-ascii?Q?v1+YTws2vVZ4VhedNiCKw6ti7eqR7bltvkBYRJZVpnQW/a+2ryx0NskNllm3?=
+ =?us-ascii?Q?JeGRq+3l2Yx7A+Qp1BDfHvopsPlF0Z2rqYxsTZgXuJWZVtV9xYktouw0m/6D?=
+ =?us-ascii?Q?/u8QE7rubS9B2ZcIgIV8N2605dpROknGkAx3dips+z5tJZDrcGZP+N1qS6mK?=
+ =?us-ascii?Q?n1Ds6D2vqP8PHODbmxekijWt1kOC9QUR/8OR9+K2jXecZD9Hxzb2vd1k7rxD?=
+ =?us-ascii?Q?m4/pW2fj6zcNUl/XWm+iw45z210hj8qqsCJqgsRd3jDm/1SlDDDb/zQdtNh7?=
+ =?us-ascii?Q?MzCssrfqL+n9mA7E91IHt1PGgnB6oAIJTdgKshrul2BQcaP0v7hlLYoy0MNa?=
+ =?us-ascii?Q?I0ZdSbhl7k1Mxw7my6rSml8Ko+fTZHD42umuizflf3MmrcGhbl+ofXm7d4dI?=
+ =?us-ascii?Q?iDr4pCcIf2j05DzT+lHRJ90JAVzl+8eJXGllKf4NKZ8VHW4dtytUg8DR7q31?=
+ =?us-ascii?Q?PC75sf+608L9E2aznZGkgmiN6pkE8VcQ93hjqMXhouoFrVxUuCOtHa/WPi1/?=
+ =?us-ascii?Q?FYkVHpbYlYrkt3vFFmNbwB8LNdEnlHgHU141ZSRyDCKd5TIko8tvdsnmULXQ?=
+ =?us-ascii?Q?d2zwIBx2go7KA0Y90v1z9Dy/TcbswuHbdJvEEkF8UkJ9vXaRcY4rYA1Uvv5y?=
+ =?us-ascii?Q?/8aXMnsiHLH9PrcDrkKP2UhavpRY+1b+3nliWLyPVDnaLzI1acMZE2qfb60k?=
+ =?us-ascii?Q?vbB6UR4qAiCVM/TWVkful39TvFI8ACeoCr4+65WsMz/h7s1WC8cB9vVmlx6I?=
+ =?us-ascii?Q?HhKxlbK7MAkelaGeCnJaQ3xdTBoxzFNjxYOBlUIb0hcEno++nDdh6ERmHw4Q?=
+ =?us-ascii?Q?zVN5s6+psuX1A1NeyMeiHKhB4OQW6CH+e2kadaRReplDeR3/kyhm23q8iKfv?=
+ =?us-ascii?Q?sl+dUKmr9VABJ9oLNBkez69S8pqpM955zZ7wGqJhfGS5d1w/3TLgE0uFrnkr?=
+ =?us-ascii?Q?tQkCsHJknU2ZcU7+PYVf3IOJo1CirWUpsq0poeQ5Z+Ej3rOJE8K58Nu64ata?=
+ =?us-ascii?Q?fZ7YT4lMu0XUZ0+XvgM6oY4iKQNfvYytOJNmLfzmwTwIUVL2mfXBn96vFZ+v?=
+ =?us-ascii?Q?3jxdCvUAkCY7AJLvtEnqOo48bpkm3dCqvU+hzl26iP1Ck8kMOycXv6UGdpGT?=
+ =?us-ascii?Q?GNns/e++b3RxwyGBGzmwojP2DbzIhw96d07PCb8yndB73aD+4B/e4qBA4b5P?=
+ =?us-ascii?Q?AdKM+EGnxcpDaSgyjG85jeCg8T20rqQpZ2rt4bc6fux5260nke8O3NTt0u0F?=
+ =?us-ascii?Q?625nisNvXoQK+F5FJWghWGI9azQ3WzGDgfC28CyXYTd7ILTryfWXMB4ojh+K?=
+ =?us-ascii?Q?e+VhMFCiQncJeft2/kB6xwzVvkdC8DKEFj+s+TmC9PzOexUBUix3w0eK1TTq?=
+ =?us-ascii?Q?QvaVhYzWZJlxmwaEEnJX6B6IRdfV4Y1vQtxsYDeh3hZzvHdR93DPchqrDrxe?=
+ =?us-ascii?Q?dKDUv3cOnXUCdqZFmlPdI4wUgQrtZ5iQzS+i3QX/VRqdLLULmM6vo73HlkL9?=
+ =?us-ascii?Q?cX7z2hKQRRz3blowuGeZDdrwJ8mwCjHh6xYszDMkGiZZ3VkOLEirlUpkVUTs?=
+ =?us-ascii?Q?e+xwVGNPg4stvxe6joqsxQ2GZVWGGyNexbBFV/Vgql9ex+72?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 299f9348-af33-474f-4a46-08dedd92e1e5
+X-MS-Exchange-CrossTenant-Network-Message-Id: 06cae3fa-30fd-4811-5bf1-08dedd967e72
 X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB2370.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jul 2026 08:20:06.1553
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jul 2026 08:45:57.3153
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Of+FKjXXrgGFJMbQ/eAryv0p80G/dCPv9lMWvP00yC7mYeYsYsCztWZH6eG8Qdu0AruJFaJlL8a9E2JqYxURnA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7778
+X-MS-Exchange-CrossTenant-UserPrincipalName: 5ff9ULOzWZZoqfZ8u753OtmcrhNX59/j2f4HglgYWUceLeJcjI2EbYpVX+qLBGCzT3QG4QYbTViI1EejWjunZQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6528
 
-On Tue, Jun 30, 2026 at 05:18:42PM +0800, Gregory Price wrote:
-> Add a kselftest for the dax/kmem whole-device "state" sysfs attribute
-> (/sys/bus/dax/devices/daxX.Y/state), which transitions a kmem-backed
-> dax device between "unplugged", "online" and "online_movable".
+On Tue, Jun 30, 2026 at 05:18:38PM +0800, Gregory Price wrote:
+> offline_and_remove_memory() handles a single contiguous range.
 > 
-> The kselftest also includes a test to demonstrate the force-unbind
-> does not deadlock - but this is a destructive test.  The dax device
-> can never be rebound after doing this.
+> Callers that manage a device composed of several ranges (dax/kmem)
+> currently have to call it in a loop, which gives up atomicity.
 > 
-> Provisioning a devdax device and binding it to kmem needs daxctl/ndctl
-> out of scope for an in-tree selftest, so the test discovers an already
-> kmem-bound dax device and SKIPs when none are present or the memory
-> cannot be freed to reach a known baseline.
+> In addition to pushing rollback logic into the driver, the lack
+> of atomicity creates a race condition between system daemons trying
+> to manage the same resource:
 > 
-> When a device is available it validates the interface contract:
->   - online / online_movable actually add memory (MemTotal grows),
->   - online is idempotent,
->   - switching between online types without unplug is rejected,
->   - unplug removes memory and the reported state is "unplugged"
->   - invalid input is rejected.
+>    - Manager 1:  Offlines memory blocks.    Removes device.
+>                                         ^^^^
+>    - Manager 2:  Detects offline memory blocks, re-onlines them.
 > 
-> One specific regression test:
->     online -> unplug -> online_movable -> unplug
+> Add offline_and_remove_memory_ranges(), which takes an array of ranges
+> and processes them as one operation under a single lock_device_hotplug():
 > 
-> Re-online must re-reserve per-range resources so subsequent unplug
-> actually offlines and removes instead of silently reporting success
-> while the memory stays online.
+>   - Phase 1 offlines every block of every range.
+>   - Phase 2 removes the ranges only if all ranges are offline.
+>   - If any offline fails, the whole operation is reverted.
 > 
+> This gives callers all-or-nothing semantics for the offline step, so a
+> failed or interrupted unplug leaves the device in a consistent state.
+> 
+> This also resolves the battling managers race - the second manager's
+> operation simply fails when the block is destroyed / cannot be onlined.
+> 
+> offline_and_remove_memory() becomes a thin wrapper that passes its single
+> range to the new helper, so the offline/rollback logic lives in one place.
+> 
+> Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 > Signed-off-by: Gregory Price <gourry@gourry.net>
 > ---
->  tools/testing/selftests/Makefile              |   1 +
->  tools/testing/selftests/dax/Makefile          |   6 +
->  tools/testing/selftests/dax/config            |   4 +
->  .../testing/selftests/dax/dax-kmem-hotplug.sh | 190 ++++++++++++++++++
->  tools/testing/selftests/dax/settings          |   1 +
->  5 files changed, 202 insertions(+)
->  create mode 100644 tools/testing/selftests/dax/Makefile
->  create mode 100644 tools/testing/selftests/dax/config
->  create mode 100755 tools/testing/selftests/dax/dax-kmem-hotplug.sh
->  create mode 100644 tools/testing/selftests/dax/settings
+>  include/linux/memory_hotplug.h |  8 +++
+>  mm/memory_hotplug.c            | 93 ++++++++++++++++++++++++----------
+>  2 files changed, 73 insertions(+), 28 deletions(-)
 > 
-> diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
-> index 6e59b8f63e41..8c2b4f97619c 100644
-> --- a/tools/testing/selftests/Makefile
-> +++ b/tools/testing/selftests/Makefile
-> @@ -14,6 +14,7 @@ TARGETS += core
->  TARGETS += cpufreq
->  TARGETS += cpu-hotplug
->  TARGETS += damon
-> +TARGETS += dax
->  TARGETS += devices/error_logs
->  TARGETS += devices/probe
->  TARGETS += dmabuf-heaps
-> diff --git a/tools/testing/selftests/dax/Makefile b/tools/testing/selftests/dax/Makefile
-> new file mode 100644
-> index 000000000000..25a4f3d73a5b
-> --- /dev/null
-> +++ b/tools/testing/selftests/dax/Makefile
-> @@ -0,0 +1,6 @@
-> +# SPDX-License-Identifier: GPL-2.0
-> +all:
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index ff3b865ea7e7..db10d50f30ae 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -268,6 +268,8 @@ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages,
+>  extern int remove_memory(u64 start, u64 size);
+>  extern void __remove_memory(u64 start, u64 size);
+>  extern int offline_and_remove_memory(u64 start, u64 size);
+> +int offline_and_remove_memory_ranges(const struct range *ranges,
+> +		unsigned int nr_ranges);
+>  
+>  #else
+>  static inline void try_offline_node(int nid) {}
+> @@ -284,6 +286,12 @@ static inline int remove_memory(u64 start, u64 size)
+>  }
+>  
+>  static inline void __remove_memory(u64 start, u64 size) {}
 > +
-> +TEST_PROGS := dax-kmem-hotplug.sh
-> +
-> +include ../lib.mk
-> diff --git a/tools/testing/selftests/dax/config b/tools/testing/selftests/dax/config
-> new file mode 100644
-> index 000000000000..4c9aaeb6ceb4
-> --- /dev/null
-> +++ b/tools/testing/selftests/dax/config
-> @@ -0,0 +1,4 @@
-> +CONFIG_DEV_DAX=m
-> +CONFIG_DEV_DAX_KMEM=m
-> +CONFIG_MEMORY_HOTPLUG=y
-> +CONFIG_MEMORY_HOTREMOVE=y
-> diff --git a/tools/testing/selftests/dax/dax-kmem-hotplug.sh b/tools/testing/selftests/dax/dax-kmem-hotplug.sh
-> new file mode 100755
-> index 000000000000..c8bbaf6178ed
-> --- /dev/null
-> +++ b/tools/testing/selftests/dax/dax-kmem-hotplug.sh
-> @@ -0,0 +1,190 @@
-> +#!/bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +#
-> +# Exercise the dax/kmem "state" sysfs attribute:
-> +#   /sys/bus/dax/devices/daxX.Y/state  ->  unplugged | online | online_kernel | online_movable
-> +#
-> +# The test needs a dax device already bound to the kmem driver.
-> +# If no suitable device is found the tests SKIP.
-> +#
-> +# A dax device can be provisioned with the memmap= boot param, e.g.:
-> +#   memmap=2G!4G
-> +#
-> +# then, in the booted system:
-> +#
-> +#   ndctl create-namespace -m devdax -e namespace0.0 -f
-> +#   daxctl reconfigure-device -N -m system-ram dax0.0   # bind kmem
-> +#   ./dax-kmem-hotplug.sh
-> +
-> +# shellcheck disable=SC1091
-> +DIR="$(dirname "$(readlink -f "$0")")"
-> +. "$DIR"/../kselftest/ktap_helpers.sh
-> +
-> +DAX_BASE=/sys/bus/dax/devices
-> +
-> +memtotal_kb() { awk '/^MemTotal:/ {print $2}' /proc/meminfo; }
-> +get_state() { cat "$HP" 2>/dev/null; }
-> +# set_state STATE -- write a state to the state attribute; returns the
-> +# write's exit status (0 = accepted by the kernel)
-> +set_state() { echo "$1" > "$HP" 2>/dev/null; }
-> +
-> +find_kmem_dax() {
-> +	local d drv
-> +	for d in "$DAX_BASE"/dax*; do
-> +		[ -e "$d/state" ] || continue
-> +		drv=$(readlink "$d/driver" 2>/dev/null)
-> +		[ "$(basename "${drv:-}")" = kmem ] || continue
-> +		basename "$d"
-> +		return 0
-> +	done
-> +	return 1
+> +static inline int offline_and_remove_memory_ranges(const struct range *ranges,
+> +		unsigned int nr_ranges)
+> +{
+> +	return -EBUSY;
 > +}
+>  #endif /* CONFIG_MEMORY_HOTREMOVE */
+>  
+>  #ifdef CONFIG_MEMORY_HOTPLUG
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index a66346def504..3225364bec2f 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -2429,58 +2429,95 @@ static int try_reonline_memory_block(struct memory_block *mem, void *arg)
+>   */
+>  int offline_and_remove_memory(u64 start, u64 size)
+>  {
+> -	const unsigned long mb_count = size / memory_block_size_bytes();
+> +	struct range range = {
+> +		.start = start,
+> +		.end = start + size - 1,
+> +	};
+> +
+> +	return offline_and_remove_memory_ranges(&range, 1);
+> +}
+> +EXPORT_SYMBOL_GPL(offline_and_remove_memory);
+> +
+> +/**
+> + * offline_and_remove_memory_ranges - offline and remove multiple memory ranges
+> + * @ranges: array of physical address ranges to offline and remove
+> + * @nr_ranges: number of entries in @ranges
+> + *
+> + * Offline and remove several memory ranges as one operation, serialized
+> + * against other hotplug operations by a single lock_device_hotplug().
+> + *
+> + * This offlines all ranges before removing any of them.  If offlining any
+> + * range fails, the entire process is reverted and nothing is removed.
+> + * This provides a fully atomic semantic for unplugging an entire device.
+> + *
+> + * Each range must be memory-block aligned in start and size.
+> + *
+> + * Return: 0 on success, negative errno otherwise.  On failure no range has
+> + * been removed.
+> + */
 
-It picks the first kmem-bound dax device and runs online/offline cycles on it.
-If the selected device is a real device with production usage, offlining movable
-memory will migrate all in-use pages.
+I think this can return 1, and it shouldn't.
+device_offline() returns 1 when a block is already offline, and phase 1 passes that value through as-is.
 
-Could the destructive parts be gated behind an opt-in, e.g. an environment var ?
-Or find the testable backend device instead of just picking the first one?
+Easy to hit with patch 0, offline one memory block via memoryN/state, then write
+"unplugged" to daxX.Y/state. The store returns 1, userspace treats it as a partial write of 1 byte,
+and retries the write with the rest of the string.
+
+Maybe
+"""
+if (rc > 0)
+    rc = -EBUSY;
+"""
 
 Best regards,
 Richard Cheng.
 
+
+> +int offline_and_remove_memory_ranges(const struct range *ranges,
+> +		unsigned int nr_ranges)
+> +{
+> +	unsigned long mb_count = 0;
+>  	uint8_t *online_types, *tmp;
+> -	int rc;
+> +	unsigned int i;
+> +	int rc = 0;
+>  
+> -	if (!IS_ALIGNED(start, memory_block_size_bytes()) ||
+> -	    !IS_ALIGNED(size, memory_block_size_bytes()) || !size)
+> +	if (!ranges || !nr_ranges)
+>  		return -EINVAL;
+>  
+> +	for (i = 0; i < nr_ranges; i++) {
+> +		const u64 start = ranges[i].start;
+> +		const u64 size = range_len(&ranges[i]);
 > +
-> +ktap_print_header
+> +		if (!IS_ALIGNED(start, memory_block_size_bytes()) ||
+> +		    !IS_ALIGNED(size, memory_block_size_bytes()) || !size)
+> +			return -EINVAL;
+> +		mb_count += size / memory_block_size_bytes();
+> +	}
 > +
-> +if [ "$UID" != 0 ]; then
-> +	ktap_skip_all "must be run as root"
-> +	exit "$KSFT_SKIP"
-> +fi
+>  	/*
+> -	 * We'll remember the old online type of each memory block, so we can
+> -	 * try to revert whatever we did when offlining one memory block fails
+> -	 * after offlining some others succeeded.
+> +	 * Remember the old online type of every memory block across all ranges,
+> +	 * so we can revert if offlining a later block fails.  All entries start
+> +	 * as MMOP_OFFLINE so blocks we never touched are skipped on rollback.
+>  	 */
+>  	online_types = kmalloc_array(mb_count, sizeof(*online_types),
+>  				     GFP_KERNEL);
+>  	if (!online_types)
+>  		return -ENOMEM;
+> -	/*
+> -	 * Initialize all states to MMOP_OFFLINE, so when we abort processing in
+> -	 * try_offline_memory_block(), we'll skip all unprocessed blocks in
+> -	 * try_reonline_memory_block().
+> -	 */
+>  	memset(online_types, MMOP_OFFLINE, mb_count);
+>  
+>  	lock_device_hotplug();
+>  
+> +	/* Phase 1: offline every block in every range. */
+>  	tmp = online_types;
+> -	rc = walk_memory_blocks(start, size, &tmp, try_offline_memory_block);
+> -
+> -	/*
+> -	 * In case we succeeded to offline all memory, remove it.
+> -	 * This cannot fail as it cannot get onlined in the meantime.
+> -	 */
+> -	if (!rc) {
+> -		rc = try_remove_memory(start, size);
+> +	for (i = 0; i < nr_ranges; i++) {
+> +		rc = walk_memory_blocks(ranges[i].start, range_len(&ranges[i]),
+> +					&tmp, try_offline_memory_block);
+>  		if (rc)
+> -			pr_err("%s: Failed to remove memory: %d", __func__, rc);
+> +			break;
+>  	}
+>  
+> -	/*
+> -	 * Rollback what we did. While memory onlining might theoretically fail
+> -	 * (nacked by a notifier), it barely ever happens.
+> -	 */
+> +	/* If any failure occurred at all, rollback any changes and bail */
+>  	if (rc) {
+>  		tmp = online_types;
+> -		walk_memory_blocks(start, size, &tmp,
+> -				   try_reonline_memory_block);
+> +		for (i = 0; i < nr_ranges; i++)
+> +			walk_memory_blocks(ranges[i].start,
+> +					   range_len(&ranges[i]), &tmp,
+> +					   try_reonline_memory_block);
+> +		goto out_unlock;
+>  	}
 > +
-> +DAX=$(find_kmem_dax)
-> +if [ -z "$DAX" ]; then
-> +	ktap_skip_all "no kmem-bound dax device with a state attribute"
-> +	exit "$KSFT_SKIP"
-> +fi
-> +HP=$DAX_BASE/$DAX/state
-> +ORIG=$(get_state)
+> +	/* Phase 2: Remove. This should never fail holding the hotplug lock */
+> +	for (i = 0; i < nr_ranges; i++)
+> +		WARN_ON_ONCE(try_remove_memory(ranges[i].start,
+> +					       range_len(&ranges[i])));
 > +
-> +# A failure to reach the baseline is environmental (memory in use), not an
-> +# interface failure, so skip rather than fail.
-> +set_state unplugged; rc=$?
-> +if [ "$rc" != 0 ] || [ "$(get_state)" != unplugged ]; then
-> +	ktap_skip_all "$DAX: cannot reach 'unplugged' baseline (memory in use?)"
-> +	[ -n "$ORIG" ] && set_state "$ORIG"
-> +	exit "$KSFT_SKIP"
-> +fi
-> +mt_unplugged=$(memtotal_kb)
-> +
-> +DRV=/sys/bus/dax/drivers/kmem
-> +AOB=/sys/devices/system/memory/auto_online_blocks
-> +
-> +ktap_print_msg "using $DAX (initial state was: $ORIG)"
-> +ktap_set_plan 8
-> +
-> +# A public (N_MEMORY) kmem node onlined into a kernel zone (online/online_kernel)
-> +# collects unmovable allocations and can then never be offlined, which would
-> +# wedge the device for the rest of this test.  So this test only ever
-> +# successfully onlines online_movable, the one mode that is reliably unpluggable.
-> +
-> +set_state online_movable; rc=$?
-> +mt_online=$(memtotal_kb)
-> +if [ "$rc" = 0 ] && [ "$(get_state)" = online_movable ] && [ "$mt_online" -gt "$mt_unplugged" ]; then
-> +	ktap_test_pass "online_movable: state=online_movable, MemTotal $mt_unplugged -> $mt_online kB"
-> +else
-> +	ktap_test_fail "online_movable: rc=$rc state=$(get_state) MemTotal $mt_unplugged -> $mt_online"
-> +fi
-> +
-> +set_state online_movable; rc=$?
-> +if [ "$rc" = 0 ] && [ "$(get_state)" = online_movable ]; then
-> +	ktap_test_pass "online_movable idempotent"
-> +else
-> +	ktap_test_fail "online_movable idempotent: rc=$rc state=$(get_state)"
-> +fi
-> +
-> +# A different online type is rejected without an intervening unplug.  The write
-> +# is refused before any hotplug, so this never actually onlines a kernel zone.
-> +set_state online_kernel; rc=$?
-> +if [ "$rc" != 0 ] && [ "$(get_state)" = online_movable ]; then
-> +	ktap_test_pass "reject online_kernel without intervening unplug (no kernel-zone online)"
-> +else
-> +	ktap_test_fail "online_movable->online_kernel not rejected: rc=$rc state=$(get_state)"
-> +fi
-> +
-> +set_state unplugged; rc=$?
-> +mt=$(memtotal_kb)
-> +if [ "$rc" = 0 ] && [ "$(get_state)" = unplugged ] && [ "$mt" -lt "$mt_online" ]; then
-> +	ktap_test_pass "unplug from online_movable: MemTotal $mt_online -> $mt kB"
-> +else
-> +	ktap_test_fail "unplug from online_movable: rc=$rc state=$(get_state) MemTotal $mt_online -> $mt"
-> +fi
-> +
-> +before=$(get_state)
-> +set_state bogus_state; rc=$?
-> +if [ "$rc" != 0 ] && [ "$(get_state)" = "$before" ]; then
-> +	ktap_test_pass "reject invalid state string"
-> +else
-> +	ktap_test_fail "invalid state not rejected: rc=$rc state=$(get_state)"
-> +fi
-> +
-> +# The online_movable -> unplug cycle once regressed: a re-online failed to
-> +# re-reserve the per-range resources, so a later unplug reported success while
-> +# leaving the memory online.  Assert each iteration really adds and frees memory.
-> +set_state unplugged
-> +cycle_ok=1; fail_i=0; on=0; off=0
-> +for i in 1 2 3; do
-> +	if ! set_state online_movable; then cycle_ok=0; fail_i=$i; break; fi
-> +	on=$(memtotal_kb)
-> +	if ! set_state unplugged; then cycle_ok=0; fail_i=$i; break; fi
-> +	off=$(memtotal_kb)
-> +	if [ "$on" -le "$mt_unplugged" ] || [ "$off" -ge "$on" ]; then
-> +		cycle_ok=0; fail_i=$i; break
-> +	fi
-> +done
-> +if [ "$cycle_ok" = 1 ]; then
-> +	ktap_test_pass "online_movable/unplug cycle re-acquires resources (3x: added and freed each time)"
-> +else
-> +	ktap_test_fail "online_movable/unplug cycle regressed at iteration $fail_i (on=$on off=$off baseline=$mt_unplugged)"
-> +fi
-> +
-> +# change system default online policy while the device is unbound, and show
-> +# the new system default policy is utilized across bindings.
-> +set_state unplugged
-> +if [ -w "$AOB" ] && [ -w "$DRV/unbind" ] && [ -w "$DRV/bind" ]; then
-> +	orig_aob=$(cat "$AOB")
-> +	echo "$DAX" > "$DRV/unbind" 2>/dev/null
-> +	echo offline > "$AOB" 2>/dev/null
-> +	echo "$DAX" > "$DRV/bind" 2>/dev/null
-> +	sleep 1
-> +	st=$(get_state)
-> +	echo "$orig_aob" > "$AOB" 2>/dev/null		# restore system policy
-> +	if [ "$st" = offline ]; then
-> +		ktap_test_pass "online policy resolved at bind: auto_online_blocks=offline -> state=offline"
-> +	else
-> +		ktap_test_fail "bind-time policy not honored: state=$st (expected offline)"
-> +	fi
-> +	set_state unplugged 2>/dev/null
-> +else
-> +	ktap_test_skip "auto_online_blocks or driver bind/unbind not writable"
-> +fi
-> +
-> +[ -n "$ORIG" ] && set_state "$ORIG"
-> +
-> +# DESTRUCTIVE: unbinding the driver while memory is online causes the resources
-> +# to leak - but the unbind should not deadlock.  Instead the driver leaks it
-> +# with a single "stuck online" warning. This leaves the memory online and the
-> +# device unbound until reboot, so it runs last - and only if we can run it,
-> +# leaving the restored state above untouched otherwise.  online_movable only:
-> +# this test never onlines a public node into a kernel zone.
-> +if [ -w "$DRV/unbind" ]; then
-> +	set_state unplugged; set_state online_movable
-> +fi
-> +if [ "$(get_state)" = online_movable ] && [ -w "$DRV/unbind" ]; then
-> +	mt_on=$(memtotal_kb)
-> +	dmesg -C 2>/dev/null
-> +	echo "$DAX" > "$DRV/unbind" 2>/dev/null
-> +	mt_after=$(memtotal_kb)
-> +	# The leaked "System RAM (kmem)" regions stay in the iomem tree; reading
-> +	# their names dereferences res_name, which a buggy unbind already freed.
-> +	# Walk /proc/iomem to provoke that use-after-free (caught by KASAN).
-> +	cat /proc/iomem > /dev/null 2>&1
-> +	splat=$(dmesg 2>/dev/null | grep -ciE "KASAN|BUG:|use-after-free|general protection|Oops|refcount_t")
-> +	if [ "$splat" = 0 ] && [ "$mt_after" -ge "$mt_on" ]; then
-> +		ktap_test_pass "unbind while online: memory left online, no UAF/oops (MemTotal $mt_on -> $mt_after kB)"
-> +	else
-> +		ktap_test_fail "unbind while online regressed: splat=$splat MemTotal $mt_on -> $mt_after kB"
-> +	fi
-> +else
-> +	ktap_test_skip "could not online device for unbind-while-online test"
-> +fi
-> +
-> +ktap_finished
-> diff --git a/tools/testing/selftests/dax/settings b/tools/testing/selftests/dax/settings
-> new file mode 100644
-> index 000000000000..ba4d85f74cd6
-> --- /dev/null
-> +++ b/tools/testing/selftests/dax/settings
-> @@ -0,0 +1 @@
-> +timeout=90
+> +out_unlock:
+>  	unlock_device_hotplug();
+>  
+>  	kfree(online_types);
+>  	return rc;
+>  }
+> -EXPORT_SYMBOL_GPL(offline_and_remove_memory);
+> +EXPORT_SYMBOL_GPL(offline_and_remove_memory_ranges);
+>  #endif /* CONFIG_MEMORY_HOTREMOVE */
 > -- 
 > 2.53.0-Meta
 > 
