@@ -1,338 +1,237 @@
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012065.outbound.protection.outlook.com [52.101.43.65])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAE6C3E0241;
-	Thu,  9 Jul 2026 08:46:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83E4B3ED3CC;
+	Thu,  9 Jul 2026 10:07:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.12
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783586766; cv=fail; b=mdPGc5KLS2YY8A5waHZnX+eU804sB7eS3tiMRb3iYJvWfsur6NE7Z3M7f+cbz4778FGKiYEjxXjK5aR8uCxXEn7OELKs814+D+5XL5cf2FmGC5yQNpdz0vRm9kVAVJMPahYh4ZVaGZfEBB4zl893EYIiWRCIP1QuyYhKufO6u2Y=
+	t=1783591645; cv=fail; b=cw1Rl6EffTV6HdtCRk7UMn4iR95Wv+cNFH5qkg/JtOSc8PNbV5SGGVY82LDNK/U5xyszZ3UJ4fBlIKLqwdrSbl65fRTdHH+ABe49YGTBlmRDA76Yf7NiE+fKCq5dHzVl7P2Vq9wQrHcefVtcYf90O48luG6+AcrIFxqNDknNdBI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783586766; c=relaxed/simple;
-	bh=AuYwDtzHflWOI3fN7ZHzWTV22EcDZGfIWajEXq4KFjc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=cncFb2/2WHSlG9maqs47/0NhVdbglruj/K66bG3tjOpBm9sre5WIFr4jGL1Gg8EJeXNgP3wdNxM2NLB8bmCNxQB43o+/pK6WkIIVuQghj9s9lJkKfjTGw1RLSMGMqTN5CmiIfmfHtge/VZMtLuWwCRI63/nh8al3VQp1lp7427w=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=aAtkuTkt; arc=fail smtp.client-ip=52.101.43.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1783591645; c=relaxed/simple;
+	bh=OvzECc3O2+5LVR9tbR9zbwzJOdhq+iOFPBp2Vc4oDKo=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=i26EE9af7ddDy9zsLm9lzAn3SYHbsQ76Rd4VJ3VelaV5MGwFfjNsgo1x1cuWeWn8+g81KNo4ng7w4cuxwQm7WB6jSfF7U43O7ni05sUbH5/cHy4Iospx4amlBl1UAPJfRZwwht4AsAd18iJkLWuZspi8Aktr+DrR+wUrfXb8sMs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=C0GMFym1; arc=fail smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="aAtkuTkt"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C0GMFym1"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1783591643; x=1815127643;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-id:content-transfer-encoding:
+   mime-version;
+  bh=OvzECc3O2+5LVR9tbR9zbwzJOdhq+iOFPBp2Vc4oDKo=;
+  b=C0GMFym1vJJPlHY9OmLUtQepwheHbpplN2VVco4jtefECQ+drJdLjqV8
+   NBb3tf9JNzOj3+OxmdwOsDTtmgBygs5/C9Y3agQpVqUcrbgnRH7vznIW/
+   FMNLZQdIFYmZ4k+Ph0HjqNXuGA2AW+YCIag7q7Bcb7bDAIqRqyG656IQa
+   y4x9mPt3AsW/dgGYOFKNm4oq5kb1N5d5vm67R08/Mmus+B2KEVuguce/M
+   k7J0DBm1tuOsuAr4atiJ8I9Ei2W6yc8jcu4VpGwgjW8yAU6HBeZB2jODt
+   T7vpxtqacVA+gg9fPOhKhojThCGaQDKvE7a4fl0/X1lf4BngFDIUm0Q8Q
+   A==;
+X-CSE-ConnectionGUID: c7f6fLo5TvmvWepa+yre/Q==
+X-CSE-MsgGUID: 5YKBJXQoSr+ByImuwoOTqQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="88095947"
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="88095947"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2026 03:07:22 -0700
+X-CSE-ConnectionGUID: r5xq7L0wQUiBRUg+BLgz/w==
+X-CSE-MsgGUID: qz7lZ3I7S0a/BLrUn6N68g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="259443436"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by fmviesa005.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2026 03:07:20 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43; Thu, 9 Jul 2026 03:07:20 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43 via Frontend Transport; Thu, 9 Jul 2026 03:07:20 -0700
+Received: from CH1PR05CU001.outbound.protection.outlook.com (52.101.193.33) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43; Thu, 9 Jul 2026 03:07:20 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=tGNANwinMChjdL+m4KX6QvU4MJHfBr14MlWrHxm1QNpjQjdeU3GdnqYegdlDU2U2vvoXTt4wzFsniCR+Vr9pL/61wVA7YzaXJ00VJFqnrGPWLY4To4Sf3/e5kPcJnFB/TsaW1a17lE/pMxlKMHKyITzprgnPeE3mDrplFFXdyQC5pz5HLxEKctbDwyF9OOj/fy1s7RCAlKx4y3d2B0KeRuihMnWdUHo7mE8y3R5icgfOMJtc6rw5UQdc/uabKSAPdo773l3Cqh480r3F2cQ31mpcwOoa3ry1kQEKHNkWb6QejUpRaN6N7O2rK2dJZkZhm7nCS/0lePfZjeY8sqsrVg==
+ b=YygGbf5+focSttgmF84GzqJEWyrVIJbI45I8UBITpNcx/qgCrCVOx1pNlva/CruvQdmVDJpaFonlM5htwHOJiCRiY8oHWhoHo0JmZsRyjnPhHwv1UaZaE8dUZJEt1PLPbQFCFhAkzGMpNgvpQV3R5moOyd7HtokdqpDYzNFQXW3T4QoB0bcb2WHh571Q70p4mPyDib5aKLvdZ86AtPA85504wDzKD/c0NTWkmscNv05tQV4dGvkRyIZaW+2S5WyU/rkt/ZpeA28qax4xtXfN+/sEO7SJC4kHHNgf/aDNivJSMfiXJdDZmxW87+baaTZXHjHXtsAw9vJPr+/EevcCjw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=KP5k0OSsJoxqv1YhtRm3nEbrveUJb9u7FSUCwTJfrm4=;
- b=HJjn8aJSYMcaPSUPvLJmomKw3HBGSKvskiX9xN7JNNDUgYVCKjdmwRxnVjDBzaEsPURP2v4QBPC803L+V62ZRfZJmRbB+bMCimuEaxSy/7s9OnQYGT0CXCGx3wfjYuUdn6U52kh7lQP25ZZ8if7mp+HE7SjnkUQYCH9UMyzsGOrggPutI3qCr5zARTSPs6qiVATXr59O7PCqUyD2wEagCs3JaDM9bKIJEGw/wHKxIvVvWGq/AHz+X8NX10/AVEZ3sN31rZ+EA5lgfV2uP7Q4gU6d5hCD9BtI5jpsoIfNt/cXJe6r56tnSt2ZjYUe5/cIKVUEk8JFqa9MQLA85elomA==
+ bh=OvzECc3O2+5LVR9tbR9zbwzJOdhq+iOFPBp2Vc4oDKo=;
+ b=OPouZnDQ0GEmTXkZorYPL53efD6g8szToPsN52p0jqbs1QR/ErgtV2eP/OVHeGju/+uyeL7QBhVN+tmfWu++WaZU3iuAg12edzCGak4wen+Fu9kCcD91yfXM2nLOFTINMFX2/xwHDm/hkWfXZt6FtaRVCFLlYQzT/dmjWyVY46t9OBCDgfrN5xCHMcVTTRJEUadOEQjfy0x/3lGXvnELwXTdMMahKtQw5QlOUkHJ19w5iN++uG1hxqAzYLqYO1qnlgl+rbsRwbwovjIi1JjMdAbaHTgmnogP1mgl6dY/k1+ini/DYKPWxVzxYVAPHAWVTKZHH86z/UBmgw/qAzt36A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KP5k0OSsJoxqv1YhtRm3nEbrveUJb9u7FSUCwTJfrm4=;
- b=aAtkuTktPAwpTVuWZ1/Ls/3UQg+gwXCkNrhbrtlmjhmQNIvPM4rvY4sLmDjEcbGEhwTZsKuVRukjAxR4bKhvKqCQzDeB6GdJKR1Vy9ZvxRtqwFPzOVpG7tiJanKF4ihlF3ln7DyngLbnyAVd6lkMCwwMsnjwIFxoSsnddcZOf4qMtJi+YAeE3V3vEn/hM97QGTMd2vRv0R7yu2r5Zz8x5VAsJRqYnV2jEOIlI65bNAIbmaEnxeGHJYcX2jOLvy0x1NGp3TlIihc1uBgbTf7nIYUg1KsODYQ4LOSiRs9CnXKZnr7Az1yLXoYjR/vPV+CVVtk7a4GB4MlfSwNSZ/nsDg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
- by CY5PR12MB6528.namprd12.prod.outlook.com (2603:10b6:930:43::9) with
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Received: from DM6PR11MB4691.namprd11.prod.outlook.com (2603:10b6:5:2a6::21)
+ by PH7PR11MB6379.namprd11.prod.outlook.com (2603:10b6:510:1f9::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.15; Thu, 9 Jul
- 2026 08:45:58 +0000
-Received: from BL0PR12MB2370.namprd12.prod.outlook.com
- ([fe80::86cf:c3ec:2cf5:74c8]) by BL0PR12MB2370.namprd12.prod.outlook.com
- ([fe80::86cf:c3ec:2cf5:74c8%5]) with mapi id 15.21.0181.014; Thu, 9 Jul 2026
- 08:45:57 +0000
-Date: Thu, 9 Jul 2026 16:45:51 +0800
-From: Richard Cheng <icheng@nvidia.com>
-To: Gregory Price <gourry@gourry.net>
-Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kselftest@vger.kernel.org, kernel-team@meta.com, david@kernel.org, osalvador@suse.de, 
-	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, djbw@kernel.org, 
-	vishal.l.verma@intel.com, dave.jiang@intel.com, alison.schofield@intel.com, 
-	akpm@linux-foundation.org, ljs@kernel.org, liam@infradead.org, vbabka@kernel.org, 
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com, shuah@kernel.org, 
-	iweiny@kernel.org, Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com
-Subject: Re: [PATCH v6 06/10] mm/memory_hotplug: add
- offline_and_remove_memory_ranges()
-Message-ID: <ak9ee95F7pJpCKMo@MWDK4CY14F>
-References: <20260630211842.2252800-1-gourry@gourry.net>
- <20260630211842.2252800-7-gourry@gourry.net>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260630211842.2252800-7-gourry@gourry.net>
-X-ClientProxiedBy: SI2P153CA0018.APCP153.PROD.OUTLOOK.COM (2603:1096:4:140::9)
- To BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.8; Thu, 9 Jul 2026
+ 10:07:15 +0000
+Received: from DM6PR11MB4691.namprd11.prod.outlook.com
+ ([fe80::5d52:baaf:8c72:ba5d]) by DM6PR11MB4691.namprd11.prod.outlook.com
+ ([fe80::5d52:baaf:8c72:ba5d%6]) with mapi id 15.21.0181.016; Thu, 9 Jul 2026
+ 10:07:15 +0000
+From: "Huang, Kai" <kai.huang@intel.com>
+To: "ljs@kernel.org" <ljs@kernel.org>, "akpm@linux-foundation.org"
+	<akpm@linux-foundation.org>
+CC: "david@kernel.org" <david@kernel.org>, "kvm@vger.kernel.org"
+	<kvm@vger.kernel.org>, "tomi.valkeinen@ideasonboard.com"
+	<tomi.valkeinen@ideasonboard.com>, "dri-devel@lists.freedesktop.org"
+	<dri-devel@lists.freedesktop.org>, "surenb@google.com" <surenb@google.com>,
+	"riel@surriel.com" <riel@surriel.com>, "linux-perf-users@vger.kernel.org"
+	<linux-perf-users@vger.kernel.org>, "pfalcato@suse.de" <pfalcato@suse.de>,
+	"x86@kernel.org" <x86@kernel.org>, "rppt@kernel.org" <rppt@kernel.org>,
+	"jannh@google.com" <jannh@google.com>, "mperttunen@nvidia.com"
+	<mperttunen@nvidia.com>, "dave.hansen@linux.intel.com"
+	<dave.hansen@linux.intel.com>, "kasan-dev@googlegroups.com"
+	<kasan-dev@googlegroups.com>, "linux-trace-kernel@vger.kernel.org"
+	<linux-trace-kernel@vger.kernel.org>, "hughd@google.com" <hughd@google.com>,
+	"dinguyen@kernel.org" <dinguyen@kernel.org>, "ray.huang@amd.com"
+	<ray.huang@amd.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>,
+	"lumag@kernel.org" <lumag@kernel.org>, "tglx@kernel.org" <tglx@kernel.org>,
+	"simona@ffwll.ch" <simona@ffwll.ch>, "maarten.lankhorst@linux.intel.com"
+	<maarten.lankhorst@linux.intel.com>, "robin.clark@oss.qualcomm.com"
+	<robin.clark@oss.qualcomm.com>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>, "tzimmermann@suse.de" <tzimmermann@suse.de>,
+	"willy@infradead.org" <willy@infradead.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "patrik.r.jakobsson@gmail.com"
+	<patrik.r.jakobsson@gmail.com>, "linux-parisc@vger.kernel.org"
+	<linux-parisc@vger.kernel.org>, "etnaviv@lists.freedesktop.org"
+	<etnaviv@lists.freedesktop.org>, "m.szyprowski@samsung.com"
+	<m.szyprowski@samsung.com>, "muchun.song@linux.dev" <muchun.song@linux.dev>,
+	"abbotti@mev.co.uk" <abbotti@mev.co.uk>, "l.stach@pengutronix.de"
+	<l.stach@pengutronix.de>, "James.Bottomley@HansenPartnership.com"
+	<James.Bottomley@HansenPartnership.com>, "peterz@infradead.org"
+	<peterz@infradead.org>, "christian.koenig@amd.com"
+	<christian.koenig@amd.com>, "mhiramat@kernel.org" <mhiramat@kernel.org>,
+	"hsweeten@visionengravers.com" <hsweeten@visionengravers.com>,
+	"djbw@kernel.org" <djbw@kernel.org>, "iommu@lists.linux.dev"
+	<iommu@lists.linux.dev>, "jarkko@kernel.org" <jarkko@kernel.org>,
+	"osalvador@suse.de" <osalvador@suse.de>, "acme@kernel.org" <acme@kernel.org>,
+	"deller@gmx.de" <deller@gmx.de>, "thierry.reding@kernel.org"
+	<thierry.reding@kernel.org>, "linux-arm-msm@vger.kernel.org"
+	<linux-arm-msm@vger.kernel.org>, "sj@kernel.org" <sj@kernel.org>,
+	"pbonzini@redhat.com" <pbonzini@redhat.com>, "viro@zeniv.linux.org.uk"
+	<viro@zeniv.linux.org.uk>, "jonathanh@nvidia.com" <jonathanh@nvidia.com>,
+	"schuster.simon@siemens-energy.com" <schuster.simon@siemens-energy.com>,
+	"rostedt@goodmis.org" <rostedt@goodmis.org>, "mingo@redhat.com"
+	<mingo@redhat.com>, "linmiaohe@huawei.com" <linmiaohe@huawei.com>,
+	"ankita@nvidia.com" <ankita@nvidia.com>, "damon@lists.linux.dev"
+	<damon@lists.linux.dev>, "freedreno@lists.freedesktop.org"
+	<freedreno@lists.freedesktop.org>, "brauner@kernel.org" <brauner@kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>, "bp@alien8.de" <bp@alien8.de>,
+	"airlied@gmail.com" <airlied@gmail.com>, "alex@shazbot.org"
+	<alex@shazbot.org>, "liam@infradead.org" <liam@infradead.org>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
+	"kees@kernel.org" <kees@kernel.org>, "mripard@kernel.org"
+	<mripard@kernel.org>, "namhyung@kernel.org" <namhyung@kernel.org>,
+	"linux-sgx@vger.kernel.org" <linux-sgx@vger.kernel.org>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"oleg@redhat.com" <oleg@redhat.com>, "harry@kernel.org" <harry@kernel.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>
+Subject: Re: [PATCH 19/30] mm: use linear_page_[index, delta]() consistently
+Thread-Topic: [PATCH 19/30] mm: use linear_page_[index, delta]() consistently
+Thread-Index: AQHdB8JhhqDR4OKgF0aV2NSSaE+WJLZlBeeA
+Date: Thu, 9 Jul 2026 10:07:15 +0000
+Message-ID: <93cea857dd426563cc9b29c49a52d520517e1585.camel@intel.com>
+References: <cover.1782735110.git.ljs@kernel.org>
+	 <bf56e2e98b512962a2fb88900d535a0e9e6769d8.1782735110.git.ljs@kernel.org>
+In-Reply-To: <bf56e2e98b512962a2fb88900d535a0e9e6769d8.1782735110.git.ljs@kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.58.3 (3.58.3-1.fc43) 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: DM6PR11MB4691:EE_|PH7PR11MB6379:EE_
+x-ms-office365-filtering-correlation-id: 351afb90-6aeb-471c-61bf-08dedda1da3c
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;ARA:13230040|1800799024|366016|23010399003|7416014|376014|22082099003|18002099003|38070700021|11063799006|56012099006|4143699003;
+x-microsoft-antispam-message-info: yb7ZWXTjzW3rF5SIIsQj8BVo9AOcXDMxWiRNPGsrQp5vxFDirNi5S1k2Ubg77hU4C/z/F1WvZkJySG1TzG0xnDC3pI8yNv73KqXXFCqA/A8Vqyx/h6dg466UyGCxF5meVe1rOhALDLVOihx5KLFIOjUgoxko2idSfJEcpFkQSYO2mxtWqsj7o5PQd9WiKr+ZYskoF+TGVRDhCX1zgASS5ktpEAnjRsvj/9IANUTgBNxTaElubsMKq7GZCLa8LLGTaA6WptO527ynPAy8q4l121Jg577qU+YIowUojREhEhbqk72nOlm9Z3Yr1DmLx7PnYs5zWxfr6qr/rkh3Sxd9O0DTBBoBWRqeT7istbHJCsFJB75f/OQLw0r5WUIkWAZn9q3tlZEk7y0Wq3covcjep+XqOibS50GCGheqPx95T8qeqV/1iMc9qpmzQmY7PfdyUqi6xkr4Xn2iR4S5/VJOXM+kx7+y6jJ09i5sXYiKHqlJvGjGi5fUOXqs6URclaPJ6zrwKeXZzI+4MR1qf+tFT5C0FawKikMNW4fIzBOXkM5kRJd0bD9NY0IpZo9vdV6sP7JHKV57s8Xhu0DBLfuqIDf+q3DwVBaPwVK4W/eSFJ1ytmRHbV464HI6nvjpL981ahY7L4WDnL5b+26quqwxVkkek5JHvJje3jKaHeheCvo47kie/BCAyx3hxhkgPMxCLaaBm/dGVTt0e5StCyyAgCbZp0lhGcKR6zFXt7q+bKQ=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR11MB4691.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(7416014)(376014)(22082099003)(18002099003)(38070700021)(11063799006)(56012099006)(4143699003);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?VFFYOVZ2TFdNcFJlb0l5TGgyMWI2dkJ6THFWY1BLalFDSEpPZm80dnVFYVAy?=
+ =?utf-8?B?V1hwVGVXTytaNUdZaUE3UmdxajFUR1lFOUxIQ1VadzBOUkd5eGZ2ZDVZUjBi?=
+ =?utf-8?B?ZDZWbUFvU3RQNjBwa0ZZU0pHNTlJTWxxNFlWdnhVWTJ2eDFqb0NmU3YyMG9S?=
+ =?utf-8?B?QmpOQkpQMlRKNHJpbXQ1UE1IdG1JUzZoeE5tMDR6SG5JMVRLWlI5VmFaUVlk?=
+ =?utf-8?B?aFpGdzJwSUNLaGNqejh0ZnROOGR2cHMxL1pkUWJSN04xVlk1ZFFPM0dBU2xn?=
+ =?utf-8?B?NjZpZkQ3QzNxaW5LQnp3MlBoT0EwL3RnbUI5ajJiOE9Bc3JPaVFHNFRtdVN0?=
+ =?utf-8?B?V2FIbWQwT2VMMVBrWWRIdFBmd09OUVlqbEtsMmZlYXBBNE10bm8xb3hJd2I5?=
+ =?utf-8?B?cVBWc3FGbXBNOGQ0T2pZQzhHaTJQd2hnTTFRU09hOGNkaEpYZW9iQ2lPUEYw?=
+ =?utf-8?B?djhuRnVValpPZ01hbWhYbXdaL3JQQlZpZUtpZllwbDlrNnRDenRBVmljNGxG?=
+ =?utf-8?B?NFgvV05aSWgvc3VsSXB5ZVRsRjBXVEVCc0FUcDlKNnY1VWhJd0lscTJHdEtH?=
+ =?utf-8?B?MzVudDhHcDNJQ1NPTDU4ZW1xWmZQY3pldkNJb2hXMEJsbkVCKzVYb1RnRU9x?=
+ =?utf-8?B?U2swUjMvandIVUk2TGVDc2NLczhvTjRrL0hxYnRzSC9KM2NrYmhhaW13Zmt6?=
+ =?utf-8?B?TnUvT3o1Vk5yd0hYM1JOU0YxVGZseWZ4YXZyNTFieWpiMjkrOHF4M29EU0N0?=
+ =?utf-8?B?dzFDdTNzK3RmMk5zb1NsSlB4NkdjMXkyT2hmc0JYN3U3QmdCb0sybUE0RnJq?=
+ =?utf-8?B?aE1yNzVMekxLMGhrRGxnY2I5YnBMMzhsMytMMmQybjJKRFNsRzZsMUI2YzB4?=
+ =?utf-8?B?R2pSMWMxNFlQcGlBQ0pSTExNSHBJVndZRkNjZTk2ZDhTc1E2NWVkVk1OVmxT?=
+ =?utf-8?B?eGpIazZEK2dUM3prTHZCMXhGN1pkV25sdHNEbjUwengveFFRVjZGOFppODBC?=
+ =?utf-8?B?UTU4ZHBmRnlPSVhMcDlvMjhkdDY2TCtUazQ3cSs0NzFKa3RPb1FTeWlrS214?=
+ =?utf-8?B?ZW9wOWtORXFja3NVNXpZQ3k4QmNaZjdNcllTTTA3UDVIVTRhRVI3L1BRaUVl?=
+ =?utf-8?B?T2wzUnk1NU13SWU2V09WZm9zNWpleVRJM0JoanBiNlBubmUyT1Z1YlZ2Y3FH?=
+ =?utf-8?B?TGZ1V0RoZ01meTJWbkpFc1dJU2lOdHJORjgwMmVMMUlQQ3JoaUtBWjVtWGto?=
+ =?utf-8?B?ZmVicE8vUGpXNzRKckQvOGdJdStsOTM3Tm5GOW54dW5GU2lHdXdlS29hbGhU?=
+ =?utf-8?B?VmY3SUsybFJDUEk0d1FCN1ZTcWlKQlZPbGpJNk1xS21TaksweU5Fbkx6NWtv?=
+ =?utf-8?B?WUhoNEJuSFJ3SVpsV1hEcGVaeEVMK0lyY3NETFBjV2pUQzZBYUEzNmQzWkE4?=
+ =?utf-8?B?blFiTE0reGlvUWdabGNSN0VON2hOWUQ0N3FoMDZIUTJCU2hvQjNpeTJxRzQ1?=
+ =?utf-8?B?dlZPR1NZcGxjTjErNDhjSERlSm1McEgzeHZaQXR4Y29nemNmcWplQjN5bnp4?=
+ =?utf-8?B?cFFUUC96RjkrUzI2alZpSlhLTGhXcGNiSHdSK3BOcXdwbXc5YWQ1a1o2UG1V?=
+ =?utf-8?B?V3BodDMxNlFRR2REVzZLRzhKWGtTNnJJS2hzdlFuNm1tY1E1Rnl4Z2JjekVV?=
+ =?utf-8?B?TXJuWVU3dmlOSnFZV1VKZXExZ1d3Ly9wMVZ4cXVycHFlcWpJdk1ZY3k4NmtM?=
+ =?utf-8?B?REFhNHNZY0RmRkM4WUt0Rmg3NzNnUTBjVTRaZEpZQ3JrZVpjcEtybDUvdlN2?=
+ =?utf-8?B?V01EK3NCbUdjWCtrRDZONXBiVlg4NDZoTjBYT3NqUWlvYmFlUGtzc0Z2cEVL?=
+ =?utf-8?B?anhaM01YN1JVL0hiWUFhNVg0b3VOTFlXOFkrNnhUU25uWUwwOWxSVTBCQVlw?=
+ =?utf-8?B?cGMxZTN5VGhXVmxkT0ZOZmZub2hVVFdQV2F4VGlGTWFXeVZQTWMwU09vU2VX?=
+ =?utf-8?B?MDRrb3IvMnJ0ejlNV0RKTFozZnBIY3Nwa2JmZnYvcGxMbk9HTlBCMFIzS0E3?=
+ =?utf-8?B?RE9QMENqWEJscHlDVHk4UTA2UkRDWURTYm5vNmw4MXhuVzIwMUgrYTU5bk13?=
+ =?utf-8?B?OXJVQkgvZklOTCtxcWVNYjVrWXZFUDJrd3hVcS9JVVhBajJXTDhyLy9Ca041?=
+ =?utf-8?B?em5RKzl5RHZ6bHlqUkRGQjhENUhqUFlrb1A3NEk1YitObmZxTFU1V05STVFi?=
+ =?utf-8?B?V2JOeXE4S2szRDZZMm1OZ21aSERPUEszbDEwbFh1SWtEVmU4RTBGRWp0Ykh3?=
+ =?utf-8?B?WXZ0Uysrek0xS29DVXJqLy91VzlNaVJJRGFaZEw1KytzM25RVUVGUT09?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <0C3E54796533DE498A7E11F4E014A6CB@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|CY5PR12MB6528:EE_
-X-MS-Office365-Filtering-Correlation-Id: 06cae3fa-30fd-4811-5bf1-08dedd967e72
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|23010399003|366016|1800799024|18002099003|22082099003|56012099006|11063799006|5023799004|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	foqebd9PYE7c9NRrsNCJginSuTSgN00831602Dce5dnflo3Bz1Rl3xDqqHoZFhlgWJ3Nkxn0kzf8WVo9wK6zRjxl1lEPmaYSuS9Haa0Ems7/YyEBFypwJJ7LTw8wuJyJHO58npU8Ak/AeaXU/jwGH16nMi6knyjRljQJcdl+HhdGhM2Y6piRFXA9IzAxo6mF7asLlcTXlEJ0w8iIHOdhGMVPa4Ee71TkCO8xinXoOUQdJ1fxxt7HNH8lwldzpSIz6mUrumixKwyGZeurievimXW8lDT9ZKmKX83IDDO/Cg2bv0nMCJa9PmvDr3J50hwqwozGv/OS4aP1n1aqRIrJKoTGGII7eno15qW5TSFPqDQSt6s234kGrpZxPg//BxD26sP3EQXRnY+gfssmYCqYDYfktGE08A2U/HS8Kdc+lPezTyglzjQGs6Yntl1lqBRpwmzzU0n+sjDfzRZwVF7VBtCb0LS3WBur2bgZiCElUXs2cuybKakqfPX3zyWDVw3t4kmKgJ7RgZ/XSdZWra/c54/RAm0BslqIcY3ZFWYWVesJrlEYxdJ2UrAvy56L532oI0OLAcjvHHy74lSWlikLNTqOYMQLYrG3MeoVqOd1lpTTFeGtv9wAlucZf5rS/QNsDQxBOOCyPI9jbeWKH2VcIttjZQQdMmZtrdRfIXNs0sE=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(23010399003)(366016)(1800799024)(18002099003)(22082099003)(56012099006)(11063799006)(5023799004)(4143699003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?gIBUeMRhPKC9BsAvS47tAMb5Nmz4xmyaQn1WnbgElofGtwf2Tu6YKIKNcoFs?=
- =?us-ascii?Q?346j2kWSpFvnh36fdBf34JLg9gcD4GXTfi36pBGwTLCiZx/7lTGeA0VKmSb5?=
- =?us-ascii?Q?v1+YTws2vVZ4VhedNiCKw6ti7eqR7bltvkBYRJZVpnQW/a+2ryx0NskNllm3?=
- =?us-ascii?Q?JeGRq+3l2Yx7A+Qp1BDfHvopsPlF0Z2rqYxsTZgXuJWZVtV9xYktouw0m/6D?=
- =?us-ascii?Q?/u8QE7rubS9B2ZcIgIV8N2605dpROknGkAx3dips+z5tJZDrcGZP+N1qS6mK?=
- =?us-ascii?Q?n1Ds6D2vqP8PHODbmxekijWt1kOC9QUR/8OR9+K2jXecZD9Hxzb2vd1k7rxD?=
- =?us-ascii?Q?m4/pW2fj6zcNUl/XWm+iw45z210hj8qqsCJqgsRd3jDm/1SlDDDb/zQdtNh7?=
- =?us-ascii?Q?MzCssrfqL+n9mA7E91IHt1PGgnB6oAIJTdgKshrul2BQcaP0v7hlLYoy0MNa?=
- =?us-ascii?Q?I0ZdSbhl7k1Mxw7my6rSml8Ko+fTZHD42umuizflf3MmrcGhbl+ofXm7d4dI?=
- =?us-ascii?Q?iDr4pCcIf2j05DzT+lHRJ90JAVzl+8eJXGllKf4NKZ8VHW4dtytUg8DR7q31?=
- =?us-ascii?Q?PC75sf+608L9E2aznZGkgmiN6pkE8VcQ93hjqMXhouoFrVxUuCOtHa/WPi1/?=
- =?us-ascii?Q?FYkVHpbYlYrkt3vFFmNbwB8LNdEnlHgHU141ZSRyDCKd5TIko8tvdsnmULXQ?=
- =?us-ascii?Q?d2zwIBx2go7KA0Y90v1z9Dy/TcbswuHbdJvEEkF8UkJ9vXaRcY4rYA1Uvv5y?=
- =?us-ascii?Q?/8aXMnsiHLH9PrcDrkKP2UhavpRY+1b+3nliWLyPVDnaLzI1acMZE2qfb60k?=
- =?us-ascii?Q?vbB6UR4qAiCVM/TWVkful39TvFI8ACeoCr4+65WsMz/h7s1WC8cB9vVmlx6I?=
- =?us-ascii?Q?HhKxlbK7MAkelaGeCnJaQ3xdTBoxzFNjxYOBlUIb0hcEno++nDdh6ERmHw4Q?=
- =?us-ascii?Q?zVN5s6+psuX1A1NeyMeiHKhB4OQW6CH+e2kadaRReplDeR3/kyhm23q8iKfv?=
- =?us-ascii?Q?sl+dUKmr9VABJ9oLNBkez69S8pqpM955zZ7wGqJhfGS5d1w/3TLgE0uFrnkr?=
- =?us-ascii?Q?tQkCsHJknU2ZcU7+PYVf3IOJo1CirWUpsq0poeQ5Z+Ej3rOJE8K58Nu64ata?=
- =?us-ascii?Q?fZ7YT4lMu0XUZ0+XvgM6oY4iKQNfvYytOJNmLfzmwTwIUVL2mfXBn96vFZ+v?=
- =?us-ascii?Q?3jxdCvUAkCY7AJLvtEnqOo48bpkm3dCqvU+hzl26iP1Ck8kMOycXv6UGdpGT?=
- =?us-ascii?Q?GNns/e++b3RxwyGBGzmwojP2DbzIhw96d07PCb8yndB73aD+4B/e4qBA4b5P?=
- =?us-ascii?Q?AdKM+EGnxcpDaSgyjG85jeCg8T20rqQpZ2rt4bc6fux5260nke8O3NTt0u0F?=
- =?us-ascii?Q?625nisNvXoQK+F5FJWghWGI9azQ3WzGDgfC28CyXYTd7ILTryfWXMB4ojh+K?=
- =?us-ascii?Q?e+VhMFCiQncJeft2/kB6xwzVvkdC8DKEFj+s+TmC9PzOexUBUix3w0eK1TTq?=
- =?us-ascii?Q?QvaVhYzWZJlxmwaEEnJX6B6IRdfV4Y1vQtxsYDeh3hZzvHdR93DPchqrDrxe?=
- =?us-ascii?Q?dKDUv3cOnXUCdqZFmlPdI4wUgQrtZ5iQzS+i3QX/VRqdLLULmM6vo73HlkL9?=
- =?us-ascii?Q?cX7z2hKQRRz3blowuGeZDdrwJ8mwCjHh6xYszDMkGiZZ3VkOLEirlUpkVUTs?=
- =?us-ascii?Q?e+xwVGNPg4stvxe6joqsxQ2GZVWGGyNexbBFV/Vgql9ex+72?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 06cae3fa-30fd-4811-5bf1-08dedd967e72
-X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB2370.namprd12.prod.outlook.com
+X-Exchange-RoutingPolicyChecked: k2MjFvWgQrv9y6266FexqV5zB6sWr7dV8EJepRtddA37uBKcgDknFbR2gLYYZ7BeBNWqf7gHjbqQkUZLBZfSV9T3mwGvFnzrUErJNG3Mg5SqnEAePpDcxiEHlUCtvFv7s6yNBvqg7AeYVTRnEJG0UDAZPgJ1dPCeMwgTk2VIJA7N+TIpCjLHquh/43eHAIytYzlrdLE3t9hgnZs5B9LwiAOnVpGHRFrUaI1YEr4mSfTKWXyqiM86mdWyRTJl83OsDK12G8KbXPs2qskeLG4V5w/c5yEcDkqGzrkftWBPrK67JhawWvYmi5ePBdMOq5lJjU+eNx+zzq47ngMaLTwxHw==
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jul 2026 08:45:57.3153
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR11MB4691.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 351afb90-6aeb-471c-61bf-08dedda1da3c
+X-MS-Exchange-CrossTenant-originalarrivaltime: 09 Jul 2026 10:07:15.3883
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 5ff9ULOzWZZoqfZ8u753OtmcrhNX59/j2f4HglgYWUceLeJcjI2EbYpVX+qLBGCzT3QG4QYbTViI1EejWjunZQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6528
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: E69Ig70+4pjSiByM6TbH29ru9rnB5VGa0infWjxDqRU5Hnp3HIid+4LGmWgXuNJsVgZ1KFXzMv8damlNgddN5g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB6379
+X-OriginatorOrg: intel.com
 
-On Tue, Jun 30, 2026 at 05:18:38PM +0800, Gregory Price wrote:
-> offline_and_remove_memory() handles a single contiguous range.
-> 
-> Callers that manage a device composed of several ranges (dax/kmem)
-> currently have to call it in a loop, which gives up atomicity.
-> 
-> In addition to pushing rollback logic into the driver, the lack
-> of atomicity creates a race condition between system daemons trying
-> to manage the same resource:
-> 
->    - Manager 1:  Offlines memory blocks.    Removes device.
->                                         ^^^^
->    - Manager 2:  Detects offline memory blocks, re-onlines them.
-> 
-> Add offline_and_remove_memory_ranges(), which takes an array of ranges
-> and processes them as one operation under a single lock_device_hotplug():
-> 
->   - Phase 1 offlines every block of every range.
->   - Phase 2 removes the ranges only if all ranges are offline.
->   - If any offline fails, the whole operation is reverted.
-> 
-> This gives callers all-or-nothing semantics for the offline step, so a
-> failed or interrupted unplug leaves the device in a consistent state.
-> 
-> This also resolves the battling managers race - the second manager's
-> operation simply fails when the block is destroyed / cannot be onlined.
-> 
-> offline_and_remove_memory() becomes a thin wrapper that passes its single
-> range to the new helper, so the offline/rollback logic lives in one place.
-> 
-> Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-> Signed-off-by: Gregory Price <gourry@gourry.net>
-> ---
->  include/linux/memory_hotplug.h |  8 +++
->  mm/memory_hotplug.c            | 93 ++++++++++++++++++++++++----------
->  2 files changed, 73 insertions(+), 28 deletions(-)
-> 
-> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> index ff3b865ea7e7..db10d50f30ae 100644
-> --- a/include/linux/memory_hotplug.h
-> +++ b/include/linux/memory_hotplug.h
-> @@ -268,6 +268,8 @@ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages,
->  extern int remove_memory(u64 start, u64 size);
->  extern void __remove_memory(u64 start, u64 size);
->  extern int offline_and_remove_memory(u64 start, u64 size);
-> +int offline_and_remove_memory_ranges(const struct range *ranges,
-> +		unsigned int nr_ranges);
->  
->  #else
->  static inline void try_offline_node(int nid) {}
-> @@ -284,6 +286,12 @@ static inline int remove_memory(u64 start, u64 size)
->  }
->  
->  static inline void __remove_memory(u64 start, u64 size) {}
-> +
-> +static inline int offline_and_remove_memory_ranges(const struct range *ranges,
-> +		unsigned int nr_ranges)
-> +{
-> +	return -EBUSY;
-> +}
->  #endif /* CONFIG_MEMORY_HOTREMOVE */
->  
->  #ifdef CONFIG_MEMORY_HOTPLUG
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index a66346def504..3225364bec2f 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -2429,58 +2429,95 @@ static int try_reonline_memory_block(struct memory_block *mem, void *arg)
->   */
->  int offline_and_remove_memory(u64 start, u64 size)
->  {
-> -	const unsigned long mb_count = size / memory_block_size_bytes();
-> +	struct range range = {
-> +		.start = start,
-> +		.end = start + size - 1,
-> +	};
-> +
-> +	return offline_and_remove_memory_ranges(&range, 1);
-> +}
-> +EXPORT_SYMBOL_GPL(offline_and_remove_memory);
-> +
-> +/**
-> + * offline_and_remove_memory_ranges - offline and remove multiple memory ranges
-> + * @ranges: array of physical address ranges to offline and remove
-> + * @nr_ranges: number of entries in @ranges
-> + *
-> + * Offline and remove several memory ranges as one operation, serialized
-> + * against other hotplug operations by a single lock_device_hotplug().
-> + *
-> + * This offlines all ranges before removing any of them.  If offlining any
-> + * range fails, the entire process is reverted and nothing is removed.
-> + * This provides a fully atomic semantic for unplugging an entire device.
-> + *
-> + * Each range must be memory-block aligned in start and size.
-> + *
-> + * Return: 0 on success, negative errno otherwise.  On failure no range has
-> + * been removed.
-> + */
-
-I think this can return 1, and it shouldn't.
-device_offline() returns 1 when a block is already offline, and phase 1 passes that value through as-is.
-
-Easy to hit with patch 0, offline one memory block via memoryN/state, then write
-"unplugged" to daxX.Y/state. The store returns 1, userspace treats it as a partial write of 1 byte,
-and retries the write with the rest of the string.
-
-Maybe
-"""
-if (rc > 0)
-    rc = -EBUSY;
-"""
-
-Best regards,
-Richard Cheng.
-
-
-> +int offline_and_remove_memory_ranges(const struct range *ranges,
-> +		unsigned int nr_ranges)
-> +{
-> +	unsigned long mb_count = 0;
->  	uint8_t *online_types, *tmp;
-> -	int rc;
-> +	unsigned int i;
-> +	int rc = 0;
->  
-> -	if (!IS_ALIGNED(start, memory_block_size_bytes()) ||
-> -	    !IS_ALIGNED(size, memory_block_size_bytes()) || !size)
-> +	if (!ranges || !nr_ranges)
->  		return -EINVAL;
->  
-> +	for (i = 0; i < nr_ranges; i++) {
-> +		const u64 start = ranges[i].start;
-> +		const u64 size = range_len(&ranges[i]);
-> +
-> +		if (!IS_ALIGNED(start, memory_block_size_bytes()) ||
-> +		    !IS_ALIGNED(size, memory_block_size_bytes()) || !size)
-> +			return -EINVAL;
-> +		mb_count += size / memory_block_size_bytes();
-> +	}
-> +
->  	/*
-> -	 * We'll remember the old online type of each memory block, so we can
-> -	 * try to revert whatever we did when offlining one memory block fails
-> -	 * after offlining some others succeeded.
-> +	 * Remember the old online type of every memory block across all ranges,
-> +	 * so we can revert if offlining a later block fails.  All entries start
-> +	 * as MMOP_OFFLINE so blocks we never touched are skipped on rollback.
->  	 */
->  	online_types = kmalloc_array(mb_count, sizeof(*online_types),
->  				     GFP_KERNEL);
->  	if (!online_types)
->  		return -ENOMEM;
-> -	/*
-> -	 * Initialize all states to MMOP_OFFLINE, so when we abort processing in
-> -	 * try_offline_memory_block(), we'll skip all unprocessed blocks in
-> -	 * try_reonline_memory_block().
-> -	 */
->  	memset(online_types, MMOP_OFFLINE, mb_count);
->  
->  	lock_device_hotplug();
->  
-> +	/* Phase 1: offline every block in every range. */
->  	tmp = online_types;
-> -	rc = walk_memory_blocks(start, size, &tmp, try_offline_memory_block);
-> -
-> -	/*
-> -	 * In case we succeeded to offline all memory, remove it.
-> -	 * This cannot fail as it cannot get onlined in the meantime.
-> -	 */
-> -	if (!rc) {
-> -		rc = try_remove_memory(start, size);
-> +	for (i = 0; i < nr_ranges; i++) {
-> +		rc = walk_memory_blocks(ranges[i].start, range_len(&ranges[i]),
-> +					&tmp, try_offline_memory_block);
->  		if (rc)
-> -			pr_err("%s: Failed to remove memory: %d", __func__, rc);
-> +			break;
->  	}
->  
-> -	/*
-> -	 * Rollback what we did. While memory onlining might theoretically fail
-> -	 * (nacked by a notifier), it barely ever happens.
-> -	 */
-> +	/* If any failure occurred at all, rollback any changes and bail */
->  	if (rc) {
->  		tmp = online_types;
-> -		walk_memory_blocks(start, size, &tmp,
-> -				   try_reonline_memory_block);
-> +		for (i = 0; i < nr_ranges; i++)
-> +			walk_memory_blocks(ranges[i].start,
-> +					   range_len(&ranges[i]), &tmp,
-> +					   try_reonline_memory_block);
-> +		goto out_unlock;
->  	}
-> +
-> +	/* Phase 2: Remove. This should never fail holding the hotplug lock */
-> +	for (i = 0; i < nr_ranges; i++)
-> +		WARN_ON_ONCE(try_remove_memory(ranges[i].start,
-> +					       range_len(&ranges[i])));
-> +
-> +out_unlock:
->  	unlock_device_hotplug();
->  
->  	kfree(online_types);
->  	return rc;
->  }
-> -EXPORT_SYMBOL_GPL(offline_and_remove_memory);
-> +EXPORT_SYMBOL_GPL(offline_and_remove_memory_ranges);
->  #endif /* CONFIG_MEMORY_HOTREMOVE */
-> -- 
-> 2.53.0-Meta
-> 
-> 
+T24gTW9uLCAyMDI2LTA2LTI5IGF0IDEzOjIzICswMTAwLCBMb3JlbnpvIFN0b2FrZXMgd3JvdGU6
+DQo+IGRpZmYgLS1naXQgYS9hcmNoL3g4Ni9rZXJuZWwvY3B1L3NneC92aXJ0LmMgYi9hcmNoL3g4
+Ni9rZXJuZWwvY3B1L3NneC92aXJ0LmMNCj4gaW5kZXggZGI2ODA2YzQwNDgzLi42YTE5MzNkZGM2
+ZmMgMTAwNjQ0DQo+IC0tLSBhL2FyY2gveDg2L2tlcm5lbC9jcHUvc2d4L3ZpcnQuYw0KPiArKysg
+Yi9hcmNoL3g4Ni9rZXJuZWwvY3B1L3NneC92aXJ0LmMNCj4gQEAgLTksNiArOSw3IEBADQo+IMKg
+I2luY2x1ZGUgPGxpbnV4L21pc2NkZXZpY2UuaD4NCj4gwqAjaW5jbHVkZSA8bGludXgvbW0uaD4N
+Cj4gwqAjaW5jbHVkZSA8bGludXgvbW1hbi5oPg0KPiArI2luY2x1ZGUgPGxpbnV4L3BhZ2VtYXAu
+aD4NCj4gwqAjaW5jbHVkZSA8bGludXgvc2NoZWQvbW0uaD4NCj4gwqAjaW5jbHVkZSA8bGludXgv
+c2NoZWQvc2lnbmFsLmg+DQo+IMKgI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4NCj4gQEAgLTQxLDcg
+KzQyLDcgQEAgc3RhdGljIGludCBfX3NneF92ZXBjX2ZhdWx0KHN0cnVjdCBzZ3hfdmVwYyAqdmVw
+YywNCj4gwqAJV0FSTl9PTighbXV0ZXhfaXNfbG9ja2VkKCZ2ZXBjLT5sb2NrKSk7DQo+IMKgDQo+
+IMKgCS8qIENhbGN1bGF0ZSBpbmRleCBvZiBFUEMgcGFnZSBpbiB2aXJ0dWFsIEVQQydzIHBhZ2Vf
+YXJyYXkgKi8NCj4gLQlpbmRleCA9IHZtYS0+dm1fcGdvZmYgKyBQRk5fRE9XTihhZGRyIC0gdm1h
+LT52bV9zdGFydCk7DQo+ICsJaW5kZXggPSBsaW5lYXJfcGFnZV9pbmRleCh2bWEsIGFkZHIpOw0K
+DQpGb3IgU0dYOg0KDQpBY2tlZC1ieTogS2FpIEh1YW5nIDxrYWkuaHVhbmdAaW50ZWwuY29tPiAj
+IHNneA0K
