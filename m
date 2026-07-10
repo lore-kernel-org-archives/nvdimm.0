@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0143339F190;
-	Fri, 10 Jul 2026 20:27:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A13E39FCCC;
+	Fri, 10 Jul 2026 20:27:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715232; cv=none; b=JCQQ0moX0OVFs9XIRF8eZBg2/1LZcyByNTuI1C7eAxKbebylc7S4YjDFiiaMq5spaESvB3QauMUywLE/BUs7maqX3b63q27zf37IwTebBdF2/mit1BZTKlDb2oioYvhmAXu9691bDD5qB42xHhCl7qjgU0igqNzfQwqH1HtIkHo=
+	t=1783715255; cv=none; b=rBQCAQ7q3IrcR5X2d4t3IRgn6mluKo2WkGfYz8/15plyT7yDDEK4izOR9dHFKUcFjJDVT8FwyJH+e9TEIaGRpi+HCNjIrKtBovnFiy2PTvUU5g83EFhZkbb6pxrUXIA1LIH9KV/gNz4L1LZJmKBrMjU1zUNZghTpaQEzW2A9k1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715232; c=relaxed/simple;
-	bh=DYBIxKjyIjg2H1S6yqXRCrIrObFnJroA9O36yuI28hY=;
+	s=arc-20240116; t=1783715255; c=relaxed/simple;
+	bh=0LxPiqBxAD9IhreoUXWjHFUoHlm6qZINpaBU8bU6qMA=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=RGNqb4d/6WrxT1SVF/cb4s+V+y7cAXVjMzv5RyXMDPbMfauG1bOD/Zpk9LFZ5LvRJXhspytKptwCc2uBs8qLTrLLA3dlsmeFfzHxuck5gnDpTSNghMQkgP9rN4Idcez3EA1/suDUpT8Xp69DOqPs85bT3i7stmCs2VWmPixP/cg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=drJA3TiK; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=X7+IPacAPY3Afs81nmiFdEKViUW2dBpXUwkdRQANrSW30YB8oqYnEARVuVP/Aql6akPGKkzX9ROPKwU1Ej7ZAhTaI6FZlqCIyC+vchhOZV27o3wme2x6prCxlmggSfB8G7zkk4Ewfvon+njpGdtvEepQrbVy8Uv2tO8rc43H7U0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JBGjC0JG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="drJA3TiK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34F841F00A3A;
-	Fri, 10 Jul 2026 20:26:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JBGjC0JG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 534F11F000E9;
+	Fri, 10 Jul 2026 20:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783715230;
-	bh=IPE+/P9KdKkfiafscak8Qeedwgljtr0X+OnR3tsbkh0=;
+	s=k20260515; t=1783715254;
+	bh=nwHLf7niWPUb+EByGfZPa1IGezWCh6hKiz5/kPjeOK4=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=drJA3TiK+PeoZ2nu79QhphTfcNqJcaVpJ8OrZAJ/WiBLBgSuNTzJICprZt5FC4O9S
-	 3h2HjqlXf6uHYTGH6HKtyVkmlM9tNpsnzlHgJ8SgIXhPRwO8Mxflc7CI7u/LnJl1jN
-	 o3Y/oZKScReVzOIjwXvsQpQsUhs+NzRIePHqBDAniSxzca3Wp2d9hKCB6EFAc6Ena5
-	 9eifILN5EaHhUs5Jl8ljfGagLXkvH/vjQc/WrufaW+JVZZLpI6hJqNBN9v+ubRWI+D
-	 f8OFGl0Cv9BKeEGVwh9lipVXptpUW5ZjL2aUnSqMgN5SfwTyhiP7bXRjj2XwzYCTtx
-	 851hK/6GxFGqw==
+	b=JBGjC0JG6taRh6W76fZOLNsjNinAKtLEZdyZf56hkpmD1SsPyspbJgP79fA97RNFu
+	 rInXrcVoyDKxluHVIscUJlMQmCqhyn5vwU71G1ydzkj06R3KS8xqkqBGEHAwFFX5/0
+	 oLU/CAkX/h1Gzz1GS/ZeKTBmtJF2fpl8ljFKwZRglGHj0rtfQ8ndwlo5G5KRsMycDE
+	 nxh7CmmMG6beLYOuSIkOMMaLZ1yeaXbdG7b7alCjP4UkqQg8wtUK6yOWoFCJZKQTpC
+	 o0a+qybijiTRUl268p65PJiHOM6drgF6XspLNQuwd7bBhft3/7HTnnjHqcGpREBH1/
+	 t6TG2qcQpKTOw==
 From: Lorenzo Stoakes <ljs@kernel.org>
-Date: Fri, 10 Jul 2026 21:17:06 +0100
-Subject: [PATCH v2 25/33] mm/vma: make vma_set_range() static, drop
- insert_vm_struct() decl
+Date: Fri, 10 Jul 2026 21:17:07 +0100
+Subject: [PATCH v2 26/33] mm/vma: update vma_shrink() to not pass start,
+ pgoff parameters
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260710-b4-pre-scalable-cow-v2-25-2a5aa403d977@kernel.org>
+Message-Id: <20260710-b4-pre-scalable-cow-v2-26-2a5aa403d977@kernel.org>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 In-Reply-To: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -119,119 +119,148 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>, linux-mm@kvack.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org, 
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3631; i=ljs@kernel.org;
- h=from:subject:message-id; bh=DYBIxKjyIjg2H1S6yqXRCrIrObFnJroA9O36yuI28hY=;
- b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg22X7tsrcNZQdubGGY8ZeW1e29V7zlxxOK3+cPbOG
- WeF5aVsOkpZGMS4GGTFFFmefxHfHyQSNq/zgr8bzBxWJpAhDFycAjCR14YM/9R8K5NV5Y2MWF6c
- vSte8e2PzcyIgNeTetd93BU5Q92s+h0jw6WMAI+VUk1/mc91c4Z2cZ/wmvv59r+qxuBd6nsvamy
- S5gAA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4413; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=0LxPiqBxAD9IhreoUXWjHFUoHlm6qZINpaBU8bU6qMA=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg23LjgYW8Qj8SmXmjwgOjpPi2iF7zC5wcn+95fs7l
+ iaOVf86SlkYxLgYZMUUWZ5/Ed8fJBI2r/OCvxvMHFYmkCEMXJwCMBFxP0aGV36b2hPsZB4I79HY
+ so+HedmSLrH9my+69IdZeCZd5ouYx8iwVvT+y+n/804y/Dn3tjAuJ/T0sU1CtjziL09p1mW378z
+ nAAA=
 X-Developer-Key: i=ljs@kernel.org; a=openpgp;
  fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-With __install_special_mapping() moved to vma.c, vma_set_range() can be
-made into a static function there and is now completely isolated from the
-rest of mm.
+vma_shrink() is only used by relocate_vma_down() to shrink the tail of a
+VMA. Therefore neither the start nor the pgoff parameters make any sense.
 
-While we're here, we can also remove the insert_vm_struct() declaration
-from mm.h - the function is implemented in vma.c and already declared in
-vma.h, and has no users outside of mm.
+It seemed we were passing the pgoff parameter solely to satisfy
+vma_set_range()'s requirement for pgoff being specified.
 
-Also update the VMA userland tests to reflect this change.
+Since vma_set_range() is now isolated to vma.c, we can simply introduce
+__vma_set_range() which sets only vma->vm_[start, end], and invoke this
+instead, removing start and pgoff from vma_shrink() altogether.
 
 No functional change intended.
 
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Gregory Price <gourry@gourry.net>
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 ---
- include/linux/mm.h         | 1 -
- mm/internal.h              | 9 ---------
- mm/vma.c                   | 8 ++++++++
- tools/testing/vma/shared.c | 9 ---------
- tools/testing/vma/shared.h | 5 -----
- 5 files changed, 8 insertions(+), 24 deletions(-)
+ mm/vma.c                        | 31 +++++++++++++++++--------------
+ mm/vma.h                        |  3 +--
+ mm/vma_exec.c                   |  2 +-
+ tools/testing/vma/tests/merge.c |  2 +-
+ 4 files changed, 20 insertions(+), 18 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 3d69b597b9b1..762313b47301 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -4130,7 +4130,6 @@ void anon_rmap_tree_verify(struct anon_vma_chain *avc);
- 
- /* mmap.c */
- extern int __vm_enough_memory(const struct mm_struct *mm, long pages, int cap_sys_admin);
--extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void exit_mmap(struct mm_struct *);
- bool mmap_read_lock_maybe_expand(struct mm_struct *mm, struct vm_area_struct *vma,
- 				 unsigned long addr, bool write);
-diff --git a/mm/internal.h b/mm/internal.h
-index 01a762bcc2b2..2c650d280e90 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -1540,15 +1540,6 @@ extern bool mirrored_kernelcore;
- bool memblock_has_mirror(void);
- void memblock_free_all(void);
- 
--static __always_inline void vma_set_range(struct vm_area_struct *vma,
--					  unsigned long start, unsigned long end,
--					  pgoff_t pgoff)
--{
--	vma->vm_start = start;
--	vma->vm_end = end;
--	vma->vm_pgoff = pgoff;
--}
--
- static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
- {
- 	/*
 diff --git a/mm/vma.c b/mm/vma.c
-index 5308aa5a8c91..cc0e449ad0be 100644
+index cc0e449ad0be..a474920a25b3 100644
 --- a/mm/vma.c
 +++ b/mm/vma.c
-@@ -70,6 +70,14 @@ struct mmap_state {
+@@ -70,11 +70,17 @@ struct mmap_state {
  		.state = VMA_MERGE_START,				\
  	}
  
+-static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
+-			  unsigned long end, pgoff_t pgoff)
++static void __vma_set_range(struct vm_area_struct *vma, unsigned long start,
++			    unsigned long end)
+ {
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
++}
++
 +static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
 +			  unsigned long end, pgoff_t pgoff)
 +{
-+	vma->vm_start = start;
-+	vma->vm_end = end;
-+	vma->vm_pgoff = pgoff;
-+}
-+
- /* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
- static bool vma_is_fork_child(struct vm_area_struct *vma)
- {
-diff --git a/tools/testing/vma/shared.c b/tools/testing/vma/shared.c
-index 2565a5aecb80..bea9ea6db02a 100644
---- a/tools/testing/vma/shared.c
-+++ b/tools/testing/vma/shared.c
-@@ -120,12 +120,3 @@ unsigned long rlimit(unsigned int limit)
- {
- 	return (unsigned long)-1;
++	__vma_set_range(vma, start, end);
+ 	vma->vm_pgoff = pgoff;
  }
+ 
+@@ -1279,27 +1285,24 @@ int vma_expand(struct vma_merge_struct *vmg)
+ 	return -ENOMEM;
+ }
+ 
+-/*
+- * vma_shrink() - Reduce an existing VMAs memory area
++/**
++ * vma_shrink() - Shrink the end of a VMA
+  * @vmi: The vma iterator
+  * @vma: The VMA to modify
+- * @start: The new start
+  * @end: The new end
+  *
++ * Note that the caller may only shrink the end of the VMA.
++ *
+  * Returns: 0 on success, -ENOMEM otherwise
+  */
+ int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-	       unsigned long start, unsigned long end, pgoff_t pgoff)
++	       unsigned long end)
+ {
+ 	struct vma_prepare vp;
+ 
+-	WARN_ON((vma->vm_start != start) && (vma->vm_end != end));
 -
--void vma_set_range(struct vm_area_struct *vma,
--		   unsigned long start, unsigned long end,
--		   pgoff_t pgoff)
--{
--	vma->vm_start = start;
--	vma->vm_end = end;
--	vma->vm_pgoff = pgoff;
--}
-diff --git a/tools/testing/vma/shared.h b/tools/testing/vma/shared.h
-index 8b9e3b11c3cb..ca4f1238f1c7 100644
---- a/tools/testing/vma/shared.h
-+++ b/tools/testing/vma/shared.h
-@@ -125,8 +125,3 @@ void __vma_set_dummy_anon_vma(struct vm_area_struct *vma,
- /* Provide a simple dummy VMA/anon_vma dummy setup for testing. */
- void vma_set_dummy_anon_vma(struct vm_area_struct *vma,
- 			    struct anon_vma_chain *avc);
--
--/* Helper function to specify a VMA's range. */
--void vma_set_range(struct vm_area_struct *vma,
--		   unsigned long start, unsigned long end,
--		   pgoff_t pgoff);
+-	if (vma->vm_start < start)
+-		vma_iter_config(vmi, vma->vm_start, start);
+-	else
+-		vma_iter_config(vmi, end, vma->vm_end);
++	VM_WARN_ON_ONCE(end > vma->vm_end);
+ 
++	vma_iter_config(vmi, end, vma->vm_end);
+ 	if (vma_iter_prealloc(vmi, NULL))
+ 		return -ENOMEM;
+ 
+@@ -1307,10 +1310,10 @@ int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 
+ 	init_vma_prep(&vp, vma);
+ 	vma_prepare(&vp);
+-	vma_adjust_trans_huge(vma, start, end, NULL);
++	vma_adjust_trans_huge(vma, vma->vm_start, end, NULL);
+ 
+ 	vma_iter_clear(vmi);
+-	vma_set_range(vma, start, end, pgoff);
++	__vma_set_range(vma, vma->vm_start, end);
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+ 	validate_mm(vma->vm_mm);
+ 	return 0;
+diff --git a/mm/vma.h b/mm/vma.h
+index 14f026bf3be4..40effaa3ebe4 100644
+--- a/mm/vma.h
++++ b/mm/vma.h
+@@ -297,8 +297,7 @@ void validate_mm(struct mm_struct *mm);
+ 
+ __must_check int vma_expand(struct vma_merge_struct *vmg);
+ __must_check int vma_shrink(struct vma_iterator *vmi,
+-		struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end, pgoff_t pgoff);
++		struct vm_area_struct *vma, unsigned long end);
+ 
+ static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
+ 			struct vm_area_struct *vma, gfp_t gfp)
+diff --git a/mm/vma_exec.c b/mm/vma_exec.c
+index e3644a3042e2..13a05e041195 100644
+--- a/mm/vma_exec.c
++++ b/mm/vma_exec.c
+@@ -89,7 +89,7 @@ int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift)
+ 
+ 	vma_prev(&vmi);
+ 	/* Shrink the vma to just the new range */
+-	return vma_shrink(&vmi, vma, new_start, new_end, vma_start_pgoff(vma));
++	return vma_shrink(&vmi, vma, new_end);
+ }
+ 
+ /*
+diff --git a/tools/testing/vma/tests/merge.c b/tools/testing/vma/tests/merge.c
+index f8666a755749..e357accc8499 100644
+--- a/tools/testing/vma/tests/merge.c
++++ b/tools/testing/vma/tests/merge.c
+@@ -227,7 +227,7 @@ static bool test_simple_shrink(void)
+ 
+ 	ASSERT_FALSE(attach_vma(&mm, vma));
+ 
+-	ASSERT_FALSE(vma_shrink(&vmi, vma, 0, 0x1000, 0));
++	ASSERT_FALSE(vma_shrink(&vmi, vma, 0x1000));
+ 
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x1000);
 
 -- 
 2.55.0
