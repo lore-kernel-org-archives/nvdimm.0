@@ -1,34 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6987544998C;
-	Fri, 10 Jul 2026 20:22:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8759A3955E1;
+	Fri, 10 Jul 2026 20:23:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783714977; cv=none; b=D0+WY/rbAeduXB1e1yCNmrRd31RuVYnrOnitUQ7rYimdRwkw/5Gyd/kNzGiFxZ/4YDiCAlhR6GQUZjvpxc6WGJfyvNUdvQjTocvhavBO2yT0B/iBnfn9pJ8A17/zLTq5gBdkC7vE/+CGvyTT8R8JTthc8tcv4WcFXgC66/fNDUk=
+	t=1783715000; cv=none; b=AbD3dPiGYUUMoajjzmPs8ZLdX4hOmXAIkEWMVwe3AlaMV+xM2ymtY+K264lSz8wpzmfq3MKERi4CJ8is2axs5yeAlKShv0NTcZ/viHEESuHdgzRJdw42L+uC+JFRgn2bynaqcJqvTyH1lRVZLpDx6UH/KYb8jR5PLiYBClzHW8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783714977; c=relaxed/simple;
-	bh=Ckq9F1B5R4ctEUJqWXYT1jV2i9Vim92hn6PkYJsjcDc=;
+	s=arc-20240116; t=1783715000; c=relaxed/simple;
+	bh=/OET8/zUpzsJ/XNmWkLK0gsvh8paST29XGIok8Z8NBo=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=QvhB/8j2xglgO6RbQMop7fwUrxcbfK6JuMHyESNHhgZSaSrv0OYjmnMIxj1ePJHB3p6Xed9j/mno9lNMcIMvkEEZT9lQGTWdmMNoEVJDdgATLjCNS9amt4WDKtkYRGdGgDEa4aNlYo7DhPh6U1O1L2hdR+VEGgOnHK3Q7zyiDh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BygF57wD; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=FodfT/UdlO2qhgkLqLF+SWWUhdRSP/wHiz/qLHsSXxf2yAuPnS3WtUuSm8deTI0MO3eQZ3wZ8B+5Y0cZa+1lahkx4AvfQrl8BbgyKI6/yEXGIU3Osq8KJyNv0oGF8uTc6ooMHiJeWadIhHXQOy1EGQS01M96B0UJkjh0Jn9W368=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S1DwmzxW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BygF57wD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C69F1F000E9;
-	Fri, 10 Jul 2026 20:22:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S1DwmzxW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 751431F00A3A;
+	Fri, 10 Jul 2026 20:22:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783714976;
-	bh=g95Hx/jZszTYl/mqKEmmLN3wpFLfcUCiQ7oLxyYPtwI=;
+	s=k20260515; t=1783714999;
+	bh=8inNSEODGbyh/+vAWll7hEmDowJfY2XIaIfPLAyfMv8=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=BygF57wD+F4oIx2IjGBmXSgdeyH+kDz20QKqfZkY+JeciaIqrpYGeXs92Dhu1bJQg
-	 yDrXtWAFvHrGJ01GVLJpGEYigWux3ULkArB6G87U6BG+mND6GeRsCRQIqxn7ZB/Co7
-	 WX5bQzX3DHLJV8P5v5PFCfG2UwKM4+ICy3syuuKgzN0aQLrIra+79BjIq5f/isekmS
-	 4O/AIhZQ8j5j/Q1gq+aeN84CaAkEZVoCKAwBtKJrHGY5odfGQwzjga9mJoIKacknvz
-	 VLOYvIoanmU23sKzVnBYRU2knQpn2FpJ7GQeLdVOWXN6EA1E/tTlccruzKODHlic/F
-	 MkoQCxvPMfndg==
+	b=S1DwmzxWKK/EvOlvmXiaNgzfe9uDLXmTCD+WOfUbIAIznmeNow2bwHsqtQNnJDz6P
+	 rqHs9qpnmDqZ7AXsBeyQzhFBN9oQXnRABs+LJNq40HsMI5lnNl+DSPJGinGwGnULCx
+	 78OgKDP4iyqp5wUZhtC+twh9ggQujW01mEbzw5nIUKY4aWS4GEh9yM5cAf3VYB8bQx
+	 mMyUoAKHPGwt0QsRpaNGnK2kAqbELgSA+bpm+oAZ4D8FAeyJdaN8Ea3X9Nm3YToX6X
+	 LgnaMPze03tseVbPBRg/fzdp8E+k83ZRinjxnRZ9sKzJ6gvhECaFRdAXhf2O5a1uOD
+	 zoICWtvDCZyZQ==
 From: Lorenzo Stoakes <ljs@kernel.org>
-Date: Fri, 10 Jul 2026 21:16:55 +0100
-Subject: [PATCH v2 14/33] mm/vma: clean up anon_vma_compatible()
+Date: Fri, 10 Jul 2026 21:16:56 +0100
+Subject: [PATCH v2 15/33] mm/vma: refactor vmg_adjust_set_range() for
+ clarity
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -37,7 +38,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260710-b4-pre-scalable-cow-v2-14-2a5aa403d977@kernel.org>
+Message-Id: <20260710-b4-pre-scalable-cow-v2-15-2a5aa403d977@kernel.org>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 In-Reply-To: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -118,62 +119,94 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>, linux-mm@kvack.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org, 
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1642; i=ljs@kernel.org;
- h=from:subject:message-id; bh=Ckq9F1B5R4ctEUJqWXYT1jV2i9Vim92hn6PkYJsjcDc=;
- b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg20UN7HtLM/vyXsTFrxVYsWpHDm18w4P5+XM12s5+
- WWHrvf0jlIWBjEuBlkxRZbnX8T3B4mEzeu84O8GM4eVCWQIAxenANzkqYwMU33rlv+/mL9e+HWT
- WHxes/ljhqb8yMyVr44wrbuqccd5DcNfmT/8Ns92pKWUmxwKXbLj7ZqLidpWFw45HF1j+zc0qX0
- fGwA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2561; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=/OET8/zUpzsJ/XNmWkLK0gsvh8paST29XGIok8Z8NBo=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg21eWBnkBU3wWsq2iz/TO8ZQcE3VnwrbFNZv12IU1
+ viv6S/tKGVhEONikBVTZHn+RXx/kEjYvM4L/m4wc1iZQIYwcHEKwEQeuDEyfLi5azmfhOuak/Y7
+ /x39eSMlunV7+X2dpoxbEw5qHn3m0MXI8NngWsiVLEV5+0l6Sf1f61cyr3mWXucy4WDe1De3LqV
+ uZQMA
 X-Developer-Key: i=ljs@kernel.org; a=openpgp;
  fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-Break up the existing very large conditional, add comments and use
-vma_[start/end]_pgoff() to make clearer what we're doing here.
+Add comments with ASCII diagrams to describe what we're doing, avoid
+dubious use of PHYS_PFN(), and use vma_start_pgoff().
+
+The most complicated scenario represented here is vmg->__adjust_next_start
+- when this is set, vmg->[start, end] actually indicate the range to be
+retained, so take special care to describe this accurately.
 
 No functional change intended.
 
-Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Gregory Price <gourry@gourry.net>
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 ---
- mm/vma.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ mm/vma.c | 51 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 47 insertions(+), 4 deletions(-)
 
 diff --git a/mm/vma.c b/mm/vma.c
-index 995de8198fbb..084afdf37385 100644
+index 084afdf37385..7265a054cfa3 100644
 --- a/mm/vma.c
 +++ b/mm/vma.c
-@@ -1967,14 +1967,25 @@ static int anon_vma_compatible(struct vm_area_struct *a, struct vm_area_struct *
- {
- 	vma_flags_t diff = vma_flags_diff_pair(&a->flags, &b->flags);
+@@ -704,11 +704,54 @@ static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+ 	pgoff_t pgoff;
  
-+	/* Ignore flags that mprotect() can change. */
- 	vma_flags_clear_mask(&diff, VMA_ACCESS_FLAGS);
-+	/* Ignore flags that do not impact merging. */
- 	vma_flags_clear_mask(&diff, VMA_IGNORE_MERGE_FLAGS);
- 
--	return a->vm_end == b->vm_start &&
--		mpol_equal(vma_policy(a), vma_policy(b)) &&
--		a->vm_file == b->vm_file &&
--		vma_flags_empty(&diff) &&
--		b->vm_pgoff == a->vm_pgoff + ((b->vm_start - a->vm_start) >> PAGE_SHIFT);
-+	/* Must be adjacent. */
-+	if (a->vm_end != b->vm_start)
-+		return false;
-+	/* Must have matching policy. */
-+	if (!mpol_equal(vma_policy(a), vma_policy(b)))
-+		return false;
-+	/* Must both be anon or map the same file (MAP_PRIVATE case). */
-+	if (a->vm_file != b->vm_file)
-+		return false;
-+	/* Flags must be equivalent modulo mprotect(). */
-+	if (!vma_flags_empty(&diff))
-+		return false;
-+	/* Page offset must align. */
-+	return vma_end_pgoff(a) == vma_start_pgoff(b);
- }
- 
- /*
+ 	if (vmg->__adjust_middle_start) {
+-		adjust = vmg->middle;
+-		pgoff = adjust->vm_pgoff + PHYS_PFN(vmg->end - adjust->vm_start);
++		/*
++		 * vmg->start    vmg->end
++		 * |             |
++		 * v    merge    v
++		 * <------------->
++		 *         delta
++		 *        <------>
++		 * |------|----------------|
++		 * | prev |    middle      |
++		 * |------|----------------|
++		 *        ^
++		 *        |
++		 *        middle->vm_start
++		 */
++		struct vm_area_struct *middle = vmg->middle;
++		const unsigned long delta = vmg->end - middle->vm_start;
++
++		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
++		adjust = middle;
+ 	} else if (vmg->__adjust_next_start) {
+-		adjust = vmg->next;
+-		pgoff = adjust->vm_pgoff - PHYS_PFN(adjust->vm_start - vmg->end);
++		/*
++		 *                Originally:
++		 *
++		 *            vmg->start   vmg->end
++		 *            |            |
++		 *            v    merge   v
++		 *            <------------>
++		 *            .            .
++		 * merge_existing_range() updates to:
++		 *            .            .
++		 * vmg->start vmg->end     .
++		 * |          |            .
++		 * v  retain  v            .
++		 * <---------->            .
++		 *             delta       .
++		 *            <----->      .
++		 * |----------------|------|
++		 * |    middle      | next |
++		 * |----------------|------|
++		 *                  ^
++		 *                  |
++		 *                  next->vm_start
++		 */
++		struct vm_area_struct *next = vmg->next;
++		const unsigned long delta = next->vm_start - vmg->end;
++
++		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
++		adjust = next;
+ 	} else {
+ 		return;
+ 	}
 
 -- 
 2.55.0
