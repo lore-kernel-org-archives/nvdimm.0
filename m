@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70B6D377544;
-	Fri, 10 Jul 2026 13:39:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BE363191BA;
+	Fri, 10 Jul 2026 14:51:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783690767; cv=none; b=q4Sd47eeuC/Pr9rX0DQfdHOq+ljWD1gAYy3StiL2oSaEOSaYd1STgDJohmyWs/BC6rUIYJA3XBkKEl+ntCDuB0bn8l90aJL9lK+xnmAdAoLxCIlCIiHJtdpXhe0Ow1IziWtxrtfTn+kBY6j2Zl4ytPkhl/UxE3GXduUcUb7YU4c=
+	t=1783695073; cv=none; b=RMaVUAQHdBWKp8KL4IbEN6rl9kxd8jydu6p4ABIKgq0hn9j+aLW4FwhEkGJFSj2fin2hUTK8gdp6xeKuGmwgwwjFJ1R6cMVKT2PcoqsDicsf39y2HhYoKIcIjp+l0DAOkuPh1yJIS0yFVWxURvTPfbZoOBQpbUOkbDtH/MfOqEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783690767; c=relaxed/simple;
-	bh=1zOgBPuUrXPvOJucK7GyHI1L3i2YRBy6YlCIQgSIRNM=;
+	s=arc-20240116; t=1783695073; c=relaxed/simple;
+	bh=HVCHZJFQAGlkuskJ7SayMhosIqfStBiyOTKFtFT5fdk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uCCCam7JJ+bGLls+yV+6sAzqo+QGyEBBt5ltXIDLZCPAIXGa6TP+wguwbhEQ3fsZq8/319Hgp5pkBF/opR2ou+foI1Mph94u6D91xhLpeOoynPWrdTozYYh2E5C/BZaB7Nwu1YgTZ7JgPh5BOsFiDJ43Zc8XAsGXumIWeXU2nWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fydQPaDx; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=JdowGOYA6kcqCoWBOaON0YBx4rGBqhH6UgACOr9zrM43N9YtsQsTqBcgukxWI1OuPkZNj2rsL6I33CQG4qT8CxfgoxZv9bvsXmZ+p/VDk3HnNFlv+2182xYfwpFaEfKqNx9YqsYlwjJkidiqa9tySqhuNk7/6YuDFQaRVSoOk3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GV0G1PCd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fydQPaDx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82F051F000E9;
-	Fri, 10 Jul 2026 13:39:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GV0G1PCd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A13DE1F00A3A;
+	Fri, 10 Jul 2026 14:50:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783690762;
-	bh=hWe5y0XfVr4QQQGo0kaEF8UGbBWB4HZz8UbrXKM7Z28=;
+	s=k20260515; t=1783695069;
+	bh=/adl28F1RG11+xFCTzjhiMT3/quSA/55SrYHe5Xl+as=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=fydQPaDxS/hHGLVdvf977qUXBNSF6t19lqQW/RqVTS+Xk5pgKo0deA+cWIFhyYRvv
-	 IeSezmg4COMZrohE1QJ6gnvclo/bOnA8j2IrdEmxinGMPa0Cv9pB6NQzVtyWt96x//
-	 6dNWU5GX7waS+2jwE8BVZ3WNZw/wsfy0C0SSKxIKb3QlnIRCNzHVm3c5Ps0q8mrTgW
-	 zsWArKYrCmnfDcrebwcipzmYNQ0mhqZJQQZSGHykLDKtejNlCDmPcno/dc/3rjzGeu
-	 kuxVdLjqHCE3kyZgIMxt9Re36Qo0mzOOVMmO0ZdfPfAx62l26oANlEaaJo1XHJjjzR
-	 MdqLjT6QyxJDg==
-Date: Fri, 10 Jul 2026 14:38:58 +0100
+	b=GV0G1PCdVWL/17cPDVZfz86GmBO0VpAcpElRSgqzkFaZnFKsDK6rIw+lxzMvM7oyM
+	 gOb7BmlLZV+r7XfvVToV0An5vS3DWoiRNZEtakP1kgKdd/pwAzK/AhJrUnpZlFH/ma
+	 IDgVC6vlNuOfwFAEke1UlfCP3mMcmRNqv1rAQF1Ta5n8CDc7P/kP23VMlYUdFRkbMx
+	 btXD63gJA5fhI4bndbOxrinkAQhHaNvBor7RN1UECzz5h5BotHDkxdGHR0ZdFn1Wle
+	 sxRRlN3kLf8W7g8Lmmkim9s7ySe4W1NlivrC5VU8viOWzvoYYPKNt7/4lb6lTsMCz8
+	 i1PWPp9WBYC/w==
+Date: Fri, 10 Jul 2026 15:50:44 +0100
 From: Lorenzo Stoakes <ljs@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
+To: Gregory Price <gourry@gourry.net>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
 	Russell King <linux@armlinux.org.uk>, Dinh Nguyen <dinguyen@kernel.org>, 
 	Simon Schuster <schuster.simon@siemens-energy.com>, 
@@ -47,12 +47,12 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	Alex Williamson <alex@shazbot.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
 	Christian Brauner <brauner@kernel.org>, Dan Williams <djbw@kernel.org>, 
 	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	Suren Baghdasaryan <surenb@google.com>, "Liam R . Howlett" <liam@infradead.org>, 
-	Matthew Wilcox <willy@infradead.org>, Marek Szyprowski <m.szyprowski@samsung.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, 
-	Oleg Nesterov <oleg@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, 
-	SeongJae Park <sj@kernel.org>, Miaohe Lin <linmiaohe@huawei.com>, 
+	David Hildenbrand <david@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	"Liam R . Howlett" <liam@infradead.org>, Matthew Wilcox <willy@infradead.org>, 
+	Marek Szyprowski <m.szyprowski@samsung.com>, Peter Zijlstra <peterz@infradead.org>, 
+	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Steven Rostedt <rostedt@goodmis.org>, SeongJae Park <sj@kernel.org>, Miaohe Lin <linmiaohe@huawei.com>, 
 	Hugh Dickins <hughd@google.com>, Mike Rapoport <rppt@kernel.org>, Kees Cook <kees@kernel.org>, 
 	Paolo Bonzini <pbonzini@redhat.com>, linux-kernel@vger.kernel.org, 
 	linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, linux-sgx@vger.kernel.org, 
@@ -63,11 +63,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
 	Pedro Falcato <pfalcato@suse.de>, Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
 	Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 02/30] mm: add kdoc comments for vma_start/last_pgoff()
-Message-ID: <alD1h7kHZdX_0I-0@lucifer>
+Subject: Re: [PATCH 13/30] mm/vma: refactor vmg_adjust_set_range() for clarity
+Message-ID: <alEGqHY5GPhT30Ty@lucifer>
 References: <cover.1782735110.git.ljs@kernel.org>
- <8c618dfd7de419e3b797b8bd1cd921d4c5b8878b.1782735110.git.ljs@kernel.org>
- <03762de9-c695-4cdd-8c25-4fc31335ea15@kernel.org>
+ <ada7972f49ea7f1ff1df6d11e4651f270444f8fd.1782735110.git.ljs@kernel.org>
+ <ak-70CHGujkI5jJI@gourry-fedora-PF4VCD3F>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -76,57 +76,73 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <03762de9-c695-4cdd-8c25-4fc31335ea15@kernel.org>
+In-Reply-To: <ak-70CHGujkI5jJI@gourry-fedora-PF4VCD3F>
 
-On Tue, Jul 07, 2026 at 04:46:13PM +0200, David Hildenbrand (Arm) wrote:
-> On 6/29/26 14:23, Lorenzo Stoakes wrote:
-> > Describe what vma_start_pgoff() and vma_last_pgoff() actually provide in
-> > detail.
+On Thu, Jul 09, 2026 at 11:18:40AM -0400, Gregory Price wrote:
+> On Mon, Jun 29, 2026 at 01:23:24PM +0100, Lorenzo Stoakes wrote:
+> > Add comments with ASCII diagrams to describe what we're doing, avoid
+> > dubious use of PHYS_PFN(), and use vma_start_pgoff().
 > >
-> > This is in order that we can differentiate this between functions that will
-> > be added in a subsequent patch which provide a different page offset.
+> > The most complicated scenario represented here is vmg->__adjust_next_start
+> > - when this is set, vmg->[start, end] actually indicate the range to be
+> > retained, so take special care to describe this accurately.
 > >
 > > No functional change intended.
 > >
 > > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-> > ---
-> >  include/linux/mm.h | 26 ++++++++++++++++++++++++++
-> >  1 file changed, 26 insertions(+)
-> >
-> > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > index 059144435729..2f00c75e66bd 100644
-> > --- a/include/linux/mm.h
-> > +++ b/include/linux/mm.h
-> > @@ -4278,11 +4278,37 @@ static inline unsigned long vma_pages(const struct vm_area_struct *vma)
-> >  	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
-> >  }
-> >
-> > +/**
-> > + * vma_start_pgoff() - Get the page offset of the start of @vma
-> > + * @vma: The VMA whose page offset is required.
-> > + *
-> > + * If the VMA is file-backed, this is the page offset into the file.
-> > + *
-> > + * If the VMA is anonymous, this is the virtual page offset of the start of the
-> > + * VMA - if unfaulted, then vma->vm_start >> PAGE_SHIFT, if faulted then the
-> > + * virtual page offset at the time of first fault.
-> > + *
-> > + * Note that if @vma is a MAP_PRIVATE file-backed mapping, then this returns the
-> > + * file offset.
 >
-> There is the ugly case of @vma being a MAP_PRIVATE PFNMAP mapping, where it
-> returns something different.
+> Reviewed-by: Gregory Price <gourry@gourry.net>
+>
+> > +		/*
+> > +		 * vmg->start    vmg->end
+> > +		 * |             |
+> > +		 * v    merge    v
+> > +		 * <------------->
+> > +		 *         delta
+> > +		 *        <------>
+> > +		 * |------|----------------|
+> > +		 * | prev |    middle      |
+> > +		 * |------|----------------|
+> > +		 *        ^
+> > +		 *        |
+> > +		 *        middle->vm_start
+> > +		 */
+>
+> Even with these diagrams, it's a bit difficult to understand what the
+> actual intent/result of this chunk is (but that may be a limitation of
+> me not spending enough time reading the surrounding code, not a comment
+> of your work here).
 
-Yup, the pfn  I will update doc to mention this abomination too.
-
-The virt pgoff stuff in the RFC fixes this also.
+Yeah I know, I do hope to refactor all this at some point to make it simpler,
+but for the time being tried to make the confusing thing at least _slightly_
+less confusing :)
 
 >
-> (remap_pfn_range_prepare_vma() -> vma->vm_pgoff set to PFN)
->
-> --
-> Cheers,
->
-> David
+> ~Gregory
 
 Cheers, Lorenzo
+
+>
+> > +		/*
+> > +		 *                Originally:
+> > +		 *
+> > +		 *            vmg->start   vmg->end
+> > +		 *            |            |
+> > +		 *            v    merge   v
+> > +		 *            <------------>
+> > +		 *            .            .
+> > +		 * merge_existing_range() updates to:
+> > +		 *            .            .
+> > +		 * vmg->start vmg->end     .
+> > +		 * |          |            .
+> > +		 * v  retain  v            .
+> > +		 * <---------->            .
+> > +		 *             delta       .
+> > +		 *            <----->      .
+> > +		 * |----------------|------|
+> > +		 * |    middle      | next |
+> > +		 * |----------------|------|
+> > +		 *                  ^
+> > +		 *                  |
+> > +		 *                  next->vm_start
+> > +		 */
