@@ -1,126 +1,122 @@
-Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36161361DDE
-	for <nvdimm@lists.linux.dev>; Fri, 10 Jul 2026 03:08:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 546D441F7E9;
+	Fri, 10 Jul 2026 12:44:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783652938; cv=none; b=U59KC8DAbIbVXdLnF+7Thm1o0Z28EDA6ufnTa0icRQ1X85Vuc6sk0EHi2e/iKTGbFTTBy3Qvv+6uNmAifgafyXTKrvtlDOzMJm6YP9pizGnKS+7bWB+Oo0KadDX12C8oZ+f/UHtxEdXZIsGXQYm7ZJAtk4isjPPNulf9L2ozzq8=
+	t=1783687497; cv=none; b=NbV3nhQrkn4ysoe8TTQ7NablfS/8+NLehKsslEvlThptBP1Nan1qUdkfbM/7gkHFZUUtLiWOAx1bBJvJl5ePkLKU7Q67m2gN14ZhWxJjkAMSt2knVXqAc9JkOdk1XkIPoCPxINWMNpJIUBoFa/trKLjTCuKCgTINEQTBlpGIYtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783652938; c=relaxed/simple;
-	bh=le65lxpxw4W65xyZzPtwOptaX/haFn4+aLgX+gVQMQw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Jmbn7RoiKAOat8tkIa2mJ6usJoWoqEWYIZDAHnBPuj6hV6M6y1FfTxrbES7j+4MHq3HM/aOioiCAzxCG5nfDnjEHKfyKJ2vd8wSu3PsEzkliJXhy+71oUO+4OUgyxrwfQCJlTy7WAZmBuu/m1XO3Zf52uQXSBrzjuGqTmnmsOJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=qTVsr3Sa; arc=none smtp.client-ip=209.85.222.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1783687497; c=relaxed/simple;
+	bh=UBJfnhc+/tMj2M/nhoixyKLHSfzAczVqHM/h+wTzZoc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lj4+acq63sy8VdLQxnD32r1s3AN5XVOYY8SU3/OFOkZZzQ9PAUGqRllPDZKb/z2bN6+n+26YcUkFxHvgvf0l1GCCqVm1ZuUZpZggUc93H6vwhXH3dmlcpFkZmqdPKRKvilqB5GILXusSAlC6y4SPIgcLUM0luNCe7GhnPRRUM4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Aq9/XVc2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="qTVsr3Sa"
-Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-92e99ef0902so20325885a.2
-        for <nvdimm@lists.linux.dev>; Thu, 09 Jul 2026 20:08:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1783652935; x=1784257735; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=kr6wGBD9MJbLbiRkKQ9M+EqleUNYFT/q4nJmIpqWguM=;
-        b=qTVsr3SaQrw/hByMDd2+8yxZD9T8T4K9rNRowfw+sEDC52FzqcL+cvD4x7+eYsgRtw
-         fkucFz5qjVQSDEJ5OFvQVUxWHZEO5NEuROix8jBrTMPbD0yHRVdKmuTLS9+YgcmBrvAp
-         fomjTqsqZsDVog4pI05N+LxDHI04UMrCbz7Tw1F7KzyH2x3kRod01qK7oaDehBzBlLfg
-         8CX6dXF8TZkuILc52ILngtpgpv9bOGewmpRWpsfXHKCOjWmNoJg9zcZo9N5wi2wz0VIZ
-         fB8ALv96X9qvALZfW1it1MBYHnedrYZD3Siuyv2lyDkoJPjrvgfo/ox56WcIW6TMblIb
-         +LeA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783652935; x=1784257735;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=kr6wGBD9MJbLbiRkKQ9M+EqleUNYFT/q4nJmIpqWguM=;
-        b=faLRMqfjBkyfOKLNCeJe1eUQaPdn7NxiqEcl8Dg3PsWnu644VV+C9t740SMwjGfMFC
-         KLGKBFowy+9IVCiX7jbhjWj6cjUQj99aqaqetnWs8hameLFUhXb4DRpkD/2Vf4rgPDIY
-         n+I+sYkhzwEkMrHxV6G/pyveunXftnKo8x6sCou4JuTN8BmSD+kJQz5Ae2GmVNPYjnZS
-         qdCtvJ+lJC0FsgHFdQM1Vq3S4gJUu0UOBvD9hZiimmAlV7/hBVJGPFrTvO6PVwBOSWq5
-         C8Qhff9qe8ibyE0HY2aJ/6ThOQ0pJhrJtq9tjiQ9msEG67iDlOzqCY+udj3ITZxZfbh1
-         wYmA==
-X-Forwarded-Encrypted: i=1; AHgh+RoFUWjBRrjL0ePYCXtHY4+DpJvQwjZNd6xNtAkAsd04ZGpejnjRnPyMba2P20qXg4d92armPJ8=@lists.linux.dev
-X-Gm-Message-State: AOJu0YySJQWo300xg0F3zdmoUDJQR5i+0KW6sizdXc8t+fq6saufI/zW
-	c1Wg47m0v/kJEKLFLHAUY8x2yhYP1XvO38fLP4UFq1GhXgf2kwfqUhSWG49YmDiHYkM=
-X-Gm-Gg: AfdE7clVmepzVCcu5ybOWNNycwrwdLTlwN/YIG7c49ZEht1u+NRs57FZan/+t5em0IG
-	DLiLaHog2g99rKeXmPLaPUPt8F68fFJGEQyy00a8hYEDLdJ55HoXQnJLSKSWAdgF/M6lvgjbpzA
-	nemXkVY1TFamp/n4v+NQFryN7HXDo5ZeEvNKcpAksTh9RKKfe56AZtibiILejva0SiSbcWSe6CX
-	xtKY4ubxkj9zGfZD/h8vFUXH6PR9JM3aY/X/NiPo+VPbw7q6oVpomXCeLsHH2tIl7pIBw0q1oXC
-	MPpYeNaFRSw6QgsVysWuvgSHXU5JJBtCP1fKtP0HjGFBbjMGeh5g6EtMhxb0r4q8QuiBX6Sbb7T
-	4DJ6UPcnH7nrDijeGo4xAYDqHlYq7zrozuSyMrw40bBcqBq98RYY8B7dvMdt6au7WF+VaLKXQ1m
-	BbiQkZ+Ef/l1rLcTVLXrudq1qIxG97aTVGmacqOjWRJWMGTs7jBCCSLRwPK2lUhr8mUH5oXeRvP
-	1mFXDM=
-X-Received: by 2002:a05:620a:2701:b0:915:eec4:49ab with SMTP id af79cd13be357-92ecf5dd3bdmr1127366485a.51.1783652934221;
-        Thu, 09 Jul 2026 20:08:54 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-92ee5cf78a5sm97038385a.31.2026.07.09.20.08.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Jul 2026 20:08:53 -0700 (PDT)
-Date: Thu, 9 Jul 2026 23:08:48 -0400
-From: Gregory Price <gourry@gourry.net>
-To: "Dan Williams (nvidia)" <djbw@kernel.org>
-Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kselftest@vger.kernel.org,
-	kernel-team@meta.com, david@kernel.org, osalvador@suse.de,
-	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
-	vishal.l.verma@intel.com, dave.jiang@intel.com,
-	alison.schofield@intel.com, akpm@linux-foundation.org,
-	ljs@kernel.org, liam@infradead.org, vbabka@kernel.org,
-	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
-	shuah@kernel.org, iweiny@kernel.org,
-	Smita.KoralahalliChannabasappa@amd.com, apopple@nvidia.com,
-	Hannes Reinecke <hare@suse.de>
-Subject: Re: [PATCH v6 09/10] dax/kmem: add sysfs interface for atomic
- whole-device hotplug
-Message-ID: <alBiQArmsWFg975w@gourry-fedora-PF4VCD3F>
-References: <20260630211842.2252800-1-gourry@gourry.net>
- <20260630211842.2252800-10-gourry@gourry.net>
- <6a502267b17cc_3b7ee51008f@djbw-dev.notmuch>
- <alApfp2z9Thyan16@gourry-fedora-PF4VCD3F>
- <6a50356aa7a4a_3cabcb1008a@djbw-dev.notmuch>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Aq9/XVc2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E16581F000E9;
+	Fri, 10 Jul 2026 12:44:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783687496;
+	bh=pjYAwAlPO4kCkyKKShGdEkZAiem8rwBuoI4ZR5oU76I=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=Aq9/XVc2asVR/Fy9ZgOYz3xnFcflkjhg3GT6s9NBh+sDrn4kXjTrTaJAGbSMsa8kB
+	 Z1vp9zGGjVTBwXhepy3tF6YuosCiC3E7bgkaJ0mkKbGsBes59ZrThbfW4hxyQDriFm
+	 i64VEfHi3vBAwdQLqYHFtHUSpSoZJ80TTzrF72AH0yVDtJOflXlsox5D9grQ7YTDJ7
+	 greWidf3QwAkChMvFeNWTkqP8T1uKDqsqtY1Z9sFJugMXDGqMYFH5f+rMI0bT2QShP
+	 xJoFUNnr/kJ7sgZtnU182krToDTJOwsEIRUvXBisBx//wQ6gr+CHmyTk5DZAjoiINf
+	 BIslge5ccYQdA==
+Message-ID: <2116d58d-48df-488f-88d7-523298f78e62@kernel.org>
+Date: Fri, 10 Jul 2026 14:44:48 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6a50356aa7a4a_3cabcb1008a@djbw-dev.notmuch>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 02/10] mm/memory_hotplug: add mhp_online_type_to_str()
+ and export string helpers
+To: Gregory Price <gourry@gourry.net>, Dave Jiang <dave.jiang@intel.com>
+Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+ linux-cxl@vger.kernel.org, driver-core@lists.linux.dev,
+ linux-kselftest@vger.kernel.org, kernel-team@meta.com, osalvador@suse.de,
+ gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
+ djbw@kernel.org, vishal.l.verma@intel.com, alison.schofield@intel.com,
+ akpm@linux-foundation.org, ljs@kernel.org, liam@infradead.org,
+ vbabka@kernel.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+ shuah@kernel.org, iweiny@kernel.org, Smita.KoralahalliChannabasappa@amd.com,
+ apopple@nvidia.com
+References: <20260630211842.2252800-1-gourry@gourry.net>
+ <20260630211842.2252800-3-gourry@gourry.net>
+ <bdf0ca14-eec4-43b6-93aa-310e77660d95@intel.com>
+ <alAZLBqgUEZliwk_@gourry-fedora-PF4VCD3F>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <alAZLBqgUEZliwk_@gourry-fedora-PF4VCD3F>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 09, 2026 at 04:57:30PM -0700, Dan Williams (nvidia) wrote:
-> Gregory Price wrote:
-> > > So the "unknown" case does not need to be here.
-> > >
-> > 
-> > mhp_online_type_to_str can technically return NULL, seems better to not
-> > just let a NULL dereference sit latent even if we can visually tell it
-> > can't happen today?
+On 7/9/26 23:57, Gregory Price wrote:
+> On Thu, Jul 09, 2026 at 02:08:43PM -0700, Dave Jiang wrote:
+>>
+>>>  extern int mhp_online_type_from_str(const char *str);
+>>> +const char *mhp_online_type_to_str(int online_type);
+>>
+>> Does this need to also be 'extern'?
+>>
+>> DJ
+>>
 > 
-> Oh, makes sense I was thinking "unknown" was only a result of the
-> drvdata missing case.
-> 
-> > > > +	if (dax_kmem_state_is_online(data->state)) {
-> > > > +		dev_warn(dev, "Hotplug regions stuck online until reboot\n");
-> > > 
-> > > I like that the BUG() is avoided, but I think these should stay
-> > > dev_err() given the severity.
-> > > 
-> > 
-> > I had to go back to calling remove_memory() by default given different
-> > feedback, but I think if anything I will just modify the BUG() to a
-> > WARN() and call it a day.
-> 
-> ack.
+> General policy i've understood is: "No new extern"
 
-Ah, you know, on second look - DAX could never reach this BUG() in the
-first place.  I think this was a hold-over from when i was originally
-refactoring and trying to figure out the right path.
+Yes, and removing existing ones as we touch the code.
 
-If there's a desire to soften these BUG() to WARN(), i can submit that
-separately, but i will close this all out with some comment updates.
+-- 
+Cheers,
+
+David
