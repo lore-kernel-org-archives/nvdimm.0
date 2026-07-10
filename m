@@ -1,35 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 456EB44998C;
-	Fri, 10 Jul 2026 20:22:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6987544998C;
+	Fri, 10 Jul 2026 20:22:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783714954; cv=none; b=uC/UtVy2Kocy+EvbAsOhsx6/biCI+2T9DmY7LiNEiwuFxffIwjJfsCAwPXQOIqOW0175my48o+lRb2aJ1RhzHCZNkllXCtOmyL2nwzoN5OxCQsudSG6jE7DugKHGncRtu5VKnwxtI9PEQZGjoYr+94js4Rp905Y+x0mKK7KGOu0=
+	t=1783714977; cv=none; b=D0+WY/rbAeduXB1e1yCNmrRd31RuVYnrOnitUQ7rYimdRwkw/5Gyd/kNzGiFxZ/4YDiCAlhR6GQUZjvpxc6WGJfyvNUdvQjTocvhavBO2yT0B/iBnfn9pJ8A17/zLTq5gBdkC7vE/+CGvyTT8R8JTthc8tcv4WcFXgC66/fNDUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783714954; c=relaxed/simple;
-	bh=9w7HTwMbIR3XlC1PY7gTQx5p4l7ISN45M8ruExx6jwU=;
+	s=arc-20240116; t=1783714977; c=relaxed/simple;
+	bh=Ckq9F1B5R4ctEUJqWXYT1jV2i9Vim92hn6PkYJsjcDc=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=U7ya52f6F+8cxVhIV/gteOboBG4LbvxUt4qy+017mkB6LhA/y367xg417mG981zArelgWgsmSEKLrmEfRIw0DL6rOkT4/Rghn+gW7NB5C4utDdw4y6OwrD98QW46RYqOGtvfKwXcHKva+DzgqIMSQMuELf9YhLv8UhRldxnRcQ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cmnlAT5w; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=QvhB/8j2xglgO6RbQMop7fwUrxcbfK6JuMHyESNHhgZSaSrv0OYjmnMIxj1ePJHB3p6Xed9j/mno9lNMcIMvkEEZT9lQGTWdmMNoEVJDdgATLjCNS9amt4WDKtkYRGdGgDEa4aNlYo7DhPh6U1O1L2hdR+VEGgOnHK3Q7zyiDh0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BygF57wD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cmnlAT5w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41A311F00A3A;
-	Fri, 10 Jul 2026 20:22:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BygF57wD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C69F1F000E9;
+	Fri, 10 Jul 2026 20:22:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783714952;
-	bh=pXMh/gI7Ejl6sQaq6pNCmizKlHMxVh3sNzK86kWl2h4=;
+	s=k20260515; t=1783714976;
+	bh=g95Hx/jZszTYl/mqKEmmLN3wpFLfcUCiQ7oLxyYPtwI=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=cmnlAT5wzlYt3brmt40tysj0J5B1gKaWPdvxMOyfuvulZ+5sH8m2RssNtYd7kJ9hM
-	 3JEic/R7P0blm57mcQ0VabhZOtCOAB4dhCKn5vcEPWkjCnXEjOckc/MFsTHkCovBo4
-	 dEg/4zgFADMecv/GyNsJqD96QSHp1WhhbtMbrSCjAIUGp0fIoob9V7aAjMbXb5Yjae
-	 iBWFOm0BbeaaXFduRQLeC1gA41fycIKRojdC7cmdk7PU3JZWYDX4zaGQz3M2yYKf1w
-	 SU3WfX6qJrW400SI9+5KSdVXY3Bp5Pl2jDAeKWzdIH9ZClW5J9NYnrxx0HvA7R6dwl
-	 m3LRjk41KWVYQ==
+	b=BygF57wD+F4oIx2IjGBmXSgdeyH+kDz20QKqfZkY+JeciaIqrpYGeXs92Dhu1bJQg
+	 yDrXtWAFvHrGJ01GVLJpGEYigWux3ULkArB6G87U6BG+mND6GeRsCRQIqxn7ZB/Co7
+	 WX5bQzX3DHLJV8P5v5PFCfG2UwKM4+ICy3syuuKgzN0aQLrIra+79BjIq5f/isekmS
+	 4O/AIhZQ8j5j/Q1gq+aeN84CaAkEZVoCKAwBtKJrHGY5odfGQwzjga9mJoIKacknvz
+	 VLOYvIoanmU23sKzVnBYRU2knQpn2FpJ7GQeLdVOWXN6EA1E/tTlccruzKODHlic/F
+	 MkoQCxvPMfndg==
 From: Lorenzo Stoakes <ljs@kernel.org>
-Date: Fri, 10 Jul 2026 21:16:54 +0100
-Subject: [PATCH v2 13/33] mm/vma: introduce and use vmg_pages(),
- vmg_[start, end]_pgoff()
+Date: Fri, 10 Jul 2026 21:16:55 +0100
+Subject: [PATCH v2 14/33] mm/vma: clean up anon_vma_compatible()
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -38,7 +37,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260710-b4-pre-scalable-cow-v2-13-2a5aa403d977@kernel.org>
+Message-Id: <20260710-b4-pre-scalable-cow-v2-14-2a5aa403d977@kernel.org>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 In-Reply-To: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -119,104 +118,62 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>, linux-mm@kvack.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org, 
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3014; i=ljs@kernel.org;
- h=from:subject:message-id; bh=9w7HTwMbIR3XlC1PY7gTQx5p4l7ISN45M8ruExx6jwU=;
- b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg61/Za29l6e37xfjD8NZsUc+LmZ86SXA+JLr6YcvJ
- poWjBckOkpZGMS4GGTFFFmefxHfHyQSNq/zgr8bzBxWJpAhDFycAjARbUmG/9VbDidYv8s915f2
- n5N9N+szsfC93vKXTXQ3b1lYeO7JPxtGhmm3bFJOBQZ+EvJqXVpxqdBDXn1u0dxHp0v5fk/fOXu
- jNCcA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1642; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=Ckq9F1B5R4ctEUJqWXYT1jV2i9Vim92hn6PkYJsjcDc=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg20UN7HtLM/vyXsTFrxVYsWpHDm18w4P5+XM12s5+
+ WWHrvf0jlIWBjEuBlkxRZbnX8T3B4mEzeu84O8GM4eVCWQIAxenANzkqYwMU33rlv+/mL9e+HWT
+ WHxes/ljhqb8yMyVr44wrbuqccd5DcNfmT/8Ns92pKWUmxwKXbLj7ZqLidpWFw45HF1j+zc0qX0
+ fGwA=
 X-Developer-Key: i=ljs@kernel.org; a=openpgp;
  fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-In the VMA logic we often need to determine the number of pages in the
-specified merge range, as well as the start and end page offsets of that
-range.
-
-Introduce and use helpers for these purposes.
+Break up the existing very large conditional, add comments and use
+vma_[start/end]_pgoff() to make clearer what we're doing here.
 
 No functional change intended.
 
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 ---
- mm/vma.c | 11 ++++-------
- mm/vma.h | 17 +++++++++++++++++
- 2 files changed, 21 insertions(+), 7 deletions(-)
+ mm/vma.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
 diff --git a/mm/vma.c b/mm/vma.c
-index 35ba3475128f..995de8198fbb 100644
+index 995de8198fbb..084afdf37385 100644
 --- a/mm/vma.c
 +++ b/mm/vma.c
-@@ -197,11 +197,9 @@ static void init_multi_vma_prep(struct vma_prepare *vp,
-  */
- static bool can_vma_merge_before(struct vma_merge_struct *vmg)
+@@ -1967,14 +1967,25 @@ static int anon_vma_compatible(struct vm_area_struct *a, struct vm_area_struct *
  {
--	pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
--
- 	if (is_mergeable_vma(vmg, /* merge_next = */ true) &&
- 	    is_mergeable_anon_vma(vmg, /* merge_next = */ true)) {
--		if (vmg->next->vm_pgoff == vmg->pgoff + pglen)
-+		if (vmg_end_pgoff(vmg) == vma_start_pgoff(vmg->next))
- 			return true;
- 	}
+ 	vma_flags_t diff = vma_flags_diff_pair(&a->flags, &b->flags);
  
-@@ -221,7 +219,7 @@ static bool can_vma_merge_after(struct vma_merge_struct *vmg)
- {
- 	if (is_mergeable_vma(vmg, /* merge_next = */ false) &&
- 	    is_mergeable_anon_vma(vmg, /* merge_next = */ false)) {
--		if (vmg->prev->vm_pgoff + vma_pages(vmg->prev) == vmg->pgoff)
-+		if (vma_end_pgoff(vmg->prev) == vmg_start_pgoff(vmg))
- 			return true;
- 	}
- 	return false;
-@@ -759,7 +757,7 @@ static int commit_merge(struct vma_merge_struct *vmg)
- 	 */
- 	vma_adjust_trans_huge(vma, vmg->start, vmg->end,
- 			      vmg->__adjust_middle_start ? vmg->middle : NULL);
--	vma_set_range(vma, vmg->start, vmg->end, vmg->pgoff);
-+	vma_set_range(vma, vmg->start, vmg->end, vmg_start_pgoff(vmg));
- 	vmg_adjust_set_range(vmg);
- 	vma_iter_store_overwrite(vmg->vmi, vmg->target);
++	/* Ignore flags that mprotect() can change. */
+ 	vma_flags_clear_mask(&diff, VMA_ACCESS_FLAGS);
++	/* Ignore flags that do not impact merging. */
+ 	vma_flags_clear_mask(&diff, VMA_IGNORE_MERGE_FLAGS);
  
-@@ -962,8 +960,7 @@ static __must_check struct vm_area_struct *vma_merge_existing_range(
- 		 *    middle     next
- 		 * shrink/delete extend
- 		 */
--
--		pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
-+		const pgoff_t pglen = vmg_pages(vmg);
- 
- 		VM_WARN_ON_VMG(!merge_right, vmg);
- 		/* If we are offset into a VMA, then prev must be middle. */
-diff --git a/mm/vma.h b/mm/vma.h
-index 8e4b61a7304c..527716c8739d 100644
---- a/mm/vma.h
-+++ b/mm/vma.h
-@@ -230,6 +230,23 @@ static inline bool vmg_nomem(struct vma_merge_struct *vmg)
- 	return vmg->state == VMA_MERGE_ERROR_NOMEM;
+-	return a->vm_end == b->vm_start &&
+-		mpol_equal(vma_policy(a), vma_policy(b)) &&
+-		a->vm_file == b->vm_file &&
+-		vma_flags_empty(&diff) &&
+-		b->vm_pgoff == a->vm_pgoff + ((b->vm_start - a->vm_start) >> PAGE_SHIFT);
++	/* Must be adjacent. */
++	if (a->vm_end != b->vm_start)
++		return false;
++	/* Must have matching policy. */
++	if (!mpol_equal(vma_policy(a), vma_policy(b)))
++		return false;
++	/* Must both be anon or map the same file (MAP_PRIVATE case). */
++	if (a->vm_file != b->vm_file)
++		return false;
++	/* Flags must be equivalent modulo mprotect(). */
++	if (!vma_flags_empty(&diff))
++		return false;
++	/* Page offset must align. */
++	return vma_end_pgoff(a) == vma_start_pgoff(b);
  }
  
-+static inline pgoff_t vmg_start_pgoff(const struct vma_merge_struct *vmg)
-+{
-+	return vmg->pgoff;
-+}
-+
-+static inline pgoff_t vmg_pages(const struct vma_merge_struct *vmg)
-+{
-+	const unsigned long size = vmg->end - vmg->start;
-+
-+	return size >> PAGE_SHIFT;
-+}
-+
-+static inline pgoff_t vmg_end_pgoff(const struct vma_merge_struct *vmg)
-+{
-+	return vmg_start_pgoff(vmg) + vmg_pages(vmg);
-+}
-+
- /* Assumes addr >= vma->vm_start. */
- static inline pgoff_t vma_pgoff_offset(struct vm_area_struct *vma,
- 				       unsigned long addr)
+ /*
 
 -- 
 2.55.0
