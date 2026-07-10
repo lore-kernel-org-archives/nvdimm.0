@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC5233A5421;
-	Fri, 10 Jul 2026 20:29:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED21439A4C5;
+	Fri, 10 Jul 2026 20:30:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715395; cv=none; b=JMCzHc0VywFNMNBiWPjRZEI8+Jnr+k6BkSU/T5ZZ+0q7Yj93EZ8pEFuYFPsn6QMDLtWk0KZP2h9+McdcJaW9pk/4cpS03nE9m1KfzZRCY+ucfsmXMxBk/5YlH3Wsf2+5CjYmSgR3p8t2QKFPwsUSZn0D0thY2FlHBP3OCaza47w=
+	t=1783715418; cv=none; b=nAPemqXjPlHfJl42iL7wxcMRAGe+KN7MtXuJDdWIfrjnsDtD9yCZ0cj0KqhgW5VVoc6IXu+xGUD+Tdh84hLQvVWw6lGuOSWfdlbGsVvMj9JQ3xjUWw+my9lBOj1Iw+blOQC5qkoGkVTHamDwbiubcc42nybFxejXYsSiRtIeUQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715395; c=relaxed/simple;
-	bh=BSllJJ+2rRUlWzlXkjh5aitKXn0vM/W5l9yfCPbZwkk=;
+	s=arc-20240116; t=1783715418; c=relaxed/simple;
+	bh=G0Z54AjtjNI6CjvRN0QWBiGJMevNN1T++vP+QCfqk78=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=WXe40fy7ElBuM1vHUPfrylomYTMU0+i1cM8bYVo5Bb8DQavbh2qILVynofHnCDMNatO5NP9KmrFD1vL9M7cmk3A96kpLi3+apKSEkH/HU6XE9hUh1me038AxKMo5qKrxza+IxeSpgk1KkmtJ1vSWyWVdJKM4f31/J9CGZBClrw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rn0Rgzrg; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=Yn8az0M3/awDg4Wu9mHjLkVwAC28Hc86cu21FObEk1aXkX4VdFZ5Y7Zk6A8pdrkb2V8EmkxkvFQTtkbv3368pXFtFvc/p4Kg/JT3KiA63b/y550vPNgUU/lq9QqsMc7QoQp+3MWTOM12KO0v/zGDmLJZtn+WUb1AAdK1Qld+3iU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HJU/LxQF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rn0Rgzrg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C37601F00A3A;
-	Fri, 10 Jul 2026 20:29:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HJU/LxQF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE5081F000E9;
+	Fri, 10 Jul 2026 20:29:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783715393;
-	bh=h9TL51kQxKXHzSfeISmn1qw+QGG9KCcdgBvdsczJlCQ=;
+	s=k20260515; t=1783715416;
+	bh=B5I9XJhmOOi1LkWbRSVKnYIkRF+jGCGnmzoiak9EY5o=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=Rn0Rgzrg1X9P5gZsTrshFOS+gMVue/gsuP7CnzM73czznQcn4F9ItkfgBxrFDuH66
-	 94EeIgI5hcr2XIsN3JzPfM7oBQE/vD8l9enMDbVOU8lNTUaYV6fcAL/6vBz7qX6VIq
-	 NV817DVIfXpi6wJ/hRvPJWaIpuFGj1/DltiI/mD1dBclCFblMGKiu2Oj5CzNoyCves
-	 RnQ7aytJQVF43RBtHHafqZbjIwVNRBtQ8O3PLFYcWa7naE5fgN6Q0oqeQLqBuFn/+5
-	 cBxamOvFBWiDSagHuu6Y8tOkVPWaz0YBClxQVn17b8Kz9ZPR1RYz7NH+4ZEm0mLklt
-	 x3Y3guK3Ete2A==
+	b=HJU/LxQFVzsJlRTCMRzOJHdKDqTBAxtBcBwpt63liPwwYag6kcqfVKglYfllNuHwG
+	 zruaDbLFSHOKgoo0BqDuxifQenxMZ32LDVjzeICMBYJ3UJv5j+AnJcMgzxnGHtBdeN
+	 j8C36crjgwo2R/uzmYN1HthGyrQ3fCMsmbG+73WdXAXoxUFqceMyzp9ZW1PdmaRa9O
+	 G5/VT52++Jk599/Cwob6URDW22K7/Nduaq0RP+KDtJ0pkxdcPa3d89vPvW4V4rHBk/
+	 CW0bBjmWxC4r28Ips94X2CU8upp1gMEWiWKnHmBXHuAIxpE3/rXj+RtTqbCeQkATao
+	 rwCQBxnl2483Q==
 From: Lorenzo Stoakes <ljs@kernel.org>
-Date: Fri, 10 Jul 2026 21:17:13 +0100
-Subject: [PATCH v2 32/33] tools/testing/vma: default VMA, mm flag bits to
- 64-bit
+Date: Fri, 10 Jul 2026 21:17:14 +0100
+Subject: [PATCH v2 33/33] tools/testing/vma: output compared expression on
+ ASSERT_[EQ, NE]()
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260710-b4-pre-scalable-cow-v2-32-2a5aa403d977@kernel.org>
+Message-Id: <20260710-b4-pre-scalable-cow-v2-33-2a5aa403d977@kernel.org>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 In-Reply-To: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -119,39 +119,88 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>, linux-mm@kvack.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org, 
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1053; i=ljs@kernel.org;
- h=from:subject:message-id; bh=BSllJJ+2rRUlWzlXkjh5aitKXn0vM/W5l9yfCPbZwkk=;
- b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg23tbadanfaQzj1y4rvlNcVF9qIRv947JUd902jK7
- TLzq0/oKGVhEONikBVTZHn+RXx/kEjYvM4L/m4wc1iZQIYwcHEKwERaNBj+qb36GFjppLrx8Iv8
- qbKmX233/fKVUtoRUPVgwvsv2l762Qz/dFWP/9kU0fePtSxGdTuTmXbp2f3yftdqG2/ekOSalyL
- PCAA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2588; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=G0Z54AjtjNI6CjvRN0QWBiGJMevNN1T++vP+QCfqk78=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg+027xOdH8B2QFVjitv8mSdNCqatzzDPuLx5q/P3m
+ bsqvNas6ihlYRDjYpAVU2R5/kV8f5BI2LzOC/5uMHNYmUCGMHBxCsBESt8y/M8V4Tz0xp5xXe19
+ wcer453cVuotTvQq2Z9Z+MFqXm4M42uG/5UJ81+tnzZdSGb1KWONWwnKD/+4b41bGtXx//vvOW9
+ DqtkB
 X-Developer-Key: i=ljs@kernel.org; a=openpgp;
  fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-With all of the sanitisers turned on, setting the VMA and mm flag bits
-depth to 128 by default results in overly long build times.
+Update the macros to output the compared values at hex for easier debugging
+when test asserts fail.
 
-Reduce this to 64 - we can always manipulate these later for testing of
-larger bitmaps as needed.
+We have to be careful not to re-evaluate expressions as they may have
+side-effects. So update the code to take local copies and use these for
+both the test and the debug output.
+
+Also remove unused IS_SET() macro.
 
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 ---
- tools/testing/vma/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/vma/shared.h | 38 ++++++++++++++++++++++++++------------
+ 1 file changed, 26 insertions(+), 12 deletions(-)
 
-diff --git a/tools/testing/vma/Makefile b/tools/testing/vma/Makefile
-index e72b45dedda5..ef6cc558afe1 100644
---- a/tools/testing/vma/Makefile
-+++ b/tools/testing/vma/Makefile
-@@ -10,7 +10,7 @@ OFILES = $(SHARED_OFILES) main.o shared.o maple-shim.o
- TARGETS = vma
+diff --git a/tools/testing/vma/shared.h b/tools/testing/vma/shared.h
+index ca4f1238f1c7..97cd7a679dc1 100644
+--- a/tools/testing/vma/shared.h
++++ b/tools/testing/vma/shared.h
+@@ -21,19 +21,35 @@
+ 		}							\
+ 	} while (0)
  
- # These can be varied to test different sizes.
--CFLAGS += -DNUM_VMA_FLAG_BITS=128 -DNUM_MM_FLAG_BITS=128
-+CFLAGS += -DNUM_VMA_FLAG_BITS=64 -DNUM_MM_FLAG_BITS=64
+-#define ASSERT_TRUE(_expr)						\
+-	do {								\
+-		if (!(_expr)) {						\
+-			fprintf(stderr,					\
+-				"Assert FAILED at %s:%d:%s(): %s is FALSE.\n", \
+-				__FILE__, __LINE__, __FUNCTION__, #_expr); \
+-			return false;					\
+-		}							\
++#define __ASSERT_TRUE(_expr, _fmt, ...)					   \
++	do {								   \
++		if (!(_expr)) {						   \
++			fprintf(stderr,					   \
++				"Assert FAILED at %s:%d:%s(): %s is FALSE" \
++				_fmt ".\n",				   \
++				__FILE__, __LINE__, __FUNCTION__, #_expr   \
++				__VA_OPT__(,) __VA_ARGS__);		   \
++			return false;					   \
++		}							   \
+ 	} while (0)
  
- main.o: main.c shared.c shared.h vma_internal.h tests/merge.c tests/mmap.c tests/vma.c ../../../mm/vma.c ../../../mm/vma_init.c ../../../mm/vma_exec.c ../../../mm/vma.h include/custom.h include/dup.h include/stubs.h
++#define __TO_SCALAR(x)	((unsigned long long)(uintptr_t)(x))
++
++#define ASSERT_TRUE(_expr) __ASSERT_TRUE(_expr, "")
+ #define ASSERT_FALSE(_expr) ASSERT_TRUE(!(_expr))
+-#define ASSERT_EQ(_val1, _val2) ASSERT_TRUE((_val1) == (_val2))
+-#define ASSERT_NE(_val1, _val2) ASSERT_TRUE((_val1) != (_val2))
++#define ASSERT_EQ(_val1, _val2) do {				 \
++	__typeof__(_val1) __val1 = (_val1);			 \
++	__typeof__(_val2) __val2 = (_val2);			 \
++	__ASSERT_TRUE(__val1 == __val2, " (0x%llx != 0x%llx)",	 \
++		      __TO_SCALAR(__val1), __TO_SCALAR(__val2)); \
++	} while (0)
++
++#define ASSERT_NE(_val1, _val2) do {				 \
++	__typeof__(_val1) __val1 = (_val1);			 \
++	__typeof__(_val2) __val2 = (_val2);			 \
++	__ASSERT_TRUE(__val1 != __val2, " (0x%llx == 0x%llx)",	 \
++		      __TO_SCALAR(__val1), __TO_SCALAR(__val2)); \
++	} while (0)
  
+ #define ASSERT_FLAGS_SAME_MASK(_flags, _flags_other) \
+ 	ASSERT_TRUE(vma_flags_same_mask((_flags), (_flags_other)))
+@@ -53,8 +69,6 @@
+ #define ASSERT_FLAGS_NONEMPTY(_flags) \
+ 	ASSERT_FALSE(vma_flags_empty(_flags))
+ 
+-#define IS_SET(_val, _flags) ((_val & _flags) == _flags)
+-
+ extern bool fail_prealloc;
+ 
+ /* Override vma_iter_prealloc() so we can choose to fail it. */
 
 -- 
 2.55.0
