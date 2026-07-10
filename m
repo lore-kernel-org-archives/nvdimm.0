@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D226395AC2;
-	Fri, 10 Jul 2026 20:19:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B7933955C9;
+	Fri, 10 Jul 2026 20:19:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783714746; cv=none; b=dKIyLoiWQKTGtMJNWKsLOy1/X0GqRKlUs0kPpxrNXGJtIG57ORGgBdNGbg8d62fOHyFciW3T5I10U1fhj9SNGLtOt8YgV+Td8Ffg+IaYXpbM65JYeNqAOKXeuuPL27KnONCNUcaSIwH4iSep2vs5UBv1FBMY1Aqc8F8o3E8zxns=
+	t=1783714769; cv=none; b=p28BZ9Gu9AkttHILjCAYh3o9N9wtqYMNKf/KPnqZDj4A4Wp9rVXlIBpuqmEiClHZV/p0tjX/zNREqIZZF2Or5HKqV88/RlbtH+E22i+ipzppyIJ+EP5vfllN9/kyL8iMP0mGN9mTaZJ2zufsNpa3wHIRxHt5iuxtj4GUrFhdJKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783714746; c=relaxed/simple;
-	bh=CFZAjloP4OpDX/vjHQ9xfGU3kS1+MIW18Lzf2dxH2BQ=;
+	s=arc-20240116; t=1783714769; c=relaxed/simple;
+	bh=VZjvr3kZlkmGcsP4WgHgMF6CSbykEZdr5f8GmL5Gfpw=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ecwEAqf+xTatpjdOlp7PC6G46aBAifhr8nkRr1WvStjMXWH4a1axYMF5MSrunDarmf50lujhjOyF6S85dwR17wVMiNN2OZjB8Arz1nhQLKLp3tW052CYHvV244hVvMuUj2XLrU/uvA5bpWdj1aBblFQAzL89x/nbGNUvyikTVYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PNLB4wzm; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=rqJq/0jwu2kGQ0hUhxsyUk9A8ODpIfcxgBBdycEPxwEd5EJvkkisuZJ7bFbJ+b+VE9pUh8KYgixpe3FKEmtZSa59fiw3DyMpFU6vvlBmmKDaRNEBvNVS3C3j6pHJoTN3LMxF9Cwo/IUbxWaee+kn7oUVHnLY8h3kdoWN1QGIcEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Pcf2+0VD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PNLB4wzm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 322B91F000E9;
-	Fri, 10 Jul 2026 20:18:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Pcf2+0VD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A3FE1F00A3A;
+	Fri, 10 Jul 2026 20:19:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783714744;
-	bh=5hYSYZL26i46R1YNC969ZGJ/HD8KnaWEcgglVNhE+Dg=;
+	s=k20260515; t=1783714767;
+	bh=VRLMqMtx0xVRr5vFgYMRw7ggTvxftRoyLyfFQKrqZ2w=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=PNLB4wzmcFTj3lyqpCjpFNseunRPOUiWwMslZHwgnXN/dz1H6bINuUrT04kt5iEp1
-	 +NIb6HuWlNuqv89DVOB740oeyMjE3pCofc2ChzUc2YR4KtFhvnDcCHt+4GCE+gyXWn
-	 5N+MnWj5rOmm6UXVmu60Jc6I2MfPK0J7bSg9uQcFU6wtGwwH23rkV+6hwUKmgWbLk+
-	 Tctr26pEiWgizGIADOVEl3UfVfSGQDtV+0/95Ja8Pr6D6O/cbPUvsrZRSsYIjPhVRH
-	 yBJazCl6C5Rhic0/GCGXO+3WaXAvZ1vidl5uvgn9Xm7ag6HsGdXlfnoynuPxHBZ7uA
-	 zki2RHAqu/Mww==
+	b=Pcf2+0VDkxZNuVa2Cy4lDGhsOB6+enWxg/0/q8e278R+fYuriXovlo2KoDVvNTmXN
+	 g4JAhfAyf+/GqazKK2Uv8OXmUynTFSmHR6W6xBEN/66hOOQ9qHTpJNIKcHYkKzMTU2
+	 QBJnnCrQ/o681samcU8yVgyk3flhOlPsMk6gdUy3Rdu+/qVKxUkFThaEAuSIX2nFCL
+	 4Mdnn84yxyjDLlKeMe+A760I8tmgSy5XzTprH0bZq3boIH+4a4l8yyrMOJmOvYIcFe
+	 pLrSEnpqwJ0ANXFpuT30ZIcg11rNlGJ8rauvY6XInvMseP5VWizouKSTmnJLUBPs+E
+	 OnWQ3HqWG7HFA==
 From: Lorenzo Stoakes <ljs@kernel.org>
-Date: Fri, 10 Jul 2026 21:16:45 +0100
-Subject: [PATCH v2 04/33] mm: introduce and use vma_end_pgoff()
+Date: Fri, 10 Jul 2026 21:16:46 +0100
+Subject: [PATCH v2 05/33] mm/rmap: update mm/interval_tree.c comments
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -37,7 +37,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260710-b4-pre-scalable-cow-v2-4-2a5aa403d977@kernel.org>
+Message-Id: <20260710-b4-pre-scalable-cow-v2-5-2a5aa403d977@kernel.org>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 In-Reply-To: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -118,90 +118,70 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>, linux-mm@kvack.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org, 
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2641; i=ljs@kernel.org;
- h=from:subject:message-id; bh=CFZAjloP4OpDX/vjHQ9xfGU3kS1+MIW18Lzf2dxH2BQ=;
- b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg61qc+aHMPw9/vjPW+ln592Xp0tkZNzkUJwaKjbTT
- FZJejNnRykLgxgXg6yYIsvzL+L7g0TC5nVe8HeDmcPKBDKEgYtTACZy/Q3D/4hbiseXv3Ar8Z5d
- VZLvoZHiXn7OKMDymNMzVtav98Kv2TAy7BE9e6z/xf/4eWp7lK7lvvXZtTcj8M3OVfczJc+uddx
- 9iQ8A
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1996; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=VZjvr3kZlkmGcsP4WgHgMF6CSbykEZdr5f8GmL5Gfpw=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLICg60dcjZeOiBw1zBs0RQu5dke2c4lqtMnRbPMFH73b
+ FeeybNPHaUsDGJcDLJiiizPv4jvDxIJm9d5wd8NZg4rE8gQBi5OAZiIdh8jw0RHC5MPwlHm7AG8
+ P7fdMTQJu75b6FP4F0bRMOkHZ69P3svIsM3ac13q3wB972cqVhfOZL1e1ZD0+WSGa4qYHlvxE6W
+ rvAA=
 X-Developer-Key: i=ljs@kernel.org; a=openpgp;
  fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-We already have vma_last_pgoff() which retrieves the last page offset
-within a VMA.
+Update the file comment to clarify that both file-backed and anonymous
+interval trees are provided, referencing the relevant data types for
+clarity.
 
-However, code often wishes to span a page offset range, which requires the
-exclusive end of this range.
+Also add comments to indicate which parts of the file apply to each.
 
-So provide this in vma_end_pgoff() and update vma_last_pgoff() to use this
-function.
+While we're here, convert the VM_BUG_ON_VMA() to VM_WARN_ON_ONCE_VMA().
 
-Also update the VMA userland tests to reflect the change.
-
-No functional change intended.
-
-Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Gregory Price <gourry@gourry.net>
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 ---
- include/linux/mm.h              | 19 ++++++++++++++++++-
- tools/testing/vma/include/dup.h |  5 +++++
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ mm/interval_tree.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index abac72785277..c56ca22d406c 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -4331,6 +4331,23 @@ static inline pgoff_t vma_start_pgoff(const struct vm_area_struct *vma)
- 	return vma->vm_pgoff;
- }
- 
-+/**
-+ * vma_end_pgoff() - Get the page offset of the exclusive end of @vma
-+ * @vma: The VMA whose end page offset is required.
-+ *
-+ * This returns the exclusive end page offset of @vma, which is useful for
-+ * expressing page offset ranges.
-+ *
-+ * See the description of vma_start_pgoff() for a description of VMA page
-+ * offsets.
-+ *
-+ * Returns: The exclusive end page offset of @vma.
-+ */
-+static inline pgoff_t vma_end_pgoff(const struct vm_area_struct *vma)
-+{
-+	return vma_start_pgoff(vma) + vma_pages(vma);
-+}
-+
- /**
-  * vma_last_pgoff() - Get the page offset of the last page in @vma
-  * @vma: The VMA whose last page offset is required.
-@@ -4344,7 +4361,7 @@ static inline pgoff_t vma_start_pgoff(const struct vm_area_struct *vma)
+diff --git a/mm/interval_tree.c b/mm/interval_tree.c
+index 344d1f5946c7..2d50bc6228c4 100644
+--- a/mm/interval_tree.c
++++ b/mm/interval_tree.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * mm/interval_tree.c - interval tree for mapping->i_mmap
++ * mm/interval_tree.c - interval tree for address_space->i_mmap and
++ * anon_vma->rb_root
+  *
+  * Copyright (C) 2012, Michel Lespinasse <walken@google.com>
   */
- static inline pgoff_t vma_last_pgoff(const struct vm_area_struct *vma)
- {
--	return vma_start_pgoff(vma) + vma_pages(vma) - 1;
-+	return vma_end_pgoff(vma) - 1;
- }
+@@ -10,6 +11,8 @@
+ #include <linux/rmap.h>
+ #include <linux/interval_tree_generic.h>
  
- static inline unsigned long vma_desc_size(const struct vm_area_desc *desc)
-diff --git a/tools/testing/vma/include/dup.h b/tools/testing/vma/include/dup.h
-index 668650067c7c..535747d7fee4 100644
---- a/tools/testing/vma/include/dup.h
-+++ b/tools/testing/vma/include/dup.h
-@@ -1306,6 +1306,11 @@ static inline pgoff_t vma_start_pgoff(const struct vm_area_struct *vma)
- 	return vma->vm_pgoff;
- }
- 
-+static inline pgoff_t vma_end_pgoff(const struct vm_area_struct *vma)
-+{
-+	return vma_start_pgoff(vma) + vma_pages(vma);
-+}
++/* File-backed interval tree (address_space->i_mmap) */
 +
- static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
+ INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.rb,
+ 		     unsigned long, shared.rb_subtree_last,
+ 		     vma_start_pgoff, vma_last_pgoff, /* empty */, vma_interval_tree)
+@@ -23,7 +26,7 @@ void vma_interval_tree_insert_after(struct vm_area_struct *node,
+ 	struct vm_area_struct *parent;
+ 	unsigned long last = vma_last_pgoff(node);
+ 
+-	VM_BUG_ON_VMA(vma_start_pgoff(node) != vma_start_pgoff(prev), node);
++	VM_WARN_ON_ONCE_VMA(vma_start_pgoff(node) != vma_start_pgoff(prev), node);
+ 
+ 	if (!prev->shared.rb.rb_right) {
+ 		parent = prev;
+@@ -48,6 +51,8 @@ void vma_interval_tree_insert_after(struct vm_area_struct *node,
+ 			    &vma_interval_tree_augment);
+ }
+ 
++/* Anonymous interval tree (anon_vma->rb_root) */
++
+ static inline unsigned long avc_start_pgoff(struct anon_vma_chain *avc)
  {
- 	return file->f_op->mmap_prepare(desc);
+ 	return vma_start_pgoff(avc->vma);
 
 -- 
 2.55.0
