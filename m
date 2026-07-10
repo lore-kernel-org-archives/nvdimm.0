@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82125305667;
-	Fri, 10 Jul 2026 15:14:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E88175A7C;
+	Fri, 10 Jul 2026 15:16:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783696466; cv=none; b=jN2qmXJuXMBQ+eVT62l3eQlSccqWG6a5yZchLGD+ag1k5PJ6Eh93MC2AKQod6Vb6ZgTJoKHL4l/QG2+EaxUCrs70yhyXwwu30MUjxM+SES5AFh4/oHWawGBCyqYxQ1mof8KAw6C7LHh/dveMWt9QqbUfeGUcFtw/zd/FSXmakTI=
+	t=1783696573; cv=none; b=L/KpRLMB5pHoIYmAmJbS1der7CCB84HtD90PQjamatR9KE1LypltaZcLlEfM5ZLg112SGyetW5Zu0sooKlSvjBJ6/WHMJh1I6AT+XNZ42NOgGl9E4BDSOFqtfaZuvpuWxfA0dBmAuwfO8m4jaHCmSvXYDuHQGqlPCcqBnD+vHCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783696466; c=relaxed/simple;
-	bh=X27acRwAdtTXFKPxbIFmrw/jC4hzH+Hp8I2QhCUZeG4=;
+	s=arc-20240116; t=1783696573; c=relaxed/simple;
+	bh=UikHL7SaRQhcW9jgP94Aas0kJna+z1e/sa7fJz0VgVk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LnJ6uDwvub6MMbjAqecRdQVKhUViUrJk9p/vP63PEfIBn84zFWuPJZaClTL2vJBn91A290WTRBXYp7XZ+Ao79geooZ9FlKSOvTJGPgkjsba0jZsZ17pX8hdkdgkQjCPXFjxG6eOS7L659bb2DFt9cc5zFlZa9sdlLYYGqwl+9X8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jWp/YfV2; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=SrxYFwK1wtCaWBjMGxzygordwysV8cGmLIYRZKDkZt/7TSGNKaqtW0xZHoPKK7uAbfQ0NibUAt0tanjVONK6fsAqViyyYCneqhCRuer/XsfyBKyg4dDTx7xtIGVRTNLS622F1pdD+xT0AuIm7MgRf6RisHKK6kO0ahFGz/Ld/QU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DHGTVQQh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jWp/YfV2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26E901F000E9;
-	Fri, 10 Jul 2026 15:14:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DHGTVQQh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C39A61F000E9;
+	Fri, 10 Jul 2026 15:15:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783696463;
-	bh=X27acRwAdtTXFKPxbIFmrw/jC4hzH+Hp8I2QhCUZeG4=;
+	s=k20260515; t=1783696570;
+	bh=4r0Cc9l2aAmZyRZIk2/aSrghpeZfvwxavhupSZVEeMs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=jWp/YfV269fwuE/A0DGNv+QkUPkoVUKqSC58r/6dTFMtbAarFJcpkg7eJhEKhOYap
-	 t81kzQLW6NrlPB0JMDr7H0UXeyHExQPBmSYxigZJrnSRSbLkruaye9f9wkhzjtq2xU
-	 G4lKaQN//gFPfHyUlzpqN6PdzS6B5IpaPmAha+7G6eBCcjyEbo6mnkOdPR5gmcV1zp
-	 SeT40ZJE+ZN7mwKT361/xbZwxgR0fnlC/lIRtIa+Nt3raxrbwrfQCAlTLH4fQ6A25x
-	 ZE0HtZx8YJmgD3kt1TllDvu1WflSd0c7RpQgtW35wc26F3JTWTwOwmft6JhkOtvQZG
-	 Bg78M+rxmr0Tg==
-Date: Fri, 10 Jul 2026 16:14:00 +0100
+	b=DHGTVQQhWaTrPzJXRhL+eOlPh3mjgM3TYm3BACmuvjIRndZXufi/DOhVvVPUUmShz
+	 pMaTajqPd2DgQBSgWuLiUyl1vIFajO3tcup29tN2rA+oZElUGBQ1IGgnnzXislM27I
+	 7CvnkGOpI5896VQOz3W8Gmxeu3uzmNGoxn7r0l7pBdQ0sONYuYGXeAzxoC3tQ9/wUH
+	 UEFxz/qEn3hiXt8kPfwHLqlEerVkyRZiznIxE9j6rS+w6Jb2/IyIAdhgUn87BZzWbP
+	 pGVPtXCokUhc0BUp8Nl0bg7ctkDVndBAE1whxwQffv6MbiL/O4PIdb6JwCyyrjCy4K
+	 eJhH8u+Rek3lQ==
+Date: Fri, 10 Jul 2026 16:15:46 +0100
 From: Lorenzo Stoakes <ljs@kernel.org>
-To: Pedro Falcato <pfalcato@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	Russell King <linux@armlinux.org.uk>, Dinh Nguyen <dinguyen@kernel.org>, 
-	Simon Schuster <schuster.simon@siemens-energy.com>, 
+To: Gregory Price <gourry@gourry.net>
+Cc: Pedro Falcato <pfalcato@suse.de>, 
+	Andrew Morton <akpm@linux-foundation.org>, Russell King <linux@armlinux.org.uk>, 
+	Dinh Nguyen <dinguyen@kernel.org>, Simon Schuster <schuster.simon@siemens-energy.com>, 
 	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
 	Jarkko Sakkinen <jarkko@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
 	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
@@ -62,12 +62,16 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	iommu@lists.linux.dev, linux-perf-users@vger.kernel.org, 
 	linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com, damon@lists.linux.dev, 
 	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>
-Subject: Re: [PATCH 28/30] mm/vma: use guard clauses in
- can_vma_merge_[before, after]()
-Message-ID: <alEMKRdOLNiNYIGm@lucifer>
+Subject: Re: [PATCH 17/30] mm: prefer vma_[start,end]_pgoff() to
+ vma->vm_pgoff in kernel/
+Message-ID: <alEMciQmyQA7wdua@lucifer>
 References: <cover.1782735110.git.ljs@kernel.org>
- <213918ef85ed427d29d0635db6b07b15280d3bb0.1782735110.git.ljs@kernel.org>
- <akZOPG6fxr98Ycl_@pedro-suse.lan>
+ <ea87349d63205bf4c26ea79854f179a9bf8cfb0b.1782735110.git.ljs@kernel.org>
+ <akZCg73F-oGzDp1a@pedro-suse.lan>
+ <akZGqclqQ6gS12Vv@lucifer>
+ <ak_C_o2ehS17Q5HV@gourry-fedora-PF4VCD3F>
+ <alEHy1raICek7imv@lucifer>
+ <alELDgm258nhjk3b@gourry-fedora-PF4VCD3F>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -76,20 +80,44 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <akZOPG6fxr98Ycl_@pedro-suse.lan>
+In-Reply-To: <alELDgm258nhjk3b@gourry-fedora-PF4VCD3F>
 
-On Thu, Jul 02, 2026 at 12:41:51PM +0100, Pedro Falcato wrote:
-> Looks nicer, thanks.
+On Fri, Jul 10, 2026 at 11:09:02AM -0400, Gregory Price wrote:
+> On Fri, Jul 10, 2026 at 03:56:33PM +0100, Lorenzo Stoakes wrote:
+> > On Thu, Jul 09, 2026 at 11:49:18AM -0400, Gregory Price wrote:
+> > >
+> > > Silly question:
+> >
+> > There's no such thing :)
+> >
+>
+> All my questions are silly.  That's my secret :]
 
-Thanks!
+Mine too ;)
 
 >
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> > >
+> > >    What's the purpose of retaining tags in a non-address value?
+> >
+> > Well if you want to reconstitute an address from it later then that'd be the
+> > intent, but I'm being hand wavey here for sure.
+> >
+> > Main thing is to retain stuff under the page mask
+> >
+>
+> Right, which ...
+>
+> vvvvvv
+> > > That sounds like there's fragility just waiting to be broken.
+>
+> If that's an actual issue, then our relationship with tags is painful :[
 
-Also thanks! :)
+Yeah, I'm just not sure tbh.
+
+But all that is stuf for future masochism^Wfun anyway ;) focusing on the 'respin
+the monster series' fun^Wmasochism atm...
 
 >
-> --
-> Pedro
+> ~Gregory
 
 Cheers, Lorenzo
