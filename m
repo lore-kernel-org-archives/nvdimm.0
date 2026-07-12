@@ -1,64 +1,64 @@
-Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
+Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74B3E34214A
-	for <nvdimm@lists.linux.dev>; Sun, 12 Jul 2026 15:45:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98F82340409
+	for <nvdimm@lists.linux.dev>; Sun, 12 Jul 2026 15:45:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783871140; cv=none; b=iyYtLbixDicVvUx+suCy2hSShxgZ6+bWSP4GZs11iBaBnTfxAbqMQlU3CZFBReNsDWsAmKVtrdLW+PDVTkIUlUoNBbQbswQD1X5okzFFkniEnhk6Q1ivT4LDzmqv41vmdPyuq4TIBm16aMUZhyom/2K5qHcstCT7TPXUr8IRNzQ=
+	t=1783871142; cv=none; b=tlAFZYFJpjtaW6o8LnwdbfR6HyYqiUjXwoMvnT/DxMUyH3KhOxMMydQzTcw8GdGoIY70OzPkuJIsmhaF75mxfq2JWoyiYVjzgNBkWUw50lEw6oRUixpP33P9Uza+WPFD1C/j/2IV9C1V6x8c4g6wgF+dRs+RF9trFCNc/rtiIAM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783871140; c=relaxed/simple;
-	bh=Gs/hrZsoHjychWxwqwjv72Syxfj/6QktoWRqnWOvgGE=;
+	s=arc-20240116; t=1783871142; c=relaxed/simple;
+	bh=bvQ4EvDbEBqAAEtU5XYus1Sl58WVn2Gk3au/GBtyWWc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QyjVFQGaP5MeWgv+WVJnar8jsM5tefO/VlGdH6Y24xQGU0cUTeEI5IEHwmjDinAZB799pDCgZ0+csRn2r5ILYTWaYBHqUivUbDIDkg9QzRDomcqhfr3pyMCPhWxCh3lr+C8sDHUZtrWlfWrc77YP8U4KZUlKpuC1ZF2boccoRRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=jKMbkGjN; arc=none smtp.client-ip=209.85.222.178
+	 MIME-Version; b=cycGPRdV/k/VoQjSzOWp7q/jJXx4SxlkSSJq62XUSuYGtANaQFI1JOJgA/q8CFH4oV+kMSxF6gNG4Pn+THPi6jCvK2dHx23CjnkY4XVrVhjXhGnVq8SvFlgXwdW3VuBifJDp0j3ihzzDmDM0YgGW/gdGB+2wdJUgtLSOwpKeTtw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=AzsF3woq; arc=none smtp.client-ip=209.85.222.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="jKMbkGjN"
-Received: by mail-qk1-f178.google.com with SMTP id af79cd13be357-92e5c92c389so117531285a.3
-        for <nvdimm@lists.linux.dev>; Sun, 12 Jul 2026 08:45:32 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="AzsF3woq"
+Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-92e533aacf2so116717785a.2
+        for <nvdimm@lists.linux.dev>; Sun, 12 Jul 2026 08:45:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1783871131; x=1784475931; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1783871133; x=1784475933; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=1MtJTbfD/+62uyC9cmiI0PZLLS77jY7zlTT5oKim0nk=;
-        b=jKMbkGjNp10KgVmF7xiQtWvVA9T4cHO5LYANC6eHvmsAHdoDlvkblHvpJvoXCCjCUQ
-         3yz3K7zD8nZkcfCKEHwrLcHLODTRZIcqsKZw0b3oLWZjrKXAIxjZWEk2ntrNoWT4JIZL
-         j7nC2v1bKp9K+24ANt1kdUiyFtM6Fk4DBtwuRYOxgJ8zQIJ/fDfxcZKwGz+GXdKkmwLs
-         38aMgIrA1CdcAsLCM+2j/4QHfMRjiRbRKRwyWZRHvwTlYUCsFNT5P9/jxdjw6drKGaZJ
-         RFSx/eub2MJZTC4MlYxGxy5Z2ANTIhxa8vjis0dYel8Ih1UCuE6xrMcho/VRhz9R0Uqw
-         7fSw==
+        bh=GWF9xBC1APjhYOxCXyaTAZR/yxpjvhh1p47cJ5nUxEw=;
+        b=AzsF3woqlMWrpjnwQZnJvwjKcAVtIWCsjOsTHFRN30R94rinCCQTUcre6J7O307Fgo
+         TCi+d1+Fa56uaLqEhziZWTisZSbhZvq4o7hHwtT695z4udGtm6LLbw3FJMmdmMdM5kIM
+         WTorfLH7I9+DL3W4p/484K0TeeMPRoe3A5i443vrErK5wcdyZuM+SU7KOnlDLy8mNbQu
+         nAp14uwkshUtz6s8VH9SI3/I5AfcqV6WWqPuhkLFUL4p09PByR+fM0EM1Z1Y7wrBmEc1
+         Tr+vTL9shKKj/xJv5RlO1FFSgxg83Vu8gscRPxQWdKfr85deCBdfvVN5DCWrdNWoHh6d
+         d69g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783871131; x=1784475931;
+        d=1e100.net; s=20251104; t=1783871133; x=1784475933;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=1MtJTbfD/+62uyC9cmiI0PZLLS77jY7zlTT5oKim0nk=;
-        b=ky3cfFcuimqdDqjWmGz9eIft7Jw+LKoLVGQcGLn6bOYOMzaQcnGF/ivDX7yRRLqsse
-         MsFnsxlLhEFRirq0+YxzHw3923EzVcPp5CST/fDbvItob+aml5CxN5NvXjvvQF62mGde
-         Rl5SMoQH+znpTIS8+c5XbJEj7eJfvsU2yumdFQG0hnZBUeg1qioVtGRBc2EoLRMfwqnB
-         e3Qd8gtLwfR2PK7kMCTrlI8r3EzEnAt4lKjJkGKQWPa+CjoNnXi4YdYFgbouxy8nLbdP
-         qfoKkvWShCzI2sqACsaXv/zDCNOdu99siD65Gf8MW+AcgvP2LhMxM4tKXZ49Z1a5B/Dp
-         w62w==
-X-Forwarded-Encrypted: i=1; AHgh+RriEBU8Lt5HjrPWy/pCWtGhqv8gH7XCfUUWeaXspstDZrMwAXBq8v3//4Ecp/JL4nOcryFrZbA=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxAMJYWrVKYGfz6IFhMEckcur2h+tSgo1r9zaREakRcZJ5I1kfK
-	0QtCxmOf9zqTNrETJOMSb20qVGQpdMqUQ6u78GJuhGjKyNj8clDCuGl6wrE/2bemRSk=
-X-Gm-Gg: AfdE7ckDo+0Oum17Blf29q+OSfLxlMyktm+8jbU5UfJww4MnDJvWfHf3RhyORplXrRx
-	Q4o7OSeTNzxrH6QJi9eYT7mT2JMEdIwJ1ACbBOu8GyqH/AyHRjz5FnheSYW6MDP03nKFxIluiP0
-	NTjoIjJg8fyZbMyjeqjir0wKhoydR9yewahhFiKIpnhCDZkgZKghElP674G6vitBc+P2fSuW7PT
-	tMCigJ/hKp0/qpxnEJgtpk1Xg69bP/He67woHZMmdDNVST792IzcD5ZWWKZ/C8xPNsPXbhhG4IR
-	dqtaqqPj2bEfu0DVE5WknVTWSvrrIHroeumEssYVzioGBpVW86mAdCJWR2+aTLVEJxd4LoaJov8
-	i0yi1HHV8RhLLqlBNcDCovEtQhecmkQ02qIUozEaOXK913EDR3KggLYCe5uRyFQY9UtMxqVE7TE
-	ZbPwlaacKxJleb/hchNtYujXTVp+k0XAwLEHeavituwqm++a2v3TET/O1Cv2I5nFCF+QgXQQMHp
+        bh=GWF9xBC1APjhYOxCXyaTAZR/yxpjvhh1p47cJ5nUxEw=;
+        b=YArq6TwBBlaY36VP8XGTZ5HhKf4ZnwaWDoQHntp7nQTcKg0UWQuU4ogcnryOdHEFj3
+         lCSS5kgekoxMYdJLr+Vtjmn3Mz5a+2MpZ8N8sptTjspJmUBj/dpPPGNkR7AqI5PRMzf7
+         Q8O9y1JREG8UHDafsFunJyz3kOhpSRsVHqm0tnpeAonNXIdGvpwT2h5dEexEWZvY5BWd
+         VmKnR5l8BmII6nxRIkJq8XkCl9Cap3hDsw4inr6oc9DDg1D37zkLKRJlAIiOsqkUpiWh
+         FoWaCckG9os7bvgA8qbfjk8c3ecyzNVtjPauG2PeT4JvQW0ASuAWJAWEqWmtxdweeGWW
+         B5DA==
+X-Forwarded-Encrypted: i=1; AHgh+Rrw1lTxbtIso4SofnnD9IyoHgZGSkx9FmiC1Qspxm2GbrLhwsnXgzIXy6zu/bBcBN7JQTnKht8=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwdejeNiGHbmGoB+vrbV3Rw8WjLwEN8X/RVSu+5VcK+ujOtIyay
+	Rc99ZICzroupf1OQ72wBe9kg0ZVCGD/u+WZHChwocP3JKxqqSn7vulMlb0Zep2dFBfo=
+X-Gm-Gg: AfdE7cmPMlD42s66H0n/pPHBB8Lh0I/XdcmuwCM+IGrZqMLusmnJBCqD3oXV2S8ie/K
+	LtBeKftL5qFjeX0CRW6hGRmSVPb0S8WiqLEH8wzzqZCxDZgza/8aSfAgbyQ92R7iM5h4nJzgI3B
+	wVntBnhf9iEp6+92Bvl9NRZGjujDhNGgXrMr0q4JEQYZiu+CsJ9uWcJ1E5KTxqUl9GmL3HkINmr
+	K42o556Xrn51BErLdImqHi99vwTlTHseXy/yqNNRsKLVdSgaLqT9f0zK4+KUvj02HUSh2CbTIOd
+	lQXpxX3tnNWwM+KN/+Kcu5uOwZbl4bkcw3UBqRl2KwjT9bR8qaDZwJZ7uC80ZmsMoMVqbQzqT/n
+	Mz8dz+lJjsI86sD0ODc1obgxfLi2tMmdO5PD7Tk4dHAqHRu2ICh6ipfqI0SXn4jfKhLnoTKOGZP
+	IojhNJ3FGBy1Q9iroaktCAUyBrnx2REQpqgOXdXNu9POmZ1wlva3FHdQUBRPR7c0DLNT1e7nIGU
 	w==
-X-Received: by 2002:a05:620a:290b:b0:91d:6ac3:565a with SMTP id af79cd13be357-92ef2b3865fmr597461385a.12.1783871131232;
-        Sun, 12 Jul 2026 08:45:31 -0700 (PDT)
+X-Received: by 2002:a05:620a:469f:b0:92e:6a8d:38aa with SMTP id af79cd13be357-92ef2d1dedfmr623795785a.63.1783871133247;
+        Sun, 12 Jul 2026 08:45:33 -0700 (PDT)
 Received: from gourry-fedora-PF4VCD3F.lan (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-92ee5d61facsm862186485a.42.2026.07.12.08.45.30
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-92ee5d61facsm862186485a.42.2026.07.12.08.45.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 12 Jul 2026 08:45:30 -0700 (PDT)
+        Sun, 12 Jul 2026 08:45:32 -0700 (PDT)
 From: Gregory Price <gourry@gourry.net>
 To: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org,
@@ -84,11 +84,10 @@ Cc: linux-kernel@vger.kernel.org,
 	surenb@google.com,
 	mhocko@suse.com,
 	shuah@kernel.org,
-	gourry@gourry.net,
-	Hannes Reinecke <hare@suse.de>
-Subject: [PATCH v7 09/10] dax/kmem: add sysfs interface for atomic whole-device hotplug
-Date: Sun, 12 Jul 2026 11:45:03 -0400
-Message-ID: <20260712154505.3564379-10-gourry@gourry.net>
+	gourry@gourry.net
+Subject: [PATCH v7 10/10] selftests/dax: add dax/kmem hotplug sysfs regression test
+Date: Sun, 12 Jul 2026 11:45:04 -0400
+Message-ID: <20260712154505.3564379-11-gourry@gourry.net>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260712154505.3564379-1-gourry@gourry.net>
 References: <20260712154505.3564379-1-gourry@gourry.net>
@@ -100,477 +99,413 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There is no atomic mechanism to offline and remove an entire
-multi-block DAX kmem device.  This is presently done in two steps:
-    1. offline all
-    2. remove all
+Add a kselftest for the dax/kmem whole-device "state" sysfs attribute
+(/sys/bus/dax/devices/daxX.Y/state), which transitions a kmem-backed
+dax device between "unplugged", "online" and "online_movable".
 
-This creates a race condition where another entity operates directly
-on the memory blocks and can cause hot-unplug to fail / unbind to
-deadlock.
+The kselftest also includes a test to demonstrate the force-unbind
+does not deadlock - but this is destructive (the dax device can never
+be rebound), so it only runs when DAX_KMEM_TEST_UNBIND=1 is set.
 
-Add a new 'state' sysfs attribute that enables an atomic whole-device
-hotplug operation across its entire memory region.
+Provisioning a devdax device and binding it to kmem needs daxctl/ndctl
+out of scope for an in-tree selftest.  As the test mutates a device's
+memory, the operator opts in by naming it in DAX_KMEM_TEST_DEV (or
+"auto" to pick the first kmem-bound device); it SKIPs when unset, when
+no device is present, or when the memory cannot be freed to a baseline.
 
-daxX.Y/state mirrors the per-block memoryX/state ABI:
-  - [offline, online, online_kernel, online_movable]
-  - "unplugged" - is added specifically for dax0.0/state
+When a device is available it validates the interface contract:
+  - online / online_movable actually add memory (MemTotal grows),
+  - online is idempotent,
+  - switching between online types without unplug is rejected,
+  - unplug removes memory and the reported state is "unplugged"
+  - invalid input is rejected,
+  - unplug and unbind tolerate blocks toggled out-of-band through the
+    per-block memoryX/state interface.
 
-The valid writable states include:
-  - "unplugged":      memory blocks are not present
-  - "online":         memory is online, zone chosen by the kernel
-  - "online_kernel":  memory is online in ZONE_NORMAL
-  - "online_movable": memory is online in ZONE_MOVABLE
+One specific regression test:
+    online -> unplug -> online_movable -> unplug
 
-Valid transitions:
-  - unplugged                -> online[_kernel|_movable]
-  - online[_kernel|_movable] -> unplugged
-  - offline                  -> unplugged
+Re-online must re-reserve per-range resources so subsequent unplug
+actually offlines and removes instead of silently reporting success
+while the memory stays online.
 
-A device can only be onlined from "unplugged", so it must be returned
-there before being onlined into a different state.
-
-For backwards compatibility the memory blocks are always created at
-probe - existing tools expect them to be present after kmem binds.
-
-"offline" is therefore a reportable state but is not writable: it only
-arises from the legacy auto_online_blocks=offline policy.  Onlining
-such a device through this attribute requires unplugging it first in
-an effort to get drivers creating DAX devices to set a default.
-
-Unplug is atomic across the whole device: dax_kmem_do_hotremove()
-collects every added range and offlines/removes them in one operation.
-Either the operation succeeds or is entirely rolled back.
-
-Unbind Note:
-  An offline dax device memory is removed on unbind as before.
-
-  If online at unbind, the resources are leaked (as before), but now
-  we prevent deadlock if a memory region is impossible to hotremove.
-
-Suggested-by: Hannes Reinecke <hare@suse.de>
-Suggested-by: David Hildenbrand <david@kernel.org>
-Reviewed-by: Dan Williams <djbw@kernel.org>
 Signed-off-by: Gregory Price <gourry@gourry.net>
 ---
- Documentation/ABI/testing/sysfs-bus-dax |  24 +++
- drivers/dax/bus.h                       |   2 +
- drivers/dax/kmem.c                      | 243 ++++++++++++++++++++----
- 3 files changed, 233 insertions(+), 36 deletions(-)
+ tools/testing/selftests/Makefile              |   1 +
+ tools/testing/selftests/dax/Makefile          |   6 +
+ tools/testing/selftests/dax/config            |   4 +
+ .../testing/selftests/dax/dax-kmem-hotplug.sh | 317 ++++++++++++++++++
+ tools/testing/selftests/dax/settings          |   1 +
+ 5 files changed, 329 insertions(+)
+ create mode 100644 tools/testing/selftests/dax/Makefile
+ create mode 100644 tools/testing/selftests/dax/config
+ create mode 100755 tools/testing/selftests/dax/dax-kmem-hotplug.sh
+ create mode 100644 tools/testing/selftests/dax/settings
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
-index b34266bfae49a..60703fffa99e0 100644
---- a/Documentation/ABI/testing/sysfs-bus-dax
-+++ b/Documentation/ABI/testing/sysfs-bus-dax
-@@ -151,3 +151,27 @@ Description:
- 		memmap_on_memory parameter for memory_hotplug. This is
- 		typically set on the kernel command line -
- 		memory_hotplug.memmap_on_memory set to 'true' or 'force'."
+diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
+index 8d4db2241cc2a..5528682a3a912 100644
+--- a/tools/testing/selftests/Makefile
++++ b/tools/testing/selftests/Makefile
+@@ -14,6 +14,7 @@ TARGETS += core
+ TARGETS += cpufreq
+ TARGETS += cpu-hotplug
+ TARGETS += damon
++TARGETS += dax
+ TARGETS += devices/error_logs
+ TARGETS += devices/probe
+ TARGETS += dmabuf-heaps
+diff --git a/tools/testing/selftests/dax/Makefile b/tools/testing/selftests/dax/Makefile
+new file mode 100644
+index 0000000000000..25a4f3d73a5ba
+--- /dev/null
++++ b/tools/testing/selftests/dax/Makefile
+@@ -0,0 +1,6 @@
++# SPDX-License-Identifier: GPL-2.0
++all:
 +
-+What:		/sys/bus/dax/devices/daxX.Y/state
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RW) Controls the state of the memory region.
-+		Applies to all memory blocks associated with the device.
-+		Only applies to dax_kmem devices.
++TEST_PROGS := dax-kmem-hotplug.sh
 +
-+		Reading returns the current state; the writable states mirror
-+		the per-block /sys/devices/system/memory/memoryX/state ABI::
++include ../lib.mk
+diff --git a/tools/testing/selftests/dax/config b/tools/testing/selftests/dax/config
+new file mode 100644
+index 0000000000000..4c9aaeb6ceb41
+--- /dev/null
++++ b/tools/testing/selftests/dax/config
+@@ -0,0 +1,4 @@
++CONFIG_DEV_DAX=m
++CONFIG_DEV_DAX_KMEM=m
++CONFIG_MEMORY_HOTPLUG=y
++CONFIG_MEMORY_HOTREMOVE=y
+diff --git a/tools/testing/selftests/dax/dax-kmem-hotplug.sh b/tools/testing/selftests/dax/dax-kmem-hotplug.sh
+new file mode 100755
+index 0000000000000..9299120ee509c
+--- /dev/null
++++ b/tools/testing/selftests/dax/dax-kmem-hotplug.sh
+@@ -0,0 +1,317 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#
++# Exercise the dax/kmem "state" sysfs attribute:
++#   /sys/bus/dax/devices/daxX.Y/state  ->  unplugged | online | online_kernel | online_movable
++#
++# The test needs a dax device already bound to the kmem driver.
++#
++# This test mutates a device's memory: online/offline cycles migrate any
++# in-use pages, and the optional unbind subtest wedges the device until
++# reboot. The tester must identify the target device and opt into the
++# destructive unbind tests.
++#
++#   DAX_KMEM_TEST_DEV=daxX.Y   test this specific device
++#   DAX_KMEM_TEST_DEV=auto     auto-discover the first kmem-bound dax device
++#                              (best-effort: it may be a device in use!)
++#   DAX_KMEM_TEST_UNBIND=1     also run the destructive unbind-while-online test
++#
++# If DAX_KMEM_TEST_DEV is unset the whole test SKIPs.
++#
++# A dax device can be provisioned with the memmap= boot param, e.g.:
++#   memmap=2G!4G
++#
++# then, in the booted system:
++#
++#   ndctl create-namespace -m devdax -e namespace0.0 -f
++#   daxctl reconfigure-device -N -m system-ram dax0.0   # bind kmem
++#   DAX_KMEM_TEST_DEV=auto ./dax-kmem-hotplug.sh
 +
-+		  "unplugged": memory blocks are not present
-+		  "online": memory is online, zone chosen by the kernel
-+		  "online_kernel": memory is online in ZONE_NORMAL
-+		  "online_movable": memory is online in ZONE_MOVABLE
++# shellcheck disable=SC1091
++DIR="$(dirname "$(readlink -f "$0")")"
++. "$DIR"/../kselftest/ktap_helpers.sh
 +
-+		"offline" (memory blocks are present but offline) may also be
-+		reported - this happens when the device is bound while the
-+		auto_online_blocks policy is "offline".  It cannot be written,
-+		as it's not useful and creates device destruction races.
++DAX_BASE=/sys/bus/dax/devices
++MEM_BASE=/sys/devices/system/memory
 +
-+		A device can only be onlined from the "unplugged" state, so a
-+		device must be returned to "unplugged" before it can be onlined
-+		into a different state.
-diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-index 5909171a4428b..bfc31923f3ff4 100644
---- a/drivers/dax/bus.h
-+++ b/drivers/dax/bus.h
-@@ -16,6 +16,8 @@ struct dax_region;
- #define IORESOURCE_DAX_STATIC BIT(0)
- #define IORESOURCE_DAX_KMEM BIT(1)
- 
-+#define DAX_KMEM_UNPLUGGED	(-1) /* Do not create memory blocks */
++memtotal_kb() { awk '/^MemTotal:/ {print $2}' /proc/meminfo; }
++get_state() { cat "$HP" 2>/dev/null; }
++# set_state STATE -- write a state to the state attribute; returns the
++# write's exit status (0 = accepted by the kernel)
++set_state() { echo "$1" > "$HP" 2>/dev/null; }
 +
- struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 		struct range *range, int target_node, unsigned int align,
- 		unsigned long flags);
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 6174f7d3d05bd..a48d699cf344c 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -45,6 +45,8 @@ static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
- struct dax_kmem_data {
- 	const char *res_name;
- 	int mgid;
-+	int state;
-+	struct mutex lock; /* protects hotplug state transitions */
- 	struct resource *res[];
- };
- 
-@@ -63,12 +65,22 @@ static void kmem_put_memory_types(void)
- 	mt_put_memory_types(&kmem_memory_types);
- }
- 
-+/* True for the online states a kmem dax device can hold. */
-+static bool dax_kmem_state_is_online(int state)
-+{
-+	return state == MMOP_ONLINE ||
-+	       state == MMOP_ONLINE_KERNEL ||
-+	       state == MMOP_ONLINE_MOVABLE;
++is_kmem_dax() {
++	local drv
++	[ -e "$DAX_BASE/$1/state" ] || return 1
++	drv=$(readlink "$DAX_BASE/$1/driver" 2>/dev/null)
++	[ "$(basename "${drv:-}")" = kmem ]
 +}
 +
- /**
-  * dax_kmem_do_hotplug - hotplug memory for dax kmem device
-  * @dev_dax: the dev_dax instance
-  * @data: the dax_kmem_data structure with resource tracking
-+ * @online_type: the online policy to use for the memory blocks
-  *
-- * Hotplugs all ranges in the dev_dax region as system memory.
-+ * Hotplugs all ranges in the dev_dax region as system memory with the
-+ * provided online policy (offline, online, online_movable, online_kernel).
-  *
-  * Returns the number of successfully mapped ranges, or negative error.
-  */
-@@ -77,9 +89,15 @@ static int dax_kmem_do_hotplug(struct dev_dax *dev_dax,
- 			       int online_type)
- {
- 	struct device *dev = &dev_dax->dev;
--	int i, rc, onlined = 0;
-+	int i, rc, added = 0;
- 	mhp_t mhp_flags;
- 
-+	if (dax_kmem_state_is_online(data->state))
-+		return -EINVAL;
-+
-+	if (online_type < MMOP_OFFLINE || online_type > MMOP_ONLINE_MOVABLE)
-+		return -EINVAL;
-+
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		struct range range;
- 
-@@ -123,14 +141,14 @@ static int dax_kmem_do_hotplug(struct dev_dax *dev_dax,
- 				kfree(data->res[i]);
- 				data->res[i] = NULL;
- 			}
--			if (onlined)
-+			if (added)
- 				continue;
- 			return rc;
- 		}
--		onlined++;
-+		added++;
- 	}
- 
--	return onlined;
-+	return added;
- }
- 
- /**
-@@ -193,45 +211,64 @@ static int dax_kmem_init_resources(struct dev_dax *dev_dax,
-  * @dev_dax: the dev_dax instance
-  * @data: the dax_kmem_data structure with resource tracking
-  *
-- * Removes all ranges in the dev_dax region.
-+ * Offlines and removes every currently-added range in the dev_dax region
-+ * atomically: either all ranges are offlined and removed, or none are and
-+ * the device is returned to its prior state.
-  *
-- * Returns the number of successfully removed ranges.
-+ * Returns 0 on success, or a negative errno on failure.
-  */
- static int dax_kmem_do_hotremove(struct dev_dax *dev_dax,
- 				 struct dax_kmem_data *data)
- {
- 	struct device *dev = &dev_dax->dev;
--	int i, success = 0;
-+	struct range *ranges;
-+	int i, nr_ranges = 0, rc;
-+
-+	ranges = kmalloc_objs(*ranges, dev_dax->nr_range);
-+	if (!ranges)
-+		return -ENOMEM;
- 
-+	/* Collect the ranges that were actually added during probe. */
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		struct range range;
--		int rc;
- 
--		rc = dax_kmem_range(dev_dax, i, &range);
--		if (rc)
-+		if (!data->res[i])
- 			continue;
--
--		/* range was never added during probe, count as removed */
--		if (!data->res[i]) {
--			success++;
-+		if (dax_kmem_range(dev_dax, i, &range))
- 			continue;
--		}
-+		ranges[nr_ranges++] = range;
-+	}
-+
-+	/* Nothing added means nothing to remove. */
-+	if (!nr_ranges) {
-+		kfree(ranges);
-+		return 0;
-+	}
-+
-+	rc = offline_and_remove_memory_ranges(ranges, nr_ranges);
-+	kfree(ranges);
-+	if (rc) {
-+		/* Recoverable: the ranges rolled back, nothing is leaked yet. */
-+		dev_err(dev, "hotremove failed, device left online: %d\n", rc);
-+		return rc;
-+	}
- 
--		rc = remove_memory(range.start, range_len(&range));
--		if (rc == 0) {
--			/* Release the resource for the successfully removed range */
--			remove_resource(data->res[i]);
--			kfree(data->res[i]);
--			data->res[i] = NULL;
--			success++;
-+	/* All ranges removed; release the reserved resources. */
-+	for (i = 0; i < dev_dax->nr_range; i++) {
-+		if (!data->res[i])
- 			continue;
--		}
--		any_hotremove_failed = true;
--		dev_err(dev, "mapping%d: %#llx-%#llx hotremove failed\n",
--			i, range.start, range.end);
-+		remove_resource(data->res[i]);
-+		kfree(data->res[i]);
-+		data->res[i] = NULL;
- 	}
- 
--	return success;
-+	return 0;
-+}
-+#else
-+static int dax_kmem_do_hotremove(struct dev_dax *dev_dax,
-+				 struct dax_kmem_data *data)
-+{
-+	return -EBUSY;
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-@@ -247,6 +284,18 @@ static void dax_kmem_cleanup_resources(struct dev_dax *dev_dax,
- {
- 	int i;
- 
-+	/*
-+	 * If the device unbind occurs before memory is hotremoved, we can never
-+	 * remove the memory (requires reboot).  Attempting an offline operation
-+	 * here may cause deadlock and a failure to finish the unbind.
-+	 *
-+	 * Note: This leaks the resources.
-+	 */
-+	if (WARN(((data->state != DAX_KMEM_UNPLUGGED) &&
-+		  (data->state != MMOP_OFFLINE)),
-+		 "Hotplug memory regions stuck online until reboot"))
-+		return;
-+
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		if (!data->res[i])
- 			continue;
-@@ -256,6 +305,81 @@ static void dax_kmem_cleanup_resources(struct dev_dax *dev_dax,
- 	}
- }
- 
-+static int dax_kmem_parse_state(const char *buf)
-+{
-+	int online_type;
-+
-+	/* "unplugged" is kmem-specific - the rest map to MMOP_ */
-+	if (sysfs_streq(buf, "unplugged"))
-+		return DAX_KMEM_UNPLUGGED;
-+
-+	online_type = mhp_online_type_from_str(buf);
-+	/* Disallow "offline": it's not useful and creates race conditions */
-+	if (online_type == MMOP_OFFLINE)
-+		return -EINVAL;
-+	return online_type;
++find_kmem_dax() {
++	local d
++	for d in "$DAX_BASE"/dax*; do
++		is_kmem_dax "$(basename "$d")" || continue
++		basename "$d"
++		return 0
++	done
++	return 1
 +}
 +
-+static ssize_t state_show(struct device *dev,
-+			    struct device_attribute *attr, char *buf)
-+{
-+	struct dax_kmem_data *data = dev_get_drvdata(dev);
-+	const char *state_str;
++# find_device_blocks -- print every memoryN block backing this dax device.
++# The blocks are derived from the device's own range(s) in /proc/iomem (the
++# reserved resource is named after the device), so we act on *its* blocks
++# rather than guessing by NUMA node - the target node may also hold unrelated
++# (and non-offlineable) memory.
++find_device_blocks() {
++	local bs
++	bs=$(cat "$MEM_BASE/block_size_bytes" 2>/dev/null)	# hex, no leading 0x
++	[ -n "$bs" ] || return 1
++	grep -E " : ${DAX}\$" /proc/iomem | while read -r line; do
++		local range s e i
++		range=${line%% :*}; range=${range// /}
++		s=${range%-*}; e=${range#*-}
++		for (( i = 0x$s / 0x$bs; i <= 0x$e / 0x$bs; i++ )); do
++			echo "memory$i"
++		done
++	done
++}
 +
-+	if (data->state == DAX_KMEM_UNPLUGGED)
-+		state_str = "unplugged";
++# find_device_block -- print the first online block backing this dax device.
++find_device_block() {
++	local b
++	for b in $(find_device_blocks); do
++		[ -f "$MEM_BASE/$b/state" ] || continue
++		[ "$(cat "$MEM_BASE/$b/state")" = online ] || continue
++		echo "$b"
++		return 0
++	done
++	return 1
++}
++
++ktap_print_header
++
++if [ "$UID" != 0 ]; then
++	ktap_skip_all "must be run as root"
++	exit "$KSFT_SKIP"
++fi
++
++# Device selection is opt-in - see the header for why.
++DEV_SEL=${DAX_KMEM_TEST_DEV:-}
++if [ -z "$DEV_SEL" ]; then
++	ktap_skip_all "set DAX_KMEM_TEST_DEV=<daxX.Y|auto> to opt in (mutates device memory)"
++	exit "$KSFT_SKIP"
++fi
++if [ "$DEV_SEL" = auto ]; then
++	DAX=$(find_kmem_dax)
++else
++	DAX=$DEV_SEL
++fi
++if [ -z "$DAX" ] || ! is_kmem_dax "$DAX"; then
++	ktap_skip_all "no kmem-bound dax device with a state attribute (${DEV_SEL})"
++	exit "$KSFT_SKIP"
++fi
++HP=$DAX_BASE/$DAX/state
++ORIG=$(get_state)
++
++# A failure to reach the baseline is environmental (memory in use), not an
++# interface failure, so skip rather than fail.
++set_state unplugged; rc=$?
++if [ "$rc" != 0 ] || [ "$(get_state)" != unplugged ]; then
++	ktap_skip_all "$DAX: cannot reach 'unplugged' baseline (memory in use?)"
++	[ -n "$ORIG" ] && set_state "$ORIG"
++	exit "$KSFT_SKIP"
++fi
++mt_unplugged=$(memtotal_kb)
++
++DRV=/sys/bus/dax/drivers/kmem
++AOB=$MEM_BASE/auto_online_blocks
++
++ktap_print_msg "using $DAX (initial state was: $ORIG)"
++ktap_set_plan 10
++
++# A public (N_MEMORY) kmem node onlined into a kernel zone (online/online_kernel)
++# collects unmovable allocations and can then never be offlined, which would
++# wedge the device for the rest of this test.  So this test only ever
++# successfully onlines online_movable, the one mode that is reliably unpluggable.
++
++set_state online_movable; rc=$?
++mt_online=$(memtotal_kb)
++if [ "$rc" = 0 ] && [ "$(get_state)" = online_movable ] && [ "$mt_online" -gt "$mt_unplugged" ]; then
++	ktap_test_pass "online_movable: state=online_movable, MemTotal $mt_unplugged -> $mt_online kB"
++else
++	ktap_test_fail "online_movable: rc=$rc state=$(get_state) MemTotal $mt_unplugged -> $mt_online"
++fi
++
++set_state online_movable; rc=$?
++if [ "$rc" = 0 ] && [ "$(get_state)" = online_movable ]; then
++	ktap_test_pass "online_movable idempotent"
++else
++	ktap_test_fail "online_movable idempotent: rc=$rc state=$(get_state)"
++fi
++
++# A different online type is rejected without an intervening unplug.  The write
++# is refused before any hotplug, so this never actually onlines a kernel zone.
++set_state online_kernel; rc=$?
++if [ "$rc" != 0 ] && [ "$(get_state)" = online_movable ]; then
++	ktap_test_pass "reject online_kernel without intervening unplug (no kernel-zone online)"
++else
++	ktap_test_fail "online_movable->online_kernel not rejected: rc=$rc state=$(get_state)"
++fi
++
++set_state unplugged; rc=$?
++mt=$(memtotal_kb)
++if [ "$rc" = 0 ] && [ "$(get_state)" = unplugged ] && [ "$mt" -lt "$mt_online" ]; then
++	ktap_test_pass "unplug from online_movable: MemTotal $mt_online -> $mt kB"
++else
++	ktap_test_fail "unplug from online_movable: rc=$rc state=$(get_state) MemTotal $mt_online -> $mt"
++fi
++
++before=$(get_state)
++set_state bogus_state; rc=$?
++if [ "$rc" != 0 ] && [ "$(get_state)" = "$before" ]; then
++	ktap_test_pass "reject invalid state string"
++else
++	ktap_test_fail "invalid state not rejected: rc=$rc state=$(get_state)"
++fi
++
++# An online_movable -> unplug cycle must re-acquire the per-range resources on
++# each online and release them on each unplug.  Assert every iteration grows
++# MemTotal past the baseline and returns exactly to it; memory left online after
++# unplug (off > baseline) is a partial-free failure.
++set_state unplugged
++cycle_ok=1; fail_i=0; on=0; off=0
++for i in 1 2 3; do
++	if ! set_state online_movable; then cycle_ok=0; fail_i=$i; break; fi
++	on=$(memtotal_kb)
++	if ! set_state unplugged; then cycle_ok=0; fail_i=$i; break; fi
++	off=$(memtotal_kb)
++	# online must grow past baseline, and unplug must return to it - a
++	# partial free (memory left online) is a failure, not just off == on.
++	if [ "$on" -le "$mt_unplugged" ] || [ "$off" -gt "$mt_unplugged" ]; then
++		cycle_ok=0; fail_i=$i; break
++	fi
++done
++if [ "$cycle_ok" = 1 ]; then
++	ktap_test_pass "online_movable/unplug cycle re-acquires resources (3x: added and freed each time)"
++else
++	ktap_test_fail "online_movable/unplug cycle regressed at iteration $fail_i (on=$on off=$off baseline=$mt_unplugged)"
++fi
++
++# Desync: toggle a block through the legacy per-block memoryN/state interface
++# behind the driver's back, then unplug the whole device via daxX.Y/state.
++#
++# The driver only updates daxX.Y/state on its own writes, so it still reports
++# online_movable while a block underneath is already offline.
++#
++# Whole-device unplug must still succeed (within reason, an actor changing a
++# device from online_movable to online_kernel can no longer guarantee unplug).
++# At the very least, an already-offline block should not produce an error.
++set_state unplugged
++set_state online_movable
++blk=$(find_device_block)
++if [ -n "$blk" ] && echo offline > "$MEM_BASE/$blk/state" 2>/dev/null; then
++	# daxX.Y/state is now stale (still online_movable); unplug the device.
++	set_state unplugged; rc=$?
++	mt=$(memtotal_kb)
++	if [ "$rc" = 0 ] && [ "$(get_state)" = unplugged ] && [ "$mt" -le "$mt_unplugged" ]; then
++		ktap_test_pass "unplug tolerates a block pre-offlined via memoryN/state ($blk)"
 +	else
-+		state_str = mhp_online_type_to_str(data->state);
++		ktap_test_fail "desync unplug: rc=$rc state=$(get_state) MemTotal=$mt baseline=$mt_unplugged"
++	fi
++else
++	set_state unplugged 2>/dev/null
++	ktap_test_skip "could not locate a device block to offline for desync test"
++fi
 +
-+	return sysfs_emit(buf, "%s\n", state_str ?: "unknown");
-+}
++# change system default online policy while the device is unbound, and show
++# the new system default policy is utilized across bindings.
++set_state unplugged
++if [ -w "$AOB" ] && [ -w "$DRV/unbind" ] && [ -w "$DRV/bind" ]; then
++	orig_aob=$(cat "$AOB")
++	echo "$DAX" > "$DRV/unbind" 2>/dev/null
++	echo offline > "$AOB" 2>/dev/null
++	echo "$DAX" > "$DRV/bind" 2>/dev/null
++	sleep 1
++	st=$(get_state)
++	echo "$orig_aob" > "$AOB" 2>/dev/null		# restore system policy
++	if [ "$st" = offline ]; then
++		ktap_test_pass "online policy resolved at bind: auto_online_blocks=offline -> state=offline"
++	else
++		ktap_test_fail "bind-time policy not honored: state=$st (expected offline)"
++	fi
++	set_state unplugged 2>/dev/null
++else
++	ktap_test_skip "auto_online_blocks or driver bind/unbind not writable"
++fi
 +
-+static ssize_t state_store(struct device *dev, struct device_attribute *attr,
-+			     const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct dax_kmem_data *data = dev_get_drvdata(dev);
-+	int online_type;
-+	int rc;
++# Blocks offlined out-of-band (via memoryN/state) leave daxX.Y/state stale
++# (still online_movable) while every block is actually offline.  A driver unbind
++# must still hot-remove the offline memory and free its resources rather than
++# trust the stale state and leak until reboot.  Unbind uses remove_memory(),
++# which never offlines, so removing already-offline blocks is non-destructive and
++# the device rebinds cleanly afterwards.
++if [ -w "$DRV/unbind" ] && [ -w "$DRV/bind" ]; then
++	set_state unplugged
++	set_state online_movable
++	offl_ok=1
++	for b in $(find_device_blocks); do
++		[ -f "$MEM_BASE/$b/state" ] || continue
++		[ "$(cat "$MEM_BASE/$b/state")" = online ] || continue
++		echo offline > "$MEM_BASE/$b/state" 2>/dev/null || offl_ok=0
++	done
++	# daxX.Y/state is now stale (still online_movable) while all blocks are
++	# offline; the unbind must hot-remove them anyway.
++	if [ "$offl_ok" = 1 ] && [ "$(get_state)" = online_movable ]; then
++		echo "$DAX" > "$DRV/unbind" 2>/dev/null
++		mt_after=$(memtotal_kb)
++		leaked=$(grep -cE " : ${DAX}\$" /proc/iomem)	# before rebind
++		echo "$DAX" > "$DRV/bind" 2>/dev/null		# restore for later steps
++		sleep 1
++		if [ "$mt_after" -le "$mt_unplugged" ] && [ "$leaked" = 0 ]; then
++			ktap_test_pass "unbind with stale online state hot-removes offlined blocks (no leak)"
++		else
++			ktap_test_fail "desync unbind leaked: MemTotal=$mt_after baseline=$mt_unplugged iomem_left=$leaked"
++		fi
++		set_state unplugged 2>/dev/null
++	else
++		ktap_test_skip "could not offline all device blocks for desync-unbind test"
++	fi
++else
++	ktap_test_skip "driver bind/unbind not writable for desync-unbind test"
++fi
 +
-+	online_type = dax_kmem_parse_state(buf);
-+	if (online_type < DAX_KMEM_UNPLUGGED)
-+		return online_type;
++[ -n "$ORIG" ] && set_state "$ORIG"
 +
-+	guard(mutex)(&data->lock);
++# DESTRUCTIVE and opt-in only (DAX_KMEM_TEST_UNBIND=1):
++#
++# unbinding the driver while memory is online causes the resources to leak - but
++# the unbind should not deadlock.  Instead the driver leaks it with a warning.
 +
-+	/* Already in requested state */
-+	if (data->state == online_type)
-+		return len;
++# This leaves the memory online and the device unbound until reboot, so it runs
++# last and only when explicitly requested.  online_movable only: this test
++# never onlines a public node into a kernel zone.
 +
-+	if (online_type == DAX_KMEM_UNPLUGGED) {
-+		rc = dax_kmem_do_hotremove(dev_dax, data);
-+		if (rc)
-+			return rc;
-+		data->state = DAX_KMEM_UNPLUGGED;
-+		return len;
-+	}
++if [ "${DAX_KMEM_TEST_UNBIND:-}" = 1 ] && [ -w "$DRV/unbind" ]; then
++	set_state unplugged; set_state online_movable
++fi
++if [ "${DAX_KMEM_TEST_UNBIND:-}" = 1 ] && [ "$(get_state)" = online_movable ] &&
++   [ -w "$DRV/unbind" ]; then
++	mt_on=$(memtotal_kb)
++	dmesg -C 2>/dev/null
++	echo "$DAX" > "$DRV/unbind" 2>/dev/null
++	mt_after=$(memtotal_kb)
++	# The leaked "System RAM (kmem)" regions stay in the iomem tree; reading
++	# their names dereferences res_name, which a buggy unbind already freed.
++	# Walk /proc/iomem to provoke that use-after-free (caught by KASAN).
++	cat /proc/iomem > /dev/null 2>&1
++	splat=$(dmesg 2>/dev/null | grep -ciE "KASAN|BUG:|use-after-free|general protection|Oops|refcount_t")
++	if [ "$splat" = 0 ] && [ "$mt_after" -ge "$mt_on" ]; then
++		ktap_test_pass "unbind while online: memory left online, no UAF/oops (MemTotal $mt_on -> $mt_after kB)"
++	else
++		ktap_test_fail "unbind while online regressed: splat=$splat MemTotal $mt_on -> $mt_after kB"
++	fi
++else
++	ktap_test_skip "destructive unbind-while-online test (set DAX_KMEM_TEST_UNBIND=1)"
++fi
 +
-+	/* Onlining is only allowed from the unplugged state. */
-+	if (data->state != DAX_KMEM_UNPLUGGED)
-+		return -EBUSY;
-+
-+	/* Re-acquire resources if previously unplugged, otherwise no-op */
-+	rc = dax_kmem_init_resources(dev_dax, data);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = dax_kmem_do_hotplug(dev_dax, data, online_type);
-+	if (rc < 0) {
-+		/* Total failure, drop the reservations we took. */
-+		dax_kmem_cleanup_resources(dev_dax, data);
-+		return rc;
-+	}
-+
-+	data->state = online_type;
-+	return len;
-+}
-+
- static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- {
- 	struct device *dev = &dev_dax->dev;
-@@ -324,6 +448,8 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 	if (rc < 0)
- 		goto err_reg_mgid;
- 	data->mgid = rc;
-+	data->state = DAX_KMEM_UNPLUGGED;
-+	mutex_init(&data->lock);
- 
- 	dev_set_drvdata(dev, data);
- 
-@@ -334,6 +460,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 	rc = dax_kmem_do_hotplug(dev_dax, data, online_type);
- 	if (rc < 0)
- 		goto err_hotplug;
-+	data->state = online_type;
- 
- 	return 0;
- 
-@@ -352,26 +479,59 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-+/*
-+ * Remove the device's added ranges with remove_memory().
-+ * Unlike the sysfs unplug path it never offlines and fails if the blocks are
-+ * online (-EBUSY), so it is safe from unbind. Failures leak until reboot.
-+ *
-+ * Returns 0 only if every added range was removed.
-+ */
-+static int dax_kmem_remove_ranges(struct dev_dax *dev_dax,
-+				  struct dax_kmem_data *data)
-+{
-+	struct device *dev = &dev_dax->dev;
-+	int i, rc = 0;
-+
-+	for (i = 0; i < dev_dax->nr_range; i++) {
-+		struct range range;
-+
-+		if (!data->res[i] || dax_kmem_range(dev_dax, i, &range))
-+			continue;
-+		if (remove_memory(range.start, range_len(&range))) {
-+			dev_warn(dev, "mapping%d: %#llx-%#llx stuck online until reboot\n",
-+				 i, range.start, range.end);
-+			rc = -EBUSY;
-+			continue;
-+		}
-+		remove_resource(data->res[i]);
-+		kfree(data->res[i]);
-+		data->res[i] = NULL;
-+	}
-+	return rc;
-+}
-+
- static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
- {
--	int success;
- 	int node = dev_dax->target_node;
- 	struct device *dev = &dev_dax->dev;
- 	struct dax_kmem_data *data = dev_get_drvdata(dev);
- 
- 	/*
--	 * We have one shot for removing memory, if some memory blocks were not
--	 * offline prior to calling this function remove_memory() will fail, and
--	 * there is no way to hotremove this memory until reboot because device
--	 * unbind will succeed even if we return failure.
-+	 * Remove every range that is still added.  dax_kmem_remove_ranges()
-+	 * uses remove_memory(), which never offlines: an online block fails
-+	 * with -EBUSY rather than deadlocking an uninterruptible unbind.
-+	 *
-+	 * data->state only tracks daxX.Y/state writes, so it can be stale if
-+	 * blocks were toggled via memoryX/state. Do not trust it here and
-+	 * attempt simply remove_memory() - which reports the true state of
-+	 * each range anyway. Anything left online is leaked until reboot.
- 	 */
--	success = dax_kmem_do_hotremove(dev_dax, data);
--	if (success < dev_dax->nr_range) {
-+	if (dax_kmem_remove_ranges(dev_dax, data)) {
- 		dev_err(dev, "Hotplug regions stuck online until reboot\n");
-+		any_hotremove_failed = true;
- 		return;
- 	}
- 
--	dax_kmem_cleanup_resources(dev_dax, data);
- 	memory_group_unregister(data->mgid);
- 	kfree(data->res_name);
- 	kfree(data);
-@@ -399,10 +559,21 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-+static DEVICE_ATTR_RW(state);
-+
-+static struct attribute *dev_dax_kmem_attrs[] = {
-+	&dev_attr_state.attr,
-+	NULL,
-+};
-+ATTRIBUTE_GROUPS(dev_dax_kmem);
-+
- static struct dax_device_driver device_dax_kmem_driver = {
- 	.probe = dev_dax_kmem_probe,
- 	.remove = dev_dax_kmem_remove,
- 	.type = DAXDRV_KMEM_TYPE,
-+	.drv = {
-+		.dev_groups = dev_dax_kmem_groups,
-+	},
- };
- 
- static int __init dax_kmem_init(void)
++ktap_finished
+diff --git a/tools/testing/selftests/dax/settings b/tools/testing/selftests/dax/settings
+new file mode 100644
+index 0000000000000..ba4d85f74cd6b
+--- /dev/null
++++ b/tools/testing/selftests/dax/settings
+@@ -0,0 +1 @@
++timeout=90
 -- 
 2.53.0-Meta
 
