@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 086F5CA52;
-	Sun, 12 Jul 2026 15:53:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7F3F2594B9;
+	Sun, 12 Jul 2026 15:54:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783871631; cv=none; b=FLVaftAgYgwY6+D28woMzJw7cOL6jgi5yKa6ouzPTJVlWc3NL8PNJW52WGFm2H1bgM2WNrEGTAn7XWN7TVfqR3a/6r/tzIYPjvLOns9pFt5Pc9XfO3ExG96sRSXr2vE2k4OxSOD/d1Lv7UTIkUP6R6g3lELKONvOwb8Efq7w+kk=
+	t=1783871641; cv=none; b=lJ5h76sXOjELvRgSZw69WHcOtvnu8KXa0fX2UMcCFMtvEbfz17eAuGbY2ggvFMTOkhsHwQ3qMyWH8+pOMXU1kIVsDzZGDYK4T1q9MrmEYG+MpungrosPEIYas2vkyGd2kvN3aaEFSTd9vWleBF0PCtJgboRQkP6AUkO95VCKN94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783871631; c=relaxed/simple;
-	bh=3YKlkSqtPR60HZ1ETI8Z2FeZxdkBl55sDIpz+KD73Io=;
+	s=arc-20240116; t=1783871641; c=relaxed/simple;
+	bh=VA5pM9YTYB1O1LYJ8eksuno7RXyL/y7y/YkS2ZMFbKU=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=tjjvtvDJrFmt8vVNkNLp83Z5X/7zxJL067DCMUUW2Qb7rwkRm25i4R0Zlpodyf4ub1I7MTLNwEm7K/JCQWjjc84zSFfQs0Rnm5ibjIL7Bvqu+Vl4clcnoApnqvmBWT0E15UIb5HGa9cVTDlDf7hsVAr8PW+es6mqT1/QPs7gZQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M7D+mCBM; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=BZ+z6725ZSAwRsspWlUs3BuXsUw+vqqedMF9YxgqRVRiS7p2RV/uvZmajamw7FFPeDSmpkdr0/OXq2ALYwRZEETPEoKPqFmTsWQ7POVkWWsnAmZwQeJzFS4Pzb9aPG5vGtHH4Rgp2M9Ge0OpLo2Y1dcnsAe/b2he0BQlx3a6l9s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aBW1fyIs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M7D+mCBM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7294D1F000E9;
-	Sun, 12 Jul 2026 15:53:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aBW1fyIs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D1A91F000E9;
+	Sun, 12 Jul 2026 15:54:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783871629;
-	bh=MM/tUPGZRj8cN6Q77HvuZ7j8DNJZh5gga6PTltZsMAs=;
+	s=k20260515; t=1783871640;
+	bh=9IbvVlOB5gSoINw8GGnbUxxg52nhacJrzrIDBVy2TP0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=M7D+mCBM+QMONsIJ+7m8caOij9polLlIdMU8WIawtecBQ4AaZyi/BXmq+XjXjXMby
-	 SNh+qXn/nfqHw9akFF4nlGvoJ9n+LOByfpswca+AhDxHYutSfI3pCAeL59HTTDd5LP
-	 hWm1DS6Dxl5K2Hhw+yG+Y+3Ynuv247/m43otExP2Uu1DEr0vdygAMpfzWaWqnQkiOO
-	 pbun0vcFoyKoUx/nWK6BLlSzy7UCWX4TjxqoY+7VJJuz/oYWzwfUjoXC5067RqJ14i
-	 beoRyvuR4Azwzof+Pg6aPrU96VlyCj7g27ceWVFEawk8tAYl2o3djyyUOBMNZDs0wf
-	 6FBnTjP4xAoaw==
+	b=aBW1fyIsusJ2TUSq00XTL0b2dmitP8PSk42uTVYDFThT4hn7QxtViwuq+tiChdQxW
+	 PJtSkMjL1q0gdMq9Tqomkz63817NdJ6HZv2qego1LcuITRhDh7HNook3MxuS80TAIC
+	 sSROwu6uOI5WpweygceZJnLhO9WnTmwGs2jTc6HSa8LLVKPrcB8xC7ysdX4LZiY2n1
+	 e0/+tj/isptuXk7SWNDaFabQ7eb7wuOm+TVVws07MvupkzwhUxkFp8khY3oc+BWSjb
+	 492IvBSGOxPcnW0LUNbOjl/pkdPvR8S/dhpUhGo50f56ivNUMzHlKFxRDRnWOfHLK2
+	 f3zjC1WBYHaGw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v7 03/10] mm/memory_hotplug: pass online_type to
- online_memory_block() via arg
+Subject: Re: [PATCH v7 06/10] mm/memory_hotplug: add
+ offline_and_remove_memory_ranges()
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Gregory Price" <gourry@gourry.net>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <20260712154505.3564379-4-gourry@gourry.net>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <20260712154505.3564379-7-gourry@gourry.net>
 References: <20260712154505.3564379-1-gourry@gourry.net>
- <20260712154505.3564379-4-gourry@gourry.net>
+ <20260712154505.3564379-7-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sun, 12 Jul 2026 15:53:49 +0000
-Message-Id: <20260712155349.7294D1F000E9@smtp.kernel.org>
+Date: Sun, 12 Jul 2026 15:53:59 +0000
+Message-Id: <20260712155400.5D1A91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,66 +47,57 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] Incomplete refactoring introduces a TOCTOU race condition where `a=
-dd_memory_resource` uses a stale snapshot of `online_type` but evaluates th=
-e condition using the live `mhp_get_default_online_type()`.
+- [High] offline_and_remove_memory_ranges() silently discards errors from t=
+ry_remove_memory(), falsely returning success and breaking all-or-nothing r=
+ollback semantics.
 --
 
---- Patch [3]: [PATCH v7 03/10] mm/memory_hotplug: pass online_type to onli=
-ne_memory_block() via arg ---
-commit 72fc58e4b65f508d5057e9fe2ec0ff1c08b34e61
+--- Patch [6]: [PATCH v7 06/10] mm/memory_hotplug: add offline_and_remove_m=
+emory_ranges() ---
+commit 5dfae7d4a23ca17c8437f8cb92a4cc3f409e0c37
 Author: Gregory Price <gourry@gourry.net>
 
-mm/memory_hotplug: pass online_type to online_memory_block() via arg
+mm/memory_hotplug: add offline_and_remove_memory_ranges()
 
-Modify online_memory_block() to accept the online type through its arg
-parameter rather than calling mhp_get_default_online_type() internally.
+This commit introduces offline_and_remove_memory_ranges() to handle the
+offlining and removal of multiple memory ranges as a single atomic operation
+under the device hotplug lock. It offlines all blocks first, reverting on
+failure, before attempting to remove them.
 
 > diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 7ac19fab22632..6833208cc17cb 100644
+> index a66346def504b..e33e0f4ae5da1 100644
 > --- a/mm/memory_hotplug.c
 > +++ b/mm/memory_hotplug.c
-> @@ -1494,6 +1496,7 @@ static int create_altmaps_and_memory_blocks(int nid=
-, struct memory_group *group,
->  int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->  {
->  	struct mhp_params params =3D { .pgprot =3D pgprot_mhp(PAGE_KERNEL) };
-> +	enum mmop online_type =3D mhp_get_default_online_type();
->  	enum memblock_flags memblock_flags =3D MEMBLOCK_NONE;
->  	struct memory_group *group =3D NULL;
->  	u64 start, size;
-
 [ ... ]
-
-> @@ -1582,7 +1585,8 @@ int add_memory_resource(int nid, struct resource *r=
-es, mhp_t mhp_flags)
-> =20
->  	/* online pages if requested */
->  	if (mhp_get_default_online_type() !=3D MMOP_OFFLINE)
-> -		walk_memory_blocks(start, size, NULL, online_memory_block);
-> +		walk_memory_blocks(start, size, &online_type,
-> +				   online_memory_block);
+> +int offline_and_remove_memory_ranges(const struct range *ranges,
+> +		unsigned int nr_ranges)
+> +{
+[ ... ]
+> +	/* Phase 2: Remove. This should never fail holding the hotplug lock */
+> +	for (i =3D 0; i < nr_ranges; i++)
+> +		WARN_ON_ONCE(try_remove_memory(ranges[i].start,
+> +					       range_len(&ranges[i])));
 
 [Severity: High]
-Does checking the live state here instead of the cached online_type introdu=
-ce
-a race condition?
+If try_remove_memory() does happen to fail during Phase 2, does wrapping
+it in WARN_ON_ONCE() silently discard the error code?
 
-If a concurrent write to the lockless sysfs attribute
-/sys/devices/system/memory/auto_online_blocks changes the global policy
-from MMOP_OFFLINE to MMOP_ONLINE_MOVABLE while add_memory_resource() is
-executing, this condition could evaluate to true while walk_memory_blocks()
-uses the cached MMOP_OFFLINE value.
+Since rc is not updated here, offline_and_remove_memory_ranges() would
+return 0 (success) to the caller even if the removal failed.
 
-Because the condition uses the live value, but walk_memory_blocks() uses the
-cached online_type, could memory_subsys_online() treat MMOP_OFFLINE as an
-unconfigured request and forcefully overwrite it to MMOP_ONLINE?
+Could this mislead the calling driver into freeing its device structures,
+leaving the kernel's memory subsystem with stale references to unremoved
+memory blocks?
 
-This would result in memory being onlined into the un-removable ZONE_NORMAL
-kernel zone instead of being left offline or onlined into ZONE_MOVABLE. This
-pins the memory permanently and prevents memory hot-unplug, leading to
-resource stranding in virtualized environments.
+> +
+> +out_unlock:
+>  	unlock_device_hotplug();
+> =20
+>  	kfree(online_types);
+>  	return rc;
+>  }
+> +EXPORT_SYMBOL_GPL(offline_and_remove_memory_ranges);
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260712154505.3564=
-379-1-gourry@gourry.net?part=3D3
+379-1-gourry@gourry.net?part=3D6
