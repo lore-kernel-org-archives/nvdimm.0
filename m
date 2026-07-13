@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22F3634A3BF;
-	Mon, 13 Jul 2026 18:05:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8786310784;
+	Mon, 13 Jul 2026 18:06:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783965944; cv=none; b=HWyZ4gDn3uZ0H00j/QkH9w5Z+F3XBdH63tRbr5/TF7/qtRfFWqlgU5hlEfyyiwfh2hEz0itNFfEcp29wNAD90cMfxjhW5g7ua/zOObnMD5kRnnMQ/AoDF+btgRZ63gbMPPx6rGPdJ0D44IGaw2nS3pzGmlWkjB1pUNsVavldfmQ=
+	t=1783966005; cv=none; b=GrTNT0RNiqOWi1P1A6Bda3ordRTg/yD1+I+/ykXfOE/QupsSjAJ391a6Fb6tGJSkdgeKurzvlHLJ1euc36pQCErlxlvkMW7RAxQS9ONLOOIlGTd9L4DR8KkFm3rBLekW6Lx/837NjisEoglE9hsHRU9ePyJgHF5WTMRHQDSiXfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783965944; c=relaxed/simple;
-	bh=AjPwzPY/QCtTw48qOdJtK62It+FfMZvmO1cESa3pWO8=;
+	s=arc-20240116; t=1783966005; c=relaxed/simple;
+	bh=GucAiGtHL9FCvc4aVDJHA/2hw1a6v512HKeJ2hlnx+E=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Y5hjPGZj5DQWUahPGdXxR4rfcPakAQBHQZv2aIPoSj5fA91sEOFiIoGJaQDmkO04tcY1+fOihZBl3XdqMYwEH06kwh2ofx26D1NpVX8RvglsO6raRMkSn+boXJLYhayPIzKx4nE0yjGNySca1ygGESxV7pPrl7dKJSpZpbDqflc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KwXEInQr; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=O9Om36o06Slw2CdEDg0zH6XJ7dC7OvP/JvK2GGK4ACY/j8nC30idGwg/ZeUngZM+5Z3bnv8sU3vfXOUDr29Uyu71qgMDFL8CEVwvNuTwTo7puoyb0K09t4S1aZyOdbQhIhWXhxX5Wb33CY9yNzvCkDaDeBjVm74EtDfWUaeTq1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h0Yb9LAX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KwXEInQr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48A8A1F000E9;
-	Mon, 13 Jul 2026 18:05:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h0Yb9LAX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 885671F000E9;
+	Mon, 13 Jul 2026 18:06:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783965943;
-	bh=k2MgrObgM64l1ZjDbJO2cw/0a4Iyq+Iwo0UheA/Xr/I=;
+	s=k20260515; t=1783966004;
+	bh=3RLaMYvaEZ6QnNNOQ5RKz5D3WUNa/mhzvYyboPZe8p0=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=KwXEInQrb7oMt+dwOL3BjH1h7Sqp4XhyEnBSS2sus451huRc3vnzlJFtCVbyUvHFv
-	 vWs5roWhQP9iuCUS7kyJrAu2FFkx19iRGOUfwcs3JrOl0rnEctVVRUUajPe2JbvEJU
-	 vHIPj+McM3SSvFM3jWccX/EZaNXIDsWShHJ8n96ulvuxGCMrbAPPNNbowOD+8ehvlo
-	 8/vn7kQkHcnsEm/7FGn26hD4P4ZtebIJy8Y367DKte07gYnKIgM3+yDYQ1tHG9xFWs
-	 6OXT08glYLK+/R2vFfHSbatu3KypcUWvsZqSLM/cNUwMzRSSUorAKmZw5iK3AwErV3
-	 MVthkpxh+wHuA==
-Message-ID: <95b0bee1-92c3-491a-8511-46f76b94a7ed@kernel.org>
-Date: Mon, 13 Jul 2026 20:05:19 +0200
+	b=h0Yb9LAXeOujn96l8cLyS9mH/iSvd0ZFm49X++VDgksIF19qL9j3vPomORDGY3lRZ
+	 IBH8CX/gO5kDDLaz9qdQr91Lrb4crBu0R3rOnHG/JYHW7JqGKoNGLI0OCIQRUf5zq7
+	 R+VYdDsBatBzzs4WE0Gwl0qbGzjJLnpE79+seQscQbgnPslB1IqVhEuavZMzRyu1f4
+	 ZWb1CaCwSeWlxPvH2HsKrP2D1h4TIHsyUaF5mUxUHMMMChq03vgbmwukKr2m1ROH4R
+	 2nlqNXtoZtyqxON4ZV3HpHqtJq8VaRUdO916AYrbhFWXxvVRl7YtNTjIzQJJINRsc2
+	 QCHY2kTZaeveQ==
+Message-ID: <c9c51ce7-b560-44f3-a50a-75b4538c2642@kernel.org>
+Date: Mon, 13 Jul 2026 20:06:19 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 10/33] mm/rmap: rename anon_vma_interval_tree_*()
- params and use pgoff_t
+Subject: Re: [PATCH v2 11/33] mm/rmap: rename anon_vma_interval_tree_*() to
+ anon_rmap_tree_*()
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-10-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-11-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,16 +154,13 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-10-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-11-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> Rename parameters used by anon_vma_interval_tree_*() functions: 'node' to
-> 'avc', 'start/first' to 'pgoff_start', and 'last' to 'pgoff_last' to make
-> clear what is being passed.
-> 
-> Also, express page offsets in terms of pgoff_t to be consistent.
+> To be consistent with the newly renamed mapping_rmap_tree_*(), rename the
+> anon_vma_interval_tree_*() helpers to anon_rmap_tree_*().
 > 
 > No functional change intended.
 > 
