@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2880C233927;
-	Mon, 13 Jul 2026 17:59:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB0C332FA2C;
+	Mon, 13 Jul 2026 18:03:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783965586; cv=none; b=BWYj7Gmh/YeyRLCvs9fcYfDTDRZURcSah9YW/4rr3PEpM9oEOrqyD9uF/1jg0j76ZJWK55+YOTCrxo69+xe/vzD7dVYY9ZkJ5c91ydDIkQoMk9uzkeg53pBAtDQsgMG+bun8CrcIYGig9x4S0C5kUju38zTS9cL5BLXIgH+NeHE=
+	t=1783965807; cv=none; b=F70/AJHE8B7YbxVjbF1SlegvXTCm1OCc25Yf3na5s6qhXR59dc/TyFnrvH6qqoLOANC4HdKG/CrsnwsCqwFYXzSbzXd7lJLoRHTddvZZXdpRsQTHw38oZgMVrEjqXR66a5uHq0Eo48SySdi+9vctwBO7x0gAmJFYC9R0yFa50Fk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783965586; c=relaxed/simple;
-	bh=0A/Hv0R85Do0HhpYJuF180LGVaOcd3mcMUHfGex9u1c=;
+	s=arc-20240116; t=1783965807; c=relaxed/simple;
+	bh=or5DclsoAVb8cKH0nUro3biAphWlmZ1XB0zUMx4BEf4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GL2IeOaZJO4Piue26BGAUJ07A/W1BvB88CJYHUBEVFnhn+vl6oCnMf8Qen5dNzAOyu83VNa0wqelTB5p2cMOI+EEbSoiRlpemtbyHFLiSHapclKrMn7WC0k9WKstMX0StmIluoqZ4orHppdDOjlTfgooIUYjJpHUvpPkOLlhRkk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K7BuXF36; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=pmyCPQ0w/4B/KvMIkSU7lkIHbi3CUAXC47A4zv8eFjdP/FofR1jM40HOiuwnbFT6W5eoT7c1TinX301HZzXSPB3v1BcmHCwzYQjhrzKkOKX/sFxmENqNXy9a2+TXsJxh/kuwlziJir21N13OlQXTK6BoJNkx3ufArVn+02RT64E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ufuflhr4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K7BuXF36"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BDDF1F00A3A;
-	Mon, 13 Jul 2026 17:59:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ufuflhr4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F8081F000E9;
+	Mon, 13 Jul 2026 18:03:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783965585;
-	bh=PYvgaKF+lNQasv/wb3uzhUgLVtPhLyGMvnl75+AOHGI=;
+	s=k20260515; t=1783965806;
+	bh=HnOQHMd1q2gBvrGcRAVJ7qgBmhQ295/ZKWHRuFjKzK8=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=K7BuXF36OkYrZckYedtoDXpC45usOaiMXXp48pArsJzL8ynFf9YVuQSRcLkffbf1v
-	 k4BSU0QintjGc16WhtGfqpni4DMk9w87G241IxY3EOiJuKdiga19Rf+cARcHnJ3PNn
-	 T4LYEPcgBncSjVZCoJmYQyjqGeo/bzWqdUTRrHnV1kB/+N30sV1AFh7RPSY1PwzVtd
-	 sq0jE34LcALjEuYQqVbuJ0p4D4cKbyBwW5Z7V9K/tjpTptYIEebrNU/atmR32JclK2
-	 WvJfSROMS6QJitAG1liEPWSC8pTk9MeWkCCKcLLOeo0X9UEiGZOHp8Ng6kePDfnVxG
-	 Of6QbsC4EvY5g==
-Message-ID: <da145e1e-95e2-4eb5-be18-fdac20101987@kernel.org>
-Date: Mon, 13 Jul 2026 19:59:21 +0200
+	b=Ufuflhr4mkff5rR70hwjRD3ujGc2B7bbJMEUQKk1nPLZrVVw/VZxsCVIBPEa1uqwa
+	 n4fXm1r7IwT1igW1zS91UJAEXWW1bEdN9xo9W2fRw2R/XpmmoesHRb7qaqKhL7g+NJ
+	 ERyHz61/ZqG9hnt7PuXg5swBg7oikC0PZsQVeMl1WYeaLdjAZrojY7I8+i3kJHCu3K
+	 /s1zFdEwfI39wpFqBY3Ppfyiy8OS6t5WUoTotJikCgimW2gCxYTT2+qfjmqOGuUHHT
+	 SnpaEwy0PULahojeEPKgv9wUrKLKsb2gm+rYzUwZyLMTkQkti1Yta7n0+DK+iR8j61
+	 MKq3vptKlBlrw==
+Message-ID: <b970d3fd-8528-4dfb-8428-1ecd9db5fcc2@kernel.org>
+Date: Mon, 13 Jul 2026 20:03:02 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 07/33] mm/rmap: elide unnecessary static inline's in
- interval_tree.c
+Subject: Re: [PATCH v2 08/33] mm/rmap: rename vma_interval_tree_*() to
+ mapping_rmap_tree_*()
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-7-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-8-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,20 +154,29 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-7-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-8-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> It's not necessary to declare these functions static inline as they are
-> contained within a single compilation unit.
+> The family of vma_interval_tree_() functions manipulate the
+> address_space (which, of course, is generally referred to as 'mapping')
+> reverse mapping, but are named the 'VMA' interval tree.
 > 
-> This makes the anonymous interval tree code consistent with the newly
-> updated file-backed interval tree code.
+> VMAs may be mapped by an anon_vma, an address_space, or both. Therefore
+> calling the mapping interval tree a 'VMA' interval tree is rather
+> confusing.
+> 
+> This is also inconsistent with the anon_vma_interval_tree_*() functions
+> which explicitly reference the rmap object to which they pertain.
+> 
+> Rename the vma_interval_tree_*() functions to mapping_rmap_tree_*() to
+> correct this.
+> 
+> We will rename the anon rmap functions similarly in a subsequent patch.
 > 
 > No functional change intended.
 > 
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > Reviewed-by: Gregory Price <gourry@gourry.net>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
