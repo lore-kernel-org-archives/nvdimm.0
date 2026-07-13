@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD14734D4F9;
-	Mon, 13 Jul 2026 18:04:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22F3634A3BF;
+	Mon, 13 Jul 2026 18:05:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783965871; cv=none; b=CfgzZ85t4OstHwLYzOv9nWYHI79M3hde2E80/y4SeBqHNweKKgCj3FnCUIEpof/NrP4NY5fdn32DiS+7IVdkbJ/zQOf768krOFA2n9DBoJEKFT2cuTM5Y4LMiyWgyvV7Wrv70V5nOItT9CozJJoJZbApRqUZwDGvbeqqmAOcgHs=
+	t=1783965944; cv=none; b=HWyZ4gDn3uZ0H00j/QkH9w5Z+F3XBdH63tRbr5/TF7/qtRfFWqlgU5hlEfyyiwfh2hEz0itNFfEcp29wNAD90cMfxjhW5g7ua/zOObnMD5kRnnMQ/AoDF+btgRZ63gbMPPx6rGPdJ0D44IGaw2nS3pzGmlWkjB1pUNsVavldfmQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783965871; c=relaxed/simple;
-	bh=Qn9pOwYN6faEB8ECz/bJr4+A8sU3NaU9qFlDD9gdJ2U=;
+	s=arc-20240116; t=1783965944; c=relaxed/simple;
+	bh=AjPwzPY/QCtTw48qOdJtK62It+FfMZvmO1cESa3pWO8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=EQCsiZ1KQGvJbAngK68ISNsQqL/RyACdJ0VXfMpjc/ONxruY+KSL1YZ3zt+BBcPk1WEaHXK1fEzLrNNAe7wZ6MZCR5JcgjtDkMMiuDYKEpkcJ2NN+gVvDg7eJK5jXJUGTVP+zUh7TOX75rg9Se8qdBlXH/7gRUuc115K1OVuXso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WObRFMeZ; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=Y5hjPGZj5DQWUahPGdXxR4rfcPakAQBHQZv2aIPoSj5fA91sEOFiIoGJaQDmkO04tcY1+fOihZBl3XdqMYwEH06kwh2ofx26D1NpVX8RvglsO6raRMkSn+boXJLYhayPIzKx4nE0yjGNySca1ygGESxV7pPrl7dKJSpZpbDqflc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KwXEInQr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WObRFMeZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA2E41F00AC4;
-	Mon, 13 Jul 2026 18:04:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KwXEInQr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48A8A1F000E9;
+	Mon, 13 Jul 2026 18:05:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783965870;
-	bh=IVzgcSLpk1lNY4vlJOoUApJQMGMtLRbw+pW7mx+iUt8=;
+	s=k20260515; t=1783965943;
+	bh=k2MgrObgM64l1ZjDbJO2cw/0a4Iyq+Iwo0UheA/Xr/I=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=WObRFMeZt93YAr3gbRXGBQboaKO6A4Z9t80jsX5xCO67FAxrWa0mFSVDOb8Y59ww/
-	 6gma9HEG7FN7s6rwiObe6i5LS1ssmy92x4ZvTADdBh0pcYTa5JorqWlDhuusbpLMIp
-	 fJRa4mK5FeXYrp7Wj3Cra08rYseTkjjz9MdOq4prdAagRuGNzvgdVn1QvpI1hVUC7R
-	 844Be/VIauKgmZtKz/5+mS3DZRu9b53ulZSJvTlTd7v8UmqDuhfmpCpLX52F449fPJ
-	 hX2E6Hpr+zGwq1id6vNXzsLy4c21enQtBG6FPKsdEkkM75J/cIhocSXyScoIIVZTjM
-	 6WUUzno9Z6rHA==
-Message-ID: <d500b09c-5adf-40fe-be84-36297f449a34@kernel.org>
-Date: Mon, 13 Jul 2026 20:04:07 +0200
+	b=KwXEInQrb7oMt+dwOL3BjH1h7Sqp4XhyEnBSS2sus451huRc3vnzlJFtCVbyUvHFv
+	 vWs5roWhQP9iuCUS7kyJrAu2FFkx19iRGOUfwcs3JrOl0rnEctVVRUUajPe2JbvEJU
+	 vHIPj+McM3SSvFM3jWccX/EZaNXIDsWShHJ8n96ulvuxGCMrbAPPNNbowOD+8ehvlo
+	 8/vn7kQkHcnsEm/7FGn26hD4P4ZtebIJy8Y367DKte07gYnKIgM3+yDYQ1tHG9xFWs
+	 6OXT08glYLK+/R2vFfHSbatu3KypcUWvsZqSLM/cNUwMzRSSUorAKmZw5iK3AwErV3
+	 MVthkpxh+wHuA==
+Message-ID: <95b0bee1-92c3-491a-8511-46f76b94a7ed@kernel.org>
+Date: Mon, 13 Jul 2026 20:05:19 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 09/33] mm/rmap: parameterise anon_vma_interval_tree_*()
- by anon_vma
+Subject: Re: [PATCH v2 10/33] mm/rmap: rename anon_vma_interval_tree_*()
+ params and use pgoff_t
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-9-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-10-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,22 +154,19 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-9-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-10-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> Similar to what we did with mapping_rmap_tree*(), let's declare
-> anon_vma_interval_tree*() in terms of anon_vma rather than rb_root_cached.
+> Rename parameters used by anon_vma_interval_tree_*() functions: 'node' to
+> 'avc', 'start/first' to 'pgoff_start', and 'last' to 'pgoff_last' to make
+> clear what is being passed.
 > 
-> In each case the rb tree referenced is &anon_vma->rb_root, so just pass
-> anon_vma and the functions can figure this out themselves.
-> 
-> Also update the VMA userland tests to reflect the change.
+> Also, express page offsets in terms of pgoff_t to be consistent.
 > 
 > No functional change intended.
 > 
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
