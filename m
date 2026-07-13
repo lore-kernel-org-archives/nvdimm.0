@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19FE8233927;
-	Mon, 13 Jul 2026 17:48:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D3A233927;
+	Mon, 13 Jul 2026 17:57:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783964925; cv=none; b=fmBowfq6WMTlDLVwpD5R0l+Wr19+F3S8pJ4hNbx/c7MKUqGwzRbJ5rQRgFSXLKUKL6LOKscin63KyIDMBXG1t0rmIPsPRb0fmZpvH18qC3b/iCXp5kvPZQb+AFwGKJRJ1jbY2Fo3cYIV4MF4BDiGkoKmmEgc00crkYD+kdJKsu0=
+	t=1783965439; cv=none; b=iYd1xi95YbsH//R5fL6aXR3x5wSz8wDdHU4uwLmFLL1idI0UJX+gWbnQZFuCOFPMTTlM11Miarle0T3NOyBvUHh/FGZXrEAX1FKcWBEkZ/eNjjUzryyFbYk5ax0FLKd1W+N8Tv05uOZIHW+ydT84S/ElFj8/2hSqZVvzqPYiw04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783964925; c=relaxed/simple;
-	bh=elswOXGENSE02bniFB//+4GpuTocS2Nq9a4KJ9VylI0=;
+	s=arc-20240116; t=1783965439; c=relaxed/simple;
+	bh=DaxHaMM/p2JuXmc9+5/O65npCpNP0Nxga/n7kWt8aaE=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HDpvgmUPvW3aOqfZC9+9mQ7KQA1eH2u4il4ayGkq/DectA+IY8EQnd1gmU/wkZb7Opq8IwgJ2f7Pke5kk71weXNsU0ADvbDX0vI5cUvjPqlSRgO7UqHpiP42inICvQ/5VMUjf3M5eLP6DDqqU2xd4oiKik8ZSN5/nyodJntNW6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=onjxB++n; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=K0Zgnq+MAYbdGhdhkurVVhKIZvhlx+hy6+oCrqC+sAQTWy5kZi+GmY0iSQz7YxEareoNcWXY4tbhKEePEDyjT6KfK8FwMDZBC1qmBe/YjOogL7ubfJxG4+liaV5wNgrJIMv5dt0dByM/gNBMEmJv9eHdeEUyY1nkNRwpy6Bc0Ow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X1O+yElX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="onjxB++n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827251F000E9;
-	Mon, 13 Jul 2026 17:48:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X1O+yElX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC8F1F000E9;
+	Mon, 13 Jul 2026 17:56:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783964923;
-	bh=eqsaQhz+Tm8HgoxeGaT5sBOLtHmA3ZLHG5CTvOWZ77w=;
+	s=k20260515; t=1783965437;
+	bh=pO9VCK4bbjDr/iFXBBe32IJs4DHT4WfrCqDsR2JO1ds=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=onjxB++nlQDm7gMhTfmaNQDGH/rqBSYbLzfVEPq1lS1OhWdb6CrePXw7aLeTLGo0M
-	 pB+hJukV545xwSzfacCs6+xpPSowS++yQcA3kxVja2GEZejGL+Hf0WxMqbxsDeOECk
-	 UdHMAgyb07hAwBRvraqJw/dg9AeSA04LDY2AQwPOWSaAv5NIULkVGuWTgoHQOKjcws
-	 4tB7saNVwm9kU+nEYLQQmup00N7S4iEjniDnAmshu1Fop9Y+D7SzuW9SN/bp2Dc/iR
-	 UQQknMV48nrRokvLe9ipKdqqYp8uAlzqLTw1pQ+E9E6C7IvEIujYOTr3MYFQkIyYDN
-	 RQbf9q/HFuDdg==
-Message-ID: <8f3c1451-1b49-473a-b060-a8b95b2d44b4@kernel.org>
-Date: Mon, 13 Jul 2026 19:48:18 +0200
+	b=X1O+yElX0zld1QItxjIAp/yc7z2vmaIPA/t09/JNbxUWZPTgMzSsQ21a1/R+/3SMp
+	 E9a1CA+/9+umIQL+HO90uHt+NaXZlLspEOXvJQ8wyiiCIJxIy4irZ9MyYK1uzCBoLb
+	 W4WuODTQwX7+Uozt9DisJMQLjV4tz8PgqBbeXTcrCbclLjRaOE02ZcLzHFiSbBhliA
+	 31uPjovjwAbHbumZPx2qDvqNRI9rdc1ZuElMLd8H+2P9+WHvjV1sML74DbwQXnHJ+F
+	 37C8dHi2/yVpLHr4TULJpSm+4QTnCovaX5pw/Sn5C8HjSZphkJCRDvwtRpi1SZp1Jj
+	 l02Cf2xcAprAQ==
+Message-ID: <e08fabfb-f3dc-442a-8491-fe4ab1f33b58@kernel.org>
+Date: Mon, 13 Jul 2026 19:56:52 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 05/33] mm/rmap: update mm/interval_tree.c comments
+Subject: Re: [PATCH v2 06/33] mm/rmap: parameterise vma_interval_tree_*() by
+ address_space
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -112,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-5-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-6-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -153,68 +154,37 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-5-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-6-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> Update the file comment to clarify that both file-backed and anonymous
-> interval trees are provided, referencing the relevant data types for
-> clarity.
+> The file-backed mapping interval tree functions vma_interval_tree_*()
+> accept a raw rb_root_cached pointer to determine the tree in which they are
+> operating.
 > 
-> Also add comments to indicate which parts of the file apply to each.
+> However, in each case, this is always associated with an address_space data
+> type.
 > 
-> While we're here, convert the VM_BUG_ON_VMA() to VM_WARN_ON_ONCE_VMA().
+> So simply pass a pointer to that instead to simplify the code, and more
+> clearly differentiate between these operations and those concerning
+> anonymous mappings.
+> 
+> While we're here, make the generated interval tree functions static as they
+> do not need to be used externally (any previously existing external users
+> have now been removed).
+> 
+> We also rename VMA parameters from 'node' to 'vma' as calling this a node
+> is simply confusing, update the input index types to pgoff_t since they
+> reference page offsets and rename the parameters to pgoff_start and
+> pgoff_last.
+> 
+> No functional change intended.
 > 
 > Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > Reviewed-by: Gregory Price <gourry@gourry.net>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
+Nice.
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-
-> ---
->  mm/interval_tree.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/mm/interval_tree.c b/mm/interval_tree.c
-> index 344d1f5946c7..2d50bc6228c4 100644
-> --- a/mm/interval_tree.c
-> +++ b/mm/interval_tree.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0-only
->  /*
-> - * mm/interval_tree.c - interval tree for mapping->i_mmap
-> + * mm/interval_tree.c - interval tree for address_space->i_mmap and
-> + * anon_vma->rb_root
->   *
->   * Copyright (C) 2012, Michel Lespinasse <walken@google.com>
->   */
-> @@ -10,6 +11,8 @@
->  #include <linux/rmap.h>
->  #include <linux/interval_tree_generic.h>
->  
-> +/* File-backed interval tree (address_space->i_mmap) */
-> +
->  INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.rb,
->  		     unsigned long, shared.rb_subtree_last,
->  		     vma_start_pgoff, vma_last_pgoff, /* empty */, vma_interval_tree)
-> @@ -23,7 +26,7 @@ void vma_interval_tree_insert_after(struct vm_area_struct *node,
->  	struct vm_area_struct *parent;
->  	unsigned long last = vma_last_pgoff(node);
->  
-> -	VM_BUG_ON_VMA(vma_start_pgoff(node) != vma_start_pgoff(prev), node);
-> +	VM_WARN_ON_ONCE_VMA(vma_start_pgoff(node) != vma_start_pgoff(prev), node);
->  
->  	if (!prev->shared.rb.rb_right) {
->  		parent = prev;
-> @@ -48,6 +51,8 @@ void vma_interval_tree_insert_after(struct vm_area_struct *node,
->  			    &vma_interval_tree_augment);
->  }
->  
-> +/* Anonymous interval tree (anon_vma->rb_root) */
-> +
->  static inline unsigned long avc_start_pgoff(struct anon_vma_chain *avc)
->  {
->  	return vma_start_pgoff(avc->vma);
-> 
 
