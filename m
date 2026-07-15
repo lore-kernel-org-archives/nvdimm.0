@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD5A22848A7;
-	Wed, 15 Jul 2026 16:45:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 353CA4963C1;
+	Wed, 15 Jul 2026 17:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784133919; cv=none; b=lTk9pSxYvDoKCBUH9FOs28OGFlcqbm1gAwRNrDl8JL8z7f31KYbliAqv7/vAb4c7LcE/Kc2LHqrIL2VTcs6Zjr0C0p3S8sLlUOb66wxV/G5oYnXIu0rrhiHx7dnCYXm7zoSBYFN2aNdX6Cq9jivQciH40UGc3XRRRBanl/hsznw=
+	t=1784136511; cv=none; b=hbXxcBooSeFercS45KXf+qv0asLO67vJl11ZuEV62wOCBp4TceREVDs8hrNYtUnUQOJ7eAhQVb/MDaWbbAAvky4ms5c11/goG+dxwuk7lfhoDk/dRM85L1X4svTkUoWzBmfdPnr4t5XsCwkHeSeDiQ0uSUwagCn7AS9VyD1snO4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784133919; c=relaxed/simple;
-	bh=lQj6MZcyZZytj/yie0erSueVdQw7h/KUjazktgLdxmY=;
+	s=arc-20240116; t=1784136511; c=relaxed/simple;
+	bh=6WovLBfixR14lz0kMpEmd77fftIxYkStMQaClyuMAEo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=u7Hsgwd+SKqbAuVEgRUb/TicnAEK42LLfzjkYTtvtWS3TCE0E//YYw8yvkVVlq+voMCZ/C5BDoyv7p11/vVqyJzDV/uO5Q9qwKAV/BDl5Eon3PvifvWbjxBnasLC0Ysu/5Wgf0O+DvUskXGvRx7U7/gjmMZSim3mkKbZ/2XAKsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fF51j381; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=plOLSH5DjEMH8f0u5rZzKU9Q7zLnoV5u5/ba7EhnVjfdRTGvsIuO9+VZJUWyY4MO0MLg94RlyVowFlXIQ5MwhDj4Ib6qsTRiyKPortqXkSxOKcFCWt67QbDyifvj3hgDZuLyFmGDmCZRa8CZ665O2Q0ogaRSOzt6NImwJOjmrjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YgDnipMK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fF51j381"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23D91F000E9;
-	Wed, 15 Jul 2026 16:44:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YgDnipMK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 510621F000E9;
+	Wed, 15 Jul 2026 17:28:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784133917;
-	bh=RV6t17XzcXK7hDius+P4ap3Hxy2iOJYEZB5njvjZ5fs=;
+	s=k20260515; t=1784136505;
+	bh=yHWStHru8HkMHnXA70eivNeP0TUQLXilHTpPmDY1vwc=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=fF51j3812qhu7tXk8sO7p0qRFeZnT0zcm+NTY+3Ll6Ses01BSCXc2/m183XQU73O0
-	 gWNlFD6kXTJCsr1gt+EXL5TZow7GMfu0uw6vX5wVNSbBnS0aHCNkALtfD+CAKAVpP9
-	 7QKeRkV5f63I3azlBivhFbZliFsBiX0dQUZoxwiyHwnyRi+MhaAnFote5zPICBo03y
-	 JnKokaCoLx8QGcPcy8xAObNy0I08PMEl0Zb7lYpiUZFwDJj5zi0xigkOH8W5foTbcM
-	 3xQ/NFTiylIGvv0yuMkDKSp5tMU3PvVtkGS8nNdhJ30p0ilbfdPs43/NbvFb9WUOQm
-	 UNK0weh72BD2A==
-Message-ID: <c455808b-0891-45c6-a716-41b19ca103d9@kernel.org>
-Date: Wed, 15 Jul 2026 18:44:49 +0200
+	b=YgDnipMKxEbf1h/N/L2iU3jIjviNesSjHguylh5vNGCSyn7JDlbl8f8/hqe0eoXK1
+	 JPBNOehVyi0jsLYaE1N237I89/zC0TkjsZkRNakVvLHnsYhZPd5j8JnvAs1k4QZIUb
+	 Cry5BgUBnfBM5XZ1In8aj19Wcr1cH891VOGxIxlM3jB+Q6gP3365fiLjFdC0wXWHuB
+	 nlPIVTt3S1mhooUVePij3jT5R3XIuSwXYmcSMzN2t0Kj0cmjKQ4+IOfZCkjng0TVuo
+	 N/1KV3jAIpGuKxZDU3P3FHqMlE909NlJIaNlch9zDmj9TkW+UcvhyguRwDZVF7vM48
+	 VSKNHKxT8S0Zg==
+Message-ID: <aab69bfe-41a6-4616-9a6f-d93a446781b2@kernel.org>
+Date: Wed, 15 Jul 2026 19:28:00 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 19/33] mm: prefer vma_[start,end]_pgoff() to
- vma->vm_pgoff in kernel/
+Subject: Re: [PATCH v2 20/33] mm/vma: remove duplicative vma_pgoff_offset()
+ helper
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-19-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-20-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,23 +154,20 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-19-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-20-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> Be consistent in using vma_start_pgoff() and vma_end_pgoff(), which clearly
-> indicates which part of the VMA the page offset refers to and aids
-> greppability.
+> This is doing what linear_page_index() does, so eliminate it and replace it
+> with linear_page_index().
 > 
-> This is part of a broader series laying the ground to provide a virtual
-> page offset for MAP_PRIVATE-file backed anon folios.
+> Update the VMA userland tests to reflect this change.
 > 
 > No functional change intended.
 > 
-> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> # for kernel/dma
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > Reviewed-by: Gregory Price <gourry@gourry.net>
-> Acked-by: Pedro Falcato <pfalcato@suse.de>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
