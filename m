@@ -1,283 +1,112 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42203335064
-	for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 21:31:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB6DD3CAE69
+	for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 23:09:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784151112; cv=none; b=d7SG11y5YfFTPu7uThwALarMcyj4d7I5t+VuYqOcUPK/OMHnD/Jr9u3PLJ8Gol5rIZvbsemWrIzG+cLbgLyIiiHkwJ6EGWq/89irV6NITowzktRcw9sioDSP7jHxM8Ig85hOBjo1gpr0WBq2ldl9bICm/B0HclVd2eyWp+wI3+U=
+	t=1784156956; cv=none; b=E54DvMcqfNChkA7i+RZPCnwZRI5r0/OFVuhqNsVqvZc+DK7Q9Ii2W2U7Mz63rDUcHosDi5ij4GR/+f3vdq0fGZJ+uDOINVU30zBW2MpCuElwnX+B3lHW/tNlKtEziLvymOTAdg6mdDHsDFu04DyUPVqJ3brgVXt5pWietLHZH7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784151112; c=relaxed/simple;
-	bh=7QTPVpJJhfGFyRYBrsLIJeplcw7EovnGQvuPkXS/zD0=;
+	s=arc-20240116; t=1784156956; c=relaxed/simple;
+	bh=0NFG4Ww2jSroHmWiUivePZxK2XpVdq/qHaQxr1Q7fsY=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=a7odDbeinSuMKu5te/zkXcgYzS9mXZAWs8JNYNWywha0n7QcG/RAIOuPDqo6PtmZnS23jpoa/jax7BTqVd5zLAS3JnvLPIJBjSiFwPRrexhJgm29vAijxI3Mh2yv1WUtmOnvCBR24cxdPweljzpbl6FmUG/jju9y7jZskfVxPEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qKzkDq0U; arc=none smtp.client-ip=209.85.210.181
+	 Content-Type:Content-Disposition:In-Reply-To; b=glsSiWQVERXFUJHU4vXjcA/SxI4MMevrbRgltyR21nlEA9sTdTJOwp/+kmtNg+HXIZYF0zgcN0D/8eLyr7PCxitWoPQj4EIWhGzTIu/N+dDPNPNxN4mijQpEzwo4BQE0IJzHPvfgE1RdHLZBL0DmQIkrsX+h6H44W5cWLI0fx/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=frZbSgGe; arc=none smtp.client-ip=209.85.216.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qKzkDq0U"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-8486ac3f347so1172028b3a.1
-        for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 14:31:51 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="frZbSgGe"
+Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-38deea72eebso3937738a91.1
+        for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 16:09:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784151110; x=1784755910; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=RkllprxknGgtsAUtKcMYlWZnTeNJpDATGUEaLC+fkyk=;
-        b=qKzkDq0U4RJAL8KmW/edyTKRStCAOWJ+tSWbt6SnIidn8WMql7pDjvaE5IrWrNZDWM
-         uIZV16owbjrXIMSYwUgWfGQ9m3miwnrfs9XTkrY+i6M3NezNYU6X5gAtWfCvMaegmKC6
-         wo50iIekAi2qe7H36/oayqRSeAbMdDfXAGWACC04GS7DmxY2F8W1pWwUOUKUaAdkvBHi
-         VHJgCzZO/0lulM82wv0nsUnbGkFQ3J5JbmFVaCoK3V9pGZMayIZjZzTAgF83fHlmG2Ll
-         ZF3gunZvBsljEBS5bZDxd96zG7L+BjegPb31Q7QSwTo0PlFNAIBHWYUOGrLwtfZPHvt8
-         EKJw==
+        d=gmail.com; s=20251104; t=1784156954; x=1784761754; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:date
+         :from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ElxrIYjyBDIOHQflkE/kwut9Q3GwTe8Bx9Dw1cR1MdI=;
+        b=frZbSgGezYfjDKnsz7YrWnwjFJsQHvWvv6vubfgvPIr10AZ3beC7wOVIwdpY3aZCla
+         8VsOnRo34jDiB2xOP8exRkc9rH9MvVSq0sqNTjL6KLIbd0OaZsYbbc1u3pPPePAundK1
+         tECZS/ePfzZX1Imq2ofAK5WNuyqhVmP6fTiOtNQrEtmWoFPlJylLwmdkTX+YuPpLmdmA
+         BTIJm5vkBe1t4vd1SSjHmVPDM/ekn2sCgPb8Bfgz5JrUPPm9Ea8WnY3m/xSHKwdYawHE
+         ETHfkvME/J/Qy/dVRUbUQr3KiTHU50ddvCVsb7JJU50pgtlh5lTHEjoIAZF5JW52ToXx
+         sbXg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784151111; x=1784755911;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RkllprxknGgtsAUtKcMYlWZnTeNJpDATGUEaLC+fkyk=;
-        b=NQFKbA8j+wB0YCMxBa3Hq/vVrscrku3OAvPWif4hu0I8qzslPOSDruvnhb8zsNiW2O
-         zVaVcQ6MnLzGUTLOETpTCIWggCQjpHjBdGYRRItUUz1t+fs3n2ahck3yc8D59qJkdcdQ
-         E9LZ4hUIB5FiV5ZJvZbm3SJRnm0VxNzhRDys0Vm3sj5IMihHNNVVgfYu/AwOvIwxAdGT
-         FzJIjnuAn5/JD4uV+uiv2wH+/SR6cLiOX1EN4e2n0JE/3QLP0JbHZLu4U/evJIvkqVAY
-         3VtqcFHz2D8FqLZzjdqeWt6//1DJAa3YhRDHm3VyFY+CkPDttIj2hWk+M8Yd+cUQCCCq
-         qg1g==
-X-Forwarded-Encrypted: i=1; AHgh+RqDvGdecfJzDkXQanGaP22FXEpETbeKhvBtRf1Kx5/Q6/dWemf4KC9Za2p71FJsNa1KWLR8W5A=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwhLaaGif6MxkqRr3tLi1qBoWTCwhrxAd9mynGLK0eYb596YWZL
-	6wV6P46s8tEUyZZFMElFu7xhReUuALjdXo72kye205pRndSMob+gtPnc
-X-Gm-Gg: AfdE7cmqQnqtWweSlJs/sIO25gELSOxrKoPgo7L4UyCACWdiBx4jl+CWfXZWWpuYCMC
-	oZ04qBUidwWZOcxRH9Kh2slPyNbRa1hR1jxwPchcF2TiaxZKn+ABl2NM1jKUBXqRhktcopscek/
-	LbiJepl22YE5b+xLPRv2Q3rM5R8OL/du6urxQXBq/hLIRwcS5KK0mcxDFd1Zmy4AJZ39pp4Yvp+
-	+usumhN4FUDNT40kZyn0F/6Mj6uoY6jd8b+svUQNufsW8y2kJAJMSiNOz//TaEFYXE3tSEnmuJB
-	N91bdLyti6u32xI/zpfxS/TVjBhGzjGeiJhRgTASY1/GFNlLp4DuQye4Od+BWOUO2+92hLNNYHQ
-	3GiiOFbpUZprgblaVIcxmD+PHrVYbOaq6fyxtouFpcQ4XDHZp4g3npdSEEpMA67v0tKJavVgAMb
-	2TdKF4jDspmDbE+gqjA0RCFmkStWk8Qqs5EYgek8M7C3IaG94U5A5R8bsX9g==
-X-Received: by 2002:a05:6a20:c98b:b0:3b4:731e:6fad with SMTP id adf61e73a8af0-3c384aeb33dmr1101447637.16.1784151110450;
-        Wed, 15 Jul 2026 14:31:50 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1784156954; x=1784761754;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:date
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=ElxrIYjyBDIOHQflkE/kwut9Q3GwTe8Bx9Dw1cR1MdI=;
+        b=mlXylZ7QkIQq8wa9nVSiTBqA9p1ymkgT3jISj5ZTUCe9HPwlsWMVWX3rnYNSaj/7ib
+         TIWUlPsAl10HkUb8jZePzX66mzTpHPE07egoCDiOkyBPuK2Fw+uslLeRZ5g/ljNBRZPL
+         KSmVEM8DjivUhOqSY9cI82y8iO1pHtWFhlddMEED0kZjCW1x2w+vvBheL1alhHs8TGZD
+         xsAxtyb9tyMhcDQVYc4gaqQu98B1jfhQbSnqvPL35+AXgaK/se6c4XsBE+ndzBykhV6g
+         qZ1j4Psn66ntYbFG5ITIrhYfJb4qTOCnwnEXG+RRJOKGjJhgv/zzH10OHcFFMSayF9b8
+         JWwQ==
+X-Forwarded-Encrypted: i=1; AHgh+Ro403/GYmSmcqiBtkR8kPU5HO19UQDBpd993vA+mDprHYyziQOy16NAiUYjFceiKkewotcbWNw=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzKBaljTrpxe3BLotop/HFtRbryv10EbCV8L6JrsWcdje9lw2OU
+	W0IKDpSS5o4q4Irquxi9N2voW1IISDgNwlpUrQNA+35/6wVRnRNp4e9gZophcQ==
+X-Gm-Gg: AfdE7ck+B0H9bAAwu+xDaRZsdK0Lnp45sVxgJhuEcFOo6fBbQxR3l3txWsgmZVr+KX4
+	hI2OIVZSGh13fAb4/1c598ip8a/IRsssiOCMyQTBi0ALdqfS/M8rlqhxVRxSVgEQ72LFPLHWa/F
+	6wa4erhr7YgoRt/dziATJO026zLV04QPeWxjYBy7HT5grJ6EF0JuAfeWLZVOzx+oyl4B0bP3+ZK
+	LVgc8zOqhlTluqLXSPqJWBmJMLaO5V0gxKkDr88IxmWJs9SgNkWUOB5R5tdR4tvTjtXI2Ku/HDT
+	p5dxdQ8jYASz6M/q2XXS5nGGQceK3/9XFSBXMyexl8nNzM7uUu3jaAMQ/NedrHbZjPQMe0AIRP8
+	qEeotwlkDgiRUrTBtX9ASIcKjlOi47bbeyg49MNik715/FKp0h3hzTwHwPnbrlWscduRoOaaLKw
+	BzVKOuN4Fx3ZM41VheIRudnon+sXCWCEEJX5njcDKd1+tdyqu65HwJeyhVeQZf0arW4PuW
+X-Received: by 2002:a17:90b:2dcc:b0:38c:e9e9:e7ce with SMTP id 98e67ed59e1d1-38e29facf55mr4440727a91.3.1784156954192;
+        Wed, 15 Jul 2026 16:09:14 -0700 (PDT)
 Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3140e4fc28dsm4621118eec.2.2026.07.15.14.31.49
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3140e53349dsm5371877eec.7.2026.07.15.16.09.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Jul 2026 14:31:50 -0700 (PDT)
+        Wed, 15 Jul 2026 16:09:13 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Wed, 15 Jul 2026 14:31:49 -0700
-To: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>
+Date: Wed, 15 Jul 2026 16:09:12 -0700
+To: sashiko-reviews@lists.linux.dev
 Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Alison Schofield <alison.schofield@intel.com>,
-	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>
+	nvdimm@lists.linux.dev
 Subject: Re: [PATCH v11 10/31] cxl/mem: Configure dynamic capacity interrupts
-Message-ID: <alf8RRJ3tcRWvBIR@AnisaLaptop.localdomain>
+Message-ID: <algTGPgDuwTUFI_q@AnisaLaptop.localdomain>
 References: <20260625112638.550691-1-anisa.su@samsung.com>
  <20260625112638.550691-11-anisa.su@samsung.com>
- <6d4b2c0e-5c05-4e92-9c9d-dba8cabe849b@amd.com>
+ <20260625181442.33E561F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <6d4b2c0e-5c05-4e92-9c9d-dba8cabe849b@amd.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260625181442.33E561F000E9@smtp.kernel.org>
 
-On Tue, Jul 07, 2026 at 04:51:23PM -0500, Cheatham, Benjamin wrote:
-> On 6/25/2026 6:04 AM, Anisa Su wrote:
-> > From: Ira Weiny <iweiny@kernel.org>
-> > 
-> > Dynamic Capacity Devices (DCD) support extent change notifications
-> > through the event log mechanism.  The interrupt mailbox commands were
-> > extended in CXL 3.1 to support these notifications.  Firmware can't
-> > configure DCD events to be FW controlled but can retain control of
-> > memory events.
-> > 
-> > Configure DCD event log interrupts on devices supporting dynamic
-> > capacity.  Disable DCD if interrupts are not supported.
-> > 
-> > Care is taken to preserve the interrupt policy set by the FW if FW first
-> > has been selected by the BIOS.
-> > 
-> > Accept the 4-byte CXL 2.0 reply on GET Event Interrupt Policy by setting
-> > min_out to CXL_EVENT_INT_POLICY_BASE_SIZE; pre-CXL 3.1 firmware omits
-> > dcd_settings and would otherwise fail the size check.
-> > 
-> > Based on an original patch by Navneet Singh.
-> > 
-> > Signed-off-by: Ira Weiny <iweiny@kernel.org>
-> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
-> > 
-> > ---
-> > Changes:
-> > [anisa: add CXLDEV_EVENT_STATUS_DCD (bit 4) to CXLDEV_EVENT_STATUS_ALL;
-> > previously added in a later commit but moved to current commit]
-> > 
-> > [anisa: check native_cxl before cxl_mem_get_event_records]
-> > ---
-> >  drivers/cxl/cxl.h    |  4 +-
-> >  drivers/cxl/cxlmem.h |  2 +
-> >  drivers/cxl/pci.c    | 94 ++++++++++++++++++++++++++++++++++++--------
-> >  3 files changed, 83 insertions(+), 17 deletions(-)
-> > 
-> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> > index 1297594beaec..864f6d3c03d4 100644
-> > --- a/drivers/cxl/cxl.h
-> > +++ b/drivers/cxl/cxl.h
-> > @@ -180,11 +180,13 @@ static inline int ways_to_eiw(unsigned int ways, u8 *eiw)
-> >  #define CXLDEV_EVENT_STATUS_WARN		BIT(1)
-> >  #define CXLDEV_EVENT_STATUS_FAIL		BIT(2)
-> >  #define CXLDEV_EVENT_STATUS_FATAL		BIT(3)
-> > +#define CXLDEV_EVENT_STATUS_DCD			BIT(4)
-> >  
-> >  #define CXLDEV_EVENT_STATUS_ALL (CXLDEV_EVENT_STATUS_INFO |	\
-> >  				 CXLDEV_EVENT_STATUS_WARN |	\
-> >  				 CXLDEV_EVENT_STATUS_FAIL |	\
-> > -				 CXLDEV_EVENT_STATUS_FATAL)
-> > +				 CXLDEV_EVENT_STATUS_FATAL |	\
-> > +				 CXLDEV_EVENT_STATUS_DCD)
-> >  
-> >  /* CXL rev 3.0 section 8.2.9.2.4; Table 8-52 */
-> >  #define CXLDEV_EVENT_INT_MODE_MASK	GENMASK(1, 0)
-> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > index afc195d8c090..bcf976829c3e 100644
-> > --- a/drivers/cxl/cxlmem.h
-> > +++ b/drivers/cxl/cxlmem.h
-> > @@ -218,7 +218,9 @@ struct cxl_event_interrupt_policy {
-> >  	u8 warn_settings;
-> >  	u8 failure_settings;
-> >  	u8 fatal_settings;
-> > +	u8 dcd_settings;
-> >  } __packed;
-> > +#define CXL_EVENT_INT_POLICY_BASE_SIZE 4 /* info, warn, failure, fatal */
-> >  
-> >  /**
-> >   * struct cxl_event_state - Event log driver state
+On Thu, Jun 25, 2026 at 06:14:41PM +0000, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential issue(s) to consider:
+> - [High] An unhandled DCD event status bit will cause an infinite loop in the `cxl_event_thread` IRQ handler if DCD processing is disabled dynamically.
+Fixed
+
+> - [High] The driver fails to perform an initial drain of the DCD event log when the BIOS has control of standard CXL errors (`!native_cxl`), stranding pre-existing events.
+Fixed
+
+> --
+> 
+> commit 4e2d7455b6a9875d8ee530fc91ae3a8b65741caa
+> Author: Ira Weiny <iweiny@kernel.org>
+> 
+> cxl/mem: Configure dynamic capacity interrupts
+> 
+> Dynamic Capacity Devices (DCD) support extent change notifications
+> through the event log mechanism.  The interrupt mailbox commands were
+> extended in CXL 3.1 to support these notifications.  Firmware can't
+> configure DCD events to be FW controlled but can retain control of
+> memory events.
+> 
 > > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> > index 8d12c684d670..95a4bf7c1e46 100644
+> > index 8d12c684d6700..95a4bf7c1e466 100644
 > > --- a/drivers/cxl/pci.c
 > > +++ b/drivers/cxl/pci.c
-> > @@ -514,7 +514,19 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
-> >  	struct cxl_dev_id *dev_id = id;
-> >  	struct cxl_dev_state *cxlds = dev_id->cxlds;
-> >  	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
-> > +	struct pci_host_bridge *host_bridge =
-> > +		pci_find_host_bridge(to_pci_dev(cxlds->dev)->bus);
-> >  	u32 status;
-> > +	u32 mask;
-> > +
-> > +	/*
-> > +	 * Only drain logs the driver owns.  When BIOS owns event reporting
-> > +	 * (!native_cxl) the driver is only here for the Dynamic Capacity log;
-> > +	 * processing the standard logs would steal firmware-first events from
-> > +	 * BIOS, so mask them out.
-> > +	 */
-> > +	mask = host_bridge->native_cxl_error ? CXLDEV_EVENT_STATUS_ALL
-> > +					     : CXLDEV_EVENT_STATUS_DCD;
-> >  
-> >  	do {
-> >  		/*
-> > @@ -522,8 +534,8 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
-> >  		 * ignore the reserved upper 32 bits
-> >  		 */
-> >  		status = readl(cxlds->regs.status + CXLDEV_DEV_EVENT_STATUS_OFFSET);
-> > -		/* Ignore logs unknown to the driver */
-> > -		status &= CXLDEV_EVENT_STATUS_ALL;
-> > +		/* Ignore logs unknown to the driver or owned by BIOS */
-> > +		status &= mask;
-> >  		if (!status)
-> >  			break;
-> >  		cxl_mem_get_event_records(mds, status);
-> > @@ -557,6 +569,8 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
-> >  		.opcode = CXL_MBOX_OP_GET_EVT_INT_POLICY,
-> >  		.payload_out = policy,
-> >  		.size_out = sizeof(*policy),
-> > +		/* CXL 2.0 firmware omits dcd_settings; accept the shorter reply */
-> > +		.min_out = CXL_EVENT_INT_POLICY_BASE_SIZE,
-> >  	};
-> >  	int rc;
-> >  
-> > @@ -569,23 +583,34 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
-> >  }
-> >  
-> >  static int cxl_event_config_msgnums(struct cxl_memdev_state *mds,
-> > -				    struct cxl_event_interrupt_policy *policy)
-> > +				    struct cxl_event_interrupt_policy *policy,
-> > +				    bool native_cxl)
-> >  {
-> >  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-> > +	size_t size_in = CXL_EVENT_INT_POLICY_BASE_SIZE;
-> >  	struct cxl_mbox_cmd mbox_cmd;
-> >  	int rc;
-> >  
-> > -	*policy = (struct cxl_event_interrupt_policy) {
-> > -		.info_settings = CXL_INT_MSI_MSIX,
-> > -		.warn_settings = CXL_INT_MSI_MSIX,
-> > -		.failure_settings = CXL_INT_MSI_MSIX,
-> > -		.fatal_settings = CXL_INT_MSI_MSIX,
-> > -	};
-> > +	/* memory event policy is left if FW has control */
-> > +	if (native_cxl) {
-> > +		*policy = (struct cxl_event_interrupt_policy) {
-> > +			.info_settings = CXL_INT_MSI_MSIX,
-> > +			.warn_settings = CXL_INT_MSI_MSIX,
-> > +			.failure_settings = CXL_INT_MSI_MSIX,
-> > +			.fatal_settings = CXL_INT_MSI_MSIX,
-> > +			.dcd_settings = 0,
-> > +		};
-> > +	}
-> > +
-> > +	if (cxl_dcd_supported(mds)) {
-> > +		policy->dcd_settings = CXL_INT_MSI_MSIX;
-> > +		size_in += sizeof(policy->dcd_settings);
-> > +	}
-> 
-> It seems there's a bug here that I found on one of our test machines. It's possible the card doesn't support
-> DCD commands but does have the policy bit for DCD (i.e. CXL card is 3.0+), so the payload still needs to be
-> large enough to include the DCD bit in that case. So, the size_in needs to always include dcd_settings but
-> the actual policy setting should stay based on whether the card supports DCD. Hopefully that makes sense, let
-> me know if it's not clear...
-> 
-Yes that makes sense. Thank you for reporting!
-
-> 
-> The first thing that I thought of for a solution is setting size_in based on the CXL card's DVSEC revision
-> (i.e. size_in = 5 for CXL 3.0+, size_in = 4 otherwise). Not exactly a clean solution, but I'm not sure there's
-> a way around it.
-> 
-> Thanks,
-> Ben
-> >  
-Here is what I came up with:
-
-In cxl_event_config(), we get the interrupt policy
-from cxl_event_get_int_policy() before cxl_event_config_msgnums().
-
-I added a return param to cxl_event_get_int_policy() to return the
-actual size:
-
-*policy_size = mbox_cmd.size_out
-
-The value is passed through a new input parameter for policy_size in
-cxl_event_config_msgnums() so it can use the actual size.
-
-I am working my way through the reviews and hope to post v12 soon :3
-
-Thanks,
-Anisa
-
-> >  	mbox_cmd = (struct cxl_mbox_cmd) {
-> >  		.opcode = CXL_MBOX_OP_SET_EVT_INT_POLICY,
-> >  		.payload_in = policy,
-> > -		.size_in = sizeof(*policy),
-> > +		.size_in = size_in,
-> >  	};
-> >  
-> >  	rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
+> [ ... ]
 > > @@ -632,6 +657,30 @@ static int cxl_event_irqsetup(struct cxl_memdev_state *mds,
 > >  	return 0;
 > >  }
@@ -300,57 +129,68 @@ Anisa
 > > +		if (rc) {
 > > +			dev_err(cxlds->dev, "Failed to get interrupt for DCD event log\n");
 > > +			cxl_disable_dcd(mds);
+> 
+> [Severity: High]
+> If cxl_event_req_irq() fails here, cxl_disable_dcd() is called, but the
+> device is already programmed to generate DCD interrupts.
+> 
+> When a DCD event interrupt fires, cxl_event_thread() will read the status
+> and retain the CXLDEV_EVENT_STATUS_DCD bit because the mask includes it.
+> However, cxl_mem_get_event_records() skips draining the log when
+> cxl_dcd_supported() is false:
+> 
+> drivers/cxl/core/mbox.c:cxl_mem_get_event_records() {
+>     ...
+>     if (cxl_dcd_supported(mds) && (status & CXLDEV_EVENT_STATUS_DCD))
+>         cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_DCD);
+>     ...
+> }
+> 
+> Will this cause cxl_event_thread() to spin in an infinite loop since the
+> status bit is never cleared by draining the log?
+> 
+
+The fix is in cxl_event_thread(). Instead of setting the event drain
+mask based only on the value of native_cxl:
+
+mask = host_bridge->native_cxl_error ? CXLDEV_EVENT_STATUS_ALL
+                                     : CXLDEV_EVENT_STATUS_DCD;
+
+we additionally check cxl_dcd_supported(), because the native_cxl value
+only determines if the standard logs are owned by firmware. DCD event
+logs are always OS owned.
+
+So the mask becomes:
+
+u32 mask = 0;
+
+if (host_bridge->native_cxl_error)
+        mask |= CXLDEV_EVENT_STATUS_ALL & ~CXLDEV_EVENT_STATUS_DCD;
+if (cxl_dcd_supported(mds))
+        mask |= CXLDEV_EVENT_STATUS_DCD;
+
+This gets put in a new helper function cxl_event_drain_mask() because
+the second bug below uses it too.
+
+The helper is called from cxl_event_thread():
+static irqreturn_t cxl_event_thread(int irq, void *id)
+{
+	struct cxl_dev_id *dev_id = id;
+	struct cxl_dev_state *cxlds = dev_id->cxlds;
+	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
+	struct pci_host_bridge *host_bridge =
+		pci_find_host_bridge(to_pci_dev(cxlds->dev)->bus);
+	u32 mask = cxl_event_drain_mask(host_bridge, mds);
+...
+
+So if dcd has been disabled afterwards, DCD events are still cleared.
+
 > > +		}
 > > +	}
 > > +
 > > +	return 0;
 > > +}
-> > +
-> >  static bool cxl_event_int_is_fw(u8 setting)
-> >  {
-> >  	u8 mode = FIELD_GET(CXLDEV_EVENT_INT_MODE_MASK, setting);
-> > @@ -657,18 +706,26 @@ static bool cxl_event_validate_mem_policy(struct cxl_memdev_state *mds,
-> >  static int cxl_event_config(struct pci_host_bridge *host_bridge,
-> >  			    struct cxl_memdev_state *mds, bool irq_avail)
-> >  {
-> > -	struct cxl_event_interrupt_policy policy;
-> > +	struct cxl_event_interrupt_policy policy = { 0 };
-> > +	bool native_cxl = host_bridge->native_cxl_error;
-> >  	int rc;
-> >  
-> >  	/*
-> >  	 * When BIOS maintains CXL error reporting control, it will process
-> >  	 * event records.  Only one agent can do so.
-> > +	 *
-> > +	 * If BIOS has control of events and DCD is not supported skip event
-> > +	 * configuration.
-> >  	 */
-> > -	if (!host_bridge->native_cxl_error)
-> > +	if (!native_cxl && !cxl_dcd_supported(mds))
-> >  		return 0;
-> >  
-> >  	if (!irq_avail) {
-> >  		dev_info(mds->cxlds.dev, "No interrupt support, disable event processing.\n");
-> > +		if (cxl_dcd_supported(mds)) {
-> > +			dev_info(mds->cxlds.dev, "DCD requires interrupts, disable DCD\n");
-> > +			cxl_disable_dcd(mds);
-> > +		}
-> >  		return 0;
-> >  	}
-> >  
-> > @@ -676,10 +733,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
-> >  	if (rc)
-> >  		return rc;
-> >  
-> > -	if (!cxl_event_validate_mem_policy(mds, &policy))
-> > +	if (native_cxl && !cxl_event_validate_mem_policy(mds, &policy))
-> >  		return -EBUSY;
-> >  
-> > -	rc = cxl_event_config_msgnums(mds, &policy);
-> > +	rc = cxl_event_config_msgnums(mds, &policy, native_cxl);
-> >  	if (rc)
-> >  		return rc;
-> >  
+> [ ... ]
 > > @@ -687,11 +744,16 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
 > >  	if (rc)
 > >  		return rc;
@@ -363,6 +203,28 @@ Anisa
 > > -	cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
 > > +	if (native_cxl)
 > > +		cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+> 
+> [Severity: High]
+> If the BIOS has control of standard CXL errors (!native_cxl), does this skip
+> the initial drain of the DCD event log?
+> 
+> Since the driver owns the DCD log regardless of native_cxl, it appears that
+> pre-existing DCD events might be left in the log, potentially preventing
+> subsequent edge-triggered interrupts from firing.
+> 
+
+Fixed by calling previous defined helper cxl_event_drain_mask()
+which also checks if dcd is enabled.
+
+So if (native_cxl)
+	cxl_mem_get_event_records()
+
+is replaced by
+
+status = cxl_event_drain_mask(host_bridge, mds);
+if (status)
+	cxl_mem_get_event_records(mds, status);
+
 > > +
 > > +	dev_dbg(mds->cxlds.dev, "Event config : %s DCD %s\n",
 > > +		native_cxl ? "OS" : "BIOS",
@@ -371,3 +233,5 @@ Anisa
 > >  	return 0;
 > >  }
 > 
+> -- 
+> Sashiko AI review · https://sashiko.dev/#/patchset/20260625112638.550691-1-anisa.su@samsung.com?part=10
