@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EFB840EBA9;
-	Wed, 15 Jul 2026 15:23:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD5A22848A7;
+	Wed, 15 Jul 2026 16:45:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784129015; cv=none; b=TFN+bKZjvz00aq1X+GcCrPdWiTitVGmPD7/mig7wgFepy6DUvO/YcOPky9lTS7Q2ESfIcibCXl4Uc+YFo0DIX7xejCOqGtTHLlA3MWSezX14qeGHnfq3OluZVyAW6DLT3lWfyb27yiOhlFtK/glexQLlMtRaQeytJH54U0NjPk8=
+	t=1784133919; cv=none; b=lTk9pSxYvDoKCBUH9FOs28OGFlcqbm1gAwRNrDl8JL8z7f31KYbliAqv7/vAb4c7LcE/Kc2LHqrIL2VTcs6Zjr0C0p3S8sLlUOb66wxV/G5oYnXIu0rrhiHx7dnCYXm7zoSBYFN2aNdX6Cq9jivQciH40UGc3XRRRBanl/hsznw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784129015; c=relaxed/simple;
-	bh=9qP5LTAAk44gQZWTOXHoo7e15j4FHHXFk9sg8XT9+0Q=;
+	s=arc-20240116; t=1784133919; c=relaxed/simple;
+	bh=lQj6MZcyZZytj/yie0erSueVdQw7h/KUjazktgLdxmY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=u03MzYz3xa6h66jCcaIBK9vHWA9H6o0xbd/kAtalWra2u7LemVbnTirWdid7nFS1XTcmsOlVrnfI3W6JxRF5m9ZRMtKvzmG12/3ni2gYR+KmTFtk/PoENoruO1cdNaOczfrjfSur2Q1b3zvx00M27orqs83+Zdwl5EoU6TfuW2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZHFyZ3/E; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=u7Hsgwd+SKqbAuVEgRUb/TicnAEK42LLfzjkYTtvtWS3TCE0E//YYw8yvkVVlq+voMCZ/C5BDoyv7p11/vVqyJzDV/uO5Q9qwKAV/BDl5Eon3PvifvWbjxBnasLC0Ysu/5Wgf0O+DvUskXGvRx7U7/gjmMZSim3mkKbZ/2XAKsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fF51j381; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZHFyZ3/E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75C0D1F000E9;
-	Wed, 15 Jul 2026 15:23:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fF51j381"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23D91F000E9;
+	Wed, 15 Jul 2026 16:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784129013;
-	bh=gADdUqFqdyogeafk3zRAASxcmVNA8sWMqOF6K7MzJug=;
+	s=k20260515; t=1784133917;
+	bh=RV6t17XzcXK7hDius+P4ap3Hxy2iOJYEZB5njvjZ5fs=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=ZHFyZ3/ESAlbGMLodf52X6TrDO35Fk0c445fZjc/iDIOmZR8ceLOBcpqvIoraEE/T
-	 zeZLVqqi8htF9IPg8x+JFm/Ztq0YO7W22l91dvkihGZ/j+CaDbNRZ39M+h2IRRAPJn
-	 gOwM6i12c2CphR2jeaPmOSZdn2QRqByY6vZbMn4L22uOeN5KpZu94g9LE+GSWDYy6a
-	 desBFAJqgZSmmDqsf6sL7guf2TNq50pwPkhffsRmu0Wzj0YQUUSEp7cTuNMhMWtN9x
-	 FtkNO+2bfvmhwRnIK4YG/8FPR+l9FBnCEYqbL8I9dQIXx97pCo7on9ZfnrfGoOLbdP
-	 TCsIyKOC40Lgg==
-Message-ID: <e98110da-f26a-46ca-8360-fc84fc159bd8@kernel.org>
-Date: Wed, 15 Jul 2026 17:23:09 +0200
+	b=fF51j3812qhu7tXk8sO7p0qRFeZnT0zcm+NTY+3Ll6Ses01BSCXc2/m183XQU73O0
+	 gWNlFD6kXTJCsr1gt+EXL5TZow7GMfu0uw6vX5wVNSbBnS0aHCNkALtfD+CAKAVpP9
+	 7QKeRkV5f63I3azlBivhFbZliFsBiX0dQUZoxwiyHwnyRi+MhaAnFote5zPICBo03y
+	 JnKokaCoLx8QGcPcy8xAObNy0I08PMEl0Zb7lYpiUZFwDJj5zi0xigkOH8W5foTbcM
+	 3xQ/NFTiylIGvv0yuMkDKSp5tMU3PvVtkGS8nNdhJ30p0ilbfdPs43/NbvFb9WUOQm
+	 UNK0weh72BD2A==
+Message-ID: <c455808b-0891-45c6-a716-41b19ca103d9@kernel.org>
+Date: Wed, 15 Jul 2026 18:44:49 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 18/33] mm/vma: use vma_start_pgoff(),
- linear_page_index() in mm code
+Subject: Re: [PATCH v2 19/33] mm: prefer vma_[start,end]_pgoff() to
+ vma->vm_pgoff in kernel/
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-18-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-19-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,133 +154,24 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-18-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-19-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> There are many instances in which linear_page_index() (as well as
-> linear_page_delta()) is open-coded, which is confusing and inconsistent.
+On 7/10/26 22:17, Lorenzo Stoakes wrote:
+> Be consistent in using vma_start_pgoff() and vma_end_pgoff(), which clearly
+> indicates which part of the VMA the page offset refers to and aids
+> greppability.
 > 
-> Additionally, vma->vm_pgoff doesn't necessarily make it clear that this is
-> the page offset of the start of the VMA range.
-> 
-> Doing so also aids greppability.
-> 
-> So use vma_start_pgoff() in favour of directly accessing vma->vm_pgoff, and
-> linear_page_index() where we can.
-> 
-> This also lays the ground for future changes which will add an anonymous
-> page offset in order to be able to index MAP_PRIVATE-file backed anon
-> folios in terms of their virtual page offset.
+> This is part of a broader series laying the ground to provide a virtual
+> page offset for MAP_PRIVATE-file backed anon folios.
 > 
 > No functional change intended.
 > 
+> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> # for kernel/dma
 > Reviewed-by: Gregory Price <gourry@gourry.net>
-> Reviewed-by: SJ Park <sj@kernel.org>
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> Acked-by: Pedro Falcato <pfalcato@suse.de>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
-Nit:
-
-> diff --git a/mm/damon/vaddr.c b/mm/damon/vaddr.c
-> index 2058db9c01d5..d10b8042adb5 100644
-> --- a/mm/damon/vaddr.c
-> +++ b/mm/damon/vaddr.c
-> @@ -10,6 +10,7 @@
->  #include <linux/mman.h>
->  #include <linux/mmu_notifier.h>
->  #include <linux/page_idle.h>
-> +#include <linux/pagemap.h>
->  #include <linux/pagewalk.h>
->  #include <linux/sched/mm.h>
->  
-> @@ -623,8 +624,8 @@ static void damos_va_migrate_dests_add(struct folio *folio,
->  	}
->  
->  	order = folio_order(folio);
-> -	ilx = vma->vm_pgoff >> order;
-> -	ilx += (addr - vma->vm_start) >> (PAGE_SHIFT + order);
-> +	ilx = vma_start_pgoff(vma) >> order;
-> +	ilx += linear_page_delta(vma, addr) >> order;
-
-Could these be combined to linear_page_index(vma, addr) >> order?
-
->  
->  	for (i = 0; i < dests->nr_dests; i++)
->  		weight_total += dests->weight_arr[i];
-
-> diff --git a/mm/filemap.c b/mm/filemap.c
-> index b39111abdc4b..1dbb4c6f824e 100644
-> --- a/mm/filemap.c
-> +++ b/mm/filemap.c
-> @@ -3411,8 +3411,8 @@ static struct file *do_sync_mmap_readahead(struct vm_fault *vmf)
->  		 * of memory.
->  		 */
->  		struct vm_area_struct *vma = vmf->vma;
-> -		unsigned long start = vma->vm_pgoff;
-> -		unsigned long end = start + vma_pages(vma);
-> +		const unsigned long start = vma_start_pgoff(vma);
-> +		const unsigned long end = vma_end_pgoff(vma);
->  		unsigned long ra_end;
->  
->  		ra->order = exec_folio_order();
-> @@ -3930,7 +3930,8 @@ vm_fault_t filemap_map_pages(struct vm_fault *vmf,
->  		goto out;
->  	}
->  
-> -	addr = vma->vm_start + ((start_pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-> +	addr = vma->vm_start +
-> +		((start_pgoff - vma_start_pgoff(vma)) << PAGE_SHIFT);
-
-This could be linear_page_index(vma, start_pgoff) <<
-
->  	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, addr, &vmf->ptl);
->  	if (!vmf->pte) {
->  		folio_unlock(folio);
-
-> --- a/mm/mempolicy.c
-> +++ b/mm/mempolicy.c
-> @@ -2049,8 +2049,8 @@ struct mempolicy *get_vma_policy(struct vm_area_struct *vma,
->  		pol = get_task_policy(current);
->  	if (pol->mode == MPOL_INTERLEAVE ||
->  	    pol->mode == MPOL_WEIGHTED_INTERLEAVE) {
-> -		*ilx += vma->vm_pgoff >> order;
-> -		*ilx += (addr - vma->vm_start) >> (PAGE_SHIFT + order);
-> +		*ilx += vma_start_pgoff(vma) >> order;
-> +		*ilx += linear_page_delta(vma, addr) >> order;
-
-Also?
-
->  	}
->  	return pol;
->  }
-
-> --- a/mm/nommu.c
-> +++ b/mm/nommu.c
-> @@ -975,7 +975,7 @@ static int do_mmap_private(struct vm_area_struct *vma,
->  		/* read the contents of a file into the copy */
->  		loff_t fpos;
->  
-> -		fpos = vma->vm_pgoff;
-> +		fpos = vma_start_pgoff(vma);
->  		fpos <<= PAGE_SHIFT;
->  
->  		ret = kernel_read(vma->vm_file, base, len, &fpos);
-> @@ -1378,7 +1378,8 @@ static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
->  	delete_nommu_region(vma->vm_region);
->  	if (new_below) {
->  		vma->vm_region->vm_start = vma->vm_start = addr;
-> -		vma->vm_region->vm_pgoff = vma->vm_pgoff += npages;
-
-yuck, good to remove that ugly construct
-it's not the only occurence in this function
-oh well
-
-> +		vma->vm_pgoff += npages;
-> +		vma->vm_region->vm_pgoff = vma_start_pgoff(vma);
->  	} else {
->  		vma->vm_region->vm_end = vma->vm_end = addr;
->  		vma->vm_region->vm_top = addr;
