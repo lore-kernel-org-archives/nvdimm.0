@@ -1,157 +1,245 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A93E39CD14
-	for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 07:52:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1FF7395ADD;
+	Wed, 15 Jul 2026 14:49:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784101942; cv=none; b=qXrBTgoIs4KNi0BhxP3KR0KpHOVAbMclfZ6v90LKvR8GHTWM5C29FUUc61MsnqhaVf1w6u23NTe6YUOXbO9ifm+GvTHdZvjUBG33s2ck43lDuWD1UW3So2OvJ6AU1yUwfQqnmCF9o9dxlTHSsjQ881uozKZqhhjNvy7YJQ/5jt0=
+	t=1784126987; cv=none; b=jXUKk8WWib8q1J8l73a+KaCpQoq/eHUPbrxM0pCx1kdQVf86blqmifG4BXfOmFv0DExBCvAjMdbQAN4EWURpYhFcUbRXlflgJEPvjlnNmbYlIJo9QJtR24y8IXt0C9zw7tUR8dEX6pKixfjNABfkXcFI0tIFs2ALIzXL7sChd08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784101942; c=relaxed/simple;
-	bh=SFfaixy5mSLcBLwBntye6Z3BtPZ39eJulCWZ9W5HDL0=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tpsGEHyWrJ37oBLJZzHdKmgEsLdWPGXgqH1xKU8gm48F55gUQiaiPF6ADosgNVWNv501gRiJ5gnerfP1yD7Hrna82nhJ3v2DVZrR0avWO7uSDmZ4X9Gihq6MyxoEhVB4Wewqn5dZfpm0yysTKN1n0SS0hP4CIEAU6Dd4h5OBcms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FIo4X9ss; arc=none smtp.client-ip=209.85.216.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1784126987; c=relaxed/simple;
+	bh=DDPTcPtals6DTuwz0cfl0JfwDatTjkJZ5bnKg6xIVXY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=oFRWARaoDzuCbUpwpwSHT0mWudVHkSSRHim+LIWdxR8o0wcITffhOi8N/biVatfd8UksXpm18CVToBlq0OGP7tWMjhqkc9kravAuUwVGYaDSqr27kL4NJ6ivXOWu3GluLmXv22Ari3MTOaVUsI/MoZbQLtseIXVOGO5o3ZPeOus=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fw52mmgr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FIo4X9ss"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-382ef647e20so4831106a91.1
-        for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 00:52:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784101940; x=1784706740; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:date
-         :from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=LkoZxLu3mKiKId6IT2QmHjKJhmmkO8Ne64sGip4OZac=;
-        b=FIo4X9ss1li+RJe2GbxewqCYzeV4BFJzdxXH9cDodcPhDPPJOgAqqstwP25jmemvU2
-         kwbhFItozMcNgt4tjBHkt3iHp0Pv47eoIFH4Zv5e0FrspFopAg3P+JOpsM4hNwp6LMc6
-         2+n4zpAz1SJz/YeVHbqYM/ZvCF+GgdtUMsNrwytgYfQfXJI4LTDCQtzgZAzwllQjyiSX
-         7N6quwA8lZMeLW5yrN+EzqLtAQggGrAL2O7NCZnGaQocC5l4DisgRGXoRBZgwtJkW1Cl
-         lJpEePvLSiQcC/dE5uymPehIT04C+XeugxwGCuiFY5n0aRxduLVe1eM5QVtGXS36ubzS
-         mQIQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784101940; x=1784706740;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:date
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=LkoZxLu3mKiKId6IT2QmHjKJhmmkO8Ne64sGip4OZac=;
-        b=NPsrCsqaz4/1If8dtj5Xd+OwXDGb6nrHTF95BIvHbsOFruknVRK0BA6gmNU2u1KLZc
-         1F6Y5DwzXyCJdJroBlxI2WvLwaKrEV18CGy7I82rXwEP5v/Ey9eQVWOp4OTk/HaPEOPK
-         Jm6+srGWkJ18mTk0Bg/GVxVYaioXdgQ4u+kHoPxAtH/Fbe+a2o0him1qfpw91RJWPRUm
-         B6Ko9EZOh29P8CsDMYMvmgLKLAdn2RPPjmidOobVu7v6kQ8FyHLF1dTPYqpNLUfvNqQg
-         x99lGTBUoU+cXXiUHjWCdZWOA9Ji3CKc3qQma5DwAIXi7h7HUc5EQvMco2cehtLbUeCK
-         ohBA==
-X-Forwarded-Encrypted: i=1; AHgh+Ro3vVKIdfJC50eLvWCX8nuPoOiiHwU+ig5DFQPRV+G8TIP41zT9l+cVvDhmHRs2d+51KAnrjmY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzHZVvj3ixoqPFJFYjfnMYKr4/8Lhs4FagDhOkigAgNLiZzRolV
-	bE+uOkLCFjfHOAmcGCVlH1suR0J1M48iq4y7MS6vxV0Mo/i/WpkO9xYh
-X-Gm-Gg: AfdE7cn4oKTw/C8mKQxRKALYVNv1wZQV6nB0IMqvJYDjz7i8rkDnhqZum+zajTcH11n
-	adp7tJVjjQt0J5ilysEd3gbzAQhQEUsZ+nAfhnxXRMFDfwgQAGXp108mXUtLdr2kDxbnbL8zgth
-	sBY7dIIx83szqvqTGGAgHONjrIYW4NEYiY1nGeDzSOgpuDUxmve1nvcDzrHpPwwPTCh+AHUGwJd
-	MoEHZo8y3cbjqUGbaXSPVkl7Deat8J0XzcRDR8S0w+5PiDd45HGvyT/GfkhTwcZLBMqJYMMw2Os
-	VBGD5ZviqRgIZQfw6PtBoRjAgWKWaQFNNUZhStXNVa1yS3W9168HMyLUMA4tLJZtxIek1mMvyrG
-	0gUKm/8mf1I9uBOuhjOuLEfkTBK4utb2UsUfCAoKHu/QUqFuB2BDI3JREexLMrCeGPN0rydIWJP
-	QvteFKE+HGU6BIYCrcQTfdrvDwXV8mLH/FST5I+ZI4Zw896UvLzFNfIDoeayk5JZzmx316dysVB
-	+PZrHQ=
-X-Received: by 2002:a17:90b:3142:b0:387:e0db:3d8e with SMTP id 98e67ed59e1d1-38e2a0a87cfmr1777436a91.41.1784101940512;
-        Wed, 15 Jul 2026 00:52:20 -0700 (PDT)
-Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-31174ac14f2sm94910291eec.27.2026.07.15.00.52.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Jul 2026 00:52:20 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Wed, 15 Jul 2026 00:52:17 -0700
-To: sashiko-reviews@lists.linux.dev
-Cc: Anisa Su <anisa.su887@gmail.com>, nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: Re: [PATCH v11 05/31] cxl/mem: Expose dynamic ram 1 partition in
- sysfs
-Message-ID: <alc8MagZWKAAcNA_@AnisaLaptop.localdomain>
-References: <20260625112638.550691-1-anisa.su@samsung.com>
- <20260625112638.550691-6-anisa.su@samsung.com>
- <20260625181243.77F581F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fw52mmgr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 476B91F00A3A;
+	Wed, 15 Jul 2026 14:49:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784126985;
+	bh=87AXpHBd0iv4TTy368Q/Q/UJb9Kqr8Gw4rcYfu4tUzw=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=Fw52mmgrQV0ypMwmPeUbXHs2PV7Q6iuHdZpMDS0WtFeD3OitbvvZjBMj+irKiF3dp
+	 PYtDAvEqTN9L/GMvzvNdEfg4kaq7c+zSVA4w5Q0v2iOKQbO1qbzodSHgDLF3CtV+A/
+	 sb/1UdFFE6Oqw5YCsxuY1hfXCt5Ei6+8VX6QAudc4ZqUzq9PYAzTuw8s5gUeYv4x3d
+	 1v4b29vy5ZzTucemN5P4Zr5HytjLIPdwvJafKlDNMuSWGladOxxqZAORBc9RPPQxhZ
+	 vmKp2IpCyLTKLk+1u71RNWu0lCfJCDsa+6+N9R+aOZl5qYBs88adESru+K2p3t9DoR
+	 0C9dzb1dLUfRQ==
+Message-ID: <c398dd9d-dff8-4af7-8a25-7f10ece442c9@kernel.org>
+Date: Wed, 15 Jul 2026 16:49:21 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260625181243.77F581F000E9@smtp.kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 15/33] mm/vma: refactor vmg_adjust_set_range() for
+ clarity
+Content-Language: en-US
+To: Lorenzo Stoakes <ljs@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ David Hildenbrand <david@kernel.org>, "Liam R. Howlett"
+ <liam@infradead.org>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>,
+ Jann Horn <jannh@google.com>, Lance Yang <lance.yang@linux.dev>,
+ Pedro Falcato <pfalcato@suse.de>, Russell King <linux@armlinux.org.uk>,
+ Dinh Nguyen <dinguyen@kernel.org>,
+ Simon Schuster <schuster.simon@siemens-energy.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Dan Williams <djbw@kernel.org>, Matthew Wilcox <willy@infradead.org>,
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
+ Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
+ Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>,
+ Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+ Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+ Adrian Hunter <adrian.hunter@intel.com>, James Clark
+ <james.clark@linaro.org>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+ Barry Song <baohua@kernel.org>, Miaohe Lin <linmiaohe@huawei.com>,
+ Naoya Horiguchi <nao.horiguchi@gmail.com>, Xu Xin <xu.xin16@zte.com.cn>,
+ Chengming Zhou <chengming.zhou@linux.dev>, SJ Park <sj@kernel.org>,
+ Matthew Brost <matthew.brost@intel.com>,
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
+ Ying Huang <ying.huang@linux.alibaba.com>,
+ Alistair Popple <apopple@nvidia.com>, Hugh Dickins <hughd@google.com>,
+ Peter Xu <peterx@redhat.com>, Kees Cook <kees@kernel.org>,
+ Marek Szyprowski <m.szyprowski@samsung.com>,
+ Robin Murphy <robin.murphy@arm.com>, Andrey Konovalov
+ <andreyknvl@gmail.com>, Alexander Potapenko <glider@google.com>,
+ Dmitry Vyukov <dvyukov@google.com>, Steven Rostedt <rostedt@goodmis.org>,
+ Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Jarkko Sakkinen <jarkko@kernel.org>,
+ Dave Hansen <dave.hansen@linux.intel.com>, Thomas Gleixner
+ <tglx@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, Ian Abbott <abbotti@mev.co.uk>,
+ H Hartley Sweeten <hsweeten@visionengravers.com>,
+ Lucas Stach <l.stach@pengutronix.de>,
+ Christian Gmeiner <christian.gmeiner@gmail.com>,
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+ Patrik Jakobsson <patrik.r.jakobsson@gmail.com>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ Rob Clark <robin.clark@oss.qualcomm.com>, Dmitry Baryshkov
+ <lumag@kernel.org>, Abhinav Kumar <abhinav.kumar@linux.dev>,
+ Jessica Zhang <jesszhan0024@gmail.com>, Sean Paul <sean@poorly.run>,
+ Marijn Suijten <marijn.suijten@somainline.org>,
+ Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+ Thierry Reding <thierry.reding@kernel.org>,
+ Mikko Perttunen <mperttunen@nvidia.com>,
+ Jonathan Hunter <jonathanh@nvidia.com>,
+ Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>,
+ Matthew Auld <matthew.auld@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Yishai Hadas <yishaih@nvidia.com>, Shameer Kolothum
+ <skolothumtho@nvidia.com>, Kevin Tian <kevin.tian@intel.com>,
+ Ankit Agrawal <ankita@nvidia.com>, Alex Williamson <alex@shazbot.org>,
+ Paolo Bonzini <pbonzini@redhat.com>, Shakeel Butt <shakeel.butt@linux.dev>,
+ Usama Arif <usama.arif@linux.dev>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-perf-users@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+ damon@lists.linux.dev, iommu@lists.linux.dev, kasan-dev@googlegroups.com,
+ linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+ freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
+ kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
+References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-15-2a5aa403d977@kernel.org>
+From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Autocrypt: addr=vbabka@kernel.org; keydata=
+ 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
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-15-2a5aa403d977@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 25, 2026 at 06:12:42PM +0000, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
-> - [Low] Empty sysfs directory created for absent dynamic RAM partitions.
+On 7/10/26 22:16, Lorenzo Stoakes wrote:
+> Add comments with ASCII diagrams to describe what we're doing, avoid
+> dubious use of PHYS_PFN(), and use vma_start_pgoff().
+> 
+> The most complicated scenario represented here is vmg->__adjust_next_start
+> - when this is set, vmg->[start, end] actually indicate the range to be
+> retained, so take special care to describe this accurately.
+> 
+> No functional change intended.
+> 
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> Reviewed-by: Gregory Price <gourry@gourry.net>
+> Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
-Fixed.
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
-> --
+> ---
+>  mm/vma.c | 51 +++++++++++++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 47 insertions(+), 4 deletions(-)
 > 
-> commit 839299dd9514d54314e661cd789de765da08d4f4
-> Author: Ira Weiny <iweiny@kernel.org>
+> diff --git a/mm/vma.c b/mm/vma.c
+> index 084afdf37385..7265a054cfa3 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -704,11 +704,54 @@ static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+>  	pgoff_t pgoff;
+>  
+>  	if (vmg->__adjust_middle_start) {
+> -		adjust = vmg->middle;
+> -		pgoff = adjust->vm_pgoff + PHYS_PFN(vmg->end - adjust->vm_start);
+> +		/*
+> +		 * vmg->start    vmg->end
+> +		 * |             |
+> +		 * v    merge    v
+> +		 * <------------->
+> +		 *         delta
+> +		 *        <------>
+> +		 * |------|----------------|
+> +		 * | prev |    middle      |
+> +		 * |------|----------------|
+> +		 *        ^
+> +		 *        |
+> +		 *        middle->vm_start
+> +		 */
+> +		struct vm_area_struct *middle = vmg->middle;
+> +		const unsigned long delta = vmg->end - middle->vm_start;
+> +
+> +		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
+> +		adjust = middle;
+>  	} else if (vmg->__adjust_next_start) {
+> -		adjust = vmg->next;
+> -		pgoff = adjust->vm_pgoff - PHYS_PFN(adjust->vm_start - vmg->end);
+> +		/*
+> +		 *                Originally:
+> +		 *
+> +		 *            vmg->start   vmg->end
+> +		 *            |            |
+> +		 *            v    merge   v
+> +		 *            <------------>
+> +		 *            .            .
+> +		 * merge_existing_range() updates to:
+> +		 *            .            .
+> +		 * vmg->start vmg->end     .
+> +		 * |          |            .
+> +		 * v  retain  v            .
+> +		 * <---------->            .
+> +		 *             delta       .
+> +		 *            <----->      .
+> +		 * |----------------|------|
+> +		 * |    middle      | next |
+> +		 * |----------------|------|
+> +		 *                  ^
+> +		 *                  |
+> +		 *                  next->vm_start
+> +		 */
+> +		struct vm_area_struct *next = vmg->next;
+> +		const unsigned long delta = next->vm_start - vmg->end;
+> +
+> +		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
+> +		adjust = next;
+>  	} else {
+>  		return;
+>  	}
 > 
-> cxl/mem: Expose dynamic ram 1 partition in sysfs
-> 
-> This commit exposes the details of the first dynamic ram partition via
-> sysfs so user space can properly configure CXL regions.
-> 
-> > diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-> > --- a/drivers/cxl/core/memdev.c
-> > +++ b/drivers/cxl/core/memdev.c
-> 
-> [ ... ]
-> 
-> > @@ -519,6 +551,29 @@ static struct attribute_group cxl_memdev_pmem_attribute_group = {
-> >  	.is_visible = cxl_pmem_visible,
-> >  };
-> >  
-> > +static umode_t cxl_dynamic_ram_1_visible(struct kobject *kobj, struct attribute *a, int n)
-> > +{
-> > +	struct device *dev = kobj_to_dev(kobj);
-> > +	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-> > +	struct cxl_dpa_perf *perf = part_perf(cxlmd->cxlds, CXL_PARTMODE_DYNAMIC_RAM_1);
-> > +
-> > +	if (a == &dev_attr_dynamic_ram_1_qos_class.attr &&
-> > +	    (!perf || perf->qos_class == CXL_QOS_CLASS_INVALID))
-> > +		return 0;
-> > +
-> > +	if (a == &dev_attr_dynamic_ram_1_size.attr &&
-> > +	    (!cxl_part_size(cxlmd->cxlds, CXL_PARTMODE_DYNAMIC_RAM_1)))
-> > +		return 0;
-> 
-> [Severity: Low]
-> Should cxl_dynamic_ram_1_visible() return SYSFS_GROUP_INVISIBLE here when the
-> dynamic RAM partition is absent?
-> 
-> Since cxl_memdev_dynamic_ram_1_attribute_group is a named group
-> (.name = "dynamic_ram_1"), returning 0 hides the individual attributes but
-> still creates the group directory.
-> 
-> Won't this result in a permanently empty "dynamic_ram_1" directory in sysfs if
-> the size is 0, rather than suppressing the directory entirely?
-> 
-Fixed.
 
-If a DC partition's size is 0, better not the expose the directory at
-all, instead of hide both attributes.
-
-Ram and pmem always expose the size attribute, even if the
-size of the ram/pmem partition is 0, but that makes less sense for a DC
-partition, especially if support for multiple partitions is added later.
-
-> > +
-> > +	return a->mode;
-> > +}
-> > +
-> > +static struct attribute_group cxl_memdev_dynamic_ram_1_attribute_group = {
-> > +	.name = "dynamic_ram_1",
-> > +	.attrs = cxl_memdev_dynamic_ram_1_attributes,
-> > +	.is_visible = cxl_dynamic_ram_1_visible,
-> > +};
-> 
-> -- 
-> Sashiko AI review · https://sashiko.dev/#/patchset/20260625112638.550691-1-anisa.su@samsung.com?part=5
