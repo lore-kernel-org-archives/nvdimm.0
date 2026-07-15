@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1FF7395ADD;
-	Wed, 15 Jul 2026 14:49:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D81552BE026;
+	Wed, 15 Jul 2026 14:54:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784126987; cv=none; b=jXUKk8WWib8q1J8l73a+KaCpQoq/eHUPbrxM0pCx1kdQVf86blqmifG4BXfOmFv0DExBCvAjMdbQAN4EWURpYhFcUbRXlflgJEPvjlnNmbYlIJo9QJtR24y8IXt0C9zw7tUR8dEX6pKixfjNABfkXcFI0tIFs2ALIzXL7sChd08=
+	t=1784127265; cv=none; b=kvYb2eQvvdnpMWGHph2Loc+M0yLWRoXcAQA484/CQ0hW3utJCJ0Bo09mbBo4ImUwwm9STMHy93AWPsL81bP6rg/D9bphYXXvdVVKIJyAGU2zLdNjRsx0wEuxajgMKF3EkHcEOhEmSUBUaUL5WaIrnXpXpNb03lpSjDHpHq86d5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784126987; c=relaxed/simple;
-	bh=DDPTcPtals6DTuwz0cfl0JfwDatTjkJZ5bnKg6xIVXY=;
+	s=arc-20240116; t=1784127265; c=relaxed/simple;
+	bh=DVN+0quxFubb1hEyk1gnUr2tCOTWK+/sLRYjMLhijW0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=oFRWARaoDzuCbUpwpwSHT0mWudVHkSSRHim+LIWdxR8o0wcITffhOi8N/biVatfd8UksXpm18CVToBlq0OGP7tWMjhqkc9kravAuUwVGYaDSqr27kL4NJ6ivXOWu3GluLmXv22Ari3MTOaVUsI/MoZbQLtseIXVOGO5o3ZPeOus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fw52mmgr; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=kXGaqbmjdgtDuvoL9jY8D0E2qiV0fVeBjLKS+zTf6p46fmYmxEomL2Ac1o2+hr8qGow58EQtyiZuiEJwpf6un615c+S81VjMaO8qGJaDFytfgfhpqerhF8ZFOYLiYuvZb2zZc9kbJYTcrUIG4zSP/9/atHCD7s0S0IJbnKaGdwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Aoq0Mas4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fw52mmgr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 476B91F00A3A;
-	Wed, 15 Jul 2026 14:49:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Aoq0Mas4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC92F1F000E9;
+	Wed, 15 Jul 2026 14:53:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784126985;
-	bh=87AXpHBd0iv4TTy368Q/Q/UJb9Kqr8Gw4rcYfu4tUzw=;
+	s=k20260515; t=1784127261;
+	bh=/OB/1yoUb/yshfvo5DGxrFMwSBU/fSVGv+sn/IUJmK4=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=Fw52mmgrQV0ypMwmPeUbXHs2PV7Q6iuHdZpMDS0WtFeD3OitbvvZjBMj+irKiF3dp
-	 PYtDAvEqTN9L/GMvzvNdEfg4kaq7c+zSVA4w5Q0v2iOKQbO1qbzodSHgDLF3CtV+A/
-	 sb/1UdFFE6Oqw5YCsxuY1hfXCt5Ei6+8VX6QAudc4ZqUzq9PYAzTuw8s5gUeYv4x3d
-	 1v4b29vy5ZzTucemN5P4Zr5HytjLIPdwvJafKlDNMuSWGladOxxqZAORBc9RPPQxhZ
-	 vmKp2IpCyLTKLk+1u71RNWu0lCfJCDsa+6+N9R+aOZl5qYBs88adESru+K2p3t9DoR
-	 0C9dzb1dLUfRQ==
-Message-ID: <c398dd9d-dff8-4af7-8a25-7f10ece442c9@kernel.org>
-Date: Wed, 15 Jul 2026 16:49:21 +0200
+	b=Aoq0Mas4msa+C0vU61Lw93LC+D9qX3vgvHr2tfhvIyH8kjExPwNqepzNwJ10uvio8
+	 daLUV6JzNrdmXK1c2z3C2mkPoeQwtgHPDMoborLbq43909STfZwNoXcBGDlKCWbPAv
+	 lqqUyV5jUpvPfPDhGXWHsK56IWXxhactLULK6YLE8eVEtCN8NYsv9JVyQ9UITFuQiO
+	 XkKYVWHi+BMtChwXOTFsUV9blydWksfgPF0FO7H1SjBJZUp+fQvbqFJx4meLR+x3n/
+	 +dVkkZ85QU65d/BIsvSB1iyhkFUeN1/GR2/b9PIrjbwzdceAyLaqy1rWWz9i1PNkXX
+	 ENe6M+nOnapKg==
+Message-ID: <31887d81-659f-4eec-b423-005364263a58@kernel.org>
+Date: Wed, 15 Jul 2026 16:53:57 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 15/33] mm/vma: refactor vmg_adjust_set_range() for
- clarity
+Subject: Re: [PATCH v2 16/33] mm/vma: minor cleanup of expand_[upwards,
+ downwards]()
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-15-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-16-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,17 +154,19 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-15-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-16-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> Add comments with ASCII diagrams to describe what we're doing, avoid
-> dubious use of PHYS_PFN(), and use vma_start_pgoff().
+> Adjust the stack expansion functions expand_upwards() and
+> expand_downwards() such that they are expressed in terms of named constant
+> values, and make use of vma_start_pgoff().
 > 
-> The most complicated scenario represented here is vmg->__adjust_next_start
-> - when this is set, vmg->[start, end] actually indicate the range to be
-> retained, so take special care to describe this accurately.
+> This clearly documents that we are referencing the page offset of the start
+> of the VMA.
+> 
+> Additionally this cleans up the overflow check in expand_upwards().
 > 
 > No functional change intended.
 > 
@@ -175,71 +177,47 @@ On 7/10/26 22:16, Lorenzo Stoakes wrote:
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
 > ---
->  mm/vma.c | 51 +++++++++++++++++++++++++++++++++++++++++++++++----
->  1 file changed, 47 insertions(+), 4 deletions(-)
+>  mm/vma.c | 17 +++++++----------
+>  1 file changed, 7 insertions(+), 10 deletions(-)
 > 
 > diff --git a/mm/vma.c b/mm/vma.c
-> index 084afdf37385..7265a054cfa3 100644
+> index 7265a054cfa3..5d5e60ea8a25 100644
 > --- a/mm/vma.c
 > +++ b/mm/vma.c
-> @@ -704,11 +704,54 @@ static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
->  	pgoff_t pgoff;
+> @@ -3216,13 +3216,12 @@ int expand_upwards(struct vm_area_struct *vma, unsigned long address)
 >  
->  	if (vmg->__adjust_middle_start) {
-> -		adjust = vmg->middle;
-> -		pgoff = adjust->vm_pgoff + PHYS_PFN(vmg->end - adjust->vm_start);
-> +		/*
-> +		 * vmg->start    vmg->end
-> +		 * |             |
-> +		 * v    merge    v
-> +		 * <------------->
-> +		 *         delta
-> +		 *        <------>
-> +		 * |------|----------------|
-> +		 * | prev |    middle      |
-> +		 * |------|----------------|
-> +		 *        ^
-> +		 *        |
-> +		 *        middle->vm_start
-> +		 */
-> +		struct vm_area_struct *middle = vmg->middle;
-> +		const unsigned long delta = vmg->end - middle->vm_start;
-> +
-> +		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
-> +		adjust = middle;
->  	} else if (vmg->__adjust_next_start) {
-> -		adjust = vmg->next;
-> -		pgoff = adjust->vm_pgoff - PHYS_PFN(adjust->vm_start - vmg->end);
-> +		/*
-> +		 *                Originally:
-> +		 *
-> +		 *            vmg->start   vmg->end
-> +		 *            |            |
-> +		 *            v    merge   v
-> +		 *            <------------>
-> +		 *            .            .
-> +		 * merge_existing_range() updates to:
-> +		 *            .            .
-> +		 * vmg->start vmg->end     .
-> +		 * |          |            .
-> +		 * v  retain  v            .
-> +		 * <---------->            .
-> +		 *             delta       .
-> +		 *            <----->      .
-> +		 * |----------------|------|
-> +		 * |    middle      | next |
-> +		 * |----------------|------|
-> +		 *                  ^
-> +		 *                  |
-> +		 *                  next->vm_start
-> +		 */
-> +		struct vm_area_struct *next = vmg->next;
-> +		const unsigned long delta = next->vm_start - vmg->end;
-> +
-> +		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
-> +		adjust = next;
->  	} else {
->  		return;
->  	}
+>  	/* Somebody else might have raced and expanded it already */
+>  	if (address > vma->vm_end) {
+> -		unsigned long size, grow;
+> -
+> -		size = address - vma->vm_start;
+> -		grow = (address - vma->vm_end) >> PAGE_SHIFT;
+> +		const unsigned long size = address - vma->vm_start;
+> +		const unsigned long grow = (address - vma->vm_end) >> PAGE_SHIFT;
+> +		const pgoff_t pgoff = vma_start_pgoff(vma);
+>  
+>  		error = -ENOMEM;
+> -		if (vma->vm_pgoff + (size >> PAGE_SHIFT) >= vma->vm_pgoff) {
+> +		if (pgoff + (size >> PAGE_SHIFT) >= pgoff) {
+>  			error = acct_stack_growth(vma, size, grow);
+>  			if (!error) {
+>  				if (vma_test(vma, VMA_LOCKED_BIT))
+> @@ -3295,13 +3294,11 @@ int expand_downwards(struct vm_area_struct *vma, unsigned long address)
+>  
+>  	/* Somebody else might have raced and expanded it already */
+>  	if (address < vma->vm_start) {
+> -		unsigned long size, grow;
+> -
+> -		size = vma->vm_end - address;
+> -		grow = (vma->vm_start - address) >> PAGE_SHIFT;
+> +		const unsigned long size = vma->vm_end - address;
+> +		const unsigned long grow = (vma->vm_start - address) >> PAGE_SHIFT;
+>  
+>  		error = -ENOMEM;
+> -		if (grow <= vma->vm_pgoff) {
+> +		if (grow <= vma_start_pgoff(vma)) {
+>  			error = acct_stack_growth(vma, size, grow);
+>  			if (!error) {
+>  				if (vma_test(vma, VMA_LOCKED_BIT))
 > 
 
