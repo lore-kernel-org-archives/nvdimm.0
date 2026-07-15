@@ -1,36 +1,36 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5935512D1F1;
-	Wed, 15 Jul 2026 19:51:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F28312D1F1;
+	Wed, 15 Jul 2026 19:54:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784145119; cv=none; b=gliM8ZRWgsDRTyeU4eOWG35l6qmG64tP01eLvdMpdSjr1c4z+5/LtNfw/G7JyFM+AgvuH0cg+4EbAYlBsyZlgztJlFcq1QnOjxS/1fdeHr811Bg4pQB1SXaQ2TxnEgPcm0F6zTfqTy0AFCAW3aXOoM9eWHZ0wet3J/vR+I6Jl78=
+	t=1784145251; cv=none; b=dq7WBbljD4YhYejPinc9jCWAATXaU3F9v2iEIbTaSSqDxcC38wuqSEO5L/hLSlXJ+t2301YMVvmEUM0jal1z+b5vuKK/8UKJv5a86i8+WiJWFkaw8R6PVjeT3BTFOaAjkrfxIX42yO5wVkpcbQw+U98vORC6nx4cD9JkurxQamE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784145119; c=relaxed/simple;
-	bh=3uP8bgU1we/Dtxq3O0dFdAVY4cBPySZLkiqm4nKQMWA=;
+	s=arc-20240116; t=1784145251; c=relaxed/simple;
+	bh=8IBeSTH79zEd/85B3I13OSGp6abiS7I1hygz8VGy0EY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j3S/vuozI5wi3UaLPPcGT6kxPi1/EYGPaOjSL5Lwf+0LDRoN/e6VbE90pCvXmhYFQR0w4vixUMQv3qQDDivlPprQT0Z51i/aTwm0ScCeFmdR3U4cA7oiDt6DkB2qA2XjVKAk/+SU0FiuD3LFV0Dr68N9Fn2pkkzuXBR+Ef5Ri1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=lJgKKfhl; arc=none smtp.client-ip=198.137.202.133
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZSyvtdMvIJQNuKE/gj8uRA66TZ5EUWsQ/VlRqqZi2EmHGchtmBshFwUnRAsm1OORLRFW10OxbLZB1+yz37fcixp3InqXPOB7AEAGFKoewgPT4Wz0E2RvqVS34zwGLT+livD9cCVjnYOthsf/CroCENLt1P3a8/3JQRtmoMcpUNk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=G9Ads1/5; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="lJgKKfhl"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="G9Ads1/5"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
 	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
 	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=qECPUV5KWvny4esgaF2Vf7PlyZR+bR1BGzMVUFeolqU=; b=lJgKKfhlIrhdAC1jyT5Hf3uPxE
-	l7vnGovceMuPLVWPqgV9wNKl/gQuYIaCna2P59iOxwIjz8TgnSZxKIXp5GeAqkWZQaTeT3+cubzjK
-	HGiNQpMygZIeOjVTO50mffhkjlNpKQVqpAAM1eEVW8Hs3fCuJZ+uAhYmyDBNCwh9jTJS9/Q5Y3LVu
-	ywLG36QvrGrHdJQUhM57vSlVQ7DI/PmUKWzLTbToYJXiR4beiet5xPyeJKLkIRtK7Wmpn2r5twtYX
-	SVWE+upv4jajftjr+NcrbxoQcLUUOncC03VumZY0PwcxCLxWxWB2Ce3O/uWL9GgzwaAmWuf5JkTOn
-	i46gZwWQ==;
+	bh=u1xTcKNYwdOUdwgNpbyIzAcPowaOLgUaHPOaAeLqzfg=; b=G9Ads1/50L6jZQcaHXYJq/Psc7
+	AryEJZcuGxV76jnQvR75aByyQN2+s4KISlfDdk2TV92ezj8Mb4OV3LQF0ZVYbq4Bwq7lXV48A3koM
+	4dW7xh0EelhZHZsLKX5Terjo3G/wY4H4bI5wxUs6ArdrtWB1DCY3d3mbi6Xxwegu+cmC0ufKyHXMu
+	AqLncMI+gSugHyCRPWyTnaJ8K+c0jt3rkv99sJlwJf7PJ+dQ563sPdXLBXOHRlyBfZi2YB6bdEe6v
+	/P14vLsGTAZrR7gY0vy5J00O3llg1vnu5Lm0yJTpk8XtVFADXa9x0/iPQC2akptOn3wrnWTNwWmxS
+	CaBTrBPw==;
 Received: from [38.23.173.23] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wk5dP-0000000Fp73-3ueX;
-	Wed, 15 Jul 2026 19:51:12 +0000
-Date: Wed, 15 Jul 2026 15:51:01 -0400
+	id 1wk5fh-0000000FpH0-1NIX;
+	Wed, 15 Jul 2026 19:53:33 +0000
+Date: Wed, 15 Jul 2026 15:53:23 -0400
 From: "Liam R. Howlett" <liam@infradead.org>
 To: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -88,10 +88,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org, 
 	linux-tegra@vger.kernel.org, kvm@vger.kernel.org, 
 	Russell King <linux+etnaviv@armlinux.org.uk>
-Subject: Re: [PATCH v2 02/33] mm: add kdoc comments for vma_start/last_pgoff()
-Message-ID: <jwtocg3yekest4xrda4fhzck5tcrcib2mmzjztvi3jk6i4oin7@xcvem5gdkwa7>
+Subject: Re: [PATCH v2 03/33] tools/testing/vma: use vma_start_pgoff() in
+ merge tests
+Message-ID: <p6bhkbzvrdz6bb4a6cdmd6bmlwuwxfjd3lx5opq334o7nwjhwa@ctqdd3i2daon>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-2-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-3-2a5aa403d977@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -100,16 +101,11 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-2-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-3-2a5aa403d977@kernel.org>
 
 On 26/07/10 09:16PM, Lorenzo Stoakes wrote:
-> Describe what vma_start_pgoff() and vma_last_pgoff() actually provide in
-> detail.
-> 
-> This is in order that we can differentiate this between functions that will
-> be added in a subsequent patch which provide a different page offset.
-> 
-> We go to lengths to describe the edge cases that can be run into here.
+> Now we have the vma_start_pgoff() helper, update the merge tests to make
+> use of it for consistency.
 > 
 > No functional change intended.
 > 
@@ -121,55 +117,184 @@ On 26/07/10 09:16PM, Lorenzo Stoakes wrote:
 Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
 
 > ---
->  include/linux/mm.h | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
+>  tools/testing/vma/tests/merge.c | 38 +++++++++++++++++++-------------------
+>  1 file changed, 19 insertions(+), 19 deletions(-)
 > 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 09b06d8fea74..abac72785277 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -4307,11 +4307,41 @@ static inline unsigned long vma_pages(const struct vm_area_struct *vma)
->  	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
->  }
+> diff --git a/tools/testing/vma/tests/merge.c b/tools/testing/vma/tests/merge.c
+> index 03b6f9820e0a..f8666a755749 100644
+> --- a/tools/testing/vma/tests/merge.c
+> +++ b/tools/testing/vma/tests/merge.c
+> @@ -118,7 +118,7 @@ static bool test_simple_merge(void)
 >  
-> +/**
-> + * vma_start_pgoff() - Get the page offset of the start of @vma
-> + * @vma: The VMA whose page offset is required.
-> + *
-> + * If the VMA is file-backed, this is the page offset into the file.
-> + *
-> + * If @vma is anonymous, this is the virtual page offset of the start of the
-> + * VMA - if unfaulted, then vma->vm_start >> PAGE_SHIFT, if faulted then the
-> + * virtual page offset at the time of first fault.
-> + *
-> + * If @vma is a MAP_PRIVATE file-backed mapping, then this returns the
-> + * page offset within the file.
-> + *
-> + * Edge cases: nommu does not abide by these, MAP_PRIVATE-/dev/zero satisfies
-> + * vma_is_anonymous() but has file-backed page offset, and MAP_PRIVATE-pfnmap
-> + * regions have their page offset set to the first PFN in the range.
-> + *
-> + * Returns: The page offset of the start of @vma.
-> + */
->  static inline pgoff_t vma_start_pgoff(const struct vm_area_struct *vma)
->  {
->  	return vma->vm_pgoff;
->  }
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x3000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  	ASSERT_FLAGS_SAME_MASK(&vma->flags, vma_flags);
 >  
-> +/**
-> + * vma_last_pgoff() - Get the page offset of the last page in @vma
-> + * @vma: The VMA whose last page offset is required.
-> + *
-> + * This returns the last page offset contained within @vma.
-> + *
-> + * See the description of vma_start_pgoff() for a description of VMA page
-> + * offsets.
-> + *
-> + * Returns: The last page offset of @vma.
-> + */
->  static inline pgoff_t vma_last_pgoff(const struct vm_area_struct *vma)
->  {
->  	return vma_start_pgoff(vma) + vma_pages(vma) - 1;
+>  	detach_free_vma(vma);
+> @@ -150,7 +150,7 @@ static bool test_simple_modify(void)
+>  
+>  	ASSERT_EQ(vma->vm_start, 0x1000);
+>  	ASSERT_EQ(vma->vm_end, 0x2000);
+> -	ASSERT_EQ(vma->vm_pgoff, 1);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 1);
+>  
+>  	/*
+>  	 * Now walk through the three split VMAs and make sure they are as
+> @@ -162,7 +162,7 @@ static bool test_simple_modify(void)
+>  
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x1000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  
+>  	detach_free_vma(vma);
+>  	vma_iter_clear(&vmi);
+> @@ -171,7 +171,7 @@ static bool test_simple_modify(void)
+>  
+>  	ASSERT_EQ(vma->vm_start, 0x1000);
+>  	ASSERT_EQ(vma->vm_end, 0x2000);
+> -	ASSERT_EQ(vma->vm_pgoff, 1);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 1);
+>  
+>  	detach_free_vma(vma);
+>  	vma_iter_clear(&vmi);
+> @@ -180,7 +180,7 @@ static bool test_simple_modify(void)
+>  
+>  	ASSERT_EQ(vma->vm_start, 0x2000);
+>  	ASSERT_EQ(vma->vm_end, 0x3000);
+> -	ASSERT_EQ(vma->vm_pgoff, 2);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 2);
+>  
+>  	detach_free_vma(vma);
+>  	mtree_destroy(&mm.mm_mt);
+> @@ -209,7 +209,7 @@ static bool test_simple_expand(void)
+>  
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x3000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  
+>  	detach_free_vma(vma);
+>  	mtree_destroy(&mm.mm_mt);
+> @@ -231,7 +231,7 @@ static bool test_simple_shrink(void)
+>  
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x1000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  
+>  	detach_free_vma(vma);
+>  	mtree_destroy(&mm.mm_mt);
+> @@ -324,7 +324,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
+>  	ASSERT_TRUE(merged);
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x4000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 3);
+> @@ -343,7 +343,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
+>  	ASSERT_TRUE(merged);
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x5000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 3);
+> @@ -364,7 +364,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
+>  	ASSERT_TRUE(merged);
+>  	ASSERT_EQ(vma->vm_start, 0x6000);
+>  	ASSERT_EQ(vma->vm_end, 0x9000);
+> -	ASSERT_EQ(vma->vm_pgoff, 6);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 6);
+>  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 3);
+> @@ -384,7 +384,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
+>  	ASSERT_TRUE(merged);
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x9000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 2);
+> @@ -404,7 +404,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
+>  	ASSERT_TRUE(merged);
+>  	ASSERT_EQ(vma->vm_start, 0xa000);
+>  	ASSERT_EQ(vma->vm_end, 0xc000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0xa);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0xa);
+>  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 2);
+> @@ -423,7 +423,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
+>  	ASSERT_TRUE(merged);
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0xc000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 1);
+> @@ -443,7 +443,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
+>  		ASSERT_NE(vma, NULL);
+>  		ASSERT_EQ(vma->vm_start, 0);
+>  		ASSERT_EQ(vma->vm_end, 0xc000);
+> -		ASSERT_EQ(vma->vm_pgoff, 0);
+> +		ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  		ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+>  
+>  		detach_free_vma(vma);
+> @@ -805,7 +805,7 @@ static bool test_vma_merge_new_with_close(void)
+>  	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x5000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  	ASSERT_EQ(vma->vm_ops, &vm_ops);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 2);
+> @@ -865,7 +865,7 @@ static bool __test_merge_existing(bool prev_is_sticky, bool middle_is_sticky, bo
+>  	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
+>  	ASSERT_EQ(vma->vm_start, 0x2000);
+>  	ASSERT_EQ(vma->vm_end, 0x3000);
+> -	ASSERT_EQ(vma->vm_pgoff, 2);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 2);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_TRUE(vma_write_started(vma_next));
+>  	ASSERT_EQ(mm.map_count, 2);
+> @@ -931,7 +931,7 @@ static bool __test_merge_existing(bool prev_is_sticky, bool middle_is_sticky, bo
+>  	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
+>  	ASSERT_EQ(vma->vm_start, 0x6000);
+>  	ASSERT_EQ(vma->vm_end, 0x7000);
+> -	ASSERT_EQ(vma->vm_pgoff, 6);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 6);
+>  	ASSERT_TRUE(vma_write_started(vma_prev));
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 2);
+> @@ -1416,7 +1416,7 @@ static bool test_merge_extend(void)
+>  	ASSERT_EQ(vma_merge_extend(&vmi, vma, 0x2000), vma);
+>  	ASSERT_EQ(vma->vm_start, 0);
+>  	ASSERT_EQ(vma->vm_end, 0x4000);
+> -	ASSERT_EQ(vma->vm_pgoff, 0);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(mm.map_count, 1);
+>  
+> @@ -1456,7 +1456,7 @@ static bool test_expand_only_mode(void)
+>  	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+>  	ASSERT_EQ(vma->vm_start, 0x3000);
+>  	ASSERT_EQ(vma->vm_end, 0x9000);
+> -	ASSERT_EQ(vma->vm_pgoff, 3);
+> +	ASSERT_EQ(vma_start_pgoff(vma), 3);
+>  	ASSERT_TRUE(vma_write_started(vma));
+>  	ASSERT_EQ(vma_iter_addr(&vmi), 0x3000);
+>  	vma_assert_attached(vma);
 > 
 > -- 
 > 2.55.0
