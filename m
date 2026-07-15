@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 353CA4963C1;
-	Wed, 15 Jul 2026 17:28:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89C33495504;
+	Wed, 15 Jul 2026 17:31:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784136511; cv=none; b=hbXxcBooSeFercS45KXf+qv0asLO67vJl11ZuEV62wOCBp4TceREVDs8hrNYtUnUQOJ7eAhQVb/MDaWbbAAvky4ms5c11/goG+dxwuk7lfhoDk/dRM85L1X4svTkUoWzBmfdPnr4t5XsCwkHeSeDiQ0uSUwagCn7AS9VyD1snO4=
+	t=1784136665; cv=none; b=m/JE4WikV3U01QzVZMR0NlGTQ5noNVg3+m+Pwy52t4KRCGYLFHs5DlJG3RokZ90ZP2a9sH+kKt8QDmGqZWQq8UqLWm8MDSLSmDVNHt740PF2Kg3AID1Yx7aE5EcaTERhmXY5f8HjfG9zgLluANt52C188SK3z8wyyWNA67yASbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784136511; c=relaxed/simple;
-	bh=6WovLBfixR14lz0kMpEmd77fftIxYkStMQaClyuMAEo=;
+	s=arc-20240116; t=1784136665; c=relaxed/simple;
+	bh=2eUd8Nl6mRXN1W2NtvYRKuJPDp80glMMC4xYb4egFAU=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=plOLSH5DjEMH8f0u5rZzKU9Q7zLnoV5u5/ba7EhnVjfdRTGvsIuO9+VZJUWyY4MO0MLg94RlyVowFlXIQ5MwhDj4Ib6qsTRiyKPortqXkSxOKcFCWt67QbDyifvj3hgDZuLyFmGDmCZRa8CZ665O2Q0ogaRSOzt6NImwJOjmrjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YgDnipMK; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=WpMg0Fk8zgOh7pmia0fWtS7Ajfzn++X7LHZ9zhBYnw/aObASeJykG8iIAHKrWsef6ua1isXc1IvZKYT8zYV48WfHTHMj4+VWCQnEWySseYQOaLd8Hwt718LBJ1nnJDePceBUHbilDjhqi+560NQIcojnqoNXF1naZVH9n2g4Q54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NJ2vIVoB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YgDnipMK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 510621F000E9;
-	Wed, 15 Jul 2026 17:28:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NJ2vIVoB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A14401F000E9;
+	Wed, 15 Jul 2026 17:30:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784136505;
-	bh=yHWStHru8HkMHnXA70eivNeP0TUQLXilHTpPmDY1vwc=;
+	s=k20260515; t=1784136659;
+	bh=Mn8oct4HW8vssYVWtxQHphxPwvPDO5eabbxzgczXegY=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=YgDnipMKxEbf1h/N/L2iU3jIjviNesSjHguylh5vNGCSyn7JDlbl8f8/hqe0eoXK1
-	 JPBNOehVyi0jsLYaE1N237I89/zC0TkjsZkRNakVvLHnsYhZPd5j8JnvAs1k4QZIUb
-	 Cry5BgUBnfBM5XZ1In8aj19Wcr1cH891VOGxIxlM3jB+Q6gP3365fiLjFdC0wXWHuB
-	 nlPIVTt3S1mhooUVePij3jT5R3XIuSwXYmcSMzN2t0Kj0cmjKQ4+IOfZCkjng0TVuo
-	 N/1KV3jAIpGuKxZDU3P3FHqMlE909NlJIaNlch9zDmj9TkW+UcvhyguRwDZVF7vM48
-	 VSKNHKxT8S0Zg==
-Message-ID: <aab69bfe-41a6-4616-9a6f-d93a446781b2@kernel.org>
-Date: Wed, 15 Jul 2026 19:28:00 +0200
+	b=NJ2vIVoBzjUtT4ioB4s1p+a4H+WhbDamfXKkdQ2iDI05seVhaT+i00hofCw0+HIAn
+	 ksJLqEMik4pOD8dVwbbp/F2grlpq2DvNIuariG0w7Rt+V0mmQs31uuMLyBAsqi0bep
+	 VhNbafEZ6cQ+3rIw91s7rGhAyry1PRjmuQSLU6T7GA2xX2BzFJKpAAnO+sYjmpyUqT
+	 8Fzi449V9qcI1dEXKzQhmyILoG9bPx9uEy9ZFMXObYKvJqxUHo6z4bL4Z5IkQIPWKH
+	 xk5jDrhlLlnX5DEolBMp7Jw99VvCPM+M6IFE/K8XZj8+X9t3a4O8J6QIA+jKulrtnv
+	 vCRrWw9gTvsDw==
+Message-ID: <0925897e-1a19-4e7e-84bd-43bcd2310a49@kernel.org>
+Date: Wed, 15 Jul 2026 19:30:34 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 20/33] mm/vma: remove duplicative vma_pgoff_offset()
- helper
+Subject: Re: [PATCH v2 21/33] mm: use linear_page_[index, delta]()
+ consistently
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -111,9 +111,10 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org,
  dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
- kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
+ kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>,
+ Kai Huang <kai.huang@intel.com>, Ackerley Tng <ackerleytng@google.com>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-20-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-21-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,20 +155,23 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-20-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-21-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> This is doing what linear_page_index() does, so eliminate it and replace it
-> with linear_page_index().
+> There are a number of places where we open code what linear_page_index()
+> and linear_page_delta() calculate.
 > 
-> Update the VMA userland tests to reflect this change.
+> Replace this code with the appropriate functions for consistency.
 > 
 > No functional change intended.
 > 
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> Reviewed-by: Thomas Zimmermann <tzimmermann@suse.de> # for DRM
+> Acked-by: Kai Huang <kai.huang@intel.com> # for sgx
 > Reviewed-by: Gregory Price <gourry@gourry.net>
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de> # for mm
+> Reviewed-by: Ackerley Tng <ackerleytng@google.com> # for guest_memfd
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
