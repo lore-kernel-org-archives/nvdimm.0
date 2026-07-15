@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4783B39D6E9;
-	Wed, 15 Jul 2026 14:57:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EFB840EBA9;
+	Wed, 15 Jul 2026 15:23:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784127476; cv=none; b=ezKn9ycCxpYyt+tM/i1lr+81ciDbVRQw4XZ1dYUwdpAO5YxHFYn2Ppj0DZukCQrZjWyEwQ2iJoJpxK3342T4YGc+1gUTkMmTm4o3QvjQn/2z8ipfK6/Z5GEO4jqgfsGZJbXJb3GIJsUTkzgqmPR+3XxHKGDZhT6Ewb4fANIhxOM=
+	t=1784129015; cv=none; b=TFN+bKZjvz00aq1X+GcCrPdWiTitVGmPD7/mig7wgFepy6DUvO/YcOPky9lTS7Q2ESfIcibCXl4Uc+YFo0DIX7xejCOqGtTHLlA3MWSezX14qeGHnfq3OluZVyAW6DLT3lWfyb27yiOhlFtK/glexQLlMtRaQeytJH54U0NjPk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784127476; c=relaxed/simple;
-	bh=wfmC2sNj69fJIVZiqqNs4Of94KPQNh/mvTnPV3EfsZ0=;
+	s=arc-20240116; t=1784129015; c=relaxed/simple;
+	bh=9qP5LTAAk44gQZWTOXHoo7e15j4FHHXFk9sg8XT9+0Q=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cvsgCZ/PqBmEDi0lhEtL8RFCeyz9fode3IGtLkLW8utmQZtKD4XYg0PPtUu9cxFP+DXR2tMJX5timgrZ2xZmho2oFsMALHMulLC7J4fcjMet/IBatt81pkP2yJWEgp5eZIsNcqK2SU3PxO/PQ/zYCdHnXA0BtYIlM1mvsGrw3sg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cPH7HtDg; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=u03MzYz3xa6h66jCcaIBK9vHWA9H6o0xbd/kAtalWra2u7LemVbnTirWdid7nFS1XTcmsOlVrnfI3W6JxRF5m9ZRMtKvzmG12/3ni2gYR+KmTFtk/PoENoruO1cdNaOczfrjfSur2Q1b3zvx00M27orqs83+Zdwl5EoU6TfuW2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZHFyZ3/E; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cPH7HtDg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EA301F000E9;
-	Wed, 15 Jul 2026 14:57:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZHFyZ3/E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75C0D1F000E9;
+	Wed, 15 Jul 2026 15:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784127474;
-	bh=z+WsmMVZ0fijyeATWav3FVb2hBbQqIKn5lxc8dFuRgY=;
+	s=k20260515; t=1784129013;
+	bh=gADdUqFqdyogeafk3zRAASxcmVNA8sWMqOF6K7MzJug=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=cPH7HtDgs6cyYjA7uPw3ObONQWW0lg1fg4SZgc3/CVufpkG9c0IVzYYGe9hXpJnBM
-	 EciYHh3CSE7MsJrRxFvgeaYvVVnyILFYrvi/K/lkgNkbDtTyzGT9fTt8evuEFCYNKJ
-	 /6Q1cuzJWTgyEGbjV+4NTGMIIJQCdHaCzseCZF6+XN/OuEWTRyQp0SKjbilU0YyYVI
-	 KJtH/kE43WeJygbG8X1i1uYX0DFToUTqRXR85bojPJPv5c5DdI0FMc6v6EjYbL3/yj
-	 qOBAJ6EwOOA7jl4ITRmK6tGfFqVRS+PJHWo5bm2GfnQezZhI9NSeNqI7I+FBExuksu
-	 LjiPFApKHUjLA==
-Message-ID: <67242b7a-d913-48f0-a2fd-56709e474b55@kernel.org>
-Date: Wed, 15 Jul 2026 16:57:29 +0200
+	b=ZHFyZ3/ESAlbGMLodf52X6TrDO35Fk0c445fZjc/iDIOmZR8ceLOBcpqvIoraEE/T
+	 zeZLVqqi8htF9IPg8x+JFm/Ztq0YO7W22l91dvkihGZ/j+CaDbNRZ39M+h2IRRAPJn
+	 gOwM6i12c2CphR2jeaPmOSZdn2QRqByY6vZbMn4L22uOeN5KpZu94g9LE+GSWDYy6a
+	 desBFAJqgZSmmDqsf6sL7guf2TNq50pwPkhffsRmu0Wzj0YQUUSEp7cTuNMhMWtN9x
+	 FtkNO+2bfvmhwRnIK4YG/8FPR+l9FBnCEYqbL8I9dQIXx97pCo7on9ZfnrfGoOLbdP
+	 TCsIyKOC40Lgg==
+Message-ID: <e98110da-f26a-46ca-8360-fc84fc159bd8@kernel.org>
+Date: Wed, 15 Jul 2026 17:23:09 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 17/33] mm: introduce and use linear_page_delta()
+Subject: Re: [PATCH v2 18/33] mm/vma: use vma_start_pgoff(),
+ linear_page_index() in mm code
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -110,10 +111,9 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org,
  dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
- kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>,
- Ackerley Tng <ackerleytng@google.com>
+ kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-17-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-18-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,90 +154,133 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-17-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-18-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> It's often useful to obtain the number of pages a given address lies at
-> within a VMA.
+> There are many instances in which linear_page_index() (as well as
+> linear_page_delta()) is open-coded, which is confusing and inconsistent.
 > 
-> Add linear_page_delta() to determine this and update linear_page_index() to
-> make use of it.
+> Additionally, vma->vm_pgoff doesn't necessarily make it clear that this is
+> the page offset of the start of the VMA range.
 > 
-> Add comments to describe both linear_page_delta() and linear_page_index().
+> Doing so also aids greppability.
 > 
-> We refer the reader to the comment for vma_start_pgoff() so we don't
-> duplicate information about the meaning of a VMA's page offset, which is
-> also less likely to result in bitrot.
+> So use vma_start_pgoff() in favour of directly accessing vma->vm_pgoff, and
+> linear_page_index() where we can.
+> 
+> This also lays the ground for future changes which will add an anonymous
+> page offset in order to be able to index MAP_PRIVATE-file backed anon
+> folios in terms of their virtual page offset.
 > 
 > No functional change intended.
 > 
-> Reviewed-by: Ackerley Tng <ackerleytng@google.com>
 > Reviewed-by: Gregory Price <gourry@gourry.net>
+> Reviewed-by: SJ Park <sj@kernel.org>
 > Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
-> ---
->  include/linux/pagemap.h | 33 +++++++++++++++++++++++++++++++--
->  1 file changed, 31 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
-> index 2c3718d592d6..a950070b045f 100644
-> --- a/include/linux/pagemap.h
-> +++ b/include/linux/pagemap.h
-> @@ -1063,11 +1063,40 @@ static inline pgoff_t folio_pgoff(const struct folio *folio)
->  	return folio->index;
->  }
->  
-> +/**
-> + * linear_page_delta() - Determine the relative page offset of @address within
-> + * @vma.
-> + * @vma: The VMA in which @address resides.
-> + * @address: The address whose relative page offset is required.
-> + *
-> + * The result is identical for both file-backed and anonymous mappings and
-> + * simply determines how many pages @address lies from @vma->vm_start.
-> + *
-> + * Returns: The number of pages @address is offset by within @vma.
-> + */
-> +static inline pgoff_t linear_page_delta(const struct vm_area_struct *vma,
-> +					const unsigned long address)
-> +{
-> +	return (address - vma->vm_start) >> PAGE_SHIFT;
-> +}
-> +
-> +/**
-> + * linear_page_index() - Determine the absolute page offset of @address within
-> + * @vma.
-> + * @vma: The VMA in which @address resides.
-> + * @address: The address whose absolute page offset is required.
-> + *
-> + * See the comment for vma_start_pgoff() for a description of what the page
-> + * offset signifies.
-> + *
-> + * Returns: The absolute page offset of @address within @vma.
-> + */
->  static inline pgoff_t linear_page_index(const struct vm_area_struct *vma,
->  					const unsigned long address)
->  {
->  	pgoff_t pgoff;
-> -	pgoff = (address - vma->vm_start) >> PAGE_SHIFT;
-> +
-> +	pgoff = linear_page_delta(vma, address);
->  	pgoff += vma->vm_pgoff;
->  	return pgoff;
->  }
-> @@ -1219,7 +1248,7 @@ static inline vm_fault_t folio_lock_or_retry(struct folio *folio,
->  void folio_wait_bit(struct folio *folio, int bit_nr);
->  int folio_wait_bit_killable(struct folio *folio, int bit_nr);
->  
-> -/* 
-> +/*
->   * Wait for a folio to be unlocked.
->   *
->   * This must be called with the caller "holding" the folio,
-> 
+Nit:
 
+> diff --git a/mm/damon/vaddr.c b/mm/damon/vaddr.c
+> index 2058db9c01d5..d10b8042adb5 100644
+> --- a/mm/damon/vaddr.c
+> +++ b/mm/damon/vaddr.c
+> @@ -10,6 +10,7 @@
+>  #include <linux/mman.h>
+>  #include <linux/mmu_notifier.h>
+>  #include <linux/page_idle.h>
+> +#include <linux/pagemap.h>
+>  #include <linux/pagewalk.h>
+>  #include <linux/sched/mm.h>
+>  
+> @@ -623,8 +624,8 @@ static void damos_va_migrate_dests_add(struct folio *folio,
+>  	}
+>  
+>  	order = folio_order(folio);
+> -	ilx = vma->vm_pgoff >> order;
+> -	ilx += (addr - vma->vm_start) >> (PAGE_SHIFT + order);
+> +	ilx = vma_start_pgoff(vma) >> order;
+> +	ilx += linear_page_delta(vma, addr) >> order;
+
+Could these be combined to linear_page_index(vma, addr) >> order?
+
+>  
+>  	for (i = 0; i < dests->nr_dests; i++)
+>  		weight_total += dests->weight_arr[i];
+
+> diff --git a/mm/filemap.c b/mm/filemap.c
+> index b39111abdc4b..1dbb4c6f824e 100644
+> --- a/mm/filemap.c
+> +++ b/mm/filemap.c
+> @@ -3411,8 +3411,8 @@ static struct file *do_sync_mmap_readahead(struct vm_fault *vmf)
+>  		 * of memory.
+>  		 */
+>  		struct vm_area_struct *vma = vmf->vma;
+> -		unsigned long start = vma->vm_pgoff;
+> -		unsigned long end = start + vma_pages(vma);
+> +		const unsigned long start = vma_start_pgoff(vma);
+> +		const unsigned long end = vma_end_pgoff(vma);
+>  		unsigned long ra_end;
+>  
+>  		ra->order = exec_folio_order();
+> @@ -3930,7 +3930,8 @@ vm_fault_t filemap_map_pages(struct vm_fault *vmf,
+>  		goto out;
+>  	}
+>  
+> -	addr = vma->vm_start + ((start_pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+> +	addr = vma->vm_start +
+> +		((start_pgoff - vma_start_pgoff(vma)) << PAGE_SHIFT);
+
+This could be linear_page_index(vma, start_pgoff) <<
+
+>  	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, addr, &vmf->ptl);
+>  	if (!vmf->pte) {
+>  		folio_unlock(folio);
+
+> --- a/mm/mempolicy.c
+> +++ b/mm/mempolicy.c
+> @@ -2049,8 +2049,8 @@ struct mempolicy *get_vma_policy(struct vm_area_struct *vma,
+>  		pol = get_task_policy(current);
+>  	if (pol->mode == MPOL_INTERLEAVE ||
+>  	    pol->mode == MPOL_WEIGHTED_INTERLEAVE) {
+> -		*ilx += vma->vm_pgoff >> order;
+> -		*ilx += (addr - vma->vm_start) >> (PAGE_SHIFT + order);
+> +		*ilx += vma_start_pgoff(vma) >> order;
+> +		*ilx += linear_page_delta(vma, addr) >> order;
+
+Also?
+
+>  	}
+>  	return pol;
+>  }
+
+> --- a/mm/nommu.c
+> +++ b/mm/nommu.c
+> @@ -975,7 +975,7 @@ static int do_mmap_private(struct vm_area_struct *vma,
+>  		/* read the contents of a file into the copy */
+>  		loff_t fpos;
+>  
+> -		fpos = vma->vm_pgoff;
+> +		fpos = vma_start_pgoff(vma);
+>  		fpos <<= PAGE_SHIFT;
+>  
+>  		ret = kernel_read(vma->vm_file, base, len, &fpos);
+> @@ -1378,7 +1378,8 @@ static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+>  	delete_nommu_region(vma->vm_region);
+>  	if (new_below) {
+>  		vma->vm_region->vm_start = vma->vm_start = addr;
+> -		vma->vm_region->vm_pgoff = vma->vm_pgoff += npages;
+
+yuck, good to remove that ugly construct
+it's not the only occurence in this function
+oh well
+
+> +		vma->vm_pgoff += npages;
+> +		vma->vm_region->vm_pgoff = vma_start_pgoff(vma);
+>  	} else {
+>  		vma->vm_region->vm_end = vma->vm_end = addr;
+>  		vma->vm_region->vm_top = addr;
