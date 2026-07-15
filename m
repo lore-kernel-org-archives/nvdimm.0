@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2E2242910;
-	Wed, 15 Jul 2026 17:40:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EDA14968E6;
+	Wed, 15 Jul 2026 17:46:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784137219; cv=none; b=B9ixDAW/2Vwz5lRIPYK2ngIbz0QcJIjoV0epejSIseEcbOUAhEMjEd1WONGv/KWcTfJjjNco+hRryv0RJ5dPJSQuLkLklPVRK2zLFh23x3Tm0gzKL/nYEZ2GC7iGQqUGQpismsz2hAQFIsR+cX3IdaxL1PNInB4Ia6fA6di+yrw=
+	t=1784137585; cv=none; b=HnG6W9AhLs2dMfou1XPmIL7QE0xhf8gUlJKtdS/q3VUfOw4GDoiuFKFRkKMSlsPGUBEkF8KmBdL7nPxXX9MsflM56pZXRyJW3gfZ7jdzWG9djn0k9QU4r1Bjhy8WXXsh9cORmQusIsbVCMPy2TgVVmcHRxBaM3/a59zd6NQqIGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784137219; c=relaxed/simple;
-	bh=T8mP9i0LpfOfBDrS2kQv1LY4K/bRcfEJQ0F4sS0l0XQ=;
+	s=arc-20240116; t=1784137585; c=relaxed/simple;
+	bh=5ZHHrW4a7xcP/brtkgnDAAeK/3ChnFjA0hYZpsAVrPY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mZq2FVClK23l+MyXYOsel+LE9TJXbms01Jne7CeEdrNg7JpqjhP14uIIXEgGmMCIbyk1sMs37lcBdTqrqGx1Q/c4T3da4dPDJfkrAezbObg+tGNGeOER6CN2NNRoOAchtfXlVduL+X/O/BHqjn7YEZnoMrDqO5NS2icaloBr7gI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GA0+FLfe; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=Iq/P9VJ/VgphaZxK7zxkoStYRpjX6a+Zd4GKIHSR6ZOt75Znqc1T91iRqIAk0Wu1SQimMWZtuKtRjEVn2S8oSqfsTl11azvNgo6YCUMMj0dVE1UlniUw1JEVlJMpJexJ9EGhpVxXvqa783WkUaS7OB5B6rcOEW7IKNO6Vy24YEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G5OU+tyC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GA0+FLfe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA1CD1F000E9;
-	Wed, 15 Jul 2026 17:39:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G5OU+tyC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80E961F00A3D;
+	Wed, 15 Jul 2026 17:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784137218;
-	bh=tH4QyDNP0efpSTBbWpcQuJMGvW7RLC8yuTK2WVW/q3U=;
+	s=k20260515; t=1784137583;
+	bh=i/u1LN79aK3IUnV77rgUOomTAlNWU5LxvGP54X7C8Ak=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=GA0+FLfepgKGsqfA851a3z/LBMqjNvN7mlxIZadRUM1CQ31syIV69n+3dBWRo/wp1
-	 fJUduYImYES3PnHo2TdgTzhpdpkEUIFUX6NB8XvGrMhPgzcSqV1W6XUbdCo5iug2no
-	 IdjQNOsEYydF6h4M0TiG0qei9Y0DJcVDuF0swmZ588A1y1UkMZ3oIAhSrnsOi6In+v
-	 RsO/Z7TAh1/wV97q57f/nNooWy1GN3foCaP7j/ZbLLzTa9vJSIzN9ivMFGs2IXYXAP
-	 f4rr087CYj2fwrWuOva4EjDNOYMBshVbZ2amcUZakPRusysh8mUltZl9STn+gyKYpY
-	 NZezqYRSbhmRg==
-Message-ID: <cfd512d8-4c2b-4359-9255-a18b2f2f91bf@kernel.org>
-Date: Wed, 15 Jul 2026 19:39:53 +0200
+	b=G5OU+tyC9Uci2mg2LwO/DFWdxzlrUtSjFyPEwxUdBWJMt8He0NI4s+djB8hRv4wOG
+	 7VFuxq8y9+9BxbnbuVltajRTgY3sRE8fsrNdrqMeQAPpvsgJhYp2qjvxHS3+zTCPwV
+	 BKu6IMADurc9K/njpDhs42IUfi7xBFo/0LVy6ryOPdp/NJ86LNjc4rvUArFReaRCzN
+	 TFcWJeZrREGRa+rRh0IaoXvC4V6L0XzTEul5Fdipj4KCnpU4EFsQK/grpq8o1ltRPy
+	 aEhP5qFYigUt8IOAQlEaKa6y7ZZtkAkgO1E2W11msSgBOAan+xHgOE74SweMlVg+Z9
+	 LXI2hpD/Hsqlg==
+Message-ID: <b470eb19-d59c-4dd6-bf57-648b51281691@kernel.org>
+Date: Wed, 15 Jul 2026 19:45:59 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 24/33] mm/vma: move __install_special_mapping() to
- vma.c
+Subject: Re: [PATCH v2 25/33] mm/vma: make vma_set_range() static, drop
+ insert_vm_struct() decl
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-24-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-25-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,23 +154,26 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-24-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-25-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> This function is operating on VMAs and rightly belongs in vma.c, where it
-> can be subject to VMA userland testing and allows us to isolate it from the
+> With __install_special_mapping() moved to vma.c, vma_set_range() can be
+> made into a static function there and is now completely isolated from the
 > rest of mm.
+
+Pedantic nit: it was already "static", but in a .h file
+Yeah it was also "inline" but that's not the important part of this change.
+
+So I'd say it was rather moved to vma.c, but you can ignore this nit if you
+want.
+
+> While we're here, we can also remove the insert_vm_struct() declaration
+> from mm.h - the function is implemented in vma.c and already declared in
+> vma.h, and has no users outside of mm.
 > 
-> The _install_special_mapping() function will remain in mmap.c as a wrapper,
-> since this is used by architecture-specific code.
-> 
-> Doing so allows us to isolate more functions in vma.c for the same reasons.
-> 
-> This forms part of work to allow for tracking MAP_PRIVATE file-backed
-> mappings by their anonymous virtual page offset, as doing so allows us to
-> isolate and keep code that interacts with this together.
+> Also update the VMA userland tests to reflect this change.
 > 
 > No functional change intended.
 > 
@@ -179,4 +182,95 @@ On 7/10/26 22:17, Lorenzo Stoakes wrote:
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+
+> ---
+>  include/linux/mm.h         | 1 -
+>  mm/internal.h              | 9 ---------
+>  mm/vma.c                   | 8 ++++++++
+>  tools/testing/vma/shared.c | 9 ---------
+>  tools/testing/vma/shared.h | 5 -----
+>  5 files changed, 8 insertions(+), 24 deletions(-)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 3d69b597b9b1..762313b47301 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -4130,7 +4130,6 @@ void anon_rmap_tree_verify(struct anon_vma_chain *avc);
+>  
+>  /* mmap.c */
+>  extern int __vm_enough_memory(const struct mm_struct *mm, long pages, int cap_sys_admin);
+> -extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
+>  extern void exit_mmap(struct mm_struct *);
+>  bool mmap_read_lock_maybe_expand(struct mm_struct *mm, struct vm_area_struct *vma,
+>  				 unsigned long addr, bool write);
+> diff --git a/mm/internal.h b/mm/internal.h
+> index 01a762bcc2b2..2c650d280e90 100644
+> --- a/mm/internal.h
+> +++ b/mm/internal.h
+> @@ -1540,15 +1540,6 @@ extern bool mirrored_kernelcore;
+>  bool memblock_has_mirror(void);
+>  void memblock_free_all(void);
+>  
+> -static __always_inline void vma_set_range(struct vm_area_struct *vma,
+> -					  unsigned long start, unsigned long end,
+> -					  pgoff_t pgoff)
+> -{
+> -	vma->vm_start = start;
+> -	vma->vm_end = end;
+> -	vma->vm_pgoff = pgoff;
+> -}
+> -
+>  static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
+>  {
+>  	/*
+> diff --git a/mm/vma.c b/mm/vma.c
+> index 5308aa5a8c91..cc0e449ad0be 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -70,6 +70,14 @@ struct mmap_state {
+>  		.state = VMA_MERGE_START,				\
+>  	}
+>  
+> +static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
+> +			  unsigned long end, pgoff_t pgoff)
+> +{
+> +	vma->vm_start = start;
+> +	vma->vm_end = end;
+> +	vma->vm_pgoff = pgoff;
+> +}
+> +
+>  /* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
+>  static bool vma_is_fork_child(struct vm_area_struct *vma)
+>  {
+> diff --git a/tools/testing/vma/shared.c b/tools/testing/vma/shared.c
+> index 2565a5aecb80..bea9ea6db02a 100644
+> --- a/tools/testing/vma/shared.c
+> +++ b/tools/testing/vma/shared.c
+> @@ -120,12 +120,3 @@ unsigned long rlimit(unsigned int limit)
+>  {
+>  	return (unsigned long)-1;
+>  }
+> -
+> -void vma_set_range(struct vm_area_struct *vma,
+> -		   unsigned long start, unsigned long end,
+> -		   pgoff_t pgoff)
+> -{
+> -	vma->vm_start = start;
+> -	vma->vm_end = end;
+> -	vma->vm_pgoff = pgoff;
+> -}
+> diff --git a/tools/testing/vma/shared.h b/tools/testing/vma/shared.h
+> index 8b9e3b11c3cb..ca4f1238f1c7 100644
+> --- a/tools/testing/vma/shared.h
+> +++ b/tools/testing/vma/shared.h
+> @@ -125,8 +125,3 @@ void __vma_set_dummy_anon_vma(struct vm_area_struct *vma,
+>  /* Provide a simple dummy VMA/anon_vma dummy setup for testing. */
+>  void vma_set_dummy_anon_vma(struct vm_area_struct *vma,
+>  			    struct anon_vma_chain *avc);
+> -
+> -/* Helper function to specify a VMA's range. */
+> -void vma_set_range(struct vm_area_struct *vma,
+> -		   unsigned long start, unsigned long end,
+> -		   pgoff_t pgoff);
+> 
 
