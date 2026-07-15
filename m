@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D81552BE026;
-	Wed, 15 Jul 2026 14:54:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4783B39D6E9;
+	Wed, 15 Jul 2026 14:57:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784127265; cv=none; b=kvYb2eQvvdnpMWGHph2Loc+M0yLWRoXcAQA484/CQ0hW3utJCJ0Bo09mbBo4ImUwwm9STMHy93AWPsL81bP6rg/D9bphYXXvdVVKIJyAGU2zLdNjRsx0wEuxajgMKF3EkHcEOhEmSUBUaUL5WaIrnXpXpNb03lpSjDHpHq86d5o=
+	t=1784127476; cv=none; b=ezKn9ycCxpYyt+tM/i1lr+81ciDbVRQw4XZ1dYUwdpAO5YxHFYn2Ppj0DZukCQrZjWyEwQ2iJoJpxK3342T4YGc+1gUTkMmTm4o3QvjQn/2z8ipfK6/Z5GEO4jqgfsGZJbXJb3GIJsUTkzgqmPR+3XxHKGDZhT6Ewb4fANIhxOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784127265; c=relaxed/simple;
-	bh=DVN+0quxFubb1hEyk1gnUr2tCOTWK+/sLRYjMLhijW0=;
+	s=arc-20240116; t=1784127476; c=relaxed/simple;
+	bh=wfmC2sNj69fJIVZiqqNs4Of94KPQNh/mvTnPV3EfsZ0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kXGaqbmjdgtDuvoL9jY8D0E2qiV0fVeBjLKS+zTf6p46fmYmxEomL2Ac1o2+hr8qGow58EQtyiZuiEJwpf6un615c+S81VjMaO8qGJaDFytfgfhpqerhF8ZFOYLiYuvZb2zZc9kbJYTcrUIG4zSP/9/atHCD7s0S0IJbnKaGdwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Aoq0Mas4; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=cvsgCZ/PqBmEDi0lhEtL8RFCeyz9fode3IGtLkLW8utmQZtKD4XYg0PPtUu9cxFP+DXR2tMJX5timgrZ2xZmho2oFsMALHMulLC7J4fcjMet/IBatt81pkP2yJWEgp5eZIsNcqK2SU3PxO/PQ/zYCdHnXA0BtYIlM1mvsGrw3sg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cPH7HtDg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Aoq0Mas4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC92F1F000E9;
-	Wed, 15 Jul 2026 14:53:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cPH7HtDg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EA301F000E9;
+	Wed, 15 Jul 2026 14:57:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784127261;
-	bh=/OB/1yoUb/yshfvo5DGxrFMwSBU/fSVGv+sn/IUJmK4=;
+	s=k20260515; t=1784127474;
+	bh=z+WsmMVZ0fijyeATWav3FVb2hBbQqIKn5lxc8dFuRgY=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=Aoq0Mas4msa+C0vU61Lw93LC+D9qX3vgvHr2tfhvIyH8kjExPwNqepzNwJ10uvio8
-	 daLUV6JzNrdmXK1c2z3C2mkPoeQwtgHPDMoborLbq43909STfZwNoXcBGDlKCWbPAv
-	 lqqUyV5jUpvPfPDhGXWHsK56IWXxhactLULK6YLE8eVEtCN8NYsv9JVyQ9UITFuQiO
-	 XkKYVWHi+BMtChwXOTFsUV9blydWksfgPF0FO7H1SjBJZUp+fQvbqFJx4meLR+x3n/
-	 +dVkkZ85QU65d/BIsvSB1iyhkFUeN1/GR2/b9PIrjbwzdceAyLaqy1rWWz9i1PNkXX
-	 ENe6M+nOnapKg==
-Message-ID: <31887d81-659f-4eec-b423-005364263a58@kernel.org>
-Date: Wed, 15 Jul 2026 16:53:57 +0200
+	b=cPH7HtDgs6cyYjA7uPw3ObONQWW0lg1fg4SZgc3/CVufpkG9c0IVzYYGe9hXpJnBM
+	 EciYHh3CSE7MsJrRxFvgeaYvVVnyILFYrvi/K/lkgNkbDtTyzGT9fTt8evuEFCYNKJ
+	 /6Q1cuzJWTgyEGbjV+4NTGMIIJQCdHaCzseCZF6+XN/OuEWTRyQp0SKjbilU0YyYVI
+	 KJtH/kE43WeJygbG8X1i1uYX0DFToUTqRXR85bojPJPv5c5DdI0FMc6v6EjYbL3/yj
+	 qOBAJ6EwOOA7jl4ITRmK6tGfFqVRS+PJHWo5bm2GfnQezZhI9NSeNqI7I+FBExuksu
+	 LjiPFApKHUjLA==
+Message-ID: <67242b7a-d913-48f0-a2fd-56709e474b55@kernel.org>
+Date: Wed, 15 Jul 2026 16:57:29 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 16/33] mm/vma: minor cleanup of expand_[upwards,
- downwards]()
+Subject: Re: [PATCH v2 17/33] mm: introduce and use linear_page_delta()
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -111,9 +110,10 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org,
  dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
- kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
+ kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>,
+ Ackerley Tng <ackerleytng@google.com>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-16-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-17-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,70 +154,90 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-16-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-17-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> Adjust the stack expansion functions expand_upwards() and
-> expand_downwards() such that they are expressed in terms of named constant
-> values, and make use of vma_start_pgoff().
+> It's often useful to obtain the number of pages a given address lies at
+> within a VMA.
 > 
-> This clearly documents that we are referencing the page offset of the start
-> of the VMA.
+> Add linear_page_delta() to determine this and update linear_page_index() to
+> make use of it.
 > 
-> Additionally this cleans up the overflow check in expand_upwards().
+> Add comments to describe both linear_page_delta() and linear_page_index().
+> 
+> We refer the reader to the comment for vma_start_pgoff() so we don't
+> duplicate information about the meaning of a VMA's page offset, which is
+> also less likely to result in bitrot.
 > 
 > No functional change intended.
 > 
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> Reviewed-by: Ackerley Tng <ackerleytng@google.com>
 > Reviewed-by: Gregory Price <gourry@gourry.net>
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
 > ---
->  mm/vma.c | 17 +++++++----------
->  1 file changed, 7 insertions(+), 10 deletions(-)
+>  include/linux/pagemap.h | 33 +++++++++++++++++++++++++++++++--
+>  1 file changed, 31 insertions(+), 2 deletions(-)
 > 
-> diff --git a/mm/vma.c b/mm/vma.c
-> index 7265a054cfa3..5d5e60ea8a25 100644
-> --- a/mm/vma.c
-> +++ b/mm/vma.c
-> @@ -3216,13 +3216,12 @@ int expand_upwards(struct vm_area_struct *vma, unsigned long address)
+> diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
+> index 2c3718d592d6..a950070b045f 100644
+> --- a/include/linux/pagemap.h
+> +++ b/include/linux/pagemap.h
+> @@ -1063,11 +1063,40 @@ static inline pgoff_t folio_pgoff(const struct folio *folio)
+>  	return folio->index;
+>  }
 >  
->  	/* Somebody else might have raced and expanded it already */
->  	if (address > vma->vm_end) {
-> -		unsigned long size, grow;
-> -
-> -		size = address - vma->vm_start;
-> -		grow = (address - vma->vm_end) >> PAGE_SHIFT;
-> +		const unsigned long size = address - vma->vm_start;
-> +		const unsigned long grow = (address - vma->vm_end) >> PAGE_SHIFT;
-> +		const pgoff_t pgoff = vma_start_pgoff(vma);
+> +/**
+> + * linear_page_delta() - Determine the relative page offset of @address within
+> + * @vma.
+> + * @vma: The VMA in which @address resides.
+> + * @address: The address whose relative page offset is required.
+> + *
+> + * The result is identical for both file-backed and anonymous mappings and
+> + * simply determines how many pages @address lies from @vma->vm_start.
+> + *
+> + * Returns: The number of pages @address is offset by within @vma.
+> + */
+> +static inline pgoff_t linear_page_delta(const struct vm_area_struct *vma,
+> +					const unsigned long address)
+> +{
+> +	return (address - vma->vm_start) >> PAGE_SHIFT;
+> +}
+> +
+> +/**
+> + * linear_page_index() - Determine the absolute page offset of @address within
+> + * @vma.
+> + * @vma: The VMA in which @address resides.
+> + * @address: The address whose absolute page offset is required.
+> + *
+> + * See the comment for vma_start_pgoff() for a description of what the page
+> + * offset signifies.
+> + *
+> + * Returns: The absolute page offset of @address within @vma.
+> + */
+>  static inline pgoff_t linear_page_index(const struct vm_area_struct *vma,
+>  					const unsigned long address)
+>  {
+>  	pgoff_t pgoff;
+> -	pgoff = (address - vma->vm_start) >> PAGE_SHIFT;
+> +
+> +	pgoff = linear_page_delta(vma, address);
+>  	pgoff += vma->vm_pgoff;
+>  	return pgoff;
+>  }
+> @@ -1219,7 +1248,7 @@ static inline vm_fault_t folio_lock_or_retry(struct folio *folio,
+>  void folio_wait_bit(struct folio *folio, int bit_nr);
+>  int folio_wait_bit_killable(struct folio *folio, int bit_nr);
 >  
->  		error = -ENOMEM;
-> -		if (vma->vm_pgoff + (size >> PAGE_SHIFT) >= vma->vm_pgoff) {
-> +		if (pgoff + (size >> PAGE_SHIFT) >= pgoff) {
->  			error = acct_stack_growth(vma, size, grow);
->  			if (!error) {
->  				if (vma_test(vma, VMA_LOCKED_BIT))
-> @@ -3295,13 +3294,11 @@ int expand_downwards(struct vm_area_struct *vma, unsigned long address)
->  
->  	/* Somebody else might have raced and expanded it already */
->  	if (address < vma->vm_start) {
-> -		unsigned long size, grow;
-> -
-> -		size = vma->vm_end - address;
-> -		grow = (vma->vm_start - address) >> PAGE_SHIFT;
-> +		const unsigned long size = vma->vm_end - address;
-> +		const unsigned long grow = (vma->vm_start - address) >> PAGE_SHIFT;
->  
->  		error = -ENOMEM;
-> -		if (grow <= vma->vm_pgoff) {
-> +		if (grow <= vma_start_pgoff(vma)) {
->  			error = acct_stack_growth(vma, size, grow);
->  			if (!error) {
->  				if (vma_test(vma, VMA_LOCKED_BIT))
+> -/* 
+> +/*
+>   * Wait for a folio to be unlocked.
+>   *
+>   * This must be called with the caller "holding" the folio,
 > 
 
