@@ -1,98 +1,82 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F28312D1F1;
-	Wed, 15 Jul 2026 19:54:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42203335064
+	for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 21:31:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784145251; cv=none; b=dq7WBbljD4YhYejPinc9jCWAATXaU3F9v2iEIbTaSSqDxcC38wuqSEO5L/hLSlXJ+t2301YMVvmEUM0jal1z+b5vuKK/8UKJv5a86i8+WiJWFkaw8R6PVjeT3BTFOaAjkrfxIX42yO5wVkpcbQw+U98vORC6nx4cD9JkurxQamE=
+	t=1784151112; cv=none; b=d7SG11y5YfFTPu7uThwALarMcyj4d7I5t+VuYqOcUPK/OMHnD/Jr9u3PLJ8Gol5rIZvbsemWrIzG+cLbgLyIiiHkwJ6EGWq/89irV6NITowzktRcw9sioDSP7jHxM8Ig85hOBjo1gpr0WBq2ldl9bICm/B0HclVd2eyWp+wI3+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784145251; c=relaxed/simple;
-	bh=8IBeSTH79zEd/85B3I13OSGp6abiS7I1hygz8VGy0EY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZSyvtdMvIJQNuKE/gj8uRA66TZ5EUWsQ/VlRqqZi2EmHGchtmBshFwUnRAsm1OORLRFW10OxbLZB1+yz37fcixp3InqXPOB7AEAGFKoewgPT4Wz0E2RvqVS34zwGLT+livD9cCVjnYOthsf/CroCENLt1P3a8/3JQRtmoMcpUNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=G9Ads1/5; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1784151112; c=relaxed/simple;
+	bh=7QTPVpJJhfGFyRYBrsLIJeplcw7EovnGQvuPkXS/zD0=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=a7odDbeinSuMKu5te/zkXcgYzS9mXZAWs8JNYNWywha0n7QcG/RAIOuPDqo6PtmZnS23jpoa/jax7BTqVd5zLAS3JnvLPIJBjSiFwPRrexhJgm29vAijxI3Mh2yv1WUtmOnvCBR24cxdPweljzpbl6FmUG/jju9y7jZskfVxPEg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qKzkDq0U; arc=none smtp.client-ip=209.85.210.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="G9Ads1/5"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=u1xTcKNYwdOUdwgNpbyIzAcPowaOLgUaHPOaAeLqzfg=; b=G9Ads1/50L6jZQcaHXYJq/Psc7
-	AryEJZcuGxV76jnQvR75aByyQN2+s4KISlfDdk2TV92ezj8Mb4OV3LQF0ZVYbq4Bwq7lXV48A3koM
-	4dW7xh0EelhZHZsLKX5Terjo3G/wY4H4bI5wxUs6ArdrtWB1DCY3d3mbi6Xxwegu+cmC0ufKyHXMu
-	AqLncMI+gSugHyCRPWyTnaJ8K+c0jt3rkv99sJlwJf7PJ+dQ563sPdXLBXOHRlyBfZi2YB6bdEe6v
-	/P14vLsGTAZrR7gY0vy5J00O3llg1vnu5Lm0yJTpk8XtVFADXa9x0/iPQC2akptOn3wrnWTNwWmxS
-	CaBTrBPw==;
-Received: from [38.23.173.23] (helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wk5fh-0000000FpH0-1NIX;
-	Wed, 15 Jul 2026 19:53:33 +0000
-Date: Wed, 15 Jul 2026 15:53:23 -0400
-From: "Liam R. Howlett" <liam@infradead.org>
-To: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	David Hildenbrand <david@kernel.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
-	Jann Horn <jannh@google.com>, Lance Yang <lance.yang@linux.dev>, 
-	Pedro Falcato <pfalcato@suse.de>, Russell King <linux@armlinux.org.uk>, 
-	Dinh Nguyen <dinguyen@kernel.org>, Simon Schuster <schuster.simon@siemens-energy.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Dan Williams <djbw@kernel.org>, Matthew Wilcox <willy@infradead.org>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, 
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>, 
-	Adrian Hunter <adrian.hunter@intel.com>, James Clark <james.clark@linaro.org>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Miaohe Lin <linmiaohe@huawei.com>, Naoya Horiguchi <nao.horiguchi@gmail.com>, 
-	Xu Xin <xu.xin16@zte.com.cn>, Chengming Zhou <chengming.zhou@linux.dev>, 
-	SJ Park <sj@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Hugh Dickins <hughd@google.com>, Peter Xu <peterx@redhat.com>, 
-	Kees Cook <kees@kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, 
-	Robin Murphy <robin.murphy@arm.com>, Andrey Konovalov <andreyknvl@gmail.com>, 
-	Alexander Potapenko <glider@google.com>, Dmitry Vyukov <dvyukov@google.com>, 
-	Steven Rostedt <rostedt@goodmis.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Jarkko Sakkinen <jarkko@kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Thomas Gleixner <tglx@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, 
-	"H. Peter Anvin" <hpa@zytor.com>, Ian Abbott <abbotti@mev.co.uk>, 
-	H Hartley Sweeten <hsweeten@visionengravers.com>, Lucas Stach <l.stach@pengutronix.de>, 
-	Christian Gmeiner <christian.gmeiner@gmail.com>, David Airlie <airlied@gmail.com>, 
-	Simona Vetter <simona@ffwll.ch>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, Rob Clark <robin.clark@oss.qualcomm.com>, 
-	Dmitry Baryshkov <lumag@kernel.org>, Abhinav Kumar <abhinav.kumar@linux.dev>, 
-	Jessica Zhang <jesszhan0024@gmail.com>, Sean Paul <sean@poorly.run>, 
-	Marijn Suijten <marijn.suijten@somainline.org>, Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
-	Thierry Reding <thierry.reding@kernel.org>, Mikko Perttunen <mperttunen@nvidia.com>, 
-	Jonathan Hunter <jonathanh@nvidia.com>, Christian Koenig <christian.koenig@amd.com>, 
-	Huang Rui <ray.huang@amd.com>, Matthew Auld <matthew.auld@intel.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@nvidia.com>, 
-	Shameer Kolothum <skolothumtho@nvidia.com>, Kevin Tian <kevin.tian@intel.com>, 
-	Ankit Agrawal <ankita@nvidia.com>, Alex Williamson <alex@shazbot.org>, 
-	Paolo Bonzini <pbonzini@redhat.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Usama Arif <usama.arif@linux.dev>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, linux-perf-users@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, damon@lists.linux.dev, iommu@lists.linux.dev, 
-	kasan-dev@googlegroups.com, linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org, 
-	dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org, 
-	linux-tegra@vger.kernel.org, kvm@vger.kernel.org, 
-	Russell King <linux+etnaviv@armlinux.org.uk>
-Subject: Re: [PATCH v2 03/33] tools/testing/vma: use vma_start_pgoff() in
- merge tests
-Message-ID: <p6bhkbzvrdz6bb4a6cdmd6bmlwuwxfjd3lx5opq334o7nwjhwa@ctqdd3i2daon>
-References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-3-2a5aa403d977@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qKzkDq0U"
+Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-8486ac3f347so1172028b3a.1
+        for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 14:31:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1784151110; x=1784755910; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:date:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=RkllprxknGgtsAUtKcMYlWZnTeNJpDATGUEaLC+fkyk=;
+        b=qKzkDq0U4RJAL8KmW/edyTKRStCAOWJ+tSWbt6SnIidn8WMql7pDjvaE5IrWrNZDWM
+         uIZV16owbjrXIMSYwUgWfGQ9m3miwnrfs9XTkrY+i6M3NezNYU6X5gAtWfCvMaegmKC6
+         wo50iIekAi2qe7H36/oayqRSeAbMdDfXAGWACC04GS7DmxY2F8W1pWwUOUKUaAdkvBHi
+         VHJgCzZO/0lulM82wv0nsUnbGkFQ3J5JbmFVaCoK3V9pGZMayIZjZzTAgF83fHlmG2Ll
+         ZF3gunZvBsljEBS5bZDxd96zG7L+BjegPb31Q7QSwTo0PlFNAIBHWYUOGrLwtfZPHvt8
+         EKJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784151111; x=1784755911;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=RkllprxknGgtsAUtKcMYlWZnTeNJpDATGUEaLC+fkyk=;
+        b=NQFKbA8j+wB0YCMxBa3Hq/vVrscrku3OAvPWif4hu0I8qzslPOSDruvnhb8zsNiW2O
+         zVaVcQ6MnLzGUTLOETpTCIWggCQjpHjBdGYRRItUUz1t+fs3n2ahck3yc8D59qJkdcdQ
+         E9LZ4hUIB5FiV5ZJvZbm3SJRnm0VxNzhRDys0Vm3sj5IMihHNNVVgfYu/AwOvIwxAdGT
+         FzJIjnuAn5/JD4uV+uiv2wH+/SR6cLiOX1EN4e2n0JE/3QLP0JbHZLu4U/evJIvkqVAY
+         3VtqcFHz2D8FqLZzjdqeWt6//1DJAa3YhRDHm3VyFY+CkPDttIj2hWk+M8Yd+cUQCCCq
+         qg1g==
+X-Forwarded-Encrypted: i=1; AHgh+RqDvGdecfJzDkXQanGaP22FXEpETbeKhvBtRf1Kx5/Q6/dWemf4KC9Za2p71FJsNa1KWLR8W5A=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwhLaaGif6MxkqRr3tLi1qBoWTCwhrxAd9mynGLK0eYb596YWZL
+	6wV6P46s8tEUyZZFMElFu7xhReUuALjdXo72kye205pRndSMob+gtPnc
+X-Gm-Gg: AfdE7cmqQnqtWweSlJs/sIO25gELSOxrKoPgo7L4UyCACWdiBx4jl+CWfXZWWpuYCMC
+	oZ04qBUidwWZOcxRH9Kh2slPyNbRa1hR1jxwPchcF2TiaxZKn+ABl2NM1jKUBXqRhktcopscek/
+	LbiJepl22YE5b+xLPRv2Q3rM5R8OL/du6urxQXBq/hLIRwcS5KK0mcxDFd1Zmy4AJZ39pp4Yvp+
+	+usumhN4FUDNT40kZyn0F/6Mj6uoY6jd8b+svUQNufsW8y2kJAJMSiNOz//TaEFYXE3tSEnmuJB
+	N91bdLyti6u32xI/zpfxS/TVjBhGzjGeiJhRgTASY1/GFNlLp4DuQye4Od+BWOUO2+92hLNNYHQ
+	3GiiOFbpUZprgblaVIcxmD+PHrVYbOaq6fyxtouFpcQ4XDHZp4g3npdSEEpMA67v0tKJavVgAMb
+	2TdKF4jDspmDbE+gqjA0RCFmkStWk8Qqs5EYgek8M7C3IaG94U5A5R8bsX9g==
+X-Received: by 2002:a05:6a20:c98b:b0:3b4:731e:6fad with SMTP id adf61e73a8af0-3c384aeb33dmr1101447637.16.1784151110450;
+        Wed, 15 Jul 2026 14:31:50 -0700 (PDT)
+Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3140e4fc28dsm4621118eec.2.2026.07.15.14.31.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Jul 2026 14:31:50 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Wed, 15 Jul 2026 14:31:49 -0700
+To: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>
+Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>
+Subject: Re: [PATCH v11 10/31] cxl/mem: Configure dynamic capacity interrupts
+Message-ID: <alf8RRJ3tcRWvBIR@AnisaLaptop.localdomain>
+References: <20260625112638.550691-1-anisa.su@samsung.com>
+ <20260625112638.550691-11-anisa.su@samsung.com>
+ <6d4b2c0e-5c05-4e92-9c9d-dba8cabe849b@amd.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -101,201 +85,289 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-3-2a5aa403d977@kernel.org>
+In-Reply-To: <6d4b2c0e-5c05-4e92-9c9d-dba8cabe849b@amd.com>
 
-On 26/07/10 09:16PM, Lorenzo Stoakes wrote:
-> Now we have the vma_start_pgoff() helper, update the merge tests to make
-> use of it for consistency.
+On Tue, Jul 07, 2026 at 04:51:23PM -0500, Cheatham, Benjamin wrote:
+> On 6/25/2026 6:04 AM, Anisa Su wrote:
+> > From: Ira Weiny <iweiny@kernel.org>
+> > 
+> > Dynamic Capacity Devices (DCD) support extent change notifications
+> > through the event log mechanism.  The interrupt mailbox commands were
+> > extended in CXL 3.1 to support these notifications.  Firmware can't
+> > configure DCD events to be FW controlled but can retain control of
+> > memory events.
+> > 
+> > Configure DCD event log interrupts on devices supporting dynamic
+> > capacity.  Disable DCD if interrupts are not supported.
+> > 
+> > Care is taken to preserve the interrupt policy set by the FW if FW first
+> > has been selected by the BIOS.
+> > 
+> > Accept the 4-byte CXL 2.0 reply on GET Event Interrupt Policy by setting
+> > min_out to CXL_EVENT_INT_POLICY_BASE_SIZE; pre-CXL 3.1 firmware omits
+> > dcd_settings and would otherwise fail the size check.
+> > 
+> > Based on an original patch by Navneet Singh.
+> > 
+> > Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> > 
+> > ---
+> > Changes:
+> > [anisa: add CXLDEV_EVENT_STATUS_DCD (bit 4) to CXLDEV_EVENT_STATUS_ALL;
+> > previously added in a later commit but moved to current commit]
+> > 
+> > [anisa: check native_cxl before cxl_mem_get_event_records]
+> > ---
+> >  drivers/cxl/cxl.h    |  4 +-
+> >  drivers/cxl/cxlmem.h |  2 +
+> >  drivers/cxl/pci.c    | 94 ++++++++++++++++++++++++++++++++++++--------
+> >  3 files changed, 83 insertions(+), 17 deletions(-)
+> > 
+> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> > index 1297594beaec..864f6d3c03d4 100644
+> > --- a/drivers/cxl/cxl.h
+> > +++ b/drivers/cxl/cxl.h
+> > @@ -180,11 +180,13 @@ static inline int ways_to_eiw(unsigned int ways, u8 *eiw)
+> >  #define CXLDEV_EVENT_STATUS_WARN		BIT(1)
+> >  #define CXLDEV_EVENT_STATUS_FAIL		BIT(2)
+> >  #define CXLDEV_EVENT_STATUS_FATAL		BIT(3)
+> > +#define CXLDEV_EVENT_STATUS_DCD			BIT(4)
+> >  
+> >  #define CXLDEV_EVENT_STATUS_ALL (CXLDEV_EVENT_STATUS_INFO |	\
+> >  				 CXLDEV_EVENT_STATUS_WARN |	\
+> >  				 CXLDEV_EVENT_STATUS_FAIL |	\
+> > -				 CXLDEV_EVENT_STATUS_FATAL)
+> > +				 CXLDEV_EVENT_STATUS_FATAL |	\
+> > +				 CXLDEV_EVENT_STATUS_DCD)
+> >  
+> >  /* CXL rev 3.0 section 8.2.9.2.4; Table 8-52 */
+> >  #define CXLDEV_EVENT_INT_MODE_MASK	GENMASK(1, 0)
+> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> > index afc195d8c090..bcf976829c3e 100644
+> > --- a/drivers/cxl/cxlmem.h
+> > +++ b/drivers/cxl/cxlmem.h
+> > @@ -218,7 +218,9 @@ struct cxl_event_interrupt_policy {
+> >  	u8 warn_settings;
+> >  	u8 failure_settings;
+> >  	u8 fatal_settings;
+> > +	u8 dcd_settings;
+> >  } __packed;
+> > +#define CXL_EVENT_INT_POLICY_BASE_SIZE 4 /* info, warn, failure, fatal */
+> >  
+> >  /**
+> >   * struct cxl_event_state - Event log driver state
+> > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+> > index 8d12c684d670..95a4bf7c1e46 100644
+> > --- a/drivers/cxl/pci.c
+> > +++ b/drivers/cxl/pci.c
+> > @@ -514,7 +514,19 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
+> >  	struct cxl_dev_id *dev_id = id;
+> >  	struct cxl_dev_state *cxlds = dev_id->cxlds;
+> >  	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
+> > +	struct pci_host_bridge *host_bridge =
+> > +		pci_find_host_bridge(to_pci_dev(cxlds->dev)->bus);
+> >  	u32 status;
+> > +	u32 mask;
+> > +
+> > +	/*
+> > +	 * Only drain logs the driver owns.  When BIOS owns event reporting
+> > +	 * (!native_cxl) the driver is only here for the Dynamic Capacity log;
+> > +	 * processing the standard logs would steal firmware-first events from
+> > +	 * BIOS, so mask them out.
+> > +	 */
+> > +	mask = host_bridge->native_cxl_error ? CXLDEV_EVENT_STATUS_ALL
+> > +					     : CXLDEV_EVENT_STATUS_DCD;
+> >  
+> >  	do {
+> >  		/*
+> > @@ -522,8 +534,8 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
+> >  		 * ignore the reserved upper 32 bits
+> >  		 */
+> >  		status = readl(cxlds->regs.status + CXLDEV_DEV_EVENT_STATUS_OFFSET);
+> > -		/* Ignore logs unknown to the driver */
+> > -		status &= CXLDEV_EVENT_STATUS_ALL;
+> > +		/* Ignore logs unknown to the driver or owned by BIOS */
+> > +		status &= mask;
+> >  		if (!status)
+> >  			break;
+> >  		cxl_mem_get_event_records(mds, status);
+> > @@ -557,6 +569,8 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
+> >  		.opcode = CXL_MBOX_OP_GET_EVT_INT_POLICY,
+> >  		.payload_out = policy,
+> >  		.size_out = sizeof(*policy),
+> > +		/* CXL 2.0 firmware omits dcd_settings; accept the shorter reply */
+> > +		.min_out = CXL_EVENT_INT_POLICY_BASE_SIZE,
+> >  	};
+> >  	int rc;
+> >  
+> > @@ -569,23 +583,34 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
+> >  }
+> >  
+> >  static int cxl_event_config_msgnums(struct cxl_memdev_state *mds,
+> > -				    struct cxl_event_interrupt_policy *policy)
+> > +				    struct cxl_event_interrupt_policy *policy,
+> > +				    bool native_cxl)
+> >  {
+> >  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> > +	size_t size_in = CXL_EVENT_INT_POLICY_BASE_SIZE;
+> >  	struct cxl_mbox_cmd mbox_cmd;
+> >  	int rc;
+> >  
+> > -	*policy = (struct cxl_event_interrupt_policy) {
+> > -		.info_settings = CXL_INT_MSI_MSIX,
+> > -		.warn_settings = CXL_INT_MSI_MSIX,
+> > -		.failure_settings = CXL_INT_MSI_MSIX,
+> > -		.fatal_settings = CXL_INT_MSI_MSIX,
+> > -	};
+> > +	/* memory event policy is left if FW has control */
+> > +	if (native_cxl) {
+> > +		*policy = (struct cxl_event_interrupt_policy) {
+> > +			.info_settings = CXL_INT_MSI_MSIX,
+> > +			.warn_settings = CXL_INT_MSI_MSIX,
+> > +			.failure_settings = CXL_INT_MSI_MSIX,
+> > +			.fatal_settings = CXL_INT_MSI_MSIX,
+> > +			.dcd_settings = 0,
+> > +		};
+> > +	}
+> > +
+> > +	if (cxl_dcd_supported(mds)) {
+> > +		policy->dcd_settings = CXL_INT_MSI_MSIX;
+> > +		size_in += sizeof(policy->dcd_settings);
+> > +	}
 > 
-> No functional change intended.
+> It seems there's a bug here that I found on one of our test machines. It's possible the card doesn't support
+> DCD commands but does have the policy bit for DCD (i.e. CXL card is 3.0+), so the payload still needs to be
+> large enough to include the DCD bit in that case. So, the size_in needs to always include dcd_settings but
+> the actual policy setting should stay based on whether the card supports DCD. Hopefully that makes sense, let
+> me know if it's not clear...
 > 
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-> Reviewed-by: Gregory Price <gourry@gourry.net>
-> Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-> Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Yes that makes sense. Thank you for reporting!
 
-Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+> 
+> The first thing that I thought of for a solution is setting size_in based on the CXL card's DVSEC revision
+> (i.e. size_in = 5 for CXL 3.0+, size_in = 4 otherwise). Not exactly a clean solution, but I'm not sure there's
+> a way around it.
+> 
+> Thanks,
+> Ben
+> >  
+Here is what I came up with:
 
-> ---
->  tools/testing/vma/tests/merge.c | 38 +++++++++++++++++++-------------------
->  1 file changed, 19 insertions(+), 19 deletions(-)
-> 
-> diff --git a/tools/testing/vma/tests/merge.c b/tools/testing/vma/tests/merge.c
-> index 03b6f9820e0a..f8666a755749 100644
-> --- a/tools/testing/vma/tests/merge.c
-> +++ b/tools/testing/vma/tests/merge.c
-> @@ -118,7 +118,7 @@ static bool test_simple_merge(void)
->  
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x3000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  	ASSERT_FLAGS_SAME_MASK(&vma->flags, vma_flags);
->  
->  	detach_free_vma(vma);
-> @@ -150,7 +150,7 @@ static bool test_simple_modify(void)
->  
->  	ASSERT_EQ(vma->vm_start, 0x1000);
->  	ASSERT_EQ(vma->vm_end, 0x2000);
-> -	ASSERT_EQ(vma->vm_pgoff, 1);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 1);
->  
->  	/*
->  	 * Now walk through the three split VMAs and make sure they are as
-> @@ -162,7 +162,7 @@ static bool test_simple_modify(void)
->  
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x1000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  
->  	detach_free_vma(vma);
->  	vma_iter_clear(&vmi);
-> @@ -171,7 +171,7 @@ static bool test_simple_modify(void)
->  
->  	ASSERT_EQ(vma->vm_start, 0x1000);
->  	ASSERT_EQ(vma->vm_end, 0x2000);
-> -	ASSERT_EQ(vma->vm_pgoff, 1);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 1);
->  
->  	detach_free_vma(vma);
->  	vma_iter_clear(&vmi);
-> @@ -180,7 +180,7 @@ static bool test_simple_modify(void)
->  
->  	ASSERT_EQ(vma->vm_start, 0x2000);
->  	ASSERT_EQ(vma->vm_end, 0x3000);
-> -	ASSERT_EQ(vma->vm_pgoff, 2);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 2);
->  
->  	detach_free_vma(vma);
->  	mtree_destroy(&mm.mm_mt);
-> @@ -209,7 +209,7 @@ static bool test_simple_expand(void)
->  
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x3000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  
->  	detach_free_vma(vma);
->  	mtree_destroy(&mm.mm_mt);
-> @@ -231,7 +231,7 @@ static bool test_simple_shrink(void)
->  
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x1000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  
->  	detach_free_vma(vma);
->  	mtree_destroy(&mm.mm_mt);
-> @@ -324,7 +324,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
->  	ASSERT_TRUE(merged);
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x4000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 3);
-> @@ -343,7 +343,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
->  	ASSERT_TRUE(merged);
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x5000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 3);
-> @@ -364,7 +364,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
->  	ASSERT_TRUE(merged);
->  	ASSERT_EQ(vma->vm_start, 0x6000);
->  	ASSERT_EQ(vma->vm_end, 0x9000);
-> -	ASSERT_EQ(vma->vm_pgoff, 6);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 6);
->  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 3);
-> @@ -384,7 +384,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
->  	ASSERT_TRUE(merged);
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x9000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 2);
-> @@ -404,7 +404,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
->  	ASSERT_TRUE(merged);
->  	ASSERT_EQ(vma->vm_start, 0xa000);
->  	ASSERT_EQ(vma->vm_end, 0xc000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0xa);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0xa);
->  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 2);
-> @@ -423,7 +423,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
->  	ASSERT_TRUE(merged);
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0xc000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 1);
-> @@ -443,7 +443,7 @@ static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky,
->  		ASSERT_NE(vma, NULL);
->  		ASSERT_EQ(vma->vm_start, 0);
->  		ASSERT_EQ(vma->vm_end, 0xc000);
-> -		ASSERT_EQ(vma->vm_pgoff, 0);
-> +		ASSERT_EQ(vma_start_pgoff(vma), 0);
->  		ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
->  
->  		detach_free_vma(vma);
-> @@ -805,7 +805,7 @@ static bool test_vma_merge_new_with_close(void)
->  	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x5000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  	ASSERT_EQ(vma->vm_ops, &vm_ops);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 2);
-> @@ -865,7 +865,7 @@ static bool __test_merge_existing(bool prev_is_sticky, bool middle_is_sticky, bo
->  	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
->  	ASSERT_EQ(vma->vm_start, 0x2000);
->  	ASSERT_EQ(vma->vm_end, 0x3000);
-> -	ASSERT_EQ(vma->vm_pgoff, 2);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 2);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_TRUE(vma_write_started(vma_next));
->  	ASSERT_EQ(mm.map_count, 2);
-> @@ -931,7 +931,7 @@ static bool __test_merge_existing(bool prev_is_sticky, bool middle_is_sticky, bo
->  	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
->  	ASSERT_EQ(vma->vm_start, 0x6000);
->  	ASSERT_EQ(vma->vm_end, 0x7000);
-> -	ASSERT_EQ(vma->vm_pgoff, 6);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 6);
->  	ASSERT_TRUE(vma_write_started(vma_prev));
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 2);
-> @@ -1416,7 +1416,7 @@ static bool test_merge_extend(void)
->  	ASSERT_EQ(vma_merge_extend(&vmi, vma, 0x2000), vma);
->  	ASSERT_EQ(vma->vm_start, 0);
->  	ASSERT_EQ(vma->vm_end, 0x4000);
-> -	ASSERT_EQ(vma->vm_pgoff, 0);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 0);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(mm.map_count, 1);
->  
-> @@ -1456,7 +1456,7 @@ static bool test_expand_only_mode(void)
->  	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
->  	ASSERT_EQ(vma->vm_start, 0x3000);
->  	ASSERT_EQ(vma->vm_end, 0x9000);
-> -	ASSERT_EQ(vma->vm_pgoff, 3);
-> +	ASSERT_EQ(vma_start_pgoff(vma), 3);
->  	ASSERT_TRUE(vma_write_started(vma));
->  	ASSERT_EQ(vma_iter_addr(&vmi), 0x3000);
->  	vma_assert_attached(vma);
-> 
-> -- 
-> 2.55.0
+In cxl_event_config(), we get the interrupt policy
+from cxl_event_get_int_policy() before cxl_event_config_msgnums().
+
+I added a return param to cxl_event_get_int_policy() to return the
+actual size:
+
+*policy_size = mbox_cmd.size_out
+
+The value is passed through a new input parameter for policy_size in
+cxl_event_config_msgnums() so it can use the actual size.
+
+I am working my way through the reviews and hope to post v12 soon :3
+
+Thanks,
+Anisa
+
+> >  	mbox_cmd = (struct cxl_mbox_cmd) {
+> >  		.opcode = CXL_MBOX_OP_SET_EVT_INT_POLICY,
+> >  		.payload_in = policy,
+> > -		.size_in = sizeof(*policy),
+> > +		.size_in = size_in,
+> >  	};
+> >  
+> >  	rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
+> > @@ -632,6 +657,30 @@ static int cxl_event_irqsetup(struct cxl_memdev_state *mds,
+> >  	return 0;
+> >  }
+> >  
+> > +static int cxl_irqsetup(struct cxl_memdev_state *mds,
+> > +			struct cxl_event_interrupt_policy *policy,
+> > +			bool native_cxl)
+> > +{
+> > +	struct cxl_dev_state *cxlds = &mds->cxlds;
+> > +	int rc;
+> > +
+> > +	if (native_cxl) {
+> > +		rc = cxl_event_irqsetup(mds, policy);
+> > +		if (rc)
+> > +			return rc;
+> > +	}
+> > +
+> > +	if (cxl_dcd_supported(mds)) {
+> > +		rc = cxl_event_req_irq(cxlds, policy->dcd_settings);
+> > +		if (rc) {
+> > +			dev_err(cxlds->dev, "Failed to get interrupt for DCD event log\n");
+> > +			cxl_disable_dcd(mds);
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static bool cxl_event_int_is_fw(u8 setting)
+> >  {
+> >  	u8 mode = FIELD_GET(CXLDEV_EVENT_INT_MODE_MASK, setting);
+> > @@ -657,18 +706,26 @@ static bool cxl_event_validate_mem_policy(struct cxl_memdev_state *mds,
+> >  static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >  			    struct cxl_memdev_state *mds, bool irq_avail)
+> >  {
+> > -	struct cxl_event_interrupt_policy policy;
+> > +	struct cxl_event_interrupt_policy policy = { 0 };
+> > +	bool native_cxl = host_bridge->native_cxl_error;
+> >  	int rc;
+> >  
+> >  	/*
+> >  	 * When BIOS maintains CXL error reporting control, it will process
+> >  	 * event records.  Only one agent can do so.
+> > +	 *
+> > +	 * If BIOS has control of events and DCD is not supported skip event
+> > +	 * configuration.
+> >  	 */
+> > -	if (!host_bridge->native_cxl_error)
+> > +	if (!native_cxl && !cxl_dcd_supported(mds))
+> >  		return 0;
+> >  
+> >  	if (!irq_avail) {
+> >  		dev_info(mds->cxlds.dev, "No interrupt support, disable event processing.\n");
+> > +		if (cxl_dcd_supported(mds)) {
+> > +			dev_info(mds->cxlds.dev, "DCD requires interrupts, disable DCD\n");
+> > +			cxl_disable_dcd(mds);
+> > +		}
+> >  		return 0;
+> >  	}
+> >  
+> > @@ -676,10 +733,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >  	if (rc)
+> >  		return rc;
+> >  
+> > -	if (!cxl_event_validate_mem_policy(mds, &policy))
+> > +	if (native_cxl && !cxl_event_validate_mem_policy(mds, &policy))
+> >  		return -EBUSY;
+> >  
+> > -	rc = cxl_event_config_msgnums(mds, &policy);
+> > +	rc = cxl_event_config_msgnums(mds, &policy, native_cxl);
+> >  	if (rc)
+> >  		return rc;
+> >  
+> > @@ -687,11 +744,16 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+> >  	if (rc)
+> >  		return rc;
+> >  
+> > -	rc = cxl_event_irqsetup(mds, &policy);
+> > +	rc = cxl_irqsetup(mds, &policy, native_cxl);
+> >  	if (rc)
+> >  		return rc;
+> >  
+> > -	cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+> > +	if (native_cxl)
+> > +		cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+> > +
+> > +	dev_dbg(mds->cxlds.dev, "Event config : %s DCD %s\n",
+> > +		native_cxl ? "OS" : "BIOS",
+> > +		cxl_dcd_supported(mds) ? "supported" : "not supported");
+> >  
+> >  	return 0;
+> >  }
 > 
