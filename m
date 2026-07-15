@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89C33495504;
-	Wed, 15 Jul 2026 17:31:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E72F4280338;
+	Wed, 15 Jul 2026 17:33:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784136665; cv=none; b=m/JE4WikV3U01QzVZMR0NlGTQ5noNVg3+m+Pwy52t4KRCGYLFHs5DlJG3RokZ90ZP2a9sH+kKt8QDmGqZWQq8UqLWm8MDSLSmDVNHt740PF2Kg3AID1Yx7aE5EcaTERhmXY5f8HjfG9zgLluANt52C188SK3z8wyyWNA67yASbI=
+	t=1784136806; cv=none; b=J/sWFpvKtrW3KnAzC1KOv540LqtsoapmJrOz8fVYCd0zIlUyWlKV6MPxeNZAEHg8B/NBEID8MrA0r3kyhXNigIdbFAbZNRjgGWR/BvGnZj6iaOlEKvUzFtGSdd+DSeGg0rW79Ap2iMDsF3lxamWiqoHO7aVn7sFPayVGr5SwGBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784136665; c=relaxed/simple;
-	bh=2eUd8Nl6mRXN1W2NtvYRKuJPDp80glMMC4xYb4egFAU=;
+	s=arc-20240116; t=1784136806; c=relaxed/simple;
+	bh=2kIobsp9C2aKfuvVpq3N+mod1O+SLmySM9VJvlNCyS4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WpMg0Fk8zgOh7pmia0fWtS7Ajfzn++X7LHZ9zhBYnw/aObASeJykG8iIAHKrWsef6ua1isXc1IvZKYT8zYV48WfHTHMj4+VWCQnEWySseYQOaLd8Hwt718LBJ1nnJDePceBUHbilDjhqi+560NQIcojnqoNXF1naZVH9n2g4Q54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NJ2vIVoB; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=o97jp2ltkXdVvhtBAZBPjLgV7qCYeE/7fsDMzxldqjfDHQJ0OsiQozozlRwVlY3DL9PxQCZQ8afShDdjwo6jsVRVGhltZ1L29Sl2WF9csYyju1i1tLRLBS4x581QGJjb6DS3i4nyKt3Q9oEn0fN9/hfk7utiqo5yjIbX5dWO7D8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Plq0sbET; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NJ2vIVoB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A14401F000E9;
-	Wed, 15 Jul 2026 17:30:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Plq0sbET"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 969781F000E9;
+	Wed, 15 Jul 2026 17:33:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784136659;
-	bh=Mn8oct4HW8vssYVWtxQHphxPwvPDO5eabbxzgczXegY=;
+	s=k20260515; t=1784136804;
+	bh=AbFSf57xlvRU+7oRSFFrOCqwNArP44ynDnY9nIh20AY=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=NJ2vIVoBzjUtT4ioB4s1p+a4H+WhbDamfXKkdQ2iDI05seVhaT+i00hofCw0+HIAn
-	 ksJLqEMik4pOD8dVwbbp/F2grlpq2DvNIuariG0w7Rt+V0mmQs31uuMLyBAsqi0bep
-	 VhNbafEZ6cQ+3rIw91s7rGhAyry1PRjmuQSLU6T7GA2xX2BzFJKpAAnO+sYjmpyUqT
-	 8Fzi449V9qcI1dEXKzQhmyILoG9bPx9uEy9ZFMXObYKvJqxUHo6z4bL4Z5IkQIPWKH
-	 xk5jDrhlLlnX5DEolBMp7Jw99VvCPM+M6IFE/K8XZj8+X9t3a4O8J6QIA+jKulrtnv
-	 vCRrWw9gTvsDw==
-Message-ID: <0925897e-1a19-4e7e-84bd-43bcd2310a49@kernel.org>
-Date: Wed, 15 Jul 2026 19:30:34 +0200
+	b=Plq0sbETLnXdMAnyr13Z7qquALZkI61HIXPlDtbTJXle3KmIPSHsRIwRYmKnpLWlo
+	 19eJ5bHwIL3oVOiP8iDflJPmZt6j5Nw6MrL4/VfsyRh9F92YzgyXkq5Lczs8NiSMUN
+	 SstWyL1GrOp98wvFI0l0tVtqvON5NCaGqZvAS8cVtNQkvzu+Lm1N2Vmd20/5FL+Jxw
+	 KE/82mNtPPptX6Y3tbqbGmoMiIylHvRURsOGhlxwi7dZy3XzZ34mvZ0d/HomYcJgHU
+	 iBrea2Oz0LWMg2oxV3xJb5F+NM9SzEsbtXr+EtFE0PGDRHLu1KboOje6+diumQQuqQ
+	 LXqmrN3WsVtEg==
+Message-ID: <84b0cb24-ceeb-4a8a-ba6b-cba2c9f9c4bf@kernel.org>
+Date: Wed, 15 Jul 2026 19:33:00 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 21/33] mm: use linear_page_[index, delta]()
- consistently
+Subject: Re: [PATCH v2 22/33] mm/vma: introduce vma_assert_can_modify()
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -111,10 +110,9 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org,
  dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
- kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>,
- Kai Huang <kai.huang@intel.com>, Ackerley Tng <ackerleytng@google.com>
+ kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-21-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-22-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -155,23 +153,30 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-21-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-22-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> There are a number of places where we open code what linear_page_index()
-> and linear_page_delta() calculate.
+> vma_assert_write_locked() and vma_assert_attached() are useful for their
+> own purposes, however VMA code absolutely does allow the modification of
+> non-write locked VMAs if they are at that point detached (i.e. unreachable
+> from anywhere).
 > 
-> Replace this code with the appropriate functions for consistency.
+> It's therefore useful to be able to assert that a VMA is either
+> detached (modification doesn't matter) or write locked (you're explicitly
+> locked for modification).
 > 
-> No functional change intended.
+> Therefore introduce vma_assert_can_modify() for this purpose.
 > 
-> Reviewed-by: Thomas Zimmermann <tzimmermann@suse.de> # for DRM
-> Acked-by: Kai Huang <kai.huang@intel.com> # for sgx
-> Reviewed-by: Gregory Price <gourry@gourry.net>
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de> # for mm
-> Reviewed-by: Ackerley Tng <ackerleytng@google.com> # for guest_memfd
+> While we're here, make vma_is_attached() available generally - if
+> !CONFIG_PER_VMA_LOCK, then there's no sense in which a VMA is
+> detached (vma_mark_detached() is a noop), so have this default to true in
+> this case.
+> 
+> Also update VMA userland tests to reflect this change, correcting the
+> previously open-coded vma_assert_[attached,detached]() there.
+> 
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
