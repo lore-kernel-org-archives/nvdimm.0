@@ -1,196 +1,252 @@
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010021.outbound.protection.outlook.com [52.101.46.21])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E2353815FB
-	for <nvdimm@lists.linux.dev>; Thu, 16 Jul 2026 04:08:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.54
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784174899; cv=none; b=C3874iiSYREqZBvbViM0A6hlU/dvjAypU0QLyj7/3otNwpsq1thHuw+bPmDMDFfWN0ideGfiV1cRr5ZesGNvrVehTkmbpD741TjyiJYyIbdDH7V9IMO0ceQA6J95OroW+tUclu3epmEjY1IGeDsh0QDb7rOdP2XicKc5hRHDtYQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784174899; c=relaxed/simple;
-	bh=R9xKCPWUV4jE/Y73zK46+N8T9xEUacgdX7igmryS87o=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ubPxoLsI3QwarbmpJEIUPBZ0kU4URQhXDtzgOpQkzA0ZBex9/MKsRaz+Ff18fr1Z8s+tt+MRXQtJaCzL+RFdVEQW/UPKFKFHCgadG7ORs8frcjCBLY6BYrc4njW/xkXTiRAavCSbr7BQYmOTpVku3F+jDaPHbYEEM3iaFCy41rc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Nil2pjn3; arc=none smtp.client-ip=209.85.216.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8C983812C2
+	for <nvdimm@lists.linux.dev>; Thu, 16 Jul 2026 04:08:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.21
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784174915; cv=fail; b=rfs/6qZYQn7g9wlgX56QnJBx7SvwZelyphsDZjFvpncrq4BNefsdnro7/TT0VBqIBENULrqG+WlGpK5D8Uhp+WIEMUGFy4Gx6uSDWWZqs/tS/yRAlypUdTdkyZdomhMUFbx33mxL8JXFbawbpFP5v2Wg1Rb5Z1RPRjG7r4XSNZw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784174915; c=relaxed/simple;
+	bh=7gbGecGcXEFPK5LBdht8nMM1uXBlNK9VGVxujUh8mYk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=QsIuCFSuEHYZf36AkNbp9V7rIBr+s7EXW2B4JYN9KR4TacR7a+bC4AOwTtbcfPT7ht/fwthrn/cgI7TOLTO1NMWO2DuA9bIdPs8Z/WpUCpCCK9F/skyjzPZqTy4V+8nif4VMYx6b2IVjb4oQgbuA8LWoAKmfpo9nWKbk+6IEils=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=jE6jqMg5; arc=fail smtp.client-ip=52.101.46.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Nil2pjn3"
-Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-38dc4553f62so4793177a91.0
-        for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 21:08:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784174897; x=1784779697; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:date
-         :from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=f9V0pZbsyulMpnH6R6OfoQOZz9JXss18PvQ1c2eqK3s=;
-        b=Nil2pjn3z0RoRpltdOij+SbCwr2dfDB5XS3kGVH3kOS2T5F1cD9lT2OZ8Vf8Nk9W//
-         7xEoqR+HKAAk+CKTb4zuyhZxNK5F+syh3V4HgiI7m2eg/4ibdca94SlCYcWnubzGR87f
-         Vvw+Pr0l/F2Rj14W1Ar5c2f6KLHM/T2F6K4c71jyo24fDvodj9xImMQKgmftum5cmsyz
-         6aQ6+cu+vKuuycScyyoUcxMm8kUBf9IttrLNewGj/gK+bl4beAF0v0sBz8l0yppldg3/
-         xX2Sd90rz/CcqVF96ZagERy5mNxeYXOf8yJxgYi21MJfYKmhVenan5S1BS+ANlseDx5h
-         Pt2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784174897; x=1784779697;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:date
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=f9V0pZbsyulMpnH6R6OfoQOZz9JXss18PvQ1c2eqK3s=;
-        b=C+EQQQ5HkgiXRXlH5otu4bpN6aQhZzQE9IoBXJF5soQg1EihrjcXG6PQ50x/mR2zNu
-         XuQP1bsA1r9N222aNYHzYpVeBPMtI9Zznf5AZA26Oqkf57hBiBjWgVGvgsSxWOhBjNbU
-         QO2hQKilY8Zquz2kBnhDWu74c41n9U+ruU2ITrG9E04S7g1KtwIL7Vub0Tbp9BMuf43e
-         MAfGozyG4GRTzpXCCB+dTKUjEQbXHB9wKhl2hTmBD2kT2TU9JoiTUOX3DcqcvAMbF4v1
-         ZoU5kTT8EV9uT86krpYrqdFm4Dhe7TPejQsPuUaYyQPCSPmgyUtxVzYh5odYULzD3Z29
-         mSjw==
-X-Forwarded-Encrypted: i=1; AHgh+RoSJphboi/xxPSe88mYeE4TLFIwhgstLPEJfnpgsa3y6LvYmEaBu9qgJE8SJGcFyatouj+Hrng=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx3kJrXZQwpIXbtjTrIR5BnUR3Qj0OlhKvSwjMpEbpLO6/5aaiu
-	mSpSYJqnoz5taLJ5rG/4ETjYwWSFWEplhm2CY+QkJj2QZ+y+svYEM7i+
-X-Gm-Gg: AfdE7clNDbJljEY/4QFUSXJYc6cNPZKMFmSTBRkWK0Hj3k3XdWrov6M51X0Jw5qPsqj
-	tjNJScTY4sYnuqIRclVFscSxXcN4tHJ+6mPfqJ2EzML7KcnVS/UrNKhLyreoT1R+Dun52dEsn8w
-	zJe2Kkqu/4luqTCEdnlio9/lZy49usyWxDc/lCwY27M604UTMrR4y4ElbVtTJCiqhxmO/umXP1T
-	F9Ltug28vMYdz3J6hLM5hetFUTNnEERQqG03hFphwq14gMUk6KoDZ04QQx5StUd+BNsxeYnp0AK
-	u4MJkOIhK43tOlxJHW+Q1kTcVkKXNd9vqE2iZAGQbYo45sUyXK/Nhlr1RpQMTAWtO19e1UUpKFG
-	htjRxGrYivsaEsnDFMTenjBKSXrQCBwcCyZpkSS6XRGKIzbgZaWT/+ByzhjmUbO+fg+paL/l9t9
-	Dw6nQNPEzSoKUUHzcgmNjK5x+iU71G/p5l+kcrSBLW8wy2tvE7EXPBYtqRrw==
-X-Received: by 2002:a17:90b:254d:b0:38d:c0f9:30be with SMTP id 98e67ed59e1d1-38e1b012d38mr8272945a91.38.1784174897247;
-        Wed, 15 Jul 2026 21:08:17 -0700 (PDT)
-Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3140e6f0fcdsm6473974eec.30.2026.07.15.21.08.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Jul 2026 21:08:16 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Wed, 15 Jul 2026 21:08:14 -0700
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Alison Schofield <alison.schofield@intel.com>,
-	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>
-Subject: Re: [PATCH v11 12/31] cxl/mem: Set up framework for handling DC
- Events
-Message-ID: <alhZLnHZgvRcOvO8@AnisaLaptop.localdomain>
-References: <20260625112638.550691-1-anisa.su@samsung.com>
- <20260625112638.550691-13-anisa.su@samsung.com>
- <dc8155d9-df6a-444b-a954-dad2d59cf704@intel.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="jE6jqMg5"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=uLzf9x38Ru6UH4L1iYYj7L4cujjSeFeeQWMIhvRoOI9iEenxdeFwS4X3vWWjq9t9+jLpoGtKh2MVfOaEQweX0eRePMzc46jG4A007Pd2HHglOsHQdD6kkewVWngXly6hSwhHbfRfV5JuJXv7bWNcVtpYU1MPTZ1YfjH4kL0WLgDNYyPDCfNBryVGNspJdphwR2ndbhxk51rhYiwasWkkPY91I3Vc828xIzQRLdAHVFK79Go5lbNijaO6sCd2iGmW4WHXRwD6kBhu+T3qVwjOR4Qp50aTUMW5jat5jJRL16QN0RShlyJy9n1A1cm0JyNz4I8VKyb2wKjscbzijJqlOw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JHNDmpQSbUFVwn2u+OGewJ/pkSHtsKGkU0dZed9lLZM=;
+ b=uP0IDvNNYuUZo4dao/SX6wTY442eDoEI9BMw2G/UUpopZCAPL4ixAmoKMvlsiMDjYmrfAx8mdUr8dMDZeOsxoQrWZiPGevzdXpHaejk0eF5rRnpNKSb9FJHfUBcf2feCnf1rrh9hB46E2KgdZfcxGAlzB2W81XE1A1eAAt7A/YeF1VBshfQKBncyMbVsIY4+hGXlRM7HQrRSP0lff0iJ2/KSJs5iu8I9sPlfyKpDqBgIC4RcWzxV5jd27GapXK2TYDCuW7EjDCK6XAXzxGvVzcRbd2/lnAgv7EyZnCEdApvGmvi9MduNQEnM3p5z30dXGkWe0Y0K3ArILwd8WhyOjw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JHNDmpQSbUFVwn2u+OGewJ/pkSHtsKGkU0dZed9lLZM=;
+ b=jE6jqMg53vdUO2C3j1lzb1MxSP1v8GmXFJQlqfSiHBheFcs6kjJFMVB+n8i/MpRo0Vgr3gEu5tdKkVQYqTQ1oUaHoUivBsv1UNpvdBfzvphmPQNh+dBrJUl53JVrBthSuO6jeXt3Tpq+yRVW3Xtk4EUkIUrhuOcsa/1YnxyCB74Hd0JU7gCItX7OUp63iKXwHApxTXi2C4CU+wHw8rMMde7c9b9LJm3ed3rtq8uGwVrjqtl6+83IHsn+aXiahKLTDkaKwXm2wCe4CnoAmiOMegDb/1xS8TXUh4R6aIewgYlt3OqCmuDXXfmG/yW/7Lf8sZjlJyigvKi+5dpwx1LLow==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
+ by LVXPR12MB999197.namprd12.prod.outlook.com (2603:10b6:408:3dc::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.13; Thu, 16 Jul
+ 2026 04:08:30 +0000
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8]) by BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8%5]) with mapi id 15.21.0223.008; Thu, 16 Jul 2026
+ 04:08:29 +0000
+Date: Thu, 16 Jul 2026 12:08:24 +0800
+From: Richard Cheng <icheng@nvidia.com>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: dave@stgolabs.net, jic23@kernel.org, dave.jiang@intel.com, 
+	vishal.l.verma@intel.com, djbw@kernel.org, danwilliams@nvidia.com, nvdimm@lists.linux.dev, 
+	iweiny@kernel.org, ming.li@zohomail.com, kobak@nvidia.com, kaihengf@nvidia.com, 
+	kees@kernel.org, newtonl@nvidia.com, kristinc@nvidia.com, mochs@nvidia.com, 
+	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [ndctl PATCH] test/fwctl: Add Get Feature OOB rejection
+ regression test
+Message-ID: <alhYLE0LxiO32H98@MWDK4CY14F>
+References: <20260624140006.50773-1-icheng@nvidia.com>
+ <alaN3HGUZ9Fl8vcD@aschofie-mobl2.lan>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alaN3HGUZ9Fl8vcD@aschofie-mobl2.lan>
+X-ClientProxiedBy: TP0P295CA0059.TWNP295.PROD.OUTLOOK.COM
+ (2603:1096:910:3::12) To BL0PR12MB2370.namprd12.prod.outlook.com
+ (2603:10b6:207:47::27)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <dc8155d9-df6a-444b-a954-dad2d59cf704@intel.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|LVXPR12MB999197:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1d0ec074-e9c3-4432-a129-08dee2efe484
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|7416014|376014|23010399003|18002099003|22082099003|11063799006|4143699003|10067099003|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	CEDnOnL6CINcqw9Zozi+9YaxATkipfFhkFoLt8n4/USea40vNJXkKu8P34cDucYGyBXL9InNcnTd4meekLfarL7c8+5LAyn09mOd0NxuhRBZ6TPUB2k7bc+u4sMuKwxlrE63Ws2iJ5Mg74ftfJ8TjW/fAX5FcmK5Hfs2W/KMBuo1gleDy9APwZQmG2uBhYPbX0LwKzjuvaOqvsekC02DILjuSmgsjze1ksn+mzCj+jF0YXvV0i1ME4MIDBjQlOzdC1xFnLNvZhVZmQ6xdg8Ot12kN3hZC8cZh1EeBeP8tLhXosNiERq5N/DG0uYbB3Wpft9xLTFRHzeg8m1fRqTA+c/OEc+bB+dXUHTCn2CVzsUdJtje0qShVW/dfpxEJiqMJohuIxwwR560wXW8Zd/+VhzFYHKUcVeR82fhfBfkVdbRknj6upv05KVppsJ7aawr+B/+HMUZdtL2BEJ7Pgp1Vl05/o5jGOdYDnaKve1iuSTJQ6Bls3zDdhQ7zV3Djg6irJDs2u4b2FkP9eJOn0osZmpRGXpcSfHHvWKjnALdB/7dMYUJGFAV/Kt0PYg4mhsWneNOBdjJHjW364IpSw6hVf5hq+ofGTLH7k1ZAXNghBMg7iuHER/NI0mJ7b//SIxDT9op3EXeEbha+pcprMYfzOuV0CIlHCNYHxvI73/duAY=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(23010399003)(18002099003)(22082099003)(11063799006)(4143699003)(10067099003)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?2UNskKB0j+lFyRdd0KCIlL71PVP/p10VLhWiePLXmOMNb3r+Vq2esGG61R3A?=
+ =?us-ascii?Q?sPQyCFjUhAVJ7sHDH+BZzqXbRi+L9H8CVQnM6+t93xfBU/g8rIezcZHqnzRG?=
+ =?us-ascii?Q?9A/9uCNXdeYhwL7p9U3MKshWR3NhN/7KyboVN/JG23iUqUgzL915VTrX2eQA?=
+ =?us-ascii?Q?w1/HucU2NiUciFuetDWw/cIRurmmhROa1FXKWIYjLZ87pv7MYbM3foEsl9Nd?=
+ =?us-ascii?Q?A6rqi+smFw2/g1Tcl6UMlQoJdIwSWIvHNieQ34t+4yGAx5OE/BlH9bjQUAqy?=
+ =?us-ascii?Q?Kn9XckL2eNcTAWXd6v9S8EomUOVNczH1I9eOOP8K7yYYbRwD5o8MZTMv18vV?=
+ =?us-ascii?Q?/JFGHU8du2JtnGzsAEoblYk6Rx1fmq4defbk6lvkT5Fm6Jatp1moYFDagA52?=
+ =?us-ascii?Q?WOiBhQyFXWkw1U8U8YIttZrA7cTeoiV39QgimIi4BbUkiJI9kvBuJuRgUIqD?=
+ =?us-ascii?Q?tQ18835T+endeNYKP6Dyqn7LjmS29xxOn/BylULADf5jQNgB5sSDC3HQFZMT?=
+ =?us-ascii?Q?LgSg98j4tc1Jl5DZsQZUmUqDNocEYiXLnw5yHHqLajKBEkfZYFsmL5LkC24I?=
+ =?us-ascii?Q?zdZhTrGChBvF9TEfaXiQsYUD/irKkJjy6bdYeiCSSWfWxuwMzU8P7sxYa2f9?=
+ =?us-ascii?Q?VanRU8obx4ujg15c2txXWDn/5X4G4qnTfEnjzT27jxWYY0KqW7uAajbBp4Jg?=
+ =?us-ascii?Q?pLcHGczkZZ3n5aO+vJlfFFhhEB0MZ+OXNji7f6CEnn5DIcfpTIb9QUtgyzSm?=
+ =?us-ascii?Q?SV2UF8ADoeUTwv5ccUeApBjyd2Y/Uuv2aDVxtxUOgiVW2BSZKMcZFsCxKO89?=
+ =?us-ascii?Q?ms8biEpHM7VAtkcokL6kxarEYjt+IauOCOTS8M8sHcQQPEThYeoUIXulgHhC?=
+ =?us-ascii?Q?LVeHZAIkZjUzcqrX+GSEP1IFWuyQ6dcUjHM41MME1Cqje/FCtQEl9Xtz7IpS?=
+ =?us-ascii?Q?p5Wfbu247MZVccwN/SlP1yMx0aywlPiduPY0wcaTG/pXYbhRhvI3KawsTjS9?=
+ =?us-ascii?Q?JYnH6TUe6Szdl1JH3LukyR/A9YmtK3v26VMIgV25X02V0VoZZ7fctXd615Je?=
+ =?us-ascii?Q?jp+ilWTJcrwk8EmQdFT6Vcz9j3nlyDpw2xw+SuY9eiEj+F/UJOxl4mNi5iIR?=
+ =?us-ascii?Q?XGf/DOQZXyp6zQqRBRcx48hRXvtTsdZeodBiflvVHJIJnBBL7X9hMUQs2CgU?=
+ =?us-ascii?Q?NaUULMgX2wELhOVOZeaY4PdVN8OP4iCec9KhBtd4W9ddxZuh/8cwgSDgoFIN?=
+ =?us-ascii?Q?dw9Htd2SIQrEatt4xnxZ1S4KTdH9OWjMpY28HqSHhD9f2thxOsawoOmZTC6A?=
+ =?us-ascii?Q?HdFDCb6x/L+wmCEZ+RnP4AwNc1JnD1JE6VkGDpy69iB+vVc6kro3ZZ/rmnFo?=
+ =?us-ascii?Q?qgV6aaES7Z2MToPQoiK+cgLMzt/L8QJsm1hdLtinqkTBaxwinHr3hem2rznT?=
+ =?us-ascii?Q?XZsff91TDxD07fz8aukK6thYEoOJSl6g1mHoC3cTIQ71AOhHEcQEf7nbin+S?=
+ =?us-ascii?Q?mV87r7uzs2x//L7Rn4rb/rgIL2coo7fB2ySNh7dWfmI0JkIfnUa1mO/kEzGa?=
+ =?us-ascii?Q?t/8a94NRN9XB/xn50NV+m4XZHk06chPlfZ6YBmQFUQ0ZpUl+qa/nazTn79OY?=
+ =?us-ascii?Q?1jIPlTxUc4xPqz6RB/vD/d7XKhNet+EU9bTSnM/ihIyqrUKxhC5Q49hPjHbZ?=
+ =?us-ascii?Q?ojYuqIklvyK1w4C+ypo0vRki6U0IYhf/q6ZUYGvtB5QT5Djc?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1d0ec074-e9c3-4432-a129-08dee2efe484
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB2370.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jul 2026 04:08:29.8902
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: kg134uo4xI8dTWPVThBpGgec3uMN3yYeYkUpXHoOP7taxBb/6M7ybfEcvmtTQsORk9Xouae5aPXeiRkEXdzegw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LVXPR12MB999197
 
-On Fri, Jun 26, 2026 at 02:54:43PM -0700, Dave Jiang wrote:
+On Tue, Jul 14, 2026 at 12:28:28PM +0800, Alison Schofield wrote:
+> On Wed, Jun 24, 2026 at 10:00:06PM +0800, Richard Cheng wrote:
+> > Add a negative case to the CXL fwctl test that issues a Get Feature
+> > FWCTL_RPC with out_len == offset(struct fwctl_rpc_cxl_out, payload) and
+> > a non-zero count. The kernel must reject this with -EINVAL instead of
+> > writing the feature payload past the rpc_out buffer.
+> > 
+> > This is the userspace regression test for corresponding kernel fix [1].
 > 
+> Hi Richard,
 > 
-> On 6/25/26 4:04 AM, Anisa Su wrote:
-> > From: Ira Weiny <iweiny@kernel.org>
-> > 
-> > Adds the support for receiving DC event records but defers
-> > the real add/release logic to subsequent commits. Simply refuse all
-> > extents for DC_ADD and ack all DC_RELEASE events for now. Forced
-> > release is currently unsupported.
-> > 
-> > In order, this commit adds the following:
-> > 
-> > 1. Learn about DC Event Records and how to respond to them
-> > 
-> > * cxl_mem_get_event_records() learns about the DC Event record.
-> > Records of that type are routed to cxl_handle_dcd_event_records().
-> > 
-> > * cxl_handle_dcd_event_records() switches on event_type:
-> > 	- DCD_ADD_CAPACITY     -> handle_add_event()
-> > 	- DCD_RELEASE_CAPACITY -> cxl_rm_extent()
-> > 	- DCD_FORCED_CAPACITY_RELEASE is logged and ignored (FM/device-only).
-> > 
-> > * cxl_send_dc_response() sends the reply mailbox commands
-> > ADD_DC_RESPONSE / RELEASE_DC
-> > 
-> > 2. Add stubs for DC_ADD and DC_RELEASE logic
-> > 
-> > * handle_add_event() stages incoming extents onto
-> > mds->add_ctx.pending_extents and, when More=0 closes the chain,
-> > replies with an empty ADD_DC_RESPONSE — refusing all extents for now
-> > 
-> > * cxl_rm_extent() acks the release via memdev_release_extent() so the
-> > device's view stays consistent; we can ack all releases because
-> > we currently don't accept/use any extents offered.
-> > 
-> > 3. Structural setup for later commits:
-> > 
-> > * struct dc_extent, struct cxl_dc_tag_group, and pending_add_ctx
-> > set up the stage for the real DC_ADD path, which will enforce
-> > tag/grouping semantics
-> > 
-> > Based on an original patch by Navneet Singh.
-> > 
-> > Signed-off-by: Ira Weiny <iweiny@kernel.org>
-> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> I just finished reviewing the now 3 piece series[2], that [1] is now
+> a piece of.
 > 
-> Just a minor comment below besides all the issues raised by sashiko
+> One suggestion on top of the kver gating suggested in prior response
+> is to add a companion negative case for the Set Feature bounds fix
+> in the same series. Same shape as this one, ie build a normal Set
+> Feature RPC, set out_len to 0, expect -EINVAL. It's a stronger backstop
+> than the Get case, too because before the fix an out_len of 0 makes
+> kvzalloc() return ZERO_SIZE_PTR, which passes the !rpc_out check, and
+> the header write then oopses rather than just returning a wrong status.
+> Gate it on the same kver helper.
 > 
-Got it!
+> I'm stopping short of suggesting a test for the third patch (the Get
+> Feature per-iteration clamp). That one looks like it needs a
+> multi-transfer feature and a device that over returns on the last chunk,
+> neither possible without a cxl_test mock change.
+> 
+> -- Alison
+> 
+> > [1]: https://lore.kernel.org/all/20260624134737.49166-1-icheng@nvidia.com/
+> [2]: https://lore.kernel.org/linux-cxl/20260626104102.53892-1-icheng@nvidia.com/#r
+> 
+>
 
-> 
+Hi Alison,
+
+Thanks for the review. I'll update the ndctl patch to add kernel-version check
+and a Set Feature negative test with "out_len=0"
+
+I'll use the same version check for both tsets and send a new version for it.
+
+As for the Get Feature per-iteration clamp, I'll also work on extending cxl_test
+with the required mock behavior. I'll send the cxl_test change and its regression
+test as follow-up patches.
+
+--Richard
+ 
+> > Signed-off-by: Richard Cheng <icheng@nvidia.com>
+> > ---
+> >  test/fwctl.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 46 insertions(+)
 > > 
-> > +
-[snip]
-
-I also meant to ask in the last rev but I forgot: are these stub
-comments useful or should I just get rid of them?
-
-> > +/*
-> > + * Stub: ack the release back to the device so it knows we are not
-> > + * using the range.  A later commit replaces this with the real
-> > + * teardown that walks the region's tag group and tears down the
-> > + * member dc_extent devices.
-> > + */
-> > +static int cxl_rm_extent(struct cxl_memdev_state *mds,
-> > +			 struct cxl_extent *extent)
+> > diff --git a/test/fwctl.c b/test/fwctl.c
+> > index 979c1a6..69d0048 100644
+> > --- a/test/fwctl.c
+> > +++ b/test/fwctl.c
+> > @@ -5,6 +5,7 @@
+> >  #include <stdio.h>
+> >  #include <endian.h>
+> >  #include <stdint.h>
+> > +#include <stddef.h>
+> >  #include <stdlib.h>
+> >  #include <syslog.h>
+> >  #include <string.h>
+> > @@ -207,6 +208,45 @@ out:
+> >  	return rc;
+> >  }
+> >  
+> > +static int cxl_fwctl_rpc_get_feature_oob(int fd, struct test_feature *feat_ctx)
 > > +{
-> > +	u64 start_dpa = le64_to_cpu(extent->start_dpa);
-> > +	struct range dpa_range = {
-> > +		.start = start_dpa,
-> > +		.end = start_dpa + le64_to_cpu(extent->length) - 1,
-> > +	};
+> > +	struct cxl_mbox_get_feat_in *feat_in;
+> > +	struct fwctl_rpc_cxl_out *out;
+> > +	size_t out_size, in_size;
+> > +	struct fwctl_rpc_cxl *in;
+> > +	struct fwctl_rpc *rpc;
+> > +	int rc;
 > > +
-> > +	memdev_release_extent(mds, &dpa_range);
-> > +	return 0;
+> > +	in_size = sizeof(*in) + sizeof(*feat_in);
+> > +	/* header only => zero payload room */
+> > +	out_size = offsetof(struct fwctl_rpc_cxl_out, payload);
+> > +
+> > +	rpc = get_prepped_command(in_size, out_size,
+> > +				  CXL_MBOX_OPCODE_GET_FEATURE);
+> > +	if (!rpc)
+> > +		return -ENXIO;
+> > +
+> > +	in = (struct fwctl_rpc_cxl *)rpc->in;
+> > +	out = (struct fwctl_rpc_cxl_out *)rpc->out;
+> > +
+> > +	feat_in = &in->get_feat_in;
+> > +	uuid_copy(feat_in->uuid, feat_ctx->uuid);
+> > +	/* non-zero count that exceeds the zero payload room */
+> > +	feat_in->count = feat_ctx->get_size;
+> > +
+> > +	rc = send_command(fd, rpc, out);
+> > +	free_rpc(rpc);
+> > +
+> > +	if (rc == -EINVAL)
+> > +		return 0;
+> > +	if (rc == 0) {
+> > +		fprintf(stderr, "Get Feature with undersized out_len was not rejected\n");
+> > +		return -ENXIO;
+> > +	}
+> > +	fprintf(stderr, "Get Feature OOB rejection test: unexpected rc %d\n", rc);
+> > +	return rc;
 > > +}
 > > +
-> > +static char *cxl_dcd_evt_type_str(u8 type)
-> 
-> Should it return 'const char *' instead?
-> 
-Yes
-
-> DJ
-> 
-Thanks,
-Anisa
-
-> > +{
-> > +	switch (type) {
-> > +	case DCD_ADD_CAPACITY:
-> > +		return "add";
-> > +	case DCD_RELEASE_CAPACITY:
-> > +		return "release";
-> > +	case DCD_FORCED_CAPACITY_RELEASE:
-> > +		return "force release";
-> > +	default:
-> > +		break;
+> >  static int cxl_fwctl_rpc_set_test_feature(int fd, struct test_feature *feat_ctx)
+> >  {
+> >  	struct cxl_mbox_set_feat_in *feat_in;
+> > @@ -393,6 +433,12 @@ static int test_fwctl_features(struct cxl_memdev *memdev)
+> >  		goto out;
+> >  	}
+> >  
+> > +	rc = cxl_fwctl_rpc_get_feature_oob(fd, &feat_ctx);
+> > +	if (rc) {
+> > +		fprintf(stderr, "Failed Get Feature OOB rejection test: %d\n", rc);
+> > +		goto out;
 > > +	}
 > > +
-> > +	return "<unknown>";
-> > +}
-> > +
-[snip]
- 
+> >  out:
+> >  	close(fd);
+> >  	return rc;
+> > 
+> > base-commit: 8ad90e54f0ff4f7291e7f21d44d769d10f24e2b6
+> > -- 
+> > 2.43.0
+> > 
