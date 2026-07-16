@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DE712C1586;
-	Thu, 16 Jul 2026 07:47:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51DB430DD10;
+	Thu, 16 Jul 2026 08:21:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784188052; cv=none; b=TNf2jUEjVrfPgJrqYFa+3duDrFrliqVMoLyDreBJFZbbb5E8Pg7PSuD8/1mPwmSRo2gwoEqEL5DYol9Ket6yj7cgfJKV2lHgoD1/EqGDXJtERLs+wKKbosPrhUMz+RXlNOAY1je8XgZdKhkc4mnqqGG+dhO2sP/t/GtfxjJhYHg=
+	t=1784190075; cv=none; b=C2puRXR7PL/gB/jZq03qcQ/LPm9wWTiiaVqOVYRPX6oZzw+qeCE1sl12RyndF9OxR/H38OjJpV2wiFdaiL+/Fuylgi2qHAp8Ju4+quyxx8bOlk8tn5iztY8DuYfbq6NJxVUa/E4rp2tICxIyca/AO4TYvjrtB0DjX7bHP7lsFRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784188052; c=relaxed/simple;
-	bh=nH/Ywy+wkSXTJsQxeUpliVeRbwmYqzpE6itovVN18Tc=;
+	s=arc-20240116; t=1784190075; c=relaxed/simple;
+	bh=u9wKlX7HZtVfoT2a/pM57RBeVSB/hMiOGSutkGW9v8s=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CQe3Wi0AqLtBfeiD61IHDnjFedU7De/O5cFhhai2wJhnbBvxvvkXLHLLFfhHLJYalY3qVsaIKHZUpAdCalceopL431z60DyM1SwRgYUtmhPryuv7g4rQAcq2RqH+cL3bvC5alCw3tpPEbcxCM9RNL+ItkZOacMOStbE/wMXboC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gpmFeDEW; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=JEOmFPywly3oB6d/H1D91EK3ITTYSUrYhJggMjcyD+R6wMs18onZSwKik89k3HqywKMXP3+HV7ewNIQIg0zOsRfEJvqOYAjBenAYtxy4JblXNxX+oCiF8WlDouX24YAmg+WjiIIit169+ouFrH5+c5/9ZkEypiDhbgDYv8VPIm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EcJ1ZExC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gpmFeDEW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA2E1F000E9;
-	Thu, 16 Jul 2026 07:47:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EcJ1ZExC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 014761F000E9;
+	Thu, 16 Jul 2026 08:20:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784188051;
-	bh=DyG83KiY3ZWMrvCJfSBOqvAMrmU+tCA83t+zusxBZrY=;
+	s=k20260515; t=1784190073;
+	bh=KnjMIDCod9I0T4C//k43rf+YCepYxv+BR7uQHADw3nM=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=gpmFeDEWZEfEi7NiEHPxvYtnVdjasqIJjgqZx2VQRjlNx0zOcMYTUIMJqIcfP8Ijs
-	 dQProSt43xs220YTXW39eW2EbYQ6NCqSSVdp1beh+UsEvPqFTN6PYugasr5v38OPDN
-	 oJYxnSXheWxG0Y3C5J5vwtls0G/1i5Bn0a8gkPVaixQLJfm44f1mbBS8GxHgs5Twr/
-	 X4/ZyllDL41+aDFLATBl4S23RQD68p+RYai2d7C7dvsY8RzQlybeGOiobs3zzuBzIT
-	 8sosgjJB/szzwOD7QOM7bSDY7v4fTR1zMby86HqxjBCIHyvOpIh0bP6vQEECLRolbW
-	 w2JmmIsZu79/w==
-Message-ID: <68c3c156-4e89-4250-8f6a-89d0ced04d11@kernel.org>
-Date: Thu, 16 Jul 2026 09:47:05 +0200
+	b=EcJ1ZExC6m6pFPSJ/GG3vVVPZ64xO+OlYabJaaQKG5S7lh3gT1vt+DUvJUebMwTfi
+	 iHpC+PV0e0pfdrrfUF3G9pCCswqwpgHRVQuAVi0JkD6UZo2SqC2Ms9C0eVz34EtCMp
+	 l2gmisCD6iG4u9cyvaQN1mt+rL+u1760LL/z7akRpfIMhF7/rfw/kGHExaQdHrzwMH
+	 3aR5vubkjamQnnYJfaoIugUobtSLRf9txOSM8HCufOU7LtSEwwRWCwath3cEHrdus3
+	 j+oI9yNAqjQUR4Bi3BCRHSWAruUUs/RVWo/iRiLiZb8Y80NukuB6o/l1w8TaNIruHC
+	 Raqet4KRSwOfQ==
+Message-ID: <8c7240a2-59c6-4c56-8a29-14be272fc1d9@kernel.org>
+Date: Thu, 16 Jul 2026 10:20:50 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,9 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 26/33] mm/vma: update vma_shrink() to not pass start,
- pgoff parameters
+Subject: Re: [PATCH v2 27/33] mm/vma: update vmg_adjust_set_range() to offset
+ pgoff instead
+Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
  David Hildenbrand <david@kernel.org>, "Liam R. Howlett"
@@ -112,9 +113,8 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-26-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-27-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Content-Language: en-US
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
  KxRWDHX0R2tgpFDXHnzZcQywawu8eSq0LxzxFNYMvtB7sV1pxYwej2qx9B75qW2plBs+7+YB
@@ -154,25 +154,75 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-26-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-27-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> vma_shrink() is only used by relocate_vma_down() to shrink the tail of a
-> VMA. Therefore neither the start nor the pgoff parameters make any sense.
+> We are calculating the pgoff as an offset, since we have vma_add_pgoff()
+> and vma_sub_pgoff() available, just offset this value directly and use
+> __vma_set_range() for vma->vm_[start, end] values.
 > 
-> It seemed we were passing the pgoff parameter solely to satisfy
-> vma_set_range()'s requirement for pgoff being specified.
+> We take care to update the range before offsetting the page offset, so the
+> adjusted VMA's vm_start and vm_pgoff are mutually consistent at the point
+> the page offset helpers operate - this matters once vma_set_pgoff() comes
+> to assert invariants which relate the two.
 > 
-> Since vma_set_range() is now isolated to vma.c, we can simply introduce
-> __vma_set_range() which sets only vma->vm_[start, end], and invoke this
-> instead, removing start and pgoff from vma_shrink() altogether.
+> Doing so lays the foundation for future work which allows for use of
+> virtual page offsets for MAP_PRIVATE-file backed mappings.
 > 
 > No functional change intended.
 > 
 > Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> Reviewed-by: Gregory Price <gourry@gourry.net>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+
+> ---
+>  mm/vma.c | 15 ++++-----------
+>  1 file changed, 4 insertions(+), 11 deletions(-)
+> 
+> diff --git a/mm/vma.c b/mm/vma.c
+> index a474920a25b3..0699fa07c40f 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -714,9 +714,6 @@ void validate_mm(struct mm_struct *mm)
+>   */
+>  static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+>  {
+> -	struct vm_area_struct *adjust;
+> -	pgoff_t pgoff;
+> -
+>  	if (vmg->__adjust_middle_start) {
+>  		/*
+>  		 * vmg->start    vmg->end
+> @@ -735,8 +732,8 @@ static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+>  		struct vm_area_struct *middle = vmg->middle;
+>  		const unsigned long delta = vmg->end - middle->vm_start;
+>  
+> -		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
+> -		adjust = middle;
+> +		__vma_set_range(middle, vmg->end, middle->vm_end);
+> +		vma_add_pgoff(middle, delta >> PAGE_SHIFT);
+>  	} else if (vmg->__adjust_next_start) {
+>  		/*
+>  		 *                Originally:
+> @@ -764,13 +761,9 @@ static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+>  		struct vm_area_struct *next = vmg->next;
+>  		const unsigned long delta = next->vm_start - vmg->end;
+>  
+> -		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
+> -		adjust = next;
+> -	} else {
+> -		return;
+> +		__vma_set_range(next, vmg->end, next->vm_end);
+> +		vma_sub_pgoff(next, delta >> PAGE_SHIFT);
+>  	}
+> -
+> -	vma_set_range(adjust, vmg->end, adjust->vm_end, pgoff);
+>  }
+>  
+>  /*
+> 
 
