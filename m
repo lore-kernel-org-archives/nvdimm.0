@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FDC53D5663;
-	Thu, 16 Jul 2026 08:23:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39F0E3DDB04;
+	Thu, 16 Jul 2026 08:29:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784190197; cv=none; b=fzJzGztifzMWefgzIcimirmex6Qibpj1LpCvlDcaEDIFImW+EtaQdXkys4RCIocFc5/0L6vmCmGSCZ38+dwWRfhgtwTGMu5H/5J8HW7NXCilKvPjZ+OQtKKWtcw7YkSJN8Xl81bXNYH65AnzhrkIjLY0qTr/uOu4wka02DsNKTo=
+	t=1784190542; cv=none; b=uumNesU1+TXO74S7CMbGCBshg44PqC4Fq5gYZFysUh+MX8mB7LkIqMXSVCUzPs46C16Ci3h/VTBzi8IM7gGxYsZsORPKzRswHPSrV+MuaVh5SCsMzmK9cuhWWmWh2iMMgB6OikETP+8gPc9DKNAm78Fk54vA0FxSrCxRABfn+ys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784190197; c=relaxed/simple;
-	bh=+/UO4F9uWK7hCy6NSRkV/oSP/x9zlvKW+YTPOh6m+V8=;
+	s=arc-20240116; t=1784190542; c=relaxed/simple;
+	bh=wLCMV3fF1Jx9BJa6AR9Lfi3FLZub8Knw3/xrFQKXrxY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WH/UPYeueWugIuBySaVq4WoV05YROhoLrGLU4fPRjB28PUL6ozIEHXXVQU+xPjRIAaumlrQrBrikRE46AK4FI62ZmLN2AGVRlccvFJbb0+93vVFIHjuWi8j+IhHwoFbS8Vle+ikOtvzLNCwS8gTZ4XG9IfiQA6HpXq+Is0Q/Ioo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ExWJb83S; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=c+qj6o8CBYorkVjaW1NoBV8UpXm6wpdvDaKC8dkhUbGA0YxwOR5DpbroP8ZGSuRq9gvEk1l2McRL7oQ5TK2TuiICkK5od6t/YkiWPQaFHndbC8o9okgfS+aEYIj7Tu70F3FUf6rW0wJpsUlkJC+ap6h4k2rFjpdTHZW2NrrFVLg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NHnt8pNF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ExWJb83S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E60881F000E9;
-	Thu, 16 Jul 2026 08:22:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NHnt8pNF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BF2F1F000E9;
+	Thu, 16 Jul 2026 08:28:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784190196;
-	bh=QK2moQPf5QE8I+iMY/lbn72iY5aTfbZmvLmBVnGPWlE=;
+	s=k20260515; t=1784190540;
+	bh=LBMzZungojnJJzsOyamokZKaxeJBCdcl1wVHPQtN5pg=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=ExWJb83S1ZA3H7aNWF15lwCoAfFvmNyQDb0y8MDKNKxefh2B03hx5cmt4oqOX6cLb
-	 0YgSc8a/bWBVzG7jpn3O4eB3LD/R07Pz/E4jA4ithxK8h6Xwa1tQvkjeiOJji5ADj3
-	 VVnv/41Xmdggf2Q2riAGgC2llvpCcldYKzAb/VyJOKhdpt98QJpjiIr0yD7JqwQP7G
-	 gQiDyBr7F3SMcv8OV3/r2TdDJ1b6ZQjqZFb/yFNGYQuPJj4yn63xubCIhV98JEAlnA
-	 /Sripq1TyJNmK5HqJWUxqwB7uX8PatpGd+OyPZD0HP5YmRxm8+J86AHiY66FwfSpK2
-	 B2dDplf4JkI+w==
-Message-ID: <e0e738b8-be2a-4141-b353-bb7a09f5c31a@kernel.org>
-Date: Thu, 16 Jul 2026 10:22:51 +0200
+	b=NHnt8pNF/luhx1IUKLfNB43r0drBog4E0VUSo065z+H/o7vU8pNlpSzXKE1MwYXoV
+	 MRO4KHZBs2UlMYfdxAHyqxLxFmtj93jA3MpRZ8npBboI89TpGXJDVRL0FOJjwzqG38
+	 bb/T0Qf0FMmi7lFhdlyYBPZa/Po1IStCw4ASZJSrz9iTzuige8SbKSqhotDOoawCom
+	 UyQT6MbGtwmGXmQcfWpT59QXcumpjvtqPz21P6+CTGPjMDZeivEoZEhQFwPB9f5Z/E
+	 fCWhUK6cXIQdyRypfOZG+EyjS6oJgfOelF/hgARxUd/mWyySEGAb2pwcWRayxgP4MK
+	 ebaFUAbeiMxmQ==
+Message-ID: <acd03aae-9d41-44d5-974b-5deb751b48b3@kernel.org>
+Date: Thu, 16 Jul 2026 10:28:37 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 28/33] mm/vma: slightly rework the anonymous check in
- __mmap_new_vma()
+Subject: Re: [PATCH v2 29/33] mm/vma: introduce and use vma_set_pgoff()
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -113,7 +112,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-28-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-29-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -154,20 +153,54 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-28-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-29-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> Determine if the VMA is anonymous early on, so we separate the logic which
-> invokes callbacks from the rest of the logic.
+> In order to lay the foundation for work that permits us to track the
+> virtual page offset of MAP_PRIVATE file-backed mappings, we abstract the
+> assignment of vma->vm_pgoff to vma_set_pgoff().
 > 
-> This is in order that a subsequent commit which asserts correct virtual
-> page offset for anonymous mappings correctly asserts this for new anonymous
-> mappings.
+> We additionally add a lock check here using the newly introduced
+> vma_assert_can_modify(). This asserts the VMA write lock if the VMA is
+> attached.
+> 
+> We also assert that, if this is an anonymous VMA and unfaulted, that its
+> (virtual) page offset is equal to the page offset of the VMA's address.
+> 
+> We must be careful about MAP_PRIVATE-/dev/zero which violates fundamental
+> assumptions about anonymous memory, so we check for !vma->vm_file after
+> using vma_is_anonymous() which these mappings satisfy.
+> 
+> Additionally, we only perform the assert if CONFIG_MMU is defined, as nommu
+> does not set vma->vm_pgoff = addr >> PAGE_SHIFT. This isn't really relevant
+> to rmap as it has no anon rmap (nor needs it), but we must avoid it
+> asserting falsely.
+> 
+> All of this logic is kept in assert_sane_pgoff() to keep things clear.
+> 
+> In order to maintain correctness given this assert, we also update
+> __install_special_mapping() to invoke vma_set_range() after it's set
+> vma->vm_ops (which determine whether the VMA is anonymous or not).
+> 
+> We do not use vma_set_pgoff() in vm_area_init_from(), as at the point of
+> forking, we don't necessarily have correct locking state.
+> 
+> Updating vma_set_range() covers most cases, but in addition to this we also
+> update insert_vm_struct(), compat_set_vma_from_desc() and nommu callers.
+> 
+> We also update vma_add_pgoff() and vma_sub_pgoff() to use vma_set_pgoff().
+> 
+> While we're here, we drop a BUG_ON() and update insert_vm_struct()'s
+> comment to reflect the fact anonymous mappings can be added here.
+> 
+> Finally, we update the CONFIG_MMU, CONFIG_PER_VMA_LOCK defines in the VMA
+> userland tests so IS_ENABLED() will work correctly with them.
 > 
 > No functional change intended.
 > 
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
