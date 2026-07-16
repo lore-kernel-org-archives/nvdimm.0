@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E3F43D6478;
-	Thu, 16 Jul 2026 09:28:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3681E3A2572;
+	Thu, 16 Jul 2026 09:34:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784194092; cv=none; b=BYVO7HtOBRpDoxM6yJxhMCdNR8p5JejIql1WY6aEyf26BD29j/eu9rhYOJOoLw0zbVZHTWNkrJGQTQjao0FqzD/MkmIlzTsCOmt2rgLTq5grCzrzziKJBzJSCSfAuZh+xgcUEOqm/mXrYl4HeYX/RS4HDGUhB77hCTAINBtT4Vs=
+	t=1784194467; cv=none; b=DKaTClEH08MhH4MUFHfPIjwEVa532AD5fnl080KVOBK9oixVjOIfHs8VGHi6ssal9h7PXgSpDKVE5sd4wkd5oIu5sKQbJi7tRQOduUMNJZLchVaba4YlBMimpkn7dbeAcoMoXvHsWyrdEOnf7xj0+KE2GApcWXPvssY1a9FH63I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784194092; c=relaxed/simple;
-	bh=ORKxPTxix4lMEKj1bUrWfEqvJYIw8xAlZEE0O3Fe/zU=;
+	s=arc-20240116; t=1784194467; c=relaxed/simple;
+	bh=cOJQeoL/IfToCf5nKi/1WKxwcd+AJrDARDQzSahV+6s=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tdaXSO6VUPnirSQivwAV5baCV9JIXNKNShPXkZeJYtNvzmNYyd+aJsAjDxqfPa8dzN9qAON/jFA77Kpgoz1IJKtB52USv0be8nLNh/CjcE3soNkp9bP/8ikEQJZmEZPaOK6MjMoA/ZE6Fx0gCUUO95BuflxMv0jYO91zdqwQUdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ouynuz9X; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=DD2B/Jujy7NoyievNXMn+AqSuBHbbYIfLFMXzqAQHex65/gyabeV9EDShRRzN1yzb2M+W6NEZmnXd6z7/Cd+BtXmhOl8+HkIsfGJMNiPlPUoqs1ebmM/5HwSJ7LgEZmukf4Kks/8mb86q/WWP4zetbR+I5IdyLpISE6us9MSoj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HaVMsfnC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ouynuz9X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 385B31F000E9;
-	Thu, 16 Jul 2026 09:27:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HaVMsfnC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F5AD1F00A3A;
+	Thu, 16 Jul 2026 09:34:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784194089;
-	bh=/0foZKhiUwL8omqMEdPagooKRvaN2Pu32mvklzzR96U=;
+	s=k20260515; t=1784194465;
+	bh=lNYl98mYz28OLVONtUv3HHBbo78s/d/FScrptCSkJqg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Ouynuz9X0lV2DAJDCejClm81hBPwIvqmcFzLkXPpDvO8UAzJ88Y5GFYWUGewLjfo4
-	 HKvUXozG50KbI7M8oj9PZqHoNdM3EWsTOc5AoySLbeypeJa24AUH4AxU81qOxHVvw0
-	 LWvKYpCHYG972J1MXh+h9WLhUWEBriCZ3WTWAqSriYpYKn4bXicTywz8/GNCucKdn8
-	 R6LKviBKKQBuclZEJxtnFDDX5dD5VKnTRgP5qx8f/ILSXiidqRmj+frtMf0NdUMKLi
-	 5KUn6IrqcfVxM9r76RXMPOnT1CywejJXY9d/xN41f7ojz71LUqX+G/Fq0sdzs/NK2v
-	 CrhSCYImgSEMA==
-Date: Thu, 16 Jul 2026 10:27:33 +0100
+	b=HaVMsfnCFQZsO8TosGBgjIQcv/23XysFwaqQLFbTwajYekUfxV325I+lW1pF5U/pO
+	 0Dfjj/iv0XjXf9UhDL6hNgQ+avTyoYTMX3syk2Dy0ERhQGYHVF3FA3nDn9sUdIbhfJ
+	 Mk0OIn7dJxoIKmUhZI12SmOVvm4Y/OF+VsOgVdX/wQ+8GX19Ib/HsiFgtZtxHVv6Pz
+	 DNrods1GvRI+Pf6ukfp85qGF3+zDzp0DDcL378JHf0SbOQEW9OANF0im2X+3GMcn6k
+	 /10UKMRNrM/8y2nVFByXLA3MOpPLS6A8iGNTe/uuwzVNln9TFQODIte1ksvKdZE7LI
+	 BvxtDp2Jg7H3w==
+Date: Thu, 16 Jul 2026 10:33:51 +0100
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
 To: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -84,12 +84,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org, 
 	linux-tegra@vger.kernel.org, kvm@vger.kernel.org, 
 	Russell King <linux+etnaviv@armlinux.org.uk>
-Subject: Re: [PATCH v2 18/33] mm/vma: use vma_start_pgoff(),
- linear_page_index() in mm code
-Message-ID: <aligtF3WwRam1rMd@lucifer>
+Subject: Re: [PATCH v2 23/33] mm/vma: add and use vma_[add/sub]_pgoff()
+Message-ID: <alikZjoSBwdxslz7@lucifer>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-18-2a5aa403d977@kernel.org>
- <e98110da-f26a-46ca-8360-fc84fc159bd8@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-23-2a5aa403d977@kernel.org>
+ <fb8d7fbb-1b4f-4fec-a087-8b1b9f55a167@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -98,29 +97,21 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <e98110da-f26a-46ca-8360-fc84fc159bd8@kernel.org>
+In-Reply-To: <fb8d7fbb-1b4f-4fec-a087-8b1b9f55a167@kernel.org>
 
-On Wed, Jul 15, 2026 at 05:23:09PM +0200, Vlastimil Babka (SUSE) wrote:
-> On 7/10/26 22:16, Lorenzo Stoakes wrote:
-> > There are many instances in which linear_page_index() (as well as
-> > linear_page_delta()) is open-coded, which is confusing and inconsistent.
+On Wed, Jul 15, 2026 at 07:38:38PM +0200, Vlastimil Babka (SUSE) wrote:
+> On 7/10/26 22:17, Lorenzo Stoakes wrote:
+> > Add helpers for adding or subtracting to a VMA's page offset, exposed
+> > internally for VMA users within mm in mm/vma.h.
 > >
-> > Additionally, vma->vm_pgoff doesn't necessarily make it clear that this is
-> > the page offset of the start of the VMA range.
+> > This is to lay the foundations for tracking anonymous page offset for
+> > MAP_PRIVATE file-backed mappings, where adding and subtracting from this
+> > value must be reflected in both the file and anonymous offsets.
 > >
-> > Doing so also aids greppability.
-> >
-> > So use vma_start_pgoff() in favour of directly accessing vma->vm_pgoff, and
-> > linear_page_index() where we can.
-> >
-> > This also lays the ground for future changes which will add an anonymous
-> > page offset in order to be able to index MAP_PRIVATE-file backed anon
-> > folios in terms of their virtual page offset.
+> > These are used on VMA split and downward stack expansion.
 > >
 > > No functional change intended.
 > >
-> > Reviewed-by: Gregory Price <gourry@gourry.net>
-> > Reviewed-by: SJ Park <sj@kernel.org>
 > > Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 > > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 >
@@ -129,137 +120,121 @@ On Wed, Jul 15, 2026 at 05:23:09PM +0200, Vlastimil Babka (SUSE) wrote:
 Thanks!
 
 >
-> Nit:
+> Nits:
 >
-> > diff --git a/mm/damon/vaddr.c b/mm/damon/vaddr.c
-> > index 2058db9c01d5..d10b8042adb5 100644
-> > --- a/mm/damon/vaddr.c
-> > +++ b/mm/damon/vaddr.c
-> > @@ -10,6 +10,7 @@
-> >  #include <linux/mman.h>
-> >  #include <linux/mmu_notifier.h>
-> >  #include <linux/page_idle.h>
-> > +#include <linux/pagemap.h>
-> >  #include <linux/pagewalk.h>
-> >  #include <linux/sched/mm.h>
+> > ---
+> >  mm/nommu.c |  6 ++++--
+> >  mm/vma.c   |  6 +++---
+> >  mm/vma.h   | 12 ++++++++++++
+> >  3 files changed, 19 insertions(+), 5 deletions(-)
 > >
-> > @@ -623,8 +624,8 @@ static void damos_va_migrate_dests_add(struct folio *folio,
-> >  	}
-> >
-> >  	order = folio_order(folio);
-> > -	ilx = vma->vm_pgoff >> order;
-> > -	ilx += (addr - vma->vm_start) >> (PAGE_SHIFT + order);
-> > +	ilx = vma_start_pgoff(vma) >> order;
-> > +	ilx += linear_page_delta(vma, addr) >> order;
->
-> Could these be combined to linear_page_index(vma, addr) >> order?
-
-So this is:
-
-	(x >> order) + (y >> order)
-
-And linear_page_index(vma, addr) >> order is:
-
-	(x + y) >> order
-
-Consider:
-
-	order = 1, x = 0b11, y = 0b01
-
-	(x    >> order) + (y    >> order) =
-	(0b11 >> 1    ) + (0b01 >> 1    ) =
-	0b1             + 0               =
-	1
-
-	(x    + y   ) >> order =
-	(0b11 + 0b01) >> 1     =
-	(0b100      ) >> 1     =
-	2
-
-They are not equivalent - the carry bit changes the result.
-
->
-> >
-> >  	for (i = 0; i < dests->nr_dests; i++)
-> >  		weight_total += dests->weight_arr[i];
->
-> > diff --git a/mm/filemap.c b/mm/filemap.c
-> > index b39111abdc4b..1dbb4c6f824e 100644
-> > --- a/mm/filemap.c
-> > +++ b/mm/filemap.c
-> > @@ -3411,8 +3411,8 @@ static struct file *do_sync_mmap_readahead(struct vm_fault *vmf)
-> >  		 * of memory.
-> >  		 */
-> >  		struct vm_area_struct *vma = vmf->vma;
-> > -		unsigned long start = vma->vm_pgoff;
-> > -		unsigned long end = start + vma_pages(vma);
-> > +		const unsigned long start = vma_start_pgoff(vma);
-> > +		const unsigned long end = vma_end_pgoff(vma);
-> >  		unsigned long ra_end;
-> >
-> >  		ra->order = exec_folio_order();
-> > @@ -3930,7 +3930,8 @@ vm_fault_t filemap_map_pages(struct vm_fault *vmf,
-> >  		goto out;
-> >  	}
-> >
-> > -	addr = vma->vm_start + ((start_pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-> > +	addr = vma->vm_start +
-> > +		((start_pgoff - vma_start_pgoff(vma)) << PAGE_SHIFT);
->
-> This could be linear_page_index(vma, start_pgoff) <<
->
-> >  	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, addr, &vmf->ptl);
-> >  	if (!vmf->pte) {
-> >  		folio_unlock(folio);
->
-> > --- a/mm/mempolicy.c
-> > +++ b/mm/mempolicy.c
-> > @@ -2049,8 +2049,8 @@ struct mempolicy *get_vma_policy(struct vm_area_struct *vma,
-> >  		pol = get_task_policy(current);
-> >  	if (pol->mode == MPOL_INTERLEAVE ||
-> >  	    pol->mode == MPOL_WEIGHTED_INTERLEAVE) {
-> > -		*ilx += vma->vm_pgoff >> order;
-> > -		*ilx += (addr - vma->vm_start) >> (PAGE_SHIFT + order);
-> > +		*ilx += vma_start_pgoff(vma) >> order;
-> > +		*ilx += linear_page_delta(vma, addr) >> order;
->
-> Also?
-
-See above.
-
->
-> >  	}
-> >  	return pol;
-> >  }
->
+> > diff --git a/mm/nommu.c b/mm/nommu.c
+> > index c0a0869cd0d6..2a0136f6081d 100644
 > > --- a/mm/nommu.c
 > > +++ b/mm/nommu.c
-> > @@ -975,7 +975,7 @@ static int do_mmap_private(struct vm_area_struct *vma,
-> >  		/* read the contents of a file into the copy */
-> >  		loff_t fpos;
+> > @@ -41,6 +41,7 @@
+> >  #include <asm/tlbflush.h>
+> >  #include <asm/mmu_context.h>
+> >  #include "internal.h"
+> > +#include "vma.h"
 > >
-> > -		fpos = vma->vm_pgoff;
-> > +		fpos = vma_start_pgoff(vma);
-> >  		fpos <<= PAGE_SHIFT;
+> >  unsigned long highest_memmap_pfn;
+> >  int heap_stack_gap = 0;
+> > @@ -1361,7 +1362,8 @@ static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+> >  		region->vm_top = region->vm_end = new->vm_end = addr;
+> >  	} else {
+> >  		region->vm_start = new->vm_start = addr;
+> > -		region->vm_pgoff = new->vm_pgoff += npages;
+>
+> Ah that takes care of the other case of ugliness I noticed earlier, good.
+
+Churn for good ;)
+
+>
+> > +		vma_add_pgoff(new, npages);
+> > +		region->vm_pgoff = vma_start_pgoff(new);
+> >  	}
 > >
-> >  		ret = kernel_read(vma->vm_file, base, len, &fpos);
-> > @@ -1378,7 +1378,8 @@ static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+> >  	vma_iter_config(vmi, new->vm_start, new->vm_end);
+> > @@ -1378,7 +1380,7 @@ static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
 > >  	delete_nommu_region(vma->vm_region);
 > >  	if (new_below) {
 > >  		vma->vm_region->vm_start = vma->vm_start = addr;
-> > -		vma->vm_region->vm_pgoff = vma->vm_pgoff += npages;
->
-> yuck, good to remove that ugly construct
-> it's not the only occurence in this function
-> oh well
-
-Yup at least improved it here :)
-
->
-> > +		vma->vm_pgoff += npages;
-> > +		vma->vm_region->vm_pgoff = vma_start_pgoff(vma);
+> > -		vma->vm_pgoff += npages;
+> > +		vma_add_pgoff(vma, npages);
+> >  		vma->vm_region->vm_pgoff = vma_start_pgoff(vma);
 > >  	} else {
 > >  		vma->vm_region->vm_end = vma->vm_end = addr;
-> >  		vma->vm_region->vm_top = addr;
+> > diff --git a/mm/vma.c b/mm/vma.c
+> > index 7aa0149f076c..bdd99ba56b4d 100644
+> > --- a/mm/vma.c
+> > +++ b/mm/vma.c
+> > @@ -517,7 +517,7 @@ __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+> >  		new->vm_end = addr;
+> >  	} else {
+> >  		new->vm_start = addr;
+> > -		new->vm_pgoff += linear_page_delta(vma, addr);
+> > +		vma_add_pgoff(new, linear_page_delta(vma, addr));
+> >  	}
+> >
+> >  	err = -ENOMEM;
+> > @@ -556,7 +556,7 @@ __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+> >
+> >  	if (new_below) {
+> >  		vma->vm_start = addr;
+> > -		vma->vm_pgoff += (addr - new->vm_start) >> PAGE_SHIFT;
+> > +		vma_add_pgoff(vma, (addr - new->vm_start) >> PAGE_SHIFT);
+>
+> Hm isn't this also a case for using linear_page_delta(addr, new)?
+> (I guess in patch 21/33)
+> Would be like the hunk above.
+
+Ah, yeah :) I can always rearrange which commit does what on any respin.
+
+For now, Andrew - could you make a little edit here?
+
+-		vma_add_pgoff(vma, (addr - new->vm_start) >> PAGE_SHIFT);
++		vma_add_pgoff(vma, linear_page_delta(new, addr));
+
+Thanks!
+
+>
+> >  	} else {
+> >  		vma->vm_end = addr;
+> >  	}
+> > @@ -3305,7 +3305,7 @@ int expand_downwards(struct vm_area_struct *vma, unsigned long address)
+> >  				vm_stat_account(mm, vma->vm_flags, grow);
+> >  				anon_rmap_tree_pre_update_vma(vma);
+> >  				vma->vm_start = address;
+> > -				vma->vm_pgoff -= grow;
+> > +				vma_sub_pgoff(vma, grow);
+> >  				/* Overwrite old entry in mtree. */
+> >  				vma_iter_store_overwrite(&vmi, vma);
+> >  				anon_rmap_tree_post_update_vma(vma);
+> > diff --git a/mm/vma.h b/mm/vma.h
+> > index 2342516ce00e..47fe35e5307e 100644
+> > --- a/mm/vma.h
+> > +++ b/mm/vma.h
+> > @@ -247,6 +247,18 @@ static inline pgoff_t vmg_end_pgoff(const struct vma_merge_struct *vmg)
+> >  	return vmg_start_pgoff(vmg) + vmg_pages(vmg);
+> >  }
+> >
+> > +static inline void vma_add_pgoff(struct vm_area_struct *vma, pgoff_t delta)
+> > +{
+> > +	vma_assert_can_modify(vma);
+> > +	vma->vm_pgoff += delta;
+> > +}
+> > +
+> > +static inline void vma_sub_pgoff(struct vm_area_struct *vma, pgoff_t delta)
+> > +{
+> > +	vma_assert_can_modify(vma);
+> > +	vma->vm_pgoff -= delta;
+> > +}
+> > +
+> >  #define VMG_STATE(name, mm_, vmi_, start_, end_, vma_flags_, pgoff_)	\
+> >  	struct vma_merge_struct name = {				\
+> >  		.mm = mm_,						\
+> >
+>
 
 Cheers, Lorenzo
