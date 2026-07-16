@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AEC13F1AC3;
-	Thu, 16 Jul 2026 08:38:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A9D63CF661;
+	Thu, 16 Jul 2026 08:40:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784191106; cv=none; b=AUCH67yrMOk94Mswlo+0n5XsoEdF6OOBaVplWKVKpioOXsZnkiT7ED6CRAV9y1THfhx3YcQOkPyilzfOxtcQxcdfj0ZM8lZgaTz7xP2Za6IMyl8IeHjPeGnhBkiUNqehJX2PGH8i/CNES6dOIb5NiHF34nusvbjkRuXjIuts6FQ=
+	t=1784191219; cv=none; b=HQT/Yq8XDKwx8P2j9w8T4p+TNte97kQAOqrL3ZBh1SVmV7RFIVqGZ2FcGudMHMAU43hiGNK/TTG9nMljLorboQ8zF1xFaaVitBceAaK92yrKQDUlksCiRtYXjGaML4fAsO55nfxMWRSSO14va6TzyWTvga7oq5avK/fJadRB3S4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784191106; c=relaxed/simple;
-	bh=fTYDS0spI0Gq127YWWWatGdhU2i5AWLiH3AKfT7xqzo=;
+	s=arc-20240116; t=1784191219; c=relaxed/simple;
+	bh=5Bjj8pvZPawyu0paZBNTWFSnkf00wqhCzrNLa0iw1JU=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=H4E3V8Js5Qpzooycw8XXkHnluEb8Yhah6IAiw5B2uyFr9hRf0BrN16M1U/pXQog8zhBGonYUkj1ByJsIDGKvxO82ZRRAgkSxFsOy+dDygorSrcgPIDUNcq6Z9Zzoud64IM8tyKT3f4XHHM5K0vwPwSA2BJFftyLjasmCFL/52DI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fA4Y9VVh; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=Ae3Oqx3FCvUOgd2Zy7p7JgE5oYCKUxJcMxkJkyDDCeoUsigu8hm0NN2Ahsq5YMisyUajF/Rra+ywEwCf7w3xN1aXTzEnO4ROEOhMGPUsfAfzBeHSIuFDiIn1YEI3ftVCGfQd745xJiVH0BBEAuQ6wHpGVYO7MSK2XRBtrjDNVVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mFTdKJBv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fA4Y9VVh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 634C91F000E9;
-	Thu, 16 Jul 2026 08:38:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mFTdKJBv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 592CC1F000E9;
+	Thu, 16 Jul 2026 08:39:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784191104;
-	bh=5qNmGNNZ7rXMiTLdGIwGLI4axhYJB8sxe9+qeijUFfE=;
+	s=k20260515; t=1784191217;
+	bh=BwEiU6teZIE3flR9vElc+4yj0i8+JAFfTjNxsGNdNcI=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=fA4Y9VVhygo22VrQ71Kx1Ydf2nKzDi3f4g23ItRPNEFW02EkNpQI/jVt6S+DOwv6Y
-	 oeplQ3wbglQ82W1+EWG3byrukvp2wCkByXq20aD7vSEGLnfv3Y8XTifKazh7DTnR5N
-	 tHxNvg7ZYqwT/PeEXBFOOkmgdC6bdLweTNnlSgSRCEEvHkqbtvZSIj1iMzZZVRLUBm
-	 sSL69YnxCCQokLlq47jNOu61mXHZ8I4veQXpMpD3h9mVIju3d3XWDbn1ccxTWLaDAx
-	 BjnEQIp/nD7OafLXOWHhzCroAWXeqxfHNxdXe7QARLuYvbpniVP4MQNay6A+Fde1i+
-	 vZbbF+cVSlJlQ==
-Message-ID: <a273faf8-452d-499a-90e1-b3c9dc2395d0@kernel.org>
-Date: Thu, 16 Jul 2026 10:38:00 +0200
+	b=mFTdKJBvFjlR0fJPqcox865iCgzD3SqVt1ekSBxJwXUCAe40Yjcs2Fcj/mdEY9ZO0
+	 uv/zu+Oi9pQHZauwCE+hu2Jk9XJ8vzl990ylL3HlbjoOt5SnC5BdBK7goJE6+B/QtK
+	 8fOlS0ofrTIrKqeKev9zI2/bPrSMIW6+CtG/cS5ypXB+4kLi32O+r7PZXQkutzqs7J
+	 lUJYHuF+YQ4AE1nU97nlky3lhy7KKC3TRuE3282XbLOydNZNtuGqrKkfY1KEZtpYSg
+	 lfpDMZYDnPvrjfuQTMIMxAy1w+FstOikPijx3fqV+Kz6EFMFcgiVZ4waFiHhwnz8bI
+	 gLMDgglX0qAcg==
+Message-ID: <ff9d266a-b037-4b40-a94e-3f059c6e0459@kernel.org>
+Date: Thu, 16 Jul 2026 10:39:54 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 30/33] mm/vma: correct incorrect vma.h inclusion
+Subject: Re: [PATCH v2 31/33] mm/vma: use guard clauses in
+ can_vma_merge_[before, after]()
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -112,7 +113,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-30-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-31-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -153,31 +154,17 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-30-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-31-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> The only files which should be including vma.h are the implementation files
-> for the core VMA logic - vma.c, vma_init.c, and vma_exec.c.
+> Rather than combining a bunch of conditionals in a single expression,
+> simplify by inverting the mergeability requirements into guard clauses.
 > 
-> This is in order to allow for userland testing of core VMA logic. In this
-> cases, vma_internal.h and vma.h are included, providing both the
-> dependencies upon which the core VMA logic requires and its declarations.
-> 
-> Userland testable VMA logic is achieved by having separate vma_internal.h
-> implementations for userland and kernel.
-> 
-> Callers other than the core VMA implementation should include internal.h
-> instead. This header does not need to include vma_internal.h as it only
-> contains the vma.h declarations, for which the includes already present
-> suffice.
-> 
-> Update code to reflect this, update comments to reflect the fact there are
-> 3 VMA implementation files and document things more clearly.
-> 
-> While we're here, slightly improve the language of the comment describing
-> vma_exec.c.
+> that is - instead of checking what must be true for the conditions to be
+> met, instead check the inverse of the requirements and return false if any
+> are true, defaulting to true.
 > 
 > No functional change intended.
 > 
@@ -186,13 +173,4 @@ On 7/10/26 22:17, Lorenzo Stoakes wrote:
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-
-But given Mike's efforts [1] I wonder if there's a way to change the vma
-header system in the future to stop requiring users of vma functions to
-include the whole internal.h, while of course still allow the userland
-testability.
-
-[1]
-https://lore.kernel.org/all/20260709-internal-h-v1-0-956d5092782d@kernel.org/
-
 
