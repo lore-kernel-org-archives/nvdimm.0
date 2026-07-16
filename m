@@ -1,178 +1,178 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF17379987
-	for <nvdimm@lists.linux.dev>; Thu, 16 Jul 2026 04:55:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DE712C1586;
+	Thu, 16 Jul 2026 07:47:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784177720; cv=none; b=kA8mQY7o9YznxchNm3U3G6m105PdVInRStmb+t4/0MP6ApOhZAdkL5X0qB9JLRQSSeFFNTlFkWfr83NYX4bzQ/ZpLTwfyBX81Xda7fmqlBYmh4rpAnWOf7vL83N1fqdBt2hZf3yGGnw0jXDDwYI3uHesCviRkT3FFz3NF4ljDX4=
+	t=1784188052; cv=none; b=TNf2jUEjVrfPgJrqYFa+3duDrFrliqVMoLyDreBJFZbbb5E8Pg7PSuD8/1mPwmSRo2gwoEqEL5DYol9Ket6yj7cgfJKV2lHgoD1/EqGDXJtERLs+wKKbosPrhUMz+RXlNOAY1je8XgZdKhkc4mnqqGG+dhO2sP/t/GtfxjJhYHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784177720; c=relaxed/simple;
-	bh=AR41AGz1Ls+jbaJBGw54BAF0eERyApGv7PMgsDnE+IU=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GGZcnrl3y6kQv8WZ3PVYNlJ2Vbdmbezr4t96UJ+pDBlEM/Q3eF0LofIBSfvnTfFC1myF2pwLOEzwq5Kl9Ov4RBee0Z9NOGscDkX5qeOTG7SZOp9v7wkntgV60IL/UNSlAzyW2Znm9K7rOhe/9ASHuxMIMiMWMqtNRHY9QmRk9Sw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nUHB2DX9; arc=none smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1784188052; c=relaxed/simple;
+	bh=nH/Ywy+wkSXTJsQxeUpliVeRbwmYqzpE6itovVN18Tc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CQe3Wi0AqLtBfeiD61IHDnjFedU7De/O5cFhhai2wJhnbBvxvvkXLHLLFfhHLJYalY3qVsaIKHZUpAdCalceopL431z60DyM1SwRgYUtmhPryuv7g4rQAcq2RqH+cL3bvC5alCw3tpPEbcxCM9RNL+ItkZOacMOStbE/wMXboC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gpmFeDEW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nUHB2DX9"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-38dc69c74b8so4357277a91.0
-        for <nvdimm@lists.linux.dev>; Wed, 15 Jul 2026 21:55:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784177718; x=1784782518; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:date
-         :from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=kGXsmEn3I6/Em//tCnrFWM7lx5yzqwvzso7DaerhRVU=;
-        b=nUHB2DX90p3GClvjSlilirov/yqECG1yJIDoWNj4TcXWxOfMK5HatcsUTmYnMsUpVZ
-         GDG7GDVuAPTgiFmHZkPywJzoegKSlW91kxLqBZAbdSRYtBoU+W+EVNF48p7WYtiBPur8
-         UA5Aoqs2nbDILfDR5A82+GEtIV9MQlN5DWKE1RPcDUTVGvFiWRPluONJaHa9f5Lk92kl
-         mWt7usAvDNlBt+JpY8ygVbf28jmsq27eZgqbW6WEl27e+We2m4DQ7UBReOdCWWgJ0l++
-         7f6VHdVImd69kAfIC8JzEPKBYC81Qu+2DUM05vWe93wh3ewIo0y+f63mO9bYg6XtbQ9i
-         uFPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784177718; x=1784782518;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:date
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=kGXsmEn3I6/Em//tCnrFWM7lx5yzqwvzso7DaerhRVU=;
-        b=U2IIfn5tEasned3dqKehuXdOqgiSR0VR81jL013KlW3eI842WyNgAQJM2dX8ARuOTd
-         n7MDcXBu+zPcvUIAv4wrYkmZiwD8Issn3y/nWYr/KlpDP1ulT9Gq/8HeKcYPGFt3cTBa
-         DkfTIaSEzC35gax89cYo4EKBA1XeCZEaoRBcwjhgDam1GVZD/Wq4aP55Ov6dUVNxC/Fm
-         aAEbR/f8kXpdigWqYc6/DP4RO+F6C+0C/w/0t8iqVQe5FrljWyGIgdFrD8lmfllFShyI
-         eSxQaSwBZa2qO6xTuHPWB02xWRTCsM7F9uYOsF66CxoMOdIlMn07uxq4EOEYP93B/Tdh
-         Rs2w==
-X-Forwarded-Encrypted: i=1; AHgh+RoChMmkx99wsjls53A83THFjasM/iF08qm7IuqGc0Bclc6lg0rQM5D3xeKekYUZ/Gr/CXqhEBQ=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxUiBpmDwvfM2a+aP3Vg1Ai3TFuqzHTFEKA7Jd8SL95vXveYKDV
-	qB8dl5r8+KYkiL3IY0rSus2ZJtdZW/DRV7nXHPwwHVr511oSHqLsQRC4
-X-Gm-Gg: AfdE7cm/BbyWQZyWYpF38MGe22cIfIsPwNexvOSbj5PgrHiI9YjVwEbldJPp+RIHl50
-	AO+hTS3kcQfzs7A3AO3BCKxqzlPA+PKF/+V3RsV2zHJLcJvbklvQUx3DQSMyB6e/YLT4OuZhOTZ
-	mLVwyhenm3NhDe16SnCF8FmsGa76ZmB/TJB4c+Nkv143Q7a1sUbV8cQ/J2gKDa9HhfpNgB2mf8z
-	Mk0CSWUlkc8zDWgSI7ESpQ/5dH9uEqhLzS0D1/UxVIdkiFTqaSh3s8l69eQAJHPZ34qQf0UyjMn
-	kIDVrjOdSy/Xki5y+X83pzqGQDl4LUwP4WYfdOyUIdwKAEJ6KK44ECY+LOLX57mDTEwXZdx963D
-	q7NvPvkDdv6HMl5I32xGApe8FkM1DVkammMSYid68oYcTeT45KkcOWIr+FisZOfeu00S6IU5w86
-	xnpPbor8gJ+ArwR/6F1wEUg2t4O1kmAdyXe4Q/tltqFJDVTL/TZIv+GCeyFggK3DWKjSf7
-X-Received: by 2002:a05:6a21:4508:b0:3c3:9181:7d05 with SMTP id adf61e73a8af0-3c391817dc1mr628223637.68.1784177717966;
-        Wed, 15 Jul 2026 21:55:17 -0700 (PDT)
-Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3140e6a4866sm6761940eec.18.2026.07.15.21.55.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Jul 2026 21:55:17 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Wed, 15 Jul 2026 21:55:15 -0700
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	Dan Williams <djbw@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Alison Schofield <alison.schofield@intel.com>,
-	John Groves <John@groves.net>, Gregory Price <gourry@gourry.net>
-Subject: Re: [PATCH v11 13/31] cxl/mem: Add 20 second timeout for stalled
- DC_ADD_CAPACITY chains
-Message-ID: <alhkM7AUQ7dP_3bd@AnisaLaptop.localdomain>
-References: <20260625112638.550691-1-anisa.su@samsung.com>
- <20260625112638.550691-14-anisa.su@samsung.com>
- <3fb3b2c2-9be6-483b-94bd-d0515d5df9b2@intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gpmFeDEW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA2E1F000E9;
+	Thu, 16 Jul 2026 07:47:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784188051;
+	bh=DyG83KiY3ZWMrvCJfSBOqvAMrmU+tCA83t+zusxBZrY=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=gpmFeDEWZEfEi7NiEHPxvYtnVdjasqIJjgqZx2VQRjlNx0zOcMYTUIMJqIcfP8Ijs
+	 dQProSt43xs220YTXW39eW2EbYQ6NCqSSVdp1beh+UsEvPqFTN6PYugasr5v38OPDN
+	 oJYxnSXheWxG0Y3C5J5vwtls0G/1i5Bn0a8gkPVaixQLJfm44f1mbBS8GxHgs5Twr/
+	 X4/ZyllDL41+aDFLATBl4S23RQD68p+RYai2d7C7dvsY8RzQlybeGOiobs3zzuBzIT
+	 8sosgjJB/szzwOD7QOM7bSDY7v4fTR1zMby86HqxjBCIHyvOpIh0bP6vQEECLRolbW
+	 w2JmmIsZu79/w==
+Message-ID: <68c3c156-4e89-4250-8f6a-89d0ced04d11@kernel.org>
+Date: Thu, 16 Jul 2026 09:47:05 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3fb3b2c2-9be6-483b-94bd-d0515d5df9b2@intel.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 26/33] mm/vma: update vma_shrink() to not pass start,
+ pgoff parameters
+To: Lorenzo Stoakes <ljs@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ David Hildenbrand <david@kernel.org>, "Liam R. Howlett"
+ <liam@infradead.org>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>,
+ Jann Horn <jannh@google.com>, Lance Yang <lance.yang@linux.dev>,
+ Pedro Falcato <pfalcato@suse.de>, Russell King <linux@armlinux.org.uk>,
+ Dinh Nguyen <dinguyen@kernel.org>,
+ Simon Schuster <schuster.simon@siemens-energy.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Dan Williams <djbw@kernel.org>, Matthew Wilcox <willy@infradead.org>,
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
+ Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
+ Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>,
+ Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+ Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+ Adrian Hunter <adrian.hunter@intel.com>, James Clark
+ <james.clark@linaro.org>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>,
+ Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+ Barry Song <baohua@kernel.org>, Miaohe Lin <linmiaohe@huawei.com>,
+ Naoya Horiguchi <nao.horiguchi@gmail.com>, Xu Xin <xu.xin16@zte.com.cn>,
+ Chengming Zhou <chengming.zhou@linux.dev>, SJ Park <sj@kernel.org>,
+ Matthew Brost <matthew.brost@intel.com>,
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
+ Ying Huang <ying.huang@linux.alibaba.com>,
+ Alistair Popple <apopple@nvidia.com>, Hugh Dickins <hughd@google.com>,
+ Peter Xu <peterx@redhat.com>, Kees Cook <kees@kernel.org>,
+ Marek Szyprowski <m.szyprowski@samsung.com>,
+ Robin Murphy <robin.murphy@arm.com>, Andrey Konovalov
+ <andreyknvl@gmail.com>, Alexander Potapenko <glider@google.com>,
+ Dmitry Vyukov <dvyukov@google.com>, Steven Rostedt <rostedt@goodmis.org>,
+ Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+ Jarkko Sakkinen <jarkko@kernel.org>,
+ Dave Hansen <dave.hansen@linux.intel.com>, Thomas Gleixner
+ <tglx@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, Ian Abbott <abbotti@mev.co.uk>,
+ H Hartley Sweeten <hsweeten@visionengravers.com>,
+ Lucas Stach <l.stach@pengutronix.de>,
+ Christian Gmeiner <christian.gmeiner@gmail.com>,
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+ Patrik Jakobsson <patrik.r.jakobsson@gmail.com>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ Rob Clark <robin.clark@oss.qualcomm.com>, Dmitry Baryshkov
+ <lumag@kernel.org>, Abhinav Kumar <abhinav.kumar@linux.dev>,
+ Jessica Zhang <jesszhan0024@gmail.com>, Sean Paul <sean@poorly.run>,
+ Marijn Suijten <marijn.suijten@somainline.org>,
+ Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+ Thierry Reding <thierry.reding@kernel.org>,
+ Mikko Perttunen <mperttunen@nvidia.com>,
+ Jonathan Hunter <jonathanh@nvidia.com>,
+ Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>,
+ Matthew Auld <matthew.auld@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Yishai Hadas <yishaih@nvidia.com>, Shameer Kolothum
+ <skolothumtho@nvidia.com>, Kevin Tian <kevin.tian@intel.com>,
+ Ankit Agrawal <ankita@nvidia.com>, Alex Williamson <alex@shazbot.org>,
+ Paolo Bonzini <pbonzini@redhat.com>, Shakeel Butt <shakeel.butt@linux.dev>,
+ Usama Arif <usama.arif@linux.dev>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ linux-parisc@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-perf-users@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, damon@lists.linux.dev,
+ iommu@lists.linux.dev, kasan-dev@googlegroups.com,
+ linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+ freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
+ kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
+References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-26-2a5aa403d977@kernel.org>
+From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=vbabka@kernel.org; keydata=
+ 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
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-26-2a5aa403d977@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 30, 2026 at 02:11:12PM -0700, Dave Jiang wrote:
+On 7/10/26 22:17, Lorenzo Stoakes wrote:
+> vma_shrink() is only used by relocate_vma_down() to shrink the tail of a
+> VMA. Therefore neither the start nor the pgoff parameters make any sense.
 > 
+> It seemed we were passing the pgoff parameter solely to satisfy
+> vma_set_range()'s requirement for pgoff being specified.
 > 
-> On 6/25/26 4:04 AM, Anisa Su wrote:
-> > A DC_ADD_CAPACITY event can span multiple event records grouped together
-> > by the CXL_DCD_EVENT_MORE flag. Extents are staged in the pending list until
-> > the last event record ('More'=0) is received, at which point the pending
-> > list is processed. If the device opens such a chain (More=1) but never
-> > sends the closing record, the staged list sits indefinitely.
-> > 
-> > Add a delayed-work watchdog that, on expiry, refuses the chain with an
-> > empty ADD_DC_RESPONSE and drops the staged list.
-> > 
-> > The 20s timeout is a conservative upper bound and may be tightened
-> > later. The timeout is purely defensive — the spec does not require it,
-> > but prevents issues from a lost mailbox response or a crashed fabric manager.
-> > 
-> > The watchdog bounds how long a chain may stall, but a device could still
-> > defeat it by streaming More=1 records faster than the timeout, growing the
-> > staged list without bound. Also cap a runtime chain at
-> > CXL_DC_MAX_PENDING_EXTENTS and refuse it once exceeded; existing-extent
-> > recovery is bounded separately by the device's reported extent count.
-> > 
-> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> Since vma_set_range() is now isolated to vma.c, we can simply introduce
+> __vma_set_range() which sets only vma->vm_[start, end], and invoke this
+> instead, removing start and pgoff from vma_shrink() altogether.
 > 
-> Minor comment below in addition to sashiko
+> No functional change intended.
 > 
-[snip]
+> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
-> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > index 4ffa7bd1e5f1..81498d47f309 100644
-> > --- a/drivers/cxl/cxlmem.h
-> > +++ b/drivers/cxl/cxlmem.h
-> > @@ -8,6 +8,8 @@
-> >  #include <linux/uuid.h>
-> >  #include <linux/node.h>
-> >  #include <linux/list.h>
-> > +#include <linux/mutex.h>
-> > +#include <linux/workqueue.h>
-> >  #include <cxl/event.h>
-> >  #include <cxl/mailbox.h>
-> >  #include "cxl.h"
-> > @@ -407,19 +409,33 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
-> >  
-> >  /**
-> >   * struct pending_add_ctx - Staging state for an in-progress
-> > - *			    DCD_ADD_CAPACITY event chain
-> > + *							DCD_ADD_CAPACITY event chain
-> >   * @pending_extents: extents received so far in the chain; flushed when
-> > - *		     the chain closes (More=0)
-> > + *					 the chain closes (More=0)
-> >   * @group: tag group being assembled from the chain
-> > + * @timeout_work: watchdog that fires if a chain is opened with
-> > + *				  CXL_DCD_EVENT_MORE but the closing record never arrives
-> > + * @lock: serialises updates to the chain state against the watchdog
-> > + * @armed: set when a More=1 chain opens; cleared when the chain closes,
-> > + *		   either by a More=0 event record or by the watchdog firing.
-> >   *
-> >   * A DCD_ADD_CAPACITY notification can span multiple event records
-> >   * stitched together by the CXL_DCD_EVENT_MORE flag.  Records are staged
-> > - * here until the device clears More, at which point the staged batch is
-> > - * processed and responded to as a single Add_DC_Response.
-> > + * here until an event record with 'More'=0 is received, at which point the
-> > + * staged batch is processed and responded to as a single Add_DC_Response.
-> > + *
-> > + * If a chain is opened (More=1) but the device never sends the closing
-> > + * record, the staged list would otherwise sit indefinitely.  @timeout_work
-> > + * is a defensive watchdog that refuses such a chain with an empty response
-> > + * and drops the staged list.
-> >   */
-> >  struct pending_add_ctx {
-> >  	struct list_head pending_extents;
-> >  	struct cxl_dc_tag_group *group;
-> > +	struct delayed_work timeout_work;
-> > +	struct mutex lock;
-> > +	unsigned int nr_pending;
-> 
-> Missing kdoc in comment section
-> 
-Added
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
-Thanks,
-Anisa
-> > +	bool armed;
-> >  };
-> >  
-> >  /**
-> 
