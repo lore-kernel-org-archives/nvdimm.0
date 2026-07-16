@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7FF33BB126;
-	Thu, 16 Jul 2026 09:36:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF5F38F251;
+	Thu, 16 Jul 2026 09:42:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784194603; cv=none; b=N9mgmQsmcOfgazajJEbCLS9q0y392y0XMBLyoA3DX08UyDHKy7t2jVKPFFf+xD5MiGI7e6ri/MTaFlOgsdjg6hf4lXYThour60tmumiYnLfbqDhVG8SE9Ybf9gr5eKE8RW6CbTxR3SaCZ7WDWnv8bt1oFzZd8meJQDoT0PNGQT0=
+	t=1784194969; cv=none; b=Zq6HEtkhD2Pard9c8YlfwdZUUrk7pSgENmX5cUoHYgB6y3Sw/dqHlPvsogy9HghTb8Gik3p+MK8Fh/zVQEYkhcdV/oqK/WoEKk2rOuNTHayfaYf4Pz2KivGO1kEsvzlZ4S5wn7KcEiAMtysA+RvLAWvUqXxcyGe/T745w7bU4Pw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784194603; c=relaxed/simple;
-	bh=hJH4yG48JfZTWrhLzphPH7J/2K7VhJiq+izQbmOi3No=;
+	s=arc-20240116; t=1784194969; c=relaxed/simple;
+	bh=7JChzyPx9x6gEu4NPAGqzUtqrZl0/gc9rPBKKPo6c0U=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QbJtPz1z9Gf52XVJ+Q/if/gdTgX9uWZ2GXmkYuQt8Yb/9VSfCyQMR/GsjTlP/jKWY6aLu9DkQWOkq+53yBo5Bmkr+HYX09KYZv/mlcXoxPuZzeFElpzGiZ0j0HxofIzQtzcatyuS8Oh7NTvtPRiav8EmG/sjM0/2e2ywwGAwarw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YHRhRgI1; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=pikebJY1M7825xM1/ct9qS3fuYT9I8l6m7HyyiCqn6hseC3Fcv1dDL7pzQaOyQUS7qr/pFk0LYK8Ro9wMAHIkRLJILrQslxQZb+JQW2Et/6OIayoKUtEigZ4GPhUnlqRjloD0EzgtFBVMlUpSm3Nsr6BccZnzN8CuhKUy07nasc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UbqoaKug; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YHRhRgI1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D029A1F000E9;
-	Thu, 16 Jul 2026 09:36:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UbqoaKug"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67341F00A3F;
+	Thu, 16 Jul 2026 09:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784194601;
-	bh=Mw498kcdRvtwf0TpnGBwleBL9K3C9jrPcH99BicHGcY=;
+	s=k20260515; t=1784194967;
+	bh=7JChzyPx9x6gEu4NPAGqzUtqrZl0/gc9rPBKKPo6c0U=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=YHRhRgI1niM3PlrZwisO9rOxfS9iIj2SYZEGwL3nW9xTChS885ATXnOpZrMbCmfcO
-	 TEfa1QQhY3PrSN+0+QhLp18PfrTV/Vbj6oj1ihy3kDX5+yLPpiLN7IqJIXodmXMTxA
-	 oeuc8fvAK3hIiP354563i84BomUHhL9TK1MpwY9jIW5Q9akTwY3BjKHgxm/xB0scRP
-	 CjozPQeYUlzQgbZcJcn3/ZlAoQ4/7QzR/d6WwcwX3rQBBAiyttlcUrcNx6eCqL3EsE
-	 VoVo3toLwNuiCOlGj3wlj1VmkF8ZUmOJMRu5lq+kk0xKz6iw5plXK5qO3T06uw8h73
-	 wwA2M2VwCazzg==
-Date: Thu, 16 Jul 2026 10:36:05 +0100
+	b=UbqoaKugtwtE/wDtLrJxAq1xy+ElsA1g+mbgtfCD/5OvxdjKHTTRYZ5WnYQZMraZA
+	 s/qXgxaWfSdXO9TYDTQ8V5c+CSQtCmeQD1D3DJ+8BVJcY5zY7RJ0RmJmCm0eZZ1Apv
+	 mQiBmOU1yyDPMd/S9GbJ27QKXbDCGyLzgmvbEndiHmIeJHb5Th7QoviGbQ1X2ltPxu
+	 Pb+9DafqsJAKJhM6IR5VnRB4i5dJiGSaPoRzgh+2Ozrm6HeSwUnJy+qkFvAA2fn4xT
+	 h+X+MW8bHAp8Adnk1lscXc7/h92BcL1poIw+CmARj5GUyYNB21u2bjEtTKBp1jHtrH
+	 eJYCIO11YTewg==
+Date: Thu, 16 Jul 2026 10:42:12 +0100
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
 To: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -77,19 +77,17 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	Ankit Agrawal <ankita@nvidia.com>, Alex Williamson <alex@shazbot.org>, 
 	Paolo Bonzini <pbonzini@redhat.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
 	Usama Arif <usama.arif@linux.dev>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, linux-perf-users@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, damon@lists.linux.dev, iommu@lists.linux.dev, 
-	kasan-dev@googlegroups.com, linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org, 
-	dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org, 
-	linux-tegra@vger.kernel.org, kvm@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-perf-users@vger.kernel.org, linux-trace-kernel@vger.kernel.org, damon@lists.linux.dev, 
+	iommu@lists.linux.dev, kasan-dev@googlegroups.com, linux-sgx@vger.kernel.org, 
+	etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, 
+	freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org, kvm@vger.kernel.org, 
 	Russell King <linux+etnaviv@armlinux.org.uk>
-Subject: Re: [PATCH v2 25/33] mm/vma: make vma_set_range() static, drop
- insert_vm_struct() decl
-Message-ID: <alilxy8lRdNIbtS-@lucifer>
+Subject: Re: [PATCH v2 30/33] mm/vma: correct incorrect vma.h inclusion
+Message-ID: <alimfeUEoGdnEd9W@lucifer>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-25-2a5aa403d977@kernel.org>
- <b470eb19-d59c-4dd6-bf57-648b51281691@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-30-2a5aa403d977@kernel.org>
+ <a273faf8-452d-499a-90e1-b3c9dc2395d0@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -98,29 +96,30 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <b470eb19-d59c-4dd6-bf57-648b51281691@kernel.org>
+In-Reply-To: <a273faf8-452d-499a-90e1-b3c9dc2395d0@kernel.org>
 
-On Wed, Jul 15, 2026 at 07:45:59PM +0200, Vlastimil Babka (SUSE) wrote:
+On Thu, Jul 16, 2026 at 10:38:00AM +0200, Vlastimil Babka (SUSE) wrote:
 > On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> > With __install_special_mapping() moved to vma.c, vma_set_range() can be
-> > made into a static function there and is now completely isolated from the
-> > rest of mm.
->
-> Pedantic nit: it was already "static", but in a .h file
-> Yeah it was also "inline" but that's not the important part of this change.
->
-> So I'd say it was rather moved to vma.c, but you can ignore this nit if you
-> want.
-
-That is pretty pedantic ;) I mean to say bare 'static' here obvs. I can fix if
-any respin but I think ok as-is for now.
-
->
-> > While we're here, we can also remove the insert_vm_struct() declaration
-> > from mm.h - the function is implemented in vma.c and already declared in
-> > vma.h, and has no users outside of mm.
+> > The only files which should be including vma.h are the implementation files
+> > for the core VMA logic - vma.c, vma_init.c, and vma_exec.c.
 > >
-> > Also update the VMA userland tests to reflect this change.
+> > This is in order to allow for userland testing of core VMA logic. In this
+> > cases, vma_internal.h and vma.h are included, providing both the
+> > dependencies upon which the core VMA logic requires and its declarations.
+> >
+> > Userland testable VMA logic is achieved by having separate vma_internal.h
+> > implementations for userland and kernel.
+> >
+> > Callers other than the core VMA implementation should include internal.h
+> > instead. This header does not need to include vma_internal.h as it only
+> > contains the vma.h declarations, for which the includes already present
+> > suffice.
+> >
+> > Update code to reflect this, update comments to reflect the fact there are
+> > 3 VMA implementation files and document things more clearly.
+> >
+> > While we're here, slightly improve the language of the comment describing
+> > vma_exec.c.
 > >
 > > No functional change intended.
 > >
@@ -130,99 +129,25 @@ any respin but I think ok as-is for now.
 >
 > Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 
-Thanks! :)
+Thanks!
 
 >
-> > ---
-> >  include/linux/mm.h         | 1 -
-> >  mm/internal.h              | 9 ---------
-> >  mm/vma.c                   | 8 ++++++++
-> >  tools/testing/vma/shared.c | 9 ---------
-> >  tools/testing/vma/shared.h | 5 -----
-> >  5 files changed, 8 insertions(+), 24 deletions(-)
-> >
-> > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > index 3d69b597b9b1..762313b47301 100644
-> > --- a/include/linux/mm.h
-> > +++ b/include/linux/mm.h
-> > @@ -4130,7 +4130,6 @@ void anon_rmap_tree_verify(struct anon_vma_chain *avc);
-> >
-> >  /* mmap.c */
-> >  extern int __vm_enough_memory(const struct mm_struct *mm, long pages, int cap_sys_admin);
-> > -extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
-> >  extern void exit_mmap(struct mm_struct *);
-> >  bool mmap_read_lock_maybe_expand(struct mm_struct *mm, struct vm_area_struct *vma,
-> >  				 unsigned long addr, bool write);
-> > diff --git a/mm/internal.h b/mm/internal.h
-> > index 01a762bcc2b2..2c650d280e90 100644
-> > --- a/mm/internal.h
-> > +++ b/mm/internal.h
-> > @@ -1540,15 +1540,6 @@ extern bool mirrored_kernelcore;
-> >  bool memblock_has_mirror(void);
-> >  void memblock_free_all(void);
-> >
-> > -static __always_inline void vma_set_range(struct vm_area_struct *vma,
-> > -					  unsigned long start, unsigned long end,
-> > -					  pgoff_t pgoff)
-> > -{
-> > -	vma->vm_start = start;
-> > -	vma->vm_end = end;
-> > -	vma->vm_pgoff = pgoff;
-> > -}
-> > -
-> >  static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
-> >  {
-> >  	/*
-> > diff --git a/mm/vma.c b/mm/vma.c
-> > index 5308aa5a8c91..cc0e449ad0be 100644
-> > --- a/mm/vma.c
-> > +++ b/mm/vma.c
-> > @@ -70,6 +70,14 @@ struct mmap_state {
-> >  		.state = VMA_MERGE_START,				\
-> >  	}
-> >
-> > +static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
-> > +			  unsigned long end, pgoff_t pgoff)
-> > +{
-> > +	vma->vm_start = start;
-> > +	vma->vm_end = end;
-> > +	vma->vm_pgoff = pgoff;
-> > +}
-> > +
-> >  /* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
-> >  static bool vma_is_fork_child(struct vm_area_struct *vma)
-> >  {
-> > diff --git a/tools/testing/vma/shared.c b/tools/testing/vma/shared.c
-> > index 2565a5aecb80..bea9ea6db02a 100644
-> > --- a/tools/testing/vma/shared.c
-> > +++ b/tools/testing/vma/shared.c
-> > @@ -120,12 +120,3 @@ unsigned long rlimit(unsigned int limit)
-> >  {
-> >  	return (unsigned long)-1;
-> >  }
-> > -
-> > -void vma_set_range(struct vm_area_struct *vma,
-> > -		   unsigned long start, unsigned long end,
-> > -		   pgoff_t pgoff)
-> > -{
-> > -	vma->vm_start = start;
-> > -	vma->vm_end = end;
-> > -	vma->vm_pgoff = pgoff;
-> > -}
-> > diff --git a/tools/testing/vma/shared.h b/tools/testing/vma/shared.h
-> > index 8b9e3b11c3cb..ca4f1238f1c7 100644
-> > --- a/tools/testing/vma/shared.h
-> > +++ b/tools/testing/vma/shared.h
-> > @@ -125,8 +125,3 @@ void __vma_set_dummy_anon_vma(struct vm_area_struct *vma,
-> >  /* Provide a simple dummy VMA/anon_vma dummy setup for testing. */
-> >  void vma_set_dummy_anon_vma(struct vm_area_struct *vma,
-> >  			    struct anon_vma_chain *avc);
-> > -
-> > -/* Helper function to specify a VMA's range. */
-> > -void vma_set_range(struct vm_area_struct *vma,
-> > -		   unsigned long start, unsigned long end,
-> > -		   pgoff_t pgoff);
-> >
+> But given Mike's efforts [1] I wonder if there's a way to change the vma
+> header system in the future to stop requiring users of vma functions to
+> include the whole internal.h, while of course still allow the userland
+> testability.
+>
+> [1]
+> https://lore.kernel.org/all/20260709-internal-h-v1-0-956d5092782d@kernel.org/
+
+Yeah we can always put a (correctly formed) vma.h include in any split off headers.
+
+There's also Pedro's suggestion (my reply to that at [0]) which I plan to do as
+a follow up :)
+
+[0]:https://lore.kernel.org/all/akzWq08xwXKqwwtq@lucifer/
+
+>
 >
 
 Cheers, Lorenzo
