@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39F0E3DDB04;
-	Thu, 16 Jul 2026 08:29:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AEC13F1AC3;
+	Thu, 16 Jul 2026 08:38:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784190542; cv=none; b=uumNesU1+TXO74S7CMbGCBshg44PqC4Fq5gYZFysUh+MX8mB7LkIqMXSVCUzPs46C16Ci3h/VTBzi8IM7gGxYsZsORPKzRswHPSrV+MuaVh5SCsMzmK9cuhWWmWh2iMMgB6OikETP+8gPc9DKNAm78Fk54vA0FxSrCxRABfn+ys=
+	t=1784191106; cv=none; b=AUCH67yrMOk94Mswlo+0n5XsoEdF6OOBaVplWKVKpioOXsZnkiT7ED6CRAV9y1THfhx3YcQOkPyilzfOxtcQxcdfj0ZM8lZgaTz7xP2Za6IMyl8IeHjPeGnhBkiUNqehJX2PGH8i/CNES6dOIb5NiHF34nusvbjkRuXjIuts6FQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784190542; c=relaxed/simple;
-	bh=wLCMV3fF1Jx9BJa6AR9Lfi3FLZub8Knw3/xrFQKXrxY=;
+	s=arc-20240116; t=1784191106; c=relaxed/simple;
+	bh=fTYDS0spI0Gq127YWWWatGdhU2i5AWLiH3AKfT7xqzo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=c+qj6o8CBYorkVjaW1NoBV8UpXm6wpdvDaKC8dkhUbGA0YxwOR5DpbroP8ZGSuRq9gvEk1l2McRL7oQ5TK2TuiICkK5od6t/YkiWPQaFHndbC8o9okgfS+aEYIj7Tu70F3FUf6rW0wJpsUlkJC+ap6h4k2rFjpdTHZW2NrrFVLg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NHnt8pNF; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=H4E3V8Js5Qpzooycw8XXkHnluEb8Yhah6IAiw5B2uyFr9hRf0BrN16M1U/pXQog8zhBGonYUkj1ByJsIDGKvxO82ZRRAgkSxFsOy+dDygorSrcgPIDUNcq6Z9Zzoud64IM8tyKT3f4XHHM5K0vwPwSA2BJFftyLjasmCFL/52DI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fA4Y9VVh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NHnt8pNF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BF2F1F000E9;
-	Thu, 16 Jul 2026 08:28:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fA4Y9VVh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 634C91F000E9;
+	Thu, 16 Jul 2026 08:38:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784190540;
-	bh=LBMzZungojnJJzsOyamokZKaxeJBCdcl1wVHPQtN5pg=;
+	s=k20260515; t=1784191104;
+	bh=5qNmGNNZ7rXMiTLdGIwGLI4axhYJB8sxe9+qeijUFfE=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=NHnt8pNF/luhx1IUKLfNB43r0drBog4E0VUSo065z+H/o7vU8pNlpSzXKE1MwYXoV
-	 MRO4KHZBs2UlMYfdxAHyqxLxFmtj93jA3MpRZ8npBboI89TpGXJDVRL0FOJjwzqG38
-	 bb/T0Qf0FMmi7lFhdlyYBPZa/Po1IStCw4ASZJSrz9iTzuige8SbKSqhotDOoawCom
-	 UyQT6MbGtwmGXmQcfWpT59QXcumpjvtqPz21P6+CTGPjMDZeivEoZEhQFwPB9f5Z/E
-	 fCWhUK6cXIQdyRypfOZG+EyjS6oJgfOelF/hgARxUd/mWyySEGAb2pwcWRayxgP4MK
-	 ebaFUAbeiMxmQ==
-Message-ID: <acd03aae-9d41-44d5-974b-5deb751b48b3@kernel.org>
-Date: Thu, 16 Jul 2026 10:28:37 +0200
+	b=fA4Y9VVhygo22VrQ71Kx1Ydf2nKzDi3f4g23ItRPNEFW02EkNpQI/jVt6S+DOwv6Y
+	 oeplQ3wbglQ82W1+EWG3byrukvp2wCkByXq20aD7vSEGLnfv3Y8XTifKazh7DTnR5N
+	 tHxNvg7ZYqwT/PeEXBFOOkmgdC6bdLweTNnlSgSRCEEvHkqbtvZSIj1iMzZZVRLUBm
+	 sSL69YnxCCQokLlq47jNOu61mXHZ8I4veQXpMpD3h9mVIju3d3XWDbn1ccxTWLaDAx
+	 BjnEQIp/nD7OafLXOWHhzCroAWXeqxfHNxdXe7QARLuYvbpniVP4MQNay6A+Fde1i+
+	 vZbbF+cVSlJlQ==
+Message-ID: <a273faf8-452d-499a-90e1-b3c9dc2395d0@kernel.org>
+Date: Thu, 16 Jul 2026 10:38:00 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,7 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 29/33] mm/vma: introduce and use vma_set_pgoff()
+Subject: Re: [PATCH v2 30/33] mm/vma: correct incorrect vma.h inclusion
 Content-Language: en-US
 To: Lorenzo Stoakes <ljs@kernel.org>,
  Andrew Morton <akpm@linux-foundation.org>,
@@ -112,7 +112,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  freedreno@lists.freedesktop.org, linux-tegra@vger.kernel.org,
  kvm@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>
 References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-29-2a5aa403d977@kernel.org>
+ <20260710-b4-pre-scalable-cow-v2-30-2a5aa403d977@kernel.org>
 From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Autocrypt: addr=vbabka@kernel.org; keydata=
  xsFNBFZdmxYBEADsw/SiUSjB0dM+vSh95UkgcHjzEVBlby/Fg+g42O7LAEkCYXi/vvq31JTB
@@ -153,55 +153,46 @@ Autocrypt: addr=vbabka@kernel.org; keydata=
  NcaZ+c6J4H+nEJGi2SkHAUJz5oBzuThvPudLvPA/SK8sKoM01IRxSihev/S/5WLazXB1PGem
  OCbvzC1IjWJJraxiDJ5IygokapUa2RP7+WBR22skQ3SSl6G107QgWKSyTOGWEaRmV53vxQLV
  jXuCmzSSasTL60zq5yGrT4/DYQVSNEUiUbG4pYekxJujNeEDkUlky0Y=
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-29-2a5aa403d977@kernel.org>
+In-Reply-To: <20260710-b4-pre-scalable-cow-v2-30-2a5aa403d977@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 7/10/26 22:17, Lorenzo Stoakes wrote:
-> In order to lay the foundation for work that permits us to track the
-> virtual page offset of MAP_PRIVATE file-backed mappings, we abstract the
-> assignment of vma->vm_pgoff to vma_set_pgoff().
+> The only files which should be including vma.h are the implementation files
+> for the core VMA logic - vma.c, vma_init.c, and vma_exec.c.
 > 
-> We additionally add a lock check here using the newly introduced
-> vma_assert_can_modify(). This asserts the VMA write lock if the VMA is
-> attached.
+> This is in order to allow for userland testing of core VMA logic. In this
+> cases, vma_internal.h and vma.h are included, providing both the
+> dependencies upon which the core VMA logic requires and its declarations.
 > 
-> We also assert that, if this is an anonymous VMA and unfaulted, that its
-> (virtual) page offset is equal to the page offset of the VMA's address.
+> Userland testable VMA logic is achieved by having separate vma_internal.h
+> implementations for userland and kernel.
 > 
-> We must be careful about MAP_PRIVATE-/dev/zero which violates fundamental
-> assumptions about anonymous memory, so we check for !vma->vm_file after
-> using vma_is_anonymous() which these mappings satisfy.
+> Callers other than the core VMA implementation should include internal.h
+> instead. This header does not need to include vma_internal.h as it only
+> contains the vma.h declarations, for which the includes already present
+> suffice.
 > 
-> Additionally, we only perform the assert if CONFIG_MMU is defined, as nommu
-> does not set vma->vm_pgoff = addr >> PAGE_SHIFT. This isn't really relevant
-> to rmap as it has no anon rmap (nor needs it), but we must avoid it
-> asserting falsely.
+> Update code to reflect this, update comments to reflect the fact there are
+> 3 VMA implementation files and document things more clearly.
 > 
-> All of this logic is kept in assert_sane_pgoff() to keep things clear.
-> 
-> In order to maintain correctness given this assert, we also update
-> __install_special_mapping() to invoke vma_set_range() after it's set
-> vma->vm_ops (which determine whether the VMA is anonymous or not).
-> 
-> We do not use vma_set_pgoff() in vm_area_init_from(), as at the point of
-> forking, we don't necessarily have correct locking state.
-> 
-> Updating vma_set_range() covers most cases, but in addition to this we also
-> update insert_vm_struct(), compat_set_vma_from_desc() and nommu callers.
-> 
-> We also update vma_add_pgoff() and vma_sub_pgoff() to use vma_set_pgoff().
-> 
-> While we're here, we drop a BUG_ON() and update insert_vm_struct()'s
-> comment to reflect the fact anonymous mappings can be added here.
-> 
-> Finally, we update the CONFIG_MMU, CONFIG_PER_VMA_LOCK defines in the VMA
-> userland tests so IS_ENABLED() will work correctly with them.
+> While we're here, slightly improve the language of the comment describing
+> vma_exec.c.
 > 
 > No functional change intended.
 > 
 > Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+> Reviewed-by: Gregory Price <gourry@gourry.net>
 > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+
+But given Mike's efforts [1] I wonder if there's a way to change the vma
+header system in the future to stop requiring users of vma functions to
+include the whole internal.h, while of course still allow the userland
+testability.
+
+[1]
+https://lore.kernel.org/all/20260709-internal-h-v1-0-956d5092782d@kernel.org/
+
 
