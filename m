@@ -1,283 +1,255 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF6E391838;
-	Mon, 20 Jul 2026 03:57:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29A2D2E62B3;
+	Mon, 20 Jul 2026 03:59:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784519825; cv=none; b=lNQUkec0nf95eshqVDnQL52xhJNbDNxvYPNn0au/7KlaGd+dXnBHObyxs9Hal+3hiVs2Egcz5kBAaB/oHfef3hky63Y4QMu0tpHSsyAsqNqRPMdMxg9fisKRF8Bz2YRo3Q80DPp+MlMW8W+vk3T2GAmrmE1GXFERDdDbK2LmH1Y=
+	t=1784519989; cv=none; b=B3jPL5h8M0eHW+bXJL9uFocOYEJx+ea25LDZpkjIPUnNsJX9Pdy4xsow0BNj9mSrcc1f9NtFUD2Efjeg6YTc97ldDYeoTmiot4x8QoIGq72uvDya0PCWXZUilWq409BYMwTkp1//jfQjXKUdFoUexlvm6LZ+SBT3xCctyim8w0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784519825; c=relaxed/simple;
-	bh=gUb1RE3R0w7S6C8TpPrz+FSTQjV+viFY95tz0zd1C/k=;
+	s=arc-20240116; t=1784519989; c=relaxed/simple;
+	bh=suP9phJOtkRNZmQBS5n7Y4F/PetVyMOwOc9xZr62waw=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=iPPCTS/sZ7YI/KD4P5cmqU4j5esXtGpy0xaAM/ARZJsrRsjoK88mV5DnRdHcb5uE45XrSMjHw2MOvb0fjgWwvZx+4RlgxBCPbCAeAW0JLyB+VoK7u+cuyMA7I3S9bWfUMdmIxE1P8+JFF2liSz4y2prT+9TycbB3Rqe4qHB+ceU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GhKTF0YM; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=iH6DhxPtQRuPawbonrWyeaxItj3YPbfTRb/35UCvfAxG/YDpw3kFAEugme22BqnZyxMq0pMYhRgoE3mcgLP9i5F28eIheq4/dPEJoVqBT7z7ltQ3yyT6/bElCQAnVCZpdSJIHdwS2olW1Kqp6nwr758ykOuCVyUioHJ6nKUmLEE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AcGBVPzZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GhKTF0YM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D96F01F000E9;
-	Mon, 20 Jul 2026 03:57:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AcGBVPzZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CBFA1F000E9;
+	Mon, 20 Jul 2026 03:59:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784519824;
-	bh=0oUzMAJKYmlpoHfxjiK+N+cGfjOjJ5XURT1pYrsEWsg=;
+	s=k20260515; t=1784519987;
+	bh=Is6uVOPHI3S1LTVsEalhveXaEtJ+ThxDXMEMjY7neOw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=GhKTF0YMV29yOL/VxTs/Qj6FGN3XqZgBZjxuV87QsYPdqvyhGcwHyccl7Q/2N519x
-	 NxYaYGm9AJBSfD+J9df/jfEnlXC8aK3rf3W5HaDJ+QS9Ph/qJWs/YFl14PaxQ7M6Ht
-	 53aCI7G2HHTsgtuQmeJe1iLYlNAGeVz09B+FdYW0aMW9YaiWnx11Fal3zqC7lO6h0L
-	 jipOAyTm+1NPLk7l8V5QlOkDpBFcq2DnIEcRCsg33qM+JhR+R4phGxpMdx0IRULofO
-	 qkTFpNkn6ctjOWVsq2QCZG2zY1YYKiody7ejvCfIPazYi02eVq6Su9rU4E95Wc1pyw
-	 ePynKBJSGb0RQ==
+	b=AcGBVPzZTBfhDRwUi4k2U+5DkuQ0FPZqvCMl+aHZThh85ocTUZGJribegBxEUJ/z7
+	 YfBsSBatM2AWw5VF5I+/5npXIqOWNGz4yZd3XBNCgztDn2Bp/ypzIE+Sa3a2IunWx7
+	 +l4N5E1GXEGbO9AhImDru/hG9OMmAr8PD5fsLhFVn7G0mnvn4TUrebihdqHYMSwZbq
+	 fAi2UWklt8cV7NweZ9ySKhFby+sUSxLSEXD2ft6e4JtkZwAAlKhjgrBKHsbpjmOsZt
+	 l+1d8aZ5rXz9zNfC7hixrHtRTHyEYOaAdo63ksH29aQniWtARGVgKlbOUub7ya8ja3
+	 UlTNO0Ozq1B5g==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V11 6/9] famfs_fuse: Plumb dax iomap and fuse
- read/write/mmap
+Subject: Re: [PATCH V11 4/9] famfs_fuse: Create files with famfs fmaps
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <0100019f7da1cf3d-bb04c043-a09f-4925-bf63-eb92452871e5-000000@email.amazonses.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+In-Reply-To: <0100019f7da174eb-4cd0f3ae-59da-4533-b469-6eee009a22bd-000000@email.amazonses.com>
 References: <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
- <20260720034616.68834-1-john@jagalactic.com>
- <0100019f7da1cf3d-bb04c043-a09f-4925-bf63-eb92452871e5-000000@email.amazonses.com>
+ <20260720034553.68798-1-john@jagalactic.com>
+ <0100019f7da174eb-4cd0f3ae-59da-4533-b469-6eee009a22bd-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 20 Jul 2026 03:57:03 +0000
-Message-Id: <20260720035703.D96F01F000E9@smtp.kernel.org>
+Date: Mon, 20 Jul 2026 03:59:46 +0000
+Message-Id: <20260720035947.3CBFA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 5 potential issue(=
+Thank you for your contribution! Sashiko AI review found 7 potential issue(=
 s) to consider:
-- [Critical] famfs_fuse_write_iter and famfs_fuse_read_iter completely bypa=
-ss mandatory VFS locking, security privilege stripping, and POSIX semantics.
-- [High] famfs_fuse_mmap fails to set the VM_MIXEDMAP flag, guaranteeing a =
-BUG_ON() crash during DAX page faults.
-- [High] Explicitly returning -EIO for splice operations on famfs files bre=
-aks standard system calls like sendfile() and splice().
-- [High] 32-bit architectures suffer from silent data truncation due to the=
- use of size_t and off_t for 64-bit file offsets and sizes.
-- [Medium] Concurrent, lockless modification of `meta->error` in `famfs_fil=
-e_bad()` creates a data race.
+- [High] File size and extent lengths are truncated to 32 bits on 32-bit ar=
+chitectures, leading to file size corruption and validation bypass.
+- [High] Premature publication of DAX metadata allows concurrent threads to=
+ observe an incomplete initialization state.
+- [High] Modifying `inode->i_flags` directly with bitwise operations bypass=
+es the required `inode->i_lock` spinlock, causing lost updates.
+- [Medium] Unvalidated FUSE server input passed directly to `BIT_ULL()` cau=
+ses a shift-out-of-bounds, leading to Undefined Behavior.
+- [Medium] The `famfs_file_meta` and its extent array are allocated without=
+ `__GFP_ACCOUNT`, allowing unbounded kernel memory consumption.
+- [Low] `famfs_meta_set()` incorrectly returns `struct fuse_backing *` inst=
+ead of `void *`.
+- [Low] Ineffective concurrency check using `cmpxchg()` on a local stack va=
+riable.
 --
 
---- Patch [6]: [PATCH V11 6/9] famfs_fuse: Plumb dax iomap and fuse read/wr=
-ite/mmap ---
-commit 26226f89d9106affa50e5f7fc0a4be4656c4531c
+--- Patch [4]: [PATCH V11 4/9] famfs_fuse: Create files with famfs fmaps ---
+commit 293d4aeecd8b2f11982375cde3643693ae41f5d0
 Author: John Groves <john@groves.net>
 
-famfs_fuse: Plumb dax iomap and fuse read/write/mmap
+famfs_fuse: Create files with famfs fmaps
 
-This commit adds read, write, and mmap support for famfs files using the
-dev_dax_iomap interface. It handles file offset resolution and page faults
-via DAX upcalls.
+This commit interprets the fmap retrieved by GET_FMAP into the in-memory
+metadata that later patches use to resolve read/write/mmap directly to dax.
+It adds the fmap wire format, in-memory structures, and metadata
+allocation logic.
 
 > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
-> index a2a7dd631dc0f..ac56317944d93 100644
+> index 80e6640ac970b..8f7ee7d6151bb 100644
 > --- a/fs/fuse/famfs.c
 > +++ b/fs/fuse/famfs.c
-
 [ ... ]
-
-> +static int
-> +famfs_fileofs_to_daxofs(struct inode *inode, struct iomap *iomap,
-> +			loff_t file_offset, off_t len, unsigned int flags)
-> +{
-
-[Severity: High]
-Does defining the len parameter as off_t truncate the mapping length on 32-=
-bit
-systems?
-
+> @@ -14,13 +14,244 @@
 [ ... ]
-
-> +const struct vm_operations_struct famfs_file_vm_ops =3D {
-> +	.fault		=3D famfs_filemap_fault,
-> +	.huge_fault	=3D famfs_filemap_huge_fault,
-> +	.map_pages	=3D filemap_map_pages,
-
-[Severity: High]
-Is it correct to assign a page-cache-specific mapping function here? Since
-DAX mappings bypass the page cache, using filemap_map_pages might lead to
-unexpected behavior.
-
-> +	.page_mkwrite	=3D famfs_filemap_mkwrite,
-> +	.pfn_mkwrite	=3D famfs_filemap_mkwrite,
-> +};
-
-[ ... ]
-
-> +static int
-> +famfs_file_bad(struct inode *inode)
-> +{
-> +	struct fuse_inode *fi =3D get_fuse_inode(inode);
-> +	struct famfs_file_meta *meta =3D fi->famfs_meta;
-> +	size_t i_size =3D i_size_read(inode);
-> +
-> +	if (!meta) {
-> +		pr_err("%s: un-initialized famfs file\n", __func__);
-> +		return -EIO;
-> +	}
-> +	if (meta->error) {
-> +		pr_debug("%s: previously detected metadata errors\n", __func__);
-> +		return -EIO;
-> +	}
-> +	if (i_size !=3D meta->file_size) {
-> +		pr_warn("%s: i_size overwritten from %ld to %ld\n",
-> +		       __func__, meta->file_size, i_size);
-> +		meta->error =3D true;
+> +	struct famfs_file_meta *meta __free(__famfs_meta_free) =3D kzalloc(size=
+of(*meta), GFP_KERNEL);
 
 [Severity: Medium]
-Can concurrent I/O operations cause a data race on meta->error? Since read
-and write paths can execute without the inode lock, multiple threads might
-modify this flag simultaneously.
+Is it intentional to omit the __GFP_ACCOUNT flag here? A single DAX file can
+have up to 32,768 extents, and unprivileged containerized processes could
+repeatedly open FUSE DAX files to trigger these allocations. Adding
+__GFP_ACCOUNT would ensure these allocations are charged to the memory cgro=
+up.
 
-> +		return -ENXIO;
+> +
+> +	if (!meta)
+> +		return -ENOMEM;
+> +
+> +	meta->error =3D false;
+> +	meta->file_type =3D fmh->file_type;
+> +	meta->file_size =3D fmh->file_size;
+> +
+> +	switch (fmh->ext_type) {
+> +	case FUSE_FAMFS_EXT_SIMPLE: {
+> +		struct fuse_famfs_simple_ext *se_in;
+> +
+> +		se_in =3D fmap_buf + next_offset;
+> +
+> +		/* Move past simple extents */
+> +		next_offset +=3D fmh->nextents * sizeof(*se_in);
+> +		if (next_offset > fmap_buf_size) {
+> +			pr_err("%s:%d: fmap_buf underflow offset/size %ld/%ld\n",
+> +			       __func__, __LINE__, next_offset, fmap_buf_size);
+> +			return -EINVAL;
+> +		}
+> +
+> +		meta->fm_nextents =3D fmh->nextents;
+> +
+> +		meta->se =3D kcalloc(meta->fm_nextents, sizeof(*(meta->se)),
+> +				   GFP_KERNEL);
+
+[Severity: Medium]
+Should this variable-length extent array allocation also include the
+__GFP_ACCOUNT flag? It could consume substantial memory per file.
+
+> +		if (!meta->se)
+> +			return -ENOMEM;
+> +
+> +		for (i =3D 0; i < fmh->nextents; i++) {
+> +			meta->se[i].dev_index  =3D se_in[i].se_devindex;
+> +			meta->se[i].ext_offset =3D se_in[i].se_offset;
+> +			meta->se[i].ext_len    =3D se_in[i].se_len;
+> +
+> +			/* Record bitmap of referenced daxdev indices */
+> +			meta->dev_bitmap |=3D BIT_ULL(meta->se[i].dev_index);
+
+[Severity: Medium]
+Could this trigger a shift-out-of-bounds if the FUSE server provides a
+dev_index >=3D 64? There doesn't appear to be a bounds check on
+se_in[i].se_devindex prior to this bitwise shift operation.
+
+[ ... ]
+> +	/* More sanity checks */
+> +	if (extent_total < meta->file_size) {
+> +		pr_err("%s: file size %ld larger than map size %ld\n",
+> +		       __func__, meta->file_size, extent_total);
+> +		return -EINVAL;
 > +	}
 
-[ ... ]
-
-> +static ssize_t
-> +famfs_fuse_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
-> +{
-> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
-> +	size_t i_size =3D i_size_read(inode);
-
 [Severity: High]
-Might reading i_size_read() into a size_t truncate the 64-bit value on 32-b=
-it
-platforms? This would break I/O bounds checking for files larger than 4GB.
-This also applies to the file_size field in the famfs_file_meta structure if
-it is similarly defined as size_t.
+Can this comparison bypass validation on 32-bit architectures? In
+struct famfs_file_meta, file_size is defined as a size_t, which is 32 bits
+on those systems. The FUSE wire format provides it as a 64-bit integer,
+so any file size > 4GB could be silently truncated. Would it be better
+to declare file_size as a 64-bit type like loff_t or u64?
 
-> +	size_t count =3D iov_iter_count(ubuf);
-> +	size_t max_count;
-> +	ssize_t rc;
+> +
+> +	if (cmpxchg(metap, NULL, meta) !=3D NULL) {
+> +		pr_debug("%s: fmap race detected\n", __func__);
+> +		return 0; /* fmap already installed */
+> +	}
+
+[Severity: Low]
+Is this race detection effective here? metap points to the local stack vari=
+able
+declared as struct famfs_file_meta *meta =3D NULL; in famfs_file_init_dax().
+Because it is an unshared local variable, the cmpxchg will always succeed,
+rendering this branch dead code.
 
 [ ... ]
-
-> +ssize_t
-> +famfs_fuse_read_iter(struct kiocb *iocb, struct iov_iter	*to)
-> +{
-> +	ssize_t rc;
-> +
-> +	rc =3D famfs_fuse_rw_prep(iocb, to);
-> +	if (rc)
-> +		return rc;
-> +
-> +	if (!iov_iter_count(to))
-> +		return 0;
-> +
-> +	rc =3D dax_iomap_rw(iocb, to, &famfs_iomap_ops);
-
-[Severity: Critical]
-Does this read path need to acquire inode_lock_shared()? The standard VFS
-read paths typically acquire it before calling dax_iomap_rw().
-
-> +
-> +	file_accessed(iocb->ki_filp);
-> +	return rc;
-> +}
-> +
-> +ssize_t
-> +famfs_fuse_write_iter(struct kiocb *iocb, struct iov_iter *from)
-> +{
-> +	ssize_t rc;
-> +
-> +	rc =3D famfs_fuse_rw_prep(iocb, from);
-> +	if (rc)
-> +		return rc;
-> +
-> +	if (!iov_iter_count(from))
-> +		return 0;
-> +
-> +	return dax_iomap_rw(iocb, from, &famfs_iomap_ops);
-> +}
-
-[Severity: Critical]
-Does this write path omit mandatory VFS security and integrity checks?
-Calling dax_iomap_rw() directly without acquiring inode_lock() bypasses
-generic_write_checks() and file_remove_privs(), which could allow
-unprivileged modification of setuid/setgid files and bypass O_APPEND
-restrictions.
-
 > +int
-> +famfs_fuse_mmap(struct file *file, struct vm_area_struct *vma)
+> +famfs_file_init_dax(
+> +	struct fuse_mount *fm,
+> +	struct inode *inode,
+> +	void *fmap_buf,
+> +	size_t fmap_size)
 > +{
-> +	struct inode *inode =3D file_inode(file);
-> +	ssize_t rc;
+> +	struct fuse_inode *fi =3D get_fuse_inode(inode);
+> +	struct famfs_file_meta *meta =3D NULL;
+> +	int rc;
 > +
-> +	rc =3D famfs_file_bad(inode);
-> +	if (rc)
-> +		return rc;
-> +
-> +	file_accessed(file);
-> +	vma->vm_ops =3D &famfs_file_vm_ops;
-> +	vm_flags_set(vma, VM_HUGEPAGE);
+> +	if (fi->famfs_meta) {
+> +		pr_notice("%s: i_no=3D%llu fmap_size=3D%zu ALREADY INITIALIZED\n",
+> +			  __func__,
+> +			  inode->i_ino, fmap_size);
+> +		return 0;
+> +	}
 
 [Severity: High]
-Could this trigger a kernel panic during DAX page faults? The
-vmf_insert_mixed() path expects VM_MIXEDMAP or VM_PFNMAP to be set on the
-vma, but VM_MIXEDMAP appears to be omitted here.
+Can concurrent threads observe an incomplete initialization state here?
 
-> +	return 0;
-> +}
+If thread A publishes the metadata pointer via famfs_meta_set() but has
+not yet fully initialized i_size and S_DAX, thread B could evaluate
+fi->famfs_meta as true and immediately return.
+
+Thread B might then proceed to read() and locklessly evaluate IS_DAX(inode)
+as false, falling back to the non-DAX page cache path.
 
 [ ... ]
+> +	/* Publish the famfs metadata on fi->famfs_meta */
+> +	inode_lock(inode);
+> +
+> +	if (famfs_meta_set(fi, meta) =3D=3D NULL) {
+> +		i_size_write(inode, meta->file_size);
+> +		inode->i_flags |=3D S_DAX;
 
-> diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-> index b4e7b6a645870..2435a79cbb4a3 100644
-> --- a/fs/fuse/file.c
-> +++ b/fs/fuse/file.c
+[Severity: High]
+Can this direct bitwise modification of inode->i_flags cause lost updates?
 
+The modification is performed without holding inode->i_lock. Since FUSE
+can concurrently modify i_flags in fuse_change_attributes_common() while
+holding fi->lock, this could result in a data race.
+
+Should this use inode_set_flags() or set_mask_bits() instead?
+
+> diff --git a/fs/fuse/famfs_kfmap.h b/fs/fuse/famfs_kfmap.h
+> index 0000000000000..d87b065e8ac83
+> --- /dev/null
+> +++ b/fs/fuse/famfs_kfmap.h
 [ ... ]
-
-> @@ -1896,9 +1900,13 @@ static ssize_t fuse_splice_read(struct file *in, l=
-off_t *ppos,
->  				unsigned int flags)
->  {
->  	struct fuse_file *ff =3D in->private_data;
-> +	struct inode *inode =3D file_inode(in);
-> +	struct fuse_inode *fi =3D get_fuse_inode(inode);
-> =20
->  	/* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
-> -	if (fuse_file_passthrough(ff) && !(ff->open_flags & FOPEN_DIRECT_IO))
-> +	if (fuse_file_famfs(fi))
-> +		return -EIO; /* famfs does not use the page cache... */
+> +struct famfs_file_meta {
+> +	bool                   error;
+> +	enum famfs_file_type   file_type;
+> +	size_t                 file_size;
 
 [Severity: High]
-Will returning -EIO break standard system calls like splice() and sendfile()
-for famfs files? Should this fall back to iter_file_splice_read() or
-copy_splice_read() instead?
+Does this type cause truncation on 32-bit systems? The FUSE wire format
+struct fuse_famfs_fmap_header provides file_size as a uint64_t, but size_t
+is 32 bits on 32-bit architectures.
 
-> +	else if (fuse_file_passthrough(ff) && !(ff->open_flags & FOPEN_DIRECT_I=
-O))
->  		return fuse_passthrough_splice_read(in, ppos, pipe, len, flags);
->  	else
->  		return filemap_splice_read(in, ppos, pipe, len, flags);
-> @@ -1908,9 +1916,13 @@ static ssize_t fuse_splice_write(struct pipe_inode=
-_info *pipe, struct file *out,
->  				 loff_t *ppos, size_t len, unsigned int flags)
->  {
->  	struct fuse_file *ff =3D out->private_data;
-> +	struct inode *inode =3D file_inode(out);
-> +	struct fuse_inode *fi =3D get_fuse_inode(inode);
+> diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+> index 5bacc50986203..46a7040b38dc4 100644
+> --- a/fs/fuse/fuse_i.h
+> +++ b/fs/fuse/fuse_i.h
+[ ... ]
+> @@ -1364,7 +1367,10 @@ static inline struct fuse_backing *famfs_meta_set(=
+struct fuse_inode *fi,
+
+[Severity: Low]
+Does famfs_meta_set() return the wrong type? It is declared to return a
+struct fuse_backing *, but cmpxchg(&fi->famfs_meta, NULL, meta) returns a
+void *.
+
 > =20
->  	/* FOPEN_DIRECT_IO overrides FOPEN_PASSTHROUGH */
-> -	if (fuse_file_passthrough(ff) && !(ff->open_flags & FOPEN_DIRECT_IO))
-> +	if (fuse_file_famfs(fi))
-> +		return -EIO; /* famfs does not use the page cache... */
-
-[Severity: High]
-Does hardcoding -EIO here also break splice writes? Falling back to
-iter_file_splice_write() might be required to keep standard system calls
-functioning.
-
-> +	else if (fuse_file_passthrough(ff) && !(ff->open_flags & FOPEN_DIRECT_I=
-O))
->  		return fuse_passthrough_splice_write(pipe, out, ppos, len, flags);
->  	else
->  		return iter_file_splice_write(pipe, out, ppos, len, flags);
+>  static inline void famfs_meta_free(struct fuse_inode *fi)
+>  {
+> -	famfs_meta_set(fi, NULL);
+> +	if (fi->famfs_meta !=3D NULL) {
+> +		__famfs_meta_free(fi->famfs_meta);
+> +		WRITE_ONCE(fi->famfs_meta, NULL);
+> +	}
+>  }
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0100019f7d9fbe81-6c=
-b16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com?part=3D6
+b16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com?part=3D4
