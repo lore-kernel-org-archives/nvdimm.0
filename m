@@ -1,170 +1,232 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ECC738C2DE;
-	Mon, 20 Jul 2026 07:20:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784532046; cv=none; b=NzLa9kO86PAE12Elqmpd2SqXz8QSQerOqRyqDhugtlLopyuiP+lbAzgg6MwwEhZzy8oJCTkhSw9kCfXieTs0d4U/Nrz5qasZKdrNu0Yr+t0W54y8TVcLfUF1VjYkU8YAElqUaBuAchDrgjNOjYEFNCaqRdQsnb77/2yfqs+M1uA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784532046; c=relaxed/simple;
-	bh=wS3iOjal19hc48fA51Gyg+UKNxQ+naTpbmOlu9ZaCrs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HHDxSuwRopir4v3JHnTJLCxaZabmUPw6ZEu5/42/FWk7Ew97ur1fM5ioIJGEep+anuaSJcRBh/lEJ6ncgYVCVt5Aw3x3XaiZH74usYLOCJQs4CepesJWdz1QJmQ+uBn8fTgeEpasJ3Dd/0UqQkP/9/o4DGdReP7GepcOTP+/K48=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q4SQ5H7p; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C75033E00A1
+	for <nvdimm@lists.linux.dev>; Mon, 20 Jul 2026 10:07:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.44
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784542073; cv=pass; b=Xw6mNE+erJ6hcaAMJLpZDdhPNhysO8vTRDTb9qlzdUly6Ye/z/H2nNt+8f1TGCWAukgsB9JYLXhjbYSpaiqk1c57AJ5q2P2QnhO6T0rYyYNye9+nHcIrLLOFBlyjOLDFyCzhaRxQj+83P+2NGwbs03jHVzgVwFP9wTHiePU9FJE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784542073; c=relaxed/simple;
+	bh=0rQxBYeUI9kccjQsg7LlbwcyM5KH4xYI/FlafZxUfTY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DkFT57d9N2XIe7skeEgeIv33YuycDHTUlRigRvwD6LnnUW3spyj1OrTNUU0Ko8EfqXb2ccfHj7k/fnqVIvVy/+xX55OEQp5JXGLv3FPDeOPkc1Ui9EhSawqHhZg7TAKnjDn5MwOq0VDg+wYv+BZkCsSHnZmQ10Ztp3TgKu0jeII=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wy0K3d4t; arc=pass smtp.client-ip=209.85.208.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q4SQ5H7p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F055C1F00A3A;
-	Mon, 20 Jul 2026 07:20:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784532040;
-	bh=gANMU5sOivOjZzaedPM5r16YKmZ48cwI33ZQeohFkKI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Q4SQ5H7pfr3jaDU2ZnnO+1hHIoXl1iFH5WSqv7jLKEoKzb1W8Q48EBE20IuNZFTUn
-	 ixKm0DVIy5OI2nLk58vf2Hjrg7we7B+X4V1GJxyPkSv0+C69K1TUoySPfe3BcFYtS/
-	 t7GufXN3+op+50lWLzds22S7AYYtVpeOlcrG/0bZfPer/n9WDDe8GhqIXCV0fWPGUD
-	 XmaJPMeyIJugU5z50bBvNZ+bv5B8MYe6yecmFyVa9TEs0150ohb7J9prH1nL+rHsFg
-	 Tpa/uQSSoq+PE+oR7BoJwZF5ntDZOzikcQrAbuelm4gJqA+MbVuFWtO9kyaJQf1xJj
-	 5Tno9QcBWPfNw==
-Date: Mon, 20 Jul 2026 08:20:01 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: Zi Yan <ziy@nvidia.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	David Hildenbrand <david@kernel.org>, "Liam R. Howlett" <liam@infradead.org>, 
-	Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Rik van Riel <riel@surriel.com>, 
-	Harry Yoo <harry@kernel.org>, Jann Horn <jannh@google.com>, Lance Yang <lance.yang@linux.dev>, 
-	Pedro Falcato <pfalcato@suse.de>, Russell King <linux@armlinux.org.uk>, 
-	Dinh Nguyen <dinguyen@kernel.org>, Simon Schuster <schuster.simon@siemens-energy.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Dan Williams <djbw@kernel.org>, Matthew Wilcox <willy@infradead.org>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, 
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, 
-	Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>, 
-	Adrian Hunter <adrian.hunter@intel.com>, James Clark <james.clark@linaro.org>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <npache@redhat.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Miaohe Lin <linmiaohe@huawei.com>, Naoya Horiguchi <nao.horiguchi@gmail.com>, 
-	Xu Xin <xu.xin16@zte.com.cn>, Chengming Zhou <chengming.zhou@linux.dev>, 
-	SJ Park <sj@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Hugh Dickins <hughd@google.com>, Peter Xu <peterx@redhat.com>, 
-	Kees Cook <kees@kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, 
-	Robin Murphy <robin.murphy@arm.com>, Andrey Konovalov <andreyknvl@gmail.com>, 
-	Alexander Potapenko <glider@google.com>, Dmitry Vyukov <dvyukov@google.com>, 
-	Steven Rostedt <rostedt@goodmis.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Jarkko Sakkinen <jarkko@kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Thomas Gleixner <tglx@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, 
-	"H. Peter Anvin" <hpa@zytor.com>, Ian Abbott <abbotti@mev.co.uk>, 
-	H Hartley Sweeten <hsweeten@visionengravers.com>, Lucas Stach <l.stach@pengutronix.de>, 
-	Christian Gmeiner <christian.gmeiner@gmail.com>, David Airlie <airlied@gmail.com>, 
-	Simona Vetter <simona@ffwll.ch>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, Rob Clark <robin.clark@oss.qualcomm.com>, 
-	Dmitry Baryshkov <lumag@kernel.org>, Abhinav Kumar <abhinav.kumar@linux.dev>, 
-	Jessica Zhang <jesszhan0024@gmail.com>, Sean Paul <sean@poorly.run>, 
-	Marijn Suijten <marijn.suijten@somainline.org>, Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
-	Thierry Reding <thierry.reding@kernel.org>, Mikko Perttunen <mperttunen@nvidia.com>, 
-	Jonathan Hunter <jonathanh@nvidia.com>, Christian Koenig <christian.koenig@amd.com>, 
-	Huang Rui <ray.huang@amd.com>, Matthew Auld <matthew.auld@intel.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@nvidia.com>, 
-	Shameer Kolothum <skolothumtho@nvidia.com>, Kevin Tian <kevin.tian@intel.com>, 
-	Ankit Agrawal <ankita@nvidia.com>, Alex Williamson <alex@shazbot.org>, 
-	Paolo Bonzini <pbonzini@redhat.com>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Usama Arif <usama.arif@linux.dev>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, linux-perf-users@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, damon@lists.linux.dev, iommu@lists.linux.dev, 
-	kasan-dev@googlegroups.com, linux-sgx@vger.kernel.org, etnaviv@lists.freedesktop.org, 
-	dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org, 
-	linux-tegra@vger.kernel.org, kvm@vger.kernel.org, 
-	Russell King <linux+etnaviv@armlinux.org.uk>
-Subject: Re: [PATCH v2 08/33] mm/rmap: rename vma_interval_tree_*() to
- mapping_rmap_tree_*()
-Message-ID: <al3LpROyiWEBL1wh@lucifer>
-References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-8-2a5aa403d977@kernel.org>
- <DK1CWBDK5J60.3VPRP45IS7L7E@nvidia.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wy0K3d4t"
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-69c5f6f7a40so8816082a12.0
+        for <nvdimm@lists.linux.dev>; Mon, 20 Jul 2026 03:07:46 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784542061; cv=none;
+        d=google.com; s=arc-20260327;
+        b=AC8/xspuSgjW/E3klUl2xW/yI2HfGhhnSJtBwVEtIHpEx14Z1MBut4PWVYo0t1pUoq
+         AEXmeL/XmeBgkPyo5+sjzzv51dtrllv1pZ0GXIVDg/oynEDS58g/uGUKhd0ISNi2Xz9Z
+         2sCg1tWOJGq3Kfb7BFObTssXeYx9pfo/aWJ/4EGuFJ/3Jz3/9rqz6zy1LqqBm9VdPnLi
+         5pZszfRhkEaOTyhLsxnhLD9oAh8PemRo5aIPQiaEcfvyftC1ZtO99qhLQqLN5eG8q8tj
+         XZMxQ6CCa1c6Q5/ziddBpsusDzztjDTIEneyGHiJkcA3SQUdJWdKPlZ8yVSOG/ViCa3V
+         1Fcg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=MCCq1AIeKXMGUk+k9l/Opmj013LJUPQC31Mm1vW63VU=;
+        fh=9hrtqAItpfKsxhV3lbUSa36i36URM4AIybXHvPBCNY8=;
+        b=sZwFd3zRY4dIIARce4lS2QdP3B8qpLbFyQNnRehNRUQeiSZchVHOechgZaG9J0UDJ9
+         d3Kips14rY/AGe5BbBjko5vhXVONwZ08XZAzgsmzAgbHQf/gfYiV9ITv6E6XkbkSiP7B
+         2sR2cvsjMGw6oxbQ3NKXfjYMLrYlZEIWNW7Jrjf/6W7SQaFU6U/2tFg8LdoqGIICJM5l
+         RFysTOZ7OaXOv7xI6/1Hho6e5zzjUM3/21nXY5IGb6IuGtJeSrTy8QOFGD1zHiBZlu5z
+         ObJ1D+tkbtGxOzmAl00cMeYGPSGZno86yPYHDGtGYujrRSNZ8uK3JBmfzm1RmFNF+5g+
+         K5yA==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1784542061; x=1785146861; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=MCCq1AIeKXMGUk+k9l/Opmj013LJUPQC31Mm1vW63VU=;
+        b=Wy0K3d4t/kP9gfNr0Js9wo8GQdxbtw0m60JPUHcaUQxpZ4I08BgH5W43icAqZ2bjGv
+         Jpp8LdtmxeJQGjtGxX4teDm+I0wnJwLNU8Hy0O6A743Zyam5OX8XEDp/SMiG/ludARyy
+         diilEcByllG1+bGKBtLk7lizrzGu+O1pwRQwEcPgsiMxjIa9wcxZy+DiclaALWKqcEiG
+         dgiBekeKRzLLZTTY6xd5N7DzWACAPYTMjZsVjuzLPbj3RW1XZ5dw/xBXfoWZKV8Pthke
+         tahm1d438FvWU66bSheFcVMkOEpncKSIqKVWu6AO14WktorxqglqVAa+Hp1SPfbzhOle
+         V+jg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784542061; x=1785146861;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=MCCq1AIeKXMGUk+k9l/Opmj013LJUPQC31Mm1vW63VU=;
+        b=P8Ygzw/bOFRi5HZyOsSnPy6+GwiUQqJsstefcZ3HA8xoxk0MMb3jAVa0dray6q0mfv
+         K7fZuF1uuufTRzOjO0kNxI3Z7ylFvx6HCmVCpoN53aRz1ecWAwQAfKaYXiiE5QnUg+lA
+         489HXRtZPVRoWyyZplPFOHTWwoVAySGRVv5kAhNLFFuEBQKmkAzS31A7KGBvlUDuNg1i
+         tNVJW+/1TNsZBfKWyYdOj0gULK+nsPhaTw4VFHZUpGS6tF/GwyujE5+5SUk4PQuQe32D
+         WJ0gDCXvavJsAwMUurzKXwJHplsb+DF6BPqXkzsa0IrDWL2lnW3FoEwqpmCVQX6fOves
+         t8Ag==
+X-Forwarded-Encrypted: i=1; AHgh+Rpy06IAcEjqUsIWFRY2ftIhlhtcrHSecIgnTtDo/LM+LamQemKCLufm7cPQUXGHgfpQocuJtqk=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxhPwRbmRMrnx3wI6+zQhre3MbwEHbg++7kuguakyh/EK/148hr
+	PW8rtRDrUxWqcMJpc26BCH9qkDdhPbNIbD+vaqtUotSvV52YJOG760QIXJKF4Pkeqq3OfZ7nzZw
+	9XyJtq1y0j/PHKBlu19V2IG4WDu5Hp1k=
+X-Gm-Gg: AfdE7ckxOF461l2DZvqJjBWOZimj4tYcGiYGCI3XYhFY4Rji9a2KAvpO1U4QMdcWzJ7
+	Evq5OA0qP5WiLTxC7rCWPdysnkt3fvM/GfRHsNVEpKOmjXPwDwYa2XxPywN2HCqugju9qlfxpVs
+	GGc/nTmuy0qgWRJIXheaB1SWt04t4dvLqU9EDf+e52pxTH0SbgjfJANPNGdzFeDKVYKLAg3DARc
+	s46SNKUgDjerc1FikMTf9OFPzgPl9acrPzDThzOezsjyyk8yn/Xg3AMEdQdxnAdP9DhtzFsNQ==
+X-Received: by 2002:a05:6938:a087:10b0:c16:7969:12be with SMTP id
+ a640c23a62f3a-c16b47c1e4emr338791966b.31.1784542060903; Mon, 20 Jul 2026
+ 03:07:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DK1CWBDK5J60.3VPRP45IS7L7E@nvidia.com>
+References: <20260720034358.68714-1-john@jagalactic.com> <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
+In-Reply-To: <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 20 Jul 2026 12:07:29 +0200
+X-Gm-Features: AUfX_mz15n8tVrhQrtGTVlRLA7H7ya2xjAmCYkRT34S0zyePGJ2_WjcXc9IUx7k
+Message-ID: <CAOQ4uxiEzP2e=cRw-AiGxtSv6WMSA5yR3cmgrF97s7ggU6wzqg@mail.gmail.com>
+Subject: Re: [PATCH V11 0/9] famfs: port into fuse
+To: John Groves <john@jagalactic.com>
+Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>, Dan Williams <djbw@kernel.org>, 
+	Bernd Schubert <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Shuah Khan <skhan@linuxfoundation.org>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
+	Lorenzo Stoakes <ljs@kernel.org>, Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	"venkataravis@micron.com" <venkataravis@micron.com>, 
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
+	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 17, 2026 at 10:54:24PM -0400, Zi Yan wrote:
-> On Fri Jul 10, 2026 at 4:16 PM EDT, Lorenzo Stoakes wrote:
-> > The family of vma_interval_tree_() functions manipulate the
-> > address_space (which, of course, is generally referred to as 'mapping')
-> > reverse mapping, but are named the 'VMA' interval tree.
-> >
-> > VMAs may be mapped by an anon_vma, an address_space, or both. Therefore
-> > calling the mapping interval tree a 'VMA' interval tree is rather
-> > confusing.
-> >
-> > This is also inconsistent with the anon_vma_interval_tree_*() functions
-> > which explicitly reference the rmap object to which they pertain.
-> >
-> > Rename the vma_interval_tree_*() functions to mapping_rmap_tree_*() to
-> > correct this.
-> >
-> > We will rename the anon rmap functions similarly in a subsequent patch.
-> >
-> > No functional change intended.
-> >
-> > Reviewed-by: Gregory Price <gourry@gourry.net>
-> > Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-> > ---
-> >  arch/arm/mm/fault-armv.c          |  2 +-
-> >  arch/arm/mm/flush.c               |  2 +-
-> >  arch/nios2/mm/cacheflush.c        |  2 +-
-> >  arch/parisc/kernel/cache.c        |  2 +-
-> >  fs/dax.c                          |  2 +-
-> >  fs/hugetlbfs/inode.c              |  4 ++--
-> >  include/linux/mm.h                | 16 ++++++++--------
-> >  kernel/events/uprobes.c           |  2 +-
-> >  mm/hugetlb.c                      |  4 ++--
-> >  mm/interval_tree.c                | 22 +++++++++++-----------
-> >  mm/khugepaged.c                   |  4 ++--
-> >  mm/memory-failure.c               |  6 +++---
-> >  mm/memory.c                       |  2 +-
-> >  mm/mmap.c                         |  2 +-
-> >  mm/nommu.c                        |  8 ++++----
-> >  mm/pagewalk.c                     |  2 +-
-> >  mm/rmap.c                         |  2 +-
-> >  mm/vma.c                          | 12 ++++++------
-> >  tools/testing/vma/include/stubs.h |  4 ++--
-> >  19 files changed, 50 insertions(+), 50 deletions(-)
-> >
+On Mon, Jul 20, 2026 at 5:44=E2=80=AFAM John Groves <john@jagalactic.com> w=
+rote:
 >
-> Just curious, why not file_rmap_tree_*()?
-
-Just to avoid any confusion around address_space objects that are ostensibly
-'not files' like devices or whatnot, but moreso for consistency with the rest of
-the kernel in referring to this stuff as 'mapping'.
-
-Naming is hard IOW :)
-
+> From: John Groves <john@groves.net>
 >
-> One nice part of this renaming is that the length of each function does
-> not chagne. That makes the patch easy to review.
->
-> Reviewed-by: Zi Yan <ziy@nvidia.com>
+> This has been quite a gauntlet so far. Some requests were made but eventu=
+ally
+> ruled out (e.g. using BPF for fault handling).
 
-Thanks!
+I'm sorry John, but this patch set is not what I was hoping to see.
+I don't know if we are miscommunicating or if it is something else.
+I will try to do my best to explain again.
+
+I say miscommunication when looking at your comment in reply to [1]:
+"First, a scope check. This patch touches only the daxdev registration -
+GET_FMAP, struct fuse_famfs_fmap_header, and the simple/interleave
+extent structs in include/uapi/linux/fuse.h are untouched. I'm reading
+that as tacit agreement to GET_FMAP and its ABI. Can you confirm? If so
+the large piece is settled and this is really just about how a daxdev
+gets registered."
+
+This was a wrong assumption on your part, it was NOT confirmed and
+I even responded to it with a mini tantrum.
+
+I feel that you may have not gotten Miklos' second patch [2] at all, becaus=
+e
+you have not responded to it.
+Maybe because it was sent only to your work email?
 
 >
-> --
-> Best Regards,
-> Yan, Zi
+> Concrete requests (demands?) from the fuse community included the followi=
+ng:
+> - Pass daxdevs into the kernel via an ioctl rather than a new fuse
+>   message/response
+
+Look at this patch by Miklos:
+[1] https://lore.kernel.org/fuse-devel/20260529134302.1989958-1-mszeredi@re=
+dhat.com/
+
+Look more closely at the diffstat:
+ 7 files changed, 123 insertions(+), 294 deletions(-)
+
+It's not about this ioctl, it's about infrastructure reuse.
+It's about the fact that there is NOTHING special about dax_devlist;
+and no reason not to manage it via backing_files_map.
+
+The reason you stated was that you want userspace to determine the
+daxdev_index/backing_id - fine, no problem - this is why I asked that
+you pass it the desired backing_id in the ioctl.
+In fact I think that all fuse backing_ids would be better assigned by user =
+space
+so the extension of padding =3D> backing_id is not unique to famfs.
+
+And the best part is that this request requires no changes to your userspac=
+e.
+You already bite the bullet and maintain the new/old uapi but changing the
+kernel implementation does not require this burden from you, so to be hones=
+t
+I really don't understand why you did not follow Miklos' suggestion.
+
+> - Lose the famfs interleaved extent format. I have complied with this req=
+uest.
+>   It makes some things worse, but we'll discuss that later.
 >
 
-Cheers, Lorenzo
+I am really not aware of a request to lose the interleaved extent format.
+How can this patch [2] from Miklos which reimplements this format as a gene=
+ric
+uapi be mistaken for a request to lose this format?
+
+> There has also been a desire from the fuse community for famfs to use an
+> experimental implementation of virtual backing-devs from Darrick. I'm lea=
+ving
+> this out as a potential future optimization - although Darrick has announ=
+ced
+> that he (and $employer) intend to abandon that work, so it's not clear wh=
+ether
+> that will become viable.
+
+Forgive me John, but I am having a hard time following the logic of
+this statement.
+How are Darrick's future plans about fuse iomap even remotely related?
+
+In this patch Miklos has ALREADY IMPLEMENTED
+"striped "virtual" backing devices (idea from Darrick)"
+[2] https://lore.kernel.org/linux-fsdevel/20260601152327.2069787-1-mszeredi=
+@redhat.com/
+
+An idea does not die when employers change priorities.
+
+The diffstat is also impressive:
+ 6 files changed, 219 insertions(+), 300 deletions(-)
+
+Especially when considering the fact that the insertions are generic code
+that could be useful to fuse passthrough regardless of famfs.
+
+Let me recap the former review requests as I understand them:
+
+1. Use ioctl instead of GET_DAXDEV
+2. Use backing files infra for daxdev table
+3. Use ioctl instead of GET_FMAP
+4. Use backing files infra for fmaps
+
+Request #1 was fulfilled in the v11 patch set.
+Other requests were not fulfilled and with no explanation why,
+not one that I could find anyway.
+
+Perhaps requests 2-4 were lost in the spam folder and/or lost
+in translation, so I will repeat my question from review of [1]:
+
+Are there any other *technical* problems that you can point out
+with the patches that Miklos posted (including FUSE_DEV_IOC_STRIPE_OPEN)?
+
+Thanks,
+Amir.
