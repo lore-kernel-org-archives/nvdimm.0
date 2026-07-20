@@ -1,37 +1,38 @@
-Received: from a11-174.smtp-out.amazonses.com (a11-174.smtp-out.amazonses.com [54.240.11.174])
+Received: from a8-21.smtp-out.amazonses.com (a8-21.smtp-out.amazonses.com [54.240.8.21])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B73B92E62B3;
-	Mon, 20 Jul 2026 03:46:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4AAF38AC78;
+	Mon, 20 Jul 2026 03:46:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.8.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784519198; cv=none; b=balFHvvwkn5qWaobwNhmSHfYt+cp8JDYggvSXpylA8d9n93I4N8UO1n5YNfnTsjpWWY6FOqR/4MM0iftgLbZqMJtG+wfANQBK/tImKH0Rf2oXLFzafoKFh8fbfXy9hPliiC6LbTRZOOVuhd6xes+Vb6BaIUbO2HRRgBDhtiyy9s=
+	t=1784519211; cv=none; b=t9DtjtRHovWnUNAolr0f6UXoSKUtzbnmmsgWtMFwSGuVsKNWrx1gWagep3jmv066Urxn3T8JrR/vPLn2b9iAdOnkLJUmoKH8x5Pmyjyj6EcPuwBo+HZHNMEZS8CLpPHAeC8bS+YQoFTcvPKtcl2kLnkyWj84r4nY0Yhe4nwEiBQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784519198; c=relaxed/simple;
-	bh=MhEVLeA397QfpTukR00LYPLufAwA4jgOMl/PsKcE3UE=;
+	s=arc-20240116; t=1784519211; c=relaxed/simple;
+	bh=CCtK3rqmM8hleT+hyeymia0j7MCgzvaP8qrwIY9Rj7M=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=V3ph/Umal/stz/8IGNyUBEQFH3LL5aAGvumlICLDFTludx2BVQlMi6BIYFQW2P340OWGSVhMhMu43k/Bli55atN42imtAhr8PtF8SD7r/Pe+LXp7DH5iGo7Ej/ibwCCdHywZSAUMs0/mH6pnSRBWWhNxDXTnK4LkJ8XZAis6FyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=qVI+jIy0; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=i27iyYwg; arc=none smtp.client-ip=54.240.11.174
+	 References:Message-ID; b=GuxI6Tb5jVOVJYZtz7XRwslN2ORyEDyvFHPHjzObJbbhiivlgGF8AXdoL+Qmi/uivccDG1+yvJMCvrfF/NyJkqTzRGNLReoXbZXfMhSQRUVQhUIYhWW6OU94rsHqlg9oL+01+FXkF4Ioz3XDLivc4hoBMpxHJDHZfxsJQBDw+zU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=sH6N5h6w; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=W16rZHlj; arc=none smtp.client-ip=54.240.8.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="qVI+jIy0";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="i27iyYwg"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="sH6N5h6w";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="W16rZHlj"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1784519195;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1784519207;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=MhEVLeA397QfpTukR00LYPLufAwA4jgOMl/PsKcE3UE=;
-	b=qVI+jIy0CMWeTdeuUVv3miYig0owmeIfDKi8oqK2APswI14kylCN1+2Ef0tJAKJk
-	Q1Pret+HZ7poFTrFsDJD2Rk9cbPeSfsAXkTxl1WJXeiBnvOPZfmg/deOGGlHowqnz7A
-	V5qjRHJLS2hPsr1EMZ8xPTgMMZ06E4VIiIiZmyy0=
+	bh=CCtK3rqmM8hleT+hyeymia0j7MCgzvaP8qrwIY9Rj7M=;
+	b=sH6N5h6whz+8JC3j4ad6WIo2oQOBEEXIefl3t6RcTyziG7n29C9N4/0aA7hFFSO2
+	yQjlvDAM20FnUC5wWCxRqydPZ5PIgvLYoz08a9j53qnTl+vadLivlbdYvdIVM4CjvOy
+	NNQmc1AESwdbmZtPtvYZ1sH9G6LaR5CnLiDb1Z2M=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1784519195;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1784519207;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=MhEVLeA397QfpTukR00LYPLufAwA4jgOMl/PsKcE3UE=;
-	b=i27iyYwgUZHpoaBS9D4vRmcaMDICrHa5Acz5dloejb6Zfb9Sfa5/LUlIRwgkhtVe
-	dTDMUa74XKhgOhLhVZR/x5v2BvX36+ezWVMT/T5pvc8PlFdrcYRfrugET9aewBZ8aOw
-	/UdMa7yRitC46pD5AywtuXXrdW3YTm/6fS8bbL84=
-Subject: [PATCH V11 7/9] famfs_fuse: fail I/O on invalid or errored daxdevs
+	bh=CCtK3rqmM8hleT+hyeymia0j7MCgzvaP8qrwIY9Rj7M=;
+	b=W16rZHljGUYIUTjB+Ula6xp6CY2fPeTb32xbsr0tYr5YifBIhh6VkZntbbhVMUOC
+	P8yhQaDawMDievNdcY52L6HesYWAN2ddKc8cAa+5hdEJv/rJhOVYG2IAbE85TRP3wAp
+	uWXjqVm3j7tZoTWUgfyNwRYSYDlI+isgu+tm9Zlw=
+Subject: [PATCH V11 8/9] famfs_fuse: Add DAX address_space_operations with
+ noop_dirty_folio
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -77,7 +78,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?fuse-devel=40lists=2Elinux=2E?= =?UTF-8?Q?dev?= <fuse-devel@lists.linux.dev>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Mon, 20 Jul 2026 03:46:35 +0000
+Date: Mon, 20 Jul 2026 03:46:47 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -90,55 +91,39 @@ In-Reply-To:
  <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
 References: 
  <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com> 
- <20260720034626.68851-1-john@jagalactic.com>
+ <20260720034638.68877-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHdF/oEAFJtLKnZRyOlO7hUjUgWYwAAFdm1
-Thread-Topic: [PATCH V11 7/9] famfs_fuse: fail I/O on invalid or errored
- daxdevs
-X-Wm-Sent-Timestamp: 1784519194
+Thread-Index: AQHdF/oEAFJtLKnZRyOlO7hUjUgWYwAAF7W0
+Thread-Topic: [PATCH V11 8/9] famfs_fuse: Add DAX address_space_operations
+ with noop_dirty_folio
+X-Wm-Sent-Timestamp: 1784519206
 X-Original-Mailer: git-send-email 2.52.0
-Message-ID: <0100019f7da1faa3-75c84002-18fc-4762-a69c-ef33d15a449d-000000@email.amazonses.com>
+Message-ID: <0100019f7da22a52-50f1e51d-e030-47e8-ad9d-cda5a2a47682-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.07.20-54.240.11.174
+X-SES-Outgoing: 2026.07.20-54.240.8.21
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AGate the iomap resolution =
-path on the state of the daxdev backing each=0D=0Areferenced extent. famf=
-s_dax_err() returns an error if the daxdev slot is=0D=0Ainvalid (-EIO), w=
-as flagged dax_err (-EIO), or has reported a memory error=0D=0Avia notify=
-_failure (-EHWPOISON). famfs_fileofs_to_daxofs() calls it and,=0D=0Aon er=
-ror, marks the file (meta->error) and stops allowing access.=0D=0A=0D=0AM=
-emory errors are at least somewhat more likely on disaggregated memory=0D=
-=0Athan on-board memory. In general the recovery is to unmount and=0D=0Ar=
-e-initialize the memory, though degraded modes may be possible in the=0D=0A=
-future when famfs supports file systems backed by more than one daxdev=0D=
-=0A(data on a working daxdev can still be accessed). For now, return erro=
-rs=0D=0Afor any file that has touched an invalid or errored daxdev.=0D=0A=
-=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A fs/fuse=
-/famfs.c | 28 ++++++++++++++++++++++++++++=0D=0A 1 file changed, 28 inser=
-tions(+)=0D=0A=0D=0Adiff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c=0D=0Ai=
-ndex ac56317944d9..8d13282e8949 100644=0D=0A--- a/fs/fuse/famfs.c=0D=0A++=
-+ b/fs/fuse/famfs.c=0D=0A@@ -589,6 +589,26 @@ famfs_file_init_dax(=0D=0A=20=
-=0D=0A static int famfs_file_bad(struct inode *inode);=0D=0A=20=0D=0A+sta=
-tic int famfs_dax_err(struct famfs_daxdev *dd)=0D=0A+{=0D=0A+=09if (!dd->=
-valid) {=0D=0A+=09=09pr_err("%s: daxdev=3D%s invalid\n",=0D=0A+=09=09    =
-   __func__, dd->name);=0D=0A+=09=09return -EIO;=0D=0A+=09}=0D=0A+=09if (=
-dd->dax_err) {=0D=0A+=09=09pr_err("%s: daxdev=3D%s dax_err\n",=0D=0A+=09=09=
-       __func__, dd->name);=0D=0A+=09=09return -EIO;=0D=0A+=09}=0D=0A+=09=
-if (dd->error) {=0D=0A+=09=09pr_err("%s: daxdev=3D%s memory error\n",=0D=0A=
-+=09=09       __func__, dd->name);=0D=0A+=09=09return -EHWPOISON;=0D=0A+=09=
-}=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A /**=0D=0A  * famfs_fileofs_to_d=
-axofs() - Resolve (file, offset, len) to (daxdev, offset, len)=0D=0A  *=0D=
-=0A@@ -661,6 +681,7 @@ famfs_fileofs_to_daxofs(struct inode *inode, struc=
-t iomap *iomap,=0D=0A =09=09u64 daxdev_idx           =3D meta->se[i].dev_=
-index;=0D=0A =09=09loff_t ext_len_remainder =3D dax_ext_len - local_offse=
-t;=0D=0A =09=09struct famfs_daxdev *dd;=0D=0A+=09=09int rc;=0D=0A=20=0D=0A=
- =09=09if (daxdev_idx >=3D fc->dax_devlist->nslots) {=0D=0A =09=09=09pr_e=
-rr("%s: daxdev_idx %llu >=3D nslots %d\n",=0D=0A@@ -670,6 +691,13 @@ famf=
-s_fileofs_to_daxofs(struct inode *inode, struct iomap *iomap,=0D=0A=20=0D=
-=0A =09=09dd =3D &fc->dax_devlist->devlist[daxdev_idx];=0D=0A=20=0D=0A+=09=
-=09rc =3D famfs_dax_err(dd);=0D=0A+=09=09if (rc) {=0D=0A+=09=09=09/* Shut=
- down access to this file */=0D=0A+=09=09=09meta->error =3D true;=0D=0A+=09=
-=09=09return rc;=0D=0A+=09=09}=0D=0A+=0D=0A =09=09iomap->addr    =3D dax_=
-ext_offset + local_offset;=0D=0A =09=09iomap->offset  =3D file_offset;=0D=
-=0A =09=09iomap->length  =3D min_t(loff_t, len, ext_len_remainder);=0D=0A=
---=20=0D=0A2.53.0=0D=0A=0D=0A
+From: John Groves <John@Groves.net>=0D=0A=0D=0AFamfs is memory-backed; th=
+ere is no place to write back to, and no reason=0D=0Ato mark pages dirty =
+at all. Provide an address_space_operations using=0D=0Anoop_dirty_folio s=
+o the dax paths have the ops they expect.=0D=0A=0D=0ASigned-off-by: John =
+Groves <john@groves.net>=0D=0A---=0D=0A fs/fuse/famfs.c | 11 +++++++++++=0D=
+=0A 1 file changed, 11 insertions(+)=0D=0A=0D=0Adiff --git a/fs/fuse/famf=
+s.c b/fs/fuse/famfs.c=0D=0Aindex 8d13282e8949..aea0bceef774 100644=0D=0A-=
+-- a/fs/fuse/famfs.c=0D=0A+++ b/fs/fuse/famfs.c=0D=0A@@ -16,6 +16,7 @@=0D=
+=0A #include <linux/dax.h>=0D=0A #include <linux/iomap.h>=0D=0A #include =
+<linux/log2.h>=0D=0A+#include <linux/pagemap.h>=0D=0A #include <linux/pat=
+h.h>=0D=0A #include <linux/namei.h>=0D=0A #include <linux/string.h>=0D=0A=
+@@ -41,6 +42,15 @@ static const struct dax_holder_operations famfs_fuse_d=
+ax_holder_ops =3D {=0D=0A =09.notify_failure=09=09=3D famfs_dax_notify_fa=
+ilure,=0D=0A };=0D=0A=20=0D=0A+/*=0D=0A+ * DAX address_space_operations f=
+or famfs.=0D=0A+ * famfs doesn't need dirty tracking - writes go directly=
+ to=0D=0A+ * memory with no writeback required.=0D=0A+ */=0D=0A+static co=
+nst struct address_space_operations famfs_dax_aops =3D {=0D=0A+=09.dirty_=
+folio=09=3D noop_dirty_folio,=0D=0A+};=0D=0A+=0D=0A /********************=
+*********************************************************/=0D=0A=20=0D=0A=
+ /*=0D=0A@@ -564,6 +574,7 @@ famfs_file_init_dax(=0D=0A =09if (famfs_meta=
+_set(fi, meta) =3D=3D NULL) {=0D=0A =09=09i_size_write(inode, meta->file_=
+size);=0D=0A =09=09inode->i_flags |=3D S_DAX;=0D=0A+=09=09inode->i_data.a=
+_ops =3D &famfs_dax_aops;=0D=0A =09} else {=0D=0A =09=09pr_debug("%s: fil=
+e already had metadata\n", __func__);=0D=0A =09=09__famfs_meta_free(meta)=
+;=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
