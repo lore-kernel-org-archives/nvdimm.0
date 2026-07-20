@@ -1,250 +1,194 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FACC2AD35;
-	Mon, 20 Jul 2026 04:02:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C266018871F;
+	Mon, 20 Jul 2026 04:04:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784520141; cv=none; b=bijlCnqLnfTLn3iNVdlA0s9kxQyM1VI93du58I2c+PrldSCZML2ohHWj1AWGezeEddXkQaFGf4698xpcf8Fc2TrzJPqs/Z21+etLqgWM6+Y01xo4drSNpHt2A6jPoltOD2mQiFduf8cXkMQycqwJM4Gm3IKNDdX4IJ0v18qGjnE=
+	t=1784520255; cv=none; b=ogxGnq01xscaq6RlVAQKQ0QJOVYEfYc/+qNaVf7NYAiVkwxnmQwqG5UsaU1eqIdmmduBXdTm4EOxWlG/CTt2cc9JyHECn27pHlA5BZtvo1YvKSWUJrBvYsedBVH0pUn0JL2PlCGLfG0lg7btRH+kRdNKWfct7u1XX8L3/wUv93g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784520141; c=relaxed/simple;
-	bh=s96FcwiKgi2W6+MDByCg0twpxxBQTKCCe6ZQGnNr8mE=;
+	s=arc-20240116; t=1784520255; c=relaxed/simple;
+	bh=aTdv4WFSDVCDU7SdtI2kduRvdbw24JzLqHEszbFv6mM=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Jw05/Bj78ozR4NrH61TtzXL2qjTqFsZDndcnVXwMbC0zEzpFBDuQ+ztMwUHt+wGvEB3AMvTh6YA6ngjyPDIE8R7YG5gS4u5kTv1mvLWkHixzxe4rWtqKUZHHaHnzrnltAE3p05M2zh1hDdV7b04hVnbPBt291hswWUubaVKpbZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XPPnR32G; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=fnSbPdz3isANg04fj/QzfHvkEmUEvOU832DlEj9muV8qSbYAlb7/0NqydqPRAYS/Oe0unvMtxFVSfFDws4FEexIy00h0pvt2iZLLZEYoCAjWlHqac3UfSxOuKs8K1moC8jodUrxCZDhhTFdYWG1UlF9+yrJkOZEdAAeK8Rpp9B4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L/GcuwiD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XPPnR32G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A60C31F000E9;
-	Mon, 20 Jul 2026 04:02:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L/GcuwiD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9B4F1F000E9;
+	Mon, 20 Jul 2026 04:04:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784520139;
-	bh=awZKrSptN8SPmfGLEGmK9p80YTigQjZ3clv2kjMaz2I=;
+	s=k20260515; t=1784520253;
+	bh=HPijJS//sFCDVvJG6O8u5zlCFoiXFZy9iA9TcGmc5Rs=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=XPPnR32GJ4uWNTwKFhSrUzShOdlYoliMs8fn6Fc4S+0MEgbzHQt+f9mRgQoUAQsZ3
-	 3xL2hZeApnNX6E8dRQOyK9zVDSp7Y8G68QxwrfXxaIRGy1gqZqTEHhmjCHldFNCmy1
-	 d+wOBp8DV+kguqlxBpskqZTYg2KY6Id1aq1WK9n0qyFN/IGLSe1kZbqqBqMHktxAB5
-	 8eJhTn1ia+OR8Deebgh+xQB4gVtxftmjzhn2z0x7LjeoIOoR+Z1vDRKh1r4m55N+Q0
-	 RHSe2f0TjdDTQ/M33TLQSoJgBZb1AB9yBReVfU05V5M9e6F3M/DIlvILqxGb1LPUmk
-	 xCBEqs1ax/aFg==
+	b=L/GcuwiD/7AxQWNCnYbNUIFBh5k9PQUnKG3mcThi1CpIFHMx5nbvJt3lVeno2g1Z4
+	 R+/gWto77+/lUzgI5MZxfzJmyIrC/3aGR8tijOZd/RPB2pDmISGNLxR4gDilgEPpDG
+	 2v30YU5qkyGiVE8JC7w5jA0XH9E5AfBuGd3gf5E9uq0Z3Wpucq6pVLvdXaJrlfDQWb
+	 XpL2Q6s6fka9qOObvOWJaGkO8g/OD6nVZ/uegg70nSTkpUfOTzDIC4XfKA8Rcz84/h
+	 kczaO5s4b0E+iHNqUVI+Tk+xTB4smwq8ZuWoQKM+9ACaID1h1mZHkrY+m6EFH4hrW8
+	 925pMy29/zobQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V11 5/9] famfs_fuse: register fs-dax daxdevs via
- FUSE_DEV_IOC_DAXDEV_OPEN
+Subject: Re: [PATCH V11 8/9] famfs_fuse: Add DAX address_space_operations
+ with noop_dirty_folio
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <0100019f7da1a534-2fc6658c-4f30-4cc6-b010-5e3f8fd7164b-000000@email.amazonses.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+In-Reply-To: <0100019f7da22a52-50f1e51d-e030-47e8-ad9d-cda5a2a47682-000000@email.amazonses.com>
 References: <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
- <20260720034603.68815-1-john@jagalactic.com>
- <0100019f7da1a534-2fc6658c-4f30-4cc6-b010-5e3f8fd7164b-000000@email.amazonses.com>
+ <20260720034638.68877-1-john@jagalactic.com>
+ <0100019f7da22a52-50f1e51d-e030-47e8-ad9d-cda5a2a47682-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 20 Jul 2026 04:02:19 +0000
-Message-Id: <20260720040219.A60C31F000E9@smtp.kernel.org>
+Date: Mon, 20 Jul 2026 04:04:12 +0000
+Message-Id: <20260720040412.B9B4F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 5 potential issue(=
+Thank you for your contribution! Sashiko AI review found 6 potential issue(=
 s) to consider:
-- [Critical] Unconditional lock acquisition of a conditionally initialized =
-semaphore causes a kernel crash on FUSE unmounts.
-- [High] Missing bounds check on `se_devindex` leads to Undefined Behavior =
-and validation bypass for out-of-bounds indices.
-- [High] Race condition between famfs_teardown() and dax_holder_notify_fail=
-ure() causes a NULL pointer dereference.
-- [Medium] FUSE_DEV_IOC_DAXDEV_OPEN does not enforce that the reserved flag=
-s field is zero.
-- [Medium] Missing memory barriers around bitfield initialization leads to =
-data races and acquiring an uninitialized semaphore.
+- [High] AB-BA self-deadlock on inode_lock(inode) in fuse_open() when openi=
+ng a famfs file with O_TRUNC and writeback caching enabled.
+- [High] Dynamic transition of an inode to DAX via S_DAX reassignment witho=
+ut page cache invalidation violates DAX invariants.
+- [High] Premature publication of fi->famfs_meta allows a concurrent open()=
+ to return early and issue I/O before the inode's DAX state is initialized,=
+ causing spurious -ENXIO or SIGBUS.
+- [High] Unvalidated dev_index from untrusted FUSE server causes Undefined =
+Behavior via BIT_ULL() shift.
+- [Medium] famfs_dax_aops is missing the .direct_IO callback, which will ca=
+use open() with O_DIRECT to fail with -EINVAL.
+- [Medium] Data race on meta->error inside famfs_file_bad().
 --
 
---- Patch [5]: [PATCH V11 5/9] famfs_fuse: register fs-dax daxdevs via FUSE=
-_DEV_IOC_DAXDEV_OPEN ---
-commit 40109f7c2918c43160e80f34d0381f258354bbf2
-Author: John Groves <john@groves.net>
+--- Patch [8]: [PATCH V11 8/9] famfs_fuse: Add DAX address_space_operations=
+ with noop_dirty_folio ---
+commit f34b116803453f431c8f566dd550b747920ca217
+Author: John Groves <John@Groves.net>
 
-famfs_fuse: register fs-dax daxdevs via FUSE_DEV_IOC_DAXDEV_OPEN
+famfs_fuse: Add DAX address_space_operations with noop_dirty_folio
 
-This commit introduces a new ioctl, FUSE_DEV_IOC_DAXDEV_OPEN, to register
-devdax devices backing an fs-dax (famfs) filesystem. It reuses the
-fuse_backing_map structure and handles device resolution and table storage.
-
-> diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-> index 5763a7cd3b37f..3e6aa15e0346e 100644
-> --- a/fs/fuse/dev.c
-> +++ b/fs/fuse/dev.c
-[ ... ]
-> @@ -2330,6 +2330,34 @@ static long fuse_dev_ioctl_backing_close(struct fi=
-le *file, __u32 __user *argp)
->  	return fuse_backing_close(fud->chan->conn, backing_id);
->  }
-> =20
-> +static long fuse_dev_ioctl_daxdev_open(struct file *file,
-> +				       struct fuse_backing_map __user *argp)
-> +{
-> +	struct fuse_dev *fud =3D fuse_get_dev(file);
-> +	struct fuse_backing_map map;
-> +
-> +	if (IS_ERR(fud))
-> +		return PTR_ERR(fud);
-> +
-> +	if (!IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-> +		return -EOPNOTSUPP;
-> +
-> +	/*
-> +	 * The famfs-mode gate (fc->famfs_iomap) lives in famfs_daxdev_open(),
-> +	 * which has the full fuse_conn definition. Here, re-check CAP_SYS_RAWIO
-> +	 * against the task performing the registration: famfs mode being enabl=
-ed
-> +	 * only attests that the session founder held it at FUSE_INIT, and the
-> +	 * fuse device fd may have been passed to a less-privileged process.
-> +	 */
-> +	if (!capable(CAP_SYS_RAWIO))
-> +		return -EPERM;
-> +
-> +	if (copy_from_user(&map, argp, sizeof(map)))
-> +		return -EFAULT;
-> +
-> +	return famfs_daxdev_open(fud->chan->conn, &map);
-> +}
-> +
-
-[Severity: Medium]
-Should there be a check to enforce that map.flags is zero?
-
-If userspace passes uninitialized garbage in the flags field and it is
-silently accepted, wouldn't that permanently burn the flags field and
-prevent future ABI extensions using this field?
+This commit adds a DAX-specific address_space_operations struct for famfs
+using noop_dirty_folio. Since famfs is memory-backed and has no writeback,
+these operations are assigned to the inode during DAX initialization.
 
 > diff --git a/fs/fuse/famfs.c b/fs/fuse/famfs.c
-> index 8f7ee7d6151bb..a2a7dd631dc0f 100644
+> index 8d13282e8949f..aea0bceef774f 100644
 > --- a/fs/fuse/famfs.c
 > +++ b/fs/fuse/famfs.c
-[ ... ]
-> @@ -22,6 +23,331 @@
->  #include "famfs_kfmap.h"
->  #include "fuse_i.h"
-> =20
-> +static void famfs_set_daxdev_err(
-> +	struct fuse_conn *fc, struct dax_device *dax_devp);
-> +
-> +static int
-> +famfs_dax_notify_failure(struct dax_device *dax_devp, u64 offset,
-> +			u64 len, int mf_flags)
-> +{
-> +	struct fuse_conn *fc =3D dax_holder(dax_devp);
-> +
-> +	famfs_set_daxdev_err(fc, dax_devp);
-> +
-> +	return 0;
-> +}
-
-[Severity: High]
-Can dax_holder() return NULL here and cause a crash?
-
-If a DAX memory failure occurs concurrently with a FUSE unmount, the DAX
-core could execute dax_holder_notify_failure() while famfs_teardown()
-concurrently calls fs_put_dax().
-
-Since fs_put_dax() clears holder_data without waiting for the active SRCU
-read-side critical section, wouldn't dax_holder() return NULL, which is
-then passed to famfs_set_daxdev_err() where it is dereferenced?
 
 [ ... ]
-> +static int
-> +famfs_check_daxdev_table(
-> +	struct fuse_mount *fm,
-> +	const struct famfs_file_meta *meta)
-> +{
-> +	struct fuse_conn *fc =3D fm->fc;
-> +	int nmissing =3D 0;
-> +	int err;
-> +
-> +	err =3D famfs_devlist_alloc(fc);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Count missing daxdevs while holding the reader lock */
-> +	scoped_guard(rwsem_read, &fc->famfs_devlist_sem) {
-> +		unsigned long i;
-> +
-> +		for_each_set_bit(i, (unsigned long *)&meta->dev_bitmap,
-> +				 MAX_DAXDEVS) {
-> +			struct famfs_daxdev *dd =3D &fc->dax_devlist->devlist[i];
 
-[Severity: High]
-Does this validation loop miss out-of-bounds indices?
-
-In famfs_fuse_meta_alloc(), the dev_bitmap is populated directly from the
-user-supplied index:
-
-    meta->se[i].dev_index  =3D se_in[i].se_devindex;
-    ...
-    meta->dev_bitmap |=3D BIT_ULL(meta->se[i].dev_index);
-
-If an untrusted FUSE server sends an fmap response where se_devindex is
-between 24 and 63, the bit is set in meta->dev_bitmap. However, this
-validation loop only scans up to MAX_DAXDEVS (24).=20
-
-Would this silently ignore out-of-bounds indices, leaving nmissing as 0,
-and accepting invalid metadata that could cause out-of-bounds array access
-later? Additionally, if se_devindex is >=3D 64, wouldn't BIT_ULL() trigger
-undefined behavior?
-
-> diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-> index 78ffc5fd50d03..9fc37015fb111 100644
-> --- a/fs/fuse/inode.c
-> +++ b/fs/fuse/inode.c
-> @@ -1021,6 +1021,9 @@ void fuse_conn_put(struct fuse_conn *fc)
->  		WARN_ON(atomic_read(&bucket->count) !=3D 1);
->  		kfree(bucket);
->  	}
-> +	if (IS_ENABLED(CONFIG_FUSE_FAMFS_DAX))
-> +		famfs_teardown(fc);
-> +
-
-[Severity: Critical]
-Does this unconditionally tear down a conditionally initialized structure?
-
-When a regular user mounts a standard FUSE filesystem, if the server
-does not negotiate FUSE_DAX_FMAP, famfs_init_devlist_sem(fc) is skipped
-in process_init_reply().=20
-
-However, when the filesystem is unmounted, this unconditionally calls
-famfs_teardown() (which acquires fc->famfs_devlist_sem). Could this cause
-a kernel panic or lockdep splat by locking an uninitialized rw_semaphore?
-
-[ ... ]
-> @@ -1427,8 +1430,10 @@ static void process_init_reply(struct fuse_args *a=
-rgs, int error)
->  				u64 in_flags =3D FIELD_PREP(GENMASK_ULL(63, 32), ia->in.flags2)
->  						| ia->in.flags;
-> =20
-> -				if (in_flags & FUSE_DAX_FMAP)
-> +				if (in_flags & FUSE_DAX_FMAP) {
-> +					famfs_init_devlist_sem(fc);
->  					fc->famfs_iomap =3D 1;
-> +				}
->  			}
+> +/*
+> + * DAX address_space_operations for famfs.
+> + * famfs doesn't need dirty tracking - writes go directly to
+> + * memory with no writeback required.
+> + */
+> +static const struct address_space_operations famfs_dax_aops =3D {
+> +	.dirty_folio	=3D noop_dirty_folio,
+> +};
 
 [Severity: Medium]
-Are there missing memory barriers here when publishing famfs_iomap?
+Is it intentional to omit the .direct_IO callback here?
 
-The flag is published without a write barrier after initializing the
-semaphore. In famfs_daxdev_open(), it is read locklessly:
+If applications attempt to open a DAX or memory-backed file with O_DIRECT,
+VFS do_dentry_open() checks f_mapping->a_ops->direct_IO. Since it is
+missing, will this cause the open to fail with -EINVAL and break
+expected API functionality?
 
-    if (!fc->famfs_iomap)
-        return -EOPNOTSUPP;
+Should this include a .direct_IO callback, such as noop_direct_IO?
 
-Without smp_store_release() here and smp_load_acquire() there, could a
-reader observe famfs_iomap =3D=3D 1 before the semaphore initialization is
-visible, and proceed to lock an uninitialized semaphore?
+>  /***********************************************************************=
+******/
+> =20
+>  /*
+> @@ -564,6 +574,7 @@ famfs_file_init_dax(
+>  	if (famfs_meta_set(fi, meta) =3D=3D NULL) {
 
-Also, since famfs_iomap is a bitfield, could concurrent non-atomic
-modifications to adjacent bitfields cause a data race?
+[Severity: High]
+Does publishing the metadata here allow a concurrent open to return early
+before the inode's DAX state is fully initialized?
+
+If Thread A executes famfs_file_init_dax(), publishes fi->famfs_meta via
+cmpxchg here, and is preempted before setting S_DAX, Thread B could
+concurrently open the same file.
+
+Thread B would locklessly see fi->famfs_meta !=3D NULL in fuse_get_fmap(),
+return 0 immediately, and execute I/O before S_DAX is set. Would this
+trigger the IS_DAX() checks in the I/O paths, resulting in spurious -ENXIO
+errors or SIGBUS crashes for the application?
+
+[Severity: High]
+Can this lead to an AB-BA self-deadlock during truncation?
+
+When opening a famfs file with O_TRUNC and writeback caching enabled,
+fuse_open() evaluates is_wb_truncate to true and acquires the non-recursive
+inode_lock(inode).
+
+It then calls fuse_get_fmap(), which invokes famfs_file_init_dax().
+In famfs_file_init_dax(), it unconditionally attempts to acquire
+inode_lock(inode) again before we reach this point. Will this cause the
+thread to self-deadlock?
+
+>  		i_size_write(inode, meta->file_size);
+>  		inode->i_flags |=3D S_DAX;
+
+[Severity: High]
+Does transitioning the inode to DAX mode here violate core DAX invariants if
+the page cache is not invalidated?
+
+If a file is opened with O_CREAT, it bypasses DAX initialization and writes
+populate the standard page cache. If the file is subsequently reopened with=
+out
+O_CREAT, it routes to fuse_open() and famfs_file_init_dax(), dynamically
+setting S_DAX here.
+
+Since fuse_open() explicitly skips page cache invalidation for famfs files,
+does this leave stale, dirty pages in the VFS page cache? Could this lead
+to kernel crashes or data corruption upon subsequent accesses or writeback?
+
+> +		inode->i_data.a_ops =3D &famfs_dax_aops;
+>  	} else {
+>  		pr_debug("%s: file already had metadata\n", __func__);
+>  		__famfs_meta_free(meta);
+
+I also have a couple of questions about related functions:
+
+[Severity: High]
+Does this code overflow when shifting with an untrusted index?
+
+In famfs_fuse_meta_alloc(), the dev_index from the FUSE server is used
+directly in a bitwise shift:
+
+fs/fuse/famfs.c:famfs_fuse_meta_alloc() {
+    ...
+    /* Record bitmap of referenced daxdev indices */
+    meta->dev_bitmap |=3D BIT_ULL(meta->se[i].dev_index);
+    ...
+}
+
+If a malicious FUSE server returns an fmap_buf with a dev_index of 64 or
+greater, this will shift a 64-bit integer by 64 or more before any bounds
+validation occurs. Can this cause undefined behavior and trigger a kernel
+panic in kernels compiled with UBSAN?
+
+[Severity: Medium]
+Is there a data race when updating the error state locklessly?
+
+When multiple threads perform concurrent I/O, famfs_file_bad() can
+detect an i_size mismatch and update the state:
+
+fs/fuse/famfs.c:famfs_file_bad() {
+    ...
+    meta->error =3D true;
+    ...
+}
+
+Since this is a concurrent read and write of the shared boolean variable
+without proper synchronization, will this violate the memory model and
+trigger KCSAN warnings?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0100019f7d9fbe81-6c=
-b16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com?part=3D5
+b16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com?part=3D8
