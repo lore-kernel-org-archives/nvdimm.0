@@ -1,114 +1,187 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46BB946D088;
-	Tue, 21 Jul 2026 18:35:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB44038910F;
+	Tue, 21 Jul 2026 18:36:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784658930; cv=none; b=ip33gYVlNnWp1gR9I3BFCzO1/sVvz8WQq78hYVqZv1QMR+7I5A23KC3x5Dh+Jv6l6/2dwAS+io7hMzw/PQUsKmZzULh1w6igHImzptfhy4m+LjJuK3iqJiI3mDVnbkxpU3OOqLxo0o3J/+ksxcjx7dYptSSAj6MM5b7Gb6yA1Dw=
+	t=1784658999; cv=none; b=KjKj3YL5hTxFPf3svHI9lqtmKcS8kHbJlFsOi9YQML4r5SyDN2lIc/L3ElKlRlLpUFghj8+mt2kjNHStdShCqLm2RDYsgAvUbsflJ2MyKhOE2spGJq26tQEhi+B+Cl9J0yHSBssW97NQB8+FVTYxWoVqLtDUzrDMnKCOnY2p/3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784658930; c=relaxed/simple;
-	bh=IBEs+RhA5Aj/vLpMvyGKxJ3MChwoGXgdCvxiuLZE1xc=;
+	s=arc-20240116; t=1784658999; c=relaxed/simple;
+	bh=YXMza/EmZuTTK/gvmrxgWv2V2x5keDs8ct6egV2VIPc=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=P5VCCf/GVJSbOIV4Omna+0xCNNR3xWjh9NXkt/gYWP99anTll/L31SKUGRNSn0e6YDaGD9qb+0bleiKtcfVy443Wgr+O6PlXSFff0wgSGvWJJ6P6z2K6Zajv5WiqdfjQBJHUC4LLdiMiTKsKWH0xw9iD6B6KzfsvzpQMdy/+Q24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GRoM7KzK; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=TL13O20C8xGywuwKjUiCMdG6o9Fwvho7DNAnFv3SyzIVRqLWapkxGp5DIqkIbB666WO/uSnMpHACUHxrcK3t2v41EdgVh0cVW028wM1gcMlmrINAC8ZcLchauLDTQq5dE89rBim7a68npI+6wk19TJnZl8fczz2uWicx+SYZInY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dEQf2yuW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GRoM7KzK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4B9C1F00A3A;
-	Tue, 21 Jul 2026 18:35:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dEQf2yuW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 200901F00A3A;
+	Tue, 21 Jul 2026 18:36:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784658929;
-	bh=jQt2sF5zW/sGYaBa8eStkJAVH5ZRp9TfqcHjfBWYYj8=;
+	s=k20260515; t=1784658998;
+	bh=g/EKxLRn1RNI6mC5/dfd1RUl/MEC5S6QwBGORwxGQhw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=GRoM7KzKCgLAfR7klf9mnoqRMb7qpQbOGyXrJdcjLD3AcejXohiz+vOMjCMzoPgHp
-	 2xbdzK1p54HhrxL1wlAZEvB/XzdU/T4dIWRtiQ1gnXBgvNni/yMPyPDLtXDrHkbLYJ
-	 NKawm1x8FkLUdK43jGsUEAYH7Z8OC+IaAXWbMsB9I2eJAhwRlyJIxVPAIU5g9Kzw/V
-	 vsgVsP4ruEyOJRiLABM5wTrpqOcugXVmSDtiVBDTPT6sf3GvjlRr67nA+rS/QtrtAY
-	 s4kuA9gQx3n2kkRicEu/Tjbske/G8fX4u1JkIpNcP55XeariBUUFNO5jEQxM4FP+fd
-	 cpfqWKIUz2Qfw==
+	b=dEQf2yuWPFamG/6aAVapy6JRReGuVfPQWGhIsVNtX+RPXLRbJB1Cvhn3jCZDtTJlx
+	 v0NLxCFAxAb/41lx67CQiSq9+mX+Ye3EcGmvv4H2HHX+v0DMLEWda5m0NJtzL23OOr
+	 CBiNCw3zzwq2PhFVAuiminh7lwH2gxvaglTPwfGER0upfbfo430SwQ7/tki5+zV0cu
+	 oVPoB5j7bLkm45hUmL3EXWZA3FtxzZoCw1dKxgGVS4On//mCFvUVLyVHbIcZt06bNh
+	 s4v9tvs4vIRqHA5rVDWIE0JfhXTPgJko4upaoj4uGpnhRBuUi9/YX8WXBxL6Brm5e6
+	 CH0YRaKRUGiTw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 17/36] mm/vmscan: disallow reclaim of private node
- memory
+Subject: Re: [PATCH v5 24/36] mm/mempolicy: add in-kernel MPOL_BIND
+ interfaces for drivers/services
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Gregory Price" <gourry@gourry.net>
-Cc: damon@lists.linux.dev, tj@kernel.org, hannes@cmpxchg.org, linux-cxl@vger.kernel.org, mkoutny@suse.com, nvdimm@lists.linux.dev, kvm@vger.kernel.org
-In-Reply-To: <20260720193431.3841992-18-gourry@gourry.net>
+Cc: nvdimm@lists.linux.dev, kvm@vger.kernel.org, hannes@cmpxchg.org, linux-cxl@vger.kernel.org, tj@kernel.org, damon@lists.linux.dev, mkoutny@suse.com
+In-Reply-To: <20260720193431.3841992-25-gourry@gourry.net>
 References: <20260720193431.3841992-1-gourry@gourry.net>
- <20260720193431.3841992-18-gourry@gourry.net>
+ <20260720193431.3841992-25-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 21 Jul 2026 18:35:27 +0000
-Message-Id: <20260721183528.B4B9C1F00A3A@smtp.kernel.org>
+Date: Tue, 21 Jul 2026 18:36:37 +0000
+Message-Id: <20260721183638.200901F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-- [High] Soft-limit reclaim bypasses the new private node filter, allowing =
-eviction on private nodes.
+- [High] `mpol_bind_node()` and `mpol_private_bind()` fail to validate `nid=
+` against bounds, leading to stack buffer overflows and out-of-bounds reads.
+- [Medium] `__mpol_bind_node()` calls `mpol_set_nodemask()` without holding=
+ `task_lock(current)` or `mmap_lock`, causing a data race and potential tor=
+n read.
+- [Medium] `mpol_bind_node()` unconditionally rejects private node bindings=
+, breaking the documented API contract.
 --
 
---- Patch [17]: [PATCH v5 17/36] mm/vmscan: disallow reclaim of private nod=
-e memory ---
-commit 9fc4bff86adde3091fee2924952f9af9700e6308
+--- Patch [24]: [PATCH v5 24/36] mm/mempolicy: add in-kernel MPOL_BIND inte=
+rfaces for drivers/services ---
+commit 056427d8f98ec56375b0a715f69798d4dfde2ec3
 Author: Gregory Price <gourry@gourry.net>
 
-mm/vmscan: disallow reclaim of private node memory
+mm/mempolicy: add in-kernel MPOL_BIND interfaces for drivers/services
 
-This commit attempts to prevent reclaim on private nodes by adding a filter
-to shrink_node().
+This patch adds and exports interfaces to enable modules to build MPOL_BIND
+mempolicies pinned to a private NUMA node. It exports mpol_bind_node() and
+mpol_private_bind() for module use, widens the __mpol_put() export, and
+adjusts mpol_set_nodemask() to handle MPOL_F_PRIVATE flags.
 
-> diff --git a/mm/vmscan.c b/mm/vmscan.c
-> index e26c6931f5fde..86b2334c23b98 100644
-> --- a/mm/vmscan.c
-> +++ b/mm/vmscan.c
-> @@ -6141,6 +6141,13 @@ static void shrink_node(pg_data_t *pgdat, struct s=
-can_control *sc)
->  	struct lruvec *target_lruvec;
->  	bool reclaimable =3D false;
+> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+> index e83c2c7a94c1d..a3ffb09897489 100644
+> --- a/mm/mempolicy.c
+> +++ b/mm/mempolicy.c
+> @@ -432,6 +432,18 @@ static int mpol_set_nodemask(struct mempolicy *pol,
+>  	else
+>  		pol->w.cpuset_mems_allowed =3D cpuset_current_mems_allowed;
 > =20
 > +	/*
-> +	 * Private nodes do not support reclaim by default, filtering here
-> +	 * captures all normal reclaim paths that may attempt eviction.
+> +	 * Private nodes are not in cpuset.mems, so they're always stripped.
+> +	 * Driver-allocated policies will already have MPOL_F_PRIVATE set,
+> +	 * if that's the case, add back in the requested set of private nodes.
 > +	 */
-> +	if (node_is_private(pgdat->node_id))
-> +		return;
+> +	for_each_node_mask(nid, *nodes) {
+> +		if (!node_is_private(nid))
+> +			continue;
+> +		if (pol->flags & MPOL_F_PRIVATE)
+> +			node_set(nid, nsc->mask2);
+> +	}
+
+[Severity: Medium]
+The commit message mentions that N_MEMORY_PRIVATE node bindings are honored
+if the node has CAP_USER_NUMA. Does this implementation actually perform th=
+at
+capability check?
+
+It looks like this only checks for MPOL_F_PRIVATE. If mpol_bind_node() calls
+__mpol_bind_node() with flags=3D0, wouldn't the private node be stripped
+unconditionally, causing the nodemask to become empty and returning -EINVAL?
+
+[ ... ]
+
+> +static struct mempolicy *__mpol_bind_node(int nid, unsigned short flags)
+> +{
+> +	struct mempolicy *pol;
+> +	nodemask_t nodes;
+> +	int err;
 > +
+> +	NODEMASK_SCRATCH(scratch);
+> +
+> +	if (!scratch)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	nodes_clear(nodes);
+> +	node_set(nid, nodes);
 
 [Severity: High]
-Does this filter successfully capture all normal reclaim paths?
+Should nid be validated against MAX_NUMNODES before being used?
 
-When the system uses memcg v1 and a cgroup exceeds its soft limit, global
-direct reclaim in shrink_zones() or kswapd in balance_pgdat() will invoke
-memcg1_soft_limit_reclaim(). This bypasses shrink_node() entirely:
+If an invalid or unsanitized node ID like NUMA_NO_NODE (-1) or a value
+greater than MAX_NUMNODES is passed from a module, could node_set()
+perform an out-of-bounds write on the stack-allocated nodemask_t?
 
-mm/vmscan.c:shrink_zones() {
-    ...
-    nr_soft_reclaimed =3D memcg1_soft_limit_reclaim(zone->zone_pgdat,
-                                                  sc->order, sc->gfp_mask,
-                                                  &nr_soft_scanned);
-    ...
-}
+> +
+> +	pol =3D mpol_new(MPOL_BIND, flags, &nodes);
+> +	if (IS_ERR(pol)) {
+> +		NODEMASK_SCRATCH_FREE(scratch);
+> +		return pol;
+> +	}
+> +
+> +	err =3D mpol_set_nodemask(pol, &nodes, scratch);
 
-This leads to mem_cgroup_shrink_node() directly calling shrink_lruvec()
-without checking if the node is private:
+[Severity: Medium]
+Does this call to mpol_set_nodemask() need to hold task_lock(current) or
+mmap_lock?
 
-mm/vmscan.c:mem_cgroup_shrink_node() {
-    ...
-    shrink_lruvec(lruvec, &sc);
-    ...
-}
+mpol_set_nodemask() reads cpuset_current_mems_allowed (current->mems_allowe=
+d).
+Without locking, couldn't this race with concurrent cpuset updates and resu=
+lt
+in a torn read or corrupted mempolicy nodemask?
 
-Will this allow unintended eviction on private nodes during soft limit recl=
-aim?
+> +	NODEMASK_SCRATCH_FREE(scratch);
+> +	if (err) {
+> +		mpol_put(pol);
+> +		return ERR_PTR(err);
+> +	}
+> +	return pol;
+> +}
+> +
+> +/**
+> + * mpol_private_bind - build an MPOL_BIND policy pinned to a private node
+> + * @nid: an N_MEMORY_PRIVATE node
+> + *
+> + * Returns a refcounted mempolicy that binds allocations to @nid with the
+> + * private-placement intent (MPOL_F_PRIVATE).  This binds to @nid regard=
+less
+> + * of the node's CAP_USER_NUMA, providing a privileged way for node-owne=
+rs
+> + * to bind driver/service owned VMAs to the node.
+> + *
+> + * Like any MPOL_BIND it is relaxable: an unsatisfiable request falls ba=
+ck
+> + * rather than failing.
+> + *
+> + * Must be called while @nid is N_MEMORY_PRIVATE.
+> + *
+> + * The caller owns the reference and frees it with mpol_put().
+> + *
+> + * Return: the policy, or an ERR_PTR on failure.
+> + */
+> +struct mempolicy *mpol_private_bind(int nid)
+> +{
+> +	if (!node_is_private(nid))
 
->  	if ((lru_gen_enabled() || lru_gen_switching()) && root_reclaim(sc)) {
->  		memset(&sc->nr, 0, sizeof(sc->nr));
->  		lru_gen_shrink_node(pgdat, sc);
+[Severity: High]
+Similar to the issue in __mpol_bind_node(), if an invalid nid is passed in,
+could node_is_private() read out of bounds?
+
+> +		return ERR_PTR(-EINVAL);
+> +	return __mpol_bind_node(nid, MPOL_F_PRIVATE);
+> +}
+> +EXPORT_SYMBOL_FOR_MODULES(mpol_private_bind, "kmem");
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260720193431.3841=
-992-1-gourry@gourry.net?part=3D17
+992-1-gourry@gourry.net?part=3D24
