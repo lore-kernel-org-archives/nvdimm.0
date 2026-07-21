@@ -1,88 +1,75 @@
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010048.outbound.protection.outlook.com [52.101.46.48])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010053.outbound.protection.outlook.com [52.101.201.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60EA23B0AE8;
-	Tue, 21 Jul 2026 05:47:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78C5D4071F8
+	for <nvdimm@lists.linux.dev>; Tue, 21 Jul 2026 06:21:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.53
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784612853; cv=fail; b=T+D9+tJlEAGcAAjcAMxYpZzj9gW92kRlKCYAQgX7OiZjBQfj8gdMByo2dAg7MtFtSy2+a0s7r/L0A2ZDuscNGuI4T6MhBcsBQC2snPM3+QrZ/ai+myssZM367DFlv9IT6YdkcWEbAI/OloS3GIHDQo5cSZNNqbIYkUfTWetdmmw=
+	t=1784614899; cv=fail; b=VwgKIhcBqWBTm3AS69pT2t5Q3s2XWgC/9IIDPMIelBwZieDRtWjLg7aGowe8e7dcRctTCBhRoVCjK4/UKmcX1OZslPUajg7lesz0l0d2HVPtdNFe9iWkSk+H9Ri4ngwJtdz7JemNPBli8rCmipysotKD3o3WePvbBZWGpyR42FA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784612853; c=relaxed/simple;
-	bh=axxdhhsWmoHysIXLB33YAr/kI65B4J9svzETuROOAHk=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=NY9kQWC+MNfOZpRzXIM7CihBP7AmfUxoM98TxC0XA22w/qByPoL6+eE3yyiQQXGGtmTG7VzlzKFVu8CqrF6+2/FNJAqisU1lY0wOOcsO6Kr1AEZisKXoICARPv25knpHKYwQIDJaRtt/IDp2tdbadwRXotTGlR8XD6IZMYf8muU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Dg3RbDMe; arc=fail smtp.client-ip=52.101.46.48
+	s=arc-20240116; t=1784614899; c=relaxed/simple;
+	bh=o7bfzAV2EccWdHc7/Pb6qRdStsCHuA/+8Oz5g3SS8ew=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=TQlraCld4QSR/+WGTbMIg5WoNE4WlTwH4rvORs7QHSSQIJEQq/q5fhocbti43X/yzjoyYKtINAim53Uypqg2EzDHnocPIyoVNjKdp+LKmcYxqqmjngPBz266s/ofgzH6Qz2no3zGIX8b+HxItsXN9P8v0w8y0ytaR4K4/6T6nnw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=M7IMQP8C; arc=fail smtp.client-ip=52.101.201.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Dg3RbDMe"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="M7IMQP8C"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=w+9vkb6P082UNKB/2IpcqfU2qha2momJShcEuDH8phfbfiJ/UOPsz3F2oX/9hhcaz9ouvz2Zwq9LH78RtWrD9wLFjTtLbfW1FsYEGjif0sZZGpnEbETKJ0qrt5XzXlslgAXEMVBqpcqyRCas64kQUASlu3xHUmNJ0loHXZDc4FddASWKdtQAdP6DSqTgMo6I8zBAgzrNqUWwRCFzA4j+uK10iLaG6mJEdlkRZfOHhNSmaV7IB1kPoMyb8jypwXgeAZ/SO5i6vyjCaB8OBxLspM1maNSiLoR44n4fnWoxSwaw2riIm6WecStx6FX5uzr72oDrvu8XqhelRT2njk8UWw==
+ b=dEUR1mHd8sr8dzEkhJVtPBvWLYRaK9n/bI2J3LcUyYX0eqzpI9vvBRtkmiZQhl/cP9SdFNKpASzmBUea9HSngRFMrOgxh59n5dWKlki3hVLq57uPIZnyTrOH/CDz1FVO+p4fAHKNCrUDQgJTM34TcvCjLFgk/LSw0+iIJgRRHXYd1paonK1aosUOr9dBxqQtM1IyFb85OUD+fKM69vmNdaUjv4mHNXif45FgZQii5bZ4wWE1wHh4xDRilTBddfuHZ3YcihbaxgniKQma4BlKXPldL2o7ajRAVXe8FWtKr0lmWd42shVYEXeJ6mhKTj4LJiyQn4V0EmrjVnAebpyIeA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XX8cfeen7j81/+xnErTyWQVyuaKqlCLvSRfssHbei6w=;
- b=DScdoggeO3Bm0u6YNR4lbWhPpvSz6OVtb7yfy5GvP5nrRX4Q3NgumzU20matCe2g23SkkEE9nnJUw8U2+U9ih8PYO/mMLmx8qQRtfMabA5F59O1BoH0FPvoLkbbc/hUNpsHKXNXyMYqZ/KlKDO8nQ21/YeNDDAIO7uXnb05w4APuyPyEHFzgNazWv7ImHr2o3YcRwYOitzuS2mApB7L7f1OeqKnQA9QzJxYR8kag2aVjQC2hf0iZFAvmbmEHpluT70dtFFCsaPYxUjkUir9iWxqqm+//ErvC2MBOrKdE4XnjRqTuqFS/X/LYMVyXUsvLUxsUwgEOQtvfsfY2DrlGMA==
+ bh=ptn//OXD1eCydjpZcTmqTpMhwgoy1aLwqU2o48k7GJU=;
+ b=DQv5xJAdnPM59/w6KJhfCc1JXb9IDmLgG65ZynRLPEUOJUwq6Yk51VkNMRkTURR6pYM87at0MFfhAf8AKqWF0kkIYY5E2P2sr6rNxzkkF8qCTMpCm0ML4EtOULg1B0dB+bl+rUV/3aVL7h9+j6hp2YQB+0X9HJDy5k7MOzVc8rLA8pHd2Dv+4l+kq44ABlFUDg/yuZh3/YPNK6h4Kp+rOeLElPPAezG1OGqSzfBihtInCacpd4ebDQeOQIYyUyD99yfeaDfu6mhe3VIdXZpQn0iFiSCNfVS69iC1dpBcLQe/ZezA2vDffNopmUWzqj6fWnr5AZjx871UmAfiNl+dag==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XX8cfeen7j81/+xnErTyWQVyuaKqlCLvSRfssHbei6w=;
- b=Dg3RbDMeFnApOREHRnXHnJm+SDuJ+7PP6ObrqyHlDfU6vAcj+enFpphBDABTqSA1g0FoWYH7NQKXJL6f6eqFwi1KUbD9+9V2y3kqnk4jRj4XIwkycFsdr/9BOTP25MVz5hRIyDGkxT7+cWmgd+2fkjltXfWVS4PUe/jaPmaK64NXHgVP92+cfxkbRcaVBa1Q3jmmKenB9Awc2jlhjjT20W2+u8y5DapO1cTB8ArLqDB9myVnVP6BjvZ8swOfXm39FhELhzTvWCTXd5fU2DiXhwMRKrn1KqgnbzF3aOkk8zRtOkr7q2B8q1pAHxSz9jh3+lXNwiZ3AkttKDHUnnZPdQ==
+ bh=ptn//OXD1eCydjpZcTmqTpMhwgoy1aLwqU2o48k7GJU=;
+ b=M7IMQP8C0bxPE1ZF2CXHA6SJKAsQltK66ZOti+CUKmXEbpMX5DYEFQkeK1BdH7x6EqTNpQseKjNLHzFE3VJWDR6cg5iLwdRTxRvE7zJk6DkG3R8eDFevyQ+vE8KA2n6PyJygR9V3/GkTG08izEyB8qb5z6edblCCqgZhW1//J8Ztzj92vwYN8ibV0I/le5PmMh00sWF6meRh81rQJIR19xcXvD0bQL2yubI7ocZZkZiWMRt3z3Eyb3bUiqta6tn66k6LZSs86kndsSupJSpbxvsz5Pd5LBVvvPDhbHW4aHwGFRuV4ZZ9ITj7OtAzsd5V+6bcohVFuCOOiF0ILB2uEg==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BL0PR12MB4995.namprd12.prod.outlook.com (2603:10b6:208:1c7::23)
- by CH3PR12MB7593.namprd12.prod.outlook.com (2603:10b6:610:141::20) with
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
+ by IA0PPF7D094C5BF.namprd12.prod.outlook.com (2603:10b6:20f:fc04::bd4) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.18; Tue, 21 Jul
- 2026 05:47:20 +0000
-Received: from BL0PR12MB4995.namprd12.prod.outlook.com
- ([fe80::dde:9068:4b1a:53e2]) by BL0PR12MB4995.namprd12.prod.outlook.com
- ([fe80::dde:9068:4b1a:53e2%4]) with mapi id 15.21.0245.009; Tue, 21 Jul 2026
- 05:47:20 +0000
-Message-ID: <62bf02dc-dab1-41bf-8204-eb3566628b93@nvidia.com>
-Date: Tue, 21 Jul 2026 15:46:53 +1000
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 01/36] mm: refactor find_next_best_node to
- find_next_best_node_in
-To: Gregory Price <gourry@gourry.net>, linux-mm@kvack.org
-Cc: Zhigang.Luo@amd.com, arun.george@samsung.com, brendan.jackman@linux.dev,
- yuzenghui@huawei.com, apopple@nvidia.com, alucerop@amd.com,
- matthew.brost@intel.com, akpm@linux-foundation.org, david@kernel.org,
- ljs@kernel.org, liam@infradead.org, vbabka@kernel.org, rppt@kernel.org,
- surenb@google.com, mhocko@suse.com, corbet@lwn.net,
- skhan@linuxfoundation.org, gregkh@linuxfoundation.org, rafael@kernel.org,
- dakr@kernel.org, djbw@kernel.org, vishal.l.verma@intel.com,
- dave.jiang@intel.com, alison.schofield@intel.com, osandov@osandov.com,
- jannh@google.com, pfalcato@suse.de, jackmanb@google.com, hannes@cmpxchg.org,
- ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de,
- joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
- ying.huang@linux.alibaba.com, kasong@tencent.com, qi.zheng@linux.dev,
- shakeel.butt@linux.dev, baohua@kernel.org, axelrasmussen@google.com,
- yuanchu@google.com, weixugc@google.com, yury.norov@gmail.com,
- linux@rasmusvillemoes.dk, longman@redhat.com, ridong.chen@linux.dev,
- tj@kernel.org, mkoutny@suse.com, sj@kernel.org, jgg@ziepe.ca,
- jhubbard@nvidia.com, peterx@redhat.com, baolin.wang@linux.alibaba.com,
- npache@redhat.com, ryan.roberts@arm.com, dev.jain@arm.com,
- lance.yang@linux.dev, usama.arif@linux.dev, xu.xin16@zte.com.cn,
- chengming.zhou@linux.dev, roman.gushchin@linux.dev, muchun.song@linux.dev,
- linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
- driver-core@lists.linux.dev, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-debuggers@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org, cgroups@vger.kernel.org,
- damon@lists.linux.dev, linux-kselftest@vger.kernel.org, kernel-team@meta.com
-References: <20260720193431.3841992-1-gourry@gourry.net>
- <20260720193431.3841992-2-gourry@gourry.net>
-Content-Language: en-US
-From: Balbir Singh <balbirs@nvidia.com>
-In-Reply-To: <20260720193431.3841992-2-gourry@gourry.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: ME3P282CA0170.AUSP282.PROD.OUTLOOK.COM
- (2603:10c6:220:1cb::6) To DM6PR12MB5006.namprd12.prod.outlook.com
- (2603:10b6:5:1b8::23)
+ 2026 06:21:33 +0000
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8]) by BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8%5]) with mapi id 15.21.0223.017; Tue, 21 Jul 2026
+ 06:21:33 +0000
+From: Richard Cheng <icheng@nvidia.com>
+To: dave@stgolabs.net,
+	jic23@kernel.org,
+	dave.jiang@intel.com,
+	alison.schofield@intel.com,
+	vishal.l.verma@intel.com,
+	djbw@kernel.org,
+	nvdimm@lists.linux.dev
+Cc: iweiny@kernel.org,
+	ming.li@zohomail.com,
+	gourry@gourry.net,
+	rrichter@amd.com,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	newtonl@nvidia.com,
+	kristinc@nvidia.com,
+	kaihengf@nvidia.com,
+	kobak@nvidia.com,
+	mochs@nvidia.com,
+	Richard Cheng <icheng@nvidia.com>
+Subject: [ndctl PATCH v2] test/fwctl: Add Feature OOB rejection regression tests
+Date: Tue, 21 Jul 2026 14:21:22 +0800
+Message-ID: <20260721062122.24138-1-icheng@nvidia.com>
+X-Mailer: git-send-email 2.50.1
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: KUZPR03CA0021.apcprd03.prod.outlook.com
+ (2603:1096:d10:24::13) To BL0PR12MB2370.namprd12.prod.outlook.com
+ (2603:10b6:207:47::27)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -90,194 +77,286 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL0PR12MB4995:EE_|CH3PR12MB7593:EE_
-X-MS-Office365-Filtering-Correlation-Id: bfd89711-05a5-43b5-9f7f-08dee6eb873e
+X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|IA0PPF7D094C5BF:EE_
+X-MS-Office365-Filtering-Correlation-Id: 90e11ce6-2009-4285-c8b1-08dee6f04f35
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|23010399003|366016|18002099003|22082099003|56012099006|4143699003|11063799006|10067099003;
+	BCL:0;ARA:13230040|366016|1800799024|7416014|23010399003|376014|18002099003|3023799007|56012099006|10067099003|11063799006;
 X-Microsoft-Antispam-Message-Info:
-	qNF1SrVAHfoLNltaNSJshYDOpjMghk1P+vnaCtM776iiQdZOGEuh4VVAgcKlJcmqZyQzs9yo83QOp4bSfqif/Ip6EFHmZ4Ap8LHTKoTiHnkXjrbt+S4DTzTOLh2iPPlpLR+s+JPmhHKK0g4Rjpy1KnDdUgRhN6gr4BbLBek4tvS1O0Z8fERqAvvVDtrUuSe4zhQEhVrZdJWk+ZVm84APcY7ABVa2JH/plKmaek8NwPCdey+KwDeyPmTrvZJyZp5nAuqBaBbBPzq/+FASMGjSwvk19+RV1PV9pDnape9M7BiniXPq3alnFCUDKxpgTEEr2wmTvvNOj704V+ZC4/lmGsgIA0P0MwraJXlHNXZLtSLS3LcjIJ46CZ3Lc/0FoJ+q9rBIlpOa16IdkKESbra/LML7XCpWMIdzG57ZVjWTwJmHtfIIHfg9sdzKngmHaW3B1QTt18nAGXXdEAPpb7xus8msZRqkfLnKhpOIb4ye4oXjEOntE8F0imAEqHnmFbv67Qux9Qykf0dPs5OoXsmgJrv0gbSVgdwAf4xNjaGHBu3DrhWlfK1v+bAyjwzhSLZBr/v+l12uPttR4ZJI2oqAAURyMqNd9im6gcE4PPK65o+BPDKV5AtRWrTASr14LuvWuvVQ24CKVKQY4pnwbXFR3ZLbAsepw4j0R9gxSM2doKk=
+	dfOWKRyXbsCWlixnX64dhj8snh6FlHSRZtPGG0wwqbYHCFkwpkMIl4bTQoR3bapUTsf/Ncj533usgZxd2X6Y2Rr3t78It43TaQUSlxV+m5OIoX1yrtMAvnQuPo6Uzt8gXZnAI9WCAU7lT/rV1GfJ+m3C4dl5M5GeVuBN8d0EmkoQLqOXN3oA6+iLNX4gudruPigWKfhiqIybYPRuFQaW/FmBL1eNFhPJHijGPo2nzdmAzLYWgnjDbt4olFXz5V0tPYm2cv49xvzrEzLAbNUDL9ROIxx8JqmFcJugB9ZZy69ugw8/9+aDtpbGYSfjKfIbWMDQrb402mkKAFqyiIO+m0ZLUExYAdiae83KdbZC0/M24LYUKjO8Y2MkRvGh+Uwh1zi0V//5tfki0HwViFs9gTXRCFKET/450B/GLdW6c5T6mOSLvR2tigczF9pE2NwA0P0GrtvulfOk3BmStiKkCac6QBVlLZ1qPJ8KpcgQzHTDqWUnBkiW0pZYskGKMOjpQek9Er8oCXkhapp0IAknQxeZhhZfGctzfy8Zd0yCFm21NXfFRrDrCsVI6qchzfrDyAHofK7pD9R6c19yB1JkDAcm77rY8VOXChisV5p2ou4IfrgIx454/C27UjikRkdhdMCJ06pwC+zYqoZlVpCcsqxIgnLqsXLkydDd3/9Me/k=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB4995.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(23010399003)(366016)(18002099003)(22082099003)(56012099006)(4143699003)(11063799006)(10067099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(23010399003)(376014)(18002099003)(3023799007)(56012099006)(10067099003)(11063799006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?SWhMUDZPZjQvVURoTlFVYUtTRmlweWpUWForUkZjZGxKR0p5NERRMlJ2ZEs4?=
- =?utf-8?B?cG1peHNIWUpVMTV6N2tsNUxHSzFjRTB3MEdHZ1hDZkRsZ0ZMa2lqWGZNT3ZD?=
- =?utf-8?B?TThOWnV2Y0N0dnpUTEszR1VaTndzSVdHbVZVZTJaMGlSOU10T1VYMEQ1RHVl?=
- =?utf-8?B?aWZXZ09CdW53NlNUZk5DbEg4MmRuY1FGemF5YmFlMEltdTVzbnBYd2FNZE05?=
- =?utf-8?B?THplaU4zUSs3citnMDhhaGdGTzR3NUh5a0NWUnloUEZ2S2ltZWVVanZsNUts?=
- =?utf-8?B?TmdpbklqTHpvNXVFbVUxamtmRE0xQzZqK3BhQXBGd293Z3BhLzdpbEsxU2h0?=
- =?utf-8?B?YUdObE1rcktzYjZiRnJDcXl3ckl3MEZOazhyeVZlYmxLOWY3aU9lNy9Oc3d0?=
- =?utf-8?B?QWsrSUNzN0JmUE1uWml0WHY1SFZWbVNkS0hicHZFckIrNjdkTWtpMWJpV0ZH?=
- =?utf-8?B?QUlLSDRRcHNuS0VkTW10Q3BrSXNOUjZuU3p5UXZKRlA3REt0Ymx6aXZwR250?=
- =?utf-8?B?S00vd0xZaXJmd2h0aEVFVkcwaEhLTUJCajBUcko1Mks5WUpVc1hNeDhNc2Iv?=
- =?utf-8?B?bmZudndjT2xBTThvNS9vN3dtWm5ob2NUbGpnUHV0TDJVUUVXV1BzZVh0OXdQ?=
- =?utf-8?B?RStNbGRLZWdLdUVNY216YlJjZHU4S1MyNThGTGcwMnFaVWUrd1VSMVZBMXNG?=
- =?utf-8?B?czJqWWRjd0I5bm9nWktoNDEwZVRxaHZSb1htN2J0aXJxS1AwckxvblJGTmkz?=
- =?utf-8?B?VFVyVlAwbmZtWkptY2FZNU1nT1p6d2pEL3g0ZmZyZHlYWEl3YjJoaVVDeGdj?=
- =?utf-8?B?aWpXNEk0UUhGTkk1QmNGWE53eEYyOWVtMWVRZjBBRG04L2wvNVZEZWhXbHJY?=
- =?utf-8?B?ZEsyd2FTelMyL29VSlZiRW9ESjBWUVBBUTAxUHYrZHhQSkYwQ2U4cUpGcCtN?=
- =?utf-8?B?Slp0ZThPNDZ5enhDNDZyWXUvbGtqRldMZVdVSDcwNlZqNENQQ2M0WVk1d0Nh?=
- =?utf-8?B?aVVNQVZNcG5Lb0s4bmpmNW9IaU1WRjVUSXB3NXYwUGZYTVcrek5aQkt5WGor?=
- =?utf-8?B?a1VLS3pJTHN2SVR3Wnp5N0RUTTYrVDZQN3orRklmbVNKaXhRaFVHVllqbGZY?=
- =?utf-8?B?dWRBdzN2RDFvek13ZmhRclM1LzNoZk1lNitJZXlyRGgzSExrbXFKS09xbnE2?=
- =?utf-8?B?aGFUc1R5ZFhBeTVBdzZqYXJ0TnB4cnRDeVhYN2NQQUFBR2syRk5qSFdEZlpp?=
- =?utf-8?B?ajlUcjRIQ0dQdDlaWlA4TFhoTzg4UzFiTndxNHFOQ3FpeHJkSDlpYmtMVCtM?=
- =?utf-8?B?RGtkbVZqaC9ER2xJN3ZRdjFYREdhS1BaRVlqVFVTSmRReVEwc29zUXRXeFRG?=
- =?utf-8?B?ekxTVU56YjkzQitvQjNibmJNY2RRZE1DNFliek1zZm15cWRXajZZQUd5SHds?=
- =?utf-8?B?MmdYWWN4VFZ2eHkxVkoyMkJ2Y29yWGhyQllsdnQvSzJnVjJRVTMyY3BIY2dQ?=
- =?utf-8?B?dTlaS1F6azhrOFlZUXk4UFViaHdSYXd4cU5XVlZ0ZUdTamVxVUdQWnA0WlEr?=
- =?utf-8?B?TUJPUnZObFpzczFFbkZBVmRUN2F2NmpwR3I4MVZHZXFBdlA4Q01qNGNUMDhJ?=
- =?utf-8?B?aGk2ZERia1hLaE1CKzZJZUpFU1hscFhNMUJzdm5Scng5akNSUzM3eFkzYTlr?=
- =?utf-8?B?Q0VVV0RXZjYrRDhGcU9pbUpUTG9KWWVqcGRPQWNVQVk3QUVJTmVlckgrODZp?=
- =?utf-8?B?OWtsQXBsMHpKTjhhaGVuRHFlaDhKL09FUWtreFNibEpHR3kvTTRxWjNZVDlJ?=
- =?utf-8?B?SW5wOFkxb1hmaCtTUWxzaXhRQzJnTEJGRUlSUHB3Wjg0YStwSTQ1KzZqM1lt?=
- =?utf-8?B?K0ljZGRqVjVYd0ZFcVQyYVRhUU52Rmx1am9GckFGaklrUFFyUmpWemlNWTZN?=
- =?utf-8?B?ckkzdkxQbTBoaGhYSnJCeFFsZCtDR1h1MkpqaXNPcy9NczBqTGZvWXBRRlZB?=
- =?utf-8?B?c2RUOVBtaHJIUGNrT0FzVS9PU1BiRFliT2wrTndhMGI3dE9IT2hpVDFSZUxy?=
- =?utf-8?B?ZUl4VjlybGM0cGREWGFXVFBLTkI0Uk4rcnd4VERvWkJucm8rNDZpWjB5UXc3?=
- =?utf-8?B?Sm11ZWN2d3pHbkNPUjF6M0sxVUZadlhiVVdveElIN2tjOGxLUGtkamZseUt6?=
- =?utf-8?B?ZU9XSE42L2xSSzlTVmtBUll3Rkk4OWdvTHpCbWY4NjRRQVhzT2Z3TDVEL0ta?=
- =?utf-8?B?QlhQR1ptN3V2MGY0WWc2dTk1SlVMdzFSalNOcGo2cDRHZ1hvRkp5UmNiN04z?=
- =?utf-8?B?QVprTnJNZ1hjSUsza203dnRBcHo2ZFBsTTJwelFmT0lqYmtzcEFoQT09?=
+	=?us-ascii?Q?VjKG54a/txPkEDFXenRn5tKtfGrJ7axlmoPI/LYyslca8Tf7Hl4ct6v+krgm?=
+ =?us-ascii?Q?R70xAuZ16mTs1ptVV4sapTUlqR71OjGGnNeEVDHuOZ6sHOWm5yy3n0IhzYti?=
+ =?us-ascii?Q?+vxtfkeJLqQHoN9fVYJ65Z1R3U5gsthdPIicz/IzxWH/1QyIzqGUNrsFNAqo?=
+ =?us-ascii?Q?HPO6Tk3LeMBSgNhevACj5a2m2CBtXXxD4MnAZfLO9ojbRYc2p/c0NW01PkuU?=
+ =?us-ascii?Q?ztoh7XUXbXuV4ZF3cn+UfqJaXPunnIlCZMTIvf8ENelCWDq7wHMxr0CS4Z5x?=
+ =?us-ascii?Q?ehKPGS8KEUPiDZVs5tUacMhWvrAHz5Y6h7aZRA1Lrs/F2yWesW+hFLJD7BbV?=
+ =?us-ascii?Q?Z8o7E9DtSw+RclS2Zk5CroCwuoimE0/896jK9tdGVreBPtqI5lLJ88aP1rLd?=
+ =?us-ascii?Q?s5hdjjacfHj7h9GNDrlz/vbGPpFbt+TOwAesJWkyLNhTjvfs7qO+3sYUWygD?=
+ =?us-ascii?Q?h4U+QDQbO5PcrHzKrIrvTL9zyrzntrwS3WaEny3llsAUYr1tnQI+kXVtBCy4?=
+ =?us-ascii?Q?sXae7vj8mD/gV0eOTXErZGkabWiiDDuASvVmO0Ii0X5lesM4zQCH53CLhS2Z?=
+ =?us-ascii?Q?LNsukz2ENwgsy57oOnRfc2kwWqE0UXB5B6rtmhK4wD9rSFWmC02CNkuB2/+v?=
+ =?us-ascii?Q?pUrpdYHl0RQeL85VCW1k/aG570GjzSHOBH+9wrFAxmLZA7tbMxqY0zr0Ff+D?=
+ =?us-ascii?Q?Ix3sJGyXeks9assvBIQDQ7/E6Is7NtRG/DROK8x+KEd1qkGpSDyJ3XoRSh0C?=
+ =?us-ascii?Q?YCT6zY5Mrfkg6q6ydsMXXTmkcKKotyH73YlTXz8b5oqVK9mel29gZChVm7tQ?=
+ =?us-ascii?Q?cDXe8W29KJanZqWj0t6Ou0KFl4ojXiJ9587lvBynKxudkQ3MocDqEIjUlBhG?=
+ =?us-ascii?Q?uqp/PTAGndVQFekJMhnxV/8T58uBkjU5q0FQdJ8Ni6QyIKMSpKNW5HHjr8av?=
+ =?us-ascii?Q?EoBkHxAYVFIurpI9aPtTAvhXPVx3WclQjstxA5U1MDZDdFuo5WwNOLIg+L5I?=
+ =?us-ascii?Q?36BVL4C9WvjpRFAMz9+A+f3GRCZdIdGGWNIrVu0nCFcIRVlBpigEHr7+Onhc?=
+ =?us-ascii?Q?3Nm4q69IVfxmH4Bsox9/BG2Pja8aeAWA7keHrGAMEAKH8gs/V7HVojSHfhEg?=
+ =?us-ascii?Q?L2HpZifaDTl/dtaxKFckz+yZBCZf25M3qJ50y4HQjca8ecLY4MeJu2CgtDJu?=
+ =?us-ascii?Q?Wr1F0k7r2z4apQyFozh3eJ2M6n2lZ8EgUbH6YlN8Tdd8qfMv//7qR+uZZVpI?=
+ =?us-ascii?Q?Pin1kyn97u/5mWcO7WRpOTyumubU9xAhL07QHTw9Zkdo9etijnQ5ULOfRELl?=
+ =?us-ascii?Q?WdpYcMgLe7oKbZH3lVX/cYAtIznnt7rZW8U47UVG7EtGVKcRG1c3XcTUU51M?=
+ =?us-ascii?Q?RrH0zZPyUTLK47z3+VfDivTe9e8NwrvBwfNJIF+4M+cIWXJKns/ju5DVBOmO?=
+ =?us-ascii?Q?n9hQxlJ7jd7NzkhLvAXPw1sc89+hsELEfi7Xj6NF/m2nQ5vNZOhDM0SNwvOh?=
+ =?us-ascii?Q?Dcfad7EaiaeEMVVSKfMnpI4Z+yXb30Vg3rq51hqJ3ajwHjc2ej78o852eCHe?=
+ =?us-ascii?Q?kY2ij1QQ4licYHjdlGjr7c/nbLAP2qsCigLVrFcf9iDxg9R1jciNMagFdFzK?=
+ =?us-ascii?Q?FWCCoWr5rvoat1qdYMahgNFziAcGqI0Wq/Zbeh4il8rTAzgN2JYGgQT+q/km?=
+ =?us-ascii?Q?KG1kqbDSNzeQjgcEGmVwukLIY25jnMYwK16zzMRlRjzMLj9Z+7mhBDvEnMUC?=
+ =?us-ascii?Q?CEt+4kQ49w=3D=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: bfd89711-05a5-43b5-9f7f-08dee6eb873e
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB5006.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 90e11ce6-2009-4285-c8b1-08dee6f04f35
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB2370.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2026 05:47:20.6074
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2026 06:21:33.2053
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8PGwhnfB0RIaHawaLx4M7opjvQ2pmcilEVZIhdDlwi+kzJ7KWPdWTjvxr6d2kECqGzVuieNEjGufCxVX6CIA0w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB7593
+X-MS-Exchange-CrossTenant-UserPrincipalName: Y/z4kBNV2TM0NN8Q58cDFzXxv2onypYAsS4sc+mIxsa2sqrkfcm2ynbV5XKLZJxhD1f7IFQkCbUAoil4mZtm4g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PPF7D094C5BF
 
-On 7/21/26 5:33 AM, Gregory Price wrote:
-> find_next_best_node() picks the next-closest node for a fallback list
-> from the full N_MEMORY set. Refactor it into find_next_best_node_in(),
-> which takes an explicit candidates nodemask.
-> 
-> This enables building fallback lists with non-N_MEMORY candidates.
-> 
-> No functional change: every caller still selects from N_MEMORY.
-> 
-> Signed-off-by: Gregory Price <gourry@gourry.net>
-> ---
->  mm/internal.h     |  6 ++++--
->  mm/memory-tiers.c |  7 ++++---
->  mm/page_alloc.c   | 13 ++++++++-----
->  3 files changed, 16 insertions(+), 10 deletions(-)
-> 
-> diff --git a/mm/internal.h b/mm/internal.h
-> index f26423de4ca28..96d78a7778e88 100644
-> --- a/mm/internal.h
-> +++ b/mm/internal.h
-> @@ -1103,7 +1103,8 @@ extern int node_reclaim_mode;
->  
->  extern unsigned long node_reclaim(struct pglist_data *pgdat,
->  				  gfp_t gfp_mask, unsigned int order);
-> -extern int find_next_best_node(int node, nodemask_t *used_node_mask);
-> +extern int find_next_best_node_in(int node, nodemask_t *used_node_mask,
-> +				  const nodemask_t *candidates);
->  #else
->  #define node_reclaim_mode 0
->  
-> @@ -1112,7 +1113,8 @@ static inline unsigned long node_reclaim(struct pglist_data *pgdat,
->  {
->  	return 0;
->  }
-> -static inline int find_next_best_node(int node, nodemask_t *used_node_mask)
-> +static inline int find_next_best_node_in(int node, nodemask_t *used_node_mask,
-> +					 const nodemask_t *candidates)
->  {
->  	return NUMA_NO_NODE;
->  }
-> diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-> index 54851d8a195b0..25e121851b586 100644
-> --- a/mm/memory-tiers.c
-> +++ b/mm/memory-tiers.c
-> @@ -370,7 +370,7 @@ int next_demotion_node(int node, const nodemask_t *allowed_mask)
->  	 * closest demotion target.
->  	 */
->  	nodes_complement(mask, *allowed_mask);
-> -	return find_next_best_node(node, &mask);
-> +	return find_next_best_node_in(node, &mask, &node_states[N_MEMORY]);
->  }
->  
->  static void disable_all_demotion_targets(void)
-> @@ -450,7 +450,7 @@ static void establish_demotion_targets(void)
->  		memtier = list_next_entry(memtier, list);
->  		tier_nodes = get_memtier_nodemask(memtier);
->  		/*
-> -		 * find_next_best_node, use 'used' nodemask as a skip list.
-> +		 * find_next_best_node_in, use 'used' nodemask as a skip list.
->  		 * Add all memory nodes except the selected memory tier
->  		 * nodelist to skip list so that we find the best node from the
->  		 * memtier nodelist.
-> @@ -463,7 +463,8 @@ static void establish_demotion_targets(void)
->  		 * in the preferred mask when allocating pages during demotion.
->  		 */
->  		do {
-> -			target = find_next_best_node(node, &tier_nodes);
-> +			target = find_next_best_node_in(node, &tier_nodes,
-> +							&node_states[N_MEMORY]);
->  			if (target == NUMA_NO_NODE)
->  				break;
->  
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index f93a6bb9a872d..acf096f525f49 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -5743,9 +5743,10 @@ static int numa_zonelist_order_handler(const struct ctl_table *table, int write,
->  static int node_load[MAX_NUMNODES];
->  
->  /**
-> - * find_next_best_node - find the next node that should appear in a given node's fallback list
-> + * find_next_best_node_in - find the next node that should appear in a given node's fallback list
->   * @node: node whose fallback list we're appending
->   * @used_node_mask: nodemask_t of already used nodes
-> + * @candidates: nodemask_t of nodes eligible for selection
->   *
->   * We use a number of factors to determine which is the next node that should
->   * appear on a given node's fallback list.  The node should not have appeared
-> @@ -5757,7 +5758,8 @@ static int node_load[MAX_NUMNODES];
->   *
->   * Return: node id of the found node or %NUMA_NO_NODE if no node is found.
->   */
-> -int find_next_best_node(int node, nodemask_t *used_node_mask)
-> +int find_next_best_node_in(int node, nodemask_t *used_node_mask,
-> +			   const nodemask_t *candidates)
->  {
->  	int n, val;
->  	int min_val = INT_MAX;
-> @@ -5767,12 +5769,12 @@ int find_next_best_node(int node, nodemask_t *used_node_mask)
->  	 * Use the local node if we haven't already, but for memoryless local
->  	 * node, we should skip it and fall back to other nodes.
->  	 */
-> -	if (!node_isset(node, *used_node_mask) && node_state(node, N_MEMORY)) {
-> +	if (!node_isset(node, *used_node_mask) && node_isset(node, *candidates)) {
->  		node_set(node, *used_node_mask);
->  		return node;
->  	}
->  
-> -	for_each_node_state(n, N_MEMORY) {
-> +	for_each_node_mask(n, *candidates) {
->  
->  		/* Don't want a node to appear more than once */
->  		if (node_isset(n, *used_node_mask))
-> @@ -5857,7 +5859,8 @@ static void build_zonelists(pg_data_t *pgdat)
->  	prev_node = local_node;
->  
->  	memset(node_order, 0, sizeof(node_order));
-> -	while ((node = find_next_best_node(local_node, &used_mask)) >= 0) {
-> +	while ((node = find_next_best_node_in(local_node, &used_mask,
-> +					      &node_states[N_MEMORY])) >= 0) {
->  		/*
->  		 * We don't want to pressure a particular node.
->  		 * So adding penalty to the first node in same
+Add negative cases for the CXL fwctl Get Feature and Set Feature output
+buffer bounds checks.
 
+For Get Feature, request a non-zero payload while providing room only
+for the fwctl_rpc_cxl_out header. Verify that the kernel rejects the
+request with -EINVAL instead of writing past the rpc_out buffer.
 
-Looks good!
+For Set Feature, build a valid request and set out_len to zero. Verify
+that the kernel rejects it with -EINVAL. Without the bounds check,
+kvzalloc(0) returns ZERO_SIZE_PTR and the output header write can oops
+the kernel.
 
-Acked-by: Balbir Singh <balbirs@nvidia.com>
+Both cases depend on fixes [1]. Gate the tests on the running kernel
+version so older kernels skip the unsafe requests rather than failing
+the fwctl test.
+
+[1]: https://lore.kernel.org/all/20260624134737.49166-1-icheng@nvidia.com/
+Signed-off-by: Richard Cheng <icheng@nvidia.com>
+---
+Changelog:
+
+v1->v2:
+    - Gate the fix-dependent regression cases on kernel v7.3
+    - Add Set Feature out_len == 0 rejection coverage
+    - Group both cases behind one local kernel-version check
+
+Best regards,
+Richard Cheng.
+---
+ test/fwctl.c | 144 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 144 insertions(+)
+
+diff --git a/test/fwctl.c b/test/fwctl.c
+index 979c1a6..fb0d1da 100644
+--- a/test/fwctl.c
++++ b/test/fwctl.c
+@@ -5,10 +5,13 @@
+ #include <stdio.h>
+ #include <endian.h>
+ #include <stdint.h>
++#include <stddef.h>
++#include <stdbool.h>
+ #include <stdlib.h>
+ #include <syslog.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <sys/utsname.h>
+ #include <sys/ioctl.h>
+ #include <cxl/libcxl.h>
+ #include <linux/uuid.h>
+@@ -20,6 +23,35 @@
+ 
+ static const char provider[] = "cxl_test";
+ 
++/* Running kernel version parsed once in main(). */
++static unsigned int kver_major;
++static unsigned int kver_minor;
++
++/*
++ * kver_ge - Whether the running kernel at least major.minor
++ *
++ * Test cases for fixes tied to a specific kver gate here so that they quietly
++ * skip rather than fail on kernels that predate the fix.
++ */
++static bool kver_ge(unsigned int major, unsigned int minor)
++{
++	if (kver_major != major)
++		return kver_major > major;
++	return kver_minor >= minor;
++}
++
++static void parse_kver(void)
++{
++	struct utsname uts;
++
++	if (uname(&uts) == 0 &&
++	    sscanf(uts.release, "%u.%u", &kver_major, &kver_minor) == 2)
++		return;
++
++	kver_major = 0;
++	kver_minor = 0;
++}
++
+ UUID_DEFINE(test_uuid,
+ 	    0xff, 0xff, 0xff, 0xff,
+ 	    0xff, 0xff,
+@@ -207,6 +239,45 @@ out:
+ 	return rc;
+ }
+ 
++static int cxl_fwctl_rpc_get_feature_oob(int fd, struct test_feature *feat_ctx)
++{
++	struct cxl_mbox_get_feat_in *feat_in;
++	struct fwctl_rpc_cxl_out *out;
++	size_t out_size, in_size;
++	struct fwctl_rpc_cxl *in;
++	struct fwctl_rpc *rpc;
++	int rc;
++
++	in_size = sizeof(*in) + sizeof(*feat_in);
++	/* header only => zero payload room */
++	out_size = offsetof(struct fwctl_rpc_cxl_out, payload);
++
++	rpc = get_prepped_command(in_size, out_size,
++				  CXL_MBOX_OPCODE_GET_FEATURE);
++	if (!rpc)
++		return -ENXIO;
++
++	in = (struct fwctl_rpc_cxl *)rpc->in;
++	out = (struct fwctl_rpc_cxl_out *)rpc->out;
++
++	feat_in = &in->get_feat_in;
++	uuid_copy(feat_in->uuid, feat_ctx->uuid);
++	/* non-zero count that exceeds the zero payload room */
++	feat_in->count = feat_ctx->get_size;
++
++	rc = send_command(fd, rpc, out);
++	free_rpc(rpc);
++
++	if (rc == -EINVAL)
++		return 0;
++	if (rc == 0) {
++		fprintf(stderr, "Get Feature with undersized out_len was not rejected\n");
++		return -ENXIO;
++	}
++	fprintf(stderr, "Get Feature OOB rejection test: unexpected rc %d\n", rc);
++	return rc;
++}
++
+ static int cxl_fwctl_rpc_set_test_feature(int fd, struct test_feature *feat_ctx)
+ {
+ 	struct cxl_mbox_set_feat_in *feat_in;
+@@ -249,6 +320,73 @@ out:
+ 	return rc;
+ }
+ 
++static int cxl_fwctl_rpc_set_feature_oob(int fd, struct test_feature *feat_ctx)
++{
++	struct cxl_mbox_set_feat_in *feat_in;
++	struct fwctl_rpc_cxl_out *out;
++	size_t in_size, out_size;
++	struct fwctl_rpc_cxl *in;
++	struct fwctl_rpc *rpc;
++	uint32_t val;
++	void *data;
++	int rc;
++
++	in_size = sizeof(*in) + sizeof(*feat_in) + sizeof(val);
++	out_size = sizeof(*out) + sizeof(val);
++	rpc = get_prepped_command(in_size, out_size,
++				  CXL_MBOX_OPCODE_SET_FEATURE);
++	if (!rpc)
++		return -ENXIO;
++
++	in = (struct fwctl_rpc_cxl *)rpc->in;
++	out = (struct fwctl_rpc_cxl_out *)rpc->out;
++	feat_in = &in->set_feat_in;
++	uuid_copy(feat_in->uuid, feat_ctx->uuid);
++	data = feat_in->feat_data;
++	val = DEFAULT_TEST_DATA2;
++	*(uint32_t *)data = htole32(val);
++	feat_in->flags = CXL_SET_FEAT_FLAG_FULL_DATA_TRANSFER;
++
++	/* A valid Set Feature request with no room for the output header */
++	rpc->out_len = 0;
++	rc = send_command(fd, rpc, out);
++	free_rpc(rpc);
++
++	if (rc == -EINVAL)
++		return 0;
++	if (rc == 0) {
++		fprintf(stderr,
++			"Set Feature with zero out_len was not rejected\n");
++		return -ENXIO;
++	}
++	fprintf(stderr,
++		"Set Feature OOB rejection test: unexpected rc %d\n", rc);
++	return rc;
++}
++
++static int cxl_fwctl_rpc_feature_oob_tests(int fd,
++					   struct test_feature *feat_ctx)
++{
++	int rc;
++
++	if (!kver_ge(7, 3)) {
++		fprintf(stderr,
++			"skip: Feature OOB rejection tests need kernel >= 7.3\n");
++		return 0;
++	}
++
++	rc = cxl_fwctl_rpc_get_feature_oob(fd, feat_ctx);
++	if (rc) {
++		fprintf(stderr, "Failed Get Feature OOB rejection test: %d\n", rc);
++		return rc;
++	}
++
++	rc = cxl_fwctl_rpc_set_feature_oob(fd, feat_ctx);
++	if (rc)
++		fprintf(stderr, "Failed Set Feature OOB rejection test: %d\n", rc);
++	return rc;
++}
++
+ static int cxl_fwctl_rpc_get_supported_features(int fd, struct test_feature *feat_ctx)
+ {
+ 	struct cxl_mbox_get_sup_feats_out *feat_out;
+@@ -393,6 +531,10 @@ static int test_fwctl_features(struct cxl_memdev *memdev)
+ 		goto out;
+ 	}
+ 
++	rc = cxl_fwctl_rpc_feature_oob_tests(fd, &feat_ctx);
++	if (rc)
++		goto out;
++
+ out:
+ 	close(fd);
+ 	return rc;
+@@ -417,6 +559,8 @@ int main(int argc, char *argv[])
+ 	struct cxl_bus *bus;
+ 	int rc;
+ 
++	parse_kver();
++
+ 	rc = cxl_new(&ctx);
+ 	if (rc < 0)
+ 		return rc;
+-- 
+2.43.0
+
