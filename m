@@ -1,118 +1,153 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DE99363081
-	for <nvdimm@lists.linux.dev>; Tue, 21 Jul 2026 17:41:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5E1F415F09
+	for <nvdimm@lists.linux.dev>; Tue, 21 Jul 2026 18:16:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784655667; cv=none; b=Bk8Bi1fMxy/8Wu3NFRpEoi9kVNjJ/dFHYvXFS6QDJFKZ5SOhSwsyiMjByeUOc4AHhOLCd0089W+WYbj5grDhXcTOf2AdY1Pw/Id9274DbDzIi958d8aSSAY5kdNbv222MV7N6YGSUGpKM/7p+jcC8M2faVTLwQY1v1WwbXyyxCQ=
+	t=1784657790; cv=none; b=GBoWdFX3OkMLj3NfaxHXpYkMbU8Q77QaXYxVxsn6KrMmpXI2/4xI6LNadvGi7qnS4/kSajZNwQxeeUtuXBN3yy8TQ/GLO+ceIJ474zxwcPqrLX2AL52oMG9k94iQM0zWrFcDiBc0+0ChjEeUtKoiv6x6H5enPPsRMt24LXjU8Ig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784655667; c=relaxed/simple;
-	bh=ODtyo4DXX+IsVQEtyuytt8MBgamDODOWx7t1OEFcZXU=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=qqUNV4d6FB9pZvXQ+J4MjbZPhhYADFSryMUSSwbuhICSZr4jsmIlleM79SCnatwqEVnfDOatLByPRpVq0hYRxjKtzu7BngtDyYqC3ydxncLPQK77NdjyTAZo8rt4hBufA59Xst0Xi7EibmrYI2QxmrqXgkqCiVnBFqkoHV2njVQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ISjnY6Nz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784657790; c=relaxed/simple;
+	bh=oFlvw3giOtGQsSkXQn6VVdx6osu4tro2T3RPW7SBhU0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YQCtezcZ/SOWCOq3rg05b7r80aRDbuJoTY/k4CY2PFHherfWHbvo/nDbEbzQi8zRjnFlT3Hgi5oFhj114l48bmBpNy9Z8RZEnLG7KrQoVO2HWMeyMmdpEftvwv/d7GeDYoi2GvFc98Mi6kHVT8cD6wJSnNn2ZScGmh7tZI8ssmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Y9ROWYwt; arc=none smtp.client-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ISjnY6Nz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B837D1F00A3A;
-	Tue, 21 Jul 2026 17:41:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784655665;
-	bh=YOPtZ1PZxJbE10N++cdC5oQ2MdFjxmpHMODBFYNr0JM=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ISjnY6NzGfNkdkwoucXOW/GgysRTkMzxqgzOZTOUKU1CvSp85RWknHfbP94c38ZYW
-	 2THr5RaE1RzHRcd/CMBgfUodf5P/AAHIoj3ZKH1FmrFRHYZ2JvbttioEsxBIpBrgS9
-	 CIrXoZkI7xWLkOPIlcvMoscu/JbeItmUdvjHlxqDFTgFcvoxU0MoXoGupfsnr4hyJ/
-	 hRCZe8eHgEeJaQ358Yg4+scYKyR1ZnmxqPbAIkJL5zT8aZ1lDzZ9nqKDwrnGVTa8de
-	 Ro+2cFr8kYfIxsxm9Gah3i/M35+x2+b62nE4YDEh1cgW1znciW1znV9JrvXkiwKyb6
-	 jWIpFcRE0GPCA==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 1/2] libnvdimm: nd.h: clean up kernel-doc warnings
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Randy Dunlap" <rdunlap@infradead.org>
-Cc: nvdimm@lists.linux.dev
-In-Reply-To: <20260721172132.3718892-1-rdunlap@infradead.org>
-References: <20260721172132.3718892-1-rdunlap@infradead.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 21 Jul 2026 17:41:05 +0000
-Message-Id: <20260721174105.B837D1F00A3A@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Y9ROWYwt"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-526f963372aso7668481cf.1
+        for <nvdimm@lists.linux.dev>; Tue, 21 Jul 2026 11:16:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1784657788; x=1785262588; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=tK6CpaworNApxpcs4ZRJbHY7w08bgOkmP8ipHWd1tq8=;
+        b=Y9ROWYwtMNHw9dpr9ETmAJJLCDvgcQUO7o5EX6NlnqHqvAfxG5AKlQ3mRMO2/QxeVq
+         ZXiYSHh/Zjm0GpHvCHQk1SbIdR85N4TzIZ0IHIX6o7Tg7HfxoEwWztTIeMtehJCWEGoS
+         BsFsqta7MA+aG81sS0mtuswwr2Z4Wn24Lhvk/cTf97YdD1CtD9NBgK3+BG6zo4PuCG2a
+         1xLiFGTZLZmlcOhYo+zTeTES215teGUIdJQ4YLHn27y25oBawPpjtFMkQKu9zugpieVK
+         lSLmVGzCvqugG5Wb0jm0shrSdKodGpjJ+Lqmd5h0XBnYs1XLcxXdW/zy9UeqFupfshT2
+         +ZBw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784657788; x=1785262588;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=tK6CpaworNApxpcs4ZRJbHY7w08bgOkmP8ipHWd1tq8=;
+        b=jal22g40VQQfX7d2CeJm7aGondNbNfNTgwZOa83gEYKq8NPGobhP4rqoipWPr8q2WS
+         aINhOWcssPkDe2mXw/RttwSAZmKu68M2shBXHAOzTSA2pLu4D/mZMq9kGZ30Z4HICxOM
+         ANJXIn8GJP4v8Gd4+VJ03kitisxpBbHA+EkDqHYstAZPKpLVWvYomYQyxBMGP6IZ8EfS
+         //Tuxvtv+MOLNXHzgKipAuh5PdkEKoKviWTZY0ZlSUwszzdDMQc9L5Vq2CXcBAbhqcD9
+         DBFRwJITosRQo4qMOvG58PrTmmVwgolC4VztwzROOVe6tMnWwiZacA7BlXmT4vQjimOe
+         7mIA==
+X-Forwarded-Encrypted: i=1; AHgh+Rq0w/+hbLD3BCCu1lPqRMEi8A/aSCEfl4yB2AcKpRzW+sEqZoqaxYTagPZmr4asSnwaAxGIAiM=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwPW+w9N6c0UXeVWwSbCUu1Dtnr+UTsWO5YcvVBxGA1VnJ8tjF7
+	ZpFKlbNy2lbDRKSS3vFuh08npbk79OfsPoOMXxnRR8jVdXwgKIsE5niOIWjeidcDQ4U=
+X-Gm-Gg: AfdE7clXjL2R1TuvsmIFEh90fKpBXAcol5T0ENiQykM4pb5/8+oN8WupWLdi0xxIUeK
+	7AiKbtMdVmEOdNAv5dxBHi7Hz7GxeeMdHdnKZ1ozlu/cZ5cdkqSJgYSYX3SMTKjKt1aJYk80zmy
+	6+jiuUqzQCuoHs+s6QQyi1y/bklnQB5EzVFNHKPPpfoQWp44hf4wMWtLWRO0w4sjLXEeVu3Q819
+	JyGuND1z5xLI0eaakw10lY6Cj+mHqb4UpJpOLowm8iTk+ZjRUmKpDvyMk3R6gVJ8ve9O/sZqrNb
+	PP5uCuvU9pwcIFMK741urYDuz2Qni3IUwhHxoRAC043LmJK88qbYhNnRmwI37SN+e2p0JCpR0Dv
+	y+kQdqkLLCt2iMwUctiD+EkP/6rLwQaBwifCWPDYAm47jTfHqIO/l/j+zgWAZyRCL906ztnTQWg
+	/Z8OkfeS9b9j673osAl9IHZcUn5l8p0IVq2XMuATGCH8zQ/nPsZrycXAVV2WS3t/ViODCY
+X-Received: by 2002:ac8:5845:0:b0:51c:7b12:600a with SMTP id d75a77b69052e-5213e881e44mr171868611cf.86.1784657787636;
+        Tue, 21 Jul 2026 11:16:27 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-527d066fa6asm463921cf.6.2026.07.21.11.16.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Jul 2026 11:16:27 -0700 (PDT)
+Date: Tue, 21 Jul 2026 14:16:21 -0400
+From: Gregory Price <gourry@gourry.net>
+To: Balbir Singh <balbirs@nvidia.com>
+Cc: linux-mm@kvack.org, Zhigang.Luo@amd.com, arun.george@samsung.com, 
+	brendan.jackman@linux.dev, yuzenghui@huawei.com, apopple@nvidia.com, alucerop@amd.com, 
+	matthew.brost@intel.com, akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org, 
+	liam@infradead.org, vbabka@kernel.org, rppt@kernel.org, surenb@google.com, 
+	mhocko@suse.com, corbet@lwn.net, skhan@linuxfoundation.org, 
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, djbw@kernel.org, 
+	vishal.l.verma@intel.com, dave.jiang@intel.com, alison.schofield@intel.com, 
+	osandov@osandov.com, jannh@google.com, pfalcato@suse.de, jackmanb@google.com, 
+	hannes@cmpxchg.org, ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de, 
+	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com, ying.huang@linux.alibaba.com, 
+	kasong@tencent.com, qi.zheng@linux.dev, shakeel.butt@linux.dev, baohua@kernel.org, 
+	axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com, yury.norov@gmail.com, 
+	linux@rasmusvillemoes.dk, longman@redhat.com, ridong.chen@linux.dev, tj@kernel.org, 
+	mkoutny@suse.com, sj@kernel.org, jgg@ziepe.ca, jhubbard@nvidia.com, 
+	peterx@redhat.com, baolin.wang@linux.alibaba.com, npache@redhat.com, 
+	ryan.roberts@arm.com, dev.jain@arm.com, lance.yang@linux.dev, usama.arif@linux.dev, 
+	xu.xin16@zte.com.cn, chengming.zhou@linux.dev, roman.gushchin@linux.dev, 
+	muchun.song@linux.dev, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	driver-core@lists.linux.dev, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+	linux-debuggers@vger.kernel.org, linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org, 
+	cgroups@vger.kernel.org, damon@lists.linux.dev, linux-kselftest@vger.kernel.org, 
+	kernel-team@meta.com
+Subject: Re: [PATCH v5 00/36] Private Memory NUMA Nodes
+Message-ID: <al-2D_7NcwMxqmsM@gourry-fedora-PF4VCD3F>
+References: <20260720193431.3841992-1-gourry@gourry.net>
+ <6a7aaac3-e70d-4063-9c84-e643db1488e0@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6a7aaac3-e70d-4063-9c84-e643db1488e0@nvidia.com>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
+On Tue, Jul 21, 2026 at 01:46:01PM +1000, Balbir Singh wrote:
+> On 7/21/26 5:33 AM, Gregory Price wrote:
+> > 
+> > Patch Layout
+> > ============
+> > The series is broken into two sections:
+> > 
+> > 1) N_MEMORY_PRIVATE Introduction.
+> >    Introduce the node state.
+> >    Opt those nodes out of mm/ services.
+> > 
+> > 2) NODE_PRIVATE_CAP_* features
+> >    A set of mm/ service opt-in flags that augment private
+> >    nodes to make them more useful (i.e. reclaim = overcommit).
+> > 
+> >    NODE_PRIVATE_CAP_LTPIN for private node folio pinning
+> >    NODE_PRIVATE_CAP_NUMA_BALANCING for private-node NUMA balancing
+> >    NODE_PRIVATE_CAP_DEMOTION for private-node tiering demotion
+> >    NODE_PRIVATE_CAP_HOTUNPLUG for opted-in private nodes
+> >    NODE_PRIVATE_CAP_USER_NUMA for userland numa controls
+> >    NODE_PRIVATE_CAP_RECLAIM for opted-in private node reclaim
+> > 
+> 
+> Looks reasonable, I wonder why USER_NUMA/HOTUNPUG is an opt-in?
+> 
 
-Pre-existing issues:
-- [Critical] Writing to poisoned memory without clearing it first can trigg=
-er a Machine Check Exception (MCE) leading to a kernel panic.
---
+Ideologically: Private nodes default to fully isolated, why should any
+given feature be special?
 
---- Patch [1]: [PATCH 1/2] libnvdimm: nd.h: clean up kernel-doc warnings ---
-commit e89a1ebc4ad5020678df8e74422e59aff926ae52
-Author: Randy Dunlap <rdunlap@infradead.org>
+Concretely: 
 
-libnvdimm: nd.h: clean up kernel-doc warnings
+User-numa
 
-This commit resolves kernel-doc warnings in include/linux/nd.h by adding
-missing struct member, function parameter, and function return descriptions.
+   Some devices don't want the user to have control over placement.
+   I have been working on compressed memory, for example, which only
+   ever wants to be used as a reclaim-demotion target.
+   
+   (The reasoning for this is another thread, i plan on publishing
+    my research on this this year)
 
-> diff --git a/include/linux/nd.h b/include/linux/nd.h
-> index fa099e295f780..62988000e7a7e 100644
-> --- a/include/linux/nd.h
-> +++ b/include/linux/nd.h
+Hot-unplug:
 
-[ ... ]
+   Some devices can't necessarily handle unexpected migration, and
+   hot-unplug is fundamentally a migration.  So the HOTUNPLUG cap
+   actually means "hot-unplug can execute migrations".
 
-> @@ -174,11 +177,14 @@ static inline int nvdimm_read_bytes(struct nd_names=
-pace_common *ndns,
->   * @offset: namespace-relative starting offset
->   * @buf: buffer to drain
->   * @size: transfer length
-> + * @flags: process (0) or atomic (1) context
->   *
->   * NVDIMM Namepaces disks do not implement sectors internally.  Dependin=
-g on
->   * the @ndns, the contents of @buf may be in cpu cache, platform buffers,
->   * or on backing memory media upon return from this routine.  Flushing
->   * to media is handled internal to the @ndns driver, if at all.
-> + *
-> + * Returns: %0 on success or a negative error code on failure
->   */
->  static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
->  		resource_size_t offset, void *buf, size_t size,
+   If the entire device has pre-drained the memory (all memory is free)
+   then unplug works - it's just not very hot (no migrations) :]
 
-[Severity: Critical]
-This is a pre-existing issue, but while reviewing this documentation update
-for nvdimm_write_bytes(), I noticed a potential problem in its underlying=20
-implementation in drivers/nvdimm/claim.c:nsio_rw_bytes().
+   Maybe a naming issue?
 
-When a write is performed on a poisoned PMEM block and clearing the poison
-fails (for instance, when unaligned or in atomic context), the code sets=20
-the error code but appears to fall through to execute the write anyway:
+~Gregory
 
-drivers/nvdimm/claim.c:nsio_rw_bytes() {
-    ...
-                if (cleared < size)
-                    rc =3D -EIO;
-                // ...
-            } else
-                rc =3D -EIO;
-    }
-
-    memcpy_flushcache(nsio->addr + offset, buf, size);
-    ...
-}
-
-Can a read-for-ownership of a poisoned cacheline during this fallback write
-trigger a synchronous Machine Check Exception and panic the kernel?
-
-Would it be safer to return early or skip the memcpy_flushcache call when=20
-rc is set to -EIO?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260721172132.3718=
-892-1-rdunlap@infradead.org?part=3D1
