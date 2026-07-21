@@ -1,186 +1,112 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17B4938B133;
-	Tue, 21 Jul 2026 18:18:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04BBD46EC6A;
+	Tue, 21 Jul 2026 18:18:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784657895; cv=none; b=I4KRyTnwWjXBuvdH4Ds+LVvRhkthO68bAco36FC4BoSueC+CHfmtq+FGod4yBMT1YPqu9DNRKZXPAUQDpUHkz+d6ELHzgLGyQAElEPELYnpgXnW0JiLrNjAr96+7ediAk2hSSJi5HlYMy2hpMJyp2APk/cV6zsUA5NLFuCS+qy4=
+	t=1784657903; cv=none; b=PQZI27BppA/Fb5+X9RSrcnU6gUds/9guVnF5DP4N68mUXm46aGB6iz28P95gmt74XFdO0uGmfeXWRXaIT21iWqIX1dGQxuPY4VdpV2vkuajYpY5EzgIexeNy0akTK0GLRe4UzUpdq+IC+WNV055D/Yq/309xNUZUYa7C4PtuUrY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784657895; c=relaxed/simple;
-	bh=4gzzbg/fU9CbV4STkwyy7dOquWPNue3Od/aOD81MjZw=;
+	s=arc-20240116; t=1784657903; c=relaxed/simple;
+	bh=OpxkXqzOzw2NZxwQr5QzIuvD1a0cg0T2Wc/dcslcHLQ=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=XPjYXpweYhAR5hhvy4K1DQf9sY6WhJfyWa5byCRW9e8ZKGwidgY7pRyYmEg/ej71mViUhij+i8/Ej+b/VqHmVCQ9c6rhPRn7pCCp8f9mpnvCPIdo3srpCsMF2hlJcsH11+1shcOpFGTIoTyKEWqxTzHgVpY+zp3J5Vi4nwWBIYg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BZ+MJoa5; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=Bp3xkqZnPYWLFJJUMQXOLAJchFe0Iqhvh19wlJSCasbHe7K8i6iiwNcyWZ0ejhJiPfoPHpvSybbnzbPkTP7JFhzgU7BJF7MbgWGaGZeoFUVmXnyE42ERNZAJLec5tQssenMiEvx/ScF8XjzlTyoxD3fMw4edVzYhItV7O0qt12w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V7YiKutG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BZ+MJoa5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B2431F000E9;
-	Tue, 21 Jul 2026 18:18:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V7YiKutG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45D411F000E9;
+	Tue, 21 Jul 2026 18:18:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784657893;
-	bh=kFHzSs480+7D89snZ7VkI1MHIHLkeyCx2v+qJH/8lNs=;
+	s=k20260515; t=1784657901;
+	bh=qGcuozlBczXTfHMatUJ0WNv/7IHY075oZuuMRPrWZxw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=BZ+MJoa5VCCO5+hlzY8SwN21AUJdSz+xdPkC2wQs1HDjsjFbmup0fFtDHD1CNj6bp
-	 gxB4T/dwqGrLCFB6B9c8zGsqkZCTEO8DMDxUFpnd6kpC2oDRMw0iJGaKYIjoV9FQF8
-	 83KcgyV4KSA/x5ylDflD4Qv6tRJeYiH7QIKJIUpj0zN/youX/zXnsAk5P0kF/4Yw6h
-	 q9XgSxKnJmgKMOhYZGGD/4HLPzMrnAeYvMpon/D/u1NTKAyJ36j/vXgMaRVhh4HIY7
-	 tNmygJ9ZpjOzMTojkxIWxX40vNS7RllWJ2LvppJJdioDHC2dqRBGprziCw8VRPIiSG
-	 JMmeMdWx7RRCw==
+	b=V7YiKutGKxlugM9kfou50W6IbeOf+8l9gF4qDjxSGSWVDAFyAOkMmQvx8op9O/ZQu
+	 CmJ/k/l6GQdh92Q+eCHFX0cD8X4I2r96ztthAsfHzqmJxVLPbR/OhgzWDKcmgVUnbn
+	 iDqUqXqh7/GtoguyRrK9MK/HqbSfGRJ/GssMi7StnXBfRbO6/pl3WqbBFSQvvbEvrd
+	 aRPBWrmrP3+TImv4Nii2iWBIeYDVHyl+1MQm49MzG9PaZCjf3tnzYu8eau5QMOy0bZ
+	 X1OO5DL9gUeH6eM8+k0Icg1Yam9bn8MJNUVbAE+jkgD6pmUYdOlYZhXreE6vEJ5bPf
+	 G6Ugg7V1T7iRQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 04/36] numa: introduce N_MEMORY_PRIVATE
+Subject: Re: [PATCH v5 14/36] mm/damon: skip private node memory in DAMON
+ migration and pageout
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Gregory Price" <gourry@gourry.net>
-Cc: nvdimm@lists.linux.dev, damon@lists.linux.dev, mkoutny@suse.com, hannes@cmpxchg.org, tj@kernel.org, kvm@vger.kernel.org, linux-cxl@vger.kernel.org
-In-Reply-To: <20260720193431.3841992-5-gourry@gourry.net>
+Cc: nvdimm@lists.linux.dev, hannes@cmpxchg.org, damon@lists.linux.dev, kvm@vger.kernel.org, tj@kernel.org, mkoutny@suse.com, linux-cxl@vger.kernel.org
+In-Reply-To: <20260720193431.3841992-15-gourry@gourry.net>
 References: <20260720193431.3841992-1-gourry@gourry.net>
- <20260720193431.3841992-5-gourry@gourry.net>
+ <20260720193431.3841992-15-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 21 Jul 2026 18:18:13 +0000
-Message-Id: <20260721181813.7B2431F000E9@smtp.kernel.org>
+Date: Tue, 21 Jul 2026 18:18:20 +0000
+Message-Id: <20260721181821.45D411F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Medium] Missing bounds validation on `nid` in `node_private_register()` =
-and `node_private_unregister()` leads to out-of-bounds reads.
-- [Medium] Lockless read of an `__rcu` pointer in `pgdat_is_private()` with=
-out using `rcu_access_pointer()`.
+- [Medium] Inconsistent placement of the `folio_is_private_node()` check ca=
+uses incorrect `sz_filter_passed` accounting and unnecessary filter side-ef=
+fects in `damon_pa_migrate()` compared to `damon_pa_pageout()`.
 --
 
---- Patch [4]: [PATCH v5 04/36] numa: introduce N_MEMORY_PRIVATE ---
-commit 69b3cbf2395b52c525233c59376e585ae83c3f31
+--- Patch [14]: [PATCH v5 14/36] mm/damon: skip private node memory in DAMO=
+N migration and pageout ---
+commit eb373ee8a3d83be1e35d66f74d2720ee3b1c26fa
 Author: Gregory Price <gourry@gourry.net>
+mm/damon: skip private node memory in DAMON migration and pageout
 
-numa: introduce N_MEMORY_PRIVATE
+This commit updates DAMON's physical address operations to skip private-node
+folios during both migration and pageout reclaim paths.
 
-Some devices want to hotplug their memory onto a node, but not have it
-exposed as "general purpose". This commit adds basic infrastructure for
-N_MEMORY_PRIVATE nodes, intended for memory isolated from the page
-allocator's normal and fallback zonelists.
-
-> diff --git a/drivers/base/node.c b/drivers/base/node.c
-> index 3da91929ad4e3..94cd51f51b7e8 100644
-> --- a/drivers/base/node.c
-> +++ b/drivers/base/node.c
-
-[ ... ]
-
-> @@ -868,6 +869,116 @@ void register_memory_blocks_under_node_hotplug(int =
-nid, unsigned long start_pfn,
->  			   (void *)&nid, register_mem_block_under_node_hotplug);
->  	return;
->  }
-> +
-> +static DEFINE_MUTEX(node_private_lock);
-> +
-> +/**
-> + * node_private_register - Register a private node
-> + * @nid: Node identifier
-
-[ ... ]
-
-> + */
-> +int node_private_register(int nid, struct node_private *np)
-> +{
-> +	struct node_private *existing;
-> +	pg_data_t *pgdat;
-> +	int ret =3D 0;
-> +
-> +	if (!np || !node_possible(nid))
-> +		return -EINVAL;
-
-[Severity: Medium]
-Could this lead to an out-of-bounds read if a driver passes an invalid nid
-like NUMA_NO_NODE (-1)?=20
-
-node_possible() and NODE_DATA() do not perform bounds checking internally.
-Should we verify nid >=3D 0 && nid < MAX_NUMNODES before using it?
-
-> +
-> +	mutex_lock(&node_private_lock);
-> +	mem_hotplug_begin();
-> +
-> +	/* N_MEMORY_PRIVATE and N_MEMORY are mutually exclusive */
-> +	if (node_state(nid, N_MEMORY)) {
-> +		ret =3D -EBUSY;
-> +		goto out;
-> +	}
-> +
-> +	pgdat =3D NODE_DATA(nid);
-
-[ ... ]
-
-> +/**
-> + * node_private_unregister - Unregister a private node
-> + * @nid: Node identifier
-
-[ ... ]
-
-> + */
-> +int node_private_unregister(int nid)
-> +{
-> +	struct node_private *np;
-> +	pg_data_t *pgdat;
-> +
-> +	if (!node_possible(nid))
-> +		return 0;
-
-[Severity: Medium]
-Is it possible for a driver to pass NUMA_NO_NODE here as well, leading to
-the same out-of-bounds read issue when node_possible() and NODE_DATA()
-are evaluated?
-
-> +
-> +	mutex_lock(&node_private_lock);
-> +	mem_hotplug_begin();
-> +
-> +	pgdat =3D NODE_DATA(nid);
-
-[ ... ]
-
-> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-> index 0507193b3ae34..9815e48c03b97 100644
-> --- a/include/linux/mmzone.h
-> +++ b/include/linux/mmzone.h
-
-[ ... ]
-
-> @@ -1596,12 +1598,25 @@ typedef struct pglist_data {
->  	atomic_long_t		vm_stat[NR_VM_NODE_STAT_ITEMS];
->  #ifdef CONFIG_NUMA
->  	struct memory_tier __rcu *memtier;
-> +	struct node_private __rcu *node_private;
->  #endif
->  #ifdef CONFIG_MEMORY_FAILURE
->  	struct memory_failure_stats mf_stats;
->  #endif
->  } pg_data_t;
+> diff --git a/mm/damon/paddr.c b/mm/damon/paddr.c
+> index e4f98d67461f5..c741a94319750 100644
+> --- a/mm/damon/paddr.c
+> +++ b/mm/damon/paddr.c
+> @@ -250,6 +251,10 @@ static unsigned long damon_pa_pageout(struct damon_r=
+egion *r,
+>  			continue;
+>  		}
 > =20
-> +#ifdef CONFIG_NUMA
-> +static inline bool pgdat_is_private(pg_data_t *pgdat)
-> +{
-> +	return !!pgdat->node_private;
+> +		/* private node memory is not reclaimable by default */
+> +		if (folio_is_private_node(folio))
+> +			goto put_folio;
+> +
+>  		if (damos_pa_filter_out(s, folio))
+>  			goto put_folio;
+>  		else
+
+[ ... ]
+
+> @@ -344,6 +349,10 @@ static unsigned long damon_pa_migrate(struct damon_r=
+egion *r,
+>  		else
+>  			*sz_filter_passed +=3D folio_size(folio) / addr_unit;
+> =20
+> +		/* private nodes do not support migration by default */
+> +		if (folio_is_private_node(folio))
+> +			goto put_folio;
+> +
 
 [Severity: Medium]
-Does this lockless read of the __rcu pointer require rcu_access_pointer()?
+Does placing this check after the filter evaluation cause incorrect DAMON
+statistics?
 
-Without it, sparse will likely complain about an __rcu address space
-violation, and we might be missing the READ_ONCE() barrier that prevents
-compiler load tearing.
+Because the check happens here rather than before the filter evaluation, it
+appears unmigratable private node folios will be erroneously counted in
+sz_filter_passed. This might also trigger unnecessary filter logic evaluati=
+ons
+before we ultimately skip the folio.
 
-> +}
-> +#else
-> +static inline bool pgdat_is_private(pg_data_t *pgdat)
-> +{
-> +	return false;
-> +}
-> +#endif
+Could we move this up before damos_pa_filter_out() in damon_pa_migrate() so
+it matches the logic flow used earlier in damon_pa_pageout()?
+
+>  		if (!folio_isolate_lru(folio))
+>  			goto put_folio;
+>  		list_add(&folio->lru, &folio_list);
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260720193431.3841=
-992-1-gourry@gourry.net?part=3D4
+992-1-gourry@gourry.net?part=3D14
