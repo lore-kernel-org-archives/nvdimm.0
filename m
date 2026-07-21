@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D79246E009;
-	Tue, 21 Jul 2026 18:32:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44FF946E012;
+	Tue, 21 Jul 2026 18:33:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784658779; cv=none; b=aRAbjBWVuVhz7AaavhPG3AF8TB0ATBK3xL3QRvrOJnCxlbg5+F7QiYZQOQDYzC7mO5lYpYvPjOqUVjZrG4vOHXKUZg2nleI6jUYWVRsFIEl5F3JxLBAxQtj5aV3tNSUo5tliXlgjTeZX+khQZF1BnbKcNutD4kmGg8g737rDPcY=
+	t=1784658827; cv=none; b=lhHKAdCXMSEEtVtUk7LK5RVwQPYioXd3GgwYbkwVVaNFzXUVQ1xS+6x/sl1Fb8W9SbfxmxGCWf5teGVkVLQxx+b6ftyJFf2NorLaCQUz9vPg/SI5S9zpoMBS+aVYzF5NlX8iD8x7dAAU9RLMKXeRuLh9/xKNBD9P8EaKxS14/00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784658779; c=relaxed/simple;
-	bh=OOkaL4lpnS5Qw/UTmYERzFjvfDzV56Qm/AhTQUM20ZE=;
+	s=arc-20240116; t=1784658827; c=relaxed/simple;
+	bh=QUAjjDsCjNFS7Y7Rk3+ilOh0/Y3fgWeXx5kGZc4z6K8=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=EBLukwwoSCkatKdh9el0tUMmrqBTIuuByzu/tf7STi/aXKY9ropVchw0F7WtalsTHlxILjI+gk9CmqeytcnRCb+njXvp1M5p8DO26asqOZSsxynrwrpiWGAU+k1/yXMlUxS69JOio3R2KYE2/U5490b3QwRpTz0nhNjNaYY7T54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fGcKoeJB; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=og3sVIcXRLApslDqp+x/gYr9jMU2f1l5mqzKTgeq1OHbaGnL1PfQdLOvzRoJOCJdhXkKp3upmpheRNvMkWsaJha5ryABktG26dlUYLN8R+ZrEdbDOBT+i989ySIs8C/BlNs5Hfr8RZbKVAeNBikJbvU/JISQ0e7NWvwMWpRH9dU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nw2XMJ4f; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fGcKoeJB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 706661F000E9;
-	Tue, 21 Jul 2026 18:32:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nw2XMJ4f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A94F1F00A3A;
+	Tue, 21 Jul 2026 18:33:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784658777;
-	bh=mO7/ZkRxP9TPkZGsiKEGrJQZq6dmwkd/IEXmOTMYits=;
+	s=k20260515; t=1784658825;
+	bh=qk7BsPv25KzN+RWDTkd6cmriou77M/FCOWrxsgl9Wmw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=fGcKoeJBVi3CKeUe2IGhl/gd/FgeYKmKN24UXxwosINLc7x+TNHCFNtr/74fqkqSJ
-	 SXTQ5Acgj6NhHO/sA3igZdaH6zoXrCwyu73mLawktx6urTFyzQ5/ImOlFR+M6MMhe3
-	 ixg3qJOfNDYGgEOT5dKwArLcuPjHAtCIyneyO+gkfSTacbvUw4+G0eHDSH+1PJPuKx
-	 FzPlecLqzqI09WJjhvqlbAW2iHhV43tW8UkrkPNRnA2fMZK6xY0JyMDpCKyY9jpYuh
-	 9zInChsmzDYB7oj4soY/ZkL68tBv27mQAVsN48CS581nrBj10QiJsuysrccLtvrshA
-	 aM3TERmEhGG2g==
+	b=Nw2XMJ4f+OImOfprkjW/ww7WTq3GSm8b2ByO3HRF9hd2wamN6vYweHVe/lUnGgh7d
+	 tB41b1icEWLVPgK8cpNmZTXg5UhSuc6ErqCemVvzFQmgazhlAHRrSKcIbujgelXMBz
+	 wqcMClVooyFPQZefhmprKc1Z3ExH4k5LivQmt9OnXf+F6ltG3QxDDG10ZwSO/GH5xh
+	 XVFQ7FsazIHxEHMoS7efzBss0Sa+hjwWISxMhsFonQk0aG9oYJC05zIFm1F0jDihmt
+	 wwM7Aa3p468JDzdLkr2nI9uEiq3+a5soY/Wo1YcM5QbqKyOwkgejHse64gM4Hb2t2t
+	 EWo6xLCqjxcHw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 09/36] mm/migrate: disallow userland driven migration
- for private nodes
+Subject: Re: [PATCH v5 25/36] mm/memory_hotplug: support N_MEMORY_PRIVATE
+ node hotplug
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Gregory Price" <gourry@gourry.net>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, kvm@vger.kernel.org, mkoutny@suse.com, damon@lists.linux.dev, tj@kernel.org, hannes@cmpxchg.org
-In-Reply-To: <20260720193431.3841992-10-gourry@gourry.net>
+Cc: mkoutny@suse.com, nvdimm@lists.linux.dev, tj@kernel.org, kvm@vger.kernel.org, damon@lists.linux.dev, hannes@cmpxchg.org, linux-cxl@vger.kernel.org
+In-Reply-To: <20260720193431.3841992-26-gourry@gourry.net>
 References: <20260720193431.3841992-1-gourry@gourry.net>
- <20260720193431.3841992-10-gourry@gourry.net>
+ <20260720193431.3841992-26-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 21 Jul 2026 18:32:56 +0000
-Message-Id: <20260721183257.706661F000E9@smtp.kernel.org>
+Date: Tue, 21 Jul 2026 18:33:45 +0000
+Message-Id: <20260721183345.6A94F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,145 +47,129 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
 Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-
-New issues:
-- [High] Incomplete replacement of `zone_device` checks allows uncoordinate=
-d background migrations of private node memory.
-- [High] node_private_unregister() permanently returns -EBUSY for private n=
-odes because offline_pages() never clears N_MEMORY_PRIVATE.
-
-Pre-existing issues:
-- [High] User-space addresses are not stripped of memory tags (e.g., ARM64 =
-MTE) before VMA lookup in do_pages_stat_array(), causing valid tagged addre=
-sses to fail with -EFAULT.
+- [High] Private node registration and unregistration incorrectly rely on N=
+_MEMORY and N_MEMORY_PRIVATE states, which only track online memory, causin=
+g isolation breakage and hijacking of normal memory nodes.
+- [High] A TOCTOU race condition exists between memory unplug and private n=
+ode registration due to lock ordering.
+- [Medium] Direct access of __rcu pointer in pgdat_is_private() without usi=
+ng rcu_access_pointer().
 --
 
---- Patch [9]: [PATCH v5 09/36] mm/migrate: disallow userland driven migrat=
-ion for private nodes ---
-commit 7ed55bccdffe7ca2bf917693b091b54ebe294b02
+--- Patch [25]: [PATCH v5 25/36] mm/memory_hotplug: support N_MEMORY_PRIVAT=
+E node hotplug ---
+commit 976d363a06939b47fdc2d106fc8f3ec46359abd3
 Author: Gregory Price <gourry@gourry.net>
+Subject: mm/memory_hotplug: support N_MEMORY_PRIVATE node hotplug
 
-mm/migrate: disallow userland driven migration for private nodes
+This commit introduces add_private_memory_driver_managed() to allow
+modules to hotplug memory into an N_MEMORY_PRIVATE node. It introduces
+logic to register node ownership and opts these private nodes out of
+reclaim/compaction by default.
 
-Use the same filter locations as zone_device folios to disallow
-userland driven migration requests for private node memory.
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 2b9c0830821e6..be230ac9efe5a 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
 
-> diff --git a/mm/migrate.c b/mm/migrate.c
-> index a8a86141dbb54..d20674c07b947 100644
-> --- a/mm/migrate.c
-> +++ b/mm/migrate.c
-> @@ -2268,7 +2268,7 @@ static int __add_folio_for_migration(struct folio *=
-folio, int node,
->  	if (is_zero_folio(folio) || is_huge_zero_folio(folio))
->  		return -EFAULT;
+[ ... ]
+
+> @@ -1204,13 +1204,20 @@ int online_pages(unsigned long pfn, unsigned long=
+ nr_pages,
+>  	online_pages_range(pfn, nr_pages);
+>  	adjust_present_page_count(pfn_to_page(pfn), group, nr_pages);
 > =20
-> -	if (folio_is_zone_device(folio))
-> +	if (folio_is_private_managed(folio))
+> +	/*
+> +	 * N_MEMORY and N_MEMORY_PRIVATE are mutually exclusive, determine
+> +	 * which is correct based on whether the pgdat->private is set.
+> +	 */
+>  	if (node_arg.nid >=3D 0)
+> -		node_set_state(nid, N_MEMORY);
+> +		node_set_state(nid, pgdat_is_private(NODE_DATA(nid)) ?
+> +				    N_MEMORY_PRIVATE : N_MEMORY);
 
-[Severity: High]
-By updating these filters, do we also need to update similar checks in
-uncoordinated background migration paths?
+[Severity: Medium]
+Does pgdat_is_private() directly evaluate the __rcu annotated
+pgdat->node_private pointer without using rcu_access_pointer()? A direct
+boolean evaluation of an __rcu pointer can result in compiler load tearing.
 
-If background tasks encounter a private node folio, they will evaluate
-folio_is_zone_device() or is_zone_device_page() as false. Could this allow
-NUMA balancing, KSM, or khugepaged to silently migrate private node memory
-to general-purpose nodes?
+[ ... ]
 
-For example, in NUMA balancing:
-
-mm/memory.c:do_numa_page() {
-    ...
-    if (!folio || folio_is_zone_device(folio))
-        goto out_map;
-    ...
-}
-
-In THP collapse:
-
-mm/khugepaged.c:khugepaged_scan_pmd() {
-    ...
-    if (WARN_ON_ONCE(page && is_zone_device_page(page)))
-        page =3D NULL;
-    ...
-}
-
-And in KSM:
-
-mm/ksm.c:get_mergeable_page() {
-    ...
-    if (!folio_is_zone_device(folio) &&
-        folio_test_anon(folio)) {
-    ...
-}
-
->  		return -ENOENT;
+> @@ -1688,6 +1702,19 @@ int __add_memory_driver_managed(int nid, u64 start=
+, u64 size,
+>  	if (online_type < MMOP_OFFLINE || online_type > MMOP_ONLINE_MOVABLE)
+>  		return -EINVAL;
 > =20
->  	if (folio_nid(folio) =3D=3D node)
-> @@ -2477,7 +2477,7 @@ static void do_pages_stat_array(struct mm_struct *m=
-m, unsigned long nr_pages,
->  		if (folio) {
->  			if (is_zero_folio(folio) || is_huge_zero_folio(folio))
->  				err =3D -EFAULT;
-> -			else if (folio_is_zone_device(folio))
-> +			else if (folio_is_private_managed(folio))
+> +	/* Register a private-node owner before adding memory. */
+> +	if (np) {
+> +		if (mhp_flags & MHP_NID_IS_MGID) {
+> +			group =3D memory_group_find_by_id(nid);
+> +			if (!group)
+> +				return -EINVAL;
+> +			real_nid =3D group->nid;
+> +		}
+> +		rc =3D node_private_register(real_nid, np);
+> +		if (rc)
+> +			return rc;
+> +	}
+> +
+>  	lock_device_hotplug();
 
 [Severity: High]
-This isn't a bug introduced by this patch, but does do_pages_stat_array() f=
-ail
-to handle tagged pointers?
+Is there a race condition here since node_private_register() is called befo=
+re
+acquiring device_hotplug_lock?=20
 
-When a user-space program passes an array of tagged pointers to move_pages
-with nodes =3D=3D NULL, the pointers are cast directly to unsigned long wit=
-hout
-being sanitized by untagged_addr_remote():
+If Thread A drops the lock in offline_and_remove_memory_ranges() before
+calling node_private_unregister(), Thread B could successfully register
+the node here. Thread B then blocks on device_hotplug_lock, allowing Thread=
+ A
+to clear the registration, which might cause Thread B to online its newly
+added private memory incorrectly as normal system RAM.
 
-mm/migrate.c:do_pages_stat_array() {
-    ...
-    unsigned long addr =3D (unsigned long)(*pages);
-    struct vm_area_struct *vma;
-    // ...
-    vma =3D vma_lookup(mm, addr);
-    ...
-}
+[ ... ]
 
-Could this cause vma_lookup() to treat the tag bits as part of the virtual
-address, causing valid tagged addresses (like those used with ARM64 MTE) to
-fail with -EFAULT?
-
->  				err =3D -ENOENT;
->  			else
->  				err =3D folio_nid(folio);
+> @@ -1702,10 +1729,41 @@ int __add_memory_driver_managed(int nid, u64 star=
+t, u64 size,
+> =20
+>  out_unlock:
+>  	unlock_device_hotplug();
+> +	if (rc < 0 && np)
+> +		node_private_unregister(real_nid);
+>  	return rc;
+>  }
 
 [Severity: High]
-On a related note regarding private node teardown, does offline_pages() need
-to clear N_MEMORY_PRIVATE?
+If this error path is hit, does node_private_unregister() unconditionally
+drop the private node registration based only on the online state, ignoring
+offline memory blocks on the same node? This could break previously added
+offline blocks on this node.
 
-If a driver attempts to teardown a device and offline its memory,
-offline_pages() clears N_MEMORY but omits N_MEMORY_PRIVATE:
+[ ... ]
 
-mm/memory_hotplug.c:offline_pages() {
-    ...
-    if (node_arg.nid >=3D 0)
-        node_clear_state(node, N_MEMORY);
-    ...
-}
+> @@ -2535,6 +2610,10 @@ int offline_and_remove_memory_ranges(const struct =
+range *ranges,
+>  out_unlock:
+>  	unlock_device_hotplug();
+> =20
+> +	/* Drop private node registration if they are now memoryless */
+> +	for_each_node_mask(nid, nodes)
+> +		node_private_unregister(nid);
+> +
+>  	kfree(online_types);
+>  	return rc;
+>  }
 
-Will this cause node_private_unregister() to evaluate node_is_private(nid)
-as true and permanently return -EBUSY?
+[Severity: High]
+Could node_private_unregister() blindly clear pgdat->node_private here
+if it only checks the online N_MEMORY state instead of present memory?=20
+If remaining memblocks on the node are offline, they might become normal
+system RAM when later onlined.
 
-drivers/base/node.c:node_private_unregister() {
-    ...
-    if (node_is_private(nid)) {
-        mem_hotplug_done();
-        mutex_unlock(&node_private_lock);
-        return -EBUSY;
-    }
-    ...
-}
-
-Could this permanent -EBUSY prevent drivers using the N_MEMORY_PRIVATE
-feature from cleanly unloading?
+Additionally, because device_hotplug_lock is dropped before unregistering
+the private nodes, does this open a race window where a concurrent=20
+add_private_memory_driver_managed() could have its state wiped out?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260720193431.3841=
-992-1-gourry@gourry.net?part=3D9
+992-1-gourry@gourry.net?part=3D25
