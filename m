@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 380F33019A9;
-	Tue, 21 Jul 2026 18:30:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9A83C4B81;
+	Tue, 21 Jul 2026 18:30:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784658606; cv=none; b=c4HCRZp2IUYwQLuXx6ujQZl+a4gttb8TTNF9TfGccb6GO4wKZ9nWH3HUhBVLh+/FquoNm+8nY0iPabhwVTqG4ydO6KK0YH8fMO3hX/Px2US4ag7r8X3+t5/IST7cNwKMmY/opX2t4Zpr7+cCkn/x01qEXCOoU30xQyyds1oRsVQ=
+	t=1784658633; cv=none; b=gD+L6Qb3AzxroBL56XesTxLw5IvRHxv5XF59nE/JuRScJhvD5l01JlNSmjI8t001CNlVpkeh6sCkALU/JXmS/bjIOXtjawyMmJPVV4TV/zWzKpihqN/meKfzpeziqKacPLQB7mddVQwsmeCfr2LQEc7bxtZdQKQNSpswzZ+HEEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784658606; c=relaxed/simple;
-	bh=Cs/nrAfn1hCcVeBTwBdr81YGJBgOjfLu6LcoQ8LkN/Q=;
+	s=arc-20240116; t=1784658633; c=relaxed/simple;
+	bh=8Ulxh4MGMeUat4vhsWN5QilQEOcc3iXUmwuU17eEVkw=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=j4esqJLLq1GMcTPfzivTaB71YA9LAPqvOAdzB00/WmtVO9C+8QpMwswV2nHRrmENOcHXFUItxpmPpJnK4LIs0nUqkaeG2S9fXqOiUMpRnpgunZAVORSHnRz1QNlmy7ysEmNe2BY4hcp1U6E9dqT/e6i0RGcrmMxU4fFSjkQ6OYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X+2llysW; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=lhEYrxR+hDzW39D4AGNHB9eJ3ghpjQwFe7VEL8vqbVPHCjfeBoVB9arkEHVtZt3bdSnrTcqB4akotZrzLrWpOPTf8VSDpV4UVgngNoe0HsQKaWfgl1jUSxUyOppUgDX3O+q8wn69uciMDaW3lmQHoO6VK3mx8qVPx7et+Zabu/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OgRv30Ww; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X+2llysW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A19F1F00A3A;
-	Tue, 21 Jul 2026 18:30:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OgRv30Ww"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FCC31F00A3D;
+	Tue, 21 Jul 2026 18:30:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784658605;
-	bh=z/slgfKwuG09aX7aTGpFd5K7O7Kdfc/J2Zd/OgMjIms=;
+	s=k20260515; t=1784658631;
+	bh=+ZDkD8aLZgWtnJP4QW4kRiUUVNkybipRerj3Yw2aIKU=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=X+2llysWCkfj+v2wBofv84JrRNFWVgo4N/FoEgGGG3tcmdbDDAyVEVpYQ7qegASbl
-	 oxzdrJks/FBigqH+NtVGWh7wEAxRQNToVXOs/nv2bLc1m/4oRRjaVGFmx40A/Lkj4S
-	 iPPbVEw6dZQGMJsiY6WkNVVy+O+7iGBz2Pt7XyM4BCBRNZqAJgzDIn45PWxoE4wJPg
-	 Nis1EJYwcWiHPx8yiI09ixd9E8S/rGn0Bu6dCi4lTGZTfEQoA2PhXwEi+8CyNRnb1j
-	 5jsY8bi7RCIxRYSSbTDGOyaMH1UIZeOHnBuwO2sjHVo7jf+mCytABWEWftXEZ4Ywfu
-	 ZLvViLSHMFrPA==
+	b=OgRv30WwKU588EJs6wnM0orBFyW3lRHpSSf8Q4n2KfEwy5d8GrG4nSc19xL1yjxRb
+	 6cU7aD+uCGbG0BKkcKRZzGS/XxKcs8Kl0d/0cvUEZJc8R6O66DLTaJ8NfZu6ydRwqc
+	 3h1iMLlaAcb+hUVmVxK0oCMMWNbkhVRP6gnPyyz9w6OHkZO5Th3dhI6CmWOe4SQnfE
+	 PxLWqKF8yYWyiBLocO0ETF6qPOWfNgH/XK/jMDVh1iMNoAe/oSeBGI7CZ+qu656S0Z
+	 j4wayDnAP8V3uKmxOVprQ4rXoG4knPVz05wyW9liuRXB+EIBqnrvd80m7ucdhPeiyc
+	 R/cybAFjtB7HA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 19/36] proc: include N_MEMORY_PRIVATE nodes in
- numa_maps output
+Subject: Re: [PATCH v5 10/36] mm/madvise: disallow madvise operations on
+ private node folios
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Gregory Price" <gourry@gourry.net>
-Cc: kvm@vger.kernel.org, hannes@cmpxchg.org, nvdimm@lists.linux.dev, mkoutny@suse.com, linux-cxl@vger.kernel.org, damon@lists.linux.dev, tj@kernel.org
-In-Reply-To: <20260720193431.3841992-20-gourry@gourry.net>
+Cc: damon@lists.linux.dev, linux-cxl@vger.kernel.org, kvm@vger.kernel.org, tj@kernel.org, hannes@cmpxchg.org, mkoutny@suse.com, nvdimm@lists.linux.dev
+In-Reply-To: <20260720193431.3841992-11-gourry@gourry.net>
 References: <20260720193431.3841992-1-gourry@gourry.net>
- <20260720193431.3841992-20-gourry@gourry.net>
+ <20260720193431.3841992-11-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 21 Jul 2026 18:30:04 +0000
-Message-Id: <20260721183004.9A19F1F00A3A@smtp.kernel.org>
+Date: Tue, 21 Jul 2026 18:30:30 +0000
+Message-Id: <20260721183031.4FCC31F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -49,70 +49,59 @@ Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
 
 Pre-existing issues:
-- [High] Using ACTION_AGAIN when pte_offset_map_lock() fails can create an =
-infinite loop.
+- [High] madvise_cold_or_pageout_pte_range() calls folio_get() before block=
+ing on folio_lock() when attempting to split a large PMD-mapped folio, viol=
+ating the required lock-before-refcount ordering for large folio splits.
 --
 
---- Patch [19]: [PATCH v5 19/36] proc: include N_MEMORY_PRIVATE nodes in nu=
-ma_maps output ---
-commit 744e7cd9225bc94011608ebdc2dbdb49cbdf8476
+--- Patch [10]: [PATCH v5 10/36] mm/madvise: disallow madvise operations on=
+ private node folios ---
+commit 76f9465747c7c18f9f36e91d7a628706fb9905f9
 Author: Gregory Price <gourry@gourry.net>
 
-proc: include N_MEMORY_PRIVATE nodes in numa_maps output
+mm/madvise: disallow madvise operations on private node folios
+   =20
+Use the same filter locations as zone_device, plus additional filters
+for huge pages to avoid madvise operations on private node memory.
 
-numa_maps collects per-node page counts in the page-table walkers
-and emits them in show_numa_map.  All three filtered by N_MEMORY,
-so pages on N_MEMORY_PRIVATE nodes were never gathered/printed.
-
-Accept N_MEMORY_PRIVATE pages in both walkers and emit private nodes
-in show_numa_map, so private-node mappings are visible in numa_maps.
-
-> diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
-> index 817e3e0f91943..e116cd5f157b9 100644
-> --- a/fs/proc/task_mmu.c
-> +++ b/fs/proc/task_mmu.c
 [ ... ]
-> @@ -3414,7 +3415,8 @@ static struct page *can_gather_numa_stats_pmd(pmd_t=
- pmd,
->  		return NULL;
+> diff --git a/mm/madvise.c b/mm/madvise.c
+> index 07a21ca31bad4..29f35a23919a0 100644
+> --- a/mm/madvise.c
+> +++ b/mm/madvise.c
+[ ... ]
+> @@ -395,6 +396,9 @@ static int madvise_cold_or_pageout_pte_range(pmd_t *p=
+md,
 > =20
->  	nid =3D page_to_nid(page);
-> -	if (!node_isset(nid, node_states[N_MEMORY]))
-> +	if (!node_isset(nid, node_states[N_MEMORY]) &&
-> +	    !node_isset(nid, node_states[N_MEMORY_PRIVATE]))
->  		return NULL;
+>  		folio =3D pmd_folio(orig_pmd);
 > =20
->  	return page;
+> +		if (folio_is_private_node(folio))
+> +			goto huge_unlock;
+> +
+>  		/* Do not interfere with other mappings of this folio */
+>  		if (folio_maybe_mapped_shared(folio))
+>  			goto huge_unlock;
 
 [Severity: High]
-This is a pre-existing issue, but can the error handling in gather_pte_stat=
-s()
-lead to an infinite loop?
+This is a pre-existing issue, but does the sequence just below this block
+in madvise_cold_or_pageout_pte_range() cause split_folio() to fail under
+contention?
 
-When reading from procfs memory mapping files (like numa_maps),
-pte_offset_map_lock() can fail non-transiently for a PMD migration entry and
-return NULL:
+A few lines down, the code attempts to split a PMD-mapped large folio:
 
-fs/proc/task_mmu.c:gather_pte_stats() {
-	...
-	orig_pte =3D pte =3D pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-	if (!pte) {
-		walk->action =3D ACTION_AGAIN;
-		return 0;
-	}
-	...
-}
+    folio_get(folio);
+    spin_unlock(ptl);
+    folio_lock(folio);
+    err =3D split_folio(folio);
 
-Because this sets walk->action =3D ACTION_AGAIN, wouldn't the walk_pmd_rang=
-e()
-core unconditionally retry the same PMD entry indefinitely without making
-forward progress?
+When multiple tasks concurrently attempt to split the same folio, taking
+the reference before blocking on the lock inflates the refcount. This
+causes split_folio() to spuriously return -EAGAIN because the expected
+refcount does not match.
 
-The same pattern also appears to exist in smaps_pte_range(),
-clear_refs_pte_range(), pagemap_pmd_range(), and pagemap_scan_pmd_entry().
-
-[ ... ]
+Could we trylock the folio before raising the reference count here,
+similar to how it is handled in madvise_free_huge_pmd() in huge_memory.c?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260720193431.3841=
-992-1-gourry@gourry.net?part=3D19
+992-1-gourry@gourry.net?part=3D10
