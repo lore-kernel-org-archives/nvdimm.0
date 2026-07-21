@@ -1,113 +1,114 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00BE847127D;
-	Tue, 21 Jul 2026 18:33:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46BB946D088;
+	Tue, 21 Jul 2026 18:35:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784658839; cv=none; b=oEirIUfg5Betcy9hVqrUmn21Pg4OtgAHdG8XF3P06yEvcINMl6Symxa5i2/e7q/KpBMwxC3CLFJ7v57mAmO/KmAPzG9p6MrbeR6DgkOCOz3AURSqx31ntRbBFbGoqEBTiiYPThQALoZdrODUVyN0WoOZ415YVmGrmJvQ/F3tib4=
+	t=1784658930; cv=none; b=ip33gYVlNnWp1gR9I3BFCzO1/sVvz8WQq78hYVqZv1QMR+7I5A23KC3x5Dh+Jv6l6/2dwAS+io7hMzw/PQUsKmZzULh1w6igHImzptfhy4m+LjJuK3iqJiI3mDVnbkxpU3OOqLxo0o3J/+ksxcjx7dYptSSAj6MM5b7Gb6yA1Dw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784658839; c=relaxed/simple;
-	bh=FMXRLIXGMqnnN6P3/gBOigAyt0GFXi7ugiSdAGU2FcY=;
+	s=arc-20240116; t=1784658930; c=relaxed/simple;
+	bh=IBEs+RhA5Aj/vLpMvyGKxJ3MChwoGXgdCvxiuLZE1xc=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=mYYOJagqDrkRvXhv4wo0x3hf5KmL6ObpNMXgX3Fvp5IzSItqlHRH0C9DTyRr3kepFHVQ6JOTc154XQtQJTsYQIMRyU+Nrd/cOXeh2EJWCeiEOBnZXzhSZpfnic7U42Diy4EqyIGAUxfEuo5xwFSqpSmojevi70XBRjhx/sJ5bCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f/+DUqXC; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=P5VCCf/GVJSbOIV4Omna+0xCNNR3xWjh9NXkt/gYWP99anTll/L31SKUGRNSn0e6YDaGD9qb+0bleiKtcfVy443Wgr+O6PlXSFff0wgSGvWJJ6P6z2K6Zajv5WiqdfjQBJHUC4LLdiMiTKsKWH0xw9iD6B6KzfsvzpQMdy/+Q24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GRoM7KzK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f/+DUqXC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D6FF1F000E9;
-	Tue, 21 Jul 2026 18:33:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GRoM7KzK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4B9C1F00A3A;
+	Tue, 21 Jul 2026 18:35:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784658837;
-	bh=mMUVoTN4YNssIZpwjsrCHxzKSSUTn4cmMLrXraUoFSs=;
+	s=k20260515; t=1784658929;
+	bh=jQt2sF5zW/sGYaBa8eStkJAVH5ZRp9TfqcHjfBWYYj8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=f/+DUqXCGzQhS83ps3zn7gYz41rOZPlkH2hPRoPlUwklplAoNvKH+xrtZ0qBHCcID
-	 abygfJSZZsQXxHHs11fZe8Z0JBpigMxYLzNMpOT72ji2QDrHfNbBoZ9RW8bO49XNFv
-	 QMLDol/az2b0meRJe6RhMUhiVkUa5xveYAOOUVODmDXRDr41DDcvVsegpSlmUe3hnF
-	 qhmn9aUcRDCqirfdNQPyZz8xBcvBTUZXorunGK5Lw3cMFaOj3/s8tOstxiAnAGDKl0
-	 BukzztLzJzJ5SvfXwDHjQxo4RyWrbnS1E8VmlYwSHVOrZ3t6y9oVcqlbBtXDWrVclt
-	 wBPEslzpqaprw==
+	b=GRoM7KzKCgLAfR7klf9mnoqRMb7qpQbOGyXrJdcjLD3AcejXohiz+vOMjCMzoPgHp
+	 2xbdzK1p54HhrxL1wlAZEvB/XzdU/T4dIWRtiQ1gnXBgvNni/yMPyPDLtXDrHkbLYJ
+	 NKawm1x8FkLUdK43jGsUEAYH7Z8OC+IaAXWbMsB9I2eJAhwRlyJIxVPAIU5g9Kzw/V
+	 vsgVsP4ruEyOJRiLABM5wTrpqOcugXVmSDtiVBDTPT6sf3GvjlRr67nA+rS/QtrtAY
+	 s4kuA9gQx3n2kkRicEu/Tjbske/G8fX4u1JkIpNcP55XeariBUUFNO5jEQxM4FP+fd
+	 cpfqWKIUz2Qfw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 20/36] mm/memcontrol: account private-node memory in
- per-node stats
+Subject: Re: [PATCH v5 17/36] mm/vmscan: disallow reclaim of private node
+ memory
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Gregory Price" <gourry@gourry.net>
-Cc: tj@kernel.org, linux-cxl@vger.kernel.org, damon@lists.linux.dev, hannes@cmpxchg.org, mkoutny@suse.com, nvdimm@lists.linux.dev, kvm@vger.kernel.org
-In-Reply-To: <20260720193431.3841992-21-gourry@gourry.net>
+Cc: damon@lists.linux.dev, tj@kernel.org, hannes@cmpxchg.org, linux-cxl@vger.kernel.org, mkoutny@suse.com, nvdimm@lists.linux.dev, kvm@vger.kernel.org
+In-Reply-To: <20260720193431.3841992-18-gourry@gourry.net>
 References: <20260720193431.3841992-1-gourry@gourry.net>
- <20260720193431.3841992-21-gourry@gourry.net>
+ <20260720193431.3841992-18-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 21 Jul 2026 18:33:57 +0000
-Message-Id: <20260721183357.6D6FF1F000E9@smtp.kernel.org>
+Date: Tue, 21 Jul 2026 18:35:27 +0000
+Message-Id: <20260721183528.B4B9C1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Medium] The patch updates `mem_cgroup_css_rstat_flush` to include `N_MEM=
-ORY_PRIVATE` nodes, but misses `flush_nmi_stats()` which still strictly ite=
-rates over `N_MEMORY`, leaking NMI slab stats on private nodes.
-- [Medium] `hugetlb_cgroup_read_numa_stat()` in the hugetlb cgroup controll=
-er skips `N_MEMORY_PRIVATE` nodes, leading to hidden node memory and incorr=
-ect hierarchical totals.
+- [High] Soft-limit reclaim bypasses the new private node filter, allowing =
+eviction on private nodes.
 --
 
---- Patch [20]: [PATCH v5 20/36] mm/memcontrol: account private-node memory=
- in per-node stats ---
-commit 923e253e1d279f965b728ad3baafd46c0f7044eb
+--- Patch [17]: [PATCH v5 17/36] mm/vmscan: disallow reclaim of private nod=
+e memory ---
+commit 9fc4bff86adde3091fee2924952f9af9700e6308
 Author: Gregory Price <gourry@gourry.net>
 
-mm/memcontrol: account private-node memory in per-node stats
+mm/vmscan: disallow reclaim of private node memory
 
-Private nodes folios are charged like any other - the node's per-cpu
-lruvec counters are increment even for N_MEMORY_PRIVATE.
+This commit attempts to prevent reclaim on private nodes by adding a filter
+to shrink_node().
 
-[ ... ]
-
-> diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-> index f0dde52dc9e0e..4d79e238bc57d 100644
-> --- a/mm/memcontrol.c
-> +++ b/mm/memcontrol.c
-> @@ -4496,6 +4496,7 @@ static void mem_cgroup_css_rstat_flush(struct cgrou=
-p_subsys_state *css, int cpu)
->  	struct mem_cgroup *parent =3D parent_mem_cgroup(memcg);
->  	struct memcg_vmstats_percpu *statc;
->  	struct aggregate_control ac;
-> +	nodemask_t reportable;
->  	int nid;
+> diff --git a/mm/vmscan.c b/mm/vmscan.c
+> index e26c6931f5fde..86b2334c23b98 100644
+> --- a/mm/vmscan.c
+> +++ b/mm/vmscan.c
+> @@ -6141,6 +6141,13 @@ static void shrink_node(pg_data_t *pgdat, struct s=
+can_control *sc)
+>  	struct lruvec *target_lruvec;
+>  	bool reclaimable =3D false;
 > =20
->  	flush_nmi_stats(memcg, parent);
+> +	/*
+> +	 * Private nodes do not support reclaim by default, filtering here
+> +	 * captures all normal reclaim paths that may attempt eviction.
+> +	 */
+> +	if (node_is_private(pgdat->node_id))
+> +		return;
+> +
 
-[Severity: Medium]
-Will this still leak NMI slab stats on private nodes?
+[Severity: High]
+Does this filter successfully capture all normal reclaim paths?
 
-flush_nmi_stats() still strictly iterates over N_MEMORY instead of including
-N_MEMORY_PRIVATE.
+When the system uses memcg v1 and a cgroup exceeds its soft limit, global
+direct reclaim in shrink_zones() or kswapd in balance_pgdat() will invoke
+memcg1_soft_limit_reclaim(). This bypasses shrink_node() entirely:
 
-If a slab allocation occurs in NMI context on an N_MEMORY_PRIVATE node, the
-node-local atomic counter is incremented, but it appears flush_nmi_stats()
-will fail to drain it because it only iterates over N_MEMORY.
+mm/vmscan.c:shrink_zones() {
+    ...
+    nr_soft_reclaimed =3D memcg1_soft_limit_reclaim(zone->zone_pgdat,
+                                                  sc->order, sc->gfp_mask,
+                                                  &nr_soft_scanned);
+    ...
+}
 
-[ ... ]
+This leads to mem_cgroup_shrink_node() directly calling shrink_lruvec()
+without checking if the node is private:
 
-[Severity: Medium]
-Does mm/hugetlb_cgroup.c:hugetlb_cgroup_read_numa_stat() also need to be
-updated to include N_MEMORY_PRIVATE?
+mm/vmscan.c:mem_cgroup_shrink_node() {
+    ...
+    shrink_lruvec(lruvec, &sc);
+    ...
+}
 
-It currently only covers N_MEMORY when calculating and printing per-node
-hierarchical usage:
+Will this allow unintended eviction on private nodes during soft limit recl=
+aim?
 
-	for_each_node_state(nid, N_MEMORY) {
-		usage =3D 0;
-		...
-
-If hugetlb memory is allocated on an N_MEMORY_PRIVATE node and charged to a
-cgroup, reading the cgroup's NUMA stat file would skip accumulating or
-displaying this node's usage.
+>  	if ((lru_gen_enabled() || lru_gen_switching()) && root_reclaim(sc)) {
+>  		memset(&sc->nr, 0, sizeof(sc->nr));
+>  		lru_gen_shrink_node(pgdat, sc);
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260720193431.3841=
-992-1-gourry@gourry.net?part=3D20
+992-1-gourry@gourry.net?part=3D17
