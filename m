@@ -1,117 +1,150 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 781B63BA225;
-	Tue, 21 Jul 2026 20:49:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B44438FEE;
+	Tue, 21 Jul 2026 21:11:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784666981; cv=none; b=MxtfU4hIjTHggGqd5HVmV1XCTTIksADxuOhwFaXCBqN5Up6IzWQARtw9Rj0gbsNcSClqOsUc09aY+I+gDeBPvNTMssxN5EJKf9KKNqEr+sO3AJuSYWSC6nR+ij/oq5JBAfAVblNr0mpRkaZCXuANDvA+lwbF3V3aze4MmUuNWiM=
+	t=1784668311; cv=none; b=np8sROuxbg9fTh5ExoQQkBu9d0drklYza94K+oESlXaBJTcWHnuGx+NXMcbjEp1RgwWDuO8jEwF0Z6B+BhevSKLUQdEmnzbNJVRLwOLSfXiAAE3VfsYVnjhZAO4OqVWbFqxYxLNGBc5LXe2YCrdAAHbSx5JTaxhbzQg0ZTPES6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784666981; c=relaxed/simple;
-	bh=Pj1fI84D5lpfNBclX82UKsGaNaYjILLyPjcrSTz0sAE=;
+	s=arc-20240116; t=1784668311; c=relaxed/simple;
+	bh=BBovP7uQEcUFuM2YToFEW7eq26PAwEujsS0dB000+SY=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=n15JnJttHPgUEmO+WvkCsaNCeV+kIFy6hPegv37V1N76qgF6A/IAEXlVzy8ke5e4qz9gyHfa0Y1y/qI0fMdTathm3mCNu0WyA/08PsR2NO++vzp/8mJy9aTEnEZIOW8JFS04AVS0/GkaeRyR57ND/SuIXSdYvnZa7WR9TNZmdfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LsWxTuw4; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=WJRxIb4SPswa98NRUvunqd0rwCSXRqCxUj3fNd5gjztxuQ8PGz4q/nzmDEZuLcvhC/LDCC6lgCtjWB2/JlHkDH087nKOrjIK8b5CeNRU4gL+ueS72HGDsoubMgcwYTylca4S2NtRp5ZPt9fOOPRdPdAaIS+q7MeCF2z8e1mzr4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LhSkTS8z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LsWxTuw4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4B4F1F000E9;
-	Tue, 21 Jul 2026 20:49:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LhSkTS8z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14DC91F000E9;
+	Tue, 21 Jul 2026 21:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784666980;
-	bh=hnNX6VoBOpN3XW8q2pIpGNihQ4N8a+ztKf1fonXvn/Q=;
+	s=k20260515; t=1784668310;
+	bh=BuqYyagB9bD8nuWvoZFsdPW7RJYIGN82fvrgTmXEuJs=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=LsWxTuw4XmCVn/OQ1WxsIMNZHGU0S223esj1Mx4AzZEuG0FVwDMhWe0uOFWdu2oQj
-	 oN5wPdFdK5WpvvFlzys/LpR9J4z0sqS/JJCYWLdw3ZBlL9L0MLiyok8TE/1bsYvfzv
-	 yescxB16937BUgga1JyUL/tx0bmjnh9B5ZmoWe/1lnS/uWmyllSXl5QPhp0wtgY82M
-	 rWM6wAysLeKvEgjhAJH9lAYCMgoAdq3YDa/oTE72qYKvcjt5YC7ZCCXFDrh9EwfVww
-	 /wNnFLVYu9VtDVWOcAxvEw9eMGGgRL4o6LwYhqTgaCoAGuTV5CYZWfp0oGM22J2C22
-	 7YYuLK8IfyeTQ==
+	b=LhSkTS8zIcMKGMJkJv3pr87Ri4YrqulXgtIFGis2Pa+53dEEx+hYj2W3OrhyqnE4R
+	 KN7A3/XGzCFIXDVr1KH7NvCQD5KGgd8u5pMYbAt5GRu4PpaYeCBDFSychpatZpn8Go
+	 W1jiRK+aP0A6I6M+kxKn//STMLSnFafAMRzEnmNYPuyWJv21KQVYs/KMyrddC2JUdV
+	 3mg1RzZwWq9H8zCYrMNcfOzinvcmaCuJGYnp1Ee4UyYtl6W3jSJTI0w/SbpLqM1bGk
+	 c7mg82RwuOm+1mrof4roADUQCiMDqHlGKQ1tK5rWCwsTF1PPy1BYsS32ux+keUHkt/
+	 KLufuk51ZgCNw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 32/36] mm/khugepaged: base private node collapse
- eligiblity on actor/cap bits
+Subject: Re: [PATCH v5 35/36] KVM: guest_memfd: bind backing memory to a
+ NUMA node at creation
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Gregory Price" <gourry@gourry.net>
-Cc: kvm@vger.kernel.org, linux-cxl@vger.kernel.org, hannes@cmpxchg.org, nvdimm@lists.linux.dev, tj@kernel.org, mkoutny@suse.com, damon@lists.linux.dev
-In-Reply-To: <20260720193431.3841992-33-gourry@gourry.net>
+Cc: mkoutny@suse.com, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, damon@lists.linux.dev, tj@kernel.org, hannes@cmpxchg.org, kvm@vger.kernel.org
+In-Reply-To: <20260720193431.3841992-36-gourry@gourry.net>
 References: <20260720193431.3841992-1-gourry@gourry.net>
- <20260720193431.3841992-33-gourry@gourry.net>
+ <20260720193431.3841992-36-gourry@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 21 Jul 2026 20:49:39 +0000
-Message-Id: <20260721204939.C4B4F1F000E9@smtp.kernel.org>
+Date: Tue, 21 Jul 2026 21:11:49 +0000
+Message-Id: <20260721211150.14DC91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [High] Missing `folio_allows_collapse()` checks in `collapse_scan_file` a=
-llows khugepaged to silently migrate file-backed/shmem folios off private n=
-odes.
+- [Critical] Unconditional validation of flag-gated syscall parameters outs=
+ide their flag scope breaks ABI compatibility for existing userspace.
+- [Medium] Missing lock when calling `mpol_set_nodemask` leads to data race=
+ and torn read of `current->mems_allowed`.
 --
 
---- Patch [32]: [PATCH v5 32/36] mm/khugepaged: base private node collapse =
-eligiblity on actor/cap bits ---
-commit e336e94fb86a5e84bcd43a7f17af3bf83d2b9126
+--- Patch [35]: [PATCH v5 35/36] KVM: guest_memfd: bind backing memory to a=
+ NUMA node at creation ---
+commit 45130876f6e87292f19cee2648796441ea4622ce
 Author: Gregory Price <gourry@gourry.net>
 
-mm/khugepaged: base private node collapse eligiblity on actor/cap bits
+KVM: guest_memfd: bind backing memory to a NUMA node at creation
 
-Collapse can move base pages across nodes.  The khugepaged daemon does
-this transparently, while MADV_COLLAPSE is a userland construct.
+guest_memfd presently allocates its page-cache folios through a per-inode
+shared mempolicy. This patch adds GUEST_MEMFD_FLAG_BIND_NODE to set an
+MPOL_BIND policy for the requested node and install it over the whole
+inode's shared policy.
 
-Isolate private nodes from khugepaged exactly like ZONE_DEVICE.
-Never collapse private node folios silently (the owner may not
-support migration).
+> diff --git a/virt/kvm/guest_memfd.c b/virt/kvm/guest_memfd.c
+> index f0e5da4908660..de320df08e0ff 100644
+> --- a/virt/kvm/guest_memfd.c
+> +++ b/virt/kvm/guest_memfd.c
 
-> diff --git a/mm/khugepaged.c b/mm/khugepaged.c
-> index fb4378cc17b10..5f20839857738 100644
-> --- a/mm/khugepaged.c
-> +++ b/mm/khugepaged.c
 [ ... ]
-> @@ -1687,7 +1696,8 @@ static enum scan_result collapse_scan_pmd(struct mm=
-_struct *mm,
->  		}
+
+> @@ -456,6 +456,26 @@ static struct mempolicy *kvm_gmem_get_policy(struct =
+vm_area_struct *vma,
+>  	 */
+>  	return mpol_shared_policy_lookup(&GMEM_I(inode)->policy, pgoff);
+>  }
+> +
+> +static int kvm_gmem_bind_node(struct inode *inode, int node)
+> +{
+> +	struct mempolicy *pol;
+> +	int err;
+> +
+> +	pol =3D mpol_bind_node(node);
+
+[Severity: Medium]
+Can calling mpol_bind_node() here without holding task_lock(current)
+cause a data race?
+
+Looking at mpol_bind_node(), it calls __mpol_bind_node() which then calls
+mpol_set_nodemask(). This accesses current->mems_allowed locklessly.
+
+If a task's cpuset is concurrently modified, this could lead to a torn read
+of current->mems_allowed on systems with >64 NUMA nodes, potentially
+failing or creating a policy with an incorrect or empty nodemask.
+
+> +	if (IS_ERR(pol))
+> +		return PTR_ERR(pol);
+> +
+> +	err =3D mpol_set_shared_policy_range(&GMEM_I(inode)->policy, 0,
+> +					  MAX_LFS_FILESIZE >> PAGE_SHIFT, pol);
+> +	mpol_put(pol);
+> +	return err;
+> +}
+
+[ ... ]
+
+> @@ -630,6 +656,7 @@ int kvm_gmem_create(struct kvm *kvm, struct kvm_creat=
+e_guest_memfd *args)
+>  {
+>  	loff_t size =3D args->size;
+>  	u64 flags =3D args->flags;
+> +	int node =3D NUMA_NO_NODE;
 > =20
->  		page =3D vm_normal_page(vma, addr, pteval);
-> -		if (unlikely(!page) || unlikely(page_is_private_managed(page))) {
-> +		if (unlikely(!page) ||
-> +		    unlikely(!page_allows_collapse(page, cc->is_khugepaged))) {
->  			result =3D SCAN_PAGE_NULL;
->  			goto out_unmap;
->  		}
+>  	if (flags & ~kvm_gmem_get_supported_flags(kvm))
+>  		return -EINVAL;
+> @@ -637,7 +664,15 @@ int kvm_gmem_create(struct kvm *kvm, struct kvm_crea=
+te_guest_memfd *args)
+>  	if (size <=3D 0 || !PAGE_ALIGNED(size))
+>  		return -EINVAL;
+> =20
+> -	return __kvm_gmem_create(kvm, size, flags);
+> +	if (flags & GUEST_MEMFD_FLAG_BIND_NODE) {
+> +		if (args->pad || args->node >=3D MAX_NUMNODES)
+> +			return -EINVAL;
+> +		node =3D args->node;
+> +	} else if (args->node || args->pad) {
 
-[Severity: High]
-Since this patch updates collapse_scan_pmd() to check
-page_allows_collapse(), does collapse_scan_file() need a similar check?
+[Severity: Critical]
+Does unconditionally checking args->node and args->pad when the
+GUEST_MEMFD_FLAG_BIND_NODE flag is absent break ABI compatibility?
 
-Looking at collapse_scan_file(), the loop scans folios and tallies their
-residency without verifying collapse eligibility:
+Since these fields were previously part of the unused reserved[] array,
+existing userspace binaries might allocate struct kvm_create_guest_memfd
+on the stack without zeroing them.=20
 
-mm/khugepaged.c:collapse_scan_file() {
-    ...
-		node =3D folio_nid(folio);
-		if (collapse_scan_abort(node, cc)) {
-			result =3D SCAN_SCAN_ABORT;
-			folio_put(folio);
-			break;
-		}
-		cc->node_load[node]++;
-    ...
-}
+If an older binary calls the ioctl without the new flag, and the stack
+garbage happens to be non-zero, this will now fail with -EINVAL.
 
-If an unprivileged process maps file-backed memory to a private node, this
-allows the scan to proceed. alloc_charge_folio() will then deny allocation
-on the private node (since is_khugepaged is true) and fall back to a normal
-node via ALLOC_DEFAULT.
-
-Once the fallback THP is allocated, collapse_file() copies the memory from
-the private node to the newly allocated THP on the normal node. Could this
-result in a silent migration that bypasses the intended isolation guarantee=
-s?
+> +		return -EINVAL;
+> +	}
+> +
+> +	return __kvm_gmem_create(kvm, size, flags, node);
+>  }
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260720193431.3841=
-992-1-gourry@gourry.net?part=3D32
+992-1-gourry@gourry.net?part=3D35
