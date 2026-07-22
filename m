@@ -1,99 +1,93 @@
-Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
+Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8C7A367F5E
-	for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 14:43:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16D28381E9D
+	for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 15:24:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.222.171
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784731391; cv=pass; b=OY7I23Z9YOq1Qur2Nx56Wa+ksuHm0HvcARjJOvmSbcUnO9nU54WEtLxZijOgOjMSKXWDv0+8fSSpVbkmoI3364dcz3dV3scXyLBnajBglbIAG25AdnKjJGCsX5TqXDKrJwMSqQresz+ctBHJwsOcquvVrPC2yy3FlVWrznb3/x0=
+	t=1784733872; cv=pass; b=XkiXNABmjhouqA9PaTfQxCDlfrWCpYdRGPfT8x1xXwwqUQiooG/D4MiBJOTWvO5CuSIGEngJ+yrpqa7Dq6vOEvMZnxARxjniD3M11mPkMlOPfvGoLJB1IaMxfVL+yblDW1mLPy6OnWDcH4b9/GGg2sbM+ByeOxdsgsfKrXAq1w8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784731391; c=relaxed/simple;
-	bh=ahrPeW46a3z7uaEO1zJL6eWoGd4K9B9MS3EeUm2ySI8=;
+	s=arc-20240116; t=1784733872; c=relaxed/simple;
+	bh=FmqQi9tHDOGtMRA8eYccGrCqdDwhdIqG1ghsXPY1Uts=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=DDuO4nBqnzw1osm3soc6GzAswpIYExD844TTa1zZlTEyt2bADvqFN+Jtv0OSj/YFkH6EuUN4v908itUwfDBXtRC5kMKU8YkdyvfClcESiBxSmLjAApF7jFsfUheX+j2dPpjT0deFUymYccdXlGVrJBxVkmcGzNJZTuycxrhCR2M=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bj2GP5kn; arc=pass smtp.client-ip=209.85.221.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=kc8RQpTGg3csqm0uNmHZP+NYlvkkOXA2IEaj/8y2o1uVVTB8sP32imBwtSwLtwebY2WsosrFRHmDD8i5bdy2Z0px1u8PfNGw6yPa7d99HPckojFHuyL9ajGKIA/7snrAFzS7M5akHi7DMduFx0zuoAQMADQ0WRfpRQ7BMMH4Z68=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=lZub4YDw; arc=pass smtp.client-ip=209.85.222.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bj2GP5kn"
-Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-47de008b020so4683664f8f.1
-        for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 07:43:08 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784731387; cv=none;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="lZub4YDw"
+Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-92e5c92c389so867524885a.3
+        for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 08:24:19 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784733856; cv=none;
         d=google.com; s=arc-20260327;
-        b=l5rPpaAbh6+AVp38NKoaHwfAMwYMFA+awB4gwlduIxCZP+qkSoM2VV56Je1hrp6sbb
-         pzpogluaxcRDnocDjUyRM10CRfPThw2dFZP5CxNW4OXW7UNHhbTXmgDviMG3jHcJ7f3r
-         KcNEmHk6qjylC11a5pzlyfhpsTa0JQtdByScRpurbJYeW24QofRFgnghIBjnwlc67va4
-         qXxoXEMOZ7R92Y4rsiOiAfc7JD2uS0ZcFByza3OfHSdaoM7vVcy+suh9Uwsh2w/WOn/r
-         Y+bsgGtMoiC5XBajtnxBotP1dccNgX80d/nrjhfyvDaqeLPYgGx1A6FQbGwlJZ7aSv/S
-         w/2A==
+        b=DSn0clmc4L8WuwxLPF7gfSMPs67AH1sPywhuw1B4WdowazDsrvr9XtQD1bhd3l9uK5
+         BdETeZe2MqzHhVRZyGTAoUc3y1rTTU1rB/T4JldIhCPt79zL7SH55biOG0XPjIJ7MyB0
+         6Z8tV+bSys/gehfdML6N1pvHkHYheaIHQjNaGlCOcj2DOJNRxto8HRJbXfwoBg2voXmz
+         GV0UuCJRJLrQt4dadN/pXPjVn8nVuz/nv+TVADp32AeZXHIMNsWQneI3wJXAqZI75xC4
+         2aBvuD5oWQ3F8fogNKTgBwfNlo4e+edxLLkriLQ8zin3gSFcPFEd8e2JNCDAIeTGKs3P
+         NHFQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=nbVVn3kwJvwjtX0fZqdUSffXklqAZ5aOd6f3vVAXXIo=;
-        fh=cpszbU5ypZFQVKUNTc65XzhUUJ3tQGiCpysrysUIeNY=;
-        b=jbhuAZfYPyZTStjaN2Xr6FRMamDOJ5jN3x/m3+Ji6oaiUY7EH0FHlIOMkpTz690G/9
-         gX8hB3YR0UlFE7LDa2bjU0epuCsxFcjw3QPsz3KlocxDukkUFgyIOUgFKLHWGFWigQ2u
-         Ust2pHRYNwkV2uB4FG7SEXkt2xmf1YVAfNqwvy+HY7OFGVx3l18DEzjunMYJC3rFBkNL
-         Paq6SYqWiBYorMXAj49xc9W/t5HeU5K4b/+RPZHy/sBETe19nl1Ln0QfpUcdQl2koZcW
-         CbqYeZ1Me88GoWiUHlultDYHCypsR5EKFRvy7LBEYUxwD5jsOT47r4dHwywlQYB/q9az
-         0jyQ==;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=Ff8+sJsygEDuStaVFp2hCNrsI9M5jePRaYSdvrv4X0o=;
+        fh=9947AnOccgvnTfVQBJX0CFJVidCsqy4gU90L0Rmj4Kk=;
+        b=rAo5x+OwT65WC4UK5cGu76TsqpNAkCepjkkh4PTWjhaM5XjxLf52zqrsmpsq9+3JE7
+         KhHkyRf7Rtrmj/6Dwnn/edwKy7fAxIVG55ccKxdaz4EqMj11sSst9Qm3Q6FdekW7wMwk
+         DRvL3pOBgssOAP2/SBjwSjKNWTqVsjdUqZTzNvHpm24iXfnczb0yOFV1s2J00pxADHRG
+         T4IPXOcduep2tUyfti5CWmuZQBKxXjaxlXQv1Jz+nPLR7lImDkJGRlYFcsdztiFBBgkp
+         CnHQD9xVvG4pc0V0woWaEhvp57wfblHNoZmjLd3mhXJYOjMfECCMgYXBocZQcUipCuLm
+         hE9A==;
         darn=lists.linux.dev
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784731387; x=1785336187; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=nbVVn3kwJvwjtX0fZqdUSffXklqAZ5aOd6f3vVAXXIo=;
-        b=bj2GP5knKSdyTKHAhnL42Tlw5FT8euu/COJfXkBJoHMlxQq1X6L3skcXu0msuNi48F
-         LCBItv2ghG9ns53EidaTibSBthAn4K63pmdkkkyOXvA6KRtQ1ITrrsX46jgpaV36LgKv
-         xfFZI6be8fYPqPhyrUmAVhRlob/V1VI8wofwXvcASBwTEf8mHcjPnQsCXwxfAD3KGdA5
-         7hqgH+IXyfX48t4cgfGVggKG20dNbYpLBqLDQRiSuwW3jrfTiQe8WxNq6FqOEt4sesaL
-         94K7BxOL166oLzqJDuW8LfTJYMEioyMf1qRty6VXnCuUZaZhntIA7aFaSUTu8v6xrbo/
-         pTGQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784731387; x=1785336187;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=szeredi.hu; s=google; t=1784733856; x=1785338656; darn=lists.linux.dev;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=nbVVn3kwJvwjtX0fZqdUSffXklqAZ5aOd6f3vVAXXIo=;
-        b=KdcFNl+wtDYVKrS1nAy0HhaBgP+keKoa4lW3e0iMBtqa4VTbcphNns+FItaXGqdpIh
-         0aiKgMQNIDQYLQLy+tlNB97xf62bvhtp845Z5Of2TE2fKoplqQ53vt2qVgEEcQm5/xAo
-         KYAr7CqDwQO2O0d1HpXJ5S6DsmLraxe5gQ/M7mLribaaXJPTu9bARGyrSdd9gVgUjouc
-         EuYXAla7llWQBLJoiNCpWNfpty53r2asS25/DN7m5XFL0GVI1R6fWfqsIIW4k9Kb3WS+
-         pD5PPPPGftVKmhNRnCY6xgtqyfvTRdIygssqDfGLCXu3QVaULQ+vxiF0xeRqraRTzjcd
-         fLSg==
-X-Forwarded-Encrypted: i=1; AHgh+Roor7YdbshcmVLsCMNpuChWWzfiU0woP4FgVzU0qrn5/A6RMJsHHRsGK1+hX4cVE6R+XF9v/FE=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzYHe5WWSvPmie86r5755H/wpcJheJYqaku1nqWsXooavmChuD9
-	XDkxURL/52qpXXdvoZ4k4r1skqfmmcu7W9BGFFFlh1K0JTYdAYqh+Qzwt0zJ/S8Is5LwwJ7DXOW
-	8FQkndpVjEY4jAqRmjRoOUSd94HcEtuc=
-X-Gm-Gg: AR+sD1341VlOFfSvzOYagthBEsWw5UUx/Wt3AzecJy3m2abyHXWZFgefE05zniy9mA6
-	jVEnUAX2LXTl2g4yBfPjKwyzVk7nj/fDDWwmtX8Mgla7sec0I9KmkCgQ5N+s8tp++bxpfmF1ShY
-	X1E+n9h5b435Sh/bW8qy4nwFT0aZafP/ru4FMydGHgLW+Utn/T0BFboO9VIqvpgTecNPn29g55J
-	oX//ycmZZq4ML2auveHQhzrL8Yu2LDPwE+xtWrNTsBIylpbCVx/6eVetCMA87d9Dr4vbSm07YMz
-	UA7z4C5k00I0QFEl0NHeRn+hqkmwNCfxZMvaeXyWcQ==
-X-Received: by 2002:a05:6000:2a0f:b0:47f:6d9b:f204 with SMTP id
- ffacd0b85a97d-47f840d1199mr3725320f8f.23.1784731386878; Wed, 22 Jul 2026
- 07:43:06 -0700 (PDT)
+        bh=Ff8+sJsygEDuStaVFp2hCNrsI9M5jePRaYSdvrv4X0o=;
+        b=lZub4YDwgHtq/qw3NACjxGrTTKi/1BxBqrfHlTLq7DlD2Qyp3D9SgeRsw3vNyxlCkn
+         /HbCvHuLP8ox/U2nBc7dzX7xEv93MuYDbtK9YR453xk6VKa2W4pzfk7em+y8K/Wr1KDB
+         EcymrYeIfk6j3OticzPUhcsLl06mighdpSe/s=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784733856; x=1785338656;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=Ff8+sJsygEDuStaVFp2hCNrsI9M5jePRaYSdvrv4X0o=;
+        b=sQ6iK8PrXRh5dpGxOsA164R7OwgWiUjk0ExvU5C18VBAQtEHZEdcASH+K48tDSWQhr
+         8e2sik0rudaQTs1rlDdUshL1Tkiet/vcvwg9BXjKymNd3OQvhxakl0NTjajhh8C6565G
+         jTatW08bJi0bpzLbvq18F2A/9FIYYqDHqC7l+upwTjRNF7+n/CPzaGwN9z878g4cELwy
+         HvwbOEUkGBojBVLIRainO3WV7kXnz1DyAkJ12346dwCuDs51J7zsgo8KVyAgFyZThwIp
+         3niI/A4rB5Q/4UJe4dqTXL814NKVUHw5UbbtrkYb6YoriIWyAdvrjFIGtWzBGLA1fHN8
+         p2dg==
+X-Forwarded-Encrypted: i=1; AHgh+RpEE9GhjGtdhZF1Rnz6vvWFuBkIHPpRXeUHxx6cm8oDg4sQGpFDoiKR+PiRD3I6luDBmEZHOao=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzaIq1rWL37feW/9m2tYhuSmJ8UzDxX51FhzCEOjptIr18a2Q71
+	E3W99Ru2DxitIPXeOVZj6wxJbQIIpzOLnKgPAOq4mYuJMDzfL7/CaDz2pkPOx6Xx+XZnb8OiNfJ
+	8jdn2u/tisOhGeChWqSKQuSxMkASCa6E0eEN0z/E9bw==
+X-Gm-Gg: AR+sD10y7WVgcqougf/XHmoRSW3mIXAg7JwqxYPXYfOVD7phZq6yRNeeF9Aub4gZzkn
+	2uyLKWbQAtOlV0yEcBS+Os0M87t2KE4XY5T8jJP+0B53uV0HvlXa3ew0OMyhrIsr786gt737rKY
+	vF6X7FrOdWqvB+4vIuEEWZMsqoCb2EnsvhT7yYeVS/KjKSu0Wg5HWQyeiLPb7II968Qe3G9Hj6S
+	0QMWne5dL/vgEReNfaTBxs2zGOwoNARs+/+aD+dCKZ1uGTV29YJWF8b09QRJsjcJNvPZgElieUj
+	ZHO+0edERa9vQJP9Rg==
+X-Received: by 2002:a05:620a:2844:b0:92e:9cb3:3f71 with SMTP id
+ af79cd13be357-930b3ed66f6mr2281752885a.36.1784733856139; Wed, 22 Jul 2026
+ 08:24:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260720034358.68714-1-john@jagalactic.com> <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
- <CAOQ4uxiEzP2e=cRw-AiGxtSv6WMSA5yR3cmgrF97s7ggU6wzqg@mail.gmail.com>
- <CAJfpegt9PwHksYhsQZeCsW0eooXVVihyieTpeHMmC-+Pq8BWaw@mail.gmail.com> <CAOQ4uxhuivjMMt_Dm3VwKmOhHg7ZHdAww6j6jp+RMjPoRde+bA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhuivjMMt_Dm3VwKmOhHg7ZHdAww6j6jp+RMjPoRde+bA@mail.gmail.com>
-From: Joanne Koong <joannelkoong@gmail.com>
-Date: Wed, 22 Jul 2026 07:42:52 -0700
-X-Gm-Features: AUfX_mwxuEB8MpcAvVdcxrfmXjtIkJPDlLRoLVxYiUNlL8we5MhuKUq5tNA-EIo
-Message-ID: <CAJnrk1Yat+SEr=SmZXwUt9y2WcC0VEC4KUpPrkrRSjMEmx42WQ@mail.gmail.com>
-Subject: Re: [PATCH V11 0/9] famfs: port into fuse
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, John Groves <john@jagalactic.com>, 
-	John Groves <John@groves.net>, Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>, 
+References: <20260720034553.68798-1-john@jagalactic.com> <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
+ <0100019f7da174eb-4cd0f3ae-59da-4533-b469-6eee009a22bd-000000@email.amazonses.com>
+In-Reply-To: <0100019f7da174eb-4cd0f3ae-59da-4533-b469-6eee009a22bd-000000@email.amazonses.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 22 Jul 2026 17:24:05 +0200
+X-Gm-Features: AUfX_mxUSuw0ZWzZWiq2Rpl7efuyYxiFK3IBC4AQjtyaBV6Cq7Rj41foWBlGbSE
+Message-ID: <CAJfpegvkbK4xtQsssn3yrdLn7zZRGB8MeRcauP8mbmJRCnFouw@mail.gmail.com>
+Subject: Re: [PATCH V11 4/9] famfs_fuse: Create files with famfs fmaps
+To: John Groves <john@jagalactic.com>
+Cc: John Groves <John@groves.net>, Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>, 
 	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
 	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
 	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
@@ -101,7 +95,8 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>, John Groves <john@jagalactic.com>,
 	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
 	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
 	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
 	Josef Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
 	Chen Linxuan <chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>, 
 	Fuad Tabba <tabba@google.com>, Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
@@ -116,136 +111,86 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>, John Groves <john@jagalactic.com>,
 	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 22, 2026 at 5:47=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> On Wed, Jul 22, 2026 at 12:47=E2=80=AFPM Miklos Szeredi <miklos@szeredi.h=
-u> wrote:
-> >
-> > On Mon, 20 Jul 2026 at 12:07, Amir Goldstein <amir73il@gmail.com> wrote=
-:
-> >
-> > > It's not about this ioctl, it's about infrastructure reuse.
-> > > It's about the fact that there is NOTHING special about dax_devlist;
-> > > and no reason not to manage it via backing_files_map.
-> > >
-> > > The reason you stated was that you want userspace to determine the
-> > > daxdev_index/backing_id - fine, no problem - this is why I asked that
-> > > you pass it the desired backing_id in the ioctl.
-> > > In fact I think that all fuse backing_ids would be better assigned by=
- user space
-> > > so the extension of padding =3D> backing_id is not unique to famfs.
-> >
-> > Right, so I suggest to just reuse FUSE_DEV_IOC_BACKING_OPEN and add
-> > two flags: one to enable user supplied backing ID and the other to
-> > indicate that fd refers to DAX device.  The changes to do compared to
-> > the current patchset are quite minimal.
-> >
-> > > And the best part is that this request requires no changes to your us=
-erspace.
-> > > You already bite the bullet and maintain the new/old uapi but changin=
-g the
-> > > kernel implementation does not require this burden from you, so to be=
- honest
-> > > I really don't understand why you did not follow Miklos' suggestion.
-> >
-> > Code reuse is also important, but I understand John's position to want
-> > to separate famfs from existing codebase as much as possible.  And
-> > because this is an implementation detail I don't want to make this a
-> > show stopper.  We can easily fix it later.
-> >
-> > > > - Lose the famfs interleaved extent format. I have complied with th=
-is request.
-> > > >   It makes some things worse, but we'll discuss that later.
-> > > >
-> > >
-> > > I am really not aware of a request to lose the interleaved extent for=
-mat.
-> > > How can this patch [2] from Miklos which reimplements this format as =
-a generic
-> > > uapi be mistaken for a request to lose this format?
-> >
-> > Let's not care.  We can easily add this later if famfs (or any other
-> > use case) decides to want this after all.
-> >
-> > Making the initial patchset smaller is win in any case.
-> >
-> > > Let me recap the former review requests as I understand them:
-> > >
-> > > 1. Use ioctl instead of GET_DAXDEV
-> >
-> > This is done, just need to reuse the existing ioctl instead of add a
-> > new one with the same semantics (okay not true because of the fixed
-> > backing ID extension...)
-> >
-> > > 2. Use backing files infra for daxdev table
-> >
-> > Leave this later.
-> >
-> > > 3. Use ioctl instead of GET_FMAP
-> >
-> > Not sure we agreed to use an ioctl for extent mapping.   What we did
-> > agree on was to use a generic interface that doesn't have anything
-> > famfs specific in it.
->
-> My bad. I thought that FUSE_DEV_IOC_STRIPE_OPEN was an
-> example of how GET_FMAP should be made into a generic interface.
+On Mon, 20 Jul 2026 at 05:46, John Groves <john@jagalactic.com> wrote:
 
-I had the same impression as Amir. The FUSE_DEV_IOC_STRIPE_OPEN patch
-[1] right now is only for the interleaved case to handle striping, but
-imo it seems a lot cleaner to make FUSE_DEV_IOC_STRIPE_OPEN a generic
-interface for handling any backing layout that corresponds to a
-backing id, and having the simple extent case go through this same
-infrastructure / path. Especially since John's future patches for
-adding the interleaving will go through the ioctl, it seems nicer
-server-side as well for famfs to have one consolidated path instead of
-needing two totally different ones. I think also file passthrough will
-want this infrastructure in the future too, and their use case would
-be mostly non-striped extents.
+> +/* Famfs fmap message components */
+> +
+> +#define FAMFS_FMAP_VERSION 1
 
-I was imagining something like:
+Please don't use separate versioning for extents.  It doesn't help
+with feature negotiation, so let's just use the INIT feature flags for
+this purpose.
 
-struct fuse_backing_member {
-    uint32_t backing_id;
-    uint32_t reserved;
-    uint64_t offset;
-    uint64_t length;
-};
+> +
+> +#define FAMFS_FMAP_MAX 32768 /* Largest supported fmap message */
 
-struct fuse_backing_layout {
-    uint16_t nr_members;
-    uint16_t reserved1;
-    uint32_t reserved2;
-    uint64_t chunk_size;
-    uint64_t flags;
+Not sure if it makes sense declaring this on the user API.
 
-    struct fuse_backing_member members[] __counted_by(nr_members);
-};
+> +
+> +enum fuse_famfs_file_type {
+> +       FUSE_FAMFS_FILE_REG,
+> +       FUSE_FAMFS_FILE_SUPERBLOCK,
+> +       FUSE_FAMFS_FILE_LOG,
+> +};
 
-which is the same as what was in the FUSE_DEV_IOC_STRIPE_OPEN patch
-but just renamed and a uint64_t flags and uint64_t length field added.
+Unused, apparently.
 
-This would let us eliminate GET_FMAP, which imo needs to be
-eliminated. The ioctl also gives famfs more flexibility with being
-able to preload extent mappings outside of the hot path instead of
-being forced to only upload it on opens.
+> +
+> +enum famfs_ext_type {
+> +       FUSE_FAMFS_EXT_SIMPLE = 0,
+> +};
 
-If not the ioctl, what did you have in mind for a generic interface? I
-think anything else would have to keep GET_FMAP, but maybe I'm wrong
-here.
+An enum with a single value is not useful.
 
-I think John has patiently endured a lot of demands in the last 2
-years, so I agree that anything that isn't uapi-dependent should just
-be done in the future as follow-up work and shouldn't block this
-series. imo the ideal version of this series would have nothing famfs
-specific in it, but I think a lot of that can be renamed /
-restructured internally later on. But the extent uploading / GET_FMAP
-part seems like the last thing needed to figure out.
+> +
+> +struct fuse_famfs_simple_ext {
+
+struct fuse_extent {
+
+> +       uint32_t se_devindex;
+
+uint64_t backing_id.
+
+> +       uint32_t reserved;
+> +       uint64_t se_offset;
+> +       uint64_t se_len;
+
+Please  drop the "se_" prefix.
+
+Please add more spare space here (e.g. uint64_t space[3]).
+
+> +};
+
+> +
+> +struct fuse_famfs_fmap_header {
+
+struct fuse_extents_header {
+
+> +       uint8_t file_type; /* enum fuse_famfs_file_type */
+
+Unused
+
+> +       uint8_t reserved;
+> +       uint16_t fmap_version;
+
+Don't use, plese.
+
+> +       uint32_t ext_type; /* enum famfs_ext_type */
+
+Unused.
+
+> +       uint32_t nextents;
+
+Okay.
+
+> +       uint32_t fmap_size; /* Inclusive of this header */
+
+That's the same as outh.len.
+
+> +       uint64_t file_size;
+
+Same as i_size
 
 Thanks,
-Joanne
-
-[1] https://lore.kernel.org/linux-fsdevel/20260601152327.2069787-1-mszeredi=
-@redhat.com/#t
+Miklos
