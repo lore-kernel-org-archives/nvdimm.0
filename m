@@ -1,176 +1,176 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96CAB33936F
-	for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 10:47:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.222.170
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784717232; cv=pass; b=ELWZqpCNoggYuhcbRSWia3alUq5rLbdVUT5DCBSu282YO5cBhmSuIhEdiNTCBSi70WaJ4JqtKq7vRsKWL28ua/+QK48LVVGxf4xWe52RncVw7m/zWwD9szKCEkMlYj+1sukFtq742nNW9bzNMIdSKbcEjHLZiuJZkTyQja9ZAYk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784717232; c=relaxed/simple;
-	bh=guAhZjJfEBfSY1xp7Mz+NJHa/zurYwT9YHjF7Gv7gyU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Vy/rIqBixWMMpN1FlYs0bTCezbghIYSDuoIjB0Q5iKgn5LgmcjLdU9Faj/CNG7R0NnuuNaaxqoeYGSPPeacGpvZCg2X58TyVnizGAARho78Z9lRMpyADwn2/UltZpVFVsE7S8+ysQqOSkilYTS7EG0oye9aVwAqrIas8mqBuQyQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=Yq1KBB1X; arc=pass smtp.client-ip=209.85.222.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A8EC26F476
+	for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 12:17:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.180
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784722625; cv=none; b=OsWMUsFYO5vvtUGBnBsb/G7f+qq3KJlto0GbzYxbhcEou4HPz+EEtqh1MCrWI7cAKoUmjyZPhkSzJ8lB7d43723gpehvEaG7sK0PMIx1p69eQ5LVons5ldITkRJu6suUpupc9QILqaulZHN6bW49dnKZSXDLCcw9yxyI9Lh5Aoc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784722625; c=relaxed/simple;
+	bh=EUT6xo+7c4fR9AjpRdk73GGw88Txx/5nWXpuxkERzDs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=C7lQHwHqHwkK869OkhcP9HZFUALduUJBXSRfgrExju3vUjsBG59jyRFMv+4FKgoUZ/Q2fuXZk8XhPeGBZJimow1Fi4PQ0qNF0C5ftYqulJm6hvLNVE7A19awjnlmZCSKi+C+S/4Bu+FhCUk0sdtrHXX9eZfh2ZyNQd72ilWpOTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=ZWAR28in; arc=none smtp.client-ip=209.85.222.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="Yq1KBB1X"
-Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-92e5d6f35c1so1092401485a.0
-        for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 03:47:10 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784717229; cv=none;
-        d=google.com; s=arc-20260327;
-        b=exAGv2DncNSjHUSgSDRJVv0FVMOeTtOWuw8SukbOyiV1kV/uphOwz9rOd2gPxkaYnt
-         LE2MleUsiVePvac0xw3SOk6bx3qLBvb7K/I3PCKHQ3COzC6QaPhILC4vrTtkl7xCa7gC
-         4T+s/D8O7yKnfTKAFbWp6Dk6gOz5BeVhOcnWx9wmYlujigfYMSqL3KXOLivRuZFv8XLX
-         OTwjvxRRm8fEtKD2LSHd27+4eu0POMTk1eL0BPvUUAkQPAvz8DAOBQt7vxMWIehinFiv
-         0W+kWdnWMkfFrCj4OCBBNX9pe+DtqBVKdMEseK85x2m8J7lFJM1/dlp94RvXr3eS8FCw
-         hU3g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=7RG0U3kjlqqprl+YQXEPz8chW66ssUd6wO7da8Gt0so=;
-        fh=XPxR4xbRNl3J52x0ZrISj5NfEPCyM00WU9D0gXfN31o=;
-        b=DRBIyAA4jvFA4WboxppNqfZCCgr/a6ImRyhzQNmLkRx1UhZJi4qkdgPHa5+/+cT+yA
-         2A7mWJJ3B/7bmVnM5SuQY9iPpiMKKSK+0LAJ40jGsdyhLmeiX2JhzgqY9OOKMGLjbZZc
-         R3GqFo0adiiaAJ6k6mt4QkUAq4AAKJJVPkeiF00mQW4+Pk8hMljC0wLjWIUI5M/oqpWg
-         Z2KCxEXi1EvXwvByGxFfFtYlMRWRM8m8WdBCvI93UcIMBxT/jPOJJug/yuv6Y3/AgkFd
-         U8xfJZepUXXSi9iMG8Gx9EZRxEBaZlx6fTo8LwLsc1nI118SH8GyUL8fgQt10DXEqH0N
-         0HCQ==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="ZWAR28in"
+Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-930f618435cso70503585a.3
+        for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 05:17:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1784717229; x=1785322029; darn=lists.linux.dev;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=7RG0U3kjlqqprl+YQXEPz8chW66ssUd6wO7da8Gt0so=;
-        b=Yq1KBB1XI63HMFu+0eFWKD9eu/2D2UZP2Xzx/8VUjWctI/75Q9D4m/5PLpQ6G/Qw2B
-         56Cw2W09mjdmGuJPhYQbStb5oo0kT5JwCqgIE6PvoI1zO5SP3PSFWuOVzfvELFp+F7hv
-         /NxVow4emrE8Yz2veij/NNPnymECagJ0fwims=
+        d=gourry.net; s=google; t=1784722622; x=1785327422; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=5mNAYCNl+PvzQVOY++arp3TkG6k570KzmUdhkjTUZ24=;
+        b=ZWAR28int55wvqcYZXO39VHvXf8n61pppoA87AOUDzLM6Y+g7dpAuP4CG0bTFvK8qt
+         cHszSw9OOpiNRnmgO6x7HOd+U0CvCLVvYYDCbFuwbc7MKp+/SeAgBURj+Nq+aKlGa2RN
+         SLGAI2GgLbltIGCoUdelolzG1rKLACYy9Aj50aS/ZvkeVeIuUloq2Q2U6ZV/d6wcEq2D
+         fRY+k04SrvR1HVxcYhp0s95cBnk+u1OB2mLpJqp+USFxioAbRaSLOefboJG3qkPMulI7
+         IOqUtjKrhN3YC7G7H/Sk02WR+pQuE/cQ5uffJWEpkRgdIUVFg5Qba8V5c5Hrda4CuWho
+         ysGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784717229; x=1785322029;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=7RG0U3kjlqqprl+YQXEPz8chW66ssUd6wO7da8Gt0so=;
-        b=s9VL283FKfX6uZLG+oo7yhDKqIwf5JH3yYcFhz4F1AnwlLej5PQ+yf5m324dNuaPy5
-         I3O6QMSrTp0ZabqxY8KX8lGPvqURtyhEIG/Mh++xlL9Em5CZDeYtUs0byUQzY7/0V4hi
-         93At6fKTAYC/tMKFjphsC3fRaG6VJ7bMTd7x8qIFRKnj+H9wjgBDY147nlmbuBlM+4We
-         lw/IXKTmbN80vjpdWVgHQYBhNz8g4MydcjNLD/SAHJ8+/w+nflePxERN5ZPOzVD3qGtD
-         gE1p66T8Y98imKQiPWrgehqOr0DkKAYm32qIQlUpwpXkdhetMzIZpYyuz4tKPBlkm/rd
-         KmVw==
-X-Forwarded-Encrypted: i=1; AHgh+RrKNNNckwCakGLGWAdg2MyTBTxLyT2n6+uwELLTN04devPvVyTEvuLiuCPOCGYszwsUQxSUH/w=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yyv0e1VKhnunHwPxtpz38/wn0Eo2PnpGUG5BIlutOIUDFUn+L2q
-	PXaXU2s0l/at8oN/RJ6HmbYM+UW7KHDw5qjXNiu8ApWn4IZAK2J0mrmp7ZoYTiZpCwvbJVulwIe
-	bxCApYOwST7OAyMsFnewJZS49Iq29SeWZbs6bPJ3/xg==
-X-Gm-Gg: AR+sD12ZGzOgLwBZHoyzv2VJv8RlAjsO+8yhOcl3oswWPQIkuhVEBn1YUvTxa+oinDT
-	WNZ1vJ4akxxWP9Di+ZRPEhV7dc/jT6OCBKPg98GF+jeWIlN6160nCTJafJ3G8RNtTS4vJW973Qx
-	O+ar3nt4wcw8vuLfSfe7Zwf2bsIL+B5mQLAGmQnTLhDze0yNIoMjJswOWotA1sxTqvEKv6L3TNe
-	aIav+oo56uEJPvuQAs6/TUdy+NXpLmtWRrNqoS4CnEDtWAd6fbH6sp6undLSmoHOJQLDxrA6okm
-	Io9vcfr40Bd3fajetw==
-X-Received: by 2002:a05:620a:4608:b0:92e:c118:18b9 with SMTP id
- af79cd13be357-930b43c45a4mr2167343785a.88.1784717229070; Wed, 22 Jul 2026
- 03:47:09 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1784722622; x=1785327422;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=5mNAYCNl+PvzQVOY++arp3TkG6k570KzmUdhkjTUZ24=;
+        b=MZ9LVn8dSYxM8WOuZ9cFb3SABnkV++1v3lBOYA0fOEaCiWANq7HEeuXK9TdgJBOwLb
+         Ra35v22ngBn5J7/lKFaHrWyuXjK8IkRU0A7H082apsMk7wI+mqm+P6LT2Fg+EpnEal1f
+         kvq0cRFR9SZLfxdwEPy7g6vJHSh8MumkFkPYScuFisSCgqXUvW0ZTV4mna0RtF87oGs3
+         E9mO7uZvUVgdXbS/MF0ilmVwPGxF7trGyoBojyav7yaFbquZX7OggA7/skckP04r+0Om
+         bs25me696KGV8oizrVvh4DB/EFkeEqKzFkpyNntCnK33BQHmcBDY0JHI+lOeD9RpqIrX
+         Yldw==
+X-Forwarded-Encrypted: i=1; AHgh+RoqVIr4PlM9ZuJB3Op4GpPDYFbzYm/s7CmNU+ZdRWNh/szNRq9HB0XrJA1qdLSKDcKL4jHXoms=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyKO/xGNd3wPQZwEdhYlogZ37ghVHUj+PZTJMVeh5hlmKsb+82Q
+	rn/tKFTXTxB7MTmZSCLVs9ESg47wSGzABWHKTo6Az4Gtm5N5sFalUUTFB9vVkHq0W9o=
+X-Gm-Gg: AR+sD13hYCg9jWoaHnd86QpNZykU7xkroKZZbQGTbuRViXk2d3wbhQbzmiMkR72NRMd
+	82raNzhFw0IFJP6eC58q8aTnEHnX5n+d5uxKDHdRt7wSO/GocDX4q+8jLwNaLFMypbKwBL6y7w5
+	ptKZYPdtzLzeLnnUSmzNrpSb6HkBHYRIYX2Bzd6bZqTG098F+UxtLKpe2eLPZUp0up8AdDouHU+
+	Y856w6zvkPA6IAH34iNZ+nov2o6uSTxXovH/1TWaekCqTbcsKMWWUviyj03jsy5FFfJcVYmB7UO
+	ZrrRlA66g56rGwNqVJjwhZbQSfOzTvqmjzmOun2iJR7fEsvlZER1AzmQZ+DAmfh1PCghqqHprsX
+	mPpZU1/Mhq+Kw0unkZYq8OCNWpLUlSYkwXu9GuBczpgdW+QWHI0lNaZoG8HO6uZtCPLzlM/quv0
+	8yG4k1L95+7F1/FJu6AWITGw50H4cxzIjj1J4MAmKhulKps9hOP695E+tXCA==
+X-Received: by 2002:a05:620a:700a:b0:92e:72c4:152b with SMTP id af79cd13be357-930b43155bcmr2298496985a.71.1784722622381;
+        Wed, 22 Jul 2026 05:17:02 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-930f6a03834sm149477885a.30.2026.07.22.05.17.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Jul 2026 05:17:01 -0700 (PDT)
+Date: Wed, 22 Jul 2026 08:16:56 -0400
+From: Gregory Price <gourry@gourry.net>
+To: SJ Park <sj@kernel.org>
+Cc: linux-mm@kvack.org, arun.george@samsung.com, balbirs@nvidia.com, 
+	brendan.jackman@linux.dev, yuzenghui@huawei.com, apopple@nvidia.com, alucerop@amd.com, 
+	matthew.brost@intel.com, akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org, 
+	liam@infradead.org, vbabka@kernel.org, rppt@kernel.org, surenb@google.com, 
+	mhocko@suse.com, corbet@lwn.net, skhan@linuxfoundation.org, 
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, djbw@kernel.org, 
+	vishal.l.verma@intel.com, dave.jiang@intel.com, alison.schofield@intel.com, 
+	osandov@osandov.com, jannh@google.com, pfalcato@suse.de, jackmanb@google.com, 
+	hannes@cmpxchg.org, ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de, 
+	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com, ying.huang@linux.alibaba.com, 
+	kasong@tencent.com, qi.zheng@linux.dev, shakeel.butt@linux.dev, baohua@kernel.org, 
+	axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com, yury.norov@gmail.com, 
+	linux@rasmusvillemoes.dk, longman@redhat.com, ridong.chen@linux.dev, tj@kernel.org, 
+	mkoutny@suse.com, jgg@ziepe.ca, jhubbard@nvidia.com, peterx@redhat.com, 
+	baolin.wang@linux.alibaba.com, npache@redhat.com, ryan.roberts@arm.com, dev.jain@arm.com, 
+	lance.yang@linux.dev, usama.arif@linux.dev, xu.xin16@zte.com.cn, 
+	chengming.zhou@linux.dev, roman.gushchin@linux.dev, muchun.song@linux.dev, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, driver-core@lists.linux.dev, 
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org, cgroups@vger.kernel.org, 
+	damon@lists.linux.dev, linux-kselftest@vger.kernel.org, kernel-team@meta.com
+Subject: Re: [PATCH v5 14/36] mm/damon: skip private node memory in DAMON
+ migration and pageout
+Message-ID: <amCzmkdOr6AFv_kQ@gourry-fedora-PF4VCD3F>
+References: <20260720193431.3841992-15-gourry@gourry.net>
+ <20260721234644.149401-1-sj@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260720034358.68714-1-john@jagalactic.com> <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
- <CAOQ4uxiEzP2e=cRw-AiGxtSv6WMSA5yR3cmgrF97s7ggU6wzqg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiEzP2e=cRw-AiGxtSv6WMSA5yR3cmgrF97s7ggU6wzqg@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Wed, 22 Jul 2026 12:46:57 +0200
-X-Gm-Features: AUfX_mwdbQYshU7Eh86-5S9-gpZDCDD0EXLkbKHjoCISvWGty4DcFL-X4n78Y2Y
-Message-ID: <CAJfpegt9PwHksYhsQZeCsW0eooXVVihyieTpeHMmC-+Pq8BWaw@mail.gmail.com>
-Subject: Re: [PATCH V11 0/9] famfs: port into fuse
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: John Groves <john@jagalactic.com>, John Groves <John@groves.net>, Dan Williams <djbw@kernel.org>, 
-	Bernd Schubert <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>, 
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, 
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260721234644.149401-1-sj@kernel.org>
 
-On Mon, 20 Jul 2026 at 12:07, Amir Goldstein <amir73il@gmail.com> wrote:
+On Tue, Jul 21, 2026 at 04:46:43PM -0700, SJ Park wrote:
+> On Mon, 20 Jul 2026 15:34:08 -0400 Gregory Price <gourry@gourry.net> wrote:
+> 
+> > DAMON operates on physical address ranges, which can cover private
+> > node memory. Skip private-node folios in both DAMON's migration
+> > and reclaim paths.
+> > 
+> > Signed-off-by: Gregory Price <gourry@gourry.net>
+> > ---
+> >  mm/damon/paddr.c | 9 +++++++++
+> >  1 file changed, 9 insertions(+)
+> > 
+> > diff --git a/mm/damon/paddr.c b/mm/damon/paddr.c
+> > index e4f98d67461f5..c741a94319750 100644
+> > --- a/mm/damon/paddr.c
+> > +++ b/mm/damon/paddr.c
+> > @@ -12,6 +12,7 @@
+> >  #include <linux/swap.h>
+> >  #include <linux/memory-tiers.h>
+> >  #include <linux/mm_inline.h>
+> > +#include <linux/node_private.h>
+> >  
+> >  #include "../internal.h"
+> >  #include "ops-common.h"
+> > @@ -250,6 +251,10 @@ static unsigned long damon_pa_pageout(struct damon_region *r,
+> >  			continue;
+> >  		}
+> >  
+> > +		/* private node memory is not reclaimable by default */
+> > +		if (folio_is_private_node(folio))
+> > +			goto put_folio;
+> > +
+> 
+> "by default".  Does that mean it could be reclaimable in some situations?  If
+> so, could we check if it is reclaimable?
+> 
 
-> It's not about this ioctl, it's about infrastructure reuse.
-> It's about the fact that there is NOTHING special about dax_devlist;
-> and no reason not to manage it via backing_files_map.
->
-> The reason you stated was that you want userspace to determine the
-> daxdev_index/backing_id - fine, no problem - this is why I asked that
-> you pass it the desired backing_id in the ioctl.
-> In fact I think that all fuse backing_ids would be better assigned by user space
-> so the extension of padding => backing_id is not unique to famfs.
+See the damon changes in:
 
-Right, so I suggest to just reuse FUSE_DEV_IOC_BACKING_OPEN and add
-two flags: one to enable user supplied backing ID and the other to
-indicate that fd refers to DAX device.  The changes to do compared to
-the current patchset are quite minimal.
+https://lore.kernel.org/linux-mm/al-pkvmgIxGu3LzM@gourry-fedora-PF4VCD3F/T/#mfb99303c85dd9d4c3f58832dc28fc55583a7217a
 
-> And the best part is that this request requires no changes to your userspace.
-> You already bite the bullet and maintain the new/old uapi but changing the
-> kernel implementation does not require this burden from you, so to be honest
-> I really don't understand why you did not follow Miklos' suggestion.
+> Also, what happens if we just try paging out the private node memory?  Will it
+> simply fail?  Or, make some problems?
+> 
 
-Code reuse is also important, but I understand John's position to want
-to separate famfs from existing codebase as much as possible.  And
-because this is an implementation detail I don't want to make this a
-show stopper.  We can easily fix it later.
+user controls for MADV_ commands that affect private node folios would
+skip those folios - exactly same as ZONE_DEVICE folios.
 
-> > - Lose the famfs interleaved extent format. I have complied with this request.
-> >   It makes some things worse, but we'll discuss that later.
-> >
->
-> I am really not aware of a request to lose the interleaved extent format.
-> How can this patch [2] from Miklos which reimplements this format as a generic
-> uapi be mistaken for a request to lose this format?
+Which I'm not sure damon actually handles correctly presently (zone
+device).  I remember looking around damon and thinking to myself "what
+if this is a zone device page?" and not being able to find a satisfying
+answer.
 
-Let's not care.  We can easily add this later if famfs (or any other
-use case) decides to want this after all.
+> >  		if (damos_pa_filter_out(s, folio))
+> >  			goto put_folio;
+> >  		else
+> > @@ -344,6 +349,10 @@ static unsigned long damon_pa_migrate(struct damon_region *r,
+> >  		else
+> >  			*sz_filter_passed += folio_size(folio) / addr_unit;
+> >  
+> > +		/* private nodes do not support migration by default */
+> > +		if (folio_is_private_node(folio))
+> > +			goto put_folio;
+> > +
+> 
+> Same questions.
+> 
 
-Making the initial patchset smaller is win in any case.
+Technically there is nothing in migration core to prevent migration
+operations, it's done on a service basis - hotunplug, reclaim/demotion,
+user numa (mbind, migrate/move_pages) etc.
 
-> Let me recap the former review requests as I understand them:
->
-> 1. Use ioctl instead of GET_DAXDEV
+Operations on private nodes/private node folioes are refused if the
+capability bit is not set.
 
-This is done, just need to reuse the existing ioctl instead of add a
-new one with the same semantics (okay not true because of the fixed
-backing ID extension...)
-
-> 2. Use backing files infra for daxdev table
-
-Leave this later.
-
-> 3. Use ioctl instead of GET_FMAP
-
-Not sure we agreed to use an ioctl for extent mapping.   What we did
-agree on was to use a generic interface that doesn't have anything
-famfs specific in it.
-
-John, can you please also look at review comments provided by Sashiko?
-
-Thanks,
-Miklos
+~Gregory
