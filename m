@@ -1,172 +1,178 @@
-Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED1723EC2EA
-	for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 04:18:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26A4C3DDAED
+	for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 04:31:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784693903; cv=none; b=MFM8nb8UZtIqdyoECaHUJ8Bn3zwTQDdtXvzEYcx7QxUDP9D5HHwUBuQUjRJ61DPiZTE8JawPipXrBIr5+TMxvzAdWSumiJvmuUv+hayEP/ZxTIzO+XV0p6nQsgVe94tJ58RljmC4koL5gMDoPjld2vUDGBQjfTnAZCjQMV7bjM8=
+	t=1784694664; cv=none; b=MHPZccKHLlaDYTtRf1sAlVybAxXzduV6mHjATBf3uiTtWYlfTo74Q74JZyHS+Xs7MRRcvGAhB4GFuNMjdbcb8GRU9oNU6A3+U5Nch3vrHFUWdCb3CjSqKeCNQ0LTMCWkHusfrU6ZxR9IjkuDOUO/kz+BLXO27pVHLRAoiIgxac0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784693903; c=relaxed/simple;
-	bh=orKjr1q4HTe+iPvesztvSaXQcj6Xct3e1j/Uzr0AKFE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j2eSqb/aXaZgF/Y6oWL4ORX+NnTm+Crpjfd/soMytWp2CVnOYWxOmrNHJnW5Rx+Lh/wRcL5VaPA54mPl2H08uAlCeTsh62UIf8e/S0b3N4tkTI6ljC8niAxqhVt3XaI++vnnFAx6tZ7sHUAVYGBEXTI4pMqJeSwNGjmYpFO/Jik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [111.196.245.140])
-	by APP-05 (Coremail) with SMTP id zQCowABXiEKIRGBq6ze7AA--.34712S2;
-	Wed, 22 Jul 2026 12:18:16 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
-To: Dan Williams <djbw@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH] ACPI: NFIT: validate subtable extents before parsing
-Date: Wed, 22 Jul 2026 12:17:01 +0800
-Message-ID: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
+	s=arc-20240116; t=1784694664; c=relaxed/simple;
+	bh=eZtF/M9ExBZjLGxvEBoUK/Jtm2wFtF/avdeo0vdCzGs=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=qo4JvAAvzxCPQG7+rPdfjst1GXUiKL7koedE4ZEp6WEOyMsIPdRtUCiIXuoQjZnhhbbHs5My8TNHZsOLNQABNlRBEzVq32nLyWmGuu4/vADck0/7iw3hRsbYaHLE9f4qyhwuba0/gIciT8nfyriSKlXoGlestBI/3AGd5hwpLx4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IRNKDglc; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IRNKDglc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB53B1F000E9;
+	Wed, 22 Jul 2026 04:31:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784694662;
+	bh=3ey4ni/Vlevu6MLjiCbJyMceOygOQKC5GOPKsvmW2Bg=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=IRNKDglc97q+d1XSMZ0D9sli79YHB3gqZgtjS5gdFC9AJWKF4S8C3/5FCCVUgtH8W
+	 JCgzN2bpLiRNV2rH0h3eLtW8whnCCOOWfGySO7PXuMe3TO2EEpM5EbHXk4Qe+JsSAn
+	 miqiMlgdkNQPmcT3K6qdVqT0POc4etoA/xVFHjouurXXIcQqsCTnhPu5DNU9mQhe/e
+	 TdsCU8vZAySgrp5xGgwFhexmZRS9mbWmuDkUz8+IQFF4x75gmcyMEIdVr/qGM5Iqem
+	 nNlbso8Qs1weuK5Y1BxVJ/Uqo8bZuIGqpju1zSDNg58jvVQPLcTXHdhctVJ5eYCN3L
+	 jBCDYsZwkaH3A==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] ACPI: NFIT: validate subtable extents before parsing
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Pengpeng Hou" <pengpeng@iscas.ac.cn>
+Cc: nvdimm@lists.linux.dev
+In-Reply-To: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
+References: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 22 Jul 2026 04:31:02 +0000
+Message-Id: <20260722043102.AB53B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowABXiEKIRGBq6ze7AA--.34712S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxCFWxKr43GF4rtrykKF47CFg_yoW5KF1rpF
-	48Ka43tws5Gr47tws3Jw4rtr15Aa9ayFy7XrW8G343Cw4fuw4UKF1rKa4Yqas8Jr93uw43
-	ZF4vya45CF4kZr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9S14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-	JVWxJr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv6xkF7I0E14v26F
-	4UJVW0owAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv
-	7VC0I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Gr0_Cr1lOx8S6xCaFVCjc4AY6r
-	1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02
-	628vn2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4
-	IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1r
-	MI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVW8JV
-	W5JwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr1j6F4UJwCI42IY6xAIw20EY4v20xvaj40_
-	Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr
-	1UYxBIdaVFxhVjvjDU0xZFpf9x0JUDOz3UUUUU=
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
+
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
+s) to consider:
+
+New issues:
+- [High] Rejecting the capability table if `highest_capability > 31` fails =
+the entire NFIT driver probe, breaking forward compatibility.
+
+Pre-existing issues:
+- [High] Missing bounds check in `sizeof_dcr` leads to potential out-of-bou=
+nds read when parsing the Control Region subtable.
+- [High] `sizeof_spa` incorrectly assumes that the SPA length is determined=
+ by the `LOCATION_COOKIE_VALID` flag, rejecting valid ACPI 6.4+ System Phys=
+ical Address tables.
+--
+
+--- Patch [1]: [PATCH] ACPI: NFIT: validate subtable extents before parsing=
+ ---
+commit d7436f5d72f81006ac23c35fc1e7248c7a9fe254
+Author: Pengpeng Hou <pengpeng@iscas.ac.cn>
+
+ACPI: NFIT: validate subtable extents before parsing
 
 add_table() reads an NFIT subtable header after checking only that the
 cursor is before the end of the table. It then advances by the advertised
 subtable length without proving that either the header or the full
-subtable is present.
+subtable is present. This patch validates the fixed header and advertised
+length before dispatch, and ensures variable arrays fit their subtables.
 
-The interleave and flush helpers also derive copy lengths from entry
-counts without ensuring those arrays fit in the current subtable.
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index cb771d9cadb2a..711ab639cb147 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -705,6 +705,10 @@ int nfit_spa_type(struct acpi_nfit_system_address *s=
+pa)
+> =20
+>  static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
+>  {
+> +	if (spa->header.length <
+> +	    offsetof(struct acpi_nfit_system_address, reserved))
+> +		return 0;
+> +
+>  	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
+>  		return sizeof(*spa);
+>  	return sizeof(*spa) - 8;
+>  }
 
-Validate the fixed header and advertised length before dispatch. Ensure
-the variable interleave and flush arrays fit their subtables, and prove the
-SPA flags and capabilities fields are present before reading them. Reject a
-capability index that cannot be represented by the 32-bit capability mask.
+[Severity: High]
+This is a pre-existing issue, but does this logic risk rejecting valid
+ACPI 6.4+ System Physical Address tables?
 
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
----
- drivers/acpi/nfit/core.c | 43 +++++++++++++++++++++++++++++++++++++------
- 1 file changed, 37 insertions(+), 6 deletions(-)
+If a compliant ACPI 6.4 firmware presents a 64-byte SPA table with the
+LOCATION_COOKIE_VALID flag unset, sizeof_spa() will assume the length
+should be 56.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index cb771d9cadb2a..711ab639cb147 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -705,6 +705,10 @@ int nfit_spa_type(struct acpi_nfit_system_address *spa)
- 
- static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
- {
-+	if (spa->header.length <
-+	    offsetof(struct acpi_nfit_system_address, reserved))
-+		return 0;
-+
- 	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
- 		return sizeof(*spa);
- 	return sizeof(*spa) - 8;
-@@ -868,9 +872,16 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
- 
- static size_t sizeof_idt(struct acpi_nfit_interleave *idt)
- {
-+	size_t size;
-+
- 	if (idt->header.length < sizeof(*idt))
- 		return 0;
--	return sizeof(*idt) + sizeof(u32) * idt->line_count;
-+
-+	size = struct_size(idt, line_offset, idt->line_count);
-+	if (size > idt->header.length)
-+		return 0;
-+
-+	return size;
- }
- 
- static bool add_idt(struct acpi_nfit_desc *acpi_desc,
-@@ -907,9 +918,16 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
- 
- static size_t sizeof_flush(struct acpi_nfit_flush_address *flush)
- {
-+	size_t size;
-+
- 	if (flush->header.length < sizeof(*flush))
- 		return 0;
--	return struct_size(flush, hint_address, flush->hint_count);
-+
-+	size = struct_size(flush, hint_address, flush->hint_count);
-+	if (size > flush->header.length)
-+		return 0;
-+
-+	return size;
- }
- 
- static bool add_flush(struct acpi_nfit_desc *acpi_desc,
-@@ -951,7 +969,16 @@ static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
- 	struct device *dev = acpi_desc->dev;
- 	u32 mask;
- 
--	mask = (1 << (pcap->highest_capability + 1)) - 1;
-+	if (pcap->header.length < sizeof(*pcap))
-+		return false;
-+	if (pcap->highest_capability > 31)
-+		return false;
-+
-+	if (pcap->highest_capability == 31)
-+		mask = U32_MAX;
-+	else
-+		mask = (1U << (pcap->highest_capability + 1)) - 1;
-+
- 	acpi_desc->platform_cap = pcap->capabilities & mask;
- 	dev_dbg(dev, "cap: %#x\n", acpi_desc->platform_cap);
- 	return true;
-@@ -963,14 +990,18 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
- 	struct device *dev = acpi_desc->dev;
- 	struct acpi_nfit_header *hdr;
- 	void *err = ERR_PTR(-ENOMEM);
-+	size_t table_len;
- 
- 	if (table >= end)
- 		return NULL;
-+	table_len = end - table;
-+	if (table_len < sizeof(*hdr))
-+		return NULL;
- 
- 	hdr = table;
--	if (!hdr->length) {
--		dev_warn(dev, "found a zero length table '%d' parsing nfit\n",
--			hdr->type);
-+	if (hdr->length < sizeof(*hdr) || hdr->length > table_len) {
-+		dev_warn(dev, "invalid table length %u for type %u parsing nfit\n",
-+			 hdr->length, hdr->type);
- 		return NULL;
- 	}
- 
--- 
-2.50.1 (Apple Git-155)
+In add_spa() in drivers/acpi/nfit/core.c, the exact length equality check
+will then fail:
 
+add_spa() {
+    ...
+    if (spa->header.length !=3D sizeof_spa(spa))
+        return false;
+    ...
+}
+
+Will this bubble up as ERR_PTR(-ENOMEM) and abort the entire driver probe
+on compliant platforms?
+
+[Severity: High]
+This is also a pre-existing issue, but while we're adding bounds checks,
+does sizeof_dcr() in drivers/acpi/nfit/core.c have a similar missing check
+that could lead to an out-of-bounds read?
+
+When an ACPI table provides a DCR subtable with header.length exactly enough
+to include the windows field (e.g., 32) and windows > 0, sizeof_dcr() calcu=
+lates
+the required size as 80 bytes:
+
+sizeof_dcr() {
+    ...
+    if (dcr->windows)
+        return sizeof(*dcr);
+    ...
+}
+
+add_table() only verifies that 32 bytes remain in the mapped ACPI table. The
+memcpy() in add_dcr() then reads 80 bytes:
+
+add_dcr() {
+    ...
+    memcpy(nfit_dcr->dcr, dcr, sizeof_dcr(dcr));
+    ...
+}
+
+Could this extend 48 bytes past the end of the subtable, potentially reading
+unmapped memory and causing a kernel panic?
+
+[ ... ]
+
+> @@ -951,7 +969,16 @@ static bool add_platform_cap(struct acpi_nfit_desc *=
+acpi_desc,
+>  	struct device *dev =3D acpi_desc->dev;
+>  	u32 mask;
+> =20
+> -	mask =3D (1 << (pcap->highest_capability + 1)) - 1;
+> +	if (pcap->header.length < sizeof(*pcap))
+> +		return false;
+> +	if (pcap->highest_capability > 31)
+> +		return false;
+
+[Severity: High]
+Does returning false here break forward compatibility with future ACPI
+firmware?
+
+If a future firmware revision sets highest_capability > 31 to indicate supp=
+ort
+for new features, this check will return false.
+
+Since add_table() handles this by returning ERR_PTR(-ENOMEM):
+
+add_table() {
+    ...
+    case ACPI_NFIT_TYPE_CAPABILITIES:
+        if (!add_platform_cap(acpi_desc, table))
+            return err;
+    ...
+}
+
+Would this cause the entire NFIT driver probe to fail, rather than just
+gracefully capping or ignoring the unknown capability bits?
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260722041701.2107=
+8-1-pengpeng@iscas.ac.cn?part=3D1
