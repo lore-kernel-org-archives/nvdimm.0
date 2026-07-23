@@ -1,216 +1,158 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C1651D555;
-	Thu, 23 Jul 2026 00:19:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FD7217DFFA;
+	Thu, 23 Jul 2026 00:32:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784765996; cv=none; b=ieUHiaZVSddwJnQb/0FxLi+ToTXwhgVtVqqDTdGNa1+PzM+4bVS+mXH9FPmStMavj9/9119/soGFWNlBzBSfXqmzrzv3EolYMRC8HaAUV+CfGndvtH7KNnHza8ThRhyPG2fN340BlR5sGqGPM0Nf7FoNzKV8QZ5Tbhjbm8lcLz0=
+	t=1784766768; cv=none; b=XnkvpAD2ZTnLAzTF3Xo0m/j8On+KJ4hIPvwlbPjuwgFARX3LSzmhfsPv4HvUnFwoY8JEAcglEuZ5X414CPfCaHQtAQJKHC7hILCKf+vtdmcrmmep4cBpLEqeTPCSNcAPvufTR6AW7kEh+TW7yL7jL7TIFDhtJBbXJVDD29jDQ0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784765996; c=relaxed/simple;
-	bh=LJrwMBFzEJfWlcNe+u3Em2s3k7Xc8/tdxZKRwTN6sgU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MDI8rZSaSoy2a1MI2eL9qWQhAyYxkiULZfZUpW2PtIUP8lsYR075zwHvFdQ5IbEqllXh2domy4T92813E0I8cq6kkBP3mA93I7GkLZBTlMjhYkKAaMAVNPEycFBNhWpO6Dxde9yZ3M8fn/wLHx0G/XwKUUegyumIY1vvjCfJjJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BCF74EeS; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BCF74EeS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A0F61F000E9;
-	Thu, 23 Jul 2026 00:19:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784765994;
-	bh=etGADT3O07IS+YgXI7BAorrClTolrXpqV0QzB1dZpWA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=BCF74EeStolbb2W/TP1soDHuWZ51DJgYsnp0HoXIhY2LV8FES9MkZRqdbEzajNcq+
-	 FdLD6IqAG7VkemQlxBlzfSPOaZ9GNCpfftJx+0klLFu5BE2mkb7lN3baGG6RJOA/f+
-	 OTbXbg6YqfXU+lWGMVnTAd3AXQwctqtKShgO3nYG2UgswjKxrd3j5RbvY6xNG9gaXM
-	 fPUG9Bt2NyDXhqYg6+KA0IHV+/ZVkHI4krzjxQIX39zaRdwO1taH2ix1ZIoapD4CwO
-	 y+KvoVgLfc1T4Hs6ON+9+dwzzQyWXFuwLTkfAhh3M+nzbYJObaTnWnCcSzHNgOzf46
-	 0VqiGCD9JgaHg==
-From: SJ Park <sj@kernel.org>
-To: Gregory Price <gourry@gourry.net>
-Cc: SJ Park <sj@kernel.org>,
-	arun.george@samsung.com,
-	balbirs@nvidia.com,
-	brendan.jackman@linux.dev,
-	yuzenghui@huawei.com,
-	apopple@nvidia.com,
-	alucerop@amd.com,
-	matthew.brost@intel.com,
-	akpm@linux-foundation.org,
-	david@kernel.org,
-	ljs@kernel.org,
-	liam@infradead.org,
-	vbabka@kernel.org,
-	rppt@kernel.org,
-	surenb@google.com,
-	mhocko@suse.com,
-	corbet@lwn.net,
-	skhan@linuxfoundation.org,
-	gregkh@linuxfoundation.org,
-	rafael@kernel.org,
-	dakr@kernel.org,
-	djbw@kernel.org,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	alison.schofield@intel.com,
-	osandov@osandov.com,
-	jannh@google.com,
-	pfalcato@suse.de,
-	jackmanb@google.com,
-	hannes@cmpxchg.org,
-	ziy@nvidia.com,
-	pbonzini@redhat.com,
-	osalvador@suse.de,
-	joshua.hahnjy@gmail.com,
-	rakie.kim@sk.com,
-	byungchul@sk.com,
-	ying.huang@linux.alibaba.com,
-	kasong@tencent.com,
-	qi.zheng@linux.dev,
-	shakeel.butt@linux.dev,
-	baohua@kernel.org,
-	axelrasmussen@google.com,
-	yuanchu@google.com,
-	weixugc@google.com,
-	yury.norov@gmail.com,
-	linux@rasmusvillemoes.dk,
-	longman@redhat.com,
-	ridong.chen@linux.dev,
-	tj@kernel.org,
-	mkoutny@suse.com,
-	jgg@ziepe.ca,
-	jhubbard@nvidia.com,
-	peterx@redhat.com,
-	baolin.wang@linux.alibaba.com,
-	npache@redhat.com,
-	ryan.roberts@arm.com,
-	dev.jain@arm.com,
-	lance.yang@linux.dev,
-	usama.arif@linux.dev,
-	xu.xin16@zte.com.cn,
-	chengming.zhou@linux.dev,
-	roman.gushchin@linux.dev,
-	muchun.song@linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-debuggers@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	kvm@vger.kernel.org,
-	cgroups@vger.kernel.org,
-	damon@lists.linux.dev,
-	linux-kselftest@vger.kernel.org,
-	kernel-team@meta.com
-Subject: Re: [PATCH v5 14/36] mm/damon: skip private node memory in DAMON migration and pageout
-Date: Wed, 22 Jul 2026 17:19:42 -0700
-Message-ID: <20260723001943.95854-1-sj@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <amCzmkdOr6AFv_kQ@gourry-fedora-PF4VCD3F>
-References: 
+	s=arc-20240116; t=1784766768; c=relaxed/simple;
+	bh=M9B31YLQtpF4cz1ZHqD33idr8KjQadhKu42Qbpq5Lrc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=T9KQ2PCgNXu/cqjMkrpIbE7AWFaHj3fvdsTUgI3DI5FYPTS5tn3XPDl0vvLc9fupB9Z9Xpglfs+/XjepLqQ2hP3040XTGJiaPg14pttCMX7XlusWsV18NHWecMJjoq2/hr4/dIwNEYsEZ5bNPH17k9ZywY5m4ubgfuX+vdhChNE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
+Received: from omf01.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay04.hostedemail.com (Postfix) with ESMTP id EA2631A02DD;
+	Thu, 23 Jul 2026 00:32:36 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf01.hostedemail.com (Postfix) with ESMTPA id B43DA60011;
+	Thu, 23 Jul 2026 00:32:24 +0000 (UTC)
+Date: Wed, 22 Jul 2026 19:32:23 -0500
+From: John Groves <John@groves.net>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, John Groves <john@jagalactic.com>, 
+	Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
+	Lorenzo Stoakes <ljs@kernel.org>, Aravind Ramesh <arramesh@micron.com>, 
+	Ajay Joshi <ajayjoshi@micron.com>, "venkataravis@micron.com" <venkataravis@micron.com>, 
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
+Subject: Re: [PATCH V11 0/9] famfs: port into fuse
+Message-ID: <amFMUtTB4SmHdYZx@groves.net>
+References: <20260720034358.68714-1-john@jagalactic.com>
+ <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
+ <CAOQ4uxiEzP2e=cRw-AiGxtSv6WMSA5yR3cmgrF97s7ggU6wzqg@mail.gmail.com>
+ <CAJfpegt9PwHksYhsQZeCsW0eooXVVihyieTpeHMmC-+Pq8BWaw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJfpegt9PwHksYhsQZeCsW0eooXVVihyieTpeHMmC-+Pq8BWaw@mail.gmail.com>
+X-Rspamd-Server: rspamout01
+X-Rspamd-Queue-Id: B43DA60011
+X-Stat-Signature: 7yr1sarh6hzcmabc5jh4fdgk6g17o9r7
+X-Session-Marker: 6A6F686E4067726F7665732E6E6574
+X-Session-ID: U2FsdGVkX19PLbwf5afhZYu7h/oU37HdgP6ZNBNAzIg=
+X-HE-Tag: 1784766744-980457
+X-HE-Meta: U2FsdGVkX1+odIWLjAHw/PDf22XXSEFf+/xiKe4A+w5oYnabDwp1+vQnLGdBFVEGfX0EnfDgOj5KaiE54GiHPvksAFYhngTBrn/zjDaXw86/zYubmfz2O2zJLsVu8Uy72vcGjQrb64+z+tzDk3OeUSmVwA+l2eY5et0gVe8Z7ClhvlqrzJ8p2NIYcoGxYoT03+KXGLyponLeh+fbWSweq14mEJ2TiJXaRqtnsTXmvt8yZJg16d5M7PYpn55bDKBKeeG/65osjlxqmT0iZFj0PeobY+ASF+tPedASLJ+jPARv7o/6I6tz5pwO/dzmVIuNmJLfEGxtBEQhFADtDXCY5+RUubagCNDm
 
-On Wed, 22 Jul 2026 08:16:56 -0400 Gregory Price <gourry@gourry.net> wrote:
-
-> On Tue, Jul 21, 2026 at 04:46:43PM -0700, SJ Park wrote:
-> > On Mon, 20 Jul 2026 15:34:08 -0400 Gregory Price <gourry@gourry.net> wrote:
-> > 
-> > > DAMON operates on physical address ranges, which can cover private
-> > > node memory. Skip private-node folios in both DAMON's migration
-> > > and reclaim paths.
-> > > 
-> > > Signed-off-by: Gregory Price <gourry@gourry.net>
-> > > ---
-> > >  mm/damon/paddr.c | 9 +++++++++
-> > >  1 file changed, 9 insertions(+)
-> > > 
-> > > diff --git a/mm/damon/paddr.c b/mm/damon/paddr.c
-> > > index e4f98d67461f5..c741a94319750 100644
-> > > --- a/mm/damon/paddr.c
-> > > +++ b/mm/damon/paddr.c
-> > > @@ -12,6 +12,7 @@
-> > >  #include <linux/swap.h>
-> > >  #include <linux/memory-tiers.h>
-> > >  #include <linux/mm_inline.h>
-> > > +#include <linux/node_private.h>
-> > >  
-> > >  #include "../internal.h"
-> > >  #include "ops-common.h"
-> > > @@ -250,6 +251,10 @@ static unsigned long damon_pa_pageout(struct damon_region *r,
-> > >  			continue;
-> > >  		}
-> > >  
-> > > +		/* private node memory is not reclaimable by default */
-> > > +		if (folio_is_private_node(folio))
-> > > +			goto put_folio;
-> > > +
-> > 
-> > "by default".  Does that mean it could be reclaimable in some situations?  If
-> > so, could we check if it is reclaimable?
-> > 
+On 26/07/22 12:46PM, Miklos Szeredi wrote:
+> On Mon, 20 Jul 2026 at 12:07, Amir Goldstein <amir73il@gmail.com> wrote:
 > 
-> See the damon changes in:
+> > It's not about this ioctl, it's about infrastructure reuse.
+> > It's about the fact that there is NOTHING special about dax_devlist;
+> > and no reason not to manage it via backing_files_map.
+> >
+> > The reason you stated was that you want userspace to determine the
+> > daxdev_index/backing_id - fine, no problem - this is why I asked that
+> > you pass it the desired backing_id in the ioctl.
+> > In fact I think that all fuse backing_ids would be better assigned by user space
+> > so the extension of padding => backing_id is not unique to famfs.
 > 
-> https://lore.kernel.org/linux-mm/al-pkvmgIxGu3LzM@gourry-fedora-PF4VCD3F/T/#mfb99303c85dd9d4c3f58832dc28fc55583a7217a
-
-Summarizing what you want to say, quoting something from the patch, or at least
-calling it "26th patch of this series" would have made reviewing much easier.
-Cc-ing damon@ for only patches that toucing DAMON source files and the cover
-letter of the series could also be helpful.  Please consider doing some of
-these for future replies.
-
-So, I understand later patches will make it optionally reclaimable and update
-this restriction by the 26th patch?  That sounds fair.  But, could we drop "by
-default" from the above comment for reducing the confusion?
-
+> Right, so I suggest to just reuse FUSE_DEV_IOC_BACKING_OPEN and add
+> two flags: one to enable user supplied backing ID and the other to
+> indicate that fd refers to DAX device.  The changes to do compared to
+> the current patchset are quite minimal.
 > 
-> > Also, what happens if we just try paging out the private node memory?  Will it
-> > simply fail?  Or, make some problems?
-> > 
+> > And the best part is that this request requires no changes to your userspace.
+> > You already bite the bullet and maintain the new/old uapi but changing the
+> > kernel implementation does not require this burden from you, so to be honest
+> > I really don't understand why you did not follow Miklos' suggestion.
 > 
-> user controls for MADV_ commands that affect private node folios would
-> skip those folios - exactly same as ZONE_DEVICE folios.
+> Code reuse is also important, but I understand John's position to want
+> to separate famfs from existing codebase as much as possible.  And
+> because this is an implementation detail I don't want to make this a
+> show stopper.  We can easily fix it later.
 > 
-> Which I'm not sure damon actually handles correctly presently (zone
-> device).  I remember looking around damon and thinking to myself "what
-> if this is a zone device page?" and not being able to find a satisfying
-> answer.
+> > > - Lose the famfs interleaved extent format. I have complied with this request.
+> > >   It makes some things worse, but we'll discuss that later.
+> > >
+> >
+> > I am really not aware of a request to lose the interleaved extent format.
+> > How can this patch [2] from Miklos which reimplements this format as a generic
+> > uapi be mistaken for a request to lose this format?
 > 
-> > >  		if (damos_pa_filter_out(s, folio))
-> > >  			goto put_folio;
-> > >  		else
-> > > @@ -344,6 +349,10 @@ static unsigned long damon_pa_migrate(struct damon_region *r,
-> > >  		else
-> > >  			*sz_filter_passed += folio_size(folio) / addr_unit;
-> > >  
-> > > +		/* private nodes do not support migration by default */
-> > > +		if (folio_is_private_node(folio))
-> > > +			goto put_folio;
-> > > +
-> > 
-> > Same questions.
-> > 
+> Let's not care.  We can easily add this later if famfs (or any other
+> use case) decides to want this after all.
 > 
-> Technically there is nothing in migration core to prevent migration
-> operations, it's done on a service basis - hotunplug, reclaim/demotion,
-> user numa (mbind, migrate/move_pages) etc.
+> Making the initial patchset smaller is win in any case.
 > 
-> Operations on private nodes/private node folioes are refused if the
-> capability bit is not set.
+> > Let me recap the former review requests as I understand them:
+> >
+> > 1. Use ioctl instead of GET_DAXDEV
+> 
+> This is done, just need to reuse the existing ioctl instead of add a
+> new one with the same semantics (okay not true because of the fixed
+> backing ID extension...)
+> 
+> > 2. Use backing files infra for daxdev table
+> 
+> Leave this later.
+> 
+> > 3. Use ioctl instead of GET_FMAP
+> 
+> Not sure we agreed to use an ioctl for extent mapping.   What we did
+> agree on was to use a generic interface that doesn't have anything
+> famfs specific in it.
+> 
+> John, can you please also look at review comments provided by Sashiko?
+> 
+> Thanks,
+> Miklos
 
-I haven't had a chance to read the entire series, sorry about that.  So, do you
-mean the above blocking is not really needed, or that will conditionally be
-allowed by another later patch?
+This a quick acknowledgment that I appreciate your reply Miklos. I'll respond
+to individual points as soon as I can without rushing.
 
+Re: Sashiko - of course! The series has been through /kreview in Chris'
+review-prompts repo. Weird that I didn't get any email directly from Sashiko 
+this time, but I know how to get to it online.
 
-Thanks,
-SJ
+I will make this high-level comment: After reading Amir's initial reply, I 
+concluded that the requested changes push famfs past the breaking point, 
+and therefore the only way to keep famfs suitable for its intended usage is 
+to pivot back to standalone. I do think that may be best all-around for fuse, 
+famfs and Linux. I don't see any way famfs makes fuse better - it's a very 
+specialized pattern that doesn't fit in a passthrough-filesystem or 
+block-filesystem shaped hole. And I don't think it can comply with the 
+"nothing famfs-specific in GET_FMAP" objective.
 
-[...]
+If famfs is standalone, it can only ever affect customers who use it, and it
+cannot be used as a general purpose file system. When famfs is in fuse, it's 
+mashed up with code for hundreds or thousands of other use cases. That's not 
+a win from a risk management standpoint, and it doesn't make famfs better - 
+certainly not in any way that would mitigate adding a lot of state / 
+complexity / baggage to famfs.
+
+In good faith,
+John
+
