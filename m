@@ -1,220 +1,165 @@
-Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012004.outbound.protection.outlook.com [52.101.53.4])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EDBB353A79;
-	Thu, 23 Jul 2026 02:43:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.4
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784774583; cv=fail; b=NUGoJA+44QZlOcsZAbwEL1VEih3LGuAUcc0Y2qdOPONOn0RXYDsJFI8x0ViDuNESk46ja6hGvoP/IPrICcsGGUBDRz014/BYxqZGQSDC+gGGJWSBuqGt2NeD6So1F9rQdU6iakVhu1cwYNqeUOEW44amorIQla1FE1UzxV83j7k=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784774583; c=relaxed/simple;
-	bh=S06faMQOytOdxeyFxL/FSyK0WslLfWpgtdJD3M406NA=;
-	h=Content-Type:Date:Message-Id:Subject:Cc:To:From:References:
-	 In-Reply-To:MIME-Version; b=GSZiG4sJpQb5o10tthM65qjrMaO8Ig8Q0nMt5dQkTpVpWYfeUoacgVgR4D/Fh/Bxm9OXc459UsuXz0mHLqmB1yRuoVGR6v7V0c1mZbmFvXya1nL5dn/4ZckavWkEGjbqCezjfJwhVT9OmO08Dq5WtS8mO9QAczMijYjP1v4guvg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=TN5L9sqi; arc=fail smtp.client-ip=52.101.53.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 705BA36197A
+	for <nvdimm@lists.linux.dev>; Thu, 23 Jul 2026 03:25:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784777126; cv=none; b=JH+MRIXOLzfjEhbzsLpz+p+iOE6B1IVpBQE0T4/x3eDkTj0bqABvP66dbrNHJoi3ESWELkoeIwvzVsDvhkR+/UdXvwquJRFy6GzLAKargCvdGAwP8igAv15mDFkb3bcXsyFbYSaYOoYG5B9aKtkU0TbPZg0Cdhj43X+OpkBIyxY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784777126; c=relaxed/simple;
+	bh=gfT0G2h32Mgahppc0W5ji5WK8maIODJ9zFl+mqtZVuU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ACT+FeuD4vshmC/muL81p7AxL1g+KKw0GeDIgZUHm2B0WpX+GiM1uoEjvkEKkdO0d7W9E6slwLrWhfmtzOMWE4eP89p8bXE5ohNMuU/xYILaRrprowCK5gzf1Erjqea0x8SAtrud357lKh0QBbcf1duTTKTg1Y5mJMgDnwpLVOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=urddzN90; arc=none smtp.client-ip=209.85.160.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="TN5L9sqi"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=okjNe04FzwSJsmlJU8eYVMRxQCKjNPMhLHdYbJrjEnsRIZZgbaQNWXWmeTwPkq/xK2XE4UYWNjXpqHZEQY//oDx10XtYZEgqpunxoXaD6VQyfXA7juoRAalOq2zhWPkCKfZ0S4zfO+4s904Ayk7nAWQU/T9GRhLfdSUB5CkD9sI7CcRQI6OlLJvxm9j8AGrKQFiv9Q1EWqVONYJSjxQ4vBWDwZkHDiXlCVUTyuD+4IDYdIZjyeZ3LXWDkLJU2iT/+cSxonPkfUjPvTeQNL8DG4IJ4ywc7RaQn8v2uHjxEz91kEWbpF9xqR0+uVleq1ACqhILcwHWg6PAzln65rQXzw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=LrSNJGuuQtfY7rvM/DphjdryLbbblJmoZVn1f30CWBI=;
- b=KEZZXXQK7IKnHchsiVrbtFX2Xt7nlyysWKGnKOrkBTT0Ruo61MnSG2tYkjyFFx+hXsiDOrXY3cn1NDf1js8SmkYhUgYACaNYoxvcQgER6KOm65LYj4/PuH6fRjyPnbWkqEvOHJXoODDUwQwkWXbED62H9DLpQJcEf19nmnyxk/ZPPWPorq3e+tmRsMIBAWfsttRkPpCMu5cGw+pz1cFjtf+bSwVp33GlJLXilmJnrcIMAT+IbEADGA3zIc4eLJgSCGTqWvXDCYEDaqPy8Cv3/O4ae+GdX1BXFPA1BiwlYngXLWZpXZivzynWWmwRJbYE9fP+IoriLQDS7sfPMCpkwA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=LrSNJGuuQtfY7rvM/DphjdryLbbblJmoZVn1f30CWBI=;
- b=TN5L9sqih88HiiWnof5z/0kY4QKLeSGn+lhzrk6ZlGfg/XLJLM9lmHDggIB+BqHORRAOJ9dzuhfcHbBi1VUTt55kNI1PGEgW4CKp5xPLfUb2ZaqYP8i0WwfNd3TxYpxXB8DJei1OQN1fixzDXEChW4TJvSKgQAJSrDcDqpraqOlR6IDwKVCiPqVs0vKcrAnXjGxqvWxZXOxmxRgU5iZLudh7y1d1CHbXdYcukuRViAzTVqe23XW0RyuAH8q2KwDxfNaTHUF5Qnl6SRYBg1HNPzN4vDl7rNsKglPkrOiJzVDtT7A5om3RDvWZoFzjo6O9JhT899LJ8uvbXG9vgVARfg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from IA0PR12MB8374.namprd12.prod.outlook.com (2603:10b6:208:40e::7)
- by SA3PR12MB8022.namprd12.prod.outlook.com (2603:10b6:806:307::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.10; Thu, 23 Jul
- 2026 02:42:47 +0000
-Received: from IA0PR12MB8374.namprd12.prod.outlook.com
- ([fe80::d85f:4c87:ae84:3f16]) by IA0PR12MB8374.namprd12.prod.outlook.com
- ([fe80::d85f:4c87:ae84:3f16%5]) with mapi id 15.21.0245.009; Thu, 23 Jul 2026
- 02:42:47 +0000
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 22 Jul 2026 22:42:45 -0400
-Message-Id: <DK5LS45DW6UF.109DVMKA2G8YE@nvidia.com>
-Subject: Re: [PATCH v2 14/33] mm/vma: clean up anon_vma_compatible()
-Cc: <linux-mm@kvack.org>, <linux-kernel@vger.kernel.org>,
- <linux-arm-kernel@lists.infradead.org>, <linux-parisc@vger.kernel.org>,
- <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
- <linux-perf-users@vger.kernel.org>, <linux-trace-kernel@vger.kernel.org>,
- <damon@lists.linux.dev>, <iommu@lists.linux.dev>,
- <kasan-dev@googlegroups.com>, <linux-sgx@vger.kernel.org>,
- <etnaviv@lists.freedesktop.org>, <dri-devel@lists.freedesktop.org>,
- <linux-arm-msm@vger.kernel.org>, <freedreno@lists.freedesktop.org>,
- <linux-tegra@vger.kernel.org>, <kvm@vger.kernel.org>, "Russell King"
- <linux+etnaviv@armlinux.org.uk>
-To: "Lorenzo Stoakes" <ljs@kernel.org>, "Andrew Morton"
- <akpm@linux-foundation.org>, "David Hildenbrand" <david@kernel.org>, "Liam
- R. Howlett" <liam@infradead.org>, "Vlastimil Babka" <vbabka@kernel.org>,
- "Mike Rapoport" <rppt@kernel.org>, "Suren Baghdasaryan"
- <surenb@google.com>, "Michal Hocko" <mhocko@suse.com>, "Rik van Riel"
- <riel@surriel.com>, "Harry Yoo" <harry@kernel.org>, "Jann Horn"
- <jannh@google.com>, "Lance Yang" <lance.yang@linux.dev>, "Pedro Falcato"
- <pfalcato@suse.de>, "Russell King" <linux@armlinux.org.uk>, "Dinh Nguyen"
- <dinguyen@kernel.org>, "Simon Schuster"
- <schuster.simon@siemens-energy.com>, "James E.J. Bottomley"
- <James.Bottomley@HansenPartnership.com>, "Helge Deller" <deller@gmx.de>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>, "Christian Brauner"
- <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>, "Dan Williams"
- <djbw@kernel.org>, "Matthew Wilcox" <willy@infradead.org>, "Muchun Song"
- <muchun.song@linux.dev>, "Oscar Salvador" <osalvador@suse.de>, "Masami
- Hiramatsu" <mhiramat@kernel.org>, "Oleg Nesterov" <oleg@redhat.com>, "Peter
- Zijlstra" <peterz@infradead.org>, "Ingo Molnar" <mingo@redhat.com>,
- "Arnaldo Carvalho de Melo" <acme@kernel.org>, "Namhyung Kim"
- <namhyung@kernel.org>, "Mark Rutland" <mark.rutland@arm.com>, "Alexander
- Shishkin" <alexander.shishkin@linux.intel.com>, "Jiri Olsa"
- <jolsa@kernel.org>, "Ian Rogers" <irogers@google.com>, "Adrian Hunter"
- <adrian.hunter@intel.com>, "James Clark" <james.clark@linaro.org>, "Baolin
- Wang" <baolin.wang@linux.alibaba.com>, "Nico Pache" <npache@redhat.com>,
- "Ryan Roberts" <ryan.roberts@arm.com>, "Dev Jain" <dev.jain@arm.com>,
- "Barry Song" <baohua@kernel.org>, "Miaohe Lin" <linmiaohe@huawei.com>,
- "Naoya Horiguchi" <nao.horiguchi@gmail.com>, "Xu Xin"
- <xu.xin16@zte.com.cn>, "Chengming Zhou" <chengming.zhou@linux.dev>, "SJ
- Park" <sj@kernel.org>, "Matthew Brost" <matthew.brost@intel.com>, "Joshua
- Hahn" <joshua.hahnjy@gmail.com>, "Rakie Kim" <rakie.kim@sk.com>, "Byungchul
- Park" <byungchul@sk.com>, "Gregory Price" <gourry@gourry.net>, "Ying Huang"
- <ying.huang@linux.alibaba.com>, "Alistair Popple" <apopple@nvidia.com>,
- "Hugh Dickins" <hughd@google.com>, "Peter Xu" <peterx@redhat.com>, "Kees
- Cook" <kees@kernel.org>, "Marek Szyprowski" <m.szyprowski@samsung.com>,
- "Robin Murphy" <robin.murphy@arm.com>, "Andrey Konovalov"
- <andreyknvl@gmail.com>, "Alexander Potapenko" <glider@google.com>, "Dmitry
- Vyukov" <dvyukov@google.com>, "Steven Rostedt" <rostedt@goodmis.org>,
- "Mathieu Desnoyers" <mathieu.desnoyers@efficios.com>, "Jarkko Sakkinen"
- <jarkko@kernel.org>, "Dave Hansen" <dave.hansen@linux.intel.com>, "Thomas
- Gleixner" <tglx@kernel.org>, "Borislav Petkov" <bp@alien8.de>,
- <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "Ian Abbott"
- <abbotti@mev.co.uk>, "H Hartley Sweeten" <hsweeten@visionengravers.com>,
- "Lucas Stach" <l.stach@pengutronix.de>, "Christian Gmeiner"
- <christian.gmeiner@gmail.com>, "David Airlie" <airlied@gmail.com>, "Simona
- Vetter" <simona@ffwll.ch>, "Patrik Jakobsson"
- <patrik.r.jakobsson@gmail.com>, "Maarten Lankhorst"
- <maarten.lankhorst@linux.intel.com>, "Maxime Ripard" <mripard@kernel.org>,
- "Thomas Zimmermann" <tzimmermann@suse.de>, "Rob Clark"
- <robin.clark@oss.qualcomm.com>, "Dmitry Baryshkov" <lumag@kernel.org>,
- "Abhinav Kumar" <abhinav.kumar@linux.dev>, "Jessica Zhang"
- <jesszhan0024@gmail.com>, "Sean Paul" <sean@poorly.run>, "Marijn Suijten"
- <marijn.suijten@somainline.org>, "Tomi Valkeinen"
- <tomi.valkeinen@ideasonboard.com>, "Thierry Reding"
- <thierry.reding@kernel.org>, "Mikko Perttunen" <mperttunen@nvidia.com>,
- "Jonathan Hunter" <jonathanh@nvidia.com>, "Christian Koenig"
- <christian.koenig@amd.com>, "Huang Rui" <ray.huang@amd.com>, "Matthew Auld"
- <matthew.auld@intel.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, "Yishai Hadas"
- <yishaih@nvidia.com>, "Shameer Kolothum" <skolothumtho@nvidia.com>, "Kevin
- Tian" <kevin.tian@intel.com>, "Ankit Agrawal" <ankita@nvidia.com>, "Alex
- Williamson" <alex@shazbot.org>, "Paolo Bonzini" <pbonzini@redhat.com>,
- "Shakeel Butt" <shakeel.butt@linux.dev>, "Usama Arif"
- <usama.arif@linux.dev>
-From: "Zi Yan" <ziy@nvidia.com>
-X-Mailer: aerc 0.21.0
-References: <20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org>
- <20260710-b4-pre-scalable-cow-v2-14-2a5aa403d977@kernel.org>
-In-Reply-To: <20260710-b4-pre-scalable-cow-v2-14-2a5aa403d977@kernel.org>
-X-ClientProxiedBy: BL1PR13CA0229.namprd13.prod.outlook.com
- (2603:10b6:208:2bf::24) To IA0PR12MB8374.namprd12.prod.outlook.com
- (2603:10b6:208:40e::7)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="urddzN90"
+Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-51c0a81d286so1281001cf.1
+        for <nvdimm@lists.linux.dev>; Wed, 22 Jul 2026 20:25:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1784777122; x=1785381922; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Kd13UizLWaDa1rNXvY/PJ0N43yZ3Vd9IZn7XTlTXtfM=;
+        b=urddzN905/IWI1PR54GJNttpdzyt/qVu75GRLHSLu3E6f9ahaWcKntCA/dZ9IFQAvI
+         W5l9yLIBtRxshxRsFVUcxP8qiPkycPLerojMjIuypVeAyrxVzE4aR8ipGSbES7/bgcmZ
+         NMBpfIbMv/cVvjUGJ+IbVeSIgFDFsNYzDiNkYa0mu6Gr3iah9pkQ3jw8Zc7RKqFdjNl1
+         tpikJ5+I07OXxrJBStivc0w4vldXUCYXA6QrDpV84E7yrOmdVbtD5kVPr/86poczAXyX
+         gyK8lzMSPUPrBgLvHyXNcu98y38exQqDtt/fGRUWTgiBt5l8nnEa5RoCOpr8OL6cSquL
+         Drgg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784777122; x=1785381922;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Kd13UizLWaDa1rNXvY/PJ0N43yZ3Vd9IZn7XTlTXtfM=;
+        b=otS+pCQRun+3pvnELFw8zqD+q7zqvKZZUCzrtksSF7zlwq5lIG3ZWFL7K27Z86KrHE
+         qoJkInt6vBno0dfNvesJ831aCaOwPppr9hsF3w8pFpISFrDlX/e8TQ58b19G9H/iPOmQ
+         OnCC7/oPIOB3cPE/Lh83un89CfvRWL0oediGjVzFAaCjX0PGM9MrRr1iKHdggU140rgM
+         N8tlsIsst738NmfJd8ZigWEpv034+x05SSFCkXCXknqhqdmOfFUP+2Ydvrbrb1F0w641
+         Ko2u8GLx1f0oZppEy2+3YXAjMmfm7lYANp8Un74xD3QMZRfE4B412l6f+bk4FnKMD3J/
+         KdgA==
+X-Forwarded-Encrypted: i=1; AHgh+Rr5Wyai+o78aE5R7u/cxc4be+AXa5hWtzhUc5Y/SytrLYEnVyVfply5Ifdzk5M+R5/EpL/n5Ok=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwTgaJ3Z7SrmVFunPZG2jyBxwIZWOQQwACFctWvsr2d9Xo2Nu5H
+	PkkNj9TSggQtgujXKIMbi1p32u3toWDCQzVWE9cNZQME7VQr5GZ/xFY+q5BHqGrYanE=
+X-Gm-Gg: AR+sD12GwwRf6xqu9ilH7kkK/w/Ki3Q3Oa2FWZng4/razE7sdZ9n8hYG8238CF+NCCd
+	CAkHEEBCB7B04JcIcYGtbbgp7Edu4mMSdVskbfxcMZ9pX76lj/JJwzxX3nx5FBS+gC/brOjGysF
+	ut5LTL984g+pi7iPe4uUAeMCeZcI4sHsWUrKhDdsjKgg8aoT4SeRxqcFiNUyQgUEtU0EL2Y4QY7
+	yBFmf8V10aPRD8Z49eNKoebb5ePWppTl2dr+l1xVycidTi88Z2uoGllIJglIfrComdnu5jF82xj
+	bPLJuI9622KVAGdXejvL9yiM5y/dgMx569+Z8r3u1uuob9ffJQcEsCd16tXGE3CUIj84lURZRD6
+	2GEAyBWruofOopKRl4SdISC0F/7iDcSn9J9HWqcMGGju8QsG5NGqwofvVIxfCOx2tEZHNU706r1
+	IZNK6+5XvpL4M0uLTypRRbALdFehES4K5llyj1AZruhkK80nstBMiY3gJICeZVAD4q+n+M
+X-Received: by 2002:a05:620a:808c:b0:92b:67e6:4b79 with SMTP id af79cd13be357-931048880c8mr90170685a.35.1784777122066;
+        Wed, 22 Jul 2026 20:25:22 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-931062c4ea8sm34465885a.28.2026.07.22.20.25.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Jul 2026 20:25:21 -0700 (PDT)
+Date: Wed, 22 Jul 2026 23:25:15 -0400
+From: Gregory Price <gourry@gourry.net>
+To: SJ Park <sj@kernel.org>
+Cc: arun.george@samsung.com, balbirs@nvidia.com, brendan.jackman@linux.dev, 
+	yuzenghui@huawei.com, apopple@nvidia.com, alucerop@amd.com, matthew.brost@intel.com, 
+	akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org, liam@infradead.org, 
+	vbabka@kernel.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com, 
+	corbet@lwn.net, skhan@linuxfoundation.org, gregkh@linuxfoundation.org, 
+	rafael@kernel.org, dakr@kernel.org, djbw@kernel.org, vishal.l.verma@intel.com, 
+	dave.jiang@intel.com, alison.schofield@intel.com, osandov@osandov.com, 
+	jannh@google.com, pfalcato@suse.de, jackmanb@google.com, hannes@cmpxchg.org, 
+	ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de, joshua.hahnjy@gmail.com, 
+	rakie.kim@sk.com, byungchul@sk.com, ying.huang@linux.alibaba.com, 
+	kasong@tencent.com, qi.zheng@linux.dev, shakeel.butt@linux.dev, baohua@kernel.org, 
+	axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com, yury.norov@gmail.com, 
+	linux@rasmusvillemoes.dk, longman@redhat.com, ridong.chen@linux.dev, tj@kernel.org, 
+	mkoutny@suse.com, jgg@ziepe.ca, jhubbard@nvidia.com, peterx@redhat.com, 
+	baolin.wang@linux.alibaba.com, npache@redhat.com, ryan.roberts@arm.com, dev.jain@arm.com, 
+	lance.yang@linux.dev, usama.arif@linux.dev, xu.xin16@zte.com.cn, 
+	chengming.zhou@linux.dev, roman.gushchin@linux.dev, muchun.song@linux.dev, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, driver-core@lists.linux.dev, 
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org, cgroups@vger.kernel.org, 
+	damon@lists.linux.dev, linux-kselftest@vger.kernel.org, kernel-team@meta.com
+Subject: Re: [PATCH v5 14/36] mm/damon: skip private node memory in DAMON
+ migration and pageout
+Message-ID: <amGHuputMNCFZ9CV@gourry-fedora-PF4VCD3F>
+References: <amCzmkdOr6AFv_kQ@gourry-fedora-PF4VCD3F>
+ <20260723001943.95854-1-sj@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA0PR12MB8374:EE_|SA3PR12MB8022:EE_
-X-MS-Office365-Filtering-Correlation-Id: 263a0403-15da-44c7-e34c-08dee86414cd
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|23010399003|366016|921020|22082099003|18002099003|11063799006|56012099006|4143699003|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	c52IFaKO/V4DkeKhX0N3qQqmPMRzFzOjfcpxTonrqMOuubjzoWbmUyAcjAXML8pS6/fx0pPpPnSZApGoSWe8XR6uCmdCL3AzsSXMlHyxr5gWBllLj4umpBApibBz4a1+Gol2jsY+mM4dBsgR0GI5/5VHygUVorNbDD77WQEvvfeiTzZZck/7qsfd1rJRRbsMGZvaiZFLbA8Q7d5geMWBlFuhh9nQ+X5ukzoKYbxjBO0XaxvqTi1ZwPT/2Br+uMG9bjhCAs7+VVjQdDykR0h+Tgsk647w7bYDu2EDlXoT8gWs8E61vqOqaNDdlbAkYurZtqcWYjWrb91/Dda6GRXUD6IMxgBfVE8ZL/ZfQGQAtgOYHq8QXSX1D/xan07LRzhHgHcHE7uQQiQApAbkChcBDFzrMNgddiVU2QH7mDL9VUO+fWAeaEvHRLDmbKqSFQb9J2/LiSglgeTuHYJ1r9X2Bj3ttTeAqgyyaZtIMsMFGd+0AG2FynWqomeLZTPefzXsmO79rd4AcApywAAOLOh6FQckq26g/8M0p9wKZ45MHPvL9P7mpj49Z9dtmDrN+WHz4Dku5p34ghFzbXhqCDS7c8sxd7VC59rsHliiMZhBJYaWXO67KpDF0WbK/TjgQN0BSZ5bU+LzOfDs+E7nmWa50kGJ2qC4dcDOhJni/FVw6c8thWsCHcpmrN70pj9CvewiTfVKpPKWHZbjUEytNsMB6A==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA0PR12MB8374.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(23010399003)(366016)(921020)(22082099003)(18002099003)(11063799006)(56012099006)(4143699003)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?eEUwUUoyaUg3ai92T2ZPcUdMS0RBNFRvaFJ3Ym5CVkxsMmpYMGlNVFVjeU5P?=
- =?utf-8?B?U3RKaThUVGFGdGtaUmUrUlcrdW50OUVMUzgxNTcvd2hyVFdnWEpYc2tsYXM3?=
- =?utf-8?B?aVQ4MCtpWFFSd3QxU3BsTnhIenJwT1ZhZ2NUa0ZMa050djIyYklmWjN0VTRm?=
- =?utf-8?B?d0FMcTRQYTRhU2tGQkhaUk44VEY5eWx2VlNGdUNZa2JUVFlDMW9mZWduYlpj?=
- =?utf-8?B?b3VnaXdUWUowQ1FnVVYrcVA0R2xuTk9XTVJ4QVk2T1E5RnpLMDA4Z2RVaHlS?=
- =?utf-8?B?VUM2Z0p0M01Kc1ZqM0hONkcyd1V5dUJBaW8xbHVCMGRVNWYxeE9XRzVjKzBZ?=
- =?utf-8?B?djdDZmpzNjd4M1ZLaE9VdXBxbjlNU05ESVJtcjg3ZmQ2Tit4R0RKbExKc2pt?=
- =?utf-8?B?Z3BVRmtzQXlhL1phaGJqNXlHSUZEZUhSNjR6YkNLMWpXSk9oQjZDVWgwcG1z?=
- =?utf-8?B?UGR3WnU0M01rYUxSdHBMN0pDa2txdklCaUN3bWNTN2tabmlwdjRQVVVPV3FG?=
- =?utf-8?B?cndJMDRDOUhiY0xTQk5lTko2aU1SN2tabFBJN2FyS1JIalZXYUlZREQ3Z056?=
- =?utf-8?B?ZHMzMEJYRmtwUjBMVFVIbVdSeFlXZ2hHc21HYUhVaEpheU9qOUxBM3lMQTBy?=
- =?utf-8?B?VXQ5c0tGSDFhR3k4cVRVOWNaSDBSR1dBaWxlOGQvSjdHQWNCR2pIVVdDZ3Jx?=
- =?utf-8?B?VU1iRU02S0R5Vks5VFc1OGRRMUY2Z1A0YVhWU1AwTExBZ29ER2oxaG0vTjVm?=
- =?utf-8?B?dEkwZjQ5Ris5SWFFRnZSV3NWYUFwd1BiWTNER0EvTS93dm4wK1dYTHphU05D?=
- =?utf-8?B?U0s4VFN6YWlqcms5c21ISU1yeGtta2ZGMTFqLytQOWJFMmhtVlpST0E3ZUJL?=
- =?utf-8?B?T2d4QURaVFdTaGhHT2tYb1hZankwa0F4VXJzQzdIMXpmeUU1dzg3aE45QVo0?=
- =?utf-8?B?S0lKVlRWa1QxN3pvYjZQV1JvQ0ZLa2U4TXBMTUluL3NmWGlEWkFJd2l2RDBl?=
- =?utf-8?B?dTZiQk44NHh4YzZSbTBLU3BLaEQyVi82cHJZNnJoRnZTWTVMZEdqODh2cDYr?=
- =?utf-8?B?V0NXbVFxUFcrbk5KZVMrbHJIS3VyRDBOMzBsT1o0WTFhbVBvSUtkSS9zRksy?=
- =?utf-8?B?UGFPWnJKYTh4RjRiVm9YWSthN29qZHhIcjFaV01rNm5uS2VSa2ZwRVJCcGJE?=
- =?utf-8?B?RXIwMndMYWtXWDVUVzllWElmRGt2OFJRQ3lzdzcwV29uWS9jbnVBL0VVY1hF?=
- =?utf-8?B?K0ozSXp0TGFKUTJyNzJOWm9TYkVBMjdBVkk0bVNDb2ZYUU9QQUhwSzlVclB5?=
- =?utf-8?B?ZVNYVUJsWFJvYUhPQVRIVFlnbjgzWjh2d0ZKSWR6UFAydDZleFUwT0UvaXFG?=
- =?utf-8?B?bkdoVndabHNiU0FTd1pIdFlYaDExSG9VeWxkZzBqeUtMNE9jeXlTV0lneUdX?=
- =?utf-8?B?ME1idzZBb0pORUNrdVNCWUpaNDQxajNVU1d2Qi9pbmVYN3oyL3lrUkZ5NmdC?=
- =?utf-8?B?Z0ZrUk5lRUJZd3l3aHBDL21HdXM1MWI1eHlXOWdyNW04aEQybWUwa2NKT05i?=
- =?utf-8?B?UkMzZE9lWDlpc2xtZ2ROQVhPUld3YmlDZko5dEJyblBJM2RSbDRCazlnYWJO?=
- =?utf-8?B?bS9HdElqMWRnT1p3ZXBZNGgzL04wSlYxSVNHNGx4U0ZxSXRlcUJTY0dzdnJk?=
- =?utf-8?B?VmRRM0VvUzBpaVJOZmd1TjU3VXcrSWo4RlpjRVJPMEJJTk1qQ0dBSVFUOHhL?=
- =?utf-8?B?c3pPUzJpWlJZTXpxbFhpTUh4cVl2eTZVVWdNRjBuYzBTR0JwQ0NjVXdsWGc0?=
- =?utf-8?B?c3d1S0syTTNDazBpS0dWRzZOR2JSNWlBMks0VkpERUJBUXlObGMzUmlQVHBl?=
- =?utf-8?B?eEc3cldVMWwvZzl6REltcG0rbGhicmhiR3lzazkwZ0JpSmR2Wlo4QnN2MWZm?=
- =?utf-8?B?Nkl0Q2xTdlNzYVQ2UEtOUDRZcUZUcTBhWW9aeVE5SyszTG9BMUZubVhwY1lQ?=
- =?utf-8?B?Qk55VUJIRjR3cjFkenZaT0pUNGE1dVpTYTZubzExZXRPa2p0VXQvaXNvU1FK?=
- =?utf-8?B?ZXFkZDF0ZERoWUxVRXAvekoyejFnTlIxQUN3WFZOL0NzOU9WcGs3SHdtd0k5?=
- =?utf-8?B?ZDRhaTlVdEJXOURtdWRiVnhtckhlbTBWZ3dwUktWR0tuYkpVc3hQR1N4SFRW?=
- =?utf-8?B?b2NLRUxxUkVSVkd5SEpodXRRaWVRdEdmY3dia1p2aXA3OHpjR3FiRGxnd1Bw?=
- =?utf-8?B?amF6UEFwZXJZMGpYSnRGWHd1RTZLbVY5UmY5QVhtNk8zRlZYT2dGb1gzcXdy?=
- =?utf-8?Q?e6Fb1PLeKmj8zp0Jw4?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 263a0403-15da-44c7-e34c-08dee86414cd
-X-MS-Exchange-CrossTenant-AuthSource: IA0PR12MB8374.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jul 2026 02:42:47.7950
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rOlCtWU8S5A2dxIjS9/Te5UcdluJM/L7mLCbEO3LtnCdHilWGOSHfIOSnZq4WWP3
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB8022
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260723001943.95854-1-sj@kernel.org>
 
-On Fri Jul 10, 2026 at 4:16 PM EDT, Lorenzo Stoakes wrote:
-> Break up the existing very large conditional, add comments and use
-> vma_[start/end]_pgoff() to make clearer what we're doing here.
->
-> No functional change intended.
->
-> Reviewed-by: Gregory Price <gourry@gourry.net>
-> Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-> Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-> ---
->  mm/vma.c | 21 ++++++++++++++++-----
->  1 file changed, 16 insertions(+), 5 deletions(-)
->
-LGTM.
+On Wed, Jul 22, 2026 at 05:19:42PM -0700, SJ Park wrote:
+> On Wed, 22 Jul 2026 08:16:56 -0400 Gregory Price <gourry@gourry.net> wrote:
+> 
+> > > "by default".  Does that mean it could be reclaimable in some situations?  If
+> > > so, could we check if it is reclaimable?
+> > > 
+> > 
+> > See the damon changes in:
+> > 
+> > https://lore.kernel.org/linux-mm/al-pkvmgIxGu3LzM@gourry-fedora-PF4VCD3F/T/#mfb99303c85dd9d4c3f58832dc28fc55583a7217a
+> 
+> Summarizing what you want to say, quoting something from the patch, or at least
+> calling it "26th patch of this series" would have made reviewing much easier.
+> Cc-ing damon@ for only patches that toucing DAMON source files and the cover
+> letter of the series could also be helpful.  Please consider doing some of
+> these for future replies.
+> 
 
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+I have been very much discouraged from this kind of trimming because it
+removes the context of the series from the individual patches - making it
+even more confusing.
 
+But I understand, I will try to remember to do this for you.
 
---=20
-Best Regards,
-Yan, Zi
+> So, I understand later patches will make it optionally reclaimable and update
+> this restriction by the 26th patch?  That sounds fair.  But, could we drop "by
+> default" from the above comment for reducing the confusion?
 
+Yes, but you bring up a good point - I think this two-step process is
+actually poor form and that I need to redo it.
+
+Maybe this can be redone as node states (features?) such as:
+
+   N_MEMORY_RECLAIMABLE
+   N_MEMORY_DEMOTABLE
+   N_MEMORY_TIERABLE
+
+so these damon changes will forego this confusing intermediate step of:
+
+   if (folio_is_private_node(folio))
+
+and go straight to
+
+   if (node_is_reclaimable(folio_nid(folio)))
+
+In the first patch - without ever having to revisit damon again.
+
+> > 
+> > Technically there is nothing in migration core to prevent migration
+> > operations, it's done on a service basis - hotunplug, reclaim/demotion,
+> > user numa (mbind, migrate/move_pages) etc.
+> > 
+> > Operations on private nodes/private node folioes are refused if the
+> > capability bit is not set.
+> 
+> I haven't had a chance to read the entire series, sorry about that.  So, do you
+> mean the above blocking is not really needed, or that will conditionally be
+> allowed by another later patch?
+> 
+
+I will reduce this all to a single patch in v6, I see where things can
+be improved now based on a few pieces of feedback.
+
+Thanks SJ!
+~Gregory
