@@ -1,125 +1,133 @@
-Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 679F338C42B
-	for <nvdimm@lists.linux.dev>; Thu, 23 Jul 2026 16:53:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4184361962
+	for <nvdimm@lists.linux.dev>; Thu, 23 Jul 2026 21:09:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784825596; cv=none; b=sI7ype/QnEffEXBRV1ZmF629tEP5TwgSxlc08i3QetWKneNODbMkeEAc6xbC84JOQrCdjJ2Ba7RXHu4ml/4NrLj8zM3eRZCW/UDcCMOa87bKPNe0xw5zkXwDNw0AxgxqslltGCMhK1j3gY3RuqRZq/AcHs0YMS04oHbMwGvgDlw=
+	t=1784840985; cv=none; b=mkNcgwKk7fvdugpn39GmAV9kdyYhqwld2s/Gox5JBYJwPPCRCZGSso3zicE1+sxw6vkx4iqcrW8P7iQjLNzIPDjlYF/Rj9plwKOnWFK8pF6wy36A1hKd3fSewWUbcYY/ekf5/iqj05WA/IzkjyfHtk15CwE3AOY9zuYX4nS00EQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784825596; c=relaxed/simple;
-	bh=z+HoEvmWYKtMfBygtPBl68CeMD6wWsLW69JzvhhpR/g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nOIoKGDVTa27kxhrWotAS8RfT7YFvqFXPwVAalvL+6jZ7S4rxPW6QqGZUdQK9gNF99s8P8Fdqn/qLmqJ4GE1+OYm8VqqL080FJQKZB6URPzOsX/vqv4+9bTeSf8ONSPyyTg1T43Whjb4mFIiMO95HHNohPOJuyrPWhMD/1GlEMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=kn/Z3F54; arc=none smtp.client-ip=209.85.222.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1784840985; c=relaxed/simple;
+	bh=gpKHmEPl19mjSrJdu9c1j21HlJrdu1M8dhYbXI+i2Hc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=NI+gQDzjBvAn4kU1MU73OgJhjCs0Eycf065XPVCXriu5WtE/7yZzDM2gtVT2I4GaQL3aAHcPYXrudw3V+jYaz+UE7R69AmRByxIoAfyXQLVkPoWr5QwAtTaVr8fsOq8/Sf175JAmGkrxdFengYmuxOBEzg7QyWvPqElWJcu6ivw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m6XijFj8; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="kn/Z3F54"
-Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-92ed19f4d60so65198585a.0
-        for <nvdimm@lists.linux.dev>; Thu, 23 Jul 2026 09:53:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1784825593; x=1785430393; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=bqVE/c/eX9E/Cy6wFBhLLV7HBSbIhrEkmRJZ6Osn4Tc=;
-        b=kn/Z3F547ylAZcLe7JBWfcmweM6iZTuUyxLPxva4czgaq251v+oIynK8XCMufsHoCt
-         mOBLzgByyi1X3mUQYm2PI1TC92JnU8adpYjrDHOxLa6ro1vO0mXSxTlJ+a9C5ZCPqvF4
-         HuR25632kPiYUZhj4VCN4qfhyOvYyTzODpWsC+H7+1Fn9DcfkQUnSpr+sOUZkfFVEgsm
-         4eyTP3AaSLtc/+nPg9X4ukmjld3pZt9zhHrUZivXo6lcu9MIoLcPRAkw20/NjDXQLfuR
-         WMCd16rS7UNGIoAnl154Kfx5h/pubNLUqPkvsGAxs0RuG/odndB53oE6JD9+KXQRzCfB
-         j7ag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784825593; x=1785430393;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=bqVE/c/eX9E/Cy6wFBhLLV7HBSbIhrEkmRJZ6Osn4Tc=;
-        b=dD85wrFGxyBE09kNSvfHjhteM1Ez09yd7ZJG6Dp+F90yQB1B1ZKASBdsrIkIi7Ncm7
-         8z8A21Lg3VUxDCInB6lbTwj9G8UojQUK8nd8o15/PCi2UAmNHSeBIk4iQXmWuYGQR7re
-         WQOwwQKbk0cFKn2EoMJ1322RrFUPMpSyGBVMkq6TE/cQnleWKmv9GomIBAR6dZsT/h9K
-         8c8vCPK70ss+CFexa5Gd7pkd0B+isNWhsQp2PO6bvEuYRpeD7BQayu9cuZYFxKqgKdoR
-         oGtvDhpearTSJIz8RZ0ENyDdoCMzir2Sxo2JNuD412VyFb/gim/vqB8aDfuEEnzr/Yl5
-         QEAA==
-X-Forwarded-Encrypted: i=1; AHgh+Rp4RpenALvtXhJptcK4X1QCdK8BssAAIV0N1vcH0dxKul1aH2fugeBr0SkktGJO9nxKCzHMLJA=@lists.linux.dev
-X-Gm-Message-State: AOJu0YyL2M4m7ZV8yc2dzWU6VxB0WsXRXREUiwuczeadAjxo5s3bX9hN
-	02oMNlC8RyYg9CJLHQi8edRey6Eb3ffNIpQRgb3/uE58OtWEhnsSviTpldxeXF9Xxbg=
-X-Gm-Gg: AR+sD12/7LLDBjtj8Bw3fK+zzxjGSPO/cc3KkJfzEOImSjnyAcSgwzho0UtqAP68k+J
-	jGGuJAoIbC4wPlnBtcLagXiYYZgeNxiT8+nhf+0ee+5u7EaXW8AdrnZJlKxyP0UkTS3miF5gObQ
-	urLeDldO+boxmbSROdhK0h4fHEvFkdUiWGMfMnLbrdQNmDNvkPggaYZuWOuT4Mp+q1VBK7ICDYA
-	WxjZSFHX29RE4Q2zQWC6TIvR49VFOcnuXoMxi9IxPGqOlrtN3WLjd6vgGIcXf/ey/sg7G/K7X0b
-	EAK/tRNtel0nCASSYbQ0KpfooBHW4elIFI+XU22kCUdhccxMBbr5z3nQneqLf9wa6sV6VS4tnJV
-	gyGSzD+liovei/jQjjFWNlaFmds67u83Rgg3g/ENk8Fi1ts20gtBxSwovI8px6F7L/Aur0Xo236
-	9UZvnbqijXV5eG9PstWSTOOuPdwt1tQIc3f1g00MXXLGaCn8pnyjvQ9YqOSw==
-X-Received: by 2002:a05:620a:1729:b0:930:9533:5e32 with SMTP id af79cd13be357-9310468af9emr366578785a.7.1784825593202;
-        Thu, 23 Jul 2026 09:53:13 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-907ba9e18d4sm48785446d6.23.2026.07.23.09.53.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jul 2026 09:53:12 -0700 (PDT)
-Date: Thu, 23 Jul 2026 12:53:06 -0400
-From: Gregory Price <gourry@gourry.net>
-To: Arun George/Arun George <arun.george@samsung.com>
-Cc: linux-mm@kvack.org, Zhigang.Luo@amd.com, balbirs@nvidia.com, 
-	brendan.jackman@linux.dev, yuzenghui@huawei.com, apopple@nvidia.com, alucerop@amd.com, 
-	matthew.brost@intel.com, akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org, 
-	liam@infradead.org, vbabka@kernel.org, rppt@kernel.org, surenb@google.com, 
-	mhocko@suse.com, corbet@lwn.net, skhan@linuxfoundation.org, 
-	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, djbw@kernel.org, 
-	vishal.l.verma@intel.com, dave.jiang@intel.com, alison.schofield@intel.com, 
-	osandov@osandov.com, jannh@google.com, pfalcato@suse.de, jackmanb@google.com, 
-	hannes@cmpxchg.org, ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de, 
-	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com, ying.huang@linux.alibaba.com, 
-	kasong@tencent.com, qi.zheng@linux.dev, shakeel.butt@linux.dev, baohua@kernel.org, 
-	axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com, yury.norov@gmail.com, 
-	linux@rasmusvillemoes.dk, longman@redhat.com, ridong.chen@linux.dev, tj@kernel.org, 
-	mkoutny@suse.com, sj@kernel.org, jgg@ziepe.ca, jhubbard@nvidia.com, 
-	peterx@redhat.com, baolin.wang@linux.alibaba.com, npache@redhat.com, 
-	ryan.roberts@arm.com, dev.jain@arm.com, lance.yang@linux.dev, usama.arif@linux.dev, 
-	xu.xin16@zte.com.cn, chengming.zhou@linux.dev, roman.gushchin@linux.dev, 
-	muchun.song@linux.dev, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	driver-core@lists.linux.dev, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
-	linux-debuggers@vger.kernel.org, linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org, 
-	cgroups@vger.kernel.org, damon@lists.linux.dev, linux-kselftest@vger.kernel.org, 
-	kernel-team@meta.com, cpgs@samsung.com
-Subject: Re: [PATCH v5 00/36] Private Memory NUMA Nodes
-Message-ID: <amJGUuBZ2857QjDB@gourry-fedora-PF4VCD3F>
-References: <CGME20260720193443epcas5p167fa7d8490edfb4d8c0aa6a259db058f@epcas5p1.samsung.com>
- <20260720193431.3841992-1-gourry@gourry.net>
- <963815509.21784796303385.JavaMail.epsvc@epcpadp1new>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m6XijFj8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784840981; x=1816376981;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=gpKHmEPl19mjSrJdu9c1j21HlJrdu1M8dhYbXI+i2Hc=;
+  b=m6XijFj8xGXxvQ6Lmh6MtZ8OM67f1QfOS0QTFfL4ZzBmKFSaxUaU5yLa
+   39udQcYLpmFaynojt1ZvRFWRatY7CQ7j+0hwQdmOWnVoKUhBSW502e+U/
+   tbCxdRUCg0qhJn/HGpXXRtbaWE/kzgh8T9MJqHmAM5iZjsJlYWwp5Yf0y
+   xpdvzhk7Rl2dBrmmVxTg/uwNyG3na0T1zbqdwf7rffCmtKqrHIo7YQC+M
+   gl1+dSZTcxxe06zsYySBY97u9ioOLo4MCKQp6lDaX1ViKF09yuR3kfEzp
+   IqE0AYI+I9h73ID6bsy0zokTRjzwWwz+BqHbknefWnMK3NIB7oTNtwyjb
+   A==;
+X-CSE-ConnectionGUID: EKb+EDMNSOiu42p7aiCNtg==
+X-CSE-MsgGUID: K02Uq4yiQeOc0UbJql/Sow==
+X-IronPort-AV: E=McAfee;i="6800,10657,11854"; a="108296299"
+X-IronPort-AV: E=Sophos;i="6.25,181,1779174000"; 
+   d="scan'208";a="108296299"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2026 14:09:38 -0700
+X-CSE-ConnectionGUID: aZyY/9LKS5+yl4Kwm6ks/A==
+X-CSE-MsgGUID: Jvc6hYt/THunAPCUCEtcRg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,181,1779174000"; 
+   d="scan'208";a="263500409"
+Received: from dwoodwor-mobl2.amr.corp.intel.com (HELO [10.125.110.160]) ([10.125.110.160])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2026 14:09:36 -0700
+Message-ID: <85ab2829-f2d2-47f4-952b-e64c10e82d8a@intel.com>
+Date: Thu, 23 Jul 2026 14:09:35 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <963815509.21784796303385.JavaMail.epsvc@epcpadp1new>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] libnvdimm: nd.h: clean up kernel-doc warnings
+To: Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org
+Cc: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>, Ira Weiny
+ <iweiny@kernel.org>, nvdimm@lists.linux.dev
+References: <20260721172132.3718892-1-rdunlap@infradead.org>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260721172132.3718892-1-rdunlap@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 23, 2026 at 02:08:31PM +0530, Arun George/Arun George wrote:
-> On 21-07-2026 01:03 am, Gregory Price wrote:
-> > Changes Since V4
-> > ================
-> >   - dropped compressed ram example from series
-> >       - will submit separately if this moves forward
+
+
+On 7/21/26 10:21 AM, Randy Dunlap wrote:
+> Add missing struct member, function parameters, and function return
+> values to eliminate all kernel-doc warnings:
 > 
-> We intend to test this series on a compression capable CXL expander 
-> hardware. Since compressed ram example (cram) is not part of this 
-> series, how do you suggest to do that? Do you have a version of cram 
-> module compatible with this series?
+> Warning: include/linux/nd.h:124 struct member 'common' not described in 'nd_namespace_io'
+> Warning: include/linux/nd.h:124 Excess struct member 'dev' description in 'nd_namespace_io'
+> Warning: include/linux/nd.h:166 function parameter 'flags' not described in 'nvdimm_read_bytes'
+> Warning: include/linux/nd.h:166 No description found for return value of 'nvdimm_read_bytes'
+> Warning: include/linux/nd.h:185 function parameter 'flags' not described in 'nvdimm_write_bytes'
+> Warning: include/linux/nd.h:185 No description found for return value of 'nvdimm_write_bytes'
 > 
-> ~Arun
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 
-Hi Arun,
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-I dropped it from the base series because i want to try to move forward
-with this without RFC.  The compressed service itself will be a separate
-submission after I get decent signal on whether this will be accepted.
+> ---
+> Cc: Dan Williams <djbw@kernel.org>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Alison Schofield <alison.schofield@intel.com>
+> Cc: Ira Weiny <iweiny@kernel.org>
+> Cc: nvdimm@lists.linux.dev
+> 
+>  include/linux/nd.h |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> --- linux-next-20260720.orig/include/linux/nd.h
+> +++ linux-next-20260720/include/linux/nd.h
+> @@ -110,7 +110,7 @@ static inline struct nd_namespace_common
+>  
+>  /**
+>   * struct nd_namespace_io - device representation of a persistent memory range
+> - * @dev: namespace device created by the nd region driver
+> + * @common: namespace device core infrastructure created by the nd region driver
+>   * @res: struct resource conversion of a NFIT SPA table
+>   * @size: cached resource_size(@res) for fast path size checks
+>   * @addr: virtual address to access the namespace range
+> @@ -158,8 +158,11 @@ static inline struct nd_namespace_pmem *
+>   * @offset: namespace-relative starting offset
+>   * @buf: buffer to fill
+>   * @size: transfer length
+> + * @flags: process (0) or atomic (1) context
+>   *
+>   * @buf is up-to-date upon return from this routine.
+> + *
+> + * Returns: %0 on success or a negative error code on failure
+>   */
+>  static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
+>  		resource_size_t offset, void *buf, size_t size,
+> @@ -174,11 +177,14 @@ static inline int nvdimm_read_bytes(stru
+>   * @offset: namespace-relative starting offset
+>   * @buf: buffer to drain
+>   * @size: transfer length
+> + * @flags: process (0) or atomic (1) context
+>   *
+>   * NVDIMM Namepaces disks do not implement sectors internally.  Depending on
+>   * the @ndns, the contents of @buf may be in cpu cache, platform buffers,
+>   * or on backing memory media upon return from this routine.  Flushing
+>   * to media is handled internal to the @ndns driver, if at all.
+> + *
+> + * Returns: %0 on success or a negative error code on failure
+>   */
+>  static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
+>  		resource_size_t offset, void *buf, size_t size,
 
-I plan to RFC the new setup for compressed ram this a bit later, but I
-will share my working branch with you for testing.
-
-~Gregory
