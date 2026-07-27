@@ -1,151 +1,193 @@
-Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4417F25B094
-	for <nvdimm@lists.linux.dev>; Sat, 25 Jul 2026 04:01:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.179
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784952106; cv=pass; b=r7gKA+qt6yV2TOBUjW13qtEmeEAp5CiuuTTTaAHNuhvI9HGwxfyRYWTOQHWPaNMINpThh+eE4ncyfub5EW85RydccgStNqwWnF+3d4X+NeOUBeO73lPM+DAyJ4ejja+iMXe4gWwBSjbgRTXIu03HxOgwCrvYU4SjAdvzd3er4ks=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784952106; c=relaxed/simple;
-	bh=fNC8wElaBgCywizq8gsw7GvnGpxJrTKPY2EQunJ50fQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mUqQn+/mNlh+TObpWCPAfXD4ClXFuX0Joh34HFLae7PvH6keG4kR8nD+Qsc/FS5pTmHnubqBSSJ9XdvBVS1/SDyJQAU6caaUOnI1mMJUQrSsbCZhjSXpGk0tJMwJQaRgnXEEFj01mbIjTxLCxln0kMybJSwkCpy1TdMHO/uQyY8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=O2DhqZ0k; arc=pass smtp.client-ip=209.85.160.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B44963F4DF8
+	for <nvdimm@lists.linux.dev>; Mon, 27 Jul 2026 12:10:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785154257; cv=none; b=fOG42ukCbOSpgREzBfRG76mkXxn99mV1049tS5mP8bjYLxs8z+XxBMnyaZdqYhLjfh9GPybZS1TGyiIo4llDi/6G/g6tjvpJnsO5sLocxTnQUVawk2Jgonhhx76hd8NfTGtQMJ9j7WkNEFewaaGnTYjfDtbSGw3osskOk/53DPY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785154257; c=relaxed/simple;
+	bh=hDpi+mS6ZesLKap0n94a9xm6h6ixQ5Klrug46U51A7M=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=HuWEvT3ntXU9mplgINGZpW2qR913cHFwFNCkTP9cwdM8zl1u03aXglEwlElGfzHREyWDBQsNW3c8DfHWCNkdirKV8bGtrbI3qGNHCD5NeBtPzdUTMBGcxokF7CXm5k6Uu8O9rDsBs6u6TRDcDGNObUL7tSBKVqHM372avn0wf9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=thegoodpenguin.co.uk; spf=pass smtp.mailfrom=thegoodpenguin.co.uk; dkim=pass (2048-bit key) header.d=thegoodpenguin-co-uk.20251104.gappssmtp.com header.i=@thegoodpenguin-co-uk.20251104.gappssmtp.com header.b=vvswhofi; arc=none smtp.client-ip=209.85.128.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=thegoodpenguin.co.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=thegoodpenguin.co.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="O2DhqZ0k"
-Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-51c0ecfaee7so8879941cf.0
-        for <nvdimm@lists.linux.dev>; Fri, 24 Jul 2026 21:01:43 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784952103; cv=none;
-        d=google.com; s=arc-20260327;
-        b=O4m5Llt7pi3AIzmaahdGJvmuqll9W/Y/+bd7Hr/U4ki3OlF48/2qD/h8zKjMlplGkw
-         7EV8PHyA5ELp4ftRycPYq8CONufMMt0aT8cC9Z6HKRu3KDmIfwtY4EVCS0xzEgGK3WNz
-         6NU+Kfi3dzOIrXqHP2i0RafQoKbnRhHZLdD54ggCB0SKGO1qK7gZ02xtjg11vr6WLtPG
-         de9B5urUQAEDFajqtQXfCKYS+Y5jrxE83pCuY0dQ1TO6oqII56uiAB5Qv0L4vSz4bHYE
-         1+lxKrK6AysyxV5S4/M3WPZ+mOta92WIp0raeonGfzShNxrbyBJ7ttON9R94SQYHizi0
-         NjtQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=CzPMjf6pORP572iHiiQv3possHTxsjbSzVUS0tfn1HU=;
-        fh=ea+t3qf0GAx8lckc6TMPFqgYcZD5YQU41RK14t1PBaM=;
-        b=bDNhao36QR3qn7m8vn158hhn5NPJna1szwm4V1+pDgdqCCZv6xrcWTfj1tUtUR4HmL
-         fHmFpM/fH5gyJ4K31nJld7QKwMmtYNyPiEK36O+pNbwvceuH64dUk5oR3aAP/mBUpoMy
-         /H5D2S+RmsNPtRqqPCTWWRJidzZA4yz0/lAhcyywFGyVkzrLXlpaTqdlteWe4kTrvfM2
-         NSHWlEhLiXn3AQUs3x2iVXGTRsa3zesIuAJ9qTBCjCREaQbSMaQDnAjUsnX2qhepuYQv
-         ldMsp9lfDkgXbdnF3BEtHUDpbFxKiPebgxpp3/bu0Q7RDclIDxOY7ezBL4eI4b8Cyh5U
-         jcjg==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=thegoodpenguin-co-uk.20251104.gappssmtp.com header.i=@thegoodpenguin-co-uk.20251104.gappssmtp.com header.b="vvswhofi"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-495757ccbc1so24347205e9.2
+        for <nvdimm@lists.linux.dev>; Mon, 27 Jul 2026 05:10:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1784952103; x=1785556903; darn=lists.linux.dev;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=CzPMjf6pORP572iHiiQv3possHTxsjbSzVUS0tfn1HU=;
-        b=O2DhqZ0kZTf9mGFscZhDUZtEF2p0Kiwltncd/zusqTv5JHaFoL7EyW1VQ8JlJDbElM
-         kMiMbQm4swIlTePAJBvw5JqVC/N2BKdHjTq18BRHnIYuWh/7abDFnz2oMnsKvAXJ39qb
-         pbN5fnA6kVCkp1iy8N7cUGhm8l/o4BQmBMges=
+        d=thegoodpenguin-co-uk.20251104.gappssmtp.com; s=20251104; t=1785154254; x=1785759054; darn=lists.linux.dev;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=OICCS3yLJZnEdkP0xlPeHb8B7fyLwNgxSSOf4ztj6D8=;
+        b=vvswhofiCTvAot4CDLT9MOQiTC1KCCMF3R/XRQCXSa+1R8YL9f+1xXvNY/FmabmCeN
+         gVQyt3Iw+IWPcjVd6BadawuqMPLR0rB9gRr96UnqfZ08SewcLV/nWKctzyLTi3oDUZnw
+         4mwBWTCF0e571MZfhA0+NG47yJenFPcU/HUghfmIQJloTmLmpCvk3ylFXAqSBbb2HZOG
+         IcwmnibQhJR5A1JbLRQrBFmVaWvBOiykv4cwKGhY3LVuctXeoRajnx/W/H3gVF2Ze6YS
+         yOI4/JXpeScNX2lHvPIgTMzXbc5ShkHFBvwKcuX6dpo3IYmp+t6YJTYWTdCD8e6UPhwA
+         07uw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784952103; x=1785556903;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20251104; t=1785154254; x=1785759054;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=CzPMjf6pORP572iHiiQv3possHTxsjbSzVUS0tfn1HU=;
-        b=eCTB7RD8yABS4I8dr9j7hSaLUZ2cooJFDZOjI9c0Qs//NonZ+h+v/ht6ftlN6JjL7R
-         hUljc1BlCR3Fo0M5N5JDLvKmv0//WqQdXfnG38M/7yeyBX3AaPlniAd/muIHGDqqUjrC
-         twvFp50VctbaPotkEasxZYiZ2uQqAgp0x1ZHFsPs1gJWHvQyqwHc7+ms6871VG2el/sw
-         iPj2nmQ2g2ty6C/FdG47os43YswlseqpS5xiI8gnrcjF2GT4SK75vPfJYgRkvi7rcL+S
-         O62DOwzkCmbQPZUoVBbZLnSD1Q289SJ7DaROmDWWywoD14pe6itvg4qzry3MyIo3N01X
-         bhCw==
-X-Forwarded-Encrypted: i=1; AHgh+RqXZvmHXJ7ZelD5vf4+2FNRgp/WCLypKIPNDXpbVtbBcver2OxFbWQx970ZR1xH9jMjPDOA9VU=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yy1gv2cprbl/0yGsSUQUknYg0vbU3nuUGISazFRyi9UzMAoZS2R
-	l5LIv4lmnkrPeQwYN99lp+vY08yOiwPVudOBRZ1vtNH9fu0/s2tGe1kv17HkknaJZW/LlL2QBNg
-	Sy+KbYuq0m05jeBIjX5Ng+x8aQe0WxC7xMii9h6sDrA==
-X-Gm-Gg: AR+sD11hUgOFtrBiJsoEkMQ6PM/6dEx3e9IgjPnk8GsTuYvX3wuJSu3J+i2+BsWJrQF
-	V/BffvcvVzaSf7MmObWFYtHqLGQd1AReiNvPDRhRN/zBr1nK8Bild2ECYOSTU8TuPHphciazt8D
-	wKCXqdaUphVjZIBTJcUnXQYjVcIFsZyEPTmoOT4FYfLLb5TI7yZWOuv+uoXGKuO6lVqZWLcGpQw
-	35Y2sTxLZ0D13eLuntNm2iIdPB0L5FaKecWe8a4keeZl/3DRN6cx2t8ti8yO7+U1AKHXJN/t8JN
-	a9Q7tcoNuFD1SCc9
-X-Received: by 2002:ac8:5c90:0:b0:51c:7b12:6001 with SMTP id
- d75a77b69052e-529a8714e88mr10045521cf.77.1784952103086; Fri, 24 Jul 2026
- 21:01:43 -0700 (PDT)
+        bh=OICCS3yLJZnEdkP0xlPeHb8B7fyLwNgxSSOf4ztj6D8=;
+        b=M9yKxK9H9btFpFU6FIlhwAD6rmA1THXKYGoR215E7QQikDKFCpgzag4l3N0PmnGYFU
+         JgMrs1v4Y8+k5upEAGnwc8gDt8+sKVyJh+kuqP+9cKjZHBA/4N1CKLu8TWp9g1e4ulVP
+         r5elPpVAnVuplOAnKphUFQ3bI7wHBBicnIAsaCg8rjJtGSAxn5qzuiMtMwV6qzhUufJS
+         /z0EsDSGUzAeBzbz6Q4lwvE28W78zTBS6M0Vo2yVc+NCISC/uZdMHVcA+znwGI6Iw5El
+         rYTd8HPMSQV1dlVHjAzYREPV+Fm36q0LEBs72mxTrcyd+uLlfUt3oWwFcfJTi+WV3esY
+         1f+g==
+X-Forwarded-Encrypted: i=1; AHgh+Rrm7fSLh4Y7bjtdpelKL7Lg68eDGbL01pOKtqWf/x0J6IMIYVZpogyq1XwifAWUXhBQw6N0cug=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwMxubVJDUo9RFaTDpjxMZAoRiPN2rU4AO8JWncc0LgAnyOePVJ
+	85KiMd6Zl9j7jgXuIXrYJleSd8TM6wFixpKymLaL0MZc6X7AZQ5PqBmLBeG5B7joZ/E=
+X-Gm-Gg: AR+sD106SCWYGcGrIjStBiSW0e9rOSEx/Y28GU7zZ02xiYCSo+0vhMN4X9GVJNE+0wl
+	XQ9nlWkx8AoN1eMaswtXktKOz8fpjRYJS9etTnwp0Zs9LQzBlhxiNX3aELxQiGYF3mWTk0bksDb
+	T/zRUIazfF4O2Q3IMXZlGMobi0sL1OzeFaCbp/2oXTLLJnLdOqJxaUIdlk2H0f7kklInvsDNuIU
+	RNfbXbef+pMcXNv4eSSKl3sMzdL1vsNG6ulizML5cu4Ujx+wzMGf/V52HLf5ACcYasVfLal6r2r
+	dzazFfYQFaFePDKdP1fZovTpaCDdCUeq1hW8eeZ+/iYG5FPr4WGcTSfxgGf41XH3PwneaKRZHix
+	MYeBe13FY7Qbn4FrMIrl0aa3kQYz2jFUxL72XjBcilkkbI6YIGUKJUc5g+vRJzqV2pnHrCWmvi+
+	lR1sPiQsORiSNHSLZffxw=
+X-Received: by 2002:a05:600c:1d0d:b0:493:c47f:3c55 with SMTP id 5b1f17b1804b1-496b56bbc2fmr104042095e9.5.1785154253954;
+        Mon, 27 Jul 2026 05:10:53 -0700 (PDT)
+Received: from [10.42.0.1] ([2a00:23c7:1d1a:9c01:7aab:bc55:e039:4aac])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-496b4f302f8sm211778055e9.12.2026.07.27.05.10.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Jul 2026 05:10:53 -0700 (PDT)
+From: "Pawel Zalewski (The Capable Hub)" <pzalewski@thegoodpenguin.co.uk>
+Subject: [PATCH 0/9] ACPI: use named initializers for acpi_device_id
+Date: Mon, 27 Jul 2026 13:10:38 +0100
+Message-Id: <20260727-acpi-refactor-v1-0-ff900aa326ee@thegoodpenguin.co.uk>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260720034358.68714-1-john@jagalactic.com> <0100019f7d9fbe81-6cb16662-2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com>
- <CAOQ4uxiEzP2e=cRw-AiGxtSv6WMSA5yR3cmgrF97s7ggU6wzqg@mail.gmail.com>
- <CAJfpegt9PwHksYhsQZeCsW0eooXVVihyieTpeHMmC-+Pq8BWaw@mail.gmail.com>
- <CAOQ4uxhuivjMMt_Dm3VwKmOhHg7ZHdAww6j6jp+RMjPoRde+bA@mail.gmail.com>
- <CAJnrk1Yat+SEr=SmZXwUt9y2WcC0VEC4KUpPrkrRSjMEmx42WQ@mail.gmail.com>
- <CAJfpegtnja6tkOnNPD2WZxu14Dd+UM9AvynsVB_E268iSXLbkQ@mail.gmail.com> <CAJnrk1a9mR-6hFie3hfFRgWTkrhJMVx4j9e7WGnjTRFuX2iJOg@mail.gmail.com>
-In-Reply-To: <CAJnrk1a9mR-6hFie3hfFRgWTkrhJMVx4j9e7WGnjTRFuX2iJOg@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Sat, 25 Jul 2026 06:01:30 +0200
-X-Gm-Features: AUfX_mxAcvr2jX4Ns3aulDhtsSqUabRQhwz0VnV0bbRi_FBtOFn1nR0cN_FIRKA
-Message-ID: <CAJfpeguEptz4sEXq=pBWPFop--1kTDu5p2yZnCyzXcrZ28Nekw@mail.gmail.com>
-Subject: Re: [PATCH V11 0/9] famfs: port into fuse
-To: Joanne Koong <joannelkoong@gmail.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, John Groves <john@jagalactic.com>, 
-	John Groves <John@groves.net>, Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Stefan Hajnoczi <shajnocz@redhat.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, James Morse <james.morse@arm.com>, 
-	Fuad Tabba <tabba@google.com>, Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, 
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAL5KZ2oC/yXMQQ5AMBCF4avIrDWp0ZC4iljUmDIWSItIpHdXL
+ L+8vP+GwF44QJPd4PmUIOuSUOQZ0GSXkZUMyYAaK12jUZY2UZ6dpX31yhl2hM4Y1CWkz5YWub5
+ e2/0ORz8z7W8EYnwAYK3YLnEAAAA=
+X-Change-ID: 20260724-acpi-refactor-f4efc2f44203
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
+ Kai-Heng Feng <kaihengf@nvidia.com>, Tony Luck <tony.luck@intel.com>, 
+ Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, 
+ Mauro Carvalho Chehab <mchehab@kernel.org>, 
+ Shuai Xue <xueshuai@linux.alibaba.com>, 
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+ Sudeep Holla <sudeep.holla@kernel.org>, 
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+ Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
+ Dave Jiang <dave.jiang@intel.com>, 
+ Alison Schofield <alison.schofield@intel.com>, 
+ Ira Weiny <iweiny@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ nvdimm@lists.linux.dev, 
+ "Pawel Zalewski (The Capable Hub)" <pzalewski@thegoodpenguin.co.uk>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1785154252; l=4122;
+ i=pzalewski@thegoodpenguin.co.uk; s=20260430; h=from:subject:message-id;
+ bh=hDpi+mS6ZesLKap0n94a9xm6h6ixQ5Klrug46U51A7M=;
+ b=1200lUbaXeYWmclYJpq+b23CZR3Ejwn2Uth0/1cJecdaSViFrJz967y3swrowZIlhRNa0QRbk
+ uGqRtfo1UCABz+VPUBqhAMuHJcnRcILUfp89Qu2pEPZ37OLyiygqmoj
+X-Developer-Key: i=pzalewski@thegoodpenguin.co.uk; a=ed25519;
+ pk=vHq4n9IonORH2GTzLv8r6CWAFHzgfBuNkQPXA8NSly0=
 
-(Replying shortly as we are starting now on a two week journey.  Won't
-read email during this time).
+This series is converting lists that contain the acpi_device_id 
+struct, which is defined in the include/linux/device-id/acpi.h 
+to makes use of named initializers (which they do not use currently).
+This work is part of the on going effort in the kernel associated
+with device-ids [1]
 
-On Fri, 24 Jul 2026 at 22:23, Joanne Koong <joannelkoong@gmail.com> wrote:
+The plan is to convert acpi_device_id::driver_data to have an anonymous 
+union, similarly to what was introduced for PCI and I2C device ID tables.
+The goal is to increase type-safety (as most of the existing casts are gone), 
+to improve readability and to make use intent a bit more clear:
 
-> imo these changes seem doable for making the 7.3 merge window. I'm not
-> sure how much bandwidth John has though. Maybe one idea that could
-> work if John is completely slammed for time right now is having the
-> changes requested above be a separate followup series someone else can
-> do and then this current series (after the sashiko fixes) and that
-> series can get landed together in the same merge window.
+```
+union {
+	kernel_ulong_t driver_data;
+	const void *driver_data_ptr;
+}
+```
 
-I'm all for it.
+But for that to work all lists containing the structs need to use named
+initializers first. I already have patches that implement this and touching
+a lot of kernel subsystmes that use the acpi_device_id struct and that list
+keeps on growing. Therefore, I have decided to split the series per every
+subsystem into:
+- pre-clean-ups that convert the lists to use named initializers
+- actual implementations that make some of the modules use the new driver_data_ptr
 
+That way the task can be fragmented into manageable and independent
+chunks of work and makes this effort easier to review.
 
->
-> >
-> > Maybe the striping setup can also be done with a notification.  The
->
-> I had interpreted the FUSE_DEV_IOC_STRIPE_OPEN patch as implying that
-> the mapping gets forwarded to the kernel through the backing id in the
-> open() reply, which I think is how Amir had also interpreted it. I
-> didn't like that the striping mappings got sent through an ioctl while
-> the simple mappings didn't, but I think maybe the patch was not trying
-> to suggest that and I had interpreted it too literally. I like the
-> striping setup through an ioctl - I think it makes sense given that it
-> is connection-level instead of inode-level.
+Tested builds on arm64 and x86-64 in Yocto on 7.2-rc5
 
-Yeah, the striping setup is on a different level (like we have with
-regular filesystems).  So I think it's not that bad that the setup is
-different.
+[1] https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre.com/
 
-Thanks,
-Miklos
+Signed-off-by: Pawel Zalewski (The Capable Hub) <pzalewski@thegoodpenguin.co.uk>
+---
+Pawel Zalewski (The Capable Hub) (9):
+      ACPI: use a named initializer for acpi_device_id
+      ACPI: drop unused assignment of acpi_device_id::driver_data
+      ACPI: pci: drop unused assignment of acpi_device_id::driver_data
+      ACPI: ghes-nvidia: use a named initializer for acpi_device_id::id
+      ACPI: amba: drop unused assignment of acpi_device_id::driver_data
+      ACPI: dptf: drop unused assignment of acpi_device_id::driver_data
+      ACPI: nfit: core: drop unused assignment of acpi_device_id::driver_data
+      ACPI: x86: use a named initializer for acpi_device_id::id
+      ACPI: use a named initializer for acpi_device_id::id
+
+ drivers/acpi/ac.c                 |   4 +-
+ drivers/acpi/acpi_apd.c           |  42 ++--
+ drivers/acpi/acpi_memhotplug.c    |   4 +-
+ drivers/acpi/acpi_pad.c           |   4 +-
+ drivers/acpi/acpi_platform.c      |  13 +-
+ drivers/acpi/acpi_pnp.c           | 514 +++++++++++++++++++-------------------
+ drivers/acpi/acpi_processor.c     |   8 +-
+ drivers/acpi/acpi_tad.c           |   4 +-
+ drivers/acpi/acpi_video.c         |   2 +-
+ drivers/acpi/apei/ghes-nvidia.c   |   2 +-
+ drivers/acpi/arm64/amba.c         |   6 +-
+ drivers/acpi/battery.c            |   8 +-
+ drivers/acpi/button.c             |  12 +-
+ drivers/acpi/container.c          |   8 +-
+ drivers/acpi/dptf/dptf_pch_fivr.c |  14 +-
+ drivers/acpi/dptf/dptf_power.c    |  38 +--
+ drivers/acpi/ec.c                 |   6 +-
+ drivers/acpi/evged.c              |   4 +-
+ drivers/acpi/fan_core.c           |   2 +-
+ drivers/acpi/hed.c                |   4 +-
+ drivers/acpi/nfit/core.c          |   4 +-
+ drivers/acpi/pci_link.c           |   4 +-
+ drivers/acpi/pci_root.c           |   4 +-
+ drivers/acpi/pfr_telemetry.c      |   4 +-
+ drivers/acpi/pfr_update.c         |   4 +-
+ drivers/acpi/processor_driver.c   |   6 +-
+ drivers/acpi/sbs.c                |   4 +-
+ drivers/acpi/sbshc.c              |   6 +-
+ drivers/acpi/scan.c               |  46 ++--
+ drivers/acpi/thermal.c            |   4 +-
+ drivers/acpi/tiny-power-button.c  |   6 +-
+ drivers/acpi/video_detect.c       |   4 +-
+ drivers/acpi/x86/cmos_rtc.c       |   2 +-
+ drivers/acpi/x86/lpss.c           |  54 ++--
+ drivers/acpi/x86/s2idle.c         |  14 +-
+ drivers/acpi/x86/utils.c          |  16 +-
+ include/linux/acpi.h              |   8 +-
+ 37 files changed, 443 insertions(+), 446 deletions(-)
+---
+base-commit: 48a5a7ab8d6ab7090564339e039c421f315de912
+change-id: 20260724-acpi-refactor-f4efc2f44203
+
+Best regards,
+--  
+Pawel Zalewski (The Capable Hub) <pzalewski@thegoodpenguin.co.uk>
+
