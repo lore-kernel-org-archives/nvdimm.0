@@ -1,525 +1,346 @@
-Received: from mail-oi1-f180.google.com (mail-oi1-f180.google.com [209.85.167.180])
+Received: from mail-yx1-f50.google.com (mail-yx1-f50.google.com [74.125.224.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44E973D75A4
-	for <nvdimm@lists.linux.dev>; Wed, 29 Jul 2026 19:44:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.180
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785354250; cv=pass; b=J3J7jmT2L8b6PcjZwtzPi7+D8aVfJ2vVsyqP1357PamPfPh34tfDW67zwy5Hhf3ERSFiDyjENDk5qJK6nOS29YaSlfwk/nYUb+fATtolnsogyyWXMD+7seS09vov8z6/4IEaZXWs/cWBiLWS8KSS8cKxgxOIB3/wg5REyJRx824=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785354250; c=relaxed/simple;
-	bh=z5prSsmGreU+ARDbc2TiWvp5IrCc0YZDiE0i+rJkl44=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=nicPjV4uwXhQevt50777dBp0Hmj/axoeKM9bRnbZ+7FHBtFAkWVWdrWGg4xlP7JRpPlAGvQ9/uaZM/WXDbWw/URrmcchwMRSrHlRdVXNAWKk59+XMoo+IcrnJbqNiNjXwc3M73Ww1+1WUwlvBSE9Ifjm48A6evonw3X1VnW7Vlo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=purestorage.com; spf=pass smtp.mailfrom=purestorage.com; dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b=QOl6diiJ; arc=pass smtp.client-ip=209.85.167.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=purestorage.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=purestorage.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA58B42D74F
+	for <nvdimm@lists.linux.dev>; Wed, 29 Jul 2026 21:40:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.50
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785361249; cv=none; b=pk7QG6qFflhDP3uWVsS7X2M2bYiDbjEdi5U+xirrnZaWbbQF7vnTDf6dQwBxFVq+Ij8YVMNvrQ6zAwAyoBF7Pw5SCmKNPG5Ilo+c474Zvc2+XgdLFPQvGiNdIgqf2nfpsOJ5OXHAtPA301j4NrePS7ENG15j1OzvXKeS5cpidxw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785361249; c=relaxed/simple;
+	bh=JNEQ7rR1WM8PzoXdoNbQgKMHlFDVjglI0tzJrq2Jnp8=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QHtHFRyYiVoDm5ztW4a+Khr60s7rpQcnkJ69Z99g8a+As7SlP+yr0dBu0E5trQ++/WaEgdvfKCIxifUGmiAhLnPxD/xw4Of7f/vj+V3kkfMUX9SX7J5Df1C++p6H6kiat+NQeY6AuYoftPJewNsaKw6JT20mBTLWKrT5iFA9n0A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GnjNIGmR; arc=none smtp.client-ip=74.125.224.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b="QOl6diiJ"
-Received: by mail-oi1-f180.google.com with SMTP id 5614622812f47-4ab246dfc90so81688b6e.0
-        for <nvdimm@lists.linux.dev>; Wed, 29 Jul 2026 12:44:03 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785354241; cv=none;
-        d=google.com; s=arc-20260327;
-        b=W9fupcN9eobuQGV672fdbR0BFaywl3BE5YIYCo4icB8BtGfl/rbZ2OKQunQIp2anZl
-         rZE3/V2AacoMzWDfrOvVdHLuXFFgPmXazIaGJriUMIq23qjy/f4N2BktH71QCPVlpfbi
-         qARX/eAcyPwBW5Oq+WFxRiHE41K5I3quBRRmN9Rj8vQdp7tDn6HCrxrKpObkQbyNYt1m
-         pGu044nwjRiEOp0mid2BIxVJ9vLNXawKxTPF0+uHIijYHsUCow5+u5ztxYjw6tOLrga7
-         UJUCShQUHVINSlms8GunCY10Y6DCFl+92rXyLaxFjiGFafw9XNl6ACUevU8Qj32aEIyu
-         exUA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=LnSKdBsI5P4yNxKlVDAgX6ZRyHfaTBwJq6vRswotV/I=;
-        fh=ncGcwJxymg3U6ZtAkknW23jx/rTqjESt0I0DgEEvWZg=;
-        b=WAff1lA2ERziKuhoBKeRzkwbzs9mzr1KzuOtKFqoPE24cU6V04cu7/bVgLLURYJFzc
-         a2IuMjv+TRMKZCKimmA1HqaodVeaTPdADbJkO4ErGBIw58hEz82hBu9dTghM6DAo8qba
-         8sb5XGX+OPjR8eMU/MS/kjasY/eAx9dRfNEDlEc5ZG0DEvO5Tw36adXP63tcPx0XjxdY
-         +P5nARG6nM9RQqdnbOwJxgGZm8aFlPF/PmWJYbFobAmn4BtEq6vODh4SCvbSDsvocohI
-         2pyRlt2Khc/oGtHGNnoF+aGGeWuYVBzUQd0vKtvkMcnNtcvCPzwIGGZN9pNFimC81W4k
-         2ocQ==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GnjNIGmR"
+Received: by mail-yx1-f50.google.com with SMTP id 956f58d0204a3-6682259cb3dso223907d50.1
+        for <nvdimm@lists.linux.dev>; Wed, 29 Jul 2026 14:40:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=purestorage.com; s=google2022; t=1785354241; x=1785959041; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=LnSKdBsI5P4yNxKlVDAgX6ZRyHfaTBwJq6vRswotV/I=;
-        b=QOl6diiJG2mBbndXDWdPCsINX8APxeymXjnyml0ZTk1jNPceJsntC7JqVsASzKK+Fz
-         pLfxmmaM9XktMB91AWcBeqWDzei4PSDkWz0E1PCmF4wRC4hNSjjkIYwZCW5RqMATRrLW
-         WtpPKzCKM0ep28S7nBC0e5ubHBQQOGC41Nf/6WmMwhiC4Ui8fw+kbD4+UVGtgrHPb0XZ
-         tkRq1ZVzBJNnFbHvxxvfTR2nVDecEc4/eh/4L7AvLtjjQv4daLZ0TOzlTg2HdoElJR0K
-         BDTuqWYyzPU3Ly7B5ogJfU27ZInO9ohkgpwb29mj+vV/upT1lRriYQUzN+48+f0bXQtB
-         DaCw==
+        d=gmail.com; s=20251104; t=1785361247; x=1785966047; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:date
+         :from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Z+DgA4zG6AwsPezIGSHy64caLYuuPCqGKZCNKn+wt8Q=;
+        b=GnjNIGmR7bgPLoKpZ60ihqU5muZwdBW6eWP1/4A4+puunRLeBCtCfXmcoIwRMZ4b8w
+         ZAQiMTN1RXG4Eabuc1PtDFKaJfoQy/duqtG693EA4R5yiS6R3WYziND+ZCKkr/sIYGco
+         6LkNU+agMeSbbLKEUdGai0YenoVsP+JoET+cojIb+eGKjVaWdf3xZtCUqY3El97u+3ms
+         RUpKrowzYK5I1hR9LZFCP3hYHqgBubP/pXCObQrGBLJ4a8TkAEAqH3QdmyttSJBSy/IP
+         qXDhBBTk/6/4Ry5p0xrsXMu8IQ5CINzwFYhjquudYSeJGsIO0aZ0I2/wPzZGxKZR7VYf
+         xLAA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785354241; x=1785959041;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=LnSKdBsI5P4yNxKlVDAgX6ZRyHfaTBwJq6vRswotV/I=;
-        b=RyMBVDzDcxt6BmGRz9SaVuQYS8kOzhaVnByfAw9p085Xd83QE7NQHMzXPWkFDSb/t0
-         NGstu7QaMHRJSLZZlhaeCqIkcTCYjBNfDL/Z5ClouBgM/0JVOCLjpT/Hl78hOI8ytdox
-         AUEftfjtoZ5dktjWv0JPA66JE/m4c34EstrdkVfco/88IMoHuBWgb68niGRjbhpy7f7T
-         3ZfEWBAmTwRXl9u0iRvJuXs7jQd4i26vFkEJPGtmAW7ue/MYowmNq2ZAZf1FOygG3Uyv
-         1Uj83IoUdHbJwsDKkmznhzDQHJZ8JssBcWIQtGan4WbJC17sfHEsfFTgBiwx2koA9/jl
-         ELLg==
-X-Forwarded-Encrypted: i=1; AHgh+RobuFr4hl3lGoDopHGlxoZy85gVIv2Aj/qGPzpDP/47rPUbR817ypyGgyo6VxpOoj6WtNPBSZk=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwJEgSjjRphPexbs2em+eUad+K/6eELh/tN0hFfFXoOfSNsx5VP
-	isEQXrs7/I19E+NbbZLuYPoA326dXhK8iI61PkgSy3jnULQgr7u197Rj5mu2nq1SvoT2lbiRtzY
-	uOAu4F3rVBbofw0UTuVS43YQJHDGsCYGe0dxGkgD7TQ==
-X-Gm-Gg: AR+sD10tnuhmymyhQQgehghcyFAx9YcaiRMiIGRq6/RZb6qhoxdFcLhWSXXLAyuHNU1
-	vQDILnChOPPmZQS4EMfb3IYXz2PmC7Z9VoiyFnNMQrvGtF3BGoz4juRuRR3vMqLSJea5LvAfn0x
-	lCnNkx2JcV9rLVchSmLy29Y8LPHxofiYBCIJpFdeTpX37oED4UjScvkRruHWbk3IQfkrZ+LuqPW
-	bNedu2r9gmiIi6knUkAWTknbgb0E+vbzgcewshjrPqUCoMBnpmoV3qgiFQ+TvVhCIB52W46JGpV
-	zNge9Mo+xYDsvwjBb6hr06cmwBcMax0Irsth1K3jT8zB
-X-Received: by 2002:a05:6871:441:b0:457:9007:a35f with SMTP id
- 586e51a60fabf-458bc1eaa28mr97408fac.1.1785354241430; Wed, 29 Jul 2026
- 12:44:01 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1785361247; x=1785966047;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:date
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=Z+DgA4zG6AwsPezIGSHy64caLYuuPCqGKZCNKn+wt8Q=;
+        b=lJV4MxcQzUg5fVrwg/m8ZniWMwT2viDbPXgOuCJ2FcAs5JEhh3bnsckPBHo3LFC/cf
+         sG37IS8ApCzRVN+vGs0+VY2wMz7ASEKR9JDlPXyahNb1dlFPiI29uJPmKkZHL91XHPX8
+         OrQhd/y7Q8bgY06VPf7NYWj1gzQQjK0DROka7YeOIYLEzUoNOgeUuXN2Vf3jl76r5Lrj
+         wXbdD/Hm7YhzT+LvrEhsdgMezkN1u7VoKCRenEd1qlXwo2AvGbDT2VcwEAhC0s/bR8Jv
+         bGU5oZn45fxuDXsOF+KSh3DSQ9jvWoTrBguoi0bfpMf7aE5no6v7Xc+rjDzSSH4yDruD
+         XxQw==
+X-Forwarded-Encrypted: i=1; AHgh+RqoArGQIPpVZzzn4EFUdHBVleGCAiDCpBY+BQoCz4fXP8+Stq+3GwVMeggbo8vJhMKgKP6JZYU=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yx2iQiqMJDrF87+dHRIV55hoWyYFSQxWu19BfcgUd6xpHBWneoL
+	0vfTq2F1bPRckvGd7ut9bHvWv5zi3YvFoFUk5IHaggVp/jnWV1Fa+oIq
+X-Gm-Gg: AR+sD13+NUcptzdUi5NujCg+iDkhrrQrX7yxB75qMXZ7oCCem4Z0m3Eay2uVFtL/pMb
+	uPqOGLH3vqYCeNoxdgsZrg9Gpi1Jv2uBJ2UTO9ti548FpSVYVtMZcFuL+ZbSZ0Cfbbdtyldhmi+
+	zk6A2B3pTXvGVYF2W0f0gpi5xZ5Ym+F7NCmlJkSdd6rXH0thExGxjd3f6829YkzImAO2fPHLXld
+	r76D7+BcXjvtj9JgX1UO1kumt0iBd9C7Hss2CpmjUvL+MlGcBoqTCN/hveBWepKRMbxE/oVjIby
+	CUyeoPvEPINI1Gw7zxn1Cu/CkeKZ5i6GddhR4wuYJ8Qy1dt2i2lKl9o00ASKZFPdCJxStPjrxoq
+	i0m2FcvBuX98u/BjVuAYjiQ8rrr7/79gArPG0/O7jOEHlqX4MHKoFlE9wVqIQ0ivXNnEYUMJexq
+	Me8ZvDd7bJ1z9OEZnwbBqnHyTbiMPjd7ikf8fUhpxyLlZaODZ4+K9xjxfWv8VGMqpk4motJlctV
+	viKxk9M0b3tp32w5g==
+X-Received: by 2002:a05:690e:4147:b0:668:14a7:d00d with SMTP id 956f58d0204a3-6692cc954cbmr44749d50.2.1785361246686;
+        Wed, 29 Jul 2026 14:40:46 -0700 (PDT)
+Received: from 4470NRD-ASU.ssi.samsung.com ([50.205.20.42])
+        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-6692c7479c9sm66816d50.7.2026.07.29.14.40.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Jul 2026 14:40:46 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Wed, 29 Jul 2026 14:40:44 -0700
+To: sashiko-reviews@lists.linux.dev
+Cc: Anisa Su <anisa.su887@gmail.com>, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: Re: [PATCH v11 18/31] cxl/extent: Handle DC Release Capacity events
+Message-ID: <ampzXMtmkiQAHVzU@4470NRD-ASU.ssi.samsung.com>
+References: <20260625112638.550691-1-anisa.su@samsung.com>
+ <20260625112638.550691-19-anisa.su@samsung.com>
+ <20260625182339.95A1F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1785274111.git.asml.silence@gmail.com> <19e5c945ea8114320c10f7951d19197d48b59249.1785274111.git.asml.silence@gmail.com>
-In-Reply-To: <19e5c945ea8114320c10f7951d19197d48b59249.1785274111.git.asml.silence@gmail.com>
-From: Caleb Sander Mateos <csander@purestorage.com>
-Date: Wed, 29 Jul 2026 12:43:50 -0700
-X-Gm-Features: AUfX_mzj7jaY2dlfE4GHJvNcQHfDZNxuFZTdOCDHOZZK5KuWQBBj743IB8eIF1Q
-Message-ID: <CADUfDZpwF0jp2e=+c3w_NjWPbnQ858bkSD731M6+x27jzgcJiw@mail.gmail.com>
-Subject: Re: [PATCH v4 08/14] nvme-pci: implement dma_token backed requests
-To: Pavel Begunkov <asml.silence@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, 
-	Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, 
-	linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org, 
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	linaro-mm-sig@lists.linaro.org, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
-	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>, 
-	Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>, 
-	William Power <william.power@intel.com>, Phil Cayton <phil.cayton@intel.com>, 
-	Jason Gunthorpe <jgg@nvidia.com>, Damien Le Moal <dlemoal@kernel.org>, Alasdair Kergon <agk@redhat.com>, 
-	Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>, 
-	Benjamin Marzinski <bmarzins@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	David Sterba <dsterba@suse.com>, Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev, 
-	nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org, 
-	ceph-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260625182339.95A1F1F00A3A@smtp.kernel.org>
 
-On Tue, Jul 28, 2026 at 2:35=E2=80=AFPM Pavel Begunkov <asml.silence@gmail.=
-com> wrote:
->
-> Enable BIO_DMABUF_MAP backed requests. It creates a prp list for the
-> dmabuf when it's mapped, which is then used to initialise requests.
->
-> Suggested-by: Keith Busch <kbusch@kernel.org>
-> Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
-> ---
->  drivers/nvme/host/core.c |  12 ++
->  drivers/nvme/host/nvme.h |   2 +
->  drivers/nvme/host/pci.c  | 259 +++++++++++++++++++++++++++++++++++++++
->  3 files changed, 273 insertions(+)
->
-> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-> index 453c1f0b2dd0..ce66a1843bec 100644
-> --- a/drivers/nvme/host/core.c
-> +++ b/drivers/nvme/host/core.c
-> @@ -2676,6 +2676,17 @@ static int nvme_report_zones(struct gendisk *disk,=
- sector_t sector,
->  #define nvme_report_zones      NULL
->  #endif /* CONFIG_BLK_DEV_ZONED */
->
-> +static int nvme_init_dma_buf_io_ctx(struct block_device *bdev,
-> +                                   struct dma_buf_io_ctx *ctx)
-> +{
-> +       struct nvme_ns *ns =3D bdev->bd_disk->private_data;
-> +       struct nvme_ctrl *ctrl =3D ns->ctrl;
-> +
-> +       if (!ctrl->ops->init_dma_buf_io_ctx)
-> +               return -EINVAL;
-> +       return ctrl->ops->init_dma_buf_io_ctx(ctrl, ctx);
-> +}
-> +
->  const struct block_device_operations nvme_bdev_ops =3D {
->         .owner          =3D THIS_MODULE,
->         .ioctl          =3D nvme_ioctl,
-> @@ -2686,6 +2697,7 @@ const struct block_device_operations nvme_bdev_ops =
-=3D {
->         .get_unique_id  =3D nvme_get_unique_id,
->         .report_zones   =3D nvme_report_zones,
->         .pr_ops         =3D &nvme_pr_ops,
-> +       .init_dma_buf_io_ctx =3D nvme_init_dma_buf_io_ctx,
->  };
->
->  static int nvme_wait_ready(struct nvme_ctrl *ctrl, u32 mask, u32 val,
-> diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-> index 824651cc898d..034c31af8fec 100644
-> --- a/drivers/nvme/host/nvme.h
-> +++ b/drivers/nvme/host/nvme.h
-> @@ -652,6 +652,8 @@ struct nvme_ctrl_ops {
->         int (*get_address)(struct nvme_ctrl *ctrl, char *buf, int size);
->         void (*print_device_info)(struct nvme_ctrl *ctrl);
->         bool (*supports_pci_p2pdma)(struct nvme_ctrl *ctrl);
-> +       int (*init_dma_buf_io_ctx)(struct nvme_ctrl *ctrl,
-> +                                  struct dma_buf_io_ctx *ctx);
->         unsigned long (*get_virt_boundary)(struct nvme_ctrl *ctrl, bool i=
-s_admin);
->  };
->
-> diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-> index 69932d640b53..f1b67c191892 100644
-> --- a/drivers/nvme/host/pci.c
-> +++ b/drivers/nvme/host/pci.c
-> @@ -27,6 +27,8 @@
->  #include <linux/io-64-nonatomic-lo-hi.h>
->  #include <linux/io-64-nonatomic-hi-lo.h>
->  #include <linux/sed-opal.h>
-> +#include <linux/dma-buf-io.h>
-> +#include <linux/dma-resv.h>
->
->  #include "trace.h"
->  #include "nvme.h"
-> @@ -393,6 +395,13 @@ struct nvme_queue {
->         struct completion delete_done;
->  };
->
-> +struct nvme_dmabuf_map {
-> +       struct dma_buf_io_map base;
-> +       struct sg_table *sgt;
-> +       unsigned nr_entries;
-> +       dma_addr_t dma_list[];
-> +};
-> +
->  /* bits for iod->flags */
->  enum nvme_iod_flags {
->         /* this command has been aborted by the timeout handler */
-> @@ -859,6 +868,138 @@ static void nvme_free_descriptors(struct request *r=
-eq)
->         }
->  }
->
-> +static inline struct nvme_dmabuf_map *
-> +to_nvme_dmabuf_map(struct dma_buf_io_map *map)
-> +{
-> +       return container_of(map, struct nvme_dmabuf_map, base);
-> +}
-> +
-> +static void nvme_dmabuf_map_sync_for_cpu(struct nvme_dev *nvme_dev,
-> +                                        struct request *req)
-> +{
-> +       struct device *dev =3D nvme_dev->dev;
-> +       enum dma_data_direction dma_dir;
-> +       struct bio *bio =3D req->bio;
-> +       struct nvme_dmabuf_map *map =3D to_nvme_dmabuf_map(bio->bi_dmabuf=
-_map);
-> +       dma_addr_t *dma_list =3D map->dma_list;
-> +       unsigned offset =3D bio->bi_iter.bi_offset;
-> +       unsigned map_idx =3D offset / NVME_CTRL_PAGE_SIZE;
-> +       int length =3D blk_rq_payload_bytes(req) +
-> +                    (offset & (NVME_CTRL_PAGE_SIZE - 1));
-> +
-> +       dma_dir =3D rq_data_dir(req) =3D=3D READ ? DMA_FROM_DEVICE : DMA_=
-TO_DEVICE;
-> +
-> +       while (length > 0) {
-> +               dma_sync_single_for_cpu(dev, dma_list[map_idx++],
-> +                                       NVME_CTRL_PAGE_SIZE, dma_dir);
-> +               length -=3D NVME_CTRL_PAGE_SIZE;
-> +       }
-> +}
-> +
-> +static void nvme_dmabuf_map_sync_for_device(struct nvme_dev *nvme_dev,
-> +                                           struct request *req)
-> +{
-> +       struct device *dev =3D nvme_dev->dev;
-> +       enum dma_data_direction dma_dir;
-> +       struct bio *bio =3D req->bio;
-> +       struct nvme_dmabuf_map *map =3D to_nvme_dmabuf_map(bio->bi_dmabuf=
-_map);
-> +       dma_addr_t *dma_list =3D map->dma_list;
-> +       unsigned offset =3D bio->bi_iter.bi_offset;
-> +       unsigned map_idx =3D offset / NVME_CTRL_PAGE_SIZE;
-> +       int length =3D blk_rq_payload_bytes(req) +
-> +                    (offset & (NVME_CTRL_PAGE_SIZE - 1));
-> +
-> +       dma_dir =3D rq_data_dir(req) =3D=3D READ ? DMA_FROM_DEVICE : DMA_=
-TO_DEVICE;
-> +
-> +       while (length > 0) {
-> +               dma_sync_single_for_device(dev, dma_list[map_idx++],
-> +                                          NVME_CTRL_PAGE_SIZE, dma_dir);
-> +               length -=3D NVME_CTRL_PAGE_SIZE;
-> +       }
-> +}
-> +
-> +static void nvme_rq_clean_dmabuf_map(struct nvme_dev *dev,
-> +                                     struct request *req)
-> +{
-> +       struct nvme_iod *iod =3D blk_mq_rq_to_pdu(req);
-> +
-> +       nvme_dmabuf_map_sync_for_cpu(dev, req);
-> +
-> +       if (!(iod->flags & IOD_SINGLE_SEGMENT))
-> +               nvme_free_descriptors(req);
-> +}
-> +
-> +static blk_status_t nvme_rq_setup_dmabuf_map(struct request *req,
-> +                                            struct nvme_queue *nvmeq)
-> +{
-> +       struct nvme_iod *iod =3D blk_mq_rq_to_pdu(req);
-> +       struct bio *bio =3D req->bio;
-> +       struct nvme_dmabuf_map *map =3D to_nvme_dmabuf_map(bio->bi_dmabuf=
-_map);
-> +       unsigned bvec_done =3D bio->bi_iter.bi_offset;
-> +       unsigned map_idx =3D bvec_done / NVME_CTRL_PAGE_SIZE;
-> +       unsigned offset =3D bvec_done & (NVME_CTRL_PAGE_SIZE - 1);
-> +       int length =3D blk_rq_payload_bytes(req) - (NVME_CTRL_PAGE_SIZE -=
- offset);
-> +       dma_addr_t *dma_list =3D map->dma_list;
-> +       u64 prp1_dma =3D dma_list[map_idx++] + offset;
-> +       u64 dma_addr, prp2_dma;
-> +       dma_addr_t prp_dma;
-> +       __le64 *prp_list;
-> +       unsigned i;
-> +
-> +       nvme_dmabuf_map_sync_for_device(nvmeq->dev, req);
-> +
-> +       if (length <=3D 0) {
-> +               prp2_dma =3D 0;
-> +               goto done;
-> +       }
-> +
-> +       if (length <=3D NVME_CTRL_PAGE_SIZE) {
-> +               prp2_dma =3D dma_list[map_idx];
-> +               goto done;
-> +       }
-> +
-> +       if (DIV_ROUND_UP(length, NVME_CTRL_PAGE_SIZE) <=3D
-> +           NVME_SMALL_POOL_SIZE / sizeof(__le64))
-> +               iod->flags |=3D IOD_SMALL_DESCRIPTOR;
-> +
-> +       prp_list =3D dma_pool_alloc(nvme_dma_pool(nvmeq, iod), GFP_ATOMIC=
-,
-> +                       &prp_dma);
+On Thu, Jun 25, 2026 at 06:23:38PM +0000, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 3 potential issue(s) to consider:
+> - [High] Lockless iteration over the shared `cxlr_dax->dc_extents` xarray leads to Use-After-Free.
 
-I wonder if it's possible to perform the PRP list page allocations and
-initialization in nvme_dma_buf_io_map() instead of the I/O path. The
-NVMe dma_pools are per-NUMA-node linked lists protected by spinlocks,
-making them significant CPU hotspots. If the dmabuf registration set
-up a contiguous DMA-coherent list of PRP entries for the pages of the
-registered buffer, any command using the dmabuf and requiring at most
-1 PRP list page (i.e. length <=3D 2 MB) could just set its PRP list
-pointer to an offset into the dmabuf's PRP list.
+Fixed -- same bug reported in patch 14. The fix is split across both patches by
+making the free rcu deferred and calling guard(rcu) appropriately.
 
-Best,
-Caleb
+> - [High] Unsynchronized non-atomic modifications to `group->nr_extents` lead to lost decrements and tag group leak.
 
+Duplicate false positive reported in patch 14 and 16.
+A single tag group/s extents are never released concurrently.
 
-> +       if (!prp_list)
-> +               return BLK_STS_RESOURCE;
-> +
-> +       iod->descriptors[iod->nr_descriptors++] =3D prp_list;
-> +       prp2_dma =3D prp_dma;
-> +       i =3D 0;
-> +       for (;;) {
-> +               if (i =3D=3D NVME_CTRL_PAGE_SIZE >> 3) {
-> +                       __le64 *old_prp_list =3D prp_list;
-> +
-> +                       prp_list =3D dma_pool_alloc(nvmeq->descriptor_poo=
-ls.large,
-> +                                       GFP_ATOMIC, &prp_dma);
-> +                       if (!prp_list)
-> +                               goto free_prps;
-> +                       iod->descriptors[iod->nr_descriptors++] =3D prp_l=
-ist;
-> +                       prp_list[0] =3D old_prp_list[i - 1];
-> +                       old_prp_list[i - 1] =3D cpu_to_le64(prp_dma);
-> +                       i =3D 1;
-> +               }
-> +
-> +               dma_addr =3D dma_list[map_idx++];
-> +               prp_list[i++] =3D cpu_to_le64(dma_addr);
-> +
-> +               length -=3D NVME_CTRL_PAGE_SIZE;
-> +               if (length <=3D 0)
-> +                       break;
-> +       }
-> +done:
-> +       iod->cmd.common.dptr.prp1 =3D cpu_to_le64(prp1_dma);
-> +       iod->cmd.common.dptr.prp2 =3D cpu_to_le64(prp2_dma);
-> +       return BLK_STS_OK;
-> +free_prps:
-> +       nvme_free_descriptors(req);
-> +       return BLK_STS_RESOURCE;
-> +}
-> +
->  static void nvme_free_prps(struct request *req, unsigned int attrs)
->  {
->         struct nvme_iod *iod =3D blk_mq_rq_to_pdu(req);
-> @@ -937,6 +1078,11 @@ static void nvme_unmap_data(struct request *req)
->         struct device *dma_dev =3D nvmeq->dev->dev;
->         unsigned int attrs =3D 0;
->
-> +       if (blk_mq_rq_is_dmabuf(req)) {
-> +               nvme_rq_clean_dmabuf_map(nvmeq->dev, req);
-> +               return;
-> +       }
-> +
->         if (iod->flags & IOD_SINGLE_SEGMENT) {
->                 static_assert(offsetof(union nvme_data_ptr, prp1) =3D=3D
->                                 offsetof(union nvme_data_ptr, sgl.addr));
-> @@ -1251,6 +1397,9 @@ static blk_status_t nvme_map_data(struct request *r=
-eq)
->         struct blk_dma_iter iter;
->         blk_status_t ret;
->
-> +       if (blk_mq_rq_is_dmabuf(req))
-> +               return nvme_rq_setup_dmabuf_map(req, nvmeq);
-> +
->         /*
->          * Try to skip the DMA iterator for single segment requests, as t=
-hat
->          * significantly improves performances for small I/O sizes.
-> @@ -2269,6 +2418,112 @@ static int nvme_create_queue(struct nvme_queue *n=
-vmeq, int qid, bool polled)
->         return result;
->  }
->
-> +#if defined(CONFIG_DMA_SHARED_BUFFER)
-> +static void nvme_dmabuf_invalidate_mappings(struct dma_buf_attachment *a=
-ttach)
-> +{
-> +       struct dma_buf_io_ctx *ctx =3D attach->importer_priv;
-> +
-> +       dma_buf_io_invalidate_mappings(ctx);
-> +}
-> +
-> +const struct dma_buf_attach_ops nvme_dmabuf_importer_ops =3D {
-> +       .invalidate_mappings    =3D nvme_dmabuf_invalidate_mappings,
-> +       .allow_peer2peer        =3D true,
-> +};
-> +
-> +static struct dma_buf_io_map *nvme_dma_buf_io_map(struct dma_buf_io_ctx =
-*ctx)
-> +{
-> +       unsigned nr_entries =3D ctx->dmabuf->size / NVME_CTRL_PAGE_SIZE;
-> +       struct dma_buf_attachment *attach =3D ctx->dev_priv;
-> +       unsigned long tmp, i =3D 0;
-> +       struct nvme_dmabuf_map *map;
-> +       struct scatterlist *sg;
-> +       struct sg_table *sgt;
-> +       int ret;
-> +
-> +       dma_resv_assert_held(ctx->dmabuf->resv);
-> +
-> +       map =3D kmalloc_flex(*map, dma_list, nr_entries);
-> +       if (!map)
-> +               return ERR_PTR(-ENOMEM);
-> +
-> +       sgt =3D dma_buf_map_attachment(attach, ctx->dir);
-> +       if (IS_ERR(sgt)) {
-> +               ret =3D PTR_ERR(sgt);
-> +               sgt =3D NULL;
-> +               goto err;
-> +       }
-> +
-> +       for_each_sgtable_dma_sg(sgt, sg, tmp) {
-> +               dma_addr_t dma_addr =3D sg_dma_address(sg);
-> +               unsigned long sg_len =3D sg_dma_len(sg);
-> +
-> +               if (sg_len % NVME_CTRL_PAGE_SIZE) {
-> +                       ret =3D -EINVAL;
-> +                       goto err;
-> +               }
-> +
-> +               while (sg_len) {
-> +                       map->dma_list[i++] =3D dma_addr;
-> +                       dma_addr +=3D NVME_CTRL_PAGE_SIZE;
-> +                       sg_len -=3D NVME_CTRL_PAGE_SIZE;
-> +               }
-> +       }
-> +
-> +       ret =3D dma_buf_io_init_map(ctx, &map->base);
-> +       if (ret)
-> +               goto err;
-> +       map->nr_entries =3D nr_entries;
-> +       map->sgt =3D sgt;
-> +       return &map->base;
-> +err:
-> +       if (sgt)
-> +               dma_buf_unmap_attachment(attach, sgt, ctx->dir);
-> +       kfree(map);
-> +       return ERR_PTR(ret);
-> +}
-> +
-> +static void nvme_dma_buf_io_unmap(struct dma_buf_io_ctx *ctx,
-> +                                 struct dma_buf_io_map *map_base)
-> +{
-> +       struct dma_buf_attachment *attach =3D ctx->dev_priv;
-> +       struct nvme_dmabuf_map *map =3D to_nvme_dmabuf_map(map_base);
-> +
-> +       dma_resv_assert_held(ctx->dmabuf->resv);
-> +
-> +       dma_buf_unmap_attachment(attach, map->sgt, ctx->dir);
-> +}
-> +
-> +static void nvme_dma_buf_io_release(struct dma_buf_io_ctx *ctx)
-> +{
-> +       struct dma_buf_attachment *attach =3D ctx->dev_priv;
-> +
-> +       dma_buf_detach(ctx->dmabuf, attach);
-> +}
-> +
-> +const struct dma_buf_io_ops nvme_dma_buf_io_ops =3D {
-> +       .map            =3D nvme_dma_buf_io_map,
-> +       .unmap          =3D nvme_dma_buf_io_unmap,
-> +       .release        =3D nvme_dma_buf_io_release,
-> +};
-> +
-> +static int nvme_pci_init_dma_buf_io_ctx(struct nvme_ctrl *ctrl,
-> +                                       struct dma_buf_io_ctx *ctx)
-> +{
-> +       struct dma_buf_attachment *attach;
-> +       struct nvme_dev *dev =3D to_nvme_dev(ctrl);
-> +
-> +       attach =3D dma_buf_dynamic_attach(ctx->dmabuf, dev->dev,
-> +                                       &nvme_dmabuf_importer_ops, ctx);
-> +       if (IS_ERR(attach))
-> +               return PTR_ERR(attach);
-> +
-> +       ctx->dev_priv =3D attach;
-> +       ctx->dev_ops =3D &nvme_dma_buf_io_ops;
-> +       return 0;
-> +}
-> +#endif
-> +
->  static const struct blk_mq_ops nvme_mq_admin_ops =3D {
->         .queue_rq       =3D nvme_queue_rq,
->         .complete       =3D nvme_pci_complete_rq,
-> @@ -3563,6 +3818,9 @@ static const struct nvme_ctrl_ops nvme_pci_ctrl_ops=
- =3D {
->         .print_device_info      =3D nvme_pci_print_device_info,
->         .supports_pci_p2pdma    =3D nvme_pci_supports_pci_p2pdma,
->         .get_virt_boundary      =3D nvme_pci_get_virt_boundary,
-> +#if defined(CONFIG_DMA_SHARED_BUFFER)
-> +       .init_dma_buf_io_ctx    =3D nvme_pci_init_dma_buf_io_ctx,
-> +#endif
->  };
->
->  static int nvme_dev_map(struct nvme_dev *dev)
-> @@ -4327,5 +4585,6 @@ MODULE_AUTHOR("Matthew Wilcox <willy@linux.intel.co=
-m>");
->  MODULE_LICENSE("GPL");
->  MODULE_VERSION("1.0");
->  MODULE_DESCRIPTION("NVMe host PCIe transport driver");
-> +MODULE_IMPORT_NS("DMA_BUF");
->  module_init(nvme_init);
->  module_exit(nvme_exit);
+> - [High] Multi-extent tag group releases incorrectly tear down the entire group on the first chunk, causing spurious errors and WARN_ON stack traces on subsequent chunks.
+
+Partial False Positive -- The WARN_ON case is not reachable (see below)
+
+RFC for the spurious error case:
+
+Currently extents are eagerly released. If a release event record
+contains a full tag group of 3 extents, upon processing the first extent, if
+no extents in the group are in use, the entire group is released.
+
+This way, partial release requests from a faulty or naive FM are handled
+by releasing the entire group anyway and we don't hold onto unused capacity.
+It's also less code.
+
+It does cause the kernel to emit the following dev_err logs for the next extent
+if it belonged to the same tag group.
+Specifically in cxl_rm_extent: 
+dev_err(&cxlr_dax->dev,                                         
+	"release DPA %pra (%pU) matches no dc_extent\n", &dpa_range, &tag);    
+
+Then cxl_rm_extent returns -ENXIO to the caller cxl_handle_dcd_event_records(), 
+which will print:
+
+if (rc)
+	dev_err_ratelimited(dev, "dcd event failed: %d\n", rc);
+
+This is misleading, but the current greedy release policy can't distinguish between this
+spurious case and an actually bogus extent that was never provisioned to us or
+accepted in the first place.
+
+If we want to distinguish between the 2 scenarios, then release needs
+to follow a similar path as add:
+- hold extents in a pending_release context
+- 20 second timeout for end of "More" chain
+- when chain closes (More=0):
+	- loop over pending release list
+	- extract tag groups
+	- check if the tag matches any currently tracked tag groups
+	- check that each extent 100% matches extents in the tracked group
+		- same number of extents in the group
+		- each extent has the same start_dpa and length as its tracked
+		  counterpart
+		- tracked extent is unused
+	- if there is a mismatch:
+		- err and hold onto the tag group?
+			- IMO doesn't make sense to hold onto unused capacity
+		- err and release the tag group anyway?
+			- this is the same as the current behavior and the
+			  only gain is that err msgs are not printed in
+			  the success case
+	- else (no mismatch):
+		- release the group (no err msg)
+
+Estimated + ~150 LOC to implement.
+
+Proposed change:
+downgrade dev_err to dev_dbg.
+ack the release to tell the device we're not using the capacity (similar to the
+other 2 cases in which !cxlr or !cxlr_dax) and return 0 from cxl_rm_extent
+
+(see below)
+
 > --
-> 2.54.0
->
->
+> 
+> commit 277b0b7ee1e3ee9199ddbac19db51d5566770cbb
+> Author: Ira Weiny <iweiny@kernel.org>
+> 
+> cxl/extent: Handle DC Release Capacity events
+>     
+> This commit replaces the no-op ack stub for cxl_rm_extent() with the real
+> teardown logic. It resolves the released DPA range to its region and endpoint
+> decoder, locates the matching dc_extent, and tears down the entire containing
+> tag group atomically.
+> 
+> > diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
+> > index 0ebb581ca8335..a590a89f35802 100644
+> > --- a/drivers/cxl/core/extent.c
+> > +++ b/drivers/cxl/core/extent.c
+> [ ... ]
+> > +static void rm_tag_group(struct cxl_dc_tag_group *group)
+> > +{
+> > +	struct device *region_dev = &group->cxlr_dax->dev;
+> > +	struct dc_extent *dc_extent;
+> > +	unsigned long index;
+> > +
+> > +	/*
+> > +	 * Pin @group across the walk: each devm_release_action runs the
+> > +	 * dc_extent_unregister action synchronously, which drops the last
+> > +	 * reference on the dc_extent device and fires dc_extent_release.
+> > +	 * The release decrements group->nr_extents and, on the final
+> > +	 * decrement, frees @group.  Without the pin the next iteration's
+> > +	 * xa_find_after() dereferences a freed xarray.
+> > +	 */
+> > +	group->nr_extents++;
+> > +	xa_for_each(&group->dc_extents, index, dc_extent)
+> > +		devm_release_action(region_dev, dc_extent_unregister, dc_extent);
+> 
+> [Severity: High]
+> What happens if a device releases a multi-extent tag group by sending multiple
+> DCD release events (one per chunk)?
+> 
+> When the host processes the first event, cxl_rm_extent() resolves the group
+> and calls rm_tag_group(), which atomically unregisters all extents. If the
+> sysfs reference is > 0 (e.g. userspace has a file open), the extents remain
+> in the xarray.
+> 
+> When subsequent release events for the remaining chunks are processed,
+> cxl_rm_extent() finds the same group and calls rm_tag_group() again. Will
+> invoking devm_release_action() on already-removed actions trigger a
+> WARN_ON(!devres) stack trace?
+> 
+Not reachable. While extents are in use, cxlr_notify_extent() returns -EBUSY
+and cxl_rm_extent() returns 0 without calling rm_tag_group() at all; and once
+a group is torn down its extents are erased from dc_extents, so a later event
+can't re-select them to double-release. There is no double devm_release_action,
+so no WARN.
+
+> > +	group->nr_extents--;
+> > +	if (!group->nr_extents)
+> > +		free_tag_group(group);
+> 
+> [Severity: High]
+> Can this result in lost decrements and a tag group leak?
+> 
+> Since group->nr_extents is a plain unsigned int, a lockless decrement here
+> in rm_tag_group() could race with dc_extent_release(). If userspace holds
+> references to multiple extents in the same tag group via sysfs and closes
+> them concurrently, dc_extent_release() will run on multiple CPUs
+> simultaneously.
+> 
+> This would race with the decrement here, preventing the counter from reaching
+> zero and permanently leaking the cxl_dc_tag_group and its UUID.
+> 
+> > +}
+> > +
+> > +int cxl_rm_extent(struct cxl_memdev_state *mds, struct cxl_extent *extent)
+> > +{
+> [ ... ]
+> > +	/*
+> > +	 * Find the dc_extent whose DPA range covers the released range and
+> > +	 * whose tag matches.  The release targets the entire containing
+> > +	 * tag group atomically; partial release is not supported.
+> > +	 */
+> > +	group = NULL;
+> > +	xa_for_each(&cxlr_dax->dc_extents, idx, dc_extent) {
+> > +		if (dc_extent->cxled != cxled)
+> 
+> [Severity: High]
+> Is it safe to iterate the shared cxlr_dax->dc_extents xarray without RCU
+> protection or a write lock here?
+> 
+> cxl_rm_extent() and cxlr_dax_classify_extent() iterate over the shared
+> xarray using xa_for_each() while holding cxl_rwsem.region only for read. If
+> concurrent DCD events from different memdevs in the same interleaved region
+> trigger rm_tag_group() or a failed cxl_add_extent(), dc_extent objects can be
+> removed and synchronously freed via kfree() in dc_extent_release() by another
+> thread.
+> 
+> Since xa_for_each() drops the internal RCU lock during the loop body, could
+> the iterating thread dereference a freed dc_extent pointer here?
+> 
+The xa_for_each is put inside scoped__guard(rcu){} block, since
+cxlr_notify_extent() is called afterwards, which takes dax_region_rwsem via
+down_write() and can sleep.
+
+> > +			continue;
+> > +		if (!range_contains(&dc_extent->dpa_range, &dpa_range))
+> > +			continue;
+> > +		if (!uuid_equal(&dc_extent->group->uuid, &tag))
+> > +			continue;
+> > +		group = dc_extent->group;
+> > +		break;
+> > +	}
+> > +	if (!group) {
+> > +		dev_err(&cxlr_dax->dev,
+> > +			"release DPA %pra (%pU) matches no dc_extent\n",
+> > +			&dpa_range, &tag);
+> 
+> [Severity: High]
+> Could this error path be triggered spuriously on multi-chunk releases?
+> 
+> If a device sends multiple DCD release events for a multi-extent tag group,
+> the first chunk will cause rm_tag_group() to unregister all extents. If sysfs
+> references are zero, the extents are freed immediately.
+> 
+> When subsequent release events for the remaining chunks are processed, they
+> will fail to find the group here and print this spurious "matches no dc_extent"
+> error.
+Proposed change:
+
+Re-ack the release here with memdev_release_extent() to let the device know
+we're not using the capacity. This is consistent with how null cxlr and
+cxlr_dax are handled (earlier in the function, snipped in sashiko's response):
+
+guard(rwsem_read)(&cxl_rwsem.region);
+	cxlr = cxl_dpa_to_region(cxlmd, start_dpa, &cxled);
+	if (!cxlr) {
+		/*
+		 * No region can happen here for a few reasons:
+		 *
+		 * 1) Extents were accepted and the host crashed/rebooted
+		 *    leaving them in an accepted state.  On reboot the host
+		 *    has not yet created a region to own them.
+		 *
+		 * 2) Region destruction won the race with the device releasing
+		 *    all the extents.  Here the release will be a duplicate of
+		 *    the one sent via region destruction.
+		 *
+		 * 3) The device is confused and releasing extents for which no
+		 *    region ever existed.
+		 *
+		 * In all these cases make sure the device knows we are not
+		 * using this extent.
+		 */
+		memdev_release_extent(mds, &dpa_range);
+		return -ENXIO;
+	}
+cxlr_dax = cxlr->cxlr_dax;
+	if (!cxlr_dax) {
+		/*
+		 * The region exists but its dax region is not set up, so the
+		 * host is not tracking this extent.  Tell the device it is not
+		 * in use, as in the no-region case above.
+		 */
+		memdev_release_extent(mds, &dpa_range);
+		return -ENXIO;
+	}
+
+Downgrade the above dev_err to dev_dbg.
+
+And instead of returning -ENXIO, return 0. The caller
+cxl_handle_dcd_event_records() only uses rc to determine if it should print:
+
+if (rc)
+		dev_err_ratelimited(dev, "dcd event failed: %d\n", rc);
+
+cxl_handle_dcd_event_records() is a void function and does not propagate rc.
+The drawback is that this line is ommitted for a genuinely bogus
+release extent.
+
+Or return -ENXIO, consistent with the null cxlr and cxlr_dax case and print
+the dcd event failed line, even for the spurious case.
+
+- Anisa
+> 
+> > +		return -EINVAL;
+> > +	}
+> 
+> -- 
+> Sashiko AI review · https://sashiko.dev/#/patchset/20260625112638.550691-1-anisa.su@samsung.com?part=18
