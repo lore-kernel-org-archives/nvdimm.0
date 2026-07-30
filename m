@@ -1,115 +1,125 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB863AFD16;
-	Thu, 30 Jul 2026 11:36:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 080B742DA49
+	for <nvdimm@lists.linux.dev>; Thu, 30 Jul 2026 13:13:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785411387; cv=none; b=nKRa0LR8pIVYIlZZPI4iCMqpqb/gsL1RsqoGSTsQAM/FWvza5ukSo82IjY4RxDSAJPcb7BguuCymvUN9QLBERdlDGCNZTRiKWFcaZKATWS1dzOggVEEayCSkeYKLYEVkR7SuRLLXQLLqDwfFFyuRG+kDShFoz192pFS4yVTdK1U=
+	t=1785417183; cv=none; b=T0V3do1bUdV2qxoxBKkB96//l75JgGgqG1L6FI6hrdNJbA/OV8pCfKWyvzb4/tXdiwMy2ZcN5C8UXLizx+WKpOQOQOs52yjD5bnsu6fp+rqId6GIDzex072HinNeebA6Edo3IolVvqEb4X/u2GUVPUNwFhNiWpR+yfgUn8++f7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785411387; c=relaxed/simple;
-	bh=zLysCEEqoEuWyM6opQgluK5L0ojRhH4UN4NK8AHNaik=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
-	 Content-Type:References; b=MllZcHfvKioAX+u6vs9Lpgr61IP0sotV0y2UaC1N6kmPH/T6fu54VRnFkYyui3lp0SwlpcP3bN809a4eLzpg2wervCr3MokZril8s5mmN7/jaLNtsv/L3YgznaOMnX5BMVhSkpAN7qjKwOhbhtSYB/IxrEIuM1AADbnQYJHa/hw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=G1m0nOj5; arc=none smtp.client-ip=203.254.224.24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1785417183; c=relaxed/simple;
+	bh=TjDExxgf4LB6ZA4BUUci5QUmx9ripnHPSRkKc9ariGo=;
+	h=From:To:Subject:CC:Date:Message-ID:MIME-Version:Content-Type; b=fXApuNn5bYLgUiw9BE/CZn6+AZ/OkzWQs0FZ/JZPIzexE4Rp+j6gK+YhCjrGQ8fCtRahEHk2L4fPSoFDZSvUsYNQo7HAh3xrdMt9/u/S1BCij8nXGQg2oTpAh8ywQLO8nSiysOA56Nua52JfqolGqaDX7qvo5CHLwNCE4Io6VOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=N6ZPj5Sq; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="G1m0nOj5"
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20260730113622epoutp01cd551f2ca3195d893edf957daba54315~HDjFDmUL01609216092epoutp01Y;
-	Thu, 30 Jul 2026 11:36:22 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20260730113622epoutp01cd551f2ca3195d893edf957daba54315~HDjFDmUL01609216092epoutp01Y
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1785411382;
-	bh=mERFm4283SSrRFHo9/1ATS072a+0UIQwbggX9r32jfU=;
-	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
-	b=G1m0nOj55iDA9Dd+o78RP1b6wsb5owePEsyB2HLZpWZ6TNjoaPNBKS3Bl9iVZZRQV
-	 leVdqeIcsnTbKQnqgOQLWCGR3KeuMAqMAHOvOQ5XtXOayIBD6utXS6XH8KTkELKZgr
-	 zEcrc4MUK5bcbMdqpy2eFgv3VLAU+aJAnTZlwZ/4=
-Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
-	20260730113620epcas5p2cd2dd6e62a21b0504d36dfba298dab5e~HDjD3F8l_1787417874epcas5p2O;
-	Thu, 30 Jul 2026 11:36:20 +0000 (GMT)
-Received: from epcas5p2.samsung.com (unknown [182.195.38.88]) by
-	epsnrtp01.localdomain (Postfix) with ESMTP id 4h9nGC3jq9z6B9m4; Thu, 30 Jul
-	2026 11:36:19 +0000 (GMT)
-Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
-	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
-	20260730113618epcas5p2fa034480e41d3e4e7b6c61c98a1ee498~HDjB8riTb1788217882epcas5p2K;
-	Thu, 30 Jul 2026 11:36:18 +0000 (GMT)
-Received: from [107.122.10.194] (unknown [107.122.10.194]) by
-	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20260730113614epsmtip13123c94af622f6e0e15c09cb30ff8023~HDi9_RAYA0540705407epsmtip1s;
-	Thu, 30 Jul 2026 11:36:14 +0000 (GMT)
-Message-ID: <09134617-6d9e-4963-9319-1855e88a4df9@samsung.com>
-Date: Thu, 30 Jul 2026 17:06:13 +0530
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="N6ZPj5Sq"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C7E471684;
+	Thu, 30 Jul 2026 06:12:55 -0700 (PDT)
+Received: from GX9GF4H4XN (unknown [10.1.26.148])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3020D3F763;
+	Thu, 30 Jul 2026 06:12:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785417179; bh=TjDExxgf4LB6ZA4BUUci5QUmx9ripnHPSRkKc9ariGo=;
+	h=From:To:Subject:CC:Date:From;
+	b=N6ZPj5SqlluRft8mGv98lqZB1ih5ZjRbBCSGY+WWYR9TbOmqUXHc93z284NG0mYFy
+	 iTlBmT8nX9QQuAa9Pc/1nJv7fSyVyr20yjy6IaVtZgp0nFK7rHN0wyBkeaISclLVe4
+	 SLC4NHt/q3pZnWMZVYfOk913ovRCZEH2m9VugJXo=
+From: Seunguk Shin <seunguk.shin@arm.com>
+To: <linux-kernel@vger.kernel.org>, Andrew Morton
+ <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Matthew Wilcox
+ <willy@infradead.org>, Jan Kara <jack@suse.cz>
+Subject: [PATCH v4, RESEND] fs/dax: check zero or empty entry before
+ converting xarray entry
+CC: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+ <Nick.Connolly@arm.com>, <ffidencio@nvidia.com>, <seunguk.shin@arm.com>
+Date: Thu, 30 Jul 2026 14:12:55 +0100
+Message-ID: <m2v79wmxig.fsf@arm.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 08/14] nvme-pci: implement dma_token backed requests
-To: Pavel Begunkov <asml.silence@gmail.com>, Caleb Sander Mateos
-	<csander@purestorage.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>, Christoph
-	Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
-	linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-nvme@lists.infradead.org, linux-fsdevel@vger.kernel.org,
-	io-uring@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, Alexander
-	Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>, Sumit Semwal
-	<sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?=
-	<christian.koenig@amd.com>, Nitesh Shetty <nj.shetty@samsung.com>, Kanchan
-	Joshi <joshi.k@samsung.com>, Jason Gunthorpe <jgg@nvidia.com>, Damien Le
-	Moal <dlemoal@kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer
-	<snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>, Benjamin
-	Marzinski <bmarzins@redhat.com>, David Sterba <dsterba@suse.com>, Ilya
-	Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev,
-	nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org,
-	ceph-devel@vger.kernel.org
-Content-Language: en-US
-From: Anuj Gupta/Anuj Gupta <anuj20.g@samsung.com>
-In-Reply-To: <de4ec386-42ba-41c3-bcbe-1fe8b2f71ba9@gmail.com>
-Content-Transfer-Encoding: 7bit
-X-CMS-MailID: 20260730113618epcas5p2fa034480e41d3e4e7b6c61c98a1ee498
-X-Msg-Generator: CA
-Content-Type: text/plain; charset="utf-8"
-CMS-TYPE: 105P
-cpgsPolicy: CPGSC10-542,Y
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20260730104131epcas5p4b52720519486f7ac774c317923a79c81
-References: <cover.1785274111.git.asml.silence@gmail.com>
-	<19e5c945ea8114320c10f7951d19197d48b59249.1785274111.git.asml.silence@gmail.com>
-	<CADUfDZpwF0jp2e=+c3w_NjWPbnQ858bkSD731M6+x27jzgcJiw@mail.gmail.com>
-	<CGME20260730104131epcas5p4b52720519486f7ac774c317923a79c81@epcas5p4.samsung.com>
-	<de4ec386-42ba-41c3-bcbe-1fe8b2f71ba9@gmail.com>
+Content-Type: text/plain
 
-On 7/30/2026 4:11 PM, Pavel Begunkov wrote:
->>
->> I wonder if it's possible to perform the PRP list page allocations and
->> initialization in nvme_dma_buf_io_map() instead of the I/O path. The
->> NVMe dma_pools are per-NUMA-node linked lists protected by spinlocks,
->> making them significant CPU hotspots. If the dmabuf registration set
->> up a contiguous DMA-coherent list of PRP entries for the pages of the
->> registered buffer, any command using the dmabuf and requiring at most
->> 1 PRP list page (i.e. length <= 2 MB) could just set its PRP list
->> pointer to an offset into the dmabuf's PRP list.
-> 
-> Possible to an extent, predecessor patches tried that, I left it for
-> later to keep the series simpler. I guess chaining won't work in
-> general case.
-> I mentioned this to Kanchan, Anuj and Nitesh before, they were up to
-> playing with nvme optimisations in general, and since sgl from Anuj
-> is ready, maybe they already have a prototype somewhere for that.
-> 
+dax_associate_entry(), dax_disassociate_entry(), and dax_busy_page()
+call dax_to_folio(entry) before checking whether entry is a zero or
+empty xarray entry.
 
-Right, I have prototyped the PRP list optimisation before. I will send 
-it once the initial version of this series lands, to avoid adding new 
-review churn while the rest of the series is pretty settled.
-> -- 
-> Pavel Begunkov
+That ordering is wrong because zero and empty entries are not folio
+entries. Commit 98c183a4fccf ("fs/dax: don't disassociate zero page
+entries") added guards in the associate and disassociate paths, but the
+guards still come after dax_to_folio(entry), and dax_busy_page() still
+has the same problem.
 
+Move the zero/empty checks before dax_to_folio(entry) in all three helpers.
+
+Fixes: 38607c62b34b ("fs/dax: properly refcount fs dax pages")
+Signed-off-by: Seunguk Shin <seunguk.shin@arm.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+---
+Changes in v4:
+- Rebase on current upstream
+- Link to v3: https://lore.kernel.org/all/m2jythetpj.fsf@arm.com/
+Changes in v3:
+- Rebase on current upstream
+- Update the changelog for the current code state
+- Link to v2: https://lore.kernel.org/all/m2jyv11mqe.fsf@arm.com/
+Changes in v2:
+- Add Fixes and Reviewed-by tags.
+- Rebase on the latest.
+- Link to v1: https://lore.kernel.org/all/18af3213-6c46-4611-ba75-da5be5a1c9b0@arm.com/
+---
+ fs/dax.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 6d175cd47a99..4bca6e2bc342 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -480,11 +480,12 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+                                unsigned long address, bool shared)
+ {
+        unsigned long size = dax_entry_size(entry), index;
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
+
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return;
+
++       folio = dax_to_folio(entry);
+        index = linear_page_index(vma, address & ~(size - 1));
+        if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
+                if (folio->mapping)
+@@ -505,21 +506,23 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+                                bool trunc)
+ {
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
+
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return;
+
++       folio = dax_to_folio(entry);
+        dax_folio_put(folio);
+ }
+
+ static struct page *dax_busy_page(void *entry)
+ {
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
+
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return NULL;
+
++       folio = dax_to_folio(entry);
+        if (folio_ref_count(folio) - folio_mapcount(folio))
+                return &folio->page;
+        else
+--
+2.43.0
