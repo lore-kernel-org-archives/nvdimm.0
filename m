@@ -1,136 +1,309 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 211CA3F12EC;
-	Thu, 30 Jul 2026 10:06:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9D1C400DF9
+	for <nvdimm@lists.linux.dev>; Thu, 30 Jul 2026 10:41:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785406019; cv=none; b=O5g75dj0AHf7x9a6svsfJOao5f9Uiyv9eWbXlf7oX8lcluNyoksFp6Zbz2xpcVStQgvs0o1ADopXpFFNWKngnKNDKOEdGlnM/Q+P/1jR5p0k08bpr2RrzqMRhDlHRJl/tq1SqqTQFT122BfzodJNyfEFWxCNoquDIgFh1P1Lt4k=
+	t=1785408091; cv=none; b=UBmvTPjOrRakFburRu22X5cbrnpBHwzLkGSgLOVeoH/cLEjjDtLCkgpUXJk1mCYdYiGXkWMsSg48rVxcXIOp9IrPwL1YOo94dVEdjx+fB9FVtae37t/mIOkOhSG4TxExXsbzA6X7L6EWPmYg4IBelZS4PXRo2fTuQq3b2dRI+X0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785406019; c=relaxed/simple;
-	bh=UUei0lD/EDb7h2v7ToPNN5nuFxLeREbeKm0rMZyUnpk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gCgq1VE1gSMaE/XA4jHVYMtZTOVll5TERjx7MgcGDY8Xvjl2rGWBnAEgOKXTINXSVu3MKGVmkTsvvSmbgpQH0Rk0UfFeKwnu3cjorBKm5tpRX4HSkidUK5SPReA1Zo/jvPzJ/FcNdqy0dqwTVtRersWH1SzySNVmphbfBd2VRzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i/APtpjF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785408091; c=relaxed/simple;
+	bh=YI6ZSEJMCkmbOdXDsgw8UJSCcnirbh1OoBjegKeFXiE=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=hXHA6dotVZ6O5GgtI8qswojp6aNVA9jXpF5QOwOhzAoCnkzojNJif0kZVP2Wy6DiKVK5mbvoGeeZjiE4WAjvCW8XCzZXmE1IcInIfcas6Gui2nk4cCSBdAr4OZVdFoaRmtxwFsjUErnvhKCfgHf5rQA3Xs980xpiYbwClC1DZxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YCwH97lh; arc=none smtp.client-ip=209.85.128.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i/APtpjF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E0B1F000E9;
-	Thu, 30 Jul 2026 10:06:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785406017;
-	bh=UUei0lD/EDb7h2v7ToPNN5nuFxLeREbeKm0rMZyUnpk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=i/APtpjFfiUT/jwTB0X6v6oJZclMp055NF0CkBCD3J2nPkV89Jb8UtbLPeNNCRNRl
-	 EknI0ZySGCU3e0qUKusebo8eOUMFTKtX+9U/WCYY0kfVzvZCWuya2JnoHmaA6lgTRH
-	 GtHApMybmJNIXjWCNYHA2YsFvfZGjCl5LlOUTjG1zQ4OIqSvBikIjQI73QVhLPSxUY
-	 z2z9rn2N8Qm4gOJ2y0ksh0jhvcniBL8ZLeel0Tq+tmBN2C/n8R6tSbilYsv6dUAnXr
-	 IxmkYDU6XBKfun/Ho6JEv71ZRQLzPCUJhtEvxpwmnWOkQaBLN6a5aBhLGDxTu4pdDX
-	 cmaCsWWVW9zqw==
-Date: Thu, 30 Jul 2026 11:06:33 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, "Liam R. Howlett" <liam@infradead.org>, 
-	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
-	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
-	Usama Arif <usama.arif@linux.dev>, Vlastimil Babka <vbabka@kernel.org>, 
-	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Dan Williams <djbw@kernel.org>, Matthew Wilcox <willy@infradead.org>, 
-	Kees Cook <kees@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, 
-	Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, 
-	Valentin Schneider <vschneid@redhat.com>, K Prateek Nayak <kprateek.nayak@amd.com>, linux-mm@kvack.org, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, Pankaj Raghav <pankaj.raghav@linux.dev>
-Subject: Re: [PATCH RFC] mm/huge_memory: eliminate reference-counted huge
- zero folio
-Message-ID: <amsf4_v4EDcU6ePJ@lucifer>
-References: <20260728-persist-huge-zero-folio-v1-1-e7b604eaf416@kernel.org>
- <04d881f4-419c-450e-b9b4-1341497fa93a@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YCwH97lh"
+Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-4954afac04bso21503365e9.0
+        for <nvdimm@lists.linux.dev>; Thu, 30 Jul 2026 03:41:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785408087; x=1786012887; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=IOL9N86L1OioG/3DjR3pD+pVPyZKRK8hcf21uMcbnBc=;
+        b=YCwH97lhmM3WXFS/7ZRrhhxPaPpTL9ipPtRYAPSdbnVy8hUhNwHGfRQPikCY3q699w
+         oeOfS5n3hkxHckTR/P8Cmlz2ggy8ONhtgbFRA7z1nUvwN4yQNtE/qW5fakmQ8qiHpoiA
+         OD2+1V5WBdmLza0hJc6A/sl2lV/VIiP5Ttswo25QQltgYDHKkj4yEif9j1+E12yPRaAI
+         Lnf2fKXO4ABy3wmfcqUVGDZ7lhTmI+8YWlBr5fLGpo5/dxyrHScC2xtalxAFxcnidv6y
+         YF7/qWSnmCUkjxcXc5vaSPjcjPWSATNVznLp6jfl6g4PCWLYu9yeQrtX9/6ojhkPLwZ2
+         NScg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785408087; x=1786012887;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=IOL9N86L1OioG/3DjR3pD+pVPyZKRK8hcf21uMcbnBc=;
+        b=OcQodGkEb1Hb4/rkXmPGO+0NGdVrn72Rpo4dONZw0fZyoYwLSw3v1LmMTcQI4IaLIR
+         0gHrDiMqFMg1WS0RA9/k7Z9xzxKc/uk7pQzxu3Gu6z7ILeH20pJ6Z4tSOxrQOLffZDIT
+         2NlsNzp/uB9Lo9q6ST/3IXdT2LXKkkDETaV1WjU57UOE1MrItEXMVjYES05nn/Ien37h
+         BktyGUVxnbAbtzllUpEZNkyYltymxGNrLS3eKndw/agEKEb6WGU/mkQBsLljTKNPnEby
+         BqEIyuf/iRmW/eotzZ9VKOuRAG5sdCfiAl8cXasywEulbYXuzYqbrsJIc+lj8uxn1Dz8
+         TZsg==
+X-Forwarded-Encrypted: i=1; AHgh+RpSQIzYi/HMxwr/DOS4hsOQz17ePAt7oBa/JFO+RDqYqNOJ55be2FXefjXiZu5kVrQLPFeD40U=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yyg08Ju1+bMTxEmufb8wmbRAj2mX0F9Q5PLQDNA6pCCwn7NEIB/
+	HJDS6kMtGCQLOxcWV+8J6A6OS0TFhFi2KuXeKbwzra2SLulcj9EYifZl
+X-Gm-Gg: AR+sD12Lxss5jYx8OKFviPA58gBrgWDYv+jgTwmCjjKZwXfHRU0cVhNbULmpIhdTUIe
+	vwRsXNbqLHNFDGYZE7a91bBqt+D9yD15CqC17Wv3ZSq/BJf9Fq42AKsG7kGdyLcLnBslZzZLLjG
+	HkRtzclWp22TaYjoWaCQKWY0BhG1f7gsR5w3zC01FB8j24qqYvxZNKGFvYPrx99VQr5cItcuCcE
+	vQtBiSX1nhT7yMJKeFmRbncVe0z4VPpL1CYL4G4IC66YLVV9boeD1U0FU+0F+VphSig+TqmVdZu
+	WFBlgVPuaSDrnHdl4k9ODoZtl7qDTi7js6+qFM1y4N37FdhHLLDuNcnJclCYs8q8+zdbyJ5yYcD
+	n31bAVvbuLAMfKJJiCpWspE9i5Pz6lTXVVnDOo9bvPTGd/DvTy69yQmrxsorB4uFBD52r1aUY+e
+	lw8yg1HdRofMEYZufuFtU51MMKYL86vYrA5AcA/pqx3iRZ7bwemHU4CoFnZt+TxGmIYAchT4pUM
+	wKTH9TwwN34jLjrC7Z6eDIwPWbu99zcefbxYK8QqCZObeaYIeAEzmjjGX8pXXPjTqpsGNpr1fTn
+	N1JunfXOGwhhG9wJVtTy
+X-Received: by 2002:a05:600c:c494:b0:495:745e:7430 with SMTP id 5b1f17b1804b1-49800ea99fdmr23256155e9.20.1785408086793;
+        Thu, 30 Jul 2026 03:41:26 -0700 (PDT)
+Received: from ?IPV6:2620:10d:c096:325:77fd:1068:74c8:af87? ([2620:10d:c092:600::1:2f22])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47fc89347bfsm4376944f8f.28.2026.07.30.03.41.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 30 Jul 2026 03:41:25 -0700 (PDT)
+Message-ID: <de4ec386-42ba-41c3-bcbe-1fe8b2f71ba9@gmail.com>
+Date: Thu, 30 Jul 2026 11:41:30 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <04d881f4-419c-450e-b9b4-1341497fa93a@kernel.org>
+User-Agent: Mozilla Thunderbird
+From: Pavel Begunkov <asml.silence@gmail.com>
+Subject: Re: [PATCH v4 08/14] nvme-pci: implement dma_token backed requests
+To: Caleb Sander Mateos <csander@purestorage.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
+ Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+ linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-nvme@lists.infradead.org, linux-fsdevel@vger.kernel.org,
+ io-uring@vger.kernel.org, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>,
+ Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>,
+ William Power <william.power@intel.com>, Phil Cayton
+ <phil.cayton@intel.com>, Jason Gunthorpe <jgg@nvidia.com>,
+ Damien Le Moal <dlemoal@kernel.org>, Alasdair Kergon <agk@redhat.com>,
+ Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>,
+ Benjamin Marzinski <bmarzins@redhat.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, David Sterba <dsterba@suse.com>,
+ Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev,
+ nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org,
+ ceph-devel@vger.kernel.org
+References: <cover.1785274111.git.asml.silence@gmail.com>
+ <19e5c945ea8114320c10f7951d19197d48b59249.1785274111.git.asml.silence@gmail.com>
+ <CADUfDZpwF0jp2e=+c3w_NjWPbnQ858bkSD731M6+x27jzgcJiw@mail.gmail.com>
+Content-Language: en-US
+In-Reply-To: <CADUfDZpwF0jp2e=+c3w_NjWPbnQ858bkSD731M6+x27jzgcJiw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Tue, Jul 28, 2026 at 09:16:08PM +0200, David Hildenbrand (Arm) wrote:
-> On 7/28/26 15:06, Lorenzo Stoakes (ARM) wrote:
-> > The reference-counted huge zero folio is problematic - it's prone to subtle
-> > races, it can introduce allocation latency and it is confusing and
-> > complicated code.
->
-> Just a note that the subject is misleading: the huge zero folio is always
-> refcounted (e.g., GUP must take references), it's just that the persistent huge
-> zero folio never drops the refcount to 0 to free it.
+On 7/29/26 20:43, Caleb Sander Mateos wrote:
+> On Tue, Jul 28, 2026 at 2:35 PM Pavel Begunkov <asml.silence@gmail.com> wrote:
+>>
+>> Enable BIO_DMABUF_MAP backed requests. It creates a prp list for the
+>> dmabuf when it's mapped, which is then used to initialise requests.
+>>
+>> Suggested-by: Keith Busch <kbusch@kernel.org>
+>> Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+>> ---
+>>   drivers/nvme/host/core.c |  12 ++
+>>   drivers/nvme/host/nvme.h |   2 +
+>>   drivers/nvme/host/pci.c  | 259 +++++++++++++++++++++++++++++++++++++++
+>>   3 files changed, 273 insertions(+)
+>>
+>> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+>> index 453c1f0b2dd0..ce66a1843bec 100644
+>> --- a/drivers/nvme/host/core.c
+>> +++ b/drivers/nvme/host/core.c
+>> @@ -2676,6 +2676,17 @@ static int nvme_report_zones(struct gendisk *disk, sector_t sector,
+>>   #define nvme_report_zones      NULL
+>>   #endif /* CONFIG_BLK_DEV_ZONED */
+>>
+>> +static int nvme_init_dma_buf_io_ctx(struct block_device *bdev,
+>> +                                   struct dma_buf_io_ctx *ctx)
+>> +{
+>> +       struct nvme_ns *ns = bdev->bd_disk->private_data;
+>> +       struct nvme_ctrl *ctrl = ns->ctrl;
+>> +
+>> +       if (!ctrl->ops->init_dma_buf_io_ctx)
+>> +               return -EINVAL;
+>> +       return ctrl->ops->init_dma_buf_io_ctx(ctrl, ctx);
+>> +}
+>> +
+>>   const struct block_device_operations nvme_bdev_ops = {
+>>          .owner          = THIS_MODULE,
+>>          .ioctl          = nvme_ioctl,
+>> @@ -2686,6 +2697,7 @@ const struct block_device_operations nvme_bdev_ops = {
+>>          .get_unique_id  = nvme_get_unique_id,
+>>          .report_zones   = nvme_report_zones,
+>>          .pr_ops         = &nvme_pr_ops,
+>> +       .init_dma_buf_io_ctx = nvme_init_dma_buf_io_ctx,
+>>   };
+>>
+>>   static int nvme_wait_ready(struct nvme_ctrl *ctrl, u32 mask, u32 val,
+>> diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+>> index 824651cc898d..034c31af8fec 100644
+>> --- a/drivers/nvme/host/nvme.h
+>> +++ b/drivers/nvme/host/nvme.h
+>> @@ -652,6 +652,8 @@ struct nvme_ctrl_ops {
+>>          int (*get_address)(struct nvme_ctrl *ctrl, char *buf, int size);
+>>          void (*print_device_info)(struct nvme_ctrl *ctrl);
+>>          bool (*supports_pci_p2pdma)(struct nvme_ctrl *ctrl);
+>> +       int (*init_dma_buf_io_ctx)(struct nvme_ctrl *ctrl,
+>> +                                  struct dma_buf_io_ctx *ctx);
+>>          unsigned long (*get_virt_boundary)(struct nvme_ctrl *ctrl, bool is_admin);
+>>   };
+>>
+>> diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+>> index 69932d640b53..f1b67c191892 100644
+>> --- a/drivers/nvme/host/pci.c
+>> +++ b/drivers/nvme/host/pci.c
+>> @@ -27,6 +27,8 @@
+>>   #include <linux/io-64-nonatomic-lo-hi.h>
+>>   #include <linux/io-64-nonatomic-hi-lo.h>
+>>   #include <linux/sed-opal.h>
+>> +#include <linux/dma-buf-io.h>
+>> +#include <linux/dma-resv.h>
+>>
+>>   #include "trace.h"
+>>   #include "nvme.h"
+>> @@ -393,6 +395,13 @@ struct nvme_queue {
+>>          struct completion delete_done;
+>>   };
+>>
+>> +struct nvme_dmabuf_map {
+>> +       struct dma_buf_io_map base;
+>> +       struct sg_table *sgt;
+>> +       unsigned nr_entries;
+>> +       dma_addr_t dma_list[];
+>> +};
+>> +
+>>   /* bits for iod->flags */
+>>   enum nvme_iod_flags {
+>>          /* this command has been aborted by the timeout handler */
+>> @@ -859,6 +868,138 @@ static void nvme_free_descriptors(struct request *req)
+>>          }
+>>   }
+>>
+>> +static inline struct nvme_dmabuf_map *
+>> +to_nvme_dmabuf_map(struct dma_buf_io_map *map)
+>> +{
+>> +       return container_of(map, struct nvme_dmabuf_map, base);
+>> +}
+>> +
+>> +static void nvme_dmabuf_map_sync_for_cpu(struct nvme_dev *nvme_dev,
+>> +                                        struct request *req)
+>> +{
+>> +       struct device *dev = nvme_dev->dev;
+>> +       enum dma_data_direction dma_dir;
+>> +       struct bio *bio = req->bio;
+>> +       struct nvme_dmabuf_map *map = to_nvme_dmabuf_map(bio->bi_dmabuf_map);
+>> +       dma_addr_t *dma_list = map->dma_list;
+>> +       unsigned offset = bio->bi_iter.bi_offset;
+>> +       unsigned map_idx = offset / NVME_CTRL_PAGE_SIZE;
+>> +       int length = blk_rq_payload_bytes(req) +
+>> +                    (offset & (NVME_CTRL_PAGE_SIZE - 1));
+>> +
+>> +       dma_dir = rq_data_dir(req) == READ ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+>> +
+>> +       while (length > 0) {
+>> +               dma_sync_single_for_cpu(dev, dma_list[map_idx++],
+>> +                                       NVME_CTRL_PAGE_SIZE, dma_dir);
+>> +               length -= NVME_CTRL_PAGE_SIZE;
+>> +       }
+>> +}
+>> +
+>> +static void nvme_dmabuf_map_sync_for_device(struct nvme_dev *nvme_dev,
+>> +                                           struct request *req)
+>> +{
+>> +       struct device *dev = nvme_dev->dev;
+>> +       enum dma_data_direction dma_dir;
+>> +       struct bio *bio = req->bio;
+>> +       struct nvme_dmabuf_map *map = to_nvme_dmabuf_map(bio->bi_dmabuf_map);
+>> +       dma_addr_t *dma_list = map->dma_list;
+>> +       unsigned offset = bio->bi_iter.bi_offset;
+>> +       unsigned map_idx = offset / NVME_CTRL_PAGE_SIZE;
+>> +       int length = blk_rq_payload_bytes(req) +
+>> +                    (offset & (NVME_CTRL_PAGE_SIZE - 1));
+>> +
+>> +       dma_dir = rq_data_dir(req) == READ ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+>> +
+>> +       while (length > 0) {
+>> +               dma_sync_single_for_device(dev, dma_list[map_idx++],
+>> +                                          NVME_CTRL_PAGE_SIZE, dma_dir);
+>> +               length -= NVME_CTRL_PAGE_SIZE;
+>> +       }
+>> +}
+>> +
+>> +static void nvme_rq_clean_dmabuf_map(struct nvme_dev *dev,
+>> +                                     struct request *req)
+>> +{
+>> +       struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
+>> +
+>> +       nvme_dmabuf_map_sync_for_cpu(dev, req);
+>> +
+>> +       if (!(iod->flags & IOD_SINGLE_SEGMENT))
+>> +               nvme_free_descriptors(req);
+>> +}
+>> +
+>> +static blk_status_t nvme_rq_setup_dmabuf_map(struct request *req,
+>> +                                            struct nvme_queue *nvmeq)
+>> +{
+>> +       struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
+>> +       struct bio *bio = req->bio;
+>> +       struct nvme_dmabuf_map *map = to_nvme_dmabuf_map(bio->bi_dmabuf_map);
+>> +       unsigned bvec_done = bio->bi_iter.bi_offset;
+>> +       unsigned map_idx = bvec_done / NVME_CTRL_PAGE_SIZE;
+>> +       unsigned offset = bvec_done & (NVME_CTRL_PAGE_SIZE - 1);
+>> +       int length = blk_rq_payload_bytes(req) - (NVME_CTRL_PAGE_SIZE - offset);
+>> +       dma_addr_t *dma_list = map->dma_list;
+>> +       u64 prp1_dma = dma_list[map_idx++] + offset;
+>> +       u64 dma_addr, prp2_dma;
+>> +       dma_addr_t prp_dma;
+>> +       __le64 *prp_list;
+>> +       unsigned i;
+>> +
+>> +       nvme_dmabuf_map_sync_for_device(nvmeq->dev, req);
+>> +
+>> +       if (length <= 0) {
+>> +               prp2_dma = 0;
+>> +               goto done;
+>> +       }
+>> +
+>> +       if (length <= NVME_CTRL_PAGE_SIZE) {
+>> +               prp2_dma = dma_list[map_idx];
+>> +               goto done;
+>> +       }
+>> +
+>> +       if (DIV_ROUND_UP(length, NVME_CTRL_PAGE_SIZE) <=
+>> +           NVME_SMALL_POOL_SIZE / sizeof(__le64))
+>> +               iod->flags |= IOD_SMALL_DESCRIPTOR;
+>> +
+>> +       prp_list = dma_pool_alloc(nvme_dma_pool(nvmeq, iod), GFP_ATOMIC,
+>> +                       &prp_dma);
+> 
+> I wonder if it's possible to perform the PRP list page allocations and
+> initialization in nvme_dma_buf_io_map() instead of the I/O path. The
+> NVMe dma_pools are per-NUMA-node linked lists protected by spinlocks,
+> making them significant CPU hotspots. If the dmabuf registration set
+> up a contiguous DMA-coherent list of PRP entries for the pages of the
+> registered buffer, any command using the dmabuf and requiring at most
+> 1 PRP list page (i.e. length <= 2 MB) could just set its PRP list
+> pointer to an offset into the dmabuf's PRP list.
 
-I meant huge_zero_refcount not folio refcount :) but maybe could have been
-clearer.
+Possible to an extent, predecessor patches tried that, I left it for
+later to keep the series simpler. I guess chaining won't work in
+general case.
+I mentioned this to Kanchan, Anuj and Nitesh before, they were up to
+playing with nvme optimisations in general, and since sgl from Anuj
+is ready, maybe they already have a prototype somewhere for that.
 
->
-> What you probably mean is "mm/huge_memory: eliminate dynamically allocated huge
-> zero folio".
+-- 
+Pavel Begunkov
 
-Well that's not really getting to the core of it, the problem is the
-huge_zero_refcount meaning it can come and go and you have races.
-
-But agreed refcount is imprecise + clearly confusing vs. folio refcount given
-you immediately assuemd that.
-
-So 'mm/huge_memory: eliminiate dynmaically alloc'd/freed huge zero folio' maybe?
-
->
-> If we go down that path here, we can also teach GUP to not take a reference on
-> the huge zero folio anymore on the FOLL_PIN path, similar to how we handle the
-> zero folio.
->
-> See the occurrences of is_zero_folio() in mm/gup.c.
-
-Ah yeah. Can do that on a respin, thanks.
-
->
-> The reason we do it for now for FOLL_PIN is that a remote pin might outlive the
-> process, meaning the huge folio could otherwise get freed by the shrinker even
-> though someone still holds a reference. Bad. So that would no longer apply if
-> the huge zero folio can no longer get freed.
-
-Incredible that we have to think about this...
-
->
->
-> I recall there was a discussion (dropping dynamically allocated huge zero folio)
-> on this topic while upstreaming the persistent huge zero folio.
->
-> I don't have time right now to dig, but it would be worthwhile to look at that
-> history if there was a good reason to keep it buried in that discussion.
-
-Maybe this:
-
-https://lore.kernel.org/all/20250811084113.647267-4-kernel@pankajraghav.com/T/#m4100481232bae8a7b661e8f6e86ecc74532c69a4
-
-Generally seems 'smaller systems blah blah'. But smaller systems that set
-CONFIG_THP get bigger reserves etc. so the argument doesn't really work.
-
-I suppose they might default CONFIG_THP on but not enable THP but at that point
-are you really so tiny a system that 2 MiB matters?
-
-Obviously it's more problematic for 64 KiB page size, but then if you have THP
-at all your reserves will already be problematic, and any read fault on a THP
-page gets you the exact same issue.
-
->
-> --
-> Cheers,
->
-> David
-
-Cheers, Lorenzo
