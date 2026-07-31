@@ -1,144 +1,158 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABEFA2E8B64;
-	Fri, 31 Jul 2026 09:01:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89AC931B823;
+	Fri, 31 Jul 2026 09:02:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785488483; cv=none; b=Dd1q7RhqxF+6JYBfm4K5cG7KcuLm3QeJQadUOD8QDv1clq76cwDhvfUwWI+zedKld/IblxgE9fh+jqI/veU3Udoo3brju+b7uLdBvlzVdkV1wg4rKLA+3pq/JnDk3IbKeQoYdr8qqPNo5p8fxs9ykNNPnRGg9HPJU38GQxrZODw=
+	t=1785488571; cv=none; b=azFnHKOfhiG6qQVJzV30Q0g5zBQGxtOU+VADme+9dJqAFr7KWGdWH+6jEYJej5XlYTWKb7n9O6H3WjGMLv/Uzv9cX+BA3n6J7/B0qepozO8we57yV7QntTsYI2x6MSknJdCdjF4QAo3SddFMFQEeWkcKmPDDfPfB2t6/8Mkhsx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785488483; c=relaxed/simple;
-	bh=X7hVp6Ts+bKSVNpjQF5tdUv0bWX9IxJIaK8ulS7XZE8=;
+	s=arc-20240116; t=1785488571; c=relaxed/simple;
+	bh=P14bfGxoPWHl1rAdz1lnxCQeMeF1pZ4FnpVUjDGMzMQ=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=qjbW/MGH5O+MOLs11nQN8OFOTCFqOYeNJ0T1PSYQO9jj4KTN1OwPgU+OWuybEx9ciwVxG4HBWrFOMDoC2RhXUzXKGk5kZONu18dNDpEIaXT1ACXbYD859tcuutPsbAQAhaFU5mTEA2JlIawDH2QC5CMf8EJlz0T6fxGkcKqgPhE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XSjde40l; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=LQ8mMfVzgLz1j3Q2t+wdK6V71C6XuoKciO9aoiDuBdUWYsnCn50Vb3ep0aSWSbb5N06pEJ0iDrPOF+OBnp37HkYdw54cO9OIGZqdtLI67Eu0nN8fHlfPpreCex8n64xG0tHOAhenAGYGrcgZmxaoFBSc4s3W7QN3GDpqFFyWCco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WhpWPsrl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XSjde40l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E07D1F00A3A;
-	Fri, 31 Jul 2026 09:01:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WhpWPsrl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C8DE1F000E9;
+	Fri, 31 Jul 2026 09:02:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785488482;
-	bh=JMpd4N6eXdkz5ZSUtXPjBX45iCldNA54oF3VOhkSp/E=;
+	s=k20260515; t=1785488570;
+	bh=rcuTaSngrhRo5JoSt23fJ5BPj3sihfw5XRO4Bo6ueN0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=XSjde40ll15WXzkwGaQoaS68035TnaA5jgwLqEOABmif/PMFClG8d02bLqX7b1tme
-	 XFbBrZDQKpuIGp5Z+h3GBoSmrfg/knJc6ukKm1x7fdpm/Zz8C+Tnrbg6B94fNZIqo7
-	 InpPaU4kY7K0rxEkmeTN/9MRPEzqVyQDI5S5ZVplAAKM8uc3/LhbFMOavboe6cJSmX
-	 kFmfYb42naTu2Lrtwtqwp6l9I3w7RLF3IgllVjIRMt9F7QpJgnTNe90+i9JlcbRI44
-	 8jwV9H126QykoRd5KVql2tyavJyL8ZYZoIVFTNnu+ZJgT8llNkpQKXAibQQRw9FSOj
-	 06/SvWXk936uA==
+	b=WhpWPsrlbEJnWFivUUj2KsvdCHDFGTmfxOtKXq7ntpeEGSTRqJ55WCiodfBZehDtb
+	 w2YPvZwoy4/ZfvQ02nV33xMcmsne/7tMm9fWFUwcGJqyhcZf+z4aeoiWYtOJ4ZK8JF
+	 5qDVISzrVECKgha5753ovG2qijFdsHfwt2TWZ6y7s5YsFVefs/rb8sjxdUkizaPs0w
+	 jfnqOejwt3Ui1IQEbdwqesgYyPu16CC5PYflA57584lDTFFGTX+LhHBtGJgJrkOkWl
+	 inBdKQZodOSQ4mzMEJT9AWjQLYQ3PYjH+1U2SA5/N7SNiOfryMFaqPcsm5mXVOtYq/
+	 dvPpoxDp4luKw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v12 7/8] cxl/core: Return endpoint decoder information
- from region search
+Subject: Re: [PATCH v12 3/8] cxl/cdat: Gather DSMAS data for DCD partitions
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Anisa Su" <anisa.su887@gmail.com>
 Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <20260731084901.1512819-8-anisa.su@samsung.com>
+In-Reply-To: <20260731084901.1512819-4-anisa.su@samsung.com>
 References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-8-anisa.su@samsung.com>
+ <20260731084901.1512819-4-anisa.su@samsung.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 31 Jul 2026 09:01:21 +0000
-Message-Id: <20260731090122.1E07D1F00A3A@smtp.kernel.org>
+Date: Fri, 31 Jul 2026 09:02:49 +0000
+Message-Id: <20260731090250.0C8DE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Medium] The `cxled` out-parameter is left uninitialized on early return =
-paths in `cxl_dpa_to_region` and its inline stub, creating a vulnerability =
-for uninitialized variable usage.
+- [Medium] The commit message claims to extract and store the 'read only' a=
+ttribute from DSMAS tables, but this logic is completely missing from the c=
+ode.
+- [Medium] Spurious `dev_warn` on valid overlapping CDAT DSMAS entries for =
+DCD partitions.
 --
 
---- Patch [7]: [PATCH v12 7/8] cxl/core: Return endpoint decoder informatio=
-n from region search ---
-commit c2b37a56d99a44aee4d4340c7154d9180c620839
+--- Patch [3]: [PATCH v12 3/8] cxl/cdat: Gather DSMAS data for DCD partitio=
+ns ---
+commit 2a6d0666da69329a29cf2ac94ee05e10012974cc
 Author: Ira Weiny <iweiny@kernel.org>
 
-cxl/core: Return endpoint decoder information from region search
+cxl/cdat: Gather DSMAS data for DCD partitions
 
-This commit updates cxl_dpa_to_region() to return the endpoint decoder
-found during the region search via a new out-parameter. This information
-is needed for dynamic capacity extent processing to calculate HPA offsets.
+This commit extracts additional DCD partition information from DSMAS CDAT
+tables. It matches DCD partitions with DSMAS tables to store performance
+and shareable attributes.
 
-> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> index 07555ae638594..e4bd220faa92c 100644
-> --- a/drivers/cxl/core/core.h
-> +++ b/drivers/cxl/core/core.h
-[ ... ]
-> @@ -61,7 +62,8 @@ static inline u64 cxl_dpa_to_hpa(struct cxl_region *cxl=
-r,
->  	return ULLONG_MAX;
->  }
->  static inline
-> -struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64=
- dpa)
-> +struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64=
- dpa,
-> +				     struct cxl_endpoint_decoder **cxled)
->  {
->  	return NULL;
->  }
+>     cxl/cdat: Gather DSMAS data for DCD partitions
+>    =20
+>     Additional DCD partition (AKA region) information is contained in the
+>     DSMAS CDAT tables, including performance, read only, and shareable
+>     attributes.
 
 [Severity: Medium]
-If a future caller passes an uninitialized pointer variable for cxled, will
-this static inline stub leave it uninitialized?
+The commit message states that the read only attribute is being extracted,
+but I am not seeing the logic for it in the patch below.
 
-Could we set "*cxled =3D NULL" here when cxled is provided, to prevent call=
-ers
-from evaluating stack garbage on return?
-
-> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> index 1e211542b6b64..ec5e5b7090cf2 100644
-> --- a/drivers/cxl/core/region.c
-> +++ b/drivers/cxl/core/region.c
+> diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
+> index 5c9f072625135..37136b2cf7e48 100644
+> --- a/drivers/cxl/core/cdat.c
+> +++ b/drivers/cxl/core/cdat.c
 [ ... ]
-> @@ -3045,11 +3046,13 @@ static int __cxl_dpa_to_region(struct device *dev=
-, void *arg)
->  			dev_name(dev));
+> @@ -74,6 +75,7 @@ static int cdat_dsmas_handler(union acpi_subtable_heade=
+rs *header, void *arg,
+>  		return -ENOMEM;
 > =20
->  	ctx->cxlr =3D cxlr;
-> +	ctx->cxled =3D cxled;
-> =20
->  	return 1;
->  }
-> =20
-> -struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64=
- dpa)
-> +struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64=
- dpa,
-> +				     struct cxl_endpoint_decoder **cxled)
->  {
->  	struct cxl_dpa_to_region_context ctx;
->  	struct cxl_port *port =3D cxlmd->endpoint;
+>  	dent->handle =3D dsmas->dsmad_handle;
+> +	dent->shareable =3D dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
 
 [Severity: Medium]
-Similar to the inline stub above, cxl_dpa_to_region() has an early return
-path right after these variable declarations:
+Is the parsing for ACPI_CDAT_DSMAS_READ_ONLY missing from cdat_dsmas_handle=
+r()?
+The code only appears to extract the shareable flag.
 
-    if (!cxlmd->dev.driver)
-        return NULL;
-
-If a caller doesn't pre-initialize their cxled variable and hits this early
-return, won't cxled remain uninitialized?
-
-While current callers in this patch pass NULL, a future caller expecting
-cxled to be populated might evaluate uninitialized stack memory. Should this
-early return also initialize *cxled to NULL if cxled is provided?
-
-> @@ -3063,6 +3066,9 @@ struct cxl_region *cxl_dpa_to_region(const struct c=
-xl_memdev *cxlmd, u64 dpa)
->  	if (cxl_num_decoders_committed(port))
->  		device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
+[ ... ]
+> @@ -266,15 +268,26 @@ static void cxl_memdev_set_qos_class(struct cxl_dev=
+_state *cxlds,
+>  		bool found =3D false;
 > =20
-> +	if (cxled)
-> +		*cxled =3D ctx.cxled;
-> +
->  	return ctx.cxlr;
->  }
+>  		for (int i =3D 0; i < cxlds->nr_partitions; i++) {
+> +			enum cxl_partition_mode mode =3D cxlds->part[i].mode;
+>  			struct resource *res =3D &cxlds->part[i].res;
+> +			u8 handle =3D cxlds->part[i].handle;
+>  			struct range range =3D {
+>  				.start =3D res->start,
+>  				.end =3D res->end,
+>  			};
+> =20
+>  			if (range_contains(&range, &dent->dpa_range)) {
+> +				if (mode =3D=3D CXL_PARTMODE_DYNAMIC_RAM_1 &&
+> +				    dent->handle !=3D handle) {
+> +					dev_warn(dev,
+> +						 "Dynamic RAM perf mismatch; %pra (%u) vs %pra (%u)\n",
+> +						 &range, handle, &dent->dpa_range,
+> +						 dent->handle);
+> +					continue;
+> +				}
+
+[Severity: Medium]
+Could this trigger spurious warnings on valid hardware configurations?
+
+The CDAT specification allows overlapping DSMAS ranges with different handl=
+es
+to support multiple memory types or sharing characteristics for the same DPA
+space.=20
+
+If a compliant device provides multiple valid DSMAS entries that overlap
+the partition's range but have different handles, won't iterating over them=
+=20
+incorrectly flag the unselected ones as a perf mismatch?
+
+[ ... ]
+> diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
+> index 87c2bd73df21d..baf0132c70a34 100644
+> --- a/include/cxl/cxl.h
+> +++ b/include/cxl/cxl.h
+> @@ -141,11 +141,15 @@ enum cxl_partition_mode {
+>   * @res: shortcut to the partition in the DPA resource tree (cxlds->dpa_=
+res)
+>   * @perf: performance attributes of the partition from CDAT
+>   * @mode: operation mode for the DPA capacity, e.g. ram, pmem, dynamic...
+> + * @handle: DSMAS handle intended to represent this partition
+> + * @shareable: Is the partition sharable (from its CDAT DSMAS entry)
+>   */
+>  struct cxl_dpa_partition {
+>  	struct resource res;
+>  	struct cxl_dpa_perf perf;
+>  	enum cxl_partition_mode mode;
+> +	u8 handle;
+> +	bool shareable;
+>  };
+
+[Severity: Medium]
+Does struct cxl_dpa_partition also need a read_only boolean field added here
+to match the commit message description?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260731084901.1512=
-819-1-anisa.su@samsung.com?part=3D7
+819-1-anisa.su@samsung.com?part=3D3
