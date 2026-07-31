@@ -1,158 +1,205 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89AC931B823;
-	Fri, 31 Jul 2026 09:02:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEAA51DF75B;
+	Fri, 31 Jul 2026 09:04:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785488571; cv=none; b=azFnHKOfhiG6qQVJzV30Q0g5zBQGxtOU+VADme+9dJqAFr7KWGdWH+6jEYJej5XlYTWKb7n9O6H3WjGMLv/Uzv9cX+BA3n6J7/B0qepozO8we57yV7QntTsYI2x6MSknJdCdjF4QAo3SddFMFQEeWkcKmPDDfPfB2t6/8Mkhsx0=
+	t=1785488685; cv=none; b=Ead6sfO+Ym62Fu/j0f72+W0ECzu7XLeGOx8LxPsQ3oIrijR/7NmSrL+4fTFvxMPYn8SFmaMSwa2Lx0fjL6eVtaLSzhEQY+4fyhBQrL0iWrZkp02eFiePYrwKZS2dksU/tCeJPHpd76sExFSmCBJC1j2NJm1JBtFaTBff7S/cxls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785488571; c=relaxed/simple;
-	bh=P14bfGxoPWHl1rAdz1lnxCQeMeF1pZ4FnpVUjDGMzMQ=;
+	s=arc-20240116; t=1785488685; c=relaxed/simple;
+	bh=XAhY2LjsD3z0kbZgY0n/Ne0pMMd5Ztv/IZiRid6ZKOc=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=LQ8mMfVzgLz1j3Q2t+wdK6V71C6XuoKciO9aoiDuBdUWYsnCn50Vb3ep0aSWSbb5N06pEJ0iDrPOF+OBnp37HkYdw54cO9OIGZqdtLI67Eu0nN8fHlfPpreCex8n64xG0tHOAhenAGYGrcgZmxaoFBSc4s3W7QN3GDpqFFyWCco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WhpWPsrl; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=l3mSznkuQS2u0hj7diSU1YKIvcwxtb4Ag7hjbqFFkhuviAaAcNEP0zWlsaknEWf/ORNs7lMYne9Glq4Cjy3BKh9Jt/AD599Po3xCxKyqqDBYZMpw6vhzbcroU3MGPbyFoe1La2/SPFnGBLiSR4Bo6qS7w65L2RKZicdZz/MdS8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S8U3oZ5y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WhpWPsrl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C8DE1F000E9;
-	Fri, 31 Jul 2026 09:02:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S8U3oZ5y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 558491F000E9;
+	Fri, 31 Jul 2026 09:04:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785488570;
-	bh=rcuTaSngrhRo5JoSt23fJ5BPj3sihfw5XRO4Bo6ueN0=;
+	s=k20260515; t=1785488684;
+	bh=CiChtvOanhbbN3LDErpUWZE9zsETG3HdtaCcK5OuVXs=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=WhpWPsrlbEJnWFivUUj2KsvdCHDFGTmfxOtKXq7ntpeEGSTRqJ55WCiodfBZehDtb
-	 w2YPvZwoy4/ZfvQ02nV33xMcmsne/7tMm9fWFUwcGJqyhcZf+z4aeoiWYtOJ4ZK8JF
-	 5qDVISzrVECKgha5753ovG2qijFdsHfwt2TWZ6y7s5YsFVefs/rb8sjxdUkizaPs0w
-	 jfnqOejwt3Ui1IQEbdwqesgYyPu16CC5PYflA57584lDTFFGTX+LhHBtGJgJrkOkWl
-	 inBdKQZodOSQ4mzMEJT9AWjQLYQ3PYjH+1U2SA5/N7SNiOfryMFaqPcsm5mXVOtYq/
-	 dvPpoxDp4luKw==
+	b=S8U3oZ5yqPYlDvNyaLq0MIXnsG5Cw6NaGXaZTJA5MOStU6p6/sJLQ88JRUw9XZGTB
+	 MMyBHj1HCxXZkLVhYR6wpy08BEDGwo1qIPQFyJlVyGiog1kDNolE/YtjUFiFThlsa2
+	 T5hV+G2DY6znqXZXTQVReyClxSWPk3sdSkH+CQNqNRoYDdtFLHFPI1I+JP3uxsoPNF
+	 OZuvYOuLsY45wpe1PU3Jqucrzfb9bzwdAiSC5DZQZ6mno+YJabh3GknuSQt/R+/kT9
+	 Yi6zjhWlHSYOPlZbORTGTS8YykdiYpZNWAXFSpUudIVOP+zDdsBaYbqd9/d89LfDCt
+	 FovZ2Stz5P3qQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v12 3/8] cxl/cdat: Gather DSMAS data for DCD partitions
+Subject: Re: [PATCH v12 6/8] cxl/mem: Configure dynamic capacity interrupts
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Anisa Su" <anisa.su887@gmail.com>
 Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <20260731084901.1512819-4-anisa.su@samsung.com>
+In-Reply-To: <20260731084901.1512819-7-anisa.su@samsung.com>
 References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-4-anisa.su@samsung.com>
+ <20260731084901.1512819-7-anisa.su@samsung.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 31 Jul 2026 09:02:49 +0000
-Message-Id: <20260731090250.0C8DE1F000E9@smtp.kernel.org>
+Date: Fri, 31 Jul 2026 09:04:43 +0000
+Message-Id: <20260731090444.558491F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-- [Medium] The commit message claims to extract and store the 'read only' a=
-ttribute from DSMAS tables, but this logic is completely missing from the c=
-ode.
-- [Medium] Spurious `dev_warn` on valid overlapping CDAT DSMAS entries for =
-DCD partitions.
+
+New issues:
+- [High] Infinite IRQ Thread Loop / CPU Spin when handling DCD events
+
+Pre-existing issues:
+- [High] Out-of-Bounds Read and Information Leak in Event logs
+- [High] Out-of-Bounds Read and Information Leak in Poison logs
 --
 
---- Patch [3]: [PATCH v12 3/8] cxl/cdat: Gather DSMAS data for DCD partitio=
-ns ---
-commit 2a6d0666da69329a29cf2ac94ee05e10012974cc
+--- Patch [6]: [PATCH v12 6/8] cxl/mem: Configure dynamic capacity interrup=
+ts ---
+commit 5b173c122c3602992c4ceeafd1c2d87a80accacb
 Author: Ira Weiny <iweiny@kernel.org>
 
-cxl/cdat: Gather DSMAS data for DCD partitions
+cxl/mem: Configure dynamic capacity interrupts
 
-This commit extracts additional DCD partition information from DSMAS CDAT
-tables. It matches DCD partitions with DSMAS tables to store performance
-and shareable attributes.
+Dynamic Capacity Devices (DCD) support extent change notifications
+through the event log mechanism. Configure DCD event log interrupts
+on devices supporting dynamic capacity. Disable DCD if interrupts
+are not supported.
 
->     cxl/cdat: Gather DSMAS data for DCD partitions
->    =20
->     Additional DCD partition (AKA region) information is contained in the
->     DSMAS CDAT tables, including performance, read only, and shareable
->     attributes.
-
-[Severity: Medium]
-The commit message states that the read only attribute is being extracted,
-but I am not seeing the logic for it in the patch below.
-
-> diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
-> index 5c9f072625135..37136b2cf7e48 100644
-> --- a/drivers/cxl/core/cdat.c
-> +++ b/drivers/cxl/core/cdat.c
-[ ... ]
-> @@ -74,6 +75,7 @@ static int cdat_dsmas_handler(union acpi_subtable_heade=
-rs *header, void *arg,
->  		return -ENOMEM;
+> diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+> index df13fb8802c38..6cb344ec4f3a7 100644
+> --- a/drivers/cxl/pci.c
+> +++ b/drivers/cxl/pci.c
+> @@ -509,11 +509,30 @@ static bool cxl_alloc_irq_vectors(struct pci_dev *p=
+dev)
+>  	return true;
+>  }
 > =20
->  	dent->handle =3D dsmas->dsmad_handle;
-> +	dent->shareable =3D dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
+> +/*
+> + * Event logs the driver drains: standard logs when native_cxl, DCD when
+> + * supported.
+> + */
+> +static u32 cxl_event_drain_mask(struct pci_host_bridge *host_bridge,
+> +				struct cxl_memdev_state *mds)
+> +{
+> +	u32 mask =3D 0;
+> +
+> +	if (host_bridge->native_cxl_error)
+> +		mask |=3D CXLDEV_EVENT_STATUS_ALL & ~CXLDEV_EVENT_STATUS_DCD;
+> +	if (cxl_dcd_supported(mds))
+> +		mask |=3D CXLDEV_EVENT_STATUS_DCD;
+> +	return mask;
+> +}
+> +
+>  static irqreturn_t cxl_event_thread(int irq, void *id)
+>  {
+>  	struct cxl_dev_id *dev_id =3D id;
+>  	struct cxl_dev_state *cxlds =3D dev_id->cxlds;
+>  	struct cxl_memdev_state *mds =3D to_cxl_memdev_state(cxlds);
+> +	struct pci_host_bridge *host_bridge =3D
+> +		pci_find_host_bridge(to_pci_dev(cxlds->dev)->bus);
+> +	u32 mask =3D cxl_event_drain_mask(host_bridge, mds);
+>  	u32 status;
+> =20
+>  	do {
+> @@ -522,8 +541,8 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
+>  		 * ignore the reserved upper 32 bits
+>  		 */
+>  		status =3D readl(cxlds->regs.status + CXLDEV_DEV_EVENT_STATUS_OFFSET);
+> -		/* Ignore logs unknown to the driver */
+> -		status &=3D CXLDEV_EVENT_STATUS_ALL;
+> +		/* Ignore logs unknown to the driver or owned by BIOS */
+> +		status &=3D mask;
+>  		if (!status)
+>  			break;
+>  		cxl_mem_get_event_records(mds, status);
 
-[Severity: Medium]
-Is the parsing for ACPI_CDAT_DSMAS_READ_ONLY missing from cdat_dsmas_handle=
-r()?
-The code only appears to extract the shareable flag.
+[Severity: High]
+Since mask now includes CXLDEV_EVENT_STATUS_DCD, status can have this bit s=
+et.
+However, cxl_mem_get_event_records() does not appear to handle the DCD even=
+t:
+
+drivers/cxl/core/mbox.c:cxl_mem_get_event_records() {
+    ...
+    if (status & CXLDEV_EVENT_STATUS_FATAL)
+        cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_FATAL);
+    if (status & CXLDEV_EVENT_STATUS_FAIL)
+        cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_FAIL);
+    if (status & CXLDEV_EVENT_STATUS_WARN)
+        cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_WARN);
+    if (status & CXLDEV_EVENT_STATUS_INFO)
+        cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_INFO);
+    ...
+}
+
+Will this fail to clear the DCD event from the device? If the event is never
+cleared, will the hardware register retain the bit and cause the while (sta=
+tus)
+loop to spin infinitely on the exact same status bit, potentially causing a=
+ CPU
+soft lockup?
+
+>  		cond_resched();
+>  	} while (status);
 
 [ ... ]
-> @@ -266,15 +268,26 @@ static void cxl_memdev_set_qos_class(struct cxl_dev=
-_state *cxlds,
->  		bool found =3D false;
-> =20
->  		for (int i =3D 0; i < cxlds->nr_partitions; i++) {
-> +			enum cxl_partition_mode mode =3D cxlds->part[i].mode;
->  			struct resource *res =3D &cxlds->part[i].res;
-> +			u8 handle =3D cxlds->part[i].handle;
->  			struct range range =3D {
->  				.start =3D res->start,
->  				.end =3D res->end,
->  			};
-> =20
->  			if (range_contains(&range, &dent->dpa_range)) {
-> +				if (mode =3D=3D CXL_PARTMODE_DYNAMIC_RAM_1 &&
-> +				    dent->handle !=3D handle) {
-> +					dev_warn(dev,
-> +						 "Dynamic RAM perf mismatch; %pra (%u) vs %pra (%u)\n",
-> +						 &range, handle, &dent->dpa_range,
-> +						 dent->handle);
-> +					continue;
-> +				}
 
-[Severity: Medium]
-Could this trigger spurious warnings on valid hardware configurations?
+[Severity: High]
+This is a pre-existing issue, but I noticed a potential out-of-bounds read =
+when
+fetching event logs:
 
-The CDAT specification allows overlapping DSMAS ranges with different handl=
-es
-to support multiple memory types or sharing characteristics for the same DPA
-space.=20
+drivers/cxl/core/mbox.c:cxl_mem_get_records_log() {
+    ...
+    nr_rec =3D le16_to_cpu(payload->record_count);
+    if (!nr_rec)
+        break;
 
-If a compliant device provides multiple valid DSMAS entries that overlap
-the partition's range but have different handles, won't iterating over them=
-=20
-incorrectly flag the unselected ones as a perf mismatch?
+    for (i =3D 0; i < nr_rec; i++)
+        __cxl_event_trace_record(cxlmd, type,
+                                 &payload->records[i]);
+    ...
+}
 
-[ ... ]
-> diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
-> index 87c2bd73df21d..baf0132c70a34 100644
-> --- a/include/cxl/cxl.h
-> +++ b/include/cxl/cxl.h
-> @@ -141,11 +141,15 @@ enum cxl_partition_mode {
->   * @res: shortcut to the partition in the DPA resource tree (cxlds->dpa_=
-res)
->   * @perf: performance attributes of the partition from CDAT
->   * @mode: operation mode for the DPA capacity, e.g. ram, pmem, dynamic...
-> + * @handle: DSMAS handle intended to represent this partition
-> + * @shareable: Is the partition sharable (from its CDAT DSMAS entry)
->   */
->  struct cxl_dpa_partition {
->  	struct resource res;
->  	struct cxl_dpa_perf perf;
->  	enum cxl_partition_mode mode;
-> +	u8 handle;
-> +	bool shareable;
->  };
+Does this code validate the hardware-provided nr_rec against the allocated
+payload size? If an untrusted or compromised device returns an artificially
+large count, could this read out of bounds?
 
-[Severity: Medium]
-Does struct cxl_dpa_partition also need a read_only boolean field added here
-to match the commit message description?
+Similarly, when clearing those records:
+
+drivers/cxl/core/mbox.c:cxl_clear_event_record() {
+    ...
+    for (cnt =3D 0; cnt < total; cnt++) {
+        struct cxl_event_record_raw *raw =3D &get_pl->records[cnt];
+        struct cxl_event_generic *gen =3D &raw->event.generic;
+
+        payload->handles[i++] =3D gen->hdr.handle;
+    ...
+}
+
+Could this write the out-of-bounds memory values into the clear event paylo=
+ad
+sent back to the device, leading to an information leak?
+
+[Severity: High]
+This is also a pre-existing issue, but a similar pattern exists in the pois=
+on
+log handling:
+
+drivers/cxl/core/mbox.c:cxl_mem_get_poison() {
+    ...
+    for (int i =3D 0; i < le16_to_cpu(po->count); i++)
+        trace_cxl_poison(cxlmd, cxlr, &po->record[i],
+                         po->flags, po->overflow_ts,
+                         CXL_POISON_TRACE_LIST);
+    ...
+}
+
+Does this validate po->count against the buffer size, or could it result
+in an out-of-bounds read if the device returns a large count?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260731084901.1512=
-819-1-anisa.su@samsung.com?part=3D3
+819-1-anisa.su@samsung.com?part=3D6
