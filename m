@@ -1,345 +1,186 @@
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5086F3AFAEA
-	for <nvdimm@lists.linux.dev>; Mon,  3 Aug 2026 08:52:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.43
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785747156; cv=pass; b=OR95+z8gxUsuM479LZKa4TzyL8xhmD6ITYI/2as1hFJREUS+y2GsRYweJsPNrSiVjRP4KS2VG4lac+7wXCZaewNUh87+gGCg6wPiNiR3ZLynFfhV4QHxCjgZXV7mqu793x8RY9owc5RGzp7QIsogGSe6TV7MxOmGbZOAwkbWrno=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785747156; c=relaxed/simple;
-	bh=gqu0R7zR0Hsq4p6SL2JusMkem4aahjhzej3fzwamL0U=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=oQQLPx9An7F1FFm/ncbumtuOOUmK7VCeO3orcNVkQTVsukECwTBZi/+ZxLz8cU1EZW3+dWCWPOKmIN2r4Wn+FvKbNIl+9RGHuaKwFQ1vtk4/gX9SXKZka+Lhdvn35kM2Nqj35o4MPSeO3V2Vx+fQV6Hi3sDwO06SO87VdTKbNiI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=c00cn8kd; arc=pass smtp.client-ip=209.85.208.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 686DA3C1D53
+	for <nvdimm@lists.linux.dev>; Mon,  3 Aug 2026 12:35:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785760502; cv=none; b=T5+KP9jT3pcSMbH9LRdCJKLiE0xCDoOzerNkmdcPTtjzEuQfqo0DMHu/q7BT4pGDYt3HGC88CHPifsMNeQwbs0JfI4pD7ihaVEaFp4GGTgiKdf0r7lKCiwlCcZTtjNcDAQ3heXXT8Ai8OPnIZaBZgkJW+Ai8yUEeHTUbskz85Wo=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785760502; c=relaxed/simple;
+	bh=vIDx/sKwffmOGzvvzSDdizIEIENpZK4Ed4Y7Nq9b7XY=;
+	h=From:To:Subject:CC:Date:Message-ID:MIME-Version:Content-Type; b=mvtW6nDZSigbozCyOSke/H238g2nlTPRaaq5cXHSvcBiyNsK7JAG9QMXeqGYb9dU65fsSb8KQFyp8GUmSdaDP6bDGdRGNPuAq4UAmdV/fIbPkhkFqCd8aE9zcchqF5b/eLaNZHBTzzxLfrCqauO0tx3vpqtlCGc9DJhIn/3d0+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=m1J2hadM; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c00cn8kd"
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6a051b73866so4980839a12.0
-        for <nvdimm@lists.linux.dev>; Mon, 03 Aug 2026 01:52:33 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785747151; cv=none;
-        d=google.com; s=arc-20260327;
-        b=ahkslwFUqzSOEWje/BqG4LzSwOYgSI3d+604fK8kVt4So+dYSvgBizqU2MyMenzs6s
-         UqeKs3GdlJ3sexT5pu6hvrVQFqJN3l3Md3ql/B5+LWKLeyJ1nosQsS+7V2G8xwNlaQRT
-         UmEH1YMAhdTeQgmtJe0Xxa1XuR6k/9Ycw4KRcd3TaV/1tEqunXz268qNVowdHim1+RjL
-         FvBBK5heOoj0OXFO55lbHozRJvqPVapvPkFG7E1Ug3jCD/tY3RhLDqIz9poeZWn6pYkR
-         CWlkT4t00QC0fpojRI126nTrJkR+llHlnpoy+EcVdfru2GoE0NQNZe7chomGrpFeMw4V
-         VXpQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=gqu0R7zR0Hsq4p6SL2JusMkem4aahjhzej3fzwamL0U=;
-        fh=Rom6XyKs33uTeRpSLazcvQ2bkCohdNNoxYlH9U1Zpdw=;
-        b=KZXanfujZU1WuusNUfUBTRw7lvP/xpnzHkB0kLN7cq7NLTy6OBCDopw0KxHt1GbDGF
-         csPf+6XifabU7gHyFxvw3S5JY8jpoeo4KMPJFXKwEQrspnVgJGP+KPrQlEEeP/1I15J+
-         VJL8PqdVXMbpm3xdzAsl9UWpyugPqky+sd3ceSY253O2xCeSJDMoYyDKi+nHbImrfp/x
-         qAyk6YG12eTLR9NUjecsHrK4CuAnPy+Qqu4OBc8/ZSjKQy3wNp7gqcGBJTx+DIv+88YE
-         6o8L7sqPUmcwZql6WbZ06u8AIxYULnMU59/wRB/Bpfrkh5A2PIpvs5HvzlghOUTHb19E
-         pxWg==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785747151; x=1786351951; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=gqu0R7zR0Hsq4p6SL2JusMkem4aahjhzej3fzwamL0U=;
-        b=c00cn8kdyWwlwlr3Dj48Z0AY/NCrpkxZghbI/d60GzNxkV+nC2IESqISqx1MMbKb+B
-         lX+IisrE8QoY2voPsPFrvJczfcZhv4SozptTilA9l1PAC/vtEsa+IGtlOLVcEUr/pu2S
-         Vw0XGLJszNoxtJyK6VcIg5JU5g6aurNMwRMuUJBt5wcKcBsf20mxEmPhNbQQVBHK3eqh
-         plRJ7S2HcTExn8mzSA3AwOVVvUWbGjx+htkLn2WbaCuxBzf1Wgg2g2yiUVdmFeFFXDpk
-         15NUxQHMRv9k1bg2/Md175jaVRJ8rdFdmuchXvSs00rxnsJt77ma2xvL4OdSpQZDxMJ/
-         tP8g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785747151; x=1786351951;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=gqu0R7zR0Hsq4p6SL2JusMkem4aahjhzej3fzwamL0U=;
-        b=s1al+rZZWOnKY74xMYGrzjclAgRyTwsard0OcQ+Vb2MepK4KrMCqn4hBwl6/M2+Dwr
-         i8Pqc1wOQBJ9k32I7tlxjbrZKaJlHN5Mai5r0LjSUlbhidTPrBEeF7W9+3hp5N2MfwZT
-         rMzMJiClP4gOci5/ZRMByGPqBSpPGRuQu1gReQx8A9alAAtWS6rOmBn5y7kDwM4DOIKO
-         28cSGewm6XiyYo1iW+pymJ0ujT5mX2hZh0LjGgnAhDyTTTRNvhGmY/RH6bdxNmErdRKj
-         eqGaC/DWP+0xDb4WynJPhQiWslmP7/BKSZa/0x/J3MixZHblfA6Pjspr0FCYEsCau0lm
-         EavA==
-X-Forwarded-Encrypted: i=1; AHgh+RqW5sR4rVTT2uAu227FoOu0IPwSHaH+mrqyPN150/tJw2Ik0xxDLk1WJemFu6Wt+pSOW15YFaM=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwfoxmES5g1p3vHjgqpnrUKfq4nRBymbbkmuST2o6XzfKrghIPk
-	/zN0Jfj2uTbDZlqjBY2gvqMfk3vt/ldLJ5tXpifAUmczgcztaWCEzaQxagCdjCyQy/GZ9cJ+kb7
-	AAa0j3Q/AAwz3he/LXPFCli1h8d6K/Kc=
-X-Gm-Gg: AR+sD12UESExlLkQx9nisbFoP+LdeRbHX/xrF3FLleb2t5hV+wBUQgHK7rK6niK971L
-	WtRBGuG3BHoO1ebgQQq2OTjc48uDw9EmfxhDR4rt2w5pr0fLj9MbdtfrqHH40J6g9lz9pCwabqt
-	KntpL2lDX/QQpjEFHUwk73hTmhGR2YwpG9wihH1l3oF3W2aU6TE3pJ+5cIcIjz9ZFiO6dJLe4Ha
-	agbv5DD+EsNaEDRW0oQmQKIfO2cM7MVJrEPYipIjdFYB4FZEfMTYaLyxhc7Jrj7Zpj8ja154SED
-	WBStMGN3jFVzpZ6ZmMDFgtBWueit2TttJg5ETzV1k+f/kQ==
-X-Received: by 2002:a17:906:6296:b0:c15:b67b:523e with SMTP id
- a640c23a62f3a-c1fe7ef886dmr753138466b.19.1785747151231; Mon, 03 Aug 2026
- 01:52:31 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="m1J2hadM"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 72BDE143D;
+	Mon,  3 Aug 2026 05:34:55 -0700 (PDT)
+Received: from GX9GF4H4XN (unknown [10.1.26.156])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 15C713F66F;
+	Mon,  3 Aug 2026 05:34:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785760499; bh=vIDx/sKwffmOGzvvzSDdizIEIENpZK4Ed4Y7Nq9b7XY=;
+	h=From:To:Subject:CC:Date:From;
+	b=m1J2hadMs/yUicqxnFSav0TkGwG+RSZ8wVP96U8BRzjcF8EFwOIN2wc7UIAHtpD4X
+	 Y/jAr6sqTmSdGpIw60Gt3/aIx5qKG1w+9X2VymE3hUbg5gRI495jZQsHIrrJBWtPqb
+	 LjkDlCN4sAsOEECGpoa/fIGsyix8QKpRiwxnY8mg=
+From: Seunguk Shin <seunguk.shin@arm.com>
+To: <linux-kernel@vger.kernel.org>, Andrew Morton
+ <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Matthew Wilcox
+ <willy@infradead.org>, Jan Kara <jack@suse.cz>
+Subject: [PATCH v5] fs/dax: check zero or empty entry before converting
+ xarray entry
+CC: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+ <Nick.Connolly@arm.com>, <ffidencio@nvidia.com>, <seunguk.shin@arm.com>
+Date: Mon, 03 Aug 2026 13:34:55 +0100
+Message-ID: <m2y0enxtzk.fsf@arm.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20260803022730.75731-1-john@jagalactic.com> <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
-In-Reply-To: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 3 Aug 2026 10:52:19 +0200
-X-Gm-Features: AUfX_myBTyPHpMQ4dIR86ct8epUOnbu5tszSaYGQfG-jc8Xn7HqO1PF8uWIUaCE
-Message-ID: <CAOQ4uxhpkP7FsjaqqVO2aDSKCJ9yc3WKms6dncqnDuwGxqthng@mail.gmail.com>
-Subject: Re: [PATCH V12 00/12] famfs: the Fabric-Attached Memory File System (standalone)
-To: John Groves <john@jagalactic.com>
-Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>, Dan Williams <djbw@kernel.org>, 
-	Bernd Schubert <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>, 
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, Jake Edge <jake@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
-	Jonathan Cameron <jic23@kernel.org>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Ira Weiny <iweiny@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
-	Haren Myneni <haren@linux.ibm.com>, Pratyush Yadav <pratyush@kernel.org>, 
-	Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Jiri Slaby <jirislaby@kernel.org>, 
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>, Gabriel Whigham <gabewhigham@gmail.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, 
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 
-On Mon, Aug 3, 2026 at 4:27=E2=80=AFAM John Groves <john@jagalactic.com> wr=
-ote:
->
-> From: John Groves <john@groves.net>
->
-> This patch series introduces famfs as a standalone file system, as a pivo=
-t
-> back from fuse/libfuse, for which the porting effort took close to a year=
-, but
-> then the review effort started with almost a yearlong delay, and then got
-> messy :D [3].
->
-> However, after years of maintaining famfs in both forms (standalone and f=
-use -
-> the famfs user space works with both) I think famfs makes more sense as a
-> standalone file system - and some influential maintainers have privately
-> expressed that opinion to me.
+Calling dax_to_folio() with empty entry causes kernel panic below
+when booting a VM with DAX enabled storage.
 
-Hi John,
+This patch checks empty entry before calling dax_to_folio() on
+dax_associate_entry(), dax_disassociate_entry(), and dax_busy_page().
 
-The decision about standalone famfs is left to vfs maintainers.
-I am only going to chime in for the fact checks.
+Commit 98c183a4fccf ("fs/dax: don't disassociate zero page entries")
+added guards in the associate and disassociate paths, but the guards
+still come after dax_to_folio(), and dax_busy_page() still has
+the same problem.
 
-Generally speaking, I find your summary of the famfs odyssey very thorough
-and mostly accurate, apart from the few bits I will comment on below.
+[    0.737679] EXT4-fs (pmem0p1): mounted filesystem 79676804-7c8b-491a-b2a6-9bae3c72af70 ro with ordered data mode. Quota mode: disabled.
+[    0.737891] VFS: Mounted root (ext4 filesystem) readonly on device 259:1.
+[    0.739119] devtmpfs: mounted
+[    0.739476] Freeing unused kernel memory: 1920K
+[    0.740156] Run /sbin/init as init process
+[    0.740229]   with arguments:
+[    0.740286]     /sbin/init
+[    0.740321]   with environment:
+[    0.740369]     HOME=/
+[    0.740400]     TERM=linux
+[    0.743162] Unable to handle kernel paging request at virtual address fffffdffbf000008
+[    0.743285] Mem abort info:
+[    0.743316]   ESR = 0x0000000096000006
+[    0.743371]   EC = 0x25: DABT (current EL), IL = 32 bits
+[    0.743444]   SET = 0, FnV = 0
+[    0.743489]   EA = 0, S1PTW = 0
+[    0.743545]   FSC = 0x06: level 2 translation fault
+[    0.743610] Data abort info:
+[    0.743656]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+[    0.743720]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[    0.743785]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[    0.743848] swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000000b9d17000
+[    0.743931] [fffffdffbf000008] pgd=10000000bfa3d403, p4d=10000000bfa3d403, pud=1000000040bfe403, pmd=0000000000000000
+[    0.744070] Internal error: Oops: 0000000096000006 [#1]  SMP
+[    0.748888] CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 6.18.4 #1 NONE
+[    0.749421] pstate: 004000c5 (nzcv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[    0.749969] pc : dax_disassociate_entry.constprop.0+0x20/0x50
+[    0.750444] lr : dax_insert_entry+0xcc/0x408
+[    0.750802] sp : ffff80008000b9e0
+[    0.751083] x29: ffff80008000b9e0 x28: 0000000000000000 x27: 0000000000000000
+[    0.751682] x26: 0000000001963d01 x25: ffff0000004f7d90 x24: 0000000000000000
+[    0.752264] x23: 0000000000000000 x22: ffff80008000bcc8 x21: 0000000000000011
+[    0.752836] x20: ffff80008000ba90 x19: 0000000001963d01 x18: 0000000000000000
+[    0.753407] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+[    0.753970] x14: ffffbf3154b9ae70 x13: 0000000000000000 x12: ffffbf3154b9ae70
+[    0.754548] x11: ffffffffffffffff x10: 0000000000000000 x9 : 0000000000000000
+[    0.755122] x8 : 000000000000000d x7 : 000000000000001f x6 : 0000000000000000
+[    0.755707] x5 : 0000000000000000 x4 : 0000000000000000 x3 : fffffdffc0000000
+[    0.756287] x2 : 0000000000000008 x1 : 0000000040000000 x0 : fffffdffbf000000
+[    0.756871] Call trace:
+[    0.757107]  dax_disassociate_entry.constprop.0+0x20/0x50 (P)
+[    0.757592]  dax_iomap_pte_fault+0x4fc/0x808
+[    0.757951]  dax_iomap_fault+0x28/0x30
+[    0.758258]  ext4_dax_huge_fault+0x80/0x2dc
+[    0.758594]  ext4_dax_fault+0x10/0x3c
+[    0.758892]  __do_fault+0x38/0x12c
+[    0.759175]  __handle_mm_fault+0x530/0xcf0
+[    0.759518]  handle_mm_fault+0xe4/0x230
+[    0.759833]  do_page_fault+0x17c/0x4dc
+[    0.760144]  do_translation_fault+0x30/0x38
+[    0.760483]  do_mem_abort+0x40/0x8c
+[    0.760771]  el0_ia+0x4c/0x170
+[    0.761032]  el0t_64_sync_handler+0xd8/0xdc
+[    0.761371]  el0t_64_sync+0x168/0x16c
+[    0.761677] Code: f9453021 f2dfbfe3 cb813080 8b001860 (f9400401)
+[    0.762168] ---[ end trace 0000000000000000 ]---
+[    0.762550] note: init[1] exited with irqs disabled
+[    0.762631] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
 
-You do bring some valid points that are worth considering, but I would like
-the facts to be laid out correctly for the vfs maintainers when approaching=
- to
-consider standalone famfs.
+Fixes: 38607c62b34b ("fs/dax: properly refcount fs dax pages")
+Signed-off-by: Seunguk Shin <seunguk.shin@arm.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+---
+Changes in v5:
+- Update the commit message
+- Link to v4: https://lore.kernel.org/all/m2jyqk7jxo.fsf@arm.com/
+Changes in v4:
+- Rebase on current upstream
+- Link to v3: https://lore.kernel.org/all/m2jythetpj.fsf@arm.com/
+Changes in v3:
+- Rebase on current upstream
+- Update the changelog for the current code state
+- Link to v2: https://lore.kernel.org/all/m2jyv11mqe.fsf@arm.com/
+Changes in v2:
+- Add Fixes and Reviewed-by tags.
+- Rebase on the latest.
+- Link to v1: https://lore.kernel.org/all/18af3213-6c46-4611-ba75-da5be5a1c9b0@arm.com/
+---
+ fs/dax.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
->
-> The most important thing to know about famfs is that it CANNOT be used as=
- a
-> general purpose file system. It is for enabling file-based byte-level acc=
-ess
-> (including direct mmap) to very large (e.g. 100TB) shared/disaggregated
-> memory appliances - which have become available during this long process,
-> and which are in need of Linux support.
->
-> So famfs cannot be used by anybody who doesn't know why they need it; Mak=
-ing
-> famfs standalone means it can't affect users who don't use it. And my sup=
-er-
-> mega-corp employer (Micron), as well as other memory companies, need it.
-> We do not intend to abandon it, but imagine if we did: fs/famfs/ should b=
-e
-> removed if the memory companies can't be bothered to maintain it.
+diff --git a/fs/dax.c b/fs/dax.c
+index 6d175cd47a99..4bca6e2bc342 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -480,11 +480,12 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+                                unsigned long address, bool shared)
+ {
+        unsigned long size = dax_entry_size(entry), index;
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
 
-It does not work this way.
-When vfs maintainers accept standalone famfs they accept the burden of
-maintaining it whenever vfs internal APIs change even if the filesystem was
-abandoned by the mega-corps.
-That is the code of the push back for adding new filesystems.
-Removing the fs and breaking deployed systems is not an option for the vfs
-maintainers.
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return;
 
->
-> This code base has been in active CI and used globally by early adopters =
-and
-> testers of disaggregated memory. I believe it is solid.
->
-> History (skip if you lived it like I did :D)
->
-> Famfs was introduced at LPC 2023 and LSFMM 2024 [1] as a standalone file
-> system. The fuse odyssey started at LSFMM 24, but I think it's time to
-> bring that to a close. The first fuse/libfuse patches came out in April
-> 2025 [2] - adding a substantial amount of complexity to the famfs user sp=
-ace,
-> and controversial complexity to fuse [3].
++       folio = dax_to_folio(entry);
+        index = linear_page_index(vma, address & ~(size - 1));
+        if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
+                if (folio->mapping)
+@@ -505,21 +506,23 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+                                bool trunc)
+ {
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
 
-This alleged complexity to fuse is attributed to the BPF idea that was shot=
- down
-pretty quickly. It is not on the table right now, and representing
-fuse maintainers,
-I don't think that any of us perceive famfs as adding complexity to fuse.
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return;
 
-On the contrary, the sentiment in the review of v11 is that the bits
-added to fuse
-for famfs are possibly useful for other fuse passthrough use cases.
++       folio = dax_to_folio(entry);
+        dax_folio_put(folio);
+ }
 
->
-> The fuse community was uncomfortable with the new metadata and fuse messa=
-ge
-> formats that famfs needs, going so far as to suggest that famfs use a BPF
-> program as a vma fault handler [3] to avoid the need to pass famfs file
-> metadata via fuse messages - an idea which, to my relief, was definitivel=
-y
-> shot down at LSFMM 2026 [4].
+ static struct page *dax_busy_page(void *entry)
+ {
+-       struct folio *folio = dax_to_folio(entry);
++       struct folio *folio;
 
-Again, bringing up the brief BPF design detour is irrelevant to the current
-state of affairs and this argument appears over and over in your proposal.
+        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
+                return NULL;
 
->
-> In that session, I was preparing to make the pivot-to-standalone argument=
-,
-> and there were others in the room who support that - but Miklos stated th=
-at
-> he was not opposed to merging famfs as it stands [4], leading me to back =
-off
-> of the standalone pivot at the time.
->
-> However, 1) that is not how the recent patch discussions have been going =
-[5],
-> and 2) I have (not solely on that basis) come to the conclusion that famf=
-s
-> makes more sense as a standalone entity. In v11 [5] I dropped the
-> controversial famfs interleaved extent (exploding fmaps from well under a
-> page to megabytes),
-
-It wasn't an ask from fuse maintainers to cripple famfs.
-In fact, Miklos has posted a POC patch [7] for striping, which you
-did not respond to at all.
-
-> and there is still a push for adding an intermediate
-> virtual backing dev layer that famfs does not need and can't really live
-> with. I could go on...
-
-I would really like to hear more about "can't really live with"
-because Miklos' patch looks to me like a logic equivalent to standalone
-famfs interleaved extent, just a different UAPI, using the abstraction
-of virtual backing dev...
-
->
-> My argument
->
-> Can we make famfs work in fuse? Yes, if we can agree some things that hav=
-e
-> been quite challenging to agree on. Should we? I think not.
->
-> I think famfs adds complexity to fuse that will not likely see constructi=
-ve
-> re-use.
-
-As I wrote, this claim is questionable - it does not match the view of
-some of the
-fuse maintainers.
-
-> And I think fuse makes famfs worse - significantly more complex, less
-> adaptable to change, and less performant. And famfs files are memory - ac=
-cess
-> needs to run at memory speeds! In short the risks out-weigh the benefits.
-
-There are definitely pros and cons, but if there was a measurable performan=
-ce
-impact we would not have been having this discussion at all.
-
-AFAIK, the performance impact was with the briefly discussed BPF solution
-or worse IOMAP upcalls, so those ideas were dropped immediately.
-
-It is very clear to us that page fault performance is critical to famfs.
-I fail to see how Miklos' patch for striping [7] adds significant performan=
-ce
-overhead to page fault and seeing no comment from you on this patch
-I am guessing that you never tried to apply it or to measure performance im=
-pact.
-Am I right?
-
-Look, IMO, your main argument for standalone famfs should be that famfs is
-simple and would be easy for vfs maintainers to maintain in the future
-in the unlikely
-case that it is abandoned.
-
-The way I see it, the main caveat with famfs-fuse is that it takes a toll o=
-n
-you (a considerable toll) to meet the requirements, but to be fair,
-Miklos already
-wrote a pretty decent POC and you were offered help from fuse developers
-with the remaining parts.
-
-However, the claims about performance overhead and complicating fuse -
-I find those inaccurate.
-
-Thanks,
-Amir.
-
->
-> About this patch series
->
-> I've called it V12 for recent continuity; there was a V1 and a V2 standal=
-one
-> in 2024, and then V1-V11 were fuse (call this selective consistency).
->
-> Famfs depends on the 'fsdev' dax mode which landed in 7.1 - it will only =
-run
-> with an fsdev-mode (aka famfs-mode) daxdev as its backing device(s).
->
-> Patch 01 is a fix to the fsdev driver that is needed by the rest of the
-> series.
->
-> Famfs Overview
->
-> Famfs exposes sharable disaggregated memory as a file system. Famfs consu=
-mes
-> shared memory from [usually shared memory] dax devices, and provides
-> memory-mappable files that map directly to the memory - no page cache
-> involvement. Famfs differs from conventional file systems in fs-dax mode,
-> in that it handles in-memory metadata in a sharable way (which begins wit=
-h
-> never caching dirty shared metadata). So a famfs file system can be mount=
-ed
-> from multiple nodes, provided they have access to the memory.
->
-> The key performance requirement is that famfs must resolve mapping
-> faults with minimal overhead. This is achieved by fully caching the
-> file-to-devdax metadata for all active files.
->
-> Famfs remains the first fs-dax file system that is backed by devdax
-> rather than pmem in fs-dax mode (hence the need for the new dax mode).
->
-> The famfs user space can be found at [6]
->
-> [1] https://lwn.net/Articles/983105/ (Famfs at LSFMM 2024)
-> [2] https://lwn.net/Articles/1020170/ (Famfs at LSFMM 2025, with patch li=
-nk)
-> [3] https://lwn.net/Articles/1068686/ (LWN coverage of the patch thread)
-> [4] https://lwn.net/Articles/1082687/ (Famfs at LSFMM 2026)
-> [5] https://lore.kernel.org/linux-fsdevel/0100019f7d9fbe81-6cb16662-2522-=
-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com/#b
-> [6] https://famfs.org
-[7] https://lore.kernel.org/fuse-devel/20260601152327.2069787-1-mszeredi@re=
-dhat.com/
++       folio = dax_to_folio(entry);
+        if (folio_ref_count(folio) - folio_mapcount(folio))
+                return &folio->page;
+        else
+--
+2.43.0
