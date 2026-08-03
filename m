@@ -1,143 +1,238 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 949292C21E6;
-	Mon,  3 Aug 2026 02:45:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F1B326F2BE;
+	Mon,  3 Aug 2026 02:46:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785725117; cv=none; b=WEuY6W+IY/NRls36S/aw7Bbzyzk8RzmvUDa/xzR8zMR2/usWD1uJOQZfXnkS0eo0Ifd/oVlUtnSPXHDmEULmzQLavAwZVYeKRNnUh7H2VFvy656LjSDjmSGU2dRDK+5E3b2tAbobifmKoz9biil6bRLJ394ZO1RaQPR3Wa2MN3I=
+	t=1785725183; cv=none; b=qEH3bmo7JMnX7k4QVjnFwkce9NNpjFL3H5VgaU0Pg9iJ6ekpc3eGpnLwiFqscqvlVB/G4vGEVPj8WgWtIsw8i8ht/qzcx6HiPeaCUxr7l0wotWkS9G3fpWvQND8QtiDCQ0QEaDCPMLPaKgvOSQi9S+70j/Xm3PlF3OFNRYTGZlA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785725117; c=relaxed/simple;
-	bh=WFoL8qhcW0qndnTuWnFF7DtZTUK21gcQnO6jkkYYmGU=;
+	s=arc-20240116; t=1785725183; c=relaxed/simple;
+	bh=7VMrXvYOxH4HOgeXbGzxGivG/j33jhExJgcjTP/YIrU=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=B7XyrLSBBzF8UCmvlUyo2ln5X4rygL0BmvSEHYce+L7a4rMAqTZe0UniIVH2MFQW8FncWdK2cVRNdI7mebymx+uQl1dCC+Bob+oCvbsMvqrFmptVmj8rV5n9W+Kedg0pngLvTxvEZGgT7Mp8DbbEvi82aTWlPPhevmka3HJqBXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PDB44ivu; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=J5J69WxoX9XiJo1Ww9iM+WtwXp+LSuUpaj7zD7zW/5OSrSAHR+EinJazyqS6qJMO/alKBTFfS/dl+63WFssxbgSWm/AkOmL/pjA/ZbomW+VQi9qeQwSj2to1HzGijNsx2ek1JprkNzCGFajGaTG3+CjVvYwiI9hxSANxm52VXMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nDr8p4KA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PDB44ivu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15A061F000E9;
-	Mon,  3 Aug 2026 02:45:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nDr8p4KA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C59061F000E9;
+	Mon,  3 Aug 2026 02:46:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785725116;
-	bh=HiYOsy7ISkLA+tL+ObGXhzZZfS6JG2UapTpGj9EhzaE=;
+	s=k20260515; t=1785725182;
+	bh=WOWQGfOmFsEbh8JGXJwhusFRJBrjqvD02BOl+hj3j6w=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=PDB44ivu7lyuFBUfW84qEPVPJioeUWZ3z7LYMbbnWpuueQWr6f2JVU6U5JBICS6i4
-	 IzXXHANsUwzE63+SZYkxBXDa9SEwMFuYXks5AsrMOlGwgzljl3+ZlDdcS02C9ZmLRc
-	 LrQrDaUUfa8unbxnOFoDwE0vAlHP0BHoI8q2yZv9yfsNgrK96EGGLqYK+dLpRWGoVN
-	 KTc8ajtXs0cTKW6dipdOtJh+A1UeDVxMemEezo4Dv4DJ5Hu4nxM3ArzCTkr1ANuI4X
-	 LbJddHxZ1cpuKuHsamWWFAITEsSv39iJaQQo4foaaYilEo7mwQvjQeV2+ZbPKcnRYT
-	 D5gfEMUfv4xjA==
+	b=nDr8p4KAudBeXMga7IezjKTJ/turwfwvBiaEnM5eUugGcm49CnH4xeuq0rEsMJGpI
+	 1ASH0GB32a9SyLpeEblZQYdBYgcaftiwPj+V+HxM2Qe7/QxR7WyH1vin6dp/850klH
+	 TQ37w3NCLM8SfEJxPt3tXQsaZJUtYOZyGq3DikAqbvrTgjSLzePJetcT5Rp39EuC+h
+	 M+2E6bPxz7mrXYNLyXfQdw6SgVOyw0b9mgO6xrqTtIPvlLH5OQjZWPvtri4RMMJkIo
+	 PmqWrT0takg+a15wToBtQ/RP1iLKqlbSV8lPsw2TcRzYSqL9kf10Iw3bZovH2+Onr+
+	 Gw/6InEvUs9CQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V12 03/12] famfs: Add daxdev table and dax
- notify_failure support
+Subject: Re: [PATCH V12 06/12] famfs: Introduce mmap and VM fault handling
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <0100019fc573c7cd-d37cbc1c-7687-4b05-99e7-7d3624087b98-000000@email.amazonses.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <0100019fc5743aef-39284cf3-b235-4a69-832f-c51b2198e8da-000000@email.amazonses.com>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022839.75794-1-john@jagalactic.com>
- <0100019fc573c7cd-d37cbc1c-7687-4b05-99e7-7d3624087b98-000000@email.amazonses.com>
+ <20260803022909.75856-1-john@jagalactic.com>
+ <0100019fc5743aef-39284cf3-b235-4a69-832f-c51b2198e8da-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 03 Aug 2026 02:45:15 +0000
-Message-Id: <20260803024516.15A061F000E9@smtp.kernel.org>
+Date: Mon, 03 Aug 2026 02:46:21 +0000
+Message-Id: <20260803024621.C59061F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 7 potential issue(=
 s) to consider:
-- [High] Race condition in `famfs_dax_notify_failure` causes NULL pointer d=
-ereference or Use-After-Free during teardown.
-- [Medium] famfs_install_daxdev silently returns success when a conflicting=
- device is installed at an already-populated index.
+- [Medium] Hardcoded NULL iomap_ops passed to DAX functions will cause a ke=
+rnel panic
+- [Medium] Missing file_modified() call allows bypassing security privilege=
+s on write
+- [Medium] Missing generic_write_sync() silently breaks DAX synchronous wri=
+tes
+- [Medium] Missing FOP_MMAP_SYNC flag prevents MAP_SYNC usage
+- [Medium] mprotect() can bypass the FAMFS_OPT_WRITE gate to gain writable =
+mappings
+- [Medium] Missing lock serialization between DAX page faults and file trun=
+cation
+- [Low] Setting .map_pages to filemap_map_pages is invalid for DAX mappings
 --
 
---- Patch [3]: [PATCH V12 03/12] famfs: Add daxdev table and dax notify_fai=
-lure support ---
-commit 6ec60105b0cea4058f8c078b72261124109aca1d
-Author: John Groves <John@Groves.net>
+--- Patch [6]: [PATCH V12 06/12] famfs: Introduce mmap and VM fault handlin=
+g ---
+commit a41970b8d49174c2162aaa9777d2fc2abc414431
+Author: John Groves <john@groves.net>
 
-famfs: Add daxdev table and dax notify_failure support
+famfs: Introduce mmap and VM fault handling
 
-Famfs file systems can span multiple dax devices, and daxdevs are stored
-in the daxdev_table. This adds the basic table structure, primtives and
-serialization code. Famfs file extents reference daxdevs by index, which
-is a cluster invariant maintained by user space.
+This commit adds vm_operations, famfs_mmap(), and fault handlers to the
+famfs filesystem. It sets up the groundwork for memory mapping DAX files,
+though it is still missing iomap_ops and mapping resolution.
 
-diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-index c299a90912a5c..ad71e5e7a8e39 100644
---- a/fs/famfs/famfs_inode.c
-+++ b/fs/famfs/famfs_inode.c
-@@ -75,6 +75,225 @@ static struct inode *famfs_get_inode(
- /*
-  * famfs dax_operations (for famfs-mode dax)
-  */
-[ ... ]
-> +static int
-> +famfs_dax_notify_failure(
-> +		struct dax_device *dax_dev, u64 offset,
-> +		u64 len, int mf_flags)
+> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+> index e192b573c51f7..678f2035fd5fa 100644
+> --- a/fs/famfs/famfs_file.c
+> +++ b/fs/famfs/famfs_file.c
+> @@ -16,6 +16,75 @@
+> =20
+>  #include "famfs_internal.h"
+> =20
+> +/*********************************************************************
+> + * vm_operations
+> + */
+> +static vm_fault_t
+> +__famfs_filemap_fault(struct vm_fault *vmf, unsigned int order,
+> +		      bool write_fault)
 > +{
-> +	struct super_block *sb =3D dax_holder(dax_dev);
+> +	struct inode *inode =3D file_inode(vmf->vma->vm_file);
+> +	struct super_block *sb =3D inode->i_sb;
 > +	struct famfs_fs_info *fsi =3D sb->s_fs_info;
-
-[Severity: High]
-Can this race with a concurrent filesystem unmount?
-
-If a memory failure triggers famfs_dax_notify_failure() concurrently with
-famfs_kill_sb(), fs_put_dax() may clear the holder data asynchronously. If
-dax_holder() returns NULL here, does this result in a NULL pointer derefere=
-nce
-when accessing sb->s_fs_info?
-
-Furthermore, if dax_holder() fetches the superblock just before it is clear=
-ed:
-
-CPU1
-famfs_dax_notify_failure()
-    sb =3D dax_holder(dax_dev);
-    fsi =3D sb->s_fs_info;
-
-CPU2
-famfs_kill_sb()
-    famfs_devlist_free(fsi, sb);
-    kill_char_super(sb);
-    kfree(fsi);
-
-CPU1
-    famfs_set_daxdev_err(fsi, dax_dev);
-
-Could this result in a use-after-free when famfs_set_daxdev_err() attempts
-to acquire the freed fsi->devlist_sem?
-
-[ ... ]
-> +int famfs_install_daxdev(
-> +		struct famfs_fs_info *fsi,
-> +		struct super_block *sb,
-> +		u64 index,
-> +		dev_t devno,
-> +		const char *name)
-> +{
-[ ... ]
-> +	scoped_guard(rwsem_write, &fsi->devlist_sem) {
-> +		daxdev =3D &fsi->dax_devlist->devlist[index];
+> +	vm_fault_t ret;
+> +	unsigned long pfn;
 > +
-> +		/* Installed already by a concurrent (or repeated) open */
-> +		if (daxdev->valid)
-> +			return 0;
+> +	if (fsi->deverror)
+> +		return VM_FAULT_SIGBUS;
+> +
+> +	if (!IS_DAX(file_inode(vmf->vma->vm_file))) {
+> +		pr_err("%s: file not marked IS_DAX!!\n", __func__);
+> +		return VM_FAULT_SIGBUS;
+> +	}
+> +
+> +	if (write_fault) {
+> +		sb_start_pagefault(inode->i_sb);
+> +		file_update_time(vmf->vma->vm_file);
+> +	}
+> +
+> +	ret =3D dax_iomap_fault(vmf, order, &pfn, NULL, NULL /*&famfs_iomap_ops=
+ */);
 
 [Severity: Medium]
-If userspace erroneously requests mapping a new or different dax device to =
-an
-index that is already populated, this path silently returns 0.
+Will this hardcoded NULL pointer for the iomap_ops argument cause a kernel
+panic? The core DAX subsystem unconditionally dereferences the ops pointer
+(for example, by calling ops->iomap_begin()). This also appears to happen
+in famfs_dax_read_iter() and famfs_dax_write_iter() when calling
+dax_iomap_rw().
 
-Should this verify that the requested devno matches the already installed
-device's devno, and return an error like -EBUSY or -EEXIST if it does not, =
-to
-prevent misleading userspace about which mapping is actually active?
+[Severity: Medium]
+Is there missing lock serialization between DAX page faults and file
+truncation here? Calling the DAX page fault handler without holding an
+internal filesystem lock (like i_mmap_sem) might allow concurrent truncation
+and page faults to race, mapping DAX pages out-of-bounds or into truncated
+regions.
+
+> +	if (ret & VM_FAULT_NEEDDSYNC)
+> +		ret =3D dax_finish_sync_fault(vmf, order, pfn);
+> +
+> +	if (write_fault)
+> +		sb_end_pagefault(inode->i_sb);
+> +
+> +	return ret;
+> +}
+> +
+[ ... ]
+> +const struct vm_operations_struct famfs_file_vm_ops =3D {
+> +	.fault		=3D famfs_filemap_fault,
+> +	.huge_fault	=3D famfs_filemap_huge_fault,
+> +	.map_pages	=3D filemap_map_pages,
+
+[Severity: Low]
+Is it valid to assign filemap_map_pages to a DAX filesystem?
+filemap_map_pages is designed to map standard page cache folios, but DAX
+filesystems use value entries in the xarray. Since modern kernels safely
+skip these via xa_is_value(), iterating the xarray to map nothing wastes
+CPU cycles and appears to be an architectural violation.
+
+> +	.page_mkwrite	=3D famfs_filemap_mkwrite,
+> +	.pfn_mkwrite	=3D famfs_filemap_mkwrite,
+> +};
+> +
+>  /*********************************************************************
+>   * file_operations
+>   */
+> @@ -117,6 +186,36 @@ famfs_dax_write_iter(struct kiocb *iocb, struct iov_=
+iter *from)
+
+[Severity: Medium]
+Does the I/O performed in famfs_dax_write_iter() miss a preceding call to
+file_modified()? If so, when an unprivileged user writes to a file, the
+setuid and setgid bits are not stripped, and the mtime/ctime timestamps
+are not updated, violating POSIX security and semantics.
+
+[Severity: Medium]
+Does famfs_dax_write_iter() return the result of the write without calling
+generic_write_sync() to perform the necessary cache flushes?
+Without this, data written with synchronous flags (like O_SYNC or O_DSYNC)
+will not be flushed from the CPU cache to persistent media, leading to
+silent data loss upon power failure despite user requests for persistence.
+
+>  	return rc;
+>  }
+> =20
+> +static int
+> +famfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+> +{
+> +	struct inode *inode =3D file_inode(file);
+> +	struct super_block *sb =3D inode->i_sb;
+> +	struct famfs_fs_info *fsi =3D sb->s_fs_info;
+> +	ssize_t rc;
+> +
+> +	if (fsi->deverror)
+> +		return -ENODEV;
+> +
+> +	/*
+> +	 * Gate shared-writable mappings on FAMFS_OPT_WRITE. This is best
+> +	 * effort: clearing the bit blocks new writable mappings and write(),
+> +	 * but does not revoke mappings that already exist.
+> +	 */
+> +	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_WRITE) &&
+> +	    !famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
+
+[Severity: Medium]
+Does this missing check for VM_MAYWRITE leave the VMA vulnerable to mprotect
+upgrades?
+
+If a user maps the file with PROT_READ when FAMFS_OPT_WRITE is disabled,
+they could later bypass the access control and obtain a writable mapping
+by calling mprotect() to PROT_WRITE.
+
+> +		return -EPERM;
+> +
+> +	rc =3D famfs_file_invalid(inode);
+> +	if (rc)
+> +		return (int)rc;
+> +
+> +	file_accessed(file);
+> +	vma->vm_ops =3D &famfs_file_vm_ops;
+> +	vm_flags_set(vma, VM_HUGEPAGE);
+> +	return 0;
+> +}
+> +
+>  const struct file_operations famfs_file_operations =3D {
+>  	.owner             =3D THIS_MODULE,
+> =20
+> @@ -124,7 +223,7 @@ const struct file_operations famfs_file_operations =
+=3D {
+>  	.write_iter	   =3D famfs_dax_write_iter,
+>  	.read_iter	   =3D famfs_dax_read_iter,
+>  	.unlocked_ioctl    =3D NULL /*famfs_file_ioctl*/,
+> -	.mmap		   =3D NULL /* famfs_file_mmap */,
+> +	.mmap		   =3D famfs_file_mmap,
+
+[Severity: Medium]
+Does the file operations structure lack the required .fop_flags =3D
+FOP_MMAP_SYNC?
+
+Without this flag, the VFS will reject mmap() requests that include
+MAP_SYNC | MAP_SHARED_VALIDATE with -EOPNOTSUPP, breaking the core DAX
+use-case of userspace flushing without fsync.
+
+> =20
+>  	/* Force PMD alignment for mmap */
+>  	.get_unmapped_area =3D thp_get_unmapped_area,
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0100019fc572ca94-ec=
-363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D3
+363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D6
