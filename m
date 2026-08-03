@@ -1,234 +1,237 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 153122931F9;
-	Mon,  3 Aug 2026 02:49:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84A1346B5;
+	Mon,  3 Aug 2026 02:58:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785725355; cv=none; b=oJv+WH0Df+OApxpy60pfO/W9qz744wLoIR1eZdXFg6bEov3vrdjGQDHBBwdXirheWhHj2hINWS/UY3VTFhXZ+CZh4x706aQqSbiMTu0afh5pg5S3JrvyEDNuJ69RCvHUlFl79g8A9D+5QQRqfL7gE7Do8hz4In/DabcnrCacmfo=
+	t=1785725922; cv=none; b=FkBhax4FlLvwbLe2/mMcVdy4BbF6DDBaE8SegrkgwovgeIFpCuufIDAK47vXxNAYw3evZ5tsEYPUnIbC+4WAQYbn0BOFoPUF1x3WhpHcGbFncOSmCrPTETa0VUb6dszbf95/qJWCUloPVbmZvIOZvHkU7F7WRaNNyXWEae+WMbs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785725355; c=relaxed/simple;
-	bh=r0v0eDWwOU0IwiLnYX7C4dZn0nFgzqvz2KCA6u/ihaU=;
+	s=arc-20240116; t=1785725922; c=relaxed/simple;
+	bh=tugNx1PaJd2tg61DsKcNP93OkVmOBNo09JW7PBY+VyI=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=E+QOCqLQ8SpLfC75IO89dTV8FplHn01LnwBRu0n8Fmrtm8UtIjDtqvq98677bInujy/L4B5jkUa5ANViof6j1mawg97L8fN+ogaUnz3HjB5yB6V+QUn8SS1LWwRbmr4TEQEw0zlfK9kJr8rGmz0tRSLMgclu0Z1xz//qOyRVwjw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Shj0oLIP; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=NWzXmfs9Y+QD7VQ+BdsHCkp28ogMAEV4GM+z0XYkxDisI4LcTXhugH1403x69taGffgFNKBRuDJgQzM44ZVKSyALgVWx6dccvRNjVyKmofEVN63Jtm7f+9uIXPWcJiuqa46aLn5C05cw0un4GZ7cD9JKyAQOIlDtvJXtGRKOACk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mevykAmf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Shj0oLIP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FE8A1F000E9;
-	Mon,  3 Aug 2026 02:49:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mevykAmf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E72C41F000E9;
+	Mon,  3 Aug 2026 02:58:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785725353;
-	bh=CxH+YvIiyNZ0Z6AxD1nrll69RItE17aa+Dx/ZOQzsfw=;
+	s=k20260515; t=1785725921;
+	bh=scKVvPRAwurITBFZhElF1gE0YrZ852yZDbH7W8DyyeQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Shj0oLIPb5NSE/eyk1jikRPj5mtj+zXmz/AwxMYtY0fjuVLr0UvgYUeCt+62c2u69
-	 WAqsWyNm7L60rbKqzJ5m/VBpsGg31NTB2QWKsPBwhSzSjDsEwaHRfahpJRefCj6iJa
-	 ywOl9RQL1Zbk//iKVRk+jUKlntjY9qEuThskPi+Zh/dliUus9AMW/56F8SGCo/PSOQ
-	 NrEghQGiT+0XazLUEgkArAoaCiCZSlTVK9/ihjPUCXRZqtoK7gOKI9nm+a8+oyul/T
-	 HKQderan1zGkr6mr5WR7VOY+7LqreWqtTO5W2n3kvAfejsQJP6yrSkZo9HeaGoOW8q
-	 KbZE9DqW4CSeg==
+	b=mevykAmfSlBYC1nKvP+S2K/NhKb8mKvp31pY+D6+RKZAmrfe0obHhfNz9z5XR6s92
+	 JhKA9ZNYt9IBQLE0oc/gB2ggJ/pxYNMXf+03NVQLEOzaAP5Fkdi2dGqw+HM4E8ke9N
+	 vXZgkKITLXCZaembpLyARmVo7ZehE2yVMY2kUOo6xDyhpabd/o5Lnsn8KsdZAD2ybr
+	 qphAuI8xPUBMpdZ+PL5pzPpFSlWu0Bn3kQheF3s44ksep4eXgZ4h2twuxfetyQ8xym
+	 nib7OMR5ee7T1sP6HJagYlr4yAc0ufqzXw2pxlngHpags003+P9HRofZgPq9TJcPpP
+	 1WjJmEa/CgN4Q==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V12 02/12] famfs: Module operations, fs_context, and
- mount
+Subject: Re: [PATCH V12 11/12] famfs: Report device capacity via statfs so
+ df works
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
 Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
+In-Reply-To: <0100019fc57500f5-06c293c8-393c-44e3-ad42-d4f4de58245d-000000@email.amazonses.com>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022828.75776-1-john@jagalactic.com>
- <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
+ <20260803023000.75948-1-john@jagalactic.com>
+ <0100019fc57500f5-06c293c8-393c-44e3-ad42-d4f4de58245d-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 03 Aug 2026 02:49:13 +0000
-Message-Id: <20260803024913.6FE8A1F000E9@smtp.kernel.org>
+Date: Mon, 03 Aug 2026 02:58:40 +0000
+Message-Id: <20260803025840.E72C41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 5 potential issue(=
+Thank you for your contribution! Sashiko AI review found 4 potential issue(=
 s) to consider:
-- [High] Missing `.owner =3D THIS_MODULE` in `famfs_fs_type`.
-- [High] Missing DAX device validation and reference counting risks Use-Aft=
-er-Free and TOCTOU races.
-- [Medium] Silent ignoring of unrecognized and invalid mount parameters in =
-`famfs_parse_param()`.
-- [Medium] Bypassing MAC and DAC permission checks on the character device =
-node during mount.
-- [Low] Global symbol `lookup_daxdev` lacks a subsystem prefix.
+- [High] The `used_capacity` counter is permanently leaked when mapped file=
+s are unlinked or their inodes are evicted.
+- [High] dax_fsdev_size() accesses the private dev_dax structure without ho=
+lding the required dax_read_lock(), leading to a use-after-free race condit=
+ion with concurrent device unbinds.
+- [High] Missing read memory barrier when locklessly checking `daxdev->vali=
+d` allows reading an uninitialized or stale `daxdev->devp` pointer.
+- [Low] famfs_file_init_dax() mixes goto-based error handling with scope-ba=
+sed cleanup helpers, violating the subsystem rules.
 --
 
---- Patch [2]: [PATCH V12 02/12] famfs: Module operations, fs_context, and =
-mount ---
-commit fdda77a79254c638517e00787a7301ff9eaab82f
-Author: John Groves <john@groves.net>
+--- Patch [11]: [PATCH V12 11/12] famfs: Report device capacity via statfs =
+so df works ---
+commit 72bb530cad0a65ccec5c1eea93f055e5015f64ec
+Author: John Groves <John@Groves.net>
 
-famfs: Module operations, fs_context, and mount
+famfs: Report device capacity via statfs so df works
 
-Start building up from the famfs module operations. Register as a file
-system, parse mount parameters, allocate superblock via famfs_get_tree(),
-and lookup the host dax device.
+Replace simple_statfs(), which reports zero blocks (so df omits the mount),
+with famfs_statfs() reporting real capacity and usage.
 
-> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> new file mode 100644
-> index 0000000000000..c299a90912a5c
-> --- /dev/null
-> +++ b/fs/famfs/famfs_inode.c
+Add dax_fsdev_size() in drivers/dax/fsdev.c, returning the size fsdev
+caches at probe (dev_dax->cached_size - the sum of the device's ranges,
+stable while bound), exported. It lives in fsdev.c because cached_size is
+set only by the fsdev driver, and famfs only ever holds fsdev-mode daxdevs
+(fs_dax_get() enforces DAXDRV_FSDEV_TYPE); famfs.ko therefore depends on
+fsdev_dax.ko.
 
-[ ... ]
+famfs tracks two byte counters under a new stats_sem:
+ - total_capacity: summed in famfs_install_daxdev() from dax_fsdev_size(),
+   covering the mount primary and every DAXDEV_OPEN secondary, counted once
+   per daxdev (on the valid 0->1 transition).
+ - used_capacity: summed in famfs_file_init_dax() from the fmap's mapped
+   device bytes (superblock + log + data files).
 
-> +static void
-> +famfs_fill_super(struct super_block *sb, struct fs_context *fc)
+famfs_statfs() reports total and free (total - used). Free is an
+approximation of the userspace allocator's free space (it ignores allocator
+gaps and reserved regions), which is adequate for df.
+
+(Side note: I am the maintainer of drivers/dax/fsdev.c)
+
+Signed-off-by: John Groves <john@groves.net>
+
+> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
+> index 188b2526bee45..a5b4b2d794286 100644
+> --- a/drivers/dax/fsdev.c
+> +++ b/drivers/dax/fsdev.c
+> @@ -104,6 +104,25 @@ static size_t fsdev_dax_recovery_write(struct dax_de=
+vice *dax_dev, pgoff_t pgoff
+>  	return _copy_from_iter_flushcache(addr, bytes, i);
+>  }
+> =20
+> +/**
+> + * dax_fsdev_size() - total size in bytes of an fsdev dax device
+> + * @dax_dev: the dax device (must be bound to this driver)
+> + *
+> + * Returns the size cached at probe time (sum of all ranges); it cannot =
+change
+> + * while the driver is bound. Only valid for fsdev dax devices - callers
+> + * ensure that (e.g. fs_dax_get() enforces DAXDRV_FSDEV_TYPE). Returns 0=
+ if the
+> + * device is not alive.
+> + */
+> +u64 dax_fsdev_size(struct dax_device *dax_dev)
 > +{
-> +	sb->s_maxbytes		=3D MAX_LFS_FILESIZE;
-> +	sb->s_blocksize		=3D PAGE_SIZE;
-> +	sb->s_blocksize_bits	=3D PAGE_SHIFT;
-> +	sb->s_magic		=3D FAMFS_SUPER_MAGIC;
-> +	sb->s_op		=3D NULL /* famfs_super_ops */;
-> +	sb->s_time_gran		=3D 1;
-> +}
+> +	struct dev_dax *dev_dax =3D dax_get_private(dax_dev);
 > +
-> +int
-> +lookup_daxdev(const char *pathname, dev_t *devno)
+> +	if (!dev_dax)
+> +		return 0;
+> +	return dev_dax->cached_size;
+> +}
+
+[Severity: High]
+Does dax_get_private() require holding the dax_read_lock() here?
+
+In the DAX subsystem, accessing dev_dax from a dax_device requires holding =
+the
+SRCU-based dax_read_lock(), because a concurrent driver unbind can call
+kill_dax(), which clears DAXDEV_ALIVE, calls synchronize_srcu(&dax_srcu), a=
+nd
+frees the dev_dax structure.
+
+Since dax_fsdev_size() and its caller famfs_install_daxdev() do not hold
+dax_read_lock(), could a concurrent unbind result in dev_dax being freed
+before dev_dax->cached_size is dereferenced?
+
+> +EXPORT_SYMBOL_GPL(dax_fsdev_size);
+> +
+>  static const struct dax_operations dev_dax_ops =3D {
+> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+> index abf049b32a4b9..5be39d6770899 100644
+> --- a/fs/famfs/famfs_file.c
+> +++ b/fs/famfs/famfs_file.c
+> @@ -280,6 +280,11 @@ famfs_file_init_dax(struct file *file, void __user *=
+arg)
+>  	}
+>  	inode_unlock(inode);
+> =20
+> +	/* Account the mapped device bytes for statfs (only on success) */
+> +	if (!rc) {
+> +		scoped_guard(rwsem_write, &fsi->stats_sem)
+> +			fsi->used_capacity +=3D extent_total;
+
+[Severity: High]
+Is fsi->used_capacity ever decremented when files are unlinked?
+
+If famfs_file_init_dax() increments fsi->used_capacity here, should there b=
+e a
+matching decrement path when the mapping is torn down and its private metad=
+ata
+is freed in famfs_evict_inode()?
+
+If FAMFS_OPT_UNLINK is enabled via ioctl, userspace could repeatedly create,
+map, and delete files, causing used_capacity to monotonically grow until it
+exceeds total_capacity. Would this permanently break the statfs free space
+accounting for the mount?
+
+> +	}
+>  out:
+>  	kvfree(fmap_buf);
+>  	if (meta)
+>  		famfs_meta_free(meta);
 
 [Severity: Low]
-Should this globally visible function have a subsystem-specific prefix like
-famfs_lookup_daxdev to avoid polluting the global namespace?
+This isn't a bug, but does this code mix goto-based error handling with
+scope-based cleanup helpers?
 
-> +{
-> +	struct inode *inode;
-> +	struct path path;
-> +	int err;
-> +
-> +	if (!pathname || !*pathname)
-> +		return -EINVAL;
-> +
-> +	err =3D kern_path(pathname, LOOKUP_FOLLOW, &path);
-> +	if (err)
-> +		return err;
-> +
-> +	inode =3D d_backing_inode(path.dentry);
-> +	if (!S_ISCHR(inode->i_mode)) {
-> +		err =3D -EINVAL;
-> +		goto out_path_put;
+Using the out label for manual cleanup (freeing fmap_buf and meta) while al=
+so
+using scoped_guard() in the same function violates the documented cleanup
+guidelines, which state that functions must not mix goto-based cleanup labe=
+ls
+and __free()/guard() declarations.
+
+> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> index 6cbd7d657fd80..3c0d1094d6532 100644
+> --- a/fs/famfs/famfs_inode.c
+> +++ b/fs/famfs/famfs_inode.c
+> @@ -462,6 +493,15 @@ int famfs_install_daxdev(
+> =20
+>  		wmb(); /* All other fields must be visible before valid */
+>  		daxdev->valid =3D 1;
+> +		devp =3D daxdev->devp;
 > +	}
-> +
-> +	if (!may_open_dev(&path)) {
-> +		err =3D -EACCES;
-> +		goto out_path_put;
-> +	}
-
-[Severity: Medium]
-Does this bypass MAC and DAC permission checks on the character device node?
-
-By only resolving the path with kern_path() and checking may_open_dev(),
-the code skips the actual file open operation. Would this allow a user with
-mount capabilities to bypass security policies that restrict access to the
-underlying device?
-
-> +
-> +	/* i_rdev is the char dev_t; fs_dax_get() confirms it is dax later */
-> +	*devno =3D inode->i_rdev;
 
 [Severity: High]
-Is the underlying DAX device structure pinned to prevent it from being free=
-d?
+Is there a matching read memory barrier on the consumer side?
 
-The comment mentions fs_dax_get() will confirm it is DAX later, but it
-doesn't appear to be called anywhere in the codebase to acquire the
-device. Could this allow the backing driver to be unloaded or hot-unplugged
-while the filesystem is mounted, resulting in a use-after-free on
-subsequent access?
+Here the producer uses wmb() before setting daxdev->valid =3D 1 to make the=
+ new
+devp visible.
 
-> +
-> +out_path_put:
-> +	path_put(&path);
-> +	return err;
-> +}
+On the IO/fault path, famfs_daxdev_from_index() calls famfs_dax_err() to
+locklessly read dd->valid, and if true, proceeds to read dd->devp:
 
-[ ... ]
+fs/famfs/famfs_file.c:famfs_dax_err() {
+    if (!dd->valid) {
+        ...
+}
 
-> +static int famfs_parse_param(struct fs_context *fc, struct fs_parameter =
-*param)
-> +{
-> +	struct famfs_fs_info *fsi =3D fc->s_fs_info;
-> +	struct fs_parse_result result;
-> +	int opt;
-> +
-> +	opt =3D fs_parse(fc, famfs_fs_parameters, param, &result);
-> +	if (opt =3D=3D -ENOPARAM) {
-> +		opt =3D vfs_parse_fs_param_source(fc, param);
-> +		if (opt !=3D -ENOPARAM)
-> +			return opt;
-> +
-> +		return 0;
-> +	}
+fs/famfs/famfs_file.c:famfs_daxdev_from_index() {
+    ...
+    *errp =3D 0;
+    return dd->devp;
+}
 
-[Severity: Medium]
-Does returning 0 here silently ignore unrecognized mount parameters?
+If there is no paired read memory barrier (e.g., smp_rmb() or
+smp_load_acquire()) on the consumer side, could the CPU reorder the loads?
 
-The VFS layer relies on fs_parse() returning -ENOPARAM to indicate an
-unhandled parameter so it can alert the user. Does catching the error and
-returning 0 hide misconfigurations from userspace?
-
-> +	if (opt < 0)
-> +		return opt;
-> +
-> +	switch (opt) {
-> +	case Opt_mode:
-> +		fsi->mount_opts.mode =3D result.uint_32 & S_IALLUGO;
-> +		break;
-> +	case Opt_dax:
-> +		if (strcmp(param->string, "always"))
-> +			pr_debug("%s: invalid dax mode %s\n",
-> +				  __func__, param->string);
-> +		break;
-
-[Severity: Medium]
-Should this return an error code instead of breaking and eventually
-returning 0 when an invalid DAX mode is provided?
-
-> +	}
-> +
-> +	return 0;
-> +}
-
-[ ... ]
-
-> +static void famfs_kill_sb(struct super_block *sb)
-> +{
-> +	struct famfs_fs_info *fsi =3D sb->s_fs_info;
-> +
-> +	kill_char_super(sb);
-> +
-> +	kfree(fsi);
-> +	sb->s_fs_info =3D NULL;
-> +}
-> +
-> +#define MODULE_NAME "famfs"
-> +static struct file_system_type famfs_fs_type =3D {
-> +	.name		  =3D MODULE_NAME,
-> +	.init_fs_context  =3D famfs_init_fs_context,
-> +	.parameters	  =3D famfs_fs_parameters,
-> +	.kill_sb	  =3D famfs_kill_sb,
-> +	.fs_flags	  =3D FS_REQUIRES_DEV,
-> +};
-
-[Severity: High]
-Is the .owner field missing from this file_system_type structure?
-
-Without .owner =3D THIS_MODULE, the VFS will not increment the module
-reference count when a famfs filesystem is mounted. Could this allow the
-module to be unexpectedly unloaded via rmmod while active superblocks and
-inodes are still in use, leading to a kernel oops and use-after-free
-vulnerabilities?
+A concurrent thread might observe valid =3D=3D 1 but still read a stale or =
+NULL
+value for devp, resulting in a NULL pointer dereference during IO.
 
 > +
-> +/***********************************************************************=
-*******
-> + * Module stuff
-> + */
+> +	/* Freshly installed: add its capacity to the statfs accounting */
+> +	if (devp) {
+> +		u64 sz =3D dax_fsdev_size(devp);
+> +
+> +		scoped_guard(rwsem_write, &fsi->stats_sem)
+> +			fsi->total_capacity +=3D sz;
+>  	}
+> =20
+>  	return 0;
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0100019fc572ca94-ec=
-363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D2
+363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D11
