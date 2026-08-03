@@ -1,186 +1,142 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 686DA3C1D53
-	for <nvdimm@lists.linux.dev>; Mon,  3 Aug 2026 12:35:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785760502; cv=none; b=T5+KP9jT3pcSMbH9LRdCJKLiE0xCDoOzerNkmdcPTtjzEuQfqo0DMHu/q7BT4pGDYt3HGC88CHPifsMNeQwbs0JfI4pD7ihaVEaFp4GGTgiKdf0r7lKCiwlCcZTtjNcDAQ3heXXT8Ai8OPnIZaBZgkJW+Ai8yUEeHTUbskz85Wo=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785760502; c=relaxed/simple;
-	bh=vIDx/sKwffmOGzvvzSDdizIEIENpZK4Ed4Y7Nq9b7XY=;
-	h=From:To:Subject:CC:Date:Message-ID:MIME-Version:Content-Type; b=mvtW6nDZSigbozCyOSke/H238g2nlTPRaaq5cXHSvcBiyNsK7JAG9QMXeqGYb9dU65fsSb8KQFyp8GUmSdaDP6bDGdRGNPuAq4UAmdV/fIbPkhkFqCd8aE9zcchqF5b/eLaNZHBTzzxLfrCqauO0tx3vpqtlCGc9DJhIn/3d0+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=m1J2hadM; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BD9F296BCD
+	for <nvdimm@lists.linux.dev>; Mon,  3 Aug 2026 13:21:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.48
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785763303; cv=pass; b=AeR+dBBj6FaMSi4N/J+w26e6P1ctNPyyNuoqb/Qu0ocYxzKArU4flVt6GthVpj9xcSCOLyeySX3/o4mAZSjqha0xOAWDKWzyKBcYYo4dn/Q5KZywLmcYxeDXreGnG4HA+AxhnrkO/ExmcVuWT3BKHKXJD/3XrK8e6kBIobCcHwo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785763303; c=relaxed/simple;
+	bh=Pgl5mTcqFOqWGOQn2TZduStirxwuSm2pRwIjZSucJwE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hlgh5VyIKDr5S7i1WTuZHAhKYf0y1/xzvkRuzPT6JbajBWz5d2dy4wATyacZAgEG3ZAGscI1Hrz2uL/PNDxv7hbFylhOA0qHsQ3aqQRBTfM4Kt60o2D36E0Mg/LojN+89K3ECFj1oJJyhxFSV5ZUzS+ZzUhM8QCFWgJtt8JgVK8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AJdh2FVL; arc=pass smtp.client-ip=209.85.208.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="m1J2hadM"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 72BDE143D;
-	Mon,  3 Aug 2026 05:34:55 -0700 (PDT)
-Received: from GX9GF4H4XN (unknown [10.1.26.156])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 15C713F66F;
-	Mon,  3 Aug 2026 05:34:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785760499; bh=vIDx/sKwffmOGzvvzSDdizIEIENpZK4Ed4Y7Nq9b7XY=;
-	h=From:To:Subject:CC:Date:From;
-	b=m1J2hadMs/yUicqxnFSav0TkGwG+RSZ8wVP96U8BRzjcF8EFwOIN2wc7UIAHtpD4X
-	 Y/jAr6sqTmSdGpIw60Gt3/aIx5qKG1w+9X2VymE3hUbg5gRI495jZQsHIrrJBWtPqb
-	 LjkDlCN4sAsOEECGpoa/fIGsyix8QKpRiwxnY8mg=
-From: Seunguk Shin <seunguk.shin@arm.com>
-To: <linux-kernel@vger.kernel.org>, Andrew Morton
- <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Matthew Wilcox
- <willy@infradead.org>, Jan Kara <jack@suse.cz>
-Subject: [PATCH v5] fs/dax: check zero or empty entry before converting
- xarray entry
-CC: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
- <Nick.Connolly@arm.com>, <ffidencio@nvidia.com>, <seunguk.shin@arm.com>
-Date: Mon, 03 Aug 2026 13:34:55 +0100
-Message-ID: <m2y0enxtzk.fsf@arm.com>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AJdh2FVL"
+Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-69f2c67650aso5274516a12.2
+        for <nvdimm@lists.linux.dev>; Mon, 03 Aug 2026 06:21:31 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785763289; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Xg7HEniVrtZ7M7i8tCjeA7TxUAIq4S1Ljsb6UZKQ/YBBF2Njf/oxEsLAVTQ1Dp7YNx
+         UfSxRzz/jZq8A2BSQDPYfiiLIyLRG/zBHoBf3zOrUJET2NevEZkTd9YuhIbaEsOv9bE0
+         LEsLyj7ChtRLJQ4OvaaBKK3DUwi+I4R+y0pSOF84uYpgU2X/Ro5JZwnkWADEFbwF5sRc
+         uJxURAcH59aNqTm7hXpK16QPrX/sygSQsSPFlNzj3TQnm8aiDnPaGNHOMimYCinaVk64
+         4Z1sXYCFp9Wc599YLObN6W2KdDhjZdEGHbdmLWGF4OUrp1b3BI9+ohWWvHLCLwWBIm/6
+         ZbPg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=Y/+lXFVTL8yRFLlIHwc83PXR9zbnjKq/x3zTQK5cH9A=;
+        fh=rbM+LGzGeNQpqZD6y9WZuiPj5441Hjk4vlBiOWF/dY0=;
+        b=bUEyVLTqE4yQOUQDcXcs9cw3vljg+ydUwsrk/2jkoxDU/q04P31mvAFmqprr3uv8Ad
+         nCuc0uxpCE3N3/hKkw2nZ2DcUJ+ef4f2ARzDgT/JtrvbvW0kMUKRr/lVzHvxa0wrKX1J
+         VbGyLOa7tkRkMXnwEo0OJAuDTGoL9mtk8FMACOhaVrHQxJQ/kKKltOa2SlJjkzQ7dCqz
+         KS16tiFOuU12+PygDvj88r5ZlbLFlX8icMpGCLTxz7yQS2gvRi6UPn9U3eByUofOOT/G
+         TkiNDq1zYtcggQMrjvTKOTKdHzy5UQ8/bjXNVBiYgOqkLHdQnv/VKG+kPQzjr0jyGPv3
+         Fo7w==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785763289; x=1786368089; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Y/+lXFVTL8yRFLlIHwc83PXR9zbnjKq/x3zTQK5cH9A=;
+        b=AJdh2FVL6gWbsWLNmfIk+ct1vGc/Asc90nSEqoScqLtt5vo9uy9sHuYQvAo4MHa6e2
+         5dmwi45+/YxKX8pdMVQ6qha0VBD55vskwfTHjPQVDLStBltOhsf9bnI9mMbP9dkoRkrQ
+         ATXkBlFhq+eW7CSRFEDQ1RG/0XYGGmLAZMqpr+9LMr5xTf2ptXVyLW9jVA9W8zYyLGDo
+         97AoWbQSreA4iyUwOfShptGG2ULH8bcaBBi4nq3jyiDPMqMOwLCYA+C5PtCa/ZrLZhuI
+         aqGu+cNuhY0ijoY1T3rPr0HvYkGi+nPmVgOGXEHrskmkv7zl4yWJ4urRBYsHH/7cnDa9
+         CXGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785763289; x=1786368089;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Y/+lXFVTL8yRFLlIHwc83PXR9zbnjKq/x3zTQK5cH9A=;
+        b=kt/fD8mPX9o6+l2ZNaFzZpA/01ofq6VQaWa53yD2IAazH9/lJaCxz4JpS8WmW3eODT
+         MCtU8TYO/ZPijWshHiv0wkBnisWO5YUhUOw7DtDiJwQs+nBBFSk6JKwdd5JSAVIkVrLO
+         ApqFY2rPf7gtxWyhnG6gnj7V0PlzOlbLE+plWikCPyDh3guFN2HYMsL3p4IgsBEPsxNn
+         gPxeidcdv9xPNbIyCchomoYr/cfdxM3Jn1tjs+e814quQYDSeqVdpsHatZ2WOsG4Tcu+
+         5aHLiXlPx/3f8NaPGPmDWlokvlm3U4BsJ5v+BgbQbf0oDMYZ+BPNIxQ6JBMrnY9OvJBd
+         AQfw==
+X-Forwarded-Encrypted: i=1; AHgh+RqAMaSaQ4buRXIbC3icvTbvyt4qxHMikCkj0giwgnri9aLwSx7jTOfczR3GBM5b9ukVRO8dEco=@lists.linux.dev
+X-Gm-Message-State: AOJu0Ywy0nRiWORF3C/mRsnsojVfwzjqjBMg6bmvG3nqFDuXOVcGpmNV
+	lKa+wFLuitxmEbkDJ8ziSJwpemsOUNT9F62rCo+4zvvTeUdUobPC/0RmB0Z9H7om+rhwuYuj8Ig
+	D1Q4Ay0E1PyM5jeIDGE3xfRzY2nvIew==
+X-Gm-Gg: AR+sD13xBB4ja1HkauXHdrfWfZn0LJhRl1KFk0SUuXlBpcd9pDWg2crbt9aPccksryv
+	hG4Y4zH+1fWZVxKnko0npOtvEQ42/PSBzT3Hfiegu2eWeYFCY7+91YPUTPlIWTZLKb4Yh+cAZFi
+	Mstrt+mDNVZbGs4f0iMtr1DJdmy28GjIRs7Ybq3V2ihS+h2GRNd9u8xVOdgyIOSC+5UlnSHLohx
+	zyAZUOY5VqBA7mHNXNWRYe5laSEcM3YM1S9ITQiBXuDlnGq22hHj+Vb8GGMEu1bZ/9cd7aU1twK
+	ZPe4dVDspeQHHxPW1H3YTvV9/k+Au+y2gwYysWyX1HloZoENz8/AWZXvqhhbxgqg/ZIeeym83ve
+	zQkEAQwmnjAIzpNc=
+X-Received: by 2002:a05:6402:21d9:b0:69c:794d:4862 with SMTP id
+ 4fb4d7f45d1cf-6a0a7c614f9mr7875783a12.7.1785763288576; Mon, 03 Aug 2026
+ 06:21:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
+References: <cover.1785596451.git.asml.silence@gmail.com> <c1ab6c0db3853b339a89aee0b1a9c5ac0c48b79e.1785596451.git.asml.silence@gmail.com>
+In-Reply-To: <c1ab6c0db3853b339a89aee0b1a9c5ac0c48b79e.1785596451.git.asml.silence@gmail.com>
+From: Anuj gupta <anuj1072538@gmail.com>
+Date: Mon, 3 Aug 2026 18:50:50 +0530
+X-Gm-Features: AUfX_mwnLWCAPfRurFp37qU73Xc2KDpD6en6Q3cA2kgelroMq6uNFVC_YKEZqSE
+Message-ID: <CACzX3AvwBF32_ODomei3XHSZ=KtRaWLN-_Tfkwv7sV3Ssc3wmw@mail.gmail.com>
+Subject: Re: [PATCH v5 02/16] iov_iter: add iterator type for dmabuf maps
+To: Pavel Begunkov <asml.silence@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, 
+	Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, 
+	linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org, 
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	linaro-mm-sig@lists.linaro.org, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
+	Sumit Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>, 
+	Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>, 
+	William Power <william.power@intel.com>, Phil Cayton <phil.cayton@intel.com>, 
+	Jason Gunthorpe <jgg@nvidia.com>, Damien Le Moal <dlemoal@kernel.org>, Alasdair Kergon <agk@redhat.com>, 
+	Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>, 
+	Benjamin Marzinski <bmarzins@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	David Sterba <dsterba@suse.com>, Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev, 
+	nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org, 
+	ceph-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Calling dax_to_folio() with empty entry causes kernel panic below
-when booting a VM with DAX enabled storage.
+On Sat, Aug 1, 2026 at 9:19=E2=80=AFPM Pavel Begunkov <asml.silence@gmail.c=
+om> wrote:
+> @@ -841,7 +857,7 @@ static unsigned long iov_iter_alignment_bvec(const st=
+ruct iov_iter *i)
+>
+>  unsigned long iov_iter_alignment(const struct iov_iter *i)
+>  {
+> -       if (likely(iter_is_ubuf(i))) {
+> +       if (likely(iter_is_ubuf(i)) || iov_iter_is_dmabuf_map(i)) {
+>                 size_t size =3D i->count;
+>                 if (size)
+>                         return ((unsigned long)i->ubuf + i->iov_offset) |=
+ size;
 
-This patch checks empty entry before calling dax_to_folio() on
-dax_associate_entry(), dax_disassociate_entry(), and dax_busy_page().
+dmabuf_map shares the same union slot as ubuf, so this reads the map
+pointer as a user address. gap_alignment() below already returns 0
+correctly for dmabuf - this should too. Checked the rest of this patch
+(advance/revert/restore) - none of them dereference the union pointer
+for dmabuf, so it's isolated to this one spot. Doesn't affect the
+current series, nothing reaches this with a dmabuf iter yet.
 
-Commit 98c183a4fccf ("fs/dax: don't disassociate zero page entries")
-added guards in the associate and disassociate paths, but the guards
-still come after dax_to_folio(), and dax_busy_page() still has
-the same problem.
-
-[    0.737679] EXT4-fs (pmem0p1): mounted filesystem 79676804-7c8b-491a-b2a6-9bae3c72af70 ro with ordered data mode. Quota mode: disabled.
-[    0.737891] VFS: Mounted root (ext4 filesystem) readonly on device 259:1.
-[    0.739119] devtmpfs: mounted
-[    0.739476] Freeing unused kernel memory: 1920K
-[    0.740156] Run /sbin/init as init process
-[    0.740229]   with arguments:
-[    0.740286]     /sbin/init
-[    0.740321]   with environment:
-[    0.740369]     HOME=/
-[    0.740400]     TERM=linux
-[    0.743162] Unable to handle kernel paging request at virtual address fffffdffbf000008
-[    0.743285] Mem abort info:
-[    0.743316]   ESR = 0x0000000096000006
-[    0.743371]   EC = 0x25: DABT (current EL), IL = 32 bits
-[    0.743444]   SET = 0, FnV = 0
-[    0.743489]   EA = 0, S1PTW = 0
-[    0.743545]   FSC = 0x06: level 2 translation fault
-[    0.743610] Data abort info:
-[    0.743656]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
-[    0.743720]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-[    0.743785]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[    0.743848] swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000000b9d17000
-[    0.743931] [fffffdffbf000008] pgd=10000000bfa3d403, p4d=10000000bfa3d403, pud=1000000040bfe403, pmd=0000000000000000
-[    0.744070] Internal error: Oops: 0000000096000006 [#1]  SMP
-[    0.748888] CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 6.18.4 #1 NONE
-[    0.749421] pstate: 004000c5 (nzcv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[    0.749969] pc : dax_disassociate_entry.constprop.0+0x20/0x50
-[    0.750444] lr : dax_insert_entry+0xcc/0x408
-[    0.750802] sp : ffff80008000b9e0
-[    0.751083] x29: ffff80008000b9e0 x28: 0000000000000000 x27: 0000000000000000
-[    0.751682] x26: 0000000001963d01 x25: ffff0000004f7d90 x24: 0000000000000000
-[    0.752264] x23: 0000000000000000 x22: ffff80008000bcc8 x21: 0000000000000011
-[    0.752836] x20: ffff80008000ba90 x19: 0000000001963d01 x18: 0000000000000000
-[    0.753407] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
-[    0.753970] x14: ffffbf3154b9ae70 x13: 0000000000000000 x12: ffffbf3154b9ae70
-[    0.754548] x11: ffffffffffffffff x10: 0000000000000000 x9 : 0000000000000000
-[    0.755122] x8 : 000000000000000d x7 : 000000000000001f x6 : 0000000000000000
-[    0.755707] x5 : 0000000000000000 x4 : 0000000000000000 x3 : fffffdffc0000000
-[    0.756287] x2 : 0000000000000008 x1 : 0000000040000000 x0 : fffffdffbf000000
-[    0.756871] Call trace:
-[    0.757107]  dax_disassociate_entry.constprop.0+0x20/0x50 (P)
-[    0.757592]  dax_iomap_pte_fault+0x4fc/0x808
-[    0.757951]  dax_iomap_fault+0x28/0x30
-[    0.758258]  ext4_dax_huge_fault+0x80/0x2dc
-[    0.758594]  ext4_dax_fault+0x10/0x3c
-[    0.758892]  __do_fault+0x38/0x12c
-[    0.759175]  __handle_mm_fault+0x530/0xcf0
-[    0.759518]  handle_mm_fault+0xe4/0x230
-[    0.759833]  do_page_fault+0x17c/0x4dc
-[    0.760144]  do_translation_fault+0x30/0x38
-[    0.760483]  do_mem_abort+0x40/0x8c
-[    0.760771]  el0_ia+0x4c/0x170
-[    0.761032]  el0t_64_sync_handler+0xd8/0xdc
-[    0.761371]  el0t_64_sync+0x168/0x16c
-[    0.761677] Code: f9453021 f2dfbfe3 cb813080 8b001860 (f9400401)
-[    0.762168] ---[ end trace 0000000000000000 ]---
-[    0.762550] note: init[1] exited with irqs disabled
-[    0.762631] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
-
-Fixes: 38607c62b34b ("fs/dax: properly refcount fs dax pages")
-Signed-off-by: Seunguk Shin <seunguk.shin@arm.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
----
-Changes in v5:
-- Update the commit message
-- Link to v4: https://lore.kernel.org/all/m2jyqk7jxo.fsf@arm.com/
-Changes in v4:
-- Rebase on current upstream
-- Link to v3: https://lore.kernel.org/all/m2jythetpj.fsf@arm.com/
-Changes in v3:
-- Rebase on current upstream
-- Update the changelog for the current code state
-- Link to v2: https://lore.kernel.org/all/m2jyv11mqe.fsf@arm.com/
-Changes in v2:
-- Add Fixes and Reviewed-by tags.
-- Rebase on the latest.
-- Link to v1: https://lore.kernel.org/all/18af3213-6c46-4611-ba75-da5be5a1c9b0@arm.com/
----
- fs/dax.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 6d175cd47a99..4bca6e2bc342 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -480,11 +480,12 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
-                                unsigned long address, bool shared)
- {
-        unsigned long size = dax_entry_size(entry), index;
--       struct folio *folio = dax_to_folio(entry);
-+       struct folio *folio;
-
-        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
-                return;
-
-+       folio = dax_to_folio(entry);
-        index = linear_page_index(vma, address & ~(size - 1));
-        if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
-                if (folio->mapping)
-@@ -505,21 +506,23 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
- static void dax_disassociate_entry(void *entry, struct address_space *mapping,
-                                bool trunc)
- {
--       struct folio *folio = dax_to_folio(entry);
-+       struct folio *folio;
-
-        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
-                return;
-
-+       folio = dax_to_folio(entry);
-        dax_folio_put(folio);
- }
-
- static struct page *dax_busy_page(void *entry)
- {
--       struct folio *folio = dax_to_folio(entry);
-+       struct folio *folio;
-
-        if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
-                return NULL;
-
-+       folio = dax_to_folio(entry);
-        if (folio_ref_count(folio) - folio_mapcount(folio))
-                return &folio->page;
-        else
---
-2.43.0
+> @@ -872,7 +888,7 @@ unsigned long iov_iter_gap_alignment(const struct iov=
+_iter *i)
+>         size_t size =3D i->count;
+>         unsigned k;
+>
+> -       if (iter_is_ubuf(i))
+> +       if (iter_is_ubuf(i) || iov_iter_is_dmabuf_map(i))
+>                 return 0;
