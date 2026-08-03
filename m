@@ -1,171 +1,297 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 005EB356770
-	for <nvdimm@lists.linux.dev>; Mon,  3 Aug 2026 23:01:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785798106; cv=fail; b=qBmam0YDAqjtdo3vaBDaCzMNI3iYsAmKxirawLDKrwI2707S5x0oRAU3T9/o21o/WW+pWCjq05i+l63Uex/AFUqLzRkU6evaHJsTec6jmz42Y8vgs4Gvk6GRY9kytaDYGDNhjewM3yWQHAIz/bg+t7AA2n5jHbwvdI/TLF8Phdo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785798106; c=relaxed/simple;
-	bh=YXOste4/WM5jRtMvcdENPUlGX8qT5On4ccw6p4Cs17c=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=YucicLu9aaruQeFZE/gCr4DA8lcj/GZaJVj7Hh6kRa7fv6k+upk8zyHFDj5mWJlE88hMNdw+Y620bzekMQJzNL4dwrl22sTj72yayFMHR2ji5nxNAAzh5HdmqbyqLGCgvbPMKXbgnSwXg1Yj5GbtZI7IeUjWrs48B0atqWLAZe0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MOI5MLrv; arc=fail smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E04A536BCCC;
+	Mon,  3 Aug 2026 23:12:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785798771; cv=none; b=HMzHOP0CpdyylMfgKhXQXf2FRHgUfB+2QGDBlnSpaiCw9x1y4T0OiUekE7DQtgcqQY3kLNeVUhl+1XzjM2MLsGlzsrVFktSUew6+O/GAjsFV3AtxSRXydH1bEtivZcj1QVQwtDxnDNMJaZKdkWrG5shhvX3b4i24obtJGneEIXw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785798771; c=relaxed/simple;
+	bh=YGGDnYJClqB+zIUYachuNsvNJvvQ+tQOE2N5107KOaY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=eJrTDzbzuTZ87YnG6d5GJS0wUh4bBYYtAJ//ihUx11IVpJ6rSr3Y5qE83KYaU+dkrrBs3rBMH2reV6ya52k+X0RNPxRNgF2OqoJKbRupLURzbHj8L0XLPJFV1HTe9mi88GxvwecQ4tFiQyLPvr4vaYqVsV7d04WA0wmP8DrP8ok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TfCCsPJm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MOI5MLrv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785798103; x=1817334103;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=YXOste4/WM5jRtMvcdENPUlGX8qT5On4ccw6p4Cs17c=;
-  b=MOI5MLrvg68NYw2uQRL5TOOmvHpDKivOQB1VNr34Fd4lQH8l91x63Mwb
-   wGB+4zPNzQNNQN77Eu/AJtToECNE4nEDafN9i7ELLDnEQJIMa7GrOXKUI
-   Z9At19bXT0XOdMY1cNXQ3g4Ri/o3WJ13NtwzdUqy17O/ViJ8Ml1ThpBwf
-   EHON0gIg+OmExdGMEIxfxdz6j31C9xzXcuk1kQ6m+lhfgHZlP5tFLv+Hv
-   O9sHs5qHkp4C6SKj0hZUjnQIPRhN2Oxz/bJ5/jd07LiNh/emFXUsPSXbg
-   jQV10CTwAx/3nxk/CCc5M/XXEpC90HtD1M4a6hUpqBBO9Cf4NR3Gb156Q
-   A==;
-X-CSE-ConnectionGUID: s3MGIOtyQ6S5QAOSb9PHwA==
-X-CSE-MsgGUID: 5HKP9S7ETEiWGPmcjIbwLA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11864"; a="85475702"
-X-IronPort-AV: E=Sophos;i="6.25,203,1779174000"; 
-   d="scan'208";a="85475702"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2026 16:01:42 -0700
-X-CSE-ConnectionGUID: 4HEhaoylSM2Q+fCdjnn3Mw==
-X-CSE-MsgGUID: 8m6YAsJiTc2SyVi37VSCjQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,203,1779174000"; 
-   d="scan'208";a="263330766"
-Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
-  by fmviesa004.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2026 16:01:42 -0700
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
- fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Mon, 3 Aug 2026 16:01:41 -0700
-Received: from fmsedg902.ED.cps.intel.com (10.1.192.144) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45 via Frontend Transport; Mon, 3 Aug 2026 16:01:41 -0700
-Received: from BYAPR05CU005.outbound.protection.outlook.com (52.101.85.21) by
- edgegateway.intel.com (192.55.55.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Mon, 3 Aug 2026 16:01:41 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=XuAQrpkbTz5h8r5lC2qju7dEh11BYYvmIrVnr71iaymTeP5CZBUmYPH+O1yLjVINpc6JXpxR8SvQLZZL33FsDhE7OEdZJ4ZFAk6i8m07jWxmvWjXRoUP1odcRm+LYko42MyEZwBzkaFFsj7uLLjZUUtXXWH3qVM09isrvo7nqZ+NkU5AQFfoK7De4e9E6bsTQzj/CNTc+05qs9qFUH7oM1c7e6gl5MqrwkQWE09p9aYllhxtpEDdePVeeih79SlFRR9lnw3Vrq89YLm7pMGXOSNNoKjb1r3l1U/M4Enu/24qsDM9+SA3BksNW+SQuisKwiLDIFqO4IGS0awsbC6Fjw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IgJGCG5h+jOKA1sDG0m2j7Xw2V9+j2ha8ErNWXEY+3w=;
- b=ItIupwZqOI/Wu7iFO46IPB01NqjRBFvHGs5Wpd2C6aLzOxZlIXvZjVQsHkTJ19Q2wCmSTnzOQnjX8ZXOYa0wwmmj+B1kPBm1sCgj14MqWWE+iGxPmbCaOYXUCcMGB/b+Z2nfobIKMGij4ZU2wQMSuaLViKGF4x87SJPxND4XPyY2c3Jf4ABB73KEnLXVU91Sb+nVJeG/NtIOWpE1VnkNumDiZej48pRBNgP3CBtTgtDpSPh8otrFHwdGxqFzruOlRS1FzVjbost6XJBYI7OzFpEozZXZ0lI0QCbgxrAXkvlmZj9XL1+cow7U16d8g3oj1V/2Wd1w9dtwyfACeV+Tug==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by CYXPR11MB8691.namprd11.prod.outlook.com (2603:10b6:930:d5::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.18; Mon, 3 Aug
- 2026 23:01:33 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0270.017; Mon, 3 Aug 2026
- 23:01:33 +0000
-Date: Mon, 3 Aug 2026 16:01:28 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Anisa Su <anisa.su887@gmail.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Dave Jiang <dave.jiang@intel.com>, "Jonathan
- Cameron" <jic23@kernel.org>, Fan Ni <nifan.cxl@gmail.com>, Li Ming
-	<ming.li@zohomail.com>, Vishal Verma <vishal.l.verma@intel.com>, "Davidlohr
- Bueso" <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, Wonjae Lee <wj28.lee@samsung.com>, Junhee Park
-	<jh9934.park@samsung.com>, Heesoo Kim <habil.kim@samsung.com>, Anisa Su
-	<anisa.su@samsung.com>
-Subject: Re: [PATCH v12 4/8] cxl/events: Split event msgnum configuration
- from irq setup
-Message-ID: <anEdyNcRaUiFFSHH@aschofie-mobl2.lan>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TfCCsPJm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA6591F000E9;
+	Mon,  3 Aug 2026 23:12:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785798769;
+	bh=5My8vfQlO2Ad3sN9UHV8dLHNG17e513ahh2rKQtcHaM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=TfCCsPJmOYIfirjyms5ERD/fX6TS6lkFTZ82IM8p910TIHUWOccaBxrSN+SMYHrPP
+	 cNFsE0qUtd6NEWETBjPYu8JIvBTSBNMk5IJhBYBRs6LyPRZ/9h2PxDMrk4MPEdAu+0
+	 UsB1Aw9sTXKLMULD0H5mu3sRiXKwYHAawKZ0XZBtnpUIV8+eflTU0uMOJOTZ65nflN
+	 PkRF52KZ7XF7Ez5LL/rPdBWQgorVr6/JALSmMpn21tfdHaB3B3JkIOkjd1qwTGPbjJ
+	 a1fq4W/kWTBxpmq1Q9isonlAulvZVojeEKhH+BqcmPU2tq7zeM9xrdcStPdcXynn13
+	 lKFZonQjR5Cww==
+Date: Tue, 4 Aug 2026 00:12:45 +0100
+From: Jonathan Cameron <jic23@kernel.org>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: Anisa Su <anisa.su887@gmail.com>, <linux-cxl@vger.kernel.org>,
+ <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>, Dave Jiang
+ <dave.jiang@intel.com>, Fan Ni <nifan.cxl@gmail.com>, Li Ming
+ <ming.li@zohomail.com>, Vishal Verma <vishal.l.verma@intel.com>, "Davidlohr
+ Bueso" <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>, Benjamin
+ Cheatham <benjamin.cheatham@amd.com>, Wonjae Lee <wj28.lee@samsung.com>,
+ Junhee Park <jh9934.park@samsung.com>, Heesoo Kim <habil.kim@samsung.com>,
+ Anisa Su <anisa.su@samsung.com>
+Subject: Re: [PATCH v12 1/8] cxl/mbox: Flag support for Dynamic Capacity
+ Devices (DCD)
+Message-ID: <20260804001245.079b16ae@jic23-huawei>
+In-Reply-To: <anEIZOTDKsj15Nhp@aschofie-mobl2.lan>
 References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-5-anisa.su@samsung.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260731084901.1512819-5-anisa.su@samsung.com>
-X-ClientProxiedBy: SJ0PR03CA0099.namprd03.prod.outlook.com
- (2603:10b6:a03:333::14) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	<20260731084901.1512819-2-anisa.su@samsung.com>
+	<anEIZOTDKsj15Nhp@aschofie-mobl2.lan>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|CYXPR11MB8691:EE_
-X-MS-Office365-Filtering-Correlation-Id: 746ac86b-c0e5-47fc-b793-08def1b329b7
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|7416014|366016|1800799024|23010399003|11063799006|56012099006|4143699003|10067099003|6133799003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info: OaEixNqdy7xm3pbDoAQubAlEr/RFVI1t2Y0BL1qXz3IbxLJyo1hGLDpy7aVAhv6NUBc3JKPNdAHBTZWNJ6wEOhrBJ9UOFKG2cnEVWWnxKV7EQ+QOvVKDhEu+Mukg236uW54qCG5ejulerzshnWYBUnATuh4AjzYAxi5V9p5ubwEjute9MMjqy08k4G9kzABjzbCLOjDeHbPnXhK2IS46t0DUJFw16BvlZORKw05h7v20RE/CiKwXo12pSjFztgfb+ztke6egMKJRZd9eCwA4CurfUDWzshvxclZ9SiL3hpZEIwRjoyUpi28hKXIByhgpEMwVY9aM2zNO9X3cDtpl69oJ4T7imTZ2Pl+gsafEAbUCgi9cUfAgQ1aNIUWRHVRREpAKvBUjlBUq3Syabm7TBez772b20MsPrPKgH/Pg/Lfpp6OF/Dqoa0kAD6SqPXrjKpkHQE/Rz86QuloZbuKjgh0Ob1PEyWuYKxWzdWAgO8rvD08w2gqL1jf+2hgEfUOHSIjrlvOOo2Uz1a71yvzW5nqsBQWELbvh+5xsy4b5+YFRjaif39id5GXnb2u51KGd6ZQJMu45JYSnJjLuYBbip751ShZwtpuA2m04uBxrgqsv8YhLobKp2vbuuo1qh1pCoP41d7yNvtfrMzlryAtVCPfmLoIu9Xk66OTWS1cVluc=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(23010399003)(11063799006)(56012099006)(4143699003)(10067099003)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Lsn0o2FQuXSjM/3RIXdE8WTjEgGWVVBxx+KcR5V8ptAgbkVZarNM7YYNLZw5?=
- =?us-ascii?Q?ovaRljriSVyo0gZM/ZDtFZykuza1FkBSRXOzHEFGkMjKhfM+V32joWCfgW4D?=
- =?us-ascii?Q?Lw+eOksoiav/VOoLgj8IMmoCmr9CGD5XzeyHv3xj3LhZeCKeDFu00j07/T95?=
- =?us-ascii?Q?L3gcqocBxEdObRPFrBLyB9lKNhEGOZU0zn/BxZU68ZXFVjYrSrhKyNx0nH+x?=
- =?us-ascii?Q?72N9NuK5e6BJ0X2G35oLeMrtmLSZjiC59tbM+8LvgCes93JPIyfJjbKjuSyG?=
- =?us-ascii?Q?y2lminLobfvPlsE1lGBeP9eAuk0LEKeoigJDFpIex0er6R+S68+t4AroBAjz?=
- =?us-ascii?Q?s2FUgwE1tZiiWUWh9LhtbrJYWuBSUgKyIhJ+Kt3rl3CV5OdwQOHKELd2n1oI?=
- =?us-ascii?Q?xJBjf6+dj6bcNUj0rFSvlvLZ5Ssw3FiSgiXOir1Q89qv4jzM74S3qgsslh+3?=
- =?us-ascii?Q?89Dx/2YjHw5R4jpXXZiD+KJ9uXSkvs6CqKDNeKr2wOhp4B9EkgDOJ5Hdl7ve?=
- =?us-ascii?Q?HiVym3mmsg/hVgZhHeVDB4g9PfGzIdMQl92ZerESDzE784NcbgFCPiQRQa9E?=
- =?us-ascii?Q?Md4A9ZFpljP7NY4iQJsbkJUEL74zTGSmnfAIOy2uF4SfzSsFhphP0Kw+67aH?=
- =?us-ascii?Q?ScGg9vLlsyvq1OvXMsbeh8qxt59+IzqGDLgkLSRZ8xKajHX468U2Wi+AjwPM?=
- =?us-ascii?Q?MRv1btEyVxrHN13Z//rjormHGoNkCgDn1PMzL8QxM07yvZkIjCLvLkUSLkGR?=
- =?us-ascii?Q?zCtY3hJwM+w4Kg1Ly8h8NNK//+0+OmsloCsBh6mu1pyzT+V4RmdOBt007lZ6?=
- =?us-ascii?Q?f/uNM7Zjf26XV1J9cZiehx6ooLfPM9RJGjDdNKel+TsQyk151Cy4dDPSx33I?=
- =?us-ascii?Q?NMjwMM2gGEiFpY0dq0FzM2riAzQfPT1vnqvO1ASEtHiBJ164i/nPnYGYMmaH?=
- =?us-ascii?Q?sbxtjE4t+/HYeEaxFg5qpy+xLW5ldQUGc26P/jUE7zH1ejWCyZuZPUnpqERw?=
- =?us-ascii?Q?0sn2A4AFFaPqSHXEacpkzDPSxWPaPlKCvAoJ2mnw4an6bhqzdzXNt6ZKf+Fy?=
- =?us-ascii?Q?R9757f7Cf7Hxv3rp2RFlgDaRECPVQxsVvAKqUcOpxbfqYCN48wQY4YsbMEcP?=
- =?us-ascii?Q?WfJbCACs06xk5gVmtt3x9boOMm1/ecBWvCj9zhCZC447q++OncVX6SppATwS?=
- =?us-ascii?Q?nif0nND663+04j7D99pCUh383BI6BNoDzAzEo97M4gPmEKmc43XpaXhW0KGD?=
- =?us-ascii?Q?DCltMiVi7q/wZURdHBSsfVBFdPfo75ffOATqCGEWf6sXT/Bo+kXzs56POu+m?=
- =?us-ascii?Q?dG1rB5gzgEUvYNfjyUVklwDT4kD11BoznGYHljsjNLSmZQUCOMtcswFjh7uQ?=
- =?us-ascii?Q?8Um17l0rU8UjhPjSB7uQUVelApNoYXeDYBY7+CXYdt/INEEcgGZL5P5yBONa?=
- =?us-ascii?Q?9ZG+DmWseicS8n/2Nr/IjkztAqlpOd5Ucsu2XO4CUDGc8vuds5MBsc+oDM5g?=
- =?us-ascii?Q?NYRnHqqdb2w3xAn1yDYc7l+2BwUDzA/h+HACSmx/O2k75VHPqf7OhoK6WrNz?=
- =?us-ascii?Q?BpC9C9l4y66NJ2Hr+g6txmcCtEuKWyAHNbLMrH5iwhVgRRRP3pqPE7hNbGaq?=
- =?us-ascii?Q?Artl1icTf5OKl+U3Bb8UiE66YYoHkQfTh1QVDkZ0MDNMeyKJrdOQ3y5slcct?=
- =?us-ascii?Q?o25SFXRsxrFA+x1k9S7r3qcVnmixPKoCA5vf6dZl07z67ev5NZS/cAxrBpPk?=
- =?us-ascii?Q?RBzdr+7GlJQBG7uSk93m3KmpQWO76bY=3D?=
-X-Exchange-RoutingPolicyChecked: Gz6wv+uKAETxJ/XuTHSoaauOGPL4RvJlOY/4VSx4ffk87qoejWcVQiP9aLTLD0brUTJOhpmq7eKXWaLbbYDPovIkWDzqqqbuvLM25eW3ipXHJVNixHavn9EDtjsk+np/mlrh+0sxEuY+KWc+nu5OBGyMglpqkNNg2uiSsZKi781pbe6ZOf7Yo1mBSfo2x1k4OVqgixndr2nE7Nqw9LIXZgm+wsdoLrpWSAHtRBa1zWUCXDqN8V2kgKyuck5wggymsBIjexpFokNu9pafv+aom80Mygsc+kkj1qirPGtaA6xWbk2W29tjL2DN2HzS/7ZId8huvrxYyqceSkLqssXXLg==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 746ac86b-c0e5-47fc-b793-08def1b329b7
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 23:01:33.6411
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: meCPVVdV1oOVIW2cxd9nOj4dHH0BO1F8wiJxQ8a+KIxvAlOrsiYiHEhZ/KwhIvm9bk9ooZ94cbOBJ1ZwNjW4UcGBVd1pfwg9OaByMquCJyM=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYXPR11MB8691
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 31, 2026 at 01:48:09AM -0700, Anisa Su wrote:
-> From: Ira Weiny <iweiny@kernel.org>
-> 
-> Dynamic Capacity Devices (DCD) require event interrupts to process
-> memory addition or removal.  BIOS may have control over non-DCD event
-> processing.  DCD interrupt configuration needs to be separate from
-> memory event interrupt configuration.
-> 
-> Split cxl_event_config_msgnums() from irq setup in preparation for
-> separate DCD interrupts configuration.
+On Mon, 3 Aug 2026 14:30:12 -0700
+Alison Schofield <alison.schofield@intel.com> wrote:
 
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+> On Fri, Jul 31, 2026 at 01:48:06AM -0700, Anisa Su wrote:
+> > From: Ira Weiny <iweiny@kernel.org>
+> > 
+> > Per the CXL 4.0 specification software must check the Command Effects
+> > Log (CEL) for dynamic capacity command support.
+> > 
+> > Detect support for the DCD commands while reading the CEL, including:
+> > 
+> >         Get DC Config
+> >         Get DC Extent List
+> >         Add DC Response
+> >         Release DC
+> > 
+> > Based on an original patch by Navneet Singh.
+> > 
+> > Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> > Tested-by: Wonjae Lee <wj28.lee@samsung.com>
+> > Tested-by: Junhee Park <jh9934.park@samsung.com>
+> > Tested-by: Heesoo Kim <habil.kim@samsung.com>
+> > 
+> > ---
+> > Changes:
+> > 1. mbox.c: leave mds->dcd_supported false so the hardware enablement
+> >    patches can be upstreamed ahead of the extent and DAX work; the
+> >    event handling patch re-enables it.
+> > ---
+> >  drivers/cxl/core/mbox.c | 44 +++++++++++++++++++++++++++++++++++++++++
+> >  drivers/cxl/cxlmem.h    | 20 +++++++++++++++++++
+> >  2 files changed, 64 insertions(+)
+> > 
+> > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> > index 7c6c5b7450a5..4790524c32a7 100644
+> > --- a/drivers/cxl/core/mbox.c
+> > +++ b/drivers/cxl/core/mbox.c
+> > @@ -165,6 +165,38 @@ static void cxl_set_security_cmd_enabled(struct cxl_security_state *security,
+> >  	}
+> >  }
+> >  
+> > +static bool cxl_is_dcd_command(u16 opcode)
+> > +{
+> > +#define CXL_MBOX_OP_DCD_CMDS 0x48
+> > +
+> > +	return (opcode >> 8) == CXL_MBOX_OP_DCD_CMDS;
+> > +}
+> > +
+> > +static void cxl_set_dcd_cmd_enabled(u16 opcode, unsigned long *cmd_mask)
+> > +{
+> > +	switch (opcode) {
+> > +	case CXL_MBOX_OP_GET_DC_CONFIG:
+> > +		set_bit(CXL_DCD_ENABLED_GET_CONFIG, cmd_mask);
+> > +		break;
+> > +	case CXL_MBOX_OP_GET_DC_EXTENT_LIST:
+> > +		set_bit(CXL_DCD_ENABLED_GET_EXTENT_LIST, cmd_mask);
+> > +		break;
+> > +	case CXL_MBOX_OP_ADD_DC_RESPONSE:
+> > +		set_bit(CXL_DCD_ENABLED_ADD_RESPONSE, cmd_mask);
+> > +		break;
+> > +	case CXL_MBOX_OP_RELEASE_DC:
+> > +		set_bit(CXL_DCD_ENABLED_RELEASE, cmd_mask);
+> > +		break;
+> > +	default:
+> > +		break;
+> > +	}
+> > +}
+> > +
+> > +static bool cxl_verify_dcd_cmds(unsigned long *cmds_seen)
+> > +{
+> > +	return bitmap_full(cmds_seen, CXL_DCD_ENABLED_MAX);
+> > +}
+> > +
+> >  static bool cxl_is_poison_command(u16 opcode)
+> >  {
+> >  #define CXL_MBOX_OP_POISON_CMDS 0x43
+> > @@ -757,6 +789,7 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+> >  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> >  	struct cxl_cel_entry *cel_entry;
+> >  	const int cel_entries = size / sizeof(*cel_entry);
+> > +	DECLARE_BITMAP(dcd_cmds, CXL_DCD_ENABLED_MAX) = {};
+> >  	struct device *dev = mds->cxlds.dev;
+> >  	int i, ro_cmds = 0, wr_cmds = 0;
+> >  
+> > @@ -785,11 +818,22 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+> >  			enabled++;
+> >  		}
+> >  
+> > +		if (cxl_is_dcd_command(opcode)) {
+> > +			cxl_set_dcd_cmd_enabled(opcode, dcd_cmds);
+> > +			enabled++;
+> > +		}
+> > +
+> >  		dev_dbg(dev, "Opcode 0x%04x %s\n", opcode,
+> >  			enabled ? "enabled" : "unsupported by driver");
+> >  	}
+> >  
+> >  	set_features_cap(cxl_mbox, ro_cmds, wr_cmds);
+> > +	/*
+> > +	 * Disabled until event handling implemented.
+> > +	 */
+> > +	if (cxl_verify_dcd_cmds(dcd_cmds))
+> > +		dev_dbg(dev, "Device supports DCD; capability disabled\n");
+> > +	mds->dcd_supported = false;
+> >  }  
+> 
+> When I view how this lands in the entirety of cxl_walk_cel() it seems
+> to needlessly be different from the pattern set by poison and security
+> handling in the same function and structures. Could this follow that
+> more closely?  Doing so would remove this 'tail' work here of checking
+> and setting the boolean.
+> 
+> This appended diff touches patch 2 where it has the first caller, but
+> pasting all here for simplicity - you'll apply per patch if you take it.
+> 
+> The bitmap lives in mds structure and it is already where the bool is now.
+> The only piece of the poison and security pattern not worth copying
+> yet is the wrapper struct cxl_poison_state and struct cxl_security_state
+> exist because each grew a mutex and other per-class state, and DCD has
+> none of that in this series (yet).
+Hi Alison,
+
+This rang a bell as I remembered Ira did it this way originally -
+so I did some archaeology.
+
+[PATCH v8 01/21] cxl/mbox: Flag support for Dynamic Capacity Devices (DCD)
+https://lore.kernel.org/all/67786b76a0c5_f58f294b1@dwillia2-xfh.jf.intel.com.notmuch/
+
+Dan's point was that we need that infrastructure for poison and security
+because a subset is a realistic possibility. For DCD today it's all or
+nothing so why keep a bitmap around?
+
+I agree there is merit in having all the command types handled the same
+but perhaps it is clearer to just have a bool.  Of course when someone
+adds another DCD command on the device side (which by definition will have
+to be optional) then we will need to revisit.
+
+Jonathan
+
+> 
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> index b18ea02ed2e6..27cfe0ee4752 100644
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
+> @@ -172,7 +172,7 @@ static bool cxl_is_dcd_command(u16 opcode)
+>         return (opcode >> 8) == CXL_MBOX_OP_DCD_CMDS;
+>  }
+> 
+> -static void cxl_set_dcd_cmd_enabled(u16 opcode, unsigned long *cmd_mask)
+> +static void cxl_set_dcd_cmd_enabled(unsigned long *cmd_mask, u16 opcode)
+>  {
+>         switch (opcode) {
+>         case CXL_MBOX_OP_GET_DC_CONFIG:
+> @@ -192,11 +192,6 @@ static void cxl_set_dcd_cmd_enabled(u16 opcode, unsigned long *cmd_mask)
+>         }
+>  }
+> 
+> -static bool cxl_verify_dcd_cmds(unsigned long *cmds_seen)
+> -{
+> -       return bitmap_full(cmds_seen, CXL_DCD_ENABLED_MAX);
+> -}
+> -
+>  static bool cxl_is_poison_command(u16 opcode)
+>  {
+>  #define CXL_MBOX_OP_POISON_CMDS 0x43
+> @@ -789,7 +784,6 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+>         struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+>         struct cxl_cel_entry *cel_entry;
+>         const int cel_entries = size / sizeof(*cel_entry);
+> -       DECLARE_BITMAP(dcd_cmds, CXL_DCD_ENABLED_MAX) = {};
+>         struct device *dev = mds->cxlds.dev;
+>         int i, ro_cmds = 0, wr_cmds = 0;
+> 
+> @@ -819,7 +813,7 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+>                 }
+> 
+>                 if (cxl_is_dcd_command(opcode)) {
+> -                       cxl_set_dcd_cmd_enabled(opcode, dcd_cmds);
+> +                       cxl_set_dcd_cmd_enabled(mds->dcd_enabled_cmds, opcode);
+>                         enabled++;
+>                 }
+> 
+> @@ -828,12 +822,6 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
+>         }
+> 
+>         set_features_cap(cxl_mbox, ro_cmds, wr_cmds);
+> -       /*
+> -        * Disabled until event handling implemented.
+> -        */
+> -       if (cxl_verify_dcd_cmds(dcd_cmds))
+> -               dev_dbg(dev, "Device supports DCD; capability disabled\n");
+> -       mds->dcd_supported = false;
+>  }
+> 
+>  static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_memdev_state *mds)
+> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> index 77f6417a1de7..bfa746c5a7c8 100644
+> --- a/drivers/cxl/cxlmem.h
+> +++ b/drivers/cxl/cxlmem.h
+> @@ -443,7 +443,7 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+>   * @partition_align_bytes: alignment size for partition-able capacity
+>   * @active_volatile_bytes: sum of hard + soft volatile
+>   * @active_persistent_bytes: sum of hard + soft persistent
+> - * @dcd_supported: all DCD commands are supported
+> + * @dcd_enabled_cmds: DCD commands the device enabled in the CEL
+>   * @event: event log driver state
+>   * @poison: poison driver state info
+>   * @security: security driver state info
+> @@ -463,7 +463,7 @@ struct cxl_memdev_state {
+>         u64 partition_align_bytes;
+>         u64 active_volatile_bytes;
+>         u64 active_persistent_bytes;
+> -       bool dcd_supported;
+> +       DECLARE_BITMAP(dcd_enabled_cmds, CXL_DCD_ENABLED_MAX);
+> 
+>         struct cxl_event_state event;
+>         struct cxl_poison_state poison;
+> @@ -878,12 +878,16 @@ int cxl_arm_dirty_shutdown(struct cxl_memdev_state *mds);
+> 
+>  static inline bool cxl_dcd_supported(struct cxl_memdev_state *mds)
+>  {
+> -       return mds->dcd_supported;
+> +       /*
+> +        * Disabled until extent event handling is implemented.  Enable by
+> +        * returning bitmap_full(mds->dcd_enabled_cmds, CXL_DCD_ENABLED_MAX).
+> +        */
+> +       return false;
+>  }
+> 
+>  static inline void cxl_disable_dcd(struct cxl_memdev_state *mds)
+>  {
+> -       mds->dcd_supported = false;
+> +       bitmap_zero(mds->dcd_enabled_cmds, CXL_DCD_ENABLED_MAX);
+>  }
+> 
+>  int cxl_set_timestamp(struct cxl_memdev_state *mds);
+> 
+> >  
+> snip
+
