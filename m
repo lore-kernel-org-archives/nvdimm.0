@@ -1,45 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A96EA489863;
-	Mon,  3 Aug 2026 02:42:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B568D489863;
+	Mon,  3 Aug 2026 02:42:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785724948; cv=none; b=QMrGNXbDcTrMyD0H/+Qshy1JEUC2wXjTMfZszEw7v+YgFrcLNXimzVReAnqDq6yJFob1h5ICD48ZRiic4bN+FZsoLbHipRBC1ToMQcUmMIQ8WJMOWkvKnMqZlyShuZhcmt9n7OyyU7Pcn3ImD7s5PO89kcnD0cpFKTunY+9wY7A=
+	t=1785724959; cv=none; b=lN5OROIKJ3TJeUErfMVdYC7H9S7UXPTYGcdcM1/hxyULie8ZRHxbr4UVtjRIJmJCn5fnGsDXw19ChE+/YIYaLfnhw9c72ee8P6KPQVIJ04Rjrv4hwX2HxKJrMhAr0NeSdoWUgd8CWPlC4m45mWOrA+N6+xk5vZeTpjFFMi3QWck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785724948; c=relaxed/simple;
-	bh=/YlxFiDd7qje9I2Vve6riq0/H07cjyuMTrSrTUIacd8=;
+	s=arc-20240116; t=1785724959; c=relaxed/simple;
+	bh=fO9blh7IguIR24nrCGpaRHBFuB+mymtb06dG9WQf69w=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=A8nQR3eEGciXveHUQ7Wka2FB55bDL4WMCyJLrn9XXTgwtNkivOkwOwQyKSPQmuFuTrtDP/tqV/vbDYCh/O2/L7GBdpWVt6IAx2LhE/pCtof1z9XHBc6tW1P8cYZlo76n5OXXG7gRkvxpdhjOhB8GUPtQBlBeRjVr9FhX+QnOtfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oR4uSUl5; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=ir5l7jPQy8jrWHrWMQDVitnIVj+ZiAjxAE25lJ0gaZ5hQx0Vl4F5dJonQBoU0Uvyn6TfNxQdnSKCRwGMhZmed54MSGLAakjfoR2+4c4NtALefqKQ8GYVVc0KmrYI5Zc3aAxhAIs9WPGqMMRk1F6eu9S4YkUGASqSFsLfLn+9nFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gZfSzh/Y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oR4uSUl5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6339E1F000E9;
-	Mon,  3 Aug 2026 02:42:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gZfSzh/Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24EC01F000E9;
+	Mon,  3 Aug 2026 02:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785724946;
-	bh=yP2j+e2N2yPfdrd9FVEc3cKWa7u5ZTfbu9IfhWcNNBU=;
+	s=k20260515; t=1785724957;
+	bh=cxYmbLYVydA7qYG4qTlZOGcIjyE3cVLo5LP0Q8bw3/0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=oR4uSUl5hcBaQFvLlt0D6om4f/7fJmSagPONyKZ79W0OZR0aEhXbxHmUfpFZvFsZG
-	 BY6HikKtUco8FF/DB52Qp+FDiMuWgiM3xtU7FZC+q/erdIrVOjnx5Ean52XjJnL1jc
-	 nmBt+JRNj16y515fDjRiOTRDLb3LQwfuwjbrdFtJxEx7oQv+aPXLWFQfg4UuV00z5l
-	 M30RXcPWSu+hR6vlpZZabIAY4VWXaBJ8ED2jsWgKhw9nQR67ix0yLxnchc7ce24sPD
-	 A7UeZl6qpTK3VB55bE9nysV3YV2GXrUOv76RXjmUE1hdxsxVeVRePQ2rdvzBbeIgHW
-	 kCh2bSBpr3IeQ==
+	b=gZfSzh/YqMa7QEhMyDpJjmOGNDwJ1eZi44eT/xNr7NYlDE9Pytcou4kcKGIr3Z9on
+	 t8KVxpHdh79JjvwRc0t8gP2ME8luTaQJxJqEkJeySL4NqzRCEOyE9uFZBTLfCUty0p
+	 ssEkMPuYd6Mb9N4AigG60tisVm/Fz2QZEy80BmaY8nhd8uT3PIhPHXRtEbcm9Mj4o1
+	 F5+1RO7//JNr3u4SFRM+D40oOtYhc4LfBxjIDTCUJfda39PyZEK6kUzXqciKOQn0GB
+	 Dln6bSPfQLl48OSZAt6WMh5aYIOdBTRcgHsF2qCb5ThsZsZO/NFC01sBxZJfnB3gAM
+	 2MrODfCMgQ9WQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V12 07/12] famfs: MAP_CREATE ioctl and fmap ingest (ABI
- 44)
+Subject: Re: [PATCH V12 05/12] famfs: Introduce file_operations read/write
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <0100019fc5746312-6cfe9a07-a658-4aba-b1e9-5233b0ddfcf4-000000@email.amazonses.com>
+In-Reply-To: <0100019fc5741536-d6b2c2f4-794a-43b4-abf4-f38f2d812e19-000000@email.amazonses.com>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022919.75875-1-john@jagalactic.com>
- <0100019fc5746312-6cfe9a07-a658-4aba-b1e9-5233b0ddfcf4-000000@email.amazonses.com>
+ <20260803022859.75838-1-john@jagalactic.com>
+ <0100019fc5741536-d6b2c2f4-794a-43b4-abf4-f38f2d812e19-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 03 Aug 2026 02:42:26 +0000
-Message-Id: <20260803024226.6339E1F000E9@smtp.kernel.org>
+Date: Mon, 03 Aug 2026 02:42:36 +0000
+Message-Id: <20260803024237.24EC01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -48,260 +47,205 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
 Thank you for your contribution! Sashiko AI review found 7 potential issue(=
 s) to consider:
-
-New issues:
-- [Critical] The FAMFSIOC_MAP_CREATE ioctl lacks a privilege check, allowin=
-g unprivileged users to map arbitrary physical DAX memory.
-- [High] 64-bit file size and extent lengths are silently truncated to size=
-_t on 32-bit architectures.
-- [High] Missing overflow checks on extent lengths and physical offsets.
-- [High] Race condition in state publication leads to permanent file corrup=
-tion (Denial of Service).
-- [High] Persistent memory allocations for file metadata lack __GFP_ACCOUNT=
-, bypassing memcg limits.
-- [Low] Format string type mismatch for size_t arguments causes compiler wa=
-rnings.
-
-Pre-existing issues:
-- [High] NULL pointer dereference in famfs_meta_to_dax_offset_interleaved.
+- [High] The custom write iterator famfs_dax_write_iter() omits the require=
+d VFS file_modified() / file_remove_privs() hooks, bypassing setuid/setgid =
+privilege stripping and timestamp updates.
+- [High] famfs_dax_write_iter() bypasses POSIX append semantics and file si=
+ze limits by omitting generic_write_checks().
+- [High] famfs_rw_prep() truncates the 64-bit file size to 32 bits on 32-bi=
+t architectures, breaking bounds checking and causing artificial IO limits.
+- [High] Using filemap_splice_read on a DAX filesystem initialized with ram=
+_aops will cause splice reads to silently return streams of zeroes.
+- [Medium] Writes past the end of the file return 0 instead of an error, wh=
+ich can cause infinite loops in userspace.
+- [Low] file_accessed() is called unconditionally on reads, updating access=
+ time even on errors or EOF.
+- [Low] Kernel heap address leak via pr_debug using %llx on an inode pointe=
+r.
 --
 
---- Patch [7]: [PATCH V12 07/12] famfs: MAP_CREATE ioctl and fmap ingest (A=
-BI 44) ---
-commit 7c28fdf850baa1b17b165378da6b0515248fad98
-Author: John Groves <John@Groves.net>
+--- Patch [5]: [PATCH V12 05/12] famfs: Introduce file_operations read/writ=
+e ---
+commit 025e683c34185b254d9bc60d68aabd4be0342a87
+Author: John Groves <john@groves.net>
 
-famfs: MAP_CREATE ioctl and fmap ingest (ABI 44)
+famfs: Introduce file_operations read/write
 
-This commit adds the famfs file ioctl handler, including the
-FAMFSIOC_MAP_CREATE ioctl to ingest user-provided mapping extent messages.
-It parses both simple and interleaved wire formats into a famfs_file_meta
-structure that is published on the inode.
-
-> diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
-> --- a/fs/famfs/famfs_internal.h
-> +++ b/fs/famfs/famfs_internal.h
-> @@ -15,8 +15,52 @@
->  #include <linux/bits.h>
->  #include <linux/build_bug.h>
-> =20
-> +#include <linux/famfs_ioctl.h>
-> +
->  extern const struct file_operations famfs_file_operations;
-[ ... ]
-> +struct famfs_file_meta {
-> +	bool                   error;
-> +	enum famfs_file_type   file_type;
-> +	size_t                 file_size;
-
-[Severity: High]
-Will this type choice truncate the 64-bit file size to 32 bits on 32-bit
-architectures? If fmh.file_size exceeds 4GB, the upper 32 bits will be
-lost, which could silently corrupt the file size and allow validation
-checks to be bypassed.
-
-> +	enum famfs_ioc_ext_type fm_extent_type;
-> +	u64                    dev_bitmap; /* referenced daxdev indices */
-> +	union { /* This will make code a bit more readable */
-> +		struct {
-> +			size_t         fm_nextents;
-> +			struct famfs_meta_simple_ext  *se;
-> +		};
-> +		struct {
-> +			size_t         fm_niext;
-> +			struct famfs_meta_interleaved_ext *ie;
-> +		};
-> +	};
-> +};
+This commit introduces fs/famfs/famfs_file.c and the famfs
+file_operations for read/write. It sets up the groundwork for
+DAX I/O, though it currently calls dax_iomap_rw with NULL iomap_ops.
 
 > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> --- a/fs/famfs/famfs_file.c
+> new file mode 100644
+> index 0000000000000..e192b573c51f7
+> --- /dev/null
 > +++ b/fs/famfs/famfs_file.c
+> @@ -0,0 +1,138 @@
 [ ... ]
-> @@ -60,6 +81,250 @@
-> +static int
-> +famfs_file_init_dax(struct file *file, void __user *arg)
+> +/* Reject I/O to files that aren't in a valid state */
+> +static ssize_t
+> +famfs_file_invalid(struct inode *inode)
+> +{
+> +	if (!IS_DAX(inode)) {
+> +		pr_debug("%s: inode %llx IS_DAX is false\n",
+> +			 __func__, (u64)inode);
+
+[Severity: Low]
+Does this explicit cast to u64 leak the raw kernel heap address of the inod=
+e?
+
+When dynamic debugging is enabled and famfs_file_invalid() is called on an
+inode without S_DAX, bypassing the kernel's %p hashing protection could exp=
+ose
+the heap layout to dmesg. Could this assist attackers in bypassing KASLR?
+
+> +		return -ENXIO;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static ssize_t
+> +famfs_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
+> +{
+> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
+> +	struct super_block *sb =3D inode->i_sb;
+> +	struct famfs_fs_info *fsi =3D sb->s_fs_info;
+> +	size_t i_size =3D i_size_read(inode);
+
+[Severity: High]
+Does this truncate the 64-bit loff_t file size to 32 bits on 32-bit
+architectures?
+
+When reading or writing a famfs file larger than 4GB on a 32-bit system,
+i_size_read() will be truncated into the 32-bit size_t i_size. Will this br=
+eak
+bounds checking and make data past the 32-bit wrapped boundary inaccessible?
+
+> +	size_t count =3D iov_iter_count(ubuf);
+> +	size_t max_count;
+> +	ssize_t rc;
+[ ... ]
+> +	/* Avoid unsigned underflow if position is past EOF */
+> +	if (iocb->ki_pos >=3D i_size)
+> +		max_count =3D 0;
+> +	else
+> +		max_count =3D i_size - iocb->ki_pos;
+> +
+> +	if (count > max_count)
+> +		iov_iter_truncate(ubuf, max_count);
+> +
+> +	if (!iov_iter_count(ubuf))
+> +		return 0;
+
+[Severity: Medium]
+When writing at or past EOF (ki_pos >=3D i_size), famfs_rw_prep() sets max_=
+count
+to 0 and returns 0. Will famfs_dax_write_iter() bubble this 0 up to the
+syscall instead of returning an error code like -ENOSPC or -EFBIG?
+
+Userspace tools often interpret a 0-byte write return as a temporary
+condition and retry indefinitely. Could this cause unprivileged applications
+to hang in infinite loops?
+
+> +
+> +	return rc;
+> +}
+> +
+> +static ssize_t
+> +famfs_dax_read_iter(struct kiocb *iocb, struct iov_iter	*to)
 > +{
 [ ... ]
-> +	fmap_buf =3D kvmalloc(fmh.fmap_size, GFP_KERNEL);
-
-[Severity: High]
-Should these metadata allocations use the __GFP_ACCOUNT flag?
-This allocation scales with user input. Without __GFP_ACCOUNT, an
-unprivileged user mapping up to 4MB of metadata per file could bypass
-memory cgroup limits and potentially trigger a host-wide out-of-memory
-condition.
-
-> +	if (!fmap_buf)
-> +		return -ENOMEM;
+> +	rc =3D dax_iomap_rw(iocb, to, NULL /*&famfs_iomap_ops */);
+> +	inode_unlock_shared(inode);
 > +
-> +	if (copy_from_user(fmap_buf, arg, fmh.fmap_size)) {
-> +		rc =3D -EFAULT;
-> +		goto out;
-> +	}
-> +	next_offset =3D sizeof(fmh);	/* start of the extent list */
-> +
-> +	meta =3D kzalloc_obj(*meta, GFP_KERNEL);
-> +	if (!meta) {
-> +		rc =3D -ENOMEM;
-> +		goto out;
-> +	}
-> +
-> +	meta->error =3D false;
-> +	meta->file_type =3D fmh.file_type;
-> +	meta->file_size =3D fmh.file_size;
-> +	meta->fm_extent_type =3D fmh.ext_type;
-> +
-> +	switch (fmh.ext_type) {
-> +	case FAMFS_IOC_EXT_SIMPLE: {
-> +		struct famfs_ioc_simple_ext *se_in =3D fmap_buf + next_offset;
-[ ... ]
-> +		for (i =3D 0; i < fmh.nextents; i++) {
-> +			meta->se[i].dev_index  =3D se_in[i].se_devindex;
-> +			meta->se[i].ext_offset =3D se_in[i].se_offset;
-> +			meta->se[i].ext_len    =3D se_in[i].se_len;
-> +
-> +			if (meta->se[i].dev_index >=3D FAMFS_MAX_DAXDEVS) {
-> +				rc =3D -EINVAL;
-> +				goto out;
-> +			}
-> +			meta->dev_bitmap |=3D BIT_ULL(meta->se[i].dev_index);
-> +			errs +=3D famfs_check_ext_alignment(&meta->se[i]);
-> +			extent_total +=3D meta->se[i].ext_len;
+> +	file_accessed(iocb->ki_filp);
 
-[Severity: High]
-Is there a potential integer overflow when accumulating extent_total here?
-If the sum of ext_len wraps around, it might pass the extent_total check be=
-low
-even if the extents do not actually cover the file size. Could ext_offset +
-ext_len also overflow U64_MAX and cause out-of-bounds physical memory
-accesses when constructing the iomap?
+[Severity: Low]
+Should file_accessed() only be called if the read successfully transferred
+data (rc > 0)?
 
-> +		}
-> +		break;
-> +	}
-[ ... ]
-> +	/* Publish the famfs metadata on inode->i_private */
-> +	inode_lock(inode);
-> +	if (inode->i_private) {
-> +		rc =3D -EEXIST; /* file already has famfs metadata */
-> +	} else {
-> +		inode->i_private =3D meta;
-> +		i_size_write(inode, meta->file_size);
+Unconditionally calling file_accessed() in famfs_dax_read_iter() will update
+access times and generate metadata traffic even for failed reads or zero-by=
+te
+EOF reads.
 
-[Severity: High]
-Could a concurrent reader observe the published metadata but a stale i_size?
-Because inode->i_private is assigned before i_size_write(), a lockless
-reader could call famfs_file_invalid() in the middle of this window. It
-would see a size mismatch and incorrectly set meta->error =3D true, which
-permanently marks the file as corrupted.
-
-> +		inode->i_flags |=3D S_DAX;
-> +		meta =3D NULL; /* owned by the inode now */
-> +		rc =3D 0;
-> +	}
-> +	inode_unlock(inode);
-> +
-> +out:
-> +	kvfree(fmap_buf);
-> +	if (meta)
-> +		famfs_meta_free(meta);
 > +	return rc;
 > +}
 > +
 > +/**
-> + * famfs_file_ioctl() - Top-level famfs file ioctl handler
-> + * @file: the file
-> + * @cmd:  ioctl opcode
-> + * @arg:  ioctl opcode argument (if any)
+> + * famfs_dax_write_iter()
+> + *
+> + * We need our own write-iter in order to prevent append
+> + *
+> + * @iocb:
+> + * @from: iterator describing the user memory source for the write
 > + */
-> +static long
-> +famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+> +static ssize_t
+> +famfs_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
 > +{
-> +	struct inode *inode =3D file_inode(file);
+> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
 > +	struct famfs_fs_info *fsi =3D inode->i_sb->s_fs_info;
-> +	long rc;
+> +	ssize_t rc;
 > +
-> +	if (fsi->deverror && (cmd !=3D FAMFSIOC_NOP))
-> +		return -ENODEV;
+> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
+> +		return -EPERM;
 > +
-> +	switch (cmd) {
-> +	case FAMFSIOC_NOP:
-> +		rc =3D 0;
-> +		break;
-> +
-> +	case FAMFSIOC_MAP_CREATE:
-> +		rc =3D famfs_file_init_dax(file, (void __user *)arg);
-
-[Severity: Critical]
-Does this ioctl command require a privilege check like capable(CAP_SYS_ADMI=
-N)?
-Without it, it appears any unprivileged user who can open the file could map
-arbitrary physical DAX memory directly into their processes.
-
-> +		break;
-> +
-> +	default:
-> +		rc =3D -ENOTTY;
-> +		break;
-> +	}
-> +
-> +	return rc;
-> +}
-[ ... ]
-> @@ -93,9 +397,25 @@ const struct vm_operations_struct famfs_file_vm_ops =
-=3D {
->  static ssize_t
->  famfs_file_invalid(struct inode *inode)
->  {
-> +	struct famfs_file_meta *meta =3D inode->i_private;
-> +	size_t i_size =3D i_size_read(inode);
-> +
-> +	if (!meta) {
-> +		pr_debug("%s: un-initialized famfs file\n", __func__);
-> +		return -EIO;
-> +	}
-> +	if (meta->error) {
-> +		pr_debug("%s: previously detected metadata errors\n", __func__);
-> +		return -EIO;
-> +	}
-> +	if (i_size !=3D meta->file_size) {
-> +		pr_warn("%s: i_size overwritten from %ld to %ld\n",
-> +		       __func__, meta->file_size, i_size);
-
-[Severity: Low]
-Should this format string use %zu instead of %ld for size_t variables?
-This can cause compiler warnings and misformatted logs on 32-bit platforms.
-
-> +		meta->error =3D true;
-> +		return -ENXIO;
-> +	}
-
-[ ... ]
+> +	/* dax_iomap_rw() requires i_rwsem held (exclusive for write) */
+> +	inode_lock(inode);
+> +	rc =3D famfs_rw_prep(iocb, from);
 
 [Severity: High]
-This is a pre-existing issue, but can famfs_meta_to_dax_offset_interleaved()
-dereference a NULL pointer if called on an uninitialized file?
+Does famfs_dax_write_iter() bypass POSIX append semantics and file size lim=
+its
+by omitting generic_write_checks() here?
 
-fs/famfs/famfs_file.c:famfs_meta_to_dax_offset_interleaved() {
-    ...
-    struct famfs_file_meta *meta =3D inode->i_private;
-    ...
-    if (meta->fm_extent_type !=3D FAMFS_IOC_EXT_INTERLEAVE) {
-        pr_debug("%s: bad extent type\n", __func__);
-        goto err_out;
-    }
+Without generic_write_checks() before preparing the IO, any user process
+opening a file with O_APPEND or a restricted RLIMIT_FSIZE can write directly
+to the current offset and bypass those limits.
 
-    if (fsi->deverror || famfs_file_invalid(inode))
-        goto err_out;
-    ...
-}
+> +	if (rc || !iov_iter_count(from)) {
+> +		inode_unlock(inode);
+> +		return rc;
+> +	}
+> +
+> +	rc =3D dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);
 
-The meta pointer is dereferenced to check fm_extent_type before the call to
-famfs_file_invalid(), which is where the check for a NULL meta pointer
-actually happens. If the file is uninitialized (inode->i_private is NULL),
-this will cause a panic.
+[Severity: High]
+Does this bypass setuid/setgid privilege stripping and timestamp updates?
+
+The famfs_dax_write_iter() function modifies the file via dax_iomap_rw()
+without calling the required VFS hooks like file_modified() or
+file_remove_privs(). Could this omission allow unprivileged users to escala=
+te
+privileges on SUID/SGID files they have write access to?
+
+> +	inode_unlock(inode);
+> +	return rc;
+> +}
+> +
+> +const struct file_operations famfs_file_operations =3D {
+> +	.owner             =3D THIS_MODULE,
+> +
+[ ... ]
+> +	/* Generic Operations */
+> +	.fsync		   =3D noop_fsync,
+> +	.splice_read	   =3D filemap_splice_read,
+
+[Severity: High]
+Is filemap_splice_read the correct operation for a DAX filesystem?
+
+Because famfs inodes lack the S_DAX flag, VFS falls back to using
+filemap_splice_read. This function queries the page cache and allocates new
+pages using ram_aops.read_folio (which resolves to simple_read_folio and ze=
+ro
+fills them). Will userspace applications using splice() or sendfile() recei=
+ve
+a stream of zeroes instead of the actual DAX memory contents?
+
+> +	.splice_write	   =3D iter_file_splice_write,
+> +	.llseek		   =3D generic_file_llseek,
+> +};
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0100019fc572ca94-ec=
-363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D7
+363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D5
