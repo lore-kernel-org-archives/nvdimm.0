@@ -1,228 +1,292 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C464764AA4
-	for <nvdimm@lists.linux.dev>; Mon,  3 Aug 2026 23:55:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.19
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785801313; cv=fail; b=H/wUbosNeHIuuDcvYZhWs9Q5ojR+YZ1bEhDwuyy55QWPVh/kstaxevNzBfKz74GDVUmpl6LtcOnPcTYXlQfoyagHFtKu7cxPQhZNibLpmNKJwLamVz6fYzdg/g/IhquGm/yyljyjZSFJJzKUr7XuUYbOZod8cnoErLOEwm0F3LI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785801313; c=relaxed/simple;
-	bh=aWRTiR+i3XjJOoO15KtP+XOmBD/JzHleL1gm/GLhAh8=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=riso5r7IxWSWx6eMwnnnrAqorK30JTLf2H0jJcgb5BRrlK9t8xC+o+R/7mZHwlIvzlMeFAprERpK48dWcLoI0SGeJjnqjYGEQMRWvJS+oWj9V55EA0j5f1pmLakbHid9ktKFDqJu/s8g34F1bb80mA7db3lcAeO2km+WlBWcIKI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fj/ufAGT; arc=fail smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F348C3C0A11;
+	Mon,  3 Aug 2026 23:55:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785801334; cv=none; b=eDZG806Pn9ypD4vLGeGfYhQn82UDd4H8c8LPzt8D/fzH3JhTVlhdXyJFn+2zZmuepokojPPffoQRtQrkj+OflcHmfwc0ERiWbgP101BWfAWae+kYlTpYmhEVx8G+u+Lavi+za09JZo1TiwRd1izW0MHFK7vrTGSiopctt0fbxSs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785801334; c=relaxed/simple;
+	bh=bIXlpmlxkFC2CfO8N1ZtPgJBEhpPL62msk9Y7zyZHMQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=iDGFQpi8qQogmZ1+qAFeBfgraTZaY8s+pqUEy8PC0JHoWSl7ymoM9wXBaQ+V7Z2RIDgVy4pyFYX0x68N79MigdohBGBpnCXTDBR+MkLyZJ8kJNhu5jes0HCUt/1/xgaj9lSFrLIGHiLrdXFwuKorxelXl0k5PMcv+FX+Jo99Gi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UeNJz8sI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fj/ufAGT"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785801312; x=1817337312;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=aWRTiR+i3XjJOoO15KtP+XOmBD/JzHleL1gm/GLhAh8=;
-  b=fj/ufAGTvwDtjnoLh1yUmSQxlrJMAXK+Q3Lca+UbITb4Y9S4kqiWD7NM
-   hm7Bh7RXA6Or8T7WaNErKuKMrxC6ZyLdSQ2MbqKIUa0wWrb4yS0H5myhB
-   8kEE6XFFB7ijTfB28z2XbylPoyb/HMmpdqmj+Fk0GHsKr1TrnnufFI0Bz
-   WMD+WDtUXdiDW6pUVq77puqM3TUkm9xb0zksUM80jyo1n3eSs94OQzXr9
-   zxsrq42kLiSQpa33B7MPPaTOwy1e2J3HniGTdbcs9jXLevwzriWSWyoLp
-   cPLihO8LmUC73Qt2dl7CBBfEvpbB+gw5/zljy8k84sRR1jFdQL09CPSbJ
-   g==;
-X-CSE-ConnectionGUID: Co9q3TsaTZWmVEGU6By7cA==
-X-CSE-MsgGUID: jwXh+iaVQE6jrxL2N41iww==
-X-IronPort-AV: E=McAfee;i="6800,10657,11864"; a="85324237"
-X-IronPort-AV: E=Sophos;i="6.25,203,1779174000"; 
-   d="scan'208";a="85324237"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2026 16:55:11 -0700
-X-CSE-ConnectionGUID: McngfElwQcmBiLNolPgOqQ==
-X-CSE-MsgGUID: 6xRA5OqoTGiqMUg7NivNiQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,203,1779174000"; 
-   d="scan'208";a="257030789"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by fmviesa006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2026 16:55:10 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Mon, 3 Aug 2026 16:55:09 -0700
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45 via Frontend Transport; Mon, 3 Aug 2026 16:55:09 -0700
-Received: from BYAPR05CU005.outbound.protection.outlook.com (52.101.85.54) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Mon, 3 Aug 2026 16:55:09 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=KjL+1dFzhR/vnEBtBJQvvm4ok5zB0S+D2uWxi6n09jvXfsAACHLU28fs+/LW0qjmocNvTeWn2+6CyE1ZqAeqPYTYf5/ixIn3hQzcaVHSMJ27LGvNg180EU+TxOJMTQO01bGT9m2dgCcFQY+ce/+xLP12y6XtjtuU+UiJrbAwW/AT7RYJwBd70n+kgtW2tDs8d4GgUGbSe3N8YJpfAW76OC5tLzdqyW3ov2Py2vhJtgoxmJy2pNRSFlcbZLc2IMDqxgno62vr/AUV1q5tnncs58YbwC+doROGhkvF8WM3mZsmC0FzcEalYmu3BAg4EBHGEn8MdILz25l0SCDspHWqOg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ub2i1KOdGonm1eTKIUlKvfetGcdDIv94pHOCFvvbFrA=;
- b=v3WRb6J3CU6Jp8LNAJTjZiHFzo7PlIwZK7it9tv9ol1AD6qZIuZ+/XBtyE+cvbJiPvCWVX8u3srwV8f1hoQsBJ9L4un3BpbCRORzglv+6FE3nsZeMVuQohbpjxRowJUEojuPkLFXc52SdY1NmihCP42eTKhTmvnxGStwxVFIg3TUwy+gL9qGYUv2ii/nsLeJF5K6qmLDCmDiG4wV+DOFUgJRO2EgTRJ1TrQhG/VYUJYZS2JsygH4adJB+ABHMwjIqyK6PeRo5+IogijsaWrwjKIVQnRnsjpSKiLop85P6PwcTSbLMUA2z7aLbRf2zSeGOPZzzDydS4MQoCgEljNM6w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by CO1PR11MB5107.namprd11.prod.outlook.com (2603:10b6:303:97::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.18; Mon, 3 Aug
- 2026 23:55:06 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0270.017; Mon, 3 Aug 2026
- 23:55:06 +0000
-Date: Mon, 3 Aug 2026 16:55:01 -0700
-From: Alison Schofield <alison.schofield@intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UeNJz8sI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 360671F000E9;
+	Mon,  3 Aug 2026 23:55:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785801332;
+	bh=NXoGvOija+rXoGc0jAreHQ2EQTEW2ojWrLo17SrbvGk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=UeNJz8sIHRMelICJcz38RchACt/5z5vj8dURxe7nBJInBGIm0zww+5TNBtiTJ9/aG
+	 5kZxvZTKT2JMqs1waa755tDMqavjZcItXKrIE0+tQMCtMY66XmN3i6Vrctzk1v3Vfu
+	 lecWlr//+KYz9OGr6cCOgiwXHO+GyY1xAm214jlXhjE6eM8aqHIITI0XZlKZJ+yueN
+	 IkyP5TF4vYpovLebZ42Vw0I52IeawvslQHnkgsFeIxok389vhO72TIqTxGtA9KRb7g
+	 oe4Tchg5Sxg2Yi3cdbyhm9mwJd3Ml49J4x2wF9fiWW3+Mx8TFU2vGXIxG+ks1KlZRl
+	 6uq7REbwdLJ5w==
+Date: Tue, 4 Aug 2026 00:55:27 +0100
+From: Jonathan Cameron <jic23@kernel.org>
 To: Anisa Su <anisa.su887@gmail.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Dave Jiang <dave.jiang@intel.com>, "Jonathan
- Cameron" <jic23@kernel.org>, Fan Ni <nifan.cxl@gmail.com>, Li Ming
-	<ming.li@zohomail.com>, Vishal Verma <vishal.l.verma@intel.com>, "Davidlohr
- Bueso" <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, Wonjae Lee <wj28.lee@samsung.com>, Junhee Park
-	<jh9934.park@samsung.com>, Heesoo Kim <habil.kim@samsung.com>, Dan Williams
-	<djbw@kernel.org>, Anisa Su <anisa.su@samsung.com>
-Subject: Re: [PATCH v12 5/8] cxl/pci: Factor out interrupt policy check
-Message-ID: <anEqVU3-B3ab53eE@aschofie-mobl2.lan>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, Dave Jiang <dave.jiang@intel.com>, Alison
+ Schofield <alison.schofield@intel.com>, Fan Ni <nifan.cxl@gmail.com>, Li
+ Ming <ming.li@zohomail.com>, Vishal Verma <vishal.l.verma@intel.com>,
+ Davidlohr Bueso <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>, Wonjae Lee
+ <wj28.lee@samsung.com>, Junhee Park <jh9934.park@samsung.com>, Heesoo Kim
+ <habil.kim@samsung.com>, Anisa Su <anisa.su@samsung.com>
+Subject: Re: [PATCH v12 2/8] cxl/mem: Read dynamic capacity configuration
+ from the device
+Message-ID: <20260804005527.103b7a9f@jic23-huawei>
+In-Reply-To: <20260731084901.1512819-3-anisa.su@samsung.com>
 References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-6-anisa.su@samsung.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260731084901.1512819-6-anisa.su@samsung.com>
-X-ClientProxiedBy: BY1P220CA0010.NAMP220.PROD.OUTLOOK.COM
- (2603:10b6:a03:59d::12) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	<20260731084901.1512819-3-anisa.su@samsung.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|CO1PR11MB5107:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1a9a0f06-761e-4360-6128-08def1baa493
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|23010399003|376014|7416014|1800799024|366016|56012099006|4143699003|11063799006|6133799003|10067099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info: YXLOnhSqgjtQRZPwxrPGdx0rt42elj1Xcjh49zwka17h6NVD6EuicWS+m7SfrFrig2DVdGy38KW8r3zO+0siWNtlGnNv7Q4UMR9ByN+Gqe1T5NprBUt4+3c2u+kr5tkf4mdzVg8F2uxNIx6TxAXo9szToVJPRxAnOvemSUlqElsPlwJbJi8BhkgJ33k+rVWJ4izKKzJwCCs7jt9FNqp3auYEZAejoFcsCPCxyKTMnPj8uEKUKNOBnFRutoldk75VDHeYXBqe2aTYtoz3KlOsJ8EZ1tbJKaei6T2h9R38XsPne/7IkJBU9sc4UD60vmePkIpgeuMvDJ6A7ubrfAeA1rFG8QZJwrSssGOAcSKiogt9LUNWioxR10KKZPlzgMMd7K9FZiVO5o9tvchumhs4CKeqyvuN320bLuyeZDE8Ng2a98Lq4Hd0H4KmByDvKLRgUmt4yfz/pqb5Z2HBQj0ZCzCw8NAFFQyH6GKvqb2pFFiG8r6Vxjr2Cl5cuoUZQ4VzkBHk6FrxHMDsTHfv2tJZuK44hlYvVGIasHT2iIFpgacCM1CoX8NnnBHXIM764jdkqE87x8H17Y7fi9kR+gDcSqGGe+Q0Wi6JfK/GJ8NCo8R+moCZlcJRATDq9Bc9yfODdKtItgKJqmsbfhrkw406AaschyAOuQV57MTq0wnbFj4=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(7416014)(1800799024)(366016)(56012099006)(4143699003)(11063799006)(6133799003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?DsQoMvnBsWRKDzvUnfT8/+Z70i4iXFKkYYBOSDJYGo5wRYe0Fr8C3qcPIveL?=
- =?us-ascii?Q?h8/bF20pdpHnogrXpuG6kxDtW4Fa8Eot6FPuXrrCFR9svEP3AJvqDUkkaNgo?=
- =?us-ascii?Q?JlER6CTtjKLO5vB1n/cPsdiGyNK7nFGkUOAwcGAs/ZO7NMHrj3JcLr070iEs?=
- =?us-ascii?Q?aqELzffysM3JmyswjQxzY33va2Yspjl7+a++fkdx12dg7bz5nWbQWd4Bdjo9?=
- =?us-ascii?Q?hLepk8MCHX6WhL1n1q/bxJpxXF8I7W4kn8CaDyHZ8Vrtp25wTYALIm9YgoQD?=
- =?us-ascii?Q?ZA5o2xNWhajxbC+D3EZhU+MlHZkSUABlvvv5zBQrp6051e/i/b28YBFyY+zy?=
- =?us-ascii?Q?8JvqfaqXcsiIPU2ArWnIjOJeob4NPe7F26mIFsZXPNb3BClWxBWPD44gVLLs?=
- =?us-ascii?Q?Y64Yf0oNNQqPrvqmyTc7Kv8ZExVvuMOkPriXwfYCV6jLmhaRSZR9Wp9fYU2M?=
- =?us-ascii?Q?dOAPidllr5VV8/UINYIXTfR7kXqq0CB5/uUgYWRclsdlLiPAWIS6vuz0y6h2?=
- =?us-ascii?Q?UBiZ3X1PEwomkE+v5UQHEqFE8EvfSA3pUyjqRH0ZNxKVSGtg7k1tQtkedYuk?=
- =?us-ascii?Q?vgGr6YSo7lTI7aEgqgOXOxtzo4e6ptgZIRun25Ad8t5g51HqUicz97YyKoTo?=
- =?us-ascii?Q?8RyKDBML6heISuCWiD7IB+bKIuoHwAzr97BkyX10WKOeD+aJCYmQBLjod9Rr?=
- =?us-ascii?Q?X+5dULx8ypZfHCLGlqPYNpCv7thPXv9BOvCBXuKHkPgJmO3MURxvbzGmukMl?=
- =?us-ascii?Q?r06fRCJVgizx1xUaBoiFiSSkHJL2qs8DF9Csp1Vm/sIqJ9SKMWLJHpKfKouG?=
- =?us-ascii?Q?8QYbLg4nmXR0tQZTOVv0A6NoVz99ZYoTqcExm/3c8u0l/YXsQCxJHdEV4EOQ?=
- =?us-ascii?Q?+yOvcqWYZkQ+Svm1OtFh2mJz94EapIzI5XNuV/juw19x5PTVhcbK4wYVOYMR?=
- =?us-ascii?Q?6adwrm1Jkx85Q4R3fFej5bhbkLfE44f9np2Td5+b9be4TbNMg5J+2zLzfqTp?=
- =?us-ascii?Q?XyRfXX9WsvuYFdjdmQvXMFey4IUmhEk2RLq54KCNj00K2TcNGu89YPoGxain?=
- =?us-ascii?Q?eEo9eW8cKOSpihIB5nC06XwsOrgU2h6u+E3l6+ch2+qOKyPDYIytTp3NTpbZ?=
- =?us-ascii?Q?7OaqiGyDbz98DfBv0KSjOAq9sCDAPVfBxyADn1x6q8SSA/1avJkhxQfKUG6f?=
- =?us-ascii?Q?amEmm7s2eemm5uPeNLcTVut1vK0o9ASGem9I8oSEpCMXfh7s+CqLdPMuO05t?=
- =?us-ascii?Q?3sTPfYEEHzComjB69ph/NMhI2MKZtFfhNgA0l95gfEVgMQyskNedudj5ho1X?=
- =?us-ascii?Q?zoLh8GYjimE14KVpsRziJKmQyHqD+Kc58F5vkFG4H2NTokJc9HLxZR1K7NYc?=
- =?us-ascii?Q?I9YW6A8hkvMGQEW//a5jVVi39xdSrfXmiwWwhs7ICW+oFt1CBOvp9AcOlmmX?=
- =?us-ascii?Q?EQsQCLRZTRqw5yxY+EYm3d3OD869QZ/F2Rvps767x4KU1N6hPPRTUyCrzFTa?=
- =?us-ascii?Q?XUSFTDdvWRpmWmZh0NlM5VM0RKcUWYsUggLvbBPe6r0HapRMkJIz0MGxfdsR?=
- =?us-ascii?Q?LhMyCvhrE6yWIth8Q0wxXoiH55e5fZAxwKxSsE2wNLpt3Rgqduiqi5XM0aMf?=
- =?us-ascii?Q?egDKXiKkUtMt3gA/NMp47ZV7HIVmSCzCA8WbFMUz11cRgp36l49OnOD4za3y?=
- =?us-ascii?Q?9O10YQ+3tjMgzKNC86Ot8fwf726rBgjsD9Nn5qPUj8j6xb/Ea1lcQA2mojOO?=
- =?us-ascii?Q?eIpr2CT+IdWRowJV7adss2VeXXRp0tg=3D?=
-X-Exchange-RoutingPolicyChecked: nnkC3lozquOCzctc3INKnGXm+N/Z/TjIy/OZB3c84ejPJm5CPQ6nWPxFvHecUt/o5ZfgMHNvJUl4P3Yw3edIjKhzQzuQoetrUn8mdtdciYu2h/zMjLmzj9Aie7gVvzOZgwBCY2chjh86QXZjNXC/WTNfBMuBycNdcDJ41eRUdA0HgO3SDdHb/sqxEc2Lu04sIsq5dRkfWLzn0RZp9eguGQgfaq27seV+3lajmPXdXA9Ne4LAIxDBrAC96468gxtVxHvTsiL1edG3VQXZrotmqz82bEPsPI4C7LTFVqCconmTOO85+ayg1hQff3Y4qw3m7131BzAmeDhUdYCotonTNw==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1a9a0f06-761e-4360-6128-08def1baa493
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 23:55:06.2334
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 6UPIlooeRoedmH7r9DvqKvSPXQINP8nHNBvds+6Kylqqwi4ZKk6EZHuguDu3kyZdl4O81dSncxd8uo3dt/KGG/gcawyreCWWRV5TLptBQSA=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO1PR11MB5107
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 31, 2026 at 01:48:10AM -0700, Anisa Su wrote:
+On Fri, 31 Jul 2026 01:48:07 -0700
+Anisa Su <anisa.su887@gmail.com> wrote:
+
 > From: Ira Weiny <iweiny@kernel.org>
 > 
-> Dynamic Capacity Devices (DCD) require event interrupts to process
-> memory addition or removal.  BIOS may have control over non-DCD event
-> processing.  DCD interrupt configuration needs to be separate from
-> memory event interrupt configuration.
+> Devices which optionally support Dynamic Capacity (DC) are configured
+> via mailbox commands.  CXL r4.0 section 9.13.3 requires the host to issue
+> the Get DC Configuration command in order to properly configure DCDs.
+> Without the Get DC Configuration command DCD can't be supported.
 > 
-> Factor out event interrupt setting validation.
+> Implement the DC mailbox commands as specified in CXL 4.0 section
+> 8.2.10.9.9 (opcodes 48XXh) to read and store the DCD configuration
+> information.  Disable DCD if an invalid configuration is found.
+> 
+> Linux has no support for more than one dynamic capacity partition.  Read
+> and validate all the partitions but configure only the first partition
+> as 'dynamic ram 1'.  Additional partitions can be added in the future if
+> such a device ever materializes.  Additionally it is anticipated that no
+> skips will be present from the end of the pmem partition.  Check for and
+> disallow this configuration as well.
+> 
+> Based on an original patch by Navneet Singh.
+> 
+> Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> Tested-by: Wonjae Lee <wj28.lee@samsung.com>
+> Tested-by: Junhee Park <jh9934.park@samsung.com>
+> Tested-by: Heesoo Kim <habil.kim@samsung.com>
 
 Hi Anisa,
 
-"Validation" seems like the wrong term here. The helper checks for
-firmware ownership of the memory event logs. It is not validating
-the event interrupt settings.
+A few things to add to the reviews of others.
 
-Which leads to my next comment -
-
-snip
-> 
+Jonathan
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> index 4790524c32a7..d79019fbd790 100644
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
+> @@ -1352,6 +1352,197 @@ int cxl_mem_sanitize(struct cxl_memdev *cxlmd, u16 cmd)
+>  	return -EBUSY;
+>  }
 >  
-> +static bool cxl_event_validate_mem_policy(struct cxl_memdev_state *mds,
-> +					  struct cxl_event_interrupt_policy *policy)
+> +static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info *part_array,
+> +			u8 index, struct cxl_dc_partition *dev_part)
 > +{
-> +	if (cxl_event_int_is_fw(policy->info_settings) ||
-> +	    cxl_event_int_is_fw(policy->warn_settings) ||
-> +	    cxl_event_int_is_fw(policy->failure_settings) ||
-> +	    cxl_event_int_is_fw(policy->fatal_settings)) {
-> +		dev_err(mds->cxlds.dev,
-> +			"FW still in control of Event Logs despite _OSC settings\n");
-> +		return false;
-> +	}
+> +	u64 blk_size = le64_to_cpu(dev_part->block_size);
+> +	u64 len = le64_to_cpu(dev_part->length);
 > +
-> +	return true;
+> +	part_array[index].start = le64_to_cpu(dev_part->base);
+> +	part_array[index].size = le64_to_cpu(dev_part->decode_length);
+> +	part_array[index].size *= CXL_CAPACITY_MULTIPLIER;
+
+I'd be tempted to make it clear you are setting whole structure with
+
+	part_array[index] = (struct cxl_dc_partition_info) {
+		.start = le64_to_cpu(dev_part->base),
+		.size = le64_to_cpu(dev_part->decode_length) * CXL_CAPACITY_MULTIPLIER,
+//This is a case where I think readability justifies the long line.
+
+	};
+> +
+> +	/* Check partitions are in increasing DPA order */
+> +	if (index > 0) {
+> +		struct cxl_dc_partition_info *prev_part = &part_array[index - 1];
+> +
+> +		if ((prev_part->start + prev_part->size) >
+> +		     part_array[index].start) {
+
+I'd be tempted to put the above on one line.
+
+> +			dev_err(dev,
+> +				"DPA ordering violation for DC partition %d and %d\n",
+> +				index - 1, index);
+> +			return -EINVAL;
+> +		}
+> +	}
+
+Alison's comments seem valid to me and apply to rest of this function at least so I'll
+not add anything else on that.
+
+> +
 > +}
 
-Why such a general name here? This helper seems to have one very specific purpose.
+...
 
-cxl_event_validate_mem_policy() doesn't validate the policy. It checks whether
-firmware still owns the standard memory event logs despite _OSC granting OS
-control. I'd prefer naming it after that condition rather than "validate".
-Something like cxl_event_fw_owns_mem_logs() reads much closer to what the
-code actually does.
-
---Alison
-
-
+> +/**
+> + * cxl_dev_dc_identify() - Reads the dynamic capacity information from the
+> + *                         device.
+> + * @mbox: Mailbox to query
+> + * @dc_info: The dynamic partition information to return
+> + *
+> + * Read Dynamic Capacity information from the device and return the partition
+> + * information.
+> + *
+> + * Return: 0 if identify was executed successfully, -ERRNO on error.
+> + *         on error only dc_info is left unchanged.
+> + */
+> +int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+> +			struct cxl_dc_partition_info *dc_info)
+> +{
+> +	struct cxl_dc_partition_info partitions[CXL_MAX_DC_PARTITIONS];
+> +	struct cxl_mbox_get_dc_config_out *dc_resp __free(kfree) = NULL;
+> +	struct device *dev = mbox->host;
+> +	u8 start_partition;
+> +	u8 num_partitions;
+> +	u8 partition_count;
+> +	size_t dc_resp_size;
 > +
->  static int cxl_event_config(struct pci_host_bridge *host_bridge,
->  			    struct cxl_memdev_state *mds, bool irq_avail)
->  {
-> @@ -661,14 +676,8 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
->  	if (rc)
->  		return rc;
+> +	/* Bound requested number of partitions by mailbox payload size */
+> +	partition_count = min_t(size_t, CXL_MAX_DC_PARTITIONS,
+> +				(mbox->payload_size - sizeof(*dc_resp) -
+> +				 sizeof(struct cxl_mbox_get_dc_config_tail)) /
+> +				sizeof(struct cxl_dc_partition));
+> +	dc_resp_size = struct_size(dc_resp, partition, partition_count) +
+> +		       sizeof(struct cxl_mbox_get_dc_config_tail);
+> +
+> +	dc_resp = kmalloc(dc_resp_size, GFP_KERNEL);
+> +	if (!dc_resp)
+> +		return -ENOMEM;
+> +
+> +	/*
+> +	 * Read and check all partition information for validity and potential
+> +	 * debugging; see debug output in cxl_dc_check()
+> +	 */
+> +	start_partition = 0;
+> +	num_partitions = 0;
+> +	do {
+> +		int rc, i, j;
+> +
+> +		rc = cxl_get_dc_config(mbox, start_partition, partition_count,
+> +				       dc_resp, dc_resp_size);
+> +		if (rc < 0) {
+> +			dev_err(dev, "Failed to get DC config: %d\n", rc);
+> +			return rc;
+> +		}
+> +
+> +		if (rc == 0) {
+> +			dev_err(dev,
+> +				"Device reported %u partitions available but returned none at index %u\n",
+> +				dc_resp->avail_partition_count, start_partition);
+> +			return -EIO;
+> +		}
+> +
+> +		num_partitions += rc;
+> +
+> +		if (num_partitions < 1 || num_partitions > CXL_MAX_DC_PARTITIONS) {
+
+How could num_partitions end up either 0 or negative given we added at least 1 and
+I don't see a path by which it will get decremented. Roll over isn't a thing given
+we would have failed the other check on a previous loop.
+
+
+> +			dev_err(dev, "Invalid num of dynamic capacity partitions %d\n",
+> +				num_partitions);
+> +			return -EINVAL;
+> +		}
+> +
+> +		for (i = start_partition, j = 0; i < num_partitions; i++, j++) {
+> +			rc = cxl_dc_check(dev, partitions, i,
+> +					  &dc_resp->partition[j]);
+> +			if (rc)
+> +				return rc;
+> +		}
+> +
+> +		start_partition = num_partitions;
+> +
+> +	} while (num_partitions < dc_resp->avail_partition_count);
+> +
+> +	/* Return 1st partition */
+> +	dc_info->start = partitions[0].start;
+> +	dc_info->size = partitions[0].size;
+> +	dev_dbg(dev, "Returning partition 0 %llu size %llu\n",
+> +		dc_info->start, dc_info->size);
+> +
+> +	return 0;
+> +}
+
+
+
+> @@ -1422,6 +1613,35 @@ int cxl_get_dirty_count(struct cxl_memdev_state *mds, u32 *count)
+>  }
+>  EXPORT_SYMBOL_NS_GPL(cxl_get_dirty_count, "CXL");
 >  
-> -	if (cxl_event_int_is_fw(policy.info_settings) ||
-> -	    cxl_event_int_is_fw(policy.warn_settings) ||
-> -	    cxl_event_int_is_fw(policy.failure_settings) ||
-> -	    cxl_event_int_is_fw(policy.fatal_settings)) {
-> -		dev_err(mds->cxlds.dev,
-> -			"FW still in control of Event Logs despite _OSC settings\n");
-> +	if (!cxl_event_validate_mem_policy(mds, &policy))
->  		return -EBUSY;
-> -	}
->  
->  	rc = cxl_event_config_msgnums(mds, &policy);
->  	if (rc)
-> -- 
-> 2.43.0
-> 
+> +void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
+> +{
+> +	struct cxl_dc_partition_info dc_info = { 0 };
+
+I think the preferred way of doing this is heading for the C23 option of
+
+  = { };
+
+but CXL has plenty of { 0 }; so fair enough if you prefer to keep it this
+way.  For anyone concerned about older compilers there is a specific selftest
+for { } doing what we expect even if the structure has holes.
+
+
+> +	struct device *dev = mds->cxlds.dev;
+> +	int rc;
+> +
+> +	rc = cxl_dev_dc_identify(&mds->cxlds.cxl_mbox, &dc_info);
+> +	if (rc) {
+> +		dev_warn(dev,
+> +			 "Failed to read Dynamic Capacity config: %d\n", rc);
+
+Fun question on whether we consider a DCD capable device failing such
+a basic thing as a warning level thing or a hard failure thing.
+
+To me DCD is a important core device feature (unlikely maybe fwctl, features etc)
+so we should be failing. 
+
+We should definitely be returning an error from here, even if ultimate
+we decide not to act on that error in cxl_pci_probe().
+
+> +		cxl_disable_dcd(mds);
+> +		return;
+> +	}
+> +
+> +	/* Skips between pmem and the dynamic partition are not supported */
+> +	if (dc_info.start != info->size) {
+> +		dev_warn(dev,
+> +			 "Dynamic Capacity skip from pmem not supported\n");
+> +		cxl_disable_dcd(mds);
+> +		return;
+
+In this case not failing hard is probably fair if that is a specification
+allowed feature we are just not choosing to support for now.
+
+> +	}
+> +
+> +	info->size += dc_info.size;
+> +	dev_dbg(dev, "Adding dynamic ram partition 1; %llu size %llu\n",
+> +		dc_info.start, dc_info.size);
+> +	add_part(info, dc_info.start, dc_info.size, CXL_PARTMODE_DYNAMIC_RAM_1);
+> +}
+> +EXPORT_SYMBOL_NS_GPL(cxl_configure_dcd, "CXL");
+
+
