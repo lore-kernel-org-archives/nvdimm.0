@@ -1,251 +1,169 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B568D489863;
-	Mon,  3 Aug 2026 02:42:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7660C489863;
+	Mon,  3 Aug 2026 02:42:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785724959; cv=none; b=lN5OROIKJ3TJeUErfMVdYC7H9S7UXPTYGcdcM1/hxyULie8ZRHxbr4UVtjRIJmJCn5fnGsDXw19ChE+/YIYaLfnhw9c72ee8P6KPQVIJ04Rjrv4hwX2HxKJrMhAr0NeSdoWUgd8CWPlC4m45mWOrA+N6+xk5vZeTpjFFMi3QWck=
+	t=1785724975; cv=none; b=nfFB1dWuRMnjpQHBIZ0/9CH9XGILkjmMpT0h+NYYo93MFiTdEY5qBUYav59hwYAhn/SNg0tD5itcirxmNuoOf9cLVnPyD4bFV5seQpU8Tivi8pCkLwVlx5ErEXQbqH0nk8lK3h+hA0QXMYpihAbZLEl76Dp64TH5map8KH706Ss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785724959; c=relaxed/simple;
-	bh=fO9blh7IguIR24nrCGpaRHBFuB+mymtb06dG9WQf69w=;
+	s=arc-20240116; t=1785724975; c=relaxed/simple;
+	bh=bCDm7fbqV3uwTYHVZQImCTxLRVS2mvw9ZC6566XgxSg=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=ir5l7jPQy8jrWHrWMQDVitnIVj+ZiAjxAE25lJ0gaZ5hQx0Vl4F5dJonQBoU0Uvyn6TfNxQdnSKCRwGMhZmed54MSGLAakjfoR2+4c4NtALefqKQ8GYVVc0KmrYI5Zc3aAxhAIs9WPGqMMRk1F6eu9S4YkUGASqSFsLfLn+9nFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gZfSzh/Y; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=HlB7ejMtdKN4JDZfHC0FANuKx5vjCz57PsbtyUa3h8CHp+FN7RXWAPCHnBqGrGrKwUCcRc7Y00SBTabZkrTmS1ohFQOg7/BlSAEQOBd2V9FIDNxt8cDNABobkFxaV3f5QnFXFnUEw/tNgEHwPEXaQWipY7tIssKaFzICsXt25HM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dIbiF4Db; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gZfSzh/Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24EC01F000E9;
-	Mon,  3 Aug 2026 02:42:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dIbiF4Db"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC2431F000E9;
+	Mon,  3 Aug 2026 02:42:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785724957;
-	bh=cxYmbLYVydA7qYG4qTlZOGcIjyE3cVLo5LP0Q8bw3/0=;
+	s=k20260515; t=1785724974;
+	bh=1JwSqGqn94RIbPNRe2todwOklLLoibUcogVq/FnV+6Q=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=gZfSzh/YqMa7QEhMyDpJjmOGNDwJ1eZi44eT/xNr7NYlDE9Pytcou4kcKGIr3Z9on
-	 t8KVxpHdh79JjvwRc0t8gP2ME8luTaQJxJqEkJeySL4NqzRCEOyE9uFZBTLfCUty0p
-	 ssEkMPuYd6Mb9N4AigG60tisVm/Fz2QZEy80BmaY8nhd8uT3PIhPHXRtEbcm9Mj4o1
-	 F5+1RO7//JNr3u4SFRM+D40oOtYhc4LfBxjIDTCUJfda39PyZEK6kUzXqciKOQn0GB
-	 Dln6bSPfQLl48OSZAt6WMh5aYIOdBTRcgHsF2qCb5ThsZsZO/NFC01sBxZJfnB3gAM
-	 2MrODfCMgQ9WQ==
+	b=dIbiF4DbVrhUKR17d+CRQReuafCmxcnjSVy5oaLvDrPyrZnAV24VN6sW+Ot2k4a/w
+	 3X5WmQyJdn6C3KCJ7i+uIcVIIUqGqe8RTQ5zDH92wYjYemeHqKqWth9eGEoAZhYBqt
+	 eSUoxiWKphdBxRhd4qvu91+wyK1G7nzFqF37GPN4TlMXUKah8AXmkQivxoYRmXCQs0
+	 wcIb89rnwRgz3hLGvAz1nmIU7xQtFZnyF4iQC2kJFIbQC13wphoNIccD7O6A99uzA2
+	 +GGbtMUEAJq9wkRMgKkj1H1ezovwgphUEJCWVYw5yMV9KVGtIF9/ZcKVrdm0lAQZa0
+	 YWRFF1RAqbIMg==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V12 05/12] famfs: Introduce file_operations read/write
+Subject: Re: [PATCH V12 04/12] famfs: Introduce inode_operations and
+ super_operations
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <0100019fc5741536-d6b2c2f4-794a-43b4-abf4-f38f2d812e19-000000@email.amazonses.com>
+In-Reply-To: <0100019fc573edf6-93c159df-6197-4bdf-9f1d-74b77a72ce7e-000000@email.amazonses.com>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022859.75838-1-john@jagalactic.com>
- <0100019fc5741536-d6b2c2f4-794a-43b4-abf4-f38f2d812e19-000000@email.amazonses.com>
+ <20260803022849.75812-1-john@jagalactic.com>
+ <0100019fc573edf6-93c159df-6197-4bdf-9f1d-74b77a72ce7e-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 03 Aug 2026 02:42:36 +0000
-Message-Id: <20260803024237.24EC01F000E9@smtp.kernel.org>
+Date: Mon, 03 Aug 2026 02:42:53 +0000
+Message-Id: <20260803024253.DC2431F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 7 potential issue(=
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-- [High] The custom write iterator famfs_dax_write_iter() omits the require=
-d VFS file_modified() / file_remove_privs() hooks, bypassing setuid/setgid =
-privilege stripping and timestamp updates.
-- [High] famfs_dax_write_iter() bypasses POSIX append semantics and file si=
-ze limits by omitting generic_write_checks().
-- [High] famfs_rw_prep() truncates the 64-bit file size to 32 bits on 32-bi=
-t architectures, breaking bounds checking and causing artificial IO limits.
-- [High] Using filemap_splice_read on a DAX filesystem initialized with ram=
-_aops will cause splice reads to silently return streams of zeroes.
-- [Medium] Writes past the end of the file return 0 instead of an error, wh=
-ich can cause infinite loops in userspace.
-- [Low] file_accessed() is called unconditionally on reads, updating access=
- time even on errors or EOF.
-- [Low] Kernel heap address leak via pr_debug using %llx on an inode pointe=
-r.
+- [High] Setting `inode->i_fop` to `NULL` for regular files triggers a kern=
+el WARN_ON during `open()`, leading to a denial of service.
+- [High] The `FAMFS_OPT_UNLINK` and `FAMFS_OPT_RMDIR` policies can be trivi=
+ally bypassed by renaming an entry over existing files or directories.
+- [Medium] Creation operations (create, mkdir, mknod) fail to update the pa=
+rent directory's timestamps, and racily update the child inode's timestamps=
+ after publishing.
 --
 
---- Patch [5]: [PATCH V12 05/12] famfs: Introduce file_operations read/writ=
-e ---
-commit 025e683c34185b254d9bc60d68aabd4be0342a87
+--- Patch [4]: [PATCH V12 04/12] famfs: Introduce inode_operations and supe=
+r_operations ---
+commit 1062e22926010cfce092f1770e05033249b3ab2f
 Author: John Groves <john@groves.net>
 
-famfs: Introduce file_operations read/write
+famfs: Introduce inode_operations and super_operations
 
-This commit introduces fs/famfs/famfs_file.c and the famfs
-file_operations for read/write. It sets up the groundwork for
-DAX I/O, though it currently calls dax_iomap_rw with NULL iomap_ops.
+The famfs inode and super operations are generic other than
+show_options, evict_inode and setattr. This commit builds but is
+still too incomplete to run.
 
-> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> new file mode 100644
-> index 0000000000000..e192b573c51f7
-> --- /dev/null
-> +++ b/fs/famfs/famfs_file.c
-> @@ -0,0 +1,138 @@
+> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> index ad71e5e7a8e39..efc6b852eca00 100644
+> --- a/fs/famfs/famfs_inode.c
+> +++ b/fs/famfs/famfs_inode.c
 [ ... ]
-> +/* Reject I/O to files that aren't in a valid state */
-> +static ssize_t
-> +famfs_file_invalid(struct inode *inode)
-> +{
-> +	if (!IS_DAX(inode)) {
-> +		pr_debug("%s: inode %llx IS_DAX is false\n",
-> +			 __func__, (u64)inode);
-
-[Severity: Low]
-Does this explicit cast to u64 leak the raw kernel heap address of the inod=
-e?
-
-When dynamic debugging is enabled and famfs_file_invalid() is called on an
-inode without S_DAX, bypassing the kernel's %p hashing protection could exp=
-ose
-the heap layout to dmesg. Could this assist attackers in bypassing KASLR?
-
-> +		return -ENXIO;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static ssize_t
-> +famfs_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
-> +{
-> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
-> +	struct super_block *sb =3D inode->i_sb;
-> +	struct famfs_fs_info *fsi =3D sb->s_fs_info;
-> +	size_t i_size =3D i_size_read(inode);
+> @@ -54,11 +57,11 @@ static struct inode *famfs_get_inode(
+>  		init_special_inode(inode, mode, dev);
+>  		break;
+>  	case S_IFREG:
+> -		inode->i_op =3D NULL /* famfs_file_inode_operations */;
+> +		inode->i_op =3D &famfs_file_inode_operations;
+>  		inode->i_fop =3D NULL /* &famfs_file_operations */;
 
 [Severity: High]
-Does this truncate the 64-bit loff_t file size to 32 bits on 32-bit
-architectures?
+Will this trigger a kernel warning during open()?
 
-When reading or writing a famfs file larger than 4GB on a 32-bit system,
-i_size_read() will be truncated into the 32-bit size_t i_size. Will this br=
-eak
-bounds checking and make data past the 32-bit wrapped boundary inaccessible?
+When VFS attempts to open a regular file, do_dentry_open() calls
+fops_get(inode->i_fop). Passing a NULL f_op pointer triggers a
+WARN_ON(!f->f_op), which could lead to a denial of service on systems
+with panic_on_warn enabled.
 
-> +	size_t count =3D iov_iter_count(ubuf);
-> +	size_t max_count;
-> +	ssize_t rc;
+>  		break;
+>  	case S_IFDIR:
+> -		inode->i_op =3D NULL /* famfs_dir_inode_operations */;
+> +		inode->i_op =3D &famfs_dir_inode_operations;
+>  		inode->i_fop =3D &simple_dir_operations;
 [ ... ]
-> +	/* Avoid unsigned underflow if position is past EOF */
-> +	if (iocb->ki_pos >=3D i_size)
-> +		max_count =3D 0;
-> +	else
-> +		max_count =3D i_size - iocb->ki_pos;
+> +static int
+> +famfs_mknod(struct mnt_idmap *idmap, struct inode *dir, struct dentry *d=
+entry,
+> +	    umode_t mode, dev_t dev)
+> +{
+> +	struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;
+> +	struct timespec64 tv;
+> +	struct inode *inode;
 > +
-> +	if (count > max_count)
-> +		iov_iter_truncate(ubuf, max_count);
+> +	if (fsi->deverror)
+> +		return -ENODEV;
 > +
-> +	if (!iov_iter_count(ubuf))
-> +		return 0;
+> +	inode =3D famfs_get_inode(dir->i_sb, dir, mode, dev);
+> +	if (!inode)
+> +		return -ENOSPC;
+> +
+> +	d_make_persistent(dentry, inode);
+> +	tv =3D inode_set_ctime_current(inode);
+> +	inode_set_mtime_to_ts(inode, tv);
+> +	inode_set_atime_to_ts(inode, tv);
 
 [Severity: Medium]
-When writing at or past EOF (ki_pos >=3D i_size), famfs_rw_prep() sets max_=
-count
-to 0 and returns 0. Will famfs_dax_write_iter() bubble this 0 up to the
-syscall instead of returning an error code like -ENOSPC or -EFBIG?
+Is there a typo here with 'inode' instead of 'dir'?
 
-Userspace tools often interpret a 0-byte write return as a temporary
-condition and retry indefinitely. Could this cause unprivileged applications
-to hang in infinite loops?
+Creation operations should update the parent directory's mtime and ctime.
+Updating the newly created child inode's timestamps here seems redundant si=
+nce
+they are already initialized in famfs_get_inode().=20
+
+Additionally, modifying the child inode's timestamps after calling
+d_make_persistent() publishes it to the dcache creates a race condition
+against lockless lookups.
 
 > +
-> +	return rc;
+> +	return 0;
 > +}
-> +
-> +static ssize_t
-> +famfs_dax_read_iter(struct kiocb *iocb, struct iov_iter	*to)
-> +{
 [ ... ]
-> +	rc =3D dax_iomap_rw(iocb, to, NULL /*&famfs_iomap_ops */);
-> +	inode_unlock_shared(inode);
-> +
-> +	file_accessed(iocb->ki_filp);
-
-[Severity: Low]
-Should file_accessed() only be called if the read successfully transferred
-data (rc > 0)?
-
-Unconditionally calling file_accessed() in famfs_dax_read_iter() will update
-access times and generate metadata traffic even for failed reads or zero-by=
-te
-EOF reads.
-
-> +	return rc;
-> +}
-> +
-> +/**
-> + * famfs_dax_write_iter()
-> + *
-> + * We need our own write-iter in order to prevent append
-> + *
-> + * @iocb:
-> + * @from: iterator describing the user memory source for the write
-> + */
-> +static ssize_t
-> +famfs_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
+> +static int
+> +famfs_rename(
+> +	struct mnt_idmap *idmap,
+> +	struct inode *old_dir,
+> +	struct dentry *old_dentry,
+> +	struct inode *new_dir,
+> +	struct dentry *new_dentry,
+> +	unsigned int flags)
 > +{
-> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
-> +	struct famfs_fs_info *fsi =3D inode->i_sb->s_fs_info;
-> +	ssize_t rc;
+> +	struct famfs_fs_info *fsi =3D old_dir->i_sb->s_fs_info;
 > +
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
+> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_RENAME))
 > +		return -EPERM;
 > +
-> +	/* dax_iomap_rw() requires i_rwsem held (exclusive for write) */
-> +	inode_lock(inode);
-> +	rc =3D famfs_rw_prep(iocb, from);
+> +	return simple_rename(idmap, old_dir, old_dentry, new_dir, new_dentry,
+> +			     flags);
 
 [Severity: High]
-Does famfs_dax_write_iter() bypass POSIX append semantics and file size lim=
-its
-by omitting generic_write_checks() here?
+Can this implementation bypass the protections in famfs_unlink() and
+famfs_rmdir()?
 
-Without generic_write_checks() before preparing the IO, any user process
-opening a file with O_APPEND or a restricted RLIMIT_FSIZE can write directly
-to the current offset and bypass those limits.
+The filesystem implements safety checks in famfs_unlink() to prevent
+the removal of files with active memory maps (where inode->i_private is
+set). However, delegating directly to simple_rename() will internally call
+simple_unlink() or simple_rmdir() on an existing target without invoking the
+custom policy checks.
 
-> +	if (rc || !iov_iter_count(from)) {
-> +		inode_unlock(inode);
-> +		return rc;
-> +	}
-> +
-> +	rc =3D dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);
+Could this allow a policy bypass by renaming an entry over a protected
+target, potentially destroying active shared memory states?
 
-[Severity: High]
-Does this bypass setuid/setgid privilege stripping and timestamp updates?
-
-The famfs_dax_write_iter() function modifies the file via dax_iomap_rw()
-without calling the required VFS hooks like file_modified() or
-file_remove_privs(). Could this omission allow unprivileged users to escala=
-te
-privileges on SUID/SGID files they have write access to?
-
-> +	inode_unlock(inode);
-> +	return rc;
 > +}
-> +
-> +const struct file_operations famfs_file_operations =3D {
-> +	.owner             =3D THIS_MODULE,
-> +
-[ ... ]
-> +	/* Generic Operations */
-> +	.fsync		   =3D noop_fsync,
-> +	.splice_read	   =3D filemap_splice_read,
-
-[Severity: High]
-Is filemap_splice_read the correct operation for a DAX filesystem?
-
-Because famfs inodes lack the S_DAX flag, VFS falls back to using
-filemap_splice_read. This function queries the page cache and allocates new
-pages using ram_aops.read_folio (which resolves to simple_read_folio and ze=
-ro
-fills them). Will userspace applications using splice() or sendfile() recei=
-ve
-a stream of zeroes instead of the actual DAX memory contents?
-
-> +	.splice_write	   =3D iter_file_splice_write,
-> +	.llseek		   =3D generic_file_llseek,
-> +};
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0100019fc572ca94-ec=
-363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D5
+363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D4
