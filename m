@@ -1,142 +1,128 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBAE9489863;
-	Mon,  3 Aug 2026 02:42:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76BF112E1DC;
+	Mon,  3 Aug 2026 02:42:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785724926; cv=none; b=FYnryPfguIP34f0K7KWwk/vfPZo/fnaKk/HjRQI/YJmFt3Q+5MYuS7Lr+TpSxpMhBrFAephGYC4pVEBPfnjn8qPUvuqjeL/xZvvRD6EhdBZZFrV4JsLYxke43nhNs1hIaWtaXwGBppgGE12dkbMxFBcgbluSWlhZX9chwW7ay70=
+	t=1785724926; cv=none; b=TG0kz4DdvZ4LkAh4EtZQG36G9LXyYCHEsQ7FRtG+LX1kSfzOMspCDtkGygqcKLHjtSQyh3df1ciliLH5A/beliEBFvT9jH1wNMYU34QzDHu0ZO7Dpy5/jDUtD7Y6oxKJuDpkMxbo+Ttwux2xEF7yhYZnbs3/8NXSbiNUpUmIR9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1785724926; c=relaxed/simple;
-	bh=uTuevM6++2P/Jte5GLyPHU4O0ATR0QbutMXw9k6m3aU=;
+	bh=1THDRIIQUFybOImh78Zwi9kQ2XmthJ5ZXFzftXNShLc=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=XO8eFUIJMRFJY9VTg1gN8OJqOR14TSlT49E/whT7lExdwbCL7ZV4jhPhQ1VGmJZqd5FwU0c0zTvFTzloOQs8MVl2w1Jj8QAAN2jD53vxhvDTuPSSETTz5qJJw1Q1SRv2sRnHB4oK6GiD1wn6W/egve6DFtkwkIvtpWXbuIGyUqk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y2yPUS4q; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=ftL4gCPiiiNHz5o5KyoZ/bzqoUHaDLfr1Hxe07qojtGYeEVkZNj27XKcf9EEFLmxXkDcFsWH+GcF7DbBg67toeKKd9h06j7iAf/K0nFHkKYO2CkKjWClfPB0a/f6IkY+hpm8h9K+L9eujnI08yfhtR2hiCzBRYS7JBj5DaeqMck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JEUU+Zzl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y2yPUS4q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CFB71F000E9;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JEUU+Zzl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E95411F00A3A;
 	Mon,  3 Aug 2026 02:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785724924;
-	bh=89aNf19A0CAOk4Bc+QvFRcKxPgWvYJSbvj2eqLz+mhU=;
+	s=k20260515; t=1785724925;
+	bh=KvIG2iF+Sq/dUxNZJE4F2nk0QFyuSoWy5UnUbKRbMts=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Y2yPUS4qofXgP6DgX52KIS8/+iVB283l+565Cbix3liNEwbXiqANZSmHXX2cDXb3T
-	 Px+ZKwCkvdWmRX7RqGBzhH1yzuOxx8bKODn9mf3ga+ZbkDxtKtU49n0hmRMADyfiuG
-	 NK4RCPHueh0wvikEJiGFdkiJ89l6zpHYSfkAVBRQi8+uA8EWPvT0vSzKrCbhl7NhOo
-	 93gMxiEirbMFEKZU3WWng2hQZXGDte5HHxtOmJVJ7y4hICgpWKpQAereRyUcAoq/KK
-	 QzDGWf1E9W3QqVQf7ZeTfBCP7cqTXKJtQSw3qhC4p+dSPRPni18haE0j9z8kuRQKaa
-	 /sFJC0s6X5MGQ==
+	b=JEUU+Zzl32jHu4ChtV4YNEed2hGs8fWmE+4+OEl1XlNaArgavmG8GGiygnYR1zLQB
+	 lM0ZP8hHjoIGEgv0dAUZcp/OTJh3B51w++jUbcGjw7XMWXSf7VBd9pqN229H+qgETG
+	 3jLvBt/t3p8Q1vTT4AeD0fGBOBvtnXSQbBU0QwwE/IFsei76xPRr0wmPrhei79SD5G
+	 zsOvAZRo6blJjFODDPZJNDgJxCI+SFO5AT+eoIfmeIpOxgeNKlnNqdIt8Fy92zORhJ
+	 qLHbpRa5DtKQgJLJ279mrfHr/4XmZufpf3+jWrWQHcD4D6V1ST7AH/Vzwarovz/S5u
+	 JJKnMvNDQJhZA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V12 10/12] famfs: Add runtime operation-permission
- (opts) framework
+Subject: Re: [PATCH V12 09/12] famfs: Register secondary daxdevs by path
+ (FAMFSIOC_DAXDEV_OPEN)
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
 Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <0100019fc574dabe-572d99fc-3bb0-421a-afec-05432de2a757-000000@email.amazonses.com>
+In-Reply-To: <0100019fc574b43d-effbc86f-dd35-4154-8c2e-17699ef0edb6-000000@email.amazonses.com>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022950.75930-1-john@jagalactic.com>
- <0100019fc574dabe-572d99fc-3bb0-421a-afec-05432de2a757-000000@email.amazonses.com>
+ <20260803022940.75910-1-john@jagalactic.com>
+ <0100019fc574b43d-effbc86f-dd35-4154-8c2e-17699ef0edb6-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 03 Aug 2026 02:42:03 +0000
-Message-Id: <20260803024204.3CFB71F000E9@smtp.kernel.org>
+Date: Mon, 03 Aug 2026 02:42:04 +0000
+Message-Id: <20260803024204.E95411F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] mprotect() can bypass FAMFS_OPT_WRITE restrictions because mmap on=
-ly checks VM_WRITE.
-- [High] rename() bypasses FAMFS_OPT_UNLINK and FAMFS_OPT_RMDIR restriction=
-s for target files and directories.
+- [Low] Mixing goto-based cleanup with scope-based cleanup helpers in the s=
+ame function.
 --
 
---- Patch [10]: [PATCH V12 10/12] famfs: Add runtime operation-permission (=
-opts) framework ---
-commit e932914ca4460e6b742e80deb76ae5e6b7bac595
+--- Patch [9]: [PATCH V12 09/12] famfs: Register secondary daxdevs by path =
+(FAMFSIOC_DAXDEV_OPEN) ---
+commit 92fac6008c0bb8bb7ad31e3ae10289f93997e74b
 Author: John Groves <John@Groves.net>
 
-famfs: Add runtime operation-permission (opts) framework
+famfs: Register secondary daxdevs by path (FAMFSIOC_DAXDEV_OPEN)
 
-famfs denies most namespace, attribute and data operations by default
-because the userspace log, not the kernel, is authoritative for a famfs
-instance. Earlier commits already guard each such operation with a
-famfs_opt_enabled(fsi, FAMFS_OPT_x) check backed by a permissive stub. This
-commit defines the permission bitmap and makes those checks live.
+This commit introduces the FAMFSIOC_DAXDEV_OPEN ioctl to register devdax
+devices by path into the famfs mount's daxdev table. This allows files with
+extents referencing these secondary devices to be mapped.
 
-> diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_=
-ioctl.h
-> index 751d8b033c2ee..efe6ef2639759 100644
-> --- a/include/uapi/linux/famfs_ioctl.h
-> +++ b/include/uapi/linux/famfs_ioctl.h
-> @@ -100,6 +100,48 @@ struct famfs_ioc_daxdev {
->  	__u32 flags;
->  };
-> =20
-> +/*
-> + * Mount-wide operation permissions, queried and modified via the
-> + * FAMFSIOC_{GET,SET,CLEAR}_OPTS ioctls. A set bit means the operation is
-> + * permitted; a clear bit means it is rejected with -EPERM. famfs denies=
- most
-> + * of these by default because the userspace log, not the kernel, is
-> + * authoritative for a famfs instance.
-> + */
-> +#define FAMFS_OPT_CREATE	(1ULL << 0)  /* create a regular file        */
-> +#define FAMFS_OPT_MKDIR		(1ULL << 1)  /* mkdir                        */
-> +#define FAMFS_OPT_MKNOD		(1ULL << 2)  /* mknod a special file         */
-> +#define FAMFS_OPT_SYMLINK	(1ULL << 3)  /* create a symlink             */
-> +#define FAMFS_OPT_LINK		(1ULL << 4)  /* hard link                    */
-> +#define FAMFS_OPT_UNLINK	(1ULL << 5)  /* unlink a mapped file         */
-> +#define FAMFS_OPT_RMDIR		(1ULL << 6)  /* rmdir                        */
-> +#define FAMFS_OPT_RENAME	(1ULL << 7)  /* rename                       */
+> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+> --- a/fs/famfs/famfs_file.c
+> +++ b/fs/famfs/famfs_file.c
 
-[Severity: High]
-Does this bypass the FAMFS_OPT_UNLINK and FAMFS_OPT_RMDIR policy restrictio=
-ns
-for target files and directories?
+[ ... ]
 
-If FAMFS_OPT_RENAME is enabled but FAMFS_OPT_UNLINK is disabled, a user can
-rename a file over an existing target mapped file.
+> +static int
+> +famfs_daxdev_open(struct file *file, void __user *arg)
+> +{
 
-In fs/famfs/famfs_inode.c:famfs_rename():
+[ ... ]
 
-	if (!famfs_opt_enabled(fsi, FAMFS_OPT_RENAME))
-		return -EPERM;
+> +	scoped_guard(rwsem_read, &fsi->devlist_sem) {
+> +		if (dd.daxdev_index >=3D fsi->dax_devlist->nslots)
+> +			return -EINVAL;
+> +		if (fsi->dax_devlist->devlist[dd.daxdev_index].valid)
+> +			return 0;
+> +	}
+> +
+> +	if (dd.daxdev_path_len =3D=3D 0 || dd.daxdev_path_len >=3D PATH_MAX)
+> +		return -EINVAL;
+> +
+> +	/* +1 so the terminating NUL is included within the bound */
+> +	path =3D strndup_user((const char __user *)(uintptr_t)dd.daxdev_path,
+> +			    dd.daxdev_path_len + 1);
+> +	if (IS_ERR(path))
+> +		return PTR_ERR(path);
+> +
+> +	rc =3D lookup_daxdev(path, &devno);
+> +	if (rc)
+> +		goto out;
 
-	return simple_rename(idmap, old_dir, old_dentry, new_dir, new_dentry,
-			     flags);
+[Severity: Low]
+Does famfs_daxdev_open() mix goto-based cleanup with scope-based cleanup
+helpers?
 
-This delegates to simple_rename(), which silently replaces the target by
-calling simple_unlink() (or simple_rmdir()) on it. This directly drops the
-inode link count and bypasses the filesystem's famfs_unlink() and
-famfs_rmdir() hooks, completely avoiding the FAMFS_OPT_UNLINK check.
+This function uses scoped_guard() earlier, but relies on a traditional goto
+out label for manual memory cleanup of the path variable. The cleanup
+subsystem guidelines recommend against mixing goto-based error handling and
+scope-based cleanup in the same function to avoid confusing ownership
+semantics.
 
-> +#define FAMFS_OPT_CHMOD		(1ULL << 8)  /* setattr ATTR_MODE            */
-> +#define FAMFS_OPT_CHOWN		(1ULL << 9)  /* setattr ATTR_UID / ATTR_GID  */
-> +#define FAMFS_OPT_TRUNCATE	(1ULL << 10) /* setattr ATTR_SIZE (resize)   =
-*/
-> +#define FAMFS_OPT_UTIMES	(1ULL << 11) /* setattr ATTR_ATIME/ATTR_MTIME*/
-> +#define FAMFS_OPT_WRITE		(1ULL << 12) /* write file data              */
+Could path be declared with the __free() helper to eliminate the need for t=
+he
+goto label entirely?
 
-[Severity: High]
-Does this allow mprotect() to bypass FAMFS_OPT_WRITE restrictions and obtai=
-n a
-writable memory mapping to a file when it should be read-only?
-
-In fs/famfs/famfs_file.c:famfs_file_mmap():
-
-	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_WRITE) &&
-	    !famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
-		return -EPERM;
-
-The permission check only validates VM_WRITE. If a user calls mmap with
-PROT_READ | MAP_SHARED, it sets VM_MAYWRITE but not VM_WRITE, bypassing the
-FAMFS_OPT_WRITE check. The user could then call mprotect(PROT_WRITE) to
-upgrade the mapping to writable without any filesystem callbacks.
+> +
+> +	/*
+> +	 * The daxdev table is allocated at mount time (for the slot-0 primary),
+> +	 * so it is always present here; no need to allocate it.
+> +	 */
+> +	rc =3D famfs_install_daxdev(fsi, sb, dd.daxdev_index, devno, path);
+> +	if (rc)
+> +		pr_debug("%s: failed to install daxdev index %llu (%s)\n",
+> +		       __func__, dd.daxdev_index, path);
+> +out:
+> +	kfree(path);
+> +	return rc;
+> +}
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0100019fc572ca94-ec=
-363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D10
+363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com?part=3D9
