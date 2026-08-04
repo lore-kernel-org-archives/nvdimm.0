@@ -1,42 +1,47 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24277212542;
-	Tue,  4 Aug 2026 00:07:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A34D18DB26;
+	Tue,  4 Aug 2026 00:13:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785802077; cv=none; b=NqRk4bhDmfdaNhWopLEDQl+1v1NEYLgaLZQgr9RTp+bqQs+ADSa63p2votgGELCVMn5Il5kRBzIWkwoIAS7NOF4XUCEoSD0PlomOngOMcladWJY/dnFjjVD2JHWyuGsUEGeHFQBpS6wgYMjNIyImLtgzRRBPJq6jZVCyXydUPHU=
+	t=1785802415; cv=none; b=TqONyZ7LTlrHBYGe+A/NrRRJHTPOUV16o67KRRF5a8ydPz6Zn9NHzeXCGPzireVZJ170zJ29QzpZ3XopLgoOZJLegnZNyOVbgsffiNW7wq8YorOiMLVxmjwe0DnrlvCxLbCj6qwz4fhFi9//ExA0APHBHufUecdrxNEYeeSG6eA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785802077; c=relaxed/simple;
-	bh=+UgZRJOUlb2wkaGO3sSNzO9rV3gJGatJwDWAKNnSV7k=;
+	s=arc-20240116; t=1785802415; c=relaxed/simple;
+	bh=LVvwzAxoeA9y9gu+rMsJp8MwfarmxHRsSeYc5E5NLZY=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=T2uTdprBJgt28enW42ja2hU2JnDo1OXTSI0Fvo7AYP73dgSIiC7zQ+SaHzVt0fqDBOV1TTnOYD9CbMC2DhT0u/IH4AVzPetfycfBhy2h4BWm4Qtv0iOyn4AO7t0ANOZO8tBO0u4J0b4OLuk6U0mNdNKLxRkPudx5/+QsBMBKAAA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jmYBA+Bd; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=BMk/++wfFvK5t8lTWlTygby0Z2TS2h09FJhdkIbY95bU+/wWCltRtT1izaJQwyPs2v7neQXBBTUrjijDxp00naFxTenwRJVH8xQGK/YtRWp3xE5nmiRSAcnNNQ4XZ6nwvG0fM3eNrp2pEC8ASoc/0PO+T4jYewxTrk+XSMCYhzg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jOst+A03; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jmYBA+Bd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22D041F000E9;
-	Tue,  4 Aug 2026 00:07:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jOst+A03"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E94D1F000E9;
+	Tue,  4 Aug 2026 00:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785802075;
-	bh=GOt7zxUu6npV50dZ09FBcEPjIvGg5YF6Sq46LCf/WXA=;
+	s=k20260515; t=1785802414;
+	bh=7JHwMfjOpQvaVjjYGFkJzgOOoPx3jLqdBox8rnHydJw=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=jmYBA+BdsVK7YKUEEBLHzEczO+L6nBOA+BXCMUo7Y80NH1G3nSfK1Sfj19ttGBsE9
-	 eMuz3dIedbLeqpldZutSS9T7K7z4Z6KN6uqHGsuFspG0teVOpdeOCVRswkZN0gb7kQ
-	 88vlTIoBZgun4u7JRtbZgL4koKdB2P/vo4sigZECfy4/+yEaA0qGSyLUHnrGku7aMq
-	 S+9YD8YhVG2Ty2ahLD8WJKBM2GqkfJO4NV+cyR3R1CgjFghGAorSls/6HI3Fe3UvKM
-	 P76TPSd935YJ4jb51JplycCneFsNTxWw78z4wWovqSZtlc76FhRVQW0p+QkfAbumgx
-	 W71umeXEbf/Gg==
-Date: Tue, 4 Aug 2026 01:07:48 +0100
+	b=jOst+A03pQ8cDK6mxmC9BWuL+u8fSjpIHs7W8CayNs5WCPxGcRk9mETkGAm7hYSch
+	 kbOpqOFLW4zwfi8sCXP+u9x45hwG4XcLi8fBskjxxiNAt0nbbvRe26T84kEFnROzZt
+	 PbZTrtO2/IDBJIXc6VBHjDSwFLrLkFTNpdYpwfU9CF/mpt+YJz3FmHW25egbWGuw2/
+	 O+Fd2YudQqypVq2/69ev6c3xcw6ilEWM5gb2/5BMj/ZYnhtGq1IEcBfozF3pcIDdQd
+	 32lpRthB9DCKAhP8tC+HGgIHlbzjHst6O0/okdFw3zyik+wquNwh7PCEXeHdQMWFI7
+	 EAXFweTDYGCdA==
+Date: Tue, 4 Aug 2026 01:13:26 +0100
 From: Jonathan Cameron <jic23@kernel.org>
-To: sashiko-bot@kernel.org
-Cc: sashiko-reviews@lists.linux.dev, "Anisa Su" <anisa.su887@gmail.com>,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: [PATCH v12 3/8] cxl/cdat: Gather DSMAS data for DCD partitions
-Message-ID: <20260804010748.7f9f8174@jic23-huawei>
-In-Reply-To: <20260731090250.0C8DE1F000E9@smtp.kernel.org>
+To: Anisa Su <anisa.su887@gmail.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, Dave Jiang <dave.jiang@intel.com>, Alison
+ Schofield <alison.schofield@intel.com>, Fan Ni <nifan.cxl@gmail.com>, Li
+ Ming <ming.li@zohomail.com>, Vishal Verma <vishal.l.verma@intel.com>,
+ Davidlohr Bueso <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>,
+ Benjamin Cheatham <benjamin.cheatham@amd.com>, Wonjae Lee
+ <wj28.lee@samsung.com>, Junhee Park <jh9934.park@samsung.com>, Heesoo Kim
+ <habil.kim@samsung.com>, Anisa Su <anisa.su@samsung.com>
+Subject: Re: [PATCH v12 6/8] cxl/mem: Configure dynamic capacity interrupts
+Message-ID: <20260804011326.73a2b4df@jic23-huawei>
+In-Reply-To: <20260731084901.1512819-7-anisa.su@samsung.com>
 References: <20260731084901.1512819-1-anisa.su@samsung.com>
-	<20260731084901.1512819-4-anisa.su@samsung.com>
-	<20260731090250.0C8DE1F000E9@smtp.kernel.org>
+	<20260731084901.1512819-7-anisa.su@samsung.com>
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -47,50 +52,28 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 31 Jul 2026 09:02:49 +0000
-sashiko-bot@kernel.org wrote:
+On Fri, 31 Jul 2026 01:48:11 -0700
+Anisa Su <anisa.su887@gmail.com> wrote:
 
-> Thank you for your contribution! Sashiko AI review found 2 potential issue(s) to consider:
-> - [Medium] The commit message claims to extract and store the 'read only' attribute from DSMAS tables, but this logic is completely missing from the code.
-
-Given it will make a lot of difference to a user if they think they have writeable
-memory that isn't - I think we probably do want to have readonly here.
-
-> [ ... ]
-> > @@ -266,15 +268,26 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
-> >  		bool found = false;
-> >  
-> >  		for (int i = 0; i < cxlds->nr_partitions; i++) {
-> > +			enum cxl_partition_mode mode = cxlds->part[i].mode;
-> >  			struct resource *res = &cxlds->part[i].res;
-> > +			u8 handle = cxlds->part[i].handle;
-> >  			struct range range = {
-> >  				.start = res->start,
-> >  				.end = res->end,
-> >  			};
-> >  
-> >  			if (range_contains(&range, &dent->dpa_range)) {
-> > +				if (mode == CXL_PARTMODE_DYNAMIC_RAM_1 &&
-> > +				    dent->handle != handle) {
-> > +					dev_warn(dev,
-> > +						 "Dynamic RAM perf mismatch; %pra (%u) vs %pra (%u)\n",
-> > +						 &range, handle, &dent->dpa_range,
-> > +						 dent->handle);
-> > +					continue;
-> > +				}  
+> From: Ira Weiny <iweiny@kernel.org>
 > 
-> [Severity: Medium]
-> Could this trigger spurious warnings on valid hardware configurations?
+> Dynamic Capacity Devices (DCD) support extent change notifications
+> through the event log mechanism.  The interrupt mailbox commands were
+> extended in CXL 3.1 to support these notifications.  Firmware can't
+> configure DCD events to be FW controlled but can retain control of
+> memory events.
 > 
-> The CDAT specification allows overlapping DSMAS ranges with different handles
-> to support multiple memory types or sharing characteristics for the same DPA
-> space. 
-
-Huh?  Where did it get that from.  I'm 99% sure you can't have overlapping
-DSMAS entries for the same DPA space.
-
+> Configure DCD event log interrupts on devices supporting dynamic
+> capacity.  Disable DCD if interrupts are not supported.
 > 
-> If a compliant device provides multiple valid DSMAS entries that overlap
-> the partition's range but have different handles, won't iterating over them 
-> incorrectly flag the unselected ones as a perf mismatch?
+> Care is taken to preserve the interrupt policy set by the FW if FW first
+> has been selected by the BIOS.
 > 
+> Based on an original patch by Navneet Singh.
+> 
+> Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> Tested-by: Wonjae Lee <wj28.lee@samsung.com>
+> Tested-by: Junhee Park <jh9934.park@samsung.com>
+> Tested-by: Heesoo Kim <habil.kim@samsung.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
