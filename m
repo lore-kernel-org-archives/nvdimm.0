@@ -1,22 +1,22 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87F5D47253B;
-	Tue,  4 Aug 2026 16:24:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF72472543;
+	Tue,  4 Aug 2026 16:26:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785860686; cv=none; b=gA5x8ZRhNbBE0x6TRk84VwhzREE5xCrTCsNnS9TuTp1RPNvUOAupFky+vgoFC5FFeIrZ4ITR1u16yupequkUVy3YmEyt78uib2NZ1kA7fg8OqRyqsyIjGbAUncrHfyqCsqR6khhM9MdUaUohQN2qeFem2rpxwdTQS+pKP0xDBJA=
+	t=1785860794; cv=none; b=pr33IKqD0zYKZ8aFqT5TXkISQyeZT+BVO7eFH7LWWErQh4tF3CmfRpF0o+nC4wbwLW2wQw/I78ks4RZm/rUKxVdpgGpXybnm93gio0DM5HPMl48gaPOaPIew8unrHVx4e9fG3yNnAx0lx8Kl1iMCoTBzhHyO1KIFKOSTMs2mNQ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785860686; c=relaxed/simple;
-	bh=CDr1ofXv6EXHhRbl3W5AzVRiR0hMWlby1LKqzCOgDJI=;
+	s=arc-20240116; t=1785860794; c=relaxed/simple;
+	bh=reEC3cxY04yRT/RDFfaEHgAbxCiloMujITWUY7scr7M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pCys6XqyR9dhbbrGIwjw/aPOkk8QqOHV1bKu5Bp2qzJBF/gJdz9gqTsRkov0n1Ix4xyIHMNHIb9NAvcxQXG0SkY/jDzJLtIbAuttR00OqQd6lRTJcpkY4buEhLapTGkpV2s3NXk3w4UkqXEDZRRwsJp2NDElgG0ZuZY73QyKKu8=
+	 Content-Type:Content-Disposition:In-Reply-To; b=JyEwxC73ULKQ/8m0CJwyj6Q6hou9fL2yeavna4WauekJbQFlTinbNtduZPUqfPCVzY9CPUra67iWK48BZ+fAVv85mYsNOLDsD9BVV0PBZ2sPqN2ofDbU59kh9lTNVuLMASVGh+BmbCZ3/TTl5BNTKYtMYCbFR9vTm2nmZyFy7ao=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id EEAE06732A; Tue,  4 Aug 2026 18:24:40 +0200 (CEST)
-Date: Tue, 4 Aug 2026 18:24:40 +0200
+	id 7BE126732A; Tue,  4 Aug 2026 18:26:26 +0200 (CEST)
+Date: Tue, 4 Aug 2026 18:26:26 +0200
 From: Christoph Hellwig <hch@lst.de>
 To: Pavel Begunkov <asml.silence@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
@@ -45,9 +45,9 @@ Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
 	David Sterba <dsterba@suse.com>, Ilya Dryomov <idryomov@gmail.com>,
 	dm-devel@lists.linux.dev, nvdimm@lists.linux.dev,
 	linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org
-Subject: Re: [PATCH v5 07/16] block: introduce dma map backed bio type
-Message-ID: <20260804162440.GB12292@lst.de>
-References: <cover.1785596451.git.asml.silence@gmail.com> <e26aefbcb383be7092dc76343ce745013e671334.1785596451.git.asml.silence@gmail.com>
+Subject: Re: [PATCH v5 09/16] nvme-pci: implement dma-buf backed requests
+Message-ID: <20260804162626.GC12292@lst.de>
+References: <cover.1785596451.git.asml.silence@gmail.com> <9e3dd1b2d71dc0f9bd556b6a6d6e48fb6a8d727b.1785596451.git.asml.silence@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -56,103 +56,11 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <e26aefbcb383be7092dc76343ce745013e671334.1785596451.git.asml.silence@gmail.com>
+In-Reply-To: <9e3dd1b2d71dc0f9bd556b6a6d6e48fb6a8d727b.1785596451.git.asml.silence@gmail.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Sat, Aug 01, 2026 at 04:46:19PM +0100, Pavel Begunkov wrote:
-> Premapped buffers don't require a generic bio_vec since these have
-> already been dma mapped. Repurpose the bi_io_vec space to strore dmabuf
-> maps as they are mutually exclusive.
-> 
-> Suggested-by: Keith Busch <kbusch@kernel.org>
-> Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
-> ---
->  block/bio.c               | 15 +++++++++++++--
->  block/blk-merge.c         | 37 +++++++++++++++++++++++++++++++++++++
->  block/fops.c              |  2 +-
->  include/linux/bio.h       |  9 +++++----
->  include/linux/blk-mq.h    |  7 +++++++
->  include/linux/blk_types.h | 14 +++++++++++++-
->  include/linux/bvec.h      |  3 ++-
->  7 files changed, 78 insertions(+), 9 deletions(-)
-> 
-> diff --git a/block/bio.c b/block/bio.c
-> index 898b2f5ef8c8..1602eab05761 100644
-> --- a/block/bio.c
-> +++ b/block/bio.c
-> @@ -860,7 +860,11 @@ static int __bio_clone(struct bio *bio, struct bio *bio_src, gfp_t gfp)
->  	bio->bi_write_hint = bio_src->bi_write_hint;
->  	bio->bi_write_stream = bio_src->bi_write_stream;
->  	bio->bi_iter = bio_src->bi_iter;
-> -	bio->bi_io_vec = bio_src->bi_io_vec;
-> +
-> +	if (op_is_dmabuf(bio->bi_opf))
-> +		bio->bi_dmabuf_map = bio_src->bi_dmabuf_map;
-> +	else
-> +		bio->bi_io_vec = bio_src->bi_io_vec;
->  
->  	if (bio->bi_bdev) {
->  		if (bio->bi_bdev == bio_src->bi_bdev &&
-> @@ -1183,16 +1187,23 @@ EXPORT_SYMBOL_GPL(__bio_release_pages);
->  
->  bool bio_iov_iter_set(struct bio *bio, const struct iov_iter *iter)
->  {
-> -	if (!iov_iter_is_bvec(iter))
-> +	if (!iov_iter_is_bvec(iter) && !iov_iter_is_dmabuf_map(iter))
->  		return false;
->  
->  	WARN_ON_ONCE(bio->bi_max_vecs);
->  
-> +	static_assert(offsetof(struct bio, bi_io_vec) ==
-> +		      offsetof(struct bio, bi_dmabuf_map));
-> +	static_assert(offsetof(struct iov_iter, bvec) ==
-> +		      offsetof(struct iov_iter, dmabuf_map));
-> +
->  	bio->bi_io_vec = (struct bio_vec *)iter->bvec;
->  	bio->bi_iter.bi_idx = 0;
->  	bio->bi_iter.bi_offset = iter->iov_offset;
->  	bio->bi_iter.bi_size = iov_iter_count(iter);
->  	bio_set_flag(bio, BIO_CLONED);
-> +	if (iov_iter_is_dmabuf_map(iter))
-> +		bio->bi_opf |= REQ_NOMERGE | REQ_DMABUF;
->  	return true;
->  }
->  
-> diff --git a/block/blk-merge.c b/block/blk-merge.c
-> index 258a726071d1..1beedc42a85d 100644
-> --- a/block/blk-merge.c
-> +++ b/block/blk-merge.c
-> @@ -9,6 +9,7 @@
->  #include <linux/blk-integrity.h>
->  #include <linux/part_stat.h>
->  #include <linux/blk-cgroup.h>
-> +#include <linux/dma-buf-io.h>
->  
->  #include <trace/events/block.h>
->  
-> @@ -319,6 +320,28 @@ static inline unsigned int bvec_seg_gap(struct bio_vec *bvprv,
->  	return bv->bv_offset | (bvprv->bv_offset + bvprv->bv_len);
->  }
->  
-> +static inline int bio_split_io_at_dmabuf(struct bio *bio,
-> +		const struct queue_limits *lim, unsigned *segs,
-> +		unsigned max_bytes, unsigned len_align_mask,
-> +		unsigned start_align_mask)
-> +{
-> +	unsigned bytes = min(bio->bi_iter.bi_size, max_bytes);
-> +	unsigned seg_shift = bio->bi_dmabuf_map->seg_shift;
-> +	unsigned offset = bio->bi_iter.bi_offset & ((1U << seg_shift) - 1);
-> +
-> +	if ((bio->bi_iter.bi_offset & start_align_mask) ||
-> +	    (bio->bi_iter.bi_size & len_align_mask))
-> +		return -EINVAL;
-> +
-> +	/* single contiguous range into the dma-buf */
-> +	*segs = 1;
-> +
-> +	bytes = min(bytes, ((unsigned)lim->max_segments << seg_shift) - offset);
+> +static blk_status_t nvme_rq_setup_dmabuf_map(struct request *req,
+> +					     struct nvme_queue *nvmeq)
 
-I guess ->seg_shift is some sort of encoding of a max
-segment size?
+Two tab indents for prototype continuations everywhere please.
 
-Comments please.
