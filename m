@@ -1,131 +1,137 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A441C2D780A;
-	Tue,  4 Aug 2026 07:10:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13D9C41E6D8
+	for <nvdimm@lists.linux.dev>; Tue,  4 Aug 2026 07:29:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785827444; cv=none; b=P9MRShZJxa6dZR4ITVzzFO1tJ1RCpfywMzPd+6AGmIeyjevZ/jX7PIpPzs5dHbmTh10ivfOscPSIvP7BNJJczOWt8j0raLnQcVl3VflLQnMHcJnYFYGC+kUnffh8Qb3umQvrCMTh4l6A17IorBc1bHndWCd/pcDg4ZFKAIkxemA=
+	t=1785828565; cv=none; b=Q0YYWgj73NzFQPqn+qmFwHK2Ij/ASNjedb/Oov956YX3iC9/lKCfk1WLfe725ldbdLta/bW3d5TtKuPga06Nw/5P47RjH0a98UWhHHmTYRF/Y8tZmTnsotVRUjxToyD5E9f4TrUoLsgfqD1DlOkaekIeykGtLyo8cRWkyRl6+3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785827444; c=relaxed/simple;
-	bh=GZQ0y0cejOaRVDqKr07TqdUi+Fcjlpj4AZO74G66ZsI=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=qNxLZJjyxX/mX+taMjwVDmFKGaz4+Q2DRkhRH1N3ZYfexAD/7D47NyD/0+j4D7TWeYkosaFyK589FiHVF1X6a7VyIrQW+uy3IyDVo7jiTUg5m+k0ra2y9zQ/tTHZr+RV+T5vuzzsFitCAf0i0Ma3mYEyorvw0PTUgQW3qSg/3zY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hHy0UiQd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785828565; c=relaxed/simple;
+	bh=u4QIQZTdswptGzA7Ts6wBB+sdxAXlbuqrjMHMB4he5M=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
+	 Content-Type:References; b=sd7c39qfXbN/NAS4BKKLKZjJHZz/cCXfgAGwwE6mlBNcNGqQYwzXboz3h7Cva8v8FL4KOkXumanvKTjAQsuyUSDs5H3uMvAyOPrUJIrzMW6cM4psGFbtc02ARnfTgfvlI8Hv3BYzC+I29w3GvYZ8XQ1e5eJDCShK0JZaDi/ah2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=YuL9mR3P; arc=none smtp.client-ip=203.254.224.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hHy0UiQd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 695571F000E9;
-	Tue,  4 Aug 2026 07:10:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785827443;
-	bh=wk1lBiQK/dZ4RSeXqdSbfWN7G+bY/oBP7t1jJOCL9Eg=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=hHy0UiQdjUMW4nAiJmu2x7ciqfPZfSi+iJoJyQY5kjcIxEZSM0JMWY0zCJvEZnG8C
-	 EEZSd4ur8FShsBFN62e7Yr03Ru7eTCEZe9cHODxQ1etXzDDWqDnxtiFEJwPS+OkY/H
-	 YRvrqfGlwZOjKYm/PXMCmyijBbM7WCNZ6qA3NJfyJPZnR0EZ+0yOA9uMzeeg3QLj4H
-	 3ElnBTPymqzqSX1q6yr6VEU37IOdau2oXiVROfzIcuWX7scowsThCSkXuUnD61yJo6
-	 ms2B0aO11o3QxlQE3XogcxUlB07xeRZxmBVjk+tepXNZtHyCzW4IhBmFztVZoG6ea0
-	 6vUvvBafWFduQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [RFC PATCH v1 3/3] blk-cgroup: move async bio punt state to
- blkcg
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yu Kuai" <yukuai@kernel.org>
-Cc: hannes@cmpxchg.org, nvdimm@lists.linux.dev, yukuai@fygo.io, linux-raid@vger.kernel.org, tj@kernel.org, mkoutny@suse.com
-In-Reply-To: <20260804065313.2092022-4-yukuai@kernel.org>
-References: <20260804065313.2092022-1-yukuai@kernel.org>
- <20260804065313.2092022-4-yukuai@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 04 Aug 2026 07:10:41 +0000
-Message-Id: <20260804071042.695571F000E9@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="YuL9mR3P"
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20260804072913epoutp04b2724a46ccadd1b18bd949674f82d210~IiZuL9H_y3069030690epoutp04I
+	for <nvdimm@lists.linux.dev>; Tue,  4 Aug 2026 07:29:13 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20260804072913epoutp04b2724a46ccadd1b18bd949674f82d210~IiZuL9H_y3069030690epoutp04I
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1785828553;
+	bh=oq3WXJu/SsF/yYJkxmJpNIikAfWrsHK6PFkUbOrSyxQ=;
+	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
+	b=YuL9mR3PGb2opeFZiYN0zNin1lKqXZc/cCNGngvIs07OjuKhr0shXabI7kR3ToXg4
+	 m9eu0VhaMLeIMH0kAURIYdc6jWK1UzL4Ga89eE+9NWPW/uLnZVQbYCgfFY8TbDhK0f
+	 rLSzDKGyEGvDXov2c9EdXQ2JUy6DIGmt0glyRSes=
+Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPS id
+	20260804072912epcas5p2adb2d94e9dbee254b808fbe3e7596043~IiZtxp_B41422314223epcas5p25;
+	Tue,  4 Aug 2026 07:29:12 +0000 (GMT)
+Received: from epcas5p4.samsung.com (unknown [182.195.38.94]) by
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4hDlXm00m2z2SSKd; Tue,  4 Aug
+	2026 07:29:12 +0000 (GMT)
+Received: from epsmtip1.samsung.com (unknown [182.195.34.30]) by
+	epcas5p1.samsung.com (KnoxPortal) with ESMTPA id
+	20260804072911epcas5p11ac571c654cc6f9181d41e68c1d776f7~IiZsQAmmo3024630246epcas5p1l;
+	Tue,  4 Aug 2026 07:29:11 +0000 (GMT)
+Received: from [107.122.10.194] (unknown [107.122.10.194]) by
+	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20260804072906epsmtip1f5a677211ba3b877f3e13174d1789292~IiZnod7M11634816348epsmtip18;
+	Tue,  4 Aug 2026 07:29:06 +0000 (GMT)
+Message-ID: <c4cec417-24b8-428a-853f-4e1ff1e29a6a@samsung.com>
+Date: Tue, 4 Aug 2026 12:59:05 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 09/16] nvme-pci: implement dma-buf backed requests
+To: Pavel Begunkov <asml.silence@gmail.com>, Jens Axboe <axboe@kernel.dk>,
+	Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, Sagi
+	Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org,
+	linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner
+	<brauner@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Sumit
+	Semwal <sumit.semwal@linaro.org>, =?UTF-8?Q?Christian_K=C3=B6nig?=
+	<christian.koenig@amd.com>, Nitesh Shetty <nj.shetty@samsung.com>, Kanchan
+	Joshi <joshi.k@samsung.com>, Jason Gunthorpe <jgg@nvidia.com>, Damien Le
+	Moal <dlemoal@kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer
+	<snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>, Benjamin
+	Marzinski <bmarzins@redhat.com>, David Sterba <dsterba@suse.com>, Ilya
+	Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev,
+	nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org,
+	ceph-devel@vger.kernel.org
+Content-Language: en-US
+From: Anuj Gupta/Anuj Gupta <anuj20.g@samsung.com>
+In-Reply-To: <9e3dd1b2d71dc0f9bd556b6a6d6e48fb6a8d727b.1785596451.git.asml.silence@gmail.com>
+Content-Transfer-Encoding: 7bit
+X-CMS-MailID: 20260804072911epcas5p11ac571c654cc6f9181d41e68c1d776f7
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+CMS-TYPE: 105P
+cpgsPolicy: CPGSC10-542,Y
+X-CFilter-Loop: Reflected
+X-CMS-RootMailID: 20260801155005epcas5p4ecdcdf532aa2c2ff4e94638eedaa435b
+References: <cover.1785596451.git.asml.silence@gmail.com>
+	<CGME20260801155005epcas5p4ecdcdf532aa2c2ff4e94638eedaa435b@epcas5p4.samsung.com>
+	<9e3dd1b2d71dc0f9bd556b6a6d6e48fb6a8d727b.1785596451.git.asml.silence@gmail.com>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
+On 8/1/2026 9:16 PM, Pavel Begunkov wrote:
+> +	map = kmalloc_flex(*map, dma_list, nr_entries);
+> +	if (!map)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	sgt = dma_buf_map_attachment(attach, ctx->dir);
+> +	if (IS_ERR(sgt)) {
+> +		ret = PTR_ERR(sgt);
+> +		sgt = NULL;
+> +		goto err;
+> +	}
+> +
+> +	for_each_sgtable_dma_sg(sgt, sg, tmp) {
+> +		dma_addr_t dma_addr = sg_dma_address(sg);
+> +		unsigned long sg_len = sg_dma_len(sg);
+> +
+> +		if (sg_len % NVME_CTRL_PAGE_SIZE) {
+> +			ret = -EINVAL;
+> +			goto err;
+> +		}
+> +		seg_shift = min(seg_shift, __ffs(sg_len));
+> +
+> +		while (sg_len) {
+> +			map->dma_list[i++] = dma_addr;
+> +			dma_addr += NVME_CTRL_PAGE_SIZE;
+> +			sg_len -= NVME_CTRL_PAGE_SIZE;
+> +		}
+> +	}
+> +
+> +	if (WARN_ON_ONCE(seg_shift < NVME_CTRL_PAGE_SHIFT))
+> +		return ERR_PTR(-EFAULT);
 
-Pre-existing issues:
-- [High] A race condition in `blkcg_punt_bio_submit()` allows a use-after-f=
-ree on `struct blkcg` because `queue_work()` is called after dropping the l=
-ock without holding a local reference to the cgroup.
---
+This should be 'goto err;' instead of a direct return. If this ever 
+triggers, it leaks the map and already established sgt mapping.
 
---- Patch [3]: [RFC PATCH v1 3/3] blk-cgroup: move async bio punt state to =
-blkcg ---
-commit 0ed7c55259ed7cd55caede491e674b21be72ca58
-Author: Yu Kuai <yukuai@fygo.io>
+> +
+> +	ret = dma_buf_io_init_map(ctx, &map->base);
+> +	if (ret)
+> +		goto err;
+> +	map->base.seg_shift = seg_shift;
+> +	map->nr_entries = nr_entries;
+> +	map->sgt = sgt;
+> +	return &map->base;
+> +err:
+> +	if (sgt)
+> +		dma_buf_unmap_attachment(attach, sgt, ctx->dir);
+> +	kfree(map);
+> +	return ERR_PTR(ret);
+> +}
 
-blk-cgroup: move async bio punt state to blkcg
-
-This commit moves the async bio punt state from blkg to blkcg.
-This preserves priority-inversion avoidance while preventing
-blkcg_punt_bio_submit() from creating blkgs that are not needed
-by any policy.
-
-> diff --git a/block/blk-cgroup.c b/block/blk-cgroup.c
-> index 68a1d93e6584e..a70f92f1541b1 100644
-> --- a/block/blk-cgroup.c
-> +++ b/block/blk-cgroup.c
-
-[ ... ]
-
-> @@ -239,15 +234,15 @@ static void blkg_async_bio_workfn(struct work_struc=
-t *work)
->   */
->  void blkcg_punt_bio_submit(struct bio *bio)
->  {
-> -	struct blkcg_gq *blkg =3D bio_blkg(bio);
-> +	struct blkcg *blkcg =3D bio_blkcg(bio);
-> =20
-> -	if (blkg && blkg->parent) {
-> -		spin_lock(&blkg->async_bio_lock);
-> -		bio_list_add(&blkg->async_bios, bio);
-> -		spin_unlock(&blkg->async_bio_lock);
-> -		queue_work(blkcg_punt_bio_wq, &blkg->async_bio_work);
-> +	if (blkcg && cgroup_parent(blkcg->css.cgroup)) {
-> +		spin_lock(&blkcg->async_bio_lock);
-> +		bio_list_add(&blkcg->async_bios, bio);
-> +		spin_unlock(&blkcg->async_bio_lock);
-> +		queue_work(blkcg_punt_bio_wq, &blkcg->async_bio_work);
-
-[Severity: High]
-This is a pre-existing issue, but could this race window between
-spin_unlock() and queue_work() lead to a use-after-free on the blkcg struct=
-ure?
-
-If Thread A calls blkcg_punt_bio_submit(), places the bio into async_bios
-under the spinlock, and is then preempted right after unlocking:
-
-Thread A:
-    spin_unlock(&blkcg->async_bio_lock);
-    <preempted>
-
-A concurrent worker thread might awaken, acquire the lock, extract the
-newly added bio, and submit it. If the bio completes very quickly, it will
-drop its css reference.
-
-If this was the last reference keeping blkcg alive (e.g. if the cgroup was
-being deleted), blkcg_css_free() could execute and free the blkcg:
-
-blkcg_css_free()
-    ...
-    free_percpu(blkcg->lhead);
-    kfree(blkcg);
-
-When Thread A resumes, wouldn't it execute queue_work() on the freed blkcg
-memory?
-
->  	} else {
-> -		/* Never bounce if there is no non-root blkg to queue on. */
-> +		/* Never bounce if there is no non-root blkcg to queue on. */
->  		submit_bio(bio);
->  	}
->  }
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260804065313.2092=
-022-1-yukuai@kernel.org?part=3D3
