@@ -1,731 +1,983 @@
-Received: from mail-pg1-f178.google.com (mail-pg1-f178.google.com [209.85.215.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-180.mta1.migadu.com (out-180.mta1.migadu.com [95.215.58.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6042429CEB
-	for <nvdimm@lists.linux.dev>; Tue,  4 Aug 2026 09:12:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8126D30C606;
+	Tue,  4 Aug 2026 09:20:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785834770; cv=none; b=XDyCYbL1wXZxgh+6XcyGAGUzl5bW02/yvDuvZdC4M9E1+6r3BQ0KaqcwoPiwdTtSn0y9aQoRtM6is6dR2JYDmgbdpSvelSuhFoPAFWJaseS/EYpAL6CzoBUxEj+v1v9UQSCqKoF2xrXMC5YTl26VrWneKpP6dxjNhFGsllEgYcc=
+	t=1785835218; cv=none; b=gKzJiB9A2b01+LsIUoURhCLZcVduDt/yjLqHUZzPlmMrQU1gRpo7ZZ2k4sraQmt0eGRdUDxAcD3pWIFXDxPNa6mrwmeuZlKGKLwwMF2lvJxJiWzzJGGuxMOdImEXPdS9AAMiwLtfI9JeEuAYYdLsOQDuV0A+8JLtpoPjq+OF070=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785834770; c=relaxed/simple;
-	bh=QrRCjwfLGZcW4M2CiM6v1J4D+OgWeTTYd84b8kYW65s=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TjS6sYswO/japgzHjcacCB8zhYpgZc9uBy8nbnAd9lDXw8lHjIblU6G1A8qeCdHElpJYo37oM/W2/KDacoMNynHh+V3vrzalYIitUur47S8Spfkfc4zKs4eUB5XdItdssZMDNOPQeARkJ4rMmGB7pPb2/P24zteDzH4lN+sQmN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZInmhsMN; arc=none smtp.client-ip=209.85.215.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785835218; c=relaxed/simple;
+	bh=PVo1OFtrqnqAVkO7yEjqPVQODoT6J/DRZsWMMHMlrkY=;
+	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=lgdiG41gUA1NhnGH47JNvPbXW6QmURpUxQ7LdnVWfuc5T6i+qAtprD1D5yuzQ1O8L+f22uQK0TmI+gIqBHJgOqsEqu2QrIC1p4K1/bU8uCKQMNLpfwifPZoGljz6/u7LDtXm2t8hpc3Je8+H1TAHBOnLkTkr5iDqSYfpAiwBVAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=xfxE/iDH; arc=none smtp.client-ip=95.215.58.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZInmhsMN"
-Received: by mail-pg1-f178.google.com with SMTP id 41be03b00d2f7-cbe3fed2f58so2509944a12.3
-        for <nvdimm@lists.linux.dev>; Tue, 04 Aug 2026 02:12:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785834767; x=1786439567; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=hSTwpiLxQq1UQjrHpomtU2NdX/u0MOULxD6jsG+x0Ws=;
-        b=ZInmhsMNIKhK9QjpSEIaysmMwnsOO+/J+prMi0u4K1qjMnnDLRTLS8eZm8yA77msWB
-         fxe1HpzxQr2gDCgdHz3S8YLGpyCswLva0gIO9UvEBqMtImMguYqiH8yuZu4Un6+9hkKh
-         waq6Hn0DQbKPIIQ/XRPuwTc4R5aZD8eT6kvooJrMRlime8ficRAX8Nyp7czNM2HGScCI
-         GsoL+N1iGKO9iSFLvFxloTqJ2F4o+2sQJ838svEnX08GyGV5tqedrR3ali9/2xoUq9Tg
-         9zrmSo9WX+7z9C8aJe1X/oVzzNx+5jN6eueNyGPmhA+GEVV7Gy2hRtwcM0cf1dC6tHUf
-         tW3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785834767; x=1786439567;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=hSTwpiLxQq1UQjrHpomtU2NdX/u0MOULxD6jsG+x0Ws=;
-        b=ZEEphxpMohk3JvpgRtQTs52bC+7noF/qE2VfiEPM7tj0F1AUUIroVyj7SEEejf+gBx
-         Kj7BHxdbbI89DiF0OQC2TgRLXM2XnpT5ZwDSVFqEP7z3lyJwm6CD+czVjIvs3Pts5voq
-         39Q5EJgfCClAo8PN2kGX38k5d20pO3paJFF8JXlA37W2nXYpZZA1rI73IpwUbRlZZDjK
-         3NYekObCQITpg1LgKR0s7g96OxTJeEzW/yqKVpIJGj8r12xwoFWi/ne3PIPVBhfuPbtY
-         0inWbZ6/St6VYmgUFaNvJDg6HfbC6IyQWd+4UIsyBi4tNoudXhyyoh3yGThPwygzoIBx
-         XqHQ==
-X-Forwarded-Encrypted: i=1; AHgh+RpVkKpDPKnuPOqIs6HPcGy0ZNENMGh3/zh8AkzD43kvRmkvhwqC15OsGNWrI4O188E2I+vGZMM=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwTaa+2fuGp/deWF5XBDZfQH9YZkcZ09qNXwIvoyCXpSRGUu+Il
-	ZCkeypPV+gPCiyetQGB5muXW6CYTP3DckUtH4A7JoJhktb6ANJ8vEx3P
-X-Gm-Gg: AR+sD12ssHMvYahvjboL1SVCvT3xiQdhlw0oUd/Nq7K3lBpZuZe0XjvzaBQBdKnAxBA
-	ezWxG+eQXZQA8904NytAetn8r3YDH7eEikZ69I7zBbxK+0jmhdNgSB5I2s/XbQtgtFPSY7SvEj+
-	e19Fw2cJOLmKxvWhsEGMHbbCQMnAuULfeFZxjpTNrpmRBMo5bmfyrYT1hevFXMij5I26PkiR99i
-	7rCESUhElPUYpJtVnaJTGi/vBGStGnhmqI7EVmF9b1zpIAlTCEbFOnUs52Nl2OIUva5g58p7afF
-	VTd/5JRAeG1MMbBznGs2JBXoxEmjNGzDDUBnFfu0ta6/VeetFhuwyeQ47KNOlx9PVjWZwh6azd0
-	oYW6RtFSt6ltoecGKZN5goUGFTZsH0VVLBPbUs2mXArlTh6QvQFZcWO3bhpxjqB5gbUqptb5vgP
-	JxO/aT5MAoE7Npagr+7nKjj2EW6WUevvx3rSPwByfKVPOfO1yKlA5cXNDRDBzN8apAYvsNL5Zxk
-	cjoD+o3mwnDjb3UOqZOWiLsJpiOIXQM8SnFxWeJYU0w
-X-Received: by 2002:a05:6a20:93a0:b0:3c3:bbe6:95b1 with SMTP id adf61e73a8af0-3c92a5d6d57mr13851053637.24.1785834766953;
-        Tue, 04 Aug 2026 02:12:46 -0700 (PDT)
-Received: from AnisaLaptop.localdomain (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-315863fb350sm2659990eec.8.2026.08.04.02.12.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Aug 2026 02:12:46 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Tue, 4 Aug 2026 02:12:44 -0700
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	Dave Jiang <dave.jiang@intel.com>,
-	Jonathan Cameron <jic23@kernel.org>, Fan Ni <nifan.cxl@gmail.com>,
-	Li Ming <ming.li@zohomail.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>,
-	Benjamin Cheatham <benjamin.cheatham@amd.com>,
-	Wonjae Lee <wj28.lee@samsung.com>,
-	Junhee Park <jh9934.park@samsung.com>,
-	Heesoo Kim <habil.kim@samsung.com>
-Subject: Re: [PATCH v12 2/8] cxl/mem: Read dynamic capacity configuration
- from the device
-Message-ID: <anGtDPQ41N-SGQFG@AnisaLaptop.localdomain>
-References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-3-anisa.su@samsung.com>
- <anENkWO2G5tdPtNb@aschofie-mobl2.lan>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="xfxE/iDH"
+Message-ID: <a677f581-344b-4d99-846d-a00801e26033@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1785835202;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=pGcoNPEKNf39GDbuhHsUaJ0Tu/EDqyYRpJ8rGi+p9zg=;
+	b=xfxE/iDHMlRenFHP1OUGWuZxGZNoMwJ3zOV5xGZpl33A15DJ3ko/b/80atoch//yKNLjaR
+	LtjU1vEsFLdDmgdE+bfIiCGwGsHgJJ5nBHCsKlJbrw6Sm7U1OlxtcHb9DK7w9QY837CBev
+	kTxet2U+UPnIVpJtYCHYttTpE+COu14=
+Date: Tue, 4 Aug 2026 17:19:24 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <anENkWO2G5tdPtNb@aschofie-mobl2.lan>
+Cc: cui.tao@linux.dev, Tejun Heo <tj@kernel.org>,
+ Johannes Weiner <hannes@cmpxchg.org>, =?UTF-8?Q?Michal_Koutn=C3=BD?=
+ <mkoutny@suse.com>, Jonathan Corbet <corbet@lwn.net>,
+ Yu Kuai <yukuai@fygo.io>, Josef Bacik <josef@toxicpanda.com>,
+ Coly Li <colyli@fygo.io>, Kent Overstreet <kent.overstreet@linux.dev>,
+ Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+ Mikulas Patocka <mpatocka@redhat.com>,
+ Benjamin Marzinski <bmarzins@redhat.com>, Song Liu <song@kernel.org>,
+ Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+ Andreas Gruenbacher <agruenba@redhat.com>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Andrew Morton <akpm@linux-foundation.org>, Chris Li <chrisl@kernel.org>,
+ Kairui Song <kasong@tencent.com>, Christoph Hellwig <hch@lst.de>,
+ Nilay Shroff <nilay@linux.ibm.com>, cgroups@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
+ dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
+ nvdimm@lists.linux.dev, virtualization@lists.linux.dev,
+ gfs2@lists.linux.dev, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [RFC PATCH v1 2/3] blk-cgroup: store blkcg in bio instead of blkg
+To: Yu Kuai <yukuai@kernel.org>, Jens Axboe <axboe@kernel.dk>
+References: <20260804065313.2092022-1-yukuai@kernel.org>
+ <20260804065313.2092022-3-yukuai@kernel.org>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Tao Cui <cui.tao@linux.dev>
+In-Reply-To: <20260804065313.2092022-3-yukuai@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Mon, Aug 03, 2026 at 02:52:17PM -0700, Alison Schofield wrote:
-> On Fri, Jul 31, 2026 at 01:48:07AM -0700, Anisa Su wrote:
-> > From: Ira Weiny <iweiny@kernel.org>
-> > 
-> > Devices which optionally support Dynamic Capacity (DC) are configured
-> > via mailbox commands.  CXL r4.0 section 9.13.3 requires the host to issue
-> > the Get DC Configuration command in order to properly configure DCDs.
-> > Without the Get DC Configuration command DCD can't be supported.
-> > 
-> > Implement the DC mailbox commands as specified in CXL 4.0 section
-> > 8.2.10.9.9 (opcodes 48XXh) to read and store the DCD configuration
-> > information.  Disable DCD if an invalid configuration is found.
-> > 
-> > Linux has no support for more than one dynamic capacity partition.  Read
-> > and validate all the partitions but configure only the first partition
-> > as 'dynamic ram 1'.  Additional partitions can be added in the future if
-> > such a device ever materializes.  Additionally it is anticipated that no
-> > skips will be present from the end of the pmem partition.  Check for and
-> > disallow this configuration as well.
+
+Hi Kuai,
+在 2026/8/4 14:53, Yu Kuai 写道:
+> From: Yu Kuai <yukuai@fygo.io>
 > 
-> Hi Anisa,
+> A bio currently stores a queue-local blkg reference.  This forces bio
+> association and remap paths to look up or create a blkg even when the bio
+> will never enter a blkcg policy.
 > 
-> "Additionally, it is anticipated that no skips will be present.." sounds
-> woogedy. The paragraph starts with a Linux limitation of only one partition.
-> and next mentions skips. Is that a Linux implementation rule, a spec
-> rule, or something else?
+> Store the blkcg css association in the bio instead, and derive the blkg
+> from the bio's blkcg and current bdev when a policy needs it.  The first
+> successful policy lookup pins the blkg, records the pin with BIO_BLKG_REF,
+> and drops it from bio_clear_blkcg() or when bio_set_dev() changes the
+> lookup key.
 > 
-
-Sorry for the lack of clarity. The commit message has been revised to
-make it clear that DPA gaps between partitions are a Linux rule. The
-spec permits a gap: the DC region base is device assigned and only has to be
-256MB aligned (r4.0 Table 8-347). It now reads:
-
-    Linux has no support for more than one dynamic capacity partition. Read
-    and validate all the partitions but configure only the first partition
-    as 'dynamic ram 1'. Additional partitions can be added in the future if
-    such a device ever materializes. Linux additionally requires partitions
-    to be contiguous. Therefore, check for and disallow any gap between the
-    end of the pmem partition and the first DC partition, as well as gaps
-    between the remaining DC partitions.
-
-> See below wrt validation checks.
+> Keep lookup-only users from creating missing blkgs by using
+> bio_blkg_lookup(), and rename the bio cgroup association helpers to match
+> the stored blkcg state.
 > 
+> Signed-off-by: Yu Kuai <yukuai@fygo.io>
+> ---
+>  Documentation/admin-guide/cgroup-v2.rst |   2 +-
+>  block/bfq-cgroup.c                      |  14 +-
+>  block/bfq-iosched.c                     |  18 ++-
+>  block/bio.c                             |  12 +-
+>  block/blk-cgroup-fc-appid.c             |   5 +-
+>  block/blk-cgroup.c                      | 206 +++++++++++++++---------
+>  block/blk-cgroup.h                      |  23 ++-
+>  block/blk-crypto-fallback.c             |   2 +-
+>  block/blk-iocost.c                      |  10 +-
+>  block/blk-iolatency.c                   |   7 +-
+>  drivers/md/bcache/request.c             |   2 +-
+>  drivers/md/dm.c                         |   2 +-
+>  drivers/md/md.c                         |   2 +-
+>  drivers/nvdimm/nd_virtio.c              |   2 +-
+>  fs/gfs2/lops.c                          |   3 +-
+>  include/linux/bio.h                     |  30 ++--
+>  include/linux/blk_types.h               |   9 +-
+>  include/linux/writeback.h               |   2 +-
+>  mm/page_io.c                            |  10 +-
+>  19 files changed, 218 insertions(+), 143 deletions(-)
 > 
-> > 
-> > Based on an original patch by Navneet Singh.
-> > 
-> > Signed-off-by: Ira Weiny <iweiny@kernel.org>
-> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
-> > Tested-by: Wonjae Lee <wj28.lee@samsung.com>
-> > Tested-by: Junhee Park <jh9934.park@samsung.com>
-> > Tested-by: Heesoo Kim <habil.kim@samsung.com>
-> > 
-> > ---
-> > Changes:
-> > 1. mbox.c: bound the Get DC Config request by the negotiated mailbox
-> >    payload. Requesting all CXL_MAX_DC_PARTITIONS (8) needs a 328-byte
-> >    response, which exceeds a spec-minimum 256-byte mailbox and fails
-> >    -E2BIG, disabling DCD. Cap partition_count per call to what the
-> >    payload holds and read the rest via the existing start_partition
-> >    loop.
-> > ---
-> >  drivers/cxl/core/hdm.c  |   2 +
-> >  drivers/cxl/core/mbox.c | 220 ++++++++++++++++++++++++++++++++++++++++
-> >  drivers/cxl/cxlmem.h    |  55 ++++++++++
-> >  drivers/cxl/pci.c       |   3 +
-> >  include/cxl/cxl.h       |   3 +-
-> >  5 files changed, 282 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> > index 0c80b76a5f9b..0ef076c08ed2 100644
-> > --- a/drivers/cxl/core/hdm.c
-> > +++ b/drivers/cxl/core/hdm.c
-> > @@ -446,6 +446,8 @@ static const char *cxl_mode_name(enum cxl_partition_mode mode)
-> >  		return "ram";
-> >  	case CXL_PARTMODE_PMEM:
-> >  		return "pmem";
-> > +	case CXL_PARTMODE_DYNAMIC_RAM_1:
-> > +		return "dynamic_ram_1";
-> >  	default:
-> >  		return "";
-> >  	};
-> > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> > index 4790524c32a7..d79019fbd790 100644
-> > --- a/drivers/cxl/core/mbox.c
-> > +++ b/drivers/cxl/core/mbox.c
-> > @@ -1352,6 +1352,197 @@ int cxl_mem_sanitize(struct cxl_memdev *cxlmd, u16 cmd)
-> >  	return -EBUSY;
-> >  }
-> >  
-> > +static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info *part_array,
-> > +			u8 index, struct cxl_dc_partition *dev_part)
-> > +{
-> > +	u64 blk_size = le64_to_cpu(dev_part->block_size);
-> > +	u64 len = le64_to_cpu(dev_part->length);
-> > +
-> > +	part_array[index].start = le64_to_cpu(dev_part->base);
-> > +	part_array[index].size = le64_to_cpu(dev_part->decode_length);
-> > +	part_array[index].size *= CXL_CAPACITY_MULTIPLIER;
-> > +
-> > +	/* Check partitions are in increasing DPA order */
-> > +	if (index > 0) {
-> > +		struct cxl_dc_partition_info *prev_part = &part_array[index - 1];
-> > +
-> > +		if ((prev_part->start + prev_part->size) >
-> > +		     part_array[index].start) {
-> > +			dev_err(dev,
-> > +				"DPA ordering violation for DC partition %d and %d\n",
-> > +				index - 1, index);
-> > +			return -EINVAL;
-> > +		}
-> > +	}
-> > +
-> > +	if (part_array[index].size == 0 || len == 0 ||
-> > +	    part_array[index].size < len || !IS_ALIGNED(len, blk_size)) {
-> > +		dev_err(dev, "DC partition %d invalid length; size %llu len %llu blk size %llu\n",
-> > +			index, part_array[index].size, len, blk_size);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (blk_size == 0 || blk_size % CXL_DCD_BLOCK_LINE_SIZE ||
-> > +	    !is_power_of_2(blk_size)) {
-> > +		dev_err(dev, "DC partition %d invalid block size %llu\n",
-> > +			index, blk_size);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (!IS_ALIGNED(part_array[index].start, SZ_256M) ||
-> > +	    !IS_ALIGNED(part_array[index].start, blk_size)) {
-> > +		dev_err(dev, "DC partition %d invalid start %llu blk size %llu\n",
-> > +			index, part_array[index].start, blk_size);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	dev_dbg(dev, "DC partition %d start %llu size %llu blk_size: %llu\n",
-> > +		index, part_array[index].start, part_array[index].size,
-> > +		blk_size);
-> > +
-> > +	return 0;
-> > +}
-> 
-> 
-> cxl_dc_check() above needs rework.
-> Please go back through it against CXL r4.0 Tables 8-346 and 8-347 and confirm
-> that each constraint the code enforces is the constraint the spec actually
-> states. The check need to run in dependency order, and then each failure
-> needs to report the specific field or relationship that is invalid.
-> 
-Done, double checked both tables. The function now validates in
-dependency order with one message per field:
+> diff --git a/Documentation/admin-guide/cgroup-v2.rst b/Documentation/admin-guide/cgroup-v2.rst
+> index 14b8c571c0d1..bbd79931d5ab 100644
+> --- a/Documentation/admin-guide/cgroup-v2.rst
+> +++ b/Documentation/admin-guide/cgroup-v2.rst
+> @@ -3235,7 +3235,7 @@ the configuration, the bio may be executed at a lower priority and if
+>  the writeback session is holding shared resources, e.g. a journal
+>  entry, may lead to priority inversion.  There is no one easy solution
+>  for the problem.  Filesystems can try to work around specific problem
+> -cases by skipping wbc_init_bio() and using bio_associate_blkg()
+> +cases by skipping wbc_init_bio() and using bio_associate_blkcg()
+>  directly.
+>  
+>  
+> diff --git a/block/bfq-cgroup.c b/block/bfq-cgroup.c
+> index 7e65fe6844ee..3ac3b4c05402 100644
+> --- a/block/bfq-cgroup.c
+> +++ b/block/bfq-cgroup.c
+> @@ -363,11 +363,13 @@ void bfqg_and_blkg_put(struct bfq_group *bfqg)
+>  
+>  void bfqg_stats_update_legacy_io(struct request_queue *q, struct request *rq)
+>  {
+> -	struct bfq_group *bfqg = blkg_to_bfqg(bio_blkg(rq->bio));
+> +	struct blkcg_gq *blkg = bio_blkg_lookup(rq->bio);
+> +	struct bfq_group *bfqg;
+>  
+> -	if (!bfqg)
+> +	if (!blkg)
+>  		return;
+>  
+> +	bfqg = blkg_to_bfqg(blkg);
+>  	blkg_rwstat_add(&bfqg->stats.bytes, rq->cmd_flags, blk_rq_bytes(rq));
+>  	blkg_rwstat_add(&bfqg->stats.ios, rq->cmd_flags, 1);
+>  }
+> @@ -606,7 +608,7 @@ static void bfq_link_bfqg(struct bfq_data *bfqd, struct bfq_group *bfqg)
+>  
+>  struct bfq_group *bfq_bio_bfqg(struct bfq_data *bfqd, struct bio *bio)
+>  {
+> -	struct blkcg_gq *blkg = bio_blkg(bio);
+> +	struct blkcg_gq *blkg = bio_blkg_lookup(bio);
+>  	struct bfq_group *bfqg;
+>  
+>  	while (blkg) {
+> @@ -614,14 +616,16 @@ struct bfq_group *bfq_bio_bfqg(struct bfq_data *bfqd, struct bio *bio)
+>  			blkg = blkg->parent;
+>  			continue;
+>  		}
+> +
+>  		bfqg = blkg_to_bfqg(blkg);
+>  		if (bfqg->pd.online) {
+> -			bio_associate_blkg_from_css(bio, &blkg->blkcg->css);
+> +			bio_associate_blkcg_from_css(bio, &blkg->blkcg->css);
+>  			return bfqg;
+>  		}
+>  		blkg = blkg->parent;
+>  	}
+> -	bio_associate_blkg_from_css(bio,
+> +
+> +	bio_associate_blkcg_from_css(bio,
+>  				&bfqg_to_blkg(bfqd->root_group)->blkcg->css);
+>  	return bfqd->root_group;
+>  }
+> diff --git a/block/bfq-iosched.c b/block/bfq-iosched.c
+> index 0f75301b3115..3d51d743552c 100644
+> --- a/block/bfq-iosched.c
+> +++ b/block/bfq-iosched.c
+> @@ -128,6 +128,7 @@
+>  
+>  #include "elevator.h"
+>  #include "blk.h"
+> +#include "blk-cgroup.h"
+>  #include "blk-mq.h"
+>  #include "blk-mq-sched.h"
+>  #include "bfq-iosched.h"
+> @@ -2452,15 +2453,15 @@ static bool bfq_bio_merge(struct request_queue *q, struct bio *bio,
+>  	struct request *free = NULL;
+>  	bool ret;
+>  
+> +#ifdef CONFIG_BFQ_GROUP_IOSCHED
+> +	if (bic && bio_blkg_lookup(bio) == NULL)
+> +		return false;
+> +#endif
+> +
+>  	spin_lock_irq(&bfqd->lock);
+>  
+>  	if (bic) {
+> -		/*
+> -		 * Make sure cgroup info is uptodate for current process before
+> -		 * considering the merge.
+> -		 */
+>  		bfq_bic_update_cgroup(bic, bio);
+> -
+>  		bfqd->bio_bfqq = bic_to_bfqq(bic, op_is_sync(bio->bi_opf),
+>  					     bfq_actuator_index(bfqd, bio));
+>  	} else {
+> @@ -6245,6 +6246,13 @@ static void bfq_insert_request(struct blk_mq_hw_ctx *hctx, struct request *rq,
+>  	LIST_HEAD(free);
+>  
+>  #ifdef CONFIG_BFQ_GROUP_IOSCHED
+> +	/*
+> +	 * Pin the blkg used to look up bfqg.  If this is the first IO for
+> +	 * the blkcg on this queue, create the bfqg before holding bfqd->lock.
+> +	 */
+> +	if (rq->bio && !bio_flagged(rq->bio, BIO_BLKG_REF))
+> +		bio_blkg(rq->bio);
+> +
+>  	if (!cgroup_subsys_on_dfl(io_cgrp_subsys) && rq->bio)
+>  		bfqg_stats_update_legacy_io(q, rq);
+>  #endif
+> diff --git a/block/bio.c b/block/bio.c
+> index c207b248edba..db33c993c296 100644
+> --- a/block/bio.c
+> +++ b/block/bio.c
+> @@ -179,7 +179,7 @@ static inline gfp_t try_alloc_gfp(gfp_t gfp)
+>  
+>  void bio_uninit(struct bio *bio)
+>  {
+> -	bio_clear_blkg(bio);
+> +	bio_clear_blkcg(bio);
+>  	if (bio_integrity(bio))
+>  		bio_integrity_free(bio);
+>  
+> @@ -228,10 +228,10 @@ void bio_init(struct bio *bio, struct block_device *bdev, struct bio_vec *table,
+>  	bio->bi_end_io = NULL;
+>  	bio->bi_private = NULL;
+>  #ifdef CONFIG_BLK_CGROUP
+> -	bio->bi_blkg = NULL;
+> +	bio->bi_blkcg = NULL;
+>  	bio->issue_time_ns = 0;
+>  	if (bdev)
+> -		bio_associate_blkg(bio);
+> +		bio_associate_blkcg(bio);
+>  #ifdef CONFIG_BLK_CGROUP_IOCOST
+>  	bio->bi_iocost_cost = 0;
+>  #endif
+> @@ -276,7 +276,7 @@ void bio_reset(struct bio *bio, struct block_device *bdev, blk_opf_t opf)
+>  	bio->bi_io_vec = bv;
+>  	bio->bi_bdev = bdev;
+>  	if (bio->bi_bdev)
+> -		bio_associate_blkg(bio);
+> +		bio_associate_blkcg(bio);
+>  	bio->bi_opf = opf;
+>  }
+>  EXPORT_SYMBOL(bio_reset);
+> @@ -860,7 +860,7 @@ static int __bio_clone(struct bio *bio, struct bio *bio_src, gfp_t gfp)
+>  		if (bio->bi_bdev == bio_src->bi_bdev &&
+>  		    bio_flagged(bio_src, BIO_REMAPPED))
+>  			bio_set_flag(bio, BIO_REMAPPED);
+> -		bio_clone_blkg_association(bio, bio_src);
+> +		bio_clone_blkcg_association(bio, bio_src);
+>  	}
+>  
+>  	if (bio_crypt_clone(bio, bio_src, gfp) < 0)
+> @@ -1803,7 +1803,7 @@ void bio_endio(struct bio *bio)
+>  	 * a few callers of bio_init fail to call bio_uninit, so we cover up
+>  	 * for that here at least for now.
+>  	 */
+> -	bio_clear_blkg(bio);
+> +	bio_clear_blkcg(bio);
+>  
+>  	if (bio->bi_end_io)
+>  		bio->bi_end_io(bio);
+> diff --git a/block/blk-cgroup-fc-appid.c b/block/blk-cgroup-fc-appid.c
+> index b2e16e9a7a6c..7589c6209989 100644
+> --- a/block/blk-cgroup-fc-appid.c
+> +++ b/block/blk-cgroup-fc-appid.c
+> @@ -50,12 +50,11 @@ EXPORT_SYMBOL_GPL(blkcg_set_fc_appid);
+>   */
+>  char *blkcg_get_fc_appid(struct bio *bio)
+>  {
+> -	struct blkcg *blkcg;
+> +	struct blkcg *blkcg = bio_blkcg(bio);
+>  
+> -	if (!bio_blkg(bio))
+> +	if (!blkcg)
+>  		return NULL;
+>  
+> -	blkcg = bio_blkcg(bio);
+>  	if (blkcg->fc_app_id[0] == '\0')
+>  		return NULL;
+>  
+> diff --git a/block/blk-cgroup.c b/block/blk-cgroup.c
+> index 753a3bdd0e8c..93ab57e0a9f1 100644
+> --- a/block/blk-cgroup.c
+> +++ b/block/blk-cgroup.c
+> @@ -241,13 +241,13 @@ void blkcg_punt_bio_submit(struct bio *bio)
+>  {
+>  	struct blkcg_gq *blkg = bio_blkg(bio);
+>  
+> -	if (blkg->parent) {
+> +	if (blkg && blkg->parent) {
+>  		spin_lock(&blkg->async_bio_lock);
+>  		bio_list_add(&blkg->async_bios, bio);
+>  		spin_unlock(&blkg->async_bio_lock);
+>  		queue_work(blkcg_punt_bio_wq, &blkg->async_bio_work);
+>  	} else {
+> -		/* never bounce for the root cgroup */
+> +		/* Never bounce if there is no non-root blkg to queue on. */
+>  		submit_bio(bio);
+>  	}
+>  }
+> @@ -275,7 +275,7 @@ subsys_initcall(blkcg_punt_bio_init);
+>   */
+>  struct cgroup_subsys_state *bio_blkcg_css(struct bio *bio)
+>  {
+> -	if (!bio || !bio_blkg(bio))
+> +	if (!bio || !bio_blkcg(bio))
+>  		return NULL;
+>  	return &bio_blkcg(bio)->css;
+>  }
+> @@ -2051,129 +2051,181 @@ void blkcg_add_delay(struct blkcg_gq *blkg, u64 now, u64 delta)
+>  	atomic64_add(delta, &blkg->delay_nsec);
+>  }
+>  
+> -static inline struct blkcg_gq *blkg_lookup_tryget(struct blkcg_gq *blkg)
+> +/*
+> + * Return the blkg pinned by @bio through BIO_BLKG_REF.  The returned blkg is
+> + * already owned by @bio and no extra reference is acquired.  If the pinned
+> + * blkg can't be found, fall back to the root blkg.
+> + */
+> +static struct blkcg_gq *bio_pinned_blkg(struct bio *bio)
+>  {
+> -retry:
+> -	if (blkg_tryget(blkg))
+> -		return blkg;
+> +	struct request_queue *q = bdev_get_queue(bio->bi_bdev);
+> +	struct blkcg_gq *blkg;
+>  
+> -	blkg = blkg->parent;
+> -	if (blkg)
+> -		goto retry;
+> +	rcu_read_lock();
+> +	blkg = blkg_lookup(bio_blkcg(bio), q);
+> +	rcu_read_unlock();
+>  
+> -	return NULL;
+> +	if (WARN_ON_ONCE(!blkg))
+> +		return q->root_blkg;
+> +	return blkg;
+>  }
 
-    /* Block size is a power of 2 and a multiple of 40h */
-    if (blk_size == 0 || !is_power_of_2(blk_size) ||
-        blk_size % CXL_DCD_BLOCK_LINE_SIZE) {
-            dev_err(dev, "DC partition %d invalid block size %#llx\n", ...);
+While reading 2/3, one spot in bio_pinned_blkg() made me wonder, so I
+gave it a try — and the WARN_ON_ONCE triggers every time for me.
 
-*** note sashiko pointed out is_power_of_2(unsigned long n) truncates
-on 32-bit builds, so is_power_of_2 is replaced with (blk_size & (blk_size - 1))
+I may well be missing something, but my worry is that the bio's ref on
+the blkg keeps the object alive, not its entry in the radix tree.
+blkg_destroy() runs throtl_pd_offline (which only schedules an async
+flush) before radix_tree_delete(), so the queued bio ends up dispatched
+(blk_throtl_dispatch_work_fn -> blk_cgroup_bio_start ->
+bio_pinned_blkg) after the blkg is already gone from the tree, and
+blkg_lookup() returns NULL.
 
-    if (part_array[index].size == 0)   -> "zero decode length"
-    if (len == 0)                      -> "zero length"
-    if (len > part_array[index].size)  -> "length %#llx exceeds decode length %#llx"
-    if (!IS_ALIGNED(len, blk_size))    -> "length %#llx not a multiple of block size %#llx"
-    if (!IS_ALIGNED(start, SZ_256M))   -> "base %#llx not aligned to 256M"
+I applied the series and wrote a small reproducer:
 
-    /* Partitions must be contiguous and in increasing DPA order */
+  - null_blk, cgroup v2, a child cgroup with io.max rbps=4096;
+  - a read issued in the child cgroup gets throttled and queued, pinning
+    the blkg;
+  - migrate the reader out and rmdir the cgroup; the queued bio is then
+    flushed after the blkg has left the tree.
 
-Point by point details below.
+Reproduces on boot:
 
-> A terse list of what looks wrong from here. (I have not chased each one)
-> 
-> - blk_size is used as the alignment in IS_ALIGNED(len, blk_size) and
->   IS_ALIGNED(start, blk_size) before it is validated.
+  WARNING: CPU: 0 PID: 11 at block/blk-cgroup.c:2061 bio_pinned_blkg+0x65/0xa0
+  Workqueue: kthrotld blk_throtl_dispatch_work_fn
+  Call Trace:
+   blk_cgroup_bio_start+0x49/0xe0
+   submit_bio_noacct_nocheck+0x2f/0x350
+   blk_throtl_dispatch_work_fn+0xd2/0x110
+   process_one_work+0x1a2/0x3f0
+   worker_thread+0x172/0x2e0
+   kthread+0xdd/0x110
+   ret_from_fork+0x1bd/0x220
 
-Fixed, block size is validated first now.
+Maybe keeping the pinned blkg pointer in the bio would sidestep this, so
+the lookup can't miss?
 
-To clarify the exact fix and reason:
-
-In v12, a block size of 0 would still be rejected, but print "invalid length"
-instead of "invalid block size:
-
-	if (part_array[index].size == 0 || len == 0 ||
-          part_array[index].size < len || !IS_ALIGNED(len, blk_size)) {
-              dev_err(dev, "DC partition %d invalid length; size %llu len %llu blk size %
-              return -EINVAL;
-      }
-
-!IS_ALIGNED(len, blk_size) = !(len & ~0ULL)
-
-len & ~0ULL == 0 iff. len == 0. Since len is checked before the
-alignement check, then !(len &0ULL) evaluates to true and prints
-"invalid length". By moving the blk_size check above, the correct error
-message "invalid block size" is printed for blk_size == 0.
-
-> - Four unrelated conditions share one "invalid length" message.
-
-Fixed, four separate checks, each naming its own field.
-
- if (part_array[index].size == 0)   -> "zero decode length"
- if (len == 0)                      -> "zero length"
- if (len > part_array[index].size)  -> "length %#llx exceeds decode length %#llx"
- if (!IS_ALIGNED(len, blk_size))    -> "length %#llx not a multiple of block size %#llx
-
-> - The start check combines the 256 MiB and block-size requirements, so the
->   message cannot say which alignment failed.
-
-Fixed: Table 8-347 requires the base to be 256MB aligned, and states the block
-size alignment for the starting DPAs of extents, **not** for the region
-base. So the start check now only requires 256 MiB alignment.
-
-> - "DPA ordering violation" is really an overlap check, and gaps appear to be
->   allowed.
-
-Fixed to tighten the check. One thing to note: only DC partition 0 is configured,
-so this check would mean DCD is disabled for a device with a usable
-partition 0, but which has gaps between later partitions. If
-multi-partition support is landed later, gaps would be caught by
-cxl_dpa_check when the partition is configured. Should
-cxl_dev_dc_identify() only check for spec compliance and defer the
-Linux rule of no gaps between partitions up to cxl_dpa_check()?
-
-	/* Partitions must be contiguous and in increasing DPA order */
-	for (int prev = index - 1; prev >= 0; prev--) {
-		struct cxl_dc_partition_info *prev_part = &part_array[prev];
-
-		if (prev_part->size == 0)
-			continue;
-
-		if (prev_part->start + prev_part->size != part_array[index].start) {
-			dev_err(dev,
-				"DC partition %d and %d are not contiguous\n",
-				prev, index);
-			return -EINVAL;
-		}
-		break;
-	}
-> - avail_partition_count is never checked against the 1 to 8 range Table 8-346
->   requires.
-
-Added in cxl_get_dc_config(), before the count is used as the bound for
-the read loop:
-
-    /* A DCD reports between 1 and 8 partitions */
-    if (dc_resp->avail_partition_count == 0 ||
-        dc_resp->avail_partition_count > CXL_MAX_DC_PARTITIONS) {
-            dev_err(mbox->host,
-                    "Device reported %u available DC partitions, expected 1 to %u\n",
-                    dc_resp->avail_partition_count, CXL_MAX_DC_PARTITIONS);
-            return -EIO;
-    }
-
-This also answers the Sashiko report on this patch, which asked whether
-a device with 0 partitions is failed incorrectly. Table 8-346 says "A
-DCD shall report between 1 and 8 regions. All other values are
-reserved.", so 0 is not a legal value and failing is the correct
-behavior.
-
-> - cxl_configure_dcd()'s "skip from pmem not supported" also fires on overlap,
->   and prints neither address.
-
-Split into two checks that print both addresses:
-
-    if (dc_info.start < info->size)
-            dev_err(dev, "DC partition 0 base %#llx overlaps static capacity ending at %#llx\n", ...);
-
-    /* A gap between static capacity and the DC partition is not supported */
-    if (dc_info.start > info->size)
-            dev_warn(dev, "DC partition 0 base %#llx leaves a gap from static capacity ending at %#llx\n", ...);
-
-An overlap is the device contradicting itself so it is an error, a gap
-is legal but unsupported so it stays a warning. Both still disable DCD.
-
-The message also said "pmem capacity", which I think is less accurate
-than "static capacity", since we could have a volatile only device with
-no pmem partition.
-
-> - min_out = 8 is a bare constant for the header ahead of the flex array
-
-Fixed. Uses sizeof(*dc_resp), which for a flex array struct is exactly the fixed
-header.
-
-> - DPA addresses and sizes print in decimal, rest of CXL uses hex 
-
-Converted to hex -- Partition indices stay %d.
-
-> - The Table 8-178, 8-179 and 8-180 citations are not r4.0 numbering
-> 
-Sorry, my bad!
-
-Corrected to Table 8-345 (input payload), 8-346 (output payload) and 8-347
-(region configuration). I also re-checked the Table 8-308 citation in
-patch 1 and that one is correct.
-
-> And RichardC called out this one in his prior review -
-> - Zero geometry fields are legal per Table 8-347, as already raised on the
->   list. Agreed, and the fallout of skipping rather than rejecting needs
->   working through.
-> 
-
-Fixed: New helper, and cxl_dc_check() returns early leaving the array
-entry empty:
-
-    static bool cxl_dc_partition_unavailable(struct cxl_dc_partition *dev_part)
-    {
-            return !le64_to_cpu(dev_part->decode_length) &&
-                   !le64_to_cpu(dev_part->length) &&
-                   !le64_to_cpu(dev_part->block_size);
-    }
-
-Regarding the fallout of skipping:
-- Only those three fields are tested. Table 8-347 states the report-0
-  behaviour for decode length, length and block size only, so a stale
-  base or DSMAD handle on an unavailable region is not an error.
-- If only some of the three are zero, falls through to the individual
-  blk_size, len, and decode_len checks above and rejects the partition.
-- The contiguity check checks against the last non-empty entry rather
-  than index - 1, so a skipped partition in the middle cannot mask an
-  overlap between the partitions either side of it.
-- cxl_dev_dc_identify() returns -ENODEV if partition 0 itself is
-  unavailable, since Linux only wires up partition 0. No message there,
-  cxl_dc_check() has already logged the skip.
-
-> -- Alison
-> 
 Thanks,
-Anisa
-> 
-> > +
-> > +/* Returns the number of partitions in dc_resp or -ERRNO */
-> > +static int cxl_get_dc_config(struct cxl_mailbox *mbox, u8 start_partition,
-> > +			     u8 partition_count,
-> > +			     struct cxl_mbox_get_dc_config_out *dc_resp,
-> > +			     size_t dc_resp_size)
-> > +{
-> > +	struct cxl_mbox_get_dc_config_in get_dc = (struct cxl_mbox_get_dc_config_in) {
-> > +		.partition_count = partition_count,
-> > +		.start_partition_index = start_partition,
-> > +	};
-> > +	struct cxl_mbox_cmd mbox_cmd = (struct cxl_mbox_cmd) {
-> > +		.opcode = CXL_MBOX_OP_GET_DC_CONFIG,
-> > +		.payload_in = &get_dc,
-> > +		.size_in = sizeof(get_dc),
-> > +		.size_out = dc_resp_size,
-> > +		.payload_out = dc_resp,
-> > +		.min_out = 8,
-> > +	};
-> > +	size_t expected_sz;
-> > +	int rc;
-> > +
-> > +	rc = cxl_internal_send_cmd(mbox, &mbox_cmd);
-> > +	if (rc < 0)
-> > +		return rc;
-> > +
-> > +	if (dc_resp->partitions_returned > partition_count) {
-> > +		dev_err(mbox->host, "Device returned %u partitions, requested %u\n",
-> > +			dc_resp->partitions_returned, partition_count);
-> > +		return -EIO;
-> > +	}
-> > +
-> > +	/*
-> > +	 * The payload carries trailing extent/tag count fields after the
-> > +	 * partition array (CXL r4.0 Table 8-179) which the driver ignores, so
-> > +	 * the response is at least, not exactly, expected_sz.
-> > +	 */
-> > +	expected_sz = struct_size(dc_resp, partition,
-> > +				  dc_resp->partitions_returned);
-> > +
-> > +	if (mbox_cmd.size_out < expected_sz) {
-> > +		dev_err(mbox->host,
-> > +			"Payload size %zu less than expected %zu for %u partitions\n",
-> > +			mbox_cmd.size_out,
-> > +			expected_sz,
-> > +			dc_resp->partitions_returned);
-> > +		return -EIO;
-> > +	}
-> > +
-> > +	dev_dbg(mbox->host, "Read %d/%d DC partitions\n",
-> > +		dc_resp->partitions_returned, dc_resp->avail_partition_count);
-> > +	return dc_resp->partitions_returned;
-> > +}
-> > +
-> > +/**
-> > + * cxl_dev_dc_identify() - Reads the dynamic capacity information from the
-> > + *                         device.
-> > + * @mbox: Mailbox to query
-> > + * @dc_info: The dynamic partition information to return
-> > + *
-> > + * Read Dynamic Capacity information from the device and return the partition
-> > + * information.
-> > + *
-> > + * Return: 0 if identify was executed successfully, -ERRNO on error.
-> > + *         on error only dc_info is left unchanged.
-> > + */
-> > +int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
-> > +			struct cxl_dc_partition_info *dc_info)
-> > +{
-> > +	struct cxl_dc_partition_info partitions[CXL_MAX_DC_PARTITIONS];
-> > +	struct cxl_mbox_get_dc_config_out *dc_resp __free(kfree) = NULL;
-> > +	struct device *dev = mbox->host;
-> > +	u8 start_partition;
-> > +	u8 num_partitions;
-> > +	u8 partition_count;
-> > +	size_t dc_resp_size;
-> > +
-> > +	/* Bound requested number of partitions by mailbox payload size */
-> > +	partition_count = min_t(size_t, CXL_MAX_DC_PARTITIONS,
-> > +				(mbox->payload_size - sizeof(*dc_resp) -
-> > +				 sizeof(struct cxl_mbox_get_dc_config_tail)) /
-> > +				sizeof(struct cxl_dc_partition));
-> > +	dc_resp_size = struct_size(dc_resp, partition, partition_count) +
-> > +		       sizeof(struct cxl_mbox_get_dc_config_tail);
-> > +
-> > +	dc_resp = kmalloc(dc_resp_size, GFP_KERNEL);
-> > +	if (!dc_resp)
-> > +		return -ENOMEM;
-> > +
-> > +	/*
-> > +	 * Read and check all partition information for validity and potential
-> > +	 * debugging; see debug output in cxl_dc_check()
-> > +	 */
-> needless comment
-> 
-> 
-> > +	start_partition = 0;
-> > +	num_partitions = 0;
-> > +	do {
-> > +		int rc, i, j;
-> > +
-> > +		rc = cxl_get_dc_config(mbox, start_partition, partition_count,
-> > +				       dc_resp, dc_resp_size);
-> > +		if (rc < 0) {
-> > +			dev_err(dev, "Failed to get DC config: %d\n", rc);
-> > +			return rc;
-> > +		}
-> > +
-> > +		if (rc == 0) {
-> > +			dev_err(dev,
-> > +				"Device reported %u partitions available but returned none at index %u\n",
-> > +				dc_resp->avail_partition_count, start_partition);
-> > +			return -EIO;
-> > +		}
-> > +
-> > +		num_partitions += rc;
-> > +
-> > +		if (num_partitions < 1 || num_partitions > CXL_MAX_DC_PARTITIONS) {
-> > +			dev_err(dev, "Invalid num of dynamic capacity partitions %d\n",
-> > +				num_partitions);
-> > +			return -EINVAL;
-> > +		}
-> > +
-> > +		for (i = start_partition, j = 0; i < num_partitions; i++, j++) {
-> > +			rc = cxl_dc_check(dev, partitions, i,
-> > +					  &dc_resp->partition[j]);
-> > +			if (rc)
-> > +				return rc;
-> > +		}
-> > +
-> > +		start_partition = num_partitions;
-> > +
-> > +	} while (num_partitions < dc_resp->avail_partition_count);
-> > +
-> > +	/* Return 1st partition */
-> > +	dc_info->start = partitions[0].start;
-> > +	dc_info->size = partitions[0].size;
-> > +	dev_dbg(dev, "Returning partition 0 %llu size %llu\n",
-> > +		dc_info->start, dc_info->size);
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(cxl_dev_dc_identify, "CXL");
-> > +
-> >  static void add_part(struct cxl_dpa_info *info, u64 start, u64 size, enum cxl_partition_mode mode)
-> >  {
-> >  	int i = info->nr_partitions;
-> > @@ -1422,6 +1613,35 @@ int cxl_get_dirty_count(struct cxl_memdev_state *mds, u32 *count)
-> >  }
-> >  EXPORT_SYMBOL_NS_GPL(cxl_get_dirty_count, "CXL");
-> >  
-> > +void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
-> > +{
-> > +	struct cxl_dc_partition_info dc_info = { 0 };
-> > +	struct device *dev = mds->cxlds.dev;
-> > +	int rc;
-> > +
-> > +	rc = cxl_dev_dc_identify(&mds->cxlds.cxl_mbox, &dc_info);
-> > +	if (rc) {
-> > +		dev_warn(dev,
-> > +			 "Failed to read Dynamic Capacity config: %d\n", rc);
-> > +		cxl_disable_dcd(mds);
-> > +		return;
-> > +	}
-> > +
-> > +	/* Skips between pmem and the dynamic partition are not supported */
-> > +	if (dc_info.start != info->size) {
-> > +		dev_warn(dev,
-> > +			 "Dynamic Capacity skip from pmem not supported\n");
-> > +		cxl_disable_dcd(mds);
-> > +		return;
-> > +	}
-> > +
-> > +	info->size += dc_info.size;
-> > +	dev_dbg(dev, "Adding dynamic ram partition 1; %llu size %llu\n",
-> > +		dc_info.start, dc_info.size);
-> > +	add_part(info, dc_info.start, dc_info.size, CXL_PARTMODE_DYNAMIC_RAM_1);
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(cxl_configure_dcd, "CXL");
-> > +
-> >  int cxl_arm_dirty_shutdown(struct cxl_memdev_state *mds)
-> >  {
-> >  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > index 616eeaeee5b9..a9782939d82b 100644
-> > --- a/drivers/cxl/cxlmem.h
-> > +++ b/drivers/cxl/cxlmem.h
-> > @@ -407,6 +407,8 @@ struct cxl_security_state {
-> >  	struct kernfs_node *sanitize_node;
-> >  };
-> >  
-> > +#define CXL_MAX_DC_PARTITIONS 8
-> > +
-> >  static inline resource_size_t cxl_pmem_size(struct cxl_dev_state *cxlds)
-> >  {
-> >  	/*
-> > @@ -691,6 +693,39 @@ struct cxl_mbox_set_shutdown_state_in {
-> >  	u8 state;
-> >  } __packed;
-> >  
-> > +/* See CXL r4.0 Table 8-178 get dynamic capacity config Input Payload */
-> > +struct cxl_mbox_get_dc_config_in {
-> > +	u8 partition_count;
-> > +	u8 start_partition_index;
-> > +} __packed;
-> > +
-> > +/* See CXL r4.0 Table 8-179 get dynamic capacity config Output Payload */
-> > +struct cxl_mbox_get_dc_config_out {
-> > +	u8 avail_partition_count;
-> > +	u8 partitions_returned;
-> > +	u8 rsvd[6];
-> > +	/* See CXL r4.0 Table 8-180 */
-> > +	struct cxl_dc_partition {
-> > +		__le64 base;
-> > +		__le64 decode_length;
-> > +		__le64 length;
-> > +		__le64 block_size;
-> > +		__le32 dsmad_handle;
-> > +		u8 flags;
-> > +		u8 rsvd[3];
-> > +	} __packed partition[] __counted_by(partitions_returned);
-> > +	/* Trailing extent/tag count fields unused */
-> > +} __packed;
-> > +
-> > +/* Trailing counts; cannot be a member after the flex array above */
-> > +struct cxl_mbox_get_dc_config_tail {
-> > +	__le32 num_extents_supported;
-> > +	__le32 num_extents_available;
-> > +	__le32 num_tags_supported;
-> > +	__le32 num_tags_available;
-> > +} __packed;
-> > +#define CXL_DCD_BLOCK_LINE_SIZE 0x40
-> > +
-> >  /* Set Timestamp CXL 3.0 Spec 8.2.9.4.2 */
-> >  struct cxl_mbox_set_timestamp_in {
-> >  	__le64 timestamp;
-> > @@ -814,9 +849,18 @@ enum {
-> >  int cxl_internal_send_cmd(struct cxl_mailbox *cxl_mbox,
-> >  			  struct cxl_mbox_cmd *cmd);
-> >  int cxl_dev_state_identify(struct cxl_memdev_state *mds);
-> > +
-> > +struct cxl_dc_partition_info {
-> > +	u64 start;
-> > +	u64 size;
-> > +};
-> > +
-> > +int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
-> > +			struct cxl_dc_partition_info *dc_info);
-> >  int cxl_await_media_ready(struct cxl_dev_state *cxlds);
-> >  int cxl_enumerate_cmds(struct cxl_memdev_state *mds);
-> >  int cxl_mem_dpa_fetch(struct cxl_memdev_state *mds, struct cxl_dpa_info *info);
-> > +void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info);
-> >  struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
-> >  						 u16 dvsec);
-> >  void set_exclusive_cxl_commands(struct cxl_memdev_state *mds,
-> > @@ -830,6 +874,17 @@ void cxl_event_trace_record(struct cxl_memdev *cxlmd,
-> >  			    const uuid_t *uuid, union cxl_event *evt);
-> >  int cxl_get_dirty_count(struct cxl_memdev_state *mds, u32 *count);
-> >  int cxl_arm_dirty_shutdown(struct cxl_memdev_state *mds);
-> > +
-> > +static inline bool cxl_dcd_supported(struct cxl_memdev_state *mds)
-> > +{
-> > +	return mds->dcd_supported;
-> > +}
-> > +
-> > +static inline void cxl_disable_dcd(struct cxl_memdev_state *mds)
-> > +{
-> > +	mds->dcd_supported = false;
-> > +}
-> > +
-> >  int cxl_set_timestamp(struct cxl_memdev_state *mds);
-> >  int cxl_poison_state_init(struct cxl_memdev_state *mds);
-> >  int cxl_mem_get_poison(struct cxl_memdev *cxlmd, u64 offset, u64 len,
-> > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> > index 267c679b0b3c..9b320a2b6fe0 100644
-> > --- a/drivers/cxl/pci.c
-> > +++ b/drivers/cxl/pci.c
-> > @@ -870,6 +870,9 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-> >  	if (rc)
-> >  		return rc;
-> >  
-> > +	if (cxl_dcd_supported(mds))
-> > +		cxl_configure_dcd(mds, &range_info);
-> > +
-> >  	rc = cxl_dpa_setup(cxlds, &range_info);
-> >  	if (rc)
-> >  		return rc;
-> > diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
-> > index 016c74fb747c..87c2bd73df21 100644
-> > --- a/include/cxl/cxl.h
-> > +++ b/include/cxl/cxl.h
-> > @@ -133,6 +133,7 @@ struct cxl_dpa_perf {
-> >  enum cxl_partition_mode {
-> >  	CXL_PARTMODE_RAM,
-> >  	CXL_PARTMODE_PMEM,
-> > +	CXL_PARTMODE_DYNAMIC_RAM_1,
-> >  };
-> >  
-> >  /**
-> > @@ -147,7 +148,7 @@ struct cxl_dpa_partition {
-> >  	enum cxl_partition_mode mode;
-> >  };
-> >  
-> > -#define CXL_NR_PARTITIONS_MAX 2
-> > +#define CXL_NR_PARTITIONS_MAX 3
-> >  
-> >  /**
-> >   * struct cxl_dev_state - The driver device state
-> > -- 
-> > 2.43.0
-> > 
+Tao
+
+> +
+>  /**
+> - * blkg_tryget_closest - try and get a blkg ref on the closet blkg
+> + * bio_blkg_lookup - look up a blkg associated with a bio
+>   * @bio: target bio
+> - * @css: target css
+>   *
+> - * As the failure mode here is to walk up the blkg tree, this ensure that the
+> - * blkg->parent pointers are always valid.  This returns the blkg that it ended
+> - * up taking a reference on or %NULL if no reference was taken.
+> + * Look up the queue-local blkg for @bio's current device and blkcg without
+> + * creating a missing blkg.  The first successful lookup pins the blkg to @bio;
+> + * later lookups reuse the bio-owned reference.
+>   */
+> -static inline struct blkcg_gq *blkg_tryget_closest(struct bio *bio,
+> -		struct cgroup_subsys_state *css)
+> +struct blkcg_gq *bio_blkg_lookup(struct bio *bio)
+>  {
+> -	struct request_queue *q = bio->bi_bdev->bd_queue;
+> -	struct blkcg *blkcg = css_to_blkcg(css);
+> +	struct blkcg *blkcg = bio_blkcg(bio);
+> +	struct request_queue *q;
+>  	struct blkcg_gq *blkg;
+>  
+> +	if (bio_flagged(bio, BIO_BLKG_REF))
+> +		return bio_pinned_blkg(bio);
+> +
+> +	if (!blkcg || !bio->bi_bdev)
+> +		return NULL;
+> +
+> +	q = bdev_get_queue(bio->bi_bdev);
+>  	rcu_read_lock();
+>  	blkg = blkg_lookup(blkcg, q);
+> -	if (likely(blkg))
+> -		blkg = blkg_lookup_tryget(blkg);
+> +	if (blkg && blkg_tryget(blkg))
+> +		bio_set_flag(bio, BIO_BLKG_REF);
+> +	else
+> +		blkg = NULL;
+>  	rcu_read_unlock();
+>  
+> -	if (blkg)
+> -		return blkg;
+> +	return blkg;
+> +}
+> +EXPORT_SYMBOL_GPL(bio_blkg_lookup);
+> +
+> +/**
+> + * bio_put_blkg_ref - drop the blkg reference pinned by a bio
+> + * @bio: target bio
+> + *
+> + * Drop the bio-owned blkg reference acquired by bio_blkg(), if any.
+> + */
+> +void bio_put_blkg_ref(struct bio *bio)
+> +{
+> +	if (bio_flagged(bio, BIO_BLKG_REF)) {
+> +		struct blkcg_gq *blkg = bio_pinned_blkg(bio);
+> +
+> +		blkg_put(blkg);
+> +		bio_clear_flag(bio, BIO_BLKG_REF);
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(bio_put_blkg_ref);
+> +
+> +/**
+> + * bio_blkg - look up the blkg associated with a bio
+> + * @bio: target bio
+> + *
+> + * Look up the queue-local blkg for @bio's current device and blkcg.  If this
+> + * is the first policy use of @bio, create the missing blkg hierarchy if
+> + * necessary, pin the exact blkg, and mark @bio so bio_clear_blkcg() can drop
+> + * the reference when the bio completes.
+> + */
+> +struct blkcg_gq *bio_blkg(struct bio *bio)
+> +{
+> +	struct blkcg *blkcg = bio_blkcg(bio);
+> +	struct gendisk *disk;
+> +	struct request_queue *q;
+> +	struct blkcg_gq *blkg;
+> +
+> +	if (!blkcg || !bio->bi_bdev)
+> +		return NULL;
+> +
+> +	if (bio_flagged(bio, BIO_BLKG_REF))
+> +		return bio_pinned_blkg(bio);
+> +
+> +	disk = bio->bi_bdev->bd_disk;
+> +	q = disk->queue;
+>  
+> -	/*
+> -	 * Fast path failed, we're probably issuing IO in this cgroup the first
+> -	 * time, hold lock to create new blkg.
+> -	 */
+>  	spin_lock_irq(&q->queue_lock);
+> -	blkg = blkg_lookup_create(blkcg, bio->bi_bdev->bd_disk);
+> -	if (blkg)
+> -		blkg = blkg_lookup_tryget(blkg);
+> +	blkg = blkg_lookup_create(blkcg, disk);
+> +	if (blkg && blkg->blkcg == blkcg && blkg_tryget(blkg))
+> +		bio_set_flag(bio, BIO_BLKG_REF);
+> +	else
+> +		blkg = NULL;
+>  	spin_unlock_irq(&q->queue_lock);
+>  
+>  	return blkg;
+>  }
+> +EXPORT_SYMBOL_GPL(bio_blkg);
+>  
+>  /**
+> - * bio_associate_blkg_from_css - associate a bio with a specified css
+> + * bio_associate_blkcg_from_css - associate a bio with a specified css
+>   * @bio: target bio
+>   * @css: target css
+>   *
+> - * Associate @bio with the blkg found by combining the css's blkg and the
+> - * request_queue of the @bio.  An association failure is handled by walking up
+> - * the blkg tree.  Therefore, the blkg associated can be anything between @blkg
+> - * and q->root_blkg.  This situation only happens when a cgroup is dying and
+> - * then the remaining bios will spill to the closest alive blkg.
+> + * Associate @bio with the blkcg found from @css.  The queue-local blkg is
+> + * created and pinned by bio_blkg() when blkcg policies need it.
+>   *
+> - * A reference will be taken on the blkg and will be released when @bio is
+> + * A reference will be taken on the blkcg and will be released when @bio is
+>   * freed.
+>   */
+> -void bio_associate_blkg_from_css(struct bio *bio,
+> +void bio_associate_blkcg_from_css(struct bio *bio,
+>  				 struct cgroup_subsys_state *css)
+>  {
+> -	if (bio_blkg(bio))
+> -		blkg_put(bio_blkg(bio));
+> +	struct blkcg *blkcg;
+>  
+> -	if (css && css->parent) {
+> -		bio->bi_blkg = blkg_tryget_closest(bio, css);
+> -	} else {
+> -		blkg_get(bdev_get_queue(bio->bi_bdev)->root_blkg);
+> -		bio->bi_blkg = bdev_get_queue(bio->bi_bdev)->root_blkg;
+> -	}
+> +	if (!css || !css->parent)
+> +		css = &blkcg_root.css;
+> +
+> +	blkcg = css_to_blkcg(css);
+> +	if (bio_blkcg(bio) == blkcg)
+> +		return;
+> +
+> +	css_get(css);
+> +	bio_clear_blkcg(bio);
+> +	bio->bi_blkcg = blkcg;
+>  }
+> -EXPORT_SYMBOL_GPL(bio_associate_blkg_from_css);
+> +EXPORT_SYMBOL_GPL(bio_associate_blkcg_from_css);
+>  
+>  /**
+> - * bio_associate_blkg - associate a bio with a blkg
+> + * bio_associate_blkcg - associate a bio with a blkcg
+>   * @bio: target bio
+>   *
+> - * Associate @bio with the blkg found from the bio's css and request_queue.
+> - * If one is not found, bio_lookup_blkg() creates the blkg.  If a blkg is
+> - * already associated, the css is reused and association redone as the
+> - * request_queue may have changed.
+> + * Associate @bio with the blkcg found from the bio's css.  If a blkcg is
+> + * already associated, keep it as blkcg association is not queue-local.
+>   */
+> -void bio_associate_blkg(struct bio *bio)
+> +void bio_associate_blkcg(struct bio *bio)
+>  {
+>  	struct cgroup_subsys_state *css;
+>  
+>  	if (blk_op_is_passthrough(bio->bi_opf))
+>  		return;
+>  
+> -	if (bio_blkg(bio)) {
+> -		css = bio_blkcg_css(bio);
+> -		bio_associate_blkg_from_css(bio, css);
+> -	} else {
+> -		rcu_read_lock();
+> -		css = blkcg_css();
+> -		if (!css_tryget_online(css))
+> -			css = NULL;
+> -		rcu_read_unlock();
+> +	if (bio_blkcg(bio))
+> +		return;
+>  
+> -		bio_associate_blkg_from_css(bio, css);
+> -		if (css)
+> -			css_put(css);
+> -	}
+> +	rcu_read_lock();
+> +	css = blkcg_css();
+> +	if (!css_tryget_online(css))
+> +		css = NULL;
+> +	rcu_read_unlock();
+> +
+> +	bio_associate_blkcg_from_css(bio, css);
+> +	if (css)
+> +		css_put(css);
+>  }
+> -EXPORT_SYMBOL_GPL(bio_associate_blkg);
+> +EXPORT_SYMBOL_GPL(bio_associate_blkcg);
+>  
+>  /**
+> - * bio_clone_blkg_association - clone blkg association from src to dst bio
+> + * bio_clone_blkcg_association - clone blkcg association from src to dst bio
+>   * @dst: destination bio
+>   * @src: source bio
+>   */
+> -void bio_clone_blkg_association(struct bio *dst, struct bio *src)
+> +void bio_clone_blkcg_association(struct bio *dst, struct bio *src)
+>  {
+> -	if (bio_blkg(src))
+> -		bio_associate_blkg_from_css(dst, bio_blkcg_css(src));
+> +	if (bio_blkcg(src))
+> +		bio_associate_blkcg_from_css(dst, bio_blkcg_css(src));
+>  }
+> -EXPORT_SYMBOL_GPL(bio_clone_blkg_association);
+> +EXPORT_SYMBOL_GPL(bio_clone_blkcg_association);
+>  
+>  static int blk_cgroup_io_type(struct bio *bio)
+>  {
+> @@ -2186,19 +2238,25 @@ static int blk_cgroup_io_type(struct bio *bio)
+>  
+>  void blk_cgroup_bio_start(struct bio *bio)
+>  {
+> -	struct blkcg_gq *blkg = bio_blkg(bio);
+>  	struct blkcg *blkcg = bio_blkcg(bio);
+> +	struct blkcg_gq *blkg;
+>  	int rwd = blk_cgroup_io_type(bio), cpu;
+>  	struct blkg_iostat_set *bis;
+>  	unsigned long flags;
+>  
+>  	if (!cgroup_subsys_on_dfl(io_cgrp_subsys))
+>  		return;
+> +	if (!blkcg)
+> +		return;
+>  
+>  	/* Root-level stats are sourced from system-wide IO stats */
+>  	if (!cgroup_parent(blkcg->css.cgroup))
+>  		return;
+>  
+> +	blkg = bio_blkg_lookup(bio);
+> +	if (!blkg)
+> +		return;
+> +
+>  	cpu = get_cpu();
+>  	bis = per_cpu_ptr(blkg->iostat_cpu, cpu);
+>  	flags = u64_stats_update_begin_irqsave(&bis->sync);
+> diff --git a/block/blk-cgroup.h b/block/blk-cgroup.h
+> index 1e80b0a73233..b6fb85db4d3d 100644
+> --- a/block/blk-cgroup.h
+> +++ b/block/blk-cgroup.h
+> @@ -126,7 +126,7 @@ static inline struct blkcg *css_to_blkcg(struct cgroup_subsys_state *css)
+>  
+>  static inline struct blkcg *bio_blkcg(struct bio *bio)
+>  {
+> -	return bio_blkg(bio)->blkcg;
+> +	return bio->bi_blkcg;
+>  }
+>  
+>  /*
+> @@ -281,6 +281,9 @@ static inline struct blkcg_gq *blkg_lookup(struct blkcg *blkcg,
+>  	return blkg;
+>  }
+>  
+> +struct blkcg_gq *bio_blkg_lookup(struct bio *bio);
+> +struct blkcg_gq *bio_blkg(struct bio *bio);
+> +
+>  /**
+>   * blkg_to_pd - get policy private data
+>   * @blkg: blkg of interest
+> @@ -348,13 +351,15 @@ static inline void blkg_put(struct blkcg_gq *blkg)
+>  	percpu_ref_put(&blkg->refcnt);
+>  }
+>  
+> -static inline void bio_clear_blkg(struct bio *bio)
+> +static inline void bio_clear_blkcg(struct bio *bio)
+>  {
+> -	struct blkcg_gq *blkg = bio_blkg(bio);
+> +	struct blkcg *blkcg = bio_blkcg(bio);
+> +
+> +	bio_put_blkg_ref(bio);
+>  
+> -	if (blkg) {
+> -		blkg_put(blkg);
+> -		bio->bi_blkg = NULL;
+> +	if (blkcg) {
+> +		css_put(&blkcg->css);
+> +		bio->bi_blkcg = NULL;
+>  	}
+>  }
+>  
+> @@ -470,7 +475,7 @@ static inline void blkcg_clear_delay(struct blkcg_gq *blkg)
+>   */
+>  static inline bool blk_cgroup_mergeable(struct request *rq, struct bio *bio)
+>  {
+> -	return bio_blkg(rq->bio) == bio_blkg(bio) &&
+> +	return bio_blkcg(rq->bio) == bio_blkcg(bio) &&
+>  		bio_issue_as_root_blkg(rq->bio) == bio_issue_as_root_blkg(bio);
+>  }
+>  
+> @@ -497,6 +502,8 @@ struct blkcg {
+>  };
+>  
+>  static inline struct blkcg *bio_blkcg(struct bio *bio) { return NULL; }
+> +static inline struct blkcg_gq *bio_blkg_lookup(struct bio *bio) { return NULL; }
+> +static inline struct blkcg_gq *bio_blkg(struct bio *bio) { return NULL; }
+>  static inline struct blkcg_gq *blkg_lookup(struct blkcg *blkcg, void *key) { return NULL; }
+>  static inline void blkg_init_queue(struct request_queue *q) { }
+>  static inline int blkcg_init_disk(struct gendisk *disk) { return 0; }
+> @@ -513,7 +520,7 @@ static inline struct blkg_policy_data *blkg_to_pd(struct blkcg_gq *blkg,
+>  static inline struct blkcg_gq *pd_to_blkg(struct blkg_policy_data *pd) { return NULL; }
+>  static inline void blkg_get(struct blkcg_gq *blkg) { }
+>  static inline void blkg_put(struct blkcg_gq *blkg) { }
+> -static inline void bio_clear_blkg(struct bio *bio) { }
+> +static inline void bio_clear_blkcg(struct bio *bio) { }
+>  static inline void blk_cgroup_bio_start(struct bio *bio) { }
+>  static inline bool blk_cgroup_mergeable(struct request *rq, struct bio *bio) { return true; }
+>  
+> diff --git a/block/blk-crypto-fallback.c b/block/blk-crypto-fallback.c
+> index 2a5c52ab74b4..5ef4baab444b 100644
+> --- a/block/blk-crypto-fallback.c
+> +++ b/block/blk-crypto-fallback.c
+> @@ -187,7 +187,7 @@ static struct bio *blk_crypto_alloc_enc_bio(struct bio *bio_src,
+>  	bio->bi_write_hint	= bio_src->bi_write_hint;
+>  	bio->bi_write_stream	= bio_src->bi_write_stream;
+>  	bio->bi_iter.bi_sector	= bio_src->bi_iter.bi_sector;
+> -	bio_clone_blkg_association(bio, bio_src);
+> +	bio_clone_blkcg_association(bio, bio_src);
+>  
+>  	/*
+>  	 * Move page array up in the allocated memory for the bio vecs as far as
+> diff --git a/block/blk-iocost.c b/block/blk-iocost.c
+> index d4470476bcd0..62ffd759bb95 100644
+> --- a/block/blk-iocost.c
+> +++ b/block/blk-iocost.c
+> @@ -2775,7 +2775,7 @@ static void ioc_rqos_throttle(struct rq_qos *rqos, struct bio *bio)
+>  static void ioc_rqos_merge(struct rq_qos *rqos, struct request *rq,
+>  			   struct bio *bio)
+>  {
+> -	struct ioc_gq *iocg = blkg_to_iocg(bio_blkg(bio));
+> +	struct ioc_gq *iocg = blkg_to_iocg(bio_blkg_lookup(bio));
+>  	struct ioc *ioc = rqos_to_ioc(rqos);
+>  	sector_t bio_end = bio_end_sector(bio);
+>  	struct ioc_now now;
+> @@ -2833,9 +2833,13 @@ static void ioc_rqos_merge(struct rq_qos *rqos, struct request *rq,
+>  
+>  static void ioc_rqos_done_bio(struct rq_qos *rqos, struct bio *bio)
+>  {
+> -	struct ioc_gq *iocg = blkg_to_iocg(bio_blkg(bio));
+> +	struct ioc_gq *iocg;
+> +
+> +	if (!bio->bi_iocost_cost)
+> +		return;
+>  
+> -	if (iocg && bio->bi_iocost_cost)
+> +	iocg = blkg_to_iocg(bio_blkg_lookup(bio));
+> +	if (iocg)
+>  		atomic64_add(bio->bi_iocost_cost, &iocg->done_vtime);
+>  }
+>  
+> diff --git a/block/blk-iolatency.c b/block/blk-iolatency.c
+> index c0d8d5f6bdba..7ad18a538d7e 100644
+> --- a/block/blk-iolatency.c
+> +++ b/block/blk-iolatency.c
+> @@ -590,8 +590,11 @@ static void blkcg_iolatency_done_bio(struct rq_qos *rqos, struct bio *bio)
+>  	bool issue_as_root = bio_issue_as_root_blkg(bio);
+>  	int inflight = 0;
+>  
+> -	blkg = bio_blkg(bio);
+> -	if (!blkg || !bio_flagged(bio, BIO_QOS_THROTTLED))
+> +	if (!bio_flagged(bio, BIO_QOS_THROTTLED))
+> +		return;
+> +
+> +	blkg = bio_blkg_lookup(bio);
+> +	if (!blkg)
+>  		return;
+>  
+>  	iolat = blkg_to_lat(blkg);
+> diff --git a/drivers/md/bcache/request.c b/drivers/md/bcache/request.c
+> index 3fa3b13a410f..c0f945b8d941 100644
+> --- a/drivers/md/bcache/request.c
+> +++ b/drivers/md/bcache/request.c
+> @@ -848,7 +848,7 @@ static CLOSURE_CALLBACK(cached_dev_read_done)
+>  		s->iop.bio->bi_iter.bi_sector =
+>  			s->cache_miss->bi_iter.bi_sector;
+>  		s->iop.bio->bi_iter.bi_size = s->insert_bio_sectors << 9;
+> -		bio_clone_blkg_association(s->iop.bio, s->cache_miss);
+> +		bio_clone_blkcg_association(s->iop.bio, s->cache_miss);
+>  		bch_bio_map(s->iop.bio, NULL);
+>  
+>  		bio_copy_data(s->cache_miss, s->iop.bio);
+> diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+> index d413bfaf3527..cd68eec77f5a 100644
+> --- a/drivers/md/dm.c
+> +++ b/drivers/md/dm.c
+> @@ -1373,7 +1373,7 @@ void dm_submit_bio_remap(struct bio *clone, struct bio *tgt_clone)
+>  	if (!tgt_clone)
+>  		tgt_clone = clone;
+>  
+> -	bio_clone_blkg_association(tgt_clone, io->orig_bio);
+> +	bio_clone_blkcg_association(tgt_clone, io->orig_bio);
+>  
+>  	/*
+>  	 * Account io->origin_bio to DM dev on behalf of target
+> diff --git a/drivers/md/md.c b/drivers/md/md.c
+> index d1465bcd86c8..af55f8efa46b 100644
+> --- a/drivers/md/md.c
+> +++ b/drivers/md/md.c
+> @@ -9355,7 +9355,7 @@ void md_submit_discard_bio(struct mddev *mddev, struct md_rdev *rdev,
+>  		return;
+>  
+>  	bio_chain(discard_bio, bio);
+> -	bio_clone_blkg_association(discard_bio, bio);
+> +	bio_clone_blkcg_association(discard_bio, bio);
+>  	mddev_trace_remap(mddev, discard_bio, bio->bi_iter.bi_sector);
+>  	submit_bio_noacct(discard_bio);
+>  }
+> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> index 4176046627be..54e4adb0ccb7 100644
+> --- a/drivers/nvdimm/nd_virtio.c
+> +++ b/drivers/nvdimm/nd_virtio.c
+> @@ -121,7 +121,7 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+>  
+>  		if (!child)
+>  			return -ENOMEM;
+> -		bio_clone_blkg_association(child, bio);
+> +		bio_clone_blkcg_association(child, bio);
+>  		child->bi_iter.bi_sector = -1;
+>  		bio_chain(child, bio);
+>  		submit_bio(child);
+> diff --git a/fs/gfs2/lops.c b/fs/gfs2/lops.c
+> index 6dabe73ad790..6512dbd9516f 100644
+> --- a/fs/gfs2/lops.c
+> +++ b/fs/gfs2/lops.c
+> @@ -484,7 +484,7 @@ static struct bio *gfs2_chain_bio(struct bio *prev, unsigned int nr_iovecs,
+>  	struct bio *new;
+>  
+>  	new = bio_alloc(prev->bi_bdev, nr_iovecs, opf, GFP_NOIO);
+> -	bio_clone_blkg_association(new, prev);
+> +	bio_clone_blkcg_association(new, prev);
+>  	new->bi_iter.bi_sector = sector;
+>  	bio_chain(new, prev);
+>  	submit_bio(prev);
+> @@ -1114,4 +1114,3 @@ const struct gfs2_log_operations *gfs2_log_ops[] = {
+>  	&gfs2_revoke_lops,
+>  	NULL,
+>  };
+> -
+> diff --git a/include/linux/bio.h b/include/linux/bio.h
+> index dc4baa3602b7..e5799fdf431d 100644
+> --- a/include/linux/bio.h
+> +++ b/include/linux/bio.h
+> @@ -503,28 +503,20 @@ static inline void bio_release_pages(struct bio *bio, bool mark_dirty)
+>  	disk_devt((bio)->bi_bdev->bd_disk)
+>  
+>  #ifdef CONFIG_BLK_CGROUP
+> -static inline struct blkcg_gq *bio_blkg(struct bio *bio)
+> -{
+> -	return bio->bi_blkg;
+> -}
+> -
+> -void bio_associate_blkg(struct bio *bio);
+> -void bio_associate_blkg_from_css(struct bio *bio,
+> +void bio_associate_blkcg(struct bio *bio);
+> +void bio_associate_blkcg_from_css(struct bio *bio,
+>  				 struct cgroup_subsys_state *css);
+> -void bio_clone_blkg_association(struct bio *dst, struct bio *src);
+> +void bio_clone_blkcg_association(struct bio *dst, struct bio *src);
+> +void bio_put_blkg_ref(struct bio *bio);
+>  void blkcg_punt_bio_submit(struct bio *bio);
+>  #else	/* CONFIG_BLK_CGROUP */
+> -static inline struct blkcg_gq *bio_blkg(struct bio *bio)
+> -{
+> -	return NULL;
+> -}
+> -
+> -static inline void bio_associate_blkg(struct bio *bio) { }
+> -static inline void bio_associate_blkg_from_css(struct bio *bio,
+> +static inline void bio_associate_blkcg(struct bio *bio) { }
+> +static inline void bio_associate_blkcg_from_css(struct bio *bio,
+>  					       struct cgroup_subsys_state *css)
+>  { }
+> -static inline void bio_clone_blkg_association(struct bio *dst,
+> +static inline void bio_clone_blkcg_association(struct bio *dst,
+>  					      struct bio *src) { }
+> +static inline void bio_put_blkg_ref(struct bio *bio) { }
+>  static inline void blkcg_punt_bio_submit(struct bio *bio)
+>  {
+>  	submit_bio(bio);
+> @@ -534,10 +526,12 @@ static inline void blkcg_punt_bio_submit(struct bio *bio)
+>  static inline void bio_set_dev(struct bio *bio, struct block_device *bdev)
+>  {
+>  	bio_clear_flag(bio, BIO_REMAPPED);
+> -	if (bio->bi_bdev != bdev)
+> +	if (bio->bi_bdev != bdev) {
+> +		bio_put_blkg_ref(bio);
+>  		bio_clear_flag(bio, BIO_BPS_THROTTLED);
+> +	}
+>  	bio->bi_bdev = bdev;
+> -	bio_associate_blkg(bio);
+> +	bio_associate_blkcg(bio);
+>  }
+>  
+>  /*
+> diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+> index 8808ee76e73c..5f95c2e0e90b 100644
+> --- a/include/linux/blk_types.h
+> +++ b/include/linux/blk_types.h
+> @@ -246,12 +246,10 @@ struct bio {
+>  	void			*bi_private;
+>  #ifdef CONFIG_BLK_CGROUP
+>  	/*
+> -	 * Represents the association of the css and request_queue for the bio.
+> -	 * If a bio goes direct to device, it will not have a blkg as it will
+> -	 * not have a request_queue associated with it.  The reference is put
+> -	 * on release of the bio.
+> +	 * Represents the blkcg css association for the bio.  The reference is
+> +	 * put on release of the bio.
+>  	 */
+> -	struct blkcg_gq		*bi_blkg;
+> +	struct blkcg		*bi_blkcg;
+>  	/* Time that this bio was issued. */
+>  	u64			issue_time_ns;
+>  #ifdef CONFIG_BLK_CGROUP_IOCOST
+> @@ -309,6 +307,7 @@ enum {
+>  	BIO_TRACE_COMPLETION,	/* bio_endio() should trace the final completion
+>  				 * of this bio. */
+>  	BIO_CGROUP_ACCT,	/* has been accounted to a cgroup */
+> +	BIO_BLKG_REF,		/* bio pins the associated blkg */
+>  	BIO_QOS_THROTTLED,	/* bio went through rq_qos throttle path */
+>  	/*
+>  	 * This bio has completed bps throttling at the single tg granularity,
+> diff --git a/include/linux/writeback.h b/include/linux/writeback.h
+> index 62552a2ce5b9..4f869fe9cc90 100644
+> --- a/include/linux/writeback.h
+> +++ b/include/linux/writeback.h
+> @@ -262,7 +262,7 @@ static inline void wbc_init_bio(struct writeback_control *wbc, struct bio *bio)
+>  	 * regular writeback instead of writing things out itself.
+>  	 */
+>  	if (wbc->wb)
+> -		bio_associate_blkg_from_css(bio, wbc->wb->blkcg_css);
+> +		bio_associate_blkcg_from_css(bio, wbc->wb->blkcg_css);
+>  }
+>  
+>  void inode_switch_wbs_work_fn(struct work_struct *work);
+> diff --git a/mm/page_io.c b/mm/page_io.c
+> index b23f494fcc83..112e50475605 100644
+> --- a/mm/page_io.c
+> +++ b/mm/page_io.c
+> @@ -316,7 +316,7 @@ static inline void count_swpout_vm_event(struct folio *folio)
+>  }
+>  
+>  #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
+> -static void bio_associate_blkg_from_page(struct bio *bio, struct folio *folio)
+> +static void bio_associate_blkcg_from_page(struct bio *bio, struct folio *folio)
+>  {
+>  	struct cgroup_subsys_state *css;
+>  	struct mem_cgroup *memcg;
+> @@ -331,12 +331,12 @@ static void bio_associate_blkg_from_page(struct bio *bio, struct folio *folio)
+>  		css = NULL;
+>  	rcu_read_unlock();
+>  
+> -	bio_associate_blkg_from_css(bio, css);
+> +	bio_associate_blkcg_from_css(bio, css);
+>  	if (css)
+>  		css_put(css);
+>  }
+>  #else
+> -#define bio_associate_blkg_from_page(bio, folio)		do { } while (0)
+> +#define bio_associate_blkcg_from_page(bio, folio)	do { } while (0)
+>  #endif /* CONFIG_MEMCG && CONFIG_BLK_CGROUP */
+>  
+>  struct swap_iocb {
+> @@ -436,7 +436,7 @@ static void swap_writepage_bdev_sync(struct folio *folio,
+>  	bio.bi_iter.bi_sector = swap_folio_sector(folio);
+>  	bio_add_folio_nofail(&bio, folio, folio_size(folio), 0);
+>  
+> -	bio_associate_blkg_from_page(&bio, folio);
+> +	bio_associate_blkcg_from_page(&bio, folio);
+>  	count_swpout_vm_event(folio);
+>  
+>  	folio_start_writeback(folio);
+> @@ -456,7 +456,7 @@ static void swap_writepage_bdev_async(struct folio *folio,
+>  	bio->bi_end_io = end_swap_bio_write;
+>  	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
+>  
+> -	bio_associate_blkg_from_page(bio, folio);
+> +	bio_associate_blkcg_from_page(bio, folio);
+>  	count_swpout_vm_event(folio);
+>  	folio_start_writeback(folio);
+>  	folio_unlock(folio);
+
