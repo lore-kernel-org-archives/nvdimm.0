@@ -1,163 +1,120 @@
-Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D663548B37B
-	for <nvdimm@lists.linux.dev>; Tue,  4 Aug 2026 17:19:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E98DE2EC0A6
+	for <nvdimm@lists.linux.dev>; Tue,  4 Aug 2026 18:10:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785863960; cv=none; b=EM+YFDFEeSxq+3HjexG2fLNN+++EP9MEJkay2aF7ShjuV1Qmpi/uwh+/CR0Mrme/3ykVbujSKhhJMD8UD2YK5+XPwW9NT4GQ6cKJLqoQm5txB8cbgZlehGiaREsSJzMlG60FaFQRpuK/GMeZI+HCi9VxiNdNRMbcj0MQ1GoGmz8=
+	t=1785867005; cv=none; b=YV84T7GVLnH0FbznImul2RcUHih/Avc2ITRU4lIjQwWPmgiP1pFhUcBWawbjdKyeygg/Arkb8m4AOFy8gZ2z7o8GQcQWXvr5b2RmCE4Ht+GsIwsnraqgglfJP5mPFT3atuHLDl3lNcr3aH+aFvaoGyZQLbhihXgtlih/MJlHK40=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785863960; c=relaxed/simple;
-	bh=fiynAW9WpUzgt3N4BHN/WeqgVQsTYwv6Egh7edSdGZk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WlbwYLrfsmTvzKqopMJslqFanwXp3E46YDXZXhzySfAbCmd23nvHnVEozJ0Fr2xjmDhfUnqM1IGnejV/DtjvaJLd+KWcDQCrPgD9/6ZoRbo8MEUE7GIbziu3qicxJ7wBmlApKPhkHh5dW4MNdFVH1m3HoCnGaq1sLB61PkpPWvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AGxGwy4d; arc=none smtp.client-ip=209.85.221.48
+	s=arc-20240116; t=1785867005; c=relaxed/simple;
+	bh=4DzNlfV0nu22s4oTVgl3zMJGFMkBmYe8BcT3HGooQ1o=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gkflF9lHk++gD7BszQIPiIofet4zHT5TWCLr9KPOdnG+Z5YLr3a2zZ+1xduw8ABaZalUKRLy5zG+OH2C7j+093VBwAR5Ambuf11mzfXQLMSVTJOAi1V1NAuGIlYTiwSTQtE4ush+2MQWh6VUJThoPpMAi9oM+a/eGDFSS4I/3AI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=j8U00Vq1; arc=none smtp.client-ip=209.85.214.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AGxGwy4d"
-Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-47f92e3c14bso54061f8f.0
-        for <nvdimm@lists.linux.dev>; Tue, 04 Aug 2026 10:19:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j8U00Vq1"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2cfff5f88dbso2121125ad.3
+        for <nvdimm@lists.linux.dev>; Tue, 04 Aug 2026 11:10:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785863949; x=1786468749; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=kJpsobbV6cDtzB2hYIU7sj8yXmkuFvAex2Z4hVps0ns=;
-        b=AGxGwy4dfrI1cN+ezzNAe+E7ix9SVbKzUWy+ec2YqukczbXL85mSrjwNB8CnqjW2xO
-         bvd7n2C9g0/Y615hXolwx62WJye7SiwAkpGdJkORfR4xZbYx9tl4VMHa0wkLHD1LbGBe
-         /ik+9bWUG3J+eEaJLAD8CCh3jfPyHNym96dRz3Zanc7D012kJPuMCwOUCWBQdGE9Gxgw
-         Ym+sGPCia7l9GDl8iO7Bj/Tx+V76Eskb6UIu4WAT2MmQ49fi9pz/OxSeuKtGqse4f2N4
-         gIv8jtV6fy+pc607uQPG7UMm4MO7c3Cy5BVHWbfM83AUfyGsCqEalu/Ogvajp0VJySu1
-         YR1w==
+        d=gmail.com; s=20251104; t=1785867000; x=1786471800; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:date:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=qs7yGJO2dUWBigiOU3NbR/yvvnHHod0LNbMlLn9fo94=;
+        b=j8U00Vq1shluHaR+zk3Vp2c/okAz5mcVvXl54xM5Ql2DuZ1esG6sWP5T8BK9AYiHR+
+         xwG2PSN1UiRumUyoGOiyAXkSDcVCdp7c1m5M5BQ0mlo9NzcY94eTr2WHOlpXj2PnFyWh
+         cX/ezY5JJ5yjUJ4sA5IyxBj4nU6B25xQwgGH/EvEg+OVhzjbQfSJ0oHtTwjLwf17ZpJL
+         u+GahtmRVX5vD4gCweqoRFs9LUGmQzl6fQFF5tN3fd4bCMqDlg35tefzsDwF08mRZM7y
+         6HLf1s9tUT2D9eSqGT2xlPPbAq4tJEftNV6yNVuWGPkeS3fJdakpnj45MgK0dJes+t1R
+         7QVg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785863949; x=1786468749;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=kJpsobbV6cDtzB2hYIU7sj8yXmkuFvAex2Z4hVps0ns=;
-        b=qiuWuk2WZe0KkGU1Vz+DJVpptUAgISrKXDSE9QfqoPCODBVyYgl4I2Qb1w/xqQLHnu
-         JGwZWlV0XwQvrEPkO8PA44gnKp/esONEI6iDzLQsyUJVd7tNnODqjotDQgez3mYtJp7f
-         28O+ushNuwE+O4+VxPe9w/Gb4CHS3LaYNV/Zcgd1fFet2Hp+5Zg+2yevVwwhmnXeLa76
-         01VAsZ9UwArFsR0Ixc+uZPeW65nJ9dchC5rUXu/q+OfVBP55/Dk+mTz1Teh1gfdjlrJI
-         er+nhOIZlUjtXMO6wvTYNrfaB6+MGK325/ry3OjQczSb73kvl16VAg12hiNmPhNw998J
-         8Okg==
-X-Forwarded-Encrypted: i=1; AHgh+RpJb/eYM6QLt8+080gyHVSLWO7CLQZ9tVIXygsJ1LwzUwHeRp25TewAwqEgsZgUqkOX8wS49PY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxPf7wGhBZjKBhT9jJBo5urnHKGQyyzDbKHUL+/io23J+44h6Zo
-	rlnhYJoMOclnqjPWvs1kPtn7jl9VFE7eoTrWh9hJXQl50ZTV0G5kZ29W
-X-Gm-Gg: AR+sD10/jS7rmmO+cC/KONiFQuqQLnQgXaSY8OOZAc9/TFhZhnvwC38whLxScZX/VER
-	UNhhXfIzwvZokaCO4gxAbvQQQ3fLbERc0m/zP5b01ekqbUwnCitNFJoADSjsQlZVONN0oKjpb0s
-	wcKqdTRfuVBKczm1ZELCAK6QrCfWSi2lK1g4siwfEewryisd+RPfsLvtP1r2ZjqkBplySE7T/yn
-	NDY6KgIxkBS9zEhlKf/Kk/7diMjQ3A9nkgITGRWRzUKh0pxNqOMeEAvU9beW3v7MxcmNbY8WUYs
-	b9vvHUmtORF+vZyfxAmkhrWzOPY/id3yJE1lRQi/2S8M+2jv+fSLfKhu/70u5SUzL86gAJmcz8V
-	YcqSOoje3eZLVG4lf0JWBlriFf6l08JfDAL5wdv/eZ1poGnk24GmIFApIDCu7XozgOnjZv6gy8C
-	9cO5TuM/HiMB085qJAjHt/ra4gi+vV/JP4PZgmVlLgjh6aX4d66cFYdTcY6hm9Lqex5fD2AqBf6
-	88IMBnnrsVavTZUeVEM85fbDF51tPgMsHf8vpbDXEcDRs1bXWyX6ABe5tizgAWKCfguc7pECjUg
-	hp1YCQgQ5+yP5K8vUwT2k3aXN57WSMzDaIov1/g=
-X-Received: by 2002:adf:fe49:0:b0:47f:941a:796d with SMTP id ffacd0b85a97d-47fec4fa3admr1381301f8f.12.1785863948785;
-        Tue, 04 Aug 2026 10:19:08 -0700 (PDT)
-Received: from ?IPV6:2a01:4b00:bd21:4f00:7cc6:d3ca:494:116c? ([2a01:4b00:bd21:4f00:7cc6:d3ca:494:116c])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47febfda6afsm1357370f8f.3.2026.08.04.10.19.06
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 04 Aug 2026 10:19:07 -0700 (PDT)
-Message-ID: <38163009-770f-4596-abe2-249efc113f59@gmail.com>
-Date: Tue, 4 Aug 2026 18:19:02 +0100
+        d=1e100.net; s=20251104; t=1785867000; x=1786471800;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=qs7yGJO2dUWBigiOU3NbR/yvvnHHod0LNbMlLn9fo94=;
+        b=CcB7kfETYQ3Mn87kVzu538aTRy04v/8w8kNAel7NA8ZUFhdjHWPjYIFMUkkodz/XtR
+         PjQv+1I6SkNQNZHD2rTOAkKctDUM02BMNO3Cu4Ev7OS9GciF1YtBsO0S71cf4Zwc+R8O
+         Kpz/oery1AyJfCsFgdFdXNejaZUi8XY7lOxaOHR1JoPcXqltzUtY7HmJ61Fb8f4q+oWH
+         RNQ976mZUOwUWuv91UcEtK2KFZdfR8QVtnA/AYFqQcAm+wMx5z4RuQ8P1jtB+jJBoKHj
+         OjBZaILX9A6u8hGbSBFH0UnkPMEdAwwfdLmETuVzBdQJcyhnbOY1dKndB15qTAJnoiSw
+         uIhQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqFfFK8RpZawqLB4S0zwCjqIuqH5cWj3SqKwfKIvdaQ+IjAPw6HfT0L1xFKOzDIQe5rycj7UU0=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwwKEUAN37Q3eoqcqaKQLzB8VlBWIZxi0Ih+SAIuAPuBylXUecf
+	wmVyMUeXq/9EHjj40sxZwNpCXslFgfXFfiSFEddrsNvMMwApSx5Fo9cP
+X-Gm-Gg: AR+sD12C30If/EB4Y3UW7WgJm84AbHwRmsT8S0IwiBWzjtoYoAlaJY/a5w2Ay8/M6cM
+	kvI1WkK31yNFZbMB+f+klA6m+AduDTtmFm6h54bhtAs0xw5Qhz6oY7z7xoMofOYe5S0sl7DP48z
+	TjEhCwNqB0XVgDActr89Y/fgColEubDId4lMY2vQcCPGurJhoIHy1jw/Fwy1uz5+ZvWmLI+1aMg
+	yhP021WR/Ln0rSnkDUc+FtNq2FZC4TtP++3lOaUGDKC5UdExGt+oVTx5PJCTXrwXtqajLM5z0XE
+	V/KEsPyyI3evzRVW6g/K4LYuO4aAfSb0FoHproh5XZgpHjszvywgj8GkQDhkS5nYi+NaIZht8QM
+	/X0udgkEI7fJRpVCxZVeoZep8ton+665uS2EaSnPiLvSg39mZHuL8yyunycBKoarv3k6lFv2SU8
+	CheWN9kX8zdgRtCR/OK6m4ZDB9CnzAWpngmDDHaejyZ/Ukd3VDQpaHvLRx
+X-Received: by 2002:a17:902:d486:b0:2cf:8363:5ab7 with SMTP id d9443c01a7336-2d0ca9a2657mr5745495ad.26.1785866999776;
+        Tue, 04 Aug 2026 11:09:59 -0700 (PDT)
+Received: from cxlqual ([220.120.90.131])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d0aa4cf714sm11507535ad.67.2026.08.04.11.09.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 04 Aug 2026 11:09:59 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Wed, 5 Aug 2026 03:10:28 +0900
+To: Gregory Price <gourry@gourry.net>
+Cc: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Jonathan Cameron <jic23@kernel.org>, Fan Ni <nifan.cxl@gmail.com>,
+	Li Ming <ming.li@zohomail.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>,
+	Benjamin Cheatham <benjamin.cheatham@amd.com>,
+	Wonjae Lee <wj28.lee@samsung.com>,
+	Junhee Park <jh9934.park@samsung.com>,
+	Heesoo Kim <habil.kim@samsung.com>
+Subject: Re: [PATCH v12 1/8] cxl/mbox: Flag support for Dynamic Capacity
+ Devices (DCD)
+Message-ID: <anIrFAYITF2L2UOY@cxlqual>
+References: <20260731084901.1512819-1-anisa.su@samsung.com>
+ <20260731084901.1512819-2-anisa.su@samsung.com>
+ <anIJFdtTEmofty6U@gourry-fedora-PF4VCD3F>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 07/16] block: introduce dma map backed bio type
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
- Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org,
- linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org,
- linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
- linaro-mm-sig@lists.linaro.org, Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Sumit Semwal <sumit.semwal@linaro.org>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>,
- Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>,
- William Power <william.power@intel.com>, Phil Cayton
- <phil.cayton@intel.com>, Jason Gunthorpe <jgg@nvidia.com>,
- Damien Le Moal <dlemoal@kernel.org>, Alasdair Kergon <agk@redhat.com>,
- Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>,
- Benjamin Marzinski <bmarzins@redhat.com>,
- Vishal Verma <vishal.l.verma@intel.com>, David Sterba <dsterba@suse.com>,
- Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev,
- nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org,
- ceph-devel@vger.kernel.org
-References: <cover.1785596451.git.asml.silence@gmail.com>
- <e26aefbcb383be7092dc76343ce745013e671334.1785596451.git.asml.silence@gmail.com>
- <20260804162440.GB12292@lst.de>
-Content-Language: en-US
-From: Pavel Begunkov <asml.silence@gmail.com>
-In-Reply-To: <20260804162440.GB12292@lst.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <anIJFdtTEmofty6U@gourry-fedora-PF4VCD3F>
 
-On 8/4/26 17:24, Christoph Hellwig wrote:
-> On Sat, Aug 01, 2026 at 04:46:19PM +0100, Pavel Begunkov wrote:
->> Premapped buffers don't require a generic bio_vec since these have
->> already been dma mapped. Repurpose the bi_io_vec space to strore dmabuf
->> maps as they are mutually exclusive.
->>
->> Suggested-by: Keith Busch <kbusch@kernel.org>
->> Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
->> ---
-...>>   
->> +static inline int bio_split_io_at_dmabuf(struct bio *bio,
->> +		const struct queue_limits *lim, unsigned *segs,
->> +		unsigned max_bytes, unsigned len_align_mask,
->> +		unsigned start_align_mask)
->> +{
->> +	unsigned bytes = min(bio->bi_iter.bi_size, max_bytes);
->> +	unsigned seg_shift = bio->bi_dmabuf_map->seg_shift;
->> +	unsigned offset = bio->bi_iter.bi_offset & ((1U << seg_shift) - 1);
->> +
->> +	if ((bio->bi_iter.bi_offset & start_align_mask) ||
->> +	    (bio->bi_iter.bi_size & len_align_mask))
->> +		return -EINVAL;
->> +
->> +	/* single contiguous range into the dma-buf */
->> +	*segs = 1;
->> +
->> +	bytes = min(bytes, ((unsigned)lim->max_segments << seg_shift) - offset);
+On Tue, Aug 04, 2026 at 11:45:34AM -0400, Gregory Price wrote:
+> On Fri, Jul 31, 2026 at 01:48:06AM -0700, Anisa Su wrote:
+> > From: Ira Weiny <iweiny@kernel.org>
+> > 
+> > Per the CXL 4.0 specification software must check the Command Effects
+> > Log (CEL) for dynamic capacity command support.
+> > 
+> > Detect support for the DCD commands while reading the CEL, including:
+> > 
+> >         Get DC Config
+> >         Get DC Extent List
+> >         Add DC Response
+> >         Release DC
+> > 
+> > Based on an original patch by Navneet Singh.
+> > 
+> > Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> > Signed-off-by: Anisa Su <anisa.su@samsung.com>
+> > Tested-by: Wonjae Lee <wj28.lee@samsung.com>
+> > Tested-by: Junhee Park <jh9934.park@samsung.com>
+> > Tested-by: Heesoo Kim <habil.kim@samsung.com>
+> > 
 > 
-> I guess ->seg_shift is some sort of encoding of a max
-> segment size?
-
-I'll add a comment.
-
-We rather need the minimum segment size, you can always split large
-ones. I calculated it even stricter as the least common multiple
-pow2 to avoid divs here.
-
-If the device supports N segments and we know that each segment is
-at least M bytes, then we should be able to issue IO of size N*M
-of full segments. The line above truncates the bio size using
-that + offset adjustments.
-
-I guess it might be more straightforward to calculate the worst
-case number of segments and then adjust the splitting size, but
-since we don't return the number of segments it's more
-computations. E.g.
-
-seg_size = 1U << seg_shift;
-nsegs = (bio->bi_iter.bi_size + offset + seg_size - 1) / seg_size;
-
-if (nsegs > lim->max_segments) {
-	nsegs = lim->max_segments; // unused after the block
-	bytes = seg_size * nsegs - offset;
-}
-
--- 
-Pavel Begunkov
-
+> Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+> 
+Thanks for taking a look : )
+- Anisa
