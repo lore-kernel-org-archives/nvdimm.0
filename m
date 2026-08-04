@@ -1,22 +1,22 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF72472543;
-	Tue,  4 Aug 2026 16:26:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A851D463B6D;
+	Tue,  4 Aug 2026 16:26:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785860794; cv=none; b=pr33IKqD0zYKZ8aFqT5TXkISQyeZT+BVO7eFH7LWWErQh4tF3CmfRpF0o+nC4wbwLW2wQw/I78ks4RZm/rUKxVdpgGpXybnm93gio0DM5HPMl48gaPOaPIew8unrHVx4e9fG3yNnAx0lx8Kl1iMCoTBzhHyO1KIFKOSTMs2mNQ8=
+	t=1785860809; cv=none; b=WEJW4I4y3tgAfc5ZpbXDXZVp9EX8AydQMLscZ+SdhpQWRR/QBUzW+EcvA0qOpXyBojnZjmEds9qQMpUlzCeQ6cDOjj0guTOFGCMKcwgOnkY/Mee07THr/dM2xN7NZauwcDPS6fF/g4Y4ZhQpXaf41w/AoAxskPi6l04+1aVLtlE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785860794; c=relaxed/simple;
-	bh=reEC3cxY04yRT/RDFfaEHgAbxCiloMujITWUY7scr7M=;
+	s=arc-20240116; t=1785860809; c=relaxed/simple;
+	bh=M7NmYC/Iylm9myghHwqILim55SAUt9QrM+UZYk0eJlw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JyEwxC73ULKQ/8m0CJwyj6Q6hou9fL2yeavna4WauekJbQFlTinbNtduZPUqfPCVzY9CPUra67iWK48BZ+fAVv85mYsNOLDsD9BVV0PBZ2sPqN2ofDbU59kh9lTNVuLMASVGh+BmbCZ3/TTl5BNTKYtMYCbFR9vTm2nmZyFy7ao=
+	 Content-Type:Content-Disposition:In-Reply-To; b=bcHnWYdvWYc5ygrJMeyhw1khe48X8wxfU9CV0Y1TqmKO0vVyZmFdm/97VENm14M9sch12mzQp2+fn8+3dHyZIOKODxRSyntyiXVkqd9xzW4JedmDQtSLh7Zn+x84a/Ar+8e1eltdp3Sjw9qROKOUALy2h/1j6HlSZZ1f6v1JY6Y=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id 7BE126732A; Tue,  4 Aug 2026 18:26:26 +0200 (CEST)
-Date: Tue, 4 Aug 2026 18:26:26 +0200
+	id AA9516732A; Tue,  4 Aug 2026 18:26:44 +0200 (CEST)
+Date: Tue, 4 Aug 2026 18:26:43 +0200
 From: Christoph Hellwig <hch@lst.de>
 To: Pavel Begunkov <asml.silence@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
@@ -45,9 +45,10 @@ Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
 	David Sterba <dsterba@suse.com>, Ilya Dryomov <idryomov@gmail.com>,
 	dm-devel@lists.linux.dev, nvdimm@lists.linux.dev,
 	linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org
-Subject: Re: [PATCH v5 09/16] nvme-pci: implement dma-buf backed requests
-Message-ID: <20260804162626.GC12292@lst.de>
-References: <cover.1785596451.git.asml.silence@gmail.com> <9e3dd1b2d71dc0f9bd556b6a6d6e48fb6a8d727b.1785596451.git.asml.silence@gmail.com>
+Subject: Re: [PATCH v5 10/16] nvme-pci: rename nvme_pci_sgl_set_data to
+ nvme_pci_dma_iter_set_sgl
+Message-ID: <20260804162643.GD12292@lst.de>
+References: <cover.1785596451.git.asml.silence@gmail.com> <ff507b4895521074938d82fe2647e003359ec2be.1785596451.git.asml.silence@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -56,11 +57,10 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <9e3dd1b2d71dc0f9bd556b6a6d6e48fb6a8d727b.1785596451.git.asml.silence@gmail.com>
+In-Reply-To: <ff507b4895521074938d82fe2647e003359ec2be.1785596451.git.asml.silence@gmail.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-> +static blk_status_t nvme_rq_setup_dmabuf_map(struct request *req,
-> +					     struct nvme_queue *nvmeq)
+Looks good:
 
-Two tab indents for prototype continuations everywhere please.
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 
