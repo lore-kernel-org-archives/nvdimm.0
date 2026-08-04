@@ -1,280 +1,163 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86F373F23D1
-	for <nvdimm@lists.linux.dev>; Tue,  4 Aug 2026 16:55:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785862573; cv=fail; b=Uo+PfFMZ7/ZyjaE6ccTWBFUowtdTbq2gENHueh945VGI1AN4U3rEKNlKQELG4i199tFm+zijfz/T6dlLEzIbkRf1HdHPvG48vA8lq7lH+Z5VnT+3/h6lt6Y0RNf/sOvUgr/D2dGERVFM8U6kZP8saB6BN6fPuh2mwnvJaQDnvU8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785862573; c=relaxed/simple;
-	bh=5IA36ibQY4GxNqKsx+VNLUYSiPvJ255sP6LicQXbp8I=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=e5sL27lJ+0Ul0vKhkCRNWHNstMEDuQ659Y07PGoPtsnJE30I6x4SJ0+aV3Dan9EbA+Jk4HdVIFoNmCSCKPkB58Pu4AHx3wTwnh27S2rGMYZJ7MRuiQYrN9nXZCAVCLYmGLci7YpnxdpS/ykXQL56M02lqdRqASm3cIJjAj52l0k=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mu9MVONZ; arc=fail smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D663548B37B
+	for <nvdimm@lists.linux.dev>; Tue,  4 Aug 2026 17:19:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785863960; cv=none; b=EM+YFDFEeSxq+3HjexG2fLNN+++EP9MEJkay2aF7ShjuV1Qmpi/uwh+/CR0Mrme/3ykVbujSKhhJMD8UD2YK5+XPwW9NT4GQ6cKJLqoQm5txB8cbgZlehGiaREsSJzMlG60FaFQRpuK/GMeZI+HCi9VxiNdNRMbcj0MQ1GoGmz8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785863960; c=relaxed/simple;
+	bh=fiynAW9WpUzgt3N4BHN/WeqgVQsTYwv6Egh7edSdGZk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=WlbwYLrfsmTvzKqopMJslqFanwXp3E46YDXZXhzySfAbCmd23nvHnVEozJ0Fr2xjmDhfUnqM1IGnejV/DtjvaJLd+KWcDQCrPgD9/6ZoRbo8MEUE7GIbziu3qicxJ7wBmlApKPhkHh5dW4MNdFVH1m3HoCnGaq1sLB61PkpPWvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AGxGwy4d; arc=none smtp.client-ip=209.85.221.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mu9MVONZ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785862554; x=1817398554;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=5IA36ibQY4GxNqKsx+VNLUYSiPvJ255sP6LicQXbp8I=;
-  b=mu9MVONZ2Us0bE4gk5upYFgoyr1VUzV/lWVMTiiv7mhrxLVgNeM2m93q
-   C79bm9hgo9/bdnNGBd0xLQ1u7LTPuefQseA9KTtA6ipBkWNb5GhvraTEa
-   hcP36qCR1JyxbTNQSSe6/9JugMhIBxhyHp7OZkPlcoCtNyYwxq2NaEQM1
-   hpRaLLfCDZk3IyrILhScDRCYNCm/CO5cSP1q9TiQE8O5QsvwgNr1ARGPQ
-   0LVu/Ne91Vxr90w3LhuY0AuD7YtYt6Gog3MgWAjSgfYA6mp36lSuDUflJ
-   l+RnbNQ+JBAJ+fb974xozXWVug5FRhk2ua7nKD+MKkbiAtzHzevSB0fs2
-   w==;
-X-CSE-ConnectionGUID: KzLj6VKNTuCAY2jWu+LmkA==
-X-CSE-MsgGUID: Zys0T/cvRbCaWtGRgUk/Iw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11865"; a="97926093"
-X-IronPort-AV: E=Sophos;i="6.25,204,1779174000"; 
-   d="scan'208";a="97926093"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2026 09:55:49 -0700
-X-CSE-ConnectionGUID: l2UfVgAtTy2eGcjKlKB0Qg==
-X-CSE-MsgGUID: wfHgn2wsQJmQJDYWM+uvHA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,204,1779174000"; 
-   d="scan'208";a="265065259"
-Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
-  by orviesa003.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2026 09:55:49 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Tue, 4 Aug 2026 09:55:48 -0700
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45 via Frontend Transport; Tue, 4 Aug 2026 09:55:48 -0700
-Received: from CH5PR02CU005.outbound.protection.outlook.com (40.107.200.24) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Tue, 4 Aug 2026 09:55:48 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v0B/toEm1+dtLZdE2XSkgFYygV9VGUQi+rGA0rUWj4x1MzFWiPusF74+FPxnm+da/qUo2tv9ICJiQrfUf+Ctgygn1Lig6CgA9krdfHYKr2PyFpoZsAxHr/AMDYjN0rBq+akPqjXMwVXQcnkfJWULMeMDlfhGNyqMT8gma0Q/N9of/Sp8Imv0Mx3YagzFE4g9o2bp62uSxB+sOqNG32wuf8Jtu1u3lt2aKZcdpg5BxqWmoO8mmolSPMTR137dtx/9pEQsUZOzk/gAVtfpkWTEZDuhO8ujKnC9aLBZ4AqLMOzBwn9SAFOomFZfxELSjGBeJJP/h7JOn4pmpZiuw21dwA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Q9vHrDlin6rDZJA6KlALbG2Vl7T25bvWS5H2m/9C/vY=;
- b=EO5c+FtHX7hxwxN/6P/CjEld/JbIlrUdeydZpVamC5u3cUHUy/zmdCYtfKn3tl0V2gMZYzLJl2p4WU0NfeihJG7cGLu39vXKpoJuuXDJzu36v9RWw3r/tvxs1wwtWaB4JenSxrTolnh+5nA7OiIzWmcNYAyyRTgMlsSLdQ+Z63tyIpFYbQmL511jg1JlQ2X3NJzk3DnwiK38jTKAAuwYhHm4bTyii1ndH4R0+ctyaRPqK6+mglFdZl5AvMOOwrGY6nMq9EHoEmEsOXrJMMMPKu5dYqLbz8k/YjYqdrIeZRfhmLNuyuqNVjVtu7OPgQFxw37Wpe+n1Ipi0ahElRCUBQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by DM3PPF74831EF4B.namprd11.prod.outlook.com (2603:10b6:f:fc00::f2e) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.15; Tue, 4 Aug
- 2026 16:55:45 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0292.013; Tue, 4 Aug 2026
- 16:55:43 +0000
-Date: Tue, 4 Aug 2026 09:55:36 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Anisa Su <anisa.su887@gmail.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Dave Jiang <dave.jiang@intel.com>, "Jonathan
- Cameron" <jic23@kernel.org>, Fan Ni <nifan.cxl@gmail.com>, Li Ming
-	<ming.li@zohomail.com>, Vishal Verma <vishal.l.verma@intel.com>, "Davidlohr
- Bueso" <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, Wonjae Lee <wj28.lee@samsung.com>, Junhee Park
-	<jh9934.park@samsung.com>, Heesoo Kim <habil.kim@samsung.com>, Anisa Su
-	<anisa.su@samsung.com>
-Subject: Re: [PATCH v12 1/8] cxl/mbox: Flag support for Dynamic Capacity
- Devices (DCD)
-Message-ID: <anIZiJ8E0EXs2kS0@aschofie-mobl2.lan>
-References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-2-anisa.su@samsung.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260731084901.1512819-2-anisa.su@samsung.com>
-X-ClientProxiedBy: SJ0PR05CA0028.namprd05.prod.outlook.com
- (2603:10b6:a03:33b::33) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AGxGwy4d"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-47f92e3c14bso54061f8f.0
+        for <nvdimm@lists.linux.dev>; Tue, 04 Aug 2026 10:19:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785863949; x=1786468749; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=kJpsobbV6cDtzB2hYIU7sj8yXmkuFvAex2Z4hVps0ns=;
+        b=AGxGwy4dfrI1cN+ezzNAe+E7ix9SVbKzUWy+ec2YqukczbXL85mSrjwNB8CnqjW2xO
+         bvd7n2C9g0/Y615hXolwx62WJye7SiwAkpGdJkORfR4xZbYx9tl4VMHa0wkLHD1LbGBe
+         /ik+9bWUG3J+eEaJLAD8CCh3jfPyHNym96dRz3Zanc7D012kJPuMCwOUCWBQdGE9Gxgw
+         Ym+sGPCia7l9GDl8iO7Bj/Tx+V76Eskb6UIu4WAT2MmQ49fi9pz/OxSeuKtGqse4f2N4
+         gIv8jtV6fy+pc607uQPG7UMm4MO7c3Cy5BVHWbfM83AUfyGsCqEalu/Ogvajp0VJySu1
+         YR1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785863949; x=1786468749;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=kJpsobbV6cDtzB2hYIU7sj8yXmkuFvAex2Z4hVps0ns=;
+        b=qiuWuk2WZe0KkGU1Vz+DJVpptUAgISrKXDSE9QfqoPCODBVyYgl4I2Qb1w/xqQLHnu
+         JGwZWlV0XwQvrEPkO8PA44gnKp/esONEI6iDzLQsyUJVd7tNnODqjotDQgez3mYtJp7f
+         28O+ushNuwE+O4+VxPe9w/Gb4CHS3LaYNV/Zcgd1fFet2Hp+5Zg+2yevVwwhmnXeLa76
+         01VAsZ9UwArFsR0Ixc+uZPeW65nJ9dchC5rUXu/q+OfVBP55/Dk+mTz1Teh1gfdjlrJI
+         er+nhOIZlUjtXMO6wvTYNrfaB6+MGK325/ry3OjQczSb73kvl16VAg12hiNmPhNw998J
+         8Okg==
+X-Forwarded-Encrypted: i=1; AHgh+RpJb/eYM6QLt8+080gyHVSLWO7CLQZ9tVIXygsJ1LwzUwHeRp25TewAwqEgsZgUqkOX8wS49PY=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxPf7wGhBZjKBhT9jJBo5urnHKGQyyzDbKHUL+/io23J+44h6Zo
+	rlnhYJoMOclnqjPWvs1kPtn7jl9VFE7eoTrWh9hJXQl50ZTV0G5kZ29W
+X-Gm-Gg: AR+sD10/jS7rmmO+cC/KONiFQuqQLnQgXaSY8OOZAc9/TFhZhnvwC38whLxScZX/VER
+	UNhhXfIzwvZokaCO4gxAbvQQQ3fLbERc0m/zP5b01ekqbUwnCitNFJoADSjsQlZVONN0oKjpb0s
+	wcKqdTRfuVBKczm1ZELCAK6QrCfWSi2lK1g4siwfEewryisd+RPfsLvtP1r2ZjqkBplySE7T/yn
+	NDY6KgIxkBS9zEhlKf/Kk/7diMjQ3A9nkgITGRWRzUKh0pxNqOMeEAvU9beW3v7MxcmNbY8WUYs
+	b9vvHUmtORF+vZyfxAmkhrWzOPY/id3yJE1lRQi/2S8M+2jv+fSLfKhu/70u5SUzL86gAJmcz8V
+	YcqSOoje3eZLVG4lf0JWBlriFf6l08JfDAL5wdv/eZ1poGnk24GmIFApIDCu7XozgOnjZv6gy8C
+	9cO5TuM/HiMB085qJAjHt/ra4gi+vV/JP4PZgmVlLgjh6aX4d66cFYdTcY6hm9Lqex5fD2AqBf6
+	88IMBnnrsVavTZUeVEM85fbDF51tPgMsHf8vpbDXEcDRs1bXWyX6ABe5tizgAWKCfguc7pECjUg
+	hp1YCQgQ5+yP5K8vUwT2k3aXN57WSMzDaIov1/g=
+X-Received: by 2002:adf:fe49:0:b0:47f:941a:796d with SMTP id ffacd0b85a97d-47fec4fa3admr1381301f8f.12.1785863948785;
+        Tue, 04 Aug 2026 10:19:08 -0700 (PDT)
+Received: from ?IPV6:2a01:4b00:bd21:4f00:7cc6:d3ca:494:116c? ([2a01:4b00:bd21:4f00:7cc6:d3ca:494:116c])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47febfda6afsm1357370f8f.3.2026.08.04.10.19.06
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 04 Aug 2026 10:19:07 -0700 (PDT)
+Message-ID: <38163009-770f-4596-abe2-249efc113f59@gmail.com>
+Date: Tue, 4 Aug 2026 18:19:02 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|DM3PPF74831EF4B:EE_
-X-MS-Office365-Filtering-Correlation-Id: 68dc5466-3448-4138-f047-08def24938de
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024|23010399003|11063799006|10067099003|4143699003|56012099006|3023799007|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info: cM2BZoxYCnQvHWPUTTLbqs4hETdNvdB5vM8CWwTymjpZJQtr/Um3XXy8e95fKlx4nb02zJhZJY3eWSLqFCMwNF1QUL6pOCoYVTA3u0zUORX+JBe6AfXk1ZrfMD4M5XfZ1zyH2yvQxunqx3AjCfMHpY3zGB9vkD/0KYX4QIjaYCoDY7zDFnPrZ/A49oeV7kgixRFqu462oWeyjprDQmB4VmYwfi7krUifPEAS1iz00FmkNQooTRXmlazlaEJiAp/JTPFjWeSFLHDAdPN1O65IG24yiZyym8GbQj3mXTIXVruCHrNNK2Hw1TI1UviTBRSkbPEjdHvX7wTg+vjCSlyoOmB8y1Ttg8x5SlG56GdayHAZuObsm80ICFkDKkJYwLIz1JBr6w0S8tGlWxcT00ykiMuN/bCFIi0zMg6kMGe2QnGtYK0q+Y/iUGSugPtj1TiPY1z2OTADiIOI/1I14M4AgRZOuokKZZiPkaumFWehx1Ilo6BYYxvHno/uKBvhc2G4Vnuwg4PQBlZZ2mLDGMjF1DKb+Jrp2cHGI9xAAFpvXucK2GIhkTK4IDUWH27+uGCSpzlOXcKIFoBRkX592d/JAg25sZZ/KZPAuGSawrfnbJGOsMd2xTyF2+GWb2KL7acXiwBRTgrWbB7iAdaKDDKDC3GfbSI9HAcKfYgnVldE2uU=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(23010399003)(11063799006)(10067099003)(4143699003)(56012099006)(3023799007)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?rhqeIWa/FKhub8HoNgH4uh+OxsOwKPLxhzGb6F8Z0zR88pe6zO44+sg5F3Lk?=
- =?us-ascii?Q?lLWj3vgKHyhmnGWOdeCqePzvkFKw9YIHKmai8YpxuG9T5xzrAeIb7j/YODlQ?=
- =?us-ascii?Q?A8EARro2H+/sQwGKQgewYPbQwItI4mcFqIRSEpaoPU3pNnzZYVi1BCD62m1v?=
- =?us-ascii?Q?hK2bWijjJTP9jrRkQ+Fz7zPo1zaZP6dINVVAiJKaq0OcrCsLb3hJ2bTrQkT9?=
- =?us-ascii?Q?XuU0lfCiHGSPObs62mg6smKqbMz/TCvDuXcf8Hol7tMENuSIWrMeOSuAoYst?=
- =?us-ascii?Q?DssZsxXDPMTXRnRP1gjx8JNgpqoiWedh0+I9rzRBgNGxTxPvK/2dI8af0QAP?=
- =?us-ascii?Q?A3m8wnEvP4JsykQiLkE9MZJizaV1Lo3YRMiVyjXULlCi0DWt4SPaKU4e/Djc?=
- =?us-ascii?Q?KeCJS0+4VduGwZHV5+A5jYpm48Y4NPeS70gmkbBDFOmHWDgIybYGi1E/dQ7g?=
- =?us-ascii?Q?9W+uGgdY15JvUhLcnC4Y1oBgkEWYXjQGEjA8HXDw0QVNmeWiTB4rSffwNYUC?=
- =?us-ascii?Q?+zjOYHaNpC9lcTbdGt6ZrhEo1JNuxcYerEinW3/BJJ23bQAI6ykpw8iR+XvF?=
- =?us-ascii?Q?CcvGxQSXQoctO0Qs4nXYfqQ17WrJTn+/Ftkcte5PadcV4aKWQwQYWscpJb8t?=
- =?us-ascii?Q?a87NLjrzYq6rjjEYWeUC3RWEduN8qW8k7xf7C3+SCheDQgP2PhVl6+phi/Jp?=
- =?us-ascii?Q?6FriBz1eDQQ4yBnPPw4xrbmYN+heOtNfLAWXglp9CGwgO+a1qrk0E5PVaccM?=
- =?us-ascii?Q?E3gPOadQCrbyI91cz6oGPmYT3TAjd9WVfSXJ8T/GlOw9q98Ol2zK2+BIXVbH?=
- =?us-ascii?Q?YhP9HggMW86LDgLE3SYaeaC0AUmmOO3mldSWd9nIK9U15MLEkMEr8tgBlR90?=
- =?us-ascii?Q?O3j63iPZ5A6lg4xSjBmh3EVNROsaC53BxpxD9Abx9CqhKNVW7xznOriDqVSO?=
- =?us-ascii?Q?DdJKUDlSpFgjEDRXOsrEvGMVlGjT6dQriOnmMBEt4OCr3JvEn4DZmrwWyVQc?=
- =?us-ascii?Q?uXca78m0wtrvV0WIwpCuVDluqgjzPRzVjZ4IPJEVRp/yN6rNrHH+3AC85x6s?=
- =?us-ascii?Q?dV9pb+b/1YLEbOF/XINQtrFM/7xErryGmPS/AQZ3h/bZZ5r18nq958hS/B7v?=
- =?us-ascii?Q?d2ZNxlIEQPLG4yD+ut4HcljCdL4mUNyhWrdLckMme55NRdP8Zv/AKE7Z8ide?=
- =?us-ascii?Q?8pji0SmwHxbf11ABY2WmM2NADp5MEvo5c/rQm08wDfnLd9JPpFwhsHnRXE2k?=
- =?us-ascii?Q?4ogwsge+XZ22GWBz7tQQj82s0PRRhBsQnTVx/84QYZrGRSjxjJ+Hr75x/ZO7?=
- =?us-ascii?Q?2dhn34TwKuqxw/pVb+Wc8ythSvDmuIUxkZD4rqkQ6eiS8GXzYSP6DbFDgRCB?=
- =?us-ascii?Q?IBCXdEDTQQ0vZiw3XQ7VXUhoSL/u5pV4CeYNjoHHUCv41HMCBhVAdFm2d1l0?=
- =?us-ascii?Q?lqbgoPaNBqS7icJ/LTsYGC6NiEFTW2vf+hDKAhddDWUx96GyPGLEQw+RNB6X?=
- =?us-ascii?Q?QwOoSD0maVE7o1gujO6HtkXld8ZByYdEsNpmy6DVkPCKBzPcQtljA2i0Kaih?=
- =?us-ascii?Q?x0cgbLynxZSkLo9clNmfGw4LIeXHFHmmvOhs2dezMlWf1OHk+94fWPrunhp9?=
- =?us-ascii?Q?zO/ohdXxUPT2fXksKjQWABRww2iXVD7eMCn/sM92hpepi0zrMJhbaZujRXTa?=
- =?us-ascii?Q?RVljO8UNpQ5CkmlgzNZkcCjRUNxqZM0j16ekXJ9/mW8YwK5xUjBqiWiOdyex?=
- =?us-ascii?Q?US9BIi0a8uS7D98zmLLEq34K8RYy4mw=3D?=
-X-Exchange-RoutingPolicyChecked: T11CDeDYJSbhMDv2bsq3Sl4XDjOaCI+f0Dih9tcuEnfwSowkwjfcDi91P13vr1Z2cgV6tdIsnl66OYFRoKcSJBRJhoyjMVrQJkwwXpt71wahlNr/lR48QlEclrJQ/lCf+fAFdQWTPlySLoJiG2Rv3Du2ApD+lvVURB94OWE7c3NVl7HIOfN0EYYhsglPqVaceTd0dfA6KpbJfeG5CwgY53HYZUAcPuvEXSDzez/ackZOzYCclhYaMfUMajPtdQ4mMiVBQhSr58/Ye/sXn+9T2nwnu8nWtVuGTwUfLUk/WkyeBU/YcblfvO1RUmbHW/hHrTYxsIwbYEMHstnEZw4pKg==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 68dc5466-3448-4138-f047-08def24938de
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Aug 2026 16:55:43.5722
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: XpJbn81mw0PQEeWgzSymEb7yxf/UnKBskZKQh8SgIjCZROsoyti0KYNRQmxoSwvA5mF67i53orjch6K+yRuZ8VF7dJPjB8C6XyLUFalyNWI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM3PPF74831EF4B
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 07/16] block: introduce dma map backed bio type
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org,
+ linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linaro-mm-sig@lists.linaro.org, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>,
+ Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>,
+ William Power <william.power@intel.com>, Phil Cayton
+ <phil.cayton@intel.com>, Jason Gunthorpe <jgg@nvidia.com>,
+ Damien Le Moal <dlemoal@kernel.org>, Alasdair Kergon <agk@redhat.com>,
+ Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>,
+ Benjamin Marzinski <bmarzins@redhat.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, David Sterba <dsterba@suse.com>,
+ Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev,
+ nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org,
+ ceph-devel@vger.kernel.org
+References: <cover.1785596451.git.asml.silence@gmail.com>
+ <e26aefbcb383be7092dc76343ce745013e671334.1785596451.git.asml.silence@gmail.com>
+ <20260804162440.GB12292@lst.de>
+Content-Language: en-US
+From: Pavel Begunkov <asml.silence@gmail.com>
+In-Reply-To: <20260804162440.GB12292@lst.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 31, 2026 at 01:48:06AM -0700, Anisa Su wrote:
-> From: Ira Weiny <iweiny@kernel.org>
+On 8/4/26 17:24, Christoph Hellwig wrote:
+> On Sat, Aug 01, 2026 at 04:46:19PM +0100, Pavel Begunkov wrote:
+>> Premapped buffers don't require a generic bio_vec since these have
+>> already been dma mapped. Repurpose the bi_io_vec space to strore dmabuf
+>> maps as they are mutually exclusive.
+>>
+>> Suggested-by: Keith Busch <kbusch@kernel.org>
+>> Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+>> ---
+...>>   
+>> +static inline int bio_split_io_at_dmabuf(struct bio *bio,
+>> +		const struct queue_limits *lim, unsigned *segs,
+>> +		unsigned max_bytes, unsigned len_align_mask,
+>> +		unsigned start_align_mask)
+>> +{
+>> +	unsigned bytes = min(bio->bi_iter.bi_size, max_bytes);
+>> +	unsigned seg_shift = bio->bi_dmabuf_map->seg_shift;
+>> +	unsigned offset = bio->bi_iter.bi_offset & ((1U << seg_shift) - 1);
+>> +
+>> +	if ((bio->bi_iter.bi_offset & start_align_mask) ||
+>> +	    (bio->bi_iter.bi_size & len_align_mask))
+>> +		return -EINVAL;
+>> +
+>> +	/* single contiguous range into the dma-buf */
+>> +	*segs = 1;
+>> +
+>> +	bytes = min(bytes, ((unsigned)lim->max_segments << seg_shift) - offset);
 > 
-> Per the CXL 4.0 specification software must check the Command Effects
-> Log (CEL) for dynamic capacity command support.
-> 
-> Detect support for the DCD commands while reading the CEL, including:
-> 
->         Get DC Config
->         Get DC Extent List
->         Add DC Response
->         Release DC
-> 
-> Based on an original patch by Navneet Singh.
-> 
-> Signed-off-by: Ira Weiny <iweiny@kernel.org>
-> Signed-off-by: Anisa Su <anisa.su@samsung.com>
-> Tested-by: Wonjae Lee <wj28.lee@samsung.com>
-> Tested-by: Junhee Park <jh9934.park@samsung.com>
-> Tested-by: Heesoo Kim <habil.kim@samsung.com>
-> 
-> ---
-> Changes:
-> 1. mbox.c: leave mds->dcd_supported false so the hardware enablement
->    patches can be upstreamed ahead of the extent and DAX work; the
->    event handling patch re-enables it.
-> ---
->  drivers/cxl/core/mbox.c | 44 +++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/cxlmem.h    | 20 +++++++++++++++++++
->  2 files changed, 64 insertions(+)
-> 
-> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index 7c6c5b7450a5..4790524c32a7 100644
-> --- a/drivers/cxl/core/mbox.c
-> +++ b/drivers/cxl/core/mbox.c
-> @@ -165,6 +165,38 @@ static void cxl_set_security_cmd_enabled(struct cxl_security_state *security,
->  	}
->  }
->  
-> +static bool cxl_is_dcd_command(u16 opcode)
-> +{
-> +#define CXL_MBOX_OP_DCD_CMDS 0x48
-> +
-> +	return (opcode >> 8) == CXL_MBOX_OP_DCD_CMDS;
-> +}
-> +
-> +static void cxl_set_dcd_cmd_enabled(u16 opcode, unsigned long *cmd_mask)
-> +{
-> +	switch (opcode) {
-> +	case CXL_MBOX_OP_GET_DC_CONFIG:
-> +		set_bit(CXL_DCD_ENABLED_GET_CONFIG, cmd_mask);
-> +		break;
-> +	case CXL_MBOX_OP_GET_DC_EXTENT_LIST:
-> +		set_bit(CXL_DCD_ENABLED_GET_EXTENT_LIST, cmd_mask);
-> +		break;
-> +	case CXL_MBOX_OP_ADD_DC_RESPONSE:
-> +		set_bit(CXL_DCD_ENABLED_ADD_RESPONSE, cmd_mask);
-> +		break;
-> +	case CXL_MBOX_OP_RELEASE_DC:
-> +		set_bit(CXL_DCD_ENABLED_RELEASE, cmd_mask);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +}
-> +
-> +static bool cxl_verify_dcd_cmds(unsigned long *cmds_seen)
-> +{
-> +	return bitmap_full(cmds_seen, CXL_DCD_ENABLED_MAX);
-> +}
-> +
->  static bool cxl_is_poison_command(u16 opcode)
->  {
->  #define CXL_MBOX_OP_POISON_CMDS 0x43
-> @@ -757,6 +789,7 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
->  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
->  	struct cxl_cel_entry *cel_entry;
->  	const int cel_entries = size / sizeof(*cel_entry);
-> +	DECLARE_BITMAP(dcd_cmds, CXL_DCD_ENABLED_MAX) = {};
->  	struct device *dev = mds->cxlds.dev;
->  	int i, ro_cmds = 0, wr_cmds = 0;
->  
-> @@ -785,11 +818,22 @@ static void cxl_walk_cel(struct cxl_memdev_state *mds, size_t size, u8 *cel)
->  			enabled++;
->  		}
->  
-> +		if (cxl_is_dcd_command(opcode)) {
-> +			cxl_set_dcd_cmd_enabled(opcode, dcd_cmds);
-> +			enabled++;
-> +		}
-> +
->  		dev_dbg(dev, "Opcode 0x%04x %s\n", opcode,
->  			enabled ? "enabled" : "unsupported by driver");
->  	}
->  
->  	set_features_cap(cxl_mbox, ro_cmds, wr_cmds);
-> +	/*
-> +	 * Disabled until event handling implemented.
-> +	 */
-> +	if (cxl_verify_dcd_cmds(dcd_cmds))
-> +		dev_dbg(dev, "Device supports DCD; capability disabled\n");
-> +	mds->dcd_supported = false;
->  }
+> I guess ->seg_shift is some sort of encoding of a max
+> segment size?
 
-Hi Anisa,
+I'll add a comment.
 
-I read and agree with the other reviewers that this does not need to
-mirror the poison and security command handling.
+We rather need the minimum segment size, you can always split large
+ones. I calculated it even stricter as the least common multiple
+pow2 to avoid divs here.
 
-The one-use cxl_verify_dcd_cmds() helper still seems excessive. The
-bitmap can be checked directly here:
+If the device supports N segments and we know that each segment is
+at least M bytes, then we should be able to issue IO of size N*M
+of full segments. The line above truncates the bio size using
+that + offset adjustments.
 
-    if (bitmap_full(dcd_cmds, CXL_DCD_ENABLED_MAX))
-            dev_dbg(dev, "Device supports DCD; capability disabled\n");
+I guess it might be more straightforward to calculate the worst
+case number of segments and then adjust the splitting size, but
+since we don't return the number of segments it's more
+computations. E.g.
 
-And then once DCD is ready to be enabled, the assignment can become:
+seg_size = 1U << seg_shift;
+nsegs = (bio->bi_iter.bi_size + offset + seg_size - 1) / seg_size;
 
-    mds->dcd_supported =
-            bitmap_full(dcd_cmds, CXL_DCD_ENABLED_MAX);
+if (nsegs > lim->max_segments) {
+	nsegs = lim->max_segments; // unused after the block
+	bytes = seg_size * nsegs - offset;
+}
 
--- Alison
+-- 
+Pavel Begunkov
+
