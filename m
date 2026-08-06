@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
+Received: from relay.hostedemail.com (smtprelay0014.hostedemail.com [216.40.44.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4BFA3DA7C8;
-	Thu,  6 Aug 2026 22:23:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B0EC433E79;
+	Thu,  6 Aug 2026 22:30:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786054994; cv=none; b=fMUXIzOcXVfscrojCwMM/XSRdTNqxJvwyib+r4AsHocUsOxoXz99Zm8f0N4svb6Hc7gUTU524R0l9ctnADXbQD+C2qtSsNomE4gxamJff6xe90jRXv6J+CGXgNYw0nM9DdwE5OU2+jATZrJ7jQikiWaM8zPXKLO8wYzNT+ysfvI=
+	t=1786055455; cv=none; b=PHoq6ddZPcE0XMn7V0RzQFXPkULCJdBYe6/Lhn6uiv+OZCWlcIUElCvDfUzlu7J9V6hDo6/Q9jq5tnxCv+Li0TmL3gncyBvgmTZGxo9zACTOkhwSiDSIRnsQRXEAY2iKafE+VXBSHgoHHG16uPuVIC1FIAAEVp/PpOhk6vDbkFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786054994; c=relaxed/simple;
-	bh=tGvzdTq7uHgUkxF6mM6FTnwURgWycNfryP9u0aplqSQ=;
+	s=arc-20240116; t=1786055455; c=relaxed/simple;
+	bh=qyHVJJ1Np197evupjuCDw3AOO9nsqP38d1h6nU3H+Dw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MxhQqt7ex5PISPldK3GSs1eSI5Txgln9w2FQMtuGUYs5lRTVLXRXum7ucmh7S4cQn4wTXpGVy/+xvaDJFOq+SEk8mdAm5CGizrl4oU8kp/1g3FwSwqTb+J4QhKYg+YdQUC6HCJVTqeE4AbRqEaRMPkHAqyfVCkW1TRW2fwIFyfw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.15
+	 Content-Type:Content-Disposition:In-Reply-To; b=q4DFkLLtjBuhFQq9NeUDvUx+miJvuKZ+QKFUnmreiKSkYQnKM3ITiS3sLR4w6hhSG6t/pPAPCRdVXD7W4USlDOgjcWgkKl+QGR6e1k/V7JBMxUxPukMF1ZnlLIbcRE/y2Uv0IHD2V04iwYOLeS4Xh7dYEV7JD/5lpPE4wP+VDpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf04.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay04.hostedemail.com (Postfix) with ESMTP id 32E4E1A0532;
-	Thu,  6 Aug 2026 22:23:04 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf04.hostedemail.com (Postfix) with ESMTPA id 5165220024;
-	Thu,  6 Aug 2026 22:22:47 +0000 (UTC)
-Date: Thu, 6 Aug 2026 17:22:46 -0500
+Received: from omf15.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay08.hostedemail.com (Postfix) with ESMTP id DC0C7140553;
+	Thu,  6 Aug 2026 22:30:43 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf15.hostedemail.com (Postfix) with ESMTPA id B1F551B;
+	Thu,  6 Aug 2026 22:30:27 +0000 (UTC)
+Date: Thu, 6 Aug 2026 17:30:26 -0500
 From: John Groves <John@groves.net>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
@@ -48,13 +48,13 @@ Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 09/12] famfs: Register secondary daxdevs by path
- (FAMFSIOC_DAXDEV_OPEN)
-Message-ID: <anUIQfuDqFADAIrf@groves.net>
+Subject: Re: [PATCH V12 10/12] famfs: Add runtime operation-permission (opts)
+ framework
+Message-ID: <anUJmuNV5mFBmksw@groves.net>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022940.75910-1-john@jagalactic.com>
- <0100019fc574b43d-effbc86f-dd35-4154-8c2e-17699ef0edb6-000000@email.amazonses.com>
- <20260806052904.GI3560084@frogsfrogsfrogs>
+ <20260803022950.75930-1-john@jagalactic.com>
+ <0100019fc574dabe-572d99fc-3bb0-421a-afec-05432de2a757-000000@email.amazonses.com>
+ <20260806053100.GJ3560084@frogsfrogsfrogs>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -63,161 +63,41 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260806052904.GI3560084@frogsfrogsfrogs>
-X-Rspamd-Server: rspamout05
-X-Rspamd-Queue-Id: 5165220024
-X-Stat-Signature: wsdnwprc31ufep4sxch9cfq8onkesyai
+In-Reply-To: <20260806053100.GJ3560084@frogsfrogsfrogs>
+X-Stat-Signature: bw5em5g91hg913xpaesgugrouo4wrfn9
+X-Rspamd-Server: rspamout06
+X-Rspamd-Queue-Id: B1F551B
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX19e4VzaVm7w/scC5Jjieds+bkP0iPQMh3A=
-X-HE-Tag: 1786054967-655130
-X-HE-Meta: U2FsdGVkX1+Qg2TeFUY/rbdu+YjAmAAK0KDZIcb6vC4OemkFW8hbbeA6wN/YOtJ/nDCy7YlzV3tkY5Wo2i6IU2lKVATqIAkRasRrEyLjebYFbND6yFIE9w9bOsmF2JQv7//QV/7D4uq3f9hx9/U1BR8ukt1NQyolYyrKlfd5RnbNC3+S9Zpnu8SH+iPcY1p/r5d9TJ0Nz4KEcsIdaxYlCA/dY7TBTWebA5m7dq7M2A4ZaqcU9GrGsruOWf1qCLRFGgX/4PpsP2gl2wZW34MXTLNcuwXjeXh+bgsjYQL0QmrY5kgeGZni99ekWDnK0prsHB0SonDbOD/cgMcaFgD61OvCSywzMVaCCpxh/5gxbzxjriJfYrSkz1JbZB0GnzdP
+X-Session-ID: U2FsdGVkX19JCa/3povowe+DVCaTZremTyrvXzE9dnQ=
+X-HE-Tag: 1786055427-275828
+X-HE-Meta: U2FsdGVkX19kEufDJVAy1gAj6uX2nDLCMmpAAN6usy3i1o+xi9PabxL+EioG4DkZXPut0+l8QSWoMAI3GpyQVamkZYvkiIf0/ZrhbwCamP2Bn7uXlbwx/m0WCdq5TaB/klmYruBqb+w85tYTPKSaW2J4uznKsgho/Y0ChfhKuc6JRG21vYVJGSZPvtvGXKIIrbMDgyuEVaYAS9AQ0VXNOOW9fUKpE2pboIcdZpuZaIDcguVWUExVC3d1axI8+sUl2q6zUhaJYeCKCRWI5FrXSnExsHx7SqBaOguD71asvanO+3QVIDwcfV3OxywzVd3pRmdY5gx/oUx601TQ5cF27dxii60aVlQ8DcTrGrRchmAN9zlorO5H1Eu7Nf9fXjkk
 
-On 26/08/05 10:29PM, Darrick J. Wong wrote:
-> On Mon, Aug 03, 2026 at 02:29:47AM +0000, John Groves wrote:
+On 26/08/05 10:31PM, Darrick J. Wong wrote:
+> On Mon, Aug 03, 2026 at 02:29:57AM +0000, John Groves wrote:
 > > From: John Groves <John@Groves.net>
 > > 
-> > Famfs file maps (fmaps) may reference multiple daxdevs. Before passing
-> > an fmap that references a new daxdev, the daxdev is pushed into the
-> > kernel via FAMFSIOC_DAXDEV_OPEN). This adds daxdevs to daxdev_table for
-> > index-based resolution from famfs extents to daxdevs.
-> > 
-> > Signed-off-by: John Groves <john@groves.net>
-> > ---
-> >  fs/famfs/famfs_file.c            | 74 ++++++++++++++++++++++++++++++++
-> >  include/uapi/linux/famfs_ioctl.h | 24 +++++++++++
-> >  2 files changed, 98 insertions(+)
-> > 
-> > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> > index e7f271ce6d03..e11a55ecf8d7 100644
-> > --- a/fs/famfs/famfs_file.c
-> > +++ b/fs/famfs/famfs_file.c
-> > @@ -287,6 +287,76 @@ famfs_file_init_dax(struct file *file, void __user *arg)
-> >  	return rc;
-> >  }
-> >  
-> > +/**
-> > + * famfs_daxdev_open() - FAMFSIOC_DAXDEV_OPEN ioctl handler
-> > + * @file: any file in the famfs mount (the table is per-superblock)
-> > + * @arg:  ptr to struct famfs_ioc_daxdev in user space
-> > + *
-> > + * Register a devdax device (identified by path) into the mount's daxdev table
-> > + * at the caller-specified index, so files whose extents reference that index
-> > + * can be mapped. The path is resolved by lookup_daxdev() - the same helper the
-> > + * mount uses for the primary daxdev - so every slot is resolved identically.
-> > + * Registering exposes raw device memory, so it requires CAP_SYS_RAWIO.
-> > + */
-> > +static int
-> > +famfs_daxdev_open(struct file *file, void __user *arg)
-> > +{
-> > +	struct super_block *sb = file_inode(file)->i_sb;
-> > +	struct famfs_fs_info *fsi = sb->s_fs_info;
-> > +	struct famfs_ioc_daxdev dd;
-> > +	dev_t devno;
-> > +	char *path;
-> > +	int rc;
-> > +
-> > +	if (!capable(CAP_SYS_RAWIO))
-> > +		return -EPERM;
-> > +
-> > +	if (copy_from_user(&dd, arg, sizeof(dd)))
-> > +		return -EFAULT;
-> > +
-> > +	/* @flags is reserved; reject non-zero so it stays available */
-> > +	if (dd.flags)
-> > +		return -EINVAL;
-> > +
-> > +	/*
-> > +	 * If this daxdev index is already populated there is nothing to do.
-> > +	 * The index is cluster-invariant, so a valid slot already names this
-> > +	 * device; skip the path resolution entirely. install_daxdev() rechecks
-> > +	 * ->valid under the write lock, so this is purely an optimization.
-> > +	 */
-> > +	scoped_guard(rwsem_read, &fsi->devlist_sem) {
-> > +		if (dd.daxdev_index >= fsi->dax_devlist->nslots)
-> > +			return -EINVAL;
-> > +		if (fsi->dax_devlist->devlist[dd.daxdev_index].valid)
-> > +			return 0;
-> > +	}
-> > +
-> > +	if (dd.daxdev_path_len == 0 || dd.daxdev_path_len >= PATH_MAX)
-> > +		return -EINVAL;
-> > +
-> > +	/* +1 so the terminating NUL is included within the bound */
-> > +	path = strndup_user((const char __user *)(uintptr_t)dd.daxdev_path,
-> > +			    dd.daxdev_path_len + 1);
-> > +	if (IS_ERR(path))
-> > +		return PTR_ERR(path);
-> > +
-> > +	rc = lookup_daxdev(path, &devno);
-> > +	if (rc)
-> > +		goto out;
-> > +
-> > +	/*
-> > +	 * The daxdev table is allocated at mount time (for the slot-0 primary),
-> > +	 * so it is always present here; no need to allocate it.
-> > +	 */
-> > +	rc = famfs_install_daxdev(fsi, sb, dd.daxdev_index, devno, path);
-> > +	if (rc)
-> > +		pr_debug("%s: failed to install daxdev index %llu (%s)\n",
-> > +		       __func__, dd.daxdev_index, path);
-> > +out:
-> > +	kfree(path);
-> > +	return rc;
-> > +}
-> > +
-> >  /**
-> >   * famfs_file_ioctl() - Top-level famfs file ioctl handler
-> >   * @file: the file
-> > @@ -308,6 +378,10 @@ famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-> >  		rc = 0;
-> >  		break;
-> >  
-> > +	case FAMFSIOC_DAXDEV_OPEN:
-> > +		rc = famfs_daxdev_open(file, (void __user *)arg);
-> > +		break;
-> > +
-> >  	case FAMFSIOC_MAP_CREATE:
-> >  		rc = famfs_file_init_dax(file, (void __user *)arg);
-> >  		break;
-> > diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
-> > index b4eb373c1ade..751d8b033c2e 100644
-> > --- a/include/uapi/linux/famfs_ioctl.h
-> > +++ b/include/uapi/linux/famfs_ioctl.h
-> > @@ -77,6 +77,29 @@ struct famfs_ioc_fmap_header {
-> >  	__u64 reserved1;
-> >  };
-> >  
-> > +/**
-> > + * struct famfs_ioc_daxdev - register an additional backing daxdev by path
-> > + * @daxdev_index:    the (cluster-invariant) index this daxdev occupies in
-> > + *                   extent dev_index fields. Index 0 is the mount-time primary.
-> > + * @daxdev_path:     userspace pointer to the devdax device path (e.g.
-> > + *                   "/dev/dax0.0"); resolved in the kernel the same way the
-> > + *                   mount primary is.
-> > + * @daxdev_path_len: length of the path string, not counting the NUL.
-> > + * @flags:           reserved; must be zero.
-> > + *
-> > + * Standalone famfs registers every daxdev by path: the mount primary comes in
-> > + * as the mount device name, and slots 1..n come in here. (This deliberately
-> > + * differs from fuse's fd-based FUSE_DEV_IOC_DAXDEV_OPEN; each side is uniform
-> > + * within itself.) Passing the path by pointer keeps the struct fixed-size, so
-> > + * longer paths never require an ABI change.
-> > + */
-> > +struct famfs_ioc_daxdev {
-> > +	__u64 daxdev_index;
-> > +	__u64 daxdev_path;
-> > +	__u32 daxdev_path_len;
+> > famfs denies most namespace, attribute and data operations by default
+> > because the userspace log, not the kernel, is authoritative for a famfs
+> > instance. Earlier commits already guard each such operation with a
+> > famfs_opt_enabled(fsi, FAMFS_OPT_x) check backed by a permissive stub. This
+> > commit defines the permission bitmap and makes those checks live.
 > 
-> Can't we just pass an open fd to a dax device and have it use that
-> rather than doing its own path operations?
+> Why would it ever be acceptable for user programs to mess with the
+> directory tree and file attributes?  There's nothing here that would
+> seem to write to the userspace log.  Or am I mistaken, and only the
+> program that maintains the userspace log (e.g. the famfs server) can do
+> these kinds of operations?
 > 
 > --D
 
-Could do, but then there would be two ways to "open" a daxdev, since the primary
-is passed by path via the mount command or call.
+Mostly it's the code that maintains the log that needs to create stub
+files and then pass in fmaps (MAP_CREATE). Changes made via the 
+"front door" of a mount are ephemeral, but allowing them can have practical
+value (e.g. allowing chown/chmod, which people actually seem to need to
+do sometimes. Also at one point a user sent me a patch enabling symlink
+creation, because some software needed that.)
 
-If anybody thinks that's superior enough to do it 2 different ways, let me know.
-Otherwise I'll leave it.
+But you're right that any changes we do allow are ephemeral (not logged).
 
 Thanks!
 John
