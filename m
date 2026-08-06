@@ -1,95 +1,95 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DB2233C188
-	for <nvdimm@lists.linux.dev>; Thu,  6 Aug 2026 00:32:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A17443783C3;
+	Thu,  6 Aug 2026 00:43:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.11
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785976359; cv=fail; b=Guy72gdUZr15QXNk6zsF9IYSnqXAidyPYizpv+yJn4FQoO4f+o5bxuPBogHb1AUNRE3eN6hcDhmubAKd2DkapyJps1V2NQyNjQwHXWapl8U97jc3863O6WDo5qKRdlromF/xlqC0nmuBoCoL13wNXQWaxUU7lPw8FSfCa4e91CI=
+	t=1785977015; cv=fail; b=E7V0Ly3uEVxjBcWW0FWWP6rPw1N25dzzYlMkgouexEag2DBMHoyi5Mj/3EVaNQ8sRzMnaT+vsuUTEzdlRp3Q098J/Cu+SrejxKTeY7GHpE/IvypCeDC082cAjpoU8uyHVVcWyalfVt3XlsrArLABnZgTT5ue/fSOl/EYFyNJ99c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785976359; c=relaxed/simple;
-	bh=UNK3ZkrcDC3UtjcLj7v4Z9MfTGnoV0YfATwgujQDhiQ=;
+	s=arc-20240116; t=1785977015; c=relaxed/simple;
+	bh=PerQn3XyPDBdqita2t7H+z8cFE4yrk/Nk4WD8nMN9lw=;
 	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=TFwRD8RqMNegALN3wr/YHdz70Rj+lRddTQekvgeGPPQ+19/NuWmoZd7xIfvkELiNP3MEn+cOZY72XeSRVscn5vUEfBrrrSX93mkWLcZ1MbsdziIerwZrDoGOQT/BjbEGoeSX4F6mg80hyjCuollt/zHtxKO9BA95YtG5OQ8CQUk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JHSLhFRw; arc=fail smtp.client-ip=192.198.163.13
+	 Content-Disposition:In-Reply-To:MIME-Version; b=qAWNpF3TWbjtSvQDnpw7O5EZg9smiBe4h74RoZhSVJni0hSec8K8ecKKoAqDKUfpzp5TtYjuil0fIcEdjzNEJYOFi0LM/XybjZ98cKtvNbT8BiX/R0oge3YvYO2ZfGf/0q18FBQ6sCUVMQfVrMlafuIcTVliwo4/Mt0/FDQpemc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hK1aUOkG; arc=fail smtp.client-ip=198.175.65.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JHSLhFRw"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hK1aUOkG"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785976357; x=1817512357;
+  t=1785977014; x=1817513014;
   h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=UNK3ZkrcDC3UtjcLj7v4Z9MfTGnoV0YfATwgujQDhiQ=;
-  b=JHSLhFRwmbw7+peWP6wxsu6o3aa3IzRaaSGQOtql81l1c4wkRlKZE+e2
-   omTB/B6mXx5eTC9HCWnYLJZVfMSnbWNDVAF8vlpNtVQ3/2+vXm7avWng6
-   41VA57/tbK6/fYlSQjaRZyBxW7wPrAibvdfBL67bwuk9l5OnRIJZonOKm
-   VcTUUoD2PDgiZAnGkd3b6/ikI9Xy/TaoiFa9BTspZx/xdHNCh53dK7FFA
-   KvcqgobvWqmb6EZLdNaKERyG+vutJWBG7MpuumIkD0YkYyPNQLPIj01Y2
-   vqgjLDBzN7zAfwQ3mU/cyC79cYq2PW1Z0BTnKLw4u5AATXarSp4HiuReo
-   w==;
-X-CSE-ConnectionGUID: NaKdCRpUSJqiueY5rIiM8A==
-X-CSE-MsgGUID: ra64NnBOTVS+wM0IoyIzbA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11866"; a="89085702"
+   content-transfer-encoding:in-reply-to:mime-version;
+  bh=PerQn3XyPDBdqita2t7H+z8cFE4yrk/Nk4WD8nMN9lw=;
+  b=hK1aUOkG1Niy5U6pp7GBFqvtW9FAqXNijp2dHq5MNbz2QvKrUf1rtl6t
+   lffpNMT7YygUiir0Bp1OGuPY1XNFt/7oIRekWQ51wEqiTb/U/g6mLq1qn
+   eLaHNYMez9KJNSwrQDuN5nNmeZj1SMKcLahXZYhiJjPmGUNdIRXtzvd0s
+   wTOd6uoP2eyay2ptm/ZEEJk/Bs1Hc7a0HgJac17/MJu3fpm68jNuhjJR/
+   nEsQuwQjEhwsKWYVHMmLHA7NYRh0SDS9SJjNFnpF4bshfUladtaPIvFuE
+   qam8hJIsiN5VgrfJ8waFpDLEgabX9yTzFY548zZC+X6fmoi1LrYkp2wKT
+   g==;
+X-CSE-ConnectionGUID: JCd2J2v0SWKFZVrZvQ3Qqw==
+X-CSE-MsgGUID: c8v2Q+fKSjSTJ7kND63CSA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11866"; a="96914051"
 X-IronPort-AV: E=Sophos;i="6.25,207,1779174000"; 
-   d="scan'208";a="89085702"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 17:32:36 -0700
-X-CSE-ConnectionGUID: 303Zbb6WRsi/fgx2Dljb+w==
-X-CSE-MsgGUID: O8/Nj+LWTb2GRIo5ovoICQ==
+   d="scan'208";a="96914051"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 17:43:32 -0700
+X-CSE-ConnectionGUID: zI7IRYkyS/G+KJj7jxrvxQ==
+X-CSE-MsgGUID: a7Yn65rxTqe7EGXzQb0Bbg==
 X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,207,1779174000"; 
+   d="scan'208";a="291875171"
 Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
-  by fmviesa003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 17:32:36 -0700
+  by orviesa002.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 17:43:29 -0700
 Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
  ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Wed, 5 Aug 2026 17:32:36 -0700
+ 15.2.2562.45; Wed, 5 Aug 2026 17:43:29 -0700
 Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
  ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45 via Frontend Transport; Wed, 5 Aug 2026 17:32:36 -0700
-Received: from SN4PR0501CU005.outbound.protection.outlook.com (40.93.194.67)
- by edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ 15.2.2562.45 via Frontend Transport; Wed, 5 Aug 2026 17:43:29 -0700
+Received: from PH8PR06CU001.outbound.protection.outlook.com (40.107.209.13) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Wed, 5 Aug 2026 17:32:36 -0700
+ 15.2.2562.45; Wed, 5 Aug 2026 17:43:28 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=VwBpKrxuISBRwCbUHBrscyLlwQ7zrVUvTdt+tO24da0Oxn8sqtZABhgxAgvF8/4tiMHHr56Vk9DHHtphwSsbDLZzvJdXdhUh+lyW9N0QvnrCiMkoppC0l81qxxAwaGBul73nCcs5qoN50Xl6NL6VcNotngFTMolGPGePjtDa992uUtV3o7zhzMIZTKITw2jir6FPGH6i/bS0jIdYljvSdplEjQrBLA7wL9MhcXKOUFBr11y/FrNamn3iPxoTP5TpQ7umSNlsAwERHKu1hc5AmilO6GUQCGgDA5aaipSpAw17teEXWPFeOWJnxAgyuguHMqhLwK7WtLU2H0OB9Jns2A==
+ b=MakQuZIu07npwNFLJ9PaAioy5sbIWXLxeoLh8tVoVlUmwF/lV6hfCX3XZg1SjpCwvol2KqwjUu1ijNq7dN1XdywO7eqKELpAYJZtKQnN9vSLQcB84fdQdVg/K+iJ+rMraX5oaA3VOWrMXsJhDZnvxAyyhd8vkqFSqH+u3CXSkVp5SclZL2uZ9KE5OWfd1jPC73rRPKxuBn9XWeNykfqYmH8k55D9Jm8wd4mhNSG9lgwZVM06+VIDqYbkP/pSXhrJpci+qZG5o8pvUtpC8qVHvIT3lGW0n1JGZk94OZ7P8zhNRALGl8SqA72fr+wpDg3U6v8Umb9Xfy628kx7VTxKtQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IZhf5OVJPCo4f7nceTGmFSvSzeGPKOoeG3J1QK5xIKc=;
- b=lfYJ3ZcAxRlnMjpNo0BUiQGL8ShZkN2JyqrGQVa0mCrejEnlYx0jsRv4nfdR1nhJHKCH3e4Cpa5GbuO3lGjpPIIWOqiQ8eCJ/gmjKKnZmqtqgywq/mewyNzoIxBsqczliHfVvtDLajuTNmSesoGaFrrAeJpClRnBZdzp+to5kYsb/j90YjZGcj574AKYOciiFWG2ekGOedIbpcgtA6NVJkbYhj6pTfJfJ/Mz/rUgq22t0bKi8ZA83VMYzANx4zwJgXOvvdzHKp5Gv/y5qRsaP3pwRzfFM4xtBqyj4+5+V+ZaEZZokcUTnCBVSmod31bsOyk7g6I5Ce5sTRnE8/Keag==
+ bh=9nWImMj1dZvlJhZ7lR0dhgkjZ0gRBsRAkUwC7IGaNzg=;
+ b=FPXVyaxiSztT8EPmeb0wnjkLKZiDLM3rRiGSlo0LgqRu4Uq9s9W8EcXtczcDqH6822nhXGbLO8MYwtUlWGiYzni4Gs1ofojJhj5NnKT7F4DcSLA75gCUCVRPyIueYxAr8ww07BmC9IWUU1Gk+oBDS0stR3VitlvvNcYB7qqQGyxB2ffckt4FqM5LMnsBhURL9q2mLboqytHCBCQ7Mf136xR8UvZlC2nqvbn/5Z4dJ8hiXvWw8sK0n6ob/GHatbMSiWFEO+/QlLNcIZdcHmMEFUvOyIdpGwkKhHv72Ia+sFSKXnI892dmDmqx/8DdpgWG3mj9rpQS2UEPqO+w7QkWzw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by SJ2PR11MB7520.namprd11.prod.outlook.com (2603:10b6:a03:4c2::19) with
+ by SJ5PPFBBB839A03.namprd11.prod.outlook.com (2603:10b6:a0f:fc02::84d) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.15; Thu, 6 Aug
- 2026 00:32:30 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.20; Thu, 6 Aug
+ 2026 00:43:25 +0000
 Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
  ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
  ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0292.013; Thu, 6 Aug 2026
- 00:32:30 +0000
-Date: Wed, 5 Aug 2026 17:32:22 -0700
+ 00:43:25 +0000
+Date: Wed, 5 Aug 2026 17:43:17 -0700
 From: Alison Schofield <alison.schofield@intel.com>
-To: Pengpeng Hou <pengpeng@iscas.ac.cn>
-CC: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
+To: <sashiko-reviews@lists.linux.dev>, Pengpeng Hou <pengpeng@iscas.ac.cn>
+CC: <nvdimm@lists.linux.dev>
 Subject: Re: [PATCH] ACPI: NFIT: validate subtable extents before parsing
-Message-ID: <anPWFspQOA-7ejmi@aschofie-mobl2.lan>
+Message-ID: <anPYpcB4yFqF7ox2@aschofie-mobl2.lan>
 References: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
-Content-Type: text/plain; charset="us-ascii"
+ <20260722043102.AB53B1F000E9@smtp.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Disposition: inline
-In-Reply-To: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
-X-ClientProxiedBy: SJ0PR13CA0202.namprd13.prod.outlook.com
- (2603:10b6:a03:2c3::27) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260722043102.AB53B1F000E9@smtp.kernel.org>
+X-ClientProxiedBy: BY5PR03CA0001.namprd03.prod.outlook.com
+ (2603:10b6:a03:1e0::11) To DS4PPF0BAC23327.namprd11.prod.outlook.com
  (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -98,188 +98,197 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SJ2PR11MB7520:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9a4e2270-0dd6-4e11-04a1-08def352330d
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SJ5PPFBBB839A03:EE_
+X-MS-Office365-Filtering-Correlation-Id: b77624a0-821d-43ec-48be-08def353b958
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|22082099003|18002099003|11063799006|56012099006|6133799003|10067099003;
-X-Microsoft-Antispam-Message-Info: 08TxnOBC2ROHmwkCu2n4fNMBqCKtqn4N9K1ZxxV8Lesj59Ud731ecr7aNPVtgyNfU2aVuCYFMOMXaJXbGFN0ltPMh7QIyiHXs79kk24zHyraAECSYbgmV1hnNMpNr8vQYVD55420O2vAAqi341mkSfGZcTRiYvaNkBLpDt3vjshIuSeNz4j5x/W3mpabd7YeFYBvhf0fOOAyux49EOQ5cy/Y5Ae1MwAerZ38br6AgNpIM+jVPHTqkIngY54UZQvnL33E+TshFn4sUiUTmmYjt1zM7uSzy6JQmf0SDbOXEoaRXZA7NijGxgohLDtwVLEvtwrT2MUxGGpWD5nCYBTpw/mvYLTEf4hXdY0jaM6nD1/9qMPARCvKlKnoqzBEHGxyLMtAcNRfO/qI4rVG8Tf8yl/mh2x75JXm2axt3q7U7wh9anBboCPTYxty6ZAlVVDRHQqP8rzNbOWIks+8owwulx0i6z9w/FrmPKZAwfde/zyN8BV3i4cIl1SDzobPA9f5z6vtnuP+NHekZR6BwD1eWm6NQ97gu8cGF9hC68vjlOETqwohXIFvCU3vz8RCi6l2Auk+V149vIc68kPZHhTwD4nsq2Q+eCLWVYZCQwbSeeSVBjOwN5tuGq75TYOVnHer+4pPZ1haoN8mSUUQ9uEVFM2LcquAtG2xS/N/yaTucQ0=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(22082099003)(18002099003)(11063799006)(56012099006)(6133799003)(10067099003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|23010399003|376014|1800799024|6133799003|56012099006|11063799006|10067099003|4143699003|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info: uZhphSeBb2KVuZ91MHNZjbmZPbSqfJixX/V+7cHknYH/o0VohXc7o5MtARI2cY4n7cZgPKOSujJaTTzahEUCV2ws8sQFM5ubnK6/NolfqAJ6wAkiuWfiGKr2fwheOzIDONQNMwM1L6AhkJwFUGRGwXDnd5Ec/rvqtXAjK9JBjtUqyCrAfJ84kaC587W511LmkhNCHjxbToPHOHzDeL7MrvKFZQpiaNLR0CmdxNZVU1xNdXxChSMtg4HD3kz2n1S6FF96hrcDKcjHtp+cw5bQE+wzgzSxdmAbdGTH5+Ha6SNN8eLIuOrXCZQhnmdDHVMaMjKnNqW6OnOCTWk/IhiC0Vsv26O7catEK7hlouZUEycYJu3EEc6ng5J6NAjh5SlJ8GAT4/gmT0GZAc37A8FTTkH0GJZXLXxZPF/G1jAXfIcjSEautm5x43PDQdtWATYqLTSBcg9cRaS7ZMZqObVQnB5NfdamUix2vpJxh0nWA521l0Xuc+Hi8osKVC5aiNPI1FyEEvqfXJnkNIz4bS3AY3+yb4evO7ccpmW8JP/wh70I0QSrIZjFkx35QlYiGNLb6vfJ1ZtaWtZ8Fq+H06jh+AFwu6HnLxai3acyzRphUe8=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(376014)(1800799024)(6133799003)(56012099006)(11063799006)(10067099003)(4143699003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?yTrpa57dyiI4cgIwlGzwh2m07jY6l+pQdrltiJLh2QEX/MUpbaT3Pm8aI+LI?=
- =?us-ascii?Q?khR690+n8TKoJVP2YtnMfIX3a1M51Twj+MROeK6//KSKDUFvSpcAhvH+JUk7?=
- =?us-ascii?Q?YZzPb5KklKm0qJNfVpFiQTFQXEOZSv4V+5ruM6oera9fZAszXwxBxMIV3ail?=
- =?us-ascii?Q?7kGRi5xqSJ3B6/TfdZ6dFtchRd1daDpjg0f0bDtNcKbsm949qG+SUaThyNXR?=
- =?us-ascii?Q?AXo70lbi2OjgmHOcSlFM4nq0/PSbWpj9yxoWzxVwZ+HxKondxeJ3D0MEX3TH?=
- =?us-ascii?Q?mV2Le3p1AJXhrFEcLqiL9nF6sIfsqXBQcQQXIlWAWAjfEgJ9xk36lgh4FJXq?=
- =?us-ascii?Q?9S1FRp49FxYLcbiuI4t503G1fbgukcXuEq+iMPPRX4BKcXBWnsjGVQ/yRq9L?=
- =?us-ascii?Q?g9hm6JUAXACp7kWhNJpLeluqbkLjSVdXFMDRlj5cDimSLsEWWIgiK5p1Z1Gg?=
- =?us-ascii?Q?2nPuqULKm4x8Q3i2nGPszloI8hJLFVRyQw6JAtLyAH5Dzj7JDdRTH5eDbgqI?=
- =?us-ascii?Q?V+GsTInBrmrW9jVhdSapyG9qD+AjviRYtUJIUGaNefG9MDPNtpO6dYl0zU1x?=
- =?us-ascii?Q?zGZ6sD2c9w+vMLMtmlHECpnDL+bdGJRr62C+x2/uhoh16YRdLgbbJIVxOvYu?=
- =?us-ascii?Q?D2GQyIC1gKc9weOQ9TcVapgi2zl0mHyeSV8eClteuSet8XEQw6d4Z8ldC9yl?=
- =?us-ascii?Q?OOYJ9cnxuZQLviRnc+kG57q0MmhN2MLhuxPgYwrtwugfEaTINlsfO3vcSw7R?=
- =?us-ascii?Q?j1Ksp+nWdttOxbw8qWlT0yRmSfcQdkziNGZS6xeAp84kBEy9iZ5dHe2Tasbj?=
- =?us-ascii?Q?9Rz8quq4wLgHLg0izS7/9M8MbzPVK94Didzts3BADg3cn/a8Wp8pgapFR6p5?=
- =?us-ascii?Q?Y0mm+vfaYXZxiSnaKBnqnfr8jQ38oLO3yzAlpt5Nd16bTiJ7eaivZwN0LAOn?=
- =?us-ascii?Q?gRvjKUunkI5M25u54OS0fPIlzVRQH1hMNwKTTzpPq+yeNIj4mEscO4cxgC4Q?=
- =?us-ascii?Q?tYTmfHrNZ5ZQ00m8MrFs5jIZbWGLRaLBzD2V5wUOxDTYqmDXnGM9lrNN2YtZ?=
- =?us-ascii?Q?4q67rTcmsj+Sod40urjmTpl+DXfubT7VXbgQMjtM/dM0AbDw4gZYBfrMClIy?=
- =?us-ascii?Q?6DExYFQgAUwIRSIzOIGKZpwHVPbcOv51aaM75ppYjzWDfkdeyBgI2dsOnMCV?=
- =?us-ascii?Q?n9Cuw452r6xJZuPZTc+juxtPUYe8TcElqdS6RX4qetd6C1vNSjdUj9UIY4gj?=
- =?us-ascii?Q?1ZvR33VJcTcaElvSRL3/fas1PuTwhuR5iZTaXjX+Pxunoyq2bBEp0KZ3cnRg?=
- =?us-ascii?Q?R5JDxQ196Yx/MYqvGeccHsZpVocZVg3g1REyDaby8d3FCZC0ud4iZQSDO8rW?=
- =?us-ascii?Q?72zmPx/sNQwRN/SbgpbX+704lv1G/5h8tmbiKVngunruAtChh+k+fpVZRH6h?=
- =?us-ascii?Q?D51lLAviIJn9dsPFXmIfowDN5khrbsnrwWyt4YX8PXtwQ5usmeFFT+b5bMaa?=
- =?us-ascii?Q?n2YRdaahYsylVc6RrOKFWJS9oTggN2kVNEvviihuozQ5IicHbxJ5Roh3V32q?=
- =?us-ascii?Q?N8Wne/TDqIkA4flzgl6Zh5Q4rRaA9+hdgAp9q7yWnhwQvioHl6VGzVISpWLe?=
- =?us-ascii?Q?iUDC1Gp1f5Xi0quD/4kd+fJoG1UJ+Ze8LSSn60j6W/LlW1AvC3qB2rM7qMjg?=
- =?us-ascii?Q?E7zqVEnWndZZxL47Vi/d8BrktKrl8NdFmZuOeIO5yicbWJPKVGCGRyyCJfr0?=
- =?us-ascii?Q?cv65FbjEUcw18vSxcV/OMCn+o3cBoh4=3D?=
-X-Exchange-RoutingPolicyChecked: eUO3GpG5+ATMJztqzIJa1DLMoHNrKPFgPnmtAwpcv6Ep5XDcInFEjm1mTif+VaUv7xjm1ducC4jR1Rsc4EfUojkA21Ve4Jm3Ww39LkrwL1qEvlZjHvDALnck31dSbn1CTwrlLb/1QWGC82hUPji2ADdJm3dm5N0xxsC/kKorZ2m1duoFk/ggfELBkvNEkhaIDaYphMuzvjShdLrkj9mrueXF5f+VKJX9x6e6cdAC9PJberuH/YE4PAIHo8Zbpg5jl8Erg1+0+uHseovC+xNqVR4Llz0qZD2lNJKu/waBq/1W2I0TjEaWfSIT+blOYXLe3vCMXZvDNQ6gOQN4aYFDmA==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9a4e2270-0dd6-4e11-04a1-08def352330d
+X-MS-Exchange-AntiSpam-MessageData-0: =?iso-8859-1?Q?+cuAxgcsnxc/UWOKHlL5JJLea6NOipHCtT9ag4CaNDhl86c4k3viVnTfdL?=
+ =?iso-8859-1?Q?X/JiZPETB6r1WzpuwRG2hfwaN3S0A2xuF93mlYwn9UJxuc0B3/1gs4lyFR?=
+ =?iso-8859-1?Q?OD3uJ9DjvZVrLWCiZ67WkT42JsF49TA7EmH9ucTrnLL7q5lxvxHT6TIdQv?=
+ =?iso-8859-1?Q?qL43wnFqyl3/qATCOiThcvTYBDCHRqPkw9vipnvA/Lg2TnGSrx/E+6okAe?=
+ =?iso-8859-1?Q?nwTqixenAYDxBeaWBh+NIxdYW9LIqNSQY3bUi1ui0adHHSxjdIQYg0MBQe?=
+ =?iso-8859-1?Q?duZA/xMFkzq/hVALZijbM6Jw69IDa7/0XQHlNCx54dlab7F/DyADmCq7Ug?=
+ =?iso-8859-1?Q?roH3/PwTUbQgBMbaunsMwypcmcxUuFv5iJBYfSZS5Gynmm+OQlXq6Z9qFM?=
+ =?iso-8859-1?Q?VWpup+1gxVUBzrIvWoB2LA6eWyxCoYRQsO7+Y6ZrEF2YgZ4aHQlxW8UfNb?=
+ =?iso-8859-1?Q?+hpJPbHKukLvkmj2HMPGApn2lheVU5bCH1h/ZzBadbx+9gYTJfQwnshqRw?=
+ =?iso-8859-1?Q?xLjo7YWia6a3288Wgw3sPeugOVxscmzw2tC32mgoDKSSHeIiKKxW+zhZnT?=
+ =?iso-8859-1?Q?QUUReB2g/27M4UYgQjURCMvbUUQD1zTHVj9WyKh3IX0PDkfBttmanG4+SV?=
+ =?iso-8859-1?Q?HXJwWAOpMfFoBvkwncrAP+ItXkbzZifJ/VRsd3qHe2Tghmon0BUWKuKCvy?=
+ =?iso-8859-1?Q?DaK3J53niTGQMASaIRDuGjDjAOG5fMkgbPxVHiBln80HaEX460mt3J90Ev?=
+ =?iso-8859-1?Q?ebGEqizm/hhFlJ1MSLPwMGGpsRO5uFl31J1Z501kKfc20KpR5MNjNW6Zpy?=
+ =?iso-8859-1?Q?h1+jAsKbLJhlgBsVZKRN1GpVN6dRRQybMu1VmGq9gLwyzWP/5W8SbFvrTm?=
+ =?iso-8859-1?Q?HPFmr0VjvIf1alpL4C/4rkU6gc31RZBDleadc7GBfzv7upamMV0AIvDfbv?=
+ =?iso-8859-1?Q?RRqzKLfBAbRBKEgW7nMVXAubUa50aXxbQHGYgYTqkl3Oy3EmRGH7ClZRnY?=
+ =?iso-8859-1?Q?Q2U8r0JvOUgHfjZSG9ohAJq1OQsGVwGseZbf+giTyp/ME9kxOvdr7MTN5Q?=
+ =?iso-8859-1?Q?FF4K9EGmiURvOG9CV1iJSLp1OQX6/yGvoyl8DLgogiFNvLccauK2tVsl29?=
+ =?iso-8859-1?Q?NdfMq51lSE/FmvJEuf9w2K3SPeV+kFYUKEr2xP22kJDFzHT7nLRQpgbiUc?=
+ =?iso-8859-1?Q?4azdm63MyP5Cen6Ma0NFAgssRqIACcs+Rd81Nmk46eN7/JwJQCrffsPBp4?=
+ =?iso-8859-1?Q?B/tu3VdcMzEkjb7niBP395rFg7kWoKPb9cWw8zXJiwk0wSZqz1H7KlMzZ0?=
+ =?iso-8859-1?Q?PR61LE1rBYaJW7YpeLKXE8mFrKn26tlT5C+wfyZrg3cJEEbqXWiw/Nfa5A?=
+ =?iso-8859-1?Q?kzHamEbkDN5Teew1vs7m+e1tY66UXtnb0smbBEudyBMPwwcUeUGkCm49re?=
+ =?iso-8859-1?Q?otEjfsAWsyx4F4cxQrjgYbzDVwWKX0lckaYO9KxEC6WwQEisLbibOMxw+b?=
+ =?iso-8859-1?Q?4m1wokZrLrOPxU2wZdzOH4B1rRrmW0UaInsthZPbVpw0pyioclQx9UUTcW?=
+ =?iso-8859-1?Q?l56PGFdBfYID2sABStp88JLBhw0/ndeuUqRlekJrEjHitPnUDK7aYlVENg?=
+ =?iso-8859-1?Q?utPoP75e1PG9x0HYJCzILkg/dU/VxtMf4xKFbD+L80zZlkm7KYNx65thLa?=
+ =?iso-8859-1?Q?CSofX8Ay9+lX/YeUhVQI/tRkPJXRHWlFuu8oiED6Csl2MZUujqLIpponlg?=
+ =?iso-8859-1?Q?ir9LMveetalVUFNHM0JnnnoFQ88zCxaHUGkaSbeh/qmvUP/KWTtXfZl78q?=
+ =?iso-8859-1?Q?KrhdGmsP3rtF/rzjFtck4vP612lsTvM=3D?=
+X-Exchange-RoutingPolicyChecked: khfdMWkkfBYMmCLTd+oFSe8TEKIVP8gpVsl+xHP+4Cyyk4LndOW/CI12sXiYV7jbCjb5wr76D1DMhTCWQ6l1T2ovj1G3SOnUZ4ST8xd9bwsQOi6TlYHqKg03OJUkWc5TkBQVUSWmPz20oVIJqDw3Es9rvYgMinY3rx+JSQ3eKBmvd2DNRuVqme02o/MMQjYGCnE0AMpgdVP4+i25BLYXzbSIiaOVp/J3JaO/by5M6qpyjiqWQcnkAPRBWd56e21iYbVMguXcmAYFsxI7A457FC81fqn/qZ8tkAWXQPsEf9+1RTNM8F6TFPgbjQjdTQRYNUIr7ASUhH2U7evBTtIktA==
+X-MS-Exchange-CrossTenant-Network-Message-Id: b77624a0-821d-43ec-48be-08def353b958
 X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2026 00:32:30.5184
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2026 00:43:25.2619
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rq/HM54xMEfjWqvEgT55gZuVbZVoy3XX8CtoLLF2uGwo1rPI1+mCL+3x7QIijlsUwxJq5emL7vHGmWNMsfn3vJZ3o1khqSbU54+R2hcJwc8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7520
+X-MS-Exchange-CrossTenant-UserPrincipalName: m8zyi9UNibMc7MxRTWZRd3mvLkV3Qr8KB+2CeFU7QK0mGn2g82TzrcfRuveyJM2qbaBEk93dgoIn7JwGM9f8NG+8L6OKC0qltK0sr3Rsq+Y=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ5PPFBBB839A03
 X-OriginatorOrg: intel.com
 
-On Wed, Jul 22, 2026 at 12:17:01PM +0800, Pengpeng Hou wrote:
-> add_table() reads an NFIT subtable header after checking only that the
-> cursor is before the end of the table. It then advances by the advertised
-> subtable length without proving that either the header or the full
-> subtable is present.
+On Wed, Jul 22, 2026 at 04:31:02AM +0000, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 3 potential issue(s) to consider:
 > 
-> The interleave and flush helpers also derive copy lengths from entry
-> counts without ensuring those arrays fit in the current subtable.
-> 
-> Validate the fixed header and advertised length before dispatch. Ensure
-> the variable interleave and flush arrays fit their subtables, and prove the
-> SPA flags and capabilities fields are present before reading them. Reject a
-> capability index that cannot be represented by the 32-bit capability mask.
+> New issues:
+> - [High] Rejecting the capability table if `highest_capability > 31` fails the entire NFIT driver probe, breaking forward compatibility.
 
-Hi Pengpeng Hou,
-
-Above the commit log could be a little more precise. The new checks prove
-the SPA flags field and the platform capability highest_capability field
-are present before they are read. (not a more general 'capabilities fields')
-
+Agreed w this one. See my direct response.
 
 > 
-> Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
-> ---
->  drivers/acpi/nfit/core.c | 43 +++++++++++++++++++++++++++++++++++++------
->  1 file changed, 37 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index cb771d9cadb2a..711ab639cb147 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -705,6 +705,10 @@ int nfit_spa_type(struct acpi_nfit_system_address *spa)
->  
->  static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
->  {
-> +	if (spa->header.length <
-> +	    offsetof(struct acpi_nfit_system_address, reserved))
-> +		return 0;
-> +
->  	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
->  		return sizeof(*spa);
->  	return sizeof(*spa) - 8;
-> @@ -868,9 +872,16 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
->  
->  static size_t sizeof_idt(struct acpi_nfit_interleave *idt)
->  {
-> +	size_t size;
-> +
->  	if (idt->header.length < sizeof(*idt))
->  		return 0;
-> -	return sizeof(*idt) + sizeof(u32) * idt->line_count;
-> +
-> +	size = struct_size(idt, line_offset, idt->line_count);
-> +	if (size > idt->header.length)
-> +		return 0;
-> +
-> +	return size;
->  }
->  
->  static bool add_idt(struct acpi_nfit_desc *acpi_desc,
-> @@ -907,9 +918,16 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
->  
->  static size_t sizeof_flush(struct acpi_nfit_flush_address *flush)
->  {
-> +	size_t size;
-> +
->  	if (flush->header.length < sizeof(*flush))
->  		return 0;
-> -	return struct_size(flush, hint_address, flush->hint_count);
-> +
-> +	size = struct_size(flush, hint_address, flush->hint_count);
-> +	if (size > flush->header.length)
-> +		return 0;
-> +
-> +	return size;
->  }
->  
->  static bool add_flush(struct acpi_nfit_desc *acpi_desc,
-> @@ -951,7 +969,16 @@ static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
->  	struct device *dev = acpi_desc->dev;
->  	u32 mask;
->  
-> -	mask = (1 << (pcap->highest_capability + 1)) - 1;
-> +	if (pcap->header.length < sizeof(*pcap))
-> +		return false;
-> +	if (pcap->highest_capability > 31)
-> +		return false;
-> +
+> Pre-existing issues:
+> - [High] Missing bounds check in `sizeof_dcr` leads to potential out-of-bounds read when parsing the Control Region subtable.
 
-Does above break forward compatibility, like future FW
-advertising capability bits beyond the 32 we implement now.
-Maybe ignore unknown cap bits, like clamp to the implemented
-mask instead of returning false.
+I think this is true but not something that belongs in this patch.
 
-I looked at Sashiko's issues and will respond directly
-there. I didn't think any were in scope of this patch,
-beyond this new return when > 31.
+
+> - [High] `sizeof_spa` incorrectly assumes that the SPA length is determined by the `LOCATION_COOKIE_VALID` flag, rejecting valid ACPI 6.4+ System Physical Address tables.
+
+This one is not obviously true. I think the question is should sizeof_spa()
+take structure size from header.length rather than LOCATION_COOKIE_VALID?
+I wonder if ACPI 6.4 permits a 64-byte SPA with LOCATION_COOKIE_VALID clear,
+in which case the current logic would reject an otherwise valid table.
+I didn't look into this, but I think you need to figure that out in
+case this patch needs to change.
 
 -- Alison
 
 
-> +	if (pcap->highest_capability == 31)
-> +		mask = U32_MAX;
-> +	else
-> +		mask = (1U << (pcap->highest_capability + 1)) - 1;
-> +
->  	acpi_desc->platform_cap = pcap->capabilities & mask;
->  	dev_dbg(dev, "cap: %#x\n", acpi_desc->platform_cap);
->  	return true;
-> @@ -963,14 +990,18 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
->  	struct device *dev = acpi_desc->dev;
->  	struct acpi_nfit_header *hdr;
->  	void *err = ERR_PTR(-ENOMEM);
-> +	size_t table_len;
->  
->  	if (table >= end)
->  		return NULL;
-> +	table_len = end - table;
-> +	if (table_len < sizeof(*hdr))
-> +		return NULL;
->  
->  	hdr = table;
-> -	if (!hdr->length) {
-> -		dev_warn(dev, "found a zero length table '%d' parsing nfit\n",
-> -			hdr->type);
-> +	if (hdr->length < sizeof(*hdr) || hdr->length > table_len) {
-> +		dev_warn(dev, "invalid table length %u for type %u parsing nfit\n",
-> +			 hdr->length, hdr->type);
->  		return NULL;
->  	}
->  
+> --
+> 
+> --- Patch [1]: [PATCH] ACPI: NFIT: validate subtable extents before parsing ---
+> commit d7436f5d72f81006ac23c35fc1e7248c7a9fe254
+> Author: Pengpeng Hou <pengpeng@iscas.ac.cn>
+> 
+> ACPI: NFIT: validate subtable extents before parsing
+> 
+> add_table() reads an NFIT subtable header after checking only that the
+> cursor is before the end of the table. It then advances by the advertised
+> subtable length without proving that either the header or the full
+> subtable is present. This patch validates the fixed header and advertised
+> length before dispatch, and ensures variable arrays fit their subtables.
+> 
+> > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> > index cb771d9cadb2a..711ab639cb147 100644
+> > --- a/drivers/acpi/nfit/core.c
+> > +++ b/drivers/acpi/nfit/core.c
+> > @@ -705,6 +705,10 @@ int nfit_spa_type(struct acpi_nfit_system_address *spa)
+> >  
+> >  static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
+> >  {
+> > +	if (spa->header.length <
+> > +	    offsetof(struct acpi_nfit_system_address, reserved))
+> > +		return 0;
+> > +
+> >  	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
+> >  		return sizeof(*spa);
+> >  	return sizeof(*spa) - 8;
+> >  }
+> 
+> [Severity: High]
+> This is a pre-existing issue, but does this logic risk rejecting valid
+> ACPI 6.4+ System Physical Address tables?
+> 
+> If a compliant ACPI 6.4 firmware presents a 64-byte SPA table with the
+> LOCATION_COOKIE_VALID flag unset, sizeof_spa() will assume the length
+> should be 56.
+> 
+> In add_spa() in drivers/acpi/nfit/core.c, the exact length equality check
+> will then fail:
+> 
+> add_spa() {
+>     ...
+>     if (spa->header.length != sizeof_spa(spa))
+>         return false;
+>     ...
+> }
+> 
+> Will this bubble up as ERR_PTR(-ENOMEM) and abort the entire driver probe
+> on compliant platforms?
+> 
+> [Severity: High]
+> This is also a pre-existing issue, but while we're adding bounds checks,
+> does sizeof_dcr() in drivers/acpi/nfit/core.c have a similar missing check
+> that could lead to an out-of-bounds read?
+> 
+> When an ACPI table provides a DCR subtable with header.length exactly enough
+> to include the windows field (e.g., 32) and windows > 0, sizeof_dcr() calculates
+> the required size as 80 bytes:
+> 
+> sizeof_dcr() {
+>     ...
+>     if (dcr->windows)
+>         return sizeof(*dcr);
+>     ...
+> }
+> 
+> add_table() only verifies that 32 bytes remain in the mapped ACPI table. The
+> memcpy() in add_dcr() then reads 80 bytes:
+> 
+> add_dcr() {
+>     ...
+>     memcpy(nfit_dcr->dcr, dcr, sizeof_dcr(dcr));
+>     ...
+> }
+> 
+> Could this extend 48 bytes past the end of the subtable, potentially reading
+> unmapped memory and causing a kernel panic?
+> 
+> [ ... ]
+> 
+> > @@ -951,7 +969,16 @@ static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
+> >  	struct device *dev = acpi_desc->dev;
+> >  	u32 mask;
+> >  
+> > -	mask = (1 << (pcap->highest_capability + 1)) - 1;
+> > +	if (pcap->header.length < sizeof(*pcap))
+> > +		return false;
+> > +	if (pcap->highest_capability > 31)
+> > +		return false;
+> 
+> [Severity: High]
+> Does returning false here break forward compatibility with future ACPI
+> firmware?
+> 
+> If a future firmware revision sets highest_capability > 31 to indicate support
+> for new features, this check will return false.
+> 
+> Since add_table() handles this by returning ERR_PTR(-ENOMEM):
+> 
+> add_table() {
+>     ...
+>     case ACPI_NFIT_TYPE_CAPABILITIES:
+>         if (!add_platform_cap(acpi_desc, table))
+>             return err;
+>     ...
+> }
+> 
+> Would this cause the entire NFIT driver probe to fail, rather than just
+> gracefully capping or ignoring the unknown capability bits?
+> 
 > -- 
-> 2.50.1 (Apple Git-155)
+> Sashiko AI review · https://sashiko.dev/#/patchset/20260722041701.21078-1-pengpeng@iscas.ac.cn?part=1
 > 
