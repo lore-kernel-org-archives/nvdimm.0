@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9367438B157;
-	Thu,  6 Aug 2026 05:29:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6CA533F5A8;
+	Thu,  6 Aug 2026 05:31:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785994146; cv=none; b=SZUhbyWQTf+hCRo/LRjbNdlPVGwYMkvAtBfDwVI0jkuX6YkmS7dLiS+Njge4G0ig6iyYZOW8q999xBEhX+dshFWI77uci1aTmaFpVKDtru738CcaPMIfJFTt5S48a/Q3EyMOVAbfvbin54rOy3YeyPR1WuRe3XlyQWbymcVzfsE=
+	t=1785994262; cv=none; b=AnjjzlT7bmKMy32ST3xRwIJyu1yWecu6HDtFXKKwGSUzzDAEOa0HcoouH0z4J/0gpeaWKEsUE66KGToEuMxQw13Ul5nzpowRU2gEEIyDA+0v3JgEWBuFIXAxZYyKdirjWOzKEh9m5PJp97QayqYtznFWrrEPeKSACo4NMej0AMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785994146; c=relaxed/simple;
-	bh=WYMNSlQYvVGHI6wFkFdO5U+7q0JAEftTS9ZVKEuhaL8=;
+	s=arc-20240116; t=1785994262; c=relaxed/simple;
+	bh=EPnDi3fhjbRuYcf0KsHFRUZsNCDRg+3lvDA0aCag0Rk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rpm/40+egT3lAscwUk0Wfij6qolnR6cI98lHMzihdki1k5P8fTcYy39SY9MrlC2qZOW9AzMa+f0L+g0LpQJYXu/BBLhch2u9fMwfPh5afaqCLz4+qTafxwZpeAaozVNJgNrL/eKbI8zCp653dF0KmtNDUyM+zQXj0TH1E2PN7eg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g8nvEYMg; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=Pib9psOuZ6pw1kcuXjVNZmQ7S0/lrCPSXLbXyzTDL3M3nURPRldMCu7qYzdi2TG9Gxb9KkzfopNeGYWzg/HPbUhL6aPRe7rr4rUwPBIqqxzFTZ94QhMCgzS6rDPZ71JYQ3YkFs5ROenBUg9m9dzvMh3V6ioFbeOA1pGAq36B4Wo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HFgViHrv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g8nvEYMg"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 1776E1F000E9;
-	Thu,  6 Aug 2026 05:29:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HFgViHrv"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 76A411F00A3A;
+	Thu,  6 Aug 2026 05:31:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785994145;
-	bh=DgMjMqgRjih2aHWm51Ly96EGJqXWj4bwpPMZTXfd73Y=;
+	s=k20260515; t=1785994260;
+	bh=YVS4+SOBpvffUSIka1e9kwYoPwtftm+O/XZ95Mu90Gc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=g8nvEYMg+61iSmR5Fh2LQDoenWop2u21JWfb4h8quAwYCSYJCK+0hbuaL792q4B1J
-	 xxbmym6suDAsKXE7liBt23JiZ3TKzZ6ul6GeGHsYLSPlNbobbLSAYny/2JXEjOUfVF
-	 pbPb1r9SaA4BSs7B3/HjmeR+dCS2gDgcxOV3N3FDzKMzYpsgLvLaqV9Ht5vijq6+op
-	 amZ/Pbs+tYhfUAx4QfbqHIP+1IzxjgNTEimD5FrYJpu7G0+dxv0jJxS/Qm6Vwu6B/5
-	 z9Nh2jDUb9X2FCHCmCIR9hI2DipKFuoREZKIhyvheRgfh0ayLxvutcRZPXSqMfSz5l
-	 YLk7gNyh2CVoQ==
-Date: Wed, 5 Aug 2026 22:29:04 -0700
+	b=HFgViHrvvAHP6jOOrZWu6HOSOP5NMMEMPPNwkxNKJt/T/P2O3Mn3PLkFRjfDLyUn8
+	 AkgtiMQTXeRS7cGXsuwuPhaGhoLtAIJnt4mZQu+7zFrro9phBSkqGU55IkjZMf2hRY
+	 e2Lfmzj4QHPuQNfClTplgTZjDnzfGrhI3hmnxAeAW4DOk2MrNqMfShWYD79K+xnEAK
+	 ssrWGl3zUQQHzmiBRQLhNKl1faqY4g+yO6M9HfTYGSbJi55eDYcJEYHF3IUpgX2+0H
+	 cuI2YH1P7bI3UI2R6NEFWxIwdzFlflRyglLdlIvHKEFry9LB90GQYlTpz3YwkxVlts
+	 WEDR6kxS1/y7w==
+Date: Wed, 5 Aug 2026 22:31:00 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
 To: John Groves <john@jagalactic.com>
 Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
@@ -75,12 +75,12 @@ Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
 	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 09/12] famfs: Register secondary daxdevs by path
- (FAMFSIOC_DAXDEV_OPEN)
-Message-ID: <20260806052904.GI3560084@frogsfrogsfrogs>
+Subject: Re: [PATCH V12 10/12] famfs: Add runtime operation-permission (opts)
+ framework
+Message-ID: <20260806053100.GJ3560084@frogsfrogsfrogs>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022940.75910-1-john@jagalactic.com>
- <0100019fc574b43d-effbc86f-dd35-4154-8c2e-17699ef0edb6-000000@email.amazonses.com>
+ <20260803022950.75930-1-john@jagalactic.com>
+ <0100019fc574dabe-572d99fc-3bb0-421a-afec-05432de2a757-000000@email.amazonses.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -89,159 +89,259 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0100019fc574b43d-effbc86f-dd35-4154-8c2e-17699ef0edb6-000000@email.amazonses.com>
+In-Reply-To: <0100019fc574dabe-572d99fc-3bb0-421a-afec-05432de2a757-000000@email.amazonses.com>
 
-On Mon, Aug 03, 2026 at 02:29:47AM +0000, John Groves wrote:
+On Mon, Aug 03, 2026 at 02:29:57AM +0000, John Groves wrote:
 > From: John Groves <John@Groves.net>
 > 
-> Famfs file maps (fmaps) may reference multiple daxdevs. Before passing
-> an fmap that references a new daxdev, the daxdev is pushed into the
-> kernel via FAMFSIOC_DAXDEV_OPEN). This adds daxdevs to daxdev_table for
-> index-based resolution from famfs extents to daxdevs.
-> 
+> famfs denies most namespace, attribute and data operations by default
+> because the userspace log, not the kernel, is authoritative for a famfs
+> instance. Earlier commits already guard each such operation with a
+> famfs_opt_enabled(fsi, FAMFS_OPT_x) check backed by a permissive stub. This
+> commit defines the permission bitmap and makes those checks live.
+
+Why would it ever be acceptable for user programs to mess with the
+directory tree and file attributes?  There's nothing here that would
+seem to write to the userspace log.  Or am I mistaken, and only the
+program that maintains the userspace log (e.g. the famfs server) can do
+these kinds of operations?
+
+--D
+
+> Add:
+>  - FAMFS_OPT_* (uapi): a u64 permission bitmap, one bit per gated operation
+>    (create, mkdir, mknod, symlink, link, unlink, rmdir, rename, the four
+>    setattr components, data write, and MAP_CREATE), plus FAMFS_OPT_ALL. The
+>    FAMFS_OPT_XATTR bit is reserved - famfs has no xattr ops yet.
+>  - fsi->opts: a per-mount atomic64 bitmap initialized to FAMFS_OPT_DEFAULT,
+>    which sets famfs's default policy: create, mkdir, chmod, chown, utimes,
+>    write and MAP_CREATE are permitted; unlink of mapped files, link,
+>    symlink, mknod, rmdir, rename and truncate are denied.
+>  - the real famfs_opt_enabled() (replacing the stub), so every planted gate
+>    now consults fsi->opts.
+>  - FAMFSIOC_{GET,SET,CLEAR}_OPTS: read the bitmap, or enable/disable the
+>    bits set in a caller-supplied mask, returning the resulting bitmap.
+>    SET/CLEAR require CAP_SYS_ADMIN and reject unknown bits with -EINVAL;
+>    the bitmap is updated with atomic RMW so the checks stay lockless.
 > Signed-off-by: John Groves <john@groves.net>
 > ---
->  fs/famfs/famfs_file.c            | 74 ++++++++++++++++++++++++++++++++
->  include/uapi/linux/famfs_ioctl.h | 24 +++++++++++
->  2 files changed, 98 insertions(+)
+>  fs/famfs/famfs_file.c            | 55 ++++++++++++++++++++++++++++++++
+>  fs/famfs/famfs_inode.c           |  1 +
+>  fs/famfs/famfs_internal.h        | 30 ++++++++++++++---
+>  include/uapi/linux/famfs_ioctl.h | 45 ++++++++++++++++++++++++++
+>  4 files changed, 127 insertions(+), 4 deletions(-)
 > 
 > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> index e7f271ce6d03..e11a55ecf8d7 100644
+> index e11a55ecf8d7..abf049b32a4b 100644
 > --- a/fs/famfs/famfs_file.c
 > +++ b/fs/famfs/famfs_file.c
-> @@ -287,6 +287,76 @@ famfs_file_init_dax(struct file *file, void __user *arg)
+> @@ -357,6 +357,49 @@ famfs_daxdev_open(struct file *file, void __user *arg)
 >  	return rc;
 >  }
 >  
 > +/**
-> + * famfs_daxdev_open() - FAMFSIOC_DAXDEV_OPEN ioctl handler
-> + * @file: any file in the famfs mount (the table is per-superblock)
-> + * @arg:  ptr to struct famfs_ioc_daxdev in user space
-> + *
-> + * Register a devdax device (identified by path) into the mount's daxdev table
-> + * at the caller-specified index, so files whose extents reference that index
-> + * can be mapped. The path is resolved by lookup_daxdev() - the same helper the
-> + * mount uses for the primary daxdev - so every slot is resolved identically.
-> + * Registering exposes raw device memory, so it requires CAP_SYS_RAWIO.
+> + * famfs_get_opts() - FAMFSIOC_GET_OPTS: return the permission bitmap
 > + */
-> +static int
-> +famfs_daxdev_open(struct file *file, void __user *arg)
+> +static long famfs_get_opts(struct famfs_fs_info *fsi, void __user *arg)
 > +{
-> +	struct super_block *sb = file_inode(file)->i_sb;
-> +	struct famfs_fs_info *fsi = sb->s_fs_info;
-> +	struct famfs_ioc_daxdev dd;
-> +	dev_t devno;
-> +	char *path;
-> +	int rc;
+> +	struct famfs_ioc_opts o = { .opts = atomic64_read(&fsi->opts) };
 > +
-> +	if (!capable(CAP_SYS_RAWIO))
-> +		return -EPERM;
-> +
-> +	if (copy_from_user(&dd, arg, sizeof(dd)))
+> +	if (copy_to_user(arg, &o, sizeof(o)))
 > +		return -EFAULT;
 > +
-> +	/* @flags is reserved; reject non-zero so it stays available */
-> +	if (dd.flags)
+> +	return 0;
+> +}
+> +
+> +/*
+> + * famfs_modify_opts() - FAMFSIOC_SET_OPTS / FAMFSIOC_CLEAR_OPTS
+> + * @set: true to enable (OR in) the requested bits, false to disable (mask out)
+> + *
+> + * The caller supplies a mask of FAMFS_OPT_* bits; the resulting bitmap is
+> + * returned. Requires CAP_SYS_ADMIN since it changes mount-wide policy.
+> + */
+> +static long famfs_modify_opts(struct famfs_fs_info *fsi, void __user *arg,
+> +			      bool set)
+> +{
+> +	struct famfs_ioc_opts o;
+> +
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +	if (copy_from_user(&o, arg, sizeof(o)))
+> +		return -EFAULT;
+> +	if (o.opts & ~FAMFS_OPT_ALL)
 > +		return -EINVAL;
 > +
-> +	/*
-> +	 * If this daxdev index is already populated there is nothing to do.
-> +	 * The index is cluster-invariant, so a valid slot already names this
-> +	 * device; skip the path resolution entirely. install_daxdev() rechecks
-> +	 * ->valid under the write lock, so this is purely an optimization.
-> +	 */
-> +	scoped_guard(rwsem_read, &fsi->devlist_sem) {
-> +		if (dd.daxdev_index >= fsi->dax_devlist->nslots)
-> +			return -EINVAL;
-> +		if (fsi->dax_devlist->devlist[dd.daxdev_index].valid)
-> +			return 0;
-> +	}
+> +	if (set)
+> +		o.opts = atomic64_fetch_or(o.opts, &fsi->opts) | o.opts;
+> +	else
+> +		o.opts = atomic64_fetch_and(~o.opts, &fsi->opts) & ~o.opts;
 > +
-> +	if (dd.daxdev_path_len == 0 || dd.daxdev_path_len >= PATH_MAX)
-> +		return -EINVAL;
+> +	if (copy_to_user(arg, &o, sizeof(o)))
+> +		return -EFAULT;
 > +
-> +	/* +1 so the terminating NUL is included within the bound */
-> +	path = strndup_user((const char __user *)(uintptr_t)dd.daxdev_path,
-> +			    dd.daxdev_path_len + 1);
-> +	if (IS_ERR(path))
-> +		return PTR_ERR(path);
-> +
-> +	rc = lookup_daxdev(path, &devno);
-> +	if (rc)
-> +		goto out;
-> +
-> +	/*
-> +	 * The daxdev table is allocated at mount time (for the slot-0 primary),
-> +	 * so it is always present here; no need to allocate it.
-> +	 */
-> +	rc = famfs_install_daxdev(fsi, sb, dd.daxdev_index, devno, path);
-> +	if (rc)
-> +		pr_debug("%s: failed to install daxdev index %llu (%s)\n",
-> +		       __func__, dd.daxdev_index, path);
-> +out:
-> +	kfree(path);
-> +	return rc;
+> +	return 0;
 > +}
 > +
 >  /**
 >   * famfs_file_ioctl() - Top-level famfs file ioctl handler
 >   * @file: the file
-> @@ -308,6 +378,10 @@ famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+> @@ -378,6 +421,18 @@ famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 >  		rc = 0;
 >  		break;
 >  
-> +	case FAMFSIOC_DAXDEV_OPEN:
-> +		rc = famfs_daxdev_open(file, (void __user *)arg);
+> +	case FAMFSIOC_GET_OPTS:
+> +		rc = famfs_get_opts(fsi, (void __user *)arg);
 > +		break;
 > +
->  	case FAMFSIOC_MAP_CREATE:
->  		rc = famfs_file_init_dax(file, (void __user *)arg);
+> +	case FAMFSIOC_SET_OPTS:
+> +		rc = famfs_modify_opts(fsi, (void __user *)arg, true);
+> +		break;
+> +
+> +	case FAMFSIOC_CLEAR_OPTS:
+> +		rc = famfs_modify_opts(fsi, (void __user *)arg, false);
+> +		break;
+> +
+>  	case FAMFSIOC_DAXDEV_OPEN:
+>  		rc = famfs_daxdev_open(file, (void __user *)arg);
 >  		break;
-> diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
-> index b4eb373c1ade..751d8b033c2e 100644
-> --- a/include/uapi/linux/famfs_ioctl.h
-> +++ b/include/uapi/linux/famfs_ioctl.h
-> @@ -77,6 +77,29 @@ struct famfs_ioc_fmap_header {
->  	__u64 reserved1;
+> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> index a6c3b4574e69..6cbd7d657fd8 100644
+> --- a/fs/famfs/famfs_inode.c
+> +++ b/fs/famfs/famfs_inode.c
+> @@ -717,6 +717,7 @@ static int famfs_init_fs_context(struct fs_context *fc)
+>  		return -ENOMEM;
+>  
+>  	init_rwsem(&fsi->devlist_sem);
+> +	atomic64_set(&fsi->opts, FAMFS_OPT_DEFAULT);
+>  	fsi->mount_opts.mode = FAMFS_DEFAULT_MODE;
+>  	fc->s_fs_info        = fsi;
+>  	fc->ops              = &famfs_context_ops;
+> diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
+> index b5f9c8d0349f..26873162b4a0 100644
+> --- a/fs/famfs/famfs_internal.h
+> +++ b/fs/famfs/famfs_internal.h
+> @@ -12,11 +12,24 @@
+>  #define FAMFS_INTERNAL_H
+>  
+>  #include <linux/rwsem.h>
+> +#include <linux/atomic.h>
+>  #include <linux/bits.h>
+>  #include <linux/build_bug.h>
+>  
+>  #include <linux/famfs_ioctl.h>
+>  
+> +/*
+> + * Default operation-permission bitmap (see FAMFS_OPT_* in the uapi header).
+> + * This preserves famfs's historical behavior: file/dir creation, the fmap
+> + * ioctl, data writes, and the non-resize setattr components are permitted;
+> + * unlink of mapped files, link, symlink, mknod, rmdir, rename and truncate
+> + * are denied until enabled via FAMFSIOC_SET_OPTS.
+> + */
+> +#define FAMFS_OPT_DEFAULT	(FAMFS_OPT_CREATE | FAMFS_OPT_MKDIR | \
+> +				 FAMFS_OPT_CHMOD | FAMFS_OPT_CHOWN | \
+> +				 FAMFS_OPT_UTIMES | FAMFS_OPT_WRITE | \
+> +				 FAMFS_OPT_MAP_CREATE)
+> +
+>  extern const struct file_operations famfs_file_operations;
+>  
+>  /*
+> @@ -104,6 +117,8 @@ struct famfs_dax_devlist {
+>   * @famfs_fs_info
+>   *
+>   * @mount_opts:  The mount options
+> + * @opts:        Operation-permission bitmap (FAMFS_OPT_*), adjusted at runtime
+> + *               via the FAMFSIOC_{GET,SET,CLEAR}_OPTS ioctls
+>   * @deverror:    True if the dax device has called our notify_failure entry
+>   *               point, or if other "shutdown" conditions exist
+>   * @dax_devlist: Table of backing daxdevs (slot 0 is the mount primary)
+> @@ -111,16 +126,23 @@ struct famfs_dax_devlist {
+>   */
+>  struct famfs_fs_info {
+>  	struct famfs_mount_opts   mount_opts;
+> +	atomic64_t                opts;
+>  	bool                      deverror;
+>  	struct famfs_dax_devlist *dax_devlist;
+>  	struct rw_semaphore       devlist_sem;
 >  };
 >  
-> +/**
-> + * struct famfs_ioc_daxdev - register an additional backing daxdev by path
-> + * @daxdev_index:    the (cluster-invariant) index this daxdev occupies in
-> + *                   extent dev_index fields. Index 0 is the mount-time primary.
-> + * @daxdev_path:     userspace pointer to the devdax device path (e.g.
-> + *                   "/dev/dax0.0"); resolved in the kernel the same way the
-> + *                   mount primary is.
-> + * @daxdev_path_len: length of the path string, not counting the NUL.
-> + * @flags:           reserved; must be zero.
+> -/* This stub will be replaced in a later commit 
+> - * Note: the opt parameter is intentionally unused, and will be used by
+> - * the replacement function when that commit lands
+> +/*
+> + * famfs_opt_enabled() - is operation permission @opt enabled for this mount?
 > + *
-> + * Standalone famfs registers every daxdev by path: the mount primary comes in
-> + * as the mount device name, and slots 1..n come in here. (This deliberately
-> + * differs from fuse's fd-based FUSE_DEV_IOC_DAXDEV_OPEN; each side is uniform
-> + * within itself.) Passing the path by pointer keeps the struct fixed-size, so
-> + * longer paths never require an ABI change.
+> + * @opt is a single FAMFS_OPT_* bit; returns true if that operation is
+> + * permitted. The bitmap is read locklessly (updated via atomic RMW by the
+> + * FAMFSIOC_{SET,CLEAR}_OPTS ioctls).
+>   */
+> -#define famfs_opt_enabled(fsi, opt) (fsi != 0)
+> +static inline bool famfs_opt_enabled(struct famfs_fs_info *fsi, u64 opt)
+> +{
+> +	return !!(atomic64_read(&fsi->opts) & opt);
+> +}
+>  
+>  int lookup_daxdev(const char *pathname, dev_t *devno);
+>  int famfs_devlist_alloc(struct famfs_fs_info *fsi);
+> diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
+> index 751d8b033c2e..efe6ef263975 100644
+> --- a/include/uapi/linux/famfs_ioctl.h
+> +++ b/include/uapi/linux/famfs_ioctl.h
+> @@ -100,6 +100,48 @@ struct famfs_ioc_daxdev {
+>  	__u32 flags;
+>  };
+>  
+> +/*
+> + * Mount-wide operation permissions, queried and modified via the
+> + * FAMFSIOC_{GET,SET,CLEAR}_OPTS ioctls. A set bit means the operation is
+> + * permitted; a clear bit means it is rejected with -EPERM. famfs denies most
+> + * of these by default because the userspace log, not the kernel, is
+> + * authoritative for a famfs instance.
 > + */
-> +struct famfs_ioc_daxdev {
-> +	__u64 daxdev_index;
-> +	__u64 daxdev_path;
-> +	__u32 daxdev_path_len;
-
-Can't we just pass an open fd to a dax device and have it use that
-rather than doing its own path operations?
-
---D
-
-> +	__u32 flags;
+> +#define FAMFS_OPT_CREATE	(1ULL << 0)  /* create a regular file        */
+> +#define FAMFS_OPT_MKDIR		(1ULL << 1)  /* mkdir                        */
+> +#define FAMFS_OPT_MKNOD		(1ULL << 2)  /* mknod a special file         */
+> +#define FAMFS_OPT_SYMLINK	(1ULL << 3)  /* create a symlink             */
+> +#define FAMFS_OPT_LINK		(1ULL << 4)  /* hard link                    */
+> +#define FAMFS_OPT_UNLINK	(1ULL << 5)  /* unlink a mapped file         */
+> +#define FAMFS_OPT_RMDIR		(1ULL << 6)  /* rmdir                        */
+> +#define FAMFS_OPT_RENAME	(1ULL << 7)  /* rename                       */
+> +#define FAMFS_OPT_CHMOD		(1ULL << 8)  /* setattr ATTR_MODE            */
+> +#define FAMFS_OPT_CHOWN		(1ULL << 9)  /* setattr ATTR_UID / ATTR_GID  */
+> +#define FAMFS_OPT_TRUNCATE	(1ULL << 10) /* setattr ATTR_SIZE (resize)   */
+> +#define FAMFS_OPT_UTIMES	(1ULL << 11) /* setattr ATTR_ATIME/ATTR_MTIME*/
+> +#define FAMFS_OPT_WRITE		(1ULL << 12) /* write file data              */
+> +#define FAMFS_OPT_XATTR		(1ULL << 13) /* set/remove xattrs (reserved) */
+> +#define FAMFS_OPT_MAP_CREATE	(1ULL << 14) /* attach an fmap (MAP_CREATE)  */
+> +
+> +#define FAMFS_OPT_ALL		(FAMFS_OPT_CREATE | FAMFS_OPT_MKDIR | \
+> +				 FAMFS_OPT_MKNOD | FAMFS_OPT_SYMLINK | \
+> +				 FAMFS_OPT_LINK | FAMFS_OPT_UNLINK | \
+> +				 FAMFS_OPT_RMDIR | FAMFS_OPT_RENAME | \
+> +				 FAMFS_OPT_CHMOD | FAMFS_OPT_CHOWN | \
+> +				 FAMFS_OPT_TRUNCATE | FAMFS_OPT_UTIMES | \
+> +				 FAMFS_OPT_WRITE | FAMFS_OPT_XATTR | \
+> +				 FAMFS_OPT_MAP_CREATE)
+> +
+> +/**
+> + * struct famfs_ioc_opts - operation-permission bitmap
+> + * @opts: for GET, the current bitmap is returned here. For SET/CLEAR, the
+> + *        caller-supplied mask of bits to enable/disable on input, and the
+> + *        resulting bitmap on return.
+> + */
+> +struct famfs_ioc_opts {
+> +	__u64 opts;
 > +};
 > +
 >  #define FAMFSIOC_MAGIC 'u'
 >  
 >  /* famfs file ioctl opcodes */
-> @@ -87,5 +110,6 @@ struct famfs_ioc_fmap_header {
->   * famfs_ioc_fmap_header followed by the extent list (see above).
+> @@ -111,5 +153,8 @@ struct famfs_ioc_daxdev {
 >   */
 >  #define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC,  0x51, struct famfs_ioc_fmap_header)
-> +#define FAMFSIOC_DAXDEV_OPEN   _IOW(FAMFSIOC_MAGIC,  0x52, struct famfs_ioc_daxdev)
+>  #define FAMFSIOC_DAXDEV_OPEN   _IOW(FAMFSIOC_MAGIC,  0x52, struct famfs_ioc_daxdev)
+> +#define FAMFSIOC_GET_OPTS      _IOR(FAMFSIOC_MAGIC,  0x53, struct famfs_ioc_opts)
+> +#define FAMFSIOC_SET_OPTS      _IOWR(FAMFSIOC_MAGIC, 0x54, struct famfs_ioc_opts)
+> +#define FAMFSIOC_CLEAR_OPTS    _IOWR(FAMFSIOC_MAGIC, 0x55, struct famfs_ioc_opts)
 >  
 >  #endif /* FAMFS_IOCTL_H */
 > -- 
