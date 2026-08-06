@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
+Received: from relay.hostedemail.com (smtprelay0016.hostedemail.com [216.40.44.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F65490C13;
-	Thu,  6 Aug 2026 20:03:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD733B71D9;
+	Thu,  6 Aug 2026 20:41:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786046607; cv=none; b=eBdYRCeQn5LdcsVUiroJWWbNSMO5EYX22a6LVCdilykAmcEcyIskdmVd6oJHcWQv7zaVZizRKiYfLL58cBnjmlWr03OxMO/X7JCJgr422NS7xxpDCbwLvp1NFG/93xZsJbxBUtlcwT3yad/i6ssU135gCiXV3YyqhM2QlVqmoKI=
+	t=1786048888; cv=none; b=hRonwniX+s5RjAX9kacmKe/qUJpP8KTtyunuek0sLwx2n9ndinyzGZX2SxzrYhZobs4R1da2eI6cIR3CUeMpl1TC2rPhRD6f44POr7HM83lnj4dk4+uizAmccqQZwiKt4XH1m4VdmKGOZTv6Rf2BJ7bBZwq6+T+Mb5RqUi4gVCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786046607; c=relaxed/simple;
-	bh=7JKyxC0lVhQOIrumF7ydzSJc5ZSRS+xdk/3yQU4vWvI=;
+	s=arc-20240116; t=1786048888; c=relaxed/simple;
+	bh=xR6HG6PiaFqYPWaSc0BbpGc+xguUSO7QguoVLPIuIIk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WtN7AbHofmTZpU+AWh7wc5PlOEyY24QH9GM7iMwlrkk2qI6cMZiNNxc61aNUIbyR5Cx/w1poTlse+8fsTUkLjidZWn4yVXS7Hqaz/RXDesRNGtEE/XSIVIaI3sJjZVHhpS3ciFKQDjx7pHeDASed614QlSAqsscTDLMeXWWBAsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.17
+	 Content-Type:Content-Disposition:In-Reply-To; b=cweuuNr+VPyffrwIlMSa1lo7mowd/Q4cq1AyEAOc0flOxZjl6QG7V4EtgZuS3eLTmBP5mTZXBzxhdZKXEgJXJRd/FypjfEP7Dn5b6ZjCDT3qPQdZgOk1pf/Fv7/FzoKropgHWu3MgUVrIdnBW6SFb0ctCzxxKjO4whWc+Rk24z8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf10.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay06.hostedemail.com (Postfix) with ESMTP id A013AA157C;
-	Thu,  6 Aug 2026 20:03:18 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf10.hostedemail.com (Postfix) with ESMTPA id CAB693E;
-	Thu,  6 Aug 2026 20:03:01 +0000 (UTC)
-Date: Thu, 6 Aug 2026 15:03:00 -0500
+Received: from omf14.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay10.hostedemail.com (Postfix) with ESMTP id 811A9C0208;
+	Thu,  6 Aug 2026 20:41:14 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf14.hostedemail.com (Postfix) with ESMTPA id 0254130;
+	Thu,  6 Aug 2026 20:40:57 +0000 (UTC)
+Date: Thu, 6 Aug 2026 15:40:56 -0500
 From: John Groves <John@groves.net>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
@@ -48,12 +48,12 @@ Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 05/12] famfs: Introduce file_operations read/write
-Message-ID: <anTfcB7thypyYosz@groves.net>
+Subject: Re: [PATCH V12 06/12] famfs: Introduce mmap and VM fault handling
+Message-ID: <anTwmJN1uDMt1_rS@groves.net>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022859.75838-1-john@jagalactic.com>
- <0100019fc5741536-d6b2c2f4-794a-43b4-abf4-f38f2d812e19-000000@email.amazonses.com>
- <20260806051454.GE3560084@frogsfrogsfrogs>
+ <20260803022909.75856-1-john@jagalactic.com>
+ <0100019fc5743aef-39284cf3-b235-4a69-832f-c51b2198e8da-000000@email.amazonses.com>
+ <20260806051643.GF3560084@frogsfrogsfrogs>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -62,213 +62,116 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260806051454.GE3560084@frogsfrogsfrogs>
-X-Stat-Signature: gm7ukas5jaj58ofp167htxxde8tqhqwn
-X-Rspamd-Server: rspamout04
-X-Rspamd-Queue-Id: CAB693E
+In-Reply-To: <20260806051643.GF3560084@frogsfrogsfrogs>
+X-Rspamd-Queue-Id: 0254130
+X-Stat-Signature: rgkrbshmb4e5xmnxcodmnkbtuy4zi1hh
+X-Rspamd-Server: rspamout03
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1+LXEKbbJ65PH0h4WQ/rVEovV2QmqmVb70=
-X-HE-Tag: 1786046581-812498
-X-HE-Meta: U2FsdGVkX1/q5xUraaNuYkBkOe9mViYAGWr7FuIimwMbrqtFOSLKir8hdx+AUb2/UEFIdoEY6U8kAf8GSXddDNosfoDtCfksrejeD+bW/uAGliqL9zjKCDm8qmTEKvpgrYiOcG2ooeac3dw6jx0F5Wy396jO3AcU7/LmLd8LastlQd/OkCYVVaOUM4rpVC5/NHUelf4vKma4j+O26TNskt5sXgMAJlbLCF7a0z1qrVPCUYMjwrnBZ1e0iJILsuDJj1LrZNjuXyySQ6Nc+FT98N+yfStaUB9Dl9i+oWZxnswBJo+brjduKginYQ6IuADNbVgn52Ydq+NnmRrXrGK4LPTmtgC2ghdIh9t57cQPcc5UKs+OEU3JgO985ZTLk62U
+X-Session-ID: U2FsdGVkX1+E2Va6GuIuXSLukgenZUgCPOnJ1XdWtXg=
+X-HE-Tag: 1786048857-712595
+X-HE-Meta: U2FsdGVkX18tDPFgu0OyBXUVVFumMXeX6MI7yVjs5QcOa2qMbkCR4fyrWsOwrcAliP+/0VRtGY04vN7FfLDx9/+XWXXKl5CdWNwz3bxG5ZuP4FvGiy6zEOi5mxjRzx2Xj1FqlZbmKPsGML3hXhEEO/8b9pOIgxqy0pkbFbt9X3FXkjkHbSijiOq/00NE0yIsvJjky3qzKUB/tPcFW1L+7hNKSHFMKYvmK7EAjLoGD2UPQL7URStfeGlAScywurhpMu8zX5bn/ID3BeYLJzpv3sTzKPfML8DtspQw7HM7QrLAOCn6tlbwgGR9bfgtqQ6/1FysFaoFbkADyJqIRAd0nl8s5GJM1uAMr4DXkTgTXNa43IViI67fUGg1D8QiSYmw
 
-On 26/08/05 10:14PM, Darrick J. Wong wrote:
-> On Mon, Aug 03, 2026 at 02:29:07AM +0000, John Groves wrote:
+On 26/08/05 10:16PM, Darrick J. Wong wrote:
+> On Mon, Aug 03, 2026 at 02:29:16AM +0000, John Groves wrote:
 > > From: John Groves <john@groves.net>
 > > 
-> > This commit introduces fs/famfs/famfs_file.c and the famfs
-> > file_operations for read/write.
-> > 
-> > This is not usable yet because:
-> > 
-> > * It calls dax_iomap_rw() with NULL iomap_ops (which will be
-> >   introduced in a subsequent commit).
-> > * famfs_ioctl() is coming in a later commit, and it is necessary
-> >   to map a file to a memory allocation.
+> > This commit adds vm_operations, plus famfs_mmap() and fault handlers.
+> > It is still missing iomap_ops, iomap mapping resolution, and
+> > famfs_ioctl() for setting up file-to-memory mappings.
 > > 
 > > Signed-off-by: John Groves <john@groves.net>
 > > ---
-> >  fs/famfs/Makefile         |   2 +-
-> >  fs/famfs/famfs_file.c     | 138 ++++++++++++++++++++++++++++++++++++++
-> >  fs/famfs/famfs_inode.c    |   2 +-
-> >  fs/famfs/famfs_internal.h |   2 +
-> >  4 files changed, 142 insertions(+), 2 deletions(-)
-> >  create mode 100644 fs/famfs/famfs_file.c
+> >  fs/famfs/famfs_file.c | 101 +++++++++++++++++++++++++++++++++++++++++-
+> >  1 file changed, 100 insertions(+), 1 deletion(-)
 > > 
-> > diff --git a/fs/famfs/Makefile b/fs/famfs/Makefile
-> > index 62230bcd6793..8cac90c090a4 100644
-> > --- a/fs/famfs/Makefile
-> > +++ b/fs/famfs/Makefile
-> > @@ -2,4 +2,4 @@
-> >  
-> >  obj-$(CONFIG_FAMFS) += famfs.o
-> >  
-> > -famfs-y := famfs_inode.o
-> > +famfs-y := famfs_inode.o famfs_file.o
 > > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> > new file mode 100644
-> > index 000000000000..e192b573c51f
-> > --- /dev/null
+> > index e192b573c51f..678f2035fd5f 100644
+> > --- a/fs/famfs/famfs_file.c
 > > +++ b/fs/famfs/famfs_file.c
-> > @@ -0,0 +1,138 @@
-> > +// SPDX-License-Identifier: GPL-2.0
-> > +/*
-> > + * famfs - dax file system for shared fabric-attached memory
-> > + *
-> > + * Copyright 2023-2024 Micron Technology, Inc.
-> > + *
-> > + * This file system, originally based on ramfs the dax support from xfs,
-> > + * is intended to allow multiple host systems to mount a common file system
-> > + * view of dax files that map to shared memory.
-> > + */
-> > +
-> > +#include <linux/fs.h>
-> > +#include <linux/mm.h>
-> > +#include <linux/dax.h>
-> > +#include <linux/iomap.h>
-> > +
-> > +#include "famfs_internal.h"
-> > +
+> > @@ -16,6 +16,75 @@
+> >  
+> >  #include "famfs_internal.h"
+> >  
 > > +/*********************************************************************
-> > + * file_operations
+> > + * vm_operations
 > > + */
-> > +
-> > +/* Reject I/O to files that aren't in a valid state */
-> > +static ssize_t
-> > +famfs_file_invalid(struct inode *inode)
+> > +static vm_fault_t
+> > +__famfs_filemap_fault(struct vm_fault *vmf, unsigned int order,
+> > +		      bool write_fault)
 > > +{
-> > +	if (!IS_DAX(inode)) {
-> > +		pr_debug("%s: inode %llx IS_DAX is false\n",
-> > +			 __func__, (u64)inode);
-> > +		return -ENXIO;
-> > +	}
-> > +	return 0;
-> > +}
-> > +
-> > +static ssize_t
-> > +famfs_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
-> > +{
-> > +	struct inode *inode = iocb->ki_filp->f_mapping->host;
+> > +	struct inode *inode = file_inode(vmf->vma->vm_file);
 > > +	struct super_block *sb = inode->i_sb;
 > > +	struct famfs_fs_info *fsi = sb->s_fs_info;
-> > +	size_t i_size = i_size_read(inode);
-> > +	size_t count = iov_iter_count(ubuf);
-> > +	size_t max_count;
-> > +	ssize_t rc;
+> > +	vm_fault_t ret;
+> > +	unsigned long pfn;
 > > +
 > > +	if (fsi->deverror)
-> > +		return -ENODEV;
+> > +		return VM_FAULT_SIGBUS;
 > > +
-> > +	rc = famfs_file_invalid(inode);
-> > +	if (rc)
-> > +		return rc;
-> > +
-> > +	/* Avoid unsigned underflow if position is past EOF */
-> > +	if (iocb->ki_pos >= i_size)
-> > +		max_count = 0;
-> > +	else
-> > +		max_count = i_size - iocb->ki_pos;
-> > +
-> > +	if (count > max_count)
-> > +		iov_iter_truncate(ubuf, max_count);
-> > +
-> > +	if (!iov_iter_count(ubuf))
-> > +		return 0;
-> > +
-> > +	return rc;
-> > +}
-> > +
-> > +static ssize_t
-> > +famfs_dax_read_iter(struct kiocb *iocb, struct iov_iter	*to)
-> > +{
-> > +	struct inode *inode = iocb->ki_filp->f_mapping->host;
-> > +	ssize_t rc;
-> > +
-> > +	/* dax_iomap_rw() requires i_rwsem held (shared for read) */
-> > +	inode_lock_shared(inode);
-> > +	rc = famfs_rw_prep(iocb, to);
-> > +	if (rc || !iov_iter_count(to)) {
-> > +		inode_unlock_shared(inode);
-> > +		return rc;
+> > +	if (!IS_DAX(file_inode(vmf->vma->vm_file))) {
+> > +		pr_err("%s: file not marked IS_DAX!!\n", __func__);
+> > +		return VM_FAULT_SIGBUS;
 > > +	}
 > > +
-> > +	rc = dax_iomap_rw(iocb, to, NULL /*&famfs_iomap_ops */);
-> > +	inode_unlock_shared(inode);
-> > +
-> > +	file_accessed(iocb->ki_filp);
-> 
-> Is it really accessed if rc != 0?
-
-Good point; looks like only if rc > 0. Will update, thanks.
-
-> 
-> > +	return rc;
-> > +}
-> > +
-> > +/**
-> > + * famfs_dax_write_iter()
-> > + *
-> > + * We need our own write-iter in order to prevent append
-> > + *
-> > + * @iocb:
-> > + * @from: iterator describing the user memory source for the write
-> > + */
-> > +static ssize_t
-> > +famfs_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
-> > +{
-> > +	struct inode *inode = iocb->ki_filp->f_mapping->host;
-> > +	struct famfs_fs_info *fsi = inode->i_sb->s_fs_info;
-> > +	ssize_t rc;
-> > +
-> > +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
-> > +		return -EPERM;
-> > +
-> > +	/* dax_iomap_rw() requires i_rwsem held (exclusive for write) */
-> > +	inode_lock(inode);
-> > +	rc = famfs_rw_prep(iocb, from);
-> > +	if (rc || !iov_iter_count(from)) {
-> > +		inode_unlock(inode);
-> > +		return rc;
+> > +	if (write_fault) {
+> > +		sb_start_pagefault(inode->i_sb);
+> > +		file_update_time(vmf->vma->vm_file);
 > > +	}
 > > +
-> > +	rc = dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);
+> > +	ret = dax_iomap_fault(vmf, order, &pfn, NULL, NULL /*&famfs_iomap_ops */);
+> > +	if (ret & VM_FAULT_NEEDDSYNC)
+> > +		ret = dax_finish_sync_fault(vmf, order, pfn);
+> > +
+> > +	if (write_fault)
+> > +		sb_end_pagefault(inode->i_sb);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static inline bool
+> > +famfs_is_write_fault(struct vm_fault *vmf)
+> > +{
+> > +	return (vmf->flags & FAULT_FLAG_WRITE) &&
+> > +	       (vmf->vma->vm_flags & VM_SHARED);
+> > +}
+> > +
+> > +static vm_fault_t
+> > +famfs_filemap_fault(struct vm_fault *vmf)
+> > +{
+> > +	return __famfs_filemap_fault(vmf, 0, famfs_is_write_fault(vmf));
+> > +}
+> > +
+> > +static vm_fault_t
+> > +famfs_filemap_huge_fault(struct vm_fault *vmf, unsigned int order)
+> > +{
+> > +	return __famfs_filemap_fault(vmf, order, famfs_is_write_fault(vmf));
+> > +}
+> > +
+> > +static vm_fault_t
+> > +famfs_filemap_mkwrite(struct vm_fault *vmf)
+> > +{
+> > +	return __famfs_filemap_fault(vmf, 0, true);
 > 
-> What happens if you pass a null iomap ops?  TBH I was expecting you to
-> define the iomap ops with a dummy ->iomap_begin that returns EIO or
-> something.
+> Do neither of the conditions in famfs_is_write_fault apply here?
 
-If we actually called dax_iomap_rw() with null iomap ops, it would
-hork. However, if we called it with null iomap_ops->iomap_begin it
-will also hork. I could introduce the dax_iomap_rw call later, when
-sufficient code is in, but that might require (void) declarations
-to squelch the compiler about unreferenced stuff.
+I'm confident this is correct. This is directly copied from xfs on the 
+dax path:
 
-So dummy iomap_ops won't actually work. My objective was to drop in
-bite-sized chunks that were functionally coherent, until it's complete
-(in commit 12).
+	if (IS_DAX(inode))
+		ret = xfs_dax_fault_locked(vmf, order, true);
 
-I suspect multiple of these commits would do something bad if you
-tried to run them before you had all.
-
-Given all that, I'm inclined to leave it alone. 
-
-Hmm, I could keep things where all commits compile, but cause 
-module_init to fail until all commits are in. Then it couldn't do 
-any harm to try to try running incomplete famfs.
-
-I think I'll do that...
+Famfs never has to do COW or allocate a page or any of that sort of
+sfuff; It ends up just looking at the fmap to resolve to a page,
+which always exists unless out or range or bugs.
 
 > 
-> > +	inode_unlock(inode);
-> > +	return rc;
-> 
-> Do you need to update mtime here?
+> The rest of the patch looks ok to me.
 > 
 > --D
 
-Yeah, I guess I should - will do.
+Thank you!
 
-FYI file times in famfs have limited usefulness, because they don't
-propagate in the cluster.
+John
 
-<snip> 
+<snip>
 
