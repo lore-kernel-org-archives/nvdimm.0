@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
+Received: from relay.hostedemail.com (smtprelay0012.hostedemail.com [216.40.44.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619CA5B21A;
-	Thu,  6 Aug 2026 13:36:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28E301C84AB;
+	Thu,  6 Aug 2026 16:31:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786023415; cv=none; b=XqIQXCy1ikDH3WGNVNXP8/d35WIj+LLuu7k8gwapW2tBsQxx8/tYyvRaRMw5t/4gDhZCLXwD99+j8CtmUWyCZQOjHMav/amsxieRb51oI6HfQwyrhRvWUDYYCbIPo70uVi91PUkcCBPb5eUUFpTmWwNJrp+KP1R+/8V60tunTbw=
+	t=1786033908; cv=none; b=My1IwzwrkpVdGdOR237HbihFUvbUyEhGCmeV8iPNUKosIF9iYBLTyXvlmMgbDvpnLNptUE0SRvJgjbiq9CoTLoEb3zrkj5hkYJj3GQHTFuyle7C+g9QpKC5ilcWsnxd0SkwCcCNc1gEDwG8/3N3hi82Bn+7xkgKrtx3xaMASgG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786023415; c=relaxed/simple;
-	bh=1jilKzxFY+yt4QHXYapG9VrqSYnTTieJrea1TD9oyFE=;
+	s=arc-20240116; t=1786033908; c=relaxed/simple;
+	bh=S1WHS47dZqOWcWdyoLnXM71Fkc3PHLqdyZiQgtqEFPs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=twiIvz5aCzPkRSySdt9xjFh+j0oTp5zLi9QWvfn1j6wsS/xI8Ni1KV7KnexFq4GFksO0BF7zXdgzfWmub3Rktd6niDak7ernQHq9/dvsp1BHMsF9RMB16y9oepRyUfuygJfBk24dpmqu7YTbxI5mPCXv7rGXUkAWebD6hcSGQDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.17
+	 Content-Type:Content-Disposition:In-Reply-To; b=A1ByiVxYf9uEV7ztpVe6FGe3jKfBX7bm5RnG+Yv/vhp2RQOGqw+ZDtq6OGclLdTSYIjZ+yPv5K4S3z30EfqXtCPuhfHPSYY88RgbKM0fOtT5PTAsN0SDxj/oYcA2j1QF0WnsUwDPmuE/6rQ1xG0RDISHXUvNnV5d6JIazQF2nMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf09.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay06.hostedemail.com (Postfix) with ESMTP id 6472CA2582;
-	Thu,  6 Aug 2026 13:36:37 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf09.hostedemail.com (Postfix) with ESMTPA id D18892002A;
-	Thu,  6 Aug 2026 13:36:20 +0000 (UTC)
-Date: Thu, 6 Aug 2026 08:36:19 -0500
+Received: from omf15.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay03.hostedemail.com (Postfix) with ESMTP id C9AD0A0110;
+	Thu,  6 Aug 2026 16:31:34 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf15.hostedemail.com (Postfix) with ESMTPA id 1FEAF17;
+	Thu,  6 Aug 2026 16:31:17 +0000 (UTC)
+Date: Thu, 6 Aug 2026 11:31:16 -0500
 From: John Groves <John@groves.net>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
@@ -48,13 +48,13 @@ Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 03/12] famfs: Add daxdev table and dax notify_failure
- support
-Message-ID: <anSLGYPHAw6OjXo_@groves.net>
+Subject: Re: [PATCH V12 04/12] famfs: Introduce inode_operations and
+ super_operations
+Message-ID: <anSgvuQ872AjkSK2@groves.net>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022839.75794-1-john@jagalactic.com>
- <0100019fc573c7cd-d37cbc1c-7687-4b05-99e7-7d3624087b98-000000@email.amazonses.com>
- <20260806050527.GC3560084@frogsfrogsfrogs>
+ <20260803022849.75812-1-john@jagalactic.com>
+ <0100019fc573edf6-93c159df-6197-4bdf-9f1d-74b77a72ce7e-000000@email.amazonses.com>
+ <20260806051230.GD3560084@frogsfrogsfrogs>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -63,299 +63,210 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260806050527.GC3560084@frogsfrogsfrogs>
-X-Rspamd-Queue-Id: D18892002A
-X-Stat-Signature: 98okigfjbtq8fsq47gg46t9mt68bby4b
-X-Rspamd-Server: rspamout07
+In-Reply-To: <20260806051230.GD3560084@frogsfrogsfrogs>
+X-Stat-Signature: ha4eefzwkjiajen9eszr5zyeqn47tzdi
+X-Rspamd-Server: rspamout02
+X-Rspamd-Queue-Id: 1FEAF17
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX18rCJ03bEiGaIW33HDQgfAKKDy6499XHo0=
-X-HE-Tag: 1786023380-59630
-X-HE-Meta: U2FsdGVkX19PYkvTOYROG/8Csf4/oSvpmL3bJl7etF2c8GvfIDrKF0z+yxEFdxMDToAteXhLyQenqvZZGd0DHv3E1mBEedBKi+yestjeDyStwZa5WJ4y3lJSqA5k+ZWAIFd7AwBKOpg99GojX8WIwQQ5bLTxwmkMMnGTg1DDAi+sylT7/dYe5L8BfNEAmsel63LR9ZvAoifYC0GMEA8tGa5DBeDY7ykaNxmaELUGQqrZ8zNbrkPATIa63pYHvmJzfqw1ELrGSJNpiylo6A3qIanXQvxyHPBOTwRRNCugK4iEkvh8ITT91u7+Cbi9cQ4eNPAC+kW/+RkthBxoAVa9DJGWBzMrw5JIYOkMVE3Q4/TZOESBOUuGaw265W+eq95E
+X-Session-ID: U2FsdGVkX1+8g1aralK8ALulQm0aAsZil2Ejzt4LBlM=
+X-HE-Tag: 1786033877-219472
+X-HE-Meta: U2FsdGVkX19FDx7M19BFjDZUbutSb/i+gHmwI5uUhFDw0kOlD+8xaf2k6wfg6MtvehsDkMFGuBvN4S0We2DKi3glVZE29vIPxTCKx4WUvmxXCsuBiGEekBW3N5Pmts0imjwbdoDr4E1Yl0DSbcsnmn+ZwiODX5smwNoXp6N6o5O5jTYfj0naen56uroTnTKrzYYHXOhQ42qcDuTiaLP+VrlN0y33KluDXqEafT5k4INmq+MchKXeKb1DSTEVzWEVTLPAv+OEuZf6GzPyet0CykF4hmOB3jUiQR7OH8U5Ux0F9SjsGdUyd+jHwb4W9GErzzYimJd2po9PdGdFu0l0bOfPWfwq3TDhVItCmwkc00YPKv9AP5gBqAk11GK6ws8P
 
-Quick heads-up: my email provider may rate-limit me before 
-I'm done responding to this thread, since there are a *lot* of 
-recipients. But hopefully not...
-
-On 26/08/05 10:05PM, Darrick J. Wong wrote:
-> On Mon, Aug 03, 2026 at 02:28:47AM +0000, John Groves wrote:
-> > From: John Groves <John@Groves.net>
+On 26/08/05 10:12PM, Darrick J. Wong wrote:
+> On Mon, Aug 03, 2026 at 02:28:56AM +0000, John Groves wrote:
+> > From: John Groves <john@groves.net>
 > > 
-> > Famfs file systems can span multiple dax devices, and daxdevs are stored
-> > in the daxdev_table. This adds the basic table structure, primtives and
-> > serialization code. Famfs file extents reference daxdevs by index, which
-> > is a cluster invariant maintained by user space.
+> > The famfs inode and super operations are generic other than
+> > show_options, evict_inode and setattr (which prevents truncation..
 > > 
-> > We also add dax_holder_operations and a notify_failure handler, which
-> > is necessary to properly "open" a famfs-mode daxdev.
-> 
-> So you have to "mount /dev/somedaxthing0 /mnt" but you can then add more
-> dax devices later through some ioctl?
-
-The primary daxdev is in the mount command line. Secondaries are added
-via the famfs metadata log (their superblocks know the uuid of the primary,
-and the primary finds the secondaries via those log entries).
-
-In-memory metadata references daxdevs by their index, which is their order
-of appearance in the metadata log (with the primary being index=0).
-
-Theoretically they could be added at any time, but the normal case is they
-get added as a "last" step of mkfs.famfs.
-
-Also, in a later message you asked if daxdevs could be passed in by file
-descriptor rather than by path. Yes they could, and I did that in the most
-recent famfs_fuse patch series, but then I'd have two different methods of 
-"opening" them, which seemed worth avoiding. (Because mount is by dev path).
-
-> 
-> Can you remove daxdevs?  (I gather not...)
-
-Daxdevs can't be removed - you just blow away the whole fs and start over.
-
-> 
+> > This commit builds but is still too incomplete to run
+> > 
 > > Signed-off-by: John Groves <john@groves.net>
 > > ---
-> >  fs/famfs/famfs_inode.c    | 234 ++++++++++++++++++++++++++++++++++++++
-> >  fs/famfs/famfs_internal.h |  46 ++++++++
-> >  2 files changed, 280 insertions(+)
+> >  fs/famfs/famfs_inode.c    | 249 +++++++++++++++++++++++++++++++++++++-
+> >  fs/famfs/famfs_internal.h |   6 +
+> >  2 files changed, 252 insertions(+), 3 deletions(-)
 > > 
 > > diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> > index c299a90912a5..ad71e5e7a8e3 100644
+> > index ad71e5e7a8e3..efc6b852eca0 100644
 > > --- a/fs/famfs/famfs_inode.c
 > > +++ b/fs/famfs/famfs_inode.c
-> > @@ -75,6 +75,225 @@ static struct inode *famfs_get_inode(
-> >  /*
-> >   * famfs dax_operations (for famfs-mode dax)
-> >   */
-> > +static void famfs_set_daxdev_err(struct famfs_fs_info *fsi,
-> > +				 struct dax_device *dax_devp);
+> > @@ -29,6 +29,9 @@
+> >  
+> >  #define FAMFS_DEFAULT_MODE	0755
+> >  
+> > +static const struct inode_operations famfs_file_inode_operations;
+> > +static const struct inode_operations famfs_dir_inode_operations;
+> > +
+> >  static struct inode *famfs_get_inode(
+> >  			struct super_block *sb,
+> >  			const struct inode *dir,
+> > @@ -54,11 +57,11 @@ static struct inode *famfs_get_inode(
+> >  		init_special_inode(inode, mode, dev);
+> >  		break;
+> >  	case S_IFREG:
+> > -		inode->i_op = NULL /* famfs_file_inode_operations */;
+> > +		inode->i_op = &famfs_file_inode_operations;
+> >  		inode->i_fop = NULL /* &famfs_file_operations */;
+> >  		break;
+> >  	case S_IFDIR:
+> > -		inode->i_op = NULL /* famfs_dir_inode_operations */;
+> > +		inode->i_op = &famfs_dir_inode_operations;
+> >  		inode->i_fop = &simple_dir_operations;
+> >  
+> >  		/* Directory inodes start off with i_nlink == 2 (for ".") */
+> > @@ -72,6 +75,246 @@ static struct inode *famfs_get_inode(
+> >  	return inode;
+> >  }
+> >  
+> > +/***************************************************************************
+> > + * famfs inode_operations
+> > + */
 > > +
 > > +static int
-> > +famfs_dax_notify_failure(
-> > +		struct dax_device *dax_dev, u64 offset,
-> > +		u64 len, int mf_flags)
+> > +famfs_setattr(
+> > +	struct mnt_idmap *idmap,
+> > +	struct dentry *dentry,
+> > +	struct iattr *iattr)
 > > +{
-> > +	struct super_block *sb = dax_holder(dax_dev);
-> > +	struct famfs_fs_info *fsi = sb->s_fs_info;
+> > +	struct inode *inode = d_inode(dentry);
+> > +	struct famfs_fs_info *fsi = inode->i_sb->s_fs_info;
 > > +
-> > +	pr_err("%s: offset=%lld len=%llu flags=%x\n", __func__,
-> > +	       offset, len, mf_flags);
+> > +	/* Resizing a famfs file (its size is pinned to the fmap) */
+> > +	if ((iattr->ia_valid & ATTR_SIZE) &&
+> > +	    !famfs_opt_enabled(fsi, FAMFS_OPT_TRUNCATE) &&
+> 
+> Does truncating the file down release the mapped memory?
+> Can you truncate it up?  How does the famfs manager deal with this?
+
+Truncate won't be enabled in any situation I can currently think of,
+but it made sense to gate it with the opt_enabled mechanism in case
+it makes sense at some point.
+
+Space is not freed; It's still part of the daxdev, which is never
+sparse.  The famfs metadata log is authoritative on allocations, and 
+doesn't currently support delete, so the dax memory for a file is 
+spoken for until the whole file system is killed.
+
+There are cases where chmod/chown make sense, but the change is local
+and ephemeral - not recorded to the metadata log.
+
+> 
+> > +	    iattr->ia_size != i_size_read(inode))
+> > +		return -EPERM;
+> > +	if ((iattr->ia_valid & ATTR_MODE) &&
+> > +	    !famfs_opt_enabled(fsi, FAMFS_OPT_CHMOD))
+> > +		return -EPERM;
+> > +	if ((iattr->ia_valid & (ATTR_UID | ATTR_GID)) &&
+> > +	    !famfs_opt_enabled(fsi, FAMFS_OPT_CHOWN))
+> > +		return -EPERM;
+> > +	if ((iattr->ia_valid & (ATTR_ATIME | ATTR_MTIME)) &&
+> > +	    !famfs_opt_enabled(fsi, FAMFS_OPT_UTIMES))
+> > +		return -EPERM;
 > > +
-> > +	/*
-> > +	 * Record the error on the specific daxdev and, near-term, shut the
-> > +	 * mount down: famfs_set_daxdev_err() also sets fsi->deverror so
-> > +	 * subsequent famfs operations fail. The resolver's per-daxdev
-> > +	 * famfs_dax_err() check remains and can make this finer later.
-> > +	 */
-> > +	famfs_set_daxdev_err(fsi, dax_dev);
-> > +
-> > +	return 0;
+> > +	return simple_setattr(idmap, dentry, iattr);
 > > +}
 > > +
-> > +static const struct dax_holder_operations famfs_dax_holder_ops = {
-> > +	.notify_failure		= famfs_dax_notify_failure,
+> > +static const struct inode_operations famfs_file_inode_operations = {
+> > +	/* All generic */
+> > +	.setattr	   = famfs_setattr,
+> > +	.getattr	   = simple_getattr,
 > > +};
 > > +
 > > +/*
-> > + * Allocate the daxdev table on first use (idempotent via cmpxchg).
+> > + * Internal inode creation helper, shared by ->create, ->mkdir, ->mknod and
+> > + * ->symlink. Each of those callers is responsible for its own FAMFS_OPT_*
+> > + * permission check before getting here.
 > > + */
-> > +int famfs_devlist_alloc(struct famfs_fs_info *fsi)
+> > +static int
+> > +famfs_mknod(struct mnt_idmap *idmap, struct inode *dir, struct dentry *dentry,
+> > +	    umode_t mode, dev_t dev)
 > > +{
-> > +	struct famfs_dax_devlist *devlist;
+> > +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
+> > +	struct timespec64 tv;
+> > +	struct inode *inode;
 > > +
-> > +	if (fsi->dax_devlist)
-> > +		return 0;
+> > +	if (fsi->deverror)
+> > +		return -ENODEV;
 > > +
-> > +	devlist = kcalloc(1, sizeof(*devlist), GFP_KERNEL);
-> > +	if (!devlist)
-> > +		return -ENOMEM;
+> > +	inode = famfs_get_inode(dir->i_sb, dir, mode, dev);
+> > +	if (!inode)
+> > +		return -ENOSPC;
 > > +
-> > +	devlist->nslots = FAMFS_MAX_DAXDEVS;
-> > +	devlist->devlist = kcalloc(FAMFS_MAX_DAXDEVS, sizeof(struct famfs_daxdev),
-> > +				   GFP_KERNEL);
-> > +	if (!devlist->devlist) {
-> > +		kfree(devlist);
-> > +		return -ENOMEM;
-> > +	}
-> > +
-> > +	/* If another thread allocated it first, drop ours */
-> > +	if (cmpxchg(&fsi->dax_devlist, NULL, devlist) != NULL) {
-> > +		kfree(devlist->devlist);
-> > +		kfree(devlist);
-> > +	}
+> > +	d_make_persistent(dentry, inode);
+> > +	tv = inode_set_ctime_current(inode);
+> > +	inode_set_mtime_to_ts(inode, tv);
+> > +	inode_set_atime_to_ts(inode, tv);
 > > +
 > > +	return 0;
 > > +}
 > > +
-> > +/*
-> > + * famfs_install_daxdev() - exclusively acquire a resolved daxdev and publish
-> > + * it in the table at @index. Slot 0 is the mount primary; slots 1..n come from
-> > + * the daxdev-open ioctl.
-> > + *
-> > + * Serializes with concurrent installers under devlist_sem and rechecks
-> > + * ->valid, so re-registering an already-installed slot is idempotent. A daxdev
-> > + * is entered in the table only once it has been exclusively acquired via
-> > + * fs_dax_get() (with the super_block as the holder); on failure the
-> > + * dax_dev_find() reference is released and the slot is left invalid. @name may
-> > + * be NULL (the ioctl path passes no pathname).
-> > + */
-> > +int famfs_install_daxdev(
-> > +		struct famfs_fs_info *fsi,
-> > +		struct super_block *sb,
-> > +		u64 index,
-> > +		dev_t devno,
-> > +		const char *name)
+> > +static struct dentry *famfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+> > +		struct dentry *dentry, umode_t mode)
 > > +{
-> > +	struct famfs_daxdev *daxdev;
-> > +	int rc = 0;
+> > +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
+> > +	int rc;
 > > +
-> > +	if (index >= fsi->dax_devlist->nslots) {
-> > +		pr_debug("%s: index(%llu) >= nslots(%d)\n",
-> > +		       __func__, index, fsi->dax_devlist->nslots);
-> > +		return -EINVAL;
-> > +	}
+> > +	if (fsi->deverror)
+> > +		return ERR_PTR(-ENODEV);
+> > +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_MKDIR))
+> > +		return ERR_PTR(-EPERM);
 > > +
-> > +	scoped_guard(rwsem_write, &fsi->devlist_sem) {
-> > +		daxdev = &fsi->dax_devlist->devlist[index];
+> > +	rc = famfs_mknod(&nop_mnt_idmap, dir, dentry, mode | S_IFDIR, 0);
+> > +	if (rc)
+> > +		return ERR_PTR(rc);
 > > +
-> > +		/* Installed already by a concurrent (or repeated) open */
-> > +		if (daxdev->valid)
-> > +			return 0;
+> > +	inc_nlink(dir);
 > > +
-> > +		/*
-> > +		 * A prior attempt already determined this daxdev cannot be
-> > +		 * exclusively acquired (see the fs_dax_get() failure handling
-> > +		 * below). Don't thrash on fs_dax_get(); fail fast.
-> > +		 */
-> > +		if (daxdev->dax_err)
-> > +			return -EIO;
-> > +
-> > +		daxdev->devp = dax_dev_find(devno);
-> > +		if (!daxdev->devp) {
-> > +			pr_debug("%s: device %u:%u not found or not dax\n",
-> > +				__func__, MAJOR(devno), MINOR(devno));
-> > +			return -ENODEV;
-> > +		}
-> > +
-> > +		rc = fs_dax_get(daxdev->devp, sb, &famfs_dax_holder_ops);
-> > +		if (rc) {
-> > +			/*
-> > +			 * Distinguish a lost race from a real failure. -EBUSY
-> > +			 * with the daxdev already held by *this* super_block
-> > +			 * means a concurrent acquire won and will publish the
-> > +			 * slot valid: not an error, and must not be cached as
-> > +			 * dax_err. Any other failure is permanent for this
-> > +			 * mount, so record dax_err to stop re-acquiring it.
-> > +			 */
-> > +			if (!(rc == -EBUSY && dax_holder(daxdev->devp) == sb)) {
-> > +				pr_debug("%s: fs_dax_get(%u:%u) failed rc=%d\n",
-> > +				       __func__, MAJOR(devno), MINOR(devno), rc);
-> > +				daxdev->dax_err = true;
-> > +			}
-> > +			put_dax(daxdev->devp);
-> > +			daxdev->devp = NULL;
-> > +			return rc;
-> > +		}
-> > +
-> > +		daxdev->devno = devno;
-> > +		if (name) {
-> > +			daxdev->name = kstrdup(name, GFP_KERNEL);
-> > +			if (!daxdev->name) {
-> > +				fs_put_dax(daxdev->devp, sb);
-> > +				put_dax(daxdev->devp);
-> > +				daxdev->devp = NULL;
-> > +				return -ENOMEM;
-> > +			}
-> > +		}
-> > +
-> > +		wmb(); /* All other fields must be visible before valid */
-> > +		daxdev->valid = 1;
-> > +	}
-> > +
-> > +	return 0;
+> > +	return ERR_PTR(0);
 > > +}
 > > +
-> > +/*
-> > + * Release every daxdev in the table and free it. Detach the table under
-> > + * devlist_sem so a notify_failure racing teardown either runs first against
-> > + * the live table or observes dax_devlist == NULL and bails.
-> > + */
-> > +static void famfs_devlist_free(
-> > +			struct famfs_fs_info *fsi,
-> > +			struct super_block *sb)
+> > +static int famfs_create(struct mnt_idmap *idmap, struct inode *dir,
+> > +			struct dentry *dentry, umode_t mode, bool excl)
 > > +{
-> > +	struct famfs_dax_devlist *devlist __free(kfree) = NULL;
-> > +	int i;
+> > +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
 > > +
-> > +	scoped_guard(rwsem_write, &fsi->devlist_sem) {
-> > +		devlist = fsi->dax_devlist;
-> > +		fsi->dax_devlist = NULL;
-> > +	}
+> > +	if (fsi->deverror)
+> > +		return -ENODEV;
+> > +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_CREATE))
+> > +		return -EPERM;
 > > +
-> > +	if (!devlist || !devlist->devlist)
-> > +		return;
-> > +
-> > +	for (i = 0; i < devlist->nslots; i++) {
-> > +		struct famfs_daxdev *dd = &devlist->devlist[i];
-> > +
-> > +		if (!dd->valid)
-> > +			continue;
-> > +
-> > +		if (dd->devp) {
-> > +			if (!dd->dax_err)
-> > +				fs_put_dax(dd->devp, sb);
-> > +			put_dax(dd->devp);
-> > +		}
-> > +		kfree(dd->name);
-> > +	}
-> > +	kfree(devlist->devlist);
-> > +}
-> > +
-> > +/*
-> > + * Record a memory error on the daxdev matching @dax_devp. Searches the table
-> > + * under the write lock (which serializes against famfs_devlist_free()).
-> > + */
-> > +static void famfs_set_daxdev_err(
-> > +			struct famfs_fs_info *fsi,
-> > +			struct dax_device *dax_devp)
-> > +{
-> > +	int i;
-> > +
-> > +	scoped_guard(rwsem_write, &fsi->devlist_sem) {
-> > +		if (!fsi->dax_devlist)
-> > +			return;
-> > +		for (i = 0; i < fsi->dax_devlist->nslots; i++) {
-> > +			struct famfs_daxdev *dd = &fsi->dax_devlist->devlist[i];
-> > +
-> > +			if (!dd->valid || dd->devp != dax_devp)
-> > +				continue;
-> > +
-> > +			dd->error = true;
-> > +			/*
-> > +			 * Near-term policy: any daxdev memory error shuts down
-> > +			 * the whole mount. Finer per-daxdev handling (via
-> > +			 * famfs_dax_err() in the resolver) already exists and
-> > +			 * can supersede this later.
-> > +			 */
-> > +			fsi->deverror = true;
+> > +	return famfs_mknod(&nop_mnt_idmap, dir, dentry, mode | S_IFREG, 0);
 > 
-> Hmm, I guess this is memory where really bad stuff happens ...?
+> Is the model here that you creat() a file and then the famfs server has
+> to go find it some cxl memory?  I was kinda under the impression that
+> you'd get the famfs software to map some memory to a name, and then the
+> famfs server on each node would create it and upload the mapping, and
+> now the cxlmem-backed file can be mmaped from multiple nodes?
 > 
-> I would have thought that you'd just kill the files on that device, but
-> you can relax this later if desirable.
+> But maybe this is less of a cluster filesystem than I assumed it was.
+> 
+> --D
 
-It's memory, not storage ;). And the longer you leave something in memory,
-the more likely you'll get unrecoverable errors. Users are warned not to keep
-their only copy of valuable data in famfs. Famfs is mostly for fast access to 
-more data than fits in regular memory.
+Not quite. The memory is allocated when a file is committed to the
+metadata log, before a file is ever creat'd. When the log is played, 
+initially empty file instances get created (by the famfs lib in user
+space) and then the fmaps get passed in via FAMFS_IOC_MAP_CREATE 
+(after which files are usable). (the word "file" is admittedly 
+overloaded here; hope it makes sense.)
 
-Right now I'm taking the cautious approach, basically shutting down the whole
-mount if there are memory errors. Getting smarter is for later...
+The cluster aspect is unusual if not unique. Only one node (the master) 
+can write the MD log, meaning only that node can create files (by which 
+I mean commit file_create log entries). Other nodes can only play the 
+log, which guarantees they see files that point the the same memory 
+cluster-wide.
 
-Finding all the files that touch a device isn't trivial, but *might* be worth
-doing at some later date.
+Although file allocation is immutable until you kill the superblocks
+and start over, data can be mutable from any node you like. This is
+definitely unusual.
+
+The MD log is append-only, and does not support mutations to allocation
+(truncate/append/delete), which solves the cluster consistency problem
+around which files point where. The worst structural inconsistency
+that's possible, if some nodes are behind on playing the log, is that
+those nodes don't see the newest files.
 
 Thank you!
-
 John
 
 <snip>
