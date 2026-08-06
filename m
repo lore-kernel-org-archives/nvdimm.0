@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA5A8388E44;
-	Thu,  6 Aug 2026 05:12:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63A16388E59;
+	Thu,  6 Aug 2026 05:14:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785993153; cv=none; b=rOU1K1DL3y9jHnKFkG2guJkJqM3h+SRG+Xeu+4mE3NzMrxnoDks6GdpgbrwuymC9XALWZl9hM27OHXpu27Hz444lPi4B/Og6IBvzrZk6bEvtDGpZXwrxFVlv4hEvIRCbtx5zVwSFAL4eetvFlTYaOiHH6iriHqk3FiKMxQk5DFE=
+	t=1785993296; cv=none; b=XVaN+VPRMggB7VfUuQi9aalh5ou5oWYJqPCduuPRaR/sMDQbzx+73px8pSIpxm7po4+eK7rhOfVW+mIhFs3dYtdCMAdP6xf3GQj6Lq49nqQYLe5aMqI5BG3fTUWr+A/rrcA6lCr993J54cP1G3DhgSkeFD0yTVYKSI72UnBZ6Jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785993153; c=relaxed/simple;
-	bh=nMNUp2vTzEqVibPXQPd4tKAsjHyoDzt/1nksPC7cMJA=;
+	s=arc-20240116; t=1785993296; c=relaxed/simple;
+	bh=LcLRm6dmTzCGdPFVd4nsYIRSCOP06w86sK/v/+38uW0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KY+vrCgKmgjk2YlXC+4TkX0Z0GoGe51IYSD4iTdgaBgSIB9Xgi78jSZtETTkbM6GXUkVQkjyJrdesD/493j3vniOcHD4U9Cqc6uvQF6lblKvrZnDK4tSu+mNOeMO7csgc1eUljv4+5GWKVvNcVNwwR9fvO4fBj46Yb3fBfJEzRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZqYzTbBV; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=qQfvEu2pjOJFy2HnpdZDqLsLf7gT5hfprFPksUFiTnxlS5rtrgmTLl5DPn/HGlKLS5T6h76Hf5G2tP9YNTuF4lnWo/DNZgiSQGY7Y9QlSWZqudqJHaMe3ncxlic9WXnzB6+sPkROnovQ+me6SLBC9acGq/VEBTn6GLjZOMAq9L4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gA0bkhIJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZqYzTbBV"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 402081F000E9;
-	Thu,  6 Aug 2026 05:12:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gA0bkhIJ"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id EA2861F000E9;
+	Thu,  6 Aug 2026 05:14:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785993151;
-	bh=cmvCEj1SNfgQu/aqHwyEosderoFUrk4GJ5jvD2mbOcg=;
+	s=k20260515; t=1785993295;
+	bh=N/SLfiEGmWJkDxFQjJqzdkYmfs7S5eIEUWJd4xDkf1E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=ZqYzTbBVVdU1/gs21FMnXpyqwrOK3xFfVT1gVA+NbAopupUtSg54wxS6eZbmuivfZ
-	 +WFn+l+k+Wi9PCoUIgf99qtaTkhNtlwz1kZCJ2rdtThPrNNk5UBjylphobru83ItgM
-	 P5YqejOAwnp1UI5C9uxEN1xTyOPVa5YGN0mmKvks1aY5fNM53AWNzuIpOiJsejBuvZ
-	 xe3neiFuM+QGJeKFIpUB/bmk5gXF9nd+GTmUuwr/PWuMmzRU+rZd4wP3K2i89beYwv
-	 qXZWCp+z4e3mImFXYxPEztiN0t6MPI1QJH+C+QkJNk/ugH6I8eCkKf1C5Qh8mRspb6
-	 ns/ANiAkkhQ/A==
-Date: Wed, 5 Aug 2026 22:12:30 -0700
+	b=gA0bkhIJCL3jmBJuHi5wTQiXGdtRkfdjzVahFTUrRIdGedNeZVlG7gs0hSIwUHn8H
+	 esl+yqdPC2qUThlVEtStztCotFfRbifYDeHMwDWsA919I5tDtnY5GoyzBKOzg4vUvn
+	 pEwCDr69H/+96GdwZ5pM+RPuZtur4JhVE82ZzsaKurrm5qaLk4ET4zkJ3jikPRhWoH
+	 kT66H4/5ta999X8LiEKlB7YF170LKXp7SMBVrA9dse4i+M0YM69CEk9xN6XfsEFTS+
+	 nujQ2E3AYzaT+ft4NXFKDbohmDTXM7Ny0AK5Krs/4f392x+Sgi/NIiWJWa4ihgqEl3
+	 vhWgDonpwvmHQ==
+Date: Wed, 5 Aug 2026 22:14:54 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
 To: John Groves <john@jagalactic.com>
 Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
@@ -75,12 +75,11 @@ Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
 	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 04/12] famfs: Introduce inode_operations and
- super_operations
-Message-ID: <20260806051230.GD3560084@frogsfrogsfrogs>
+Subject: Re: [PATCH V12 05/12] famfs: Introduce file_operations read/write
+Message-ID: <20260806051454.GE3560084@frogsfrogsfrogs>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022849.75812-1-john@jagalactic.com>
- <0100019fc573edf6-93c159df-6197-4bdf-9f1d-74b77a72ce7e-000000@email.amazonses.com>
+ <20260803022859.75838-1-john@jagalactic.com>
+ <0100019fc5741536-d6b2c2f4-794a-43b4-abf4-f38f2d812e19-000000@email.amazonses.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -89,340 +88,224 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0100019fc573edf6-93c159df-6197-4bdf-9f1d-74b77a72ce7e-000000@email.amazonses.com>
+In-Reply-To: <0100019fc5741536-d6b2c2f4-794a-43b4-abf4-f38f2d812e19-000000@email.amazonses.com>
 
-On Mon, Aug 03, 2026 at 02:28:56AM +0000, John Groves wrote:
+On Mon, Aug 03, 2026 at 02:29:07AM +0000, John Groves wrote:
 > From: John Groves <john@groves.net>
 > 
-> The famfs inode and super operations are generic other than
-> show_options, evict_inode and setattr (which prevents truncation..
+> This commit introduces fs/famfs/famfs_file.c and the famfs
+> file_operations for read/write.
 > 
-> This commit builds but is still too incomplete to run
+> This is not usable yet because:
+> 
+> * It calls dax_iomap_rw() with NULL iomap_ops (which will be
+>   introduced in a subsequent commit).
+> * famfs_ioctl() is coming in a later commit, and it is necessary
+>   to map a file to a memory allocation.
 > 
 > Signed-off-by: John Groves <john@groves.net>
 > ---
->  fs/famfs/famfs_inode.c    | 249 +++++++++++++++++++++++++++++++++++++-
->  fs/famfs/famfs_internal.h |   6 +
->  2 files changed, 252 insertions(+), 3 deletions(-)
+>  fs/famfs/Makefile         |   2 +-
+>  fs/famfs/famfs_file.c     | 138 ++++++++++++++++++++++++++++++++++++++
+>  fs/famfs/famfs_inode.c    |   2 +-
+>  fs/famfs/famfs_internal.h |   2 +
+>  4 files changed, 142 insertions(+), 2 deletions(-)
+>  create mode 100644 fs/famfs/famfs_file.c
 > 
-> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> index ad71e5e7a8e3..efc6b852eca0 100644
-> --- a/fs/famfs/famfs_inode.c
-> +++ b/fs/famfs/famfs_inode.c
-> @@ -29,6 +29,9 @@
+> diff --git a/fs/famfs/Makefile b/fs/famfs/Makefile
+> index 62230bcd6793..8cac90c090a4 100644
+> --- a/fs/famfs/Makefile
+> +++ b/fs/famfs/Makefile
+> @@ -2,4 +2,4 @@
 >  
->  #define FAMFS_DEFAULT_MODE	0755
+>  obj-$(CONFIG_FAMFS) += famfs.o
 >  
-> +static const struct inode_operations famfs_file_inode_operations;
-> +static const struct inode_operations famfs_dir_inode_operations;
-> +
->  static struct inode *famfs_get_inode(
->  			struct super_block *sb,
->  			const struct inode *dir,
-> @@ -54,11 +57,11 @@ static struct inode *famfs_get_inode(
->  		init_special_inode(inode, mode, dev);
->  		break;
->  	case S_IFREG:
-> -		inode->i_op = NULL /* famfs_file_inode_operations */;
-> +		inode->i_op = &famfs_file_inode_operations;
->  		inode->i_fop = NULL /* &famfs_file_operations */;
->  		break;
->  	case S_IFDIR:
-> -		inode->i_op = NULL /* famfs_dir_inode_operations */;
-> +		inode->i_op = &famfs_dir_inode_operations;
->  		inode->i_fop = &simple_dir_operations;
->  
->  		/* Directory inodes start off with i_nlink == 2 (for ".") */
-> @@ -72,6 +75,246 @@ static struct inode *famfs_get_inode(
->  	return inode;
->  }
->  
-> +/***************************************************************************
-> + * famfs inode_operations
-> + */
-> +
-> +static int
-> +famfs_setattr(
-> +	struct mnt_idmap *idmap,
-> +	struct dentry *dentry,
-> +	struct iattr *iattr)
-> +{
-> +	struct inode *inode = d_inode(dentry);
-> +	struct famfs_fs_info *fsi = inode->i_sb->s_fs_info;
-> +
-> +	/* Resizing a famfs file (its size is pinned to the fmap) */
-> +	if ((iattr->ia_valid & ATTR_SIZE) &&
-> +	    !famfs_opt_enabled(fsi, FAMFS_OPT_TRUNCATE) &&
-
-Does truncating the file down release the mapped memory?
-Can you truncate it up?  How does the famfs manager deal with this?
-
-> +	    iattr->ia_size != i_size_read(inode))
-> +		return -EPERM;
-> +	if ((iattr->ia_valid & ATTR_MODE) &&
-> +	    !famfs_opt_enabled(fsi, FAMFS_OPT_CHMOD))
-> +		return -EPERM;
-> +	if ((iattr->ia_valid & (ATTR_UID | ATTR_GID)) &&
-> +	    !famfs_opt_enabled(fsi, FAMFS_OPT_CHOWN))
-> +		return -EPERM;
-> +	if ((iattr->ia_valid & (ATTR_ATIME | ATTR_MTIME)) &&
-> +	    !famfs_opt_enabled(fsi, FAMFS_OPT_UTIMES))
-> +		return -EPERM;
-> +
-> +	return simple_setattr(idmap, dentry, iattr);
-> +}
-> +
-> +static const struct inode_operations famfs_file_inode_operations = {
-> +	/* All generic */
-> +	.setattr	   = famfs_setattr,
-> +	.getattr	   = simple_getattr,
-> +};
-> +
+> -famfs-y := famfs_inode.o
+> +famfs-y := famfs_inode.o famfs_file.o
+> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+> new file mode 100644
+> index 000000000000..e192b573c51f
+> --- /dev/null
+> +++ b/fs/famfs/famfs_file.c
+> @@ -0,0 +1,138 @@
+> +// SPDX-License-Identifier: GPL-2.0
 > +/*
-> + * Internal inode creation helper, shared by ->create, ->mkdir, ->mknod and
-> + * ->symlink. Each of those callers is responsible for its own FAMFS_OPT_*
-> + * permission check before getting here.
+> + * famfs - dax file system for shared fabric-attached memory
+> + *
+> + * Copyright 2023-2024 Micron Technology, Inc.
+> + *
+> + * This file system, originally based on ramfs the dax support from xfs,
+> + * is intended to allow multiple host systems to mount a common file system
+> + * view of dax files that map to shared memory.
 > + */
-> +static int
-> +famfs_mknod(struct mnt_idmap *idmap, struct inode *dir, struct dentry *dentry,
-> +	    umode_t mode, dev_t dev)
+> +
+> +#include <linux/fs.h>
+> +#include <linux/mm.h>
+> +#include <linux/dax.h>
+> +#include <linux/iomap.h>
+> +
+> +#include "famfs_internal.h"
+> +
+> +/*********************************************************************
+> + * file_operations
+> + */
+> +
+> +/* Reject I/O to files that aren't in a valid state */
+> +static ssize_t
+> +famfs_file_invalid(struct inode *inode)
 > +{
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
-> +	struct timespec64 tv;
-> +	struct inode *inode;
-> +
-> +	if (fsi->deverror)
-> +		return -ENODEV;
-> +
-> +	inode = famfs_get_inode(dir->i_sb, dir, mode, dev);
-> +	if (!inode)
-> +		return -ENOSPC;
-> +
-> +	d_make_persistent(dentry, inode);
-> +	tv = inode_set_ctime_current(inode);
-> +	inode_set_mtime_to_ts(inode, tv);
-> +	inode_set_atime_to_ts(inode, tv);
-> +
+> +	if (!IS_DAX(inode)) {
+> +		pr_debug("%s: inode %llx IS_DAX is false\n",
+> +			 __func__, (u64)inode);
+> +		return -ENXIO;
+> +	}
 > +	return 0;
 > +}
 > +
-> +static struct dentry *famfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
-> +		struct dentry *dentry, umode_t mode)
+> +static ssize_t
+> +famfs_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
 > +{
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
-> +	int rc;
-> +
-> +	if (fsi->deverror)
-> +		return ERR_PTR(-ENODEV);
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_MKDIR))
-> +		return ERR_PTR(-EPERM);
-> +
-> +	rc = famfs_mknod(&nop_mnt_idmap, dir, dentry, mode | S_IFDIR, 0);
-> +	if (rc)
-> +		return ERR_PTR(rc);
-> +
-> +	inc_nlink(dir);
-> +
-> +	return ERR_PTR(0);
-> +}
-> +
-> +static int famfs_create(struct mnt_idmap *idmap, struct inode *dir,
-> +			struct dentry *dentry, umode_t mode, bool excl)
-> +{
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
+> +	struct inode *inode = iocb->ki_filp->f_mapping->host;
+> +	struct super_block *sb = inode->i_sb;
+> +	struct famfs_fs_info *fsi = sb->s_fs_info;
+> +	size_t i_size = i_size_read(inode);
+> +	size_t count = iov_iter_count(ubuf);
+> +	size_t max_count;
+> +	ssize_t rc;
 > +
 > +	if (fsi->deverror)
 > +		return -ENODEV;
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_CREATE))
+> +
+> +	rc = famfs_file_invalid(inode);
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* Avoid unsigned underflow if position is past EOF */
+> +	if (iocb->ki_pos >= i_size)
+> +		max_count = 0;
+> +	else
+> +		max_count = i_size - iocb->ki_pos;
+> +
+> +	if (count > max_count)
+> +		iov_iter_truncate(ubuf, max_count);
+> +
+> +	if (!iov_iter_count(ubuf))
+> +		return 0;
+> +
+> +	return rc;
+> +}
+> +
+> +static ssize_t
+> +famfs_dax_read_iter(struct kiocb *iocb, struct iov_iter	*to)
+> +{
+> +	struct inode *inode = iocb->ki_filp->f_mapping->host;
+> +	ssize_t rc;
+> +
+> +	/* dax_iomap_rw() requires i_rwsem held (shared for read) */
+> +	inode_lock_shared(inode);
+> +	rc = famfs_rw_prep(iocb, to);
+> +	if (rc || !iov_iter_count(to)) {
+> +		inode_unlock_shared(inode);
+> +		return rc;
+> +	}
+> +
+> +	rc = dax_iomap_rw(iocb, to, NULL /*&famfs_iomap_ops */);
+> +	inode_unlock_shared(inode);
+> +
+> +	file_accessed(iocb->ki_filp);
+
+Is it really accessed if rc != 0?
+
+> +	return rc;
+> +}
+> +
+> +/**
+> + * famfs_dax_write_iter()
+> + *
+> + * We need our own write-iter in order to prevent append
+> + *
+> + * @iocb:
+> + * @from: iterator describing the user memory source for the write
+> + */
+> +static ssize_t
+> +famfs_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
+> +{
+> +	struct inode *inode = iocb->ki_filp->f_mapping->host;
+> +	struct famfs_fs_info *fsi = inode->i_sb->s_fs_info;
+> +	ssize_t rc;
+> +
+> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
 > +		return -EPERM;
 > +
-> +	return famfs_mknod(&nop_mnt_idmap, dir, dentry, mode | S_IFREG, 0);
+> +	/* dax_iomap_rw() requires i_rwsem held (exclusive for write) */
+> +	inode_lock(inode);
+> +	rc = famfs_rw_prep(iocb, from);
+> +	if (rc || !iov_iter_count(from)) {
+> +		inode_unlock(inode);
+> +		return rc;
+> +	}
+> +
+> +	rc = dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);
 
-Is the model here that you creat() a file and then the famfs server has
-to go find it some cxl memory?  I was kinda under the impression that
-you'd get the famfs software to map some memory to a name, and then the
-famfs server on each node would create it and upload the mapping, and
-now the cxlmem-backed file can be mmaped from multiple nodes?
+What happens if you pass a null iomap ops?  TBH I was expecting you to
+define the iomap ops with a dummy ->iomap_begin that returns EIO or
+something.
 
-But maybe this is less of a cluster filesystem than I assumed it was.
+> +	inode_unlock(inode);
+> +	return rc;
+
+Do you need to update mtime here?
 
 --D
 
 > +}
 > +
-> +static int
-> +famfs_mknod_op(struct mnt_idmap *idmap, struct inode *dir,
-> +	       struct dentry *dentry, umode_t mode, dev_t dev)
-> +{
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
+> +const struct file_operations famfs_file_operations = {
+> +	.owner             = THIS_MODULE,
 > +
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_MKNOD))
-> +		return -EPERM;
+> +	/* Custom famfs operations */
+> +	.write_iter	   = famfs_dax_write_iter,
+> +	.read_iter	   = famfs_dax_read_iter,
+> +	.unlocked_ioctl    = NULL /*famfs_file_ioctl*/,
+> +	.mmap		   = NULL /* famfs_file_mmap */,
 > +
-> +	return famfs_mknod(idmap, dir, dentry, mode, dev);
-> +}
+> +	/* Force PMD alignment for mmap */
+> +	.get_unmapped_area = thp_get_unmapped_area,
 > +
-> +static int
-> +famfs_symlink(struct mnt_idmap *idmap, struct inode *dir,
-> +	      struct dentry *dentry, const char *symname)
-> +{
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
-> +	struct inode *inode;
-> +	int len, rc;
-> +
-> +	if (fsi->deverror)
-> +		return -ENODEV;
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_SYMLINK))
-> +		return -EPERM;
-> +
-> +	inode = famfs_get_inode(dir->i_sb, dir, S_IFLNK | 0777, 0);
-> +	if (!inode)
-> +		return -ENOSPC;
-> +
-> +	len = strlen(symname) + 1;
-> +	rc = page_symlink(inode, symname, len);
-> +	if (rc) {
-> +		iput(inode);
-> +		return rc;
-> +	}
-> +
-> +	d_make_persistent(dentry, inode);
-> +	inode_set_mtime_to_ts(dir, inode_set_ctime_current(dir));
-> +
-> +	return 0;
-> +}
-> +
-> +static int
-> +famfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
-> +{
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
-> +
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_LINK))
-> +		return -EPERM;
-> +
-> +	return simple_link(old_dentry, dir, dentry);
-> +}
-> +
-> +static int famfs_unlink(struct inode *dir, struct dentry *dentry)
-> +{
-> +	struct inode *inode = d_inode(dentry);
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
-> +
-> +	/* A file with an fmap may only be unlinked when explicitly enabled */
-> +	if (inode->i_private && !famfs_opt_enabled(fsi, FAMFS_OPT_UNLINK))
-> +		return -EPERM;
-> +
-> +	return simple_unlink(dir, dentry);
-> +}
-> +
-> +static int famfs_rmdir(struct inode *dir, struct dentry *dentry)
-> +{
-> +	struct famfs_fs_info *fsi = dir->i_sb->s_fs_info;
-> +
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_RMDIR))
-> +		return -EPERM;
-> +
-> +	return simple_rmdir(dir, dentry);
-> +}
-> +
-> +static int
-> +famfs_rename(
-> +	struct mnt_idmap *idmap,
-> +	struct inode *old_dir,
-> +	struct dentry *old_dentry,
-> +	struct inode *new_dir,
-> +	struct dentry *new_dentry,
-> +	unsigned int flags)
-> +{
-> +	struct famfs_fs_info *fsi = old_dir->i_sb->s_fs_info;
-> +
-> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_RENAME))
-> +		return -EPERM;
-> +
-> +	return simple_rename(idmap, old_dir, old_dentry, new_dir, new_dentry,
-> +			     flags);
-> +}
-> +
-> +static const struct inode_operations famfs_dir_inode_operations = {
-> +	.create		= famfs_create,
-> +	.lookup		= simple_lookup,
-> +	.link		= famfs_link,
-> +	.unlink		= famfs_unlink,
-> +	.symlink	= famfs_symlink,
-> +	.mkdir		= famfs_mkdir,
-> +	.mknod		= famfs_mknod_op,
-> +	.rmdir		= famfs_rmdir,
-> +	.rename		= famfs_rename,
+> +	/* Generic Operations */
+> +	.fsync		   = noop_fsync,
+> +	.splice_read	   = filemap_splice_read,
+> +	.splice_write	   = iter_file_splice_write,
+> +	.llseek		   = generic_file_llseek,
 > +};
 > +
-> +/*****************************************************************************
-> + * famfs super_operations
-> + *
-> + * TODO: implement a famfs_statfs() that shows size, free and available space,
-> + * etc.
-> + */
-> +
-> +/*
-> + * famfs_show_options() - Display the mount options in /proc/mounts.
-> + */
-> +static int famfs_show_options(struct seq_file *m, struct dentry *root)
-> +{
-> +	struct famfs_fs_info *fsi = root->d_sb->s_fs_info;
-> +
-> +	if (fsi->mount_opts.mode != FAMFS_DEFAULT_MODE)
-> +		seq_printf(m, ",mode=%o", fsi->mount_opts.mode);
-> +
-> +	return 0;
-> +}
-> +
-> +static void famfs_evict_inode(struct inode *inode)
-> +{
-> +	inode->i_private = NULL;
-> +	dax_break_layout_final(inode);
-> +	truncate_inode_pages_final(&inode->i_data);
-> +	clear_inode(inode);
-> +}
-> +
-> +static const struct super_operations famfs_super_ops = {
-> +	.statfs		= simple_statfs,
-> +	.drop_inode	= inode_just_drop,
-> +	.show_options	= famfs_show_options,
-> +	.evict_inode    = famfs_evict_inode,
-> +};
-> +
-> +/*****************************************************************************/
-> +
->  /*
->   * famfs dax_operations (for famfs-mode dax)
->   */
-> @@ -305,7 +548,7 @@ famfs_fill_super(struct super_block *sb, struct fs_context *fc)
->  	sb->s_blocksize		= PAGE_SIZE;
->  	sb->s_blocksize_bits	= PAGE_SHIFT;
->  	sb->s_magic		= FAMFS_SUPER_MAGIC;
-> -	sb->s_op		= NULL /* famfs_super_ops */;
-> +	sb->s_op		= &famfs_super_ops;
->  	sb->s_time_gran		= 1;
->  }
->  
+> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> index efc6b852eca0..910a143dad30 100644
+> --- a/fs/famfs/famfs_inode.c
+> +++ b/fs/famfs/famfs_inode.c
+> @@ -58,7 +58,7 @@ static struct inode *famfs_get_inode(
+>  		break;
+>  	case S_IFREG:
+>  		inode->i_op = &famfs_file_inode_operations;
+> -		inode->i_fop = NULL /* &famfs_file_operations */;
+> +		inode->i_fop = &famfs_file_operations;
+>  		break;
+>  	case S_IFDIR:
+>  		inode->i_op = &famfs_dir_inode_operations;
 > diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
-> index ebb9c499cf69..485087588a11 100644
+> index 485087588a11..26f5abda96dc 100644
 > --- a/fs/famfs/famfs_internal.h
 > +++ b/fs/famfs/famfs_internal.h
-> @@ -70,6 +70,12 @@ struct famfs_fs_info {
->  	struct rw_semaphore       devlist_sem;
->  };
+> @@ -15,6 +15,8 @@
+>  #include <linux/bits.h>
+>  #include <linux/build_bug.h>
 >  
-> +/* This stub will be replaced in a later commit 
-> + * Note: the opt parameter is intentionally unused, and will be used by
-> + * the replacement function when that commit lands
-> + */
-> +#define famfs_opt_enabled(fsi, opt) (fsi != 0)
+> +extern const struct file_operations famfs_file_operations;
 > +
->  int lookup_daxdev(const char *pathname, dev_t *devno);
->  int famfs_devlist_alloc(struct famfs_fs_info *fsi);
->  int famfs_install_daxdev(struct famfs_fs_info *fsi, struct super_block *sb,
+>  struct famfs_mount_opts {
+>  	umode_t mode;
+>  };
 > -- 
 > 2.53.0
-> 
 > 
 > 
