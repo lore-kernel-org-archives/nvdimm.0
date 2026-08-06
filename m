@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C87503815FA;
-	Thu,  6 Aug 2026 04:37:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A1C385D69;
+	Thu,  6 Aug 2026 05:05:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785991035; cv=none; b=uUqb+CPNFMVZZE9SQiv+STZxx8SAiMYL4QR+hyKFlY8bcc2hseEpydVCy2CPThgd6e9bspI8Aj39gZ2YbsCvzGqJmK8TlLR51CWVNUU+HQLL0b47TnjCDUbQYqCCi4pfDNK/HvgANFTeCccajOZUbNN3Gsyq4tjNtyfSxPd2aQs=
+	t=1785992729; cv=none; b=CoYPrXCg8PSWk+Pv+4n+W4qDGg+l3XvFNFckQMFO1R+QaFRcHgJYl3VYw/02dhlhICPvk38ZkayryUeO/ICnWY/wJqHBDx5jsUy1xTkaUwtStUSBBf7++hr3tddE3HRT6VTHcBYoaew07LOWhZvp2SJjoXcJdYRWvLayciKr+u4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785991035; c=relaxed/simple;
-	bh=YyzcItmMTIjH8L5Ssz9P0gfiftjNN2SwmnFB648QvEo=;
+	s=arc-20240116; t=1785992729; c=relaxed/simple;
+	bh=3qEuzHR3ctdxdHgc18EbaBNHWh8JhNWDVRl39Q9stnQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CPO7evRg2AEUNNuBqPOHiUHBXkB723x1bGnpXUBooMfjR4XUulTeJmoyzZbMaiaqYsJRtkzhyiG5jVLqtYZYTFlDvpNOEGneMdIdf4ctPkFbOvo3Z4Xzyq9GaY3GIxIAlZooQ9Nmo3wN8kRIS0MJBWklo2kAH3wY5rGxjJmWn4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RKYh2etz; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=iutZi/umIM0SEF/+dQk7MEVRL7UwnjX5B4HAXhqTy9yMG7n6yBMPMK9iyreAHF+75okh10KCiR+E1AhezouovhYXCuinrE4MkxzXKkEO4O/Sjjg7xY4TIiGww9wAW0bt+NoLLrSBlpQfCQW96LOkq1FISpdZOEVCD+RcHNlpG2E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CONh2fIi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RKYh2etz"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 3B1471F000E9;
-	Thu,  6 Aug 2026 04:37:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CONh2fIi"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id BF78E1F00A3A;
+	Thu,  6 Aug 2026 05:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785991033;
-	bh=SkDCICo2MYIWjxIE/EbvZVNwKPX2hwndCp4pUTakAjA=;
+	s=k20260515; t=1785992727;
+	bh=OTN00HgA2QKv7cVGNj2jb+s1HsTPdAwa2wf+3nCfUMA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=RKYh2etzQyvVvU0beZPQPTguWU0CC5smXIIc53Be9Bb3aLpDedHuOCOg56zyEAiiQ
-	 0PcT6vckfUEvw9E1VAkloAU6ojM2M4dxpLO2BvZW3iKk5EeAMRrAdgJ8yUtOLjTGsi
-	 A+uTc+loBRGDEAUiukLrgF1wO/3kmtpuZNHnZIaTVJ+zqcFSrz31HaqAoRePeBKVxT
-	 sSHuDyOWZ/BWm+OQhnyvTHiZ7uMnlNLtEwYT1yxw4Mw+IqUYDemXBiA/ZhwUfJ2SoD
-	 BFWkxkzzWSuim0SLRgv0t7KPRtg6jBvbsVtFr8VXgbKvHx64Saj8K5Q8mpq2W2Qpkc
-	 NtzEFclM/5l0w==
-Date: Wed, 5 Aug 2026 21:37:12 -0700
+	b=CONh2fIi11nam3fyJkVocJhReirCnI0qMy2ImCGFA7D4Zs9FmvdddNHIhJ294FgXm
+	 2rjcV3etRqbOPD7XOFUx6olDLxzVysOjzYBdqXez0m39Bamz/TZbA6y7JN165U/NHt
+	 4aab7Cforx0p3Ju+2eQCNFMB8OWvSlnvPHGuqfJoH+oTqTupj2L7hxtzTkHACtTx+s
+	 ZRCVBQmHbZQdaomQlA27wPWWuXd2nLyEPMotSxCgVxdquLZMpmpSjYZ3DuzR6s6xaj
+	 T5TLTuD68Fk8esyRfN0MKswpiRR8aAu6YRkG6Pa76l+GHHolWBjQ6Em+xK3TlK1y50
+	 9wp4M3d8nOrIw==
+Date: Wed, 5 Aug 2026 22:05:27 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
 To: John Groves <john@jagalactic.com>
 Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
@@ -75,11 +75,12 @@ Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
 	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 02/12] famfs: Module operations, fs_context, and mount
-Message-ID: <20260806043712.GB3560084@frogsfrogsfrogs>
+Subject: Re: [PATCH V12 03/12] famfs: Add daxdev table and dax notify_failure
+ support
+Message-ID: <20260806050527.GC3560084@frogsfrogsfrogs>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022828.75776-1-john@jagalactic.com>
- <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
+ <20260803022839.75794-1-john@jagalactic.com>
+ <0100019fc573c7cd-d37cbc1c-7687-4b05-99e7-7d3624087b98-000000@email.amazonses.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -88,553 +89,375 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
+In-Reply-To: <0100019fc573c7cd-d37cbc1c-7687-4b05-99e7-7d3624087b98-000000@email.amazonses.com>
 
-On Mon, Aug 03, 2026 at 02:28:36AM +0000, John Groves wrote:
-> From: John Groves <john@groves.net>
+On Mon, Aug 03, 2026 at 02:28:47AM +0000, John Groves wrote:
+> From: John Groves <John@Groves.net>
 > 
-> Start building up from the famfs module operations. This commit
-> includes the following:
+> Famfs file systems can span multiple dax devices, and daxdevs are stored
+> in the daxdev_table. This adds the basic table structure, primtives and
+> serialization code. Famfs file extents reference daxdevs by index, which
+> is a cluster invariant maintained by user space.
 > 
-> * Register as a file system
-> * Parse mount parameters
-> * Allocate or find (and initialize) a superblock via famfs_get_tree()
-> * Lookup the host dax device, and bail if it's in use (or not dax)
-> * Add Kconfig and Makefile misc to build famfs
-> * Add FAMFS_SUPER_MAGIC to include/uapi/linux/magic.h
-> * Add export of fs/namei.c:may_open_dev(), which famfs needs to call
-> * Update MAINTAINERS file for the fs/famfs/ path
-> 
-> The following exports had to happen to enable famfs:
-> 
-> * This adds the new fs/super.c:kill_char_super() - the other kill*super
->   helpers were not quite right.
+> We also add dax_holder_operations and a notify_failure handler, which
+> is necessary to properly "open" a famfs-mode daxdev.
 
-Err, how were they not quite right??
+So you have to "mount /dev/somedaxthing0 /mnt" but you can then add more
+dax devices later through some ioctl?
 
-> This commit builds but is otherwise too incomplete to run
-
-Maybe you shouldn't add famfs to fs/Makefile until the very last patch,
-since that would eliminate all bisection errors.
-
-Also, are you trying to get this merged for 7.3?  Because I'm /really/
-tired of watching this continue to drag on for three years now.  You
-prototyped a weird left turn through fuse.  In trying to work with
-Miklos and Amir on various fuse improvements, we both discovered that
-Miklos says he's not a good maintainer[1].
-
-At this point I agree with you that it makes no sense to continue with
-the fuse direction even if Amir and Joanne think you're close, because
-no, you're not close, you're *done*.  This is a working driver, you've
-spent years QAing it, sampling it to some users (apparently) to get
-feedback so you know that you've built better than a trash fire, and now
-you're the co-chair of some CXL committee so you and Micron are probably
-stuck with it in the long run.  You've even demonstrated that you can
-follow community processes even when they're frustrating and slow.
-
-IOWs, let's fix the remaining wobbles (if any) and just merge this
-already.  No more side quests through gigantic refactorings of fusex,
-that's too much to ask after you already redesigned and reimplemented
-the whole thing already.
-
-Quoting Miklos from the fuse session at LSFMM:
-[1] https://lwn.net/Articles/1086336/
-
-Proceeding on to the wobbles (if any).
+Can you remove daxdevs?  (I gather not...)
 
 > Signed-off-by: John Groves <john@groves.net>
 > ---
->  MAINTAINERS                |   7 +
->  fs/Kconfig                 |   2 +
->  fs/Makefile                |   1 +
->  fs/famfs/Kconfig           |  11 ++
->  fs/famfs/Makefile          |   5 +
->  fs/famfs/famfs_inode.c     | 293 +++++++++++++++++++++++++++++++++++++
->  fs/famfs/famfs_internal.h  |  32 ++++
->  fs/namei.c                 |   1 +
->  fs/super.c                 |   7 +
->  include/linux/fs.h         |   1 +
->  include/uapi/linux/magic.h |   1 +
->  11 files changed, 361 insertions(+)
->  create mode 100644 fs/famfs/Kconfig
->  create mode 100644 fs/famfs/Makefile
->  create mode 100644 fs/famfs/famfs_inode.c
->  create mode 100644 fs/famfs/famfs_internal.h
+>  fs/famfs/famfs_inode.c    | 234 ++++++++++++++++++++++++++++++++++++++
+>  fs/famfs/famfs_internal.h |  46 ++++++++
+>  2 files changed, 280 insertions(+)
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index a674e36529f7..ca7b90a8f0a1 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9905,6 +9905,13 @@ F:	Documentation/networking/failover.rst
->  F:	include/net/failover.h
->  F:	net/core/failover.c
->  
-> +FAMFS [Fabric-Attached Memory File System]
-> +M:	John Groves <John@Groves.net>
-> +L:	linux-fsdevel@vger.kernel.org
-> +L:	linux-cxl@vger.kernel.org
-> +S:	Supported
-> +F:	fs/famfs/
-> +
->  FANOTIFY
->  M:	Jan Kara <jack@suse.cz>
->  R:	Amir Goldstein <amir73il@gmail.com>
-> diff --git a/fs/Kconfig b/fs/Kconfig
-> index cf6ae64776e6..2db647accc00 100644
-> --- a/fs/Kconfig
-> +++ b/fs/Kconfig
-> @@ -131,6 +131,8 @@ source "fs/autofs/Kconfig"
->  source "fs/fuse/Kconfig"
->  source "fs/overlayfs/Kconfig"
->  
-> +source "fs/famfs/Kconfig"
-> +
->  menu "Caches"
->  
->  source "fs/netfs/Kconfig"
-> diff --git a/fs/Makefile b/fs/Makefile
-> index 89a8a9d207d1..f49f9a000210 100644
-> --- a/fs/Makefile
-> +++ b/fs/Makefile
-> @@ -129,3 +129,4 @@ obj-$(CONFIG_VBOXSF_FS)		+= vboxsf/
->  obj-$(CONFIG_ZONEFS_FS)		+= zonefs/
->  obj-$(CONFIG_BPF_LSM)		+= bpf_fs_kfuncs.o
->  obj-$(CONFIG_RESCTRL_FS)	+= resctrl/
-> +obj-$(CONFIG_FAMFS)		+= famfs/
-> diff --git a/fs/famfs/Kconfig b/fs/famfs/Kconfig
-> new file mode 100644
-> index 000000000000..ed40cf8b0592
-> --- /dev/null
-> +++ b/fs/famfs/Kconfig
-> @@ -0,0 +1,11 @@
-> +
-> +
-> +config FAMFS
-> +       tristate "famfs: shared memory file system"
-> +       depends on DEV_DAX && FS_DAX && DEV_DAX_FSDEV
-> +       default m if DEV_DAX && FS_DAX && DEV_DAX_FSDEV
-> +       help
-> +	  Support for the famfs file system. Famfs is a dax file system that
-> +	  can support scale-out shared access to fabric-attached memory
-> +	  (e.g. CXL shared memory). Famfs is not a general purpose file system;
-> +	  it is an enabler for data sets in shared memory.
-> diff --git a/fs/famfs/Makefile b/fs/famfs/Makefile
-> new file mode 100644
-> index 000000000000..62230bcd6793
-> --- /dev/null
-> +++ b/fs/famfs/Makefile
-> @@ -0,0 +1,5 @@
-> +# SPDX-License-Identifier: GPL-2.0
-> +
-> +obj-$(CONFIG_FAMFS) += famfs.o
-> +
-> +famfs-y := famfs_inode.o
 > diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> new file mode 100644
-> index 000000000000..c299a90912a5
-> --- /dev/null
+> index c299a90912a5..ad71e5e7a8e3 100644
+> --- a/fs/famfs/famfs_inode.c
 > +++ b/fs/famfs/famfs_inode.c
-
-You could probably call this fs/famfs/inode.c.
-
-> @@ -0,0 +1,293 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * famfs - dax file system for shared fabric-attached memory
-> + *
-> + * Copyright 2023-2024 Micron Technology, inc
-> + *
-> + * This file system, originally based on ramfs the dax support from xfs,
-> + * is intended to allow multiple host systems to mount a common file system
-> + * view of dax files that map to shared memory.
-> + */
-> +
-> +#include <linux/fs.h>
-> +#include <linux/cleanup.h>
-> +#include <linux/time.h>
-> +#include <linux/init.h>
-> +#include <linux/string.h>
-> +#include <linux/parser.h>
-> +#include <linux/magic.h>
-> +#include <linux/slab.h>
-> +#include <linux/fs_context.h>
-> +#include <linux/fs_parser.h>
-> +#include <linux/dax.h>
-> +#include <linux/hugetlb.h>
-> +#include <linux/iomap.h>
-> +#include <linux/path.h>
-> +#include <linux/namei.h>
-> +
-> +#include "famfs_internal.h"
-> +
-> +#define FAMFS_DEFAULT_MODE	0755
-> +
-> +static struct inode *famfs_get_inode(
-> +			struct super_block *sb,
-> +			const struct inode *dir,
-> +			umode_t mode, dev_t dev)
-> +{
-> +	struct inode *inode = new_inode(sb);
-> +	struct timespec64 tv;
-> +
-> +	if (!inode)
-> +		return NULL;
-> +
-> +	inode->i_ino = get_next_ino();
-> +	inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
-> +	inode->i_mapping->a_ops = &ram_aops;
-> +	mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
-> +	mapping_set_unevictable(inode->i_mapping);
-> +	tv = inode_set_ctime_current(inode);
-> +	inode_set_mtime_to_ts(inode, tv);
-> +	inode_set_atime_to_ts(inode, tv);
-> +
-> +	switch (mode & S_IFMT) {
-> +	default:
-> +		init_special_inode(inode, mode, dev);
-> +		break;
-> +	case S_IFREG:
-> +		inode->i_op = NULL /* famfs_file_inode_operations */;
-> +		inode->i_fop = NULL /* &famfs_file_operations */;
-
-(I would almost rather you declare empty ops structs instead of churning
-this later, but eh.)
-
-> +		break;
-> +	case S_IFDIR:
-> +		inode->i_op = NULL /* famfs_dir_inode_operations */;
-> +		inode->i_fop = &simple_dir_operations;
-> +
-> +		/* Directory inodes start off with i_nlink == 2 (for ".") */
-> +		inc_nlink(inode);
-> +		break;
-> +	case S_IFLNK:
-> +		inode->i_op = &page_symlink_inode_operations;
-> +		inode_nohighmem(inode);
-> +		break;
-> +	}
-> +	return inode;
-> +}
-> +
-> +/*
-> + * famfs dax_operations (for famfs-mode dax)
-> + */
-> +/*****************************************************************************
-> + * fs_context_operations
-> + */
-> +
-> +static void
-> +famfs_fill_super(struct super_block *sb, struct fs_context *fc)
-> +{
-> +	sb->s_maxbytes		= MAX_LFS_FILESIZE;
-> +	sb->s_blocksize		= PAGE_SIZE;
-> +	sb->s_blocksize_bits	= PAGE_SHIFT;
-> +	sb->s_magic		= FAMFS_SUPER_MAGIC;
-> +	sb->s_op		= NULL /* famfs_super_ops */;
-> +	sb->s_time_gran		= 1;
-> +}
-> +
-> +int
-> +lookup_daxdev(const char *pathname, dev_t *devno)
-> +{
-> +	struct inode *inode;
-> +	struct path path;
-> +	int err;
-> +
-> +	if (!pathname || !*pathname)
-> +		return -EINVAL;
-> +
-> +	err = kern_path(pathname, LOOKUP_FOLLOW, &path);
-> +	if (err)
-> +		return err;
-> +
-> +	inode = d_backing_inode(path.dentry);
-> +	if (!S_ISCHR(inode->i_mode)) {
-> +		err = -EINVAL;
-> +		goto out_path_put;
-> +	}
-> +
-> +	if (!may_open_dev(&path)) {
-> +		err = -EACCES;
-> +		goto out_path_put;
-> +	}
-> +
-> +	/* i_rdev is the char dev_t; fs_dax_get() confirms it is dax later */
-> +	*devno = inode->i_rdev;
-> +
-> +out_path_put:
-> +	path_put(&path);
-> +	return err;
-> +}
+> @@ -75,6 +75,225 @@ static struct inode *famfs_get_inode(
+>  /*
+>   * famfs dax_operations (for famfs-mode dax)
+>   */
+> +static void famfs_set_daxdev_err(struct famfs_fs_info *fsi,
+> +				 struct dax_device *dax_devp);
 > +
 > +static int
-> +famfs_get_tree(struct fs_context *fc)
+> +famfs_dax_notify_failure(
+> +		struct dax_device *dax_dev, u64 offset,
+> +		u64 len, int mf_flags)
 > +{
-> +	struct famfs_fs_info *fsi = fc->s_fs_info;
-> +	struct super_block *sb;
-> +	struct inode *inode;
-> +	dev_t daxdevno;
-> +	int err;
-> +
-> +	err = lookup_daxdev(fc->source, &daxdevno);
-> +	if (err)
-> +		return err;
-> +
-> +	/* This will set sb->s_dev=daxdevno */
-> +	sb = sget_dev(fc, daxdevno);
-> +	if (IS_ERR(sb)) {
-> +		pr_debug("%s: sget_dev error\n", __func__);
-> +		return PTR_ERR(sb);
-> +	}
-> +
-> +	if (sb->s_root) {
-> +		pr_debug("%s: found a matching superblock for %s\n",
-> +			__func__, fc->source);
-> +
-> +		/* We don't expect to find a match by dev_t; if we do, it must
-> +		 * already be mounted, so we bail
-> +		 */
-> +		err = -EBUSY;
-> +		goto deactivate_out;
-> +	} else {
-> +		pr_debug("%s: initializing new superblock for %s\n",
-> +			__func__, fc->source);
-> +		famfs_fill_super(sb, fc);
-> +	}
-> +
-> +	inode = famfs_get_inode(sb, NULL, S_IFDIR | fsi->mount_opts.mode, 0);
-
-Can this fail?
-
-The rest looks good to me, though I imagine shashiko will mumble things
-off-list for you to fix. :P
-
---D
-
-> +	sb->s_root = d_make_root(inode);
-> +	if (!sb->s_root) {
-> +		pr_debug("%s: d_make_root() failed\n", __func__);
-> +		err = -ENOMEM;
-> +		goto deactivate_out;
-> +	}
-> +
-> +	sb->s_flags |= SB_ACTIVE;
-> +
-> +	WARN_ON(fc->root);
-> +	fc->root = dget(sb->s_root);
-> +	return 0;
-> +
-> +deactivate_out:
-> +	pr_debug("%s: deactivating sb=%llx\n", __func__, (u64)sb);
-> +	deactivate_locked_super(sb);
-> +	return err;
-> +}
-> +
-> +/*****************************************************************************/
-> +
-> +enum famfs_param {
-> +	Opt_mode,
-> +	Opt_dax,
-> +};
-> +
-> +const struct fs_parameter_spec famfs_fs_parameters[] = {
-> +	fsparam_u32oct("mode",	  Opt_mode),
-> +	fsparam_string("dax",     Opt_dax),
-> +	{}
-> +};
-> +
-> +static int famfs_parse_param(struct fs_context *fc, struct fs_parameter *param)
-> +{
-> +	struct famfs_fs_info *fsi = fc->s_fs_info;
-> +	struct fs_parse_result result;
-> +	int opt;
-> +
-> +	opt = fs_parse(fc, famfs_fs_parameters, param, &result);
-> +	if (opt == -ENOPARAM) {
-> +		opt = vfs_parse_fs_param_source(fc, param);
-> +		if (opt != -ENOPARAM)
-> +			return opt;
-> +
-> +		return 0;
-> +	}
-> +	if (opt < 0)
-> +		return opt;
-> +
-> +	switch (opt) {
-> +	case Opt_mode:
-> +		fsi->mount_opts.mode = result.uint_32 & S_IALLUGO;
-> +		break;
-> +	case Opt_dax:
-> +		if (strcmp(param->string, "always"))
-> +			pr_debug("%s: invalid dax mode %s\n",
-> +				  __func__, param->string);
-> +		break;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void famfs_free_fc(struct fs_context *fc)
-> +{
-> +	kfree(fc->s_fs_info);
-> +}
-> +
-> +static const struct fs_context_operations famfs_context_ops = {
-> +	.free		= famfs_free_fc,
-> +	.parse_param	= famfs_parse_param,
-> +	.get_tree	= famfs_get_tree,
-> +};
-> +
-> +static int famfs_init_fs_context(struct fs_context *fc)
-> +{
-> +	struct famfs_fs_info *fsi;
-> +
-> +	fsi = kzalloc_obj(*fsi, GFP_KERNEL);
-> +	if (!fsi)
-> +		return -ENOMEM;
-> +
-> +	fsi->mount_opts.mode = FAMFS_DEFAULT_MODE;
-> +	fc->s_fs_info        = fsi;
-> +	fc->ops              = &famfs_context_ops;
-> +	return 0;
-> +}
-> +
-> +static void famfs_kill_sb(struct super_block *sb)
-> +{
+> +	struct super_block *sb = dax_holder(dax_dev);
 > +	struct famfs_fs_info *fsi = sb->s_fs_info;
 > +
-> +	kill_char_super(sb);
+> +	pr_err("%s: offset=%lld len=%llu flags=%x\n", __func__,
+> +	       offset, len, mf_flags);
 > +
-> +	kfree(fsi);
-> +	sb->s_fs_info = NULL;
+> +	/*
+> +	 * Record the error on the specific daxdev and, near-term, shut the
+> +	 * mount down: famfs_set_daxdev_err() also sets fsi->deverror so
+> +	 * subsequent famfs operations fail. The resolver's per-daxdev
+> +	 * famfs_dax_err() check remains and can make this finer later.
+> +	 */
+> +	famfs_set_daxdev_err(fsi, dax_dev);
+> +
+> +	return 0;
 > +}
 > +
-> +#define MODULE_NAME "famfs"
-> +static struct file_system_type famfs_fs_type = {
-> +	.name		  = MODULE_NAME,
-> +	.init_fs_context  = famfs_init_fs_context,
-> +	.parameters	  = famfs_fs_parameters,
-> +	.kill_sb	  = famfs_kill_sb,
-> +	.fs_flags	  = FS_REQUIRES_DEV,
+> +static const struct dax_holder_operations famfs_dax_holder_ops = {
+> +	.notify_failure		= famfs_dax_notify_failure,
 > +};
 > +
-> +/******************************************************************************
-> + * Module stuff
-> + */
-> +static int __init init_famfs_fs(void)
-> +{
-> +	int rc;
-> +
-> +	rc = register_filesystem(&famfs_fs_type);
-> +
-> +	return rc;
-> +}
-> +
-> +static void
-> +__exit famfs_exit(void)
-> +{
-> +	unregister_filesystem(&famfs_fs_type);
-> +	pr_info("%s: unregistered\n", __func__);
-> +}
-> +
-> +fs_initcall(init_famfs_fs);
-> +module_exit(famfs_exit);
-> +
-> +MODULE_AUTHOR("John Groves");
-> +MODULE_DESCRIPTION("Fabric-Attached Memory File System: see famfs.org");
-> +MODULE_LICENSE("GPL");
-> diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
-> new file mode 100644
-> index 000000000000..6f481d79ed88
-> --- /dev/null
-> +++ b/fs/famfs/famfs_internal.h
-> @@ -0,0 +1,32 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
 > +/*
-> + * famfs - dax file system for shared fabric-attached memory
-> + *
-> + * Copyright 2023-2024 Micron Technology, Inc.
-> + *
-> + * This file system, originally based on ramfs the dax support from xfs,
-> + * is intended to allow multiple host systems to mount a common file system
-> + * view of dax files that map to shared memory.
+> + * Allocate the daxdev table on first use (idempotent via cmpxchg).
 > + */
-> +#ifndef FAMFS_INTERNAL_H
-> +#define FAMFS_INTERNAL_H
-> +
-> +struct famfs_mount_opts {
-> +	umode_t mode;
-> +};
-> +
-> +/**
-> + * @famfs_fs_info
-> + *
-> + * @mount_opts:  The mount options
-> + * @deverror:    True if the dax device has called our notify_failure entry
-> + *               point, or if other "shutdown" conditions exist
-> + */
-> +struct famfs_fs_info {
-> +	struct famfs_mount_opts   mount_opts;
-> +	bool                      deverror;
-> +};
-> +
-> +int lookup_daxdev(const char *pathname, dev_t *devno);
-> +
-> +#endif /* FAMFS_INTERNAL_H */
-> diff --git a/fs/namei.c b/fs/namei.c
-> index 19ce43c9a6e6..d67194e89963 100644
-> --- a/fs/namei.c
-> +++ b/fs/namei.c
-> @@ -4232,6 +4232,7 @@ bool may_open_dev(const struct path *path)
->  	return !(path->mnt->mnt_flags & MNT_NODEV) &&
->  		!(path->mnt->mnt_sb->s_iflags & SB_I_NODEV);
->  }
-> +EXPORT_SYMBOL(may_open_dev);
->  
->  static int may_open(struct mnt_idmap *idmap, const struct path *path,
->  		    int acc_mode, int flag)
-> diff --git a/fs/super.c b/fs/super.c
-> index a8fd61136aaf..822ed205d07b 100644
-> --- a/fs/super.c
-> +++ b/fs/super.c
-> @@ -1235,6 +1235,13 @@ void kill_anon_super(struct super_block *sb)
->  }
->  EXPORT_SYMBOL(kill_anon_super);
->  
-> +void kill_char_super(struct super_block *sb)
+> +int famfs_devlist_alloc(struct famfs_fs_info *fsi)
 > +{
-> +	generic_shutdown_super(sb);
-> +	kill_super_notify(sb);
-> +}
-> +EXPORT_SYMBOL(kill_char_super);
+> +	struct famfs_dax_devlist *devlist;
 > +
->  int set_anon_super_fc(struct super_block *sb, struct fs_context *fc)
->  {
->  	return set_anon_super(sb, NULL);
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 50ce731a2b78..a8b030d6f218 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -2328,6 +2328,7 @@ void retire_super(struct super_block *sb);
->  void generic_shutdown_super(struct super_block *sb);
->  void kill_block_super(struct super_block *sb);
->  void kill_anon_super(struct super_block *sb);
-> +void kill_char_super(struct super_block *sb);
->  void deactivate_super(struct super_block *sb);
->  void deactivate_locked_super(struct super_block *sb);
->  int set_anon_super(struct super_block *s, void *data);
-> diff --git a/include/uapi/linux/magic.h b/include/uapi/linux/magic.h
-> index 4f2da935a76c..e644e1fd49bd 100644
-> --- a/include/uapi/linux/magic.h
-> +++ b/include/uapi/linux/magic.h
-> @@ -38,6 +38,7 @@
->  #define OVERLAYFS_SUPER_MAGIC	0x794c7630
->  #define FUSE_SUPER_MAGIC	0x65735546
->  #define BCACHEFS_SUPER_MAGIC	0xca451a4e
-> +#define FAMFS_SUPER_MAGIC	0x87b282ff
+> +	if (fsi->dax_devlist)
+> +		return 0;
+> +
+> +	devlist = kcalloc(1, sizeof(*devlist), GFP_KERNEL);
+> +	if (!devlist)
+> +		return -ENOMEM;
+> +
+> +	devlist->nslots = FAMFS_MAX_DAXDEVS;
+> +	devlist->devlist = kcalloc(FAMFS_MAX_DAXDEVS, sizeof(struct famfs_daxdev),
+> +				   GFP_KERNEL);
+> +	if (!devlist->devlist) {
+> +		kfree(devlist);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	/* If another thread allocated it first, drop ours */
+> +	if (cmpxchg(&fsi->dax_devlist, NULL, devlist) != NULL) {
+> +		kfree(devlist->devlist);
+> +		kfree(devlist);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * famfs_install_daxdev() - exclusively acquire a resolved daxdev and publish
+> + * it in the table at @index. Slot 0 is the mount primary; slots 1..n come from
+> + * the daxdev-open ioctl.
+> + *
+> + * Serializes with concurrent installers under devlist_sem and rechecks
+> + * ->valid, so re-registering an already-installed slot is idempotent. A daxdev
+> + * is entered in the table only once it has been exclusively acquired via
+> + * fs_dax_get() (with the super_block as the holder); on failure the
+> + * dax_dev_find() reference is released and the slot is left invalid. @name may
+> + * be NULL (the ioctl path passes no pathname).
+> + */
+> +int famfs_install_daxdev(
+> +		struct famfs_fs_info *fsi,
+> +		struct super_block *sb,
+> +		u64 index,
+> +		dev_t devno,
+> +		const char *name)
+> +{
+> +	struct famfs_daxdev *daxdev;
+> +	int rc = 0;
+> +
+> +	if (index >= fsi->dax_devlist->nslots) {
+> +		pr_debug("%s: index(%llu) >= nslots(%d)\n",
+> +		       __func__, index, fsi->dax_devlist->nslots);
+> +		return -EINVAL;
+> +	}
+> +
+> +	scoped_guard(rwsem_write, &fsi->devlist_sem) {
+> +		daxdev = &fsi->dax_devlist->devlist[index];
+> +
+> +		/* Installed already by a concurrent (or repeated) open */
+> +		if (daxdev->valid)
+> +			return 0;
+> +
+> +		/*
+> +		 * A prior attempt already determined this daxdev cannot be
+> +		 * exclusively acquired (see the fs_dax_get() failure handling
+> +		 * below). Don't thrash on fs_dax_get(); fail fast.
+> +		 */
+> +		if (daxdev->dax_err)
+> +			return -EIO;
+> +
+> +		daxdev->devp = dax_dev_find(devno);
+> +		if (!daxdev->devp) {
+> +			pr_debug("%s: device %u:%u not found or not dax\n",
+> +				__func__, MAJOR(devno), MINOR(devno));
+> +			return -ENODEV;
+> +		}
+> +
+> +		rc = fs_dax_get(daxdev->devp, sb, &famfs_dax_holder_ops);
+> +		if (rc) {
+> +			/*
+> +			 * Distinguish a lost race from a real failure. -EBUSY
+> +			 * with the daxdev already held by *this* super_block
+> +			 * means a concurrent acquire won and will publish the
+> +			 * slot valid: not an error, and must not be cached as
+> +			 * dax_err. Any other failure is permanent for this
+> +			 * mount, so record dax_err to stop re-acquiring it.
+> +			 */
+> +			if (!(rc == -EBUSY && dax_holder(daxdev->devp) == sb)) {
+> +				pr_debug("%s: fs_dax_get(%u:%u) failed rc=%d\n",
+> +				       __func__, MAJOR(devno), MINOR(devno), rc);
+> +				daxdev->dax_err = true;
+> +			}
+> +			put_dax(daxdev->devp);
+> +			daxdev->devp = NULL;
+> +			return rc;
+> +		}
+> +
+> +		daxdev->devno = devno;
+> +		if (name) {
+> +			daxdev->name = kstrdup(name, GFP_KERNEL);
+> +			if (!daxdev->name) {
+> +				fs_put_dax(daxdev->devp, sb);
+> +				put_dax(daxdev->devp);
+> +				daxdev->devp = NULL;
+> +				return -ENOMEM;
+> +			}
+> +		}
+> +
+> +		wmb(); /* All other fields must be visible before valid */
+> +		daxdev->valid = 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Release every daxdev in the table and free it. Detach the table under
+> + * devlist_sem so a notify_failure racing teardown either runs first against
+> + * the live table or observes dax_devlist == NULL and bails.
+> + */
+> +static void famfs_devlist_free(
+> +			struct famfs_fs_info *fsi,
+> +			struct super_block *sb)
+> +{
+> +	struct famfs_dax_devlist *devlist __free(kfree) = NULL;
+> +	int i;
+> +
+> +	scoped_guard(rwsem_write, &fsi->devlist_sem) {
+> +		devlist = fsi->dax_devlist;
+> +		fsi->dax_devlist = NULL;
+> +	}
+> +
+> +	if (!devlist || !devlist->devlist)
+> +		return;
+> +
+> +	for (i = 0; i < devlist->nslots; i++) {
+> +		struct famfs_daxdev *dd = &devlist->devlist[i];
+> +
+> +		if (!dd->valid)
+> +			continue;
+> +
+> +		if (dd->devp) {
+> +			if (!dd->dax_err)
+> +				fs_put_dax(dd->devp, sb);
+> +			put_dax(dd->devp);
+> +		}
+> +		kfree(dd->name);
+> +	}
+> +	kfree(devlist->devlist);
+> +}
+> +
+> +/*
+> + * Record a memory error on the daxdev matching @dax_devp. Searches the table
+> + * under the write lock (which serializes against famfs_devlist_free()).
+> + */
+> +static void famfs_set_daxdev_err(
+> +			struct famfs_fs_info *fsi,
+> +			struct dax_device *dax_devp)
+> +{
+> +	int i;
+> +
+> +	scoped_guard(rwsem_write, &fsi->devlist_sem) {
+> +		if (!fsi->dax_devlist)
+> +			return;
+> +		for (i = 0; i < fsi->dax_devlist->nslots; i++) {
+> +			struct famfs_daxdev *dd = &fsi->dax_devlist->devlist[i];
+> +
+> +			if (!dd->valid || dd->devp != dax_devp)
+> +				continue;
+> +
+> +			dd->error = true;
+> +			/*
+> +			 * Near-term policy: any daxdev memory error shuts down
+> +			 * the whole mount. Finer per-daxdev handling (via
+> +			 * famfs_dax_err() in the resolver) already exists and
+> +			 * can supersede this later.
+> +			 */
+> +			fsi->deverror = true;
+
+Hmm, I guess this is memory where really bad stuff happens ...?
+
+I would have thought that you'd just kill the files on that device, but
+you can relax this later if desirable.
+
+> +			pr_err("%s: memory error on daxdev %s (%d)\n",
+> +			       __func__, dd->name, i);
+> +			return;
+> +		}
+> +	}
+> +	pr_debug("%s: memory error on unrecognized daxdev\n", __func__);
+> +}
+> +
+>  /*****************************************************************************
+>   * fs_context_operations
+>   */
+> @@ -158,6 +377,18 @@ famfs_get_tree(struct fs_context *fc)
+>  		famfs_fill_super(sb, fc);
+>  	}
 >  
->  #define MINIX_SUPER_MAGIC	0x137F		/* minix v1 fs, 14 char names */
->  #define MINIX_SUPER_MAGIC2	0x138F		/* minix v1 fs, 30 char names */
+> +	/* Install the primary daxdev (from the mount device) at slot 0 */
+> +	err = famfs_devlist_alloc(fsi);
+> +	if (err)
+> +		goto deactivate_out;
+> +
+> +	err = famfs_install_daxdev(fsi, sb, 0, daxdevno, fc->source);
+> +	if (err) {
+> +		pr_err("%s: failed to install primary daxdev %s\n",
+> +		       __func__, fc->source);
+> +		goto deactivate_out;
+> +	}
+> +
+>  	inode = famfs_get_inode(sb, NULL, S_IFDIR | fsi->mount_opts.mode, 0);
+>  	sb->s_root = d_make_root(inode);
+>  	if (!sb->s_root) {
+> @@ -241,6 +472,7 @@ static int famfs_init_fs_context(struct fs_context *fc)
+>  	if (!fsi)
+>  		return -ENOMEM;
+>  
+> +	init_rwsem(&fsi->devlist_sem);
+>  	fsi->mount_opts.mode = FAMFS_DEFAULT_MODE;
+>  	fc->s_fs_info        = fsi;
+>  	fc->ops              = &famfs_context_ops;
+> @@ -251,6 +483,8 @@ static void famfs_kill_sb(struct super_block *sb)
+>  {
+>  	struct famfs_fs_info *fsi = sb->s_fs_info;
+>  
+> +	famfs_devlist_free(fsi, sb);
+> +
+>  	kill_char_super(sb);
+>  
+>  	kfree(fsi);
+> diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
+> index 6f481d79ed88..ebb9c499cf69 100644
+> --- a/fs/famfs/famfs_internal.h
+> +++ b/fs/famfs/famfs_internal.h
+> @@ -11,22 +11,68 @@
+>  #ifndef FAMFS_INTERNAL_H
+>  #define FAMFS_INTERNAL_H
+>  
+> +#include <linux/rwsem.h>
+> +#include <linux/bits.h>
+> +#include <linux/build_bug.h>
+> +
+>  struct famfs_mount_opts {
+>  	umode_t mode;
+>  };
+>  
+> +/*
+> + * famfs_daxdev - one entry in the per-superblock daxdev table
+> + *
+> + * @valid:   slot is populated and the daxdev has been exclusively acquired
+> + * @error:   dax reported a memory error (probably poison) via notify_failure
+> + * @dax_err: fs_dax_get() failed for this daxdev
+> + * @devno:   dax device dev_t
+> + * @devp:    the acquired dax_device
+> + * @name:    dax device path (may be NULL for ioctl-registered daxdevs)
+> + */
+> +struct famfs_daxdev {
+> +	bool valid;
+> +	bool error;
+> +	bool dax_err;
+> +	dev_t devno;
+> +	struct dax_device *devp;
+> +	char *name;
+> +};
+> +
+> +/*
+> + * The daxdev index space (and thus this table) is capped at 64 so the set of
+> + * daxdev indices referenced by a file's fmap fits in a u64 bitmap.
+> + */
+> +#define FAMFS_MAX_DAXDEVS 64
+> +static_assert(BITS_PER_TYPE(u64) >= FAMFS_MAX_DAXDEVS);
+> +
+> +/*
+> + * famfs_dax_devlist - the per-superblock table of famfs_daxdev's. Slot 0 is
+> + * the primary daxdev supplied at mount; slots 1..n are registered via ioctl.
+> + */
+> +struct famfs_dax_devlist {
+> +	int nslots;
+> +	struct famfs_daxdev *devlist;
+> +};
+> +
+>  /**
+>   * @famfs_fs_info
+>   *
+>   * @mount_opts:  The mount options
+>   * @deverror:    True if the dax device has called our notify_failure entry
+>   *               point, or if other "shutdown" conditions exist
+> + * @dax_devlist: Table of backing daxdevs (slot 0 is the mount primary)
+> + * @devlist_sem: Serializes installs into, and teardown of, @dax_devlist
+>   */
+>  struct famfs_fs_info {
+>  	struct famfs_mount_opts   mount_opts;
+>  	bool                      deverror;
+> +	struct famfs_dax_devlist *dax_devlist;
+> +	struct rw_semaphore       devlist_sem;
+>  };
+>  
+>  int lookup_daxdev(const char *pathname, dev_t *devno);
+> +int famfs_devlist_alloc(struct famfs_fs_info *fsi);
+> +int famfs_install_daxdev(struct famfs_fs_info *fsi, struct super_block *sb,
+> +			 u64 index, dev_t devno, const char *name);
+>  
+>  #endif /* FAMFS_INTERNAL_H */
 > -- 
 > 2.53.0
 > 
