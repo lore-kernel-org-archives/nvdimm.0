@@ -1,48 +1,47 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 091416BB5B;
-	Thu,  6 Aug 2026 05:33:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F61330B0B;
+	Thu,  6 Aug 2026 05:34:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785994383; cv=none; b=mViUvKJxuEKxFyt5wS9ndZhCDF/EOCYbBClt1SYtX0q255FNts8yjySBeH9wxIQYoBkwdNnWUvL8SW0T98dXRdQBXjFj8z9LEVr7wyGcN4xp9lFBYMOdwSUZJ7g+5M34zVoE6OZt8e8chyDo7N9+iTN5QfYXfSh5ncFGZnUo1E8=
+	t=1785994453; cv=none; b=Ohz+KNb5bBvEsVwmgVctbP5WHshuRCAG8DgcxGXIzNXVLkO/PAofeHQg6HgJMvW52ygCVaUg6l94VIJK1FMt9NUlAeoK+zy+ujWiO5o6pNKfmOGVZdEDrWPBgJj6N3Fpmc1fwJOjyqs7t9Dg1x38FJvw58kwGiCoatABK5+1B7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785994383; c=relaxed/simple;
-	bh=xenIw2VnggLcXEKvYbPAjSiRhGMWranU1723zvHF5ng=;
+	s=arc-20240116; t=1785994453; c=relaxed/simple;
+	bh=qtFPb0PIesEz8aAUF8i75Bjty05zFqcGVFOo04ZMUH4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fq2Ee2iUC1uRxewpWVrim4TV+LeT5HWHfEHwARMCTKeV69qQWIPkfV1viAZyi7hg4EIoHav8Dfap13rEWblsVkjec4WPB61/39KU/v6AV6BHPdzW7W8gl3A2g2ppLIN1c+PUrT4NUrY70w95Ckd0FlwzqDUb/2ERHQBgriE8lPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NSBqqXAs; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=XN5HHxdYFHjUyXpRguwtcQLWrf3AlH6EXrXfyhpLX5V7V859YSDjIxotNpLlMTfmiU+sbfMuQbG7kuqc7WuuIaHX6GqHkfxxmbnv6Gc68guTf0r9N5uEao2XM8g/M0J2wB2nm65lI9pDCpBJfpzXxXvQeAq9EoOay7qojnOPN+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ogJHBTtJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NSBqqXAs"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 5D2951F000E9;
-	Thu,  6 Aug 2026 05:33:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ogJHBTtJ"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 505941F000E9;
+	Thu,  6 Aug 2026 05:34:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785994381;
-	bh=APg6zvsIeP5Q9qis3HQlEeHIKGdRHB8bY7cqy5avJsY=;
+	s=k20260515; t=1785994450;
+	bh=n9gPSN0F4S7gbGqQFG/UTpug4iTvH7g11Ov/aHjBKs4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=NSBqqXAsvNEvOPKuGaTpuIUGqis8T/GTeAJEoEfUeOmvql1uGaH2TyfIHYcOwycY3
-	 yt2HEXYHJUg+8Tc7OIaST83HJ4erCfTuUq4Y1WbWw81gaT7lmZM/u4QgL2mDr3txfV
-	 Tsu9Vtj4HhXg0eiY81mokzeaWqSl/xbzL5w5OzyLQn5fzDdG5wHDUaLtolG9XDunWy
-	 u4+QRDsgscgsNxO6NE6lGn47RYnoL6nX9gstGa0p0IC4OEog6Cnwrm1yrNtza1PuRI
-	 7hE+7unysZLn4ozg+eDSR5Ockdy+NrQzx9G70/aSf4h8zrMrnEBelNqagiTj4NAjNi
-	 fEguAm8mCVrQA==
-Date: Wed, 5 Aug 2026 22:33:00 -0700
+	b=ogJHBTtJoWZzvQTbD8nhWh0CC0f1pSL85swyRaZ0kGtyBr0E7cqcM+TZNmhPHXBB8
+	 ZeAaCIGWRKao4LHhcgf+w0E+gPjvhzHZ1o63szJwhL0B7UO/IgeoZ9YgocnAFYUfna
+	 EiLPEedhLH6M9GzSFml27aiZVnxl/L1CvNOkYn7oCeP8ubURUh/ou+z2YENryINz0c
+	 vnduVHhvys7+r6JKvz4paP+38lmXKBvbOkh4rcjHcySCxhNynGmRpoAchrflV/r6lX
+	 N0tEPSGQPRcShLtYqnWk9c7q2WnU0ubN+KYauGOFA0VHZThVXRCfFu8nhuC/XJDVvN
+	 R/NpqCIK8swhg==
+Date: Wed, 5 Aug 2026 22:34:09 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
-To: John Groves <john@jagalactic.com>
-Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, John Groves <john@jagalactic.com>,
+	John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
 	Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
 	Jake Edge <jake@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Dave Jiang <dave.jiang@intel.com>, Jan Kara <jack@suse.cz>,
 	Alexander Viro <viro@zeniv.linux.org.uk>,
 	David Hildenbrand <david@kernel.org>,
 	Christian Brauner <brauner@kernel.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Jeff Layton <jlayton@kernel.org>,
-	Amir Goldstein <amir73il@gmail.com>,
 	Jonathan Cameron <jic23@kernel.org>,
 	Stefan Hajnoczi <shajnocz@redhat.com>,
 	Joanne Koong <joannelkoong@gmail.com>,
@@ -75,12 +74,13 @@ Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
 	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 11/12] famfs: Report device capacity via statfs so df
- works
-Message-ID: <20260806053300.GK3560084@frogsfrogsfrogs>
-References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803023000.75948-1-john@jagalactic.com>
- <0100019fc57500f5-06c293c8-393c-44e3-ad42-d4f4de58245d-000000@email.amazonses.com>
+Subject: Re: [PATCH V12 00/12] famfs: the Fabric-Attached Memory File System
+ (standalone)
+Message-ID: <20260806053409.GL3560084@frogsfrogsfrogs>
+References: <20260803022730.75731-1-john@jagalactic.com>
+ <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
+ <CAOQ4uxhpkP7FsjaqqVO2aDSKCJ9yc3WKms6dncqnDuwGxqthng@mail.gmail.com>
+ <anQZdSsJSyoqJkCo@casper.infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -89,223 +89,49 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0100019fc57500f5-06c293c8-393c-44e3-ad42-d4f4de58245d-000000@email.amazonses.com>
+In-Reply-To: <anQZdSsJSyoqJkCo@casper.infradead.org>
 
-On Mon, Aug 03, 2026 at 02:30:07AM +0000, John Groves wrote:
-> From: John Groves <John@Groves.net>
+On Thu, Aug 06, 2026 at 06:19:49AM +0100, Matthew Wilcox wrote:
+> On Mon, Aug 03, 2026 at 10:52:19AM +0200, Amir Goldstein wrote:
+> > > The most important thing to know about famfs is that it CANNOT be used as a
+> > > general purpose file system. It is for enabling file-based byte-level access
+> > > (including direct mmap) to very large (e.g. 100TB) shared/disaggregated
+> > > memory appliances - which have become available during this long process,
+> > > and which are in need of Linux support.
+> > >
+> > > So famfs cannot be used by anybody who doesn't know why they need it; Making
+> > > famfs standalone means it can't affect users who don't use it. And my super-
+> > > mega-corp employer (Micron), as well as other memory companies, need it.
+> > > We do not intend to abandon it, but imagine if we did: fs/famfs/ should be
+> > > removed if the memory companies can't be bothered to maintain it.
+> > 
+> > It does not work this way.
+> > When vfs maintainers accept standalone famfs they accept the burden of
+> > maintaining it whenever vfs internal APIs change even if the filesystem was
+> > abandoned by the mega-corps.
+> > That is the code of the push back for adding new filesystems.
+> > Removing the fs and breaking deployed systems is not an option for the vfs
+> > maintainers.
 > 
-> Replace simple_statfs(), which reports zero blocks (so df omits the mount),
-> with famfs_statfs() reporting real capacity and usage.
-> 
-> Add dax_fsdev_size() in drivers/dax/fsdev.c, returning the size fsdev
-> caches at probe (dev_dax->cached_size - the sum of the device's ranges,
-> stable while bound), exported. It lives in fsdev.c because cached_size is
-> set only by the fsdev driver, and famfs only ever holds fsdev-mode daxdevs
-> (fs_dax_get() enforces DAXDRV_FSDEV_TYPE); famfs.ko therefore depends on
-> fsdev_dax.ko.
-> 
-> famfs tracks two byte counters under a new stats_sem:
->  - total_capacity: summed in famfs_install_daxdev() from dax_fsdev_size(),
->    covering the mount primary and every DAXDEV_OPEN secondary, counted once
->    per daxdev (on the valid 0->1 transition).
->  - used_capacity: summed in famfs_file_init_dax() from the fmap's mapped
->    device bytes (superblock + log + data files).
-> 
-> famfs_statfs() reports total and free (total - used). Free is an
-> approximation of the userspace allocator's free space (it ignores allocator
-> gaps and reserved regions), which is adequate for df.
-> 
-> (Side note: I am the maintainer of drivers/dax/fsdev.c)
-> 
-> Signed-off-by: John Groves <john@groves.net>
-> ---
->  drivers/dax/fsdev.c       | 19 +++++++++++++++++
->  fs/famfs/famfs_file.c     |  5 +++++
->  fs/famfs/famfs_inode.c    | 43 ++++++++++++++++++++++++++++++++++++++-
->  fs/famfs/famfs_internal.h |  8 ++++++++
->  include/linux/dax.h       |  1 +
->  5 files changed, 75 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> index 188b2526bee4..a5b4b2d79428 100644
-> --- a/drivers/dax/fsdev.c
-> +++ b/drivers/dax/fsdev.c
-> @@ -104,6 +104,25 @@ static size_t fsdev_dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff
->  	return _copy_from_iter_flushcache(addr, bytes, i);
->  }
->  
-> +/**
-> + * dax_fsdev_size() - total size in bytes of an fsdev dax device
-> + * @dax_dev: the dax device (must be bound to this driver)
-> + *
-> + * Returns the size cached at probe time (sum of all ranges); it cannot change
-> + * while the driver is bound. Only valid for fsdev dax devices - callers
-> + * ensure that (e.g. fs_dax_get() enforces DAXDRV_FSDEV_TYPE). Returns 0 if the
-> + * device is not alive.
-> + */
-> +u64 dax_fsdev_size(struct dax_device *dax_dev)
-> +{
-> +	struct dev_dax *dev_dax = dax_get_private(dax_dev);
-> +
-> +	if (!dev_dax)
-> +		return 0;
-> +	return dev_dax->cached_size;
-> +}
-> +EXPORT_SYMBOL_GPL(dax_fsdev_size);
-> +
->  static const struct dax_operations dev_dax_ops = {
->  	.direct_access = fsdev_dax_direct_access,
->  	.zero_page_range = fsdev_dax_zero_page_range,
-> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> index abf049b32a4b..5be39d677089 100644
-> --- a/fs/famfs/famfs_file.c
-> +++ b/fs/famfs/famfs_file.c
-> @@ -280,6 +280,11 @@ famfs_file_init_dax(struct file *file, void __user *arg)
->  	}
->  	inode_unlock(inode);
->  
-> +	/* Account the mapped device bytes for statfs (only on success) */
-> +	if (!rc) {
-> +		scoped_guard(rwsem_write, &fsi->stats_sem)
-> +			fsi->used_capacity += extent_total;
-> +	}
->  out:
->  	kvfree(fmap_buf);
->  	if (meta)
-> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> index 6cbd7d657fd8..3c0d1094d653 100644
-> --- a/fs/famfs/famfs_inode.c
-> +++ b/fs/famfs/famfs_inode.c
-> @@ -24,6 +24,7 @@
->  #include <linux/iomap.h>
->  #include <linux/path.h>
->  #include <linux/namei.h>
-> +#include <linux/statfs.h>
->  
->  #include "famfs_internal.h"
->  
-> @@ -307,8 +308,37 @@ static void famfs_evict_inode(struct inode *inode)
->  	clear_inode(inode);
->  }
->  
-> +/*
-> + * famfs_statfs() - report device capacity and consumption so 'df' works.
-> + * @total_capacity is the sum of installed daxdev sizes; @used_capacity is the
-> + * sum of device bytes mapped by fmaps (superblock + log + data files). Free is
-> + * the difference - an approximation of the userspace allocator's free space
-> + * (it ignores allocator gaps / reserved regions), which is fine for df.
-> + */
-> +static int famfs_statfs(struct dentry *dentry, struct kstatfs *buf)
-> +{
-> +	struct famfs_fs_info *fsi = dentry->d_sb->s_fs_info;
-> +	u64 total, used, free;
-> +
-> +	scoped_guard(rwsem_read, &fsi->stats_sem) {
-> +		total = fsi->total_capacity;
-> +		used  = fsi->used_capacity;
-> +	}
-> +	free = total > used ? total - used : 0;
-> +
-> +	buf->f_type    = FAMFS_SUPER_MAGIC;
-> +	buf->f_bsize   = PAGE_SIZE;
-> +	buf->f_frsize  = PAGE_SIZE;
-> +	buf->f_blocks  = total >> PAGE_SHIFT;
-> +	buf->f_bfree   = free  >> PAGE_SHIFT;
-> +	buf->f_bavail  = free  >> PAGE_SHIFT;	/* no root reservation */
-> +	buf->f_namelen = NAME_MAX;
-> +	buf->f_fsid    = u64_to_fsid(huge_encode_dev(dentry->d_sb->s_dev));
-> +	return 0;
-> +}
-> +
->  static const struct super_operations famfs_super_ops = {
-> -	.statfs		= simple_statfs,
-> +	.statfs		= famfs_statfs,
->  	.drop_inode	= inode_just_drop,
->  	.show_options	= famfs_show_options,
->  	.evict_inode    = famfs_evict_inode,
-> @@ -399,6 +429,7 @@ int famfs_install_daxdev(
->  		const char *name)
->  {
->  	struct famfs_daxdev *daxdev;
-> +	struct dax_device *devp = NULL;
->  	int rc = 0;
->  
->  	if (index >= fsi->dax_devlist->nslots) {
-> @@ -462,6 +493,15 @@ int famfs_install_daxdev(
->  
->  		wmb(); /* All other fields must be visible before valid */
->  		daxdev->valid = 1;
-> +		devp = daxdev->devp;
-> +	}
-> +
-> +	/* Freshly installed: add its capacity to the statfs accounting */
-> +	if (devp) {
-> +		u64 sz = dax_fsdev_size(devp);
-> +
-> +		scoped_guard(rwsem_write, &fsi->stats_sem)
-> +			fsi->total_capacity += sz;
+> Sure it is.  We removed EFS just last month, because we decided that it
+> wasn't worth keeping any more.  Just like we removed Itanium architecture
+> support (and a number of other architectures before that).  We've removed
+> other filesystems in the past (xiafs, ext, surely a few others).
 
-Can dax devices change size the same way block devices can?
-
-Though for statfs that hardly matters; a bdev shrinkage rarely causes
-b_avail to be updated even if the filesystem starts barfing IO errors
-due to invalid LBA range.
-
-The code in here looks good to me otherwise.
+and freevxfs just this week because the one user/complainer said hch
+could let it die.
 
 --D
 
->  	}
->  
->  	return 0;
-> @@ -717,6 +757,7 @@ static int famfs_init_fs_context(struct fs_context *fc)
->  		return -ENOMEM;
->  
->  	init_rwsem(&fsi->devlist_sem);
-> +	init_rwsem(&fsi->stats_sem);
->  	atomic64_set(&fsi->opts, FAMFS_OPT_DEFAULT);
->  	fsi->mount_opts.mode = FAMFS_DEFAULT_MODE;
->  	fc->s_fs_info        = fsi;
-> diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
-> index 26873162b4a0..0bf50774fa82 100644
-> --- a/fs/famfs/famfs_internal.h
-> +++ b/fs/famfs/famfs_internal.h
-> @@ -123,6 +123,11 @@ struct famfs_dax_devlist {
->   *               point, or if other "shutdown" conditions exist
->   * @dax_devlist: Table of backing daxdevs (slot 0 is the mount primary)
->   * @devlist_sem: Serializes installs into, and teardown of, @dax_devlist
-> + * @stats_sem:   Protects the statfs accounting counters below
-> + * @total_capacity: Sum of installed daxdev sizes, in bytes (grows as daxdevs
-> + *               are added)
-> + * @used_capacity:  Sum of installed fmap sizes, in bytes (grows as MAP_CREATE
-> + *               attaches fmaps; this is device bytes consumed, not file size)
->   */
->  struct famfs_fs_info {
->  	struct famfs_mount_opts   mount_opts;
-> @@ -130,6 +135,9 @@ struct famfs_fs_info {
->  	bool                      deverror;
->  	struct famfs_dax_devlist *dax_devlist;
->  	struct rw_semaphore       devlist_sem;
-> +	struct rw_semaphore       stats_sem;
-> +	u64                       total_capacity;
-> +	u64                       used_capacity;
->  };
->  
->  /*
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 29113eb95e72..c25ef499d04f 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -256,6 +256,7 @@ static inline void dax_break_layout_final(struct inode *inode)
->  
->  bool dax_alive(struct dax_device *dax_dev);
->  void *dax_get_private(struct dax_device *dax_dev);
-> +u64 dax_fsdev_size(struct dax_device *dax_dev);
->  int dax_set_ops(struct dax_device *dax_dev, const struct dax_operations *ops);
->  long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
->  		enum dax_access_mode mode, void **kaddr, unsigned long *pfn);
-> -- 
-> 2.53.0
+> Yes, there are burdens on others by accepting this filesystem -- but if
+> it's a standalone VFS filesystem, those are felt by those who work on
+> the VFS.  If it's part of FUSE, then it's felt by those who work on FUSE.
+> And we've already determined that those who work on FUSE are even more
+> overburdened than those who work on the VFS.
 > 
+> famfs does not seem to be a natural fit for FUSE.  It has needs unlike any
+> other Linux filesystem, and quite possibly unlike any other filesystem
+> that is to come.  Rearchitecting FUSE to make famfs fit seems like a
+> very dodgy proposition to me.
 > 
 > 
