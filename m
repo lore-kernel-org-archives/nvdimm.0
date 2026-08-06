@@ -1,106 +1,104 @@
-Received: from relay.hostedemail.com (smtprelay0014.hostedemail.com [216.40.44.14])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B0EC433E79;
-	Thu,  6 Aug 2026 22:30:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E58DC25B2F4
+	for <nvdimm@lists.linux.dev>; Thu,  6 Aug 2026 22:32:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786055455; cv=none; b=PHoq6ddZPcE0XMn7V0RzQFXPkULCJdBYe6/Lhn6uiv+OZCWlcIUElCvDfUzlu7J9V6hDo6/Q9jq5tnxCv+Li0TmL3gncyBvgmTZGxo9zACTOkhwSiDSIRnsQRXEAY2iKafE+VXBSHgoHHG16uPuVIC1FIAAEVp/PpOhk6vDbkFc=
+	t=1786055559; cv=none; b=JHrWYvQR7n3baJ1xDxS8U0azAPyX6BueLDPr/+inBf5U/Q5/oO+ptkN+dam2p8otlAjTCN6jFvmsKrzVTAwp5xiveWq6EzIUhe7Ix+33geRFYkP/8zzDvn+M33Y9fr1flk2COXtKqkqv6TRfrAuP1bzbb6PcFIxh6kYkNdhb2x8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786055455; c=relaxed/simple;
-	bh=qyHVJJ1Np197evupjuCDw3AOO9nsqP38d1h6nU3H+Dw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q4DFkLLtjBuhFQq9NeUDvUx+miJvuKZ+QKFUnmreiKSkYQnKM3ITiS3sLR4w6hhSG6t/pPAPCRdVXD7W4USlDOgjcWgkKl+QGR6e1k/V7JBMxUxPukMF1ZnlLIbcRE/y2Uv0IHD2V04iwYOLeS4Xh7dYEV7JD/5lpPE4wP+VDpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf15.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay08.hostedemail.com (Postfix) with ESMTP id DC0C7140553;
-	Thu,  6 Aug 2026 22:30:43 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf15.hostedemail.com (Postfix) with ESMTPA id B1F551B;
-	Thu,  6 Aug 2026 22:30:27 +0000 (UTC)
-Date: Thu, 6 Aug 2026 17:30:26 -0500
-From: John Groves <John@groves.net>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Jake Edge <jake@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
-	Jonathan Cameron <jic23@kernel.org>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Ira Weiny <iweiny@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
-	Haren Myneni <haren@linux.ibm.com>, Pratyush Yadav <pratyush@kernel.org>, 
-	Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Jiri Slaby <jirislaby@kernel.org>, 
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>, Gabriel Whigham <gabewhigham@gmail.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 10/12] famfs: Add runtime operation-permission (opts)
- framework
-Message-ID: <anUJmuNV5mFBmksw@groves.net>
-References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022950.75930-1-john@jagalactic.com>
- <0100019fc574dabe-572d99fc-3bb0-421a-afec-05432de2a757-000000@email.amazonses.com>
- <20260806053100.GJ3560084@frogsfrogsfrogs>
+	s=arc-20240116; t=1786055559; c=relaxed/simple;
+	bh=Dk6d6KTI5vtbRefIXYdK2zKg98jotDykzopPgvESPoU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uJUblv/9yeS/Kk7wqrUvtYZkPcBD2PftZ1c7VVk4pd966JU8DRoPrFiL5zOE8m0DpjPr1zFTr0+83bAOBY96E5A9CEekDWrcnbCCIBuQTFnb1KumeZxCilYHEulW0FOruhDuNxhzEJjzVp0pI4bmsUzqKEphahubSifyqihK0sw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QeaZA6x7; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QeaZA6x7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786055555; x=1817591555;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Dk6d6KTI5vtbRefIXYdK2zKg98jotDykzopPgvESPoU=;
+  b=QeaZA6x7nwd7/bzM0MGKhjO+jtsGgmNPLaBEzrCnZVH8MCoiMz7ael2d
+   BpAmM41bX0wwq8kc7ddaM7vH3E5+1XE3yjzY7ULbIujZzPs2K0QCaj1eu
+   Y8BIPrBEOFVuJL1C+5zUYmUQnnX01l0BxwEfD+8ji1r5CpLDIjbWHqOGG
+   vGidK1/RwUoydEmJpj55S/siYnwqdXmNyOEP38Pz+bmVASlHnhGsGZLD3
+   exZrdVNaLR5j7XVEUmZYn49fycSd2+ynrAwOJbvEmG7Jq+SW61ZL5cv7E
+   iq7iNDRFsXplqD6T4LLw1UktmLzM8uXvGHJevqO6Tyroj9wWbq0fKnfXi
+   w==;
+X-CSE-ConnectionGUID: IOyl6ATITkm8HeL6Rntk6Q==
+X-CSE-MsgGUID: 19hWT2THT/e4YXgcpFDkRA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11867"; a="86513345"
+X-IronPort-AV: E=Sophos;i="6.25,209,1779174000"; 
+   d="scan'208";a="86513345"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 15:32:31 -0700
+X-CSE-ConnectionGUID: E9QjSI28SxWCevUyBrFnAQ==
+X-CSE-MsgGUID: 8NF06fbkQaKdmNAyruE9bQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,209,1779174000"; 
+   d="scan'208";a="285605533"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.222.8])
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 15:31:20 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev
+Cc: Tao Xu <xutao323@gmail.com>,
+	linux-cxl@vger.kernel.org,
+	Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH] util/sysfs: do not fail on missing bind attributes
+Date: Thu,  6 Aug 2026 15:31:11 -0700
+Message-ID: <20260806223116.2354715-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260806053100.GJ3560084@frogsfrogsfrogs>
-X-Stat-Signature: bw5em5g91hg913xpaesgugrouo4wrfn9
-X-Rspamd-Server: rspamout06
-X-Rspamd-Queue-Id: B1F551B
-X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX19JCa/3povowe+DVCaTZremTyrvXzE9dnQ=
-X-HE-Tag: 1786055427-275828
-X-HE-Meta: U2FsdGVkX19kEufDJVAy1gAj6uX2nDLCMmpAAN6usy3i1o+xi9PabxL+EioG4DkZXPut0+l8QSWoMAI3GpyQVamkZYvkiIf0/ZrhbwCamP2Bn7uXlbwx/m0WCdq5TaB/klmYruBqb+w85tYTPKSaW2J4uznKsgho/Y0ChfhKuc6JRG21vYVJGSZPvtvGXKIIrbMDgyuEVaYAS9AQ0VXNOOW9fUKpE2pboIcdZpuZaIDcguVWUExVC3d1axI8+sUl2q6zUhaJYeCKCRWI5FrXSnExsHx7SqBaOguD71asvanO+3QVIDwcfV3OxywzVd3pRmdY5gx/oUx601TQ5cF27dxii60aVlQ8DcTrGrRchmAN9zlorO5H1Eu7Nf9fXjkk
+Content-Transfer-Encoding: 8bit
 
-On 26/08/05 10:31PM, Darrick J. Wong wrote:
-> On Mon, Aug 03, 2026 at 02:29:57AM +0000, John Groves wrote:
-> > From: John Groves <John@Groves.net>
-> > 
-> > famfs denies most namespace, attribute and data operations by default
-> > because the userspace log, not the kernel, is authoritative for a famfs
-> > instance. Earlier commits already guard each such operation with a
-> > famfs_opt_enabled(fsi, FAMFS_OPT_x) check backed by a permissive stub. This
-> > commit defines the permission bitmap and makes those checks live.
-> 
-> Why would it ever be acceptable for user programs to mess with the
-> directory tree and file attributes?  There's nothing here that would
-> seem to write to the userspace log.  Or am I mistaken, and only the
-> program that maintains the userspace log (e.g. the famfs server) can do
-> these kinds of operations?
-> 
-> --D
+From: Tao Xu <xutao323@gmail.com>
 
-Mostly it's the code that maintains the log that needs to create stub
-files and then pass in fmaps (MAP_CREATE). Changes made via the 
-"front door" of a mount are ephemeral, but allowing them can have practical
-value (e.g. allowing chown/chmod, which people actually seem to need to
-do sometimes. Also at one point a user sent me a patch enabling symlink
-creation, because some software needed that.)
+Kernel commit cb9cfff82f6a ("cxl/acpi: Simplify cxl_nvdimm_bridge
+probing") removed bind attrributes for cxl_pmem_region and
+cxl_nvdimm* objects.
 
-But you're right that any changes we do allow are ephemeral (not logged).
+__util_bind() currently attempts to write to the bind attribute of
+every entry under /sys/bus/cxl/drivers/. On kernels where some driver
+directories no longer provide that attribute, these attempts fail with
+ENOENT and produce misleading bind errors.
 
-Thanks!
-John
+Check that the bind attribute exists before attempting the write.
 
-<snip>
+[ as: commit log edited ]
+
+Reported-by: Tao Xu <xutao323@gmail.com>
+Closes: https://github.com/pmem/ndctl/issues/298
+Signed-off-by: Tao Xu <xutao323@gmail.com>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ util/sysfs.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/util/sysfs.c b/util/sysfs.c
+index eaf4b60aacee..2dd4b48b4459 100644
+--- a/util/sysfs.c
++++ b/util/sysfs.c
+@@ -258,6 +258,11 @@ int __util_bind(const char *devname, struct kmod_module *module,
+ 			continue;
+ 		}
+ 
++		if (access(drv_path, F_OK) != 0) {
++			free(drv_path);
++			continue;
++		}
++
+ 		rc = __sysfs_write_attr_quiet(ctx, drv_path, devname);
+ 		free(drv_path);
+ 		if (rc == 0)
+-- 
+2.37.3
 
