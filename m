@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0016.hostedemail.com [216.40.44.16])
+Received: from relay.hostedemail.com (smtprelay0014.hostedemail.com [216.40.44.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD733B71D9;
-	Thu,  6 Aug 2026 20:41:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D64236403D;
+	Thu,  6 Aug 2026 20:59:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786048888; cv=none; b=hRonwniX+s5RjAX9kacmKe/qUJpP8KTtyunuek0sLwx2n9ndinyzGZX2SxzrYhZobs4R1da2eI6cIR3CUeMpl1TC2rPhRD6f44POr7HM83lnj4dk4+uizAmccqQZwiKt4XH1m4VdmKGOZTv6Rf2BJ7bBZwq6+T+Mb5RqUi4gVCQ=
+	t=1786049967; cv=none; b=R0Wm48XPAPY8rhJiKLZsnuaPOe3KNkXxRC04s4rVSYhkqlIPOvtB+Htx/zYj1LmXrvFqq+dYQODllHpyadvnFnvAk/ivifDT84L7txx5K1pptf4IoLze0RMp6XIvsMqSUcMXV36wiFTAp+AVb/ifdmAOyawhcrMmKL0S7bEpk1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786048888; c=relaxed/simple;
-	bh=xR6HG6PiaFqYPWaSc0BbpGc+xguUSO7QguoVLPIuIIk=;
+	s=arc-20240116; t=1786049967; c=relaxed/simple;
+	bh=f+glLTwLHrgOx3n5kNTZD8gFaKG3d+0k50x/OseJ1k8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cweuuNr+VPyffrwIlMSa1lo7mowd/Q4cq1AyEAOc0flOxZjl6QG7V4EtgZuS3eLTmBP5mTZXBzxhdZKXEgJXJRd/FypjfEP7Dn5b6ZjCDT3qPQdZgOk1pf/Fv7/FzoKropgHWu3MgUVrIdnBW6SFb0ctCzxxKjO4whWc+Rk24z8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.16
+	 Content-Type:Content-Disposition:In-Reply-To; b=CmhHWHOjWPmi0FB59X4fXHxyCM4kZJQ7pKf0gqd/svUy8Epj0edD1vPd1KMM97y8ZrIgPeF7ELgkOqHhgGLfw+PCbSt638uEsZ+MqJo6NiIiKeN9OpWEjmYZOr3UnpR+jbb+Z4VfgiP9dwzO2QEyAoHm8hMF9WRx+9BAMOMBwTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf14.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay10.hostedemail.com (Postfix) with ESMTP id 811A9C0208;
-	Thu,  6 Aug 2026 20:41:14 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf14.hostedemail.com (Postfix) with ESMTPA id 0254130;
-	Thu,  6 Aug 2026 20:40:57 +0000 (UTC)
-Date: Thu, 6 Aug 2026 15:40:56 -0500
+Received: from omf06.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay08.hostedemail.com (Postfix) with ESMTP id A703A140134;
+	Thu,  6 Aug 2026 20:53:31 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf06.hostedemail.com (Postfix) with ESMTPA id E2B4220010;
+	Thu,  6 Aug 2026 20:53:14 +0000 (UTC)
+Date: Thu, 6 Aug 2026 15:53:13 -0500
 From: John Groves <John@groves.net>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
@@ -48,12 +48,13 @@ Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
 	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 06/12] famfs: Introduce mmap and VM fault handling
-Message-ID: <anTwmJN1uDMt1_rS@groves.net>
+Subject: Re: [PATCH V12 07/12] famfs: MAP_CREATE ioctl and fmap ingest (ABI
+ 44)
+Message-ID: <anTxt3qsUQuCKvMz@groves.net>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022909.75856-1-john@jagalactic.com>
- <0100019fc5743aef-39284cf3-b235-4a69-832f-c51b2198e8da-000000@email.amazonses.com>
- <20260806051643.GF3560084@frogsfrogsfrogs>
+ <20260803022919.75875-1-john@jagalactic.com>
+ <0100019fc5746312-6cfe9a07-a658-4aba-b1e9-5233b0ddfcf4-000000@email.amazonses.com>
+ <20260806052449.GG3560084@frogsfrogsfrogs>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -62,112 +63,319 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260806051643.GF3560084@frogsfrogsfrogs>
-X-Rspamd-Queue-Id: 0254130
-X-Stat-Signature: rgkrbshmb4e5xmnxcodmnkbtuy4zi1hh
-X-Rspamd-Server: rspamout03
+In-Reply-To: <20260806052449.GG3560084@frogsfrogsfrogs>
+X-Stat-Signature: moa1cpj8pcs6f16nimka5m19rgobpa64
+X-Rspamd-Server: rspamout06
+X-Rspamd-Queue-Id: E2B4220010
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1+E2Va6GuIuXSLukgenZUgCPOnJ1XdWtXg=
-X-HE-Tag: 1786048857-712595
-X-HE-Meta: U2FsdGVkX18tDPFgu0OyBXUVVFumMXeX6MI7yVjs5QcOa2qMbkCR4fyrWsOwrcAliP+/0VRtGY04vN7FfLDx9/+XWXXKl5CdWNwz3bxG5ZuP4FvGiy6zEOi5mxjRzx2Xj1FqlZbmKPsGML3hXhEEO/8b9pOIgxqy0pkbFbt9X3FXkjkHbSijiOq/00NE0yIsvJjky3qzKUB/tPcFW1L+7hNKSHFMKYvmK7EAjLoGD2UPQL7URStfeGlAScywurhpMu8zX5bn/ID3BeYLJzpv3sTzKPfML8DtspQw7HM7QrLAOCn6tlbwgGR9bfgtqQ6/1FysFaoFbkADyJqIRAd0nl8s5GJM1uAMr4DXkTgTXNa43IViI67fUGg1D8QiSYmw
+X-Session-ID: U2FsdGVkX19crjVaPOFBEHmKBC7wFurdodKMOgzBtgA=
+X-HE-Tag: 1786049594-931971
+X-HE-Meta: U2FsdGVkX1/4IpGuRLK5HgSSFcQqi44u6Z1DdtiGAfxjzuoLO+PsjuPjwAKirjJX7OtYtPChdy9wL09X/s9feMcatR6K08AJBqaEEKgLj0cZgyU6xLu2skbPALPZxqc3I0zKBjh/pX+ft5373sWXay0M/G93BVTmK4Ua99Oq1vRi65PTG46zEzA2S06wGD6DNn44Q0r7Itg69TuxX03OIdqfHmPwHysgpbJXfx+HzNk4bNPJk4fzzYszQ6XvrVDBxnDayxHngCtwX9tEB8SRI+JwDNbOB/nP1D+Pyvqcbb8rEuaW1mAV7p9IyWrEzDSAHu0wQ3adQFzxpvQXRQo6vSXrh2RW0ynyYuRFnp7qUraMUAUPT9guGQ7k/0W9zbVS
 
-On 26/08/05 10:16PM, Darrick J. Wong wrote:
-> On Mon, Aug 03, 2026 at 02:29:16AM +0000, John Groves wrote:
-> > From: John Groves <john@groves.net>
+On 26/08/05 10:24PM, Darrick J. Wong wrote:
+> On Mon, Aug 03, 2026 at 02:29:26AM +0000, John Groves wrote:
+> > From: John Groves <John@Groves.net>
 > > 
-> > This commit adds vm_operations, plus famfs_mmap() and fault handlers.
-> > It is still missing iomap_ops, iomap mapping resolution, and
-> > famfs_ioctl() for setting up file-to-memory mappings.
+> > Add the famfs file ioctl handler (FAMFSIOC_NOP, FAMFSIOC_MAP_CREATE) and
+> > the KABI-44 self-describing fmap message: the wire ABI in famfs_ioctl.h
+> > (famfs_ioc_fmap_header plus the simple and interleaved extent structs), the
+> > in-core famfs_file_meta, and famfs_file_init_dax(), which copies the
+> > message in, parses both the simple-extent and interleaved (striped) wire
+> > forms into inode->i_private, and sets S_DAX.
+> > 
+> > Resolving those mappings to dax-device offsets (iomap_begin) is added in
+> > the following commit; the read/write/fault paths keep their NULL iomap_ops
+> > stub until then.
+> > 
+> > Also add famfs ioctls to ioctl-number.rst
 > > 
 > > Signed-off-by: John Groves <john@groves.net>
 > > ---
-> >  fs/famfs/famfs_file.c | 101 +++++++++++++++++++++++++++++++++++++++++-
-> >  1 file changed, 100 insertions(+), 1 deletion(-)
+> >  .../userspace-api/ioctl/ioctl-number.rst      |   1 +
+> >  fs/famfs/famfs_file.c                         | 326 +++++++++++++++++-
+> >  fs/famfs/famfs_inode.c                        |   1 +
+> >  fs/famfs/famfs_internal.h                     |  46 +++
+> >  include/uapi/linux/famfs_ioctl.h              |  91 +++++
+> >  5 files changed, 462 insertions(+), 3 deletions(-)
+> >  create mode 100644 include/uapi/linux/famfs_ioctl.h
 > > 
+> > diff --git a/Documentation/userspace-api/ioctl/ioctl-number.rst b/Documentation/userspace-api/ioctl/ioctl-number.rst
+> > index 3f0ef1e27eb0..5e244dec1b98 100644
+> > --- a/Documentation/userspace-api/ioctl/ioctl-number.rst
+> > +++ b/Documentation/userspace-api/ioctl/ioctl-number.rst
+> > @@ -299,6 +299,7 @@ Code  Seq#    Include File                                             Comments
+> >  'u'   00-2F  linux/ublk_cmd.h                                          conflict!
+> >  'u'   20-3F  linux/uvcvideo.h                                          USB video class host driver
+> >  'u'   40-4f  linux/udmabuf.h                                           userspace dma-buf misc device
+> > +'u'   50-5F  linux/famfs_ioctl.h                                       famfs shared memory file system
+> >  'v'   00-1F  linux/ext2_fs.h                                           conflict!
+> >  'v'   00-1F  linux/fs.h                                                conflict!
+> >  'v'   00-0F  linux/sonypi.h                                            conflict!
 > > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> > index e192b573c51f..678f2035fd5f 100644
+> > index 678f2035fd5f..d710c8a0c923 100644
 > > --- a/fs/famfs/famfs_file.c
 > > +++ b/fs/famfs/famfs_file.c
-> > @@ -16,6 +16,75 @@
+> > @@ -13,9 +13,313 @@
+> >  #include <linux/mm.h>
+> >  #include <linux/dax.h>
+> >  #include <linux/iomap.h>
+> > +#include <linux/capability.h>
 > >  
+> > +#include <linux/famfs_ioctl.h>
 > >  #include "famfs_internal.h"
 > >  
-> > +/*********************************************************************
-> > + * vm_operations
+> > +/* Expose famfs kernel abi version as a read-only module parameter */
+> > +static int famfs_kabi_version = FAMFS_KABI_VERSION;
+> > +module_param(famfs_kabi_version, int, 0444);
+> > +MODULE_PARM_DESC(famfs_kabi_version, "famfs kernel abi version");
+> 
+> Maybe make the "NOP" ioctl a geometry ioctl that tells you the abi
+> version and (I guess) the page and pmd size? :D
+
+I like it - will do
+
+> 
+> > +void
+> > +famfs_meta_free(struct famfs_file_meta *map)
+> > +{
+> > +	if (map) {
+> > +		switch (map->fm_extent_type) {
+> > +		case FAMFS_IOC_EXT_SIMPLE:
+> > +			kfree(map->se);
+> > +			break;
+> > +		case FAMFS_IOC_EXT_INTERLEAVE:
+> > +			if (map->ie) {
+> > +				u32 i;
+> > +
+> > +				for (i = 0; i < map->fm_niext; i++)
+> > +					kfree(map->ie[i].ie_strips);
+> > +			}
+> > +			kfree(map->ie);
+> > +			break;
+> > +		default:
+> > +			break;
+> > +		}
+> > +	}
+> > +	kfree(map);
+> > +}
+> > +
+> > +/**
+> > + * famfs_file_init_dax() - FAMFSIOC_MAP_CREATE ioctl handler
+> > + * @file: the un-initialized file
+> > + * @arg:  user pointer to a self-describing fmap message
+> > + *
+> > + * The map-create ioctl carries the fmap as a self-describing message: a
+> > + * struct famfs_ioc_fmap_header followed by an extent list. The message is
+> > + * copied in, parsed into a famfs_file_meta, and published on inode->i_private.
+> > + * Both the simple-extent and the interleaved (striped) wire forms are handled.
+> > + * The wire layout byte-matches the fmap carried in a fuse famfs GET_FMAP reply.
 > > + */
-> > +static vm_fault_t
-> > +__famfs_filemap_fault(struct vm_fault *vmf, unsigned int order,
-> > +		      bool write_fault)
+> 
+> This kerneldoc is for the next function?
+
+Oops, fixed thanks!
+
+> 
+> > +static int
+> > +famfs_check_ext_alignment(struct famfs_meta_simple_ext *se)
 > > +{
-> > +	struct inode *inode = file_inode(vmf->vma->vm_file);
-> > +	struct super_block *sb = inode->i_sb;
-> > +	struct famfs_fs_info *fsi = sb->s_fs_info;
-> > +	vm_fault_t ret;
-> > +	unsigned long pfn;
+> > +	int errs = 0;
 > > +
+> > +	if (!IS_ALIGNED(se->ext_offset, PMD_SIZE))
+> > +		errs++;
+> > +	if (!IS_ALIGNED(se->ext_len, PMD_SIZE))
+> > +		errs++;
+> 
+> Does this need to check the dax dev index is valid?  Or is it ok to just
+> fail an IO if that index is garbage?
+
+That is validated elsewhere
+
+> 
+> > +
+> > +	return errs;
+> > +}
+> > +
+> > +static int
+> > +famfs_file_init_dax(struct file *file, void __user *arg)
+> > +{
+> > +	struct famfs_ioc_fmap_header fmh;
+> > +	struct famfs_file_meta *meta = NULL;
+> > +	struct famfs_fs_info *fsi;
+> > +	struct super_block *sb;
+> > +	struct inode *inode;
+> > +	void *fmap_buf = NULL;
+> > +	size_t extent_total = 0;
+> > +	size_t next_offset;
+> > +	int errs = 0;
+> > +	int rc;
+> > +	u32 i, j;
+> > +
+> > +	inode = file_inode(file);
+> > +	if (!inode)
+> > +		return -EBADF;
+> > +	if (inode->i_private)
+> > +		return -EEXIST;
+> > +
+> > +	sb  = inode->i_sb;
+> > +	fsi = sb->s_fs_info;
 > > +	if (fsi->deverror)
-> > +		return VM_FAULT_SIGBUS;
+> > +		return -ENODEV;
+> > +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_MAP_CREATE))
+> > +		return -EPERM;
 > > +
-> > +	if (!IS_DAX(file_inode(vmf->vma->vm_file))) {
-> > +		pr_err("%s: file not marked IS_DAX!!\n", __func__);
-> > +		return VM_FAULT_SIGBUS;
+> > +	if (copy_from_user(&fmh, arg, sizeof(fmh)))
+> > +		return -EFAULT;
+> > +
+> > +	if (fmh.fmap_version != FAMFS_FMAP_VERSION)
+> > +		return -EINVAL;
+> > +	if (fmh.fmap_size < sizeof(fmh))
+> > +		return -EINVAL;
+> > +	if (fmh.fmap_size > FAMFS_FMAP_MSG_MAX)
+> > +		return -EFBIG;
+> > +	if (fmh.nextents < 1)
+> > +		return -EINVAL;
+> > +
+> > +	fmap_buf = kvmalloc(fmh.fmap_size, GFP_KERNEL);
+> > +	if (!fmap_buf)
+> > +		return -ENOMEM;
+> > +
+> > +	if (copy_from_user(fmap_buf, arg, fmh.fmap_size)) {
+> > +		rc = -EFAULT;
+> > +		goto out;
+> > +	}
+> > +	next_offset = sizeof(fmh);	/* start of the extent list */
+> > +
+> > +	meta = kzalloc_obj(*meta, GFP_KERNEL);
+> > +	if (!meta) {
+> > +		rc = -ENOMEM;
+> > +		goto out;
 > > +	}
 > > +
-> > +	if (write_fault) {
-> > +		sb_start_pagefault(inode->i_sb);
-> > +		file_update_time(vmf->vma->vm_file);
+> > +	meta->error = false;
+> > +	meta->file_type = fmh.file_type;
+> > +	meta->file_size = fmh.file_size;
+> > +	meta->fm_extent_type = fmh.ext_type;
+> > +
+> > +	switch (fmh.ext_type) {
+> > +	case FAMFS_IOC_EXT_SIMPLE: {
+> > +		struct famfs_ioc_simple_ext *se_in = fmap_buf + next_offset;
+> > +
+> > +		next_offset += (size_t)fmh.nextents * sizeof(*se_in);
+> > +		if (next_offset > fmh.fmap_size) {
+> > +			rc = -EINVAL;
+> > +			goto out;
+> > +		}
+> > +
+> > +		meta->fm_nextents = fmh.nextents;
+> > +		meta->se = kcalloc(meta->fm_nextents, sizeof(*meta->se),
+> > +				   GFP_KERNEL);
+> > +		if (!meta->se) {
+> > +			rc = -ENOMEM;
+> > +			goto out;
+> > +		}
+> > +
+> > +		for (i = 0; i < fmh.nextents; i++) {
+> > +			meta->se[i].dev_index  = se_in[i].se_devindex;
+> > +			meta->se[i].ext_offset = se_in[i].se_offset;
+> > +			meta->se[i].ext_len    = se_in[i].se_len;
+> > +
+> > +			if (meta->se[i].dev_index >= FAMFS_MAX_DAXDEVS) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +			meta->dev_bitmap |= BIT_ULL(meta->se[i].dev_index);
+> > +			errs += famfs_check_ext_alignment(&meta->se[i]);
+> > +			extent_total += meta->se[i].ext_len;
+> > +		}
+> > +		break;
 > > +	}
 > > +
-> > +	ret = dax_iomap_fault(vmf, order, &pfn, NULL, NULL /*&famfs_iomap_ops */);
-> > +	if (ret & VM_FAULT_NEEDDSYNC)
-> > +		ret = dax_finish_sync_fault(vmf, order, pfn);
+> > +	case FAMFS_IOC_EXT_INTERLEAVE: {
+> > +		s64 size_remainder = meta->file_size;
+> > +		u32 niext = fmh.nextents;
 > > +
-> > +	if (write_fault)
-> > +		sb_end_pagefault(inode->i_sb);
+> > +		meta->fm_niext = niext;
+> > +		meta->ie = kcalloc(niext, sizeof(*meta->ie), GFP_KERNEL);
+> > +		if (!meta->ie) {
+> > +			rc = -ENOMEM;
+> > +			goto out;
+> > +		}
 > > +
-> > +	return ret;
-> > +}
+> > +		/* Outer loop is over the separate interleaved extents */
+> > +		for (i = 0; i < niext; i++) {
+> > +			struct famfs_ioc_iext *ie_in = fmap_buf + next_offset;
+> > +			struct famfs_ioc_simple_ext *sie_in;
+> > +			u64 nstrips;
 > > +
-> > +static inline bool
-> > +famfs_is_write_fault(struct vm_fault *vmf)
-> > +{
-> > +	return (vmf->flags & FAULT_FLAG_WRITE) &&
-> > +	       (vmf->vma->vm_flags & VM_SHARED);
-> > +}
+> > +			next_offset += sizeof(*ie_in);
+> > +			if (next_offset > fmh.fmap_size) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
 > > +
-> > +static vm_fault_t
-> > +famfs_filemap_fault(struct vm_fault *vmf)
-> > +{
-> > +	return __famfs_filemap_fault(vmf, 0, famfs_is_write_fault(vmf));
-> > +}
+> > +			if (ie_in->ie_chunk_size == 0 ||
+> > +			    !IS_ALIGNED(ie_in->ie_chunk_size, PMD_SIZE)) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +			if (ie_in->ie_nbytes == 0) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
 > > +
-> > +static vm_fault_t
-> > +famfs_filemap_huge_fault(struct vm_fault *vmf, unsigned int order)
-> > +{
-> > +	return __famfs_filemap_fault(vmf, order, famfs_is_write_fault(vmf));
-> > +}
+> > +			nstrips = ie_in->ie_nstrips;
+> > +			if (nstrips < 1) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
 > > +
-> > +static vm_fault_t
-> > +famfs_filemap_mkwrite(struct vm_fault *vmf)
-> > +{
-> > +	return __famfs_filemap_fault(vmf, 0, true);
+> > +			meta->ie[i].fie_chunk_size = ie_in->ie_chunk_size;
+> > +			meta->ie[i].fie_nstrips    = ie_in->ie_nstrips;
+> > +			meta->ie[i].fie_nbytes     = ie_in->ie_nbytes;
+> > +
+> > +			/* The strip extents follow the interleaved-ext header */
+> > +			sie_in = fmap_buf + next_offset;
+> > +			next_offset += nstrips * sizeof(*sie_in);
+> > +			if (next_offset > fmh.fmap_size) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +
+> > +			meta->ie[i].ie_strips =
+> > +				kcalloc(nstrips, sizeof(meta->ie[i].ie_strips[0]),
+> > +					GFP_KERNEL);
+> > +			if (!meta->ie[i].ie_strips) {
+> > +				rc = -ENOMEM;
+> > +				goto out;
+> > +			}
+> > +
+> > +			/* Inner loop is over the strips */
+> > +			for (j = 0; j < nstrips; j++) {
+> > +				struct famfs_meta_simple_ext *so =
+> > +					&meta->ie[i].ie_strips[j];
+> > +
+> > +				so->dev_index  = sie_in[j].se_devindex;
+> > +				so->ext_offset = sie_in[j].se_offset;
+> > +				so->ext_len    = sie_in[j].se_len;
+> > +
+> > +				if (so->dev_index >= FAMFS_MAX_DAXDEVS) {
+> > +					rc = -EINVAL;
+> > +					goto out;
+> > +				}
+> > +				meta->dev_bitmap |= BIT_ULL(so->dev_index);
+> > +				errs += famfs_check_ext_alignment(so);
+> > +				extent_total += so->ext_len;
+> > +				size_remainder -= so->ext_len;
 > 
-> Do neither of the conditions in famfs_is_write_fault apply here?
-
-I'm confident this is correct. This is directly copied from xfs on the 
-dax path:
-
-	if (IS_DAX(inode))
-		ret = xfs_dax_fault_locked(vmf, order, true);
-
-Famfs never has to do COW or allocate a page or any of that sort of
-sfuff; It ends up just looking at the fmap to resolve to a page,
-which always exists unless out or range or bugs.
-
-> 
-> The rest of the patch looks ok to me.
+> This is a lot of indenting, maybe each case should be a separate helper
+> function?
 > 
 > --D
+
+But I still fit it in 80 columns! :D
+
+This one I think I will leave as-is unless somebody feels strongly.
 
 Thank you!
 
