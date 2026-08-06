@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F6E03E717A;
-	Thu,  6 Aug 2026 08:28:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6975240DB40;
+	Thu,  6 Aug 2026 08:32:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786004938; cv=none; b=XDdcBJbDuwx19D7dgzm11qRaQa8Lmb/6WApmvYJTEOx7u6kOFmE9mLC16eaM2QfSFcc7dTZAwVazHjqb8xsee+9/O5IBjofg/yvVxE2L/xGz37bkk5h8BH5yjo6sCjgDxJ8xeF9sBRZv7+uNfoEtBC0uj+fqdqhiggM/eroaLl8=
+	t=1786005178; cv=none; b=bHBQCjaj2A1Dml8N8I+Hqa1JcqmdlF5rDECDTzFrpI1aQdzLuhY+LomlfX70dxmqa6Z8ZKZOWfBLCYFUg8cfElUxgoiqe7PNB/OhddSV1FhPJjyGAHc9epufB0JAlwZzO2rUAL/GASNVOzQTgwNma7z7IZFtpbi6Cgq58eF5pkU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786004938; c=relaxed/simple;
-	bh=1oPuFXZFfpMb56zKnqp7rfRn5MUmPR/E1uCDbP3bugI=;
+	s=arc-20240116; t=1786005178; c=relaxed/simple;
+	bh=wmJlW07JoXao1llO9slzyHXcYu0Y2sC7U9JgJDkYp30=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Ad5tbX6VCfeZT3hwUbL6dPa5xrhgRAD1xGYIkR9gk11zS8s2ELRSlAQeEZRemQLlAca4UQCUcD+N/pytC/fhTBXzo48y+QOTstimayln2pT7ZYZ1cZ1Cne5uTRf7Q18Sce8BjacdSRlx0FkPXSkq3uzBs7Xq41rbeFAovq/DXaQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Az5IUPSj; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=QEuoE9wRSLlAzv1MzLe4Tv4Cw2V3qGEuPVL7F2mRhrqdA3eL+F/ntkGuzIHV9R2GHR6V8yRkZFOfyyr7XA/7BzTVVuYR2CZf5liGJo0IZfXGltgbTUtNlJYIFGTZUbhBXS0+cYwB8J3WwDLZYz7iVStmfYY+9I6YcdlQMvp+N5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hxv94Scn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Az5IUPSj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BD441F000E9;
-	Thu,  6 Aug 2026 08:28:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hxv94Scn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E39E1F00A3A;
+	Thu,  6 Aug 2026 08:32:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786004936;
-	bh=ZsYv+4cj5mKOkcO7MJ39AFoWuRywmA+nK6ZEabG5gHE=;
+	s=k20260515; t=1786005171;
+	bh=tfPwmKoWMMPQ+bHXkB6AuAEe3r9iGF29F3fSwX2Xbm8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Az5IUPSjcDZdrLa3aksp0tGAgge3TLAvvPbiYZWkfSBGwDDvLmhS5wINudae/ozlD
-	 +lh/5/Q2K/8JwcSwE3bhmwoshKR072m6fzpEzW43qHjqzWf3tIdPsJM26vhzw0WZK/
-	 OoMK0fbHhnuAoy+Btjr6EYvqBnIsfrVjLZxaPq5wdwsOhep7sg8nABsOu9wMHgQeQE
-	 RQrAagCcTUgDyCDCBmfqJSy8ukc62zkSkRd9cNELJNc2ZyZSZVmvFZTQpJVPo/t59R
-	 W8EOEr2djrfATxbKMBauxI9j+kr7rfYMrNNiDccdNhli7wYGKCa+S1oiye8dSxUfy9
-	 3p0NoISH+Pqag==
+	b=hxv94ScnpffqwtMGGWMN34A5et28eO2Kz1+fct8TTzPSYfvvtDz+iOVOWai1E0977
+	 cwDr/B4CBqvfEmAnDRReGkooyVJHDPUr9/bUzSZZy1TNBDvzZ1BeU5FWBW8Dza6ivd
+	 nuyf3PbS0Q8LwpmzHvpVomom+fS27KXRvVbgG4lvs9Ew2Dds+/aHKCbQcJPonRK81t
+	 OzvRlPkMK/dO1x4InHa1VMlsMbqKRxBWkkFqzpYLvkuIQ8PDqPVHb87LbU4u/WA8iX
+	 n0IImZyujSqxD1qL+1wy7QKt9KD4XqDDWAvG5Rl9OCg9Zf2EiLyykT6EFjATksrd6v
+	 0N+QrX7dkgXVQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 4/4] mm/mempolicy: enhance weighted interleave with
- package-aware locality
+Subject: Re: [PATCH 3/4] mm/memory-tiers: register CXL nodes to memory
+ packages via initiator
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Rakie Kim" <rakie.kim@sk.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <20260806080936.421-5-rakie.kim@sk.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <20260806080936.421-4-rakie.kim@sk.com>
 References: <20260806080936.421-1-rakie.kim@sk.com>
- <20260806080936.421-5-rakie.kim@sk.com>
+ <20260806080936.421-4-rakie.kim@sk.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 06 Aug 2026 08:28:56 +0000
-Message-Id: <20260806082856.9BD441F000E9@smtp.kernel.org>
+Date: Thu, 06 Aug 2026 08:32:50 +0000
+Message-Id: <20260806083251.4E39E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -49,139 +49,149 @@ Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
 
 New issues:
-- [High] Package-aware weighted interleave silently degrades to flat mode o=
-n memoryless CPU nodes because they are not registered in the package topol=
-ogy.
-- [Medium] Unstabilized TOCTOU access of `policy->nodes` in `policy_resolve=
-_package_nodes()` can cause torn reads and inconsistent node intersection i=
-f the policy is concurrently modified.
+- [High] `cxl_region_find_nearest_node()` incorrectly uses `p->nr_targets` =
+as an upper bound and assumes a dense array, causing a NULL pointer derefer=
+ence when accessing sparse targets.
+- [High] The package notifier callback `cxl_region_add_package_node` access=
+es region parameters and targets without holding the required `cxl_rwsem.re=
+gion` lock, allowing race conditions with concurrent region teardown.
 
 Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but the function `al=
-loc_pages_bulk_weighted_interleave` unconditionally uses `GFP_KERNEL` for a=
- `kzalloc` call, which can cause a sleep-in-atomic bug if invoked with a no=
-n-blocking `gfp` mask.
+- [High] Preexisting loops iterating over `p->targets` up to `p->nr_targets=
+` fail to check for `NULL` pointers, leading to potential crashes when the =
+array is sparse.
 --
 
---- Patch [4]: [PATCH 4/4] mm/mempolicy: enhance weighted interleave with p=
-ackage-aware locality ---
-commit 9bf854e133ba0fbe547595b9d47a304b6f619169
+--- Patch [3]: [PATCH 3/4] mm/memory-tiers: register CXL nodes to memory pa=
+ckages via initiator ---
+commit dff9dccb7111817b944d1f03a5ff003c16d488a5
 Author: Rakie Kim <rakie.kim@sk.com>
 
-mm/mempolicy: enhance weighted interleave with package-aware locality
+mm/memory-tiers: register CXL nodes to memory packages via initiator
 
-This commit introduces a package-aware mode for weighted interleave, aiming
-to prioritize local nodes within the same package over remote nodes to
-preserve bandwidth. The mode is opt-in via sysfs and restricts allocations
-to the NUMA nodes of the task's current package.
+A CXL memory node comes online without an explicit package association, and
+plain NUMA distance does not convey which physical package it belongs to.
+Without that association a CXL node cannot be grouped with the CPUs that
+front it.
 
-> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-> index 19417b0afc30b..66bccb9a0a191 100644
-> --- a/mm/mempolicy.c
-> +++ b/mm/mempolicy.c
+Register a package notifier per CXL region. When the region's memory node
+comes online, the notifier resolves an initiator CPU node - the NUMA node
+of the first memdev backing the region - and binds the memory node to that
+initiator's package. This gives the topology layer the CPU-side association
+that plain NUMA distance does not carry.
 
-[ ... ]
-
-> @@ -2138,17 +2146,97 @@ bool apply_policy_zone(struct mempolicy *policy, =
-enum zone_type zone)
->  	return zone >=3D dynamic_policy_zone;
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index e50dc716d4e82..af66e2e06c624 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -2673,6 +2673,55 @@ static int cxl_region_calculate_adistance(struct n=
+otifier_block *nb,
+>  	return NOTIFY_STOP;
 >  }
 > =20
-> +/**
-> + * policy_resolve_package_nodes - Restrict policy nodes to the current p=
-ackage
-[ ... ]
+> +/*
+> + * Find a NUMA node to act as the initiator for this region: scan the
+> + * region's endpoint targets and return the first one that resolves to a
+> + * valid NUMA node.
 > + */
-> +static int policy_resolve_package_nodes(struct mempolicy *policy, nodema=
-sk_t *mask)
+> +static int cxl_region_find_nearest_node(struct cxl_region *cxlr)
 > +{
-> +	nodemask_t package_mask;
-> +	int node, ret;
+> +	struct cxl_region_params *p =3D &cxlr->params;
+> +	struct cxl_endpoint_decoder *cxled =3D NULL;
+> +	struct cxl_memdev *cxlmd =3D NULL;
+> +	int i, numa_node;
 > +
-> +	if (!policy || !mask)
-> +		return -EINVAL;
-> +
-> +	nodes_clear(*mask);
-> +
-> +	node =3D numa_node_id();
-> +	ret =3D mp_get_package_nodes(node, &package_mask);
+> +	for (i =3D 0; i < p->nr_targets; i++) {
+> +		cxled =3D p->targets[i];
+> +		cxlmd =3D cxled_to_memdev(cxled);
 
 [Severity: High]
-Will mp_get_package_nodes() fail and return an error for memoryless CPU
-nodes?
+Does this code handle sparse target arrays correctly?
 
-Since memoryless CPU nodes are excluded from being registered into memory
-packages by memory_package_init() because they lack N_MEMORY, it appears
-this lookup will fail. Does this cause the package-aware interleave feature
-to silently degrade and fall back to the unconstrained flat mode when a task
-executes on a CPU node with no local memory (such as a compute die accessing
-separate CXL memory)?
+If __cxl_decoder_detach() clears elements in p->targets[] and decrements
+p->nr_targets when a target is detached, the array can become sparse.
+When iterating using p->nr_targets as an upper bound, could p->targets[i]
+be NULL for detached targets?
 
+Passing a NULL cxled to cxled_to_memdev() will immediately dereference
+cxled->cxld.dev.parent, potentially causing a kernel panic.
+
+[Severity: High]
+This isn't a bug introduced by this patch, but the same missing NULL check
+appears to be a pre-existing issue in other functions iterating p->targets.
+
+For example, in cxl_dpa_to_hpa():
+
+drivers/cxl/core/region.c:cxl_dpa_to_hpa() {
+    ...
+    for (int i =3D 0; i < p->nr_targets; i++) {
+        if (cxlmd =3D=3D cxled_to_memdev(p->targets[i])) {
+    ...
+}
+
+And in region_offset_to_dpa_result():
+
+drivers/cxl/core/region.c:region_offset_to_dpa_result() {
+    ...
+    for (int i =3D 0; i < p->nr_targets; i++) {
+        cxled =3D p->targets[i];
+        if (cxled->pos !=3D pos)
+    ...
+}
+
+Should these loops also check if p->targets[i] is NULL before dereferencing=
+ it?
+
+> +		numa_node =3D dev_to_node(&cxlmd->dev);
+> +		if (numa_node !=3D NUMA_NO_NODE)
+> +			return numa_node;
+> +	}
+> +	return NUMA_NO_NODE;
+> +}
+> +
+> +/*
+> + * Package notifier callback: when a new memory node is onlined via dax
+> + * kmem, bind the node this CXL region backs to its memory package, using
+> + * the nearest region target as the initiator. Notifications for other
+> + * nodes are ignored.
+> + */
+> +static int cxl_region_add_package_node(struct notifier_block *nb,
+> +				       unsigned long dax_nid, void *data)
+> +{
+> +	int region_nid, nearest_nid, ret;
+> +	struct cxl_region *cxlr =3D container_of(nb, struct cxl_region, package=
+_notifier);
+> +
+> +	region_nid =3D phys_to_target_node(cxlr->params.res->start);
+> +	if (region_nid !=3D dax_nid)
+> +		return NOTIFY_DONE;
+> +
+> +	nearest_nid =3D cxl_region_find_nearest_node(cxlr);
+
+[Severity: High]
+Does this callback need to hold the cxl_rwsem.region lock when accessing
+shared region parameters?
+
+This notifier can be called asynchronously when a DAX kmem node is probed.
+It accesses cxlr->params.res->start and p->targets without holding the
+topology lock.
+
+Concurrently, cxl_decoder_detach() could modify p->targets, or teardown
+logic could free p->res under the cxl_rwsem.region write lock. Could this
+race condition result in a use-after-free or NULL pointer dereference?
+
+> +	if (nearest_nid =3D=3D NUMA_NO_NODE)
+> +		return NOTIFY_DONE;
+> +
+> +	ret =3D mp_add_package_node_by_initiator(dax_nid, nearest_nid);
 > +	if (ret)
-> +		return ret;
+> +		return NOTIFY_DONE;
 > +
-> +	nodes_and(*mask, package_mask, policy->nodes);
-
-[Severity: Medium]
-Is it safe to directly read policy->nodes multiple times here without first
-stabilizing it into a local copy?
-
-If policy->nodes is concurrently modified (for example, via sys_mbind() on a
-shared VMA policy), a modification occurring between this first nodes_and()
-check and the fallback first_node() or nodes_and() calls below might cause
-the logic to observe mixed states.
-
-Could this result in an inconsistent node intersection or an incorrect
-fallback node being selected?
-
-> +	if (!nodes_empty(*mask))
-> +		return 0;
-> +
-> +	/*
-> +	 * The user's nodemask excludes every node of the current package;
-> +	 * fall back to the package spanned by the user's own first node.
-> +	 */
-> +	node =3D first_node(policy->nodes);
-> +	ret =3D mp_get_package_nodes(node, &package_mask);
-> +	if (ret)
-> +		return ret;
-> +
-> +	nodes_and(*mask, package_mask, policy->nodes);
-> +	if (nodes_empty(*mask))
-> +		return -ENOENT;
-> +
-> +	return 0;
+> +	return NOTIFY_OK;
 > +}
 
 [ ... ]
 
-> @@ -2695,7 +2807,7 @@ static unsigned long alloc_pages_bulk_weighted_inte=
-rleave(gfp_t gfp,
->  	/* read the nodes onto the stack, retry if done during rebind */
->  	do {
->  		cpuset_mems_cookie =3D read_mems_allowed_begin();
-> -		nnodes =3D read_once_policy_nodemask(pol, &nodes);
-> +		nnodes =3D read_once_policy_package_nodemask(pol, &nodes);
->  	} while (read_mems_allowed_retry(cpuset_mems_cookie));
-> =20
->  	/* if the nodemask has become invalid, we cannot do anything */
-
-[Severity: High]
-This isn't a bug introduced by this patch, but does this function safely
-handle atomic allocations?
-
-Further down in alloc_pages_bulk_weighted_interleave(), the weights array
-is allocated unconditionally with GFP_KERNEL:
-
-    weights =3D kzalloc(nr_node_ids, GFP_KERNEL);
-    if (!weights)
-            return total_allocated;
-
-If alloc_pages_bulk() is called from an atomic context with a non-blocking
-mask like GFP_ATOMIC or GFP_NOWAIT, will ignoring the passed gfp argument a=
-nd
-using GFP_KERNEL here cause a 'scheduling while atomic' panic or deadlock?
-
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260806080936.421-=
-1-rakie.kim@sk.com?part=3D4
+1-rakie.kim@sk.com?part=3D3
