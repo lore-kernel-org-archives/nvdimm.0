@@ -1,383 +1,262 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B813D47BF;
-	Thu,  6 Aug 2026 08:22:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8477C3E009B
+	for <nvdimm@lists.linux.dev>; Thu,  6 Aug 2026 08:24:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786004572; cv=none; b=RzOhX7FTLX/KKT5MseemATadbmwYJ8+H9iXfyqu7ey8iktCBfLMaCCCwy3jV9WZtPnac63jq3NsuEBgxYHCOz/526hLZMze2NVLXqlkSj3OMsov/jE75JBwNE6PK+di+PimcpqkXDsAV3772Xn65+eMZhLsmPchuLCgCWU6b+fA=
+	t=1786004700; cv=none; b=sVTPSilGbOnBb5NychgFmVeeLloMBLQGR4LE55KR/MqzcRvU9eITQxAzvlEP+28fdXX646fJrOFT1nxPqwYLQnb614TbYXfK8gz8KbkJXI8yuGt5OFS0cc9jJYtU/iLcSOia6ixWbaP2WqVZy0s6d8dhIkwaxIa8FpCEO5/PsE0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786004572; c=relaxed/simple;
-	bh=F8gracIOOK3YvYuu6cobwXngqeRdk9BtV4yx/vE9hQU=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=te8nzbB+dOM75QqebQdJfU4ZyvJK9VcATkceaHs+L1Y6ePIzNBYA3VM8JcGgafz+gFjA9VQhUE7RZnKkHXUkM+zwUsOhnrpUQtzELSYx5Y0GuE+rb9WtOB0Z45hIkMDsNKygxftZ28mCeQxmjCjIQn8WLaS0aqnrmGqXJVNW4ZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DvI+Q4Gw; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DvI+Q4Gw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 412451F000E9;
-	Thu,  6 Aug 2026 08:22:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786004571;
-	bh=+EKhRSg84Kcs8XU1yEB0d78aA2CoOYQqJAP+TrV/l9U=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=DvI+Q4Gw6AVveoHLX4IqGnjr4SLAiTd4KH2UeWtV5cqMr/AuZncRYC5J3coeTeBwQ
-	 HcLz/ckQNCO2PTMWYF5nAihB40Ab4knH8kIl6igMGIjZDRy4KVxyfjwmi4m1375EIx
-	 99AgGBj/9JqwzCl4aZhNvb1CRyV+9Is9PHsIlnysXg8PluTpFyWwNwqnWXs6JEUHIj
-	 KFozv9F28Dhy4tfEBdovmITpDLGqk22tstYIJWDOwJP38W3VvYH+u8RZXqooH7RAqy
-	 5BfxTPqUGKdpJjsn70QMNAYTSQCJd4yGZL/zc8l6VwXvNoPFbwfKbFr5f76V7NAJZR
-	 5DNxYjF7H39Mg==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 2/4] mm/memory-tiers: introduce package-aware topology
- management for NUMA nodes
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Rakie Kim" <rakie.kim@sk.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <20260806080936.421-3-rakie.kim@sk.com>
-References: <20260806080936.421-1-rakie.kim@sk.com>
- <20260806080936.421-3-rakie.kim@sk.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 06 Aug 2026 08:22:50 +0000
-Message-Id: <20260806082251.412451F000E9@smtp.kernel.org>
+	s=arc-20240116; t=1786004700; c=relaxed/simple;
+	bh=+/7EMSK/F5QNYXEvg6wkhMeDmgtSeWcJuYsMODyu89A=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=r0cyByjznYoviznYFFi+mEZeyOLvoIdyb4Vnp6Yd1i6owL2KgDTr035hvqKfkMkTtlXB2FeUGfbfnwyHWiO/xIc/KA2kEBMngCRZwl6nSe3pPcTYtXKCt6NEzbne4MrR3Zd0M05avh5tyvILCkVTfyzawttS77wQ5uirBnYRBgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sk.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
+X-AuditID: a67dfc5b-c45ff70000001609-90-6a74414a2abd
+From: Rakie Kim <rakie.kim@sk.com>
+To: akpm@linux-foundation.org
+Cc: gourry@gourry.net,
+	linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	ziy@nvidia.com,
+	matthew.brost@intel.com,
+	joshua.hahnjy@gmail.com,
+	byungchul@sk.com,
+	ying.huang@linux.alibaba.com,
+	apopple@nvidia.com,
+	david@kernel.org,
+	ljs@kernel.org,
+	liam@infradead.org,
+	vbabka@kernel.org,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	dave@stgolabs.net,
+	jic23@kernel.org,
+	dave.jiang@intel.com,
+	alison.schofield@intel.com,
+	vishal.l.verma@intel.com,
+	ira.weiny@intel.com,
+	harry@kernel.org,
+	kernel_team@skhynix.com,
+	honggyu.kim@sk.com,
+	yunjeong.mun@sk.com,
+	rakie.kim@sk.com
+Subject: [PATCH 0/4] mm/mempolicy: introduce package-aware weighted interleave
+Date: Thu,  6 Aug 2026 17:09:31 +0900
+Message-ID: <20260806080936.421-1-rakie.kim@sk.com>
+X-Mailer: git-send-email 2.52.0.windows.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrKIsWRmVeSWpSXmKPExsXC9ZZnoa6XY0mWwb3F8hZz1q9hs7j7+AKb
+	xa4bIRYnbjayWay+uYbR4vnWX4wWP+8eZ7e4fmslo8X+p89ZLB40rWKyOL51HrvFulOH2CzO
+	zzrFYnF51xw2i3tr/rNavHnsZvGtT9rifp+Dxcoff1gtjqzfzmQx+dICNouOl/dZLG5NOMZk
+	sXpNhsXso/fYHSQ9ds66y+6xYFOpR3fbZXaPzSu0PBbvecnksWlVJ5vHpk+T2D1OzPjN4rHz
+	oaXHi80zGT16m9+xeUydXe+xfstVFo/Pm+QC+KK4bFJSczLLUov07RK4Mq7P+c9cMMW54mn3
+	D6YGxrnGXYycHBICJhKv2zYywdhrj/UxdzFycLAJKEkc2xsDEhYRkJWY+vc8SxcjFwezwCJW
+	iROfz7KCJIQF/CRmnHnCBlLPIqAq8f6zL0iYV8BYYmnbOnaIkZoS6zbeYoGIC0qcnPkEzGYW
+	kJdo3jqbGWSmhMA1don+FcdZIBokJQ6uuMEygZF3FpKeWUh6FjAyrWIUyswry03MzDHRy6jM
+	y6zQS87P3cQIjLxltX+idzB+uhB8iFGAg1GJh/eCcXGWEGtiWXFl7iFGCQ5mJRFe1oNFWUK8
+	KYmVValF+fFFpTmpxYcYpTlYlMR5jb6VpwgJpCeWpGanphakFsFkmTg4pRoYmZ+LLb8345DN
+	7k9LLtqzPpR66bid0ezWfueyM//U/+2WnVmtMvlQlHHdjUssj5rkNARusqpazZ+QYml3+pjj
+	5VqXpy6rV9U92LzlnC7njZ/nshvrT29e3ZH7ojSsbH7L4XPLZOuu/k84XmGu5t39zeR772SB
+	yexpLLH/Ps+zt7G4dnFHVzGDmxJLcUaioRZzUXEiAEucgZW4AgAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Ra0hTYQCG+XauGw3O1sKDltEkKsFLLOELSoyoPoRCKBmFlCMPOZ1TznSo
+	EVoDSS1RU5ibxmiWOuekmaZWRCuvmI5GedfK6zJKWoqlZZkE/nt5npf3z0tj0mrcn1Zr0zle
+	q9LISREuMu6LC4k+lp4UbpiVwspGOwnHp9wkbB86B/vLzCTsHr5OwvphO4BzzT8B/DHeRcHB
+	kToAfbMLGHw+M4fD9zdsAtjVfJeCL6t6COjodZFwwNSLQ097JQkn7OsE/Dx1Ei4XBcDJoihY
+	t7JGQNe7OQK+anwsgHfeWEh40zuJw5HiTgGstyfC1ZZaEpo7JqioQNRmGqeQxZmBCvM8FGqq
+	DUbWp14BctrySeT8VkqhbuMqjto+HEbzTRUA3TZ8IdHyKELW+UUBKjfnoMZHb3HkcwbGMBdE
+	RxI4jVrP8WGR8aLEwcp1LK3seOZM4YogF1QpCoCQZplDbENnEVYAaJpk5Gzns7gNLGN2seW/
+	BvACIKIx5h7BdvteExtiO3OGNfZNkxt9nNnLfvWd3sBiRsHez3NQm5MHWMfDEXyTS9ieiul/
+	GWN2s4ZmM1YMRKYtyrRFWYDABmRqrT5FpdZEhOqSE7O06szQy6kpTvD3uwfX1kpawXfPKRdg
+	aCDfJnYrdElSQqXXZaW4AEtjcpmYeMEnScUJqqxsjk+9xGdoOJ0LBNC43E8creTipcwVVTqX
+	zHFpHP/fCmihfy7oiF2iZIvuowWGUpM2zBq981OQ1u4+yyuM1coIh1+L1R7920v3nvd5bB7v
+	k8DW9f1LeyTm+LVYQ06D74Re3Deamc/7Sm4lLCzaJf7tox6Lc0w5FxHysS3y6vRF4ahGqARu
+	o43sCAoKqAlv2jEUMyV2j/VLsmu58uKaNq8c1yWqDgZjvE71BxYXHTq3AgAA
+X-CFilter-Loop: Reflected
 
-Thank you for your contribution! Sashiko AI review found 10 potential issue=
-(s) to consider:
-- [High] CPU nodes without local memory are completely excluded from the pa=
-ckage topology.
-- [High] Upgrading a provisional SLIT entry permanently unbinds and orphans=
- the node.
-- [High] TOCTOU race in `bind_node_to_package` binds a newly upgraded node =
-to the wrong package.
-- [High] `unbind_node_to_package` clears the node from the wrong nodemask i=
-f the node's state changed, permanently leaking the package.
-- [High] `memory_package_lock` is acquired in a reclaim path while also bei=
-ng held during a GFP_KERNEL allocation, causing a deadlock.
-- [Medium] Initialization loop in memory_package_init() permanently leaks k=
-objects and sysfs devices on failure.
-- [Medium] Mixing goto-based error handling with scope-based guard() violat=
-es strict cleanup guidelines.
-- [Medium] Global topology symmetry state is not recalculated when a provis=
-ional node is dropped.
-- [Medium] The package notifier chain is exported but never invoked during =
-node creation.
-- [Medium] Exported API `mp_add_package_node_by_initiator` lacks bounds che=
-cking on `nid`, causing an out-of-bounds array access.
---
+Package-aware weighted interleave places a task's weighted-interleave
+pages on the NUMA nodes of its local package, so that interleave traffic
+does not have to cross the interconnect to another package. This keeps
+each node's weight aligned with the bandwidth the task actually gets
+from it, so effective bandwidth holds up on a system that has more than
+one package. (A package is a CPU socket together with the memory
+attached to it.)
 
---- Patch [2]: [PATCH 2/4] mm/memory-tiers: introduce package-aware topolog=
-y management for NUMA nodes ---
-commit 0e269cf99bac40f9c00f53199f76f3781bc439c6
-Author: Rakie Kim <rakie.kim@sk.com>
-Date:   Thu Aug 6 08:09:33 2026 +0000
+Changes from RFC:
+https://lore.kernel.org/all/20260316051258.246-1-rakie.kim@sk.com/
+- Added an opt-in sysfs toggle (off by default) and a read-only sysfs
+  view of the package topology
+- Added topology validation with a clean fallback to plain weighted
+  interleave on unsupported topologies
+- Hardened the allocation, device-teardown, and node-hotplug paths
 
-    mm/memory-tiers: introduce package-aware topology management for NUMA n=
-odes
-   =20
-    The NUMA distance model provides only relative latency values between n=
-odes
-    and has no notion of structural grouping. Memory policies based on dist=
-ance
-    alone therefore cannot tell which nodes are local to the same physical
-    package and which belong to a different one, which limits how well they=
- can
-    keep placement and migration within a package.
-   =20
-    Introduce a package-aware topology layer that groups NUMA nodes into a
-    "memory package": a set of CPU nodes and their local memory-only nodes
-    (such as CXL or HBM). A subsystem that owns a node registers a resolver=
- to
-    supply its package, and a policy can query, for any node, the other nod=
-es
-    that belong to the same package.
+Weighted interleave places pages on nodes in proportion to per-node
+weights that are set from each node's bandwidth. Within one package the
+weight given to a node matches the bandwidth a task sees from it. Across
+packages it no longer does: a memory node's physical bandwidth is fixed,
+but the bandwidth a task effectively sees depends on which package its
+CPU is in, because memory reached from another package, over the
+interconnect between them, is slower than the same memory reached within
+the package. The weights are set once from device bandwidth and applied
+the same way wherever the task runs, so a node in another package is
+given a weight higher than the bandwidth it can deliver to that task.
+The kernel has no package abstraction and does not record which package
+a node belongs to, so it cannot tell which node pairs are separated by
+the interconnect.
 
-> diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-> index 54851d8a195b0..5932df315604a 100644
-> --- a/mm/memory-tiers.c
-> +++ b/mm/memory-tiers.c
+          node0             node1
+        +-------+         +-------+
+        | CPU 0 |---------| CPU 1 |
+        +-------+         +-------+
+        | DRAM0 |         | DRAM1 |
+        +---+---+         +---+---+
+            |                 |
+        +---+---+         +---+---+
+        | CXL 0 |         | CXL 1 |
+        +-------+         +-------+
+          node2             node3
 
-[ ... ]
+The numbers below are illustrative single-stream bandwidths (GB/s).
+Local DRAM sustains 300 and local CXL 150; any path that crosses to
+another package, over the interconnect, is capped at 100, so a node in
+another package delivers 100 whether it is DRAM or CXL. Note that local
+CXL (150) is still faster than any node in another package (100). The
+effective bandwidth each CPU sees is therefore:
 
-> +static void mp_snapshot_rebuild(void)
-> +{
-> +	struct mp_snapshot *new, *old;
-> +	struct memory_package *mp;
-> +	int nr =3D 0, i =3D 0, nid;
-> +
-> +	lockdep_assert_held(&memory_package_lock);
-> +
-> +	list_for_each_entry(mp, &memory_packages, list)
-> +		nr++;
-> +
-> +	new =3D kvzalloc(struct_size(new, pkg, nr), GFP_KERNEL);
+              node0  node1  node2  node3
+from CPU 0:    300    100    150    100
+from CPU 1:    100    300    100    150
 
-[Severity: High]
-Could this allocation trigger a deadlock?
+Since a single per-node weight cannot encode the interconnect penalty,
+a reasonable set of global weights is taken from local device bandwidth
+(local DRAM : local CXL = 300 : 150 = 2 : 1): node0=2 node1=2 node2=1
+node3=1.
 
-The memory_package_lock is held here during a GFP_KERNEL allocation, which
-can trigger direct reclaim. However, the same lock is acquired in
-__mp_get_preferred_nodemask() during memory demotion, which runs in reclaim
-context.=20
+Applied the same way to every source, these weights give the map:
 
-If direct reclaim attempts to acquire the already held lock, will it
-cause a self-deadlock?
+              node0  node1  node2  node3
+global:         2      2      1      1
 
-> +	if (!new)
-> +		return;
+A task on CPU 0 gives node1 - remote DRAM, effective 100 - the same
+weight 2 as its own local node0 at 300. Worse, node1 is weighted above
+node2, the task's local CXL at effective 150, even though node2 is the
+faster of the two. The flat weights rank a slower interconnect-bound
+node above a faster local one, which is exactly backwards.
 
-[ ... ]
+This series makes weighted interleave package-aware. When it is on,
+weighted interleave prefers the task's current package: while the
+package's nodes have room, the task's pages are spread across them by
+weight, so allocations stay off the interconnect. The rest of the
+policy nodemask is used when the local package cannot serve the request
+- when a node in it is under pressure and the page allocator falls back
+along the zonelist, or when the policy nodemask happens to exclude every
+node of the current package, in which case the package spanned by the
+policy's own nodes is used instead. The nodes considered are always
+within the policy nodemask, which mempolicy already narrows to the
+task's cpuset, so cpusets and the task nodemask stay in control.
 
-> +static int bind_node_to_package(int nid)
-> +{
-> +	int package_id, pkg_id;
-> +	struct memory_package *mp;
-> +	nodemask_t nodes, cpu, mem;
-> +
-> +	mutex_lock(&memory_package_lock);
-> +	if (!mpns[nid]) {
-> +		mutex_unlock(&memory_package_lock);
-> +		return -EINVAL;
-> +	}
-> +	package_id =3D mpns[nid]->package_id;
-> +	mutex_unlock(&memory_package_lock);
-> +
-> +	mp =3D find_create_memory_package(package_id);
-> +	if (IS_ERR(mp))
-> +		return PTR_ERR(mp);
-> +
-> +	mutex_lock(&memory_package_lock);
-> +	if (!mpns[nid]) {
-> +		mutex_unlock(&memory_package_lock);
-> +		return -ENOENT;
-> +	}
-> +	mpns[nid]->package =3D mp;
+              node0  node1  node2  node3
+from CPU 0:     2      0      1      0
+from CPU 1:     0      2      0      1
 
-[Severity: High]
-Is there a race condition when the lock is dropped and reacquired?
+A task on CPU 0 now places pages on node0 (weight 2) and node2
+(weight 1) at 2:1, which matches their effective bandwidth of 300:150;
+a task on CPU 1 places on node1 and node3 the same way. Placement
+follows the bandwidth each task actually sees, NUMA locality is
+preserved, and interleave traffic stays off the interconnect.
 
-If a concurrent driver probe calls mp_add_package_node_by_initiator() while
-the lock is dropped, it might destroy the old mpns[nid] and create a new one
-with a different package_id.
+To make this possible the kernel needs a notion of which nodes share a
+package. The NUMA distance model offers only relative latencies and no
+structural grouping, which is especially limiting for CXL memory nodes
+that come online without an explicit package association.
 
-When the lock is reacquired, mpns[nid] is not NULL, but could we end up
-binding the new node (which wants the new package ID) to the old package=20
-struct that we just fetched?
+The series adds a package-aware topology layer that groups CPU and
+memory-only nodes into a "memory package", built from the physical
+package ids firmware reports and, for a memory-only node, an initiator
+CPU node or SLIT distances. A package can contain more than one CPU node
+or more than one memory-only node, so the layer maps a package to a set
+of nodes rather than to a single node or a single CXL device.
 
-> +	node_set(mpns[nid]->nid, mp->nodes);
+The feature is off by default and opt-in through a sysfs toggle. The
+package topology itself is exposed read-only under
+/sys/devices/system/package/; there is deliberately no writable
+override, since a machine whose firmware describes its topology
+incorrectly should be fixed in firmware. On a topology that does not
+have the symmetric shape the placement relies on, enabling is refused
+and any active mode degrades cleanly to the original flat behavior.
 
-[ ... ]
+Measured results:
 
-> +static void unbind_node_to_package(struct memory_package *mp, int nid)
-> +{
-> +	lockdep_assert_held(&memory_package_lock);
-> +
-> +	node_clear(nid, mp->nodes);
-> +	if (node_state(nid, N_CPU))
-> +		node_clear(nid, mp->cpu_nodes);
-> +	else
-> +		node_clear(nid, mp->memory_only_nodes);
+System Configuration:
+- Processor: Dual-Socket Intel Xeon 6980P (Granite Rapids)
 
-[Severity: High]
-Does this clear the node from the correct nodemask if its state changed?
+1) Throughput (System Bandwidth)
+   - DRAM Only: 966 GB/s
+   - Weighted Interleave: 903 GB/s (7% decrease compared to DRAM Only)
+   - Package-Aware Weighted Interleave: 1329 GB/s (1.33 TB/s)
+     (38% increase compared to DRAM Only,
+      47% increase compared to Weighted Interleave)
 
-If a memory-only node was initially added to mp->memory_only_nodes, but CPUs
-were later hot-added to it, node_state(nid, N_CPU) will now evaluate to tru=
-e.
+2) Loaded Latency (Under High Bandwidth)
+   - DRAM Only: 544 ns
+   - Weighted Interleave: 545 ns
+   - Package-Aware Weighted Interleave: 436 ns
+     (20% reduction compared to both)
 
-During a subsequent hot-remove, this will clear the bit from mp->cpu_nodes
-instead of mp->memory_only_nodes, leaving the bit permanently set and
-potentially leaking the kobject.
+A small CXL driver change registers a CXL memory node into its package
+as the node comes online, using the initiator the driver resolves for
+the region; this is where the package layer gets the CPU-side
+association that plain NUMA distance does not carry.
 
-> +
-> +	if (mpns[nid])
-> +		list_del(&mpns[nid]->package_entry);
-> +
-> +	update_package_preferred(mp);
-> +}
-> +
-> +static struct memory_package_node *create_package_node(int nid, int init=
-iator_nid)
-> +{
-> +	int cpu_nid, package_id;
-> +	int source_flags;
-> +	struct memory_package_node *mpn;
-> +
-> +	if (node_state(nid, N_CPU)) {
-> +		cpu_nid =3D nid;
-> +		source_flags =3D MPN_SRC_CPU;
-> +	} else {
-> +		if (initiator_nid >=3D 0) {
-> +			cpu_nid =3D initiator_nid;
-> +			source_flags =3D MPN_SRC_INITIATOR;
-> +		} else {
-> +			/*
-> +			 * No driver-supplied initiator: fall back to the
-> +			 * nearest CPU node (via SLIT/numa_distance).
-> +			 */
-> +			cpu_nid =3D numa_nearest_node(nid, N_CPU);
-> +			source_flags =3D MPN_SRC_SLIT;
-> +		}
-> +	}
+The memory_package layer offers a broader interface for grouping and
+querying package topology - usable by memory tiering as well - and
+package-aware weighted interleave uses the subset it needs.
 
-[Severity: Medium]
-Are we missing a call to the exported package notifier chain here?
+[PATCH 1/4] mm/numa: introduce nearest_nodes_nodemask()
+  Add a NUMA helper that returns every node sharing the minimum distance
+  from a source node.
 
-The register_mp_package_notifier() and mp_probe_package_id() APIs are
-provided so subsystems can supply package hints, but mp_probe_package_id()
-is never called in the node creation flow.
+[PATCH 2/4] mm/memory-tiers: package-aware topology management
+  Group NUMA nodes into memory packages from firmware topology data,
+  expose the grouping read-only under /sys/devices/system/package/, and
+  validate the symmetric shape that package-aware placement relies on.
 
-If a node is created without an explicit initiator, shouldn't we invoke the
-notifier before falling back directly to numa_nearest_node()?
+[PATCH 3/4] mm/memory-tiers: register CXL nodes to packages
+  Bind a CXL memory node to a package using an initiator CPU node.
 
-> +
-> +	package_id =3D mp_node_to_package_id(cpu_nid);
+[PATCH 4/4] mm/mempolicy: package-aware weighted interleave
+  Prefer the current package for weighted interleave node selection,
+  behind an opt-in package_mode sysfs toggle that is off by default.
 
-[ ... ]
+Rakie Kim (4):
+  mm/numa: introduce nearest_nodes_nodemask()
+  mm/memory-tiers: introduce package-aware topology management for NUMA
+    nodes
+  mm/memory-tiers: register CXL nodes to memory packages via initiator
+  mm/mempolicy: enhance weighted interleave with package-aware locality
 
-> +static int find_package_node(int nid, int initiator_nid)
-> +{
-> +	struct memory_package *unreg_mp =3D NULL;
-> +	int ret =3D nid;
-> +
-> +	mutex_lock(&memory_package_lock);
-> +	if (!mpns[nid]) {
+ .../ABI/testing/sysfs-devices-system-package  |   35 +
+ ...fs-kernel-mm-mempolicy-weighted-interleave |   17 +
+ drivers/cxl/core/region.c                     |   54 +
+ drivers/cxl/cxl.h                             |    1 +
+ drivers/dax/kmem.c                            |    3 +
+ include/linux/memory-tiers.h                  |  113 ++
+ include/linux/numa.h                          |   11 +
+ mm/memory-tiers.c                             | 1009 +++++++++++++++++
+ mm/mempolicy.c                                |  200 +++-
+ 9 files changed, 1439 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-devices-system-package
 
-[Severity: Medium]
-Is it safe to index the mpns array with nid here?
 
-The nid is passed directly from mp_add_package_node_by_initiator(), which
-is an exported API. If a driver processes malformed or malicious firmware
-tables, could an unvalidated nid cause an out-of-bounds array access?
+base-commit: 8cd9520d35a6c38db6567e97dd93b1f11f185dc6
+-- 
+2.25.1
 
-> +		ret =3D NUMA_NO_NODE;
-> +	} else if (mpns[nid]->source_flags =3D=3D MPN_SRC_SLIT && initiator_nid=
- >=3D 0) {
-> +		/*
-> +		 * SLIT-derived entries are provisional; if a driver later
-> +		 * provides an explicit initiator, drop the provisional
-> +		 * entry and rebuild with the stronger hint.
-> +		 */
-> +		unreg_mp =3D __destroy_package_node(nid);
-> +		ret =3D NUMA_NO_NODE;
-> +	}
-> +	mutex_unlock(&memory_package_lock);
-> +
-> +	if (unreg_mp)
-> +		device_unregister(&unreg_mp->dev);
-> +
-> +	return ret;
-> +}
-
-[Severity: Medium]
-Should we recalculate the global topology symmetry state here?
-
-When an existing provisional SLIT-derived node is dropped to make way for an
-explicit driver initiator, __destroy_package_node() modifies the package no=
-de
-counts. However, validate_topology_symmetry() is not called before returnin=
-g.
-
-Will the system's symmetry verdict remain stale until another completely
-unrelated hotplug event triggers a recalculation?
-
-[ ... ]
-
-> +int mp_add_package_node_by_initiator(int nid, int initiator_nid)
-> +{
-> +	int ret;
-> +
-> +	ret =3D find_create_package_node(nid, initiator_nid);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(mp_add_package_node_by_initiator);
-
-[Severity: High]
-Does upgrading a provisional SLIT entry permanently drop it from the topolo=
-gy?
-
-If a driver calls this function to supply an initiator for a node that was
-already initialized at boot, find_create_package_node() destroys the old en=
-try=20
-and creates a new mpns[nid].
-
-However, we simply return 0 here without calling bind_node_to_package().
-Since the node is already online, no hotplug event will fire to bind it,=20
-potentially leaving mpn->package as NULL and orphaning the node.
-
-[ ... ]
-
-> +static int __mp_get_preferred_nodemask(int nid, enum mp_nodes_type node_=
-type,
-> +				    nodemask_t *out)
-> +{
-> +	int ret =3D 0;
-> +
-> +	/* No hot-path callers: the mutex is fine here. */
-> +	guard(mutex)(&memory_package_lock);
-> +
-> +	if (!out) {
-> +		ret =3D -EINVAL;
-> +		goto out;
-> +	}
-
-[Severity: Medium]
-Does this mix goto-based error handling with scope-based guard() blocks?
-
-The kernel's cleanup subsystem guidelines in include/linux/cleanup.h
-explicitly forbid mixing goto jumps with guard() cleanup declarations in
-the same function, as it can create unsafe ownership semantics.
-
-[ ... ]
-
-> +static int __init memory_package_init(void)
-> +{
-> +	int ret =3D 0, nid;
-> +
-> +	for_each_online_node(nid) {
-> +		if (!node_state(nid, N_MEMORY))
-> +			continue;
-
-[Severity: High]
-Are CPU nodes without local memory completely excluded from the topology?
-
-If a CPU node evaluates to false for N_MEMORY, it will be skipped entirely.
-This would cause update_package_preferred() to find an empty CPU mask for
-memory-only nodes in that package, potentially breaking memory promotion by
-leaving a memory-only node to set itself as its preferred promotion target.
-
-> +
-> +		ret =3D create_node_with_package(nid);
-> +		if (ret)
-> +			goto out;
-
-[Severity: Medium]
-Does this leak prior successfully initialized nodes on failure?
-
-If an allocation or registration fails inside create_node_with_package(),
-the code jumps directly to out.
-
-Without a centralized rollback loop to individually clean up the
-successfully established memory_package devices and kobjects, will this
-result in a permanent unrecoverable memory leak?
-
-> +	}
-> +
-> +	hotplug_node_notifier(mp_hotplug_callback, MEMTIER_HOTPLUG_PRI);
-> +
-> +	validate_topology_symmetry();
-> +
-> +out:
-> +	return ret;
-> +}
-> +late_initcall(memory_package_init);
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260806080936.421-=
-1-rakie.kim@sk.com?part=3D2
