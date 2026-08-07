@@ -1,158 +1,194 @@
-Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7CD942BEB8
-	for <nvdimm@lists.linux.dev>; Thu,  6 Aug 2026 23:27:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.170
+Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0C3222C326D
+	for <nvdimm@lists.linux.dev>; Fri,  7 Aug 2026 04:08:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786058821; cv=none; b=o9MVGxCVpa8ZazKeiOtSIufVfq0a6i4KRTXghwvChlqgUZhAZ3gVZkkTz9HecQD5b2fyELGZCYA20+IkdJLIS8/EwkUWMdw2m1tZyFPQ3X1M312W8p8hnb2T+vQ3Cjn0zk3X1isMJSxkS/EsCkDISPp8/m0+HVZVSHg79hBEYZM=
+	t=1786075711; cv=none; b=nKTzWWr17h1WWJek4yN6f7vYxPU3qh0h1TuTAAGmIpM60L1ZxtHgYJz7TnPJtGaEjbSiruSiO9T/vcDiYGQswF9LXZDPbqjDD6vN/1X7UKqRj2GdnR3GLUyi/r33stgKVx9mzJXzw3paHH+1q0kaBL12v2fpaD6H3Wn/Ufj0kgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786058821; c=relaxed/simple;
-	bh=8ernjYW7bovLgY78GoVgutHqXvV1nj4wsCTAcwbRWr4=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=U4TWDxx2SHu56c+R/Il2jCHXgaD5Nwm+Vopfo/WVc0brH8iKTlZXKCdxdaQlBKBZsoT7FfXWsbhcbfyg3p6iAmH0gzEOwQ7lKLY/jwwvzaz6+LglQgSM/uLIoOWiN9P386Ec5IAolarmSWR4KrJ2kvwVzRzQswNHzEQzEnGzRe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=geOmtXi1; arc=none smtp.client-ip=209.85.210.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="geOmtXi1"
-Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-84862b0d5aeso3248659b3a.2
-        for <nvdimm@lists.linux.dev>; Thu, 06 Aug 2026 16:27:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786058820; x=1786663620; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=yMThCopPkAFmI168rEXeIJriFw8m5HwaXiuoWGQJQhA=;
-        b=geOmtXi1IHbty0+WTZU/u+ZnqTp0EIjUWzq2yPlbBNHQMf8L5fd6p0in3fu4BFDi2y
-         MmhaWFsiEG96MnrC2AUyAGF243Aqk396M3UhJo0nbi1aSHgQaam8VQynUxsgF49Oxbf9
-         04Gxyqajiw1+ngnMDR4JlEqOsqeXU7yjpDaixy62legid765KWJ3rum8hexf63LTY89m
-         K+AlNdbYORUONNt02Ty09IOqSaQn/xZ9AKyZyqsg3MEMjuZruHaepsbknEq8uUU3aKTz
-         5wBYZFhlGJSzbaIaaMdMoYeFVw1fOXIueOGo2/wbIboWNIxbYwBNtnIUnACwp9xJpeLa
-         58Fg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786058820; x=1786663620;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=yMThCopPkAFmI168rEXeIJriFw8m5HwaXiuoWGQJQhA=;
-        b=TmDGZqO+mUhKTm5SVVpOwIZR5YxL392oHN7niQS9mphJWQX/wQNuBAvb9CNxkMlMIY
-         KrmFHx2ElyyqDopzwlKy+8C1llO4mX65x9XSqLoKFHrB65j0vrpo6D7mH77r3N8bzbg/
-         Zuh8k0Zb2HpfI0B/4uTOQlpsk2DFk6TI8gc+p+fNnNSfDc3VN1vuSiqrOLTdbqjkQCAS
-         N0JS3VPsbgC1ngaAjklQVBFCtapQytgnc9fQAAw5HPRfKOezr3c+c9pUROyQTGnR8Xa1
-         1noarSUOU5fMEEFWl7ADBrO2gOUgLsMwtv3wxkEOMSyaEO8TKOIuoHOkgttGWSFrDIpC
-         rOoA==
-X-Forwarded-Encrypted: i=1; AHgh+RrEx1j6Ab2q7bRV2plyiiwV10ThBX9tB4ciAtft3p6kn2fxlyVUmvPJeZ+bsAm5J8HfqplazqI=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwYynrKyEpsugHz4uYVo3YRKX4hq7tr5q3zoPMJms4C2AcJx5e+
-	QjOISZFnq7NwqVnEjA7HfMRt37+VkGGRrvA+GUxoeWNdKl2+3c1mgMz2XXGCPc3W
-X-Gm-Gg: AR+sD12u68Fk8A4QKFhgF5Kz37bsgPoj0b1I4HYnBHrDnRRTAfza26q83vRaONIP0/c
-	HZVxr8ubyIWWcbatcguVKkC5/dSVv+8C0NvexQ9u4J6UHXN8Vy0c42DObPKauiaQbVKjBnvlcNp
-	uAo/N40ujpOhjStTkwD11P+Ef1l5bbrIHBnTnDAQmoTiKPic058TXl8BOeDXh+P7i3hQWkWNd6F
-	cARLLJCNTB5hlsKuwlxJQl9UekCcIhsMZE2J+l6iGgd6E+KwPMFIib6mjTMBXPQpP3+aYzzZTcd
-	ygzeeenVF7PH9N42vCWllMKWvnYEQzQ5uQvIaLge0bqekEbJVNfcbHCACqWQagTB+mYCuQ9kbbU
-	bGBTPhZIMalvAGmdUL9KRFlMa8if6rkSq4N3f0Fr8UV6U+oKIS1Be6cIY5EVFijxiISVyzc4bDg
-	4R7XtpEm/ndP9tyCd6Ey12yBhxD4WWrfy8IplmMUiMm5YtD4dOGJRojQ79
-X-Received: by 2002:a05:6300:4049:b0:3bf:a638:4376 with SMTP id adf61e73a8af0-3cb85ea369dmr22427218637.21.1786058819814;
-        Thu, 06 Aug 2026 16:26:59 -0700 (PDT)
-Received: from cxlqual ([220.120.90.131])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cbe8bb33f90sm25853a12.2.2026.08.06.16.26.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Aug 2026 16:26:59 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-Date: Fri, 7 Aug 2026 08:27:27 +0900
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: Anisa Su <anisa.su887@gmail.com>, sashiko-reviews@lists.linux.dev,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: [PATCH v12 6/8] cxl/mem: Configure dynamic capacity interrupts
-Message-ID: <anUYX0t32y37vfyR@cxlqual>
-References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-7-anisa.su@samsung.com>
- <20260731090444.558491F000E9@smtp.kernel.org>
- <am28sIX7a6Z7QaXr@AnisaLaptop.localdomain>
- <anExYCOu1n0RnYvh@aschofie-mobl2.lan>
+	s=arc-20240116; t=1786075711; c=relaxed/simple;
+	bh=MPh/YM7m5LHj5qzrxSuWgw5hbTf/gEhJCcuSq6wzUsk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=KK5swy7spl1lVor3I6yaLBzfRBN+hPWNR6JUXgDJjef4Xq0vPaa8mqMvB/wqNBkh7bSoGxdvO2qDy3cmXns3wUHb6XDzbHzUFdm5hyo2eN7I3MsjO5Ivv5FxZ4Q20i2MM8liSAOwwc8AL2K4fQ9c7pubV0aymJau7JNfuVyYyXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sk.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
+X-AuditID: a67dfc5b-c2dff70000001609-9a-6a755a375cf8
+From: Rakie Kim <rakie.kim@sk.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: gourry@gourry.net,
+	linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	ziy@nvidia.com,
+	matthew.brost@intel.com,
+	joshua.hahnjy@gmail.com,
+	byungchul@sk.com,
+	ying.huang@linux.alibaba.com,
+	apopple@nvidia.com,
+	david@kernel.org,
+	ljs@kernel.org,
+	liam@infradead.org,
+	vbabka@kernel.org,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	dave@stgolabs.net,
+	jic23@kernel.org,
+	dave.jiang@intel.com,
+	alison.schofield@intel.com,
+	vishal.l.verma@intel.com,
+	ira.weiny@intel.com,
+	harry@kernel.org,
+	kernel_team@skhynix.com,
+	honggyu.kim@sk.com,
+	yunjeong.mun@sk.com,
+	Rakie Kim <rakie.kim@sk.com>
+Subject: Re: [PATCH 0/4] mm/mempolicy: introduce package-aware weighted interleave
+Date: Fri,  7 Aug 2026 13:07:22 +0900
+Message-ID: <20260807040726.1933-1-rakie.kim@sk.com>
+X-Mailer: git-send-email 2.52.0.windows.1
+In-Reply-To: <20260806143839.cf5226e6d5c8254098bf3d74@linux-foundation.org>
+References: 
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <anExYCOu1n0RnYvh@aschofie-mobl2.lan>
+Content-Transfer-Encoding: 8bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrLIsWRmVeSWpSXmKPExsXC9ZZnka5FVGmWwaVbLBZz1q9hs7j7+AKb
+	xa4bIRYnbjayWay+uYbR4vnWX4wWP+8eZ7e4fmslo8X+p89ZLB40rWKyOL51HrvFulOH2CzO
+	zzrFYnF51xw2i3tr/rNavHnsZvGtT9rifp+Dxcoff1gtjqzfzmQx+dICNouOl/dZLG5NOMZk
+	sXpNhsXso/fYHSQ9ds66y+6xYFOpR3fbZXaPzSu0PBbvecnksWlVJ5vHpk+T2D1OzPjN4rHz
+	oaXHi80zGT16m9+xeUydXe+xfstVFo/Pm+QC+KK4bFJSczLLUov07RK4MrondbEX7FOueHB4
+	GnMD4xepLkZODgkBE4n9nQvYYOy3O9cwdzFycLAJKEkc2xsDEhYR0JVY9XwXM4jNLLCOVeL4
+	WzcQW1ggSKJr+nNGEJtFQFXi34k1TCA2L9CYf8ufQo3UlFi38RYLiM0p4C1xf/kNsHohAR6J
+	Vxv2M0LUC0qcnPmEBWK+vETz1tlAu7iAer+yS0w/8YMRYpCkxMEVN1gmMPLPQtIzC0nPAkam
+	VYxCmXlluYmZOSZ6GZV5mRV6yfm5mxiBkbqs9k/0DsZPF4IPMQpwMCrx8DqUl2QJsSaWFVfm
+	HmKU4GBWEuFlPViUJcSbklhZlVqUH19UmpNafIhRmoNFSZzX6Ft5ipBAemJJanZqakFqEUyW
+	iYNTqoFx5hGHyMdi7zjeFCQazHjCP/Pfzkz9ay0Tj8SoLnT+oOJhM1mnTfnMmnfZTi+Knu76
+	//FkrRLDNuGn5qfOBhe3fWy0Zctb9/Gr8XqbeDe3zP8Tk2V/nd18j71Ps0vjweJmU8/S+GVl
+	XLJCs2ObZtlFGvz6EP+7SGbSLM+NMVdPP16dc655Ld8mJZbijERDLeai4kQAJluWp9ACAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrDIsWRmVeSWpSXmKPExsXCNUM9Rtc8qjTLYPNaU4s569ewWdx9fIHN
+	YteNEItzU2azWZy42chmsfrmGkaL51t/MVr8vHuc3eL6rZWMFp+fvWa22P/0OYvFg6ZVTBbH
+	t85jtzg89ySrxbpTh9gszs86xWJxedccNot7a/6zWrx57GbxrU/a4n6fg8XKH39YLQ5de85q
+	cWT9diaLyZcWsFl0vLzPYnFrwjEmi9VrMix+b1vBZjH76D12BzmPnbPusnss2FTq0d12md1j
+	8wotj8V7XjJ5bFrVyeax6dMkdo8TM36zeOx8aOnxYvNMRo/e5ndsHt9ue3gsfvGByWPq7HqP
+	9Vuusnh83iQXIBDFZZOSmpNZllqkb5fAldE9qYu9YJ9yxYPD05gbGL9IdTFyckgImEi83bmG
+	uYuRg4NNQEni2N4YkLCIgK7Eque7mEFsZoF1rBLH37qB2MICQRJd058zgtgsAqoS/06sYQKx
+	eYHG/Fv+lA1ipKbEuo23WEBsTgFvifvLb4DVCwnwSLzasJ8Rol5Q4uTMJywQ8+UlmrfOZp7A
+	yDMLSWoWktQCRqZVjCKZeWW5iZk5pnrF2RmVeZkVesn5uZsYgXG6rPbPxB2MXy67H2IU4GBU
+	4uF1KC/JEmJNLCuuzD3EKMHBrCTCy3qwKEuINyWxsiq1KD++qDQntfgQozQHi5I4r1d4aoKQ
+	QHpiSWp2ampBahFMlomDU6qBMVue+7JkwHSmTsE/ErqFBgkTpQ1smyo3mzJxmd+9ybP6XXWD
+	Z8uk8BMZX6QWhD/pkxd1MNnL9ud1kLGKk8Lf++XsIrFP88wTXj5YX5bGofJn7/OKV9bny4VW
+	9U/eX/h44ZGjfh8nvtJ0iivrq+c5spVlZtGryEnTyx4wqOqdsMiYpn/lt/ZbJZbijERDLeai
+	4kQAwAxoas8CAAA=
+X-CFilter-Loop: Reflected
 
-On Mon, Aug 03, 2026 at 05:25:04PM -0700, Alison Schofield wrote:
-> On Sat, Aug 01, 2026 at 02:30:24AM -0700, Anisa Su wrote:
-> > On Fri, Jul 31, 2026 at 09:04:43AM +0000, sashiko-bot@kernel.org wrote:
-> > > Thank you for your contribution! Sashiko AI review found 3 potential issue(s) to consider:
-> > > 
-> > > New issues:
-> > > - [High] Infinite IRQ Thread Loop / CPU Spin when handling DCD events
-> > > 
-> > False Positive. DCD events are ignored because DCD is turned off
-> > (mds->dcd_supported = false).
-> 
-> Hi Anisa,
-> 
-> I have related review feedback -
-> 
-> 
-> snip
-> 
-> > > 
-> > > [Severity: High]
-> > > Since mask now includes CXLDEV_EVENT_STATUS_DCD, status can have this bit set.
-> > > However, cxl_mem_get_event_records() does not appear to handle the DCD event:
-> > > 
-> > The mask never includes CXLDEV_EVENT_STATUS_DCD.
-> > Above in cxl_event_drain_mask:
-> > 
-> > if (cxl_dcd_supported(mds))
-> >               mask |= CXLDEV_EVENT_STATUS_DCD;
-> > 
-> > mds->dcd_supported is set to false in Patch 1 so the DCD bit is never
-> > set.
-> > 
-> > So status &= mask becomes zero and we break from the loop.
-> > 
-> > - Anisa
-> 
-> I understand that dcd_supported being forced false makes this unreachable
-> today. My concern is that this patch adds the DCD bit to the drain path
-> before there is code to consume and clear that log.
-> 
-> As soon as a later patch enables dcd_supported, the bit can enter status
-> and the handler can loop without clearing it. Could the DCD bit be added
-> to the mask in the same patch that adds the DCD drain handling?
-> 
-> -- Alison
+On Thu, 6 Aug 2026 14:38:39 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
+> On Thu,  6 Aug 2026 17:09:31 +0900 Rakie Kim <rakie.kim@sk.com> wrote:
+>
 
-Sure, that makes sense.
+Hello Andrew,
 
-cxl_event_drain_mask() no longer sets the DCD bit, and it
-loses the mds argument it needed for checking cxl_dcd_supported() to set it:
+Thank you for taking the time to review this series.
 
-	/* Event logs the driver drains: standard logs when native_cxl */
-	static u32 cxl_event_drain_mask(struct pci_host_bridge *host_bridge)
-	{
-		if (host_bridge->native_cxl_error)
-			return CXLDEV_EVENT_STATUS_ALL & ~CXLDEV_EVENT_STATUS_DCD;
-		return 0;
-	}
+> > Package-aware weighted interleave places a task's weighted-interleave
+> > pages on the NUMA nodes of its local package, so that interleave traffic
+> > does not have to cross the interconnect to another package. This keeps
+> > each node's weight aligned with the bandwidth the task actually gets
+> > from it, so effective bandwidth holds up on a system that has more than
+> > one package. (A package is a CPU socket together with the memory
+> > attached to it.)
+>
+> "package" is not a familiar term in MM.  It would be helpful if the
+> [0/N] were to carefully and fully define/describe the new term before
+> using it 40 times!
+>
 
-The bit is added back by "cxl/mem: Set up framework for handling DC
-Events", the patch that adds the DCD case to
-cxl_mem_get_event_records(), so the mask and its consumer arrive
-together.
+You are right. I think my explanation was not sufficient. When I
+prepared this series, I went back and forth between "socket" and
+other candidate terms, and settled on "package" because modern
+processors can contain multiple NUMA nodes and dies within a single
+physical socket, so "socket" felt misleading. I did not explain this
+reasoning in the cover letter. In the next version, I will define
+the term at the top of the cover letter before it is used.
 
-The commit message is updated to make it clear that the DCD event log
-is not drained in this patch:
+> > Measured results:
+> >
+> > System Configuration:
+> > - Processor: Dual-Socket Intel Xeon 6980P (Granite Rapids)
+> >
+> > 1) Throughput (System Bandwidth)
+> >    - DRAM Only: 966 GB/s
+> >    - Weighted Interleave: 903 GB/s (7% decrease compared to DRAM Only)
+> >    - Package-Aware Weighted Interleave: 1329 GB/s (1.33 TB/s)
+> >      (38% increase compared to DRAM Only,
+> >       47% increase compared to Weighted Interleave)
+> >
+> > 2) Loaded Latency (Under High Bandwidth)
+> >    - DRAM Only: 544 ns
+> >    - Weighted Interleave: 545 ns
+> >    - Package-Aware Weighted Interleave: 436 ns
+> >      (20% reduction compared to both)
+>
+> Well that sounds nice.
+>
 
-    The DCD event log is not drained here.  cxl_event_drain_mask() reports
-    only the logs the driver can service, and the DCD bit is added by
-    the patch introducing DCD event handling.  Until then a DCD interrupt
-    wakes the event thread, which finds no log it owns and returns.
+Thank you.
 
-Thanks,
-Anisa
+> >  .../ABI/testing/sysfs-devices-system-package  |   35 +
+> >  ...fs-kernel-mm-mempolicy-weighted-interleave |   17 +
+> >  drivers/cxl/core/region.c                     |   54 +
+> >  drivers/cxl/cxl.h                             |    1 +
+> >  drivers/dax/kmem.c                            |    3 +
+> >  include/linux/memory-tiers.h                  |  113 ++
+> >  include/linux/numa.h                          |   11 +
+> >  mm/memory-tiers.c                             | 1009 +++++++++++++++++
+> >  mm/mempolicy.c                                |  200 +++-
+>
+> Are some user-facing Documentation/ updates appropriate?
+>
+> The Documentation/ABI things are rather dry and information-free.  How
+> about some documentation for the operator who is wondering "should I
+> use this and if so why and how"?
+>
+
+I agree with your point. The current ABI entries only describe the
+sysfs files themselves. In the next version, I will strengthen the
+documentation content so that it answers exactly those questions for
+an operator: whether this feature fits their system, why it helps,
+and how to enable and verify it.
+
+>
+> The runtime sysfs on/off tunable is interesting.  I hear from google
+> operations people that every new feature should have such an "off"
+> switch so that if development send them a new thing and they think it's
+> problematic, they can disable it in order to quickly get back to the
+> old regime.  Perhaps that was your motivation, perhaps not.  Can you
+> please describe?
+>
+
+You are right that this was one of the purposes. The switch was
+provided with two goals in mind. First, as you describe, it is an
+"off" switch for the new feature: if it behaves unexpectedly in
+production, the operator can disable it at runtime and immediately
+return to the old behavior, without a reboot. Second, it is for
+users who want to keep using the existing weighted interleave as it
+is: the feature is off by default, and nothing changes for them
+unless they explicitly turn it on. I will describe this motivation
+in the documentation as well.
+
+>
+> I see you've been emailed the Sashiko report, which appears substantial.
+> 	https://sashiko.dev/#/patchset/20260806080936.421-1-rakie.kim@sk.com
+>
+
+Yes, I have received the report, and it seems to provide a lot of
+good information. I am reviewing each finding against the code, and
+I plan to reflect it in the next version as much as possible.
+
+Thanks again for your time and review.
+
+Rakie Kim
