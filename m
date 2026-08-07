@@ -1,25 +1,25 @@
-Received: from relay.hostedemail.com (smtprelay0013.hostedemail.com [216.40.44.13])
+Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 616192BEC45;
-	Fri,  7 Aug 2026 13:47:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CCD03DEAF6;
+	Fri,  7 Aug 2026 15:05:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786110479; cv=none; b=EGHzpN+igJDjyd3vnee1bA8yxSWFIVse+nDWUCvaGdKBsouCDv2rjpRaE3PefK1XiYCjhuzxhIWSTQd91hHYmlukZvmw38VJGN0YIyJWQPxwiZpSXiphlFeX/JJD8UJ2MaiRshExmGl/Pli4PSYobSO/yGcmRUZhU8pjhscfub0=
+	t=1786115134; cv=none; b=NIXVYf13RqVIfh8T/+xtY6a2nc0qNbZ35MWxrQVIGEF4bvQ1sd1ALlKUM7GDOfsHJ0jV7eoRGNyBIO1K4Ub4/29Gv9frb034AY2bwgZ/GakkurMhMuSlcG0HjY5uXnYx2h/kixLRkiCphi/bUB33zLpmQxbwn9S+w/JVhHNkQEk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786110479; c=relaxed/simple;
-	bh=eYl16HP5uXexE4QsoqXNys6JrQgZzYjwhcMhwbxiam4=;
+	s=arc-20240116; t=1786115134; c=relaxed/simple;
+	bh=glgKEem+6g70PraGqIwL/Po1kA8bdnkrVHo0WIwVe+k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SgTB5ad/pmjcblL/hAVeFwCKSCRIGpCSygXA97QN2OCibDetQqDhIgsy1tGgXahf1K18NBZB8VAvWUOoFQpuPaOIOlT6XKGvVn0+FwU+Zii1Cg2h4ad6FvEQYGl8FQlmuQ1M5TW8DCunTbrRsAKfZ+Koa8yHG2RxzVaW+IJrAVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.13
+	 Content-Type:Content-Disposition:In-Reply-To; b=qVpEWivausssaHcF1F6caIRAB/HqWfMdi1AehwD6t/mpIAUlz075F2ZpGTPauxG/vIT4WW0b+vUPRVdO33zte0mFRWmOJ/sAgdmFAeGkjEP5wQaOI4hbtbGI4R5gKI4MwGNvpXDi4FzEbFIZ6uBtfFWyMTadmar+4xAtrx73c1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf06.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay05.hostedemail.com (Postfix) with ESMTP id 23379403D0;
-	Fri,  7 Aug 2026 13:47:37 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf06.hostedemail.com (Postfix) with ESMTPA id 7B8F32000F;
-	Fri,  7 Aug 2026 13:47:20 +0000 (UTC)
-Date: Fri, 7 Aug 2026 08:47:19 -0500
+Received: from omf01.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay09.hostedemail.com (Postfix) with ESMTP id F0CF480214;
+	Fri,  7 Aug 2026 15:05:24 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf01.hostedemail.com (Postfix) with ESMTPA id BC60A6000C;
+	Fri,  7 Aug 2026 15:05:07 +0000 (UTC)
+Date: Fri, 7 Aug 2026 10:05:06 -0500
 From: John Groves <john@groves.net>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
@@ -47,14 +47,13 @@ Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	"venkataravis@micron.com" <venkataravis@micron.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 11/12] famfs: Report device capacity via statfs so df
- works
-Message-ID: <anXhywwC-DWjHGRz@groves.net>
+	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>, Jonathan Cameron <jonathan.cameron@huawei.com>
+Subject: Re: [PATCH V12 12/12] famfs: Add documentation
+Message-ID: <anXpf1JJYsV5cfYL@groves.net>
 References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803023000.75948-1-john@jagalactic.com>
- <0100019fc57500f5-06c293c8-393c-44e3-ad42-d4f4de58245d-000000@email.amazonses.com>
- <20260806053300.GK3560084@frogsfrogsfrogs>
+ <20260803023009.75966-1-john@jagalactic.com>
+ <0100019fc5752a8f-df47f869-a29b-4b6d-936a-67dd521c0f5e-000000@email.amazonses.com>
+ <20260806053852.GM3560084@frogsfrogsfrogs>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -63,192 +62,192 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260806053300.GK3560084@frogsfrogsfrogs>
-X-Stat-Signature: pwrq6rgztu5gdqo7od7a6fg3d45qzcuy
-X-Rspamd-Server: rspamout02
-X-Rspamd-Queue-Id: 7B8F32000F
+In-Reply-To: <20260806053852.GM3560084@frogsfrogsfrogs>
+X-Stat-Signature: wwskbdqhc3jzktyryshh4awcxi5ukaeg
+X-Rspamd-Server: rspamout04
+X-Rspamd-Queue-Id: BC60A6000C
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1/1vmEfcB0ZWzj6v0b7ezNU01nhES/SZBA=
-X-HE-Tag: 1786110440-538022
-X-HE-Meta: U2FsdGVkX18XfVA4JrV3nFfuua9yhjn8m+dg/G+LQxmf4sMMGGtOUQeXXEIGISUaUu2JXALFW2BVZgTaH+aLE+iiUKA6KBpKfPLmriNfaWgaaNO3gDRGkhL9PknoGyjO4ZfsB91+bThfZy/mFbb/FV4wwDKoAjrYlqZ9aT0hy84B5GoSYVx1b77c5IiFpOiobgd0krwslBQXQcV5QetVVePkDJMKd38vkethLgeN4HSUCM9LcQR7+vvX4pHFK8u4H8GFzvxBQRfgP8jaHaadlZv//y3F7EKkr2oUqGs+I5QvKS9nbYQRTiLWS+CosOTDiGZ76yRmhpE5r5HZZw15st6ikc3A7GCiTRUhab1kTKTC+JkbRnhogTcDhWHxpDd+
+X-Session-ID: U2FsdGVkX18b4zxH4gkowpJ5t9P02dhsJKnGhwZqyp8=
+X-HE-Tag: 1786115107-833865
+X-HE-Meta: U2FsdGVkX1/xIhMDbEBd8+CBNlywVoLemHpmYl/fPnh6lKjCc2JVy4c74zDaDkCO2uGhn6St9fhFdvYDhRuJ23fJys9OIJTD5Et6krB5GW4dqcpEdR7GikNbBR3R6zTWf9MACb1vtXepkUro47UJOKPy1RMf4Weanu6F2kWB4YE5cFyX5YU5ocWy+jXPHq90GTqdTHS8BEQhh2SWrHRjLJ8IAE88yLOzg/QGsQOULqMJZqFg/s/ha4sQ6SLAbYVkR7RzW6zioBI59jux6vj2AAlx5W4ozheg9lKV/v7wszwfwUWTYGsFmoWYpUVfo6h+/D9D+QCbnNewuw0zAGkxIjzO3jMPWcx6wod1RXQzlC7TZeEJPKt2xPG3iCyAUAhlIY/Xf0qLPTnRA9qKYS/mfGGpZdq2hZWtMEXZTZaGzCFd2tg/bDBZhO1HjhdzcDBtvwikOx/NBgQUMk/lll/sbw==
 
-On 26/08/05 10:33PM, Darrick J. Wong wrote:
-> On Mon, Aug 03, 2026 at 02:30:07AM +0000, John Groves wrote:
+On 26/08/05 10:38PM, Darrick J. Wong wrote:
+> On Mon, Aug 03, 2026 at 02:30:18AM +0000, John Groves wrote:
 > > From: John Groves <John@Groves.net>
 > > 
-> > Replace simple_statfs(), which reports zero blocks (so df omits the mount),
-> > with famfs_statfs() reporting real capacity and usage.
+> > Add Documentation/filesystems/famfs.rst and update MAINTAINERS
 > > 
-> > Add dax_fsdev_size() in drivers/dax/fsdev.c, returning the size fsdev
-> > caches at probe (dev_dax->cached_size - the sum of the device's ranges,
-> > stable while bound), exported. It lives in fsdev.c because cached_size is
-> > set only by the fsdev driver, and famfs only ever holds fsdev-mode daxdevs
-> > (fs_dax_get() enforces DAXDRV_FSDEV_TYPE); famfs.ko therefore depends on
-> > fsdev_dax.ko.
-> > 
-> > famfs tracks two byte counters under a new stats_sem:
-> >  - total_capacity: summed in famfs_install_daxdev() from dax_fsdev_size(),
-> >    covering the mount primary and every DAXDEV_OPEN secondary, counted once
-> >    per daxdev (on the valid 0->1 transition).
-> >  - used_capacity: summed in famfs_file_init_dax() from the fmap's mapped
-> >    device bytes (superblock + log + data files).
-> > 
-> > famfs_statfs() reports total and free (total - used). Free is an
-> > approximation of the userspace allocator's free space (it ignores allocator
-> > gaps and reserved regions), which is adequate for df.
-> > 
-> > (Side note: I am the maintainer of drivers/dax/fsdev.c)
-> > 
+> > Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+> > Tested-by: Randy Dunlap <rdunlap@infradead.org>
+> > Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 > > Signed-off-by: John Groves <john@groves.net>
 > > ---
-> >  drivers/dax/fsdev.c       | 19 +++++++++++++++++
-> >  fs/famfs/famfs_file.c     |  5 +++++
-> >  fs/famfs/famfs_inode.c    | 43 ++++++++++++++++++++++++++++++++++++++-
-> >  fs/famfs/famfs_internal.h |  8 ++++++++
-> >  include/linux/dax.h       |  1 +
-> >  5 files changed, 75 insertions(+), 1 deletion(-)
+> >  Documentation/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++
+> >  Documentation/filesystems/index.rst |   1 +
+> >  MAINTAINERS                         |   1 +
+> >  3 files changed, 144 insertions(+)
+> >  create mode 100644 Documentation/filesystems/famfs.rst
 > > 
-> > diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
-> > index 188b2526bee4..a5b4b2d79428 100644
-> > --- a/drivers/dax/fsdev.c
-> > +++ b/drivers/dax/fsdev.c
-> > @@ -104,6 +104,25 @@ static size_t fsdev_dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff
-> >  	return _copy_from_iter_flushcache(addr, bytes, i);
-> >  }
-> >  
-> > +/**
-> > + * dax_fsdev_size() - total size in bytes of an fsdev dax device
-> > + * @dax_dev: the dax device (must be bound to this driver)
-> > + *
-> > + * Returns the size cached at probe time (sum of all ranges); it cannot change
-> > + * while the driver is bound. Only valid for fsdev dax devices - callers
-> > + * ensure that (e.g. fs_dax_get() enforces DAXDRV_FSDEV_TYPE). Returns 0 if the
-> > + * device is not alive.
-> > + */
-> > +u64 dax_fsdev_size(struct dax_device *dax_dev)
-> > +{
-> > +	struct dev_dax *dev_dax = dax_get_private(dax_dev);
+> > diff --git a/Documentation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst
+> > new file mode 100644
+> > index 000000000000..048791bcbcfd
+> > --- /dev/null
+> > +++ b/Documentation/filesystems/famfs.rst
+> > @@ -0,0 +1,142 @@
+> > +.. SPDX-License-Identifier: GPL-2.0
 > > +
-> > +	if (!dev_dax)
-> > +		return 0;
-> > +	return dev_dax->cached_size;
-> > +}
-> > +EXPORT_SYMBOL_GPL(dax_fsdev_size);
+> > +.. _famfs_index:
 > > +
-> >  static const struct dax_operations dev_dax_ops = {
-> >  	.direct_access = fsdev_dax_direct_access,
-> >  	.zero_page_range = fsdev_dax_zero_page_range,
-> > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> > index abf049b32a4b..5be39d677089 100644
-> > --- a/fs/famfs/famfs_file.c
-> > +++ b/fs/famfs/famfs_file.c
-> > @@ -280,6 +280,11 @@ famfs_file_init_dax(struct file *file, void __user *arg)
-> >  	}
-> >  	inode_unlock(inode);
-> >  
-> > +	/* Account the mapped device bytes for statfs (only on success) */
-> > +	if (!rc) {
-> > +		scoped_guard(rwsem_write, &fsi->stats_sem)
-> > +			fsi->used_capacity += extent_total;
-> > +	}
-> >  out:
-> >  	kvfree(fmap_buf);
-> >  	if (meta)
-> > diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> > index 6cbd7d657fd8..3c0d1094d653 100644
-> > --- a/fs/famfs/famfs_inode.c
-> > +++ b/fs/famfs/famfs_inode.c
-> > @@ -24,6 +24,7 @@
-> >  #include <linux/iomap.h>
-> >  #include <linux/path.h>
-> >  #include <linux/namei.h>
-> > +#include <linux/statfs.h>
-> >  
-> >  #include "famfs_internal.h"
-> >  
-> > @@ -307,8 +308,37 @@ static void famfs_evict_inode(struct inode *inode)
-> >  	clear_inode(inode);
-> >  }
-> >  
-> > +/*
-> > + * famfs_statfs() - report device capacity and consumption so 'df' works.
-> > + * @total_capacity is the sum of installed daxdev sizes; @used_capacity is the
-> > + * sum of device bytes mapped by fmaps (superblock + log + data files). Free is
-> > + * the difference - an approximation of the userspace allocator's free space
-> > + * (it ignores allocator gaps / reserved regions), which is fine for df.
-> > + */
-> > +static int famfs_statfs(struct dentry *dentry, struct kstatfs *buf)
-> > +{
-> > +	struct famfs_fs_info *fsi = dentry->d_sb->s_fs_info;
-> > +	u64 total, used, free;
+> > +==================================================================
+> > +famfs: The fabric-attached memory file system
+> > +==================================================================
 > > +
-> > +	scoped_guard(rwsem_read, &fsi->stats_sem) {
-> > +		total = fsi->total_capacity;
-> > +		used  = fsi->used_capacity;
-> > +	}
-> > +	free = total > used ? total - used : 0;
+> > +- Copyright (C) 2024-2026 Micron Technology, Inc.
 > > +
-> > +	buf->f_type    = FAMFS_SUPER_MAGIC;
-> > +	buf->f_bsize   = PAGE_SIZE;
-> > +	buf->f_frsize  = PAGE_SIZE;
-> > +	buf->f_blocks  = total >> PAGE_SHIFT;
-> > +	buf->f_bfree   = free  >> PAGE_SHIFT;
-> > +	buf->f_bavail  = free  >> PAGE_SHIFT;	/* no root reservation */
-> > +	buf->f_namelen = NAME_MAX;
-> > +	buf->f_fsid    = u64_to_fsid(huge_encode_dev(dentry->d_sb->s_dev));
-> > +	return 0;
-> > +}
+> > +Introduction
+> > +============
+> > +Compute Express Link (CXL) provides a mechanism for disaggregated or
+> > +fabric-attached memory (FAM). This creates opportunities for data sharing;
+> > +clustered apps that would otherwise have to shard or replicate data can
+> > +share one copy in disaggregated memory.
 > > +
-> >  static const struct super_operations famfs_super_ops = {
-> > -	.statfs		= simple_statfs,
-> > +	.statfs		= famfs_statfs,
-> >  	.drop_inode	= inode_just_drop,
-> >  	.show_options	= famfs_show_options,
-> >  	.evict_inode    = famfs_evict_inode,
-> > @@ -399,6 +429,7 @@ int famfs_install_daxdev(
-> >  		const char *name)
-> >  {
-> >  	struct famfs_daxdev *daxdev;
-> > +	struct dax_device *devp = NULL;
-> >  	int rc = 0;
-> >  
-> >  	if (index >= fsi->dax_devlist->nslots) {
-> > @@ -462,6 +493,15 @@ int famfs_install_daxdev(
-> >  
-> >  		wmb(); /* All other fields must be visible before valid */
-> >  		daxdev->valid = 1;
-> > +		devp = daxdev->devp;
-> > +	}
+> > +Famfs, which is not CXL-specific in any way, provides a mechanism for
+> > +multiple hosts to concurrently access data in shared memory, by giving it
+> > +a file system interface. With famfs, any app that understands files can
+> > +access data sets in shared memory. Although famfs supports read and write,
+> > +the real point is to support mmap, which provides direct (dax) access to
+> > +the memory - either writable or read-only.
 > > +
-> > +	/* Freshly installed: add its capacity to the statfs accounting */
-> > +	if (devp) {
-> > +		u64 sz = dax_fsdev_size(devp);
+> > +Shared memory can pose complex coherency and synchronization issues, but
+> > +there are also simple cases. Two simple and eminently useful patterns that
+> > +occur frequently in data analytics and AI are:
 > > +
-> > +		scoped_guard(rwsem_write, &fsi->stats_sem)
-> > +			fsi->total_capacity += sz;
+> > +* Serial Sharing - Only one host or process at a time has access to a file
+> > +* Read-only Sharing - Multiple hosts or processes share read-only access
+> > +  to a file
+> > +
+> > +The famfs file system is part of the famfs framework; user space
+> > +components [1] handle metadata allocation and distribution, and populate
+> > +the in-kernel files (via ioctls) so that they map directly to shared
+> > +memory.
 > 
-> Can dax devices change size the same way block devices can?
+> Ok, so maybe it is the famfs server that's supposed to go modify the
+> directory tree after the metadata log updates.
+
+Right, pretty much. With standalone famfs, there is currently no stateful
+server per se (which is a benefit!). There is state in the log, and state in 
+the kernel (dirs and files with fmaps). Periodically we replay the log to 
+push up any new state into the kernel - at which point we add dirs and files 
+if the log has been appended.  Since we don't delete or truncate stuff, 
+logplay either adds files/dirs or does nothing.
+
 > 
-> Though for statfs that hardly matters; a bdev shrinkage rarely causes
-> b_avail to be updated even if the filesystem starts barfing IO errors
-> due to invalid LBA range.
+> > +The famfs framework manages coherency of its own metadata and structures,
+> > +but does not attempt to manage coherency for applications.
+> > +
+> > +Famfs also provides data isolation between files. That is, even though
+> > +the host has access to an entire memory "device" (as a devdax device), apps
+> > +cannot write to memory for which the file is read-only, and mapping one
+> > +file provides isolation from the memory of all other files. This is pretty
+> > +basic, but some experimental shared memory usage patterns provide no such
+> > +isolation.
+> > +
+> > +Principles of Operation
+> > +=======================
+> > +
+> > +Famfs is a file system with one or more devdax devices as a first-class
+> > +backing device(s). Metadata maintenance and query operations happen
+> > +entirely in user space.
+> > +
+> > +The famfs user space provides each file's map (fmap) and its backing
+> > +devdax devices to the kernel through ioctls (FAMFSIOC_MAP_CREATE and
+> > +FAMFSIOC_DAXDEV_OPEN), after which read/write/mapping faults are handled
+> > +entirely in the kernel with no up-calls for all active files.
+> > +
+> > +The famfs user space is responsible for maintaining and distributing
+> > +consistent metadata. This is currently handled via an append-only
+> > +metadata log within the memory, but this is orthogonal to the famfs
+> > +kernel code.
+> > +
+> > +Once instantiated, "the same file" on each host points to the same shared
+> > +memory, but in-memory metadata (inodes, etc.) is ephemeral on each host
+> > +that has a famfs instance mounted. Use cases are free to allow or not
+> > +allow mutations to data on a file-by-file basis.
+> > +
+> > +When an app accesses a data object in a famfs file, there is no page cache
+> > +involvement. The CPU cache is loaded directly from the shared memory. In
+> > +some use cases, this is an enormous reduction in read amplification
+> > +compared to loading an entire page into the page cache.
+> > +
+> > +
+> > +Famfs is Not a Conventional File System
+> > +---------------------------------------
+> > +
+> > +Famfs files can be accessed by conventional means, but there are
+> > +limitations. The famfs kernel module is not involved in the allocation of
+> > +backing memory for files at all; the famfs user space creates files and
+> > +supplies their fmaps and devdax device info to the kernel via ioctls.
 > 
-> The code in here looks good to me otherwise.
+> ...and just to be clear, regular programs *do not* modify the directory
+> tree, create files, or delete them?
+
+Right, though I'm hesitant to say it should *never* be allowed. One recent
+use case needed to create local-only symlinks within famfs, to make some 
+app or benchmark happy...
+
+But any mutability other than by the logplay machinery is severely or
+completely restricted.
+
+> 
+> > +Famfs differs in some important ways from conventional file systems:
+> > +
+> > +* Files must be pre-allocated by the famfs framework; allocation is never
+> > +  performed on (or after) write.
+> > +* Any operation that changes a file's size is considered to put the file
+> > +  in an invalid state, disabling access to the data. It may be possible to
+> > +  revisit this in the future. (Typically the famfs user space can restore
+> > +  files to a valid state by replaying the famfs metadata log.)
+> > +
+> > +Famfs exists to apply the existing file system abstractions to shared
+> > +memory so applications and workflows can more easily adapt to an
+> > +environment with disaggregated shared memory.
+> > +
+> > +Memory Error Handling
+> > +=====================
+> > +
+> > +Possible memory errors include timeouts, poison, and unexpected
+> > +reconfiguration of an underlying dax device. In all of these cases, famfs
+> > +receives a call from the devdax layer via its
+> > +dax_holder_operations->notify_failure() function. If any memory errors have
+> > +been detected, access to the affected
+> > +daxdev is disabled to avoid further errors or corruption.
+> > +
+> > +In all known cases, famfs can be unmounted cleanly. In most cases errors
+> > +can be cleared by re-initializing the memory - at which point a new famfs
+> > +file system can be created.
+> 
+> Should media failure notifications get passed to the new fserror
+> framework (see xfs_verify_media.c)?
 > 
 > --D
 
-There are cases where a daxdev can change size, but fsdev/famfs mode
-explicitly prohibits that.
+I didn't know about fserror; Initial impression is I'm hesitant to jump in
+immediately, but we should consider adding it later.
 
-Since the whole idea is that daxdevs probably point to shared memory,
-We can't let the size change because it might not happen at the same
-instant everywhere. Because special relativity ;)
+Famfs currently does not attempt to determine which files are affected by
+a memory error - it just shuts down the mount. It's possible we'll attempt
+this in the future, but I'm not yet convinced it's needed.
 
-I watched a video of Leslie Lamport some time back where he said software
-concurrency was like special relativity: you often *cannot* know whether
-A happened after B, etc.
+Famfs is not storage, and we advise users that it's a mistake to put your 
+only copy of valuable data in famfs. But it's great for stuff like kv-cache 
+blocks, which can be regenerated. So errors famfs memory, if you're using
+it right, are not lost data in the same sense as with xfs.
+
+Push back if you disagree. Otherwise I've noted it in our internal roadmap
+docs...
 
 Thanks!
 John
 
 <snip>
+
