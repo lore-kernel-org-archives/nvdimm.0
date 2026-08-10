@@ -1,38 +1,37 @@
-Received: from a11-6.smtp-out.amazonses.com (a11-6.smtp-out.amazonses.com [54.240.11.6])
+Received: from a11-16.smtp-out.amazonses.com (a11-16.smtp-out.amazonses.com [54.240.11.16])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEDF5397B02;
-	Mon, 10 Aug 2026 20:24:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AB43397B02;
+	Mon, 10 Aug 2026 20:24:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786393491; cv=none; b=Re+nCH4EvSo11i/dink3QULYm5VCIhd2/PKo9r+0NEgFBTu1qxJaAEJjoVlzIpuL9dy3R5GHcu9FRho1N5PndeVV3C0hP5CR8x3i/uJw92lV0axM4foh2lI/TRLjNQR0K0L1aPKvf1dcGYHyi9XPsVygcV0kLr38xu834VF7MMg=
+	t=1786393501; cv=none; b=QqYCeidkk7FD2Y3szqAxKcxwvo9zYUjzd4X2Y6YxR3utatvOE1zKi5YuWVwXOoqyF4OY8T4A6v2bgO+5dn0dBTzSxMfjKQ0mbDPL2fw9162U4pqizHfQlvchZvjPDaNcHZdFD8bSYoMHdDPN/5U6qPnJOWbN35oLLOBGp7yxYZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786393491; c=relaxed/simple;
-	bh=jhD/rnHLu4JAdll/CWVojBQDzu1Qq8cYP1Gu0r2Z7f8=;
+	s=arc-20240116; t=1786393501; c=relaxed/simple;
+	bh=ZqYamBbCr26xhg7gcFKXVgqVcVTxhLs+rTOF2sLtDvc=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=sonk8x5t41fiYkpPubATUye1tIAb2nS9yzDxl6DzbkU23nEYgQNQlqD1dfQtcvPE7rB9jY3WliN9oaOWgNEQf7w0dQrnhwslOHI0q0JhQX+aE+2m/eeT1kDHutyKvL1W3H/7R3Y48WMZe5+rFZakCATBJC/qDRXJTYOL4ECeOY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=IJgOMk5F; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=V6K8Pz/A; arc=none smtp.client-ip=54.240.11.6
+	 References:Message-ID; b=HuyJYtJDmKlglzY6LVNmOmL9gFyLURtiakW60LsZR7uPNdZbTow0yLRubnIIntvsYp3HeU87wNyyVLL6XsuvPAXRDaeimBXDygnquGGS7VywUl2u80md2fxb5Oosa8WV7+C6rgaBVGM98C6gqc2fWd/hIWGrVrM2EX7Mt7IGrx4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=BPrkJGAT; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=FfV89t6M; arc=none smtp.client-ip=54.240.11.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="IJgOMk5F";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="V6K8Pz/A"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="BPrkJGAT";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="FfV89t6M"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1786393488;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1786393498;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=jhD/rnHLu4JAdll/CWVojBQDzu1Qq8cYP1Gu0r2Z7f8=;
-	b=IJgOMk5Fq4KaA+0bNkyqWQyZYqt2VYNVe5HUwq2YVdELyxtQX8CjK291Mq3HCs72
-	Jv4j5y8jxfaFLnGiP3EBm/i/jIuz+tmbCNowLSXGrYGH+ni6zn2YcfNDapJlSmR2fab
-	lK6+fspILkag6gG6s/XyV561ULRz8+xACysmxK4Q=
+	bh=ZqYamBbCr26xhg7gcFKXVgqVcVTxhLs+rTOF2sLtDvc=;
+	b=BPrkJGAT5/ABcXeqJmYWMdr4yiStgMrF57LYCCQuBy96ipYz7JibI7ThxHMqP9g5
+	k7c+/Nx69wYRljMMyoPLDTm6cz+tXVq/E6jAleYTAkzAvA5F8P6kYX4JcIzDtfaKtbZ
+	QHJuGVb0oB9kxSPDRVtGfOWa9RsVMcN67wqMCpz0=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1786393488;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1786393498;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=jhD/rnHLu4JAdll/CWVojBQDzu1Qq8cYP1Gu0r2Z7f8=;
-	b=V6K8Pz/AZjc22LJJNHM4Qk+K412nO+jlxjgfoyPx8ZxDppAx3FfgpQ5xkXwtHbFE
-	J+cP2TfwaC3X9FM6vAKsbNbotEgADOTpT1Oh0MH04FiXqXzDeJRVZqxgyyRVUlJup7f
-	WyTSYJLZCNkwbmXOUTyGXCUeF2tq/jRVNc0ftawI=
-Subject: [PATCH v13 04/12] famfs: Introduce inode_operations and
- super_operations
+	bh=ZqYamBbCr26xhg7gcFKXVgqVcVTxhLs+rTOF2sLtDvc=;
+	b=FfV89t6MlFMRaIVy2TqMsmDL7f6TvdBw3O/E2OwlBjCnbpNvkqqBnQ2KmlWku39R
+	u69qlyrBQW4ac39x9xm6KgFCnopp2bJG+Eiqt6YqsSUEhvGVwH3XXn0vyufuBY2LWnr
+	HN5+un/X0qoSQWuCGAtqDbZZEKULOhmaR7wfuf3g=
+Subject: [PATCH v13 05/12] famfs: Introduce file_operations read/write
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -88,7 +87,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?fuse-devel=40lists=2Elinux=2E?= =?UTF-8?Q?dev?= <fuse-devel@lists.linux.dev>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Mon, 10 Aug 2026 20:24:48 +0000
+Date: Mon, 10 Aug 2026 20:24:57 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -101,181 +100,117 @@ In-Reply-To:
  <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com>
 References: 
  <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com> 
- <20260810202440.96280-1-john@jagalactic.com>
+ <20260810202450.96296-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHdKQYd8BhJGjNjSyqPwMCz2Vr35AAACwSq
-Thread-Topic: [PATCH v13 04/12] famfs: Introduce inode_operations and
- super_operations
-X-Wm-Sent-Timestamp: 1786393486
+Thread-Index: AQHdKQYd8BhJGjNjSyqPwMCz2Vr35AAADHne
+Thread-Topic: [PATCH v13 05/12] famfs: Introduce file_operations read/write
+X-Wm-Sent-Timestamp: 1786393496
 X-Original-Mailer: git-send-email 2.55.0
-Message-ID: <0100019fed596b17-7d05bea5-52b4-4cf9-ac49-b687a0368a3e-000000@email.amazonses.com>
+Message-ID: <0100019fed59914b-622f6c0a-05cd-4ff6-9cc4-f952557e0f59-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.08.10-54.240.11.6
+X-SES-Outgoing: 2026.08.10-54.240.11.16
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AThe famfs inode and super =
-operations are generic other than=0D=0Ashow_options, evict_inode and seta=
-ttr (which prevents truncation..=0D=0A=0D=0AThis commit builds but is sti=
-ll too incomplete to run=0D=0A=0D=0ASigned-off-by: John Groves <john@grov=
-es.net>=0D=0A---=0D=0Av13:=0D=0A - famfs_rename(): gate a rename that rep=
-laces an existing target by the same=0D=0A   FAMFS_OPT_UNLINK / FAMFS_OPT=
-_RMDIR policy that unlink()/rmdir() enforce.=0D=0A   Previously simple_re=
-name() removed the target (a mapped file, or a=0D=0A   directory) with on=
-ly the FAMFS_OPT_RENAME check, bypassing those gates=0D=0A   (Sashiko bot=
-).=0D=0A - famfs_mknod(): bump the parent directory's mtime/ctime when an=
- entry is=0D=0A   created (create/mkdir/mknod) instead of re-setting the =
-new child inode's=0D=0A   timestamps; matches famfs_symlink() and POSIX (=
-Sashiko bot).=0D=0A=0D=0A fs/famfs/famfs_inode.c    | 289 +++++++++++++++=
-++++++++++++++++++++++-=0D=0A fs/famfs/famfs_internal.h |   6 +=0D=0A 2 f=
-iles changed, 292 insertions(+), 3 deletions(-)=0D=0A=0D=0Adiff --git a/f=
-s/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c=0D=0Aindex 5735d8d1900b..b=
-7a3d8d6ee8c 100644=0D=0A--- a/fs/famfs/famfs_inode.c=0D=0A+++ b/fs/famfs/=
-famfs_inode.c=0D=0A@@ -29,6 +29,9 @@=0D=0A=20=0D=0A #define FAMFS_DEFAULT=
-_MODE=090755=0D=0A=20=0D=0A+static const struct inode_operations famfs_fi=
-le_inode_operations;=0D=0A+static const struct inode_operations famfs_dir=
-_inode_operations;=0D=0A+=0D=0A static struct inode *=0D=0A famfs_get_ino=
-de(=0D=0A =09struct super_block *sb,=0D=0A@@ -55,11 +58,11 @@ famfs_get_i=
-node(=0D=0A =09=09init_special_inode(inode, mode, dev);=0D=0A =09=09break=
-;=0D=0A =09case S_IFREG:=0D=0A-=09=09inode->i_op =3D NULL /* famfs_file_i=
-node_operations */;=0D=0A+=09=09inode->i_op =3D &famfs_file_inode_operati=
-ons;=0D=0A =09=09inode->i_fop =3D NULL /* &famfs_file_operations */;=0D=0A=
- =09=09break;=0D=0A =09case S_IFDIR:=0D=0A-=09=09inode->i_op =3D NULL /* =
-famfs_dir_inode_operations */;=0D=0A+=09=09inode->i_op =3D &famfs_dir_ino=
-de_operations;=0D=0A =09=09inode->i_fop =3D &simple_dir_operations;=0D=0A=
-=20=0D=0A =09=09/* Directory inodes start off with i_nlink =3D=3D 2 (for =
-".") */=0D=0A@@ -73,6 +76,286 @@ famfs_get_inode(=0D=0A =09return inode;=0D=
-=0A }=0D=0A=20=0D=0A+/***************************************************=
-************************=0D=0A+ * famfs inode_operations=0D=0A+ */=0D=0A+=
-=0D=0A+static int=0D=0A+famfs_setattr(=0D=0A+=09struct mnt_idmap *idmap,=0D=
-=0A+=09struct dentry *dentry,=0D=0A+=09struct iattr *iattr)=0D=0A+{=0D=0A=
-+=09struct inode *inode =3D d_inode(dentry);=0D=0A+=09struct famfs_fs_inf=
-o *fsi =3D inode->i_sb->s_fs_info;=0D=0A+=0D=0A+=09/* Resizing a famfs fi=
-le (its size is pinned to the fmap) */=0D=0A+=09if ((iattr->ia_valid & AT=
-TR_SIZE) &&=0D=0A+=09    !famfs_opt_enabled(fsi, FAMFS_OPT_TRUNCATE) &&=0D=
-=0A+=09    iattr->ia_size !=3D i_size_read(inode))=0D=0A+=09=09return -EP=
-ERM;=0D=0A+=09if ((iattr->ia_valid & ATTR_MODE) &&=0D=0A+=09    !famfs_op=
-t_enabled(fsi, FAMFS_OPT_CHMOD))=0D=0A+=09=09return -EPERM;=0D=0A+=09if (=
-(iattr->ia_valid & (ATTR_UID | ATTR_GID)) &&=0D=0A+=09    !famfs_opt_enab=
-led(fsi, FAMFS_OPT_CHOWN))=0D=0A+=09=09return -EPERM;=0D=0A+=09if ((iattr=
-->ia_valid & (ATTR_ATIME | ATTR_MTIME)) &&=0D=0A+=09    !famfs_opt_enable=
-d(fsi, FAMFS_OPT_UTIMES))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A+=09retu=
-rn simple_setattr(idmap, dentry, iattr);=0D=0A+}=0D=0A+=0D=0A+static cons=
-t struct inode_operations famfs_file_inode_operations =3D {=0D=0A+=09/* A=
-ll generic */=0D=0A+=09.setattr=09   =3D famfs_setattr,=0D=0A+=09.getattr=
-=09   =3D simple_getattr,=0D=0A+};=0D=0A+=0D=0A+/*=0D=0A+ * Internal inod=
-e creation helper, shared by ->create, ->mkdir, ->mknod and=0D=0A+ * ->sy=
-mlink. Each of those callers is responsible for its own FAMFS_OPT_*=0D=0A=
-+ * permission check before getting here.=0D=0A+ */=0D=0A+static int=0D=0A=
-+famfs_mknod(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A+=09struct inode *di=
-r,=0D=0A+=09struct dentry *dentry,=0D=0A+=09umode_t mode,=0D=0A+=09dev_t =
-dev)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=
-=0D=0A+=09struct inode *inode;=0D=0A+=0D=0A+=09if (fsi->deverror)=0D=0A+=09=
-=09return -ENODEV;=0D=0A+=0D=0A+=09inode =3D famfs_get_inode(dir->i_sb, d=
-ir, mode, dev);=0D=0A+=09if (!inode)=0D=0A+=09=09return -ENOSPC;=0D=0A+=0D=
-=0A+=09d_make_persistent(dentry, inode);=0D=0A+=09/* Adding an entry upda=
-tes the parent directory's mtime/ctime */=0D=0A+=09inode_set_mtime_to_ts(=
-dir, inode_set_ctime_current(dir));=0D=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0A=
-+=0D=0A+static struct dentry *=0D=0A+famfs_mkdir(=0D=0A+=09struct mnt_idm=
-ap *idmap,=0D=0A+=09struct inode *dir,=0D=0A+=09struct dentry *dentry,=0D=
-=0A+=09umode_t mode)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D dir->=
-i_sb->s_fs_info;=0D=0A+=09int rc;=0D=0A+=0D=0A+=09if (fsi->deverror)=0D=0A=
-+=09=09return ERR_PTR(-ENODEV);=0D=0A+=09if (!famfs_opt_enabled(fsi, FAMF=
-S_OPT_MKDIR))=0D=0A+=09=09return ERR_PTR(-EPERM);=0D=0A+=0D=0A+=09rc =3D =
-famfs_mknod(&nop_mnt_idmap, dir, dentry, mode | S_IFDIR, 0);=0D=0A+=09if =
-(rc)=0D=0A+=09=09return ERR_PTR(rc);=0D=0A+=0D=0A+=09inc_nlink(dir);=0D=0A=
-+=0D=0A+=09return ERR_PTR(0);=0D=0A+}=0D=0A+=0D=0A+static int=0D=0A+famfs=
-_create(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A+=09struct inode *dir,=0D=
-=0A+=09struct dentry *dentry,=0D=0A+=09umode_t mode,=0D=0A+=09bool excl)=0D=
-=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=
-=0D=0A+=09if (fsi->deverror)=0D=0A+=09=09return -ENODEV;=0D=0A+=09if (!fa=
-mfs_opt_enabled(fsi, FAMFS_OPT_CREATE))=0D=0A+=09=09return -EPERM;=0D=0A+=
-=0D=0A+=09return famfs_mknod(&nop_mnt_idmap, dir, dentry, mode | S_IFREG,=
- 0);=0D=0A+}=0D=0A+=0D=0A+static int=0D=0A+famfs_mknod_op(=0D=0A+=09struc=
-t mnt_idmap *idmap,=0D=0A+=09struct inode *dir,=0D=0A+=09struct dentry *d=
-entry,=0D=0A+=09umode_t mode,=0D=0A+=09dev_t dev)=0D=0A+{=0D=0A+=09struct=
- famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09if (!famfs_=
-opt_enabled(fsi, FAMFS_OPT_MKNOD))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A=
-+=09return famfs_mknod(idmap, dir, dentry, mode, dev);=0D=0A+}=0D=0A+=0D=0A=
-+static int=0D=0A+famfs_symlink(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A+=
-=09struct inode *dir,=0D=0A+=09struct dentry *dentry,=0D=0A+=09const char=
- *symname)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D dir->i_sb->s_fs=
-_info;=0D=0A+=09struct inode *inode;=0D=0A+=09int len, rc;=0D=0A+=0D=0A+=09=
-if (fsi->deverror)=0D=0A+=09=09return -ENODEV;=0D=0A+=09if (!famfs_opt_en=
-abled(fsi, FAMFS_OPT_SYMLINK))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A+=09=
-inode =3D famfs_get_inode(dir->i_sb, dir, S_IFLNK | 0777, 0);=0D=0A+=09if=
- (!inode)=0D=0A+=09=09return -ENOSPC;=0D=0A+=0D=0A+=09len =3D strlen(symn=
-ame) + 1;=0D=0A+=09rc =3D page_symlink(inode, symname, len);=0D=0A+=09if =
-(rc) {=0D=0A+=09=09iput(inode);=0D=0A+=09=09return rc;=0D=0A+=09}=0D=0A+=0D=
-=0A+=09d_make_persistent(dentry, inode);=0D=0A+=09inode_set_mtime_to_ts(d=
-ir, inode_set_ctime_current(dir));=0D=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0A=
-+=0D=0A+static int=0D=0A+famfs_link(=0D=0A+=09struct dentry *old_dentry,=0D=
-=0A+=09struct inode *dir,=0D=0A+=09struct dentry *dentry)=0D=0A+{=0D=0A+=09=
-struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09if (!=
-famfs_opt_enabled(fsi, FAMFS_OPT_LINK))=0D=0A+=09=09return -EPERM;=0D=0A+=
-=0D=0A+=09return simple_link(old_dentry, dir, dentry);=0D=0A+}=0D=0A+=0D=0A=
-+static int=0D=0A+famfs_unlink(struct inode *dir, struct dentry *dentry)=0D=
-=0A+{=0D=0A+=09struct inode *inode =3D d_inode(dentry);=0D=0A+=09struct f=
-amfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09/* A file wit=
-h an fmap may only be unlinked when explicitly enabled */=0D=0A+=09if (in=
-ode->i_private && !famfs_opt_enabled(fsi, FAMFS_OPT_UNLINK))=0D=0A+=09=09=
-return -EPERM;=0D=0A+=0D=0A+=09return simple_unlink(dir, dentry);=0D=0A+}=
-=0D=0A+=0D=0A+static int famfs_rmdir(struct inode *dir, struct dentry *de=
-ntry)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info=
-;=0D=0A+=0D=0A+=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_RMDIR))=0D=0A+=09=
-=09return -EPERM;=0D=0A+=0D=0A+=09return simple_rmdir(dir, dentry);=0D=0A=
-+}=0D=0A+=0D=0A+static int=0D=0A+famfs_rename(=0D=0A+=09struct mnt_idmap =
-*idmap,=0D=0A+=09struct inode *old_dir,=0D=0A+=09struct dentry *old_dentr=
-y,=0D=0A+=09struct inode *new_dir,=0D=0A+=09struct dentry *new_dentry,=0D=
-=0A+=09unsigned int flags)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D=
- old_dir->i_sb->s_fs_info;=0D=0A+=09struct inode *target =3D d_inode(new_=
-dentry);=0D=0A+=0D=0A+=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_RENAME))=0D=
-=0A+=09=09return -EPERM;=0D=0A+=0D=0A+=09/*=0D=0A+=09 * Renaming over an =
-existing target removes it, so require the same=0D=0A+=09 * policy gate t=
-hat unlink()/rmdir() would. RENAME_EXCHANGE swaps the=0D=0A+=09 * two ent=
-ries rather than removing the target, so it is exempt.=0D=0A+=09 */=0D=0A=
-+=09if (target && !(flags & RENAME_EXCHANGE)) {=0D=0A+=09=09if (S_ISDIR(t=
-arget->i_mode)) {=0D=0A+=09=09=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_RM=
-DIR))=0D=0A+=09=09=09=09return -EPERM;=0D=0A+=09=09} else if (target->i_p=
-rivate &&=0D=0A+=09=09=09   !famfs_opt_enabled(fsi, FAMFS_OPT_UNLINK)) {=0D=
-=0A+=09=09=09return -EPERM;=0D=0A+=09=09}=0D=0A+=09}=0D=0A+=0D=0A+=09retu=
-rn simple_rename(idmap, old_dir, old_dentry, new_dir, new_dentry,=0D=0A+=09=
-=09=09     flags);=0D=0A+}=0D=0A+=0D=0A+static const struct inode_operati=
-ons famfs_dir_inode_operations =3D {=0D=0A+=09.create=09=09=3D famfs_crea=
-te,=0D=0A+=09.lookup=09=09=3D simple_lookup,=0D=0A+=09.link=09=09=3D famf=
-s_link,=0D=0A+=09.unlink=09=09=3D famfs_unlink,=0D=0A+=09.symlink=09=3D f=
-amfs_symlink,=0D=0A+=09.mkdir=09=09=3D famfs_mkdir,=0D=0A+=09.mknod=09=09=
-=3D famfs_mknod_op,=0D=0A+=09.rmdir=09=09=3D famfs_rmdir,=0D=0A+=09.renam=
-e=09=09=3D famfs_rename,=0D=0A+};=0D=0A+=0D=0A+/*************************=
-****************************************************=0D=0A+ * famfs super=
-_operations=0D=0A+ *=0D=0A+ * TODO: implement a famfs_statfs() that shows=
- size, free and available space,=0D=0A+ * etc.=0D=0A+ */=0D=0A+=0D=0A+/*=0D=
-=0A+ * famfs_show_options() - Display the mount options in /proc/mounts.=0D=
-=0A+ */=0D=0A+static int=0D=0A+famfs_show_options(struct seq_file *m, str=
-uct dentry *root)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D root->d_=
-sb->s_fs_info;=0D=0A+=0D=0A+=09if (fsi->mount_opts.mode !=3D FAMFS_DEFAUL=
-T_MODE)=0D=0A+=09=09seq_printf(m, ",mode=3D%o", fsi->mount_opts.mode);=0D=
-=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+static void=0D=0A+famfs_evic=
-t_inode(struct inode *inode)=0D=0A+{=0D=0A+=09inode->i_private =3D NULL;=0D=
-=0A+=09dax_break_layout_final(inode);=0D=0A+=09truncate_inode_pages_final=
-(&inode->i_data);=0D=0A+=09clear_inode(inode);=0D=0A+}=0D=0A+=0D=0A+stati=
-c const struct super_operations famfs_super_ops =3D {=0D=0A+=09.statfs=09=
-=09=3D simple_statfs,=0D=0A+=09.drop_inode=09=3D inode_just_drop,=0D=0A+=09=
-=2Eshow_options=09=3D famfs_show_options,=0D=0A+=09.evict_inode    =3D fa=
-mfs_evict_inode,=0D=0A+};=0D=0A+=0D=0A+/*********************************=
-********************************************/=0D=0A+=0D=0A /*=0D=0A  * fa=
-mfs dax_operations (for famfs-mode dax)=0D=0A  */=0D=0A@@ -312,7 +595,7 @=
-@ famfs_fill_super(struct super_block *sb, struct fs_context *fc)=0D=0A =09=
-sb->s_blocksize=09=09=3D PAGE_SIZE;=0D=0A =09sb->s_blocksize_bits=09=3D P=
-AGE_SHIFT;=0D=0A =09sb->s_magic=09=09=3D FAMFS_SUPER_MAGIC;=0D=0A-=09sb->=
-s_op=09=09=3D NULL /* famfs_super_ops */;=0D=0A+=09sb->s_op=09=09=3D &fam=
-fs_super_ops;=0D=0A =09sb->s_time_gran=09=09=3D 1;=0D=0A }=0D=0A=20=0D=0A=
-diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h=0D=0Ai=
-ndex 37f667b2b79a..30f0b01010d5 100644=0D=0A--- a/fs/famfs/famfs_internal=
-=2Eh=0D=0A+++ b/fs/famfs/famfs_internal.h=0D=0A@@ -70,6 +70,12 @@ struct =
-famfs_fs_info {=0D=0A =09struct rw_semaphore       devlist_sem;=0D=0A };=0D=
-=0A=20=0D=0A+/* This stub will be replaced in a later commit=0D=0A+ * Not=
-e: the opt parameter is intentionally unused, and will be used by=0D=0A+ =
-* the replacement function when that commit lands=0D=0A+ */=0D=0A+#define=
- famfs_opt_enabled(fsi, opt) (fsi !=3D 0)=0D=0A+=0D=0A int famfs_lookup_d=
-axdev(const char *pathname, dev_t *devno);=0D=0A int famfs_devlist_alloc(=
-struct famfs_fs_info *fsi);=0D=0A int famfs_install_daxdev(struct famfs_f=
-s_info *fsi, struct super_block *sb,=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
+From: John Groves <john@groves.net>=0D=0A=0D=0AThis commit introduces fs/=
+famfs/famfs_file.c and the famfs=0D=0Afile_operations for read/write.=0D=0A=
+=0D=0AThis is not usable yet because:=0D=0A=0D=0A* It calls dax_iomap_rw(=
+) with NULL iomap_ops (which will be=0D=0A  introduced in a subsequent co=
+mmit).=0D=0A* famfs_ioctl() is coming in a later commit, and it is necess=
+ary=0D=0A  to map a file to a memory allocation.=0D=0A=0D=0ASigned-off-by=
+: John Groves <john@groves.net>=0D=0A---=0D=0Av13:=0D=0A - Use copy_splic=
+e_read() instead of filemap_splice_read() for .splice_read:=0D=0A   famfs=
+ inodes are DAX (no page cache), so filemap_splice_read() faulted in=0D=0A=
+   zero-filled ram_aops folios and splice()/sendfile() returned a stream =
+of=0D=0A   zeroes; copy_splice_read() routes through ->read_iter (dax_iom=
+ap_rw) and=0D=0A   returns the real data (Sashiko bot).=0D=0A - No code c=
+hange. The Sashiko bot flagged that famfs_dax_write_iter() does=0D=0A   n=
+ot call generic_write_sync() for O_SYNC/O_DSYNC writes. Considered and=0D=
+=0A   declined -- the finding does not apply to famfs: there is no page c=
+ache,=0D=0A   no dirty tracking and no writeback, and ->fsync is noop_fsy=
+nc by design,=0D=0A   so generic_write_sync() resolves to vfs_fsync_range=
+() -> noop_fsync() -> 0,=0D=0A   an inert no-op. Bla bla bla ;)=0D=0A=0D=0A=
+ fs/famfs/Makefile         |   2 +-=0D=0A fs/famfs/famfs_file.c     | 141=
+ ++++++++++++++++++++++++++++++++++++++=0D=0A fs/famfs/famfs_inode.c    |=
+   2 +-=0D=0A fs/famfs/famfs_internal.h |   2 +=0D=0A 4 files changed, 14=
+5 insertions(+), 2 deletions(-)=0D=0A create mode 100644 fs/famfs/famfs_f=
+ile.c=0D=0A=0D=0Adiff --git a/fs/famfs/Makefile b/fs/famfs/Makefile=0D=0A=
+index 62230bcd6793..8cac90c090a4 100644=0D=0A--- a/fs/famfs/Makefile=0D=0A=
++++ b/fs/famfs/Makefile=0D=0A@@ -2,4 +2,4 @@=0D=0A=20=0D=0A obj-$(CONFIG_=
+FAMFS) +=3D famfs.o=0D=0A=20=0D=0A-famfs-y :=3D famfs_inode.o=0D=0A+famfs=
+-y :=3D famfs_inode.o famfs_file.o=0D=0Adiff --git a/fs/famfs/famfs_file.=
+c b/fs/famfs/famfs_file.c=0D=0Anew file mode 100644=0D=0Aindex 0000000000=
+00..1369fe1824bc=0D=0A--- /dev/null=0D=0A+++ b/fs/famfs/famfs_file.c=0D=0A=
+@@ -0,0 +1,141 @@=0D=0A+// SPDX-License-Identifier: GPL-2.0=0D=0A+/*=0D=0A=
++ * famfs - dax file system for shared fabric-attached memory=0D=0A+ *=0D=
+=0A+ * Copyright 2023-2024 Micron Technology, Inc.=0D=0A+ *=0D=0A+ * This=
+ file system, originally based on ramfs the dax support from xfs,=0D=0A+ =
+* is intended to allow multiple host systems to mount a common file syste=
+m=0D=0A+ * view of dax files that map to shared memory.=0D=0A+ */=0D=0A+=0D=
+=0A+#include <linux/fs.h>=0D=0A+#include <linux/mm.h>=0D=0A+#include <lin=
+ux/dax.h>=0D=0A+#include <linux/iomap.h>=0D=0A+=0D=0A+#include "famfs_int=
+ernal.h"=0D=0A+=0D=0A+/**************************************************=
+*******************=0D=0A+ * file_operations=0D=0A+ */=0D=0A+=0D=0A+/* Re=
+ject I/O to files that aren't in a valid state */=0D=0A+static ssize_t=0D=
+=0A+famfs_file_invalid(struct inode *inode)=0D=0A+{=0D=0A+=09if (!IS_DAX(=
+inode)) {=0D=0A+=09=09pr_debug("%s: inode %llx IS_DAX is false\n",=0D=0A+=
+=09=09=09 __func__, (u64)inode);=0D=0A+=09=09return -ENXIO;=0D=0A+=09}=0D=
+=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+static ssize_t=0D=0A+famfs_rw_prep(=
+struct kiocb *iocb, struct iov_iter *ubuf)=0D=0A+{=0D=0A+=09struct inode =
+*inode =3D iocb->ki_filp->f_mapping->host;=0D=0A+=09struct super_block *s=
+b =3D inode->i_sb;=0D=0A+=09struct famfs_fs_info *fsi =3D sb->s_fs_info;=0D=
+=0A+=09size_t i_size =3D i_size_read(inode);=0D=0A+=09size_t count =3D io=
+v_iter_count(ubuf);=0D=0A+=09size_t max_count;=0D=0A+=09ssize_t rc;=0D=0A=
++=0D=0A+=09if (fsi->deverror)=0D=0A+=09=09return -ENODEV;=0D=0A+=0D=0A+=09=
+rc =3D famfs_file_invalid(inode);=0D=0A+=09if (rc)=0D=0A+=09=09return rc;=
+=0D=0A+=0D=0A+=09/* Avoid unsigned underflow if position is past EOF */=0D=
+=0A+=09if (iocb->ki_pos >=3D i_size)=0D=0A+=09=09max_count =3D 0;=0D=0A+=09=
+else=0D=0A+=09=09max_count =3D i_size - iocb->ki_pos;=0D=0A+=0D=0A+=09if =
+(count > max_count)=0D=0A+=09=09iov_iter_truncate(ubuf, max_count);=0D=0A=
++=0D=0A+=09if (!iov_iter_count(ubuf))=0D=0A+=09=09return 0;=0D=0A+=0D=0A+=
+=09return rc;=0D=0A+}=0D=0A+=0D=0A+static ssize_t=0D=0A+famfs_dax_read_it=
+er(struct kiocb *iocb, struct iov_iter=09*to)=0D=0A+{=0D=0A+=09struct ino=
+de *inode =3D iocb->ki_filp->f_mapping->host;=0D=0A+=09ssize_t rc;=0D=0A+=
+=0D=0A+=09/* dax_iomap_rw() requires i_rwsem held (shared for read) */=0D=
+=0A+=09inode_lock_shared(inode);=0D=0A+=09rc =3D famfs_rw_prep(iocb, to);=
+=0D=0A+=09if (rc || !iov_iter_count(to)) {=0D=0A+=09=09inode_unlock_share=
+d(inode);=0D=0A+=09=09return rc;=0D=0A+=09}=0D=0A+=0D=0A+=09rc =3D dax_io=
+map_rw(iocb, to, NULL /*&famfs_iomap_ops */);=0D=0A+=09inode_unlock_share=
+d(inode);=0D=0A+=0D=0A+=09if (rc > 0)=0D=0A+=09=09file_accessed(iocb->ki_=
+filp);=0D=0A+=09return rc;=0D=0A+}=0D=0A+=0D=0A+/**=0D=0A+ * famfs_dax_wr=
+ite_iter()=0D=0A+ *=0D=0A+ * We need our own write-iter in order to preve=
+nt append=0D=0A+ *=0D=0A+ * @iocb:=0D=0A+ * @from: iterator describing th=
+e user memory source for the write=0D=0A+ */=0D=0A+static ssize_t=0D=0A+f=
+amfs_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)=0D=0A+{=0D=
+=0A+=09struct inode *inode =3D iocb->ki_filp->f_mapping->host;=0D=0A+=09s=
+truct famfs_fs_info *fsi =3D inode->i_sb->s_fs_info;=0D=0A+=09ssize_t rc;=
+=0D=0A+=0D=0A+=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))=0D=0A+=09=09=
+return -EPERM;=0D=0A+=0D=0A+=09/* dax_iomap_rw() requires i_rwsem held (e=
+xclusive for write) */=0D=0A+=09inode_lock(inode);=0D=0A+=09rc =3D famfs_=
+rw_prep(iocb, from);=0D=0A+=09if (rc || !iov_iter_count(from)) {=0D=0A+=09=
+=09inode_unlock(inode);=0D=0A+=09=09return rc;=0D=0A+=09}=0D=0A+=0D=0A+=09=
+kiocb_modified(iocb); /* mtime/ctime + strip set[e]uid */=0D=0A+=0D=0A+=09=
+rc =3D dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);=0D=0A+=09inod=
+e_unlock(inode);=0D=0A+=09return rc;=0D=0A+}=0D=0A+=0D=0A+const struct fi=
+le_operations famfs_file_operations =3D {=0D=0A+=09.owner             =3D=
+ THIS_MODULE,=0D=0A+=0D=0A+=09/* Custom famfs operations */=0D=0A+=09.wri=
+te_iter=09   =3D famfs_dax_write_iter,=0D=0A+=09.read_iter=09   =3D famfs=
+_dax_read_iter,=0D=0A+=09.unlocked_ioctl    =3D NULL /*famfs_file_ioctl*/=
+,=0D=0A+=09.mmap=09=09   =3D NULL /* famfs_file_mmap */,=0D=0A+=0D=0A+=09=
+/* Force PMD alignment for mmap */=0D=0A+=09.get_unmapped_area =3D thp_ge=
+t_unmapped_area,=0D=0A+=0D=0A+=09/* Generic Operations */=0D=0A+=09.fsync=
+=09=09   =3D noop_fsync,=0D=0A+=09.splice_read=09   =3D copy_splice_read,=
+=0D=0A+=09.splice_write=09   =3D iter_file_splice_write,=0D=0A+=09.llseek=
+=09=09   =3D generic_file_llseek,=0D=0A+};=0D=0A+=0D=0Adiff --git a/fs/fa=
+mfs/famfs_inode.c b/fs/famfs/famfs_inode.c=0D=0Aindex b7a3d8d6ee8c..9e866=
+2c4ac98 100644=0D=0A--- a/fs/famfs/famfs_inode.c=0D=0A+++ b/fs/famfs/famf=
+s_inode.c=0D=0A@@ -59,7 +59,7 @@ famfs_get_inode(=0D=0A =09=09break;=0D=0A=
+ =09case S_IFREG:=0D=0A =09=09inode->i_op =3D &famfs_file_inode_operation=
+s;=0D=0A-=09=09inode->i_fop =3D NULL /* &famfs_file_operations */;=0D=0A+=
+=09=09inode->i_fop =3D &famfs_file_operations;=0D=0A =09=09break;=0D=0A =09=
+case S_IFDIR:=0D=0A =09=09inode->i_op =3D &famfs_dir_inode_operations;=0D=
+=0Adiff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h=0D=0A=
+index 30f0b01010d5..ff9f1d3f686e 100644=0D=0A--- a/fs/famfs/famfs_interna=
+l.h=0D=0A+++ b/fs/famfs/famfs_internal.h=0D=0A@@ -15,6 +15,8 @@=0D=0A #in=
+clude <linux/bits.h>=0D=0A #include <linux/build_bug.h>=0D=0A=20=0D=0A+ex=
+tern const struct file_operations famfs_file_operations;=0D=0A+=0D=0A str=
+uct famfs_mount_opts {=0D=0A =09umode_t mode;=0D=0A };=0D=0A--=20=0D=0A2.=
+53.0=0D=0A=0D=0A
